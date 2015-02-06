@@ -18,6 +18,9 @@ Security
    * Fix potential stack overflow while parsing crafted X.509 certificates
      (TLS server is not affected if it doesn't ask for a client certificate)
      (found using Codenomicon Defensics).
+   * Fix timing difference that could theoretically lead to a
+     Bleichenbacher-style attack in the RSA and RSA-PSK key exchanges
+     (reported by Sebastian Schinzel).
 
 Features
    * Add support for FALLBACK_SCSV (draft-ietf-tls-downgrade-scsv).

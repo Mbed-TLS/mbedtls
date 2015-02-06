@@ -2884,6 +2884,10 @@ static int ssl_parse_encrypted_pms( ssl_context *ssl,
     int ret;
     size_t len = pk_get_len( ssl_own_key( ssl ) );
     unsigned char *pms = ssl->handshake->premaster + pms_offset;
+    unsigned char fake_pms[48], peer_pms[48];
+    unsigned char mask;
+    unsigned int uret;
+    size_t i;
 
     if( ! pk_can_do( ssl_own_key( ssl ), POLARSSL_PK_RSA ) )
     {
@@ -2913,31 +2917,47 @@ static int ssl_parse_encrypted_pms( ssl_context *ssl,
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
     }
 
+    /*
+     * Protection against Bleichenbacher's attack: invalid PKCS#1 v1.5 padding
+     * must not cause the connection to end immediately; instead, send a
+     * bad_record_mac later in the handshake.
+     * Also, avoid data-dependant branches here to protect against
+     * timing-based variants.
+     */
+    ret = ssl->f_rng( ssl->p_rng, fake_pms, sizeof( fake_pms ) );
+    if( ret != 0 )
+        return( ret );
+
     ret = pk_decrypt( ssl_own_key( ssl ), p, len,
-                      pms, &ssl->handshake->pmslen,
-                      sizeof( ssl->handshake->premaster ) - pms_offset,
+                      peer_pms, &ssl->handshake->pmslen,
+                      sizeof( peer_pms ),
                       ssl->f_rng, ssl->p_rng );
 
-    if( ret != 0 || ssl->handshake->pmslen != 48 ||
-        pms[0] != ssl->handshake->max_major_ver ||
-        pms[1] != ssl->handshake->max_minor_ver )
-    {
+    ret |= ssl->handshake->pmslen - 48;
+    ret |= peer_pms[0] - ssl->handshake->max_major_ver;
+    ret |= peer_pms[1] - ssl->handshake->max_minor_ver;
+
+#if defined(POLARSSL_SSL_DEBUG_ALL)
+    if( ret != 0 )
         SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
+#endif
 
-        /*
-         * Protection against Bleichenbacher's attack:
-         * invalid PKCS#1 v1.5 padding must not cause
-         * the connection to end immediately; instead,
-         * send a bad_record_mac later in the handshake.
-         */
-        ssl->handshake->pmslen = 48;
-
-        ret = ssl->f_rng( ssl->p_rng, pms, ssl->handshake->pmslen );
-        if( ret != 0 )
-            return( ret );
+    if( sizeof( ssl->handshake->premaster ) < pms_offset ||
+        sizeof( ssl->handshake->premaster ) - pms_offset < 48 )
+    {
+        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
     }
+    ssl->handshake->pmslen = 48;
 
-    return( ret );
+    uret = (unsigned) ret;
+    uret |= -uret; /* msb = ( ret != 0 ) */
+    uret >>= 8 * sizeof( uret ) - 1; /* uret = ( ret != 0 ) */
+    mask = (unsigned char)( -uret ) ; /* ret ? 0xff : 0x00 */
+    for( i = 0; i < ssl->handshake->pmslen; i++ )
+        pms[i] = ( mask & fake_pms[i] ) | ( (~mask) & peer_pms[i] );
+
+    return( 0 );
 }
 #endif /* POLARSSL_KEY_EXCHANGE_RSA_ENABLED ||
           POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED */

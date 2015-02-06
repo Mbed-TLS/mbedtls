@@ -1,8 +1,8 @@
 /* BEGIN_HEADER */
-#include <polarssl/cipher.h>
+#include "polarssl/cipher.h"
 
 #if defined(POLARSSL_GCM_C)
-#include <polarssl/gcm.h>
+#include "polarssl/gcm.h"
 #endif
 /* END_HEADER */
 

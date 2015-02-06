@@ -1,5 +1,5 @@
 /* BEGIN_HEADER */
-#include <polarssl/version.h>
+#include "polarssl/version.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

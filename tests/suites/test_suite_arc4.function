@@ -1,5 +1,5 @@
 /* BEGIN_HEADER */
-#include <polarssl/arc4.h>
+#include "polarssl/arc4.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

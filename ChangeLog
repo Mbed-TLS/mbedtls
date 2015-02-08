@@ -1,9 +1,6 @@
-PolarSSL ChangeLog (Sorted per branch, date)
+mbed TLS ChangeLog (Sorted per branch, date)
 
-= 1.3 branch
-
-Reminder: bump SONAME for ABI change (FALLBACK_SCSV, session-hash, EtM)
-
+= mbed TLS 1.3.10 released 2015-02-09
 Security
    * NULL pointer dereference in the buffer-based allocator when the buffer is
      full and polarssl_free() is called (found by Mark Hasemeyer)

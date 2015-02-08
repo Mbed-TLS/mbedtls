@@ -24,7 +24,7 @@ endif
 
 SONAME=libmbedtls.so.7
 
-DLEXT=so.7
+DLEXT=so.8
 # OSX shared library extension:
 # DLEXT=dylib
 

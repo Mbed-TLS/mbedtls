@@ -33,7 +33,7 @@
 #if defined(POLARSSL_ERROR_C)
 
 HEADER_INCLUDED
-
+#include <stdio.h>
 #include <string.h>
 
 #if defined(_MSC_VER) && !defined  snprintf && !defined(EFIX64) && \

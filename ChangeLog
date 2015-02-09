@@ -1,4 +1,4 @@
-PolarSSL ChangeLog (Sorted per branch, date)
+mbed TLS ChangeLog (Sorted per branch, date)
 
 = PolarSSL 1.4.0 (DTLS branch) released 2014-10-22
 Features
@@ -10,10 +10,8 @@ API Changes
    * ssl_set_bio() now requires that p_send == p_recv.
    * ssl_set_bio() is deprecated in favor of ssl_set_bio_timeout().
 
-= 1.3 branch
 
-Reminder: bump SONAME for ABI change (FALLBACK_SCSV, session-hash, EtM)
-
+= mbed TLS 1.3.10 released 2015-02-09
 Security
    * NULL pointer dereference in the buffer-based allocator when the buffer is
      full and polarssl_free() is called (found by Mark Hasemeyer)
@@ -28,6 +26,9 @@ Security
    * Fix potential stack overflow while parsing crafted X.509 certificates
      (TLS server is not affected if it doesn't ask for a client certificate)
      (found using Codenomicon Defensics).
+   * Fix timing difference that could theoretically lead to a
+     Bleichenbacher-style attack in the RSA and RSA-PSK key exchanges
+     (reported by Sebastian Schinzel).
 
 Features
    * Add support for FALLBACK_SCSV (draft-ietf-tls-downgrade-scsv).

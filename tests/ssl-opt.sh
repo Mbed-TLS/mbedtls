@@ -1391,6 +1391,7 @@ run_test    "Renegotiation: openssl server, client-initiated" \
             -C "error" \
             -c "HTTP/1.0 200 [Oo][Kk]"
 
+requires_gnutls
 run_test    "Renegotiation: gnutls server strict, client-initiated" \
             "$G_SRV --priority=NORMAL:%SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1" \
@@ -1402,6 +1403,7 @@ run_test    "Renegotiation: gnutls server strict, client-initiated" \
             -C "error" \
             -c "HTTP/1.0 200 [Oo][Kk]"
 
+requires_gnutls
 run_test    "Renegotiation: gnutls server unsafe, client-initiated default" \
             "$G_SRV --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1" \
@@ -1413,6 +1415,7 @@ run_test    "Renegotiation: gnutls server unsafe, client-initiated default" \
             -c "error" \
             -C "HTTP/1.0 200 [Oo][Kk]"
 
+requires_gnutls
 run_test    "Renegotiation: gnutls server unsafe, client-inititated no legacy" \
             "$G_SRV --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1 \
@@ -1425,6 +1428,7 @@ run_test    "Renegotiation: gnutls server unsafe, client-inititated no legacy" \
             -c "error" \
             -C "HTTP/1.0 200 [Oo][Kk]"
 
+requires_gnutls
 run_test    "Renegotiation: gnutls server unsafe, client-inititated legacy" \
             "$G_SRV --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1 \
@@ -1477,6 +1481,7 @@ run_test    "Renegotiation: DTLS, gnutls server, client-initiated" \
 
 # Test for the "secure renegotation" extension only (no actual renegotiation)
 
+requires_gnutls
 run_test    "Renego ext: gnutls server strict, client default" \
             "$G_SRV --priority=NORMAL:%SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3" \
@@ -1485,6 +1490,7 @@ run_test    "Renego ext: gnutls server strict, client default" \
             -C "error" \
             -c "HTTP/1.0 200 [Oo][Kk]"
 
+requires_gnutls
 run_test    "Renego ext: gnutls server unsafe, client default" \
             "$G_SRV --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3" \
@@ -1493,6 +1499,7 @@ run_test    "Renego ext: gnutls server unsafe, client default" \
             -C "error" \
             -c "HTTP/1.0 200 [Oo][Kk]"
 
+requires_gnutls
 run_test    "Renego ext: gnutls server unsafe, client break legacy" \
             "$G_SRV --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 allow_legacy=-1" \
@@ -1501,6 +1508,7 @@ run_test    "Renego ext: gnutls server unsafe, client break legacy" \
             -c "error" \
             -C "HTTP/1.0 200 [Oo][Kk]"
 
+requires_gnutls
 run_test    "Renego ext: gnutls client strict, server default" \
             "$P_SRV debug_level=3" \
             "$G_CLI --priority=NORMAL:%SAFE_RENEGOTIATION" \
@@ -1508,6 +1516,7 @@ run_test    "Renego ext: gnutls client strict, server default" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO\|found renegotiation extension" \
             -s "server hello, secure renegotiation extension"
 
+requires_gnutls
 run_test    "Renego ext: gnutls client unsafe, server default" \
             "$P_SRV debug_level=3" \
             "$G_CLI --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION" \
@@ -1515,6 +1524,7 @@ run_test    "Renego ext: gnutls client unsafe, server default" \
             -S "received TLS_EMPTY_RENEGOTIATION_INFO\|found renegotiation extension" \
             -S "server hello, secure renegotiation extension"
 
+requires_gnutls
 run_test    "Renego ext: gnutls client unsafe, server break legacy" \
             "$P_SRV debug_level=3 allow_legacy=-1" \
             "$G_CLI --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION" \

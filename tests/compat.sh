@@ -869,7 +869,7 @@ start_server() {
     log "$SERVER_CMD"
     echo "$SERVER_CMD" > $SRV_OUT
     # for servers without -www or equivalent
-    yes Filler-text-for-server-to-send | $SERVER_CMD >> $SRV_OUT 2>&1 &
+    while :; do echo bla; sleep 1; done | $SERVER_CMD >> $SRV_OUT 2>&1 &
     PROCESS_ID=$!
 
     sleep 1

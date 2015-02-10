@@ -11,6 +11,10 @@ Bugfix
 Changes
    * Move from SHA-1 to SHA-256 in example programs using signatures
      (suggested by Thorsten Mühlfelder).
+   * Remove some unneeded inclusions of header files from the standard library
+     "minimize" others (eg use stddef.h if only size_t is needed).
+   * Change #include lines in test files to use double quotes instead of angle
+     brackets for uniformity with the rest of the code.
 
 = mbed TLS 1.3.10 released 2015-02-09
 Security

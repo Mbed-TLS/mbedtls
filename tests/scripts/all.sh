@@ -128,10 +128,33 @@ tests/scripts/curves.pl
 
 msg "build: Unix make, -O2 (gcc)" # ~ 30s
 cleanup
-CC=gcc make
+CC=gcc CFLAGS=-Werror make
 
-# MemSan currently only available on Linux
-if [ `uname` = 'Linux' ]; then
+if uname -a | grep -F x86_64 >/dev/null; then
+msg "build: i386, make, gcc" # ~ 30s
+cleanup
+CC=gcc CFLAGS='-Werror -m32' make
+fi # x86_64
+
+if which arm-none-eabi-gcc >/dev/null; then
+msg "build: arm-none-eabi-gcc, make" # ~ 10s
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl full
+scripts/config.pl unset POLARSSL_NET_C
+scripts/config.pl unset POLARSSL_TIMING_C
+scripts/config.pl unset POLARSSL_FS_IO
+# following things are not in the default config
+scripts/config.pl unset POLARSSL_HAVEGE_C # depends on timing.c
+scripts/config.pl unset POLARSSL_THREADING_PTHREAD
+scripts/config.pl unset POLARSSL_THREADING_C
+scripts/config.pl unset POLARSSL_MEMORY_BACKTRACE # execinfo.h
+scripts/config.pl unset POLARSSL_MEMORY_BUFFER_ALLOC_C # calls exit
+CC=arm-none-eabi-gcc CFLAGS=-Werror make lib
+fi # arm-gcc
+
+# MemSan currently only available on Linux 64 bits
+if uname -a | grep 'Linux.*x86_64' >/dev/null; then
 
 msg "build: MSan (clang)" # ~ 1 min 20s
 cleanup

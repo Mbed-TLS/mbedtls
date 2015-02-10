@@ -62,6 +62,10 @@
 #include "polarssl/ccm.h"
 #endif
 
+#if defined(POLARSSL_CIPHER_NULL_CIPHER)
+#include <string.h>
+#endif
+
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else

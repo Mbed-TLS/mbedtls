@@ -36,6 +36,8 @@
 
 #include "polarssl/md2.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_FS_IO)
 #include <stdio.h>
 #endif

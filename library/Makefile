@@ -22,7 +22,7 @@ ifdef SHARED
 CFLAGS += -fPIC
 endif
 
-SONAME=libmbedtls.so.7
+SONAME=libmbedtls.so.8
 
 DLEXT=so.8
 # OSX shared library extension:

@@ -345,7 +345,7 @@ static int pk_group_from_specified( const asn1_buf *params, ecp_group *grp )
     /*
      * order INTEGER
      */
-    if( ( ret = asn1_get_mpi( &p, end, &grp->N ) ) )
+    if( ( ret = asn1_get_mpi( &p, end, &grp->N ) ) != 0 )
         return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT + ret );
 
     grp->nbits = mpi_msb( &grp->N );

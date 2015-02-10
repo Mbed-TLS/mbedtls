@@ -456,7 +456,7 @@ int camellia_setkey_dec( camellia_context *ctx, const unsigned char *key,
     camellia_init( &cty );
 
     /* Also checks keysize */
-    if( ( ret = camellia_setkey_enc( &cty, key, keysize ) ) )
+    if( ( ret = camellia_setkey_enc( &cty, key, keysize ) ) != 0 )
         goto exit;
 
     ctx->nr = cty.nr;

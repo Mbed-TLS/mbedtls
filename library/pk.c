@@ -27,7 +27,6 @@
 #endif
 
 #if defined(POLARSSL_PK_C)
-
 #include "polarssl/pk.h"
 #include "polarssl/pk_wrap.h"
 

@@ -30,7 +30,7 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
-#include <stdlib.h>
+#include <stddef.h>
 
 /**
  * \name SECTION: Module settings

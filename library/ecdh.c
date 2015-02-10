@@ -37,6 +37,8 @@
 
 #include "polarssl/ecdh.h"
 
+#include <string.h>
+
 /*
  * Generate public key: simple wrapper around ecp_gen_keypair
  */

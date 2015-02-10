@@ -1,5 +1,5 @@
 /* BEGIN_HEADER */
-#include <polarssl/memory_buffer_alloc.h>
+#include "polarssl/memory_buffer_alloc.h"
 #define TEST_SUITE_MEMORY_BUFFER_ALLOC
 /* END_HEADER */
 

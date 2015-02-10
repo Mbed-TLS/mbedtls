@@ -37,11 +37,15 @@ typedef UINT32 uint32_t;
 #include <inttypes.h>
 #endif
 
+#if defined(POLARSSL_SELF_TEST)
+#include <string.h>
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf printf
-#endif
+#endif /* POLARSSL_PLATFORM_C */
+#endif /* POLARSSL_SELF_TEST */
 
 static const unsigned char base64_enc_map[64] =
 {
@@ -220,9 +224,6 @@ int base64_decode( unsigned char *dst, size_t *dlen,
 }
 
 #if defined(POLARSSL_SELF_TEST)
-
-#include <string.h>
-#include <stdio.h>
 
 static const unsigned char base64_test_dec[64] =
 {

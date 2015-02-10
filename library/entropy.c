@@ -31,9 +31,20 @@
 #include "polarssl/entropy.h"
 #include "polarssl/entropy_poll.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_FS_IO)
 #include <stdio.h>
 #endif
+
+#if defined(POLARSSL_SELF_TEST)
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#include <stdio.h>
+#define polarssl_printf     printf
+#endif /* POLARSSL_PLATFORM_C */
+#endif /* POLARSSL_SELF_TEST */
 
 #if defined(POLARSSL_HAVEGE_C)
 #include "polarssl/havege.h"
@@ -378,14 +389,6 @@ int entropy_update_seed_file( entropy_context *ctx, const char *path )
 #endif /* POLARSSL_FS_IO */
 
 #if defined(POLARSSL_SELF_TEST)
-
-#if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
-#else
-#include <stdio.h>
-#define polarssl_printf     printf
-#endif
-
 /*
  * Dummy source function
  */

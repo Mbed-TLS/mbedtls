@@ -27,11 +27,12 @@
 #endif
 
 #if defined(POLARSSL_PK_C)
-
 #include "polarssl/pk_wrap.h"
 
 /* Even if RSA not activated, for the sake of RSA-alt */
 #include "polarssl/rsa.h"
+
+#include <string.h>
 
 #if defined(POLARSSL_ECP_C)
 #include "polarssl/ecp.h"

@@ -26,10 +26,10 @@
 #ifndef POLARSSL_PKCS5_H
 #define POLARSSL_PKCS5_H
 
-#include <string.h>
-
 #include "asn1.h"
 #include "md.h"
+
+#include <stddef.h>
 
 #if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
 #include <basetsd.h>

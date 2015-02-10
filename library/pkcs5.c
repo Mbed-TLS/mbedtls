@@ -43,9 +43,12 @@
 #include "polarssl/cipher.h"
 #include "polarssl/oid.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf printf
 #endif
 
@@ -294,8 +297,6 @@ int pkcs5_self_test( int verbose )
     return( 0 );
 }
 #else
-
-#include <stdio.h>
 
 #define MAX_TESTS   6
 

@@ -33,7 +33,8 @@
 #include "polarssl/ssl_ciphersuites.h"
 #include "polarssl/ssl.h"
 
-#include <stdlib.h>
+// #include <stdlib.h>
+#include <string.h>
 
 #if defined(_MSC_VER) && !defined strcasecmp && !defined(EFIX64) && \
     !defined(EFI32)

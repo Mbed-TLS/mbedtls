@@ -33,11 +33,12 @@
 #include "polarssl/oid.h"
 #include "polarssl/rsa.h"
 
+#include <stdio.h>
+#include <string.h>
+
 #if defined(POLARSSL_X509_USE_C) || defined(POLARSSL_X509_CREATE_C)
 #include "polarssl/x509.h"
 #endif
-
-#include <stdio.h>
 
 /*
  * Macro to automatically add the size of #define'd OIDs

@@ -36,15 +36,20 @@
 
 #include "polarssl/hmac_drbg.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_FS_IO)
 #include <stdio.h>
 #endif
 
+#if defined(POLARSSL_SELF_TEST)
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf printf
-#endif
+#endif /* POLARSSL_SELF_TEST */
+#endif /* POLARSSL_PLATFORM_C */
 
 /* Implementation that should never be optimized out by the compiler */
 static void polarssl_zeroize( void *v, size_t n ) {
@@ -375,8 +380,6 @@ int hmac_drbg_update_seed_file( hmac_drbg_context *ctx, const char *path )
 
 
 #if defined(POLARSSL_SELF_TEST)
-
-#include <stdio.h>
 
 #if !defined(POLARSSL_SHA1_C)
 /* Dummy checkup routine */

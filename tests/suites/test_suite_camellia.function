@@ -1,5 +1,5 @@
 /* BEGIN_HEADER */
-#include <polarssl/camellia.h>
+#include "polarssl/camellia.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

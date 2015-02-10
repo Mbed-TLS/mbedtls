@@ -34,14 +34,15 @@
 
 #include "polarssl/ssl_cache.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdlib.h>
 #define polarssl_malloc     malloc
 #define polarssl_free       free
 #endif
-
-#include <stdlib.h>
 
 void ssl_cache_init( ssl_cache_context *cache )
 {

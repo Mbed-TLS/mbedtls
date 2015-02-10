@@ -65,11 +65,11 @@ print TEST_FILE << "END";
 #include POLARSSL_CONFIG_FILE
 #endif
 
+$test_helpers
+
 $suite_pre_code
 $suite_header
 $suite_post_code
-
-$test_helpers
 
 END
 

@@ -24,11 +24,11 @@
 #ifndef POLARSSL_PKCS12_H
 #define POLARSSL_PKCS12_H
 
-#include <string.h>
-
 #include "md.h"
 #include "cipher.h"
 #include "asn1.h"
+
+#include <stddef.h>
 
 #define POLARSSL_ERR_PKCS12_BAD_INPUT_DATA                 -0x1F80  /**< Bad input parameters to function. */
 #define POLARSSL_ERR_PKCS12_FEATURE_UNAVAILABLE            -0x1F00  /**< Feature not available, e.g. unsupported encryption scheme. */

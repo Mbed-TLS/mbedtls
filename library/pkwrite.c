@@ -32,6 +32,8 @@
 #include "polarssl/asn1write.h"
 #include "polarssl/oid.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_RSA_C)
 #include "polarssl/rsa.h"
 #endif

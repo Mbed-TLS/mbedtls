@@ -38,6 +38,8 @@
 #include "polarssl/asn1.h"
 #include "polarssl/cipher.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_ARC4_C)
 #include "polarssl/arc4.h"
 #endif

@@ -35,8 +35,6 @@
 #define POLARSSL_PLATFORM_MEMORY
 #endif
 
-#include <stdio.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -50,6 +48,7 @@ extern "C" {
  */
 
 #if !defined(POLARSSL_PLATFORM_NO_STD_FUNCTIONS)
+#include <stdio.h>
 #include <stdlib.h>
 #if !defined(POLARSSL_PLATFORM_STD_PRINTF)
 #define POLARSSL_PLATFORM_STD_PRINTF   printf /**< Default printf to use  */
@@ -88,10 +87,10 @@ extern void (*polarssl_free)( void *ptr );
  */
 int platform_set_malloc_free( void * (*malloc_func)( size_t ),
                               void (*free_func)( void * ) );
-#else /* POLARSSL_PLATFORM_ENTROPY */
+#else /* !POLARSSL_PLATFORM_MEMORY */
 #define polarssl_malloc     malloc
 #define polarssl_free       free
-#endif /* POLARSSL_PLATFORM_ENTROPY */
+#endif /* POLARSSL_PLATFORM_MEMORY */
 
 /*
  * The function pointers for printf

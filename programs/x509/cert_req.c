@@ -149,7 +149,7 @@ int main( int argc, char *argv[] )
      * Set to sane values
      */
     x509write_csr_init( &req );
-    x509write_csr_set_md_alg( &req, POLARSSL_MD_SHA1 );
+    x509write_csr_set_md_alg( &req, POLARSSL_MD_SHA256 );
     pk_init( &key );
     memset( buf, 0, sizeof( buf ) );
 

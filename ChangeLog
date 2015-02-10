@@ -9,6 +9,8 @@ Features
 Bugfix
 
 Changes
+   * Move from SHA-1 to SHA-256 in example programs using signatures
+     (suggested by Thorsten Mühlfelder).
 
 = mbed TLS 1.3.10 released 2015-02-09
 Security

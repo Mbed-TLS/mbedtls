@@ -1,5 +1,5 @@
 /*
- *  RSASSA-PSS/SHA-1 signature verification program
+ *  RSASSA-PSS/SHA-256 signature verification program
  *
  *  Copyright (C) 2006-2011, ARM Limited, All Rights Reserved
  *
@@ -46,7 +46,7 @@
 #endif
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||      \
-    !defined(POLARSSL_SHA1_C) || !defined(POLARSSL_PK_PARSE_C) ||   \
+    !defined(POLARSSL_SHA256_C) || !defined(POLARSSL_PK_PARSE_C) ||   \
     !defined(POLARSSL_FS_IO)
 int main( int argc, char *argv[] )
 {
@@ -54,7 +54,7 @@ int main( int argc, char *argv[] )
     ((void) argv);
 
     polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_SHA1_C and/or POLARSSL_PK_PARSE_C and/or "
+           "POLARSSL_SHA256_C and/or POLARSSL_PK_PARSE_C and/or "
            "POLARSSL_FS_IO not defined.\n");
     return( 0 );
 }
@@ -99,7 +99,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    rsa_set_padding( pk_rsa( pk ), RSA_PKCS_V21, POLARSSL_MD_SHA1 );
+    rsa_set_padding( pk_rsa( pk ), RSA_PKCS_V21, POLARSSL_MD_SHA256 );
 
     /*
      * Extract the RSA signature from the text file
@@ -119,10 +119,10 @@ int main( int argc, char *argv[] )
     fclose( f );
 
     /*
-     * Compute the SHA-1 hash of the input file and compare
+     * Compute the SHA-256 hash of the input file and compare
      * it with the hash decrypted from the RSA signature.
      */
-    polarssl_printf( "\n  . Verifying the RSA/SHA-1 signature" );
+    polarssl_printf( "\n  . Verifying the RSA/SHA-256 signature" );
     fflush( stdout );
 
     if( ( ret = sha1_file( argv[2], hash ) ) != 0 )
@@ -131,14 +131,14 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    if( ( ret = pk_verify( &pk, POLARSSL_MD_SHA1, hash, 0,
+    if( ( ret = pk_verify( &pk, POLARSSL_MD_SHA256, hash, 0,
                            buf, i ) ) != 0 )
     {
         polarssl_printf( " failed\n  ! pk_verify returned %d\n\n", ret );
         goto exit;
     }
 
-    polarssl_printf( "\n  . OK (the decrypted SHA-1 hash matches)\n\n" );
+    polarssl_printf( "\n  . OK (the decrypted SHA-256 hash matches)\n\n" );
 
     ret = 0;
 
@@ -152,5 +152,5 @@ exit:
 
     return( ret );
 }
-#endif /* POLARSSL_BIGNUM_C && POLARSSL_RSA_C && POLARSSL_SHA1_C &&
+#endif /* POLARSSL_BIGNUM_C && POLARSSL_RSA_C && POLARSSL_SHA256_C &&
           POLARSSL_PK_PARSE_C && POLARSSL_FS_IO */

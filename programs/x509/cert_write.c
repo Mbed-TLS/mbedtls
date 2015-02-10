@@ -209,7 +209,7 @@ int main( int argc, char *argv[] )
      * Set to sane values
      */
     x509write_crt_init( &crt );
-    x509write_crt_set_md_alg( &crt, POLARSSL_MD_SHA1 );
+    x509write_crt_set_md_alg( &crt, POLARSSL_MD_SHA256 );
     pk_init( &loaded_issuer_key );
     pk_init( &loaded_subject_key );
     mpi_init( &serial );

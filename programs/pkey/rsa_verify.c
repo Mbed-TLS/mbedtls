@@ -1,5 +1,5 @@
 /*
- *  RSA/SHA-1 signature verification program
+ *  RSA/SHA-256 signature verification program
  *
  *  Copyright (C) 2006-2011, ARM Limited, All Rights Reserved
  *
@@ -39,14 +39,14 @@
 #include "polarssl/sha1.h"
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||  \
-    !defined(POLARSSL_SHA1_C) || !defined(POLARSSL_FS_IO)
+    !defined(POLARSSL_SHA256_C) || !defined(POLARSSL_FS_IO)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
     ((void) argv);
 
     polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_SHA1_C and/or POLARSSL_FS_IO not defined.\n");
+           "POLARSSL_SHA256_C and/or POLARSSL_FS_IO not defined.\n");
     return( 0 );
 }
 #else
@@ -122,10 +122,10 @@ int main( int argc, char *argv[] )
     }
 
     /*
-     * Compute the SHA-1 hash of the input file and compare
+     * Compute the SHA-256 hash of the input file and compare
      * it with the hash decrypted from the RSA signature.
      */
-    polarssl_printf( "\n  . Verifying the RSA/SHA-1 signature" );
+    polarssl_printf( "\n  . Verifying the RSA/SHA-256 signature" );
     fflush( stdout );
 
     if( ( ret = sha1_file( argv[1], hash ) ) != 0 )
@@ -135,13 +135,13 @@ int main( int argc, char *argv[] )
     }
 
     if( ( ret = rsa_pkcs1_verify( &rsa, NULL, NULL, RSA_PUBLIC,
-                                  POLARSSL_MD_SHA1, 20, hash, buf ) ) != 0 )
+                                  POLARSSL_MD_SHA256, 20, hash, buf ) ) != 0 )
     {
         polarssl_printf( " failed\n  ! rsa_pkcs1_verify returned -0x%0x\n\n", -ret );
         goto exit;
     }
 
-    polarssl_printf( "\n  . OK (the decrypted SHA-1 hash matches)\n\n" );
+    polarssl_printf( "\n  . OK (the decrypted SHA-256 hash matches)\n\n" );
 
     ret = 0;
 
@@ -154,5 +154,5 @@ exit:
 
     return( ret );
 }
-#endif /* POLARSSL_BIGNUM_C && POLARSSL_RSA_C && POLARSSL_SHA1_C &&
+#endif /* POLARSSL_BIGNUM_C && POLARSSL_RSA_C && POLARSSL_SHA256_C &&
           POLARSSL_FS_IO */

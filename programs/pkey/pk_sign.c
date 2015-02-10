@@ -47,7 +47,7 @@
 #endif
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
-    !defined(POLARSSL_SHA1_C) ||                                    \
+    !defined(POLARSSL_SHA256_C) ||                                    \
     !defined(POLARSSL_PK_PARSE_C) || !defined(POLARSSL_FS_IO) ||    \
     !defined(POLARSSL_CTR_DRBG_C)
 int main( int argc, char *argv[] )
@@ -56,7 +56,7 @@ int main( int argc, char *argv[] )
     ((void) argv);
 
     polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
-           "POLARSSL_SHA1_C and/or "
+           "POLARSSL_SHA256_C and/or "
            "POLARSSL_PK_PARSE_C and/or POLARSSL_FS_IO and/or "
            "POLARSSL_CTR_DRBG_C not defined.\n");
     return( 0 );
@@ -111,10 +111,10 @@ int main( int argc, char *argv[] )
     }
 
     /*
-     * Compute the SHA-1 hash of the input file,
+     * Compute the SHA-256 hash of the input file,
      * then calculate the signature of the hash.
      */
-    polarssl_printf( "\n  . Generating the SHA-1 signature" );
+    polarssl_printf( "\n  . Generating the SHA-256 signature" );
     fflush( stdout );
 
     if( ( ret = sha1_file( argv[2], hash ) ) != 0 )
@@ -123,7 +123,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    if( ( ret = pk_sign( &pk, POLARSSL_MD_SHA1, hash, 0, buf, &olen,
+    if( ( ret = pk_sign( &pk, POLARSSL_MD_SHA256, hash, 0, buf, &olen,
                          ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
         polarssl_printf( " failed\n  ! pk_sign returned -0x%04x\n", -ret );
@@ -170,5 +170,5 @@ exit:
     return( ret );
 }
 #endif /* POLARSSL_BIGNUM_C && POLARSSL_ENTROPY_C &&
-          POLARSSL_SHA1_C && POLARSSL_PK_PARSE_C && POLARSSL_FS_IO &&
+          POLARSSL_SHA256_C && POLARSSL_PK_PARSE_C && POLARSSL_FS_IO &&
           POLARSSL_CTR_DRBG_C */

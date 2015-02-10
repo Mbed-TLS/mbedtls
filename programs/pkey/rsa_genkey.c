@@ -33,6 +33,7 @@
 #endif
 
 #include <stdio.h>
+#include <string.h>
 
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"

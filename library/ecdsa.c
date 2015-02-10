@@ -59,7 +59,7 @@ static const md_info_t *md_info_by_size( size_t min_size )
 
     for( md_alg = md_list(); *md_alg != 0; md_alg++ )
     {
-        if( ( md_cur = md_info_from_type( *md_alg ) ) == NULL ||
+        if( ( md_cur = md_info_from_type( (md_type_t) *md_alg ) ) == NULL ||
             (size_t) md_cur->size < min_size ||
             ( md_picked != NULL && md_cur->size > md_picked->size ) )
             continue;

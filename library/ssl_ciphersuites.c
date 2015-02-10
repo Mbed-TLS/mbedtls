@@ -1674,7 +1674,9 @@ static const ssl_ciphersuite_t ciphersuite_definitions[] =
 #endif /* POLARSSL_DES_C */
 #endif /* POLARSSL_ENABLE_WEAK_CIPHERSUITES */
 
-    { 0, "", 0, 0, 0, 0, 0, 0, 0, 0 }
+    { 0, "",
+      POLARSSL_CIPHER_NONE, POLARSSL_MD_NONE, POLARSSL_KEY_EXCHANGE_NONE,
+      0, 0, 0, 0, 0 }
 };
 
 #if defined(SSL_CIPHERSUITES)

@@ -1442,7 +1442,7 @@ const cipher_definition_t cipher_definitions[] =
     { POLARSSL_CIPHER_NULL,                 &null_cipher_info },
 #endif /* POLARSSL_CIPHER_NULL_CIPHER */
 
-    { 0, NULL }
+    { POLARSSL_CIPHER_NONE, NULL }
 };
 
 #define NUM_CIPHERS sizeof cipher_definitions / sizeof cipher_definitions[0]

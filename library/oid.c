@@ -367,7 +367,7 @@ static const oid_sig_alg_t oid_sig_alg[] =
     },
     {
         { NULL, 0, NULL, NULL },
-        0, 0,
+        POLARSSL_MD_NONE, POLARSSL_PK_NONE,
     },
 };
 
@@ -401,7 +401,7 @@ static const oid_pk_alg_t oid_pk_alg[] =
     },
     {
         { NULL, 0, NULL, NULL },
-        0,
+        POLARSSL_PK_NONE,
     },
 };
 
@@ -466,7 +466,7 @@ static const oid_ecp_grp_t oid_ecp_grp[] =
     },
     {
         { NULL, 0, NULL, NULL },
-        0,
+        POLARSSL_ECP_DP_NONE,
     },
 };
 
@@ -496,7 +496,7 @@ static const oid_cipher_alg_t oid_cipher_alg[] =
     },
     {
         { NULL, 0, NULL, NULL },
-        0,
+        POLARSSL_CIPHER_NONE,
     },
 };
 
@@ -549,7 +549,7 @@ static const oid_md_alg_t oid_md_alg[] =
     },
     {
         { NULL, 0, NULL, NULL },
-        0,
+        POLARSSL_MD_NONE,
     },
 };
 
@@ -580,7 +580,7 @@ static const oid_pkcs12_pbe_alg_t oid_pkcs12_pbe_alg[] =
     },
     {
         { NULL, 0, NULL, NULL },
-        0, 0,
+        POLARSSL_MD_NONE, POLARSSL_CIPHER_NONE,
     },
 };
 

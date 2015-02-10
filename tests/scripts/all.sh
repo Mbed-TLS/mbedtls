@@ -153,6 +153,26 @@ scripts/config.pl unset POLARSSL_MEMORY_BUFFER_ALLOC_C # calls exit
 CC=arm-none-eabi-gcc CFLAGS=-Werror make lib
 fi # arm-gcc
 
+if which armcc >/dev/null; then
+msg "build: armcc, make"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl full
+scripts/config.pl unset POLARSSL_NET_C
+scripts/config.pl unset POLARSSL_TIMING_C
+scripts/config.pl unset POLARSSL_FS_IO
+scripts/config.pl unset POLARSSL_HAVE_TIME
+# following things are not in the default config
+scripts/config.pl unset POLARSSL_HAVEGE_C # depends on timing.c
+scripts/config.pl unset POLARSSL_THREADING_PTHREAD
+scripts/config.pl unset POLARSSL_THREADING_C
+scripts/config.pl unset POLARSSL_MEMORY_BACKTRACE # execinfo.h
+scripts/config.pl unset POLARSSL_MEMORY_BUFFER_ALLOC_C # calls exit
+CC=arm-none-eabi-gcc CFLAGS=-Werror make lib 2> armcc.stderr
+grep -v '^ar: creating' armcc.stderr || exit 1
+rm armcc.stderr
+fi # armcc
+
 # MemSan currently only available on Linux 64 bits
 if uname -a | grep 'Linux.*x86_64' >/dev/null; then
 

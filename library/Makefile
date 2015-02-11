@@ -85,7 +85,7 @@ endif
 
 libmbedtls.a: $(OBJS)
 	echo "  AR    $@"
-	$(AR) r $@ $(OBJS)
+	$(AR) rc $@ $(OBJS)
 	echo "  RL    $@"
 	$(AR) s $@
 

@@ -2887,7 +2887,6 @@ static int ssl_parse_encrypted_pms( ssl_context *ssl,
     unsigned char *pms = ssl->handshake->premaster + pms_offset;
     unsigned char fake_pms[48], peer_pms[48];
     unsigned char mask;
-    unsigned int uret;
     size_t i;
 
     if( ! pk_can_do( ssl_own_key( ssl ), POLARSSL_PK_RSA ) )
@@ -2951,10 +2950,7 @@ static int ssl_parse_encrypted_pms( ssl_context *ssl,
     }
     ssl->handshake->pmslen = 48;
 
-    uret = (unsigned) ret;
-    uret |= -uret; /* msb = ( ret != 0 ) */
-    uret >>= 8 * sizeof( uret ) - 1; /* uret = ( ret != 0 ) */
-    mask = (unsigned char)( -uret ) ; /* ret ? 0xff : 0x00 */
+    mask = (unsigned char)( - ( ret != 0 ) ); /* ret ? 0xff : 0x00 */
     for( i = 0; i < ssl->handshake->pmslen; i++ )
         pms[i] = ( mask & fake_pms[i] ) | ( (~mask) & peer_pms[i] );
 

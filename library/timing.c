@@ -77,8 +77,10 @@ unsigned long hardclock( void )
 #endif /* !POLARSSL_HAVE_HARDCLOCK && POLARSSL_HAVE_ASM &&
           ( _MSC_VER && _M_IX86 ) || __WATCOMC__ */
 
+/* some versions of mingw-64 have 32-bit longs even on x84_64 */
 #if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(POLARSSL_HAVE_ASM) &&  \
-    defined(__GNUC__) && defined(__i386__)
+    defined(__GNUC__) && ( defined(__i386__) || (                       \
+    ( defined(__amd64__) || defined( __x86_64__) ) && __SIZEOF_LONG__ == 4 ) )
 
 #define POLARSSL_HAVE_HARDCLOCK
 

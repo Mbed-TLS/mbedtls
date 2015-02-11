@@ -254,7 +254,7 @@ unsigned long get_timer( struct hr_time *val, int reset )
 /* It's OK to use a global because alarm() is supposed to be global anyway */
 static DWORD alarmMs;
 
-DWORD WINAPI TimerProc( LPVOID TimerContext )
+static DWORD WINAPI TimerProc( LPVOID TimerContext )
 {
     ((void) TimerContext);
     Sleep( alarmMs );

@@ -29,16 +29,19 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
-#define polarssl_printf     printf
+#include <stdio.h>
 #define polarssl_fprintf    fprintf
+#define polarssl_printf     printf
 #endif
 
+#if defined(POLARSSL_HAVEGE_C) && defined(POLARSSL_FS_IO)
 #include "polarssl/havege.h"
 
-#include <time.h>
 #include <stdio.h>
+#include <time.h>
+#endif
 
-#if !defined(POLARSSL_HAVEGE_C)
+#if !defined(POLARSSL_HAVEGE_C) || !defined(POLARSSL_FS_IO)
 int main( int argc, char *argv[] )
 {
     ((void) argc);

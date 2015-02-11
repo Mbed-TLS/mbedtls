@@ -29,12 +29,14 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
-#include <string.h>
-#include <stdio.h>
-
+#if defined(POLARSSL_AES_C) && defined(POLARSSL_DHM_C) &&\
+    defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_NET_C) &&\
+    defined(POLARSSL_RSA_C) && defined(POLARSSL_SHA256_C) &&\
+    defined(POLARSSL_FS_IO) && defined(POLARSSL_CTR_DRBG_C)
 #include "polarssl/net.h"
 #include "polarssl/aes.h"
 #include "polarssl/dhm.h"
@@ -42,6 +44,10 @@
 #include "polarssl/sha1.h"
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
+
+#include <stdio.h>
+#include <string.h>
+#endif
 
 #define SERVER_PORT 11999
 #define PLAINTEXT "==Hello there!=="

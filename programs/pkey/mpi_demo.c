@@ -29,12 +29,15 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
-#include <stdio.h>
-
+#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_FS_IO)
 #include "polarssl/bignum.h"
+
+#include <stdio.h>
+#endif
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_FS_IO)
 int main( int argc, char *argv[] )

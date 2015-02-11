@@ -29,13 +29,15 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
-#define polarssl_printf     printf
+#include <stdio.h>
 #define polarssl_fprintf    fprintf
+#define polarssl_printf     printf
 #endif
 
-#include <string.h>
-#include <stdio.h>
-
+#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_ENTROPY_C) &&\
+    defined(POLARSSL_SSL_TLS_C) && defined(POLARSSL_SSL_CLI_C) &&\
+    defined(POLARSSL_NET_C) && defined(POLARSSL_RSA_C) &&\
+    defined(POLARSSL_CTR_DRBG_C) && defined(POLARSSL_X509_CRT_PARSE_C)
 #include "polarssl/net.h"
 #include "polarssl/debug.h"
 #include "polarssl/ssl.h"
@@ -43,6 +45,16 @@
 #include "polarssl/ctr_drbg.h"
 #include "polarssl/error.h"
 #include "polarssl/certs.h"
+
+#include <stdio.h>
+#include <string.h>
+#endif
+
+#define SERVER_PORT 4433
+#define SERVER_NAME "localhost"
+#define GET_REQUEST "GET / HTTP/1.0\r\n\r\n"
+
+#define DEBUG_LEVEL 1
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
     !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_CLI_C) || \
@@ -61,13 +73,6 @@ int main( int argc, char *argv[] )
     return( 0 );
 }
 #else
-
-#define SERVER_PORT 4433
-#define SERVER_NAME "localhost"
-#define GET_REQUEST "GET / HTTP/1.0\r\n\r\n"
-
-#define DEBUG_LEVEL 1
-
 static void my_debug( void *ctx, int level, const char *str )
 {
     ((void) level);

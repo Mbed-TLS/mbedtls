@@ -29,17 +29,56 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-
+#if defined(POLARSSL_X509_CSR_WRITE_C) && defined(POLARSSL_FS_IO) && \
+    defined(POLARSSL_PK_PARSE_C) && \
+    defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_CTR_DRBG_C)
 #include "polarssl/x509_csr.h"
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
 #include "polarssl/error.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#endif
+
+#define DFL_FILENAME            "keyfile.key"
+#define DFL_DEBUG_LEVEL         0
+#define DFL_OUTPUT_FILENAME     "cert.req"
+#define DFL_SUBJECT_NAME        "CN=Cert,O=mbed TLS,C=UK"
+#define DFL_KEY_USAGE           0
+#define DFL_NS_CERT_TYPE        0
+
+#define USAGE \
+    "\n usage: cert_req param=<>...\n"                  \
+    "\n acceptable parameters:\n"                       \
+    "    filename=%%s         default: keyfile.key\n"   \
+    "    debug_level=%%d      default: 0 (disabled)\n"  \
+    "    output_file=%%s      default: cert.req\n"      \
+    "    subject_name=%%s     default: CN=Cert,O=mbed TLS,C=UK\n"   \
+    "    key_usage=%%s        default: (empty)\n"       \
+    "                        Comma-separated-list of values:\n"     \
+    "                          digital_signature\n"     \
+    "                          non_repudiation\n"       \
+    "                          key_encipherment\n"      \
+    "                          data_encipherment\n"     \
+    "                          key_agreement\n"         \
+    "                          key_certificate_sign\n"  \
+    "                          crl_sign\n"              \
+    "    ns_cert_type=%%s     default: (empty)\n"       \
+    "                        Comma-separated-list of values:\n"     \
+    "                          ssl_client\n"            \
+    "                          ssl_server\n"            \
+    "                          email\n"                 \
+    "                          object_signing\n"        \
+    "                          ssl_ca\n"                \
+    "                          email_ca\n"              \
+    "                          object_signing_ca\n"     \
+    "\n"
 
 #if !defined(POLARSSL_X509_CSR_WRITE_C) || !defined(POLARSSL_FS_IO) ||  \
     !defined(POLARSSL_PK_PARSE_C) ||                                    \
@@ -56,14 +95,6 @@ int main( int argc, char *argv[] )
     return( 0 );
 }
 #else
-
-#define DFL_FILENAME            "keyfile.key"
-#define DFL_DEBUG_LEVEL         0
-#define DFL_OUTPUT_FILENAME     "cert.req"
-#define DFL_SUBJECT_NAME        "CN=Cert,O=mbed TLS,C=UK"
-#define DFL_KEY_USAGE           0
-#define DFL_NS_CERT_TYPE        0
-
 /*
  * global options
  */
@@ -105,33 +136,6 @@ int write_certificate_request( x509write_csr *req, const char *output_file,
 
     return( 0 );
 }
-
-#define USAGE \
-    "\n usage: cert_req param=<>...\n"                  \
-    "\n acceptable parameters:\n"                       \
-    "    filename=%%s         default: keyfile.key\n"   \
-    "    debug_level=%%d      default: 0 (disabled)\n"  \
-    "    output_file=%%s      default: cert.req\n"      \
-    "    subject_name=%%s     default: CN=Cert,O=mbed TLS,C=UK\n"   \
-    "    key_usage=%%s        default: (empty)\n"       \
-    "                        Comma-separated-list of values:\n"     \
-    "                          digital_signature\n"     \
-    "                          non_repudiation\n"       \
-    "                          key_encipherment\n"      \
-    "                          data_encipherment\n"     \
-    "                          key_agreement\n"         \
-    "                          key_certificate_sign\n"  \
-    "                          crl_sign\n"              \
-    "    ns_cert_type=%%s     default: (empty)\n"       \
-    "                        Comma-separated-list of values:\n"     \
-    "                          ssl_client\n"            \
-    "                          ssl_server\n"            \
-    "                          email\n"                 \
-    "                          object_signing\n"        \
-    "                          ssl_ca\n"                \
-    "                          email_ca\n"              \
-    "                          object_signing_ca\n"     \
-    "\n"
 
 int main( int argc, char *argv[] )
 {

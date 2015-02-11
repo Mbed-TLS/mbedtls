@@ -29,14 +29,17 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
+#if defined(POLARSSL_ERROR_C) || defined(POLARSSL_ERROR_STRERROR_DUMMY)
+#include "polarssl/error.h"
+
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
-
-#include "polarssl/error.h"
+#endif
 
 #define USAGE \
     "\n usage: strerror <errorcode>\n" \

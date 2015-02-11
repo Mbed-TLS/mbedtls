@@ -29,19 +29,40 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
-#define polarssl_printf     printf
+#include <stdio.h>
 #define polarssl_fprintf    fprintf
+#define polarssl_printf     printf
 #endif
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-
+#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_ENTROPY_C) &&\
+    defined(POLARSSL_SSL_TLS_C) && defined(POLARSSL_SSL_CLI_C) &&\
+    defined(POLARSSL_NET_C) && defined(POLARSSL_RSA_C) &&\
+    defined(POLARSSL_X509_CRT_PARSE_C) && defined(POLARSSL_FS_IO) &&\
+    defined(POLARSSL_CTR_DRBG_C)
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
 #include "polarssl/net.h"
 #include "polarssl/ssl.h"
 #include "polarssl/x509.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#endif
+
+#define MODE_NONE               0
+#define MODE_FILE               1
+#define MODE_SSL                2
+
+#define DFL_MODE                MODE_NONE
+#define DFL_FILENAME            "cert.crt"
+#define DFL_CA_FILE             ""
+#define DFL_CRL_FILE            ""
+#define DFL_CA_PATH             ""
+#define DFL_SERVER_NAME         "localhost"
+#define DFL_SERVER_PORT         4433
+#define DFL_DEBUG_LEVEL         0
+#define DFL_PERMISSIVE          0
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
     !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_CLI_C) || \
@@ -61,21 +82,6 @@ int main( int argc, char *argv[] )
     return( 0 );
 }
 #else
-
-#define MODE_NONE               0
-#define MODE_FILE               1
-#define MODE_SSL                2
-
-#define DFL_MODE                MODE_NONE
-#define DFL_FILENAME            "cert.crt"
-#define DFL_CA_FILE             ""
-#define DFL_CRL_FILE            ""
-#define DFL_CA_PATH             ""
-#define DFL_SERVER_NAME         "localhost"
-#define DFL_SERVER_PORT         4433
-#define DFL_DEBUG_LEVEL         0
-#define DFL_PERMISSIVE          0
-
 /*
  * global options
  */

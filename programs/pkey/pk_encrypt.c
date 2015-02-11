@@ -29,17 +29,22 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
-#define polarssl_printf     printf
+#include <stdio.h>
 #define polarssl_fprintf    fprintf
+#define polarssl_printf     printf
 #endif
 
-#include <string.h>
-#include <stdio.h>
-
+#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_PK_PARSE_C) &&\
+    defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_FS_IO) &&\
+    defined(POLARSSL_CTR_DRBG_C)
 #include "polarssl/error.h"
 #include "polarssl/pk.h"
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
+
+#include <stdio.h>
+#include <string.h>
+#endif
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_PK_PARSE_C) ||  \
     !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_FS_IO) || \

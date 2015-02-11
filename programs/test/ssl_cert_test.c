@@ -29,11 +29,24 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
-#include <string.h>
+#if defined(POLARSSL_RSA_C) && defined(POLARSSL_X509_CRT_PARSE_C) &&\
+    defined(POLARSSL_FS_IO) && defined(POLARSSL_X509_CRL_PARSE_C)
+#include "polarssl/certs.h"
+#include "polarssl/x509_crt.h"
+
 #include <stdio.h>
+#include <string.h>
+#endif
+
+#if defined _MSC_VER && !defined snprintf
+#define snprintf _snprintf
+#endif
+
+#define MAX_CLIENT_CERTS    8
 
 #if !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_CRT_PARSE_C) || \
     !defined(POLARSSL_FS_IO) || !defined(POLARSSL_X509_CRL_PARSE_C)
@@ -48,17 +61,6 @@ int main( int argc, char *argv[] )
     return( 0 );
 }
 #else
-
-#include "polarssl/certs.h"
-#include "polarssl/x509_crt.h"
-
-#if defined _MSC_VER && !defined snprintf
-#define snprintf _snprintf
-#endif
-
-
-#define MAX_CLIENT_CERTS    8
-
 const char *client_certificates[MAX_CLIENT_CERTS] =
 {
     "client1.crt",

@@ -29,18 +29,20 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
-#define polarssl_printf     printf
+#include <stdio.h>
 #define polarssl_fprintf    fprintf
+#define polarssl_printf     printf
 #endif
 
 #if defined(_WIN32)
 #include <windows.h>
 #endif
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-
+#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_CERTS_C) && \
+    defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_SSL_TLS_C) && \
+    defined(POLARSSL_SSL_SRV_C) && defined(POLARSSL_NET_C) && \
+    defined(POLARSSL_RSA_C) && defined(POLARSSL_CTR_DRBG_C) && \
+    defined(POLARSSL_X509_CRT_PARSE_C) && defined(POLARSSL_FS_IO)
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
 #include "polarssl/certs.h"
@@ -50,15 +52,27 @@
 #include "polarssl/error.h"
 #include "polarssl/debug.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#endif
+
 #if defined(POLARSSL_SSL_CACHE_C)
 #include "polarssl/ssl_cache.h"
 #endif
+
+#define HTTP_RESPONSE \
+    "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" \
+    "<h2>mbed TLS Test Server</h2>\r\n" \
+    "<p>Successful connection using: %s</p>\r\n"
+
+#define DEBUG_LEVEL 0
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_CERTS_C) ||    \
     !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_SSL_TLS_C) || \
     !defined(POLARSSL_SSL_SRV_C) || !defined(POLARSSL_NET_C) ||     \
     !defined(POLARSSL_RSA_C) || !defined(POLARSSL_CTR_DRBG_C) ||    \
-    !defined(POLARSSL_X509_CRT_PARSE_C)
+    !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_FS_IO)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
@@ -72,14 +86,6 @@ int main( int argc, char *argv[] )
     return( 0 );
 }
 #else
-
-#define HTTP_RESPONSE \
-    "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" \
-    "<h2>mbed TLS Test Server</h2>\r\n" \
-    "<p>Successful connection using: %s</p>\r\n"
-
-#define DEBUG_LEVEL 0
-
 static void my_debug( void *ctx, int level, const char *str )
 {
     ((void) level);

@@ -29,15 +29,20 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
-#include <stdio.h>
-#include <string.h>
-
+#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_ENTROPY_C) &&\
+    defined(POLARSSL_FS_IO) && defined(POLARSSL_CTR_DRBG_C) &&\
+    defined(POLARSSL_GENPRIME)
 #include "polarssl/bignum.h"
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
+
+#include <stdio.h>
+#include <string.h>
+#endif
 
 /*
  * Note: G = 4 is always a quadratic residue mod P,

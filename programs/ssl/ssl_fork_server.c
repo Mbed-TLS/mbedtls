@@ -29,23 +29,21 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
-#define polarssl_printf     printf
+#include <stdio.h>
 #define polarssl_fprintf    fprintf
+#define polarssl_printf     printf
 #endif
 
 #if defined(_WIN32)
 #include <windows.h>
 #endif
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <signal.h>
-
-#if !defined(_MSC_VER) || defined(EFIX64) || defined(EFI32)
-#include <unistd.h>
-#endif
-
+#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_CERTS_C) &&\
+    defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_SSL_TLS_C) &&\
+    defined(POLARSSL_SSL_SRV_C) && defined(POLARSSL_NET_C) &&\
+    defined(POLARSSL_RSA_C) && defined(POLARSSL_CTR_DRBG_C) &&\
+    defined(POLARSSL_X509_CRT_PARSE_C) && defined(POLARSSL_TIMING_C) &&\
+    defined(POLARSSL_FS_IO)
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
 #include "polarssl/certs.h"
@@ -53,6 +51,15 @@
 #include "polarssl/ssl.h"
 #include "polarssl/net.h"
 #include "polarssl/timing.h"
+
+#include <string.h>
+#include <stdio.h>
+#include <signal.h>
+#endif
+
+#if !defined(_MSC_VER) || defined(EFIX64) || defined(EFI32)
+#include <unistd.h>
+#endif
 
 #define HTTP_RESPONSE \
     "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" \
@@ -63,7 +70,8 @@
     !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_SSL_TLS_C) || \
     !defined(POLARSSL_SSL_SRV_C) || !defined(POLARSSL_NET_C) ||     \
     !defined(POLARSSL_RSA_C) || !defined(POLARSSL_CTR_DRBG_C) ||    \
-    !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_TIMING_C)
+    !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_TIMING_C) ||\
+    !defined(POLARSSL_FS_IO)
 int main( int argc, char *argv[] )
 {
     ((void) argc);

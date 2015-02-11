@@ -29,13 +29,29 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
-#define polarssl_printf     printf
+#include <stdio.h>
 #define polarssl_fprintf    fprintf
+#define polarssl_printf     printf
 #endif
 
-#include <string.h>
-#include <stdlib.h>
+#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_ENTROPY_C) && \
+    defined(POLARSSL_SSL_TLS_C) && defined(POLARSSL_SSL_CLI_C) && \
+    defined(POLARSSL_NET_C) && defined(POLARSSL_RSA_C) && \
+    defined(POLARSSL_CTR_DRBG_C) && defined(POLARSSL_X509_CRT_PARSE_C) && \
+    defined(POLARSSL_FS_IO)
+#include "polarssl/base64.h"
+#include "polarssl/error.h"
+#include "polarssl/net.h"
+#include "polarssl/ssl.h"
+#include "polarssl/entropy.h"
+#include "polarssl/ctr_drbg.h"
+#include "polarssl/certs.h"
+#include "polarssl/x509.h"
+
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#endif
 
 #if !defined(_MSC_VER) || defined(EFIX64) || defined(EFI32)
 #include <unistd.h>
@@ -46,7 +62,6 @@
 #endif
 
 #if defined(_WIN32) || defined(_WIN32_WCE)
-
 #include <winsock2.h>
 #include <windows.h>
 
@@ -58,33 +73,6 @@
 #endif
 #endif /* _MSC_VER */
 #endif
-
-#include "polarssl/base64.h"
-#include "polarssl/error.h"
-#include "polarssl/net.h"
-#include "polarssl/ssl.h"
-#include "polarssl/entropy.h"
-#include "polarssl/ctr_drbg.h"
-#include "polarssl/certs.h"
-#include "polarssl/x509.h"
-
-#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
-    !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_CLI_C) || \
-    !defined(POLARSSL_NET_C) || !defined(POLARSSL_RSA_C) ||         \
-    !defined(POLARSSL_CTR_DRBG_C) || !defined(POLARSSL_X509_CRT_PARSE_C)
-int main( int argc, char *argv[] )
-{
-    ((void) argc);
-    ((void) argv);
-
-    polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
-           "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_CLI_C and/or "
-           "POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_CTR_DRBG_C and/or POLARSSL_X509_CRT_PARSE_C "
-           "not defined.\n");
-    return( 0 );
-}
-#else
 
 #define DFL_SERVER_NAME         "localhost"
 #define DFL_SERVER_PORT         465
@@ -103,6 +91,24 @@ int main( int argc, char *argv[] )
 #define MODE_SSL_TLS            0
 #define MODE_STARTTLS           0
 
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
+    !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_CLI_C) || \
+    !defined(POLARSSL_NET_C) || !defined(POLARSSL_RSA_C) ||         \
+    !defined(POLARSSL_CTR_DRBG_C) || !defined(POLARSSL_X509_CRT_PARSE_C) ||\
+    !defined(POLARSSL_FS_IO)
+int main( int argc, char *argv[] )
+{
+    ((void) argc);
+    ((void) argv);
+
+    polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
+           "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_CLI_C and/or "
+           "POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
+           "POLARSSL_CTR_DRBG_C and/or POLARSSL_X509_CRT_PARSE_C "
+           "not defined.\n");
+    return( 0 );
+}
+#else
 /*
  * global options
  */

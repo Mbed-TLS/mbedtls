@@ -29,17 +29,22 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
-#include <stdio.h>
-#include <string.h>
-
+#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_ENTROPY_C) &&\
+    defined(POLARSSL_RSA_C) && defined(POLARSSL_GENPRIME) &&\
+    defined(POLARSSL_FS_IO) && defined(POLARSSL_CTR_DRBG_C)
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
 #include "polarssl/bignum.h"
 #include "polarssl/x509.h"
 #include "polarssl/rsa.h"
+    
+#include <stdio.h>
+#include <string.h>
+#endif
 
 #define KEY_SIZE 1024
 #define EXPONENT 65537

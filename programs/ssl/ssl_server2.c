@@ -29,27 +29,12 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
-#define polarssl_printf     printf
-#define polarssl_fprintf    fprintf
-#define polarssl_malloc     malloc
-#define polarssl_free       free
-#endif
-
-#if !defined(POLARSSL_ENTROPY_C) ||  \
-    !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_SRV_C) || \
-    !defined(POLARSSL_NET_C) || !defined(POLARSSL_CTR_DRBG_C)
 #include <stdio.h>
-int main( int argc, char *argv[] )
-{
-    ((void) argc);
-    ((void) argv);
-
-    polarssl_printf("POLARSSL_ENTROPY_C and/or "
-           "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_SRV_C and/or "
-           "POLARSSL_NET_C and/or POLARSSL_CTR_DRBG_C not defined.\n");
-    return( 0 );
-}
-#else
+#define polarssl_free       free
+#define polarssl_malloc     malloc
+#define polarssl_fprintf    fprintf
+#define polarssl_printf     printf
+#endif
 
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION) && defined(POLARSSL_FS_IO)
 #define POLARSSL_SNI
@@ -59,14 +44,9 @@ int main( int argc, char *argv[] )
 #include <windows.h>
 #endif
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-
-#if !defined(_WIN32)
-#include <signal.h>
-#endif
-
+#if defined(POLARSSL_ENTROPY_C) &&\
+    defined(POLARSSL_SSL_TLS_C) && defined(POLARSSL_SSL_SRV_C) &&\
+    defined(POLARSSL_NET_C) && defined(POLARSSL_CTR_DRBG_C)
 #include "polarssl/net.h"
 #include "polarssl/ssl.h"
 #include "polarssl/entropy.h"
@@ -75,6 +55,15 @@ int main( int argc, char *argv[] )
 #include "polarssl/x509.h"
 #include "polarssl/error.h"
 #include "polarssl/debug.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#endif
+
+#if !defined(_WIN32)
+#include <signal.h>
+#endif
 
 #if defined(POLARSSL_SSL_CACHE_C)
 #include "polarssl/ssl_cache.h"
@@ -144,6 +133,21 @@ int main( int argc, char *argv[] )
  */
 #define IO_BUF_LEN      200
 
+#if !defined(POLARSSL_ENTROPY_C) ||\
+    !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_SRV_C) || \
+    !defined(POLARSSL_NET_C) || !defined(POLARSSL_CTR_DRBG_C)
+#include <stdio.h>
+int main( int argc, char *argv[] )
+{
+    ((void) argc);
+    ((void) argv);
+
+    polarssl_printf("POLARSSL_ENTROPY_C and/or "
+           "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_SRV_C and/or "
+           "POLARSSL_NET_C and/or POLARSSL_CTR_DRBG_C not defined.\n");
+    return( 0 );
+}
+#else
 /*
  * global options
  */

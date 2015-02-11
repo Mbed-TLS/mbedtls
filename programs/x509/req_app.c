@@ -29,14 +29,27 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-
+#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_RSA_C) &&\
+    defined(POLARSSL_X509_CSR_PARSE_C) && defined(POLARSSL_FS_IO)
 #include "polarssl/x509_csr.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#endif
+
+#define DFL_FILENAME            "cert.req"
+#define DFL_DEBUG_LEVEL         0
+
+#define USAGE \
+    "\n usage: req_app param=<>...\n"                   \
+    "\n acceptable parameters:\n"                       \
+    "    filename=%%s         default: cert.req\n"      \
+    "\n"
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||  \
     !defined(POLARSSL_X509_CSR_PARSE_C) || !defined(POLARSSL_FS_IO)
@@ -50,10 +63,6 @@ int main( int argc, char *argv[] )
     return( 0 );
 }
 #else
-
-#define DFL_FILENAME            "cert.req"
-#define DFL_DEBUG_LEVEL         0
-
 /*
  * global options
  */
@@ -61,12 +70,6 @@ struct options
 {
     const char *filename;       /* filename of the certificate request  */
 } opt;
-
-#define USAGE \
-    "\n usage: req_app param=<>...\n"                   \
-    "\n acceptable parameters:\n"                       \
-    "    filename=%%s         default: cert.req\n"      \
-    "\n"
 
 int main( int argc, char *argv[] )
 {

@@ -29,16 +29,38 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-
+#if defined(POLARSSL_BIGNUM_C) &&\
+    defined(POLARSSL_PK_PARSE_C) && defined(POLARSSL_FS_IO)
 #include "polarssl/error.h"
 #include "polarssl/rsa.h"
 #include "polarssl/x509.h"
+
+#include <string.h>
+#endif
+
+#define MODE_NONE               0
+#define MODE_PRIVATE            1
+#define MODE_PUBLIC             2
+
+#define DFL_MODE                MODE_NONE
+#define DFL_FILENAME            "keyfile.key"
+#define DFL_PASSWORD            ""
+#define DFL_PASSWORD_FILE       ""
+#define DFL_DEBUG_LEVEL         0
+    
+#define USAGE \
+    "\n usage: key_app param=<>...\n"                   \
+    "\n acceptable parameters:\n"                       \
+    "    mode=private|public default: none\n"           \
+    "    filename=%%s         default: keyfile.key\n"   \
+    "    password=%%s         default: \"\"\n"          \
+    "    password_file=%%s    default: \"\"\n"          \
+    "\n"
+
 
 #if !defined(POLARSSL_BIGNUM_C) ||                                  \
     !defined(POLARSSL_PK_PARSE_C) || !defined(POLARSSL_FS_IO)
@@ -52,17 +74,6 @@ int main( int argc, char *argv[] )
     return( 0 );
 }
 #else
-
-#define MODE_NONE               0
-#define MODE_PRIVATE            1
-#define MODE_PUBLIC             2
-
-#define DFL_MODE                MODE_NONE
-#define DFL_FILENAME            "keyfile.key"
-#define DFL_PASSWORD            ""
-#define DFL_PASSWORD_FILE       ""
-#define DFL_DEBUG_LEVEL         0
-
 /*
  * global options
  */
@@ -73,15 +84,6 @@ struct options
     const char *password;       /* password for the private key         */
     const char *password_file;  /* password_file for the private key    */
 } opt;
-
-#define USAGE \
-    "\n usage: key_app param=<>...\n"                   \
-    "\n acceptable parameters:\n"                       \
-    "    mode=private|public default: none\n"           \
-    "    filename=%%s         default: keyfile.key\n"   \
-    "    password=%%s         default: \"\"\n"          \
-    "    password_file=%%s    default: \"\"\n"          \
-    "\n"
 
 int main( int argc, char *argv[] )
 {

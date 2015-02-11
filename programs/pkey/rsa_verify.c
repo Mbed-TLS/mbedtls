@@ -29,14 +29,18 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
-#include <string.h>
-#include <stdio.h>
-
+#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_RSA_C) &&\
+    defined(POLARSSL_SHA256_C) && defined(POLARSSL_FS_IO)
 #include "polarssl/rsa.h"
 #include "polarssl/sha1.h"
+
+#include <stdio.h>
+#include <string.h>
+#endif
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||  \
     !defined(POLARSSL_SHA256_C) || !defined(POLARSSL_FS_IO)

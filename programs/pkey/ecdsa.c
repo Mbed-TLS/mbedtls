@@ -29,15 +29,18 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
+#if defined(POLARSSL_ECDSA_C) &&\
+    defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_CTR_DRBG_C)
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
 #include "polarssl/ecdsa.h"
 
 #include <string.h>
-#include <stdio.h>
+#endif
 
 /*
  * Uncomment to show key and signature details
@@ -65,7 +68,6 @@ int main( int argc, char *argv[] )
     return( 0 );
 }
 #else
-
 #if defined(VERBOSE)
 static void dump_buf( const char *title, unsigned char *buf, size_t len )
 {

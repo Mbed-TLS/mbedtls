@@ -29,12 +29,13 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
-#include <stdio.h>
-
+#if defined(POLARSSL_MD5_C)
 #include "polarssl/md5.h"
+#endif
 
 #if !defined(POLARSSL_MD5_C)
 int main( int argc, char *argv[] )

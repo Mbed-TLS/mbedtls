@@ -29,43 +29,32 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
-#define polarssl_printf     printf
-#define polarssl_fprintf    fprintf
-#define polarssl_malloc     malloc
+#include <stdio.h>
 #define polarssl_free       free
+#define polarssl_malloc     malloc
+#define polarssl_fprintf    fprintf
+#define polarssl_printf     printf
 #endif
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-
+#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_ENTROPY_C) &&\
+    defined(POLARSSL_SSL_TLS_C) && defined(POLARSSL_SSL_SRV_C) &&\
+    defined(POLARSSL_SSL_CLI_C) && defined(POLARSSL_NET_C) &&\
+    defined(POLARSSL_RSA_C) && defined(POLARSSL_CTR_DRBG_C) &&\
+    defined(POLARSSL_X509_CRT_PARSE_C)
 #include "polarssl/net.h"
 #include "polarssl/ssl.h"
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
 #include "polarssl/certs.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#endif
+
 #if defined(POLARSSL_TIMING_C)
 #include "polarssl/timing.h"
 #endif
-
-#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
-    !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_SRV_C) || \
-    !defined(POLARSSL_SSL_CLI_C) || !defined(POLARSSL_NET_C) ||     \
-    !defined(POLARSSL_RSA_C) || !defined(POLARSSL_CTR_DRBG_C) ||    \
-    !defined(POLARSSL_X509_CRT_PARSE_C)
-int main( int argc, char *argv[] )
-{
-    ((void) argc);
-    ((void) argv);
-
-    polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
-           "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_SRV_C and/or "
-           "POLARSSL_SSL_CLI_C and/or POLARSSL_NET_C and/or "
-           "POLARSSL_RSA_C and/or POLARSSL_CTR_DRBG_C and/or "
-           "POLARSSL_X509_CRT_PARSE_C not defined.\n");
-    return( 0 );
-}
-#else
 
 #define OPMODE_NONE             0
 #define OPMODE_CLIENT           1
@@ -92,6 +81,24 @@ int main( int argc, char *argv[] )
 #define DFL_SESSION_LIFETIME    86400
 #define DFL_FORCE_CIPHER        0
 
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
+    !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_SRV_C) || \
+    !defined(POLARSSL_SSL_CLI_C) || !defined(POLARSSL_NET_C) ||     \
+    !defined(POLARSSL_RSA_C) || !defined(POLARSSL_CTR_DRBG_C) ||    \
+    !defined(POLARSSL_X509_CRT_PARSE_C)
+int main( int argc, char *argv[] )
+{
+    ((void) argc);
+    ((void) argv);
+
+    polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
+           "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_SRV_C and/or "
+           "POLARSSL_SSL_CLI_C and/or POLARSSL_NET_C and/or "
+           "POLARSSL_RSA_C and/or POLARSSL_CTR_DRBG_C and/or "
+           "POLARSSL_X509_CRT_PARSE_C not defined.\n");
+    return( 0 );
+}
+#else
 int server_fd = -1;
 
 /*

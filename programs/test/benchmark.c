@@ -29,13 +29,11 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-
+#if defined(POLARSSL_TIMING_C)
 #include "polarssl/timing.h"
 
 #include "polarssl/md4.h"
@@ -60,6 +58,11 @@
 #include "polarssl/ecdh.h"
 #include "polarssl/error.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#endif
+
 #if defined _MSC_VER && !defined snprintf
 #define snprintf _snprintf
 #endif
@@ -78,7 +81,6 @@ int main( int argc, char *argv[] )
     return( 0 );
 }
 #else
-
 static int myrand( void *rng_state, unsigned char *output, size_t len )
 {
     size_t use_len;

@@ -26,15 +26,6 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
-#else
-#define polarssl_printf     printf
-#endif
-
-#include <string.h>
-#include <stdio.h>
-
 #include "polarssl/entropy.h"
 #include "polarssl/hmac_drbg.h"
 #include "polarssl/ctr_drbg.h"
@@ -61,6 +52,16 @@
 #include "polarssl/pbkdf2.h"
 #include "polarssl/ecp.h"
 #include "polarssl/timing.h"
+
+#include <stdio.h>
+#include <string.h>
+
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#include <stdio.h>
+#define polarssl_printf     printf
+#endif
 
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
 #include "polarssl/memory_buffer_alloc.h"

@@ -29,22 +29,27 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
-#define polarssl_printf     printf
+#include <stdio.h>
 #define polarssl_fprintf    fprintf
+#define polarssl_printf     printf
 #endif
 
+#if defined(POLARSSL_CTR_DRBG_C) && defined(POLARSSL_ENTROPY_C) &&\
+ defined(POLARSSL_FS_IO)
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
 
 #include <stdio.h>
+#endif
 
-#if !defined(POLARSSL_CTR_DRBG_C) || !defined(POLARSSL_ENTROPY_C)
+#if !defined(POLARSSL_CTR_DRBG_C) || !defined(POLARSSL_ENTROPY_C) ||\
+ !defined(POLARSSL_FS_IO)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
     ((void) argv);
 
-    polarssl_printf("POLARSSL_CTR_DRBG_C or POLARSSL_ENTROPY_C not defined.\n");
+    polarssl_printf("POLARSSL_CTR_DRBG_C and/or POLARSSL_ENTROPY_C and/or POLARSSL_FS_IO not defined.\n");
     return( 0 );
 }
 #else

@@ -1490,7 +1490,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         unsigned char explicit_iv_len =  ssl->transform_in->ivlen -
                                          ssl->transform_in->fixed_ivlen;
 
-        if( ssl->in_msglen < explicit_iv_len + taglen )
+        if( ssl->in_msglen < (size_t) explicit_iv_len + taglen )
         {
             SSL_DEBUG_MSG( 1, ( "msglen (%d) < explicit_iv_len (%d) "
                                 "+ taglen (%d)", ssl->in_msglen,

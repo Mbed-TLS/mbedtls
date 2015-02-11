@@ -9,6 +9,7 @@ Features
 Bugfix
    * Fix hardclock() (only used in the benchmarking program) with some
      versions of mingw64 (found by kxjhlele).
+   * Fix warnings from mingw64 in timing.c (found by kxjklele).
 
 Changes
    * Move from SHA-1 to SHA-256 in example programs using signatures

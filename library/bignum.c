@@ -1240,17 +1240,7 @@ int mpi_div_mpi( mpi *Q, mpi *R, const mpi *A, const mpi *B )
             Z.p[i - t - 1] = ~0;
         else
         {
-            /*
-             * The version of Clang shipped by Apple with Mavericks around
-             * 2014-03 can't handle 128-bit division properly. Disable
-             * 128-bits division for this version. Let's be optimistic and
-             * assume it'll be fixed in the next minor version (next
-             * patchlevel is probably a bit too optimistic).
-             */
-#if defined(POLARSSL_HAVE_UDBL) &&                          \
-    ! ( defined(__x86_64__) && defined(__APPLE__) &&        \
-        defined(__clang_major__) && __clang_major__ == 5 && \
-        defined(__clang_minor__) && __clang_minor__ == 0 )
+#if defined(POLARSSL_HAVE_UDBL)
             t_udbl r;
 
             r  = (t_udbl) X.p[i] << biL;

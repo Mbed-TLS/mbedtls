@@ -42,6 +42,7 @@
 #include "polarssl/asn1.h"
 #include "polarssl/oid.h"
 
+#include <stdio.h>
 #include <string.h>
 
 #if defined(POLARSSL_PEM_PARSE_C)
@@ -65,6 +66,7 @@
 #endif
 
 #if defined(POLARSSL_FS_IO)
+#include <stdio.h>
 #if !defined(_WIN32)
 #include <sys/types.h>
 #include <sys/stat.h>

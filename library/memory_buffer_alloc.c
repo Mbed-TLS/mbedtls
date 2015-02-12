@@ -27,12 +27,10 @@
 #endif
 
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
-
 #include "polarssl/memory_buffer_alloc.h"
 
 #include <string.h>
 
-#if defined(POLARSSL_MEMORY_DEBUG)
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
@@ -40,7 +38,6 @@
 #define polarssl_exit    exit
 #define polarssl_fprintf fprintf
 #endif /* POLARSSL_PLATFORM_C */
-#endif /* POLARSSL_MEMORY_DEBUG */
 
 #if defined(POLARSSL_MEMORY_BACKTRACE)
 #include <execinfo.h>

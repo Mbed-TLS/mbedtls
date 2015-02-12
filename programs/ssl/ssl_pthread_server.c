@@ -73,17 +73,16 @@
 
 #define DEBUG_LEVEL 0
 
+#define MAX_NUM_THREADS 5
+
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_CERTS_C) ||            \
     !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_SSL_TLS_C) ||         \
     !defined(POLARSSL_SSL_SRV_C) || !defined(POLARSSL_NET_C) ||             \
     !defined(POLARSSL_RSA_C) || !defined(POLARSSL_CTR_DRBG_C) ||            \
     !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_FS_IO) ||      \
     !defined(POLARSSL_THREADING_C) || !defined(POLARSSL_THREADING_PTHREAD)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_CERTS_C and/or POLARSSL_ENTROPY_C "
            "and/or POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_SRV_C and/or "
            "POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
@@ -123,8 +122,6 @@ typedef struct {
     thread_info_t   data;
     pthread_t       thread;
 } pthread_info_t;
-
-#define MAX_NUM_THREADS 5
 
 static thread_info_t    base_info;
 static pthread_info_t   threads[MAX_NUM_THREADS];
@@ -373,7 +370,7 @@ static int thread_create( int client_fd )
     return( 0 );
 }
 
-int main( int argc, char *argv[] )
+int main( void )
 {
     int ret;
     int listen_fd;
@@ -388,9 +385,6 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_context cache;
 #endif
-
-    ((void) argc);
-    ((void) argv);
 
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
     memory_buffer_alloc_init( alloc_buf, sizeof(alloc_buf) );

@@ -47,11 +47,8 @@
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||  \
     !defined(POLARSSL_FS_IO) || !defined(POLARSSL_ENTROPY_C) || \
     !defined(POLARSSL_CTR_DRBG_C)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
            "POLARSSL_FS_IO and/or POLARSSL_ENTROPY_C and/or "
            "POLARSSL_CTR_DRBG_C not defined.\n");

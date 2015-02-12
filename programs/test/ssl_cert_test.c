@@ -50,11 +50,8 @@
 
 #if !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_CRT_PARSE_C) || \
     !defined(POLARSSL_FS_IO) || !defined(POLARSSL_X509_CRL_PARSE_C)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_RSA_C and/or POLARSSL_X509_CRT_PARSE_C "
            "POLARSSL_FS_IO and/or POLARSSL_X509_CRL_PARSE_C "
            "not defined.\n");
@@ -85,15 +82,12 @@ const char *client_private_keys[MAX_CLIENT_CERTS] =
     "cert_digest.key"
 };
 
-int main( int argc, char *argv[] )
+int main( void )
 {
     int ret, i;
     x509_crt cacert;
     x509_crl crl;
     char buf[10240];
-
-    ((void) argc);
-    ((void) argv);
 
     x509_crt_init( &cacert );
     x509_crl_init( &crl );

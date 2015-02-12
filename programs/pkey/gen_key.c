@@ -123,11 +123,8 @@ int dev_random_entropy_poll( void *data, unsigned char *output,
 
 #if !defined(POLARSSL_PK_WRITE_C) || !defined(POLARSSL_FS_IO) ||    \
     !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf( "POLARSSL_PK_WRITE_C and/or POLARSSL_FS_IO and/or "
             "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C "
             "not defined.\n" );

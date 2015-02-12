@@ -64,16 +64,33 @@
 #define DFL_DEBUG_LEVEL         0
 #define DFL_PERMISSIVE          0
 
+#define USAGE_IO \
+    "    ca_file=%%s          The single file containing the top-level CA(s) you fully trust\n" \
+    "                        default: \"\" (none)\n" \
+    "    crl_file=%%s         The single CRL file you want to use\n" \
+    "                        default: \"\" (none)\n" \
+    "    ca_path=%%s          The path containing the top-level CA(s) you fully trust\n" \
+    "                        default: \"\" (none) (overrides ca_file)\n"
+
+#define USAGE \
+    "\n usage: cert_app param=<>...\n"                  \
+    "\n acceptable parameters:\n"                       \
+    "    mode=file|ssl       default: none\n"           \
+    "    filename=%%s         default: cert.crt\n"      \
+    USAGE_IO                                            \
+    "    server_name=%%s      default: localhost\n"     \
+    "    server_port=%%d      default: 4433\n"          \
+    "    debug_level=%%d      default: 0 (disabled)\n"  \
+    "    permissive=%%d       default: 0 (disabled)\n"  \
+    "\n"
+
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
     !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_CLI_C) || \
     !defined(POLARSSL_NET_C) || !defined(POLARSSL_RSA_C) ||         \
     !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_FS_IO) ||  \
     !defined(POLARSSL_CTR_DRBG_C)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
            "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_CLI_C and/or "
            "POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
@@ -142,26 +159,6 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
 
     return( 0 );
 }
-
-#define USAGE_IO \
-    "    ca_file=%%s          The single file containing the top-level CA(s) you fully trust\n" \
-    "                        default: \"\" (none)\n" \
-    "    crl_file=%%s         The single CRL file you want to use\n" \
-    "                        default: \"\" (none)\n" \
-    "    ca_path=%%s          The path containing the top-level CA(s) you fully trust\n" \
-    "                        default: \"\" (none) (overrides ca_file)\n"
-
-#define USAGE \
-    "\n usage: cert_app param=<>...\n"                  \
-    "\n acceptable parameters:\n"                       \
-    "    mode=file|ssl       default: none\n"           \
-    "    filename=%%s         default: cert.crt\n"      \
-    USAGE_IO                                            \
-    "    server_name=%%s      default: localhost\n"     \
-    "    server_port=%%d      default: 4433\n"          \
-    "    debug_level=%%d      default: 0 (disabled)\n"  \
-    "    permissive=%%d       default: 0 (disabled)\n"  \
-    "\n"
 
 int main( int argc, char *argv[] )
 {

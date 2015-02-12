@@ -65,10 +65,8 @@
 
 #if !defined(POLARSSL_AES_C) || !defined(POLARSSL_SHA256_C) ||\
     !defined(POLARSSL_FS_IO)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
     polarssl_printf("POLARSSL_AES_C and/or POLARSSL_SHA256_C and/or POLARSSL_FS_IO not defined.\n");
     return( 0 );
 }

@@ -42,11 +42,8 @@
 #endif
 
 #if !defined(POLARSSL_HAVEGE_C) || !defined(POLARSSL_FS_IO)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_HAVEGE_C not defined.\n");
     return( 0 );
 }

@@ -58,11 +58,8 @@
 
 #if !defined(POLARSSL_ECDSA_C) || \
     !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_ECDSA_C and/or "
            "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C not defined\n");
     return( 0 );

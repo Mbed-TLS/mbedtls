@@ -73,11 +73,8 @@
     !defined(POLARSSL_SSL_SRV_C) || !defined(POLARSSL_NET_C) ||     \
     !defined(POLARSSL_RSA_C) || !defined(POLARSSL_CTR_DRBG_C) ||    \
     !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_FS_IO)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_CERTS_C and/or POLARSSL_ENTROPY_C "
            "and/or POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_SRV_C and/or "
            "POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
@@ -94,7 +91,7 @@ static void my_debug( void *ctx, int level, const char *str )
     fflush(  (FILE *) ctx  );
 }
 
-int main( int argc, char *argv[] )
+int main( void )
 {
     int ret, len;
     int listen_fd;
@@ -110,9 +107,6 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_context cache;
 #endif
-
-    ((void) argc);
-    ((void) argv);
 
     memset( &ssl, 0, sizeof(ssl_context) );
 #if defined(POLARSSL_SSL_CACHE_C)

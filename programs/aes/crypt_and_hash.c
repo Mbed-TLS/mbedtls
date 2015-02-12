@@ -66,11 +66,8 @@
 
 #if !defined(POLARSSL_CIPHER_C) || !defined(POLARSSL_MD_C) ||\
     !defined(POLARSSL_FS_IO)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_CIPHER_C and/or POLARSSL_MD_C and/or POLARSSL_FS_IO not defined.\n");
     return( 0 );
 }

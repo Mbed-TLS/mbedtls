@@ -55,11 +55,8 @@
     "\n"
 
 #if !defined(POLARSSL_BASE64_C) || !defined(POLARSSL_FS_IO)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_BASE64_C and/or POLARSSL_FS_IO not defined.\n");
     return( 0 );
 }

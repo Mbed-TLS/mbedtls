@@ -85,11 +85,8 @@ int main( int argc, char *argv[] )
     return( 0 );
 }
 #elif defined(_WIN32)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("_WIN32 defined. This application requires fork() and signals "
            "to work correctly.\n");
     return( 0 );
@@ -107,7 +104,7 @@ static void my_debug( void *ctx, int level, const char *str )
     }
 }
 
-int main( int argc, char *argv[] )
+int main( void )
 {
     int ret, len, cnt = 0, pid;
     int listen_fd;
@@ -120,9 +117,6 @@ int main( int argc, char *argv[] )
     ssl_context ssl;
     x509_crt srvcert;
     pk_context pkey;
-
-    ((void) argc);
-    ((void) argv);
 
     memset( &ssl, 0, sizeof(ssl_context) );
 

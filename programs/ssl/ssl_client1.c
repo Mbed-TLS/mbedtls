@@ -60,11 +60,8 @@
     !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_CLI_C) || \
     !defined(POLARSSL_NET_C) || !defined(POLARSSL_RSA_C) ||         \
     !defined(POLARSSL_CTR_DRBG_C) || !defined(POLARSSL_X509_CRT_PARSE_C)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
            "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_CLI_C and/or "
            "POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
@@ -81,7 +78,7 @@ static void my_debug( void *ctx, int level, const char *str )
     fflush(  (FILE *) ctx  );
 }
 
-int main( int argc, char *argv[] )
+int main( void )
 {
     int ret, len, server_fd = -1;
     unsigned char buf[1024];
@@ -91,9 +88,6 @@ int main( int argc, char *argv[] )
     ctr_drbg_context ctr_drbg;
     ssl_context ssl;
     x509_crt cacert;
-
-    ((void) argc);
-    ((void) argv);
 
 #if defined(POLARSSL_DEBUG_C)
     debug_set_threshold( DEBUG_LEVEL );

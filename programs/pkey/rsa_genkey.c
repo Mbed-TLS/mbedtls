@@ -52,18 +52,15 @@
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||   \
     !defined(POLARSSL_RSA_C) || !defined(POLARSSL_GENPRIME) ||      \
     !defined(POLARSSL_FS_IO) || !defined(POLARSSL_CTR_DRBG_C)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
            "POLARSSL_RSA_C and/or POLARSSL_GENPRIME and/or "
            "POLARSSL_FS_IO and/or POLARSSL_CTR_DRBG_C not defined.\n");
     return( 0 );
 }
 #else
-int main( int argc, char *argv[] )
+int main( void )
 {
     int ret;
     rsa_context rsa;
@@ -72,9 +69,6 @@ int main( int argc, char *argv[] )
     FILE *fpub  = NULL;
     FILE *fpriv = NULL;
     const char *pers = "rsa_genkey";
-
-    ((void) argc);
-    ((void) argv);
 
     polarssl_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );

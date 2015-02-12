@@ -56,11 +56,8 @@
     !defined(POLARSSL_SHA256_C) ||                                    \
     !defined(POLARSSL_PK_PARSE_C) || !defined(POLARSSL_FS_IO) ||    \
     !defined(POLARSSL_CTR_DRBG_C)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
            "POLARSSL_SHA256_C and/or "
            "POLARSSL_PK_PARSE_C and/or POLARSSL_FS_IO and/or "

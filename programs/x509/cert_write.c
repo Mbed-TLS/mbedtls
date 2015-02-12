@@ -124,11 +124,8 @@
     !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_FS_IO) ||      \
     !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C) ||        \
     !defined(POLARSSL_ERROR_C)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf( "POLARSSL_X509_CRT_WRITE_C and/or POLARSSL_X509_CRT_PARSE_C and/or "
             "POLARSSL_FS_IO and/or "
             "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C and/or "

@@ -70,13 +70,73 @@
 #define BUFSIZE         1024
 #define HEADER_FORMAT   "  %-24s :  "
 #define TITLE_LEN       25
+ 
+#define DHM_SIZES 3
+
+#define OPTIONS                                                         \
+    "md4, md5, ripemd160, sha1, sha256, sha512,\n"                      \
+    "arc4, des3, des, aes_cbc, aes_gcm, aes_ccm, camellia, blowfish,\n" \
+    "havege, ctr_drbg, hmac_drbg\n"                                     \
+    "rsa, dhm, ecdsa, ecdh.\n"
+
+#if defined(POLARSSL_ERROR_C)
+#define PRINT_ERROR                                                     \
+        polarssl_strerror( ret, ( char * )tmp, sizeof( tmp ) );         \
+        polarssl_printf( "FAILED: %s\n", tmp );
+#else
+#define PRINT_ERROR                                                     \
+        polarssl_printf( "FAILED: -0x%04x\n", -ret );
+#endif
+
+#define TIME_AND_TSC( TITLE, CODE )                                     \
+do {                                                                    \
+    unsigned long i, j, tsc;                                            \
+                                                                        \
+    polarssl_printf( HEADER_FORMAT, TITLE );                                     \
+    fflush( stdout );                                                   \
+                                                                        \
+    set_alarm( 1 );                                                     \
+    for( i = 1; ! alarmed; i++ )                                        \
+    {                                                                   \
+        CODE;                                                           \
+    }                                                                   \
+                                                                        \
+    tsc = hardclock();                                                  \
+    for( j = 0; j < 1024; j++ )                                         \
+    {                                                                   \
+        CODE;                                                           \
+    }                                                                   \
+                                                                        \
+    polarssl_printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,       \
+                    ( hardclock() - tsc ) / ( j * BUFSIZE ) );          \
+} while( 0 )
+
+#define TIME_PUBLIC( TITLE, TYPE, CODE )                                \
+do {                                                                    \
+    unsigned long i;                                                    \
+    int ret;                                                            \
+                                                                        \
+    polarssl_printf( HEADER_FORMAT, TITLE );                                     \
+    fflush( stdout );                                                   \
+    set_alarm( 3 );                                                     \
+                                                                        \
+    ret = 0;                                                            \
+    for( i = 1; ! alarmed && ! ret ; i++ )                              \
+    {                                                                   \
+        CODE;                                                           \
+    }                                                                   \
+                                                                        \
+    if( ret != 0 )                                                      \
+    {                                                                   \
+PRINT_ERROR;                                                            \
+    }                                                                   \
+    else                                                                \
+        polarssl_printf( "%9lu " TYPE "/s\n", i / 3 );                           \
+} while( 0 )
 
 #if !defined(POLARSSL_TIMING_C)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_TIMING_C not defined.\n");
     return( 0 );
 }
@@ -104,61 +164,6 @@ static int myrand( void *rng_state, unsigned char *output, size_t len )
     return( 0 );
 }
 
-#define TIME_AND_TSC( TITLE, CODE )                                     \
-do {                                                                    \
-    unsigned long i, j, tsc;                                            \
-                                                                        \
-    polarssl_printf( HEADER_FORMAT, TITLE );                                     \
-    fflush( stdout );                                                   \
-                                                                        \
-    set_alarm( 1 );                                                     \
-    for( i = 1; ! alarmed; i++ )                                        \
-    {                                                                   \
-        CODE;                                                           \
-    }                                                                   \
-                                                                        \
-    tsc = hardclock();                                                  \
-    for( j = 0; j < 1024; j++ )                                         \
-    {                                                                   \
-        CODE;                                                           \
-    }                                                                   \
-                                                                        \
-    polarssl_printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,       \
-                    ( hardclock() - tsc ) / ( j * BUFSIZE ) );          \
-} while( 0 )
-
-#if defined(POLARSSL_ERROR_C)
-#define PRINT_ERROR                                                     \
-        polarssl_strerror( ret, ( char * )tmp, sizeof( tmp ) );         \
-        polarssl_printf( "FAILED: %s\n", tmp );
-#else
-#define PRINT_ERROR                                                     \
-        polarssl_printf( "FAILED: -0x%04x\n", -ret );
-#endif
-
-#define TIME_PUBLIC( TITLE, TYPE, CODE )                                \
-do {                                                                    \
-    unsigned long i;                                                    \
-    int ret;                                                            \
-                                                                        \
-    polarssl_printf( HEADER_FORMAT, TITLE );                                     \
-    fflush( stdout );                                                   \
-    set_alarm( 3 );                                                     \
-                                                                        \
-    ret = 0;                                                            \
-    for( i = 1; ! alarmed && ! ret ; i++ )                              \
-    {                                                                   \
-        CODE;                                                           \
-    }                                                                   \
-                                                                        \
-    if( ret != 0 )                                                      \
-    {                                                                   \
-PRINT_ERROR;                                                            \
-    }                                                                   \
-    else                                                                \
-        polarssl_printf( "%9lu " TYPE "/s\n", i / 3 );                           \
-} while( 0 )
-
 unsigned char buf[BUFSIZE];
 
 typedef struct {
@@ -167,12 +172,6 @@ typedef struct {
          havege, ctr_drbg, hmac_drbg,
          rsa, dhm, ecdsa, ecdh;
 } todo_list;
-
-#define OPTIONS                                                         \
-    "md4, md5, ripemd160, sha1, sha256, sha512,\n"                      \
-    "arc4, des3, des, aes_cbc, aes_gcm, aes_ccm, camellia, blowfish,\n" \
-    "havege, ctr_drbg, hmac_drbg\n"                                     \
-    "rsa, dhm, ecdsa, ecdh.\n"
 
 int main( int argc, char *argv[] )
 {
@@ -521,7 +520,6 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_DHM_C) && defined(POLARSSL_BIGNUM_C)
     if( todo.dhm )
     {
-#define DHM_SIZES 3
         int dhm_sizes[DHM_SIZES] = { 1024, 2048, 3072 };
         const char *dhm_P[DHM_SIZES] = {
             POLARSSL_DHM_RFC5114_MODP_1024_P,

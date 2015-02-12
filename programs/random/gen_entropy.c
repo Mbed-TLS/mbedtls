@@ -41,11 +41,8 @@
 #endif
 
 #if !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_FS_IO)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_ENTROPY_C and/or POLARSSL_FS_IO not defined.\n");
     return( 0 );
 }

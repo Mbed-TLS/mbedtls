@@ -30,16 +30,12 @@
 
 #include "polarssl/memory_buffer_alloc.h"
 
+/* No need for the header guard as POLARSSL_MEMORY_BUFFER_ALLOC_C
+   is dependent upon POLARSSL_PLATFORM_C */
+#include "polarssl/platform.h"
+
 #include <string.h>
 
-#if defined(POLARSSL_MEMORY_DEBUG)
-#if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
-#else
-#include <stdio.h>
-#define polarssl_fprintf fprintf
-#endif /* POLARSSL_PLATFORM_C */
-#endif /* POLARSSL_MEMORY_DEBUG */
 #if defined(POLARSSL_MEMORY_BACKTRACE)
 #include <execinfo.h>
 #endif

@@ -130,6 +130,16 @@ msg "build: Unix make, -O2 (gcc)" # ~ 30s
 cleanup
 CC=gcc CFLAGS=-Werror make
 
+# this is meant to cath missing #define polarssl_printf etc
+msg "build: full config except platform.c" # ~ 30s
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl full
+scripts/config.pl unset POLARSSL_PLATFORM_C
+scripts/config.pl unset POLARSSL_MEMORY_C
+scripts/config.pl unset POLARSSL_MEMORY_BUFFER_ALLOC_C
+CC=gcc CFLAGS=-Werror make
+
 if uname -a | grep -F x86_64 >/dev/null; then
 msg "build: i386, make, gcc" # ~ 30s
 cleanup

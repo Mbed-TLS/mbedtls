@@ -22,9 +22,9 @@ ifdef SHARED
 CFLAGS += -fPIC
 endif
 
-SONAME=libmbedtls.so.7
+SOVERSION=8
 
-DLEXT=so.8
+DLEXT=so.$(SOVERSION)
 # OSX shared library extension:
 # DLEXT=dylib
 
@@ -89,13 +89,13 @@ libpolarssl.so: libmbedtls.so
 	echo "  LN    $@ -> $?"
 	ln -sf $? $@
 
-libmbedtls.${DLEXT}: $(OBJS)
-	echo "  LD    $@"
-	$(CC) ${LDFLAGS} -shared -Wl,-soname,$(SONAME) -o $@ $(OBJS)
-
 libmbedtls.so: libmbedtls.${DLEXT}
 	echo "  LN    $@ -> libmbedtls.${DLEXT}"
 	ln -sf libmbedtls.${DLEXT} $@
+
+libmbedtls.so.$(SOVERSION): $(OBJS)
+	echo "  LD    $@"
+	$(CC) ${LDFLAGS} -shared -Wl,-soname,$@ -o $@ $(OBJS)
 
 libmbedtls.dylib: $(OBJS)
 	echo "  LD    $@"

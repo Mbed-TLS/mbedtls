@@ -14,6 +14,8 @@ Bugfix
    * Fix hardclock() (only used in the benchmarking program) with some
      versions of mingw64 (found by kxjhlele).
    * Fix warnings from mingw64 in timing.c (found by kxjklele).
+   * Fix potential unintended sign extension in asn1_get_len() on 64-bit
+     platforms.
 
 Changes
    * Move from SHA-1 to SHA-256 in example programs using signatures

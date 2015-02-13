@@ -34,7 +34,7 @@
 #define polarssl_printf     printf
 #endif
 
-#if defined(POLARSSL_AES_C) && defined(POLARSSL_SHA256_C) &&\
+#if defined(POLARSSL_AES_C) && defined(POLARSSL_SHA256_C) && \
  defined(POLARSSL_FS_IO)
 #include "polarssl/aes.h"
 #include "polarssl/sha256.h"
@@ -63,7 +63,7 @@
     "\n  example: aescrypt2 0 file file.aes hex:E76B2413958B00E193\n" \
     "\n"
 
-#if !defined(POLARSSL_AES_C) || !defined(POLARSSL_SHA256_C) ||\
+#if !defined(POLARSSL_AES_C) || !defined(POLARSSL_SHA256_C) || \
     !defined(POLARSSL_FS_IO)
 int main( void )
 {

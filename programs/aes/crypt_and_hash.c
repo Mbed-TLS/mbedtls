@@ -35,7 +35,7 @@
 #define polarssl_printf     printf
 #endif
 
-#if defined(POLARSSL_CIPHER_C) && defined(POLARSSL_MD_C) &&\
+#if defined(POLARSSL_CIPHER_C) && defined(POLARSSL_MD_C) && \
  defined(POLARSSL_FS_IO)
 #include "polarssl/cipher.h"
 #include "polarssl/md.h"
@@ -64,7 +64,7 @@
     "\n  example: crypt_and_hash 0 file file.aes AES-128-CBC SHA1 hex:E76B2413958B00E193\n" \
     "\n"
 
-#if !defined(POLARSSL_CIPHER_C) || !defined(POLARSSL_MD_C) ||\
+#if !defined(POLARSSL_CIPHER_C) || !defined(POLARSSL_MD_C) || \
     !defined(POLARSSL_FS_IO)
 int main( void )
 {

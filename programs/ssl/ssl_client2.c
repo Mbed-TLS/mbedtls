@@ -34,8 +34,8 @@
 #define polarssl_printf     printf
 #endif
 
-#if defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_FS_IO) &&\
-    defined(POLARSSL_SSL_TLS_C) && defined(POLARSSL_SSL_CLI_C) &&\
+#if defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_FS_IO) && \
+    defined(POLARSSL_SSL_TLS_C) && defined(POLARSSL_SSL_CLI_C) && \
     defined(POLARSSL_NET_C) && defined(POLARSSL_CTR_DRBG_C)
 #include "polarssl/net.h"
 #include "polarssl/ssl.h"

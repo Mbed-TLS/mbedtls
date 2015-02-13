@@ -33,7 +33,7 @@
 #define polarssl_printf     printf
 #endif
 
-#if defined(POLARSSL_PK_WRITE_C) && defined(POLARSSL_FS_IO) &&\
+#if defined(POLARSSL_PK_WRITE_C) && defined(POLARSSL_FS_IO) && \
     defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_CTR_DRBG_C)
 #include "polarssl/error.h"
 #include "polarssl/pk.h"

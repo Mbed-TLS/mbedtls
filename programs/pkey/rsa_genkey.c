@@ -33,8 +33,8 @@
 #define polarssl_printf     printf
 #endif
 
-#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_ENTROPY_C) &&\
-    defined(POLARSSL_RSA_C) && defined(POLARSSL_GENPRIME) &&\
+#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_ENTROPY_C) && \
+    defined(POLARSSL_RSA_C) && defined(POLARSSL_GENPRIME) && \
     defined(POLARSSL_FS_IO) && defined(POLARSSL_CTR_DRBG_C)
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"

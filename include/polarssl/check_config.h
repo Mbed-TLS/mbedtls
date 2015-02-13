@@ -145,13 +145,13 @@
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED) &&                   \
-    ( !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_CRT_PARSE_C) ||\
+    ( !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_CRT_PARSE_C) || \
       !defined(POLARSSL_PKCS1_V15) )
 #error "POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED) &&                       \
-    ( !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_CRT_PARSE_C) ||\
+    ( !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_CRT_PARSE_C) || \
       !defined(POLARSSL_PKCS1_V15) )
 #error "POLARSSL_KEY_EXCHANGE_RSA_ENABLED defined, but not all prerequisites"
 #endif

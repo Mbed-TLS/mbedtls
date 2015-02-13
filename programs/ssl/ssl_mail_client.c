@@ -128,7 +128,7 @@
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
     !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_CLI_C) || \
     !defined(POLARSSL_NET_C) || !defined(POLARSSL_RSA_C) ||         \
-    !defined(POLARSSL_CTR_DRBG_C) || !defined(POLARSSL_X509_CRT_PARSE_C) ||\
+    !defined(POLARSSL_CTR_DRBG_C) || !defined(POLARSSL_X509_CRT_PARSE_C) || \
     !defined(POLARSSL_FS_IO)
 int main( void )
 {

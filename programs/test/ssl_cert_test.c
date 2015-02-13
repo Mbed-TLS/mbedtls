@@ -33,7 +33,7 @@
 #define polarssl_printf     printf
 #endif
 
-#if defined(POLARSSL_RSA_C) && defined(POLARSSL_X509_CRT_PARSE_C) &&\
+#if defined(POLARSSL_RSA_C) && defined(POLARSSL_X509_CRT_PARSE_C) && \
     defined(POLARSSL_FS_IO) && defined(POLARSSL_X509_CRL_PARSE_C)
 #include "polarssl/certs.h"
 #include "polarssl/x509_crt.h"

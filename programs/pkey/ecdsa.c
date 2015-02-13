@@ -33,7 +33,7 @@
 #define polarssl_printf     printf
 #endif
 
-#if defined(POLARSSL_ECDSA_C) &&\
+#if defined(POLARSSL_ECDSA_C) && \
     defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_CTR_DRBG_C)
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"

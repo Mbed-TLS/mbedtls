@@ -33,7 +33,7 @@
 #define polarssl_printf     printf
 #endif
 
-#if defined(POLARSSL_BIGNUM_C) &&\
+#if defined(POLARSSL_BIGNUM_C) && \
     defined(POLARSSL_PK_PARSE_C) && defined(POLARSSL_FS_IO)
 #include "polarssl/error.h"
 #include "polarssl/rsa.h"

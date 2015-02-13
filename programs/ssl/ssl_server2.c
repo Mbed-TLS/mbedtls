@@ -44,8 +44,8 @@
 #include <windows.h>
 #endif
 
-#if defined(POLARSSL_ENTROPY_C) &&\
-    defined(POLARSSL_SSL_TLS_C) && defined(POLARSSL_SSL_SRV_C) &&\
+#if defined(POLARSSL_ENTROPY_C) && \
+    defined(POLARSSL_SSL_TLS_C) && defined(POLARSSL_SSL_SRV_C) && \
     defined(POLARSSL_NET_C) && defined(POLARSSL_CTR_DRBG_C)
 #include "polarssl/net.h"
 #include "polarssl/ssl.h"
@@ -278,7 +278,7 @@
     "    force_ciphersuite=<name>    default: all enabled\n"            \
     " acceptable ciphersuite names:\n"
 
-#if !defined(POLARSSL_ENTROPY_C) ||\
+#if !defined(POLARSSL_ENTROPY_C) || \
     !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_SRV_C) || \
     !defined(POLARSSL_NET_C) || !defined(POLARSSL_CTR_DRBG_C)
 #include <stdio.h>

@@ -34,9 +34,9 @@
 #define polarssl_printf     printf
 #endif
 
-#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_ENTROPY_C) &&\
-    defined(POLARSSL_SSL_TLS_C) && defined(POLARSSL_SSL_CLI_C) &&\
-    defined(POLARSSL_NET_C) && defined(POLARSSL_RSA_C) &&\
+#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_ENTROPY_C) && \
+    defined(POLARSSL_SSL_TLS_C) && defined(POLARSSL_SSL_CLI_C) && \
+    defined(POLARSSL_NET_C) && defined(POLARSSL_RSA_C) && \
     defined(POLARSSL_CTR_DRBG_C) && defined(POLARSSL_X509_CRT_PARSE_C)
 #include "polarssl/net.h"
 #include "polarssl/debug.h"

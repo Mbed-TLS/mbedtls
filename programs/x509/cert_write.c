@@ -33,9 +33,9 @@
 #define polarssl_printf     printf
 #endif
 
-#if defined(POLARSSL_X509_CRT_WRITE_C) &&\
-    defined(POLARSSL_X509_CRT_PARSE_C) && defined(POLARSSL_FS_IO) &&\
-    defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_CTR_DRBG_C) &&\
+#if defined(POLARSSL_X509_CRT_WRITE_C) && \
+    defined(POLARSSL_X509_CRT_PARSE_C) && defined(POLARSSL_FS_IO) && \
+    defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_CTR_DRBG_C) && \
     defined(POLARSSL_ERROR_C)
 #include "polarssl/x509_crt.h"
 #include "polarssl/x509_csr.h"

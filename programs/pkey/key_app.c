@@ -51,7 +51,7 @@
 #define DFL_PASSWORD            ""
 #define DFL_PASSWORD_FILE       ""
 #define DFL_DEBUG_LEVEL         0
-    
+
 #define USAGE \
     "\n usage: key_app param=<>...\n"                   \
     "\n acceptable parameters:\n"                       \

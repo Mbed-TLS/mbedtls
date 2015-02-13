@@ -95,7 +95,7 @@
 #define USAGE_AUTH \
     "    authentication=%%d   default: 0 (disabled)\n"      \
     "    user_name=%%s        default: \"user\"\n"          \
-    "    user_pwd=%%s         default: \"password\"\n"      
+    "    user_pwd=%%s         default: \"password\"\n"
 #else
 #define USAGE_AUTH \
     "    authentication options disabled. (Require POLARSSL_BASE64_C)\n"
@@ -349,7 +349,7 @@ static int write_and_get_response( int sock_fd, unsigned char *buf, size_t len )
                 code[3] = '\0';
                 return atoi( code );
             }
-            
+
             idx = 0;
         }
     }

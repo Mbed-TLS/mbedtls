@@ -70,7 +70,7 @@
 #define BUFSIZE         1024
 #define HEADER_FORMAT   "  %-24s :  "
 #define TITLE_LEN       25
- 
+
 #define DHM_SIZES 3
 
 #define OPTIONS                                                         \

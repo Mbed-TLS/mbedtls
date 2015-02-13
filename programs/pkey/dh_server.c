@@ -134,7 +134,7 @@ int main( void )
     }
 
     rsa.len = ( mpi_msb( &rsa.N ) + 7 ) >> 3;
-    
+
     fclose( f );
 
     /*

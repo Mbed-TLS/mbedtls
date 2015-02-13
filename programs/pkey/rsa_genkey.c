@@ -41,7 +41,7 @@
 #include "polarssl/bignum.h"
 #include "polarssl/x509.h"
 #include "polarssl/rsa.h"
-    
+
 #include <stdio.h>
 #include <string.h>
 #endif
@@ -86,7 +86,7 @@ int main( void )
     fflush( stdout );
 
     rsa_init( &rsa, RSA_PKCS_V15, 0 );
-    
+
     if( ( ret = rsa_gen_key( &rsa, ctr_drbg_random, &ctr_drbg, KEY_SIZE,
                              EXPONENT ) ) != 0 )
     {

@@ -400,7 +400,7 @@ int main( int argc, char *argv[] )
             goto exit;
         }
 
-        if( ( ( filesize - md_get_size( md_info ) ) % 
+        if( ( ( filesize - md_get_size( md_info ) ) %
                 cipher_get_block_size( &cipher_ctx ) ) != 0 )
         {
             polarssl_fprintf( stderr, "File content not a multiple of the block size (%d).\n",

@@ -119,7 +119,7 @@
     "                          email_ca\n"              \
     "                          object_signing_ca\n"     \
     "\n"
-    
+
 #if !defined(POLARSSL_X509_CRT_WRITE_C) ||                                  \
     !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_FS_IO) ||      \
     !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C) ||        \

@@ -457,7 +457,7 @@ exit:
     "    session_reuse=on/off        default: on (enabled)\n"    \
     "    session_lifetime=%%d (s)     default: 86400\n"          \
     "    force_ciphersuite=<name>    default: all enabled\n"     \
-    " acceptable ciphersuite names:\n" 
+    " acceptable ciphersuite names:\n"
 
 int main( int argc, char *argv[] )
 {

@@ -29,12 +29,14 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
-#include <string.h>
-#include <stdio.h>
-
+#if defined(POLARSSL_AES_C) && defined(POLARSSL_DHM_C) &&\
+    defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_NET_C) &&\
+    defined(POLARSSL_RSA_C) && defined(POLARSSL_SHA256_C) &&\
+    defined(POLARSSL_FS_IO) && defined(POLARSSL_CTR_DRBG_C)
 #include "polarssl/net.h"
 #include "polarssl/aes.h"
 #include "polarssl/dhm.h"
@@ -43,6 +45,10 @@
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
 
+#include <stdio.h>
+#include <string.h>
+#endif
+
 #define SERVER_NAME "localhost"
 #define SERVER_PORT 11999
 
@@ -50,11 +56,8 @@
     !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_NET_C) ||  \
     !defined(POLARSSL_RSA_C) || !defined(POLARSSL_SHA256_C) ||    \
     !defined(POLARSSL_FS_IO) || !defined(POLARSSL_CTR_DRBG_C)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_AES_C and/or POLARSSL_DHM_C and/or POLARSSL_ENTROPY_C "
            "and/or POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
            "POLARSSL_SHA256_C and/or POLARSSL_FS_IO and/or "
@@ -62,7 +65,7 @@ int main( int argc, char *argv[] )
     return( 0 );
 }
 #else
-int main( int argc, char *argv[] )
+int main( void )
 {
     FILE *f;
 
@@ -80,9 +83,6 @@ int main( int argc, char *argv[] )
     rsa_context rsa;
     dhm_context dhm;
     aes_context aes;
-
-    ((void) argc);
-    ((void) argv);
 
     memset( &rsa, 0, sizeof( rsa ) );
     dhm_init( &dhm );

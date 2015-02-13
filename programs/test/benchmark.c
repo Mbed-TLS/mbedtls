@@ -29,13 +29,11 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-
+#if defined(POLARSSL_TIMING_C)
 #include "polarssl/timing.h"
 
 #include "polarssl/md4.h"
@@ -60,6 +58,11 @@
 #include "polarssl/ecdh.h"
 #include "polarssl/error.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#endif
+
 #if defined _MSC_VER && !defined snprintf
 #define snprintf _snprintf
 #endif
@@ -67,40 +70,23 @@
 #define BUFSIZE         1024
 #define HEADER_FORMAT   "  %-24s :  "
 #define TITLE_LEN       25
+ 
+#define DHM_SIZES 3
 
-#if !defined(POLARSSL_TIMING_C)
-int main( int argc, char *argv[] )
-{
-    ((void) argc);
-    ((void) argv);
+#define OPTIONS                                                         \
+    "md4, md5, ripemd160, sha1, sha256, sha512,\n"                      \
+    "arc4, des3, des, aes_cbc, aes_gcm, aes_ccm, camellia, blowfish,\n" \
+    "havege, ctr_drbg, hmac_drbg\n"                                     \
+    "rsa, dhm, ecdsa, ecdh.\n"
 
-    polarssl_printf("POLARSSL_TIMING_C not defined.\n");
-    return( 0 );
-}
+#if defined(POLARSSL_ERROR_C)
+#define PRINT_ERROR                                                     \
+        polarssl_strerror( ret, ( char * )tmp, sizeof( tmp ) );         \
+        polarssl_printf( "FAILED: %s\n", tmp );
 #else
-
-static int myrand( void *rng_state, unsigned char *output, size_t len )
-{
-    size_t use_len;
-    int rnd;
-
-    if( rng_state != NULL )
-        rng_state  = NULL;
-
-    while( len > 0 )
-    {
-        use_len = len;
-        if( use_len > sizeof(int) )
-            use_len = sizeof(int);
-
-        rnd = rand();
-        memcpy( output, &rnd, use_len );
-        output += use_len;
-        len -= use_len;
-    }
-
-    return( 0 );
-}
+#define PRINT_ERROR                                                     \
+        polarssl_printf( "FAILED: -0x%04x\n", -ret );
+#endif
 
 #define TIME_AND_TSC( TITLE, CODE )                                     \
 do {                                                                    \
@@ -125,15 +111,6 @@ do {                                                                    \
                     ( hardclock() - tsc ) / ( j * BUFSIZE ) );          \
 } while( 0 )
 
-#if defined(POLARSSL_ERROR_C)
-#define PRINT_ERROR                                                     \
-        polarssl_strerror( ret, ( char * )tmp, sizeof( tmp ) );         \
-        polarssl_printf( "FAILED: %s\n", tmp );
-#else
-#define PRINT_ERROR                                                     \
-        polarssl_printf( "FAILED: -0x%04x\n", -ret );
-#endif
-
 #define TIME_PUBLIC( TITLE, TYPE, CODE )                                \
 do {                                                                    \
     unsigned long i;                                                    \
@@ -157,6 +134,36 @@ PRINT_ERROR;                                                            \
         polarssl_printf( "%9lu " TYPE "/s\n", i / 3 );                           \
 } while( 0 )
 
+#if !defined(POLARSSL_TIMING_C)
+int main( void )
+{
+    polarssl_printf("POLARSSL_TIMING_C not defined.\n");
+    return( 0 );
+}
+#else
+static int myrand( void *rng_state, unsigned char *output, size_t len )
+{
+    size_t use_len;
+    int rnd;
+
+    if( rng_state != NULL )
+        rng_state  = NULL;
+
+    while( len > 0 )
+    {
+        use_len = len;
+        if( use_len > sizeof(int) )
+            use_len = sizeof(int);
+
+        rnd = rand();
+        memcpy( output, &rnd, use_len );
+        output += use_len;
+        len -= use_len;
+    }
+
+    return( 0 );
+}
+
 unsigned char buf[BUFSIZE];
 
 typedef struct {
@@ -165,12 +172,6 @@ typedef struct {
          havege, ctr_drbg, hmac_drbg,
          rsa, dhm, ecdsa, ecdh;
 } todo_list;
-
-#define OPTIONS                                                         \
-    "md4, md5, ripemd160, sha1, sha256, sha512,\n"                      \
-    "arc4, des3, des, aes_cbc, aes_gcm, aes_ccm, camellia, blowfish,\n" \
-    "havege, ctr_drbg, hmac_drbg\n"                                     \
-    "rsa, dhm, ecdsa, ecdh.\n"
 
 int main( int argc, char *argv[] )
 {
@@ -519,7 +520,6 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_DHM_C) && defined(POLARSSL_BIGNUM_C)
     if( todo.dhm )
     {
-#define DHM_SIZES 3
         int dhm_sizes[DHM_SIZES] = { 1024, 2048, 3072 };
         const char *dhm_P[DHM_SIZES] = {
             POLARSSL_DHM_RFC5114_MODP_1024_P,

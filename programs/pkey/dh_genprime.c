@@ -29,15 +29,20 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
-#include <stdio.h>
-#include <string.h>
-
+#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_ENTROPY_C) &&\
+    defined(POLARSSL_FS_IO) && defined(POLARSSL_CTR_DRBG_C) &&\
+    defined(POLARSSL_GENPRIME)
 #include "polarssl/bignum.h"
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
+
+#include <stdio.h>
+#include <string.h>
+#endif
 
 /*
  * Note: G = 4 is always a quadratic residue mod P,
@@ -49,18 +54,15 @@
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||   \
     !defined(POLARSSL_FS_IO) || !defined(POLARSSL_CTR_DRBG_C) ||     \
     !defined(POLARSSL_GENPRIME)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
            "POLARSSL_FS_IO and/or POLARSSL_CTR_DRBG_C and/or "
            "POLARSSL_GENPRIME not defined.\n");
     return( 0 );
 }
 #else
-int main( int argc, char *argv[] )
+int main( void )
 {
     int ret = 1;
     mpi G, P, Q;
@@ -68,9 +70,6 @@ int main( int argc, char *argv[] )
     ctr_drbg_context ctr_drbg;
     const char *pers = "dh_genprime";
     FILE *fout;
-
-    ((void) argc);
-    ((void) argv);
 
     mpi_init( &G ); mpi_init( &P ); mpi_init( &Q );
     entropy_init( &entropy );

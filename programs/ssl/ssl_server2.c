@@ -29,27 +29,12 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
-#define polarssl_printf     printf
-#define polarssl_fprintf    fprintf
-#define polarssl_malloc     malloc
-#define polarssl_free       free
-#endif
-
-#if !defined(POLARSSL_ENTROPY_C) ||  \
-    !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_SRV_C) || \
-    !defined(POLARSSL_NET_C) || !defined(POLARSSL_CTR_DRBG_C)
 #include <stdio.h>
-int main( int argc, char *argv[] )
-{
-    ((void) argc);
-    ((void) argv);
-
-    polarssl_printf("POLARSSL_ENTROPY_C and/or "
-           "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_SRV_C and/or "
-           "POLARSSL_NET_C and/or POLARSSL_CTR_DRBG_C not defined.\n");
-    return( 0 );
-}
-#else
+#define polarssl_free       free
+#define polarssl_malloc     malloc
+#define polarssl_fprintf    fprintf
+#define polarssl_printf     printf
+#endif
 
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION) && defined(POLARSSL_FS_IO)
 #define POLARSSL_SNI
@@ -59,14 +44,9 @@ int main( int argc, char *argv[] )
 #include <windows.h>
 #endif
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-
-#if !defined(_WIN32)
-#include <signal.h>
-#endif
-
+#if defined(POLARSSL_ENTROPY_C) &&\
+    defined(POLARSSL_SSL_TLS_C) && defined(POLARSSL_SSL_SRV_C) &&\
+    defined(POLARSSL_NET_C) && defined(POLARSSL_CTR_DRBG_C)
 #include "polarssl/net.h"
 #include "polarssl/ssl.h"
 #include "polarssl/entropy.h"
@@ -75,6 +55,15 @@ int main( int argc, char *argv[] )
 #include "polarssl/x509.h"
 #include "polarssl/error.h"
 #include "polarssl/debug.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#endif
+
+#if !defined(_WIN32)
+#include <signal.h>
+#endif
 
 #if defined(POLARSSL_SSL_CACHE_C)
 #include "polarssl/ssl_cache.h"
@@ -143,95 +132,6 @@ int main( int argc, char *argv[] )
  * if you change this value to something outside the range <= 100 or > 500
  */
 #define IO_BUF_LEN      200
-
-/*
- * global options
- */
-struct options
-{
-    const char *server_addr;    /* address on which the ssl service runs    */
-    int server_port;            /* port on which the ssl service runs       */
-    int debug_level;            /* level of debugging                       */
-    int nbio;                   /* should I/O be blocking?                  */
-    const char *ca_file;        /* the file with the CA certificate(s)      */
-    const char *ca_path;        /* the path with the CA certificate(s) reside */
-    const char *crt_file;       /* the file with the server certificate     */
-    const char *key_file;       /* the file with the server key             */
-    const char *crt_file2;      /* the file with the 2nd server certificate */
-    const char *key_file2;      /* the file with the 2nd server key         */
-    const char *psk;            /* the pre-shared key                       */
-    const char *psk_identity;   /* the pre-shared key identity              */
-    char *psk_list;             /* list of PSK id/key pairs for callback    */
-    int force_ciphersuite[2];   /* protocol/ciphersuite to use, or all      */
-    const char *version_suites; /* per-version ciphersuites                 */
-    int renegotiation;          /* enable / disable renegotiation           */
-    int allow_legacy;           /* allow legacy renegotiation               */
-    int renegotiate;            /* attempt renegotiation?                   */
-    int renego_delay;           /* delay before enforcing renegotiation     */
-    int renego_period;          /* period for automatic renegotiation       */
-    int exchanges;              /* number of data exchanges                 */
-    int min_version;            /* minimum protocol version accepted        */
-    int max_version;            /* maximum protocol version accepted        */
-    int arc4;                   /* flag for arc4 suites support             */
-    int auth_mode;              /* verify mode for connection               */
-    unsigned char mfl_code;     /* code for maximum fragment length         */
-    int trunc_hmac;             /* accept truncated hmac?                   */
-    int tickets;                /* enable / disable session tickets         */
-    int ticket_timeout;         /* session ticket lifetime                  */
-    int cache_max;              /* max number of session cache entries      */
-    int cache_timeout;          /* expiration delay of session cache entries */
-    char *sni;                  /* string describing sni information        */
-    const char *alpn_string;    /* ALPN supported protocols                 */
-    const char *dhm_file;       /* the file with the DH parameters          */
-    int extended_ms;            /* allow negotiation of extended MS?        */
-    int etm;                    /* allow negotiation of encrypt-then-MAC?   */
-} opt;
-
-static void my_debug( void *ctx, int level, const char *str )
-{
-    ((void) level);
-
-    polarssl_fprintf( (FILE *) ctx, "%s", str );
-    fflush(  (FILE *) ctx  );
-}
-
-/*
- * Test recv/send functions that make sure each try returns
- * WANT_READ/WANT_WRITE at least once before sucesseding
- */
-static int my_recv( void *ctx, unsigned char *buf, size_t len )
-{
-    static int first_try = 1;
-    int ret;
-
-    if( first_try )
-    {
-        first_try = 0;
-        return( POLARSSL_ERR_NET_WANT_READ );
-    }
-
-    ret = net_recv( ctx, buf, len );
-    if( ret != POLARSSL_ERR_NET_WANT_READ )
-        first_try = 1; /* Next call will be a new operation */
-    return( ret );
-}
-
-static int my_send( void *ctx, const unsigned char *buf, size_t len )
-{
-    static int first_try = 1;
-    int ret;
-
-    if( first_try )
-    {
-        first_try = 0;
-        return( POLARSSL_ERR_NET_WANT_WRITE );
-    }
-
-    ret = net_send( ctx, buf, len );
-    if( ret != POLARSSL_ERR_NET_WANT_WRITE )
-        first_try = 1; /* Next call will be a new operation */
-    return( ret );
-}
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
 #if defined(POLARSSL_FS_IO)
@@ -377,6 +277,107 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
     "                                default: all enabled\n"            \
     "    force_ciphersuite=<name>    default: all enabled\n"            \
     " acceptable ciphersuite names:\n"
+
+#if !defined(POLARSSL_ENTROPY_C) ||\
+    !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_SRV_C) || \
+    !defined(POLARSSL_NET_C) || !defined(POLARSSL_CTR_DRBG_C)
+#include <stdio.h>
+int main( void )
+{
+    polarssl_printf("POLARSSL_ENTROPY_C and/or "
+           "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_SRV_C and/or "
+           "POLARSSL_NET_C and/or POLARSSL_CTR_DRBG_C not defined.\n");
+    return( 0 );
+}
+#else
+/*
+ * global options
+ */
+struct options
+{
+    const char *server_addr;    /* address on which the ssl service runs    */
+    int server_port;            /* port on which the ssl service runs       */
+    int debug_level;            /* level of debugging                       */
+    int nbio;                   /* should I/O be blocking?                  */
+    const char *ca_file;        /* the file with the CA certificate(s)      */
+    const char *ca_path;        /* the path with the CA certificate(s) reside */
+    const char *crt_file;       /* the file with the server certificate     */
+    const char *key_file;       /* the file with the server key             */
+    const char *crt_file2;      /* the file with the 2nd server certificate */
+    const char *key_file2;      /* the file with the 2nd server key         */
+    const char *psk;            /* the pre-shared key                       */
+    const char *psk_identity;   /* the pre-shared key identity              */
+    char *psk_list;             /* list of PSK id/key pairs for callback    */
+    int force_ciphersuite[2];   /* protocol/ciphersuite to use, or all      */
+    const char *version_suites; /* per-version ciphersuites                 */
+    int renegotiation;          /* enable / disable renegotiation           */
+    int allow_legacy;           /* allow legacy renegotiation               */
+    int renegotiate;            /* attempt renegotiation?                   */
+    int renego_delay;           /* delay before enforcing renegotiation     */
+    int renego_period;          /* period for automatic renegotiation       */
+    int exchanges;              /* number of data exchanges                 */
+    int min_version;            /* minimum protocol version accepted        */
+    int max_version;            /* maximum protocol version accepted        */
+    int arc4;                   /* flag for arc4 suites support             */
+    int auth_mode;              /* verify mode for connection               */
+    unsigned char mfl_code;     /* code for maximum fragment length         */
+    int trunc_hmac;             /* accept truncated hmac?                   */
+    int tickets;                /* enable / disable session tickets         */
+    int ticket_timeout;         /* session ticket lifetime                  */
+    int cache_max;              /* max number of session cache entries      */
+    int cache_timeout;          /* expiration delay of session cache entries */
+    char *sni;                  /* string describing sni information        */
+    const char *alpn_string;    /* ALPN supported protocols                 */
+    const char *dhm_file;       /* the file with the DH parameters          */
+    int extended_ms;            /* allow negotiation of extended MS?        */
+    int etm;                    /* allow negotiation of encrypt-then-MAC?   */
+} opt;
+
+static void my_debug( void *ctx, int level, const char *str )
+{
+    ((void) level);
+
+    polarssl_fprintf( (FILE *) ctx, "%s", str );
+    fflush(  (FILE *) ctx  );
+}
+
+/*
+ * Test recv/send functions that make sure each try returns
+ * WANT_READ/WANT_WRITE at least once before sucesseding
+ */
+static int my_recv( void *ctx, unsigned char *buf, size_t len )
+{
+    static int first_try = 1;
+    int ret;
+
+    if( first_try )
+    {
+        first_try = 0;
+        return( POLARSSL_ERR_NET_WANT_READ );
+    }
+
+    ret = net_recv( ctx, buf, len );
+    if( ret != POLARSSL_ERR_NET_WANT_READ )
+        first_try = 1; /* Next call will be a new operation */
+    return( ret );
+}
+
+static int my_send( void *ctx, const unsigned char *buf, size_t len )
+{
+    static int first_try = 1;
+    int ret;
+
+    if( first_try )
+    {
+        first_try = 0;
+        return( POLARSSL_ERR_NET_WANT_WRITE );
+    }
+
+    ret = net_send( ctx, buf, len );
+    if( ret != POLARSSL_ERR_NET_WANT_WRITE )
+        first_try = 1; /* Next call will be a new operation */
+    return( ret );
+}
 
 /*
  * Used by sni_parse and psk_parse to handle coma-separated lists

@@ -29,31 +29,37 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-
+#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_RSA_C) &&\
+    defined(POLARSSL_X509_CRL_PARSE_C) && defined(POLARSSL_FS_IO)
 #include "polarssl/x509_crl.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#endif
+
+#define DFL_FILENAME            "crl.pem"
+#define DFL_DEBUG_LEVEL         0
+
+#define USAGE \
+    "\n usage: crl_app param=<>...\n"                   \
+    "\n acceptable parameters:\n"                       \
+    "    filename=%%s         default: crl.pem\n"      \
+    "\n"
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||  \
     !defined(POLARSSL_X509_CRL_PARSE_C) || !defined(POLARSSL_FS_IO)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
            "POLARSSL_X509_CRL_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
     return( 0 );
 }
 #else
-
-#define DFL_FILENAME            "crl.pem"
-#define DFL_DEBUG_LEVEL         0
-
 /*
  * global options
  */
@@ -61,12 +67,6 @@ struct options
 {
     const char *filename;       /* filename of the certificate file     */
 } opt;
-
-#define USAGE \
-    "\n usage: crl_app param=<>...\n"                   \
-    "\n acceptable parameters:\n"                       \
-    "    filename=%%s         default: crl.pem\n"      \
-    "\n"
 
 int main( int argc, char *argv[] )
 {

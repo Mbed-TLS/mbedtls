@@ -29,29 +29,26 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
-#include <stdio.h>
-
+#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_FS_IO)
 #include "polarssl/bignum.h"
 
-#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_FS_IO)
-int main( int argc, char *argv[] )
-{
-    ((void) argc);
-    ((void) argv);
+#include <stdio.h>
+#endif
 
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_FS_IO)
+int main( void )
+{
     polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_FS_IO not defined.\n");
     return( 0 );
 }
 #else
-int main( int argc, char *argv[] )
+int main( void )
 {
     mpi E, P, Q, N, H, D, X, Y, Z;
-
-    ((void) argc);
-    ((void) argv);
 
     mpi_init( &E ); mpi_init( &P ); mpi_init( &Q ); mpi_init( &N );
     mpi_init( &H ); mpi_init( &D ); mpi_init( &X ); mpi_init( &Y );

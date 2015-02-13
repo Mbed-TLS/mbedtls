@@ -29,36 +29,35 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
-#include <string.h>
+#if defined(POLARSSL_RSA_C) && defined(POLARSSL_X509_CRT_PARSE_C) &&\
+    defined(POLARSSL_FS_IO) && defined(POLARSSL_X509_CRL_PARSE_C)
+#include "polarssl/certs.h"
+#include "polarssl/x509_crt.h"
+
 #include <stdio.h>
+#include <string.h>
+#endif
+
+#if defined _MSC_VER && !defined snprintf
+#define snprintf _snprintf
+#endif
+
+#define MAX_CLIENT_CERTS    8
 
 #if !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_CRT_PARSE_C) || \
     !defined(POLARSSL_FS_IO) || !defined(POLARSSL_X509_CRL_PARSE_C)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_RSA_C and/or POLARSSL_X509_CRT_PARSE_C "
            "POLARSSL_FS_IO and/or POLARSSL_X509_CRL_PARSE_C "
            "not defined.\n");
     return( 0 );
 }
 #else
-
-#include "polarssl/certs.h"
-#include "polarssl/x509_crt.h"
-
-#if defined _MSC_VER && !defined snprintf
-#define snprintf _snprintf
-#endif
-
-
-#define MAX_CLIENT_CERTS    8
-
 const char *client_certificates[MAX_CLIENT_CERTS] =
 {
     "client1.crt",
@@ -83,15 +82,12 @@ const char *client_private_keys[MAX_CLIENT_CERTS] =
     "cert_digest.key"
 };
 
-int main( int argc, char *argv[] )
+int main( void )
 {
     int ret, i;
     x509_crt cacert;
     x509_crl crl;
     char buf[10240];
-
-    ((void) argc);
-    ((void) argv);
 
     x509_crt_init( &cacert );
     x509_crl_init( &crl );

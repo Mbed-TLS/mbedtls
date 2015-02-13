@@ -1,7 +1,7 @@
 /**
  *  \brief Use and generate random data into a file via the CTR_DBRG based on AES
  *
- *  Copyright (C) 2006-2011, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *
  *  This file is part of mbed TLS (https://polarssl.org)
  *

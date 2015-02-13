@@ -3,7 +3,7 @@
  *
  * \brief The RSA public-key cryptosystem
  *
- *  Copyright (C) 2006-2010, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *
  *  This file is part of mbed TLS (https://polarssl.org)
  *

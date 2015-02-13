@@ -1,7 +1,7 @@
 /*
  *  AES-256 file encryption program
  *
- *  Copyright (C) 2006-2011, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *
  *  This file is part of mbed TLS (https://polarssl.org)
  *

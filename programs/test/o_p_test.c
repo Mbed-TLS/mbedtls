@@ -1,7 +1,7 @@
 /*
  *  Test application that shows some PolarSSL and OpenSSL compatibility
  *
- *  Copyright (C) 2011-2012 ARM Limited, All Rights Reserved
+ *  Copyright (C) 2011-2015 ARM Limited, All Rights Reserved
  *
  *  This file is part of mbed TLS (https://polarssl.org)
  *

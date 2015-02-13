@@ -1,7 +1,7 @@
 /*
  *  An 32-bit implementation of the XTEA algorithm
  *
- *  Copyright (C) 2006-2013, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *
  *  This file is part of mbed TLS (https://polarssl.org)
  *

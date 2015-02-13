@@ -5,6 +5,10 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Security
 
 Features
+   * Add support for overriding snprintf() (except on Windows) and exit() in
+     the platform layer.
+   * Add an option to use macros instead of function pointers in the platform
+     layer (helps get rid of unwanted references).
 
 Bugfix
    * Fix hardclock() (only used in the benchmarking program) with some
@@ -21,6 +25,7 @@ Changes
    * Building with 'make' on windows now requires Unix utilities in the PATH
      as well as a Unix shell. This enables more features such as the 'check'
      target.
+   * Remove dependency on sscanf() in X.509 parsing modules.
 
 = mbed TLS 1.3.10 released 2015-02-09
 Security

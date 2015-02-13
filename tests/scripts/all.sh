@@ -139,6 +139,7 @@ cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl unset POLARSSL_PLATFORM_C
+scripts/config.pl unset POLARSSL_PLATFORM_MEMORY
 scripts/config.pl unset POLARSSL_MEMORY_C
 scripts/config.pl unset POLARSSL_MEMORY_BUFFER_ALLOC_C
 CC=gcc CFLAGS=-Werror make

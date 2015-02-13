@@ -19,7 +19,10 @@ endif
 
 # To compile as a shared library:
 ifdef SHARED
+# all code is position-indep with mingw, avoid warning about useless flag
+ifndef WINDOWS
 CFLAGS += -fPIC
+endif
 endif
 
 SOVERSION=8

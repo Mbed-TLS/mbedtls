@@ -77,11 +77,7 @@ shared: libpolarssl.so
 
 libpolarssl.a: libmbedtls.a
 	echo "  LN    $@ -> $?"
-ifndef WINDOWS
 	ln -sf $? $@
-else
-	copy /y /b $? $@
-endif
 
 libmbedtls.a: $(OBJS)
 	echo "  AR    $@"
@@ -91,11 +87,7 @@ libmbedtls.a: $(OBJS)
 
 libpolarssl.so: libmbedtls.so
 	echo "  LN    $@ -> $?"
-ifndef WINDOWS
 	ln -sf $? $@
-else
-	copy /y /b $? $@
-endif
 
 libmbedtls.${DLEXT}: $(OBJS)
 	echo "  LD    $@"
@@ -118,9 +110,4 @@ libmbedtls.dll: $(OBJS)
 	$(CC) $(CFLAGS) $(OFLAGS) -c $<
 
 clean:
-ifndef WINDOWS
 	rm -f *.o libpolarssl.* libmbedtls.*
-endif
-ifdef WINDOWS
-	del /Q /F *.o libpolarssl.* libmbedtls.*
-endif

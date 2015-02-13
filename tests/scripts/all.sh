@@ -73,6 +73,9 @@ msg()
 msg "test: recursion.pl" # < 1s
 scripts/recursion.pl library/*.c
 
+msg "test: freshness of generated source files" # < 1s
+tests/scripts/check-generated-files.sh
+
 msg "build: cmake, gcc, ASan" # ~ 1 min 50s
 cleanup
 CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .

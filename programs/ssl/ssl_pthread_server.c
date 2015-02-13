@@ -33,6 +33,7 @@
 #include <stdio.h>
 #define polarssl_fprintf    fprintf
 #define polarssl_printf     printf
+#define polarssl_snprintf   snprintf
 #endif
 
 #if defined(_WIN32)
@@ -141,7 +142,7 @@ static void *handle_ssl_connection( void *data )
     memset( &ssl, 0, sizeof( ssl_context ) );
     memset( &ctr_drbg, 0, sizeof( ctr_drbg_context ) );
 
-    snprintf( pers, sizeof(pers), "SSL Pthread Thread %d", thread_id );
+    polarssl_snprintf( pers, sizeof(pers), "SSL Pthread Thread %d", thread_id );
     polarssl_printf( "  [ #%d ]  Client FD %d\n", thread_id, client_fd );
     polarssl_printf( "  [ #%d ]  Seeding the random number generator...\n", thread_id );
 

@@ -31,6 +31,12 @@
 #include <string.h>
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_snprintf snprintf
+#endif
+
 #if defined(POLARSSL_ERROR_C)
 
 #include <stdio.h>
@@ -67,7 +73,7 @@ HIGH_LEVEL_CODE_CHECKS
         // END generated code
 
         if( strlen( buf ) == 0 )
-            snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
+            polarssl_snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
     }
 
     use_ret = ret & ~0xFF80;
@@ -85,7 +91,7 @@ HIGH_LEVEL_CODE_CHECKS
         if( buflen - len < 5 )
             return;
 
-        snprintf( buf + len, buflen - len, " : " );
+        polarssl_snprintf( buf + len, buflen - len, " : " );
 
         buf += len + 3;
         buflen -= len + 3;
@@ -100,7 +106,7 @@ LOW_LEVEL_CODE_CHECKS
     if( strlen( buf ) != 0 )
         return;
 
-    snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
+    polarssl_snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
 }
 
 #if defined(POLARSSL_ERROR_STRERROR_BC)

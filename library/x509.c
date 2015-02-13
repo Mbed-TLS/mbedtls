@@ -54,9 +54,10 @@
 #else
 #include <stdio.h>
 #include <stdlib.h>
-#define polarssl_printf     printf
-#define polarssl_malloc     malloc
 #define polarssl_free       free
+#define polarssl_malloc     malloc
+#define polarssl_printf     printf
+#define polarssl_snprintf   snprintf
 #endif
 
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
@@ -73,6 +74,8 @@
 #include <dirent.h>
 #endif
 #endif
+
+#define CHECK(code) if( ( ret = code ) != 0 ){ return( ret ); }
 
 /*
  *  CertificateSerialNumber  ::=  INTEGER
@@ -475,6 +478,16 @@ int x509_get_name( unsigned char **p, const unsigned char *end,
     }
 }
 
+static int x509_parse_int(unsigned char **p, unsigned n, int *res){
+    *res = 0;
+    for( ; n > 0; --n ){
+        if( ( **p < '0') || ( **p > '9' ) ) return POLARSSL_ERR_X509_INVALID_DATE;
+        *res *= 10;
+        *res += (*(*p)++ - '0');
+    }
+    return 0;
+}
+
 /*
  *  Time ::= CHOICE {
  *       utcTime        UTCTime,
@@ -485,7 +498,6 @@ int x509_get_time( unsigned char **p, const unsigned char *end,
 {
     int ret;
     size_t len;
-    char date[64];
     unsigned char tag;
 
     if( ( end - *p ) < 1 )
@@ -502,19 +514,18 @@ int x509_get_time( unsigned char **p, const unsigned char *end,
         if( ret != 0 )
             return( POLARSSL_ERR_X509_INVALID_DATE + ret );
 
-        memset( date,  0, sizeof( date ) );
-        memcpy( date, *p, ( len < sizeof( date ) - 1 ) ?
-                len : sizeof( date ) - 1 );
-
-        if( sscanf( date, "%2d%2d%2d%2d%2d%2dZ",
-                    &time->year, &time->mon, &time->day,
-                    &time->hour, &time->min, &time->sec ) < 5 )
+        CHECK( x509_parse_int( p, 2, &time->year ) );
+        CHECK( x509_parse_int( p, 2, &time->mon ) );
+        CHECK( x509_parse_int( p, 2, &time->day ) );
+        CHECK( x509_parse_int( p, 2, &time->hour ) );
+        CHECK( x509_parse_int( p, 2, &time->min ) );
+        if( len > 10 )
+            CHECK( x509_parse_int( p, 2, &time->sec ) );
+        if( len > 12 && *(*p)++ != 'Z' )
             return( POLARSSL_ERR_X509_INVALID_DATE );
 
         time->year +=  100 * ( time->year < 50 );
         time->year += 1900;
-
-        *p += len;
 
         return( 0 );
     }
@@ -526,16 +537,15 @@ int x509_get_time( unsigned char **p, const unsigned char *end,
         if( ret != 0 )
             return( POLARSSL_ERR_X509_INVALID_DATE + ret );
 
-        memset( date,  0, sizeof( date ) );
-        memcpy( date, *p, ( len < sizeof( date ) - 1 ) ?
-                len : sizeof( date ) - 1 );
-
-        if( sscanf( date, "%4d%2d%2d%2d%2d%2dZ",
-                    &time->year, &time->mon, &time->day,
-                    &time->hour, &time->min, &time->sec ) < 5 )
+        CHECK( x509_parse_int( p, 4, &time->year ) );
+        CHECK( x509_parse_int( p, 2, &time->mon ) );
+        CHECK( x509_parse_int( p, 2, &time->day ) );
+        CHECK( x509_parse_int( p, 2, &time->hour ) );
+        CHECK( x509_parse_int( p, 2, &time->min ) );
+        if( len > 12 )
+            CHECK( x509_parse_int( p, 2, &time->sec ) );
+        if( len > 14 && *(*p)++ != 'Z' )
             return( POLARSSL_ERR_X509_INVALID_DATE );
-
-        *p += len;
 
         return( 0 );
     }
@@ -736,16 +746,16 @@ int x509_dn_gets( char *buf, size_t size, const x509_name *dn )
 
         if( name != dn )
         {
-            ret = snprintf( p, n, merge ? " + " : ", " );
+            ret = polarssl_snprintf( p, n, merge ? " + " : ", " );
             SAFE_SNPRINTF();
         }
 
         ret = oid_get_attr_short_name( &name->oid, &short_name );
 
         if( ret == 0 )
-            ret = snprintf( p, n, "%s=", short_name );
+            ret = polarssl_snprintf( p, n, "%s=", short_name );
         else
-            ret = snprintf( p, n, "\?\?=" );
+            ret = polarssl_snprintf( p, n, "\?\?=" );
         SAFE_SNPRINTF();
 
         for( i = 0; i < name->val.len; i++ )
@@ -759,7 +769,7 @@ int x509_dn_gets( char *buf, size_t size, const x509_name *dn )
             else s[i] = c;
         }
         s[i] = '\0';
-        ret = snprintf( p, n, "%s", s );
+        ret = polarssl_snprintf( p, n, "%s", s );
         SAFE_SNPRINTF();
 
         merge = name->next_merged;
@@ -790,14 +800,14 @@ int x509_serial_gets( char *buf, size_t size, const x509_buf *serial )
         if( i == 0 && nr > 1 && serial->p[i] == 0x0 )
             continue;
 
-        ret = snprintf( p, n, "%02X%s",
+        ret = polarssl_snprintf( p, n, "%02X%s",
                 serial->p[i], ( i < nr - 1 ) ? ":" : "" );
         SAFE_SNPRINTF();
     }
 
     if( nr != serial->len )
     {
-        ret = snprintf( p, n, "...." );
+        ret = polarssl_snprintf( p, n, "...." );
         SAFE_SNPRINTF();
     }
 
@@ -818,9 +828,9 @@ int x509_sig_alg_gets( char *buf, size_t size, const x509_buf *sig_oid,
 
     ret = oid_get_sig_alg_desc( sig_oid, &desc );
     if( ret != 0 )
-        ret = snprintf( p, n, "???"  );
+        ret = polarssl_snprintf( p, n, "???"  );
     else
-        ret = snprintf( p, n, "%s", desc );
+        ret = polarssl_snprintf( p, n, "%s", desc );
     SAFE_SNPRINTF();
 
 #if defined(POLARSSL_X509_RSASSA_PSS_SUPPORT)
@@ -834,7 +844,7 @@ int x509_sig_alg_gets( char *buf, size_t size, const x509_buf *sig_oid,
         md_info = md_info_from_type( md_alg );
         mgf_md_info = md_info_from_type( pss_opts->mgf1_hash_id );
 
-        ret = snprintf( p, n, " (%s, MGF1-%s, 0x%02X)",
+        ret = polarssl_snprintf( p, n, " (%s, MGF1-%s, 0x%02X)",
                               md_info ? md_info->name : "???",
                               mgf_md_info ? mgf_md_info->name : "???",
                               pss_opts->expected_salt_len );
@@ -861,7 +871,7 @@ int x509_key_size_helper( char *buf, size_t size, const char *name )
     if( strlen( name ) + sizeof( " key size" ) > size )
         return( POLARSSL_ERR_DEBUG_BUF_TOO_SMALL );
 
-    ret = snprintf( p, n, "%s key size", name );
+    ret = polarssl_snprintf( p, n, "%s key size", name );
     SAFE_SNPRINTF();
 
     return( 0 );

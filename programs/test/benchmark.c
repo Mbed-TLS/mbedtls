@@ -30,7 +30,9 @@
 #include "polarssl/platform.h"
 #else
 #include <stdio.h>
+#define polarssl_snprintf   snprintf
 #define polarssl_printf     printf
+#define polarssl_exit       exit
 #endif
 
 #if defined(POLARSSL_TIMING_C)
@@ -314,7 +316,7 @@ int main( int argc, char *argv[] )
         aes_init( &aes );
         for( keysize = 128; keysize <= 256; keysize += 64 )
         {
-            snprintf( title, sizeof( title ), "AES-CBC-%d", keysize );
+            polarssl_snprintf( title, sizeof( title ), "AES-CBC-%d", keysize );
 
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
@@ -332,7 +334,7 @@ int main( int argc, char *argv[] )
         gcm_context gcm;
         for( keysize = 128; keysize <= 256; keysize += 64 )
         {
-            snprintf( title, sizeof( title ), "AES-GCM-%d", keysize );
+            polarssl_snprintf( title, sizeof( title ), "AES-GCM-%d", keysize );
 
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
@@ -352,7 +354,7 @@ int main( int argc, char *argv[] )
         ccm_context ccm;
         for( keysize = 128; keysize <= 256; keysize += 64 )
         {
-            snprintf( title, sizeof( title ), "AES-CCM-%d", keysize );
+            polarssl_snprintf( title, sizeof( title ), "AES-CCM-%d", keysize );
 
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
@@ -375,7 +377,7 @@ int main( int argc, char *argv[] )
         camellia_init( &camellia );
         for( keysize = 128; keysize <= 256; keysize += 64 )
         {
-            snprintf( title, sizeof( title ), "CAMELLIA-CBC-%d", keysize );
+            polarssl_snprintf( title, sizeof( title ), "CAMELLIA-CBC-%d", keysize );
 
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
@@ -397,7 +399,7 @@ int main( int argc, char *argv[] )
 
         for( keysize = 128; keysize <= 256; keysize += 64 )
         {
-            snprintf( title, sizeof( title ), "BLOWFISH-CBC-%d", keysize );
+            polarssl_snprintf( title, sizeof( title ), "BLOWFISH-CBC-%d", keysize );
 
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
@@ -428,17 +430,17 @@ int main( int argc, char *argv[] )
         ctr_drbg_context ctr_drbg;
 
         if( ctr_drbg_init( &ctr_drbg, myrand, NULL, NULL, 0 ) != 0 )
-            exit(1);
+            polarssl_exit(1);
         TIME_AND_TSC( "CTR_DRBG (NOPR)",
                 if( ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) != 0 )
-                exit(1) );
+                polarssl_exit(1) );
 
         if( ctr_drbg_init( &ctr_drbg, myrand, NULL, NULL, 0 ) != 0 )
-            exit(1);
+            polarssl_exit(1);
         ctr_drbg_set_prediction_resistance( &ctr_drbg, CTR_DRBG_PR_ON );
         TIME_AND_TSC( "CTR_DRBG (PR)",
                 if( ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) != 0 )
-                exit(1) );
+                polarssl_exit(1) );
         ctr_drbg_free( &ctr_drbg );
     }
 #endif
@@ -451,43 +453,43 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_SHA1_C)
         if( ( md_info = md_info_from_type( POLARSSL_MD_SHA1 ) ) == NULL )
-            exit(1);
+            polarssl_exit(1);
 
         if( hmac_drbg_init( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
-            exit(1);
+            polarssl_exit(1);
         TIME_AND_TSC( "HMAC_DRBG SHA-1 (NOPR)",
                 if( hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) != 0 )
-                exit(1) );
+                polarssl_exit(1) );
         hmac_drbg_free( &hmac_drbg );
 
         if( hmac_drbg_init( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
-            exit(1);
+            polarssl_exit(1);
         hmac_drbg_set_prediction_resistance( &hmac_drbg,
                                              POLARSSL_HMAC_DRBG_PR_ON );
         TIME_AND_TSC( "HMAC_DRBG SHA-1 (PR)",
                 if( hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) != 0 )
-                exit(1) );
+                polarssl_exit(1) );
         hmac_drbg_free( &hmac_drbg );
 #endif
 
 #if defined(POLARSSL_SHA256_C)
         if( ( md_info = md_info_from_type( POLARSSL_MD_SHA256 ) ) == NULL )
-            exit(1);
+            polarssl_exit(1);
 
         if( hmac_drbg_init( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
-            exit(1);
+            polarssl_exit(1);
         TIME_AND_TSC( "HMAC_DRBG SHA-256 (NOPR)",
                 if( hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) != 0 )
-                exit(1) );
+                polarssl_exit(1) );
         hmac_drbg_free( &hmac_drbg );
 
         if( hmac_drbg_init( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
-            exit(1);
+            polarssl_exit(1);
         hmac_drbg_set_prediction_resistance( &hmac_drbg,
                                              POLARSSL_HMAC_DRBG_PR_ON );
         TIME_AND_TSC( "HMAC_DRBG SHA-256 (PR)",
                 if( hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) != 0 )
-                exit(1) );
+                polarssl_exit(1) );
         hmac_drbg_free( &hmac_drbg );
 #endif
     }
@@ -499,7 +501,7 @@ int main( int argc, char *argv[] )
         rsa_context rsa;
         for( keysize = 1024; keysize <= 4096; keysize *= 2 )
         {
-            snprintf( title, sizeof( title ), "RSA-%d", keysize );
+            polarssl_snprintf( title, sizeof( title ), "RSA-%d", keysize );
 
             rsa_init( &rsa, RSA_PKCS_V15, 0 );
             rsa_gen_key( &rsa, myrand, NULL, keysize, 65537 );
@@ -541,22 +543,22 @@ int main( int argc, char *argv[] )
             if( mpi_read_string( &dhm.P, 16, dhm_P[i] ) != 0 ||
                 mpi_read_string( &dhm.G, 16, dhm_G[i] ) != 0 )
             {
-                exit( 1 );
+                polarssl_exit( 1 );
             }
 
             dhm.len = mpi_size( &dhm.P );
             dhm_make_public( &dhm, (int) dhm.len, buf, dhm.len, myrand, NULL );
             if( mpi_copy( &dhm.GY, &dhm.GX ) != 0 )
-                exit( 1 );
+                polarssl_exit( 1 );
 
-            snprintf( title, sizeof( title ), "DHE-%d", dhm_sizes[i] );
+            polarssl_snprintf( title, sizeof( title ), "DHE-%d", dhm_sizes[i] );
             TIME_PUBLIC( title, "handshake",
                     olen = sizeof( buf );
                     ret |= dhm_make_public( &dhm, (int) dhm.len, buf, dhm.len,
                                             myrand, NULL );
                     ret |= dhm_calc_secret( &dhm, buf, &olen, myrand, NULL ) );
 
-            snprintf( title, sizeof( title ), "DH-%d", dhm_sizes[i] );
+            polarssl_snprintf( title, sizeof( title ), "DH-%d", dhm_sizes[i] );
             TIME_PUBLIC( title, "handshake",
                     olen = sizeof( buf );
                     ret |= dhm_calc_secret( &dhm, buf, &olen, myrand, NULL ) );
@@ -582,9 +584,9 @@ int main( int argc, char *argv[] )
             ecdsa_init( &ecdsa );
 
             if( ecdsa_genkey( &ecdsa, curve_info->grp_id, myrand, NULL ) != 0 )
-                exit( 1 );
+                polarssl_exit( 1 );
 
-            snprintf( title, sizeof( title ), "ECDSA-%s",
+            polarssl_snprintf( title, sizeof( title ), "ECDSA-%s",
                                               curve_info->name );
             TIME_PUBLIC( title, "sign",
                     ret = ecdsa_write_signature( &ecdsa, buf, curve_info->size,
@@ -617,10 +619,10 @@ int main( int argc, char *argv[] )
                                   myrand, NULL ) != 0 ||
                 ecp_copy( &ecdh.Qp, &ecdh.Q ) != 0 )
             {
-                exit( 1 );
+                polarssl_exit( 1 );
             }
 
-            snprintf( title, sizeof( title ), "ECDHE-%s",
+            polarssl_snprintf( title, sizeof( title ), "ECDHE-%s",
                                               curve_info->name );
             TIME_PUBLIC( title, "handshake",
                     ret |= ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
@@ -628,7 +630,7 @@ int main( int argc, char *argv[] )
                     ret |= ecdh_calc_secret( &ecdh, &olen, buf, sizeof( buf ),
                                              myrand, NULL ) );
 
-            snprintf( title, sizeof( title ), "ECDH-%s",
+            polarssl_snprintf( title, sizeof( title ), "ECDH-%s",
                                               curve_info->name );
             TIME_PUBLIC( title, "handshake",
                     ret |= ecdh_calc_secret( &ecdh, &olen, buf, sizeof( buf ),

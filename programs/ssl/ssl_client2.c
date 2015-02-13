@@ -32,6 +32,7 @@
 #include <stdio.h>
 #define polarssl_fprintf    fprintf
 #define polarssl_printf     printf
+#define polarssl_snprintf   snprintf
 #endif
 
 #if defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_FS_IO) && \
@@ -1197,7 +1198,7 @@ send_request:
     polarssl_printf( "  > Write to server:" );
     fflush( stdout );
 
-    len = snprintf( (char *) buf, sizeof(buf) - 1, GET_REQUEST,
+    len = polarssl_snprintf( (char *) buf, sizeof(buf) - 1, GET_REQUEST,
                     opt.request_page );
     tail_len = strlen( GET_REQUEST_END );
 

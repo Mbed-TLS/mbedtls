@@ -6,6 +6,10 @@
 #define polarssl_fprintf    fprintf
 #define polarssl_malloc     malloc
 #define polarssl_free       free
+#define polarssl_exit       exit
+#define polarssl_fprintf    fprintf
+#define polarssl_printf     printf
+#define polarssl_snprintf   snprintf
 #endif
 
 #ifdef _MSC_VER
@@ -15,9 +19,16 @@ typedef UINT32 uint32_t;
 #include <inttypes.h>
 #endif
 
-#include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#define assert(a) if( !( a ) )                                      \
+{                                                                   \
+    polarssl_fprintf( stderr, "Assertion Failed at %s:%d - %s\n",   \
+                             __FILE__, __LINE__, #a );              \
+    polarssl_exit( 1 );                                             \
+}
 
 /*
  * 32-bit integer manipulation macros (big endian)
@@ -42,13 +53,13 @@ typedef UINT32 uint32_t;
 }
 #endif
 
-static int unhexify(unsigned char *obuf, const char *ibuf)
+static int unhexify( unsigned char *obuf, const char *ibuf )
 {
     unsigned char c, c2;
-    int len = strlen(ibuf) / 2;
-    assert( strlen(ibuf) % 2 == 0 ); // must be even number of bytes
+    int len = strlen( ibuf ) / 2;
+    assert( strlen( ibuf ) % 2 == 0 ); // must be even number of bytes
 
-    while (*ibuf != 0)
+    while( *ibuf != 0 )
     {
         c = *ibuf++;
         if( c >= '0' && c <= '9' )

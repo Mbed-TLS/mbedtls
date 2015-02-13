@@ -30,6 +30,7 @@
 #include "polarssl/platform.h"
 #else
 #include <stdio.h>
+#define polarssl_snprintf   snprintf
 #define polarssl_printf     printf
 #endif
 
@@ -136,7 +137,7 @@ int main( int argc, char *argv[] )
     /*
      * Write the signature into <filename>-sig.txt
      */
-    snprintf( filename, sizeof(filename), "%s.sig", argv[2] );
+    polarssl_snprintf( filename, sizeof(filename), "%s.sig", argv[2] );
 
     if( ( f = fopen( filename, "wb+" ) ) == NULL )
     {

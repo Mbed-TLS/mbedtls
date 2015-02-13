@@ -73,6 +73,8 @@
 #endif
 #endif
 
+#define CHECK(code) if( ( ret = code ) != 0 ){ return( ret ); }
+
 /*
  *  CertificateSerialNumber  ::=  INTEGER
  */
@@ -474,6 +476,16 @@ int x509_get_name( unsigned char **p, const unsigned char *end,
     }
 }
 
+static int x509_parse_int(unsigned char **p, unsigned n, int *res){
+    *res = 0;
+    for( ; n > 0; --n ){
+        if( ( **p < '0') || ( **p > '9' ) ) return POLARSSL_ERR_X509_INVALID_DATE;
+        *res *= 10;
+        *res += (*(*p)++ - '0');
+    }
+    return 0;
+}
+
 /*
  *  Time ::= CHOICE {
  *       utcTime        UTCTime,
@@ -484,7 +496,6 @@ int x509_get_time( unsigned char **p, const unsigned char *end,
 {
     int ret;
     size_t len;
-    char date[64];
     unsigned char tag;
 
     if( ( end - *p ) < 1 )
@@ -501,19 +512,18 @@ int x509_get_time( unsigned char **p, const unsigned char *end,
         if( ret != 0 )
             return( POLARSSL_ERR_X509_INVALID_DATE + ret );
 
-        memset( date,  0, sizeof( date ) );
-        memcpy( date, *p, ( len < sizeof( date ) - 1 ) ?
-                len : sizeof( date ) - 1 );
-
-        if( sscanf( date, "%2d%2d%2d%2d%2d%2dZ",
-                    &time->year, &time->mon, &time->day,
-                    &time->hour, &time->min, &time->sec ) < 5 )
+        CHECK( x509_parse_int( p, 2, &time->year ) );
+        CHECK( x509_parse_int( p, 2, &time->mon ) );
+        CHECK( x509_parse_int( p, 2, &time->day ) );
+        CHECK( x509_parse_int( p, 2, &time->hour ) );
+        CHECK( x509_parse_int( p, 2, &time->min ) );
+        if( len > 10 )
+            CHECK( x509_parse_int( p, 2, &time->sec ) );
+        if( len > 12 && *(*p)++ != 'Z' )
             return( POLARSSL_ERR_X509_INVALID_DATE );
 
         time->year +=  100 * ( time->year < 50 );
         time->year += 1900;
-
-        *p += len;
 
         return( 0 );
     }
@@ -525,16 +535,15 @@ int x509_get_time( unsigned char **p, const unsigned char *end,
         if( ret != 0 )
             return( POLARSSL_ERR_X509_INVALID_DATE + ret );
 
-        memset( date,  0, sizeof( date ) );
-        memcpy( date, *p, ( len < sizeof( date ) - 1 ) ?
-                len : sizeof( date ) - 1 );
-
-        if( sscanf( date, "%4d%2d%2d%2d%2d%2dZ",
-                    &time->year, &time->mon, &time->day,
-                    &time->hour, &time->min, &time->sec ) < 5 )
+        CHECK( x509_parse_int( p, 4, &time->year ) );
+        CHECK( x509_parse_int( p, 2, &time->mon ) );
+        CHECK( x509_parse_int( p, 2, &time->day ) );
+        CHECK( x509_parse_int( p, 2, &time->hour ) );
+        CHECK( x509_parse_int( p, 2, &time->min ) );
+        if( len > 12 )
+            CHECK( x509_parse_int( p, 2, &time->sec ) );
+        if( len > 14 && *(*p)++ != 'Z' )
             return( POLARSSL_ERR_X509_INVALID_DATE );
-
-        *p += len;
 
         return( 0 );
     }

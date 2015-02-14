@@ -757,7 +757,7 @@ int sha512_self_test( int verbose )
 
         if( j == 5 || j == 6 )
         {
-            memset( buf, '\xAA', buflen = 131 );
+            memset( buf, 0xAA, buflen = 131 );
             sha512_hmac_starts( &ctx, buf, buflen, k );
         }
         else

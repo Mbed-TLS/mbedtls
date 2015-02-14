@@ -580,7 +580,7 @@ int md5_self_test( int verbose )
 
         if( i == 5 || i == 6 )
         {
-            memset( buf, '\xAA', buflen = 80 );
+            memset( buf, 0xAA, buflen = 80 );
             md5_hmac_starts( &ctx, buf, buflen );
         }
         else

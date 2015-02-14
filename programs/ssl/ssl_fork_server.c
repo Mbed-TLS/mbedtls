@@ -342,8 +342,11 @@ int main( void )
 
             len = ret;
             polarssl_printf( " %d bytes read\n\n%s", len, (char *) buf );
+
+            if( ret > 0 )
+                break;
         }
-        while( 0 );
+        while( 1 );
 
         /*
          * 7. Write the 200 Response

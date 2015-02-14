@@ -386,7 +386,7 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
     dst = p;                    \
     while( *p != ',' )          \
         if( ++p > end )         \
-            return( NULL );     \
+            goto error;         \
     *p++ = '\0';
 
 #if defined(POLARSSL_SNI)
@@ -398,53 +398,6 @@ struct _sni_entry {
     pk_context *key;
     sni_entry *next;
 };
-
-/*
- * Parse a string of triplets name1,crt1,key1[,name2,crt2,key2[,...]]
- * into a usable sni_entry list.
- *
- * Modifies the input string! This is not production quality!
- * (leaks memory if parsing fails, no error reporting, ...)
- */
-sni_entry *sni_parse( char *sni_string )
-{
-    sni_entry *cur = NULL, *new = NULL;
-    char *p = sni_string;
-    char *end = p;
-    char *crt_file, *key_file;
-
-    while( *end != '\0' )
-        ++end;
-    *end = ',';
-
-    while( p <= end )
-    {
-        if( ( new = polarssl_malloc( sizeof( sni_entry ) ) ) == NULL )
-            return( NULL );
-
-        memset( new, 0, sizeof( sni_entry ) );
-
-        if( ( new->cert = polarssl_malloc( sizeof( x509_crt ) ) ) == NULL ||
-            ( new->key = polarssl_malloc( sizeof( pk_context ) ) ) == NULL )
-            return( NULL );
-
-        x509_crt_init( new->cert );
-        pk_init( new->key );
-
-        GET_ITEM( new->name );
-        GET_ITEM( crt_file );
-        GET_ITEM( key_file );
-
-        if( x509_crt_parse_file( new->cert, crt_file ) != 0 ||
-            pk_parse_keyfile( new->key, key_file, "" ) != 0 )
-            return( NULL );
-
-        new->next = cur;
-        cur = new;
-    }
-
-    return( cur );
-}
 
 void sni_free( sni_entry *head )
 {
@@ -462,6 +415,67 @@ void sni_free( sni_entry *head )
         polarssl_free( cur );
         cur = next;
     }
+}
+
+/*
+ * Parse a string of triplets name1,crt1,key1[,name2,crt2,key2[,...]]
+ * into a usable sni_entry list.
+ *
+ * Modifies the input string! This is not production quality!
+ */
+sni_entry *sni_parse( char *sni_string )
+{
+    sni_entry *cur = NULL, *new = NULL;
+    char *p = sni_string;
+    char *end = p;
+    char *crt_file, *key_file;
+
+    while( *end != '\0' )
+        ++end;
+    *end = ',';
+
+    while( p <= end )
+    {
+        if( ( new = polarssl_malloc( sizeof( sni_entry ) ) ) == NULL )
+        {
+            sni_free( cur );
+            return( NULL );
+        }
+
+        memset( new, 0, sizeof( sni_entry ) );
+
+        if( ( new->cert = polarssl_malloc( sizeof( x509_crt ) ) ) == NULL ||
+            ( new->key = polarssl_malloc( sizeof( pk_context ) ) ) == NULL )
+        {
+            polarssl_free( new->cert );
+            polarssl_free( new );
+            sni_free( cur );
+            return( NULL );
+        }
+
+        x509_crt_init( new->cert );
+        pk_init( new->key );
+
+        GET_ITEM( new->name );
+        GET_ITEM( crt_file );
+        GET_ITEM( key_file );
+
+        if( x509_crt_parse_file( new->cert, crt_file ) != 0 ||
+            pk_parse_keyfile( new->key, key_file, "" ) != 0 )
+        {
+            goto error;
+        }
+
+        new->next = cur;
+        cur = new;
+    }
+
+    return( cur );
+
+error:
+    sni_free( new );
+    sni_free( cur );
+    return( NULL );
 }
 
 /*
@@ -539,11 +553,25 @@ struct _psk_entry
 };
 
 /*
+ * Free a list of psk_entry's
+ */
+void psk_free( psk_entry *head )
+{
+    psk_entry *next;
+
+    while( head != NULL )
+    {
+        next = head->next;
+        polarssl_free( head );
+        head = next;
+    }
+}
+
+/*
  * Parse a string of pairs name1,key1[,name2,key2[,...]]
  * into a usable psk_entry list.
  *
  * Modifies the input string! This is not production quality!
- * (leaks memory if parsing fails, no error reporting, ...)
  */
 psk_entry *psk_parse( char *psk_string )
 {
@@ -567,28 +595,18 @@ psk_entry *psk_parse( char *psk_string )
         GET_ITEM( key_hex );
 
         if( unhexify( new->key, key_hex, &new->key_len ) != 0 )
-            return( NULL );
+            goto error;
 
         new->next = cur;
         cur = new;
     }
 
     return( cur );
-}
 
-/*
- * Free a list of psk_entry's
- */
-void psk_free( psk_entry *head )
-{
-    psk_entry *next;
-
-    while( head != NULL )
-    {
-        next = head->next;
-        polarssl_free( head );
-        head = next;
-    }
+error:
+    psk_free( new );
+    psk_free( cur );
+    return( 0 );
 }
 
 /*

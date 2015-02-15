@@ -259,8 +259,7 @@ int ssl_cache_set( void *data, const ssl_session *session )
      */
     if( session->peer_cert != NULL )
     {
-        cur->peer_cert.p = polarssl_malloc(
-                            session->peer_cert->raw.len );
+        cur->peer_cert.p = polarssl_malloc( session->peer_cert->raw.len );
         if( cur->peer_cert.p == NULL )
         {
             ret = 1;

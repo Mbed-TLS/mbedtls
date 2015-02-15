@@ -38,7 +38,7 @@
 #include "polarssl/platform.h"
 #else
 #define polarssl_malloc     malloc
-#define polarssl_calloc calloc
+#define polarssl_calloc     calloc
 #define polarssl_free       free
 #endif
 
@@ -543,7 +543,7 @@ static int ssl_parse_supported_elliptic_curves( ssl_context *ssl,
     if( our_size > POLARSSL_ECP_DP_MAX )
         our_size = POLARSSL_ECP_DP_MAX;
 
-    if( ( curves = polarssl_calloc(our_size, sizeof(*curves))) == NULL )
+    if( ( curves = polarssl_calloc( our_size, sizeof(*curves) ) ) == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
     /* explicit void pointer cast for buggy MS compiler */

@@ -43,7 +43,7 @@
 #else
 #define polarssl_printf     printf
 #define polarssl_malloc     malloc
-#define polarssl_calloc calloc
+#define polarssl_calloc     calloc
 #define polarssl_free       free
 #endif
 
@@ -108,7 +108,7 @@ int mpi_grow( mpi *X, size_t nblimbs )
 
     if( X->n < nblimbs )
     {
-        if( ( p = polarssl_calloc(nblimbs, ciL)) == NULL )
+        if( ( p = polarssl_calloc( nblimbs, ciL ) ) == NULL )
             return( POLARSSL_ERR_MPI_MALLOC_FAILED );
 
         memset( p, 0, nblimbs * ciL );
@@ -148,7 +148,7 @@ int mpi_shrink( mpi *X, size_t nblimbs )
     if( i < nblimbs )
         i = nblimbs;
 
-    if( ( p = polarssl_calloc(i, ciL)) == NULL )
+    if( ( p = polarssl_calloc( i, ciL ) ) == NULL )
         return( POLARSSL_ERR_MPI_MALLOC_FAILED );
 
     memset( p, 0, i * ciL );

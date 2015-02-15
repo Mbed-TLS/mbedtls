@@ -179,7 +179,7 @@ static int aes_setkey_enc_wrap( void *ctx, const unsigned char *key,
 
 static void * aes_ctx_alloc( void )
 {
-    aes_context *aes = (aes_context *) polarssl_malloc( sizeof( aes_context ) );
+    aes_context *aes = polarssl_malloc( sizeof( aes_context ) );
 
     if( aes == NULL )
         return( NULL );
@@ -541,7 +541,7 @@ static int camellia_setkey_enc_wrap( void *ctx, const unsigned char *key,
 static void * camellia_ctx_alloc( void )
 {
     camellia_context *ctx;
-    ctx = (camellia_context *) polarssl_malloc( sizeof( camellia_context ) );
+    ctx = polarssl_malloc( sizeof( camellia_context ) );
 
     if( ctx == NULL )
         return( NULL );
@@ -922,7 +922,7 @@ static int des3_set3key_enc_wrap( void *ctx, const unsigned char *key,
 
 static void * des_ctx_alloc( void )
 {
-    des_context *des = (des_context *) polarssl_malloc( sizeof( des_context ) );
+    des_context *des = polarssl_malloc( sizeof( des_context ) );
 
     if( des == NULL )
         return( NULL );
@@ -941,7 +941,7 @@ static void des_ctx_free( void *ctx )
 static void * des3_ctx_alloc( void )
 {
     des3_context *des3;
-    des3 = (des3_context *) polarssl_malloc( sizeof( des3_context ) );
+    des3 = polarssl_malloc( sizeof( des3_context ) );
 
     if( des3 == NULL )
         return( NULL );
@@ -1145,7 +1145,7 @@ static int blowfish_setkey_wrap( void *ctx, const unsigned char *key,
 static void * blowfish_ctx_alloc( void )
 {
     blowfish_context *ctx;
-    ctx = (blowfish_context *) polarssl_malloc( sizeof( blowfish_context ) );
+    ctx = polarssl_malloc( sizeof( blowfish_context ) );
 
     if( ctx == NULL )
         return( NULL );
@@ -1247,7 +1247,7 @@ static int arc4_setkey_wrap( void *ctx, const unsigned char *key,
 static void * arc4_ctx_alloc( void )
 {
     arc4_context *ctx;
-    ctx = (arc4_context *) polarssl_malloc( sizeof( arc4_context ) );
+    ctx = polarssl_malloc( sizeof( arc4_context ) );
 
     if( ctx == NULL )
         return( NULL );

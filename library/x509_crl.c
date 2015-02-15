@@ -277,7 +277,7 @@ int x509_crl_parse_der( x509_crl *chain,
 
     if( crl->version != 0 && crl->next == NULL )
     {
-        crl->next = (x509_crl *) polarssl_malloc( sizeof( x509_crl ) );
+        crl->next = polarssl_malloc( sizeof( x509_crl ) );
 
         if( crl->next == NULL )
         {

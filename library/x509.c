@@ -445,7 +445,7 @@ int x509_get_name( unsigned char **p, const unsigned char *end,
             /* Mark this item as being only one in a set */
             cur->next_merged = 1;
 
-            cur->next = (x509_name *) polarssl_malloc( sizeof( x509_name ) );
+            cur->next = polarssl_malloc( sizeof( x509_name ) );
 
             if( cur->next == NULL )
                 return( POLARSSL_ERR_X509_MALLOC_FAILED );
@@ -461,7 +461,7 @@ int x509_get_name( unsigned char **p, const unsigned char *end,
         if( *p == end )
             return( 0 );
 
-        cur->next = (x509_name *) polarssl_malloc( sizeof( x509_name ) );
+        cur->next = polarssl_malloc( sizeof( x509_name ) );
 
         if( cur->next == NULL )
             return( POLARSSL_ERR_X509_MALLOC_FAILED );

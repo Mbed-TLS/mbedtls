@@ -110,7 +110,7 @@ int x509_csr_parse_der( x509_csr *csr,
     /*
      * first copy the raw DER data
      */
-    p = (unsigned char *) polarssl_malloc( len = buflen );
+    p = polarssl_malloc( len = buflen );
 
     if( p == NULL )
         return( POLARSSL_ERR_X509_MALLOC_FAILED );

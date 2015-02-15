@@ -3544,20 +3544,17 @@ static int ssl_handshake_init( ssl_context *ssl )
      */
     if( ssl->transform_negotiate == NULL )
     {
-        ssl->transform_negotiate = polarssl_malloc(
-                             sizeof(ssl_transform) );
+        ssl->transform_negotiate = polarssl_malloc( sizeof(ssl_transform) );
     }
 
     if( ssl->session_negotiate == NULL )
     {
-        ssl->session_negotiate = polarssl_malloc(
-                           sizeof(ssl_session) );
+        ssl->session_negotiate = polarssl_malloc( sizeof(ssl_session) );
     }
 
     if( ssl->handshake == NULL )
     {
-        ssl->handshake =
-            polarssl_malloc( sizeof(ssl_handshake_params) );
+        ssl->handshake = polarssl_malloc( sizeof(ssl_handshake_params) );
     }
 
     /* All pointers should exist and can be directly freed without issue */
@@ -4064,8 +4061,7 @@ int ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
     ssl->psk_identity_len = psk_identity_len;
 
     ssl->psk = polarssl_malloc( ssl->psk_len );
-    ssl->psk_identity =
-                                polarssl_malloc( ssl->psk_identity_len );
+    ssl->psk_identity = polarssl_malloc( ssl->psk_identity_len );
 
     if( ssl->psk == NULL || ssl->psk_identity == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );

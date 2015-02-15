@@ -356,8 +356,7 @@ static int x509_get_subject_alt_name( unsigned char **p,
             if( cur->next != NULL )
                 return( POLARSSL_ERR_X509_INVALID_EXTENSIONS );
 
-            cur->next = polarssl_malloc(
-                 sizeof( asn1_sequence ) );
+            cur->next = polarssl_malloc( sizeof( asn1_sequence ) );
 
             if( cur->next == NULL )
                 return( POLARSSL_ERR_X509_INVALID_EXTENSIONS +

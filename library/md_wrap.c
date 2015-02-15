@@ -395,7 +395,7 @@ static void ripemd160_hmac_reset_wrap( void *ctx )
 static void * ripemd160_ctx_alloc( void )
 {
     ripemd160_context *ctx;
-    ctx = (ripemd160_context *) polarssl_malloc( sizeof( ripemd160_context ) );
+    ctx = polarssl_malloc( sizeof( ripemd160_context ) );
 
     if( ctx == NULL )
         return( NULL );
@@ -491,7 +491,7 @@ static void sha1_hmac_reset_wrap( void *ctx )
 static void * sha1_ctx_alloc( void )
 {
     sha1_context *ctx;
-    ctx = (sha1_context *) polarssl_malloc( sizeof( sha1_context ) );
+    ctx = polarssl_malloc( sizeof( sha1_context ) );
 
     if( ctx == NULL )
         return( NULL );
@@ -700,7 +700,7 @@ static void sha256_hmac_wrap( const unsigned char *key, size_t keylen,
 static void * sha256_ctx_alloc( void )
 {
     sha256_context *ctx;
-    ctx = (sha256_context *) polarssl_malloc( sizeof( sha256_context ) );
+    ctx = polarssl_malloc( sizeof( sha256_context ) );
 
     if( ctx == NULL )
         return( NULL );
@@ -906,7 +906,7 @@ static void sha512_hmac_wrap( const unsigned char *key, size_t keylen,
 static void * sha512_ctx_alloc( void )
 {
     sha512_context *ctx;
-    ctx = (sha512_context *) polarssl_malloc( sizeof( sha512_context ) );
+    ctx = polarssl_malloc( sizeof( sha512_context ) );
 
     if( ctx == NULL )
         return( NULL );

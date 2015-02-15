@@ -299,8 +299,8 @@ static int ssl_test( struct options *opt )
         }
     }
 
-     read_buf = (unsigned char *) polarssl_malloc( opt->buffer_size );
-    write_buf = (unsigned char *) polarssl_malloc( opt->buffer_size );
+     read_buf = polarssl_malloc( opt->buffer_size );
+    write_buf = polarssl_malloc( opt->buffer_size );
 
     if( read_buf == NULL || write_buf == NULL )
     {

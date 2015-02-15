@@ -359,7 +359,7 @@ static int x509_get_subject_alt_name( unsigned char **p,
             if( cur->next != NULL )
                 return( POLARSSL_ERR_X509_INVALID_EXTENSIONS );
 
-            cur->next = (asn1_sequence *) polarssl_malloc(
+            cur->next = polarssl_malloc(
                  sizeof( asn1_sequence ) );
 
             if( cur->next == NULL )
@@ -553,7 +553,7 @@ static int x509_crt_parse_der_core( x509_crt *crt, const unsigned char *buf,
     if( crt == NULL || buf == NULL )
         return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
 
-    p = (unsigned char *) polarssl_malloc( len = buflen );
+    p = polarssl_malloc( len = buflen );
 
     if( p == NULL )
         return( POLARSSL_ERR_X509_MALLOC_FAILED );
@@ -810,7 +810,7 @@ int x509_crt_parse_der( x509_crt *chain, const unsigned char *buf,
      */
     if( crt->version != 0 && crt->next == NULL )
     {
-        crt->next = (x509_crt *) polarssl_malloc( sizeof( x509_crt ) );
+        crt->next = polarssl_malloc( sizeof( x509_crt ) );
 
         if( crt->next == NULL )
             return( POLARSSL_ERR_X509_MALLOC_FAILED );

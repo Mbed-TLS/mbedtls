@@ -32,6 +32,7 @@
 #include <stdio.h>
 #define polarssl_snprintf   snprintf
 #define polarssl_printf     printf
+#define polarssl_snprintf   snprintf
 #endif
 
 #if defined(POLARSSL_RSA_C) && defined(POLARSSL_X509_CRT_PARSE_C) && \

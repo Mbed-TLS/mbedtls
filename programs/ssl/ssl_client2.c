@@ -30,6 +30,7 @@
 #include "polarssl/platform.h"
 #else
 #include <stdio.h>
+#define polarssl_printf     printf
 #define polarssl_fprintf    fprintf
 #define polarssl_printf     printf
 #define polarssl_snprintf   snprintf

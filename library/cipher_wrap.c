@@ -66,7 +66,7 @@
 #include "polarssl/platform.h"
 #else
 #define polarssl_malloc     malloc
-#define polarssl_calloc calloc
+#define polarssl_calloc     calloc
 #define polarssl_free       free
 #endif
 
@@ -76,7 +76,7 @@
 /* shared by all GCM ciphers */
 static void *gcm_ctx_alloc( void )
 {
-    return polarssl_calloc(1, sizeof(gcm_context));
+    return polarssl_calloc( 1, sizeof(gcm_context) );
 }
 
 static void gcm_ctx_free( void *ctx )
@@ -90,7 +90,7 @@ static void gcm_ctx_free( void *ctx )
 /* shared by all CCM ciphers */
 static void *ccm_ctx_alloc( void )
 {
-    return polarssl_calloc(1, sizeof(ccm_context));
+    return polarssl_calloc( 1, sizeof(ccm_context) );
 }
 
 static void ccm_ctx_free( void *ctx )
@@ -180,7 +180,7 @@ static int aes_setkey_enc_wrap( void *ctx, const unsigned char *key,
 
 static void * aes_ctx_alloc( void )
 {
-    aes_context *aes = polarssl_calloc(1, sizeof(aes_context));
+    aes_context *aes = polarssl_calloc( 1, sizeof(aes_context) );
 
     if( aes == NULL )
         return( NULL );
@@ -542,7 +542,7 @@ static int camellia_setkey_enc_wrap( void *ctx, const unsigned char *key,
 static void * camellia_ctx_alloc( void )
 {
     camellia_context *ctx;
-    ctx = polarssl_calloc(1, sizeof(camellia_context));
+    ctx = polarssl_calloc( 1, sizeof(camellia_context) );
 
     if( ctx == NULL )
         return( NULL );
@@ -923,7 +923,7 @@ static int des3_set3key_enc_wrap( void *ctx, const unsigned char *key,
 
 static void * des_ctx_alloc( void )
 {
-    des_context *des = polarssl_calloc(1, sizeof(des_context));
+    des_context *des = polarssl_calloc( 1, sizeof(des_context) );
 
     if( des == NULL )
         return( NULL );
@@ -942,7 +942,7 @@ static void des_ctx_free( void *ctx )
 static void * des3_ctx_alloc( void )
 {
     des3_context *des3;
-    des3 = polarssl_calloc(1, sizeof(des3_context));
+    des3 = polarssl_calloc( 1, sizeof(des3_context) );
 
     if( des3 == NULL )
         return( NULL );
@@ -1146,7 +1146,7 @@ static int blowfish_setkey_wrap( void *ctx, const unsigned char *key,
 static void * blowfish_ctx_alloc( void )
 {
     blowfish_context *ctx;
-    ctx = polarssl_calloc(1, sizeof(blowfish_context));
+    ctx = polarssl_calloc( 1, sizeof(blowfish_context) );
 
     if( ctx == NULL )
         return( NULL );
@@ -1248,7 +1248,7 @@ static int arc4_setkey_wrap( void *ctx, const unsigned char *key,
 static void * arc4_ctx_alloc( void )
 {
     arc4_context *ctx;
-    ctx = polarssl_calloc(1, sizeof(arc4_context));
+    ctx = polarssl_calloc( 1, sizeof(arc4_context) );
 
     if( ctx == NULL )
         return( NULL );

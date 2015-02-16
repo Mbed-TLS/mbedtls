@@ -38,7 +38,7 @@
 #include "polarssl/platform.h"
 #else
 #define polarssl_malloc     malloc
-#define polarssl_calloc calloc
+#define polarssl_calloc     calloc
 #define polarssl_free       free
 #endif
 
@@ -270,7 +270,7 @@ int asn1_get_sequence_of( unsigned char **p,
         /* Allocate and assign next pointer */
         if( *p < end )
         {
-            cur->next = polarssl_calloc(1, sizeof(asn1_sequence));
+            cur->next = polarssl_calloc( 1, sizeof(asn1_sequence) );
 
             if( cur->next == NULL )
                 return( POLARSSL_ERR_ASN1_MALLOC_FAILED );

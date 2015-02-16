@@ -35,12 +35,6 @@ In order to run the tests, enter::
 
     make check
 
-If you're building on windows using mingw, msys, or some similar environment, you should define the WINDOWS variable (and possibly the CC variable too), eg::
-
-    make CC=gcc WINDOWS=1
-
-You need to make sure the usual Unix utilities such as `ln` and `rm` are in your PATH and that make has access to a Unix shell.
-
 Depending on your platform, you might run into some issues. Please check the Makefiles in *library/*, *programs/* and *tests/* for options to manually add or remove for specific platforms. You can also check `the mbed TLS Knowledge Base <https://polarssl.org/kb>`_ for articles on your platform or issue.
 
 In case you find that you need to do something else as well, please let us know what, so we can add it to the KB.

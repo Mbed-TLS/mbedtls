@@ -402,9 +402,15 @@ test_suite_version: test_suite_version.c $(DEP)
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
 clean:
+ifndef WINDOWS
 	rm -f $(APPS) *.c
+endif
+ifdef WINDOWS
+	del /Q /F *.c *.exe
+endif
 
 check: $(APPS)
+ifndef WINDOWS
 	echo "Running checks (Success if all tests PASSED)"
 	RETURN=0;																\
 	for i in $(APPS);														\
@@ -421,3 +427,4 @@ check: $(APPS)
 		echo "";															\
 	done;																	\
 	if [ "$$RETURN" -eq 1 ]; then exit 1; fi
+endif

@@ -242,7 +242,12 @@ x509/cert_req: x509/cert_req.c ../library/libmbedtls.a
 	$(CC) $(CFLAGS) $(OFLAGS) x509/cert_req.c    $(LDFLAGS) -o $@
 
 clean:
+ifndef WINDOWS
 	rm -f $(APPS)
+endif
+ifdef WINDOWS
+	del /S /Q /F *.o *.exe
+endif
 
 list:
 	echo $(APPS)

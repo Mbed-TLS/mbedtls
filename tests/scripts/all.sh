@@ -187,6 +187,12 @@ grep -v '^ar: creating' armcc.stderr || exit 1
 rm armcc.stderr
 fi # armcc
 
+if which i686-w64-mingw32-gcc >/dev/null; then
+msg "build: cross-mingw64, make" # ~ 30s
+cleanup
+CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar CFLAGS=-Werror WINDOWS_BUILD=1 make
+fi
+
 # MemSan currently only available on Linux 64 bits
 if uname -a | grep 'Linux.*x86_64' >/dev/null; then
 

@@ -140,7 +140,7 @@ static int ssl_load_session( ssl_session *session,
         if( p + cert_len > end )
             return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
-        session->peer_cert = polarssl_malloc( sizeof( x509_crt ) );
+        session->peer_cert = polarssl_calloc(1, sizeof(x509_crt));
 
         if( session->peer_cert == NULL )
             return( POLARSSL_ERR_SSL_MALLOC_FAILED );

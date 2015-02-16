@@ -35,6 +35,7 @@
 #else
 #include <stdlib.h>
 #define polarssl_malloc     malloc
+#define polarssl_calloc calloc
 #define polarssl_free       free
 #endif
 
@@ -311,7 +312,7 @@ asn1_named_data *asn1_store_named_data( asn1_named_data **head,
     {
         // Add new entry if not present yet based on OID
         //
-        if( ( cur = polarssl_malloc( sizeof(asn1_named_data) ) ) == NULL )
+        if( ( cur = polarssl_calloc(1, sizeof(asn1_named_data))) == NULL )
             return( NULL );
 
         memset( cur, 0, sizeof(asn1_named_data) );

@@ -38,6 +38,7 @@
 #include "polarssl/platform.h"
 #else
 #define polarssl_malloc     malloc
+#define polarssl_calloc calloc
 #define polarssl_free       free
 #endif
 
@@ -221,7 +222,7 @@ int ssl_cache_set( void *data, const ssl_session *session )
             /*
              * max_entries not reached, create new entry
              */
-            cur = polarssl_malloc( sizeof(ssl_cache_entry) );
+            cur = polarssl_calloc(1, sizeof(ssl_cache_entry));
             if( cur == NULL )
             {
                 ret = 1;

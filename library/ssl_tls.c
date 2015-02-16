@@ -48,6 +48,7 @@
 #include "polarssl/platform.h"
 #else
 #define polarssl_malloc     malloc
+#define polarssl_calloc calloc
 #define polarssl_free       free
 #endif
 
@@ -92,7 +93,7 @@ static int ssl_session_copy( ssl_session *dst, const ssl_session *src )
     {
         int ret;
 
-        dst->peer_cert = polarssl_malloc( sizeof(x509_crt) );
+        dst->peer_cert = polarssl_calloc(1, sizeof(x509_crt));
         if( dst->peer_cert == NULL )
             return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
@@ -2747,8 +2748,7 @@ int ssl_parse_certificate( ssl_context *ssl )
         polarssl_free( ssl->session_negotiate->peer_cert );
     }
 
-    if( ( ssl->session_negotiate->peer_cert = polarssl_malloc(
-                    sizeof( x509_crt ) ) ) == NULL )
+    if( ( ssl->session_negotiate->peer_cert = polarssl_calloc(1, sizeof(x509_crt))) == NULL )
     {
         SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed",
                        sizeof( x509_crt ) ) );
@@ -3544,17 +3544,17 @@ static int ssl_handshake_init( ssl_context *ssl )
      */
     if( ssl->transform_negotiate == NULL )
     {
-        ssl->transform_negotiate = polarssl_malloc( sizeof(ssl_transform) );
+        ssl->transform_negotiate = polarssl_calloc(1, sizeof(ssl_transform));
     }
 
     if( ssl->session_negotiate == NULL )
     {
-        ssl->session_negotiate = polarssl_malloc( sizeof(ssl_session) );
+        ssl->session_negotiate = polarssl_calloc(1, sizeof(ssl_session));
     }
 
     if( ssl->handshake == NULL )
     {
-        ssl->handshake = polarssl_malloc( sizeof(ssl_handshake_params) );
+        ssl->handshake = polarssl_calloc(1, sizeof(ssl_handshake_params));
     }
 
     /* All pointers should exist and can be directly freed without issue */
@@ -3779,7 +3779,7 @@ static int ssl_ticket_keys_init( ssl_context *ssl )
     if( ssl->ticket_keys != NULL )
         return( 0 );
 
-    tkeys = polarssl_malloc( sizeof(ssl_ticket_keys) );
+    tkeys = polarssl_calloc(1, sizeof(ssl_ticket_keys));
     if( tkeys == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
@@ -3936,7 +3936,7 @@ static ssl_key_cert *ssl_add_key_cert( ssl_context *ssl )
 {
     ssl_key_cert *key_cert, *last;
 
-    key_cert = polarssl_malloc( sizeof(ssl_key_cert) );
+    key_cert = polarssl_calloc(1, sizeof(ssl_key_cert));
     if( key_cert == NULL )
         return( NULL );
 
@@ -3992,7 +3992,7 @@ int ssl_set_own_cert_rsa( ssl_context *ssl, x509_crt *own_cert,
     if( key_cert == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
-    key_cert->key = polarssl_malloc( sizeof(pk_context) );
+    key_cert->key = polarssl_calloc(1, sizeof(pk_context));
     if( key_cert->key == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
@@ -4024,7 +4024,7 @@ int ssl_set_own_cert_alt( ssl_context *ssl, x509_crt *own_cert,
     if( key_cert == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
-    key_cert->key = polarssl_malloc( sizeof(pk_context) );
+    key_cert->key = polarssl_calloc(1, sizeof(pk_context));
     if( key_cert->key == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 

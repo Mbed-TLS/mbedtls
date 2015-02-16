@@ -9,6 +9,8 @@ Features
      the platform layer.
    * Add an option to use macros instead of function pointers in the platform
      layer (helps get rid of unwanted references).
+   * Improved Makefiles for Windows targets by fixing library targets and making
+     cross-compilation easier (thanks to Alon Bar-Lev).
 
 Bugfix
    * Fix hardclock() (only used in the benchmarking program) with some

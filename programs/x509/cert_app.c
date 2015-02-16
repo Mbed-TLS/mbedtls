@@ -351,6 +351,8 @@ int main( int argc, char *argv[] )
             cur = cur->next;
         }
 
+        ret = 0;
+
         /*
          * 1.3 Verify the certificate
          */

@@ -25,14 +25,22 @@ CFLAGS += -fPIC
 endif
 endif
 
-SONAME=libmbedtls.so.7
+SOEXT=so.8
 
-DLEXT=so.8
+DLEXT=so
 # OSX shared library extension:
 # DLEXT=dylib
 
-# Windows shared library extension:
+#
+# if we running on Windows build
+# for Windows
+#
 ifdef WINDOWS
+WINDOWS_BUILD=1
+endif
+
+# Windows shared library extension:
+ifdef WINDOWS_BUILD
 DLEXT=dll
 LDFLAGS += -lws2_32
 endif
@@ -76,7 +84,7 @@ endif
 
 static: libpolarssl.a
 
-shared: libpolarssl.so
+shared: libpolarssl.$(DLEXT)
 
 libpolarssl.a: libmbedtls.a
 	echo "  LN    $@ -> $?"
@@ -92,21 +100,28 @@ libmbedtls.a: $(OBJS)
 	echo "  RL    $@"
 	$(AR) s $@
 
-libpolarssl.so: libmbedtls.so
+libpolarssl.$(DLEXT): libmbedtls.$(DLEXT)
 	echo "  LN    $@ -> $?"
 ifndef WINDOWS
 	ln -sf $? $@
 else
 	copy /y /b $? $@
 endif
+ifdef WINDOWS_BUILD
+ifndef WINDOWS
+	ln -sf $?.a $@.a
+else
+	copy /y /b $?.a $@.a
+endif
+endif
 
-libmbedtls.${DLEXT}: $(OBJS)
+libmbedtls.$(SOEXT): $(OBJS)
 	echo "  LD    $@"
-	$(CC) ${LDFLAGS} -shared -Wl,-soname,$(SONAME) -o $@ $(OBJS)
+	$(CC) ${LDFLAGS} -shared -Wl,-soname,$@ -o $@ $(OBJS)
 
-libmbedtls.so: libmbedtls.${DLEXT}
-	echo "  LN    $@ -> libmbedtls.${DLEXT}"
-	ln -sf libmbedtls.${DLEXT} $@
+libmbedtls.so: libmbedtls.$(SOEXT)
+	echo "  LN    $@ -> libmbedtls.$(SOEXT)"
+	ln -sf libmbedtls.$(SOEXT) $@
 
 libmbedtls.dylib: $(OBJS)
 	echo "  LD    $@"
@@ -114,7 +129,7 @@ libmbedtls.dylib: $(OBJS)
 
 libmbedtls.dll: $(OBJS)
 	echo "  LD    $@"
-	$(CC) -shared -Wl,-soname,$@ -o $@ $(OBJS) -lws2_32 -lwinmm -lgdi32
+	$(CC) -shared -Wl,-soname,$@ -Wl,--out-implib,$@.a -o $@ $(OBJS) -lws2_32 -lwinmm -lgdi32
 
 .c.o:
 	echo "  CC    $<"

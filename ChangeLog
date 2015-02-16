@@ -1,6 +1,8 @@
 PolarSSL ChangeLog
 
-= Version 1.2.z released not yet
+= Version 1.2.13 released 2015-02-16
+Note: Although PolarSSL has been renamed to mbed TLS, no changes reflecting
+      this will be made in the 1.2 branch at this point.
 
 Security
    * Fix remotely-triggerable uninitialised pointer dereference caused by

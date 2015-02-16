@@ -11,6 +11,12 @@ Features
      layer (helps get rid of unwanted references).
    * Improved Makefiles for Windows targets by fixing library targets and making
      cross-compilation easier (thanks to Alon Bar-Lev).
+   * The benchmark program also prints heap usage for public-key primitives
+     if POLARSSL_MEMORY_BUFFER_ALLOC_C and POLARSSL_MEMORY_DEBUG are defined.
+   * New script ecc-heap.sh helps measuring the impact of ECC parameters on
+     speed and RAM (heap only for now) usage.
+   * New script memory.sh helps measuring the ROM and RAM requirements of two
+     reduced configurations (PSK-CCM and NSA suite B).
 
 Bugfix
    * Fix hardclock() (only used in the benchmarking program) with some

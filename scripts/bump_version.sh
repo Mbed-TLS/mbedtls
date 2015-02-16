@@ -56,7 +56,7 @@ then
   mv tmp library/CMakeLists.txt
 
   [ $VERBOSE ] && echo "Bumping SOVERSION in library/Makefile"
-  sed -e "s/SONAME=libpolarssl.so.[0-9]\+/SONAME=libpolarssl.so.$SOVERSION/g" -e "s/DLEXT=so.[0-9]\+/DLEXT=so.$SOVERSION/g" < library/Makefile > tmp
+  sed -e "s/SOEXT=so.[0-9]\+/SOEXT=so.$SOVERSION/g" < library/Makefile > tmp
   mv tmp library/Makefile
 fi
 

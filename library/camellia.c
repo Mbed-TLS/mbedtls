@@ -36,11 +36,15 @@
 
 #include "polarssl/camellia.h"
 
+#if defined(POLARSSL_SELF_TEST)
+#include <string.h>
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf printf
-#endif
+#endif /* POLARSSL_PLATFORM_C */
+#endif /* POLARSSL_SELF_TEST */
 
 #if !defined(POLARSSL_CAMELLIA_ALT)
 
@@ -452,7 +456,7 @@ int camellia_setkey_dec( camellia_context *ctx, const unsigned char *key,
     camellia_init( &cty );
 
     /* Also checks keysize */
-    if( ( ret = camellia_setkey_enc( &cty, key, keysize ) ) )
+    if( ( ret = camellia_setkey_enc( &cty, key, keysize ) ) != 0 )
         goto exit;
 
     ctx->nr = cty.nr;
@@ -688,8 +692,6 @@ int camellia_crypt_ctr( camellia_context *ctx,
 #endif /* !POLARSSL_CAMELLIA_ALT */
 
 #if defined(POLARSSL_SELF_TEST)
-
-#include <stdio.h>
 
 /*
  * Camellia test vectors from:

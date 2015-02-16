@@ -24,7 +24,7 @@
 #ifndef POLARSSL_PEM_H
 #define POLARSSL_PEM_H
 
-#include <string.h>
+#include <stddef.h>
 
 /**
  * \name PEM Error codes

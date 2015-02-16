@@ -152,14 +152,14 @@ while (my $line = <GREP>)
     {
         ${$code_check} .= "${white_space}if( use_ret == -($error_name) )\n".
                           "${white_space}\{\n".
-                          "${white_space}    snprintf( buf, buflen, \"$module_name - $description\" );\n".
+                          "${white_space}    polarssl_snprintf( buf, buflen, \"$module_name - $description\" );\n".
                           "${white_space}    return;\n".
                           "${white_space}}\n"
     }
     else
     {
         ${$code_check} .= "${white_space}if( use_ret == -($error_name) )\n".
-                          "${white_space}    snprintf( buf, buflen, \"$module_name - $description\" );\n"
+                          "${white_space}    polarssl_snprintf( buf, buflen, \"$module_name - $description\" );\n"
     }
 };
 

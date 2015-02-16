@@ -36,6 +36,8 @@
 
 #include "polarssl/blowfish.h"
 
+#include <string.h>
+
 #if !defined(POLARSSL_BLOWFISH_ALT)
 
 /* Implementation that should never be optimized out by the compiler */

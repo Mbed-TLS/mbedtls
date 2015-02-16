@@ -36,6 +36,8 @@
 
 #include "polarssl/padlock.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_HAVE_X86)
 
 /*

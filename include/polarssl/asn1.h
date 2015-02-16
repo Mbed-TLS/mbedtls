@@ -30,11 +30,11 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#include <stddef.h>
+
 #if defined(POLARSSL_BIGNUM_C)
 #include "bignum.h"
 #endif
-
-#include <string.h>
 
 /**
  * \addtogroup asn1_module

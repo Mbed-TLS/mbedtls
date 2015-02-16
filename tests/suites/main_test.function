@@ -1,13 +1,14 @@
-#include <stdio.h>
 #include <string.h>
 
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
-#define polarssl_printf     printf
-#define polarssl_fprintf    fprintf
-#define polarssl_malloc     malloc
+#include <stdio.h>
+#define polarssl_exit       exit
 #define polarssl_free       free
+#define polarssl_malloc     malloc
+#define polarssl_fprintf    fprintf
+#define polarssl_printf     printf
 #endif
 
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
@@ -280,7 +281,7 @@ int main()
         {
             polarssl_fprintf( stderr, "FAILED: FATAL PARSE ERROR\n" );
             fclose(file);
-            exit( 2 );
+            polarssl_exit( 2 );
         }
         else
             total_errors++;

@@ -37,16 +37,20 @@
 #include "polarssl/rsa.h"
 #include "polarssl/oid.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_PKCS1_V21)
 #include "polarssl/md.h"
 #endif
 
+#if defined(POLARSSL_PKCS1_V15) && !defined(__OpenBSD__)
 #include <stdlib.h>
-#include <stdio.h>
+#endif
 
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf printf
 #endif
 
@@ -522,7 +526,7 @@ int rsa_rsaes_oaep_encrypt( rsa_context *ctx,
     if( f_rng == NULL )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
-    md_info = md_info_from_type( ctx->hash_id );
+    md_info = md_info_from_type( (md_type_t) ctx->hash_id );
     if( md_info == NULL )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
@@ -701,7 +705,7 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
     if( ilen < 16 || ilen > sizeof( buf ) )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
-    md_info = md_info_from_type( ctx->hash_id );
+    md_info = md_info_from_type( (md_type_t) ctx->hash_id );
     if( md_info == NULL )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
@@ -939,7 +943,7 @@ int rsa_rsassa_pss_sign( rsa_context *ctx,
         hashlen = md_get_size( md_info );
     }
 
-    md_info = md_info_from_type( ctx->hash_id );
+    md_info = md_info_from_type( (md_type_t) ctx->hash_id );
     if( md_info == NULL )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 

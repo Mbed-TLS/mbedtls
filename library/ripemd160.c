@@ -36,19 +36,20 @@
 
 #include "polarssl/ripemd160.h"
 
-#if defined(POLARSSL_FS_IO) || defined(POLARSSL_SELF_TEST)
+#include <string.h>
+
+#if defined(POLARSSL_FS_IO)
 #include <stdio.h>
 #endif
 
 #if defined(POLARSSL_SELF_TEST)
-#include <string.h>
-#endif
-
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf printf
-#endif
+#endif /* POLARSSL_PLATFORM_C */
+#endif /* POLARSSL_SELF_TEST */
 
 /*
  * 32-bit integer manipulation macros (little endian)

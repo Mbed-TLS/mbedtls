@@ -10,6 +10,39 @@ API Changes
    * ssl_set_bio() now requires that p_send == p_recv.
    * ssl_set_bio() is deprecated in favor of ssl_set_bio_timeout().
 
+= mbed TLS 1.3 branch
+
+Security
+
+Features
+   * Add support for overriding snprintf() (except on Windows) and exit() in
+     the platform layer.
+   * Add an option to use macros instead of function pointers in the platform
+     layer (helps get rid of unwanted references).
+   * Improved Makefiles for Windows targets by fixing library targets and making
+     cross-compilation easier (thanks to Alon Bar-Lev).
+   * The benchmark program also prints heap usage for public-key primitives
+     if POLARSSL_MEMORY_BUFFER_ALLOC_C and POLARSSL_MEMORY_DEBUG are defined.
+   * New script ecc-heap.sh helps measuring the impact of ECC parameters on
+     speed and RAM (heap only for now) usage.
+   * New script memory.sh helps measuring the ROM and RAM requirements of two
+     reduced configurations (PSK-CCM and NSA suite B).
+
+Bugfix
+   * Fix hardclock() (only used in the benchmarking program) with some
+     versions of mingw64 (found by kxjhlele).
+   * Fix warnings from mingw64 in timing.c (found by kxjklele).
+   * Fix potential unintended sign extension in asn1_get_len() on 64-bit
+     platforms.
+
+Changes
+   * Move from SHA-1 to SHA-256 in example programs using signatures
+     (suggested by Thorsten Mühlfelder).
+   * Remove some unneeded inclusions of header files from the standard library
+     "minimize" others (eg use stddef.h if only size_t is needed).
+   * Change #include lines in test files to use double quotes instead of angle
+     brackets for uniformity with the rest of the code.
+   * Remove dependency on sscanf() in X.509 parsing modules.
 
 = mbed TLS 1.3.10 released 2015-02-09
 Security

@@ -32,6 +32,8 @@
 #include "polarssl/asn1.h"
 #include "polarssl/oid.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_RSA_C)
 #include "polarssl/rsa.h"
 #endif
@@ -87,7 +89,7 @@ int pk_load_file( const char *path, unsigned char **buf, size_t *n )
     *n = (size_t) size;
 
     if( *n + 1 == 0 ||
-        ( *buf = (unsigned char *) polarssl_malloc( *n + 1 ) ) == NULL )
+        ( *buf = polarssl_malloc( *n + 1 ) ) == NULL )
     {
         fclose( f );
         return( POLARSSL_ERR_PK_MALLOC_FAILED );
@@ -343,7 +345,7 @@ static int pk_group_from_specified( const asn1_buf *params, ecp_group *grp )
     /*
      * order INTEGER
      */
-    if( ( ret = asn1_get_mpi( &p, end, &grp->N ) ) )
+    if( ( ret = asn1_get_mpi( &p, end, &grp->N ) ) != 0 )
         return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT + ret );
 
     grp->nbits = mpi_msb( &grp->N );
@@ -922,6 +924,7 @@ static int pk_parse_key_pkcs8_unencrypted_der(
 /*
  * Parse an encrypted PKCS#8 encoded private key
  */
+#if defined(POLARSSL_PKCS12_C) || defined(POLARSSL_PKCS5_C)
 static int pk_parse_key_pkcs8_encrypted_der(
                                     pk_context *pk,
                                     const unsigned char *key, size_t keylen,
@@ -1039,6 +1042,7 @@ static int pk_parse_key_pkcs8_encrypted_der(
 
     return( pk_parse_key_pkcs8_unencrypted_der( pk, buf, len ) );
 }
+#endif /* POLARSSL_PKCS12_C || POLARSSL_PKCS5_C */
 
 /*
  * Parse a private key
@@ -1130,6 +1134,7 @@ int pk_parse_key( pk_context *pk,
     else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
         return( ret );
 
+#if defined(POLARSSL_PKCS12_C) || defined(POLARSSL_PKCS5_C)
     ret = pem_read_buffer( &pem,
                            "-----BEGIN ENCRYPTED PRIVATE KEY-----",
                            "-----END ENCRYPTED PRIVATE KEY-----",
@@ -1148,6 +1153,7 @@ int pk_parse_key( pk_context *pk,
     }
     else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
         return( ret );
+#endif /* POLARSSL_PKCS12_C || POLARSSL_PKCS5_C */
 #else
     ((void) pwd);
     ((void) pwdlen);
@@ -1160,6 +1166,7 @@ int pk_parse_key( pk_context *pk,
     * We try the different DER format parsers to see if one passes without
     * error
     */
+#if defined(POLARSSL_PKCS12_C) || defined(POLARSSL_PKCS5_C)
     if( ( ret = pk_parse_key_pkcs8_encrypted_der( pk, key, keylen,
                                                   pwd, pwdlen ) ) == 0 )
     {
@@ -1172,6 +1179,7 @@ int pk_parse_key( pk_context *pk,
     {
         return( ret );
     }
+#endif /* POLARSSL_PKCS12_C || POLARSSL_PKCS5_C */
 
     if( ( ret = pk_parse_key_pkcs8_unencrypted_der( pk, key, keylen ) ) == 0 )
         return( 0 );

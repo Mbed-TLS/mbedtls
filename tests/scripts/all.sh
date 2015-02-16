@@ -73,6 +73,9 @@ msg()
 msg "test: recursion.pl" # < 1s
 scripts/recursion.pl library/*.c
 
+msg "test: freshness of generated source files" # < 1s
+tests/scripts/check-generated-files.sh
+
 msg "build: cmake, gcc, ASan" # ~ 1 min 50s
 cleanup
 CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
@@ -128,10 +131,70 @@ tests/scripts/curves.pl
 
 msg "build: Unix make, -O2 (gcc)" # ~ 30s
 cleanup
-CC=gcc make
+CC=gcc CFLAGS=-Werror make
 
-# MemSan currently only available on Linux
-if [ `uname` = 'Linux' ]; then
+# this is meant to cath missing #define polarssl_printf etc
+msg "build: full config except platform.c" # ~ 30s
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl full
+scripts/config.pl unset POLARSSL_PLATFORM_C
+scripts/config.pl unset POLARSSL_PLATFORM_MEMORY
+scripts/config.pl unset POLARSSL_MEMORY_C
+scripts/config.pl unset POLARSSL_MEMORY_BUFFER_ALLOC_C
+CC=gcc CFLAGS=-Werror make
+
+if uname -a | grep -F x86_64 >/dev/null; then
+msg "build: i386, make, gcc" # ~ 30s
+cleanup
+CC=gcc CFLAGS='-Werror -m32' make
+fi # x86_64
+
+if which arm-none-eabi-gcc >/dev/null; then
+msg "build: arm-none-eabi-gcc, make" # ~ 10s
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl full
+scripts/config.pl unset POLARSSL_NET_C
+scripts/config.pl unset POLARSSL_TIMING_C
+scripts/config.pl unset POLARSSL_FS_IO
+# following things are not in the default config
+scripts/config.pl unset POLARSSL_HAVEGE_C # depends on timing.c
+scripts/config.pl unset POLARSSL_THREADING_PTHREAD
+scripts/config.pl unset POLARSSL_THREADING_C
+scripts/config.pl unset POLARSSL_MEMORY_BACKTRACE # execinfo.h
+scripts/config.pl unset POLARSSL_MEMORY_BUFFER_ALLOC_C # calls exit
+CC=arm-none-eabi-gcc CFLAGS=-Werror make lib
+fi # arm-gcc
+
+if which armcc >/dev/null; then
+msg "build: armcc, make"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl full
+scripts/config.pl unset POLARSSL_NET_C
+scripts/config.pl unset POLARSSL_TIMING_C
+scripts/config.pl unset POLARSSL_FS_IO
+scripts/config.pl unset POLARSSL_HAVE_TIME
+# following things are not in the default config
+scripts/config.pl unset POLARSSL_HAVEGE_C # depends on timing.c
+scripts/config.pl unset POLARSSL_THREADING_PTHREAD
+scripts/config.pl unset POLARSSL_THREADING_C
+scripts/config.pl unset POLARSSL_MEMORY_BACKTRACE # execinfo.h
+scripts/config.pl unset POLARSSL_MEMORY_BUFFER_ALLOC_C # calls exit
+CC=arm-none-eabi-gcc CFLAGS=-Werror make lib 2> armcc.stderr
+grep -v '^ar: creating' armcc.stderr || exit 1
+rm armcc.stderr
+fi # armcc
+
+if which i686-w64-mingw32-gcc >/dev/null; then
+msg "build: cross-mingw64, make" # ~ 30s
+cleanup
+CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar CFLAGS=-Werror WINDOWS_BUILD=1 make
+fi
+
+# MemSan currently only available on Linux 64 bits
+if uname -a | grep 'Linux.*x86_64' >/dev/null; then
 
 msg "build: MSan (clang)" # ~ 1 min 20s
 cleanup

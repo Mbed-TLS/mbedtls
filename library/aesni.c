@@ -34,7 +34,8 @@
 #if defined(POLARSSL_AESNI_C)
 
 #include "polarssl/aesni.h"
-#include <stdio.h>
+
+#include <string.h>
 
 #if defined(POLARSSL_HAVE_X86_64)
 

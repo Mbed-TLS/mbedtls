@@ -30,11 +30,16 @@
 
 #include "polarssl/xtea.h"
 
+#include <string.h>
+
+#if defined(POLARSSL_SELF_TEST)
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf printf
-#endif
+#endif /* POLARSSL_PLATFORM_C */
+#endif /* POLARSSL_SELF_TEST */
 
 #if !defined(POLARSSL_XTEA_ALT)
 
@@ -189,9 +194,6 @@ int xtea_crypt_cbc( xtea_context *ctx, int mode, size_t length,
 #endif /* !POLARSSL_XTEA_ALT */
 
 #if defined(POLARSSL_SELF_TEST)
-
-#include <string.h>
-#include <stdio.h>
 
 /*
  * XTEA tests vectors (non-official)

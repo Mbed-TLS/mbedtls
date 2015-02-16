@@ -33,6 +33,8 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#include <stddef.h>
+
 #if defined(POLARSSL_GCM_C) || defined(POLARSSL_CCM_C)
 #define POLARSSL_CIPHER_MODE_AEAD
 #endif
@@ -41,7 +43,9 @@
 #define POLARSSL_CIPHER_MODE_WITH_PADDING
 #endif
 
-#include <string.h>
+#if defined(POLARSSL_ARC4_C)
+#define POLARSSL_CIPHER_MODE_STREAM
+#endif
 
 #if defined(_MSC_VER) && !defined(inline)
 #define inline _inline
@@ -182,24 +186,32 @@ typedef struct {
     int (*ecb_func)( void *ctx, operation_t mode,
                      const unsigned char *input, unsigned char *output );
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
     /** Encrypt using CBC */
     int (*cbc_func)( void *ctx, operation_t mode, size_t length,
                      unsigned char *iv, const unsigned char *input,
                      unsigned char *output );
+#endif
 
+#if defined(POLARSSL_CIPHER_MODE_CFB)
     /** Encrypt using CFB (Full length) */
     int (*cfb_func)( void *ctx, operation_t mode, size_t length, size_t *iv_off,
                      unsigned char *iv, const unsigned char *input,
                      unsigned char *output );
+#endif
 
+#if defined(POLARSSL_CIPHER_MODE_CTR)
     /** Encrypt using CTR */
     int (*ctr_func)( void *ctx, size_t length, size_t *nc_off,
                      unsigned char *nonce_counter, unsigned char *stream_block,
                      const unsigned char *input, unsigned char *output );
+#endif
 
+#if defined(POLARSSL_CIPHER_MODE_STREAM)
     /** Encrypt using STREAM */
     int (*stream_func)( void *ctx, size_t length,
                         const unsigned char *input, unsigned char *output );
+#endif
 
     /** Set key for encryption purposes */
     int (*setkey_enc_func)( void *ctx, const unsigned char *key,
@@ -262,9 +274,11 @@ typedef struct {
     /** Operation that the context's key has been initialised for */
     operation_t operation;
 
+#if defined(POLARSSL_CIPHER_MODE_WITH_PADDING)
     /** Padding functions to use, if relevant for cipher mode */
     void (*add_padding)( unsigned char *output, size_t olen, size_t data_len );
     int (*get_padding)( unsigned char *input, size_t ilen, size_t *data_len );
+#endif
 
     /** Buffer for data that hasn't been encrypted yet */
     unsigned char unprocessed_data[POLARSSL_MAX_BLOCK_LENGTH];

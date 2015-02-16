@@ -38,6 +38,8 @@
 #include "polarssl/asn1.h"
 #include "polarssl/cipher.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_ARC4_C)
 #include "polarssl/arc4.h"
 #endif
@@ -196,7 +198,7 @@ int pkcs12_pbe( asn1_buf *pbe_params, int mode,
     if( ( ret = cipher_init_ctx( &cipher_ctx, cipher_info ) ) != 0 )
         goto exit;
 
-    if( ( ret = cipher_setkey( &cipher_ctx, key, 8 * keylen, mode ) ) != 0 )
+    if( ( ret = cipher_setkey( &cipher_ctx, key, 8 * keylen, (operation_t) mode ) ) != 0 )
         goto exit;
 
     if( ( ret = cipher_set_iv( &cipher_ctx, iv, cipher_info->iv_size ) ) != 0 )

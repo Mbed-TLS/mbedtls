@@ -27,6 +27,7 @@
 #endif
 
 #if defined(POLARSSL_PEM_PARSE_C) || defined(POLARSSL_PEM_WRITE_C)
+
 #include "polarssl/pem.h"
 #include "polarssl/base64.h"
 #include "polarssl/des.h"
@@ -34,14 +35,15 @@
 #include "polarssl/md5.h"
 #include "polarssl/cipher.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdlib.h>
 #define polarssl_malloc     malloc
 #define polarssl_free       free
 #endif
-
-#include <stdlib.h>
 
 /* Implementation that should never be optimized out by the compiler */
 static void polarssl_zeroize( void *v, size_t n ) {
@@ -319,7 +321,7 @@ int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
     if( ret == POLARSSL_ERR_BASE64_INVALID_CHARACTER )
         return( POLARSSL_ERR_PEM_INVALID_DATA + ret );
 
-    if( ( buf = (unsigned char *) polarssl_malloc( len ) ) == NULL )
+    if( ( buf = polarssl_malloc( len ) ) == NULL )
         return( POLARSSL_ERR_PEM_MALLOC_FAILED );
 
     if( ( ret = base64_decode( buf, &len, s1, s2 - s1 ) ) != 0 )

@@ -40,6 +40,10 @@
 
 #include "polarssl/x509_crt.h"
 #include "polarssl/oid.h"
+
+#include <stdio.h>
+#include <string.h>
+
 #if defined(POLARSSL_PEM_PARSE_C)
 #include "polarssl/pem.h"
 #endif
@@ -47,30 +51,29 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
-#define polarssl_malloc     malloc
+#include <stdlib.h>
 #define polarssl_free       free
+#define polarssl_malloc     malloc
+#define polarssl_snprintf   snprintf
 #endif
 
 #if defined(POLARSSL_THREADING_C)
 #include "polarssl/threading.h"
 #endif
 
-#include <string.h>
-#include <stdlib.h>
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
 #include <windows.h>
 #else
 #include <time.h>
 #endif
 
-#include <stdio.h>
-
 #if defined(POLARSSL_FS_IO)
+#include <stdio.h>
 #if !defined(_WIN32) || defined(EFIX64) || defined(EFI32)
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
-#endif
+#endif /* !_WIN32 || EFIX64 || EFI32 */
 #endif
 
 /* Implementation that should never be optimized out by the compiler */
@@ -356,8 +359,7 @@ static int x509_get_subject_alt_name( unsigned char **p,
             if( cur->next != NULL )
                 return( POLARSSL_ERR_X509_INVALID_EXTENSIONS );
 
-            cur->next = (asn1_sequence *) polarssl_malloc(
-                 sizeof( asn1_sequence ) );
+            cur->next = polarssl_malloc( sizeof( asn1_sequence ) );
 
             if( cur->next == NULL )
                 return( POLARSSL_ERR_X509_INVALID_EXTENSIONS +
@@ -550,7 +552,7 @@ static int x509_crt_parse_der_core( x509_crt *crt, const unsigned char *buf,
     if( crt == NULL || buf == NULL )
         return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
 
-    p = (unsigned char *) polarssl_malloc( len = buflen );
+    p = polarssl_malloc( len = buflen );
 
     if( p == NULL )
         return( POLARSSL_ERR_X509_MALLOC_FAILED );
@@ -807,7 +809,7 @@ int x509_crt_parse_der( x509_crt *chain, const unsigned char *buf,
      */
     if( crt->version != 0 && crt->next == NULL )
     {
-        crt->next = (x509_crt *) polarssl_malloc( sizeof( x509_crt ) );
+        crt->next = polarssl_malloc( sizeof( x509_crt ) );
 
         if( crt->next == NULL )
             return( POLARSSL_ERR_X509_MALLOC_FAILED );
@@ -1038,7 +1040,7 @@ int x509_crt_parse_path( x509_crt *chain, const char *path )
 
     while( ( entry = readdir( dir ) ) != NULL )
     {
-        snprintf( entry_name, sizeof entry_name, "%s/%s", path, entry->d_name );
+        polarssl_snprintf( entry_name, sizeof entry_name, "%s/%s", path, entry->d_name );
 
         if( stat( entry_name, &sb ) == -1 )
         {
@@ -1164,7 +1166,7 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
 
 #define PRINT_ITEM(i)                           \
     {                                           \
-        ret = snprintf( p, n, "%s" i, sep );    \
+        ret = polarssl_snprintf( p, n, "%s" i, sep );    \
         SAFE_SNPRINTF();                        \
         sep = ", ";                             \
     }
@@ -1237,7 +1239,7 @@ static int x509_info_ext_key_usage( char **buf, size_t *size,
         if( oid_get_extended_key_usage( &cur->buf, &desc ) != 0 )
             desc = "???";
 
-        ret = snprintf( p, n, "%s%s", sep, desc );
+        ret = polarssl_snprintf( p, n, "%s%s", sep, desc );
         SAFE_SNPRINTF();
 
         sep = ", ";
@@ -1267,41 +1269,41 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
     p = buf;
     n = size;
 
-    ret = snprintf( p, n, "%scert. version     : %d\n",
+    ret = polarssl_snprintf( p, n, "%scert. version     : %d\n",
                                prefix, crt->version );
     SAFE_SNPRINTF();
-    ret = snprintf( p, n, "%sserial number     : ",
+    ret = polarssl_snprintf( p, n, "%sserial number     : ",
                                prefix );
     SAFE_SNPRINTF();
 
     ret = x509_serial_gets( p, n, &crt->serial );
     SAFE_SNPRINTF();
 
-    ret = snprintf( p, n, "\n%sissuer name       : ", prefix );
+    ret = polarssl_snprintf( p, n, "\n%sissuer name       : ", prefix );
     SAFE_SNPRINTF();
     ret = x509_dn_gets( p, n, &crt->issuer  );
     SAFE_SNPRINTF();
 
-    ret = snprintf( p, n, "\n%ssubject name      : ", prefix );
+    ret = polarssl_snprintf( p, n, "\n%ssubject name      : ", prefix );
     SAFE_SNPRINTF();
     ret = x509_dn_gets( p, n, &crt->subject );
     SAFE_SNPRINTF();
 
-    ret = snprintf( p, n, "\n%sissued  on        : " \
+    ret = polarssl_snprintf( p, n, "\n%sissued  on        : " \
                    "%04d-%02d-%02d %02d:%02d:%02d", prefix,
                    crt->valid_from.year, crt->valid_from.mon,
                    crt->valid_from.day,  crt->valid_from.hour,
                    crt->valid_from.min,  crt->valid_from.sec );
     SAFE_SNPRINTF();
 
-    ret = snprintf( p, n, "\n%sexpires on        : " \
+    ret = polarssl_snprintf( p, n, "\n%sexpires on        : " \
                    "%04d-%02d-%02d %02d:%02d:%02d", prefix,
                    crt->valid_to.year, crt->valid_to.mon,
                    crt->valid_to.day,  crt->valid_to.hour,
                    crt->valid_to.min,  crt->valid_to.sec );
     SAFE_SNPRINTF();
 
-    ret = snprintf( p, n, "\n%ssigned using      : ", prefix );
+    ret = polarssl_snprintf( p, n, "\n%ssigned using      : ", prefix );
     SAFE_SNPRINTF();
 
     ret = x509_sig_alg_gets( p, n, &crt->sig_oid1, crt->sig_pk,
@@ -1315,7 +1317,7 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
         return( ret );
     }
 
-    ret = snprintf( p, n, "\n%s%-" BC "s: %d bits", prefix, key_size_str,
+    ret = polarssl_snprintf( p, n, "\n%s%-" BC "s: %d bits", prefix, key_size_str,
                           (int) pk_get_size( &crt->pk ) );
     SAFE_SNPRINTF();
 
@@ -1325,20 +1327,20 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
 
     if( crt->ext_types & EXT_BASIC_CONSTRAINTS )
     {
-        ret = snprintf( p, n, "\n%sbasic constraints : CA=%s", prefix,
+        ret = polarssl_snprintf( p, n, "\n%sbasic constraints : CA=%s", prefix,
                         crt->ca_istrue ? "true" : "false" );
         SAFE_SNPRINTF();
 
         if( crt->max_pathlen > 0 )
         {
-            ret = snprintf( p, n, ", max_pathlen=%d", crt->max_pathlen - 1 );
+            ret = polarssl_snprintf( p, n, ", max_pathlen=%d", crt->max_pathlen - 1 );
             SAFE_SNPRINTF();
         }
     }
 
     if( crt->ext_types & EXT_SUBJECT_ALT_NAME )
     {
-        ret = snprintf( p, n, "\n%ssubject alt name  : ", prefix );
+        ret = polarssl_snprintf( p, n, "\n%ssubject alt name  : ", prefix );
         SAFE_SNPRINTF();
 
         if( ( ret = x509_info_subject_alt_name( &p, &n,
@@ -1348,7 +1350,7 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
 
     if( crt->ext_types & EXT_NS_CERT_TYPE )
     {
-        ret = snprintf( p, n, "\n%scert. type        : ", prefix );
+        ret = polarssl_snprintf( p, n, "\n%scert. type        : ", prefix );
         SAFE_SNPRINTF();
 
         if( ( ret = x509_info_cert_type( &p, &n, crt->ns_cert_type ) ) != 0 )
@@ -1357,7 +1359,7 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
 
     if( crt->ext_types & EXT_KEY_USAGE )
     {
-        ret = snprintf( p, n, "\n%skey usage         : ", prefix );
+        ret = polarssl_snprintf( p, n, "\n%skey usage         : ", prefix );
         SAFE_SNPRINTF();
 
         if( ( ret = x509_info_key_usage( &p, &n, crt->key_usage ) ) != 0 )
@@ -1366,7 +1368,7 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
 
     if( crt->ext_types & EXT_EXTENDED_KEY_USAGE )
     {
-        ret = snprintf( p, n, "\n%sext key usage     : ", prefix );
+        ret = polarssl_snprintf( p, n, "\n%sext key usage     : ", prefix );
         SAFE_SNPRINTF();
 
         if( ( ret = x509_info_ext_key_usage( &p, &n,
@@ -1374,7 +1376,7 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
             return( ret );
     }
 
-    ret = snprintf( p, n, "\n" );
+    ret = polarssl_snprintf( p, n, "\n" );
     SAFE_SNPRINTF();
 
     return( (int) ( size - n ) );

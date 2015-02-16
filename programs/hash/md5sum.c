@@ -29,21 +29,21 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
-#define polarssl_printf     printf
+#include <stdio.h>
 #define polarssl_fprintf    fprintf
+#define polarssl_printf     printf
 #endif
 
-#include <string.h>
-#include <stdio.h>
-
+#if defined(POLARSSL_MD5_C) && defined(POLARSSL_FS_IO)
 #include "polarssl/md5.h"
 
-#if !defined(POLARSSL_MD5_C) || !defined(POLARSSL_FS_IO)
-int main( int argc, char *argv[] )
-{
-    ((void) argc);
-    ((void) argv);
+#include <stdio.h>
+#include <string.h>
+#endif
 
+#if !defined(POLARSSL_MD5_C) || !defined(POLARSSL_FS_IO)
+int main( void )
+{
     polarssl_printf("POLARSSL_MD5_C and/or POLARSSL_FS_IO not defined.\n");
     return( 0 );
 }

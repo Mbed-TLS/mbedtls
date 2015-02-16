@@ -26,7 +26,7 @@
 #ifndef POLARSSL_MD_H
 #define POLARSSL_MD_H
 
-#include <string.h>
+#include <stddef.h>
 
 #if defined(_MSC_VER) && !defined(inline)
 #define inline _inline

@@ -29,35 +29,33 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-
-#if !defined(POLARSSL_X509_CRT_WRITE_C) ||                                  \
-    !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_FS_IO) ||      \
-    !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C) ||        \
-    !defined(POLARSSL_ERROR_C)
-int main( int argc, char *argv[] )
-{
-    ((void) argc);
-    ((void) argv);
-
-    polarssl_printf( "POLARSSL_X509_CRT_WRITE_C and/or POLARSSL_X509_CRT_PARSE_C and/or "
-            "POLARSSL_FS_IO and/or "
-            "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C and/or "
-            "POLARSSL_ERROR_C not defined.\n");
-    return( 0 );
-}
-#else
-
+#if defined(POLARSSL_X509_CRT_WRITE_C) && \
+    defined(POLARSSL_X509_CRT_PARSE_C) && defined(POLARSSL_FS_IO) && \
+    defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_CTR_DRBG_C) && \
+    defined(POLARSSL_ERROR_C)
 #include "polarssl/x509_crt.h"
 #include "polarssl/x509_csr.h"
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
 #include "polarssl/error.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#endif
+
+#if defined(POLARSSL_X509_CSR_PARSE_C)
+#define USAGE_CSR                                                           \
+    "    request_file=%%s     default: (empty)\n"                           \
+    "                        If request_file is specified, subject_key,\n"  \
+    "                        subject_pwd and subject_name are ignored!\n"
+#else
+#define USAGE_CSR ""
+#endif /* POLARSSL_X509_CSR_PARSE_C */
 
 #define DFL_ISSUER_CRT          ""
 #define DFL_REQUEST_FILE        ""
@@ -77,6 +75,64 @@ int main( int argc, char *argv[] )
 #define DFL_KEY_USAGE           0
 #define DFL_NS_CERT_TYPE        0
 
+#define USAGE \
+    "\n usage: cert_write param=<>...\n"                \
+    "\n acceptable parameters:\n"                       \
+    USAGE_CSR                                           \
+    "    subject_key=%%s      default: subject.key\n"   \
+    "    subject_pwd=%%s      default: (empty)\n"       \
+    "    subject_name=%%s     default: CN=Cert,O=mbed TLS,C=UK\n"   \
+    "\n"                                                \
+    "    issuer_crt=%%s       default: (empty)\n"       \
+    "                        If issuer_crt is specified, issuer_name is\n"  \
+    "                        ignored!\n"                \
+    "    issuer_name=%%s      default: CN=CA,O=mbed TLS,C=UK\n"     \
+    "\n"                                                \
+    "    selfsign=%%d         default: 0 (false)\n"     \
+    "                        If selfsign is enabled, issuer_name and\n" \
+    "                        issuer_key are required (issuer_crt and\n" \
+    "                        subject_* are ignored\n"   \
+    "    issuer_key=%%s       default: ca.key\n"        \
+    "    issuer_pwd=%%s       default: (empty)\n"       \
+    "    output_file=%%s      default: cert.crt\n"      \
+    "    serial=%%s           default: 1\n"             \
+    "    not_before=%%s       default: 20010101000000\n"\
+    "    not_after=%%s        default: 20301231235959\n"\
+    "    is_ca=%%d            default: 0 (disabled)\n"  \
+    "    max_pathlen=%%d      default: -1 (none)\n"     \
+    "    key_usage=%%s        default: (empty)\n"       \
+    "                        Comma-separated-list of values:\n"     \
+    "                          digital_signature\n"     \
+    "                          non_repudiation\n"       \
+    "                          key_encipherment\n"      \
+    "                          data_encipherment\n"     \
+    "                          key_agreement\n"         \
+    "                          key_certificate_sign\n"  \
+    "                          crl_sign\n"              \
+    "    ns_cert_type=%%s     default: (empty)\n"       \
+    "                        Comma-separated-list of values:\n"     \
+    "                          ssl_client\n"            \
+    "                          ssl_server\n"            \
+    "                          email\n"                 \
+    "                          object_signing\n"        \
+    "                          ssl_ca\n"                \
+    "                          email_ca\n"              \
+    "                          object_signing_ca\n"     \
+    "\n"
+
+#if !defined(POLARSSL_X509_CRT_WRITE_C) ||                                  \
+    !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_FS_IO) ||      \
+    !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C) ||        \
+    !defined(POLARSSL_ERROR_C)
+int main( void )
+{
+    polarssl_printf( "POLARSSL_X509_CRT_WRITE_C and/or POLARSSL_X509_CRT_PARSE_C and/or "
+            "POLARSSL_FS_IO and/or "
+            "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C and/or "
+            "POLARSSL_ERROR_C not defined.\n");
+    return( 0 );
+}
+#else
 /*
  * global options
  */
@@ -130,60 +186,6 @@ int write_certificate( x509write_cert *crt, const char *output_file,
     return( 0 );
 }
 
-#if defined(POLARSSL_X509_CSR_PARSE_C)
-#define USAGE_CSR                                                           \
-    "    request_file=%%s     default: (empty)\n"                           \
-    "                        If request_file is specified, subject_key,\n"  \
-    "                        subject_pwd and subject_name are ignored!\n"
-#else
-#define USAGE_CSR ""
-#endif /* POLARSSL_X509_CSR_PARSE_C */
-
-#define USAGE \
-    "\n usage: cert_write param=<>...\n"                \
-    "\n acceptable parameters:\n"                       \
-    USAGE_CSR                                           \
-    "    subject_key=%%s      default: subject.key\n"   \
-    "    subject_pwd=%%s      default: (empty)\n"       \
-    "    subject_name=%%s     default: CN=Cert,O=mbed TLS,C=UK\n"   \
-    "\n"                                                \
-    "    issuer_crt=%%s       default: (empty)\n"       \
-    "                        If issuer_crt is specified, issuer_name is\n"  \
-    "                        ignored!\n"                \
-    "    issuer_name=%%s      default: CN=CA,O=mbed TLS,C=UK\n"     \
-    "\n"                                                \
-    "    selfsign=%%d         default: 0 (false)\n"     \
-    "                        If selfsign is enabled, issuer_name and\n" \
-    "                        issuer_key are required (issuer_crt and\n" \
-    "                        subject_* are ignored\n"   \
-    "    issuer_key=%%s       default: ca.key\n"        \
-    "    issuer_pwd=%%s       default: (empty)\n"       \
-    "    output_file=%%s      default: cert.crt\n"      \
-    "    serial=%%s           default: 1\n"             \
-    "    not_before=%%s       default: 20010101000000\n"\
-    "    not_after=%%s        default: 20301231235959\n"\
-    "    is_ca=%%d            default: 0 (disabled)\n"  \
-    "    max_pathlen=%%d      default: -1 (none)\n"     \
-    "    key_usage=%%s        default: (empty)\n"       \
-    "                        Comma-separated-list of values:\n"     \
-    "                          digital_signature\n"     \
-    "                          non_repudiation\n"       \
-    "                          key_encipherment\n"      \
-    "                          data_encipherment\n"     \
-    "                          key_agreement\n"         \
-    "                          key_certificate_sign\n"  \
-    "                          crl_sign\n"              \
-    "    ns_cert_type=%%s     default: (empty)\n"       \
-    "                        Comma-separated-list of values:\n"     \
-    "                          ssl_client\n"            \
-    "                          ssl_server\n"            \
-    "                          email\n"                 \
-    "                          object_signing\n"        \
-    "                          ssl_ca\n"                \
-    "                          email_ca\n"              \
-    "                          object_signing_ca\n"     \
-    "\n"
-
 int main( int argc, char *argv[] )
 {
     int ret = 0;
@@ -209,7 +211,7 @@ int main( int argc, char *argv[] )
      * Set to sane values
      */
     x509write_crt_init( &crt );
-    x509write_crt_set_md_alg( &crt, POLARSSL_MD_SHA1 );
+    x509write_crt_set_md_alg( &crt, POLARSSL_MD_SHA256 );
     pk_init( &loaded_issuer_key );
     pk_init( &loaded_subject_key );
     mpi_init( &serial );

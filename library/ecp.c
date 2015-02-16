@@ -51,15 +51,16 @@
 
 #include "polarssl/ecp.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdlib.h>
 #define polarssl_printf     printf
 #define polarssl_malloc     malloc
 #define polarssl_free       free
 #endif
-
-#include <stdlib.h>
 
 #if defined(_MSC_VER) && !defined strcasecmp && !defined(EFIX64) && \
     !defined(EFI32)
@@ -812,7 +813,7 @@ static int ecp_normalize_jac_many( const ecp_group *grp,
     if( t_len < 2 )
         return( ecp_normalize_jac( grp, *T ) );
 
-    if( ( c = (mpi *) polarssl_malloc( t_len * sizeof( mpi ) ) ) == NULL )
+    if( ( c = polarssl_malloc( t_len * sizeof( mpi ) ) ) == NULL )
         return( POLARSSL_ERR_ECP_MALLOC_FAILED );
 
     mpi_init( &u ); mpi_init( &Zi ); mpi_init( &ZZi );
@@ -1415,7 +1416,7 @@ static int ecp_mul_comb( ecp_group *grp, ecp_point *R,
 
     if( T == NULL )
     {
-        T = (ecp_point *) polarssl_malloc( pre_len * sizeof( ecp_point ) );
+        T = polarssl_malloc( pre_len * sizeof( ecp_point ) );
         if( T == NULL )
         {
             ret = POLARSSL_ERR_ECP_MALLOC_FAILED;

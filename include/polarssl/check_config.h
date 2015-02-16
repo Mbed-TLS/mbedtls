@@ -145,13 +145,13 @@
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED) &&                   \
-    ( !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_CRT_PARSE_C) ||\
+    ( !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_CRT_PARSE_C) || \
       !defined(POLARSSL_PKCS1_V15) )
 #error "POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED) &&                       \
-    ( !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_CRT_PARSE_C) ||\
+    ( !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_CRT_PARSE_C) || \
       !defined(POLARSSL_PKCS1_V15) )
 #error "POLARSSL_KEY_EXCHANGE_RSA_ENABLED defined, but not all prerequisites"
 #endif
@@ -196,6 +196,136 @@
 
 #if defined(POLARSSL_PKCS11_C) && !defined(POLARSSL_PK_C)
 #error "POLARSSL_PKCS11_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PLATFORM_EXIT_ALT) && !defined(POLARSSL_PLATFORM_C)
+#error "POLARSSL_PLATFORM_EXIT_ALT defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PLATFORM_EXIT_MACRO) && !defined(POLARSSL_PLATFORM_C)
+#error "POLARSSL_PLATFORM_EXIT_MACRO defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PLATFORM_EXIT_MACRO) &&\
+    ( defined(POLARSSL_PLATFORM_STD_EXIT) ||\
+        defined(POLARSSL_PLATFORM_EXIT_ALT) )
+#error "POLARSSL_PLATFORM_EXIT_MACRO and POLARSSL_PLATFORM_STD_EXIT/POLARSSL_PLATFORM_EXIT_ALT cannot be defined simultaneously"
+#endif
+
+#if defined(POLARSSL_PLATFORM_FPRINTF_ALT) && !defined(POLARSSL_PLATFORM_C)
+#error "POLARSSL_PLATFORM_FPRINTF_ALT defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PLATFORM_FPRINTF_MACRO) && !defined(POLARSSL_PLATFORM_C)
+#error "POLARSSL_PLATFORM_FPRINTF_MACRO defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PLATFORM_FPRINTF_MACRO) &&\
+    ( defined(POLARSSL_PLATFORM_STD_FPRINTF) ||\
+        defined(POLARSSL_PLATFORM_FPRINTF_ALT) )
+#error "POLARSSL_PLATFORM_FPRINTF_MACRO and POLARSSL_PLATFORM_STD_FPRINTF/POLARSSL_PLATFORM_FPRINTF_ALT cannot be defined simultaneously"
+#endif
+
+#if defined(POLARSSL_PLATFORM_FREE_MACRO) &&\
+    ( !defined(POLARSSL_PLATFORM_C) || !defined(POLARSSL_PLATFORM_MEMORY) )
+#error "POLARSSL_PLATFORM_FREE_MACRO defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PLATFORM_FREE_MACRO) &&\
+    defined(POLARSSL_PLATFORM_STD_FREE)
+#error "POLARSSL_PLATFORM_FREE_MACRO and POLARSSL_PLATFORM_STD_FREE cannot be defined simultaneously"
+#endif
+
+#if defined(POLARSSL_PLATFORM_FREE_MACRO) && !defined(POLARSSL_PLATFORM_MALLOC_MACRO)
+#error "POLARSSL_PLATFORM_MALLOC_MACRO must be defined if POLARSSL_PLATFORM_FREE_MACRO is"
+#endif
+
+#if defined(POLARSSL_PLATFORM_MALLOC_MACRO) &&\
+    ( !defined(POLARSSL_PLATFORM_C) || !defined(POLARSSL_PLATFORM_MEMORY) )
+#error "POLARSSL_PLATFORM_MALLOC_MACRO defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PLATFORM_MALLOC_MACRO) &&\
+    defined(POLARSSL_PLATFORM_STD_MALLOC)
+#error "POLARSSL_PLATFORM_MALLOC_MACRO and POLARSSL_PLATFORM_STD_MALLOC cannot be defined simultaneously"
+#endif
+
+#if defined(POLARSSL_PLATFORM_MALLOC_MACRO) && !defined(POLARSSL_PLATFORM_FREE_MACRO)
+#error "POLARSSL_PLATFORM_FREE_MACRO must be defined if POLARSSL_PLATFORM_MALLOC_MACRO is"
+#endif
+
+#if defined(POLARSSL_PLATFORM_MEMORY) && !defined(POLARSSL_PLATFORM_C)
+#error "POLARSSL_PLATFORM_MEMORY defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PLATFORM_PRINTF_ALT) && !defined(POLARSSL_PLATFORM_C)
+#error "POLARSSL_PLATFORM_PRINTF_ALT defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PLATFORM_PRINTF_MACRO) && !defined(POLARSSL_PLATFORM_C)
+#error "POLARSSL_PLATFORM_PRINTF_MACRO defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PLATFORM_PRINTF_MACRO) &&\
+    ( defined(POLARSSL_PLATFORM_STD_PRINTF) ||\
+        defined(POLARSSL_PLATFORM_PRINTF_ALT) )
+#error "POLARSSL_PLATFORM_PRINTF_MACRO and POLARSSL_PLATFORM_STD_PRINTF/POLARSSL_PLATFORM_PRINTF_ALT cannot be defined simultaneously"
+#endif
+
+#if defined(POLARSSL_PLATFORM_SNPRINTF_ALT) && !defined(POLARSSL_PLATFORM_C)
+#error "POLARSSL_PLATFORM_SNPRINTF_ALT defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PLATFORM_SNPRINTF_ALT) && ( defined(_WIN32)\
+    && !defined(EFIX64) && !defined(EFI32) )
+#error "POLARSSL_PLATFORM_SNPRINTF_ALT defined but not available on Windows"
+#endif
+
+#if defined(POLARSSL_PLATFORM_SNPRINTF_MACRO) && !defined(POLARSSL_PLATFORM_C)
+#error "POLARSSL_PLATFORM_SNPRINTF_MACRO defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PLATFORM_SNPRINTF_MACRO) &&\
+    ( defined(POLARSSL_PLATFORM_STD_SNPRINTF) ||\
+        defined(POLARSSL_PLATFORM_SNPRINTF_ALT) )
+#error "POLARSSL_PLATFORM_SNPRINTF_MACRO and POLARSSL_PLATFORM_STD_SNPRINTF/POLARSSL_PLATFORM_SNPRINTF_ALT cannot be defined simultaneously"
+#endif
+
+#if defined(POLARSSL_PLATFORM_STD_MEM_HDR) &&\
+    !defined(POLARSSL_PLATFORM_NO_STD_FUNCTIONS)
+#error "POLARSSL_PLATFORM_STD_MEM_HDR defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PLATFORM_STD_MALLOC) && !defined(POLARSSL_PLATFORM_MEMORY)
+#error "POLARSSL_PLATFORM_STD_MALLOC defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PLATFORM_STD_MALLOC) && !defined(POLARSSL_PLATFORM_MEMORY)
+#error "POLARSSL_PLATFORM_STD_MALLOC defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PLATFORM_STD_FREE) && !defined(POLARSSL_PLATFORM_MEMORY)
+#error "POLARSSL_PLATFORM_STD_FREE defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PLATFORM_STD_EXIT) &&\
+    !defined(POLARSSL_PLATFORM_EXIT_ALT)
+#error "POLARSSL_PLATFORM_STD_EXIT defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PLATFORM_STD_FPRINTF) &&\
+    !defined(POLARSSL_PLATFORM_FPRINTF_ALT)
+#error "POLARSSL_PLATFORM_STD_FPRINTF defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PLATFORM_STD_PRINTF) &&\
+    !defined(POLARSSL_PLATFORM_PRINTF_ALT)
+#error "POLARSSL_PLATFORM_STD_PRINTF defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PLATFORM_STD_SNPRINTF) &&\
+    !defined(POLARSSL_PLATFORM_SNPRINTF_ALT)
+#error "POLARSSL_PLATFORM_STD_SNPRINTF defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_RSA_C) && ( !defined(POLARSSL_BIGNUM_C) ||         \

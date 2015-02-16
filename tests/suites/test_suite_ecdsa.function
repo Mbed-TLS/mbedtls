@@ -1,5 +1,5 @@
 /* BEGIN_HEADER */
-#include <polarssl/ecdsa.h>
+#include "polarssl/ecdsa.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

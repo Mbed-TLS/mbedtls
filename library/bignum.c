@@ -38,15 +38,17 @@
 #include "polarssl/bignum.h"
 #include "polarssl/bn_mul.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
+#include <stdlib.h>
 #define polarssl_printf     printf
 #define polarssl_malloc     malloc
 #define polarssl_free       free
 #endif
-
-#include <stdlib.h>
 
 /* Implementation that should never be optimized out by the compiler */
 static void polarssl_zeroize( void *v, size_t n ) {
@@ -107,7 +109,7 @@ int mpi_grow( mpi *X, size_t nblimbs )
 
     if( X->n < nblimbs )
     {
-        if( ( p = (t_uint *) polarssl_malloc( nblimbs * ciL ) ) == NULL )
+        if( ( p = polarssl_malloc( nblimbs * ciL ) ) == NULL )
             return( POLARSSL_ERR_MPI_MALLOC_FAILED );
 
         memset( p, 0, nblimbs * ciL );
@@ -147,7 +149,7 @@ int mpi_shrink( mpi *X, size_t nblimbs )
     if( i < nblimbs )
         i = nblimbs;
 
-    if( ( p = (t_uint *) polarssl_malloc( i * ciL ) ) == NULL )
+    if( ( p = polarssl_malloc( i * ciL ) ) == NULL )
         return( POLARSSL_ERR_MPI_MALLOC_FAILED );
 
     memset( p, 0, i * ciL );
@@ -1238,17 +1240,7 @@ int mpi_div_mpi( mpi *Q, mpi *R, const mpi *A, const mpi *B )
             Z.p[i - t - 1] = ~0;
         else
         {
-            /*
-             * The version of Clang shipped by Apple with Mavericks around
-             * 2014-03 can't handle 128-bit division properly. Disable
-             * 128-bits division for this version. Let's be optimistic and
-             * assume it'll be fixed in the next minor version (next
-             * patchlevel is probably a bit too optimistic).
-             */
-#if defined(POLARSSL_HAVE_UDBL) &&                          \
-    ! ( defined(__x86_64__) && defined(__APPLE__) &&        \
-        defined(__clang_major__) && __clang_major__ == 5 && \
-        defined(__clang_minor__) && __clang_minor__ == 0 )
+#if defined(POLARSSL_HAVE_UDBL)
             t_udbl r;
 
             r  = (t_udbl) X.p[i] << biL;

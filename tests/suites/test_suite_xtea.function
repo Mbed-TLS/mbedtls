@@ -1,5 +1,5 @@
 /* BEGIN_HEADER */
-#include <polarssl/xtea.h>
+#include "polarssl/xtea.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

@@ -35,6 +35,8 @@
 
 #include "polarssl/dhm.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_PEM_PARSE_C)
 #include "polarssl/pem.h"
 #endif
@@ -505,7 +507,7 @@ static int load_file( const char *path, unsigned char **buf, size_t *n )
     *n = (size_t) size;
 
     if( *n + 1 == 0 ||
-        ( *buf = (unsigned char *) polarssl_malloc( *n + 1 ) ) == NULL )
+        ( *buf = polarssl_malloc( *n + 1 ) ) == NULL )
     {
         fclose( f );
         return( POLARSSL_ERR_DHM_MALLOC_FAILED );

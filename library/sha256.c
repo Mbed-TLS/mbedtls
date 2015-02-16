@@ -35,15 +35,20 @@
 
 #include "polarssl/sha256.h"
 
-#if defined(POLARSSL_FS_IO) || defined(POLARSSL_SELF_TEST)
+#include <string.h>
+
+#if defined(POLARSSL_FS_IO)
 #include <stdio.h>
 #endif
 
+#if defined(POLARSSL_SELF_TEST)
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf printf
-#endif
+#endif /* POLARSSL_PLATFORM_C */
+#endif /* POLARSSL_SELF_TEST */
 
 /* Implementation that should never be optimized out by the compiler */
 static void polarssl_zeroize( void *v, size_t n ) {
@@ -698,7 +703,7 @@ int sha256_self_test( int verbose )
 
         if( j == 5 || j == 6 )
         {
-            memset( buf, '\xAA', buflen = 131 );
+            memset( buf, 0xAA, buflen = 131 );
             sha256_hmac_starts( &ctx, buf, buflen, k );
         }
         else

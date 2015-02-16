@@ -30,7 +30,7 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
-#include <string.h>
+#include <stddef.h>
 
 #if defined(POLARSSL_HAVE_TIME)
 #if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)

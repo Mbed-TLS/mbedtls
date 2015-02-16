@@ -42,7 +42,6 @@ typedef INT32 int32_t;
 #include <inttypes.h>
 #endif
 
-
 #define PADLOCK_RNG 0x000C
 #define PADLOCK_ACE 0x00C0
 #define PADLOCK_PHE 0x0C00

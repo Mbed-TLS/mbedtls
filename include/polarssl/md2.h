@@ -30,7 +30,7 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
-#include <string.h>
+#include <stddef.h>
 
 #define POLARSSL_ERR_MD2_FILE_IO_ERROR                 -0x0070  /**< Read/write error in file. */
 

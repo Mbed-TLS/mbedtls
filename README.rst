@@ -35,6 +35,8 @@ In order to run the tests, enter::
 
     make check
 
+In order to build for a Windows platform, you should use WINDOWS_BUILD=1 if the target is Windows but the build environment is Unix-like (eg when cross-compiling, or compiling from an MSYS shell), and WINDOWS=1 if the build environment is a Windows shell.
+
 Depending on your platform, you might run into some issues. Please check the Makefiles in *library/*, *programs/* and *tests/* for options to manually add or remove for specific platforms. You can also check `the mbed TLS Knowledge Base <https://polarssl.org/kb>`_ for articles on your platform or issue.
 
 In case you find that you need to do something else as well, please let us know what, so we can add it to the KB.
@@ -59,7 +61,7 @@ There are many different build modes available within the CMake buildsystem. Mos
 - ASan.
   This instruments the code with AddressSanitizer to check for memory errors.
   (This includes LeakSanitizer, with recent version of gcc and clang.)
-  (With recent version of clang, this mode also intruments the code with
+  (With recent version of clang, this mode also instruments the code with
   UndefinedSanitizer to check for undefined behaviour.)
 - ASanDbg.
   Same as ASan but slower, with debug information and better stack traces.
@@ -70,7 +72,7 @@ There are many different build modes available within the CMake buildsystem. Mos
   Same as ASan but slower, with debug information, better stack traces and
   origin tracking.
 - Check.
-  This activates the compiler warnings that depend on optimisation and treats
+  This activates the compiler warnings that depend on optimization and treats
   all warnings as errors.
 
 Switching build modes in CMake is simple. For debug mode, enter at the command line:
@@ -103,7 +105,7 @@ Tests
 
 mbed TLS includes an elaborate test suite in *tests/* that initially requires Perl to generate the tests files (e.g. *test_suite_mpi.c*). These files are generates from a **function file** (e.g. *suites/test_suite_mpi.function*) and a **data file** (e.g. *suites/test_suite_mpi.data*). The **function file** contains the template for each test function. The **data file** contains the test cases, specified as parameters that should be pushed into a template function.
 
-For machines with a Unix shell and OpenSSL (and optionnally GnuTLS) installed, additional test scripts are available:
+For machines with a Unix shell and OpenSSL (and optionally GnuTLS) installed, additional test scripts are available:
 
 - *tests/ssl-opt.sh* runs integration tests for various TLS options (renegotiation, resumption, etc.) and tests interoperability of these options with other implementations.
 - *tests/compat.sh* tests interoperability of every ciphersuite with other implementations.

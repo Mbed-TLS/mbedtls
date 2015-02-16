@@ -29,24 +29,26 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
-#include <string.h>
-#include <stdio.h>
-
+#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_RSA_C) && \
+    defined(POLARSSL_FS_IO) && defined(POLARSSL_ENTROPY_C) && \
+    defined(POLARSSL_CTR_DRBG_C)
 #include "polarssl/rsa.h"
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
 
+#include <stdio.h>
+#include <string.h>
+#endif
+
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||  \
     !defined(POLARSSL_FS_IO) || !defined(POLARSSL_ENTROPY_C) || \
     !defined(POLARSSL_CTR_DRBG_C)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
            "POLARSSL_FS_IO and/or POLARSSL_ENTROPY_C and/or "
            "POLARSSL_CTR_DRBG_C not defined.\n");

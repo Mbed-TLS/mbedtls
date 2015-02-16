@@ -33,22 +33,18 @@
 #define polarssl_exit       exit
 #define polarssl_printf     printf
 #define polarssl_snprintf   snprintf
-#define polarssl_exit       exit
 #endif
 
-/*
- * For heap usage estimates, we need an estimate of the overhead per allocated
- * block. ptmalloc2/3 (used in gnu libc for instance) uses 2 size_t per block,
- * so use that as our baseline.
- */
-#define MEM_BLOCK_OVERHEAD  ( 2 * sizeof( size_t ) )
+#if !defined(POLARSSL_TIMING_C)
+int main( void )
+{
+    polarssl_printf("POLARSSL_TIMING_C not defined.\n");
+    return( 0 );
+}
+#else
 
-/*
- * Size to use for the malloc buffer if MEMORY_BUFFER_ALLOC_C is defined.
- */
-#define HEAP_SIZE       (1u << 16)  // 64k
+#include <string.h>
 
-#if defined(POLARSSL_TIMING_C)
 #include "polarssl/timing.h"
 
 #include "polarssl/md4.h"
@@ -80,6 +76,18 @@
 #if defined _MSC_VER && !defined snprintf
 #define snprintf _snprintf
 #endif
+
+/*
+ * For heap usage estimates, we need an estimate of the overhead per allocated
+ * block. ptmalloc2/3 (used in gnu libc for instance) uses 2 size_t per block,
+ * so use that as our baseline.
+ */
+#define MEM_BLOCK_OVERHEAD  ( 2 * sizeof( size_t ) )
+
+/*
+ * Size to use for the malloc buffer if MEMORY_BUFFER_ALLOC_C is defined.
+ */
+#define HEAP_SIZE       (1u << 16)  // 64k
 
 #define BUFSIZE         1024
 #define HEADER_FORMAT   "  %-24s :  "
@@ -184,13 +192,6 @@ do {                                                                    \
     }                                                                   \
 } while( 0 )
 
-#if !defined(POLARSSL_TIMING_C)
-int main( void )
-{
-    polarssl_printf("POLARSSL_TIMING_C not defined.\n");
-    return( 0 );
-}
-#else
 static int myrand( void *rng_state, unsigned char *output, size_t len )
 {
     size_t use_len;
@@ -686,11 +687,11 @@ int main( int argc, char *argv[] )
                 ecdsa_write_signature( &ecdsa, buf, curve_info->size,
                                                tmp, &sig_len, myrand, NULL ) != 0 )
             {
-                exit( 1 );
+                polarssl_exit( 1 );
             }
             ecp_clear_precomputed( &ecdsa.grp );
 
-            snprintf( title, sizeof( title ), "ECDSA-%s",
+            polarssl_snprintf( title, sizeof( title ), "ECDSA-%s",
                                               curve_info->name );
             TIME_PUBLIC( title, "verify",
                     ret = ecdsa_read_signature( &ecdsa, buf, curve_info->size,
@@ -744,7 +745,7 @@ int main( int argc, char *argv[] )
         if( ecp_use_known_dp( &ecdh.grp, POLARSSL_ECP_DP_M255 ) != 0 ||
             ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Qp, myrand, NULL ) != 0 )
         {
-            exit( 1 );
+            polarssl_exit( 1 );
         }
 
         TIME_PUBLIC(  "ECDHE-Curve25519", "handshake",
@@ -770,7 +771,7 @@ int main( int argc, char *argv[] )
                 ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
                                   myrand, NULL ) != 0 )
             {
-                exit( 1 );
+                polarssl_exit( 1 );
             }
             ecp_clear_precomputed( &ecdh.grp );
 
@@ -792,7 +793,7 @@ int main( int argc, char *argv[] )
                              myrand, NULL ) != 0 ||
             ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Q, myrand, NULL ) != 0 )
         {
-            exit( 1 );
+            polarssl_exit( 1 );
         }
 
         TIME_PUBLIC(  "ECDH-Curve25519", "handshake",

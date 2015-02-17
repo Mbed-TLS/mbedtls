@@ -631,9 +631,9 @@ int memory_buffer_alloc_self_test( int verbose )
 
     memory_buffer_alloc_init( buf, sizeof( buf ) );
 
-    p = polarssl_calloc(1, 1);
-    q = polarssl_calloc(1, 128);
-    r = polarssl_calloc(1, 16);
+    p = polarssl_calloc( 1, 1 );
+    q = polarssl_calloc( 1, 128 );
+    r = polarssl_calloc( 1, 16 );
 
     TEST_ASSERT( check_pointer( p ) == 0 &&
                  check_pointer( q ) == 0 &&
@@ -660,9 +660,9 @@ int memory_buffer_alloc_self_test( int verbose )
 
     TEST_ASSERT( heap.buf + heap.len == end );
 
-    p = polarssl_calloc(1, 1);
-    q = polarssl_calloc(1, 128);
-    r = polarssl_calloc(1, 16);
+    p = polarssl_calloc( 1, 1 );
+    q = polarssl_calloc( 1, 128 );
+    r = polarssl_calloc( 1, 16 );
 
     TEST_ASSERT( check_pointer( p ) == 0 &&
                  check_pointer( q ) == 0 &&
@@ -687,19 +687,19 @@ int memory_buffer_alloc_self_test( int verbose )
     p = polarssl_malloc( sizeof( buf ) - sizeof( memory_header ) );
 
     TEST_ASSERT( check_pointer( p ) == 0 );
-    TEST_ASSERT(polarssl_calloc(1, 1) == NULL );
+    TEST_ASSERT( polarssl_calloc( 1, 1 ) == NULL );
 
     polarssl_free( p );
 
     p = polarssl_malloc( sizeof( buf ) - 2 * sizeof( memory_header ) - 16 );
-    q = polarssl_calloc(1, 16);
+    q = polarssl_calloc( 1, 16 );
 
     TEST_ASSERT( check_pointer( p ) == 0 && check_pointer( q ) == 0 );
-    TEST_ASSERT(polarssl_calloc(1, 1) == NULL );
+    TEST_ASSERT( polarssl_calloc( 1, 1 ) == NULL );
 
     polarssl_free( q );
 
-    TEST_ASSERT(polarssl_calloc(1, 17) == NULL );
+    TEST_ASSERT( polarssl_calloc( 1, 17 ) == NULL );
 
     polarssl_free( p );
 

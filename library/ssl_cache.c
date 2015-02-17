@@ -103,7 +103,8 @@ int ssl_cache_get( void *data, ssl_session *session )
          */
         if( entry->peer_cert.p != NULL )
         {
-            if( ( session->peer_cert = polarssl_calloc(1, sizeof(x509_crt))) == NULL )
+            session->peer_cert = polarssl_calloc( 1, sizeof( x509_crt ) );
+            if( session->peer_cert == NULL )
             {
                 ret = 1;
                 goto exit;

@@ -796,7 +796,7 @@ int ssl_derive_keys( ssl_context *ssl )
         if( ssl->compress_buf == NULL )
         {
             SSL_DEBUG_MSG( 3, ( "Allocating compression buffer" ) );
-            ssl->compress_buf = polarssl_calloc(1, SSL_BUFFER_LEN);
+            ssl->compress_buf = polarssl_calloc( 1, SSL_BUFFER_LEN );
             if( ssl->compress_buf == NULL )
             {
                 SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed",

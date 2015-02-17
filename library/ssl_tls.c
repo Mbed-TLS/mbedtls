@@ -3631,9 +3631,6 @@ int ssl_init( ssl_context *ssl )
      * Prepare base structures
      */
     ssl->in_ctr = (unsigned char *) polarssl_malloc( len );
-    ssl->in_hdr = ssl->in_ctr +  8;
-    ssl->in_iv  = ssl->in_ctr + 13;
-    ssl->in_msg = ssl->in_ctr + 13;
 
     if( ssl->in_ctr == NULL )
     {
@@ -3641,10 +3638,11 @@ int ssl_init( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
     }
 
+    ssl->in_hdr = ssl->in_ctr +  8;
+    ssl->in_iv  = ssl->in_ctr + 13;
+    ssl->in_msg = ssl->in_ctr + 13;
+
     ssl->out_ctr = (unsigned char *) polarssl_malloc( len );
-    ssl->out_hdr = ssl->out_ctr +  8;
-    ssl->out_iv  = ssl->out_ctr + 13;
-    ssl->out_msg = ssl->out_ctr + 13;
 
     if( ssl->out_ctr == NULL )
     {
@@ -3653,6 +3651,10 @@ int ssl_init( ssl_context *ssl )
         ssl->in_ctr = NULL;
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
     }
+
+    ssl->out_hdr = ssl->out_ctr +  8;
+    ssl->out_iv  = ssl->out_ctr + 13;
+    ssl->out_msg = ssl->out_ctr + 13;
 
     memset( ssl-> in_ctr, 0, SSL_BUFFER_LEN );
     memset( ssl->out_ctr, 0, SSL_BUFFER_LEN );

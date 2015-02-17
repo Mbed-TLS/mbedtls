@@ -421,7 +421,7 @@ int x509_csr_info( char *buf, size_t size, const char *prefix,
  */
 void x509_csr_init( x509_csr *csr )
 {
-    memset( csr, 0, sizeof(x509_csr) );
+    memset( csr, 0, sizeof( x509_csr ) );
 }
 
 /*

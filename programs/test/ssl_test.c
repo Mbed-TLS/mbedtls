@@ -175,7 +175,7 @@ static int ssl_test( struct options *opt )
     x509_crt srvcert;
     pk_context pkey;
 
-    memset( &ssl, 0, sizeof(ssl_context) );
+    memset( &ssl, 0, sizeof( ssl_context ) );
     entropy_init( &entropy );
     x509_crt_init( &srvcert );
     pk_init( &pkey );

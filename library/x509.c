@@ -446,7 +446,7 @@ int x509_get_name( unsigned char **p, const unsigned char *end,
             /* Mark this item as being only one in a set */
             cur->next_merged = 1;
 
-            cur->next = polarssl_calloc( 1, sizeof(x509_name) );
+            cur->next = polarssl_calloc( 1, sizeof( x509_name ) );
 
             if( cur->next == NULL )
                 return( POLARSSL_ERR_X509_MALLOC_FAILED );
@@ -462,7 +462,7 @@ int x509_get_name( unsigned char **p, const unsigned char *end,
         if( *p == end )
             return( 0 );
 
-        cur->next = polarssl_calloc( 1, sizeof(x509_name) );
+        cur->next = polarssl_calloc( 1, sizeof( x509_name ) );
 
         if( cur->next == NULL )
             return( POLARSSL_ERR_X509_MALLOC_FAILED );
@@ -584,7 +584,7 @@ int x509_get_sig_alg( const x509_buf *sig_oid, const x509_buf *sig_params,
     {
         pk_rsassa_pss_options *pss_opts;
 
-        pss_opts = polarssl_calloc( 1, sizeof(pk_rsassa_pss_options) );
+        pss_opts = polarssl_calloc( 1, sizeof( pk_rsassa_pss_options ) );
         if( pss_opts == NULL )
             return( POLARSSL_ERR_X509_MALLOC_FAILED );
 

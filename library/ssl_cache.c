@@ -222,14 +222,14 @@ int ssl_cache_set( void *data, const ssl_session *session )
             /*
              * max_entries not reached, create new entry
              */
-            cur = polarssl_calloc( 1, sizeof(ssl_cache_entry) );
+            cur = polarssl_calloc( 1, sizeof( ssl_cache_entry ) );
             if( cur == NULL )
             {
                 ret = 1;
                 goto exit;
             }
 
-            memset( cur, 0, sizeof(ssl_cache_entry) );
+            memset( cur, 0, sizeof( ssl_cache_entry ) );
 
             if( prv == NULL )
                 cache->chain = cur;
@@ -251,7 +251,7 @@ int ssl_cache_set( void *data, const ssl_session *session )
     if( cur->peer_cert.p != NULL )
     {
         polarssl_free( cur->peer_cert.p );
-        memset( &cur->peer_cert, 0, sizeof(x509_buf) );
+        memset( &cur->peer_cert, 0, sizeof( x509_buf ) );
     }
 
     /*

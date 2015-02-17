@@ -183,15 +183,15 @@ int main( int argc, char *argv[] )
     unsigned char *pem_buffer = NULL;
     unsigned char der_buffer[4096];
     char buf[1024];
-    size_t pem_size, der_size = sizeof(der_buffer);
+    size_t pem_size, der_size = sizeof( der_buffer );
     int i;
     char *p, *q;
 
     /*
      * Set to sane values
      */
-    memset( buf, 0, sizeof(buf) );
-    memset( der_buffer, 0, sizeof(der_buffer) );
+    memset( buf, 0, sizeof( buf ) );
+    memset( der_buffer, 0, sizeof( der_buffer ) );
 
     if( argc == 0 )
     {

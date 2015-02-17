@@ -677,7 +677,7 @@ int main( int argc, char *argv[] )
     const int *list;
 
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
-    memory_buffer_alloc_init( alloc_buf, sizeof(alloc_buf) );
+    memory_buffer_alloc_init( alloc_buf, sizeof( alloc_buf ) );
 #endif
 
     /*

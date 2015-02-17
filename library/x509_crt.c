@@ -357,7 +357,7 @@ static int x509_get_subject_alt_name( unsigned char **p,
             if( cur->next != NULL )
                 return( POLARSSL_ERR_X509_INVALID_EXTENSIONS );
 
-            cur->next = polarssl_calloc( 1, sizeof(asn1_sequence) );
+            cur->next = polarssl_calloc( 1, sizeof( asn1_sequence ) );
 
             if( cur->next == NULL )
                 return( POLARSSL_ERR_X509_INVALID_EXTENSIONS +
@@ -807,7 +807,7 @@ int x509_crt_parse_der( x509_crt *chain, const unsigned char *buf,
      */
     if( crt->version != 0 && crt->next == NULL )
     {
-        crt->next = polarssl_calloc( 1, sizeof(x509_crt) );
+        crt->next = polarssl_calloc( 1, sizeof( x509_crt ) );
 
         if( crt->next == NULL )
             return( POLARSSL_ERR_X509_MALLOC_FAILED );
@@ -978,7 +978,7 @@ int x509_crt_parse_path( x509_crt *chain, const char *path )
     if( len > MAX_PATH - 3 )
         return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
 
-    memset( szDir, 0, sizeof(szDir) );
+    memset( szDir, 0, sizeof( szDir ) );
     memset( filename, 0, MAX_PATH );
     memcpy( filename, path, len );
     filename[len++] = '\\';
@@ -2013,7 +2013,7 @@ int x509_crt_verify( x509_crt *crt,
  */
 void x509_crt_init( x509_crt *crt )
 {
-    memset( crt, 0, sizeof(x509_crt) );
+    memset( crt, 0, sizeof( x509_crt ) );
 }
 
 /*

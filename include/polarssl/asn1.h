@@ -92,7 +92,7 @@
 /* \} addtogroup asn1_module */
 
 /** Returns the size of the binary string, without the trailing \\0 */
-#define OID_SIZE(x) (sizeof(x) - 1)
+#define OID_SIZE(x) (sizeof( x ) - 1)
 
 /**
  * Compares an asn1_buf structure to a reference OID.

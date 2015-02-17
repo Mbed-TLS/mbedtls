@@ -349,7 +349,7 @@ int camellia_setkey_enc( camellia_context *ctx, const unsigned char *key,
     RK = ctx->rk;
 
     memset( t, 0, 64 );
-    memset( RK, 0, sizeof(ctx->rk) );
+    memset( RK, 0, sizeof( ctx->rk ) );
 
     switch( keysize )
     {
@@ -379,7 +379,7 @@ int camellia_setkey_enc( camellia_context *ctx, const unsigned char *key,
      * Key storage in KC
      * Order: KL, KR, KA, KB
      */
-    memset( KC, 0, sizeof(KC) );
+    memset( KC, 0, sizeof( KC ) );
 
     /* Store KL, KR */
     for( i = 0; i < 8; i++ )

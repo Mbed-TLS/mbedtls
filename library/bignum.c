@@ -54,7 +54,7 @@ static void polarssl_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
-#define ciL    (sizeof(t_uint))         /* chars in limb  */
+#define ciL    (sizeof( t_uint) )         /* chars in limb  */
 #define biL    (ciL << 3)               /* bits  in limb  */
 #define biH    (ciL << 2)               /* half limb size */
 

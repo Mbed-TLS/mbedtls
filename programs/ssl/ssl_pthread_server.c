@@ -137,7 +137,7 @@ static void *handle_ssl_connection( void *data )
     memset( &ssl, 0, sizeof( ssl_context ) );
     memset( &ctr_drbg, 0, sizeof( ctr_drbg_context ) );
 
-    snprintf( pers, sizeof(pers), "SSL Pthread Thread %d", thread_id );
+    snprintf( pers, sizeof( pers ), "SSL Pthread Thread %d", thread_id );
     polarssl_printf( "  [ #%d ]  Client FD %d\n", thread_id, client_fd );
     polarssl_printf( "  [ #%d ]  Seeding the random number generator...\n", thread_id );
 
@@ -343,7 +343,7 @@ static int thread_create( int client_fd )
         {
             polarssl_printf( "  [ main ]  Cleaning up thread %d\n", i );
             pthread_join(threads[i].thread, NULL );
-            memset( &threads[i], 0, sizeof(pthread_info_t) );
+            memset( &threads[i], 0, sizeof( pthread_info_t ) );
             break;
         }
     }
@@ -354,7 +354,7 @@ static int thread_create( int client_fd )
     /*
      * Fill thread-info for thread
      */
-    memcpy( &threads[i].data, &base_info, sizeof(base_info) );
+    memcpy( &threads[i].data, &base_info, sizeof( base_info ) );
     threads[i].active = 1;
     threads[i].data.client_fd = client_fd;
 
@@ -386,7 +386,7 @@ int main( int argc, char *argv[] )
     ((void) argv);
 
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
-    memory_buffer_alloc_init( alloc_buf, sizeof(alloc_buf) );
+    memory_buffer_alloc_init( alloc_buf, sizeof( alloc_buf ) );
 #endif
 
 #if defined(POLARSSL_SSL_CACHE_C)
@@ -394,7 +394,7 @@ int main( int argc, char *argv[] )
     base_info.cache = &cache;
 #endif
 
-    memset( threads, 0, sizeof(threads) );
+    memset( threads, 0, sizeof( threads ) );
 
     polarssl_mutex_init( &debug_mutex );
 

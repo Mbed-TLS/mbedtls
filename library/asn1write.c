@@ -312,10 +312,10 @@ asn1_named_data *asn1_store_named_data( asn1_named_data **head,
     {
         // Add new entry if not present yet based on OID
         //
-        if( ( cur = polarssl_calloc( 1, sizeof(asn1_named_data) ) ) == NULL )
+        if( ( cur = polarssl_calloc( 1, sizeof( asn1_named_data ) ) ) == NULL )
             return( NULL );
 
-        memset( cur, 0, sizeof(asn1_named_data) );
+        memset( cur, 0, sizeof( asn1_named_data ) );
 
         cur->oid.len = oid_len;
         cur->oid.p = polarssl_malloc( oid_len );

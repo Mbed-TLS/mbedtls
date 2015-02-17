@@ -542,7 +542,7 @@ static int pk_get_pk_alg( unsigned char **p,
     int ret;
     asn1_buf alg_oid;
 
-    memset( params, 0, sizeof(asn1_buf) );
+    memset( params, 0, sizeof( asn1_buf ) );
 
     if( ( ret = asn1_get_alg( p, end, &alg_oid, params ) ) != 0 )
         return( POLARSSL_ERR_PK_INVALID_ALG + ret );

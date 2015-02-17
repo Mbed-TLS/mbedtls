@@ -184,7 +184,7 @@ int main( int argc, char *argv[] )
 #else
     /* Zeroize structure as CRL parsing is not supported and we have to pass
        it to the verify function */
-    memset( &cacrl, 0, sizeof(x509_crl) );
+    memset( &cacrl, 0, sizeof( x509_crl ) );
 #endif
     pk_init( &pkey );
 

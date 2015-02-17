@@ -95,7 +95,7 @@ int main( int argc, char *argv[] )
      * Set to sane values
      */
     pk_init( &pk );
-    memset( buf, 0, sizeof(buf) );
+    memset( buf, 0, sizeof( buf ) );
 
     if( argc == 0 )
     {
@@ -153,7 +153,7 @@ int main( int argc, char *argv[] )
                 polarssl_printf( " failed\n  !  fopen returned NULL\n" );
                 goto exit;
             }
-            if( fgets( buf, sizeof(buf), f ) == NULL )
+            if( fgets( buf, sizeof( buf ), f ) == NULL )
             {
                 fclose( f );
                 polarssl_printf( "Error: fgets() failed to retrieve password\n" );
@@ -267,7 +267,7 @@ int main( int argc, char *argv[] )
 exit:
 
 #if defined(POLARSSL_ERROR_C)
-    polarssl_strerror( ret, buf, sizeof(buf) );
+    polarssl_strerror( ret, buf, sizeof( buf ) );
     polarssl_printf( "  !  Last error was: %s\n", buf );
 #endif
 

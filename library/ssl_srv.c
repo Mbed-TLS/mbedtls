@@ -57,7 +57,7 @@ static void polarssl_zeroize( void *v, size_t n ) {
 
 /*
  * Serialize a session in the following format:
- *  0   .   n-1     session structure, n = sizeof(ssl_session)
+ *  0   .   n-1     session structure, n = sizeof( ssl_session )
  *  n   .   n+2     peer_cert length = m (0 if no certificate)
  *  n+3 .   n+2+m   peer cert ASN.1
  *
@@ -140,7 +140,7 @@ static int ssl_load_session( ssl_session *session,
         if( p + cert_len > end )
             return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
-        session->peer_cert = polarssl_calloc( 1, sizeof(x509_crt) );
+        session->peer_cert = polarssl_calloc( 1, sizeof( x509_crt ) );
 
         if( session->peer_cert == NULL )
             return( POLARSSL_ERR_SSL_MALLOC_FAILED );
@@ -543,7 +543,7 @@ static int ssl_parse_supported_elliptic_curves( ssl_context *ssl,
     if( our_size > POLARSSL_ECP_DP_MAX )
         our_size = POLARSSL_ECP_DP_MAX;
 
-    if( ( curves = polarssl_calloc( our_size, sizeof(*curves) ) ) == NULL )
+    if( ( curves = polarssl_calloc( our_size, sizeof( *curves ) ) ) == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
     /* explicit void pointer cast for buggy MS compiler */

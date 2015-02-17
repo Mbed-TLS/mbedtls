@@ -152,7 +152,7 @@ int gcm_init( gcm_context *ctx, cipher_id_t cipher, const unsigned char *key,
     int ret;
     const cipher_info_t *cipher_info;
 
-    memset( ctx, 0, sizeof(gcm_context) );
+    memset( ctx, 0, sizeof( gcm_context ) );
 
     cipher_init( &ctx->cipher_ctx );
 
@@ -271,8 +271,8 @@ int gcm_starts( gcm_context *ctx,
         return( POLARSSL_ERR_GCM_BAD_INPUT );
     }
 
-    memset( ctx->y, 0x00, sizeof(ctx->y) );
-    memset( ctx->buf, 0x00, sizeof(ctx->buf) );
+    memset( ctx->y, 0x00, sizeof( ctx->y ) );
+    memset( ctx->buf, 0x00, sizeof( ctx->buf ) );
 
     ctx->mode = mode;
     ctx->len = 0;

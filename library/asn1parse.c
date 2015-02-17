@@ -270,7 +270,7 @@ int asn1_get_sequence_of( unsigned char **p,
         /* Allocate and assign next pointer */
         if( *p < end )
         {
-            cur->next = polarssl_calloc( 1, sizeof(asn1_sequence) );
+            cur->next = polarssl_calloc( 1, sizeof( asn1_sequence ) );
 
             if( cur->next == NULL )
                 return( POLARSSL_ERR_ASN1_MALLOC_FAILED );
@@ -315,7 +315,7 @@ int asn1_get_alg( unsigned char **p,
 
     if( *p == end )
     {
-        polarssl_zeroize( params, sizeof(asn1_buf) );
+        polarssl_zeroize( params, sizeof( asn1_buf ) );
         return( 0 );
     }
 
@@ -341,7 +341,7 @@ int asn1_get_alg_null( unsigned char **p,
     int ret;
     asn1_buf params;
 
-    memset( &params, 0, sizeof(asn1_buf) );
+    memset( &params, 0, sizeof( asn1_buf ) );
 
     if( ( ret = asn1_get_alg( p, end, alg, &params ) ) != 0 )
         return( ret );

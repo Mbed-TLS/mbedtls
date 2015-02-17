@@ -129,7 +129,7 @@ int main( int argc, char *argv[] )
     polarssl_printf( "\n  . Decrypting the encrypted data" );
     fflush( stdout );
 
-    if( ( ret = pk_decrypt( &pk, buf, i, result, &olen, sizeof(result),
+    if( ( ret = pk_decrypt( &pk, buf, i, result, &olen, sizeof( result ),
                             ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
         polarssl_printf( " failed\n  ! pk_decrypt returned -0x%04x\n", -ret );
@@ -147,7 +147,7 @@ exit:
     entropy_free( &entropy );
 
 #if defined(POLARSSL_ERROR_C)
-    polarssl_strerror( ret, (char *) buf, sizeof(buf) );
+    polarssl_strerror( ret, (char *) buf, sizeof( buf ) );
     polarssl_printf( "  !  Last error was: %s\n", buf );
 #endif
 

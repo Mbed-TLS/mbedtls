@@ -135,7 +135,7 @@ void cipher_free( cipher_context_t *ctx )
     if( ctx->cipher_ctx )
         ctx->cipher_info->base->ctx_free_func( ctx->cipher_ctx );
 
-    polarssl_zeroize( ctx, sizeof(cipher_context_t) );
+    polarssl_zeroize( ctx, sizeof( cipher_context_t ) );
 }
 
 int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info )

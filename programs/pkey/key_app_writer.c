@@ -111,7 +111,7 @@ static int write_public_key( pk_context *key, const char *output_file )
             return( ret );
 
         len = ret;
-        c = output_buf + sizeof(output_buf) - len - 1;
+        c = output_buf + sizeof( output_buf ) - len - 1;
     }
 
     if( ( f = fopen( output_file, "w" ) ) == NULL )
@@ -153,7 +153,7 @@ static int write_private_key( pk_context *key, const char *output_file )
             return( ret );
 
         len = ret;
-        c = output_buf + sizeof(output_buf) - len - 1;
+        c = output_buf + sizeof( output_buf ) - len - 1;
     }
 
     if( ( f = fopen( output_file, "w" ) ) == NULL )
@@ -286,7 +286,7 @@ int main( int argc, char *argv[] )
 
         if( ret != 0 )
         {
-            polarssl_strerror( ret, (char *) buf, sizeof(buf) );
+            polarssl_strerror( ret, (char *) buf, sizeof( buf ) );
             polarssl_printf( " failed\n  !  pk_parse_keyfile returned -0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }
@@ -339,7 +339,7 @@ int main( int argc, char *argv[] )
 
         if( ret != 0 )
         {
-            polarssl_strerror( ret, (char *) buf, sizeof(buf) );
+            polarssl_strerror( ret, (char *) buf, sizeof( buf ) );
             polarssl_printf( " failed\n  !  pk_parse_public_key returned -0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }

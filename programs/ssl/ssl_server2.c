@@ -422,8 +422,6 @@ sni_entry *sni_parse( char *sni_string )
         if( ( new = polarssl_calloc( 1, sizeof( sni_entry ) ) ) == NULL )
             return( NULL );
 
-        memset( new, 0, sizeof( sni_entry ) );
-
         new->cert = polarssl_calloc( 1, sizeof( x509_crt ) );
         new->key = polarssl_calloc( 1, sizeof( pk_context ) );
         if( new->cert == NULL || new->key == NULL )
@@ -561,8 +559,6 @@ psk_entry *psk_parse( char *psk_string )
     {
         if( ( new = polarssl_calloc( 1, sizeof( psk_entry ) ) ) == NULL )
             return( NULL );
-
-        memset( new, 0, sizeof( psk_entry ) );
 
         GET_ITEM( new->name );
         GET_ITEM( key_hex );

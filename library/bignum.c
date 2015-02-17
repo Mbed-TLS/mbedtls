@@ -111,8 +111,6 @@ int mpi_grow( mpi *X, size_t nblimbs )
         if( ( p = polarssl_calloc( nblimbs, ciL ) ) == NULL )
             return( POLARSSL_ERR_MPI_MALLOC_FAILED );
 
-        memset( p, 0, nblimbs * ciL );
-
         if( X->p != NULL )
         {
             memcpy( p, X->p, X->n * ciL );
@@ -150,8 +148,6 @@ int mpi_shrink( mpi *X, size_t nblimbs )
 
     if( ( p = polarssl_calloc( i, ciL ) ) == NULL )
         return( POLARSSL_ERR_MPI_MALLOC_FAILED );
-
-    memset( p, 0, i * ciL );
 
     if( X->p != NULL )
     {

@@ -363,7 +363,6 @@ static int x509_get_subject_alt_name( unsigned char **p,
                 return( POLARSSL_ERR_X509_INVALID_EXTENSIONS +
                         POLARSSL_ERR_ASN1_MALLOC_FAILED );
 
-            memset( cur->next, 0, sizeof( asn1_sequence ) );
             cur = cur->next;
         }
 

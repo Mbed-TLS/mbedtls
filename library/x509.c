@@ -451,8 +451,6 @@ int x509_get_name( unsigned char **p, const unsigned char *end,
             if( cur->next == NULL )
                 return( POLARSSL_ERR_X509_MALLOC_FAILED );
 
-            memset( cur->next, 0, sizeof( x509_name ) );
-
             cur = cur->next;
         }
 
@@ -466,8 +464,6 @@ int x509_get_name( unsigned char **p, const unsigned char *end,
 
         if( cur->next == NULL )
             return( POLARSSL_ERR_X509_MALLOC_FAILED );
-
-        memset( cur->next, 0, sizeof( x509_name ) );
 
         cur = cur->next;
     }

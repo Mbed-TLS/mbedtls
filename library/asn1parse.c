@@ -275,8 +275,6 @@ int asn1_get_sequence_of( unsigned char **p,
             if( cur->next == NULL )
                 return( POLARSSL_ERR_ASN1_MALLOC_FAILED );
 
-            memset( cur->next, 0, sizeof( asn1_sequence ) );
-
             cur = cur->next;
         }
     }

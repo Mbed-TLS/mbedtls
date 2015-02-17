@@ -229,8 +229,6 @@ int ssl_cache_set( void *data, const ssl_session *session )
                 goto exit;
             }
 
-            memset( cur, 0, sizeof( ssl_cache_entry ) );
-
             if( prv == NULL )
                 cache->chain = cur;
             else

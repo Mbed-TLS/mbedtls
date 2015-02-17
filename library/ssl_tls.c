@@ -3653,9 +3653,6 @@ int ssl_init( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
     }
 
-    memset( ssl-> in_ctr, 0, SSL_BUFFER_LEN );
-    memset( ssl->out_ctr, 0, SSL_BUFFER_LEN );
-
 #if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
     ssl->encrypt_then_mac = SSL_ETM_ENABLED;
 #endif
@@ -3941,8 +3938,6 @@ static ssl_key_cert *ssl_add_key_cert( ssl_context *ssl )
     key_cert = polarssl_calloc( 1, sizeof( ssl_key_cert ) );
     if( key_cert == NULL )
         return( NULL );
-
-    memset( key_cert, 0, sizeof( ssl_key_cert ) );
 
     /* Append the new key_cert to the (possibly empty) current list */
     if( ssl->key_cert == NULL )

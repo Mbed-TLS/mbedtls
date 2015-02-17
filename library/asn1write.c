@@ -315,8 +315,6 @@ asn1_named_data *asn1_store_named_data( asn1_named_data **head,
         if( ( cur = polarssl_calloc( 1, sizeof( asn1_named_data ) ) ) == NULL )
             return( NULL );
 
-        memset( cur, 0, sizeof( asn1_named_data ) );
-
         cur->oid.len = oid_len;
         cur->oid.p = polarssl_calloc( 1, oid_len );
         if( cur->oid.p == NULL )

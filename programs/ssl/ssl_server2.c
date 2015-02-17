@@ -32,6 +32,7 @@
 #define polarssl_printf     printf
 #define polarssl_fprintf    fprintf
 #define polarssl_malloc     malloc
+#define polarssl_calloc calloc
 #define polarssl_free       free
 #endif
 
@@ -418,13 +419,13 @@ sni_entry *sni_parse( char *sni_string )
 
     while( p <= end )
     {
-        if( ( new = polarssl_malloc( sizeof( sni_entry ) ) ) == NULL )
+        if( ( new = polarssl_calloc(1, sizeof(sni_entry))) == NULL )
             return( NULL );
 
         memset( new, 0, sizeof( sni_entry ) );
 
-        if( ( new->cert = polarssl_malloc( sizeof( x509_crt ) ) ) == NULL ||
-            ( new->key = polarssl_malloc( sizeof( pk_context ) ) ) == NULL )
+        if( ( new->cert = polarssl_calloc(1, sizeof(x509_crt))) == NULL ||
+            ( new->key = polarssl_calloc(1, sizeof(pk_context))) == NULL )
             return( NULL );
 
         x509_crt_init( new->cert );
@@ -557,7 +558,7 @@ psk_entry *psk_parse( char *psk_string )
 
     while( p <= end )
     {
-        if( ( new = polarssl_malloc( sizeof( psk_entry ) ) ) == NULL )
+        if( ( new = polarssl_calloc(1, sizeof(psk_entry))) == NULL )
             return( NULL );
 
         memset( new, 0, sizeof( psk_entry ) );

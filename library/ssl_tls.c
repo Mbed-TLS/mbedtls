@@ -4063,8 +4063,13 @@ int ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
     ssl->psk = polarssl_malloc( ssl->psk_len );
     ssl->psk_identity = polarssl_malloc( ssl->psk_identity_len );
 
-    if( ssl->psk == NULL || ssl->psk_identity == NULL )
+    if( ssl->psk == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+    if( ssl->psk_identity == NULL )
+    {
+        polarssl_free( ssl->psk );
+        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+    }
 
     memcpy( ssl->psk, psk, ssl->psk_len );
     memcpy( ssl->psk_identity, psk_identity, ssl->psk_identity_len );

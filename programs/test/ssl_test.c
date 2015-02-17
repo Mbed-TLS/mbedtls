@@ -32,6 +32,7 @@
 #define polarssl_printf     printf
 #define polarssl_fprintf    fprintf
 #define polarssl_malloc     malloc
+#define polarssl_calloc     calloc
 #define polarssl_free       free
 #endif
 
@@ -295,12 +296,13 @@ static int ssl_test( struct options *opt )
         }
     }
 
-     read_buf = polarssl_malloc( opt->buffer_size );
-    write_buf = polarssl_malloc( opt->buffer_size );
+     read_buf = polarssl_calloc( 1, opt->buffer_size );
+    write_buf = polarssl_calloc( 1, opt->buffer_size );
 
     if( read_buf == NULL || write_buf == NULL )
     {
-        polarssl_printf( "  ! polarssl_malloc(%d bytes) failed\n\n", opt->buffer_size );
+        polarssl_printf( "  ! polarssl_calloc(1, %d bytes) failed\n\n",
+                         opt->buffer_size );
         goto exit;
     }
 

@@ -1695,7 +1695,7 @@ data_exchange:
             ori_len = ret;
             extra_len = ssl_get_bytes_avail( &ssl );
 
-            larger_buf = polarssl_malloc( ori_len + extra_len + 1 );
+            larger_buf = polarssl_calloc( 1, ori_len + extra_len + 1 );
             if( larger_buf == NULL )
             {
                 polarssl_printf( "  ! memory allocation failed\n" );

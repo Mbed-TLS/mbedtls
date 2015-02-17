@@ -550,7 +550,8 @@ static int x509_crt_parse_der_core( x509_crt *crt, const unsigned char *buf,
     if( crt == NULL || buf == NULL )
         return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
 
-    p = polarssl_malloc( len = buflen );
+    len = buflen;
+    p = polarssl_calloc( 1, len );
 
     if( p == NULL )
         return( POLARSSL_ERR_X509_MALLOC_FAILED );

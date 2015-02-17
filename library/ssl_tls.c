@@ -112,7 +112,7 @@ static int ssl_session_copy( ssl_session *dst, const ssl_session *src )
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
     if( src->ticket != NULL )
     {
-        dst->ticket = polarssl_malloc( src->ticket_len );
+        dst->ticket = polarssl_calloc( 1, src->ticket_len );
         if( dst->ticket == NULL )
             return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
@@ -4062,8 +4062,8 @@ int ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
     ssl->psk_len = psk_len;
     ssl->psk_identity_len = psk_identity_len;
 
-    ssl->psk = polarssl_malloc( ssl->psk_len );
-    ssl->psk_identity = polarssl_malloc( ssl->psk_identity_len );
+    ssl->psk = polarssl_calloc( 1, ssl->psk_len );
+    ssl->psk_identity = polarssl_calloc( 1, ssl->psk_identity_len );
 
     if( ssl->psk == NULL || ssl->psk_identity == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
@@ -4145,7 +4145,7 @@ int ssl_set_hostname( ssl_context *ssl, const char *hostname )
     if( ssl->hostname_len + 1 == 0 )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
-    ssl->hostname = polarssl_malloc( ssl->hostname_len + 1 );
+    ssl->hostname = polarssl_calloc( 1, ssl->hostname_len + 1 );
 
     if( ssl->hostname == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );

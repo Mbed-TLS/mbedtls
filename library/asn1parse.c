@@ -269,8 +269,7 @@ int asn1_get_sequence_of( unsigned char **p,
         /* Allocate and assign next pointer */
         if( *p < end )
         {
-            cur->next = (asn1_sequence *) polarssl_malloc(
-                 sizeof( asn1_sequence ) );
+            cur->next = polarssl_malloc( sizeof( asn1_sequence ) );
 
             if( cur->next == NULL )
                 return( POLARSSL_ERR_ASN1_MALLOC_FAILED );

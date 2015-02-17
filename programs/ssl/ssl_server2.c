@@ -419,13 +419,13 @@ sni_entry *sni_parse( char *sni_string )
     while( p <= end )
     {
         if( ( new = polarssl_malloc( sizeof( sni_entry ) ) ) == NULL )
-            return( NULL );
+            goto error;
 
         memset( new, 0, sizeof( sni_entry ) );
 
         if( ( new->cert = polarssl_malloc( sizeof( x509_crt ) ) ) == NULL ||
             ( new->key = polarssl_malloc( sizeof( pk_context ) ) ) == NULL )
-            return( NULL );
+            goto error;
 
         x509_crt_init( new->cert );
         pk_init( new->key );
@@ -436,13 +436,17 @@ sni_entry *sni_parse( char *sni_string )
 
         if( x509_crt_parse_file( new->cert, crt_file ) != 0 ||
             pk_parse_keyfile( new->key, key_file, "" ) != 0 )
-            return( NULL );
+            goto error;
 
         new->next = cur;
         cur = new;
     }
 
     return( cur );
+
+error:
+    sni_free( new );
+    return( NULL );
 }
 
 void sni_free( sni_entry *head )

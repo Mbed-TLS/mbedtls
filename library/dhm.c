@@ -49,6 +49,7 @@
 #include "polarssl/platform.h"
 #else
 #include <stdlib.h>
+#include <stdio.h>
 #define polarssl_printf     printf
 #define polarssl_malloc     malloc
 #define polarssl_free       free

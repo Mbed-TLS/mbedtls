@@ -134,7 +134,8 @@ cleanup
 CC=gcc CFLAGS=-Werror make
 
 # this is meant to cath missing #define polarssl_printf etc
-msg "build: full config except platform.c" # ~ 30s
+# disable fsio to catch some more missing #include <stdio.h>
+msg "build: full config except platform/fsio" # ~ 30s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
@@ -142,6 +143,7 @@ scripts/config.pl unset POLARSSL_PLATFORM_C
 scripts/config.pl unset POLARSSL_PLATFORM_MEMORY
 scripts/config.pl unset POLARSSL_MEMORY_C
 scripts/config.pl unset POLARSSL_MEMORY_BUFFER_ALLOC_C
+scripts/config.pl unset POLARSSL_FS_IO
 CC=gcc CFLAGS=-Werror make
 
 if uname -a | grep -F x86_64 >/dev/null; then

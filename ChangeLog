@@ -1,6 +1,9 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= PolarSSL 1.4.0 (DTLS branch) released 2014-10-22
+= PolarSSL 1.4.0 (DTLS feature preview) released 2015-02-16
+Note: This is a feature preview release for DTLS. The 1.4 branch is not
+	  maintained further and should not be used to start new projects.
+
 Features
   * Support for DTLS 1.0 and 1.2 (RFC 6347).
 

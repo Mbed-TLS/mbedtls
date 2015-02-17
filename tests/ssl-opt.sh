@@ -1468,6 +1468,7 @@ run_test    "Renegotiation: DTLS, server-initiated" \
             -s "=> renegotiate" \
             -s "write hello request"
 
+requires_gnutls
 run_test    "Renegotiation: DTLS, gnutls server, client-initiated" \
             "$G_SRV -u --mtu 4096" \
             "$P_CLI debug_level=3 dtls=1 exchanges=1 renegotiation=1 renegotiate=1" \
@@ -3086,6 +3087,7 @@ run_test    "DTLS proxy: 3d, openssl server, fragmentation, nbio" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
+requires_gnutls
 needs_more_time 6
 run_test    "DTLS proxy: 3d, gnutls server" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
@@ -3095,6 +3097,7 @@ run_test    "DTLS proxy: 3d, gnutls server" \
             -s "Extra-header:" \
             -c "Extra-header:"
 
+requires_gnutls
 needs_more_time 6
 run_test    "DTLS proxy: 3d, gnutls server, fragmentation" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
@@ -3104,6 +3107,7 @@ run_test    "DTLS proxy: 3d, gnutls server, fragmentation" \
             -s "Extra-header:" \
             -c "Extra-header:"
 
+requires_gnutls
 needs_more_time 6
 run_test    "DTLS proxy: 3d, gnutls server, fragmentation, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \

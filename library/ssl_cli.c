@@ -35,7 +35,7 @@
 #include "polarssl/platform.h"
 #else
 #define polarssl_malloc     malloc
-#define polarssl_calloc calloc
+#define polarssl_calloc     calloc
 #define polarssl_free       free
 #endif
 
@@ -2710,7 +2710,7 @@ static int ssl_parse_new_session_ticket( ssl_context *ssl )
     ssl->session_negotiate->ticket = NULL;
     ssl->session_negotiate->ticket_len = 0;
 
-    if( ( ticket = polarssl_calloc(1, ticket_len)) == NULL )
+    if( ( ticket = polarssl_calloc( 1, ticket_len ) ) == NULL )
     {
         SSL_DEBUG_MSG( 1, ( "ticket malloc failed" ) );
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );

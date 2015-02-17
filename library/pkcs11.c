@@ -36,7 +36,7 @@
 #else
 #include <stdlib.h>
 #define polarssl_malloc     malloc
-#define polarssl_calloc calloc
+#define polarssl_calloc     calloc
 #define polarssl_free       free
 #endif
 
@@ -59,7 +59,7 @@ int pkcs11_x509_cert_init( x509_crt *cert, pkcs11h_certificate_t pkcs11_cert )
         goto cleanup;
     }
 
-    cert_blob = polarssl_calloc(1, cert_blob_size);
+    cert_blob = polarssl_calloc( 1, cert_blob_size );
     if( NULL == cert_blob )
     {
         ret = 4;

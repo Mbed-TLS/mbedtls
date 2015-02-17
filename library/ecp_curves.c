@@ -973,10 +973,10 @@ static inline void sub32( uint32_t *dst, uint32_t src, signed char *carry )
     uint32_t cur;                                           \
     size_t i = 0, bits = b;                                 \
     mpi C;                                                  \
-    t_uint Cp[ b / 8 / sizeof(  t_uint ) + 1 ];               \
+    t_uint Cp[ b / 8 / sizeof( t_uint ) + 1 ];              \
                                                             \
     C.s = 1;                                                \
-    C.n = b / 8 / sizeof(  t_uint ) + 1;                      \
+    C.n = b / 8 / sizeof( t_uint ) + 1;                     \
     C.p = Cp;                                               \
     memset( Cp, 0, C.n * sizeof( t_uint ) );                \
                                                             \

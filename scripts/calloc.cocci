@@ -16,12 +16,18 @@ constant C;
 - polarssl_malloc(C)
 + polarssl_calloc(1, C)
 
+@malloc_var@
+identifier x;
+@@
+- polarssl_malloc(x)
++ polarssl_calloc(1, x)
+
 @definition@
 @@
   #define polarssl_calloc calloc
 
 @define depends on !definition &&
-  (malloc_mul || malloc_sizeof || malloc_constant)@
+  (malloc_mul || malloc_sizeof || malloc_constant || malloc_var)@
 @@
   #define polarssl_malloc malloc
 + #define polarssl_calloc calloc

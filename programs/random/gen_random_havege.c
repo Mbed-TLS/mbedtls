@@ -85,7 +85,7 @@ int main( int argc, char *argv[] )
         fwrite( buf, sizeof( buf ), 1, f );
 
         polarssl_printf( "Generating %ldkb of data in file '%s'... %04.1f" \
-                "%% done\r", (long)(sizeof(buf) * k / 1024), argv[1], (100 * (float) (i + 1)) / k );
+                "%% done\r", (long)(sizeof( buf ) * k / 1024), argv[1], (100 * (float) (i + 1)) / k );
         fflush( stdout );
     }
 

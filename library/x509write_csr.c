@@ -51,7 +51,7 @@ static void polarssl_zeroize( void *v, size_t n ) {
 
 void x509write_csr_init( x509write_csr *ctx )
 {
-    memset( ctx, 0, sizeof(x509write_csr) );
+    memset( ctx, 0, sizeof( x509write_csr ) );
 }
 
 void x509write_csr_free( x509write_csr *ctx )
@@ -59,7 +59,7 @@ void x509write_csr_free( x509write_csr *ctx )
     asn1_free_named_data_list( &ctx->subject );
     asn1_free_named_data_list( &ctx->extensions );
 
-    polarssl_zeroize( ctx, sizeof(x509write_csr) );
+    polarssl_zeroize( ctx, sizeof( x509write_csr ) );
 }
 
 void x509write_csr_set_md_alg( x509write_csr *ctx, md_type_t md_alg )
@@ -237,14 +237,14 @@ int x509write_csr_pem( x509write_csr *ctx, unsigned char *buf, size_t size,
     unsigned char output_buf[4096];
     size_t olen = 0;
 
-    if( ( ret = x509write_csr_der( ctx, output_buf, sizeof(output_buf),
+    if( ( ret = x509write_csr_der( ctx, output_buf, sizeof( output_buf ),
                                    f_rng, p_rng ) ) < 0 )
     {
         return( ret );
     }
 
     if( ( ret = pem_write_buffer( PEM_BEGIN_CSR, PEM_END_CSR,
-                                  output_buf + sizeof(output_buf) - ret,
+                                  output_buf + sizeof( output_buf ) - ret,
                                   ret, buf, size, &olen ) ) != 0 )
     {
         return( ret );

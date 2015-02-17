@@ -48,6 +48,7 @@
 #include "polarssl/platform.h"
 #else
 #define polarssl_malloc     malloc
+#define polarssl_calloc     calloc
 #define polarssl_free       free
 #endif
 
@@ -92,7 +93,7 @@ static int ssl_session_copy( ssl_session *dst, const ssl_session *src )
     {
         int ret;
 
-        dst->peer_cert = (x509_crt *) polarssl_malloc( sizeof(x509_crt) );
+        dst->peer_cert = polarssl_calloc( 1, sizeof( x509_crt ) );
         if( dst->peer_cert == NULL )
             return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
@@ -111,7 +112,7 @@ static int ssl_session_copy( ssl_session *dst, const ssl_session *src )
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
     if( src->ticket != NULL )
     {
-        dst->ticket = (unsigned char *) polarssl_malloc( src->ticket_len );
+        dst->ticket = polarssl_calloc( 1, src->ticket_len );
         if( dst->ticket == NULL )
             return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
@@ -508,7 +509,7 @@ int ssl_derive_keys( ssl_context *ssl )
                             handshake->randbytes, 64, session->master, 48 );
 
 
-        polarssl_zeroize( handshake->premaster, sizeof(handshake->premaster) );
+        polarssl_zeroize( handshake->premaster, sizeof( handshake->premaster ) );
     }
     else
         SSL_DEBUG_MSG( 3, ( "no premaster (session resumed)" ) );
@@ -795,7 +796,7 @@ int ssl_derive_keys( ssl_context *ssl )
         if( ssl->compress_buf == NULL )
         {
             SSL_DEBUG_MSG( 3, ( "Allocating compression buffer" ) );
-            ssl->compress_buf = polarssl_malloc( SSL_BUFFER_LEN );
+            ssl->compress_buf = polarssl_calloc( 1, SSL_BUFFER_LEN );
             if( ssl->compress_buf == NULL )
             {
                 SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed",
@@ -834,8 +835,8 @@ void ssl_calc_verify_ssl( ssl_context *ssl, unsigned char hash[36] )
 
     SSL_DEBUG_MSG( 2, ( "=> calc verify ssl" ) );
 
-    memcpy( &md5 , &ssl->handshake->fin_md5 , sizeof(md5_context)  );
-    memcpy( &sha1, &ssl->handshake->fin_sha1, sizeof(sha1_context) );
+    memcpy( &md5 , &ssl->handshake->fin_md5 , sizeof( md5_context )  );
+    memcpy( &sha1, &ssl->handshake->fin_sha1, sizeof( sha1_context ) );
 
     memset( pad_1, 0x36, 48 );
     memset( pad_2, 0x5C, 48 );
@@ -878,8 +879,8 @@ void ssl_calc_verify_tls( ssl_context *ssl, unsigned char hash[36] )
 
     SSL_DEBUG_MSG( 2, ( "=> calc verify tls" ) );
 
-    memcpy( &md5 , &ssl->handshake->fin_md5 , sizeof(md5_context)  );
-    memcpy( &sha1, &ssl->handshake->fin_sha1, sizeof(sha1_context) );
+    memcpy( &md5 , &ssl->handshake->fin_md5 , sizeof( md5_context )  );
+    memcpy( &sha1, &ssl->handshake->fin_sha1, sizeof( sha1_context ) );
 
      md5_finish( &md5,  hash );
     sha1_finish( &sha1, hash + 16 );
@@ -902,7 +903,7 @@ void ssl_calc_verify_tls_sha256( ssl_context *ssl, unsigned char hash[32] )
 
     SSL_DEBUG_MSG( 2, ( "=> calc verify sha256" ) );
 
-    memcpy( &sha256, &ssl->handshake->fin_sha256, sizeof(sha256_context) );
+    memcpy( &sha256, &ssl->handshake->fin_sha256, sizeof( sha256_context ) );
     sha256_finish( &sha256, hash );
 
     SSL_DEBUG_BUF( 3, "calculated verify result", hash, 32 );
@@ -921,7 +922,7 @@ void ssl_calc_verify_tls_sha384( ssl_context *ssl, unsigned char hash[48] )
 
     SSL_DEBUG_MSG( 2, ( "=> calc verify sha384" ) );
 
-    memcpy( &sha512, &ssl->handshake->fin_sha512, sizeof(sha512_context) );
+    memcpy( &sha512, &ssl->handshake->fin_sha512, sizeof( sha512_context ) );
     sha512_finish( &sha512, hash );
 
     SSL_DEBUG_BUF( 3, "calculated verify result", hash, 48 );
@@ -2747,8 +2748,8 @@ int ssl_parse_certificate( ssl_context *ssl )
         polarssl_free( ssl->session_negotiate->peer_cert );
     }
 
-    if( ( ssl->session_negotiate->peer_cert = (x509_crt *) polarssl_malloc(
-                    sizeof( x509_crt ) ) ) == NULL )
+    if( ( ssl->session_negotiate->peer_cert =
+              polarssl_calloc( 1, sizeof( x509_crt ) ) ) == NULL )
     {
         SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed",
                        sizeof( x509_crt ) ) );
@@ -3028,8 +3029,8 @@ static void ssl_calc_finished_ssl(
 
     SSL_DEBUG_MSG( 2, ( "=> calc  finished ssl" ) );
 
-    memcpy( &md5 , &ssl->handshake->fin_md5 , sizeof(md5_context)  );
-    memcpy( &sha1, &ssl->handshake->fin_sha1, sizeof(sha1_context) );
+    memcpy( &md5 , &ssl->handshake->fin_md5 , sizeof( md5_context )  );
+    memcpy( &sha1, &ssl->handshake->fin_sha1, sizeof( sha1_context ) );
 
     /*
      * SSLv3:
@@ -3108,8 +3109,8 @@ static void ssl_calc_finished_tls(
 
     SSL_DEBUG_MSG( 2, ( "=> calc  finished tls" ) );
 
-    memcpy( &md5 , &ssl->handshake->fin_md5 , sizeof(md5_context)  );
-    memcpy( &sha1, &ssl->handshake->fin_sha1, sizeof(sha1_context) );
+    memcpy( &md5 , &ssl->handshake->fin_md5 , sizeof( md5_context )  );
+    memcpy( &sha1, &ssl->handshake->fin_sha1, sizeof( sha1_context ) );
 
     /*
      * TLSv1:
@@ -3164,7 +3165,7 @@ static void ssl_calc_finished_tls_sha256(
 
     SSL_DEBUG_MSG( 2, ( "=> calc  finished tls sha256" ) );
 
-    memcpy( &sha256, &ssl->handshake->fin_sha256, sizeof(sha256_context) );
+    memcpy( &sha256, &ssl->handshake->fin_sha256, sizeof( sha256_context ) );
 
     /*
      * TLSv1.2:
@@ -3211,7 +3212,7 @@ static void ssl_calc_finished_tls_sha384(
 
     SSL_DEBUG_MSG( 2, ( "=> calc  finished tls sha384" ) );
 
-    memcpy( &sha512, &ssl->handshake->fin_sha512, sizeof(sha512_context) );
+    memcpy( &sha512, &ssl->handshake->fin_sha512, sizeof( sha512_context ) );
 
     /*
      * TLSv1.2:
@@ -3514,7 +3515,7 @@ static void ssl_handshake_params_init( ssl_handshake_params *handshake )
 
 static void ssl_transform_init( ssl_transform *transform )
 {
-    memset( transform, 0, sizeof(ssl_transform) );
+    memset( transform, 0, sizeof( ssl_transform ) );
 
     cipher_init( &transform->cipher_ctx_enc );
     cipher_init( &transform->cipher_ctx_dec );
@@ -3525,7 +3526,7 @@ static void ssl_transform_init( ssl_transform *transform )
 
 void ssl_session_init( ssl_session *session )
 {
-    memset( session, 0, sizeof(ssl_session) );
+    memset( session, 0, sizeof( ssl_session ) );
 }
 
 static int ssl_handshake_init( ssl_context *ssl )
@@ -3544,20 +3545,18 @@ static int ssl_handshake_init( ssl_context *ssl )
      */
     if( ssl->transform_negotiate == NULL )
     {
-        ssl->transform_negotiate = (ssl_transform *) polarssl_malloc(
-                             sizeof(ssl_transform) );
+        ssl->transform_negotiate =
+            polarssl_calloc( 1, sizeof( ssl_transform ) );
     }
 
     if( ssl->session_negotiate == NULL )
     {
-        ssl->session_negotiate = (ssl_session *) polarssl_malloc(
-                           sizeof(ssl_session) );
+        ssl->session_negotiate = polarssl_calloc( 1, sizeof( ssl_session ) );
     }
 
     if( ssl->handshake == NULL )
     {
-        ssl->handshake = (ssl_handshake_params *)
-            polarssl_malloc( sizeof(ssl_handshake_params) );
+        ssl->handshake = polarssl_calloc( 1, sizeof( ssl_handshake_params ) );
     }
 
     /* All pointers should exist and can be directly freed without issue */
@@ -3630,7 +3629,7 @@ int ssl_init( ssl_context *ssl )
     /*
      * Prepare base structures
      */
-    ssl->in_ctr = (unsigned char *) polarssl_malloc( len );
+    ssl->in_ctr = polarssl_calloc( 1, len );
     ssl->in_hdr = ssl->in_ctr +  8;
     ssl->in_iv  = ssl->in_ctr + 13;
     ssl->in_msg = ssl->in_ctr + 13;
@@ -3641,7 +3640,7 @@ int ssl_init( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
     }
 
-    ssl->out_ctr = (unsigned char *) polarssl_malloc( len );
+    ssl->out_ctr = polarssl_calloc( 1, len );
     ssl->out_hdr = ssl->out_ctr +  8;
     ssl->out_iv  = ssl->out_ctr + 13;
     ssl->out_msg = ssl->out_ctr + 13;
@@ -3653,9 +3652,6 @@ int ssl_init( ssl_context *ssl )
         ssl->in_ctr = NULL;
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
     }
-
-    memset( ssl-> in_ctr, 0, SSL_BUFFER_LEN );
-    memset( ssl->out_ctr, 0, SSL_BUFFER_LEN );
 
 #if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
     ssl->encrypt_then_mac = SSL_ETM_ENABLED;
@@ -3767,7 +3763,7 @@ static void ssl_ticket_keys_free( ssl_ticket_keys *tkeys )
     aes_free( &tkeys->enc );
     aes_free( &tkeys->dec );
 
-    polarssl_zeroize( tkeys, sizeof(ssl_ticket_keys) );
+    polarssl_zeroize( tkeys, sizeof( ssl_ticket_keys ) );
 }
 
 /*
@@ -3782,7 +3778,7 @@ static int ssl_ticket_keys_init( ssl_context *ssl )
     if( ssl->ticket_keys != NULL )
         return( 0 );
 
-    tkeys = (ssl_ticket_keys *) polarssl_malloc( sizeof(ssl_ticket_keys) );
+    tkeys = polarssl_calloc( 1, sizeof( ssl_ticket_keys ) );
     if( tkeys == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
@@ -3939,11 +3935,9 @@ static ssl_key_cert *ssl_add_key_cert( ssl_context *ssl )
 {
     ssl_key_cert *key_cert, *last;
 
-    key_cert = (ssl_key_cert *) polarssl_malloc( sizeof(ssl_key_cert) );
+    key_cert = polarssl_calloc( 1, sizeof( ssl_key_cert ) );
     if( key_cert == NULL )
         return( NULL );
-
-    memset( key_cert, 0, sizeof( ssl_key_cert ) );
 
     /* Append the new key_cert to the (possibly empty) current list */
     if( ssl->key_cert == NULL )
@@ -3995,7 +3989,7 @@ int ssl_set_own_cert_rsa( ssl_context *ssl, x509_crt *own_cert,
     if( key_cert == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
-    key_cert->key = (pk_context *) polarssl_malloc( sizeof(pk_context) );
+    key_cert->key = polarssl_calloc( 1, sizeof( pk_context ) );
     if( key_cert->key == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
@@ -4027,7 +4021,7 @@ int ssl_set_own_cert_alt( ssl_context *ssl, x509_crt *own_cert,
     if( key_cert == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
-    key_cert->key = (pk_context *) polarssl_malloc( sizeof(pk_context) );
+    key_cert->key = polarssl_calloc( 1, sizeof( pk_context ) );
     if( key_cert->key == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
@@ -4063,9 +4057,8 @@ int ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
     ssl->psk_len = psk_len;
     ssl->psk_identity_len = psk_identity_len;
 
-    ssl->psk = (unsigned char *) polarssl_malloc( ssl->psk_len );
-    ssl->psk_identity = (unsigned char *)
-                                polarssl_malloc( ssl->psk_identity_len );
+    ssl->psk = polarssl_calloc( 1, ssl->psk_len );
+    ssl->psk_identity = polarssl_calloc( 1, ssl->psk_identity_len );
 
     if( ssl->psk == NULL || ssl->psk_identity == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
@@ -4147,7 +4140,7 @@ int ssl_set_hostname( ssl_context *ssl, const char *hostname )
     if( ssl->hostname_len + 1 == 0 )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
-    ssl->hostname = (unsigned char *) polarssl_malloc( ssl->hostname_len + 1 );
+    ssl->hostname = polarssl_calloc( 1, ssl->hostname_len + 1 );
 
     if( ssl->hostname == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );

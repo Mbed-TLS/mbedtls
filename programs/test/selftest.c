@@ -84,7 +84,7 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_SELF_TEST)
 
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
-    memory_buffer_alloc_init( buf, sizeof(buf) );
+    memory_buffer_alloc_init( buf, sizeof( buf ) );
 #endif
 
 #if defined(POLARSSL_MD2_C)

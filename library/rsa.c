@@ -1604,7 +1604,7 @@ int rsa_self_test( int verbose )
 
     if( rsa_pkcs1_decrypt( &rsa, myrand, NULL, RSA_PRIVATE, &len,
                            rsa_ciphertext, rsa_decrypted,
-                           sizeof(rsa_decrypted) ) != 0 )
+                           sizeof( rsa_decrypted ) ) != 0 )
     {
         if( verbose != 0 )
             polarssl_printf( "failed\n" );

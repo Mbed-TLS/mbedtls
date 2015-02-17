@@ -94,7 +94,7 @@ int main( int argc, char *argv[] )
      * Extract the signature from the text file
      */
     ret = 1;
-    snprintf( filename, sizeof(filename), "%s.sig", argv[2] );
+    snprintf( filename, sizeof( filename ), "%s.sig", argv[2] );
 
     if( ( f = fopen( filename, "rb" ) ) == NULL )
     {
@@ -103,7 +103,7 @@ int main( int argc, char *argv[] )
     }
 
 
-    i = fread( buf, 1, sizeof(buf), f );
+    i = fread( buf, 1, sizeof( buf ), f );
 
     fclose( f );
 
@@ -135,7 +135,7 @@ exit:
     pk_free( &pk );
 
 #if defined(POLARSSL_ERROR_C)
-    polarssl_strerror( ret, (char *) buf, sizeof(buf) );
+    polarssl_strerror( ret, (char *) buf, sizeof( buf ) );
     polarssl_printf( "  !  Last error was: %s\n", buf );
 #endif
 

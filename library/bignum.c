@@ -43,6 +43,7 @@
 #else
 #define polarssl_printf     printf
 #define polarssl_malloc     malloc
+#define polarssl_calloc     calloc
 #define polarssl_free       free
 #endif
 
@@ -53,7 +54,7 @@ static void polarssl_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
-#define ciL    (sizeof(t_uint))         /* chars in limb  */
+#define ciL    (sizeof( t_uint ))       /* chars in limb  */
 #define biL    (ciL << 3)               /* bits  in limb  */
 #define biH    (ciL << 2)               /* half limb size */
 
@@ -107,10 +108,8 @@ int mpi_grow( mpi *X, size_t nblimbs )
 
     if( X->n < nblimbs )
     {
-        if( ( p = (t_uint *) polarssl_malloc( nblimbs * ciL ) ) == NULL )
+        if( ( p = polarssl_calloc( nblimbs, ciL ) ) == NULL )
             return( POLARSSL_ERR_MPI_MALLOC_FAILED );
-
-        memset( p, 0, nblimbs * ciL );
 
         if( X->p != NULL )
         {
@@ -147,10 +146,8 @@ int mpi_shrink( mpi *X, size_t nblimbs )
     if( i < nblimbs )
         i = nblimbs;
 
-    if( ( p = (t_uint *) polarssl_malloc( i * ciL ) ) == NULL )
+    if( ( p = polarssl_calloc( i, ciL ) ) == NULL )
         return( POLARSSL_ERR_MPI_MALLOC_FAILED );
-
-    memset( p, 0, i * ciL );
 
     if( X->p != NULL )
     {

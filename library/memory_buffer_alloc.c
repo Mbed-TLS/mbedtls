@@ -283,7 +283,7 @@ static void *buffer_alloc_malloc( size_t len )
 
     // Found location, split block if > memory_header + 4 room left
     //
-    if( cur->size - len < sizeof(memory_header) +
+    if( cur->size - len < sizeof( memory_header ) +
                           POLARSSL_MEMORY_ALIGN_MULTIPLE )
     {
         cur->alloc = 1;
@@ -315,13 +315,13 @@ static void *buffer_alloc_malloc( size_t len )
         if( ( heap.verify & MEMORY_VERIFY_ALLOC ) && verify_chain() != 0 )
             exit( 1 );
 
-        return( ( (unsigned char *) cur ) + sizeof(memory_header) );
+        return( ( (unsigned char *) cur ) + sizeof( memory_header ) );
     }
 
-    p = ( (unsigned char *) cur ) + sizeof(memory_header) + len;
+    p = ( (unsigned char *) cur ) + sizeof( memory_header ) + len;
     new = (memory_header *) p;
 
-    new->size = cur->size - len - sizeof(memory_header);
+    new->size = cur->size - len - sizeof( memory_header );
     new->alloc = 0;
     new->prev = cur;
     new->next = cur->next;
@@ -370,7 +370,7 @@ static void *buffer_alloc_malloc( size_t len )
     if( ( heap.verify & MEMORY_VERIFY_ALLOC ) && verify_chain() != 0 )
         exit( 1 );
 
-    return( ( (unsigned char *) cur ) + sizeof(memory_header) );
+    return( ( (unsigned char *) cur ) + sizeof( memory_header ) );
 }
 
 static void buffer_alloc_free( void *ptr )
@@ -390,7 +390,7 @@ static void buffer_alloc_free( void *ptr )
         exit( 1 );
     }
 
-    p -= sizeof(memory_header);
+    p -= sizeof( memory_header );
     hdr = (memory_header *) p;
 
     if( verify_header( hdr ) != 0 )
@@ -419,7 +419,7 @@ static void buffer_alloc_free( void *ptr )
 #if defined(POLARSSL_MEMORY_DEBUG)
         heap.header_count--;
 #endif
-        hdr->prev->size += sizeof(memory_header) + hdr->size;
+        hdr->prev->size += sizeof( memory_header ) + hdr->size;
         hdr->prev->next = hdr->next;
         old = hdr;
         hdr = hdr->prev;
@@ -430,7 +430,7 @@ static void buffer_alloc_free( void *ptr )
 #if defined(POLARSSL_MEMORY_BACKTRACE)
         free( old->trace );
 #endif
-        memset( old, 0, sizeof(memory_header) );
+        memset( old, 0, sizeof( memory_header ) );
     }
 
     // Regroup with block after
@@ -440,7 +440,7 @@ static void buffer_alloc_free( void *ptr )
 #if defined(POLARSSL_MEMORY_DEBUG)
         heap.header_count--;
 #endif
-        hdr->size += sizeof(memory_header) + hdr->next->size;
+        hdr->size += sizeof( memory_header ) + hdr->next->size;
         old = hdr->next;
         hdr->next = hdr->next->next;
 
@@ -472,7 +472,7 @@ static void buffer_alloc_free( void *ptr )
 #if defined(POLARSSL_MEMORY_BACKTRACE)
         free( old->trace );
 #endif
-        memset( old, 0, sizeof(memory_header) );
+        memset( old, 0, sizeof( memory_header ) );
     }
 
     // Prepend to free_list if we have not merged
@@ -547,7 +547,7 @@ static void buffer_alloc_free_mutexed( void *ptr )
 
 int memory_buffer_alloc_init( unsigned char *buf, size_t len )
 {
-    memset( &heap, 0, sizeof(buffer_alloc_ctx) );
+    memset( &heap, 0, sizeof( buffer_alloc_ctx ) );
     memset( buf, 0, len );
 
 #if defined(POLARSSL_THREADING_C)
@@ -571,7 +571,7 @@ int memory_buffer_alloc_init( unsigned char *buf, size_t len )
     heap.len = len;
 
     heap.first = (memory_header *) buf;
-    heap.first->size = len - sizeof(memory_header);
+    heap.first->size = len - sizeof( memory_header );
     heap.first->magic1 = MAGIC1;
     heap.first->magic2 = MAGIC2;
     heap.first_free = heap.first;
@@ -583,7 +583,7 @@ void memory_buffer_alloc_free()
 #if defined(POLARSSL_THREADING_C)
     polarssl_mutex_free( &heap.mutex );
 #endif
-    polarssl_zeroize( &heap, sizeof(buffer_alloc_ctx) );
+    polarssl_zeroize( &heap, sizeof( buffer_alloc_ctx ) );
 }
 
 #if defined(POLARSSL_SELF_TEST)
@@ -631,9 +631,9 @@ int memory_buffer_alloc_self_test( int verbose )
 
     memory_buffer_alloc_init( buf, sizeof( buf ) );
 
-    p = polarssl_malloc( 1 );
-    q = polarssl_malloc( 128 );
-    r = polarssl_malloc( 16 );
+    p = polarssl_calloc( 1, 1 );
+    q = polarssl_calloc( 1, 128 );
+    r = polarssl_calloc( 1, 16 );
 
     TEST_ASSERT( check_pointer( p ) == 0 &&
                  check_pointer( q ) == 0 &&
@@ -660,9 +660,9 @@ int memory_buffer_alloc_self_test( int verbose )
 
     TEST_ASSERT( heap.buf + heap.len == end );
 
-    p = polarssl_malloc( 1 );
-    q = polarssl_malloc( 128 );
-    r = polarssl_malloc( 16 );
+    p = polarssl_calloc( 1, 1 );
+    q = polarssl_calloc( 1, 128 );
+    r = polarssl_calloc( 1, 16 );
 
     TEST_ASSERT( check_pointer( p ) == 0 &&
                  check_pointer( q ) == 0 &&
@@ -687,19 +687,19 @@ int memory_buffer_alloc_self_test( int verbose )
     p = polarssl_malloc( sizeof( buf ) - sizeof( memory_header ) );
 
     TEST_ASSERT( check_pointer( p ) == 0 );
-    TEST_ASSERT( polarssl_malloc( 1 ) == NULL );
+    TEST_ASSERT( polarssl_calloc( 1, 1 ) == NULL );
 
     polarssl_free( p );
 
     p = polarssl_malloc( sizeof( buf ) - 2 * sizeof( memory_header ) - 16 );
-    q = polarssl_malloc( 16 );
+    q = polarssl_calloc( 1, 16 );
 
     TEST_ASSERT( check_pointer( p ) == 0 && check_pointer( q ) == 0 );
-    TEST_ASSERT( polarssl_malloc( 1 ) == NULL );
+    TEST_ASSERT( polarssl_calloc( 1, 1 ) == NULL );
 
     polarssl_free( q );
 
-    TEST_ASSERT( polarssl_malloc( 17 ) == NULL );
+    TEST_ASSERT( polarssl_calloc( 1, 17 ) == NULL );
 
     polarssl_free( p );
 

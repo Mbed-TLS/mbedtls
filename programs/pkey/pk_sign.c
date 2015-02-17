@@ -133,7 +133,7 @@ int main( int argc, char *argv[] )
     /*
      * Write the signature into <filename>-sig.txt
      */
-    snprintf( filename, sizeof(filename), "%s.sig", argv[2] );
+    snprintf( filename, sizeof( filename ), "%s.sig", argv[2] );
 
     if( ( f = fopen( filename, "wb+" ) ) == NULL )
     {
@@ -158,7 +158,7 @@ exit:
     entropy_free( &entropy );
 
 #if defined(POLARSSL_ERROR_C)
-    polarssl_strerror( ret, (char *) buf, sizeof(buf) );
+    polarssl_strerror( ret, (char *) buf, sizeof( buf ) );
     polarssl_printf( "  !  Last error was: %s\n", buf );
 #endif
 

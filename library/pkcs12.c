@@ -95,8 +95,8 @@ static int pkcs12_pbe_derive_key_iv( asn1_buf *pbe_params, md_type_t md_type,
     size_t i;
     unsigned char unipwd[258];
 
-    memset( &salt, 0, sizeof(asn1_buf) );
-    memset( &unipwd, 0, sizeof(unipwd) );
+    memset( &salt, 0, sizeof( asn1_buf ) );
+    memset( &unipwd, 0, sizeof( unipwd ) );
 
     if( ( ret = pkcs12_parse_pbe_params( pbe_params, &salt,
                                          &iterations ) ) != 0 )

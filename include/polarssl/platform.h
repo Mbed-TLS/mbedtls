@@ -60,6 +60,9 @@ extern "C" {
 #if !defined(POLARSSL_PLATFORM_STD_MALLOC)
 #define POLARSSL_PLATFORM_STD_MALLOC   malloc /**< Default allocator to use */
 #endif
+#if !defined(POLARSSL_PLATFORM_STD_CALLOC)
+#define POLARSSL_PLATFORM_STD_CALLOC   calloc /**< Default calloc to use */
+#endif
 #if !defined(POLARSSL_PLATFORM_STD_FREE)
 #define POLARSSL_PLATFORM_STD_FREE       free /**< Default free to use */
 #endif
@@ -72,16 +75,18 @@ extern "C" {
 /* \} name SECTION: Module settings */
 
 /*
- * The function pointers for malloc and free
+ * The function pointers for malloc, calloc, and free
  */
 #if defined(POLARSSL_PLATFORM_MEMORY)
 extern void * (*polarssl_malloc)( size_t len );
+extern void * (*polatssl_calloc)( size_t count, size_t size );
 extern void (*polarssl_free)( void *ptr );
 
 /**
  * \brief   Set your own memory implementation function pointers
  *
  * \param malloc_func   the malloc function implementation
+ * \param calloc_func   the calloc function implementation
  * \param free_func     the free function implementation
  *
  * \return              0 if successful
@@ -90,6 +95,7 @@ int platform_set_malloc_free( void * (*malloc_func)( size_t ),
                               void (*free_func)( void * ) );
 #else /* POLARSSL_PLATFORM_ENTROPY */
 #define polarssl_malloc     malloc
+#define polarssl_calloc     calloc
 #define polarssl_free       free
 #endif /* POLARSSL_PLATFORM_ENTROPY */
 

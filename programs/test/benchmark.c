@@ -90,8 +90,8 @@ static int myrand( void *rng_state, unsigned char *output, size_t len )
     while( len > 0 )
     {
         use_len = len;
-        if( use_len > sizeof(int) )
-            use_len = sizeof(int);
+        if( use_len > sizeof( int ) )
+            use_len = sizeof( int );
 
         rnd = rand();
         memcpy( output, &rnd, use_len );
@@ -613,7 +613,7 @@ int main( int argc, char *argv[] )
             ecdh_init( &ecdh );
 
             if( ecp_use_known_dp( &ecdh.grp, curve_info->grp_id ) != 0 ||
-                ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
+                ecdh_make_public( &ecdh, &olen, buf, sizeof( buf ),
                                   myrand, NULL ) != 0 ||
                 ecp_copy( &ecdh.Qp, &ecdh.Q ) != 0 )
             {
@@ -623,7 +623,7 @@ int main( int argc, char *argv[] )
             snprintf( title, sizeof( title ), "ECDHE-%s",
                                               curve_info->name );
             TIME_PUBLIC( title, "handshake",
-                    ret |= ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
+                    ret |= ecdh_make_public( &ecdh, &olen, buf, sizeof( buf ),
                                              myrand, NULL );
                     ret |= ecdh_calc_secret( &ecdh, &olen, buf, sizeof( buf ),
                                              myrand, NULL ) );

@@ -210,7 +210,7 @@ void debug_print_mpi( const ssl_context *ssl, int level,
         if( X->p[n] != 0 )
             break;
 
-    for( j = ( sizeof(t_uint) << 3 ) - 1; j >= 0; j-- )
+    for( j = ( sizeof( t_uint ) << 3 ) - 1; j >= 0; j-- )
         if( ( ( X->p[n] >> j ) & 1 ) != 0 )
             break;
 
@@ -218,7 +218,7 @@ void debug_print_mpi( const ssl_context *ssl, int level,
         idx = snprintf( str, maxlen, "%s(%04d): ", file, line );
 
     snprintf( str + idx, maxlen - idx, "value of '%s' (%d bits) is:\n",
-              text, (int) ( ( n * ( sizeof(t_uint) << 3 ) ) + j + 1 ) );
+              text, (int) ( ( n * ( sizeof( t_uint ) << 3 ) ) + j + 1 ) );
 
     str[maxlen] = '\0';
     ssl->f_dbg( ssl->p_dbg, level, str );

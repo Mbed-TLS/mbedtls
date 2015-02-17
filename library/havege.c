@@ -223,8 +223,8 @@ int havege_random( void *p_rng, unsigned char *buf, size_t len )
     while( len > 0 )
     {
         use_len = len;
-        if( use_len > sizeof(int) )
-            use_len = sizeof(int);
+        if( use_len > sizeof( int ) )
+            use_len = sizeof( int );
 
         if( hs->offset[1] >= COLLECT_SIZE )
             havege_fill( hs );

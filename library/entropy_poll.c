@@ -146,11 +146,11 @@ int hardclock_poll( void *data,
     ((void) data);
     *olen = 0;
 
-    if( len < sizeof(unsigned long) )
+    if( len < sizeof( unsigned long ) )
         return( 0 );
 
-    memcpy( output, &timer, sizeof(unsigned long) );
-    *olen = sizeof(unsigned long);
+    memcpy( output, &timer, sizeof( unsigned long ) );
+    *olen = sizeof( unsigned long );
 
     return( 0 );
 }

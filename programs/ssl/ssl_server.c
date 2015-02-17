@@ -108,7 +108,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    memset( &ssl, 0, sizeof(ssl_context) );
+    memset( &ssl, 0, sizeof( ssl_context ) );
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_init( &cache );
 #endif

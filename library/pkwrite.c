@@ -381,13 +381,13 @@ int pk_write_pubkey_pem( pk_context *key, unsigned char *buf, size_t size )
     size_t olen = 0;
 
     if( ( ret = pk_write_pubkey_der( key, output_buf,
-                                     sizeof(output_buf) ) ) < 0 )
+                                     sizeof( output_buf ) ) ) < 0 )
     {
         return( ret );
     }
 
     if( ( ret = pem_write_buffer( PEM_BEGIN_PUBLIC_KEY, PEM_END_PUBLIC_KEY,
-                                  output_buf + sizeof(output_buf) - ret,
+                                  output_buf + sizeof( output_buf ) - ret,
                                   ret, buf, size, &olen ) ) != 0 )
     {
         return( ret );
@@ -403,7 +403,7 @@ int pk_write_key_pem( pk_context *key, unsigned char *buf, size_t size )
     const char *begin, *end;
     size_t olen = 0;
 
-    if( ( ret = pk_write_key_der( key, output_buf, sizeof(output_buf) ) ) < 0 )
+    if( ( ret = pk_write_key_der( key, output_buf, sizeof( output_buf ) ) ) < 0 )
         return( ret );
 
 #if defined(POLARSSL_RSA_C)
@@ -425,7 +425,7 @@ int pk_write_key_pem( pk_context *key, unsigned char *buf, size_t size )
         return( POLARSSL_ERR_PK_FEATURE_UNAVAILABLE );
 
     if( ( ret = pem_write_buffer( begin, end,
-                                  output_buf + sizeof(output_buf) - ret,
+                                  output_buf + sizeof( output_buf ) - ret,
                                   ret, buf, size, &olen ) ) != 0 )
     {
         return( ret );

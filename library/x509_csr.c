@@ -48,6 +48,7 @@
 #include "polarssl/platform.h"
 #else
 #define polarssl_malloc     malloc
+#define polarssl_calloc     calloc
 #define polarssl_free       free
 #endif
 
@@ -110,7 +111,8 @@ int x509_csr_parse_der( x509_csr *csr,
     /*
      * first copy the raw DER data
      */
-    p = (unsigned char *) polarssl_malloc( len = buflen );
+    len = buflen;
+    p = polarssl_calloc( 1, len );
 
     if( p == NULL )
         return( POLARSSL_ERR_X509_MALLOC_FAILED );
@@ -421,7 +423,7 @@ int x509_csr_info( char *buf, size_t size, const char *prefix,
  */
 void x509_csr_init( x509_csr *csr )
 {
-    memset( csr, 0, sizeof(x509_csr) );
+    memset( csr, 0, sizeof( x509_csr ) );
 }
 
 /*

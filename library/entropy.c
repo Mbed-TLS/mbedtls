@@ -48,7 +48,7 @@ static void polarssl_zeroize( void *v, size_t n ) {
 
 void entropy_init( entropy_context *ctx )
 {
-    memset( ctx, 0, sizeof(entropy_context) );
+    memset( ctx, 0, sizeof( entropy_context ) );
 
 #if defined(POLARSSL_THREADING_C)
     polarssl_mutex_init( &ctx->mutex );

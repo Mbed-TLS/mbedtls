@@ -46,6 +46,7 @@
 #else
 #include <stdlib.h>
 #define polarssl_malloc     malloc
+#define polarssl_calloc     calloc
 #define polarssl_free       free
 #endif
 
@@ -131,7 +132,7 @@ static int rsa_check_pair_wrap( const void *pub, const void *prv )
 
 static void *rsa_alloc_wrap( void )
 {
-    void *ctx = polarssl_malloc( sizeof( rsa_context ) );
+    void *ctx = polarssl_calloc( 1, sizeof( rsa_context ) );
 
     if( ctx != NULL )
         rsa_init( (rsa_context *) ctx, 0, 0 );
@@ -247,7 +248,7 @@ static int eckey_check_pair( const void *pub, const void *prv )
 
 static void *eckey_alloc_wrap( void )
 {
-    void *ctx = polarssl_malloc( sizeof( ecp_keypair ) );
+    void *ctx = polarssl_calloc( 1, sizeof( ecp_keypair ) );
 
     if( ctx != NULL )
         ecp_keypair_init( ctx );
@@ -357,7 +358,7 @@ static int ecdsa_sign_wrap( void *ctx, md_type_t md_alg,
 
 static void *ecdsa_alloc_wrap( void )
 {
-    void *ctx = polarssl_malloc( sizeof( ecdsa_context ) );
+    void *ctx = polarssl_calloc( 1, sizeof( ecdsa_context ) );
 
     if( ctx != NULL )
         ecdsa_init( (ecdsa_context *) ctx );
@@ -465,7 +466,7 @@ static int rsa_alt_check_pair( const void *pub, const void *prv )
 
 static void *rsa_alt_alloc_wrap( void )
 {
-    void *ctx = polarssl_malloc( sizeof( rsa_alt_context ) );
+    void *ctx = polarssl_calloc( 1, sizeof( rsa_alt_context ) );
 
     if( ctx != NULL )
         memset( ctx, 0, sizeof( rsa_alt_context ) );

@@ -48,6 +48,7 @@
 #include "polarssl/platform.h"
 #else
 #define polarssl_malloc     malloc
+#define polarssl_calloc     calloc
 #define polarssl_free       free
 #endif
 
@@ -235,12 +236,11 @@ static int x509_get_entries( unsigned char **p,
 
         if( *p < end )
         {
-            cur_entry->next = polarssl_malloc( sizeof( x509_crl_entry ) );
+            cur_entry->next = polarssl_calloc( 1, sizeof( x509_crl_entry ) );
 
             if( cur_entry->next == NULL )
                 return( POLARSSL_ERR_X509_MALLOC_FAILED );
 
-            memset( cur_entry->next, 0, sizeof( x509_crl_entry ) );
             cur_entry = cur_entry->next;
         }
     }
@@ -277,7 +277,7 @@ int x509_crl_parse_der( x509_crl *chain,
 
     if( crl->version != 0 && crl->next == NULL )
     {
-        crl->next = (x509_crl *) polarssl_malloc( sizeof( x509_crl ) );
+        crl->next = polarssl_calloc( 1, sizeof( x509_crl ) );
 
         if( crl->next == NULL )
         {
@@ -292,7 +292,7 @@ int x509_crl_parse_der( x509_crl *chain,
     /*
      * Copy raw DER-encoded CRL
      */
-    if( ( p = polarssl_malloc( buflen ) ) == NULL )
+    if( ( p = polarssl_calloc( 1, buflen ) ) == NULL )
         return( POLARSSL_ERR_X509_MALLOC_FAILED );
 
     memcpy( p, buf, buflen );
@@ -695,7 +695,7 @@ int x509_crl_info( char *buf, size_t size, const char *prefix,
  */
 void x509_crl_init( x509_crl *crl )
 {
-    memset( crl, 0, sizeof(x509_crl) );
+    memset( crl, 0, sizeof( x509_crl ) );
 }
 
 /*

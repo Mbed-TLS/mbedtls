@@ -65,7 +65,7 @@ int ctr_drbg_init_entropy_len(
     int ret;
     unsigned char key[CTR_DRBG_KEYSIZE];
 
-    memset( ctx, 0, sizeof(ctr_drbg_context) );
+    memset( ctx, 0, sizeof( ctr_drbg_context ) );
     memset( key, 0, CTR_DRBG_KEYSIZE );
 
     aes_init( &ctx->aes_ctx );

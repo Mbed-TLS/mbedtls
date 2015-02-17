@@ -1197,7 +1197,7 @@ send_request:
     polarssl_printf( "  > Write to server:" );
     fflush( stdout );
 
-    len = snprintf( (char *) buf, sizeof(buf) - 1, GET_REQUEST,
+    len = snprintf( (char *) buf, sizeof( buf ) - 1, GET_REQUEST,
                     opt.request_page );
     tail_len = strlen( GET_REQUEST_END );
 
@@ -1209,7 +1209,7 @@ send_request:
         len += opt.request_size - len - tail_len;
     }
 
-    strncpy( (char *) buf + len, GET_REQUEST_END, sizeof(buf) - len - 1 );
+    strncpy( (char *) buf + len, GET_REQUEST_END, sizeof( buf ) - len - 1 );
     len += tail_len;
 
     /* Truncate if request size is smaller than the "natural" size */

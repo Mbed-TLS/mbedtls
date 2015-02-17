@@ -116,7 +116,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    memset( &ssl, 0, sizeof(ssl_context) );
+    memset( &ssl, 0, sizeof( ssl_context ) );
 
     entropy_init( &entropy );
     pk_init( &pkey );

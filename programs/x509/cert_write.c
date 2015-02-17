@@ -415,7 +415,7 @@ int main( int argc, char *argv[] )
             goto exit;
         }
 
-        ret = x509_dn_gets( issuer_name, sizeof(issuer_name),
+        ret = x509_dn_gets( issuer_name, sizeof( issuer_name ),
                                  &issuer_crt.subject );
         if( ret < 0 )
         {
@@ -447,7 +447,7 @@ int main( int argc, char *argv[] )
             goto exit;
         }
 
-        ret = x509_dn_gets( subject_name, sizeof(subject_name),
+        ret = x509_dn_gets( subject_name, sizeof( subject_name ),
                                  &csr.subject );
         if( ret < 0 )
         {

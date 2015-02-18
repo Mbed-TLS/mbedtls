@@ -643,7 +643,7 @@ psk_entry *psk_parse( char *psk_string )
     while( p <= end )
     {
         if( ( new = polarssl_malloc( sizeof( psk_entry ) ) ) == NULL )
-            return( NULL );
+            goto error;
 
         memset( new, 0, sizeof( psk_entry ) );
 

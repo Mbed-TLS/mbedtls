@@ -2,11 +2,11 @@
 # To compile on SunOS: add "-lsocket -lnsl" to LDFLAGS
 # To compile with PKCS11: add "-lpkcs11-helper" to LDFLAGS
 
-CFLAGS	+= -I../include -D_FILE_OFFSET_BITS=64 -Wall -W -Wdeclaration-after-statement \
-			-Wno-unused-function -Wno-unused-value
-
-OFLAGS	= -O2
+CFLAGS	?= -O2
+WARNING_CFLAGS ?= -Wall -W -Wdeclaration-after-statement -Wno-unused-function -Wno-unused-value
 LDFLAGS ?=
+
+LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../include -D_FILE_OFFSET_BITS=64
 LOCAL_LDFLAGS = -L../library -lmbedtls$(SHARED_SUFFIX)
 DLEXT=so
 
@@ -19,7 +19,7 @@ CHECK_PRELOAD= LD_PRELOAD=../library/libmbedtls.$(DLEXT)
 endif
 
 ifdef DEBUG
-CFLAGS += -g3
+LOCAL_CFLAGS += -g3
 endif
 
 #
@@ -189,231 +189,231 @@ test_suite_hmac_drbg.pr.c : suites/test_suite_hmac_drbg.function suites/test_sui
 
 test_suite_aes.ecb$(EXEXT): test_suite_aes.ecb.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_aes.cbc$(EXEXT): test_suite_aes.cbc.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_aes.cfb$(EXEXT): test_suite_aes.cfb.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_aes.rest$(EXEXT): test_suite_aes.rest.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_arc4$(EXEXT): test_suite_arc4.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_asn1write$(EXEXT): test_suite_asn1write.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_base64$(EXEXT): test_suite_base64.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_blowfish$(EXEXT): test_suite_blowfish.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_camellia$(EXEXT): test_suite_camellia.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_ccm$(EXEXT): test_suite_ccm.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_cipher.aes$(EXEXT): test_suite_cipher.aes.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_cipher.arc4$(EXEXT): test_suite_cipher.arc4.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_cipher.ccm$(EXEXT): test_suite_cipher.ccm.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_cipher.gcm$(EXEXT): test_suite_cipher.gcm.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_cipher.blowfish$(EXEXT): test_suite_cipher.blowfish.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_cipher.camellia$(EXEXT): test_suite_cipher.camellia.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_cipher.des$(EXEXT): test_suite_cipher.des.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_cipher.null$(EXEXT): test_suite_cipher.null.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_cipher.padding$(EXEXT): test_suite_cipher.padding.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_ctr_drbg$(EXEXT): test_suite_ctr_drbg.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_des$(EXEXT): test_suite_des.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_dhm$(EXEXT): test_suite_dhm.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_ecdh$(EXEXT): test_suite_ecdh.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_ecdsa$(EXEXT): test_suite_ecdsa.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_ecp$(EXEXT): test_suite_ecp.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_entropy$(EXEXT): test_suite_entropy.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_error$(EXEXT): test_suite_error.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_gcm.aes128_de$(EXEXT): test_suite_gcm.aes128_de.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_gcm.aes192_de$(EXEXT): test_suite_gcm.aes192_de.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_gcm.aes256_de$(EXEXT): test_suite_gcm.aes256_de.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_gcm.aes128_en$(EXEXT): test_suite_gcm.aes128_en.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_gcm.aes192_en$(EXEXT): test_suite_gcm.aes192_en.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_gcm.aes256_en$(EXEXT): test_suite_gcm.aes256_en.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_gcm.camellia$(EXEXT): test_suite_gcm.camellia.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_hmac_drbg.misc$(EXEXT): test_suite_hmac_drbg.misc.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_hmac_drbg.no_reseed$(EXEXT): test_suite_hmac_drbg.no_reseed.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_hmac_drbg.nopr$(EXEXT): test_suite_hmac_drbg.nopr.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_hmac_drbg.pr$(EXEXT): test_suite_hmac_drbg.pr.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_hmac_shax$(EXEXT): test_suite_hmac_shax.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_md$(EXEXT): test_suite_md.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_mdx$(EXEXT): test_suite_mdx.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_memory_buffer_alloc$(EXEXT): test_suite_memory_buffer_alloc.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_mpi$(EXEXT): test_suite_mpi.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_pbkdf2$(EXEXT): test_suite_pbkdf2.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_pem$(EXEXT): test_suite_pem.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_pkcs1_v21$(EXEXT): test_suite_pkcs1_v21.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_pkcs5$(EXEXT): test_suite_pkcs5.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_pkparse$(EXEXT): test_suite_pkparse.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_pkwrite$(EXEXT): test_suite_pkwrite.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_pk$(EXEXT): test_suite_pk.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_rsa$(EXEXT): test_suite_rsa.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_shax$(EXEXT): test_suite_shax.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_x509parse$(EXEXT): test_suite_x509parse.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_x509write$(EXEXT): test_suite_x509write.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_xtea$(EXEXT): test_suite_xtea.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_debug$(EXEXT): test_suite_debug.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_version$(EXEXT): test_suite_version.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 clean:
 ifndef WINDOWS

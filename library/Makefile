@@ -1,13 +1,15 @@
 
 # Also see "include/polarssl/config.h"
 
-CFLAGS	+= -I../include -D_FILE_OFFSET_BITS=64 -Wall -W -Wdeclaration-after-statement
-OFLAGS	= -O2
+CFLAGS	?= -O2
+WARNING_CFLAGS ?=  -Wall -W -Wdeclaration-after-statement
 LDFLAGS ?=
+
+LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../include -D_FILE_OFFSET_BITS=64
 LOCAL_LDFLAGS =
 
 ifdef DEBUG
-CFLAGS += -g3
+LOCAL_CFLAGS += -g3
 endif
 
 # MicroBlaze specific options:
@@ -25,7 +27,7 @@ endif
 ifdef SHARED
 # all code is position-indep with mingw, avoid warning about useless flag
 ifndef WINDOWS_BUILD
-LOCAL_CFLAGS += -fPIC
+LOCAL_CFLAGS += -fPIC -fpic
 endif
 endif
 
@@ -128,7 +130,7 @@ libmbedtls.dll: $(OBJS)
 
 .c.o:
 	echo "  CC    $<"
-	$(CC) $(CFLAGS) $(OFLAGS) -c $<
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -c $<
 
 clean:
 ifndef WINDOWS

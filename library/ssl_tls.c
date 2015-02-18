@@ -3628,23 +3628,8 @@ int ssl_init( ssl_context *ssl )
     /*
      * Prepare base structures
      */
-    ssl->in_ctr = polarssl_malloc( len );
-    ssl->in_hdr = ssl->in_ctr +  8;
-    ssl->in_iv  = ssl->in_ctr + 13;
-    ssl->in_msg = ssl->in_ctr + 13;
-
-    if( ssl->in_ctr == NULL )
-    {
-        SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed", len ) );
-        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
-    }
-
-    ssl->out_ctr = polarssl_malloc( len );
-    ssl->out_hdr = ssl->out_ctr +  8;
-    ssl->out_iv  = ssl->out_ctr + 13;
-    ssl->out_msg = ssl->out_ctr + 13;
-
-    if( ssl->out_ctr == NULL )
+    if( ( ssl->in_ctr = polarssl_malloc( len ) ) == NULL ||
+        ( ssl->out_ctr = polarssl_malloc( len ) ) == NULL )
     {
         SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed", len ) );
         polarssl_free( ssl->in_ctr );
@@ -3654,6 +3639,14 @@ int ssl_init( ssl_context *ssl )
 
     memset( ssl-> in_ctr, 0, SSL_BUFFER_LEN );
     memset( ssl->out_ctr, 0, SSL_BUFFER_LEN );
+
+    ssl->in_hdr = ssl->in_ctr +  8;
+    ssl->in_iv  = ssl->in_ctr + 13;
+    ssl->in_msg = ssl->in_ctr + 13;
+
+    ssl->out_hdr = ssl->out_ctr +  8;
+    ssl->out_iv  = ssl->out_ctr + 13;
+    ssl->out_msg = ssl->out_ctr + 13;
 
 #if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
     ssl->encrypt_then_mac = SSL_ETM_ENABLED;

@@ -4925,16 +4925,12 @@ int ssl_init( ssl_context *ssl )
     /*
      * Prepare base structures
      */
-    ssl->in_buf  = polarssl_malloc( len );
-    ssl->out_buf = polarssl_malloc( len );
-
-    if( ssl->in_buf == NULL || ssl->out_buf == NULL )
+    if( ( ssl->in_buf = polarssl_malloc( len ) ) == NULL ||
+        ( ssl->out_buf = polarssl_malloc( len ) ) == NULL )
     {
         SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed", len ) );
         polarssl_free( ssl->in_buf );
-        polarssl_free( ssl->out_buf );
         ssl->in_buf = NULL;
-        ssl->out_buf = NULL;
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
     }
 

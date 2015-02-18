@@ -17,10 +17,15 @@ endif
 # To compile on Plan9:
 # CFLAGS += -D_BSD_EXTENSION
 
+# if were running on Windows build for Windows
+ifdef WINDOWS
+WINDOWS_BUILD=1
+endif
+
 # To compile as a shared library:
 ifdef SHARED
 # all code is position-indep with mingw, avoid warning about useless flag
-ifndef WINDOWS
+ifndef WINDOWS_BUILD
 CFLAGS += -fPIC
 endif
 endif
@@ -30,14 +35,6 @@ SOEXT=so.8
 DLEXT=so
 # OSX shared library extension:
 # DLEXT=dylib
-
-#
-# if we running on Windows build
-# for Windows
-#
-ifdef WINDOWS
-WINDOWS_BUILD=1
-endif
 
 # Windows shared library extension:
 ifdef WINDOWS_BUILD

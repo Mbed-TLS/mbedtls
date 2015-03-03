@@ -255,8 +255,10 @@ int main( int argc, char *argv[] )
     unsigned char malloc_buf[HEAP_SIZE] = { 0 };
 #endif
 
-    if( argc == 1 )
+    if( argc <= 1 )
+    {
         memset( &todo, 1, sizeof( todo ) );
+    }
     else
     {
         memset( &todo, 0, sizeof( todo ) );

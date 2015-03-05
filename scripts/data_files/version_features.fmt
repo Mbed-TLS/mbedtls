@@ -37,7 +37,7 @@
 #define strcasecmp _stricmp
 #endif
 
-const char *features[] = {
+static const char *features[] = {
 #if defined(POLARSSL_VERSION_FEATURES)
 FEATURE_DEFINES
 #endif /* POLARSSL_VERSION_FEATURES */

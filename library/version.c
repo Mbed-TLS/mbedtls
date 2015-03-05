@@ -31,8 +31,6 @@
 #include "polarssl/version.h"
 #include <string.h>
 
-const char version[] = POLARSSL_VERSION_STRING;
-
 unsigned int version_get_number()
 {
     return( POLARSSL_VERSION_NUMBER );

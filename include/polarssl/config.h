@@ -2262,8 +2262,8 @@
 //#define POLARSSL_PLATFORM_STD_PRINTF        printf /**< Default printf to use, can be undefined */
 //#define POLARSSL_PLATFORM_STD_SNPRINTF    snprintf /**< Default snprintf to use, can be undefined */
 
-/* To Use Function Macros POLARSSL_PLATFORM_C must be enabled 							*/
-/* POLARSSL_PLATFORM_XXX_MACRO and POLARSSL_PLATFORM_XXX_ALT cannot both be defined 	*/
+/* To Use Function Macros POLARSSL_PLATFORM_C must be enabled */
+/* POLARSSL_PLATFORM_XXX_MACRO and POLARSSL_PLATFORM_XXX_ALT cannot both be defined */
 //#define POLARSSL_PLATFORM_MALLOC_MACRO        malloc /**< Default allocator macro to use, can be undefined */
 //#define POLARSSL_PLATFORM_FREE_MACRO            free /**< Default free macro to use, can be undefined */
 //#define POLARSSL_PLATFORM_EXIT_MACRO            exit /**< Default exit macro to use, can be undefined */

@@ -35,6 +35,12 @@
 
 #include "polarssl/sha512.h"
 
+#if defined(_MSC_VER) || defined(__WATCOMC__)
+  #define UL64(x) x##ui64
+#else
+  #define UL64(x) x##ULL
+#endif
+
 #include <string.h>
 
 #if defined(POLARSSL_FS_IO)

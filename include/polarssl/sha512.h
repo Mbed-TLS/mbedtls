@@ -33,11 +33,9 @@
 #include <stddef.h>
 
 #if defined(_MSC_VER) || defined(__WATCOMC__)
-  #define UL64(x) x##ui64
   typedef unsigned __int64 uint64_t;
 #else
   #include <inttypes.h>
-  #define UL64(x) x##ULL
 #endif
 
 #define POLARSSL_ERR_SHA512_FILE_IO_ERROR              -0x007A  /**< Read/write error in file. */

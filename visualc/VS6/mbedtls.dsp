@@ -425,10 +425,6 @@ SOURCE=..\..\include\polarssl\cipher_wrap.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\compat-1.2.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\include\polarssl\config.h
 # End Source File
 # Begin Source File
@@ -518,10 +514,6 @@ SOURCE=..\..\include\polarssl\net.h
 # Begin Source File
 
 SOURCE=..\..\include\polarssl\oid.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\polarssl\openssl.h
 # End Source File
 # Begin Source File
 

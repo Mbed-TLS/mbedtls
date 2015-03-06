@@ -483,6 +483,21 @@ Package=<4>
 
 ###############################################################################
 
+Project: "mini_client"=.\mini_client.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name mbedtls
+    End Project Dependency
+}}}
+
+###############################################################################
+
 Project: "ssl_mail_client"=.\ssl_mail_client.dsp - Package Owner=<4>
 
 Package=<5>
@@ -574,21 +589,6 @@ Package=<4>
 ###############################################################################
 
 Project: "selftest"=.\selftest.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-    Begin Project Dependency
-    Project_Dep_Name mbedtls
-    End Project Dependency
-}}}
-
-###############################################################################
-
-Project: "ssl_test"=.\ssl_test.dsp - Package Owner=<4>
 
 Package=<5>
 {{{

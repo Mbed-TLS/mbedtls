@@ -43,10 +43,8 @@ ssl/ssl_server2
 ssl/mini_client
 test/benchmark
 test/ecp-bench
-test/o_p_test
 test/selftest
 test/ssl_cert_test
-test/ssl_test
 test/udp_proxy
 util/pem2der
 util/strerror

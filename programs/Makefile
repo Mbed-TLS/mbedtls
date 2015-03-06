@@ -54,15 +54,10 @@ APPS =	aes/aescrypt2$(EXEXT)		aes/crypt_and_hash$(EXEXT)	\
 	random/gen_random_havege$(EXEXT)				\
 	random/gen_random_ctr_drbg$(EXEXT)				\
 	test/ssl_cert_test$(EXEXT)	test/benchmark$(EXEXT)		\
-	test/selftest$(EXEXT)		test/ssl_test$(EXEXT)		\
-	test/udp_proxy$(EXEXT)						\
+	test/selftest$(EXEXT)		test/udp_proxy$(EXEXT)		\
 	util/pem2der$(EXEXT)		util/strerror$(EXEXT)		\
 	x509/cert_app$(EXEXT)		x509/crl_app$(EXEXT)		\
 	x509/cert_req$(EXEXT)
-
-ifdef OPENSSL
-APPS +=	test/o_p_test
-endif
 
 ifdef PTHREAD
 APPS +=	ssl/ssl_pthread_server
@@ -240,17 +235,9 @@ test/selftest$(EXEXT): test/selftest.c ../library/libmbedtls.a
 	echo   "  CC    test/selftest.c"
 	$(CC) $(CFLAGS) $(OFLAGS) test/selftest.c    $(LDFLAGS) -o $@
 
-test/ssl_test$(EXEXT): test/ssl_test.c ../library/libmbedtls.a
-	echo   "  CC    test/ssl_test.c"
-	$(CC) $(CFLAGS) $(OFLAGS) test/ssl_test.c    $(LDFLAGS) -o $@
-
 test/udp_proxy$(EXEXT): test/udp_proxy.c ../library/libmbedtls.a
 	echo   "  CC    test/udp_proxy.c"
 	$(CC) $(CFLAGS) $(OFLAGS) test/udp_proxy.c    $(LDFLAGS) -o $@
-
-test/o_p_test$(EXEXT): test/o_p_test.c ../library/libmbedtls.a
-	echo   "  CC    test/o_p_test.c"
-	$(CC) $(CFLAGS) $(OFLAGS) test/o_p_test.c    $(LDFLAGS) -o $@ -lssl -lcrypto
 
 util/pem2der$(EXEXT): util/pem2der.c ../library/libmbedtls.a
 	echo   "  CC    util/pem2der.c"

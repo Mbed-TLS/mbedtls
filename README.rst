@@ -37,7 +37,7 @@ In order to run the tests, enter::
 
 In order to build for a Windows platform, you should use WINDOWS_BUILD=1 if the target is Windows but the build environment is Unix-like (eg when cross-compiling, or compiling from an MSYS shell), and WINDOWS=1 if the build environment is a Windows shell.
 
-Depending on your platform, you might run into some issues. Please check the Makefiles in *library/*, *programs/* and *tests/* for options to manually add or remove for specific platforms. You can also check `the mbed TLS Knowledge Base <https://polarssl.org/kb>`_ for articles on your platform or issue.
+Depending on your platform, you might run into some issues. Please check the Makefiles in *library/*, *programs/* and *tests/* for options to manually add or remove for specific platforms. You can also check `the mbed TLS Knowledge Base <https://tls.mbed.org/kb>`_ for articles on your platform or issue.
 
 In case you find that you need to do something else as well, please let us know what, so we can add it to the KB.
 
@@ -128,10 +128,10 @@ For larger contributions, e.g. a new feature, the code possible falls under copy
 
 Process
 -------
-#. `Check for open issues <https://github.com/polarssl/polarssl/issues>`_ or
-   `start a discussion <https://polarssl.org/discussions>`_ around a feature
+#. `Check for open issues <https://github.com/ARMmbed/mbedtls/issues>`_ or
+   `start a discussion <https://tls.mbed.org/discussions>`_ around a feature
    idea or a bug.
-#. Fork the `mbed TLS repository on Github <https://github.com/polarssl/polarssl>`_
+#. Fork the `mbed TLS repository on Github <https://github.com/ARMmbed/mbedtls>`_
    to start making your changes.
 #. Write a test which shows that the bug was fixed or that the feature works
    as expected.

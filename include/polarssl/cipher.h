@@ -7,7 +7,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -477,7 +477,7 @@ static inline const char *cipher_get_name( const cipher_context_t *ctx )
  *                      POLARSSL_KEY_LENGTH_NONE if ctx has not been
  *                      initialised.
  */
-static inline int cipher_get_key_size ( const cipher_context_t *ctx )
+static inline int cipher_get_key_size( const cipher_context_t *ctx )
 {
     if( NULL == ctx || NULL == ctx->cipher_info )
         return POLARSSL_KEY_LENGTH_NONE;

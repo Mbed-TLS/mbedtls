@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2013, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -255,8 +255,10 @@ int main( int argc, char *argv[] )
     unsigned char malloc_buf[HEAP_SIZE] = { 0 };
 #endif
 
-    if( argc == 1 )
+    if( argc <= 1 )
+    {
         memset( &todo, 1, sizeof( todo ) );
+    }
     else
     {
         memset( &todo, 0, sizeof( todo ) );

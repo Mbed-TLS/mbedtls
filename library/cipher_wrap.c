@@ -7,7 +7,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -169,7 +169,7 @@ static void aes_ctx_free( void *ctx )
     polarssl_free( ctx );
 }
 
-const cipher_base_t aes_info = {
+static const cipher_base_t aes_info = {
     POLARSSL_CIPHER_ID_AES,
     aes_crypt_ecb_wrap,
 #if defined(POLARSSL_CIPHER_MODE_CBC)
@@ -190,7 +190,7 @@ const cipher_base_t aes_info = {
     aes_ctx_free
 };
 
-const cipher_info_t aes_128_ecb_info = {
+static const cipher_info_t aes_128_ecb_info = {
     POLARSSL_CIPHER_AES_128_ECB,
     POLARSSL_MODE_ECB,
     128,
@@ -201,7 +201,7 @@ const cipher_info_t aes_128_ecb_info = {
     &aes_info
 };
 
-const cipher_info_t aes_192_ecb_info = {
+static const cipher_info_t aes_192_ecb_info = {
     POLARSSL_CIPHER_AES_192_ECB,
     POLARSSL_MODE_ECB,
     192,
@@ -212,7 +212,7 @@ const cipher_info_t aes_192_ecb_info = {
     &aes_info
 };
 
-const cipher_info_t aes_256_ecb_info = {
+static const cipher_info_t aes_256_ecb_info = {
     POLARSSL_CIPHER_AES_256_ECB,
     POLARSSL_MODE_ECB,
     256,
@@ -224,7 +224,7 @@ const cipher_info_t aes_256_ecb_info = {
 };
 
 #if defined(POLARSSL_CIPHER_MODE_CBC)
-const cipher_info_t aes_128_cbc_info = {
+static const cipher_info_t aes_128_cbc_info = {
     POLARSSL_CIPHER_AES_128_CBC,
     POLARSSL_MODE_CBC,
     128,
@@ -235,7 +235,7 @@ const cipher_info_t aes_128_cbc_info = {
     &aes_info
 };
 
-const cipher_info_t aes_192_cbc_info = {
+static const cipher_info_t aes_192_cbc_info = {
     POLARSSL_CIPHER_AES_192_CBC,
     POLARSSL_MODE_CBC,
     192,
@@ -246,7 +246,7 @@ const cipher_info_t aes_192_cbc_info = {
     &aes_info
 };
 
-const cipher_info_t aes_256_cbc_info = {
+static const cipher_info_t aes_256_cbc_info = {
     POLARSSL_CIPHER_AES_256_CBC,
     POLARSSL_MODE_CBC,
     256,
@@ -259,7 +259,7 @@ const cipher_info_t aes_256_cbc_info = {
 #endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
-const cipher_info_t aes_128_cfb128_info = {
+static const cipher_info_t aes_128_cfb128_info = {
     POLARSSL_CIPHER_AES_128_CFB128,
     POLARSSL_MODE_CFB,
     128,
@@ -270,7 +270,7 @@ const cipher_info_t aes_128_cfb128_info = {
     &aes_info
 };
 
-const cipher_info_t aes_192_cfb128_info = {
+static const cipher_info_t aes_192_cfb128_info = {
     POLARSSL_CIPHER_AES_192_CFB128,
     POLARSSL_MODE_CFB,
     192,
@@ -281,7 +281,7 @@ const cipher_info_t aes_192_cfb128_info = {
     &aes_info
 };
 
-const cipher_info_t aes_256_cfb128_info = {
+static const cipher_info_t aes_256_cfb128_info = {
     POLARSSL_CIPHER_AES_256_CFB128,
     POLARSSL_MODE_CFB,
     256,
@@ -294,7 +294,7 @@ const cipher_info_t aes_256_cfb128_info = {
 #endif /* POLARSSL_CIPHER_MODE_CFB */
 
 #if defined(POLARSSL_CIPHER_MODE_CTR)
-const cipher_info_t aes_128_ctr_info = {
+static const cipher_info_t aes_128_ctr_info = {
     POLARSSL_CIPHER_AES_128_CTR,
     POLARSSL_MODE_CTR,
     128,
@@ -305,7 +305,7 @@ const cipher_info_t aes_128_ctr_info = {
     &aes_info
 };
 
-const cipher_info_t aes_192_ctr_info = {
+static const cipher_info_t aes_192_ctr_info = {
     POLARSSL_CIPHER_AES_192_CTR,
     POLARSSL_MODE_CTR,
     192,
@@ -316,7 +316,7 @@ const cipher_info_t aes_192_ctr_info = {
     &aes_info
 };
 
-const cipher_info_t aes_256_ctr_info = {
+static const cipher_info_t aes_256_ctr_info = {
     POLARSSL_CIPHER_AES_256_CTR,
     POLARSSL_MODE_CTR,
     256,
@@ -336,7 +336,7 @@ static int gcm_aes_setkey_wrap( void *ctx, const unsigned char *key,
                      key, key_length );
 }
 
-const cipher_base_t gcm_aes_info = {
+static const cipher_base_t gcm_aes_info = {
     POLARSSL_CIPHER_ID_AES,
     NULL,
 #if defined(POLARSSL_CIPHER_MODE_CBC)
@@ -357,7 +357,7 @@ const cipher_base_t gcm_aes_info = {
     gcm_ctx_free,
 };
 
-const cipher_info_t aes_128_gcm_info = {
+static const cipher_info_t aes_128_gcm_info = {
     POLARSSL_CIPHER_AES_128_GCM,
     POLARSSL_MODE_GCM,
     128,
@@ -368,7 +368,7 @@ const cipher_info_t aes_128_gcm_info = {
     &gcm_aes_info
 };
 
-const cipher_info_t aes_192_gcm_info = {
+static const cipher_info_t aes_192_gcm_info = {
     POLARSSL_CIPHER_AES_192_GCM,
     POLARSSL_MODE_GCM,
     192,
@@ -379,7 +379,7 @@ const cipher_info_t aes_192_gcm_info = {
     &gcm_aes_info
 };
 
-const cipher_info_t aes_256_gcm_info = {
+static const cipher_info_t aes_256_gcm_info = {
     POLARSSL_CIPHER_AES_256_GCM,
     POLARSSL_MODE_GCM,
     256,
@@ -399,7 +399,7 @@ static int ccm_aes_setkey_wrap( void *ctx, const unsigned char *key,
                      key, key_length );
 }
 
-const cipher_base_t ccm_aes_info = {
+static const cipher_base_t ccm_aes_info = {
     POLARSSL_CIPHER_ID_AES,
     NULL,
 #if defined(POLARSSL_CIPHER_MODE_CBC)
@@ -420,7 +420,7 @@ const cipher_base_t ccm_aes_info = {
     ccm_ctx_free,
 };
 
-const cipher_info_t aes_128_ccm_info = {
+static const cipher_info_t aes_128_ccm_info = {
     POLARSSL_CIPHER_AES_128_CCM,
     POLARSSL_MODE_CCM,
     128,
@@ -431,7 +431,7 @@ const cipher_info_t aes_128_ccm_info = {
     &ccm_aes_info
 };
 
-const cipher_info_t aes_192_ccm_info = {
+static const cipher_info_t aes_192_ccm_info = {
     POLARSSL_CIPHER_AES_192_CCM,
     POLARSSL_MODE_CCM,
     192,
@@ -442,7 +442,7 @@ const cipher_info_t aes_192_ccm_info = {
     &ccm_aes_info
 };
 
-const cipher_info_t aes_256_ccm_info = {
+static const cipher_info_t aes_256_ccm_info = {
     POLARSSL_CIPHER_AES_256_CCM,
     POLARSSL_MODE_CCM,
     256,
@@ -526,7 +526,7 @@ static void camellia_ctx_free( void *ctx )
     polarssl_free( ctx );
 }
 
-const cipher_base_t camellia_info = {
+static const cipher_base_t camellia_info = {
     POLARSSL_CIPHER_ID_CAMELLIA,
     camellia_crypt_ecb_wrap,
 #if defined(POLARSSL_CIPHER_MODE_CBC)
@@ -547,7 +547,7 @@ const cipher_base_t camellia_info = {
     camellia_ctx_free
 };
 
-const cipher_info_t camellia_128_ecb_info = {
+static const cipher_info_t camellia_128_ecb_info = {
     POLARSSL_CIPHER_CAMELLIA_128_ECB,
     POLARSSL_MODE_ECB,
     128,
@@ -558,7 +558,7 @@ const cipher_info_t camellia_128_ecb_info = {
     &camellia_info
 };
 
-const cipher_info_t camellia_192_ecb_info = {
+static const cipher_info_t camellia_192_ecb_info = {
     POLARSSL_CIPHER_CAMELLIA_192_ECB,
     POLARSSL_MODE_ECB,
     192,
@@ -569,7 +569,7 @@ const cipher_info_t camellia_192_ecb_info = {
     &camellia_info
 };
 
-const cipher_info_t camellia_256_ecb_info = {
+static const cipher_info_t camellia_256_ecb_info = {
     POLARSSL_CIPHER_CAMELLIA_256_ECB,
     POLARSSL_MODE_ECB,
     256,
@@ -581,7 +581,7 @@ const cipher_info_t camellia_256_ecb_info = {
 };
 
 #if defined(POLARSSL_CIPHER_MODE_CBC)
-const cipher_info_t camellia_128_cbc_info = {
+static const cipher_info_t camellia_128_cbc_info = {
     POLARSSL_CIPHER_CAMELLIA_128_CBC,
     POLARSSL_MODE_CBC,
     128,
@@ -592,7 +592,7 @@ const cipher_info_t camellia_128_cbc_info = {
     &camellia_info
 };
 
-const cipher_info_t camellia_192_cbc_info = {
+static const cipher_info_t camellia_192_cbc_info = {
     POLARSSL_CIPHER_CAMELLIA_192_CBC,
     POLARSSL_MODE_CBC,
     192,
@@ -603,7 +603,7 @@ const cipher_info_t camellia_192_cbc_info = {
     &camellia_info
 };
 
-const cipher_info_t camellia_256_cbc_info = {
+static const cipher_info_t camellia_256_cbc_info = {
     POLARSSL_CIPHER_CAMELLIA_256_CBC,
     POLARSSL_MODE_CBC,
     256,
@@ -616,7 +616,7 @@ const cipher_info_t camellia_256_cbc_info = {
 #endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
-const cipher_info_t camellia_128_cfb128_info = {
+static const cipher_info_t camellia_128_cfb128_info = {
     POLARSSL_CIPHER_CAMELLIA_128_CFB128,
     POLARSSL_MODE_CFB,
     128,
@@ -627,7 +627,7 @@ const cipher_info_t camellia_128_cfb128_info = {
     &camellia_info
 };
 
-const cipher_info_t camellia_192_cfb128_info = {
+static const cipher_info_t camellia_192_cfb128_info = {
     POLARSSL_CIPHER_CAMELLIA_192_CFB128,
     POLARSSL_MODE_CFB,
     192,
@@ -638,7 +638,7 @@ const cipher_info_t camellia_192_cfb128_info = {
     &camellia_info
 };
 
-const cipher_info_t camellia_256_cfb128_info = {
+static const cipher_info_t camellia_256_cfb128_info = {
     POLARSSL_CIPHER_CAMELLIA_256_CFB128,
     POLARSSL_MODE_CFB,
     256,
@@ -651,7 +651,7 @@ const cipher_info_t camellia_256_cfb128_info = {
 #endif /* POLARSSL_CIPHER_MODE_CFB */
 
 #if defined(POLARSSL_CIPHER_MODE_CTR)
-const cipher_info_t camellia_128_ctr_info = {
+static const cipher_info_t camellia_128_ctr_info = {
     POLARSSL_CIPHER_CAMELLIA_128_CTR,
     POLARSSL_MODE_CTR,
     128,
@@ -662,7 +662,7 @@ const cipher_info_t camellia_128_ctr_info = {
     &camellia_info
 };
 
-const cipher_info_t camellia_192_ctr_info = {
+static const cipher_info_t camellia_192_ctr_info = {
     POLARSSL_CIPHER_CAMELLIA_192_CTR,
     POLARSSL_MODE_CTR,
     192,
@@ -673,7 +673,7 @@ const cipher_info_t camellia_192_ctr_info = {
     &camellia_info
 };
 
-const cipher_info_t camellia_256_ctr_info = {
+static const cipher_info_t camellia_256_ctr_info = {
     POLARSSL_CIPHER_CAMELLIA_256_CTR,
     POLARSSL_MODE_CTR,
     256,
@@ -693,7 +693,7 @@ static int gcm_camellia_setkey_wrap( void *ctx, const unsigned char *key,
                      key, key_length );
 }
 
-const cipher_base_t gcm_camellia_info = {
+static const cipher_base_t gcm_camellia_info = {
     POLARSSL_CIPHER_ID_CAMELLIA,
     NULL,
 #if defined(POLARSSL_CIPHER_MODE_CBC)
@@ -714,7 +714,7 @@ const cipher_base_t gcm_camellia_info = {
     gcm_ctx_free,
 };
 
-const cipher_info_t camellia_128_gcm_info = {
+static const cipher_info_t camellia_128_gcm_info = {
     POLARSSL_CIPHER_CAMELLIA_128_GCM,
     POLARSSL_MODE_GCM,
     128,
@@ -725,7 +725,7 @@ const cipher_info_t camellia_128_gcm_info = {
     &gcm_camellia_info
 };
 
-const cipher_info_t camellia_192_gcm_info = {
+static const cipher_info_t camellia_192_gcm_info = {
     POLARSSL_CIPHER_CAMELLIA_192_GCM,
     POLARSSL_MODE_GCM,
     192,
@@ -736,7 +736,7 @@ const cipher_info_t camellia_192_gcm_info = {
     &gcm_camellia_info
 };
 
-const cipher_info_t camellia_256_gcm_info = {
+static const cipher_info_t camellia_256_gcm_info = {
     POLARSSL_CIPHER_CAMELLIA_256_GCM,
     POLARSSL_MODE_GCM,
     256,
@@ -756,7 +756,7 @@ static int ccm_camellia_setkey_wrap( void *ctx, const unsigned char *key,
                      key, key_length );
 }
 
-const cipher_base_t ccm_camellia_info = {
+static const cipher_base_t ccm_camellia_info = {
     POLARSSL_CIPHER_ID_CAMELLIA,
     NULL,
 #if defined(POLARSSL_CIPHER_MODE_CBC)
@@ -777,7 +777,7 @@ const cipher_base_t ccm_camellia_info = {
     ccm_ctx_free,
 };
 
-const cipher_info_t camellia_128_ccm_info = {
+static const cipher_info_t camellia_128_ccm_info = {
     POLARSSL_CIPHER_CAMELLIA_128_CCM,
     POLARSSL_MODE_CCM,
     128,
@@ -788,7 +788,7 @@ const cipher_info_t camellia_128_ccm_info = {
     &ccm_camellia_info
 };
 
-const cipher_info_t camellia_192_ccm_info = {
+static const cipher_info_t camellia_192_ccm_info = {
     POLARSSL_CIPHER_CAMELLIA_192_CCM,
     POLARSSL_MODE_CCM,
     192,
@@ -799,7 +799,7 @@ const cipher_info_t camellia_192_ccm_info = {
     &ccm_camellia_info
 };
 
-const cipher_info_t camellia_256_ccm_info = {
+static const cipher_info_t camellia_256_ccm_info = {
     POLARSSL_CIPHER_CAMELLIA_256_CCM,
     POLARSSL_MODE_CCM,
     256,
@@ -932,7 +932,7 @@ static void des3_ctx_free( void *ctx )
     polarssl_free( ctx );
 }
 
-const cipher_base_t des_info = {
+static const cipher_base_t des_info = {
     POLARSSL_CIPHER_ID_DES,
     des_crypt_ecb_wrap,
 #if defined(POLARSSL_CIPHER_MODE_CBC)
@@ -953,7 +953,7 @@ const cipher_base_t des_info = {
     des_ctx_free
 };
 
-const cipher_info_t des_ecb_info = {
+static const cipher_info_t des_ecb_info = {
     POLARSSL_CIPHER_DES_ECB,
     POLARSSL_MODE_ECB,
     POLARSSL_KEY_LENGTH_DES,
@@ -965,7 +965,7 @@ const cipher_info_t des_ecb_info = {
 };
 
 #if defined(POLARSSL_CIPHER_MODE_CBC)
-const cipher_info_t des_cbc_info = {
+static const cipher_info_t des_cbc_info = {
     POLARSSL_CIPHER_DES_CBC,
     POLARSSL_MODE_CBC,
     POLARSSL_KEY_LENGTH_DES,
@@ -977,7 +977,7 @@ const cipher_info_t des_cbc_info = {
 };
 #endif /* POLARSSL_CIPHER_MODE_CBC */
 
-const cipher_base_t des_ede_info = {
+static const cipher_base_t des_ede_info = {
     POLARSSL_CIPHER_ID_DES,
     des3_crypt_ecb_wrap,
 #if defined(POLARSSL_CIPHER_MODE_CBC)
@@ -998,7 +998,7 @@ const cipher_base_t des_ede_info = {
     des3_ctx_free
 };
 
-const cipher_info_t des_ede_ecb_info = {
+static const cipher_info_t des_ede_ecb_info = {
     POLARSSL_CIPHER_DES_EDE_ECB,
     POLARSSL_MODE_ECB,
     POLARSSL_KEY_LENGTH_DES_EDE,
@@ -1010,7 +1010,7 @@ const cipher_info_t des_ede_ecb_info = {
 };
 
 #if defined(POLARSSL_CIPHER_MODE_CBC)
-const cipher_info_t des_ede_cbc_info = {
+static const cipher_info_t des_ede_cbc_info = {
     POLARSSL_CIPHER_DES_EDE_CBC,
     POLARSSL_MODE_CBC,
     POLARSSL_KEY_LENGTH_DES_EDE,
@@ -1022,7 +1022,7 @@ const cipher_info_t des_ede_cbc_info = {
 };
 #endif /* POLARSSL_CIPHER_MODE_CBC */
 
-const cipher_base_t des_ede3_info = {
+static const cipher_base_t des_ede3_info = {
     POLARSSL_CIPHER_ID_DES,
     des3_crypt_ecb_wrap,
 #if defined(POLARSSL_CIPHER_MODE_CBC)
@@ -1043,7 +1043,7 @@ const cipher_base_t des_ede3_info = {
     des3_ctx_free
 };
 
-const cipher_info_t des_ede3_ecb_info = {
+static const cipher_info_t des_ede3_ecb_info = {
     POLARSSL_CIPHER_DES_EDE3_ECB,
     POLARSSL_MODE_ECB,
     POLARSSL_KEY_LENGTH_DES_EDE3,
@@ -1054,7 +1054,7 @@ const cipher_info_t des_ede3_ecb_info = {
     &des_ede3_info
 };
 #if defined(POLARSSL_CIPHER_MODE_CBC)
-const cipher_info_t des_ede3_cbc_info = {
+static const cipher_info_t des_ede3_cbc_info = {
     POLARSSL_CIPHER_DES_EDE3_CBC,
     POLARSSL_MODE_CBC,
     POLARSSL_KEY_LENGTH_DES_EDE3,
@@ -1131,7 +1131,7 @@ static void blowfish_ctx_free( void *ctx )
     polarssl_free( ctx );
 }
 
-const cipher_base_t blowfish_info = {
+static const cipher_base_t blowfish_info = {
     POLARSSL_CIPHER_ID_BLOWFISH,
     blowfish_crypt_ecb_wrap,
 #if defined(POLARSSL_CIPHER_MODE_CBC)
@@ -1152,7 +1152,7 @@ const cipher_base_t blowfish_info = {
     blowfish_ctx_free
 };
 
-const cipher_info_t blowfish_ecb_info = {
+static const cipher_info_t blowfish_ecb_info = {
     POLARSSL_CIPHER_BLOWFISH_ECB,
     POLARSSL_MODE_ECB,
     128,
@@ -1164,7 +1164,7 @@ const cipher_info_t blowfish_ecb_info = {
 };
 
 #if defined(POLARSSL_CIPHER_MODE_CBC)
-const cipher_info_t blowfish_cbc_info = {
+static const cipher_info_t blowfish_cbc_info = {
     POLARSSL_CIPHER_BLOWFISH_CBC,
     POLARSSL_MODE_CBC,
     128,
@@ -1177,7 +1177,7 @@ const cipher_info_t blowfish_cbc_info = {
 #endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
-const cipher_info_t blowfish_cfb64_info = {
+static const cipher_info_t blowfish_cfb64_info = {
     POLARSSL_CIPHER_BLOWFISH_CFB64,
     POLARSSL_MODE_CFB,
     128,
@@ -1190,7 +1190,7 @@ const cipher_info_t blowfish_cfb64_info = {
 #endif /* POLARSSL_CIPHER_MODE_CFB */
 
 #if defined(POLARSSL_CIPHER_MODE_CTR)
-const cipher_info_t blowfish_ctr_info = {
+static const cipher_info_t blowfish_ctr_info = {
     POLARSSL_CIPHER_BLOWFISH_CTR,
     POLARSSL_MODE_CTR,
     128,
@@ -1241,7 +1241,7 @@ static void arc4_ctx_free( void *ctx )
     polarssl_free( ctx );
 }
 
-const cipher_base_t arc4_base_info = {
+static const cipher_base_t arc4_base_info = {
     POLARSSL_CIPHER_ID_ARC4,
     NULL,
 #if defined(POLARSSL_CIPHER_MODE_CBC)
@@ -1262,7 +1262,7 @@ const cipher_base_t arc4_base_info = {
     arc4_ctx_free
 };
 
-const cipher_info_t arc4_128_info = {
+static const cipher_info_t arc4_128_info = {
     POLARSSL_CIPHER_ARC4_128,
     POLARSSL_MODE_STREAM,
     128,
@@ -1304,7 +1304,7 @@ static void null_ctx_free( void *ctx )
     ((void) ctx);
 }
 
-const cipher_base_t null_base_info = {
+static const cipher_base_t null_base_info = {
     POLARSSL_CIPHER_ID_NULL,
     NULL,
 #if defined(POLARSSL_CIPHER_MODE_CBC)
@@ -1325,7 +1325,7 @@ const cipher_base_t null_base_info = {
     null_ctx_free
 };
 
-const cipher_info_t null_cipher_info = {
+static const cipher_info_t null_cipher_info = {
     POLARSSL_CIPHER_NULL,
     POLARSSL_MODE_STREAM,
     0,

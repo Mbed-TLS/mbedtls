@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -34,6 +34,12 @@
 #if defined(POLARSSL_SHA512_C)
 
 #include "polarssl/sha512.h"
+
+#if defined(_MSC_VER) || defined(__WATCOMC__)
+  #define UL64(x) x##ui64
+#else
+  #define UL64(x) x##ULL
+#endif
 
 #include <string.h>
 

@@ -5,7 +5,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -80,10 +80,10 @@ extern "C" {
  * The function pointers for malloc and free
  */
 #if defined(POLARSSL_PLATFORM_MEMORY)
-#if defined(POLARSSL_PLATFORM_FREE_MACRO) &&\
-	defined(POLARSSL_PLATFORM_MALLOC_MACRO)
-#define polarssl_free    POLARSSL_PLATFORM_FREE_MACRO
-#define polarssl_malloc    POLARSSL_PLATFORM_MALLOC_MACRO
+#if defined(POLARSSL_PLATFORM_FREE_MACRO) && \
+    defined(POLARSSL_PLATFORM_MALLOC_MACRO)
+#define polarssl_free       POLARSSL_PLATFORM_FREE_MACRO
+#define polarssl_malloc     POLARSSL_PLATFORM_MALLOC_MACRO
 #else
 extern void * (*polarssl_malloc)( size_t len );
 extern void (*polarssl_free)( void *ptr );
@@ -100,8 +100,8 @@ int platform_set_malloc_free( void * (*malloc_func)( size_t ),
                               void (*free_func)( void * ) );
 #endif /* POLARSSL_PLATFORM_FREE_MACRO && POLARSSL_PLATFORM_MALLOC_MACRO */
 #else /* !POLARSSL_PLATFORM_MEMORY */
-#define polarssl_free    free
-#define polarssl_malloc    malloc
+#define polarssl_free       free
+#define polarssl_malloc     malloc
 #endif /* POLARSSL_PLATFORM_MEMORY && !POLARSSL_PLATFORM_{FREE,MALLOC}_MACRO */
 
 /*

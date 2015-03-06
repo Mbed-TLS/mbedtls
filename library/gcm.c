@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -508,10 +508,10 @@ void gcm_free( gcm_context *ctx )
  */
 #define MAX_TESTS   6
 
-int key_index[MAX_TESTS] =
+static int key_index[MAX_TESTS] =
     { 0, 0, 1, 1, 1, 1 };
 
-unsigned char key[MAX_TESTS][32] =
+static unsigned char key[MAX_TESTS][32] =
 {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -523,13 +523,13 @@ unsigned char key[MAX_TESTS][32] =
       0x6d, 0x6a, 0x8f, 0x94, 0x67, 0x30, 0x83, 0x08 },
 };
 
-size_t iv_len[MAX_TESTS] =
+static size_t iv_len[MAX_TESTS] =
     { 12, 12, 12, 12, 8, 60 };
 
-int iv_index[MAX_TESTS] =
+static int iv_index[MAX_TESTS] =
     { 0, 0, 1, 1, 1, 2 };
 
-unsigned char iv[MAX_TESTS][64] =
+static unsigned char iv[MAX_TESTS][64] =
 {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00 },
@@ -545,13 +545,13 @@ unsigned char iv[MAX_TESTS][64] =
       0xa6, 0x37, 0xb3, 0x9b },
 };
 
-size_t add_len[MAX_TESTS] =
+static size_t add_len[MAX_TESTS] =
     { 0, 0, 0, 20, 20, 20 };
 
-int add_index[MAX_TESTS] =
+static int add_index[MAX_TESTS] =
     { 0, 0, 0, 1, 1, 1 };
 
-unsigned char additional[MAX_TESTS][64] =
+static unsigned char additional[MAX_TESTS][64] =
 {
     { 0x00 },
     { 0xfe, 0xed, 0xfa, 0xce, 0xde, 0xad, 0xbe, 0xef,
@@ -559,13 +559,13 @@ unsigned char additional[MAX_TESTS][64] =
       0xab, 0xad, 0xda, 0xd2 },
 };
 
-size_t pt_len[MAX_TESTS] =
+static size_t pt_len[MAX_TESTS] =
     { 0, 16, 64, 60, 60, 60 };
 
-int pt_index[MAX_TESTS] =
+static int pt_index[MAX_TESTS] =
     { 0, 0, 1, 1, 1, 1 };
 
-unsigned char pt[MAX_TESTS][64] =
+static unsigned char pt[MAX_TESTS][64] =
 {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
@@ -579,7 +579,7 @@ unsigned char pt[MAX_TESTS][64] =
       0xba, 0x63, 0x7b, 0x39, 0x1a, 0xaf, 0xd2, 0x55 },
 };
 
-unsigned char ct[MAX_TESTS * 3][64] =
+static unsigned char ct[MAX_TESTS * 3][64] =
 {
     { 0x00 },
     { 0x03, 0x88, 0xda, 0xce, 0x60, 0xb6, 0xa3, 0x92,
@@ -688,7 +688,7 @@ unsigned char ct[MAX_TESTS * 3][64] =
       0x44, 0xae, 0x7e, 0x3f },
 };
 
-unsigned char tag[MAX_TESTS * 3][16] =
+static unsigned char tag[MAX_TESTS * 3][16] =
 {
     { 0x58, 0xe2, 0xfc, 0xce, 0xfa, 0x7e, 0x30, 0x61,
       0x36, 0x7f, 0x1d, 0x57, 0xa4, 0xe7, 0x45, 0x5a },

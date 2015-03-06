@@ -7,7 +7,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -300,10 +300,10 @@ int pkcs5_self_test( int verbose )
 
 #define MAX_TESTS   6
 
-size_t plen[MAX_TESTS] =
+static size_t plen[MAX_TESTS] =
     { 8, 8, 8, 8, 24, 9 };
 
-unsigned char password[MAX_TESTS][32] =
+static unsigned char password[MAX_TESTS][32] =
 {
     "password",
     "password",
@@ -313,10 +313,10 @@ unsigned char password[MAX_TESTS][32] =
     "pass\0word",
 };
 
-size_t slen[MAX_TESTS] =
+static size_t slen[MAX_TESTS] =
     { 4, 4, 4, 4, 36, 5 };
 
-unsigned char salt[MAX_TESTS][40] =
+static unsigned char salt[MAX_TESTS][40] =
 {
     "salt",
     "salt",
@@ -326,14 +326,13 @@ unsigned char salt[MAX_TESTS][40] =
     "sa\0lt",
 };
 
-uint32_t it_cnt[MAX_TESTS] =
+static uint32_t it_cnt[MAX_TESTS] =
     { 1, 2, 4096, 16777216, 4096, 4096 };
 
-uint32_t key_len[MAX_TESTS] =
+static uint32_t key_len[MAX_TESTS] =
     { 20, 20, 20, 20, 25, 16 };
 
-
-unsigned char result_key[MAX_TESTS][32] =
+static unsigned char result_key[MAX_TESTS][32] =
 {
     { 0x0c, 0x60, 0xc8, 0x0f, 0x96, 0x1f, 0x0e, 0x71,
       0xf3, 0xa9, 0xb5, 0x24, 0xaf, 0x60, 0x12, 0x06,

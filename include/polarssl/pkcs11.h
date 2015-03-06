@@ -117,7 +117,7 @@ int pkcs11_decrypt( pkcs11_context *ctx,
  *
  * \param ctx      PKCS #11 context
  * \param mode     must be RSA_PRIVATE, for compatibility with rsa.c's signature
- * \param md_alg   a POLARSSL_MD_* (use POLARSSL_MD_NONE for signing raw data)
+ * \param md_alg   a POLARSSL_MD_XXX (use POLARSSL_MD_NONE for signing raw data)
  * \param hashlen  message digest length (for POLARSSL_MD_NONE only)
  * \param hash     buffer holding the message digest
  * \param sig      buffer that will hold the ciphertext

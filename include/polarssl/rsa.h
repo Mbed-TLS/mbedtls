@@ -408,7 +408,7 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
  *                               RSA_PRIVATE)
  * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
- * \param md_alg   a POLARSSL_MD_* (use POLARSSL_MD_NONE for signing raw data)
+ * \param md_alg   a POLARSSL_MD_XXX (use POLARSSL_MD_NONE for signing raw data)
  * \param hashlen  message digest length (for POLARSSL_MD_NONE only)
  * \param hash     buffer holding the message digest
  * \param sig      buffer that will hold the ciphertext
@@ -438,7 +438,7 @@ int rsa_pkcs1_sign( rsa_context *ctx,
  * \param f_rng    RNG function (Only needed for RSA_PRIVATE)
  * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
- * \param md_alg   a POLARSSL_MD_* (use POLARSSL_MD_NONE for signing raw data)
+ * \param md_alg   a POLARSSL_MD_XXX (use POLARSSL_MD_NONE for signing raw data)
  * \param hashlen  message digest length (for POLARSSL_MD_NONE only)
  * \param hash     buffer holding the message digest
  * \param sig      buffer that will hold the ciphertext
@@ -466,7 +466,7 @@ int rsa_rsassa_pkcs1_v15_sign( rsa_context *ctx,
  *                               RSA_PRIVATE)
  * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
- * \param md_alg   a POLARSSL_MD_* (use POLARSSL_MD_NONE for signing raw data)
+ * \param md_alg   a POLARSSL_MD_XXX (use POLARSSL_MD_NONE for signing raw data)
  * \param hashlen  message digest length (for POLARSSL_MD_NONE only)
  * \param hash     buffer holding the message digest
  * \param sig      buffer that will hold the ciphertext
@@ -500,7 +500,7 @@ int rsa_rsassa_pss_sign( rsa_context *ctx,
  * \param f_rng    RNG function (Only needed for RSA_PRIVATE)
  * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
- * \param md_alg   a POLARSSL_MD_* (use POLARSSL_MD_NONE for signing raw data)
+ * \param md_alg   a POLARSSL_MD_XXX (use POLARSSL_MD_NONE for signing raw data)
  * \param hashlen  message digest length (for POLARSSL_MD_NONE only)
  * \param hash     buffer holding the message digest
  * \param sig      buffer holding the ciphertext
@@ -530,7 +530,7 @@ int rsa_pkcs1_verify( rsa_context *ctx,
  * \param f_rng    RNG function (Only needed for RSA_PRIVATE)
  * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
- * \param md_alg   a POLARSSL_MD_* (use POLARSSL_MD_NONE for signing raw data)
+ * \param md_alg   a POLARSSL_MD_XXX (use POLARSSL_MD_NONE for signing raw data)
  * \param hashlen  message digest length (for POLARSSL_MD_NONE only)
  * \param hash     buffer holding the message digest
  * \param sig      buffer holding the ciphertext
@@ -558,7 +558,7 @@ int rsa_rsassa_pkcs1_v15_verify( rsa_context *ctx,
  * \param f_rng    RNG function (Only needed for RSA_PRIVATE)
  * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
- * \param md_alg   a POLARSSL_MD_* (use POLARSSL_MD_NONE for signing raw data)
+ * \param md_alg   a POLARSSL_MD_XXX (use POLARSSL_MD_NONE for signing raw data)
  * \param hashlen  message digest length (for POLARSSL_MD_NONE only)
  * \param hash     buffer holding the message digest
  * \param sig      buffer holding the ciphertext
@@ -592,7 +592,7 @@ int rsa_rsassa_pss_verify( rsa_context *ctx,
  * \param f_rng    RNG function (Only needed for RSA_PRIVATE)
  * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
- * \param md_alg   a POLARSSL_MD_* (use POLARSSL_MD_NONE for signing raw data)
+ * \param md_alg   a POLARSSL_MD_XXX (use POLARSSL_MD_NONE for signing raw data)
  * \param hashlen  message digest length (for POLARSSL_MD_NONE only)
  * \param hash     buffer holding the message digest
  * \param mgf1_hash_id message digest used for mask generation

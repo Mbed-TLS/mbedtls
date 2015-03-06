@@ -2124,7 +2124,7 @@
  *          library/ssl_srv.c
  *
  * Requires: POLARSSL_CIPHER_C, POLARSSL_MD_C
- *           and at least one of the POLARSSL_SSL_PROTO_* defines
+ *           and at least one of the POLARSSL_SSL_PROTO_XXX defines
  *
  * This module is required for SSL/TLS.
  */

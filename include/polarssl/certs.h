@@ -33,7 +33,7 @@ extern const char test_ca_list[];
 
 /*
  * Convenience for users who just want a certificate:
- * RSA by default, or ECDSA if RSA i not available
+ * RSA by default, or ECDSA if RSA is not available
  */
 extern const char *test_ca_crt;
 extern const char *test_ca_key;

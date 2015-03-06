@@ -103,7 +103,7 @@
 #error "POLARSSL_HAVEGE_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_HMAC_DRBG) && !defined(POLARSSL_MD_C)
+#if defined(POLARSSL_HMAC_DRBG_C) && !defined(POLARSSL_MD_C)
 #error "POLARSSL_HMAC_DRBG_C defined, but not all prerequisites"
 #endif
 
@@ -436,7 +436,7 @@
 #if defined(POLARSSL_SSL_SESSION_TICKETS) && defined(POLARSSL_SSL_TLS_C) && \
     ( !defined(POLARSSL_AES_C) || !defined(POLARSSL_SHA256_C) ||            \
       !defined(POLARSSL_CIPHER_MODE_CBC) )
-#error "POLARSSL_SSL_SESSION_TICKETS_C defined, but not all prerequisites"
+#error "POLARSSL_SSL_SESSION_TICKETS defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_SSL_CBC_RECORD_SPLITTING) && \

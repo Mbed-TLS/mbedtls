@@ -64,7 +64,7 @@ int threading_set_alt( int (*mutex_init)( threading_mutex_t * ),
                        int (*mutex_free)( threading_mutex_t * ),
                        int (*mutex_lock)( threading_mutex_t * ),
                        int (*mutex_unlock)( threading_mutex_t * ) );
-#endif /* POLARSSL_THREADING_ALT_C */
+#endif /* POLARSSL_THREADING_ALT */
 
 /*
  * The function pointers for mutex_init, mutex_free, mutex_ and mutex_unlock

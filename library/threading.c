@@ -105,6 +105,6 @@ int threading_set_alt( int (*mutex_init)( threading_mutex_t * ),
 
     return( 0 );
 }
-#endif /* POLARSSL_THREADING_ALT_C */
+#endif /* POLARSSL_THREADING_ALT */
 
 #endif /* POLARSSL_THREADING_C */

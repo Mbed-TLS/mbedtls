@@ -128,4 +128,4 @@ int ccm_self_test( int verbose );
 }
 #endif
 
-#endif /* POLARSSL_CGM_H */
+#endif /* POLARSSL_CCM_H */

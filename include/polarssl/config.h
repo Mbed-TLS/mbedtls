@@ -817,7 +817,7 @@
  *
  * Enable sending of all alert messages
  */
-#define POLARSSL_SSL_ALERT_MESSAGES
+#define POLARSSL_SSL_ALL_ALERT_MESSAGES
 
 /**
  * \def POLARSSL_SSL_DEBUG_ALL
@@ -2255,7 +2255,7 @@
  *
  * Module:  library/x509_crt_write.c
  *
- * Requires: POLARSSL_CREATE_C
+ * Requires: POLARSSL_X509_CREATE_C
  *
  * This module is required for X.509 certificate creation.
  */
@@ -2268,7 +2268,7 @@
  *
  * Module:  library/x509_csr_write.c
  *
- * Requires: POLARSSL_CREATE_C
+ * Requires: POLARSSL_X509_CREATE_C
  *
  * This module is required for X.509 certificate request writing.
  */

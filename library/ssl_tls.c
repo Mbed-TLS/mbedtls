@@ -3485,7 +3485,7 @@ read_record_header:
 #endif
         {
             /* Error out (and send alert) on invalid records */
-#if defined(POLARSSL_SSL_ALERT_MESSAGES)
+#if defined(POLARSSL_SSL_ALL_ALERT_MESSAGES)
             if( ret == POLARSSL_ERR_SSL_INVALID_MAC )
             {
                 ssl_send_alert_message( ssl,

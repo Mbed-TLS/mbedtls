@@ -174,7 +174,7 @@ int x509_crt_parse_file( x509_crt *chain, const char *path );
  *                 correctly, the first error is returned.
  *
  * \warning        This function is NOT thread-safe unless
- *                 POLARSSL_THREADING_PTHREADS is defined. If you're using an
+ *                 POLARSSL_THREADING_PTHREAD is defined. If you're using an
  *                 alternative threading implementation, you should either use
  *                 this function only in the main thread, or mutex it.
  *

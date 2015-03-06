@@ -328,7 +328,7 @@
 #define SSL_COMPRESSION_ADD             0
 #endif
 
-#if defined(POLARSSL_RC4_C) || defined(POLARSSL_CIPHER_MODE_CBC)
+#if defined(POLARSSL_ARC4_C) || defined(POLARSSL_CIPHER_MODE_CBC)
 /* Ciphersuites using HMAC */
 #if defined(POLARSSL_SHA512_C)
 #define SSL_MAC_ADD                 48  /* SHA-384 used for HMAC */
@@ -1389,7 +1389,7 @@ void ssl_set_dtls_anti_replay( ssl_context *ssl, char mode );
  *                 many bogus packets.
  */
 void ssl_set_dtls_badmac_limit( ssl_context *ssl, unsigned limit );
-#endif /* POLARSSL_DTLS_BADMAC_LIMIT */
+#endif /* POLARSSL_SSL_DTLS_BADMAC_LIMIT */
 
 #if defined(POLARSSL_SSL_PROTO_DTLS)
 /**

@@ -125,7 +125,7 @@ void memory_buffer_alloc_cur_get( size_t *cur_used, size_t *cur_blocks );
  *          and contain sane values. Helps debug buffer-overflow errors.
  *
  *          Prints out first failure if POLARSSL_MEMORY_DEBUG is defined.
- *          Prints out full header information if POLARSSL_MEMORY_DEBUG_HEADERS
+ *          Prints out full header information if POLARSSL_MEMORY_DEBUG
  *          is defined. (Includes stack trace information for each block if
  *          POLARSSL_MEMORY_BACKTRACE is defined as well).
  *

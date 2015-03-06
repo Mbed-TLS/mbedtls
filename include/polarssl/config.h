@@ -2034,7 +2034,6 @@
  * \def POLARSSL_SHA256_C
  *
  * Enable the SHA-224 and SHA-256 cryptographic hash algorithms.
- * (Used to be POLARSSL_SHA2_C)
  *
  * Module:  library/sha256.c
  * Caller:  library/entropy.c
@@ -2052,7 +2051,6 @@
  * \def POLARSSL_SHA512_C
  *
  * Enable the SHA-384 and SHA-512 cryptographic hash algorithms.
- * (Used to be POLARSSL_SHA4_C)
  *
  * Module:  library/sha512.c
  * Caller:  library/entropy.c

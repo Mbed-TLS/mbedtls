@@ -5,7 +5,7 @@ README for mbed TLS
 Configuration
 =============
 
-mbed TLS should build out of the box on most systems. Some platform specific options are available in the fully-documented configuration file *include/polarssl/config.h*, which is also the place where features can be selected.
+mbed TLS should build out of the box on most systems. Some platform specific options are available in the fully-documented configuration file *include/mbedtls/config.h*, which is also the place where features can be selected.
 This file can be edited manually, or in a more programmatic way using the Perl
 script *scripts/config.pl* (use *--help* for usage instructions).
 

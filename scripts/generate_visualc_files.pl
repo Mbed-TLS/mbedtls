@@ -28,7 +28,7 @@ my $vsx_sln_tpl_file = "scripts/data_files/vs2010-sln-template.sln";
 my $vsx_sln_file = "$vsx_dir/mbedTLS.sln";
 
 my $programs_dir = 'programs';
-my $header_dir = 'include/polarssl';
+my $header_dir = 'include/mbedtls';
 my $source_dir = 'library';
 
 # Need windows line endings!

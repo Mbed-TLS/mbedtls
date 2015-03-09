@@ -1,7 +1,7 @@
 #include <string.h>
 
 #if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
+#include "mbedtls/platform.h"
 #else
 #include <stdio.h>
 #define polarssl_exit       exit
@@ -12,7 +12,7 @@
 #endif
 
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
-#include "polarssl/memory_buffer_alloc.h"
+#include "mbedtls/memory_buffer_alloc.h"
 #endif
 
 static int test_errors = 0;

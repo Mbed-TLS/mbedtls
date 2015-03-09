@@ -27,20 +27,20 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_RSA_C)
 
-#include "polarssl/rsa.h"
-#include "polarssl/oid.h"
+#include "mbedtls/rsa.h"
+#include "mbedtls/oid.h"
 
 #include <string.h>
 
 #if defined(POLARSSL_PKCS1_V21)
-#include "polarssl/md.h"
+#include "mbedtls/md.h"
 #endif
 
 #if defined(POLARSSL_PKCS1_V15) && !defined(__OpenBSD__)
@@ -48,7 +48,7 @@
 #endif
 
 #if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
+#include "mbedtls/platform.h"
 #else
 #include <stdio.h>
 #define polarssl_printf printf
@@ -1471,7 +1471,7 @@ void rsa_free( rsa_context *ctx )
 
 #if defined(POLARSSL_SELF_TEST)
 
-#include "polarssl/sha1.h"
+#include "mbedtls/sha1.h"
 
 /*
  * Example RSA-1024 keypair, for test purposes

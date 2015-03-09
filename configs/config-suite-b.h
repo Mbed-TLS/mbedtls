@@ -85,12 +85,12 @@
 
 /*
  * Save RAM at the expense of interoperability: do this only if you control
- * both ends of the connection!  (See coments in "polarssl/ssl.h".)
+ * both ends of the connection!  (See coments in "mbedtls/ssl.h".)
  * The minimum size here depends on the certificate chain used as well as the
  * typical size of records.
  */
 #define SSL_MAX_CONTENT_LEN             1024
 
-#include "polarssl/check_config.h"
+#include "mbedtls/check_config.h"
 
 #endif /* POLARSSL_CONFIG_H */

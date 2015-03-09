@@ -1,6 +1,6 @@
 /* BEGIN_HEADER */
-#include "polarssl/base64.h"
-#include "polarssl/pem.h"
+#include "mbedtls/base64.h"
+#include "mbedtls/pem.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

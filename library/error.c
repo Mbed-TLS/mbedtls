@@ -21,18 +21,18 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_ERROR_C) || defined(POLARSSL_ERROR_STRERROR_DUMMY)
-#include "polarssl/error.h"
+#include "mbedtls/error.h"
 #include <string.h>
 #endif
 
 #if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
+#include "mbedtls/platform.h"
 #else
 #define polarssl_snprintf snprintf
 #endif
@@ -42,143 +42,143 @@
 #include <stdio.h>
 
 #if defined(POLARSSL_AES_C)
-#include "polarssl/aes.h"
+#include "mbedtls/aes.h"
 #endif
 
 #if defined(POLARSSL_BASE64_C)
-#include "polarssl/base64.h"
+#include "mbedtls/base64.h"
 #endif
 
 #if defined(POLARSSL_BIGNUM_C)
-#include "polarssl/bignum.h"
+#include "mbedtls/bignum.h"
 #endif
 
 #if defined(POLARSSL_BLOWFISH_C)
-#include "polarssl/blowfish.h"
+#include "mbedtls/blowfish.h"
 #endif
 
 #if defined(POLARSSL_CAMELLIA_C)
-#include "polarssl/camellia.h"
+#include "mbedtls/camellia.h"
 #endif
 
 #if defined(POLARSSL_CCM_C)
-#include "polarssl/ccm.h"
+#include "mbedtls/ccm.h"
 #endif
 
 #if defined(POLARSSL_CIPHER_C)
-#include "polarssl/cipher.h"
+#include "mbedtls/cipher.h"
 #endif
 
 #if defined(POLARSSL_CTR_DRBG_C)
-#include "polarssl/ctr_drbg.h"
+#include "mbedtls/ctr_drbg.h"
 #endif
 
 #if defined(POLARSSL_DES_C)
-#include "polarssl/des.h"
+#include "mbedtls/des.h"
 #endif
 
 #if defined(POLARSSL_DHM_C)
-#include "polarssl/dhm.h"
+#include "mbedtls/dhm.h"
 #endif
 
 #if defined(POLARSSL_ECP_C)
-#include "polarssl/ecp.h"
+#include "mbedtls/ecp.h"
 #endif
 
 #if defined(POLARSSL_ENTROPY_C)
-#include "polarssl/entropy.h"
+#include "mbedtls/entropy.h"
 #endif
 
 #if defined(POLARSSL_GCM_C)
-#include "polarssl/gcm.h"
+#include "mbedtls/gcm.h"
 #endif
 
 #if defined(POLARSSL_HMAC_DRBG_C)
-#include "polarssl/hmac_drbg.h"
+#include "mbedtls/hmac_drbg.h"
 #endif
 
 #if defined(POLARSSL_MD_C)
-#include "polarssl/md.h"
+#include "mbedtls/md.h"
 #endif
 
 #if defined(POLARSSL_MD2_C)
-#include "polarssl/md2.h"
+#include "mbedtls/md2.h"
 #endif
 
 #if defined(POLARSSL_MD4_C)
-#include "polarssl/md4.h"
+#include "mbedtls/md4.h"
 #endif
 
 #if defined(POLARSSL_MD5_C)
-#include "polarssl/md5.h"
+#include "mbedtls/md5.h"
 #endif
 
 #if defined(POLARSSL_NET_C)
-#include "polarssl/net.h"
+#include "mbedtls/net.h"
 #endif
 
 #if defined(POLARSSL_OID_C)
-#include "polarssl/oid.h"
+#include "mbedtls/oid.h"
 #endif
 
 #if defined(POLARSSL_PADLOCK_C)
-#include "polarssl/padlock.h"
+#include "mbedtls/padlock.h"
 #endif
 
 #if defined(POLARSSL_PBKDF2_C)
-#include "polarssl/pbkdf2.h"
+#include "mbedtls/pbkdf2.h"
 #endif
 
 #if defined(POLARSSL_PEM_PARSE_C) || defined(POLARSSL_PEM_WRITE_C)
-#include "polarssl/pem.h"
+#include "mbedtls/pem.h"
 #endif
 
 #if defined(POLARSSL_PK_C)
-#include "polarssl/pk.h"
+#include "mbedtls/pk.h"
 #endif
 
 #if defined(POLARSSL_PKCS12_C)
-#include "polarssl/pkcs12.h"
+#include "mbedtls/pkcs12.h"
 #endif
 
 #if defined(POLARSSL_PKCS5_C)
-#include "polarssl/pkcs5.h"
+#include "mbedtls/pkcs5.h"
 #endif
 
 #if defined(POLARSSL_RIPEMD160_C)
-#include "polarssl/ripemd160.h"
+#include "mbedtls/ripemd160.h"
 #endif
 
 #if defined(POLARSSL_RSA_C)
-#include "polarssl/rsa.h"
+#include "mbedtls/rsa.h"
 #endif
 
 #if defined(POLARSSL_SHA1_C)
-#include "polarssl/sha1.h"
+#include "mbedtls/sha1.h"
 #endif
 
 #if defined(POLARSSL_SHA256_C)
-#include "polarssl/sha256.h"
+#include "mbedtls/sha256.h"
 #endif
 
 #if defined(POLARSSL_SHA512_C)
-#include "polarssl/sha512.h"
+#include "mbedtls/sha512.h"
 #endif
 
 #if defined(POLARSSL_SSL_TLS_C)
-#include "polarssl/ssl.h"
+#include "mbedtls/ssl.h"
 #endif
 
 #if defined(POLARSSL_THREADING_C)
-#include "polarssl/threading.h"
+#include "mbedtls/threading.h"
 #endif
 
 #if defined(POLARSSL_X509_USE_C) || defined(POLARSSL_X509_CREATE_C)
-#include "polarssl/x509.h"
+#include "mbedtls/x509.h"
 #endif
 
 #if defined(POLARSSL_XTEA_C)
-#include "polarssl/xtea.h"
+#include "mbedtls/xtea.h"
 #endif
 
 #if defined(_MSC_VER) && !defined  snprintf && !defined(EFIX64) && \

@@ -28,15 +28,15 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_HAVEGE_C)
 
-#include "polarssl/havege.h"
-#include "polarssl/timing.h"
+#include "mbedtls/havege.h"
+#include "mbedtls/timing.h"
 
 #include <string.h>
 

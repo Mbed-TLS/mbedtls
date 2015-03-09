@@ -36,6 +36,6 @@
 #define POLARSSL_SSL_SRV_C
 #define POLARSSL_SSL_TLS_C
 
-#include "polarssl/check_config.h"
+#include "mbedtls/check_config.h"
 
 #endif /* POLARSSL_CONFIG_H */

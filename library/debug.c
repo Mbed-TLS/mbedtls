@@ -21,14 +21,14 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_DEBUG_C)
 
-#include "polarssl/debug.h"
+#include "mbedtls/debug.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -45,7 +45,7 @@
 #endif /* _MSC_VER */
 
 #if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
+#include "mbedtls/platform.h"
 #else
 #define polarssl_snprintf snprintf
 #endif

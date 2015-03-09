@@ -28,20 +28,20 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_BIGNUM_C)
 
-#include "polarssl/bignum.h"
-#include "polarssl/bn_mul.h"
+#include "mbedtls/bignum.h"
+#include "mbedtls/bn_mul.h"
 
 #include <string.h>
 
 #if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
+#include "mbedtls/platform.h"
 #else
 #include <stdio.h>
 #include <stdlib.h>

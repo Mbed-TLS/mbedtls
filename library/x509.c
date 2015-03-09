@@ -31,26 +31,26 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_X509_USE_C)
 
-#include "polarssl/x509.h"
-#include "polarssl/asn1.h"
-#include "polarssl/oid.h"
+#include "mbedtls/x509.h"
+#include "mbedtls/asn1.h"
+#include "mbedtls/oid.h"
 
 #include <stdio.h>
 #include <string.h>
 
 #if defined(POLARSSL_PEM_PARSE_C)
-#include "polarssl/pem.h"
+#include "mbedtls/pem.h"
 #endif
 
 #if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
+#include "mbedtls/platform.h"
 #else
 #include <stdio.h>
 #include <stdlib.h>
@@ -1009,8 +1009,8 @@ int x509_time_future( const x509_time *from )
 
 #if defined(POLARSSL_SELF_TEST)
 
-#include "polarssl/x509_crt.h"
-#include "polarssl/certs.h"
+#include "mbedtls/x509_crt.h"
+#include "mbedtls/certs.h"
 
 /*
  * Checkup routine

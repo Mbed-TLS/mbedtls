@@ -27,7 +27,7 @@ TESTS=0
 FAILS=0
 SKIPS=0
 
-CONFIG_H='../include/polarssl/config.h'
+CONFIG_H='../include/mbedtls/config.h'
 
 MEMCHECK=0
 FILTER='.*'

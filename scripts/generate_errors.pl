@@ -16,7 +16,7 @@ if( @ARGV ) {
     -d $include_dir or die "No such directory: $include_dir\n";
     -d $data_dir or die "No such directory: $data_dir\n";
 } else {
-    $include_dir = 'include/polarssl';
+    $include_dir = 'include/mbedtls';
     $data_dir = 'scripts/data_files';
     $error_file = 'library/error.c';
 
@@ -143,7 +143,7 @@ while (my $line = <GREP>)
                                                     ($include_name ne "");
         }
         ${$code_check} .= "\n";
-        $headers .= "\n#include \"polarssl/${include_name}.h\"\n".
+        $headers .= "\n#include \"mbedtls/${include_name}.h\"\n".
                     "#endif\n\n" if ($include_name ne "");
         ${$old_define} = $define_name;
     }

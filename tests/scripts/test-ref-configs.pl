@@ -42,7 +42,7 @@ if ($#ARGV >= 0) {
 
 my $test = system( "grep -i cmake Makefile >/dev/null" ) ? 'check' : 'test';
 
-my $config_h = 'include/polarssl/config.h';
+my $config_h = 'include/mbedtls/config.h';
 
 system( "cp $config_h $config_h.bak" ) and die;
 sub abort {

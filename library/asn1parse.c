@@ -21,23 +21,23 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_ASN1_PARSE_C)
 
-#include "polarssl/asn1.h"
+#include "mbedtls/asn1.h"
 
 #include <string.h>
 
 #if defined(POLARSSL_BIGNUM_C)
-#include "polarssl/bignum.h"
+#include "mbedtls/bignum.h"
 #endif
 
 #if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
+#include "mbedtls/platform.h"
 #else
 #include <stdlib.h>
 #define polarssl_malloc     malloc

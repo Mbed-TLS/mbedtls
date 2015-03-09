@@ -21,14 +21,14 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_ECP_C)
 
-#include "polarssl/ecp.h"
+#include "mbedtls/ecp.h"
 
 #include <string.h>
 

@@ -25,15 +25,15 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_MD_C)
 
-#include "polarssl/md.h"
-#include "polarssl/md_wrap.h"
+#include "mbedtls/md.h"
+#include "mbedtls/md_wrap.h"
 
 #include <stdlib.h>
 #include <string.h>

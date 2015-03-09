@@ -17,8 +17,8 @@ lib:
 	cd library  && $(MAKE) all && cd ..
 
 install:
-	mkdir -p $(DESTDIR)/include/polarssl
-	cp -r include/polarssl $(DESTDIR)/include
+	mkdir -p $(DESTDIR)/include/mbedtls
+	cp -r include/mbedtls $(DESTDIR)/include
 	
 	mkdir -p $(DESTDIR)/lib
 	cp library/libmbedtls.* $(DESTDIR)/lib
@@ -34,7 +34,7 @@ install:
 	done
 
 uninstall:
-	rm -rf $(DESTDIR)/include/polarssl
+	rm -rf $(DESTDIR)/include/mbedtls
 	rm -f $(DESTDIR)/lib/libmbedtls.*
 	
 	for p in programs/*/* ; do              \

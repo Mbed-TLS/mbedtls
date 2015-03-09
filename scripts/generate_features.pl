@@ -12,7 +12,7 @@ if( @ARGV ) {
     -d $include_dir or die "No such directory: $include_dir\n";
     -d $data_dir or die "No such directory: $data_dir\n";
 } else {
-    $include_dir = 'include/polarssl';
+    $include_dir = 'include/mbedtls';
     $data_dir = 'scripts/data_files';
     $feature_file = 'library/version_features.c';
 

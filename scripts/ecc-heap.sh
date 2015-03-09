@@ -9,7 +9,7 @@
 
 set -eu
 
-CONFIG_H='include/polarssl/config.h'
+CONFIG_H='include/mbedtls/config.h'
 
 if [ -r $CONFIG_H ]; then :; else
     echo "$CONFIG_H not found" >&2

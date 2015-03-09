@@ -31,25 +31,25 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
 
-#include "polarssl/x509_crt.h"
-#include "polarssl/oid.h"
+#include "mbedtls/x509_crt.h"
+#include "mbedtls/oid.h"
 
 #include <stdio.h>
 #include <string.h>
 
 #if defined(POLARSSL_PEM_PARSE_C)
-#include "polarssl/pem.h"
+#include "mbedtls/pem.h"
 #endif
 
 #if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
+#include "mbedtls/platform.h"
 #else
 #include <stdlib.h>
 #define polarssl_free       free
@@ -58,7 +58,7 @@
 #endif
 
 #if defined(POLARSSL_THREADING_C)
-#include "polarssl/threading.h"
+#include "mbedtls/threading.h"
 #endif
 
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)

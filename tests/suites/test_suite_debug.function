@@ -1,5 +1,5 @@
 /* BEGIN_HEADER */
-#include "polarssl/debug.h"
+#include "mbedtls/debug.h"
 
 struct buffer_data
 {

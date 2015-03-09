@@ -75,7 +75,7 @@
  * Used in:
  *      library/timing.c
  *      library/padlock.c
- *      include/polarssl/bn_mul.h
+ *      include/mbedtls/bn_mul.h
  *
  * Comment to disable the use of assembly code.
  */

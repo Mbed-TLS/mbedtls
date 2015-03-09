@@ -21,23 +21,23 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_PK_C)
-#include "polarssl/pk.h"
-#include "polarssl/pk_wrap.h"
+#include "mbedtls/pk.h"
+#include "mbedtls/pk_wrap.h"
 
 #if defined(POLARSSL_RSA_C)
-#include "polarssl/rsa.h"
+#include "mbedtls/rsa.h"
 #endif
 #if defined(POLARSSL_ECP_C)
-#include "polarssl/ecp.h"
+#include "mbedtls/ecp.h"
 #endif
 #if defined(POLARSSL_ECDSA_C)
-#include "polarssl/ecdsa.h"
+#include "mbedtls/ecdsa.h"
 #endif
 
 /* Implementation that should never be optimized out by the compiler */

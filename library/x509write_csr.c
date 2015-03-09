@@ -26,22 +26,22 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_X509_CSR_WRITE_C)
 
-#include "polarssl/x509_csr.h"
-#include "polarssl/oid.h"
-#include "polarssl/asn1write.h"
+#include "mbedtls/x509_csr.h"
+#include "mbedtls/oid.h"
+#include "mbedtls/asn1write.h"
 
 #include <string.h>
 #include <stdlib.h>
 
 #if defined(POLARSSL_PEM_WRITE_C)
-#include "polarssl/pem.h"
+#include "mbedtls/pem.h"
 #endif
 
 /* Implementation that should never be optimized out by the compiler */

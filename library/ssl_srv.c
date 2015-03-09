@@ -21,24 +21,24 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_SSL_SRV_C)
 
-#include "polarssl/debug.h"
-#include "polarssl/ssl.h"
+#include "mbedtls/debug.h"
+#include "mbedtls/ssl.h"
 
 #include <string.h>
 
 #if defined(POLARSSL_ECP_C)
-#include "polarssl/ecp.h"
+#include "mbedtls/ecp.h"
 #endif
 
 #if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
+#include "mbedtls/platform.h"
 #else
 #include <stdlib.h>
 #define polarssl_malloc     malloc

@@ -21,20 +21,20 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
+#include "mbedtls/platform.h"
 #else
 #include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
 #if defined(POLARSSL_MD5_C)
-#include "polarssl/md5.h"
+#include "mbedtls/md5.h"
 #endif
 
 #if !defined(POLARSSL_MD5_C)

@@ -36,7 +36,7 @@ POLARSSL_PKCS11_C
 _ALT\s*$
 );
 
-my $config_file = "include/polarssl/config.h";
+my $config_file = "include/mbedtls/config.h";
 
 # get -f option
 if (@ARGV >= 2 && $ARGV[0] eq "-f") {

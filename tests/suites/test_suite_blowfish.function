@@ -1,5 +1,5 @@
 /* BEGIN_HEADER */
-#include "polarssl/blowfish.h"
+#include "mbedtls/blowfish.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

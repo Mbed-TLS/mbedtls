@@ -13,7 +13,7 @@ use strict;
 use File::Basename;
 
 # header files in the following directories will be checked
-my @directories = qw(include/polarssl library doxygen/input);
+my @directories = qw(include/mbedtls library doxygen/input);
 
 # very naive pattern to find directives:
 # everything with a backslach except '\0' and backslash at EOL

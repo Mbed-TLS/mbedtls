@@ -21,13 +21,13 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
+#include "mbedtls/platform.h"
 #else
 #include <stdio.h>
 #define polarssl_free       free
@@ -36,8 +36,8 @@
 #endif
 
 #if defined(POLARSSL_BASE64_C) && defined(POLARSSL_FS_IO)
-#include "polarssl/error.h"
-#include "polarssl/base64.h"
+#include "mbedtls/error.h"
+#include "mbedtls/base64.h"
 
 #include <stdio.h>
 #include <stdlib.h>

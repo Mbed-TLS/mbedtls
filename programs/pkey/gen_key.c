@@ -21,13 +21,13 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
+#include "mbedtls/platform.h"
 #else
 #include <stdio.h>
 #define polarssl_printf     printf
@@ -35,13 +35,13 @@
 
 #if defined(POLARSSL_PK_WRITE_C) && defined(POLARSSL_FS_IO) && \
     defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_CTR_DRBG_C)
-#include "polarssl/error.h"
-#include "polarssl/pk.h"
-#include "polarssl/ecdsa.h"
-#include "polarssl/rsa.h"
-#include "polarssl/error.h"
-#include "polarssl/entropy.h"
-#include "polarssl/ctr_drbg.h"
+#include "mbedtls/error.h"
+#include "mbedtls/pk.h"
+#include "mbedtls/ecdsa.h"
+#include "mbedtls/rsa.h"
+#include "mbedtls/error.h"
+#include "mbedtls/entropy.h"
+#include "mbedtls/ctr_drbg.h"
 
 #include <stdio.h>
 #include <stdlib.h>

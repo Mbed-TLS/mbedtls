@@ -17,7 +17,7 @@ if [ -d library -a -d include -a -d tests ]; then :; else
     exit 1
 fi
 
-CONFIG_H='include/polarssl/config.h'
+CONFIG_H='include/mbedtls/config.h'
 CONFIG_BAK="$CONFIG_H.bak"
 
 MEMORY=0
@@ -42,7 +42,7 @@ cleanup()
     make clean
 
     find . -iname '*cmake*' -not -name CMakeLists.txt -exec rm -rf {} \+
-    rm -f include/Makefile include/polarssl/Makefile programs/*/Makefile
+    rm -f include/Makefile include/mbedtls/Makefile programs/*/Makefile
     git update-index --no-skip-worktree Makefile library/Makefile programs/Makefile tests/Makefile
     git checkout -- Makefile library/Makefile programs/Makefile tests/Makefile
 

@@ -60,10 +60,10 @@ then
   mv tmp library/Makefile
 fi
 
-[ $VERBOSE ] && echo "Bumping VERSION in include/polarssl/version.h"
+[ $VERBOSE ] && echo "Bumping VERSION in include/mbedtls/version.h"
 read MAJOR MINOR PATCH <<<$(IFS="."; echo $VERSION)
 VERSION_NR="$( printf "0x%02X%02X%02X00" $MAJOR $MINOR $PATCH )"
-cat include/polarssl/version.h |                                    \
+cat include/mbedtls/version.h |                                    \
     sed -e "s/_VERSION_MAJOR .\+/_VERSION_MAJOR  $MAJOR/" |    \
     sed -e "s/_VERSION_MINOR .\+/_VERSION_MINOR  $MINOR/" |    \
     sed -e "s/_VERSION_PATCH .\+/_VERSION_PATCH  $PATCH/" |    \
@@ -71,7 +71,7 @@ cat include/polarssl/version.h |                                    \
     sed -e "s/_VERSION_STRING .\+/_VERSION_STRING         \"$VERSION\"/" |    \
     sed -e "s/_VERSION_STRING_FULL .\+/_VERSION_STRING_FULL    \"mbed TLS $VERSION\"/" \
     > tmp
-mv tmp include/polarssl/version.h
+mv tmp include/mbedtls/version.h
 
 [ $VERBOSE ] && echo "Bumping version in tests/suites/test_suite_version.data"
 sed -e "s/version:\".\+/version:\"$VERSION\"/g" < tests/suites/test_suite_version.data > tmp

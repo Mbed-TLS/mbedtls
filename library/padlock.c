@@ -27,14 +27,14 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_PADLOCK_C)
 
-#include "polarssl/padlock.h"
+#include "mbedtls/padlock.h"
 
 #include <string.h>
 

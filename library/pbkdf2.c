@@ -32,15 +32,15 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_PBKDF2_C)
 
-#include "polarssl/pbkdf2.h"
-#include "polarssl/pkcs5.h"
+#include "mbedtls/pbkdf2.h"
+#include "mbedtls/pkcs5.h"
 
 int pbkdf2_hmac( md_context_t *ctx, const unsigned char *password, size_t plen,
                  const unsigned char *salt, size_t slen,

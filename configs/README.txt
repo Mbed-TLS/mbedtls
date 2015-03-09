@@ -7,9 +7,9 @@ this target. They can be used as a basis for custom configurations.
 These files are complete replacements for the default config.h. To use one of
 them, you can pick one of the following methods:
 
-1. Replace the default file include/polarssl/config.h with the chosen one.
+1. Replace the default file include/mbedtls/config.h with the chosen one.
    (Depending on your compiler, you may need to ajust the line with
-   #include "polarssl/check_config.h" then.)
+   #include "mbedtls/check_config.h" then.)
 
 2. Define POLARSSL_CONFIG_FILE and adjust the include path accordingly.
    For example, using make:

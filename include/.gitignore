@@ -1,4 +1,4 @@
 Makefile
 *.sln
 *.vcxproj
-polarssl/check_config
+mbedtls/check_config

@@ -21,14 +21,14 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_THREADING_C)
 
-#include "polarssl/threading.h"
+#include "mbedtls/threading.h"
 
 #if defined(POLARSSL_THREADING_PTHREAD)
 static int threading_mutex_init_pthread( threading_mutex_t *mutex )

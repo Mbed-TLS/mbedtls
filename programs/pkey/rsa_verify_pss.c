@@ -21,13 +21,13 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
+#include "mbedtls/platform.h"
 #else
 #include <stdio.h>
 #define polarssl_snprintf   snprintf
@@ -38,11 +38,11 @@
 #if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_RSA_C) && \
     defined(POLARSSL_SHA256_C) && defined(POLARSSL_PK_PARSE_C) && \
     defined(POLARSSL_FS_IO)
-#include "polarssl/md.h"
-#include "polarssl/pem.h"
-#include "polarssl/pk.h"
-#include "polarssl/sha1.h"
-#include "polarssl/x509.h"
+#include "mbedtls/md.h"
+#include "mbedtls/pem.h"
+#include "mbedtls/pk.h"
+#include "mbedtls/sha1.h"
+#include "mbedtls/x509.h"
 
 #include <stdio.h>
 #include <string.h>

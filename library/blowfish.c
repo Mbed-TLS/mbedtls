@@ -27,14 +27,14 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_BLOWFISH_C)
 
-#include "polarssl/blowfish.h"
+#include "mbedtls/blowfish.h"
 
 #include <string.h>
 

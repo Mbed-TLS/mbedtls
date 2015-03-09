@@ -24,16 +24,16 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "polarssl/pkcs11.h"
+#include "mbedtls/pkcs11.h"
 
 #if defined(POLARSSL_PKCS11_C)
 
-#include "polarssl/md.h"
-#include "polarssl/oid.h"
-#include "polarssl/x509_crt.h"
+#include "mbedtls/md.h"
+#include "mbedtls/oid.h"
+#include "mbedtls/x509_crt.h"
 
 #if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
+#include "mbedtls/platform.h"
 #else
 #include <stdlib.h>
 #define polarssl_malloc     malloc

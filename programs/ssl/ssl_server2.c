@@ -21,13 +21,13 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
+#include "mbedtls/platform.h"
 #else
 #include <stdio.h>
 #define polarssl_free       free
@@ -47,14 +47,14 @@
 #if defined(POLARSSL_ENTROPY_C) && \
     defined(POLARSSL_SSL_TLS_C) && defined(POLARSSL_SSL_SRV_C) && \
     defined(POLARSSL_NET_C) && defined(POLARSSL_CTR_DRBG_C)
-#include "polarssl/net.h"
-#include "polarssl/ssl.h"
-#include "polarssl/entropy.h"
-#include "polarssl/ctr_drbg.h"
-#include "polarssl/certs.h"
-#include "polarssl/x509.h"
-#include "polarssl/error.h"
-#include "polarssl/debug.h"
+#include "mbedtls/net.h"
+#include "mbedtls/ssl.h"
+#include "mbedtls/entropy.h"
+#include "mbedtls/ctr_drbg.h"
+#include "mbedtls/certs.h"
+#include "mbedtls/x509.h"
+#include "mbedtls/error.h"
+#include "mbedtls/debug.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -66,15 +66,15 @@
 #endif
 
 #if defined(POLARSSL_SSL_CACHE_C)
-#include "polarssl/ssl_cache.h"
+#include "mbedtls/ssl_cache.h"
 #endif
 
 #if defined(POLARSSL_SSL_COOKIE_C)
-#include "polarssl/ssl_cookie.h"
+#include "mbedtls/ssl_cookie.h"
 #endif
 
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
-#include "polarssl/memory_buffer_alloc.h"
+#include "mbedtls/memory_buffer_alloc.h"
 #endif
 
 #define DFL_SERVER_ADDR         NULL

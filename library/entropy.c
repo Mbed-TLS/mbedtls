@@ -21,15 +21,15 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_ENTROPY_C)
 
-#include "polarssl/entropy.h"
-#include "polarssl/entropy_poll.h"
+#include "mbedtls/entropy.h"
+#include "mbedtls/entropy_poll.h"
 
 #include <string.h>
 
@@ -39,7 +39,7 @@
 
 #if defined(POLARSSL_SELF_TEST)
 #if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
+#include "mbedtls/platform.h"
 #else
 #include <stdio.h>
 #define polarssl_printf     printf
@@ -47,7 +47,7 @@
 #endif /* POLARSSL_SELF_TEST */
 
 #if defined(POLARSSL_HAVEGE_C)
-#include "polarssl/havege.h"
+#include "mbedtls/havege.h"
 #endif
 
 /* Implementation that should never be optimized out by the compiler */

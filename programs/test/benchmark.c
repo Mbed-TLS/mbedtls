@@ -21,13 +21,13 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
+#include "mbedtls/platform.h"
 #else
 #include <stdio.h>
 #define polarssl_exit       exit
@@ -46,32 +46,32 @@ int main( void )
 
 #include <string.h>
 
-#include "polarssl/timing.h"
+#include "mbedtls/timing.h"
 
-#include "polarssl/md4.h"
-#include "polarssl/md5.h"
-#include "polarssl/ripemd160.h"
-#include "polarssl/sha1.h"
-#include "polarssl/sha256.h"
-#include "polarssl/sha512.h"
-#include "polarssl/arc4.h"
-#include "polarssl/des.h"
-#include "polarssl/aes.h"
-#include "polarssl/blowfish.h"
-#include "polarssl/camellia.h"
-#include "polarssl/gcm.h"
-#include "polarssl/ccm.h"
-#include "polarssl/havege.h"
-#include "polarssl/ctr_drbg.h"
-#include "polarssl/hmac_drbg.h"
-#include "polarssl/rsa.h"
-#include "polarssl/dhm.h"
-#include "polarssl/ecdsa.h"
-#include "polarssl/ecdh.h"
-#include "polarssl/error.h"
+#include "mbedtls/md4.h"
+#include "mbedtls/md5.h"
+#include "mbedtls/ripemd160.h"
+#include "mbedtls/sha1.h"
+#include "mbedtls/sha256.h"
+#include "mbedtls/sha512.h"
+#include "mbedtls/arc4.h"
+#include "mbedtls/des.h"
+#include "mbedtls/aes.h"
+#include "mbedtls/blowfish.h"
+#include "mbedtls/camellia.h"
+#include "mbedtls/gcm.h"
+#include "mbedtls/ccm.h"
+#include "mbedtls/havege.h"
+#include "mbedtls/ctr_drbg.h"
+#include "mbedtls/hmac_drbg.h"
+#include "mbedtls/rsa.h"
+#include "mbedtls/dhm.h"
+#include "mbedtls/ecdsa.h"
+#include "mbedtls/ecdh.h"
+#include "mbedtls/error.h"
 
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
-#include "polarssl/memory_buffer_alloc.h"
+#include "mbedtls/memory_buffer_alloc.h"
 #endif
 
 #if defined _MSC_VER && !defined snprintf

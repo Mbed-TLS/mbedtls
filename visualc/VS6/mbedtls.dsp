@@ -365,259 +365,259 @@ SOURCE=..\..\library\xtea.c
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\aes.h
+SOURCE=..\..\include\mbedtls\aes.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\aesni.h
+SOURCE=..\..\include\mbedtls\aesni.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\arc4.h
+SOURCE=..\..\include\mbedtls\arc4.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\asn1.h
+SOURCE=..\..\include\mbedtls\asn1.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\asn1write.h
+SOURCE=..\..\include\mbedtls\asn1write.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\base64.h
+SOURCE=..\..\include\mbedtls\base64.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\bignum.h
+SOURCE=..\..\include\mbedtls\bignum.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\blowfish.h
+SOURCE=..\..\include\mbedtls\blowfish.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\bn_mul.h
+SOURCE=..\..\include\mbedtls\bn_mul.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\camellia.h
+SOURCE=..\..\include\mbedtls\camellia.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\ccm.h
+SOURCE=..\..\include\mbedtls\ccm.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\certs.h
+SOURCE=..\..\include\mbedtls\certs.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\check_config.h
+SOURCE=..\..\include\mbedtls\check_config.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\cipher.h
+SOURCE=..\..\include\mbedtls\cipher.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\cipher_wrap.h
+SOURCE=..\..\include\mbedtls\cipher_wrap.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\config.h
+SOURCE=..\..\include\mbedtls\config.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\ctr_drbg.h
+SOURCE=..\..\include\mbedtls\ctr_drbg.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\debug.h
+SOURCE=..\..\include\mbedtls\debug.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\des.h
+SOURCE=..\..\include\mbedtls\des.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\dhm.h
+SOURCE=..\..\include\mbedtls\dhm.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\ecdh.h
+SOURCE=..\..\include\mbedtls\ecdh.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\ecdsa.h
+SOURCE=..\..\include\mbedtls\ecdsa.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\ecp.h
+SOURCE=..\..\include\mbedtls\ecp.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\entropy.h
+SOURCE=..\..\include\mbedtls\entropy.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\entropy_poll.h
+SOURCE=..\..\include\mbedtls\entropy_poll.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\error.h
+SOURCE=..\..\include\mbedtls\error.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\gcm.h
+SOURCE=..\..\include\mbedtls\gcm.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\havege.h
+SOURCE=..\..\include\mbedtls\havege.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\hmac_drbg.h
+SOURCE=..\..\include\mbedtls\hmac_drbg.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\md.h
+SOURCE=..\..\include\mbedtls\md.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\md2.h
+SOURCE=..\..\include\mbedtls\md2.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\md4.h
+SOURCE=..\..\include\mbedtls\md4.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\md5.h
+SOURCE=..\..\include\mbedtls\md5.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\md_wrap.h
+SOURCE=..\..\include\mbedtls\md_wrap.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\memory.h
+SOURCE=..\..\include\mbedtls\memory.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\memory_buffer_alloc.h
+SOURCE=..\..\include\mbedtls\memory_buffer_alloc.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\net.h
+SOURCE=..\..\include\mbedtls\net.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\oid.h
+SOURCE=..\..\include\mbedtls\oid.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\padlock.h
+SOURCE=..\..\include\mbedtls\padlock.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\pbkdf2.h
+SOURCE=..\..\include\mbedtls\pbkdf2.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\pem.h
+SOURCE=..\..\include\mbedtls\pem.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\pk.h
+SOURCE=..\..\include\mbedtls\pk.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\pk_wrap.h
+SOURCE=..\..\include\mbedtls\pk_wrap.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\pkcs11.h
+SOURCE=..\..\include\mbedtls\pkcs11.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\pkcs12.h
+SOURCE=..\..\include\mbedtls\pkcs12.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\pkcs5.h
+SOURCE=..\..\include\mbedtls\pkcs5.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\platform.h
+SOURCE=..\..\include\mbedtls\platform.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\ripemd160.h
+SOURCE=..\..\include\mbedtls\ripemd160.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\rsa.h
+SOURCE=..\..\include\mbedtls\rsa.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\sha1.h
+SOURCE=..\..\include\mbedtls\sha1.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\sha256.h
+SOURCE=..\..\include\mbedtls\sha256.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\sha512.h
+SOURCE=..\..\include\mbedtls\sha512.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\ssl.h
+SOURCE=..\..\include\mbedtls\ssl.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\ssl_cache.h
+SOURCE=..\..\include\mbedtls\ssl_cache.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\ssl_ciphersuites.h
+SOURCE=..\..\include\mbedtls\ssl_ciphersuites.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\ssl_cookie.h
+SOURCE=..\..\include\mbedtls\ssl_cookie.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\threading.h
+SOURCE=..\..\include\mbedtls\threading.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\timing.h
+SOURCE=..\..\include\mbedtls\timing.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\version.h
+SOURCE=..\..\include\mbedtls\version.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\x509.h
+SOURCE=..\..\include\mbedtls\x509.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\x509_crl.h
+SOURCE=..\..\include\mbedtls\x509_crl.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\x509_crt.h
+SOURCE=..\..\include\mbedtls\x509_crt.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\x509_csr.h
+SOURCE=..\..\include\mbedtls\x509_csr.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\xtea.h
+SOURCE=..\..\include\mbedtls\xtea.h
 # End Source File
 # End Group
 # End Target

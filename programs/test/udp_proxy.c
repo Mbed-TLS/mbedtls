@@ -21,13 +21,13 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
+#include "mbedtls/platform.h"
 #else
 #define polarssl_printf     printf
 #endif
@@ -41,9 +41,9 @@ int main( void )
 }
 #else
 
-#include "polarssl/net.h"
-#include "polarssl/error.h"
-#include "polarssl/ssl.h"
+#include "mbedtls/net.h"
+#include "mbedtls/error.h"
+#include "mbedtls/ssl.h"
 
 #include <stdio.h>
 #include <stdlib.h>

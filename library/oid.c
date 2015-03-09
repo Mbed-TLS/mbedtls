@@ -23,27 +23,27 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_OID_C)
 
-#include "polarssl/oid.h"
-#include "polarssl/rsa.h"
+#include "mbedtls/oid.h"
+#include "mbedtls/rsa.h"
 
 #include <stdio.h>
 #include <string.h>
 
 #if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
+#include "mbedtls/platform.h"
 #else
 #define polarssl_snprintf snprintf
 #endif
 
 #if defined(POLARSSL_X509_USE_C) || defined(POLARSSL_X509_CREATE_C)
-#include "polarssl/x509.h"
+#include "mbedtls/x509.h"
 #endif
 
 /*

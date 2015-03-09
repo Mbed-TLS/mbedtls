@@ -1,13 +1,13 @@
 /* BEGIN_HEADER */
-#include "polarssl/rsa.h"
-#include "polarssl/md2.h"
-#include "polarssl/md4.h"
-#include "polarssl/md5.h"
-#include "polarssl/sha1.h"
-#include "polarssl/sha256.h"
-#include "polarssl/sha512.h"
-#include "polarssl/entropy.h"
-#include "polarssl/ctr_drbg.h"
+#include "mbedtls/rsa.h"
+#include "mbedtls/md2.h"
+#include "mbedtls/md4.h"
+#include "mbedtls/md5.h"
+#include "mbedtls/sha1.h"
+#include "mbedtls/sha256.h"
+#include "mbedtls/sha512.h"
+#include "mbedtls/entropy.h"
+#include "mbedtls/ctr_drbg.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

@@ -31,24 +31,24 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_X509_CRL_PARSE_C)
 
-#include "polarssl/x509_crl.h"
-#include "polarssl/oid.h"
+#include "mbedtls/x509_crl.h"
+#include "mbedtls/oid.h"
 
 #include <string.h>
 
 #if defined(POLARSSL_PEM_PARSE_C)
-#include "polarssl/pem.h"
+#include "mbedtls/pem.h"
 #endif
 
 #if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
+#include "mbedtls/platform.h"
 #else
 #include <stdlib.h>
 #include <stdio.h>

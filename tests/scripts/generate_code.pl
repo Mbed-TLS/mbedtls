@@ -60,7 +60,7 @@ $/ = $line_separator;
 open(TEST_FILE, ">$test_file") or die "Opening destination file '$test_file': $!";
 print TEST_FILE << "END";
 #if !defined(POLARSSL_CONFIG_FILE)
-#include <polarssl/config.h>
+#include <mbedtls/config.h>
 #else
 #include POLARSSL_CONFIG_FILE
 #endif

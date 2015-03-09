@@ -21,34 +21,34 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_PK_WRITE_C)
 
-#include "polarssl/pk.h"
-#include "polarssl/asn1write.h"
-#include "polarssl/oid.h"
+#include "mbedtls/pk.h"
+#include "mbedtls/asn1write.h"
+#include "mbedtls/oid.h"
 
 #include <string.h>
 
 #if defined(POLARSSL_RSA_C)
-#include "polarssl/rsa.h"
+#include "mbedtls/rsa.h"
 #endif
 #if defined(POLARSSL_ECP_C)
-#include "polarssl/ecp.h"
+#include "mbedtls/ecp.h"
 #endif
 #if defined(POLARSSL_ECDSA_C)
-#include "polarssl/ecdsa.h"
+#include "mbedtls/ecdsa.h"
 #endif
 #if defined(POLARSSL_PEM_WRITE_C)
-#include "polarssl/pem.h"
+#include "mbedtls/pem.h"
 #endif
 
 #if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
+#include "mbedtls/platform.h"
 #else
 #include <stdlib.h>
 #define polarssl_malloc     malloc

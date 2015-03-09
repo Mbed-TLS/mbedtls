@@ -21,16 +21,16 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_X509_CREATE_C)
 
-#include "polarssl/x509.h"
-#include "polarssl/asn1write.h"
-#include "polarssl/oid.h"
+#include "mbedtls/x509.h"
+#include "mbedtls/asn1write.h"
+#include "mbedtls/oid.h"
 
 #include <string.h>
 

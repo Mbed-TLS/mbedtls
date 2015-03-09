@@ -25,25 +25,25 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_CIPHER_C)
 
-#include "polarssl/cipher.h"
-#include "polarssl/cipher_wrap.h"
+#include "mbedtls/cipher.h"
+#include "mbedtls/cipher_wrap.h"
 
 #include <stdlib.h>
 #include <string.h>
 
 #if defined(POLARSSL_GCM_C)
-#include "polarssl/gcm.h"
+#include "mbedtls/gcm.h"
 #endif
 
 #if defined(POLARSSL_CCM_C)
-#include "polarssl/ccm.h"
+#include "mbedtls/ccm.h"
 #endif
 
 #if defined(POLARSSL_ARC4_C) || defined(POLARSSL_CIPHER_NULL_CIPHER)

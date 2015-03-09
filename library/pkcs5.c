@@ -31,22 +31,22 @@
  */
 
 #if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
+#include "mbedtls/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
 
 #if defined(POLARSSL_PKCS5_C)
 
-#include "polarssl/pkcs5.h"
-#include "polarssl/asn1.h"
-#include "polarssl/cipher.h"
-#include "polarssl/oid.h"
+#include "mbedtls/pkcs5.h"
+#include "mbedtls/asn1.h"
+#include "mbedtls/cipher.h"
+#include "mbedtls/oid.h"
 
 #include <string.h>
 
 #if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
+#include "mbedtls/platform.h"
 #else
 #include <stdio.h>
 #define polarssl_printf printf

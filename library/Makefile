@@ -1,5 +1,5 @@
 
-# Also see "include/polarssl/config.h"
+# Also see "include/mbedtls/config.h"
 
 # To compile on MinGW: add "-lws2_32" to LDFLAGS or define WINDOWS in your
 # environment

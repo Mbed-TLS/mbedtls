@@ -1189,7 +1189,7 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
         {
             SSL_DEBUG_MSG( 3, ( "received TLS_EMPTY_RENEGOTIATION_INFO " ) );
 #if defined(POLARSSL_SSL_RENEGOTIATION)
-            if( ssl->renegotiation == SSL_RENEGOTIATION )
+            if( ssl->renegotiation == SSL_RENEGOTIATION_IN_PROGRESS )
             {
                 SSL_DEBUG_MSG( 1, ( "received RENEGOTIATION SCSV "
                                     "during renegotiation" ) );
@@ -1805,7 +1805,7 @@ read_record_header:
         case TLS_EXT_SIG_ALG:
             SSL_DEBUG_MSG( 3, ( "found signature_algorithms extension" ) );
 #if defined(POLARSSL_SSL_RENEGOTIATION)
-            if( ssl->renegotiation == SSL_RENEGOTIATION )
+            if( ssl->renegotiation == SSL_RENEGOTIATION_IN_PROGRESS )
                 break;
 #endif
 
@@ -1941,7 +1941,7 @@ read_record_header:
         if( p[0] == 0 && p[1] == SSL_EMPTY_RENEGOTIATION_INFO )
         {
             SSL_DEBUG_MSG( 3, ( "received TLS_EMPTY_RENEGOTIATION_INFO " ) );
-            if( ssl->renegotiation == SSL_RENEGOTIATION )
+            if( ssl->renegotiation == SSL_RENEGOTIATION_IN_PROGRESS )
             {
                 SSL_DEBUG_MSG( 1, ( "received RENEGOTIATION SCSV during renegotiation" ) );
 
@@ -1965,21 +1965,21 @@ read_record_header:
         handshake_failure = 1;
     }
 #if defined(POLARSSL_SSL_RENEGOTIATION)
-    else if( ssl->renegotiation == SSL_RENEGOTIATION &&
+    else if( ssl->renegotiation == SSL_RENEGOTIATION_IN_PROGRESS &&
              ssl->secure_renegotiation == SSL_SECURE_RENEGOTIATION &&
              renegotiation_info_seen == 0 )
     {
         SSL_DEBUG_MSG( 1, ( "renegotiation_info extension missing (secure)" ) );
         handshake_failure = 1;
     }
-    else if( ssl->renegotiation == SSL_RENEGOTIATION &&
+    else if( ssl->renegotiation == SSL_RENEGOTIATION_IN_PROGRESS &&
              ssl->secure_renegotiation == SSL_LEGACY_RENEGOTIATION &&
              ssl->allow_legacy_renegotiation == SSL_LEGACY_NO_RENEGOTIATION )
     {
         SSL_DEBUG_MSG( 1, ( "legacy renegotiation not allowed" ) );
         handshake_failure = 1;
     }
-    else if( ssl->renegotiation == SSL_RENEGOTIATION &&
+    else if( ssl->renegotiation == SSL_RENEGOTIATION_IN_PROGRESS &&
              ssl->secure_renegotiation == SSL_LEGACY_RENEGOTIATION &&
              renegotiation_info_seen == 1 )
     {

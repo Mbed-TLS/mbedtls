@@ -236,7 +236,7 @@
 #define SSL_VERIFY_REQUIRED             2
 
 #define SSL_INITIAL_HANDSHAKE           0
-#define SSL_RENEGOTIATION               1   /* In progress */
+#define SSL_RENEGOTIATION_IN_PROGRESS   1   /* In progress */
 #define SSL_RENEGOTIATION_DONE          2   /* Done or aborted */
 #define SSL_RENEGOTIATION_PENDING       3   /* Requested (server only) */
 

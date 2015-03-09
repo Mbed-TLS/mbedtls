@@ -3206,7 +3206,7 @@ static int ssl_parse_record_header( ssl_context *ssl )
          * except at the beginning of renegotiations */
         if( ssl->in_msgtype == SSL_MSG_APPLICATION_DATA &&
             ssl->state != SSL_HANDSHAKE_OVER &&
-            ! ( ssl->renegotiation == SSL_RENEGOTIATION &&
+            ! ( ssl->renegotiation == SSL_RENEGOTIATION_IN_PROGRESS &&
                 ssl->state == SSL_SERVER_HELLO ) )
         {
             SSL_DEBUG_MSG( 1, ( "dropping unexpected ApplicationData" ) );
@@ -3942,7 +3942,7 @@ int ssl_parse_certificate( ssl_context *ssl )
      */
 #if defined(POLARSSL_SSL_RENEGOTIATION) && defined(POLARSSL_SSL_CLI_C)
     if( ssl->endpoint == SSL_IS_CLIENT &&
-        ssl->renegotiation == SSL_RENEGOTIATION )
+        ssl->renegotiation == SSL_RENEGOTIATION_IN_PROGRESS )
     {
         if( ssl->session->peer_cert == NULL )
         {
@@ -4487,7 +4487,7 @@ void ssl_handshake_wrapup( ssl_context *ssl )
     SSL_DEBUG_MSG( 3, ( "=> handshake wrapup" ) );
 
 #if defined(POLARSSL_SSL_RENEGOTIATION)
-    if( ssl->renegotiation == SSL_RENEGOTIATION )
+    if( ssl->renegotiation == SSL_RENEGOTIATION_IN_PROGRESS )
     {
         ssl->renegotiation =  SSL_RENEGOTIATION_DONE;
         ssl->renego_records_seen = 0;
@@ -5979,7 +5979,7 @@ static int ssl_start_renegotiation( ssl_context *ssl )
 #endif
 
     ssl->state = SSL_HELLO_REQUEST;
-    ssl->renegotiation = SSL_RENEGOTIATION;
+    ssl->renegotiation = SSL_RENEGOTIATION_IN_PROGRESS;
 
     if( ( ret = ssl_handshake( ssl ) ) != 0 )
     {
@@ -6022,7 +6022,7 @@ int ssl_renegotiate( ssl_context *ssl )
      * On client, either start the renegotiation process or,
      * if already in progress, continue the handshake
      */
-    if( ssl->renegotiation != SSL_RENEGOTIATION )
+    if( ssl->renegotiation != SSL_RENEGOTIATION_IN_PROGRESS )
     {
         if( ssl->state != SSL_HANDSHAKE_OVER )
             return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );

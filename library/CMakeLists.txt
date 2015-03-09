@@ -134,24 +134,3 @@ if(USE_SHARED_MBEDTLS_LIBRARY)
 			DESTINATION ${LIB_INSTALL_DIR}
 			PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 endif(USE_SHARED_MBEDTLS_LIBRARY)
-
-if(UNIX)
-    add_custom_target(polarssl
-        DEPENDS mbedtls # TODO: and mbedtls_static is shared is defined
-        COMMAND ${CMAKE_SOURCE_DIR}/scripts/polarssl_symlinks.sh ${CMAKE_BINARY_DIR}/library
-        )
-
-    if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
-        add_dependencies(polarssl mbedtls_static)
-    endif()
-
-    add_custom_target(polarssl-clean
-        COMMAND make clean
-        COMMAND rm -f ${CMAKE_BINARY_DIR}/library/libpolarssl.*
-        )
-
-    add_custom_target(polarssl-install
-        COMMAND make install
-        COMMAND ${CMAKE_SOURCE_DIR}/scripts/polarssl_symlinks.sh ${DESTDIR}/${CMAKE_INSTALL_PREFIX}/${LIB_INSTALL_DIR}
-        )
-endif(UNIX)

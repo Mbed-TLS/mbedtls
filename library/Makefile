@@ -80,38 +80,15 @@ else
 all: shared static
 endif
 
-static: libpolarssl.a
+static: libmbedtls.a
 
-shared: libpolarssl.$(DLEXT)
-
-libpolarssl.a: libmbedtls.a
-	echo "  LN    $@ -> $?"
-ifndef WINDOWS
-	ln -sf $? $@
-else
-	copy /y /b $? $@
-endif
+shared: libmbedtls.$(DLEXT)
 
 libmbedtls.a: $(OBJS)
 	echo "  AR    $@"
 	$(AR) rc $@ $(OBJS)
 	echo "  RL    $@"
 	$(AR) s $@
-
-libpolarssl.$(DLEXT): libmbedtls.$(DLEXT)
-	echo "  LN    $@ -> $?"
-ifndef WINDOWS
-	ln -sf $? $@
-else
-	copy /y /b $? $@
-endif
-ifdef WINDOWS_BUILD
-ifndef WINDOWS
-	ln -sf $?.a $@.a
-else
-	copy /y /b $?.a $@.a
-endif
-endif
 
 libmbedtls.$(SOEXT): $(OBJS)
 	echo "  LD    $@"
@@ -135,8 +112,8 @@ libmbedtls.dll: $(OBJS)
 
 clean:
 ifndef WINDOWS
-	rm -f *.o libpolarssl.* libmbedtls.*
+	rm -f *.o libmbedtls.*
 endif
 ifdef WINDOWS
-	del /Q /F *.o libpolarssl.* libmbedtls.*
+	del /Q /F *.o libmbedtls.*
 endif

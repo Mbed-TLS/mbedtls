@@ -368,7 +368,7 @@
  * Signaling ciphersuite values (SCSV)
  */
 #define SSL_EMPTY_RENEGOTIATION_INFO    0xFF   /**< renegotiation info ext */
-#define SSL_FALLBACK_SCSV               0x5600 /**< draft-ietf-tls-downgrade-scsv-00 */
+#define SSL_FALLBACK_SCSV_VALUE         0x5600 /**< draft-ietf-tls-downgrade-scsv-00 */
 
 /*
  * Supported Signature and Hash algorithms (For TLS 1.2)

@@ -1209,8 +1209,8 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
     for( i = 0, p = buf + 6; i < ciph_len; i += 3, p += 3 )
     {
         if( p[0] == 0 &&
-            p[1] == (unsigned char)( ( SSL_FALLBACK_SCSV >> 8 ) & 0xff ) &&
-            p[2] == (unsigned char)( ( SSL_FALLBACK_SCSV      ) & 0xff ) )
+            p[1] == (unsigned char)( ( SSL_FALLBACK_SCSV_VALUE >> 8 ) & 0xff ) &&
+            p[2] == (unsigned char)( ( SSL_FALLBACK_SCSV_VALUE      ) & 0xff ) )
         {
             SSL_DEBUG_MSG( 3, ( "received FALLBACK_SCSV" ) );
 
@@ -1913,8 +1913,8 @@ read_record_header:
 #if defined(POLARSSL_SSL_FALLBACK_SCSV)
     for( i = 0, p = buf + 41 + sess_len; i < ciph_len; i += 2, p += 2 )
     {
-        if( p[0] == (unsigned char)( ( SSL_FALLBACK_SCSV >> 8 ) & 0xff ) &&
-            p[1] == (unsigned char)( ( SSL_FALLBACK_SCSV      ) & 0xff ) )
+        if( p[0] == (unsigned char)( ( SSL_FALLBACK_SCSV_VALUE >> 8 ) & 0xff ) &&
+            p[1] == (unsigned char)( ( SSL_FALLBACK_SCSV_VALUE      ) & 0xff ) )
         {
             SSL_DEBUG_MSG( 0, ( "received FALLBACK_SCSV" ) );
 

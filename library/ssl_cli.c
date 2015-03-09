@@ -736,8 +736,8 @@ static int ssl_write_client_hello( ssl_context *ssl )
     if( ssl->fallback == SSL_IS_FALLBACK )
     {
         SSL_DEBUG_MSG( 3, ( "adding FALLBACK_SCSV" ) );
-        *p++ = (unsigned char)( SSL_FALLBACK_SCSV >> 8 );
-        *p++ = (unsigned char)( SSL_FALLBACK_SCSV      );
+        *p++ = (unsigned char)( SSL_FALLBACK_SCSV_VALUE >> 8 );
+        *p++ = (unsigned char)( SSL_FALLBACK_SCSV_VALUE      );
         n++;
     }
 #endif

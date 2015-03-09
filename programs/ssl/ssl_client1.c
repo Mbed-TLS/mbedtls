@@ -169,7 +169,7 @@ int main( void )
     /* OPTIONAL is not optimal for security,
      * but makes interop easier in this simplified example */
     ssl_set_authmode( &ssl, SSL_VERIFY_OPTIONAL );
-    ssl_set_ca_chain( &ssl, &cacert, NULL, "PolarSSL Server 1" );
+    ssl_set_ca_chain( &ssl, &cacert, NULL, "mbed TLS Server 1" );
 
     /* SSLv3 is deprecated, set minimum to TLS 1.0 */
     ssl_set_min_version( &ssl, SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_1 );

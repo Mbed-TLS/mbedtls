@@ -93,7 +93,7 @@ Microsoft Visual Studio
 
 The build files for Microsoft Visual Studio are generated for Visual Studio 6.0 and Visual Studio 2010.
 
-The workspace 'polarssl.dsw' contains all the basic projects needed to build the library and all the programs. The files in tests are not generated and compiled, as these need a perl environment as well.
+The workspace 'mbedtls.dsw' contains all the basic projects needed to build the library and all the programs. The files in tests are not generated and compiled, as these need a perl environment as well.
 
 Example programs
 ================

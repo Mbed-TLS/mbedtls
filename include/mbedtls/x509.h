@@ -179,7 +179,7 @@ typedef asn1_bitstring x509_bitstring;
 
 /**
  * Container for ASN1 named information objects.
- * It allows for Relative Distinguished Names (e.g. cn=polarssl,ou=code,etc.).
+ * It allows for Relative Distinguished Names (e.g. cn=localhost,ou=code,etc.).
  */
 typedef asn1_named_data x509_name;
 

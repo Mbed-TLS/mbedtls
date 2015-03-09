@@ -30,11 +30,6 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
-/* Temporary compatibility trick for the current stable branch */
-#if !defined(POLARSSL_SSL_DISABLE_RENEGOTIATION)
-#define POLARSSL_SSL_RENEGOTIATION
-#endif
-
 #include "net.h"
 #include "bignum.h"
 #include "ecp.h"

@@ -911,7 +911,7 @@
 #define POLARSSL_SSL_CBC_RECORD_SPLITTING
 
 /**
- * \def POLARSSL_SSL_DISABLE_RENEGOTIATION
+ * \def POLARSSL_SSL_RENEGOTIATION
  *
  * Disable support for TLS renegotiation.
  *
@@ -921,12 +921,9 @@
  * it has been associated with security issues in the past and is easy to
  * misuse/misunderstand.
  *
- * Warning: in the next stable branch, this switch will be replaced by
- * POLARSSL_SSL_RENEGOTIATION to enable support for renegotiation.
- *
- * Uncomment this to disable support for renegotiation.
+ * Comment this to disable support for renegotiation.
  */
-//#define POLARSSL_SSL_DISABLE_RENEGOTIATION
+#define POLARSSL_SSL_RENEGOTIATION
 
 /**
  * \def POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO

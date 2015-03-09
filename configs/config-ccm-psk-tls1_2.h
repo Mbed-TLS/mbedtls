@@ -19,7 +19,6 @@
 /* mbed TLS feature support */
 #define POLARSSL_KEY_EXCHANGE_PSK_ENABLED
 #define POLARSSL_SSL_PROTO_TLS1_2
-#define POLARSSL_SSL_DISABLE_RENEGOTIATION
 
 /* mbed TLS modules */
 #define POLARSSL_AES_C

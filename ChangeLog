@@ -25,6 +25,9 @@ Bugfix
    * Fix potential unintended sign extension in asn1_get_len() on 64-bit
      platforms.
    * Fix potential memory leak in ssl_set_psk() (found by Mansour Moufid).
+   * Fix compile error when POLARSSL_SSL_DISABLE_RENEGOTATION and
+     POLARSSL_SSL_SSESSION_TICKETS where both enabled in config.h (introduced
+     in 1.3.10).
 
 Changes
    * ssl_set_own_cert() now longers calls pk_check_pair() since the

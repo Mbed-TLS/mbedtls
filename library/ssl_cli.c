@@ -602,8 +602,8 @@ static int ssl_write_client_hello( ssl_context *ssl )
      */
 #if defined(POLARSSL_SSL_RENEGOTIATION)
     if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
-    {
 #endif
+    {
         if( ssl->session_negotiate->ticket != NULL &&
                 ssl->session_negotiate->ticket_len != 0 )
         {

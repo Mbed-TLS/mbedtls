@@ -460,6 +460,11 @@ cleanup() {
 # MAIN
 #
 
+if cd $( dirname $0 ); then :; else
+    echo "cd $( dirname $0 ) failed" >&2
+    exit 1
+fi
+
 get_options "$@"
 
 # sanity checks, avoid an avalanche of errors

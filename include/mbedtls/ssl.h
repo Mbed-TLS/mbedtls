@@ -979,6 +979,7 @@ struct _ssl_context
     unsigned char renego_period[8];     /*!<  value of the record counters
                                               that triggers renegotiation    */
 #endif
+    /* needed for option break handshake with insecure peers */
     int allow_legacy_renegotiation;     /*!<  allow legacy renegotiation     */
     const int *ciphersuite_list[4];     /*!<  allowed ciphersuites / version */
 #if defined(POLARSSL_SSL_SET_CURVES)
@@ -1039,6 +1040,7 @@ struct _ssl_context
     /*
      * Secure renegotiation
      */
+    /* needed to know when to send extension on server */
     int secure_renegotiation;           /*!<  does peer support legacy or
                                               secure renegotiation           */
 #if defined(POLARSSL_SSL_RENEGOTIATION)

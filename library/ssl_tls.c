@@ -3205,9 +3205,12 @@ static int ssl_parse_record_header( ssl_context *ssl )
         /* Drop unexpected ApplicationData records,
          * except at the beginning of renegotiations */
         if( ssl->in_msgtype == SSL_MSG_APPLICATION_DATA &&
-            ssl->state != SSL_HANDSHAKE_OVER &&
-            ! ( ssl->renegotiation == SSL_RENEGOTIATION_IN_PROGRESS &&
-                ssl->state == SSL_SERVER_HELLO ) )
+            ssl->state != SSL_HANDSHAKE_OVER
+#if defined(POLARSSL_SSL_RENEGOTIATION)
+            && ! ( ssl->renegotiation == SSL_RENEGOTIATION_IN_PROGRESS &&
+                   ssl->state == SSL_SERVER_HELLO )
+#endif
+            )
         {
             SSL_DEBUG_MSG( 1, ( "dropping unexpected ApplicationData" ) );
             return( POLARSSL_ERR_SSL_INVALID_RECORD );

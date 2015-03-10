@@ -1495,16 +1495,11 @@ read_record_header:
     if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
     {
         /*
-         * Copy the client's handshake message_seq on initial handshakes
+         * Copy the client's handshake message_seq on initial handshakes,
+         * check sequence number on renego.
          */
-        if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
-        {
-            unsigned int cli_msg_seq = ( ssl->in_msg[4] << 8 ) |
-                                         ssl->in_msg[5];
-            ssl->handshake->out_msg_seq = cli_msg_seq;
-            ssl->handshake->in_msg_seq  = cli_msg_seq + 1;
-        }
-        else
+#if defined(POLARSSL_SSL_RENEGOTIATION)
+        if( ssl->renegotiation == SSL_RENEGOTIATION_IN_PROGRESS )
         {
             /* This couldn't be done in ssl_prepare_handshake_record() */
             unsigned int cli_msg_seq = ( ssl->in_msg[4] << 8 ) |
@@ -1519,6 +1514,14 @@ read_record_header:
             }
 
             ssl->handshake->in_msg_seq++;
+        }
+        else
+#endif
+        {
+            unsigned int cli_msg_seq = ( ssl->in_msg[4] << 8 ) |
+                                         ssl->in_msg[5];
+            ssl->handshake->out_msg_seq = cli_msg_seq;
+            ssl->handshake->in_msg_seq  = cli_msg_seq + 1;
         }
 
         /*
@@ -1643,8 +1646,11 @@ read_record_header:
                        buf + cookie_offset + 1, cookie_len );
 
 #if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
-        if( ssl->f_cookie_check != NULL &&
-            ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
+        if( ssl->f_cookie_check != NULL
+#if defined(POLARSSL_SSL_RENEGOTIATION)
+            && ssl->renegotiation == SSL_INITIAL_HANDSHAKE
+#endif
+            )
         {
             if( ssl->f_cookie_check( ssl->p_cookie,
                                      buf + cookie_offset + 1, cookie_len,
@@ -1941,6 +1947,7 @@ read_record_header:
         if( p[0] == 0 && p[1] == SSL_EMPTY_RENEGOTIATION_INFO )
         {
             SSL_DEBUG_MSG( 3, ( "received TLS_EMPTY_RENEGOTIATION_INFO " ) );
+#if defined(POLARSSL_SSL_RENEGOTIATION)
             if( ssl->renegotiation == SSL_RENEGOTIATION_IN_PROGRESS )
             {
                 SSL_DEBUG_MSG( 1, ( "received RENEGOTIATION SCSV during renegotiation" ) );
@@ -1950,6 +1957,7 @@ read_record_header:
 
                 return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
             }
+#endif
             ssl->secure_renegotiation = SSL_SECURE_RENEGOTIATION;
             break;
         }

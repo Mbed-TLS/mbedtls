@@ -3973,7 +3973,7 @@ int ssl_set_own_cert( ssl_context *ssl, x509_crt *own_cert,
     key_cert->cert = own_cert;
     key_cert->key  = pk_key;
 
-    return( pk_check_pair( &key_cert->cert->pk, key_cert->key ) );
+    return( 0 );
 }
 
 #if defined(POLARSSL_RSA_C)
@@ -4002,7 +4002,7 @@ int ssl_set_own_cert_rsa( ssl_context *ssl, x509_crt *own_cert,
     key_cert->cert = own_cert;
     key_cert->key_own_alloc = 1;
 
-    return( pk_check_pair( &key_cert->cert->pk, key_cert->key ) );
+    return( 0 );
 }
 #endif /* POLARSSL_RSA_C */
 
@@ -4031,7 +4031,7 @@ int ssl_set_own_cert_alt( ssl_context *ssl, x509_crt *own_cert,
     key_cert->cert = own_cert;
     key_cert->key_own_alloc = 1;
 
-    return( pk_check_pair( &key_cert->cert->pk, key_cert->key ) );
+    return( 0 );
 }
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 

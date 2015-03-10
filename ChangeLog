@@ -27,6 +27,8 @@ Bugfix
    * Fix potential memory leak in ssl_set_psk() (found by Mansour Moufid).
 
 Changes
+   * ssl_set_own_cert() now longers calls pk_check_pair() since the
+     performance impact was bad for some users (this was introduced in 1.3.10).
    * Move from SHA-1 to SHA-256 in example programs using signatures
      (suggested by Thorsten Mühlfelder).
    * Remove some unneeded inclusions of header files from the standard library

@@ -931,9 +931,9 @@
  * Enable support for receiving and parsing SSLv2 Client Hello messages for the
  * SSL Server module (POLARSSL_SSL_SRV_C).
  *
- * Comment this macro to disable support for SSLv2 Client Hello messages.
+ * Uncomment this macro to enable support for SSLv2 Client Hello messages.
  */
-#define POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
+//#define POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
 
 /**
  * \def POLARSSL_SSL_SRV_RESPECT_CLIENT_PREFERENCE

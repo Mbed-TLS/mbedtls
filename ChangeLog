@@ -28,6 +28,7 @@ Bugfix
    * Fix compile error when POLARSSL_SSL_DISABLE_RENEGOTATION and
      POLARSSL_SSL_SSESSION_TICKETS where both enabled in config.h (introduced
      in 1.3.10).
+   * Add missing extern "C" guard in aesni.h (reported by amir zamani).
 
 Changes
    * ssl_set_own_cert() now longers calls pk_check_pair() since the

@@ -25,6 +25,11 @@ if grep -i cmake Makefile >/dev/null; then
     exit 1
 fi
 
+if [ $( uname ) != Linux ]; then
+    echo "Only work on Linux" >&2
+    exit 1
+fi
+
 if git status | grep -F $CONFIG_H >/dev/null 2>&1; then
     echo "config.h not clean" >&2
     exit 1
@@ -54,7 +59,7 @@ do_config()
     cd programs
     CFLAGS=$CFLAGS_EXEC make OFLAGS=-Os ssl/$CLIENT >/dev/null
     strip ssl/$CLIENT
-    stat -f '%z' ssl/$CLIENT
+    stat -c '%s' ssl/$CLIENT
     cd ..
 
     printf "    Peak ram usage... "

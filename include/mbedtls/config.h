@@ -645,20 +645,6 @@
 #define POLARSSL_PK_PARSE_EC_EXTENDED
 
 /**
- * \def POLARSSL_ERROR_STRERROR_BC
- *
- * Make available the backward compatible error_strerror() next to the
- * current polarssl_strerror().
- *
- * For new code, it is recommended to use polarssl_strerror() instead and
- * disable this.
- *
- * Disable if you run into name conflicts and want to really remove the
- * error_strerror()
- */
-#define POLARSSL_ERROR_STRERROR_BC
-
-/**
  * \def POLARSSL_ERROR_STRERROR_DUMMY
  *
  * Enable a dummy error function to make use of polarssl_strerror() in

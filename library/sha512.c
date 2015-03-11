@@ -488,7 +488,7 @@ void sha512_hmac( const unsigned char *key, size_t keylen,
 /*
  * FIPS-180-2 test vectors
  */
-static unsigned char sha512_test_buf[3][113] =
+static const unsigned char sha512_test_buf[3][113] =
 {
     { "abc" },
     { "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmn"
@@ -557,7 +557,7 @@ static const unsigned char sha512_test_sum[6][64] =
 /*
  * RFC 4231 test vectors
  */
-static unsigned char sha512_hmac_test_key[7][26] =
+static const unsigned char sha512_hmac_test_key[7][26] =
 {
     { "\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B"
       "\x0B\x0B\x0B\x0B" },
@@ -577,7 +577,7 @@ static const int sha512_hmac_test_keylen[7] =
     20, 4, 20, 25, 20, 131, 131
 };
 
-static unsigned char sha512_hmac_test_buf[7][153] =
+static const unsigned char sha512_hmac_test_buf[7][153] =
 {
     { "Hi There" },
     { "what do ya want for nothing?" },

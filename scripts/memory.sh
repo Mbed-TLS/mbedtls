@@ -12,7 +12,7 @@ CONFIG_H='include/polarssl/config.h'
 
 CLIENT='mini_client'
 
-CFLAGS_EXEC=-fno-asynchronous-unwind-tables
+CFLAGS_EXEC='-fno-asynchronous-unwind-tables -Wl,--gc-section -ffunction-sections'
 CFLAGS_MEM=-g3
 
 if [ -r $CONFIG_H ]; then :; else

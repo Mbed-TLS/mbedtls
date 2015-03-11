@@ -223,8 +223,8 @@ int mpi_safe_cond_assign( mpi *X, const mpi *Y, unsigned char assign )
     int ret = 0;
     size_t i;
 
-    /* make sure assign is 0 or 1 */
-    assign = ( assign != 0 );
+    /* make sure assign is 0 or 1 in a time-constant manner */
+    assign = (assign | (unsigned char)-assign) >> 7;
 
     MPI_CHK( mpi_grow( X, Y->n ) );
 
@@ -255,8 +255,8 @@ int mpi_safe_cond_swap( mpi *X, mpi *Y, unsigned char swap )
     if( X == Y )
         return( 0 );
 
-    /* make sure swap is 0 or 1 */
-    swap = ( swap != 0 );
+    /* make sure swap is 0 or 1 in a time-constant manner */
+    swap = (swap | (unsigned char)-swap) >> 7;
 
     MPI_CHK( mpi_grow( X, Y->n ) );
     MPI_CHK( mpi_grow( Y, X->n ) );
@@ -1958,8 +1958,8 @@ static int mpi_miller_rabin( const mpi *X,
                              int (*f_rng)(void *, unsigned char *, size_t),
                              void *p_rng )
 {
-    int ret;
-    size_t i, j, n, s;
+    int ret, count;
+    size_t i, j, k, n, s;
     mpi W, R, T, A, RR;
 
     mpi_init( &W ); mpi_init( &R ); mpi_init( &T ); mpi_init( &A );
@@ -1987,14 +1987,23 @@ static int mpi_miller_rabin( const mpi *X,
         /*
          * pick a random A, 1 < A < |X| - 1
          */
-        MPI_CHK( mpi_fill_random( &A, X->n * ciL, f_rng, p_rng ) );
 
-        if( mpi_cmp_mpi( &A, &W ) >= 0 )
-        {
-            j = mpi_msb( &A ) - mpi_msb( &W );
-            MPI_CHK( mpi_shift_r( &A, j + 1 ) );
-        }
-        A.p[0] |= 3;
+        count = 0;
+        do {
+            MPI_CHK( mpi_fill_random( &A, X->n * ciL, f_rng, p_rng ) );
+
+            j = mpi_msb( &A );
+            k = mpi_msb( &W );
+            if (j > k) {
+                MPI_CHK( mpi_shift_r( &A, j - k ) );
+            }
+
+            if (count++ > 30) {
+                return POLARSSL_ERR_MPI_NOT_ACCEPTABLE;
+            }
+
+        } while ( (mpi_cmp_mpi( &A, &W ) >= 0) ||
+                  (mpi_cmp_int( &A, 1 )  <= 0)    );
 
         /*
          * A = A^R mod |X|
@@ -2092,10 +2101,11 @@ int mpi_gen_prime( mpi *X, size_t nbits, int dh_flag,
     MPI_CHK( mpi_fill_random( X, n * ciL, f_rng, p_rng ) );
 
     k = mpi_msb( X );
-    if( k < nbits ) MPI_CHK( mpi_shift_l( X, nbits - k ) );
-    if( k > nbits ) MPI_CHK( mpi_shift_r( X, k - nbits ) );
+    if( k > nbits ) MPI_CHK( mpi_shift_r( X, k - nbits + 1 ) );
 
-    X->p[0] |= 3;
+    mpi_set_bit( X, nbits-1, 1 );
+
+    X->p[0] |= 1;
 
     if( dh_flag == 0 )
     {
@@ -2114,6 +2124,9 @@ int mpi_gen_prime( mpi *X, size_t nbits, int dh_flag,
          * is X = 2 mod 3 (which is equivalent to Y = 2 mod 3).
          * Make sure it is satisfied, while keeping X = 3 mod 4
          */
+
+        X->p[0] |= 2;
+
         MPI_CHK( mpi_mod_int( &r, X, 3 ) );
         if( r == 0 )
             MPI_CHK( mpi_add_int( X, X, 8 ) );

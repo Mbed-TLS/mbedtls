@@ -508,10 +508,10 @@ void gcm_free( gcm_context *ctx )
  */
 #define MAX_TESTS   6
 
-static int key_index[MAX_TESTS] =
+static const int key_index[MAX_TESTS] =
     { 0, 0, 1, 1, 1, 1 };
 
-static unsigned char key[MAX_TESTS][32] =
+static const unsigned char key[MAX_TESTS][32] =
 {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -523,13 +523,13 @@ static unsigned char key[MAX_TESTS][32] =
       0x6d, 0x6a, 0x8f, 0x94, 0x67, 0x30, 0x83, 0x08 },
 };
 
-static size_t iv_len[MAX_TESTS] =
+static const size_t iv_len[MAX_TESTS] =
     { 12, 12, 12, 12, 8, 60 };
 
-static int iv_index[MAX_TESTS] =
+static const int iv_index[MAX_TESTS] =
     { 0, 0, 1, 1, 1, 2 };
 
-static unsigned char iv[MAX_TESTS][64] =
+static const unsigned char iv[MAX_TESTS][64] =
 {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00 },
@@ -545,13 +545,13 @@ static unsigned char iv[MAX_TESTS][64] =
       0xa6, 0x37, 0xb3, 0x9b },
 };
 
-static size_t add_len[MAX_TESTS] =
+static const size_t add_len[MAX_TESTS] =
     { 0, 0, 0, 20, 20, 20 };
 
-static int add_index[MAX_TESTS] =
+static const int add_index[MAX_TESTS] =
     { 0, 0, 0, 1, 1, 1 };
 
-static unsigned char additional[MAX_TESTS][64] =
+static const unsigned char additional[MAX_TESTS][64] =
 {
     { 0x00 },
     { 0xfe, 0xed, 0xfa, 0xce, 0xde, 0xad, 0xbe, 0xef,
@@ -559,13 +559,13 @@ static unsigned char additional[MAX_TESTS][64] =
       0xab, 0xad, 0xda, 0xd2 },
 };
 
-static size_t pt_len[MAX_TESTS] =
+static const size_t pt_len[MAX_TESTS] =
     { 0, 16, 64, 60, 60, 60 };
 
-static int pt_index[MAX_TESTS] =
+static const int pt_index[MAX_TESTS] =
     { 0, 0, 1, 1, 1, 1 };
 
-static unsigned char pt[MAX_TESTS][64] =
+static const unsigned char pt[MAX_TESTS][64] =
 {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
@@ -579,7 +579,7 @@ static unsigned char pt[MAX_TESTS][64] =
       0xba, 0x63, 0x7b, 0x39, 0x1a, 0xaf, 0xd2, 0x55 },
 };
 
-static unsigned char ct[MAX_TESTS * 3][64] =
+static const unsigned char ct[MAX_TESTS * 3][64] =
 {
     { 0x00 },
     { 0x03, 0x88, 0xda, 0xce, 0x60, 0xb6, 0xa3, 0x92,
@@ -688,7 +688,7 @@ static unsigned char ct[MAX_TESTS * 3][64] =
       0x44, 0xae, 0x7e, 0x3f },
 };
 
-static unsigned char tag[MAX_TESTS * 3][16] =
+static const unsigned char tag[MAX_TESTS * 3][16] =
 {
     { 0x58, 0xe2, 0xfc, 0xce, 0xfa, 0x7e, 0x30, 0x61,
       0x36, 0x7f, 0x1d, 0x57, 0xa4, 0xe7, 0x45, 0x5a },
@@ -938,8 +938,6 @@ int gcm_self_test( int verbose )
 
     return( 0 );
 }
-
-
 
 #endif /* POLARSSL_SELF_TEST && POLARSSL_AES_C */
 

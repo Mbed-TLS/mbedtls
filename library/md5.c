@@ -443,7 +443,7 @@ void md5_hmac( const unsigned char *key, size_t keylen,
 /*
  * RFC 1321 test vectors
  */
-static unsigned char md5_test_buf[7][81] =
+static const unsigned char md5_test_buf[7][81] =
 {
     { "" },
     { "a" },
@@ -481,7 +481,7 @@ static const unsigned char md5_test_sum[7][16] =
 /*
  * RFC 2202 test vectors
  */
-static unsigned char md5_hmac_test_key[7][26] =
+static const unsigned char md5_hmac_test_key[7][26] =
 {
     { "\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B" },
     { "Jefe" },
@@ -498,7 +498,7 @@ static const int md5_hmac_test_keylen[7] =
     16, 4, 16, 25, 16, 80, 80
 };
 
-static unsigned char md5_hmac_test_buf[7][74] =
+static const unsigned char md5_hmac_test_buf[7][74] =
 {
     { "Hi There" },
     { "what do ya want for nothing?" },

@@ -12,7 +12,7 @@ CONFIG_H='include/mbedtls/config.h'
 
 CLIENT='mini_client'
 
-CFLAGS_EXEC=-fno-asynchronous-unwind-tables
+CFLAGS_EXEC='-fno-asynchronous-unwind-tables -Wl,--gc-section -ffunction-sections'
 CFLAGS_MEM=-g3
 
 if [ -r $CONFIG_H ]; then :; else
@@ -22,6 +22,11 @@ fi
 
 if grep -i cmake Makefile >/dev/null; then
     echo "Not compatible with CMake" >&2
+    exit 1
+fi
+
+if [ $( uname ) != Linux ]; then
+    echo "Only work on Linux" >&2
     exit 1
 fi
 
@@ -54,7 +59,7 @@ do_config()
     cd programs
     CFLAGS=$CFLAGS_EXEC make OFLAGS=-Os ssl/$CLIENT >/dev/null
     strip ssl/$CLIENT
-    stat -f '%z' ssl/$CLIENT
+    stat -c '%s' ssl/$CLIENT
     cd ..
 
     printf "    Peak ram usage... "

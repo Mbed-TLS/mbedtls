@@ -501,10 +501,6 @@ SOURCE=..\..\include\mbedtls\md_wrap.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\mbedtls\memory.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\include\mbedtls\memory_buffer_alloc.h
 # End Source File
 # Begin Source File

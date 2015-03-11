@@ -6,6 +6,7 @@ Features
   * Support for DTLS 1.0 and 1.2 (RFC 6347).
 
 API Changes
+   * Remove the PBKDF2 module (use PKCS5).
    * Remove POLARSSL_ERROR_STRERROR_BC (use mbedtls_strerror()).
    * Headers are now found in the 'mbedtls' directory (previously 'polarssl').
    * Change SSL_DISABLE_RENEGOTIATION config.h flag to SSL_RENEGOTIATION

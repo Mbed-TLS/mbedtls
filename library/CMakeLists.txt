@@ -39,7 +39,6 @@ set(src
      net.c
      oid.c
      padlock.c
-     pbkdf2.c
      pem.c
      pkcs5.c
      pkcs11.c

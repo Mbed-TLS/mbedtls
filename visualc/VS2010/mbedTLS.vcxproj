@@ -180,7 +180,6 @@
     <ClInclude Include="..\..\include\mbedtls\net.h" />
     <ClInclude Include="..\..\include\mbedtls\oid.h" />
     <ClInclude Include="..\..\include\mbedtls\padlock.h" />
-    <ClInclude Include="..\..\include\mbedtls\pbkdf2.h" />
     <ClInclude Include="..\..\include\mbedtls\pem.h" />
     <ClInclude Include="..\..\include\mbedtls\pk.h" />
     <ClInclude Include="..\..\include\mbedtls\pk_wrap.h" />
@@ -243,7 +242,6 @@
     <ClCompile Include="..\..\library\net.c" />
     <ClCompile Include="..\..\library\oid.c" />
     <ClCompile Include="..\..\library\padlock.c" />
-    <ClCompile Include="..\..\library\pbkdf2.c" />
     <ClCompile Include="..\..\library\pem.c" />
     <ClCompile Include="..\..\library\pk.c" />
     <ClCompile Include="..\..\library\pk_wrap.c" />

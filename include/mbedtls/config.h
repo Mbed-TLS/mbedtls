@@ -1815,20 +1815,6 @@
 #define POLARSSL_PADLOCK_C
 
 /**
- * \def POLARSSL_PBKDF2_C
- *
- * Enable PKCS#5 PBKDF2 key derivation function.
- * DEPRECATED: Use POLARSSL_PKCS5_C instead
- *
- * Module:  library/pbkdf2.c
- *
- * Requires: POLARSSL_PKCS5_C
- *
- * This module adds support for the PKCS#5 PBKDF2 key derivation function.
- */
-#define POLARSSL_PBKDF2_C
-
-/**
  * \def POLARSSL_PEM_PARSE_C
  *
  * Enable PEM decoding / parsing.

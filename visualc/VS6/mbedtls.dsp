@@ -229,10 +229,6 @@ SOURCE=..\..\library\padlock.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\library\pbkdf2.c
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\library\pem.c
 # End Source File
 # Begin Source File
@@ -514,10 +510,6 @@ SOURCE=..\..\include\mbedtls\oid.h
 # Begin Source File
 
 SOURCE=..\..\include\mbedtls\padlock.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\mbedtls\pbkdf2.h
 # End Source File
 # Begin Source File
 

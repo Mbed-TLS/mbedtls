@@ -74,7 +74,7 @@ APPS =	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
 	test_suite_hmac_drbg.pr$(EXEXT)					\
 	test_suite_md$(EXEXT)		test_suite_mdx$(EXEXT)		\
 	test_suite_memory_buffer_alloc$(EXEXT)				\
-	test_suite_mpi$(EXEXT)		test_suite_pbkdf2$(EXEXT)	\
+	test_suite_mpi$(EXEXT)						\
 	test_suite_pem$(EXEXT)						\
 	test_suite_pkcs1_v21$(EXEXT)	test_suite_pkcs5$(EXEXT)	\
 	test_suite_pkparse$(EXEXT)	test_suite_pkwrite$(EXEXT)	\

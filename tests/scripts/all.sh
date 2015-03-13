@@ -184,8 +184,11 @@ scripts/config.pl unset POLARSSL_THREADING_PTHREAD
 scripts/config.pl unset POLARSSL_THREADING_C
 scripts/config.pl unset POLARSSL_MEMORY_BACKTRACE # execinfo.h
 scripts/config.pl unset POLARSSL_MEMORY_BUFFER_ALLOC_C # calls exit
-CC=arm-none-eabi-gcc CFLAGS=-Werror make lib 2> armcc.stderr
-grep -v '^ar: creating' armcc.stderr || exit 1
+CC=armcc WARNING_CFLAGS= make lib 2> armcc.stderr
+if [ -s armcc.stderr ]; then
+    cat armcc.stderr
+    exit 1;
+fi
 rm armcc.stderr
 fi # armcc
 

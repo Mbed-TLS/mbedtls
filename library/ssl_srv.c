@@ -1677,17 +1677,14 @@ read_record_header:
 
             SSL_DEBUG_MSG( 2, ( "cookie verification skipped" ) );
         }
-    }
-#endif /* POLARSSL_SSL_PROTO_DTLS */
 
     /*
      * Check the ciphersuitelist length (will be parsed later)
      */
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
         ciph_offset = cookie_offset + 1 + cookie_len;
+    }
     else
-#endif
+#endif /* POLARSSL_SSL_PROTO_DTLS */
         ciph_offset = 35 + sess_len;
 
     ciph_len = ( buf[ciph_offset + 0] << 8 )

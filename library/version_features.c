@@ -474,9 +474,6 @@ static const char *features[] = {
 #if defined(POLARSSL_PADLOCK_C)
     "POLARSSL_PADLOCK_C",
 #endif /* POLARSSL_PADLOCK_C */
-#if defined(POLARSSL_PBKDF2_C)
-    "POLARSSL_PBKDF2_C",
-#endif /* POLARSSL_PBKDF2_C */
 #if defined(POLARSSL_PEM_PARSE_C)
     "POLARSSL_PEM_PARSE_C",
 #endif /* POLARSSL_PEM_PARSE_C */

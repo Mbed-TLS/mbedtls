@@ -187,11 +187,11 @@ random/gen_random_ctr_drbg$(EXEXT): random/gen_random_ctr_drbg.c ../library/libm
 
 ssl/dtls_client$(EXEXT): ssl/dtls_client.c ../library/libmbedtls.a
 	echo   "  CC    ssl/dtls_client.c"
-	$(CC) $(CFLAGS) $(OFLAGS) ssl/dtls_client.c  $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(OFLAGS) ssl/dtls_client.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 ssl/dtls_server$(EXEXT): ssl/dtls_server.c ../library/libmbedtls.a
 	echo   "  CC    ssl/dtls_server.c"
-	$(CC) $(CFLAGS) $(OFLAGS) ssl/dtls_server.c  $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(OFLAGS) ssl/dtls_server.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 ssl/ssl_client1$(EXEXT): ssl/ssl_client1.c ../library/libmbedtls.a
 	echo   "  CC    ssl/ssl_client1.c"
@@ -239,7 +239,7 @@ test/selftest$(EXEXT): test/selftest.c ../library/libmbedtls.a
 
 test/udp_proxy$(EXEXT): test/udp_proxy.c ../library/libmbedtls.a
 	echo   "  CC    test/udp_proxy.c"
-	$(CC) $(CFLAGS) $(OFLAGS) test/udp_proxy.c    $(LOCAL_LDFLAGS)$(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(OFLAGS) test/udp_proxy.c    $(LOCAL_LDFLAGS)$(LDFLAGS) -o $@
 
 util/pem2der$(EXEXT): util/pem2der.c ../library/libmbedtls.a
 	echo   "  CC    util/pem2der.c"

@@ -398,7 +398,7 @@ test_suite_shax$(EXEXT): test_suite_shax.c $(DEP)
 
 test_suite_ssl$(EXEXT): test_suite_ssl.c $(DEP)
 	echo   "  CC    	$<"
-	$(CC) $(CFLAGS) $(OFLAGS) $<	$(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_x509parse$(EXEXT): test_suite_x509parse.c $(DEP)
 	echo   "  CC    	$<"

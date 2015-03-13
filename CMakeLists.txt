@@ -10,7 +10,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
   set(CMAKE_C_FLAGS_COVERAGE    "-O0 -g3 --coverage")
   set(CMAKE_C_FLAGS_ASAN        "-Werror -fsanitize=address -fno-common -O3")
   set(CMAKE_C_FLAGS_ASANDBG     "-Werror -fsanitize=address -fno-common -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls ")
-  set(CMAKE_C_FLAGS_CHECK       "-Werror -O1")
+  set(CMAKE_C_FLAGS_CHECK       "-Werror -Os")
   set(CMAKE_C_FLAGS_CHECKFULL   "${CMAKE_C_FLAGS_CHECK} -Wcast-qual")
 endif(CMAKE_COMPILER_IS_GNUCC)
 
@@ -23,7 +23,7 @@ if(CMAKE_COMPILER_IS_CLANG)
   set(CMAKE_C_FLAGS_ASANDBG     "-Werror -fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls ")
   set(CMAKE_C_FLAGS_MEMSAN      "-Werror -fsanitize=memory -O3")
   set(CMAKE_C_FLAGS_MEMSANDBG   "-Werror -fsanitize=memory -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-memory-track-origins=2")
-  set(CMAKE_C_FLAGS_CHECK       "-Werror -O1")
+  set(CMAKE_C_FLAGS_CHECK       "-Werror -Os")
 endif(CMAKE_COMPILER_IS_CLANG)
 
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}

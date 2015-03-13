@@ -129,9 +129,9 @@ cleanup
 cmake -D CMAKE_BUILD_TYPE:String=Debug .
 tests/scripts/curves.pl
 
-msg "build: Unix make, -O2 (gcc)" # ~ 30s
+msg "build: Unix make, -Os (gcc)" # ~ 30s
 cleanup
-CC=gcc CFLAGS=-Werror make
+CC=gcc CFLAGS='-Werror -Os' make
 
 # this is meant to cath missing #define polarssl_printf etc
 # disable fsio to catch some more missing #include <stdio.h>
@@ -144,7 +144,7 @@ scripts/config.pl unset POLARSSL_PLATFORM_MEMORY
 scripts/config.pl unset POLARSSL_MEMORY_C
 scripts/config.pl unset POLARSSL_MEMORY_BUFFER_ALLOC_C
 scripts/config.pl unset POLARSSL_FS_IO
-CC=gcc CFLAGS=-Werror make
+CC=gcc CFLAGS='-Werror -O0' make
 
 if uname -a | grep -F x86_64 >/dev/null; then
 msg "build: i386, make, gcc" # ~ 30s
@@ -196,8 +196,11 @@ scripts/config.pl unset POLARSSL_THREADING_PTHREAD
 scripts/config.pl unset POLARSSL_THREADING_C
 scripts/config.pl unset POLARSSL_MEMORY_BACKTRACE # execinfo.h
 scripts/config.pl unset POLARSSL_MEMORY_BUFFER_ALLOC_C # calls exit
-CC=arm-none-eabi-gcc CFLAGS=-Werror make lib 2> armcc.stderr
-grep -v '^ar: creating' armcc.stderr || exit 1
+CC=armcc WARNING_CFLAGS= make lib 2> armcc.stderr
+if [ -s armcc.stderr ]; then
+    cat armcc.stderr
+    exit 1;
+fi
 rm armcc.stderr
 fi # armcc
 

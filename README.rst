@@ -37,6 +37,8 @@ In order to run the tests, enter::
 
 In order to build for a Windows platform, you should use WINDOWS_BUILD=1 if the target is Windows but the build environment is Unix-like (eg when cross-compiling, or compiling from an MSYS shell), and WINDOWS=1 if the build environment is a Windows shell.
 
+Setting the variable SHARED in your environment will build a shared library in addition to the static library. Setting DEBUG gives you a debug build.  You can override CFLAGS and LDFLAGS by setting them in your environment or on the make command line; if you do so, essential parts such as -I will still be preserved.  Warning options may be overridden separately using WARNING_CFLAGS.
+
 Depending on your platform, you might run into some issues. Please check the Makefiles in *library/*, *programs/* and *tests/* for options to manually add or remove for specific platforms. You can also check `the mbed TLS Knowledge Base <https://tls.mbed.org/kb>`_ for articles on your platform or issue.
 
 In case you find that you need to do something else as well, please let us know what, so we can add it to the KB.

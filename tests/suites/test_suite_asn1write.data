@@ -48,3 +48,27 @@ asn1_write_ia5_string:"ABC":"":3:POLARSSL_ERR_ASN1_BUF_TOO_SMALL
 
 ASN.1 Write IA5 String #5 (Buffer too small for string)
 asn1_write_ia5_string:"ABC":"":2:POLARSSL_ERR_ASN1_BUF_TOO_SMALL
+
+ASN.1 Write Integer #0 (Zero)
+asn1_write_int:0:"020100":3:3
+
+ASN.1 Write Integer #1 (Small positive)
+asn1_write_int:123:"02017B":3:3
+
+ASN.1 Write Integer #2 (Big positive)
+asn1_write_int:305419896:"020412345678":6:6
+
+ASN.1 Write Integer #3 (Small negative)
+asn1_write_int:-16:"0201F0":3:3
+
+ASN.1 Write Integer #4 (Big negative)
+asn1_write_int:-231451016:"0204F2345678":6:6
+
+ASN.1 Write Integer #5 (Buffer too small for tag)
+asn1_write_int:-231451016:"0204F2345678":5:POLARSSL_ERR_ASN1_BUF_TOO_SMALL
+
+ASN.1 Write Integer #6 (Buffer too small for len)
+asn1_write_int:-231451016:"0204F2345678":4:POLARSSL_ERR_ASN1_BUF_TOO_SMALL
+
+ASN.1 Write Integer #7 (Buffer too small for integer)
+asn1_write_int:-231451016:"0204F2345678":3:POLARSSL_ERR_ASN1_BUF_TOO_SMALL

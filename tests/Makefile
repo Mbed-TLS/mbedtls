@@ -67,7 +67,8 @@ APPS =	test_suite_aes.ecb		test_suite_aes.cbc		\
 		test_suite_pk									\
 		test_suite_rsa			test_suite_shax			\
 		test_suite_x509parse	test_suite_x509write	\
-		test_suite_xtea			test_suite_version
+		test_suite_xtea			test_suite_version		\
+		test_suite_kdf
 
 .SILENT:
 

@@ -172,6 +172,18 @@
 #include "polarssl/xtea.h"
 #endif
 
+#if defined(POLARSSL_KDF_C)
+#include "polarssl/kdf.h"
+#endif
+
+#if defined(POLARSSL_KDF1_C)
+#include "polarssl/kdf1.h"
+#endif
+
+#if defined(POLARSSL_KDF2_C)
+#include "polarssl/kdf2.h"
+#endif
+
 #include <stdio.h>
 #include <string.h>
 
@@ -493,6 +505,13 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
 #endif /* POLARSSL_X509_USE,X509_CREATE_C */
         // END generated code
 
+        // START custom added code
+#if defined(POLARSSL_KDF_C)
+        if( use_ret == -(POLARSSL_ERR_KDF_BAD_INPUT_DATA) )
+            snprintf( buf, buflen, "KDF - Bad input parameters to function" );
+#endif /* POLARSSL_KDF_C */
+        // END custom added code
+
         if( strlen( buf ) == 0 )
             snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
     }
@@ -728,6 +747,18 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
         snprintf( buf, buflen, "XTEA - The data input has an invalid length" );
 #endif /* POLARSSL_XTEA_C */
     // END generated code
+
+    // START custom added code
+#if defined(POLARSSL_KDF1_C)
+    if( use_ret == -(POLARSSL_ERR_KDF1_BAD_INPUT_DATA) )
+        snprintf( buf, buflen, "KDF1 - Bad input parameters to function" );
+#endif /* POLARSSL_KDF1_C */
+
+#if defined(POLARSSL_KDF2_C)
+    if( use_ret == -(POLARSSL_ERR_KDF2_BAD_INPUT_DATA) )
+        snprintf( buf, buflen, "KDF2 - Bad input parameters to function" );
+#endif /* POLARSSL_KDF2_C */
+    // END custom added code
 
     if( strlen( buf ) != 0 )
         return;

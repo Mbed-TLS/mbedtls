@@ -348,4 +348,9 @@
 #error "POLARSSL_X509_CSR_WRITE_C defined, but not all prerequisites"
 #endif
 
+#if defined(POLARSSL_KDF_C) && \
+    ( !defined(POLARSSL_KDF1_C) && !defined(POLARSSL_KDF2_C) )
+#error "POLARSSL_KDF_C defined, but not all prerequisites"
+#endif
+
 #endif /* POLARSSL_CHECK_CONFIG_H */

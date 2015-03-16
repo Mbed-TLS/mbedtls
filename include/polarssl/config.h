@@ -1679,6 +1679,42 @@
 #define POLARSSL_MD5_C
 
 /**
+ * \def POLARSSL_KDF_C
+ *
+ * Enable the generic key derivation layer.
+ *
+ * Module:  library/kdf.c
+ * Caller:
+ *
+ * Uncomment to enable generic key derivation wrappers.
+ */
+#define POLARSSL_KDF_C
+
+/**
+ * \def POLARSSL_KDF1_C
+ *
+ * Enable the KDF1 key derivation algorithm.
+ *
+ * Module:  library/kdf1.c
+ * Caller:
+ *
+ * This module adds support for KDF1 (ISO-18033-2) algorithm.
+ */
+#define POLARSSL_KDF1_C
+
+/**
+ * \def POLARSSL_KDF2_C
+ *
+ * Enable the KDF2 key derivation algorithm.
+ *
+ * Module:  library/kdf2.c
+ * Caller:
+ *
+ * This module adds support for KDF2 (ISO-18033-2) algorithm.
+ */
+#define POLARSSL_KDF2_C
+
+/**
  * \def POLARSSL_MEMORY_C
  * Deprecated since 1.3.5. Please use POLARSSL_PLATFORM_MEMORY instead.
  * Depends on: POLARSSL_PLATFORM_C

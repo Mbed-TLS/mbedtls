@@ -69,6 +69,26 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
                  unsigned char *output );
 
 /**
+ * \brief          PKCS#5 PBES2 function
+ *
+ * \param pbe_params the ASN.1 algorithm parameters
+ * \param mode       either PKCS5_DECRYPT or PKCS5_ENCRYPT
+ * \param pwd        password to use when generating key
+ * \param pwdlen     length of password
+ * \param data       data to process
+ * \param datalen    length of data
+ * \param output     output buffer
+ * \param olen       length of the output data, will be filled with the
+ *                   actual number of bytes written
+ *
+ * \returns        0 on success, or a POLARSSL_ERR_xxx code if verification fails.
+ */
+int pkcs5_pbes2_ext( asn1_buf *pbe_params, int mode,
+                 const unsigned char *pwd,  size_t pwdlen,
+                 const unsigned char *data, size_t datalen,
+                 unsigned char *output, size_t *olen );
+
+/**
  * \brief          PKCS#5 PBKDF2 using HMAC
  *
  * \param ctx      Generic HMAC context

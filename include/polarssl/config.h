@@ -630,6 +630,21 @@
 #define POLARSSL_PK_PARSE_EC_EXTENDED
 
 /**
+ * \def POLARSSL_PK_WRITE_ENCRYPTED_KEY
+ *
+ * Add functions to write private key in the PKCS#8 structure.
+ *
+ * Module:  library/pkwrite.c
+ * Caller:
+ *
+ * Requires: POLARSSL_DES_C, POLARSSL_PKCS12_C, POLARSSL_SHA1_C
+ *
+ * Uncomment to be able use functions which write private key
+ * in the PKCS#8 structure.
+ */
+#define POLARSSL_PK_WRITE_ENCRYPTED_KEY
+
+/**
  * \def POLARSSL_ERROR_STRERROR_BC
  *
  * Make available the backward compatible error_strerror() next to the

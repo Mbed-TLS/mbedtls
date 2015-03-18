@@ -353,4 +353,15 @@
 #error "POLARSSL_KDF_C defined, but not all prerequisites"
 #endif
 
+#if defined(POLARSSL_PK_WRITE_ENCRYPTED_KEY) &&    \
+    ( !defined(POLARSSL_DES_C) ||                  \
+      !defined(POLARSSL_PKCS12_C) ||               \
+      !defined(POLARSSL_SHA1_C) )
+#error "POLARSSL_PK_WRITE_ENCRYPTED_KEY defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PK_WRITE_ENCRYPTED_KEY) && !defined(POLARSSL_PK_WRITE_C)
+#warning "POLARSSL_PK_WRITE_ENCRYPTED_KEY defined, but will be ignored"
+#endif
+
 #endif /* POLARSSL_CHECK_CONFIG_H */

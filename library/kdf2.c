@@ -61,9 +61,6 @@ do { \
 int kdf2(const md_info_t *md_info, const unsigned char *input, size_t ilen,
         unsigned char * output, size_t olen)
 {
-    if (md_info == NULL)
-        return( POLARSSL_ERR_KDF2_BAD_INPUT_DATA );
-
     int result = 0;
     size_t counter = 1;
     size_t counter_len = 0;
@@ -75,6 +72,9 @@ int kdf2(const md_info_t *md_info, const unsigned char *input, size_t ilen,
     size_t olen_actual = 0;
 
     md_context_t md_ctx;
+
+    if (md_info == NULL)
+        return( POLARSSL_ERR_KDF2_BAD_INPUT_DATA );
 
     // Initialize digest context
     KDF2_TRY(md_init_ctx(&md_ctx, md_info));

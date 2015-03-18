@@ -1,5 +1,4 @@
 language: c
-compiler:
 - clang
 - gcc
 before_install: sudo apt-get update
@@ -24,3 +23,7 @@ addons:
     build_command_prepend:
     build_command: make
     branch_pattern: development
+
+branches:
+  only:
+    - mbedtls-1.3

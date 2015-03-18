@@ -34,8 +34,10 @@ void kdf_null_args( )
 
     TEST_ASSERT( kdf_info_from_string( NULL ) == NULL );
 
-    TEST_ASSERT( kdf( kdf_info, NULL, buf, 1, buf, 1 ) && POLARSSL_ERR_KDF_BAD_INPUT_DATA );
-    TEST_ASSERT( kdf( NULL, md_info, buf, 1, buf, 1 ) && POLARSSL_ERR_KDF_BAD_INPUT_DATA );
+    TEST_ASSERT( ( kdf( kdf_info, NULL, buf, 1, buf, 1 ) &&
+            POLARSSL_ERR_KDF_BAD_INPUT_DATA ) != 0 );
+    TEST_ASSERT( ( kdf( NULL, md_info, buf, 1, buf, 1 ) &&
+            POLARSSL_ERR_KDF_BAD_INPUT_DATA ) != 0 );
 }
 /* END_CASE */
 
@@ -89,7 +91,8 @@ void kdf_text( char *text_kdf_name, char *text_md_name, char *text_src_string,
     TEST_ASSERT( md_info != NULL );
 
     TEST_ASSERT( olen <= (int)sizeof(output) );
-    TEST_ASSERT( 0 == kdf( kdf_info, md_info, src_str, strlen( (char *) src_str ), output, olen ) );
+    TEST_ASSERT( 0 == kdf( kdf_info, md_info, src_str,
+            strlen( (char *) src_str ), output, olen ) );
     hexify( kdf_str, output, olen );
 
     TEST_ASSERT( strcmp( (char *) kdf_str, hex_kdf_string ) == 0 );
@@ -126,7 +129,8 @@ void kdf_hex( char *text_kdf_name, char *text_md_name, char *hex_src_string,
 
     src_len = unhexify( src_str, hex_src_string );
 
-    TEST_ASSERT( 0 == kdf( kdf_info, md_info, src_str, src_len, output, olen ) );
+    TEST_ASSERT( 0 ==
+            kdf( kdf_info, md_info, src_str, src_len, output, olen ) );
 
     hexify( kdf_str, output, olen );
 
@@ -157,7 +161,8 @@ void kdf_oid( char *text_kdf_name, char *hex_oid_string, char *text_oid_string )
     kdf_type = kdf_get_type(kdf_info);
     TEST_ASSERT( kdf_type != POLARSSL_KDF_NONE );
 
-    TEST_ASSERT( 0 == oid_get_oid_by_kdf_alg( kdf_type, (const char **)&oid_buf.p, &oid_buf.len ) );
+    TEST_ASSERT( 0 == oid_get_oid_by_kdf_alg( kdf_type,
+            (const char **)&oid_buf.p, &oid_buf.len ) );
     TEST_ASSERT( oid_buf.p != NULL );
     TEST_ASSERT( oid_buf.len != 0 );
 
@@ -165,9 +170,11 @@ void kdf_oid( char *text_kdf_name, char *hex_oid_string, char *text_oid_string )
     TEST_ASSERT( kdf_type == kdf_type_restored );
 
     hexify( hex_oid_str, oid_buf.p, oid_buf.len );
-    TEST_ASSERT( strncmp( (char *)hex_oid_str, hex_oid_string, oid_buf.len ) == 0 );
+    TEST_ASSERT( 0 ==
+            strncmp( (char *)hex_oid_str, hex_oid_string, oid_buf.len ) );
 
-    oid_str_len = oid_get_numeric_string( oid_str, sizeof(oid_str) - 1, &oid_buf );
+    oid_str_len =
+            oid_get_numeric_string( oid_str, sizeof(oid_str) - 1, &oid_buf );
     TEST_ASSERT( oid_str_len > 0 );
     TEST_ASSERT( strncmp( oid_str, text_oid_string, oid_str_len ) == 0 );
 

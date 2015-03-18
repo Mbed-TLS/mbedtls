@@ -34,9 +34,9 @@ void kdf_null_args( )
 
     TEST_ASSERT( kdf_info_from_string( NULL ) == NULL );
 
-    TEST_ASSERT( ( kdf( kdf_info, NULL, buf, 1, buf, 1 ) &&
+    TEST_ASSERT( ( kdf( kdf_info, NULL, buf, 1, buf, 1 ) &
             POLARSSL_ERR_KDF_BAD_INPUT_DATA ) != 0 );
-    TEST_ASSERT( ( kdf( NULL, md_info, buf, 1, buf, 1 ) &&
+    TEST_ASSERT( ( kdf( NULL, md_info, buf, 1, buf, 1 ) &
             POLARSSL_ERR_KDF_BAD_INPUT_DATA ) != 0 );
 }
 /* END_CASE */

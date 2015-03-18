@@ -363,11 +363,28 @@ int pk_write_key_der_ext( pk_context *key, unsigned char *buf, size_t size,
     {
         size_t oid_len = 0;
         const char *oid;
-
         size_t par_len = 0;
 
+        /* Cipher parameters */
         const cipher_type_t cipher_alg = POLARSSL_CIPHER_DES_EDE3_CBC;
         const md_type_t md_alg = POLARSSL_MD_SHA1;
+
+        /* PBKDF2 parameters */
+        ctr_drbg_context ctr_drbg;
+        entropy_context entropy;
+        const char *drbg_personal_info = "random_salt";
+        unsigned char pbe_salt[32] = { 0x0 };
+        const size_t pbe_salt_len = sizeof( pbe_salt );
+        const size_t pbe_iterations = 8192;
+
+        /* PBE parameters */
+        asn1_buf pbe_params = {0x0, 0x0, 0x0};
+        unsigned char pbe_params_buf[128] = {0x0};
+        unsigned char *pbe_params_buf_c = NULL;
+        size_t pbe_params_len = 0;
+        unsigned char *pbe_buf = NULL;
+        size_t pbe_len = 0;
+        unsigned char *pbe_params_buf_parse_c = NULL;
 
         /*
          * Write private key to the PrivatKeyInfo object (PKCS#8 v1.2)
@@ -433,13 +450,6 @@ int pk_write_key_der_ext( pk_context *key, unsigned char *buf, size_t size,
          * Encrypt data with appropriate PBE
          */
         /* Generate salt */
-        ctr_drbg_context ctr_drbg;
-        entropy_context entropy;
-        const char *drbg_personal_info = "random_salt";
-        unsigned char pbe_salt[32] = {0x0};
-        const size_t pbe_salt_len = sizeof(pbe_salt);
-        const size_t pbe_iterations = 8192;
-
         entropy_init( &entropy );
         if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
                                   (const unsigned char *)drbg_personal_info,
@@ -460,23 +470,15 @@ int pk_write_key_der_ext( pk_context *key, unsigned char *buf, size_t size,
         ctr_drbg_free( &ctr_drbg );
         entropy_free( &entropy );
 
-        /* get pbe parameters */
-        asn1_buf pbe_params = {0x0, 0x0, 0x0};
-        unsigned char pbe_params_buf[128] = {0x0};
-        unsigned char *pbe_params_buf_c = pbe_params_buf +
-                                           sizeof(pbe_params_buf);
-        size_t pbe_params_len = 0;
-        unsigned char *pbe_buf = NULL;
-        size_t pbe_len = 0;
-
         /* get pbe */
+        pbe_params_buf_c = pbe_params_buf + sizeof(pbe_params_buf);
         ASN1_CHK_ADD( pbe_params_len, pk_write_pkcs12_param( &pbe_params_buf_c,
                                                              pbe_params_buf,
                                                              pbe_iterations,
                                                              pbe_salt,
                                                              pbe_salt_len) );
 
-        unsigned char * pbe_params_buf_parse_c = pbe_params_buf_c;
+        pbe_params_buf_parse_c = pbe_params_buf_c;
         if( ( ret = asn1_get_params( &pbe_params_buf_parse_c,
                                      pbe_params_buf_parse_c + pbe_params_len,
                                      &pbe_params ) ) )

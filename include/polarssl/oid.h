@@ -575,6 +575,20 @@ int oid_get_cipher_alg( const asn1_buf *oid, cipher_type_t *cipher_alg );
  */
 int oid_get_pkcs12_pbe_alg( const asn1_buf *oid, md_type_t *md_alg,
                             cipher_type_t *cipher_alg );
+
+/**
+ * \brief          Translate md_type and cipher_type into
+ *                 PKCS#12 PBE algorithm OID
+ *
+ * \param cipher_alg  cipher algorithm
+ * \param md_alg      message digest algorithm
+ * \param oid         place to store ASN.1 OID string pointer
+ * \param olen        length of the OID
+ *
+ * \return         0 if successful, or POLARSSL_ERR_OID_NOT_FOUND
+ */
+int oid_get_oid_by_pkcs12_pbe_alg( cipher_type_t cipher_alg, md_type_t md_alg,
+                                   const char **oid, size_t *olen );
 #endif /* POLARSSL_PKCS12_C */
 
 #if defined(POLARSSL_KDF_C)

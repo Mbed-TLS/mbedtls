@@ -24,7 +24,3 @@ addons:
     build_command_prepend:
     build_command: make
     branch_pattern: development
-
-branches:
-  only:
-    - mbedtls-1.3

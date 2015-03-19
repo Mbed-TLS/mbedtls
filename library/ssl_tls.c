@@ -2258,7 +2258,7 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
             }
 #if defined(POLARSSL_SSL_SRV_C) && defined(POLARSSL_SSL_RENEGOTIATION)
             else if( ssl->endpoint == SSL_IS_SERVER &&
-                     ssl->renegotiation == SSL_RENEGOTIATION_PENDING )
+                     ssl->renego_status == SSL_RENEGOTIATION_PENDING )
             {
                 if( ( ret = ssl_resend_hello_request( ssl ) ) != 0 )
                 {
@@ -3207,7 +3207,7 @@ static int ssl_parse_record_header( ssl_context *ssl )
         if( ssl->in_msgtype == SSL_MSG_APPLICATION_DATA &&
             ssl->state != SSL_HANDSHAKE_OVER
 #if defined(POLARSSL_SSL_RENEGOTIATION)
-            && ! ( ssl->renegotiation == SSL_RENEGOTIATION_IN_PROGRESS &&
+            && ! ( ssl->renego_status == SSL_RENEGOTIATION_IN_PROGRESS &&
                    ssl->state == SSL_SERVER_HELLO )
 #endif
             )
@@ -3945,7 +3945,7 @@ int ssl_parse_certificate( ssl_context *ssl )
      */
 #if defined(POLARSSL_SSL_RENEGOTIATION) && defined(POLARSSL_SSL_CLI_C)
     if( ssl->endpoint == SSL_IS_CLIENT &&
-        ssl->renegotiation == SSL_RENEGOTIATION_IN_PROGRESS )
+        ssl->renego_status == SSL_RENEGOTIATION_IN_PROGRESS )
     {
         if( ssl->session->peer_cert == NULL )
         {
@@ -4490,9 +4490,9 @@ void ssl_handshake_wrapup( ssl_context *ssl )
     SSL_DEBUG_MSG( 3, ( "=> handshake wrapup" ) );
 
 #if defined(POLARSSL_SSL_RENEGOTIATION)
-    if( ssl->renegotiation == SSL_RENEGOTIATION_IN_PROGRESS )
+    if( ssl->renego_status == SSL_RENEGOTIATION_IN_PROGRESS )
     {
-        ssl->renegotiation =  SSL_RENEGOTIATION_DONE;
+        ssl->renego_status =  SSL_RENEGOTIATION_DONE;
         ssl->renego_records_seen = 0;
     }
 #endif
@@ -4990,7 +4990,7 @@ int ssl_session_reset( ssl_context *ssl )
     ssl->state = SSL_HELLO_REQUEST;
 
 #if defined(POLARSSL_SSL_RENEGOTIATION)
-    ssl->renegotiation = SSL_INITIAL_HANDSHAKE;
+    ssl->renego_status = SSL_INITIAL_HANDSHAKE;
     ssl->renego_records_seen = 0;
 
     ssl->verify_data_len = 0;
@@ -5972,7 +5972,7 @@ static int ssl_start_renegotiation( ssl_context *ssl )
      * the ServerHello will have message_seq = 1" */
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
-        ssl->renegotiation == SSL_RENEGOTIATION_PENDING )
+        ssl->renego_status == SSL_RENEGOTIATION_PENDING )
     {
         if( ssl->endpoint == SSL_IS_SERVER )
             ssl->handshake->out_msg_seq = 1;
@@ -5982,7 +5982,7 @@ static int ssl_start_renegotiation( ssl_context *ssl )
 #endif
 
     ssl->state = SSL_HELLO_REQUEST;
-    ssl->renegotiation = SSL_RENEGOTIATION_IN_PROGRESS;
+    ssl->renego_status = SSL_RENEGOTIATION_IN_PROGRESS;
 
     if( ( ret = ssl_handshake( ssl ) ) != 0 )
     {
@@ -6010,7 +6010,7 @@ int ssl_renegotiate( ssl_context *ssl )
         if( ssl->state != SSL_HANDSHAKE_OVER )
             return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
-        ssl->renegotiation = SSL_RENEGOTIATION_PENDING;
+        ssl->renego_status = SSL_RENEGOTIATION_PENDING;
 
         /* Did we already try/start sending HelloRequest? */
         if( ssl->out_left != 0 )
@@ -6025,7 +6025,7 @@ int ssl_renegotiate( ssl_context *ssl )
      * On client, either start the renegotiation process or,
      * if already in progress, continue the handshake
      */
-    if( ssl->renegotiation != SSL_RENEGOTIATION_IN_PROGRESS )
+    if( ssl->renego_status != SSL_RENEGOTIATION_IN_PROGRESS )
     {
         if( ssl->state != SSL_HANDSHAKE_OVER )
             return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
@@ -6055,7 +6055,7 @@ int ssl_renegotiate( ssl_context *ssl )
 static int ssl_check_ctr_renegotiate( ssl_context *ssl )
 {
     if( ssl->state != SSL_HANDSHAKE_OVER ||
-        ssl->renegotiation == SSL_RENEGOTIATION_PENDING ||
+        ssl->renego_status == SSL_RENEGOTIATION_PENDING ||
         ssl->disable_renegotiation == SSL_RENEGOTIATION_DISABLED )
     {
         return( 0 );
@@ -6234,7 +6234,7 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
                 if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
                     ssl->endpoint == SSL_IS_CLIENT )
                 {
-                    ssl->renegotiation = SSL_RENEGOTIATION_PENDING;
+                    ssl->renego_status = SSL_RENEGOTIATION_PENDING;
                 }
 #endif
                 ret = ssl_start_renegotiation( ssl );
@@ -6254,7 +6254,7 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
             if( ! record_read )
                 return( POLARSSL_ERR_NET_WANT_READ );
         }
-        else if( ssl->renegotiation == SSL_RENEGOTIATION_PENDING )
+        else if( ssl->renego_status == SSL_RENEGOTIATION_PENDING )
         {
 
             if( ssl->renego_max_records >= 0 )
@@ -6295,7 +6295,7 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
          * again if ssl_write_hello_request() returns WANT_WRITE */
 #if defined(POLARSSL_SSL_SRV_C) && defined(POLARSSL_SSL_RENEGOTIATION)
         if( ssl->endpoint == SSL_IS_SERVER &&
-            ssl->renegotiation == SSL_RENEGOTIATION_PENDING )
+            ssl->renego_status == SSL_RENEGOTIATION_PENDING )
         {
             if( ( ret = ssl_resend_hello_request( ssl ) ) != 0 )
             {

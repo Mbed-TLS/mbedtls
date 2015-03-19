@@ -795,7 +795,7 @@ struct _ssl_context
     int state;                  /*!< SSL handshake: current state     */
     int transport;              /*!< Transport: stream or datagram    */
 #if defined(POLARSSL_SSL_RENEGOTIATION)
-    int renegotiation;          /*!< Initial or renegotiation         */
+    int renego_status;          /*!< Initial, in progress, pending?   */
     int renego_records_seen;    /*!< Records since renego request, or with DTLS,
                                   number of retransmissions of request if
                                   renego_max_records is < 0           */

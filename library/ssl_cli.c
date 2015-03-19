@@ -1118,7 +1118,7 @@ static int ssl_parse_hello_verify_request( ssl_context *ssl )
      *   opaque cookie<0..2^8-1>;
      * } HelloVerifyRequest;
      */
-    SSL_DEBUG_BUF( 3, "server version", (unsigned char *) p, 2 );
+    SSL_DEBUG_BUF( 3, "server version", p, 2 );
     ssl_read_version( &major_ver, &minor_ver, ssl->transport, p );
     p += 2;
 
@@ -1140,7 +1140,7 @@ static int ssl_parse_hello_verify_request( ssl_context *ssl )
     }
 
     cookie_len = *p++;
-    SSL_DEBUG_BUF( 3, "cookie", (unsigned char *) p, cookie_len );
+    SSL_DEBUG_BUF( 3, "cookie", p, cookie_len );
 
     polarssl_free( ssl->handshake->verify_cookie );
 

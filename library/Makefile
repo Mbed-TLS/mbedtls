@@ -62,7 +62,8 @@ OBJS=	aes.o		aesni.o		arc4.o			\
 		x509_crl.o	x509_crt.o	x509_csr.o		\
 		x509write_crt.o			x509write_csr.o	\
 		xtea.o									\
-		kdf_wrap.o kdf.o kdf1.o kdf2.o
+		kdf_wrap.o kdf.o kdf1.o kdf2.o 			\
+		ecies.o ecies_envelope.o
 
 .SILENT:
 

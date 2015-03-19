@@ -75,6 +75,8 @@ set(src
      kdf.c
      kdf1.c
      kdf2.c
+     ecies.c
+     ecies_envelope.c
 )
 
 if(WIN32)

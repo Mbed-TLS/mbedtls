@@ -93,6 +93,7 @@
  * CIPHER    6   6
  * SSL       6   11 (Started from top)
  * SSL       7   31
+ * ECIES     7   3 (Started from top)
  *
  * Module dependent error code (5 bits 0x.00.-0x.F8.)
  */

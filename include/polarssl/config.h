@@ -1553,6 +1553,20 @@
 #define POLARSSL_ECDSA_C
 
 /**
+ * \def POLARSSL_ECIES_C
+ *
+ * Enable the elliptic curve ECIES algorithms.
+ *
+ * Module:  library/ecies.c
+ * Caller:
+ *
+ *
+ * Requires: POLARSSL_PK_C, POLARSSL_ECDH_C, POLARSSL_CIPHER_C,
+ *           POLARSSL_MD_C, POLARSSL_KDF_C, POLARSSL_OID_C
+ */
+#define POLARSSL_ECIES_C
+
+/**
  * \def POLARSSL_ECP_C
  *
  * Enable the elliptic curve over GF(p) library.

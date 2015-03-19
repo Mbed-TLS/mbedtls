@@ -364,4 +364,14 @@
 #warning "POLARSSL_PK_WRITE_ENCRYPTED_KEY defined, but will be ignored"
 #endif
 
+#if defined(POLARSSL_ECIES_C) &&        \
+    ( !defined(POLARSSL_PK_C)     ||    \
+      !defined(POLARSSL_ECDH_C)   ||    \
+      !defined(POLARSSL_CIPHER_C) ||    \
+      !defined(POLARSSL_MD_C)     ||    \
+      !defined(POLARSSL_OID_C)    ||    \
+      !defined(POLARSSL_KDF_C) )
+#error "POLARSSL_ECIES_C defined, but not all prerequisites"
+#endif
+
 #endif /* POLARSSL_CHECK_CONFIG_H */

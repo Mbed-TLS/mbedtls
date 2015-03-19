@@ -162,7 +162,6 @@ scripts/config.pl unset POLARSSL_TIMING_C
 scripts/config.pl unset POLARSSL_FS_IO
 scripts/config.pl unset POLARSSL_SSL_PROTO_DTLS # timing.c
 scripts/config.pl unset POLARSSL_SSL_DTLS_ANTI_REPLAY
-scripts/config.pl unset POLARSSL_SSL_DTLS_ANTI_REPLAY
 scripts/config.pl unset POLARSSL_SSL_DTLS_HELLO_VERIFY
 scripts/config.pl unset POLARSSL_SSL_DTLS_BADMAC_LIMIT
 scripts/config.pl unset POLARSSL_SSL_COOKIE_C
@@ -185,7 +184,6 @@ scripts/config.pl unset POLARSSL_TIMING_C
 scripts/config.pl unset POLARSSL_FS_IO
 scripts/config.pl unset POLARSSL_HAVE_TIME
 scripts/config.pl unset POLARSSL_SSL_PROTO_DTLS # timing.c
-scripts/config.pl unset POLARSSL_SSL_DTLS_ANTI_REPLAY
 scripts/config.pl unset POLARSSL_SSL_DTLS_ANTI_REPLAY
 scripts/config.pl unset POLARSSL_SSL_DTLS_HELLO_VERIFY
 scripts/config.pl unset POLARSSL_SSL_DTLS_BADMAC_LIMIT

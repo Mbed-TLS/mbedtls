@@ -494,6 +494,18 @@ static const oid_cipher_alg_t oid_cipher_alg[] =
         POLARSSL_CIPHER_DES_EDE3_CBC,
     },
     {
+        { ADD_LEN( OID_AES_128_CBC ),          "aes128-CBC", "AES-128-CBC" },
+        POLARSSL_CIPHER_AES_128_CBC,
+    },
+    {
+        { ADD_LEN( OID_AES_192_CBC ),          "aes192-CBC", "AES-192-CBC" },
+        POLARSSL_CIPHER_AES_192_CBC,
+    },
+    {
+        { ADD_LEN( OID_AES_256_CBC ),          "aes256-CBC", "AES-256-CBC" },
+        POLARSSL_CIPHER_AES_256_CBC,
+    },
+    {
         { NULL, 0, NULL, NULL },
         0,
     },
@@ -501,6 +513,7 @@ static const oid_cipher_alg_t oid_cipher_alg[] =
 
 FN_OID_TYPED_FROM_ASN1(oid_cipher_alg_t, cipher_alg, oid_cipher_alg);
 FN_OID_GET_ATTR1(oid_get_cipher_alg, oid_cipher_alg_t, cipher_alg, cipher_type_t, cipher_alg);
+FN_OID_GET_OID_BY_ATTR1(oid_get_oid_by_cipher_alg, oid_cipher_alg_t, oid_cipher_alg, cipher_type_t, cipher_alg);
 #endif /* POLARSSL_CIPHER_C */
 
 #if defined(POLARSSL_MD_C)

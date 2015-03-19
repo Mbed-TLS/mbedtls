@@ -144,7 +144,7 @@ int pk_init_ctx_rsa_alt( pk_context *ctx, void * key,
 /*
  * Tell if a PK can do the operations of the given type
  */
-int pk_can_do( pk_context *ctx, pk_type_t type )
+int pk_can_do( const pk_context *ctx, pk_type_t type )
 {
     /* null or NONE context can't do anything */
     if( ctx == NULL || ctx->pk_info == NULL )
@@ -351,7 +351,7 @@ int pk_debug( const pk_context *ctx, pk_debug_item *items )
 /*
  * Access the PK type name
  */
-const char * pk_get_name( const pk_context *ctx )
+const char *pk_get_name( const pk_context *ctx )
 {
     if( ctx == NULL || ctx->pk_info == NULL )
         return( "invalid PK" );

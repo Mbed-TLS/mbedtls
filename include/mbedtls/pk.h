@@ -292,7 +292,7 @@ static inline size_t pk_get_len( const pk_context *ctx )
  * \return          0 if context can't do the operations,
  *                  1 otherwise.
  */
-int pk_can_do( pk_context *ctx, pk_type_t type );
+int pk_can_do( const pk_context *ctx, pk_type_t type );
 
 /**
  * \brief           Verify signature (including padding if relevant).

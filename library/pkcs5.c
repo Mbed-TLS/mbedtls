@@ -109,7 +109,7 @@ static int pkcs5_parse_pbkdf2_params( const asn1_buf *params,
     return( 0 );
 }
 
-int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
+int pkcs5_pbes2( const asn1_buf *pbe_params, int mode,
                  const unsigned char *pwd,  size_t pwdlen,
                  const unsigned char *data, size_t datalen,
                  unsigned char *output )

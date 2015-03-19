@@ -63,7 +63,7 @@ extern "C" {
  *
  * \returns        0 on success, or a POLARSSL_ERR_xxx code if verification fails.
  */
-int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
+int pkcs5_pbes2( const asn1_buf *pbe_params, int mode,
                  const unsigned char *pwd,  size_t pwdlen,
                  const unsigned char *data, size_t datalen,
                  unsigned char *output );

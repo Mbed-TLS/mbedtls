@@ -997,7 +997,7 @@ static int pk_parse_key_pkcs8_encrypted_der(
 
         decrypted = 1;
     }
-    else if( OID_CMP( OID_PKCS12_PBE_SHA1_RC4_128, &pbe_alg_oid ) )
+    else if( OID_CMP( OID_PKCS12_PBE_SHA1_RC4_128, &pbe_alg_oid ) == 0 )
     {
         if( ( ret = pkcs12_pbe_sha1_rc4_128( &pbe_params,
                                              PKCS12_PBE_DECRYPT,
@@ -1018,7 +1018,7 @@ static int pk_parse_key_pkcs8_encrypted_der(
     else
 #endif /* POLARSSL_PKCS12_C */
 #if defined(POLARSSL_PKCS5_C)
-    if( OID_CMP( OID_PKCS5_PBES2, &pbe_alg_oid ) )
+    if( OID_CMP( OID_PKCS5_PBES2, &pbe_alg_oid ) == 0 )
     {
         if( ( ret = pkcs5_pbes2( &pbe_params, PKCS5_DECRYPT, pwd, pwdlen,
                                   p, len, buf ) ) != 0 )

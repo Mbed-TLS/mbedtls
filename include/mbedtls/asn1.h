@@ -99,12 +99,10 @@
  *
  * Only works for 'defined' oid_str values (OID_HMAC_SHA1), you cannot use a
  * 'unsigned char *oid' here!
- *
- * Warning: returns true when the OIDs are equal (unlike memcmp)!
  */
 #define OID_CMP(oid_str, oid_buf)                                   \
-        ( ( OID_SIZE(oid_str) == (oid_buf)->len ) &&                \
-          memcmp( (oid_str), (oid_buf)->p, (oid_buf)->len) == 0 )
+        ( ( OID_SIZE(oid_str) != (oid_buf)->len ) ||                \
+          memcmp( (oid_str), (oid_buf)->p, (oid_buf)->len) != 0 )
 
 #ifdef __cplusplus
 extern "C" {

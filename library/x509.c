@@ -269,7 +269,7 @@ int x509_get_rsassa_pss_params( const x509_buf *params,
             return( ret );
 
         /* Only MFG1 is recognised for now */
-        if( ! OID_CMP( OID_MGF1, &alg_id ) )
+        if( OID_CMP( OID_MGF1, &alg_id ) != 0 )
             return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE +
                     POLARSSL_ERR_OID_NOT_FOUND );
 

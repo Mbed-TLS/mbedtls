@@ -97,7 +97,7 @@ static int pkcs5_parse_pbkdf2_params( const asn1_buf *params,
     if( ( ret = asn1_get_alg_null( &p, end, &prf_alg_oid ) ) != 0 )
         return( POLARSSL_ERR_PKCS5_INVALID_FORMAT + ret );
 
-    if( !OID_CMP( OID_HMAC_SHA1, &prf_alg_oid ) )
+    if( OID_CMP( OID_HMAC_SHA1, &prf_alg_oid ) != 0 )
         return( POLARSSL_ERR_PKCS5_FEATURE_UNAVAILABLE );
 
     *md_type = POLARSSL_MD_SHA1;
@@ -145,7 +145,7 @@ int pkcs5_pbes2( const asn1_buf *pbe_params, int mode,
 
     // Only PBKDF2 supported at the moment
     //
-    if( !OID_CMP( OID_PKCS5_PBKDF2, &kdf_alg_oid ) )
+    if( OID_CMP( OID_PKCS5_PBKDF2, &kdf_alg_oid ) != 0 )
         return( POLARSSL_ERR_PKCS5_FEATURE_UNAVAILABLE );
 
     if( ( ret = pkcs5_parse_pbkdf2_params( &kdf_alg_params,

@@ -1417,7 +1417,7 @@ int x509_crt_check_extended_key_usage( const x509_crt *crt,
             return( 0 );
         }
 
-        if( OID_CMP( OID_ANY_EXTENDED_KEY_USAGE, cur_oid ) )
+        if( OID_CMP( OID_ANY_EXTENDED_KEY_USAGE, cur_oid ) == 0 )
             return( 0 );
     }
 
@@ -1961,7 +1961,7 @@ int x509_crt_verify( x509_crt *crt,
         {
             while( name != NULL )
             {
-                if( OID_CMP( OID_AT_CN, &name->oid ) )
+                if( OID_CMP( OID_AT_CN, &name->oid ) == 0 )
                 {
                     if( name->val.len == cn_len &&
                         x509_memcasecmp( name->val.p, cn, cn_len ) == 0 )

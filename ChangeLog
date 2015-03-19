@@ -6,6 +6,7 @@ Features
   * Support for DTLS 1.0 and 1.2 (RFC 6347).
 
 API Changes
+   * Some constness fixes
    * Signature of mpi_mul_mpi() changed to make the last argument unsigned
    * Remove the PBKDF2 module (use PKCS5).
    * Remove POLARSSL_ERROR_STRERROR_BC (use mbedtls_strerror()).

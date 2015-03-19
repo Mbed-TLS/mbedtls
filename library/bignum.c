@@ -2041,7 +2041,7 @@ cleanup:
 /*
  * Pseudo-primality test: small factors, then Miller-Rabin
  */
-int mpi_is_prime( mpi *X,
+int mpi_is_prime( const mpi *X,
                   int (*f_rng)(void *, unsigned char *, size_t),
                   void *p_rng )
 {

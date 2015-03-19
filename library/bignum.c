@@ -1170,7 +1170,7 @@ cleanup:
 /*
  * Baseline multiplication: X = A * b
  */
-int mpi_mul_int( mpi *X, const mpi *A, t_sint b )
+int mpi_mul_int( mpi *X, const mpi *A, t_uint b )
 {
     mpi _B;
     t_uint p[1];

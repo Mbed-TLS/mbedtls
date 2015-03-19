@@ -571,18 +571,17 @@ int mpi_mul_mpi( mpi *X, const mpi *A, const mpi *B );
 
 /**
  * \brief          Baseline multiplication: X = A * b
- *                 Note: despite the functon signature, b is treated as a
- *                 t_uint.  Negative values of b are treated as large positive
- *                 values.
  *
  * \param X        Destination MPI
  * \param A        Left-hand MPI
- * \param b        The integer value to multiply with
+ * \param b        The unsigned integer value to multiply with
+ *
+ * \note           b is unsigned
  *
  * \return         0 if successful,
  *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
  */
-int mpi_mul_int( mpi *X, const mpi *A, t_sint b );
+int mpi_mul_int( mpi *X, const mpi *A, t_uint b );
 
 /**
  * \brief          Division by mpi: A = Q * B + R

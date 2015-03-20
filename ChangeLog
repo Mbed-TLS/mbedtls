@@ -23,6 +23,8 @@ API Changes
 Changes
    * Support for receiving SSLv2 ClientHello is now disabled by default at
      compile time.
+   * Remove test program o_p_test, the script compat.sh does more.
+   * Remove test program ssl_test, superseded by ssl-opt.sh.
 
 = mbed TLS 1.3 branch
 

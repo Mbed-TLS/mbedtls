@@ -1221,8 +1221,7 @@ int ssl_set_own_cert( ssl_context *ssl, x509_crt *own_cert,
  *                 up your certificate chain. The top certificate (self-signed)
  *                 can be omitted.
  *
- * \warning        This backwards-compatibility function is deprecated!
- *                 Please use \c ssl_set_own_cert() instead.
+ * \deprecated     Please use \c ssl_set_own_cert() instead.
  *
  * \param ssl      SSL context
  * \param own_cert own public certificate chain
@@ -1246,8 +1245,7 @@ int ssl_set_own_cert_rsa( ssl_context *ssl, x509_crt *own_cert,
  *                 up your certificate chain. The top certificate (self-signed)
  *                 can be omitted.
  *
- * \warning        This backwards-compatibility function is deprecated!
- *                 Please use \c pk_init_ctx_rsa_alt()
+ * \deprecated     Please use \c pk_init_ctx_rsa_alt()
  *                 and \c ssl_set_own_cert() instead.
  *
  * \param ssl      SSL context

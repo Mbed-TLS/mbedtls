@@ -376,7 +376,7 @@ int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info );
  * \brief               Free the cipher-specific context of ctx. Freeing ctx
  *                      itself remains the responsibility of the caller.
  *
- * \note                Deprecated: Redirects to cipher_free()
+ * \deprecated          Use cipher_free() instead
  *
  * \param ctx           Free the cipher-specific context
  *

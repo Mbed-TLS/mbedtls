@@ -227,8 +227,10 @@ int x509_serial_gets( char *buf, size_t size, const x509_buf *serial );
 
 /**
  * \brief          Give an known OID, return its descriptive string.
- *                 (Deprecated. Use oid_get_extended_key_usage() instead.)
- *                 Warning: only works for extended_key_usage OIDs!
+ *
+ * \deprecated     Use oid_get_extended_key_usage() instead.
+ *
+ * \warning        Only works for extended_key_usage OIDs!
  *
  * \param oid      buffer containing the oid
  *
@@ -239,7 +241,8 @@ const char *x509_oid_get_description( x509_buf *oid );
 
 /**
  * \brief          Give an OID, return a string version of its OID number.
- *                 (Deprecated. Use oid_get_numeric_string() instead)
+ *
+ * \deprecated     Use oid_get_numeric_string() instead.
  *
  * \param buf      Buffer to write to
  * \param size     Maximum size of buffer

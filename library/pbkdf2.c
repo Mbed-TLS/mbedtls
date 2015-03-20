@@ -1,8 +1,7 @@
 /**
  * \file pbkdf2.c
  *
- * \brief Password-Based Key Derivation Function 2 (from PKCS#5)
- *        DEPRECATED: Use pkcs5.c instead
+ * \brief Compatibility wrappers for pkcs5.c
  *
  * \author Mathias Olsson <mathias@kompetensum.com>
  *

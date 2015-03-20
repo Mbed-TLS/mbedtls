@@ -1,7 +1,9 @@
 /**
  * \file memory.h
  *
- * \brief Memory allocation layer (Deprecated to platform layer)
+ * \brief Memory allocation layer
+ *
+ * \deprecated Use the platform layer instead
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
@@ -35,6 +37,11 @@
 #include "platform.h"
 #include "memory_buffer_alloc.h"
 
+/**
+ * \brief   Set malloc() / free() callback
+ *
+ * \deprecated Use platform_set_malloc_free instead
+ */
 int memory_set_own( void * (*malloc_func)( size_t ),
                     void (*free_func)( void * ) )
 {

@@ -1695,7 +1695,9 @@
 
 /**
  * \def POLARSSL_MEMORY_C
- * Deprecated since 1.3.5. Please use POLARSSL_PLATFORM_MEMORY instead.
+ *
+ * \deprecated Use POLARSSL_PLATFORM_MEMORY instead.
+ *
  * Depends on: POLARSSL_PLATFORM_C
  */
 //#define POLARSSL_MEMORY_C
@@ -1768,7 +1770,8 @@
  * \def POLARSSL_PBKDF2_C
  *
  * Enable PKCS#5 PBKDF2 key derivation function.
- * DEPRECATED: Use POLARSSL_PKCS5_C instead
+ *
+ * \deprecated Use POLARSSL_PKCS5_C instead
  *
  * Module:  library/pbkdf2.c
  *

@@ -204,7 +204,7 @@ int md_init_ctx( md_context_t *ctx, const md_info_t *md_info );
  * \brief          Free the message-specific context of ctx. Freeing ctx itself
  *                 remains the responsibility of the caller.
  *
- * \note           Deprecated: Redirects to md_free()
+ * \deprecated     Use md_free() instead
  *
  * \param ctx      Free the message-specific context
  *

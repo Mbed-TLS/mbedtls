@@ -346,8 +346,9 @@ exit:
 void x509_oid_desc( char *oid_str, char *ref_desc )
 {
     x509_buf oid;
-    const char *desc;
+    const char *desc = NULL;
     unsigned char buf[20];
+    int ret;
 
     memset( buf, 0, sizeof buf );
 
@@ -355,12 +356,16 @@ void x509_oid_desc( char *oid_str, char *ref_desc )
     oid.len = unhexify( buf, oid_str );
     oid.p   = buf;
 
-    desc = x509_oid_get_description( &oid );
+    ret = oid_get_extended_key_usage( &oid, &desc );
 
     if( strcmp( ref_desc, "notfound" ) == 0 )
+    {
+        TEST_ASSERT( ret != 0 );
         TEST_ASSERT( desc == NULL );
+    }
     else
     {
+        TEST_ASSERT( ret == 0 );
         TEST_ASSERT( desc != NULL );
         TEST_ASSERT( strcmp( desc, ref_desc ) == 0 );
     }
@@ -383,7 +388,7 @@ void x509_oid_numstr( char *oid_str, char *numstr, int blen, int ret )
 
     TEST_ASSERT( (size_t) blen <= sizeof num_buf );
 
-    TEST_ASSERT( x509_oid_get_numeric_string( num_buf, blen, &oid ) == ret );
+    TEST_ASSERT( oid_get_numeric_string( num_buf, blen, &oid ) == ret );
 
     if( ret >= 0 )
     {

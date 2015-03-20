@@ -1744,15 +1744,6 @@
 #define POLARSSL_MD5_C
 
 /**
- * \def POLARSSL_MEMORY_C
- *
- * \deprecated Use POLARSSL_PLATFORM_MEMORY instead.
- *
- * Depends on: POLARSSL_PLATFORM_C
- */
-//#define POLARSSL_MEMORY_C
-
-/**
  * \def POLARSSL_MEMORY_BUFFER_ALLOC_C
  *
  * Enable the buffer allocator implementation that makes use of a (stack)

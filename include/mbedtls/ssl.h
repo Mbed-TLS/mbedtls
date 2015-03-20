@@ -1227,7 +1227,7 @@ void ssl_set_dbg( ssl_context *ssl,
  *                 attempt at sending or receiving will result in a
  *                 POLARSSL_ERR_SSL_BAD_INPUT_DATA error.
  *
- * \deprecated     Superseded by ssl_set_bio_timeout().
+ * \deprecated     Superseded by ssl_set_bio_timeout() in 2.0.0
  */
 void ssl_set_bio( ssl_context *ssl,
         int (*f_recv)(void *, unsigned char *, size_t), void *p_recv,
@@ -1535,56 +1535,6 @@ void ssl_set_ca_chain( ssl_context *ssl, x509_crt *ca_chain,
  */
 int ssl_set_own_cert( ssl_context *ssl, x509_crt *own_cert,
                        pk_context *pk_key );
-
-#if defined(POLARSSL_RSA_C)
-/**
- * \brief          Set own certificate chain and private RSA key
- *
- *                 Note: own_cert should contain IN order from the bottom
- *                 up your certificate chain. The top certificate (self-signed)
- *                 can be omitted.
- *
- * \deprecated     Please use \c ssl_set_own_cert() instead.
- *
- * \param ssl      SSL context
- * \param own_cert own public certificate chain
- * \param rsa_key  own private RSA key
- *
- * \return          0 on success, or a specific error code.
- */
-int ssl_set_own_cert_rsa( ssl_context *ssl, x509_crt *own_cert,
-                          rsa_context *rsa_key );
-#endif /* POLARSSL_RSA_C */
-
-/**
- * \brief          Set own certificate and external RSA private
- *                 key and handling callbacks, such as the PKCS#11 wrappers
- *                 or any other external private key handler.
- *                 (see the respective RSA functions in rsa.h for documentation
- *                 of the callback parameters, with the only change being
- *                 that the rsa_context * is a void * in the callbacks)
- *
- *                 Note: own_cert should contain IN order from the bottom
- *                 up your certificate chain. The top certificate (self-signed)
- *                 can be omitted.
- *
- * \deprecated     Please use \c pk_init_ctx_rsa_alt()
- *                 and \c ssl_set_own_cert() instead.
- *
- * \param ssl      SSL context
- * \param own_cert own public certificate chain
- * \param rsa_key  alternate implementation private RSA key
- * \param rsa_decrypt  alternate implementation of \c rsa_pkcs1_decrypt()
- * \param rsa_sign     alternate implementation of \c rsa_pkcs1_sign()
- * \param rsa_key_len  function returning length of RSA key in bytes
- *
- * \return          0 on success, or a specific error code.
- */
-int ssl_set_own_cert_alt( ssl_context *ssl, x509_crt *own_cert,
-                          void *rsa_key,
-                          rsa_decrypt_func rsa_decrypt,
-                          rsa_sign_func rsa_sign,
-                          rsa_key_len_func rsa_key_len );
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)

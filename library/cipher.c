@@ -165,14 +165,6 @@ int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info )
     return( 0 );
 }
 
-/* compatibility wrapper */
-int cipher_free_ctx( cipher_context_t *ctx )
-{
-    cipher_free( ctx );
-
-    return( 0 );
-}
-
 int cipher_setkey( cipher_context_t *ctx, const unsigned char *key,
         int key_length, const operation_t operation )
 {

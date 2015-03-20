@@ -226,34 +226,6 @@ int x509_dn_gets( char *buf, size_t size, const x509_name *dn );
 int x509_serial_gets( char *buf, size_t size, const x509_buf *serial );
 
 /**
- * \brief          Give an known OID, return its descriptive string.
- *
- * \deprecated     Use oid_get_extended_key_usage() instead.
- *
- * \warning        Only works for extended_key_usage OIDs!
- *
- * \param oid      buffer containing the oid
- *
- * \return         Return a string if the OID is known,
- *                 or NULL otherwise.
- */
-const char *x509_oid_get_description( x509_buf *oid );
-
-/**
- * \brief          Give an OID, return a string version of its OID number.
- *
- * \deprecated     Use oid_get_numeric_string() instead.
- *
- * \param buf      Buffer to write to
- * \param size     Maximum size of buffer
- * \param oid      Buffer containing the OID
- *
- * \return         Length of the string written (excluding final NULL) or
- *                 POLARSSL_ERR_OID_BUF_TO_SMALL in case of error
- */
-int x509_oid_get_numeric_string( char *buf, size_t size, x509_buf *oid );
-
-/**
  * \brief          Check a given x509_time against the system time and check
  *                 if it is not expired.
  *

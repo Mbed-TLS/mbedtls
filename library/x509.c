@@ -878,28 +878,6 @@ int x509_key_size_helper( char *buf, size_t size, const char *name )
 }
 
 /*
- * Return an informational string describing the given OID
- */
-const char *x509_oid_get_description( x509_buf *oid )
-{
-    const char *desc = NULL;
-    int ret;
-
-    ret = oid_get_extended_key_usage( oid, &desc );
-
-    if( ret != 0 )
-        return( NULL );
-
-    return( desc );
-}
-
-/* Return the x.y.z.... style numeric string for the given OID */
-int x509_oid_get_numeric_string( char *buf, size_t size, x509_buf *oid )
-{
-    return oid_get_numeric_string( buf, size, oid );
-}
-
-/*
  * Return 0 if the x509_time is still valid, or 1 otherwise.
  */
 #if defined(POLARSSL_HAVE_TIME)

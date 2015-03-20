@@ -373,18 +373,6 @@ void cipher_free( cipher_context_t *ctx );
 int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info );
 
 /**
- * \brief               Free the cipher-specific context of ctx. Freeing ctx
- *                      itself remains the responsibility of the caller.
- *
- * \deprecated          Use cipher_free() instead
- *
- * \param ctx           Free the cipher-specific context
- *
- * \returns             0
- */
-int cipher_free_ctx( cipher_context_t *ctx );
-
-/**
  * \brief               Returns the block size of the given cipher.
  *
  * \param ctx           cipher's context. Must have been initialised.

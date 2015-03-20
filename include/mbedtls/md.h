@@ -201,18 +201,6 @@ void md_free( md_context_t *ctx );
 int md_init_ctx( md_context_t *ctx, const md_info_t *md_info );
 
 /**
- * \brief          Free the message-specific context of ctx. Freeing ctx itself
- *                 remains the responsibility of the caller.
- *
- * \deprecated     Use md_free() instead
- *
- * \param ctx      Free the message-specific context
- *
- * \returns        0
- */
-int md_free_ctx( md_context_t *ctx );
-
-/**
  * \brief           Returns the size of the message digest output.
  *
  * \param md_info   message digest info

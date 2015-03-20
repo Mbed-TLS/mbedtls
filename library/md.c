@@ -203,13 +203,6 @@ int md_init_ctx( md_context_t *ctx, const md_info_t *md_info )
     return( 0 );
 }
 
-int md_free_ctx( md_context_t *ctx )
-{
-    md_free( ctx );
-
-    return( 0 );
-}
-
 int md_starts( md_context_t *ctx )
 {
     if( ctx == NULL || ctx->md_info == NULL )

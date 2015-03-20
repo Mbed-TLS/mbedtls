@@ -173,8 +173,6 @@ int main( void )
 
     /* SSLv3 is deprecated, set minimum to TLS 1.0 */
     ssl_set_min_version( &ssl, SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_1 );
-    /* RC4 is deprecated, disable it */
-    ssl_set_arc4_support( &ssl, SSL_ARC4_DISABLED );
 
     ssl_set_rng( &ssl, ctr_drbg_random, &ctr_drbg );
     ssl_set_dbg( &ssl, my_debug, stdout );

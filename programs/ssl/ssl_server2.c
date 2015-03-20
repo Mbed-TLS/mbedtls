@@ -101,7 +101,7 @@
 #define DFL_EXCHANGES           1
 #define DFL_MIN_VERSION         SSL_MINOR_VERSION_1
 #define DFL_MAX_VERSION         -1
-#define DFL_ARC4                SSL_ARC4_DISABLED
+#define DFL_ARC4                -1
 #define DFL_AUTH_MODE           SSL_VERIFY_OPTIONAL
 #define DFL_MFL_CODE            SSL_MAX_FRAG_LEN_NONE
 #define DFL_TRUNC_HMAC          -1
@@ -315,9 +315,9 @@
     USAGE_EMS                                               \
     USAGE_ETM                                               \
     "\n"                                                    \
+    "    arc4=%%d             default: (library default)\n" \
     "    min_version=%%s      default: \"ssl3\"\n"          \
     "    max_version=%%s      default: \"tls1_2\"\n"        \
-    "    arc4=%%d             default: 0 (disabled)\n"      \
     "    force_version=%%s    default: \"\" (none)\n"       \
     "                        options: ssl3, tls1, tls1_1, tls1_2, dtls1, dtls1_2\n" \
     "\n"                                                                \
@@ -1193,6 +1193,19 @@ int main( int argc, char *argv[] )
                 opt.min_version < SSL_MINOR_VERSION_2 )
                 opt.min_version = SSL_MINOR_VERSION_2;
         }
+
+        /* Enable RC4 if needed and not explicitly disabled */
+        if( ciphersuite_info->cipher == POLARSSL_CIPHER_ARC4_128 )
+        {
+            if( opt.arc4 == SSL_ARC4_DISABLED )
+            {
+                polarssl_printf("forced RC4 ciphersuite with RC4 disabled\n");
+                ret = 2;
+                goto usage;
+            }
+
+            opt.arc4 = SSL_ARC4_ENABLED;
+        }
     }
 
     if( opt.version_suites != NULL )
@@ -1618,7 +1631,8 @@ int main( int argc, char *argv[] )
 
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
         ssl_set_ciphersuites( &ssl, opt.force_ciphersuite );
-    else
+
+    if( opt.arc4 != DFL_ARC4 )
         ssl_set_arc4_support( &ssl, opt.arc4 );
 
     if( opt.version_suites != NULL )

@@ -68,7 +68,7 @@ pk_rsa_decrypt_test_vec:"a42eda41e56235e666e7faaa77100197f657288a1bf183e4820f0c3
 
 Encrypt decrypt (EC, OK)
 depends_on:POLARSSL_ECIES_C
-pk_encrypt_decrypt:POLARSSL_PK_ECKEY:"Test vector":220:16:0
+pk_encrypt_decrypt:POLARSSL_PK_ECKEY:"Test vector":512:16:0
 
 Encrypt decrypt (EC, Bad - Small buffer for encrypted data )
 depends_on:POLARSSL_ECIES_C

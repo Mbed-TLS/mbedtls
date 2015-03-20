@@ -3,6 +3,8 @@
  *
  * \brief Backwards compatibility header for PolarSSL-1.2 from PolarSSL-1.3
  *
+ * \deprecated  Use native PolarSSL 1.3 functions instead.
+ *
  *  Copyright (C) 2006-2013, ARM Limited, All Rights Reserved
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)

@@ -3,6 +3,8 @@
  *
  * \brief OpenSSL wrapper (definitions, inline functions).
  *
+ * \deprecated Use native mbed TLS functions instead
+ *
  *  Copyright (C) 2006-2010, ARM Limited, All Rights Reserved
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)

@@ -650,11 +650,9 @@
  * Make available the backward compatible error_strerror() next to the
  * current polarssl_strerror().
  *
- * For new code, it is recommended to use polarssl_strerror() instead and
- * disable this.
+ * \deprecated Do not define this and use polarssl_strerror() instead
  *
- * Disable if you run into name conflicts and want to really remove the
- * error_strerror()
+ * Disable if you want to really remove the error_strerror() name
  */
 #define POLARSSL_ERROR_STRERROR_BC
 

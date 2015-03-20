@@ -1745,7 +1745,9 @@
 
 /**
  * \def POLARSSL_MEMORY_C
- * Deprecated since 1.3.5. Please use POLARSSL_PLATFORM_MEMORY instead.
+ *
+ * \deprecated Use POLARSSL_PLATFORM_MEMORY instead.
+ *
  * Depends on: POLARSSL_PLATFORM_C
  */
 //#define POLARSSL_MEMORY_C
@@ -1815,6 +1817,24 @@
 #define POLARSSL_PADLOCK_C
 
 /**
+<<<<<<< HEAD:include/mbedtls/config.h
+=======
+ * \def POLARSSL_PBKDF2_C
+ *
+ * Enable PKCS#5 PBKDF2 key derivation function.
+ *
+ * \deprecated Use POLARSSL_PKCS5_C instead
+ *
+ * Module:  library/pbkdf2.c
+ *
+ * Requires: POLARSSL_PKCS5_C
+ *
+ * This module adds support for the PKCS#5 PBKDF2 key derivation function.
+ */
+#define POLARSSL_PBKDF2_C
+
+/**
+>>>>>>> mbedtls-1.3:include/polarssl/config.h
  * \def POLARSSL_PEM_PARSE_C
  *
  * Enable PEM decoding / parsing.

@@ -165,7 +165,7 @@ int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info )
     return( 0 );
 }
 
-/* Deprecated, redirects to cipher_free() */
+/* compatibility wrapper */
 int cipher_free_ctx( cipher_context_t *ctx )
 {
     cipher_free( ctx );

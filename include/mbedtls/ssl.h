@@ -1784,10 +1784,10 @@ void ssl_set_extended_master_secret( ssl_context *ssl, char ems );
 
 /**
  * \brief          Disable or enable support for RC4
- *                 (Default: SSL_ARC4_ENABLED)
+ *                 (Default: SSL_ARC4_DISABLED)
  *
- * \note           Though the default is RC4 for compatibility reasons in the
- *                 1.3 branch, the recommended value is SSL_ARC4_DISABLED.
+ * \warning        Use of RC4 in (D)TLS has been prohibited by RFC ????
+ *                 for security reasons. Use at your own risks.
  *
  * \note           This function will likely be removed in future versions as
  *                 RC4 will then be disabled by default at compile time.

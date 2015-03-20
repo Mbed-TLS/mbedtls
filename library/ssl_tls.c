@@ -4908,6 +4908,8 @@ int ssl_init( ssl_context *ssl )
 
     ssl_set_ciphersuites( ssl, ssl_list_ciphersuites() );
 
+    ssl_set_arc4_support( ssl, SSL_ARC4_DISABLED );
+
 #if defined(POLARSSL_SSL_RENEGOTIATION)
     ssl->renego_max_records = SSL_RENEGO_MAX_RECORDS_DEFAULT;
     memset( ssl->renego_period, 0xFF, 7 );

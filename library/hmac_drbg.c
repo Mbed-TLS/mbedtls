@@ -314,7 +314,7 @@ void hmac_drbg_free( hmac_drbg_context *ctx )
     if( ctx == NULL )
         return;
 
-    md_free_ctx( &ctx->md_ctx );
+    md_free( &ctx->md_ctx );
 
     polarssl_zeroize( ctx, sizeof( hmac_drbg_context ) );
 }

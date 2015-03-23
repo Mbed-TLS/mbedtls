@@ -365,7 +365,7 @@
  *
  * Uncomment this macro to remove RC4 ciphersuites by default.
  */
-//#define POLARSSL_REMOVE_ARC4_CIPHERSUITES
+#define POLARSSL_REMOVE_ARC4_CIPHERSUITES
 
 /**
  * \def POLARSSL_ECP_XXXX_ENABLED

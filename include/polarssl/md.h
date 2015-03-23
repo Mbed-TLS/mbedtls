@@ -200,6 +200,12 @@ void md_free( md_context_t *ctx );
  */
 int md_init_ctx( md_context_t *ctx, const md_info_t *md_info );
 
+#if ! defined(POLARSSL_DEPRECATED_REMOVED)
+#if defined(POLARSSL_DEPRECATED_WARNING)
+#define DEPRECATED    __attribute__((deprecated))
+#else
+#define DEPRECATED
+#endif
 /**
  * \brief          Free the message-specific context of ctx. Freeing ctx itself
  *                 remains the responsibility of the caller.
@@ -210,7 +216,9 @@ int md_init_ctx( md_context_t *ctx, const md_info_t *md_info );
  *
  * \returns        0
  */
-int md_free_ctx( md_context_t *ctx );
+int md_free_ctx( md_context_t *ctx ) DEPRECATED;
+#undef DEPRECATED
+#endif /* POLARSSL_DEPRECATED_REMOVED */
 
 /**
  * \brief           Returns the size of the message digest output.

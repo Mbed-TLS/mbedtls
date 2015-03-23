@@ -203,12 +203,14 @@ int md_init_ctx( md_context_t *ctx, const md_info_t *md_info )
     return( 0 );
 }
 
+#if ! defined(POLARSSL_DEPRECATED_REMOVED)
 int md_free_ctx( md_context_t *ctx )
 {
     md_free( ctx );
 
     return( 0 );
 }
+#endif
 
 int md_starts( md_context_t *ctx )
 {

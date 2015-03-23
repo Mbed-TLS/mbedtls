@@ -225,6 +225,12 @@ int x509_dn_gets( char *buf, size_t size, const x509_name *dn );
  */
 int x509_serial_gets( char *buf, size_t size, const x509_buf *serial );
 
+#if ! defined(POLARSSL_DEPRECATED_REMOVED)
+#if defined(POLARSSL_DEPRECATED_WARNING)
+#define DEPRECATED    __attribute__((deprecated))
+#else
+#define DEPRECATED
+#endif
 /**
  * \brief          Give an known OID, return its descriptive string.
  *
@@ -237,7 +243,7 @@ int x509_serial_gets( char *buf, size_t size, const x509_buf *serial );
  * \return         Return a string if the OID is known,
  *                 or NULL otherwise.
  */
-const char *x509_oid_get_description( x509_buf *oid );
+const char *x509_oid_get_description( x509_buf *oid ) DEPRECATED;
 
 /**
  * \brief          Give an OID, return a string version of its OID number.
@@ -251,7 +257,9 @@ const char *x509_oid_get_description( x509_buf *oid );
  * \return         Length of the string written (excluding final NULL) or
  *                 POLARSSL_ERR_OID_BUF_TO_SMALL in case of error
  */
-int x509_oid_get_numeric_string( char *buf, size_t size, x509_buf *oid );
+int x509_oid_get_numeric_string( char *buf, size_t size, x509_buf *oid ) DEPRECATED;
+#undef DEPRECATED
+#endif /* POLARSSL_DEPRECATED_REMOVED */
 
 /**
  * \brief          Check a given x509_time against the system time and check

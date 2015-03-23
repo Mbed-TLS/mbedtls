@@ -880,6 +880,7 @@ int x509_key_size_helper( char *buf, size_t size, const char *name )
 /*
  * Return an informational string describing the given OID
  */
+#if ! defined(POLARSSL_DEPRECATED_REMOVED)
 const char *x509_oid_get_description( x509_buf *oid )
 {
     const char *desc = NULL;
@@ -892,12 +893,15 @@ const char *x509_oid_get_description( x509_buf *oid )
 
     return( desc );
 }
+#endif
 
 /* Return the x.y.z.... style numeric string for the given OID */
+#if ! defined(POLARSSL_DEPRECATED_REMOVED)
 int x509_oid_get_numeric_string( char *buf, size_t size, x509_buf *oid )
 {
     return oid_get_numeric_string( buf, size, oid );
 }
+#endif
 
 /*
  * Return 0 if the x509_time is still valid, or 1 otherwise.

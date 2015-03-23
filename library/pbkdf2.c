@@ -41,6 +41,7 @@
 #include "polarssl/pbkdf2.h"
 #include "polarssl/pkcs5.h"
 
+#if ! defined(POLARSSL_DEPRECATED_REMOVED)
 int pbkdf2_hmac( md_context_t *ctx, const unsigned char *password, size_t plen,
                  const unsigned char *salt, size_t slen,
                  unsigned int iteration_count,
@@ -49,12 +50,15 @@ int pbkdf2_hmac( md_context_t *ctx, const unsigned char *password, size_t plen,
     return pkcs5_pbkdf2_hmac( ctx, password, plen, salt, slen, iteration_count,
                               key_length, output );
 }
+#endif
 
 #if defined(POLARSSL_SELF_TEST)
+#if ! defined(POLARSSL_DEPRECATED_REMOVED)
 int pbkdf2_self_test( int verbose )
 {
     return pkcs5_self_test( verbose );
 }
+#endif
 #endif /* POLARSSL_SELF_TEST */
 
 #endif /* POLARSSL_PBKDF2_C */

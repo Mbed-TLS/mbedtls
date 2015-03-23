@@ -372,6 +372,12 @@ void cipher_free( cipher_context_t *ctx );
  */
 int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info );
 
+#if ! defined(POLARSSL_DEPRECATED_REMOVED)
+#if defined(POLARSSL_DEPRECATED_WARNING)
+#define DEPRECATED    __attribute__((deprecated))
+#else
+#define DEPRECATED
+#endif
 /**
  * \brief               Free the cipher-specific context of ctx. Freeing ctx
  *                      itself remains the responsibility of the caller.
@@ -382,7 +388,9 @@ int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info );
  *
  * \returns             0
  */
-int cipher_free_ctx( cipher_context_t *ctx );
+int cipher_free_ctx( cipher_context_t *ctx ) DEPRECATED;
+#undef DEPRECATED
+#endif /* POLARSSL_DEPRECATED_REMOVED */
 
 /**
  * \brief               Returns the block size of the given cipher.

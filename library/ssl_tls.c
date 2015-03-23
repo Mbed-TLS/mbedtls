@@ -3976,6 +3976,7 @@ int ssl_set_own_cert( ssl_context *ssl, x509_crt *own_cert,
     return( 0 );
 }
 
+#if ! defined(POLARSSL_DEPRECATED_REMOVED)
 #if defined(POLARSSL_RSA_C)
 int ssl_set_own_cert_rsa( ssl_context *ssl, x509_crt *own_cert,
                            rsa_context *rsa_key )
@@ -4033,6 +4034,7 @@ int ssl_set_own_cert_alt( ssl_context *ssl, x509_crt *own_cert,
 
     return( 0 );
 }
+#endif /* POLARSSL_DEPRECATED_REMOVED */
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)

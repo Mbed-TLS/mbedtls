@@ -30,6 +30,11 @@
 #ifndef POLARSSL_CHECK_CONFIG_H
 #define POLARSSL_CHECK_CONFIG_H
 
+#if defined(POLARSSL_DEPRECATED_WARNING) && \
+    !defined(__GCC__) && !defined(__clang__)
+#error "POLARSSL_DEPRECATED_WARNING only works with GCC and Clang"
+#endif
+
 #if defined(POLARSSL_AESNI_C) && !defined(POLARSSL_HAVE_ASM)
 #error "POLARSSL_AESNI_C defined, but not all prerequisites"
 #endif

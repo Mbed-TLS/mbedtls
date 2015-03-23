@@ -45,6 +45,12 @@ typedef UINT32 uint32_t;
 extern "C" {
 #endif
 
+#if ! defined(POLARSSL_DEPRECATED_REMOVED)
+#if defined(POLARSSL_DEPRECATED_WARNING)
+#define DEPRECATED    __attribute__((deprecated))
+#else
+#define DEPRECATED
+#endif
 /**
  * \brief          PKCS#5 PBKDF2 using HMAC
  *
@@ -64,7 +70,7 @@ extern "C" {
 int pbkdf2_hmac( md_context_t *ctx, const unsigned char *password,
                  size_t plen, const unsigned char *salt, size_t slen,
                  unsigned int iteration_count,
-                 uint32_t key_length, unsigned char *output );
+                 uint32_t key_length, unsigned char *output ) DEPRECATED;
 
 /**
  * \brief          Checkup routine
@@ -73,7 +79,9 @@ int pbkdf2_hmac( md_context_t *ctx, const unsigned char *password,
  *
  * \return         0 if successful, or 1 if the test failed
  */
-int pbkdf2_self_test( int verbose );
+int pbkdf2_self_test( int verbose ) DEPRECATED;
+#undef DEPRECATED
+#endif /* POLARSSL_DEPRECATED_REMOVED */
 
 #ifdef __cplusplus
 }

@@ -50,8 +50,9 @@ my %mapping_values;
 while (@var_req_arr)
 {
     my $req = shift @var_req_arr;
+    $req =~ s/(!?)(.*)/$1defined($2)/;
 
-    $suite_pre_code .= "#ifdef $req\n";
+    $suite_pre_code .= "#if $req\n";
     $suite_post_code .= "#endif /* $req */\n";
 }
 

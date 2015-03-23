@@ -135,7 +135,7 @@ CC=gcc CFLAGS='-Werror -Os' make
 
 # this is meant to cath missing #define polarssl_printf etc
 # disable fsio to catch some more missing #include <stdio.h>
-msg "build: full config except platform/fsio" # ~ 30s
+msg "build: full config except platform/fsio, make, gcc" # ~ 30s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full

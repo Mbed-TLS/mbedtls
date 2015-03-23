@@ -17,6 +17,10 @@ Features
      speed and RAM (heap only for now) usage.
    * New script memory.sh helps measuring the ROM and RAM requirements of two
      reduced configurations (PSK-CCM and NSA suite B).
+   * Add config flags POLARSSL_DEPRECATED_WARNING (off by default) to produce
+     warnings on use of deprecated functions (with GCC and Clang only).
+   * Add config flags POLARSSL_DEPRECATED_REMOVED (off by default) to produce
+     errors on use of deprecated functions.
 
 Bugfix
    * Fix hardclock() (only used in the benchmarking program) with some

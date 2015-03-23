@@ -465,9 +465,6 @@ static const char *features[] = {
 #if defined(POLARSSL_MD5_C)
     "POLARSSL_MD5_C",
 #endif /* POLARSSL_MD5_C */
-#if defined(POLARSSL_MEMORY_C)
-    "POLARSSL_MEMORY_C",
-#endif /* POLARSSL_MEMORY_C */
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
     "POLARSSL_MEMORY_BUFFER_ALLOC_C",
 #endif /* POLARSSL_MEMORY_BUFFER_ALLOC_C */

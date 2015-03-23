@@ -203,17 +203,16 @@ int main( int argc, char *argv[] )
         return( ret );
 #endif
 
-/* Slow tests last */
-
-#if defined(POLARSSL_PBKDF2_C)
+#if defined(POLARSSL_PBKDF2_C) && !defined(POLARSSL_DEPRECATED_REMOVED)
     if( ( ret = pbkdf2_self_test( v ) ) != 0 )
         return( ret );
-#else
+#endif
 #if defined(POLARSSL_PKCS5_C)
     if( ( ret = pkcs5_self_test( v ) ) != 0 )
         return( ret );
 #endif
-#endif
+
+/* Slow tests last */
 
 /* Not stable enough on Windows and FreeBSD yet */
 #if __linux__ && defined(POLARSSL_TIMING_C)

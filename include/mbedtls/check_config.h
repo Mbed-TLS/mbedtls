@@ -31,7 +31,7 @@
 #define POLARSSL_CHECK_CONFIG_H
 
 #if defined(POLARSSL_DEPRECATED_WARNING) && \
-    !defined(__GCC__) && !defined(__clang__)
+    !defined(__GNUC__) && !defined(__clang__)
 #error "POLARSSL_DEPRECATED_WARNING only works with GCC and Clang"
 #endif
 

@@ -119,9 +119,9 @@ cd tests
 ./ssl-opt.sh -f Default
 cd ..
 
-msg "test: compat.sh DES & NULL (full config)" # ~ 2 min
+msg "test: compat.sh RC4, DES & NULL (full config)" # ~ 2 min
 cd tests
-./compat.sh -e '^$' -f 'NULL\|3DES-EDE-CBC\|DES-CBC3'
+./compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR'
 cd ..
 
 msg "test/build: curves.pl (gcc)" # ~ 5 min (?)

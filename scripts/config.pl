@@ -18,6 +18,7 @@ EOU
 #   POLARSSL_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION could be enabled if the
 #   respective tests were adapted
 my @excluded = qw(
+POLARSSL_DEPRECATED_REMOVED
 POLARSSL_HAVE_INT8
 POLARSSL_HAVE_INT16
 POLARSSL_HAVE_SSE2
@@ -27,6 +28,7 @@ POLARSSL_ECP_DP_M383_ENABLED
 POLARSSL_ECP_DP_M511_ENABLED
 POLARSSL_NO_DEFAULT_ENTROPY_SOURCES
 POLARSSL_NO_PLATFORM_ENTROPY
+POLARSSL_REMOVE_ARC4_CIPHERSUITES
 POLARSSL_SSL_HW_RECORD_ACCEL
 POLARSSL_SSL_DISABLE_RENEGOTIATION
 POLARSSL_X509_ALLOW_EXTENSIONS_NON_V3
@@ -87,7 +89,10 @@ for my $line (@config_lines) {
         }
 
         if (!$done && $line =~ m!^//\s?#define! && $line !~ /$exclude_re/) {
-            $line =~ s!^//!!;
+            $line =~ s!^//\s?!!;
+        }
+        if (!$done && $line =~ m!^\s?#define! && $line =~ /$exclude_re/) {
+            $line =~ s!^!//!;
         }
     } elsif ($action eq "unset") {
         if (!$done && $line =~ /^\s*#define\s*$name/) {

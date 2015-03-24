@@ -140,54 +140,6 @@ int ripemd160_file( const char *path, unsigned char output[20] );
 #endif /* POLARSSL_FS_IO */
 
 /**
- * \brief          RIPEMD-160 HMAC context setup
- *
- * \param ctx      HMAC context to be initialized
- * \param key      HMAC secret key
- * \param keylen   length of the HMAC key
- */
-void ripemd160_hmac_starts( ripemd160_context *ctx,
-                            const unsigned char *key, size_t keylen );
-
-/**
- * \brief          RIPEMD-160 HMAC process buffer
- *
- * \param ctx      HMAC context
- * \param input    buffer holding the  data
- * \param ilen     length of the input data
- */
-void ripemd160_hmac_update( ripemd160_context *ctx,
-                            const unsigned char *input, size_t ilen );
-
-/**
- * \brief          RIPEMD-160 HMAC final digest
- *
- * \param ctx      HMAC context
- * \param output   RIPEMD-160 HMAC checksum result
- */
-void ripemd160_hmac_finish( ripemd160_context *ctx, unsigned char output[20] );
-
-/**
- * \brief          RIPEMD-160 HMAC context reset
- *
- * \param ctx      HMAC context to be reset
- */
-void ripemd160_hmac_reset( ripemd160_context *ctx );
-
-/**
- * \brief          Output = HMAC-RIPEMD-160( hmac key, input buffer )
- *
- * \param key      HMAC secret key
- * \param keylen   length of the HMAC key
- * \param input    buffer holding the  data
- * \param ilen     length of the input data
- * \param output   HMAC-RIPEMD-160 result
- */
-void ripemd160_hmac( const unsigned char *key, size_t keylen,
-                     const unsigned char *input, size_t ilen,
-                     unsigned char output[20] );
-
-/**
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed

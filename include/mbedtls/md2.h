@@ -127,54 +127,6 @@ void md2( const unsigned char *input, size_t ilen, unsigned char output[16] );
 int md2_file( const char *path, unsigned char output[16] );
 
 /**
- * \brief          MD2 HMAC context setup
- *
- * \param ctx      HMAC context to be initialized
- * \param key      HMAC secret key
- * \param keylen   length of the HMAC key
- */
-void md2_hmac_starts( md2_context *ctx, const unsigned char *key,
-                      size_t keylen );
-
-/**
- * \brief          MD2 HMAC process buffer
- *
- * \param ctx      HMAC context
- * \param input    buffer holding the  data
- * \param ilen     length of the input data
- */
-void md2_hmac_update( md2_context *ctx, const unsigned char *input,
-                      size_t ilen );
-
-/**
- * \brief          MD2 HMAC final digest
- *
- * \param ctx      HMAC context
- * \param output   MD2 HMAC checksum result
- */
-void md2_hmac_finish( md2_context *ctx, unsigned char output[16] );
-
-/**
- * \brief          MD2 HMAC context reset
- *
- * \param ctx      HMAC context to be reset
- */
-void md2_hmac_reset( md2_context *ctx );
-
-/**
- * \brief          Output = HMAC-MD2( hmac key, input buffer )
- *
- * \param key      HMAC secret key
- * \param keylen   length of the HMAC key
- * \param input    buffer holding the  data
- * \param ilen     length of the input data
- * \param output   HMAC-MD2 result
- */
-void md2_hmac( const unsigned char *key, size_t keylen,
-               const unsigned char *input, size_t ilen,
-               unsigned char output[16] );
-
-/**
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed

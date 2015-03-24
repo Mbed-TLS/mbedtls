@@ -34,15 +34,12 @@
 #define polarssl_printf     printf
 #endif
 
-#if defined(POLARSSL_AES_C) && defined(POLARSSL_SHA256_C) && \
- defined(POLARSSL_FS_IO)
 #include "mbedtls/aes.h"
-#include "mbedtls/sha256.h"
+#include "mbedtls/md.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#endif
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -64,10 +61,12 @@
     "\n"
 
 #if !defined(POLARSSL_AES_C) || !defined(POLARSSL_SHA256_C) || \
-    !defined(POLARSSL_FS_IO)
+    !defined(POLARSSL_FS_IO) || !defined(POLARSSL_MD_C)
 int main( void )
 {
-    polarssl_printf("POLARSSL_AES_C and/or POLARSSL_SHA256_C and/or POLARSSL_FS_IO not defined.\n");
+    polarssl_printf("POLARSSL_AES_C and/or POLARSSL_SHA256_C "
+                    "and/or POLARSSL_FS_IO and/or POLARSSL_MD_C "
+                    "not defined.\n");
     return( 0 );
 }
 #else
@@ -88,7 +87,7 @@ int main( int argc, char *argv[] )
     unsigned char diff;
 
     aes_context aes_ctx;
-    sha256_context sha_ctx;
+    md_context_t sha_ctx;
 
 #if defined(_WIN32_WCE)
     long filesize, offset;
@@ -100,7 +99,14 @@ int main( int argc, char *argv[] )
 #endif
 
     aes_init( &aes_ctx );
-    sha256_init( &sha_ctx );
+    md_init( &sha_ctx );
+
+    ret = md_init_ctx( &sha_ctx, md_info_from_type( POLARSSL_MD_SHA256 ) );
+    if( ret != 0 )
+    {
+        polarssl_printf( "  ! md_init_ctx() returned -0x%04x\n", -ret );
+        goto exit;
+    }
 
     /*
      * Parse the command-line arguments.
@@ -227,10 +233,10 @@ int main( int argc, char *argv[] )
 
         p = argv[2];
 
-        sha256_starts( &sha_ctx, 0 );
-        sha256_update( &sha_ctx, buffer, 8 );
-        sha256_update( &sha_ctx, (unsigned char *) p, strlen( p ) );
-        sha256_finish( &sha_ctx, digest );
+        md_starts( &sha_ctx );
+        md_update( &sha_ctx, buffer, 8 );
+        md_update( &sha_ctx, (unsigned char *) p, strlen( p ) );
+        md_finish( &sha_ctx, digest );
 
         memcpy( IV, digest, 16 );
 
@@ -261,15 +267,15 @@ int main( int argc, char *argv[] )
 
         for( i = 0; i < 8192; i++ )
         {
-            sha256_starts( &sha_ctx, 0 );
-            sha256_update( &sha_ctx, digest, 32 );
-            sha256_update( &sha_ctx, key, keylen );
-            sha256_finish( &sha_ctx, digest );
+            md_starts( &sha_ctx );
+            md_update( &sha_ctx, digest, 32 );
+            md_update( &sha_ctx, key, keylen );
+            md_finish( &sha_ctx, digest );
         }
 
         memset( key, 0, sizeof( key ) );
         aes_setkey_enc( &aes_ctx, digest, 256 );
-        sha256_hmac_starts( &sha_ctx, digest, 32, 0 );
+        md_hmac_starts( &sha_ctx, digest, 32 );
 
         /*
          * Encrypt and write the ciphertext.
@@ -289,7 +295,7 @@ int main( int argc, char *argv[] )
                 buffer[i] = (unsigned char)( buffer[i] ^ IV[i] );
 
             aes_crypt_ecb( &aes_ctx, AES_ENCRYPT, buffer, buffer );
-            sha256_hmac_update( &sha_ctx, buffer, 16 );
+            md_hmac_update( &sha_ctx, buffer, 16 );
 
             if( fwrite( buffer, 1, 16, fout ) != 16 )
             {
@@ -303,7 +309,7 @@ int main( int argc, char *argv[] )
         /*
          * Finally write the HMAC.
          */
-        sha256_hmac_finish( &sha_ctx, digest );
+        md_hmac_finish( &sha_ctx, digest );
 
         if( fwrite( digest, 1, 32, fout ) != 32 )
         {
@@ -363,15 +369,15 @@ int main( int argc, char *argv[] )
 
         for( i = 0; i < 8192; i++ )
         {
-            sha256_starts( &sha_ctx, 0 );
-            sha256_update( &sha_ctx, digest, 32 );
-            sha256_update( &sha_ctx, key, keylen );
-            sha256_finish( &sha_ctx, digest );
+            md_starts( &sha_ctx );
+            md_update( &sha_ctx, digest, 32 );
+            md_update( &sha_ctx, key, keylen );
+            md_finish( &sha_ctx, digest );
         }
 
         memset( key, 0, sizeof( key ) );
         aes_setkey_dec( &aes_ctx, digest, 256 );
-        sha256_hmac_starts( &sha_ctx, digest, 32, 0 );
+        md_hmac_starts( &sha_ctx, digest, 32 );
 
         /*
          * Decrypt and write the plaintext.
@@ -386,7 +392,7 @@ int main( int argc, char *argv[] )
 
             memcpy( tmp, buffer, 16 );
 
-            sha256_hmac_update( &sha_ctx, buffer, 16 );
+            md_hmac_update( &sha_ctx, buffer, 16 );
             aes_crypt_ecb( &aes_ctx, AES_DECRYPT, buffer, buffer );
 
             for( i = 0; i < 16; i++ )
@@ -407,7 +413,7 @@ int main( int argc, char *argv[] )
         /*
          * Verify the message authentication code.
          */
-        sha256_hmac_finish( &sha_ctx, digest );
+        md_hmac_finish( &sha_ctx, digest );
 
         if( fread( buffer, 1, 32, fin ) != 32 )
         {
@@ -440,7 +446,7 @@ exit:
     memset( digest, 0, sizeof( digest ) );
 
     aes_free( &aes_ctx );
-    sha256_free( &sha_ctx );
+    md_free( &sha_ctx );
 
     return( ret );
 }

@@ -67,6 +67,13 @@ get_options() {
     done
 }
 
+# skip next test if the flag is not enabled in config.h
+requires_config_enabled() {
+    if grep "^#define $1" $CONFIG_H > /dev/null; then :; else
+        SKIP_NEXT="YES"
+    fi
+}
+
 # skip next test if OpenSSL can't send SSLv2 ClientHello
 requires_openssl_with_sslv2() {
     if [ -z "${OPENSSL_HAS_SSL2:-}" ]; then
@@ -579,6 +586,7 @@ run_test    "RC4: both enabled" \
 # Test for SSLv2 ClientHello
 
 requires_openssl_with_sslv2
+requires_config_enabled POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
 run_test    "SSLv2 ClientHello: reference" \
             "$P_SRV debug_level=3" \
             "$O_CLI -no_ssl2" \
@@ -588,6 +596,7 @@ run_test    "SSLv2 ClientHello: reference" \
 
 # Adding a SSL2-only suite makes OpenSSL client send SSLv2 ClientHello
 requires_openssl_with_sslv2
+requires_config_enabled POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
 run_test    "SSLv2 ClientHello: actual test" \
             "$P_SRV debug_level=2" \
             "$O_CLI -cipher 'DES-CBC-MD5:ALL'" \
@@ -1910,8 +1919,6 @@ run_test    "Version check: srv min 1.2, cli max 1.1 -> fail" \
 
 # Tests for ALPN extension
 
-if grep '^#define POLARSSL_SSL_ALPN' $CONFIG_H >/dev/null; then
-
 run_test    "ALPN: none" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3" \
@@ -1996,7 +2003,6 @@ run_test    "ALPN: both, no common" \
             -C "Application Layer Protocol is 1234" \
             -S "Application Layer Protocol is 1234"
 
-fi
 
 # Tests for keyUsage in leaf certificates, part 1:
 # server-side certificate/suite selection

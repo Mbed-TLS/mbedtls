@@ -276,6 +276,7 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
     const unsigned char *S1, *S2;
     unsigned char tmp[128];
     unsigned char h_i[20];
+    const md_info_t *md_info;
 
     if( sizeof( tmp ) < 20 + strlen( label ) + rlen )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
@@ -292,12 +293,15 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
     /*
      * First compute P_md5(secret,label+random)[0..dlen]
      */
-    md5_hmac( S1, hs, tmp + 20, nb, 4 + tmp );
+    if( ( md_info = md_info_from_type( POLARSSL_MD_MD5 ) ) == NULL )
+        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+
+    md_hmac( md_info, S1, hs, tmp + 20, nb, 4 + tmp );
 
     for( i = 0; i < dlen; i += 16 )
     {
-        md5_hmac( S1, hs, 4 + tmp, 16 + nb, h_i );
-        md5_hmac( S1, hs, 4 + tmp, 16,  4 + tmp );
+        md_hmac( md_info, S1, hs, 4 + tmp, 16 + nb, h_i );
+        md_hmac( md_info, S1, hs, 4 + tmp, 16,  4 + tmp );
 
         k = ( i + 16 > dlen ) ? dlen % 16 : 16;
 
@@ -308,12 +312,15 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
     /*
      * XOR out with P_sha1(secret,label+random)[0..dlen]
      */
-    sha1_hmac( S2, hs, tmp + 20, nb, tmp );
+    if( ( md_info = md_info_from_type( POLARSSL_MD_SHA1 ) ) == NULL )
+        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+
+    md_hmac( md_info, S2, hs, tmp + 20, nb, tmp );
 
     for( i = 0; i < dlen; i += 20 )
     {
-        sha1_hmac( S2, hs, tmp, 20 + nb, h_i );
-        sha1_hmac( S2, hs, tmp, 20,      tmp );
+        md_hmac( md_info, S2, hs, tmp, 20 + nb, h_i );
+        md_hmac( md_info, S2, hs, tmp, 20,      tmp );
 
         k = ( i + 20 > dlen ) ? dlen % 20 : 20;
 
@@ -339,6 +346,7 @@ static int tls_prf_sha256( const unsigned char *secret, size_t slen,
     size_t i, j, k;
     unsigned char tmp[128];
     unsigned char h_i[32];
+    const md_info_t *md_info;
 
     if( sizeof( tmp ) < 32 + strlen( label ) + rlen )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
@@ -351,12 +359,15 @@ static int tls_prf_sha256( const unsigned char *secret, size_t slen,
     /*
      * Compute P_<hash>(secret, label + random)[0..dlen]
      */
-    sha256_hmac( secret, slen, tmp + 32, nb, tmp, 0 );
+    if( ( md_info = md_info_from_type( POLARSSL_MD_SHA256 ) ) == NULL )
+        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+
+    md_hmac( md_info, secret, slen, tmp + 32, nb, tmp );
 
     for( i = 0; i < dlen; i += 32 )
     {
-        sha256_hmac( secret, slen, tmp, 32 + nb, h_i, 0 );
-        sha256_hmac( secret, slen, tmp, 32,      tmp, 0 );
+        md_hmac( md_info, secret, slen, tmp, 32 + nb, h_i );
+        md_hmac( md_info, secret, slen, tmp, 32,      tmp );
 
         k = ( i + 32 > dlen ) ? dlen % 32 : 32;
 
@@ -381,6 +392,7 @@ static int tls_prf_sha384( const unsigned char *secret, size_t slen,
     size_t i, j, k;
     unsigned char tmp[128];
     unsigned char h_i[48];
+    const md_info_t *md_info;
 
     if( sizeof( tmp ) < 48 + strlen( label ) + rlen )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
@@ -393,12 +405,15 @@ static int tls_prf_sha384( const unsigned char *secret, size_t slen,
     /*
      * Compute P_<hash>(secret, label + random)[0..dlen]
      */
-    sha512_hmac( secret, slen, tmp + 48, nb, tmp, 1 );
+    if( ( md_info = md_info_from_type( POLARSSL_MD_SHA384 ) ) == NULL )
+        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+
+    md_hmac( md_info, secret, slen, tmp + 48, nb, tmp );
 
     for( i = 0; i < dlen; i += 48 )
     {
-        sha512_hmac( secret, slen, tmp, 48 + nb, h_i, 1 );
-        sha512_hmac( secret, slen, tmp, 48,      tmp, 1 );
+        md_hmac( md_info, secret, slen, tmp, 48 + nb, h_i );
+        md_hmac( md_info, secret, slen, tmp, 48,      tmp );
 
         k = ( i + 48 > dlen ) ? dlen % 48 : 48;
 

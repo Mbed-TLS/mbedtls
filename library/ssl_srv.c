@@ -236,7 +236,12 @@ static int ssl_write_ticket( ssl_context *ssl, size_t *tlen )
     p = state + enc_len;
 
     /* Compute and write MAC( key_name + iv + enc_state_len + enc_state ) */
-    sha256_hmac( ssl->ticket_keys->mac_key, 16, start, p - start, p, 0 );
+    if( ( ret = md_hmac( md_info_from_type( POLARSSL_MD_SHA256 ),
+                         ssl->ticket_keys->mac_key, 16,
+                         start, p - start, p ) ) != 0 )
+    {
+        return( ret );
+    }
     p += 32;
 
     *tlen = p - start;
@@ -282,8 +287,12 @@ static int ssl_parse_ticket( ssl_context *ssl,
     /* don't return yet, check the MAC anyway */
 
     /* Check mac, with constant-time buffer comparison */
-    sha256_hmac( ssl->ticket_keys->mac_key, 16, buf, len - 32,
-                 computed_mac, 0 );
+    if( ( ret = md_hmac( md_info_from_type( POLARSSL_MD_SHA256 ),
+                         ssl->ticket_keys->mac_key, 16,
+                         buf, len - 32, computed_mac ) ) != 0 )
+    {
+        return( ret );
+    }
 
     for( i = 0; i < 32; i++ )
         diff |= mac[i] ^ computed_mac[i];

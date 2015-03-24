@@ -54,6 +54,9 @@ struct _md_info_t {
     /** Output length of the digest function */
     int size;
 
+    /** Block length of the digest function */
+    int block_size;
+
     /** Digest initialisation function */
     void (*starts_func)( void *ctx );
 

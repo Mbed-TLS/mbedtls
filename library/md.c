@@ -269,10 +269,35 @@ int md_file( const md_info_t *md_info, const char *path, unsigned char *output )
 
 int md_hmac_starts( md_context_t *ctx, const unsigned char *key, size_t keylen )
 {
+    unsigned char sum[POLARSSL_MD_MAX_SIZE];
+    size_t i;
+
     if( ctx == NULL || ctx->md_info == NULL )
         return( POLARSSL_ERR_MD_BAD_INPUT_DATA );
 
-    ctx->md_info->hmac_starts_func( ctx->md_ctx, key, keylen );
+    if( keylen > (size_t) ctx->md_info->block_size )
+    {
+        ctx->md_info->starts_func( ctx->md_ctx );
+        ctx->md_info->update_func( ctx->md_ctx, key, keylen );
+        ctx->md_info->finish_func( ctx->md_ctx, sum );
+
+        keylen = ctx->md_info->size;
+        key = sum;
+    }
+
+    memset( ctx->ipad, 0x36, 128 );
+    memset( ctx->opad, 0x5C, 128 );
+
+    for( i = 0; i < keylen; i++ )
+    {
+        ctx->ipad[i] = (unsigned char)( ctx->ipad[i] ^ key[i] );
+        ctx->opad[i] = (unsigned char)( ctx->opad[i] ^ key[i] );
+    }
+
+    polarssl_zeroize( sum, sizeof( sum ) );
+
+    ctx->md_info->starts_func( ctx->md_ctx );
+    ctx->md_info->update_func( ctx->md_ctx, ctx->ipad, ctx->md_info->block_size );
 
     return( 0 );
 }
@@ -282,17 +307,23 @@ int md_hmac_update( md_context_t *ctx, const unsigned char *input, size_t ilen )
     if( ctx == NULL || ctx->md_info == NULL )
         return( POLARSSL_ERR_MD_BAD_INPUT_DATA );
 
-    ctx->md_info->hmac_update_func( ctx->md_ctx, input, ilen );
+    ctx->md_info->update_func( ctx->md_ctx, input, ilen );
 
     return( 0 );
 }
 
 int md_hmac_finish( md_context_t *ctx, unsigned char *output )
 {
+    unsigned char tmp[POLARSSL_MD_MAX_SIZE];
+
     if( ctx == NULL || ctx->md_info == NULL )
         return( POLARSSL_ERR_MD_BAD_INPUT_DATA );
 
-    ctx->md_info->hmac_finish_func( ctx->md_ctx, output );
+    ctx->md_info->finish_func( ctx->md_ctx, tmp );
+    ctx->md_info->starts_func( ctx->md_ctx );
+    ctx->md_info->update_func( ctx->md_ctx, ctx->opad, ctx->md_info->block_size );
+    ctx->md_info->update_func( ctx->md_ctx, tmp, ctx->md_info->size );
+    ctx->md_info->finish_func( ctx->md_ctx, output );
 
     return( 0 );
 }
@@ -302,7 +333,8 @@ int md_hmac_reset( md_context_t *ctx )
     if( ctx == NULL || ctx->md_info == NULL )
         return( POLARSSL_ERR_MD_BAD_INPUT_DATA );
 
-    ctx->md_info->hmac_reset_func( ctx->md_ctx );
+    ctx->md_info->starts_func( ctx->md_ctx );
+    ctx->md_info->update_func( ctx->md_ctx, ctx->ipad, ctx->md_info->block_size );
 
     return( 0 );
 }
@@ -311,10 +343,22 @@ int md_hmac( const md_info_t *md_info, const unsigned char *key, size_t keylen,
                 const unsigned char *input, size_t ilen,
                 unsigned char *output )
 {
+    md_context_t ctx;
+    int ret;
+
     if( md_info == NULL )
         return( POLARSSL_ERR_MD_BAD_INPUT_DATA );
 
-    md_info->hmac_func( key, keylen, input, ilen, output );
+    md_init( &ctx );
+
+    if( ( ret = md_init_ctx( &ctx, md_info ) ) != 0 )
+        return( ret );
+
+    md_hmac_starts( &ctx, key, keylen );
+    md_hmac_update( &ctx, input, ilen );
+    md_hmac_finish( &ctx, output );
+
+    md_free( &ctx );
 
     return( 0 );
 }

@@ -2194,7 +2194,7 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
         }
 
         SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen != 0 ? hashlen :
-                (unsigned int) ( md_info_from_type( md_alg ) )->size );
+            (unsigned int) ( md_get_size( md_info_from_type( md_alg ) ) ) );
 
         /*
          * Verify signature

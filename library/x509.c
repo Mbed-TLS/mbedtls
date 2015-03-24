@@ -845,8 +845,8 @@ int x509_sig_alg_gets( char *buf, size_t size, const x509_buf *sig_oid,
         mgf_md_info = md_info_from_type( pss_opts->mgf1_hash_id );
 
         ret = polarssl_snprintf( p, n, " (%s, MGF1-%s, 0x%02X)",
-                              md_info ? md_info->name : "???",
-                              mgf_md_info ? mgf_md_info->name : "???",
+                              md_info ? md_get_name( md_info ) : "???",
+                              mgf_md_info ? md_get_name( mgf_md_info ) : "???",
                               pss_opts->expected_salt_len );
         SAFE_SNPRINTF();
     }

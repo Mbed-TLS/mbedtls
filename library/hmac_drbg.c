@@ -62,7 +62,7 @@ static void polarssl_zeroize( void *v, size_t n ) {
 void hmac_drbg_update( hmac_drbg_context *ctx,
                        const unsigned char *additional, size_t add_len )
 {
-    size_t md_len = ctx->md_ctx.md_info->size;
+    size_t md_len = md_get_size( ctx->md_ctx.md_info );
     unsigned char rounds = ( additional != NULL && add_len != 0 ) ? 2 : 1;
     unsigned char sep[1];
     unsigned char K[POLARSSL_MD_MAX_SIZE];
@@ -105,8 +105,8 @@ int hmac_drbg_init_buf( hmac_drbg_context *ctx,
      * Use the V memory location, which is currently all 0, to initialize the
      * MD context with an all-zero key. Then set V to its initial value.
      */
-    md_hmac_starts( &ctx->md_ctx, ctx->V, md_info->size );
-    memset( ctx->V, 0x01, md_info->size );
+    md_hmac_starts( &ctx->md_ctx, ctx->V, md_get_size( md_info ) );
+    memset( ctx->V, 0x01, md_get_size( md_info ) );
 
     hmac_drbg_update( ctx, data, data_len );
 
@@ -165,7 +165,7 @@ int hmac_drbg_init( hmac_drbg_context *ctx,
                     size_t len )
 {
     int ret;
-    size_t entropy_len;
+    size_t entropy_len, md_size;
 
     memset( ctx, 0, sizeof( hmac_drbg_context ) );
 
@@ -174,13 +174,15 @@ int hmac_drbg_init( hmac_drbg_context *ctx,
     if( ( ret = md_init_ctx( &ctx->md_ctx, md_info ) ) != 0 )
         return( ret );
 
+    md_size = md_get_size( md_info );
+
     /*
      * Set initial working state.
      * Use the V memory location, which is currently all 0, to initialize the
      * MD context with an all-zero key. Then set V to its initial value.
      */
-    md_hmac_starts( &ctx->md_ctx, ctx->V, md_info->size );
-    memset( ctx->V, 0x01, md_info->size );
+    md_hmac_starts( &ctx->md_ctx, ctx->V, md_size );
+    memset( ctx->V, 0x01, md_size );
 
     ctx->f_entropy = f_entropy;
     ctx->p_entropy = p_entropy;
@@ -194,9 +196,9 @@ int hmac_drbg_init( hmac_drbg_context *ctx,
      *
      * (This also matches the sizes used in the NIST test vectors.)
      */
-    entropy_len = md_info->size <= 20 ? 16 : /* 160-bits hash -> 128 bits */
-                  md_info->size <= 28 ? 24 : /* 224-bits hash -> 192 bits */
-                                        32;  /* better (256+) -> 256 bits */
+    entropy_len = md_size <= 20 ? 16 : /* 160-bits hash -> 128 bits */
+                  md_size <= 28 ? 24 : /* 224-bits hash -> 192 bits */
+                                  32;  /* better (256+) -> 256 bits */
 
     /*
      * For initialisation, use more entropy to emulate a nonce

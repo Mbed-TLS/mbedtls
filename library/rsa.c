@@ -473,7 +473,7 @@ static void mgf_mask( unsigned char *dst, size_t dlen, unsigned char *src,
     memset( mask, 0, POLARSSL_MD_MAX_SIZE );
     memset( counter, 0, 4 );
 
-    hlen = md_ctx->md_info->size;
+    hlen = md_get_size( md_ctx->md_info );
 
     // Generate and apply dbMask
     //

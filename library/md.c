@@ -329,4 +329,28 @@ int md_process( md_context_t *ctx, const unsigned char *data )
     return( 0 );
 }
 
+unsigned char md_get_size( const md_info_t *md_info )
+{
+    if( md_info == NULL )
+        return( 0 );
+
+    return md_info->size;
+}
+
+md_type_t md_get_type( const md_info_t *md_info )
+{
+    if( md_info == NULL )
+        return( POLARSSL_MD_NONE );
+
+    return md_info->type;
+}
+
+const char *md_get_name( const md_info_t *md_info )
+{
+    if( md_info == NULL )
+        return( NULL );
+
+    return md_info->name;
+}
+
 #endif /* POLARSSL_MD_C */

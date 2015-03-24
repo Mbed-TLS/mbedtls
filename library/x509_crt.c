@@ -1505,7 +1505,7 @@ static int x509_crt_verifycrl( x509_crt *crt, x509_crt *ca,
         md( md_info, crl_list->tbs.p, crl_list->tbs.len, hash );
 
         if( pk_verify_ext( crl_list->sig_pk, crl_list->sig_opts, &ca->pk,
-                           crl_list->sig_md, hash, md_info->size,
+                           crl_list->sig_md, hash, md_get_size( md_info ),
                            crl_list->sig.p, crl_list->sig.len ) != 0 )
         {
             flags |= BADCRL_NOT_TRUSTED;
@@ -1768,7 +1768,7 @@ static int x509_crt_verify_top(
         }
 
         if( pk_verify_ext( child->sig_pk, child->sig_opts, &trust_ca->pk,
-                           child->sig_md, hash, md_info->size,
+                           child->sig_md, hash, md_get_size( md_info ),
                            child->sig.p, child->sig.len ) != 0 )
         {
             continue;
@@ -1864,7 +1864,7 @@ static int x509_crt_verify_child(
         md( md_info, child->tbs.p, child->tbs.len, hash );
 
         if( pk_verify_ext( child->sig_pk, child->sig_opts, &parent->pk,
-                           child->sig_md, hash, md_info->size,
+                           child->sig_md, hash, md_get_size( md_info ),
                            child->sig.p, child->sig.len ) != 0 )
         {
             *flags |= BADCERT_NOT_TRUSTED;

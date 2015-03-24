@@ -5,7 +5,7 @@
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  *
@@ -65,63 +65,9 @@ typedef enum {
 #endif
 
 /**
- * Message digest information. Allows message digest functions to be called
- * in a generic way.
+ * Opaque struct defined in md_wrap.h
  */
-typedef struct {
-    /** Digest identifier */
-    md_type_t type;
-
-    /** Name of the message digest */
-    const char * name;
-
-    /** Output length of the digest function */
-    int size;
-
-    /** Digest initialisation function */
-    void (*starts_func)( void *ctx );
-
-    /** Digest update function */
-    void (*update_func)( void *ctx, const unsigned char *input, size_t ilen );
-
-    /** Digest finalisation function */
-    void (*finish_func)( void *ctx, unsigned char *output );
-
-    /** Generic digest function */
-    void (*digest_func)( const unsigned char *input, size_t ilen,
-                         unsigned char *output );
-
-    /** Generic file digest function */
-    int (*file_func)( const char *path, unsigned char *output );
-
-    /** HMAC Initialisation function */
-    void (*hmac_starts_func)( void *ctx, const unsigned char *key,
-                              size_t keylen );
-
-    /** HMAC update function */
-    void (*hmac_update_func)( void *ctx, const unsigned char *input,
-                              size_t ilen );
-
-    /** HMAC finalisation function */
-    void (*hmac_finish_func)( void *ctx, unsigned char *output);
-
-    /** HMAC context reset function */
-    void (*hmac_reset_func)( void *ctx );
-
-    /** Generic HMAC function */
-    void (*hmac_func)( const unsigned char *key, size_t keylen,
-                       const unsigned char *input, size_t ilen,
-                       unsigned char *output );
-
-    /** Allocate a new context */
-    void * (*ctx_alloc_func)( void );
-
-    /** Free the given context */
-    void (*ctx_free_func)( void *ctx );
-
-    /** Internal use only */
-    void (*process_func)( void *ctx, const unsigned char *input );
-} md_info_t;
+typedef struct _md_info_t md_info_t;
 
 /**
  * Generic message digest context.
@@ -191,7 +137,7 @@ void md_free( md_context_t *ctx );
  *
  * \param ctx      context to initialise. May not be NULL. The
  *                 digest-specific context (ctx->md_ctx) must be NULL. It will
- *                 be allocated, and must be freed using md_free_ctx() later.
+ *                 be allocated, and must be freed using md_free() later.
  * \param md_info  message digest to use.
  *
  * \returns        \c 0 on success, \c POLARSSL_ERR_MD_BAD_INPUT_DATA on
@@ -207,13 +153,7 @@ int md_init_ctx( md_context_t *ctx, const md_info_t *md_info );
  *
  * \return          size of the message digest output.
  */
-static inline unsigned char md_get_size( const md_info_t *md_info )
-{
-    if( md_info == NULL )
-        return( 0 );
-
-    return md_info->size;
-}
+unsigned char md_get_size( const md_info_t *md_info );
 
 /**
  * \brief           Returns the type of the message digest output.
@@ -222,13 +162,7 @@ static inline unsigned char md_get_size( const md_info_t *md_info )
  *
  * \return          type of the message digest output.
  */
-static inline md_type_t md_get_type( const md_info_t *md_info )
-{
-    if( md_info == NULL )
-        return( POLARSSL_MD_NONE );
-
-    return md_info->type;
-}
+md_type_t md_get_type( const md_info_t *md_info );
 
 /**
  * \brief           Returns the name of the message digest output.
@@ -237,13 +171,7 @@ static inline md_type_t md_get_type( const md_info_t *md_info )
  *
  * \return          name of the message digest output.
  */
-static inline const char *md_get_name( const md_info_t *md_info )
-{
-    if( md_info == NULL )
-        return( NULL );
-
-    return md_info->name;
-}
+const char *md_get_name( const md_info_t *md_info );
 
 /**
  * \brief          Set-up the given context for a new message digest

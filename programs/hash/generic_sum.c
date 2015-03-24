@@ -69,7 +69,7 @@ static int generic_print( const md_info_t *md_info, char *filename )
     if( generic_wrapper( md_info, filename, sum ) != 0 )
         return( 1 );
 
-    for( i = 0; i < md_info->size; i++ )
+    for( i = 0; i < md_get_size( md_info ); i++ )
         polarssl_printf( "%02x", sum[i] );
 
     polarssl_printf( "  %s\n", filename );
@@ -104,15 +104,15 @@ static int generic_check( const md_info_t *md_info, char *filename )
     {
         n = strlen( line );
 
-        if( n < (size_t) 2 * md_info->size + 4 )
+        if( n < (size_t) 2 * md_get_size( md_info ) + 4 )
         {
-            polarssl_printf("No '%s' hash found on line.\n", md_info->name);
+            polarssl_printf("No '%s' hash found on line.\n", md_get_name( md_info ));
             continue;
         }
 
-        if( line[2 * md_info->size] != ' ' || line[2 * md_info->size + 1] != ' ' )
+        if( line[2 * md_get_size( md_info )] != ' ' || line[2 * md_get_size( md_info ) + 1] != ' ' )
         {
-            polarssl_printf("No '%s' hash found on line.\n", md_info->name);
+            polarssl_printf("No '%s' hash found on line.\n", md_get_name( md_info ));
             continue;
         }
 
@@ -121,7 +121,7 @@ static int generic_check( const md_info_t *md_info, char *filename )
 
         nb_tot1++;
 
-        if( generic_wrapper( md_info, line + 2 + 2 * md_info->size, sum ) != 0 )
+        if( generic_wrapper( md_info, line + 2 + 2 * md_get_size( md_info ), sum ) != 0 )
         {
             nb_err1++;
             continue;
@@ -129,12 +129,12 @@ static int generic_check( const md_info_t *md_info, char *filename )
 
         nb_tot2++;
 
-        for( i = 0; i < md_info->size; i++ )
+        for( i = 0; i < md_get_size( md_info ); i++ )
             sprintf( buf + i * 2, "%02x", sum[i] );
 
         /* Use constant-time buffer comparison */
         diff = 0;
-        for( i = 0; i < 2 * md_info->size; i++ )
+        for( i = 0; i < 2 * md_get_size( md_info ); i++ )
             diff |= line[i] ^ buf[i];
 
         if( diff != 0 )
@@ -183,7 +183,7 @@ int main( int argc, char *argv[] )
         while( *list )
         {
             md_info = md_info_from_type( *list );
-            polarssl_printf( "  %s\n", md_info->name );
+            polarssl_printf( "  %s\n", md_get_name( md_info ) );
             list++;
         }
 

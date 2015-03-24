@@ -126,7 +126,7 @@ int main( int argc, char *argv[] )
         while( *list )
         {
             md_info = md_info_from_type( *list );
-            polarssl_printf( "  %s\n", md_info->name );
+            polarssl_printf( "  %s\n", md_get_name( md_info ) );
             list++;
         }
 

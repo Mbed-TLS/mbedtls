@@ -67,7 +67,7 @@ APPS =	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
 	test_suite_gcm.aes128_en$(EXEXT)				\
 	test_suite_gcm.aes192_en$(EXEXT)				\
 	test_suite_gcm.aes256_en$(EXEXT)				\
-	test_suite_gcm.camellia$(EXEXT)	test_suite_hmac_shax$(EXEXT)	\
+	test_suite_gcm.camellia$(EXEXT)					\
 	test_suite_hmac_drbg.misc$(EXEXT)				\
 	test_suite_hmac_drbg.no_reseed$(EXEXT)				\
 	test_suite_hmac_drbg.nopr$(EXEXT)				\
@@ -337,10 +337,6 @@ test_suite_hmac_drbg.nopr$(EXEXT): test_suite_hmac_drbg.nopr.c $(DEP)
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_hmac_drbg.pr$(EXEXT): test_suite_hmac_drbg.pr.c $(DEP)
-	echo   "  CC    	$<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_hmac_shax$(EXEXT): test_suite_hmac_shax.c $(DEP)
 	echo   "  CC    	$<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 

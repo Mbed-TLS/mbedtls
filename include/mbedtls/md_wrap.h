@@ -73,25 +73,6 @@ struct _md_info_t {
     /** Generic file digest function */
     int (*file_func)( const char *path, unsigned char *output );
 
-    /** HMAC Initialisation function */
-    void (*hmac_starts_func)( void *ctx, const unsigned char *key,
-                              size_t keylen );
-
-    /** HMAC update function */
-    void (*hmac_update_func)( void *ctx, const unsigned char *input,
-                              size_t ilen );
-
-    /** HMAC finalisation function */
-    void (*hmac_finish_func)( void *ctx, unsigned char *output);
-
-    /** HMAC context reset function */
-    void (*hmac_reset_func)( void *ctx );
-
-    /** Generic HMAC function */
-    void (*hmac_func)( const unsigned char *key, size_t keylen,
-                       const unsigned char *input, size_t ilen,
-                       unsigned char *output );
-
     /** Allocate a new context */
     void * (*ctx_alloc_func)( void );
 

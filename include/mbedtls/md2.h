@@ -50,9 +50,6 @@ typedef struct
     unsigned char cksum[16];    /*!< checksum of the data block */
     unsigned char state[48];    /*!< intermediate digest state  */
     unsigned char buffer[16];   /*!< data block being processed */
-
-    unsigned char ipad[16];     /*!< HMAC: inner padding        */
-    unsigned char opad[16];     /*!< HMAC: outer padding        */
     size_t left;                /*!< amount of data in buffer   */
 }
 md2_context;

@@ -57,9 +57,6 @@ typedef struct
     uint32_t total[2];          /*!< number of bytes processed  */
     uint32_t state[5];          /*!< intermediate digest state  */
     unsigned char buffer[64];   /*!< data block being processed */
-
-    unsigned char ipad[64];     /*!< HMAC: inner padding        */
-    unsigned char opad[64];     /*!< HMAC: outer padding        */
 }
 ripemd160_context;
 

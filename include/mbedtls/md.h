@@ -83,11 +83,6 @@ typedef struct {
     void *hmac_ctx;
 } md_context_t;
 
-#define MD_CONTEXT_T_INIT { \
-    NULL, /* md_info */ \
-    NULL, /* md_ctx */ \
-}
-
 /**
  * \brief Returns the list of digests supported by the generic digest module.
  *
@@ -133,10 +128,6 @@ void md_free( md_context_t *ctx );
 /**
  * \brief          Initialises and fills the message digest context structure
  *                 with the appropriate values.
- *
- * \note           Currently also clears structure. In future versions you
- *                 will be required to call md_init() on the structure
- *                 first.
  *
  * \param ctx      context to initialise. May not be NULL. The
  *                 digest-specific context (ctx->md_ctx) must be NULL. It will

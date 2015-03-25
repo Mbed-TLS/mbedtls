@@ -79,9 +79,8 @@ typedef struct {
     /** Digest-specific context */
     void *md_ctx;
 
-    /** HMAC part of the context (WIP: fixed size) */
-    unsigned char ipad[128];
-    unsigned char opad[128];
+    /** HMAC part of the context */
+    void *hmac_ctx;
 } md_context_t;
 
 #define MD_CONTEXT_T_INIT { \

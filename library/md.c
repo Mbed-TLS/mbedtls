@@ -35,7 +35,14 @@
 #include "mbedtls/md.h"
 #include "mbedtls/md_wrap.h"
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "mbedtls/platform.h"
+#else
 #include <stdlib.h>
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #include <string.h>
 
 #if defined(_MSC_VER) && !defined strcasecmp && !defined(EFIX64) && \
@@ -177,11 +184,17 @@ void md_init( md_context_t *ctx )
 
 void md_free( md_context_t *ctx )
 {
-    if( ctx == NULL )
+    if( ctx == NULL || ctx->md_info == NULL )
         return;
 
-    if( ctx->md_ctx )
+    if( ctx->md_ctx != NULL )
         ctx->md_info->ctx_free_func( ctx->md_ctx );
+
+    if( ctx->hmac_ctx != NULL )
+    {
+        polarssl_zeroize( ctx->hmac_ctx, 2 * ctx->md_info->block_size );
+        polarssl_free( ctx->hmac_ctx );
+    }
 
     polarssl_zeroize( ctx, sizeof( md_context_t ) );
 }
@@ -195,6 +208,13 @@ int md_init_ctx( md_context_t *ctx, const md_info_t *md_info )
 
     if( ( ctx->md_ctx = md_info->ctx_alloc_func() ) == NULL )
         return( POLARSSL_ERR_MD_ALLOC_FAILED );
+
+    ctx->hmac_ctx = polarssl_malloc( 2 * md_info->block_size );
+    if( ctx->hmac_ctx == NULL )
+    {
+        md_info->ctx_free_func( ctx->md_ctx );
+        return( POLARSSL_ERR_MD_ALLOC_FAILED );
+    }
 
     ctx->md_info = md_info;
 
@@ -270,9 +290,10 @@ int md_file( const md_info_t *md_info, const char *path, unsigned char *output )
 int md_hmac_starts( md_context_t *ctx, const unsigned char *key, size_t keylen )
 {
     unsigned char sum[POLARSSL_MD_MAX_SIZE];
+    unsigned char *ipad, *opad;
     size_t i;
 
-    if( ctx == NULL || ctx->md_info == NULL )
+    if( ctx == NULL || ctx->md_info == NULL || ctx->hmac_ctx == NULL )
         return( POLARSSL_ERR_MD_BAD_INPUT_DATA );
 
     if( keylen > (size_t) ctx->md_info->block_size )
@@ -285,26 +306,29 @@ int md_hmac_starts( md_context_t *ctx, const unsigned char *key, size_t keylen )
         key = sum;
     }
 
-    memset( ctx->ipad, 0x36, 128 );
-    memset( ctx->opad, 0x5C, 128 );
+    ipad = (unsigned char *) ctx->hmac_ctx;
+    opad = (unsigned char *) ctx->hmac_ctx + ctx->md_info->block_size;
+
+    memset( ipad, 0x36, ctx->md_info->block_size );
+    memset( opad, 0x5C, ctx->md_info->block_size );
 
     for( i = 0; i < keylen; i++ )
     {
-        ctx->ipad[i] = (unsigned char)( ctx->ipad[i] ^ key[i] );
-        ctx->opad[i] = (unsigned char)( ctx->opad[i] ^ key[i] );
+        ipad[i] = (unsigned char)( ipad[i] ^ key[i] );
+        opad[i] = (unsigned char)( opad[i] ^ key[i] );
     }
 
     polarssl_zeroize( sum, sizeof( sum ) );
 
     ctx->md_info->starts_func( ctx->md_ctx );
-    ctx->md_info->update_func( ctx->md_ctx, ctx->ipad, ctx->md_info->block_size );
+    ctx->md_info->update_func( ctx->md_ctx, ipad, ctx->md_info->block_size );
 
     return( 0 );
 }
 
 int md_hmac_update( md_context_t *ctx, const unsigned char *input, size_t ilen )
 {
-    if( ctx == NULL || ctx->md_info == NULL )
+    if( ctx == NULL || ctx->md_info == NULL || ctx->hmac_ctx == NULL )
         return( POLARSSL_ERR_MD_BAD_INPUT_DATA );
 
     ctx->md_info->update_func( ctx->md_ctx, input, ilen );
@@ -315,13 +339,16 @@ int md_hmac_update( md_context_t *ctx, const unsigned char *input, size_t ilen )
 int md_hmac_finish( md_context_t *ctx, unsigned char *output )
 {
     unsigned char tmp[POLARSSL_MD_MAX_SIZE];
+    unsigned char *opad;
 
-    if( ctx == NULL || ctx->md_info == NULL )
+    if( ctx == NULL || ctx->md_info == NULL || ctx->hmac_ctx == NULL )
         return( POLARSSL_ERR_MD_BAD_INPUT_DATA );
+
+    opad = (unsigned char *) ctx->hmac_ctx + ctx->md_info->block_size;
 
     ctx->md_info->finish_func( ctx->md_ctx, tmp );
     ctx->md_info->starts_func( ctx->md_ctx );
-    ctx->md_info->update_func( ctx->md_ctx, ctx->opad, ctx->md_info->block_size );
+    ctx->md_info->update_func( ctx->md_ctx, opad, ctx->md_info->block_size );
     ctx->md_info->update_func( ctx->md_ctx, tmp, ctx->md_info->size );
     ctx->md_info->finish_func( ctx->md_ctx, output );
 
@@ -330,11 +357,15 @@ int md_hmac_finish( md_context_t *ctx, unsigned char *output )
 
 int md_hmac_reset( md_context_t *ctx )
 {
-    if( ctx == NULL || ctx->md_info == NULL )
+    unsigned char *ipad;
+
+    if( ctx == NULL || ctx->md_info == NULL || ctx->hmac_ctx == NULL )
         return( POLARSSL_ERR_MD_BAD_INPUT_DATA );
 
+    ipad = (unsigned char *) ctx->hmac_ctx;
+
     ctx->md_info->starts_func( ctx->md_ctx );
-    ctx->md_info->update_func( ctx->md_ctx, ctx->ipad, ctx->md_info->block_size );
+    ctx->md_info->update_func( ctx->md_ctx, ipad, ctx->md_info->block_size );
 
     return( 0 );
 }

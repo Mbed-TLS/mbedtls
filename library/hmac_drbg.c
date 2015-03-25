@@ -97,7 +97,7 @@ int hmac_drbg_init_buf( hmac_drbg_context *ctx,
 
     md_init( &ctx->md_ctx );
 
-    if( ( ret = md_init_ctx( &ctx->md_ctx, md_info ) ) != 0 )
+    if( ( ret = md_init_ctx( &ctx->md_ctx, md_info, 1 ) ) != 0 )
         return( ret );
 
     /*
@@ -171,7 +171,7 @@ int hmac_drbg_init( hmac_drbg_context *ctx,
 
     md_init( &ctx->md_ctx );
 
-    if( ( ret = md_init_ctx( &ctx->md_ctx, md_info ) ) != 0 )
+    if( ( ret = md_init_ctx( &ctx->md_ctx, md_info, 1 ) ) != 0 )
         return( ret );
 
     md_size = md_get_size( md_info );

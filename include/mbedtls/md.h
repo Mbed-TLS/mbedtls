@@ -142,12 +142,14 @@ void md_free( md_context_t *ctx );
  *                 digest-specific context (ctx->md_ctx) must be NULL. It will
  *                 be allocated, and must be freed using md_free() later.
  * \param md_info  message digest to use.
+ * \param hmac     non-zero if you want to use this context for hmac too,
+ *                 zero otherwise (saves some memory).
  *
  * \returns        \c 0 on success, \c POLARSSL_ERR_MD_BAD_INPUT_DATA on
  *                 parameter failure, \c POLARSSL_ERR_MD_ALLOC_FAILED if
  *                 allocation of the digest-specific context failed.
  */
-int md_init_ctx( md_context_t *ctx, const md_info_t *md_info );
+int md_init_ctx( md_context_t *ctx, const md_info_t *md_info, int hmac );
 
 /**
  * \brief           Returns the size of the message digest output.

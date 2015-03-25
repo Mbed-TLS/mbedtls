@@ -101,7 +101,7 @@ int main( int argc, char *argv[] )
     aes_init( &aes_ctx );
     md_init( &sha_ctx );
 
-    ret = md_init_ctx( &sha_ctx, md_info_from_type( POLARSSL_MD_SHA256 ) );
+    ret = md_init_ctx( &sha_ctx, md_info_from_type( POLARSSL_MD_SHA256 ), 1 );
     if( ret != 0 )
     {
         polarssl_printf( "  ! md_init_ctx() returned -0x%04x\n", -ret );

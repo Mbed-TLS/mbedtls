@@ -199,7 +199,7 @@ void md_free( md_context_t *ctx )
     polarssl_zeroize( ctx, sizeof( md_context_t ) );
 }
 
-int md_init_ctx( md_context_t *ctx, const md_info_t *md_info )
+int md_init_ctx( md_context_t *ctx, const md_info_t *md_info, int hmac  )
 {
     if( md_info == NULL || ctx == NULL )
         return( POLARSSL_ERR_MD_BAD_INPUT_DATA );
@@ -209,11 +209,14 @@ int md_init_ctx( md_context_t *ctx, const md_info_t *md_info )
     if( ( ctx->md_ctx = md_info->ctx_alloc_func() ) == NULL )
         return( POLARSSL_ERR_MD_ALLOC_FAILED );
 
-    ctx->hmac_ctx = polarssl_malloc( 2 * md_info->block_size );
-    if( ctx->hmac_ctx == NULL )
+    if( hmac != 0 )
     {
-        md_info->ctx_free_func( ctx->md_ctx );
-        return( POLARSSL_ERR_MD_ALLOC_FAILED );
+        ctx->hmac_ctx = polarssl_malloc( 2 * md_info->block_size );
+        if( ctx->hmac_ctx == NULL )
+        {
+            md_info->ctx_free_func( ctx->md_ctx );
+            return( POLARSSL_ERR_MD_ALLOC_FAILED );
+        }
     }
 
     ctx->md_info = md_info;
@@ -382,7 +385,7 @@ int md_hmac( const md_info_t *md_info, const unsigned char *key, size_t keylen,
 
     md_init( &ctx );
 
-    if( ( ret = md_init_ctx( &ctx, md_info ) ) != 0 )
+    if( ( ret = md_init_ctx( &ctx, md_info, 1 ) ) != 0 )
         return( ret );
 
     md_hmac_starts( &ctx, key, keylen );

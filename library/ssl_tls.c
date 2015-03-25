@@ -658,8 +658,8 @@ int ssl_derive_keys( ssl_context *ssl )
         int ret;
 
         /* Initialize HMAC contexts */
-        if( ( ret = md_init_ctx( &transform->md_ctx_enc, md_info ) ) != 0 ||
-            ( ret = md_init_ctx( &transform->md_ctx_dec, md_info ) ) != 0 )
+        if( ( ret = md_init_ctx( &transform->md_ctx_enc, md_info, 1 ) ) != 0 ||
+            ( ret = md_init_ctx( &transform->md_ctx_dec, md_info, 1 ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "md_init_ctx", ret );
             return( ret );

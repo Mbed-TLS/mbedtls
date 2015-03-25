@@ -29,7 +29,7 @@ void md_process( )
     {
         info = md_info_from_type( *md_type_ptr );
         TEST_ASSERT( info != NULL );
-        TEST_ASSERT( md_init_ctx( &ctx, info ) == 0 );
+        TEST_ASSERT( md_init_ctx( &ctx, info, 0 ) == 0 );
         TEST_ASSERT( md_process( &ctx, buf ) == 0 );
         md_free( &ctx );
     }
@@ -54,8 +54,8 @@ void md_null_args( )
 
     TEST_ASSERT( md_info_from_string( NULL ) == NULL );
 
-    TEST_ASSERT( md_init_ctx( &ctx, NULL ) == POLARSSL_ERR_MD_BAD_INPUT_DATA );
-    TEST_ASSERT( md_init_ctx( NULL, info ) == POLARSSL_ERR_MD_BAD_INPUT_DATA );
+    TEST_ASSERT( md_init_ctx( &ctx, NULL, 0 ) == POLARSSL_ERR_MD_BAD_INPUT_DATA );
+    TEST_ASSERT( md_init_ctx( NULL, info, 0 ) == POLARSSL_ERR_MD_BAD_INPUT_DATA );
 
     TEST_ASSERT( md_starts( NULL ) == POLARSSL_ERR_MD_BAD_INPUT_DATA );
     TEST_ASSERT( md_starts( &ctx ) == POLARSSL_ERR_MD_BAD_INPUT_DATA );
@@ -195,7 +195,7 @@ void md_text_multi( char *text_md_name, char *text_src_string,
     strncpy( (char *) md_name, text_md_name, sizeof(md_name) - 1 );
     md_info = md_info_from_string(md_name);
     TEST_ASSERT( md_info != NULL );
-    TEST_ASSERT ( 0 == md_init_ctx( &ctx, md_info ) );
+    TEST_ASSERT ( 0 == md_init_ctx( &ctx, md_info, 0 ) );
 
     TEST_ASSERT ( 0 == md_starts( &ctx ) );
     TEST_ASSERT ( ctx.md_ctx != NULL );
@@ -233,7 +233,7 @@ void md_hex_multi( char *text_md_name, char *hex_src_string,
     strncpy( (char *) md_name, text_md_name, sizeof(md_name) - 1 );
     md_info = md_info_from_string(md_name);
     TEST_ASSERT( md_info != NULL );
-    TEST_ASSERT ( 0 == md_init_ctx( &ctx, md_info ) );
+    TEST_ASSERT ( 0 == md_init_ctx( &ctx, md_info, 0 ) );
 
     src_len = unhexify( src_str, hex_src_string );
 
@@ -307,7 +307,7 @@ void md_hmac_multi( char *text_md_name, int trunc_size, char *hex_key_string,
     strncpy( (char *) md_name, text_md_name, sizeof(md_name) - 1 );
     md_info = md_info_from_string( md_name );
     TEST_ASSERT( md_info != NULL );
-    TEST_ASSERT ( 0 == md_init_ctx( &ctx, md_info ) );
+    TEST_ASSERT ( 0 == md_init_ctx( &ctx, md_info, 1 ) );
 
     key_len = unhexify( key_str, hex_key_string );
     src_len = unhexify( src_str, hex_src_string );

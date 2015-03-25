@@ -104,7 +104,7 @@ int ssl_cookie_setup( ssl_cookie_ctx *ctx,
     if( ( ret = f_rng( p_rng, key, sizeof( key ) ) ) != 0 )
         return( ret );
 
-    ret = md_init_ctx( &ctx->hmac_ctx, md_info_from_type( COOKIE_MD ) );
+    ret = md_init_ctx( &ctx->hmac_ctx, md_info_from_type( COOKIE_MD ), 1 );
     if( ret != 0 )
         return( ret );
 

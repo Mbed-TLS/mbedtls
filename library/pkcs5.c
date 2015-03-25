@@ -189,7 +189,7 @@ int pkcs5_pbes2( const asn1_buf *pbe_params, int mode,
 
     memcpy( iv, enc_scheme_params.p, enc_scheme_params.len );
 
-    if( ( ret = md_init_ctx( &md_ctx, md_info ) ) != 0 )
+    if( ( ret = md_init_ctx( &md_ctx, md_info, 1 ) ) != 0 )
         goto exit;
 
     if( ( ret = pkcs5_pbkdf2_hmac( &md_ctx, pwd, pwdlen, salt.p, salt.len,
@@ -365,7 +365,7 @@ int pkcs5_self_test( int verbose )
         goto exit;
     }
 
-    if( ( ret = md_init_ctx( &sha1_ctx, info_sha1 ) ) != 0 )
+    if( ( ret = md_init_ctx( &sha1_ctx, info_sha1, 1 ) ) != 0 )
     {
         ret = 1;
         goto exit;

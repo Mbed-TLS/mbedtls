@@ -189,6 +189,7 @@ scripts/config.pl unset POLARSSL_SSL_DTLS_HELLO_VERIFY
 scripts/config.pl unset POLARSSL_SSL_DTLS_BADMAC_LIMIT
 scripts/config.pl unset POLARSSL_SSL_COOKIE_C
 # following things are not in the default config
+scripts/config.pl unset POLARSSL_DEPRECATED_WARNING
 scripts/config.pl unset POLARSSL_HAVEGE_C # depends on timing.c
 scripts/config.pl unset POLARSSL_THREADING_PTHREAD
 scripts/config.pl unset POLARSSL_THREADING_C

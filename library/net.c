@@ -452,7 +452,7 @@ int net_accept( int bind_fd, int *client_fd, void *client_ip )
 #endif
 
     /* Is this a TCP or UDP socket? */
-    if( getsockopt( bind_fd, SOL_SOCKET, SO_TYPE, &type, &type_len ) != 0 ||
+    if( getsockopt( bind_fd, SOL_SOCKET, SO_TYPE, (void *) &type, &type_len ) != 0 ||
         ( type != SOCK_STREAM && type != SOCK_DGRAM ) )
     {
         return( POLARSSL_ERR_NET_ACCEPT_FAILED );

@@ -6,7 +6,8 @@ Features
   * Support for DTLS 1.0 and 1.2 (RFC 6347).
 
 API Changes
-   * md_init_ctx() gained a new argument for optional hmac usage
+   * md_init_ctx() is deprecated in favour of md_setup(), that adds a third
+     argument (allowing memory savings if HMAC is not used)
    * Removed individual mdX_hmac and shaX_hmac functions (use generic
      md_hmac functions from md.h)
    * Change md_info_t into an opaque structure (use md_get_xxx() accessors).

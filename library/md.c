@@ -199,7 +199,14 @@ void md_free( md_context_t *ctx )
     polarssl_zeroize( ctx, sizeof( md_context_t ) );
 }
 
-int md_setup( md_context_t *ctx, const md_info_t *md_info, int hmac  )
+#if ! defined(POLARSSL_DEPRECATED_REMOVED)
+int md_init_ctx( md_context_t *ctx, const md_info_t *md_info )
+{
+    return md_setup( ctx, md_info, 1 );
+}
+#endif
+
+int md_setup( md_context_t *ctx, const md_info_t *md_info, int hmac )
 {
     if( md_info == NULL || ctx == NULL )
         return( POLARSSL_ERR_MD_BAD_INPUT_DATA );

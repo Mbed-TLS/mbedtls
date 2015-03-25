@@ -556,7 +556,7 @@ int rsa_rsaes_oaep_encrypt( rsa_context *ctx,
     memcpy( p, input, ilen );
 
     md_init( &md_ctx );
-    md_init_ctx( &md_ctx, md_info, 0 );
+    md_setup( &md_ctx, md_info, 0 );
 
     // maskedDB: Apply dbMask to DB
     //
@@ -725,7 +725,7 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
     hlen = md_get_size( md_info );
 
     md_init( &md_ctx );
-    md_init_ctx( &md_ctx, md_info, 0 );
+    md_setup( &md_ctx, md_info, 0 );
 
     /* Generate lHash */
     md( md_info, label, label_len, lhash );
@@ -969,7 +969,7 @@ int rsa_rsassa_pss_sign( rsa_context *ctx,
     p += slen;
 
     md_init( &md_ctx );
-    md_init_ctx( &md_ctx, md_info, 0 );
+    md_setup( &md_ctx, md_info, 0 );
 
     // Generate H = Hash( M' )
     //
@@ -1201,7 +1201,7 @@ int rsa_rsassa_pss_verify_ext( rsa_context *ctx,
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
     md_init( &md_ctx );
-    md_init_ctx( &md_ctx, md_info, 0 );
+    md_setup( &md_ctx, md_info, 0 );
 
     mgf_mask( p, siglen - hlen - 1, p + siglen - hlen - 1, hlen, &md_ctx );
 

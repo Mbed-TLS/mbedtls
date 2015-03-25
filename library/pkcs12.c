@@ -268,7 +268,7 @@ int pkcs12_derivation( unsigned char *data, size_t datalen,
 
     md_init( &md_ctx );
 
-    if( ( ret = md_init_ctx( &md_ctx, md_info, 0 ) ) != 0 )
+    if( ( ret = md_setup( &md_ctx, md_info, 0 ) ) != 0 )
         return( ret );
     hlen = md_get_size( md_info );
 

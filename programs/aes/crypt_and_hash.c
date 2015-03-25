@@ -185,7 +185,7 @@ int main( int argc, char *argv[] )
         polarssl_fprintf( stderr, "Message Digest '%s' not found\n", argv[5] );
         goto exit;
     }
-    md_init_ctx( &md_ctx, md_info, 1 );
+    md_setup( &md_ctx, md_info, 1 );
 
     /*
      * Read the secret key and clean the command line.

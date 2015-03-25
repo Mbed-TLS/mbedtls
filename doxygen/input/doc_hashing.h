@@ -12,7 +12,7 @@
  * for authentication, which is a message integrity control.
  *
  * All hash algorithms can be accessed via the generic MD layer (see
- * \c md_init_ctx())
+ * \c md_setup())
  *
  * The following hashing-algorithms are provided:
  * - MD2, MD4, MD5 128-bit one-way hash functions by Ron Rivest.

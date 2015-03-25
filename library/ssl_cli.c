@@ -2172,10 +2172,10 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
              *     ServerDHParams params;
              * };
              */
-            if( ( ret = md_init_ctx( &ctx,
+            if( ( ret = md_setup( &ctx,
                                      md_info_from_type( md_alg ), 0 ) ) != 0 )
             {
-                SSL_DEBUG_RET( 1, "md_init_ctx", ret );
+                SSL_DEBUG_RET( 1, "md_setup", ret );
                 return( ret );
             }
 

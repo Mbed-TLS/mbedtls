@@ -140,7 +140,7 @@ void md_free( md_context_t *ctx );
  *                 parameter failure, \c POLARSSL_ERR_MD_ALLOC_FAILED if
  *                 allocation of the digest-specific context failed.
  */
-int md_init_ctx( md_context_t *ctx, const md_info_t *md_info, int hmac );
+int md_setup( md_context_t *ctx, const md_info_t *md_info, int hmac );
 
 /**
  * \brief           Returns the size of the message digest output.

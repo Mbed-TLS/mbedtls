@@ -204,7 +204,7 @@ int main( int argc, char *argv[] )
         polarssl_fprintf( stderr, "Message Digest '%s' not found\n", argv[1] );
         return( 1 );
     }
-    if( md_init_ctx( &md_ctx, md_info, 0 ) )
+    if( md_setup( &md_ctx, md_info, 0 ) )
     {
         polarssl_fprintf( stderr, "Failed to initialize context.\n" );
         return( 1 );

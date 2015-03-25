@@ -3073,9 +3073,9 @@ curve_matching_done:
              *     ServerDHParams params;
              * };
              */
-            if( ( ret = md_init_ctx( &ctx, md_info, 0 ) ) != 0 )
+            if( ( ret = md_setup( &ctx, md_info, 0 ) ) != 0 )
             {
-                SSL_DEBUG_RET( 1, "md_init_ctx", ret );
+                SSL_DEBUG_RET( 1, "md_setup", ret );
                 return( ret );
             }
 

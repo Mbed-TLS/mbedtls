@@ -179,6 +179,7 @@ scripts/config.pl unset POLARSSL_TIMING_C
 scripts/config.pl unset POLARSSL_FS_IO
 scripts/config.pl unset POLARSSL_HAVE_TIME
 # following things are not in the default config
+scripts/config.pl unset POLARSSL_DEPRECATED_WARNING
 scripts/config.pl unset POLARSSL_HAVEGE_C # depends on timing.c
 scripts/config.pl unset POLARSSL_THREADING_PTHREAD
 scripts/config.pl unset POLARSSL_THREADING_C

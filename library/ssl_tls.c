@@ -5257,6 +5257,7 @@ void ssl_set_dbg( ssl_context *ssl,
     ssl->p_dbg      = p_dbg;
 }
 
+#if ! defined(POLARSSL_DEPRECATED_REMOVED)
 void ssl_set_bio( ssl_context *ssl,
             int (*f_recv)(void *, unsigned char *, size_t), void *p_recv,
             int (*f_send)(void *, const unsigned char *, size_t), void *p_send )
@@ -5273,6 +5274,7 @@ void ssl_set_bio( ssl_context *ssl,
     ssl->f_send     = f_send;
     ssl->p_bio      = p_send;
 }
+#endif /* POLARSSL_DEPRECATED_REMOVED */
 
 void ssl_set_bio_timeout( ssl_context *ssl,
         void *p_bio,

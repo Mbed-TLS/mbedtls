@@ -1214,6 +1214,12 @@ void ssl_set_dbg( ssl_context *ssl,
                   void (*f_dbg)(void *, int, const char *),
                   void  *p_dbg );
 
+#if ! defined(POLARSSL_DEPRECATED_REMOVED)
+#if defined(POLARSSL_DEPRECATED_WARNING)
+#define DEPRECATED    __attribute__((deprecated))
+#else
+#define DEPRECATED
+#endif
 /**
  * \brief          Set the underlying BIO read and write callbacks
  *
@@ -1231,7 +1237,9 @@ void ssl_set_dbg( ssl_context *ssl,
  */
 void ssl_set_bio( ssl_context *ssl,
         int (*f_recv)(void *, unsigned char *, size_t), void *p_recv,
-        int (*f_send)(void *, const unsigned char *, size_t), void *p_send );
+        int (*f_send)(void *, const unsigned char *, size_t), void *p_send ) DEPRECATED;
+#undef DEPRECATED
+#endif /* POLARSSL_DEPRECATED_REMOVED */
 
 #if defined(POLARSSL_SSL_SRV_C)
 /**

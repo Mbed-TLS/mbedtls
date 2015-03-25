@@ -439,8 +439,7 @@ int main( int argc, char *argv[] )
 
         ssl_set_rng( &ssl, ctr_drbg_random, &ctr_drbg );
         ssl_set_dbg( &ssl, my_debug, stdout );
-        ssl_set_bio( &ssl, net_recv, &server_fd,
-                net_send, &server_fd );
+        ssl_set_bio_timeout( &ssl, &server_fd, net_send, net_recv, NULL, 0 );
 
         if( ( ret = ssl_set_own_cert( &ssl, &clicert, &pkey ) ) != 0 )
         {

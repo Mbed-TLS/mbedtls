@@ -251,8 +251,7 @@ reset:
         goto exit;
     }
 
-    ssl_set_bio( &ssl, net_recv, &client_fd,
-                       net_send, &client_fd );
+        ssl_set_bio_timeout( &ssl, &client_fd, net_send, net_recv, NULL, 0 );
 
     polarssl_printf( " ok\n" );
 

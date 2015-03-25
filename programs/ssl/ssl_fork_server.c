@@ -276,8 +276,7 @@ int main( void )
 
         ssl_set_rng( &ssl, ctr_drbg_random, &ctr_drbg );
         ssl_set_dbg( &ssl, my_debug, stdout );
-        ssl_set_bio( &ssl, net_recv, &client_fd,
-                           net_send, &client_fd );
+        ssl_set_bio_timeout( &ssl, &client_fd, net_send, net_recv, NULL, 0 );
 
         ssl_set_ca_chain( &ssl, srvcert.next, NULL, NULL );
         if( ( ret = ssl_set_own_cert( &ssl, &srvcert, &pkey ) ) != 0 )

@@ -607,17 +607,28 @@ int ssl_derive_keys( ssl_context *ssl )
 
             SSL_DEBUG_BUF( 3, "session hash", session_hash, hash_len );
 
-            handshake->tls_prf( handshake->premaster, handshake->pmslen,
-                                "extended master secret",
-                                session_hash, hash_len, session->master, 48 );
+            ret = handshake->tls_prf( handshake->premaster, handshake->pmslen,
+                                      "extended master secret",
+                                      session_hash, hash_len,
+                                      session->master, 48 );
+            if( ret != 0 )
+            {
+                SSL_DEBUG_RET( 1, "prf", ret );
+                return( ret );
+            }
 
         }
         else
 #endif
-        handshake->tls_prf( handshake->premaster, handshake->pmslen,
-                            "master secret",
-                            handshake->randbytes, 64, session->master, 48 );
-
+        ret = handshake->tls_prf( handshake->premaster, handshake->pmslen,
+                                  "master secret",
+                                  handshake->randbytes, 64,
+                                  session->master, 48 );
+        if( ret != 0 )
+        {
+            SSL_DEBUG_RET( 1, "prf", ret );
+            return( ret );
+        }
 
         polarssl_zeroize( handshake->premaster, sizeof(handshake->premaster) );
     }
@@ -644,8 +655,13 @@ int ssl_derive_keys( ssl_context *ssl )
      *  TLSv1:
      *    key block = PRF( master, "key expansion", randbytes )
      */
-    handshake->tls_prf( session->master, 48, "key expansion",
-                        handshake->randbytes, 64, keyblk, 256 );
+    ret = handshake->tls_prf( session->master, 48, "key expansion",
+                              handshake->randbytes, 64, keyblk, 256 );
+    if( ret != 0 )
+    {
+        SSL_DEBUG_RET( 1, "prf", ret );
+        return( ret );
+    }
 
     SSL_DEBUG_MSG( 3, ( "ciphersuite = %s",
                    ssl_get_ciphersuite_name( session->ciphersuite ) ) );

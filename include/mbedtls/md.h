@@ -114,14 +114,16 @@ const md_info_t *md_info_from_string( const char *md_name );
 const md_info_t *md_info_from_type( md_type_t md_type );
 
 /**
- * \brief               Initialize a md_context (as NONE)
+ * \brief           Initialize a md_context (as NONE)
+ *                  This should always be called first.
+ *                  Prepares the context for md_setup() or md_free().
  */
 void md_init( md_context_t *ctx );
 
 /**
- * \brief               Free and clear the message-specific context of ctx.
- *                      Freeing ctx itself remains the responsibility of the
- *                      caller.
+ * \brief           Free and clear the internal structures of ctx.
+ *                  Can be called at any time after md_init().
+ *                  Mandatory once md_setup() has been called.
  */
 void md_free( md_context_t *ctx );
 
@@ -132,38 +134,36 @@ void md_free( md_context_t *ctx );
 #define DEPRECATED
 #endif
 /**
- * \brief          Initialises and fills the message digest context structure
- *                 with the appropriate values.
+ * \brief           Select MD to use and allocate internal structures.
+ *                  Should be called after md_init() or md_free().
+ *                  Makes it necessary to call md_free() later.
  *
- * \deprecated     Superseded by md_setup() in 2.0.0
+ * \deprecated      Superseded by md_setup() in 2.0.0
  *
- * \param ctx      context to initialise. May not be NULL. The
- *                 digest-specific context (ctx->md_ctx) must be NULL. It will
- *                 be allocated, and must be freed using md_free() later.
- * \param md_info  message digest to use.
+ * \param ctx       Context to set up.
+ * \param md_info   Message digest to use.
  *
- * \returns        \c 0 on success, \c POLARSSL_ERR_MD_BAD_INPUT_DATA on
- *                 parameter failure, \c POLARSSL_ERR_MD_ALLOC_FAILED if
- *                 allocation of the digest-specific context failed.
+ * \returns         \c 0 on success,
+ *                  \c POLARSSL_ERR_MD_BAD_INPUT_DATA on parameter failure,
+ *                  \c POLARSSL_ERR_MD_ALLOC_FAILED memory allocation failure.
  */
 int md_init_ctx( md_context_t *ctx, const md_info_t *md_info ) DEPRECATED;
 #undef DEPRECATED
 #endif /* POLARSSL_DEPRECATED_REMOVED */
 
 /**
- * \brief          Initialises and fills the message digest context structure
- *                 with the appropriate values.
+ * \brief           Select MD to use and allocate internal structures.
+ *                  Should be called after md_init() or md_free().
+ *                  Makes it necessary to call md_free() later.
  *
- * \param ctx      context to initialise. May not be NULL. The
- *                 digest-specific context (ctx->md_ctx) must be NULL. It will
- *                 be allocated, and must be freed using md_free() later.
- * \param md_info  message digest to use.
- * \param hmac     non-zero if you want to use this context for hmac too,
- *                 zero otherwise (saves some memory).
+ * \param ctx       Context to set up.
+ * \param md_info   Message digest to use.
+ * \param hmac      0 to save some meory is HMAC will not be use,
+ *                  non-zero is HMAC is going to be used with this context.
  *
- * \returns        \c 0 on success, \c POLARSSL_ERR_MD_BAD_INPUT_DATA on
- *                 parameter failure, \c POLARSSL_ERR_MD_ALLOC_FAILED if
- *                 allocation of the digest-specific context failed.
+ * \returns         \c 0 on success,
+ *                  \c POLARSSL_ERR_MD_BAD_INPUT_DATA on parameter failure,
+ *                  \c POLARSSL_ERR_MD_ALLOC_FAILED memory allocation failure.
  */
 int md_setup( md_context_t *ctx, const md_info_t *md_info, int hmac );
 
@@ -195,35 +195,41 @@ md_type_t md_get_type( const md_info_t *md_info );
 const char *md_get_name( const md_info_t *md_info );
 
 /**
- * \brief          Set-up the given context for a new message digest
+ * \brief           Prepare the context to digest a new message.
+ *                  Generally called after md_setup() or md_finish().
+ *                  Followed by md_update().
  *
- * \param ctx      generic message digest context.
+ * \param ctx       generic message digest context.
  *
- * \returns        0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
- *                 verification fails.
+ * \returns         0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
+ *                  verification fails.
  */
 int md_starts( md_context_t *ctx );
 
 /**
- * \brief          Generic message digest process buffer
+ * \brief           Generic message digest process buffer
+ *                  Called between md_starts() and md_finish().
+ *                  May be called repeatedly.
  *
- * \param ctx      Generic message digest context
- * \param input    buffer holding the  datal
- * \param ilen     length of the input data
+ * \param ctx       Generic message digest context
+ * \param input     buffer holding the  datal
+ * \param ilen      length of the input data
  *
- * \returns        0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
- *                 verification fails.
+ * \returns         0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
+ *                  verification fails.
  */
 int md_update( md_context_t *ctx, const unsigned char *input, size_t ilen );
 
 /**
- * \brief          Generic message digest final digest
+ * \brief           Generic message digest final digest
+ *                  Called after md_update().
+ *                  Usually followed by md_free() or md_starts().
  *
- * \param ctx      Generic message digest context
- * \param output   Generic message digest checksum result
+ * \param ctx       Generic message digest context
+ * \param output    Generic message digest checksum result
  *
- * \returns        0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
- *                 verification fails.
+ * \returns         0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
+ *                  verification fails.
  */
 int md_finish( md_context_t *ctx, unsigned char *output );
 
@@ -256,49 +262,57 @@ int md_file( const md_info_t *md_info, const char *path,
              unsigned char *output );
 
 /**
- * \brief          Generic HMAC context setup
+ * \brief           Set HMAC key and prepare to authenticate a new message.
+ *                  Usually called after md_setup() or md_hmac_finish().
  *
- * \param ctx      HMAC context to be initialized
- * \param key      HMAC secret key
- * \param keylen   length of the HMAC key
+ * \param ctx       HMAC context
+ * \param key       HMAC secret key
+ * \param keylen    length of the HMAC key
  *
- * \returns        0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
- *                 verification fails.
+ * \returns         0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
+ *                  verification fails.
  */
 int md_hmac_starts( md_context_t *ctx, const unsigned char *key,
                     size_t keylen );
 
 /**
- * \brief          Generic HMAC process buffer
+ * \brief           Generic HMAC process buffer.
+ *                  Called between md_hmac_starts() or md_hmac_reset()
+ *                  and md_hmac_finish().
+ *                  May be called repeatedly.
  *
- * \param ctx      HMAC context
- * \param input    buffer holding the  data
- * \param ilen     length of the input data
+ * \param ctx       HMAC context
+ * \param input     buffer holding the  data
+ * \param ilen      length of the input data
  *
- * \returns        0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
- *                 verification fails.
+ * \returns         0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
+ *                  verification fails.
  */
 int md_hmac_update( md_context_t *ctx, const unsigned char *input,
                     size_t ilen );
 
 /**
- * \brief          Generic HMAC final digest
+ * \brief           Output HMAC.
+ *                  Called after md_hmac_update().
+ *                  Usually followed my md_hmac_reset(), md_hmac_starts(),
+ *                  or md_free().
  *
- * \param ctx      HMAC context
- * \param output   Generic HMAC checksum result
+ * \param ctx       HMAC context
+ * \param output    Generic HMAC checksum result
  *
- * \returns        0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
- *                 verification fails.
+ * \returns         0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
+ *                  verification fails.
  */
 int md_hmac_finish( md_context_t *ctx, unsigned char *output);
 
 /**
- * \brief          Generic HMAC context reset
+ * \brief           Prepare to authenticate a new message with the same key.
+ *                  Called after md_hmac_finish() and before md_hmac_update().
  *
- * \param ctx      HMAC context to be reset
+ * \param ctx       HMAC context to be reset
  *
- * \returns        0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
- *                 verification fails.
+ * \returns         0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
+ *                  verification fails.
  */
 int md_hmac_reset( md_context_t *ctx );
 

@@ -277,6 +277,10 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
     unsigned char tmp[128];
     unsigned char h_i[20];
     const md_info_t *md_info;
+    md_context_t md_ctx;
+    int ret;
+
+    md_init( &md_ctx );
 
     if( sizeof( tmp ) < 20 + strlen( label ) + rlen )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
@@ -296,12 +300,22 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
     if( ( md_info = md_info_from_type( POLARSSL_MD_MD5 ) ) == NULL )
         return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
 
-    md_hmac( md_info, S1, hs, tmp + 20, nb, 4 + tmp );
+    if( ( ret = md_setup( &md_ctx, md_info, 1 ) ) != 0 )
+        return( ret );
+
+    md_hmac_starts( &md_ctx, S1, hs );
+    md_hmac_update( &md_ctx, tmp + 20, nb );
+    md_hmac_finish( &md_ctx, 4 + tmp );
 
     for( i = 0; i < dlen; i += 16 )
     {
-        md_hmac( md_info, S1, hs, 4 + tmp, 16 + nb, h_i );
-        md_hmac( md_info, S1, hs, 4 + tmp, 16,  4 + tmp );
+        md_hmac_reset ( &md_ctx );
+        md_hmac_update( &md_ctx, 4 + tmp, 16 + nb );
+        md_hmac_finish( &md_ctx, h_i );
+
+        md_hmac_reset ( &md_ctx );
+        md_hmac_update( &md_ctx, 4 + tmp, 16 );
+        md_hmac_finish( &md_ctx, 4 + tmp );
 
         k = ( i + 16 > dlen ) ? dlen % 16 : 16;
 
@@ -309,24 +323,38 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
             dstbuf[i + j]  = h_i[j];
     }
 
+    md_free( &md_ctx );
+
     /*
      * XOR out with P_sha1(secret,label+random)[0..dlen]
      */
     if( ( md_info = md_info_from_type( POLARSSL_MD_SHA1 ) ) == NULL )
         return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
 
-    md_hmac( md_info, S2, hs, tmp + 20, nb, tmp );
+    if( ( ret = md_setup( &md_ctx, md_info, 1 ) ) != 0 )
+        return( ret );
+
+    md_hmac_starts( &md_ctx, S2, hs );
+    md_hmac_update( &md_ctx, tmp + 20, nb );
+    md_hmac_finish( &md_ctx, tmp );
 
     for( i = 0; i < dlen; i += 20 )
     {
-        md_hmac( md_info, S2, hs, tmp, 20 + nb, h_i );
-        md_hmac( md_info, S2, hs, tmp, 20,      tmp );
+        md_hmac_reset ( &md_ctx );
+        md_hmac_update( &md_ctx, tmp, 20 + nb );
+        md_hmac_finish( &md_ctx, h_i );
+
+        md_hmac_reset ( &md_ctx );
+        md_hmac_update( &md_ctx, tmp, 20 );
+        md_hmac_finish( &md_ctx, tmp );
 
         k = ( i + 20 > dlen ) ? dlen % 20 : 20;
 
         for( j = 0; j < k; j++ )
             dstbuf[i + j] = (unsigned char)( dstbuf[i + j] ^ h_i[j] );
     }
+
+    md_free( &md_ctx );
 
     polarssl_zeroize( tmp, sizeof( tmp ) );
     polarssl_zeroize( h_i, sizeof( h_i ) );
@@ -347,6 +375,10 @@ static int tls_prf_generic( md_type_t md_type,
     unsigned char tmp[128];
     unsigned char h_i[POLARSSL_MD_MAX_SIZE];
     const md_info_t *md_info;
+    md_context_t md_ctx;
+    int ret;
+
+    md_init( &md_ctx );
 
     if( ( md_info = md_info_from_type( md_type ) ) == NULL )
         return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
@@ -364,18 +396,30 @@ static int tls_prf_generic( md_type_t md_type,
     /*
      * Compute P_<hash>(secret, label + random)[0..dlen]
      */
-    md_hmac( md_info, secret, slen, tmp + md_len, nb, tmp );
+    if ( ( ret = md_setup( &md_ctx, md_info, 1 ) ) != 0 )
+        return( ret );
+
+    md_hmac_starts( &md_ctx, secret, slen );
+    md_hmac_update( &md_ctx, tmp + md_len, nb );
+    md_hmac_finish( &md_ctx, tmp );
 
     for( i = 0; i < dlen; i += md_len )
     {
-        md_hmac( md_info, secret, slen, tmp, md_len + nb, h_i );
-        md_hmac( md_info, secret, slen, tmp, md_len,      tmp );
+        md_hmac_reset ( &md_ctx );
+        md_hmac_update( &md_ctx, tmp, md_len + nb );
+        md_hmac_finish( &md_ctx, h_i );
+
+        md_hmac_reset ( &md_ctx );
+        md_hmac_update( &md_ctx, tmp, md_len );
+        md_hmac_finish( &md_ctx, tmp );
 
         k = ( i + md_len > dlen ) ? dlen % md_len : md_len;
 
         for( j = 0; j < k; j++ )
             dstbuf[i + j]  = h_i[j];
     }
+
+    md_free( &md_ctx );
 
     polarssl_zeroize( tmp, sizeof( tmp ) );
     polarssl_zeroize( h_i, sizeof( h_i ) );

@@ -56,9 +56,6 @@ typedef struct
     uint64_t total[2];          /*!< number of bytes processed  */
     uint64_t state[8];          /*!< intermediate digest state  */
     unsigned char buffer[128];  /*!< data block being processed */
-
-    unsigned char ipad[128];    /*!< HMAC: inner padding        */
-    unsigned char opad[128];    /*!< HMAC: outer padding        */
     int is384;                  /*!< 0 => SHA-512, else SHA-384 */
 }
 sha512_context;
@@ -136,56 +133,6 @@ void sha512( const unsigned char *input, size_t ilen,
  * \return         0 if successful, or POLARSSL_ERR_SHA512_FILE_IO_ERROR
  */
 int sha512_file( const char *path, unsigned char output[64], int is384 );
-
-/**
- * \brief          SHA-512 HMAC context setup
- *
- * \param ctx      HMAC context to be initialized
- * \param is384    0 = use SHA512, 1 = use SHA384
- * \param key      HMAC secret key
- * \param keylen   length of the HMAC key
- */
-void sha512_hmac_starts( sha512_context *ctx, const unsigned char *key,
-                         size_t keylen, int is384 );
-
-/**
- * \brief          SHA-512 HMAC process buffer
- *
- * \param ctx      HMAC context
- * \param input    buffer holding the  data
- * \param ilen     length of the input data
- */
-void sha512_hmac_update( sha512_context *ctx, const unsigned char *input,
-                         size_t ilen );
-
-/**
- * \brief          SHA-512 HMAC final digest
- *
- * \param ctx      HMAC context
- * \param output   SHA-384/512 HMAC checksum result
- */
-void sha512_hmac_finish( sha512_context *ctx, unsigned char output[64] );
-
-/**
- * \brief          SHA-512 HMAC context reset
- *
- * \param ctx      HMAC context to be reset
- */
-void sha512_hmac_reset( sha512_context *ctx );
-
-/**
- * \brief          Output = HMAC-SHA-512( hmac key, input buffer )
- *
- * \param key      HMAC secret key
- * \param keylen   length of the HMAC key
- * \param input    buffer holding the  data
- * \param ilen     length of the input data
- * \param output   HMAC-SHA-384/512 result
- * \param is384    0 = use SHA512, 1 = use SHA384
- */
-void sha512_hmac( const unsigned char *key, size_t keylen,
-                const unsigned char *input, size_t ilen,
-                unsigned char output[64], int is384 );
 
 /**
  * \brief          Checkup routine

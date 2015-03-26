@@ -166,7 +166,7 @@ static inline int pk_hashlen_helper( md_type_t md_alg, size_t *hash_len )
     if( ( md_info = md_info_from_type( md_alg ) ) == NULL )
         return( -1 );
 
-    *hash_len = md_info->size;
+    *hash_len = md_get_size( md_info );
     return( 0 );
 }
 

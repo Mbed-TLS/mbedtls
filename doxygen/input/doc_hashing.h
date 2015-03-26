@@ -12,13 +12,12 @@
  * for authentication, which is a message integrity control.
  *
  * All hash algorithms can be accessed via the generic MD layer (see
- * \c md_init_ctx())
+ * \c md_setup())
  *
  * The following hashing-algorithms are provided:
- * - MD2, MD4, MD5 128-bit one-way hash functions by Ron Rivest (see
- *   \c md2_hmac(), \c md4_hmac() and \c md5_hmac()).
+ * - MD2, MD4, MD5 128-bit one-way hash functions by Ron Rivest.
  * - SHA-1, SHA-256, SHA-384/512 160-bit or more one-way hash functions by
- *   NIST and NSA (see\c sha1_hmac(), \c sha256_hmac() and \c sha512_hmac()).
+ *   NIST and NSA.
  *
  * This module provides one-way hashing which can be used for authentication.
  */

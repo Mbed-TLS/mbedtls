@@ -57,9 +57,6 @@ typedef struct
     uint32_t total[2];          /*!< number of bytes processed  */
     uint32_t state[4];          /*!< intermediate digest state  */
     unsigned char buffer[64];   /*!< data block being processed */
-
-    unsigned char ipad[64];     /*!< HMAC: inner padding        */
-    unsigned char opad[64];     /*!< HMAC: outer padding        */
 }
 md4_context;
 
@@ -131,54 +128,6 @@ void md4( const unsigned char *input, size_t ilen, unsigned char output[16] );
  * \return         0 if successful, or POLARSSL_ERR_MD4_FILE_IO_ERROR
  */
 int md4_file( const char *path, unsigned char output[16] );
-
-/**
- * \brief          MD4 HMAC context setup
- *
- * \param ctx      HMAC context to be initialized
- * \param key      HMAC secret key
- * \param keylen   length of the HMAC key
- */
-void md4_hmac_starts( md4_context *ctx, const unsigned char *key,
-                      size_t keylen );
-
-/**
- * \brief          MD4 HMAC process buffer
- *
- * \param ctx      HMAC context
- * \param input    buffer holding the  data
- * \param ilen     length of the input data
- */
-void md4_hmac_update( md4_context *ctx, const unsigned char *input,
-                      size_t ilen );
-
-/**
- * \brief          MD4 HMAC final digest
- *
- * \param ctx      HMAC context
- * \param output   MD4 HMAC checksum result
- */
-void md4_hmac_finish( md4_context *ctx, unsigned char output[16] );
-
-/**
- * \brief          MD4 HMAC context reset
- *
- * \param ctx      HMAC context to be reset
- */
-void md4_hmac_reset( md4_context *ctx );
-
-/**
- * \brief          Output = HMAC-MD4( hmac key, input buffer )
- *
- * \param key      HMAC secret key
- * \param keylen   length of the HMAC key
- * \param input    buffer holding the  data
- * \param ilen     length of the input data
- * \param output   HMAC-MD4 result
- */
-void md4_hmac( const unsigned char *key, size_t keylen,
-               const unsigned char *input, size_t ilen,
-               unsigned char output[16] );
 
 /**
  * \brief          Checkup routine

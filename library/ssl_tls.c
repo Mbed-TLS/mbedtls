@@ -276,6 +276,11 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
     const unsigned char *S1, *S2;
     unsigned char tmp[128];
     unsigned char h_i[20];
+    const md_info_t *md_info;
+    md_context_t md_ctx;
+    int ret;
+
+    md_init( &md_ctx );
 
     if( sizeof( tmp ) < 20 + strlen( label ) + rlen )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
@@ -292,12 +297,25 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
     /*
      * First compute P_md5(secret,label+random)[0..dlen]
      */
-    md5_hmac( S1, hs, tmp + 20, nb, 4 + tmp );
+    if( ( md_info = md_info_from_type( POLARSSL_MD_MD5 ) ) == NULL )
+        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+
+    if( ( ret = md_setup( &md_ctx, md_info, 1 ) ) != 0 )
+        return( ret );
+
+    md_hmac_starts( &md_ctx, S1, hs );
+    md_hmac_update( &md_ctx, tmp + 20, nb );
+    md_hmac_finish( &md_ctx, 4 + tmp );
 
     for( i = 0; i < dlen; i += 16 )
     {
-        md5_hmac( S1, hs, 4 + tmp, 16 + nb, h_i );
-        md5_hmac( S1, hs, 4 + tmp, 16,  4 + tmp );
+        md_hmac_reset ( &md_ctx );
+        md_hmac_update( &md_ctx, 4 + tmp, 16 + nb );
+        md_hmac_finish( &md_ctx, h_i );
+
+        md_hmac_reset ( &md_ctx );
+        md_hmac_update( &md_ctx, 4 + tmp, 16 );
+        md_hmac_finish( &md_ctx, 4 + tmp );
 
         k = ( i + 16 > dlen ) ? dlen % 16 : 16;
 
@@ -305,21 +323,38 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
             dstbuf[i + j]  = h_i[j];
     }
 
+    md_free( &md_ctx );
+
     /*
      * XOR out with P_sha1(secret,label+random)[0..dlen]
      */
-    sha1_hmac( S2, hs, tmp + 20, nb, tmp );
+    if( ( md_info = md_info_from_type( POLARSSL_MD_SHA1 ) ) == NULL )
+        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+
+    if( ( ret = md_setup( &md_ctx, md_info, 1 ) ) != 0 )
+        return( ret );
+
+    md_hmac_starts( &md_ctx, S2, hs );
+    md_hmac_update( &md_ctx, tmp + 20, nb );
+    md_hmac_finish( &md_ctx, tmp );
 
     for( i = 0; i < dlen; i += 20 )
     {
-        sha1_hmac( S2, hs, tmp, 20 + nb, h_i );
-        sha1_hmac( S2, hs, tmp, 20,      tmp );
+        md_hmac_reset ( &md_ctx );
+        md_hmac_update( &md_ctx, tmp, 20 + nb );
+        md_hmac_finish( &md_ctx, h_i );
+
+        md_hmac_reset ( &md_ctx );
+        md_hmac_update( &md_ctx, tmp, 20 );
+        md_hmac_finish( &md_ctx, tmp );
 
         k = ( i + 20 > dlen ) ? dlen % 20 : 20;
 
         for( j = 0; j < k; j++ )
             dstbuf[i + j] = (unsigned char)( dstbuf[i + j] ^ h_i[j] );
     }
+
+    md_free( &md_ctx );
 
     polarssl_zeroize( tmp, sizeof( tmp ) );
     polarssl_zeroize( h_i, sizeof( h_i ) );
@@ -329,45 +364,77 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
 #endif /* POLARSSL_SSL_PROTO_TLS1) || POLARSSL_SSL_PROTO_TLS1_1 */
 
 #if defined(POLARSSL_SSL_PROTO_TLS1_2)
+static int tls_prf_generic( md_type_t md_type,
+                            const unsigned char *secret, size_t slen,
+                            const char *label,
+                            const unsigned char *random, size_t rlen,
+                            unsigned char *dstbuf, size_t dlen )
+{
+    size_t nb;
+    size_t i, j, k, md_len;
+    unsigned char tmp[128];
+    unsigned char h_i[POLARSSL_MD_MAX_SIZE];
+    const md_info_t *md_info;
+    md_context_t md_ctx;
+    int ret;
+
+    md_init( &md_ctx );
+
+    if( ( md_info = md_info_from_type( md_type ) ) == NULL )
+        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+
+    md_len = md_get_size( md_info );
+
+    if( sizeof( tmp ) < md_len + strlen( label ) + rlen )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+    nb = strlen( label );
+    memcpy( tmp + md_len, label, nb );
+    memcpy( tmp + md_len + nb, random, rlen );
+    nb += rlen;
+
+    /*
+     * Compute P_<hash>(secret, label + random)[0..dlen]
+     */
+    if ( ( ret = md_setup( &md_ctx, md_info, 1 ) ) != 0 )
+        return( ret );
+
+    md_hmac_starts( &md_ctx, secret, slen );
+    md_hmac_update( &md_ctx, tmp + md_len, nb );
+    md_hmac_finish( &md_ctx, tmp );
+
+    for( i = 0; i < dlen; i += md_len )
+    {
+        md_hmac_reset ( &md_ctx );
+        md_hmac_update( &md_ctx, tmp, md_len + nb );
+        md_hmac_finish( &md_ctx, h_i );
+
+        md_hmac_reset ( &md_ctx );
+        md_hmac_update( &md_ctx, tmp, md_len );
+        md_hmac_finish( &md_ctx, tmp );
+
+        k = ( i + md_len > dlen ) ? dlen % md_len : md_len;
+
+        for( j = 0; j < k; j++ )
+            dstbuf[i + j]  = h_i[j];
+    }
+
+    md_free( &md_ctx );
+
+    polarssl_zeroize( tmp, sizeof( tmp ) );
+    polarssl_zeroize( h_i, sizeof( h_i ) );
+
+    return( 0 );
+}
+
 #if defined(POLARSSL_SHA256_C)
 static int tls_prf_sha256( const unsigned char *secret, size_t slen,
                            const char *label,
                            const unsigned char *random, size_t rlen,
                            unsigned char *dstbuf, size_t dlen )
 {
-    size_t nb;
-    size_t i, j, k;
-    unsigned char tmp[128];
-    unsigned char h_i[32];
-
-    if( sizeof( tmp ) < 32 + strlen( label ) + rlen )
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
-
-    nb = strlen( label );
-    memcpy( tmp + 32, label, nb );
-    memcpy( tmp + 32 + nb, random, rlen );
-    nb += rlen;
-
-    /*
-     * Compute P_<hash>(secret, label + random)[0..dlen]
-     */
-    sha256_hmac( secret, slen, tmp + 32, nb, tmp, 0 );
-
-    for( i = 0; i < dlen; i += 32 )
-    {
-        sha256_hmac( secret, slen, tmp, 32 + nb, h_i, 0 );
-        sha256_hmac( secret, slen, tmp, 32,      tmp, 0 );
-
-        k = ( i + 32 > dlen ) ? dlen % 32 : 32;
-
-        for( j = 0; j < k; j++ )
-            dstbuf[i + j]  = h_i[j];
-    }
-
-    polarssl_zeroize( tmp, sizeof( tmp ) );
-    polarssl_zeroize( h_i, sizeof( h_i ) );
-
-    return( 0 );
+    return( tls_prf_generic( POLARSSL_MD_SHA256, secret, slen,
+                             label, random, rlen, dstbuf, dlen ) );
 }
 #endif /* POLARSSL_SHA256_C */
 
@@ -377,39 +444,8 @@ static int tls_prf_sha384( const unsigned char *secret, size_t slen,
                            const unsigned char *random, size_t rlen,
                            unsigned char *dstbuf, size_t dlen )
 {
-    size_t nb;
-    size_t i, j, k;
-    unsigned char tmp[128];
-    unsigned char h_i[48];
-
-    if( sizeof( tmp ) < 48 + strlen( label ) + rlen )
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
-
-    nb = strlen( label );
-    memcpy( tmp + 48, label, nb );
-    memcpy( tmp + 48 + nb, random, rlen );
-    nb += rlen;
-
-    /*
-     * Compute P_<hash>(secret, label + random)[0..dlen]
-     */
-    sha512_hmac( secret, slen, tmp + 48, nb, tmp, 1 );
-
-    for( i = 0; i < dlen; i += 48 )
-    {
-        sha512_hmac( secret, slen, tmp, 48 + nb, h_i, 1 );
-        sha512_hmac( secret, slen, tmp, 48,      tmp, 1 );
-
-        k = ( i + 48 > dlen ) ? dlen % 48 : 48;
-
-        for( j = 0; j < k; j++ )
-            dstbuf[i + j]  = h_i[j];
-    }
-
-    polarssl_zeroize( tmp, sizeof( tmp ) );
-    polarssl_zeroize( h_i, sizeof( h_i ) );
-
-    return( 0 );
+    return( tls_prf_generic( POLARSSL_MD_SHA384, secret, slen,
+                             label, random, rlen, dstbuf, dlen ) );
 }
 #endif /* POLARSSL_SHA512_C */
 #endif /* POLARSSL_SSL_PROTO_TLS1_2 */
@@ -571,17 +607,28 @@ int ssl_derive_keys( ssl_context *ssl )
 
             SSL_DEBUG_BUF( 3, "session hash", session_hash, hash_len );
 
-            handshake->tls_prf( handshake->premaster, handshake->pmslen,
-                                "extended master secret",
-                                session_hash, hash_len, session->master, 48 );
+            ret = handshake->tls_prf( handshake->premaster, handshake->pmslen,
+                                      "extended master secret",
+                                      session_hash, hash_len,
+                                      session->master, 48 );
+            if( ret != 0 )
+            {
+                SSL_DEBUG_RET( 1, "prf", ret );
+                return( ret );
+            }
 
         }
         else
 #endif
-        handshake->tls_prf( handshake->premaster, handshake->pmslen,
-                            "master secret",
-                            handshake->randbytes, 64, session->master, 48 );
-
+        ret = handshake->tls_prf( handshake->premaster, handshake->pmslen,
+                                  "master secret",
+                                  handshake->randbytes, 64,
+                                  session->master, 48 );
+        if( ret != 0 )
+        {
+            SSL_DEBUG_RET( 1, "prf", ret );
+            return( ret );
+        }
 
         polarssl_zeroize( handshake->premaster, sizeof(handshake->premaster) );
     }
@@ -608,8 +655,13 @@ int ssl_derive_keys( ssl_context *ssl )
      *  TLSv1:
      *    key block = PRF( master, "key expansion", randbytes )
      */
-    handshake->tls_prf( session->master, 48, "key expansion",
-                        handshake->randbytes, 64, keyblk, 256 );
+    ret = handshake->tls_prf( session->master, 48, "key expansion",
+                              handshake->randbytes, 64, keyblk, 256 );
+    if( ret != 0 )
+    {
+        SSL_DEBUG_RET( 1, "prf", ret );
+        return( ret );
+    }
 
     SSL_DEBUG_MSG( 3, ( "ciphersuite = %s",
                    ssl_get_ciphersuite_name( session->ciphersuite ) ) );
@@ -643,10 +695,10 @@ int ssl_derive_keys( ssl_context *ssl )
         int ret;
 
         /* Initialize HMAC contexts */
-        if( ( ret = md_init_ctx( &transform->md_ctx_enc, md_info ) ) != 0 ||
-            ( ret = md_init_ctx( &transform->md_ctx_dec, md_info ) ) != 0 )
+        if( ( ret = md_setup( &transform->md_ctx_enc, md_info, 1 ) ) != 0 ||
+            ( ret = md_setup( &transform->md_ctx_dec, md_info, 1 ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "md_init_ctx", ret );
+            SSL_DEBUG_RET( 1, "md_setup", ret );
             return( ret );
         }
 

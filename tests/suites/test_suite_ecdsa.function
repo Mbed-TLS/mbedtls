@@ -117,7 +117,7 @@ void ecdsa_det_test_vectors( int id, char *d_str, int md_alg,
 
     md_info = md_info_from_type( md_alg );
     TEST_ASSERT( md_info != NULL );
-    hlen = md_info->size;
+    hlen = md_get_size( md_info );
     md( md_info, (const unsigned char *) msg, strlen( msg ), hash );
 
     TEST_ASSERT( ecdsa_sign_det( &grp, &r, &s, &d, hash, hlen, md_alg ) == 0 );

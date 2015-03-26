@@ -3,9 +3,11 @@
  *
  * \brief Message digest wrappers.
  *
+ * \warning This in an internal header. Do not include directly.
+ *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2011, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  *
@@ -37,6 +39,49 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * Message digest information.
+ * Allows message digest functions to be called in a generic way.
+ */
+struct _md_info_t {
+    /** Digest identifier */
+    md_type_t type;
+
+    /** Name of the message digest */
+    const char * name;
+
+    /** Output length of the digest function */
+    int size;
+
+    /** Block length of the digest function */
+    int block_size;
+
+    /** Digest initialisation function */
+    void (*starts_func)( void *ctx );
+
+    /** Digest update function */
+    void (*update_func)( void *ctx, const unsigned char *input, size_t ilen );
+
+    /** Digest finalisation function */
+    void (*finish_func)( void *ctx, unsigned char *output );
+
+    /** Generic digest function */
+    void (*digest_func)( const unsigned char *input, size_t ilen,
+                         unsigned char *output );
+
+    /** Generic file digest function */
+    int (*file_func)( const char *path, unsigned char *output );
+
+    /** Allocate a new context */
+    void * (*ctx_alloc_func)( void );
+
+    /** Free the given context */
+    void (*ctx_free_func)( void *ctx );
+
+    /** Internal use only */
+    void (*process_func)( void *ctx, const unsigned char *input );
+};
 
 #if defined(POLARSSL_MD2_C)
 extern const md_info_t md2_info;

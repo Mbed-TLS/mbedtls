@@ -358,87 +358,6 @@ int md5_file( const char *path, unsigned char output[16] )
 }
 #endif /* POLARSSL_FS_IO */
 
-/*
- * MD5 HMAC context setup
- */
-void md5_hmac_starts( md5_context *ctx, const unsigned char *key,
-                      size_t keylen )
-{
-    size_t i;
-    unsigned char sum[16];
-
-    if( keylen > 64 )
-    {
-        md5( key, keylen, sum );
-        keylen = 16;
-        key = sum;
-    }
-
-    memset( ctx->ipad, 0x36, 64 );
-    memset( ctx->opad, 0x5C, 64 );
-
-    for( i = 0; i < keylen; i++ )
-    {
-        ctx->ipad[i] = (unsigned char)( ctx->ipad[i] ^ key[i] );
-        ctx->opad[i] = (unsigned char)( ctx->opad[i] ^ key[i] );
-    }
-
-    md5_starts( ctx );
-    md5_update( ctx, ctx->ipad, 64 );
-
-    polarssl_zeroize( sum, sizeof( sum ) );
-}
-
-/*
- * MD5 HMAC process buffer
- */
-void md5_hmac_update( md5_context *ctx, const unsigned char *input,
-                      size_t ilen )
-{
-    md5_update( ctx, input, ilen );
-}
-
-/*
- * MD5 HMAC final digest
- */
-void md5_hmac_finish( md5_context *ctx, unsigned char output[16] )
-{
-    unsigned char tmpbuf[16];
-
-    md5_finish( ctx, tmpbuf );
-    md5_starts( ctx );
-    md5_update( ctx, ctx->opad, 64 );
-    md5_update( ctx, tmpbuf, 16 );
-    md5_finish( ctx, output );
-
-    polarssl_zeroize( tmpbuf, sizeof( tmpbuf ) );
-}
-
-/*
- * MD5 HMAC context reset
- */
-void md5_hmac_reset( md5_context *ctx )
-{
-    md5_starts( ctx );
-    md5_update( ctx, ctx->ipad, 64 );
-}
-
-/*
- * output = HMAC-MD5( hmac key, input buffer )
- */
-void md5_hmac( const unsigned char *key, size_t keylen,
-               const unsigned char *input, size_t ilen,
-               unsigned char output[16] )
-{
-    md5_context ctx;
-
-    md5_init( &ctx );
-    md5_hmac_starts( &ctx, key, keylen );
-    md5_hmac_update( &ctx, input, ilen );
-    md5_hmac_finish( &ctx, output );
-    md5_free( &ctx );
-}
-
 #if defined(POLARSSL_SELF_TEST)
 /*
  * RFC 1321 test vectors
@@ -479,77 +398,12 @@ static const unsigned char md5_test_sum[7][16] =
 };
 
 /*
- * RFC 2202 test vectors
- */
-static const unsigned char md5_hmac_test_key[7][26] =
-{
-    { "\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B" },
-    { "Jefe" },
-    { "\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA" },
-    { "\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F\x10"
-      "\x11\x12\x13\x14\x15\x16\x17\x18\x19" },
-    { "\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C" },
-    { "" }, /* 0xAA 80 times */
-    { "" }
-};
-
-static const int md5_hmac_test_keylen[7] =
-{
-    16, 4, 16, 25, 16, 80, 80
-};
-
-static const unsigned char md5_hmac_test_buf[7][74] =
-{
-    { "Hi There" },
-    { "what do ya want for nothing?" },
-    { "\xDD\xDD\xDD\xDD\xDD\xDD\xDD\xDD\xDD\xDD"
-      "\xDD\xDD\xDD\xDD\xDD\xDD\xDD\xDD\xDD\xDD"
-      "\xDD\xDD\xDD\xDD\xDD\xDD\xDD\xDD\xDD\xDD"
-      "\xDD\xDD\xDD\xDD\xDD\xDD\xDD\xDD\xDD\xDD"
-      "\xDD\xDD\xDD\xDD\xDD\xDD\xDD\xDD\xDD\xDD" },
-    { "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-      "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-      "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-      "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-      "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD" },
-    { "Test With Truncation" },
-    { "Test Using Larger Than Block-Size Key - Hash Key First" },
-    { "Test Using Larger Than Block-Size Key and Larger"
-      " Than One Block-Size Data" }
-};
-
-static const int md5_hmac_test_buflen[7] =
-{
-    8, 28, 50, 50, 20, 54, 73
-};
-
-static const unsigned char md5_hmac_test_sum[7][16] =
-{
-    { 0x92, 0x94, 0x72, 0x7A, 0x36, 0x38, 0xBB, 0x1C,
-      0x13, 0xF4, 0x8E, 0xF8, 0x15, 0x8B, 0xFC, 0x9D },
-    { 0x75, 0x0C, 0x78, 0x3E, 0x6A, 0xB0, 0xB5, 0x03,
-      0xEA, 0xA8, 0x6E, 0x31, 0x0A, 0x5D, 0xB7, 0x38 },
-    { 0x56, 0xBE, 0x34, 0x52, 0x1D, 0x14, 0x4C, 0x88,
-      0xDB, 0xB8, 0xC7, 0x33, 0xF0, 0xE8, 0xB3, 0xF6 },
-    { 0x69, 0x7E, 0xAF, 0x0A, 0xCA, 0x3A, 0x3A, 0xEA,
-      0x3A, 0x75, 0x16, 0x47, 0x46, 0xFF, 0xAA, 0x79 },
-    { 0x56, 0x46, 0x1E, 0xF2, 0x34, 0x2E, 0xDC, 0x00,
-      0xF9, 0xBA, 0xB9, 0x95 },
-    { 0x6B, 0x1A, 0xB7, 0xFE, 0x4B, 0xD7, 0xBF, 0x8F,
-      0x0B, 0x62, 0xE6, 0xCE, 0x61, 0xB9, 0xD0, 0xCD },
-    { 0x6F, 0x63, 0x0F, 0xAD, 0x67, 0xCD, 0xA0, 0xEE,
-      0x1F, 0xB1, 0xF5, 0x62, 0xDB, 0x3A, 0xA5, 0x3E }
-};
-
-/*
  * Checkup routine
  */
 int md5_self_test( int verbose )
 {
-    int i, buflen;
-    unsigned char buf[1024];
+    int i;
     unsigned char md5sum[16];
-    md5_context ctx;
 
     for( i = 0; i < 7; i++ )
     {
@@ -559,42 +413,6 @@ int md5_self_test( int verbose )
         md5( md5_test_buf[i], md5_test_buflen[i], md5sum );
 
         if( memcmp( md5sum, md5_test_sum[i], 16 ) != 0 )
-        {
-            if( verbose != 0 )
-                polarssl_printf( "failed\n" );
-
-            return( 1 );
-        }
-
-        if( verbose != 0 )
-            polarssl_printf( "passed\n" );
-    }
-
-    if( verbose != 0 )
-        polarssl_printf( "\n" );
-
-    for( i = 0; i < 7; i++ )
-    {
-        if( verbose != 0 )
-            polarssl_printf( "  HMAC-MD5 test #%d: ", i + 1 );
-
-        if( i == 5 || i == 6 )
-        {
-            memset( buf, 0xAA, buflen = 80 );
-            md5_hmac_starts( &ctx, buf, buflen );
-        }
-        else
-            md5_hmac_starts( &ctx, md5_hmac_test_key[i],
-                                   md5_hmac_test_keylen[i] );
-
-        md5_hmac_update( &ctx, md5_hmac_test_buf[i],
-                               md5_hmac_test_buflen[i] );
-
-        md5_hmac_finish( &ctx, md5sum );
-
-        buflen = ( i == 4 ) ? 12 : 16;
-
-        if( memcmp( md5sum, md5_hmac_test_sum[i], buflen ) != 0 )
         {
             if( verbose != 0 )
                 polarssl_printf( "failed\n" );

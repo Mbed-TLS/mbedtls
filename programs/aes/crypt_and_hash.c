@@ -126,7 +126,7 @@ int main( int argc, char *argv[] )
         while( *list )
         {
             md_info = md_info_from_type( *list );
-            polarssl_printf( "  %s\n", md_info->name );
+            polarssl_printf( "  %s\n", md_get_name( md_info ) );
             list++;
         }
 
@@ -185,7 +185,7 @@ int main( int argc, char *argv[] )
         polarssl_fprintf( stderr, "Message Digest '%s' not found\n", argv[5] );
         goto exit;
     }
-    md_init_ctx( &md_ctx, md_info);
+    md_setup( &md_ctx, md_info, 1 );
 
     /*
      * Read the secret key and clean the command line.

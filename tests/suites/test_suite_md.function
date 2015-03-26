@@ -49,8 +49,8 @@ void md_null_args( )
     md_init( &ctx );
 
     TEST_ASSERT( md_get_size( NULL ) == 0 );
-
     TEST_ASSERT( md_get_type( NULL ) == POLARSSL_MD_NONE );
+    TEST_ASSERT( md_get_name( NULL ) == NULL );
 
     TEST_ASSERT( md_info_from_string( NULL ) == NULL );
 
@@ -93,6 +93,10 @@ void md_null_args( )
 
     TEST_ASSERT( md_process( NULL, buf ) == POLARSSL_ERR_MD_BAD_INPUT_DATA );
     TEST_ASSERT( md_process( &ctx, buf ) == POLARSSL_ERR_MD_BAD_INPUT_DATA );
+
+    /* Ok, this is not NULL arg but NULL return... */
+    TEST_ASSERT( md_info_from_type( POLARSSL_MD_NONE ) == NULL );
+    TEST_ASSERT( md_info_from_string( "no such md" ) == NULL );
 }
 /* END_CASE */
 
@@ -109,6 +113,7 @@ void md_info( int md_type, char *md_name, int md_size )
 
     TEST_ASSERT( md_get_type( md_info ) == (md_type_t) md_type );
     TEST_ASSERT( md_get_size( md_info ) == (unsigned char) md_size );
+    TEST_ASSERT( strcmp( md_get_name( md_info ), md_name ) == 0 );
 
     found = 0;
     for( md_type_ptr = md_list(); *md_type_ptr != 0; md_type_ptr++ )

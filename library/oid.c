@@ -236,6 +236,10 @@ static const oid_x520_attr_t oid_x520_attr_type[] =
         "DC",
     },
     {
+        { ADD_LEN( OID_AT_UNIQUE_IDENTIFIER ), "id-at-uniqueIdentifier",    "Unique Identifier" },
+        "uniqueIdentifier",
+    },
+    {
         { NULL, 0, NULL, NULL },
         NULL,
     }

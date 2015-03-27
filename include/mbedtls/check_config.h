@@ -39,10 +39,6 @@
 #error "POLARSSL_AESNI_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_CERTS_C) && !defined(POLARSSL_PEM_PARSE_C)
-#error "POLARSSL_CERTS_C defined, but not all prerequisites"
-#endif
-
 #if defined(POLARSSL_CTR_DRBG_C) && !defined(POLARSSL_AES_C)
 #error "POLARSSL_CTR_DRBG_C defined, but not all prerequisites"
 #endif

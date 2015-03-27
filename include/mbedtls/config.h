@@ -1513,8 +1513,6 @@
  * Module:  library/certs.c
  * Caller:
  *
- * Requires: POLARSSL_PEM_PARSE_C
- *
  * This module is used for testing (ssl_client/server).
  */
 #define POLARSSL_CERTS_C

@@ -380,7 +380,8 @@ static int x509_get_attr_type_value( unsigned char **p,
 
     if( **p != ASN1_BMP_STRING && **p != ASN1_UTF8_STRING      &&
         **p != ASN1_T61_STRING && **p != ASN1_PRINTABLE_STRING &&
-        **p != ASN1_IA5_STRING && **p != ASN1_UNIVERSAL_STRING )
+        **p != ASN1_IA5_STRING && **p != ASN1_UNIVERSAL_STRING &&
+        **p != ASN1_BIT_STRING )
         return( POLARSSL_ERR_X509_INVALID_NAME +
                 POLARSSL_ERR_ASN1_UNEXPECTED_TAG );
 

@@ -161,8 +161,8 @@ int main( void )
         goto exit;
     }
 
-    ret = x509_crt_parse( &srvcert, (const unsigned char *) test_ca_list,
-                          test_ca_list_len );
+    ret = x509_crt_parse( &srvcert, (const unsigned char *) test_cas_pem,
+                          test_cas_pem_len );
     if( ret != 0 )
     {
         polarssl_printf( " failed\n  !  x509_crt_parse returned %d\n\n", ret );

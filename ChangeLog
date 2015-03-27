@@ -6,7 +6,9 @@ Features
   * Support for DTLS 1.0 and 1.2 (RFC 6347).
 
 API Changes
-   * Test certificates in cert.s are no longer guaranteed to be nul-terminated
+   * test_ca_list (from certs.h) is renamed to test_cas_pem and is only
+     available if POLARSSL_PEM_PARSE_C is defined (it never worked without).
+   * Test certificates in certs.c are no longer guaranteed to be nul-terminated
      strings; use the new *_len variables instead of strlen().
    * md_init_ctx() is deprecated in favour of md_setup(), that adds a third
      argument (allowing memory savings if HMAC is not used)

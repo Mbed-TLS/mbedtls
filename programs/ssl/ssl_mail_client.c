@@ -507,8 +507,8 @@ int main( int argc, char *argv[] )
     else
 #endif
 #if defined(POLARSSL_CERTS_C)
-        ret = x509_crt_parse( &cacert, (const unsigned char *) test_ca_list,
-                              test_ca_list_len );
+        ret = x509_crt_parse( &cacert, (const unsigned char *) test_cas_pem,
+                              test_cas_pem_len );
 #else
     {
         ret = 1;

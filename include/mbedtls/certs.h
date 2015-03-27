@@ -30,9 +30,11 @@
 extern "C" {
 #endif
 
+#if defined(POLARSSL_PEM_PARSE_C)
 /* Concatenation of all CA certificates in PEM format if available */
-extern const char   test_ca_list[];
-extern const size_t test_ca_list_len;
+extern const char   test_cas_pem[];
+extern const size_t test_cas_pem_len;
+#endif
 
 /* List of all CA certificates, terminated by NULL */
 extern const char * test_cas[];

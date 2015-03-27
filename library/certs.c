@@ -301,9 +301,11 @@ const char test_dhm_params[] =
 const size_t test_dhm_params_len = sizeof( test_dhm_params );
 #endif
 
+#if defined(POLARSSL_PEM_PARSE_C)
 /* Concatenation of all available CA certificates */
-const char test_ca_list[] = TEST_CA_CRT_RSA TEST_CA_CRT_EC;
-const size_t test_ca_list_len = sizeof( test_ca_list );
+const char test_cas_pem[] = TEST_CA_CRT_RSA TEST_CA_CRT_EC;
+const size_t test_cas_pem_len = sizeof( test_cas_pem );
+#endif
 
 /* List of all available CA certificates */
 const char * test_cas[] = {

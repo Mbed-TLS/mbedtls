@@ -102,7 +102,7 @@
 #define DFL_MIN_VERSION         SSL_MINOR_VERSION_1
 #define DFL_MAX_VERSION         -1
 #define DFL_ARC4                -1
-#define DFL_AUTH_MODE           SSL_VERIFY_OPTIONAL
+#define DFL_AUTH_MODE           -1
 #define DFL_MFL_CODE            SSL_MAX_FRAG_LEN_NONE
 #define DFL_TRUNC_HMAC          -1
 #define DFL_TICKETS             SSL_SESSION_TICKETS_ENABLED
@@ -296,7 +296,7 @@
     USAGE_ANTI_REPLAY                                       \
     USAGE_BADMAC_LIMIT                                      \
     "\n"                                                    \
-    "    auth_mode=%%s        default: \"optional\"\n"      \
+    "    auth_mode=%%s        default: (library default: required)\n"      \
     "                        options: none, optional, required\n" \
     USAGE_IO                                                \
     USAGE_SNI                                               \
@@ -315,7 +315,7 @@
     USAGE_EMS                                               \
     USAGE_ETM                                               \
     "\n"                                                    \
-    "    arc4=%%d             default: (library default)\n" \
+    "    arc4=%%d             default: (library default: 0)\n" \
     "    min_version=%%s      default: \"ssl3\"\n"          \
     "    max_version=%%s      default: \"tls1_2\"\n"        \
     "    force_version=%%s    default: \"\" (none)\n"       \
@@ -1524,7 +1524,8 @@ int main( int argc, char *argv[] )
     }
 
     ssl_set_endpoint( &ssl, SSL_IS_SERVER );
-    ssl_set_authmode( &ssl, opt.auth_mode );
+    if( opt.auth_mode != DFL_AUTH_MODE )
+        ssl_set_authmode( &ssl, opt.auth_mode );
 
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     if( ( ret = ssl_set_transport( &ssl, opt.transport ) ) != 0 )

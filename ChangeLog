@@ -41,6 +41,7 @@ Default behavior changes
      default ciphersuite list returned by ssl_list_ciphersuites()
    * Support for receiving SSLv2 ClientHello is now disabled by default at
      compile time.
+   * The default authmode for SSL/TLS clients is now REQUIRED.
 
 Changes
    * Remove test program o_p_test, the script compat.sh does more.

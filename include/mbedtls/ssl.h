@@ -1156,8 +1156,9 @@ int ssl_set_transport( ssl_context *ssl, int transport );
  * \param ssl      SSL context
  * \param authmode can be:
  *
- *  SSL_VERIFY_NONE:      peer certificate is not checked (default),
- *                        this is insecure and SHOULD be avoided.
+ *  SSL_VERIFY_NONE:      peer certificate is not checked
+ *                        (default on server)
+ *                        (insecure on client)
  *
  *  SSL_VERIFY_OPTIONAL:  peer certificate is checked, however the
  *                        handshake continues even if verification failed;

@@ -1164,7 +1164,7 @@ run_test    "Max fragment length: DTLS client, larger message" \
 # Tests for renegotiation
 
 run_test    "Renegotiation: none, for reference" \
-            "$P_SRV debug_level=3 exchanges=2" \
+            "$P_SRV debug_level=3 exchanges=2 auth_mode=optional" \
             "$P_CLI debug_level=3 exchanges=2" \
             0 \
             -C "client hello, adding renegotiation extension" \
@@ -1177,7 +1177,7 @@ run_test    "Renegotiation: none, for reference" \
             -S "write hello request"
 
 run_test    "Renegotiation: client-initiated" \
-            "$P_SRV debug_level=3 exchanges=2 renegotiation=1" \
+            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
@@ -1190,7 +1190,7 @@ run_test    "Renegotiation: client-initiated" \
             -S "write hello request"
 
 run_test    "Renegotiation: server-initiated" \
-            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
+            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional renegotiate=1" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
@@ -1203,7 +1203,7 @@ run_test    "Renegotiation: server-initiated" \
             -s "write hello request"
 
 run_test    "Renegotiation: double" \
-            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
+            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional renegotiate=1" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
@@ -1216,7 +1216,7 @@ run_test    "Renegotiation: double" \
             -s "write hello request"
 
 run_test    "Renegotiation: client-initiated, server-rejected" \
-            "$P_SRV debug_level=3 exchanges=2 renegotiation=0" \
+            "$P_SRV debug_level=3 exchanges=2 renegotiation=0 auth_mode=optional" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
             1 \
             -c "client hello, adding renegotiation extension" \
@@ -1231,7 +1231,7 @@ run_test    "Renegotiation: client-initiated, server-rejected" \
             -c "failed"
 
 run_test    "Renegotiation: server-initiated, client-rejected, default" \
-            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
+            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 auth_mode=optional" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=0" \
             0 \
             -C "client hello, adding renegotiation extension" \
@@ -1247,7 +1247,7 @@ run_test    "Renegotiation: server-initiated, client-rejected, default" \
 
 run_test    "Renegotiation: server-initiated, client-rejected, not enforced" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 \
-             renego_delay=-1" \
+             renego_delay=-1 auth_mode=optional" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=0" \
             0 \
             -C "client hello, adding renegotiation extension" \
@@ -1264,7 +1264,7 @@ run_test    "Renegotiation: server-initiated, client-rejected, not enforced" \
 # delay 2 for 1 alert record + 1 application data record
 run_test    "Renegotiation: server-initiated, client-rejected, delay 2" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 \
-             renego_delay=2" \
+             renego_delay=2 auth_mode=optional" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=0" \
             0 \
             -C "client hello, adding renegotiation extension" \
@@ -1280,7 +1280,7 @@ run_test    "Renegotiation: server-initiated, client-rejected, delay 2" \
 
 run_test    "Renegotiation: server-initiated, client-rejected, delay 0" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 \
-             renego_delay=0" \
+             renego_delay=0 auth_mode=optional" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=0" \
             0 \
             -C "client hello, adding renegotiation extension" \
@@ -1295,7 +1295,7 @@ run_test    "Renegotiation: server-initiated, client-rejected, delay 0" \
 
 run_test    "Renegotiation: server-initiated, client-accepted, delay 0" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 \
-             renego_delay=0" \
+             renego_delay=0 auth_mode=optional" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
@@ -1310,7 +1310,7 @@ run_test    "Renegotiation: server-initiated, client-accepted, delay 0" \
             -S "failed"
 
 run_test    "Renegotiation: periodic, just below period" \
-            "$P_SRV debug_level=3 exchanges=9 renegotiation=1 renego_period=3" \
+            "$P_SRV debug_level=3 exchanges=9 renegotiation=1 renego_period=3 auth_mode=optional" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=1" \
             0 \
             -C "client hello, adding renegotiation extension" \
@@ -1327,7 +1327,7 @@ run_test    "Renegotiation: periodic, just below period" \
 
 # one extra exchange to be able to complete renego
 run_test    "Renegotiation: periodic, just above period" \
-            "$P_SRV debug_level=3 exchanges=9 renegotiation=1 renego_period=3" \
+            "$P_SRV debug_level=3 exchanges=9 renegotiation=1 renego_period=3 auth_mode=optional" \
             "$P_CLI debug_level=3 exchanges=4 renegotiation=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
@@ -1343,7 +1343,7 @@ run_test    "Renegotiation: periodic, just above period" \
             -S "failed"
 
 run_test    "Renegotiation: periodic, two times period" \
-            "$P_SRV debug_level=3 exchanges=9 renegotiation=1 renego_period=3" \
+            "$P_SRV debug_level=3 exchanges=9 renegotiation=1 renego_period=3 auth_mode=optional" \
             "$P_CLI debug_level=3 exchanges=7 renegotiation=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
@@ -1359,7 +1359,7 @@ run_test    "Renegotiation: periodic, two times period" \
             -S "failed"
 
 run_test    "Renegotiation: periodic, above period, disabled" \
-            "$P_SRV debug_level=3 exchanges=9 renegotiation=0 renego_period=3" \
+            "$P_SRV debug_level=3 exchanges=9 renegotiation=0 renego_period=3 auth_mode=optional" \
             "$P_CLI debug_level=3 exchanges=4 renegotiation=1" \
             0 \
             -C "client hello, adding renegotiation extension" \
@@ -1375,7 +1375,7 @@ run_test    "Renegotiation: periodic, above period, disabled" \
             -S "failed"
 
 run_test    "Renegotiation: nbio, client-initiated" \
-            "$P_SRV debug_level=3 nbio=2 exchanges=2 renegotiation=1" \
+            "$P_SRV debug_level=3 nbio=2 exchanges=2 renegotiation=1 auth_mode=optional" \
             "$P_CLI debug_level=3 nbio=2 exchanges=2 renegotiation=1 renegotiate=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
@@ -1388,7 +1388,7 @@ run_test    "Renegotiation: nbio, client-initiated" \
             -S "write hello request"
 
 run_test    "Renegotiation: nbio, server-initiated" \
-            "$P_SRV debug_level=3 nbio=2 exchanges=2 renegotiation=1 renegotiate=1" \
+            "$P_SRV debug_level=3 nbio=2 exchanges=2 renegotiation=1 renegotiate=1 auth_mode=optional" \
             "$P_CLI debug_level=3 nbio=2 exchanges=2 renegotiation=1" \
             0 \
             -c "client hello, adding renegotiation extension" \

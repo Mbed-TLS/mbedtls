@@ -723,17 +723,15 @@ static int x509_crt_parse_der_core( x509_crt *crt, const unsigned char *buf,
 
 #if !defined(POLARSSL_X509_ALLOW_EXTENSIONS_NON_V3)
     if( crt->version == 3 )
-    {
 #endif
+    {
         ret = x509_get_crt_ext( &p, end, crt );
         if( ret != 0 )
         {
             x509_crt_free( crt );
             return( ret );
         }
-#if !defined(POLARSSL_X509_ALLOW_EXTENSIONS_NON_V3)
     }
-#endif
 
     if( p != end )
     {

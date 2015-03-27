@@ -26,6 +26,8 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#include "mbedtls/certs.h"
+
 #if defined(POLARSSL_CERTS_C)
 
 #if defined(POLARSSL_ECDSA_C)
@@ -105,6 +107,14 @@ const char test_cli_key_ec[] =
 "AwEHoUQDQgAEV+WusXPf06y7k7iB/xKu7uZTrM5VU/Y0Dswu42MlC9+Y4vNcYDaW\r\n"
 "wNUYFHDlf5/VS0UY5bBs1Vz4lo+HcKPkxw==\r\n"
 "-----END EC PRIVATE KEY-----\r\n";
+
+const size_t test_ca_crt_ec_len  = sizeof( test_ca_crt_ec );
+const size_t test_ca_key_ec_len  = sizeof( test_ca_key_ec );
+const size_t test_ca_pwd_ec_len  = sizeof( test_ca_pwd_ec ) - 1;
+const size_t test_srv_crt_ec_len = sizeof( test_srv_crt_ec );
+const size_t test_srv_key_ec_len = sizeof( test_srv_key_ec );
+const size_t test_cli_crt_ec_len = sizeof( test_cli_crt_ec );
+const size_t test_cli_key_ec_len = sizeof( test_cli_key_ec );
 #else
 #define TEST_CA_CRT_EC
 #endif /* POLARSSL_ECDSA_C */
@@ -219,7 +229,6 @@ const char test_srv_key_rsa[] =
 "TB6l9VGoxJL4fyHnZb8L5gGvnB1bbD8cL6YPaDiOhcRseC9vBiEuVg==\r\n"
 "-----END RSA PRIVATE KEY-----\r\n";
 
-
 const char test_cli_crt_rsa[] =
 "-----BEGIN CERTIFICATE-----\r\n"
 "MIIDPzCCAiegAwIBAgIBBDANBgkqhkiG9w0BAQUFADA7MQswCQYDVQQGEwJOTDER\r\n"
@@ -270,6 +279,14 @@ const char test_cli_key_rsa[] =
 "bHFVW2r0dBTqegP2/KTOxKzaHfC1qf0RGDsUoJCNJrd1cwoCLG8P2EF4w3OBrKqv\r\n"
 "8u4ytY0F+Vlanj5lm3TaoHSVF1+NWPyOTiwevIECGKwSxvlki4fDAA==\r\n"
 "-----END RSA PRIVATE KEY-----\r\n";
+
+const size_t test_ca_crt_rsa_len  = sizeof( test_ca_crt_rsa );
+const size_t test_ca_key_rsa_len  = sizeof( test_ca_key_rsa );
+const size_t test_ca_pwd_rsa_len  = sizeof( test_ca_pwd_rsa ) - 1;
+const size_t test_srv_crt_rsa_len = sizeof( test_srv_crt_rsa );
+const size_t test_srv_key_rsa_len = sizeof( test_srv_key_rsa );
+const size_t test_cli_crt_rsa_len = sizeof( test_cli_crt_rsa );
+const size_t test_cli_key_rsa_len = sizeof( test_cli_key_rsa );
 #else
 #define TEST_CA_CRT_RSA
 #endif /* POLARSSL_RSA_C */
@@ -281,27 +298,43 @@ const char test_dhm_params[] =
 "1sa18fyfR9OiVEMYglOpkqVoGLN7qd5aQNNi5W7/C+VBdHTBJcGZJyyP5B3qcz32\r\n"
 "9mLJKudlVudV0Qxk5qUJaPZ/xupz0NyoVpviuiBOI1gNi8ovSXWzAgEC\r\n"
 "-----END DH PARAMETERS-----\r\n";
+const size_t test_dhm_params_len = sizeof( test_dhm_params );
 #endif
 
 /* Concatenation of all available CA certificates */
 const char test_ca_list[] = TEST_CA_CRT_RSA TEST_CA_CRT_EC;
+const size_t test_ca_list_len = sizeof( test_ca_list );
 
 #if defined(POLARSSL_RSA_C)
-const char *test_ca_crt = test_ca_crt_rsa;
-const char *test_ca_key = test_ca_key_rsa;
-const char *test_ca_pwd = test_ca_pwd_rsa;
+const char *test_ca_crt  = test_ca_crt_rsa;
+const char *test_ca_key  = test_ca_key_rsa;
+const char *test_ca_pwd  = test_ca_pwd_rsa;
 const char *test_srv_crt = test_srv_crt_rsa;
 const char *test_srv_key = test_srv_key_rsa;
 const char *test_cli_crt = test_cli_crt_rsa;
 const char *test_cli_key = test_cli_key_rsa;
+const size_t test_ca_crt_len  = test_ca_crt_rsa_len;
+const size_t test_ca_key_len  = test_ca_key_rsa_len;
+const size_t test_ca_pwd_len  = test_ca_pwd_rsa_len;
+const size_t test_srv_crt_len = test_srv_crt_rsa_len;
+const size_t test_srv_key_len = test_srv_key_rsa_len;
+const size_t test_cli_crt_len = test_cli_crt_rsa_len;
+const size_t test_cli_key_len = test_cli_key_rsa_len;
 #else /* ! POLARSSL_RSA_C, so POLARSSL_ECDSA_C */
-const char *test_ca_crt = test_ca_crt_ec;
-const char *test_ca_key = test_ca_key_ec;
-const char *test_ca_pwd = test_ca_pwd_ec;
+const char *test_ca_crt  = test_ca_crt_ec;
+const char *test_ca_key  = test_ca_key_ec;
+const char *test_ca_pwd  = test_ca_pwd_ec;
 const char *test_srv_crt = test_srv_crt_ec;
 const char *test_srv_key = test_srv_key_ec;
 const char *test_cli_crt = test_cli_crt_ec;
 const char *test_cli_key = test_cli_key_ec;
+const size_t test_ca_crt_len  = test_ca_crt_ec_len;
+const size_t test_ca_key_len  = test_ca_key_ec_len;
+const size_t test_ca_pwd_len  = test_ca_pwd_ec_len;
+const size_t test_srv_crt_len = test_srv_crt_ec_len;
+const size_t test_srv_key_len = test_srv_key_ec_len;
+const size_t test_cli_crt_len = test_cli_crt_ec_len;
+const size_t test_cli_key_len = test_cli_key_ec_len;
 #endif /* POLARSSL_RSA_C */
 
 #endif /* POLARSSL_CERTS_C */

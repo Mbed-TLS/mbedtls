@@ -128,7 +128,7 @@ int main( void )
      * server and CA certificates, as well as pk_parse_keyfile().
      */
     ret = x509_crt_parse( &srvcert, (const unsigned char *) test_srv_crt,
-                          strlen( test_srv_crt ) );
+                          test_srv_crt_len );
     if( ret != 0 )
     {
         printf( " failed\n  !  x509_crt_parse returned %d\n\n", ret );
@@ -136,7 +136,7 @@ int main( void )
     }
 
     ret = x509_crt_parse( &srvcert, (const unsigned char *) test_ca_list,
-                          strlen( test_ca_list ) );
+                          test_ca_list_len );
     if( ret != 0 )
     {
         printf( " failed\n  !  x509_crt_parse returned %d\n\n", ret );
@@ -144,7 +144,7 @@ int main( void )
     }
 
     ret =  pk_parse_key( &pkey, (const unsigned char *) test_srv_key,
-                         strlen( test_srv_key ), NULL, 0 );
+                         test_srv_key_len, NULL, 0 );
     if( ret != 0 )
     {
         printf( " failed\n  !  pk_parse_key returned %d\n\n", ret );

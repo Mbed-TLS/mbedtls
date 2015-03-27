@@ -1328,7 +1328,7 @@ int main( int argc, char *argv[] )
 #endif
 #if defined(POLARSSL_CERTS_C)
         ret = x509_crt_parse( &cacert, (const unsigned char *) test_ca_list,
-                              strlen( test_ca_list ) );
+                              test_ca_list_len );
 #else
     {
         ret = 1;
@@ -1416,14 +1416,14 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_RSA_C)
         if( ( ret = x509_crt_parse( &srvcert,
                                     (const unsigned char *) test_srv_crt_rsa,
-                                    strlen( test_srv_crt_rsa ) ) ) != 0 )
+                                    test_srv_crt_rsa_len ) ) != 0 )
         {
             polarssl_printf( " failed\n  !  x509_crt_parse returned -0x%x\n\n", -ret );
             goto exit;
         }
         if( ( ret = pk_parse_key( &pkey,
                                   (const unsigned char *) test_srv_key_rsa,
-                                  strlen( test_srv_key_rsa ), NULL, 0 ) ) != 0 )
+                                  test_srv_key_rsa_len, NULL, 0 ) ) != 0 )
         {
             polarssl_printf( " failed\n  !  pk_parse_key returned -0x%x\n\n", -ret );
             goto exit;
@@ -1433,14 +1433,14 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_ECDSA_C)
         if( ( ret = x509_crt_parse( &srvcert2,
                                     (const unsigned char *) test_srv_crt_ec,
-                                    strlen( test_srv_crt_ec ) ) ) != 0 )
+                                    test_srv_crt_ec_len ) ) != 0 )
         {
             polarssl_printf( " failed\n  !  x509_crt_parse2 returned -0x%x\n\n", -ret );
             goto exit;
         }
         if( ( ret = pk_parse_key( &pkey2,
                                   (const unsigned char *) test_srv_key_ec,
-                                  strlen( test_srv_key_ec ), NULL, 0 ) ) != 0 )
+                                  test_srv_key_ec_len, NULL, 0 ) ) != 0 )
         {
             polarssl_printf( " failed\n  !  pk_parse_key2 returned -0x%x\n\n", -ret );
             goto exit;

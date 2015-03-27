@@ -947,7 +947,7 @@ int main( int argc, char *argv[] )
 #endif
 #if defined(POLARSSL_CERTS_C)
         ret = x509_crt_parse( &cacert, (const unsigned char *) test_ca_list,
-                strlen( test_ca_list ) );
+                test_ca_list_len );
 #else
     {
         ret = 1;
@@ -980,7 +980,7 @@ int main( int argc, char *argv[] )
 #endif
 #if defined(POLARSSL_CERTS_C)
         ret = x509_crt_parse( &clicert, (const unsigned char *) test_cli_crt,
-                strlen( test_cli_crt ) );
+                test_cli_crt_len );
 #else
     {
         ret = 1;
@@ -1003,7 +1003,7 @@ int main( int argc, char *argv[] )
 #endif
 #if defined(POLARSSL_CERTS_C)
         ret = pk_parse_key( &pkey, (const unsigned char *) test_cli_key,
-                strlen( test_cli_key ), NULL, 0 );
+                test_cli_key_len, NULL, 0 );
 #else
     {
         ret = 1;

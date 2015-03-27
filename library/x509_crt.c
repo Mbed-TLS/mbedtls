@@ -541,10 +541,11 @@ static int x509_crt_parse_der_core( x509_crt *crt, const unsigned char *buf,
     int ret;
     size_t len;
     unsigned char *p, *end, *crt_end;
-    x509_buf sig_params1, sig_params2;
+    x509_buf sig_params1, sig_params2, sig_oid2;
 
     memset( &sig_params1, 0, sizeof( x509_buf ) );
     memset( &sig_params2, 0, sizeof( x509_buf ) );
+    memset( &sig_oid2, 0, sizeof( x509_buf ) );
 
     /*
      * Check for valid input
@@ -553,7 +554,6 @@ static int x509_crt_parse_der_core( x509_crt *crt, const unsigned char *buf,
         return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
 
     p = polarssl_malloc( len = buflen );
-
     if( p == NULL )
         return( POLARSSL_ERR_X509_MALLOC_FAILED );
 
@@ -608,7 +608,7 @@ static int x509_crt_parse_der_core( x509_crt *crt, const unsigned char *buf,
      */
     if( ( ret = x509_get_version(  &p, end, &crt->version  ) ) != 0 ||
         ( ret = x509_get_serial(   &p, end, &crt->serial   ) ) != 0 ||
-        ( ret = x509_get_alg(      &p, end, &crt->sig_oid1,
+        ( ret = x509_get_alg(      &p, end, &crt->sig_oid,
                                             &sig_params1 ) ) != 0 )
     {
         x509_crt_free( crt );
@@ -623,7 +623,7 @@ static int x509_crt_parse_der_core( x509_crt *crt, const unsigned char *buf,
         return( POLARSSL_ERR_X509_UNKNOWN_VERSION );
     }
 
-    if( ( ret = x509_get_sig_alg( &crt->sig_oid1, &sig_params1,
+    if( ( ret = x509_get_sig_alg( &crt->sig_oid, &sig_params1,
                                   &crt->sig_md, &crt->sig_pk,
                                   &crt->sig_opts ) ) != 0 )
     {
@@ -749,14 +749,14 @@ static int x509_crt_parse_der_core( x509_crt *crt, const unsigned char *buf,
      *  signatureAlgorithm   AlgorithmIdentifier,
      *  signatureValue       BIT STRING
      */
-    if( ( ret = x509_get_alg( &p, end, &crt->sig_oid2, &sig_params2 ) ) != 0 )
+    if( ( ret = x509_get_alg( &p, end, &sig_oid2, &sig_params2 ) ) != 0 )
     {
         x509_crt_free( crt );
         return( ret );
     }
 
-    if( crt->sig_oid1.len != crt->sig_oid2.len ||
-        memcmp( crt->sig_oid1.p, crt->sig_oid2.p, crt->sig_oid1.len ) != 0 ||
+    if( crt->sig_oid.len != sig_oid2.len ||
+        memcmp( crt->sig_oid.p, sig_oid2.p, crt->sig_oid.len ) != 0 ||
         sig_params1.len != sig_params2.len ||
         memcmp( sig_params1.p, sig_params2.p, sig_params1.len ) != 0 )
     {
@@ -1304,7 +1304,7 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
     ret = polarssl_snprintf( p, n, "\n%ssigned using      : ", prefix );
     SAFE_SNPRINTF();
 
-    ret = x509_sig_alg_gets( p, n, &crt->sig_oid1, crt->sig_pk,
+    ret = x509_sig_alg_gets( p, n, &crt->sig_oid, crt->sig_pk,
                              crt->sig_md, crt->sig_opts );
     SAFE_SNPRINTF();
 

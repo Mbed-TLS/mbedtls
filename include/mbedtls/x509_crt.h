@@ -57,7 +57,7 @@ typedef struct _x509_crt
 
     int version;                /**< The X.509 version. (1=v1, 2=v2, 3=v3) */
     x509_buf serial;            /**< Unique id for certificate issued by a specific CA. */
-    x509_buf sig_oid1;          /**< Signature algorithm, e.g. sha1RSA */
+    x509_buf sig_oid;           /**< Signature algorithm, e.g. sha1RSA */
 
     x509_buf issuer_raw;        /**< The raw issuer data (DER). Used for quick comparison. */
     x509_buf subject_raw;       /**< The raw subject data (DER). Used for quick comparison. */
@@ -85,7 +85,6 @@ typedef struct _x509_crt
 
     unsigned char ns_cert_type; /**< Optional Netscape certificate type extension value: See the values in x509.h */
 
-    x509_buf sig_oid2;          /**< Signature algorithm. Must match sig_oid1. */
     x509_buf sig;               /**< Signature: hash of the tbs part signed with the private key. */
     md_type_t sig_md;           /**< Internal representation of the MD algorithm of the signature algorithm, e.g. POLARSSL_MD_SHA256 */
     pk_type_t sig_pk;           /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. POLARSSL_PK_RSA */

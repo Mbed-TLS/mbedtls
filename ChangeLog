@@ -10,11 +10,8 @@ API Changes
      available if POLARSSL_PEM_PARSE_C is defined (it never worked without).
    * Test certificates in certs.c are no longer guaranteed to be nul-terminated
      strings; use the new *_len variables instead of strlen().
-   * md_init_ctx() is deprecated in favour of md_setup(), that adds a third
-     argument (allowing memory savings if HMAC is not used)
    * Removed individual mdX_hmac and shaX_hmac functions (use generic
      md_hmac functions from md.h)
-   * Change md_info_t into an opaque structure (use md_get_xxx() accessors).
    * Some constness fixes
    * Signature of mpi_mul_mpi() changed to make the last argument unsigned
    * Remove the PBKDF2 module (use PKCS5).
@@ -27,7 +24,15 @@ API Changes
    * net_connect() and net_bind() have a new 'proto' argument to choose
      between TCP and UDP, using the macros NET_PROTO_TCP or NET_PROTO_UDP.
    * ssl_set_bio() now requires that p_send == p_recv.
+
+New deprecations
+   * md_init_ctx() is deprecated in favour of md_setup(), that adds a third
+     argument (allowing memory savings if HMAC is not used)
    * ssl_set_bio() is deprecated in favor of ssl_set_bio_timeout().
+
+Semi-API changes (technically public, morally private)
+   * Change md_info_t into an opaque structure (use md_get_xxx() accessors).
+   * Remove sig_oid2 and rename sig_oid1 to sig_oid in x509_crt and x509_crl.
 
 Changes
    * Support for receiving SSLv2 ClientHello is now disabled by default at

@@ -247,7 +247,7 @@ static int x509_get_ns_cert_type( unsigned char **p,
 
 static int x509_get_key_usage( unsigned char **p,
                                const unsigned char *end,
-                               unsigned char *key_usage)
+                               unsigned int *key_usage)
 {
     int ret;
     x509_bitstring bs = { 0, 0, NULL };
@@ -1381,7 +1381,7 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
 }
 
 #if defined(POLARSSL_X509_CHECK_KEY_USAGE)
-int x509_crt_check_key_usage( const x509_crt *crt, int usage )
+int x509_crt_check_key_usage( const x509_crt *crt, unsigned int usage )
 {
     if( ( crt->ext_types & EXT_KEY_USAGE ) != 0 &&
         ( crt->key_usage & usage ) != usage )

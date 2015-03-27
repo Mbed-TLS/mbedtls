@@ -79,7 +79,7 @@ typedef struct _x509_crt
     int ca_istrue;              /**< Optional Basic Constraint extension value: 1 if this certificate belongs to a CA, 0 otherwise. */
     int max_pathlen;            /**< Optional Basic Constraint extension value: The maximum path length to the root certificate. Path length is 1 higher than RFC 5280 'meaning', so 1+ */
 
-    unsigned char key_usage;    /**< Optional key usage extension value: See the values in x509.h */
+    unsigned int key_usage;     /**< Optional key usage extension value: See the values in x509.h */
 
     x509_sequence ext_key_usage; /**< Optional list of extended key usage OIDs. */
 
@@ -261,7 +261,7 @@ int x509_crt_verify( x509_crt *crt,
  *                 (intermediate) CAs the keyUsage extension is automatically
  *                 checked by \c x509_crt_verify().
  */
-int x509_crt_check_key_usage( const x509_crt *crt, int usage );
+int x509_crt_check_key_usage( const x509_crt *crt, unsigned int usage );
 #endif /* POLARSSL_X509_CHECK_KEY_USAGE) */
 
 #if defined(POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE)

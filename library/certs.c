@@ -305,6 +305,26 @@ const size_t test_dhm_params_len = sizeof( test_dhm_params );
 const char test_ca_list[] = TEST_CA_CRT_RSA TEST_CA_CRT_EC;
 const size_t test_ca_list_len = sizeof( test_ca_list );
 
+/* List of all available CA certificates */
+const char * test_cas[] = {
+#if defined(POLARSSL_RSA_C)
+    test_ca_crt_rsa,
+#endif
+#if defined(POLARSSL_ECDSA_C)
+    test_ca_crt_ec,
+#endif
+    NULL
+};
+const size_t test_cas_len[] = {
+#if defined(POLARSSL_RSA_C)
+    test_ca_crt_rsa_len,
+#endif
+#if defined(POLARSSL_ECDSA_C)
+    test_ca_crt_ec_len,
+#endif
+    0
+};
+
 #if defined(POLARSSL_RSA_C)
 const char *test_ca_crt  = test_ca_crt_rsa;
 const char *test_ca_key  = test_ca_key_rsa;

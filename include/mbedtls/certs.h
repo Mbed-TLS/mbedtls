@@ -30,9 +30,13 @@
 extern "C" {
 #endif
 
-/* Concatenation of all available CA certificates */
+/* Concatenation of all CA certificates in PEM format if available */
 extern const char   test_ca_list[];
 extern const size_t test_ca_list_len;
+
+/* List of all CA certificates, terminated by NULL */
+extern const char * test_cas[];
+extern const size_t test_cas_len[];
 
 /*
  * Convenience for users who just want a certificate:

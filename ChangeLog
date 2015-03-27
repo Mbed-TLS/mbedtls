@@ -36,14 +36,16 @@ Semi-API changes (technically public, morally private)
    * Remove sig_oid2 and rename sig_oid1 to sig_oid in x509_crt and x509_crl.
    * x509_crt.key_usage changed from unsigned char to unsigned int.
 
-Changes
+Default behavior changes
+   * RC4 is now blacklisted by default in the SSL/TLS layer, and excluded from the
+     default ciphersuite list returned by ssl_list_ciphersuites()
    * Support for receiving SSLv2 ClientHello is now disabled by default at
      compile time.
+
+Changes
    * Remove test program o_p_test, the script compat.sh does more.
    * Remove test program ssl_test, superseded by ssl-opt.sh.
    * Remove helper script active-config.pl
-   * RC4 is now blacklisted by default in the SSL/TLS layer, and excluded from the
-     default ciphersuite list returned by ssl_list_ciphersuites()
 
 = mbed TLS 1.3 branch
 

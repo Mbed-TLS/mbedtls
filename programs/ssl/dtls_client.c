@@ -29,6 +29,7 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #define polarssl_fprintf    fprintf
 #endif
@@ -39,7 +40,6 @@
     !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_RSA_C) ||      \
     !defined(POLARSSL_CERTS_C)
 
-#include <stdio.h>
 int main( int argc, char *argv[] )
 {
     ((void) argc);
@@ -49,13 +49,12 @@ int main( int argc, char *argv[] )
             "POLARSSL_NET_C and/or "
             "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C and/or "
             "POLARSSL_X509_CRT_PARSE_C and/or POLARSSL_RSA_C and/or "
-            "POLARSSL_CERTS_C not defined.\n" );
+            "POLARSSL_CERTS_C and/or POLARSSL_PEM_PARSE_C not defined.\n" );
     return( 0 );
 }
 #else
 
 #include <string.h>
-#include <stdio.h>
 
 #include "mbedtls/net.h"
 #include "mbedtls/debug.h"
@@ -128,14 +127,8 @@ int main( int argc, char *argv[] )
     polarssl_printf( "  . Loading the CA root certificate ..." );
     fflush( stdout );
 
-#if defined(POLARSSL_CERTS_C) && defined(POLARSSL_PEM_PARSE_C)
     ret = x509_crt_parse( &cacert, (const unsigned char *) test_cas_pem,
                           test_cas_pem_len );
-#else
-    ret = 1;
-    polarssl_printf("POLARSSL_CERTS_C or POLARSSL_PEM_PARSE_C not defined.");
-#endif
-
     if( ret < 0 )
     {
         polarssl_printf( " failed\n  !  x509_crt_parse returned -0x%x\n\n", -ret );
@@ -344,4 +337,5 @@ exit:
 }
 #endif /* POLARSSL_SSL_CLI_C && POLARSSL_SSL_PROTO_DTLS && POLARSSL_NET_C &&
           POLARSSL_ENTROPY_C && POLARSSL_CTR_DRBG_C &&
-          POLARSSL_X509_CRT_PARSE_C && POLARSSL_RSA_C && POLARSSL_CERTS_C */
+          POLARSSL_X509_CRT_PARSE_C && POLARSSL_RSA_C && POLARSSL_CERTS_C &&
+          POLARSSL_PEM_PARSE_C */

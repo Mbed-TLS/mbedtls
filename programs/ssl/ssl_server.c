@@ -34,41 +34,6 @@
 #define polarssl_printf     printf
 #endif
 
-#if defined(_WIN32)
-#include <windows.h>
-#endif
-
-#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_CERTS_C) && \
-    defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_SSL_TLS_C) && \
-    defined(POLARSSL_SSL_SRV_C) && defined(POLARSSL_NET_C) && \
-    defined(POLARSSL_RSA_C) && defined(POLARSSL_CTR_DRBG_C) && \
-    defined(POLARSSL_X509_CRT_PARSE_C) && defined(POLARSSL_FS_IO) && \
-    defined(POLARSSL_PEM_PARSE_C)
-#include "mbedtls/entropy.h"
-#include "mbedtls/ctr_drbg.h"
-#include "mbedtls/certs.h"
-#include "mbedtls/x509.h"
-#include "mbedtls/ssl.h"
-#include "mbedtls/net.h"
-#include "mbedtls/error.h"
-#include "mbedtls/debug.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#endif
-
-#if defined(POLARSSL_SSL_CACHE_C)
-#include "mbedtls/ssl_cache.h"
-#endif
-
-#define HTTP_RESPONSE \
-    "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" \
-    "<h2>mbed TLS Test Server</h2>\r\n" \
-    "<p>Successful connection using: %s</p>\r\n"
-
-#define DEBUG_LEVEL 0
-
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_CERTS_C) ||    \
     !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_SSL_TLS_C) || \
     !defined(POLARSSL_SSL_SRV_C) || !defined(POLARSSL_NET_C) ||     \
@@ -85,6 +50,34 @@ int main( void )
     return( 0 );
 }
 #else
+
+#include <stdlib.h>
+#include <string.h>
+
+#if defined(_WIN32)
+#include <windows.h>
+#endif
+
+#include "mbedtls/entropy.h"
+#include "mbedtls/ctr_drbg.h"
+#include "mbedtls/certs.h"
+#include "mbedtls/x509.h"
+#include "mbedtls/ssl.h"
+#include "mbedtls/net.h"
+#include "mbedtls/error.h"
+#include "mbedtls/debug.h"
+
+#if defined(POLARSSL_SSL_CACHE_C)
+#include "mbedtls/ssl_cache.h"
+#endif
+
+#define HTTP_RESPONSE \
+    "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" \
+    "<h2>mbed TLS Test Server</h2>\r\n" \
+    "<p>Successful connection using: %s</p>\r\n"
+
+#define DEBUG_LEVEL 0
+
 static void my_debug( void *ctx, int level, const char *str )
 {
     ((void) level);
@@ -393,4 +386,5 @@ exit:
 }
 #endif /* POLARSSL_BIGNUM_C && POLARSSL_CERTS_C && POLARSSL_ENTROPY_C &&
           POLARSSL_SSL_TLS_C && POLARSSL_SSL_SRV_C && POLARSSL_NET_C &&
-          POLARSSL_RSA_C && POLARSSL_CTR_DRBG_C */
+          POLARSSL_RSA_C && POLARSSL_CTR_DRBG_C && POLARSSL_X509_CRT_PARSE_C
+          && POLARSSL_FS_IO && POLARSSL_PEM_PARSE_C */

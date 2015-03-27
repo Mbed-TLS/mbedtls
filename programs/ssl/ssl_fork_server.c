@@ -34,44 +34,12 @@
 #define polarssl_printf     printf
 #endif
 
-#if defined(_WIN32)
-#include <windows.h>
-#endif
-
-#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_CERTS_C) && \
-    defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_SSL_TLS_C) && \
-    defined(POLARSSL_SSL_SRV_C) && defined(POLARSSL_NET_C) && \
-    defined(POLARSSL_RSA_C) && defined(POLARSSL_CTR_DRBG_C) && \
-    defined(POLARSSL_X509_CRT_PARSE_C) && defined(POLARSSL_TIMING_C) && \
-    defined(POLARSSL_FS_IO) && defined(POLARSSL_PEM_PARSE_C)
-#include "mbedtls/entropy.h"
-#include "mbedtls/ctr_drbg.h"
-#include "mbedtls/certs.h"
-#include "mbedtls/x509.h"
-#include "mbedtls/ssl.h"
-#include "mbedtls/net.h"
-#include "mbedtls/timing.h"
-
-#include <string.h>
-#include <stdio.h>
-#include <signal.h>
-#endif
-
-#if !defined(_MSC_VER) || defined(EFIX64) || defined(EFI32)
-#include <unistd.h>
-#endif
-
-#define HTTP_RESPONSE \
-    "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" \
-    "<h2>mbed TLS Test Server</h2>\r\n" \
-    "<p>Successful connection using: %s</p>\r\n"
-
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_CERTS_C) ||    \
     !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_SSL_TLS_C) || \
     !defined(POLARSSL_SSL_SRV_C) || !defined(POLARSSL_NET_C) ||     \
     !defined(POLARSSL_RSA_C) || !defined(POLARSSL_CTR_DRBG_C) ||    \
     !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_TIMING_C) || \
-    !defined(POLARSSL_FS_IO)
+    !defined(POLARSSL_FS_IO) || !defined(POLARSSL_PEM_PARSE_C)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
@@ -92,6 +60,26 @@ int main( void )
     return( 0 );
 }
 #else
+
+#include "mbedtls/entropy.h"
+#include "mbedtls/ctr_drbg.h"
+#include "mbedtls/certs.h"
+#include "mbedtls/x509.h"
+#include "mbedtls/ssl.h"
+#include "mbedtls/net.h"
+#include "mbedtls/timing.h"
+
+#include <string.h>
+#include <signal.h>
+
+#if !defined(_MSC_VER) || defined(EFIX64) || defined(EFI32)
+#include <unistd.h>
+#endif
+
+#define HTTP_RESPONSE \
+    "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" \
+    "<h2>mbed TLS Test Server</h2>\r\n" \
+    "<p>Successful connection using: %s</p>\r\n"
 
 #define DEBUG_LEVEL 0
 
@@ -400,4 +388,5 @@ exit:
 }
 #endif /* POLARSSL_BIGNUM_C && POLARSSL_CERTS_C && POLARSSL_ENTROPY_C &&
           POLARSSL_SSL_TLS_C && POLARSSL_SSL_SRV_C && POLARSSL_NET_C &&
-          POLARSSL_RSA_C && POLARSSL_CTR_DRBG_C */
+          POLARSSL_RSA_C && POLARSSL_CTR_DRBG_C && POLARSSL_PEM_PARSE_C &&
+          ! _WIN32 */

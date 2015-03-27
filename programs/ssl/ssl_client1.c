@@ -34,31 +34,10 @@
 #define polarssl_printf     printf
 #endif
 
-#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_ENTROPY_C) && \
-    defined(POLARSSL_SSL_TLS_C) && defined(POLARSSL_SSL_CLI_C) && \
-    defined(POLARSSL_NET_C) && defined(POLARSSL_RSA_C) && \
-    defined(POLARSSL_CTR_DRBG_C) && defined(POLARSSL_X509_CRT_PARSE_C)
-#include "mbedtls/net.h"
-#include "mbedtls/debug.h"
-#include "mbedtls/ssl.h"
-#include "mbedtls/entropy.h"
-#include "mbedtls/ctr_drbg.h"
-#include "mbedtls/error.h"
-#include "mbedtls/certs.h"
-
-#include <stdio.h>
-#include <string.h>
-#endif
-
-#define SERVER_PORT 4433
-#define SERVER_NAME "localhost"
-#define GET_REQUEST "GET / HTTP/1.0\r\n\r\n"
-
-#define DEBUG_LEVEL 1
-
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
     !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_CLI_C) || \
     !defined(POLARSSL_NET_C) || !defined(POLARSSL_RSA_C) ||         \
+    !defined(POLARSSL_CERTS_C) || !defined(POLARSSL_PEM_PARSE_C) || \
     !defined(POLARSSL_CTR_DRBG_C) || !defined(POLARSSL_X509_CRT_PARSE_C)
 int main( void )
 {
@@ -70,6 +49,23 @@ int main( void )
     return( 0 );
 }
 #else
+
+#include "mbedtls/net.h"
+#include "mbedtls/debug.h"
+#include "mbedtls/ssl.h"
+#include "mbedtls/entropy.h"
+#include "mbedtls/ctr_drbg.h"
+#include "mbedtls/error.h"
+#include "mbedtls/certs.h"
+
+#include <string.h>
+
+#define SERVER_PORT 4433
+#define SERVER_NAME "localhost"
+#define GET_REQUEST "GET / HTTP/1.0\r\n\r\n"
+
+#define DEBUG_LEVEL 1
+
 static void my_debug( void *ctx, int level, const char *str )
 {
     ((void) level);
@@ -119,14 +115,8 @@ int main( void )
     polarssl_printf( "  . Loading the CA root certificate ..." );
     fflush( stdout );
 
-#if defined(POLARSSL_CERTS_C) && defined(POLARSSL_PEM_PARSE_C)
     ret = x509_crt_parse( &cacert, (const unsigned char *) test_cas_pem,
                           test_cas_pem_len );
-#else
-    ret = 1;
-    polarssl_printf("POLARSSL_CERTS_C or POLARSSL_PEM_PARSE_C not defined.");
-#endif
-
     if( ret < 0 )
     {
         polarssl_printf( " failed\n  !  x509_crt_parse returned -0x%x\n\n", -ret );
@@ -309,4 +299,5 @@ exit:
 }
 #endif /* POLARSSL_BIGNUM_C && POLARSSL_ENTROPY_C && POLARSSL_SSL_TLS_C &&
           POLARSSL_SSL_CLI_C && POLARSSL_NET_C && POLARSSL_RSA_C &&
-          POLARSSL_CTR_DRBG_C */
+          POLARSSL_CERTS_C && POLARSSL_PEM_PARSE_C && POLARSSL_CTR_DRBG_C &&
+          POLARSSL_X509_CRT_PARSE_C */

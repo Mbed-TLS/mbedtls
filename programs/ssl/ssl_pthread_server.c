@@ -36,47 +36,6 @@
 #define polarssl_snprintf   snprintf
 #endif
 
-#if defined(_WIN32)
-#include <windows.h>
-#endif
-
-#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_CERTS_C) && \
-    defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_SSL_TLS_C) && \
-    defined(POLARSSL_SSL_SRV_C) && defined(POLARSSL_NET_C) && \
-    defined(POLARSSL_RSA_C) && defined(POLARSSL_CTR_DRBG_C) && \
-    defined(POLARSSL_X509_CRT_PARSE_C) && defined(POLARSSL_FS_IO) && \
-    defined(POLARSSL_THREADING_C) && defined(POLARSSL_THREADING_PTHREAD) && \
-    defined(POLARSSL_PEM_PARSE_C)
-#include "mbedtls/entropy.h"
-#include "mbedtls/ctr_drbg.h"
-#include "mbedtls/certs.h"
-#include "mbedtls/x509.h"
-#include "mbedtls/ssl.h"
-#include "mbedtls/net.h"
-#include "mbedtls/error.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#endif
-
-#if defined(POLARSSL_SSL_CACHE_C)
-#include "mbedtls/ssl_cache.h"
-#endif
-
-#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
-#include "mbedtls/memory_buffer_alloc.h"
-#endif
-
-#define HTTP_RESPONSE \
-    "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" \
-    "<h2>mbed TLS Test Server</h2>\r\n" \
-    "<p>Successful connection using: %s</p>\r\n"
-
-#define DEBUG_LEVEL 0
-
-#define MAX_NUM_THREADS 5
-
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_CERTS_C) ||            \
     !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_SSL_TLS_C) ||         \
     !defined(POLARSSL_SSL_SRV_C) || !defined(POLARSSL_NET_C) ||             \
@@ -95,6 +54,39 @@ int main( void )
     return( 0 );
 }
 #else
+
+#include <stdlib.h>
+#include <string.h>
+
+#if defined(_WIN32)
+#include <windows.h>
+#endif
+
+#include "mbedtls/entropy.h"
+#include "mbedtls/ctr_drbg.h"
+#include "mbedtls/certs.h"
+#include "mbedtls/x509.h"
+#include "mbedtls/ssl.h"
+#include "mbedtls/net.h"
+#include "mbedtls/error.h"
+
+#if defined(POLARSSL_SSL_CACHE_C)
+#include "mbedtls/ssl_cache.h"
+#endif
+
+#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
+#include "mbedtls/memory_buffer_alloc.h"
+#endif
+
+#define HTTP_RESPONSE \
+    "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" \
+    "<h2>mbed TLS Test Server</h2>\r\n" \
+    "<p>Successful connection using: %s</p>\r\n"
+
+#define DEBUG_LEVEL 0
+
+#define MAX_NUM_THREADS 5
+
 threading_mutex_t debug_mutex;
 
 static void my_mutexed_debug( void *ctx, int level, const char *str )
@@ -524,4 +516,4 @@ exit:
 #endif /* POLARSSL_BIGNUM_C && POLARSSL_CERTS_C && POLARSSL_ENTROPY_C &&
           POLARSSL_SSL_TLS_C && POLARSSL_SSL_SRV_C && POLARSSL_NET_C &&
           POLARSSL_RSA_C && POLARSSL_CTR_DRBG_C && POLARSSL_THREADING_C &&
-          POLARSSL_THREADING_PTHREAD */
+          POLARSSL_THREADING_PTHREAD && POLARSSL_PEM_PARSE_C */

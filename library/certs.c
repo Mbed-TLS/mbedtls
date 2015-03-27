@@ -319,10 +319,10 @@ const char * test_cas[] = {
 };
 const size_t test_cas_len[] = {
 #if defined(POLARSSL_RSA_C)
-    test_ca_crt_rsa_len,
+    sizeof( test_ca_crt_rsa_len ),
 #endif
 #if defined(POLARSSL_ECDSA_C)
-    test_ca_crt_ec_len,
+    sizeof( test_ca_crt_ec_len ),
 #endif
     0
 };
@@ -335,13 +335,13 @@ const char *test_srv_crt = test_srv_crt_rsa;
 const char *test_srv_key = test_srv_key_rsa;
 const char *test_cli_crt = test_cli_crt_rsa;
 const char *test_cli_key = test_cli_key_rsa;
-const size_t test_ca_crt_len  = test_ca_crt_rsa_len;
-const size_t test_ca_key_len  = test_ca_key_rsa_len;
-const size_t test_ca_pwd_len  = test_ca_pwd_rsa_len;
-const size_t test_srv_crt_len = test_srv_crt_rsa_len;
-const size_t test_srv_key_len = test_srv_key_rsa_len;
-const size_t test_cli_crt_len = test_cli_crt_rsa_len;
-const size_t test_cli_key_len = test_cli_key_rsa_len;
+const size_t test_ca_crt_len  = sizeof( test_ca_crt_rsa );
+const size_t test_ca_key_len  = sizeof( test_ca_key_rsa );
+const size_t test_ca_pwd_len  = sizeof( test_ca_pwd_rsa ) - 1;
+const size_t test_srv_crt_len = sizeof( test_srv_crt_rsa );
+const size_t test_srv_key_len = sizeof( test_srv_key_rsa );
+const size_t test_cli_crt_len = sizeof( test_cli_crt_rsa );
+const size_t test_cli_key_len = sizeof( test_cli_key_rsa );
 #else /* ! POLARSSL_RSA_C, so POLARSSL_ECDSA_C */
 const char *test_ca_crt  = test_ca_crt_ec;
 const char *test_ca_key  = test_ca_key_ec;
@@ -350,13 +350,13 @@ const char *test_srv_crt = test_srv_crt_ec;
 const char *test_srv_key = test_srv_key_ec;
 const char *test_cli_crt = test_cli_crt_ec;
 const char *test_cli_key = test_cli_key_ec;
-const size_t test_ca_crt_len  = test_ca_crt_ec_len;
-const size_t test_ca_key_len  = test_ca_key_ec_len;
-const size_t test_ca_pwd_len  = test_ca_pwd_ec_len;
-const size_t test_srv_crt_len = test_srv_crt_ec_len;
-const size_t test_srv_key_len = test_srv_key_ec_len;
-const size_t test_cli_crt_len = test_cli_crt_ec_len;
-const size_t test_cli_key_len = test_cli_key_ec_len;
+const size_t test_ca_crt_len  = sizeof( test_ca_crt_ec );
+const size_t test_ca_key_len  = sizeof( test_ca_key_ec );
+const size_t test_ca_pwd_len  = sizeof( test_ca_pwd_ec ) - 1;
+const size_t test_srv_crt_len = sizeof( test_srv_crt_ec );
+const size_t test_srv_key_len = sizeof( test_srv_key_ec );
+const size_t test_cli_crt_len = sizeof( test_cli_crt_ec );
+const size_t test_cli_key_len = sizeof( test_cli_key_ec );
 #endif /* POLARSSL_RSA_C */
 
 #endif /* POLARSSL_CERTS_C */

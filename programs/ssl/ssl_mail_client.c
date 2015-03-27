@@ -556,13 +556,13 @@ int main( int argc, char *argv[] )
         ret = pk_parse_keyfile( &pkey, opt.key_file, "" );
     else
 #endif
-#if defined(POLARSSL_CERTS_C)
+#if defined(POLARSSL_CERTS_C) && defined(POLARSSL_PEM_PARSE_C)
         ret = pk_parse_key( &pkey, (const unsigned char *) test_cli_key,
                 test_cli_key_len, NULL, 0 );
 #else
     {
         ret = -1;
-        polarssl_printf("POLARSSL_CERTS_C not defined.");
+        polarssl_printf("POLARSSL_CERTS_C or POLARSSL_PEM_PARSE_C not defined.");
     }
 #endif
     if( ret != 0 )

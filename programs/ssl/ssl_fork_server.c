@@ -43,7 +43,7 @@
     defined(POLARSSL_SSL_SRV_C) && defined(POLARSSL_NET_C) && \
     defined(POLARSSL_RSA_C) && defined(POLARSSL_CTR_DRBG_C) && \
     defined(POLARSSL_X509_CRT_PARSE_C) && defined(POLARSSL_TIMING_C) && \
-    defined(POLARSSL_FS_IO)
+    defined(POLARSSL_FS_IO) && defined(POLARSSL_PEM_PARSE_C)
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/certs.h"
@@ -81,7 +81,7 @@ int main( int argc, char *argv[] )
            "and/or POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_SRV_C and/or "
            "POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
            "POLARSSL_CTR_DRBG_C and/or POLARSSL_X509_CRT_PARSE_C and/or "
-           "POLARSSL_TIMING_C not defined.\n");
+           "POLARSSL_TIMING_C and/or POLARSSL_PEM_PARSE_C not defined.\n");
     return( 0 );
 }
 #elif defined(_WIN32)

@@ -37,7 +37,7 @@
     !defined(POLARSSL_SSL_COOKIE_C) || !defined(POLARSSL_NET_C) ||          \
     !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C) ||        \
     !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_RSA_C) ||      \
-    !defined(POLARSSL_CERTS_C)
+    !defined(POLARSSL_CERTS_C) || !defined(POLARSSL_PEM_PARSE_C)
 
 #include <stdio.h>
 int main( void )
@@ -46,7 +46,7 @@ int main( void )
             "POLARSSL_SSL_COOKIE_C and/or POLARSSL_NET_C and/or "
             "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C and/or "
             "POLARSSL_X509_CRT_PARSE_C and/or POLARSSL_RSA_C and/or "
-            "POLARSSL_CERTS_C not defined.\n" );
+            "POLARSSL_CERTS_C and/or POLARSSL_PEM_PARSE_C not defined.\n" );
     return( 0 );
 }
 #else

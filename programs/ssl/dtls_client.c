@@ -128,12 +128,12 @@ int main( int argc, char *argv[] )
     polarssl_printf( "  . Loading the CA root certificate ..." );
     fflush( stdout );
 
-#if defined(POLARSSL_CERTS_C)
+#if defined(POLARSSL_CERTS_C) && defined(POLARSSL_PEM_PARSE_C)
     ret = x509_crt_parse( &cacert, (const unsigned char *) test_cas_pem,
                           test_cas_pem_len );
 #else
     ret = 1;
-    polarssl_printf("POLARSSL_CERTS_C not defined.");
+    polarssl_printf("POLARSSL_CERTS_C or POLARSSL_PEM_PARSE_C not defined.");
 #endif
 
     if( ret < 0 )

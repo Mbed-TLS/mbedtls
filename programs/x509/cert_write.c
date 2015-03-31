@@ -33,10 +33,20 @@
 #define polarssl_printf     printf
 #endif
 
-#if defined(POLARSSL_X509_CRT_WRITE_C) && \
-    defined(POLARSSL_X509_CRT_PARSE_C) && defined(POLARSSL_FS_IO) && \
-    defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_CTR_DRBG_C) && \
-    defined(POLARSSL_ERROR_C)
+#if !defined(POLARSSL_X509_CRT_WRITE_C) ||                                  \
+    !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_FS_IO) ||      \
+    !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C) ||        \
+    !defined(POLARSSL_ERROR_C) || !defined(POLARSSL_SHA256_C)
+int main( void )
+{
+    polarssl_printf( "POLARSSL_X509_CRT_WRITE_C and/or POLARSSL_X509_CRT_PARSE_C and/or "
+            "POLARSSL_FS_IO and/or POLARSSL_SHA256_C and_or "
+            "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C and/or "
+            "POLARSSL_ERROR_C not defined.\n");
+    return( 0 );
+}
+#else
+
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/x509_csr.h"
 #include "mbedtls/entropy.h"
@@ -46,7 +56,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#endif
 
 #if defined(POLARSSL_X509_CSR_PARSE_C)
 #define USAGE_CSR                                                           \
@@ -120,19 +129,6 @@
     "                          object_signing_ca\n"     \
     "\n"
 
-#if !defined(POLARSSL_X509_CRT_WRITE_C) ||                                  \
-    !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_FS_IO) ||      \
-    !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C) ||        \
-    !defined(POLARSSL_ERROR_C)
-int main( void )
-{
-    polarssl_printf( "POLARSSL_X509_CRT_WRITE_C and/or POLARSSL_X509_CRT_PARSE_C and/or "
-            "POLARSSL_FS_IO and/or "
-            "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C and/or "
-            "POLARSSL_ERROR_C not defined.\n");
-    return( 0 );
-}
-#else
 /*
  * global options
  */

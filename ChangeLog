@@ -62,6 +62,8 @@ Changes
 Security
 
 Features
+   * Add support for bit strings in X.509 names (request by Fredrik Axelsson).
+   * Add support for id-at-uniqueIdentifier in X.509 names.
    * Add support for overriding snprintf() (except on Windows) and exit() in
      the platform layer.
    * Add an option to use macros instead of function pointers in the platform
@@ -80,6 +82,7 @@ Features
      errors on use of deprecated functions.
 
 Bugfix
+   * Fix thread safety bug in RSA operations (found by Fredrik Axelsson).
    * Fix hardclock() (only used in the benchmarking program) with some
      versions of mingw64 (found by kxjhlele).
    * Fix warnings from mingw64 in timing.c (found by kxjklele).
@@ -90,6 +93,8 @@ Bugfix
      POLARSSL_SSL_SSESSION_TICKETS where both enabled in config.h (introduced
      in 1.3.10).
    * Add missing extern "C" guard in aesni.h (reported by amir zamani).
+   * Add missing dependency on SHA-256 in some x509 programs (reported by
+     Gergely Budai).
 
 Changes
    * Adjusting/overriding CFLAGS and LDFLAGS with the make build syste is now

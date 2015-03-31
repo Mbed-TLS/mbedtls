@@ -282,11 +282,18 @@ int rsa_public( rsa_context *ctx,
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
     }
 
+#if defined(POLARSSL_THREADING_C)
+    polarssl_mutex_lock( &ctx->mutex );
+#endif
+
     olen = ctx->len;
     MPI_CHK( mpi_exp_mod( &T, &T, &ctx->E, &ctx->N, &ctx->RN ) );
     MPI_CHK( mpi_write_binary( &T, output, olen ) );
 
 cleanup:
+#if defined(POLARSSL_THREADING_C)
+    polarssl_mutex_unlock( &ctx->mutex );
+#endif
 
     mpi_free( &T );
 
@@ -400,6 +407,10 @@ int rsa_private( rsa_context *ctx,
         MPI_CHK( mpi_mod_mpi( &T, &T, &ctx->N ) );
     }
 
+#if defined(POLARSSL_THREADING_C)
+    polarssl_mutex_lock( &ctx->mutex );
+#endif
+
 #if defined(POLARSSL_RSA_NO_CRT)
     MPI_CHK( mpi_exp_mod( &T, &T, &ctx->D, &ctx->N, &ctx->RN ) );
 #else
@@ -440,10 +451,11 @@ int rsa_private( rsa_context *ctx,
     MPI_CHK( mpi_write_binary( &T, output, olen ) );
 
 cleanup:
-    mpi_free( &T ); mpi_free( &T1 ); mpi_free( &T2 );
 #if defined(POLARSSL_THREADING_C)
+    polarssl_mutex_unlock( &ctx->mutex );
     mpi_free( &Vi_copy ); mpi_free( &Vf_copy );
 #endif
+    mpi_free( &T ); mpi_free( &T1 ); mpi_free( &T2 );
 
     if( ret != 0 )
         return( POLARSSL_ERR_RSA_PRIVATE_FAILED + ret );

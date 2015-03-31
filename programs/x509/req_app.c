@@ -33,14 +33,21 @@
 #define polarssl_printf     printf
 #endif
 
-#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_RSA_C) && \
-    defined(POLARSSL_X509_CSR_PARSE_C) && defined(POLARSSL_FS_IO)
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||  \
+    !defined(POLARSSL_X509_CSR_PARSE_C) || !defined(POLARSSL_FS_IO)
+int main( void )
+{
+    polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
+           "POLARSSL_X509_CSR_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
+    return( 0 );
+}
+#else
+
 #include "mbedtls/x509_csr.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#endif
 
 #define DFL_FILENAME            "cert.req"
 #define DFL_DEBUG_LEVEL         0
@@ -51,15 +58,6 @@
     "    filename=%%s         default: cert.req\n"      \
     "\n"
 
-#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||  \
-    !defined(POLARSSL_X509_CSR_PARSE_C) || !defined(POLARSSL_FS_IO)
-int main( void )
-{
-    polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_X509_CSR_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
-    return( 0 );
-}
-#else
 /*
  * global options
  */

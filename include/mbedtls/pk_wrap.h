@@ -33,6 +33,57 @@
 
 #include "pk.h"
 
+struct _pk_info_t
+{
+    /** Public key type */
+    pk_type_t type;
+
+    /** Type name */
+    const char *name;
+
+    /** Get key size in bits */
+    size_t (*get_size)( const void * );
+
+    /** Tell if the context implements this type (e.g. ECKEY can do ECDSA) */
+    int (*can_do)( pk_type_t type );
+
+    /** Verify signature */
+    int (*verify_func)( void *ctx, md_type_t md_alg,
+                        const unsigned char *hash, size_t hash_len,
+                        const unsigned char *sig, size_t sig_len );
+
+    /** Make signature */
+    int (*sign_func)( void *ctx, md_type_t md_alg,
+                      const unsigned char *hash, size_t hash_len,
+                      unsigned char *sig, size_t *sig_len,
+                      int (*f_rng)(void *, unsigned char *, size_t),
+                      void *p_rng );
+
+    /** Decrypt message */
+    int (*decrypt_func)( void *ctx, const unsigned char *input, size_t ilen,
+                         unsigned char *output, size_t *olen, size_t osize,
+                         int (*f_rng)(void *, unsigned char *, size_t),
+                         void *p_rng );
+
+    /** Encrypt message */
+    int (*encrypt_func)( void *ctx, const unsigned char *input, size_t ilen,
+                         unsigned char *output, size_t *olen, size_t osize,
+                         int (*f_rng)(void *, unsigned char *, size_t),
+                         void *p_rng );
+
+    /** Check public-private key pair */
+    int (*check_pair_func)( const void *pub, const void *prv );
+
+    /** Allocate a new context */
+    void * (*ctx_alloc_func)( void );
+
+    /** Free the given context */
+    void (*ctx_free_func)( void *ctx );
+
+    /** Interface with the debug module */
+    void (*debug_func)( const void *ctx, pk_debug_item *items );
+
+};
 #if defined(POLARSSL_PK_RSA_ALT_SUPPORT)
 /* Container for RSA-alt */
 typedef struct

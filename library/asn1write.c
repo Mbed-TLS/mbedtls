@@ -99,7 +99,7 @@ int asn1_write_raw_buffer( unsigned char **p, unsigned char *start,
 }
 
 #if defined(POLARSSL_BIGNUM_C)
-int asn1_write_mpi( unsigned char **p, unsigned char *start, mpi *X )
+int asn1_write_mpi( unsigned char **p, unsigned char *start, const mpi *X )
 {
     int ret;
     size_t len = 0;

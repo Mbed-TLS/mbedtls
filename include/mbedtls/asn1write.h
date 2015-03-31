@@ -83,7 +83,7 @@ int asn1_write_raw_buffer( unsigned char **p, unsigned char *start,
  *
  * \return          the length written or a negative error code
  */
-int asn1_write_mpi( unsigned char **p, unsigned char *start, mpi *X );
+int asn1_write_mpi( unsigned char **p, unsigned char *start, const mpi *X );
 #endif /* POLARSSL_BIGNUM_C */
 
 /**

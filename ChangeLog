@@ -36,6 +36,8 @@ Bugfix
      POLARSSL_SSL_SSESSION_TICKETS where both enabled in config.h (introduced
      in 1.3.10).
    * Add missing extern "C" guard in aesni.h (reported by amir zamani).
+   * Add missing dependency on SHA-256 in some x509 programs (reported by
+     Gergely Budai).
 
 Changes
    * Adjusting/overriding CFLAGS and LDFLAGS with the make build syste is now

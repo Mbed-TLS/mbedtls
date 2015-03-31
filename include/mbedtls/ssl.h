@@ -769,7 +769,6 @@ struct _ssl_key_cert
 {
     x509_crt *cert;                 /*!< cert                       */
     pk_context *key;                /*!< private key                */
-    int key_own_alloc;              /*!< did we allocate key?       */
     ssl_key_cert *next;             /*!< next key/cert pair         */
 };
 #endif /* POLARSSL_X509_CRT_PARSE_C */

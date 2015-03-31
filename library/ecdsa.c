@@ -282,32 +282,13 @@ cleanup:
 }
 
 /*
- * RFC 4492 page 20:
- *
- *     Ecdsa-Sig-Value ::= SEQUENCE {
- *         r       INTEGER,
- *         s       INTEGER
- *     }
- *
- * Size is at most
- *    1 (tag) + 1 (len) + 1 (initial 0) + ECP_MAX_BYTES for each of r and s,
- *    twice that + 1 (tag) + 2 (len) for the sequence
- * (assuming ECP_MAX_BYTES is less than 126 for r and s,
- * and less than 124 (total len <= 255) for the sequence)
- */
-#if POLARSSL_ECP_MAX_BYTES > 124
-#error "POLARSSL_ECP_MAX_BYTES bigger than expected, please fix MAX_SIG_LEN"
-#endif
-#define MAX_SIG_LEN ( 3 + 2 * ( 3 + POLARSSL_ECP_MAX_BYTES ) )
-
-/*
  * Convert a signature (given by context) to ASN.1
  */
 static int ecdsa_signature_to_asn1( ecdsa_context *ctx,
                                     unsigned char *sig, size_t *slen )
 {
     int ret;
-    unsigned char buf[MAX_SIG_LEN];
+    unsigned char buf[POLARSSL_ECDSA_MAX_LEN];
     unsigned char *p = buf + sizeof( buf );
     size_t len = 0;
 

@@ -30,6 +30,25 @@
 #include "md.h"
 #endif
 
+/*
+ * RFC 4492 page 20:
+ *
+ *     Ecdsa-Sig-Value ::= SEQUENCE {
+ *         r       INTEGER,
+ *         s       INTEGER
+ *     }
+ *
+ * Size is at most
+ *    1 (tag) + 1 (len) + 1 (initial 0) + ECP_MAX_BYTES for each of r and s,
+ *    twice that + 1 (tag) + 2 (len) for the sequence
+ * (assuming ECP_MAX_BYTES is less than 126 for r and s,
+ * and less than 124 (total len <= 255) for the sequence)
+ */
+#if POLARSSL_ECP_MAX_BYTES > 124
+#error "POLARSSL_ECP_MAX_BYTES bigger than expected, please fix POLARSSL_ECDSA_MAX_LEN"
+#endif
+#define POLARSSL_ECDSA_MAX_LEN  ( 3 + 2 * ( 3 + POLARSSL_ECP_MAX_BYTES ) )
+
 /**
  * \brief           ECDSA context structure
  *
@@ -124,7 +143,7 @@ int ecdsa_verify( ecp_group *grp,
  *
  * \note            The "sig" buffer must be at least as large as twice the
  *                  size of the curve used, plus 7 (eg. 71 bytes if a 256-bit
- *                  curve is used).
+ *                  curve is used). POLARSSL_ECDSA_MAX_LEN is always safe.
  *
  * \return          0 if successful,
  *                  or a POLARSSL_ERR_ECP, POLARSSL_ERR_MPI or

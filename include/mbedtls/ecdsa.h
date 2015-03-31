@@ -47,6 +47,7 @@
 #if POLARSSL_ECP_MAX_BYTES > 124
 #error "POLARSSL_ECP_MAX_BYTES bigger than expected, please fix POLARSSL_ECDSA_MAX_LEN"
 #endif
+/** Maximum size of an ECDSA signature in bytes */
 #define POLARSSL_ECDSA_MAX_LEN  ( 3 + 2 * ( 3 + POLARSSL_ECP_MAX_BYTES ) )
 
 /**
@@ -146,7 +147,7 @@ int ecdsa_verify( ecp_group *grp,
  * \param p_rng     RNG parameter
  *
  * \note            The "sig" buffer must be at least as large as twice the
- *                  size of the curve used, plus 7 (eg. 71 bytes if a 256-bit
+ *                  size of the curve used, plus 9 (eg. 73 bytes if a 256-bit
  *                  curve is used). POLARSSL_ECDSA_MAX_LEN is always safe.
  *
  * \return          0 if successful,
@@ -182,8 +183,8 @@ int ecdsa_write_signature( ecdsa_context *ctx, md_type_t md_alg,
  * \param md_alg    MD algorithm used to hash the message
  *
  * \note            The "sig" buffer must be at least as large as twice the
- *                  size of the curve used, plus 7 (eg. 71 bytes if a 256-bit
- *                  curve is used).
+ *                  size of the curve used, plus 9 (eg. 73 bytes if a 256-bit
+ *                  curve is used). POLARSSL_ECDSA_MAX_LEN is always safe.
  *
  * \return          0 if successful,
  *                  or a POLARSSL_ERR_ECP, POLARSSL_ERR_MPI or

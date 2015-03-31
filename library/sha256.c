@@ -129,6 +129,7 @@ void sha256_starts( sha256_context *ctx, int is224 )
     ctx->is224 = is224;
 }
 
+#if !defined(POLARSSL_SHA256_PROCESS_ALT)
 void sha256_process( sha256_context *ctx, const unsigned char data[64] )
 {
     uint32_t temp1, temp2, W[64];
@@ -259,6 +260,7 @@ void sha256_process( sha256_context *ctx, const unsigned char data[64] )
     ctx->state[6] += G;
     ctx->state[7] += H;
 }
+#endif /* !POLARSSL_SHA256_PROCESS_ALT */
 
 /*
  * SHA-256 process buffer

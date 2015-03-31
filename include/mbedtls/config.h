@@ -231,20 +231,23 @@
 //#define POLARSSL_TIMING_ALT
 
 /**
- * \def POLARSSL_XXX_ALT
+ * \def POLARSSL__MODULE_NAME__ALT
  *
  * Uncomment a macro to let mbed TLS use your alternate core implementation of
- * a symmetric or hash algorithm (e.g. platform specific assembly optimized
+ * a symmetric or hash module (e.g. platform specific assembly optimized
  * implementations). Keep in mind that the function prototypes should remain
  * the same.
+ *
+ * This replaces the whole module. If you only want to replace one of the
+ * functions, use one of the POLARSSL__FUNCTION_NAME__ALT flags.
  *
  * Example: In case you uncomment POLARSSL_AES_ALT, mbed TLS will no longer
  * provide the "struct aes_context" definition and omit the base function
  * declarations and implementations. "aes_alt.h" will be included from
  * "aes.h" to include the new function definitions.
  *
- * Uncomment a macro to enable alternate implementation for core algorithm
- * functions
+ * Uncomment a macro to enable alternate implementation of the corresponding
+ * module.
  */
 //#define POLARSSL_AES_ALT
 //#define POLARSSL_ARC4_ALT
@@ -259,6 +262,34 @@
 //#define POLARSSL_SHA1_ALT
 //#define POLARSSL_SHA256_ALT
 //#define POLARSSL_SHA512_ALT
+
+/**
+ * \def POLARSSL__FUNCTION_NAME__ALT
+ *
+ * Uncomment a macro to let mbed TLS use you alternate core implementation of
+ * symmetric of hash function. Keep in mind that function prototypes should
+ * remain the same.
+ *
+ * This replaces only one function. The header file from mbed TLS is still
+ * used, in contrast to the POLARSSL__MODULE_NAME__ALT flags.
+ *
+ * Example: In case you uncomment POLARSSL_SHA256_PROCESS_ALT, mbed TLS will
+ * no longer provide the sha1_process() function, but it will still provide
+ * the other function (using your sha1_process() function) and the definition
+ * of sha1_context, so your implementation of sha1_process must be compatible
+ * with this definition.
+ *
+ *
+ * Uncomment a macro to enable alternate implementation of the corresponding
+ * function.
+ */
+//#define POLARSSL_MD2_PROCESS_ALT
+//#define POLARSSL_MD4_PROCESS_ALT
+//#define POLARSSL_MD5_PROCESS_ALT
+//#define POLARSSL_RIPEMD160_PROCESS_ALT
+//#define POLARSSL_SHA1_PROCESS_ALT
+//#define POLARSSL_SHA256_PROCESS_ALT
+//#define POLARSSL_SHA512_PROCESS_ALT
 
 /**
  * \def POLARSSL_AES_ROM_TABLES

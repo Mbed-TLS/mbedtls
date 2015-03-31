@@ -112,6 +112,7 @@ void md2_starts( md2_context *ctx )
     ctx->left = 0;
 }
 
+#if !defined(POLARSSL_MD2_PROCESS_ALT)
 void md2_process( md2_context *ctx )
 {
     int i, j;
@@ -145,6 +146,7 @@ void md2_process( md2_context *ctx )
         t  = ctx->cksum[i];
     }
 }
+#endif /* !POLARSSL_MD2_PROCESS_ALT */
 
 /*
  * MD2 process buffer

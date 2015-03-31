@@ -107,6 +107,7 @@ void ripemd160_starts( ripemd160_context *ctx )
     ctx->state[4] = 0xC3D2E1F0;
 }
 
+#if !defined(POLARSSL_RIPEMD160_PROCESS_ALT)
 /*
  * Process one block
  */
@@ -286,6 +287,7 @@ void ripemd160_process( ripemd160_context *ctx, const unsigned char data[64] )
     ctx->state[4] = ctx->state[0] + B + Cp;
     ctx->state[0] = C;
 }
+#endif /* !POLARSSL_RIPEMD160_PROCESS_ALT */
 
 /*
  * RIPEMD-160 process buffer

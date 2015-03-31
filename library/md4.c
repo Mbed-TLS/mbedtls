@@ -108,6 +108,7 @@ void md4_starts( md4_context *ctx )
     ctx->state[3] = 0x10325476;
 }
 
+#if !defined(POLARSSL_MD4_PROCESS_ALT)
 void md4_process( md4_context *ctx, const unsigned char data[64] )
 {
     uint32_t X[16], A, B, C, D;
@@ -210,6 +211,7 @@ void md4_process( md4_context *ctx, const unsigned char data[64] )
     ctx->state[2] += C;
     ctx->state[3] += D;
 }
+#endif /* !POLARSSL_MD4_PROCESS_ALT */
 
 /*
  * MD4 process buffer

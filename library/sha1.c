@@ -108,6 +108,7 @@ void sha1_starts( sha1_context *ctx )
     ctx->state[4] = 0xC3D2E1F0;
 }
 
+#if !defined(POLARSSL_SHA1_PROCESS_ALT)
 void sha1_process( sha1_context *ctx, const unsigned char data[64] )
 {
     uint32_t temp, W[16], A, B, C, D, E;
@@ -263,6 +264,7 @@ void sha1_process( sha1_context *ctx, const unsigned char data[64] )
     ctx->state[3] += D;
     ctx->state[4] += E;
 }
+#endif /* !POLARSSL_SHA1_PROCESS_ALT */
 
 /*
  * SHA-1 process buffer

@@ -190,6 +190,7 @@ void sha512_starts( sha512_context *ctx, int is384 )
     ctx->is384 = is384;
 }
 
+#if !defined(POLARSSL_SHA512_PROCESS_ALT)
 void sha512_process( sha512_context *ctx, const unsigned char data[128] )
 {
     int i;
@@ -258,6 +259,7 @@ void sha512_process( sha512_context *ctx, const unsigned char data[128] )
     ctx->state[6] += G;
     ctx->state[7] += H;
 }
+#endif /* !POLARSSL_SHA512_PROCESS_ALT */
 
 /*
  * SHA-512 process buffer

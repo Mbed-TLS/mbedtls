@@ -308,7 +308,7 @@ static int ecdsa_signature_to_asn1( ecdsa_context *ctx,
 /*
  * Compute and write signature
  */
-int ecdsa_write_signature( ecdsa_context *ctx,
+int ecdsa_write_signature( ecdsa_context *ctx, md_type_t md_alg,
                            const unsigned char *hash, size_t hlen,
                            unsigned char *sig, size_t *slen,
                            int (*f_rng)(void *, unsigned char *, size_t),
@@ -316,35 +316,34 @@ int ecdsa_write_signature( ecdsa_context *ctx,
 {
     int ret;
 
-    if( ( ret = ecdsa_sign( &ctx->grp, &ctx->r, &ctx->s, &ctx->d,
-                            hash, hlen, f_rng, p_rng ) ) != 0 )
-    {
+#if defined(POLARSSL_ECDSA_DETERMINISTIC)
+    (void) f_rng;
+    (void) p_rng;
+
+    ret = ecdsa_sign_det( &ctx->grp, &ctx->r, &ctx->s, &ctx->d,
+                          hash, hlen, md_alg );
+#else
+    (void) md_alg;
+
+    ret = ecdsa_sign( &ctx->grp, &ctx->r, &ctx->s, &ctx->d,
+                      hash, hlen, f_rng, p_rng );
+#endif
+    if( ret != 0 )
         return( ret );
-    }
 
     return( ecdsa_signature_to_asn1( ctx, sig, slen ) );
 }
 
-#if defined(POLARSSL_ECDSA_DETERMINISTIC)
-/*
- * Compute and write signature deterministically
- */
+#if ! defined(POLARSSL_DEPRECATED_REMOVED)
 int ecdsa_write_signature_det( ecdsa_context *ctx,
                                const unsigned char *hash, size_t hlen,
                                unsigned char *sig, size_t *slen,
                                md_type_t md_alg )
 {
-    int ret;
-
-    if( ( ret = ecdsa_sign_det( &ctx->grp, &ctx->r, &ctx->s, &ctx->d,
-                                hash, hlen, md_alg ) ) != 0 )
-    {
-        return( ret );
-    }
-
-    return( ecdsa_signature_to_asn1( ctx, sig, slen ) );
+    return( ecdsa_write_signature( ctx, md_ald, hash, hlen, sig, siglen,
+                                   NULL, NULL ) );
 }
-#endif /* POLARSSL_ECDSA_DETERMINISTIC */
+#endif
 
 /*
  * Read and check signature

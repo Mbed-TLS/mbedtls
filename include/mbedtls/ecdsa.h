@@ -133,7 +133,11 @@ int ecdsa_verify( ecp_group *grp,
  *                  serialized as defined in RFC 4492 page 20.
  *                  (Not thread-safe to use same context in multiple threads)
  *
+ * \note            The deterministice version (RFC 6979) is used if
+ *                  POLARSSL_ECDSA_DETERMINISTIC is defined.
+ *
  * \param ctx       ECDSA context
+ * \param md_alg    Algorithm that was used to hash the message
  * \param hash      Message hash
  * \param hlen      Length of hash
  * \param sig       Buffer that will hold the signature
@@ -149,18 +153,26 @@ int ecdsa_verify( ecp_group *grp,
  *                  or a POLARSSL_ERR_ECP, POLARSSL_ERR_MPI or
  *                  POLARSSL_ERR_ASN1 error code
  */
-int ecdsa_write_signature( ecdsa_context *ctx,
+int ecdsa_write_signature( ecdsa_context *ctx, md_type_t md_alg,
                            const unsigned char *hash, size_t hlen,
                            unsigned char *sig, size_t *slen,
                            int (*f_rng)(void *, unsigned char *, size_t),
                            void *p_rng );
 
 #if defined(POLARSSL_ECDSA_DETERMINISTIC)
+#if ! defined(POLARSSL_DEPRECATED_REMOVED)
+#if defined(POLARSSL_DEPRECATED_WARNING)
+#define DEPRECATED    __attribute__((deprecated))
+#else
+#define DEPRECATED
+#endif
 /**
  * \brief           Compute ECDSA signature and write it to buffer,
  *                  serialized as defined in RFC 4492 page 20.
  *                  Deterministic version, RFC 6979.
  *                  (Not thread-safe to use same context in multiple threads)
+ *
+ * \deprecated      Superseded by ecdsa_write_signature() in 2.0.0
  *
  * \param ctx       ECDSA context
  * \param hash      Message hash
@@ -180,7 +192,9 @@ int ecdsa_write_signature( ecdsa_context *ctx,
 int ecdsa_write_signature_det( ecdsa_context *ctx,
                                const unsigned char *hash, size_t hlen,
                                unsigned char *sig, size_t *slen,
-                               md_type_t md_alg );
+                               md_type_t md_alg ) DEPRECATED;
+#undef DEPRECATED
+#endif /* POLARSSL_DEPRECATED_REMOVED */
 #endif /* POLARSSL_ECDSA_DETERMINISTIC */
 
 /**

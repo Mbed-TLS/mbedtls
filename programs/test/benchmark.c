@@ -652,7 +652,7 @@ int main( int argc, char *argv[] )
     }
 #endif
 
-#if defined(POLARSSL_ECDSA_C)
+#if defined(POLARSSL_ECDSA_C) && defined(POLARSSL_SHA256_C)
     if( todo.ecdsa )
     {
         ecdsa_context ecdsa;
@@ -674,7 +674,7 @@ int main( int argc, char *argv[] )
             polarssl_snprintf( title, sizeof( title ), "ECDSA-%s",
                                               curve_info->name );
             TIME_PUBLIC( title, "sign",
-                    ret = ecdsa_write_signature( &ecdsa, buf, curve_info->size,
+                    ret = ecdsa_write_signature( &ecdsa, POLARSSL_MD_SHA256, buf, curve_info->size,
                                                 tmp, &sig_len, myrand, NULL ) );
 
             ecdsa_free( &ecdsa );
@@ -687,7 +687,7 @@ int main( int argc, char *argv[] )
             ecdsa_init( &ecdsa );
 
             if( ecdsa_genkey( &ecdsa, curve_info->grp_id, myrand, NULL ) != 0 ||
-                ecdsa_write_signature( &ecdsa, buf, curve_info->size,
+                ecdsa_write_signature( &ecdsa, POLARSSL_MD_SHA256, buf, curve_info->size,
                                                tmp, &sig_len, myrand, NULL ) != 0 )
             {
                 polarssl_exit( 1 );

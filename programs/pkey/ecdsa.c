@@ -56,11 +56,11 @@
 #define ECPARAMS    ecp_curve_list()->grp_id
 #endif
 
-#if !defined(POLARSSL_ECDSA_C) || \
+#if !defined(POLARSSL_ECDSA_C) || !defined(POLARSSL_SHA256_C) || \
     !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C)
 int main( void )
 {
-    polarssl_printf("POLARSSL_ECDSA_C and/or "
+    polarssl_printf("POLARSSL_ECDSA_C and/or POLARSSL_SHA256_C and/or "
            "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C not defined\n");
     return( 0 );
 }
@@ -160,7 +160,7 @@ int main( int argc, char *argv[] )
     polarssl_printf( "  . Signing message..." );
     fflush( stdout );
 
-    if( ( ret = ecdsa_write_signature( &ctx_sign,
+    if( ( ret = ecdsa_write_signature( &ctx_sign, POLARSSL_MD_SHA256,
                                        hash, sizeof( hash ),
                                        sig, &sig_len,
                                        ctr_drbg_random, &ctr_drbg ) ) != 0 )
@@ -172,15 +172,6 @@ int main( int argc, char *argv[] )
 
     dump_buf( "  + Hash: ", hash, sizeof hash );
     dump_buf( "  + Signature: ", sig, sig_len );
-
-    /*
-     * Signature is serialized as defined by RFC 4492 p. 20,
-     * but one can also access 'r' and 's' directly from the context
-     */
-#ifdef POLARSSL_FS_IO
-    mpi_write_file( "    r = ", &ctx_sign.r, 16, NULL );
-    mpi_write_file( "    s = ", &ctx_sign.s, 16, NULL );
-#endif
 
     /*
      * Transfer public information to verifying context

@@ -33,14 +33,21 @@
 #define polarssl_printf     printf
 #endif
 
-#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_RSA_C) && \
-    defined(POLARSSL_X509_CRL_PARSE_C) && defined(POLARSSL_FS_IO)
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||  \
+    !defined(POLARSSL_X509_CRL_PARSE_C) || !defined(POLARSSL_FS_IO)
+int main( void )
+{
+    polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
+           "POLARSSL_X509_CRL_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
+    return( 0 );
+}
+#else
+
 #include "polarssl/x509_crl.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#endif
 
 #define DFL_FILENAME            "crl.pem"
 #define DFL_DEBUG_LEVEL         0
@@ -51,15 +58,6 @@
     "    filename=%%s         default: crl.pem\n"      \
     "\n"
 
-#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||  \
-    !defined(POLARSSL_X509_CRL_PARSE_C) || !defined(POLARSSL_FS_IO)
-int main( void )
-{
-    polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_X509_CRL_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
-    return( 0 );
-}
-#else
 /*
  * global options
  */

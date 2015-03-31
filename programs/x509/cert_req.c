@@ -33,9 +33,19 @@
 #define polarssl_printf     printf
 #endif
 
-#if defined(POLARSSL_X509_CSR_WRITE_C) && defined(POLARSSL_FS_IO) && \
-    defined(POLARSSL_PK_PARSE_C) && \
-    defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_CTR_DRBG_C)
+#if !defined(POLARSSL_X509_CSR_WRITE_C) || !defined(POLARSSL_FS_IO) ||  \
+    !defined(POLARSSL_PK_PARSE_C) ||                                    \
+    !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C)
+int main( void )
+{
+    polarssl_printf( "POLARSSL_X509_CSR_WRITE_C and/or POLARSSL_FS_IO and/or "
+            "POLARSSL_PK_PARSE_C and/or "
+            "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C "
+            "not defined.\n");
+    return( 0 );
+}
+#else
+
 #include "polarssl/x509_csr.h"
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
@@ -44,7 +54,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#endif
 
 #define DFL_FILENAME            "keyfile.key"
 #define DFL_DEBUG_LEVEL         0
@@ -80,18 +89,6 @@
     "                          object_signing_ca\n"     \
     "\n"
 
-#if !defined(POLARSSL_X509_CSR_WRITE_C) || !defined(POLARSSL_FS_IO) ||  \
-    !defined(POLARSSL_PK_PARSE_C) ||                                    \
-    !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C)
-int main( void )
-{
-    polarssl_printf( "POLARSSL_X509_CSR_WRITE_C and/or POLARSSL_FS_IO and/or "
-            "POLARSSL_PK_PARSE_C and/or "
-            "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C "
-            "not defined.\n");
-    return( 0 );
-}
-#else
 /*
  * global options
  */

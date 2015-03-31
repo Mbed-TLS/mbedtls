@@ -4953,8 +4953,8 @@ int ssl_init( ssl_context *ssl )
     /*
      * Sane defaults
      */
-    ssl->min_major_ver = SSL_MIN_MAJOR_VERSION;
-    ssl->min_minor_ver = SSL_MIN_MINOR_VERSION;
+    ssl->min_major_ver = SSL_MAJOR_VERSION_3;
+    ssl->min_minor_ver = SSL_MINOR_VERSION_1; /* TLS 1.0 */
     ssl->max_major_ver = SSL_MAX_MAJOR_VERSION;
     ssl->max_minor_ver = SSL_MAX_MINOR_VERSION;
 

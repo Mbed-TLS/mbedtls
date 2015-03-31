@@ -83,7 +83,7 @@
 #define DFL_ALLOW_LEGACY        -2
 #define DFL_RENEGOTIATE         0
 #define DFL_EXCHANGES           1
-#define DFL_MIN_VERSION         SSL_MINOR_VERSION_1
+#define DFL_MIN_VERSION         -1
 #define DFL_MAX_VERSION         -1
 #define DFL_ARC4                -1
 #define DFL_AUTH_MODE           -1
@@ -250,8 +250,8 @@
     USAGE_RECSPLIT                                          \
     "\n"                                                    \
     "    arc4=%%d             default: (library default: 0)\n" \
-    "    min_version=%%s      default: \"\" (ssl3)\n"       \
-    "    max_version=%%s      default: \"\" (tls1_2)\n"     \
+    "    min_version=%%s      default: (library default: tls1)\n"       \
+    "    max_version=%%s      default: (library default: tls1_2)\n"     \
     "    force_version=%%s    default: \"\" (none)\n"       \
     "                        options: ssl3, tls1, tls1_1, tls1_2, dtls1, dtls1_2\n" \
     "\n"                                                    \
@@ -1197,17 +1197,17 @@ int main( int argc, char *argv[] )
     }
 #endif
 
-    if( opt.min_version != -1 )
+    if( opt.min_version != DFL_MIN_VERSION )
     {
         ret = ssl_set_min_version( &ssl, SSL_MAJOR_VERSION_3, opt.min_version );
-        if( ret != 0 && opt.min_version != DFL_MIN_VERSION )
+        if( ret != 0 )
         {
             polarssl_printf( " failed\n  ! selected min_version is not available\n" );
             goto exit;
         }
     }
 
-    if( opt.max_version != -1 )
+    if( opt.max_version != DFL_MAX_VERSION )
     {
         ret = ssl_set_max_version( &ssl, SSL_MAJOR_VERSION_3, opt.max_version );
         if( ret != 0 )

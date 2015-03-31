@@ -1718,7 +1718,7 @@ int ssl_set_max_version( ssl_context *ssl, int major, int minor );
 
 /**
  * \brief          Set the minimum accepted SSL/TLS protocol version
- *                 (Default: SSL_MIN_MAJOR_VERSION, SSL_MIN_MINOR_VERSION)
+ *                 (Default: TLS 1.0)
  *
  * \note           Input outside of the SSL_MAX_XXXXX_VERSION and
  *                 SSL_MIN_XXXXX_VERSION range is ignored.

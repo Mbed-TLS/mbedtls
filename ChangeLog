@@ -41,6 +41,7 @@ Semi-API changes (technically public, morally private)
    * Remove r and s from ecdsa_context
 
 Default behavior changes
+   * The default minimum TLS version is now TLS 1.0.
    * RC4 is now blacklisted by default in the SSL/TLS layer, and excluded from the
      default ciphersuite list returned by ssl_list_ciphersuites()
    * Support for receiving SSLv2 ClientHello is now disabled by default at

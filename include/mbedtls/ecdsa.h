@@ -52,18 +52,8 @@
 
 /**
  * \brief           ECDSA context structure
- *
- * \note Purposefully begins with the same members as struct ecp_keypair.
  */
-typedef struct
-{
-    ecp_group grp;      /*!<  elliptic curve used           */
-    mpi d;              /*!<  secret signature key          */
-    ecp_point Q;        /*!<  public signature key          */
-    mpi r;              /*!<  first integer from signature  */
-    mpi s;              /*!<  second integer from signature */
-}
-ecdsa_context;
+typedef ecp_keypair ecdsa_context;
 
 #ifdef __cplusplus
 extern "C" {

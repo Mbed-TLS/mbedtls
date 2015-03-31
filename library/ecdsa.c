@@ -284,7 +284,7 @@ cleanup:
 /*
  * Convert a signature (given by context) to ASN.1
  */
-static int ecdsa_signature_to_asn1( ecdsa_context *ctx,
+static int ecdsa_signature_to_asn1( const mpi *r, const mpi *s,
                                     unsigned char *sig, size_t *slen )
 {
     int ret;
@@ -292,8 +292,8 @@ static int ecdsa_signature_to_asn1( ecdsa_context *ctx,
     unsigned char *p = buf + sizeof( buf );
     size_t len = 0;
 
-    ASN1_CHK_ADD( len, asn1_write_mpi( &p, buf, &ctx->s ) );
-    ASN1_CHK_ADD( len, asn1_write_mpi( &p, buf, &ctx->r ) );
+    ASN1_CHK_ADD( len, asn1_write_mpi( &p, buf, s ) );
+    ASN1_CHK_ADD( len, asn1_write_mpi( &p, buf, r ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( &p, buf, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( &p, buf,
@@ -315,23 +315,31 @@ int ecdsa_write_signature( ecdsa_context *ctx, md_type_t md_alg,
                            void *p_rng )
 {
     int ret;
+    mpi r, s;
+
+    mpi_init( &r );
+    mpi_init( &s );
 
 #if defined(POLARSSL_ECDSA_DETERMINISTIC)
     (void) f_rng;
     (void) p_rng;
 
-    ret = ecdsa_sign_det( &ctx->grp, &ctx->r, &ctx->s, &ctx->d,
-                          hash, hlen, md_alg );
+    MPI_CHK( ecdsa_sign_det( &ctx->grp, &r, &s, &ctx->d,
+                             hash, hlen, md_alg ) );
 #else
     (void) md_alg;
 
-    ret = ecdsa_sign( &ctx->grp, &ctx->r, &ctx->s, &ctx->d,
-                      hash, hlen, f_rng, p_rng );
+    MPI_CHK( ecdsa_sign( &ctx->grp, &r, &s, &ctx->d,
+                         hash, hlen, f_rng, p_rng ) );
 #endif
-    if( ret != 0 )
-        return( ret );
 
-    return( ecdsa_signature_to_asn1( ctx, sig, slen ) );
+    MPI_CHK( ecdsa_signature_to_asn1( &r, &s, sig, slen ) );
+
+cleanup:
+    mpi_free( &r );
+    mpi_free( &s );
+
+    return( ret );
 }
 
 #if ! defined(POLARSSL_DEPRECATED_REMOVED)
@@ -340,7 +348,7 @@ int ecdsa_write_signature_det( ecdsa_context *ctx,
                                unsigned char *sig, size_t *slen,
                                md_type_t md_alg )
 {
-    return( ecdsa_write_signature( ctx, md_ald, hash, hlen, sig, siglen,
+    return( ecdsa_write_signature( ctx, md_alg, hash, hlen, sig, slen,
                                    NULL, NULL ) );
 }
 #endif
@@ -356,29 +364,44 @@ int ecdsa_read_signature( ecdsa_context *ctx,
     unsigned char *p = (unsigned char *) sig;
     const unsigned char *end = sig + slen;
     size_t len;
+    mpi r, s;
+
+    mpi_init( &r );
+    mpi_init( &s );
 
     if( ( ret = asn1_get_tag( &p, end, &len,
                     ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
     {
-        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA + ret );
+        ret += POLARSSL_ERR_ECP_BAD_INPUT_DATA;
+        goto cleanup;
     }
 
     if( p + len != end )
-        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA +
-                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+    {
+        ret = POLARSSL_ERR_ECP_BAD_INPUT_DATA +
+              POLARSSL_ERR_ASN1_LENGTH_MISMATCH;
+        goto cleanup;
+    }
 
-    if( ( ret = asn1_get_mpi( &p, end, &ctx->r ) ) != 0 ||
-        ( ret = asn1_get_mpi( &p, end, &ctx->s ) ) != 0 )
-        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA + ret );
+    if( ( ret = asn1_get_mpi( &p, end, &r ) ) != 0 ||
+        ( ret = asn1_get_mpi( &p, end, &s ) ) != 0 )
+    {
+        ret += POLARSSL_ERR_ECP_BAD_INPUT_DATA;
+        goto cleanup;
+    }
 
     if( ( ret = ecdsa_verify( &ctx->grp, hash, hlen,
-                              &ctx->Q, &ctx->r, &ctx->s ) ) != 0 )
-        return( ret );
+                              &ctx->Q, &r, &s ) ) != 0 )
+        goto cleanup;
 
     if( p != end )
-        return( POLARSSL_ERR_ECP_SIG_LEN_MISMATCH );
+        ret = POLARSSL_ERR_ECP_SIG_LEN_MISMATCH;
 
-    return( 0 );
+cleanup:
+    mpi_free( &r );
+    mpi_free( &s );
+
+    return( ret );
 }
 
 /*
@@ -413,11 +436,7 @@ int ecdsa_from_keypair( ecdsa_context *ctx, const ecp_keypair *key )
  */
 void ecdsa_init( ecdsa_context *ctx )
 {
-    ecp_group_init( &ctx->grp );
-    mpi_init( &ctx->d );
-    ecp_point_init( &ctx->Q );
-    mpi_init( &ctx->r );
-    mpi_init( &ctx->s );
+    ecp_keypair_init( ctx );
 }
 
 /*
@@ -425,11 +444,7 @@ void ecdsa_init( ecdsa_context *ctx )
  */
 void ecdsa_free( ecdsa_context *ctx )
 {
-    ecp_group_free( &ctx->grp );
-    mpi_free( &ctx->d );
-    ecp_point_free( &ctx->Q );
-    mpi_free( &ctx->r );
-    mpi_free( &ctx->s );
+    ecp_keypair_free( ctx );
 }
 
 #endif /* POLARSSL_ECDSA_C */

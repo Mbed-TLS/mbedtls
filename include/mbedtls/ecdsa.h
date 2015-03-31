@@ -52,6 +52,8 @@ extern "C" {
 /**
  * \brief           Compute ECDSA signature of a previously hashed message
  *
+ * \note            The deterministic version is usually prefered.
+ *
  * \param grp       ECP group
  * \param r         First output integer
  * \param s         Second output integer
@@ -70,8 +72,8 @@ int ecdsa_sign( ecp_group *grp, mpi *r, mpi *s,
 
 #if defined(POLARSSL_ECDSA_DETERMINISTIC)
 /**
- * \brief           Compute ECDSA signature of a previously hashed message
- *                  (deterministic version)
+ * \brief           Compute ECDSA signature of a previously hashed message,
+ *                  deterministic version (RFC 6979).
  *
  * \param grp       ECP group
  * \param r         First output integer

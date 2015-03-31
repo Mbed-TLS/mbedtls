@@ -43,35 +43,6 @@
 #include "mbedtls/hmac_drbg.h"
 #endif
 
-#if defined(POLARSSL_ECDSA_DETERMINISTIC)
-/*
- * This a hopefully temporary compatibility function.
- *
- * Since we can't ensure the caller will pass a valid md_alg before the next
- * interface change, try to pick up a decent md by size.
- *
- * Argument is the minimum size in bytes of the MD output.
- */
-static const md_info_t *md_info_by_size( size_t min_size )
-{
-    const md_info_t *md_cur, *md_picked = NULL;
-    const int *md_alg;
-
-    for( md_alg = md_list(); *md_alg != 0; md_alg++ )
-    {
-        if( ( md_cur = md_info_from_type( (md_type_t) *md_alg ) ) == NULL ||
-            (size_t) md_get_size( md_cur ) < min_size ||
-            ( md_picked != NULL &&
-              md_get_size( md_cur ) > md_get_size( md_picked ) ) )
-            continue;
-
-        md_picked = md_cur;
-    }
-
-    return( md_picked );
-}
-#endif /* POLARSSL_ECDSA_DETERMINISTIC */
-
 /*
  * Derive a suitable integer for group grp from a buffer of length len
  * SEC1 4.1.3 step 5 aka SEC1 4.1.4 step 3
@@ -199,13 +170,7 @@ int ecdsa_sign_det( ecp_group *grp, mpi *r, mpi *s,
     const md_info_t *md_info;
     mpi h;
 
-    /* Temporary fallback */
-    if( md_alg == POLARSSL_MD_NONE )
-        md_info = md_info_by_size( blen );
-    else
-        md_info = md_info_from_type( md_alg );
-
-    if( md_info == NULL )
+    if( ( md_info = md_info_from_type( md_alg ) ) == NULL )
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
     mpi_init( &h );

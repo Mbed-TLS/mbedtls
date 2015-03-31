@@ -377,7 +377,8 @@ int pk_verify_ext( pk_type_t type, const void *options,
  * \note            If hash_len is 0, then the length associated with md_alg
  *                  is used instead, or an error returned if it is invalid.
  *
- * \note            md_alg may be POLARSSL_MD_NONE, only if hash_len != 0
+ * \note            For RSA, md_alg may be POLARSSL_MD_NONE if hash_len != 0.
+ *                  For ECDSA, md_alg may never be POLARSSL_MD_NONE.
  */
 int pk_sign( pk_context *ctx, md_type_t md_alg,
              const unsigned char *hash, size_t hash_len,

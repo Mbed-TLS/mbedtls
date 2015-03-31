@@ -250,7 +250,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_SHA256_C */
 void pk_sign_verify( int type, int sign_ret, int verify_ret )
 {
     pk_context pk;
@@ -265,10 +265,10 @@ void pk_sign_verify( int type, int sign_ret, int verify_ret )
     TEST_ASSERT( pk_init_ctx( &pk, pk_info_from_type( type ) ) == 0 );
     TEST_ASSERT( pk_genkey( &pk ) == 0 );
 
-    TEST_ASSERT( pk_sign( &pk, POLARSSL_MD_NONE, hash, sizeof hash,
+    TEST_ASSERT( pk_sign( &pk, POLARSSL_MD_SHA256, hash, sizeof hash,
                           sig, &sig_len, rnd_std_rand, NULL ) == sign_ret );
 
-    TEST_ASSERT( pk_verify( &pk, POLARSSL_MD_NONE,
+    TEST_ASSERT( pk_verify( &pk, POLARSSL_MD_SHA256,
                             hash, sizeof hash, sig, sig_len ) == verify_ret );
 
 exit:

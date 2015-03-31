@@ -98,7 +98,7 @@ void pk_check_pair( char *pub_file, char *prv_file, int ret )
 
     TEST_ASSERT( pk_check_pair( &pub, &prv ) == ret );
 
-#if defined(POLARSSL_RSA_C)
+#if defined(POLARSSL_RSA_C) && defined(POLARSSL_PK_RSA_ALT_SUPPORT)
     if( pk_get_type( &prv ) == POLARSSL_PK_RSA )
     {
         TEST_ASSERT( pk_init_ctx_rsa_alt( &alt, pk_rsa( prv ),
@@ -414,7 +414,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_RSA_C */
+/* BEGIN_CASE depends_on:POLARSSL_RSA_C:POLARSSL_PK_RSA_ALT_SUPPORT */
 void pk_rsa_alt( )
 {
     /*

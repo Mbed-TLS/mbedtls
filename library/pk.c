@@ -112,6 +112,7 @@ int pk_init_ctx( pk_context *ctx, const pk_info_t *info )
     return( 0 );
 }
 
+#if defined(POLARSSL_PK_RSA_ALT_SUPPORT)
 /*
  * Initialize an RSA-alt context
  */
@@ -140,6 +141,7 @@ int pk_init_ctx_rsa_alt( pk_context *ctx, void * key,
 
     return( 0 );
 }
+#endif /* POLARSSL_PK_RSA_ALT_SUPPORT */
 
 /*
  * Tell if a PK can do the operations of the given type

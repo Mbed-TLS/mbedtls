@@ -197,6 +197,7 @@ typedef struct
     void *              pk_ctx;     /**< Underlying public key context  */
 } pk_context;
 
+#if defined(POLARSSL_PK_RSA_ALT_SUPPORT)
 /**
  * \brief           Types for RSA-alt abstraction
  */
@@ -208,6 +209,7 @@ typedef int (*pk_rsa_alt_sign_func)( void *ctx,
                     int mode, md_type_t md_alg, unsigned int hashlen,
                     const unsigned char *hash, unsigned char *sig );
 typedef size_t (*pk_rsa_alt_key_len_func)( void *ctx );
+#endif /* POLARSSL_PK_RSA_ALT_SUPPORT */
 
 /**
  * \brief           Return information associated with the given PK type
@@ -244,6 +246,7 @@ void pk_free( pk_context *ctx );
  */
 int pk_init_ctx( pk_context *ctx, const pk_info_t *info );
 
+#if defined(POLARSSL_PK_RSA_ALT_SUPPORT)
 /**
  * \brief           Initialize an RSA-alt context
  *
@@ -262,6 +265,7 @@ int pk_init_ctx_rsa_alt( pk_context *ctx, void * key,
                          pk_rsa_alt_decrypt_func decrypt_func,
                          pk_rsa_alt_sign_func sign_func,
                          pk_rsa_alt_key_len_func key_len_func );
+#endif /* POLARSSL_PK_RSA_ALT_SUPPORT */
 
 /**
  * \brief           Get the size in bits of the underlying key

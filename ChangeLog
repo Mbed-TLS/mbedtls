@@ -46,6 +46,9 @@ Default behavior changes
    * Support for receiving SSLv2 ClientHello is now disabled by default at
      compile time.
    * The default authmode for SSL/TLS clients is now REQUIRED.
+   * Support for RSA_ALT contexts in the PK layer is now optional. Since is is
+     enabled in the default configuration, this is only noticeable if using a
+     custom config.h
 
 Changes
    * Remove test program o_p_test, the script compat.sh does more.

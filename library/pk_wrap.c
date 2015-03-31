@@ -50,10 +50,12 @@
 #define polarssl_free       free
 #endif
 
+#if defined(POLARSSL_PK_RSA_ALT_SUPPORT)
 /* Implementation that should never be optimized out by the compiler */
 static void polarssl_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
+#endif
 
 #if defined(POLARSSL_RSA_C)
 static int rsa_can_do( pk_type_t type )
@@ -377,6 +379,7 @@ const pk_info_t ecdsa_info = {
 };
 #endif /* POLARSSL_ECDSA_C */
 
+#if defined(POLARSSL_PK_RSA_ALT_SUPPORT)
 /*
  * Support for alternative RSA-private implementations
  */
@@ -487,5 +490,7 @@ const pk_info_t rsa_alt_info = {
     rsa_alt_free_wrap,
     NULL,
 };
+
+#endif /* POLARSSL_PK_RSA_ALT_SUPPORT */
 
 #endif /* POLARSSL_PK_C */

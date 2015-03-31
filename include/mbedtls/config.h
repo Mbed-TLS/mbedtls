@@ -769,6 +769,15 @@
 //#define POLARSSL_MEMORY_BACKTRACE
 
 /**
+ * \def POLARSSL_PK_RSA_ALT_SUPPORT
+ *
+ * Support external private RSA keys (eg from a HSM) in the PK layer.
+ *
+ * Comment this macro to disable support for external private RSA keys.
+ */
+#define POLARSSL_PK_RSA_ALT_SUPPORT
+
+/**
  * \def POLARSSL_PKCS1_V15
  *
  * Enable support for PKCS#1 v1.5 encoding.

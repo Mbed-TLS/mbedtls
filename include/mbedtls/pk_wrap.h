@@ -33,6 +33,7 @@
 
 #include "pk.h"
 
+#if defined(POLARSSL_PK_RSA_ALT_SUPPORT)
 /* Container for RSA-alt */
 typedef struct
 {
@@ -41,6 +42,7 @@ typedef struct
     pk_rsa_alt_sign_func sign_func;
     pk_rsa_alt_key_len_func key_len_func;
 } rsa_alt_context;
+#endif
 
 #if defined(POLARSSL_RSA_C)
 extern const pk_info_t rsa_info;
@@ -55,6 +57,8 @@ extern const pk_info_t eckeydh_info;
 extern const pk_info_t ecdsa_info;
 #endif
 
+#if defined(POLARSSL_PK_RSA_ALT_SUPPORT)
 extern const pk_info_t rsa_alt_info;
+#endif
 
 #endif /* POLARSSL_PK_WRAP_H */

@@ -25,6 +25,7 @@ Features
      errors on use of deprecated functions.
 
 Bugfix
+   * Fix bug in Via Padlock support (found by Nikos Mavrogiannopoulos).
    * Fix thread safety bug in RSA operations (found by Fredrik Axelsson).
    * Fix hardclock() (only used in the benchmarking program) with some
      versions of mingw64 (found by kxjhlele).

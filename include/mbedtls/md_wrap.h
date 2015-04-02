@@ -44,7 +44,8 @@ extern "C" {
  * Message digest information.
  * Allows message digest functions to be called in a generic way.
  */
-struct _md_info_t {
+struct _md_info_t
+{
     /** Digest identifier */
     md_type_t type;
 

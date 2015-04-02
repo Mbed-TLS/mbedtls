@@ -434,7 +434,7 @@ ifndef WINDOWS
 		RESULT=`$(CHECK_PRELOAD) ./$${i} | grep -v 'PASS$$' | grep -v -- '----' | grep -v '^$$'`;	\
 		PASSED=`echo $$RESULT |grep PASSED`; 								\
 		echo "   $$RESULT";													\
-		if [ "$$PASSED" = "" ];											\
+		if [ "x$$PASSED" = "x" ];											\
 		then																\
 			echo "**** Failed ***************";								\
 			RETURN=1;														\

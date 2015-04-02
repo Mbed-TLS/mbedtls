@@ -25,10 +25,7 @@
 #define POLARSSL_ECDSA_H
 
 #include "ecp.h"
-
-#if defined(POLARSSL_ECDSA_DETERMINISTIC)
 #include "md.h"
-#endif
 
 /**
  * \brief           ECDSA context structure

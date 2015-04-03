@@ -76,20 +76,6 @@ static int wsa_init_done = 0;
 #include <netdb.h>
 #include <errno.h>
 
-#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) ||  \
-    defined(__DragonFly__)
-#include <sys/endian.h>
-#elif defined(__APPLE__) || defined(HAVE_MACHINE_ENDIAN_H) ||   \
-      defined(EFIX64) || defined(EFI32)
-#include <machine/endian.h>
-#elif defined(sun)
-#include <sys/isa_defs.h>
-#elif defined(_AIX) || defined(HAVE_ARPA_NAMESER_COMPAT_H)
-#include <arpa/nameser_compat.h>
-#else
-#include <endian.h>
-#endif
-
 #endif /* ( _WIN32 || _WIN32_WCE ) && !EFIX64 && !EFI32 */
 
 #include <stdlib.h>
@@ -111,6 +97,21 @@ typedef UINT32 uint32_t;
 #include <inttypes.h>
 #endif
 
+#if !defined(POLARSSL_HAVE_IPV6)
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) ||  \
+    defined(__DragonFly__)
+#include <sys/endian.h>
+#elif defined(__APPLE__) || defined(HAVE_MACHINE_ENDIAN_H) ||   \
+      defined(EFIX64) || defined(EFI32)
+#include <machine/endian.h>
+#elif defined(sun)
+#include <sys/isa_defs.h>
+#elif defined(_AIX) || defined(HAVE_ARPA_NAMESER_COMPAT_H)
+#include <arpa/nameser_compat.h>
+#else
+#include <endian.h>
+#endif
+
 /*
  * htons() is not always available.
  * By default go for LITTLE_ENDIAN variant. Otherwise hope for _BYTE_ORDER and
@@ -118,27 +119,29 @@ typedef UINT32 uint32_t;
  */
 #if defined(__BYTE_ORDER) && defined(__BIG_ENDIAN) &&                   \
     __BYTE_ORDER == __BIG_ENDIAN
-#define POLARSSL_HTONS(n) (n)
-#define POLARSSL_HTONL(n) (n)
+static unsigned short net_htons( unsigned short n ) { return( n ); }
+static unsigned long  net_htonl( unsigned long  n ) { return( n ); }
 #else
-#define POLARSSL_HTONS(n) ((((unsigned short)(n) & 0xFF      ) << 8 ) | \
-                           (((unsigned short)(n) & 0xFF00    ) >> 8 ))
-#define POLARSSL_HTONL(n) ((((unsigned long )(n) & 0xFF      ) << 24) | \
-                           (((unsigned long )(n) & 0xFF00    ) << 8 ) | \
-                           (((unsigned long )(n) & 0xFF0000  ) >> 8 ) | \
-                           (((unsigned long )(n) & 0xFF000000) >> 24))
+static unsigned short net_htons( unsigned short n )
+{
+    return( (((unsigned short) n & 0xFF      ) << 8 ) |
+            (((unsigned short) n & 0xFF00    ) >> 8 ) );
+}
+static unsigned long  net_htonl( unsigned long  n )
+{
+    return( (((unsigned long ) n & 0xFF      ) << 24) |
+            (((unsigned long ) n & 0xFF00    ) << 8 ) |
+            (((unsigned long ) n & 0xFF0000  ) >> 8 ) |
+            (((unsigned long ) n & 0xFF000000) >> 24) );
+}
 #endif
+#endif /* !POLARSSL_HAVE_IPV6 */
 
 #if defined(POLARSSL_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #define polarssl_snprintf snprintf
 #endif
-
-unsigned short net_htons( unsigned short n );
-unsigned long  net_htonl( unsigned long  n );
-#define net_htons(n) POLARSSL_HTONS(n)
-#define net_htonl(n) POLARSSL_HTONL(n)
 
 /*
  * Prepare for using the sockets interface

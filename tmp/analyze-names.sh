@@ -34,7 +34,7 @@ wc -l public-names
 NL='
 '
 sed -n 's/POLARSSL_[A-Z0-9_]*/\'"$NL"'&\'"$NL"/gp \
-    include/mbedtls/*.h tests/scripts/* scripts/* library/*.c \
+    include/mbedtls/*.h tests/scripts/* scripts/* library/*.c configs/*.h \
     | grep POLARSSL | sort -u > _POLARSSL_XXX
 diff public-names _POLARSSL_XXX | sed -n 's/^> //p' > extra-names
 rm _POLARSSL_XXX

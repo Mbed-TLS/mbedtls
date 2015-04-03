@@ -42,7 +42,7 @@ my %warnings;
 while( my $filename = shift )
 {
     print STDERR "$filename... ";
-    if( -d $filename ) { print STDERR "skip (directory)"; next }
+    if( -d $filename ) { print STDERR "skip (directory)\n"; next }
 
     open my $rfh, '<', $filename or die;
     my @lines = <$rfh>;

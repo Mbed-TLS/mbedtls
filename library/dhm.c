@@ -444,8 +444,9 @@ int dhm_parse_dhm( dhm_context *dhm, const unsigned char *dhmin,
 
     /*
      *  DHParams ::= SEQUENCE {
-     *      prime            INTEGER,  -- P
-     *      generator        INTEGER,  -- g
+     *      prime              INTEGER,  -- P
+     *      generator          INTEGER,  -- g
+     *      privateValueLength INTEGER OPTIONAL
      *  }
      */
     if( ( ret = asn1_get_tag( &p, end, &len,
@@ -466,9 +467,23 @@ int dhm_parse_dhm( dhm_context *dhm, const unsigned char *dhmin,
 
     if( p != end )
     {
-        ret = POLARSSL_ERR_DHM_INVALID_FORMAT +
-              POLARSSL_ERR_ASN1_LENGTH_MISMATCH;
-        goto exit;
+        /* this might be the optional privateValueLength; If so, we
+         can cleanly discard it; */
+        mpi rec;
+        mpi_init( &rec );
+        ret = asn1_get_mpi( &p, end, &rec );
+        mpi_free( &rec );
+        if ( ret != 0 )
+        {
+            ret = POLARSSL_ERR_DHM_INVALID_FORMAT + ret;
+            goto exit;
+        }
+        if ( p != end )
+        {
+            ret = POLARSSL_ERR_DHM_INVALID_FORMAT +
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH;
+            goto exit;
+        }
     }
 
     ret = 0;

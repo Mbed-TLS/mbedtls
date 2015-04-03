@@ -1,7 +1,7 @@
 /* BEGIN_HEADER */
 #include "mbedtls/ecp.h"
 
-#define POLARSSL_ECP_PF_UNKNOWN     -1
+#define ECP_PF_UNKNOWN     -1
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

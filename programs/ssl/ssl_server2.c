@@ -37,7 +37,7 @@
 #endif
 
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION) && defined(POLARSSL_FS_IO)
-#define POLARSSL_SNI
+#define SNI_OPTION
 #endif
 
 #if defined(_WIN32)
@@ -195,13 +195,13 @@
 #define USAGE_CACHE ""
 #endif /* POLARSSL_SSL_CACHE_C */
 
-#if defined(POLARSSL_SNI)
+#if defined(SNI_OPTION)
 #define USAGE_SNI                                                           \
     "    sni=%%s              name1,cert1,key1[,name2,cert2,key2[,...]]\n"  \
     "                         default: disabled\n"
 #else
 #define USAGE_SNI ""
-#endif /* POLARSSL_SNI */
+#endif /* SNI_OPTION */
 
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
 #define USAGE_MAX_FRAG_LEN                                      \
@@ -445,7 +445,7 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
             goto error;         \
     *p++ = '\0';
 
-#if defined(POLARSSL_SNI)
+#if defined(SNI_OPTION)
 typedef struct _sni_entry sni_entry;
 
 struct _sni_entry {
@@ -556,7 +556,7 @@ int sni_callback( void *p_info, ssl_context *ssl,
     return( -1 );
 }
 
-#endif /* POLARSSL_SNI */
+#endif /* SNI_OPTION */
 
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
 
@@ -739,7 +739,7 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_context cache;
 #endif
-#if defined(POLARSSL_SNI)
+#if defined(SNI_OPTION)
     sni_entry *sni_info = NULL;
 #endif
 #if defined(POLARSSL_SSL_ALPN)
@@ -1476,7 +1476,7 @@ int main( int argc, char *argv[] )
     }
 #endif
 
-#if defined(POLARSSL_SNI)
+#if defined(SNI_OPTION)
     if( opt.sni != NULL )
     {
         polarssl_printf( "  . Setting up SNI information..." );
@@ -1490,7 +1490,7 @@ int main( int argc, char *argv[] )
 
         polarssl_printf( " ok\n" );
     }
-#endif /* POLARSSL_SNI */
+#endif /* SNI_OPTION */
 
     /*
      * 2. Setup the listening TCP socket
@@ -1693,7 +1693,7 @@ int main( int argc, char *argv[] )
         }
 #endif
 
-#if defined(POLARSSL_SNI)
+#if defined(SNI_OPTION)
     if( opt.sni != NULL )
         ssl_set_sni( &ssl, sni_callback, sni_info );
 #endif
@@ -2201,7 +2201,7 @@ exit:
     x509_crt_free( &srvcert2 );
     pk_free( &pkey2 );
 #endif
-#if defined(POLARSSL_SNI)
+#if defined(SNI_OPTION)
     sni_free( sni_info );
 #endif
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)

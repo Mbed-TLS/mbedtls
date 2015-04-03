@@ -50,6 +50,13 @@ while( my $filename = shift )
 
     my @out;
     for my $line (@lines) {
+        if( $line =~ /#include/ ) {
+            $line =~ s/polarssl/mbedtls/;
+            $line =~ s/POLARSSL/MBEDTLS/;
+            push( @out, $line );
+            next;
+        }
+
         my @words = ($line =~ /$token/g);
         my $checkline = join '', @words;
         if( $checkline eq $line ) {

@@ -1479,7 +1479,7 @@ static int ssl_check_server_ecdh_params( const ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "ECDH curve: %s", curve_info->name ) );
 
-#if defined(POLARSSL_SSL_ECP_SET_CURVES)
+#if defined(POLARSSL_SSL_SET_CURVES)
     if( ! ssl_curve_is_acceptable( ssl, ssl->handshake->ecdh_ctx.grp.id ) )
 #else
     if( ssl->handshake->ecdh_ctx.grp.nbits < 163 ||

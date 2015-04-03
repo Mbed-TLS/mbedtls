@@ -39,6 +39,8 @@ Bugfix
    * Add missing extern "C" guard in aesni.h (reported by amir zamani).
    * Add missing dependency on SHA-256 in some x509 programs (reported by
      Gergely Budai).
+   * Fix bug related to ssl_set_curves(): the client didn't check that the
+     curve picked by the server was actually allowed.
 
 Changes
    * Adjusting/overriding CFLAGS and LDFLAGS with the make build syste is now

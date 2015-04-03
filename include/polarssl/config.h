@@ -266,9 +266,17 @@
  * Store the AES tables in ROM.
  *
  * Uncomment this macro to store the AES tables in ROM.
- *
  */
 //#define POLARSSL_AES_ROM_TABLES
+
+/**
+ * \def POLARSSL_CAMELLIA_SMALL_MEMORY
+ *
+ * Use less ROM for the Camellia implementation (saves about 768 bytes).
+ *
+ * Uncomment this macro to use less memory for Camellia.
+ */
+//#define POLARSSL_CAMELLIA_SMALL_MEMORY
 
 /**
  * \def POLARSSL_CIPHER_MODE_CBC

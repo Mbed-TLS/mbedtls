@@ -9,7 +9,13 @@ use open qw(:std utf8);
 # apply substitutions from the table in the first arg to files
 #   expected usage: via invoke-rename.pl
 
-die "Usage: $0 names-file [filenames...]\n" if( @ARGV < 1 or ! -r $ARGV[0] );
+my $do_strings = 0;
+if( $ARGV[0] eq "-s" ) {
+    shift;
+    $do_strings = 1;
+}
+
+die "Usage: $0 [-s] names-file [filenames...]\n" if( @ARGV < 1 or ! -r $ARGV[0] );
 
 open my $nfh, '<', shift or die;
 my @names = <$nfh>;
@@ -27,6 +33,10 @@ my $space = qr/\s+/;
 my $idnum = qr/[a-zA-Z0-9_]+/;
 my $symbols = qr/[!#%&'()*+,-.:;<=>?@^_`{|}~\$\/\[\\\]]+|"/;
 
+# if we replace inside strings, we don't consider them a token
+my $token = $do_strings ?         qr/$space|$idnum|$symbols/
+                        : qr/$string|$space|$idnum|$symbols/;
+
 my %warnings;
 
 while( my $filename = shift )
@@ -40,7 +50,7 @@ while( my $filename = shift )
 
     my @out;
     for my $line (@lines) {
-        my @words = ($line =~ /$string|$space|$idnum|$symbols/g);
+        my @words = ($line =~ /$token/g);
         my $checkline = join '', @words;
         if( $checkline eq $line ) {
             my @new = map { exists $subst{$_} ? $subst{$_} : $_ } @words;

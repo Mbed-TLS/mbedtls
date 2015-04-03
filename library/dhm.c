@@ -278,7 +278,7 @@ cleanup:
 /*
  * Use the blinding method and optimisation suggested in section 10 of:
  *  KOCHER, Paul C. Timing attacks on implementations of Diffie-Hellman, RSA,
- *  DSS, and other systems. In : Advances in Cryptology—CRYPTO’96. Springer
+ *  DSS, and other systems. In : Advances in Cryptology-CRYPTO'96. Springer
  *  Berlin Heidelberg, 1996. p. 104-113.
  */
 static int dhm_update_blinding( dhm_context *ctx,

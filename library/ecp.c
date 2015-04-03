@@ -30,12 +30,12 @@
  *
  * [M255] http://cr.yp.to/ecdh/curve25519-20060209.pdf
  *
- * [2] CORON, Jean-Sébastien. Resistance against differential power analysis
+ * [2] CORON, Jean-S'ebastien. Resistance against differential power analysis
  *     for elliptic curve cryptosystems. In : Cryptographic Hardware and
  *     Embedded Systems. Springer Berlin Heidelberg, 1999. p. 292-302.
  *     <http://link.springer.com/chapter/10.1007/3-540-48059-5_25>
  *
- * [3] HEDABOU, Mustapha, PINEL, Pierre, et BÉNÉTEAU, Lucien. A comb method to
+ * [3] HEDABOU, Mustapha, PINEL, Pierre, et B'EN'ETEAU, Lucien. A comb method to
  *     render ECC resistant against Side Channel Attacks. IACR Cryptology
  *     ePrint Archive, 2004, vol. 2004, p. 342.
  *     <http://eprint.iacr.org/2004/342.pdf>

@@ -141,7 +141,7 @@ int platform_set_fprintf( int (*fprintf_func)( FILE *, const char *, ... ) )
 #endif /* POLARSSL_PLATFORM_FPRINTF_ALT */
 
 #if defined(POLARSSL_PLATFORM_EXIT_ALT)
-#if !defined(POLARSSL_STD_EXIT)
+#if !defined(POLARSSL_PLATFORM_STD_EXIT)
 /*
  * Make dummy function to prevent NULL pointer dereferences
  */
@@ -151,10 +151,10 @@ static void platform_exit_uninit( int status )
     return( 0 );
 }
 
-#define POLARSSL_STD_EXIT   platform_exit_uninit
-#endif /* !POLARSSL_STD_EXIT */
+#define POLARSSL_PLATFORM_STD_EXIT   platform_exit_uninit
+#endif /* !POLARSSL_PLATFORM_STD_EXIT */
 
-int (*polarssl_exit)( int status ) = POLARSSL_STD_EXIT;
+int (*polarssl_exit)( int status ) = POLARSSL_PLATFORM_STD_EXIT;
 
 int platform_set_exit( void (*exit_func)( int status ) )
 {

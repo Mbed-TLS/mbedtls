@@ -30,11 +30,6 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
-/* Temporary compability hack for to keep MEMORY_C working */
-#if defined(POLARSSL_MEMORY_C) && !defined(POLARSSL_PLATFORM_MEMORY)
-#define POLARSSL_PLATFORM_MEMORY
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif

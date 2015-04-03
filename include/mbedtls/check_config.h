@@ -157,10 +157,6 @@
 #error "POLARSSL_KEY_EXCHANGE_RSA_ENABLED defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_MEMORY_C) && !defined(POLARSSL_PLATFORM_C)
-#error "POLARSSL_MEMORY_C defined, but not all prerequisites"
-#endif
-
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C) &&                          \
     ( !defined(POLARSSL_PLATFORM_C) || !defined(POLARSSL_PLATFORM_MEMORY) )
 #error "POLARSSL_MEMORY_BUFFER_ALLOC_C defined, but not all prerequisites"
@@ -168,10 +164,6 @@
 
 #if defined(POLARSSL_PADLOCK_C) && !defined(POLARSSL_HAVE_ASM)
 #error "POLARSSL_PADLOCK_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_PBKDF2_C) && !defined(POLARSSL_MD_C)
-#error "POLARSSL_PBKDF2_C defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_PEM_PARSE_C) && !defined(POLARSSL_BASE64_C)

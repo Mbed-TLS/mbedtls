@@ -2037,8 +2037,8 @@ const char *ssl_get_version( const ssl_context *ssl );
  * \param ssl      SSL context
  *
  * \return         Current maximum record expansion in bytes, or
- *                 POLARSSL_ERR_FEATURE_UNAVAILABLE if compression is enabled,
- *                 which makes expansion much less predictable
+ *                 POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE if compression is
+ *                 enabled, which makes expansion much less predictable
  */
 int ssl_get_record_expansion( const ssl_context *ssl );
 

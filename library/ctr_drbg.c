@@ -170,7 +170,7 @@ static int block_cipher_df( unsigned char *output,
     aes_setkey_enc( &aes_ctx, key, CTR_DRBG_KEYBITS );
 
     /*
-     * Reduce data to POLARSSL_CTR_DRBG_SEEDLEN bytes of data
+     * Reduce data to CTR_DRBG_SEEDLEN bytes of data
      */
     for( j = 0; j < CTR_DRBG_SEEDLEN; j += CTR_DRBG_BLOCKSIZE )
     {

@@ -39,7 +39,7 @@
 int main( void )
 {
     polarssl_printf( "POLARSSL_X509_CSR_WRITE_C and/or POLARSSL_FS_IO and/or "
-            "POLARSSL_PK_PARSE_C and/or POLARSSL_SHA256_c and/or "
+            "POLARSSL_PK_PARSE_C and/or POLARSSL_SHA256_C and/or "
             "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C "
             "not defined.\n");
     return( 0 );

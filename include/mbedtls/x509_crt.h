@@ -227,7 +227,7 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
  * \param f_vrfy   verification function
  * \param p_vrfy   verification parameter
  *
- * \return         0 if successful or POLARSSL_ERR_X509_SIG_VERIFY_FAILED,
+ * \return         0 if successful or POLARSSL_ERR_X509_CERT_VERIFY_FAILED
  *                 in which case *flags will have one or more of
  *                 the following values set:
  *                      BADCERT_EXPIRED --
@@ -424,7 +424,7 @@ void x509write_crt_set_md_alg( x509write_cert *ctx, md_type_t md_alg );
  * \param val       value of the extension OCTET STRING
  * \param val_len   length of the value data
  *
- * \return          0 if successful, or a POLARSSL_ERR_X509WRITE_MALLOC_FAILED
+ * \return          0 if successful, or a POLARSSL_ERR_X509_MALLOC_FAILED
  */
 int x509write_crt_set_extension( x509write_cert *ctx,
                                  const char *oid, size_t oid_len,
@@ -440,7 +440,7 @@ int x509write_crt_set_extension( x509write_cert *ctx,
  *                      certificate (only for CA certificates, -1 is
  *                      inlimited)
  *
- * \return          0 if successful, or a POLARSSL_ERR_X509WRITE_MALLOC_FAILED
+ * \return          0 if successful, or a POLARSSL_ERR_X509_MALLOC_FAILED
  */
 int x509write_crt_set_basic_constraints( x509write_cert *ctx,
                                          int is_ca, int max_pathlen );
@@ -453,7 +453,7 @@ int x509write_crt_set_basic_constraints( x509write_cert *ctx,
  *
  * \param ctx       CRT context to use
  *
- * \return          0 if successful, or a POLARSSL_ERR_X509WRITE_MALLOC_FAILED
+ * \return          0 if successful, or a POLARSSL_ERR_X509_MALLOC_FAILED
  */
 int x509write_crt_set_subject_key_identifier( x509write_cert *ctx );
 
@@ -464,7 +464,7 @@ int x509write_crt_set_subject_key_identifier( x509write_cert *ctx );
  *
  * \param ctx       CRT context to use
  *
- * \return          0 if successful, or a POLARSSL_ERR_X509WRITE_MALLOC_FAILED
+ * \return          0 if successful, or a POLARSSL_ERR_X509_MALLOC_FAILED
  */
 int x509write_crt_set_authority_key_identifier( x509write_cert *ctx );
 #endif /* POLARSSL_SHA1_C */
@@ -476,7 +476,7 @@ int x509write_crt_set_authority_key_identifier( x509write_cert *ctx );
  * \param ctx       CRT context to use
  * \param key_usage key usage flags to set
  *
- * \return          0 if successful, or POLARSSL_ERR_X509WRITE_MALLOC_FAILED
+ * \return          0 if successful, or POLARSSL_ERR_X509_MALLOC_FAILED
  */
 int x509write_crt_set_key_usage( x509write_cert *ctx, unsigned char key_usage );
 
@@ -487,7 +487,7 @@ int x509write_crt_set_key_usage( x509write_cert *ctx, unsigned char key_usage );
  * \param ctx           CRT context to use
  * \param ns_cert_type  Netscape Cert Type flags to set
  *
- * \return          0 if successful, or POLARSSL_ERR_X509WRITE_MALLOC_FAILED
+ * \return          0 if successful, or POLARSSL_ERR_X509_MALLOC_FAILED
  */
 int x509write_crt_set_ns_cert_type( x509write_cert *ctx,
                                     unsigned char ns_cert_type );

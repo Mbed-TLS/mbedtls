@@ -404,4 +404,4 @@ exit:
 
     return( ret );
 }
-#endif /* POLARSSL_X509_WRITE_C && POLARSSL_FS_IO */
+#endif /* POLARSSL_PK_WRITE_C && POLARSSL_FS_IO */

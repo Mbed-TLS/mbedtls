@@ -61,7 +61,7 @@ int main( void )
     polarssl_printf("POLARSSL_AES_C and/or POLARSSL_DHM_C and/or POLARSSL_ENTROPY_C "
            "and/or POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
            "POLARSSL_SHA256_C and/or POLARSSL_FS_IO and/or "
-           "POLARSSL_CTR_DBRG_C not defined.\n");
+           "POLARSSL_CTR_DRBG_C not defined.\n");
     return( 0 );
 }
 #else

@@ -1098,7 +1098,7 @@ int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex )
         p += 48;
     }
     else
-#endif /* POLARSSL_KEY_EXCHANGE_RSA_PKS_ENABLED */
+#endif /* POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED */
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED)
     if( key_ex == POLARSSL_KEY_EXCHANGE_DHE_PSK )
     {

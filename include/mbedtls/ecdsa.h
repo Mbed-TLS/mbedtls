@@ -138,8 +138,8 @@ int ecdsa_verify( ecp_group *grp,
  *                  curve is used). POLARSSL_ECDSA_MAX_LEN is always safe.
  *
  * \return          0 if successful,
- *                  or a POLARSSL_ERR_ECP, POLARSSL_ERR_MPI or
- *                  POLARSSL_ERR_ASN1 error code
+ *                  or a POLARSSL_ERR_ECP_XXX, POLARSSL_ERR_MPI_XXX or
+ *                  POLARSSL_ERR_ASN1_XXX error code
  */
 int ecdsa_write_signature( ecdsa_context *ctx, md_type_t md_alg,
                            const unsigned char *hash, size_t hlen,
@@ -174,8 +174,8 @@ int ecdsa_write_signature( ecdsa_context *ctx, md_type_t md_alg,
  *                  curve is used). POLARSSL_ECDSA_MAX_LEN is always safe.
  *
  * \return          0 if successful,
- *                  or a POLARSSL_ERR_ECP, POLARSSL_ERR_MPI or
- *                  POLARSSL_ERR_ASN1 error code
+ *                  or a POLARSSL_ERR_ECP_XXX, POLARSSL_ERR_MPI_XXX or
+ *                  POLARSSL_ERR_ASN1_XXX error code
  */
 int ecdsa_write_signature_det( ecdsa_context *ctx,
                                const unsigned char *hash, size_t hlen,
@@ -196,9 +196,9 @@ int ecdsa_write_signature_det( ecdsa_context *ctx,
  *
  * \return          0 if successful,
  *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA if signature is invalid,
- *                  POLARSSL_ERR_ECP_SIG_LEN_MISTMATCH if the signature is
+ *                  POLARSSL_ERR_ECP_SIG_LEN_MISMATCH if the signature is
  *                  valid but its actual length is less than siglen,
- *                  or a POLARSSL_ERR_ECP or POLARSSL_ERR_MPI error code
+ *                  or a POLARSSL_ERR_ECP_XXX or POLARSSL_ERR_MPI_XXX error code
  */
 int ecdsa_read_signature( ecdsa_context *ctx,
                           const unsigned char *hash, size_t hlen,
@@ -213,7 +213,7 @@ int ecdsa_read_signature( ecdsa_context *ctx,
  * \param f_rng     RNG function
  * \param p_rng     RNG parameter
  *
- * \return          0 on success, or a POLARSSL_ERR_ECP code.
+ * \return          0 on success, or a POLARSSL_ERR_ECP_XXX code.
  */
 int ecdsa_genkey( ecdsa_context *ctx, ecp_group_id gid,
                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
@@ -224,7 +224,7 @@ int ecdsa_genkey( ecdsa_context *ctx, ecp_group_id gid,
  * \param ctx       ECDSA context to set
  * \param key       EC key to use
  *
- * \return          0 on success, or a POLARSSL_ERR_ECP code.
+ * \return          0 on success, or a POLARSSL_ERR_ECP_XXX code.
  */
 int ecdsa_from_keypair( ecdsa_context *ctx, const ecp_keypair *key );
 

@@ -396,7 +396,7 @@ typedef struct {
  * \param oid       OID to translate
  *
  * \return          Length of the string written (excluding final NULL) or
- *                  POLARSSL_ERR_OID_BUF_TO_SMALL in case of error
+ *                  POLARSSL_ERR_OID_BUF_TOO_SMALL in case of error
  */
 int oid_get_numeric_string( char *buf, size_t size, const asn1_buf *oid );
 

@@ -58,7 +58,7 @@ extern "C" {
  * \param len        data length
  * \param output     the output buffer
  *
- * \return           0 if successful, or a POLARSSL_ERR_xxx code
+ * \return           0 if successful, or a POLARSSL_ERR_XXX code
  */
 int pkcs12_pbe_sha1_rc4_128( asn1_buf *pbe_params, int mode,
                              const unsigned char *pwd,  size_t pwdlen,
@@ -79,7 +79,7 @@ int pkcs12_pbe_sha1_rc4_128( asn1_buf *pbe_params, int mode,
  * \param len        data length
  * \param output     the output buffer
  *
- * \return           0 if successful, or a POLARSSL_ERR_xxx code
+ * \return           0 if successful, or a POLARSSL_ERR_XXX code
  */
 int pkcs12_pbe( asn1_buf *pbe_params, int mode,
                 cipher_type_t cipher_type, md_type_t md_type,

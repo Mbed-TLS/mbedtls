@@ -254,8 +254,8 @@ int md( const md_info_t *md_info, const unsigned char *input, size_t ilen,
  * \param path     input file name
  * \param output   generic message digest checksum result
  *
- * \return         0 if successful, POLARSSL_ERR_MD_FILE_OPEN_FAILED if fopen
- *                 failed, POLARSSL_ERR_MD_FILE_READ_FAILED if fread failed,
+ * \return         0 if successful,
+ *                 POLARSSL_ERR_MD_FILE_IO_ERROR if file input failed,
  *                 POLARSSL_ERR_MD_BAD_INPUT_DATA if md_info was NULL.
  */
 int md_file( const md_info_t *md_info, const char *path,

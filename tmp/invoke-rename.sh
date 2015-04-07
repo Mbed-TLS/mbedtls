@@ -8,11 +8,11 @@ set -eu
 tmp/analyze-names.sh
 tmp/makelist.pl public-names extra-names > old2new
 
-tmp/rename.pl    old2new library/*.c tests/suites/* tests/ssl-opt.sh \
+tmp/rename.pl    old2new library/*.c tests/suites/* \
                  configs/* scripts/data_files/*.fmt
 tmp/rename.pl -s old2new library/error.c library/version_features.c \
                  library/memory_buffer_alloc.c include/mbedtls/*.h \
-                 library/ecp.c \
+                 library/ecp.c library/ssl_???.c tests/ssl-opt.sh \
                  programs/*.c programs/*/*.c scripts/* tests/scripts/*
 
 for i in scripts/generate_errors.pl scripts/memory.sh tests/compat.sh \
@@ -22,6 +22,9 @@ do
     mv $i.tmp $i
 done
 chmod +x scripts/generate_errors.pl scripts/memory.sh tests/compat.sh
+
+sed -e 's/server5-mbedtls_sha1/server5-sha1/' -i.tmp tests/ssl-opt.sh
+rm -f tests/ssl-opt.sh.tmp
 
 echo; echo 'Done. Remaining polarssl occurences:'
 rm -f enum-consts exported-symbols extra-names identifiers macros old2new \

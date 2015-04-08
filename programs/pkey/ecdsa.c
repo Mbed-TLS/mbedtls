@@ -20,21 +20,21 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define polarssl_printf     printf
+#define mbedtls_printf     printf
 #endif
 
-#if defined(POLARSSL_ECDSA_C) && \
-    defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_CTR_DRBG_C)
+#if defined(MBEDTLS_ECDSA_C) && \
+    defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_CTR_DRBG_C)
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/ecdsa.h"
@@ -50,18 +50,18 @@
 /*
  * Uncomment to force use of a specific curve
  */
-#define ECPARAMS    POLARSSL_ECP_DP_SECP192R1
+#define ECPARAMS    MBEDTLS_ECP_DP_SECP192R1
 
 #if !defined(ECPARAMS)
-#define ECPARAMS    ecp_curve_list()->grp_id
+#define ECPARAMS    mbedtls_ecp_curve_list()->grp_id
 #endif
 
-#if !defined(POLARSSL_ECDSA_C) || !defined(POLARSSL_SHA256_C) || \
-    !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C)
+#if !defined(MBEDTLS_ECDSA_C) || !defined(MBEDTLS_SHA256_C) || \
+    !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C)
 int main( void )
 {
-    polarssl_printf("POLARSSL_ECDSA_C and/or POLARSSL_SHA256_C and/or "
-           "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C not defined\n");
+    mbedtls_printf("MBEDTLS_ECDSA_C and/or MBEDTLS_SHA256_C and/or "
+           "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C not defined\n");
     return( 0 );
 }
 #else
@@ -70,22 +70,22 @@ static void dump_buf( const char *title, unsigned char *buf, size_t len )
 {
     size_t i;
 
-    polarssl_printf( "%s", title );
+    mbedtls_printf( "%s", title );
     for( i = 0; i < len; i++ )
-        polarssl_printf("%c%c", "0123456789ABCDEF" [buf[i] / 16],
+        mbedtls_printf("%c%c", "0123456789ABCDEF" [buf[i] / 16],
                        "0123456789ABCDEF" [buf[i] % 16] );
-    polarssl_printf( "\n" );
+    mbedtls_printf( "\n" );
 }
 
-static void dump_pubkey( const char *title, ecdsa_context *key )
+static void dump_pubkey( const char *title, mbedtls_ecdsa_context *key )
 {
     unsigned char buf[300];
     size_t len;
 
-    if( ecp_point_write_binary( &key->grp, &key->Q,
-                POLARSSL_ECP_PF_UNCOMPRESSED, &len, buf, sizeof buf ) != 0 )
+    if( mbedtls_ecp_point_write_binary( &key->grp, &key->Q,
+                MBEDTLS_ECP_PF_UNCOMPRESSED, &len, buf, sizeof buf ) != 0 )
     {
-        polarssl_printf("internal error\n");
+        mbedtls_printf("internal error\n");
         return;
     }
 
@@ -99,27 +99,27 @@ static void dump_pubkey( const char *title, ecdsa_context *key )
 int main( int argc, char *argv[] )
 {
     int ret;
-    ecdsa_context ctx_sign, ctx_verify;
-    entropy_context entropy;
-    ctr_drbg_context ctr_drbg;
+    mbedtls_ecdsa_context ctx_sign, ctx_verify;
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
     unsigned char hash[] = "This should be the hash of a message.";
     unsigned char sig[512];
     size_t sig_len;
     const char *pers = "ecdsa";
     ((void) argv);
 
-    ecdsa_init( &ctx_sign );
-    ecdsa_init( &ctx_verify );
+    mbedtls_ecdsa_init( &ctx_sign );
+    mbedtls_ecdsa_init( &ctx_verify );
 
     memset(sig, 0, sizeof( sig ) );
     ret = 1;
 
     if( argc != 1 )
     {
-        polarssl_printf( "usage: ecdsa\n" );
+        mbedtls_printf( "usage: ecdsa\n" );
 
 #if defined(_WIN32)
-        polarssl_printf( "\n" );
+        mbedtls_printf( "\n" );
 #endif
 
         goto exit;
@@ -128,47 +128,47 @@ int main( int argc, char *argv[] )
     /*
      * Generate a key pair for signing
      */
-    polarssl_printf( "\n  . Seeding the random number generator..." );
+    mbedtls_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
-    entropy_init( &entropy );
-    if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
+    mbedtls_entropy_init( &entropy );
+    if( ( ret = mbedtls_ctr_drbg_init( &ctr_drbg, mbedtls_entropy_func, &entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        polarssl_printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_init returned %d\n", ret );
         goto exit;
     }
 
-    polarssl_printf( " ok\n  . Generating key pair..." );
+    mbedtls_printf( " ok\n  . Generating key pair..." );
     fflush( stdout );
 
-    if( ( ret = ecdsa_genkey( &ctx_sign, ECPARAMS,
-                              ctr_drbg_random, &ctr_drbg ) ) != 0 )
+    if( ( ret = mbedtls_ecdsa_genkey( &ctx_sign, ECPARAMS,
+                              mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
-        polarssl_printf( " failed\n  ! ecdsa_genkey returned %d\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ecdsa_genkey returned %d\n", ret );
         goto exit;
     }
 
-    polarssl_printf( " ok (key size: %d bits)\n", (int) ctx_sign.grp.pbits );
+    mbedtls_printf( " ok (key size: %d bits)\n", (int) ctx_sign.grp.pbits );
 
     dump_pubkey( "  + Public key: ", &ctx_sign );
 
     /*
      * Sign some message hash
      */
-    polarssl_printf( "  . Signing message..." );
+    mbedtls_printf( "  . Signing message..." );
     fflush( stdout );
 
-    if( ( ret = ecdsa_write_signature( &ctx_sign, POLARSSL_MD_SHA256,
+    if( ( ret = mbedtls_ecdsa_write_signature( &ctx_sign, MBEDTLS_MD_SHA256,
                                        hash, sizeof( hash ),
                                        sig, &sig_len,
-                                       ctr_drbg_random, &ctr_drbg ) ) != 0 )
+                                       mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
-        polarssl_printf( " failed\n  ! ecdsa_genkey returned %d\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ecdsa_genkey returned %d\n", ret );
         goto exit;
     }
-    polarssl_printf( " ok (signature length = %u)\n", (unsigned int) sig_len );
+    mbedtls_printf( " ok (signature length = %u)\n", (unsigned int) sig_len );
 
     dump_buf( "  + Hash: ", hash, sizeof hash );
     dump_buf( "  + Signature: ", sig, sig_len );
@@ -180,18 +180,18 @@ int main( int argc, char *argv[] )
      * chose to use a new one in order to make it clear that the verifying
      * context only needs the public key (Q), and not the private key (d).
      */
-    polarssl_printf( "  . Preparing verification context..." );
+    mbedtls_printf( "  . Preparing verification context..." );
     fflush( stdout );
 
-    if( ( ret = ecp_group_copy( &ctx_verify.grp, &ctx_sign.grp ) ) != 0 )
+    if( ( ret = mbedtls_ecp_group_copy( &ctx_verify.grp, &ctx_sign.grp ) ) != 0 )
     {
-        polarssl_printf( " failed\n  ! ecp_group_copy returned %d\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ecp_group_copy returned %d\n", ret );
         goto exit;
     }
 
-    if( ( ret = ecp_copy( &ctx_verify.Q, &ctx_sign.Q ) ) != 0 )
+    if( ( ret = mbedtls_ecp_copy( &ctx_verify.Q, &ctx_sign.Q ) ) != 0 )
     {
-        polarssl_printf( " failed\n  ! ecp_copy returned %d\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ecp_copy returned %d\n", ret );
         goto exit;
     }
 
@@ -200,32 +200,32 @@ int main( int argc, char *argv[] )
     /*
      * Verify signature
      */
-    polarssl_printf( " ok\n  . Verifying signature..." );
+    mbedtls_printf( " ok\n  . Verifying signature..." );
     fflush( stdout );
 
-    if( ( ret = ecdsa_read_signature( &ctx_verify,
+    if( ( ret = mbedtls_ecdsa_read_signature( &ctx_verify,
                                       hash, sizeof( hash ),
                                       sig, sig_len ) ) != 0 )
     {
-        polarssl_printf( " failed\n  ! ecdsa_read_signature returned %d\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ecdsa_read_signature returned %d\n", ret );
         goto exit;
     }
 
-    polarssl_printf( " ok\n" );
+    mbedtls_printf( " ok\n" );
 
 exit:
 
 #if defined(_WIN32)
-    polarssl_printf( "  + Press Enter to exit this program.\n" );
+    mbedtls_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 
-    ecdsa_free( &ctx_verify );
-    ecdsa_free( &ctx_sign );
-    ctr_drbg_free( &ctr_drbg );
-    entropy_free( &entropy );
+    mbedtls_ecdsa_free( &ctx_verify );
+    mbedtls_ecdsa_free( &ctx_sign );
+    mbedtls_ctr_drbg_free( &ctr_drbg );
+    mbedtls_entropy_free( &entropy );
 
     return( ret );
 }
-#endif /* POLARSSL_ECDSA_C && POLARSSL_ENTROPY_C && POLARSSL_CTR_DRBG_C &&
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C &&
           ECPARAMS */

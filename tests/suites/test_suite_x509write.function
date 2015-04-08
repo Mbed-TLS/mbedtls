@@ -6,16 +6,16 @@
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:POLARSSL_BIGNUM_C:POLARSSL_FS_IO:POLARSSL_PK_PARSE_C
+ * depends_on:MBEDTLS_BIGNUM_C:MBEDTLS_FS_IO:MBEDTLS_PK_PARSE_C
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:POLARSSL_PEM_WRITE_C:POLARSSL_X509_CSR_WRITE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_PEM_WRITE_C:MBEDTLS_X509_CSR_WRITE_C */
 void x509_csr_check( char *key_file, char *cert_req_check_file,
                      int md_type, int key_usage, int cert_type )
 {
-    pk_context key;
-    x509write_csr req;
+    mbedtls_pk_context key;
+    mbedtls_x509write_csr req;
     unsigned char buf[4000];
     unsigned char check_buf[4000];
     int ret;
@@ -26,19 +26,19 @@ void x509_csr_check( char *key_file, char *cert_req_check_file,
 
     memset( &rnd_info, 0x2a, sizeof( rnd_pseudo_info ) );
 
-    pk_init( &key );
-    TEST_ASSERT( pk_parse_keyfile( &key, key_file, NULL ) == 0 );
+    mbedtls_pk_init( &key );
+    TEST_ASSERT( mbedtls_pk_parse_keyfile( &key, key_file, NULL ) == 0 );
 
-    x509write_csr_init( &req );
-    x509write_csr_set_md_alg( &req, md_type );
-    x509write_csr_set_key( &req, &key );
-    TEST_ASSERT( x509write_csr_set_subject_name( &req, subject_name ) == 0 );
+    mbedtls_x509write_csr_init( &req );
+    mbedtls_x509write_csr_set_md_alg( &req, md_type );
+    mbedtls_x509write_csr_set_key( &req, &key );
+    TEST_ASSERT( mbedtls_x509write_csr_set_subject_name( &req, subject_name ) == 0 );
     if( key_usage != 0 )
-        TEST_ASSERT( x509write_csr_set_key_usage( &req, key_usage ) == 0 );
+        TEST_ASSERT( mbedtls_x509write_csr_set_key_usage( &req, key_usage ) == 0 );
     if( cert_type != 0 )
-        TEST_ASSERT( x509write_csr_set_ns_cert_type( &req, cert_type ) == 0 );
+        TEST_ASSERT( mbedtls_x509write_csr_set_ns_cert_type( &req, cert_type ) == 0 );
 
-    ret = x509write_csr_pem( &req, buf, sizeof(buf),
+    ret = mbedtls_x509write_csr_pem( &req, buf, sizeof(buf),
                              rnd_pseudo_rand, &rnd_info );
     TEST_ASSERT( ret == 0 );
 
@@ -53,12 +53,12 @@ void x509_csr_check( char *key_file, char *cert_req_check_file,
     TEST_ASSERT( memcmp( buf, check_buf, pem_len - 1 ) == 0 );
 
 exit:
-    x509write_csr_free( &req );
-    pk_free( &key );
+    mbedtls_x509write_csr_free( &req );
+    mbedtls_pk_free( &key );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_PEM_WRITE_C:POLARSSL_X509_CRT_WRITE_C:POLARSSL_SHA1_C */
+/* BEGIN_CASE depends_on:MBEDTLS_PEM_WRITE_C:MBEDTLS_X509_CRT_WRITE_C:MBEDTLS_SHA1_C */
 void x509_crt_check( char *subject_key_file, char *subject_pwd,
                      char *subject_name, char *issuer_key_file,
                      char *issuer_pwd, char *issuer_name,
@@ -66,51 +66,51 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
                      int md_type, int key_usage, int cert_type, int ver,
                      char *cert_check_file )
 {
-    pk_context subject_key, issuer_key;
-    x509write_cert crt;
+    mbedtls_pk_context subject_key, issuer_key;
+    mbedtls_x509write_cert crt;
     unsigned char buf[4000];
     unsigned char check_buf[5000];
-    mpi serial;
+    mbedtls_mpi serial;
     int ret;
     size_t olen = 0, pem_len = 0;
     FILE *f;
     rnd_pseudo_info rnd_info;
 
     memset( &rnd_info, 0x2a, sizeof( rnd_pseudo_info ) );
-    mpi_init( &serial );
-    pk_init( &subject_key );
-    pk_init( &issuer_key );
+    mbedtls_mpi_init( &serial );
+    mbedtls_pk_init( &subject_key );
+    mbedtls_pk_init( &issuer_key );
 
-    TEST_ASSERT( pk_parse_keyfile( &subject_key, subject_key_file,
+    TEST_ASSERT( mbedtls_pk_parse_keyfile( &subject_key, subject_key_file,
                                          subject_pwd ) == 0 );
-    TEST_ASSERT( pk_parse_keyfile( &issuer_key, issuer_key_file,
+    TEST_ASSERT( mbedtls_pk_parse_keyfile( &issuer_key, issuer_key_file,
                                          issuer_pwd ) == 0 );
-    TEST_ASSERT( mpi_read_string( &serial, 10, serial_str ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &serial, 10, serial_str ) == 0 );
 
-    x509write_crt_init( &crt );
+    mbedtls_x509write_crt_init( &crt );
     if( ver != -1 )
-        x509write_crt_set_version( &crt, ver );
-    TEST_ASSERT( x509write_crt_set_serial( &crt, &serial ) == 0 );
-    TEST_ASSERT( x509write_crt_set_validity( &crt, not_before,
+        mbedtls_x509write_crt_set_version( &crt, ver );
+    TEST_ASSERT( mbedtls_x509write_crt_set_serial( &crt, &serial ) == 0 );
+    TEST_ASSERT( mbedtls_x509write_crt_set_validity( &crt, not_before,
                                                    not_after ) == 0 );
-    x509write_crt_set_md_alg( &crt, md_type );
-    TEST_ASSERT( x509write_crt_set_issuer_name( &crt, issuer_name ) == 0 );
-    TEST_ASSERT( x509write_crt_set_subject_name( &crt, subject_name ) == 0 );
-    x509write_crt_set_subject_key( &crt, &subject_key );
-    x509write_crt_set_issuer_key( &crt, &issuer_key );
+    mbedtls_x509write_crt_set_md_alg( &crt, md_type );
+    TEST_ASSERT( mbedtls_x509write_crt_set_issuer_name( &crt, issuer_name ) == 0 );
+    TEST_ASSERT( mbedtls_x509write_crt_set_subject_name( &crt, subject_name ) == 0 );
+    mbedtls_x509write_crt_set_subject_key( &crt, &subject_key );
+    mbedtls_x509write_crt_set_issuer_key( &crt, &issuer_key );
 
-    if( crt.version >= X509_CRT_VERSION_3 )
+    if( crt.version >= MBEDTLS_X509_CRT_VERSION_3 )
     {
-        TEST_ASSERT( x509write_crt_set_basic_constraints( &crt, 0, 0 ) == 0 );
-        TEST_ASSERT( x509write_crt_set_subject_key_identifier( &crt ) == 0 );
-        TEST_ASSERT( x509write_crt_set_authority_key_identifier( &crt ) == 0 );
+        TEST_ASSERT( mbedtls_x509write_crt_set_basic_constraints( &crt, 0, 0 ) == 0 );
+        TEST_ASSERT( mbedtls_x509write_crt_set_subject_key_identifier( &crt ) == 0 );
+        TEST_ASSERT( mbedtls_x509write_crt_set_authority_key_identifier( &crt ) == 0 );
         if( key_usage != 0 )
-            TEST_ASSERT( x509write_crt_set_key_usage( &crt, key_usage ) == 0 );
+            TEST_ASSERT( mbedtls_x509write_crt_set_key_usage( &crt, key_usage ) == 0 );
         if( cert_type != 0 )
-            TEST_ASSERT( x509write_crt_set_ns_cert_type( &crt, cert_type ) == 0 );
+            TEST_ASSERT( mbedtls_x509write_crt_set_ns_cert_type( &crt, cert_type ) == 0 );
     }
 
-    ret = x509write_crt_pem( &crt, buf, sizeof(buf),
+    ret = mbedtls_x509write_crt_pem( &crt, buf, sizeof(buf),
                              rnd_pseudo_rand, &rnd_info );
     TEST_ASSERT( ret == 0 );
 
@@ -126,53 +126,53 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
     TEST_ASSERT( memcmp( buf, check_buf, pem_len - 1 ) == 0 );
 
 exit:
-    x509write_crt_free( &crt );
-    pk_free( &issuer_key );
-    pk_free( &subject_key );
-    mpi_free( &serial );
+    mbedtls_x509write_crt_free( &crt );
+    mbedtls_pk_free( &issuer_key );
+    mbedtls_pk_free( &subject_key );
+    mbedtls_mpi_free( &serial );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_X509_CREATE_C:POLARSSL_X509_USE_C */
-void x509_string_to_names( char *name, char *parsed_name, int result )
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CREATE_C:MBEDTLS_X509_USE_C */
+void mbedtls_x509_string_to_names( char *name, char *parsed_name, int result )
 {
     int ret;
     size_t len = 0;
-    asn1_named_data *names = NULL;
-    x509_name parsed, *parsed_cur, *parsed_prv;
+    mbedtls_asn1_named_data *names = NULL;
+    mbedtls_x509_name parsed, *parsed_cur, *parsed_prv;
     unsigned char buf[2048], *c;
 
     memset( &parsed, 0, sizeof( parsed ) );
     memset( buf, 0, sizeof( buf ) );
     c = buf + sizeof( buf );
 
-    ret = x509_string_to_names( &names, name );
+    ret = mbedtls_x509_string_to_names( &names, name );
     TEST_ASSERT( ret == result );
 
     if( ret != 0 )
         goto exit;
 
-    ret = x509_write_names( &c, buf, names );
+    ret = mbedtls_x509_write_names( &c, buf, names );
     TEST_ASSERT( ret > 0 );
 
-    TEST_ASSERT( asn1_get_tag( &c, buf + sizeof( buf ), &len,
-                        ASN1_CONSTRUCTED | ASN1_SEQUENCE ) == 0 );
-    TEST_ASSERT( x509_get_name( &c, buf + sizeof( buf ), &parsed ) == 0 );
+    TEST_ASSERT( mbedtls_asn1_get_tag( &c, buf + sizeof( buf ), &len,
+                        MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) == 0 );
+    TEST_ASSERT( mbedtls_x509_get_name( &c, buf + sizeof( buf ), &parsed ) == 0 );
 
-    ret = x509_dn_gets( (char *) buf, sizeof( buf ), &parsed );
+    ret = mbedtls_x509_dn_gets( (char *) buf, sizeof( buf ), &parsed );
     TEST_ASSERT( ret > 0 );
 
     TEST_ASSERT( strcmp( (char *) buf, parsed_name ) == 0 );
 
 exit:
-    asn1_free_named_data_list( &names );
+    mbedtls_asn1_free_named_data_list( &names );
 
     parsed_cur = parsed.next;
     while( parsed_cur != 0 )
     {
         parsed_prv = parsed_cur;
         parsed_cur = parsed_cur->next;
-        polarssl_free( parsed_prv );
+        mbedtls_free( parsed_prv );
     }
 }
 /* END_CASE */

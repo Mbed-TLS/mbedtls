@@ -27,474 +27,474 @@
  * in order to catch dependency issues early.
  */
 
-#ifndef POLARSSL_CHECK_CONFIG_H
-#define POLARSSL_CHECK_CONFIG_H
+#ifndef MBEDTLS_CHECK_CONFIG_H
+#define MBEDTLS_CHECK_CONFIG_H
 
-#if defined(POLARSSL_DEPRECATED_WARNING) && \
+#if defined(MBEDTLS_DEPRECATED_WARNING) && \
     !defined(__GNUC__) && !defined(__clang__)
-#error "POLARSSL_DEPRECATED_WARNING only works with GCC and Clang"
+#error "MBEDTLS_DEPRECATED_WARNING only works with GCC and Clang"
 #endif
 
-#if defined(POLARSSL_AESNI_C) && !defined(POLARSSL_HAVE_ASM)
-#error "POLARSSL_AESNI_C defined, but not all prerequisites"
+#if defined(MBEDTLS_AESNI_C) && !defined(MBEDTLS_HAVE_ASM)
+#error "MBEDTLS_AESNI_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_CTR_DRBG_C) && !defined(POLARSSL_AES_C)
-#error "POLARSSL_CTR_DRBG_C defined, but not all prerequisites"
+#if defined(MBEDTLS_CTR_DRBG_C) && !defined(MBEDTLS_AES_C)
+#error "MBEDTLS_CTR_DRBG_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_DHM_C) && !defined(POLARSSL_BIGNUM_C)
-#error "POLARSSL_DHM_C defined, but not all prerequisites"
+#if defined(MBEDTLS_DHM_C) && !defined(MBEDTLS_BIGNUM_C)
+#error "MBEDTLS_DHM_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_ECDH_C) && !defined(POLARSSL_ECP_C)
-#error "POLARSSL_ECDH_C defined, but not all prerequisites"
+#if defined(MBEDTLS_ECDH_C) && !defined(MBEDTLS_ECP_C)
+#error "MBEDTLS_ECDH_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_ECDSA_C) &&            \
-    ( !defined(POLARSSL_ECP_C) ||           \
-      !defined(POLARSSL_ASN1_PARSE_C) ||    \
-      !defined(POLARSSL_ASN1_WRITE_C) )
-#error "POLARSSL_ECDSA_C defined, but not all prerequisites"
+#if defined(MBEDTLS_ECDSA_C) &&            \
+    ( !defined(MBEDTLS_ECP_C) ||           \
+      !defined(MBEDTLS_ASN1_PARSE_C) ||    \
+      !defined(MBEDTLS_ASN1_WRITE_C) )
+#error "MBEDTLS_ECDSA_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_ECDSA_DETERMINISTIC) && !defined(POLARSSL_HMAC_DRBG_C)
-#error "POLARSSL_ECDSA_DETERMINISTIC defined, but not all prerequisites"
+#if defined(MBEDTLS_ECDSA_DETERMINISTIC) && !defined(MBEDTLS_HMAC_DRBG_C)
+#error "MBEDTLS_ECDSA_DETERMINISTIC defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_ECP_C) && ( !defined(POLARSSL_BIGNUM_C) || (   \
-    !defined(POLARSSL_ECP_DP_SECP192R1_ENABLED) &&                  \
-    !defined(POLARSSL_ECP_DP_SECP224R1_ENABLED) &&                  \
-    !defined(POLARSSL_ECP_DP_SECP256R1_ENABLED) &&                  \
-    !defined(POLARSSL_ECP_DP_SECP384R1_ENABLED) &&                  \
-    !defined(POLARSSL_ECP_DP_SECP521R1_ENABLED) &&                  \
-    !defined(POLARSSL_ECP_DP_BP256R1_ENABLED)   &&                  \
-    !defined(POLARSSL_ECP_DP_BP384R1_ENABLED)   &&                  \
-    !defined(POLARSSL_ECP_DP_BP512R1_ENABLED)   &&                  \
-    !defined(POLARSSL_ECP_DP_SECP192K1_ENABLED) &&                  \
-    !defined(POLARSSL_ECP_DP_SECP224K1_ENABLED) &&                  \
-    !defined(POLARSSL_ECP_DP_SECP256K1_ENABLED) ) )
-#error "POLARSSL_ECP_C defined, but not all prerequisites"
+#if defined(MBEDTLS_ECP_C) && ( !defined(MBEDTLS_BIGNUM_C) || (   \
+    !defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) &&                  \
+    !defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) &&                  \
+    !defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) &&                  \
+    !defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED) &&                  \
+    !defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED) &&                  \
+    !defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)   &&                  \
+    !defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)   &&                  \
+    !defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)   &&                  \
+    !defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED) &&                  \
+    !defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED) &&                  \
+    !defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED) ) )
+#error "MBEDTLS_ECP_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_ENTROPY_C) && (!defined(POLARSSL_SHA512_C) &&      \
-                                    !defined(POLARSSL_SHA256_C))
-#error "POLARSSL_ENTROPY_C defined, but not all prerequisites"
+#if defined(MBEDTLS_ENTROPY_C) && (!defined(MBEDTLS_SHA512_C) &&      \
+                                    !defined(MBEDTLS_SHA256_C))
+#error "MBEDTLS_ENTROPY_C defined, but not all prerequisites"
 #endif
-#if defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_SHA512_C) &&         \
-    defined(CTR_DRBG_ENTROPY_LEN) && (CTR_DRBG_ENTROPY_LEN > 64)
-#error "CTR_DRBG_ENTROPY_LEN value too high"
+#if defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_SHA512_C) &&         \
+    defined(MBEDTLS_CTR_DRBG_ENTROPY_LEN) && (MBEDTLS_CTR_DRBG_ENTROPY_LEN > 64)
+#error "MBEDTLS_CTR_DRBG_ENTROPY_LEN value too high"
 #endif
-#if defined(POLARSSL_ENTROPY_C) &&                                            \
-    ( !defined(POLARSSL_SHA512_C) || defined(POLARSSL_ENTROPY_FORCE_SHA256) ) \
-    && defined(CTR_DRBG_ENTROPY_LEN) && (CTR_DRBG_ENTROPY_LEN > 32)
-#error "CTR_DRBG_ENTROPY_LEN value too high"
+#if defined(MBEDTLS_ENTROPY_C) &&                                            \
+    ( !defined(MBEDTLS_SHA512_C) || defined(MBEDTLS_ENTROPY_FORCE_SHA256) ) \
+    && defined(MBEDTLS_CTR_DRBG_ENTROPY_LEN) && (MBEDTLS_CTR_DRBG_ENTROPY_LEN > 32)
+#error "MBEDTLS_CTR_DRBG_ENTROPY_LEN value too high"
 #endif
-#if defined(POLARSSL_ENTROPY_C) && \
-    defined(POLARSSL_ENTROPY_FORCE_SHA256) && !defined(POLARSSL_SHA256_C)
-#error "POLARSSL_ENTROPY_FORCE_SHA256 defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_GCM_C) && (                                        \
-        !defined(POLARSSL_AES_C) && !defined(POLARSSL_CAMELLIA_C) )
-#error "POLARSSL_GCM_C defined, but not all prerequisites"
+#if defined(MBEDTLS_ENTROPY_C) && \
+    defined(MBEDTLS_ENTROPY_FORCE_SHA256) && !defined(MBEDTLS_SHA256_C)
+#error "MBEDTLS_ENTROPY_FORCE_SHA256 defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_HAVEGE_C) && !defined(POLARSSL_TIMING_C)
-#error "POLARSSL_HAVEGE_C defined, but not all prerequisites"
+#if defined(MBEDTLS_GCM_C) && (                                        \
+        !defined(MBEDTLS_AES_C) && !defined(MBEDTLS_CAMELLIA_C) )
+#error "MBEDTLS_GCM_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_HMAC_DRBG_C) && !defined(POLARSSL_MD_C)
-#error "POLARSSL_HMAC_DRBG_C defined, but not all prerequisites"
+#if defined(MBEDTLS_HAVEGE_C) && !defined(MBEDTLS_TIMING_C)
+#error "MBEDTLS_HAVEGE_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_KEY_EXCHANGE_ECDH_ECDSA_ENABLED) &&                 \
-    ( !defined(POLARSSL_ECDH_C) || !defined(POLARSSL_X509_CRT_PARSE_C) )
-#error "POLARSSL_KEY_EXCHANGE_ECDH_ECDSA_ENABLED defined, but not all prerequisites"
+#if defined(MBEDTLS_HMAC_DRBG_C) && !defined(MBEDTLS_MD_C)
+#error "MBEDTLS_HMAC_DRBG_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_KEY_EXCHANGE_ECDH_RSA_ENABLED) &&                 \
-    ( !defined(POLARSSL_ECDH_C) || !defined(POLARSSL_X509_CRT_PARSE_C) )
-#error "POLARSSL_KEY_EXCHANGE_ECDH_RSA_ENABLED defined, but not all prerequisites"
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED) &&                 \
+    ( !defined(MBEDTLS_ECDH_C) || !defined(MBEDTLS_X509_CRT_PARSE_C) )
+#error "MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) && !defined(POLARSSL_DHM_C)
-#error "POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED defined, but not all prerequisites"
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) &&                 \
+    ( !defined(MBEDTLS_ECDH_C) || !defined(MBEDTLS_X509_CRT_PARSE_C) )
+#error "MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED) &&                     \
-    !defined(POLARSSL_ECDH_C)
-#error "POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED defined, but not all prerequisites"
+#if defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED) && !defined(MBEDTLS_DHM_C)
+#error "MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED) &&                   \
-    ( !defined(POLARSSL_DHM_C) || !defined(POLARSSL_RSA_C) ||           \
-      !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_PKCS1_V15) )
-#error "POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED defined, but not all prerequisites"
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) &&                     \
+    !defined(MBEDTLS_ECDH_C)
+#error "MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) &&                 \
-    ( !defined(POLARSSL_ECDH_C) || !defined(POLARSSL_RSA_C) ||          \
-      !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_PKCS1_V15) )
-#error "POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED defined, but not all prerequisites"
+#if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED) &&                   \
+    ( !defined(MBEDTLS_DHM_C) || !defined(MBEDTLS_RSA_C) ||           \
+      !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_PKCS1_V15) )
+#error "MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) &&                 \
-    ( !defined(POLARSSL_ECDH_C) || !defined(POLARSSL_ECDSA_C) ||          \
-      !defined(POLARSSL_X509_CRT_PARSE_C) )
-#error "POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED defined, but not all prerequisites"
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) &&                 \
+    ( !defined(MBEDTLS_ECDH_C) || !defined(MBEDTLS_RSA_C) ||          \
+      !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_PKCS1_V15) )
+#error "MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED) &&                   \
-    ( !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_CRT_PARSE_C) || \
-      !defined(POLARSSL_PKCS1_V15) )
-#error "POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED defined, but not all prerequisites"
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) &&                 \
+    ( !defined(MBEDTLS_ECDH_C) || !defined(MBEDTLS_ECDSA_C) ||          \
+      !defined(MBEDTLS_X509_CRT_PARSE_C) )
+#error "MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED) &&                       \
-    ( !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_CRT_PARSE_C) || \
-      !defined(POLARSSL_PKCS1_V15) )
-#error "POLARSSL_KEY_EXCHANGE_RSA_ENABLED defined, but not all prerequisites"
+#if defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED) &&                   \
+    ( !defined(MBEDTLS_RSA_C) || !defined(MBEDTLS_X509_CRT_PARSE_C) || \
+      !defined(MBEDTLS_PKCS1_V15) )
+#error "MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C) &&                          \
-    ( !defined(POLARSSL_PLATFORM_C) || !defined(POLARSSL_PLATFORM_MEMORY) )
-#error "POLARSSL_MEMORY_BUFFER_ALLOC_C defined, but not all prerequisites"
+#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) &&                       \
+    ( !defined(MBEDTLS_RSA_C) || !defined(MBEDTLS_X509_CRT_PARSE_C) || \
+      !defined(MBEDTLS_PKCS1_V15) )
+#error "MBEDTLS_KEY_EXCHANGE_RSA_ENABLED defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PADLOCK_C) && !defined(POLARSSL_HAVE_ASM)
-#error "POLARSSL_PADLOCK_C defined, but not all prerequisites"
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) &&                          \
+    ( !defined(MBEDTLS_PLATFORM_C) || !defined(MBEDTLS_PLATFORM_MEMORY) )
+#error "MBEDTLS_MEMORY_BUFFER_ALLOC_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PEM_PARSE_C) && !defined(POLARSSL_BASE64_C)
-#error "POLARSSL_PEM_PARSE_C defined, but not all prerequisites"
+#if defined(MBEDTLS_PADLOCK_C) && !defined(MBEDTLS_HAVE_ASM)
+#error "MBEDTLS_PADLOCK_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PEM_WRITE_C) && !defined(POLARSSL_BASE64_C)
-#error "POLARSSL_PEM_WRITE_C defined, but not all prerequisites"
+#if defined(MBEDTLS_PEM_PARSE_C) && !defined(MBEDTLS_BASE64_C)
+#error "MBEDTLS_PEM_PARSE_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PK_C) && \
-    ( !defined(POLARSSL_RSA_C) && !defined(POLARSSL_ECP_C) )
-#error "POLARSSL_PK_C defined, but not all prerequisites"
+#if defined(MBEDTLS_PEM_WRITE_C) && !defined(MBEDTLS_BASE64_C)
+#error "MBEDTLS_PEM_WRITE_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PK_PARSE_C) && !defined(POLARSSL_PK_C)
-#error "POLARSSL_PK_PARSE_C defined, but not all prerequisites"
+#if defined(MBEDTLS_PK_C) && \
+    ( !defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_ECP_C) )
+#error "MBEDTLS_PK_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PK_WRITE_C) && !defined(POLARSSL_PK_C)
-#error "POLARSSL_PK_WRITE_C defined, but not all prerequisites"
+#if defined(MBEDTLS_PK_PARSE_C) && !defined(MBEDTLS_PK_C)
+#error "MBEDTLS_PK_PARSE_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PKCS11_C) && !defined(POLARSSL_PK_C)
-#error "POLARSSL_PKCS11_C defined, but not all prerequisites"
+#if defined(MBEDTLS_PK_WRITE_C) && !defined(MBEDTLS_PK_C)
+#error "MBEDTLS_PK_WRITE_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PLATFORM_EXIT_ALT) && !defined(POLARSSL_PLATFORM_C)
-#error "POLARSSL_PLATFORM_EXIT_ALT defined, but not all prerequisites"
+#if defined(MBEDTLS_PKCS11_C) && !defined(MBEDTLS_PK_C)
+#error "MBEDTLS_PKCS11_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PLATFORM_EXIT_MACRO) && !defined(POLARSSL_PLATFORM_C)
-#error "POLARSSL_PLATFORM_EXIT_MACRO defined, but not all prerequisites"
+#if defined(MBEDTLS_PLATFORM_EXIT_ALT) && !defined(MBEDTLS_PLATFORM_C)
+#error "MBEDTLS_PLATFORM_EXIT_ALT defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PLATFORM_EXIT_MACRO) &&\
-    ( defined(POLARSSL_PLATFORM_STD_EXIT) ||\
-        defined(POLARSSL_PLATFORM_EXIT_ALT) )
-#error "POLARSSL_PLATFORM_EXIT_MACRO and POLARSSL_PLATFORM_STD_EXIT/POLARSSL_PLATFORM_EXIT_ALT cannot be defined simultaneously"
+#if defined(MBEDTLS_PLATFORM_EXIT_MACRO) && !defined(MBEDTLS_PLATFORM_C)
+#error "MBEDTLS_PLATFORM_EXIT_MACRO defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PLATFORM_FPRINTF_ALT) && !defined(POLARSSL_PLATFORM_C)
-#error "POLARSSL_PLATFORM_FPRINTF_ALT defined, but not all prerequisites"
+#if defined(MBEDTLS_PLATFORM_EXIT_MACRO) &&\
+    ( defined(MBEDTLS_PLATFORM_STD_EXIT) ||\
+        defined(MBEDTLS_PLATFORM_EXIT_ALT) )
+#error "MBEDTLS_PLATFORM_EXIT_MACRO and MBEDTLS_PLATFORM_STD_EXIT/MBEDTLS_PLATFORM_EXIT_ALT cannot be defined simultaneously"
 #endif
 
-#if defined(POLARSSL_PLATFORM_FPRINTF_MACRO) && !defined(POLARSSL_PLATFORM_C)
-#error "POLARSSL_PLATFORM_FPRINTF_MACRO defined, but not all prerequisites"
+#if defined(MBEDTLS_PLATFORM_FPRINTF_ALT) && !defined(MBEDTLS_PLATFORM_C)
+#error "MBEDTLS_PLATFORM_FPRINTF_ALT defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PLATFORM_FPRINTF_MACRO) &&\
-    ( defined(POLARSSL_PLATFORM_STD_FPRINTF) ||\
-        defined(POLARSSL_PLATFORM_FPRINTF_ALT) )
-#error "POLARSSL_PLATFORM_FPRINTF_MACRO and POLARSSL_PLATFORM_STD_FPRINTF/POLARSSL_PLATFORM_FPRINTF_ALT cannot be defined simultaneously"
+#if defined(MBEDTLS_PLATFORM_FPRINTF_MACRO) && !defined(MBEDTLS_PLATFORM_C)
+#error "MBEDTLS_PLATFORM_FPRINTF_MACRO defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PLATFORM_FREE_MACRO) &&\
-    ( !defined(POLARSSL_PLATFORM_C) || !defined(POLARSSL_PLATFORM_MEMORY) )
-#error "POLARSSL_PLATFORM_FREE_MACRO defined, but not all prerequisites"
+#if defined(MBEDTLS_PLATFORM_FPRINTF_MACRO) &&\
+    ( defined(MBEDTLS_PLATFORM_STD_FPRINTF) ||\
+        defined(MBEDTLS_PLATFORM_FPRINTF_ALT) )
+#error "MBEDTLS_PLATFORM_FPRINTF_MACRO and MBEDTLS_PLATFORM_STD_FPRINTF/MBEDTLS_PLATFORM_FPRINTF_ALT cannot be defined simultaneously"
 #endif
 
-#if defined(POLARSSL_PLATFORM_FREE_MACRO) &&\
-    defined(POLARSSL_PLATFORM_STD_FREE)
-#error "POLARSSL_PLATFORM_FREE_MACRO and POLARSSL_PLATFORM_STD_FREE cannot be defined simultaneously"
+#if defined(MBEDTLS_PLATFORM_FREE_MACRO) &&\
+    ( !defined(MBEDTLS_PLATFORM_C) || !defined(MBEDTLS_PLATFORM_MEMORY) )
+#error "MBEDTLS_PLATFORM_FREE_MACRO defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PLATFORM_FREE_MACRO) && !defined(POLARSSL_PLATFORM_MALLOC_MACRO)
-#error "POLARSSL_PLATFORM_MALLOC_MACRO must be defined if POLARSSL_PLATFORM_FREE_MACRO is"
+#if defined(MBEDTLS_PLATFORM_FREE_MACRO) &&\
+    defined(MBEDTLS_PLATFORM_STD_FREE)
+#error "MBEDTLS_PLATFORM_FREE_MACRO and MBEDTLS_PLATFORM_STD_FREE cannot be defined simultaneously"
 #endif
 
-#if defined(POLARSSL_PLATFORM_MALLOC_MACRO) &&\
-    ( !defined(POLARSSL_PLATFORM_C) || !defined(POLARSSL_PLATFORM_MEMORY) )
-#error "POLARSSL_PLATFORM_MALLOC_MACRO defined, but not all prerequisites"
+#if defined(MBEDTLS_PLATFORM_FREE_MACRO) && !defined(MBEDTLS_PLATFORM_MALLOC_MACRO)
+#error "MBEDTLS_PLATFORM_MALLOC_MACRO must be defined if MBEDTLS_PLATFORM_FREE_MACRO is"
 #endif
 
-#if defined(POLARSSL_PLATFORM_MALLOC_MACRO) &&\
-    defined(POLARSSL_PLATFORM_STD_MALLOC)
-#error "POLARSSL_PLATFORM_MALLOC_MACRO and POLARSSL_PLATFORM_STD_MALLOC cannot be defined simultaneously"
+#if defined(MBEDTLS_PLATFORM_MALLOC_MACRO) &&\
+    ( !defined(MBEDTLS_PLATFORM_C) || !defined(MBEDTLS_PLATFORM_MEMORY) )
+#error "MBEDTLS_PLATFORM_MALLOC_MACRO defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PLATFORM_MALLOC_MACRO) && !defined(POLARSSL_PLATFORM_FREE_MACRO)
-#error "POLARSSL_PLATFORM_FREE_MACRO must be defined if POLARSSL_PLATFORM_MALLOC_MACRO is"
+#if defined(MBEDTLS_PLATFORM_MALLOC_MACRO) &&\
+    defined(MBEDTLS_PLATFORM_STD_MALLOC)
+#error "MBEDTLS_PLATFORM_MALLOC_MACRO and MBEDTLS_PLATFORM_STD_MALLOC cannot be defined simultaneously"
 #endif
 
-#if defined(POLARSSL_PLATFORM_MEMORY) && !defined(POLARSSL_PLATFORM_C)
-#error "POLARSSL_PLATFORM_MEMORY defined, but not all prerequisites"
+#if defined(MBEDTLS_PLATFORM_MALLOC_MACRO) && !defined(MBEDTLS_PLATFORM_FREE_MACRO)
+#error "MBEDTLS_PLATFORM_FREE_MACRO must be defined if MBEDTLS_PLATFORM_MALLOC_MACRO is"
 #endif
 
-#if defined(POLARSSL_PLATFORM_PRINTF_ALT) && !defined(POLARSSL_PLATFORM_C)
-#error "POLARSSL_PLATFORM_PRINTF_ALT defined, but not all prerequisites"
+#if defined(MBEDTLS_PLATFORM_MEMORY) && !defined(MBEDTLS_PLATFORM_C)
+#error "MBEDTLS_PLATFORM_MEMORY defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PLATFORM_PRINTF_MACRO) && !defined(POLARSSL_PLATFORM_C)
-#error "POLARSSL_PLATFORM_PRINTF_MACRO defined, but not all prerequisites"
+#if defined(MBEDTLS_PLATFORM_PRINTF_ALT) && !defined(MBEDTLS_PLATFORM_C)
+#error "MBEDTLS_PLATFORM_PRINTF_ALT defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PLATFORM_PRINTF_MACRO) &&\
-    ( defined(POLARSSL_PLATFORM_STD_PRINTF) ||\
-        defined(POLARSSL_PLATFORM_PRINTF_ALT) )
-#error "POLARSSL_PLATFORM_PRINTF_MACRO and POLARSSL_PLATFORM_STD_PRINTF/POLARSSL_PLATFORM_PRINTF_ALT cannot be defined simultaneously"
+#if defined(MBEDTLS_PLATFORM_PRINTF_MACRO) && !defined(MBEDTLS_PLATFORM_C)
+#error "MBEDTLS_PLATFORM_PRINTF_MACRO defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PLATFORM_SNPRINTF_ALT) && !defined(POLARSSL_PLATFORM_C)
-#error "POLARSSL_PLATFORM_SNPRINTF_ALT defined, but not all prerequisites"
+#if defined(MBEDTLS_PLATFORM_PRINTF_MACRO) &&\
+    ( defined(MBEDTLS_PLATFORM_STD_PRINTF) ||\
+        defined(MBEDTLS_PLATFORM_PRINTF_ALT) )
+#error "MBEDTLS_PLATFORM_PRINTF_MACRO and MBEDTLS_PLATFORM_STD_PRINTF/MBEDTLS_PLATFORM_PRINTF_ALT cannot be defined simultaneously"
 #endif
 
-#if defined(POLARSSL_PLATFORM_SNPRINTF_ALT) && ( defined(_WIN32)\
+#if defined(MBEDTLS_PLATFORM_SNPRINTF_ALT) && !defined(MBEDTLS_PLATFORM_C)
+#error "MBEDTLS_PLATFORM_SNPRINTF_ALT defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PLATFORM_SNPRINTF_ALT) && ( defined(_WIN32)\
     && !defined(EFIX64) && !defined(EFI32) )
-#error "POLARSSL_PLATFORM_SNPRINTF_ALT defined but not available on Windows"
+#error "MBEDTLS_PLATFORM_SNPRINTF_ALT defined but not available on Windows"
 #endif
 
-#if defined(POLARSSL_PLATFORM_SNPRINTF_MACRO) && !defined(POLARSSL_PLATFORM_C)
-#error "POLARSSL_PLATFORM_SNPRINTF_MACRO defined, but not all prerequisites"
+#if defined(MBEDTLS_PLATFORM_SNPRINTF_MACRO) && !defined(MBEDTLS_PLATFORM_C)
+#error "MBEDTLS_PLATFORM_SNPRINTF_MACRO defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PLATFORM_SNPRINTF_MACRO) &&\
-    ( defined(POLARSSL_PLATFORM_STD_SNPRINTF) ||\
-        defined(POLARSSL_PLATFORM_SNPRINTF_ALT) )
-#error "POLARSSL_PLATFORM_SNPRINTF_MACRO and POLARSSL_PLATFORM_STD_SNPRINTF/POLARSSL_PLATFORM_SNPRINTF_ALT cannot be defined simultaneously"
+#if defined(MBEDTLS_PLATFORM_SNPRINTF_MACRO) &&\
+    ( defined(MBEDTLS_PLATFORM_STD_SNPRINTF) ||\
+        defined(MBEDTLS_PLATFORM_SNPRINTF_ALT) )
+#error "MBEDTLS_PLATFORM_SNPRINTF_MACRO and MBEDTLS_PLATFORM_STD_SNPRINTF/MBEDTLS_PLATFORM_SNPRINTF_ALT cannot be defined simultaneously"
 #endif
 
-#if defined(POLARSSL_PLATFORM_STD_MEM_HDR) &&\
-    !defined(POLARSSL_PLATFORM_NO_STD_FUNCTIONS)
-#error "POLARSSL_PLATFORM_STD_MEM_HDR defined, but not all prerequisites"
+#if defined(MBEDTLS_PLATFORM_STD_MEM_HDR) &&\
+    !defined(MBEDTLS_PLATFORM_NO_STD_FUNCTIONS)
+#error "MBEDTLS_PLATFORM_STD_MEM_HDR defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PLATFORM_STD_MALLOC) && !defined(POLARSSL_PLATFORM_MEMORY)
-#error "POLARSSL_PLATFORM_STD_MALLOC defined, but not all prerequisites"
+#if defined(MBEDTLS_PLATFORM_STD_MALLOC) && !defined(MBEDTLS_PLATFORM_MEMORY)
+#error "MBEDTLS_PLATFORM_STD_MALLOC defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PLATFORM_STD_MALLOC) && !defined(POLARSSL_PLATFORM_MEMORY)
-#error "POLARSSL_PLATFORM_STD_MALLOC defined, but not all prerequisites"
+#if defined(MBEDTLS_PLATFORM_STD_MALLOC) && !defined(MBEDTLS_PLATFORM_MEMORY)
+#error "MBEDTLS_PLATFORM_STD_MALLOC defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PLATFORM_STD_FREE) && !defined(POLARSSL_PLATFORM_MEMORY)
-#error "POLARSSL_PLATFORM_STD_FREE defined, but not all prerequisites"
+#if defined(MBEDTLS_PLATFORM_STD_FREE) && !defined(MBEDTLS_PLATFORM_MEMORY)
+#error "MBEDTLS_PLATFORM_STD_FREE defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PLATFORM_STD_EXIT) &&\
-    !defined(POLARSSL_PLATFORM_EXIT_ALT)
-#error "POLARSSL_PLATFORM_STD_EXIT defined, but not all prerequisites"
+#if defined(MBEDTLS_PLATFORM_STD_EXIT) &&\
+    !defined(MBEDTLS_PLATFORM_EXIT_ALT)
+#error "MBEDTLS_PLATFORM_STD_EXIT defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PLATFORM_STD_FPRINTF) &&\
-    !defined(POLARSSL_PLATFORM_FPRINTF_ALT)
-#error "POLARSSL_PLATFORM_STD_FPRINTF defined, but not all prerequisites"
+#if defined(MBEDTLS_PLATFORM_STD_FPRINTF) &&\
+    !defined(MBEDTLS_PLATFORM_FPRINTF_ALT)
+#error "MBEDTLS_PLATFORM_STD_FPRINTF defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PLATFORM_STD_PRINTF) &&\
-    !defined(POLARSSL_PLATFORM_PRINTF_ALT)
-#error "POLARSSL_PLATFORM_STD_PRINTF defined, but not all prerequisites"
+#if defined(MBEDTLS_PLATFORM_STD_PRINTF) &&\
+    !defined(MBEDTLS_PLATFORM_PRINTF_ALT)
+#error "MBEDTLS_PLATFORM_STD_PRINTF defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PLATFORM_STD_SNPRINTF) &&\
-    !defined(POLARSSL_PLATFORM_SNPRINTF_ALT)
-#error "POLARSSL_PLATFORM_STD_SNPRINTF defined, but not all prerequisites"
+#if defined(MBEDTLS_PLATFORM_STD_SNPRINTF) &&\
+    !defined(MBEDTLS_PLATFORM_SNPRINTF_ALT)
+#error "MBEDTLS_PLATFORM_STD_SNPRINTF defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_RSA_C) && ( !defined(POLARSSL_BIGNUM_C) ||         \
-    !defined(POLARSSL_OID_C) )
-#error "POLARSSL_RSA_C defined, but not all prerequisites"
+#if defined(MBEDTLS_RSA_C) && ( !defined(MBEDTLS_BIGNUM_C) ||         \
+    !defined(MBEDTLS_OID_C) )
+#error "MBEDTLS_RSA_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_X509_RSASSA_PSS_SUPPORT) &&                        \
-    ( !defined(POLARSSL_RSA_C) || !defined(POLARSSL_PKCS1_V21) )
-#error "POLARSSL_X509_RSASSA_PSS_SUPPORT defined, but not all prerequisites"
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) &&                        \
+    ( !defined(MBEDTLS_RSA_C) || !defined(MBEDTLS_PKCS1_V21) )
+#error "MBEDTLS_X509_RSASSA_PSS_SUPPORT defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_SSL_PROTO_SSL3) && ( !defined(POLARSSL_MD5_C) ||     \
-    !defined(POLARSSL_SHA1_C) )
-#error "POLARSSL_SSL_PROTO_SSL3 defined, but not all prerequisites"
+#if defined(MBEDTLS_SSL_PROTO_SSL3) && ( !defined(MBEDTLS_MD5_C) ||     \
+    !defined(MBEDTLS_SHA1_C) )
+#error "MBEDTLS_SSL_PROTO_SSL3 defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_SSL_PROTO_TLS1) && ( !defined(POLARSSL_MD5_C) ||     \
-    !defined(POLARSSL_SHA1_C) )
-#error "POLARSSL_SSL_PROTO_TLS1 defined, but not all prerequisites"
+#if defined(MBEDTLS_SSL_PROTO_TLS1) && ( !defined(MBEDTLS_MD5_C) ||     \
+    !defined(MBEDTLS_SHA1_C) )
+#error "MBEDTLS_SSL_PROTO_TLS1 defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_SSL_PROTO_TLS1_1) && ( !defined(POLARSSL_MD5_C) ||     \
-    !defined(POLARSSL_SHA1_C) )
-#error "POLARSSL_SSL_PROTO_TLS1_1 defined, but not all prerequisites"
+#if defined(MBEDTLS_SSL_PROTO_TLS1_1) && ( !defined(MBEDTLS_MD5_C) ||     \
+    !defined(MBEDTLS_SHA1_C) )
+#error "MBEDTLS_SSL_PROTO_TLS1_1 defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_SSL_PROTO_TLS1_2) && ( !defined(POLARSSL_SHA1_C) &&     \
-    !defined(POLARSSL_SHA256_C) && !defined(POLARSSL_SHA512_C) )
-#error "POLARSSL_SSL_PROTO_TLS1_2 defined, but not all prerequisites"
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && ( !defined(MBEDTLS_SHA1_C) &&     \
+    !defined(MBEDTLS_SHA256_C) && !defined(MBEDTLS_SHA512_C) )
+#error "MBEDTLS_SSL_PROTO_TLS1_2 defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_SSL_PROTO_DTLS) && (       \
-    ( !defined(POLARSSL_SSL_PROTO_TLS1_1) &&      \
-      !defined(POLARSSL_SSL_PROTO_TLS1_2) ) ||    \
-    !defined(POLARSSL_TIMING_C) )
-#error "POLARSSL_SSL_PROTO_DTLS defined, but not all prerequisites"
+#if defined(MBEDTLS_SSL_PROTO_DTLS) && (       \
+    ( !defined(MBEDTLS_SSL_PROTO_TLS1_1) &&      \
+      !defined(MBEDTLS_SSL_PROTO_TLS1_2) ) ||    \
+    !defined(MBEDTLS_TIMING_C) )
+#error "MBEDTLS_SSL_PROTO_DTLS defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_SSL_CLI_C) && !defined(POLARSSL_SSL_TLS_C)
-#error "POLARSSL_SSL_CLI_C defined, but not all prerequisites"
+#if defined(MBEDTLS_SSL_CLI_C) && !defined(MBEDTLS_SSL_TLS_C)
+#error "MBEDTLS_SSL_CLI_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_SSL_TLS_C) && ( !defined(POLARSSL_CIPHER_C) ||     \
-    !defined(POLARSSL_MD_C) )
-#error "POLARSSL_SSL_TLS_C defined, but not all prerequisites"
+#if defined(MBEDTLS_SSL_TLS_C) && ( !defined(MBEDTLS_CIPHER_C) ||     \
+    !defined(MBEDTLS_MD_C) )
+#error "MBEDTLS_SSL_TLS_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_SSL_SRV_C) && !defined(POLARSSL_SSL_TLS_C)
-#error "POLARSSL_SSL_SRV_C defined, but not all prerequisites"
+#if defined(MBEDTLS_SSL_SRV_C) && !defined(MBEDTLS_SSL_TLS_C)
+#error "MBEDTLS_SSL_SRV_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_SSL_TLS_C) && (!defined(POLARSSL_SSL_PROTO_SSL3) && \
-    !defined(POLARSSL_SSL_PROTO_TLS1) && !defined(POLARSSL_SSL_PROTO_TLS1_1) && \
-    !defined(POLARSSL_SSL_PROTO_TLS1_2))
-#error "POLARSSL_SSL_TLS_C defined, but no protocols are active"
+#if defined(MBEDTLS_SSL_TLS_C) && (!defined(MBEDTLS_SSL_PROTO_SSL3) && \
+    !defined(MBEDTLS_SSL_PROTO_TLS1) && !defined(MBEDTLS_SSL_PROTO_TLS1_1) && \
+    !defined(MBEDTLS_SSL_PROTO_TLS1_2))
+#error "MBEDTLS_SSL_TLS_C defined, but no protocols are active"
 #endif
 
-#if defined(POLARSSL_SSL_TLS_C) && (defined(POLARSSL_SSL_PROTO_SSL3) && \
-    defined(POLARSSL_SSL_PROTO_TLS1_1) && !defined(POLARSSL_SSL_PROTO_TLS1))
+#if defined(MBEDTLS_SSL_TLS_C) && (defined(MBEDTLS_SSL_PROTO_SSL3) && \
+    defined(MBEDTLS_SSL_PROTO_TLS1_1) && !defined(MBEDTLS_SSL_PROTO_TLS1))
 #error "Illegal protocol selection"
 #endif
 
-#if defined(POLARSSL_SSL_TLS_C) && (defined(POLARSSL_SSL_PROTO_TLS1) && \
-    defined(POLARSSL_SSL_PROTO_TLS1_2) && !defined(POLARSSL_SSL_PROTO_TLS1_1))
+#if defined(MBEDTLS_SSL_TLS_C) && (defined(MBEDTLS_SSL_PROTO_TLS1) && \
+    defined(MBEDTLS_SSL_PROTO_TLS1_2) && !defined(MBEDTLS_SSL_PROTO_TLS1_1))
 #error "Illegal protocol selection"
 #endif
 
-#if defined(POLARSSL_SSL_TLS_C) && (defined(POLARSSL_SSL_PROTO_SSL3) && \
-    defined(POLARSSL_SSL_PROTO_TLS1_2) && (!defined(POLARSSL_SSL_PROTO_TLS1) || \
-    !defined(POLARSSL_SSL_PROTO_TLS1_1)))
+#if defined(MBEDTLS_SSL_TLS_C) && (defined(MBEDTLS_SSL_PROTO_SSL3) && \
+    defined(MBEDTLS_SSL_PROTO_TLS1_2) && (!defined(MBEDTLS_SSL_PROTO_TLS1) || \
+    !defined(MBEDTLS_SSL_PROTO_TLS1_1)))
 #error "Illegal protocol selection"
 #endif
 
-#if defined(POLARSSL_SSL_COOKIE_C) && !defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
-#error "POLARSSL_SSL_COOKIE_C  defined, but not all prerequisites"
+#if defined(MBEDTLS_SSL_COOKIE_C) && !defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
+#error "MBEDTLS_SSL_COOKIE_C  defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY) &&                              \
-    ( !defined(POLARSSL_SSL_SRV_C) || !defined(POLARSSL_SSL_PROTO_DTLS) )
-#error "POLARSSL_SSL_DTLS_HELLO_VERIFY  defined, but not all prerequisites"
+#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) &&                              \
+    ( !defined(MBEDTLS_SSL_SRV_C) || !defined(MBEDTLS_SSL_PROTO_DTLS) )
+#error "MBEDTLS_SSL_DTLS_HELLO_VERIFY  defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY) &&                              \
-    ( !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_PROTO_DTLS) )
-#error "POLARSSL_SSL_DTLS_ANTI_REPLAY  defined, but not all prerequisites"
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY) &&                              \
+    ( !defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_PROTO_DTLS) )
+#error "MBEDTLS_SSL_DTLS_ANTI_REPLAY  defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_SSL_DTLS_BADMAC_LIMIT) &&                              \
-    ( !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_PROTO_DTLS) )
-#error "POLARSSL_SSL_DTLS_BADMAC_LIMIT  defined, but not all prerequisites"
+#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT) &&                              \
+    ( !defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_PROTO_DTLS) )
+#error "MBEDTLS_SSL_DTLS_BADMAC_LIMIT  defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC) &&   \
-    !defined(POLARSSL_SSL_PROTO_TLS1)   &&      \
-    !defined(POLARSSL_SSL_PROTO_TLS1_1) &&      \
-    !defined(POLARSSL_SSL_PROTO_TLS1_2)
-#error "POLARSSL_SSL_ENCRYPT_THEN_MAC defined, but not all prerequsites"
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC) &&   \
+    !defined(MBEDTLS_SSL_PROTO_TLS1)   &&      \
+    !defined(MBEDTLS_SSL_PROTO_TLS1_1) &&      \
+    !defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#error "MBEDTLS_SSL_ENCRYPT_THEN_MAC defined, but not all prerequsites"
 #endif
 
-#if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET) && \
-    !defined(POLARSSL_SSL_PROTO_TLS1)   &&          \
-    !defined(POLARSSL_SSL_PROTO_TLS1_1) &&          \
-    !defined(POLARSSL_SSL_PROTO_TLS1_2)
-#error "POLARSSL_SSL_EXTENDED_MASTER_SECRET defined, but not all prerequsites"
+#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET) && \
+    !defined(MBEDTLS_SSL_PROTO_TLS1)   &&          \
+    !defined(MBEDTLS_SSL_PROTO_TLS1_1) &&          \
+    !defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#error "MBEDTLS_SSL_EXTENDED_MASTER_SECRET defined, but not all prerequsites"
 #endif
 
-#if defined(POLARSSL_SSL_SESSION_TICKETS) && defined(POLARSSL_SSL_TLS_C) && \
-    ( !defined(POLARSSL_AES_C) || !defined(POLARSSL_SHA256_C) ||            \
-      !defined(POLARSSL_CIPHER_MODE_CBC) )
-#error "POLARSSL_SSL_SESSION_TICKETS defined, but not all prerequisites"
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TLS_C) && \
+    ( !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_SHA256_C) ||            \
+      !defined(MBEDTLS_CIPHER_MODE_CBC) )
+#error "MBEDTLS_SSL_SESSION_TICKETS defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_SSL_CBC_RECORD_SPLITTING) && \
-    !defined(POLARSSL_SSL_PROTO_SSL3) && !defined(POLARSSL_SSL_PROTO_TLS1)
-#error "POLARSSL_SSL_CBC_RECORD_SPLITTING defined, but not all prerequisites"
+#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING) && \
+    !defined(MBEDTLS_SSL_PROTO_SSL3) && !defined(MBEDTLS_SSL_PROTO_TLS1)
+#error "MBEDTLS_SSL_CBC_RECORD_SPLITTING defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION) && \
-        !defined(POLARSSL_X509_CRT_PARSE_C)
-#error "POLARSSL_SSL_SERVER_NAME_INDICATION defined, but not all prerequisites"
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && \
+        !defined(MBEDTLS_X509_CRT_PARSE_C)
+#error "MBEDTLS_SSL_SERVER_NAME_INDICATION defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_THREADING_PTHREAD)
-#if !defined(POLARSSL_THREADING_C) || defined(POLARSSL_THREADING_IMPL)
-#error "POLARSSL_THREADING_PTHREAD defined, but not all prerequisites"
+#if defined(MBEDTLS_THREADING_PTHREAD)
+#if !defined(MBEDTLS_THREADING_C) || defined(MBEDTLS_THREADING_IMPL)
+#error "MBEDTLS_THREADING_PTHREAD defined, but not all prerequisites"
 #endif
-#define POLARSSL_THREADING_IMPL
-#endif
-
-#if defined(POLARSSL_THREADING_ALT)
-#if !defined(POLARSSL_THREADING_C) || defined(POLARSSL_THREADING_IMPL)
-#error "POLARSSL_THREADING_ALT defined, but not all prerequisites"
-#endif
-#define POLARSSL_THREADING_IMPL
+#define MBEDTLS_THREADING_IMPL
 #endif
 
-#if defined(POLARSSL_THREADING_C) && !defined(POLARSSL_THREADING_IMPL)
-#error "POLARSSL_THREADING_C defined, single threading implementation required"
+#if defined(MBEDTLS_THREADING_ALT)
+#if !defined(MBEDTLS_THREADING_C) || defined(MBEDTLS_THREADING_IMPL)
+#error "MBEDTLS_THREADING_ALT defined, but not all prerequisites"
 #endif
-#undef POLARSSL_THREADING_IMPL
-
-#if defined(POLARSSL_VERSION_FEATURES) && !defined(POLARSSL_VERSION_C)
-#error "POLARSSL_VERSION_FEATURES defined, but not all prerequisites"
+#define MBEDTLS_THREADING_IMPL
 #endif
 
-#if defined(POLARSSL_X509_USE_C) && ( !defined(POLARSSL_BIGNUM_C) ||  \
-    !defined(POLARSSL_OID_C) || !defined(POLARSSL_ASN1_PARSE_C) ||      \
-    !defined(POLARSSL_PK_PARSE_C) )
-#error "POLARSSL_X509_USE_C defined, but not all prerequisites"
+#if defined(MBEDTLS_THREADING_C) && !defined(MBEDTLS_THREADING_IMPL)
+#error "MBEDTLS_THREADING_C defined, single threading implementation required"
+#endif
+#undef MBEDTLS_THREADING_IMPL
+
+#if defined(MBEDTLS_VERSION_FEATURES) && !defined(MBEDTLS_VERSION_C)
+#error "MBEDTLS_VERSION_FEATURES defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_X509_CREATE_C) && ( !defined(POLARSSL_BIGNUM_C) ||  \
-    !defined(POLARSSL_OID_C) || !defined(POLARSSL_ASN1_WRITE_C) ||       \
-    !defined(POLARSSL_PK_WRITE_C) )
-#error "POLARSSL_X509_CREATE_C defined, but not all prerequisites"
+#if defined(MBEDTLS_X509_USE_C) && ( !defined(MBEDTLS_BIGNUM_C) ||  \
+    !defined(MBEDTLS_OID_C) || !defined(MBEDTLS_ASN1_PARSE_C) ||      \
+    !defined(MBEDTLS_PK_PARSE_C) )
+#error "MBEDTLS_X509_USE_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_X509_CRT_PARSE_C) && ( !defined(POLARSSL_X509_USE_C) )
-#error "POLARSSL_X509_CRT_PARSE_C defined, but not all prerequisites"
+#if defined(MBEDTLS_X509_CREATE_C) && ( !defined(MBEDTLS_BIGNUM_C) ||  \
+    !defined(MBEDTLS_OID_C) || !defined(MBEDTLS_ASN1_WRITE_C) ||       \
+    !defined(MBEDTLS_PK_WRITE_C) )
+#error "MBEDTLS_X509_CREATE_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_X509_CRL_PARSE_C) && ( !defined(POLARSSL_X509_USE_C) )
-#error "POLARSSL_X509_CRL_PARSE_C defined, but not all prerequisites"
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && ( !defined(MBEDTLS_X509_USE_C) )
+#error "MBEDTLS_X509_CRT_PARSE_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_X509_CSR_PARSE_C) && ( !defined(POLARSSL_X509_USE_C) )
-#error "POLARSSL_X509_CSR_PARSE_C defined, but not all prerequisites"
+#if defined(MBEDTLS_X509_CRL_PARSE_C) && ( !defined(MBEDTLS_X509_USE_C) )
+#error "MBEDTLS_X509_CRL_PARSE_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_X509_CRT_WRITE_C) && ( !defined(POLARSSL_X509_CREATE_C) )
-#error "POLARSSL_X509_CRT_WRITE_C defined, but not all prerequisites"
+#if defined(MBEDTLS_X509_CSR_PARSE_C) && ( !defined(MBEDTLS_X509_USE_C) )
+#error "MBEDTLS_X509_CSR_PARSE_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_X509_CSR_WRITE_C) && ( !defined(POLARSSL_X509_CREATE_C) )
-#error "POLARSSL_X509_CSR_WRITE_C defined, but not all prerequisites"
+#if defined(MBEDTLS_X509_CRT_WRITE_C) && ( !defined(MBEDTLS_X509_CREATE_C) )
+#error "MBEDTLS_X509_CRT_WRITE_C defined, but not all prerequisites"
 #endif
 
-#endif /* POLARSSL_CHECK_CONFIG_H */
+#if defined(MBEDTLS_X509_CSR_WRITE_C) && ( !defined(MBEDTLS_X509_CREATE_C) )
+#error "MBEDTLS_X509_CSR_WRITE_C defined, but not all prerequisites"
+#endif
+
+#endif /* MBEDTLS_CHECK_CONFIG_H */

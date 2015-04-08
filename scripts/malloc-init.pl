@@ -48,13 +48,13 @@ while (my $file = shift @ARGV)
     open my $fh, "<", $file or die "read $file failed: $!\n";
     while (<$fh>)
     {
-        if( /polarssl_malloc\(/ ) {
-            if( /$id\s*=.*polarssl_malloc\(/ ) {
+        if( /mbedtls_malloc\(/ ) {
+            if( /$id\s*=.*mbedtls_malloc\(/ ) {
                 push @bad, "$file:$line:$name" if $name;
                 $name = $1;
                 $line = $.;
             } else {
-                push @bad, "$file:$.:???" unless /return polarssl_malloc/;
+                push @bad, "$file:$.:???" unless /return mbedtls_malloc/;
             }
         } elsif( $name && /(?:$inits)\($prefix\Q$name\E\b/ ) {
             undef $name;

@@ -20,26 +20,26 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define polarssl_exit       exit
-#define polarssl_printf     printf
-#define polarssl_snprintf   snprintf
-#define polarssl_free       free
+#define mbedtls_exit       exit
+#define mbedtls_printf     printf
+#define mbedtls_snprintf   snprintf
+#define mbedtls_free       free
 #endif
 
-#if !defined(POLARSSL_TIMING_C)
+#if !defined(MBEDTLS_TIMING_C)
 int main( void )
 {
-    polarssl_printf("POLARSSL_TIMING_C not defined.\n");
+    mbedtls_printf("MBEDTLS_TIMING_C not defined.\n");
     return( 0 );
 }
 #else
@@ -70,7 +70,7 @@ int main( void )
 #include "mbedtls/ecdh.h"
 #include "mbedtls/error.h"
 
-#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
 #include "mbedtls/memory_buffer_alloc.h"
 #endif
 
@@ -97,68 +97,68 @@ int main( void )
 #define DHM_SIZES 3
 
 #define OPTIONS                                                         \
-    "md4, md5, ripemd160, sha1, sha256, sha512,\n"                      \
+    "mbedtls_md4, mbedtls_md5, mbedtls_ripemd160, mbedtls_sha1, mbedtls_sha256, mbedtls_sha512,\n"                      \
     "arc4, des3, des, aes_cbc, aes_gcm, aes_ccm, camellia, blowfish,\n" \
     "havege, ctr_drbg, hmac_drbg\n"                                     \
     "rsa, dhm, ecdsa, ecdh.\n"
 
-#if defined(POLARSSL_ERROR_C)
+#if defined(MBEDTLS_ERROR_C)
 #define PRINT_ERROR                                                     \
-        polarssl_strerror( ret, ( char * )tmp, sizeof( tmp ) );         \
-        polarssl_printf( "FAILED: %s\n", tmp );
+        mbedtls_strerror( ret, ( char * )tmp, sizeof( tmp ) );         \
+        mbedtls_printf( "FAILED: %s\n", tmp );
 #else
 #define PRINT_ERROR                                                     \
-        polarssl_printf( "FAILED: -0x%04x\n", -ret );
+        mbedtls_printf( "FAILED: -0x%04x\n", -ret );
 #endif
 
 #define TIME_AND_TSC( TITLE, CODE )                                     \
 do {                                                                    \
     unsigned long i, j, tsc;                                            \
                                                                         \
-    polarssl_printf( HEADER_FORMAT, TITLE );                            \
+    mbedtls_printf( HEADER_FORMAT, TITLE );                            \
     fflush( stdout );                                                   \
                                                                         \
-    set_alarm( 1 );                                                     \
-    for( i = 1; ! alarmed; i++ )                                        \
+    mbedtls_set_alarm( 1 );                                                     \
+    for( i = 1; ! mbedtls_timing_alarmed; i++ )                                        \
     {                                                                   \
         CODE;                                                           \
     }                                                                   \
                                                                         \
-    tsc = hardclock();                                                  \
+    tsc = mbedtls_timing_hardclock();                                                  \
     for( j = 0; j < 1024; j++ )                                         \
     {                                                                   \
         CODE;                                                           \
     }                                                                   \
                                                                         \
-    polarssl_printf( "%9lu Kb/s,  %9lu cycles/byte\n",                  \
+    mbedtls_printf( "%9lu Kb/s,  %9lu cycles/byte\n",                  \
                      i * BUFSIZE / 1024,                                \
-                     ( hardclock() - tsc ) / ( j * BUFSIZE ) );         \
+                     ( mbedtls_timing_hardclock() - tsc ) / ( j * BUFSIZE ) );         \
 } while( 0 )
 
-#if defined(POLARSSL_ERROR_C)
+#if defined(MBEDTLS_ERROR_C)
 #define PRINT_ERROR                                                     \
-        polarssl_strerror( ret, ( char * )tmp, sizeof( tmp ) );         \
-        polarssl_printf( "FAILED: %s\n", tmp );
+        mbedtls_strerror( ret, ( char * )tmp, sizeof( tmp ) );         \
+        mbedtls_printf( "FAILED: %s\n", tmp );
 #else
 #define PRINT_ERROR                                                     \
-        polarssl_printf( "FAILED: -0x%04x\n", -ret );
+        mbedtls_printf( "FAILED: -0x%04x\n", -ret );
 #endif
 
-#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C) && defined(POLARSSL_MEMORY_DEBUG)
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) && defined(MBEDTLS_MEMORY_DEBUG)
 
 #define MEMORY_MEASURE_INIT                                             \
     size_t max_used, max_blocks, max_bytes;                             \
     size_t prv_used, prv_blocks;                                        \
-    memory_buffer_alloc_cur_get( &prv_used, &prv_blocks );              \
-    memory_buffer_alloc_max_reset( );
+    mbedtls_memory_buffer_alloc_cur_get( &prv_used, &prv_blocks );              \
+    mbedtls_memory_buffer_alloc_max_reset( );
 
 #define MEMORY_MEASURE_PRINT( title_len )                               \
-    memory_buffer_alloc_max_get( &max_used, &max_blocks );              \
-    for( i = 12 - title_len; i != 0; i-- ) polarssl_printf( " " );      \
+    mbedtls_memory_buffer_alloc_max_get( &max_used, &max_blocks );              \
+    for( i = 12 - title_len; i != 0; i-- ) mbedtls_printf( " " );      \
     max_used -= prv_used;                                               \
     max_blocks -= prv_blocks;                                           \
     max_bytes = max_used + MEM_BLOCK_OVERHEAD * max_blocks;             \
-    polarssl_printf( "%6u heap bytes", (unsigned) max_bytes );
+    mbedtls_printf( "%6u heap bytes", (unsigned) max_bytes );
 
 #else
 #define MEMORY_MEASURE_INIT
@@ -171,12 +171,12 @@ do {                                                                    \
     int ret;                                                            \
     MEMORY_MEASURE_INIT;                                                \
                                                                         \
-    polarssl_printf( HEADER_FORMAT, TITLE );                            \
+    mbedtls_printf( HEADER_FORMAT, TITLE );                            \
     fflush( stdout );                                                   \
-    set_alarm( 3 );                                                     \
+    mbedtls_set_alarm( 3 );                                                     \
                                                                         \
     ret = 0;                                                            \
-    for( i = 1; ! alarmed && ! ret ; i++ )                              \
+    for( i = 1; ! mbedtls_timing_alarmed && ! ret ; i++ )                              \
     {                                                                   \
         CODE;                                                           \
     }                                                                   \
@@ -187,9 +187,9 @@ do {                                                                    \
     }                                                                   \
     else                                                                \
     {                                                                   \
-        polarssl_printf( "%6lu " TYPE "/s", i / 3 );                    \
+        mbedtls_printf( "%6lu " TYPE "/s", i / 3 );                    \
         MEMORY_MEASURE_PRINT( sizeof( TYPE ) + 1 );                     \
-        polarssl_printf( "\n" );                                        \
+        mbedtls_printf( "\n" );                                        \
     }                                                                   \
 } while( 0 )
 
@@ -219,15 +219,15 @@ static int myrand( void *rng_state, unsigned char *output, size_t len )
 /*
  * Clear some memory that was used to prepare the context
  */
-#if defined(POLARSSL_ECP_C)
-void ecp_clear_precomputed( ecp_group *grp )
+#if defined(MBEDTLS_ECP_C)
+void ecp_clear_precomputed( mbedtls_ecp_group *grp )
 {
     if( grp->T != NULL )
     {
         size_t i;
         for( i = 0; i < grp->T_size; i++ )
-            ecp_point_free( &grp->T[i] );
-        polarssl_free( grp->T );
+            mbedtls_ecp_point_free( &grp->T[i] );
+        mbedtls_free( grp->T );
     }
     grp->T = NULL;
     grp->T_size = 0;
@@ -239,7 +239,7 @@ void ecp_clear_precomputed( ecp_group *grp )
 unsigned char buf[BUFSIZE];
 
 typedef struct {
-    char md4, md5, ripemd160, sha1, sha256, sha512,
+    char mbedtls_md4, mbedtls_md5, mbedtls_ripemd160, mbedtls_sha1, mbedtls_sha256, mbedtls_sha512,
          arc4, des3, des, aes_cbc, aes_gcm, aes_ccm, camellia, blowfish,
          havege, ctr_drbg, hmac_drbg,
          rsa, dhm, ecdsa, ecdh;
@@ -251,7 +251,7 @@ int main( int argc, char *argv[] )
     unsigned char tmp[200];
     char title[TITLE_LEN];
     todo_list todo;
-#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     unsigned char malloc_buf[HEAP_SIZE] = { 0 };
 #endif
 
@@ -265,18 +265,18 @@ int main( int argc, char *argv[] )
 
         for( i = 1; i < argc; i++ )
         {
-            if( strcmp( argv[i], "md4" ) == 0 )
-                todo.md4 = 1;
-            else if( strcmp( argv[i], "md5" ) == 0 )
-                todo.md5 = 1;
-            else if( strcmp( argv[i], "ripemd160" ) == 0 )
-                todo.ripemd160 = 1;
-            else if( strcmp( argv[i], "sha1" ) == 0 )
-                todo.sha1 = 1;
-            else if( strcmp( argv[i], "sha256" ) == 0 )
-                todo.sha256 = 1;
-            else if( strcmp( argv[i], "sha512" ) == 0 )
-                todo.sha512 = 1;
+            if( strcmp( argv[i], "mbedtls_md4" ) == 0 )
+                todo.mbedtls_md4 = 1;
+            else if( strcmp( argv[i], "mbedtls_md5" ) == 0 )
+                todo.mbedtls_md5 = 1;
+            else if( strcmp( argv[i], "mbedtls_ripemd160" ) == 0 )
+                todo.mbedtls_ripemd160 = 1;
+            else if( strcmp( argv[i], "mbedtls_sha1" ) == 0 )
+                todo.mbedtls_sha1 = 1;
+            else if( strcmp( argv[i], "mbedtls_sha256" ) == 0 )
+                todo.mbedtls_sha256 = 1;
+            else if( strcmp( argv[i], "mbedtls_sha512" ) == 0 )
+                todo.mbedtls_sha512 = 1;
             else if( strcmp( argv[i], "arc4" ) == 0 )
                 todo.arc4 = 1;
             else if( strcmp( argv[i], "des3" ) == 0 )
@@ -309,518 +309,518 @@ int main( int argc, char *argv[] )
                 todo.ecdh = 1;
             else
             {
-                polarssl_printf( "Unrecognized option: %s\n", argv[i] );
-                polarssl_printf( "Available options: " OPTIONS );
+                mbedtls_printf( "Unrecognized option: %s\n", argv[i] );
+                mbedtls_printf( "Available options: " OPTIONS );
             }
         }
     }
 
-    polarssl_printf( "\n" );
+    mbedtls_printf( "\n" );
 
-#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
-    memory_buffer_alloc_init( malloc_buf, sizeof( malloc_buf ) );
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
+    mbedtls_memory_buffer_alloc_init( malloc_buf, sizeof( malloc_buf ) );
 #endif
     memset( buf, 0xAA, sizeof( buf ) );
     memset( tmp, 0xBB, sizeof( tmp ) );
 
-#if defined(POLARSSL_MD4_C)
-    if( todo.md4 )
-        TIME_AND_TSC( "MD4", md4( buf, BUFSIZE, tmp ) );
+#if defined(MBEDTLS_MD4_C)
+    if( todo.mbedtls_md4 )
+        TIME_AND_TSC( "MD4", mbedtls_md4( buf, BUFSIZE, tmp ) );
 #endif
 
-#if defined(POLARSSL_MD5_C)
-    if( todo.md5 )
-        TIME_AND_TSC( "MD5", md5( buf, BUFSIZE, tmp ) );
+#if defined(MBEDTLS_MD5_C)
+    if( todo.mbedtls_md5 )
+        TIME_AND_TSC( "MD5", mbedtls_md5( buf, BUFSIZE, tmp ) );
 #endif
 
-#if defined(POLARSSL_RIPEMD160_C)
-    if( todo.ripemd160 )
-        TIME_AND_TSC( "RIPEMD160", ripemd160( buf, BUFSIZE, tmp ) );
+#if defined(MBEDTLS_RIPEMD160_C)
+    if( todo.mbedtls_ripemd160 )
+        TIME_AND_TSC( "RIPEMD160", mbedtls_ripemd160( buf, BUFSIZE, tmp ) );
 #endif
 
-#if defined(POLARSSL_SHA1_C)
-    if( todo.sha1 )
-        TIME_AND_TSC( "SHA-1", sha1( buf, BUFSIZE, tmp ) );
+#if defined(MBEDTLS_SHA1_C)
+    if( todo.mbedtls_sha1 )
+        TIME_AND_TSC( "SHA-1", mbedtls_sha1( buf, BUFSIZE, tmp ) );
 #endif
 
-#if defined(POLARSSL_SHA256_C)
-    if( todo.sha256 )
-        TIME_AND_TSC( "SHA-256", sha256( buf, BUFSIZE, tmp, 0 ) );
+#if defined(MBEDTLS_SHA256_C)
+    if( todo.mbedtls_sha256 )
+        TIME_AND_TSC( "SHA-256", mbedtls_sha256( buf, BUFSIZE, tmp, 0 ) );
 #endif
 
-#if defined(POLARSSL_SHA512_C)
-    if( todo.sha512 )
-        TIME_AND_TSC( "SHA-512", sha512( buf, BUFSIZE, tmp, 0 ) );
+#if defined(MBEDTLS_SHA512_C)
+    if( todo.mbedtls_sha512 )
+        TIME_AND_TSC( "SHA-512", mbedtls_sha512( buf, BUFSIZE, tmp, 0 ) );
 #endif
 
-#if defined(POLARSSL_ARC4_C)
+#if defined(MBEDTLS_ARC4_C)
     if( todo.arc4 )
     {
-        arc4_context arc4;
-        arc4_init( &arc4 );
-        arc4_setup( &arc4, tmp, 32 );
-        TIME_AND_TSC( "ARC4", arc4_crypt( &arc4, BUFSIZE, buf, buf ) );
-        arc4_free( &arc4 );
+        mbedtls_arc4_context arc4;
+        mbedtls_arc4_init( &arc4 );
+        mbedtls_arc4_setup( &arc4, tmp, 32 );
+        TIME_AND_TSC( "ARC4", mbedtls_arc4_crypt( &arc4, BUFSIZE, buf, buf ) );
+        mbedtls_arc4_free( &arc4 );
     }
 #endif
 
-#if defined(POLARSSL_DES_C) && defined(POLARSSL_CIPHER_MODE_CBC)
+#if defined(MBEDTLS_DES_C) && defined(MBEDTLS_CIPHER_MODE_CBC)
     if( todo.des3 )
     {
-        des3_context des3;
-        des3_init( &des3 );
-        des3_set3key_enc( &des3, tmp );
+        mbedtls_des3_context des3;
+        mbedtls_des3_init( &des3 );
+        mbedtls_des3_set3key_enc( &des3, tmp );
         TIME_AND_TSC( "3DES",
-                des3_crypt_cbc( &des3, DES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
-        des3_free( &des3 );
+                mbedtls_des3_crypt_cbc( &des3, MBEDTLS_DES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
+        mbedtls_des3_free( &des3 );
     }
 
     if( todo.des )
     {
-        des_context des;
-        des_init( &des );
-        des_setkey_enc( &des, tmp );
+        mbedtls_des_context des;
+        mbedtls_des_init( &des );
+        mbedtls_des_setkey_enc( &des, tmp );
         TIME_AND_TSC( "DES",
-                des_crypt_cbc( &des, DES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
-        des_free( &des );
+                mbedtls_des_crypt_cbc( &des, MBEDTLS_DES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
+        mbedtls_des_free( &des );
     }
 #endif
 
-#if defined(POLARSSL_AES_C)
-#if defined(POLARSSL_CIPHER_MODE_CBC)
+#if defined(MBEDTLS_AES_C)
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
     if( todo.aes_cbc )
     {
         int keysize;
-        aes_context aes;
-        aes_init( &aes );
+        mbedtls_aes_context aes;
+        mbedtls_aes_init( &aes );
         for( keysize = 128; keysize <= 256; keysize += 64 )
         {
-            polarssl_snprintf( title, sizeof( title ), "AES-CBC-%d", keysize );
+            mbedtls_snprintf( title, sizeof( title ), "AES-CBC-%d", keysize );
 
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
-            aes_setkey_enc( &aes, tmp, keysize );
+            mbedtls_aes_setkey_enc( &aes, tmp, keysize );
 
             TIME_AND_TSC( title,
-                aes_crypt_cbc( &aes, AES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
+                mbedtls_aes_crypt_cbc( &aes, MBEDTLS_AES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
         }
-        aes_free( &aes );
+        mbedtls_aes_free( &aes );
     }
 #endif
-#if defined(POLARSSL_GCM_C)
+#if defined(MBEDTLS_GCM_C)
     if( todo.aes_gcm )
     {
         int keysize;
-        gcm_context gcm;
+        mbedtls_gcm_context gcm;
         for( keysize = 128; keysize <= 256; keysize += 64 )
         {
-            polarssl_snprintf( title, sizeof( title ), "AES-GCM-%d", keysize );
+            mbedtls_snprintf( title, sizeof( title ), "AES-GCM-%d", keysize );
 
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
-            gcm_init( &gcm, POLARSSL_CIPHER_ID_AES, tmp, keysize );
+            mbedtls_gcm_init( &gcm, MBEDTLS_CIPHER_ID_AES, tmp, keysize );
 
             TIME_AND_TSC( title,
-                    gcm_crypt_and_tag( &gcm, GCM_ENCRYPT, BUFSIZE, tmp,
+                    mbedtls_gcm_crypt_and_tag( &gcm, MBEDTLS_GCM_ENCRYPT, BUFSIZE, tmp,
                         12, NULL, 0, buf, buf, 16, tmp ) );
 
-            gcm_free( &gcm );
+            mbedtls_gcm_free( &gcm );
         }
     }
 #endif
-#if defined(POLARSSL_CCM_C)
+#if defined(MBEDTLS_CCM_C)
     if( todo.aes_ccm )
     {
         int keysize;
-        ccm_context ccm;
+        mbedtls_ccm_context ccm;
         for( keysize = 128; keysize <= 256; keysize += 64 )
         {
-            polarssl_snprintf( title, sizeof( title ), "AES-CCM-%d", keysize );
+            mbedtls_snprintf( title, sizeof( title ), "AES-CCM-%d", keysize );
 
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
-            ccm_init( &ccm, POLARSSL_CIPHER_ID_AES, tmp, keysize );
+            mbedtls_ccm_init( &ccm, MBEDTLS_CIPHER_ID_AES, tmp, keysize );
 
             TIME_AND_TSC( title,
-                    ccm_encrypt_and_tag( &ccm, BUFSIZE, tmp,
+                    mbedtls_ccm_encrypt_and_tag( &ccm, BUFSIZE, tmp,
                         12, NULL, 0, buf, buf, tmp, 16 ) );
 
-            ccm_free( &ccm );
+            mbedtls_ccm_free( &ccm );
         }
     }
 #endif
 #endif
 
-#if defined(POLARSSL_CAMELLIA_C) && defined(POLARSSL_CIPHER_MODE_CBC)
+#if defined(MBEDTLS_CAMELLIA_C) && defined(MBEDTLS_CIPHER_MODE_CBC)
     if( todo.camellia )
     {
         int keysize;
-        camellia_context camellia;
-        camellia_init( &camellia );
+        mbedtls_camellia_context camellia;
+        mbedtls_camellia_init( &camellia );
         for( keysize = 128; keysize <= 256; keysize += 64 )
         {
-            polarssl_snprintf( title, sizeof( title ), "CAMELLIA-CBC-%d", keysize );
+            mbedtls_snprintf( title, sizeof( title ), "CAMELLIA-CBC-%d", keysize );
 
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
-            camellia_setkey_enc( &camellia, tmp, keysize );
+            mbedtls_camellia_setkey_enc( &camellia, tmp, keysize );
 
             TIME_AND_TSC( title,
-                    camellia_crypt_cbc( &camellia, CAMELLIA_ENCRYPT,
+                    mbedtls_camellia_crypt_cbc( &camellia, MBEDTLS_CAMELLIA_ENCRYPT,
                         BUFSIZE, tmp, buf, buf ) );
         }
-        camellia_free( &camellia );
+        mbedtls_camellia_free( &camellia );
     }
 #endif
 
-#if defined(POLARSSL_BLOWFISH_C) && defined(POLARSSL_CIPHER_MODE_CBC)
+#if defined(MBEDTLS_BLOWFISH_C) && defined(MBEDTLS_CIPHER_MODE_CBC)
     if( todo.blowfish )
     {
         int keysize;
-        blowfish_context blowfish;
-        blowfish_init( &blowfish );
+        mbedtls_blowfish_context blowfish;
+        mbedtls_blowfish_init( &blowfish );
 
         for( keysize = 128; keysize <= 256; keysize += 64 )
         {
-            polarssl_snprintf( title, sizeof( title ), "BLOWFISH-CBC-%d", keysize );
+            mbedtls_snprintf( title, sizeof( title ), "BLOWFISH-CBC-%d", keysize );
 
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
-            blowfish_setkey( &blowfish, tmp, keysize );
+            mbedtls_blowfish_setkey( &blowfish, tmp, keysize );
 
             TIME_AND_TSC( title,
-                    blowfish_crypt_cbc( &blowfish, BLOWFISH_ENCRYPT, BUFSIZE,
+                    mbedtls_blowfish_crypt_cbc( &blowfish, MBEDTLS_BLOWFISH_ENCRYPT, BUFSIZE,
                         tmp, buf, buf ) );
         }
 
-        blowfish_free( &blowfish );
+        mbedtls_blowfish_free( &blowfish );
     }
 #endif
 
-#if defined(POLARSSL_HAVEGE_C)
+#if defined(MBEDTLS_HAVEGE_C)
     if( todo.havege )
     {
-        havege_state hs;
-        havege_init( &hs );
-        TIME_AND_TSC( "HAVEGE", havege_random( &hs, buf, BUFSIZE ) );
-        havege_free( &hs );
+        mbedtls_havege_state hs;
+        mbedtls_havege_init( &hs );
+        TIME_AND_TSC( "HAVEGE", mbedtls_havege_random( &hs, buf, BUFSIZE ) );
+        mbedtls_havege_free( &hs );
     }
 #endif
 
-#if defined(POLARSSL_CTR_DRBG_C)
+#if defined(MBEDTLS_CTR_DRBG_C)
     if( todo.ctr_drbg )
     {
-        ctr_drbg_context ctr_drbg;
+        mbedtls_ctr_drbg_context ctr_drbg;
 
-        if( ctr_drbg_init( &ctr_drbg, myrand, NULL, NULL, 0 ) != 0 )
-            polarssl_exit(1);
+        if( mbedtls_ctr_drbg_init( &ctr_drbg, myrand, NULL, NULL, 0 ) != 0 )
+            mbedtls_exit(1);
         TIME_AND_TSC( "CTR_DRBG (NOPR)",
-                if( ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) != 0 )
-                polarssl_exit(1) );
+                if( mbedtls_ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) != 0 )
+                mbedtls_exit(1) );
 
-        if( ctr_drbg_init( &ctr_drbg, myrand, NULL, NULL, 0 ) != 0 )
-            polarssl_exit(1);
-        ctr_drbg_set_prediction_resistance( &ctr_drbg, CTR_DRBG_PR_ON );
+        if( mbedtls_ctr_drbg_init( &ctr_drbg, myrand, NULL, NULL, 0 ) != 0 )
+            mbedtls_exit(1);
+        mbedtls_ctr_drbg_set_prediction_resistance( &ctr_drbg, MBEDTLS_CTR_DRBG_PR_ON );
         TIME_AND_TSC( "CTR_DRBG (PR)",
-                if( ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) != 0 )
-                polarssl_exit(1) );
-        ctr_drbg_free( &ctr_drbg );
+                if( mbedtls_ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) != 0 )
+                mbedtls_exit(1) );
+        mbedtls_ctr_drbg_free( &ctr_drbg );
     }
 #endif
 
-#if defined(POLARSSL_HMAC_DRBG_C)
+#if defined(MBEDTLS_HMAC_DRBG_C)
     if( todo.hmac_drbg )
     {
-        hmac_drbg_context hmac_drbg;
-        const md_info_t *md_info;
+        mbedtls_hmac_drbg_context hmac_drbg;
+        const mbedtls_md_info_t *md_info;
 
-#if defined(POLARSSL_SHA1_C)
-        if( ( md_info = md_info_from_type( POLARSSL_MD_SHA1 ) ) == NULL )
-            polarssl_exit(1);
+#if defined(MBEDTLS_SHA1_C)
+        if( ( md_info = mbedtls_md_info_from_type( MBEDTLS_MD_SHA1 ) ) == NULL )
+            mbedtls_exit(1);
 
-        if( hmac_drbg_init( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
-            polarssl_exit(1);
+        if( mbedtls_hmac_drbg_init( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
+            mbedtls_exit(1);
         TIME_AND_TSC( "HMAC_DRBG SHA-1 (NOPR)",
-                if( hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) != 0 )
-                polarssl_exit(1) );
-        hmac_drbg_free( &hmac_drbg );
+                if( mbedtls_hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) != 0 )
+                mbedtls_exit(1) );
+        mbedtls_hmac_drbg_free( &hmac_drbg );
 
-        if( hmac_drbg_init( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
-            polarssl_exit(1);
-        hmac_drbg_set_prediction_resistance( &hmac_drbg,
-                                             POLARSSL_HMAC_DRBG_PR_ON );
+        if( mbedtls_hmac_drbg_init( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
+            mbedtls_exit(1);
+        mbedtls_hmac_drbg_set_prediction_resistance( &hmac_drbg,
+                                             MBEDTLS_HMAC_DRBG_PR_ON );
         TIME_AND_TSC( "HMAC_DRBG SHA-1 (PR)",
-                if( hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) != 0 )
-                polarssl_exit(1) );
-        hmac_drbg_free( &hmac_drbg );
+                if( mbedtls_hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) != 0 )
+                mbedtls_exit(1) );
+        mbedtls_hmac_drbg_free( &hmac_drbg );
 #endif
 
-#if defined(POLARSSL_SHA256_C)
-        if( ( md_info = md_info_from_type( POLARSSL_MD_SHA256 ) ) == NULL )
-            polarssl_exit(1);
+#if defined(MBEDTLS_SHA256_C)
+        if( ( md_info = mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 ) ) == NULL )
+            mbedtls_exit(1);
 
-        if( hmac_drbg_init( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
-            polarssl_exit(1);
+        if( mbedtls_hmac_drbg_init( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
+            mbedtls_exit(1);
         TIME_AND_TSC( "HMAC_DRBG SHA-256 (NOPR)",
-                if( hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) != 0 )
-                polarssl_exit(1) );
-        hmac_drbg_free( &hmac_drbg );
+                if( mbedtls_hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) != 0 )
+                mbedtls_exit(1) );
+        mbedtls_hmac_drbg_free( &hmac_drbg );
 
-        if( hmac_drbg_init( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
-            polarssl_exit(1);
-        hmac_drbg_set_prediction_resistance( &hmac_drbg,
-                                             POLARSSL_HMAC_DRBG_PR_ON );
+        if( mbedtls_hmac_drbg_init( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
+            mbedtls_exit(1);
+        mbedtls_hmac_drbg_set_prediction_resistance( &hmac_drbg,
+                                             MBEDTLS_HMAC_DRBG_PR_ON );
         TIME_AND_TSC( "HMAC_DRBG SHA-256 (PR)",
-                if( hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) != 0 )
-                polarssl_exit(1) );
-        hmac_drbg_free( &hmac_drbg );
+                if( mbedtls_hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) != 0 )
+                mbedtls_exit(1) );
+        mbedtls_hmac_drbg_free( &hmac_drbg );
 #endif
     }
 #endif
 
-#if defined(POLARSSL_RSA_C) && defined(POLARSSL_GENPRIME)
+#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_GENPRIME)
     if( todo.rsa )
     {
         int keysize;
-        rsa_context rsa;
+        mbedtls_rsa_context rsa;
         for( keysize = 1024; keysize <= 4096; keysize *= 2 )
         {
-            polarssl_snprintf( title, sizeof( title ), "RSA-%d", keysize );
+            mbedtls_snprintf( title, sizeof( title ), "RSA-%d", keysize );
 
-            rsa_init( &rsa, RSA_PKCS_V15, 0 );
-            rsa_gen_key( &rsa, myrand, NULL, keysize, 65537 );
+            mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
+            mbedtls_rsa_gen_key( &rsa, myrand, NULL, keysize, 65537 );
 
             TIME_PUBLIC( title, " public",
                     buf[0] = 0;
-                    ret = rsa_public( &rsa, buf, buf ) );
+                    ret = mbedtls_rsa_public( &rsa, buf, buf ) );
 
             TIME_PUBLIC( title, "private",
                     buf[0] = 0;
-                    ret = rsa_private( &rsa, myrand, NULL, buf, buf ) );
+                    ret = mbedtls_rsa_private( &rsa, myrand, NULL, buf, buf ) );
 
-            rsa_free( &rsa );
+            mbedtls_rsa_free( &rsa );
         }
     }
 #endif
 
-#if defined(POLARSSL_DHM_C) && defined(POLARSSL_BIGNUM_C)
+#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_BIGNUM_C)
     if( todo.dhm )
     {
         int dhm_sizes[DHM_SIZES] = { 1024, 2048, 3072 };
         const char *dhm_P[DHM_SIZES] = {
-            POLARSSL_DHM_RFC5114_MODP_1024_P,
-            POLARSSL_DHM_RFC3526_MODP_2048_P,
-            POLARSSL_DHM_RFC3526_MODP_3072_P,
+            MBEDTLS_DHM_RFC5114_MODP_1024_P,
+            MBEDTLS_DHM_RFC3526_MODP_2048_P,
+            MBEDTLS_DHM_RFC3526_MODP_3072_P,
         };
         const char *dhm_G[DHM_SIZES] = {
-            POLARSSL_DHM_RFC5114_MODP_1024_G,
-            POLARSSL_DHM_RFC3526_MODP_2048_G,
-            POLARSSL_DHM_RFC3526_MODP_3072_G,
+            MBEDTLS_DHM_RFC5114_MODP_1024_G,
+            MBEDTLS_DHM_RFC3526_MODP_2048_G,
+            MBEDTLS_DHM_RFC3526_MODP_3072_G,
         };
 
-        dhm_context dhm;
+        mbedtls_dhm_context dhm;
         size_t olen;
         for( i = 0; i < DHM_SIZES; i++ )
         {
-            dhm_init( &dhm );
+            mbedtls_dhm_init( &dhm );
 
-            if( mpi_read_string( &dhm.P, 16, dhm_P[i] ) != 0 ||
-                mpi_read_string( &dhm.G, 16, dhm_G[i] ) != 0 )
+            if( mbedtls_mpi_read_string( &dhm.P, 16, dhm_P[i] ) != 0 ||
+                mbedtls_mpi_read_string( &dhm.G, 16, dhm_G[i] ) != 0 )
             {
-                polarssl_exit( 1 );
+                mbedtls_exit( 1 );
             }
 
-            dhm.len = mpi_size( &dhm.P );
-            dhm_make_public( &dhm, (int) dhm.len, buf, dhm.len, myrand, NULL );
-            if( mpi_copy( &dhm.GY, &dhm.GX ) != 0 )
-                polarssl_exit( 1 );
+            dhm.len = mbedtls_mpi_size( &dhm.P );
+            mbedtls_dhm_make_public( &dhm, (int) dhm.len, buf, dhm.len, myrand, NULL );
+            if( mbedtls_mpi_copy( &dhm.GY, &dhm.GX ) != 0 )
+                mbedtls_exit( 1 );
 
-            polarssl_snprintf( title, sizeof( title ), "DHE-%d", dhm_sizes[i] );
+            mbedtls_snprintf( title, sizeof( title ), "DHE-%d", dhm_sizes[i] );
             TIME_PUBLIC( title, "handshake",
                     olen = sizeof( buf );
-                    ret |= dhm_make_public( &dhm, (int) dhm.len, buf, dhm.len,
+                    ret |= mbedtls_dhm_make_public( &dhm, (int) dhm.len, buf, dhm.len,
                                             myrand, NULL );
-                    ret |= dhm_calc_secret( &dhm, buf, &olen, myrand, NULL ) );
+                    ret |= mbedtls_dhm_calc_secret( &dhm, buf, &olen, myrand, NULL ) );
 
-            polarssl_snprintf( title, sizeof( title ), "DH-%d", dhm_sizes[i] );
+            mbedtls_snprintf( title, sizeof( title ), "DH-%d", dhm_sizes[i] );
             TIME_PUBLIC( title, "handshake",
                     olen = sizeof( buf );
-                    ret |= dhm_calc_secret( &dhm, buf, &olen, myrand, NULL ) );
+                    ret |= mbedtls_dhm_calc_secret( &dhm, buf, &olen, myrand, NULL ) );
 
-            dhm_free( &dhm );
+            mbedtls_dhm_free( &dhm );
         }
     }
 #endif
 
-#if defined(POLARSSL_ECDSA_C) && defined(POLARSSL_SHA256_C)
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_SHA256_C)
     if( todo.ecdsa )
     {
-        ecdsa_context ecdsa;
-        const ecp_curve_info *curve_info;
+        mbedtls_ecdsa_context ecdsa;
+        const mbedtls_ecp_curve_info *curve_info;
         size_t sig_len;
 
         memset( buf, 0x2A, sizeof( buf ) );
 
-        for( curve_info = ecp_curve_list();
-             curve_info->grp_id != POLARSSL_ECP_DP_NONE;
+        for( curve_info = mbedtls_ecp_curve_list();
+             curve_info->grp_id != MBEDTLS_ECP_DP_NONE;
              curve_info++ )
         {
-            ecdsa_init( &ecdsa );
+            mbedtls_ecdsa_init( &ecdsa );
 
-            if( ecdsa_genkey( &ecdsa, curve_info->grp_id, myrand, NULL ) != 0 )
-                polarssl_exit( 1 );
+            if( mbedtls_ecdsa_genkey( &ecdsa, curve_info->grp_id, myrand, NULL ) != 0 )
+                mbedtls_exit( 1 );
             ecp_clear_precomputed( &ecdsa.grp );
 
-            polarssl_snprintf( title, sizeof( title ), "ECDSA-%s",
+            mbedtls_snprintf( title, sizeof( title ), "ECDSA-%s",
                                               curve_info->name );
             TIME_PUBLIC( title, "sign",
-                    ret = ecdsa_write_signature( &ecdsa, POLARSSL_MD_SHA256, buf, curve_info->size,
+                    ret = mbedtls_ecdsa_write_signature( &ecdsa, MBEDTLS_MD_SHA256, buf, curve_info->size,
                                                 tmp, &sig_len, myrand, NULL ) );
 
-            ecdsa_free( &ecdsa );
+            mbedtls_ecdsa_free( &ecdsa );
         }
 
-        for( curve_info = ecp_curve_list();
-             curve_info->grp_id != POLARSSL_ECP_DP_NONE;
+        for( curve_info = mbedtls_ecp_curve_list();
+             curve_info->grp_id != MBEDTLS_ECP_DP_NONE;
              curve_info++ )
         {
-            ecdsa_init( &ecdsa );
+            mbedtls_ecdsa_init( &ecdsa );
 
-            if( ecdsa_genkey( &ecdsa, curve_info->grp_id, myrand, NULL ) != 0 ||
-                ecdsa_write_signature( &ecdsa, POLARSSL_MD_SHA256, buf, curve_info->size,
+            if( mbedtls_ecdsa_genkey( &ecdsa, curve_info->grp_id, myrand, NULL ) != 0 ||
+                mbedtls_ecdsa_write_signature( &ecdsa, MBEDTLS_MD_SHA256, buf, curve_info->size,
                                                tmp, &sig_len, myrand, NULL ) != 0 )
             {
-                polarssl_exit( 1 );
+                mbedtls_exit( 1 );
             }
             ecp_clear_precomputed( &ecdsa.grp );
 
-            polarssl_snprintf( title, sizeof( title ), "ECDSA-%s",
+            mbedtls_snprintf( title, sizeof( title ), "ECDSA-%s",
                                               curve_info->name );
             TIME_PUBLIC( title, "verify",
-                    ret = ecdsa_read_signature( &ecdsa, buf, curve_info->size,
+                    ret = mbedtls_ecdsa_read_signature( &ecdsa, buf, curve_info->size,
                                                 tmp, sig_len ) );
 
-            ecdsa_free( &ecdsa );
+            mbedtls_ecdsa_free( &ecdsa );
         }
     }
 #endif
 
-#if defined(POLARSSL_ECDH_C)
+#if defined(MBEDTLS_ECDH_C)
     if( todo.ecdh )
     {
-        ecdh_context ecdh;
-#if defined(POLARSSL_ECP_DP_M255_ENABLED)
-        mpi z;
+        mbedtls_ecdh_context ecdh;
+#if defined(MBEDTLS_ECP_DP_M255_ENABLED)
+        mbedtls_mpi z;
 #endif
-        const ecp_curve_info *curve_info;
+        const mbedtls_ecp_curve_info *curve_info;
         size_t olen;
 
-        for( curve_info = ecp_curve_list();
-             curve_info->grp_id != POLARSSL_ECP_DP_NONE;
+        for( curve_info = mbedtls_ecp_curve_list();
+             curve_info->grp_id != MBEDTLS_ECP_DP_NONE;
              curve_info++ )
         {
-            ecdh_init( &ecdh );
+            mbedtls_ecdh_init( &ecdh );
 
-            if( ecp_use_known_dp( &ecdh.grp, curve_info->grp_id ) != 0 ||
-                ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
+            if( mbedtls_ecp_use_known_dp( &ecdh.grp, curve_info->grp_id ) != 0 ||
+                mbedtls_ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
                                   myrand, NULL ) != 0 ||
-                ecp_copy( &ecdh.Qp, &ecdh.Q ) != 0 )
+                mbedtls_ecp_copy( &ecdh.Qp, &ecdh.Q ) != 0 )
             {
-                polarssl_exit( 1 );
+                mbedtls_exit( 1 );
             }
             ecp_clear_precomputed( &ecdh.grp );
 
-            polarssl_snprintf( title, sizeof( title ), "ECDHE-%s",
+            mbedtls_snprintf( title, sizeof( title ), "ECDHE-%s",
                                               curve_info->name );
             TIME_PUBLIC( title, "handshake",
-                    ret |= ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
+                    ret |= mbedtls_ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
                                              myrand, NULL );
-                    ret |= ecdh_calc_secret( &ecdh, &olen, buf, sizeof( buf ),
+                    ret |= mbedtls_ecdh_calc_secret( &ecdh, &olen, buf, sizeof( buf ),
                                              myrand, NULL ) );
-            ecdh_free( &ecdh );
+            mbedtls_ecdh_free( &ecdh );
         }
 
         /* Curve25519 needs to be handled separately */
-#if defined(POLARSSL_ECP_DP_M255_ENABLED)
-        ecdh_init( &ecdh );
-        mpi_init( &z );
+#if defined(MBEDTLS_ECP_DP_M255_ENABLED)
+        mbedtls_ecdh_init( &ecdh );
+        mbedtls_mpi_init( &z );
 
-        if( ecp_use_known_dp( &ecdh.grp, POLARSSL_ECP_DP_M255 ) != 0 ||
-            ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Qp, myrand, NULL ) != 0 )
+        if( mbedtls_ecp_use_known_dp( &ecdh.grp, MBEDTLS_ECP_DP_M255 ) != 0 ||
+            mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Qp, myrand, NULL ) != 0 )
         {
-            polarssl_exit( 1 );
+            mbedtls_exit( 1 );
         }
 
         TIME_PUBLIC(  "ECDHE-Curve25519", "handshake",
-                ret |= ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Q,
+                ret |= mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Q,
                                         myrand, NULL );
-                ret |= ecdh_compute_shared( &ecdh.grp, &z, &ecdh.Qp, &ecdh.d,
+                ret |= mbedtls_ecdh_compute_shared( &ecdh.grp, &z, &ecdh.Qp, &ecdh.d,
                                             myrand, NULL ) );
 
-        ecdh_free( &ecdh );
-        mpi_free( &z );
+        mbedtls_ecdh_free( &ecdh );
+        mbedtls_mpi_free( &z );
 #endif
 
-        for( curve_info = ecp_curve_list();
-             curve_info->grp_id != POLARSSL_ECP_DP_NONE;
+        for( curve_info = mbedtls_ecp_curve_list();
+             curve_info->grp_id != MBEDTLS_ECP_DP_NONE;
              curve_info++ )
         {
-            ecdh_init( &ecdh );
+            mbedtls_ecdh_init( &ecdh );
 
-            if( ecp_use_known_dp( &ecdh.grp, curve_info->grp_id ) != 0 ||
-                ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
+            if( mbedtls_ecp_use_known_dp( &ecdh.grp, curve_info->grp_id ) != 0 ||
+                mbedtls_ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
                                   myrand, NULL ) != 0 ||
-                ecp_copy( &ecdh.Qp, &ecdh.Q ) != 0 ||
-                ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
+                mbedtls_ecp_copy( &ecdh.Qp, &ecdh.Q ) != 0 ||
+                mbedtls_ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
                                   myrand, NULL ) != 0 )
             {
-                polarssl_exit( 1 );
+                mbedtls_exit( 1 );
             }
             ecp_clear_precomputed( &ecdh.grp );
 
-            polarssl_snprintf( title, sizeof( title ), "ECDH-%s",
+            mbedtls_snprintf( title, sizeof( title ), "ECDH-%s",
                                               curve_info->name );
             TIME_PUBLIC( title, "handshake",
-                    ret |= ecdh_calc_secret( &ecdh, &olen, buf, sizeof( buf ),
+                    ret |= mbedtls_ecdh_calc_secret( &ecdh, &olen, buf, sizeof( buf ),
                                              myrand, NULL ) );
-            ecdh_free( &ecdh );
+            mbedtls_ecdh_free( &ecdh );
         }
 
         /* Curve25519 needs to be handled separately */
-#if defined(POLARSSL_ECP_DP_M255_ENABLED)
-        ecdh_init( &ecdh );
-        mpi_init( &z );
+#if defined(MBEDTLS_ECP_DP_M255_ENABLED)
+        mbedtls_ecdh_init( &ecdh );
+        mbedtls_mpi_init( &z );
 
-        if( ecp_use_known_dp( &ecdh.grp, POLARSSL_ECP_DP_M255 ) != 0 ||
-            ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Qp,
+        if( mbedtls_ecp_use_known_dp( &ecdh.grp, MBEDTLS_ECP_DP_M255 ) != 0 ||
+            mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Qp,
                              myrand, NULL ) != 0 ||
-            ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Q, myrand, NULL ) != 0 )
+            mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Q, myrand, NULL ) != 0 )
         {
-            polarssl_exit( 1 );
+            mbedtls_exit( 1 );
         }
 
         TIME_PUBLIC(  "ECDH-Curve25519", "handshake",
-                ret |= ecdh_compute_shared( &ecdh.grp, &z, &ecdh.Qp, &ecdh.d,
+                ret |= mbedtls_ecdh_compute_shared( &ecdh.grp, &z, &ecdh.Qp, &ecdh.d,
                                             myrand, NULL ) );
 
-        ecdh_free( &ecdh );
-        mpi_free( &z );
+        mbedtls_ecdh_free( &ecdh );
+        mbedtls_mpi_free( &z );
 #endif
     }
 #endif
 
-    polarssl_printf( "\n" );
+    mbedtls_printf( "\n" );
 
-#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
-    memory_buffer_alloc_free();
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
+    mbedtls_memory_buffer_alloc_free();
 #endif
 
 #if defined(_WIN32)
-    polarssl_printf( "  Press Enter to exit this program.\n" );
+    mbedtls_printf( "  Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 
     return( 0 );
 }
 
-#endif /* POLARSSL_TIMING_C */
+#endif /* MBEDTLS_TIMING_C */

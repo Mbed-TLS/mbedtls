@@ -26,21 +26,21 @@
 
 #include "mbedtls/pkcs11.h"
 
-#if defined(POLARSSL_PKCS11_C)
+#if defined(MBEDTLS_PKCS11_C)
 
 #include "mbedtls/md.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/x509_crt.h"
 
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdlib.h>
-#define polarssl_malloc     malloc
-#define polarssl_free       free
+#define mbedtls_malloc     malloc
+#define mbedtls_free       free
 #endif
 
-int pkcs11_x509_cert_init( x509_crt *cert, pkcs11h_certificate_t pkcs11_cert )
+int mbedtls_pkcs11_x509_cert_init( mbedtls_x509_crt *cert, pkcs11h_certificate_t pkcs11_cert )
 {
     int ret = 1;
     unsigned char *cert_blob = NULL;
@@ -59,7 +59,7 @@ int pkcs11_x509_cert_init( x509_crt *cert, pkcs11h_certificate_t pkcs11_cert )
         goto cleanup;
     }
 
-    cert_blob = polarssl_malloc( cert_blob_size );
+    cert_blob = mbedtls_malloc( cert_blob_size );
     if( NULL == cert_blob )
     {
         ret = 4;
@@ -73,7 +73,7 @@ int pkcs11_x509_cert_init( x509_crt *cert, pkcs11h_certificate_t pkcs11_cert )
         goto cleanup;
     }
 
-    if( 0 != x509_crt_parse( cert, cert_blob, cert_blob_size ) )
+    if( 0 != mbedtls_x509_crt_parse( cert, cert_blob, cert_blob_size ) )
     {
         ret = 6;
         goto cleanup;
@@ -83,44 +83,44 @@ int pkcs11_x509_cert_init( x509_crt *cert, pkcs11h_certificate_t pkcs11_cert )
 
 cleanup:
     if( NULL != cert_blob )
-        polarssl_free( cert_blob );
+        mbedtls_free( cert_blob );
 
     return( ret );
 }
 
 
-int pkcs11_priv_key_init( pkcs11_context *priv_key,
+int mbedtls_pkcs11_priv_key_init( mbedtls_pkcs11_context *priv_key,
         pkcs11h_certificate_t pkcs11_cert )
 {
     int ret = 1;
-    x509_crt cert;
+    mbedtls_x509_crt cert;
 
-    x509_crt_init( &cert );
+    mbedtls_x509_crt_init( &cert );
 
     if( priv_key == NULL )
         goto cleanup;
 
-    if( 0 != pkcs11_x509_cert_init( &cert, pkcs11_cert ) )
+    if( 0 != mbedtls_pkcs11_x509_cert_init( &cert, pkcs11_cert ) )
         goto cleanup;
 
-    priv_key->len = pk_get_len( &cert.pk );
+    priv_key->len = mbedtls_pk_get_len( &cert.pk );
     priv_key->pkcs11h_cert = pkcs11_cert;
 
     ret = 0;
 
 cleanup:
-    x509_crt_free( &cert );
+    mbedtls_x509_crt_free( &cert );
 
     return( ret );
 }
 
-void pkcs11_priv_key_free( pkcs11_context *priv_key )
+void mbedtls_pkcs11_priv_key_free( mbedtls_pkcs11_context *priv_key )
 {
     if( NULL != priv_key )
         pkcs11h_certificate_freeCertificate( priv_key->pkcs11h_cert );
 }
 
-int pkcs11_decrypt( pkcs11_context *ctx,
+int mbedtls_pkcs11_decrypt( mbedtls_pkcs11_context *ctx,
                        int mode, size_t *olen,
                        const unsigned char *input,
                        unsigned char *output,
@@ -129,38 +129,38 @@ int pkcs11_decrypt( pkcs11_context *ctx,
     size_t input_len, output_len;
 
     if( NULL == ctx )
-        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
-    if( RSA_PRIVATE != mode )
-        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+    if( MBEDTLS_RSA_PRIVATE != mode )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
     output_len = input_len = ctx->len;
 
     if( input_len < 16 || input_len > output_max_len )
-        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
     /* Determine size of output buffer */
     if( pkcs11h_certificate_decryptAny( ctx->pkcs11h_cert, CKM_RSA_PKCS, input,
             input_len, NULL, &output_len ) != CKR_OK )
     {
-        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     }
 
     if( output_len > output_max_len )
-        return( POLARSSL_ERR_RSA_OUTPUT_TOO_LARGE );
+        return( MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE );
 
     if( pkcs11h_certificate_decryptAny( ctx->pkcs11h_cert, CKM_RSA_PKCS, input,
             input_len, output, &output_len ) != CKR_OK )
     {
-        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     }
     *olen = output_len;
     return( 0 );
 }
 
-int pkcs11_sign( pkcs11_context *ctx,
+int mbedtls_pkcs11_sign( mbedtls_pkcs11_context *ctx,
                     int mode,
-                    md_type_t md_alg,
+                    mbedtls_md_type_t md_alg,
                     unsigned int hashlen,
                     const unsigned char *hash,
                     unsigned char *sig )
@@ -170,21 +170,21 @@ int pkcs11_sign( pkcs11_context *ctx,
     const char *oid;
 
     if( NULL == ctx )
-        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
-    if( RSA_PRIVATE != mode )
-        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+    if( MBEDTLS_RSA_PRIVATE != mode )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
-    if( md_alg != POLARSSL_MD_NONE )
+    if( md_alg != MBEDTLS_MD_NONE )
     {
-        const md_info_t *md_info = md_info_from_type( md_alg );
+        const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( md_alg );
         if( md_info == NULL )
-            return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
-        if( oid_get_oid_by_md( md_alg, &oid, &oid_size ) != 0 )
-            return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+        if( mbedtls_oid_get_oid_by_md( md_alg, &oid, &oid_size ) != 0 )
+            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
-        hashlen = md_get_size( md_info );
+        hashlen = mbedtls_md_get_size( md_info );
         asn_len = 10 + oid_size;
     }
 
@@ -192,10 +192,10 @@ int pkcs11_sign( pkcs11_context *ctx,
     if( hashlen > sig_len || asn_len > sig_len ||
         hashlen + asn_len > sig_len )
     {
-        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     }
 
-    if( md_alg != POLARSSL_MD_NONE )
+    if( md_alg != MBEDTLS_MD_NONE )
     {
         /*
          * DigestInfo ::= SEQUENCE {
@@ -206,17 +206,17 @@ int pkcs11_sign( pkcs11_context *ctx,
          *
          * Digest ::= OCTET STRING
          */
-        *p++ = ASN1_SEQUENCE | ASN1_CONSTRUCTED;
+        *p++ = MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED;
         *p++ = (unsigned char) ( 0x08 + oid_size + hashlen );
-        *p++ = ASN1_SEQUENCE | ASN1_CONSTRUCTED;
+        *p++ = MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED;
         *p++ = (unsigned char) ( 0x04 + oid_size );
-        *p++ = ASN1_OID;
+        *p++ = MBEDTLS_ASN1_OID;
         *p++ = oid_size & 0xFF;
         memcpy( p, oid, oid_size );
         p += oid_size;
-        *p++ = ASN1_NULL;
+        *p++ = MBEDTLS_ASN1_NULL;
         *p++ = 0x00;
-        *p++ = ASN1_OCTET_STRING;
+        *p++ = MBEDTLS_ASN1_OCTET_STRING;
         *p++ = hashlen;
     }
 
@@ -225,10 +225,10 @@ int pkcs11_sign( pkcs11_context *ctx,
     if( pkcs11h_certificate_signAny( ctx->pkcs11h_cert, CKM_RSA_PKCS, sig,
             asn_len + hashlen, sig, &sig_len ) != CKR_OK )
     {
-        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     }
 
     return( 0 );
 }
 
-#endif /* defined(POLARSSL_PKCS11_C) */
+#endif /* defined(MBEDTLS_PKCS11_C) */

@@ -25,7 +25,7 @@ void string_debug(void *data, int level, const char *str)
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:POLARSSL_DEBUG_C:POLARSSL_SSL_TLS_C
+ * depends_on:MBEDTLS_DEBUG_C:MBEDTLS_SSL_TLS_C
  * END_DEPENDENCIES
  */
 
@@ -33,119 +33,119 @@ void string_debug(void *data, int level, const char *str)
 void debug_print_msg_threshold( int threshold, int level, char *file, int line,
                                 char *result_str )
 {
-    ssl_context ssl;
+    mbedtls_ssl_context ssl;
     struct buffer_data buffer;
 
-    memset( &ssl, 0, sizeof( ssl_context ) );
+    memset( &ssl, 0, sizeof( mbedtls_ssl_context ) );
     memset( buffer.buf, 0, 2000 );
     buffer.ptr = buffer.buf;
 
-    debug_set_log_mode( POLARSSL_DEBUG_LOG_FULL );
-    debug_set_threshold( threshold );
-    ssl_set_dbg(&ssl, string_debug, &buffer);
+    mbedtls_debug_set_log_mode( MBEDTLS_DEBUG_LOG_FULL );
+    mbedtls_debug_set_threshold( threshold );
+    mbedtls_ssl_set_dbg(&ssl, string_debug, &buffer);
 
-    debug_print_msg( &ssl, level, file, line,
-                     debug_fmt("Text message, 2 == %d", 2 ) );
+    mbedtls_debug_print_msg( &ssl, level, file, line,
+                     mbedtls_debug_fmt("Text message, 2 == %d", 2 ) );
 
     TEST_ASSERT( strcmp( buffer.buf, result_str ) == 0 );
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
-void debug_print_ret( int mode, char *file, int line, char *text, int value,
+void mbedtls_debug_print_ret( int mode, char *file, int line, char *text, int value,
                       char *result_str )
 {
-    ssl_context ssl;
+    mbedtls_ssl_context ssl;
     struct buffer_data buffer;
 
-    memset( &ssl, 0, sizeof( ssl_context ) );
+    memset( &ssl, 0, sizeof( mbedtls_ssl_context ) );
     memset( buffer.buf, 0, 2000 );
     buffer.ptr = buffer.buf;
 
-    debug_set_log_mode( mode );
-    ssl_set_dbg(&ssl, string_debug, &buffer);
+    mbedtls_debug_set_log_mode( mode );
+    mbedtls_ssl_set_dbg(&ssl, string_debug, &buffer);
 
-    debug_print_ret( &ssl, 0, file, line, text, value);
+    mbedtls_debug_print_ret( &ssl, 0, file, line, text, value);
 
     TEST_ASSERT( strcmp( buffer.buf, result_str ) == 0 );
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
-void debug_print_buf( int mode, char *file, int line, char *text,
+void mbedtls_debug_print_buf( int mode, char *file, int line, char *text,
                       char *data_string, char *result_str )
 {
     unsigned char data[10000];
-    ssl_context ssl;
+    mbedtls_ssl_context ssl;
     struct buffer_data buffer;
     size_t data_len;
 
     memset( &data, 0, sizeof( data ) );
-    memset( &ssl, 0, sizeof( ssl_context ) );
+    memset( &ssl, 0, sizeof( mbedtls_ssl_context ) );
     memset( buffer.buf, 0, 2000 );
     buffer.ptr = buffer.buf;
 
     data_len = unhexify( data, data_string );
 
-    debug_set_log_mode( mode );
-    ssl_set_dbg(&ssl, string_debug, &buffer);
+    mbedtls_debug_set_log_mode( mode );
+    mbedtls_ssl_set_dbg(&ssl, string_debug, &buffer);
 
-    debug_print_buf( &ssl, 0, file, line, text, data, data_len );
+    mbedtls_debug_print_buf( &ssl, 0, file, line, text, data, data_len );
 
     TEST_ASSERT( strcmp( buffer.buf, result_str ) == 0 );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_CRT_PARSE_C */
-void debug_print_crt( int mode, char *crt_file, char *file, int line,
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
+void mbedtls_debug_print_crt( int mode, char *crt_file, char *file, int line,
                       char *prefix, char *result_str )
 {
-    x509_crt   crt;
-    ssl_context ssl;
+    mbedtls_x509_crt   crt;
+    mbedtls_ssl_context ssl;
     struct buffer_data buffer;
 
-    x509_crt_init( &crt );
-    memset( &ssl, 0, sizeof( ssl_context ) );
+    mbedtls_x509_crt_init( &crt );
+    memset( &ssl, 0, sizeof( mbedtls_ssl_context ) );
     memset( buffer.buf, 0, 2000 );
     buffer.ptr = buffer.buf;
 
-    debug_set_log_mode( mode );
-    ssl_set_dbg(&ssl, string_debug, &buffer);
+    mbedtls_debug_set_log_mode( mode );
+    mbedtls_ssl_set_dbg(&ssl, string_debug, &buffer);
 
-    TEST_ASSERT( x509_crt_parse_file( &crt, crt_file ) == 0 );
-    debug_print_crt( &ssl, 0, file, line, prefix, &crt);
+    TEST_ASSERT( mbedtls_x509_crt_parse_file( &crt, crt_file ) == 0 );
+    mbedtls_debug_print_crt( &ssl, 0, file, line, prefix, &crt);
 
     TEST_ASSERT( strcmp( buffer.buf, result_str ) == 0 );
 
 exit:
-    x509_crt_free( &crt );
+    mbedtls_x509_crt_free( &crt );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_BIGNUM_C */
-void debug_print_mpi( int mode, int radix, char *value, char *file, int line,
+/* BEGIN_CASE depends_on:MBEDTLS_BIGNUM_C */
+void mbedtls_debug_print_mpi( int mode, int radix, char *value, char *file, int line,
                       char *prefix, char *result_str )
 {
-    ssl_context ssl;
+    mbedtls_ssl_context ssl;
     struct buffer_data buffer;
-    mpi val;
+    mbedtls_mpi val;
 
-    mpi_init( &val );
+    mbedtls_mpi_init( &val );
 
-    memset( &ssl, 0, sizeof( ssl_context ) );
+    memset( &ssl, 0, sizeof( mbedtls_ssl_context ) );
     memset( buffer.buf, 0, 2000 );
     buffer.ptr = buffer.buf;
 
-    TEST_ASSERT( mpi_read_string( &val, radix, value ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &val, radix, value ) == 0 );
 
-    debug_set_log_mode( mode );
-    ssl_set_dbg(&ssl, string_debug, &buffer);
+    mbedtls_debug_set_log_mode( mode );
+    mbedtls_ssl_set_dbg(&ssl, string_debug, &buffer);
 
-    debug_print_mpi( &ssl, 0, file, line, prefix, &val);
+    mbedtls_debug_print_mpi( &ssl, 0, file, line, prefix, &val);
 
     TEST_ASSERT( strcmp( buffer.buf, result_str ) == 0 );
 
 exit:
-    mpi_free( &val );
+    mbedtls_mpi_free( &val );
 }
 /* END_CASE */

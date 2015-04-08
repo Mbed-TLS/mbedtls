@@ -28,30 +28,30 @@
  *  http://www.ietf.org/rfc/rfc4346.txt
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_SSL_TLS_C)
+#if defined(MBEDTLS_SSL_TLS_C)
 
 #include "mbedtls/debug.h"
 #include "mbedtls/ssl.h"
 
 #include <string.h>
 
-#if defined(POLARSSL_X509_CRT_PARSE_C) && \
-    defined(POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
+    defined(MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE)
 #include "mbedtls/oid.h"
 #endif
 
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdlib.h>
-#define polarssl_malloc     malloc
-#define polarssl_free       free
+#define mbedtls_malloc     malloc
+#define mbedtls_free       free
 #endif
 
 #if defined(_MSC_VER) && !defined strcasecmp && !defined(EFIX64) && \
@@ -60,15 +60,15 @@
 #endif
 
 /* Implementation that should never be optimized out by the compiler */
-static void polarssl_zeroize( void *v, size_t n ) {
+static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
 /* Length of the "epoch" field in the record header */
-static inline size_t ssl_ep_len( const ssl_context *ssl )
+static inline size_t ssl_ep_len( const mbedtls_ssl_context *ssl )
 {
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
         return( 2 );
 #else
     ((void) ssl);
@@ -77,25 +77,25 @@ static inline size_t ssl_ep_len( const ssl_context *ssl )
 }
 
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
 /*
  * Start a timer.
  * Passing millisecs = 0 cancels a running timer.
  * The timer is already running iff time_limit != 0.
  */
-static void ssl_set_timer( ssl_context *ssl, uint32_t millisecs )
+static void ssl_set_timer( mbedtls_ssl_context *ssl, uint32_t millisecs )
 {
     ssl->time_limit = millisecs;
-    get_timer( &ssl->time_info, 1 );
+    mbedtls_timing_get_timer( &ssl->time_info, 1 );
 }
 
 /*
  * Return -1 is timer is expired, 0 if it isn't.
  */
-static int ssl_check_timer( ssl_context *ssl )
+static int ssl_check_timer( mbedtls_ssl_context *ssl )
 {
     if( ssl->time_limit != 0 &&
-        get_timer( &ssl->time_info, 0 ) > ssl->time_limit )
+        mbedtls_timing_get_timer( &ssl->time_info, 0 ) > ssl->time_limit )
     {
         return( -1 );
     }
@@ -107,7 +107,7 @@ static int ssl_check_timer( ssl_context *ssl )
  * Double the retransmit timeout value, within the allowed range,
  * returning -1 if the maximum value has already been reached.
  */
-static int ssl_double_retransmit_timeout( ssl_context *ssl )
+static int ssl_double_retransmit_timeout( mbedtls_ssl_context *ssl )
 {
     uint32_t new_timeout;
 
@@ -124,21 +124,21 @@ static int ssl_double_retransmit_timeout( ssl_context *ssl )
     }
 
     ssl->handshake->retransmit_timeout = new_timeout;
-    SSL_DEBUG_MSG( 3, ( "update timeout value to %d millisecs",
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "update timeout value to %d millisecs",
                         ssl->handshake->retransmit_timeout ) );
 
     return( 0 );
 }
 
-static void ssl_reset_retransmit_timeout( ssl_context *ssl )
+static void ssl_reset_retransmit_timeout( mbedtls_ssl_context *ssl )
 {
     ssl->handshake->retransmit_timeout = ssl->hs_timeout_min;
-    SSL_DEBUG_MSG( 3, ( "update timeout value to %d millisecs",
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "update timeout value to %d millisecs",
                         ssl->handshake->retransmit_timeout ) );
 }
-#endif /* POLARSSL_SSL_PROTO_DTLS */
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-#if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 /*
  * Convert max_fragment_length codes to length.
  * RFC 6066 says:
@@ -147,89 +147,89 @@ static void ssl_reset_retransmit_timeout( ssl_context *ssl )
  *    } MaxFragmentLength;
  * and we add 0 -> extension unused
  */
-static unsigned int mfl_code_to_length[SSL_MAX_FRAG_LEN_INVALID] =
+static unsigned int mfl_code_to_length[MBEDTLS_SSL_MAX_FRAG_LEN_INVALID] =
 {
-    SSL_MAX_CONTENT_LEN,    /* SSL_MAX_FRAG_LEN_NONE */
-    512,                    /* SSL_MAX_FRAG_LEN_512  */
-    1024,                   /* SSL_MAX_FRAG_LEN_1024 */
-    2048,                   /* SSL_MAX_FRAG_LEN_2048 */
-    4096,                   /* SSL_MAX_FRAG_LEN_4096 */
+    MBEDTLS_SSL_MAX_CONTENT_LEN,    /* MBEDTLS_SSL_MAX_FRAG_LEN_NONE */
+    512,                    /* MBEDTLS_SSL_MAX_FRAG_LEN_512  */
+    1024,                   /* MBEDTLS_SSL_MAX_FRAG_LEN_1024 */
+    2048,                   /* MBEDTLS_SSL_MAX_FRAG_LEN_2048 */
+    4096,                   /* MBEDTLS_SSL_MAX_FRAG_LEN_4096 */
 };
-#endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
+#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
-static int ssl_session_copy( ssl_session *dst, const ssl_session *src )
+static int ssl_session_copy( mbedtls_ssl_session *dst, const mbedtls_ssl_session *src )
 {
-    ssl_session_free( dst );
-    memcpy( dst, src, sizeof( ssl_session ) );
+    mbedtls_ssl_session_free( dst );
+    memcpy( dst, src, sizeof( mbedtls_ssl_session ) );
 
-#if defined(POLARSSL_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
     if( src->peer_cert != NULL )
     {
         int ret;
 
-        dst->peer_cert = polarssl_malloc( sizeof(x509_crt) );
+        dst->peer_cert = mbedtls_malloc( sizeof(mbedtls_x509_crt) );
         if( dst->peer_cert == NULL )
-            return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+            return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
 
-        x509_crt_init( dst->peer_cert );
+        mbedtls_x509_crt_init( dst->peer_cert );
 
-        if( ( ret = x509_crt_parse_der( dst->peer_cert, src->peer_cert->raw.p,
+        if( ( ret = mbedtls_x509_crt_parse_der( dst->peer_cert, src->peer_cert->raw.p,
                                         src->peer_cert->raw.len ) ) != 0 )
         {
-            polarssl_free( dst->peer_cert );
+            mbedtls_free( dst->peer_cert );
             dst->peer_cert = NULL;
             return( ret );
         }
     }
-#endif /* POLARSSL_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-#if defined(POLARSSL_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
     if( src->ticket != NULL )
     {
-        dst->ticket = polarssl_malloc( src->ticket_len );
+        dst->ticket = mbedtls_malloc( src->ticket_len );
         if( dst->ticket == NULL )
-            return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+            return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
 
         memcpy( dst->ticket, src->ticket, src->ticket_len );
     }
-#endif /* POLARSSL_SSL_SESSION_TICKETS */
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
     return( 0 );
 }
 
-#if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
-int (*ssl_hw_record_init)( ssl_context *ssl,
+#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
+int (*mbedtls_ssl_hw_record_init)( mbedtls_ssl_context *ssl,
                      const unsigned char *key_enc, const unsigned char *key_dec,
                      size_t keylen,
                      const unsigned char *iv_enc,  const unsigned char *iv_dec,
                      size_t ivlen,
                      const unsigned char *mac_enc, const unsigned char *mac_dec,
                      size_t maclen ) = NULL;
-int (*ssl_hw_record_activate)( ssl_context *ssl, int direction) = NULL;
-int (*ssl_hw_record_reset)( ssl_context *ssl ) = NULL;
-int (*ssl_hw_record_write)( ssl_context *ssl ) = NULL;
-int (*ssl_hw_record_read)( ssl_context *ssl ) = NULL;
-int (*ssl_hw_record_finish)( ssl_context *ssl ) = NULL;
-#endif /* POLARSSL_SSL_HW_RECORD_ACCEL */
+int (*mbedtls_ssl_hw_record_activate)( mbedtls_ssl_context *ssl, int direction) = NULL;
+int (*mbedtls_ssl_hw_record_reset)( mbedtls_ssl_context *ssl ) = NULL;
+int (*mbedtls_ssl_hw_record_write)( mbedtls_ssl_context *ssl ) = NULL;
+int (*mbedtls_ssl_hw_record_read)( mbedtls_ssl_context *ssl ) = NULL;
+int (*mbedtls_ssl_hw_record_finish)( mbedtls_ssl_context *ssl ) = NULL;
+#endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
 
 /*
  * Key material generation
  */
-#if defined(POLARSSL_SSL_PROTO_SSL3)
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
 static int ssl3_prf( const unsigned char *secret, size_t slen,
                      const char *label,
                      const unsigned char *random, size_t rlen,
                      unsigned char *dstbuf, size_t dlen )
 {
     size_t i;
-    md5_context md5;
-    sha1_context sha1;
+    mbedtls_md5_context mbedtls_md5;
+    mbedtls_sha1_context mbedtls_sha1;
     unsigned char padding[16];
     unsigned char sha1sum[20];
     ((void)label);
 
-    md5_init(  &md5  );
-    sha1_init( &sha1 );
+    mbedtls_md5_init(  &mbedtls_md5  );
+    mbedtls_sha1_init( &mbedtls_sha1 );
 
     /*
      *  SSLv3:
@@ -243,29 +243,29 @@ static int ssl3_prf( const unsigned char *secret, size_t slen,
     {
         memset( padding, (unsigned char) ('A' + i), 1 + i );
 
-        sha1_starts( &sha1 );
-        sha1_update( &sha1, padding, 1 + i );
-        sha1_update( &sha1, secret, slen );
-        sha1_update( &sha1, random, rlen );
-        sha1_finish( &sha1, sha1sum );
+        mbedtls_sha1_starts( &mbedtls_sha1 );
+        mbedtls_sha1_update( &mbedtls_sha1, padding, 1 + i );
+        mbedtls_sha1_update( &mbedtls_sha1, secret, slen );
+        mbedtls_sha1_update( &mbedtls_sha1, random, rlen );
+        mbedtls_sha1_finish( &mbedtls_sha1, sha1sum );
 
-        md5_starts( &md5 );
-        md5_update( &md5, secret, slen );
-        md5_update( &md5, sha1sum, 20 );
-        md5_finish( &md5, dstbuf + i * 16 );
+        mbedtls_md5_starts( &mbedtls_md5 );
+        mbedtls_md5_update( &mbedtls_md5, secret, slen );
+        mbedtls_md5_update( &mbedtls_md5, sha1sum, 20 );
+        mbedtls_md5_finish( &mbedtls_md5, dstbuf + i * 16 );
     }
 
-    md5_free(  &md5  );
-    sha1_free( &sha1 );
+    mbedtls_md5_free(  &mbedtls_md5  );
+    mbedtls_sha1_free( &mbedtls_sha1 );
 
-    polarssl_zeroize( padding, sizeof( padding ) );
-    polarssl_zeroize( sha1sum, sizeof( sha1sum ) );
+    mbedtls_zeroize( padding, sizeof( padding ) );
+    mbedtls_zeroize( sha1sum, sizeof( sha1sum ) );
 
     return( 0 );
 }
-#endif /* POLARSSL_SSL_PROTO_SSL3 */
+#endif /* MBEDTLS_SSL_PROTO_SSL3 */
 
-#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1)
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
 static int tls1_prf( const unsigned char *secret, size_t slen,
                      const char *label,
                      const unsigned char *random, size_t rlen,
@@ -276,14 +276,14 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
     const unsigned char *S1, *S2;
     unsigned char tmp[128];
     unsigned char h_i[20];
-    const md_info_t *md_info;
-    md_context_t md_ctx;
+    const mbedtls_md_info_t *md_info;
+    mbedtls_md_context_t md_ctx;
     int ret;
 
-    md_init( &md_ctx );
+    mbedtls_md_init( &md_ctx );
 
     if( sizeof( tmp ) < 20 + strlen( label ) + rlen )
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     hs = ( slen + 1 ) / 2;
     S1 = secret;
@@ -297,25 +297,25 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
     /*
      * First compute P_md5(secret,label+random)[0..dlen]
      */
-    if( ( md_info = md_info_from_type( POLARSSL_MD_MD5 ) ) == NULL )
-        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+    if( ( md_info = mbedtls_md_info_from_type( MBEDTLS_MD_MD5 ) ) == NULL )
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 
-    if( ( ret = md_setup( &md_ctx, md_info, 1 ) ) != 0 )
+    if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 1 ) ) != 0 )
         return( ret );
 
-    md_hmac_starts( &md_ctx, S1, hs );
-    md_hmac_update( &md_ctx, tmp + 20, nb );
-    md_hmac_finish( &md_ctx, 4 + tmp );
+    mbedtls_md_hmac_starts( &md_ctx, S1, hs );
+    mbedtls_md_hmac_update( &md_ctx, tmp + 20, nb );
+    mbedtls_md_hmac_finish( &md_ctx, 4 + tmp );
 
     for( i = 0; i < dlen; i += 16 )
     {
-        md_hmac_reset ( &md_ctx );
-        md_hmac_update( &md_ctx, 4 + tmp, 16 + nb );
-        md_hmac_finish( &md_ctx, h_i );
+        mbedtls_md_hmac_reset ( &md_ctx );
+        mbedtls_md_hmac_update( &md_ctx, 4 + tmp, 16 + nb );
+        mbedtls_md_hmac_finish( &md_ctx, h_i );
 
-        md_hmac_reset ( &md_ctx );
-        md_hmac_update( &md_ctx, 4 + tmp, 16 );
-        md_hmac_finish( &md_ctx, 4 + tmp );
+        mbedtls_md_hmac_reset ( &md_ctx );
+        mbedtls_md_hmac_update( &md_ctx, 4 + tmp, 16 );
+        mbedtls_md_hmac_finish( &md_ctx, 4 + tmp );
 
         k = ( i + 16 > dlen ) ? dlen % 16 : 16;
 
@@ -323,30 +323,30 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
             dstbuf[i + j]  = h_i[j];
     }
 
-    md_free( &md_ctx );
+    mbedtls_md_free( &md_ctx );
 
     /*
      * XOR out with P_sha1(secret,label+random)[0..dlen]
      */
-    if( ( md_info = md_info_from_type( POLARSSL_MD_SHA1 ) ) == NULL )
-        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+    if( ( md_info = mbedtls_md_info_from_type( MBEDTLS_MD_SHA1 ) ) == NULL )
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 
-    if( ( ret = md_setup( &md_ctx, md_info, 1 ) ) != 0 )
+    if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 1 ) ) != 0 )
         return( ret );
 
-    md_hmac_starts( &md_ctx, S2, hs );
-    md_hmac_update( &md_ctx, tmp + 20, nb );
-    md_hmac_finish( &md_ctx, tmp );
+    mbedtls_md_hmac_starts( &md_ctx, S2, hs );
+    mbedtls_md_hmac_update( &md_ctx, tmp + 20, nb );
+    mbedtls_md_hmac_finish( &md_ctx, tmp );
 
     for( i = 0; i < dlen; i += 20 )
     {
-        md_hmac_reset ( &md_ctx );
-        md_hmac_update( &md_ctx, tmp, 20 + nb );
-        md_hmac_finish( &md_ctx, h_i );
+        mbedtls_md_hmac_reset ( &md_ctx );
+        mbedtls_md_hmac_update( &md_ctx, tmp, 20 + nb );
+        mbedtls_md_hmac_finish( &md_ctx, h_i );
 
-        md_hmac_reset ( &md_ctx );
-        md_hmac_update( &md_ctx, tmp, 20 );
-        md_hmac_finish( &md_ctx, tmp );
+        mbedtls_md_hmac_reset ( &md_ctx );
+        mbedtls_md_hmac_update( &md_ctx, tmp, 20 );
+        mbedtls_md_hmac_finish( &md_ctx, tmp );
 
         k = ( i + 20 > dlen ) ? dlen % 20 : 20;
 
@@ -354,17 +354,17 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
             dstbuf[i + j] = (unsigned char)( dstbuf[i + j] ^ h_i[j] );
     }
 
-    md_free( &md_ctx );
+    mbedtls_md_free( &md_ctx );
 
-    polarssl_zeroize( tmp, sizeof( tmp ) );
-    polarssl_zeroize( h_i, sizeof( h_i ) );
+    mbedtls_zeroize( tmp, sizeof( tmp ) );
+    mbedtls_zeroize( h_i, sizeof( h_i ) );
 
     return( 0 );
 }
-#endif /* POLARSSL_SSL_PROTO_TLS1) || POLARSSL_SSL_PROTO_TLS1_1 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1) || MBEDTLS_SSL_PROTO_TLS1_1 */
 
-#if defined(POLARSSL_SSL_PROTO_TLS1_2)
-static int tls_prf_generic( md_type_t md_type,
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+static int tls_prf_generic( mbedtls_md_type_t md_type,
                             const unsigned char *secret, size_t slen,
                             const char *label,
                             const unsigned char *random, size_t rlen,
@@ -373,20 +373,20 @@ static int tls_prf_generic( md_type_t md_type,
     size_t nb;
     size_t i, j, k, md_len;
     unsigned char tmp[128];
-    unsigned char h_i[POLARSSL_MD_MAX_SIZE];
-    const md_info_t *md_info;
-    md_context_t md_ctx;
+    unsigned char h_i[MBEDTLS_MD_MAX_SIZE];
+    const mbedtls_md_info_t *md_info;
+    mbedtls_md_context_t md_ctx;
     int ret;
 
-    md_init( &md_ctx );
+    mbedtls_md_init( &md_ctx );
 
-    if( ( md_info = md_info_from_type( md_type ) ) == NULL )
-        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+    if( ( md_info = mbedtls_md_info_from_type( md_type ) ) == NULL )
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 
-    md_len = md_get_size( md_info );
+    md_len = mbedtls_md_get_size( md_info );
 
     if( sizeof( tmp ) < md_len + strlen( label ) + rlen )
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     nb = strlen( label );
     memcpy( tmp + md_len, label, nb );
@@ -396,22 +396,22 @@ static int tls_prf_generic( md_type_t md_type,
     /*
      * Compute P_<hash>(secret, label + random)[0..dlen]
      */
-    if ( ( ret = md_setup( &md_ctx, md_info, 1 ) ) != 0 )
+    if ( ( ret = mbedtls_md_setup( &md_ctx, md_info, 1 ) ) != 0 )
         return( ret );
 
-    md_hmac_starts( &md_ctx, secret, slen );
-    md_hmac_update( &md_ctx, tmp + md_len, nb );
-    md_hmac_finish( &md_ctx, tmp );
+    mbedtls_md_hmac_starts( &md_ctx, secret, slen );
+    mbedtls_md_hmac_update( &md_ctx, tmp + md_len, nb );
+    mbedtls_md_hmac_finish( &md_ctx, tmp );
 
     for( i = 0; i < dlen; i += md_len )
     {
-        md_hmac_reset ( &md_ctx );
-        md_hmac_update( &md_ctx, tmp, md_len + nb );
-        md_hmac_finish( &md_ctx, h_i );
+        mbedtls_md_hmac_reset ( &md_ctx );
+        mbedtls_md_hmac_update( &md_ctx, tmp, md_len + nb );
+        mbedtls_md_hmac_finish( &md_ctx, h_i );
 
-        md_hmac_reset ( &md_ctx );
-        md_hmac_update( &md_ctx, tmp, md_len );
-        md_hmac_finish( &md_ctx, tmp );
+        mbedtls_md_hmac_reset ( &md_ctx );
+        mbedtls_md_hmac_update( &md_ctx, tmp, md_len );
+        mbedtls_md_hmac_finish( &md_ctx, tmp );
 
         k = ( i + md_len > dlen ) ? dlen % md_len : md_len;
 
@@ -419,69 +419,69 @@ static int tls_prf_generic( md_type_t md_type,
             dstbuf[i + j]  = h_i[j];
     }
 
-    md_free( &md_ctx );
+    mbedtls_md_free( &md_ctx );
 
-    polarssl_zeroize( tmp, sizeof( tmp ) );
-    polarssl_zeroize( h_i, sizeof( h_i ) );
+    mbedtls_zeroize( tmp, sizeof( tmp ) );
+    mbedtls_zeroize( h_i, sizeof( h_i ) );
 
     return( 0 );
 }
 
-#if defined(POLARSSL_SHA256_C)
+#if defined(MBEDTLS_SHA256_C)
 static int tls_prf_sha256( const unsigned char *secret, size_t slen,
                            const char *label,
                            const unsigned char *random, size_t rlen,
                            unsigned char *dstbuf, size_t dlen )
 {
-    return( tls_prf_generic( POLARSSL_MD_SHA256, secret, slen,
+    return( tls_prf_generic( MBEDTLS_MD_SHA256, secret, slen,
                              label, random, rlen, dstbuf, dlen ) );
 }
-#endif /* POLARSSL_SHA256_C */
+#endif /* MBEDTLS_SHA256_C */
 
-#if defined(POLARSSL_SHA512_C)
+#if defined(MBEDTLS_SHA512_C)
 static int tls_prf_sha384( const unsigned char *secret, size_t slen,
                            const char *label,
                            const unsigned char *random, size_t rlen,
                            unsigned char *dstbuf, size_t dlen )
 {
-    return( tls_prf_generic( POLARSSL_MD_SHA384, secret, slen,
+    return( tls_prf_generic( MBEDTLS_MD_SHA384, secret, slen,
                              label, random, rlen, dstbuf, dlen ) );
 }
-#endif /* POLARSSL_SHA512_C */
-#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SHA512_C */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-static void ssl_update_checksum_start( ssl_context *, const unsigned char *, size_t );
+static void ssl_update_checksum_start( mbedtls_ssl_context *, const unsigned char *, size_t );
 
-#if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
-    defined(POLARSSL_SSL_PROTO_TLS1_1)
-static void ssl_update_checksum_md5sha1( ssl_context *, const unsigned char *, size_t );
+#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
+    defined(MBEDTLS_SSL_PROTO_TLS1_1)
+static void ssl_update_checksum_md5sha1( mbedtls_ssl_context *, const unsigned char *, size_t );
 #endif
 
-#if defined(POLARSSL_SSL_PROTO_SSL3)
-static void ssl_calc_verify_ssl( ssl_context *, unsigned char * );
-static void ssl_calc_finished_ssl( ssl_context *, unsigned char *, int );
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+static void ssl_calc_verify_ssl( mbedtls_ssl_context *, unsigned char * );
+static void ssl_calc_finished_ssl( mbedtls_ssl_context *, unsigned char *, int );
 #endif
 
-#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1)
-static void ssl_calc_verify_tls( ssl_context *, unsigned char * );
-static void ssl_calc_finished_tls( ssl_context *, unsigned char *, int );
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
+static void ssl_calc_verify_tls( mbedtls_ssl_context *, unsigned char * );
+static void ssl_calc_finished_tls( mbedtls_ssl_context *, unsigned char *, int );
 #endif
 
-#if defined(POLARSSL_SSL_PROTO_TLS1_2)
-#if defined(POLARSSL_SHA256_C)
-static void ssl_update_checksum_sha256( ssl_context *, const unsigned char *, size_t );
-static void ssl_calc_verify_tls_sha256( ssl_context *,unsigned char * );
-static void ssl_calc_finished_tls_sha256( ssl_context *,unsigned char *, int );
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SHA256_C)
+static void ssl_update_checksum_sha256( mbedtls_ssl_context *, const unsigned char *, size_t );
+static void ssl_calc_verify_tls_sha256( mbedtls_ssl_context *,unsigned char * );
+static void ssl_calc_finished_tls_sha256( mbedtls_ssl_context *,unsigned char *, int );
 #endif
 
-#if defined(POLARSSL_SHA512_C)
-static void ssl_update_checksum_sha384( ssl_context *, const unsigned char *, size_t );
-static void ssl_calc_verify_tls_sha384( ssl_context *, unsigned char * );
-static void ssl_calc_finished_tls_sha384( ssl_context *, unsigned char *, int );
+#if defined(MBEDTLS_SHA512_C)
+static void ssl_update_checksum_sha384( mbedtls_ssl_context *, const unsigned char *, size_t );
+static void ssl_calc_verify_tls_sha384( mbedtls_ssl_context *, unsigned char * );
+static void ssl_calc_finished_tls_sha384( mbedtls_ssl_context *, unsigned char *, int );
 #endif
-#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-int ssl_derive_keys( ssl_context *ssl )
+int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
     unsigned char tmp[64];
@@ -491,36 +491,36 @@ int ssl_derive_keys( ssl_context *ssl )
     unsigned char *mac_enc;
     unsigned char *mac_dec;
     size_t iv_copy_len;
-    const cipher_info_t *cipher_info;
-    const md_info_t *md_info;
+    const mbedtls_cipher_info_t *cipher_info;
+    const mbedtls_md_info_t *md_info;
 
-    ssl_session *session = ssl->session_negotiate;
-    ssl_transform *transform = ssl->transform_negotiate;
-    ssl_handshake_params *handshake = ssl->handshake;
+    mbedtls_ssl_session *session = ssl->session_negotiate;
+    mbedtls_ssl_transform *transform = ssl->transform_negotiate;
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
-    SSL_DEBUG_MSG( 2, ( "=> derive keys" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> derive keys" ) );
 
-    cipher_info = cipher_info_from_type( transform->ciphersuite_info->cipher );
+    cipher_info = mbedtls_cipher_info_from_type( transform->ciphersuite_info->cipher );
     if( cipher_info == NULL )
     {
-        SSL_DEBUG_MSG( 1, ( "cipher info for %d not found",
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "cipher info for %d not found",
                             transform->ciphersuite_info->cipher ) );
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
-    md_info = md_info_from_type( transform->ciphersuite_info->mac );
+    md_info = mbedtls_md_info_from_type( transform->ciphersuite_info->mac );
     if( md_info == NULL )
     {
-        SSL_DEBUG_MSG( 1, ( "md info for %d not found",
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "mbedtls_md info for %d not found",
                             transform->ciphersuite_info->mac ) );
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
     /*
      * Set appropriate PRF function and other SSL / TLS / TLS1.2 functions
      */
-#if defined(POLARSSL_SSL_PROTO_SSL3)
-    if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
     {
         handshake->tls_prf = ssl3_prf;
         handshake->calc_verify = ssl_calc_verify_ssl;
@@ -528,8 +528,8 @@ int ssl_derive_keys( ssl_context *ssl )
     }
     else
 #endif
-#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1)
-    if( ssl->minor_ver < SSL_MINOR_VERSION_3 )
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
+    if( ssl->minor_ver < MBEDTLS_SSL_MINOR_VERSION_3 )
     {
         handshake->tls_prf = tls1_prf;
         handshake->calc_verify = ssl_calc_verify_tls;
@@ -537,10 +537,10 @@ int ssl_derive_keys( ssl_context *ssl )
     }
     else
 #endif
-#if defined(POLARSSL_SSL_PROTO_TLS1_2)
-#if defined(POLARSSL_SHA512_C)
-    if( ssl->minor_ver == SSL_MINOR_VERSION_3 &&
-        transform->ciphersuite_info->mac == POLARSSL_MD_SHA384 )
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SHA512_C)
+    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 &&
+        transform->ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
     {
         handshake->tls_prf = tls_prf_sha384;
         handshake->calc_verify = ssl_calc_verify_tls_sha384;
@@ -548,8 +548,8 @@ int ssl_derive_keys( ssl_context *ssl )
     }
     else
 #endif
-#if defined(POLARSSL_SHA256_C)
-    if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
+#if defined(MBEDTLS_SHA256_C)
+    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
         handshake->tls_prf = tls_prf_sha256;
         handshake->calc_verify = ssl_calc_verify_tls_sha256;
@@ -557,10 +557,10 @@ int ssl_derive_keys( ssl_context *ssl )
     }
     else
 #endif
-#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
     {
-        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
     /*
@@ -575,25 +575,25 @@ int ssl_derive_keys( ssl_context *ssl )
      */
     if( handshake->resume == 0 )
     {
-        SSL_DEBUG_BUF( 3, "premaster secret", handshake->premaster,
+        MBEDTLS_SSL_DEBUG_BUF( 3, "premaster secret", handshake->premaster,
                        handshake->pmslen );
 
-#if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
-        if( ssl->handshake->extended_ms == SSL_EXTENDED_MS_ENABLED )
+#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
+        if( ssl->handshake->extended_ms == MBEDTLS_SSL_EXTENDED_MS_ENABLED )
         {
             unsigned char session_hash[48];
             size_t hash_len;
 
-            SSL_DEBUG_MSG( 3, ( "using extended master secret" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "using extended master secret" ) );
 
             ssl->handshake->calc_verify( ssl, session_hash );
 
-#if defined(POLARSSL_SSL_PROTO_TLS1_2)
-            if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+            if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
             {
-#if defined(POLARSSL_SHA512_C)
+#if defined(MBEDTLS_SHA512_C)
                 if( ssl->transform_negotiate->ciphersuite_info->mac ==
-                    POLARSSL_MD_SHA384 )
+                    MBEDTLS_MD_SHA384 )
                 {
                     hash_len = 48;
                 }
@@ -602,10 +602,10 @@ int ssl_derive_keys( ssl_context *ssl )
                     hash_len = 32;
             }
             else
-#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
                 hash_len = 36;
 
-            SSL_DEBUG_BUF( 3, "session hash", session_hash, hash_len );
+            MBEDTLS_SSL_DEBUG_BUF( 3, "session hash", session_hash, hash_len );
 
             ret = handshake->tls_prf( handshake->premaster, handshake->pmslen,
                                       "extended master secret",
@@ -613,7 +613,7 @@ int ssl_derive_keys( ssl_context *ssl )
                                       session->master, 48 );
             if( ret != 0 )
             {
-                SSL_DEBUG_RET( 1, "prf", ret );
+                MBEDTLS_SSL_DEBUG_RET( 1, "prf", ret );
                 return( ret );
             }
 
@@ -626,14 +626,14 @@ int ssl_derive_keys( ssl_context *ssl )
                                   session->master, 48 );
         if( ret != 0 )
         {
-            SSL_DEBUG_RET( 1, "prf", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "prf", ret );
             return( ret );
         }
 
-        polarssl_zeroize( handshake->premaster, sizeof(handshake->premaster) );
+        mbedtls_zeroize( handshake->premaster, sizeof(handshake->premaster) );
     }
     else
-        SSL_DEBUG_MSG( 3, ( "no premaster (session resumed)" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "no premaster (session resumed)" ) );
 
     /*
      * Swap the client and server random values.
@@ -641,7 +641,7 @@ int ssl_derive_keys( ssl_context *ssl )
     memcpy( tmp, handshake->randbytes, 64 );
     memcpy( handshake->randbytes, tmp + 32, 32 );
     memcpy( handshake->randbytes + 32, tmp, 32 );
-    polarssl_zeroize( tmp, sizeof( tmp ) );
+    mbedtls_zeroize( tmp, sizeof( tmp ) );
 
     /*
      *  SSLv3:
@@ -659,17 +659,17 @@ int ssl_derive_keys( ssl_context *ssl )
                               handshake->randbytes, 64, keyblk, 256 );
     if( ret != 0 )
     {
-        SSL_DEBUG_RET( 1, "prf", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "prf", ret );
         return( ret );
     }
 
-    SSL_DEBUG_MSG( 3, ( "ciphersuite = %s",
-                   ssl_get_ciphersuite_name( session->ciphersuite ) ) );
-    SSL_DEBUG_BUF( 3, "master secret", session->master, 48 );
-    SSL_DEBUG_BUF( 4, "random bytes", handshake->randbytes, 64 );
-    SSL_DEBUG_BUF( 4, "key block", keyblk, 256 );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite = %s",
+                   mbedtls_ssl_get_ciphersuite_name( session->ciphersuite ) ) );
+    MBEDTLS_SSL_DEBUG_BUF( 3, "master secret", session->master, 48 );
+    MBEDTLS_SSL_DEBUG_BUF( 4, "random bytes", handshake->randbytes, 64 );
+    MBEDTLS_SSL_DEBUG_BUF( 4, "key block", keyblk, 256 );
 
-    polarssl_zeroize( handshake->randbytes, sizeof( handshake->randbytes ) );
+    mbedtls_zeroize( handshake->randbytes, sizeof( handshake->randbytes ) );
 
     /*
      * Determine the appropriate key, IV and MAC length.
@@ -677,8 +677,8 @@ int ssl_derive_keys( ssl_context *ssl )
 
     transform->keylen = cipher_info->key_length / 8;
 
-    if( cipher_info->mode == POLARSSL_MODE_GCM ||
-        cipher_info->mode == POLARSSL_MODE_CCM )
+    if( cipher_info->mode == MBEDTLS_MODE_GCM ||
+        cipher_info->mode == MBEDTLS_MODE_CCM )
     {
         transform->maclen = 0;
 
@@ -688,38 +688,38 @@ int ssl_derive_keys( ssl_context *ssl )
         /* Minimum length is expicit IV + tag */
         transform->minlen = transform->ivlen - transform->fixed_ivlen
                             + ( transform->ciphersuite_info->flags &
-                                POLARSSL_CIPHERSUITE_SHORT_TAG ? 8 : 16 );
+                                MBEDTLS_CIPHERSUITE_SHORT_TAG ? 8 : 16 );
     }
     else
     {
         int ret;
 
         /* Initialize HMAC contexts */
-        if( ( ret = md_setup( &transform->md_ctx_enc, md_info, 1 ) ) != 0 ||
-            ( ret = md_setup( &transform->md_ctx_dec, md_info, 1 ) ) != 0 )
+        if( ( ret = mbedtls_md_setup( &transform->md_ctx_enc, md_info, 1 ) ) != 0 ||
+            ( ret = mbedtls_md_setup( &transform->md_ctx_dec, md_info, 1 ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "md_setup", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_md_setup", ret );
             return( ret );
         }
 
         /* Get MAC length */
-        transform->maclen = md_get_size( md_info );
+        transform->maclen = mbedtls_md_get_size( md_info );
 
-#if defined(POLARSSL_SSL_TRUNCATED_HMAC)
+#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
         /*
          * If HMAC is to be truncated, we shall keep the leftmost bytes,
          * (rfc 6066 page 13 or rfc 2104 section 4),
          * so we only need to adjust the length here.
          */
-        if( session->trunc_hmac == SSL_TRUNC_HMAC_ENABLED )
-            transform->maclen = SSL_TRUNCATED_HMAC_LEN;
-#endif /* POLARSSL_SSL_TRUNCATED_HMAC */
+        if( session->trunc_hmac == MBEDTLS_SSL_TRUNC_HMAC_ENABLED )
+            transform->maclen = MBEDTLS_SSL_TRUNCATED_HMAC_LEN;
+#endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
 
         /* IV length */
         transform->ivlen = cipher_info->iv_size;
 
         /* Minimum length */
-        if( cipher_info->mode == POLARSSL_MODE_STREAM )
+        if( cipher_info->mode == MBEDTLS_MODE_STREAM )
             transform->minlen = transform->maclen;
         else
         {
@@ -729,8 +729,8 @@ int ssl_derive_keys( ssl_context *ssl )
              *    otherwise: * first multiple of blocklen greater than maclen
              * 2. IV except for SSL3 and TLS 1.0
              */
-#if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
-            if( session->encrypt_then_mac == SSL_ETM_ENABLED )
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+            if( session->encrypt_then_mac == MBEDTLS_SSL_ETM_ENABLED )
             {
                 transform->minlen = transform->maclen
                                   + cipher_info->block_size;
@@ -743,36 +743,36 @@ int ssl_derive_keys( ssl_context *ssl )
                                   - transform->maclen % cipher_info->block_size;
             }
 
-#if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1)
-            if( ssl->minor_ver == SSL_MINOR_VERSION_0 ||
-                ssl->minor_ver == SSL_MINOR_VERSION_1 )
+#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1)
+            if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ||
+                ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_1 )
                 ; /* No need to adjust minlen */
             else
 #endif
-#if defined(POLARSSL_SSL_PROTO_TLS1_1) || defined(POLARSSL_SSL_PROTO_TLS1_2)
-            if( ssl->minor_ver == SSL_MINOR_VERSION_2 ||
-                ssl->minor_ver == SSL_MINOR_VERSION_3 )
+#if defined(MBEDTLS_SSL_PROTO_TLS1_1) || defined(MBEDTLS_SSL_PROTO_TLS1_2)
+            if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_2 ||
+                ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
             {
                 transform->minlen += transform->ivlen;
             }
             else
 #endif
             {
-                SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-                return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
             }
         }
     }
 
-    SSL_DEBUG_MSG( 3, ( "keylen: %d, minlen: %d, ivlen: %d, maclen: %d",
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "keylen: %d, minlen: %d, ivlen: %d, maclen: %d",
                    transform->keylen, transform->minlen, transform->ivlen,
                    transform->maclen ) );
 
     /*
      * Finally setup the cipher contexts, IVs and MAC secrets.
      */
-#if defined(POLARSSL_SSL_CLI_C)
-    if( ssl->endpoint == SSL_IS_CLIENT )
+#if defined(MBEDTLS_SSL_CLI_C)
+    if( ssl->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
         key1 = keyblk + transform->maclen * 2;
         key2 = keyblk + transform->maclen * 2 + transform->keylen;
@@ -790,9 +790,9 @@ int ssl_derive_keys( ssl_context *ssl )
                 iv_copy_len );
     }
     else
-#endif /* POLARSSL_SSL_CLI_C */
-#if defined(POLARSSL_SSL_SRV_C)
-    if( ssl->endpoint == SSL_IS_SERVER )
+#endif /* MBEDTLS_SSL_CLI_C */
+#if defined(MBEDTLS_SSL_SRV_C)
+    if( ssl->endpoint == MBEDTLS_SSL_IS_SERVER )
     {
         key1 = keyblk + transform->maclen * 2 + transform->keylen;
         key2 = keyblk + transform->maclen * 2;
@@ -810,128 +810,128 @@ int ssl_derive_keys( ssl_context *ssl )
                 iv_copy_len );
     }
     else
-#endif /* POLARSSL_SSL_SRV_C */
+#endif /* MBEDTLS_SSL_SRV_C */
     {
-        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-#if defined(POLARSSL_SSL_PROTO_SSL3)
-    if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
     {
         if( transform->maclen > sizeof transform->mac_enc )
         {
-            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
         memcpy( transform->mac_enc, mac_enc, transform->maclen );
         memcpy( transform->mac_dec, mac_dec, transform->maclen );
     }
     else
-#endif /* POLARSSL_SSL_PROTO_SSL3 */
-#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1) || \
-    defined(POLARSSL_SSL_PROTO_TLS1_2)
-    if( ssl->minor_ver >= SSL_MINOR_VERSION_1 )
+#endif /* MBEDTLS_SSL_PROTO_SSL3 */
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
+    defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    if( ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_1 )
     {
-        md_hmac_starts( &transform->md_ctx_enc, mac_enc, transform->maclen );
-        md_hmac_starts( &transform->md_ctx_dec, mac_dec, transform->maclen );
+        mbedtls_md_hmac_starts( &transform->md_ctx_enc, mac_enc, transform->maclen );
+        mbedtls_md_hmac_starts( &transform->md_ctx_dec, mac_dec, transform->maclen );
     }
     else
 #endif
     {
-        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-#if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
-    if( ssl_hw_record_init != NULL )
+#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
+    if( mbedtls_ssl_hw_record_init != NULL )
     {
         int ret = 0;
 
-        SSL_DEBUG_MSG( 2, ( "going for ssl_hw_record_init()" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "going for mbedtls_ssl_hw_record_init()" ) );
 
-        if( ( ret = ssl_hw_record_init( ssl, key1, key2, transform->keylen,
+        if( ( ret = mbedtls_ssl_hw_record_init( ssl, key1, key2, transform->keylen,
                                         transform->iv_enc, transform->iv_dec,
                                         iv_copy_len,
                                         mac_enc, mac_dec,
                                         transform->maclen ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "ssl_hw_record_init", ret );
-            return( POLARSSL_ERR_SSL_HW_ACCEL_FAILED );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_hw_record_init", ret );
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
         }
     }
-#endif /* POLARSSL_SSL_HW_RECORD_ACCEL */
+#endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
 
-    if( ( ret = cipher_init_ctx( &transform->cipher_ctx_enc,
+    if( ( ret = mbedtls_cipher_init_ctx( &transform->cipher_ctx_enc,
                                  cipher_info ) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "cipher_init_ctx", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_init_ctx", ret );
         return( ret );
     }
 
-    if( ( ret = cipher_init_ctx( &transform->cipher_ctx_dec,
+    if( ( ret = mbedtls_cipher_init_ctx( &transform->cipher_ctx_dec,
                                  cipher_info ) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "cipher_init_ctx", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_init_ctx", ret );
         return( ret );
     }
 
-    if( ( ret = cipher_setkey( &transform->cipher_ctx_enc, key1,
+    if( ( ret = mbedtls_cipher_setkey( &transform->cipher_ctx_enc, key1,
                                cipher_info->key_length,
-                               POLARSSL_ENCRYPT ) ) != 0 )
+                               MBEDTLS_ENCRYPT ) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "cipher_setkey", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setkey", ret );
         return( ret );
     }
 
-    if( ( ret = cipher_setkey( &transform->cipher_ctx_dec, key2,
+    if( ( ret = mbedtls_cipher_setkey( &transform->cipher_ctx_dec, key2,
                                cipher_info->key_length,
-                               POLARSSL_DECRYPT ) ) != 0 )
+                               MBEDTLS_DECRYPT ) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "cipher_setkey", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setkey", ret );
         return( ret );
     }
 
-#if defined(POLARSSL_CIPHER_MODE_CBC)
-    if( cipher_info->mode == POLARSSL_MODE_CBC )
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+    if( cipher_info->mode == MBEDTLS_MODE_CBC )
     {
-        if( ( ret = cipher_set_padding_mode( &transform->cipher_ctx_enc,
-                                             POLARSSL_PADDING_NONE ) ) != 0 )
+        if( ( ret = mbedtls_cipher_set_padding_mode( &transform->cipher_ctx_enc,
+                                             MBEDTLS_PADDING_NONE ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "cipher_set_padding_mode", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_set_padding_mode", ret );
             return( ret );
         }
 
-        if( ( ret = cipher_set_padding_mode( &transform->cipher_ctx_dec,
-                                             POLARSSL_PADDING_NONE ) ) != 0 )
+        if( ( ret = mbedtls_cipher_set_padding_mode( &transform->cipher_ctx_dec,
+                                             MBEDTLS_PADDING_NONE ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "cipher_set_padding_mode", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_set_padding_mode", ret );
             return( ret );
         }
     }
-#endif /* POLARSSL_CIPHER_MODE_CBC */
+#endif /* MBEDTLS_CIPHER_MODE_CBC */
 
-    polarssl_zeroize( keyblk, sizeof( keyblk ) );
+    mbedtls_zeroize( keyblk, sizeof( keyblk ) );
 
-#if defined(POLARSSL_ZLIB_SUPPORT)
+#if defined(MBEDTLS_ZLIB_SUPPORT)
     // Initialize compression
     //
-    if( session->compression == SSL_COMPRESS_DEFLATE )
+    if( session->compression == MBEDTLS_SSL_COMPRESS_DEFLATE )
     {
         if( ssl->compress_buf == NULL )
         {
-            SSL_DEBUG_MSG( 3, ( "Allocating compression buffer" ) );
-            ssl->compress_buf = polarssl_malloc( SSL_BUFFER_LEN );
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "Allocating compression buffer" ) );
+            ssl->compress_buf = mbedtls_malloc( MBEDTLS_SSL_BUFFER_LEN );
             if( ssl->compress_buf == NULL )
             {
-                SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed",
-                                    SSL_BUFFER_LEN ) );
-                return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed",
+                                    MBEDTLS_SSL_BUFFER_LEN ) );
+                return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
             }
         }
 
-        SSL_DEBUG_MSG( 3, ( "Initializing zlib states" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "Initializing zlib states" ) );
 
         memset( &transform->ctx_deflate, 0, sizeof( transform->ctx_deflate ) );
         memset( &transform->ctx_inflate, 0, sizeof( transform->ctx_inflate ) );
@@ -940,129 +940,129 @@ int ssl_derive_keys( ssl_context *ssl )
                          Z_DEFAULT_COMPRESSION )   != Z_OK ||
             inflateInit( &transform->ctx_inflate ) != Z_OK )
         {
-            SSL_DEBUG_MSG( 1, ( "Failed to initialize compression" ) );
-            return( POLARSSL_ERR_SSL_COMPRESSION_FAILED );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Failed to initialize compression" ) );
+            return( MBEDTLS_ERR_SSL_COMPRESSION_FAILED );
         }
     }
-#endif /* POLARSSL_ZLIB_SUPPORT */
+#endif /* MBEDTLS_ZLIB_SUPPORT */
 
-    SSL_DEBUG_MSG( 2, ( "<= derive keys" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= derive keys" ) );
 
     return( 0 );
 }
 
-#if defined(POLARSSL_SSL_PROTO_SSL3)
-void ssl_calc_verify_ssl( ssl_context *ssl, unsigned char hash[36] )
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+void ssl_calc_verify_ssl( mbedtls_ssl_context *ssl, unsigned char hash[36] )
 {
-    md5_context md5;
-    sha1_context sha1;
+    mbedtls_md5_context mbedtls_md5;
+    mbedtls_sha1_context mbedtls_sha1;
     unsigned char pad_1[48];
     unsigned char pad_2[48];
 
-    SSL_DEBUG_MSG( 2, ( "=> calc verify ssl" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc verify ssl" ) );
 
-    memcpy( &md5 , &ssl->handshake->fin_md5 , sizeof(md5_context)  );
-    memcpy( &sha1, &ssl->handshake->fin_sha1, sizeof(sha1_context) );
+    memcpy( &mbedtls_md5 , &ssl->handshake->fin_md5 , sizeof(mbedtls_md5_context)  );
+    memcpy( &mbedtls_sha1, &ssl->handshake->fin_sha1, sizeof(mbedtls_sha1_context) );
 
     memset( pad_1, 0x36, 48 );
     memset( pad_2, 0x5C, 48 );
 
-    md5_update( &md5, ssl->session_negotiate->master, 48 );
-    md5_update( &md5, pad_1, 48 );
-    md5_finish( &md5, hash );
+    mbedtls_md5_update( &mbedtls_md5, ssl->session_negotiate->master, 48 );
+    mbedtls_md5_update( &mbedtls_md5, pad_1, 48 );
+    mbedtls_md5_finish( &mbedtls_md5, hash );
 
-    md5_starts( &md5 );
-    md5_update( &md5, ssl->session_negotiate->master, 48 );
-    md5_update( &md5, pad_2, 48 );
-    md5_update( &md5, hash,  16 );
-    md5_finish( &md5, hash );
+    mbedtls_md5_starts( &mbedtls_md5 );
+    mbedtls_md5_update( &mbedtls_md5, ssl->session_negotiate->master, 48 );
+    mbedtls_md5_update( &mbedtls_md5, pad_2, 48 );
+    mbedtls_md5_update( &mbedtls_md5, hash,  16 );
+    mbedtls_md5_finish( &mbedtls_md5, hash );
 
-    sha1_update( &sha1, ssl->session_negotiate->master, 48 );
-    sha1_update( &sha1, pad_1, 40 );
-    sha1_finish( &sha1, hash + 16 );
+    mbedtls_sha1_update( &mbedtls_sha1, ssl->session_negotiate->master, 48 );
+    mbedtls_sha1_update( &mbedtls_sha1, pad_1, 40 );
+    mbedtls_sha1_finish( &mbedtls_sha1, hash + 16 );
 
-    sha1_starts( &sha1 );
-    sha1_update( &sha1, ssl->session_negotiate->master, 48 );
-    sha1_update( &sha1, pad_2, 40 );
-    sha1_update( &sha1, hash + 16, 20 );
-    sha1_finish( &sha1, hash + 16 );
+    mbedtls_sha1_starts( &mbedtls_sha1 );
+    mbedtls_sha1_update( &mbedtls_sha1, ssl->session_negotiate->master, 48 );
+    mbedtls_sha1_update( &mbedtls_sha1, pad_2, 40 );
+    mbedtls_sha1_update( &mbedtls_sha1, hash + 16, 20 );
+    mbedtls_sha1_finish( &mbedtls_sha1, hash + 16 );
 
-    SSL_DEBUG_BUF( 3, "calculated verify result", hash, 36 );
-    SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
+    MBEDTLS_SSL_DEBUG_BUF( 3, "calculated verify result", hash, 36 );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
 
-    md5_free(  &md5  );
-    sha1_free( &sha1 );
+    mbedtls_md5_free(  &mbedtls_md5  );
+    mbedtls_sha1_free( &mbedtls_sha1 );
 
     return;
 }
-#endif /* POLARSSL_SSL_PROTO_SSL3 */
+#endif /* MBEDTLS_SSL_PROTO_SSL3 */
 
-#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1)
-void ssl_calc_verify_tls( ssl_context *ssl, unsigned char hash[36] )
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
+void ssl_calc_verify_tls( mbedtls_ssl_context *ssl, unsigned char hash[36] )
 {
-    md5_context md5;
-    sha1_context sha1;
+    mbedtls_md5_context mbedtls_md5;
+    mbedtls_sha1_context mbedtls_sha1;
 
-    SSL_DEBUG_MSG( 2, ( "=> calc verify tls" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc verify tls" ) );
 
-    memcpy( &md5 , &ssl->handshake->fin_md5 , sizeof(md5_context)  );
-    memcpy( &sha1, &ssl->handshake->fin_sha1, sizeof(sha1_context) );
+    memcpy( &mbedtls_md5 , &ssl->handshake->fin_md5 , sizeof(mbedtls_md5_context)  );
+    memcpy( &mbedtls_sha1, &ssl->handshake->fin_sha1, sizeof(mbedtls_sha1_context) );
 
-     md5_finish( &md5,  hash );
-    sha1_finish( &sha1, hash + 16 );
+     mbedtls_md5_finish( &mbedtls_md5,  hash );
+    mbedtls_sha1_finish( &mbedtls_sha1, hash + 16 );
 
-    SSL_DEBUG_BUF( 3, "calculated verify result", hash, 36 );
-    SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
+    MBEDTLS_SSL_DEBUG_BUF( 3, "calculated verify result", hash, 36 );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
 
-    md5_free(  &md5  );
-    sha1_free( &sha1 );
+    mbedtls_md5_free(  &mbedtls_md5  );
+    mbedtls_sha1_free( &mbedtls_sha1 );
 
     return;
 }
-#endif /* POLARSSL_SSL_PROTO_TLS1 || POLARSSL_SSL_PROTO_TLS1_1 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 */
 
-#if defined(POLARSSL_SSL_PROTO_TLS1_2)
-#if defined(POLARSSL_SHA256_C)
-void ssl_calc_verify_tls_sha256( ssl_context *ssl, unsigned char hash[32] )
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SHA256_C)
+void ssl_calc_verify_tls_sha256( mbedtls_ssl_context *ssl, unsigned char hash[32] )
 {
-    sha256_context sha256;
+    mbedtls_sha256_context mbedtls_sha256;
 
-    SSL_DEBUG_MSG( 2, ( "=> calc verify sha256" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc verify mbedtls_sha256" ) );
 
-    memcpy( &sha256, &ssl->handshake->fin_sha256, sizeof(sha256_context) );
-    sha256_finish( &sha256, hash );
+    memcpy( &mbedtls_sha256, &ssl->handshake->fin_sha256, sizeof(mbedtls_sha256_context) );
+    mbedtls_sha256_finish( &mbedtls_sha256, hash );
 
-    SSL_DEBUG_BUF( 3, "calculated verify result", hash, 32 );
-    SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
+    MBEDTLS_SSL_DEBUG_BUF( 3, "calculated verify result", hash, 32 );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
 
-    sha256_free( &sha256 );
+    mbedtls_sha256_free( &mbedtls_sha256 );
 
     return;
 }
-#endif /* POLARSSL_SHA256_C */
+#endif /* MBEDTLS_SHA256_C */
 
-#if defined(POLARSSL_SHA512_C)
-void ssl_calc_verify_tls_sha384( ssl_context *ssl, unsigned char hash[48] )
+#if defined(MBEDTLS_SHA512_C)
+void ssl_calc_verify_tls_sha384( mbedtls_ssl_context *ssl, unsigned char hash[48] )
 {
-    sha512_context sha512;
+    mbedtls_sha512_context mbedtls_sha512;
 
-    SSL_DEBUG_MSG( 2, ( "=> calc verify sha384" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc verify sha384" ) );
 
-    memcpy( &sha512, &ssl->handshake->fin_sha512, sizeof(sha512_context) );
-    sha512_finish( &sha512, hash );
+    memcpy( &mbedtls_sha512, &ssl->handshake->fin_sha512, sizeof(mbedtls_sha512_context) );
+    mbedtls_sha512_finish( &mbedtls_sha512, hash );
 
-    SSL_DEBUG_BUF( 3, "calculated verify result", hash, 48 );
-    SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
+    MBEDTLS_SSL_DEBUG_BUF( 3, "calculated verify result", hash, 48 );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
 
-    sha512_free( &sha512 );
+    mbedtls_sha512_free( &mbedtls_sha512 );
 
     return;
 }
-#endif /* POLARSSL_SHA512_C */
-#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SHA512_C */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-#if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
-int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex )
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exchange_type_t key_ex )
 {
     unsigned char *p = ssl->handshake->premaster;
     unsigned char *end = p + sizeof( ssl->handshake->premaster );
@@ -1074,20 +1074,20 @@ int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex )
      * };
      * with "other_secret" depending on the particular key exchange
      */
-#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
-    if( key_ex == POLARSSL_KEY_EXCHANGE_PSK )
+#if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
+    if( key_ex == MBEDTLS_KEY_EXCHANGE_PSK )
     {
         if( end - p < 2 + (int) ssl->psk_len )
-            return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
         *(p++) = (unsigned char)( ssl->psk_len >> 8 );
         *(p++) = (unsigned char)( ssl->psk_len      );
         p += ssl->psk_len;
     }
     else
-#endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED */
-#if defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED)
-    if( key_ex == POLARSSL_KEY_EXCHANGE_RSA_PSK )
+#endif /* MBEDTLS_KEY_EXCHANGE_PSK_ENABLED */
+#if defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
+    if( key_ex == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
     {
         /*
          * other_secret already set by the ClientKeyExchange message,
@@ -1098,40 +1098,40 @@ int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex )
         p += 48;
     }
     else
-#endif /* POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED */
-#if defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED)
-    if( key_ex == POLARSSL_KEY_EXCHANGE_DHE_PSK )
+#endif /* MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
+#if defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED)
+    if( key_ex == MBEDTLS_KEY_EXCHANGE_DHE_PSK )
     {
         int ret;
         size_t len = end - ( p + 2 );
 
         /* Write length only when we know the actual value */
-        if( ( ret = dhm_calc_secret( &ssl->handshake->dhm_ctx,
+        if( ( ret = mbedtls_dhm_calc_secret( &ssl->handshake->dhm_ctx,
                                       p + 2, &len,
                                       ssl->f_rng, ssl->p_rng ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "dhm_calc_secret", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_dhm_calc_secret", ret );
             return( ret );
         }
         *(p++) = (unsigned char)( len >> 8 );
         *(p++) = (unsigned char)( len );
         p += len;
 
-        SSL_DEBUG_MPI( 3, "DHM: K ", &ssl->handshake->dhm_ctx.K  );
+        MBEDTLS_SSL_DEBUG_MPI( 3, "DHM: K ", &ssl->handshake->dhm_ctx.K  );
     }
     else
-#endif /* POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED */
-#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
-    if( key_ex == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
+#endif /* MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+    if( key_ex == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK )
     {
         int ret;
         size_t zlen;
 
-        if( ( ret = ecdh_calc_secret( &ssl->handshake->ecdh_ctx, &zlen,
+        if( ( ret = mbedtls_ecdh_calc_secret( &ssl->handshake->ecdh_ctx, &zlen,
                                        p + 2, end - ( p + 2 ),
                                        ssl->f_rng, ssl->p_rng ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "ecdh_calc_secret", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_calc_secret", ret );
             return( ret );
         }
 
@@ -1139,18 +1139,18 @@ int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex )
         *(p++) = (unsigned char)( zlen      );
         p += zlen;
 
-        SSL_DEBUG_MPI( 3, "ECDH: z", &ssl->handshake->ecdh_ctx.z );
+        MBEDTLS_SSL_DEBUG_MPI( 3, "ECDH: z", &ssl->handshake->ecdh_ctx.z );
     }
     else
-#endif /* POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
     {
-        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
     /* opaque psk<0..2^16-1>; */
     if( end - p < 2 + (int) ssl->psk_len )
-            return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     *(p++) = (unsigned char)( ssl->psk_len >> 8 );
     *(p++) = (unsigned char)( ssl->psk_len      );
@@ -1161,24 +1161,24 @@ int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex )
 
     return( 0 );
 }
-#endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
-#if defined(POLARSSL_SSL_PROTO_SSL3)
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
 /*
  * SSLv3.0 MAC functions
  */
-static void ssl_mac( md_context_t *md_ctx, unsigned char *secret,
+static void ssl_mac( mbedtls_md_context_t *md_ctx, unsigned char *secret,
                      unsigned char *buf, size_t len,
                      unsigned char *ctr, int type )
 {
     unsigned char header[11];
     unsigned char padding[48];
     int padlen;
-    int md_size = md_get_size( md_ctx->md_info );
-    int md_type = md_get_type( md_ctx->md_info );
+    int md_size = mbedtls_md_get_size( md_ctx->md_info );
+    int md_type = mbedtls_md_get_type( md_ctx->md_info );
 
     /* Only MD5 and SHA-1 supported */
-    if( md_type == POLARSSL_MD_MD5 )
+    if( md_type == MBEDTLS_MD_MD5 )
         padlen = 48;
     else
         padlen = 40;
@@ -1189,62 +1189,62 @@ static void ssl_mac( md_context_t *md_ctx, unsigned char *secret,
     header[10] = (unsigned char)( len      );
 
     memset( padding, 0x36, padlen );
-    md_starts( md_ctx );
-    md_update( md_ctx, secret,  md_size );
-    md_update( md_ctx, padding, padlen  );
-    md_update( md_ctx, header,  11      );
-    md_update( md_ctx, buf,     len     );
-    md_finish( md_ctx, buf +    len     );
+    mbedtls_md_starts( md_ctx );
+    mbedtls_md_update( md_ctx, secret,  md_size );
+    mbedtls_md_update( md_ctx, padding, padlen  );
+    mbedtls_md_update( md_ctx, header,  11      );
+    mbedtls_md_update( md_ctx, buf,     len     );
+    mbedtls_md_finish( md_ctx, buf +    len     );
 
     memset( padding, 0x5C, padlen );
-    md_starts( md_ctx );
-    md_update( md_ctx, secret,    md_size );
-    md_update( md_ctx, padding,   padlen  );
-    md_update( md_ctx, buf + len, md_size );
-    md_finish( md_ctx, buf + len          );
+    mbedtls_md_starts( md_ctx );
+    mbedtls_md_update( md_ctx, secret,    md_size );
+    mbedtls_md_update( md_ctx, padding,   padlen  );
+    mbedtls_md_update( md_ctx, buf + len, md_size );
+    mbedtls_md_finish( md_ctx, buf + len          );
 }
-#endif /* POLARSSL_SSL_PROTO_SSL3 */
+#endif /* MBEDTLS_SSL_PROTO_SSL3 */
 
-#if defined(POLARSSL_ARC4_C) || defined(POLARSSL_CIPHER_NULL_CIPHER) ||     \
-    ( defined(POLARSSL_CIPHER_MODE_CBC) &&                                  \
-      ( defined(POLARSSL_AES_C) || defined(POLARSSL_CAMELLIA_C) ) )
-#define POLARSSL_SOME_MODES_USE_MAC
+#if defined(MBEDTLS_ARC4_C) || defined(MBEDTLS_CIPHER_NULL_CIPHER) ||     \
+    ( defined(MBEDTLS_CIPHER_MODE_CBC) &&                                  \
+      ( defined(MBEDTLS_AES_C) || defined(MBEDTLS_CAMELLIA_C) ) )
+#define MBEDTLS_SOME_MODES_USE_MAC
 #endif
 
 /*
  * Encryption/decryption functions
  */
-static int ssl_encrypt_buf( ssl_context *ssl )
+static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
 {
-    cipher_mode_t mode;
+    mbedtls_cipher_mode_t mode;
     int auth_done = 0;
 
-    SSL_DEBUG_MSG( 2, ( "=> encrypt buf" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> encrypt buf" ) );
 
     if( ssl->session_out == NULL || ssl->transform_out == NULL )
     {
-        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-    mode = cipher_get_cipher_mode( &ssl->transform_out->cipher_ctx_enc );
+    mode = mbedtls_cipher_get_cipher_mode( &ssl->transform_out->cipher_ctx_enc );
 
-    SSL_DEBUG_BUF( 4, "before encrypt: output payload",
+    MBEDTLS_SSL_DEBUG_BUF( 4, "before encrypt: output payload",
                       ssl->out_msg, ssl->out_msglen );
 
     /*
      * Add MAC before if needed
      */
-#if defined(POLARSSL_SOME_MODES_USE_MAC)
-    if( mode == POLARSSL_MODE_STREAM ||
-        ( mode == POLARSSL_MODE_CBC
-#if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
-          && ssl->session_out->encrypt_then_mac == SSL_ETM_DISABLED
+#if defined(MBEDTLS_SOME_MODES_USE_MAC)
+    if( mode == MBEDTLS_MODE_STREAM ||
+        ( mode == MBEDTLS_MODE_CBC
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+          && ssl->session_out->encrypt_then_mac == MBEDTLS_SSL_ETM_DISABLED
 #endif
         ) )
     {
-#if defined(POLARSSL_SSL_PROTO_SSL3)
-        if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+        if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
         {
             ssl_mac( &ssl->transform_out->md_ctx_enc,
                       ssl->transform_out->mac_enc,
@@ -1253,27 +1253,27 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         }
         else
 #endif
-#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1) || \
-        defined(POLARSSL_SSL_PROTO_TLS1_2)
-        if( ssl->minor_ver >= SSL_MINOR_VERSION_1 )
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
+        defined(MBEDTLS_SSL_PROTO_TLS1_2)
+        if( ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_1 )
         {
-            md_hmac_update( &ssl->transform_out->md_ctx_enc, ssl->out_ctr, 8 );
-            md_hmac_update( &ssl->transform_out->md_ctx_enc, ssl->out_hdr, 3 );
-            md_hmac_update( &ssl->transform_out->md_ctx_enc, ssl->out_len, 2 );
-            md_hmac_update( &ssl->transform_out->md_ctx_enc,
+            mbedtls_md_hmac_update( &ssl->transform_out->md_ctx_enc, ssl->out_ctr, 8 );
+            mbedtls_md_hmac_update( &ssl->transform_out->md_ctx_enc, ssl->out_hdr, 3 );
+            mbedtls_md_hmac_update( &ssl->transform_out->md_ctx_enc, ssl->out_len, 2 );
+            mbedtls_md_hmac_update( &ssl->transform_out->md_ctx_enc,
                              ssl->out_msg, ssl->out_msglen );
-            md_hmac_finish( &ssl->transform_out->md_ctx_enc,
+            mbedtls_md_hmac_finish( &ssl->transform_out->md_ctx_enc,
                              ssl->out_msg + ssl->out_msglen );
-            md_hmac_reset( &ssl->transform_out->md_ctx_enc );
+            mbedtls_md_hmac_reset( &ssl->transform_out->md_ctx_enc );
         }
         else
 #endif
         {
-            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
-        SSL_DEBUG_BUF( 4, "computed mac",
+        MBEDTLS_SSL_DEBUG_BUF( 4, "computed mac",
                        ssl->out_msg + ssl->out_msglen,
                        ssl->transform_out->maclen );
 
@@ -1285,59 +1285,59 @@ static int ssl_encrypt_buf( ssl_context *ssl )
     /*
      * Encrypt
      */
-#if defined(POLARSSL_ARC4_C) || defined(POLARSSL_CIPHER_NULL_CIPHER)
-    if( mode == POLARSSL_MODE_STREAM )
+#if defined(MBEDTLS_ARC4_C) || defined(MBEDTLS_CIPHER_NULL_CIPHER)
+    if( mode == MBEDTLS_MODE_STREAM )
     {
         int ret;
         size_t olen = 0;
 
-        SSL_DEBUG_MSG( 3, ( "before encrypt: msglen = %d, "
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "before encrypt: msglen = %d, "
                             "including %d bytes of padding",
                        ssl->out_msglen, 0 ) );
 
-        if( ( ret = cipher_crypt( &ssl->transform_out->cipher_ctx_enc,
+        if( ( ret = mbedtls_cipher_crypt( &ssl->transform_out->cipher_ctx_enc,
                                    ssl->transform_out->iv_enc,
                                    ssl->transform_out->ivlen,
                                    ssl->out_msg, ssl->out_msglen,
                                    ssl->out_msg, &olen ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "cipher_crypt", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_crypt", ret );
             return( ret );
         }
 
         if( ssl->out_msglen != olen )
         {
-            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
     }
     else
-#endif /* POLARSSL_ARC4_C || POLARSSL_CIPHER_NULL_CIPHER */
-#if defined(POLARSSL_GCM_C) || defined(POLARSSL_CCM_C)
-    if( mode == POLARSSL_MODE_GCM ||
-        mode == POLARSSL_MODE_CCM )
+#endif /* MBEDTLS_ARC4_C || MBEDTLS_CIPHER_NULL_CIPHER */
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C)
+    if( mode == MBEDTLS_MODE_GCM ||
+        mode == MBEDTLS_MODE_CCM )
     {
         int ret;
         size_t enc_msglen, olen;
         unsigned char *enc_msg;
         unsigned char add_data[13];
         unsigned char taglen = ssl->transform_out->ciphersuite_info->flags &
-                               POLARSSL_CIPHERSUITE_SHORT_TAG ? 8 : 16;
+                               MBEDTLS_CIPHERSUITE_SHORT_TAG ? 8 : 16;
 
         memcpy( add_data, ssl->out_ctr, 8 );
         add_data[8]  = ssl->out_msgtype;
-        ssl_write_version( ssl->major_ver, ssl->minor_ver,
+        mbedtls_ssl_write_version( ssl->major_ver, ssl->minor_ver,
                            ssl->transport, add_data + 9 );
         add_data[11] = ( ssl->out_msglen >> 8 ) & 0xFF;
         add_data[12] = ssl->out_msglen & 0xFF;
 
-        SSL_DEBUG_BUF( 4, "additional data used for AEAD",
+        MBEDTLS_SSL_DEBUG_BUF( 4, "additional data used for AEAD",
                        add_data, 13 );
 
         /*
          * Generate IV
          */
-#if defined(POLARSSL_SSL_AEAD_RANDOM_IV)
+#if defined(MBEDTLS_SSL_AEAD_RANDOM_IV)
         ret = ssl->f_rng( ssl->p_rng,
                 ssl->transform_out->iv_enc + ssl->transform_out->fixed_ivlen,
                 ssl->transform_out->ivlen - ssl->transform_out->fixed_ivlen );
@@ -1351,8 +1351,8 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         if( ssl->transform_out->ivlen - ssl->transform_out->fixed_ivlen != 8 )
         {
             /* Reminder if we ever add an AEAD mode with a different size */
-            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
         memcpy( ssl->transform_out->iv_enc + ssl->transform_out->fixed_ivlen,
@@ -1360,7 +1360,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         memcpy( ssl->out_iv, ssl->out_ctr, 8 );
 #endif
 
-        SSL_DEBUG_BUF( 4, "IV used", ssl->out_iv,
+        MBEDTLS_SSL_DEBUG_BUF( 4, "IV used", ssl->out_iv,
                 ssl->transform_out->ivlen - ssl->transform_out->fixed_ivlen );
 
         /*
@@ -1371,14 +1371,14 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         ssl->out_msglen += ssl->transform_out->ivlen -
                            ssl->transform_out->fixed_ivlen;
 
-        SSL_DEBUG_MSG( 3, ( "before encrypt: msglen = %d, "
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "before encrypt: msglen = %d, "
                             "including %d bytes of padding",
                        ssl->out_msglen, 0 ) );
 
         /*
          * Encrypt and authenticate
          */
-        if( ( ret = cipher_auth_encrypt( &ssl->transform_out->cipher_ctx_enc,
+        if( ( ret = mbedtls_cipher_auth_encrypt( &ssl->transform_out->cipher_ctx_enc,
                                          ssl->transform_out->iv_enc,
                                          ssl->transform_out->ivlen,
                                          add_data, 13,
@@ -1386,26 +1386,26 @@ static int ssl_encrypt_buf( ssl_context *ssl )
                                          enc_msg, &olen,
                                          enc_msg + enc_msglen, taglen ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "cipher_auth_encrypt", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_auth_encrypt", ret );
             return( ret );
         }
 
         if( olen != enc_msglen )
         {
-            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
         ssl->out_msglen += taglen;
         auth_done++;
 
-        SSL_DEBUG_BUF( 4, "after encrypt: tag", enc_msg + enc_msglen, taglen );
+        MBEDTLS_SSL_DEBUG_BUF( 4, "after encrypt: tag", enc_msg + enc_msglen, taglen );
     }
     else
-#endif /* POLARSSL_GCM_C || POLARSSL_CCM_C */
-#if defined(POLARSSL_CIPHER_MODE_CBC) &&                                    \
-    ( defined(POLARSSL_AES_C) || defined(POLARSSL_CAMELLIA_C) )
-    if( mode == POLARSSL_MODE_CBC )
+#endif /* MBEDTLS_GCM_C || MBEDTLS_CCM_C */
+#if defined(MBEDTLS_CIPHER_MODE_CBC) &&                                    \
+    ( defined(MBEDTLS_AES_C) || defined(MBEDTLS_CAMELLIA_C) )
+    if( mode == MBEDTLS_MODE_CBC )
     {
         int ret;
         unsigned char *enc_msg;
@@ -1424,12 +1424,12 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         enc_msglen = ssl->out_msglen;
         enc_msg = ssl->out_msg;
 
-#if defined(POLARSSL_SSL_PROTO_TLS1_1) || defined(POLARSSL_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_1) || defined(MBEDTLS_SSL_PROTO_TLS1_2)
         /*
          * Prepend per-record IV for block cipher in TLS v1.1 and up as per
          * Method 1 (6.2.3.2. in RFC4346 and RFC5246)
          */
-        if( ssl->minor_ver >= SSL_MINOR_VERSION_2 )
+        if( ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
         {
             /*
              * Generate IV
@@ -1449,31 +1449,31 @@ static int ssl_encrypt_buf( ssl_context *ssl )
             enc_msglen = ssl->out_msglen;
             ssl->out_msglen += ssl->transform_out->ivlen;
         }
-#endif /* POLARSSL_SSL_PROTO_TLS1_1 || POLARSSL_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_1 || MBEDTLS_SSL_PROTO_TLS1_2 */
 
-        SSL_DEBUG_MSG( 3, ( "before encrypt: msglen = %d, "
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "before encrypt: msglen = %d, "
                             "including %d bytes of IV and %d bytes of padding",
                             ssl->out_msglen, ssl->transform_out->ivlen,
                             padlen + 1 ) );
 
-        if( ( ret = cipher_crypt( &ssl->transform_out->cipher_ctx_enc,
+        if( ( ret = mbedtls_cipher_crypt( &ssl->transform_out->cipher_ctx_enc,
                                    ssl->transform_out->iv_enc,
                                    ssl->transform_out->ivlen,
                                    enc_msg, enc_msglen,
                                    enc_msg, &olen ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "cipher_crypt", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_crypt", ret );
             return( ret );
         }
 
         if( enc_msglen != olen )
         {
-            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
-#if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1)
-        if( ssl->minor_ver < SSL_MINOR_VERSION_2 )
+#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1)
+        if( ssl->minor_ver < MBEDTLS_SSL_MINOR_VERSION_2 )
         {
             /*
              * Save IV in SSL3 and TLS1
@@ -1484,7 +1484,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         }
 #endif
 
-#if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
         if( auth_done == 0 )
         {
             /*
@@ -1497,104 +1497,104 @@ static int ssl_encrypt_buf( ssl_context *ssl )
              */
             unsigned char pseudo_hdr[13];
 
-            SSL_DEBUG_MSG( 3, ( "using encrypt then mac" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "using encrypt then mac" ) );
 
             memcpy( pseudo_hdr +  0, ssl->out_ctr, 8 );
             memcpy( pseudo_hdr +  8, ssl->out_hdr, 3 );
             pseudo_hdr[11] = (unsigned char)( ( ssl->out_msglen >> 8 ) & 0xFF );
             pseudo_hdr[12] = (unsigned char)( ( ssl->out_msglen      ) & 0xFF );
 
-            SSL_DEBUG_BUF( 4, "MAC'd meta-data", pseudo_hdr, 13 );
+            MBEDTLS_SSL_DEBUG_BUF( 4, "MAC'd meta-data", pseudo_hdr, 13 );
 
-            md_hmac_update( &ssl->transform_out->md_ctx_enc, pseudo_hdr, 13 );
-            md_hmac_update( &ssl->transform_out->md_ctx_enc,
+            mbedtls_md_hmac_update( &ssl->transform_out->md_ctx_enc, pseudo_hdr, 13 );
+            mbedtls_md_hmac_update( &ssl->transform_out->md_ctx_enc,
                              ssl->out_iv, ssl->out_msglen );
-            md_hmac_finish( &ssl->transform_out->md_ctx_enc,
+            mbedtls_md_hmac_finish( &ssl->transform_out->md_ctx_enc,
                              ssl->out_iv + ssl->out_msglen );
-            md_hmac_reset( &ssl->transform_out->md_ctx_enc );
+            mbedtls_md_hmac_reset( &ssl->transform_out->md_ctx_enc );
 
             ssl->out_msglen += ssl->transform_out->maclen;
             auth_done++;
         }
-#endif /* POLARSSL_SSL_ENCRYPT_THEN_MAC */
+#endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
     }
     else
-#endif /* POLARSSL_CIPHER_MODE_CBC &&
-          ( POLARSSL_AES_C || POLARSSL_CAMELLIA_C ) */
+#endif /* MBEDTLS_CIPHER_MODE_CBC &&
+          ( MBEDTLS_AES_C || MBEDTLS_CAMELLIA_C ) */
     {
-        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
     /* Make extra sure authentication was performed, exactly once */
     if( auth_done != 1 )
     {
-        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-    SSL_DEBUG_MSG( 2, ( "<= encrypt buf" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= encrypt buf" ) );
 
     return( 0 );
 }
 
-#define POLARSSL_SSL_MAX_MAC_SIZE   48
+#define MBEDTLS_SSL_MAX_MAC_SIZE   48
 
-static int ssl_decrypt_buf( ssl_context *ssl )
+static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
 {
     size_t i;
-    cipher_mode_t mode;
+    mbedtls_cipher_mode_t mode;
     int auth_done = 0;
-#if defined(POLARSSL_SOME_MODES_USE_MAC)
+#if defined(MBEDTLS_SOME_MODES_USE_MAC)
     size_t padlen = 0, correct = 1;
 #endif
 
-    SSL_DEBUG_MSG( 2, ( "=> decrypt buf" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> decrypt buf" ) );
 
     if( ssl->session_in == NULL || ssl->transform_in == NULL )
     {
-        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-    mode = cipher_get_cipher_mode( &ssl->transform_in->cipher_ctx_dec );
+    mode = mbedtls_cipher_get_cipher_mode( &ssl->transform_in->cipher_ctx_dec );
 
     if( ssl->in_msglen < ssl->transform_in->minlen )
     {
-        SSL_DEBUG_MSG( 1, ( "in_msglen (%d) < minlen (%d)",
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "in_msglen (%d) < minlen (%d)",
                        ssl->in_msglen, ssl->transform_in->minlen ) );
-        return( POLARSSL_ERR_SSL_INVALID_MAC );
+        return( MBEDTLS_ERR_SSL_INVALID_MAC );
     }
 
-#if defined(POLARSSL_ARC4_C) || defined(POLARSSL_CIPHER_NULL_CIPHER)
-    if( mode == POLARSSL_MODE_STREAM )
+#if defined(MBEDTLS_ARC4_C) || defined(MBEDTLS_CIPHER_NULL_CIPHER)
+    if( mode == MBEDTLS_MODE_STREAM )
     {
         int ret;
         size_t olen = 0;
 
         padlen = 0;
 
-        if( ( ret = cipher_crypt( &ssl->transform_in->cipher_ctx_dec,
+        if( ( ret = mbedtls_cipher_crypt( &ssl->transform_in->cipher_ctx_dec,
                                    ssl->transform_in->iv_dec,
                                    ssl->transform_in->ivlen,
                                    ssl->in_msg, ssl->in_msglen,
                                    ssl->in_msg, &olen ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "cipher_crypt", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_crypt", ret );
             return( ret );
         }
 
         if( ssl->in_msglen != olen )
         {
-            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
     }
     else
-#endif /* POLARSSL_ARC4_C || POLARSSL_CIPHER_NULL_CIPHER */
-#if defined(POLARSSL_GCM_C) || defined(POLARSSL_CCM_C)
-    if( mode == POLARSSL_MODE_GCM ||
-        mode == POLARSSL_MODE_CCM )
+#endif /* MBEDTLS_ARC4_C || MBEDTLS_CIPHER_NULL_CIPHER */
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C)
+    if( mode == MBEDTLS_MODE_GCM ||
+        mode == MBEDTLS_MODE_CCM )
     {
         int ret;
         size_t dec_msglen, olen;
@@ -1602,16 +1602,16 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         unsigned char *dec_msg_result;
         unsigned char add_data[13];
         unsigned char taglen = ssl->transform_in->ciphersuite_info->flags &
-                               POLARSSL_CIPHERSUITE_SHORT_TAG ? 8 : 16;
+                               MBEDTLS_CIPHERSUITE_SHORT_TAG ? 8 : 16;
         unsigned char explicit_iv_len =  ssl->transform_in->ivlen -
                                          ssl->transform_in->fixed_ivlen;
 
         if( ssl->in_msglen < (size_t) explicit_iv_len + taglen )
         {
-            SSL_DEBUG_MSG( 1, ( "msglen (%d) < explicit_iv_len (%d) "
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "msglen (%d) < explicit_iv_len (%d) "
                                 "+ taglen (%d)", ssl->in_msglen,
                                 explicit_iv_len, taglen ) );
-            return( POLARSSL_ERR_SSL_INVALID_MAC );
+            return( MBEDTLS_ERR_SSL_INVALID_MAC );
         }
         dec_msglen = ssl->in_msglen - explicit_iv_len - taglen;
 
@@ -1621,26 +1621,26 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 
         memcpy( add_data, ssl->in_ctr, 8 );
         add_data[8]  = ssl->in_msgtype;
-        ssl_write_version( ssl->major_ver, ssl->minor_ver,
+        mbedtls_ssl_write_version( ssl->major_ver, ssl->minor_ver,
                            ssl->transport, add_data + 9 );
         add_data[11] = ( ssl->in_msglen >> 8 ) & 0xFF;
         add_data[12] = ssl->in_msglen & 0xFF;
 
-        SSL_DEBUG_BUF( 4, "additional data used for AEAD",
+        MBEDTLS_SSL_DEBUG_BUF( 4, "additional data used for AEAD",
                        add_data, 13 );
 
         memcpy( ssl->transform_in->iv_dec + ssl->transform_in->fixed_ivlen,
                 ssl->in_iv,
                 ssl->transform_in->ivlen - ssl->transform_in->fixed_ivlen );
 
-        SSL_DEBUG_BUF( 4, "IV used", ssl->transform_in->iv_dec,
+        MBEDTLS_SSL_DEBUG_BUF( 4, "IV used", ssl->transform_in->iv_dec,
                                      ssl->transform_in->ivlen );
-        SSL_DEBUG_BUF( 4, "TAG used", dec_msg + dec_msglen, taglen );
+        MBEDTLS_SSL_DEBUG_BUF( 4, "TAG used", dec_msg + dec_msglen, taglen );
 
         /*
          * Decrypt and authenticate
          */
-        if( ( ret = cipher_auth_decrypt( &ssl->transform_in->cipher_ctx_dec,
+        if( ( ret = mbedtls_cipher_auth_decrypt( &ssl->transform_in->cipher_ctx_dec,
                                          ssl->transform_in->iv_dec,
                                          ssl->transform_in->ivlen,
                                          add_data, 13,
@@ -1648,10 +1648,10 @@ static int ssl_decrypt_buf( ssl_context *ssl )
                                          dec_msg_result, &olen,
                                          dec_msg + dec_msglen, taglen ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "cipher_auth_decrypt", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_auth_decrypt", ret );
 
-            if( ret == POLARSSL_ERR_CIPHER_AUTH_FAILED )
-                return( POLARSSL_ERR_SSL_INVALID_MAC );
+            if( ret == MBEDTLS_ERR_CIPHER_AUTH_FAILED )
+                return( MBEDTLS_ERR_SSL_INVALID_MAC );
 
             return( ret );
         }
@@ -1659,15 +1659,15 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 
         if( olen != dec_msglen )
         {
-            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
     }
     else
-#endif /* POLARSSL_GCM_C || POLARSSL_CCM_C */
-#if defined(POLARSSL_CIPHER_MODE_CBC) &&                                    \
-    ( defined(POLARSSL_AES_C) || defined(POLARSSL_CAMELLIA_C) )
-    if( mode == POLARSSL_MODE_CBC )
+#endif /* MBEDTLS_GCM_C || MBEDTLS_CCM_C */
+#if defined(MBEDTLS_CIPHER_MODE_CBC) &&                                    \
+    ( defined(MBEDTLS_AES_C) || defined(MBEDTLS_CAMELLIA_C) )
+    if( mode == MBEDTLS_MODE_CBC )
     {
         /*
          * Decrypt and check the padding
@@ -1682,19 +1682,19 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         /*
          * Check immediate ciphertext sanity
          */
-#if defined(POLARSSL_SSL_PROTO_TLS1_1) || defined(POLARSSL_SSL_PROTO_TLS1_2)
-        if( ssl->minor_ver >= SSL_MINOR_VERSION_2 )
+#if defined(MBEDTLS_SSL_PROTO_TLS1_1) || defined(MBEDTLS_SSL_PROTO_TLS1_2)
+        if( ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
             minlen += ssl->transform_in->ivlen;
 #endif
 
         if( ssl->in_msglen < minlen + ssl->transform_in->ivlen ||
             ssl->in_msglen < minlen + ssl->transform_in->maclen + 1 )
         {
-            SSL_DEBUG_MSG( 1, ( "msglen (%d) < max( ivlen(%d), maclen (%d) "
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "msglen (%d) < max( ivlen(%d), maclen (%d) "
                                 "+ 1 ) ( + expl IV )", ssl->in_msglen,
                                 ssl->transform_in->ivlen,
                                 ssl->transform_in->maclen ) );
-            return( POLARSSL_ERR_SSL_INVALID_MAC );
+            return( MBEDTLS_ERR_SSL_INVALID_MAC );
         }
 
         dec_msglen = ssl->in_msglen;
@@ -1704,13 +1704,13 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         /*
          * Authenticate before decrypt if enabled
          */
-#if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
-        if( ssl->session_in->encrypt_then_mac == SSL_ETM_ENABLED )
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+        if( ssl->session_in->encrypt_then_mac == MBEDTLS_SSL_ETM_ENABLED )
         {
-            unsigned char computed_mac[POLARSSL_SSL_MAX_MAC_SIZE];
+            unsigned char computed_mac[MBEDTLS_SSL_MAX_MAC_SIZE];
             unsigned char pseudo_hdr[13];
 
-            SSL_DEBUG_MSG( 3, ( "using encrypt then mac" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "using encrypt then mac" ) );
 
             dec_msglen -= ssl->transform_in->maclen;
             ssl->in_msglen -= ssl->transform_in->maclen;
@@ -1720,45 +1720,45 @@ static int ssl_decrypt_buf( ssl_context *ssl )
             pseudo_hdr[11] = (unsigned char)( ( ssl->in_msglen >> 8 ) & 0xFF );
             pseudo_hdr[12] = (unsigned char)( ( ssl->in_msglen      ) & 0xFF );
 
-            SSL_DEBUG_BUF( 4, "MAC'd meta-data", pseudo_hdr, 13 );
+            MBEDTLS_SSL_DEBUG_BUF( 4, "MAC'd meta-data", pseudo_hdr, 13 );
 
-            md_hmac_update( &ssl->transform_in->md_ctx_dec, pseudo_hdr, 13 );
-            md_hmac_update( &ssl->transform_in->md_ctx_dec,
+            mbedtls_md_hmac_update( &ssl->transform_in->md_ctx_dec, pseudo_hdr, 13 );
+            mbedtls_md_hmac_update( &ssl->transform_in->md_ctx_dec,
                              ssl->in_iv, ssl->in_msglen );
-            md_hmac_finish( &ssl->transform_in->md_ctx_dec, computed_mac );
-            md_hmac_reset( &ssl->transform_in->md_ctx_dec );
+            mbedtls_md_hmac_finish( &ssl->transform_in->md_ctx_dec, computed_mac );
+            mbedtls_md_hmac_reset( &ssl->transform_in->md_ctx_dec );
 
-            SSL_DEBUG_BUF( 4, "message  mac", ssl->in_iv + ssl->in_msglen,
+            MBEDTLS_SSL_DEBUG_BUF( 4, "message  mac", ssl->in_iv + ssl->in_msglen,
                                               ssl->transform_in->maclen );
-            SSL_DEBUG_BUF( 4, "computed mac", computed_mac,
+            MBEDTLS_SSL_DEBUG_BUF( 4, "computed mac", computed_mac,
                                               ssl->transform_in->maclen );
 
-            if( safer_memcmp( ssl->in_iv + ssl->in_msglen, computed_mac,
+            if( mbedtls_ssl_safer_memcmp( ssl->in_iv + ssl->in_msglen, computed_mac,
                               ssl->transform_in->maclen ) != 0 )
             {
-                SSL_DEBUG_MSG( 1, ( "message mac does not match" ) );
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "message mac does not match" ) );
 
-                return( POLARSSL_ERR_SSL_INVALID_MAC );
+                return( MBEDTLS_ERR_SSL_INVALID_MAC );
             }
             auth_done++;
         }
-#endif /* POLARSSL_SSL_ENCRYPT_THEN_MAC */
+#endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
 
         /*
          * Check length sanity
          */
         if( ssl->in_msglen % ssl->transform_in->ivlen != 0 )
         {
-            SSL_DEBUG_MSG( 1, ( "msglen (%d) %% ivlen (%d) != 0",
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "msglen (%d) %% ivlen (%d) != 0",
                            ssl->in_msglen, ssl->transform_in->ivlen ) );
-            return( POLARSSL_ERR_SSL_INVALID_MAC );
+            return( MBEDTLS_ERR_SSL_INVALID_MAC );
         }
 
-#if defined(POLARSSL_SSL_PROTO_TLS1_1) || defined(POLARSSL_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_1) || defined(MBEDTLS_SSL_PROTO_TLS1_2)
         /*
          * Initialize for prepended IV for block cipher in TLS v1.1 and up
          */
-        if( ssl->minor_ver >= SSL_MINOR_VERSION_2 )
+        if( ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
         {
             dec_msglen -= ssl->transform_in->ivlen;
             ssl->in_msglen -= ssl->transform_in->ivlen;
@@ -1766,26 +1766,26 @@ static int ssl_decrypt_buf( ssl_context *ssl )
             for( i = 0; i < ssl->transform_in->ivlen; i++ )
                 ssl->transform_in->iv_dec[i] = ssl->in_iv[i];
         }
-#endif /* POLARSSL_SSL_PROTO_TLS1_1 || POLARSSL_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_1 || MBEDTLS_SSL_PROTO_TLS1_2 */
 
-        if( ( ret = cipher_crypt( &ssl->transform_in->cipher_ctx_dec,
+        if( ( ret = mbedtls_cipher_crypt( &ssl->transform_in->cipher_ctx_dec,
                                    ssl->transform_in->iv_dec,
                                    ssl->transform_in->ivlen,
                                    dec_msg, dec_msglen,
                                    dec_msg_result, &olen ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "cipher_crypt", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_crypt", ret );
             return( ret );
         }
 
         if( dec_msglen != olen )
         {
-            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
-#if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1)
-        if( ssl->minor_ver < SSL_MINOR_VERSION_2 )
+#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1)
+        if( ssl->minor_ver < MBEDTLS_SSL_MINOR_VERSION_2 )
         {
             /*
              * Save IV in SSL3 and TLS1
@@ -1801,21 +1801,21 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         if( ssl->in_msglen < ssl->transform_in->maclen + padlen &&
             auth_done == 0 )
         {
-#if defined(POLARSSL_SSL_DEBUG_ALL)
-            SSL_DEBUG_MSG( 1, ( "msglen (%d) < maclen (%d) + padlen (%d)",
+#if defined(MBEDTLS_SSL_DEBUG_ALL)
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "msglen (%d) < maclen (%d) + padlen (%d)",
                         ssl->in_msglen, ssl->transform_in->maclen, padlen ) );
 #endif
             padlen = 0;
             correct = 0;
         }
 
-#if defined(POLARSSL_SSL_PROTO_SSL3)
-        if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+        if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
         {
             if( padlen > ssl->transform_in->ivlen )
             {
-#if defined(POLARSSL_SSL_DEBUG_ALL)
-                SSL_DEBUG_MSG( 1, ( "bad padding length: is %d, "
+#if defined(MBEDTLS_SSL_DEBUG_ALL)
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad padding length: is %d, "
                                     "should be no more than %d",
                                padlen, ssl->transform_in->ivlen ) );
 #endif
@@ -1823,10 +1823,10 @@ static int ssl_decrypt_buf( ssl_context *ssl )
             }
         }
         else
-#endif /* POLARSSL_SSL_PROTO_SSL3 */
-#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1) || \
-    defined(POLARSSL_SSL_PROTO_TLS1_2)
-        if( ssl->minor_ver > SSL_MINOR_VERSION_0 )
+#endif /* MBEDTLS_SSL_PROTO_SSL3 */
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
+    defined(MBEDTLS_SSL_PROTO_TLS1_2)
+        if( ssl->minor_ver > MBEDTLS_SSL_MINOR_VERSION_0 )
         {
             /*
              * TLSv1+: always check the padding up to the first failure
@@ -1839,14 +1839,14 @@ static int ssl_decrypt_buf( ssl_context *ssl )
              * Padding is guaranteed to be incorrect if:
              *   1. padlen >= ssl->in_msglen
              *
-             *   2. padding_idx >= SSL_MAX_CONTENT_LEN +
+             *   2. padding_idx >= MBEDTLS_SSL_MAX_CONTENT_LEN +
              *                     ssl->transform_in->maclen
              *
              * In both cases we reset padding_idx to a safe value (0) to
              * prevent out-of-buffer reads.
              */
             correct &= ( ssl->in_msglen >= padlen + 1 );
-            correct &= ( padding_idx < SSL_MAX_CONTENT_LEN +
+            correct &= ( padding_idx < MBEDTLS_SSL_MAX_CONTENT_LEN +
                                        ssl->transform_in->maclen );
 
             padding_idx *= correct;
@@ -1860,41 +1860,41 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 
             correct &= ( pad_count == padlen ); /* Only 1 on correct padding */
 
-#if defined(POLARSSL_SSL_DEBUG_ALL)
+#if defined(MBEDTLS_SSL_DEBUG_ALL)
             if( padlen > 0 && correct == 0 )
-                SSL_DEBUG_MSG( 1, ( "bad padding byte detected" ) );
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad padding byte detected" ) );
 #endif
             padlen &= correct * 0x1FF;
         }
         else
-#endif /* POLARSSL_SSL_PROTO_TLS1 || POLARSSL_SSL_PROTO_TLS1_1 || \
-          POLARSSL_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \
+          MBEDTLS_SSL_PROTO_TLS1_2 */
         {
-            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
         ssl->in_msglen -= padlen;
     }
     else
-#endif /* POLARSSL_CIPHER_MODE_CBC &&
-          ( POLARSSL_AES_C || POLARSSL_CAMELLIA_C ) */
+#endif /* MBEDTLS_CIPHER_MODE_CBC &&
+          ( MBEDTLS_AES_C || MBEDTLS_CAMELLIA_C ) */
     {
-        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-    SSL_DEBUG_BUF( 4, "raw buffer after decryption",
+    MBEDTLS_SSL_DEBUG_BUF( 4, "raw buffer after decryption",
                    ssl->in_msg, ssl->in_msglen );
 
     /*
      * Authenticate if not done yet.
      * Compute the MAC regardless of the padding result (RFC4346, CBCTIME).
      */
-#if defined(POLARSSL_SOME_MODES_USE_MAC)
+#if defined(MBEDTLS_SOME_MODES_USE_MAC)
     if( auth_done == 0 )
     {
-        unsigned char tmp[POLARSSL_SSL_MAX_MAC_SIZE];
+        unsigned char tmp[MBEDTLS_SSL_MAX_MAC_SIZE];
 
         ssl->in_msglen -= ssl->transform_in->maclen;
 
@@ -1903,8 +1903,8 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 
         memcpy( tmp, ssl->in_msg + ssl->in_msglen, ssl->transform_in->maclen );
 
-#if defined(POLARSSL_SSL_PROTO_SSL3)
-        if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+        if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
         {
             ssl_mac( &ssl->transform_in->md_ctx_dec,
                       ssl->transform_in->mac_dec,
@@ -1912,10 +1912,10 @@ static int ssl_decrypt_buf( ssl_context *ssl )
                       ssl->in_ctr, ssl->in_msgtype );
         }
         else
-#endif /* POLARSSL_SSL_PROTO_SSL3 */
-#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1) || \
-        defined(POLARSSL_SSL_PROTO_TLS1_2)
-        if( ssl->minor_ver > SSL_MINOR_VERSION_0 )
+#endif /* MBEDTLS_SSL_PROTO_SSL3 */
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
+        defined(MBEDTLS_SSL_PROTO_TLS1_2)
+        if( ssl->minor_ver > MBEDTLS_SSL_MINOR_VERSION_0 )
         {
             /*
              * Process MAC and always update for padlen afterwards to make
@@ -1936,35 +1936,35 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 
             extra_run &= correct * 0xFF;
 
-            md_hmac_update( &ssl->transform_in->md_ctx_dec, ssl->in_ctr, 8 );
-            md_hmac_update( &ssl->transform_in->md_ctx_dec, ssl->in_hdr, 3 );
-            md_hmac_update( &ssl->transform_in->md_ctx_dec, ssl->in_len, 2 );
-            md_hmac_update( &ssl->transform_in->md_ctx_dec, ssl->in_msg,
+            mbedtls_md_hmac_update( &ssl->transform_in->md_ctx_dec, ssl->in_ctr, 8 );
+            mbedtls_md_hmac_update( &ssl->transform_in->md_ctx_dec, ssl->in_hdr, 3 );
+            mbedtls_md_hmac_update( &ssl->transform_in->md_ctx_dec, ssl->in_len, 2 );
+            mbedtls_md_hmac_update( &ssl->transform_in->md_ctx_dec, ssl->in_msg,
                              ssl->in_msglen );
-            md_hmac_finish( &ssl->transform_in->md_ctx_dec,
+            mbedtls_md_hmac_finish( &ssl->transform_in->md_ctx_dec,
                              ssl->in_msg + ssl->in_msglen );
             for( j = 0; j < extra_run; j++ )
-                md_process( &ssl->transform_in->md_ctx_dec, ssl->in_msg );
+                mbedtls_md_process( &ssl->transform_in->md_ctx_dec, ssl->in_msg );
 
-            md_hmac_reset( &ssl->transform_in->md_ctx_dec );
+            mbedtls_md_hmac_reset( &ssl->transform_in->md_ctx_dec );
         }
         else
-#endif /* POLARSSL_SSL_PROTO_TLS1 || POLARSSL_SSL_PROTO_TLS1_1 || \
-              POLARSSL_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \
+              MBEDTLS_SSL_PROTO_TLS1_2 */
         {
-            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
-        SSL_DEBUG_BUF( 4, "message  mac", tmp, ssl->transform_in->maclen );
-        SSL_DEBUG_BUF( 4, "computed mac", ssl->in_msg + ssl->in_msglen,
+        MBEDTLS_SSL_DEBUG_BUF( 4, "message  mac", tmp, ssl->transform_in->maclen );
+        MBEDTLS_SSL_DEBUG_BUF( 4, "computed mac", ssl->in_msg + ssl->in_msglen,
                        ssl->transform_in->maclen );
 
-        if( safer_memcmp( tmp, ssl->in_msg + ssl->in_msglen,
+        if( mbedtls_ssl_safer_memcmp( tmp, ssl->in_msg + ssl->in_msglen,
                          ssl->transform_in->maclen ) != 0 )
         {
-#if defined(POLARSSL_SSL_DEBUG_ALL)
-            SSL_DEBUG_MSG( 1, ( "message mac does not match" ) );
+#if defined(MBEDTLS_SSL_DEBUG_ALL)
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "message mac does not match" ) );
 #endif
             correct = 0;
         }
@@ -1974,15 +1974,15 @@ static int ssl_decrypt_buf( ssl_context *ssl )
          * Finally check the correct flag
          */
         if( correct == 0 )
-            return( POLARSSL_ERR_SSL_INVALID_MAC );
+            return( MBEDTLS_ERR_SSL_INVALID_MAC );
     }
-#endif /* POLARSSL_SOME_MODES_USE_MAC */
+#endif /* MBEDTLS_SOME_MODES_USE_MAC */
 
     /* Make extra sure authentication was performed, exactly once */
     if( auth_done != 1 )
     {
-        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
     if( ssl->in_msglen == 0 )
@@ -1995,16 +1995,16 @@ static int ssl_decrypt_buf( ssl_context *ssl )
          */
         if( ssl->nb_zero > 3 )
         {
-            SSL_DEBUG_MSG( 1, ( "received four consecutive empty "
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "received four consecutive empty "
                                 "messages, possible DoS attack" ) );
-            return( POLARSSL_ERR_SSL_INVALID_MAC );
+            return( MBEDTLS_ERR_SSL_INVALID_MAC );
         }
     }
     else
         ssl->nb_zero = 0;
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
         ; /* in_ctr read from peer, not maintained internally */
     }
@@ -2018,12 +2018,12 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         /* The loop goes to its end iff the counter is wrapping */
         if( i == ssl_ep_len( ssl ) )
         {
-            SSL_DEBUG_MSG( 1, ( "incoming message counter would wrap" ) );
-            return( POLARSSL_ERR_SSL_COUNTER_WRAPPING );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "incoming message counter would wrap" ) );
+            return( MBEDTLS_ERR_SSL_COUNTER_WRAPPING );
         }
     }
 
-    SSL_DEBUG_MSG( 2, ( "<= decrypt buf" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= decrypt buf" ) );
 
     return( 0 );
 }
@@ -2032,108 +2032,108 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 #undef MAC_PLAINTEXT
 #undef MAC_CIPHERTEXT
 
-#if defined(POLARSSL_ZLIB_SUPPORT)
+#if defined(MBEDTLS_ZLIB_SUPPORT)
 /*
  * Compression/decompression functions
  */
-static int ssl_compress_buf( ssl_context *ssl )
+static int ssl_compress_buf( mbedtls_ssl_context *ssl )
 {
     int ret;
     unsigned char *msg_post = ssl->out_msg;
     size_t len_pre = ssl->out_msglen;
     unsigned char *msg_pre = ssl->compress_buf;
 
-    SSL_DEBUG_MSG( 2, ( "=> compress buf" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> compress buf" ) );
 
     if( len_pre == 0 )
         return( 0 );
 
     memcpy( msg_pre, ssl->out_msg, len_pre );
 
-    SSL_DEBUG_MSG( 3, ( "before compression: msglen = %d, ",
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "before compression: msglen = %d, ",
                    ssl->out_msglen ) );
 
-    SSL_DEBUG_BUF( 4, "before compression: output payload",
+    MBEDTLS_SSL_DEBUG_BUF( 4, "before compression: output payload",
                    ssl->out_msg, ssl->out_msglen );
 
     ssl->transform_out->ctx_deflate.next_in = msg_pre;
     ssl->transform_out->ctx_deflate.avail_in = len_pre;
     ssl->transform_out->ctx_deflate.next_out = msg_post;
-    ssl->transform_out->ctx_deflate.avail_out = SSL_BUFFER_LEN;
+    ssl->transform_out->ctx_deflate.avail_out = MBEDTLS_SSL_BUFFER_LEN;
 
     ret = deflate( &ssl->transform_out->ctx_deflate, Z_SYNC_FLUSH );
     if( ret != Z_OK )
     {
-        SSL_DEBUG_MSG( 1, ( "failed to perform compression (%d)", ret ) );
-        return( POLARSSL_ERR_SSL_COMPRESSION_FAILED );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "failed to perform compression (%d)", ret ) );
+        return( MBEDTLS_ERR_SSL_COMPRESSION_FAILED );
     }
 
-    ssl->out_msglen = SSL_BUFFER_LEN -
+    ssl->out_msglen = MBEDTLS_SSL_BUFFER_LEN -
                       ssl->transform_out->ctx_deflate.avail_out;
 
-    SSL_DEBUG_MSG( 3, ( "after compression: msglen = %d, ",
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "after compression: msglen = %d, ",
                    ssl->out_msglen ) );
 
-    SSL_DEBUG_BUF( 4, "after compression: output payload",
+    MBEDTLS_SSL_DEBUG_BUF( 4, "after compression: output payload",
                    ssl->out_msg, ssl->out_msglen );
 
-    SSL_DEBUG_MSG( 2, ( "<= compress buf" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= compress buf" ) );
 
     return( 0 );
 }
 
-static int ssl_decompress_buf( ssl_context *ssl )
+static int ssl_decompress_buf( mbedtls_ssl_context *ssl )
 {
     int ret;
     unsigned char *msg_post = ssl->in_msg;
     size_t len_pre = ssl->in_msglen;
     unsigned char *msg_pre = ssl->compress_buf;
 
-    SSL_DEBUG_MSG( 2, ( "=> decompress buf" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> decompress buf" ) );
 
     if( len_pre == 0 )
         return( 0 );
 
     memcpy( msg_pre, ssl->in_msg, len_pre );
 
-    SSL_DEBUG_MSG( 3, ( "before decompression: msglen = %d, ",
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "before decompression: msglen = %d, ",
                    ssl->in_msglen ) );
 
-    SSL_DEBUG_BUF( 4, "before decompression: input payload",
+    MBEDTLS_SSL_DEBUG_BUF( 4, "before decompression: input payload",
                    ssl->in_msg, ssl->in_msglen );
 
     ssl->transform_in->ctx_inflate.next_in = msg_pre;
     ssl->transform_in->ctx_inflate.avail_in = len_pre;
     ssl->transform_in->ctx_inflate.next_out = msg_post;
-    ssl->transform_in->ctx_inflate.avail_out = SSL_MAX_CONTENT_LEN;
+    ssl->transform_in->ctx_inflate.avail_out = MBEDTLS_SSL_MAX_CONTENT_LEN;
 
     ret = inflate( &ssl->transform_in->ctx_inflate, Z_SYNC_FLUSH );
     if( ret != Z_OK )
     {
-        SSL_DEBUG_MSG( 1, ( "failed to perform decompression (%d)", ret ) );
-        return( POLARSSL_ERR_SSL_COMPRESSION_FAILED );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "failed to perform decompression (%d)", ret ) );
+        return( MBEDTLS_ERR_SSL_COMPRESSION_FAILED );
     }
 
-    ssl->in_msglen = SSL_MAX_CONTENT_LEN -
+    ssl->in_msglen = MBEDTLS_SSL_MAX_CONTENT_LEN -
                      ssl->transform_in->ctx_inflate.avail_out;
 
-    SSL_DEBUG_MSG( 3, ( "after decompression: msglen = %d, ",
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "after decompression: msglen = %d, ",
                    ssl->in_msglen ) );
 
-    SSL_DEBUG_BUF( 4, "after decompression: input payload",
+    MBEDTLS_SSL_DEBUG_BUF( 4, "after decompression: input payload",
                    ssl->in_msg, ssl->in_msglen );
 
-    SSL_DEBUG_MSG( 2, ( "<= decompress buf" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= decompress buf" ) );
 
     return( 0 );
 }
-#endif /* POLARSSL_ZLIB_SUPPORT */
+#endif /* MBEDTLS_ZLIB_SUPPORT */
 
-#if defined(POLARSSL_SSL_SRV_C) && defined(POLARSSL_SSL_RENEGOTIATION)
-static int ssl_write_hello_request( ssl_context *ssl );
+#if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_RENEGOTIATION)
+static int ssl_write_hello_request( mbedtls_ssl_context *ssl );
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-static int ssl_resend_hello_request( ssl_context *ssl )
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+static int ssl_resend_hello_request( mbedtls_ssl_context *ssl )
 {
     /* If renegotiation is not enforced, retransmit until we would reach max
      * timeout if we were using the usual handshake doubling scheme */
@@ -2150,7 +2150,7 @@ static int ssl_resend_hello_request( ssl_context *ssl )
 
         if( ++ssl->renego_records_seen > doublings )
         {
-            SSL_DEBUG_MSG( 0, ( "no longer retransmitting hello request" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 0, ( "no longer retransmitting hello request" ) );
             return( 0 );
         }
     }
@@ -2158,7 +2158,7 @@ static int ssl_resend_hello_request( ssl_context *ssl )
     return( ssl_write_hello_request( ssl ) );
 }
 #endif
-#endif /* POLARSSL_SSL_SRV_C && POLARSSL_SSL_RENEGOTIATION */
+#endif /* MBEDTLS_SSL_SRV_C && MBEDTLS_SSL_RENEGOTIATION */
 
 /*
  * Fill the input message buffer by appending data to it.
@@ -2175,28 +2175,28 @@ static int ssl_resend_hello_request( ssl_context *ssl )
  * For DTLS, it is up to the caller to set ssl->next_record_offset when
  * they're done reading a record.
  */
-int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
+int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
 {
     int ret;
     size_t len;
 
-    SSL_DEBUG_MSG( 2, ( "=> fetch input" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> fetch input" ) );
 
     if( ssl->f_recv == NULL && ssl->f_recv_timeout == NULL )
     {
-        SSL_DEBUG_MSG( 1, ( "Bad usage of ssl_set_bio() "
-                            "or ssl_set_bio_timeout()" ) );
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Bad usage of mbedtls_ssl_set_bio() "
+                            "or mbedtls_ssl_set_bio_timeout()" ) );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
-    if( nb_want > SSL_BUFFER_LEN - (size_t)( ssl->in_hdr - ssl->in_buf ) )
+    if( nb_want > MBEDTLS_SSL_BUFFER_LEN - (size_t)( ssl->in_hdr - ssl->in_buf ) )
     {
-        SSL_DEBUG_MSG( 1, ( "requesting more data than fits" ) );
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "requesting more data than fits" ) );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
         uint32_t timeout;
 
@@ -2214,15 +2214,15 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
         {
             if( ssl->in_left < ssl->next_record_offset )
             {
-                SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-                return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
             }
 
             ssl->in_left -= ssl->next_record_offset;
 
             if( ssl->in_left != 0 )
             {
-                SSL_DEBUG_MSG( 2, ( "next record in same datagram, offset: %d",
+                MBEDTLS_SSL_DEBUG_MSG( 2, ( "next record in same datagram, offset: %d",
                                     ssl->next_record_offset ) );
                 memmove( ssl->in_hdr,
                          ssl->in_hdr + ssl->next_record_offset,
@@ -2232,7 +2232,7 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
             ssl->next_record_offset = 0;
         }
 
-        SSL_DEBUG_MSG( 2, ( "in_left: %d, nb_want: %d",
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "in_left: %d, nb_want: %d",
                        ssl->in_left, nb_want ) );
 
         /*
@@ -2240,7 +2240,7 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
          */
         if( nb_want <= ssl->in_left)
         {
-            SSL_DEBUG_MSG( 2, ( "<= fetch input" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= fetch input" ) );
             return( 0 );
         }
 
@@ -2251,11 +2251,11 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
          */
         if( ssl->in_left != 0 )
         {
-            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
-        SSL_DEBUG_MSG( 3, ( "current timer: %u", ssl->time_limit ) );
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "current timer: %u", ssl->time_limit ) );
 
         /*
          * Don't even try to read if time's out already.
@@ -2263,17 +2263,17 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
          * that will end up being dropped.
          */
         if( ssl_check_timer( ssl ) != 0 )
-            ret = POLARSSL_ERR_NET_TIMEOUT;
+            ret = MBEDTLS_ERR_NET_TIMEOUT;
         else
         {
-            len = SSL_BUFFER_LEN - ( ssl->in_hdr - ssl->in_buf );
+            len = MBEDTLS_SSL_BUFFER_LEN - ( ssl->in_hdr - ssl->in_buf );
 
-            if( ssl->state != SSL_HANDSHAKE_OVER )
+            if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
                 timeout = ssl->handshake->retransmit_timeout;
             else
                 timeout = ssl->read_timeout;
 
-            SSL_DEBUG_MSG( 3, ( "f_recv_timeout: %u ms", timeout ) );
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "f_recv_timeout: %u ms", timeout ) );
 
             if( ssl->f_recv_timeout != NULL && timeout != 0 )
                 ret = ssl->f_recv_timeout( ssl->p_bio, ssl->in_hdr, len,
@@ -2281,46 +2281,46 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
             else
                 ret = ssl->f_recv( ssl->p_bio, ssl->in_hdr, len );
 
-            SSL_DEBUG_RET( 2, "ssl->f_recv(_timeout)", ret );
+            MBEDTLS_SSL_DEBUG_RET( 2, "ssl->f_recv(_timeout)", ret );
 
             if( ret == 0 )
-                return( POLARSSL_ERR_SSL_CONN_EOF );
+                return( MBEDTLS_ERR_SSL_CONN_EOF );
         }
 
-        if( ret == POLARSSL_ERR_NET_TIMEOUT )
+        if( ret == MBEDTLS_ERR_NET_TIMEOUT )
         {
-            SSL_DEBUG_MSG( 2, ( "timeout" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "timeout" ) );
             ssl_set_timer( ssl, 0 );
 
-            if( ssl->state != SSL_HANDSHAKE_OVER )
+            if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
             {
                 if( ssl_double_retransmit_timeout( ssl ) != 0 )
                 {
-                    SSL_DEBUG_MSG( 1, ( "handshake timeout" ) );
-                    return( POLARSSL_ERR_NET_TIMEOUT );
+                    MBEDTLS_SSL_DEBUG_MSG( 1, ( "handshake timeout" ) );
+                    return( MBEDTLS_ERR_NET_TIMEOUT );
                 }
 
-                if( ( ret = ssl_resend( ssl ) ) != 0 )
+                if( ( ret = mbedtls_ssl_resend( ssl ) ) != 0 )
                 {
-                    SSL_DEBUG_RET( 1, "ssl_resend", ret );
+                    MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_resend", ret );
                     return( ret );
                 }
 
-                return( POLARSSL_ERR_NET_WANT_READ );
+                return( MBEDTLS_ERR_NET_WANT_READ );
             }
-#if defined(POLARSSL_SSL_SRV_C) && defined(POLARSSL_SSL_RENEGOTIATION)
-            else if( ssl->endpoint == SSL_IS_SERVER &&
-                     ssl->renego_status == SSL_RENEGOTIATION_PENDING )
+#if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_RENEGOTIATION)
+            else if( ssl->endpoint == MBEDTLS_SSL_IS_SERVER &&
+                     ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_PENDING )
             {
                 if( ( ret = ssl_resend_hello_request( ssl ) ) != 0 )
                 {
-                    SSL_DEBUG_RET( 1, "ssl_resend_hello_request", ret );
+                    MBEDTLS_SSL_DEBUG_RET( 1, "ssl_resend_hello_request", ret );
                     return( ret );
                 }
 
-                return( POLARSSL_ERR_NET_WANT_READ );
+                return( MBEDTLS_ERR_NET_WANT_READ );
             }
-#endif /* POLARSSL_SSL_SRV_C && POLARSSL_SSL_RENEGOTIATION */
+#endif /* MBEDTLS_SSL_SRV_C && MBEDTLS_SSL_RENEGOTIATION */
         }
 
         if( ret < 0 )
@@ -2331,7 +2331,7 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
     else
 #endif
     {
-        SSL_DEBUG_MSG( 2, ( "in_left: %d, nb_want: %d",
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "in_left: %d, nb_want: %d",
                        ssl->in_left, nb_want ) );
 
         while( ssl->in_left < nb_want )
@@ -2339,12 +2339,12 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
             len = nb_want - ssl->in_left;
             ret = ssl->f_recv( ssl->p_bio, ssl->in_hdr + ssl->in_left, len );
 
-            SSL_DEBUG_MSG( 2, ( "in_left: %d, nb_want: %d",
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "in_left: %d, nb_want: %d",
                            ssl->in_left, nb_want ) );
-            SSL_DEBUG_RET( 2, "ssl->f_recv", ret );
+            MBEDTLS_SSL_DEBUG_RET( 2, "ssl->f_recv", ret );
 
             if( ret == 0 )
-                return( POLARSSL_ERR_SSL_CONN_EOF );
+                return( MBEDTLS_ERR_SSL_CONN_EOF );
 
             if( ret < 0 )
                 return( ret );
@@ -2353,7 +2353,7 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
         }
     }
 
-    SSL_DEBUG_MSG( 2, ( "<= fetch input" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= fetch input" ) );
 
     return( 0 );
 }
@@ -2361,37 +2361,37 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
 /*
  * Flush any data not yet written
  */
-int ssl_flush_output( ssl_context *ssl )
+int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl )
 {
     int ret;
     unsigned char *buf, i;
 
-    SSL_DEBUG_MSG( 2, ( "=> flush output" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> flush output" ) );
 
     if( ssl->f_send == NULL )
     {
-        SSL_DEBUG_MSG( 1, ( "Bad usage of ssl_set_bio() "
-                            "or ssl_set_bio_timeout()" ) );
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Bad usage of mbedtls_ssl_set_bio() "
+                            "or mbedtls_ssl_set_bio_timeout()" ) );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
     /* Avoid incrementing counter if data is flushed */
     if( ssl->out_left == 0 )
     {
-        SSL_DEBUG_MSG( 2, ( "<= flush output" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= flush output" ) );
         return( 0 );
     }
 
     while( ssl->out_left > 0 )
     {
-        SSL_DEBUG_MSG( 2, ( "message length: %d, out_left: %d",
-                       ssl_hdr_len( ssl ) + ssl->out_msglen, ssl->out_left ) );
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "message length: %d, out_left: %d",
+                       mbedtls_ssl_hdr_len( ssl ) + ssl->out_msglen, ssl->out_left ) );
 
-        buf = ssl->out_hdr + ssl_hdr_len( ssl ) +
+        buf = ssl->out_hdr + mbedtls_ssl_hdr_len( ssl ) +
               ssl->out_msglen - ssl->out_left;
         ret = ssl->f_send( ssl->p_bio, buf, ssl->out_left );
 
-        SSL_DEBUG_RET( 2, "ssl->f_send", ret );
+        MBEDTLS_SSL_DEBUG_RET( 2, "ssl->f_send", ret );
 
         if( ret <= 0 )
             return( ret );
@@ -2406,11 +2406,11 @@ int ssl_flush_output( ssl_context *ssl )
     /* The loop goes to its end iff the counter is wrapping */
     if( i == ssl_ep_len( ssl ) )
     {
-        SSL_DEBUG_MSG( 1, ( "outgoing message counter would wrap" ) );
-        return( POLARSSL_ERR_SSL_COUNTER_WRAPPING );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "outgoing message counter would wrap" ) );
+        return( MBEDTLS_ERR_SSL_COUNTER_WRAPPING );
     }
 
-    SSL_DEBUG_MSG( 2, ( "<= flush output" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= flush output" ) );
 
     return( 0 );
 }
@@ -2418,27 +2418,27 @@ int ssl_flush_output( ssl_context *ssl )
 /*
  * Functions to handle the DTLS retransmission state machine
  */
-#if defined(POLARSSL_SSL_PROTO_DTLS)
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
 /*
  * Append current handshake message to current outgoing flight
  */
-static int ssl_flight_append( ssl_context *ssl )
+static int ssl_flight_append( mbedtls_ssl_context *ssl )
 {
-    ssl_flight_item *msg;
+    mbedtls_ssl_flight_item *msg;
 
     /* Allocate space for current message */
-    if( ( msg = polarssl_malloc( sizeof(  ssl_flight_item ) ) ) == NULL )
+    if( ( msg = mbedtls_malloc( sizeof(  mbedtls_ssl_flight_item ) ) ) == NULL )
     {
-        SSL_DEBUG_MSG( 1, ( "malloc %d bytes failed",
-                            sizeof( ssl_flight_item ) ) );
-        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "malloc %d bytes failed",
+                            sizeof( mbedtls_ssl_flight_item ) ) );
+        return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
     }
 
-    if( ( msg->p = polarssl_malloc( ssl->out_msglen ) ) == NULL )
+    if( ( msg->p = mbedtls_malloc( ssl->out_msglen ) ) == NULL )
     {
-        SSL_DEBUG_MSG( 1, ( "malloc %d bytes failed", ssl->out_msglen ) );
-        polarssl_free( msg );
-        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "malloc %d bytes failed", ssl->out_msglen ) );
+        mbedtls_free( msg );
+        return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
     }
 
     /* Copy current handshake message with headers */
@@ -2452,7 +2452,7 @@ static int ssl_flight_append( ssl_context *ssl )
         ssl->handshake->flight = msg;
     else
     {
-        ssl_flight_item *cur = ssl->handshake->flight;
+        mbedtls_ssl_flight_item *cur = ssl->handshake->flight;
         while( cur->next != NULL )
             cur = cur->next;
         cur->next = msg;
@@ -2464,41 +2464,41 @@ static int ssl_flight_append( ssl_context *ssl )
 /*
  * Free the current flight of handshake messages
  */
-static void ssl_flight_free( ssl_flight_item *flight )
+static void ssl_flight_free( mbedtls_ssl_flight_item *flight )
 {
-    ssl_flight_item *cur = flight;
-    ssl_flight_item *next;
+    mbedtls_ssl_flight_item *cur = flight;
+    mbedtls_ssl_flight_item *next;
 
     while( cur != NULL )
     {
         next = cur->next;
 
-        polarssl_free( cur->p );
-        polarssl_free( cur );
+        mbedtls_free( cur->p );
+        mbedtls_free( cur );
 
         cur = next;
     }
 }
 
-#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
-static void ssl_dtls_replay_reset( ssl_context *ssl );
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+static void ssl_dtls_replay_reset( mbedtls_ssl_context *ssl );
 #endif
 
 /*
  * Swap transform_out and out_ctr with the alternative ones
  */
-static void ssl_swap_epochs( ssl_context *ssl )
+static void ssl_swap_epochs( mbedtls_ssl_context *ssl )
 {
-    ssl_transform *tmp_transform;
+    mbedtls_ssl_transform *tmp_transform;
     unsigned char tmp_out_ctr[8];
 
     if( ssl->transform_out == ssl->handshake->alt_transform_out )
     {
-        SSL_DEBUG_MSG( 3, ( "skip swap epochs" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "skip swap epochs" ) );
         return;
     }
 
-    SSL_DEBUG_MSG( 3, ( "swap epochs" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "swap epochs" ) );
 
     /* Swap transforms */
     tmp_transform                     = ssl->transform_out;
@@ -2512,7 +2512,7 @@ static void ssl_swap_epochs( ssl_context *ssl )
 
     /* Adjust to the newly activated transform */
     if( ssl->transform_out != NULL &&
-        ssl->minor_ver >= SSL_MINOR_VERSION_2 )
+        ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
     {
         ssl->out_msg = ssl->out_iv + ssl->transform_out->ivlen -
                                      ssl->transform_out->fixed_ivlen;
@@ -2520,13 +2520,13 @@ static void ssl_swap_epochs( ssl_context *ssl )
     else
         ssl->out_msg = ssl->out_iv;
 
-#if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
-    if( ssl_hw_record_activate != NULL )
+#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
+    if( mbedtls_ssl_hw_record_activate != NULL )
     {
-        if( ( ret = ssl_hw_record_activate( ssl, SSL_CHANNEL_OUTBOUND ) ) != 0 )
+        if( ( ret = mbedtls_ssl_hw_record_activate( ssl, MBEDTLS_SSL_CHANNEL_OUTBOUND ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "ssl_hw_record_activate", ret );
-            return( POLARSSL_ERR_SSL_HW_ACCEL_FAILED );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_hw_record_activate", ret );
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
         }
     }
 #endif
@@ -2539,30 +2539,30 @@ static void ssl_swap_epochs( ssl_context *ssl )
  * WANT_WRITE, causing us to exit this function and come back later.
  * This function must be called until state is no longer SENDING.
  */
-int ssl_resend( ssl_context *ssl )
+int mbedtls_ssl_resend( mbedtls_ssl_context *ssl )
 {
-    SSL_DEBUG_MSG( 2, ( "=> ssl_resend" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> mbedtls_ssl_resend" ) );
 
-    if( ssl->handshake->retransmit_state != SSL_RETRANS_SENDING )
+    if( ssl->handshake->retransmit_state != MBEDTLS_SSL_RETRANS_SENDING )
     {
-        SSL_DEBUG_MSG( 2, ( "initialise resending" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "initialise resending" ) );
 
         ssl->handshake->cur_msg = ssl->handshake->flight;
         ssl_swap_epochs( ssl );
 
-        ssl->handshake->retransmit_state = SSL_RETRANS_SENDING;
+        ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_SENDING;
     }
 
     while( ssl->handshake->cur_msg != NULL )
     {
         int ret;
-        ssl_flight_item *cur = ssl->handshake->cur_msg;
+        mbedtls_ssl_flight_item *cur = ssl->handshake->cur_msg;
 
         /* Swap epochs before sending Finished: we can't do it after
          * sending ChangeCipherSpec, in case write returns WANT_READ.
          * Must be done before copying, may change out_msg pointer */
-        if( cur->type == SSL_MSG_HANDSHAKE &&
-            cur->p[0] == SSL_HS_FINISHED )
+        if( cur->type == MBEDTLS_SSL_MSG_HANDSHAKE &&
+            cur->p[0] == MBEDTLS_SSL_HS_FINISHED )
         {
             ssl_swap_epochs( ssl );
         }
@@ -2573,24 +2573,24 @@ int ssl_resend( ssl_context *ssl )
 
         ssl->handshake->cur_msg = cur->next;
 
-        SSL_DEBUG_BUF( 3, "resent handshake message header", ssl->out_msg, 12 );
+        MBEDTLS_SSL_DEBUG_BUF( 3, "resent handshake message header", ssl->out_msg, 12 );
 
-        if( ( ret = ssl_write_record( ssl ) ) != 0 )
+        if( ( ret = mbedtls_ssl_write_record( ssl ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "ssl_write_record", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
             return( ret );
         }
     }
 
-    if( ssl->state == SSL_HANDSHAKE_OVER )
-        ssl->handshake->retransmit_state = SSL_RETRANS_FINISHED;
+    if( ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER )
+        ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_FINISHED;
     else
     {
-        ssl->handshake->retransmit_state = SSL_RETRANS_WAITING;
+        ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_WAITING;
         ssl_set_timer( ssl, ssl->handshake->retransmit_timeout );
     }
 
-    SSL_DEBUG_MSG( 2, ( "<= ssl_resend" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= mbedtls_ssl_resend" ) );
 
     return( 0 );
 }
@@ -2598,7 +2598,7 @@ int ssl_resend( ssl_context *ssl )
 /*
  * To be called when the last message of an incoming flight is received.
  */
-void ssl_recv_flight_completed( ssl_context *ssl )
+void mbedtls_ssl_recv_flight_completed( mbedtls_ssl_context *ssl )
 {
     /* We won't need to resend that one any more */
     ssl_flight_free( ssl->handshake->flight );
@@ -2611,32 +2611,32 @@ void ssl_recv_flight_completed( ssl_context *ssl )
     /* Cancel timer */
     ssl_set_timer( ssl, 0 );
 
-    if( ssl->in_msgtype == SSL_MSG_HANDSHAKE &&
-        ssl->in_msg[0] == SSL_HS_FINISHED )
+    if( ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE &&
+        ssl->in_msg[0] == MBEDTLS_SSL_HS_FINISHED )
     {
-        ssl->handshake->retransmit_state = SSL_RETRANS_FINISHED;
+        ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_FINISHED;
     }
     else
-        ssl->handshake->retransmit_state = SSL_RETRANS_PREPARING;
+        ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_PREPARING;
 }
 
 /*
  * To be called when the last message of an outgoing flight is send.
  */
-void ssl_send_flight_completed( ssl_context *ssl )
+void mbedtls_ssl_send_flight_completed( mbedtls_ssl_context *ssl )
 {
     ssl_reset_retransmit_timeout( ssl );
     ssl_set_timer( ssl, ssl->handshake->retransmit_timeout );
 
-    if( ssl->in_msgtype == SSL_MSG_HANDSHAKE &&
-        ssl->in_msg[0] == SSL_HS_FINISHED )
+    if( ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE &&
+        ssl->in_msg[0] == MBEDTLS_SSL_HS_FINISHED )
     {
-        ssl->handshake->retransmit_state = SSL_RETRANS_FINISHED;
+        ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_FINISHED;
     }
     else
-        ssl->handshake->retransmit_state = SSL_RETRANS_WAITING;
+        ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_WAITING;
 }
-#endif /* POLARSSL_SSL_PROTO_DTLS */
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
 /*
  * Record layer functions
@@ -2646,23 +2646,23 @@ void ssl_send_flight_completed( ssl_context *ssl )
  * Write current record.
  * Uses ssl->out_msgtype, ssl->out_msglen and bytes at ssl->out_msg.
  */
-int ssl_write_record( ssl_context *ssl )
+int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl )
 {
     int ret, done = 0;
     size_t len = ssl->out_msglen;
 
-    SSL_DEBUG_MSG( 2, ( "=> write record" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write record" ) );
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
         ssl->handshake != NULL &&
-        ssl->handshake->retransmit_state == SSL_RETRANS_SENDING )
+        ssl->handshake->retransmit_state == MBEDTLS_SSL_RETRANS_SENDING )
     {
         ; /* Skip special handshake treatment when resending */
     }
     else
 #endif
-    if( ssl->out_msgtype == SSL_MSG_HANDSHAKE )
+    if( ssl->out_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE )
     {
         ssl->out_msg[1] = (unsigned char)( ( len - 4 ) >> 16 );
         ssl->out_msg[2] = (unsigned char)( ( len - 4 ) >>  8 );
@@ -2675,8 +2675,8 @@ int ssl_write_record( ssl_context *ssl )
          *      uint24 fragment_offset;
          *      uint24 fragment_length;
          */
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-        if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+        if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
         {
             /* Make room for the additional DTLS fields */
             memmove( ssl->out_msg + 12, ssl->out_msg + 4, len - 4 );
@@ -2684,7 +2684,7 @@ int ssl_write_record( ssl_context *ssl )
             len += 8;
 
             /* Write message_seq and update it, except for HelloRequest */
-            if( ssl->out_msg[0] != SSL_HS_HELLO_REQUEST )
+            if( ssl->out_msg[0] != MBEDTLS_SSL_HS_HELLO_REQUEST )
             {
                 ssl->out_msg[4] = ( ssl->handshake->out_msg_seq >> 8 ) & 0xFF;
                 ssl->out_msg[5] = ( ssl->handshake->out_msg_seq      ) & 0xFF;
@@ -2700,62 +2700,62 @@ int ssl_write_record( ssl_context *ssl )
             memset( ssl->out_msg + 6, 0x00, 3 );
             memcpy( ssl->out_msg + 9, ssl->out_msg + 1, 3 );
         }
-#endif /* POLARSSL_SSL_PROTO_DTLS */
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-        if( ssl->out_msg[0] != SSL_HS_HELLO_REQUEST )
+        if( ssl->out_msg[0] != MBEDTLS_SSL_HS_HELLO_REQUEST )
             ssl->handshake->update_checksum( ssl, ssl->out_msg, len );
     }
 
     /* Save handshake and CCS messages for resending */
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
         ssl->handshake != NULL &&
-        ssl->handshake->retransmit_state != SSL_RETRANS_SENDING &&
-        ( ssl->out_msgtype == SSL_MSG_CHANGE_CIPHER_SPEC ||
-          ssl->out_msgtype == SSL_MSG_HANDSHAKE ) )
+        ssl->handshake->retransmit_state != MBEDTLS_SSL_RETRANS_SENDING &&
+        ( ssl->out_msgtype == MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC ||
+          ssl->out_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE ) )
     {
         if( ( ret = ssl_flight_append( ssl ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "ssl_flight_append", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_flight_append", ret );
             return( ret );
         }
     }
 #endif
 
-#if defined(POLARSSL_ZLIB_SUPPORT)
+#if defined(MBEDTLS_ZLIB_SUPPORT)
     if( ssl->transform_out != NULL &&
-        ssl->session_out->compression == SSL_COMPRESS_DEFLATE )
+        ssl->session_out->compression == MBEDTLS_SSL_COMPRESS_DEFLATE )
     {
         if( ( ret = ssl_compress_buf( ssl ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "ssl_compress_buf", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_compress_buf", ret );
             return( ret );
         }
 
         len = ssl->out_msglen;
     }
-#endif /*POLARSSL_ZLIB_SUPPORT */
+#endif /*MBEDTLS_ZLIB_SUPPORT */
 
-#if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
-    if( ssl_hw_record_write != NULL )
+#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
+    if( mbedtls_ssl_hw_record_write != NULL )
     {
-        SSL_DEBUG_MSG( 2, ( "going for ssl_hw_record_write()" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "going for mbedtls_ssl_hw_record_write()" ) );
 
-        ret = ssl_hw_record_write( ssl );
-        if( ret != 0 && ret != POLARSSL_ERR_SSL_HW_ACCEL_FALLTHROUGH )
+        ret = mbedtls_ssl_hw_record_write( ssl );
+        if( ret != 0 && ret != MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH )
         {
-            SSL_DEBUG_RET( 1, "ssl_hw_record_write", ret );
-            return( POLARSSL_ERR_SSL_HW_ACCEL_FAILED );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_hw_record_write", ret );
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
         }
 
         if( ret == 0 )
             done = 1;
     }
-#endif /* POLARSSL_SSL_HW_RECORD_ACCEL */
+#endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
     if( !done )
     {
         ssl->out_hdr[0] = (unsigned char) ssl->out_msgtype;
-        ssl_write_version( ssl->major_ver, ssl->minor_ver,
+        mbedtls_ssl_write_version( ssl->major_ver, ssl->minor_ver,
                            ssl->transport, ssl->out_hdr + 1 );
 
         ssl->out_len[0] = (unsigned char)( len >> 8 );
@@ -2765,7 +2765,7 @@ int ssl_write_record( ssl_context *ssl )
         {
             if( ( ret = ssl_encrypt_buf( ssl ) ) != 0 )
             {
-                SSL_DEBUG_RET( 1, "ssl_encrypt_buf", ret );
+                MBEDTLS_SSL_DEBUG_RET( 1, "ssl_encrypt_buf", ret );
                 return( ret );
             }
 
@@ -2774,29 +2774,29 @@ int ssl_write_record( ssl_context *ssl )
             ssl->out_len[1] = (unsigned char)( len      );
         }
 
-        ssl->out_left = ssl_hdr_len( ssl ) + ssl->out_msglen;
+        ssl->out_left = mbedtls_ssl_hdr_len( ssl ) + ssl->out_msglen;
 
-        SSL_DEBUG_MSG( 3, ( "output record: msgtype = %d, "
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "output record: msgtype = %d, "
                             "version = [%d:%d], msglen = %d",
                        ssl->out_hdr[0], ssl->out_hdr[1], ssl->out_hdr[2],
                      ( ssl->out_len[0] << 8 ) | ssl->out_len[1] ) );
 
-        SSL_DEBUG_BUF( 4, "output record sent to network",
-                       ssl->out_hdr, ssl_hdr_len( ssl ) + ssl->out_msglen );
+        MBEDTLS_SSL_DEBUG_BUF( 4, "output record sent to network",
+                       ssl->out_hdr, mbedtls_ssl_hdr_len( ssl ) + ssl->out_msglen );
     }
 
-    if( ( ret = ssl_flush_output( ssl ) ) != 0 )
+    if( ( ret = mbedtls_ssl_flush_output( ssl ) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "ssl_flush_output", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_flush_output", ret );
         return( ret );
     }
 
-    SSL_DEBUG_MSG( 2, ( "<= write record" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write record" ) );
 
     return( 0 );
 }
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
 /*
  * Mark bits in bitmask (used for DTLS HS reassembly)
  */
@@ -2866,7 +2866,7 @@ static int ssl_bitmask_check( unsigned char *mask, size_t len )
  * - the second holds a bitmask indicating which parts of the message
  *   (excluding headers) have been received so far.
  */
-static int ssl_reassemble_dtls_handshake( ssl_context *ssl )
+static int ssl_reassemble_dtls_handshake( mbedtls_ssl_context *ssl )
 {
     unsigned char *msg, *bitmask;
     size_t frag_len, frag_off;
@@ -2874,8 +2874,8 @@ static int ssl_reassemble_dtls_handshake( ssl_context *ssl )
 
     if( ssl->handshake == NULL )
     {
-        SSL_DEBUG_MSG( 1, ( "not supported outside handshake (for now)" ) );
-        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "not supported outside handshake (for now)" ) );
+        return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
     }
 
     /*
@@ -2885,23 +2885,23 @@ static int ssl_reassemble_dtls_handshake( ssl_context *ssl )
     {
         size_t alloc_len;
 
-        SSL_DEBUG_MSG( 2, ( "initialize reassembly, total length = %d",
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "initialize reassembly, total length = %d",
                             msg_len ) );
 
-        if( ssl->in_hslen > SSL_MAX_CONTENT_LEN )
+        if( ssl->in_hslen > MBEDTLS_SSL_MAX_CONTENT_LEN )
         {
-            SSL_DEBUG_MSG( 1, ( "handshake message too large" ) );
-            return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "handshake message too large" ) );
+            return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
         }
 
         /* The bitmask needs one bit per byte of message excluding header */
         alloc_len = 12 + msg_len + msg_len / 8 + ( msg_len % 8 != 0 );
 
-        ssl->handshake->hs_msg = polarssl_malloc( alloc_len );
+        ssl->handshake->hs_msg = mbedtls_malloc( alloc_len );
         if( ssl->handshake->hs_msg == NULL )
         {
-            SSL_DEBUG_MSG( 1, ( "malloc failed (%d bytes)", alloc_len ) );
-            return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "malloc failed (%d bytes)", alloc_len ) );
+            return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
         }
 
         memset( ssl->handshake->hs_msg, 0, alloc_len );
@@ -2918,8 +2918,8 @@ static int ssl_reassemble_dtls_handshake( ssl_context *ssl )
         /* Make sure msg_type and length are consistent */
         if( memcmp( ssl->handshake->hs_msg, ssl->in_msg, 4 ) != 0 )
         {
-            SSL_DEBUG_MSG( 1, ( "fragment header mismatch" ) );
-            return( POLARSSL_ERR_SSL_INVALID_RECORD );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "fragment header mismatch" ) );
+            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
         }
     }
 
@@ -2938,19 +2938,19 @@ static int ssl_reassemble_dtls_handshake( ssl_context *ssl )
 
     if( frag_off + frag_len > msg_len )
     {
-        SSL_DEBUG_MSG( 1, ( "invalid fragment offset/len: %d + %d > %d",
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "invalid fragment offset/len: %d + %d > %d",
                           frag_off, frag_len, msg_len ) );
-        return( POLARSSL_ERR_SSL_INVALID_RECORD );
+        return( MBEDTLS_ERR_SSL_INVALID_RECORD );
     }
 
     if( frag_len + 12 > ssl->in_msglen )
     {
-        SSL_DEBUG_MSG( 1, ( "invalid fragment length: %d + 12 > %d",
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "invalid fragment length: %d + 12 > %d",
                           frag_len, ssl->in_msglen ) );
-        return( POLARSSL_ERR_SSL_INVALID_RECORD );
+        return( MBEDTLS_ERR_SSL_INVALID_RECORD );
     }
 
-    SSL_DEBUG_MSG( 2, ( "adding fragment, offset = %d, length = %d",
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "adding fragment, offset = %d, length = %d",
                         frag_off, frag_len ) );
 
     memcpy( msg + frag_off, ssl->in_msg + 12, frag_len );
@@ -2962,11 +2962,11 @@ static int ssl_reassemble_dtls_handshake( ssl_context *ssl )
      */
     if( ssl_bitmask_check( bitmask, msg_len ) != 0 )
     {
-        SSL_DEBUG_MSG( 2, ( "message is not complete yet" ) );
-        return( POLARSSL_ERR_NET_WANT_READ );
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "message is not complete yet" ) );
+        return( MBEDTLS_ERR_NET_WANT_READ );
     }
 
-    SSL_DEBUG_MSG( 2, ( "handshake message completed" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "handshake message completed" ) );
 
     if( frag_len + 12 < ssl->in_msglen )
     {
@@ -2975,8 +2975,8 @@ static int ssl_reassemble_dtls_handshake( ssl_context *ssl )
          * This case is not handled now because no know implementation does
          * that and it's hard to test, so we prefer to fail cleanly for now.
          */
-        SSL_DEBUG_MSG( 1, ( "last fragment not alone in its record" ) );
-        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "last fragment not alone in its record" ) );
+        return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
     }
 
     if( ssl->in_left > ssl->next_record_offset )
@@ -2994,11 +2994,11 @@ static int ssl_reassemble_dtls_handshake( ssl_context *ssl )
         ssl->next_record_offset = new_remain - ssl->in_hdr;
         ssl->in_left = ssl->next_record_offset + remain_len;
 
-        if( ssl->in_left > SSL_BUFFER_LEN -
+        if( ssl->in_left > MBEDTLS_SSL_BUFFER_LEN -
                            (size_t)( ssl->in_hdr - ssl->in_buf ) )
         {
-            SSL_DEBUG_MSG( 1, ( "reassembled message too large for buffer" ) );
-            return( POLARSSL_ERR_SSL_BUFFER_TOO_SMALL );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "reassembled message too large for buffer" ) );
+            return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
         }
 
         memmove( new_remain, cur_remain, remain_len );
@@ -3006,36 +3006,36 @@ static int ssl_reassemble_dtls_handshake( ssl_context *ssl )
 
     memcpy( ssl->in_msg, ssl->handshake->hs_msg, ssl->in_hslen );
 
-    polarssl_free( ssl->handshake->hs_msg );
+    mbedtls_free( ssl->handshake->hs_msg );
     ssl->handshake->hs_msg = NULL;
 
-    SSL_DEBUG_BUF( 3, "reassembled handshake message",
+    MBEDTLS_SSL_DEBUG_BUF( 3, "reassembled handshake message",
                    ssl->in_msg, ssl->in_hslen );
 
     return( 0 );
 }
-#endif /* POLARSSL_SSL_PROTO_DTLS */
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-static int ssl_prepare_handshake_record( ssl_context *ssl )
+static int ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
 {
-    if( ssl->in_msglen < ssl_hs_hdr_len( ssl ) )
+    if( ssl->in_msglen < mbedtls_ssl_hs_hdr_len( ssl ) )
     {
-        SSL_DEBUG_MSG( 1, ( "handshake message too short: %d",
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "handshake message too short: %d",
                             ssl->in_msglen ) );
-        return( POLARSSL_ERR_SSL_INVALID_RECORD );
+        return( MBEDTLS_ERR_SSL_INVALID_RECORD );
     }
 
-    ssl->in_hslen = ssl_hs_hdr_len( ssl ) + (
+    ssl->in_hslen = mbedtls_ssl_hs_hdr_len( ssl ) + (
                     ( ssl->in_msg[1] << 16 ) |
                     ( ssl->in_msg[2] << 8  ) |
                       ssl->in_msg[3] );
 
-    SSL_DEBUG_MSG( 3, ( "handshake message: msglen ="
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "handshake message: msglen ="
                         " %d, type = %d, hslen = %d",
                         ssl->in_msglen, ssl->in_msg[0], ssl->in_hslen ) );
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
         int ret;
         unsigned int recv_msg_seq = ( ssl->in_msg[4] << 8 ) | ssl->in_msg[5];
@@ -3048,28 +3048,28 @@ static int ssl_prepare_handshake_record( ssl_context *ssl )
              * too many retransmissions.
              * Besides, No sane server ever retransmits HelloVerifyRequest */
             if( recv_msg_seq == ssl->handshake->in_flight_start_seq - 1 &&
-                ssl->in_msg[0] != SSL_HS_HELLO_VERIFY_REQUEST )
+                ssl->in_msg[0] != MBEDTLS_SSL_HS_HELLO_VERIFY_REQUEST )
             {
-                SSL_DEBUG_MSG( 2, ( "received message from last flight, "
+                MBEDTLS_SSL_DEBUG_MSG( 2, ( "received message from last flight, "
                                     "message_seq = %d, start_of_flight = %d",
                                     recv_msg_seq,
                                     ssl->handshake->in_flight_start_seq ) );
 
-                if( ( ret = ssl_resend( ssl ) ) != 0 )
+                if( ( ret = mbedtls_ssl_resend( ssl ) ) != 0 )
                 {
-                    SSL_DEBUG_RET( 1, "ssl_resend", ret );
+                    MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_resend", ret );
                     return( ret );
                 }
             }
             else
             {
-                SSL_DEBUG_MSG( 2, ( "dropping out-of-sequence message: "
+                MBEDTLS_SSL_DEBUG_MSG( 2, ( "dropping out-of-sequence message: "
                                     "message_seq = %d, expected = %d",
                                     recv_msg_seq,
                                     ssl->handshake->in_msg_seq ) );
             }
 
-            return( POLARSSL_ERR_NET_WANT_READ );
+            return( MBEDTLS_ERR_NET_WANT_READ );
         }
         /* Wait until message completion to increment in_msg_seq */
 
@@ -3080,30 +3080,30 @@ static int ssl_prepare_handshake_record( ssl_context *ssl )
             memcmp( ssl->in_msg + 9, ssl->in_msg + 1, 3 ) != 0 ||
             ( ssl->handshake != NULL && ssl->handshake->hs_msg != NULL ) )
         {
-            SSL_DEBUG_MSG( 2, ( "found fragmented DTLS handshake message" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "found fragmented DTLS handshake message" ) );
 
             if( ( ret = ssl_reassemble_dtls_handshake( ssl ) ) != 0 )
             {
-                SSL_DEBUG_RET( 1, "ssl_reassemble_dtls_handshake", ret );
+                MBEDTLS_SSL_DEBUG_RET( 1, "ssl_reassemble_dtls_handshake", ret );
                 return( ret );
             }
         }
     }
     else
-#endif /* POLARSSL_SSL_PROTO_DTLS */
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
     /* With TLS we don't handle fragmentation (for now) */
     if( ssl->in_msglen < ssl->in_hslen )
     {
-        SSL_DEBUG_MSG( 1, ( "TLS handshake fragmentation not supported" ) );
-        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "TLS handshake fragmentation not supported" ) );
+        return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
     }
 
-    if( ssl->state != SSL_HANDSHAKE_OVER )
+    if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
         ssl->handshake->update_checksum( ssl, ssl->in_msg, ssl->in_hslen );
 
     /* Handshake message is complete, increment counter */
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
         ssl->handshake != NULL )
     {
         ssl->handshake->in_msg_seq++;
@@ -3123,8 +3123,8 @@ static int ssl_prepare_handshake_record( ssl_context *ssl )
  * in_window is set. The only exception is the initial state (record number 0
  * not seen yet).
  */
-#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
-static void ssl_dtls_replay_reset( ssl_context *ssl )
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+static void ssl_dtls_replay_reset( mbedtls_ssl_context *ssl )
 {
     ssl->in_window_top = 0;
     ssl->in_window = 0;
@@ -3143,12 +3143,12 @@ static inline uint64_t ssl_load_six_bytes( unsigned char *buf )
 /*
  * Return 0 if sequence number is acceptable, -1 otherwise
  */
-int ssl_dtls_replay_check( ssl_context *ssl )
+int mbedtls_ssl_dtls_replay_check( mbedtls_ssl_context *ssl )
 {
     uint64_t rec_seqnum = ssl_load_six_bytes( ssl->in_ctr + 2 );
     uint64_t bit;
 
-    if( ssl->anti_replay == SSL_ANTI_REPLAY_DISABLED )
+    if( ssl->anti_replay == MBEDTLS_SSL_ANTI_REPLAY_DISABLED )
         return( 0 );
 
     if( rec_seqnum > ssl->in_window_top )
@@ -3168,11 +3168,11 @@ int ssl_dtls_replay_check( ssl_context *ssl )
 /*
  * Update replay window on new validated record
  */
-void ssl_dtls_replay_update( ssl_context *ssl )
+void mbedtls_ssl_dtls_replay_update( mbedtls_ssl_context *ssl )
 {
     uint64_t rec_seqnum = ssl_load_six_bytes( ssl->in_ctr + 2 );
 
-    if( ssl->anti_replay == SSL_ANTI_REPLAY_DISABLED )
+    if( ssl->anti_replay == MBEDTLS_SSL_ANTI_REPLAY_DISABLED )
         return;
 
     if( rec_seqnum > ssl->in_window_top )
@@ -3199,7 +3199,7 @@ void ssl_dtls_replay_update( ssl_context *ssl )
             ssl->in_window |= (uint64_t) 1 << bit;
     }
 }
-#endif /* POLARSSL_SSL_DTLS_ANTI_REPLAY */
+#endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
 
 /*
  * ContentType type;
@@ -3208,64 +3208,64 @@ void ssl_dtls_replay_update( ssl_context *ssl )
  * uint48 sequence_number;  // DTLS only
  * uint16 length;
  */
-static int ssl_parse_record_header( ssl_context *ssl )
+static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
 {
     int ret;
     int major_ver, minor_ver;
 
-    SSL_DEBUG_BUF( 4, "input record header", ssl->in_hdr, ssl_hdr_len( ssl ) );
+    MBEDTLS_SSL_DEBUG_BUF( 4, "input record header", ssl->in_hdr, mbedtls_ssl_hdr_len( ssl ) );
 
     ssl->in_msgtype =  ssl->in_hdr[0];
     ssl->in_msglen = ( ssl->in_len[0] << 8 ) | ssl->in_len[1];
-    ssl_read_version( &major_ver, &minor_ver, ssl->transport, ssl->in_hdr + 1 );
+    mbedtls_ssl_read_version( &major_ver, &minor_ver, ssl->transport, ssl->in_hdr + 1 );
 
-    SSL_DEBUG_MSG( 3, ( "input record: msgtype = %d, "
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "input record: msgtype = %d, "
                         "version = [%d:%d], msglen = %d",
                         ssl->in_msgtype,
                         major_ver, minor_ver, ssl->in_msglen ) );
 
     /* Check record type */
-    if( ssl->in_msgtype != SSL_MSG_HANDSHAKE &&
-        ssl->in_msgtype != SSL_MSG_ALERT &&
-        ssl->in_msgtype != SSL_MSG_CHANGE_CIPHER_SPEC &&
-        ssl->in_msgtype != SSL_MSG_APPLICATION_DATA )
+    if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE &&
+        ssl->in_msgtype != MBEDTLS_SSL_MSG_ALERT &&
+        ssl->in_msgtype != MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC &&
+        ssl->in_msgtype != MBEDTLS_SSL_MSG_APPLICATION_DATA )
     {
-        SSL_DEBUG_MSG( 1, ( "unknown record type" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "unknown record type" ) );
 
-        if( ( ret = ssl_send_alert_message( ssl,
-                        SSL_ALERT_LEVEL_FATAL,
-                        SSL_ALERT_MSG_UNEXPECTED_MESSAGE ) ) != 0 )
+        if( ( ret = mbedtls_ssl_send_alert_message( ssl,
+                        MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                        MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE ) ) != 0 )
         {
             return( ret );
         }
 
-        return( POLARSSL_ERR_SSL_INVALID_RECORD );
+        return( MBEDTLS_ERR_SSL_INVALID_RECORD );
     }
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
         /* Drop unexpected ChangeCipherSpec messages */
-        if( ssl->in_msgtype == SSL_MSG_CHANGE_CIPHER_SPEC &&
-            ssl->state != SSL_CLIENT_CHANGE_CIPHER_SPEC &&
-            ssl->state != SSL_SERVER_CHANGE_CIPHER_SPEC )
+        if( ssl->in_msgtype == MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC &&
+            ssl->state != MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC &&
+            ssl->state != MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC )
         {
-            SSL_DEBUG_MSG( 1, ( "dropping unexpected ChangeCipherSpec" ) );
-            return( POLARSSL_ERR_SSL_INVALID_RECORD );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "dropping unexpected ChangeCipherSpec" ) );
+            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
         }
 
         /* Drop unexpected ApplicationData records,
          * except at the beginning of renegotiations */
-        if( ssl->in_msgtype == SSL_MSG_APPLICATION_DATA &&
-            ssl->state != SSL_HANDSHAKE_OVER
-#if defined(POLARSSL_SSL_RENEGOTIATION)
-            && ! ( ssl->renego_status == SSL_RENEGOTIATION_IN_PROGRESS &&
-                   ssl->state == SSL_SERVER_HELLO )
+        if( ssl->in_msgtype == MBEDTLS_SSL_MSG_APPLICATION_DATA &&
+            ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+            && ! ( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS &&
+                   ssl->state == MBEDTLS_SSL_SERVER_HELLO )
 #endif
             )
         {
-            SSL_DEBUG_MSG( 1, ( "dropping unexpected ApplicationData" ) );
-            return( POLARSSL_ERR_SSL_INVALID_RECORD );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "dropping unexpected ApplicationData" ) );
+            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
         }
     }
 #endif
@@ -3273,85 +3273,85 @@ static int ssl_parse_record_header( ssl_context *ssl )
     /* Check version */
     if( major_ver != ssl->major_ver )
     {
-        SSL_DEBUG_MSG( 1, ( "major version mismatch" ) );
-        return( POLARSSL_ERR_SSL_INVALID_RECORD );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "major version mismatch" ) );
+        return( MBEDTLS_ERR_SSL_INVALID_RECORD );
     }
 
     if( minor_ver > ssl->max_minor_ver )
     {
-        SSL_DEBUG_MSG( 1, ( "minor version mismatch" ) );
-        return( POLARSSL_ERR_SSL_INVALID_RECORD );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "minor version mismatch" ) );
+        return( MBEDTLS_ERR_SSL_INVALID_RECORD );
     }
 
     /* Check epoch (and sequence number) with DTLS */
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
         unsigned int rec_epoch = ( ssl->in_ctr[0] << 8 ) | ssl->in_ctr[1];
 
         if( rec_epoch != ssl->in_epoch )
         {
-            SSL_DEBUG_MSG( 1, ( "record from another epoch: "
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "record from another epoch: "
                                 "expected %d, received %d",
                                  ssl->in_epoch, rec_epoch ) );
-            return( POLARSSL_ERR_SSL_INVALID_RECORD );
+            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
         }
 
-#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
-        if( ssl_dtls_replay_check( ssl ) != 0 )
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+        if( mbedtls_ssl_dtls_replay_check( ssl ) != 0 )
         {
-            SSL_DEBUG_MSG( 1, ( "replayed record" ) );
-            return( POLARSSL_ERR_SSL_INVALID_RECORD );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "replayed record" ) );
+            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
         }
 #endif
     }
-#endif /* POLARSSL_SSL_PROTO_DTLS */
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
     /* Check length against the size of our buffer */
-    if( ssl->in_msglen > SSL_BUFFER_LEN
+    if( ssl->in_msglen > MBEDTLS_SSL_BUFFER_LEN
                          - (size_t)( ssl->in_msg - ssl->in_buf ) )
     {
-        SSL_DEBUG_MSG( 1, ( "bad message length" ) );
-        return( POLARSSL_ERR_SSL_INVALID_RECORD );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad message length" ) );
+        return( MBEDTLS_ERR_SSL_INVALID_RECORD );
     }
 
     /* Check length against bounds of the current transform and version */
     if( ssl->transform_in == NULL )
     {
         if( ssl->in_msglen < 1 ||
-            ssl->in_msglen > SSL_MAX_CONTENT_LEN )
+            ssl->in_msglen > MBEDTLS_SSL_MAX_CONTENT_LEN )
         {
-            SSL_DEBUG_MSG( 1, ( "bad message length" ) );
-            return( POLARSSL_ERR_SSL_INVALID_RECORD );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad message length" ) );
+            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
         }
     }
     else
     {
         if( ssl->in_msglen < ssl->transform_in->minlen )
         {
-            SSL_DEBUG_MSG( 1, ( "bad message length" ) );
-            return( POLARSSL_ERR_SSL_INVALID_RECORD );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad message length" ) );
+            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
         }
 
-#if defined(POLARSSL_SSL_PROTO_SSL3)
-        if( ssl->minor_ver == SSL_MINOR_VERSION_0 &&
-            ssl->in_msglen > ssl->transform_in->minlen + SSL_MAX_CONTENT_LEN )
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+        if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 &&
+            ssl->in_msglen > ssl->transform_in->minlen + MBEDTLS_SSL_MAX_CONTENT_LEN )
         {
-            SSL_DEBUG_MSG( 1, ( "bad message length" ) );
-            return( POLARSSL_ERR_SSL_INVALID_RECORD );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad message length" ) );
+            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
         }
 #endif
-#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1) || \
-    defined(POLARSSL_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
+    defined(MBEDTLS_SSL_PROTO_TLS1_2)
         /*
          * TLS encrypted messages can have up to 256 bytes of padding
          */
-        if( ssl->minor_ver >= SSL_MINOR_VERSION_1 &&
+        if( ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_1 &&
             ssl->in_msglen > ssl->transform_in->minlen +
-                             SSL_MAX_CONTENT_LEN + 256 )
+                             MBEDTLS_SSL_MAX_CONTENT_LEN + 256 )
         {
-            SSL_DEBUG_MSG( 1, ( "bad message length" ) );
-            return( POLARSSL_ERR_SSL_INVALID_RECORD );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad message length" ) );
+            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
         }
 #endif
     }
@@ -3362,54 +3362,54 @@ static int ssl_parse_record_header( ssl_context *ssl )
 /*
  * If applicable, decrypt (and decompress) record content
  */
-static int ssl_prepare_record_content( ssl_context *ssl )
+static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
 {
     int ret, done = 0;
 
-    SSL_DEBUG_BUF( 4, "input record from network",
-                   ssl->in_hdr, ssl_hdr_len( ssl ) + ssl->in_msglen );
+    MBEDTLS_SSL_DEBUG_BUF( 4, "input record from network",
+                   ssl->in_hdr, mbedtls_ssl_hdr_len( ssl ) + ssl->in_msglen );
 
-#if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
-    if( ssl_hw_record_read != NULL )
+#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
+    if( mbedtls_ssl_hw_record_read != NULL )
     {
-        SSL_DEBUG_MSG( 2, ( "going for ssl_hw_record_read()" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "going for mbedtls_ssl_hw_record_read()" ) );
 
-        ret = ssl_hw_record_read( ssl );
-        if( ret != 0 && ret != POLARSSL_ERR_SSL_HW_ACCEL_FALLTHROUGH )
+        ret = mbedtls_ssl_hw_record_read( ssl );
+        if( ret != 0 && ret != MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH )
         {
-            SSL_DEBUG_RET( 1, "ssl_hw_record_read", ret );
-            return( POLARSSL_ERR_SSL_HW_ACCEL_FAILED );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_hw_record_read", ret );
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
         }
 
         if( ret == 0 )
             done = 1;
     }
-#endif /* POLARSSL_SSL_HW_RECORD_ACCEL */
+#endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
     if( !done && ssl->transform_in != NULL )
     {
         if( ( ret = ssl_decrypt_buf( ssl ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "ssl_decrypt_buf", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_decrypt_buf", ret );
             return( ret );
         }
 
-        SSL_DEBUG_BUF( 4, "input payload after decrypt",
+        MBEDTLS_SSL_DEBUG_BUF( 4, "input payload after decrypt",
                        ssl->in_msg, ssl->in_msglen );
 
-        if( ssl->in_msglen > SSL_MAX_CONTENT_LEN )
+        if( ssl->in_msglen > MBEDTLS_SSL_MAX_CONTENT_LEN )
         {
-            SSL_DEBUG_MSG( 1, ( "bad message length" ) );
-            return( POLARSSL_ERR_SSL_INVALID_RECORD );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad message length" ) );
+            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
         }
     }
 
-#if defined(POLARSSL_ZLIB_SUPPORT)
+#if defined(MBEDTLS_ZLIB_SUPPORT)
     if( ssl->transform_in != NULL &&
-        ssl->session_in->compression == SSL_COMPRESS_DEFLATE )
+        ssl->session_in->compression == MBEDTLS_SSL_COMPRESS_DEFLATE )
     {
         if( ( ret = ssl_decompress_buf( ssl ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "ssl_decompress_buf", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_decompress_buf", ret );
             return( ret );
         }
 
@@ -3417,19 +3417,19 @@ static int ssl_prepare_record_content( ssl_context *ssl )
         ssl->in_len[0] = (unsigned char)( ssl->in_msglen >> 8 );
         ssl->in_len[1] = (unsigned char)( ssl->in_msglen      );
     }
-#endif /* POLARSSL_ZLIB_SUPPORT */
+#endif /* MBEDTLS_ZLIB_SUPPORT */
 
-#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+    if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
-        ssl_dtls_replay_update( ssl );
+        mbedtls_ssl_dtls_replay_update( ssl );
     }
 #endif
 
     return( 0 );
 }
 
-static void ssl_handshake_wrapup_free_hs_transform( ssl_context *ssl );
+static void ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl );
 
 /*
  * Read a record.
@@ -3437,11 +3437,11 @@ static void ssl_handshake_wrapup_free_hs_transform( ssl_context *ssl );
  * For DTLS, silently ignore invalid records (RFC 4.1.2.7.)
  * and continue reading until a valid record is found.
  */
-int ssl_read_record( ssl_context *ssl )
+int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl )
 {
     int ret;
 
-    SSL_DEBUG_MSG( 2, ( "=> read record" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> read record" ) );
 
     if( ssl->in_hslen != 0 && ssl->in_hslen < ssl->in_msglen )
     {
@@ -3453,7 +3453,7 @@ int ssl_read_record( ssl_context *ssl )
         memmove( ssl->in_msg, ssl->in_msg + ssl->in_hslen,
                  ssl->in_msglen );
 
-        SSL_DEBUG_BUF( 4, "remaining content in record",
+        MBEDTLS_SSL_DEBUG_BUF( 4, "remaining content in record",
                            ssl->in_msg, ssl->in_msglen );
 
         if( ( ret = ssl_prepare_handshake_record( ssl ) ) != 0 )
@@ -3467,19 +3467,19 @@ int ssl_read_record( ssl_context *ssl )
     /*
      * Read the record header and parse it
      */
-#if defined(POLARSSL_SSL_PROTO_DTLS)
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
 read_record_header:
 #endif
-    if( ( ret = ssl_fetch_input( ssl, ssl_hdr_len( ssl ) ) ) != 0 )
+    if( ( ret = mbedtls_ssl_fetch_input( ssl, mbedtls_ssl_hdr_len( ssl ) ) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "ssl_fetch_input", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_fetch_input", ret );
         return( ret );
     }
 
     if( ( ret = ssl_parse_record_header( ssl ) ) != 0 )
     {
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-        if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+        if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
         {
             /* Ignore bad record and get next one; drop the whole datagram
              * since current header cannot be trusted to find the next record
@@ -3487,7 +3487,7 @@ read_record_header:
             ssl->next_record_offset = 0;
             ssl->in_left = 0;
 
-            SSL_DEBUG_MSG( 1, ( "discarding invalid record (header)" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "discarding invalid record (header)" ) );
             goto read_record_header;
         }
 #endif
@@ -3497,40 +3497,40 @@ read_record_header:
     /*
      * Read and optionally decrypt the message contents
      */
-    if( ( ret = ssl_fetch_input( ssl,
-                                 ssl_hdr_len( ssl ) + ssl->in_msglen ) ) != 0 )
+    if( ( ret = mbedtls_ssl_fetch_input( ssl,
+                                 mbedtls_ssl_hdr_len( ssl ) + ssl->in_msglen ) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "ssl_fetch_input", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_fetch_input", ret );
         return( ret );
     }
 
     /* Done reading this record, get ready for the next one */
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
-        ssl->next_record_offset = ssl->in_msglen + ssl_hdr_len( ssl );
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+        ssl->next_record_offset = ssl->in_msglen + mbedtls_ssl_hdr_len( ssl );
     else
 #endif
         ssl->in_left = 0;
 
     if( ( ret = ssl_prepare_record_content( ssl ) ) != 0 )
     {
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-        if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+        if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
         {
             /* Silently discard invalid records */
-            if( ret == POLARSSL_ERR_SSL_INVALID_RECORD ||
-                ret == POLARSSL_ERR_SSL_INVALID_MAC )
+            if( ret == MBEDTLS_ERR_SSL_INVALID_RECORD ||
+                ret == MBEDTLS_ERR_SSL_INVALID_MAC )
             {
-#if defined(POLARSSL_SSL_DTLS_BADMAC_LIMIT)
+#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
                 if( ssl->badmac_limit != 0 &&
                     ++ssl->badmac_seen >= ssl->badmac_limit )
                 {
-                    SSL_DEBUG_MSG( 1, ( "too many records with bad MAC" ) );
-                    return( POLARSSL_ERR_SSL_INVALID_MAC );
+                    MBEDTLS_SSL_DEBUG_MSG( 1, ( "too many records with bad MAC" ) );
+                    return( MBEDTLS_ERR_SSL_INVALID_MAC );
                 }
 #endif
 
-                SSL_DEBUG_MSG( 1, ( "discarding invalid record (mac)" ) );
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "discarding invalid record (mac)" ) );
                 goto read_record_header;
             }
 
@@ -3540,12 +3540,12 @@ read_record_header:
 #endif
         {
             /* Error out (and send alert) on invalid records */
-#if defined(POLARSSL_SSL_ALL_ALERT_MESSAGES)
-            if( ret == POLARSSL_ERR_SSL_INVALID_MAC )
+#if defined(MBEDTLS_SSL_ALL_ALERT_MESSAGES)
+            if( ret == MBEDTLS_ERR_SSL_INVALID_MAC )
             {
-                ssl_send_alert_message( ssl,
-                        SSL_ALERT_LEVEL_FATAL,
-                        SSL_ALERT_MSG_BAD_RECORD_MAC );
+                mbedtls_ssl_send_alert_message( ssl,
+                        MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                        MBEDTLS_SSL_ALERT_MSG_BAD_RECORD_MAC );
             }
 #endif
             return( ret );
@@ -3567,23 +3567,23 @@ read_record_header:
      * finishes the current handshake first, avoiding the new ClientHello
      * being mistaken for an ancient message in the current handshake.
      */
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
         ssl->handshake != NULL &&
-        ssl->state == SSL_HANDSHAKE_OVER )
+        ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER )
     {
-        if( ssl->in_msgtype == SSL_MSG_HANDSHAKE &&
-                ssl->in_msg[0] == SSL_HS_FINISHED )
+        if( ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE &&
+                ssl->in_msg[0] == MBEDTLS_SSL_HS_FINISHED )
         {
-            SSL_DEBUG_MSG( 2, ( "received retransmit of last flight" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "received retransmit of last flight" ) );
 
-            if( ( ret = ssl_resend( ssl ) ) != 0 )
+            if( ( ret = mbedtls_ssl_resend( ssl ) ) != 0 )
             {
-                SSL_DEBUG_RET( 1, "ssl_resend", ret );
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_resend", ret );
                 return( ret );
             }
 
-            return( POLARSSL_ERR_NET_WANT_READ );
+            return( MBEDTLS_ERR_NET_WANT_READ );
         }
         else
         {
@@ -3595,47 +3595,47 @@ read_record_header:
     /*
      * Handle particular types of records
      */
-    if( ssl->in_msgtype == SSL_MSG_HANDSHAKE )
+    if( ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE )
     {
         if( ( ret = ssl_prepare_handshake_record( ssl ) ) != 0 )
             return( ret );
     }
 
-    if( ssl->in_msgtype == SSL_MSG_ALERT )
+    if( ssl->in_msgtype == MBEDTLS_SSL_MSG_ALERT )
     {
-        SSL_DEBUG_MSG( 2, ( "got an alert message, type: [%d:%d]",
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "got an alert message, type: [%d:%d]",
                        ssl->in_msg[0], ssl->in_msg[1] ) );
 
         /*
          * Ignore non-fatal alerts, except close_notify
          */
-        if( ssl->in_msg[0] == SSL_ALERT_LEVEL_FATAL )
+        if( ssl->in_msg[0] == MBEDTLS_SSL_ALERT_LEVEL_FATAL )
         {
-            SSL_DEBUG_MSG( 1, ( "is a fatal alert message (msg %d)",
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "is a fatal alert message (msg %d)",
                            ssl->in_msg[1] ) );
-            return( POLARSSL_ERR_SSL_FATAL_ALERT_MESSAGE );
+            return( MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE );
         }
 
-        if( ssl->in_msg[0] == SSL_ALERT_LEVEL_WARNING &&
-            ssl->in_msg[1] == SSL_ALERT_MSG_CLOSE_NOTIFY )
+        if( ssl->in_msg[0] == MBEDTLS_SSL_ALERT_LEVEL_WARNING &&
+            ssl->in_msg[1] == MBEDTLS_SSL_ALERT_MSG_CLOSE_NOTIFY )
         {
-            SSL_DEBUG_MSG( 2, ( "is a close notify message" ) );
-            return( POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY );
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "is a close notify message" ) );
+            return( MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY );
         }
     }
 
-    SSL_DEBUG_MSG( 2, ( "<= read record" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= read record" ) );
 
     return( 0 );
 }
 
-int ssl_send_fatal_handshake_failure( ssl_context *ssl )
+int mbedtls_ssl_send_fatal_handshake_failure( mbedtls_ssl_context *ssl )
 {
     int ret;
 
-    if( ( ret = ssl_send_alert_message( ssl,
-                    SSL_ALERT_LEVEL_FATAL,
-                    SSL_ALERT_MSG_HANDSHAKE_FAILURE ) ) != 0 )
+    if( ( ret = mbedtls_ssl_send_alert_message( ssl,
+                    MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                    MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE ) ) != 0 )
     {
         return( ret );
     }
@@ -3643,26 +3643,26 @@ int ssl_send_fatal_handshake_failure( ssl_context *ssl )
     return( 0 );
 }
 
-int ssl_send_alert_message( ssl_context *ssl,
+int mbedtls_ssl_send_alert_message( mbedtls_ssl_context *ssl,
                             unsigned char level,
                             unsigned char message )
 {
     int ret;
 
-    SSL_DEBUG_MSG( 2, ( "=> send alert message" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> send alert message" ) );
 
-    ssl->out_msgtype = SSL_MSG_ALERT;
+    ssl->out_msgtype = MBEDTLS_SSL_MSG_ALERT;
     ssl->out_msglen = 2;
     ssl->out_msg[0] = level;
     ssl->out_msg[1] = message;
 
-    if( ( ret = ssl_write_record( ssl ) ) != 0 )
+    if( ( ret = mbedtls_ssl_write_record( ssl ) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "ssl_write_record", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
         return( ret );
     }
 
-    SSL_DEBUG_MSG( 2, ( "<= send alert message" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= send alert message" ) );
 
     return( 0 );
 }
@@ -3670,110 +3670,110 @@ int ssl_send_alert_message( ssl_context *ssl,
 /*
  * Handshake functions
  */
-#if !defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED)         && \
-    !defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED)     && \
-    !defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED)     && \
-    !defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED)   && \
-    !defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) && \
-    !defined(POLARSSL_KEY_EXCHANGE_ECDH_RSA_ENABLED)    && \
-    !defined(POLARSSL_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
-int ssl_write_certificate( ssl_context *ssl )
+#if !defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)         && \
+    !defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)     && \
+    !defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)     && \
+    !defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)   && \
+    !defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) && \
+    !defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)    && \
+    !defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
+int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
 {
-    const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
-    SSL_DEBUG_MSG( 2, ( "=> write certificate" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate" ) );
 
-    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
-        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK ||
-        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
+    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
+        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK ||
+        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK )
     {
-        SSL_DEBUG_MSG( 2, ( "<= skip write certificate" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate" ) );
         ssl->state++;
         return( 0 );
     }
 
-    SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-    return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+    MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+    return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 }
 
-int ssl_parse_certificate( ssl_context *ssl )
+int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 {
-    const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
-    SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
 
-    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
-        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK ||
-        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
+    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
+        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK ||
+        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK )
     {
-        SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
         ssl->state++;
         return( 0 );
     }
 
-    SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-    return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+    MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+    return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 }
 #else
-int ssl_write_certificate( ssl_context *ssl )
+int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
 {
-    int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
+    int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     size_t i, n;
-    const x509_crt *crt;
-    const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
+    const mbedtls_x509_crt *crt;
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
-    SSL_DEBUG_MSG( 2, ( "=> write certificate" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate" ) );
 
-    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
-        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK ||
-        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
+    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
+        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK ||
+        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK )
     {
-        SSL_DEBUG_MSG( 2, ( "<= skip write certificate" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate" ) );
         ssl->state++;
         return( 0 );
     }
 
-#if defined(POLARSSL_SSL_CLI_C)
-    if( ssl->endpoint == SSL_IS_CLIENT )
+#if defined(MBEDTLS_SSL_CLI_C)
+    if( ssl->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
         if( ssl->client_auth == 0 )
         {
-            SSL_DEBUG_MSG( 2, ( "<= skip write certificate" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate" ) );
             ssl->state++;
             return( 0 );
         }
 
-#if defined(POLARSSL_SSL_PROTO_SSL3)
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
         /*
          * If using SSLv3 and got no cert, send an Alert message
          * (otherwise an empty Certificate message will be sent).
          */
-        if( ssl_own_cert( ssl )  == NULL &&
-            ssl->minor_ver == SSL_MINOR_VERSION_0 )
+        if( mbedtls_ssl_own_cert( ssl )  == NULL &&
+            ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
         {
             ssl->out_msglen  = 2;
-            ssl->out_msgtype = SSL_MSG_ALERT;
-            ssl->out_msg[0]  = SSL_ALERT_LEVEL_WARNING;
-            ssl->out_msg[1]  = SSL_ALERT_MSG_NO_CERT;
+            ssl->out_msgtype = MBEDTLS_SSL_MSG_ALERT;
+            ssl->out_msg[0]  = MBEDTLS_SSL_ALERT_LEVEL_WARNING;
+            ssl->out_msg[1]  = MBEDTLS_SSL_ALERT_MSG_NO_CERT;
 
-            SSL_DEBUG_MSG( 2, ( "got no certificate to send" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "got no certificate to send" ) );
             goto write_msg;
         }
-#endif /* POLARSSL_SSL_PROTO_SSL3 */
+#endif /* MBEDTLS_SSL_PROTO_SSL3 */
     }
-#endif /* POLARSSL_SSL_CLI_C */
-#if defined(POLARSSL_SSL_SRV_C)
-    if( ssl->endpoint == SSL_IS_SERVER )
+#endif /* MBEDTLS_SSL_CLI_C */
+#if defined(MBEDTLS_SSL_SRV_C)
+    if( ssl->endpoint == MBEDTLS_SSL_IS_SERVER )
     {
-        if( ssl_own_cert( ssl ) == NULL )
+        if( mbedtls_ssl_own_cert( ssl ) == NULL )
         {
-            SSL_DEBUG_MSG( 1, ( "got no certificate to send" ) );
-            return( POLARSSL_ERR_SSL_CERTIFICATE_REQUIRED );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no certificate to send" ) );
+            return( MBEDTLS_ERR_SSL_CERTIFICATE_REQUIRED );
         }
     }
 #endif
 
-    SSL_DEBUG_CRT( 3, "own certificate", ssl_own_cert( ssl ) );
+    MBEDTLS_SSL_DEBUG_CRT( 3, "own certificate", mbedtls_ssl_own_cert( ssl ) );
 
     /*
      *     0  .  0    handshake type
@@ -3785,16 +3785,16 @@ int ssl_write_certificate( ssl_context *ssl )
      *    n+3 . ...   upper level cert, etc.
      */
     i = 7;
-    crt = ssl_own_cert( ssl );
+    crt = mbedtls_ssl_own_cert( ssl );
 
     while( crt != NULL )
     {
         n = crt->raw.len;
-        if( n > SSL_MAX_CONTENT_LEN - 3 - i )
+        if( n > MBEDTLS_SSL_MAX_CONTENT_LEN - 3 - i )
         {
-            SSL_DEBUG_MSG( 1, ( "certificate too large, %d > %d",
-                           i + 3 + n, SSL_MAX_CONTENT_LEN ) );
-            return( POLARSSL_ERR_SSL_CERTIFICATE_TOO_LARGE );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "certificate too large, %d > %d",
+                           i + 3 + n, MBEDTLS_SSL_MAX_CONTENT_LEN ) );
+            return( MBEDTLS_ERR_SSL_CERTIFICATE_TOO_LARGE );
         }
 
         ssl->out_msg[i    ] = (unsigned char)( n >> 16 );
@@ -3810,153 +3810,153 @@ int ssl_write_certificate( ssl_context *ssl )
     ssl->out_msg[6]  = (unsigned char)( ( i - 7 )       );
 
     ssl->out_msglen  = i;
-    ssl->out_msgtype = SSL_MSG_HANDSHAKE;
-    ssl->out_msg[0]  = SSL_HS_CERTIFICATE;
+    ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
+    ssl->out_msg[0]  = MBEDTLS_SSL_HS_CERTIFICATE;
 
-#if defined(POLARSSL_SSL_PROTO_SSL3)
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
 write_msg:
 #endif
 
     ssl->state++;
 
-    if( ( ret = ssl_write_record( ssl ) ) != 0 )
+    if( ( ret = mbedtls_ssl_write_record( ssl ) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "ssl_write_record", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
         return( ret );
     }
 
-    SSL_DEBUG_MSG( 2, ( "<= write certificate" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write certificate" ) );
 
     return( ret );
 }
 
-int ssl_parse_certificate( ssl_context *ssl )
+int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 {
-    int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
+    int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     size_t i, n;
-    const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
-    SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
 
-    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
-        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK ||
-        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
+    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
+        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK ||
+        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK )
     {
-        SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
         ssl->state++;
         return( 0 );
     }
 
-#if defined(POLARSSL_SSL_SRV_C)
-    if( ssl->endpoint == SSL_IS_SERVER &&
-        ( ssl->authmode == SSL_VERIFY_NONE ||
-          ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK ) )
+#if defined(MBEDTLS_SSL_SRV_C)
+    if( ssl->endpoint == MBEDTLS_SSL_IS_SERVER &&
+        ( ssl->authmode == MBEDTLS_SSL_VERIFY_NONE ||
+          ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ) )
     {
-        ssl->session_negotiate->verify_result = BADCERT_SKIP_VERIFY;
-        SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
+        ssl->session_negotiate->verify_result = MBEDTLS_BADCERT_SKIP_VERIFY;
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
         ssl->state++;
         return( 0 );
     }
 #endif
 
-    if( ( ret = ssl_read_record( ssl ) ) != 0 )
+    if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "ssl_read_record", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
         return( ret );
     }
 
     ssl->state++;
 
-#if defined(POLARSSL_SSL_SRV_C)
-#if defined(POLARSSL_SSL_PROTO_SSL3)
+#if defined(MBEDTLS_SSL_SRV_C)
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
     /*
      * Check if the client sent an empty certificate
      */
-    if( ssl->endpoint  == SSL_IS_SERVER &&
-        ssl->minor_ver == SSL_MINOR_VERSION_0 )
+    if( ssl->endpoint  == MBEDTLS_SSL_IS_SERVER &&
+        ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
     {
         if( ssl->in_msglen  == 2                        &&
-            ssl->in_msgtype == SSL_MSG_ALERT            &&
-            ssl->in_msg[0]  == SSL_ALERT_LEVEL_WARNING  &&
-            ssl->in_msg[1]  == SSL_ALERT_MSG_NO_CERT )
+            ssl->in_msgtype == MBEDTLS_SSL_MSG_ALERT            &&
+            ssl->in_msg[0]  == MBEDTLS_SSL_ALERT_LEVEL_WARNING  &&
+            ssl->in_msg[1]  == MBEDTLS_SSL_ALERT_MSG_NO_CERT )
         {
-            SSL_DEBUG_MSG( 1, ( "SSLv3 client has no certificate" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "SSLv3 client has no certificate" ) );
 
-            ssl->session_negotiate->verify_result = BADCERT_MISSING;
-            if( ssl->authmode == SSL_VERIFY_OPTIONAL )
+            ssl->session_negotiate->verify_result = MBEDTLS_BADCERT_MISSING;
+            if( ssl->authmode == MBEDTLS_SSL_VERIFY_OPTIONAL )
                 return( 0 );
             else
-                return( POLARSSL_ERR_SSL_NO_CLIENT_CERTIFICATE );
+                return( MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE );
         }
     }
-#endif /* POLARSSL_SSL_PROTO_SSL3 */
+#endif /* MBEDTLS_SSL_PROTO_SSL3 */
 
-#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1) || \
-    defined(POLARSSL_SSL_PROTO_TLS1_2)
-    if( ssl->endpoint  == SSL_IS_SERVER &&
-        ssl->minor_ver != SSL_MINOR_VERSION_0 )
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
+    defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    if( ssl->endpoint  == MBEDTLS_SSL_IS_SERVER &&
+        ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_0 )
     {
-        if( ssl->in_hslen   == 3 + ssl_hs_hdr_len( ssl ) &&
-            ssl->in_msgtype == SSL_MSG_HANDSHAKE    &&
-            ssl->in_msg[0]  == SSL_HS_CERTIFICATE   &&
-            memcmp( ssl->in_msg + ssl_hs_hdr_len( ssl ), "\0\0\0", 3 ) == 0 )
+        if( ssl->in_hslen   == 3 + mbedtls_ssl_hs_hdr_len( ssl ) &&
+            ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE    &&
+            ssl->in_msg[0]  == MBEDTLS_SSL_HS_CERTIFICATE   &&
+            memcmp( ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl ), "\0\0\0", 3 ) == 0 )
         {
-            SSL_DEBUG_MSG( 1, ( "TLSv1 client has no certificate" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "TLSv1 client has no certificate" ) );
 
-            ssl->session_negotiate->verify_result = BADCERT_MISSING;
-            if( ssl->authmode == SSL_VERIFY_REQUIRED )
-                return( POLARSSL_ERR_SSL_NO_CLIENT_CERTIFICATE );
+            ssl->session_negotiate->verify_result = MBEDTLS_BADCERT_MISSING;
+            if( ssl->authmode == MBEDTLS_SSL_VERIFY_REQUIRED )
+                return( MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE );
             else
                 return( 0 );
         }
     }
-#endif /* POLARSSL_SSL_PROTO_TLS1 || POLARSSL_SSL_PROTO_TLS1_1 || \
-          POLARSSL_SSL_PROTO_TLS1_2 */
-#endif /* POLARSSL_SSL_SRV_C */
+#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \
+          MBEDTLS_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SSL_SRV_C */
 
-    if( ssl->in_msgtype != SSL_MSG_HANDSHAKE )
+    if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE )
     {
-        SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
-        return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
+        return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
     }
 
-    if( ssl->in_msg[0] != SSL_HS_CERTIFICATE ||
-        ssl->in_hslen < ssl_hs_hdr_len( ssl ) + 3 + 3 )
+    if( ssl->in_msg[0] != MBEDTLS_SSL_HS_CERTIFICATE ||
+        ssl->in_hslen < mbedtls_ssl_hs_hdr_len( ssl ) + 3 + 3 )
     {
-        SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
-        return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
+        return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
     }
 
-    i = ssl_hs_hdr_len( ssl );
+    i = mbedtls_ssl_hs_hdr_len( ssl );
 
     /*
-     * Same message structure as in ssl_write_certificate()
+     * Same message structure as in mbedtls_ssl_write_certificate()
      */
     n = ( ssl->in_msg[i+1] << 8 ) | ssl->in_msg[i+2];
 
     if( ssl->in_msg[i] != 0 ||
-        ssl->in_hslen != n + 3 + ssl_hs_hdr_len( ssl ) )
+        ssl->in_hslen != n + 3 + mbedtls_ssl_hs_hdr_len( ssl ) )
     {
-        SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
-        return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
+        return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
     }
 
     /* In case we tried to reuse a session but it failed */
     if( ssl->session_negotiate->peer_cert != NULL )
     {
-        x509_crt_free( ssl->session_negotiate->peer_cert );
-        polarssl_free( ssl->session_negotiate->peer_cert );
+        mbedtls_x509_crt_free( ssl->session_negotiate->peer_cert );
+        mbedtls_free( ssl->session_negotiate->peer_cert );
     }
 
-    if( ( ssl->session_negotiate->peer_cert = polarssl_malloc(
-                    sizeof( x509_crt ) ) ) == NULL )
+    if( ( ssl->session_negotiate->peer_cert = mbedtls_malloc(
+                    sizeof( mbedtls_x509_crt ) ) ) == NULL )
     {
-        SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed",
-                       sizeof( x509_crt ) ) );
-        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed",
+                       sizeof( mbedtls_x509_crt ) ) );
+        return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
     }
 
-    x509_crt_init( ssl->session_negotiate->peer_cert );
+    mbedtls_x509_crt_init( ssl->session_negotiate->peer_cert );
 
     i += 3;
 
@@ -3964,8 +3964,8 @@ int ssl_parse_certificate( ssl_context *ssl )
     {
         if( ssl->in_msg[i] != 0 )
         {
-            SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
         }
 
         n = ( (unsigned int) ssl->in_msg[i + 1] << 8 )
@@ -3974,35 +3974,35 @@ int ssl_parse_certificate( ssl_context *ssl )
 
         if( n < 128 || i + n > ssl->in_hslen )
         {
-            SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
         }
 
-        ret = x509_crt_parse_der( ssl->session_negotiate->peer_cert,
+        ret = mbedtls_x509_crt_parse_der( ssl->session_negotiate->peer_cert,
                                   ssl->in_msg + i, n );
         if( ret != 0 )
         {
-            SSL_DEBUG_RET( 1, " x509_crt_parse_der", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, " mbedtls_x509_crt_parse_der", ret );
             return( ret );
         }
 
         i += n;
     }
 
-    SSL_DEBUG_CRT( 3, "peer certificate", ssl->session_negotiate->peer_cert );
+    MBEDTLS_SSL_DEBUG_CRT( 3, "peer certificate", ssl->session_negotiate->peer_cert );
 
     /*
      * On client, make sure the server cert doesn't change during renego to
      * avoid "triple handshake" attack: https://secure-resumption.com/
      */
-#if defined(POLARSSL_SSL_RENEGOTIATION) && defined(POLARSSL_SSL_CLI_C)
-    if( ssl->endpoint == SSL_IS_CLIENT &&
-        ssl->renego_status == SSL_RENEGOTIATION_IN_PROGRESS )
+#if defined(MBEDTLS_SSL_RENEGOTIATION) && defined(MBEDTLS_SSL_CLI_C)
+    if( ssl->endpoint == MBEDTLS_SSL_IS_CLIENT &&
+        ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS )
     {
         if( ssl->session->peer_cert == NULL )
         {
-            SSL_DEBUG_MSG( 1, ( "new server cert during renegotiation" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "new server cert during renegotiation" ) );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
         }
 
         if( ssl->session->peer_cert->raw.len !=
@@ -4011,154 +4011,154 @@ int ssl_parse_certificate( ssl_context *ssl )
                     ssl->session_negotiate->peer_cert->raw.p,
                     ssl->session->peer_cert->raw.len ) != 0 )
         {
-            SSL_DEBUG_MSG( 1, ( "server cert changed during renegotiation" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "server cert changed during renegotiation" ) );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
         }
     }
-#endif /* POLARSSL_SSL_RENEGOTIATION && POLARSSL_SSL_CLI_C */
+#endif /* MBEDTLS_SSL_RENEGOTIATION && MBEDTLS_SSL_CLI_C */
 
-    if( ssl->authmode != SSL_VERIFY_NONE )
+    if( ssl->authmode != MBEDTLS_SSL_VERIFY_NONE )
     {
         if( ssl->ca_chain == NULL )
         {
-            SSL_DEBUG_MSG( 1, ( "got no CA chain" ) );
-            return( POLARSSL_ERR_SSL_CA_CHAIN_REQUIRED );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no CA chain" ) );
+            return( MBEDTLS_ERR_SSL_CA_CHAIN_REQUIRED );
         }
 
         /*
          * Main check: verify certificate
          */
-        ret = x509_crt_verify( ssl->session_negotiate->peer_cert,
+        ret = mbedtls_x509_crt_verify( ssl->session_negotiate->peer_cert,
                                ssl->ca_chain, ssl->ca_crl, ssl->peer_cn,
                               &ssl->session_negotiate->verify_result,
                                ssl->f_vrfy, ssl->p_vrfy );
 
         if( ret != 0 )
         {
-            SSL_DEBUG_RET( 1, "x509_verify_cert", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "x509_verify_cert", ret );
         }
 
         /*
          * Secondary checks: always done, but change 'ret' only if it was 0
          */
 
-#if defined(POLARSSL_SSL_SET_CURVES)
+#if defined(MBEDTLS_SSL_SET_CURVES)
         {
-            const pk_context *pk = &ssl->session_negotiate->peer_cert->pk;
+            const mbedtls_pk_context *pk = &ssl->session_negotiate->peer_cert->pk;
 
             /* If certificate uses an EC key, make sure the curve is OK */
-            if( pk_can_do( pk, POLARSSL_PK_ECKEY ) &&
-                ! ssl_curve_is_acceptable( ssl, pk_ec( *pk )->grp.id ) )
+            if( mbedtls_pk_can_do( pk, MBEDTLS_PK_ECKEY ) &&
+                ! mbedtls_ssl_curve_is_acceptable( ssl, mbedtls_pk_ec( *pk )->grp.id ) )
             {
-                SSL_DEBUG_MSG( 1, ( "bad certificate (EC key curve)" ) );
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate (EC key curve)" ) );
                 if( ret == 0 )
-                    ret = POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE;
+                    ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE;
             }
         }
-#endif /* POLARSSL_SSL_SET_CURVES */
+#endif /* MBEDTLS_SSL_SET_CURVES */
 
-        if( ssl_check_cert_usage( ssl->session_negotiate->peer_cert,
+        if( mbedtls_ssl_check_cert_usage( ssl->session_negotiate->peer_cert,
                                   ciphersuite_info,
                                   ! ssl->endpoint ) != 0 )
         {
-            SSL_DEBUG_MSG( 1, ( "bad certificate (usage extensions)" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate (usage extensions)" ) );
             if( ret == 0 )
-                ret = POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE;
+                ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE;
         }
 
-        if( ssl->authmode != SSL_VERIFY_REQUIRED )
+        if( ssl->authmode != MBEDTLS_SSL_VERIFY_REQUIRED )
             ret = 0;
     }
 
-    SSL_DEBUG_MSG( 2, ( "<= parse certificate" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate" ) );
 
     return( ret );
 }
-#endif /* !POLARSSL_KEY_EXCHANGE_RSA_ENABLED
-          !POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED
-          !POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED
-          !POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED
-          !POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
-          !POLARSSL_KEY_EXCHANGE_ECDH_RSA_ENABLED
-          !POLARSSL_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
+#endif /* !MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
+          !MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
+          !MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
+          !MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+          !MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
+          !MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
+          !MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
 
-int ssl_write_change_cipher_spec( ssl_context *ssl )
+int mbedtls_ssl_write_change_cipher_spec( mbedtls_ssl_context *ssl )
 {
     int ret;
 
-    SSL_DEBUG_MSG( 2, ( "=> write change cipher spec" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write change cipher spec" ) );
 
-    ssl->out_msgtype = SSL_MSG_CHANGE_CIPHER_SPEC;
+    ssl->out_msgtype = MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC;
     ssl->out_msglen  = 1;
     ssl->out_msg[0]  = 1;
 
     ssl->state++;
 
-    if( ( ret = ssl_write_record( ssl ) ) != 0 )
+    if( ( ret = mbedtls_ssl_write_record( ssl ) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "ssl_write_record", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
         return( ret );
     }
 
-    SSL_DEBUG_MSG( 2, ( "<= write change cipher spec" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write change cipher spec" ) );
 
     return( 0 );
 }
 
-int ssl_parse_change_cipher_spec( ssl_context *ssl )
+int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
 {
     int ret;
 
-    SSL_DEBUG_MSG( 2, ( "=> parse change cipher spec" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse change cipher spec" ) );
 
-    if( ( ret = ssl_read_record( ssl ) ) != 0 )
+    if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "ssl_read_record", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
         return( ret );
     }
 
-    if( ssl->in_msgtype != SSL_MSG_CHANGE_CIPHER_SPEC )
+    if( ssl->in_msgtype != MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC )
     {
-        SSL_DEBUG_MSG( 1, ( "bad change cipher spec message" ) );
-        return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad change cipher spec message" ) );
+        return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
     }
 
     if( ssl->in_msglen != 1 || ssl->in_msg[0] != 1 )
     {
-        SSL_DEBUG_MSG( 1, ( "bad change cipher spec message" ) );
-        return( POLARSSL_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad change cipher spec message" ) );
+        return( MBEDTLS_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC );
     }
 
     /*
      * Switch to our negotiated transform and session parameters for inbound
      * data.
      */
-    SSL_DEBUG_MSG( 3, ( "switching to new transform spec for inbound data" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "switching to new transform spec for inbound data" ) );
     ssl->transform_in = ssl->transform_negotiate;
     ssl->session_in = ssl->session_negotiate;
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
-#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
         ssl_dtls_replay_reset( ssl );
 #endif
 
         /* Increment epoch */
         if( ++ssl->in_epoch == 0 )
         {
-            SSL_DEBUG_MSG( 1, ( "DTLS epoch would wrap" ) );
-            return( POLARSSL_ERR_SSL_COUNTER_WRAPPING );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "DTLS epoch would wrap" ) );
+            return( MBEDTLS_ERR_SSL_COUNTER_WRAPPING );
         }
     }
     else
-#endif /* POLARSSL_SSL_PROTO_DTLS */
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
     memset( ssl->in_ctr, 0, 8 );
 
     /*
      * Set the in_msg pointer to the correct location based on IV length
      */
-    if( ssl->minor_ver >= SSL_MINOR_VERSION_2 )
+    if( ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
     {
         ssl->in_msg = ssl->in_iv + ssl->transform_negotiate->ivlen -
                       ssl->transform_negotiate->fixed_ivlen;
@@ -4166,136 +4166,136 @@ int ssl_parse_change_cipher_spec( ssl_context *ssl )
     else
         ssl->in_msg = ssl->in_iv;
 
-#if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
-    if( ssl_hw_record_activate != NULL )
+#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
+    if( mbedtls_ssl_hw_record_activate != NULL )
     {
-        if( ( ret = ssl_hw_record_activate( ssl, SSL_CHANNEL_INBOUND ) ) != 0 )
+        if( ( ret = mbedtls_ssl_hw_record_activate( ssl, MBEDTLS_SSL_CHANNEL_INBOUND ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "ssl_hw_record_activate", ret );
-            return( POLARSSL_ERR_SSL_HW_ACCEL_FAILED );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_hw_record_activate", ret );
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
         }
     }
 #endif
 
     ssl->state++;
 
-    SSL_DEBUG_MSG( 2, ( "<= parse change cipher spec" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse change cipher spec" ) );
 
     return( 0 );
 }
 
-void ssl_optimize_checksum( ssl_context *ssl,
-                            const ssl_ciphersuite_t *ciphersuite_info )
+void mbedtls_ssl_optimize_checksum( mbedtls_ssl_context *ssl,
+                            const mbedtls_ssl_ciphersuite_t *ciphersuite_info )
 {
     ((void) ciphersuite_info);
 
-#if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
-    defined(POLARSSL_SSL_PROTO_TLS1_1)
-    if( ssl->minor_ver < SSL_MINOR_VERSION_3 )
+#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
+    defined(MBEDTLS_SSL_PROTO_TLS1_1)
+    if( ssl->minor_ver < MBEDTLS_SSL_MINOR_VERSION_3 )
         ssl->handshake->update_checksum = ssl_update_checksum_md5sha1;
     else
 #endif
-#if defined(POLARSSL_SSL_PROTO_TLS1_2)
-#if defined(POLARSSL_SHA512_C)
-    if( ciphersuite_info->mac == POLARSSL_MD_SHA384 )
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SHA512_C)
+    if( ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
         ssl->handshake->update_checksum = ssl_update_checksum_sha384;
     else
 #endif
-#if defined(POLARSSL_SHA256_C)
-    if( ciphersuite_info->mac != POLARSSL_MD_SHA384 )
+#if defined(MBEDTLS_SHA256_C)
+    if( ciphersuite_info->mac != MBEDTLS_MD_SHA384 )
         ssl->handshake->update_checksum = ssl_update_checksum_sha256;
     else
 #endif
-#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
     {
-        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return;
     }
 }
 
-void ssl_reset_checksum( ssl_context *ssl )
+void mbedtls_ssl_reset_checksum( mbedtls_ssl_context *ssl )
 {
-#if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
-    defined(POLARSSL_SSL_PROTO_TLS1_1)
-     md5_starts( &ssl->handshake->fin_md5  );
-    sha1_starts( &ssl->handshake->fin_sha1 );
+#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
+    defined(MBEDTLS_SSL_PROTO_TLS1_1)
+     mbedtls_md5_starts( &ssl->handshake->fin_md5  );
+    mbedtls_sha1_starts( &ssl->handshake->fin_sha1 );
 #endif
-#if defined(POLARSSL_SSL_PROTO_TLS1_2)
-#if defined(POLARSSL_SHA256_C)
-    sha256_starts( &ssl->handshake->fin_sha256, 0 );
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SHA256_C)
+    mbedtls_sha256_starts( &ssl->handshake->fin_sha256, 0 );
 #endif
-#if defined(POLARSSL_SHA512_C)
-    sha512_starts( &ssl->handshake->fin_sha512, 1 );
+#if defined(MBEDTLS_SHA512_C)
+    mbedtls_sha512_starts( &ssl->handshake->fin_sha512, 1 );
 #endif
-#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 }
 
-static void ssl_update_checksum_start( ssl_context *ssl,
+static void ssl_update_checksum_start( mbedtls_ssl_context *ssl,
                                        const unsigned char *buf, size_t len )
 {
-#if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
-    defined(POLARSSL_SSL_PROTO_TLS1_1)
-     md5_update( &ssl->handshake->fin_md5 , buf, len );
-    sha1_update( &ssl->handshake->fin_sha1, buf, len );
+#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
+    defined(MBEDTLS_SSL_PROTO_TLS1_1)
+     mbedtls_md5_update( &ssl->handshake->fin_md5 , buf, len );
+    mbedtls_sha1_update( &ssl->handshake->fin_sha1, buf, len );
 #endif
-#if defined(POLARSSL_SSL_PROTO_TLS1_2)
-#if defined(POLARSSL_SHA256_C)
-    sha256_update( &ssl->handshake->fin_sha256, buf, len );
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SHA256_C)
+    mbedtls_sha256_update( &ssl->handshake->fin_sha256, buf, len );
 #endif
-#if defined(POLARSSL_SHA512_C)
-    sha512_update( &ssl->handshake->fin_sha512, buf, len );
+#if defined(MBEDTLS_SHA512_C)
+    mbedtls_sha512_update( &ssl->handshake->fin_sha512, buf, len );
 #endif
-#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 }
 
-#if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
-    defined(POLARSSL_SSL_PROTO_TLS1_1)
-static void ssl_update_checksum_md5sha1( ssl_context *ssl,
+#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
+    defined(MBEDTLS_SSL_PROTO_TLS1_1)
+static void ssl_update_checksum_md5sha1( mbedtls_ssl_context *ssl,
                                          const unsigned char *buf, size_t len )
 {
-     md5_update( &ssl->handshake->fin_md5 , buf, len );
-    sha1_update( &ssl->handshake->fin_sha1, buf, len );
+     mbedtls_md5_update( &ssl->handshake->fin_md5 , buf, len );
+    mbedtls_sha1_update( &ssl->handshake->fin_sha1, buf, len );
 }
 #endif
 
-#if defined(POLARSSL_SSL_PROTO_TLS1_2)
-#if defined(POLARSSL_SHA256_C)
-static void ssl_update_checksum_sha256( ssl_context *ssl,
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SHA256_C)
+static void ssl_update_checksum_sha256( mbedtls_ssl_context *ssl,
                                         const unsigned char *buf, size_t len )
 {
-    sha256_update( &ssl->handshake->fin_sha256, buf, len );
+    mbedtls_sha256_update( &ssl->handshake->fin_sha256, buf, len );
 }
 #endif
 
-#if defined(POLARSSL_SHA512_C)
-static void ssl_update_checksum_sha384( ssl_context *ssl,
+#if defined(MBEDTLS_SHA512_C)
+static void ssl_update_checksum_sha384( mbedtls_ssl_context *ssl,
                                         const unsigned char *buf, size_t len )
 {
-    sha512_update( &ssl->handshake->fin_sha512, buf, len );
+    mbedtls_sha512_update( &ssl->handshake->fin_sha512, buf, len );
 }
 #endif
-#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-#if defined(POLARSSL_SSL_PROTO_SSL3)
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
 static void ssl_calc_finished_ssl(
-                ssl_context *ssl, unsigned char *buf, int from )
+                mbedtls_ssl_context *ssl, unsigned char *buf, int from )
 {
     const char *sender;
-    md5_context  md5;
-    sha1_context sha1;
+    mbedtls_md5_context  mbedtls_md5;
+    mbedtls_sha1_context mbedtls_sha1;
 
     unsigned char padbuf[48];
     unsigned char md5sum[16];
     unsigned char sha1sum[20];
 
-    ssl_session *session = ssl->session_negotiate;
+    mbedtls_ssl_session *session = ssl->session_negotiate;
     if( !session )
         session = ssl->session;
 
-    SSL_DEBUG_MSG( 2, ( "=> calc  finished ssl" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc  finished ssl" ) );
 
-    memcpy( &md5 , &ssl->handshake->fin_md5 , sizeof(md5_context)  );
-    memcpy( &sha1, &ssl->handshake->fin_sha1, sizeof(sha1_context) );
+    memcpy( &mbedtls_md5 , &ssl->handshake->fin_md5 , sizeof(mbedtls_md5_context)  );
+    memcpy( &mbedtls_sha1, &ssl->handshake->fin_sha1, sizeof(mbedtls_sha1_context) );
 
     /*
      * SSLv3:
@@ -4306,76 +4306,76 @@ static void ssl_calc_finished_ssl(
      *         SHA1( handshake + sender + master + pad1 ) )
      */
 
-#if !defined(POLARSSL_MD5_ALT)
-    SSL_DEBUG_BUF( 4, "finished  md5 state", (unsigned char *)
-                    md5.state, sizeof(  md5.state ) );
+#if !defined(MBEDTLS_MD5_ALT)
+    MBEDTLS_SSL_DEBUG_BUF( 4, "finished  mbedtls_md5 state", (unsigned char *)
+                    mbedtls_md5.state, sizeof(  mbedtls_md5.state ) );
 #endif
 
-#if !defined(POLARSSL_SHA1_ALT)
-    SSL_DEBUG_BUF( 4, "finished sha1 state", (unsigned char *)
-                   sha1.state, sizeof( sha1.state ) );
+#if !defined(MBEDTLS_SHA1_ALT)
+    MBEDTLS_SSL_DEBUG_BUF( 4, "finished mbedtls_sha1 state", (unsigned char *)
+                   mbedtls_sha1.state, sizeof( mbedtls_sha1.state ) );
 #endif
 
-    sender = ( from == SSL_IS_CLIENT ) ? "CLNT"
+    sender = ( from == MBEDTLS_SSL_IS_CLIENT ) ? "CLNT"
                                        : "SRVR";
 
     memset( padbuf, 0x36, 48 );
 
-    md5_update( &md5, (const unsigned char *) sender, 4 );
-    md5_update( &md5, session->master, 48 );
-    md5_update( &md5, padbuf, 48 );
-    md5_finish( &md5, md5sum );
+    mbedtls_md5_update( &mbedtls_md5, (const unsigned char *) sender, 4 );
+    mbedtls_md5_update( &mbedtls_md5, session->master, 48 );
+    mbedtls_md5_update( &mbedtls_md5, padbuf, 48 );
+    mbedtls_md5_finish( &mbedtls_md5, md5sum );
 
-    sha1_update( &sha1, (const unsigned char *) sender, 4 );
-    sha1_update( &sha1, session->master, 48 );
-    sha1_update( &sha1, padbuf, 40 );
-    sha1_finish( &sha1, sha1sum );
+    mbedtls_sha1_update( &mbedtls_sha1, (const unsigned char *) sender, 4 );
+    mbedtls_sha1_update( &mbedtls_sha1, session->master, 48 );
+    mbedtls_sha1_update( &mbedtls_sha1, padbuf, 40 );
+    mbedtls_sha1_finish( &mbedtls_sha1, sha1sum );
 
     memset( padbuf, 0x5C, 48 );
 
-    md5_starts( &md5 );
-    md5_update( &md5, session->master, 48 );
-    md5_update( &md5, padbuf, 48 );
-    md5_update( &md5, md5sum, 16 );
-    md5_finish( &md5, buf );
+    mbedtls_md5_starts( &mbedtls_md5 );
+    mbedtls_md5_update( &mbedtls_md5, session->master, 48 );
+    mbedtls_md5_update( &mbedtls_md5, padbuf, 48 );
+    mbedtls_md5_update( &mbedtls_md5, md5sum, 16 );
+    mbedtls_md5_finish( &mbedtls_md5, buf );
 
-    sha1_starts( &sha1 );
-    sha1_update( &sha1, session->master, 48 );
-    sha1_update( &sha1, padbuf , 40 );
-    sha1_update( &sha1, sha1sum, 20 );
-    sha1_finish( &sha1, buf + 16 );
+    mbedtls_sha1_starts( &mbedtls_sha1 );
+    mbedtls_sha1_update( &mbedtls_sha1, session->master, 48 );
+    mbedtls_sha1_update( &mbedtls_sha1, padbuf , 40 );
+    mbedtls_sha1_update( &mbedtls_sha1, sha1sum, 20 );
+    mbedtls_sha1_finish( &mbedtls_sha1, buf + 16 );
 
-    SSL_DEBUG_BUF( 3, "calc finished result", buf, 36 );
+    MBEDTLS_SSL_DEBUG_BUF( 3, "calc finished result", buf, 36 );
 
-    md5_free(  &md5  );
-    sha1_free( &sha1 );
+    mbedtls_md5_free(  &mbedtls_md5  );
+    mbedtls_sha1_free( &mbedtls_sha1 );
 
-    polarssl_zeroize(  padbuf, sizeof(  padbuf ) );
-    polarssl_zeroize(  md5sum, sizeof(  md5sum ) );
-    polarssl_zeroize( sha1sum, sizeof( sha1sum ) );
+    mbedtls_zeroize(  padbuf, sizeof(  padbuf ) );
+    mbedtls_zeroize(  md5sum, sizeof(  md5sum ) );
+    mbedtls_zeroize( sha1sum, sizeof( sha1sum ) );
 
-    SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
-#endif /* POLARSSL_SSL_PROTO_SSL3 */
+#endif /* MBEDTLS_SSL_PROTO_SSL3 */
 
-#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1)
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
 static void ssl_calc_finished_tls(
-                ssl_context *ssl, unsigned char *buf, int from )
+                mbedtls_ssl_context *ssl, unsigned char *buf, int from )
 {
     int len = 12;
     const char *sender;
-    md5_context  md5;
-    sha1_context sha1;
+    mbedtls_md5_context  mbedtls_md5;
+    mbedtls_sha1_context mbedtls_sha1;
     unsigned char padbuf[36];
 
-    ssl_session *session = ssl->session_negotiate;
+    mbedtls_ssl_session *session = ssl->session_negotiate;
     if( !session )
         session = ssl->session;
 
-    SSL_DEBUG_MSG( 2, ( "=> calc  finished tls" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc  finished tls" ) );
 
-    memcpy( &md5 , &ssl->handshake->fin_md5 , sizeof(md5_context)  );
-    memcpy( &sha1, &ssl->handshake->fin_sha1, sizeof(sha1_context) );
+    memcpy( &mbedtls_md5 , &ssl->handshake->fin_md5 , sizeof(mbedtls_md5_context)  );
+    memcpy( &mbedtls_sha1, &ssl->handshake->fin_sha1, sizeof(mbedtls_sha1_context) );
 
     /*
      * TLSv1:
@@ -4383,54 +4383,54 @@ static void ssl_calc_finished_tls(
      *               MD5( handshake ) + SHA1( handshake ) )[0..11]
      */
 
-#if !defined(POLARSSL_MD5_ALT)
-    SSL_DEBUG_BUF( 4, "finished  md5 state", (unsigned char *)
-                    md5.state, sizeof(  md5.state ) );
+#if !defined(MBEDTLS_MD5_ALT)
+    MBEDTLS_SSL_DEBUG_BUF( 4, "finished  mbedtls_md5 state", (unsigned char *)
+                    mbedtls_md5.state, sizeof(  mbedtls_md5.state ) );
 #endif
 
-#if !defined(POLARSSL_SHA1_ALT)
-    SSL_DEBUG_BUF( 4, "finished sha1 state", (unsigned char *)
-                   sha1.state, sizeof( sha1.state ) );
+#if !defined(MBEDTLS_SHA1_ALT)
+    MBEDTLS_SSL_DEBUG_BUF( 4, "finished mbedtls_sha1 state", (unsigned char *)
+                   mbedtls_sha1.state, sizeof( mbedtls_sha1.state ) );
 #endif
 
-    sender = ( from == SSL_IS_CLIENT )
+    sender = ( from == MBEDTLS_SSL_IS_CLIENT )
              ? "client finished"
              : "server finished";
 
-    md5_finish(  &md5, padbuf );
-    sha1_finish( &sha1, padbuf + 16 );
+    mbedtls_md5_finish(  &mbedtls_md5, padbuf );
+    mbedtls_sha1_finish( &mbedtls_sha1, padbuf + 16 );
 
     ssl->handshake->tls_prf( session->master, 48, sender,
                              padbuf, 36, buf, len );
 
-    SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
+    MBEDTLS_SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
 
-    md5_free(  &md5  );
-    sha1_free( &sha1 );
+    mbedtls_md5_free(  &mbedtls_md5  );
+    mbedtls_sha1_free( &mbedtls_sha1 );
 
-    polarssl_zeroize(  padbuf, sizeof(  padbuf ) );
+    mbedtls_zeroize(  padbuf, sizeof(  padbuf ) );
 
-    SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
-#endif /* POLARSSL_SSL_PROTO_TLS1 || POLARSSL_SSL_PROTO_TLS1_1 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 */
 
-#if defined(POLARSSL_SSL_PROTO_TLS1_2)
-#if defined(POLARSSL_SHA256_C)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SHA256_C)
 static void ssl_calc_finished_tls_sha256(
-                ssl_context *ssl, unsigned char *buf, int from )
+                mbedtls_ssl_context *ssl, unsigned char *buf, int from )
 {
     int len = 12;
     const char *sender;
-    sha256_context sha256;
+    mbedtls_sha256_context mbedtls_sha256;
     unsigned char padbuf[32];
 
-    ssl_session *session = ssl->session_negotiate;
+    mbedtls_ssl_session *session = ssl->session_negotiate;
     if( !session )
         session = ssl->session;
 
-    SSL_DEBUG_MSG( 2, ( "=> calc  finished tls sha256" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc  finished tls mbedtls_sha256" ) );
 
-    memcpy( &sha256, &ssl->handshake->fin_sha256, sizeof(sha256_context) );
+    memcpy( &mbedtls_sha256, &ssl->handshake->fin_sha256, sizeof(mbedtls_sha256_context) );
 
     /*
      * TLSv1.2:
@@ -4438,46 +4438,46 @@ static void ssl_calc_finished_tls_sha256(
      *               Hash( handshake ) )[0.11]
      */
 
-#if !defined(POLARSSL_SHA256_ALT)
-    SSL_DEBUG_BUF( 4, "finished sha2 state", (unsigned char *)
-                   sha256.state, sizeof( sha256.state ) );
+#if !defined(MBEDTLS_SHA256_ALT)
+    MBEDTLS_SSL_DEBUG_BUF( 4, "finished sha2 state", (unsigned char *)
+                   mbedtls_sha256.state, sizeof( mbedtls_sha256.state ) );
 #endif
 
-    sender = ( from == SSL_IS_CLIENT )
+    sender = ( from == MBEDTLS_SSL_IS_CLIENT )
              ? "client finished"
              : "server finished";
 
-    sha256_finish( &sha256, padbuf );
+    mbedtls_sha256_finish( &mbedtls_sha256, padbuf );
 
     ssl->handshake->tls_prf( session->master, 48, sender,
                              padbuf, 32, buf, len );
 
-    SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
+    MBEDTLS_SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
 
-    sha256_free( &sha256 );
+    mbedtls_sha256_free( &mbedtls_sha256 );
 
-    polarssl_zeroize(  padbuf, sizeof(  padbuf ) );
+    mbedtls_zeroize(  padbuf, sizeof(  padbuf ) );
 
-    SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
-#endif /* POLARSSL_SHA256_C */
+#endif /* MBEDTLS_SHA256_C */
 
-#if defined(POLARSSL_SHA512_C)
+#if defined(MBEDTLS_SHA512_C)
 static void ssl_calc_finished_tls_sha384(
-                ssl_context *ssl, unsigned char *buf, int from )
+                mbedtls_ssl_context *ssl, unsigned char *buf, int from )
 {
     int len = 12;
     const char *sender;
-    sha512_context sha512;
+    mbedtls_sha512_context mbedtls_sha512;
     unsigned char padbuf[48];
 
-    ssl_session *session = ssl->session_negotiate;
+    mbedtls_ssl_session *session = ssl->session_negotiate;
     if( !session )
         session = ssl->session;
 
-    SSL_DEBUG_MSG( 2, ( "=> calc  finished tls sha384" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc  finished tls sha384" ) );
 
-    memcpy( &sha512, &ssl->handshake->fin_sha512, sizeof(sha512_context) );
+    memcpy( &mbedtls_sha512, &ssl->handshake->fin_sha512, sizeof(mbedtls_sha512_context) );
 
     /*
      * TLSv1.2:
@@ -4485,40 +4485,40 @@ static void ssl_calc_finished_tls_sha384(
      *               Hash( handshake ) )[0.11]
      */
 
-#if !defined(POLARSSL_SHA512_ALT)
-    SSL_DEBUG_BUF( 4, "finished sha512 state", (unsigned char *)
-                   sha512.state, sizeof( sha512.state ) );
+#if !defined(MBEDTLS_SHA512_ALT)
+    MBEDTLS_SSL_DEBUG_BUF( 4, "finished mbedtls_sha512 state", (unsigned char *)
+                   mbedtls_sha512.state, sizeof( mbedtls_sha512.state ) );
 #endif
 
-    sender = ( from == SSL_IS_CLIENT )
+    sender = ( from == MBEDTLS_SSL_IS_CLIENT )
              ? "client finished"
              : "server finished";
 
-    sha512_finish( &sha512, padbuf );
+    mbedtls_sha512_finish( &mbedtls_sha512, padbuf );
 
     ssl->handshake->tls_prf( session->master, 48, sender,
                              padbuf, 48, buf, len );
 
-    SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
+    MBEDTLS_SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
 
-    sha512_free( &sha512 );
+    mbedtls_sha512_free( &mbedtls_sha512 );
 
-    polarssl_zeroize(  padbuf, sizeof( padbuf ) );
+    mbedtls_zeroize(  padbuf, sizeof( padbuf ) );
 
-    SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
-#endif /* POLARSSL_SHA512_C */
-#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SHA512_C */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-static void ssl_handshake_wrapup_free_hs_transform( ssl_context *ssl )
+static void ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl )
 {
-    SSL_DEBUG_MSG( 3, ( "=> handshake wrapup: final free" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "=> handshake wrapup: final free" ) );
 
     /*
      * Free our handshake params
      */
-    ssl_handshake_free( ssl->handshake );
-    polarssl_free( ssl->handshake );
+    mbedtls_ssl_handshake_free( ssl->handshake );
+    mbedtls_free( ssl->handshake );
     ssl->handshake = NULL;
 
     /*
@@ -4526,25 +4526,25 @@ static void ssl_handshake_wrapup_free_hs_transform( ssl_context *ssl )
      */
     if( ssl->transform )
     {
-        ssl_transform_free( ssl->transform );
-        polarssl_free( ssl->transform );
+        mbedtls_ssl_transform_free( ssl->transform );
+        mbedtls_free( ssl->transform );
     }
     ssl->transform = ssl->transform_negotiate;
     ssl->transform_negotiate = NULL;
 
-    SSL_DEBUG_MSG( 3, ( "<= handshake wrapup: final free" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "<= handshake wrapup: final free" ) );
 }
 
-void ssl_handshake_wrapup( ssl_context *ssl )
+void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
 {
     int resume = ssl->handshake->resume;
 
-    SSL_DEBUG_MSG( 3, ( "=> handshake wrapup" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "=> handshake wrapup" ) );
 
-#if defined(POLARSSL_SSL_RENEGOTIATION)
-    if( ssl->renego_status == SSL_RENEGOTIATION_IN_PROGRESS )
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    if( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS )
     {
-        ssl->renego_status =  SSL_RENEGOTIATION_DONE;
+        ssl->renego_status =  MBEDTLS_SSL_RENEGOTIATION_DONE;
         ssl->renego_records_seen = 0;
     }
 #endif
@@ -4554,14 +4554,14 @@ void ssl_handshake_wrapup( ssl_context *ssl )
      */
     if( ssl->session )
     {
-#if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
         /* RFC 7366 3.1: keep the EtM state */
         ssl->session_negotiate->encrypt_then_mac =
                   ssl->session->encrypt_then_mac;
 #endif
 
-        ssl_session_free( ssl->session );
-        polarssl_free( ssl->session );
+        mbedtls_ssl_session_free( ssl->session );
+        mbedtls_free( ssl->session );
     }
     ssl->session = ssl->session_negotiate;
     ssl->session_negotiate = NULL;
@@ -4574,11 +4574,11 @@ void ssl_handshake_wrapup( ssl_context *ssl )
         resume == 0 )
     {
         if( ssl->f_set_cache( ssl->p_set_cache, ssl->session ) != 0 )
-            SSL_DEBUG_MSG( 1, ( "cache did not store session" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "cache did not store session" ) );
     }
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
         ssl->handshake->flight != NULL )
     {
         /* Cancel handshake timer */
@@ -4586,7 +4586,7 @@ void ssl_handshake_wrapup( ssl_context *ssl )
 
         /* Keep last flight around in case we need to resend it:
          * we need the handshake and transform structures for that */
-        SSL_DEBUG_MSG( 3, ( "skip freeing handshake and transform" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "skip freeing handshake and transform" ) );
     }
     else
 #endif
@@ -4594,19 +4594,19 @@ void ssl_handshake_wrapup( ssl_context *ssl )
 
     ssl->state++;
 
-    SSL_DEBUG_MSG( 3, ( "<= handshake wrapup" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "<= handshake wrapup" ) );
 }
 
-int ssl_write_finished( ssl_context *ssl )
+int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
 {
     int ret, hash_len;
 
-    SSL_DEBUG_MSG( 2, ( "=> write finished" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write finished" ) );
 
     /*
      * Set the out_msg pointer to the correct location based on IV length
      */
-    if( ssl->minor_ver >= SSL_MINOR_VERSION_2 )
+    if( ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
     {
         ssl->out_msg = ssl->out_iv + ssl->transform_negotiate->ivlen -
                        ssl->transform_negotiate->fixed_ivlen;
@@ -4617,16 +4617,16 @@ int ssl_write_finished( ssl_context *ssl )
     ssl->handshake->calc_finished( ssl, ssl->out_msg + 4, ssl->endpoint );
 
     // TODO TLS/1.2 Hash length is determined by cipher suite (Page 63)
-    hash_len = ( ssl->minor_ver == SSL_MINOR_VERSION_0 ) ? 36 : 12;
+    hash_len = ( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ) ? 36 : 12;
 
-#if defined(POLARSSL_SSL_RENEGOTIATION)
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
     ssl->verify_data_len = hash_len;
     memcpy( ssl->own_verify_data, ssl->out_msg + 4, hash_len );
 #endif
 
     ssl->out_msglen  = 4 + hash_len;
-    ssl->out_msgtype = SSL_MSG_HANDSHAKE;
-    ssl->out_msg[0]  = SSL_HS_FINISHED;
+    ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
+    ssl->out_msg[0]  = MBEDTLS_SSL_HS_FINISHED;
 
     /*
      * In case of session resuming, invert the client and server
@@ -4634,13 +4634,13 @@ int ssl_write_finished( ssl_context *ssl )
      */
     if( ssl->handshake->resume != 0 )
     {
-#if defined(POLARSSL_SSL_CLI_C)
-        if( ssl->endpoint == SSL_IS_CLIENT )
-            ssl->state = SSL_HANDSHAKE_WRAPUP;
+#if defined(MBEDTLS_SSL_CLI_C)
+        if( ssl->endpoint == MBEDTLS_SSL_IS_CLIENT )
+            ssl->state = MBEDTLS_SSL_HANDSHAKE_WRAPUP;
 #endif
-#if defined(POLARSSL_SSL_SRV_C)
-        if( ssl->endpoint == SSL_IS_SERVER )
-            ssl->state = SSL_CLIENT_CHANGE_CIPHER_SPEC;
+#if defined(MBEDTLS_SSL_SRV_C)
+        if( ssl->endpoint == MBEDTLS_SSL_IS_SERVER )
+            ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
 #endif
     }
     else
@@ -4650,10 +4650,10 @@ int ssl_write_finished( ssl_context *ssl )
      * Switch to our negotiated transform and session parameters for outbound
      * data.
      */
-    SSL_DEBUG_MSG( 3, ( "switching to new transform spec for outbound data" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "switching to new transform spec for outbound data" ) );
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
         unsigned char i;
 
@@ -4672,181 +4672,181 @@ int ssl_write_finished( ssl_context *ssl )
         /* The loop goes to its end iff the counter is wrapping */
         if( i == 0 )
         {
-            SSL_DEBUG_MSG( 1, ( "DTLS epoch would wrap" ) );
-            return( POLARSSL_ERR_SSL_COUNTER_WRAPPING );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "DTLS epoch would wrap" ) );
+            return( MBEDTLS_ERR_SSL_COUNTER_WRAPPING );
         }
     }
     else
-#endif /* POLARSSL_SSL_PROTO_DTLS */
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
     memset( ssl->out_ctr, 0, 8 );
 
     ssl->transform_out = ssl->transform_negotiate;
     ssl->session_out = ssl->session_negotiate;
 
-#if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
-    if( ssl_hw_record_activate != NULL )
+#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
+    if( mbedtls_ssl_hw_record_activate != NULL )
     {
-        if( ( ret = ssl_hw_record_activate( ssl, SSL_CHANNEL_OUTBOUND ) ) != 0 )
+        if( ( ret = mbedtls_ssl_hw_record_activate( ssl, MBEDTLS_SSL_CHANNEL_OUTBOUND ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "ssl_hw_record_activate", ret );
-            return( POLARSSL_ERR_SSL_HW_ACCEL_FAILED );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_hw_record_activate", ret );
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
         }
     }
 #endif
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
-        ssl_send_flight_completed( ssl );
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+        mbedtls_ssl_send_flight_completed( ssl );
 #endif
 
-    if( ( ret = ssl_write_record( ssl ) ) != 0 )
+    if( ( ret = mbedtls_ssl_write_record( ssl ) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "ssl_write_record", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
         return( ret );
     }
 
-    SSL_DEBUG_MSG( 2, ( "<= write finished" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write finished" ) );
 
     return( 0 );
 }
 
-#if defined(POLARSSL_SSL_PROTO_SSL3)
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
 #define SSL_MAX_HASH_LEN 36
 #else
 #define SSL_MAX_HASH_LEN 12
 #endif
 
-int ssl_parse_finished( ssl_context *ssl )
+int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
 {
     int ret;
     unsigned int hash_len;
     unsigned char buf[SSL_MAX_HASH_LEN];
 
-    SSL_DEBUG_MSG( 2, ( "=> parse finished" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse finished" ) );
 
     ssl->handshake->calc_finished( ssl, buf, ssl->endpoint ^ 1 );
 
-    if( ( ret = ssl_read_record( ssl ) ) != 0 )
+    if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "ssl_read_record", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
         return( ret );
     }
 
-    if( ssl->in_msgtype != SSL_MSG_HANDSHAKE )
+    if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE )
     {
-        SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
-        return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
+        return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
     }
 
     /* There is currently no ciphersuite using another length with TLS 1.2 */
-#if defined(POLARSSL_SSL_PROTO_SSL3)
-    if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
         hash_len = 36;
     else
 #endif
         hash_len = 12;
 
-    if( ssl->in_msg[0] != SSL_HS_FINISHED ||
-        ssl->in_hslen  != ssl_hs_hdr_len( ssl ) + hash_len )
+    if( ssl->in_msg[0] != MBEDTLS_SSL_HS_FINISHED ||
+        ssl->in_hslen  != mbedtls_ssl_hs_hdr_len( ssl ) + hash_len )
     {
-        SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
-        return( POLARSSL_ERR_SSL_BAD_HS_FINISHED );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
+        return( MBEDTLS_ERR_SSL_BAD_HS_FINISHED );
     }
 
-    if( safer_memcmp( ssl->in_msg + ssl_hs_hdr_len( ssl ),
+    if( mbedtls_ssl_safer_memcmp( ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl ),
                       buf, hash_len ) != 0 )
     {
-        SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
-        return( POLARSSL_ERR_SSL_BAD_HS_FINISHED );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
+        return( MBEDTLS_ERR_SSL_BAD_HS_FINISHED );
     }
 
-#if defined(POLARSSL_SSL_RENEGOTIATION)
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
     ssl->verify_data_len = hash_len;
     memcpy( ssl->peer_verify_data, buf, hash_len );
 #endif
 
     if( ssl->handshake->resume != 0 )
     {
-#if defined(POLARSSL_SSL_CLI_C)
-        if( ssl->endpoint == SSL_IS_CLIENT )
-            ssl->state = SSL_CLIENT_CHANGE_CIPHER_SPEC;
+#if defined(MBEDTLS_SSL_CLI_C)
+        if( ssl->endpoint == MBEDTLS_SSL_IS_CLIENT )
+            ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
 #endif
-#if defined(POLARSSL_SSL_SRV_C)
-        if( ssl->endpoint == SSL_IS_SERVER )
-            ssl->state = SSL_HANDSHAKE_WRAPUP;
+#if defined(MBEDTLS_SSL_SRV_C)
+        if( ssl->endpoint == MBEDTLS_SSL_IS_SERVER )
+            ssl->state = MBEDTLS_SSL_HANDSHAKE_WRAPUP;
 #endif
     }
     else
         ssl->state++;
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
-        ssl_recv_flight_completed( ssl );
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+        mbedtls_ssl_recv_flight_completed( ssl );
 #endif
 
-    SSL_DEBUG_MSG( 2, ( "<= parse finished" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse finished" ) );
 
     return( 0 );
 }
 
-static void ssl_handshake_params_init( ssl_handshake_params *handshake )
+static void ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )
 {
-    memset( handshake, 0, sizeof( ssl_handshake_params ) );
+    memset( handshake, 0, sizeof( mbedtls_ssl_handshake_params ) );
 
-#if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
-    defined(POLARSSL_SSL_PROTO_TLS1_1)
-     md5_init(   &handshake->fin_md5  );
-    sha1_init(   &handshake->fin_sha1 );
-     md5_starts( &handshake->fin_md5  );
-    sha1_starts( &handshake->fin_sha1 );
+#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
+    defined(MBEDTLS_SSL_PROTO_TLS1_1)
+     mbedtls_md5_init(   &handshake->fin_md5  );
+    mbedtls_sha1_init(   &handshake->fin_sha1 );
+     mbedtls_md5_starts( &handshake->fin_md5  );
+    mbedtls_sha1_starts( &handshake->fin_sha1 );
 #endif
-#if defined(POLARSSL_SSL_PROTO_TLS1_2)
-#if defined(POLARSSL_SHA256_C)
-    sha256_init(   &handshake->fin_sha256    );
-    sha256_starts( &handshake->fin_sha256, 0 );
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SHA256_C)
+    mbedtls_sha256_init(   &handshake->fin_sha256    );
+    mbedtls_sha256_starts( &handshake->fin_sha256, 0 );
 #endif
-#if defined(POLARSSL_SHA512_C)
-    sha512_init(   &handshake->fin_sha512    );
-    sha512_starts( &handshake->fin_sha512, 1 );
+#if defined(MBEDTLS_SHA512_C)
+    mbedtls_sha512_init(   &handshake->fin_sha512    );
+    mbedtls_sha512_starts( &handshake->fin_sha512, 1 );
 #endif
-#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
     handshake->update_checksum = ssl_update_checksum_start;
-    handshake->sig_alg = SSL_HASH_SHA1;
+    handshake->sig_alg = MBEDTLS_SSL_HASH_SHA1;
 
-#if defined(POLARSSL_DHM_C)
-    dhm_init( &handshake->dhm_ctx );
+#if defined(MBEDTLS_DHM_C)
+    mbedtls_dhm_init( &handshake->dhm_ctx );
 #endif
-#if defined(POLARSSL_ECDH_C)
-    ecdh_init( &handshake->ecdh_ctx );
+#if defined(MBEDTLS_ECDH_C)
+    mbedtls_ecdh_init( &handshake->ecdh_ctx );
 #endif
 }
 
-static void ssl_transform_init( ssl_transform *transform )
+static void ssl_transform_init( mbedtls_ssl_transform *transform )
 {
-    memset( transform, 0, sizeof(ssl_transform) );
+    memset( transform, 0, sizeof(mbedtls_ssl_transform) );
 
-    cipher_init( &transform->cipher_ctx_enc );
-    cipher_init( &transform->cipher_ctx_dec );
+    mbedtls_cipher_init( &transform->cipher_ctx_enc );
+    mbedtls_cipher_init( &transform->cipher_ctx_dec );
 
-    md_init( &transform->md_ctx_enc );
-    md_init( &transform->md_ctx_dec );
+    mbedtls_md_init( &transform->md_ctx_enc );
+    mbedtls_md_init( &transform->md_ctx_dec );
 }
 
-void ssl_session_init( ssl_session *session )
+void mbedtls_ssl_session_init( mbedtls_ssl_session *session )
 {
-    memset( session, 0, sizeof(ssl_session) );
+    memset( session, 0, sizeof(mbedtls_ssl_session) );
 }
 
-static int ssl_handshake_init( ssl_context *ssl )
+static int ssl_handshake_init( mbedtls_ssl_context *ssl )
 {
     /* Clear old handshake information if present */
     if( ssl->transform_negotiate )
-        ssl_transform_free( ssl->transform_negotiate );
+        mbedtls_ssl_transform_free( ssl->transform_negotiate );
     if( ssl->session_negotiate )
-        ssl_session_free( ssl->session_negotiate );
+        mbedtls_ssl_session_free( ssl->session_negotiate );
     if( ssl->handshake )
-        ssl_handshake_free( ssl->handshake );
+        mbedtls_ssl_handshake_free( ssl->handshake );
 
     /*
      * Either the pointers are now NULL or cleared properly and can be freed.
@@ -4854,17 +4854,17 @@ static int ssl_handshake_init( ssl_context *ssl )
      */
     if( ssl->transform_negotiate == NULL )
     {
-        ssl->transform_negotiate = polarssl_malloc( sizeof(ssl_transform) );
+        ssl->transform_negotiate = mbedtls_malloc( sizeof(mbedtls_ssl_transform) );
     }
 
     if( ssl->session_negotiate == NULL )
     {
-        ssl->session_negotiate = polarssl_malloc( sizeof(ssl_session) );
+        ssl->session_negotiate = mbedtls_malloc( sizeof(mbedtls_ssl_session) );
     }
 
     if( ssl->handshake == NULL )
     {
-        ssl->handshake = polarssl_malloc( sizeof(ssl_handshake_params) );
+        ssl->handshake = mbedtls_malloc( sizeof(mbedtls_ssl_handshake_params) );
     }
 
     /* All pointers should exist and can be directly freed without issue */
@@ -4872,25 +4872,25 @@ static int ssl_handshake_init( ssl_context *ssl )
         ssl->transform_negotiate == NULL ||
         ssl->session_negotiate == NULL )
     {
-        SSL_DEBUG_MSG( 1, ( "malloc() of ssl sub-contexts failed" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "malloc() of ssl sub-contexts failed" ) );
 
-        polarssl_free( ssl->handshake );
-        polarssl_free( ssl->transform_negotiate );
-        polarssl_free( ssl->session_negotiate );
+        mbedtls_free( ssl->handshake );
+        mbedtls_free( ssl->transform_negotiate );
+        mbedtls_free( ssl->session_negotiate );
 
         ssl->handshake = NULL;
         ssl->transform_negotiate = NULL;
         ssl->session_negotiate = NULL;
 
-        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+        return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
     }
 
     /* Initialize structures */
-    ssl_session_init( ssl->session_negotiate );
+    mbedtls_ssl_session_init( ssl->session_negotiate );
     ssl_transform_init( ssl->transform_negotiate );
     ssl_handshake_params_init( ssl->handshake );
 
-#if defined(POLARSSL_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
     ssl->handshake->key_cert = ssl->key_cert;
 #endif
 
@@ -4898,20 +4898,20 @@ static int ssl_handshake_init( ssl_context *ssl )
      * We may not know yet if we're using DTLS,
      * so always initiliase DTLS-specific fields.
      */
-#if defined(POLARSSL_SSL_PROTO_DTLS)
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
     ssl->handshake->alt_transform_out = ssl->transform_out;
 
     // TODO: not the right place, we may not know endpoint yet
-    if( ssl->endpoint == SSL_IS_CLIENT )
-        ssl->handshake->retransmit_state = SSL_RETRANS_PREPARING;
+    if( ssl->endpoint == MBEDTLS_SSL_IS_CLIENT )
+        ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_PREPARING;
     else
-        ssl->handshake->retransmit_state = SSL_RETRANS_WAITING;
+        ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_WAITING;
 #endif
 
     return( 0 );
 }
 
-#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
+#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
 /* Dummy cookie callbacks for defaults */
 static int ssl_cookie_write_dummy( void *ctx,
                       unsigned char **p, unsigned char *end,
@@ -4923,7 +4923,7 @@ static int ssl_cookie_write_dummy( void *ctx,
     ((void) cli_id);
     ((void) cli_id_len);
 
-    return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
 }
 
 static int ssl_cookie_check_dummy( void *ctx,
@@ -4936,45 +4936,45 @@ static int ssl_cookie_check_dummy( void *ctx,
     ((void) cli_id);
     ((void) cli_id_len);
 
-    return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
 }
-#endif /* POLARSSL_SSL_DTLS_HELLO_VERIFY */
+#endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY */
 
 /*
  * Initialize an SSL context
  */
-int ssl_init( ssl_context *ssl )
+int mbedtls_ssl_init( mbedtls_ssl_context *ssl )
 {
     int ret;
-    int len = SSL_BUFFER_LEN;
+    int len = MBEDTLS_SSL_BUFFER_LEN;
 
-    memset( ssl, 0, sizeof( ssl_context ) );
+    memset( ssl, 0, sizeof( mbedtls_ssl_context ) );
 
     /*
      * Sane defaults
      */
-    ssl->min_major_ver = SSL_MAJOR_VERSION_3;
-    ssl->min_minor_ver = SSL_MINOR_VERSION_1; /* TLS 1.0 */
-    ssl->max_major_ver = SSL_MAX_MAJOR_VERSION;
-    ssl->max_minor_ver = SSL_MAX_MINOR_VERSION;
+    ssl->min_major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
+    ssl->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_1; /* TLS 1.0 */
+    ssl->max_major_ver = MBEDTLS_SSL_MAX_MAJOR_VERSION;
+    ssl->max_minor_ver = MBEDTLS_SSL_MAX_MINOR_VERSION;
 
-    ssl_set_ciphersuites( ssl, ssl_list_ciphersuites() );
+    mbedtls_ssl_set_ciphersuites( ssl, mbedtls_ssl_list_ciphersuites() );
 
-    ssl_set_arc4_support( ssl, SSL_ARC4_DISABLED );
+    mbedtls_ssl_set_arc4_support( ssl, MBEDTLS_SSL_ARC4_DISABLED );
 
-#if defined(POLARSSL_SSL_RENEGOTIATION)
-    ssl->renego_max_records = SSL_RENEGO_MAX_RECORDS_DEFAULT;
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    ssl->renego_max_records = MBEDTLS_SSL_RENEGO_MAX_RECORDS_DEFAULT;
     memset( ssl->renego_period, 0xFF, 7 );
     ssl->renego_period[7] = 0x00;
 #endif
 
-#if defined(POLARSSL_DHM_C)
-    if( ( ret = mpi_read_string( &ssl->dhm_P, 16,
-                                 POLARSSL_DHM_RFC5114_MODP_1024_P) ) != 0 ||
-        ( ret = mpi_read_string( &ssl->dhm_G, 16,
-                                 POLARSSL_DHM_RFC5114_MODP_1024_G) ) != 0 )
+#if defined(MBEDTLS_DHM_C)
+    if( ( ret = mbedtls_mpi_read_string( &ssl->dhm_P, 16,
+                                 MBEDTLS_DHM_RFC5114_MODP_1024_P) ) != 0 ||
+        ( ret = mbedtls_mpi_read_string( &ssl->dhm_G, 16,
+                                 MBEDTLS_DHM_RFC5114_MODP_1024_G) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "mpi_read_string", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_mpi_read_string", ret );
         return( ret );
     }
 #endif
@@ -4982,49 +4982,49 @@ int ssl_init( ssl_context *ssl )
     /*
      * Prepare base structures
      */
-    if( ( ssl->in_buf = polarssl_malloc( len ) ) == NULL ||
-        ( ssl->out_buf = polarssl_malloc( len ) ) == NULL )
+    if( ( ssl->in_buf = mbedtls_malloc( len ) ) == NULL ||
+        ( ssl->out_buf = mbedtls_malloc( len ) ) == NULL )
     {
-        SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed", len ) );
-        polarssl_free( ssl->in_buf );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed", len ) );
+        mbedtls_free( ssl->in_buf );
         ssl->in_buf = NULL;
-        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+        return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
     }
 
-    memset( ssl-> in_buf, 0, SSL_BUFFER_LEN );
-    memset( ssl->out_buf, 0, SSL_BUFFER_LEN );
+    memset( ssl-> in_buf, 0, MBEDTLS_SSL_BUFFER_LEN );
+    memset( ssl->out_buf, 0, MBEDTLS_SSL_BUFFER_LEN );
 
-    /* No error is possible, SSL_TRANSPORT_STREAM always valid */
-    (void) ssl_set_transport( ssl, SSL_TRANSPORT_STREAM );
+    /* No error is possible, MBEDTLS_SSL_TRANSPORT_STREAM always valid */
+    (void) mbedtls_ssl_set_transport( ssl, MBEDTLS_SSL_TRANSPORT_STREAM );
 
-#if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
-    ssl->encrypt_then_mac = SSL_ETM_ENABLED;
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+    ssl->encrypt_then_mac = MBEDTLS_SSL_ETM_ENABLED;
 #endif
 
-#if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
-    ssl->extended_ms = SSL_EXTENDED_MS_ENABLED;
+#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
+    ssl->extended_ms = MBEDTLS_SSL_EXTENDED_MS_ENABLED;
 #endif
 
-#if defined(POLARSSL_SSL_SESSION_TICKETS)
-    ssl->ticket_lifetime = SSL_DEFAULT_TICKET_LIFETIME;
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    ssl->ticket_lifetime = MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME;
 #endif
 
-#if defined(POLARSSL_SSL_SET_CURVES)
-    ssl->curve_list = ecp_grp_id_list( );
+#if defined(MBEDTLS_SSL_SET_CURVES)
+    ssl->curve_list = mbedtls_ecp_grp_id_list( );
 #endif
 
-#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
+#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
     ssl->f_cookie_write = ssl_cookie_write_dummy;
     ssl->f_cookie_check = ssl_cookie_check_dummy;
 #endif
 
-#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
-    ssl->anti_replay = SSL_ANTI_REPLAY_ENABLED;
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+    ssl->anti_replay = MBEDTLS_SSL_ANTI_REPLAY_ENABLED;
 #endif
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    ssl->hs_timeout_min = SSL_DTLS_TIMEOUT_DFL_MIN;
-    ssl->hs_timeout_max = SSL_DTLS_TIMEOUT_DFL_MAX;
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    ssl->hs_timeout_min = MBEDTLS_SSL_DTLS_TIMEOUT_DFL_MIN;
+    ssl->hs_timeout_max = MBEDTLS_SSL_DTLS_TIMEOUT_DFL_MAX;
 #endif
 
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
@@ -5037,21 +5037,21 @@ int ssl_init( ssl_context *ssl )
  * Reset an initialized and used SSL context for re-use while retaining
  * all application-set variables, function pointers and data.
  */
-int ssl_session_reset( ssl_context *ssl )
+int mbedtls_ssl_session_reset( mbedtls_ssl_context *ssl )
 {
     int ret;
 
-    ssl->state = SSL_HELLO_REQUEST;
+    ssl->state = MBEDTLS_SSL_HELLO_REQUEST;
 
-#if defined(POLARSSL_SSL_RENEGOTIATION)
-    ssl->renego_status = SSL_INITIAL_HANDSHAKE;
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    ssl->renego_status = MBEDTLS_SSL_INITIAL_HANDSHAKE;
     ssl->renego_records_seen = 0;
 
     ssl->verify_data_len = 0;
-    memset( ssl->own_verify_data, 0, SSL_VERIFY_DATA_MAX_LEN );
-    memset( ssl->peer_verify_data, 0, SSL_VERIFY_DATA_MAX_LEN );
+    memset( ssl->own_verify_data, 0, MBEDTLS_SSL_VERIFY_DATA_MAX_LEN );
+    memset( ssl->peer_verify_data, 0, MBEDTLS_SSL_VERIFY_DATA_MAX_LEN );
 #endif
-    ssl->secure_renegotiation = SSL_LEGACY_RENEGOTIATION;
+    ssl->secure_renegotiation = MBEDTLS_SSL_LEGACY_RENEGOTIATION;
 
     ssl->in_offt = NULL;
 
@@ -5059,11 +5059,11 @@ int ssl_session_reset( ssl_context *ssl )
     ssl->in_msgtype = 0;
     ssl->in_msglen = 0;
     ssl->in_left = 0;
-#if defined(POLARSSL_SSL_PROTO_DTLS)
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
     ssl->next_record_offset = 0;
     ssl->in_epoch = 0;
 #endif
-#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
     ssl_dtls_replay_reset( ssl );
 #endif
 
@@ -5075,49 +5075,49 @@ int ssl_session_reset( ssl_context *ssl )
     ssl->out_msgtype = 0;
     ssl->out_msglen = 0;
     ssl->out_left = 0;
-#if defined(POLARSSL_SSL_CBC_RECORD_SPLITTING)
-    if( ssl->split_done != SSL_CBC_RECORD_SPLITTING_DISABLED )
+#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
+    if( ssl->split_done != MBEDTLS_SSL_CBC_RECORD_SPLITTING_DISABLED )
         ssl->split_done = 0;
 #endif
 
     ssl->transform_in = NULL;
     ssl->transform_out = NULL;
 
-    memset( ssl->out_buf, 0, SSL_BUFFER_LEN );
-    memset( ssl->in_buf, 0, SSL_BUFFER_LEN );
+    memset( ssl->out_buf, 0, MBEDTLS_SSL_BUFFER_LEN );
+    memset( ssl->in_buf, 0, MBEDTLS_SSL_BUFFER_LEN );
 
-#if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
-    if( ssl_hw_record_reset != NULL )
+#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
+    if( mbedtls_ssl_hw_record_reset != NULL )
     {
-        SSL_DEBUG_MSG( 2, ( "going for ssl_hw_record_reset()" ) );
-        if( ( ret = ssl_hw_record_reset( ssl ) ) != 0 )
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "going for mbedtls_ssl_hw_record_reset()" ) );
+        if( ( ret = mbedtls_ssl_hw_record_reset( ssl ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "ssl_hw_record_reset", ret );
-            return( POLARSSL_ERR_SSL_HW_ACCEL_FAILED );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_hw_record_reset", ret );
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
         }
     }
 #endif
 
     if( ssl->transform )
     {
-        ssl_transform_free( ssl->transform );
-        polarssl_free( ssl->transform );
+        mbedtls_ssl_transform_free( ssl->transform );
+        mbedtls_free( ssl->transform );
         ssl->transform = NULL;
     }
 
     if( ssl->session )
     {
-        ssl_session_free( ssl->session );
-        polarssl_free( ssl->session );
+        mbedtls_ssl_session_free( ssl->session );
+        mbedtls_free( ssl->session );
         ssl->session = NULL;
     }
 
-#if defined(POLARSSL_SSL_ALPN)
+#if defined(MBEDTLS_SSL_ALPN)
     ssl->alpn_chosen = NULL;
 #endif
 
-#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
-    polarssl_free( ssl->cli_id );
+#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
+    mbedtls_free( ssl->cli_id );
     ssl->cli_id = NULL;
     ssl->cli_id_len = 0;
 #endif
@@ -5128,54 +5128,54 @@ int ssl_session_reset( ssl_context *ssl )
     return( 0 );
 }
 
-#if defined(POLARSSL_SSL_SESSION_TICKETS)
-static void ssl_ticket_keys_free( ssl_ticket_keys *tkeys )
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+static void ssl_ticket_keys_free( mbedtls_ssl_ticket_keys *tkeys )
 {
-    aes_free( &tkeys->enc );
-    aes_free( &tkeys->dec );
+    mbedtls_aes_free( &tkeys->enc );
+    mbedtls_aes_free( &tkeys->dec );
 
-    polarssl_zeroize( tkeys, sizeof(ssl_ticket_keys) );
+    mbedtls_zeroize( tkeys, sizeof(mbedtls_ssl_ticket_keys) );
 }
 
 /*
  * Allocate and initialize ticket keys
  */
-static int ssl_ticket_keys_init( ssl_context *ssl )
+static int ssl_ticket_keys_init( mbedtls_ssl_context *ssl )
 {
     int ret;
-    ssl_ticket_keys *tkeys;
+    mbedtls_ssl_ticket_keys *tkeys;
     unsigned char buf[16];
 
     if( ssl->ticket_keys != NULL )
         return( 0 );
 
-    tkeys = polarssl_malloc( sizeof(ssl_ticket_keys) );
+    tkeys = mbedtls_malloc( sizeof(mbedtls_ssl_ticket_keys) );
     if( tkeys == NULL )
-        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+        return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
 
-    aes_init( &tkeys->enc );
-    aes_init( &tkeys->dec );
+    mbedtls_aes_init( &tkeys->enc );
+    mbedtls_aes_init( &tkeys->dec );
 
     if( ( ret = ssl->f_rng( ssl->p_rng, tkeys->key_name, 16 ) ) != 0 )
     {
         ssl_ticket_keys_free( tkeys );
-        polarssl_free( tkeys );
+        mbedtls_free( tkeys );
         return( ret );
     }
 
     if( ( ret = ssl->f_rng( ssl->p_rng, buf, 16 ) ) != 0 ||
-        ( ret = aes_setkey_enc( &tkeys->enc, buf, 128 ) ) != 0 ||
-        ( ret = aes_setkey_dec( &tkeys->dec, buf, 128 ) ) != 0 )
+        ( ret = mbedtls_aes_setkey_enc( &tkeys->enc, buf, 128 ) ) != 0 ||
+        ( ret = mbedtls_aes_setkey_dec( &tkeys->dec, buf, 128 ) ) != 0 )
     {
         ssl_ticket_keys_free( tkeys );
-        polarssl_free( tkeys );
+        mbedtls_free( tkeys );
         return( ret );
     }
 
     if( ( ret = ssl->f_rng( ssl->p_rng, tkeys->mac_key, 16 ) ) != 0 )
     {
         ssl_ticket_keys_free( tkeys );
-        polarssl_free( tkeys );
+        mbedtls_free( tkeys );
         return( ret );
     }
 
@@ -5183,34 +5183,34 @@ static int ssl_ticket_keys_init( ssl_context *ssl )
 
     return( 0 );
 }
-#endif /* POLARSSL_SSL_SESSION_TICKETS */
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
 /*
  * SSL set accessors
  */
-void ssl_set_endpoint( ssl_context *ssl, int endpoint )
+void mbedtls_ssl_set_endpoint( mbedtls_ssl_context *ssl, int endpoint )
 {
     ssl->endpoint   = endpoint;
 
-#if defined(POLARSSL_SSL_SESSION_TICKETS) && \
-    defined(POLARSSL_SSL_CLI_C)
-    if( endpoint == SSL_IS_CLIENT )
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && \
+    defined(MBEDTLS_SSL_CLI_C)
+    if( endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
-        ssl->session_tickets = SSL_SESSION_TICKETS_ENABLED;
-        ssl->authmode = SSL_VERIFY_REQUIRED;
+        ssl->session_tickets = MBEDTLS_SSL_SESSION_TICKETS_ENABLED;
+        ssl->authmode = MBEDTLS_SSL_VERIFY_REQUIRED;
     }
 #endif
 
-#if defined(POLARSSL_SSL_TRUNCATED_HMAC)
-    if( endpoint == SSL_IS_SERVER )
-        ssl->trunc_hmac = SSL_TRUNC_HMAC_ENABLED;
+#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
+    if( endpoint == MBEDTLS_SSL_IS_SERVER )
+        ssl->trunc_hmac = MBEDTLS_SSL_TRUNC_HMAC_ENABLED;
 #endif
 }
 
-int ssl_set_transport( ssl_context *ssl, int transport )
+int mbedtls_ssl_set_transport( mbedtls_ssl_context *ssl, int transport )
 {
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( transport == SSL_TRANSPORT_DATAGRAM )
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
         ssl->transport = transport;
 
@@ -5227,17 +5227,17 @@ int ssl_set_transport( ssl_context *ssl, int transport )
         ssl->in_msg = ssl->in_buf + 13;
 
         /* DTLS starts with TLS1.1 */
-        if( ssl->min_minor_ver < SSL_MINOR_VERSION_2 )
-            ssl->min_minor_ver = SSL_MINOR_VERSION_2;
+        if( ssl->min_minor_ver < MBEDTLS_SSL_MINOR_VERSION_2 )
+            ssl->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_2;
 
-        if( ssl->max_minor_ver < SSL_MINOR_VERSION_2 )
-            ssl->max_minor_ver = SSL_MINOR_VERSION_2;
+        if( ssl->max_minor_ver < MBEDTLS_SSL_MINOR_VERSION_2 )
+            ssl->max_minor_ver = MBEDTLS_SSL_MINOR_VERSION_2;
 
         return( 0 );
     }
 #endif
 
-    if( transport == SSL_TRANSPORT_STREAM )
+    if( transport == MBEDTLS_SSL_TRANSPORT_STREAM )
     {
         ssl->transport = transport;
 
@@ -5256,47 +5256,47 @@ int ssl_set_transport( ssl_context *ssl, int transport )
         return( 0 );
     }
 
-    return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+    return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 }
 
-#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
-void ssl_set_dtls_anti_replay( ssl_context *ssl, char mode )
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+void mbedtls_ssl_set_dtls_anti_replay( mbedtls_ssl_context *ssl, char mode )
 {
     ssl->anti_replay = mode;
 }
 #endif
 
-#if defined(POLARSSL_SSL_DTLS_BADMAC_LIMIT)
-void ssl_set_dtls_badmac_limit( ssl_context *ssl, unsigned limit )
+#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
+void mbedtls_ssl_set_dtls_badmac_limit( mbedtls_ssl_context *ssl, unsigned limit )
 {
     ssl->badmac_limit = limit;
 }
 #endif
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-void ssl_set_handshake_timeout( ssl_context *ssl, uint32_t min, uint32_t max )
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+void mbedtls_ssl_set_handshake_timeout( mbedtls_ssl_context *ssl, uint32_t min, uint32_t max )
 {
     ssl->hs_timeout_min = min;
     ssl->hs_timeout_max = max;
 }
 #endif
 
-void ssl_set_authmode( ssl_context *ssl, int authmode )
+void mbedtls_ssl_set_authmode( mbedtls_ssl_context *ssl, int authmode )
 {
     ssl->authmode   = authmode;
 }
 
-#if defined(POLARSSL_X509_CRT_PARSE_C)
-void ssl_set_verify( ssl_context *ssl,
-                     int (*f_vrfy)(void *, x509_crt *, int, int *),
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+void mbedtls_ssl_set_verify( mbedtls_ssl_context *ssl,
+                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, int *),
                      void *p_vrfy )
 {
     ssl->f_vrfy      = f_vrfy;
     ssl->p_vrfy      = p_vrfy;
 }
-#endif /* POLARSSL_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-void ssl_set_rng( ssl_context *ssl,
+void mbedtls_ssl_set_rng( mbedtls_ssl_context *ssl,
                   int (*f_rng)(void *, unsigned char *, size_t),
                   void *p_rng )
 {
@@ -5304,7 +5304,7 @@ void ssl_set_rng( ssl_context *ssl,
     ssl->p_rng      = p_rng;
 }
 
-void ssl_set_dbg( ssl_context *ssl,
+void mbedtls_ssl_set_dbg( mbedtls_ssl_context *ssl,
                   void (*f_dbg)(void *, int, const char *),
                   void  *p_dbg )
 {
@@ -5312,8 +5312,8 @@ void ssl_set_dbg( ssl_context *ssl,
     ssl->p_dbg      = p_dbg;
 }
 
-#if ! defined(POLARSSL_DEPRECATED_REMOVED)
-void ssl_set_bio( ssl_context *ssl,
+#if ! defined(MBEDTLS_DEPRECATED_REMOVED)
+void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
             int (*f_recv)(void *, unsigned char *, size_t), void *p_recv,
             int (*f_send)(void *, const unsigned char *, size_t), void *p_send )
 {
@@ -5329,9 +5329,9 @@ void ssl_set_bio( ssl_context *ssl,
     ssl->f_send     = f_send;
     ssl->p_bio      = p_send;
 }
-#endif /* POLARSSL_DEPRECATED_REMOVED */
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
 
-void ssl_set_bio_timeout( ssl_context *ssl,
+void mbedtls_ssl_set_bio_timeout( mbedtls_ssl_context *ssl,
         void *p_bio,
         int (*f_send)(void *, const unsigned char *, size_t),
         int (*f_recv)(void *, unsigned char *, size_t),
@@ -5345,29 +5345,29 @@ void ssl_set_bio_timeout( ssl_context *ssl,
     ssl->read_timeout   = timeout;
 }
 
-#if defined(POLARSSL_SSL_SRV_C)
-void ssl_set_session_cache( ssl_context *ssl,
-        int (*f_get_cache)(void *, ssl_session *), void *p_get_cache,
-        int (*f_set_cache)(void *, const ssl_session *), void *p_set_cache )
+#if defined(MBEDTLS_SSL_SRV_C)
+void mbedtls_ssl_set_session_cache( mbedtls_ssl_context *ssl,
+        int (*f_get_cache)(void *, mbedtls_ssl_session *), void *p_get_cache,
+        int (*f_set_cache)(void *, const mbedtls_ssl_session *), void *p_set_cache )
 {
     ssl->f_get_cache = f_get_cache;
     ssl->p_get_cache = p_get_cache;
     ssl->f_set_cache = f_set_cache;
     ssl->p_set_cache = p_set_cache;
 }
-#endif /* POLARSSL_SSL_SRV_C */
+#endif /* MBEDTLS_SSL_SRV_C */
 
-#if defined(POLARSSL_SSL_CLI_C)
-int ssl_set_session( ssl_context *ssl, const ssl_session *session )
+#if defined(MBEDTLS_SSL_CLI_C)
+int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session *session )
 {
     int ret;
 
     if( ssl == NULL ||
         session == NULL ||
         ssl->session_negotiate == NULL ||
-        ssl->endpoint != SSL_IS_CLIENT )
+        ssl->endpoint != MBEDTLS_SSL_IS_CLIENT )
     {
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
     if( ( ret = ssl_session_copy( ssl->session_negotiate, session ) ) != 0 )
@@ -5377,40 +5377,40 @@ int ssl_set_session( ssl_context *ssl, const ssl_session *session )
 
     return( 0 );
 }
-#endif /* POLARSSL_SSL_CLI_C */
+#endif /* MBEDTLS_SSL_CLI_C */
 
-void ssl_set_ciphersuites( ssl_context *ssl, const int *ciphersuites )
+void mbedtls_ssl_set_ciphersuites( mbedtls_ssl_context *ssl, const int *ciphersuites )
 {
-    ssl->ciphersuite_list[SSL_MINOR_VERSION_0] = ciphersuites;
-    ssl->ciphersuite_list[SSL_MINOR_VERSION_1] = ciphersuites;
-    ssl->ciphersuite_list[SSL_MINOR_VERSION_2] = ciphersuites;
-    ssl->ciphersuite_list[SSL_MINOR_VERSION_3] = ciphersuites;
+    ssl->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_0] = ciphersuites;
+    ssl->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_1] = ciphersuites;
+    ssl->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_2] = ciphersuites;
+    ssl->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_3] = ciphersuites;
 }
 
-void ssl_set_ciphersuites_for_version( ssl_context *ssl,
+void mbedtls_ssl_set_ciphersuites_for_version( mbedtls_ssl_context *ssl,
                                        const int *ciphersuites,
                                        int major, int minor )
 {
-    if( major != SSL_MAJOR_VERSION_3 )
+    if( major != MBEDTLS_SSL_MAJOR_VERSION_3 )
         return;
 
-    if( minor < SSL_MINOR_VERSION_0 || minor > SSL_MINOR_VERSION_3 )
+    if( minor < MBEDTLS_SSL_MINOR_VERSION_0 || minor > MBEDTLS_SSL_MINOR_VERSION_3 )
         return;
 
     ssl->ciphersuite_list[minor] = ciphersuites;
 }
 
-#if defined(POLARSSL_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
 /* Add a new (empty) key_cert entry an return a pointer to it */
-static ssl_key_cert *ssl_add_key_cert( ssl_context *ssl )
+static mbedtls_ssl_key_cert *ssl_add_key_cert( mbedtls_ssl_context *ssl )
 {
-    ssl_key_cert *key_cert, *last;
+    mbedtls_ssl_key_cert *key_cert, *last;
 
-    key_cert = polarssl_malloc( sizeof(ssl_key_cert) );
+    key_cert = mbedtls_malloc( sizeof(mbedtls_ssl_key_cert) );
     if( key_cert == NULL )
         return( NULL );
 
-    memset( key_cert, 0, sizeof( ssl_key_cert ) );
+    memset( key_cert, 0, sizeof( mbedtls_ssl_key_cert ) );
 
     /* Append the new key_cert to the (possibly empty) current list */
     if( ssl->key_cert == NULL )
@@ -5430,51 +5430,51 @@ static ssl_key_cert *ssl_add_key_cert( ssl_context *ssl )
     return( key_cert );
 }
 
-void ssl_set_ca_chain( ssl_context *ssl, x509_crt *ca_chain,
-                       x509_crl *ca_crl, const char *peer_cn )
+void mbedtls_ssl_set_ca_chain( mbedtls_ssl_context *ssl, mbedtls_x509_crt *ca_chain,
+                       mbedtls_x509_crl *ca_crl, const char *peer_cn )
 {
     ssl->ca_chain   = ca_chain;
     ssl->ca_crl     = ca_crl;
     ssl->peer_cn    = peer_cn;
 }
 
-int ssl_set_own_cert( ssl_context *ssl, x509_crt *own_cert,
-                       pk_context *pk_key )
+int mbedtls_ssl_set_own_cert( mbedtls_ssl_context *ssl, mbedtls_x509_crt *own_cert,
+                       mbedtls_pk_context *pk_key )
 {
-    ssl_key_cert *key_cert = ssl_add_key_cert( ssl );
+    mbedtls_ssl_key_cert *key_cert = ssl_add_key_cert( ssl );
 
     if( key_cert == NULL )
-        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+        return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
 
     key_cert->cert = own_cert;
     key_cert->key  = pk_key;
 
     return( 0 );
 }
-#endif /* POLARSSL_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-#if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
-int ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+int mbedtls_ssl_set_psk( mbedtls_ssl_context *ssl, const unsigned char *psk, size_t psk_len,
                  const unsigned char *psk_identity, size_t psk_identity_len )
 {
     if( psk == NULL || psk_identity == NULL )
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    if( psk_len > POLARSSL_PSK_MAX_LEN )
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+    if( psk_len > MBEDTLS_PSK_MAX_LEN )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     if( ssl->psk != NULL || ssl->psk_identity != NULL )
     {
-        polarssl_free( ssl->psk );
-        polarssl_free( ssl->psk_identity );
+        mbedtls_free( ssl->psk );
+        mbedtls_free( ssl->psk_identity );
     }
 
-    if( ( ssl->psk = polarssl_malloc( psk_len ) ) == NULL ||
-        ( ssl->psk_identity = polarssl_malloc( psk_identity_len ) ) == NULL )
+    if( ( ssl->psk = mbedtls_malloc( psk_len ) ) == NULL ||
+        ( ssl->psk_identity = mbedtls_malloc( psk_identity_len ) ) == NULL )
     {
-        polarssl_free( ssl->psk );
+        mbedtls_free( ssl->psk );
         ssl->psk = NULL;
-        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+        return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
     }
 
     ssl->psk_len = psk_len;
@@ -5486,81 +5486,81 @@ int ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
     return( 0 );
 }
 
-void ssl_set_psk_cb( ssl_context *ssl,
-                     int (*f_psk)(void *, ssl_context *, const unsigned char *,
+void mbedtls_ssl_set_psk_cb( mbedtls_ssl_context *ssl,
+                     int (*f_psk)(void *, mbedtls_ssl_context *, const unsigned char *,
                      size_t),
                      void *p_psk )
 {
     ssl->f_psk = f_psk;
     ssl->p_psk = p_psk;
 }
-#endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
-#if defined(POLARSSL_DHM_C)
-int ssl_set_dh_param( ssl_context *ssl, const char *dhm_P, const char *dhm_G )
+#if defined(MBEDTLS_DHM_C)
+int mbedtls_ssl_set_dh_param( mbedtls_ssl_context *ssl, const char *dhm_P, const char *dhm_G )
 {
     int ret;
 
-    if( ( ret = mpi_read_string( &ssl->dhm_P, 16, dhm_P ) ) != 0 )
+    if( ( ret = mbedtls_mpi_read_string( &ssl->dhm_P, 16, dhm_P ) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "mpi_read_string", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_mpi_read_string", ret );
         return( ret );
     }
 
-    if( ( ret = mpi_read_string( &ssl->dhm_G, 16, dhm_G ) ) != 0 )
+    if( ( ret = mbedtls_mpi_read_string( &ssl->dhm_G, 16, dhm_G ) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "mpi_read_string", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_mpi_read_string", ret );
         return( ret );
     }
 
     return( 0 );
 }
 
-int ssl_set_dh_param_ctx( ssl_context *ssl, dhm_context *dhm_ctx )
+int mbedtls_ssl_set_dh_param_ctx( mbedtls_ssl_context *ssl, mbedtls_dhm_context *dhm_ctx )
 {
     int ret;
 
-    if( ( ret = mpi_copy( &ssl->dhm_P, &dhm_ctx->P ) ) != 0 )
+    if( ( ret = mbedtls_mpi_copy( &ssl->dhm_P, &dhm_ctx->P ) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "mpi_copy", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_mpi_copy", ret );
         return( ret );
     }
 
-    if( ( ret = mpi_copy( &ssl->dhm_G, &dhm_ctx->G ) ) != 0 )
+    if( ( ret = mbedtls_mpi_copy( &ssl->dhm_G, &dhm_ctx->G ) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "mpi_copy", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_mpi_copy", ret );
         return( ret );
     }
 
     return( 0 );
 }
-#endif /* POLARSSL_DHM_C */
+#endif /* MBEDTLS_DHM_C */
 
-#if defined(POLARSSL_SSL_SET_CURVES)
+#if defined(MBEDTLS_SSL_SET_CURVES)
 /*
  * Set the allowed elliptic curves
  */
-void ssl_set_curves( ssl_context *ssl, const ecp_group_id *curve_list )
+void mbedtls_ssl_set_curves( mbedtls_ssl_context *ssl, const mbedtls_ecp_group_id *curve_list )
 {
   ssl->curve_list = curve_list;
 }
 #endif
 
-#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
-int ssl_set_hostname( ssl_context *ssl, const char *hostname )
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+int mbedtls_ssl_set_hostname( mbedtls_ssl_context *ssl, const char *hostname )
 {
     if( hostname == NULL )
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     ssl->hostname_len = strlen( hostname );
 
     if( ssl->hostname_len + 1 == 0 )
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    ssl->hostname = polarssl_malloc( ssl->hostname_len + 1 );
+    ssl->hostname = mbedtls_malloc( ssl->hostname_len + 1 );
 
     if( ssl->hostname == NULL )
-        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+        return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
 
     memcpy( ssl->hostname, (const unsigned char *) hostname,
             ssl->hostname_len );
@@ -5570,18 +5570,18 @@ int ssl_set_hostname( ssl_context *ssl, const char *hostname )
     return( 0 );
 }
 
-void ssl_set_sni( ssl_context *ssl,
-                  int (*f_sni)(void *, ssl_context *,
+void mbedtls_ssl_set_sni( mbedtls_ssl_context *ssl,
+                  int (*f_sni)(void *, mbedtls_ssl_context *,
                                 const unsigned char *, size_t),
                   void *p_sni )
 {
     ssl->f_sni = f_sni;
     ssl->p_sni = p_sni;
 }
-#endif /* POLARSSL_SSL_SERVER_NAME_INDICATION */
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
-#if defined(POLARSSL_SSL_ALPN)
-int ssl_set_alpn_protocols( ssl_context *ssl, const char **protos )
+#if defined(MBEDTLS_SSL_ALPN)
+int mbedtls_ssl_set_alpn_protocols( mbedtls_ssl_context *ssl, const char **protos )
 {
     size_t cur_len, tot_len;
     const char **p;
@@ -5597,7 +5597,7 @@ int ssl_set_alpn_protocols( ssl_context *ssl, const char **protos )
         tot_len += cur_len;
 
         if( cur_len == 0 || cur_len > 255 || tot_len > 65535 )
-            return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
     ssl->alpn_list = protos;
@@ -5605,23 +5605,23 @@ int ssl_set_alpn_protocols( ssl_context *ssl, const char **protos )
     return( 0 );
 }
 
-const char *ssl_get_alpn_protocol( const ssl_context *ssl )
+const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl )
 {
     return( ssl->alpn_chosen );
 }
-#endif /* POLARSSL_SSL_ALPN */
+#endif /* MBEDTLS_SSL_ALPN */
 
-static int ssl_check_version( const ssl_context *ssl, int major, int minor )
+static int ssl_check_version( const mbedtls_ssl_context *ssl, int major, int minor )
 {
-    if( major < SSL_MIN_MAJOR_VERSION || major > SSL_MAX_MAJOR_VERSION ||
-        minor < SSL_MIN_MINOR_VERSION || minor > SSL_MAX_MINOR_VERSION )
+    if( major < MBEDTLS_SSL_MIN_MAJOR_VERSION || major > MBEDTLS_SSL_MAX_MAJOR_VERSION ||
+        minor < MBEDTLS_SSL_MIN_MINOR_VERSION || minor > MBEDTLS_SSL_MAX_MINOR_VERSION )
     {
         return( -1 );
     }
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
-        minor < SSL_MINOR_VERSION_2 )
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+        minor < MBEDTLS_SSL_MINOR_VERSION_2 )
     {
         return( -1 );
     }
@@ -5632,10 +5632,10 @@ static int ssl_check_version( const ssl_context *ssl, int major, int minor )
     return( 0 );
 }
 
-int ssl_set_max_version( ssl_context *ssl, int major, int minor )
+int mbedtls_ssl_set_max_version( mbedtls_ssl_context *ssl, int major, int minor )
 {
     if( ssl_check_version( ssl, major, minor ) != 0 )
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     ssl->max_major_ver = major;
     ssl->max_minor_ver = minor;
@@ -5643,10 +5643,10 @@ int ssl_set_max_version( ssl_context *ssl, int major, int minor )
     return( 0 );
 }
 
-int ssl_set_min_version( ssl_context *ssl, int major, int minor )
+int mbedtls_ssl_set_min_version( mbedtls_ssl_context *ssl, int major, int minor )
 {
     if( ssl_check_version( ssl, major, minor ) != 0 )
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     ssl->min_major_ver = major;
     ssl->min_minor_ver = minor;
@@ -5654,120 +5654,120 @@ int ssl_set_min_version( ssl_context *ssl, int major, int minor )
     return( 0 );
 }
 
-#if defined(POLARSSL_SSL_FALLBACK_SCSV) && defined(POLARSSL_SSL_CLI_C)
-void ssl_set_fallback( ssl_context *ssl, char fallback )
+#if defined(MBEDTLS_SSL_FALLBACK_SCSV) && defined(MBEDTLS_SSL_CLI_C)
+void mbedtls_ssl_set_fallback( mbedtls_ssl_context *ssl, char fallback )
 {
     ssl->fallback = fallback;
 }
 #endif
 
-#if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
-void ssl_set_encrypt_then_mac( ssl_context *ssl, char etm )
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+void mbedtls_ssl_set_encrypt_then_mac( mbedtls_ssl_context *ssl, char etm )
 {
     ssl->encrypt_then_mac = etm;
 }
 #endif
 
-#if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
-void ssl_set_extended_master_secret( ssl_context *ssl, char ems )
+#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
+void mbedtls_ssl_set_extended_master_secret( mbedtls_ssl_context *ssl, char ems )
 {
     ssl->extended_ms = ems;
 }
 #endif
 
-void ssl_set_arc4_support( ssl_context *ssl, char arc4 )
+void mbedtls_ssl_set_arc4_support( mbedtls_ssl_context *ssl, char arc4 )
 {
     ssl->arc4_disabled = arc4;
 }
 
-#if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
-int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code )
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+int mbedtls_ssl_set_max_frag_len( mbedtls_ssl_context *ssl, unsigned char mfl_code )
 {
-    if( mfl_code >= SSL_MAX_FRAG_LEN_INVALID ||
-        mfl_code_to_length[mfl_code] > SSL_MAX_CONTENT_LEN )
+    if( mfl_code >= MBEDTLS_SSL_MAX_FRAG_LEN_INVALID ||
+        mfl_code_to_length[mfl_code] > MBEDTLS_SSL_MAX_CONTENT_LEN )
     {
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
     ssl->mfl_code = mfl_code;
 
     return( 0 );
 }
-#endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
+#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
-#if defined(POLARSSL_SSL_TRUNCATED_HMAC)
-int ssl_set_truncated_hmac( ssl_context *ssl, int truncate )
+#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
+int mbedtls_ssl_set_truncated_hmac( mbedtls_ssl_context *ssl, int truncate )
 {
     ssl->trunc_hmac = truncate;
 
     return( 0 );
 }
-#endif /* POLARSSL_SSL_TRUNCATED_HMAC */
+#endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
 
-#if defined(POLARSSL_SSL_CBC_RECORD_SPLITTING)
-void ssl_set_cbc_record_splitting( ssl_context *ssl, char split )
+#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
+void mbedtls_ssl_set_cbc_record_splitting( mbedtls_ssl_context *ssl, char split )
 {
     ssl->split_done = split;
 }
 #endif
 
-void ssl_legacy_renegotiation( ssl_context *ssl, int allow_legacy )
+void mbedtls_ssl_legacy_renegotiation( mbedtls_ssl_context *ssl, int allow_legacy )
 {
     ssl->allow_legacy_renegotiation = allow_legacy;
 }
 
-#if defined(POLARSSL_SSL_RENEGOTIATION)
-void ssl_set_renegotiation( ssl_context *ssl, int renegotiation )
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+void mbedtls_ssl_set_renegotiation( mbedtls_ssl_context *ssl, int renegotiation )
 {
     ssl->disable_renegotiation = renegotiation;
 }
 
-void ssl_set_renegotiation_enforced( ssl_context *ssl, int max_records )
+void mbedtls_ssl_set_renegotiation_enforced( mbedtls_ssl_context *ssl, int max_records )
 {
     ssl->renego_max_records = max_records;
 }
 
-void ssl_set_renegotiation_period( ssl_context *ssl,
+void mbedtls_ssl_set_renegotiation_period( mbedtls_ssl_context *ssl,
                                    const unsigned char period[8] )
 {
     memcpy( ssl->renego_period, period, 8 );
 }
-#endif /* POLARSSL_SSL_RENEGOTIATION */
+#endif /* MBEDTLS_SSL_RENEGOTIATION */
 
-#if defined(POLARSSL_SSL_SESSION_TICKETS)
-int ssl_set_session_tickets( ssl_context *ssl, int use_tickets )
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+int mbedtls_ssl_set_session_tickets( mbedtls_ssl_context *ssl, int use_tickets )
 {
     ssl->session_tickets = use_tickets;
 
-#if defined(POLARSSL_SSL_CLI_C)
-    if( ssl->endpoint == SSL_IS_CLIENT )
+#if defined(MBEDTLS_SSL_CLI_C)
+    if( ssl->endpoint == MBEDTLS_SSL_IS_CLIENT )
         return( 0 );
 #endif
 
-    if( use_tickets == SSL_SESSION_TICKETS_DISABLED )
+    if( use_tickets == MBEDTLS_SSL_SESSION_TICKETS_DISABLED )
         return( 0 );
 
     if( ssl->f_rng == NULL )
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     return( ssl_ticket_keys_init( ssl ) );
 }
 
-void ssl_set_session_ticket_lifetime( ssl_context *ssl, int lifetime )
+void mbedtls_ssl_set_session_ticket_lifetime( mbedtls_ssl_context *ssl, int lifetime )
 {
     ssl->ticket_lifetime = lifetime;
 }
-#endif /* POLARSSL_SSL_SESSION_TICKETS */
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
 /*
  * SSL get accessors
  */
-size_t ssl_get_bytes_avail( const ssl_context *ssl )
+size_t mbedtls_ssl_get_bytes_avail( const mbedtls_ssl_context *ssl )
 {
     return( ssl->in_offt == NULL ? 0 : ssl->in_msglen );
 }
 
-int ssl_get_verify_result( const ssl_context *ssl )
+int mbedtls_ssl_get_verify_result( const mbedtls_ssl_context *ssl )
 {
     if( ssl->session != NULL )
         return( ssl->session->verify_result );
@@ -5778,25 +5778,25 @@ int ssl_get_verify_result( const ssl_context *ssl )
     return( -1 );
 }
 
-const char *ssl_get_ciphersuite( const ssl_context *ssl )
+const char *mbedtls_ssl_get_ciphersuite( const mbedtls_ssl_context *ssl )
 {
     if( ssl == NULL || ssl->session == NULL )
         return( NULL );
 
-    return ssl_get_ciphersuite_name( ssl->session->ciphersuite );
+    return mbedtls_ssl_get_ciphersuite_name( ssl->session->ciphersuite );
 }
 
-const char *ssl_get_version( const ssl_context *ssl )
+const char *mbedtls_ssl_get_version( const mbedtls_ssl_context *ssl )
 {
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
         switch( ssl->minor_ver )
         {
-            case SSL_MINOR_VERSION_2:
+            case MBEDTLS_SSL_MINOR_VERSION_2:
                 return( "DTLSv1.0" );
 
-            case SSL_MINOR_VERSION_3:
+            case MBEDTLS_SSL_MINOR_VERSION_3:
                 return( "DTLSv1.2" );
 
             default:
@@ -5807,16 +5807,16 @@ const char *ssl_get_version( const ssl_context *ssl )
 
     switch( ssl->minor_ver )
     {
-        case SSL_MINOR_VERSION_0:
+        case MBEDTLS_SSL_MINOR_VERSION_0:
             return( "SSLv3.0" );
 
-        case SSL_MINOR_VERSION_1:
+        case MBEDTLS_SSL_MINOR_VERSION_1:
             return( "TLSv1.0" );
 
-        case SSL_MINOR_VERSION_2:
+        case MBEDTLS_SSL_MINOR_VERSION_2:
             return( "TLSv1.1" );
 
-        case SSL_MINOR_VERSION_3:
+        case MBEDTLS_SSL_MINOR_VERSION_3:
             return( "TLSv1.2" );
 
         default:
@@ -5824,79 +5824,79 @@ const char *ssl_get_version( const ssl_context *ssl )
     }
 }
 
-int ssl_get_record_expansion( const ssl_context *ssl )
+int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
 {
     int transform_expansion;
-    const ssl_transform *transform = ssl->transform_out;
+    const mbedtls_ssl_transform *transform = ssl->transform_out;
 
-#if defined(POLARSSL_ZLIB_SUPPORT)
-    if( ssl->session_out->compression != SSL_COMPRESS_NULL )
-        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+#if defined(MBEDTLS_ZLIB_SUPPORT)
+    if( ssl->session_out->compression != MBEDTLS_SSL_COMPRESS_NULL )
+        return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
 #endif
 
     if( transform == NULL )
-        return( ssl_hdr_len( ssl ) );
+        return( mbedtls_ssl_hdr_len( ssl ) );
 
-    switch( cipher_get_cipher_mode( &transform->cipher_ctx_enc ) )
+    switch( mbedtls_cipher_get_cipher_mode( &transform->cipher_ctx_enc ) )
     {
-        case POLARSSL_MODE_GCM:
-        case POLARSSL_MODE_CCM:
-        case POLARSSL_MODE_STREAM:
+        case MBEDTLS_MODE_GCM:
+        case MBEDTLS_MODE_CCM:
+        case MBEDTLS_MODE_STREAM:
             transform_expansion = transform->minlen;
             break;
 
-        case POLARSSL_MODE_CBC:
+        case MBEDTLS_MODE_CBC:
             transform_expansion = transform->maclen
-                      + cipher_get_block_size( &transform->cipher_ctx_enc );
+                      + mbedtls_cipher_get_block_size( &transform->cipher_ctx_enc );
             break;
 
         default:
-            SSL_DEBUG_MSG( 0, ( "should never happen" ) );
-            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+            MBEDTLS_SSL_DEBUG_MSG( 0, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-    return( ssl_hdr_len( ssl ) + transform_expansion );
+    return( mbedtls_ssl_hdr_len( ssl ) + transform_expansion );
 }
 
-#if defined(POLARSSL_X509_CRT_PARSE_C)
-const x509_crt *ssl_get_peer_cert( const ssl_context *ssl )
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert( const mbedtls_ssl_context *ssl )
 {
     if( ssl == NULL || ssl->session == NULL )
         return( NULL );
 
     return( ssl->session->peer_cert );
 }
-#endif /* POLARSSL_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-#if defined(POLARSSL_SSL_CLI_C)
-int ssl_get_session( const ssl_context *ssl, ssl_session *dst )
+#if defined(MBEDTLS_SSL_CLI_C)
+int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl, mbedtls_ssl_session *dst )
 {
     if( ssl == NULL ||
         dst == NULL ||
         ssl->session == NULL ||
-        ssl->endpoint != SSL_IS_CLIENT )
+        ssl->endpoint != MBEDTLS_SSL_IS_CLIENT )
     {
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
     return( ssl_session_copy( dst, ssl->session ) );
 }
-#endif /* POLARSSL_SSL_CLI_C */
+#endif /* MBEDTLS_SSL_CLI_C */
 
 /*
  * Perform a single step of the SSL handshake
  */
-int ssl_handshake_step( ssl_context *ssl )
+int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl )
 {
-    int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
+    int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
 
-#if defined(POLARSSL_SSL_CLI_C)
-    if( ssl->endpoint == SSL_IS_CLIENT )
-        ret = ssl_handshake_client_step( ssl );
+#if defined(MBEDTLS_SSL_CLI_C)
+    if( ssl->endpoint == MBEDTLS_SSL_IS_CLIENT )
+        ret = mbedtls_ssl_handshake_client_step( ssl );
 #endif
-#if defined(POLARSSL_SSL_SRV_C)
-    if( ssl->endpoint == SSL_IS_SERVER )
-        ret = ssl_handshake_server_step( ssl );
+#if defined(MBEDTLS_SSL_SRV_C)
+    if( ssl->endpoint == MBEDTLS_SSL_IS_SERVER )
+        ret = mbedtls_ssl_handshake_server_step( ssl );
 #endif
 
     return( ret );
@@ -5905,93 +5905,93 @@ int ssl_handshake_step( ssl_context *ssl )
 /*
  * Perform the SSL handshake
  */
-int ssl_handshake( ssl_context *ssl )
+int mbedtls_ssl_handshake( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
 
-    SSL_DEBUG_MSG( 2, ( "=> handshake" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> handshake" ) );
 
-    while( ssl->state != SSL_HANDSHAKE_OVER )
+    while( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
     {
-        ret = ssl_handshake_step( ssl );
+        ret = mbedtls_ssl_handshake_step( ssl );
 
         if( ret != 0 )
             break;
     }
 
-    SSL_DEBUG_MSG( 2, ( "<= handshake" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= handshake" ) );
 
     return( ret );
 }
 
-#if defined(POLARSSL_SSL_RENEGOTIATION)
-#if defined(POLARSSL_SSL_SRV_C)
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+#if defined(MBEDTLS_SSL_SRV_C)
 /*
  * Write HelloRequest to request renegotiation on server
  */
-static int ssl_write_hello_request( ssl_context *ssl )
+static int ssl_write_hello_request( mbedtls_ssl_context *ssl )
 {
     int ret;
 
-    SSL_DEBUG_MSG( 2, ( "=> write hello request" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write hello request" ) );
 
     ssl->out_msglen  = 4;
-    ssl->out_msgtype = SSL_MSG_HANDSHAKE;
-    ssl->out_msg[0]  = SSL_HS_HELLO_REQUEST;
+    ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
+    ssl->out_msg[0]  = MBEDTLS_SSL_HS_HELLO_REQUEST;
 
-    if( ( ret = ssl_write_record( ssl ) ) != 0 )
+    if( ( ret = mbedtls_ssl_write_record( ssl ) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "ssl_write_record", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
         return( ret );
     }
 
-    SSL_DEBUG_MSG( 2, ( "<= write hello request" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write hello request" ) );
 
     return( 0 );
 }
-#endif /* POLARSSL_SSL_SRV_C */
+#endif /* MBEDTLS_SSL_SRV_C */
 
 /*
  * Actually renegotiate current connection, triggered by either:
- * - any side: calling ssl_renegotiate(),
- * - client: receiving a HelloRequest during ssl_read(),
- * - server: receiving any handshake message on server during ssl_read() after
+ * - any side: calling mbedtls_ssl_renegotiate(),
+ * - client: receiving a HelloRequest during mbedtls_ssl_read(),
+ * - server: receiving any handshake message on server during mbedtls_ssl_read() after
  *   the initial handshake is completed.
  * If the handshake doesn't complete due to waiting for I/O, it will continue
- * during the next calls to ssl_renegotiate() or ssl_read() respectively.
+ * during the next calls to mbedtls_ssl_renegotiate() or mbedtls_ssl_read() respectively.
  */
-static int ssl_start_renegotiation( ssl_context *ssl )
+static int ssl_start_renegotiation( mbedtls_ssl_context *ssl )
 {
     int ret;
 
-    SSL_DEBUG_MSG( 2, ( "=> renegotiate" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> renegotiate" ) );
 
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
         return( ret );
 
     /* RFC 6347 4.2.2: "[...] the HelloRequest will have message_seq = 0 and
      * the ServerHello will have message_seq = 1" */
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
-        ssl->renego_status == SSL_RENEGOTIATION_PENDING )
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+        ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_PENDING )
     {
-        if( ssl->endpoint == SSL_IS_SERVER )
+        if( ssl->endpoint == MBEDTLS_SSL_IS_SERVER )
             ssl->handshake->out_msg_seq = 1;
         else
             ssl->handshake->in_msg_seq = 1;
     }
 #endif
 
-    ssl->state = SSL_HELLO_REQUEST;
-    ssl->renego_status = SSL_RENEGOTIATION_IN_PROGRESS;
+    ssl->state = MBEDTLS_SSL_HELLO_REQUEST;
+    ssl->renego_status = MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS;
 
-    if( ( ret = ssl_handshake( ssl ) ) != 0 )
+    if( ( ret = mbedtls_ssl_handshake( ssl ) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "ssl_handshake", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_handshake", ret );
         return( ret );
     }
 
-    SSL_DEBUG_MSG( 2, ( "<= renegotiate" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= renegotiate" ) );
 
     return( 0 );
 }
@@ -6000,52 +6000,52 @@ static int ssl_start_renegotiation( ssl_context *ssl )
  * Renegotiate current connection on client,
  * or request renegotiation on server
  */
-int ssl_renegotiate( ssl_context *ssl )
+int mbedtls_ssl_renegotiate( mbedtls_ssl_context *ssl )
 {
-    int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
+    int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
 
-#if defined(POLARSSL_SSL_SRV_C)
+#if defined(MBEDTLS_SSL_SRV_C)
     /* On server, just send the request */
-    if( ssl->endpoint == SSL_IS_SERVER )
+    if( ssl->endpoint == MBEDTLS_SSL_IS_SERVER )
     {
-        if( ssl->state != SSL_HANDSHAKE_OVER )
-            return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+        if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-        ssl->renego_status = SSL_RENEGOTIATION_PENDING;
+        ssl->renego_status = MBEDTLS_SSL_RENEGOTIATION_PENDING;
 
         /* Did we already try/start sending HelloRequest? */
         if( ssl->out_left != 0 )
-            return( ssl_flush_output( ssl ) );
+            return( mbedtls_ssl_flush_output( ssl ) );
 
         return( ssl_write_hello_request( ssl ) );
     }
-#endif /* POLARSSL_SSL_SRV_C */
+#endif /* MBEDTLS_SSL_SRV_C */
 
-#if defined(POLARSSL_SSL_CLI_C)
+#if defined(MBEDTLS_SSL_CLI_C)
     /*
      * On client, either start the renegotiation process or,
      * if already in progress, continue the handshake
      */
-    if( ssl->renego_status != SSL_RENEGOTIATION_IN_PROGRESS )
+    if( ssl->renego_status != MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS )
     {
-        if( ssl->state != SSL_HANDSHAKE_OVER )
-            return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+        if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
         if( ( ret = ssl_start_renegotiation( ssl ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "ssl_start_renegotiation", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_start_renegotiation", ret );
             return( ret );
         }
     }
     else
     {
-        if( ( ret = ssl_handshake( ssl ) ) != 0 )
+        if( ( ret = mbedtls_ssl_handshake( ssl ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "ssl_handshake", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_handshake", ret );
             return( ret );
         }
     }
-#endif /* POLARSSL_SSL_CLI_C */
+#endif /* MBEDTLS_SSL_CLI_C */
 
     return( ret );
 }
@@ -6053,11 +6053,11 @@ int ssl_renegotiate( ssl_context *ssl )
 /*
  * Check record counters and renegotiate if they're above the limit.
  */
-static int ssl_check_ctr_renegotiate( ssl_context *ssl )
+static int ssl_check_ctr_renegotiate( mbedtls_ssl_context *ssl )
 {
-    if( ssl->state != SSL_HANDSHAKE_OVER ||
-        ssl->renego_status == SSL_RENEGOTIATION_PENDING ||
-        ssl->disable_renegotiation == SSL_RENEGOTIATION_DISABLED )
+    if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER ||
+        ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_PENDING ||
+        ssl->disable_renegotiation == MBEDTLS_SSL_RENEGOTIATION_DISABLED )
     {
         return( 0 );
     }
@@ -6069,61 +6069,61 @@ static int ssl_check_ctr_renegotiate( ssl_context *ssl )
         return( 0 );
     }
 
-    SSL_DEBUG_MSG( 0, ( "record counter limit reached: renegotiate" ) );
-    return( ssl_renegotiate( ssl ) );
+    MBEDTLS_SSL_DEBUG_MSG( 0, ( "record counter limit reached: renegotiate" ) );
+    return( mbedtls_ssl_renegotiate( ssl ) );
 }
-#endif /* POLARSSL_SSL_RENEGOTIATION */
+#endif /* MBEDTLS_SSL_RENEGOTIATION */
 
 /*
  * Receive application data decrypted from the SSL layer
  */
-int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
+int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
 {
     int ret, record_read = 0;
     size_t n;
 
-    SSL_DEBUG_MSG( 2, ( "=> read" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> read" ) );
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
-        if( ( ret = ssl_flush_output( ssl ) ) != 0 )
+        if( ( ret = mbedtls_ssl_flush_output( ssl ) ) != 0 )
             return( ret );
 
         if( ssl->handshake != NULL &&
-            ssl->handshake->retransmit_state == SSL_RETRANS_SENDING )
+            ssl->handshake->retransmit_state == MBEDTLS_SSL_RETRANS_SENDING )
         {
-            if( ( ret = ssl_resend( ssl ) ) != 0 )
+            if( ( ret = mbedtls_ssl_resend( ssl ) ) != 0 )
                 return( ret );
         }
     }
 #endif
 
-#if defined(POLARSSL_SSL_RENEGOTIATION)
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
     if( ( ret = ssl_check_ctr_renegotiate( ssl ) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "ssl_check_ctr_renegotiate", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_check_ctr_renegotiate", ret );
         return( ret );
     }
 #endif
 
-    if( ssl->state != SSL_HANDSHAKE_OVER )
+    if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
     {
-        ret = ssl_handshake( ssl );
-        if( ret == POLARSSL_ERR_SSL_WAITING_SERVER_HELLO_RENEGO )
+        ret = mbedtls_ssl_handshake( ssl );
+        if( ret == MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO )
         {
             record_read = 1;
         }
         else if( ret != 0 )
         {
-            SSL_DEBUG_RET( 1, "ssl_handshake", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_handshake", ret );
             return( ret );
         }
     }
 
     if( ssl->in_offt == NULL )
     {
-#if defined(POLARSSL_SSL_PROTO_DTLS)
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
         /* Start timer if not already running */
         if( ssl->time_limit == 0 )
             ssl_set_timer( ssl, ssl->read_timeout );
@@ -6131,180 +6131,180 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
 
         if( ! record_read )
         {
-            if( ( ret = ssl_read_record( ssl ) ) != 0 )
+            if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
             {
-                if( ret == POLARSSL_ERR_SSL_CONN_EOF )
+                if( ret == MBEDTLS_ERR_SSL_CONN_EOF )
                     return( 0 );
 
-                SSL_DEBUG_RET( 1, "ssl_read_record", ret );
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
                 return( ret );
             }
         }
 
         if( ssl->in_msglen  == 0 &&
-            ssl->in_msgtype == SSL_MSG_APPLICATION_DATA )
+            ssl->in_msgtype == MBEDTLS_SSL_MSG_APPLICATION_DATA )
         {
             /*
              * OpenSSL sends empty messages to randomize the IV
              */
-            if( ( ret = ssl_read_record( ssl ) ) != 0 )
+            if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
             {
-                if( ret == POLARSSL_ERR_SSL_CONN_EOF )
+                if( ret == MBEDTLS_ERR_SSL_CONN_EOF )
                     return( 0 );
 
-                SSL_DEBUG_RET( 1, "ssl_read_record", ret );
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
                 return( ret );
             }
         }
 
-#if defined(POLARSSL_SSL_RENEGOTIATION)
-        if( ssl->in_msgtype == SSL_MSG_HANDSHAKE )
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+        if( ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE )
         {
-            SSL_DEBUG_MSG( 1, ( "received handshake message" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "received handshake message" ) );
 
-#if defined(POLARSSL_SSL_CLI_C)
-            if( ssl->endpoint == SSL_IS_CLIENT &&
-                ( ssl->in_msg[0] != SSL_HS_HELLO_REQUEST ||
-                  ssl->in_hslen != ssl_hs_hdr_len( ssl ) ) )
+#if defined(MBEDTLS_SSL_CLI_C)
+            if( ssl->endpoint == MBEDTLS_SSL_IS_CLIENT &&
+                ( ssl->in_msg[0] != MBEDTLS_SSL_HS_HELLO_REQUEST ||
+                  ssl->in_hslen != mbedtls_ssl_hs_hdr_len( ssl ) ) )
             {
-                SSL_DEBUG_MSG( 1, ( "handshake received (not HelloRequest)" ) );
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "handshake received (not HelloRequest)" ) );
 
                 /* With DTLS, drop the packet (probably from last handshake) */
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-                if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
-                    return( POLARSSL_ERR_NET_WANT_READ );
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+                if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+                    return( MBEDTLS_ERR_NET_WANT_READ );
 #endif
-                return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
+                return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
             }
 
-            if( ssl->endpoint == SSL_IS_SERVER &&
-                ssl->in_msg[0] != SSL_HS_CLIENT_HELLO )
+            if( ssl->endpoint == MBEDTLS_SSL_IS_SERVER &&
+                ssl->in_msg[0] != MBEDTLS_SSL_HS_CLIENT_HELLO )
             {
-                SSL_DEBUG_MSG( 1, ( "handshake received (not ClientHello)" ) );
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "handshake received (not ClientHello)" ) );
 
                 /* With DTLS, drop the packet (probably from last handshake) */
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-                if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
-                    return( POLARSSL_ERR_NET_WANT_READ );
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+                if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+                    return( MBEDTLS_ERR_NET_WANT_READ );
 #endif
-                return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
+                return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
             }
 #endif
 
-            if( ssl->disable_renegotiation == SSL_RENEGOTIATION_DISABLED ||
-                ( ssl->secure_renegotiation == SSL_LEGACY_RENEGOTIATION &&
+            if( ssl->disable_renegotiation == MBEDTLS_SSL_RENEGOTIATION_DISABLED ||
+                ( ssl->secure_renegotiation == MBEDTLS_SSL_LEGACY_RENEGOTIATION &&
                   ssl->allow_legacy_renegotiation ==
-                                                SSL_LEGACY_NO_RENEGOTIATION ) )
+                                                MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION ) )
             {
-                SSL_DEBUG_MSG( 3, ( "refusing renegotiation, sending alert" ) );
+                MBEDTLS_SSL_DEBUG_MSG( 3, ( "refusing renegotiation, sending alert" ) );
 
-#if defined(POLARSSL_SSL_PROTO_SSL3)
-                if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+                if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
                 {
                     /*
                      * SSLv3 does not have a "no_renegotiation" alert
                      */
-                    if( ( ret = ssl_send_fatal_handshake_failure( ssl ) ) != 0 )
+                    if( ( ret = mbedtls_ssl_send_fatal_handshake_failure( ssl ) ) != 0 )
                         return( ret );
                 }
                 else
-#endif /* POLARSSL_SSL_PROTO_SSL3 */
-#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1) || \
-    defined(POLARSSL_SSL_PROTO_TLS1_2)
-                if( ssl->minor_ver >= SSL_MINOR_VERSION_1 )
+#endif /* MBEDTLS_SSL_PROTO_SSL3 */
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
+    defined(MBEDTLS_SSL_PROTO_TLS1_2)
+                if( ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_1 )
                 {
-                    if( ( ret = ssl_send_alert_message( ssl,
-                                    SSL_ALERT_LEVEL_WARNING,
-                                    SSL_ALERT_MSG_NO_RENEGOTIATION ) ) != 0 )
+                    if( ( ret = mbedtls_ssl_send_alert_message( ssl,
+                                    MBEDTLS_SSL_ALERT_LEVEL_WARNING,
+                                    MBEDTLS_SSL_ALERT_MSG_NO_RENEGOTIATION ) ) != 0 )
                     {
                         return( ret );
                     }
                 }
                 else
-#endif /* POLARSSL_SSL_PROTO_TLS1 || POLARSSL_SSL_PROTO_TLS1_1 ||
-          POLARSSL_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 ||
+          MBEDTLS_SSL_PROTO_TLS1_2 */
                 {
-                    SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-                    return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+                    MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+                    return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
                 }
             }
             else
             {
                 /* DTLS clients need to know renego is server-initiated */
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-                if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
-                    ssl->endpoint == SSL_IS_CLIENT )
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+                if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+                    ssl->endpoint == MBEDTLS_SSL_IS_CLIENT )
                 {
-                    ssl->renego_status = SSL_RENEGOTIATION_PENDING;
+                    ssl->renego_status = MBEDTLS_SSL_RENEGOTIATION_PENDING;
                 }
 #endif
                 ret = ssl_start_renegotiation( ssl );
-                if( ret == POLARSSL_ERR_SSL_WAITING_SERVER_HELLO_RENEGO )
+                if( ret == MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO )
                 {
                     record_read = 1;
                 }
                 else if( ret != 0 )
                 {
-                    SSL_DEBUG_RET( 1, "ssl_start_renegotiation", ret );
+                    MBEDTLS_SSL_DEBUG_RET( 1, "ssl_start_renegotiation", ret );
                     return( ret );
                 }
             }
 
             /* If a non-handshake record was read during renego, fallthrough,
-             * else tell the user they should call ssl_read() again */
+             * else tell the user they should call mbedtls_ssl_read() again */
             if( ! record_read )
-                return( POLARSSL_ERR_NET_WANT_READ );
+                return( MBEDTLS_ERR_NET_WANT_READ );
         }
-        else if( ssl->renego_status == SSL_RENEGOTIATION_PENDING )
+        else if( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_PENDING )
         {
 
             if( ssl->renego_max_records >= 0 )
             {
                 if( ++ssl->renego_records_seen > ssl->renego_max_records )
                 {
-                    SSL_DEBUG_MSG( 1, ( "renegotiation requested, "
+                    MBEDTLS_SSL_DEBUG_MSG( 1, ( "renegotiation requested, "
                                         "but not honored by client" ) );
-                    return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
+                    return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
                 }
             }
         }
-#endif /* POLARSSL_SSL_RENEGOTIATION */
+#endif /* MBEDTLS_SSL_RENEGOTIATION */
 
-        /* Fatal and closure alerts handled by ssl_read_record() */
-        if( ssl->in_msgtype == SSL_MSG_ALERT )
+        /* Fatal and closure alerts handled by mbedtls_ssl_read_record() */
+        if( ssl->in_msgtype == MBEDTLS_SSL_MSG_ALERT )
         {
-            SSL_DEBUG_MSG( 2, ( "ignoring non-fatal non-closure alert" ) );
-            return( POLARSSL_ERR_NET_WANT_READ );
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "ignoring non-fatal non-closure alert" ) );
+            return( MBEDTLS_ERR_NET_WANT_READ );
         }
 
-        if( ssl->in_msgtype != SSL_MSG_APPLICATION_DATA )
+        if( ssl->in_msgtype != MBEDTLS_SSL_MSG_APPLICATION_DATA )
         {
-            SSL_DEBUG_MSG( 1, ( "bad application data message" ) );
-            return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad application data message" ) );
+            return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
         }
 
         ssl->in_offt = ssl->in_msg;
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
         /* We're going to return something now, cancel timer,
          * except if handshake (renegotiation) is in progress */
-        if( ssl->state == SSL_HANDSHAKE_OVER )
+        if( ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER )
             ssl_set_timer( ssl, 0 );
 
         /* If we requested renego but received AppData, resend HelloRequest.
          * Do it now, after setting in_offt, to avoid taking this branch
          * again if ssl_write_hello_request() returns WANT_WRITE */
-#if defined(POLARSSL_SSL_SRV_C) && defined(POLARSSL_SSL_RENEGOTIATION)
-        if( ssl->endpoint == SSL_IS_SERVER &&
-            ssl->renego_status == SSL_RENEGOTIATION_PENDING )
+#if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_RENEGOTIATION)
+        if( ssl->endpoint == MBEDTLS_SSL_IS_SERVER &&
+            ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_PENDING )
         {
             if( ( ret = ssl_resend_hello_request( ssl ) ) != 0 )
             {
-                SSL_DEBUG_RET( 1, "ssl_resend_hello_request", ret );
+                MBEDTLS_SSL_DEBUG_RET( 1, "ssl_resend_hello_request", ret );
                 return( ret );
             }
         }
-#endif /* POLARSSL_SSL_SRV_C && POLARSSL_SSL_RENEGOTIATION */
+#endif /* MBEDTLS_SSL_SRV_C && MBEDTLS_SSL_RENEGOTIATION */
 #endif
     }
 
@@ -6321,7 +6321,7 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
         /* more data available */
         ssl->in_offt += n;
 
-    SSL_DEBUG_MSG( 2, ( "<= read" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= read" ) );
 
     return( (int) n );
 }
@@ -6329,37 +6329,37 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
 /*
  * Send application data to be encrypted by the SSL layer
  */
-#if defined(POLARSSL_SSL_CBC_RECORD_SPLITTING)
-static int ssl_write_real( ssl_context *ssl, const unsigned char *buf, size_t len )
+#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
+static int ssl_write_real( mbedtls_ssl_context *ssl, const unsigned char *buf, size_t len )
 #else
-int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
+int mbedtls_ssl_write( mbedtls_ssl_context *ssl, const unsigned char *buf, size_t len )
 #endif
 {
     int ret;
-#if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     unsigned int max_len;
 #endif
 
-    SSL_DEBUG_MSG( 2, ( "=> write" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write" ) );
 
-#if defined(POLARSSL_SSL_RENEGOTIATION)
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
     if( ( ret = ssl_check_ctr_renegotiate( ssl ) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "ssl_check_ctr_renegotiate", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_check_ctr_renegotiate", ret );
         return( ret );
     }
 #endif
 
-    if( ssl->state != SSL_HANDSHAKE_OVER )
+    if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
     {
-        if( ( ret = ssl_handshake( ssl ) ) != 0 )
+        if( ( ret = mbedtls_ssl_handshake( ssl ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "ssl_handshake", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_handshake", ret );
             return( ret );
         }
     }
 
-#if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     /*
      * Assume mfl_code is correct since it was checked when set
      */
@@ -6376,42 +6376,42 @@ int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
 
     if( len > max_len )
     {
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-        if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+        if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
         {
-            SSL_DEBUG_MSG( 1, ( "fragment larger than the (negotiated) "
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "fragment larger than the (negotiated) "
                                 "maximum fragment length: %d > %d",
                                 len, max_len ) );
-            return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
         }
         else
 #endif
             len = max_len;
     }
-#endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
+#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
     if( ssl->out_left != 0 )
     {
-        if( ( ret = ssl_flush_output( ssl ) ) != 0 )
+        if( ( ret = mbedtls_ssl_flush_output( ssl ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "ssl_flush_output", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_flush_output", ret );
             return( ret );
         }
     }
     else
     {
         ssl->out_msglen  = len;
-        ssl->out_msgtype = SSL_MSG_APPLICATION_DATA;
+        ssl->out_msgtype = MBEDTLS_SSL_MSG_APPLICATION_DATA;
         memcpy( ssl->out_msg, buf, len );
 
-        if( ( ret = ssl_write_record( ssl ) ) != 0 )
+        if( ( ret = mbedtls_ssl_write_record( ssl ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "ssl_write_record", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
             return( ret );
         }
     }
 
-    SSL_DEBUG_MSG( 2, ( "<= write" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write" ) );
 
     return( (int) len );
 }
@@ -6423,16 +6423,16 @@ int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
  * then the caller will call us again with the same arguments, so
  * remember wether we already did the split or not.
  */
-#if defined(POLARSSL_SSL_CBC_RECORD_SPLITTING)
-int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
+#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
+int mbedtls_ssl_write( mbedtls_ssl_context *ssl, const unsigned char *buf, size_t len )
 {
     int ret;
 
-    if( ssl->split_done == SSL_CBC_RECORD_SPLITTING_DISABLED ||
+    if( ssl->split_done == MBEDTLS_SSL_CBC_RECORD_SPLITTING_DISABLED ||
         len <= 1 ||
-        ssl->minor_ver > SSL_MINOR_VERSION_1 ||
-        cipher_get_cipher_mode( &ssl->transform_out->cipher_ctx_enc )
-                                != POLARSSL_MODE_CBC )
+        ssl->minor_ver > MBEDTLS_SSL_MINOR_VERSION_1 ||
+        mbedtls_cipher_get_cipher_mode( &ssl->transform_out->cipher_ctx_enc )
+                                != MBEDTLS_MODE_CBC )
     {
         return( ssl_write_real( ssl, buf, len ) );
     }
@@ -6450,407 +6450,407 @@ int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
 
     return( ret + 1 );
 }
-#endif /* POLARSSL_SSL_CBC_RECORD_SPLITTING */
+#endif /* MBEDTLS_SSL_CBC_RECORD_SPLITTING */
 
 /*
  * Notify the peer that the connection is being closed
  */
-int ssl_close_notify( ssl_context *ssl )
+int mbedtls_ssl_close_notify( mbedtls_ssl_context *ssl )
 {
     int ret;
 
-    SSL_DEBUG_MSG( 2, ( "=> write close notify" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write close notify" ) );
 
     if( ssl->out_left != 0 )
-        return( ssl_flush_output( ssl ) );
+        return( mbedtls_ssl_flush_output( ssl ) );
 
-    if( ssl->state == SSL_HANDSHAKE_OVER )
+    if( ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER )
     {
-        if( ( ret = ssl_send_alert_message( ssl,
-                        SSL_ALERT_LEVEL_WARNING,
-                        SSL_ALERT_MSG_CLOSE_NOTIFY ) ) != 0 )
+        if( ( ret = mbedtls_ssl_send_alert_message( ssl,
+                        MBEDTLS_SSL_ALERT_LEVEL_WARNING,
+                        MBEDTLS_SSL_ALERT_MSG_CLOSE_NOTIFY ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "ssl_send_alert_message", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_send_alert_message", ret );
             return( ret );
         }
     }
 
-    SSL_DEBUG_MSG( 2, ( "<= write close notify" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write close notify" ) );
 
     return( 0 );
 }
 
-void ssl_transform_free( ssl_transform *transform )
+void mbedtls_ssl_transform_free( mbedtls_ssl_transform *transform )
 {
     if( transform == NULL )
         return;
 
-#if defined(POLARSSL_ZLIB_SUPPORT)
+#if defined(MBEDTLS_ZLIB_SUPPORT)
     deflateEnd( &transform->ctx_deflate );
     inflateEnd( &transform->ctx_inflate );
 #endif
 
-    cipher_free( &transform->cipher_ctx_enc );
-    cipher_free( &transform->cipher_ctx_dec );
+    mbedtls_cipher_free( &transform->cipher_ctx_enc );
+    mbedtls_cipher_free( &transform->cipher_ctx_dec );
 
-    md_free( &transform->md_ctx_enc );
-    md_free( &transform->md_ctx_dec );
+    mbedtls_md_free( &transform->md_ctx_enc );
+    mbedtls_md_free( &transform->md_ctx_dec );
 
-    polarssl_zeroize( transform, sizeof( ssl_transform ) );
+    mbedtls_zeroize( transform, sizeof( mbedtls_ssl_transform ) );
 }
 
-#if defined(POLARSSL_X509_CRT_PARSE_C)
-static void ssl_key_cert_free( ssl_key_cert *key_cert )
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+static void ssl_key_cert_free( mbedtls_ssl_key_cert *key_cert )
 {
-    ssl_key_cert *cur = key_cert, *next;
+    mbedtls_ssl_key_cert *cur = key_cert, *next;
 
     while( cur != NULL )
     {
         next = cur->next;
-        polarssl_free( cur );
+        mbedtls_free( cur );
         cur = next;
     }
 }
-#endif /* POLARSSL_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-void ssl_handshake_free( ssl_handshake_params *handshake )
+void mbedtls_ssl_handshake_free( mbedtls_ssl_handshake_params *handshake )
 {
     if( handshake == NULL )
         return;
 
-#if defined(POLARSSL_DHM_C)
-    dhm_free( &handshake->dhm_ctx );
+#if defined(MBEDTLS_DHM_C)
+    mbedtls_dhm_free( &handshake->dhm_ctx );
 #endif
-#if defined(POLARSSL_ECDH_C)
-    ecdh_free( &handshake->ecdh_ctx );
+#if defined(MBEDTLS_ECDH_C)
+    mbedtls_ecdh_free( &handshake->ecdh_ctx );
 #endif
 
-#if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
+#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C)
     /* explicit void pointer cast for buggy MS compiler */
-    polarssl_free( (void *) handshake->curves );
+    mbedtls_free( (void *) handshake->curves );
 #endif
 
-#if defined(POLARSSL_X509_CRT_PARSE_C) && \
-    defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
+    defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     /*
      * Free only the linked list wrapper, not the keys themselves
      * since the belong to the SNI callback
      */
     if( handshake->sni_key_cert != NULL )
     {
-        ssl_key_cert *cur = handshake->sni_key_cert, *next;
+        mbedtls_ssl_key_cert *cur = handshake->sni_key_cert, *next;
 
         while( cur != NULL )
         {
             next = cur->next;
-            polarssl_free( cur );
+            mbedtls_free( cur );
             cur = next;
         }
     }
-#endif /* POLARSSL_X509_CRT_PARSE_C && POLARSSL_SSL_SERVER_NAME_INDICATION */
+#endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    polarssl_free( handshake->verify_cookie );
-    polarssl_free( handshake->hs_msg );
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    mbedtls_free( handshake->verify_cookie );
+    mbedtls_free( handshake->hs_msg );
     ssl_flight_free( handshake->flight );
 #endif
 
-    polarssl_zeroize( handshake, sizeof( ssl_handshake_params ) );
+    mbedtls_zeroize( handshake, sizeof( mbedtls_ssl_handshake_params ) );
 }
 
-void ssl_session_free( ssl_session *session )
+void mbedtls_ssl_session_free( mbedtls_ssl_session *session )
 {
     if( session == NULL )
         return;
 
-#if defined(POLARSSL_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
     if( session->peer_cert != NULL )
     {
-        x509_crt_free( session->peer_cert );
-        polarssl_free( session->peer_cert );
+        mbedtls_x509_crt_free( session->peer_cert );
+        mbedtls_free( session->peer_cert );
     }
 #endif
 
-#if defined(POLARSSL_SSL_SESSION_TICKETS)
-    polarssl_free( session->ticket );
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    mbedtls_free( session->ticket );
 #endif
 
-    polarssl_zeroize( session, sizeof( ssl_session ) );
+    mbedtls_zeroize( session, sizeof( mbedtls_ssl_session ) );
 }
 
 /*
  * Free an SSL context
  */
-void ssl_free( ssl_context *ssl )
+void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
 {
     if( ssl == NULL )
         return;
 
-    SSL_DEBUG_MSG( 2, ( "=> free" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> free" ) );
 
     if( ssl->out_buf != NULL )
     {
-        polarssl_zeroize( ssl->out_buf, SSL_BUFFER_LEN );
-        polarssl_free( ssl->out_buf );
+        mbedtls_zeroize( ssl->out_buf, MBEDTLS_SSL_BUFFER_LEN );
+        mbedtls_free( ssl->out_buf );
     }
 
     if( ssl->in_buf != NULL )
     {
-        polarssl_zeroize( ssl->in_buf, SSL_BUFFER_LEN );
-        polarssl_free( ssl->in_buf );
+        mbedtls_zeroize( ssl->in_buf, MBEDTLS_SSL_BUFFER_LEN );
+        mbedtls_free( ssl->in_buf );
     }
 
-#if defined(POLARSSL_ZLIB_SUPPORT)
+#if defined(MBEDTLS_ZLIB_SUPPORT)
     if( ssl->compress_buf != NULL )
     {
-        polarssl_zeroize( ssl->compress_buf, SSL_BUFFER_LEN );
-        polarssl_free( ssl->compress_buf );
+        mbedtls_zeroize( ssl->compress_buf, MBEDTLS_SSL_BUFFER_LEN );
+        mbedtls_free( ssl->compress_buf );
     }
 #endif
 
-#if defined(POLARSSL_DHM_C)
-    mpi_free( &ssl->dhm_P );
-    mpi_free( &ssl->dhm_G );
+#if defined(MBEDTLS_DHM_C)
+    mbedtls_mpi_free( &ssl->dhm_P );
+    mbedtls_mpi_free( &ssl->dhm_G );
 #endif
 
     if( ssl->transform )
     {
-        ssl_transform_free( ssl->transform );
-        polarssl_free( ssl->transform );
+        mbedtls_ssl_transform_free( ssl->transform );
+        mbedtls_free( ssl->transform );
     }
 
     if( ssl->handshake )
     {
-        ssl_handshake_free( ssl->handshake );
-        ssl_transform_free( ssl->transform_negotiate );
-        ssl_session_free( ssl->session_negotiate );
+        mbedtls_ssl_handshake_free( ssl->handshake );
+        mbedtls_ssl_transform_free( ssl->transform_negotiate );
+        mbedtls_ssl_session_free( ssl->session_negotiate );
 
-        polarssl_free( ssl->handshake );
-        polarssl_free( ssl->transform_negotiate );
-        polarssl_free( ssl->session_negotiate );
+        mbedtls_free( ssl->handshake );
+        mbedtls_free( ssl->transform_negotiate );
+        mbedtls_free( ssl->session_negotiate );
     }
 
     if( ssl->session )
     {
-        ssl_session_free( ssl->session );
-        polarssl_free( ssl->session );
+        mbedtls_ssl_session_free( ssl->session );
+        mbedtls_free( ssl->session );
     }
 
-#if defined(POLARSSL_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
     if( ssl->ticket_keys )
     {
         ssl_ticket_keys_free( ssl->ticket_keys );
-        polarssl_free( ssl->ticket_keys );
+        mbedtls_free( ssl->ticket_keys );
     }
 #endif
 
-#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     if( ssl->hostname != NULL )
     {
-        polarssl_zeroize( ssl->hostname, ssl->hostname_len );
-        polarssl_free( ssl->hostname );
+        mbedtls_zeroize( ssl->hostname, ssl->hostname_len );
+        mbedtls_free( ssl->hostname );
         ssl->hostname_len = 0;
     }
 #endif
 
-#if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     if( ssl->psk != NULL )
     {
-        polarssl_zeroize( ssl->psk, ssl->psk_len );
-        polarssl_zeroize( ssl->psk_identity, ssl->psk_identity_len );
-        polarssl_free( ssl->psk );
-        polarssl_free( ssl->psk_identity );
+        mbedtls_zeroize( ssl->psk, ssl->psk_len );
+        mbedtls_zeroize( ssl->psk_identity, ssl->psk_identity_len );
+        mbedtls_free( ssl->psk );
+        mbedtls_free( ssl->psk_identity );
         ssl->psk_len = 0;
         ssl->psk_identity_len = 0;
     }
 #endif
 
-#if defined(POLARSSL_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
     ssl_key_cert_free( ssl->key_cert );
 #endif
 
-#if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
-    if( ssl_hw_record_finish != NULL )
+#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
+    if( mbedtls_ssl_hw_record_finish != NULL )
     {
-        SSL_DEBUG_MSG( 2, ( "going for ssl_hw_record_finish()" ) );
-        ssl_hw_record_finish( ssl );
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "going for mbedtls_ssl_hw_record_finish()" ) );
+        mbedtls_ssl_hw_record_finish( ssl );
     }
 #endif
 
-#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
-    polarssl_free( ssl->cli_id );
+#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
+    mbedtls_free( ssl->cli_id );
 #endif
 
-    SSL_DEBUG_MSG( 2, ( "<= free" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= free" ) );
 
     /* Actually clear after last debug message */
-    polarssl_zeroize( ssl, sizeof( ssl_context ) );
+    mbedtls_zeroize( ssl, sizeof( mbedtls_ssl_context ) );
 }
 
-#if defined(POLARSSL_PK_C)
+#if defined(MBEDTLS_PK_C)
 /*
- * Convert between POLARSSL_PK_XXX and SSL_SIG_XXX
+ * Convert between MBEDTLS_PK_XXX and SSL_SIG_XXX
  */
-unsigned char ssl_sig_from_pk( pk_context *pk )
+unsigned char mbedtls_ssl_sig_from_pk( mbedtls_pk_context *pk )
 {
-#if defined(POLARSSL_RSA_C)
-    if( pk_can_do( pk, POLARSSL_PK_RSA ) )
-        return( SSL_SIG_RSA );
+#if defined(MBEDTLS_RSA_C)
+    if( mbedtls_pk_can_do( pk, MBEDTLS_PK_RSA ) )
+        return( MBEDTLS_SSL_SIG_RSA );
 #endif
-#if defined(POLARSSL_ECDSA_C)
-    if( pk_can_do( pk, POLARSSL_PK_ECDSA ) )
-        return( SSL_SIG_ECDSA );
+#if defined(MBEDTLS_ECDSA_C)
+    if( mbedtls_pk_can_do( pk, MBEDTLS_PK_ECDSA ) )
+        return( MBEDTLS_SSL_SIG_ECDSA );
 #endif
-    return( SSL_SIG_ANON );
+    return( MBEDTLS_SSL_SIG_ANON );
 }
 
-pk_type_t ssl_pk_alg_from_sig( unsigned char sig )
+mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig( unsigned char sig )
 {
     switch( sig )
     {
-#if defined(POLARSSL_RSA_C)
-        case SSL_SIG_RSA:
-            return( POLARSSL_PK_RSA );
+#if defined(MBEDTLS_RSA_C)
+        case MBEDTLS_SSL_SIG_RSA:
+            return( MBEDTLS_PK_RSA );
 #endif
-#if defined(POLARSSL_ECDSA_C)
-        case SSL_SIG_ECDSA:
-            return( POLARSSL_PK_ECDSA );
+#if defined(MBEDTLS_ECDSA_C)
+        case MBEDTLS_SSL_SIG_ECDSA:
+            return( MBEDTLS_PK_ECDSA );
 #endif
         default:
-            return( POLARSSL_PK_NONE );
+            return( MBEDTLS_PK_NONE );
     }
 }
-#endif /* POLARSSL_PK_C */
+#endif /* MBEDTLS_PK_C */
 
 /*
- * Convert between SSL_HASH_XXX and POLARSSL_MD_XXX
+ * Convert between SSL_HASH_XXX and MBEDTLS_MD_XXX
  */
-md_type_t ssl_md_alg_from_hash( unsigned char hash )
+mbedtls_md_type_t mbedtls_ssl_md_alg_from_hash( unsigned char hash )
 {
     switch( hash )
     {
-#if defined(POLARSSL_MD5_C)
-        case SSL_HASH_MD5:
-            return( POLARSSL_MD_MD5 );
+#if defined(MBEDTLS_MD5_C)
+        case MBEDTLS_SSL_HASH_MD5:
+            return( MBEDTLS_MD_MD5 );
 #endif
-#if defined(POLARSSL_SHA1_C)
-        case SSL_HASH_SHA1:
-            return( POLARSSL_MD_SHA1 );
+#if defined(MBEDTLS_SHA1_C)
+        case MBEDTLS_SSL_HASH_SHA1:
+            return( MBEDTLS_MD_SHA1 );
 #endif
-#if defined(POLARSSL_SHA256_C)
-        case SSL_HASH_SHA224:
-            return( POLARSSL_MD_SHA224 );
-        case SSL_HASH_SHA256:
-            return( POLARSSL_MD_SHA256 );
+#if defined(MBEDTLS_SHA256_C)
+        case MBEDTLS_SSL_HASH_SHA224:
+            return( MBEDTLS_MD_SHA224 );
+        case MBEDTLS_SSL_HASH_SHA256:
+            return( MBEDTLS_MD_SHA256 );
 #endif
-#if defined(POLARSSL_SHA512_C)
-        case SSL_HASH_SHA384:
-            return( POLARSSL_MD_SHA384 );
-        case SSL_HASH_SHA512:
-            return( POLARSSL_MD_SHA512 );
+#if defined(MBEDTLS_SHA512_C)
+        case MBEDTLS_SSL_HASH_SHA384:
+            return( MBEDTLS_MD_SHA384 );
+        case MBEDTLS_SSL_HASH_SHA512:
+            return( MBEDTLS_MD_SHA512 );
 #endif
         default:
-            return( POLARSSL_MD_NONE );
+            return( MBEDTLS_MD_NONE );
     }
 }
 
-#if defined(POLARSSL_SSL_SET_CURVES)
+#if defined(MBEDTLS_SSL_SET_CURVES)
 /*
  * Check is a curve proposed by the peer is in our list.
  * Return 1 if we're willing to use it, 0 otherwise.
  */
-int ssl_curve_is_acceptable( const ssl_context *ssl, ecp_group_id grp_id )
+int mbedtls_ssl_curve_is_acceptable( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id )
 {
-    const ecp_group_id *gid;
+    const mbedtls_ecp_group_id *gid;
 
-    for( gid = ssl->curve_list; *gid != POLARSSL_ECP_DP_NONE; gid++ )
+    for( gid = ssl->curve_list; *gid != MBEDTLS_ECP_DP_NONE; gid++ )
         if( *gid == grp_id )
             return( 1 );
 
     return( 0 );
 }
-#endif /* POLARSSL_SSL_SET_CURVES */
+#endif /* MBEDTLS_SSL_SET_CURVES */
 
-#if defined(POLARSSL_X509_CRT_PARSE_C)
-int ssl_check_cert_usage( const x509_crt *cert,
-                          const ssl_ciphersuite_t *ciphersuite,
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
+                          const mbedtls_ssl_ciphersuite_t *ciphersuite,
                           int cert_endpoint )
 {
-#if defined(POLARSSL_X509_CHECK_KEY_USAGE)
+#if defined(MBEDTLS_X509_CHECK_KEY_USAGE)
     int usage = 0;
 #endif
-#if defined(POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE)
+#if defined(MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE)
     const char *ext_oid;
     size_t ext_len;
 #endif
 
-#if !defined(POLARSSL_X509_CHECK_KEY_USAGE) &&          \
-    !defined(POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE)
+#if !defined(MBEDTLS_X509_CHECK_KEY_USAGE) &&          \
+    !defined(MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE)
     ((void) cert);
     ((void) cert_endpoint);
 #endif
 
-#if defined(POLARSSL_X509_CHECK_KEY_USAGE)
-    if( cert_endpoint == SSL_IS_SERVER )
+#if defined(MBEDTLS_X509_CHECK_KEY_USAGE)
+    if( cert_endpoint == MBEDTLS_SSL_IS_SERVER )
     {
         /* Server part of the key exchange */
         switch( ciphersuite->key_exchange )
         {
-            case POLARSSL_KEY_EXCHANGE_RSA:
-            case POLARSSL_KEY_EXCHANGE_RSA_PSK:
-                usage = KU_KEY_ENCIPHERMENT;
+            case MBEDTLS_KEY_EXCHANGE_RSA:
+            case MBEDTLS_KEY_EXCHANGE_RSA_PSK:
+                usage = MBEDTLS_KU_KEY_ENCIPHERMENT;
                 break;
 
-            case POLARSSL_KEY_EXCHANGE_DHE_RSA:
-            case POLARSSL_KEY_EXCHANGE_ECDHE_RSA:
-            case POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA:
-                usage = KU_DIGITAL_SIGNATURE;
+            case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
+            case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
+            case MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA:
+                usage = MBEDTLS_X509_KU_DIGITAL_SIGNATURE;
                 break;
 
-            case POLARSSL_KEY_EXCHANGE_ECDH_RSA:
-            case POLARSSL_KEY_EXCHANGE_ECDH_ECDSA:
-                usage = KU_KEY_AGREEMENT;
+            case MBEDTLS_KEY_EXCHANGE_ECDH_RSA:
+            case MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA:
+                usage = MBEDTLS_KU_KEY_AGREEMENT;
                 break;
 
             /* Don't use default: we want warnings when adding new values */
-            case POLARSSL_KEY_EXCHANGE_NONE:
-            case POLARSSL_KEY_EXCHANGE_PSK:
-            case POLARSSL_KEY_EXCHANGE_DHE_PSK:
-            case POLARSSL_KEY_EXCHANGE_ECDHE_PSK:
+            case MBEDTLS_KEY_EXCHANGE_NONE:
+            case MBEDTLS_KEY_EXCHANGE_PSK:
+            case MBEDTLS_KEY_EXCHANGE_DHE_PSK:
+            case MBEDTLS_KEY_EXCHANGE_ECDHE_PSK:
                 usage = 0;
         }
     }
     else
     {
-        /* Client auth: we only implement rsa_sign and ecdsa_sign for now */
-        usage = KU_DIGITAL_SIGNATURE;
+        /* Client auth: we only implement rsa_sign and mbedtls_ecdsa_sign for now */
+        usage = MBEDTLS_X509_KU_DIGITAL_SIGNATURE;
     }
 
-    if( x509_crt_check_key_usage( cert, usage ) != 0 )
+    if( mbedtls_x509_crt_check_key_usage( cert, usage ) != 0 )
         return( -1 );
 #else
     ((void) ciphersuite);
-#endif /* POLARSSL_X509_CHECK_KEY_USAGE */
+#endif /* MBEDTLS_X509_CHECK_KEY_USAGE */
 
-#if defined(POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE)
-    if( cert_endpoint == SSL_IS_SERVER )
+#if defined(MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE)
+    if( cert_endpoint == MBEDTLS_SSL_IS_SERVER )
     {
-        ext_oid = OID_SERVER_AUTH;
-        ext_len = OID_SIZE( OID_SERVER_AUTH );
+        ext_oid = MBEDTLS_OID_SERVER_AUTH;
+        ext_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_SERVER_AUTH );
     }
     else
     {
-        ext_oid = OID_CLIENT_AUTH;
-        ext_len = OID_SIZE( OID_CLIENT_AUTH );
+        ext_oid = MBEDTLS_OID_CLIENT_AUTH;
+        ext_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_CLIENT_AUTH );
     }
 
-    if( x509_crt_check_extended_key_usage( cert, ext_oid, ext_len ) != 0 )
+    if( mbedtls_x509_crt_check_extended_key_usage( cert, ext_oid, ext_len ) != 0 )
         return( -1 );
-#endif /* POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE */
+#endif /* MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE */
 
     return( 0 );
 }
-#endif /* POLARSSL_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 /*
  * Convert version numbers to/from wire format
@@ -6861,13 +6861,13 @@ int ssl_check_cert_usage( const x509_crt *cert,
  * 1.0 <-> 3.2      (DTLS 1.0 is based on TLS 1.1)
  * 1.x <-> 3.x+1    for x != 0 (DTLS 1.2 based on TLS 1.2)
  */
-void ssl_write_version( int major, int minor, int transport,
+void mbedtls_ssl_write_version( int major, int minor, int transport,
                         unsigned char ver[2] )
 {
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( transport == SSL_TRANSPORT_DATAGRAM )
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
-        if( minor == SSL_MINOR_VERSION_2 )
+        if( minor == MBEDTLS_SSL_MINOR_VERSION_2 )
             --minor; /* DTLS 1.0 stored as TLS 1.1 internally */
 
         ver[0] = (unsigned char)( 255 - ( major - 2 ) );
@@ -6883,16 +6883,16 @@ void ssl_write_version( int major, int minor, int transport,
     }
 }
 
-void ssl_read_version( int *major, int *minor, int transport,
+void mbedtls_ssl_read_version( int *major, int *minor, int transport,
                        const unsigned char ver[2] )
 {
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( transport == SSL_TRANSPORT_DATAGRAM )
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
         *major = 255 - ver[0] + 2;
         *minor = 255 - ver[1] + 1;
 
-        if( *minor == SSL_MINOR_VERSION_1 )
+        if( *minor == MBEDTLS_SSL_MINOR_VERSION_1 )
             ++*minor; /* DTLS 1.0 stored as TLS 1.1 internally */
     }
     else
@@ -6905,4 +6905,4 @@ void ssl_read_version( int *major, int *minor, int transport,
     }
 }
 
-#endif /* POLARSSL_SSL_TLS_C */
+#endif /* MBEDTLS_SSL_TLS_C */

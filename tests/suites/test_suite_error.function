@@ -3,7 +3,7 @@
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:POLARSSL_ERROR_C
+ * depends_on:MBEDTLS_ERROR_C
  * END_DEPENDENCIES
  */
 
@@ -14,7 +14,7 @@ void error_strerror( int code, char *result_str )
 
     memset( buf, 0, sizeof( buf ) );
 
-    polarssl_strerror( code, buf, 500 );
+    mbedtls_strerror( code, buf, 500 );
 
     TEST_ASSERT( strcmp( buf, result_str ) == 0 );
 }

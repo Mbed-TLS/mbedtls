@@ -4,8 +4,8 @@
 #include "mbedtls/sha512.h"
 /* END_HEADER */
 
-/* BEGIN_CASE depends_on:POLARSSL_SHA1_C */
-void sha1( char *hex_src_string, char *hex_hash_string )
+/* BEGIN_CASE depends_on:MBEDTLS_SHA1_C */
+void mbedtls_sha1( char *hex_src_string, char *hex_hash_string )
 {
     unsigned char src_str[10000];
     unsigned char hash_str[10000];
@@ -18,14 +18,14 @@ void sha1( char *hex_src_string, char *hex_hash_string )
 
     src_len = unhexify( src_str, hex_src_string );
 
-    sha1( src_str, src_len, output );
+    mbedtls_sha1( src_str, src_len, output );
     hexify( hash_str, output, 20 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_SHA256_C */
+/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
 void sha224(char *hex_src_string, char *hex_hash_string )
 {
     unsigned char src_str[10000];
@@ -39,15 +39,15 @@ void sha224(char *hex_src_string, char *hex_hash_string )
 
     src_len = unhexify( src_str, hex_src_string );
 
-    sha256( src_str, src_len, output, 1 );
+    mbedtls_sha256( src_str, src_len, output, 1 );
     hexify( hash_str, output, 28 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_SHA256_C */
-void sha256(char *hex_src_string, char *hex_hash_string )
+/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
+void mbedtls_sha256(char *hex_src_string, char *hex_hash_string )
 {
     unsigned char src_str[10000];
     unsigned char hash_str[10000];
@@ -60,14 +60,14 @@ void sha256(char *hex_src_string, char *hex_hash_string )
 
     src_len = unhexify( src_str, hex_src_string );
 
-    sha256( src_str, src_len, output, 0 );
+    mbedtls_sha256( src_str, src_len, output, 0 );
     hexify( hash_str, output, 32 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_SHA512_C */
+/* BEGIN_CASE depends_on:MBEDTLS_SHA512_C */
 void sha384(char *hex_src_string, char *hex_hash_string )
 {
     unsigned char src_str[10000];
@@ -81,15 +81,15 @@ void sha384(char *hex_src_string, char *hex_hash_string )
 
     src_len = unhexify( src_str, hex_src_string );
 
-    sha512( src_str, src_len, output, 1 );
+    mbedtls_sha512( src_str, src_len, output, 1 );
     hexify( hash_str, output, 48 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_SHA512_C */
-void sha512(char *hex_src_string, char *hex_hash_string )
+/* BEGIN_CASE depends_on:MBEDTLS_SHA512_C */
+void mbedtls_sha512(char *hex_src_string, char *hex_hash_string )
 {
     unsigned char src_str[10000];
     unsigned char hash_str[10000];
@@ -102,15 +102,15 @@ void sha512(char *hex_src_string, char *hex_hash_string )
 
     src_len = unhexify( src_str, hex_src_string );
 
-    sha512( src_str, src_len, output, 0);
+    mbedtls_sha512( src_str, src_len, output, 0);
     hexify( hash_str, output, 64 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_SHA1_C:POLARSSL_FS_IO */
-void sha1_file( char *filename, char *hex_hash_string )
+/* BEGIN_CASE depends_on:MBEDTLS_SHA1_C:MBEDTLS_FS_IO */
+void mbedtls_sha1_file( char *filename, char *hex_hash_string )
 {
     unsigned char hash_str[41];
     unsigned char output[21];
@@ -118,14 +118,14 @@ void sha1_file( char *filename, char *hex_hash_string )
     memset(hash_str, 0x00, 41);
     memset(output, 0x00, 21);
 
-    sha1_file( filename, output);
+    mbedtls_sha1_file( filename, output);
     hexify( hash_str, output, 20 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_SHA256_C:POLARSSL_FS_IO */
+/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C:MBEDTLS_FS_IO */
 void sha224_file( char *filename, char *hex_hash_string )
 {
     unsigned char hash_str[57];
@@ -134,15 +134,15 @@ void sha224_file( char *filename, char *hex_hash_string )
     memset(hash_str, 0x00, 57);
     memset(output, 0x00, 29);
 
-    sha256_file( filename, output, 1);
+    mbedtls_sha256_file( filename, output, 1);
     hexify( hash_str, output, 28 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_SHA256_C:POLARSSL_FS_IO */
-void sha256_file( char *filename, char *hex_hash_string )
+/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C:MBEDTLS_FS_IO */
+void mbedtls_sha256_file( char *filename, char *hex_hash_string )
 {
     unsigned char hash_str[65];
     unsigned char output[33];
@@ -150,14 +150,14 @@ void sha256_file( char *filename, char *hex_hash_string )
     memset(hash_str, 0x00, 65);
     memset(output, 0x00, 33);
 
-    sha256_file( filename, output, 0);
+    mbedtls_sha256_file( filename, output, 0);
     hexify( hash_str, output, 32 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_SHA512_C:POLARSSL_FS_IO */
+/* BEGIN_CASE depends_on:MBEDTLS_SHA512_C:MBEDTLS_FS_IO */
 void sha384_file( char *filename, char *hex_hash_string )
 {
     unsigned char hash_str[97];
@@ -166,15 +166,15 @@ void sha384_file( char *filename, char *hex_hash_string )
     memset(hash_str, 0x00, 97);
     memset(output, 0x00, 49);
 
-    sha512_file( filename, output, 1);
+    mbedtls_sha512_file( filename, output, 1);
     hexify( hash_str, output, 48 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_SHA512_C:POLARSSL_FS_IO */
-void sha512_file( char *filename, char *hex_hash_string )
+/* BEGIN_CASE depends_on:MBEDTLS_SHA512_C:MBEDTLS_FS_IO */
+void mbedtls_sha512_file( char *filename, char *hex_hash_string )
 {
     unsigned char hash_str[129];
     unsigned char output[65];
@@ -182,30 +182,30 @@ void sha512_file( char *filename, char *hex_hash_string )
     memset(hash_str, 0x00, 129);
     memset(output, 0x00, 65);
 
-    sha512_file( filename, output, 0);
+    mbedtls_sha512_file( filename, output, 0);
     hexify( hash_str, output, 64 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_SHA1_C:POLARSSL_SELF_TEST */
+/* BEGIN_CASE depends_on:MBEDTLS_SHA1_C:MBEDTLS_SELF_TEST */
 void sha1_selftest()
 {
-    TEST_ASSERT( sha1_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_sha1_self_test( 0 ) == 0 );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_SHA256_C:POLARSSL_SELF_TEST */
+/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C:MBEDTLS_SELF_TEST */
 void sha256_selftest()
 {
-    TEST_ASSERT( sha256_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_sha256_self_test( 0 ) == 0 );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_SHA512_C:POLARSSL_SELF_TEST */
+/* BEGIN_CASE depends_on:MBEDTLS_SHA512_C:MBEDTLS_SELF_TEST */
 void sha512_selftest()
 {
-    TEST_ASSERT( sha512_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_sha512_self_test( 0 ) == 0 );
 }
 /* END_CASE */

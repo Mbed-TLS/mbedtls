@@ -21,18 +21,18 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_ARC4_H
-#define POLARSSL_ARC4_H
+#ifndef MBEDTLS_ARC4_H
+#define MBEDTLS_ARC4_H
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
 #include <stddef.h>
 
-#if !defined(POLARSSL_ARC4_ALT)
+#if !defined(MBEDTLS_ARC4_ALT)
 // Regular implementation
 //
 
@@ -49,21 +49,21 @@ typedef struct
     int y;                      /*!< permutation index */
     unsigned char m[256];       /*!< permutation table */
 }
-arc4_context;
+mbedtls_arc4_context;
 
 /**
  * \brief          Initialize ARC4 context
  *
  * \param ctx      ARC4 context to be initialized
  */
-void arc4_init( arc4_context *ctx );
+void mbedtls_arc4_init( mbedtls_arc4_context *ctx );
 
 /**
  * \brief          Clear ARC4 context
  *
  * \param ctx      ARC4 context to be cleared
  */
-void arc4_free( arc4_context *ctx );
+void mbedtls_arc4_free( mbedtls_arc4_context *ctx );
 
 /**
  * \brief          ARC4 key schedule
@@ -72,7 +72,7 @@ void arc4_free( arc4_context *ctx );
  * \param key      the secret key
  * \param keylen   length of the key, in bytes
  */
-void arc4_setup( arc4_context *ctx, const unsigned char *key,
+void mbedtls_arc4_setup( mbedtls_arc4_context *ctx, const unsigned char *key,
                  unsigned int keylen );
 
 /**
@@ -85,16 +85,16 @@ void arc4_setup( arc4_context *ctx, const unsigned char *key,
  *
  * \return         0 if successful
  */
-int arc4_crypt( arc4_context *ctx, size_t length, const unsigned char *input,
+int mbedtls_arc4_crypt( mbedtls_arc4_context *ctx, size_t length, const unsigned char *input,
                 unsigned char *output );
 
 #ifdef __cplusplus
 }
 #endif
 
-#else  /* POLARSSL_ARC4_ALT */
+#else  /* MBEDTLS_ARC4_ALT */
 #include "arc4_alt.h"
-#endif /* POLARSSL_ARC4_ALT */
+#endif /* MBEDTLS_ARC4_ALT */
 
 #ifdef __cplusplus
 extern "C" {
@@ -105,7 +105,7 @@ extern "C" {
  *
  * \return         0 if successful, or 1 if the test failed
  */
-int arc4_self_test( int verbose );
+int mbedtls_arc4_self_test( int verbose );
 
 #ifdef __cplusplus
 }

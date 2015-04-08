@@ -21,13 +21,13 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_THREADING_H
-#define POLARSSL_THREADING_H
+#ifndef MBEDTLS_THREADING_H
+#define MBEDTLS_THREADING_H
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
 #include <stdlib.h>
@@ -36,17 +36,17 @@
 extern "C" {
 #endif
 
-#define POLARSSL_ERR_THREADING_FEATURE_UNAVAILABLE         -0x001A  /**< The selected feature is not available. */
-#define POLARSSL_ERR_THREADING_BAD_INPUT_DATA              -0x001C  /**< Bad input parameters to function. */
-#define POLARSSL_ERR_THREADING_MUTEX_ERROR                 -0x001E  /**< Locking / unlocking / free failed with error code. */
+#define MBEDTLS_ERR_THREADING_FEATURE_UNAVAILABLE         -0x001A  /**< The selected feature is not available. */
+#define MBEDTLS_ERR_THREADING_BAD_INPUT_DATA              -0x001C  /**< Bad input parameters to function. */
+#define MBEDTLS_ERR_THREADING_MUTEX_ERROR                 -0x001E  /**< Locking / unlocking / free failed with error code. */
 
-#if defined(POLARSSL_THREADING_PTHREAD)
+#if defined(MBEDTLS_THREADING_PTHREAD)
 #include <pthread.h>
-typedef pthread_mutex_t threading_mutex_t;
+typedef pthread_mutex_t mbedtls_threading_mutex_t;
 #endif
 
-#if defined(POLARSSL_THREADING_ALT)
-/* You should define the threading_mutex_t type in your header */
+#if defined(MBEDTLS_THREADING_ALT)
+/* You should define the mbedtls_threading_mutex_t type in your header */
 #include "threading_alt.h"
 
 /**
@@ -60,21 +60,21 @@ typedef pthread_mutex_t threading_mutex_t;
  *
  * \return              0 if successful
  */
-int threading_set_alt( int (*mutex_init)( threading_mutex_t * ),
-                       int (*mutex_free)( threading_mutex_t * ),
-                       int (*mutex_lock)( threading_mutex_t * ),
-                       int (*mutex_unlock)( threading_mutex_t * ) );
-#endif /* POLARSSL_THREADING_ALT */
+int mbedtls_threading_set_alt( int (*mutex_init)( mbedtls_threading_mutex_t * ),
+                       int (*mutex_free)( mbedtls_threading_mutex_t * ),
+                       int (*mutex_lock)( mbedtls_threading_mutex_t * ),
+                       int (*mutex_unlock)( mbedtls_threading_mutex_t * ) );
+#endif /* MBEDTLS_THREADING_ALT */
 
 /*
  * The function pointers for mutex_init, mutex_free, mutex_ and mutex_unlock
  *
  * All these functions are expected to work or the result will be undefined.
  */
-extern int (*polarssl_mutex_init)( threading_mutex_t *mutex );
-extern int (*polarssl_mutex_free)( threading_mutex_t *mutex );
-extern int (*polarssl_mutex_lock)( threading_mutex_t *mutex );
-extern int (*polarssl_mutex_unlock)( threading_mutex_t *mutex );
+extern int (*mbedtls_mutex_init)( mbedtls_threading_mutex_t *mutex );
+extern int (*mbedtls_mutex_free)( mbedtls_threading_mutex_t *mutex );
+extern int (*mbedtls_mutex_lock)( mbedtls_threading_mutex_t *mutex );
+extern int (*mbedtls_mutex_unlock)( mbedtls_threading_mutex_t *mutex );
 
 #ifdef __cplusplus
 }

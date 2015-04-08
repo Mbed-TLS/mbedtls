@@ -26,37 +26,37 @@
  *  http://www.ietf.org/rfc/rfc1319.txt
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_MD2_C)
+#if defined(MBEDTLS_MD2_C)
 
 #include "mbedtls/md2.h"
 
 #include <string.h>
 
-#if defined(POLARSSL_FS_IO)
+#if defined(MBEDTLS_FS_IO)
 #include <stdio.h>
 #endif
 
-#if defined(POLARSSL_SELF_TEST)
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_SELF_TEST)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define polarssl_printf printf
-#endif /* POLARSSL_PLATFORM_C */
-#endif /* POLARSSL_SELF_TEST */
+#define mbedtls_printf printf
+#endif /* MBEDTLS_PLATFORM_C */
+#endif /* MBEDTLS_SELF_TEST */
 
 /* Implementation that should never be optimized out by the compiler */
-static void polarssl_zeroize( void *v, size_t n ) {
+static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
-#if !defined(POLARSSL_MD2_ALT)
+#if !defined(MBEDTLS_MD2_ALT)
 
 static const unsigned char PI_SUBST[256] =
 {
@@ -88,23 +88,23 @@ static const unsigned char PI_SUBST[256] =
     0x8D, 0x33, 0x9F, 0x11, 0x83, 0x14
 };
 
-void md2_init( md2_context *ctx )
+void mbedtls_md2_init( mbedtls_md2_context *ctx )
 {
-    memset( ctx, 0, sizeof( md2_context ) );
+    memset( ctx, 0, sizeof( mbedtls_md2_context ) );
 }
 
-void md2_free( md2_context *ctx )
+void mbedtls_md2_free( mbedtls_md2_context *ctx )
 {
     if( ctx == NULL )
         return;
 
-    polarssl_zeroize( ctx, sizeof( md2_context ) );
+    mbedtls_zeroize( ctx, sizeof( mbedtls_md2_context ) );
 }
 
 /*
  * MD2 context setup
  */
-void md2_starts( md2_context *ctx )
+void mbedtls_md2_starts( mbedtls_md2_context *ctx )
 {
     memset( ctx->cksum, 0, 16 );
     memset( ctx->state, 0, 46 );
@@ -112,8 +112,8 @@ void md2_starts( md2_context *ctx )
     ctx->left = 0;
 }
 
-#if !defined(POLARSSL_MD2_PROCESS_ALT)
-void md2_process( md2_context *ctx )
+#if !defined(MBEDTLS_MD2_PROCESS_ALT)
+void mbedtls_md2_process( mbedtls_md2_context *ctx )
 {
     int i, j;
     unsigned char t = 0;
@@ -146,12 +146,12 @@ void md2_process( md2_context *ctx )
         t  = ctx->cksum[i];
     }
 }
-#endif /* !POLARSSL_MD2_PROCESS_ALT */
+#endif /* !MBEDTLS_MD2_PROCESS_ALT */
 
 /*
  * MD2 process buffer
  */
-void md2_update( md2_context *ctx, const unsigned char *input, size_t ilen )
+void mbedtls_md2_update( mbedtls_md2_context *ctx, const unsigned char *input, size_t ilen )
 {
     size_t fill;
 
@@ -171,7 +171,7 @@ void md2_update( md2_context *ctx, const unsigned char *input, size_t ilen )
         if( ctx->left == 16 )
         {
             ctx->left = 0;
-            md2_process( ctx );
+            mbedtls_md2_process( ctx );
         }
     }
 }
@@ -179,7 +179,7 @@ void md2_update( md2_context *ctx, const unsigned char *input, size_t ilen )
 /*
  * MD2 final digest
  */
-void md2_finish( md2_context *ctx, unsigned char output[16] )
+void mbedtls_md2_finish( mbedtls_md2_context *ctx, unsigned char output[16] )
 {
     size_t i;
     unsigned char x;
@@ -189,65 +189,65 @@ void md2_finish( md2_context *ctx, unsigned char output[16] )
     for( i = ctx->left; i < 16; i++ )
         ctx->buffer[i] = x;
 
-    md2_process( ctx );
+    mbedtls_md2_process( ctx );
 
     memcpy( ctx->buffer, ctx->cksum, 16 );
-    md2_process( ctx );
+    mbedtls_md2_process( ctx );
 
     memcpy( output, ctx->state, 16 );
 }
 
-#endif /* !POLARSSL_MD2_ALT */
+#endif /* !MBEDTLS_MD2_ALT */
 
 /*
  * output = MD2( input buffer )
  */
-void md2( const unsigned char *input, size_t ilen, unsigned char output[16] )
+void mbedtls_md2( const unsigned char *input, size_t ilen, unsigned char output[16] )
 {
-    md2_context ctx;
+    mbedtls_md2_context ctx;
 
-    md2_init( &ctx );
-    md2_starts( &ctx );
-    md2_update( &ctx, input, ilen );
-    md2_finish( &ctx, output );
-    md2_free( &ctx );
+    mbedtls_md2_init( &ctx );
+    mbedtls_md2_starts( &ctx );
+    mbedtls_md2_update( &ctx, input, ilen );
+    mbedtls_md2_finish( &ctx, output );
+    mbedtls_md2_free( &ctx );
 }
 
-#if defined(POLARSSL_FS_IO)
+#if defined(MBEDTLS_FS_IO)
 /*
  * output = MD2( file contents )
  */
-int md2_file( const char *path, unsigned char output[16] )
+int mbedtls_md2_file( const char *path, unsigned char output[16] )
 {
     FILE *f;
     size_t n;
-    md2_context ctx;
+    mbedtls_md2_context ctx;
     unsigned char buf[1024];
 
     if( ( f = fopen( path, "rb" ) ) == NULL )
-        return( POLARSSL_ERR_MD2_FILE_IO_ERROR );
+        return( MBEDTLS_ERR_MD2_FILE_IO_ERROR );
 
-    md2_init( &ctx );
-    md2_starts( &ctx );
+    mbedtls_md2_init( &ctx );
+    mbedtls_md2_starts( &ctx );
 
     while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
-        md2_update( &ctx, buf, n );
+        mbedtls_md2_update( &ctx, buf, n );
 
-    md2_finish( &ctx, output );
-    md2_free( &ctx );
+    mbedtls_md2_finish( &ctx, output );
+    mbedtls_md2_free( &ctx );
 
     if( ferror( f ) != 0 )
     {
         fclose( f );
-        return( POLARSSL_ERR_MD2_FILE_IO_ERROR );
+        return( MBEDTLS_ERR_MD2_FILE_IO_ERROR );
     }
 
     fclose( f );
     return( 0 );
 }
-#endif /* POLARSSL_FS_IO */
+#endif /* MBEDTLS_FS_IO */
 
-#if defined(POLARSSL_SELF_TEST)
+#if defined(MBEDTLS_SELF_TEST)
 
 /*
  * RFC 1319 test vectors
@@ -285,7 +285,7 @@ static const unsigned char md2_test_sum[7][16] =
 /*
  * Checkup routine
  */
-int md2_self_test( int verbose )
+int mbedtls_md2_self_test( int verbose )
 {
     int i;
     unsigned char md2sum[16];
@@ -293,29 +293,29 @@ int md2_self_test( int verbose )
     for( i = 0; i < 7; i++ )
     {
         if( verbose != 0 )
-            polarssl_printf( "  MD2 test #%d: ", i + 1 );
+            mbedtls_printf( "  MD2 test #%d: ", i + 1 );
 
-        md2( (unsigned char *) md2_test_str[i],
+        mbedtls_md2( (unsigned char *) md2_test_str[i],
              strlen( md2_test_str[i] ), md2sum );
 
         if( memcmp( md2sum, md2_test_sum[i], 16 ) != 0 )
         {
             if( verbose != 0 )
-                polarssl_printf( "failed\n" );
+                mbedtls_printf( "failed\n" );
 
             return( 1 );
         }
 
         if( verbose != 0 )
-            polarssl_printf( "passed\n" );
+            mbedtls_printf( "passed\n" );
     }
 
     if( verbose != 0 )
-        polarssl_printf( "\n" );
+        mbedtls_printf( "\n" );
 
     return( 0 );
 }
 
-#endif /* POLARSSL_SELF_TEST */
+#endif /* MBEDTLS_SELF_TEST */
 
-#endif /* POLARSSL_MD2_C */
+#endif /* MBEDTLS_MD2_C */

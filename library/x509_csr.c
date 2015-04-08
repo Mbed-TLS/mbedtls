@@ -30,39 +30,39 @@
  *  http://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_X509_CSR_PARSE_C)
+#if defined(MBEDTLS_X509_CSR_PARSE_C)
 
 #include "mbedtls/x509_csr.h"
 #include "mbedtls/oid.h"
 
 #include <string.h>
 
-#if defined(POLARSSL_PEM_PARSE_C)
+#if defined(MBEDTLS_PEM_PARSE_C)
 #include "mbedtls/pem.h"
 #endif
 
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdlib.h>
 #include <stdio.h>
-#define polarssl_free       free
-#define polarssl_malloc     malloc
-#define polarssl_snprintf   snprintf
+#define mbedtls_free       free
+#define mbedtls_malloc     malloc
+#define mbedtls_snprintf   snprintf
 #endif
 
-#if defined(POLARSSL_FS_IO) || defined(EFIX64) || defined(EFI32)
+#if defined(MBEDTLS_FS_IO) || defined(EFIX64) || defined(EFI32)
 #include <stdio.h>
 #endif
 
 /* Implementation that should never be optimized out by the compiler */
-static void polarssl_zeroize( void *v, size_t n ) {
+static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
@@ -75,15 +75,15 @@ static int x509_csr_get_version( unsigned char **p,
 {
     int ret;
 
-    if( ( ret = asn1_get_int( p, end, ver ) ) != 0 )
+    if( ( ret = mbedtls_asn1_get_int( p, end, ver ) ) != 0 )
     {
-        if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+        if( ret == MBEDTLS_ERR_ASN1_UNEXPECTED_TAG )
         {
             *ver = 0;
             return( 0 );
         }
 
-        return( POLARSSL_ERR_X509_INVALID_VERSION + ret );
+        return( MBEDTLS_ERR_X509_INVALID_VERSION + ret );
     }
 
     return( 0 );
@@ -92,31 +92,31 @@ static int x509_csr_get_version( unsigned char **p,
 /*
  * Parse a CSR in DER format
  */
-int x509_csr_parse_der( x509_csr *csr,
+int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
                         const unsigned char *buf, size_t buflen )
 {
     int ret;
     size_t len;
     unsigned char *p, *end;
-    x509_buf sig_params;
+    mbedtls_x509_buf sig_params;
 
-    memset( &sig_params, 0, sizeof( x509_buf ) );
+    memset( &sig_params, 0, sizeof( mbedtls_x509_buf ) );
 
     /*
      * Check for valid input
      */
     if( csr == NULL || buf == NULL )
-        return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
 
-    x509_csr_init( csr );
+    mbedtls_x509_csr_init( csr );
 
     /*
      * first copy the raw DER data
      */
-    p = polarssl_malloc( len = buflen );
+    p = mbedtls_malloc( len = buflen );
 
     if( p == NULL )
-        return( POLARSSL_ERR_X509_MALLOC_FAILED );
+        return( MBEDTLS_ERR_X509_MALLOC_FAILED );
 
     memcpy( p, buf, buflen );
 
@@ -131,18 +131,18 @@ int x509_csr_parse_der( x509_csr *csr,
      *       signature          BIT STRING
      *  }
      */
-    if( ( ret = asn1_get_tag( &p, end, &len,
-            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+            MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
     {
-        x509_csr_free( csr );
-        return( POLARSSL_ERR_X509_INVALID_FORMAT );
+        mbedtls_x509_csr_free( csr );
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT );
     }
 
     if( len != (size_t) ( end - p ) )
     {
-        x509_csr_free( csr );
-        return( POLARSSL_ERR_X509_INVALID_FORMAT +
-                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+        mbedtls_x509_csr_free( csr );
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
     }
 
     /*
@@ -150,11 +150,11 @@ int x509_csr_parse_der( x509_csr *csr,
      */
     csr->cri.p = p;
 
-    if( ( ret = asn1_get_tag( &p, end, &len,
-            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+            MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
     {
-        x509_csr_free( csr );
-        return( POLARSSL_ERR_X509_INVALID_FORMAT + ret );
+        mbedtls_x509_csr_free( csr );
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
     }
 
     end = p + len;
@@ -165,7 +165,7 @@ int x509_csr_parse_der( x509_csr *csr,
      */
     if( ( ret = x509_csr_get_version( &p, end, &csr->version ) ) != 0 )
     {
-        x509_csr_free( csr );
+        mbedtls_x509_csr_free( csr );
         return( ret );
     }
 
@@ -173,8 +173,8 @@ int x509_csr_parse_der( x509_csr *csr,
 
     if( csr->version != 1 )
     {
-        x509_csr_free( csr );
-        return( POLARSSL_ERR_X509_UNKNOWN_VERSION );
+        mbedtls_x509_csr_free( csr );
+        return( MBEDTLS_ERR_X509_UNKNOWN_VERSION );
     }
 
     /*
@@ -182,16 +182,16 @@ int x509_csr_parse_der( x509_csr *csr,
      */
     csr->subject_raw.p = p;
 
-    if( ( ret = asn1_get_tag( &p, end, &len,
-            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+            MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
     {
-        x509_csr_free( csr );
-        return( POLARSSL_ERR_X509_INVALID_FORMAT + ret );
+        mbedtls_x509_csr_free( csr );
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
     }
 
-    if( ( ret = x509_get_name( &p, p + len, &csr->subject ) ) != 0 )
+    if( ( ret = mbedtls_x509_get_name( &p, p + len, &csr->subject ) ) != 0 )
     {
-        x509_csr_free( csr );
+        mbedtls_x509_csr_free( csr );
         return( ret );
     }
 
@@ -200,20 +200,20 @@ int x509_csr_parse_der( x509_csr *csr,
     /*
      *  subjectPKInfo SubjectPublicKeyInfo
      */
-    if( ( ret = pk_parse_subpubkey( &p, end, &csr->pk ) ) != 0 )
+    if( ( ret = mbedtls_pk_parse_subpubkey( &p, end, &csr->pk ) ) != 0 )
     {
-        x509_csr_free( csr );
+        mbedtls_x509_csr_free( csr );
         return( ret );
     }
 
     /*
      *  attributes    [0] Attributes
      */
-    if( ( ret = asn1_get_tag( &p, end, &len,
-            ASN1_CONSTRUCTED | ASN1_CONTEXT_SPECIFIC ) ) != 0 )
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+            MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_CONTEXT_SPECIFIC ) ) != 0 )
     {
-        x509_csr_free( csr );
-        return( POLARSSL_ERR_X509_INVALID_FORMAT + ret );
+        mbedtls_x509_csr_free( csr );
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
     }
     // TODO Parse Attributes / extension requests
 
@@ -225,31 +225,31 @@ int x509_csr_parse_der( x509_csr *csr,
      *  signatureAlgorithm   AlgorithmIdentifier,
      *  signature            BIT STRING
      */
-    if( ( ret = x509_get_alg( &p, end, &csr->sig_oid, &sig_params ) ) != 0 )
+    if( ( ret = mbedtls_x509_get_alg( &p, end, &csr->sig_oid, &sig_params ) ) != 0 )
     {
-        x509_csr_free( csr );
+        mbedtls_x509_csr_free( csr );
         return( ret );
     }
 
-    if( ( ret = x509_get_sig_alg( &csr->sig_oid, &sig_params,
+    if( ( ret = mbedtls_x509_get_sig_alg( &csr->sig_oid, &sig_params,
                                   &csr->sig_md, &csr->sig_pk,
                                   &csr->sig_opts ) ) != 0 )
     {
-        x509_csr_free( csr );
-        return( POLARSSL_ERR_X509_UNKNOWN_SIG_ALG );
+        mbedtls_x509_csr_free( csr );
+        return( MBEDTLS_ERR_X509_UNKNOWN_SIG_ALG );
     }
 
-    if( ( ret = x509_get_sig( &p, end, &csr->sig ) ) != 0 )
+    if( ( ret = mbedtls_x509_get_sig( &p, end, &csr->sig ) ) != 0 )
     {
-        x509_csr_free( csr );
+        mbedtls_x509_csr_free( csr );
         return( ret );
     }
 
     if( p != end )
     {
-        x509_csr_free( csr );
-        return( POLARSSL_ERR_X509_INVALID_FORMAT +
-                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+        mbedtls_x509_csr_free( csr );
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
     }
 
     return( 0 );
@@ -258,23 +258,23 @@ int x509_csr_parse_der( x509_csr *csr,
 /*
  * Parse a CSR, allowing for PEM or raw DER encoding
  */
-int x509_csr_parse( x509_csr *csr, const unsigned char *buf, size_t buflen )
+int mbedtls_x509_csr_parse( mbedtls_x509_csr *csr, const unsigned char *buf, size_t buflen )
 {
     int ret;
-#if defined(POLARSSL_PEM_PARSE_C)
+#if defined(MBEDTLS_PEM_PARSE_C)
     size_t use_len;
-    pem_context pem;
+    mbedtls_pem_context pem;
 #endif
 
     /*
      * Check for valid input
      */
     if( csr == NULL || buf == NULL )
-        return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
 
-#if defined(POLARSSL_PEM_PARSE_C)
-    pem_init( &pem );
-    ret = pem_read_buffer( &pem,
+#if defined(MBEDTLS_PEM_PARSE_C)
+    mbedtls_pem_init( &pem );
+    ret = mbedtls_pem_read_buffer( &pem,
                            "-----BEGIN CERTIFICATE REQUEST-----",
                            "-----END CERTIFICATE REQUEST-----",
                            buf, NULL, 0, &use_len );
@@ -284,43 +284,43 @@ int x509_csr_parse( x509_csr *csr, const unsigned char *buf, size_t buflen )
         /*
          * Was PEM encoded, parse the result
          */
-        if( ( ret = x509_csr_parse_der( csr, pem.buf, pem.buflen ) ) != 0 )
+        if( ( ret = mbedtls_x509_csr_parse_der( csr, pem.buf, pem.buflen ) ) != 0 )
             return( ret );
 
-        pem_free( &pem );
+        mbedtls_pem_free( &pem );
         return( 0 );
     }
-    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
+    else if( ret != MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
     {
-        pem_free( &pem );
+        mbedtls_pem_free( &pem );
         return( ret );
     }
     else
-#endif /* POLARSSL_PEM_PARSE_C */
-    return( x509_csr_parse_der( csr, buf, buflen ) );
+#endif /* MBEDTLS_PEM_PARSE_C */
+    return( mbedtls_x509_csr_parse_der( csr, buf, buflen ) );
 }
 
-#if defined(POLARSSL_FS_IO)
+#if defined(MBEDTLS_FS_IO)
 /*
  * Load a CSR into the structure
  */
-int x509_csr_parse_file( x509_csr *csr, const char *path )
+int mbedtls_x509_csr_parse_file( mbedtls_x509_csr *csr, const char *path )
 {
     int ret;
     size_t n;
     unsigned char *buf;
 
-    if( ( ret = pk_load_file( path, &buf, &n ) ) != 0 )
+    if( ( ret = mbedtls_pk_load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
-    ret = x509_csr_parse( csr, buf, n );
+    ret = mbedtls_x509_csr_parse( csr, buf, n );
 
-    polarssl_zeroize( buf, n + 1 );
-    polarssl_free( buf );
+    mbedtls_zeroize( buf, n + 1 );
+    mbedtls_free( buf );
 
     return( ret );
 }
-#endif /* POLARSSL_FS_IO */
+#endif /* MBEDTLS_FS_IO */
 
 #if defined(_MSC_VER) && !defined snprintf && !defined(EFIX64) && \
     !defined(EFI32)
@@ -358,7 +358,7 @@ static int compat_snprintf( char *str, size_t size, const char *format, ... )
 #define snprintf compat_snprintf
 #endif /* _MSC_VER && !snprintf && !EFIX64 && !EFI32 */
 
-#define POLARSSL_ERR_DEBUG_BUF_TOO_SMALL    -2
+#define MBEDTLS_ERR_DEBUG_BUF_TOO_SMALL    -2
 
 #define SAFE_SNPRINTF()                             \
 {                                                   \
@@ -367,7 +367,7 @@ static int compat_snprintf( char *str, size_t size, const char *format, ... )
                                                     \
     if( (unsigned int) ret > n ) {                  \
         p[n - 1] = '\0';                            \
-        return( POLARSSL_ERR_DEBUG_BUF_TOO_SMALL ); \
+        return( MBEDTLS_ERR_DEBUG_BUF_TOO_SMALL ); \
     }                                               \
                                                     \
     n -= (unsigned int) ret;                        \
@@ -379,8 +379,8 @@ static int compat_snprintf( char *str, size_t size, const char *format, ... )
 /*
  * Return an informational string about the CSR.
  */
-int x509_csr_info( char *buf, size_t size, const char *prefix,
-                   const x509_csr *csr )
+int mbedtls_x509_csr_info( char *buf, size_t size, const char *prefix,
+                   const mbedtls_x509_csr *csr )
 {
     int ret;
     size_t n;
@@ -390,30 +390,30 @@ int x509_csr_info( char *buf, size_t size, const char *prefix,
     p = buf;
     n = size;
 
-    ret = polarssl_snprintf( p, n, "%sCSR version   : %d",
+    ret = mbedtls_snprintf( p, n, "%sCSR version   : %d",
                                prefix, csr->version );
     SAFE_SNPRINTF();
 
-    ret = polarssl_snprintf( p, n, "\n%ssubject name  : ", prefix );
+    ret = mbedtls_snprintf( p, n, "\n%ssubject name  : ", prefix );
     SAFE_SNPRINTF();
-    ret = x509_dn_gets( p, n, &csr->subject );
-    SAFE_SNPRINTF();
-
-    ret = polarssl_snprintf( p, n, "\n%ssigned using  : ", prefix );
+    ret = mbedtls_x509_dn_gets( p, n, &csr->subject );
     SAFE_SNPRINTF();
 
-    ret = x509_sig_alg_gets( p, n, &csr->sig_oid, csr->sig_pk, csr->sig_md,
+    ret = mbedtls_snprintf( p, n, "\n%ssigned using  : ", prefix );
+    SAFE_SNPRINTF();
+
+    ret = mbedtls_x509_sig_alg_gets( p, n, &csr->sig_oid, csr->sig_pk, csr->sig_md,
                              csr->sig_opts );
     SAFE_SNPRINTF();
 
-    if( ( ret = x509_key_size_helper( key_size_str, BEFORE_COLON,
-                                      pk_get_name( &csr->pk ) ) ) != 0 )
+    if( ( ret = mbedtls_x509_key_size_helper( key_size_str, BEFORE_COLON,
+                                      mbedtls_pk_get_name( &csr->pk ) ) ) != 0 )
     {
         return( ret );
     }
 
-    ret = polarssl_snprintf( p, n, "\n%s%-" BC "s: %d bits\n", prefix, key_size_str,
-                          (int) pk_get_size( &csr->pk ) );
+    ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: %d bits\n", prefix, key_size_str,
+                          (int) mbedtls_pk_get_size( &csr->pk ) );
     SAFE_SNPRINTF();
 
     return( (int) ( size - n ) );
@@ -422,26 +422,26 @@ int x509_csr_info( char *buf, size_t size, const char *prefix,
 /*
  * Initialize a CSR
  */
-void x509_csr_init( x509_csr *csr )
+void mbedtls_x509_csr_init( mbedtls_x509_csr *csr )
 {
-    memset( csr, 0, sizeof(x509_csr) );
+    memset( csr, 0, sizeof(mbedtls_x509_csr) );
 }
 
 /*
  * Unallocate all CSR data
  */
-void x509_csr_free( x509_csr *csr )
+void mbedtls_x509_csr_free( mbedtls_x509_csr *csr )
 {
-    x509_name *name_cur;
-    x509_name *name_prv;
+    mbedtls_x509_name *name_cur;
+    mbedtls_x509_name *name_prv;
 
     if( csr == NULL )
         return;
 
-    pk_free( &csr->pk );
+    mbedtls_pk_free( &csr->pk );
 
-#if defined(POLARSSL_X509_RSASSA_PSS_SUPPORT)
-    polarssl_free( csr->sig_opts );
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
+    mbedtls_free( csr->sig_opts );
 #endif
 
     name_cur = csr->subject.next;
@@ -449,17 +449,17 @@ void x509_csr_free( x509_csr *csr )
     {
         name_prv = name_cur;
         name_cur = name_cur->next;
-        polarssl_zeroize( name_prv, sizeof( x509_name ) );
-        polarssl_free( name_prv );
+        mbedtls_zeroize( name_prv, sizeof( mbedtls_x509_name ) );
+        mbedtls_free( name_prv );
     }
 
     if( csr->raw.p != NULL )
     {
-        polarssl_zeroize( csr->raw.p, csr->raw.len );
-        polarssl_free( csr->raw.p );
+        mbedtls_zeroize( csr->raw.p, csr->raw.len );
+        mbedtls_free( csr->raw.p );
     }
 
-    polarssl_zeroize( csr, sizeof( x509_csr ) );
+    mbedtls_zeroize( csr, sizeof( mbedtls_x509_csr ) );
 }
 
-#endif /* POLARSSL_X509_CSR_PARSE_C */
+#endif /* MBEDTLS_X509_CSR_PARSE_C */

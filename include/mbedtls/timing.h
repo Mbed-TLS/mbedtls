@@ -21,16 +21,16 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_TIMING_H
-#define POLARSSL_TIMING_H
+#ifndef MBEDTLS_TIMING_H
+#define MBEDTLS_TIMING_H
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if !defined(POLARSSL_TIMING_ALT)
+#if !defined(MBEDTLS_TIMING_ALT)
 // Regular implementation
 //
 
@@ -41,17 +41,17 @@ extern "C" {
 /**
  * \brief          timer structure
  */
-struct hr_time
+struct mbedtls_timing_hr_time
 {
     unsigned char opaque[32];
 };
 
-extern volatile int alarmed;
+extern volatile int mbedtls_timing_alarmed;
 
 /**
  * \brief          Return the CPU cycle counter value
  */
-unsigned long hardclock( void );
+unsigned long mbedtls_timing_hardclock( void );
 
 /**
  * \brief          Return the elapsed time in milliseconds
@@ -59,41 +59,41 @@ unsigned long hardclock( void );
  * \param val      points to a timer structure
  * \param reset    if set to 1, the timer is restarted
  */
-unsigned long get_timer( struct hr_time *val, int reset );
+unsigned long mbedtls_timing_get_timer( struct mbedtls_timing_hr_time *val, int reset );
 
 /**
  * \brief          Setup an alarm clock
  *
- * \param seconds  delay before the "alarmed" flag is set
+ * \param seconds  delay before the "mbedtls_timing_alarmed" flag is set
  *
  * \warning        Only one alarm at a time  is supported. In a threaded
  *                 context, this means one for the whole process, not one per
  *                 thread.
  */
-void set_alarm( int seconds );
+void mbedtls_set_alarm( int seconds );
 
 /**
  * \brief          Sleep for a certain amount of time
  *
  * \param milliseconds  delay in milliseconds
  */
-void m_sleep( int milliseconds );
+void mbedtls_timing_m_sleep( int milliseconds );
 
-#if defined(POLARSSL_SELF_TEST)
+#if defined(MBEDTLS_SELF_TEST)
 /**
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if a test failed
  */
-int timing_self_test( int verbose );
+int mbedtls_timing_self_test( int verbose );
 #endif
 
 #ifdef __cplusplus
 }
 #endif
 
-#else  /* POLARSSL_TIMING_ALT */
+#else  /* MBEDTLS_TIMING_ALT */
 #include "timing_alt.h"
-#endif /* POLARSSL_TIMING_ALT */
+#endif /* MBEDTLS_TIMING_ALT */
 
 #endif /* timing.h */

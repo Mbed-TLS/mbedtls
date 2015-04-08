@@ -21,13 +21,13 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_ENTROPY_POLL_H
-#define POLARSSL_ENTROPY_POLL_H
+#ifndef MBEDTLS_ENTROPY_POLL_H
+#define MBEDTLS_ENTROPY_POLL_H
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
 #include <stddef.h>
@@ -39,33 +39,33 @@ extern "C" {
 /*
  * Default thresholds for built-in sources
  */
-#define ENTROPY_MIN_PLATFORM    128     /**< Minimum for platform source    */
-#define ENTROPY_MIN_HAVEGE      128     /**< Minimum for HAVEGE             */
-#define ENTROPY_MIN_HARDCLOCK    32     /**< Minimum for hardclock()        */
+#define MBEDTLS_ENTROPY_MIN_PLATFORM    128     /**< Minimum for platform source    */
+#define MBEDTLS_ENTROPY_MIN_HAVEGE      128     /**< Minimum for HAVEGE             */
+#define MBEDTLS_ENTROPY_MIN_HARDCLOCK    32     /**< Minimum for mbedtls_timing_hardclock()        */
 
-#if !defined(POLARSSL_NO_PLATFORM_ENTROPY)
+#if !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
 /**
  * \brief           Platform-specific entropy poll callback
  */
-int platform_entropy_poll( void *data,
+int mbedtls_platform_entropy_poll( void *data,
                            unsigned char *output, size_t len, size_t *olen );
 #endif
 
-#if defined(POLARSSL_HAVEGE_C)
+#if defined(MBEDTLS_HAVEGE_C)
 /**
  * \brief           HAVEGE based entropy poll callback
  *
  * Requires an HAVEGE state as its data pointer.
  */
-int havege_poll( void *data,
+int mbedtls_havege_poll( void *data,
                  unsigned char *output, size_t len, size_t *olen );
 #endif
 
-#if defined(POLARSSL_TIMING_C)
+#if defined(MBEDTLS_TIMING_C)
 /**
- * \brief           hardclock-based entropy poll callback
+ * \brief           mbedtls_timing_hardclock-based entropy poll callback
  */
-int hardclock_poll( void *data,
+int mbedtls_hardclock_poll( void *data,
                     unsigned char *output, size_t len, size_t *olen );
 #endif
 

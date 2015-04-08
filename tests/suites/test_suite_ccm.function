@@ -3,39 +3,39 @@
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:POLARSSL_CCM_C
+ * depends_on:MBEDTLS_CCM_C
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:POLARSSL_SELF_TEST:POLARSSL_AES_C */
-void ccm_self_test( )
+/* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST:MBEDTLS_AES_C */
+void mbedtls_ccm_self_test( )
 {
-    TEST_ASSERT( ccm_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_ccm_self_test( 0 ) == 0 );
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
-void ccm_init( int cipher_id, int key_size, int result )
+void mbedtls_ccm_init( int cipher_id, int key_size, int result )
 {
-    ccm_context ctx;
+    mbedtls_ccm_context ctx;
     unsigned char key[32];
     int ret;
 
     memset( key, 0x2A, sizeof( key ) );
     TEST_ASSERT( (unsigned) key_size <= 8 * sizeof( key ) );
 
-    ret = ccm_init( &ctx, cipher_id, key, key_size );
+    ret = mbedtls_ccm_init( &ctx, cipher_id, key, key_size );
     TEST_ASSERT( ret == result );
 
 exit:
-    ccm_free( &ctx );
+    mbedtls_ccm_free( &ctx );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_AES_C */
+/* BEGIN_CASE depends_on:MBEDTLS_AES_C */
 void ccm_lengths( int msg_len, int iv_len, int add_len, int tag_len, int res )
 {
-    ccm_context ctx;
+    mbedtls_ccm_context ctx;
     unsigned char key[16];
     unsigned char msg[10];
     unsigned char iv[14];
@@ -51,27 +51,27 @@ void ccm_lengths( int msg_len, int iv_len, int add_len, int tag_len, int res )
     memset( out, 0, sizeof( out ) );
     memset( tag, 0, sizeof( tag ) );
 
-    TEST_ASSERT( ccm_init( &ctx, POLARSSL_CIPHER_ID_AES,
+    TEST_ASSERT( mbedtls_ccm_init( &ctx, MBEDTLS_CIPHER_ID_AES,
                                  key, 8 * sizeof( key ) ) == 0 );
 
-    TEST_ASSERT( ccm_encrypt_and_tag( &ctx, msg_len, iv, iv_len, add, add_len,
+    TEST_ASSERT( mbedtls_ccm_encrypt_and_tag( &ctx, msg_len, iv, iv_len, add, add_len,
                                       msg, out, tag, tag_len ) == res );
 
-    decrypt_ret = ccm_auth_decrypt( &ctx, msg_len, iv, iv_len, add, add_len,
+    decrypt_ret = mbedtls_ccm_auth_decrypt( &ctx, msg_len, iv, iv_len, add, add_len,
                                     msg, out, tag, tag_len );
 
     if( res == 0 )
-        TEST_ASSERT( decrypt_ret == POLARSSL_ERR_CCM_AUTH_FAILED );
+        TEST_ASSERT( decrypt_ret == MBEDTLS_ERR_CCM_AUTH_FAILED );
     else
         TEST_ASSERT( decrypt_ret == res );
 
 exit:
-    ccm_free( &ctx );
+    mbedtls_ccm_free( &ctx );
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
-void ccm_encrypt_and_tag( int cipher_id,
+void mbedtls_ccm_encrypt_and_tag( int cipher_id,
                           char *key_hex, char *msg_hex,
                           char *iv_hex, char *add_hex,
                           char *result_hex )
@@ -81,7 +81,7 @@ void ccm_encrypt_and_tag( int cipher_id,
     unsigned char iv[13];
     unsigned char add[32];
     unsigned char result[50];
-    ccm_context ctx;
+    mbedtls_ccm_context ctx;
     size_t key_len, msg_len, iv_len, add_len, tag_len, result_len;
 
     memset( key, 0x00, sizeof( key ) );
@@ -97,10 +97,10 @@ void ccm_encrypt_and_tag( int cipher_id,
     result_len = unhexify( result, result_hex );
     tag_len = result_len - msg_len;
 
-    TEST_ASSERT( ccm_init( &ctx, cipher_id, key, key_len * 8 ) == 0 );
+    TEST_ASSERT( mbedtls_ccm_init( &ctx, cipher_id, key, key_len * 8 ) == 0 );
 
     /* Test with input == output */
-    TEST_ASSERT( ccm_encrypt_and_tag( &ctx, msg_len, iv, iv_len, add, add_len,
+    TEST_ASSERT( mbedtls_ccm_encrypt_and_tag( &ctx, msg_len, iv, iv_len, add, add_len,
                  msg, msg, msg + msg_len, tag_len ) == 0 );
 
     TEST_ASSERT( memcmp( msg, result, result_len ) == 0 );
@@ -109,12 +109,12 @@ void ccm_encrypt_and_tag( int cipher_id,
     TEST_ASSERT( msg[result_len] == 0 && msg[result_len + 1] == 0 );
 
 exit:
-    ccm_free( &ctx );
+    mbedtls_ccm_free( &ctx );
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
-void ccm_auth_decrypt( int cipher_id,
+void mbedtls_ccm_auth_decrypt( int cipher_id,
                        char *key_hex, char *msg_hex,
                        char *iv_hex, char *add_hex,
                        int tag_len, char *result_hex )
@@ -125,7 +125,7 @@ void ccm_auth_decrypt( int cipher_id,
     unsigned char add[32];
     unsigned char tag[16];
     unsigned char result[50];
-    ccm_context ctx;
+    mbedtls_ccm_context ctx;
     size_t key_len, msg_len, iv_len, add_len, result_len;
     int ret;
 
@@ -145,7 +145,7 @@ void ccm_auth_decrypt( int cipher_id,
 
     if( strcmp( "FAIL", result_hex ) == 0 )
     {
-        ret = POLARSSL_ERR_CCM_AUTH_FAILED;
+        ret = MBEDTLS_ERR_CCM_AUTH_FAILED;
         result_len = -1;
     }
     else
@@ -154,10 +154,10 @@ void ccm_auth_decrypt( int cipher_id,
         result_len = unhexify( result, result_hex );
     }
 
-    TEST_ASSERT( ccm_init( &ctx, cipher_id, key, key_len * 8 ) == 0 );
+    TEST_ASSERT( mbedtls_ccm_init( &ctx, cipher_id, key, key_len * 8 ) == 0 );
 
     /* Test with input == output */
-    TEST_ASSERT( ccm_auth_decrypt( &ctx, msg_len, iv, iv_len, add, add_len,
+    TEST_ASSERT( mbedtls_ccm_auth_decrypt( &ctx, msg_len, iv, iv_len, add, add_len,
                  msg, msg, msg + msg_len, tag_len ) == ret );
 
     if( ret == 0 )
@@ -176,6 +176,6 @@ void ccm_auth_decrypt( int cipher_id,
     TEST_ASSERT( memcmp( msg + msg_len, tag, tag_len ) == 0 );
 
 exit:
-    ccm_free( &ctx );
+    mbedtls_ccm_free( &ctx );
 }
 /* END_CASE */

@@ -1,5 +1,5 @@
 /**
- * \file md5.h
+ * \file mbedtls_md5.h
  *
  * \brief MD5 message digest algorithm (hash function)
  *
@@ -21,13 +21,13 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_MD5_H
-#define POLARSSL_MD5_H
+#ifndef MBEDTLS_MD5_H
+#define MBEDTLS_MD5_H
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
 #include <stddef.h>
@@ -39,9 +39,9 @@ typedef UINT32 uint32_t;
 #include <inttypes.h>
 #endif
 
-#define POLARSSL_ERR_MD5_FILE_IO_ERROR                 -0x0074  /**< Read/write error in file. */
+#define MBEDTLS_ERR_MD5_FILE_IO_ERROR                 -0x0074  /**< Read/write error in file. */
 
-#if !defined(POLARSSL_MD5_ALT)
+#if !defined(MBEDTLS_MD5_ALT)
 // Regular implementation
 //
 
@@ -58,28 +58,28 @@ typedef struct
     uint32_t state[4];          /*!< intermediate digest state  */
     unsigned char buffer[64];   /*!< data block being processed */
 }
-md5_context;
+mbedtls_md5_context;
 
 /**
  * \brief          Initialize MD5 context
  *
  * \param ctx      MD5 context to be initialized
  */
-void md5_init( md5_context *ctx );
+void mbedtls_md5_init( mbedtls_md5_context *ctx );
 
 /**
  * \brief          Clear MD5 context
  *
  * \param ctx      MD5 context to be cleared
  */
-void md5_free( md5_context *ctx );
+void mbedtls_md5_free( mbedtls_md5_context *ctx );
 
 /**
  * \brief          MD5 context setup
  *
  * \param ctx      context to be initialized
  */
-void md5_starts( md5_context *ctx );
+void mbedtls_md5_starts( mbedtls_md5_context *ctx );
 
 /**
  * \brief          MD5 process buffer
@@ -88,7 +88,7 @@ void md5_starts( md5_context *ctx );
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  */
-void md5_update( md5_context *ctx, const unsigned char *input, size_t ilen );
+void mbedtls_md5_update( mbedtls_md5_context *ctx, const unsigned char *input, size_t ilen );
 
 /**
  * \brief          MD5 final digest
@@ -96,18 +96,18 @@ void md5_update( md5_context *ctx, const unsigned char *input, size_t ilen );
  * \param ctx      MD5 context
  * \param output   MD5 checksum result
  */
-void md5_finish( md5_context *ctx, unsigned char output[16] );
+void mbedtls_md5_finish( mbedtls_md5_context *ctx, unsigned char output[16] );
 
 /* Internal use */
-void md5_process( md5_context *ctx, const unsigned char data[64] );
+void mbedtls_md5_process( mbedtls_md5_context *ctx, const unsigned char data[64] );
 
 #ifdef __cplusplus
 }
 #endif
 
-#else  /* POLARSSL_MD5_ALT */
+#else  /* MBEDTLS_MD5_ALT */
 #include "md5_alt.h"
-#endif /* POLARSSL_MD5_ALT */
+#endif /* MBEDTLS_MD5_ALT */
 
 #ifdef __cplusplus
 extern "C" {
@@ -120,7 +120,7 @@ extern "C" {
  * \param ilen     length of the input data
  * \param output   MD5 checksum result
  */
-void md5( const unsigned char *input, size_t ilen, unsigned char output[16] );
+void mbedtls_md5( const unsigned char *input, size_t ilen, unsigned char output[16] );
 
 /**
  * \brief          Output = MD5( file contents )
@@ -128,19 +128,19 @@ void md5( const unsigned char *input, size_t ilen, unsigned char output[16] );
  * \param path     input file name
  * \param output   MD5 checksum result
  *
- * \return         0 if successful, or POLARSSL_ERR_MD5_FILE_IO_ERROR
+ * \return         0 if successful, or MBEDTLS_ERR_MD5_FILE_IO_ERROR
  */
-int md5_file( const char *path, unsigned char output[16] );
+int mbedtls_md5_file( const char *path, unsigned char output[16] );
 
 /**
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed
  */
-int md5_self_test( int verbose );
+int mbedtls_md5_self_test( int verbose );
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* md5.h */
+#endif /* mbedtls_md5.h */

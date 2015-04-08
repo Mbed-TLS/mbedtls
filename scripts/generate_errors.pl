@@ -46,7 +46,7 @@ close(FORMAT_FILE);
 
 $/ = $line_separator;
 
-open(GREP, "grep \"define POLARSSL_ERR_\" $include_dir/* |") || die("Failure when calling grep: $!");
+open(GREP, "grep \"define MBEDTLS_ERR_\" $include_dir/* |") || die("Failure when calling grep: $!");
 
 my $ll_old_define = "";
 my $hl_old_define = "";
@@ -61,7 +61,7 @@ my %error_codes_seen;
 while (my $line = <GREP>)
 {
     next if ($line =~ /compat-1.2.h/);
-    my ($error_name, $error_code) = $line =~ /(POLARSSL_ERR_\w+)\s+\-(0x\w+)/;
+    my ($error_name, $error_code) = $line =~ /(MBEDTLS_ERR_\w+)\s+\-(0x\w+)/;
     my ($description) = $line =~ /\/\*\*< (.*?)\.? \*\//;
 
     die "Duplicated error code: $error_code ($error_name)\n"
@@ -73,7 +73,7 @@ while (my $line = <GREP>)
         warn "Missing description for $error_name\n";
     }
 
-    my ($module_name) = $error_name =~ /^POLARSSL_ERR_([^_]+)/;
+    my ($module_name) = $error_name =~ /^MBEDTLS_ERR_([^_]+)/;
 
     # Fix faulty ones
     $module_name = "BIGNUM" if ($module_name eq "MPI");
@@ -94,7 +94,7 @@ while (my $line = <GREP>)
     my $found_hl = grep $_ eq $module_name, @high_level_modules;
     if (!$found_ll && !$found_hl)
     {
-        polarssl_printf("Error: Do not know how to handle: $module_name\n");
+        mbedtls_printf("Error: Do not know how to handle: $module_name\n");
         exit 1;
     }
 
@@ -125,7 +125,7 @@ while (my $line = <GREP>)
             foreach my $dep (split(/,/, ${$old_define}))
             {
                 ${$code_check} .= " || " if ($first++);
-                ${$code_check} .= "POLARSSL_${dep}_C";
+                ${$code_check} .= "MBEDTLS_${dep}_C";
             }
             ${$code_check} .= " */\n\n";
         }
@@ -138,8 +138,8 @@ while (my $line = <GREP>)
             ${$code_check} .= " || " if ($first);
             $headers       .= " || " if ($first++);
 
-            ${$code_check} .= "defined(POLARSSL_${dep}_C)";
-            $headers       .= "defined(POLARSSL_${dep}_C)" if
+            ${$code_check} .= "defined(MBEDTLS_${dep}_C)";
+            $headers       .= "defined(MBEDTLS_${dep}_C)" if
                                                     ($include_name ne "");
         }
         ${$code_check} .= "\n";
@@ -148,28 +148,28 @@ while (my $line = <GREP>)
         ${$old_define} = $define_name;
     }
 
-    if ($error_name eq "POLARSSL_ERR_SSL_FATAL_ALERT_MESSAGE")
+    if ($error_name eq "MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE")
     {
         ${$code_check} .= "${white_space}if( use_ret == -($error_name) )\n".
                           "${white_space}\{\n".
-                          "${white_space}    polarssl_snprintf( buf, buflen, \"$module_name - $description\" );\n".
+                          "${white_space}    mbedtls_snprintf( buf, buflen, \"$module_name - $description\" );\n".
                           "${white_space}    return;\n".
                           "${white_space}}\n"
     }
     else
     {
         ${$code_check} .= "${white_space}if( use_ret == -($error_name) )\n".
-                          "${white_space}    polarssl_snprintf( buf, buflen, \"$module_name - $description\" );\n"
+                          "${white_space}    mbedtls_snprintf( buf, buflen, \"$module_name - $description\" );\n"
     }
 };
 
 if ($ll_old_define ne "")
 {
-    $ll_code_check .= "#endif /* POLARSSL_${ll_old_define}_C */\n";
+    $ll_code_check .= "#endif /* MBEDTLS_${ll_old_define}_C */\n";
 }
 if ($hl_old_define ne "")
 {
-    $hl_code_check .= "#endif /* POLARSSL_${hl_old_define}_C */\n";
+    $hl_code_check .= "#endif /* MBEDTLS_${hl_old_define}_C */\n";
 }
 
 $error_format =~ s/HEADER_INCLUDED\n/$headers/g;

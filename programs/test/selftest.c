@@ -20,10 +20,10 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
 #include "mbedtls/entropy.h"
@@ -55,21 +55,21 @@
 #include <stdio.h>
 #include <string.h>
 
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define polarssl_printf     printf
+#define mbedtls_printf     printf
 #endif
 
-#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
 #include "mbedtls/memory_buffer_alloc.h"
 #endif
 
 int main( int argc, char *argv[] )
 {
     int ret = 0, v;
-#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     unsigned char buf[1000000];
 #endif
 
@@ -78,166 +78,166 @@ int main( int argc, char *argv[] )
     else
     {
         v = 1;
-        polarssl_printf( "\n" );
+        mbedtls_printf( "\n" );
     }
 
-#if defined(POLARSSL_SELF_TEST)
+#if defined(MBEDTLS_SELF_TEST)
 
-#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
-    memory_buffer_alloc_init( buf, sizeof(buf) );
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
+    mbedtls_memory_buffer_alloc_init( buf, sizeof(buf) );
 #endif
 
-#if defined(POLARSSL_MD2_C)
-    if( ( ret = md2_self_test( v ) ) != 0 )
+#if defined(MBEDTLS_MD2_C)
+    if( ( ret = mbedtls_md2_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(POLARSSL_MD4_C)
-    if( ( ret = md4_self_test( v ) ) != 0 )
+#if defined(MBEDTLS_MD4_C)
+    if( ( ret = mbedtls_md4_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(POLARSSL_MD5_C)
-    if( ( ret = md5_self_test( v ) ) != 0 )
+#if defined(MBEDTLS_MD5_C)
+    if( ( ret = mbedtls_md5_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(POLARSSL_RIPEMD160_C)
-    if( ( ret = ripemd160_self_test( v ) ) != 0 )
+#if defined(MBEDTLS_RIPEMD160_C)
+    if( ( ret = mbedtls_ripemd160_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(POLARSSL_SHA1_C)
-    if( ( ret = sha1_self_test( v ) ) != 0 )
+#if defined(MBEDTLS_SHA1_C)
+    if( ( ret = mbedtls_sha1_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(POLARSSL_SHA256_C)
-    if( ( ret = sha256_self_test( v ) ) != 0 )
+#if defined(MBEDTLS_SHA256_C)
+    if( ( ret = mbedtls_sha256_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(POLARSSL_SHA512_C)
-    if( ( ret = sha512_self_test( v ) ) != 0 )
+#if defined(MBEDTLS_SHA512_C)
+    if( ( ret = mbedtls_sha512_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(POLARSSL_ARC4_C)
-    if( ( ret = arc4_self_test( v ) ) != 0 )
+#if defined(MBEDTLS_ARC4_C)
+    if( ( ret = mbedtls_arc4_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(POLARSSL_DES_C)
-    if( ( ret = des_self_test( v ) ) != 0 )
+#if defined(MBEDTLS_DES_C)
+    if( ( ret = mbedtls_des_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(POLARSSL_AES_C)
-    if( ( ret = aes_self_test( v ) ) != 0 )
+#if defined(MBEDTLS_AES_C)
+    if( ( ret = mbedtls_aes_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(POLARSSL_GCM_C) && defined(POLARSSL_AES_C)
-    if( ( ret = gcm_self_test( v ) ) != 0 )
+#if defined(MBEDTLS_GCM_C) && defined(MBEDTLS_AES_C)
+    if( ( ret = mbedtls_gcm_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(POLARSSL_CCM_C) && defined(POLARSSL_AES_C)
-    if( ( ret = ccm_self_test( v ) ) != 0 )
+#if defined(MBEDTLS_CCM_C) && defined(MBEDTLS_AES_C)
+    if( ( ret = mbedtls_ccm_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(POLARSSL_BASE64_C)
-    if( ( ret = base64_self_test( v ) ) != 0 )
+#if defined(MBEDTLS_BASE64_C)
+    if( ( ret = mbedtls_base64_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(POLARSSL_BIGNUM_C)
-    if( ( ret = mpi_self_test( v ) ) != 0 )
+#if defined(MBEDTLS_BIGNUM_C)
+    if( ( ret = mbedtls_mpi_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(POLARSSL_RSA_C)
-    if( ( ret = rsa_self_test( v ) ) != 0 )
+#if defined(MBEDTLS_RSA_C)
+    if( ( ret = mbedtls_rsa_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(POLARSSL_X509_USE_C)
-    if( ( ret = x509_self_test( v ) ) != 0 )
+#if defined(MBEDTLS_X509_USE_C)
+    if( ( ret = mbedtls_x509_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(POLARSSL_XTEA_C)
-    if( ( ret = xtea_self_test( v ) ) != 0 )
+#if defined(MBEDTLS_XTEA_C)
+    if( ( ret = mbedtls_xtea_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(POLARSSL_CAMELLIA_C)
-    if( ( ret = camellia_self_test( v ) ) != 0 )
+#if defined(MBEDTLS_CAMELLIA_C)
+    if( ( ret = mbedtls_camellia_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(POLARSSL_CTR_DRBG_C)
-    if( ( ret = ctr_drbg_self_test( v ) ) != 0 )
+#if defined(MBEDTLS_CTR_DRBG_C)
+    if( ( ret = mbedtls_ctr_drbg_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(POLARSSL_HMAC_DRBG_C)
-    if( ( ret = hmac_drbg_self_test( v ) ) != 0 )
+#if defined(MBEDTLS_HMAC_DRBG_C)
+    if( ( ret = mbedtls_hmac_drbg_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(POLARSSL_ECP_C)
-    if( ( ret = ecp_self_test( v ) ) != 0 )
+#if defined(MBEDTLS_ECP_C)
+    if( ( ret = mbedtls_ecp_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(POLARSSL_DHM_C)
-    if( ( ret = dhm_self_test( v ) ) != 0 )
+#if defined(MBEDTLS_DHM_C)
+    if( ( ret = mbedtls_dhm_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(POLARSSL_ENTROPY_C)
-    if( ( ret = entropy_self_test( v ) ) != 0 )
+#if defined(MBEDTLS_ENTROPY_C)
+    if( ( ret = mbedtls_entropy_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(POLARSSL_PKCS5_C)
-    if( ( ret = pkcs5_self_test( v ) ) != 0 )
+#if defined(MBEDTLS_PKCS5_C)
+    if( ( ret = mbedtls_pkcs5_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
 /* Slow tests last */
 
 /* Not stable enough on Windows and FreeBSD yet */
-#if __linux__ && defined(POLARSSL_TIMING_C)
-    if( ( ret = timing_self_test( v ) ) != 0 )
+#if __linux__ && defined(MBEDTLS_TIMING_C)
+    if( ( ret = mbedtls_timing_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
 #else
-    polarssl_printf( " POLARSSL_SELF_TEST not defined.\n" );
+    mbedtls_printf( " MBEDTLS_SELF_TEST not defined.\n" );
 #endif
 
     if( v != 0 )
     {
-#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C) && defined(POLARSSL_MEMORY_DEBUG)
-        memory_buffer_alloc_status();
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) && defined(MBEDTLS_MEMORY_DEBUG)
+        mbedtls_memory_buffer_alloc_status();
 #endif
     }
 
-#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
-    memory_buffer_alloc_free();
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
+    mbedtls_memory_buffer_alloc_free();
 
-    if( ( ret = memory_buffer_alloc_self_test( v ) ) != 0 )
+    if( ( ret = mbedtls_memory_buffer_alloc_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
     if( v != 0 )
     {
-        polarssl_printf( "  [ All tests passed ]\n\n" );
+        mbedtls_printf( "  [ All tests passed ]\n\n" );
 #if defined(_WIN32)
-        polarssl_printf( "  Press Enter to exit this program.\n" );
+        mbedtls_printf( "  Press Enter to exit this program.\n" );
         fflush( stdout ); getchar();
 #endif
     }

@@ -22,21 +22,21 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef POLARSSL_PK_WRAP_H
-#define POLARSSL_PK_WRAP_H
+#ifndef MBEDTLS_PK_WRAP_H
+#define MBEDTLS_PK_WRAP_H
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
 #include "pk.h"
 
-struct _pk_info_t
+struct mbedtls_pk_info_t
 {
     /** Public key type */
-    pk_type_t type;
+    mbedtls_pk_type_t type;
 
     /** Type name */
     const char *name;
@@ -45,15 +45,15 @@ struct _pk_info_t
     size_t (*get_size)( const void * );
 
     /** Tell if the context implements this type (e.g. ECKEY can do ECDSA) */
-    int (*can_do)( pk_type_t type );
+    int (*can_do)( mbedtls_pk_type_t type );
 
     /** Verify signature */
-    int (*verify_func)( void *ctx, md_type_t md_alg,
+    int (*verify_func)( void *ctx, mbedtls_md_type_t md_alg,
                         const unsigned char *hash, size_t hash_len,
                         const unsigned char *sig, size_t sig_len );
 
     /** Make signature */
-    int (*sign_func)( void *ctx, md_type_t md_alg,
+    int (*sign_func)( void *ctx, mbedtls_md_type_t md_alg,
                       const unsigned char *hash, size_t hash_len,
                       unsigned char *sig, size_t *sig_len,
                       int (*f_rng)(void *, unsigned char *, size_t),
@@ -81,35 +81,35 @@ struct _pk_info_t
     void (*ctx_free_func)( void *ctx );
 
     /** Interface with the debug module */
-    void (*debug_func)( const void *ctx, pk_debug_item *items );
+    void (*debug_func)( const void *ctx, mbedtls_pk_debug_item *items );
 
 };
-#if defined(POLARSSL_PK_RSA_ALT_SUPPORT)
+#if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /* Container for RSA-alt */
 typedef struct
 {
     void *key;
-    pk_rsa_alt_decrypt_func decrypt_func;
-    pk_rsa_alt_sign_func sign_func;
-    pk_rsa_alt_key_len_func key_len_func;
-} rsa_alt_context;
+    mbedtls_pk_rsa_alt_decrypt_func decrypt_func;
+    mbedtls_pk_rsa_alt_sign_func sign_func;
+    mbedtls_pk_rsa_alt_key_len_func key_len_func;
+} mbedtls_rsa_alt_context;
 #endif
 
-#if defined(POLARSSL_RSA_C)
-extern const pk_info_t rsa_info;
+#if defined(MBEDTLS_RSA_C)
+extern const mbedtls_pk_info_t mbedtls_rsa_info;
 #endif
 
-#if defined(POLARSSL_ECP_C)
-extern const pk_info_t eckey_info;
-extern const pk_info_t eckeydh_info;
+#if defined(MBEDTLS_ECP_C)
+extern const mbedtls_pk_info_t mbedtls_eckey_info;
+extern const mbedtls_pk_info_t mbedtls_eckeydh_info;
 #endif
 
-#if defined(POLARSSL_ECDSA_C)
-extern const pk_info_t ecdsa_info;
+#if defined(MBEDTLS_ECDSA_C)
+extern const mbedtls_pk_info_t mbedtls_ecdsa_info;
 #endif
 
-#if defined(POLARSSL_PK_RSA_ALT_SUPPORT)
-extern const pk_info_t rsa_alt_info;
+#if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
+extern const mbedtls_pk_info_t mbedtls_rsa_alt_info;
 #endif
 
-#endif /* POLARSSL_PK_WRAP_H */
+#endif /* MBEDTLS_PK_WRAP_H */

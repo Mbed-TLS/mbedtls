@@ -30,30 +30,30 @@
  * [MGV] 4.1, pp. 12-13, to enhance speed without using too much memory.
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_GCM_C)
+#if defined(MBEDTLS_GCM_C)
 
 #include "mbedtls/gcm.h"
 
 #include <string.h>
 
-#if defined(POLARSSL_AESNI_C)
+#if defined(MBEDTLS_AESNI_C)
 #include "mbedtls/aesni.h"
 #endif
 
-#if defined(POLARSSL_SELF_TEST) && defined(POLARSSL_AES_C)
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define polarssl_printf printf
-#endif /* POLARSSL_PLATFORM_C */
-#endif /* POLARSSL_SELF_TEST && POLARSSL_AES_C */
+#define mbedtls_printf printf
+#endif /* MBEDTLS_PLATFORM_C */
+#endif /* MBEDTLS_SELF_TEST && MBEDTLS_AES_C */
 
 /*
  * 32-bit integer manipulation macros (big endian)
@@ -79,7 +79,7 @@
 #endif
 
 /* Implementation that should never be optimized out by the compiler */
-static void polarssl_zeroize( void *v, size_t n ) {
+static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
@@ -91,7 +91,7 @@ static void polarssl_zeroize( void *v, size_t n ) {
  * is the high-order bit of HH corresponds to P^0 and the low-order bit of HL
  * corresponds to P^127.
  */
-static int gcm_gen_table( gcm_context *ctx )
+static int gcm_gen_table( mbedtls_gcm_context *ctx )
 {
     int ret, i, j;
     uint64_t hi, lo;
@@ -100,7 +100,7 @@ static int gcm_gen_table( gcm_context *ctx )
     size_t olen = 0;
 
     memset( h, 0, 16 );
-    if( ( ret = cipher_update( &ctx->cipher_ctx, h, 16, h, &olen ) ) != 0 )
+    if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx, h, 16, h, &olen ) ) != 0 )
         return( ret );
 
     /* pack h as two 64-bits ints, big-endian */
@@ -116,9 +116,9 @@ static int gcm_gen_table( gcm_context *ctx )
     ctx->HL[8] = vl;
     ctx->HH[8] = vh;
 
-#if defined(POLARSSL_AESNI_C) && defined(POLARSSL_HAVE_X86_64)
+#if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
     /* With CLMUL support, we need only h, not the rest of the table */
-    if( aesni_supports( POLARSSL_AESNI_CLMUL ) )
+    if( mbedtls_aesni_supports( MBEDTLS_AESNI_CLMUL ) )
         return( 0 );
 #endif
 
@@ -151,28 +151,28 @@ static int gcm_gen_table( gcm_context *ctx )
     return( 0 );
 }
 
-int gcm_init( gcm_context *ctx, cipher_id_t cipher, const unsigned char *key,
+int mbedtls_gcm_init( mbedtls_gcm_context *ctx, mbedtls_cipher_id_t cipher, const unsigned char *key,
               unsigned int keysize )
 {
     int ret;
-    const cipher_info_t *cipher_info;
+    const mbedtls_cipher_info_t *cipher_info;
 
-    memset( ctx, 0, sizeof(gcm_context) );
+    memset( ctx, 0, sizeof(mbedtls_gcm_context) );
 
-    cipher_init( &ctx->cipher_ctx );
+    mbedtls_cipher_init( &ctx->cipher_ctx );
 
-    cipher_info = cipher_info_from_values( cipher, keysize, POLARSSL_MODE_ECB );
+    cipher_info = mbedtls_cipher_info_from_values( cipher, keysize, MBEDTLS_MODE_ECB );
     if( cipher_info == NULL )
-        return( POLARSSL_ERR_GCM_BAD_INPUT );
+        return( MBEDTLS_ERR_GCM_BAD_INPUT );
 
     if( cipher_info->block_size != 16 )
-        return( POLARSSL_ERR_GCM_BAD_INPUT );
+        return( MBEDTLS_ERR_GCM_BAD_INPUT );
 
-    if( ( ret = cipher_init_ctx( &ctx->cipher_ctx, cipher_info ) ) != 0 )
+    if( ( ret = mbedtls_cipher_init_ctx( &ctx->cipher_ctx, cipher_info ) ) != 0 )
         return( ret );
 
-    if( ( ret = cipher_setkey( &ctx->cipher_ctx, key, keysize,
-                               POLARSSL_ENCRYPT ) ) != 0 )
+    if( ( ret = mbedtls_cipher_setkey( &ctx->cipher_ctx, key, keysize,
+                               MBEDTLS_ENCRYPT ) ) != 0 )
     {
         return( ret );
     }
@@ -200,15 +200,15 @@ static const uint64_t last4[16] =
  * Sets output to x times H using the precomputed tables.
  * x and output are seen as elements of GF(2^128) as in [MGV].
  */
-static void gcm_mult( gcm_context *ctx, const unsigned char x[16],
+static void gcm_mult( mbedtls_gcm_context *ctx, const unsigned char x[16],
                       unsigned char output[16] )
 {
     int i = 0;
     unsigned char lo, hi, rem;
     uint64_t zh, zl;
 
-#if defined(POLARSSL_AESNI_C) && defined(POLARSSL_HAVE_X86_64)
-    if( aesni_supports( POLARSSL_AESNI_CLMUL ) ) {
+#if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
+    if( mbedtls_aesni_supports( MBEDTLS_AESNI_CLMUL ) ) {
         unsigned char h[16];
 
         PUT_UINT32_BE( ctx->HH[8] >> 32, h,  0 );
@@ -216,10 +216,10 @@ static void gcm_mult( gcm_context *ctx, const unsigned char x[16],
         PUT_UINT32_BE( ctx->HL[8] >> 32, h,  8 );
         PUT_UINT32_BE( ctx->HL[8],       h, 12 );
 
-        aesni_gcm_mult( output, x, h );
+        mbedtls_aesni_gcm_mult( output, x, h );
         return;
     }
-#endif /* POLARSSL_AESNI_C && POLARSSL_HAVE_X86_64 */
+#endif /* MBEDTLS_AESNI_C && MBEDTLS_HAVE_X86_64 */
 
     lo = x[15] & 0xf;
 
@@ -256,7 +256,7 @@ static void gcm_mult( gcm_context *ctx, const unsigned char x[16],
     PUT_UINT32_BE( zl, output, 12 );
 }
 
-int gcm_starts( gcm_context *ctx,
+int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
                 int mode,
                 const unsigned char *iv,
                 size_t iv_len,
@@ -273,7 +273,7 @@ int gcm_starts( gcm_context *ctx,
     if( ( (uint64_t) iv_len  ) >> 61 != 0 ||
         ( (uint64_t) add_len ) >> 61 != 0 )
     {
-        return( POLARSSL_ERR_GCM_BAD_INPUT );
+        return( MBEDTLS_ERR_GCM_BAD_INPUT );
     }
 
     memset( ctx->y, 0x00, sizeof(ctx->y) );
@@ -313,7 +313,7 @@ int gcm_starts( gcm_context *ctx,
         gcm_mult( ctx, ctx->y, ctx->y );
     }
 
-    if( ( ret = cipher_update( &ctx->cipher_ctx, ctx->y, 16, ctx->base_ectr,
+    if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx, ctx->y, 16, ctx->base_ectr,
                              &olen ) ) != 0 )
     {
         return( ret );
@@ -337,7 +337,7 @@ int gcm_starts( gcm_context *ctx,
     return( 0 );
 }
 
-int gcm_update( gcm_context *ctx,
+int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
                 size_t length,
                 const unsigned char *input,
                 unsigned char *output )
@@ -350,14 +350,14 @@ int gcm_update( gcm_context *ctx,
     size_t use_len, olen = 0;
 
     if( output > input && (size_t) ( output - input ) < length )
-        return( POLARSSL_ERR_GCM_BAD_INPUT );
+        return( MBEDTLS_ERR_GCM_BAD_INPUT );
 
     /* Total length is restricted to 2^39 - 256 bits, ie 2^36 - 2^5 bytes
      * Also check for possible overflow */
     if( ctx->len + length < ctx->len ||
         (uint64_t) ctx->len + length > 0x03FFFFE0ull )
     {
-        return( POLARSSL_ERR_GCM_BAD_INPUT );
+        return( MBEDTLS_ERR_GCM_BAD_INPUT );
     }
 
     ctx->len += length;
@@ -371,7 +371,7 @@ int gcm_update( gcm_context *ctx,
             if( ++ctx->y[i - 1] != 0 )
                 break;
 
-        if( ( ret = cipher_update( &ctx->cipher_ctx, ctx->y, 16, ectr,
+        if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx, ctx->y, 16, ectr,
                                    &olen ) ) != 0 )
         {
             return( ret );
@@ -379,10 +379,10 @@ int gcm_update( gcm_context *ctx,
 
         for( i = 0; i < use_len; i++ )
         {
-            if( ctx->mode == GCM_DECRYPT )
+            if( ctx->mode == MBEDTLS_GCM_DECRYPT )
                 ctx->buf[i] ^= p[i];
             out_p[i] = ectr[i] ^ p[i];
-            if( ctx->mode == GCM_ENCRYPT )
+            if( ctx->mode == MBEDTLS_GCM_ENCRYPT )
                 ctx->buf[i] ^= out_p[i];
         }
 
@@ -396,7 +396,7 @@ int gcm_update( gcm_context *ctx,
     return( 0 );
 }
 
-int gcm_finish( gcm_context *ctx,
+int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
                 unsigned char *tag,
                 size_t tag_len )
 {
@@ -406,7 +406,7 @@ int gcm_finish( gcm_context *ctx,
     uint64_t orig_add_len = ctx->add_len * 8;
 
     if( tag_len > 16 || tag_len < 4 )
-        return( POLARSSL_ERR_GCM_BAD_INPUT );
+        return( MBEDTLS_ERR_GCM_BAD_INPUT );
 
     if( tag_len != 0 )
         memcpy( tag, ctx->base_ectr, tag_len );
@@ -432,7 +432,7 @@ int gcm_finish( gcm_context *ctx,
     return( 0 );
 }
 
-int gcm_crypt_and_tag( gcm_context *ctx,
+int mbedtls_gcm_crypt_and_tag( mbedtls_gcm_context *ctx,
                        int mode,
                        size_t length,
                        const unsigned char *iv,
@@ -446,19 +446,19 @@ int gcm_crypt_and_tag( gcm_context *ctx,
 {
     int ret;
 
-    if( ( ret = gcm_starts( ctx, mode, iv, iv_len, add, add_len ) ) != 0 )
+    if( ( ret = mbedtls_gcm_starts( ctx, mode, iv, iv_len, add, add_len ) ) != 0 )
         return( ret );
 
-    if( ( ret = gcm_update( ctx, length, input, output ) ) != 0 )
+    if( ( ret = mbedtls_gcm_update( ctx, length, input, output ) ) != 0 )
         return( ret );
 
-    if( ( ret = gcm_finish( ctx, tag, tag_len ) ) != 0 )
+    if( ( ret = mbedtls_gcm_finish( ctx, tag, tag_len ) ) != 0 )
         return( ret );
 
     return( 0 );
 }
 
-int gcm_auth_decrypt( gcm_context *ctx,
+int mbedtls_gcm_auth_decrypt( mbedtls_gcm_context *ctx,
                       size_t length,
                       const unsigned char *iv,
                       size_t iv_len,
@@ -474,7 +474,7 @@ int gcm_auth_decrypt( gcm_context *ctx,
     size_t i;
     int diff;
 
-    if( ( ret = gcm_crypt_and_tag( ctx, GCM_DECRYPT, length,
+    if( ( ret = mbedtls_gcm_crypt_and_tag( ctx, MBEDTLS_GCM_DECRYPT, length,
                                    iv, iv_len, add, add_len,
                                    input, output, tag_len, check_tag ) ) != 0 )
     {
@@ -487,20 +487,20 @@ int gcm_auth_decrypt( gcm_context *ctx,
 
     if( diff != 0 )
     {
-        polarssl_zeroize( output, length );
-        return( POLARSSL_ERR_GCM_AUTH_FAILED );
+        mbedtls_zeroize( output, length );
+        return( MBEDTLS_ERR_GCM_AUTH_FAILED );
     }
 
     return( 0 );
 }
 
-void gcm_free( gcm_context *ctx )
+void mbedtls_gcm_free( mbedtls_gcm_context *ctx )
 {
-    cipher_free( &ctx->cipher_ctx );
-    polarssl_zeroize( ctx, sizeof( gcm_context ) );
+    mbedtls_cipher_free( &ctx->cipher_ctx );
+    mbedtls_zeroize( ctx, sizeof( mbedtls_gcm_context ) );
 }
 
-#if defined(POLARSSL_SELF_TEST) && defined(POLARSSL_AES_C)
+#if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
 /*
  * AES-GCM test vectors from:
  *
@@ -728,13 +728,13 @@ static const unsigned char tag[MAX_TESTS * 3][16] =
       0xc8, 0xb5, 0xd4, 0xcf, 0x5a, 0xe9, 0xf1, 0x9a },
 };
 
-int gcm_self_test( int verbose )
+int mbedtls_gcm_self_test( int verbose )
 {
-    gcm_context ctx;
+    mbedtls_gcm_context ctx;
     unsigned char buf[64];
     unsigned char tag_buf[16];
     int i, j, ret;
-    cipher_id_t cipher = POLARSSL_CIPHER_ID_AES;
+    mbedtls_cipher_id_t cipher = MBEDTLS_CIPHER_ID_AES;
 
     for( j = 0; j < 3; j++ )
     {
@@ -743,12 +743,12 @@ int gcm_self_test( int verbose )
         for( i = 0; i < MAX_TESTS; i++ )
         {
             if( verbose != 0 )
-                polarssl_printf( "  AES-GCM-%3d #%d (%s): ",
+                mbedtls_printf( "  AES-GCM-%3d #%d (%s): ",
                                  key_len, i, "enc" );
 
-            gcm_init( &ctx, cipher, key[key_index[i]], key_len );
+            mbedtls_gcm_init( &ctx, cipher, key[key_index[i]], key_len );
 
-            ret = gcm_crypt_and_tag( &ctx, GCM_ENCRYPT,
+            ret = mbedtls_gcm_crypt_and_tag( &ctx, MBEDTLS_GCM_ENCRYPT,
                                      pt_len[i],
                                      iv[iv_index[i]], iv_len[i],
                                      additional[add_index[i]], add_len[i],
@@ -759,23 +759,23 @@ int gcm_self_test( int verbose )
                 memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
             {
                 if( verbose != 0 )
-                    polarssl_printf( "failed\n" );
+                    mbedtls_printf( "failed\n" );
 
                 return( 1 );
             }
 
-            gcm_free( &ctx );
+            mbedtls_gcm_free( &ctx );
 
             if( verbose != 0 )
-                polarssl_printf( "passed\n" );
+                mbedtls_printf( "passed\n" );
 
             if( verbose != 0 )
-                polarssl_printf( "  AES-GCM-%3d #%d (%s): ",
+                mbedtls_printf( "  AES-GCM-%3d #%d (%s): ",
                                  key_len, i, "dec" );
 
-            gcm_init( &ctx, cipher, key[key_index[i]], key_len );
+            mbedtls_gcm_init( &ctx, cipher, key[key_index[i]], key_len );
 
-            ret = gcm_crypt_and_tag( &ctx, GCM_DECRYPT,
+            ret = mbedtls_gcm_crypt_and_tag( &ctx, MBEDTLS_GCM_DECRYPT,
                                      pt_len[i],
                                      iv[iv_index[i]], iv_len[i],
                                      additional[add_index[i]], add_len[i],
@@ -786,29 +786,29 @@ int gcm_self_test( int verbose )
                 memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
             {
                 if( verbose != 0 )
-                    polarssl_printf( "failed\n" );
+                    mbedtls_printf( "failed\n" );
 
                 return( 1 );
             }
 
-            gcm_free( &ctx );
+            mbedtls_gcm_free( &ctx );
 
             if( verbose != 0 )
-                polarssl_printf( "passed\n" );
+                mbedtls_printf( "passed\n" );
 
             if( verbose != 0 )
-                polarssl_printf( "  AES-GCM-%3d #%d split (%s): ",
+                mbedtls_printf( "  AES-GCM-%3d #%d split (%s): ",
                                  key_len, i, "enc" );
 
-            gcm_init( &ctx, cipher, key[key_index[i]], key_len );
+            mbedtls_gcm_init( &ctx, cipher, key[key_index[i]], key_len );
 
-            ret = gcm_starts( &ctx, GCM_ENCRYPT,
+            ret = mbedtls_gcm_starts( &ctx, MBEDTLS_GCM_ENCRYPT,
                               iv[iv_index[i]], iv_len[i],
                               additional[add_index[i]], add_len[i] );
             if( ret != 0 )
             {
                 if( verbose != 0 )
-                    polarssl_printf( "failed\n" );
+                    mbedtls_printf( "failed\n" );
 
                 return( 1 );
             }
@@ -816,66 +816,66 @@ int gcm_self_test( int verbose )
             if( pt_len[i] > 32 )
             {
                 size_t rest_len = pt_len[i] - 32;
-                ret = gcm_update( &ctx, 32, pt[pt_index[i]], buf );
+                ret = mbedtls_gcm_update( &ctx, 32, pt[pt_index[i]], buf );
                 if( ret != 0 )
                 {
                     if( verbose != 0 )
-                        polarssl_printf( "failed\n" );
+                        mbedtls_printf( "failed\n" );
 
                     return( 1 );
                 }
 
-                ret = gcm_update( &ctx, rest_len, pt[pt_index[i]] + 32,
+                ret = mbedtls_gcm_update( &ctx, rest_len, pt[pt_index[i]] + 32,
                                   buf + 32 );
                 if( ret != 0 )
                 {
                     if( verbose != 0 )
-                        polarssl_printf( "failed\n" );
+                        mbedtls_printf( "failed\n" );
 
                     return( 1 );
                 }
             }
             else
             {
-                ret = gcm_update( &ctx, pt_len[i], pt[pt_index[i]], buf );
+                ret = mbedtls_gcm_update( &ctx, pt_len[i], pt[pt_index[i]], buf );
                 if( ret != 0 )
                 {
                     if( verbose != 0 )
-                        polarssl_printf( "failed\n" );
+                        mbedtls_printf( "failed\n" );
 
                     return( 1 );
                 }
             }
 
-            ret = gcm_finish( &ctx, tag_buf, 16 );
+            ret = mbedtls_gcm_finish( &ctx, tag_buf, 16 );
             if( ret != 0 ||
                 memcmp( buf, ct[j * 6 + i], pt_len[i] ) != 0 ||
                 memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
             {
                 if( verbose != 0 )
-                    polarssl_printf( "failed\n" );
+                    mbedtls_printf( "failed\n" );
 
                 return( 1 );
             }
 
-            gcm_free( &ctx );
+            mbedtls_gcm_free( &ctx );
 
             if( verbose != 0 )
-                polarssl_printf( "passed\n" );
+                mbedtls_printf( "passed\n" );
 
             if( verbose != 0 )
-                polarssl_printf( "  AES-GCM-%3d #%d split (%s): ",
+                mbedtls_printf( "  AES-GCM-%3d #%d split (%s): ",
                                  key_len, i, "dec" );
 
-            gcm_init( &ctx, cipher, key[key_index[i]], key_len );
+            mbedtls_gcm_init( &ctx, cipher, key[key_index[i]], key_len );
 
-            ret = gcm_starts( &ctx, GCM_DECRYPT,
+            ret = mbedtls_gcm_starts( &ctx, MBEDTLS_GCM_DECRYPT,
                               iv[iv_index[i]], iv_len[i],
                               additional[add_index[i]], add_len[i] );
             if( ret != 0 )
             {
                 if( verbose != 0 )
-                    polarssl_printf( "failed\n" );
+                    mbedtls_printf( "failed\n" );
 
                 return( 1 );
             }
@@ -883,62 +883,62 @@ int gcm_self_test( int verbose )
             if( pt_len[i] > 32 )
             {
                 size_t rest_len = pt_len[i] - 32;
-                ret = gcm_update( &ctx, 32, ct[j * 6 + i], buf );
+                ret = mbedtls_gcm_update( &ctx, 32, ct[j * 6 + i], buf );
                 if( ret != 0 )
                 {
                     if( verbose != 0 )
-                        polarssl_printf( "failed\n" );
+                        mbedtls_printf( "failed\n" );
 
                     return( 1 );
                 }
 
-                ret = gcm_update( &ctx, rest_len, ct[j * 6 + i] + 32,
+                ret = mbedtls_gcm_update( &ctx, rest_len, ct[j * 6 + i] + 32,
                                   buf + 32 );
                 if( ret != 0 )
                 {
                     if( verbose != 0 )
-                        polarssl_printf( "failed\n" );
+                        mbedtls_printf( "failed\n" );
 
                     return( 1 );
                 }
             }
             else
             {
-                ret = gcm_update( &ctx, pt_len[i], ct[j * 6 + i], buf );
+                ret = mbedtls_gcm_update( &ctx, pt_len[i], ct[j * 6 + i], buf );
                 if( ret != 0 )
                 {
                     if( verbose != 0 )
-                        polarssl_printf( "failed\n" );
+                        mbedtls_printf( "failed\n" );
 
                     return( 1 );
                 }
             }
 
-            ret = gcm_finish( &ctx, tag_buf, 16 );
+            ret = mbedtls_gcm_finish( &ctx, tag_buf, 16 );
             if( ret != 0 ||
                 memcmp( buf, pt[pt_index[i]], pt_len[i] ) != 0 ||
                 memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
             {
                 if( verbose != 0 )
-                    polarssl_printf( "failed\n" );
+                    mbedtls_printf( "failed\n" );
 
                 return( 1 );
             }
 
-            gcm_free( &ctx );
+            mbedtls_gcm_free( &ctx );
 
             if( verbose != 0 )
-                polarssl_printf( "passed\n" );
+                mbedtls_printf( "passed\n" );
 
         }
     }
 
     if( verbose != 0 )
-        polarssl_printf( "\n" );
+        mbedtls_printf( "\n" );
 
     return( 0 );
 }
 
-#endif /* POLARSSL_SELF_TEST && POLARSSL_AES_C */
+#endif /* MBEDTLS_SELF_TEST && MBEDTLS_AES_C */
 
-#endif /* POLARSSL_GCM_C */
+#endif /* MBEDTLS_GCM_C */

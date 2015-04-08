@@ -1,5 +1,5 @@
 /**
- * \file sha256.h
+ * \file mbedtls_sha256.h
  *
  * \brief SHA-224 and SHA-256 cryptographic hash function
  *
@@ -21,13 +21,13 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_SHA256_H
-#define POLARSSL_SHA256_H
+#ifndef MBEDTLS_SHA256_H
+#define MBEDTLS_SHA256_H
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
 #include <stddef.h>
@@ -39,9 +39,9 @@ typedef UINT32 uint32_t;
 #include <inttypes.h>
 #endif
 
-#define POLARSSL_ERR_SHA256_FILE_IO_ERROR              -0x0078  /**< Read/write error in file. */
+#define MBEDTLS_ERR_SHA256_FILE_IO_ERROR              -0x0078  /**< Read/write error in file. */
 
-#if !defined(POLARSSL_SHA256_ALT)
+#if !defined(MBEDTLS_SHA256_ALT)
 // Regular implementation
 //
 
@@ -59,21 +59,21 @@ typedef struct
     unsigned char buffer[64];   /*!< data block being processed */
     int is224;                  /*!< 0 => SHA-256, else SHA-224 */
 }
-sha256_context;
+mbedtls_sha256_context;
 
 /**
  * \brief          Initialize SHA-256 context
  *
  * \param ctx      SHA-256 context to be initialized
  */
-void sha256_init( sha256_context *ctx );
+void mbedtls_sha256_init( mbedtls_sha256_context *ctx );
 
 /**
  * \brief          Clear SHA-256 context
  *
  * \param ctx      SHA-256 context to be cleared
  */
-void sha256_free( sha256_context *ctx );
+void mbedtls_sha256_free( mbedtls_sha256_context *ctx );
 
 /**
  * \brief          SHA-256 context setup
@@ -81,7 +81,7 @@ void sha256_free( sha256_context *ctx );
  * \param ctx      context to be initialized
  * \param is224    0 = use SHA256, 1 = use SHA224
  */
-void sha256_starts( sha256_context *ctx, int is224 );
+void mbedtls_sha256_starts( mbedtls_sha256_context *ctx, int is224 );
 
 /**
  * \brief          SHA-256 process buffer
@@ -90,7 +90,7 @@ void sha256_starts( sha256_context *ctx, int is224 );
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  */
-void sha256_update( sha256_context *ctx, const unsigned char *input,
+void mbedtls_sha256_update( mbedtls_sha256_context *ctx, const unsigned char *input,
                     size_t ilen );
 
 /**
@@ -99,18 +99,18 @@ void sha256_update( sha256_context *ctx, const unsigned char *input,
  * \param ctx      SHA-256 context
  * \param output   SHA-224/256 checksum result
  */
-void sha256_finish( sha256_context *ctx, unsigned char output[32] );
+void mbedtls_sha256_finish( mbedtls_sha256_context *ctx, unsigned char output[32] );
 
 /* Internal use */
-void sha256_process( sha256_context *ctx, const unsigned char data[64] );
+void mbedtls_sha256_process( mbedtls_sha256_context *ctx, const unsigned char data[64] );
 
 #ifdef __cplusplus
 }
 #endif
 
-#else  /* POLARSSL_SHA256_ALT */
+#else  /* MBEDTLS_SHA256_ALT */
 #include "sha256_alt.h"
-#endif /* POLARSSL_SHA256_ALT */
+#endif /* MBEDTLS_SHA256_ALT */
 
 #ifdef __cplusplus
 extern "C" {
@@ -124,7 +124,7 @@ extern "C" {
  * \param output   SHA-224/256 checksum result
  * \param is224    0 = use SHA256, 1 = use SHA224
  */
-void sha256( const unsigned char *input, size_t ilen,
+void mbedtls_sha256( const unsigned char *input, size_t ilen,
            unsigned char output[32], int is224 );
 
 /**
@@ -134,19 +134,19 @@ void sha256( const unsigned char *input, size_t ilen,
  * \param output   SHA-224/256 checksum result
  * \param is224    0 = use SHA256, 1 = use SHA224
  *
- * \return         0 if successful, or POLARSSL_ERR_SHA256_FILE_IO_ERROR
+ * \return         0 if successful, or MBEDTLS_ERR_SHA256_FILE_IO_ERROR
  */
-int sha256_file( const char *path, unsigned char output[32], int is224 );
+int mbedtls_sha256_file( const char *path, unsigned char output[32], int is224 );
 
 /**
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed
  */
-int sha256_self_test( int verbose );
+int mbedtls_sha256_self_test( int verbose );
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* sha256.h */
+#endif /* mbedtls_sha256.h */

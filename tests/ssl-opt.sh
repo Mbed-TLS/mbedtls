@@ -586,23 +586,23 @@ run_test    "RC4: both enabled" \
 # Test for SSLv2 ClientHello
 
 requires_openssl_with_sslv2
-requires_config_enabled POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
+requires_config_enabled MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
 run_test    "SSLv2 ClientHello: reference" \
             "$P_SRV debug_level=3" \
             "$O_CLI -no_ssl2" \
             0 \
             -S "parse client hello v2" \
-            -S "ssl_handshake returned"
+            -S "mbedtls_ssl_handshake returned"
 
 # Adding a SSL2-only suite makes OpenSSL client send SSLv2 ClientHello
 requires_openssl_with_sslv2
-requires_config_enabled POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
+requires_config_enabled MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
 run_test    "SSLv2 ClientHello: actual test" \
             "$P_SRV debug_level=2" \
             "$O_CLI -cipher 'DES-CBC-MD5:ALL'" \
             0 \
             -s "parse client hello v2" \
-            -S "ssl_handshake returned"
+            -S "mbedtls_ssl_handshake returned"
 
 # Tests for Truncated HMAC extension
 
@@ -1431,7 +1431,7 @@ run_test    "Renegotiation: gnutls server unsafe, client-initiated default" \
             -c "client hello, adding renegotiation extension" \
             -C "found renegotiation extension" \
             -c "=> renegotiate" \
-            -c "ssl_handshake() returned" \
+            -c "mbedtls_ssl_handshake() returned" \
             -c "error" \
             -C "HTTP/1.0 200 [Oo][Kk]"
 
@@ -1444,7 +1444,7 @@ run_test    "Renegotiation: gnutls server unsafe, client-inititated no legacy" \
             -c "client hello, adding renegotiation extension" \
             -C "found renegotiation extension" \
             -c "=> renegotiate" \
-            -c "ssl_handshake() returned" \
+            -c "mbedtls_ssl_handshake() returned" \
             -c "error" \
             -C "HTTP/1.0 200 [Oo][Kk]"
 
@@ -1496,7 +1496,7 @@ run_test    "Renegotiation: DTLS, gnutls server, client-initiated" \
             -c "client hello, adding renegotiation extension" \
             -c "found renegotiation extension" \
             -c "=> renegotiate" \
-            -C "ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
             -C "error" \
             -s "Extra-header:"
 
@@ -1562,7 +1562,7 @@ run_test    "Authentication: server badcert, client required" \
             1 \
             -c "x509_verify_cert() returned" \
             -c "! self-signed or not signed by a trusted CA" \
-            -c "! ssl_handshake returned" \
+            -c "! mbedtls_ssl_handshake returned" \
             -c "X509 - Certificate verification failed"
 
 run_test    "Authentication: server badcert, client optional" \
@@ -1572,7 +1572,7 @@ run_test    "Authentication: server badcert, client optional" \
             0 \
             -c "x509_verify_cert() returned" \
             -c "! self-signed or not signed by a trusted CA" \
-            -C "! ssl_handshake returned" \
+            -C "! mbedtls_ssl_handshake returned" \
             -C "X509 - Certificate verification failed"
 
 run_test    "Authentication: server badcert, client none" \
@@ -1582,7 +1582,7 @@ run_test    "Authentication: server badcert, client none" \
             0 \
             -C "x509_verify_cert() returned" \
             -C "! self-signed or not signed by a trusted CA" \
-            -C "! ssl_handshake returned" \
+            -C "! mbedtls_ssl_handshake returned" \
             -C "X509 - Certificate verification failed"
 
 run_test    "Authentication: client badcert, server required" \
@@ -1598,8 +1598,8 @@ run_test    "Authentication: client badcert, server required" \
             -S "skip parse certificate verify" \
             -s "x509_verify_cert() returned" \
             -S "! self-signed or not signed by a trusted CA" \
-            -s "! ssl_handshake returned" \
-            -c "! ssl_handshake returned" \
+            -s "! mbedtls_ssl_handshake returned" \
+            -c "! mbedtls_ssl_handshake returned" \
             -s "X509 - Certificate verification failed"
 
 run_test    "Authentication: client badcert, server optional" \
@@ -1615,8 +1615,8 @@ run_test    "Authentication: client badcert, server optional" \
             -S "skip parse certificate verify" \
             -s "x509_verify_cert() returned" \
             -s "! self-signed or not signed by a trusted CA" \
-            -S "! ssl_handshake returned" \
-            -C "! ssl_handshake returned" \
+            -S "! mbedtls_ssl_handshake returned" \
+            -C "! mbedtls_ssl_handshake returned" \
             -S "X509 - Certificate verification failed"
 
 run_test    "Authentication: client badcert, server none" \
@@ -1632,8 +1632,8 @@ run_test    "Authentication: client badcert, server none" \
             -s "skip parse certificate verify" \
             -S "x509_verify_cert() returned" \
             -S "! self-signed or not signed by a trusted CA" \
-            -S "! ssl_handshake returned" \
-            -C "! ssl_handshake returned" \
+            -S "! mbedtls_ssl_handshake returned" \
+            -C "! mbedtls_ssl_handshake returned" \
             -S "X509 - Certificate verification failed"
 
 run_test    "Authentication: client no cert, server optional" \
@@ -1649,8 +1649,8 @@ run_test    "Authentication: client no cert, server optional" \
             -c "skip write certificate verify" \
             -s "skip parse certificate verify" \
             -s "! no client certificate sent" \
-            -S "! ssl_handshake returned" \
-            -C "! ssl_handshake returned" \
+            -S "! mbedtls_ssl_handshake returned" \
+            -C "! mbedtls_ssl_handshake returned" \
             -S "X509 - Certificate verification failed"
 
 run_test    "Authentication: openssl client no cert, server optional" \
@@ -1660,7 +1660,7 @@ run_test    "Authentication: openssl client no cert, server optional" \
             -S "skip write certificate request" \
             -s "skip parse certificate verify" \
             -s "! no client certificate sent" \
-            -S "! ssl_handshake returned" \
+            -S "! mbedtls_ssl_handshake returned" \
             -S "X509 - Certificate verification failed"
 
 run_test    "Authentication: client no cert, openssl server optional" \
@@ -1671,7 +1671,7 @@ run_test    "Authentication: client no cert, openssl server optional" \
             -c "got a certificate request" \
             -C "skip write certificate$" \
             -c "skip write certificate verify" \
-            -C "! ssl_handshake returned"
+            -C "! mbedtls_ssl_handshake returned"
 
 run_test    "Authentication: client no cert, ssl3" \
             "$P_SRV debug_level=3 auth_mode=optional force_version=ssl3" \
@@ -1686,8 +1686,8 @@ run_test    "Authentication: client no cert, ssl3" \
             -s "SSLv3 client has no certificate" \
             -s "skip parse certificate verify" \
             -s "! no client certificate sent" \
-            -S "! ssl_handshake returned" \
-            -C "! ssl_handshake returned" \
+            -S "! mbedtls_ssl_handshake returned" \
+            -C "! mbedtls_ssl_handshake returned" \
             -S "X509 - Certificate verification failed"
 
 # Tests for certificate selection based on SHA verson
@@ -1783,8 +1783,8 @@ run_test    "SNI: no matching cert" \
              1 \
              -s "parse ServerName extension" \
              -s "ssl_sni_wrapper() returned" \
-             -s "ssl_handshake returned" \
-             -c "ssl_handshake returned" \
+             -s "mbedtls_ssl_handshake returned" \
+             -c "mbedtls_ssl_handshake returned" \
              -c "SSL - A fatal alert message was received from our peer"
 
 # Tests for non-blocking I/O: exercise a variety of handshake flows
@@ -1793,56 +1793,56 @@ run_test    "Non-blocking I/O: basic handshake" \
             "$P_SRV nbio=2 tickets=0 auth_mode=none" \
             "$P_CLI nbio=2 tickets=0" \
             0 \
-            -S "ssl_handshake returned" \
-            -C "ssl_handshake returned" \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
 run_test    "Non-blocking I/O: client auth" \
             "$P_SRV nbio=2 tickets=0 auth_mode=required" \
             "$P_CLI nbio=2 tickets=0" \
             0 \
-            -S "ssl_handshake returned" \
-            -C "ssl_handshake returned" \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
 run_test    "Non-blocking I/O: ticket" \
             "$P_SRV nbio=2 tickets=1 auth_mode=none" \
             "$P_CLI nbio=2 tickets=1" \
             0 \
-            -S "ssl_handshake returned" \
-            -C "ssl_handshake returned" \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
 run_test    "Non-blocking I/O: ticket + client auth" \
             "$P_SRV nbio=2 tickets=1 auth_mode=required" \
             "$P_CLI nbio=2 tickets=1" \
             0 \
-            -S "ssl_handshake returned" \
-            -C "ssl_handshake returned" \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
 run_test    "Non-blocking I/O: ticket + client auth + resume" \
             "$P_SRV nbio=2 tickets=1 auth_mode=required" \
             "$P_CLI nbio=2 tickets=1 reconnect=1" \
             0 \
-            -S "ssl_handshake returned" \
-            -C "ssl_handshake returned" \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
 run_test    "Non-blocking I/O: ticket + resume" \
             "$P_SRV nbio=2 tickets=1 auth_mode=none" \
             "$P_CLI nbio=2 tickets=1 reconnect=1" \
             0 \
-            -S "ssl_handshake returned" \
-            -C "ssl_handshake returned" \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
 run_test    "Non-blocking I/O: session-id resume" \
             "$P_SRV nbio=2 tickets=0 auth_mode=none" \
             "$P_CLI nbio=2 tickets=0 reconnect=1" \
             0 \
-            -S "ssl_handshake returned" \
-            -C "ssl_handshake returned" \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
 # Tests for version negotiation
@@ -1851,8 +1851,8 @@ run_test    "Version check: all -> 1.2" \
             "$P_SRV" \
             "$P_CLI" \
             0 \
-            -S "ssl_handshake returned" \
-            -C "ssl_handshake returned" \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
             -s "Protocol is TLSv1.2" \
             -c "Protocol is TLSv1.2"
 
@@ -1860,8 +1860,8 @@ run_test    "Version check: cli max 1.1 -> 1.1" \
             "$P_SRV" \
             "$P_CLI max_version=tls1_1" \
             0 \
-            -S "ssl_handshake returned" \
-            -C "ssl_handshake returned" \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
             -s "Protocol is TLSv1.1" \
             -c "Protocol is TLSv1.1"
 
@@ -1869,8 +1869,8 @@ run_test    "Version check: srv max 1.1 -> 1.1" \
             "$P_SRV max_version=tls1_1" \
             "$P_CLI" \
             0 \
-            -S "ssl_handshake returned" \
-            -C "ssl_handshake returned" \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
             -s "Protocol is TLSv1.1" \
             -c "Protocol is TLSv1.1"
 
@@ -1878,8 +1878,8 @@ run_test    "Version check: cli+srv max 1.1 -> 1.1" \
             "$P_SRV max_version=tls1_1" \
             "$P_CLI max_version=tls1_1" \
             0 \
-            -S "ssl_handshake returned" \
-            -C "ssl_handshake returned" \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
             -s "Protocol is TLSv1.1" \
             -c "Protocol is TLSv1.1"
 
@@ -1887,8 +1887,8 @@ run_test    "Version check: cli max 1.1, srv min 1.1 -> 1.1" \
             "$P_SRV min_version=tls1_1" \
             "$P_CLI max_version=tls1_1" \
             0 \
-            -S "ssl_handshake returned" \
-            -C "ssl_handshake returned" \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
             -s "Protocol is TLSv1.1" \
             -c "Protocol is TLSv1.1"
 
@@ -1896,8 +1896,8 @@ run_test    "Version check: cli min 1.1, srv max 1.1 -> 1.1" \
             "$P_SRV max_version=tls1_1" \
             "$P_CLI min_version=tls1_1" \
             0 \
-            -S "ssl_handshake returned" \
-            -C "ssl_handshake returned" \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
             -s "Protocol is TLSv1.1" \
             -c "Protocol is TLSv1.1"
 
@@ -1905,16 +1905,16 @@ run_test    "Version check: cli min 1.2, srv max 1.1 -> fail" \
             "$P_SRV max_version=tls1_1" \
             "$P_CLI min_version=tls1_2" \
             1 \
-            -s "ssl_handshake returned" \
-            -c "ssl_handshake returned" \
+            -s "mbedtls_ssl_handshake returned" \
+            -c "mbedtls_ssl_handshake returned" \
             -c "SSL - Handshake protocol not within min/max boundaries"
 
 run_test    "Version check: srv min 1.2, cli max 1.1 -> fail" \
             "$P_SRV min_version=tls1_2" \
             "$P_CLI max_version=tls1_1" \
             1 \
-            -s "ssl_handshake returned" \
-            -c "ssl_handshake returned" \
+            -s "mbedtls_ssl_handshake returned" \
+            -c "mbedtls_ssl_handshake returned" \
             -s "SSL - Handshake protocol not within min/max boundaries"
 
 # Tests for ALPN extension
@@ -2373,15 +2373,15 @@ run_test    "Per-version suites: TLS 1.2" \
             0 \
             -c "Ciphersuite is TLS-RSA-WITH-AES-128-GCM-SHA256"
 
-# Tests for ssl_get_bytes_avail()
+# Tests for mbedtls_ssl_get_bytes_avail()
 
-run_test    "ssl_get_bytes_avail: no extra data" \
+run_test    "mbedtls_ssl_get_bytes_avail: no extra data" \
             "$P_SRV" \
             "$P_CLI request_size=100" \
             0 \
             -s "Read from client: 100 bytes read$"
 
-run_test    "ssl_get_bytes_avail: extra data" \
+run_test    "mbedtls_ssl_get_bytes_avail: extra data" \
             "$P_SRV" \
             "$P_CLI request_size=500" \
             0 \
@@ -2771,7 +2771,7 @@ run_test    "DTLS reassembly: fragmentation, renego (gnutls server)" \
             -c "client hello, adding renegotiation extension" \
             -c "found renegotiation extension" \
             -c "=> renegotiate" \
-            -C "ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
             -C "error" \
             -s "Extra-header:"
 
@@ -2784,7 +2784,7 @@ run_test    "DTLS reassembly: fragmentation, nbio, renego (gnutls server)" \
             -c "client hello, adding renegotiation extension" \
             -c "found renegotiation extension" \
             -c "=> renegotiate" \
-            -C "ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
             -C "error" \
             -s "Extra-header:"
 

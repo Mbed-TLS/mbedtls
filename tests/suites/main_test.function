@@ -1,17 +1,17 @@
 #include <string.h>
 
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define polarssl_exit       exit
-#define polarssl_free       free
-#define polarssl_malloc     malloc
-#define polarssl_fprintf    fprintf
-#define polarssl_printf     printf
+#define mbedtls_exit       exit
+#define mbedtls_free       free
+#define mbedtls_malloc     malloc
+#define mbedtls_fprintf    fprintf
+#define mbedtls_printf     printf
 #endif
 
-#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
 #include "mbedtls/memory_buffer_alloc.h"
 #endif
 
@@ -27,8 +27,8 @@ static int test_assert( int correct, const char *test )
 
     test_errors++;
     if( test_errors == 1 )
-        polarssl_printf( "FAILED\n" );
-    polarssl_printf( "  %s\n", test );
+        mbedtls_printf( "FAILED\n" );
+    mbedtls_printf( "  %s\n", test );
 
     return( 1 );
 }
@@ -43,7 +43,7 @@ int verify_string( char **str )
     if( (*str)[0] != '"' ||
         (*str)[strlen( *str ) - 1] != '"' )
     {
-        polarssl_printf( "Expected string (with \"\") for parameter and got: %s\n", *str );
+        mbedtls_printf( "Expected string (with \"\") for parameter and got: %s\n", *str );
         return( -1 );
     }
 
@@ -96,7 +96,7 @@ int verify_int( char *str, int *value )
 
 MAPPING_CODE
 
-    polarssl_printf( "Expected integer for parameter and got: %s\n", str );
+    mbedtls_printf( "Expected integer for parameter and got: %s\n", str );
     return( -1 );
 }
 
@@ -122,7 +122,7 @@ int dispatch_test(int cnt, char *params[50])
 #if defined(TEST_SUITE_ACTIVE)
 DISPATCH_FUNCTION
     {
-        polarssl_fprintf( stdout, "FAILED\nSkipping unknown test function '%s'\n", params[0] );
+        mbedtls_fprintf( stdout, "FAILED\nSkipping unknown test function '%s'\n", params[0] );
         fflush( stdout );
         return( 1 );
     }
@@ -217,16 +217,16 @@ int main()
     char buf[5000];
     char *params[50];
 
-#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C) && \
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) && \
     !defined(TEST_SUITE_MEMORY_BUFFER_ALLOC)
     unsigned char alloc_buf[1000000];
-    memory_buffer_alloc_init( alloc_buf, sizeof(alloc_buf) );
+    mbedtls_memory_buffer_alloc_init( alloc_buf, sizeof(alloc_buf) );
 #endif
 
     file = fopen( filename, "r" );
     if( file == NULL )
     {
-        polarssl_fprintf( stderr, "Failed to open\n" );
+        mbedtls_fprintf( stderr, "Failed to open\n" );
         return( 1 );
     }
 
@@ -236,11 +236,11 @@ int main()
 
         if( ( ret = get_line( file, buf, sizeof(buf) ) ) != 0 )
             break;
-        polarssl_fprintf( stdout, "%s%.66s", test_errors ? "\n" : "", buf );
-        polarssl_fprintf( stdout, " " );
+        mbedtls_fprintf( stdout, "%s%.66s", test_errors ? "\n" : "", buf );
+        mbedtls_fprintf( stdout, " " );
         for( i = strlen( buf ) + 1; i < 67; i++ )
-            polarssl_fprintf( stdout, "." );
-        polarssl_fprintf( stdout, " " );
+            mbedtls_fprintf( stdout, "." );
+        mbedtls_fprintf( stdout, " " );
         fflush( stdout );
 
         total_tests++;
@@ -269,19 +269,19 @@ int main()
         if( skip == 1 || ret == 3 )
         {
             total_skipped++;
-            polarssl_fprintf( stdout, "----\n" );
+            mbedtls_fprintf( stdout, "----\n" );
             fflush( stdout );
         }
         else if( ret == 0 && test_errors == 0 )
         {
-            polarssl_fprintf( stdout, "PASS\n" );
+            mbedtls_fprintf( stdout, "PASS\n" );
             fflush( stdout );
         }
         else if( ret == 2 )
         {
-            polarssl_fprintf( stderr, "FAILED: FATAL PARSE ERROR\n" );
+            mbedtls_fprintf( stderr, "FAILED: FATAL PARSE ERROR\n" );
             fclose(file);
-            polarssl_exit( 2 );
+            mbedtls_exit( 2 );
         }
         else
             total_errors++;
@@ -290,27 +290,27 @@ int main()
             break;
         if( strlen(buf) != 0 )
         {
-            polarssl_fprintf( stderr, "Should be empty %d\n", (int) strlen(buf) );
+            mbedtls_fprintf( stderr, "Should be empty %d\n", (int) strlen(buf) );
             return( 1 );
         }
     }
     fclose(file);
 
-    polarssl_fprintf( stdout, "\n----------------------------------------------------------------------------\n\n");
+    mbedtls_fprintf( stdout, "\n----------------------------------------------------------------------------\n\n");
     if( total_errors == 0 )
-        polarssl_fprintf( stdout, "PASSED" );
+        mbedtls_fprintf( stdout, "PASSED" );
     else
-        polarssl_fprintf( stdout, "FAILED" );
+        mbedtls_fprintf( stdout, "FAILED" );
 
-    polarssl_fprintf( stdout, " (%d / %d tests (%d skipped))\n",
+    mbedtls_fprintf( stdout, " (%d / %d tests (%d skipped))\n",
              total_tests - total_errors, total_tests, total_skipped );
 
-#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C) && \
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) && \
     !defined(TEST_SUITE_MEMORY_BUFFER_ALLOC)
-#if defined(POLARSSL_MEMORY_DEBUG)
-    memory_buffer_alloc_status();
+#if defined(MBEDTLS_MEMORY_DEBUG)
+    mbedtls_memory_buffer_alloc_status();
 #endif
-    memory_buffer_alloc_free();
+    mbedtls_memory_buffer_alloc_free();
 #endif
 
     return( total_errors != 0 );

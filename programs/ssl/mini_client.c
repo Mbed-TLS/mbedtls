@@ -21,10 +21,10 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
 /*
@@ -37,19 +37,19 @@
 #define UNIX
 #endif
 
-#if !defined(POLARSSL_CTR_DRBG_C) || !defined(POLARSSL_ENTROPY_C) || \
-    !defined(POLARSSL_NET_C) || !defined(POLARSSL_SSL_CLI_C) || \
+#if !defined(MBEDTLS_CTR_DRBG_C) || !defined(MBEDTLS_ENTROPY_C) || \
+    !defined(MBEDTLS_NET_C) || !defined(MBEDTLS_SSL_CLI_C) || \
     !defined(UNIX)
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define polarssl_printf printf
+#define mbedtls_printf printf
 #endif
 int main( void )
 {
-    polarssl_printf( "POLARSSL_CTR_DRBG_C and/or POLARSSL_ENTROPY_C and/or "
-            "POLARSSL_NET_C and/or POLARSSL_SSL_CLI_C and/or UNIX "
+    mbedtls_printf( "MBEDTLS_CTR_DRBG_C and/or MBEDTLS_ENTROPY_C and/or "
+            "MBEDTLS_NET_C and/or MBEDTLS_SSL_CLI_C and/or UNIX "
             "not defined.\n");
     return( 0 );
 }
@@ -79,7 +79,7 @@ int main( void )
 
 const char *pers = "mini_client";
 
-#if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 const unsigned char psk[] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
     0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
@@ -87,7 +87,7 @@ const unsigned char psk[] = {
 const char psk_id[] = "Client_identity";
 #endif
 
-#if defined(POLARSSL_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
 /* This is tests/data_files/test-ca2.crt, a CA using EC secp384r1 */
 const unsigned char ca_cert[] = {
     0x30, 0x82, 0x02, 0x52, 0x30, 0x82, 0x01, 0xd7, 0xa0, 0x03, 0x02, 0x01,
@@ -141,7 +141,7 @@ const unsigned char ca_cert[] = {
     0xb8, 0x28, 0xe7, 0xf2, 0x9c, 0x14, 0x3a, 0x40, 0x01, 0x5c, 0xaf, 0x0c,
     0xb2, 0xcf, 0x74, 0x7f, 0x30, 0x9f, 0x08, 0x43, 0xad, 0x20,
 };
-#endif /* POLARSSL_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 enum exit_codes
 {
@@ -160,54 +160,54 @@ int main( void )
     int ret = exit_ok;
     int server_fd = -1;
     struct sockaddr_in addr;
-#if defined(POLARSSL_X509_CRT_PARSE_C)
-    x509_crt ca;
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    mbedtls_x509_crt ca;
 #endif
 
-    entropy_context entropy;
-    ctr_drbg_context ctr_drbg;
-    ssl_context ssl;
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
+    mbedtls_ssl_context ssl;
 
     /*
      * 0. Initialize and setup stuff
      */
-    memset( &ssl, 0, sizeof( ssl_context ) );
-#if defined(POLARSSL_X509_CRT_PARSE_C)
-    x509_crt_init( &ca );
+    memset( &ssl, 0, sizeof( mbedtls_ssl_context ) );
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    mbedtls_x509_crt_init( &ca );
 #endif
 
-    entropy_init( &entropy );
-    if( ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
+    mbedtls_entropy_init( &entropy );
+    if( mbedtls_ctr_drbg_init( &ctr_drbg, mbedtls_entropy_func, &entropy,
                        (const unsigned char *) pers, strlen( pers ) ) != 0 )
     {
         ret = ssl_init_failed;
         goto exit;
     }
 
-    if( ssl_init( &ssl ) != 0 )
+    if( mbedtls_ssl_init( &ssl ) != 0 )
     {
         ret = ssl_init_failed;
         goto exit;
     }
 
-    ssl_set_endpoint( &ssl, SSL_IS_CLIENT );
+    mbedtls_ssl_set_endpoint( &ssl, MBEDTLS_SSL_IS_CLIENT );
 
-    ssl_set_rng( &ssl, ctr_drbg_random, &ctr_drbg );
+    mbedtls_ssl_set_rng( &ssl, mbedtls_ctr_drbg_random, &ctr_drbg );
 
-#if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
-    ssl_set_psk( &ssl, psk, sizeof( psk ),
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+    mbedtls_ssl_set_psk( &ssl, psk, sizeof( psk ),
                 (const unsigned char *) psk_id, sizeof( psk_id ) - 1 );
 #endif
 
-#if defined(POLARSSL_X509_CRT_PARSE_C)
-    if( x509_crt_parse_der( &ca, ca_cert, sizeof( ca_cert ) ) != 0 )
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    if( mbedtls_x509_crt_parse_der( &ca, ca_cert, sizeof( ca_cert ) ) != 0 )
     {
         ret = x509_crt_parse_failed;
         goto exit;
     }
 
-    ssl_set_ca_chain( &ssl, &ca, NULL, HOSTNAME );
-    ssl_set_authmode( &ssl, SSL_VERIFY_REQUIRED );
+    mbedtls_ssl_set_ca_chain( &ssl, &ca, NULL, HOSTNAME );
+    mbedtls_ssl_set_authmode( &ssl, MBEDTLS_SSL_VERIFY_REQUIRED );
 #endif
 
     /*
@@ -234,9 +234,9 @@ int main( void )
         goto exit;
     }
 
-    ssl_set_bio_timeout( &ssl, &server_fd, net_send, net_recv, NULL, 0 );
+    mbedtls_ssl_set_bio_timeout( &ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv, NULL, 0 );
 
-    if( ssl_handshake( &ssl ) != 0 )
+    if( mbedtls_ssl_handshake( &ssl ) != 0 )
     {
         ret = ssl_handshake_failed;
         goto exit;
@@ -245,24 +245,24 @@ int main( void )
     /*
      * 2. Write the GET request and close the connection
      */
-    if( ssl_write( &ssl, (const unsigned char *) GET_REQUEST,
+    if( mbedtls_ssl_write( &ssl, (const unsigned char *) GET_REQUEST,
                          sizeof( GET_REQUEST ) - 1 ) <= 0 )
     {
         ret = ssl_write_failed;
         goto exit;
     }
 
-    ssl_close_notify( &ssl );
+    mbedtls_ssl_close_notify( &ssl );
 
 exit:
     if( server_fd != -1 )
-        net_close( server_fd );
+        mbedtls_net_close( server_fd );
 
-    ssl_free( &ssl );
-    ctr_drbg_free( &ctr_drbg );
-    entropy_free( &entropy );
-#if defined(POLARSSL_X509_CRT_PARSE_C)
-    x509_crt_free( &ca );
+    mbedtls_ssl_free( &ssl );
+    mbedtls_ctr_drbg_free( &ctr_drbg );
+    mbedtls_entropy_free( &entropy );
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    mbedtls_x509_crt_free( &ca );
 #endif
 
     return( ret );

@@ -25,33 +25,33 @@
  *  http://csrc.nist.gov/publications/nistpubs/800-90/SP800-90revised_March2007.pdf
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_CTR_DRBG_C)
+#if defined(MBEDTLS_CTR_DRBG_C)
 
 #include "mbedtls/ctr_drbg.h"
 
 #include <string.h>
 
-#if defined(POLARSSL_FS_IO)
+#if defined(MBEDTLS_FS_IO)
 #include <stdio.h>
 #endif
 
-#if defined(POLARSSL_SELF_TEST)
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_SELF_TEST)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define polarssl_printf printf
-#endif /* POLARSSL_PLATFORM_C */
-#endif /* POLARSSL_SELF_TEST */
+#define mbedtls_printf printf
+#endif /* MBEDTLS_PLATFORM_C */
+#endif /* MBEDTLS_SELF_TEST */
 
 /* Implementation that should never be optimized out by the compiler */
-static void polarssl_zeroize( void *v, size_t n ) {
+static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
@@ -59,8 +59,8 @@ static void polarssl_zeroize( void *v, size_t n ) {
  * Non-public function wrapped by ctr_crbg_init(). Necessary to allow NIST
  * tests to succeed (which require known length fixed entropy)
  */
-int ctr_drbg_init_entropy_len(
-                   ctr_drbg_context *ctx,
+int mbedtls_ctr_drbg_init_entropy_len(
+                   mbedtls_ctr_drbg_context *ctx,
                    int (*f_entropy)(void *, unsigned char *, size_t),
                    void *p_entropy,
                    const unsigned char *custom,
@@ -68,60 +68,60 @@ int ctr_drbg_init_entropy_len(
                    size_t entropy_len )
 {
     int ret;
-    unsigned char key[CTR_DRBG_KEYSIZE];
+    unsigned char key[MBEDTLS_CTR_DRBG_KEYSIZE];
 
-    memset( ctx, 0, sizeof(ctr_drbg_context) );
-    memset( key, 0, CTR_DRBG_KEYSIZE );
+    memset( ctx, 0, sizeof(mbedtls_ctr_drbg_context) );
+    memset( key, 0, MBEDTLS_CTR_DRBG_KEYSIZE );
 
-    aes_init( &ctx->aes_ctx );
+    mbedtls_aes_init( &ctx->aes_ctx );
 
     ctx->f_entropy = f_entropy;
     ctx->p_entropy = p_entropy;
 
     ctx->entropy_len = entropy_len;
-    ctx->reseed_interval = CTR_DRBG_RESEED_INTERVAL;
+    ctx->reseed_interval = MBEDTLS_CTR_DRBG_RESEED_INTERVAL;
 
     /*
      * Initialize with an empty key
      */
-    aes_setkey_enc( &ctx->aes_ctx, key, CTR_DRBG_KEYBITS );
+    mbedtls_aes_setkey_enc( &ctx->aes_ctx, key, MBEDTLS_CTR_DRBG_KEYBITS );
 
-    if( ( ret = ctr_drbg_reseed( ctx, custom, len ) ) != 0 )
+    if( ( ret = mbedtls_ctr_drbg_reseed( ctx, custom, len ) ) != 0 )
         return( ret );
 
     return( 0 );
 }
 
-int ctr_drbg_init( ctr_drbg_context *ctx,
+int mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx,
                    int (*f_entropy)(void *, unsigned char *, size_t),
                    void *p_entropy,
                    const unsigned char *custom,
                    size_t len )
 {
-    return( ctr_drbg_init_entropy_len( ctx, f_entropy, p_entropy, custom, len,
-                                       CTR_DRBG_ENTROPY_LEN ) );
+    return( mbedtls_ctr_drbg_init_entropy_len( ctx, f_entropy, p_entropy, custom, len,
+                                       MBEDTLS_CTR_DRBG_ENTROPY_LEN ) );
 }
 
-void ctr_drbg_free( ctr_drbg_context *ctx )
+void mbedtls_ctr_drbg_free( mbedtls_ctr_drbg_context *ctx )
 {
     if( ctx == NULL )
         return;
 
-    aes_free( &ctx->aes_ctx );
-    polarssl_zeroize( ctx, sizeof( ctr_drbg_context ) );
+    mbedtls_aes_free( &ctx->aes_ctx );
+    mbedtls_zeroize( ctx, sizeof( mbedtls_ctr_drbg_context ) );
 }
 
-void ctr_drbg_set_prediction_resistance( ctr_drbg_context *ctx, int resistance )
+void mbedtls_ctr_drbg_set_prediction_resistance( mbedtls_ctr_drbg_context *ctx, int resistance )
 {
     ctx->prediction_resistance = resistance;
 }
 
-void ctr_drbg_set_entropy_len( ctr_drbg_context *ctx, size_t len )
+void mbedtls_ctr_drbg_set_entropy_len( mbedtls_ctr_drbg_context *ctx, size_t len )
 {
     ctx->entropy_len = len;
 }
 
-void ctr_drbg_set_reseed_interval( ctr_drbg_context *ctx, int interval )
+void mbedtls_ctr_drbg_set_reseed_interval( mbedtls_ctr_drbg_context *ctx, int interval )
 {
     ctx->reseed_interval = interval;
 }
@@ -129,21 +129,21 @@ void ctr_drbg_set_reseed_interval( ctr_drbg_context *ctx, int interval )
 static int block_cipher_df( unsigned char *output,
                             const unsigned char *data, size_t data_len )
 {
-    unsigned char buf[CTR_DRBG_MAX_SEED_INPUT + CTR_DRBG_BLOCKSIZE + 16];
-    unsigned char tmp[CTR_DRBG_SEEDLEN];
-    unsigned char key[CTR_DRBG_KEYSIZE];
-    unsigned char chain[CTR_DRBG_BLOCKSIZE];
+    unsigned char buf[MBEDTLS_CTR_DRBG_MAX_SEED_INPUT + MBEDTLS_CTR_DRBG_BLOCKSIZE + 16];
+    unsigned char tmp[MBEDTLS_CTR_DRBG_SEEDLEN];
+    unsigned char key[MBEDTLS_CTR_DRBG_KEYSIZE];
+    unsigned char chain[MBEDTLS_CTR_DRBG_BLOCKSIZE];
     unsigned char *p, *iv;
-    aes_context aes_ctx;
+    mbedtls_aes_context aes_ctx;
 
     int i, j;
     size_t buf_len, use_len;
 
-    if( data_len > CTR_DRBG_MAX_SEED_INPUT )
-        return( POLARSSL_ERR_CTR_DRBG_INPUT_TOO_BIG );
+    if( data_len > MBEDTLS_CTR_DRBG_MAX_SEED_INPUT )
+        return( MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG );
 
-    memset( buf, 0, CTR_DRBG_MAX_SEED_INPUT + CTR_DRBG_BLOCKSIZE + 16 );
-    aes_init( &aes_ctx );
+    memset( buf, 0, MBEDTLS_CTR_DRBG_MAX_SEED_INPUT + MBEDTLS_CTR_DRBG_BLOCKSIZE + 16 );
+    mbedtls_aes_init( &aes_ctx );
 
     /*
      * Construct IV (16 bytes) and S in buffer
@@ -152,44 +152,44 @@ static int block_cipher_df( unsigned char *output,
      *     data || 0x80
      *     (Total is padded to a multiple of 16-bytes with zeroes)
      */
-    p = buf + CTR_DRBG_BLOCKSIZE;
+    p = buf + MBEDTLS_CTR_DRBG_BLOCKSIZE;
     *p++ = ( data_len >> 24 ) & 0xff;
     *p++ = ( data_len >> 16 ) & 0xff;
     *p++ = ( data_len >> 8  ) & 0xff;
     *p++ = ( data_len       ) & 0xff;
     p += 3;
-    *p++ = CTR_DRBG_SEEDLEN;
+    *p++ = MBEDTLS_CTR_DRBG_SEEDLEN;
     memcpy( p, data, data_len );
     p[data_len] = 0x80;
 
-    buf_len = CTR_DRBG_BLOCKSIZE + 8 + data_len + 1;
+    buf_len = MBEDTLS_CTR_DRBG_BLOCKSIZE + 8 + data_len + 1;
 
-    for( i = 0; i < CTR_DRBG_KEYSIZE; i++ )
+    for( i = 0; i < MBEDTLS_CTR_DRBG_KEYSIZE; i++ )
         key[i] = i;
 
-    aes_setkey_enc( &aes_ctx, key, CTR_DRBG_KEYBITS );
+    mbedtls_aes_setkey_enc( &aes_ctx, key, MBEDTLS_CTR_DRBG_KEYBITS );
 
     /*
-     * Reduce data to CTR_DRBG_SEEDLEN bytes of data
+     * Reduce data to MBEDTLS_CTR_DRBG_SEEDLEN bytes of data
      */
-    for( j = 0; j < CTR_DRBG_SEEDLEN; j += CTR_DRBG_BLOCKSIZE )
+    for( j = 0; j < MBEDTLS_CTR_DRBG_SEEDLEN; j += MBEDTLS_CTR_DRBG_BLOCKSIZE )
     {
         p = buf;
-        memset( chain, 0, CTR_DRBG_BLOCKSIZE );
+        memset( chain, 0, MBEDTLS_CTR_DRBG_BLOCKSIZE );
         use_len = buf_len;
 
         while( use_len > 0 )
         {
-            for( i = 0; i < CTR_DRBG_BLOCKSIZE; i++ )
+            for( i = 0; i < MBEDTLS_CTR_DRBG_BLOCKSIZE; i++ )
                 chain[i] ^= p[i];
-            p += CTR_DRBG_BLOCKSIZE;
-            use_len -= ( use_len >= CTR_DRBG_BLOCKSIZE ) ?
-                       CTR_DRBG_BLOCKSIZE : use_len;
+            p += MBEDTLS_CTR_DRBG_BLOCKSIZE;
+            use_len -= ( use_len >= MBEDTLS_CTR_DRBG_BLOCKSIZE ) ?
+                       MBEDTLS_CTR_DRBG_BLOCKSIZE : use_len;
 
-            aes_crypt_ecb( &aes_ctx, AES_ENCRYPT, chain, chain );
+            mbedtls_aes_crypt_ecb( &aes_ctx, MBEDTLS_AES_ENCRYPT, chain, chain );
         }
 
-        memcpy( tmp + j, chain, CTR_DRBG_BLOCKSIZE );
+        memcpy( tmp + j, chain, MBEDTLS_CTR_DRBG_BLOCKSIZE );
 
         /*
          * Update IV
@@ -200,87 +200,87 @@ static int block_cipher_df( unsigned char *output,
     /*
      * Do final encryption with reduced data
      */
-    aes_setkey_enc( &aes_ctx, tmp, CTR_DRBG_KEYBITS );
-    iv = tmp + CTR_DRBG_KEYSIZE;
+    mbedtls_aes_setkey_enc( &aes_ctx, tmp, MBEDTLS_CTR_DRBG_KEYBITS );
+    iv = tmp + MBEDTLS_CTR_DRBG_KEYSIZE;
     p = output;
 
-    for( j = 0; j < CTR_DRBG_SEEDLEN; j += CTR_DRBG_BLOCKSIZE )
+    for( j = 0; j < MBEDTLS_CTR_DRBG_SEEDLEN; j += MBEDTLS_CTR_DRBG_BLOCKSIZE )
     {
-        aes_crypt_ecb( &aes_ctx, AES_ENCRYPT, iv, iv );
-        memcpy( p, iv, CTR_DRBG_BLOCKSIZE );
-        p += CTR_DRBG_BLOCKSIZE;
+        mbedtls_aes_crypt_ecb( &aes_ctx, MBEDTLS_AES_ENCRYPT, iv, iv );
+        memcpy( p, iv, MBEDTLS_CTR_DRBG_BLOCKSIZE );
+        p += MBEDTLS_CTR_DRBG_BLOCKSIZE;
     }
 
-    aes_free( &aes_ctx );
+    mbedtls_aes_free( &aes_ctx );
 
     return( 0 );
 }
 
-static int ctr_drbg_update_internal( ctr_drbg_context *ctx,
-                              const unsigned char data[CTR_DRBG_SEEDLEN] )
+static int ctr_drbg_update_internal( mbedtls_ctr_drbg_context *ctx,
+                              const unsigned char data[MBEDTLS_CTR_DRBG_SEEDLEN] )
 {
-    unsigned char tmp[CTR_DRBG_SEEDLEN];
+    unsigned char tmp[MBEDTLS_CTR_DRBG_SEEDLEN];
     unsigned char *p = tmp;
     int i, j;
 
-    memset( tmp, 0, CTR_DRBG_SEEDLEN );
+    memset( tmp, 0, MBEDTLS_CTR_DRBG_SEEDLEN );
 
-    for( j = 0; j < CTR_DRBG_SEEDLEN; j += CTR_DRBG_BLOCKSIZE )
+    for( j = 0; j < MBEDTLS_CTR_DRBG_SEEDLEN; j += MBEDTLS_CTR_DRBG_BLOCKSIZE )
     {
         /*
          * Increase counter
          */
-        for( i = CTR_DRBG_BLOCKSIZE; i > 0; i-- )
+        for( i = MBEDTLS_CTR_DRBG_BLOCKSIZE; i > 0; i-- )
             if( ++ctx->counter[i - 1] != 0 )
                 break;
 
         /*
          * Crypt counter block
          */
-        aes_crypt_ecb( &ctx->aes_ctx, AES_ENCRYPT, ctx->counter, p );
+        mbedtls_aes_crypt_ecb( &ctx->aes_ctx, MBEDTLS_AES_ENCRYPT, ctx->counter, p );
 
-        p += CTR_DRBG_BLOCKSIZE;
+        p += MBEDTLS_CTR_DRBG_BLOCKSIZE;
     }
 
-    for( i = 0; i < CTR_DRBG_SEEDLEN; i++ )
+    for( i = 0; i < MBEDTLS_CTR_DRBG_SEEDLEN; i++ )
         tmp[i] ^= data[i];
 
     /*
      * Update key and counter
      */
-    aes_setkey_enc( &ctx->aes_ctx, tmp, CTR_DRBG_KEYBITS );
-    memcpy( ctx->counter, tmp + CTR_DRBG_KEYSIZE, CTR_DRBG_BLOCKSIZE );
+    mbedtls_aes_setkey_enc( &ctx->aes_ctx, tmp, MBEDTLS_CTR_DRBG_KEYBITS );
+    memcpy( ctx->counter, tmp + MBEDTLS_CTR_DRBG_KEYSIZE, MBEDTLS_CTR_DRBG_BLOCKSIZE );
 
     return( 0 );
 }
 
-void ctr_drbg_update( ctr_drbg_context *ctx,
+void mbedtls_ctr_drbg_update( mbedtls_ctr_drbg_context *ctx,
                       const unsigned char *additional, size_t add_len )
 {
-    unsigned char add_input[CTR_DRBG_SEEDLEN];
+    unsigned char add_input[MBEDTLS_CTR_DRBG_SEEDLEN];
 
     if( add_len > 0 )
     {
         /* MAX_INPUT would be more logical here, but we have to match
          * block_cipher_df()'s limits since we can't propagate errors */
-        if( add_len > CTR_DRBG_MAX_SEED_INPUT )
-            add_len = CTR_DRBG_MAX_SEED_INPUT;
+        if( add_len > MBEDTLS_CTR_DRBG_MAX_SEED_INPUT )
+            add_len = MBEDTLS_CTR_DRBG_MAX_SEED_INPUT;
 
         block_cipher_df( add_input, additional, add_len );
         ctr_drbg_update_internal( ctx, add_input );
     }
 }
 
-int ctr_drbg_reseed( ctr_drbg_context *ctx,
+int mbedtls_ctr_drbg_reseed( mbedtls_ctr_drbg_context *ctx,
                      const unsigned char *additional, size_t len )
 {
-    unsigned char seed[CTR_DRBG_MAX_SEED_INPUT];
+    unsigned char seed[MBEDTLS_CTR_DRBG_MAX_SEED_INPUT];
     size_t seedlen = 0;
 
-    if( ctx->entropy_len + len > CTR_DRBG_MAX_SEED_INPUT )
-        return( POLARSSL_ERR_CTR_DRBG_INPUT_TOO_BIG );
+    if( ctx->entropy_len + len > MBEDTLS_CTR_DRBG_MAX_SEED_INPUT )
+        return( MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG );
 
-    memset( seed, 0, CTR_DRBG_MAX_SEED_INPUT );
+    memset( seed, 0, MBEDTLS_CTR_DRBG_MAX_SEED_INPUT );
 
     /*
      * Gather entropy_len bytes of entropy to seed state
@@ -288,7 +288,7 @@ int ctr_drbg_reseed( ctr_drbg_context *ctx,
     if( 0 != ctx->f_entropy( ctx->p_entropy, seed,
                              ctx->entropy_len ) )
     {
-        return( POLARSSL_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED );
+        return( MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED );
     }
 
     seedlen += ctx->entropy_len;
@@ -316,30 +316,30 @@ int ctr_drbg_reseed( ctr_drbg_context *ctx,
     return( 0 );
 }
 
-int ctr_drbg_random_with_add( void *p_rng,
+int mbedtls_ctr_drbg_random_with_add( void *p_rng,
                               unsigned char *output, size_t output_len,
                               const unsigned char *additional, size_t add_len )
 {
     int ret = 0;
-    ctr_drbg_context *ctx = (ctr_drbg_context *) p_rng;
-    unsigned char add_input[CTR_DRBG_SEEDLEN];
+    mbedtls_ctr_drbg_context *ctx = (mbedtls_ctr_drbg_context *) p_rng;
+    unsigned char add_input[MBEDTLS_CTR_DRBG_SEEDLEN];
     unsigned char *p = output;
-    unsigned char tmp[CTR_DRBG_BLOCKSIZE];
+    unsigned char tmp[MBEDTLS_CTR_DRBG_BLOCKSIZE];
     int i;
     size_t use_len;
 
-    if( output_len > CTR_DRBG_MAX_REQUEST )
-        return( POLARSSL_ERR_CTR_DRBG_REQUEST_TOO_BIG );
+    if( output_len > MBEDTLS_CTR_DRBG_MAX_REQUEST )
+        return( MBEDTLS_ERR_CTR_DRBG_REQUEST_TOO_BIG );
 
-    if( add_len > CTR_DRBG_MAX_INPUT )
-        return( POLARSSL_ERR_CTR_DRBG_INPUT_TOO_BIG );
+    if( add_len > MBEDTLS_CTR_DRBG_MAX_INPUT )
+        return( MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG );
 
-    memset( add_input, 0, CTR_DRBG_SEEDLEN );
+    memset( add_input, 0, MBEDTLS_CTR_DRBG_SEEDLEN );
 
     if( ctx->reseed_counter > ctx->reseed_interval ||
         ctx->prediction_resistance )
     {
-        if( ( ret = ctr_drbg_reseed( ctx, additional, add_len ) ) != 0 )
+        if( ( ret = mbedtls_ctr_drbg_reseed( ctx, additional, add_len ) ) != 0 )
             return( ret );
 
         add_len = 0;
@@ -356,16 +356,16 @@ int ctr_drbg_random_with_add( void *p_rng,
         /*
          * Increase counter
          */
-        for( i = CTR_DRBG_BLOCKSIZE; i > 0; i-- )
+        for( i = MBEDTLS_CTR_DRBG_BLOCKSIZE; i > 0; i-- )
             if( ++ctx->counter[i - 1] != 0 )
                 break;
 
         /*
          * Crypt counter block
          */
-        aes_crypt_ecb( &ctx->aes_ctx, AES_ENCRYPT, ctx->counter, tmp );
+        mbedtls_aes_crypt_ecb( &ctx->aes_ctx, MBEDTLS_AES_ENCRYPT, ctx->counter, tmp );
 
-        use_len = ( output_len > CTR_DRBG_BLOCKSIZE ) ? CTR_DRBG_BLOCKSIZE :
+        use_len = ( output_len > MBEDTLS_CTR_DRBG_BLOCKSIZE ) ? MBEDTLS_CTR_DRBG_BLOCKSIZE :
                                                        output_len;
         /*
          * Copy random block to destination
@@ -382,27 +382,27 @@ int ctr_drbg_random_with_add( void *p_rng,
     return( 0 );
 }
 
-int ctr_drbg_random( void *p_rng, unsigned char *output, size_t output_len )
+int mbedtls_ctr_drbg_random( void *p_rng, unsigned char *output, size_t output_len )
 {
-    return ctr_drbg_random_with_add( p_rng, output, output_len, NULL, 0 );
+    return mbedtls_ctr_drbg_random_with_add( p_rng, output, output_len, NULL, 0 );
 }
 
-#if defined(POLARSSL_FS_IO)
-int ctr_drbg_write_seed_file( ctr_drbg_context *ctx, const char *path )
+#if defined(MBEDTLS_FS_IO)
+int mbedtls_ctr_drbg_write_seed_file( mbedtls_ctr_drbg_context *ctx, const char *path )
 {
-    int ret = POLARSSL_ERR_CTR_DRBG_FILE_IO_ERROR;
+    int ret = MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR;
     FILE *f;
-    unsigned char buf[ CTR_DRBG_MAX_INPUT ];
+    unsigned char buf[ MBEDTLS_CTR_DRBG_MAX_INPUT ];
 
     if( ( f = fopen( path, "wb" ) ) == NULL )
-        return( POLARSSL_ERR_CTR_DRBG_FILE_IO_ERROR );
+        return( MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR );
 
-    if( ( ret = ctr_drbg_random( ctx, buf, CTR_DRBG_MAX_INPUT ) ) != 0 )
+    if( ( ret = mbedtls_ctr_drbg_random( ctx, buf, MBEDTLS_CTR_DRBG_MAX_INPUT ) ) != 0 )
         goto exit;
 
-    if( fwrite( buf, 1, CTR_DRBG_MAX_INPUT, f ) != CTR_DRBG_MAX_INPUT )
+    if( fwrite( buf, 1, MBEDTLS_CTR_DRBG_MAX_INPUT, f ) != MBEDTLS_CTR_DRBG_MAX_INPUT )
     {
-        ret = POLARSSL_ERR_CTR_DRBG_FILE_IO_ERROR;
+        ret = MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR;
         goto exit;
     }
 
@@ -413,40 +413,40 @@ exit:
     return( ret );
 }
 
-int ctr_drbg_update_seed_file( ctr_drbg_context *ctx, const char *path )
+int mbedtls_ctr_drbg_update_seed_file( mbedtls_ctr_drbg_context *ctx, const char *path )
 {
     FILE *f;
     size_t n;
-    unsigned char buf[ CTR_DRBG_MAX_INPUT ];
+    unsigned char buf[ MBEDTLS_CTR_DRBG_MAX_INPUT ];
 
     if( ( f = fopen( path, "rb" ) ) == NULL )
-        return( POLARSSL_ERR_CTR_DRBG_FILE_IO_ERROR );
+        return( MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR );
 
     fseek( f, 0, SEEK_END );
     n = (size_t) ftell( f );
     fseek( f, 0, SEEK_SET );
 
-    if( n > CTR_DRBG_MAX_INPUT )
+    if( n > MBEDTLS_CTR_DRBG_MAX_INPUT )
     {
         fclose( f );
-        return( POLARSSL_ERR_CTR_DRBG_INPUT_TOO_BIG );
+        return( MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG );
     }
 
     if( fread( buf, 1, n, f ) != n )
     {
         fclose( f );
-        return( POLARSSL_ERR_CTR_DRBG_FILE_IO_ERROR );
+        return( MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR );
     }
 
     fclose( f );
 
-    ctr_drbg_update( ctx, buf, n );
+    mbedtls_ctr_drbg_update( ctx, buf, n );
 
-    return( ctr_drbg_write_seed_file( ctx, path ) );
+    return( mbedtls_ctr_drbg_write_seed_file( ctx, path ) );
 }
-#endif /* POLARSSL_FS_IO */
+#endif /* MBEDTLS_FS_IO */
 
-#if defined(POLARSSL_SELF_TEST)
+#if defined(MBEDTLS_SELF_TEST)
 
 static const unsigned char entropy_source_pr[96] =
     { 0xc1, 0x80, 0x81, 0xa6, 0x5d, 0x44, 0x02, 0x16,
@@ -501,57 +501,57 @@ static int ctr_drbg_self_test_entropy( void *data, unsigned char *buf,
 #define CHK( c )    if( (c) != 0 )                          \
                     {                                       \
                         if( verbose != 0 )                  \
-                            polarssl_printf( "failed\n" );  \
+                            mbedtls_printf( "failed\n" );  \
                         return( 1 );                        \
                     }
 
 /*
  * Checkup routine
  */
-int ctr_drbg_self_test( int verbose )
+int mbedtls_ctr_drbg_self_test( int verbose )
 {
-    ctr_drbg_context ctx;
+    mbedtls_ctr_drbg_context ctx;
     unsigned char buf[16];
 
     /*
      * Based on a NIST CTR_DRBG test vector (PR = True)
      */
     if( verbose != 0 )
-        polarssl_printf( "  CTR_DRBG (PR = TRUE) : " );
+        mbedtls_printf( "  CTR_DRBG (PR = TRUE) : " );
 
     test_offset = 0;
-    CHK( ctr_drbg_init_entropy_len( &ctx, ctr_drbg_self_test_entropy,
+    CHK( mbedtls_ctr_drbg_init_entropy_len( &ctx, ctr_drbg_self_test_entropy,
                                 (void *) entropy_source_pr, nonce_pers_pr, 16, 32 ) );
-    ctr_drbg_set_prediction_resistance( &ctx, CTR_DRBG_PR_ON );
-    CHK( ctr_drbg_random( &ctx, buf, CTR_DRBG_BLOCKSIZE ) );
-    CHK( ctr_drbg_random( &ctx, buf, CTR_DRBG_BLOCKSIZE ) );
-    CHK( memcmp( buf, result_pr, CTR_DRBG_BLOCKSIZE ) );
+    mbedtls_ctr_drbg_set_prediction_resistance( &ctx, MBEDTLS_CTR_DRBG_PR_ON );
+    CHK( mbedtls_ctr_drbg_random( &ctx, buf, MBEDTLS_CTR_DRBG_BLOCKSIZE ) );
+    CHK( mbedtls_ctr_drbg_random( &ctx, buf, MBEDTLS_CTR_DRBG_BLOCKSIZE ) );
+    CHK( memcmp( buf, result_pr, MBEDTLS_CTR_DRBG_BLOCKSIZE ) );
 
     if( verbose != 0 )
-        polarssl_printf( "passed\n" );
+        mbedtls_printf( "passed\n" );
 
     /*
      * Based on a NIST CTR_DRBG test vector (PR = FALSE)
      */
     if( verbose != 0 )
-        polarssl_printf( "  CTR_DRBG (PR = FALSE): " );
+        mbedtls_printf( "  CTR_DRBG (PR = FALSE): " );
 
     test_offset = 0;
-    CHK( ctr_drbg_init_entropy_len( &ctx, ctr_drbg_self_test_entropy,
+    CHK( mbedtls_ctr_drbg_init_entropy_len( &ctx, ctr_drbg_self_test_entropy,
                             (void *) entropy_source_nopr, nonce_pers_nopr, 16, 32 ) );
-    CHK( ctr_drbg_random( &ctx, buf, 16 ) );
-    CHK( ctr_drbg_reseed( &ctx, NULL, 0 ) );
-    CHK( ctr_drbg_random( &ctx, buf, 16 ) );
+    CHK( mbedtls_ctr_drbg_random( &ctx, buf, 16 ) );
+    CHK( mbedtls_ctr_drbg_reseed( &ctx, NULL, 0 ) );
+    CHK( mbedtls_ctr_drbg_random( &ctx, buf, 16 ) );
     CHK( memcmp( buf, result_nopr, 16 ) );
 
     if( verbose != 0 )
-        polarssl_printf( "passed\n" );
+        mbedtls_printf( "passed\n" );
 
     if( verbose != 0 )
-            polarssl_printf( "\n" );
+            mbedtls_printf( "\n" );
 
     return( 0 );
 }
-#endif /* POLARSSL_SELF_TEST */
+#endif /* MBEDTLS_SELF_TEST */
 
-#endif /* POLARSSL_CTR_DRBG_C */
+#endif /* MBEDTLS_CTR_DRBG_C */

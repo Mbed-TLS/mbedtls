@@ -21,8 +21,8 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_ECDH_H
-#define POLARSSL_ECDH_H
+#ifndef MBEDTLS_ECDH_H
+#define MBEDTLS_ECDH_H
 
 #include "ecp.h"
 
@@ -35,26 +35,26 @@ extern "C" {
  */
 typedef enum
 {
-    POLARSSL_ECDH_OURS,
-    POLARSSL_ECDH_THEIRS,
-} ecdh_side;
+    MBEDTLS_ECDH_OURS,
+    MBEDTLS_ECDH_THEIRS,
+} mbedtls_ecdh_side;
 
 /**
  * \brief           ECDH context structure
  */
 typedef struct
 {
-    ecp_group grp;      /*!<  elliptic curve used                           */
-    mpi d;              /*!<  our secret value (private key)                */
-    ecp_point Q;        /*!<  our public value (public key)                 */
-    ecp_point Qp;       /*!<  peer's public value (public key)              */
-    mpi z;              /*!<  shared secret                                 */
+    mbedtls_ecp_group grp;      /*!<  elliptic curve used                           */
+    mbedtls_mpi d;              /*!<  our secret value (private key)                */
+    mbedtls_ecp_point Q;        /*!<  our public value (public key)                 */
+    mbedtls_ecp_point Qp;       /*!<  peer's public value (public key)              */
+    mbedtls_mpi z;              /*!<  shared secret                                 */
     int point_format;   /*!<  format for point export in TLS messages       */
-    ecp_point Vi;       /*!<  blinding value (for later)                    */
-    ecp_point Vf;       /*!<  un-blinding value (for later)                 */
-    mpi _d;             /*!<  previous d (for later)                        */
+    mbedtls_ecp_point Vi;       /*!<  blinding value (for later)                    */
+    mbedtls_ecp_point Vf;       /*!<  un-blinding value (for later)                 */
+    mbedtls_mpi _d;             /*!<  previous d (for later)                        */
 }
-ecdh_context;
+mbedtls_ecdh_context;
 
 /**
  * \brief           Generate a public key.
@@ -67,9 +67,9 @@ ecdh_context;
  * \param p_rng     RNG parameter
  *
  * \return          0 if successful,
- *                  or a POLARSSL_ERR_ECP_XXX or POLARSSL_MPI_XXX error code
+ *                  or a MBEDTLS_ERR_ECP_XXX or MBEDTLS_MPI_XXX error code
  */
-int ecdh_gen_public( ecp_group *grp, mpi *d, ecp_point *Q,
+int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp_point *Q,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng );
 
@@ -85,14 +85,14 @@ int ecdh_gen_public( ecp_group *grp, mpi *d, ecp_point *Q,
  * \param p_rng     RNG parameter
  *
  * \return          0 if successful,
- *                  or a POLARSSL_ERR_ECP_XXX or POLARSSL_MPI_XXX error code
+ *                  or a MBEDTLS_ERR_ECP_XXX or MBEDTLS_MPI_XXX error code
  *
  * \note            If f_rng is not NULL, it is used to implement
  *                  countermeasures against potential elaborate timing
- *                  attacks, see \c ecp_mul() for details.
+ *                  attacks, see \c mbedtls_ecp_mul() for details.
  */
-int ecdh_compute_shared( ecp_group *grp, mpi *z,
-                         const ecp_point *Q, const mpi *d,
+int mbedtls_ecdh_compute_shared( mbedtls_ecp_group *grp, mbedtls_mpi *z,
+                         const mbedtls_ecp_point *Q, const mbedtls_mpi *d,
                          int (*f_rng)(void *, unsigned char *, size_t),
                          void *p_rng );
 
@@ -101,14 +101,14 @@ int ecdh_compute_shared( ecp_group *grp, mpi *z,
  *
  * \param ctx       Context to initialize
  */
-void ecdh_init( ecdh_context *ctx );
+void mbedtls_ecdh_init( mbedtls_ecdh_context *ctx );
 
 /**
  * \brief           Free context
  *
  * \param ctx       Context to free
  */
-void ecdh_free( ecdh_context *ctx );
+void mbedtls_ecdh_free( mbedtls_ecdh_context *ctx );
 
 /**
  * \brief           Generate a public key and a TLS ServerKeyExchange payload.
@@ -122,11 +122,11 @@ void ecdh_free( ecdh_context *ctx );
  * \param p_rng     RNG parameter
  *
  * \note            This function assumes that ctx->grp has already been
- *                  properly set (for example using ecp_use_known_dp).
+ *                  properly set (for example using mbedtls_ecp_use_known_dp).
  *
- * \return          0 if successful, or an POLARSSL_ERR_ECP_XXX error code
+ * \return          0 if successful, or an MBEDTLS_ERR_ECP_XXX error code
  */
-int ecdh_make_params( ecdh_context *ctx, size_t *olen,
+int mbedtls_ecdh_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
                       unsigned char *buf, size_t blen,
                       int (*f_rng)(void *, unsigned char *, size_t),
                       void *p_rng );
@@ -139,9 +139,9 @@ int ecdh_make_params( ecdh_context *ctx, size_t *olen,
  * \param buf       pointer to start of input buffer
  * \param end       one past end of buffer
  *
- * \return          0 if successful, or an POLARSSL_ERR_ECP_XXX error code
+ * \return          0 if successful, or an MBEDTLS_ERR_ECP_XXX error code
  */
-int ecdh_read_params( ecdh_context *ctx,
+int mbedtls_ecdh_read_params( mbedtls_ecdh_context *ctx,
                       const unsigned char **buf, const unsigned char *end );
 
 /**
@@ -154,10 +154,10 @@ int ecdh_read_params( ecdh_context *ctx,
  * \param key       EC key to use
  * \param side      Is it our key (1) or the peer's key (0) ?
  *
- * \return          0 if successful, or an POLARSSL_ERR_ECP_XXX error code
+ * \return          0 if successful, or an MBEDTLS_ERR_ECP_XXX error code
  */
-int ecdh_get_params( ecdh_context *ctx, const ecp_keypair *key,
-                     ecdh_side side );
+int mbedtls_ecdh_get_params( mbedtls_ecdh_context *ctx, const mbedtls_ecp_keypair *key,
+                     mbedtls_ecdh_side side );
 
 /**
  * \brief           Generate a public key and a TLS ClientKeyExchange payload.
@@ -170,9 +170,9 @@ int ecdh_get_params( ecdh_context *ctx, const ecp_keypair *key,
  * \param f_rng     RNG function
  * \param p_rng     RNG parameter
  *
- * \return          0 if successful, or an POLARSSL_ERR_ECP_XXX error code
+ * \return          0 if successful, or an MBEDTLS_ERR_ECP_XXX error code
  */
-int ecdh_make_public( ecdh_context *ctx, size_t *olen,
+int mbedtls_ecdh_make_public( mbedtls_ecdh_context *ctx, size_t *olen,
                       unsigned char *buf, size_t blen,
                       int (*f_rng)(void *, unsigned char *, size_t),
                       void *p_rng );
@@ -185,9 +185,9 @@ int ecdh_make_public( ecdh_context *ctx, size_t *olen,
  * \param buf       start of input buffer
  * \param blen      length of input buffer
  *
- * \return          0 if successful, or an POLARSSL_ERR_ECP_XXX error code
+ * \return          0 if successful, or an MBEDTLS_ERR_ECP_XXX error code
  */
-int ecdh_read_public( ecdh_context *ctx,
+int mbedtls_ecdh_read_public( mbedtls_ecdh_context *ctx,
                       const unsigned char *buf, size_t blen );
 
 /**
@@ -198,12 +198,12 @@ int ecdh_read_public( ecdh_context *ctx,
  * \param olen      number of bytes written
  * \param buf       destination buffer
  * \param blen      buffer length
- * \param f_rng     RNG function, see notes for \c ecdh_compute_shared()
+ * \param f_rng     RNG function, see notes for \c mbedtls_ecdh_compute_shared()
  * \param p_rng     RNG parameter
  *
- * \return          0 if successful, or an POLARSSL_ERR_ECP_XXX error code
+ * \return          0 if successful, or an MBEDTLS_ERR_ECP_XXX error code
  */
-int ecdh_calc_secret( ecdh_context *ctx, size_t *olen,
+int mbedtls_ecdh_calc_secret( mbedtls_ecdh_context *ctx, size_t *olen,
                       unsigned char *buf, size_t blen,
                       int (*f_rng)(void *, unsigned char *, size_t),
                       void *p_rng );

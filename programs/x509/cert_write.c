@@ -20,29 +20,29 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define polarssl_printf     printf
+#define mbedtls_printf     printf
 #endif
 
-#if !defined(POLARSSL_X509_CRT_WRITE_C) ||                                  \
-    !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_FS_IO) ||      \
-    !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C) ||        \
-    !defined(POLARSSL_ERROR_C) || !defined(POLARSSL_SHA256_C)
+#if !defined(MBEDTLS_X509_CRT_WRITE_C) ||                                  \
+    !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_FS_IO) ||      \
+    !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C) ||        \
+    !defined(MBEDTLS_ERROR_C) || !defined(MBEDTLS_SHA256_C)
 int main( void )
 {
-    polarssl_printf( "POLARSSL_X509_CRT_WRITE_C and/or POLARSSL_X509_CRT_PARSE_C and/or "
-            "POLARSSL_FS_IO and/or POLARSSL_SHA256_C and_or "
-            "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C and/or "
-            "POLARSSL_ERROR_C not defined.\n");
+    mbedtls_printf( "MBEDTLS_X509_CRT_WRITE_C and/or MBEDTLS_X509_CRT_PARSE_C and/or "
+            "MBEDTLS_FS_IO and/or MBEDTLS_SHA256_C and_or "
+            "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C and/or "
+            "MBEDTLS_ERROR_C not defined.\n");
     return( 0 );
 }
 #else
@@ -57,14 +57,14 @@ int main( void )
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(POLARSSL_X509_CSR_PARSE_C)
+#if defined(MBEDTLS_X509_CSR_PARSE_C)
 #define USAGE_CSR                                                           \
     "    request_file=%%s     default: (empty)\n"                           \
     "                        If request_file is specified, subject_key,\n"  \
     "                        subject_pwd and subject_name are ignored!\n"
 #else
 #define USAGE_CSR ""
-#endif /* POLARSSL_X509_CSR_PARSE_C */
+#endif /* MBEDTLS_X509_CSR_PARSE_C */
 
 #define DFL_ISSUER_CRT          ""
 #define DFL_REQUEST_FILE        ""
@@ -153,7 +153,7 @@ struct options
     unsigned char ns_cert_type; /* NS cert type                         */
 } opt;
 
-int write_certificate( x509write_cert *crt, const char *output_file,
+int write_certificate( mbedtls_x509write_cert *crt, const char *output_file,
                        int (*f_rng)(void *, unsigned char *, size_t),
                        void *p_rng )
 {
@@ -163,7 +163,7 @@ int write_certificate( x509write_cert *crt, const char *output_file,
     size_t len = 0;
 
     memset( output_buf, 0, 4096 );
-    if( ( ret = x509write_crt_pem( crt, output_buf, 4096, f_rng, p_rng ) ) < 0 )
+    if( ( ret = mbedtls_x509write_crt_pem( crt, output_buf, 4096, f_rng, p_rng ) ) < 0 )
         return( ret );
 
     len = strlen( (char *) output_buf );
@@ -185,42 +185,42 @@ int write_certificate( x509write_cert *crt, const char *output_file,
 int main( int argc, char *argv[] )
 {
     int ret = 0;
-    x509_crt issuer_crt;
-    pk_context loaded_issuer_key, loaded_subject_key;
-    pk_context *issuer_key = &loaded_issuer_key,
+    mbedtls_x509_crt issuer_crt;
+    mbedtls_pk_context loaded_issuer_key, loaded_subject_key;
+    mbedtls_pk_context *issuer_key = &loaded_issuer_key,
                 *subject_key = &loaded_subject_key;
     char buf[1024];
     char issuer_name[128];
     int i;
     char *p, *q, *r;
-#if defined(POLARSSL_X509_CSR_PARSE_C)
+#if defined(MBEDTLS_X509_CSR_PARSE_C)
     char subject_name[128];
-    x509_csr csr;
+    mbedtls_x509_csr csr;
 #endif
-    x509write_cert crt;
-    mpi serial;
-    entropy_context entropy;
-    ctr_drbg_context ctr_drbg;
+    mbedtls_x509write_cert crt;
+    mbedtls_mpi serial;
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
     const char *pers = "crt example app";
 
     /*
      * Set to sane values
      */
-    x509write_crt_init( &crt );
-    x509write_crt_set_md_alg( &crt, POLARSSL_MD_SHA256 );
-    pk_init( &loaded_issuer_key );
-    pk_init( &loaded_subject_key );
-    mpi_init( &serial );
-#if defined(POLARSSL_X509_CSR_PARSE_C)
-    x509_csr_init( &csr );
+    mbedtls_x509write_crt_init( &crt );
+    mbedtls_x509write_crt_set_md_alg( &crt, MBEDTLS_MD_SHA256 );
+    mbedtls_pk_init( &loaded_issuer_key );
+    mbedtls_pk_init( &loaded_subject_key );
+    mbedtls_mpi_init( &serial );
+#if defined(MBEDTLS_X509_CSR_PARSE_C)
+    mbedtls_x509_csr_init( &csr );
 #endif
-    x509_crt_init( &issuer_crt );
+    mbedtls_x509_crt_init( &issuer_crt );
     memset( buf, 0, 1024 );
 
     if( argc == 0 )
     {
     usage:
-        polarssl_printf( USAGE );
+        mbedtls_printf( USAGE );
         ret = 1;
         goto exit;
     }
@@ -312,19 +312,19 @@ int main( int argc, char *argv[] )
                     *r++ = '\0';
 
                 if( strcmp( q, "digital_signature" ) == 0 )
-                    opt.key_usage |= KU_DIGITAL_SIGNATURE;
+                    opt.key_usage |= MBEDTLS_X509_KU_DIGITAL_SIGNATURE;
                 else if( strcmp( q, "non_repudiation" ) == 0 )
-                    opt.key_usage |= KU_NON_REPUDIATION;
+                    opt.key_usage |= MBEDTLS_X509_KU_NON_REPUDIATION;
                 else if( strcmp( q, "key_encipherment" ) == 0 )
-                    opt.key_usage |= KU_KEY_ENCIPHERMENT;
+                    opt.key_usage |= MBEDTLS_KU_KEY_ENCIPHERMENT;
                 else if( strcmp( q, "data_encipherment" ) == 0 )
-                    opt.key_usage |= KU_DATA_ENCIPHERMENT;
+                    opt.key_usage |= MBEDTLS_KU_DATA_ENCIPHERMENT;
                 else if( strcmp( q, "key_agreement" ) == 0 )
-                    opt.key_usage |= KU_KEY_AGREEMENT;
+                    opt.key_usage |= MBEDTLS_KU_KEY_AGREEMENT;
                 else if( strcmp( q, "key_cert_sign" ) == 0 )
-                    opt.key_usage |= KU_KEY_CERT_SIGN;
+                    opt.key_usage |= MBEDTLS_X509_KU_KEY_CERT_SIGN;
                 else if( strcmp( q, "crl_sign" ) == 0 )
-                    opt.key_usage |= KU_CRL_SIGN;
+                    opt.key_usage |= MBEDTLS_X509_KU_CRL_SIGN;
                 else
                     goto usage;
 
@@ -339,19 +339,19 @@ int main( int argc, char *argv[] )
                     *r++ = '\0';
 
                 if( strcmp( q, "ssl_client" ) == 0 )
-                    opt.ns_cert_type |= NS_CERT_TYPE_SSL_CLIENT;
+                    opt.ns_cert_type |= MBEDTLS_X509_NS_CERT_TYPE_SSL_CLIENT;
                 else if( strcmp( q, "ssl_server" ) == 0 )
-                    opt.ns_cert_type |= NS_CERT_TYPE_SSL_SERVER;
+                    opt.ns_cert_type |= MBEDTLS_NS_CERT_TYPE_SSL_SERVER;
                 else if( strcmp( q, "email" ) == 0 )
-                    opt.ns_cert_type |= NS_CERT_TYPE_EMAIL;
+                    opt.ns_cert_type |= MBEDTLS_X509_NS_CERT_TYPE_EMAIL;
                 else if( strcmp( q, "object_signing" ) == 0 )
-                    opt.ns_cert_type |= NS_CERT_TYPE_OBJECT_SIGNING;
+                    opt.ns_cert_type |= MBEDTLS_X509_NS_CERT_TYPE_OBJECT_SIGNING;
                 else if( strcmp( q, "ssl_ca" ) == 0 )
-                    opt.ns_cert_type |= NS_CERT_TYPE_SSL_CA;
+                    opt.ns_cert_type |= MBEDTLS_NS_CERT_TYPE_SSL_CA;
                 else if( strcmp( q, "email_ca" ) == 0 )
-                    opt.ns_cert_type |= NS_CERT_TYPE_EMAIL_CA;
+                    opt.ns_cert_type |= MBEDTLS_NS_CERT_TYPE_EMAIL_CA;
                 else if( strcmp( q, "object_signing_ca" ) == 0 )
-                    opt.ns_cert_type |= NS_CERT_TYPE_OBJECT_SIGNING_CA;
+                    opt.ns_cert_type |= MBEDTLS_NS_CERT_TYPE_OBJECT_SIGNING_CA;
                 else
                     goto usage;
 
@@ -362,39 +362,39 @@ int main( int argc, char *argv[] )
             goto usage;
     }
 
-    polarssl_printf("\n");
+    mbedtls_printf("\n");
 
     /*
      * 0. Seed the PRNG
      */
-    polarssl_printf( "  . Seeding the random number generator..." );
+    mbedtls_printf( "  . Seeding the random number generator..." );
     fflush( stdout );
 
-    entropy_init( &entropy );
-    if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
+    mbedtls_entropy_init( &entropy );
+    if( ( ret = mbedtls_ctr_drbg_init( &ctr_drbg, mbedtls_entropy_func, &entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        polarssl_strerror( ret, buf, 1024 );
-        polarssl_printf( " failed\n  !  ctr_drbg_init returned %d - %s\n", ret, buf );
+        mbedtls_strerror( ret, buf, 1024 );
+        mbedtls_printf( " failed\n  !  mbedtls_ctr_drbg_init returned %d - %s\n", ret, buf );
         goto exit;
     }
 
-    polarssl_printf( " ok\n" );
+    mbedtls_printf( " ok\n" );
 
     // Parse serial to MPI
     //
-    polarssl_printf( "  . Reading serial number..." );
+    mbedtls_printf( "  . Reading serial number..." );
     fflush( stdout );
 
-    if( ( ret = mpi_read_string( &serial, 10, opt.serial ) ) != 0 )
+    if( ( ret = mbedtls_mpi_read_string( &serial, 10, opt.serial ) ) != 0 )
     {
-        polarssl_strerror( ret, buf, 1024 );
-        polarssl_printf( " failed\n  !  mpi_read_string returned -0x%02x - %s\n\n", -ret, buf );
+        mbedtls_strerror( ret, buf, 1024 );
+        mbedtls_printf( " failed\n  !  mbedtls_mpi_read_string returned -0x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
 
-    polarssl_printf( " ok\n" );
+    mbedtls_printf( " ok\n" );
 
     // Parse issuer certificate if present
     //
@@ -403,31 +403,31 @@ int main( int argc, char *argv[] )
         /*
          * 1.0.a. Load the certificates
          */
-        polarssl_printf( "  . Loading the issuer certificate ..." );
+        mbedtls_printf( "  . Loading the issuer certificate ..." );
         fflush( stdout );
 
-        if( ( ret = x509_crt_parse_file( &issuer_crt, opt.issuer_crt ) ) != 0 )
+        if( ( ret = mbedtls_x509_crt_parse_file( &issuer_crt, opt.issuer_crt ) ) != 0 )
         {
-            polarssl_strerror( ret, buf, 1024 );
-            polarssl_printf( " failed\n  !  x509_crt_parse_file returned -0x%02x - %s\n\n", -ret, buf );
+            mbedtls_strerror( ret, buf, 1024 );
+            mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse_file returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
 
-        ret = x509_dn_gets( issuer_name, sizeof(issuer_name),
+        ret = mbedtls_x509_dn_gets( issuer_name, sizeof(issuer_name),
                                  &issuer_crt.subject );
         if( ret < 0 )
         {
-            polarssl_strerror( ret, buf, 1024 );
-            polarssl_printf( " failed\n  !  x509_dn_gets returned -0x%02x - %s\n\n", -ret, buf );
+            mbedtls_strerror( ret, buf, 1024 );
+            mbedtls_printf( " failed\n  !  mbedtls_x509_dn_gets returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
 
         opt.issuer_name = issuer_name;
 
-        polarssl_printf( " ok\n" );
+        mbedtls_printf( " ok\n" );
     }
 
-#if defined(POLARSSL_X509_CSR_PARSE_C)
+#if defined(MBEDTLS_X509_CSR_PARSE_C)
     // Parse certificate request if present
     //
     if( !opt.selfsign && strlen( opt.request_file ) )
@@ -435,61 +435,61 @@ int main( int argc, char *argv[] )
         /*
          * 1.0.b. Load the CSR
          */
-        polarssl_printf( "  . Loading the certificate request ..." );
+        mbedtls_printf( "  . Loading the certificate request ..." );
         fflush( stdout );
 
-        if( ( ret = x509_csr_parse_file( &csr, opt.request_file ) ) != 0 )
+        if( ( ret = mbedtls_x509_csr_parse_file( &csr, opt.request_file ) ) != 0 )
         {
-            polarssl_strerror( ret, buf, 1024 );
-            polarssl_printf( " failed\n  !  x509_csr_parse_file returned -0x%02x - %s\n\n", -ret, buf );
+            mbedtls_strerror( ret, buf, 1024 );
+            mbedtls_printf( " failed\n  !  mbedtls_x509_csr_parse_file returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
 
-        ret = x509_dn_gets( subject_name, sizeof(subject_name),
+        ret = mbedtls_x509_dn_gets( subject_name, sizeof(subject_name),
                                  &csr.subject );
         if( ret < 0 )
         {
-            polarssl_strerror( ret, buf, 1024 );
-            polarssl_printf( " failed\n  !  x509_dn_gets returned -0x%02x - %s\n\n", -ret, buf );
+            mbedtls_strerror( ret, buf, 1024 );
+            mbedtls_printf( " failed\n  !  mbedtls_x509_dn_gets returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
 
         opt.subject_name = subject_name;
         subject_key = &csr.pk;
 
-        polarssl_printf( " ok\n" );
+        mbedtls_printf( " ok\n" );
     }
-#endif /* POLARSSL_X509_CSR_PARSE_C */
+#endif /* MBEDTLS_X509_CSR_PARSE_C */
 
     /*
      * 1.1. Load the keys
      */
     if( !opt.selfsign && !strlen( opt.request_file ) )
     {
-        polarssl_printf( "  . Loading the subject key ..." );
+        mbedtls_printf( "  . Loading the subject key ..." );
         fflush( stdout );
 
-        ret = pk_parse_keyfile( &loaded_subject_key, opt.subject_key,
+        ret = mbedtls_pk_parse_keyfile( &loaded_subject_key, opt.subject_key,
                                  opt.subject_pwd );
         if( ret != 0 )
         {
-            polarssl_strerror( ret, buf, 1024 );
-            polarssl_printf( " failed\n  !  pk_parse_keyfile returned -0x%02x - %s\n\n", -ret, buf );
+            mbedtls_strerror( ret, buf, 1024 );
+            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
 
-        polarssl_printf( " ok\n" );
+        mbedtls_printf( " ok\n" );
     }
 
-    polarssl_printf( "  . Loading the issuer key ..." );
+    mbedtls_printf( "  . Loading the issuer key ..." );
     fflush( stdout );
 
-    ret = pk_parse_keyfile( &loaded_issuer_key, opt.issuer_key,
+    ret = mbedtls_pk_parse_keyfile( &loaded_issuer_key, opt.issuer_key,
                              opt.issuer_pwd );
     if( ret != 0 )
     {
-        polarssl_strerror( ret, buf, 1024 );
-        polarssl_printf( " failed\n  !  pk_parse_keyfile returned -x%02x - %s\n\n", -ret, buf );
+        mbedtls_strerror( ret, buf, 1024 );
+        mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile returned -x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
 
@@ -497,19 +497,19 @@ int main( int argc, char *argv[] )
     //
     if( strlen( opt.issuer_crt ) )
     {
-        if( !pk_can_do( &issuer_crt.pk, POLARSSL_PK_RSA ) ||
-            mpi_cmp_mpi( &pk_rsa( issuer_crt.pk )->N,
-                         &pk_rsa( *issuer_key )->N ) != 0 ||
-            mpi_cmp_mpi( &pk_rsa( issuer_crt.pk )->E,
-                         &pk_rsa( *issuer_key )->E ) != 0 )
+        if( !mbedtls_pk_can_do( &issuer_crt.pk, MBEDTLS_PK_RSA ) ||
+            mbedtls_mpi_cmp_mpi( &mbedtls_pk_rsa( issuer_crt.pk )->N,
+                         &mbedtls_pk_rsa( *issuer_key )->N ) != 0 ||
+            mbedtls_mpi_cmp_mpi( &mbedtls_pk_rsa( issuer_crt.pk )->E,
+                         &mbedtls_pk_rsa( *issuer_key )->E ) != 0 )
         {
-            polarssl_printf( " failed\n  !  issuer_key does not match issuer certificate\n\n" );
+            mbedtls_printf( " failed\n  !  issuer_key does not match issuer certificate\n\n" );
             ret = -1;
             goto exit;
         }
     }
 
-    polarssl_printf( " ok\n" );
+    mbedtls_printf( " ok\n" );
 
     if( opt.selfsign )
     {
@@ -517,152 +517,152 @@ int main( int argc, char *argv[] )
         subject_key = issuer_key;
     }
 
-    x509write_crt_set_subject_key( &crt, subject_key );
-    x509write_crt_set_issuer_key( &crt, issuer_key );
+    mbedtls_x509write_crt_set_subject_key( &crt, subject_key );
+    mbedtls_x509write_crt_set_issuer_key( &crt, issuer_key );
 
     /*
      * 1.0. Check the names for validity
      */
-    if( ( ret = x509write_crt_set_subject_name( &crt, opt.subject_name ) ) != 0 )
+    if( ( ret = mbedtls_x509write_crt_set_subject_name( &crt, opt.subject_name ) ) != 0 )
     {
-        polarssl_strerror( ret, buf, 1024 );
-        polarssl_printf( " failed\n  !  x509write_crt_set_subject_name returned -0x%02x - %s\n\n", -ret, buf );
+        mbedtls_strerror( ret, buf, 1024 );
+        mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_subject_name returned -0x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
 
-    if( ( ret = x509write_crt_set_issuer_name( &crt, opt.issuer_name ) ) != 0 )
+    if( ( ret = mbedtls_x509write_crt_set_issuer_name( &crt, opt.issuer_name ) ) != 0 )
     {
-        polarssl_strerror( ret, buf, 1024 );
-        polarssl_printf( " failed\n  !  x509write_crt_set_issuer_name returned -0x%02x - %s\n\n", -ret, buf );
+        mbedtls_strerror( ret, buf, 1024 );
+        mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_issuer_name returned -0x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
 
-    polarssl_printf( "  . Setting certificate values ..." );
+    mbedtls_printf( "  . Setting certificate values ..." );
     fflush( stdout );
 
-    ret = x509write_crt_set_serial( &crt, &serial );
+    ret = mbedtls_x509write_crt_set_serial( &crt, &serial );
     if( ret != 0 )
     {
-        polarssl_strerror( ret, buf, 1024 );
-        polarssl_printf( " failed\n  !  x509write_crt_set_serial returned -0x%02x - %s\n\n", -ret, buf );
+        mbedtls_strerror( ret, buf, 1024 );
+        mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_serial returned -0x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
 
-    ret = x509write_crt_set_validity( &crt, opt.not_before, opt.not_after );
+    ret = mbedtls_x509write_crt_set_validity( &crt, opt.not_before, opt.not_after );
     if( ret != 0 )
     {
-        polarssl_strerror( ret, buf, 1024 );
-        polarssl_printf( " failed\n  !  x509write_crt_set_validity returned -0x%02x - %s\n\n", -ret, buf );
+        mbedtls_strerror( ret, buf, 1024 );
+        mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_validity returned -0x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
 
-    polarssl_printf( " ok\n" );
+    mbedtls_printf( " ok\n" );
 
-    polarssl_printf( "  . Adding the Basic Constraints extension ..." );
+    mbedtls_printf( "  . Adding the Basic Constraints extension ..." );
     fflush( stdout );
 
-    ret = x509write_crt_set_basic_constraints( &crt, opt.is_ca,
+    ret = mbedtls_x509write_crt_set_basic_constraints( &crt, opt.is_ca,
                                                opt.max_pathlen );
     if( ret != 0 )
     {
-        polarssl_strerror( ret, buf, 1024 );
-        polarssl_printf( " failed\n  !  x509write_crt_set_basic_contraints returned -0x%02x - %s\n\n", -ret, buf );
+        mbedtls_strerror( ret, buf, 1024 );
+        mbedtls_printf( " failed\n  !  x509write_crt_set_basic_contraints returned -0x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
 
-    polarssl_printf( " ok\n" );
+    mbedtls_printf( " ok\n" );
 
-#if defined(POLARSSL_SHA1_C)
-    polarssl_printf( "  . Adding the Subject Key Identifier ..." );
+#if defined(MBEDTLS_SHA1_C)
+    mbedtls_printf( "  . Adding the Subject Key Identifier ..." );
     fflush( stdout );
 
-    ret = x509write_crt_set_subject_key_identifier( &crt );
+    ret = mbedtls_x509write_crt_set_subject_key_identifier( &crt );
     if( ret != 0 )
     {
-        polarssl_strerror( ret, buf, 1024 );
-        polarssl_printf( " failed\n  !  x509write_crt_set_subject_key_identifier returned -0x%02x - %s\n\n", -ret, buf );
+        mbedtls_strerror( ret, buf, 1024 );
+        mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_subject_key_identifier returned -0x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
 
-    polarssl_printf( " ok\n" );
+    mbedtls_printf( " ok\n" );
 
-    polarssl_printf( "  . Adding the Authority Key Identifier ..." );
+    mbedtls_printf( "  . Adding the Authority Key Identifier ..." );
     fflush( stdout );
 
-    ret = x509write_crt_set_authority_key_identifier( &crt );
+    ret = mbedtls_x509write_crt_set_authority_key_identifier( &crt );
     if( ret != 0 )
     {
-        polarssl_strerror( ret, buf, 1024 );
-        polarssl_printf( " failed\n  !  x509write_crt_set_authority_key_identifier returned -0x%02x - %s\n\n", -ret, buf );
+        mbedtls_strerror( ret, buf, 1024 );
+        mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_authority_key_identifier returned -0x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
 
-    polarssl_printf( " ok\n" );
-#endif /* POLARSSL_SHA1_C */
+    mbedtls_printf( " ok\n" );
+#endif /* MBEDTLS_SHA1_C */
 
     if( opt.key_usage )
     {
-        polarssl_printf( "  . Adding the Key Usage extension ..." );
+        mbedtls_printf( "  . Adding the Key Usage extension ..." );
         fflush( stdout );
 
-        ret = x509write_crt_set_key_usage( &crt, opt.key_usage );
+        ret = mbedtls_x509write_crt_set_key_usage( &crt, opt.key_usage );
         if( ret != 0 )
         {
-            polarssl_strerror( ret, buf, 1024 );
-            polarssl_printf( " failed\n  !  x509write_crt_set_key_usage returned -0x%02x - %s\n\n", -ret, buf );
+            mbedtls_strerror( ret, buf, 1024 );
+            mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_key_usage returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
 
-        polarssl_printf( " ok\n" );
+        mbedtls_printf( " ok\n" );
     }
 
     if( opt.ns_cert_type )
     {
-        polarssl_printf( "  . Adding the NS Cert Type extension ..." );
+        mbedtls_printf( "  . Adding the NS Cert Type extension ..." );
         fflush( stdout );
 
-        ret = x509write_crt_set_ns_cert_type( &crt, opt.ns_cert_type );
+        ret = mbedtls_x509write_crt_set_ns_cert_type( &crt, opt.ns_cert_type );
         if( ret != 0 )
         {
-            polarssl_strerror( ret, buf, 1024 );
-            polarssl_printf( " failed\n  !  x509write_crt_set_ns_cert_type returned -0x%02x - %s\n\n", -ret, buf );
+            mbedtls_strerror( ret, buf, 1024 );
+            mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_ns_cert_type returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
 
-        polarssl_printf( " ok\n" );
+        mbedtls_printf( " ok\n" );
     }
 
     /*
      * 1.2. Writing the request
      */
-    polarssl_printf( "  . Writing the certificate..." );
+    mbedtls_printf( "  . Writing the certificate..." );
     fflush( stdout );
 
     if( ( ret = write_certificate( &crt, opt.output_file,
-                                   ctr_drbg_random, &ctr_drbg ) ) != 0 )
+                                   mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
-        polarssl_strerror( ret, buf, 1024 );
-        polarssl_printf( " failed\n  !  write_certifcate -0x%02x - %s\n\n", -ret, buf );
+        mbedtls_strerror( ret, buf, 1024 );
+        mbedtls_printf( " failed\n  !  write_certifcate -0x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
 
-    polarssl_printf( " ok\n" );
+    mbedtls_printf( " ok\n" );
 
 exit:
-    x509write_crt_free( &crt );
-    pk_free( &loaded_subject_key );
-    pk_free( &loaded_issuer_key );
-    mpi_free( &serial );
-    ctr_drbg_free( &ctr_drbg );
-    entropy_free( &entropy );
+    mbedtls_x509write_crt_free( &crt );
+    mbedtls_pk_free( &loaded_subject_key );
+    mbedtls_pk_free( &loaded_issuer_key );
+    mbedtls_mpi_free( &serial );
+    mbedtls_ctr_drbg_free( &ctr_drbg );
+    mbedtls_entropy_free( &entropy );
 
 #if defined(_WIN32)
-    polarssl_printf( "  + Press Enter to exit this program.\n" );
+    mbedtls_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 
     return( ret );
 }
-#endif /* POLARSSL_X509_CRT_WRITE_C && POLARSSL_X509_CRT_PARSE_C &&
-          POLARSSL_FS_IO && POLARSSL_ENTROPY_C && POLARSSL_CTR_DRBG_C &&
-          POLARSSL_ERROR_C */
+#endif /* MBEDTLS_X509_CRT_WRITE_C && MBEDTLS_X509_CRT_PARSE_C &&
+          MBEDTLS_FS_IO && MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C &&
+          MBEDTLS_ERROR_C */

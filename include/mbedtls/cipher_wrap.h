@@ -23,13 +23,13 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_CIPHER_WRAP_H
-#define POLARSSL_CIPHER_WRAP_H
+#ifndef MBEDTLS_CIPHER_WRAP_H
+#define MBEDTLS_CIPHER_WRAP_H
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
 #include "cipher.h"
@@ -40,16 +40,16 @@ extern "C" {
 
 typedef struct
 {
-    cipher_type_t type;
-    const cipher_info_t *info;
-} cipher_definition_t;
+    mbedtls_cipher_type_t type;
+    const mbedtls_cipher_info_t *info;
+} mbedtls_cipher_definition_t;
 
-extern const cipher_definition_t cipher_definitions[];
+extern const mbedtls_cipher_definition_t mbedtls_cipher_definitions[];
 
-extern int supported_ciphers[];
+extern int mbedtls_cipher_supported[];
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* POLARSSL_CIPHER_WRAP_H */
+#endif /* MBEDTLS_CIPHER_WRAP_H */

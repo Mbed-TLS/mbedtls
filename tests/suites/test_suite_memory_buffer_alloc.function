@@ -4,13 +4,13 @@
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:POLARSSL_MEMORY_BUFFER_ALLOC_C
+ * depends_on:MBEDTLS_MEMORY_BUFFER_ALLOC_C
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:POLARSSL_SELF_TEST */
-void memory_buffer_alloc_self_test( )
+/* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
+void mbedtls_memory_buffer_alloc_self_test( )
 {
-    TEST_ASSERT( memory_buffer_alloc_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_memory_buffer_alloc_self_test( 0 ) == 0 );
 }
 /* END_CASE */

@@ -30,31 +30,31 @@
  *  http://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_X509_CRL_PARSE_C)
+#if defined(MBEDTLS_X509_CRL_PARSE_C)
 
 #include "mbedtls/x509_crl.h"
 #include "mbedtls/oid.h"
 
 #include <string.h>
 
-#if defined(POLARSSL_PEM_PARSE_C)
+#if defined(MBEDTLS_PEM_PARSE_C)
 #include "mbedtls/pem.h"
 #endif
 
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdlib.h>
 #include <stdio.h>
-#define polarssl_free       free
-#define polarssl_malloc     malloc
-#define polarssl_snprintf   snprintf
+#define mbedtls_free       free
+#define mbedtls_malloc     malloc
+#define mbedtls_snprintf   snprintf
 #endif
 
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
@@ -63,12 +63,12 @@
 #include <time.h>
 #endif
 
-#if defined(POLARSSL_FS_IO) || defined(EFIX64) || defined(EFI32)
+#if defined(MBEDTLS_FS_IO) || defined(EFIX64) || defined(EFI32)
 #include <stdio.h>
 #endif
 
 /* Implementation that should never be optimized out by the compiler */
-static void polarssl_zeroize( void *v, size_t n ) {
+static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
@@ -81,15 +81,15 @@ static int x509_crl_get_version( unsigned char **p,
 {
     int ret;
 
-    if( ( ret = asn1_get_int( p, end, ver ) ) != 0 )
+    if( ( ret = mbedtls_asn1_get_int( p, end, ver ) ) != 0 )
     {
-        if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+        if( ret == MBEDTLS_ERR_ASN1_UNEXPECTED_TAG )
         {
             *ver = 0;
             return( 0 );
         }
 
-        return( POLARSSL_ERR_X509_INVALID_VERSION + ret );
+        return( MBEDTLS_ERR_X509_INVALID_VERSION + ret );
     }
 
     return( 0 );
@@ -100,15 +100,15 @@ static int x509_crl_get_version( unsigned char **p,
  */
 static int x509_get_crl_ext( unsigned char **p,
                              const unsigned char *end,
-                             x509_buf *ext )
+                             mbedtls_x509_buf *ext )
 {
     int ret;
     size_t len = 0;
 
     /* Get explicit tag */
-    if( ( ret = x509_get_ext( p, end, ext, 0) ) != 0 )
+    if( ( ret = mbedtls_x509_get_ext( p, end, ext, 0) ) != 0 )
     {
-        if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+        if( ret == MBEDTLS_ERR_ASN1_UNEXPECTED_TAG )
             return( 0 );
 
         return( ret );
@@ -116,16 +116,16 @@ static int x509_get_crl_ext( unsigned char **p,
 
     while( *p < end )
     {
-        if( ( ret = asn1_get_tag( p, end, &len,
-                ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
-            return( POLARSSL_ERR_X509_INVALID_EXTENSIONS + ret );
+        if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
 
         *p += len;
     }
 
     if( *p != end )
-        return( POLARSSL_ERR_X509_INVALID_EXTENSIONS +
-                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
 
     return( 0 );
 }
@@ -135,7 +135,7 @@ static int x509_get_crl_ext( unsigned char **p,
  */
 static int x509_get_crl_entry_ext( unsigned char **p,
                              const unsigned char *end,
-                             x509_buf *ext )
+                             mbedtls_x509_buf *ext )
 {
     int ret;
     size_t len = 0;
@@ -151,35 +151,35 @@ static int x509_get_crl_entry_ext( unsigned char **p,
      * Get CRL-entry extension sequence header
      * crlEntryExtensions      Extensions OPTIONAL  -- if present, MUST be v2
      */
-    if( ( ret = asn1_get_tag( p, end, &ext->len,
-            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &ext->len,
+            MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
     {
-        if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+        if( ret == MBEDTLS_ERR_ASN1_UNEXPECTED_TAG )
         {
             ext->p = NULL;
             return( 0 );
         }
-        return( POLARSSL_ERR_X509_INVALID_EXTENSIONS + ret );
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
     }
 
     end = *p + ext->len;
 
     if( end != *p + ext->len )
-        return( POLARSSL_ERR_X509_INVALID_EXTENSIONS +
-                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
 
     while( *p < end )
     {
-        if( ( ret = asn1_get_tag( p, end, &len,
-                ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
-            return( POLARSSL_ERR_X509_INVALID_EXTENSIONS + ret );
+        if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
 
         *p += len;
     }
 
     if( *p != end )
-        return( POLARSSL_ERR_X509_INVALID_EXTENSIONS +
-                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
 
     return( 0 );
 }
@@ -189,19 +189,19 @@ static int x509_get_crl_entry_ext( unsigned char **p,
  */
 static int x509_get_entries( unsigned char **p,
                              const unsigned char *end,
-                             x509_crl_entry *entry )
+                             mbedtls_x509_crl_entry *entry )
 {
     int ret;
     size_t entry_len;
-    x509_crl_entry *cur_entry = entry;
+    mbedtls_x509_crl_entry *cur_entry = entry;
 
     if( *p == end )
         return( 0 );
 
-    if( ( ret = asn1_get_tag( p, end, &entry_len,
-            ASN1_SEQUENCE | ASN1_CONSTRUCTED ) ) != 0 )
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &entry_len,
+            MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED ) ) != 0 )
     {
-        if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+        if( ret == MBEDTLS_ERR_ASN1_UNEXPECTED_TAG )
             return( 0 );
 
         return( ret );
@@ -214,8 +214,8 @@ static int x509_get_entries( unsigned char **p,
         size_t len2;
         const unsigned char *end2;
 
-        if( ( ret = asn1_get_tag( p, end, &len2,
-                ASN1_SEQUENCE | ASN1_CONSTRUCTED ) ) != 0 )
+        if( ( ret = mbedtls_asn1_get_tag( p, end, &len2,
+                MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED ) ) != 0 )
         {
             return( ret );
         }
@@ -225,10 +225,10 @@ static int x509_get_entries( unsigned char **p,
         cur_entry->raw.len = len2;
         end2 = *p + len2;
 
-        if( ( ret = x509_get_serial( p, end2, &cur_entry->serial ) ) != 0 )
+        if( ( ret = mbedtls_x509_get_serial( p, end2, &cur_entry->serial ) ) != 0 )
             return( ret );
 
-        if( ( ret = x509_get_time( p, end2,
+        if( ( ret = mbedtls_x509_get_time( p, end2,
                                    &cur_entry->revocation_date ) ) != 0 )
             return( ret );
 
@@ -238,12 +238,12 @@ static int x509_get_entries( unsigned char **p,
 
         if( *p < end )
         {
-            cur_entry->next = polarssl_malloc( sizeof( x509_crl_entry ) );
+            cur_entry->next = mbedtls_malloc( sizeof( mbedtls_x509_crl_entry ) );
 
             if( cur_entry->next == NULL )
-                return( POLARSSL_ERR_X509_MALLOC_FAILED );
+                return( MBEDTLS_ERR_X509_MALLOC_FAILED );
 
-            memset( cur_entry->next, 0, sizeof( x509_crl_entry ) );
+            memset( cur_entry->next, 0, sizeof( mbedtls_x509_crl_entry ) );
             cur_entry = cur_entry->next;
         }
     }
@@ -254,24 +254,24 @@ static int x509_get_entries( unsigned char **p,
 /*
  * Parse one  CRLs in DER format and append it to the chained list
  */
-int x509_crl_parse_der( x509_crl *chain,
+int mbedtls_x509_crl_parse_der( mbedtls_x509_crl *chain,
                         const unsigned char *buf, size_t buflen )
 {
     int ret;
     size_t len;
     unsigned char *p, *end;
-    x509_buf sig_params1, sig_params2, sig_oid2;
-    x509_crl *crl = chain;
+    mbedtls_x509_buf sig_params1, sig_params2, sig_oid2;
+    mbedtls_x509_crl *crl = chain;
 
     /*
      * Check for valid input
      */
     if( crl == NULL || buf == NULL )
-        return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
 
-    memset( &sig_params1, 0, sizeof( x509_buf ) );
-    memset( &sig_params2, 0, sizeof( x509_buf ) );
-    memset( &sig_oid2, 0, sizeof( x509_buf ) );
+    memset( &sig_params1, 0, sizeof( mbedtls_x509_buf ) );
+    memset( &sig_params2, 0, sizeof( mbedtls_x509_buf ) );
+    memset( &sig_oid2, 0, sizeof( mbedtls_x509_buf ) );
 
     /*
      * Add new CRL on the end of the chain if needed.
@@ -281,23 +281,23 @@ int x509_crl_parse_der( x509_crl *chain,
 
     if( crl->version != 0 && crl->next == NULL )
     {
-        crl->next = polarssl_malloc( sizeof( x509_crl ) );
+        crl->next = mbedtls_malloc( sizeof( mbedtls_x509_crl ) );
 
         if( crl->next == NULL )
         {
-            x509_crl_free( crl );
-            return( POLARSSL_ERR_X509_MALLOC_FAILED );
+            mbedtls_x509_crl_free( crl );
+            return( MBEDTLS_ERR_X509_MALLOC_FAILED );
         }
 
-        x509_crl_init( crl->next );
+        mbedtls_x509_crl_init( crl->next );
         crl = crl->next;
     }
 
     /*
      * Copy raw DER-encoded CRL
      */
-    if( ( p = polarssl_malloc( buflen ) ) == NULL )
-        return( POLARSSL_ERR_X509_MALLOC_FAILED );
+    if( ( p = mbedtls_malloc( buflen ) ) == NULL )
+        return( MBEDTLS_ERR_X509_MALLOC_FAILED );
 
     memcpy( p, buf, buflen );
 
@@ -312,18 +312,18 @@ int x509_crl_parse_der( x509_crl *chain,
      *      signatureAlgorithm   AlgorithmIdentifier,
      *      signatureValue       BIT STRING  }
      */
-    if( ( ret = asn1_get_tag( &p, end, &len,
-            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+            MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
     {
-        x509_crl_free( crl );
-        return( POLARSSL_ERR_X509_INVALID_FORMAT );
+        mbedtls_x509_crl_free( crl );
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT );
     }
 
     if( len != (size_t) ( end - p ) )
     {
-        x509_crl_free( crl );
-        return( POLARSSL_ERR_X509_INVALID_FORMAT +
-                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+        mbedtls_x509_crl_free( crl );
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
     }
 
     /*
@@ -331,11 +331,11 @@ int x509_crl_parse_der( x509_crl *chain,
      */
     crl->tbs.p = p;
 
-    if( ( ret = asn1_get_tag( &p, end, &len,
-            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+            MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
     {
-        x509_crl_free( crl );
-        return( POLARSSL_ERR_X509_INVALID_FORMAT + ret );
+        mbedtls_x509_crl_free( crl );
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
     }
 
     end = p + len;
@@ -348,9 +348,9 @@ int x509_crl_parse_der( x509_crl *chain,
      * signature            AlgorithmIdentifier
      */
     if( ( ret = x509_crl_get_version( &p, end, &crl->version ) ) != 0 ||
-        ( ret = x509_get_alg( &p, end, &crl->sig_oid, &sig_params1 ) ) != 0 )
+        ( ret = mbedtls_x509_get_alg( &p, end, &crl->sig_oid, &sig_params1 ) ) != 0 )
     {
-        x509_crl_free( crl );
+        mbedtls_x509_crl_free( crl );
         return( ret );
     }
 
@@ -358,16 +358,16 @@ int x509_crl_parse_der( x509_crl *chain,
 
     if( crl->version > 2 )
     {
-        x509_crl_free( crl );
-        return( POLARSSL_ERR_X509_UNKNOWN_VERSION );
+        mbedtls_x509_crl_free( crl );
+        return( MBEDTLS_ERR_X509_UNKNOWN_VERSION );
     }
 
-    if( ( ret = x509_get_sig_alg( &crl->sig_oid, &sig_params1,
+    if( ( ret = mbedtls_x509_get_sig_alg( &crl->sig_oid, &sig_params1,
                                   &crl->sig_md, &crl->sig_pk,
                                   &crl->sig_opts ) ) != 0 )
     {
-        x509_crl_free( crl );
-        return( POLARSSL_ERR_X509_UNKNOWN_SIG_ALG );
+        mbedtls_x509_crl_free( crl );
+        return( MBEDTLS_ERR_X509_UNKNOWN_SIG_ALG );
     }
 
     /*
@@ -375,16 +375,16 @@ int x509_crl_parse_der( x509_crl *chain,
      */
     crl->issuer_raw.p = p;
 
-    if( ( ret = asn1_get_tag( &p, end, &len,
-            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+            MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
     {
-        x509_crl_free( crl );
-        return( POLARSSL_ERR_X509_INVALID_FORMAT + ret );
+        mbedtls_x509_crl_free( crl );
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
     }
 
-    if( ( ret = x509_get_name( &p, p + len, &crl->issuer ) ) != 0 )
+    if( ( ret = mbedtls_x509_get_name( &p, p + len, &crl->issuer ) ) != 0 )
     {
-        x509_crl_free( crl );
+        mbedtls_x509_crl_free( crl );
         return( ret );
     }
 
@@ -394,20 +394,20 @@ int x509_crl_parse_der( x509_crl *chain,
      * thisUpdate          Time
      * nextUpdate          Time OPTIONAL
      */
-    if( ( ret = x509_get_time( &p, end, &crl->this_update ) ) != 0 )
+    if( ( ret = mbedtls_x509_get_time( &p, end, &crl->this_update ) ) != 0 )
     {
-        x509_crl_free( crl );
+        mbedtls_x509_crl_free( crl );
         return( ret );
     }
 
-    if( ( ret = x509_get_time( &p, end, &crl->next_update ) ) != 0 )
+    if( ( ret = mbedtls_x509_get_time( &p, end, &crl->next_update ) ) != 0 )
     {
-        if( ret != ( POLARSSL_ERR_X509_INVALID_DATE +
-                        POLARSSL_ERR_ASN1_UNEXPECTED_TAG ) &&
-            ret != ( POLARSSL_ERR_X509_INVALID_DATE +
-                        POLARSSL_ERR_ASN1_OUT_OF_DATA ) )
+        if( ret != ( MBEDTLS_ERR_X509_INVALID_DATE +
+                        MBEDTLS_ERR_ASN1_UNEXPECTED_TAG ) &&
+            ret != ( MBEDTLS_ERR_X509_INVALID_DATE +
+                        MBEDTLS_ERR_ASN1_OUT_OF_DATA ) )
         {
-            x509_crl_free( crl );
+            mbedtls_x509_crl_free( crl );
             return( ret );
         }
     }
@@ -422,7 +422,7 @@ int x509_crl_parse_der( x509_crl *chain,
      */
     if( ( ret = x509_get_entries( &p, end, &crl->entry ) ) != 0 )
     {
-        x509_crl_free( crl );
+        mbedtls_x509_crl_free( crl );
         return( ret );
     }
 
@@ -436,16 +436,16 @@ int x509_crl_parse_der( x509_crl *chain,
 
         if( ret != 0 )
         {
-            x509_crl_free( crl );
+            mbedtls_x509_crl_free( crl );
             return( ret );
         }
     }
 
     if( p != end )
     {
-        x509_crl_free( crl );
-        return( POLARSSL_ERR_X509_INVALID_FORMAT +
-                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+        mbedtls_x509_crl_free( crl );
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
     }
 
     end = crl->raw.p + crl->raw.len;
@@ -454,9 +454,9 @@ int x509_crl_parse_der( x509_crl *chain,
      *  signatureAlgorithm   AlgorithmIdentifier,
      *  signatureValue       BIT STRING
      */
-    if( ( ret = x509_get_alg( &p, end, &sig_oid2, &sig_params2 ) ) != 0 )
+    if( ( ret = mbedtls_x509_get_alg( &p, end, &sig_oid2, &sig_params2 ) ) != 0 )
     {
-        x509_crl_free( crl );
+        mbedtls_x509_crl_free( crl );
         return( ret );
     }
 
@@ -465,21 +465,21 @@ int x509_crl_parse_der( x509_crl *chain,
         sig_params1.len != sig_params2.len ||
         memcmp( sig_params1.p, sig_params2.p, sig_params1.len ) != 0 )
     {
-        x509_crl_free( crl );
-        return( POLARSSL_ERR_X509_SIG_MISMATCH );
+        mbedtls_x509_crl_free( crl );
+        return( MBEDTLS_ERR_X509_SIG_MISMATCH );
     }
 
-    if( ( ret = x509_get_sig( &p, end, &crl->sig ) ) != 0 )
+    if( ( ret = mbedtls_x509_get_sig( &p, end, &crl->sig ) ) != 0 )
     {
-        x509_crl_free( crl );
+        mbedtls_x509_crl_free( crl );
         return( ret );
     }
 
     if( p != end )
     {
-        x509_crl_free( crl );
-        return( POLARSSL_ERR_X509_INVALID_FORMAT +
-                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+        mbedtls_x509_crl_free( crl );
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
     }
 
     return( 0 );
@@ -488,21 +488,21 @@ int x509_crl_parse_der( x509_crl *chain,
 /*
  * Parse one or more CRLs and add them to the chained list
  */
-int x509_crl_parse( x509_crl *chain, const unsigned char *buf, size_t buflen )
+int mbedtls_x509_crl_parse( mbedtls_x509_crl *chain, const unsigned char *buf, size_t buflen )
 {
-#if defined(POLARSSL_PEM_PARSE_C)
+#if defined(MBEDTLS_PEM_PARSE_C)
     int ret;
     size_t use_len;
-    pem_context pem;
+    mbedtls_pem_context pem;
     int is_pem = 0;
 
     if( chain == NULL || buf == NULL )
-        return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
 
     do
     {
-        pem_init( &pem );
-        ret = pem_read_buffer( &pem,
+        mbedtls_pem_init( &pem );
+        ret = mbedtls_pem_read_buffer( &pem,
                                "-----BEGIN X509 CRL-----",
                                "-----END X509 CRL-----",
                                buf, NULL, 0, &use_len );
@@ -517,17 +517,17 @@ int x509_crl_parse( x509_crl *chain, const unsigned char *buf, size_t buflen )
             buflen -= use_len;
             buf += use_len;
 
-            if( ( ret = x509_crl_parse_der( chain,
+            if( ( ret = mbedtls_x509_crl_parse_der( chain,
                                             pem.buf, pem.buflen ) ) != 0 )
             {
                 return( ret );
             }
 
-            pem_free( &pem );
+            mbedtls_pem_free( &pem );
         }
-        else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
+        else if( ret != MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
         {
-            pem_free( &pem );
+            mbedtls_pem_free( &pem );
             return( ret );
         }
     }
@@ -536,31 +536,31 @@ int x509_crl_parse( x509_crl *chain, const unsigned char *buf, size_t buflen )
     if( is_pem )
         return( 0 );
     else
-#endif /* POLARSSL_PEM_PARSE_C */
-        return( x509_crl_parse_der( chain, buf, buflen ) );
+#endif /* MBEDTLS_PEM_PARSE_C */
+        return( mbedtls_x509_crl_parse_der( chain, buf, buflen ) );
 }
 
-#if defined(POLARSSL_FS_IO)
+#if defined(MBEDTLS_FS_IO)
 /*
  * Load one or more CRLs and add them to the chained list
  */
-int x509_crl_parse_file( x509_crl *chain, const char *path )
+int mbedtls_x509_crl_parse_file( mbedtls_x509_crl *chain, const char *path )
 {
     int ret;
     size_t n;
     unsigned char *buf;
 
-    if( ( ret = pk_load_file( path, &buf, &n ) ) != 0 )
+    if( ( ret = mbedtls_pk_load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
-    ret = x509_crl_parse( chain, buf, n );
+    ret = mbedtls_x509_crl_parse( chain, buf, n );
 
-    polarssl_zeroize( buf, n + 1 );
-    polarssl_free( buf );
+    mbedtls_zeroize( buf, n + 1 );
+    mbedtls_free( buf );
 
     return( ret );
 }
-#endif /* POLARSSL_FS_IO */
+#endif /* MBEDTLS_FS_IO */
 
 #if defined(_MSC_VER) && !defined snprintf && !defined(EFIX64) && \
     !defined(EFI32)
@@ -598,7 +598,7 @@ static int compat_snprintf( char *str, size_t size, const char *format, ... )
 #define snprintf compat_snprintf
 #endif /* _MSC_VER && !snprintf && !EFIX64 && !EFI32 */
 
-#define POLARSSL_ERR_DEBUG_BUF_TOO_SMALL    -2
+#define MBEDTLS_ERR_DEBUG_BUF_TOO_SMALL    -2
 
 #define SAFE_SNPRINTF()                             \
 {                                                   \
@@ -607,7 +607,7 @@ static int compat_snprintf( char *str, size_t size, const char *format, ... )
                                                     \
     if( (unsigned int) ret > n ) {                  \
         p[n - 1] = '\0';                            \
-        return( POLARSSL_ERR_DEBUG_BUF_TOO_SMALL ); \
+        return( MBEDTLS_ERR_DEBUG_BUF_TOO_SMALL ); \
     }                                               \
                                                     \
     n -= (unsigned int) ret;                        \
@@ -622,34 +622,34 @@ static int compat_snprintf( char *str, size_t size, const char *format, ... )
 /*
  * Return an informational string about the CRL.
  */
-int x509_crl_info( char *buf, size_t size, const char *prefix,
-                   const x509_crl *crl )
+int mbedtls_x509_crl_info( char *buf, size_t size, const char *prefix,
+                   const mbedtls_x509_crl *crl )
 {
     int ret;
     size_t n;
     char *p;
-    const x509_crl_entry *entry;
+    const mbedtls_x509_crl_entry *entry;
 
     p = buf;
     n = size;
 
-    ret = polarssl_snprintf( p, n, "%sCRL version   : %d",
+    ret = mbedtls_snprintf( p, n, "%sCRL version   : %d",
                                prefix, crl->version );
     SAFE_SNPRINTF();
 
-    ret = polarssl_snprintf( p, n, "\n%sissuer name   : ", prefix );
+    ret = mbedtls_snprintf( p, n, "\n%sissuer name   : ", prefix );
     SAFE_SNPRINTF();
-    ret = x509_dn_gets( p, n, &crl->issuer );
+    ret = mbedtls_x509_dn_gets( p, n, &crl->issuer );
     SAFE_SNPRINTF();
 
-    ret = polarssl_snprintf( p, n, "\n%sthis update   : " \
+    ret = mbedtls_snprintf( p, n, "\n%sthis update   : " \
                    "%04d-%02d-%02d %02d:%02d:%02d", prefix,
                    crl->this_update.year, crl->this_update.mon,
                    crl->this_update.day,  crl->this_update.hour,
                    crl->this_update.min,  crl->this_update.sec );
     SAFE_SNPRINTF();
 
-    ret = polarssl_snprintf( p, n, "\n%snext update   : " \
+    ret = mbedtls_snprintf( p, n, "\n%snext update   : " \
                    "%04d-%02d-%02d %02d:%02d:%02d", prefix,
                    crl->next_update.year, crl->next_update.mon,
                    crl->next_update.day,  crl->next_update.hour,
@@ -658,20 +658,20 @@ int x509_crl_info( char *buf, size_t size, const char *prefix,
 
     entry = &crl->entry;
 
-    ret = polarssl_snprintf( p, n, "\n%sRevoked certificates:",
+    ret = mbedtls_snprintf( p, n, "\n%sRevoked certificates:",
                                prefix );
     SAFE_SNPRINTF();
 
     while( entry != NULL && entry->raw.len != 0 )
     {
-        ret = polarssl_snprintf( p, n, "\n%sserial number: ",
+        ret = mbedtls_snprintf( p, n, "\n%sserial number: ",
                                prefix );
         SAFE_SNPRINTF();
 
-        ret = x509_serial_gets( p, n, &entry->serial );
+        ret = mbedtls_x509_serial_gets( p, n, &entry->serial );
         SAFE_SNPRINTF();
 
-        ret = polarssl_snprintf( p, n, " revocation date: " \
+        ret = mbedtls_snprintf( p, n, " revocation date: " \
                    "%04d-%02d-%02d %02d:%02d:%02d",
                    entry->revocation_date.year, entry->revocation_date.mon,
                    entry->revocation_date.day,  entry->revocation_date.hour,
@@ -681,14 +681,14 @@ int x509_crl_info( char *buf, size_t size, const char *prefix,
         entry = entry->next;
     }
 
-    ret = polarssl_snprintf( p, n, "\n%ssigned using  : ", prefix );
+    ret = mbedtls_snprintf( p, n, "\n%ssigned using  : ", prefix );
     SAFE_SNPRINTF();
 
-    ret = x509_sig_alg_gets( p, n, &crl->sig_oid, crl->sig_pk, crl->sig_md,
+    ret = mbedtls_x509_sig_alg_gets( p, n, &crl->sig_oid, crl->sig_pk, crl->sig_md,
                              crl->sig_opts );
     SAFE_SNPRINTF();
 
-    ret = polarssl_snprintf( p, n, "\n" );
+    ret = mbedtls_snprintf( p, n, "\n" );
     SAFE_SNPRINTF();
 
     return( (int) ( size - n ) );
@@ -697,30 +697,30 @@ int x509_crl_info( char *buf, size_t size, const char *prefix,
 /*
  * Initialize a CRL chain
  */
-void x509_crl_init( x509_crl *crl )
+void mbedtls_x509_crl_init( mbedtls_x509_crl *crl )
 {
-    memset( crl, 0, sizeof(x509_crl) );
+    memset( crl, 0, sizeof(mbedtls_x509_crl) );
 }
 
 /*
  * Unallocate all CRL data
  */
-void x509_crl_free( x509_crl *crl )
+void mbedtls_x509_crl_free( mbedtls_x509_crl *crl )
 {
-    x509_crl *crl_cur = crl;
-    x509_crl *crl_prv;
-    x509_name *name_cur;
-    x509_name *name_prv;
-    x509_crl_entry *entry_cur;
-    x509_crl_entry *entry_prv;
+    mbedtls_x509_crl *crl_cur = crl;
+    mbedtls_x509_crl *crl_prv;
+    mbedtls_x509_name *name_cur;
+    mbedtls_x509_name *name_prv;
+    mbedtls_x509_crl_entry *entry_cur;
+    mbedtls_x509_crl_entry *entry_prv;
 
     if( crl == NULL )
         return;
 
     do
     {
-#if defined(POLARSSL_X509_RSASSA_PSS_SUPPORT)
-        polarssl_free( crl_cur->sig_opts );
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
+        mbedtls_free( crl_cur->sig_opts );
 #endif
 
         name_cur = crl_cur->issuer.next;
@@ -728,8 +728,8 @@ void x509_crl_free( x509_crl *crl )
         {
             name_prv = name_cur;
             name_cur = name_cur->next;
-            polarssl_zeroize( name_prv, sizeof( x509_name ) );
-            polarssl_free( name_prv );
+            mbedtls_zeroize( name_prv, sizeof( mbedtls_x509_name ) );
+            mbedtls_free( name_prv );
         }
 
         entry_cur = crl_cur->entry.next;
@@ -737,14 +737,14 @@ void x509_crl_free( x509_crl *crl )
         {
             entry_prv = entry_cur;
             entry_cur = entry_cur->next;
-            polarssl_zeroize( entry_prv, sizeof( x509_crl_entry ) );
-            polarssl_free( entry_prv );
+            mbedtls_zeroize( entry_prv, sizeof( mbedtls_x509_crl_entry ) );
+            mbedtls_free( entry_prv );
         }
 
         if( crl_cur->raw.p != NULL )
         {
-            polarssl_zeroize( crl_cur->raw.p, crl_cur->raw.len );
-            polarssl_free( crl_cur->raw.p );
+            mbedtls_zeroize( crl_cur->raw.p, crl_cur->raw.len );
+            mbedtls_free( crl_cur->raw.p );
         }
 
         crl_cur = crl_cur->next;
@@ -757,11 +757,11 @@ void x509_crl_free( x509_crl *crl )
         crl_prv = crl_cur;
         crl_cur = crl_cur->next;
 
-        polarssl_zeroize( crl_prv, sizeof( x509_crl ) );
+        mbedtls_zeroize( crl_prv, sizeof( mbedtls_x509_crl ) );
         if( crl_prv != crl )
-            polarssl_free( crl_prv );
+            mbedtls_free( crl_prv );
     }
     while( crl_cur != NULL );
 }
 
-#endif /* POLARSSL_X509_CRL_PARSE_C */
+#endif /* MBEDTLS_X509_CRL_PARSE_C */

@@ -25,37 +25,37 @@
  *  http://csrc.nist.gov/publications/fips/fips180-2/fips180-2.pdf
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_SHA256_C)
+#if defined(MBEDTLS_SHA256_C)
 
 #include "mbedtls/sha256.h"
 
 #include <string.h>
 
-#if defined(POLARSSL_FS_IO)
+#if defined(MBEDTLS_FS_IO)
 #include <stdio.h>
 #endif
 
-#if defined(POLARSSL_SELF_TEST)
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_SELF_TEST)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define polarssl_printf printf
-#endif /* POLARSSL_PLATFORM_C */
-#endif /* POLARSSL_SELF_TEST */
+#define mbedtls_printf printf
+#endif /* MBEDTLS_PLATFORM_C */
+#endif /* MBEDTLS_SELF_TEST */
 
 /* Implementation that should never be optimized out by the compiler */
-static void polarssl_zeroize( void *v, size_t n ) {
+static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
-#if !defined(POLARSSL_SHA256_ALT)
+#if !defined(MBEDTLS_SHA256_ALT)
 
 /*
  * 32-bit integer manipulation macros (big endian)
@@ -80,23 +80,23 @@ static void polarssl_zeroize( void *v, size_t n ) {
 }
 #endif
 
-void sha256_init( sha256_context *ctx )
+void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
 {
-    memset( ctx, 0, sizeof( sha256_context ) );
+    memset( ctx, 0, sizeof( mbedtls_sha256_context ) );
 }
 
-void sha256_free( sha256_context *ctx )
+void mbedtls_sha256_free( mbedtls_sha256_context *ctx )
 {
     if( ctx == NULL )
         return;
 
-    polarssl_zeroize( ctx, sizeof( sha256_context ) );
+    mbedtls_zeroize( ctx, sizeof( mbedtls_sha256_context ) );
 }
 
 /*
  * SHA-256 context setup
  */
-void sha256_starts( sha256_context *ctx, int is224 )
+void mbedtls_sha256_starts( mbedtls_sha256_context *ctx, int is224 )
 {
     ctx->total[0] = 0;
     ctx->total[1] = 0;
@@ -129,8 +129,8 @@ void sha256_starts( sha256_context *ctx, int is224 )
     ctx->is224 = is224;
 }
 
-#if !defined(POLARSSL_SHA256_PROCESS_ALT)
-void sha256_process( sha256_context *ctx, const unsigned char data[64] )
+#if !defined(MBEDTLS_SHA256_PROCESS_ALT)
+void mbedtls_sha256_process( mbedtls_sha256_context *ctx, const unsigned char data[64] )
 {
     uint32_t temp1, temp2, W[64];
     uint32_t A, B, C, D, E, F, G, H;
@@ -260,12 +260,12 @@ void sha256_process( sha256_context *ctx, const unsigned char data[64] )
     ctx->state[6] += G;
     ctx->state[7] += H;
 }
-#endif /* !POLARSSL_SHA256_PROCESS_ALT */
+#endif /* !MBEDTLS_SHA256_PROCESS_ALT */
 
 /*
  * SHA-256 process buffer
  */
-void sha256_update( sha256_context *ctx, const unsigned char *input,
+void mbedtls_sha256_update( mbedtls_sha256_context *ctx, const unsigned char *input,
                     size_t ilen )
 {
     size_t fill;
@@ -286,7 +286,7 @@ void sha256_update( sha256_context *ctx, const unsigned char *input,
     if( left && ilen >= fill )
     {
         memcpy( (void *) (ctx->buffer + left), input, fill );
-        sha256_process( ctx, ctx->buffer );
+        mbedtls_sha256_process( ctx, ctx->buffer );
         input += fill;
         ilen  -= fill;
         left = 0;
@@ -294,7 +294,7 @@ void sha256_update( sha256_context *ctx, const unsigned char *input,
 
     while( ilen >= 64 )
     {
-        sha256_process( ctx, input );
+        mbedtls_sha256_process( ctx, input );
         input += 64;
         ilen  -= 64;
     }
@@ -314,7 +314,7 @@ static const unsigned char sha256_padding[64] =
 /*
  * SHA-256 final digest
  */
-void sha256_finish( sha256_context *ctx, unsigned char output[32] )
+void mbedtls_sha256_finish( mbedtls_sha256_context *ctx, unsigned char output[32] )
 {
     uint32_t last, padn;
     uint32_t high, low;
@@ -330,8 +330,8 @@ void sha256_finish( sha256_context *ctx, unsigned char output[32] )
     last = ctx->total[0] & 0x3F;
     padn = ( last < 56 ) ? ( 56 - last ) : ( 120 - last );
 
-    sha256_update( ctx, sha256_padding, padn );
-    sha256_update( ctx, msglen, 8 );
+    mbedtls_sha256_update( ctx, sha256_padding, padn );
+    mbedtls_sha256_update( ctx, msglen, 8 );
 
     PUT_UINT32_BE( ctx->state[0], output,  0 );
     PUT_UINT32_BE( ctx->state[1], output,  4 );
@@ -345,58 +345,58 @@ void sha256_finish( sha256_context *ctx, unsigned char output[32] )
         PUT_UINT32_BE( ctx->state[7], output, 28 );
 }
 
-#endif /* !POLARSSL_SHA256_ALT */
+#endif /* !MBEDTLS_SHA256_ALT */
 
 /*
  * output = SHA-256( input buffer )
  */
-void sha256( const unsigned char *input, size_t ilen,
+void mbedtls_sha256( const unsigned char *input, size_t ilen,
              unsigned char output[32], int is224 )
 {
-    sha256_context ctx;
+    mbedtls_sha256_context ctx;
 
-    sha256_init( &ctx );
-    sha256_starts( &ctx, is224 );
-    sha256_update( &ctx, input, ilen );
-    sha256_finish( &ctx, output );
-    sha256_free( &ctx );
+    mbedtls_sha256_init( &ctx );
+    mbedtls_sha256_starts( &ctx, is224 );
+    mbedtls_sha256_update( &ctx, input, ilen );
+    mbedtls_sha256_finish( &ctx, output );
+    mbedtls_sha256_free( &ctx );
 }
 
-#if defined(POLARSSL_FS_IO)
+#if defined(MBEDTLS_FS_IO)
 /*
  * output = SHA-256( file contents )
  */
-int sha256_file( const char *path, unsigned char output[32], int is224 )
+int mbedtls_sha256_file( const char *path, unsigned char output[32], int is224 )
 {
     FILE *f;
     size_t n;
-    sha256_context ctx;
+    mbedtls_sha256_context ctx;
     unsigned char buf[1024];
 
     if( ( f = fopen( path, "rb" ) ) == NULL )
-        return( POLARSSL_ERR_SHA256_FILE_IO_ERROR );
+        return( MBEDTLS_ERR_SHA256_FILE_IO_ERROR );
 
-    sha256_init( &ctx );
-    sha256_starts( &ctx, is224 );
+    mbedtls_sha256_init( &ctx );
+    mbedtls_sha256_starts( &ctx, is224 );
 
     while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
-        sha256_update( &ctx, buf, n );
+        mbedtls_sha256_update( &ctx, buf, n );
 
-    sha256_finish( &ctx, output );
-    sha256_free( &ctx );
+    mbedtls_sha256_finish( &ctx, output );
+    mbedtls_sha256_free( &ctx );
 
     if( ferror( f ) != 0 )
     {
         fclose( f );
-        return( POLARSSL_ERR_SHA256_FILE_IO_ERROR );
+        return( MBEDTLS_ERR_SHA256_FILE_IO_ERROR );
     }
 
     fclose( f );
     return( 0 );
 }
-#endif /* POLARSSL_FS_IO */
+#endif /* MBEDTLS_FS_IO */
 
-#if defined(POLARSSL_SELF_TEST)
+#if defined(MBEDTLS_SELF_TEST)
 /*
  * FIPS-180-2 test vectors
  */
@@ -450,14 +450,14 @@ static const unsigned char sha256_test_sum[6][32] =
 /*
  * Checkup routine
  */
-int sha256_self_test( int verbose )
+int mbedtls_sha256_self_test( int verbose )
 {
     int i, j, k, buflen, ret = 0;
     unsigned char buf[1024];
     unsigned char sha256sum[32];
-    sha256_context ctx;
+    mbedtls_sha256_context ctx;
 
-    sha256_init( &ctx );
+    mbedtls_sha256_init( &ctx );
 
     for( i = 0; i < 6; i++ )
     {
@@ -465,45 +465,45 @@ int sha256_self_test( int verbose )
         k = i < 3;
 
         if( verbose != 0 )
-            polarssl_printf( "  SHA-%d test #%d: ", 256 - k * 32, j + 1 );
+            mbedtls_printf( "  SHA-%d test #%d: ", 256 - k * 32, j + 1 );
 
-        sha256_starts( &ctx, k );
+        mbedtls_sha256_starts( &ctx, k );
 
         if( j == 2 )
         {
             memset( buf, 'a', buflen = 1000 );
 
             for( j = 0; j < 1000; j++ )
-                sha256_update( &ctx, buf, buflen );
+                mbedtls_sha256_update( &ctx, buf, buflen );
         }
         else
-            sha256_update( &ctx, sha256_test_buf[j],
+            mbedtls_sha256_update( &ctx, sha256_test_buf[j],
                                  sha256_test_buflen[j] );
 
-        sha256_finish( &ctx, sha256sum );
+        mbedtls_sha256_finish( &ctx, sha256sum );
 
         if( memcmp( sha256sum, sha256_test_sum[i], 32 - k * 4 ) != 0 )
         {
             if( verbose != 0 )
-                polarssl_printf( "failed\n" );
+                mbedtls_printf( "failed\n" );
 
             ret = 1;
             goto exit;
         }
 
         if( verbose != 0 )
-            polarssl_printf( "passed\n" );
+            mbedtls_printf( "passed\n" );
     }
 
     if( verbose != 0 )
-        polarssl_printf( "\n" );
+        mbedtls_printf( "\n" );
 
 exit:
-    sha256_free( &ctx );
+    mbedtls_sha256_free( &ctx );
 
     return( ret );
 }
 
-#endif /* POLARSSL_SELF_TEST */
+#endif /* MBEDTLS_SELF_TEST */
 
-#endif /* POLARSSL_SHA256_C */
+#endif /* MBEDTLS_SHA256_C */

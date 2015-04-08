@@ -25,51 +25,51 @@
  *  http://groups.google.com/group/sci.crypt/msg/10a300c9d21afca0
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_ARC4_C)
+#if defined(MBEDTLS_ARC4_C)
 
 #include "mbedtls/arc4.h"
 
 #include <string.h>
 
-#if defined(POLARSSL_SELF_TEST)
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_SELF_TEST)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define polarssl_printf printf
-#endif /* POLARSSL_PLATFORM_C */
-#endif /* POLARSSL_SELF_TEST */
+#define mbedtls_printf printf
+#endif /* MBEDTLS_PLATFORM_C */
+#endif /* MBEDTLS_SELF_TEST */
 
-#if !defined(POLARSSL_ARC4_ALT)
+#if !defined(MBEDTLS_ARC4_ALT)
 
 /* Implementation that should never be optimized out by the compiler */
-static void polarssl_zeroize( void *v, size_t n ) {
+static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
-void arc4_init( arc4_context *ctx )
+void mbedtls_arc4_init( mbedtls_arc4_context *ctx )
 {
-    memset( ctx, 0, sizeof( arc4_context ) );
+    memset( ctx, 0, sizeof( mbedtls_arc4_context ) );
 }
 
-void arc4_free( arc4_context *ctx )
+void mbedtls_arc4_free( mbedtls_arc4_context *ctx )
 {
     if( ctx == NULL )
         return;
 
-    polarssl_zeroize( ctx, sizeof( arc4_context ) );
+    mbedtls_zeroize( ctx, sizeof( mbedtls_arc4_context ) );
 }
 
 /*
  * ARC4 key schedule
  */
-void arc4_setup( arc4_context *ctx, const unsigned char *key,
+void mbedtls_arc4_setup( mbedtls_arc4_context *ctx, const unsigned char *key,
                  unsigned int keylen )
 {
     int i, j, a;
@@ -99,7 +99,7 @@ void arc4_setup( arc4_context *ctx, const unsigned char *key,
 /*
  * ARC4 cipher function
  */
-int arc4_crypt( arc4_context *ctx, size_t length, const unsigned char *input,
+int mbedtls_arc4_crypt( mbedtls_arc4_context *ctx, size_t length, const unsigned char *input,
                 unsigned char *output )
 {
     int x, y, a, b;
@@ -128,9 +128,9 @@ int arc4_crypt( arc4_context *ctx, size_t length, const unsigned char *input,
     return( 0 );
 }
 
-#endif /* !POLARSSL_ARC4_ALT */
+#endif /* !MBEDTLS_ARC4_ALT */
 
-#if defined(POLARSSL_SELF_TEST)
+#if defined(MBEDTLS_SELF_TEST)
 /*
  * ARC4 tests vectors as posted by Eric Rescorla in sep. 1994:
  *
@@ -160,47 +160,47 @@ static const unsigned char arc4_test_ct[3][8] =
 /*
  * Checkup routine
  */
-int arc4_self_test( int verbose )
+int mbedtls_arc4_self_test( int verbose )
 {
     int i, ret = 0;
     unsigned char ibuf[8];
     unsigned char obuf[8];
-    arc4_context ctx;
+    mbedtls_arc4_context ctx;
 
-    arc4_init( &ctx );
+    mbedtls_arc4_init( &ctx );
 
     for( i = 0; i < 3; i++ )
     {
         if( verbose != 0 )
-            polarssl_printf( "  ARC4 test #%d: ", i + 1 );
+            mbedtls_printf( "  ARC4 test #%d: ", i + 1 );
 
         memcpy( ibuf, arc4_test_pt[i], 8 );
 
-        arc4_setup( &ctx, arc4_test_key[i], 8 );
-        arc4_crypt( &ctx, 8, ibuf, obuf );
+        mbedtls_arc4_setup( &ctx, arc4_test_key[i], 8 );
+        mbedtls_arc4_crypt( &ctx, 8, ibuf, obuf );
 
         if( memcmp( obuf, arc4_test_ct[i], 8 ) != 0 )
         {
             if( verbose != 0 )
-                polarssl_printf( "failed\n" );
+                mbedtls_printf( "failed\n" );
 
             ret = 1;
             goto exit;
         }
 
         if( verbose != 0 )
-            polarssl_printf( "passed\n" );
+            mbedtls_printf( "passed\n" );
     }
 
     if( verbose != 0 )
-        polarssl_printf( "\n" );
+        mbedtls_printf( "\n" );
 
 exit:
-    arc4_free( &ctx );
+    mbedtls_arc4_free( &ctx );
 
     return( ret );
 }
 
-#endif /* POLARSSL_SELF_TEST */
+#endif /* MBEDTLS_SELF_TEST */
 
-#endif /* POLARSSL_ARC4_C */
+#endif /* MBEDTLS_ARC4_C */

@@ -26,20 +26,20 @@
  * SEC1 http://www.secg.org/index.php?action=secg,docs_secg
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C)
 
 #include "mbedtls/ecdsa.h"
 #include "mbedtls/asn1write.h"
 
 #include <string.h>
 
-#if defined(POLARSSL_ECDSA_DETERMINISTIC)
+#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
 #include "mbedtls/hmac_drbg.h"
 #endif
 
@@ -47,20 +47,20 @@
  * Derive a suitable integer for group grp from a buffer of length len
  * SEC1 4.1.3 step 5 aka SEC1 4.1.4 step 3
  */
-static int derive_mpi( const ecp_group *grp, mpi *x,
+static int derive_mpi( const mbedtls_ecp_group *grp, mbedtls_mpi *x,
                        const unsigned char *buf, size_t blen )
 {
     int ret;
     size_t n_size = ( grp->nbits + 7 ) / 8;
     size_t use_size = blen > n_size ? n_size : blen;
 
-    MPI_CHK( mpi_read_binary( x, buf, use_size ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( x, buf, use_size ) );
     if( use_size * 8 > grp->nbits )
-        MPI_CHK( mpi_shift_r( x, use_size * 8 - grp->nbits ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( x, use_size * 8 - grp->nbits ) );
 
     /* While at it, reduce modulo N */
-    if( mpi_cmp_mpi( x, &grp->N ) >= 0 )
-        MPI_CHK( mpi_sub_mpi( x, x, &grp->N ) );
+    if( mbedtls_mpi_cmp_mpi( x, &grp->N ) >= 0 )
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( x, x, &grp->N ) );
 
 cleanup:
     return( ret );
@@ -70,20 +70,20 @@ cleanup:
  * Compute ECDSA signature of a hashed message (SEC1 4.1.3)
  * Obviously, compared to SEC1 4.1.3, we skip step 4 (hash message)
  */
-int ecdsa_sign( ecp_group *grp, mpi *r, mpi *s,
-                const mpi *d, const unsigned char *buf, size_t blen,
+int mbedtls_ecdsa_sign( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
+                const mbedtls_mpi *d, const unsigned char *buf, size_t blen,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret, key_tries, sign_tries, blind_tries;
-    ecp_point R;
-    mpi k, e, t;
+    mbedtls_ecp_point R;
+    mbedtls_mpi k, e, t;
 
     /* Fail cleanly on curves such as Curve25519 that can't be used for ECDSA */
     if( grp->N.p == NULL )
-        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-    ecp_point_init( &R );
-    mpi_init( &k ); mpi_init( &e ); mpi_init( &t );
+    mbedtls_ecp_point_init( &R );
+    mbedtls_mpi_init( &k ); mbedtls_mpi_init( &e ); mbedtls_mpi_init( &t );
 
     sign_tries = 0;
     do
@@ -95,21 +95,21 @@ int ecdsa_sign( ecp_group *grp, mpi *r, mpi *s,
         key_tries = 0;
         do
         {
-            MPI_CHK( ecp_gen_keypair( grp, &k, &R, f_rng, p_rng ) );
-            MPI_CHK( mpi_mod_mpi( r, &R.X, &grp->N ) );
+            MBEDTLS_MPI_CHK( mbedtls_ecp_gen_keypair( grp, &k, &R, f_rng, p_rng ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( r, &R.X, &grp->N ) );
 
             if( key_tries++ > 10 )
             {
-                ret = POLARSSL_ERR_ECP_RANDOM_FAILED;
+                ret = MBEDTLS_ERR_ECP_RANDOM_FAILED;
                 goto cleanup;
             }
         }
-        while( mpi_cmp_int( r, 0 ) == 0 );
+        while( mbedtls_mpi_cmp_int( r, 0 ) == 0 );
 
         /*
          * Step 5: derive MPI from hashed message
          */
-        MPI_CHK( derive_mpi( grp, &e, buf, blen ) );
+        MBEDTLS_MPI_CHK( derive_mpi( grp, &e, buf, blen ) );
 
         /*
          * Generate a random value to blind inv_mod in next step,
@@ -119,143 +119,143 @@ int ecdsa_sign( ecp_group *grp, mpi *r, mpi *s,
         do
         {
             size_t n_size = ( grp->nbits + 7 ) / 8;
-            MPI_CHK( mpi_fill_random( &t, n_size, f_rng, p_rng ) );
-            MPI_CHK( mpi_shift_r( &t, 8 * n_size - grp->nbits ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &t, n_size, f_rng, p_rng ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &t, 8 * n_size - grp->nbits ) );
 
-            /* See ecp_gen_keypair() */
+            /* See mbedtls_ecp_gen_keypair() */
             if( ++blind_tries > 30 )
-                return( POLARSSL_ERR_ECP_RANDOM_FAILED );
+                return( MBEDTLS_ERR_ECP_RANDOM_FAILED );
         }
-        while( mpi_cmp_int( &t, 1 ) < 0 ||
-               mpi_cmp_mpi( &t, &grp->N ) >= 0 );
+        while( mbedtls_mpi_cmp_int( &t, 1 ) < 0 ||
+               mbedtls_mpi_cmp_mpi( &t, &grp->N ) >= 0 );
 
         /*
          * Step 6: compute s = (e + r * d) / k = t (e + rd) / (kt) mod n
          */
-        MPI_CHK( mpi_mul_mpi( s, r, d ) );
-        MPI_CHK( mpi_add_mpi( &e, &e, s ) );
-        MPI_CHK( mpi_mul_mpi( &e, &e, &t ) );
-        MPI_CHK( mpi_mul_mpi( &k, &k, &t ) );
-        MPI_CHK( mpi_inv_mod( s, &k, &grp->N ) );
-        MPI_CHK( mpi_mul_mpi( s, s, &e ) );
-        MPI_CHK( mpi_mod_mpi( s, s, &grp->N ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( s, r, d ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &e, &e, s ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &e, &e, &t ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &k, &k, &t ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( s, &k, &grp->N ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( s, s, &e ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( s, s, &grp->N ) );
 
         if( sign_tries++ > 10 )
         {
-            ret = POLARSSL_ERR_ECP_RANDOM_FAILED;
+            ret = MBEDTLS_ERR_ECP_RANDOM_FAILED;
             goto cleanup;
         }
     }
-    while( mpi_cmp_int( s, 0 ) == 0 );
+    while( mbedtls_mpi_cmp_int( s, 0 ) == 0 );
 
 cleanup:
-    ecp_point_free( &R );
-    mpi_free( &k ); mpi_free( &e ); mpi_free( &t );
+    mbedtls_ecp_point_free( &R );
+    mbedtls_mpi_free( &k ); mbedtls_mpi_free( &e ); mbedtls_mpi_free( &t );
 
     return( ret );
 }
 
-#if defined(POLARSSL_ECDSA_DETERMINISTIC)
+#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
 /*
  * Deterministic signature wrapper
  */
-int ecdsa_sign_det( ecp_group *grp, mpi *r, mpi *s,
-                    const mpi *d, const unsigned char *buf, size_t blen,
-                    md_type_t md_alg )
+int mbedtls_ecdsa_sign_det( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
+                    const mbedtls_mpi *d, const unsigned char *buf, size_t blen,
+                    mbedtls_md_type_t md_alg )
 {
     int ret;
-    hmac_drbg_context rng_ctx;
-    unsigned char data[2 * POLARSSL_ECP_MAX_BYTES];
+    mbedtls_hmac_drbg_context rng_ctx;
+    unsigned char data[2 * MBEDTLS_ECP_MAX_BYTES];
     size_t grp_len = ( grp->nbits + 7 ) / 8;
-    const md_info_t *md_info;
-    mpi h;
+    const mbedtls_md_info_t *md_info;
+    mbedtls_mpi h;
 
-    if( ( md_info = md_info_from_type( md_alg ) ) == NULL )
-        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+    if( ( md_info = mbedtls_md_info_from_type( md_alg ) ) == NULL )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-    mpi_init( &h );
-    memset( &rng_ctx, 0, sizeof( hmac_drbg_context ) );
+    mbedtls_mpi_init( &h );
+    memset( &rng_ctx, 0, sizeof( mbedtls_hmac_drbg_context ) );
 
     /* Use private key and message hash (reduced) to initialize HMAC_DRBG */
-    MPI_CHK( mpi_write_binary( d, data, grp_len ) );
-    MPI_CHK( derive_mpi( grp, &h, buf, blen ) );
-    MPI_CHK( mpi_write_binary( &h, data + grp_len, grp_len ) );
-    hmac_drbg_init_buf( &rng_ctx, md_info, data, 2 * grp_len );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( d, data, grp_len ) );
+    MBEDTLS_MPI_CHK( derive_mpi( grp, &h, buf, blen ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &h, data + grp_len, grp_len ) );
+    mbedtls_hmac_drbg_init_buf( &rng_ctx, md_info, data, 2 * grp_len );
 
-    ret = ecdsa_sign( grp, r, s, d, buf, blen,
-                      hmac_drbg_random, &rng_ctx );
+    ret = mbedtls_ecdsa_sign( grp, r, s, d, buf, blen,
+                      mbedtls_hmac_drbg_random, &rng_ctx );
 
 cleanup:
-    hmac_drbg_free( &rng_ctx );
-    mpi_free( &h );
+    mbedtls_hmac_drbg_free( &rng_ctx );
+    mbedtls_mpi_free( &h );
 
     return( ret );
 }
-#endif /* POLARSSL_ECDSA_DETERMINISTIC */
+#endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
 /*
  * Verify ECDSA signature of hashed message (SEC1 4.1.4)
  * Obviously, compared to SEC1 4.1.3, we skip step 2 (hash message)
  */
-int ecdsa_verify( ecp_group *grp,
+int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
                   const unsigned char *buf, size_t blen,
-                  const ecp_point *Q, const mpi *r, const mpi *s)
+                  const mbedtls_ecp_point *Q, const mbedtls_mpi *r, const mbedtls_mpi *s)
 {
     int ret;
-    mpi e, s_inv, u1, u2;
-    ecp_point R, P;
+    mbedtls_mpi e, s_inv, u1, u2;
+    mbedtls_ecp_point R, P;
 
-    ecp_point_init( &R ); ecp_point_init( &P );
-    mpi_init( &e ); mpi_init( &s_inv ); mpi_init( &u1 ); mpi_init( &u2 );
+    mbedtls_ecp_point_init( &R ); mbedtls_ecp_point_init( &P );
+    mbedtls_mpi_init( &e ); mbedtls_mpi_init( &s_inv ); mbedtls_mpi_init( &u1 ); mbedtls_mpi_init( &u2 );
 
     /* Fail cleanly on curves such as Curve25519 that can't be used for ECDSA */
     if( grp->N.p == NULL )
-        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     /*
      * Step 1: make sure r and s are in range 1..n-1
      */
-    if( mpi_cmp_int( r, 1 ) < 0 || mpi_cmp_mpi( r, &grp->N ) >= 0 ||
-        mpi_cmp_int( s, 1 ) < 0 || mpi_cmp_mpi( s, &grp->N ) >= 0 )
+    if( mbedtls_mpi_cmp_int( r, 1 ) < 0 || mbedtls_mpi_cmp_mpi( r, &grp->N ) >= 0 ||
+        mbedtls_mpi_cmp_int( s, 1 ) < 0 || mbedtls_mpi_cmp_mpi( s, &grp->N ) >= 0 )
     {
-        ret = POLARSSL_ERR_ECP_VERIFY_FAILED;
+        ret = MBEDTLS_ERR_ECP_VERIFY_FAILED;
         goto cleanup;
     }
 
     /*
      * Additional precaution: make sure Q is valid
      */
-    MPI_CHK( ecp_check_pubkey( grp, Q ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_check_pubkey( grp, Q ) );
 
     /*
      * Step 3: derive MPI from hashed message
      */
-    MPI_CHK( derive_mpi( grp, &e, buf, blen ) );
+    MBEDTLS_MPI_CHK( derive_mpi( grp, &e, buf, blen ) );
 
     /*
      * Step 4: u1 = e / s mod n, u2 = r / s mod n
      */
-    MPI_CHK( mpi_inv_mod( &s_inv, s, &grp->N ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( &s_inv, s, &grp->N ) );
 
-    MPI_CHK( mpi_mul_mpi( &u1, &e, &s_inv ) );
-    MPI_CHK( mpi_mod_mpi( &u1, &u1, &grp->N ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &u1, &e, &s_inv ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &u1, &u1, &grp->N ) );
 
-    MPI_CHK( mpi_mul_mpi( &u2, r, &s_inv ) );
-    MPI_CHK( mpi_mod_mpi( &u2, &u2, &grp->N ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &u2, r, &s_inv ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &u2, &u2, &grp->N ) );
 
     /*
      * Step 5: R = u1 G + u2 Q
      *
      * Since we're not using any secret data, no need to pass a RNG to
-     * ecp_mul() for countermesures.
+     * mbedtls_ecp_mul() for countermesures.
      */
-    MPI_CHK( ecp_mul( grp, &R, &u1, &grp->G, NULL, NULL ) );
-    MPI_CHK( ecp_mul( grp, &P, &u2, Q, NULL, NULL ) );
-    MPI_CHK( ecp_add( grp, &R, &R, &P ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &R, &u1, &grp->G, NULL, NULL ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &P, &u2, Q, NULL, NULL ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_add( grp, &R, &R, &P ) );
 
-    if( ecp_is_zero( &R ) )
+    if( mbedtls_ecp_is_zero( &R ) )
     {
-        ret = POLARSSL_ERR_ECP_VERIFY_FAILED;
+        ret = MBEDTLS_ERR_ECP_VERIFY_FAILED;
         goto cleanup;
     }
 
@@ -263,20 +263,20 @@ int ecdsa_verify( ecp_group *grp,
      * Step 6: convert xR to an integer (no-op)
      * Step 7: reduce xR mod n (gives v)
      */
-    MPI_CHK( mpi_mod_mpi( &R.X, &R.X, &grp->N ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &R.X, &R.X, &grp->N ) );
 
     /*
      * Step 8: check if v (that is, R.X) is equal to r
      */
-    if( mpi_cmp_mpi( &R.X, r ) != 0 )
+    if( mbedtls_mpi_cmp_mpi( &R.X, r ) != 0 )
     {
-        ret = POLARSSL_ERR_ECP_VERIFY_FAILED;
+        ret = MBEDTLS_ERR_ECP_VERIFY_FAILED;
         goto cleanup;
     }
 
 cleanup:
-    ecp_point_free( &R ); ecp_point_free( &P );
-    mpi_free( &e ); mpi_free( &s_inv ); mpi_free( &u1 ); mpi_free( &u2 );
+    mbedtls_ecp_point_free( &R ); mbedtls_ecp_point_free( &P );
+    mbedtls_mpi_free( &e ); mbedtls_mpi_free( &s_inv ); mbedtls_mpi_free( &u1 ); mbedtls_mpi_free( &u2 );
 
     return( ret );
 }
@@ -284,20 +284,20 @@ cleanup:
 /*
  * Convert a signature (given by context) to ASN.1
  */
-static int ecdsa_signature_to_asn1( const mpi *r, const mpi *s,
+static int ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
                                     unsigned char *sig, size_t *slen )
 {
     int ret;
-    unsigned char buf[POLARSSL_ECDSA_MAX_LEN];
+    unsigned char buf[MBEDTLS_ECDSA_MAX_LEN];
     unsigned char *p = buf + sizeof( buf );
     size_t len = 0;
 
-    ASN1_CHK_ADD( len, asn1_write_mpi( &p, buf, s ) );
-    ASN1_CHK_ADD( len, asn1_write_mpi( &p, buf, r ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_mpi( &p, buf, s ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_mpi( &p, buf, r ) );
 
-    ASN1_CHK_ADD( len, asn1_write_len( &p, buf, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( &p, buf,
-                                       ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &p, buf, len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &p, buf,
+                                       MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) );
 
     memcpy( sig, p, len );
     *slen = len;
@@ -308,48 +308,48 @@ static int ecdsa_signature_to_asn1( const mpi *r, const mpi *s,
 /*
  * Compute and write signature
  */
-int ecdsa_write_signature( ecdsa_context *ctx, md_type_t md_alg,
+int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t md_alg,
                            const unsigned char *hash, size_t hlen,
                            unsigned char *sig, size_t *slen,
                            int (*f_rng)(void *, unsigned char *, size_t),
                            void *p_rng )
 {
     int ret;
-    mpi r, s;
+    mbedtls_mpi r, s;
 
-    mpi_init( &r );
-    mpi_init( &s );
+    mbedtls_mpi_init( &r );
+    mbedtls_mpi_init( &s );
 
-#if defined(POLARSSL_ECDSA_DETERMINISTIC)
+#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
     (void) f_rng;
     (void) p_rng;
 
-    MPI_CHK( ecdsa_sign_det( &ctx->grp, &r, &s, &ctx->d,
+    MBEDTLS_MPI_CHK( mbedtls_ecdsa_sign_det( &ctx->grp, &r, &s, &ctx->d,
                              hash, hlen, md_alg ) );
 #else
     (void) md_alg;
 
-    MPI_CHK( ecdsa_sign( &ctx->grp, &r, &s, &ctx->d,
+    MBEDTLS_MPI_CHK( mbedtls_ecdsa_sign( &ctx->grp, &r, &s, &ctx->d,
                          hash, hlen, f_rng, p_rng ) );
 #endif
 
-    MPI_CHK( ecdsa_signature_to_asn1( &r, &s, sig, slen ) );
+    MBEDTLS_MPI_CHK( ecdsa_signature_to_asn1( &r, &s, sig, slen ) );
 
 cleanup:
-    mpi_free( &r );
-    mpi_free( &s );
+    mbedtls_mpi_free( &r );
+    mbedtls_mpi_free( &s );
 
     return( ret );
 }
 
-#if ! defined(POLARSSL_DEPRECATED_REMOVED) && \
-    defined(POLARSSL_ECDSA_DETERMINISTIC)
-int ecdsa_write_signature_det( ecdsa_context *ctx,
+#if ! defined(MBEDTLS_DEPRECATED_REMOVED) && \
+    defined(MBEDTLS_ECDSA_DETERMINISTIC)
+int mbedtls_ecdsa_write_signature_det( mbedtls_ecdsa_context *ctx,
                                const unsigned char *hash, size_t hlen,
                                unsigned char *sig, size_t *slen,
-                               md_type_t md_alg )
+                               mbedtls_md_type_t md_alg )
 {
-    return( ecdsa_write_signature( ctx, md_alg, hash, hlen, sig, slen,
+    return( mbedtls_ecdsa_write_signature( ctx, md_alg, hash, hlen, sig, slen,
                                    NULL, NULL ) );
 }
 #endif
@@ -357,7 +357,7 @@ int ecdsa_write_signature_det( ecdsa_context *ctx,
 /*
  * Read and check signature
  */
-int ecdsa_read_signature( ecdsa_context *ctx,
+int mbedtls_ecdsa_read_signature( mbedtls_ecdsa_context *ctx,
                           const unsigned char *hash, size_t hlen,
                           const unsigned char *sig, size_t slen )
 {
@@ -365,42 +365,42 @@ int ecdsa_read_signature( ecdsa_context *ctx,
     unsigned char *p = (unsigned char *) sig;
     const unsigned char *end = sig + slen;
     size_t len;
-    mpi r, s;
+    mbedtls_mpi r, s;
 
-    mpi_init( &r );
-    mpi_init( &s );
+    mbedtls_mpi_init( &r );
+    mbedtls_mpi_init( &s );
 
-    if( ( ret = asn1_get_tag( &p, end, &len,
-                    ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
     {
-        ret += POLARSSL_ERR_ECP_BAD_INPUT_DATA;
+        ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
         goto cleanup;
     }
 
     if( p + len != end )
     {
-        ret = POLARSSL_ERR_ECP_BAD_INPUT_DATA +
-              POLARSSL_ERR_ASN1_LENGTH_MISMATCH;
+        ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA +
+              MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
         goto cleanup;
     }
 
-    if( ( ret = asn1_get_mpi( &p, end, &r ) ) != 0 ||
-        ( ret = asn1_get_mpi( &p, end, &s ) ) != 0 )
+    if( ( ret = mbedtls_asn1_get_mpi( &p, end, &r ) ) != 0 ||
+        ( ret = mbedtls_asn1_get_mpi( &p, end, &s ) ) != 0 )
     {
-        ret += POLARSSL_ERR_ECP_BAD_INPUT_DATA;
+        ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
         goto cleanup;
     }
 
-    if( ( ret = ecdsa_verify( &ctx->grp, hash, hlen,
+    if( ( ret = mbedtls_ecdsa_verify( &ctx->grp, hash, hlen,
                               &ctx->Q, &r, &s ) ) != 0 )
         goto cleanup;
 
     if( p != end )
-        ret = POLARSSL_ERR_ECP_SIG_LEN_MISMATCH;
+        ret = MBEDTLS_ERR_ECP_SIG_LEN_MISMATCH;
 
 cleanup:
-    mpi_free( &r );
-    mpi_free( &s );
+    mbedtls_mpi_free( &r );
+    mbedtls_mpi_free( &s );
 
     return( ret );
 }
@@ -408,25 +408,25 @@ cleanup:
 /*
  * Generate key pair
  */
-int ecdsa_genkey( ecdsa_context *ctx, ecp_group_id gid,
+int mbedtls_ecdsa_genkey( mbedtls_ecdsa_context *ctx, mbedtls_ecp_group_id gid,
                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
-    return( ecp_use_known_dp( &ctx->grp, gid ) ||
-            ecp_gen_keypair( &ctx->grp, &ctx->d, &ctx->Q, f_rng, p_rng ) );
+    return( mbedtls_ecp_use_known_dp( &ctx->grp, gid ) ||
+            mbedtls_ecp_gen_keypair( &ctx->grp, &ctx->d, &ctx->Q, f_rng, p_rng ) );
 }
 
 /*
- * Set context from an ecp_keypair
+ * Set context from an mbedtls_ecp_keypair
  */
-int ecdsa_from_keypair( ecdsa_context *ctx, const ecp_keypair *key )
+int mbedtls_ecdsa_from_keypair( mbedtls_ecdsa_context *ctx, const mbedtls_ecp_keypair *key )
 {
     int ret;
 
-    if( ( ret = ecp_group_copy( &ctx->grp, &key->grp ) ) != 0 ||
-        ( ret = mpi_copy( &ctx->d, &key->d ) ) != 0 ||
-        ( ret = ecp_copy( &ctx->Q, &key->Q ) ) != 0 )
+    if( ( ret = mbedtls_ecp_group_copy( &ctx->grp, &key->grp ) ) != 0 ||
+        ( ret = mbedtls_mpi_copy( &ctx->d, &key->d ) ) != 0 ||
+        ( ret = mbedtls_ecp_copy( &ctx->Q, &key->Q ) ) != 0 )
     {
-        ecdsa_free( ctx );
+        mbedtls_ecdsa_free( ctx );
     }
 
     return( ret );
@@ -435,17 +435,17 @@ int ecdsa_from_keypair( ecdsa_context *ctx, const ecp_keypair *key )
 /*
  * Initialize context
  */
-void ecdsa_init( ecdsa_context *ctx )
+void mbedtls_ecdsa_init( mbedtls_ecdsa_context *ctx )
 {
-    ecp_keypair_init( ctx );
+    mbedtls_ecp_keypair_init( ctx );
 }
 
 /*
  * Free context
  */
-void ecdsa_free( ecdsa_context *ctx )
+void mbedtls_ecdsa_free( mbedtls_ecdsa_context *ctx )
 {
-    ecp_keypair_free( ctx );
+    mbedtls_ecp_keypair_free( ctx );
 }
 
-#endif /* POLARSSL_ECDSA_C */
+#endif /* MBEDTLS_ECDSA_C */

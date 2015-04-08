@@ -21,8 +21,8 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_ERROR_H
-#define POLARSSL_ERROR_H
+#ifndef MBEDTLS_ERROR_H
+#define MBEDTLS_ERROR_H
 
 #include <stddef.h>
 
@@ -107,7 +107,7 @@ extern "C" {
  * \param buffer    buffer to place representation in
  * \param buflen    length of the buffer
  */
-void polarssl_strerror( int errnum, char *buffer, size_t buflen );
+void mbedtls_strerror( int errnum, char *buffer, size_t buflen );
 
 #ifdef __cplusplus
 }

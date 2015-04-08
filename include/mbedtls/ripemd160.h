@@ -1,5 +1,5 @@
 /**
- * \file ripemd160.h
+ * \file mbedtls_ripemd160.h
  *
  * \brief RIPE MD-160 message digest
  *
@@ -21,13 +21,13 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_RIPEMD160_H
-#define POLARSSL_RIPEMD160_H
+#ifndef MBEDTLS_RIPEMD160_H
+#define MBEDTLS_RIPEMD160_H
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
 #include <stddef.h>
@@ -39,9 +39,9 @@ typedef UINT32 uint32_t;
 #include <inttypes.h>
 #endif
 
-#define POLARSSL_ERR_RIPEMD160_FILE_IO_ERROR              -0x007E  /**< Read/write error in file. */
+#define MBEDTLS_ERR_RIPEMD160_FILE_IO_ERROR              -0x007E  /**< Read/write error in file. */
 
-#if !defined(POLARSSL_RIPEMD160_ALT)
+#if !defined(MBEDTLS_RIPEMD160_ALT)
 // Regular implementation
 //
 
@@ -58,28 +58,28 @@ typedef struct
     uint32_t state[5];          /*!< intermediate digest state  */
     unsigned char buffer[64];   /*!< data block being processed */
 }
-ripemd160_context;
+mbedtls_ripemd160_context;
 
 /**
  * \brief          Initialize RIPEMD-160 context
  *
  * \param ctx      RIPEMD-160 context to be initialized
  */
-void ripemd160_init( ripemd160_context *ctx );
+void mbedtls_ripemd160_init( mbedtls_ripemd160_context *ctx );
 
 /**
  * \brief          Clear RIPEMD-160 context
  *
  * \param ctx      RIPEMD-160 context to be cleared
  */
-void ripemd160_free( ripemd160_context *ctx );
+void mbedtls_ripemd160_free( mbedtls_ripemd160_context *ctx );
 
 /**
  * \brief          RIPEMD-160 context setup
  *
  * \param ctx      context to be initialized
  */
-void ripemd160_starts( ripemd160_context *ctx );
+void mbedtls_ripemd160_starts( mbedtls_ripemd160_context *ctx );
 
 /**
  * \brief          RIPEMD-160 process buffer
@@ -88,7 +88,7 @@ void ripemd160_starts( ripemd160_context *ctx );
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  */
-void ripemd160_update( ripemd160_context *ctx,
+void mbedtls_ripemd160_update( mbedtls_ripemd160_context *ctx,
                        const unsigned char *input, size_t ilen );
 
 /**
@@ -97,18 +97,18 @@ void ripemd160_update( ripemd160_context *ctx,
  * \param ctx      RIPEMD-160 context
  * \param output   RIPEMD-160 checksum result
  */
-void ripemd160_finish( ripemd160_context *ctx, unsigned char output[20] );
+void mbedtls_ripemd160_finish( mbedtls_ripemd160_context *ctx, unsigned char output[20] );
 
 /* Internal use */
-void ripemd160_process( ripemd160_context *ctx, const unsigned char data[64] );
+void mbedtls_ripemd160_process( mbedtls_ripemd160_context *ctx, const unsigned char data[64] );
 
 #ifdef __cplusplus
 }
 #endif
 
-#else  /* POLARSSL_RIPEMD160_ALT */
+#else  /* MBEDTLS_RIPEMD160_ALT */
 #include "ripemd160.h"
-#endif /* POLARSSL_RIPEMD160_ALT */
+#endif /* MBEDTLS_RIPEMD160_ALT */
 
 #ifdef __cplusplus
 extern "C" {
@@ -121,30 +121,30 @@ extern "C" {
  * \param ilen     length of the input data
  * \param output   RIPEMD-160 checksum result
  */
-void ripemd160( const unsigned char *input, size_t ilen,
+void mbedtls_ripemd160( const unsigned char *input, size_t ilen,
                 unsigned char output[20] );
 
-#if defined(POLARSSL_FS_IO)
+#if defined(MBEDTLS_FS_IO)
 /**
  * \brief          Output = RIPEMD-160( file contents )
  *
  * \param path     input file name
  * \param output   RIPEMD-160 checksum result
  *
- * \return         0 if successful, or POLARSSL_ERR_RIPEMD160_FILE_IO_ERROR
+ * \return         0 if successful, or MBEDTLS_ERR_RIPEMD160_FILE_IO_ERROR
  */
-int ripemd160_file( const char *path, unsigned char output[20] );
-#endif /* POLARSSL_FS_IO */
+int mbedtls_ripemd160_file( const char *path, unsigned char output[20] );
+#endif /* MBEDTLS_FS_IO */
 
 /**
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed
  */
-int ripemd160_self_test( int verbose );
+int mbedtls_ripemd160_self_test( int verbose );
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* ripemd160.h */
+#endif /* mbedtls_ripemd160.h */

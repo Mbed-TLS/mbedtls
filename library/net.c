@@ -20,13 +20,13 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_NET_C)
+#if defined(MBEDTLS_NET_C)
 
 #include "mbedtls/net.h"
 
@@ -35,7 +35,7 @@
 #if (defined(_WIN32) || defined(_WIN32_WCE)) && !defined(EFIX64) && \
     !defined(EFI32)
 
-#if defined(POLARSSL_HAVE_IPV6)
+#if defined(MBEDTLS_HAVE_IPV6)
 #ifdef _WIN32_WINNT
 #undef _WIN32_WINNT
 #endif
@@ -67,7 +67,7 @@ static int wsa_init_done = 0;
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#if defined(POLARSSL_HAVE_TIME)
+#if defined(MBEDTLS_HAVE_TIME)
 #include <sys/time.h>
 #endif
 #include <unistd.h>
@@ -86,7 +86,7 @@ static int wsa_init_done = 0;
 #define  snprintf  _snprintf
 #endif
 
-#if defined(POLARSSL_HAVE_TIME)
+#if defined(MBEDTLS_HAVE_TIME)
 #include <time.h>
 #endif
 
@@ -97,7 +97,7 @@ typedef UINT32 uint32_t;
 #include <inttypes.h>
 #endif
 
-#if !defined(POLARSSL_HAVE_IPV6)
+#if !defined(MBEDTLS_HAVE_IPV6)
 #if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) ||  \
     defined(__DragonFly__)
 #include <sys/endian.h>
@@ -135,12 +135,12 @@ static unsigned long  net_htonl( unsigned long  n )
             (((unsigned long ) n & 0xFF000000) >> 24) );
 }
 #endif
-#endif /* !POLARSSL_HAVE_IPV6 */
+#endif /* !MBEDTLS_HAVE_IPV6 */
 
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
-#define polarssl_snprintf snprintf
+#define mbedtls_snprintf snprintf
 #endif
 
 /*
@@ -155,7 +155,7 @@ static int net_prepare( void )
     if( wsa_init_done == 0 )
     {
         if( WSAStartup( MAKEWORD(2,0), &wsaData ) != 0 )
-            return( POLARSSL_ERR_NET_SOCKET_FAILED );
+            return( MBEDTLS_ERR_NET_SOCKET_FAILED );
 
         wsa_init_done = 1;
     }
@@ -170,9 +170,9 @@ static int net_prepare( void )
 /*
  * Initiate a TCP connection with host:port and the given protocol
  */
-int net_connect( int *fd, const char *host, int port, int proto )
+int mbedtls_net_connect( int *fd, const char *host, int port, int proto )
 {
-#if defined(POLARSSL_HAVE_IPV6)
+#if defined(MBEDTLS_HAVE_IPV6)
     int ret;
     struct addrinfo hints, *addr_list, *cur;
     char port_str[6];
@@ -182,26 +182,26 @@ int net_connect( int *fd, const char *host, int port, int proto )
 
     /* getaddrinfo expects port as a string */
     memset( port_str, 0, sizeof( port_str ) );
-    polarssl_snprintf( port_str, sizeof( port_str ), "%d", port );
+    mbedtls_snprintf( port_str, sizeof( port_str ), "%d", port );
 
     /* Do name resolution with both IPv6 and IPv4 */
     memset( &hints, 0, sizeof( hints ) );
     hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = proto == NET_PROTO_UDP ? SOCK_DGRAM : SOCK_STREAM;
-    hints.ai_protocol = proto == NET_PROTO_UDP ? IPPROTO_UDP : IPPROTO_TCP;
+    hints.ai_socktype = proto == MBEDTLS_NET_PROTO_UDP ? SOCK_DGRAM : SOCK_STREAM;
+    hints.ai_protocol = proto == MBEDTLS_NET_PROTO_UDP ? IPPROTO_UDP : IPPROTO_TCP;
 
     if( getaddrinfo( host, port_str, &hints, &addr_list ) != 0 )
-        return( POLARSSL_ERR_NET_UNKNOWN_HOST );
+        return( MBEDTLS_ERR_NET_UNKNOWN_HOST );
 
     /* Try the sockaddrs until a connection succeeds */
-    ret = POLARSSL_ERR_NET_UNKNOWN_HOST;
+    ret = MBEDTLS_ERR_NET_UNKNOWN_HOST;
     for( cur = addr_list; cur != NULL; cur = cur->ai_next )
     {
         *fd = (int) socket( cur->ai_family, cur->ai_socktype,
                             cur->ai_protocol );
         if( *fd < 0 )
         {
-            ret = POLARSSL_ERR_NET_SOCKET_FAILED;
+            ret = MBEDTLS_ERR_NET_SOCKET_FAILED;
             continue;
         }
 
@@ -212,7 +212,7 @@ int net_connect( int *fd, const char *host, int port, int proto )
         }
 
         close( *fd );
-        ret = POLARSSL_ERR_NET_CONNECT_FAILED;
+        ret = MBEDTLS_ERR_NET_CONNECT_FAILED;
     }
 
     freeaddrinfo( addr_list );
@@ -230,12 +230,12 @@ int net_connect( int *fd, const char *host, int port, int proto )
         return( ret );
 
     if( ( server_host = gethostbyname( host ) ) == NULL )
-        return( POLARSSL_ERR_NET_UNKNOWN_HOST );
+        return( MBEDTLS_ERR_NET_UNKNOWN_HOST );
 
     if( ( *fd = (int) socket( AF_INET,
-                    proto == NET_PROTO_UDP ? SOCK_DGRAM : SOCK_STREAM,
-                    proto == NET_PROTO_UDP ? IPPROTO_UDP : IPPROTO_TCP ) ) < 0 )
-        return( POLARSSL_ERR_NET_SOCKET_FAILED );
+                    proto == MBEDTLS_NET_PROTO_UDP ? SOCK_DGRAM : SOCK_STREAM,
+                    proto == MBEDTLS_NET_PROTO_UDP ? IPPROTO_UDP : IPPROTO_TCP ) ) < 0 )
+        return( MBEDTLS_ERR_NET_SOCKET_FAILED );
 
     memcpy( (void *) &server_addr.sin_addr,
             (void *) server_host->h_addr,
@@ -248,19 +248,19 @@ int net_connect( int *fd, const char *host, int port, int proto )
                  sizeof( server_addr ) ) < 0 )
     {
         close( *fd );
-        return( POLARSSL_ERR_NET_CONNECT_FAILED );
+        return( MBEDTLS_ERR_NET_CONNECT_FAILED );
     }
 
     return( 0 );
-#endif /* POLARSSL_HAVE_IPV6 */
+#endif /* MBEDTLS_HAVE_IPV6 */
 }
 
 /*
  * Create a listening socket on bind_ip:port
  */
-int net_bind( int *fd, const char *bind_ip, int port, int proto )
+int mbedtls_net_bind( int *fd, const char *bind_ip, int port, int proto )
 {
-#if defined(POLARSSL_HAVE_IPV6)
+#if defined(MBEDTLS_HAVE_IPV6)
     int n, ret;
     struct addrinfo hints, *addr_list, *cur;
     char port_str[6];
@@ -270,28 +270,28 @@ int net_bind( int *fd, const char *bind_ip, int port, int proto )
 
     /* getaddrinfo expects port as a string */
     memset( port_str, 0, sizeof( port_str ) );
-    polarssl_snprintf( port_str, sizeof( port_str ), "%d", port );
+    mbedtls_snprintf( port_str, sizeof( port_str ), "%d", port );
 
     /* Bind to IPv6 and/or IPv4, but only in TCP */
     memset( &hints, 0, sizeof( hints ) );
     hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = proto == NET_PROTO_UDP ? SOCK_DGRAM : SOCK_STREAM;
-    hints.ai_protocol = proto == NET_PROTO_UDP ? IPPROTO_UDP : IPPROTO_TCP;
+    hints.ai_socktype = proto == MBEDTLS_NET_PROTO_UDP ? SOCK_DGRAM : SOCK_STREAM;
+    hints.ai_protocol = proto == MBEDTLS_NET_PROTO_UDP ? IPPROTO_UDP : IPPROTO_TCP;
     if( bind_ip == NULL )
         hints.ai_flags = AI_PASSIVE;
 
     if( getaddrinfo( bind_ip, port_str, &hints, &addr_list ) != 0 )
-        return( POLARSSL_ERR_NET_UNKNOWN_HOST );
+        return( MBEDTLS_ERR_NET_UNKNOWN_HOST );
 
     /* Try the sockaddrs until a binding succeeds */
-    ret = POLARSSL_ERR_NET_UNKNOWN_HOST;
+    ret = MBEDTLS_ERR_NET_UNKNOWN_HOST;
     for( cur = addr_list; cur != NULL; cur = cur->ai_next )
     {
         *fd = (int) socket( cur->ai_family, cur->ai_socktype,
                             cur->ai_protocol );
         if( *fd < 0 )
         {
-            ret = POLARSSL_ERR_NET_SOCKET_FAILED;
+            ret = MBEDTLS_ERR_NET_SOCKET_FAILED;
             continue;
         }
 
@@ -300,24 +300,24 @@ int net_bind( int *fd, const char *bind_ip, int port, int proto )
                         (const char *) &n, sizeof( n ) ) != 0 )
         {
             close( *fd );
-            ret = POLARSSL_ERR_NET_SOCKET_FAILED;
+            ret = MBEDTLS_ERR_NET_SOCKET_FAILED;
             continue;
         }
 
         if( bind( *fd, cur->ai_addr, cur->ai_addrlen ) != 0 )
         {
             close( *fd );
-            ret = POLARSSL_ERR_NET_BIND_FAILED;
+            ret = MBEDTLS_ERR_NET_BIND_FAILED;
             continue;
         }
 
         /* Listen only makes sense for TCP */
-        if( proto == NET_PROTO_TCP )
+        if( proto == MBEDTLS_NET_PROTO_TCP )
         {
-            if( listen( *fd, POLARSSL_NET_LISTEN_BACKLOG ) != 0 )
+            if( listen( *fd, MBEDTLS_NET_LISTEN_BACKLOG ) != 0 )
             {
                 close( *fd );
-                ret = POLARSSL_ERR_NET_LISTEN_FAILED;
+                ret = MBEDTLS_ERR_NET_LISTEN_FAILED;
                 continue;
             }
         }
@@ -341,9 +341,9 @@ int net_bind( int *fd, const char *bind_ip, int port, int proto )
         return( ret );
 
     if( ( *fd = (int) socket( AF_INET,
-                    proto == NET_PROTO_UDP ? SOCK_DGRAM : SOCK_STREAM,
-                    proto == NET_PROTO_UDP ? IPPROTO_UDP : IPPROTO_TCP ) ) < 0 )
-        return( POLARSSL_ERR_NET_SOCKET_FAILED );
+                    proto == MBEDTLS_NET_PROTO_UDP ? SOCK_DGRAM : SOCK_STREAM,
+                    proto == MBEDTLS_NET_PROTO_UDP ? IPPROTO_UDP : IPPROTO_TCP ) ) < 0 )
+        return( MBEDTLS_ERR_NET_SOCKET_FAILED );
 
     n = 1;
     setsockopt( *fd, SOL_SOCKET, SO_REUSEADDR,
@@ -374,21 +374,21 @@ int net_bind( int *fd, const char *bind_ip, int port, int proto )
               sizeof( server_addr ) ) < 0 )
     {
         close( *fd );
-        return( POLARSSL_ERR_NET_BIND_FAILED );
+        return( MBEDTLS_ERR_NET_BIND_FAILED );
     }
 
     /* Listen only makes sense for TCP */
-    if( proto == NET_PROTO_TCP )
+    if( proto == MBEDTLS_NET_PROTO_TCP )
     {
-        if( listen( *fd, POLARSSL_NET_LISTEN_BACKLOG ) != 0 )
+        if( listen( *fd, MBEDTLS_NET_LISTEN_BACKLOG ) != 0 )
         {
             close( *fd );
-            return( POLARSSL_ERR_NET_LISTEN_FAILED );
+            return( MBEDTLS_ERR_NET_LISTEN_FAILED );
         }
     }
 
     return( 0 );
-#endif /* POLARSSL_HAVE_IPV6 */
+#endif /* MBEDTLS_HAVE_IPV6 */
 }
 
 #if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
@@ -434,12 +434,12 @@ static int net_would_block( int fd )
 /*
  * Accept a connection from a remote client
  */
-int net_accept( int bind_fd, int *client_fd, void *client_ip )
+int mbedtls_net_accept( int bind_fd, int *client_fd, void *client_ip )
 {
     int ret;
     int type;
 
-#if defined(POLARSSL_HAVE_IPV6)
+#if defined(MBEDTLS_HAVE_IPV6)
     struct sockaddr_storage client_addr;
 #else
     struct sockaddr_in client_addr;
@@ -458,7 +458,7 @@ int net_accept( int bind_fd, int *client_fd, void *client_ip )
     if( getsockopt( bind_fd, SOL_SOCKET, SO_TYPE, (void *) &type, &type_len ) != 0 ||
         ( type != SOCK_STREAM && type != SOCK_DGRAM ) )
     {
-        return( POLARSSL_ERR_NET_ACCEPT_FAILED );
+        return( MBEDTLS_ERR_NET_ACCEPT_FAILED );
     }
 
     if( type == SOCK_STREAM )
@@ -479,23 +479,23 @@ int net_accept( int bind_fd, int *client_fd, void *client_ip )
     if( ret < 0 )
     {
         if( net_would_block( bind_fd ) != 0 )
-            return( POLARSSL_ERR_NET_WANT_READ );
+            return( MBEDTLS_ERR_NET_WANT_READ );
 
-        return( POLARSSL_ERR_NET_ACCEPT_FAILED );
+        return( MBEDTLS_ERR_NET_ACCEPT_FAILED );
     }
 
     /* UDP: hijack the listening socket for communicating with the client */
     if( type != SOCK_STREAM )
     {
         if( connect( bind_fd, (struct sockaddr *) &client_addr, n ) != 0 )
-            return( POLARSSL_ERR_NET_ACCEPT_FAILED );
+            return( MBEDTLS_ERR_NET_ACCEPT_FAILED );
 
         *client_fd = bind_fd;
     }
 
     if( client_ip != NULL )
     {
-#if defined(POLARSSL_HAVE_IPV6)
+#if defined(MBEDTLS_HAVE_IPV6)
         if( client_addr.ss_family == AF_INET )
         {
             struct sockaddr_in *addr4 = (struct sockaddr_in *) &client_addr;
@@ -511,7 +511,7 @@ int net_accept( int bind_fd, int *client_fd, void *client_ip )
 #else
         memcpy( client_ip, &client_addr.sin_addr.s_addr,
                     sizeof( client_addr.sin_addr.s_addr ) );
-#endif /* POLARSSL_HAVE_IPV6 */
+#endif /* MBEDTLS_HAVE_IPV6 */
     }
 
     return( 0 );
@@ -520,7 +520,7 @@ int net_accept( int bind_fd, int *client_fd, void *client_ip )
 /*
  * Set the socket blocking or non-blocking
  */
-int net_set_block( int fd )
+int mbedtls_net_set_block( int fd )
 {
 #if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
     !defined(EFI32)
@@ -531,7 +531,7 @@ int net_set_block( int fd )
 #endif
 }
 
-int net_set_nonblock( int fd )
+int mbedtls_net_set_nonblock( int fd )
 {
 #if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
     !defined(EFI32)
@@ -542,11 +542,11 @@ int net_set_nonblock( int fd )
 #endif
 }
 
-#if defined(POLARSSL_HAVE_TIME)
+#if defined(MBEDTLS_HAVE_TIME)
 /*
  * Portable usleep helper
  */
-void net_usleep( unsigned long usec )
+void mbedtls_net_usleep( unsigned long usec )
 {
     struct timeval tv;
     tv.tv_sec  = usec / 1000000;
@@ -558,12 +558,12 @@ void net_usleep( unsigned long usec )
 #endif
     select( 0, NULL, NULL, NULL, &tv );
 }
-#endif /* POLARSSL_HAVE_TIME */
+#endif /* MBEDTLS_HAVE_TIME */
 
 /*
  * Read at most 'len' characters
  */
-int net_recv( void *ctx, unsigned char *buf, size_t len )
+int mbedtls_net_recv( void *ctx, unsigned char *buf, size_t len )
 {
     int fd = *((int *) ctx);
     int ret = (int) read( fd, buf, len );
@@ -571,31 +571,31 @@ int net_recv( void *ctx, unsigned char *buf, size_t len )
     if( ret < 0 )
     {
         if( net_would_block( fd ) != 0 )
-            return( POLARSSL_ERR_NET_WANT_READ );
+            return( MBEDTLS_ERR_NET_WANT_READ );
 
 #if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
     !defined(EFI32)
         if( WSAGetLastError() == WSAECONNRESET )
-            return( POLARSSL_ERR_NET_CONN_RESET );
+            return( MBEDTLS_ERR_NET_CONN_RESET );
 #else
         if( errno == EPIPE || errno == ECONNRESET )
-            return( POLARSSL_ERR_NET_CONN_RESET );
+            return( MBEDTLS_ERR_NET_CONN_RESET );
 
         if( errno == EINTR )
-            return( POLARSSL_ERR_NET_WANT_READ );
+            return( MBEDTLS_ERR_NET_WANT_READ );
 #endif
 
-        return( POLARSSL_ERR_NET_RECV_FAILED );
+        return( MBEDTLS_ERR_NET_RECV_FAILED );
     }
 
     return( ret );
 }
 
-#if defined(POLARSSL_HAVE_TIME)
+#if defined(MBEDTLS_HAVE_TIME)
 /*
  * Read at most 'len' characters, blocking for at most 'timeout' ms
  */
-int net_recv_timeout( void *ctx, unsigned char *buf, size_t len,
+int mbedtls_net_recv_timeout( void *ctx, unsigned char *buf, size_t len,
                       uint32_t timeout )
 {
     int ret;
@@ -613,31 +613,31 @@ int net_recv_timeout( void *ctx, unsigned char *buf, size_t len,
 
     /* Zero fds ready means we timed out */
     if( ret == 0 )
-        return( POLARSSL_ERR_NET_TIMEOUT );
+        return( MBEDTLS_ERR_NET_TIMEOUT );
 
     if( ret < 0 )
     {
 #if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
     !defined(EFI32)
         if( WSAGetLastError() == WSAEINTR )
-            return( POLARSSL_ERR_NET_WANT_READ );
+            return( MBEDTLS_ERR_NET_WANT_READ );
 #else
         if( errno == EINTR )
-            return( POLARSSL_ERR_NET_WANT_READ );
+            return( MBEDTLS_ERR_NET_WANT_READ );
 #endif
 
-        return( POLARSSL_ERR_NET_RECV_FAILED );
+        return( MBEDTLS_ERR_NET_RECV_FAILED );
     }
 
     /* This call will not block */
-    return( net_recv( ctx, buf, len ) );
+    return( mbedtls_net_recv( ctx, buf, len ) );
 }
-#endif /* POLARSSL_HAVE_TIME */
+#endif /* MBEDTLS_HAVE_TIME */
 
 /*
  * Write at most 'len' characters
  */
-int net_send( void *ctx, const unsigned char *buf, size_t len )
+int mbedtls_net_send( void *ctx, const unsigned char *buf, size_t len )
 {
     int fd = *((int *) ctx);
     int ret = (int) write( fd, buf, len );
@@ -645,21 +645,21 @@ int net_send( void *ctx, const unsigned char *buf, size_t len )
     if( ret < 0 )
     {
         if( net_would_block( fd ) != 0 )
-            return( POLARSSL_ERR_NET_WANT_WRITE );
+            return( MBEDTLS_ERR_NET_WANT_WRITE );
 
 #if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
     !defined(EFI32)
         if( WSAGetLastError() == WSAECONNRESET )
-            return( POLARSSL_ERR_NET_CONN_RESET );
+            return( MBEDTLS_ERR_NET_CONN_RESET );
 #else
         if( errno == EPIPE || errno == ECONNRESET )
-            return( POLARSSL_ERR_NET_CONN_RESET );
+            return( MBEDTLS_ERR_NET_CONN_RESET );
 
         if( errno == EINTR )
-            return( POLARSSL_ERR_NET_WANT_WRITE );
+            return( MBEDTLS_ERR_NET_WANT_WRITE );
 #endif
 
-        return( POLARSSL_ERR_NET_SEND_FAILED );
+        return( MBEDTLS_ERR_NET_SEND_FAILED );
     }
 
     return( ret );
@@ -668,10 +668,10 @@ int net_send( void *ctx, const unsigned char *buf, size_t len )
 /*
  * Gracefully close the connection
  */
-void net_close( int fd )
+void mbedtls_net_close( int fd )
 {
     shutdown( fd, 2 );
     close( fd );
 }
 
-#endif /* POLARSSL_NET_C */
+#endif /* MBEDTLS_NET_C */

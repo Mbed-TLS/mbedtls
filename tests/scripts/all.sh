@@ -107,7 +107,7 @@ msg "build: cmake, full config, clang" # ~ 50s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
-scripts/config.pl unset POLARSSL_MEMORY_BACKTRACE # too slow for tests
+scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
 CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check .
 make
 
@@ -133,16 +133,16 @@ msg "build: Unix make, -Os (gcc)" # ~ 30s
 cleanup
 CC=gcc CFLAGS='-Werror -Os' make
 
-# this is meant to cath missing #define polarssl_printf etc
+# this is meant to cath missing #define mbedtls_printf etc
 # disable fsio to catch some more missing #include <stdio.h>
 msg "build: full config except platform/fsio, make, gcc" # ~ 30s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
-scripts/config.pl unset POLARSSL_PLATFORM_C
-scripts/config.pl unset POLARSSL_PLATFORM_MEMORY
-scripts/config.pl unset POLARSSL_MEMORY_BUFFER_ALLOC_C
-scripts/config.pl unset POLARSSL_FS_IO
+scripts/config.pl unset MBEDTLS_PLATFORM_C
+scripts/config.pl unset MBEDTLS_PLATFORM_MEMORY
+scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+scripts/config.pl unset MBEDTLS_FS_IO
 CC=gcc CFLAGS='-Werror -O0' make
 
 if uname -a | grep -F x86_64 >/dev/null; then
@@ -156,20 +156,20 @@ msg "build: arm-none-eabi-gcc, make" # ~ 10s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
-scripts/config.pl unset POLARSSL_NET_C
-scripts/config.pl unset POLARSSL_TIMING_C
-scripts/config.pl unset POLARSSL_FS_IO
-scripts/config.pl unset POLARSSL_SSL_PROTO_DTLS # timing.c
-scripts/config.pl unset POLARSSL_SSL_DTLS_ANTI_REPLAY
-scripts/config.pl unset POLARSSL_SSL_DTLS_HELLO_VERIFY
-scripts/config.pl unset POLARSSL_SSL_DTLS_BADMAC_LIMIT
-scripts/config.pl unset POLARSSL_SSL_COOKIE_C
+scripts/config.pl unset MBEDTLS_NET_C
+scripts/config.pl unset MBEDTLS_TIMING_C
+scripts/config.pl unset MBEDTLS_FS_IO
+scripts/config.pl unset MBEDTLS_SSL_PROTO_DTLS # timing.c
+scripts/config.pl unset MBEDTLS_SSL_DTLS_ANTI_REPLAY
+scripts/config.pl unset MBEDTLS_SSL_DTLS_HELLO_VERIFY
+scripts/config.pl unset MBEDTLS_SSL_DTLS_BADMAC_LIMIT
+scripts/config.pl unset MBEDTLS_SSL_COOKIE_C
 # following things are not in the default config
-scripts/config.pl unset POLARSSL_HAVEGE_C # depends on timing.c
-scripts/config.pl unset POLARSSL_THREADING_PTHREAD
-scripts/config.pl unset POLARSSL_THREADING_C
-scripts/config.pl unset POLARSSL_MEMORY_BACKTRACE # execinfo.h
-scripts/config.pl unset POLARSSL_MEMORY_BUFFER_ALLOC_C # calls exit
+scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
+scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
+scripts/config.pl unset MBEDTLS_THREADING_C
+scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
+scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
 CC=arm-none-eabi-gcc CFLAGS=-Werror make lib
 fi # arm-gcc
 
@@ -178,22 +178,22 @@ msg "build: armcc, make"
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
-scripts/config.pl unset POLARSSL_NET_C
-scripts/config.pl unset POLARSSL_TIMING_C
-scripts/config.pl unset POLARSSL_FS_IO
-scripts/config.pl unset POLARSSL_HAVE_TIME
-scripts/config.pl unset POLARSSL_SSL_PROTO_DTLS # timing.c
-scripts/config.pl unset POLARSSL_SSL_DTLS_ANTI_REPLAY
-scripts/config.pl unset POLARSSL_SSL_DTLS_HELLO_VERIFY
-scripts/config.pl unset POLARSSL_SSL_DTLS_BADMAC_LIMIT
-scripts/config.pl unset POLARSSL_SSL_COOKIE_C
+scripts/config.pl unset MBEDTLS_NET_C
+scripts/config.pl unset MBEDTLS_TIMING_C
+scripts/config.pl unset MBEDTLS_FS_IO
+scripts/config.pl unset MBEDTLS_HAVE_TIME
+scripts/config.pl unset MBEDTLS_SSL_PROTO_DTLS # timing.c
+scripts/config.pl unset MBEDTLS_SSL_DTLS_ANTI_REPLAY
+scripts/config.pl unset MBEDTLS_SSL_DTLS_HELLO_VERIFY
+scripts/config.pl unset MBEDTLS_SSL_DTLS_BADMAC_LIMIT
+scripts/config.pl unset MBEDTLS_SSL_COOKIE_C
 # following things are not in the default config
-scripts/config.pl unset POLARSSL_DEPRECATED_WARNING
-scripts/config.pl unset POLARSSL_HAVEGE_C # depends on timing.c
-scripts/config.pl unset POLARSSL_THREADING_PTHREAD
-scripts/config.pl unset POLARSSL_THREADING_C
-scripts/config.pl unset POLARSSL_MEMORY_BACKTRACE # execinfo.h
-scripts/config.pl unset POLARSSL_MEMORY_BUFFER_ALLOC_C # calls exit
+scripts/config.pl unset MBEDTLS_DEPRECATED_WARNING
+scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
+scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
+scripts/config.pl unset MBEDTLS_THREADING_C
+scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
+scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
 CC=armcc WARNING_CFLAGS= make lib 2> armcc.stderr
 if [ -s armcc.stderr ]; then
     cat armcc.stderr
@@ -214,8 +214,8 @@ if uname -a | grep 'Linux.*x86_64' >/dev/null; then
 msg "build: MSan (clang)" # ~ 1 min 20s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl unset POLARSSL_AESNI_C # memsan doesn't grok asm
-scripts/config.pl set POLARSSL_NO_PLATFORM_ENTROPY # memsan vs getrandom()
+scripts/config.pl unset MBEDTLS_AESNI_C # memsan doesn't grok asm
+scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY # memsan vs getrandom()
 CC=clang cmake -D CMAKE_BUILD_TYPE:String=MemSan .
 make
 

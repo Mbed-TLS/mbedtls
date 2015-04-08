@@ -20,76 +20,76 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define polarssl_fprintf    fprintf
-#define polarssl_printf     printf
+#define mbedtls_fprintf    fprintf
+#define mbedtls_printf     printf
 #endif
 
-#if defined(POLARSSL_MD_C) && defined(POLARSSL_FS_IO)
+#if defined(MBEDTLS_MD_C) && defined(MBEDTLS_FS_IO)
 #include "mbedtls/md.h"
 
 #include <stdio.h>
 #include <string.h>
 #endif
 
-#if !defined(POLARSSL_MD_C) || !defined(POLARSSL_FS_IO)
+#if !defined(MBEDTLS_MD_C) || !defined(MBEDTLS_FS_IO)
 int main( void )
 {
-    polarssl_printf("POLARSSL_MD_C and/or POLARSSL_FS_IO not defined.\n");
+    mbedtls_printf("MBEDTLS_MD_C and/or MBEDTLS_FS_IO not defined.\n");
     return( 0 );
 }
 #else
-static int generic_wrapper( const md_info_t *md_info, char *filename, unsigned char *sum )
+static int generic_wrapper( const mbedtls_md_info_t *md_info, char *filename, unsigned char *sum )
 {
-    int ret = md_file( md_info, filename, sum );
+    int ret = mbedtls_md_file( md_info, filename, sum );
 
     if( ret == 1 )
-        polarssl_fprintf( stderr, "failed to open: %s\n", filename );
+        mbedtls_fprintf( stderr, "failed to open: %s\n", filename );
 
     if( ret == 2 )
-        polarssl_fprintf( stderr, "failed to read: %s\n", filename );
+        mbedtls_fprintf( stderr, "failed to read: %s\n", filename );
 
     return( ret );
 }
 
-static int generic_print( const md_info_t *md_info, char *filename )
+static int generic_print( const mbedtls_md_info_t *md_info, char *filename )
 {
     int i;
-    unsigned char sum[POLARSSL_MD_MAX_SIZE];
+    unsigned char sum[MBEDTLS_MD_MAX_SIZE];
 
     if( generic_wrapper( md_info, filename, sum ) != 0 )
         return( 1 );
 
-    for( i = 0; i < md_get_size( md_info ); i++ )
-        polarssl_printf( "%02x", sum[i] );
+    for( i = 0; i < mbedtls_md_get_size( md_info ); i++ )
+        mbedtls_printf( "%02x", sum[i] );
 
-    polarssl_printf( "  %s\n", filename );
+    mbedtls_printf( "  %s\n", filename );
     return( 0 );
 }
 
-static int generic_check( const md_info_t *md_info, char *filename )
+static int generic_check( const mbedtls_md_info_t *md_info, char *filename )
 {
     int i;
     size_t n;
     FILE *f;
     int nb_err1, nb_err2;
     int nb_tot1, nb_tot2;
-    unsigned char sum[POLARSSL_MD_MAX_SIZE];
-    char buf[POLARSSL_MD_MAX_SIZE * 2 + 1], line[1024];
+    unsigned char sum[MBEDTLS_MD_MAX_SIZE];
+    char buf[MBEDTLS_MD_MAX_SIZE * 2 + 1], line[1024];
     char diff;
 
     if( ( f = fopen( filename, "rb" ) ) == NULL )
     {
-        polarssl_printf( "failed to open: %s\n", filename );
+        mbedtls_printf( "failed to open: %s\n", filename );
         return( 1 );
     }
 
@@ -104,15 +104,15 @@ static int generic_check( const md_info_t *md_info, char *filename )
     {
         n = strlen( line );
 
-        if( n < (size_t) 2 * md_get_size( md_info ) + 4 )
+        if( n < (size_t) 2 * mbedtls_md_get_size( md_info ) + 4 )
         {
-            polarssl_printf("No '%s' hash found on line.\n", md_get_name( md_info ));
+            mbedtls_printf("No '%s' hash found on line.\n", mbedtls_md_get_name( md_info ));
             continue;
         }
 
-        if( line[2 * md_get_size( md_info )] != ' ' || line[2 * md_get_size( md_info ) + 1] != ' ' )
+        if( line[2 * mbedtls_md_get_size( md_info )] != ' ' || line[2 * mbedtls_md_get_size( md_info ) + 1] != ' ' )
         {
-            polarssl_printf("No '%s' hash found on line.\n", md_get_name( md_info ));
+            mbedtls_printf("No '%s' hash found on line.\n", mbedtls_md_get_name( md_info ));
             continue;
         }
 
@@ -121,7 +121,7 @@ static int generic_check( const md_info_t *md_info, char *filename )
 
         nb_tot1++;
 
-        if( generic_wrapper( md_info, line + 2 + 2 * md_get_size( md_info ), sum ) != 0 )
+        if( generic_wrapper( md_info, line + 2 + 2 * mbedtls_md_get_size( md_info ), sum ) != 0 )
         {
             nb_err1++;
             continue;
@@ -129,18 +129,18 @@ static int generic_check( const md_info_t *md_info, char *filename )
 
         nb_tot2++;
 
-        for( i = 0; i < md_get_size( md_info ); i++ )
+        for( i = 0; i < mbedtls_md_get_size( md_info ); i++ )
             sprintf( buf + i * 2, "%02x", sum[i] );
 
         /* Use constant-time buffer comparison */
         diff = 0;
-        for( i = 0; i < 2 * md_get_size( md_info ); i++ )
+        for( i = 0; i < 2 * mbedtls_md_get_size( md_info ); i++ )
             diff |= line[i] ^ buf[i];
 
         if( diff != 0 )
         {
             nb_err2++;
-            polarssl_fprintf( stderr, "wrong checksum: %s\n", line + 66 );
+            mbedtls_fprintf( stderr, "wrong checksum: %s\n", line + 66 );
         }
 
         n = sizeof( line );
@@ -148,13 +148,13 @@ static int generic_check( const md_info_t *md_info, char *filename )
 
     if( nb_err1 != 0 )
     {
-        polarssl_printf( "WARNING: %d (out of %d) input files could "
+        mbedtls_printf( "WARNING: %d (out of %d) input files could "
                 "not be read\n", nb_err1, nb_tot1 );
     }
 
     if( nb_err2 != 0 )
     {
-        polarssl_printf( "WARNING: %d (out of %d) computed checksums did "
+        mbedtls_printf( "WARNING: %d (out of %d) computed checksums did "
                 "not match\n", nb_err2, nb_tot2 );
     }
 
@@ -166,29 +166,29 @@ static int generic_check( const md_info_t *md_info, char *filename )
 int main( int argc, char *argv[] )
 {
     int ret, i;
-    const md_info_t *md_info;
-    md_context_t md_ctx;
+    const mbedtls_md_info_t *md_info;
+    mbedtls_md_context_t md_ctx;
 
-    md_init( &md_ctx );
+    mbedtls_md_init( &md_ctx );
 
     if( argc == 1 )
     {
         const int *list;
 
-        polarssl_printf( "print mode:  generic_sum <md> <file> <file> ...\n" );
-        polarssl_printf( "check mode:  generic_sum <md> -c <checksum file>\n" );
+        mbedtls_printf( "print mode:  generic_sum <mbedtls_md> <file> <file> ...\n" );
+        mbedtls_printf( "check mode:  generic_sum <mbedtls_md> -c <checksum file>\n" );
 
-        polarssl_printf( "\nAvailable message digests:\n" );
-        list = md_list();
+        mbedtls_printf( "\nAvailable message digests:\n" );
+        list = mbedtls_md_list();
         while( *list )
         {
-            md_info = md_info_from_type( *list );
-            polarssl_printf( "  %s\n", md_get_name( md_info ) );
+            md_info = mbedtls_md_info_from_type( *list );
+            mbedtls_printf( "  %s\n", mbedtls_md_get_name( md_info ) );
             list++;
         }
 
 #if defined(_WIN32)
-        polarssl_printf( "\n  Press Enter to exit this program.\n" );
+        mbedtls_printf( "\n  Press Enter to exit this program.\n" );
         fflush( stdout ); getchar();
 #endif
 
@@ -198,15 +198,15 @@ int main( int argc, char *argv[] )
     /*
      * Read the MD from the command line
      */
-    md_info = md_info_from_string( argv[1] );
+    md_info = mbedtls_md_info_from_string( argv[1] );
     if( md_info == NULL )
     {
-        polarssl_fprintf( stderr, "Message Digest '%s' not found\n", argv[1] );
+        mbedtls_fprintf( stderr, "Message Digest '%s' not found\n", argv[1] );
         return( 1 );
     }
-    if( md_setup( &md_ctx, md_info, 0 ) )
+    if( mbedtls_md_setup( &md_ctx, md_info, 0 ) )
     {
-        polarssl_fprintf( stderr, "Failed to initialize context.\n" );
+        mbedtls_fprintf( stderr, "Failed to initialize context.\n" );
         return( 1 );
     }
 
@@ -221,8 +221,8 @@ int main( int argc, char *argv[] )
         ret |= generic_print( md_info, argv[i] );
 
 exit:
-    md_free( &md_ctx );
+    mbedtls_md_free( &md_ctx );
 
     return( ret );
 }
-#endif /* POLARSSL_MD_C && POLARSSL_FS_IO */
+#endif /* MBEDTLS_MD_C && MBEDTLS_FS_IO */

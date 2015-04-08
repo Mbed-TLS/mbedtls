@@ -1,5 +1,5 @@
 /**
- * \file x509_csr.h
+ * \file mbedtls_x509_csr.h
  *
  * \brief X.509 certificate signing request parsing and writing
  *
@@ -21,13 +21,13 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_X509_CSR_H
-#define POLARSSL_X509_CSR_H
+#ifndef MBEDTLS_X509_CSR_H
+#define MBEDTLS_X509_CSR_H
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
 #include "x509.h"
@@ -48,39 +48,39 @@ extern "C" {
 /**
  * Certificate Signing Request (CSR) structure.
  */
-typedef struct _x509_csr
+typedef struct mbedtls_x509_csr
 {
-    x509_buf raw;           /**< The raw CSR data (DER). */
-    x509_buf cri;           /**< The raw CertificateRequestInfo body (DER). */
+    mbedtls_x509_buf raw;           /**< The raw CSR data (DER). */
+    mbedtls_x509_buf cri;           /**< The raw CertificateRequestInfo body (DER). */
 
     int version;            /**< CSR version (1=v1). */
 
-    x509_buf  subject_raw;  /**< The raw subject data (DER). */
-    x509_name subject;      /**< The parsed subject data (named information object). */
+    mbedtls_x509_buf  subject_raw;  /**< The raw subject data (DER). */
+    mbedtls_x509_name subject;      /**< The parsed subject data (named information object). */
 
-    pk_context pk;          /**< Container for the public key context. */
+    mbedtls_pk_context pk;          /**< Container for the public key context. */
 
-    x509_buf sig_oid;
-    x509_buf sig;
-    md_type_t sig_md;       /**< Internal representation of the MD algorithm of the signature algorithm, e.g. POLARSSL_MD_SHA256 */
-    pk_type_t sig_pk;       /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. POLARSSL_PK_RSA */
-    void *sig_opts;         /**< Signature options to be passed to pk_verify_ext(), e.g. for RSASSA-PSS */
+    mbedtls_x509_buf sig_oid;
+    mbedtls_x509_buf sig;
+    mbedtls_md_type_t sig_md;       /**< Internal representation of the MD algorithm of the signature algorithm, e.g. MBEDTLS_MD_SHA256 */
+    mbedtls_pk_type_t sig_pk;       /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. MBEDTLS_PK_RSA */
+    void *sig_opts;         /**< Signature options to be passed to mbedtls_pk_verify_ext(), e.g. for RSASSA-PSS */
 }
-x509_csr;
+mbedtls_x509_csr;
 
 /**
  * Container for writing a CSR
  */
-typedef struct _x509write_csr
+typedef struct mbedtls_x509write_csr
 {
-    pk_context *key;
-    asn1_named_data *subject;
-    md_type_t md_alg;
-    asn1_named_data *extensions;
+    mbedtls_pk_context *key;
+    mbedtls_asn1_named_data *subject;
+    mbedtls_md_type_t md_alg;
+    mbedtls_asn1_named_data *extensions;
 }
-x509write_csr;
+mbedtls_x509write_csr;
 
-#if defined(POLARSSL_X509_CSR_PARSE_C)
+#if defined(MBEDTLS_X509_CSR_PARSE_C)
 /**
  * \brief          Load a Certificate Signing Request (CSR) in DER format
  *
@@ -90,7 +90,7 @@ x509write_csr;
  *
  * \return         0 if successful, or a specific X509 error code
  */
-int x509_csr_parse_der( x509_csr *csr,
+int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
                         const unsigned char *buf, size_t buflen );
 
 /**
@@ -102,9 +102,9 @@ int x509_csr_parse_der( x509_csr *csr,
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int x509_csr_parse( x509_csr *csr, const unsigned char *buf, size_t buflen );
+int mbedtls_x509_csr_parse( mbedtls_x509_csr *csr, const unsigned char *buf, size_t buflen );
 
-#if defined(POLARSSL_FS_IO)
+#if defined(MBEDTLS_FS_IO)
 /**
  * \brief          Load a Certificate Signing Request (CSR)
  *
@@ -113,8 +113,8 @@ int x509_csr_parse( x509_csr *csr, const unsigned char *buf, size_t buflen );
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int x509_csr_parse_file( x509_csr *csr, const char *path );
-#endif /* POLARSSL_FS_IO */
+int mbedtls_x509_csr_parse_file( mbedtls_x509_csr *csr, const char *path );
+#endif /* MBEDTLS_FS_IO */
 
 /**
  * \brief          Returns an informational string about the
@@ -128,34 +128,34 @@ int x509_csr_parse_file( x509_csr *csr, const char *path );
  * \return         The length of the string written (exluding the terminating
  *                 null byte), or a negative value in case of an error.
  */
-int x509_csr_info( char *buf, size_t size, const char *prefix,
-                   const x509_csr *csr );
+int mbedtls_x509_csr_info( char *buf, size_t size, const char *prefix,
+                   const mbedtls_x509_csr *csr );
 
 /**
  * \brief          Initialize a CSR
  *
  * \param csr      CSR to initialize
  */
-void x509_csr_init( x509_csr *csr );
+void mbedtls_x509_csr_init( mbedtls_x509_csr *csr );
 
 /**
  * \brief          Unallocate all CSR data
  *
  * \param csr      CSR to free
  */
-void x509_csr_free( x509_csr *csr );
-#endif /* POLARSSL_X509_CSR_PARSE_C */
+void mbedtls_x509_csr_free( mbedtls_x509_csr *csr );
+#endif /* MBEDTLS_X509_CSR_PARSE_C */
 
 /* \} name */
 /* \} addtogroup x509_module */
 
-#if defined(POLARSSL_X509_CSR_WRITE_C)
+#if defined(MBEDTLS_X509_CSR_WRITE_C)
 /**
  * \brief           Initialize a CSR context
  *
  * \param ctx       CSR context to initialize
  */
-void x509write_csr_init( x509write_csr *ctx );
+void mbedtls_x509write_csr_init( mbedtls_x509write_csr *ctx );
 
 /**
  * \brief           Set the subject name for a CSR
@@ -169,7 +169,7 @@ void x509write_csr_init( x509write_csr *ctx );
  * \return          0 if subject name was parsed successfully, or
  *                  a specific error code
  */
-int x509write_csr_set_subject_name( x509write_csr *ctx,
+int mbedtls_x509write_csr_set_subject_name( mbedtls_x509write_csr *ctx,
                                     const char *subject_name );
 
 /**
@@ -179,38 +179,38 @@ int x509write_csr_set_subject_name( x509write_csr *ctx,
  * \param ctx       CSR context to use
  * \param key       Asymetric key to include
  */
-void x509write_csr_set_key( x509write_csr *ctx, pk_context *key );
+void mbedtls_x509write_csr_set_key( mbedtls_x509write_csr *ctx, mbedtls_pk_context *key );
 
 /**
  * \brief           Set the MD algorithm to use for the signature
- *                  (e.g. POLARSSL_MD_SHA1)
+ *                  (e.g. MBEDTLS_MD_SHA1)
  *
  * \param ctx       CSR context to use
  * \param md_alg    MD algorithm to use
  */
-void x509write_csr_set_md_alg( x509write_csr *ctx, md_type_t md_alg );
+void mbedtls_x509write_csr_set_md_alg( mbedtls_x509write_csr *ctx, mbedtls_md_type_t md_alg );
 
 /**
  * \brief           Set the Key Usage Extension flags
- *                  (e.g. KU_DIGITAL_SIGNATURE | KU_KEY_CERT_SIGN)
+ *                  (e.g. MBEDTLS_X509_KU_DIGITAL_SIGNATURE | MBEDTLS_X509_KU_KEY_CERT_SIGN)
  *
  * \param ctx       CSR context to use
  * \param key_usage key usage flags to set
  *
- * \return          0 if successful, or POLARSSL_ERR_X509_MALLOC_FAILED
+ * \return          0 if successful, or MBEDTLS_ERR_X509_MALLOC_FAILED
  */
-int x509write_csr_set_key_usage( x509write_csr *ctx, unsigned char key_usage );
+int mbedtls_x509write_csr_set_key_usage( mbedtls_x509write_csr *ctx, unsigned char key_usage );
 
 /**
  * \brief           Set the Netscape Cert Type flags
- *                  (e.g. NS_CERT_TYPE_SSL_CLIENT | NS_CERT_TYPE_EMAIL)
+ *                  (e.g. MBEDTLS_X509_NS_CERT_TYPE_SSL_CLIENT | MBEDTLS_X509_NS_CERT_TYPE_EMAIL)
  *
  * \param ctx           CSR context to use
  * \param ns_cert_type  Netscape Cert Type flags to set
  *
- * \return          0 if successful, or POLARSSL_ERR_X509_MALLOC_FAILED
+ * \return          0 if successful, or MBEDTLS_ERR_X509_MALLOC_FAILED
  */
-int x509write_csr_set_ns_cert_type( x509write_csr *ctx,
+int mbedtls_x509write_csr_set_ns_cert_type( mbedtls_x509write_csr *ctx,
                                     unsigned char ns_cert_type );
 
 /**
@@ -223,9 +223,9 @@ int x509write_csr_set_ns_cert_type( x509write_csr *ctx,
  * \param val       value of the extension OCTET STRING
  * \param val_len   length of the value data
  *
- * \return          0 if successful, or a POLARSSL_ERR_X509_MALLOC_FAILED
+ * \return          0 if successful, or a MBEDTLS_ERR_X509_MALLOC_FAILED
  */
-int x509write_csr_set_extension( x509write_csr *ctx,
+int mbedtls_x509write_csr_set_extension( mbedtls_x509write_csr *ctx,
                                  const char *oid, size_t oid_len,
                                  const unsigned char *val, size_t val_len );
 
@@ -234,7 +234,7 @@ int x509write_csr_set_extension( x509write_csr *ctx,
  *
  * \param ctx       CSR context to free
  */
-void x509write_csr_free( x509write_csr *ctx );
+void mbedtls_x509write_csr_free( mbedtls_x509write_csr *ctx );
 
 /**
  * \brief           Write a CSR (Certificate Signing Request) to a
@@ -257,11 +257,11 @@ void x509write_csr_free( x509write_csr *ctx );
  *                  for countermeasures against timing attacks).
  *                  ECDSA signatures always require a non-NULL f_rng.
  */
-int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size,
+int mbedtls_x509write_csr_der( mbedtls_x509write_csr *ctx, unsigned char *buf, size_t size,
                        int (*f_rng)(void *, unsigned char *, size_t),
                        void *p_rng );
 
-#if defined(POLARSSL_PEM_WRITE_C)
+#if defined(MBEDTLS_PEM_WRITE_C)
 /**
  * \brief           Write a CSR (Certificate Signing Request) to a
  *                  PEM string
@@ -279,14 +279,14 @@ int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size,
  *                  for couermeasures against timing attacks).
  *                  ECDSA signatures always require a non-NULL f_rng.
  */
-int x509write_csr_pem( x509write_csr *ctx, unsigned char *buf, size_t size,
+int mbedtls_x509write_csr_pem( mbedtls_x509write_csr *ctx, unsigned char *buf, size_t size,
                        int (*f_rng)(void *, unsigned char *, size_t),
                        void *p_rng );
-#endif /* POLARSSL_PEM_WRITE_C */
-#endif /* POLARSSL_X509_CSR_WRITE_C */
+#endif /* MBEDTLS_PEM_WRITE_C */
+#endif /* MBEDTLS_X509_CSR_WRITE_C */
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* x509_csr.h */
+#endif /* mbedtls_x509_csr.h */

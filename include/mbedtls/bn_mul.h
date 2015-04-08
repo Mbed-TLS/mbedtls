@@ -35,12 +35,12 @@
  *         . Alpha                . MIPS32
  *         . C, longlong          . C, generic
  */
-#ifndef POLARSSL_BN_MUL_H
-#define POLARSSL_BN_MUL_H
+#ifndef MBEDTLS_BN_MUL_H
+#define MBEDTLS_BN_MUL_H
 
 #include "bignum.h"
 
-#if defined(POLARSSL_HAVE_ASM)
+#if defined(MBEDTLS_HAVE_ASM)
 
 #if defined(__GNUC__)
 #if defined(__i386__)
@@ -63,7 +63,7 @@
         "movl   %%edx,   %%ecx      \n\t"   \
         "stosl                      \n\t"
 
-#if defined(POLARSSL_HAVE_SSE2)
+#if defined(MBEDTLS_HAVE_SSE2)
 
 #define MULADDC_HUIT                            \
         "movd     %%ecx,     %%mm1      \n\t"   \
@@ -735,7 +735,7 @@
     __asm   mov     ecx, edx                    \
     __asm   stosd
 
-#if defined(POLARSSL_HAVE_SSE2)
+#if defined(MBEDTLS_HAVE_SSE2)
 
 #define EMIT __asm _emit
 
@@ -818,20 +818,20 @@
 #endif /* SSE2 */
 #endif /* MSVC */
 
-#endif /* POLARSSL_HAVE_ASM */
+#endif /* MBEDTLS_HAVE_ASM */
 
 #if !defined(MULADDC_CORE)
-#if defined(POLARSSL_HAVE_UDBL)
+#if defined(MBEDTLS_HAVE_UDBL)
 
 #define MULADDC_INIT                    \
 {                                       \
-    t_udbl r;                           \
-    t_uint r0, r1;
+    mbedtls_t_udbl r;                           \
+    mbedtls_mpi_uint r0, r1;
 
 #define MULADDC_CORE                    \
-    r   = *(s++) * (t_udbl) b;          \
-    r0  = (t_uint) r;                   \
-    r1  = (t_uint)( r >> biL );         \
+    r   = *(s++) * (mbedtls_t_udbl) b;          \
+    r0  = (mbedtls_mpi_uint) r;                   \
+    r1  = (mbedtls_mpi_uint)( r >> biL );         \
     r0 += c;  r1 += (r0 <  c);          \
     r0 += *d; r1 += (r0 < *d);          \
     c = r1; *(d++) = r0;
@@ -842,8 +842,8 @@
 #else
 #define MULADDC_INIT                    \
 {                                       \
-    t_uint s0, s1, b0, b1;              \
-    t_uint r0, r1, rx, ry;              \
+    mbedtls_mpi_uint s0, s1, b0, b1;              \
+    mbedtls_mpi_uint r0, r1, rx, ry;              \
     b0 = ( b << biH ) >> biH;           \
     b1 = ( b >> biH );
 

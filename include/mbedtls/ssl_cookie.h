@@ -21,8 +21,8 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_SSL_COOKIE_H
-#define POLARSSL_SSL_COOKIE_H
+#ifndef MBEDTLS_SSL_COOKIE_H
+#define MBEDTLS_SSL_COOKIE_H
 
 #include "ssl.h"
 
@@ -33,8 +33,8 @@
  * Either change them in config.h or define them on the compiler command line.
  * \{
  */
-#ifndef POLARSSL_SSL_COOKIE_TIMEOUT
-#define POLARSSL_SSL_COOKIE_TIMEOUT     60 /**< Default expiration delay of DTLS cookies, in seconds if HAVE_TIME, or in number of cookies issued */
+#ifndef MBEDTLS_SSL_COOKIE_TIMEOUT
+#define MBEDTLS_SSL_COOKIE_TIMEOUT     60 /**< Default expiration delay of DTLS cookies, in seconds if HAVE_TIME, or in number of cookies issued */
 #endif
 
 /* \} name SECTION: Module settings */
@@ -48,52 +48,52 @@ extern "C" {
  */
 typedef struct
 {
-    md_context_t    hmac_ctx;   /*!< context for the HMAC portion   */
-#if !defined(POLARSSL_HAVE_TIME)
+    mbedtls_md_context_t    hmac_ctx;   /*!< context for the HMAC portion   */
+#if !defined(MBEDTLS_HAVE_TIME)
     unsigned long   serial;     /*!< serial number for expiration   */
 #endif
     unsigned long   timeout;    /*!< timeout delay, in seconds if HAVE_TIME,
                                      or in number of tickets issued */
 
-} ssl_cookie_ctx;
+} mbedtls_ssl_cookie_ctx;
 
 /**
  * \brief          Initialize cookie context
  */
-void ssl_cookie_init( ssl_cookie_ctx *ctx );
+void mbedtls_ssl_cookie_init( mbedtls_ssl_cookie_ctx *ctx );
 
 /**
  * \brief          Setup cookie context (generate keys)
  */
-int ssl_cookie_setup( ssl_cookie_ctx *ctx,
+int mbedtls_ssl_cookie_setup( mbedtls_ssl_cookie_ctx *ctx,
                       int (*f_rng)(void *, unsigned char *, size_t),
                       void *p_rng );
 
 /**
  * \brief          Set expiration delay for cookies
- *                 (Default POLARSSL_SSL_COOKIE_TIMEOUT)
+ *                 (Default MBEDTLS_SSL_COOKIE_TIMEOUT)
  *
  * \param ctx      Cookie contex
  * \param delay    Delay, in seconds if HAVE_TIME, or in number of cookies
  *                 issued in the meantime.
  *                 0 to disable expiration (NOT recommended)
  */
-void ssl_cookie_set_timeout( ssl_cookie_ctx *ctx, unsigned long delay );
+void mbedtls_ssl_cookie_set_timeout( mbedtls_ssl_cookie_ctx *ctx, unsigned long delay );
 
 /**
  * \brief          Free cookie context
  */
-void ssl_cookie_free( ssl_cookie_ctx *ctx );
+void mbedtls_ssl_cookie_free( mbedtls_ssl_cookie_ctx *ctx );
 
 /**
- * \brief          Generate cookie, see \c ssl_cookie_write_t
+ * \brief          Generate cookie, see \c mbedtls_ssl_cookie_write_t
  */
-ssl_cookie_write_t ssl_cookie_write;
+mbedtls_ssl_cookie_write_t mbedtls_ssl_cookie_write;
 
 /**
- * \brief          Verify cookie, see \c ssl_cookie_write_t
+ * \brief          Verify cookie, see \c mbedtls_ssl_cookie_write_t
  */
-ssl_cookie_check_t ssl_cookie_check;
+mbedtls_ssl_cookie_check_t mbedtls_ssl_cookie_check;
 
 #ifdef __cplusplus
 }

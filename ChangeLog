@@ -9,6 +9,7 @@ Features
     to override the whole module.
 
 API Changes
+   * All public identifiers moved to the mbedtls_* or MBEDTLS_* namespace.
    * ecdsa_write_signature() gained an addtional md_alg argument and
      ecdsa_write_signature_det() was deprecated.
    * pk_sign() no longer accepts md_alg == POLARSSL_MD_NONE with ECDSA.

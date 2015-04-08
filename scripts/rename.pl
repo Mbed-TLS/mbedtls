@@ -1,23 +1,33 @@
 #!/usr/bin/perl
 
+# rename identifiers (functions, types, enum constant, etc)
+# on upgrades of major version according to a list
+
 use warnings;
 use strict;
 
 use utf8;
 use open qw(:std utf8);
 
-# apply substitutions from the table in the first arg to files
-#   expected usage: via invoke-rename.pl
+my $usage = "Usage: $0 [-f datafile] [-s] [--] [filenames...]\n";
 
+(my $datafile = $0) =~ s/(rename-1\.3-2\.0)\.pl$/data_files\/$1.txt/;
 my $do_strings = 0;
-if( $ARGV[0] eq "-s" ) {
-    shift;
-    $do_strings = 1;
+
+while( @ARGV && $ARGV[0] =~ /^-/ ) {
+    my $opt = shift;
+    if( $opt eq '--' ) {
+        last;
+    } elsif( $opt eq '-f' ) {
+        $datafile = shift;
+    } elsif( $opt eq '-s' ) {
+        $do_strings = 1; shift;
+    } else {
+        die $usage;
+    }
 }
 
-die "Usage: $0 [-s] names-file [filenames...]\n" if( @ARGV < 1 or ! -r $ARGV[0] );
-
-open my $nfh, '<', shift or die;
+open my $nfh, '<', $datafile or die "Could not read $datafile\n";
 my @names = <$nfh>;
 close $nfh or die;
 

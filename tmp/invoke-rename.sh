@@ -8,12 +8,13 @@ set -eu
 tmp/analyze-names.sh
 tmp/makelist.pl public-names extra-names > old2new
 
-tmp/rename.pl    old2new library/*.c tests/suites/* \
-                 configs/* scripts/data_files/*.fmt
-tmp/rename.pl -s old2new library/error.c library/version_features.c \
-                 library/memory_buffer_alloc.c include/mbedtls/*.h \
-                 library/ecp.c library/ssl_???.c tests/ssl-opt.sh \
-                 programs/*.c programs/*/*.c scripts/* tests/scripts/*
+scripts/rename.pl -f old2new \
+    library/*.c tests/suites/* configs/* scripts/data_files/*.fmt
+scripts/rename.pl -f old2new -s \
+    library/error.c library/version_features.c \
+    library/memory_buffer_alloc.c include/mbedtls/*.h \
+    library/ecp.c library/ssl_???.c tests/ssl-opt.sh \
+    programs/*.c programs/*/*.c scripts/* tests/scripts/*
 
 for i in scripts/generate_errors.pl scripts/memory.sh tests/compat.sh \
          tests/suites/test_suite_version.data configs/README.txt

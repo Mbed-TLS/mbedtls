@@ -48,7 +48,7 @@ if (@ARGV >= 2 && $ARGV[0] eq "-f") {
 } else {
     if (! -f $config_file)  {
         chdir '..' or die;
-        -d $config_file
+        -f $config_file
             or die "Without -f, must be run from root or scripts\n"
     }
 }

@@ -38,10 +38,10 @@ for my $name (@names) {
     $subst{$old} = $new;
 }
 
-my $string = qr/".*?(?<!\\)"/;
+my $string = qr/"(?:\\.|[^\\"])*"/;
 my $space = qr/\s+/;
 my $idnum = qr/[a-zA-Z0-9_]+/;
-my $symbols = qr/[!#%&'()*+,-.:;<=>?@^_`{|}~\$\/\[\\\]]+|"/;
+my $symbols = qr/[-!#$%&'()*+,.\/:;<=>?@[\\\]^_`{|}~]+|"/;
 
 # if we replace inside strings, we don't consider them a token
 my $token = $do_strings ?         qr/$space|$idnum|$symbols/
@@ -86,7 +86,7 @@ while( my $filename = shift )
 }
 
 if( %warnings ) {
-    print "\nWarning: lines skipped due to unexpected charaacters:\n";
+    print "\nWarning: lines skipped due to unexpected characters:\n";
     for my $filename (sort keys %warnings) {
         print "in $filename:\n";
         print for @{ $warnings{$filename} };

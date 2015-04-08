@@ -496,7 +496,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
             mbedtls_snprintf( buf, buflen, "X509 - Allocation of memory failed" );
         if( use_ret == -(MBEDTLS_ERR_X509_FILE_IO_ERROR) )
             mbedtls_snprintf( buf, buflen, "X509 - Read/write of file failed" );
-#endif /* MBEDTLS_X509_USE,X509_CREATE_C */
+#endif /* MBEDTLS_X509_USE_C || MBEDTLS_X509_CREATE_C */
         // END generated code
 
         if( strlen( buf ) == 0 )

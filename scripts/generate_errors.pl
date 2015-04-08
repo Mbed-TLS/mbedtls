@@ -165,11 +165,25 @@ while (my $line = <GREP>)
 
 if ($ll_old_define ne "")
 {
-    $ll_code_check .= "#endif /* MBEDTLS_${ll_old_define}_C */\n";
+    $ll_code_check .= "#endif /* ";
+    my $first = 0;
+    foreach my $dep (split(/,/, $ll_old_define))
+    {
+        $ll_code_check .= " || " if ($first++);
+        $ll_code_check .= "MBEDTLS_${dep}_C";
+    }
+    $ll_code_check .= " */\n";
 }
 if ($hl_old_define ne "")
 {
-    $hl_code_check .= "#endif /* MBEDTLS_${hl_old_define}_C */\n";
+    $hl_code_check .= "#endif /* ";
+    my $first = 0;
+    foreach my $dep (split(/,/, $hl_old_define))
+    {
+        $hl_code_check .= " || " if ($first++);
+        $hl_code_check .= "MBEDTLS_${dep}_C";
+    }
+    $hl_code_check .= " */\n";
 }
 
 $error_format =~ s/HEADER_INCLUDED\n/$headers/g;

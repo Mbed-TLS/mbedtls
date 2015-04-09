@@ -47,6 +47,25 @@ for THING in identifiers; do
     fi
 done
 
+printf "Likely typos: "
+sort -u actual-macros enum-consts > _caps
+HEADERS=$( ls include/mbedtls/*.h | egrep -v 'compat-1\.3\.h' )
+NL='
+'
+sed -n 's/MBEDTLS_[A-Z0-9_]*/\'"$NL"'&\'"$NL"/gp \
+    $HEADERS library/*.c \
+    | grep MBEDTLS | sort -u > _MBEDTLS_XXX
+TYPOS=$( diff _caps _MBEDTLS_XXX | sed -n 's/^> //p' \
+            | egrep -v 'XXX|__|_$|^MBEDTLS_CONFIG_FILE$' || true )
+rm _MBEDTLS_XXX _caps
+if [ "x$TYPOS" == "x" ]; then
+    echo "PASS"
+else
+    echo "FAIL"
+    echo "$TYPOS"
+    FAIL=1
+fi
+
 if [ "$FAIL" -eq 0 ]; then
     rm macros actual-macros enum-consts identifiers exported-symbols
     echo "PASSED"

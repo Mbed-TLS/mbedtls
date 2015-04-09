@@ -35,6 +35,15 @@
 #error "POLARSSL_DEPRECATED_WARNING only works with GCC and Clang"
 #endif
 
+#if defined(POLARSSL_NET_C) && !defined(POLARSSL_HAVE_IPV6)
+#if defined(POLARSSL_DEPRECATED_WARNING)
+#warning "Using POLARSSL_NET_C without POLARSSL_HAVE_IPV6 is deprecated"
+#endif
+#if defined(POLARSSL_DEPRECATED_REMOVED)
+#define POLARSSL_HAVE_IPV6
+#endif
+#endif /* POLARSSL_NET_C && !POLARSSL_HAVE_IPV6 */
+
 #if defined(POLARSSL_AESNI_C) && !defined(POLARSSL_HAVE_ASM)
 #error "POLARSSL_AESNI_C defined, but not all prerequisites"
 #endif

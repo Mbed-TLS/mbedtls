@@ -107,6 +107,9 @@
  *
  * Note: on Windows/MingW, XP or higher is required.
  *
+ * \warning As of 1.3.11, *not* using this flag when POLARSSL_NET_C is
+ * defined, is deprecated. The alternative legacy code will be removed in 2.0.
+ *
  * Comment if your system does not support the IPv6 socket interface
  */
 #define POLARSSL_HAVE_IPV6
@@ -1756,6 +1759,9 @@
  * \def POLARSSL_NET_C
  *
  * Enable the TCP/IP networking routines.
+ *
+ * \warning As of 1.3.11, it is deprecated to enable this module without
+ * POLARSSL_HAVE_IPV6. The alternative legacy code will be removed in 2.0.
  *
  * Module:  library/net.c
  *

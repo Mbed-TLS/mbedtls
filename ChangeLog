@@ -43,6 +43,7 @@ Bugfix
      curve picked by the server was actually allowed.
 
 Changes
+   * Enabling POLARSSL_NET_C without POLARSSL_HAVE_IPV6 is deprecated.
    * compat-1.2.h and openssl.h are deprecated.
    * Adjusting/overriding CFLAGS and LDFLAGS with the make build syste is now
      more flexible (warning: OFLAGS is not used any more) (see the README)

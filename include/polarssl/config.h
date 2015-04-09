@@ -44,6 +44,10 @@
  *
  * The system uses 8-bit wide native integers.
  *
+ * \deprecated The compiler should be able to generate code for 32-bit
+ * arithmetic (required by C89). This code is likely to be at least as
+ * efficient as ours.
+ *
  * Uncomment if native integers are 8-bit wide.
  */
 //#define POLARSSL_HAVE_INT8
@@ -52,6 +56,10 @@
  * \def POLARSSL_HAVE_INT16
  *
  * The system uses 16-bit wide native integers.
+ *
+ * \deprecated The compiler should be able to generate code for 32-bit
+ * arithmetic (required by C89). This code is likely to be at least as
+ * efficient as ours.
  *
  * Uncomment if native integers are 16-bit wide.
  */

@@ -2,8 +2,13 @@
 
 set -eu
 
+if [ -d include/mbedtls ]; then :; else
+    echo "$0: must be run from root" >&2
+    exit 1
+fi
+
 if grep -i cmake Makefile >/dev/null; then
-    echo "not compatible with cmake" >&2
+    echo "$0: not compatible with cmake" >&2
     exit 1
 fi
 

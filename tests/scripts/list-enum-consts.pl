@@ -6,6 +6,8 @@ use strict;
 use utf8;
 use open qw(:std utf8);
 
+-d 'include/mbedtls' or die "$0: must be run from root\n";
+
 @ARGV = <include/mbedtls/*.h>;
 
 my @consts;

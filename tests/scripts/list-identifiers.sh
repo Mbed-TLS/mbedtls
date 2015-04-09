@@ -2,7 +2,12 @@
 
 set -eu
 
-HEADERS=$( ls include/mbedtls/*.h | egrep -v 'compat-1.2|openssl|bn_mul' )
+if [ -d include/mbedtls ]; then :; else
+    echo "$0: must be run from root" >&2
+    exit 1
+fi
+
+HEADERS=$( ls include/mbedtls/*.h | egrep -v 'bn_mul' )
 
 rm -f identifiers
 
@@ -22,7 +27,7 @@ if [ $( wc -l < _identifiers ) -eq $( wc -l < _decls ) ]; then
     egrep -v '^(u?int(16|32|64)_t)$' _identifiers | sort > identifiers
     rm _identifiers
 else
-    echo "Mismatch" 2>&1
+    echo "$0: oops, lost some identifiers" 2>&1
     exit 1
 fi
 

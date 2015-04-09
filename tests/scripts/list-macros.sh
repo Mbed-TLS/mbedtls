@@ -1,6 +1,11 @@
 #!/bin/sh
 
-set =eu
+set -eu
+
+if [ -d include/mbedtls ]; then :; else
+    echo "$0: must be run from root" >&2
+    exit 1
+fi
 
 HEADERS=$( ls include/mbedtls/*.h )
 

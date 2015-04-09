@@ -44,34 +44,7 @@
  * Conversion macros for embedded constants:
  * build lists of mbedtls_mpi_uint's from lists of unsigned char's grouped by 8, 4 or 2
  */
-#if defined(MBEDTLS_HAVE_INT8)
-
-#define BYTES_TO_T_UINT_8( a, b, c, d, e, f, g, h ) \
-    a, b, c, d, e, f, g, h
-
-#define BYTES_TO_T_UINT_4( a, b, c, d )             \
-    a, b, c, d
-
-#define BYTES_TO_T_UINT_2( a, b )                   \
-    a, b
-
-#elif defined(MBEDTLS_HAVE_INT16)
-
-#define BYTES_TO_T_UINT_2( a, b )                   \
-    ( (mbedtls_mpi_uint) a << 0 ) |                           \
-    ( (mbedtls_mpi_uint) b << 8 )
-
-#define BYTES_TO_T_UINT_4( a, b, c, d )             \
-    BYTES_TO_T_UINT_2( a, b ),                      \
-    BYTES_TO_T_UINT_2( c, d )
-
-#define BYTES_TO_T_UINT_8( a, b, c, d, e, f, g, h ) \
-    BYTES_TO_T_UINT_2( a, b ),                      \
-    BYTES_TO_T_UINT_2( c, d ),                      \
-    BYTES_TO_T_UINT_2( e, f ),                      \
-    BYTES_TO_T_UINT_2( g, h )
-
-#elif defined(MBEDTLS_HAVE_INT32)
+#if defined(MBEDTLS_HAVE_INT32)
 
 #define BYTES_TO_T_UINT_4( a, b, c, d )             \
     ( (mbedtls_mpi_uint) a <<  0 ) |                          \
@@ -907,26 +880,7 @@ cleanup:
  */
 #define LOAD32      cur = A( i );
 
-#if defined(MBEDTLS_HAVE_INT8)     /* 8 bit */
-
-#define MAX32       N->n / 4
-#define A( j )      (uint32_t)( N->p[4*j+0]       ) |  \
-                              ( N->p[4*j+1] << 8  ) |  \
-                              ( N->p[4*j+2] << 16 ) |  \
-                              ( N->p[4*j+3] << 24 )
-#define STORE32     N->p[4*i+0] = (mbedtls_mpi_uint)( cur       );   \
-                    N->p[4*i+1] = (mbedtls_mpi_uint)( cur >> 8  );   \
-                    N->p[4*i+2] = (mbedtls_mpi_uint)( cur >> 16 );   \
-                    N->p[4*i+3] = (mbedtls_mpi_uint)( cur >> 24 );
-
-#elif defined(MBEDTLS_HAVE_INT16)  /* 16 bit */
-
-#define MAX32       N->n / 2
-#define A( j )      (uint32_t)( N->p[2*j] ) | ( N->p[2*j+1] << 16 )
-#define STORE32     N->p[2*i+0] = (mbedtls_mpi_uint)( cur       );  \
-                    N->p[2*i+1] = (mbedtls_mpi_uint)( cur >> 16 );
-
-#elif defined(MBEDTLS_HAVE_INT32)  /* 32 bit */
+#if defined(MBEDTLS_HAVE_INT32)  /* 32 bit */
 
 #define MAX32       N->n
 #define A( j )      N->p[j]
@@ -1155,11 +1109,7 @@ cleanup:
 #define P521_WIDTH      ( 521 / 8 / sizeof( mbedtls_mpi_uint ) + 1 )
 
 /* Bits to keep in the most significant mbedtls_mpi_uint */
-#if defined(MBEDTLS_HAVE_INT8)
-#define P521_MASK       0x01
-#else
 #define P521_MASK       0x01FF
-#endif
 
 /*
  * Fast quasi-reduction modulo p521 (FIPS 186-3 D.2.5)

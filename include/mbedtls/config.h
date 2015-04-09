@@ -40,24 +40,6 @@
  */
 
 /**
- * \def MBEDTLS_HAVE_INT8
- *
- * The system uses 8-bit wide native integers.
- *
- * Uncomment if native integers are 8-bit wide.
- */
-//#define MBEDTLS_HAVE_INT8
-
-/**
- * \def MBEDTLS_HAVE_INT16
- *
- * The system uses 16-bit wide native integers.
- *
- * Uncomment if native integers are 16-bit wide.
- */
-//#define MBEDTLS_HAVE_INT16
-
-/**
  * \def MBEDTLS_HAVE_LONGLONG
  *
  * The compiler supports the 'long long' type.

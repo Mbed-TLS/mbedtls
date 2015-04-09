@@ -39,12 +39,6 @@
 
 static const char *features[] = {
 #if defined(MBEDTLS_VERSION_FEATURES)
-#if defined(MBEDTLS_HAVE_INT8)
-    "MBEDTLS_HAVE_INT8",
-#endif /* MBEDTLS_HAVE_INT8 */
-#if defined(MBEDTLS_HAVE_INT16)
-    "MBEDTLS_HAVE_INT16",
-#endif /* MBEDTLS_HAVE_INT16 */
 #if defined(MBEDTLS_HAVE_LONGLONG)
     "MBEDTLS_HAVE_LONGLONG",
 #endif /* MBEDTLS_HAVE_LONGLONG */

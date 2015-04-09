@@ -38,13 +38,6 @@
 
 #if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
 #include <basetsd.h>
-#if (_MSC_VER <= 1200)
-typedef   signed short  int16_t;
-typedef unsigned short uint16_t;
-#else
-typedef  INT16  int16_t;
-typedef UINT16 uint16_t;
-#endif
 typedef  INT32  int32_t;
 typedef  INT64  int64_t;
 typedef UINT32 uint32_t;
@@ -118,59 +111,44 @@ typedef UINT64 uint64_t;
 #define MBEDTLS_MPI_RW_BUFFER_SIZE             ( ((MBEDTLS_MPI_MAX_BITS_SCALE100 + MBEDTLS_LN_2_DIV_LN_10_SCALE100 - 1) / MBEDTLS_LN_2_DIV_LN_10_SCALE100) + 10 + 6 )
 
 /*
- * Define the base integer type, architecture-wise
+ * Define the base integer type, architecture-wise.
+ *
+ * 32-bit integers can be forced on 64-bit arches (eg. for testing purposes)
+ * by defining MBEDTLS_HAVE_INT32 and undefining MBEDTLS_HAVE_ASM
  */
-#if defined(MBEDTLS_HAVE_INT8)
-typedef   signed char  mbedtls_mpi_sint;
-typedef unsigned char  mbedtls_mpi_uint;
-typedef uint16_t       mbedtls_t_udbl;
-#define MBEDTLS_HAVE_UDBL
+#if ( ! defined(MBEDTLS_HAVE_INT32) && \
+        defined(_MSC_VER) && defined(_M_AMD64) )
+  #define MBEDTLS_HAVE_INT64
+  typedef  int64_t mbedtls_mpi_sint;
+  typedef uint64_t mbedtls_mpi_uint;
 #else
-#if defined(MBEDTLS_HAVE_INT16)
-typedef  int16_t mbedtls_mpi_sint;
-typedef uint16_t mbedtls_mpi_uint;
-typedef uint32_t mbedtls_t_udbl;
-#define MBEDTLS_HAVE_UDBL
-#else
-  /*
-   * 32-bit integers can be forced on 64-bit arches (eg. for testing purposes)
-   * by defining MBEDTLS_HAVE_INT32 and undefining MBEDTLS_HAVE_ASM
-   */
-  #if ( ! defined(MBEDTLS_HAVE_INT32) && \
-          defined(_MSC_VER) && defined(_M_AMD64) )
-    #define MBEDTLS_HAVE_INT64
-    typedef  int64_t mbedtls_mpi_sint;
-    typedef uint64_t mbedtls_mpi_uint;
+  #if ( ! defined(MBEDTLS_HAVE_INT32) &&               \
+        defined(__GNUC__) && (                          \
+        defined(__amd64__) || defined(__x86_64__)    || \
+        defined(__ppc64__) || defined(__powerpc64__) || \
+        defined(__ia64__)  || defined(__alpha__)     || \
+        (defined(__sparc__) && defined(__arch64__))  || \
+        defined(__s390x__) || defined(__mips64) ) )
+     #define MBEDTLS_HAVE_INT64
+     typedef  int64_t mbedtls_mpi_sint;
+     typedef uint64_t mbedtls_mpi_uint;
+     typedef unsigned int mbedtls_t_udbl __attribute__((mode(TI)));
+     #define MBEDTLS_HAVE_UDBL
   #else
-    #if ( ! defined(MBEDTLS_HAVE_INT32) &&               \
-          defined(__GNUC__) && (                          \
-          defined(__amd64__) || defined(__x86_64__)    || \
-          defined(__ppc64__) || defined(__powerpc64__) || \
-          defined(__ia64__)  || defined(__alpha__)     || \
-          (defined(__sparc__) && defined(__arch64__))  || \
-          defined(__s390x__) || defined(__mips64) ) )
-       #define MBEDTLS_HAVE_INT64
-       typedef  int64_t mbedtls_mpi_sint;
-       typedef uint64_t mbedtls_mpi_uint;
-       typedef unsigned int mbedtls_t_udbl __attribute__((mode(TI)));
+     #define MBEDTLS_HAVE_INT32
+     typedef  int32_t mbedtls_mpi_sint;
+     typedef uint32_t mbedtls_mpi_uint;
+     #if ( defined(_MSC_VER) && defined(_M_IX86) )
+       typedef uint64_t mbedtls_t_udbl;
        #define MBEDTLS_HAVE_UDBL
-    #else
-       #define MBEDTLS_HAVE_INT32
-       typedef  int32_t mbedtls_mpi_sint;
-       typedef uint32_t mbedtls_mpi_uint;
-       #if ( defined(_MSC_VER) && defined(_M_IX86) )
-         typedef uint64_t mbedtls_t_udbl;
+     #else
+       #if defined( MBEDTLS_HAVE_LONGLONG )
+         typedef unsigned long long mbedtls_t_udbl;
          #define MBEDTLS_HAVE_UDBL
-       #else
-         #if defined( MBEDTLS_HAVE_LONGLONG )
-           typedef unsigned long long mbedtls_t_udbl;
-           #define MBEDTLS_HAVE_UDBL
-         #endif
        #endif
-    #endif /* !MBEDTLS_HAVE_INT32 && __GNUC__ && 64-bit platform */
-  #endif /* !MBEDTLS_HAVE_INT32 && _MSC_VER && _M_AMD64 */
-#endif /* MBEDTLS_HAVE_INT16 */
-#endif /* MBEDTLS_HAVE_INT8  */
+     #endif
+  #endif /* !MBEDTLS_HAVE_INT32 && __GNUC__ && 64-bit platform */
+#endif /* !MBEDTLS_HAVE_INT32 && _MSC_VER && _M_AMD64 */
 
 #ifdef __cplusplus
 extern "C" {

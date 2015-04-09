@@ -1,5 +1,5 @@
 /**
- * \file md4.h
+ * \file mbedtls_md4.h
  *
  * \brief MD4 message digest algorithm (hash function)
  *
@@ -21,13 +21,13 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_MD4_H
-#define POLARSSL_MD4_H
+#ifndef MBEDTLS_MD4_H
+#define MBEDTLS_MD4_H
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
 #include <stddef.h>
@@ -39,9 +39,9 @@ typedef UINT32 uint32_t;
 #include <inttypes.h>
 #endif
 
-#define POLARSSL_ERR_MD4_FILE_IO_ERROR                 -0x0072  /**< Read/write error in file. */
+#define MBEDTLS_ERR_MD4_FILE_IO_ERROR                 -0x0072  /**< Read/write error in file. */
 
-#if !defined(POLARSSL_MD4_ALT)
+#if !defined(MBEDTLS_MD4_ALT)
 // Regular implementation
 //
 
@@ -58,28 +58,28 @@ typedef struct
     uint32_t state[4];          /*!< intermediate digest state  */
     unsigned char buffer[64];   /*!< data block being processed */
 }
-md4_context;
+mbedtls_md4_context;
 
 /**
  * \brief          Initialize MD4 context
  *
  * \param ctx      MD4 context to be initialized
  */
-void md4_init( md4_context *ctx );
+void mbedtls_md4_init( mbedtls_md4_context *ctx );
 
 /**
  * \brief          Clear MD4 context
  *
  * \param ctx      MD4 context to be cleared
  */
-void md4_free( md4_context *ctx );
+void mbedtls_md4_free( mbedtls_md4_context *ctx );
 
 /**
  * \brief          MD4 context setup
  *
  * \param ctx      context to be initialized
  */
-void md4_starts( md4_context *ctx );
+void mbedtls_md4_starts( mbedtls_md4_context *ctx );
 
 /**
  * \brief          MD4 process buffer
@@ -88,7 +88,7 @@ void md4_starts( md4_context *ctx );
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  */
-void md4_update( md4_context *ctx, const unsigned char *input, size_t ilen );
+void mbedtls_md4_update( mbedtls_md4_context *ctx, const unsigned char *input, size_t ilen );
 
 /**
  * \brief          MD4 final digest
@@ -96,15 +96,15 @@ void md4_update( md4_context *ctx, const unsigned char *input, size_t ilen );
  * \param ctx      MD4 context
  * \param output   MD4 checksum result
  */
-void md4_finish( md4_context *ctx, unsigned char output[16] );
+void mbedtls_md4_finish( mbedtls_md4_context *ctx, unsigned char output[16] );
 
 #ifdef __cplusplus
 }
 #endif
 
-#else  /* POLARSSL_MD4_ALT */
+#else  /* MBEDTLS_MD4_ALT */
 #include "md4_alt.h"
-#endif /* POLARSSL_MD4_ALT */
+#endif /* MBEDTLS_MD4_ALT */
 
 #ifdef __cplusplus
 extern "C" {
@@ -117,7 +117,7 @@ extern "C" {
  * \param ilen     length of the input data
  * \param output   MD4 checksum result
  */
-void md4( const unsigned char *input, size_t ilen, unsigned char output[16] );
+void mbedtls_md4( const unsigned char *input, size_t ilen, unsigned char output[16] );
 
 /**
  * \brief          Output = MD4( file contents )
@@ -125,22 +125,22 @@ void md4( const unsigned char *input, size_t ilen, unsigned char output[16] );
  * \param path     input file name
  * \param output   MD4 checksum result
  *
- * \return         0 if successful, or POLARSSL_ERR_MD4_FILE_IO_ERROR
+ * \return         0 if successful, or MBEDTLS_ERR_MD4_FILE_IO_ERROR
  */
-int md4_file( const char *path, unsigned char output[16] );
+int mbedtls_md4_file( const char *path, unsigned char output[16] );
 
 /**
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed
  */
-int md4_self_test( int verbose );
+int mbedtls_md4_self_test( int verbose );
 
 /* Internal use */
-void md4_process( md4_context *ctx, const unsigned char data[64] );
+void mbedtls_md4_process( mbedtls_md4_context *ctx, const unsigned char data[64] );
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* md4.h */
+#endif /* mbedtls_md4.h */

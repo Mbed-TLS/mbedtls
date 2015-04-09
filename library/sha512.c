@@ -25,13 +25,13 @@
  *  http://csrc.nist.gov/publications/fips/fips180-2/fips180-2.pdf
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_SHA512_C)
+#if defined(MBEDTLS_SHA512_C)
 
 #include "mbedtls/sha512.h"
 
@@ -43,25 +43,25 @@
 
 #include <string.h>
 
-#if defined(POLARSSL_FS_IO)
+#if defined(MBEDTLS_FS_IO)
 #include <stdio.h>
 #endif
 
-#if defined(POLARSSL_SELF_TEST)
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_SELF_TEST)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define polarssl_printf printf
-#endif /* POLARSSL_PLATFORM_C */
-#endif /* POLARSSL_SELF_TEST */
+#define mbedtls_printf printf
+#endif /* MBEDTLS_PLATFORM_C */
+#endif /* MBEDTLS_SELF_TEST */
 
 /* Implementation that should never be optimized out by the compiler */
-static void polarssl_zeroize( void *v, size_t n ) {
+static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
-#if !defined(POLARSSL_SHA512_ALT)
+#if !defined(MBEDTLS_SHA512_ALT)
 
 /*
  * 64-bit integer manipulation macros (big endian)
@@ -141,23 +141,23 @@ static const uint64_t K[80] =
     UL64(0x5FCB6FAB3AD6FAEC),  UL64(0x6C44198C4A475817)
 };
 
-void sha512_init( sha512_context *ctx )
+void mbedtls_sha512_init( mbedtls_sha512_context *ctx )
 {
-    memset( ctx, 0, sizeof( sha512_context ) );
+    memset( ctx, 0, sizeof( mbedtls_sha512_context ) );
 }
 
-void sha512_free( sha512_context *ctx )
+void mbedtls_sha512_free( mbedtls_sha512_context *ctx )
 {
     if( ctx == NULL )
         return;
 
-    polarssl_zeroize( ctx, sizeof( sha512_context ) );
+    mbedtls_zeroize( ctx, sizeof( mbedtls_sha512_context ) );
 }
 
 /*
  * SHA-512 context setup
  */
-void sha512_starts( sha512_context *ctx, int is384 )
+void mbedtls_sha512_starts( mbedtls_sha512_context *ctx, int is384 )
 {
     ctx->total[0] = 0;
     ctx->total[1] = 0;
@@ -190,8 +190,8 @@ void sha512_starts( sha512_context *ctx, int is384 )
     ctx->is384 = is384;
 }
 
-#if !defined(POLARSSL_SHA512_PROCESS_ALT)
-void sha512_process( sha512_context *ctx, const unsigned char data[128] )
+#if !defined(MBEDTLS_SHA512_PROCESS_ALT)
+void mbedtls_sha512_process( mbedtls_sha512_context *ctx, const unsigned char data[128] )
 {
     int i;
     uint64_t temp1, temp2, W[80];
@@ -259,12 +259,12 @@ void sha512_process( sha512_context *ctx, const unsigned char data[128] )
     ctx->state[6] += G;
     ctx->state[7] += H;
 }
-#endif /* !POLARSSL_SHA512_PROCESS_ALT */
+#endif /* !MBEDTLS_SHA512_PROCESS_ALT */
 
 /*
  * SHA-512 process buffer
  */
-void sha512_update( sha512_context *ctx, const unsigned char *input,
+void mbedtls_sha512_update( mbedtls_sha512_context *ctx, const unsigned char *input,
                     size_t ilen )
 {
     size_t fill;
@@ -284,7 +284,7 @@ void sha512_update( sha512_context *ctx, const unsigned char *input,
     if( left && ilen >= fill )
     {
         memcpy( (void *) (ctx->buffer + left), input, fill );
-        sha512_process( ctx, ctx->buffer );
+        mbedtls_sha512_process( ctx, ctx->buffer );
         input += fill;
         ilen  -= fill;
         left = 0;
@@ -292,7 +292,7 @@ void sha512_update( sha512_context *ctx, const unsigned char *input,
 
     while( ilen >= 128 )
     {
-        sha512_process( ctx, input );
+        mbedtls_sha512_process( ctx, input );
         input += 128;
         ilen  -= 128;
     }
@@ -316,7 +316,7 @@ static const unsigned char sha512_padding[128] =
 /*
  * SHA-512 final digest
  */
-void sha512_finish( sha512_context *ctx, unsigned char output[64] )
+void mbedtls_sha512_finish( mbedtls_sha512_context *ctx, unsigned char output[64] )
 {
     size_t last, padn;
     uint64_t high, low;
@@ -332,8 +332,8 @@ void sha512_finish( sha512_context *ctx, unsigned char output[64] )
     last = (size_t)( ctx->total[0] & 0x7F );
     padn = ( last < 112 ) ? ( 112 - last ) : ( 240 - last );
 
-    sha512_update( ctx, sha512_padding, padn );
-    sha512_update( ctx, msglen, 16 );
+    mbedtls_sha512_update( ctx, sha512_padding, padn );
+    mbedtls_sha512_update( ctx, msglen, 16 );
 
     PUT_UINT64_BE( ctx->state[0], output,  0 );
     PUT_UINT64_BE( ctx->state[1], output,  8 );
@@ -349,58 +349,58 @@ void sha512_finish( sha512_context *ctx, unsigned char output[64] )
     }
 }
 
-#endif /* !POLARSSL_SHA512_ALT */
+#endif /* !MBEDTLS_SHA512_ALT */
 
 /*
  * output = SHA-512( input buffer )
  */
-void sha512( const unsigned char *input, size_t ilen,
+void mbedtls_sha512( const unsigned char *input, size_t ilen,
              unsigned char output[64], int is384 )
 {
-    sha512_context ctx;
+    mbedtls_sha512_context ctx;
 
-    sha512_init( &ctx );
-    sha512_starts( &ctx, is384 );
-    sha512_update( &ctx, input, ilen );
-    sha512_finish( &ctx, output );
-    sha512_free( &ctx );
+    mbedtls_sha512_init( &ctx );
+    mbedtls_sha512_starts( &ctx, is384 );
+    mbedtls_sha512_update( &ctx, input, ilen );
+    mbedtls_sha512_finish( &ctx, output );
+    mbedtls_sha512_free( &ctx );
 }
 
-#if defined(POLARSSL_FS_IO)
+#if defined(MBEDTLS_FS_IO)
 /*
  * output = SHA-512( file contents )
  */
-int sha512_file( const char *path, unsigned char output[64], int is384 )
+int mbedtls_sha512_file( const char *path, unsigned char output[64], int is384 )
 {
     FILE *f;
     size_t n;
-    sha512_context ctx;
+    mbedtls_sha512_context ctx;
     unsigned char buf[1024];
 
     if( ( f = fopen( path, "rb" ) ) == NULL )
-        return( POLARSSL_ERR_SHA512_FILE_IO_ERROR );
+        return( MBEDTLS_ERR_SHA512_FILE_IO_ERROR );
 
-    sha512_init( &ctx );
-    sha512_starts( &ctx, is384 );
+    mbedtls_sha512_init( &ctx );
+    mbedtls_sha512_starts( &ctx, is384 );
 
     while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
-        sha512_update( &ctx, buf, n );
+        mbedtls_sha512_update( &ctx, buf, n );
 
-    sha512_finish( &ctx, output );
-    sha512_free( &ctx );
+    mbedtls_sha512_finish( &ctx, output );
+    mbedtls_sha512_free( &ctx );
 
     if( ferror( f ) != 0 )
     {
         fclose( f );
-        return( POLARSSL_ERR_SHA512_FILE_IO_ERROR );
+        return( MBEDTLS_ERR_SHA512_FILE_IO_ERROR );
     }
 
     fclose( f );
     return( 0 );
 }
-#endif /* POLARSSL_FS_IO */
+#endif /* MBEDTLS_FS_IO */
 
-#if defined(POLARSSL_SELF_TEST)
+#if defined(MBEDTLS_SELF_TEST)
 
 /*
  * FIPS-180-2 test vectors
@@ -474,14 +474,14 @@ static const unsigned char sha512_test_sum[6][64] =
 /*
  * Checkup routine
  */
-int sha512_self_test( int verbose )
+int mbedtls_sha512_self_test( int verbose )
 {
     int i, j, k, buflen, ret = 0;
     unsigned char buf[1024];
     unsigned char sha512sum[64];
-    sha512_context ctx;
+    mbedtls_sha512_context ctx;
 
-    sha512_init( &ctx );
+    mbedtls_sha512_init( &ctx );
 
     for( i = 0; i < 6; i++ )
     {
@@ -489,45 +489,45 @@ int sha512_self_test( int verbose )
         k = i < 3;
 
         if( verbose != 0 )
-            polarssl_printf( "  SHA-%d test #%d: ", 512 - k * 128, j + 1 );
+            mbedtls_printf( "  SHA-%d test #%d: ", 512 - k * 128, j + 1 );
 
-        sha512_starts( &ctx, k );
+        mbedtls_sha512_starts( &ctx, k );
 
         if( j == 2 )
         {
             memset( buf, 'a', buflen = 1000 );
 
             for( j = 0; j < 1000; j++ )
-                sha512_update( &ctx, buf, buflen );
+                mbedtls_sha512_update( &ctx, buf, buflen );
         }
         else
-            sha512_update( &ctx, sha512_test_buf[j],
+            mbedtls_sha512_update( &ctx, sha512_test_buf[j],
                                  sha512_test_buflen[j] );
 
-        sha512_finish( &ctx, sha512sum );
+        mbedtls_sha512_finish( &ctx, sha512sum );
 
         if( memcmp( sha512sum, sha512_test_sum[i], 64 - k * 16 ) != 0 )
         {
             if( verbose != 0 )
-                polarssl_printf( "failed\n" );
+                mbedtls_printf( "failed\n" );
 
             ret = 1;
             goto exit;
         }
 
         if( verbose != 0 )
-            polarssl_printf( "passed\n" );
+            mbedtls_printf( "passed\n" );
     }
 
     if( verbose != 0 )
-        polarssl_printf( "\n" );
+        mbedtls_printf( "\n" );
 
 exit:
-    sha512_free( &ctx );
+    mbedtls_sha512_free( &ctx );
 
     return( ret );
 }
 
-#endif /* POLARSSL_SELF_TEST */
+#endif /* MBEDTLS_SELF_TEST */
 
-#endif /* POLARSSL_SHA512_C */
+#endif /* MBEDTLS_SHA512_C */

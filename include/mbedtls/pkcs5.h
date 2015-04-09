@@ -23,8 +23,8 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_PKCS5_H
-#define POLARSSL_PKCS5_H
+#ifndef MBEDTLS_PKCS5_H
+#define MBEDTLS_PKCS5_H
 
 #include "asn1.h"
 #include "md.h"
@@ -38,13 +38,13 @@ typedef UINT32 uint32_t;
 #include <inttypes.h>
 #endif
 
-#define POLARSSL_ERR_PKCS5_BAD_INPUT_DATA                  -0x3f80  /**< Bad input parameters to function. */
-#define POLARSSL_ERR_PKCS5_INVALID_FORMAT                  -0x3f00  /**< Unexpected ASN.1 data. */
-#define POLARSSL_ERR_PKCS5_FEATURE_UNAVAILABLE             -0x3e80  /**< Requested encryption or digest alg not available. */
-#define POLARSSL_ERR_PKCS5_PASSWORD_MISMATCH               -0x3e00  /**< Given private key password does not allow for correct decryption. */
+#define MBEDTLS_ERR_PKCS5_BAD_INPUT_DATA                  -0x3f80  /**< Bad input parameters to function. */
+#define MBEDTLS_ERR_PKCS5_INVALID_FORMAT                  -0x3f00  /**< Unexpected ASN.1 data. */
+#define MBEDTLS_ERR_PKCS5_FEATURE_UNAVAILABLE             -0x3e80  /**< Requested encryption or digest alg not available. */
+#define MBEDTLS_ERR_PKCS5_PASSWORD_MISMATCH               -0x3e00  /**< Given private key password does not allow for correct decryption. */
 
-#define PKCS5_DECRYPT      0
-#define PKCS5_ENCRYPT      1
+#define MBEDTLS_PKCS5_DECRYPT      0
+#define MBEDTLS_PKCS5_ENCRYPT      1
 
 #ifdef __cplusplus
 extern "C" {
@@ -54,16 +54,16 @@ extern "C" {
  * \brief          PKCS#5 PBES2 function
  *
  * \param pbe_params the ASN.1 algorithm parameters
- * \param mode       either PKCS5_DECRYPT or PKCS5_ENCRYPT
+ * \param mode       either MBEDTLS_PKCS5_DECRYPT or MBEDTLS_PKCS5_ENCRYPT
  * \param pwd        password to use when generating key
  * \param pwdlen     length of password
  * \param data       data to process
  * \param datalen    length of data
  * \param output     output buffer
  *
- * \returns        0 on success, or a POLARSSL_ERR_XXX code if verification fails.
+ * \returns        0 on success, or a MBEDTLS_ERR_XXX code if verification fails.
  */
-int pkcs5_pbes2( const asn1_buf *pbe_params, int mode,
+int mbedtls_pkcs5_pbes2( const mbedtls_asn1_buf *pbe_params, int mode,
                  const unsigned char *pwd,  size_t pwdlen,
                  const unsigned char *data, size_t datalen,
                  unsigned char *output );
@@ -80,9 +80,9 @@ int pkcs5_pbes2( const asn1_buf *pbe_params, int mode,
  * \param key_length            Length of generated key
  * \param output   Generated key. Must be at least as big as key_length
  *
- * \returns        0 on success, or a POLARSSL_ERR_XXX code if verification fails.
+ * \returns        0 on success, or a MBEDTLS_ERR_XXX code if verification fails.
  */
-int pkcs5_pbkdf2_hmac( md_context_t *ctx, const unsigned char *password,
+int mbedtls_pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx, const unsigned char *password,
                        size_t plen, const unsigned char *salt, size_t slen,
                        unsigned int iteration_count,
                        uint32_t key_length, unsigned char *output );
@@ -92,7 +92,7 @@ int pkcs5_pbkdf2_hmac( md_context_t *ctx, const unsigned char *password,
  *
  * \return         0 if successful, or 1 if the test failed
  */
-int pkcs5_self_test( int verbose );
+int mbedtls_pkcs5_self_test( int verbose );
 
 #ifdef __cplusplus
 }

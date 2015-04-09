@@ -6,12 +6,12 @@
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:POLARSSL_ASN1_WRITE_C
+ * depends_on:MBEDTLS_ASN1_WRITE_C
  * END_DEPENDENCIES
  */
 
 /* BEGIN_CASE */
-void asn1_write_octet_string( char *hex_str, char *hex_asn1,
+void mbedtls_asn1_write_octet_string( char *hex_str, char *hex_asn1,
                               int buf_len, int result )
 {
     int ret;
@@ -28,7 +28,7 @@ void asn1_write_octet_string( char *hex_str, char *hex_asn1,
 
     p = buf + GUARD_LEN + buf_len;
 
-    ret = asn1_write_octet_string( &p, buf + GUARD_LEN, str, str_len );
+    ret = mbedtls_asn1_write_octet_string( &p, buf + GUARD_LEN, str, str_len );
 
     /* Check for buffer overwrite on both sides */
     for( i = 0; i < GUARD_LEN; i++ )
@@ -48,7 +48,7 @@ void asn1_write_octet_string( char *hex_str, char *hex_asn1,
 /* END_CASE */
 
 /* BEGIN_CASE */
-void asn1_write_ia5_string( char *str, char *hex_asn1,
+void mbedtls_asn1_write_ia5_string( char *str, char *hex_asn1,
                             int buf_len, int result )
 {
     int ret;
@@ -64,7 +64,7 @@ void asn1_write_ia5_string( char *str, char *hex_asn1,
 
     p = buf + GUARD_LEN + buf_len;
 
-    ret = asn1_write_ia5_string( &p, buf + GUARD_LEN, str, str_len );
+    ret = mbedtls_asn1_write_ia5_string( &p, buf + GUARD_LEN, str, str_len );
 
     /* Check for buffer overwrite on both sides */
     for( i = 0; i < GUARD_LEN; i++ )

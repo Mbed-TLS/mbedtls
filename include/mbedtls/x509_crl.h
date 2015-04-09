@@ -1,5 +1,5 @@
 /**
- * \file x509_crl.h
+ * \file mbedtls_x509_crl.h
  *
  * \brief X.509 certificate revocation list parsing
  *
@@ -21,13 +21,13 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_X509_CRL_H
-#define POLARSSL_X509_CRL_H
+#ifndef MBEDTLS_X509_CRL_H
+#define MBEDTLS_X509_CRL_H
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
 #include "x509.h"
@@ -49,52 +49,52 @@ extern "C" {
  * Certificate revocation list entry.
  * Contains the CA-specific serial numbers and revocation dates.
  */
-typedef struct _x509_crl_entry
+typedef struct mbedtls_x509_crl_entry
 {
-    x509_buf raw;
+    mbedtls_x509_buf raw;
 
-    x509_buf serial;
+    mbedtls_x509_buf serial;
 
-    x509_time revocation_date;
+    mbedtls_x509_time revocation_date;
 
-    x509_buf entry_ext;
+    mbedtls_x509_buf entry_ext;
 
-    struct _x509_crl_entry *next;
+    struct mbedtls_x509_crl_entry *next;
 }
-x509_crl_entry;
+mbedtls_x509_crl_entry;
 
 /**
  * Certificate revocation list structure.
  * Every CRL may have multiple entries.
  */
-typedef struct _x509_crl
+typedef struct mbedtls_x509_crl
 {
-    x509_buf raw;           /**< The raw certificate data (DER). */
-    x509_buf tbs;           /**< The raw certificate body (DER). The part that is To Be Signed. */
+    mbedtls_x509_buf raw;           /**< The raw certificate data (DER). */
+    mbedtls_x509_buf tbs;           /**< The raw certificate body (DER). The part that is To Be Signed. */
 
     int version;            /**< CRL version (1=v1, 2=v2) */
-    x509_buf sig_oid;       /**< CRL signature type identifier */
+    mbedtls_x509_buf sig_oid;       /**< CRL signature type identifier */
 
-    x509_buf issuer_raw;    /**< The raw issuer data (DER). */
+    mbedtls_x509_buf issuer_raw;    /**< The raw issuer data (DER). */
 
-    x509_name issuer;       /**< The parsed issuer data (named information object). */
+    mbedtls_x509_name issuer;       /**< The parsed issuer data (named information object). */
 
-    x509_time this_update;
-    x509_time next_update;
+    mbedtls_x509_time this_update;
+    mbedtls_x509_time next_update;
 
-    x509_crl_entry entry;   /**< The CRL entries containing the certificate revocation times for this CA. */
+    mbedtls_x509_crl_entry entry;   /**< The CRL entries containing the certificate revocation times for this CA. */
 
-    x509_buf crl_ext;
+    mbedtls_x509_buf crl_ext;
 
-    x509_buf sig_oid2;
-    x509_buf sig;
-    md_type_t sig_md;           /**< Internal representation of the MD algorithm of the signature algorithm, e.g. POLARSSL_MD_SHA256 */
-    pk_type_t sig_pk;           /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. POLARSSL_PK_RSA */
-    void *sig_opts;             /**< Signature options to be passed to pk_verify_ext(), e.g. for RSASSA-PSS */
+    mbedtls_x509_buf sig_oid2;
+    mbedtls_x509_buf sig;
+    mbedtls_md_type_t sig_md;           /**< Internal representation of the MD algorithm of the signature algorithm, e.g. MBEDTLS_MD_SHA256 */
+    mbedtls_pk_type_t sig_pk;           /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. MBEDTLS_PK_RSA */
+    void *sig_opts;             /**< Signature options to be passed to mbedtls_pk_verify_ext(), e.g. for RSASSA-PSS */
 
-    struct _x509_crl *next;
+    struct mbedtls_x509_crl *next;
 }
-x509_crl;
+mbedtls_x509_crl;
 
 /**
  * \brief          Parse a DER-encoded CRL and append it to the chained list
@@ -105,7 +105,7 @@ x509_crl;
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int x509_crl_parse_der( x509_crl *chain,
+int mbedtls_x509_crl_parse_der( mbedtls_x509_crl *chain,
                         const unsigned char *buf, size_t buflen );
 /**
  * \brief          Parse one or more CRLs and append them to the chained list
@@ -118,9 +118,9 @@ int x509_crl_parse_der( x509_crl *chain,
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int x509_crl_parse( x509_crl *chain, const unsigned char *buf, size_t buflen );
+int mbedtls_x509_crl_parse( mbedtls_x509_crl *chain, const unsigned char *buf, size_t buflen );
 
-#if defined(POLARSSL_FS_IO)
+#if defined(MBEDTLS_FS_IO)
 /**
  * \brief          Load one or more CRLs and append them to the chained list
  *
@@ -131,8 +131,8 @@ int x509_crl_parse( x509_crl *chain, const unsigned char *buf, size_t buflen );
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int x509_crl_parse_file( x509_crl *chain, const char *path );
-#endif /* POLARSSL_FS_IO */
+int mbedtls_x509_crl_parse_file( mbedtls_x509_crl *chain, const char *path );
+#endif /* MBEDTLS_FS_IO */
 
 /**
  * \brief          Returns an informational string about the CRL.
@@ -145,22 +145,22 @@ int x509_crl_parse_file( x509_crl *chain, const char *path );
  * \return         The amount of data written to the buffer, or -1 in
  *                 case of an error.
  */
-int x509_crl_info( char *buf, size_t size, const char *prefix,
-                   const x509_crl *crl );
+int mbedtls_x509_crl_info( char *buf, size_t size, const char *prefix,
+                   const mbedtls_x509_crl *crl );
 
 /**
  * \brief          Initialize a CRL (chain)
  *
  * \param crl      CRL chain to initialize
  */
-void x509_crl_init( x509_crl *crl );
+void mbedtls_x509_crl_init( mbedtls_x509_crl *crl );
 
 /**
  * \brief          Unallocate all CRL data
  *
  * \param crl      CRL chain to free
  */
-void x509_crl_free( x509_crl *crl );
+void mbedtls_x509_crl_free( mbedtls_x509_crl *crl );
 
 /* \} name */
 /* \} addtogroup x509_module */
@@ -169,4 +169,4 @@ void x509_crl_free( x509_crl *crl );
 }
 #endif
 
-#endif /* x509_crl.h */
+#endif /* mbedtls_x509_crl.h */

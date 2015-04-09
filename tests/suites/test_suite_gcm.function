@@ -3,7 +3,7 @@
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:POLARSSL_GCM_C
+ * depends_on:MBEDTLS_GCM_C
  * END_DEPENDENCIES
  */
 
@@ -22,7 +22,7 @@ void gcm_encrypt_and_tag( int cipher_id,
     unsigned char tag_str[128];
     unsigned char output[128];
     unsigned char tag_output[16];
-    gcm_context ctx;
+    mbedtls_gcm_context ctx;
     unsigned int key_len;
     size_t pt_len, iv_len, add_len, tag_len = tag_len_bits / 8;
 
@@ -40,10 +40,10 @@ void gcm_encrypt_and_tag( int cipher_id,
     iv_len = unhexify( iv_str, hex_iv_string );
     add_len = unhexify( add_str, hex_add_string );
 
-    TEST_ASSERT( gcm_init( &ctx, cipher_id, key_str, key_len * 8 ) == init_result );
+    TEST_ASSERT( mbedtls_gcm_init( &ctx, cipher_id, key_str, key_len * 8 ) == init_result );
     if( init_result == 0 )
     {
-        TEST_ASSERT( gcm_crypt_and_tag( &ctx, GCM_ENCRYPT, pt_len, iv_str, iv_len, add_str, add_len, src_str, output, tag_len, tag_output ) == 0 );
+        TEST_ASSERT( mbedtls_gcm_crypt_and_tag( &ctx, MBEDTLS_GCM_ENCRYPT, pt_len, iv_str, iv_len, add_str, add_len, src_str, output, tag_len, tag_output ) == 0 );
         hexify( dst_str, output, pt_len );
         hexify( tag_str, tag_output, tag_len );
 
@@ -52,7 +52,7 @@ void gcm_encrypt_and_tag( int cipher_id,
     }
 
 exit:
-    gcm_free( &ctx );
+    mbedtls_gcm_free( &ctx );
 }
 /* END_CASE */
 
@@ -70,7 +70,7 @@ void gcm_decrypt_and_verify( int cipher_id,
     unsigned char add_str[128];
     unsigned char tag_str[128];
     unsigned char output[128];
-    gcm_context ctx;
+    mbedtls_gcm_context ctx;
     unsigned int key_len;
     size_t pt_len, iv_len, add_len, tag_len = tag_len_bits / 8;
     int ret;
@@ -89,14 +89,14 @@ void gcm_decrypt_and_verify( int cipher_id,
     add_len = unhexify( add_str, hex_add_string );
     unhexify( tag_str, hex_tag_string );
 
-    TEST_ASSERT( gcm_init( &ctx, cipher_id, key_str, key_len * 8 ) == init_result );
+    TEST_ASSERT( mbedtls_gcm_init( &ctx, cipher_id, key_str, key_len * 8 ) == init_result );
     if( init_result == 0 )
     {
-        ret = gcm_auth_decrypt( &ctx, pt_len, iv_str, iv_len, add_str, add_len, tag_str, tag_len, src_str, output );
+        ret = mbedtls_gcm_auth_decrypt( &ctx, pt_len, iv_str, iv_len, add_str, add_len, tag_str, tag_len, src_str, output );
 
         if( strcmp( "FAIL", pt_result ) == 0 )
         {
-            TEST_ASSERT( ret == POLARSSL_ERR_GCM_AUTH_FAILED );
+            TEST_ASSERT( ret == MBEDTLS_ERR_GCM_AUTH_FAILED );
         }
         else
         {
@@ -108,13 +108,13 @@ void gcm_decrypt_and_verify( int cipher_id,
     }
 
 exit:
-    gcm_free( &ctx );
+    mbedtls_gcm_free( &ctx );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_SELF_TEST */
+/* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void gcm_selftest()
 {
-    TEST_ASSERT( gcm_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_gcm_self_test( 0 ) == 0 );
 }
 /* END_CASE */

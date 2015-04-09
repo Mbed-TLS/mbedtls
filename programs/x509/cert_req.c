@@ -20,27 +20,27 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define polarssl_printf     printf
+#define mbedtls_printf     printf
 #endif
 
-#if !defined(POLARSSL_X509_CSR_WRITE_C) || !defined(POLARSSL_FS_IO) ||  \
-    !defined(POLARSSL_PK_PARSE_C) || !defined(POLARSSL_SHA256_C) || \
-    !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C)
+#if !defined(MBEDTLS_X509_CSR_WRITE_C) || !defined(MBEDTLS_FS_IO) ||  \
+    !defined(MBEDTLS_PK_PARSE_C) || !defined(MBEDTLS_SHA256_C) || \
+    !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C)
 int main( void )
 {
-    polarssl_printf( "POLARSSL_X509_CSR_WRITE_C and/or POLARSSL_FS_IO and/or "
-            "POLARSSL_PK_PARSE_C and/or POLARSSL_SHA256_C and/or "
-            "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C "
+    mbedtls_printf( "MBEDTLS_X509_CSR_WRITE_C and/or MBEDTLS_FS_IO and/or "
+            "MBEDTLS_PK_PARSE_C and/or MBEDTLS_SHA256_C and/or "
+            "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C "
             "not defined.\n");
     return( 0 );
 }
@@ -102,7 +102,7 @@ struct options
     unsigned char ns_cert_type; /* NS cert type                         */
 } opt;
 
-int write_certificate_request( x509write_csr *req, const char *output_file,
+int write_certificate_request( mbedtls_x509write_csr *req, const char *output_file,
                                int (*f_rng)(void *, unsigned char *, size_t),
                                void *p_rng )
 {
@@ -112,7 +112,7 @@ int write_certificate_request( x509write_csr *req, const char *output_file,
     size_t len = 0;
 
     memset( output_buf, 0, 4096 );
-    if( ( ret = x509write_csr_pem( req, output_buf, 4096, f_rng, p_rng ) ) < 0 )
+    if( ( ret = mbedtls_x509write_csr_pem( req, output_buf, 4096, f_rng, p_rng ) ) < 0 )
         return( ret );
 
     len = strlen( (char *) output_buf );
@@ -134,27 +134,27 @@ int write_certificate_request( x509write_csr *req, const char *output_file,
 int main( int argc, char *argv[] )
 {
     int ret = 0;
-    pk_context key;
+    mbedtls_pk_context key;
     char buf[1024];
     int i;
     char *p, *q, *r;
-    x509write_csr req;
-    entropy_context entropy;
-    ctr_drbg_context ctr_drbg;
+    mbedtls_x509write_csr req;
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
     const char *pers = "csr example app";
 
     /*
      * Set to sane values
      */
-    x509write_csr_init( &req );
-    x509write_csr_set_md_alg( &req, POLARSSL_MD_SHA256 );
-    pk_init( &key );
+    mbedtls_x509write_csr_init( &req );
+    mbedtls_x509write_csr_set_md_alg( &req, MBEDTLS_MD_SHA256 );
+    mbedtls_pk_init( &key );
     memset( buf, 0, sizeof( buf ) );
 
     if( argc == 0 )
     {
     usage:
-        polarssl_printf( USAGE );
+        mbedtls_printf( USAGE );
         ret = 1;
         goto exit;
     }
@@ -196,19 +196,19 @@ int main( int argc, char *argv[] )
                     *r++ = '\0';
 
                 if( strcmp( q, "digital_signature" ) == 0 )
-                    opt.key_usage |= KU_DIGITAL_SIGNATURE;
+                    opt.key_usage |= MBEDTLS_X509_KU_DIGITAL_SIGNATURE;
                 else if( strcmp( q, "non_repudiation" ) == 0 )
-                    opt.key_usage |= KU_NON_REPUDIATION;
+                    opt.key_usage |= MBEDTLS_X509_KU_NON_REPUDIATION;
                 else if( strcmp( q, "key_encipherment" ) == 0 )
-                    opt.key_usage |= KU_KEY_ENCIPHERMENT;
+                    opt.key_usage |= MBEDTLS_KU_KEY_ENCIPHERMENT;
                 else if( strcmp( q, "data_encipherment" ) == 0 )
-                    opt.key_usage |= KU_DATA_ENCIPHERMENT;
+                    opt.key_usage |= MBEDTLS_KU_DATA_ENCIPHERMENT;
                 else if( strcmp( q, "key_agreement" ) == 0 )
-                    opt.key_usage |= KU_KEY_AGREEMENT;
+                    opt.key_usage |= MBEDTLS_KU_KEY_AGREEMENT;
                 else if( strcmp( q, "key_cert_sign" ) == 0 )
-                    opt.key_usage |= KU_KEY_CERT_SIGN;
+                    opt.key_usage |= MBEDTLS_X509_KU_KEY_CERT_SIGN;
                 else if( strcmp( q, "crl_sign" ) == 0 )
-                    opt.key_usage |= KU_CRL_SIGN;
+                    opt.key_usage |= MBEDTLS_X509_KU_CRL_SIGN;
                 else
                     goto usage;
 
@@ -223,19 +223,19 @@ int main( int argc, char *argv[] )
                     *r++ = '\0';
 
                 if( strcmp( q, "ssl_client" ) == 0 )
-                    opt.ns_cert_type |= NS_CERT_TYPE_SSL_CLIENT;
+                    opt.ns_cert_type |= MBEDTLS_X509_NS_CERT_TYPE_SSL_CLIENT;
                 else if( strcmp( q, "ssl_server" ) == 0 )
-                    opt.ns_cert_type |= NS_CERT_TYPE_SSL_SERVER;
+                    opt.ns_cert_type |= MBEDTLS_NS_CERT_TYPE_SSL_SERVER;
                 else if( strcmp( q, "email" ) == 0 )
-                    opt.ns_cert_type |= NS_CERT_TYPE_EMAIL;
+                    opt.ns_cert_type |= MBEDTLS_X509_NS_CERT_TYPE_EMAIL;
                 else if( strcmp( q, "object_signing" ) == 0 )
-                    opt.ns_cert_type |= NS_CERT_TYPE_OBJECT_SIGNING;
+                    opt.ns_cert_type |= MBEDTLS_X509_NS_CERT_TYPE_OBJECT_SIGNING;
                 else if( strcmp( q, "ssl_ca" ) == 0 )
-                    opt.ns_cert_type |= NS_CERT_TYPE_SSL_CA;
+                    opt.ns_cert_type |= MBEDTLS_NS_CERT_TYPE_SSL_CA;
                 else if( strcmp( q, "email_ca" ) == 0 )
-                    opt.ns_cert_type |= NS_CERT_TYPE_EMAIL_CA;
+                    opt.ns_cert_type |= MBEDTLS_NS_CERT_TYPE_EMAIL_CA;
                 else if( strcmp( q, "object_signing_ca" ) == 0 )
-                    opt.ns_cert_type |= NS_CERT_TYPE_OBJECT_SIGNING_CA;
+                    opt.ns_cert_type |= MBEDTLS_NS_CERT_TYPE_OBJECT_SIGNING_CA;
                 else
                     goto usage;
 
@@ -247,98 +247,98 @@ int main( int argc, char *argv[] )
     }
 
     if( opt.key_usage )
-        x509write_csr_set_key_usage( &req, opt.key_usage );
+        mbedtls_x509write_csr_set_key_usage( &req, opt.key_usage );
 
     if( opt.ns_cert_type )
-        x509write_csr_set_ns_cert_type( &req, opt.ns_cert_type );
+        mbedtls_x509write_csr_set_ns_cert_type( &req, opt.ns_cert_type );
 
     /*
      * 0. Seed the PRNG
      */
-    polarssl_printf( "  . Seeding the random number generator..." );
+    mbedtls_printf( "  . Seeding the random number generator..." );
     fflush( stdout );
 
-    entropy_init( &entropy );
-    if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
+    mbedtls_entropy_init( &entropy );
+    if( ( ret = mbedtls_ctr_drbg_init( &ctr_drbg, mbedtls_entropy_func, &entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        polarssl_printf( " failed\n  !  ctr_drbg_init returned %d", ret );
+        mbedtls_printf( " failed\n  !  mbedtls_ctr_drbg_init returned %d", ret );
         goto exit;
     }
 
-    polarssl_printf( " ok\n" );
+    mbedtls_printf( " ok\n" );
 
     /*
      * 1.0. Check the subject name for validity
      */
-    polarssl_printf( "  . Checking subjet name..." );
+    mbedtls_printf( "  . Checking subjet name..." );
     fflush( stdout );
 
-    if( ( ret = x509write_csr_set_subject_name( &req, opt.subject_name ) ) != 0 )
+    if( ( ret = mbedtls_x509write_csr_set_subject_name( &req, opt.subject_name ) ) != 0 )
     {
-        polarssl_printf( " failed\n  !  x509write_csr_set_subject_name returned %d", ret );
+        mbedtls_printf( " failed\n  !  mbedtls_x509write_csr_set_subject_name returned %d", ret );
         goto exit;
     }
 
-    polarssl_printf( " ok\n" );
+    mbedtls_printf( " ok\n" );
 
     /*
      * 1.1. Load the key
      */
-    polarssl_printf( "  . Loading the private key ..." );
+    mbedtls_printf( "  . Loading the private key ..." );
     fflush( stdout );
 
-    ret = pk_parse_keyfile( &key, opt.filename, NULL );
+    ret = mbedtls_pk_parse_keyfile( &key, opt.filename, NULL );
 
     if( ret != 0 )
     {
-        polarssl_printf( " failed\n  !  pk_parse_keyfile returned %d", ret );
+        mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile returned %d", ret );
         goto exit;
     }
 
-    x509write_csr_set_key( &req, &key );
+    mbedtls_x509write_csr_set_key( &req, &key );
 
-    polarssl_printf( " ok\n" );
+    mbedtls_printf( " ok\n" );
 
     /*
      * 1.2. Writing the request
      */
-    polarssl_printf( "  . Writing the certificate request ..." );
+    mbedtls_printf( "  . Writing the certificate request ..." );
     fflush( stdout );
 
     if( ( ret = write_certificate_request( &req, opt.output_file,
-                                           ctr_drbg_random, &ctr_drbg ) ) != 0 )
+                                           mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
-        polarssl_printf( " failed\n  !  write_certifcate_request %d", ret );
+        mbedtls_printf( " failed\n  !  write_certifcate_request %d", ret );
         goto exit;
     }
 
-    polarssl_printf( " ok\n" );
+    mbedtls_printf( " ok\n" );
 
 exit:
 
     if( ret != 0 && ret != 1)
     {
-#ifdef POLARSSL_ERROR_C
-        polarssl_strerror( ret, buf, sizeof( buf ) );
-        polarssl_printf( " - %s\n", buf );
+#ifdef MBEDTLS_ERROR_C
+        mbedtls_strerror( ret, buf, sizeof( buf ) );
+        mbedtls_printf( " - %s\n", buf );
 #else
-        polarssl_printf("\n");
+        mbedtls_printf("\n");
 #endif
     }
 
-    x509write_csr_free( &req );
-    pk_free( &key );
-    ctr_drbg_free( &ctr_drbg );
-    entropy_free( &entropy );
+    mbedtls_x509write_csr_free( &req );
+    mbedtls_pk_free( &key );
+    mbedtls_ctr_drbg_free( &ctr_drbg );
+    mbedtls_entropy_free( &entropy );
 
 #if defined(_WIN32)
-    polarssl_printf( "  + Press Enter to exit this program.\n" );
+    mbedtls_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 
     return( ret );
 }
-#endif /* POLARSSL_X509_CSR_WRITE_C && POLARSSL_PK_PARSE_C && POLARSSL_FS_IO &&
-          POLARSSL_ENTROPY_C && POLARSSL_CTR_DRBG_C */
+#endif /* MBEDTLS_X509_CSR_WRITE_C && MBEDTLS_PK_PARSE_C && MBEDTLS_FS_IO &&
+          MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C */

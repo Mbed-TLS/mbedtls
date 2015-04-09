@@ -21,13 +21,13 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_BASE64_H
-#define POLARSSL_BASE64_H
+#ifndef MBEDTLS_BASE64_H
+#define MBEDTLS_BASE64_H
 
 #include <stddef.h>
 
-#define POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL               -0x002A  /**< Output buffer too small. */
-#define POLARSSL_ERR_BASE64_INVALID_CHARACTER              -0x002C  /**< Invalid character in input. */
+#define MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL               -0x002A  /**< Output buffer too small. */
+#define MBEDTLS_ERR_BASE64_INVALID_CHARACTER              -0x002C  /**< Invalid character in input. */
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,14 +41,14 @@ extern "C" {
  * \param src      source buffer
  * \param slen     amount of data to be encoded
  *
- * \return         0 if successful, or POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL.
+ * \return         0 if successful, or MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL.
  *                 *dlen is always updated to reflect the amount
  *                 of data that has (or would have) been written.
  *
  * \note           Call this function with *dlen = 0 to obtain the
  *                 required buffer size in *dlen
  */
-int base64_encode( unsigned char *dst, size_t *dlen,
+int mbedtls_base64_encode( unsigned char *dst, size_t *dlen,
                    const unsigned char *src, size_t slen );
 
 /**
@@ -59,15 +59,15 @@ int base64_encode( unsigned char *dst, size_t *dlen,
  * \param src      source buffer
  * \param slen     amount of data to be decoded
  *
- * \return         0 if successful, POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL, or
- *                 POLARSSL_ERR_BASE64_INVALID_CHARACTER if the input data is
+ * \return         0 if successful, MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL, or
+ *                 MBEDTLS_ERR_BASE64_INVALID_CHARACTER if the input data is
  *                 not correct. *dlen is always updated to reflect the amount
  *                 of data that has (or would have) been written.
  *
  * \note           Call this function with *dst = NULL or *dlen = 0 to obtain
  *                 the required buffer size in *dlen
  */
-int base64_decode( unsigned char *dst, size_t *dlen,
+int mbedtls_base64_decode( unsigned char *dst, size_t *dlen,
                    const unsigned char *src, size_t slen );
 
 /**
@@ -75,7 +75,7 @@ int base64_decode( unsigned char *dst, size_t *dlen,
  *
  * \return         0 if successful, or 1 if the test failed
  */
-int base64_self_test( int verbose );
+int mbedtls_base64_self_test( int verbose );
 
 #ifdef __cplusplus
 }

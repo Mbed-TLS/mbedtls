@@ -20,13 +20,13 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_VERSION_C)
+#if defined(MBEDTLS_VERSION_C)
 
 #include "mbedtls/version.h"
 
@@ -38,13 +38,13 @@
 #endif
 
 static const char *features[] = {
-#if defined(POLARSSL_VERSION_FEATURES)
+#if defined(MBEDTLS_VERSION_FEATURES)
 FEATURE_DEFINES
-#endif /* POLARSSL_VERSION_FEATURES */
+#endif /* MBEDTLS_VERSION_FEATURES */
     NULL
 };
 
-int version_check_feature( const char *feature )
+int mbedtls_version_check_feature( const char *feature )
 {
     const char **idx = features;
 
@@ -63,4 +63,4 @@ int version_check_feature( const char *feature )
     return( -1 );
 }
 
-#endif /* POLARSSL_VERSION_C */
+#endif /* MBEDTLS_VERSION_C */

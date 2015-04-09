@@ -648,7 +648,7 @@ add_gnutls_ciphersuites()
     esac
 }
 
-add_polarssl_ciphersuites()
+add_mbedtls_ciphersuites()
 {
     case $TYPE in
 
@@ -1177,7 +1177,7 @@ for VERIFY in $VERIFIES; do
                     add_common_ciphersuites
                     add_openssl_ciphersuites
                     add_gnutls_ciphersuites
-                    add_polarssl_ciphersuites
+                    add_mbedtls_ciphersuites
                     filter_ciphersuites
 
                     if [ "X" != "X$P_CIPHERS" ]; then

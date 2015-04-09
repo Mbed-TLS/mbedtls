@@ -21,8 +21,8 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_GCM_H
-#define POLARSSL_GCM_H
+#ifndef MBEDTLS_GCM_H
+#define MBEDTLS_GCM_H
 
 #include "cipher.h"
 
@@ -34,11 +34,11 @@ typedef UINT64 uint64_t;
 #include <stdint.h>
 #endif
 
-#define GCM_ENCRYPT     1
-#define GCM_DECRYPT     0
+#define MBEDTLS_GCM_ENCRYPT     1
+#define MBEDTLS_GCM_DECRYPT     0
 
-#define POLARSSL_ERR_GCM_AUTH_FAILED                       -0x0012  /**< Authenticated decryption failed. */
-#define POLARSSL_ERR_GCM_BAD_INPUT                         -0x0014  /**< Bad input parameters to function. */
+#define MBEDTLS_ERR_GCM_AUTH_FAILED                       -0x0012  /**< Authenticated decryption failed. */
+#define MBEDTLS_ERR_GCM_BAD_INPUT                         -0x0014  /**< Bad input parameters to function. */
 
 #ifdef __cplusplus
 extern "C" {
@@ -48,7 +48,7 @@ extern "C" {
  * \brief          GCM context structure
  */
 typedef struct {
-    cipher_context_t cipher_ctx;/*!< cipher context used */
+    mbedtls_cipher_context_t cipher_ctx;/*!< cipher context used */
     uint64_t HL[16];            /*!< Precalculated HTable */
     uint64_t HH[16];            /*!< Precalculated HTable */
     uint64_t len;               /*!< Total data length */
@@ -58,7 +58,7 @@ typedef struct {
     unsigned char buf[16];      /*!< buf working value */
     int mode;                   /*!< Encrypt or Decrypt */
 }
-gcm_context;
+mbedtls_gcm_context;
 
 /**
  * \brief           GCM initialization (encryption)
@@ -70,7 +70,7 @@ gcm_context;
  *
  * \return          0 if successful, or a cipher specific error code
  */
-int gcm_init( gcm_context *ctx, cipher_id_t cipher, const unsigned char *key,
+int mbedtls_gcm_init( mbedtls_gcm_context *ctx, mbedtls_cipher_id_t cipher, const unsigned char *key,
               unsigned int keysize );
 
 /**
@@ -82,7 +82,7 @@ int gcm_init( gcm_context *ctx, cipher_id_t cipher, const unsigned char *key,
  *       behind the input buffer.
  *
  * \param ctx       GCM context
- * \param mode      GCM_ENCRYPT or GCM_DECRYPT
+ * \param mode      MBEDTLS_GCM_ENCRYPT or MBEDTLS_GCM_DECRYPT
  * \param length    length of the input data
  * \param iv        initialization vector
  * \param iv_len    length of IV
@@ -95,7 +95,7 @@ int gcm_init( gcm_context *ctx, cipher_id_t cipher, const unsigned char *key,
  *
  * \return         0 if successful
  */
-int gcm_crypt_and_tag( gcm_context *ctx,
+int mbedtls_gcm_crypt_and_tag( mbedtls_gcm_context *ctx,
                        int mode,
                        size_t length,
                        const unsigned char *iv,
@@ -126,9 +126,9 @@ int gcm_crypt_and_tag( gcm_context *ctx,
  * \param output    buffer for holding the output data
  *
  * \return         0 if successful and authenticated,
- *                 POLARSSL_ERR_GCM_AUTH_FAILED if tag does not match
+ *                 MBEDTLS_ERR_GCM_AUTH_FAILED if tag does not match
  */
-int gcm_auth_decrypt( gcm_context *ctx,
+int mbedtls_gcm_auth_decrypt( mbedtls_gcm_context *ctx,
                       size_t length,
                       const unsigned char *iv,
                       size_t iv_len,
@@ -143,7 +143,7 @@ int gcm_auth_decrypt( gcm_context *ctx,
  * \brief           Generic GCM stream start function
  *
  * \param ctx       GCM context
- * \param mode      GCM_ENCRYPT or GCM_DECRYPT
+ * \param mode      MBEDTLS_GCM_ENCRYPT or MBEDTLS_GCM_DECRYPT
  * \param iv        initialization vector
  * \param iv_len    length of IV
  * \param add       additional data (or NULL if length is 0)
@@ -151,7 +151,7 @@ int gcm_auth_decrypt( gcm_context *ctx,
  *
  * \return         0 if successful
  */
-int gcm_starts( gcm_context *ctx,
+int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
                 int mode,
                 const unsigned char *iv,
                 size_t iv_len,
@@ -161,7 +161,7 @@ int gcm_starts( gcm_context *ctx,
 /**
  * \brief           Generic GCM update function. Encrypts/decrypts using the
  *                  given GCM context. Expects input to be a multiple of 16
- *                  bytes! Only the last call before gcm_finish() can be less
+ *                  bytes! Only the last call before mbedtls_gcm_finish() can be less
  *                  than 16 bytes!
  *
  * \note On decryption, the output buffer cannot be the same as input buffer.
@@ -173,9 +173,9 @@ int gcm_starts( gcm_context *ctx,
  * \param input     buffer holding the input data
  * \param output    buffer for holding the output data
  *
- * \return         0 if successful or POLARSSL_ERR_GCM_BAD_INPUT
+ * \return         0 if successful or MBEDTLS_ERR_GCM_BAD_INPUT
  */
-int gcm_update( gcm_context *ctx,
+int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
                 size_t length,
                 const unsigned char *input,
                 unsigned char *output );
@@ -189,9 +189,9 @@ int gcm_update( gcm_context *ctx,
  * \param tag       buffer for holding the tag (may be NULL if tag_len is 0)
  * \param tag_len   length of the tag to generate
  *
- * \return          0 if successful or POLARSSL_ERR_GCM_BAD_INPUT
+ * \return          0 if successful or MBEDTLS_ERR_GCM_BAD_INPUT
  */
-int gcm_finish( gcm_context *ctx,
+int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
                 unsigned char *tag,
                 size_t tag_len );
 
@@ -200,14 +200,14 @@ int gcm_finish( gcm_context *ctx,
  *
  * \param ctx       GCM context to free
  */
-void gcm_free( gcm_context *ctx );
+void mbedtls_gcm_free( mbedtls_gcm_context *ctx );
 
 /**
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed
  */
-int gcm_self_test( int verbose );
+int mbedtls_gcm_self_test( int verbose );
 
 #ifdef __cplusplus
 }

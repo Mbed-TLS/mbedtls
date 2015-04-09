@@ -20,91 +20,91 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define polarssl_printf     printf
+#define mbedtls_printf     printf
 #endif
 
-#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_FS_IO)
+#if defined(MBEDTLS_BIGNUM_C) && defined(MBEDTLS_FS_IO)
 #include "mbedtls/bignum.h"
 
 #include <stdio.h>
 #endif
 
-#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_FS_IO)
+#if !defined(MBEDTLS_BIGNUM_C) || !defined(MBEDTLS_FS_IO)
 int main( void )
 {
-    polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_FS_IO not defined.\n");
+    mbedtls_printf("MBEDTLS_BIGNUM_C and/or MBEDTLS_FS_IO not defined.\n");
     return( 0 );
 }
 #else
 int main( void )
 {
     int ret;
-    mpi E, P, Q, N, H, D, X, Y, Z;
+    mbedtls_mpi E, P, Q, N, H, D, X, Y, Z;
 
-    mpi_init( &E ); mpi_init( &P ); mpi_init( &Q ); mpi_init( &N );
-    mpi_init( &H ); mpi_init( &D ); mpi_init( &X ); mpi_init( &Y );
-    mpi_init( &Z );
+    mbedtls_mpi_init( &E ); mbedtls_mpi_init( &P ); mbedtls_mpi_init( &Q ); mbedtls_mpi_init( &N );
+    mbedtls_mpi_init( &H ); mbedtls_mpi_init( &D ); mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y );
+    mbedtls_mpi_init( &Z );
 
-    MPI_CHK( mpi_read_string( &P, 10, "2789" ) );
-    MPI_CHK( mpi_read_string( &Q, 10, "3203" ) );
-    MPI_CHK( mpi_read_string( &E, 10,  "257" ) );
-    MPI_CHK( mpi_mul_mpi( &N, &P, &Q ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &P, 10, "2789" ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &Q, 10, "3203" ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &E, 10,  "257" ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &N, &P, &Q ) );
 
-    polarssl_printf( "\n  Public key:\n\n" );
-    MPI_CHK( mpi_write_file( "  N = ", &N, 10, NULL ) );
-    MPI_CHK( mpi_write_file( "  E = ", &E, 10, NULL ) );
+    mbedtls_printf( "\n  Public key:\n\n" );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "  N = ", &N, 10, NULL ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "  E = ", &E, 10, NULL ) );
 
-    polarssl_printf( "\n  Private key:\n\n" );
-    MPI_CHK( mpi_write_file( "  P = ", &P, 10, NULL ) );
-    MPI_CHK( mpi_write_file( "  Q = ", &Q, 10, NULL ) );
+    mbedtls_printf( "\n  Private key:\n\n" );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "  P = ", &P, 10, NULL ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "  Q = ", &Q, 10, NULL ) );
 
-#if defined(POLARSSL_GENPRIME)
-    MPI_CHK( mpi_sub_int( &P, &P, 1 ) );
-    MPI_CHK( mpi_sub_int( &Q, &Q, 1 ) );
-    MPI_CHK( mpi_mul_mpi( &H, &P, &Q ) );
-    MPI_CHK( mpi_inv_mod( &D, &E, &H ) );
+#if defined(MBEDTLS_GENPRIME)
+    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &P, &P, 1 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &Q, &Q, 1 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &H, &P, &Q ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( &D, &E, &H ) );
 
-    mpi_write_file( "  D = E^-1 mod (P-1)*(Q-1) = ",
+    mbedtls_mpi_write_file( "  D = E^-1 mod (P-1)*(Q-1) = ",
                     &D, 10, NULL );
 #else
-    polarssl_printf("\nTest skipped (POLARSSL_GENPRIME not defined).\n\n");
+    mbedtls_printf("\nTest skipped (MBEDTLS_GENPRIME not defined).\n\n");
 #endif
-    MPI_CHK( mpi_read_string( &X, 10, "55555" ) );
-    MPI_CHK( mpi_exp_mod( &Y, &X, &E, &N, NULL ) );
-    MPI_CHK( mpi_exp_mod( &Z, &Y, &D, &N, NULL ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &X, 10, "55555" ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &Y, &X, &E, &N, NULL ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &Z, &Y, &D, &N, NULL ) );
 
-    polarssl_printf( "\n  RSA operation:\n\n" );
-    MPI_CHK( mpi_write_file( "  X (plaintext)  = ", &X, 10, NULL ) );
-    MPI_CHK( mpi_write_file( "  Y (ciphertext) = X^E mod N = ", &Y, 10, NULL ) );
-    MPI_CHK( mpi_write_file( "  Z (decrypted)  = Y^D mod N = ", &Z, 10, NULL ) );
-    polarssl_printf( "\n" );
+    mbedtls_printf( "\n  RSA operation:\n\n" );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "  X (plaintext)  = ", &X, 10, NULL ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "  Y (ciphertext) = X^E mod N = ", &Y, 10, NULL ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "  Z (decrypted)  = Y^D mod N = ", &Z, 10, NULL ) );
+    mbedtls_printf( "\n" );
 
 cleanup:
-    mpi_free( &E ); mpi_free( &P ); mpi_free( &Q ); mpi_free( &N );
-    mpi_free( &H ); mpi_free( &D ); mpi_free( &X ); mpi_free( &Y );
-    mpi_free( &Z );
+    mbedtls_mpi_free( &E ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q ); mbedtls_mpi_free( &N );
+    mbedtls_mpi_free( &H ); mbedtls_mpi_free( &D ); mbedtls_mpi_free( &X ); mbedtls_mpi_free( &Y );
+    mbedtls_mpi_free( &Z );
 
     if( ret != 0 )
     {
-        polarssl_printf( "\nAn error occured.\n" );
+        mbedtls_printf( "\nAn error occured.\n" );
         ret = 1;
     }
 
 #if defined(_WIN32)
-    polarssl_printf( "  Press Enter to exit this program.\n" );
+    mbedtls_printf( "  Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 
     return( ret );
 }
-#endif /* POLARSSL_BIGNUM_C && POLARSSL_FS_IO */
+#endif /* MBEDTLS_BIGNUM_C && MBEDTLS_FS_IO */

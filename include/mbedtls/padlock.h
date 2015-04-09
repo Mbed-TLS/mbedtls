@@ -22,17 +22,17 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_PADLOCK_H
-#define POLARSSL_PADLOCK_H
+#ifndef MBEDTLS_PADLOCK_H
+#define MBEDTLS_PADLOCK_H
 
 #include "aes.h"
 
-#define POLARSSL_ERR_PADLOCK_DATA_MISALIGNED               -0x0030  /**< Input data should be aligned. */
+#define MBEDTLS_ERR_PADLOCK_DATA_MISALIGNED               -0x0030  /**< Input data should be aligned. */
 
-#if defined(POLARSSL_HAVE_ASM) && defined(__GNUC__) && defined(__i386__)
+#if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) && defined(__i386__)
 
-#ifndef POLARSSL_HAVE_X86
-#define POLARSSL_HAVE_X86
+#ifndef MBEDTLS_HAVE_X86
+#define MBEDTLS_HAVE_X86
 #endif
 
 #if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
@@ -42,12 +42,12 @@ typedef INT32 int32_t;
 #include <inttypes.h>
 #endif
 
-#define PADLOCK_RNG 0x000C
-#define PADLOCK_ACE 0x00C0
-#define PADLOCK_PHE 0x0C00
-#define PADLOCK_PMM 0x3000
+#define MBEDTLS_PADLOCK_RNG 0x000C
+#define MBEDTLS_PADLOCK_ACE 0x00C0
+#define MBEDTLS_PADLOCK_PHE 0x0C00
+#define MBEDTLS_PADLOCK_PMM 0x3000
 
-#define PADLOCK_ALIGN16(x) (uint32_t *) (16 + ((int32_t) x & ~15))
+#define MBEDTLS_PADLOCK_ALIGN16(x) (uint32_t *) (16 + ((int32_t) x & ~15))
 
 #ifdef __cplusplus
 extern "C" {
@@ -60,19 +60,19 @@ extern "C" {
  *
  * \return         1 if CPU has support for the feature, 0 otherwise
  */
-int padlock_supports( int feature );
+int mbedtls_padlock_supports( int feature );
 
 /**
  * \brief          PadLock AES-ECB block en(de)cryption
  *
  * \param ctx      AES context
- * \param mode     AES_ENCRYPT or AES_DECRYPT
+ * \param mode     MBEDTLS_AES_ENCRYPT or MBEDTLS_AES_DECRYPT
  * \param input    16-byte input block
  * \param output   16-byte output block
  *
  * \return         0 if success, 1 if operation failed
  */
-int padlock_xcryptecb( aes_context *ctx,
+int mbedtls_padlock_xcryptecb( mbedtls_aes_context *ctx,
                        int mode,
                        const unsigned char input[16],
                        unsigned char output[16] );
@@ -81,7 +81,7 @@ int padlock_xcryptecb( aes_context *ctx,
  * \brief          PadLock AES-CBC buffer en(de)cryption
  *
  * \param ctx      AES context
- * \param mode     AES_ENCRYPT or AES_DECRYPT
+ * \param mode     MBEDTLS_AES_ENCRYPT or MBEDTLS_AES_DECRYPT
  * \param length   length of the input data
  * \param iv       initialization vector (updated after use)
  * \param input    buffer holding the input data
@@ -89,7 +89,7 @@ int padlock_xcryptecb( aes_context *ctx,
  *
  * \return         0 if success, 1 if operation failed
  */
-int padlock_xcryptcbc( aes_context *ctx,
+int mbedtls_padlock_xcryptcbc( mbedtls_aes_context *ctx,
                        int mode,
                        size_t length,
                        unsigned char iv[16],

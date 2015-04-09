@@ -20,20 +20,20 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define polarssl_printf     printf
+#define mbedtls_printf     printf
 #endif
 
-#if defined(POLARSSL_PK_WRITE_C) && defined(POLARSSL_FS_IO)
+#if defined(MBEDTLS_PK_WRITE_C) && defined(MBEDTLS_FS_IO)
 #include "mbedtls/error.h"
 #include "mbedtls/pk.h"
 #include "mbedtls/error.h"
@@ -42,7 +42,7 @@
 #include <string.h>
 #endif
 
-#if defined(POLARSSL_PEM_WRITE_C)
+#if defined(MBEDTLS_PEM_WRITE_C)
 #define USAGE_OUT \
     "    output_file=%%s      default: keyfile.pem\n"   \
     "    output_format=pem|der default: pem\n"
@@ -52,7 +52,7 @@
     "    output_format=der     default: der\n"
 #endif
 
-#if defined(POLARSSL_PEM_WRITE_C)
+#if defined(MBEDTLS_PEM_WRITE_C)
 #define DFL_OUTPUT_FILENAME     "keyfile.pem"
 #define DFL_OUTPUT_FORMAT       OUTPUT_FORMAT_PEM
 #else
@@ -85,10 +85,10 @@
     USAGE_OUT                                           \
     "\n"
 
-#if !defined(POLARSSL_PK_WRITE_C) || !defined(POLARSSL_FS_IO)
+#if !defined(MBEDTLS_PK_WRITE_C) || !defined(MBEDTLS_FS_IO)
 int main( void )
 {
-    polarssl_printf( "POLARSSL_PK_WRITE_C and/or POLARSSL_FS_IO not defined.\n" );
+    mbedtls_printf( "MBEDTLS_PK_WRITE_C and/or MBEDTLS_FS_IO not defined.\n" );
     return( 0 );
 }
 #else
@@ -104,7 +104,7 @@ struct options
     int output_format;          /* the output format to use             */
 } opt;
 
-static int write_public_key( pk_context *key, const char *output_file )
+static int write_public_key( mbedtls_pk_context *key, const char *output_file )
 {
     int ret;
     FILE *f;
@@ -114,10 +114,10 @@ static int write_public_key( pk_context *key, const char *output_file )
 
     memset(output_buf, 0, 16000);
 
-#if defined(POLARSSL_PEM_WRITE_C)
+#if defined(MBEDTLS_PEM_WRITE_C)
     if( opt.output_format == OUTPUT_FORMAT_PEM )
     {
-        if( ( ret = pk_write_pubkey_pem( key, output_buf, 16000 ) ) != 0 )
+        if( ( ret = mbedtls_pk_write_pubkey_pem( key, output_buf, 16000 ) ) != 0 )
             return( ret );
 
         len = strlen( (char *) output_buf );
@@ -125,7 +125,7 @@ static int write_public_key( pk_context *key, const char *output_file )
     else
 #endif
     {
-        if( ( ret = pk_write_pubkey_der( key, output_buf, 16000 ) ) < 0 )
+        if( ( ret = mbedtls_pk_write_pubkey_der( key, output_buf, 16000 ) ) < 0 )
             return( ret );
 
         len = ret;
@@ -146,7 +146,7 @@ static int write_public_key( pk_context *key, const char *output_file )
     return( 0 );
 }
 
-static int write_private_key( pk_context *key, const char *output_file )
+static int write_private_key( mbedtls_pk_context *key, const char *output_file )
 {
     int ret;
     FILE *f;
@@ -156,10 +156,10 @@ static int write_private_key( pk_context *key, const char *output_file )
 
     memset(output_buf, 0, 16000);
 
-#if defined(POLARSSL_PEM_WRITE_C)
+#if defined(MBEDTLS_PEM_WRITE_C)
     if( opt.output_format == OUTPUT_FORMAT_PEM )
     {
-        if( ( ret = pk_write_key_pem( key, output_buf, 16000 ) ) != 0 )
+        if( ( ret = mbedtls_pk_write_key_pem( key, output_buf, 16000 ) ) != 0 )
             return( ret );
 
         len = strlen( (char *) output_buf );
@@ -167,7 +167,7 @@ static int write_private_key( pk_context *key, const char *output_file )
     else
 #endif
     {
-        if( ( ret = pk_write_key_der( key, output_buf, 16000 ) ) < 0 )
+        if( ( ret = mbedtls_pk_write_key_der( key, output_buf, 16000 ) ) < 0 )
             return( ret );
 
         len = ret;
@@ -191,7 +191,7 @@ static int write_private_key( pk_context *key, const char *output_file )
 int main( int argc, char *argv[] )
 {
     int ret = 0;
-    pk_context key;
+    mbedtls_pk_context key;
     char buf[1024];
     int i;
     char *p, *q;
@@ -199,14 +199,14 @@ int main( int argc, char *argv[] )
     /*
      * Set to sane values
      */
-    pk_init( &key );
+    mbedtls_pk_init( &key );
     memset( buf, 0, sizeof( buf ) );
 
     if( argc == 0 )
     {
     usage:
         ret = 1;
-        polarssl_printf( USAGE );
+        mbedtls_printf( USAGE );
         goto exit;
     }
 
@@ -243,7 +243,7 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "output_format" ) == 0 )
         {
-#if defined(POLARSSL_PEM_WRITE_C)
+#if defined(MBEDTLS_PEM_WRITE_C)
             if( strcmp( q, "pem" ) == 0 )
                 opt.output_format = OUTPUT_FORMAT_PEM;
             else
@@ -263,13 +263,13 @@ int main( int argc, char *argv[] )
 
     if( opt.mode == MODE_NONE && opt.output_mode != OUTPUT_MODE_NONE )
     {
-        polarssl_printf( "\nCannot output a key without reading one.\n");
+        mbedtls_printf( "\nCannot output a key without reading one.\n");
         goto exit;
     }
 
     if( opt.mode == MODE_PUBLIC && opt.output_mode == OUTPUT_MODE_PRIVATE )
     {
-        polarssl_printf( "\nCannot output a private key from a public key.\n");
+        mbedtls_printf( "\nCannot output a private key from a public key.\n");
         goto exit;
     }
 
@@ -278,52 +278,52 @@ int main( int argc, char *argv[] )
         /*
          * 1.1. Load the key
          */
-        polarssl_printf( "\n  . Loading the private key ..." );
+        mbedtls_printf( "\n  . Loading the private key ..." );
         fflush( stdout );
 
-        ret = pk_parse_keyfile( &key, opt.filename, NULL );
+        ret = mbedtls_pk_parse_keyfile( &key, opt.filename, NULL );
 
         if( ret != 0 )
         {
-            polarssl_strerror( ret, (char *) buf, sizeof(buf) );
-            polarssl_printf( " failed\n  !  pk_parse_keyfile returned -0x%04x - %s\n\n", -ret, buf );
+            mbedtls_strerror( ret, (char *) buf, sizeof(buf) );
+            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile returned -0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }
 
-        polarssl_printf( " ok\n" );
+        mbedtls_printf( " ok\n" );
 
         /*
          * 1.2 Print the key
          */
-        polarssl_printf( "  . Key information    ...\n" );
+        mbedtls_printf( "  . Key information    ...\n" );
 
-#if defined(POLARSSL_RSA_C)
-        if( pk_get_type( &key ) == POLARSSL_PK_RSA )
+#if defined(MBEDTLS_RSA_C)
+        if( mbedtls_pk_get_type( &key ) == MBEDTLS_PK_RSA )
         {
-            rsa_context *rsa = pk_rsa( key );
-            mpi_write_file( "N:  ",  &rsa->N,  16, NULL );
-            mpi_write_file( "E:  ",  &rsa->E,  16, NULL );
-            mpi_write_file( "D:  ",  &rsa->D,  16, NULL );
-            mpi_write_file( "P:  ",  &rsa->P,  16, NULL );
-            mpi_write_file( "Q:  ",  &rsa->Q,  16, NULL );
-            mpi_write_file( "DP: ",  &rsa->DP, 16, NULL );
-            mpi_write_file( "DQ:  ", &rsa->DQ, 16, NULL );
-            mpi_write_file( "QP:  ", &rsa->QP, 16, NULL );
+            mbedtls_rsa_context *rsa = mbedtls_pk_rsa( key );
+            mbedtls_mpi_write_file( "N:  ",  &rsa->N,  16, NULL );
+            mbedtls_mpi_write_file( "E:  ",  &rsa->E,  16, NULL );
+            mbedtls_mpi_write_file( "D:  ",  &rsa->D,  16, NULL );
+            mbedtls_mpi_write_file( "P:  ",  &rsa->P,  16, NULL );
+            mbedtls_mpi_write_file( "Q:  ",  &rsa->Q,  16, NULL );
+            mbedtls_mpi_write_file( "DP: ",  &rsa->DP, 16, NULL );
+            mbedtls_mpi_write_file( "DQ:  ", &rsa->DQ, 16, NULL );
+            mbedtls_mpi_write_file( "QP:  ", &rsa->QP, 16, NULL );
         }
         else
 #endif
-#if defined(POLARSSL_ECP_C)
-        if( pk_get_type( &key ) == POLARSSL_PK_ECKEY )
+#if defined(MBEDTLS_ECP_C)
+        if( mbedtls_pk_get_type( &key ) == MBEDTLS_PK_ECKEY )
         {
-            ecp_keypair *ecp = pk_ec( key );
-            mpi_write_file( "Q(X): ", &ecp->Q.X, 16, NULL );
-            mpi_write_file( "Q(Y): ", &ecp->Q.Y, 16, NULL );
-            mpi_write_file( "Q(Z): ", &ecp->Q.Z, 16, NULL );
-            mpi_write_file( "D   : ", &ecp->d  , 16, NULL );
+            mbedtls_ecp_keypair *ecp = mbedtls_pk_ec( key );
+            mbedtls_mpi_write_file( "Q(X): ", &ecp->Q.X, 16, NULL );
+            mbedtls_mpi_write_file( "Q(Y): ", &ecp->Q.Y, 16, NULL );
+            mbedtls_mpi_write_file( "Q(Z): ", &ecp->Q.Z, 16, NULL );
+            mbedtls_mpi_write_file( "D   : ", &ecp->d  , 16, NULL );
         }
         else
 #endif
-            polarssl_printf("key type not supported yet\n");
+            mbedtls_printf("key type not supported yet\n");
 
     }
     else if( opt.mode == MODE_PUBLIC )
@@ -331,45 +331,45 @@ int main( int argc, char *argv[] )
         /*
          * 1.1. Load the key
          */
-        polarssl_printf( "\n  . Loading the public key ..." );
+        mbedtls_printf( "\n  . Loading the public key ..." );
         fflush( stdout );
 
-        ret = pk_parse_public_keyfile( &key, opt.filename );
+        ret = mbedtls_pk_parse_public_keyfile( &key, opt.filename );
 
         if( ret != 0 )
         {
-            polarssl_strerror( ret, (char *) buf, sizeof(buf) );
-            polarssl_printf( " failed\n  !  pk_parse_public_key returned -0x%04x - %s\n\n", -ret, buf );
+            mbedtls_strerror( ret, (char *) buf, sizeof(buf) );
+            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_public_key returned -0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }
 
-        polarssl_printf( " ok\n" );
+        mbedtls_printf( " ok\n" );
 
         /*
          * 1.2 Print the key
          */
-        polarssl_printf( "  . Key information    ...\n" );
+        mbedtls_printf( "  . Key information    ...\n" );
 
-#if defined(POLARSSL_RSA_C)
-        if( pk_get_type( &key ) == POLARSSL_PK_RSA )
+#if defined(MBEDTLS_RSA_C)
+        if( mbedtls_pk_get_type( &key ) == MBEDTLS_PK_RSA )
         {
-            rsa_context *rsa = pk_rsa( key );
-            mpi_write_file( "N: ", &rsa->N, 16, NULL );
-            mpi_write_file( "E: ", &rsa->E, 16, NULL );
+            mbedtls_rsa_context *rsa = mbedtls_pk_rsa( key );
+            mbedtls_mpi_write_file( "N: ", &rsa->N, 16, NULL );
+            mbedtls_mpi_write_file( "E: ", &rsa->E, 16, NULL );
         }
         else
 #endif
-#if defined(POLARSSL_ECP_C)
-        if( pk_get_type( &key ) == POLARSSL_PK_ECKEY )
+#if defined(MBEDTLS_ECP_C)
+        if( mbedtls_pk_get_type( &key ) == MBEDTLS_PK_ECKEY )
         {
-            ecp_keypair *ecp = pk_ec( key );
-            mpi_write_file( "Q(X): ", &ecp->Q.X, 16, NULL );
-            mpi_write_file( "Q(Y): ", &ecp->Q.Y, 16, NULL );
-            mpi_write_file( "Q(Z): ", &ecp->Q.Z, 16, NULL );
+            mbedtls_ecp_keypair *ecp = mbedtls_pk_ec( key );
+            mbedtls_mpi_write_file( "Q(X): ", &ecp->Q.X, 16, NULL );
+            mbedtls_mpi_write_file( "Q(Y): ", &ecp->Q.Y, 16, NULL );
+            mbedtls_mpi_write_file( "Q(Z): ", &ecp->Q.Z, 16, NULL );
         }
         else
 #endif
-            polarssl_printf("key type not supported yet\n");
+            mbedtls_printf("key type not supported yet\n");
     }
     else
         goto usage;
@@ -387,21 +387,21 @@ exit:
 
     if( ret != 0 && ret != 1)
     {
-#ifdef POLARSSL_ERROR_C
-        polarssl_strerror( ret, buf, sizeof( buf ) );
-        polarssl_printf( " - %s\n", buf );
+#ifdef MBEDTLS_ERROR_C
+        mbedtls_strerror( ret, buf, sizeof( buf ) );
+        mbedtls_printf( " - %s\n", buf );
 #else
-        polarssl_printf("\n");
+        mbedtls_printf("\n");
 #endif
     }
 
-    pk_free( &key );
+    mbedtls_pk_free( &key );
 
 #if defined(_WIN32)
-    polarssl_printf( "  + Press Enter to exit this program.\n" );
+    mbedtls_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 
     return( ret );
 }
-#endif /* POLARSSL_PK_WRITE_C && POLARSSL_FS_IO */
+#endif /* MBEDTLS_PK_WRITE_C && MBEDTLS_FS_IO */

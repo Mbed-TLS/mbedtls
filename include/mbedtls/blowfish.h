@@ -21,13 +21,13 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_BLOWFISH_H
-#define POLARSSL_BLOWFISH_H
+#ifndef MBEDTLS_BLOWFISH_H
+#define MBEDTLS_BLOWFISH_H
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
 #include <stddef.h>
@@ -39,17 +39,17 @@ typedef UINT32 uint32_t;
 #include <inttypes.h>
 #endif
 
-#define BLOWFISH_ENCRYPT     1
-#define BLOWFISH_DECRYPT     0
-#define BLOWFISH_MAX_KEY     448
-#define BLOWFISH_MIN_KEY     32
-#define BLOWFISH_ROUNDS      16         /**< Rounds to use. When increasing this value, make sure to extend the initialisation vectors */
-#define BLOWFISH_BLOCKSIZE   8          /* Blowfish uses 64 bit blocks */
+#define MBEDTLS_BLOWFISH_ENCRYPT     1
+#define MBEDTLS_BLOWFISH_DECRYPT     0
+#define MBEDTLS_BLOWFISH_MAX_KEY     448
+#define MBEDTLS_BLOWFISH_MIN_KEY     32
+#define MBEDTLS_BLOWFISH_ROUNDS      16         /**< Rounds to use. When increasing this value, make sure to extend the initialisation vectors */
+#define MBEDTLS_BLOWFISH_BLOCKSIZE   8          /* Blowfish uses 64 bit blocks */
 
-#define POLARSSL_ERR_BLOWFISH_INVALID_KEY_LENGTH                -0x0016  /**< Invalid key length. */
-#define POLARSSL_ERR_BLOWFISH_INVALID_INPUT_LENGTH              -0x0018  /**< Invalid data input length. */
+#define MBEDTLS_ERR_BLOWFISH_INVALID_KEY_LENGTH                -0x0016  /**< Invalid key length. */
+#define MBEDTLS_ERR_BLOWFISH_INVALID_INPUT_LENGTH              -0x0018  /**< Invalid data input length. */
 
-#if !defined(POLARSSL_BLOWFISH_ALT)
+#if !defined(MBEDTLS_BLOWFISH_ALT)
 // Regular implementation
 //
 
@@ -62,24 +62,24 @@ extern "C" {
  */
 typedef struct
 {
-    uint32_t P[BLOWFISH_ROUNDS + 2];    /*!<  Blowfish round keys    */
+    uint32_t P[MBEDTLS_BLOWFISH_ROUNDS + 2];    /*!<  Blowfish round keys    */
     uint32_t S[4][256];                 /*!<  key dependent S-boxes  */
 }
-blowfish_context;
+mbedtls_blowfish_context;
 
 /**
  * \brief          Initialize Blowfish context
  *
  * \param ctx      Blowfish context to be initialized
  */
-void blowfish_init( blowfish_context *ctx );
+void mbedtls_blowfish_init( mbedtls_blowfish_context *ctx );
 
 /**
  * \brief          Clear Blowfish context
  *
  * \param ctx      Blowfish context to be cleared
  */
-void blowfish_free( blowfish_context *ctx );
+void mbedtls_blowfish_free( mbedtls_blowfish_context *ctx );
 
 /**
  * \brief          Blowfish key schedule
@@ -88,27 +88,27 @@ void blowfish_free( blowfish_context *ctx );
  * \param key      encryption key
  * \param keysize  must be between 32 and 448 bits
  *
- * \return         0 if successful, or POLARSSL_ERR_BLOWFISH_INVALID_KEY_LENGTH
+ * \return         0 if successful, or MBEDTLS_ERR_BLOWFISH_INVALID_KEY_LENGTH
  */
-int blowfish_setkey( blowfish_context *ctx, const unsigned char *key,
+int mbedtls_blowfish_setkey( mbedtls_blowfish_context *ctx, const unsigned char *key,
                      unsigned int keysize );
 
 /**
  * \brief          Blowfish-ECB block encryption/decryption
  *
  * \param ctx      Blowfish context
- * \param mode     BLOWFISH_ENCRYPT or BLOWFISH_DECRYPT
+ * \param mode     MBEDTLS_BLOWFISH_ENCRYPT or MBEDTLS_BLOWFISH_DECRYPT
  * \param input    8-byte input block
  * \param output   8-byte output block
  *
  * \return         0 if successful
  */
-int blowfish_crypt_ecb( blowfish_context *ctx,
+int mbedtls_blowfish_crypt_ecb( mbedtls_blowfish_context *ctx,
                         int mode,
-                        const unsigned char input[BLOWFISH_BLOCKSIZE],
-                        unsigned char output[BLOWFISH_BLOCKSIZE] );
+                        const unsigned char input[MBEDTLS_BLOWFISH_BLOCKSIZE],
+                        unsigned char output[MBEDTLS_BLOWFISH_BLOCKSIZE] );
 
-#if defined(POLARSSL_CIPHER_MODE_CBC)
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
 /**
  * \brief          Blowfish-CBC buffer encryption/decryption
  *                 Length should be a multiple of the block
@@ -123,24 +123,24 @@ int blowfish_crypt_ecb( blowfish_context *ctx,
  *                 module instead.
  *
  * \param ctx      Blowfish context
- * \param mode     BLOWFISH_ENCRYPT or BLOWFISH_DECRYPT
+ * \param mode     MBEDTLS_BLOWFISH_ENCRYPT or MBEDTLS_BLOWFISH_DECRYPT
  * \param length   length of the input data
  * \param iv       initialization vector (updated after use)
  * \param input    buffer holding the input data
  * \param output   buffer holding the output data
  *
  * \return         0 if successful, or
- *                 POLARSSL_ERR_BLOWFISH_INVALID_INPUT_LENGTH
+ *                 MBEDTLS_ERR_BLOWFISH_INVALID_INPUT_LENGTH
  */
-int blowfish_crypt_cbc( blowfish_context *ctx,
+int mbedtls_blowfish_crypt_cbc( mbedtls_blowfish_context *ctx,
                         int mode,
                         size_t length,
-                        unsigned char iv[BLOWFISH_BLOCKSIZE],
+                        unsigned char iv[MBEDTLS_BLOWFISH_BLOCKSIZE],
                         const unsigned char *input,
                         unsigned char *output );
-#endif /* POLARSSL_CIPHER_MODE_CBC */
+#endif /* MBEDTLS_CIPHER_MODE_CBC */
 
-#if defined(POLARSSL_CIPHER_MODE_CFB)
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
 /**
  * \brief          Blowfish CFB buffer encryption/decryption.
  *
@@ -153,7 +153,7 @@ int blowfish_crypt_cbc( blowfish_context *ctx,
  *                 module instead.
  *
  * \param ctx      Blowfish context
- * \param mode     BLOWFISH_ENCRYPT or BLOWFISH_DECRYPT
+ * \param mode     MBEDTLS_BLOWFISH_ENCRYPT or MBEDTLS_BLOWFISH_DECRYPT
  * \param length   length of the input data
  * \param iv_off   offset in IV (updated after use)
  * \param iv       initialization vector (updated after use)
@@ -162,16 +162,16 @@ int blowfish_crypt_cbc( blowfish_context *ctx,
  *
  * \return         0 if successful
  */
-int blowfish_crypt_cfb64( blowfish_context *ctx,
+int mbedtls_blowfish_crypt_cfb64( mbedtls_blowfish_context *ctx,
                           int mode,
                           size_t length,
                           size_t *iv_off,
-                          unsigned char iv[BLOWFISH_BLOCKSIZE],
+                          unsigned char iv[MBEDTLS_BLOWFISH_BLOCKSIZE],
                           const unsigned char *input,
                           unsigned char *output );
-#endif /*POLARSSL_CIPHER_MODE_CFB */
+#endif /*MBEDTLS_CIPHER_MODE_CFB */
 
-#if defined(POLARSSL_CIPHER_MODE_CTR)
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
 /**
  * \brief               Blowfish-CTR buffer encryption/decryption
  *
@@ -190,21 +190,21 @@ int blowfish_crypt_cfb64( blowfish_context *ctx,
  *
  * \return         0 if successful
  */
-int blowfish_crypt_ctr( blowfish_context *ctx,
+int mbedtls_blowfish_crypt_ctr( mbedtls_blowfish_context *ctx,
                         size_t length,
                         size_t *nc_off,
-                        unsigned char nonce_counter[BLOWFISH_BLOCKSIZE],
-                        unsigned char stream_block[BLOWFISH_BLOCKSIZE],
+                        unsigned char nonce_counter[MBEDTLS_BLOWFISH_BLOCKSIZE],
+                        unsigned char stream_block[MBEDTLS_BLOWFISH_BLOCKSIZE],
                         const unsigned char *input,
                         unsigned char *output );
-#endif /* POLARSSL_CIPHER_MODE_CTR */
+#endif /* MBEDTLS_CIPHER_MODE_CTR */
 
 #ifdef __cplusplus
 }
 #endif
 
-#else  /* POLARSSL_BLOWFISH_ALT */
+#else  /* MBEDTLS_BLOWFISH_ALT */
 #include "blowfish_alt.h"
-#endif /* POLARSSL_BLOWFISH_ALT */
+#endif /* MBEDTLS_BLOWFISH_ALT */
 
 #endif /* blowfish.h */

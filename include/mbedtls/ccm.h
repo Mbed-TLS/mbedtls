@@ -21,13 +21,13 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_CCM_H
-#define POLARSSL_CCM_H
+#ifndef MBEDTLS_CCM_H
+#define MBEDTLS_CCM_H
 
 #include "cipher.h"
 
-#define POLARSSL_ERR_CCM_BAD_INPUT      -0x000D /**< Bad input parameters to function. */
-#define POLARSSL_ERR_CCM_AUTH_FAILED    -0x000F /**< Authenticated decryption failed. */
+#define MBEDTLS_ERR_CCM_BAD_INPUT      -0x000D /**< Bad input parameters to function. */
+#define MBEDTLS_ERR_CCM_AUTH_FAILED    -0x000F /**< Authenticated decryption failed. */
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,9 +37,9 @@ extern "C" {
  * \brief          CCM context structure
  */
 typedef struct {
-    cipher_context_t cipher_ctx;    /*!< cipher context used */
+    mbedtls_cipher_context_t cipher_ctx;    /*!< cipher context used */
 }
-ccm_context;
+mbedtls_ccm_context;
 
 /**
  * \brief           CCM initialization (encryption and decryption)
@@ -51,7 +51,7 @@ ccm_context;
  *
  * \return          0 if successful, or a cipher specific error code
  */
-int ccm_init( ccm_context *ctx, cipher_id_t cipher,
+int mbedtls_ccm_init( mbedtls_ccm_context *ctx, mbedtls_cipher_id_t cipher,
               const unsigned char *key, unsigned int keysize );
 
 /**
@@ -59,7 +59,7 @@ int ccm_init( ccm_context *ctx, cipher_id_t cipher,
  *
  * \param ctx       CCM context to free
  */
-void ccm_free( ccm_context *ctx );
+void mbedtls_ccm_free( mbedtls_ccm_context *ctx );
 
 /**
  * \brief           CCM buffer encryption
@@ -86,7 +86,7 @@ void ccm_free( ccm_context *ctx );
  *
  * \return          0 if successful
  */
-int ccm_encrypt_and_tag( ccm_context *ctx, size_t length,
+int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
                          const unsigned char *iv, size_t iv_len,
                          const unsigned char *add, size_t add_len,
                          const unsigned char *input, unsigned char *output,
@@ -107,25 +107,25 @@ int ccm_encrypt_and_tag( ccm_context *ctx, size_t length,
  * \param tag_len   length of the tag
  *
  * \return         0 if successful and authenticated,
- *                 POLARSSL_ERR_CCM_AUTH_FAILED if tag does not match
+ *                 MBEDTLS_ERR_CCM_AUTH_FAILED if tag does not match
  */
-int ccm_auth_decrypt( ccm_context *ctx, size_t length,
+int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
                       const unsigned char *iv, size_t iv_len,
                       const unsigned char *add, size_t add_len,
                       const unsigned char *input, unsigned char *output,
                       const unsigned char *tag, size_t tag_len );
 
-#if defined(POLARSSL_SELF_TEST) && defined(POLARSSL_AES_C)
+#if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
 /**
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed
  */
-int ccm_self_test( int verbose );
-#endif /* POLARSSL_SELF_TEST && POLARSSL_AES_C */
+int mbedtls_ccm_self_test( int verbose );
+#endif /* MBEDTLS_SELF_TEST && MBEDTLS_AES_C */
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* POLARSSL_CCM_H */
+#endif /* MBEDTLS_CCM_H */

@@ -20,31 +20,31 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define polarssl_fprintf    fprintf
-#define polarssl_printf     printf
+#define mbedtls_fprintf    fprintf
+#define mbedtls_printf     printf
 #endif
 
-#if defined(POLARSSL_HAVEGE_C) && defined(POLARSSL_FS_IO)
+#if defined(MBEDTLS_HAVEGE_C) && defined(MBEDTLS_FS_IO)
 #include "mbedtls/havege.h"
 
 #include <stdio.h>
 #include <time.h>
 #endif
 
-#if !defined(POLARSSL_HAVEGE_C) || !defined(POLARSSL_FS_IO)
+#if !defined(MBEDTLS_HAVEGE_C) || !defined(MBEDTLS_FS_IO)
 int main( void )
 {
-    polarssl_printf("POLARSSL_HAVEGE_C not defined.\n");
+    mbedtls_printf("MBEDTLS_HAVEGE_C not defined.\n");
     return( 0 );
 }
 #else
@@ -53,30 +53,30 @@ int main( int argc, char *argv[] )
     FILE *f;
     time_t t;
     int i, k, ret = 0;
-    havege_state hs;
+    mbedtls_havege_state hs;
     unsigned char buf[1024];
 
     if( argc < 2 )
     {
-        polarssl_fprintf( stderr, "usage: %s <output filename>\n", argv[0] );
+        mbedtls_fprintf( stderr, "usage: %s <output filename>\n", argv[0] );
         return( 1 );
     }
 
     if( ( f = fopen( argv[1], "wb+" ) ) == NULL )
     {
-        polarssl_printf( "failed to open '%s' for writing.\n", argv[1] );
+        mbedtls_printf( "failed to open '%s' for writing.\n", argv[1] );
         return( 1 );
     }
 
-    havege_init( &hs );
+    mbedtls_havege_init( &hs );
 
     t = time( NULL );
 
     for( i = 0, k = 768; i < k; i++ )
     {
-        if( havege_random( &hs, buf, sizeof( buf ) ) != 0 )
+        if( mbedtls_havege_random( &hs, buf, sizeof( buf ) ) != 0 )
         {
-            polarssl_printf( "Failed to get random from source.\n" );
+            mbedtls_printf( "Failed to get random from source.\n" );
 
             ret = 1;
             goto exit;
@@ -84,7 +84,7 @@ int main( int argc, char *argv[] )
 
         fwrite( buf, sizeof( buf ), 1, f );
 
-        polarssl_printf( "Generating %ldkb of data in file '%s'... %04.1f" \
+        mbedtls_printf( "Generating %ldkb of data in file '%s'... %04.1f" \
                 "%% done\r", (long)(sizeof(buf) * k / 1024), argv[1], (100 * (float) (i + 1)) / k );
         fflush( stdout );
     }
@@ -92,11 +92,11 @@ int main( int argc, char *argv[] )
     if( t == time( NULL ) )
         t--;
 
-    polarssl_printf(" \n ");
+    mbedtls_printf(" \n ");
 
 exit:
-    havege_free( &hs );
+    mbedtls_havege_free( &hs );
     fclose( f );
     return( ret );
 }
-#endif /* POLARSSL_HAVEGE_C */
+#endif /* MBEDTLS_HAVEGE_C */

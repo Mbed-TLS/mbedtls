@@ -20,33 +20,33 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define polarssl_fprintf    fprintf
-#define polarssl_printf     printf
+#define mbedtls_fprintf    fprintf
+#define mbedtls_printf     printf
 #endif
 
-#if defined(POLARSSL_CTR_DRBG_C) && defined(POLARSSL_ENTROPY_C) && \
- defined(POLARSSL_FS_IO)
+#if defined(MBEDTLS_CTR_DRBG_C) && defined(MBEDTLS_ENTROPY_C) && \
+ defined(MBEDTLS_FS_IO)
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
 
 #include <stdio.h>
 #endif
 
-#if !defined(POLARSSL_CTR_DRBG_C) || !defined(POLARSSL_ENTROPY_C) || \
- !defined(POLARSSL_FS_IO)
+#if !defined(MBEDTLS_CTR_DRBG_C) || !defined(MBEDTLS_ENTROPY_C) || \
+ !defined(MBEDTLS_FS_IO)
 int main( void )
 {
-    polarssl_printf("POLARSSL_CTR_DRBG_C and/or POLARSSL_ENTROPY_C and/or POLARSSL_FS_IO not defined.\n");
+    mbedtls_printf("MBEDTLS_CTR_DRBG_C and/or MBEDTLS_ENTROPY_C and/or MBEDTLS_FS_IO not defined.\n");
     return( 0 );
 }
 #else
@@ -54,63 +54,63 @@ int main( int argc, char *argv[] )
 {
     FILE *f;
     int i, k, ret;
-    ctr_drbg_context ctr_drbg;
-    entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
+    mbedtls_entropy_context entropy;
     unsigned char buf[1024];
 
     if( argc < 2 )
     {
-        polarssl_fprintf( stderr, "usage: %s <output filename>\n", argv[0] );
+        mbedtls_fprintf( stderr, "usage: %s <output filename>\n", argv[0] );
         return( 1 );
     }
 
     if( ( f = fopen( argv[1], "wb+" ) ) == NULL )
     {
-        polarssl_printf( "failed to open '%s' for writing.\n", argv[1] );
+        mbedtls_printf( "failed to open '%s' for writing.\n", argv[1] );
         return( 1 );
     }
 
-    entropy_init( &entropy );
-    ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy, (const unsigned char *) "RANDOM_GEN", 10 );
+    mbedtls_entropy_init( &entropy );
+    ret = mbedtls_ctr_drbg_init( &ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *) "RANDOM_GEN", 10 );
     if( ret != 0 )
     {
-        polarssl_printf( "failed in ctr_drbg_init: %d\n", ret );
+        mbedtls_printf( "failed in mbedtls_ctr_drbg_init: %d\n", ret );
         goto cleanup;
     }
-    ctr_drbg_set_prediction_resistance( &ctr_drbg, CTR_DRBG_PR_OFF );
+    mbedtls_ctr_drbg_set_prediction_resistance( &ctr_drbg, MBEDTLS_CTR_DRBG_PR_OFF );
 
-#if defined(POLARSSL_FS_IO)
-    ret = ctr_drbg_update_seed_file( &ctr_drbg, "seedfile" );
+#if defined(MBEDTLS_FS_IO)
+    ret = mbedtls_ctr_drbg_update_seed_file( &ctr_drbg, "seedfile" );
 
-    if( ret == POLARSSL_ERR_CTR_DRBG_FILE_IO_ERROR )
+    if( ret == MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR )
     {
-        polarssl_printf( "Failed to open seedfile. Generating one.\n" );
-        ret = ctr_drbg_write_seed_file( &ctr_drbg, "seedfile" );
+        mbedtls_printf( "Failed to open seedfile. Generating one.\n" );
+        ret = mbedtls_ctr_drbg_write_seed_file( &ctr_drbg, "seedfile" );
         if( ret != 0 )
         {
-            polarssl_printf( "failed in ctr_drbg_write_seed_file: %d\n", ret );
+            mbedtls_printf( "failed in mbedtls_ctr_drbg_write_seed_file: %d\n", ret );
             goto cleanup;
         }
     }
     else if( ret != 0 )
     {
-        polarssl_printf( "failed in ctr_drbg_update_seed_file: %d\n", ret );
+        mbedtls_printf( "failed in mbedtls_ctr_drbg_update_seed_file: %d\n", ret );
         goto cleanup;
     }
 #endif
 
     for( i = 0, k = 768; i < k; i++ )
     {
-        ret = ctr_drbg_random( &ctr_drbg, buf, sizeof( buf ) );
+        ret = mbedtls_ctr_drbg_random( &ctr_drbg, buf, sizeof( buf ) );
         if( ret != 0 )
         {
-            polarssl_printf("failed!\n");
+            mbedtls_printf("failed!\n");
             goto cleanup;
         }
 
         fwrite( buf, 1, sizeof( buf ), f );
 
-        polarssl_printf( "Generating %ldkb of data in file '%s'... %04.1f" \
+        mbedtls_printf( "Generating %ldkb of data in file '%s'... %04.1f" \
                 "%% done\r", (long)(sizeof(buf) * k / 1024), argv[1], (100 * (float) (i + 1)) / k );
         fflush( stdout );
     }
@@ -118,12 +118,12 @@ int main( int argc, char *argv[] )
     ret = 0;
 
 cleanup:
-    polarssl_printf("\n");
+    mbedtls_printf("\n");
 
     fclose( f );
-    ctr_drbg_free( &ctr_drbg );
-    entropy_free( &entropy );
+    mbedtls_ctr_drbg_free( &ctr_drbg );
+    mbedtls_entropy_free( &entropy );
 
     return( ret );
 }
-#endif /* POLARSSL_CTR_DRBG_C && POLARSSL_ENTROPY_C */
+#endif /* MBEDTLS_CTR_DRBG_C && MBEDTLS_ENTROPY_C */

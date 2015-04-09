@@ -25,37 +25,37 @@
  *  http://www.ietf.org/rfc/rfc1321.txt
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_MD5_C)
+#if defined(MBEDTLS_MD5_C)
 
 #include "mbedtls/md5.h"
 
 #include <string.h>
 
-#if defined(POLARSSL_FS_IO)
+#if defined(MBEDTLS_FS_IO)
 #include <stdio.h>
 #endif
 
-#if defined(POLARSSL_SELF_TEST)
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_SELF_TEST)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define polarssl_printf printf
-#endif /* POLARSSL_PLATFORM_C */
-#endif /* POLARSSL_SELF_TEST */
+#define mbedtls_printf printf
+#endif /* MBEDTLS_PLATFORM_C */
+#endif /* MBEDTLS_SELF_TEST */
 
 /* Implementation that should never be optimized out by the compiler */
-static void polarssl_zeroize( void *v, size_t n ) {
+static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
-#if !defined(POLARSSL_MD5_ALT)
+#if !defined(MBEDTLS_MD5_ALT)
 
 /*
  * 32-bit integer manipulation macros (little endian)
@@ -80,23 +80,23 @@ static void polarssl_zeroize( void *v, size_t n ) {
 }
 #endif
 
-void md5_init( md5_context *ctx )
+void mbedtls_md5_init( mbedtls_md5_context *ctx )
 {
-    memset( ctx, 0, sizeof( md5_context ) );
+    memset( ctx, 0, sizeof( mbedtls_md5_context ) );
 }
 
-void md5_free( md5_context *ctx )
+void mbedtls_md5_free( mbedtls_md5_context *ctx )
 {
     if( ctx == NULL )
         return;
 
-    polarssl_zeroize( ctx, sizeof( md5_context ) );
+    mbedtls_zeroize( ctx, sizeof( mbedtls_md5_context ) );
 }
 
 /*
  * MD5 context setup
  */
-void md5_starts( md5_context *ctx )
+void mbedtls_md5_starts( mbedtls_md5_context *ctx )
 {
     ctx->total[0] = 0;
     ctx->total[1] = 0;
@@ -107,8 +107,8 @@ void md5_starts( md5_context *ctx )
     ctx->state[3] = 0x10325476;
 }
 
-#if !defined(POLARSSL_MD5_PROCESS_ALT)
-void md5_process( md5_context *ctx, const unsigned char data[64] )
+#if !defined(MBEDTLS_MD5_PROCESS_ALT)
+void mbedtls_md5_process( mbedtls_md5_context *ctx, const unsigned char data[64] )
 {
     uint32_t X[16], A, B, C, D;
 
@@ -230,12 +230,12 @@ void md5_process( md5_context *ctx, const unsigned char data[64] )
     ctx->state[2] += C;
     ctx->state[3] += D;
 }
-#endif /* !POLARSSL_MD5_PROCESS_ALT */
+#endif /* !MBEDTLS_MD5_PROCESS_ALT */
 
 /*
  * MD5 process buffer
  */
-void md5_update( md5_context *ctx, const unsigned char *input, size_t ilen )
+void mbedtls_md5_update( mbedtls_md5_context *ctx, const unsigned char *input, size_t ilen )
 {
     size_t fill;
     uint32_t left;
@@ -255,7 +255,7 @@ void md5_update( md5_context *ctx, const unsigned char *input, size_t ilen )
     if( left && ilen >= fill )
     {
         memcpy( (void *) (ctx->buffer + left), input, fill );
-        md5_process( ctx, ctx->buffer );
+        mbedtls_md5_process( ctx, ctx->buffer );
         input += fill;
         ilen  -= fill;
         left = 0;
@@ -263,7 +263,7 @@ void md5_update( md5_context *ctx, const unsigned char *input, size_t ilen )
 
     while( ilen >= 64 )
     {
-        md5_process( ctx, input );
+        mbedtls_md5_process( ctx, input );
         input += 64;
         ilen  -= 64;
     }
@@ -285,7 +285,7 @@ static const unsigned char md5_padding[64] =
 /*
  * MD5 final digest
  */
-void md5_finish( md5_context *ctx, unsigned char output[16] )
+void mbedtls_md5_finish( mbedtls_md5_context *ctx, unsigned char output[16] )
 {
     uint32_t last, padn;
     uint32_t high, low;
@@ -301,8 +301,8 @@ void md5_finish( md5_context *ctx, unsigned char output[16] )
     last = ctx->total[0] & 0x3F;
     padn = ( last < 56 ) ? ( 56 - last ) : ( 120 - last );
 
-    md5_update( ctx, md5_padding, padn );
-    md5_update( ctx, msglen, 8 );
+    mbedtls_md5_update( ctx, md5_padding, padn );
+    mbedtls_md5_update( ctx, msglen, 8 );
 
     PUT_UINT32_LE( ctx->state[0], output,  0 );
     PUT_UINT32_LE( ctx->state[1], output,  4 );
@@ -310,57 +310,57 @@ void md5_finish( md5_context *ctx, unsigned char output[16] )
     PUT_UINT32_LE( ctx->state[3], output, 12 );
 }
 
-#endif /* !POLARSSL_MD5_ALT */
+#endif /* !MBEDTLS_MD5_ALT */
 
 /*
  * output = MD5( input buffer )
  */
-void md5( const unsigned char *input, size_t ilen, unsigned char output[16] )
+void mbedtls_md5( const unsigned char *input, size_t ilen, unsigned char output[16] )
 {
-    md5_context ctx;
+    mbedtls_md5_context ctx;
 
-    md5_init( &ctx );
-    md5_starts( &ctx );
-    md5_update( &ctx, input, ilen );
-    md5_finish( &ctx, output );
-    md5_free( &ctx );
+    mbedtls_md5_init( &ctx );
+    mbedtls_md5_starts( &ctx );
+    mbedtls_md5_update( &ctx, input, ilen );
+    mbedtls_md5_finish( &ctx, output );
+    mbedtls_md5_free( &ctx );
 }
 
-#if defined(POLARSSL_FS_IO)
+#if defined(MBEDTLS_FS_IO)
 /*
  * output = MD5( file contents )
  */
-int md5_file( const char *path, unsigned char output[16] )
+int mbedtls_md5_file( const char *path, unsigned char output[16] )
 {
     FILE *f;
     size_t n;
-    md5_context ctx;
+    mbedtls_md5_context ctx;
     unsigned char buf[1024];
 
     if( ( f = fopen( path, "rb" ) ) == NULL )
-        return( POLARSSL_ERR_MD5_FILE_IO_ERROR );
+        return( MBEDTLS_ERR_MD5_FILE_IO_ERROR );
 
-    md5_init( &ctx );
-    md5_starts( &ctx );
+    mbedtls_md5_init( &ctx );
+    mbedtls_md5_starts( &ctx );
 
     while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
-        md5_update( &ctx, buf, n );
+        mbedtls_md5_update( &ctx, buf, n );
 
-    md5_finish( &ctx, output );
-    md5_free( &ctx );
+    mbedtls_md5_finish( &ctx, output );
+    mbedtls_md5_free( &ctx );
 
     if( ferror( f ) != 0 )
     {
         fclose( f );
-        return( POLARSSL_ERR_MD5_FILE_IO_ERROR );
+        return( MBEDTLS_ERR_MD5_FILE_IO_ERROR );
     }
 
     fclose( f );
     return( 0 );
 }
-#endif /* POLARSSL_FS_IO */
+#endif /* MBEDTLS_FS_IO */
 
-#if defined(POLARSSL_SELF_TEST)
+#if defined(MBEDTLS_SELF_TEST)
 /*
  * RFC 1321 test vectors
  */
@@ -402,7 +402,7 @@ static const unsigned char md5_test_sum[7][16] =
 /*
  * Checkup routine
  */
-int md5_self_test( int verbose )
+int mbedtls_md5_self_test( int verbose )
 {
     int i;
     unsigned char md5sum[16];
@@ -410,28 +410,28 @@ int md5_self_test( int verbose )
     for( i = 0; i < 7; i++ )
     {
         if( verbose != 0 )
-            polarssl_printf( "  MD5 test #%d: ", i + 1 );
+            mbedtls_printf( "  MD5 test #%d: ", i + 1 );
 
-        md5( md5_test_buf[i], md5_test_buflen[i], md5sum );
+        mbedtls_md5( md5_test_buf[i], md5_test_buflen[i], md5sum );
 
         if( memcmp( md5sum, md5_test_sum[i], 16 ) != 0 )
         {
             if( verbose != 0 )
-                polarssl_printf( "failed\n" );
+                mbedtls_printf( "failed\n" );
 
             return( 1 );
         }
 
         if( verbose != 0 )
-            polarssl_printf( "passed\n" );
+            mbedtls_printf( "passed\n" );
     }
 
     if( verbose != 0 )
-        polarssl_printf( "\n" );
+        mbedtls_printf( "\n" );
 
     return( 0 );
 }
 
-#endif /* POLARSSL_SELF_TEST */
+#endif /* MBEDTLS_SELF_TEST */
 
-#endif /* POLARSSL_MD5_C */
+#endif /* MBEDTLS_MD5_C */

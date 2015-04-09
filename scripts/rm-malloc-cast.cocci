@@ -4,4 +4,4 @@ type T;
 @@
   x =
 - (T *)
-  polarssl_malloc(n)
+  mbedtls_malloc(n)

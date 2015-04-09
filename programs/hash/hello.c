@@ -20,27 +20,27 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define polarssl_printf     printf
+#define mbedtls_printf     printf
 #endif
 
-#if defined(POLARSSL_MD5_C)
+#if defined(MBEDTLS_MD5_C)
 #include "mbedtls/md5.h"
 #endif
 
-#if !defined(POLARSSL_MD5_C)
+#if !defined(MBEDTLS_MD5_C)
 int main( void )
 {
-    polarssl_printf("POLARSSL_MD5_C not defined.\n");
+    mbedtls_printf("MBEDTLS_MD5_C not defined.\n");
     return( 0 );
 }
 #else
@@ -50,20 +50,20 @@ int main( void )
     unsigned char digest[16];
     char str[] = "Hello, world!";
 
-    polarssl_printf( "\n  MD5('%s') = ", str );
+    mbedtls_printf( "\n  MD5('%s') = ", str );
 
-    md5( (unsigned char *) str, 13, digest );
+    mbedtls_md5( (unsigned char *) str, 13, digest );
 
     for( i = 0; i < 16; i++ )
-        polarssl_printf( "%02x", digest[i] );
+        mbedtls_printf( "%02x", digest[i] );
 
-    polarssl_printf( "\n\n" );
+    mbedtls_printf( "\n\n" );
 
 #if defined(_WIN32)
-    polarssl_printf( "  Press Enter to exit this program.\n" );
+    mbedtls_printf( "  Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 
     return( 0 );
 }
-#endif /* POLARSSL_MD5_C */
+#endif /* MBEDTLS_MD5_C */

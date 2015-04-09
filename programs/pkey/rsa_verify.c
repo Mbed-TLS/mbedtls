@@ -20,21 +20,21 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define polarssl_printf     printf
+#define mbedtls_printf     printf
 #endif
 
-#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_RSA_C) && \
-    defined(POLARSSL_SHA256_C) && defined(POLARSSL_FS_IO)
+#if defined(MBEDTLS_BIGNUM_C) && defined(MBEDTLS_RSA_C) && \
+    defined(MBEDTLS_SHA256_C) && defined(MBEDTLS_FS_IO)
 #include "mbedtls/rsa.h"
 #include "mbedtls/sha1.h"
 
@@ -42,12 +42,12 @@
 #include <string.h>
 #endif
 
-#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||  \
-    !defined(POLARSSL_SHA256_C) || !defined(POLARSSL_FS_IO)
+#if !defined(MBEDTLS_BIGNUM_C) || !defined(MBEDTLS_RSA_C) ||  \
+    !defined(MBEDTLS_SHA256_C) || !defined(MBEDTLS_FS_IO)
 int main( void )
 {
-    polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_SHA256_C and/or POLARSSL_FS_IO not defined.\n");
+    mbedtls_printf("MBEDTLS_BIGNUM_C and/or MBEDTLS_RSA_C and/or "
+           "MBEDTLS_SHA256_C and/or MBEDTLS_FS_IO not defined.\n");
     return( 0 );
 }
 #else
@@ -56,42 +56,42 @@ int main( int argc, char *argv[] )
     FILE *f;
     int ret, c;
     size_t i;
-    rsa_context rsa;
+    mbedtls_rsa_context rsa;
     unsigned char hash[20];
-    unsigned char buf[POLARSSL_MPI_MAX_SIZE];
+    unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
 
     ret = 1;
     if( argc != 2 )
     {
-        polarssl_printf( "usage: rsa_verify <filename>\n" );
+        mbedtls_printf( "usage: rsa_verify <filename>\n" );
 
 #if defined(_WIN32)
-        polarssl_printf( "\n" );
+        mbedtls_printf( "\n" );
 #endif
 
         goto exit;
     }
 
-    polarssl_printf( "\n  . Reading public key from rsa_pub.txt" );
+    mbedtls_printf( "\n  . Reading public key from rsa_pub.txt" );
     fflush( stdout );
 
     if( ( f = fopen( "rsa_pub.txt", "rb" ) ) == NULL )
     {
-        polarssl_printf( " failed\n  ! Could not open rsa_pub.txt\n" \
+        mbedtls_printf( " failed\n  ! Could not open rsa_pub.txt\n" \
                 "  ! Please run rsa_genkey first\n\n" );
         goto exit;
     }
 
-    rsa_init( &rsa, RSA_PKCS_V15, 0 );
+    mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
 
-    if( ( ret = mpi_read_file( &rsa.N, 16, f ) ) != 0 ||
-        ( ret = mpi_read_file( &rsa.E, 16, f ) ) != 0 )
+    if( ( ret = mbedtls_mpi_read_file( &rsa.N, 16, f ) ) != 0 ||
+        ( ret = mbedtls_mpi_read_file( &rsa.E, 16, f ) ) != 0 )
     {
-        polarssl_printf( " failed\n  ! mpi_read_file returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_mpi_read_file returned %d\n\n", ret );
         goto exit;
     }
 
-    rsa.len = ( mpi_msb( &rsa.N ) + 7 ) >> 3;
+    rsa.len = ( mbedtls_mpi_msb( &rsa.N ) + 7 ) >> 3;
 
     fclose( f );
 
@@ -104,7 +104,7 @@ int main( int argc, char *argv[] )
 
     if( ( f = fopen( argv[1], "rb" ) ) == NULL )
     {
-        polarssl_printf( "\n  ! Could not open %s\n\n", argv[1] );
+        mbedtls_printf( "\n  ! Could not open %s\n\n", argv[1] );
         goto exit;
     }
 
@@ -118,7 +118,7 @@ int main( int argc, char *argv[] )
 
     if( i != rsa.len )
     {
-        polarssl_printf( "\n  ! Invalid RSA signature format\n\n" );
+        mbedtls_printf( "\n  ! Invalid RSA signature format\n\n" );
         goto exit;
     }
 
@@ -126,34 +126,34 @@ int main( int argc, char *argv[] )
      * Compute the SHA-256 hash of the input file and compare
      * it with the hash decrypted from the RSA signature.
      */
-    polarssl_printf( "\n  . Verifying the RSA/SHA-256 signature" );
+    mbedtls_printf( "\n  . Verifying the RSA/SHA-256 signature" );
     fflush( stdout );
 
-    if( ( ret = sha1_file( argv[1], hash ) ) != 0 )
+    if( ( ret = mbedtls_sha1_file( argv[1], hash ) ) != 0 )
     {
-        polarssl_printf( " failed\n  ! Could not open or read %s\n\n", argv[1] );
+        mbedtls_printf( " failed\n  ! Could not open or read %s\n\n", argv[1] );
         goto exit;
     }
 
-    if( ( ret = rsa_pkcs1_verify( &rsa, NULL, NULL, RSA_PUBLIC,
-                                  POLARSSL_MD_SHA256, 20, hash, buf ) ) != 0 )
+    if( ( ret = mbedtls_rsa_pkcs1_verify( &rsa, NULL, NULL, MBEDTLS_RSA_PUBLIC,
+                                  MBEDTLS_MD_SHA256, 20, hash, buf ) ) != 0 )
     {
-        polarssl_printf( " failed\n  ! rsa_pkcs1_verify returned -0x%0x\n\n", -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_rsa_pkcs1_verify returned -0x%0x\n\n", -ret );
         goto exit;
     }
 
-    polarssl_printf( "\n  . OK (the decrypted SHA-256 hash matches)\n\n" );
+    mbedtls_printf( "\n  . OK (the decrypted SHA-256 hash matches)\n\n" );
 
     ret = 0;
 
 exit:
 
 #if defined(_WIN32)
-    polarssl_printf( "  + Press Enter to exit this program.\n" );
+    mbedtls_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 
     return( ret );
 }
-#endif /* POLARSSL_BIGNUM_C && POLARSSL_RSA_C && POLARSSL_SHA256_C &&
-          POLARSSL_FS_IO */
+#endif /* MBEDTLS_BIGNUM_C && MBEDTLS_RSA_C && MBEDTLS_SHA256_C &&
+          MBEDTLS_FS_IO */

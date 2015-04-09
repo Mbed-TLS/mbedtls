@@ -20,22 +20,22 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define polarssl_printf     printf
+#define mbedtls_printf     printf
 #endif
 
-#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_PK_PARSE_C) && \
-    defined(POLARSSL_FS_IO) && defined(POLARSSL_ENTROPY_C) && \
-    defined(POLARSSL_CTR_DRBG_C)
+#if defined(MBEDTLS_BIGNUM_C) && defined(MBEDTLS_PK_PARSE_C) && \
+    defined(MBEDTLS_FS_IO) && defined(MBEDTLS_ENTROPY_C) && \
+    defined(MBEDTLS_CTR_DRBG_C)
 #include "mbedtls/error.h"
 #include "mbedtls/pk.h"
 #include "mbedtls/entropy.h"
@@ -46,14 +46,14 @@
 #endif
 
 
-#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_PK_PARSE_C) ||  \
-    !defined(POLARSSL_FS_IO) || !defined(POLARSSL_ENTROPY_C) || \
-    !defined(POLARSSL_CTR_DRBG_C)
+#if !defined(MBEDTLS_BIGNUM_C) || !defined(MBEDTLS_PK_PARSE_C) ||  \
+    !defined(MBEDTLS_FS_IO) || !defined(MBEDTLS_ENTROPY_C) || \
+    !defined(MBEDTLS_CTR_DRBG_C)
 int main( void )
 {
-    polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_PK_PARSE_C and/or "
-           "POLARSSL_FS_IO and/or POLARSSL_ENTROPY_C and/or "
-           "POLARSSL_CTR_DRBG_C not defined.\n");
+    mbedtls_printf("MBEDTLS_BIGNUM_C and/or MBEDTLS_PK_PARSE_C and/or "
+           "MBEDTLS_FS_IO and/or MBEDTLS_ENTROPY_C and/or "
+           "MBEDTLS_CTR_DRBG_C not defined.\n");
     return( 0 );
 }
 #else
@@ -62,12 +62,12 @@ int main( int argc, char *argv[] )
     FILE *f;
     int ret, c;
     size_t i, olen = 0;
-    pk_context pk;
-    entropy_context entropy;
-    ctr_drbg_context ctr_drbg;
+    mbedtls_pk_context pk;
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
     unsigned char result[1024];
     unsigned char buf[512];
-    const char *pers = "pk_decrypt";
+    const char *pers = "mbedtls_pk_decrypt";
     ((void) argv);
 
     memset(result, 0, sizeof( result ) );
@@ -75,35 +75,35 @@ int main( int argc, char *argv[] )
 
     if( argc != 2 )
     {
-        polarssl_printf( "usage: pk_decrypt <key_file>\n" );
+        mbedtls_printf( "usage: mbedtls_pk_decrypt <key_file>\n" );
 
 #if defined(_WIN32)
-        polarssl_printf( "\n" );
+        mbedtls_printf( "\n" );
 #endif
 
         goto exit;
     }
 
-    polarssl_printf( "\n  . Seeding the random number generator..." );
+    mbedtls_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
-    entropy_init( &entropy );
-    if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
+    mbedtls_entropy_init( &entropy );
+    if( ( ret = mbedtls_ctr_drbg_init( &ctr_drbg, mbedtls_entropy_func, &entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        polarssl_printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_init returned %d\n", ret );
         goto exit;
     }
 
-    polarssl_printf( "\n  . Reading private key from '%s'", argv[1] );
+    mbedtls_printf( "\n  . Reading private key from '%s'", argv[1] );
     fflush( stdout );
 
-    pk_init( &pk );
+    mbedtls_pk_init( &pk );
 
-    if( ( ret = pk_parse_keyfile( &pk, argv[1], "" ) ) != 0 )
+    if( ( ret = mbedtls_pk_parse_keyfile( &pk, argv[1], "" ) ) != 0 )
     {
-        polarssl_printf( " failed\n  ! pk_parse_keyfile returned -0x%04x\n", -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_pk_parse_keyfile returned -0x%04x\n", -ret );
         goto exit;
     }
 
@@ -114,7 +114,7 @@ int main( int argc, char *argv[] )
 
     if( ( f = fopen( "result-enc.txt", "rb" ) ) == NULL )
     {
-        polarssl_printf( "\n  ! Could not open %s\n\n", "result-enc.txt" );
+        mbedtls_printf( "\n  ! Could not open %s\n\n", "result-enc.txt" );
         goto exit;
     }
 
@@ -129,37 +129,37 @@ int main( int argc, char *argv[] )
     /*
      * Decrypt the encrypted RSA data and print the result.
      */
-    polarssl_printf( "\n  . Decrypting the encrypted data" );
+    mbedtls_printf( "\n  . Decrypting the encrypted data" );
     fflush( stdout );
 
-    if( ( ret = pk_decrypt( &pk, buf, i, result, &olen, sizeof(result),
-                            ctr_drbg_random, &ctr_drbg ) ) != 0 )
+    if( ( ret = mbedtls_pk_decrypt( &pk, buf, i, result, &olen, sizeof(result),
+                            mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
-        polarssl_printf( " failed\n  ! pk_decrypt returned -0x%04x\n", -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_pk_decrypt returned -0x%04x\n", -ret );
         goto exit;
     }
 
-    polarssl_printf( "\n  . OK\n\n" );
+    mbedtls_printf( "\n  . OK\n\n" );
 
-    polarssl_printf( "The decrypted result is: '%s'\n\n", result );
+    mbedtls_printf( "The decrypted result is: '%s'\n\n", result );
 
     ret = 0;
 
 exit:
-    ctr_drbg_free( &ctr_drbg );
-    entropy_free( &entropy );
+    mbedtls_ctr_drbg_free( &ctr_drbg );
+    mbedtls_entropy_free( &entropy );
 
-#if defined(POLARSSL_ERROR_C)
-    polarssl_strerror( ret, (char *) buf, sizeof(buf) );
-    polarssl_printf( "  !  Last error was: %s\n", buf );
+#if defined(MBEDTLS_ERROR_C)
+    mbedtls_strerror( ret, (char *) buf, sizeof(buf) );
+    mbedtls_printf( "  !  Last error was: %s\n", buf );
 #endif
 
 #if defined(_WIN32)
-    polarssl_printf( "  + Press Enter to exit this program.\n" );
+    mbedtls_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 
     return( ret );
 }
-#endif /* POLARSSL_BIGNUM_C && POLARSSL_PK_PARSE_C && POLARSSL_FS_IO &&
-          POLARSSL_ENTROPY_C && POLARSSL_CTR_DRBG_C */
+#endif /* MBEDTLS_BIGNUM_C && MBEDTLS_PK_PARSE_C && MBEDTLS_FS_IO &&
+          MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C */

@@ -60,10 +60,10 @@ $/ = $line_separator;
 
 open(TEST_FILE, ">$test_file") or die "Opening destination file '$test_file': $!";
 print TEST_FILE << "END";
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include <mbedtls/config.h>
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
 $test_helpers
@@ -173,7 +173,7 @@ $function_pre_code
 $param_defs
     if( cnt != $param_count )
     {
-        polarssl_fprintf( stderr, "\\nIncorrect argument count (%d != %d)\\n", cnt, $param_count );
+        mbedtls_fprintf( stderr, "\\nIncorrect argument count (%d != %d)\\n", cnt, $param_count );
         return( 2 );
     }
 

@@ -20,24 +20,24 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_ERROR_C) || defined(POLARSSL_ERROR_STRERROR_DUMMY)
+#if defined(MBEDTLS_ERROR_C) || defined(MBEDTLS_ERROR_STRERROR_DUMMY)
 #include "mbedtls/error.h"
 #include <string.h>
 #endif
 
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
-#define polarssl_snprintf snprintf
+#define mbedtls_snprintf snprintf
 #endif
 
-#if defined(POLARSSL_ERROR_C)
+#if defined(MBEDTLS_ERROR_C)
 
 #include <stdio.h>
 
@@ -47,7 +47,7 @@ HEADER_INCLUDED
 #define  snprintf  _snprintf
 #endif
 
-void polarssl_strerror( int ret, char *buf, size_t buflen )
+void mbedtls_strerror( int ret, char *buf, size_t buflen )
 {
     size_t len;
     int use_ret;
@@ -73,7 +73,7 @@ HIGH_LEVEL_CODE_CHECKS
         // END generated code
 
         if( strlen( buf ) == 0 )
-            polarssl_snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
+            mbedtls_snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
     }
 
     use_ret = ret & ~0xFF80;
@@ -91,7 +91,7 @@ HIGH_LEVEL_CODE_CHECKS
         if( buflen - len < 5 )
             return;
 
-        polarssl_snprintf( buf + len, buflen - len, " : " );
+        mbedtls_snprintf( buf + len, buflen - len, " : " );
 
         buf += len + 3;
         buflen -= len + 3;
@@ -106,17 +106,17 @@ LOW_LEVEL_CODE_CHECKS
     if( strlen( buf ) != 0 )
         return;
 
-    polarssl_snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
+    mbedtls_snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
 }
 
-#else /* POLARSSL_ERROR_C */
+#else /* MBEDTLS_ERROR_C */
 
-#if defined(POLARSSL_ERROR_STRERROR_DUMMY)
+#if defined(MBEDTLS_ERROR_STRERROR_DUMMY)
 
 /*
- * Provide an non-function in case POLARSSL_ERROR_C is not defined
+ * Provide an non-function in case MBEDTLS_ERROR_C is not defined
  */
-void polarssl_strerror( int ret, char *buf, size_t buflen )
+void mbedtls_strerror( int ret, char *buf, size_t buflen )
 {
     ((void) ret);
 
@@ -124,6 +124,6 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
         buf[0] = '\0';
 }
 
-#endif /* POLARSSL_ERROR_STRERROR_DUMMY */
+#endif /* MBEDTLS_ERROR_STRERROR_DUMMY */
 
-#endif /* POLARSSL_ERROR_C */
+#endif /* MBEDTLS_ERROR_C */

@@ -46,7 +46,7 @@ do_config()
     echo ""
     echo "config-$NAME:"
     cp configs/config-$NAME.h $CONFIG_H
-    scripts/config.pl unset POLARSSL_SSL_SRV_C
+    scripts/config.pl unset MBEDTLS_SSL_SRV_C
 
     for FLAG in $UNSET_LIST; do
         scripts/config.pl unset $FLAG
@@ -112,7 +112,7 @@ do_config   "ccm-psk-tls1_2" \
             "psk=000102030405060708090A0B0C0D0E0F"
 
 do_config   "suite-b" \
-            "POLARSSL_BASE64_C POLARSSL_PEM_PARSE_C POLARSSL_CERTS_C" \
+            "MBEDTLS_BASE64_C MBEDTLS_PEM_PARSE_C MBEDTLS_CERTS_C" \
             ""
 
 # cleanup

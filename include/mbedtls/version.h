@@ -25,33 +25,33 @@
  * This set of compile-time defines and run-time variables can be used to
  * determine the version number of the mbed TLS library used.
  */
-#ifndef POLARSSL_VERSION_H
-#define POLARSSL_VERSION_H
+#ifndef MBEDTLS_VERSION_H
+#define MBEDTLS_VERSION_H
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
 /**
  * The version number x.y.z is split into three parts.
  * Major, Minor, Patchlevel
  */
-#define POLARSSL_VERSION_MAJOR  1
-#define POLARSSL_VERSION_MINOR  4
-#define POLARSSL_VERSION_PATCH  0
+#define MBEDTLS_VERSION_MAJOR  1
+#define MBEDTLS_VERSION_MINOR  4
+#define MBEDTLS_VERSION_PATCH  0
 
 /**
  * The single version number has the following structure:
  *    MMNNPP00
  *    Major version | Minor version | Patch version
  */
-#define POLARSSL_VERSION_NUMBER         0x01040000
-#define POLARSSL_VERSION_STRING         "1.4.0"
-#define POLARSSL_VERSION_STRING_FULL    "mbed TLS 1.4.0"
+#define MBEDTLS_VERSION_NUMBER         0x01040000
+#define MBEDTLS_VERSION_STRING         "1.4.0"
+#define MBEDTLS_VERSION_STRING_FULL    "mbed TLS 1.4.0"
 
-#if defined(POLARSSL_VERSION_C)
+#if defined(MBEDTLS_VERSION_C)
 
 #ifdef __cplusplus
 extern "C" {
@@ -63,7 +63,7 @@ extern "C" {
  * \return          The constructed version number in the format
  *                  MMNNPP00 (Major, Minor, Patch).
  */
-unsigned int version_get_number( void );
+unsigned int mbedtls_version_get_number( void );
 
 /**
  * Get the version string ("x.y.z").
@@ -71,7 +71,7 @@ unsigned int version_get_number( void );
  * \param string    The string that will receive the value.
  *                  (Should be at least 9 bytes in size)
  */
-void version_get_string( char *string );
+void mbedtls_version_get_string( char *string );
 
 /**
  * Get the full version string ("mbed TLS x.y.z").
@@ -82,7 +82,7 @@ void version_get_string( char *string );
  *                  (So the buffer should be at least 18 bytes to receive this
  *                  version string).
  */
-void version_get_string_full( char *string );
+void mbedtls_version_get_string_full( char *string );
 
 /**
  * \brief           Check if support for a feature was compiled into this
@@ -94,18 +94,18 @@ void version_get_string_full( char *string );
  *                        support", "mbed TLS modules" and "mbed TLS feature
  *                        support" in config.h
  *
- * \param feature   The string for the define to check (e.g. "POLARSSL_AES_C")
+ * \param feature   The string for the define to check (e.g. "MBEDTLS_AES_C")
  *
  * \return          0 if the feature is present, -1 if the feature is not
  *                  present and -2 if support for feature checking as a whole
  *                  was not compiled in.
  */
-int version_check_feature( const char *feature );
+int mbedtls_version_check_feature( const char *feature );
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* POLARSSL_VERSION_C */
+#endif /* MBEDTLS_VERSION_C */
 
 #endif /* version.h */

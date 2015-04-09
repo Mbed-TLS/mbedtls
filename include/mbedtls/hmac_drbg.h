@@ -21,18 +21,18 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_HMAC_DRBG_H
-#define POLARSSL_HMAC_DRBG_H
+#ifndef MBEDTLS_HMAC_DRBG_H
+#define MBEDTLS_HMAC_DRBG_H
 
 #include "md.h"
 
 /*
  * Error codes
  */
-#define POLARSSL_ERR_HMAC_DRBG_REQUEST_TOO_BIG              -0x0003  /**< Too many random requested in single call. */
-#define POLARSSL_ERR_HMAC_DRBG_INPUT_TOO_BIG                -0x0005  /**< Input too large (Entropy + additional). */
-#define POLARSSL_ERR_HMAC_DRBG_FILE_IO_ERROR                -0x0007  /**< Read/write error in file. */
-#define POLARSSL_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED        -0x0009  /**< The entropy source failed. */
+#define MBEDTLS_ERR_HMAC_DRBG_REQUEST_TOO_BIG              -0x0003  /**< Too many random requested in single call. */
+#define MBEDTLS_ERR_HMAC_DRBG_INPUT_TOO_BIG                -0x0005  /**< Input too large (Entropy + additional). */
+#define MBEDTLS_ERR_HMAC_DRBG_FILE_IO_ERROR                -0x0007  /**< Read/write error in file. */
+#define MBEDTLS_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED        -0x0009  /**< The entropy source failed. */
 
 /**
  * \name SECTION: Module settings
@@ -42,26 +42,26 @@
  * \{
  */
 
-#if !defined(POLARSSL_HMAC_DRBG_RESEED_INTERVAL)
-#define POLARSSL_HMAC_DRBG_RESEED_INTERVAL   10000   /**< Interval before reseed is performed by default */
+#if !defined(MBEDTLS_HMAC_DRBG_RESEED_INTERVAL)
+#define MBEDTLS_HMAC_DRBG_RESEED_INTERVAL   10000   /**< Interval before reseed is performed by default */
 #endif
 
-#if !defined(POLARSSL_HMAC_DRBG_MAX_INPUT)
-#define POLARSSL_HMAC_DRBG_MAX_INPUT         256     /**< Maximum number of additional input bytes */
+#if !defined(MBEDTLS_HMAC_DRBG_MAX_INPUT)
+#define MBEDTLS_HMAC_DRBG_MAX_INPUT         256     /**< Maximum number of additional input bytes */
 #endif
 
-#if !defined(POLARSSL_HMAC_DRBG_MAX_REQUEST)
-#define POLARSSL_HMAC_DRBG_MAX_REQUEST       1024    /**< Maximum number of requested bytes per call */
+#if !defined(MBEDTLS_HMAC_DRBG_MAX_REQUEST)
+#define MBEDTLS_HMAC_DRBG_MAX_REQUEST       1024    /**< Maximum number of requested bytes per call */
 #endif
 
-#if !defined(POLARSSL_HMAC_DRBG_MAX_SEED_INPUT)
-#define POLARSSL_HMAC_DRBG_MAX_SEED_INPUT    384     /**< Maximum size of (re)seed buffer */
+#if !defined(MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT)
+#define MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT    384     /**< Maximum size of (re)seed buffer */
 #endif
 
 /* \} name SECTION: Module settings */
 
-#define POLARSSL_HMAC_DRBG_PR_OFF   0   /**< No prediction resistance       */
-#define POLARSSL_HMAC_DRBG_PR_ON    1   /**< Prediction resistance enabled  */
+#define MBEDTLS_HMAC_DRBG_PR_OFF   0   /**< No prediction resistance       */
+#define MBEDTLS_HMAC_DRBG_PR_ON    1   /**< Prediction resistance enabled  */
 
 #ifdef __cplusplus
 extern "C" {
@@ -74,8 +74,8 @@ typedef struct
 {
     /* Working state: the key K is not stored explicitely,
      * but is implied by the HMAC context */
-    md_context_t md_ctx;                    /*!< HMAC context (inc. K)  */
-    unsigned char V[POLARSSL_MD_MAX_SIZE];  /*!< V in the spec          */
+    mbedtls_md_context_t md_ctx;                    /*!< HMAC context (inc. K)  */
+    unsigned char V[MBEDTLS_MD_MAX_SIZE];  /*!< V in the spec          */
     int reseed_counter;                     /*!< reseed counter         */
 
     /* Administrative state */
@@ -87,7 +87,7 @@ typedef struct
     /* Callbacks */
     int (*f_entropy)(void *, unsigned char *, size_t); /*!< entropy function */
     void *p_entropy;            /*!< context for the entropy function        */
-} hmac_drbg_context;
+} mbedtls_hmac_drbg_context;
 
 /**
  * \brief               HMAC_DRBG initialisation
@@ -108,12 +108,12 @@ typedef struct
  *                      Note that SHA-256 is just as efficient as SHA-224.
  *
  * \return              0 if successful, or
- *                      POLARSSL_ERR_MD_BAD_INPUT_DATA, or
- *                      POLARSSL_ERR_MD_ALLOC_FAILED, or
- *                      POLARSSL_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED.
+ *                      MBEDTLS_ERR_MD_BAD_INPUT_DATA, or
+ *                      MBEDTLS_ERR_MD_ALLOC_FAILED, or
+ *                      MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED.
  */
-int hmac_drbg_init( hmac_drbg_context *ctx,
-                    const md_info_t * md_info,
+int mbedtls_hmac_drbg_init( mbedtls_hmac_drbg_context *ctx,
+                    const mbedtls_md_info_t * md_info,
                     int (*f_entropy)(void *, unsigned char *, size_t),
                     void *p_entropy,
                     const unsigned char *custom,
@@ -129,11 +129,11 @@ int hmac_drbg_init( hmac_drbg_context *ctx,
  * \param data_len      Length of data in bytes
  *
  * \return              0 if successful, or
- *                      POLARSSL_ERR_MD_BAD_INPUT_DATA, or
- *                      POLARSSL_ERR_MD_ALLOC_FAILED.
+ *                      MBEDTLS_ERR_MD_BAD_INPUT_DATA, or
+ *                      MBEDTLS_ERR_MD_ALLOC_FAILED.
  */
-int hmac_drbg_init_buf( hmac_drbg_context *ctx,
-                        const md_info_t * md_info,
+int mbedtls_hmac_drbg_init_buf( mbedtls_hmac_drbg_context *ctx,
+                        const mbedtls_md_info_t * md_info,
                         const unsigned char *data, size_t data_len );
 
 /**
@@ -143,30 +143,30 @@ int hmac_drbg_init_buf( hmac_drbg_context *ctx,
  *       Only use this if you have ample supply of good entropy!
  *
  * \param ctx           HMAC_DRBG context
- * \param resistance    POLARSSL_HMAC_DRBG_PR_ON or POLARSSL_HMAC_DRBG_PR_OFF
+ * \param resistance    MBEDTLS_HMAC_DRBG_PR_ON or MBEDTLS_HMAC_DRBG_PR_OFF
  */
-void hmac_drbg_set_prediction_resistance( hmac_drbg_context *ctx,
+void mbedtls_hmac_drbg_set_prediction_resistance( mbedtls_hmac_drbg_context *ctx,
                                           int resistance );
 
 /**
  * \brief               Set the amount of entropy grabbed on each reseed
  *                      (Default: given by the security strength, which
- *                      depends on the hash used, see \c hmac_drbg_init() )
+ *                      depends on the hash used, see \c mbedtls_hmac_drbg_init() )
  *
  * \param ctx           HMAC_DRBG context
  * \param len           Amount of entropy to grab, in bytes
  */
-void hmac_drbg_set_entropy_len( hmac_drbg_context *ctx,
+void mbedtls_hmac_drbg_set_entropy_len( mbedtls_hmac_drbg_context *ctx,
                                 size_t len );
 
 /**
  * \brief               Set the reseed interval
- *                      (Default: POLARSSL_HMAC_DRBG_RESEED_INTERVAL)
+ *                      (Default: MBEDTLS_HMAC_DRBG_RESEED_INTERVAL)
  *
  * \param ctx           HMAC_DRBG context
  * \param interval      Reseed interval
  */
-void hmac_drbg_set_reseed_interval( hmac_drbg_context *ctx,
+void mbedtls_hmac_drbg_set_reseed_interval( mbedtls_hmac_drbg_context *ctx,
                                     int interval );
 
 /**
@@ -179,7 +179,7 @@ void hmac_drbg_set_reseed_interval( hmac_drbg_context *ctx,
  * \note                Additional data is optional, pass NULL and 0 as second
  *                      third argument if no additional data is being used.
  */
-void hmac_drbg_update( hmac_drbg_context *ctx,
+void mbedtls_hmac_drbg_update( mbedtls_hmac_drbg_context *ctx,
                        const unsigned char *additional, size_t add_len );
 
 /**
@@ -190,9 +190,9 @@ void hmac_drbg_update( hmac_drbg_context *ctx,
  * \param len           Length of additional data
  *
  * \return              0 if successful, or
- *                      POLARSSL_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED
+ *                      MBEDTLS_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED
  */
-int hmac_drbg_reseed( hmac_drbg_context *ctx,
+int mbedtls_hmac_drbg_reseed( mbedtls_hmac_drbg_context *ctx,
                       const unsigned char *additional, size_t len );
 
 /**
@@ -207,11 +207,11 @@ int hmac_drbg_reseed( hmac_drbg_context *ctx,
  * \param add_len       Length of additional data (can be 0)
  *
  * \return              0 if successful, or
- *                      POLARSSL_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED, or
- *                      POLARSSL_ERR_HMAC_DRBG_REQUEST_TOO_BIG, or
- *                      POLARSSL_ERR_HMAC_DRBG_INPUT_TOO_BIG.
+ *                      MBEDTLS_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED, or
+ *                      MBEDTLS_ERR_HMAC_DRBG_REQUEST_TOO_BIG, or
+ *                      MBEDTLS_ERR_HMAC_DRBG_INPUT_TOO_BIG.
  */
-int hmac_drbg_random_with_add( void *p_rng,
+int mbedtls_hmac_drbg_random_with_add( void *p_rng,
                                unsigned char *output, size_t output_len,
                                const unsigned char *additional,
                                size_t add_len );
@@ -226,19 +226,19 @@ int hmac_drbg_random_with_add( void *p_rng,
  * \param out_len       Length of the buffer
  *
  * \return              0 if successful, or
- *                      POLARSSL_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED, or
- *                      POLARSSL_ERR_HMAC_DRBG_REQUEST_TOO_BIG
+ *                      MBEDTLS_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED, or
+ *                      MBEDTLS_ERR_HMAC_DRBG_REQUEST_TOO_BIG
  */
-int hmac_drbg_random( void *p_rng, unsigned char *output, size_t out_len );
+int mbedtls_hmac_drbg_random( void *p_rng, unsigned char *output, size_t out_len );
 
 /**
  * \brief               Free an HMAC_DRBG context
  *
  * \param ctx           HMAC_DRBG context to free.
  */
-void hmac_drbg_free( hmac_drbg_context *ctx );
+void mbedtls_hmac_drbg_free( mbedtls_hmac_drbg_context *ctx );
 
-#if defined(POLARSSL_FS_IO)
+#if defined(MBEDTLS_FS_IO)
 /**
  * \brief               Write a seed file
  *
@@ -246,9 +246,9 @@ void hmac_drbg_free( hmac_drbg_context *ctx );
  * \param path          Name of the file
  *
  * \return              0 if successful, 1 on file error, or
- *                      POLARSSL_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED
+ *                      MBEDTLS_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED
  */
-int hmac_drbg_write_seed_file( hmac_drbg_context *ctx, const char *path );
+int mbedtls_hmac_drbg_write_seed_file( mbedtls_hmac_drbg_context *ctx, const char *path );
 
 /**
  * \brief               Read and update a seed file. Seed is added to this
@@ -258,20 +258,20 @@ int hmac_drbg_write_seed_file( hmac_drbg_context *ctx, const char *path );
  * \param path          Name of the file
  *
  * \return              0 if successful, 1 on file error,
- *                      POLARSSL_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED or
- *                      POLARSSL_ERR_HMAC_DRBG_INPUT_TOO_BIG
+ *                      MBEDTLS_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED or
+ *                      MBEDTLS_ERR_HMAC_DRBG_INPUT_TOO_BIG
  */
-int hmac_drbg_update_seed_file( hmac_drbg_context *ctx, const char *path );
-#endif /* POLARSSL_FS_IO */
+int mbedtls_hmac_drbg_update_seed_file( mbedtls_hmac_drbg_context *ctx, const char *path );
+#endif /* MBEDTLS_FS_IO */
 
 
-#if defined(POLARSSL_SELF_TEST)
+#if defined(MBEDTLS_SELF_TEST)
 /**
  * \brief               Checkup routine
  *
  * \return              0 if successful, or 1 if the test failed
  */
-int hmac_drbg_self_test( int verbose );
+int mbedtls_hmac_drbg_self_test( int verbose );
 #endif
 
 #ifdef __cplusplus

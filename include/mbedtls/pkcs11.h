@@ -23,16 +23,16 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_PKCS11_H
-#define POLARSSL_PKCS11_H
+#ifndef MBEDTLS_PKCS11_H
+#define MBEDTLS_PKCS11_H
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_PKCS11_C)
+#if defined(MBEDTLS_PKCS11_C)
 
 #include "x509_crt.h"
 
@@ -56,7 +56,7 @@ extern "C" {
 typedef struct {
         pkcs11h_certificate_t pkcs11h_cert;
         int len;
-} pkcs11_context;
+} mbedtls_pkcs11_context;
 
 /**
  * Fill in a mbed TLS certificate, based on the given PKCS11 helper certificate.
@@ -66,11 +66,11 @@ typedef struct {
  *
  * \return              0 on success.
  */
-int pkcs11_x509_cert_init( x509_crt *cert, pkcs11h_certificate_t pkcs11h_cert );
+int mbedtls_pkcs11_x509_cert_init( mbedtls_x509_crt *cert, pkcs11h_certificate_t pkcs11h_cert );
 
 /**
- * Initialise a pkcs11_context, storing the given certificate. Note that the
- * pkcs11_context will take over control of the certificate, freeing it when
+ * Initialise a mbedtls_pkcs11_context, storing the given certificate. Note that the
+ * mbedtls_pkcs11_context will take over control of the certificate, freeing it when
  * done.
  *
  * \param priv_key      Private key structure to fill.
@@ -78,7 +78,7 @@ int pkcs11_x509_cert_init( x509_crt *cert, pkcs11h_certificate_t pkcs11h_cert );
  *
  * \return              0 on success
  */
-int pkcs11_priv_key_init( pkcs11_context *priv_key,
+int mbedtls_pkcs11_priv_key_init( mbedtls_pkcs11_context *priv_key,
         pkcs11h_certificate_t pkcs11_cert );
 
 /**
@@ -87,26 +87,26 @@ int pkcs11_priv_key_init( pkcs11_context *priv_key,
  *
  * \param priv_key      Private key structure to cleanup
  */
-void pkcs11_priv_key_free( pkcs11_context *priv_key );
+void mbedtls_pkcs11_priv_key_free( mbedtls_pkcs11_context *priv_key );
 
 /**
  * \brief          Do an RSA private key decrypt, then remove the message
  *                 padding
  *
  * \param ctx      PKCS #11 context
- * \param mode     must be RSA_PRIVATE, for compatibility with rsa.c's signature
+ * \param mode     must be MBEDTLS_RSA_PRIVATE, for compatibility with rsa.c's signature
  * \param input    buffer holding the encrypted data
  * \param output   buffer that will hold the plaintext
  * \param olen     will contain the plaintext length
  * \param output_max_len    maximum length of the output buffer
  *
- * \return         0 if successful, or an POLARSSL_ERR_RSA_XXX error code
+ * \return         0 if successful, or an MBEDTLS_ERR_RSA_XXX error code
  *
  * \note           The output buffer must be as large as the size
  *                 of ctx->N (eg. 128 bytes if RSA-1024 is used) otherwise
  *                 an error is thrown.
  */
-int pkcs11_decrypt( pkcs11_context *ctx,
+int mbedtls_pkcs11_decrypt( mbedtls_pkcs11_context *ctx,
                        int mode, size_t *olen,
                        const unsigned char *input,
                        unsigned char *output,
@@ -116,21 +116,21 @@ int pkcs11_decrypt( pkcs11_context *ctx,
  * \brief          Do a private RSA to sign a message digest
  *
  * \param ctx      PKCS #11 context
- * \param mode     must be RSA_PRIVATE, for compatibility with rsa.c's signature
- * \param md_alg   a POLARSSL_MD_XXX (use POLARSSL_MD_NONE for signing raw data)
- * \param hashlen  message digest length (for POLARSSL_MD_NONE only)
+ * \param mode     must be MBEDTLS_RSA_PRIVATE, for compatibility with rsa.c's signature
+ * \param md_alg   a MBEDTLS_MD_XXX (use MBEDTLS_MD_NONE for signing raw data)
+ * \param hashlen  message digest length (for MBEDTLS_MD_NONE only)
  * \param hash     buffer holding the message digest
  * \param sig      buffer that will hold the ciphertext
  *
  * \return         0 if the signing operation was successful,
- *                 or an POLARSSL_ERR_RSA_XXX error code
+ *                 or an MBEDTLS_ERR_RSA_XXX error code
  *
  * \note           The "sig" buffer must be as large as the size
  *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
  */
-int pkcs11_sign( pkcs11_context *ctx,
+int mbedtls_pkcs11_sign( mbedtls_pkcs11_context *ctx,
                     int mode,
-                    md_type_t md_alg,
+                    mbedtls_md_type_t md_alg,
                     unsigned int hashlen,
                     const unsigned char *hash,
                     unsigned char *sig );
@@ -138,34 +138,34 @@ int pkcs11_sign( pkcs11_context *ctx,
 /**
  * SSL/TLS wrappers for PKCS#11 functions
  */
-static inline int ssl_pkcs11_decrypt( void *ctx, int mode, size_t *olen,
+static inline int mbedtls_ssl_pkcs11_decrypt( void *ctx, int mode, size_t *olen,
                         const unsigned char *input, unsigned char *output,
                         size_t output_max_len )
 {
-    return pkcs11_decrypt( (pkcs11_context *) ctx, mode, olen, input, output,
+    return mbedtls_pkcs11_decrypt( (mbedtls_pkcs11_context *) ctx, mode, olen, input, output,
                            output_max_len );
 }
 
-static inline int ssl_pkcs11_sign( void *ctx,
+static inline int mbedtls_ssl_pkcs11_sign( void *ctx,
                      int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
-                     int mode, md_type_t md_alg, unsigned int hashlen,
+                     int mode, mbedtls_md_type_t md_alg, unsigned int hashlen,
                      const unsigned char *hash, unsigned char *sig )
 {
     ((void) f_rng);
     ((void) p_rng);
-    return pkcs11_sign( (pkcs11_context *) ctx, mode, md_alg,
+    return mbedtls_pkcs11_sign( (mbedtls_pkcs11_context *) ctx, mode, md_alg,
                         hashlen, hash, sig );
 }
 
-static inline size_t ssl_pkcs11_key_len( void *ctx )
+static inline size_t mbedtls_ssl_pkcs11_key_len( void *ctx )
 {
-    return ( (pkcs11_context *) ctx )->len;
+    return ( (mbedtls_pkcs11_context *) ctx )->len;
 }
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* POLARSSL_PKCS11_C */
+#endif /* MBEDTLS_PKCS11_C */
 
-#endif /* POLARSSL_PKCS11_H */
+#endif /* MBEDTLS_PKCS11_H */

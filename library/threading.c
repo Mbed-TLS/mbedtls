@@ -20,91 +20,91 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_THREADING_C)
+#if defined(MBEDTLS_THREADING_C)
 
 #include "mbedtls/threading.h"
 
-#if defined(POLARSSL_THREADING_PTHREAD)
-static int threading_mutex_init_pthread( threading_mutex_t *mutex )
+#if defined(MBEDTLS_THREADING_PTHREAD)
+static int threading_mutex_init_pthread( mbedtls_threading_mutex_t *mutex )
 {
     if( mutex == NULL )
-        return( POLARSSL_ERR_THREADING_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_THREADING_BAD_INPUT_DATA );
 
     if( pthread_mutex_init( mutex, NULL ) != 0 )
-        return( POLARSSL_ERR_THREADING_MUTEX_ERROR );
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 
     return( 0 );
 }
 
-static int threading_mutex_free_pthread( threading_mutex_t *mutex )
+static int threading_mutex_free_pthread( mbedtls_threading_mutex_t *mutex )
 {
     if( mutex == NULL )
-        return( POLARSSL_ERR_THREADING_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_THREADING_BAD_INPUT_DATA );
 
     if( pthread_mutex_destroy( mutex ) != 0 )
-        return( POLARSSL_ERR_THREADING_MUTEX_ERROR );
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 
     return( 0 );
 }
 
-static int threading_mutex_lock_pthread( threading_mutex_t *mutex )
+static int threading_mutex_lock_pthread( mbedtls_threading_mutex_t *mutex )
 {
     if( mutex == NULL )
-        return( POLARSSL_ERR_THREADING_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_THREADING_BAD_INPUT_DATA );
 
     if( pthread_mutex_lock( mutex ) != 0 )
-        return( POLARSSL_ERR_THREADING_MUTEX_ERROR );
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 
     return( 0 );
 }
 
-static int threading_mutex_unlock_pthread( threading_mutex_t *mutex )
+static int threading_mutex_unlock_pthread( mbedtls_threading_mutex_t *mutex )
 {
     if( mutex == NULL )
-        return( POLARSSL_ERR_THREADING_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_THREADING_BAD_INPUT_DATA );
 
     if( pthread_mutex_unlock( mutex ) != 0 )
-        return( POLARSSL_ERR_THREADING_MUTEX_ERROR );
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 
     return( 0 );
 }
 
-int (*polarssl_mutex_init)( threading_mutex_t * ) = threading_mutex_init_pthread;
-int (*polarssl_mutex_free)( threading_mutex_t * ) = threading_mutex_free_pthread;
-int (*polarssl_mutex_lock)( threading_mutex_t * ) = threading_mutex_lock_pthread;
-int (*polarssl_mutex_unlock)( threading_mutex_t * ) = threading_mutex_unlock_pthread;
-#endif /* POLARSSL_THREADING_PTHREAD */
+int (*mbedtls_mutex_init)( mbedtls_threading_mutex_t * ) = threading_mutex_init_pthread;
+int (*mbedtls_mutex_free)( mbedtls_threading_mutex_t * ) = threading_mutex_free_pthread;
+int (*mbedtls_mutex_lock)( mbedtls_threading_mutex_t * ) = threading_mutex_lock_pthread;
+int (*mbedtls_mutex_unlock)( mbedtls_threading_mutex_t * ) = threading_mutex_unlock_pthread;
+#endif /* MBEDTLS_THREADING_PTHREAD */
 
-#if defined(POLARSSL_THREADING_ALT)
-static int threading_mutex_fail( threading_mutex_t *mutex )
+#if defined(MBEDTLS_THREADING_ALT)
+static int threading_mutex_fail( mbedtls_threading_mutex_t *mutex )
 {
     ((void) mutex );
-    return( POLARSSL_ERR_THREADING_BAD_INPUT_DATA );
+    return( MBEDTLS_ERR_THREADING_BAD_INPUT_DATA );
 }
 
-int (*polarssl_mutex_init)( threading_mutex_t * ) = threading_mutex_fail;
-int (*polarssl_mutex_free)( threading_mutex_t * ) = threading_mutex_fail;
-int (*polarssl_mutex_lock)( threading_mutex_t * ) = threading_mutex_fail;
-int (*polarssl_mutex_unlock)( threading_mutex_t * ) = threading_mutex_fail;
+int (*mbedtls_mutex_init)( mbedtls_threading_mutex_t * ) = threading_mutex_fail;
+int (*mbedtls_mutex_free)( mbedtls_threading_mutex_t * ) = threading_mutex_fail;
+int (*mbedtls_mutex_lock)( mbedtls_threading_mutex_t * ) = threading_mutex_fail;
+int (*mbedtls_mutex_unlock)( mbedtls_threading_mutex_t * ) = threading_mutex_fail;
 
-int threading_set_alt( int (*mutex_init)( threading_mutex_t * ),
-                       int (*mutex_free)( threading_mutex_t * ),
-                       int (*mutex_lock)( threading_mutex_t * ),
-                       int (*mutex_unlock)( threading_mutex_t * ) )
+int mbedtls_threading_set_alt( int (*mutex_init)( mbedtls_threading_mutex_t * ),
+                       int (*mutex_free)( mbedtls_threading_mutex_t * ),
+                       int (*mutex_lock)( mbedtls_threading_mutex_t * ),
+                       int (*mutex_unlock)( mbedtls_threading_mutex_t * ) )
 {
-    polarssl_mutex_init = mutex_init;
-    polarssl_mutex_free = mutex_free;
-    polarssl_mutex_lock = mutex_lock;
-    polarssl_mutex_unlock = mutex_unlock;
+    mbedtls_mutex_init = mutex_init;
+    mbedtls_mutex_free = mutex_free;
+    mbedtls_mutex_lock = mutex_lock;
+    mbedtls_mutex_unlock = mutex_unlock;
 
     return( 0 );
 }
-#endif /* POLARSSL_THREADING_ALT */
+#endif /* MBEDTLS_THREADING_ALT */
 
-#endif /* POLARSSL_THREADING_C */
+#endif /* MBEDTLS_THREADING_C */

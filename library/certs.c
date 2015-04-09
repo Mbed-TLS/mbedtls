@@ -20,17 +20,17 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
 #include "mbedtls/certs.h"
 
-#if defined(POLARSSL_CERTS_C)
+#if defined(MBEDTLS_CERTS_C)
 
-#if defined(POLARSSL_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C)
 #define TEST_CA_CRT_EC                                                  \
 "-----BEGIN CERTIFICATE-----\r\n"                                       \
 "MIICUjCCAdegAwIBAgIJAMFD4n5iQ8zoMAoGCCqGSM49BAMCMD4xCzAJBgNVBAYT\r\n"  \
@@ -47,9 +47,9 @@
 "t4d0PCu412mUC6Nnd7izvtE2MgIxAP1nnJQjZ8BWukszFQDG48wxCCyci9qpdSMv\r\n"  \
 "uCjn8pwUOkABXK8Mss90fzCfCEOtIA==\r\n"                                  \
 "-----END CERTIFICATE-----\r\n"
-const char test_ca_crt_ec[] = TEST_CA_CRT_EC;
+const char mbedtls_test_ca_crt_ec[] = TEST_CA_CRT_EC;
 
-const char test_ca_key_ec[] =
+const char mbedtls_test_ca_key_ec[] =
 "-----BEGIN EC PRIVATE KEY-----\r\n"
 "Proc-Type: 4,ENCRYPTED\r\n"
 "DEK-Info: DES-EDE3-CBC,307EAB469933D64E\r\n"
@@ -60,9 +60,9 @@ const char test_ca_key_ec[] =
 "a77x/sY1Bvii8S9/XhDTb6pTMx06wzrm\r\n"
 "-----END EC PRIVATE KEY-----\r\n";
 
-const char test_ca_pwd_ec[] = "PolarSSLTest";
+const char mbedtls_test_ca_pwd_ec[] = "PolarSSLTest";
 
-const char test_srv_crt_ec[] =
+const char mbedtls_test_srv_crt_ec[] =
 "-----BEGIN CERTIFICATE-----\r\n"
 "MIICHzCCAaWgAwIBAgIBCTAKBggqhkjOPQQDAjA+MQswCQYDVQQGEwJOTDERMA8G\r\n"
 "A1UEChMIUG9sYXJTU0wxHDAaBgNVBAMTE1BvbGFyc3NsIFRlc3QgRUMgQ0EwHhcN\r\n"
@@ -78,14 +78,14 @@ const char test_srv_crt_ec[] =
 "fGa5kHvHARBPc8YAIVIqDvHH1Q==\r\n"
 "-----END CERTIFICATE-----\r\n";
 
-const char test_srv_key_ec[] =
+const char mbedtls_test_srv_key_ec[] =
 "-----BEGIN EC PRIVATE KEY-----\r\n"
 "MHcCAQEEIPEqEyB2AnCoPL/9U/YDHvdqXYbIogTywwyp6/UfDw6noAoGCCqGSM49\r\n"
 "AwEHoUQDQgAEN8xW2XYJHlpyPsdZLf8gbu58+QaRdNCtFLX3aCJZYpJO5QDYIxH/\r\n"
 "6i/SNF1dFr2KiMJrdw1VzYoqDvoByLTt/w==\r\n"
 "-----END EC PRIVATE KEY-----\r\n";
 
-const char test_cli_crt_ec[] =
+const char mbedtls_test_cli_crt_ec[] =
 "-----BEGIN CERTIFICATE-----\r\n"
 "MIICLDCCAbKgAwIBAgIBDTAKBggqhkjOPQQDAjA+MQswCQYDVQQGEwJOTDERMA8G\r\n"
 "A1UEChMIUG9sYXJTU0wxHDAaBgNVBAMTE1BvbGFyc3NsIFRlc3QgRUMgQ0EwHhcN\r\n"
@@ -101,25 +101,25 @@ const char test_cli_crt_ec[] =
 "LwjQje5PDGHfd3h9tP38Qknu5bJqws0md2KOKHyeV0U=\r\n"
 "-----END CERTIFICATE-----\r\n";
 
-const char test_cli_key_ec[] =
+const char mbedtls_test_cli_key_ec[] =
 "-----BEGIN EC PRIVATE KEY-----\r\n"
 "MHcCAQEEIPb3hmTxZ3/mZI3vyk7p3U3wBf+WIop6hDhkFzJhmLcqoAoGCCqGSM49\r\n"
 "AwEHoUQDQgAEV+WusXPf06y7k7iB/xKu7uZTrM5VU/Y0Dswu42MlC9+Y4vNcYDaW\r\n"
 "wNUYFHDlf5/VS0UY5bBs1Vz4lo+HcKPkxw==\r\n"
 "-----END EC PRIVATE KEY-----\r\n";
 
-const size_t test_ca_crt_ec_len  = sizeof( test_ca_crt_ec );
-const size_t test_ca_key_ec_len  = sizeof( test_ca_key_ec );
-const size_t test_ca_pwd_ec_len  = sizeof( test_ca_pwd_ec ) - 1;
-const size_t test_srv_crt_ec_len = sizeof( test_srv_crt_ec );
-const size_t test_srv_key_ec_len = sizeof( test_srv_key_ec );
-const size_t test_cli_crt_ec_len = sizeof( test_cli_crt_ec );
-const size_t test_cli_key_ec_len = sizeof( test_cli_key_ec );
+const size_t mbedtls_test_ca_crt_ec_len  = sizeof( mbedtls_test_ca_crt_ec );
+const size_t mbedtls_test_ca_key_ec_len  = sizeof( mbedtls_test_ca_key_ec );
+const size_t mbedtls_test_ca_pwd_ec_len  = sizeof( mbedtls_test_ca_pwd_ec ) - 1;
+const size_t mbedtls_test_srv_crt_ec_len = sizeof( mbedtls_test_srv_crt_ec );
+const size_t mbedtls_test_srv_key_ec_len = sizeof( mbedtls_test_srv_key_ec );
+const size_t mbedtls_test_cli_crt_ec_len = sizeof( mbedtls_test_cli_crt_ec );
+const size_t mbedtls_test_cli_key_ec_len = sizeof( mbedtls_test_cli_key_ec );
 #else
 #define TEST_CA_CRT_EC
-#endif /* POLARSSL_ECDSA_C */
+#endif /* MBEDTLS_ECDSA_C */
 
-#if defined(POLARSSL_RSA_C)
+#if defined(MBEDTLS_RSA_C)
 #define TEST_CA_CRT_RSA                                                 \
 "-----BEGIN CERTIFICATE-----\r\n"                                       \
 "MIIDhzCCAm+gAwIBAgIBADANBgkqhkiG9w0BAQUFADA7MQswCQYDVQQGEwJOTDER\r\n"  \
@@ -142,9 +142,9 @@ const size_t test_cli_key_ec_len = sizeof( test_cli_key_ec );
 "m/UTSLBNFNHesiTZeH31NcxYGdHSme9Nc/gfidRa0FLOCfWxRlFqAI47zG9jAQCZ\r\n"  \
 "7Z2mCGDNMhjQc+BYcdnl0lPXjdDK6V0qCg1dVewhUBcW5gZKzV7e9+DpVA==\r\n"      \
 "-----END CERTIFICATE-----\r\n"
-const char test_ca_crt_rsa[] = TEST_CA_CRT_RSA;
+const char mbedtls_test_ca_crt_rsa[] = TEST_CA_CRT_RSA;
 
-const char test_ca_key_rsa[] =
+const char mbedtls_test_ca_key_rsa[] =
 "-----BEGIN RSA PRIVATE KEY-----\r\n"
 "Proc-Type: 4,ENCRYPTED\r\n"
 "DEK-Info: DES-EDE3-CBC,A8A95B05D5B7206B\r\n"
@@ -176,9 +176,9 @@ const char test_ca_key_rsa[] =
 "P/eQiddSf0brnpiLJRh7qZrl9XuqYdpUqnoEdMAfotDOID8OtV7gt8a48ad8VPW2\r\n"
 "-----END RSA PRIVATE KEY-----\r\n";
 
-const char test_ca_pwd_rsa[] = "PolarSSLTest";
+const char mbedtls_test_ca_pwd_rsa[] = "PolarSSLTest";
 
-const char test_srv_crt_rsa[] =
+const char mbedtls_test_srv_crt_rsa[] =
 "-----BEGIN CERTIFICATE-----\r\n"
 "MIIDNzCCAh+gAwIBAgIBAjANBgkqhkiG9w0BAQUFADA7MQswCQYDVQQGEwJOTDER\r\n"
 "MA8GA1UEChMIUG9sYXJTU0wxGTAXBgNVBAMTEFBvbGFyU1NMIFRlc3QgQ0EwHhcN\r\n"
@@ -200,7 +200,7 @@ const char test_srv_crt_rsa[] =
 "zhuYwjVuX6JHG0c=\r\n"
 "-----END CERTIFICATE-----\r\n";
 
-const char test_srv_key_rsa[] =
+const char mbedtls_test_srv_key_rsa[] =
 "-----BEGIN RSA PRIVATE KEY-----\r\n"
 "MIIEpAIBAAKCAQEAwU2j3efNHdEE10lyuJmsDnjkOjxKzzoTFtBa5M2jAIin7h5r\r\n"
 "lqdStJDvLXJ6PiSa/LY0rCT1d+AmZIycsCh9odrqjObJHJa8/sEEUrM21KP64bF2\r\n"
@@ -229,7 +229,7 @@ const char test_srv_key_rsa[] =
 "TB6l9VGoxJL4fyHnZb8L5gGvnB1bbD8cL6YPaDiOhcRseC9vBiEuVg==\r\n"
 "-----END RSA PRIVATE KEY-----\r\n";
 
-const char test_cli_crt_rsa[] =
+const char mbedtls_test_cli_crt_rsa[] =
 "-----BEGIN CERTIFICATE-----\r\n"
 "MIIDPzCCAiegAwIBAgIBBDANBgkqhkiG9w0BAQUFADA7MQswCQYDVQQGEwJOTDER\r\n"
 "MA8GA1UEChMIUG9sYXJTU0wxGTAXBgNVBAMTEFBvbGFyU1NMIFRlc3QgQ0EwHhcN\r\n"
@@ -251,7 +251,7 @@ const char test_cli_crt_rsa[] =
 "D+stpAKiQLAWaAusIWKYEyw9MQ==\r\n"
 "-----END CERTIFICATE-----\r\n";
 
-const char test_cli_key_rsa[] =
+const char mbedtls_test_cli_key_rsa[] =
 "-----BEGIN RSA PRIVATE KEY-----\r\n"
 "MIIEpAIBAAKCAQEAyHTEzLn5tXnpRdkUYLB9u5Pyax6fM60Nj4o8VmXl3ETZzGaF\r\n"
 "B9X4J7BKNdBjngpuG7fa8H6r7gwQk4ZJGDTzqCrSV/Uu1C93KYRhTYJQj6eVSHD1\r\n"
@@ -280,83 +280,83 @@ const char test_cli_key_rsa[] =
 "8u4ytY0F+Vlanj5lm3TaoHSVF1+NWPyOTiwevIECGKwSxvlki4fDAA==\r\n"
 "-----END RSA PRIVATE KEY-----\r\n";
 
-const size_t test_ca_crt_rsa_len  = sizeof( test_ca_crt_rsa );
-const size_t test_ca_key_rsa_len  = sizeof( test_ca_key_rsa );
-const size_t test_ca_pwd_rsa_len  = sizeof( test_ca_pwd_rsa ) - 1;
-const size_t test_srv_crt_rsa_len = sizeof( test_srv_crt_rsa );
-const size_t test_srv_key_rsa_len = sizeof( test_srv_key_rsa );
-const size_t test_cli_crt_rsa_len = sizeof( test_cli_crt_rsa );
-const size_t test_cli_key_rsa_len = sizeof( test_cli_key_rsa );
+const size_t mbedtls_test_ca_crt_rsa_len  = sizeof( mbedtls_test_ca_crt_rsa );
+const size_t mbedtls_test_ca_key_rsa_len  = sizeof( mbedtls_test_ca_key_rsa );
+const size_t mbedtls_test_ca_pwd_rsa_len  = sizeof( mbedtls_test_ca_pwd_rsa ) - 1;
+const size_t mbedtls_test_srv_crt_rsa_len = sizeof( mbedtls_test_srv_crt_rsa );
+const size_t mbedtls_test_srv_key_rsa_len = sizeof( mbedtls_test_srv_key_rsa );
+const size_t mbedtls_test_cli_crt_rsa_len = sizeof( mbedtls_test_cli_crt_rsa );
+const size_t mbedtls_test_cli_key_rsa_len = sizeof( mbedtls_test_cli_key_rsa );
 #else
 #define TEST_CA_CRT_RSA
-#endif /* POLARSSL_RSA_C */
+#endif /* MBEDTLS_RSA_C */
 
-#if defined(POLARSSL_DHM_C)
-const char test_dhm_params[] =
+#if defined(MBEDTLS_DHM_C)
+const char mbedtls_test_dhm_params[] =
 "-----BEGIN DH PARAMETERS-----\r\n"
 "MIGHAoGBAJ419DBEOgmQTzo5qXl5fQcN9TN455wkOL7052HzxxRVMyhYmwQcgJvh\r\n"
 "1sa18fyfR9OiVEMYglOpkqVoGLN7qd5aQNNi5W7/C+VBdHTBJcGZJyyP5B3qcz32\r\n"
 "9mLJKudlVudV0Qxk5qUJaPZ/xupz0NyoVpviuiBOI1gNi8ovSXWzAgEC\r\n"
 "-----END DH PARAMETERS-----\r\n";
-const size_t test_dhm_params_len = sizeof( test_dhm_params );
+const size_t mbedtls_test_dhm_params_len = sizeof( mbedtls_test_dhm_params );
 #endif
 
-#if defined(POLARSSL_PEM_PARSE_C)
+#if defined(MBEDTLS_PEM_PARSE_C)
 /* Concatenation of all available CA certificates */
-const char test_cas_pem[] = TEST_CA_CRT_RSA TEST_CA_CRT_EC;
-const size_t test_cas_pem_len = sizeof( test_cas_pem );
+const char mbedtls_test_cas_pem[] = TEST_CA_CRT_RSA TEST_CA_CRT_EC;
+const size_t mbedtls_test_cas_pem_len = sizeof( mbedtls_test_cas_pem );
 #endif
 
 /* List of all available CA certificates */
-const char * test_cas[] = {
-#if defined(POLARSSL_RSA_C)
-    test_ca_crt_rsa,
+const char * mbedtls_test_cas[] = {
+#if defined(MBEDTLS_RSA_C)
+    mbedtls_test_ca_crt_rsa,
 #endif
-#if defined(POLARSSL_ECDSA_C)
-    test_ca_crt_ec,
+#if defined(MBEDTLS_ECDSA_C)
+    mbedtls_test_ca_crt_ec,
 #endif
     NULL
 };
-const size_t test_cas_len[] = {
-#if defined(POLARSSL_RSA_C)
-    sizeof( test_ca_crt_rsa_len ),
+const size_t mbedtls_test_cas_len[] = {
+#if defined(MBEDTLS_RSA_C)
+    sizeof( mbedtls_test_ca_crt_rsa_len ),
 #endif
-#if defined(POLARSSL_ECDSA_C)
-    sizeof( test_ca_crt_ec_len ),
+#if defined(MBEDTLS_ECDSA_C)
+    sizeof( mbedtls_test_ca_crt_ec_len ),
 #endif
     0
 };
 
-#if defined(POLARSSL_RSA_C)
-const char *test_ca_crt  = test_ca_crt_rsa;
-const char *test_ca_key  = test_ca_key_rsa;
-const char *test_ca_pwd  = test_ca_pwd_rsa;
-const char *test_srv_crt = test_srv_crt_rsa;
-const char *test_srv_key = test_srv_key_rsa;
-const char *test_cli_crt = test_cli_crt_rsa;
-const char *test_cli_key = test_cli_key_rsa;
-const size_t test_ca_crt_len  = sizeof( test_ca_crt_rsa );
-const size_t test_ca_key_len  = sizeof( test_ca_key_rsa );
-const size_t test_ca_pwd_len  = sizeof( test_ca_pwd_rsa ) - 1;
-const size_t test_srv_crt_len = sizeof( test_srv_crt_rsa );
-const size_t test_srv_key_len = sizeof( test_srv_key_rsa );
-const size_t test_cli_crt_len = sizeof( test_cli_crt_rsa );
-const size_t test_cli_key_len = sizeof( test_cli_key_rsa );
-#else /* ! POLARSSL_RSA_C, so POLARSSL_ECDSA_C */
-const char *test_ca_crt  = test_ca_crt_ec;
-const char *test_ca_key  = test_ca_key_ec;
-const char *test_ca_pwd  = test_ca_pwd_ec;
-const char *test_srv_crt = test_srv_crt_ec;
-const char *test_srv_key = test_srv_key_ec;
-const char *test_cli_crt = test_cli_crt_ec;
-const char *test_cli_key = test_cli_key_ec;
-const size_t test_ca_crt_len  = sizeof( test_ca_crt_ec );
-const size_t test_ca_key_len  = sizeof( test_ca_key_ec );
-const size_t test_ca_pwd_len  = sizeof( test_ca_pwd_ec ) - 1;
-const size_t test_srv_crt_len = sizeof( test_srv_crt_ec );
-const size_t test_srv_key_len = sizeof( test_srv_key_ec );
-const size_t test_cli_crt_len = sizeof( test_cli_crt_ec );
-const size_t test_cli_key_len = sizeof( test_cli_key_ec );
-#endif /* POLARSSL_RSA_C */
+#if defined(MBEDTLS_RSA_C)
+const char *mbedtls_test_ca_crt  = mbedtls_test_ca_crt_rsa;
+const char *mbedtls_test_ca_key  = mbedtls_test_ca_key_rsa;
+const char *mbedtls_test_ca_pwd  = mbedtls_test_ca_pwd_rsa;
+const char *mbedtls_test_srv_crt = mbedtls_test_srv_crt_rsa;
+const char *mbedtls_test_srv_key = mbedtls_test_srv_key_rsa;
+const char *mbedtls_test_cli_crt = mbedtls_test_cli_crt_rsa;
+const char *mbedtls_test_cli_key = mbedtls_test_cli_key_rsa;
+const size_t mbedtls_test_ca_crt_len  = sizeof( mbedtls_test_ca_crt_rsa );
+const size_t mbedtls_test_ca_key_len  = sizeof( mbedtls_test_ca_key_rsa );
+const size_t mbedtls_test_ca_pwd_len  = sizeof( mbedtls_test_ca_pwd_rsa ) - 1;
+const size_t mbedtls_test_srv_crt_len = sizeof( mbedtls_test_srv_crt_rsa );
+const size_t mbedtls_test_srv_key_len = sizeof( mbedtls_test_srv_key_rsa );
+const size_t mbedtls_test_cli_crt_len = sizeof( mbedtls_test_cli_crt_rsa );
+const size_t mbedtls_test_cli_key_len = sizeof( mbedtls_test_cli_key_rsa );
+#else /* ! MBEDTLS_RSA_C, so MBEDTLS_ECDSA_C */
+const char *mbedtls_test_ca_crt  = mbedtls_test_ca_crt_ec;
+const char *mbedtls_test_ca_key  = mbedtls_test_ca_key_ec;
+const char *mbedtls_test_ca_pwd  = mbedtls_test_ca_pwd_ec;
+const char *mbedtls_test_srv_crt = mbedtls_test_srv_crt_ec;
+const char *mbedtls_test_srv_key = mbedtls_test_srv_key_ec;
+const char *mbedtls_test_cli_crt = mbedtls_test_cli_crt_ec;
+const char *mbedtls_test_cli_key = mbedtls_test_cli_key_ec;
+const size_t mbedtls_test_ca_crt_len  = sizeof( mbedtls_test_ca_crt_ec );
+const size_t mbedtls_test_ca_key_len  = sizeof( mbedtls_test_ca_key_ec );
+const size_t mbedtls_test_ca_pwd_len  = sizeof( mbedtls_test_ca_pwd_ec ) - 1;
+const size_t mbedtls_test_srv_crt_len = sizeof( mbedtls_test_srv_crt_ec );
+const size_t mbedtls_test_srv_key_len = sizeof( mbedtls_test_srv_key_ec );
+const size_t mbedtls_test_cli_crt_len = sizeof( mbedtls_test_cli_crt_ec );
+const size_t mbedtls_test_cli_key_len = sizeof( mbedtls_test_cli_key_ec );
+#endif /* MBEDTLS_RSA_C */
 
-#endif /* POLARSSL_CERTS_C */
+#endif /* MBEDTLS_CERTS_C */

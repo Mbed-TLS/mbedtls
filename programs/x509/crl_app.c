@@ -20,25 +20,25 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define polarssl_printf     printf
+#define mbedtls_printf     printf
 #endif
 
-#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||  \
-    !defined(POLARSSL_X509_CRL_PARSE_C) || !defined(POLARSSL_FS_IO)
+#if !defined(MBEDTLS_BIGNUM_C) || !defined(MBEDTLS_RSA_C) ||  \
+    !defined(MBEDTLS_X509_CRL_PARSE_C) || !defined(MBEDTLS_FS_IO)
 int main( void )
 {
-    polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_X509_CRL_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
+    mbedtls_printf("MBEDTLS_BIGNUM_C and/or MBEDTLS_RSA_C and/or "
+           "MBEDTLS_X509_CRL_PARSE_C and/or MBEDTLS_FS_IO not defined.\n");
     return( 0 );
 }
 #else
@@ -70,19 +70,19 @@ int main( int argc, char *argv[] )
 {
     int ret = 0;
     unsigned char buf[100000];
-    x509_crl crl;
+    mbedtls_x509_crl crl;
     int i;
     char *p, *q;
 
     /*
      * Set to sane values
      */
-    x509_crl_init( &crl );
+    mbedtls_x509_crl_init( &crl );
 
     if( argc == 0 )
     {
     usage:
-        polarssl_printf( USAGE );
+        mbedtls_printf( USAGE );
         goto exit;
     }
 
@@ -104,43 +104,43 @@ int main( int argc, char *argv[] )
     /*
      * 1.1. Load the CRL
      */
-    polarssl_printf( "\n  . Loading the CRL ..." );
+    mbedtls_printf( "\n  . Loading the CRL ..." );
     fflush( stdout );
 
-    ret = x509_crl_parse_file( &crl, opt.filename );
+    ret = mbedtls_x509_crl_parse_file( &crl, opt.filename );
 
     if( ret != 0 )
     {
-        polarssl_printf( " failed\n  !  x509_crl_parse_file returned %d\n\n", ret );
-        x509_crl_free( &crl );
+        mbedtls_printf( " failed\n  !  mbedtls_x509_crl_parse_file returned %d\n\n", ret );
+        mbedtls_x509_crl_free( &crl );
         goto exit;
     }
 
-    polarssl_printf( " ok\n" );
+    mbedtls_printf( " ok\n" );
 
     /*
      * 1.2 Print the CRL
      */
-    polarssl_printf( "  . CRL information    ...\n" );
-    ret = x509_crl_info( (char *) buf, sizeof( buf ) - 1, "      ", &crl );
+    mbedtls_printf( "  . CRL information    ...\n" );
+    ret = mbedtls_x509_crl_info( (char *) buf, sizeof( buf ) - 1, "      ", &crl );
     if( ret == -1 )
     {
-        polarssl_printf( " failed\n  !  x509_crl_info returned %d\n\n", ret );
-        x509_crl_free( &crl );
+        mbedtls_printf( " failed\n  !  mbedtls_x509_crl_info returned %d\n\n", ret );
+        mbedtls_x509_crl_free( &crl );
         goto exit;
     }
 
-    polarssl_printf( "%s\n", buf );
+    mbedtls_printf( "%s\n", buf );
 
 exit:
-    x509_crl_free( &crl );
+    mbedtls_x509_crl_free( &crl );
 
 #if defined(_WIN32)
-    polarssl_printf( "  + Press Enter to exit this program.\n" );
+    mbedtls_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 
     return( ret );
 }
-#endif /* POLARSSL_BIGNUM_C && POLARSSL_RSA_C && POLARSSL_X509_CRL_PARSE_C &&
-          POLARSSL_FS_IO */
+#endif /* MBEDTLS_BIGNUM_C && MBEDTLS_RSA_C && MBEDTLS_X509_CRL_PARSE_C &&
+          MBEDTLS_FS_IO */

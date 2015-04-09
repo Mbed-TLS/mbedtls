@@ -3,12 +3,12 @@
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:POLARSSL_BASE64_C
+ * depends_on:MBEDTLS_BASE64_C
  * END_DEPENDENCIES
  */
 
 /* BEGIN_CASE */
-void base64_encode( char *src_string, char *dst_string, int dst_buf_size,
+void mbedtls_base64_encode( char *src_string, char *dst_string, int dst_buf_size,
                     int result )
 {
     unsigned char src_str[1000];
@@ -19,7 +19,7 @@ void base64_encode( char *src_string, char *dst_string, int dst_buf_size,
     memset(dst_str, 0x00, 1000);
 
     strncpy( (char *) src_str, src_string, sizeof(src_str) - 1 );
-    TEST_ASSERT( base64_encode( dst_str, &len, src_str, strlen( (char *) src_str ) ) == result );
+    TEST_ASSERT( mbedtls_base64_encode( dst_str, &len, src_str, strlen( (char *) src_str ) ) == result );
     if( result == 0 )
     {
         TEST_ASSERT( strcmp( (char *) dst_str, dst_string ) == 0 );
@@ -28,7 +28,7 @@ void base64_encode( char *src_string, char *dst_string, int dst_buf_size,
 /* END_CASE */
 
 /* BEGIN_CASE */
-void base64_decode( char *src_string, char *dst_string, int result )
+void mbedtls_base64_decode( char *src_string, char *dst_string, int result )
 {
     unsigned char src_str[1000];
     unsigned char dst_str[1000];
@@ -39,7 +39,7 @@ void base64_decode( char *src_string, char *dst_string, int result )
     memset(dst_str, 0x00, 1000);
 
     strncpy( (char *) src_str, src_string, sizeof(src_str) - 1 );
-    res = base64_decode( dst_str, &len, src_str, strlen( (char *) src_str ) );
+    res = mbedtls_base64_decode( dst_str, &len, src_str, strlen( (char *) src_str ) );
     TEST_ASSERT( res == result );
     if( result == 0 )
     {
@@ -58,7 +58,7 @@ void base64_encode_hex( char *src_hex, char *dst, int dst_buf_size,
     src = unhexify_alloc( src_hex, &src_len );
     res = zero_alloc( dst_buf_size );
 
-    TEST_ASSERT( base64_encode( res, &len, src, src_len ) == result );
+    TEST_ASSERT( mbedtls_base64_encode( res, &len, src, src_len ) == result );
     if( result == 0 )
     {
         TEST_ASSERT( len == strlen( dst ) );
@@ -66,8 +66,8 @@ void base64_encode_hex( char *src_hex, char *dst, int dst_buf_size,
     }
 
 exit:
-    polarssl_free( src );
-    polarssl_free( res );
+    mbedtls_free( src );
+    mbedtls_free( res );
 }
 /* END_CASE */
 
@@ -81,7 +81,7 @@ void base64_decode_hex( char *src, char *dst_hex, int dst_buf_size,
     dst = unhexify_alloc( dst_hex, &dst_len );
     res = zero_alloc( dst_buf_size );
 
-    TEST_ASSERT( base64_decode( res, &len, (unsigned char *) src,
+    TEST_ASSERT( mbedtls_base64_decode( res, &len, (unsigned char *) src,
                                 strlen( src ) ) == result );
     if( result == 0 )
     {
@@ -90,8 +90,8 @@ void base64_decode_hex( char *src, char *dst_hex, int dst_buf_size,
     }
 
 exit:
-    polarssl_free( dst );
-    polarssl_free( res );
+    mbedtls_free( dst );
+    mbedtls_free( res );
 }
 /* END_CASE */
 
@@ -105,7 +105,7 @@ void base64_decode_hex_src( char *src_hex, char *dst_ref, int result )
     src = unhexify_alloc( src_hex, &src_len );
 
     len = sizeof( dst );
-    TEST_ASSERT( base64_decode( dst, &len, src, src_len ) == result );
+    TEST_ASSERT( mbedtls_base64_decode( dst, &len, src, src_len ) == result );
     if( result == 0 )
     {
         TEST_ASSERT( len == strlen( dst_ref ) );
@@ -113,13 +113,13 @@ void base64_decode_hex_src( char *src_hex, char *dst_ref, int result )
     }
 
 exit:
-    polarssl_free( src );
+    mbedtls_free( src );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_SELF_TEST */
+/* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void base64_selftest()
 {
-    TEST_ASSERT( base64_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_base64_self_test( 0 ) == 0 );
 }
 /* END_CASE */

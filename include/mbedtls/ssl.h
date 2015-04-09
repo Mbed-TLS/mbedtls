@@ -21,13 +21,13 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_SSL_H
-#define POLARSSL_SSL_H
+#ifndef MBEDTLS_SSL_H
+#define MBEDTLS_SSL_H
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
 #include "net.h"
@@ -36,64 +36,64 @@
 
 #include "ssl_ciphersuites.h"
 
-#if defined(POLARSSL_MD5_C)
+#if defined(MBEDTLS_MD5_C)
 #include "md5.h"
 #endif
 
-#if defined(POLARSSL_SHA1_C)
+#if defined(MBEDTLS_SHA1_C)
 #include "sha1.h"
 #endif
 
-#if defined(POLARSSL_SHA256_C)
+#if defined(MBEDTLS_SHA256_C)
 #include "sha256.h"
 #endif
 
-#if defined(POLARSSL_SHA512_C)
+#if defined(MBEDTLS_SHA512_C)
 #include "sha512.h"
 #endif
 
 // for session tickets
-#if defined(POLARSSL_AES_C)
+#if defined(MBEDTLS_AES_C)
 #include "aes.h"
 #endif
 
-#if defined(POLARSSL_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
 #include "x509_crt.h"
 #include "x509_crl.h"
 #endif
 
-#if defined(POLARSSL_DHM_C)
+#if defined(MBEDTLS_DHM_C)
 #include "dhm.h"
 #endif
 
-#if defined(POLARSSL_ECDH_C)
+#if defined(MBEDTLS_ECDH_C)
 #include "ecdh.h"
 #endif
 
-#if defined(POLARSSL_ZLIB_SUPPORT)
+#if defined(MBEDTLS_ZLIB_SUPPORT)
 #include "zlib.h"
 #endif
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
 #include "timing.h"
 #endif
 
-#if defined(POLARSSL_HAVE_TIME)
+#if defined(MBEDTLS_HAVE_TIME)
 #include <time.h>
 #endif
 
 /* For convenience below and in programs */
-#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED) ||                           \
-    defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED) ||                       \
-    defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
-    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
-#define POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED
+#if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED) ||                           \
+    defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED) ||                       \
+    defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+#define MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED
 #endif
 
-#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
-    defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
-    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
-#define POLARSSL_KEY_EXCHANGE__SOME__ECDHE_ENABLED
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+#define MBEDTLS_KEY_EXCHANGE__SOME__ECDHE_ENABLED
 #endif
 
 #if defined(_MSC_VER) && !defined(inline)
@@ -107,162 +107,162 @@
 /*
  * SSL Error codes
  */
-#define POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE               -0x7080  /**< The requested feature is not available. */
-#define POLARSSL_ERR_SSL_BAD_INPUT_DATA                    -0x7100  /**< Bad input parameters to function. */
-#define POLARSSL_ERR_SSL_INVALID_MAC                       -0x7180  /**< Verification of the message MAC failed. */
-#define POLARSSL_ERR_SSL_INVALID_RECORD                    -0x7200  /**< An invalid SSL record was received. */
-#define POLARSSL_ERR_SSL_CONN_EOF                          -0x7280  /**< The connection indicated an EOF. */
-#define POLARSSL_ERR_SSL_UNKNOWN_CIPHER                    -0x7300  /**< An unknown cipher was received. */
-#define POLARSSL_ERR_SSL_NO_CIPHER_CHOSEN                  -0x7380  /**< The server has no ciphersuites in common with the client. */
-#define POLARSSL_ERR_SSL_NO_RNG                            -0x7400  /**< No RNG was provided to the SSL module. */
-#define POLARSSL_ERR_SSL_NO_CLIENT_CERTIFICATE             -0x7480  /**< No client certification received from the client, but required by the authentication mode. */
-#define POLARSSL_ERR_SSL_CERTIFICATE_TOO_LARGE             -0x7500  /**< Our own certificate(s) is/are too large to send in an SSL message. */
-#define POLARSSL_ERR_SSL_CERTIFICATE_REQUIRED              -0x7580  /**< The own certificate is not set, but needed by the server. */
-#define POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED              -0x7600  /**< The own private key or pre-shared key is not set, but needed. */
-#define POLARSSL_ERR_SSL_CA_CHAIN_REQUIRED                 -0x7680  /**< No CA Chain is set, but required to operate. */
-#define POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE                -0x7700  /**< An unexpected message was received from our peer. */
-#define POLARSSL_ERR_SSL_FATAL_ALERT_MESSAGE               -0x7780  /**< A fatal alert message was received from our peer. */
-#define POLARSSL_ERR_SSL_PEER_VERIFY_FAILED                -0x7800  /**< Verification of our peer failed. */
-#define POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY                 -0x7880  /**< The peer notified us that the connection is going to be closed. */
-#define POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO               -0x7900  /**< Processing of the ClientHello handshake message failed. */
-#define POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO               -0x7980  /**< Processing of the ServerHello handshake message failed. */
-#define POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE                -0x7A00  /**< Processing of the Certificate handshake message failed. */
-#define POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST        -0x7A80  /**< Processing of the CertificateRequest handshake message failed. */
-#define POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE        -0x7B00  /**< Processing of the ServerKeyExchange handshake message failed. */
-#define POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO_DONE          -0x7B80  /**< Processing of the ServerHelloDone handshake message failed. */
-#define POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE        -0x7C00  /**< Processing of the ClientKeyExchange handshake message failed. */
-#define POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP     -0x7C80  /**< Processing of the ClientKeyExchange handshake message failed in DHM / ECDH Read Public. */
-#define POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_CS     -0x7D00  /**< Processing of the ClientKeyExchange handshake message failed in DHM / ECDH Calculate Secret. */
-#define POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY         -0x7D80  /**< Processing of the CertificateVerify handshake message failed. */
-#define POLARSSL_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC         -0x7E00  /**< Processing of the ChangeCipherSpec handshake message failed. */
-#define POLARSSL_ERR_SSL_BAD_HS_FINISHED                   -0x7E80  /**< Processing of the Finished handshake message failed. */
-#define POLARSSL_ERR_SSL_MALLOC_FAILED                     -0x7F00  /**< Memory allocation failed */
-#define POLARSSL_ERR_SSL_HW_ACCEL_FAILED                   -0x7F80  /**< Hardware acceleration function returned with error */
-#define POLARSSL_ERR_SSL_HW_ACCEL_FALLTHROUGH              -0x6F80  /**< Hardware acceleration function skipped / left alone data */
-#define POLARSSL_ERR_SSL_COMPRESSION_FAILED                -0x6F00  /**< Processing of the compression / decompression failed */
-#define POLARSSL_ERR_SSL_BAD_HS_PROTOCOL_VERSION           -0x6E80  /**< Handshake protocol not within min/max boundaries */
-#define POLARSSL_ERR_SSL_BAD_HS_NEW_SESSION_TICKET         -0x6E00  /**< Processing of the NewSessionTicket handshake message failed. */
-#define POLARSSL_ERR_SSL_SESSION_TICKET_EXPIRED            -0x6D80  /**< Session ticket has expired. */
-#define POLARSSL_ERR_SSL_PK_TYPE_MISMATCH                  -0x6D00  /**< Public key type mismatch (eg, asked for RSA key exchange and presented EC key) */
-#define POLARSSL_ERR_SSL_UNKNOWN_IDENTITY                  -0x6C80  /**< Unknown identity received (eg, PSK identity) */
-#define POLARSSL_ERR_SSL_INTERNAL_ERROR                    -0x6C00  /**< Internal error (eg, unexpected failure in lower-level module) */
-#define POLARSSL_ERR_SSL_COUNTER_WRAPPING                  -0x6B80  /**< A counter would wrap (eg, too many messages exchanged). */
-#define POLARSSL_ERR_SSL_WAITING_SERVER_HELLO_RENEGO       -0x6B00  /**< Unexpected message at ServerHello in renegotiation. */
-#define POLARSSL_ERR_SSL_HELLO_VERIFY_REQUIRED             -0x6A80  /**< DTLS client must retry for hello verification */
-#define POLARSSL_ERR_SSL_BUFFER_TOO_SMALL                  -0x6A00  /**< A buffer is too small to receive or write a message */
-#define POLARSSL_ERR_SSL_NO_USABLE_CIPHERSUITE             -0x6980  /**< None of the common ciphersuites is usable (eg, no suitable certificate, see debug messages). */
+#define MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE               -0x7080  /**< The requested feature is not available. */
+#define MBEDTLS_ERR_SSL_BAD_INPUT_DATA                    -0x7100  /**< Bad input parameters to function. */
+#define MBEDTLS_ERR_SSL_INVALID_MAC                       -0x7180  /**< Verification of the message MAC failed. */
+#define MBEDTLS_ERR_SSL_INVALID_RECORD                    -0x7200  /**< An invalid SSL record was received. */
+#define MBEDTLS_ERR_SSL_CONN_EOF                          -0x7280  /**< The connection indicated an EOF. */
+#define MBEDTLS_ERR_SSL_UNKNOWN_CIPHER                    -0x7300  /**< An unknown cipher was received. */
+#define MBEDTLS_ERR_SSL_NO_CIPHER_CHOSEN                  -0x7380  /**< The server has no ciphersuites in common with the client. */
+#define MBEDTLS_ERR_SSL_NO_RNG                            -0x7400  /**< No RNG was provided to the SSL module. */
+#define MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE             -0x7480  /**< No client certification received from the client, but required by the authentication mode. */
+#define MBEDTLS_ERR_SSL_CERTIFICATE_TOO_LARGE             -0x7500  /**< Our own certificate(s) is/are too large to send in an SSL message. */
+#define MBEDTLS_ERR_SSL_CERTIFICATE_REQUIRED              -0x7580  /**< The own certificate is not set, but needed by the server. */
+#define MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED              -0x7600  /**< The own private key or pre-shared key is not set, but needed. */
+#define MBEDTLS_ERR_SSL_CA_CHAIN_REQUIRED                 -0x7680  /**< No CA Chain is set, but required to operate. */
+#define MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE                -0x7700  /**< An unexpected message was received from our peer. */
+#define MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE               -0x7780  /**< A fatal alert message was received from our peer. */
+#define MBEDTLS_ERR_SSL_PEER_VERIFY_FAILED                -0x7800  /**< Verification of our peer failed. */
+#define MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY                 -0x7880  /**< The peer notified us that the connection is going to be closed. */
+#define MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO               -0x7900  /**< Processing of the ClientHello handshake message failed. */
+#define MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO               -0x7980  /**< Processing of the ServerHello handshake message failed. */
+#define MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE                -0x7A00  /**< Processing of the Certificate handshake message failed. */
+#define MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST        -0x7A80  /**< Processing of the CertificateRequest handshake message failed. */
+#define MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE        -0x7B00  /**< Processing of the ServerKeyExchange handshake message failed. */
+#define MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO_DONE          -0x7B80  /**< Processing of the ServerHelloDone handshake message failed. */
+#define MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE        -0x7C00  /**< Processing of the ClientKeyExchange handshake message failed. */
+#define MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP     -0x7C80  /**< Processing of the ClientKeyExchange handshake message failed in DHM / ECDH Read Public. */
+#define MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_CS     -0x7D00  /**< Processing of the ClientKeyExchange handshake message failed in DHM / ECDH Calculate Secret. */
+#define MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY         -0x7D80  /**< Processing of the CertificateVerify handshake message failed. */
+#define MBEDTLS_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC         -0x7E00  /**< Processing of the ChangeCipherSpec handshake message failed. */
+#define MBEDTLS_ERR_SSL_BAD_HS_FINISHED                   -0x7E80  /**< Processing of the Finished handshake message failed. */
+#define MBEDTLS_ERR_SSL_MALLOC_FAILED                     -0x7F00  /**< Memory allocation failed */
+#define MBEDTLS_ERR_SSL_HW_ACCEL_FAILED                   -0x7F80  /**< Hardware acceleration function returned with error */
+#define MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH              -0x6F80  /**< Hardware acceleration function skipped / left alone data */
+#define MBEDTLS_ERR_SSL_COMPRESSION_FAILED                -0x6F00  /**< Processing of the compression / decompression failed */
+#define MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION           -0x6E80  /**< Handshake protocol not within min/max boundaries */
+#define MBEDTLS_ERR_SSL_BAD_HS_NEW_SESSION_TICKET         -0x6E00  /**< Processing of the NewSessionTicket handshake message failed. */
+#define MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED            -0x6D80  /**< Session ticket has expired. */
+#define MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH                  -0x6D00  /**< Public key type mismatch (eg, asked for RSA key exchange and presented EC key) */
+#define MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY                  -0x6C80  /**< Unknown identity received (eg, PSK identity) */
+#define MBEDTLS_ERR_SSL_INTERNAL_ERROR                    -0x6C00  /**< Internal error (eg, unexpected failure in lower-level module) */
+#define MBEDTLS_ERR_SSL_COUNTER_WRAPPING                  -0x6B80  /**< A counter would wrap (eg, too many messages exchanged). */
+#define MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO       -0x6B00  /**< Unexpected message at ServerHello in renegotiation. */
+#define MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED             -0x6A80  /**< DTLS client must retry for hello verification */
+#define MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL                  -0x6A00  /**< A buffer is too small to receive or write a message */
+#define MBEDTLS_ERR_SSL_NO_USABLE_CIPHERSUITE             -0x6980  /**< None of the common ciphersuites is usable (eg, no suitable certificate, see debug messages). */
 
 /*
  * Various constants
  */
-#define SSL_MAJOR_VERSION_3             3
-#define SSL_MINOR_VERSION_0             0   /*!< SSL v3.0 */
-#define SSL_MINOR_VERSION_1             1   /*!< TLS v1.0 */
-#define SSL_MINOR_VERSION_2             2   /*!< TLS v1.1 */
-#define SSL_MINOR_VERSION_3             3   /*!< TLS v1.2 */
+#define MBEDTLS_SSL_MAJOR_VERSION_3             3
+#define MBEDTLS_SSL_MINOR_VERSION_0             0   /*!< SSL v3.0 */
+#define MBEDTLS_SSL_MINOR_VERSION_1             1   /*!< TLS v1.0 */
+#define MBEDTLS_SSL_MINOR_VERSION_2             2   /*!< TLS v1.1 */
+#define MBEDTLS_SSL_MINOR_VERSION_3             3   /*!< TLS v1.2 */
 
-#define SSL_TRANSPORT_STREAM            0   /*!< TLS      */
-#define SSL_TRANSPORT_DATAGRAM          1   /*!< DTLS     */
+#define MBEDTLS_SSL_TRANSPORT_STREAM            0   /*!< TLS      */
+#define MBEDTLS_SSL_TRANSPORT_DATAGRAM          1   /*!< DTLS     */
 
 /* Determine minimum supported version */
-#define SSL_MIN_MAJOR_VERSION           SSL_MAJOR_VERSION_3
+#define MBEDTLS_SSL_MIN_MAJOR_VERSION           MBEDTLS_SSL_MAJOR_VERSION_3
 
-#if defined(POLARSSL_SSL_PROTO_SSL3)
-#define SSL_MIN_MINOR_VERSION           SSL_MINOR_VERSION_0
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+#define MBEDTLS_SSL_MIN_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_0
 #else
-#if defined(POLARSSL_SSL_PROTO_TLS1)
-#define SSL_MIN_MINOR_VERSION           SSL_MINOR_VERSION_1
+#if defined(MBEDTLS_SSL_PROTO_TLS1)
+#define MBEDTLS_SSL_MIN_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_1
 #else
-#if defined(POLARSSL_SSL_PROTO_TLS1_1)
-#define SSL_MIN_MINOR_VERSION           SSL_MINOR_VERSION_2
+#if defined(MBEDTLS_SSL_PROTO_TLS1_1)
+#define MBEDTLS_SSL_MIN_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_2
 #else
-#if defined(POLARSSL_SSL_PROTO_TLS1_2)
-#define SSL_MIN_MINOR_VERSION           SSL_MINOR_VERSION_3
-#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
-#endif /* POLARSSL_SSL_PROTO_TLS1_1 */
-#endif /* POLARSSL_SSL_PROTO_TLS1   */
-#endif /* POLARSSL_SSL_PROTO_SSL3   */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#define MBEDTLS_SSL_MIN_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_3
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_1 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1   */
+#endif /* MBEDTLS_SSL_PROTO_SSL3   */
 
 /* Determine maximum supported version */
-#define SSL_MAX_MAJOR_VERSION           SSL_MAJOR_VERSION_3
+#define MBEDTLS_SSL_MAX_MAJOR_VERSION           MBEDTLS_SSL_MAJOR_VERSION_3
 
-#if defined(POLARSSL_SSL_PROTO_TLS1_2)
-#define SSL_MAX_MINOR_VERSION           SSL_MINOR_VERSION_3
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#define MBEDTLS_SSL_MAX_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_3
 #else
-#if defined(POLARSSL_SSL_PROTO_TLS1_1)
-#define SSL_MAX_MINOR_VERSION           SSL_MINOR_VERSION_2
+#if defined(MBEDTLS_SSL_PROTO_TLS1_1)
+#define MBEDTLS_SSL_MAX_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_2
 #else
-#if defined(POLARSSL_SSL_PROTO_TLS1)
-#define SSL_MAX_MINOR_VERSION           SSL_MINOR_VERSION_1
+#if defined(MBEDTLS_SSL_PROTO_TLS1)
+#define MBEDTLS_SSL_MAX_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_1
 #else
-#if defined(POLARSSL_SSL_PROTO_SSL3)
-#define SSL_MAX_MINOR_VERSION           SSL_MINOR_VERSION_0
-#endif /* POLARSSL_SSL_PROTO_SSL3   */
-#endif /* POLARSSL_SSL_PROTO_TLS1   */
-#endif /* POLARSSL_SSL_PROTO_TLS1_1 */
-#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+#define MBEDTLS_SSL_MAX_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_0
+#endif /* MBEDTLS_SSL_PROTO_SSL3   */
+#endif /* MBEDTLS_SSL_PROTO_TLS1   */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_1 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 /* RFC 6066 section 4, see also mfl_code_to_length in ssl_tls.c
  * NONE must be zero so that memset()ing structure to zero works */
-#define SSL_MAX_FRAG_LEN_NONE           0   /*!< don't use this extension   */
-#define SSL_MAX_FRAG_LEN_512            1   /*!< MaxFragmentLength 2^9      */
-#define SSL_MAX_FRAG_LEN_1024           2   /*!< MaxFragmentLength 2^10     */
-#define SSL_MAX_FRAG_LEN_2048           3   /*!< MaxFragmentLength 2^11     */
-#define SSL_MAX_FRAG_LEN_4096           4   /*!< MaxFragmentLength 2^12     */
-#define SSL_MAX_FRAG_LEN_INVALID        5   /*!< first invalid value        */
+#define MBEDTLS_SSL_MAX_FRAG_LEN_NONE           0   /*!< don't use this extension   */
+#define MBEDTLS_SSL_MAX_FRAG_LEN_512            1   /*!< MaxFragmentLength 2^9      */
+#define MBEDTLS_SSL_MAX_FRAG_LEN_1024           2   /*!< MaxFragmentLength 2^10     */
+#define MBEDTLS_SSL_MAX_FRAG_LEN_2048           3   /*!< MaxFragmentLength 2^11     */
+#define MBEDTLS_SSL_MAX_FRAG_LEN_4096           4   /*!< MaxFragmentLength 2^12     */
+#define MBEDTLS_SSL_MAX_FRAG_LEN_INVALID        5   /*!< first invalid value        */
 
-#define SSL_IS_CLIENT                   0
-#define SSL_IS_SERVER                   1
+#define MBEDTLS_SSL_IS_CLIENT                   0
+#define MBEDTLS_SSL_IS_SERVER                   1
 
-#define SSL_IS_NOT_FALLBACK             0
-#define SSL_IS_FALLBACK                 1
+#define MBEDTLS_SSL_IS_NOT_FALLBACK             0
+#define MBEDTLS_SSL_IS_FALLBACK                 1
 
-#define SSL_EXTENDED_MS_DISABLED        0
-#define SSL_EXTENDED_MS_ENABLED         1
+#define MBEDTLS_SSL_EXTENDED_MS_DISABLED        0
+#define MBEDTLS_SSL_EXTENDED_MS_ENABLED         1
 
-#define SSL_ETM_DISABLED                0
-#define SSL_ETM_ENABLED                 1
+#define MBEDTLS_SSL_ETM_DISABLED                0
+#define MBEDTLS_SSL_ETM_ENABLED                 1
 
-#define SSL_COMPRESS_NULL               0
-#define SSL_COMPRESS_DEFLATE            1
+#define MBEDTLS_SSL_COMPRESS_NULL               0
+#define MBEDTLS_SSL_COMPRESS_DEFLATE            1
 
-#define SSL_VERIFY_NONE                 0
-#define SSL_VERIFY_OPTIONAL             1
-#define SSL_VERIFY_REQUIRED             2
+#define MBEDTLS_SSL_VERIFY_NONE                 0
+#define MBEDTLS_SSL_VERIFY_OPTIONAL             1
+#define MBEDTLS_SSL_VERIFY_REQUIRED             2
 
-#define SSL_INITIAL_HANDSHAKE           0
-#define SSL_RENEGOTIATION_IN_PROGRESS   1   /* In progress */
-#define SSL_RENEGOTIATION_DONE          2   /* Done or aborted */
-#define SSL_RENEGOTIATION_PENDING       3   /* Requested (server only) */
+#define MBEDTLS_SSL_INITIAL_HANDSHAKE           0
+#define MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS   1   /* In progress */
+#define MBEDTLS_SSL_RENEGOTIATION_DONE          2   /* Done or aborted */
+#define MBEDTLS_SSL_RENEGOTIATION_PENDING       3   /* Requested (server only) */
 
-#define SSL_LEGACY_RENEGOTIATION        0
-#define SSL_SECURE_RENEGOTIATION        1
+#define MBEDTLS_SSL_LEGACY_RENEGOTIATION        0
+#define MBEDTLS_SSL_SECURE_RENEGOTIATION        1
 
-#define SSL_RENEGOTIATION_DISABLED      0
-#define SSL_RENEGOTIATION_ENABLED       1
+#define MBEDTLS_SSL_RENEGOTIATION_DISABLED      0
+#define MBEDTLS_SSL_RENEGOTIATION_ENABLED       1
 
-#define SSL_ANTI_REPLAY_DISABLED        0
-#define SSL_ANTI_REPLAY_ENABLED         1
+#define MBEDTLS_SSL_ANTI_REPLAY_DISABLED        0
+#define MBEDTLS_SSL_ANTI_REPLAY_ENABLED         1
 
-#define SSL_RENEGOTIATION_NOT_ENFORCED  -1
-#define SSL_RENEGO_MAX_RECORDS_DEFAULT  16
+#define MBEDTLS_SSL_RENEGOTIATION_NOT_ENFORCED  -1
+#define MBEDTLS_SSL_RENEGO_MAX_RECORDS_DEFAULT  16
 
-#define SSL_LEGACY_NO_RENEGOTIATION     0
-#define SSL_LEGACY_ALLOW_RENEGOTIATION  1
-#define SSL_LEGACY_BREAK_HANDSHAKE      2
+#define MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION     0
+#define MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION  1
+#define MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE      2
 
-#define SSL_TRUNC_HMAC_DISABLED         0
-#define SSL_TRUNC_HMAC_ENABLED          1
-#define SSL_TRUNCATED_HMAC_LEN          10  /* 80 bits, rfc 6066 section 7 */
+#define MBEDTLS_SSL_TRUNC_HMAC_DISABLED         0
+#define MBEDTLS_SSL_TRUNC_HMAC_ENABLED          1
+#define MBEDTLS_SSL_TRUNCATED_HMAC_LEN          10  /* 80 bits, rfc 6066 section 7 */
 
-#define SSL_SESSION_TICKETS_DISABLED     0
-#define SSL_SESSION_TICKETS_ENABLED      1
+#define MBEDTLS_SSL_SESSION_TICKETS_DISABLED     0
+#define MBEDTLS_SSL_SESSION_TICKETS_ENABLED      1
 
-#define SSL_CBC_RECORD_SPLITTING_DISABLED   -1
-#define SSL_CBC_RECORD_SPLITTING_ENABLED     0
+#define MBEDTLS_SSL_CBC_RECORD_SPLITTING_DISABLED   -1
+#define MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED     0
 
-#define SSL_ARC4_ENABLED                0
-#define SSL_ARC4_DISABLED               1
+#define MBEDTLS_SSL_ARC4_ENABLED                0
+#define MBEDTLS_SSL_ARC4_DISABLED               1
 
 /*
  * DTLS retransmission states, see RFC 6347 4.2.4
@@ -272,17 +272,17 @@
  *
  * Note: initial state is wrong for server, but is not used anyway.
  */
-#define SSL_RETRANS_PREPARING       0
-#define SSL_RETRANS_SENDING         1
-#define SSL_RETRANS_WAITING         2
-#define SSL_RETRANS_FINISHED        3
+#define MBEDTLS_SSL_RETRANS_PREPARING       0
+#define MBEDTLS_SSL_RETRANS_SENDING         1
+#define MBEDTLS_SSL_RETRANS_WAITING         2
+#define MBEDTLS_SSL_RETRANS_FINISHED        3
 
 /*
  * Default range for DTLS retransmission timer value, in milliseconds.
  * RFC 6347 4.2.4.1 says from 1 second to 60 seconds.
  */
-#define SSL_DTLS_TIMEOUT_DFL_MIN    1000
-#define SSL_DTLS_TIMEOUT_DFL_MAX   60000
+#define MBEDTLS_SSL_DTLS_TIMEOUT_DFL_MIN    1000
+#define MBEDTLS_SSL_DTLS_TIMEOUT_DFL_MAX   60000
 
 /**
  * \name SECTION: Module settings
@@ -292,8 +292,8 @@
  * \{
  */
 
-#if !defined(SSL_DEFAULT_TICKET_LIFETIME)
-#define SSL_DEFAULT_TICKET_LIFETIME     86400 /**< Lifetime of session tickets (if enabled) */
+#if !defined(MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME)
+#define MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME     86400 /**< Lifetime of session tickets (if enabled) */
 #endif
 
 /*
@@ -305,8 +305,8 @@
  * if you're using the Max Fragment Length extension and you know all your
  * peers are using it too!
  */
-#if !defined(SSL_MAX_CONTENT_LEN)
-#define SSL_MAX_CONTENT_LEN         16384   /**< Size of the input / output buffer */
+#if !defined(MBEDTLS_SSL_MAX_CONTENT_LEN)
+#define MBEDTLS_SSL_MAX_CONTENT_LEN         16384   /**< Size of the input / output buffer */
 #endif
 
 /* \} name SECTION: Module settings */
@@ -317,201 +317,201 @@
  * and allow for a maximum of 1024 of compression expansion if
  * enabled.
  */
-#if defined(POLARSSL_ZLIB_SUPPORT)
-#define SSL_COMPRESSION_ADD          1024
+#if defined(MBEDTLS_ZLIB_SUPPORT)
+#define MBEDTLS_SSL_COMPRESSION_ADD          1024
 #else
-#define SSL_COMPRESSION_ADD             0
+#define MBEDTLS_SSL_COMPRESSION_ADD             0
 #endif
 
-#if defined(POLARSSL_ARC4_C) || defined(POLARSSL_CIPHER_MODE_CBC)
+#if defined(MBEDTLS_ARC4_C) || defined(MBEDTLS_CIPHER_MODE_CBC)
 /* Ciphersuites using HMAC */
-#if defined(POLARSSL_SHA512_C)
-#define SSL_MAC_ADD                 48  /* SHA-384 used for HMAC */
-#elif defined(POLARSSL_SHA256_C)
-#define SSL_MAC_ADD                 32  /* SHA-256 used for HMAC */
+#if defined(MBEDTLS_SHA512_C)
+#define MBEDTLS_SSL_MAC_ADD                 48  /* SHA-384 used for HMAC */
+#elif defined(MBEDTLS_SHA256_C)
+#define MBEDTLS_SSL_MAC_ADD                 32  /* SHA-256 used for HMAC */
 #else
-#define SSL_MAC_ADD                 20  /* SHA-1   used for HMAC */
+#define MBEDTLS_SSL_MAC_ADD                 20  /* SHA-1   used for HMAC */
 #endif
 #else
 /* AEAD ciphersuites: GCM and CCM use a 128 bits tag */
-#define SSL_MAC_ADD                 16
+#define MBEDTLS_SSL_MAC_ADD                 16
 #endif
 
-#if defined(POLARSSL_CIPHER_MODE_CBC)
-#define SSL_PADDING_ADD            256
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+#define MBEDTLS_SSL_PADDING_ADD            256
 #else
-#define SSL_PADDING_ADD              0
+#define MBEDTLS_SSL_PADDING_ADD              0
 #endif
 
-#define SSL_BUFFER_LEN  ( SSL_MAX_CONTENT_LEN               \
-                        + SSL_COMPRESSION_ADD               \
+#define MBEDTLS_SSL_BUFFER_LEN  ( MBEDTLS_SSL_MAX_CONTENT_LEN               \
+                        + MBEDTLS_SSL_COMPRESSION_ADD               \
                         + 29 /* counter + header + IV */    \
-                        + SSL_MAC_ADD                       \
-                        + SSL_PADDING_ADD                   \
+                        + MBEDTLS_SSL_MAC_ADD                       \
+                        + MBEDTLS_SSL_PADDING_ADD                   \
                         )
 
 /*
  * Length of the verify data for secure renegotiation
  */
-#if defined(POLARSSL_SSL_PROTO_SSL3)
-#define SSL_VERIFY_DATA_MAX_LEN 36
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+#define MBEDTLS_SSL_VERIFY_DATA_MAX_LEN 36
 #else
-#define SSL_VERIFY_DATA_MAX_LEN 12
+#define MBEDTLS_SSL_VERIFY_DATA_MAX_LEN 12
 #endif
 
 /*
  * Signaling ciphersuite values (SCSV)
  */
-#define SSL_EMPTY_RENEGOTIATION_INFO    0xFF   /**< renegotiation info ext */
-#define SSL_FALLBACK_SCSV_VALUE         0x5600 /**< draft-ietf-tls-downgrade-scsv-00 */
+#define MBEDTLS_SSL_EMPTY_RENEGOTIATION_INFO    0xFF   /**< renegotiation info ext */
+#define MBEDTLS_SSL_FALLBACK_SCSV_VALUE         0x5600 /**< draft-ietf-tls-downgrade-scsv-00 */
 
 /*
  * Supported Signature and Hash algorithms (For TLS 1.2)
  * RFC 5246 section 7.4.1.4.1
  */
-#define SSL_HASH_NONE                0
-#define SSL_HASH_MD5                 1
-#define SSL_HASH_SHA1                2
-#define SSL_HASH_SHA224              3
-#define SSL_HASH_SHA256              4
-#define SSL_HASH_SHA384              5
-#define SSL_HASH_SHA512              6
+#define MBEDTLS_SSL_HASH_NONE                0
+#define MBEDTLS_SSL_HASH_MD5                 1
+#define MBEDTLS_SSL_HASH_SHA1                2
+#define MBEDTLS_SSL_HASH_SHA224              3
+#define MBEDTLS_SSL_HASH_SHA256              4
+#define MBEDTLS_SSL_HASH_SHA384              5
+#define MBEDTLS_SSL_HASH_SHA512              6
 
-#define SSL_SIG_ANON                 0
-#define SSL_SIG_RSA                  1
-#define SSL_SIG_ECDSA                3
+#define MBEDTLS_SSL_SIG_ANON                 0
+#define MBEDTLS_SSL_SIG_RSA                  1
+#define MBEDTLS_SSL_SIG_ECDSA                3
 
 /*
  * Client Certificate Types
  * RFC 5246 section 7.4.4 plus RFC 4492 section 5.5
  */
-#define SSL_CERT_TYPE_RSA_SIGN       1
-#define SSL_CERT_TYPE_ECDSA_SIGN    64
+#define MBEDTLS_SSL_CERT_TYPE_RSA_SIGN       1
+#define MBEDTLS_SSL_CERT_TYPE_ECDSA_SIGN    64
 
 /*
  * Message, alert and handshake types
  */
-#define SSL_MSG_CHANGE_CIPHER_SPEC     20
-#define SSL_MSG_ALERT                  21
-#define SSL_MSG_HANDSHAKE              22
-#define SSL_MSG_APPLICATION_DATA       23
+#define MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC     20
+#define MBEDTLS_SSL_MSG_ALERT                  21
+#define MBEDTLS_SSL_MSG_HANDSHAKE              22
+#define MBEDTLS_SSL_MSG_APPLICATION_DATA       23
 
-#define SSL_ALERT_LEVEL_WARNING         1
-#define SSL_ALERT_LEVEL_FATAL           2
+#define MBEDTLS_SSL_ALERT_LEVEL_WARNING         1
+#define MBEDTLS_SSL_ALERT_LEVEL_FATAL           2
 
-#define SSL_ALERT_MSG_CLOSE_NOTIFY           0  /* 0x00 */
-#define SSL_ALERT_MSG_UNEXPECTED_MESSAGE    10  /* 0x0A */
-#define SSL_ALERT_MSG_BAD_RECORD_MAC        20  /* 0x14 */
-#define SSL_ALERT_MSG_DECRYPTION_FAILED     21  /* 0x15 */
-#define SSL_ALERT_MSG_RECORD_OVERFLOW       22  /* 0x16 */
-#define SSL_ALERT_MSG_DECOMPRESSION_FAILURE 30  /* 0x1E */
-#define SSL_ALERT_MSG_HANDSHAKE_FAILURE     40  /* 0x28 */
-#define SSL_ALERT_MSG_NO_CERT               41  /* 0x29 */
-#define SSL_ALERT_MSG_BAD_CERT              42  /* 0x2A */
-#define SSL_ALERT_MSG_UNSUPPORTED_CERT      43  /* 0x2B */
-#define SSL_ALERT_MSG_CERT_REVOKED          44  /* 0x2C */
-#define SSL_ALERT_MSG_CERT_EXPIRED          45  /* 0x2D */
-#define SSL_ALERT_MSG_CERT_UNKNOWN          46  /* 0x2E */
-#define SSL_ALERT_MSG_ILLEGAL_PARAMETER     47  /* 0x2F */
-#define SSL_ALERT_MSG_UNKNOWN_CA            48  /* 0x30 */
-#define SSL_ALERT_MSG_ACCESS_DENIED         49  /* 0x31 */
-#define SSL_ALERT_MSG_DECODE_ERROR          50  /* 0x32 */
-#define SSL_ALERT_MSG_DECRYPT_ERROR         51  /* 0x33 */
-#define SSL_ALERT_MSG_EXPORT_RESTRICTION    60  /* 0x3C */
-#define SSL_ALERT_MSG_PROTOCOL_VERSION      70  /* 0x46 */
-#define SSL_ALERT_MSG_INSUFFICIENT_SECURITY 71  /* 0x47 */
-#define SSL_ALERT_MSG_INTERNAL_ERROR        80  /* 0x50 */
-#define SSL_ALERT_MSG_INAPROPRIATE_FALLBACK 86  /* 0x56 */
-#define SSL_ALERT_MSG_USER_CANCELED         90  /* 0x5A */
-#define SSL_ALERT_MSG_NO_RENEGOTIATION     100  /* 0x64 */
-#define SSL_ALERT_MSG_UNSUPPORTED_EXT      110  /* 0x6E */
-#define SSL_ALERT_MSG_UNRECOGNIZED_NAME    112  /* 0x70 */
-#define SSL_ALERT_MSG_UNKNOWN_PSK_IDENTITY 115  /* 0x73 */
-#define SSL_ALERT_MSG_NO_APPLICATION_PROTOCOL 120 /* 0x78 */
+#define MBEDTLS_SSL_ALERT_MSG_CLOSE_NOTIFY           0  /* 0x00 */
+#define MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE    10  /* 0x0A */
+#define MBEDTLS_SSL_ALERT_MSG_BAD_RECORD_MAC        20  /* 0x14 */
+#define MBEDTLS_SSL_ALERT_MSG_DECRYPTION_FAILED     21  /* 0x15 */
+#define MBEDTLS_SSL_ALERT_MSG_RECORD_OVERFLOW       22  /* 0x16 */
+#define MBEDTLS_SSL_ALERT_MSG_DECOMPRESSION_FAILURE 30  /* 0x1E */
+#define MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE     40  /* 0x28 */
+#define MBEDTLS_SSL_ALERT_MSG_NO_CERT               41  /* 0x29 */
+#define MBEDTLS_SSL_ALERT_MSG_BAD_CERT              42  /* 0x2A */
+#define MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT      43  /* 0x2B */
+#define MBEDTLS_SSL_ALERT_MSG_CERT_REVOKED          44  /* 0x2C */
+#define MBEDTLS_SSL_ALERT_MSG_CERT_EXPIRED          45  /* 0x2D */
+#define MBEDTLS_SSL_ALERT_MSG_CERT_UNKNOWN          46  /* 0x2E */
+#define MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER     47  /* 0x2F */
+#define MBEDTLS_SSL_ALERT_MSG_UNKNOWN_CA            48  /* 0x30 */
+#define MBEDTLS_SSL_ALERT_MSG_ACCESS_DENIED         49  /* 0x31 */
+#define MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR          50  /* 0x32 */
+#define MBEDTLS_SSL_ALERT_MSG_DECRYPT_ERROR         51  /* 0x33 */
+#define MBEDTLS_SSL_ALERT_MSG_EXPORT_RESTRICTION    60  /* 0x3C */
+#define MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION      70  /* 0x46 */
+#define MBEDTLS_SSL_ALERT_MSG_INSUFFICIENT_SECURITY 71  /* 0x47 */
+#define MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR        80  /* 0x50 */
+#define MBEDTLS_SSL_ALERT_MSG_INAPROPRIATE_FALLBACK 86  /* 0x56 */
+#define MBEDTLS_SSL_ALERT_MSG_USER_CANCELED         90  /* 0x5A */
+#define MBEDTLS_SSL_ALERT_MSG_NO_RENEGOTIATION     100  /* 0x64 */
+#define MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT      110  /* 0x6E */
+#define MBEDTLS_SSL_ALERT_MSG_UNRECOGNIZED_NAME    112  /* 0x70 */
+#define MBEDTLS_SSL_ALERT_MSG_UNKNOWN_PSK_IDENTITY 115  /* 0x73 */
+#define MBEDTLS_SSL_ALERT_MSG_NO_APPLICATION_PROTOCOL 120 /* 0x78 */
 
-#define SSL_HS_HELLO_REQUEST            0
-#define SSL_HS_CLIENT_HELLO             1
-#define SSL_HS_SERVER_HELLO             2
-#define SSL_HS_HELLO_VERIFY_REQUEST     3
-#define SSL_HS_NEW_SESSION_TICKET       4
-#define SSL_HS_CERTIFICATE             11
-#define SSL_HS_SERVER_KEY_EXCHANGE     12
-#define SSL_HS_CERTIFICATE_REQUEST     13
-#define SSL_HS_SERVER_HELLO_DONE       14
-#define SSL_HS_CERTIFICATE_VERIFY      15
-#define SSL_HS_CLIENT_KEY_EXCHANGE     16
-#define SSL_HS_FINISHED                20
+#define MBEDTLS_SSL_HS_HELLO_REQUEST            0
+#define MBEDTLS_SSL_HS_CLIENT_HELLO             1
+#define MBEDTLS_SSL_HS_SERVER_HELLO             2
+#define MBEDTLS_SSL_HS_HELLO_VERIFY_REQUEST     3
+#define MBEDTLS_SSL_HS_NEW_SESSION_TICKET       4
+#define MBEDTLS_SSL_HS_CERTIFICATE             11
+#define MBEDTLS_SSL_HS_SERVER_KEY_EXCHANGE     12
+#define MBEDTLS_SSL_HS_CERTIFICATE_REQUEST     13
+#define MBEDTLS_SSL_HS_SERVER_HELLO_DONE       14
+#define MBEDTLS_SSL_HS_CERTIFICATE_VERIFY      15
+#define MBEDTLS_SSL_HS_CLIENT_KEY_EXCHANGE     16
+#define MBEDTLS_SSL_HS_FINISHED                20
 
 /*
  * TLS extensions
  */
-#define TLS_EXT_SERVERNAME                   0
-#define TLS_EXT_SERVERNAME_HOSTNAME          0
+#define MBEDTLS_TLS_EXT_SERVERNAME                   0
+#define MBEDTLS_TLS_EXT_SERVERNAME_HOSTNAME          0
 
-#define TLS_EXT_MAX_FRAGMENT_LENGTH          1
+#define MBEDTLS_TLS_EXT_MAX_FRAGMENT_LENGTH          1
 
-#define TLS_EXT_TRUNCATED_HMAC               4
+#define MBEDTLS_TLS_EXT_TRUNCATED_HMAC               4
 
-#define TLS_EXT_SUPPORTED_ELLIPTIC_CURVES   10
-#define TLS_EXT_SUPPORTED_POINT_FORMATS     11
+#define MBEDTLS_TLS_EXT_SUPPORTED_ELLIPTIC_CURVES   10
+#define MBEDTLS_TLS_EXT_SUPPORTED_POINT_FORMATS     11
 
-#define TLS_EXT_SIG_ALG                     13
+#define MBEDTLS_TLS_EXT_SIG_ALG                     13
 
-#define TLS_EXT_ALPN                        16
+#define MBEDTLS_TLS_EXT_ALPN                        16
 
-#define TLS_EXT_ENCRYPT_THEN_MAC            22 /* 0x16 */
-#define TLS_EXT_EXTENDED_MASTER_SECRET  0x0017 /* 23 */
+#define MBEDTLS_TLS_EXT_ENCRYPT_THEN_MAC            22 /* 0x16 */
+#define MBEDTLS_TLS_EXT_EXTENDED_MASTER_SECRET  0x0017 /* 23 */
 
-#define TLS_EXT_SESSION_TICKET              35
+#define MBEDTLS_TLS_EXT_SESSION_TICKET              35
 
-#define TLS_EXT_RENEGOTIATION_INFO      0xFF01
+#define MBEDTLS_TLS_EXT_RENEGOTIATION_INFO      0xFF01
 
 /*
  * TLS extension flags (for extensions with outgoing ServerHello content
  * that need it (e.g. for RENEGOTIATION_INFO the server already knows because
  * of state of the renegotiation flag, so no indicator is required)
  */
-#define TLS_EXT_SUPPORTED_POINT_FORMATS_PRESENT (1 << 0)
+#define MBEDTLS_TLS_EXT_SUPPORTED_POINT_FORMATS_PRESENT (1 << 0)
 
 /*
  * Size defines
  */
-#if !defined(POLARSSL_PSK_MAX_LEN)
-#define POLARSSL_PSK_MAX_LEN            32 /* 256 bits */
+#if !defined(MBEDTLS_PSK_MAX_LEN)
+#define MBEDTLS_PSK_MAX_LEN            32 /* 256 bits */
 #endif
 
 /* Dummy type used only for its size */
-union _ssl_premaster_secret
+union mbedtls_ssl_premaster_secret
 {
-#if defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
     unsigned char _pms_rsa[48];                         /* RFC 5246 8.1.1 */
 #endif
-#if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED)
-    unsigned char _pms_dhm[POLARSSL_MPI_MAX_SIZE];      /* RFC 5246 8.1.2 */
+#if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)
+    unsigned char _pms_dhm[MBEDTLS_MPI_MAX_SIZE];      /* RFC 5246 8.1.2 */
 #endif
-#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED)    || \
-    defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)  || \
-    defined(POLARSSL_KEY_EXCHANGE_ECDH_RSA_ENABLED)     || \
-    defined(POLARSSL_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
-    unsigned char _pms_ecdh[POLARSSL_ECP_MAX_BYTES];    /* RFC 4492 5.10 */
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)    || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)  || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)     || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
+    unsigned char _pms_ecdh[MBEDTLS_ECP_MAX_BYTES];    /* RFC 4492 5.10 */
 #endif
-#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
-    unsigned char _pms_psk[4 + 2 * POLARSSL_PSK_MAX_LEN];       /* RFC 4279 2 */
+#if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
+    unsigned char _pms_psk[4 + 2 * MBEDTLS_PSK_MAX_LEN];       /* RFC 4279 2 */
 #endif
-#if defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED)
-    unsigned char _pms_dhe_psk[4 + POLARSSL_MPI_MAX_SIZE
-                                 + POLARSSL_PSK_MAX_LEN];       /* RFC 4279 3 */
+#if defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED)
+    unsigned char _pms_dhe_psk[4 + MBEDTLS_MPI_MAX_SIZE
+                                 + MBEDTLS_PSK_MAX_LEN];       /* RFC 4279 3 */
 #endif
-#if defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED)
-    unsigned char _pms_rsa_psk[52 + POLARSSL_PSK_MAX_LEN];      /* RFC 4279 4 */
+#if defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
+    unsigned char _pms_rsa_psk[52 + MBEDTLS_PSK_MAX_LEN];      /* RFC 4279 4 */
 #endif
-#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
-    unsigned char _pms_ecdhe_psk[4 + POLARSSL_ECP_MAX_BYTES
-                                   + POLARSSL_PSK_MAX_LEN];     /* RFC 5489 2 */
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+    unsigned char _pms_ecdhe_psk[4 + MBEDTLS_ECP_MAX_BYTES
+                                   + MBEDTLS_PSK_MAX_LEN];     /* RFC 5489 2 */
 #endif
 };
 
-#define POLARSSL_PREMASTER_SIZE     sizeof( union _ssl_premaster_secret )
+#define MBEDTLS_PREMASTER_SIZE     sizeof( union mbedtls_ssl_premaster_secret )
 
 #ifdef __cplusplus
 extern "C" {
@@ -521,62 +521,62 @@ extern "C" {
  * Generic function pointers for allowing external RSA private key
  * implementations.
  */
-typedef int (*rsa_decrypt_func)( void *ctx, int mode, size_t *olen,
+typedef int (*mbedtls_rsa_decrypt_func)( void *ctx, int mode, size_t *olen,
                         const unsigned char *input, unsigned char *output,
                         size_t output_max_len );
-typedef int (*rsa_sign_func)( void *ctx,
+typedef int (*mbedtls_rsa_sign_func)( void *ctx,
                      int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
-                     int mode, md_type_t md_alg, unsigned int hashlen,
+                     int mode, mbedtls_md_type_t md_alg, unsigned int hashlen,
                      const unsigned char *hash, unsigned char *sig );
-typedef size_t (*rsa_key_len_func)( void *ctx );
+typedef size_t (*mbedtls_rsa_key_len_func)( void *ctx );
 
 /*
  * SSL state machine
  */
 typedef enum
 {
-    SSL_HELLO_REQUEST,
-    SSL_CLIENT_HELLO,
-    SSL_SERVER_HELLO,
-    SSL_SERVER_CERTIFICATE,
-    SSL_SERVER_KEY_EXCHANGE,
-    SSL_CERTIFICATE_REQUEST,
-    SSL_SERVER_HELLO_DONE,
-    SSL_CLIENT_CERTIFICATE,
-    SSL_CLIENT_KEY_EXCHANGE,
-    SSL_CERTIFICATE_VERIFY,
-    SSL_CLIENT_CHANGE_CIPHER_SPEC,
-    SSL_CLIENT_FINISHED,
-    SSL_SERVER_CHANGE_CIPHER_SPEC,
-    SSL_SERVER_FINISHED,
-    SSL_FLUSH_BUFFERS,
-    SSL_HANDSHAKE_WRAPUP,
-    SSL_HANDSHAKE_OVER,
-    SSL_SERVER_NEW_SESSION_TICKET,
-    SSL_SERVER_HELLO_VERIFY_REQUEST_SENT,
+    MBEDTLS_SSL_HELLO_REQUEST,
+    MBEDTLS_SSL_CLIENT_HELLO,
+    MBEDTLS_SSL_SERVER_HELLO,
+    MBEDTLS_SSL_SERVER_CERTIFICATE,
+    MBEDTLS_SSL_SERVER_KEY_EXCHANGE,
+    MBEDTLS_SSL_CERTIFICATE_REQUEST,
+    MBEDTLS_SSL_SERVER_HELLO_DONE,
+    MBEDTLS_SSL_CLIENT_CERTIFICATE,
+    MBEDTLS_SSL_CLIENT_KEY_EXCHANGE,
+    MBEDTLS_SSL_CERTIFICATE_VERIFY,
+    MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC,
+    MBEDTLS_SSL_CLIENT_FINISHED,
+    MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC,
+    MBEDTLS_SSL_SERVER_FINISHED,
+    MBEDTLS_SSL_FLUSH_BUFFERS,
+    MBEDTLS_SSL_HANDSHAKE_WRAPUP,
+    MBEDTLS_SSL_HANDSHAKE_OVER,
+    MBEDTLS_SSL_SERVER_NEW_SESSION_TICKET,
+    MBEDTLS_SSL_SERVER_HELLO_VERIFY_REQUEST_SENT,
 }
-ssl_states;
+mbedtls_ssl_states;
 
-typedef struct _ssl_session ssl_session;
-typedef struct _ssl_context ssl_context;
-typedef struct _ssl_transform ssl_transform;
-typedef struct _ssl_handshake_params ssl_handshake_params;
-#if defined(POLARSSL_SSL_SESSION_TICKETS)
-typedef struct _ssl_ticket_keys ssl_ticket_keys;
+typedef struct mbedtls_ssl_session mbedtls_ssl_session;
+typedef struct mbedtls_ssl_context mbedtls_ssl_context;
+typedef struct mbedtls_ssl_transform mbedtls_ssl_transform;
+typedef struct mbedtls_ssl_handshake_params mbedtls_ssl_handshake_params;
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+typedef struct mbedtls_ssl_ticket_keys mbedtls_ssl_ticket_keys;
 #endif
-#if defined(POLARSSL_X509_CRT_PARSE_C)
-typedef struct _ssl_key_cert ssl_key_cert;
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+typedef struct mbedtls_ssl_key_cert mbedtls_ssl_key_cert;
 #endif
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-typedef struct _ssl_flight_item ssl_flight_item;
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
 #endif
 
 /*
  * This structure is used for storing current session data.
  */
-struct _ssl_session
+struct mbedtls_ssl_session
 {
-#if defined(POLARSSL_HAVE_TIME)
+#if defined(MBEDTLS_HAVE_TIME)
     time_t start;               /*!< starting time      */
 #endif
     int ciphersuite;            /*!< chosen ciphersuite */
@@ -585,26 +585,26 @@ struct _ssl_session
     unsigned char id[32];       /*!< session identifier */
     unsigned char master[48];   /*!< the master secret  */
 
-#if defined(POLARSSL_X509_CRT_PARSE_C)
-    x509_crt *peer_cert;        /*!< peer X.509 cert chain */
-#endif /* POLARSSL_X509_CRT_PARSE_C */
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    mbedtls_x509_crt *peer_cert;        /*!< peer X.509 cert chain */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
     int verify_result;          /*!<  verification result     */
 
-#if defined(POLARSSL_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
     unsigned char *ticket;      /*!< RFC 5077 session ticket */
     size_t ticket_len;          /*!< session ticket length   */
     uint32_t ticket_lifetime;   /*!< ticket lifetime hint    */
-#endif /* POLARSSL_SSL_SESSION_TICKETS */
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
-#if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     unsigned char mfl_code;     /*!< MaxFragmentLength negotiated by peer */
-#endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
+#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
-#if defined(POLARSSL_SSL_TRUNCATED_HMAC)
+#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
     int trunc_hmac;             /*!< flag for truncated hmac activation   */
-#endif /* POLARSSL_SSL_TRUNCATED_HMAC */
+#endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
 
-#if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     int encrypt_then_mac;       /*!< flag for EtM activation                */
 #endif
 };
@@ -613,12 +613,12 @@ struct _ssl_session
  * This structure contains a full set of runtime transform parameters
  * either in negotiation or active.
  */
-struct _ssl_transform
+struct mbedtls_ssl_transform
 {
     /*
      * Session specific crypto layer
      */
-    const ssl_ciphersuite_t *ciphersuite_info;
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
                                         /*!<  Chosen cipersuite_info  */
     unsigned int keylen;                /*!<  symmetric key length    */
     size_t minlen;                      /*!<  min. ciphertext length  */
@@ -629,22 +629,22 @@ struct _ssl_transform
     unsigned char iv_enc[16];           /*!<  IV (encryption)         */
     unsigned char iv_dec[16];           /*!<  IV (decryption)         */
 
-#if defined(POLARSSL_SSL_PROTO_SSL3)
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
     /* Needed only for SSL v3.0 secret */
     unsigned char mac_enc[20];          /*!<  SSL v3.0 secret (enc)   */
     unsigned char mac_dec[20];          /*!<  SSL v3.0 secret (dec)   */
-#endif /* POLARSSL_SSL_PROTO_SSL3 */
+#endif /* MBEDTLS_SSL_PROTO_SSL3 */
 
-    md_context_t md_ctx_enc;            /*!<  MAC (encryption)        */
-    md_context_t md_ctx_dec;            /*!<  MAC (decryption)        */
+    mbedtls_md_context_t md_ctx_enc;            /*!<  MAC (encryption)        */
+    mbedtls_md_context_t md_ctx_dec;            /*!<  MAC (decryption)        */
 
-    cipher_context_t cipher_ctx_enc;    /*!<  encryption context      */
-    cipher_context_t cipher_ctx_dec;    /*!<  decryption context      */
+    mbedtls_cipher_context_t cipher_ctx_enc;    /*!<  encryption context      */
+    mbedtls_cipher_context_t cipher_ctx_dec;    /*!<  decryption context      */
 
     /*
      * Session specific compression layer
      */
-#if defined(POLARSSL_ZLIB_SUPPORT)
+#if defined(MBEDTLS_ZLIB_SUPPORT)
     z_stream ctx_deflate;               /*!<  compression context     */
     z_stream ctx_inflate;               /*!<  decompression context   */
 #endif
@@ -653,7 +653,7 @@ struct _ssl_transform
 /*
  * This structure contains the parameters only needed during handshake.
  */
-struct _ssl_handshake_params
+struct mbedtls_ssl_handshake_params
 {
     /*
      * Handshake specific crypto variables
@@ -661,28 +661,28 @@ struct _ssl_handshake_params
     int sig_alg;                        /*!<  Hash algorithm for signature   */
     int cert_type;                      /*!<  Requested cert type            */
     int verify_sig_alg;                 /*!<  Signature algorithm for verify */
-#if defined(POLARSSL_DHM_C)
-    dhm_context dhm_ctx;                /*!<  DHM key exchange        */
+#if defined(MBEDTLS_DHM_C)
+    mbedtls_dhm_context dhm_ctx;                /*!<  DHM key exchange        */
 #endif
-#if defined(POLARSSL_ECDH_C)
-    ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
+#if defined(MBEDTLS_ECDH_C)
+    mbedtls_ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
 #endif
-#if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
-    const ecp_curve_info **curves;      /*!<  Supported elliptic curves */
+#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C)
+    const mbedtls_ecp_curve_info **curves;      /*!<  Supported elliptic curves */
 #endif
-#if defined(POLARSSL_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
     /**
      * Current key/cert or key/cert list.
      * On client: pointer to ssl->key_cert, only the first entry used.
      * On server: starts as a pointer to ssl->key_cert, then becomes
      * a pointer to the chosen key from this list or the SNI list.
      */
-    ssl_key_cert *key_cert;
-#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
-    ssl_key_cert *sni_key_cert;         /*!<  key/cert list from SNI  */
+    mbedtls_ssl_key_cert *key_cert;
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    mbedtls_ssl_key_cert *sni_key_cert;         /*!<  key/cert list from SNI  */
 #endif
-#endif /* POLARSSL_X509_CRT_PARSE_C */
-#if defined(POLARSSL_SSL_PROTO_DTLS)
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
     unsigned int out_msg_seq;           /*!<  Outgoing handshake sequence number */
     unsigned int in_msg_seq;            /*!<  Incoming handshake sequence number */
 
@@ -695,11 +695,11 @@ struct _ssl_handshake_params
 
     uint32_t retransmit_timeout;        /*!<  Current value of timeout       */
     unsigned char retransmit_state;     /*!<  Retransmission state           */
-    ssl_flight_item *flight;            /*!<  Current outgoing flight        */
-    ssl_flight_item *cur_msg;           /*!<  Current message in flight      */
+    mbedtls_ssl_flight_item *flight;            /*!<  Current outgoing flight        */
+    mbedtls_ssl_flight_item *cur_msg;           /*!<  Current message in flight      */
     unsigned int in_flight_start_seq;   /*!<  Minimum message sequence in the
                                               flight being received          */
-    ssl_transform *alt_transform_out;   /*!<  Alternative transform for
+    mbedtls_ssl_transform *alt_transform_out;   /*!<  Alternative transform for
                                               resending messages             */
     unsigned char alt_out_ctr[8];       /*!<  Alternative record epoch/counter
                                               for resending messages         */
@@ -708,23 +708,23 @@ struct _ssl_handshake_params
     /*
      * Checksum contexts
      */
-#if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
-    defined(POLARSSL_SSL_PROTO_TLS1_1)
-       md5_context fin_md5;
-      sha1_context fin_sha1;
+#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
+    defined(MBEDTLS_SSL_PROTO_TLS1_1)
+       mbedtls_md5_context fin_md5;
+      mbedtls_sha1_context fin_sha1;
 #endif
-#if defined(POLARSSL_SSL_PROTO_TLS1_2)
-#if defined(POLARSSL_SHA256_C)
-    sha256_context fin_sha256;
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SHA256_C)
+    mbedtls_sha256_context fin_sha256;
 #endif
-#if defined(POLARSSL_SHA512_C)
-    sha512_context fin_sha512;
+#if defined(MBEDTLS_SHA512_C)
+    mbedtls_sha512_context fin_sha512;
 #endif
-#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-    void (*update_checksum)(ssl_context *, const unsigned char *, size_t);
-    void (*calc_verify)(ssl_context *, unsigned char *);
-    void (*calc_finished)(ssl_context *, unsigned char *, int);
+    void (*update_checksum)(mbedtls_ssl_context *, const unsigned char *, size_t);
+    void (*calc_verify)(mbedtls_ssl_context *, unsigned char *);
+    void (*calc_finished)(mbedtls_ssl_context *, unsigned char *, int);
     int  (*tls_prf)(const unsigned char *, size_t, const char *,
                     const unsigned char *, size_t,
                     unsigned char *, size_t);
@@ -732,7 +732,7 @@ struct _ssl_handshake_params
     size_t pmslen;                      /*!<  premaster length        */
 
     unsigned char randbytes[64];        /*!<  random bytes            */
-    unsigned char premaster[POLARSSL_PREMASTER_SIZE];
+    unsigned char premaster[MBEDTLS_PREMASTER_SIZE];
                                         /*!<  premaster secret        */
 
     int resume;                         /*!<  session resume indicator*/
@@ -740,67 +740,67 @@ struct _ssl_handshake_params
     int max_minor_ver;                  /*!< max. minor version client*/
     int cli_exts;                       /*!< client extension presence*/
 
-#if defined(POLARSSL_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
     int new_session_ticket;             /*!< use NewSessionTicket?    */
-#endif /* POLARSSL_SSL_SESSION_TICKETS */
-#if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
     int extended_ms;                    /*!< use Extended Master Secret? */
 #endif
 };
 
-#if defined(POLARSSL_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
 /*
  * Parameters needed to secure session tickets
  */
-struct _ssl_ticket_keys
+struct mbedtls_ssl_ticket_keys
 {
     unsigned char key_name[16];     /*!< name to quickly discard bad tickets */
-    aes_context enc;                /*!< encryption context                  */
-    aes_context dec;                /*!< decryption context                  */
+    mbedtls_aes_context enc;                /*!< encryption context                  */
+    mbedtls_aes_context dec;                /*!< decryption context                  */
     unsigned char mac_key[16];      /*!< authentication key                  */
 };
-#endif /* POLARSSL_SSL_SESSION_TICKETS */
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
-#if defined(POLARSSL_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
 /*
  * List of certificate + private key pairs
  */
-struct _ssl_key_cert
+struct mbedtls_ssl_key_cert
 {
-    x509_crt *cert;                 /*!< cert                       */
-    pk_context *key;                /*!< private key                */
-    ssl_key_cert *next;             /*!< next key/cert pair         */
+    mbedtls_x509_crt *cert;                 /*!< cert                       */
+    mbedtls_pk_context *key;                /*!< private key                */
+    mbedtls_ssl_key_cert *next;             /*!< next key/cert pair         */
 };
-#endif /* POLARSSL_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
 /*
  * List of handshake messages kept around for resending
  */
-struct _ssl_flight_item
+struct mbedtls_ssl_flight_item
 {
     unsigned char *p;       /*!< message, including handshake headers   */
     size_t len;             /*!< length of p                            */
     unsigned char type;     /*!< type of the message: handshake or CCS  */
-    ssl_flight_item *next;  /*!< next handshake message(s)              */
+    mbedtls_ssl_flight_item *next;  /*!< next handshake message(s)              */
 };
-#endif /* POLARSSL_SSL_PROTO_DTLS */
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-struct _ssl_context
+struct mbedtls_ssl_context
 {
     /*
      * Miscellaneous
      */
     int state;                  /*!< SSL handshake: current state     */
     int transport;              /*!< Transport: stream or datagram    */
-#if defined(POLARSSL_SSL_RENEGOTIATION)
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
     int renego_status;          /*!< Initial, in progress, pending?   */
     int renego_records_seen;    /*!< Records since renego request, or with DTLS,
                                   number of retransmissions of request if
                                   renego_max_records is < 0           */
 #endif
 
-    int major_ver;              /*!< equal to  SSL_MAJOR_VERSION_3    */
+    int major_ver;              /*!< equal to  MBEDTLS_SSL_MAJOR_VERSION_3    */
     int minor_ver;              /*!< either 0 (SSL3) or 1 (TLS1.0)    */
 
     int max_major_ver;          /*!< max. major version used          */
@@ -808,20 +808,20 @@ struct _ssl_context
     int min_major_ver;          /*!< min. major version used          */
     int min_minor_ver;          /*!< min. minor version used          */
 
-    uint32_t read_timeout;      /*!< timeout for ssl_read in milliseconds */
+    uint32_t read_timeout;      /*!< timeout for mbedtls_ssl_read in milliseconds */
 
-#if defined(POLARSSL_SSL_DTLS_BADMAC_LIMIT)
+#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
     unsigned badmac_limit;      /*!< limit of records with a bad MAC    */
     unsigned badmac_seen;       /*!< records with a bad MAC received    */
 #endif
 
-#if defined(POLARSSL_SSL_FALLBACK_SCSV) && defined(POLARSSL_SSL_CLI_C)
+#if defined(MBEDTLS_SSL_FALLBACK_SCSV) && defined(MBEDTLS_SSL_CLI_C)
     char fallback;              /*!< flag for fallback connections    */
 #endif
-#if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     char encrypt_then_mac;      /*!< flag for encrypt-then-mac        */
 #endif
-#if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
+#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
     char extended_ms;           /*!< flag for extended master secret  */
 #endif
     char arc4_disabled;         /*!< flag for disabling RC4           */
@@ -834,8 +834,8 @@ struct _ssl_context
     int (*f_send)(void *, const unsigned char *, size_t);
     int (*f_recv)(void *, unsigned char *, size_t);
     int (*f_recv_timeout)(void *, unsigned char *, size_t, uint32_t);
-    int (*f_get_cache)(void *, ssl_session *);
-    int (*f_set_cache)(void *, const ssl_session *);
+    int (*f_get_cache)(void *, mbedtls_ssl_session *);
+    int (*f_set_cache)(void *, const mbedtls_ssl_session *);
 
     void *p_rng;                /*!< context for the RNG function     */
     void *p_dbg;                /*!< context for the debug function   */
@@ -844,45 +844,45 @@ struct _ssl_context
     void *p_set_cache;          /*!< context for cache store          */
     void *p_hw_data;            /*!< context for HW acceleration      */
 
-#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
-    int (*f_sni)(void *, ssl_context *, const unsigned char *, size_t);
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    int (*f_sni)(void *, mbedtls_ssl_context *, const unsigned char *, size_t);
     void *p_sni;                /*!< context for SNI extension        */
 #endif
 
-#if defined(POLARSSL_X509_CRT_PARSE_C)
-    int (*f_vrfy)(void *, x509_crt *, int, int *);
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    int (*f_vrfy)(void *, mbedtls_x509_crt *, int, int *);
     void *p_vrfy;               /*!< context for verification         */
 #endif
 
-#if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
-    int (*f_psk)(void *, ssl_context *, const unsigned char *, size_t);
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+    int (*f_psk)(void *, mbedtls_ssl_context *, const unsigned char *, size_t);
     void *p_psk;               /*!< context for PSK retrieval         */
 #endif
 
     /*
      * Session layer
      */
-    ssl_session *session_in;            /*!<  current session data (in)   */
-    ssl_session *session_out;           /*!<  current session data (out)  */
-    ssl_session *session;               /*!<  negotiated session data     */
-    ssl_session *session_negotiate;     /*!<  session data in negotiation */
+    mbedtls_ssl_session *session_in;            /*!<  current session data (in)   */
+    mbedtls_ssl_session *session_out;           /*!<  current session data (out)  */
+    mbedtls_ssl_session *session;               /*!<  negotiated session data     */
+    mbedtls_ssl_session *session_negotiate;     /*!<  session data in negotiation */
 
-    ssl_handshake_params *handshake;    /*!<  params required only during
+    mbedtls_ssl_handshake_params *handshake;    /*!<  params required only during
                                               the handshake process        */
 
     /*
      * Record layer transformations
      */
-    ssl_transform *transform_in;        /*!<  current transform params (in)   */
-    ssl_transform *transform_out;       /*!<  current transform params (in)   */
-    ssl_transform *transform;           /*!<  negotiated transform params     */
-    ssl_transform *transform_negotiate; /*!<  transform params in negotiation */
+    mbedtls_ssl_transform *transform_in;        /*!<  current transform params (in)   */
+    mbedtls_ssl_transform *transform_out;       /*!<  current transform params (in)   */
+    mbedtls_ssl_transform *transform;           /*!<  negotiated transform params     */
+    mbedtls_ssl_transform *transform_negotiate; /*!<  transform params in negotiation */
 
     /*
      * Timers
      */
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    struct hr_time time_info;   /*!< timer context                      */
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    struct mbedtls_timing_hr_time time_info;   /*!< timer context                      */
     unsigned long time_limit;   /*!< limit for the running timer        */
     uint32_t hs_timeout_min;    /*!< initial value of the handshake
                                      retransmission timeout             */
@@ -906,12 +906,12 @@ struct _ssl_context
     int in_msgtype;             /*!< record header: message type      */
     size_t in_msglen;           /*!< record header: message length    */
     size_t in_left;             /*!< amount of data read so far       */
-#if defined(POLARSSL_SSL_PROTO_DTLS)
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
     uint16_t in_epoch;          /*!< DTLS epoch for incoming records  */
     size_t next_record_offset;  /*!< offset of the next record in datagram
                                      (equal to in_left if none)       */
 #endif
-#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
     uint64_t in_window_top;     /*!< last validated record seq_num    */
     uint64_t in_window;         /*!< bitmask for replay detection     */
     char anti_replay;           /*!< is anti-replay on?               */
@@ -936,13 +936,13 @@ struct _ssl_context
     size_t out_msglen;          /*!< record header: message length    */
     size_t out_left;            /*!< amount of data not yet written   */
 
-#if defined(POLARSSL_ZLIB_SUPPORT)
+#if defined(MBEDTLS_ZLIB_SUPPORT)
     unsigned char *compress_buf;        /*!<  zlib data buffer        */
 #endif
-#if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     unsigned char mfl_code;     /*!< MaxFragmentLength chosen by us   */
-#endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
-#if defined(POLARSSL_SSL_CBC_RECORD_SPLITTING)
+#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
     signed char split_done;     /*!< flag for record splitting:
                                      -1 disabled, 0 todo, 1 done      */
 #endif
@@ -950,20 +950,20 @@ struct _ssl_context
     /*
      * PKI layer
      */
-#if defined(POLARSSL_X509_CRT_PARSE_C)
-    ssl_key_cert *key_cert;             /*!<  own certificate(s)/key(s) */
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    mbedtls_ssl_key_cert *key_cert;             /*!<  own certificate(s)/key(s) */
 
-    x509_crt *ca_chain;                 /*!<  own trusted CA chain      */
-    x509_crl *ca_crl;                   /*!<  trusted CA CRLs           */
+    mbedtls_x509_crt *ca_chain;                 /*!<  own trusted CA chain      */
+    mbedtls_x509_crl *ca_crl;                   /*!<  trusted CA CRLs           */
     const char *peer_cn;                /*!<  expected peer CN          */
-#endif /* POLARSSL_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     /*
      * Support for generating and checking session tickets
      */
-#if defined(POLARSSL_SSL_SESSION_TICKETS)
-    ssl_ticket_keys *ticket_keys;       /*!<  keys for ticket encryption */
-#endif /* POLARSSL_SSL_SESSION_TICKETS */
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    mbedtls_ssl_ticket_keys *ticket_keys;       /*!<  keys for ticket encryption */
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
     /*
      * User settings
@@ -972,7 +972,7 @@ struct _ssl_context
     int authmode;                       /*!<  verification mode       */
     int client_auth;                    /*!<  flag for client auth.   */
     int verify_result;                  /*!<  verification result     */
-#if defined(POLARSSL_SSL_RENEGOTIATION)
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
     int disable_renegotiation;          /*!<  enable/disable renegotiation   */
     int renego_max_records;             /*!<  grace period for renegotiation */
     unsigned char renego_period[8];     /*!<  value of the record counters
@@ -981,23 +981,23 @@ struct _ssl_context
     /* needed for option break handshake with insecure peers */
     int allow_legacy_renegotiation;     /*!<  allow legacy renegotiation     */
     const int *ciphersuite_list[4];     /*!<  allowed ciphersuites / version */
-#if defined(POLARSSL_SSL_SET_CURVES)
-    const ecp_group_id *curve_list;     /*!<  allowed curves                 */
+#if defined(MBEDTLS_SSL_SET_CURVES)
+    const mbedtls_ecp_group_id *curve_list;     /*!<  allowed curves                 */
 #endif
-#if defined(POLARSSL_SSL_TRUNCATED_HMAC)
+#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
     int trunc_hmac;                     /*!<  negotiate truncated hmac?      */
 #endif
-#if defined(POLARSSL_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
     int session_tickets;                /*!<  use session tickets?    */
     int ticket_lifetime;                /*!<  session ticket lifetime */
 #endif
 
-#if defined(POLARSSL_DHM_C)
-    mpi dhm_P;                          /*!<  prime modulus for DHM   */
-    mpi dhm_G;                          /*!<  generator for DHM       */
+#if defined(MBEDTLS_DHM_C)
+    mbedtls_mpi dhm_P;                          /*!<  prime modulus for DHM   */
+    mbedtls_mpi dhm_G;                          /*!<  generator for DHM       */
 #endif
 
-#if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     /*
      * PSK values
      */
@@ -1007,7 +1007,7 @@ struct _ssl_context
     size_t         psk_identity_len;
 #endif
 
-#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     /*
      * SNI extension
      */
@@ -1015,7 +1015,7 @@ struct _ssl_context
     size_t         hostname_len;
 #endif
 
-#if defined(POLARSSL_SSL_ALPN)
+#if defined(MBEDTLS_SSL_ALPN)
     /*
      * ALPN extension
      */
@@ -1026,7 +1026,7 @@ struct _ssl_context
     /*
      * Information for DTLS hello verify
      */
-#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
+#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
     unsigned char  *cli_id;         /*!<  transport-level ID of the client  */
     size_t          cli_id_len;     /*!<  length of cli_id                  */
     int (*f_cookie_write)( void *, unsigned char **, unsigned char *,
@@ -1042,31 +1042,31 @@ struct _ssl_context
     /* needed to know when to send extension on server */
     int secure_renegotiation;           /*!<  does peer support legacy or
                                               secure renegotiation           */
-#if defined(POLARSSL_SSL_RENEGOTIATION)
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
     size_t verify_data_len;             /*!<  length of verify data stored   */
-    char own_verify_data[SSL_VERIFY_DATA_MAX_LEN]; /*!<  previous handshake verify data */
-    char peer_verify_data[SSL_VERIFY_DATA_MAX_LEN]; /*!<  previous handshake verify data */
+    char own_verify_data[MBEDTLS_SSL_VERIFY_DATA_MAX_LEN]; /*!<  previous handshake verify data */
+    char peer_verify_data[MBEDTLS_SSL_VERIFY_DATA_MAX_LEN]; /*!<  previous handshake verify data */
 #endif
 };
 
-#if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
+#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
 
-#define SSL_CHANNEL_OUTBOUND    0
-#define SSL_CHANNEL_INBOUND     1
+#define MBEDTLS_SSL_CHANNEL_OUTBOUND    0
+#define MBEDTLS_SSL_CHANNEL_INBOUND     1
 
-extern int (*ssl_hw_record_init)(ssl_context *ssl,
+extern int (*mbedtls_ssl_hw_record_init)(mbedtls_ssl_context *ssl,
                 const unsigned char *key_enc, const unsigned char *key_dec,
                 size_t keylen,
                 const unsigned char *iv_enc,  const unsigned char *iv_dec,
                 size_t ivlen,
                 const unsigned char *mac_enc, const unsigned char *mac_dec,
                 size_t maclen);
-extern int (*ssl_hw_record_activate)(ssl_context *ssl, int direction);
-extern int (*ssl_hw_record_reset)(ssl_context *ssl);
-extern int (*ssl_hw_record_write)(ssl_context *ssl);
-extern int (*ssl_hw_record_read)(ssl_context *ssl);
-extern int (*ssl_hw_record_finish)(ssl_context *ssl);
-#endif /* POLARSSL_SSL_HW_RECORD_ACCEL */
+extern int (*mbedtls_ssl_hw_record_activate)(mbedtls_ssl_context *ssl, int direction);
+extern int (*mbedtls_ssl_hw_record_reset)(mbedtls_ssl_context *ssl);
+extern int (*mbedtls_ssl_hw_record_write)(mbedtls_ssl_context *ssl);
+extern int (*mbedtls_ssl_hw_record_read)(mbedtls_ssl_context *ssl);
+extern int (*mbedtls_ssl_hw_record_finish)(mbedtls_ssl_context *ssl);
+#endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
 
 /**
  * \brief Returns the list of ciphersuites supported by the SSL/TLS module.
@@ -1074,7 +1074,7 @@ extern int (*ssl_hw_record_finish)(ssl_context *ssl);
  * \return              a statically allocated array of ciphersuites, the last
  *                      entry is 0.
  */
-const int *ssl_list_ciphersuites( void );
+const int *mbedtls_ssl_list_ciphersuites( void );
 
 /**
  * \brief               Return the name of the ciphersuite associated with the
@@ -1084,7 +1084,7 @@ const int *ssl_list_ciphersuites( void );
  *
  * \return              a string containing the ciphersuite name
  */
-const char *ssl_get_ciphersuite_name( const int ciphersuite_id );
+const char *mbedtls_ssl_get_ciphersuite_name( const int ciphersuite_id );
 
 /**
  * \brief               Return the ID of the ciphersuite associated with the
@@ -1094,7 +1094,7 @@ const char *ssl_get_ciphersuite_name( const int ciphersuite_id );
  *
  * \return              the ID with the ciphersuite or 0 if not found
  */
-int ssl_get_ciphersuite_id( const char *ciphersuite_name );
+int mbedtls_ssl_get_ciphersuite_id( const char *ciphersuite_name );
 
 /**
  * \brief          Initialize an SSL context
@@ -1102,10 +1102,10 @@ int ssl_get_ciphersuite_id( const char *ciphersuite_name );
  *
  * \param ssl      SSL context
  *
- * \return         0 if successful, or POLARSSL_ERR_SSL_MALLOC_FAILED if
+ * \return         0 if successful, or MBEDTLS_ERR_SSL_MALLOC_FAILED if
  *                 memory allocation failed
  */
-int ssl_init( ssl_context *ssl );
+int mbedtls_ssl_init( mbedtls_ssl_context *ssl );
 
 /**
  * \brief          Reset an already initialized SSL context for re-use
@@ -1114,21 +1114,21 @@ int ssl_init( ssl_context *ssl );
  *
  * \param ssl      SSL context
  * \return         0 if successful, or POLASSL_ERR_SSL_MALLOC_FAILED,
-                   POLARSSL_ERR_SSL_HW_ACCEL_FAILED or
- *                 POLARSSL_ERR_SSL_COMPRESSION_FAILED
+                   MBEDTLS_ERR_SSL_HW_ACCEL_FAILED or
+ *                 MBEDTLS_ERR_SSL_COMPRESSION_FAILED
  */
-int ssl_session_reset( ssl_context *ssl );
+int mbedtls_ssl_session_reset( mbedtls_ssl_context *ssl );
 
 /**
  * \brief          Set the current endpoint type
  *
  * \param ssl      SSL context
- * \param endpoint must be SSL_IS_CLIENT or SSL_IS_SERVER
+ * \param endpoint must be MBEDTLS_SSL_IS_CLIENT or MBEDTLS_SSL_IS_SERVER
  *
- * \note           This function should be called right after ssl_init() since
+ * \note           This function should be called right after mbedtls_ssl_init() since
  *                 some other ssl_set_foo() functions depend on it.
  */
-void ssl_set_endpoint( ssl_context *ssl, int endpoint );
+void mbedtls_ssl_set_endpoint( mbedtls_ssl_context *ssl, int endpoint );
 
 /**
  * \brief           Set the transport type (TLS or DTLS).
@@ -1136,18 +1136,18 @@ void ssl_set_endpoint( ssl_context *ssl, int endpoint );
  *
  * \param ssl       SSL context
  * \param transport transport type:
- *                  SSL_TRANSPORT_STREAM for TLS,
- *                  SSL_TRANSPORT_DATAGRAM for DTLS.
- * \return          0 on success or POLARSSL_ERR_SSL_BAD_INPUT_DATA
+ *                  MBEDTLS_SSL_TRANSPORT_STREAM for TLS,
+ *                  MBEDTLS_SSL_TRANSPORT_DATAGRAM for DTLS.
+ * \return          0 on success or MBEDTLS_ERR_SSL_BAD_INPUT_DATA
  *
  * \note            If DTLS is selected and max and/or min version are less
  *                  than TLS 1.1 (DTLS 1.0) they are upped to that value.
  *
  * \note            For DTLS, you must either provide a recv callback that
  *                  doesn't block, or one that handles timeouts, see
- *                  ssl_set_bio_timeout()
+ *                  mbedtls_ssl_set_bio_timeout()
  */
-int ssl_set_transport( ssl_context *ssl, int transport );
+int mbedtls_ssl_set_transport( mbedtls_ssl_context *ssl, int transport );
 
 /**
  * \brief          Set the certificate verification mode
@@ -1155,27 +1155,27 @@ int ssl_set_transport( ssl_context *ssl, int transport );
  * \param ssl      SSL context
  * \param authmode can be:
  *
- *  SSL_VERIFY_NONE:      peer certificate is not checked
+ *  MBEDTLS_SSL_VERIFY_NONE:      peer certificate is not checked
  *                        (default on server)
  *                        (insecure on client)
  *
- *  SSL_VERIFY_OPTIONAL:  peer certificate is checked, however the
+ *  MBEDTLS_SSL_VERIFY_OPTIONAL:  peer certificate is checked, however the
  *                        handshake continues even if verification failed;
- *                        ssl_get_verify_result() can be called after the
+ *                        mbedtls_ssl_get_verify_result() can be called after the
  *                        handshake is complete.
  *
- *  SSL_VERIFY_REQUIRED:  peer *must* present a valid certificate,
+ *  MBEDTLS_SSL_VERIFY_REQUIRED:  peer *must* present a valid certificate,
  *                        handshake is aborted if verification failed.
  *
- * \note On client, SSL_VERIFY_REQUIRED is the recommended mode.
- * With SSL_VERIFY_OPTIONAL, the user needs to call ssl_get_verify_result() at
+ * \note On client, MBEDTLS_SSL_VERIFY_REQUIRED is the recommended mode.
+ * With MBEDTLS_SSL_VERIFY_OPTIONAL, the user needs to call mbedtls_ssl_get_verify_result() at
  * the right time(s), which may not be obvious, while REQUIRED always perform
  * the verification as soon as possible. For example, REQUIRED was protecting
  * against the "triple handshake" attack even before it was found.
  */
-void ssl_set_authmode( ssl_context *ssl, int authmode );
+void mbedtls_ssl_set_authmode( mbedtls_ssl_context *ssl, int authmode );
 
-#if defined(POLARSSL_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**
  * \brief          Set the verification callback (Optional).
  *
@@ -1187,10 +1187,10 @@ void ssl_set_authmode( ssl_context *ssl, int authmode );
  * \param f_vrfy   verification function
  * \param p_vrfy   verification parameter
  */
-void ssl_set_verify( ssl_context *ssl,
-                     int (*f_vrfy)(void *, x509_crt *, int, int *),
+void mbedtls_ssl_set_verify( mbedtls_ssl_context *ssl,
+                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, int *),
                      void *p_vrfy );
-#endif /* POLARSSL_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 /**
  * \brief          Set the random number generator callback
@@ -1199,7 +1199,7 @@ void ssl_set_verify( ssl_context *ssl,
  * \param f_rng    RNG function
  * \param p_rng    RNG parameter
  */
-void ssl_set_rng( ssl_context *ssl,
+void mbedtls_ssl_set_rng( mbedtls_ssl_context *ssl,
                   int (*f_rng)(void *, unsigned char *, size_t),
                   void *p_rng );
 
@@ -1210,15 +1210,15 @@ void ssl_set_rng( ssl_context *ssl,
  * \param f_dbg    debug function
  * \param p_dbg    debug parameter
  */
-void ssl_set_dbg( ssl_context *ssl,
+void mbedtls_ssl_set_dbg( mbedtls_ssl_context *ssl,
                   void (*f_dbg)(void *, int, const char *),
                   void  *p_dbg );
 
-#if ! defined(POLARSSL_DEPRECATED_REMOVED)
-#if defined(POLARSSL_DEPRECATED_WARNING)
-#define DEPRECATED    __attribute__((deprecated))
+#if ! defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED    __attribute__((deprecated))
 #else
-#define DEPRECATED
+#define MBEDTLS_DEPRECATED
 #endif
 /**
  * \brief          Set the underlying BIO read and write callbacks
@@ -1231,17 +1231,17 @@ void ssl_set_dbg( ssl_context *ssl,
  *
  * \warning        It is required that p_recv == p_send. Otherwise, the first
  *                 attempt at sending or receiving will result in a
- *                 POLARSSL_ERR_SSL_BAD_INPUT_DATA error.
+ *                 MBEDTLS_ERR_SSL_BAD_INPUT_DATA error.
  *
- * \deprecated     Superseded by ssl_set_bio_timeout() in 2.0.0
+ * \deprecated     Superseded by mbedtls_ssl_set_bio_timeout() in 2.0.0
  */
-void ssl_set_bio( ssl_context *ssl,
+void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
         int (*f_recv)(void *, unsigned char *, size_t), void *p_recv,
-        int (*f_send)(void *, const unsigned char *, size_t), void *p_send ) DEPRECATED;
-#undef DEPRECATED
-#endif /* POLARSSL_DEPRECATED_REMOVED */
+        int (*f_send)(void *, const unsigned char *, size_t), void *p_send ) MBEDTLS_DEPRECATED;
+#undef MBEDTLS_DEPRECATED
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
 
-#if defined(POLARSSL_SSL_SRV_C)
+#if defined(MBEDTLS_SSL_SRV_C)
 /**
  * \brief          Set the underlying BIO callbacks for write, read and
  *                 read-with-timeout.
@@ -1252,21 +1252,21 @@ void ssl_set_bio( ssl_context *ssl,
  * \param f_recv   read callback
  * \param f_recv_timeout read callback with timeout.
  *                 The last argument of the callback is the timeout in seconds
- * \param timeout  value of the ssl_read() timeout in milliseconds
+ * \param timeout  value of the mbedtls_ssl_read() timeout in milliseconds
  *
  * \note           f_recv_timeout is required for DTLS, unless f_recv performs
  *                 non-blocking reads.
  *
  * \note           TODO: timeout not supported with TLS yet
  */
-void ssl_set_bio_timeout( ssl_context *ssl,
+void mbedtls_ssl_set_bio_timeout( mbedtls_ssl_context *ssl,
         void *p_bio,
         int (*f_send)(void *, const unsigned char *, size_t),
         int (*f_recv)(void *, unsigned char *, size_t),
         int (*f_recv_timeout)(void *, unsigned char *, size_t, uint32_t),
         uint32_t timeout );
 
-#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
+#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
 /**
  * \brief          Set client's transport-level identification info.
  *                 (Server only. DTLS only.)
@@ -1283,10 +1283,10 @@ void ssl_set_bio_timeout( ssl_context *ssl,
  * \note           An internal copy is made, so the info buffer can be reused.
  *
  * \return         0 on success,
- *                 POLARSSL_ERR_SSL_BAD_INPUT_DATA if used on client,
- *                 POLARSSL_ERR_SSL_MALLOC_FAILED if out of memory.
+ *                 MBEDTLS_ERR_SSL_BAD_INPUT_DATA if used on client,
+ *                 MBEDTLS_ERR_SSL_MALLOC_FAILED if out of memory.
  */
-int ssl_set_client_transport_id( ssl_context *ssl,
+int mbedtls_ssl_set_client_transport_id( mbedtls_ssl_context *ssl,
                                  const unsigned char *info,
                                  size_t ilen );
 
@@ -1298,13 +1298,13 @@ int ssl_set_client_transport_id( ssl_context *ssl,
  *                 must be updated to point right after the cookie
  * \param end      Pointer to one past the end of the output buffer
  * \param info     Client ID info that was passed to
- *                 \c ssl_set_client_transport_id()
+ *                 \c mbedtls_ssl_set_client_transport_id()
  * \param ilen     Length of info in bytes
  *
  * \return         The callback must return 0 on success,
  *                 or a negative error code.
  */
-typedef int ssl_cookie_write_t( void *ctx,
+typedef int mbedtls_ssl_cookie_write_t( void *ctx,
                                 unsigned char **p, unsigned char *end,
                                 const unsigned char *info, size_t ilen );
 
@@ -1315,13 +1315,13 @@ typedef int ssl_cookie_write_t( void *ctx,
  * \param cookie   Cookie to verify
  * \param clen     Length of cookie
  * \param info     Client ID info that was passed to
- *                 \c ssl_set_client_transport_id()
+ *                 \c mbedtls_ssl_set_client_transport_id()
  * \param ilen     Length of info in bytes
  *
  * \return         The callback must return 0 if cookie is valid,
  *                 or a negative error code.
  */
-typedef int ssl_cookie_check_t( void *ctx,
+typedef int mbedtls_ssl_cookie_check_t( void *ctx,
                                 const unsigned char *cookie, size_t clen,
                                 const unsigned char *info, size_t ilen );
 
@@ -1344,20 +1344,20 @@ typedef int ssl_cookie_check_t( void *ctx,
  * \param f_cookie_check    Cookie check callback
  * \param p_cookie          Context for both callbacks
  */
-void ssl_set_dtls_cookies( ssl_context *ssl,
-                           ssl_cookie_write_t *f_cookie_write,
-                           ssl_cookie_check_t *f_cookie_check,
+void mbedtls_ssl_set_dtls_cookies( mbedtls_ssl_context *ssl,
+                           mbedtls_ssl_cookie_write_t *f_cookie_write,
+                           mbedtls_ssl_cookie_check_t *f_cookie_check,
                            void *p_cookie );
-#endif /* POLARSSL_SSL_DTLS_HELLO_VERIFY */
+#endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY */
 
-#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
 /**
  * \brief          Enable or disable anti-replay protection for DTLS.
  *                 (DTLS only, no effect on TLS.)
  *                 Default: enabled.
  *
  * \param ssl      SSL context
- * \param mode     SSL_ANTI_REPLAY_ENABLED or SSL_ANTI_REPLAY_DISABLED.
+ * \param mode     MBEDTLS_SSL_ANTI_REPLAY_ENABLED or MBEDTLS_SSL_ANTI_REPLAY_DISABLED.
  *
  * \warning        Disabling this is a security risk unless the application
  *                 protocol handles duplicated packets in a safe way. You
@@ -1366,10 +1366,10 @@ void ssl_set_dtls_cookies( ssl_context *ssl,
  *                 packets and needs information about them to adjust its
  *                 transmission strategy, then you'll want to disable this.
  */
-void ssl_set_dtls_anti_replay( ssl_context *ssl, char mode );
-#endif /* POLARSSL_SSL_DTLS_ANTI_REPLAY */
+void mbedtls_ssl_set_dtls_anti_replay( mbedtls_ssl_context *ssl, char mode );
+#endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
 
-#if defined(POLARSSL_SSL_DTLS_BADMAC_LIMIT)
+#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
 /**
  * \brief          Set a limit on the number of records with a bad MAC
  *                 before terminating the connection.
@@ -1393,10 +1393,10 @@ void ssl_set_dtls_anti_replay( ssl_context *ssl, char mode );
  *                 might make us waste resources checking authentication on
  *                 many bogus packets.
  */
-void ssl_set_dtls_badmac_limit( ssl_context *ssl, unsigned limit );
-#endif /* POLARSSL_SSL_DTLS_BADMAC_LIMIT */
+void mbedtls_ssl_set_dtls_badmac_limit( mbedtls_ssl_context *ssl, unsigned limit );
+#endif /* MBEDTLS_SSL_DTLS_BADMAC_LIMIT */
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
 /**
  * \brief          Set retransmit timeout values for the DTLS handshale.
  *                 (DTLS only, no effect on TLS.)
@@ -1413,8 +1413,8 @@ void ssl_set_dtls_badmac_limit( ssl_context *ssl, unsigned limit );
  *                 handshake latency. Lower values may increase the risk of
  *                 network congestion by causing more retransmissions.
  */
-void ssl_set_handshake_timeout( ssl_context *ssl, uint32_t min, uint32_t max );
-#endif /* POLARSSL_SSL_PROTO_DTLS */
+void mbedtls_ssl_set_handshake_timeout( mbedtls_ssl_context *ssl, uint32_t min, uint32_t max );
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
 /**
  * \brief          Set the session cache callbacks (server-side only)
@@ -1430,7 +1430,7 @@ void ssl_set_handshake_timeout( ssl_context *ssl, uint32_t min, uint32_t max );
  *
  *                 The get callback is called once during the initial handshake
  *                 to enable session resuming. The get function has the
- *                 following parameters: (void *parameter, ssl_session *session)
+ *                 following parameters: (void *parameter, mbedtls_ssl_session *session)
  *                 If a valid entry is found, it should fill the master of
  *                 the session object with the cached values and return 0,
  *                 return 1 otherwise. Optionally peer_cert can be set as well
@@ -1439,10 +1439,10 @@ void ssl_set_handshake_timeout( ssl_context *ssl, uint32_t min, uint32_t max );
  *                 The set callback is called once during the initial handshake
  *                 to enable session resuming after the entire handshake has
  *                 been finished. The set function has the following parameters:
- *                 (void *parameter, const ssl_session *session). The function
+ *                 (void *parameter, const mbedtls_ssl_session *session). The function
  *                 should create a cache entry for future retrieval based on
  *                 the data in the session structure and should keep in mind
- *                 that the ssl_session object presented (and all its referenced
+ *                 that the mbedtls_ssl_session object presented (and all its referenced
  *                 data) is cleared by the SSL/TLS layer when the connection is
  *                 terminated. It is recommended to add metadata to determine if
  *                 an entry is still valid in the future. Return 0 if
@@ -1454,12 +1454,12 @@ void ssl_set_handshake_timeout( ssl_context *ssl, uint32_t min, uint32_t max );
  * \param f_set_cache    session set callback
  * \param p_set_cache    session set parameter
  */
-void ssl_set_session_cache( ssl_context *ssl,
-        int (*f_get_cache)(void *, ssl_session *), void *p_get_cache,
-        int (*f_set_cache)(void *, const ssl_session *), void *p_set_cache );
-#endif /* POLARSSL_SSL_SRV_C */
+void mbedtls_ssl_set_session_cache( mbedtls_ssl_context *ssl,
+        int (*f_get_cache)(void *, mbedtls_ssl_session *), void *p_get_cache,
+        int (*f_set_cache)(void *, const mbedtls_ssl_session *), void *p_set_cache );
+#endif /* MBEDTLS_SSL_SRV_C */
 
-#if defined(POLARSSL_SSL_CLI_C)
+#if defined(MBEDTLS_SSL_CLI_C)
 /**
  * \brief          Request resumption of session (client-side only)
  *                 Session data is copied from presented session structure.
@@ -1468,14 +1468,14 @@ void ssl_set_session_cache( ssl_context *ssl,
  * \param session  session context
  *
  * \return         0 if successful,
- *                 POLARSSL_ERR_SSL_MALLOC_FAILED if memory allocation failed,
- *                 POLARSSL_ERR_SSL_BAD_INPUT_DATA if used server-side or
+ *                 MBEDTLS_ERR_SSL_MALLOC_FAILED if memory allocation failed,
+ *                 MBEDTLS_ERR_SSL_BAD_INPUT_DATA if used server-side or
  *                 arguments are otherwise invalid
  *
- * \sa             ssl_get_session()
+ * \sa             mbedtls_ssl_get_session()
  */
-int ssl_set_session( ssl_context *ssl, const ssl_session *session );
-#endif /* POLARSSL_SSL_CLI_C */
+int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session *session );
+#endif /* MBEDTLS_SSL_CLI_C */
 
 /**
  * \brief               Set the list of allowed ciphersuites and the preference
@@ -1484,12 +1484,12 @@ int ssl_set_session( ssl_context *ssl, const ssl_session *session );
  *
  *                      Note: The server uses its own preferences
  *                      over the preference of the client unless
- *                      POLARSSL_SSL_SRV_RESPECT_CLIENT_PREFERENCE is defined!
+ *                      MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE is defined!
  *
  * \param ssl           SSL context
  * \param ciphersuites  0-terminated list of allowed ciphersuites
  */
-void ssl_set_ciphersuites( ssl_context *ssl, const int *ciphersuites );
+void mbedtls_ssl_set_ciphersuites( mbedtls_ssl_context *ssl, const int *ciphersuites );
 
 /**
  * \brief               Set the list of allowed ciphersuites and the
@@ -1498,20 +1498,20 @@ void ssl_set_ciphersuites( ssl_context *ssl, const int *ciphersuites );
  *
  * \param ssl           SSL context
  * \param ciphersuites  0-terminated list of allowed ciphersuites
- * \param major         Major version number (only SSL_MAJOR_VERSION_3
+ * \param major         Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3
  *                      supported)
- * \param minor         Minor version number (SSL_MINOR_VERSION_0,
- *                      SSL_MINOR_VERSION_1 and SSL_MINOR_VERSION_2,
- *                      SSL_MINOR_VERSION_3 supported)
+ * \param minor         Minor version number (MBEDTLS_SSL_MINOR_VERSION_0,
+ *                      MBEDTLS_SSL_MINOR_VERSION_1 and MBEDTLS_SSL_MINOR_VERSION_2,
+ *                      MBEDTLS_SSL_MINOR_VERSION_3 supported)
  *
- * \note                With DTLS, use SSL_MINOR_VERSION_2 for DTLS 1.0
- *                      and SSL_MINOR_VERSION_3 for DTLS 1.2
+ * \note                With DTLS, use MBEDTLS_SSL_MINOR_VERSION_2 for DTLS 1.0
+ *                      and MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
  */
-void ssl_set_ciphersuites_for_version( ssl_context *ssl,
+void mbedtls_ssl_set_ciphersuites_for_version( mbedtls_ssl_context *ssl,
                                        const int *ciphersuites,
                                        int major, int minor );
 
-#if defined(POLARSSL_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**
  * \brief          Set the data required to verify peer certificate
  *
@@ -1520,8 +1520,8 @@ void ssl_set_ciphersuites_for_version( ssl_context *ssl,
  * \param ca_crl   trusted CA CRLs
  * \param peer_cn  expected peer CommonName (or NULL)
  */
-void ssl_set_ca_chain( ssl_context *ssl, x509_crt *ca_chain,
-                       x509_crl *ca_crl, const char *peer_cn );
+void mbedtls_ssl_set_ca_chain( mbedtls_ssl_context *ssl, mbedtls_x509_crt *ca_chain,
+                       mbedtls_x509_crl *ca_crl, const char *peer_cn );
 
 /**
  * \brief          Set own certificate chain and private key
@@ -1539,13 +1539,13 @@ void ssl_set_ca_chain( ssl_context *ssl, x509_crt *ca_chain,
  * \param own_cert own public certificate chain
  * \param pk_key   own private key
  *
- * \return         0 on success or POLARSSL_ERR_SSL_MALLOC_FAILED
+ * \return         0 on success or MBEDTLS_ERR_SSL_MALLOC_FAILED
  */
-int ssl_set_own_cert( ssl_context *ssl, x509_crt *own_cert,
-                       pk_context *pk_key );
-#endif /* POLARSSL_X509_CRT_PARSE_C */
+int mbedtls_ssl_set_own_cert( mbedtls_ssl_context *ssl, mbedtls_x509_crt *own_cert,
+                       mbedtls_pk_context *pk_key );
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-#if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 /**
  * \brief          Set the Pre Shared Key (PSK) and the identity name connected
  *                 to it.
@@ -1556,9 +1556,9 @@ int ssl_set_own_cert( ssl_context *ssl, x509_crt *own_cert,
  * \param psk_identity      pointer to the pre-shared key identity
  * \param psk_identity_len  identity key length
  *
- * \return         0 if successful or POLARSSL_ERR_SSL_MALLOC_FAILED
+ * \return         0 if successful or MBEDTLS_ERR_SSL_MALLOC_FAILED
  */
-int ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
+int mbedtls_ssl_set_psk( mbedtls_ssl_context *ssl, const unsigned char *psk, size_t psk_len,
                  const unsigned char *psk_identity, size_t psk_identity_len );
 
 /**
@@ -1570,10 +1570,10 @@ int ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
  *                 receive the actual PSK data and length.
  *
  *                 The callback has the following parameters: (void *parameter,
- *                 ssl_context *ssl, const unsigned char *psk_identity,
+ *                 mbedtls_ssl_context *ssl, const unsigned char *psk_identity,
  *                 size_t identity_len)
  *                 If a valid PSK identity is found, the callback should use
- *                 ssl_set_psk() on the ssl context to set the correct PSK and
+ *                 mbedtls_ssl_set_psk() on the ssl context to set the correct PSK and
  *                 identity and return 0.
  *                 Any other return value will result in a denied PSK identity.
  *
@@ -1581,17 +1581,17 @@ int ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
  * \param f_psk    PSK identity function
  * \param p_psk    PSK identity parameter
  */
-void ssl_set_psk_cb( ssl_context *ssl,
-                     int (*f_psk)(void *, ssl_context *, const unsigned char *,
+void mbedtls_ssl_set_psk_cb( mbedtls_ssl_context *ssl,
+                     int (*f_psk)(void *, mbedtls_ssl_context *, const unsigned char *,
                                   size_t),
                      void *p_psk );
-#endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
-#if defined(POLARSSL_DHM_C)
+#if defined(MBEDTLS_DHM_C)
 /**
  * \brief          Set the Diffie-Hellman public P and G values,
  *                 read as hexadecimal strings (server-side only)
- *                 (Default: POLARSSL_DHM_RFC5114_MODP_1024_[PG])
+ *                 (Default: MBEDTLS_DHM_RFC5114_MODP_1024_[PG])
  *
  * \param ssl      SSL context
  * \param dhm_P    Diffie-Hellman-Merkle modulus
@@ -1599,7 +1599,7 @@ void ssl_set_psk_cb( ssl_context *ssl,
  *
  * \return         0 if successful
  */
-int ssl_set_dh_param( ssl_context *ssl, const char *dhm_P, const char *dhm_G );
+int mbedtls_ssl_set_dh_param( mbedtls_ssl_context *ssl, const char *dhm_P, const char *dhm_G );
 
 /**
  * \brief          Set the Diffie-Hellman public P and G values,
@@ -1610,10 +1610,10 @@ int ssl_set_dh_param( ssl_context *ssl, const char *dhm_P, const char *dhm_G );
  *
  * \return         0 if successful
  */
-int ssl_set_dh_param_ctx( ssl_context *ssl, dhm_context *dhm_ctx );
-#endif /* POLARSSL_DHM_C */
+int mbedtls_ssl_set_dh_param_ctx( mbedtls_ssl_context *ssl, mbedtls_dhm_context *dhm_ctx );
+#endif /* MBEDTLS_DHM_C */
 
-#if defined(POLARSSL_SSL_SET_CURVES)
+#if defined(MBEDTLS_SSL_SET_CURVES)
 /**
  * \brief          Set the allowed curves in order of preference.
  *                 (Default: all defined curves.)
@@ -1630,12 +1630,12 @@ int ssl_set_dh_param_ctx( ssl_context *ssl, dhm_context *dhm_ctx );
  *
  * \param ssl      SSL context
  * \param curves   Ordered list of allowed curves,
- *                 terminated by POLARSSL_ECP_DP_NONE.
+ *                 terminated by MBEDTLS_ECP_DP_NONE.
  */
-void ssl_set_curves( ssl_context *ssl, const ecp_group_id *curves );
-#endif /* POLARSSL_SSL_SET_CURVES */
+void mbedtls_ssl_set_curves( mbedtls_ssl_context *ssl, const mbedtls_ecp_group_id *curves );
+#endif /* MBEDTLS_SSL_SET_CURVES */
 
-#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
 /**
  * \brief          Set hostname for ServerName TLS extension
  *                 (client-side only)
@@ -1644,9 +1644,9 @@ void ssl_set_curves( ssl_context *ssl, const ecp_group_id *curves );
  * \param ssl      SSL context
  * \param hostname the server hostname
  *
- * \return         0 if successful or POLARSSL_ERR_SSL_MALLOC_FAILED
+ * \return         0 if successful or MBEDTLS_ERR_SSL_MALLOC_FAILED
  */
-int ssl_set_hostname( ssl_context *ssl, const char *hostname );
+int mbedtls_ssl_set_hostname( mbedtls_ssl_context *ssl, const char *hostname );
 
 /**
  * \brief          Set server side ServerName TLS extension callback
@@ -1655,10 +1655,10 @@ int ssl_set_hostname( ssl_context *ssl, const char *hostname );
  *                 If set, the ServerName callback is called whenever the
  *                 server receives a ServerName TLS extension from the client
  *                 during a handshake. The ServerName callback has the
- *                 following parameters: (void *parameter, ssl_context *ssl,
+ *                 following parameters: (void *parameter, mbedtls_ssl_context *ssl,
  *                 const unsigned char *hostname, size_t len). If a suitable
  *                 certificate is found, the callback should set the
- *                 certificate and key to use with ssl_set_own_cert() (and
+ *                 certificate and key to use with mbedtls_ssl_set_own_cert() (and
  *                 possibly adjust the CA chain as well) and return 0. The
  *                 callback should return -1 to abort the handshake at this
  *                 point.
@@ -1667,13 +1667,13 @@ int ssl_set_hostname( ssl_context *ssl, const char *hostname );
  * \param f_sni    verification function
  * \param p_sni    verification parameter
  */
-void ssl_set_sni( ssl_context *ssl,
-                  int (*f_sni)(void *, ssl_context *, const unsigned char *,
+void mbedtls_ssl_set_sni( mbedtls_ssl_context *ssl,
+                  int (*f_sni)(void *, mbedtls_ssl_context *, const unsigned char *,
                                size_t),
                   void *p_sni );
-#endif /* POLARSSL_SSL_SERVER_NAME_INDICATION */
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
-#if defined(POLARSSL_SSL_ALPN)
+#if defined(MBEDTLS_SSL_ALPN)
 /**
  * \brief          Set the supported Application Layer Protocols.
  *
@@ -1681,9 +1681,9 @@ void ssl_set_sni( ssl_context *ssl,
  * \param protos   NULL-terminated list of supported protocols,
  *                 in decreasing preference order.
  *
- * \return         0 on success, or POLARSSL_ERR_SSL_BAD_INPUT_DATA.
+ * \return         0 on success, or MBEDTLS_ERR_SSL_BAD_INPUT_DATA.
  */
-int ssl_set_alpn_protocols( ssl_context *ssl, const char **protos );
+int mbedtls_ssl_set_alpn_protocols( mbedtls_ssl_context *ssl, const char **protos );
 
 /**
  * \brief          Get the name of the negotiated Application Layer Protocol.
@@ -1694,27 +1694,27 @@ int ssl_set_alpn_protocols( ssl_context *ssl, const char **protos );
  *
  * \return         Protcol name, or NULL if no protocol was negotiated.
  */
-const char *ssl_get_alpn_protocol( const ssl_context *ssl );
-#endif /* POLARSSL_SSL_ALPN */
+const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl );
+#endif /* MBEDTLS_SSL_ALPN */
 
 /**
  * \brief          Set the maximum supported version sent from the client side
  *                 and/or accepted at the server side
- *                 (Default: SSL_MAX_MAJOR_VERSION, SSL_MAX_MINOR_VERSION)
+ *                 (Default: MBEDTLS_SSL_MAX_MAJOR_VERSION, MBEDTLS_SSL_MAX_MINOR_VERSION)
  *
  *                 Note: This ignores ciphersuites from 'higher' versions.
  *
  * \param ssl      SSL context
- * \param major    Major version number (only SSL_MAJOR_VERSION_3 supported)
- * \param minor    Minor version number (SSL_MINOR_VERSION_0,
- *                 SSL_MINOR_VERSION_1 and SSL_MINOR_VERSION_2,
- *                 SSL_MINOR_VERSION_3 supported)
- * \return         0 on success or POLARSSL_ERR_SSL_BAD_INPUT_DATA
+ * \param major    Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3 supported)
+ * \param minor    Minor version number (MBEDTLS_SSL_MINOR_VERSION_0,
+ *                 MBEDTLS_SSL_MINOR_VERSION_1 and MBEDTLS_SSL_MINOR_VERSION_2,
+ *                 MBEDTLS_SSL_MINOR_VERSION_3 supported)
+ * \return         0 on success or MBEDTLS_ERR_SSL_BAD_INPUT_DATA
  *
- * \note           With DTLS, use SSL_MINOR_VERSION_2 for DTLS 1.0 and
- *                 SSL_MINOR_VERSION_3 for DTLS 1.2
+ * \note           With DTLS, use MBEDTLS_SSL_MINOR_VERSION_2 for DTLS 1.0 and
+ *                 MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
  */
-int ssl_set_max_version( ssl_context *ssl, int major, int minor );
+int mbedtls_ssl_set_max_version( mbedtls_ssl_context *ssl, int major, int minor );
 
 /**
  * \brief          Set the minimum accepted SSL/TLS protocol version
@@ -1723,76 +1723,76 @@ int ssl_set_max_version( ssl_context *ssl, int major, int minor );
  * \note           Input outside of the SSL_MAX_XXXXX_VERSION and
  *                 SSL_MIN_XXXXX_VERSION range is ignored.
  *
- * \note           SSL_MINOR_VERSION_0 (SSL v3) should be avoided.
+ * \note           MBEDTLS_SSL_MINOR_VERSION_0 (SSL v3) should be avoided.
  *
  * \param ssl      SSL context
- * \param major    Major version number (only SSL_MAJOR_VERSION_3 supported)
- * \param minor    Minor version number (SSL_MINOR_VERSION_0,
- *                 SSL_MINOR_VERSION_1 and SSL_MINOR_VERSION_2,
- *                 SSL_MINOR_VERSION_3 supported)
- * \return         0 on success or POLARSSL_ERR_SSL_BAD_INPUT_DATA
+ * \param major    Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3 supported)
+ * \param minor    Minor version number (MBEDTLS_SSL_MINOR_VERSION_0,
+ *                 MBEDTLS_SSL_MINOR_VERSION_1 and MBEDTLS_SSL_MINOR_VERSION_2,
+ *                 MBEDTLS_SSL_MINOR_VERSION_3 supported)
+ * \return         0 on success or MBEDTLS_ERR_SSL_BAD_INPUT_DATA
  *
- * \note           With DTLS, use SSL_MINOR_VERSION_2 for DTLS 1.0 and
- *                 SSL_MINOR_VERSION_3 for DTLS 1.2
+ * \note           With DTLS, use MBEDTLS_SSL_MINOR_VERSION_2 for DTLS 1.0 and
+ *                 MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
  */
-int ssl_set_min_version( ssl_context *ssl, int major, int minor );
+int mbedtls_ssl_set_min_version( mbedtls_ssl_context *ssl, int major, int minor );
 
-#if defined(POLARSSL_SSL_FALLBACK_SCSV) && defined(POLARSSL_SSL_CLI_C)
+#if defined(MBEDTLS_SSL_FALLBACK_SCSV) && defined(MBEDTLS_SSL_CLI_C)
 /**
  * \brief          Set the fallback flag (client-side only).
- *                 (Default: SSL_IS_NOT_FALLBACK).
+ *                 (Default: MBEDTLS_SSL_IS_NOT_FALLBACK).
  *
- * \note           Set to SSL_IS_FALLBACK when preparing a fallback
+ * \note           Set to MBEDTLS_SSL_IS_FALLBACK when preparing a fallback
  *                 connection, that is a connection with max_version set to a
  *                 lower value than the value you're willing to use. Such
  *                 fallback connections are not recommended but are sometimes
  *                 necessary to interoperate with buggy (version-intolerant)
  *                 servers.
  *
- * \warning        You should NOT set this to SSL_IS_FALLBACK for
+ * \warning        You should NOT set this to MBEDTLS_SSL_IS_FALLBACK for
  *                 non-fallback connections! This would appear to work for a
  *                 while, then cause failures when the server is upgraded to
  *                 support a newer TLS version.
  *
  * \param ssl      SSL context
- * \param fallback SSL_IS_NOT_FALLBACK or SSL_IS_FALLBACK
+ * \param fallback MBEDTLS_SSL_IS_NOT_FALLBACK or MBEDTLS_SSL_IS_FALLBACK
  */
-void ssl_set_fallback( ssl_context *ssl, char fallback );
-#endif /* POLARSSL_SSL_FALLBACK_SCSV && POLARSSL_SSL_CLI_C */
+void mbedtls_ssl_set_fallback( mbedtls_ssl_context *ssl, char fallback );
+#endif /* MBEDTLS_SSL_FALLBACK_SCSV && MBEDTLS_SSL_CLI_C */
 
-#if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
 /**
  * \brief           Enable or disable Encrypt-then-MAC
- *                  (Default: SSL_ETM_ENABLED)
+ *                  (Default: MBEDTLS_SSL_ETM_ENABLED)
  *
  * \note            This should always be enabled, it is a security
  *                  improvement, and should not cause any interoperability
  *                  issue (used only if the peer supports it too).
  *
  * \param ssl       SSL context
- * \param etm       SSL_ETM_ENABLED or SSL_ETM_DISABLED
+ * \param etm       MBEDTLS_SSL_ETM_ENABLED or MBEDTLS_SSL_ETM_DISABLED
  */
-void ssl_set_encrypt_then_mac( ssl_context *ssl, char etm );
-#endif /* POLARSSL_SSL_ENCRYPT_THEN_MAC */
+void mbedtls_ssl_set_encrypt_then_mac( mbedtls_ssl_context *ssl, char etm );
+#endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
 
-#if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
+#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
 /**
  * \brief           Enable or disable Extended Master Secret negotiation.
- *                  (Default: SSL_EXTENDED_MS_ENABLED)
+ *                  (Default: MBEDTLS_SSL_EXTENDED_MS_ENABLED)
  *
  * \note            This should always be enabled, it is a security fix to the
  *                  protocol, and should not cause any interoperability issue
  *                  (used only if the peer supports it too).
  *
  * \param ssl       SSL context
- * \param ems       SSL_EXTENDED_MS_ENABLED or SSL_EXTENDED_MS_DISABLED
+ * \param ems       MBEDTLS_SSL_EXTENDED_MS_ENABLED or MBEDTLS_SSL_EXTENDED_MS_DISABLED
  */
-void ssl_set_extended_master_secret( ssl_context *ssl, char ems );
-#endif /* POLARSSL_SSL_EXTENDED_MASTER_SECRET */
+void mbedtls_ssl_set_extended_master_secret( mbedtls_ssl_context *ssl, char ems );
+#endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
 
 /**
  * \brief          Disable or enable support for RC4
- *                 (Default: SSL_ARC4_DISABLED)
+ *                 (Default: MBEDTLS_SSL_ARC4_DISABLED)
  *
  * \warning        Use of RC4 in (D)TLS has been prohibited by RFC ????
  *                 for security reasons. Use at your own risks.
@@ -1801,14 +1801,14 @@ void ssl_set_extended_master_secret( ssl_context *ssl, char ems );
  *                 RC4 will then be disabled by default at compile time.
  *
  * \param ssl      SSL context
- * \param arc4     SSL_ARC4_ENABLED or SSL_ARC4_DISABLED
+ * \param arc4     MBEDTLS_SSL_ARC4_ENABLED or MBEDTLS_SSL_ARC4_DISABLED
  */
-void ssl_set_arc4_support( ssl_context *ssl, char arc4 );
+void mbedtls_ssl_set_arc4_support( mbedtls_ssl_context *ssl, char arc4 );
 
-#if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 /**
  * \brief          Set the maximum fragment length to emit and/or negotiate
- *                 (Default: SSL_MAX_CONTENT_LEN, usually 2^14 bytes)
+ *                 (Default: MBEDTLS_SSL_MAX_CONTENT_LEN, usually 2^14 bytes)
  *                 (Server: set maximum fragment length to emit,
  *                 usually negotiated by the client during handshake
  *                 (Client: set maximum fragment length to emit *and*
@@ -1816,107 +1816,107 @@ void ssl_set_arc4_support( ssl_context *ssl, char arc4 );
  *
  * \param ssl      SSL context
  * \param mfl_code Code for maximum fragment length (allowed values:
- *                 SSL_MAX_FRAG_LEN_512,  SSL_MAX_FRAG_LEN_1024,
- *                 SSL_MAX_FRAG_LEN_2048, SSL_MAX_FRAG_LEN_4096)
+ *                 MBEDTLS_SSL_MAX_FRAG_LEN_512,  MBEDTLS_SSL_MAX_FRAG_LEN_1024,
+ *                 MBEDTLS_SSL_MAX_FRAG_LEN_2048, MBEDTLS_SSL_MAX_FRAG_LEN_4096)
  *
- * \return         O if successful or POLARSSL_ERR_SSL_BAD_INPUT_DATA
+ * \return         O if successful or MBEDTLS_ERR_SSL_BAD_INPUT_DATA
  */
-int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code );
-#endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
+int mbedtls_ssl_set_max_frag_len( mbedtls_ssl_context *ssl, unsigned char mfl_code );
+#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
-#if defined(POLARSSL_SSL_TRUNCATED_HMAC)
+#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
 /**
  * \brief          Activate negotiation of truncated HMAC
- *                 (Default: SSL_TRUNC_HMAC_DISABLED on client,
- *                           SSL_TRUNC_HMAC_ENABLED on server.)
+ *                 (Default: MBEDTLS_SSL_TRUNC_HMAC_DISABLED on client,
+ *                           MBEDTLS_SSL_TRUNC_HMAC_ENABLED on server.)
  *
  * \param ssl      SSL context
- * \param truncate Enable or disable (SSL_TRUNC_HMAC_ENABLED or
- *                                    SSL_TRUNC_HMAC_DISABLED)
+ * \param truncate Enable or disable (MBEDTLS_SSL_TRUNC_HMAC_ENABLED or
+ *                                    MBEDTLS_SSL_TRUNC_HMAC_DISABLED)
  *
  * \return         Always 0.
  */
-int ssl_set_truncated_hmac( ssl_context *ssl, int truncate );
-#endif /* POLARSSL_SSL_TRUNCATED_HMAC */
+int mbedtls_ssl_set_truncated_hmac( mbedtls_ssl_context *ssl, int truncate );
+#endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
 
-#if defined(POLARSSL_SSL_CBC_RECORD_SPLITTING)
+#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
 /**
  * \brief          Enable / Disable 1/n-1 record splitting
- *                 (Default: SSL_CBC_RECORD_SPLITTING_ENABLED)
+ *                 (Default: MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED)
  *
  * \note           Only affects SSLv3 and TLS 1.0, not higher versions.
  *                 Does not affect non-CBC ciphersuites in any version.
  *
  * \param ssl      SSL context
- * \param split    SSL_CBC_RECORD_SPLITTING_ENABLED or
- *                 SSL_CBC_RECORD_SPLITTING_DISABLED
+ * \param split    MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED or
+ *                 MBEDTLS_SSL_CBC_RECORD_SPLITTING_DISABLED
  */
-void ssl_set_cbc_record_splitting( ssl_context *ssl, char split );
-#endif /* POLARSSL_SSL_CBC_RECORD_SPLITTING */
+void mbedtls_ssl_set_cbc_record_splitting( mbedtls_ssl_context *ssl, char split );
+#endif /* MBEDTLS_SSL_CBC_RECORD_SPLITTING */
 
-#if defined(POLARSSL_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
 /**
  * \brief          Enable / Disable session tickets
- *                 (Default: SSL_SESSION_TICKETS_ENABLED on client,
- *                           SSL_SESSION_TICKETS_DISABLED on server)
+ *                 (Default: MBEDTLS_SSL_SESSION_TICKETS_ENABLED on client,
+ *                           MBEDTLS_SSL_SESSION_TICKETS_DISABLED on server)
  *
- * \note           On server, ssl_set_rng() must be called before this function
+ * \note           On server, mbedtls_ssl_set_rng() must be called before this function
  *                 to allow generating the ticket encryption and
  *                 authentication keys.
  *
  * \param ssl      SSL context
- * \param use_tickets   Enable or disable (SSL_SESSION_TICKETS_ENABLED or
- *                                         SSL_SESSION_TICKETS_DISABLED)
+ * \param use_tickets   Enable or disable (MBEDTLS_SSL_SESSION_TICKETS_ENABLED or
+ *                                         MBEDTLS_SSL_SESSION_TICKETS_DISABLED)
  *
  * \return         O if successful,
  *                 or a specific error code (server only).
  */
-int ssl_set_session_tickets( ssl_context *ssl, int use_tickets );
+int mbedtls_ssl_set_session_tickets( mbedtls_ssl_context *ssl, int use_tickets );
 
 /**
  * \brief          Set session ticket lifetime (server only)
- *                 (Default: SSL_DEFAULT_TICKET_LIFETIME (86400 secs / 1 day))
+ *                 (Default: MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME (86400 secs / 1 day))
  *
  * \param ssl      SSL context
  * \param lifetime session ticket lifetime
  */
-void ssl_set_session_ticket_lifetime( ssl_context *ssl, int lifetime );
-#endif /* POLARSSL_SSL_SESSION_TICKETS */
+void mbedtls_ssl_set_session_ticket_lifetime( mbedtls_ssl_context *ssl, int lifetime );
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
-#if defined(POLARSSL_SSL_RENEGOTIATION)
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
 /**
  * \brief          Enable / Disable renegotiation support for connection when
  *                 initiated by peer
- *                 (Default: SSL_RENEGOTIATION_DISABLED)
+ *                 (Default: MBEDTLS_SSL_RENEGOTIATION_DISABLED)
  *
  *                 Note: A server with support enabled is more vulnerable for a
  *                 resource DoS by a malicious client. You should enable this on
  *                 a client to enable server-initiated renegotiation.
  *
  * \param ssl      SSL context
- * \param renegotiation     Enable or disable (SSL_RENEGOTIATION_ENABLED or
- *                                             SSL_RENEGOTIATION_DISABLED)
+ * \param renegotiation     Enable or disable (MBEDTLS_SSL_RENEGOTIATION_ENABLED or
+ *                                             MBEDTLS_SSL_RENEGOTIATION_DISABLED)
  */
-void ssl_set_renegotiation( ssl_context *ssl, int renegotiation );
-#endif /* POLARSSL_SSL_RENEGOTIATION */
+void mbedtls_ssl_set_renegotiation( mbedtls_ssl_context *ssl, int renegotiation );
+#endif /* MBEDTLS_SSL_RENEGOTIATION */
 
 /**
  * \brief          Prevent or allow legacy renegotiation.
- *                 (Default: SSL_LEGACY_NO_RENEGOTIATION)
+ *                 (Default: MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION)
  *
- *                 SSL_LEGACY_NO_RENEGOTIATION allows connections to
+ *                 MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION allows connections to
  *                 be established even if the peer does not support
  *                 secure renegotiation, but does not allow renegotiation
  *                 to take place if not secure.
  *                 (Interoperable and secure option)
  *
- *                 SSL_LEGACY_ALLOW_RENEGOTIATION allows renegotiations
+ *                 MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION allows renegotiations
  *                 with non-upgraded peers. Allowing legacy renegotiation
  *                 makes the connection vulnerable to specific man in the
  *                 middle attacks. (See RFC 5746)
  *                 (Most interoperable and least secure option)
  *
- *                 SSL_LEGACY_BREAK_HANDSHAKE breaks off connections
+ *                 MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE breaks off connections
  *                 if peer does not support secure renegotiation. Results
  *                 in interoperability issues with non-upgraded peers
  *                 that do not support renegotiation altogether.
@@ -1925,11 +1925,11 @@ void ssl_set_renegotiation( ssl_context *ssl, int renegotiation );
  * \param ssl      SSL context
  * \param allow_legacy  Prevent or allow (SSL_NO_LEGACY_RENEGOTIATION,
  *                                        SSL_ALLOW_LEGACY_RENEGOTIATION or
- *                                        SSL_LEGACY_BREAK_HANDSHAKE)
+ *                                        MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE)
  */
-void ssl_legacy_renegotiation( ssl_context *ssl, int allow_legacy );
+void mbedtls_ssl_legacy_renegotiation( mbedtls_ssl_context *ssl, int allow_legacy );
 
-#if defined(POLARSSL_SSL_RENEGOTIATION)
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
 /**
  * \brief          Enforce renegotiation requests.
  *                 (Default: enforced, max_records = 16)
@@ -1948,7 +1948,7 @@ void ssl_legacy_renegotiation( ssl_context *ssl, int allow_legacy );
  *                 scenario.
  *
  * \note           With DTLS and server-initiated renegotiation, the
- *                 HelloRequest is retransmited every time ssl_read() times
+ *                 HelloRequest is retransmited every time mbedtls_ssl_read() times
  *                 out or receives Application Data, until:
  *                 - max_records records have beens seen, if it is >= 0, or
  *                 - the number of retransmits that would happen during an
@@ -1957,17 +1957,17 @@ void ssl_legacy_renegotiation( ssl_context *ssl, int allow_legacy );
  *                 if you consider setting max_records to a really low value.
  *
  * \warning        On client, the grace period can only happen during
- *                 ssl_read(), as opposed to ssl_write() and ssl_renegotiate()
+ *                 mbedtls_ssl_read(), as opposed to mbedtls_ssl_write() and mbedtls_ssl_renegotiate()
  *                 which always behave as if max_record was 0. The reason is,
  *                 if we receive application data from the server, we need a
- *                 place to write it, which only happens during ssl_read().
+ *                 place to write it, which only happens during mbedtls_ssl_read().
  *
  * \param ssl      SSL context
- * \param max_records Use SSL_RENEGOTIATION_NOT_ENFORCED if you don't want to
+ * \param max_records Use MBEDTLS_SSL_RENEGOTIATION_NOT_ENFORCED if you don't want to
  *                 enforce renegotiation, or a non-negative value to enforce
  *                 it but allow for a grace period of max_records records.
  */
-void ssl_set_renegotiation_enforced( ssl_context *ssl, int max_records );
+void mbedtls_ssl_set_renegotiation_enforced( mbedtls_ssl_context *ssl, int max_records );
 
 /**
  * \brief          Set record counter threshold for periodic renegotiation.
@@ -1986,9 +1986,9 @@ void ssl_set_renegotiation_enforced( ssl_context *ssl, int max_records );
  * \param period   The threshold value: a big-endian 64-bit number.
  *                 Set to 2^64 - 1 to disable periodic renegotiation
  */
-void ssl_set_renegotiation_period( ssl_context *ssl,
+void mbedtls_ssl_set_renegotiation_period( mbedtls_ssl_context *ssl,
                                    const unsigned char period[8] );
-#endif /* POLARSSL_SSL_RENEGOTIATION */
+#endif /* MBEDTLS_SSL_RENEGOTIATION */
 
 /**
  * \brief          Return the number of data bytes available to read
@@ -1997,7 +1997,7 @@ void ssl_set_renegotiation_period( ssl_context *ssl,
  *
  * \return         how many bytes are available in the read buffer
  */
-size_t ssl_get_bytes_avail( const ssl_context *ssl );
+size_t mbedtls_ssl_get_bytes_avail( const mbedtls_ssl_context *ssl );
 
 /**
  * \brief          Return the result of the certificate verification
@@ -2010,7 +2010,7 @@ size_t ssl_get_bytes_avail( const ssl_context *ssl );
  *                 a combination of BADCERT_xxx and BADCRL_xxx flags, see
  *                 x509.h
  */
-int ssl_get_verify_result( const ssl_context *ssl );
+int mbedtls_ssl_get_verify_result( const mbedtls_ssl_context *ssl );
 
 /**
  * \brief          Return the name of the current ciphersuite
@@ -2019,7 +2019,7 @@ int ssl_get_verify_result( const ssl_context *ssl );
  *
  * \return         a string containing the ciphersuite name
  */
-const char *ssl_get_ciphersuite( const ssl_context *ssl );
+const char *mbedtls_ssl_get_ciphersuite( const mbedtls_ssl_context *ssl );
 
 /**
  * \brief          Return the current SSL version (SSLv3/TLSv1/etc)
@@ -2028,7 +2028,7 @@ const char *ssl_get_ciphersuite( const ssl_context *ssl );
  *
  * \return         a string containing the SSL version
  */
-const char *ssl_get_version( const ssl_context *ssl );
+const char *mbedtls_ssl_get_version( const mbedtls_ssl_context *ssl );
 
 /**
  * \brief          Return the (maximum) number of bytes added by the record
@@ -2037,12 +2037,12 @@ const char *ssl_get_version( const ssl_context *ssl );
  * \param ssl      SSL context
  *
  * \return         Current maximum record expansion in bytes, or
- *                 POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE if compression is
+ *                 MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE if compression is
  *                 enabled, which makes expansion much less predictable
  */
-int ssl_get_record_expansion( const ssl_context *ssl );
+int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl );
 
-#if defined(POLARSSL_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**
  * \brief          Return the peer certificate from the current connection
  *
@@ -2057,10 +2057,10 @@ int ssl_get_record_expansion( const ssl_context *ssl );
  *
  * \return         the current peer certificate
  */
-const x509_crt *ssl_get_peer_cert( const ssl_context *ssl );
-#endif /* POLARSSL_X509_CRT_PARSE_C */
+const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert( const mbedtls_ssl_context *ssl );
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-#if defined(POLARSSL_SSL_CLI_C)
+#if defined(MBEDTLS_SSL_CLI_C)
 /**
  * \brief          Save session in order to resume it later (client-side only)
  *                 Session data is copied to presented session structure.
@@ -2071,52 +2071,52 @@ const x509_crt *ssl_get_peer_cert( const ssl_context *ssl );
  * \param session  session context
  *
  * \return         0 if successful,
- *                 POLARSSL_ERR_SSL_MALLOC_FAILED if memory allocation failed,
- *                 POLARSSL_ERR_SSL_BAD_INPUT_DATA if used server-side or
+ *                 MBEDTLS_ERR_SSL_MALLOC_FAILED if memory allocation failed,
+ *                 MBEDTLS_ERR_SSL_BAD_INPUT_DATA if used server-side or
  *                 arguments are otherwise invalid
  *
- * \sa             ssl_set_session()
+ * \sa             mbedtls_ssl_set_session()
  */
-int ssl_get_session( const ssl_context *ssl, ssl_session *session );
-#endif /* POLARSSL_SSL_CLI_C */
+int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl, mbedtls_ssl_session *session );
+#endif /* MBEDTLS_SSL_CLI_C */
 
 /**
  * \brief          Perform the SSL handshake
  *
  * \param ssl      SSL context
  *
- * \return         0 if successful, POLARSSL_ERR_NET_WANT_READ,
- *                 POLARSSL_ERR_NET_WANT_WRITE, or a specific SSL error code.
+ * \return         0 if successful, MBEDTLS_ERR_NET_WANT_READ,
+ *                 MBEDTLS_ERR_NET_WANT_WRITE, or a specific SSL error code.
  */
-int ssl_handshake( ssl_context *ssl );
+int mbedtls_ssl_handshake( mbedtls_ssl_context *ssl );
 
 /**
  * \brief          Perform a single step of the SSL handshake
  *
  *                 Note: the state of the context (ssl->state) will be at
  *                 the following state after execution of this function.
- *                 Do not call this function if state is SSL_HANDSHAKE_OVER.
+ *                 Do not call this function if state is MBEDTLS_SSL_HANDSHAKE_OVER.
  *
  * \param ssl      SSL context
  *
- * \return         0 if successful, POLARSSL_ERR_NET_WANT_READ,
- *                 POLARSSL_ERR_NET_WANT_WRITE, or a specific SSL error code.
+ * \return         0 if successful, MBEDTLS_ERR_NET_WANT_READ,
+ *                 MBEDTLS_ERR_NET_WANT_WRITE, or a specific SSL error code.
  */
-int ssl_handshake_step( ssl_context *ssl );
+int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl );
 
-#if defined(POLARSSL_SSL_RENEGOTIATION)
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
 /**
  * \brief          Initiate an SSL renegotiation on the running connection.
  *                 Client: perform the renegotiation right now.
  *                 Server: request renegotiation, which will be performed
- *                 during the next call to ssl_read() if honored by client.
+ *                 during the next call to mbedtls_ssl_read() if honored by client.
  *
  * \param ssl      SSL context
  *
- * \return         0 if successful, or any ssl_handshake() return value.
+ * \return         0 if successful, or any mbedtls_ssl_handshake() return value.
  */
-int ssl_renegotiate( ssl_context *ssl );
-#endif /* POLARSSL_SSL_RENEGOTIATION */
+int mbedtls_ssl_renegotiate( mbedtls_ssl_context *ssl );
+#endif /* MBEDTLS_SSL_RENEGOTIATION */
 
 /**
  * \brief          Read at most 'len' application data bytes
@@ -2128,7 +2128,7 @@ int ssl_renegotiate( ssl_context *ssl );
  * \return         This function returns the number of bytes read, 0 for EOF,
  *                 or a negative error code.
  */
-int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len );
+int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len );
 
 /**
  * \brief          Write exactly 'len' application data bytes
@@ -2140,7 +2140,7 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len );
  * \return         This function returns the number of bytes written,
  *                 or a negative error code.
  *
- * \note           When this function returns POLARSSL_ERR_NET_WANT_WRITE,
+ * \note           When this function returns MBEDTLS_ERR_NET_WANT_WRITE,
  *                 it must be called later with the *same* arguments,
  *                 until it returns a positive value.
  *
@@ -2150,21 +2150,21 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len );
  *                 - with TLS, less bytes than requested are written. (In
  *                 order to write larger messages, this function should be
  *                 called in a loop.)
- *                 - with DTLS, POLARSSL_ERR_SSL_BAD_INPUT_DATA is returned.
+ *                 - with DTLS, MBEDTLS_ERR_SSL_BAD_INPUT_DATA is returned.
  */
-int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len );
+int mbedtls_ssl_write( mbedtls_ssl_context *ssl, const unsigned char *buf, size_t len );
 
 /**
  * \brief           Send an alert message
  *
  * \param ssl       SSL context
  * \param level     The alert level of the message
- *                  (SSL_ALERT_LEVEL_WARNING or SSL_ALERT_LEVEL_FATAL)
+ *                  (MBEDTLS_SSL_ALERT_LEVEL_WARNING or MBEDTLS_SSL_ALERT_LEVEL_FATAL)
  * \param message   The alert message (SSL_ALERT_MSG_*)
  *
  * \return          0 if successful, or a specific SSL error code.
  */
-int ssl_send_alert_message( ssl_context *ssl,
+int mbedtls_ssl_send_alert_message( mbedtls_ssl_context *ssl,
                             unsigned char level,
                             unsigned char message );
 /**
@@ -2172,21 +2172,21 @@ int ssl_send_alert_message( ssl_context *ssl,
  *
  * \param ssl      SSL context
  */
-int ssl_close_notify( ssl_context *ssl );
+int mbedtls_ssl_close_notify( mbedtls_ssl_context *ssl );
 
 /**
  * \brief          Free referenced items in an SSL context and clear memory
  *
  * \param ssl      SSL context
  */
-void ssl_free( ssl_context *ssl );
+void mbedtls_ssl_free( mbedtls_ssl_context *ssl );
 
 /**
  * \brief          Initialize SSL session structure
  *
  * \param session  SSL session
  */
-void ssl_session_init( ssl_session *session );
+void mbedtls_ssl_session_init( mbedtls_ssl_session *session );
 
 /**
  * \brief          Free referenced items in an SSL session including the
@@ -2194,7 +2194,7 @@ void ssl_session_init( ssl_session *session );
  *
  * \param session  SSL session
  */
-void ssl_session_free( ssl_session *session );
+void mbedtls_ssl_session_free( mbedtls_ssl_session *session );
 
 /**
  * \brief           Free referenced items in an SSL transform context and clear
@@ -2202,7 +2202,7 @@ void ssl_session_free( ssl_session *session );
  *
  * \param transform SSL transform context
  */
-void ssl_transform_free( ssl_transform *transform );
+void mbedtls_ssl_transform_free( mbedtls_ssl_transform *transform );
 
 /**
  * \brief           Free referenced items in an SSL handshake context and clear
@@ -2210,61 +2210,61 @@ void ssl_transform_free( ssl_transform *transform );
  *
  * \param handshake SSL handshake context
  */
-void ssl_handshake_free( ssl_handshake_params *handshake );
+void mbedtls_ssl_handshake_free( mbedtls_ssl_handshake_params *handshake );
 
 /*
  * Internal functions (do not call directly)
  */
-int ssl_handshake_client_step( ssl_context *ssl );
-int ssl_handshake_server_step( ssl_context *ssl );
-void ssl_handshake_wrapup( ssl_context *ssl );
+int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl );
+void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl );
 
-int ssl_send_fatal_handshake_failure( ssl_context *ssl );
+int mbedtls_ssl_send_fatal_handshake_failure( mbedtls_ssl_context *ssl );
 
-void ssl_reset_checksum( ssl_context *ssl );
-int ssl_derive_keys( ssl_context *ssl );
+void mbedtls_ssl_reset_checksum( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl );
 
-int ssl_read_record( ssl_context *ssl );
-int ssl_fetch_input( ssl_context *ssl, size_t nb_want );
+int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want );
 
-int ssl_write_record( ssl_context *ssl );
-int ssl_flush_output( ssl_context *ssl );
+int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl );
 
-int ssl_parse_certificate( ssl_context *ssl );
-int ssl_write_certificate( ssl_context *ssl );
+int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl );
 
-int ssl_parse_change_cipher_spec( ssl_context *ssl );
-int ssl_write_change_cipher_spec( ssl_context *ssl );
+int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_write_change_cipher_spec( mbedtls_ssl_context *ssl );
 
-int ssl_parse_finished( ssl_context *ssl );
-int ssl_write_finished( ssl_context *ssl );
+int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl );
 
-void ssl_optimize_checksum( ssl_context *ssl,
-                            const ssl_ciphersuite_t *ciphersuite_info );
+void mbedtls_ssl_optimize_checksum( mbedtls_ssl_context *ssl,
+                            const mbedtls_ssl_ciphersuite_t *ciphersuite_info );
 
-#if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
-int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex );
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exchange_type_t key_ex );
 #endif
 
-#if defined(POLARSSL_PK_C)
-unsigned char ssl_sig_from_pk( pk_context *pk );
-pk_type_t ssl_pk_alg_from_sig( unsigned char sig );
+#if defined(MBEDTLS_PK_C)
+unsigned char mbedtls_ssl_sig_from_pk( mbedtls_pk_context *pk );
+mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig( unsigned char sig );
 #endif
 
-md_type_t ssl_md_alg_from_hash( unsigned char hash );
+mbedtls_md_type_t mbedtls_ssl_md_alg_from_hash( unsigned char hash );
 
-#if defined(POLARSSL_SSL_SET_CURVES)
-int ssl_curve_is_acceptable( const ssl_context *ssl, ecp_group_id grp_id );
+#if defined(MBEDTLS_SSL_SET_CURVES)
+int mbedtls_ssl_curve_is_acceptable( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id );
 #endif
 
-#if defined(POLARSSL_X509_CRT_PARSE_C)
-static inline pk_context *ssl_own_key( ssl_context *ssl )
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+static inline mbedtls_pk_context *mbedtls_ssl_own_key( mbedtls_ssl_context *ssl )
 {
     return( ssl->handshake->key_cert == NULL ? NULL
             : ssl->handshake->key_cert->key );
 }
 
-static inline x509_crt *ssl_own_cert( ssl_context *ssl )
+static inline mbedtls_x509_crt *mbedtls_ssl_own_cert( mbedtls_ssl_context *ssl )
 {
     return( ssl->handshake->key_cert == NULL ? NULL
             : ssl->handshake->key_cert->cert );
@@ -2279,20 +2279,20 @@ static inline x509_crt *ssl_own_cert( ssl_context *ssl )
  *
  * Return 0 if everything is OK, -1 if not.
  */
-int ssl_check_cert_usage( const x509_crt *cert,
-                          const ssl_ciphersuite_t *ciphersuite,
+int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
+                          const mbedtls_ssl_ciphersuite_t *ciphersuite,
                           int cert_endpoint );
-#endif /* POLARSSL_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-void ssl_write_version( int major, int minor, int transport,
+void mbedtls_ssl_write_version( int major, int minor, int transport,
                         unsigned char ver[2] );
-void ssl_read_version( int *major, int *minor, int transport,
+void mbedtls_ssl_read_version( int *major, int *minor, int transport,
                        const unsigned char ver[2] );
 
-static inline size_t ssl_hdr_len( const ssl_context *ssl )
+static inline size_t mbedtls_ssl_hdr_len( const mbedtls_ssl_context *ssl )
 {
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
         return( 13 );
 #else
     ((void) ssl);
@@ -2300,10 +2300,10 @@ static inline size_t ssl_hdr_len( const ssl_context *ssl )
     return( 5 );
 }
 
-static inline size_t ssl_hs_hdr_len( const ssl_context *ssl )
+static inline size_t mbedtls_ssl_hs_hdr_len( const mbedtls_ssl_context *ssl )
 {
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
         return( 12 );
 #else
     ((void) ssl);
@@ -2311,20 +2311,20 @@ static inline size_t ssl_hs_hdr_len( const ssl_context *ssl )
     return( 4 );
 }
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-void ssl_send_flight_completed( ssl_context *ssl );
-void ssl_recv_flight_completed( ssl_context *ssl );
-int ssl_resend( ssl_context *ssl );
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+void mbedtls_ssl_send_flight_completed( mbedtls_ssl_context *ssl );
+void mbedtls_ssl_recv_flight_completed( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_resend( mbedtls_ssl_context *ssl );
 #endif
 
 /* Visible for testing purposes only */
-#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
-int ssl_dtls_replay_check( ssl_context *ssl );
-void ssl_dtls_replay_update( ssl_context *ssl );
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+int mbedtls_ssl_dtls_replay_check( mbedtls_ssl_context *ssl );
+void mbedtls_ssl_dtls_replay_update( mbedtls_ssl_context *ssl );
 #endif
 
 /* constant-time buffer comparison */
-static inline int safer_memcmp( const void *a, const void *b, size_t n )
+static inline int mbedtls_ssl_safer_memcmp( const void *a, const void *b, size_t n )
 {
     size_t i;
     const unsigned char *A = (const unsigned char *) a;

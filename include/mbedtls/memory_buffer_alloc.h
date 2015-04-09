@@ -21,13 +21,13 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_MEMORY_BUFFER_ALLOC_H
-#define POLARSSL_MEMORY_BUFFER_ALLOC_H
+#ifndef MBEDTLS_MEMORY_BUFFER_ALLOC_H
+#define MBEDTLS_MEMORY_BUFFER_ALLOC_H
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
 #include <stddef.h>
@@ -40,16 +40,16 @@
  * \{
  */
 
-#if !defined(POLARSSL_MEMORY_ALIGN_MULTIPLE)
-#define POLARSSL_MEMORY_ALIGN_MULTIPLE       4 /**< Align on multiples of this value */
+#if !defined(MBEDTLS_MEMORY_ALIGN_MULTIPLE)
+#define MBEDTLS_MEMORY_ALIGN_MULTIPLE       4 /**< Align on multiples of this value */
 #endif
 
 /* \} name SECTION: Module settings */
 
-#define MEMORY_VERIFY_NONE         0
-#define MEMORY_VERIFY_ALLOC        (1 << 0)
-#define MEMORY_VERIFY_FREE         (1 << 1)
-#define MEMORY_VERIFY_ALWAYS       (MEMORY_VERIFY_ALLOC | MEMORY_VERIFY_FREE)
+#define MBEDTLS_MEMORY_VERIFY_NONE         0
+#define MBEDTLS_MEMORY_VERIFY_ALLOC        (1 << 0)
+#define MBEDTLS_MEMORY_VERIFY_FREE         (1 << 1)
+#define MBEDTLS_MEMORY_VERIFY_ALWAYS       (MBEDTLS_MEMORY_VERIFY_ALLOC | MBEDTLS_MEMORY_VERIFY_FREE)
 
 #ifdef __cplusplus
 extern "C" {
@@ -59,10 +59,10 @@ extern "C" {
  * \brief   Initialize use of stack-based memory allocator.
  *          The stack-based allocator does memory management inside the
  *          presented buffer and does not call malloc() and free().
- *          It sets the global polarssl_malloc() and polarssl_free() pointers
+ *          It sets the global mbedtls_malloc() and mbedtls_free() pointers
  *          to its own functions.
- *          (Provided polarssl_malloc() and polarssl_free() are thread-safe if
- *           POLARSSL_THREADING_C is defined)
+ *          (Provided mbedtls_malloc() and mbedtls_free() are thread-safe if
+ *           MBEDTLS_THREADING_C is defined)
  *
  * \note    This code is not optimized and provides a straight-forward
  *          implementation of a stack-based memory allocator.
@@ -72,31 +72,31 @@ extern "C" {
  *
  * \return              0 if successful
  */
-int memory_buffer_alloc_init( unsigned char *buf, size_t len );
+int mbedtls_memory_buffer_alloc_init( unsigned char *buf, size_t len );
 
 /**
  * \brief   Free the mutex for thread-safety and clear remaining memory
  */
-void memory_buffer_alloc_free( void );
+void mbedtls_memory_buffer_alloc_free( void );
 
 /**
  * \brief   Determine when the allocator should automatically verify the state
  *          of the entire chain of headers / meta-data.
- *          (Default: MEMORY_VERIFY_NONE)
+ *          (Default: MBEDTLS_MEMORY_VERIFY_NONE)
  *
- * \param verify    One of MEMORY_VERIFY_NONE, MEMORY_VERIFY_ALLOC,
- *                  MEMORY_VERIFY_FREE or MEMORY_VERIFY_ALWAYS
+ * \param verify    One of MBEDTLS_MEMORY_VERIFY_NONE, MBEDTLS_MEMORY_VERIFY_ALLOC,
+ *                  MBEDTLS_MEMORY_VERIFY_FREE or MBEDTLS_MEMORY_VERIFY_ALWAYS
  */
-void memory_buffer_set_verify( int verify );
+void mbedtls_memory_buffer_set_verify( int verify );
 
-#if defined(POLARSSL_MEMORY_DEBUG)
+#if defined(MBEDTLS_MEMORY_DEBUG)
 /**
  * \brief   Print out the status of the allocated memory (primarily for use
  *          after a program should have de-allocated all memory)
  *          Prints out a list of 'still allocated' blocks and their stack
- *          trace if POLARSSL_MEMORY_BACKTRACE is defined.
+ *          trace if MBEDTLS_MEMORY_BACKTRACE is defined.
  */
-void memory_buffer_alloc_status( void );
+void mbedtls_memory_buffer_alloc_status( void );
 
 /**
  * \brief   Get the peak heap usage so far
@@ -104,12 +104,12 @@ void memory_buffer_alloc_status( void );
  * \param max_used      Peak number of bytes reauested by the application
  * \param max_blocks    Peak number of blocks reauested by the application
  */
-void memory_buffer_alloc_max_get( size_t *max_used, size_t *max_blocks );
+void mbedtls_memory_buffer_alloc_max_get( size_t *max_used, size_t *max_blocks );
 
 /**
  * \brief   Reset peak statistics
  */
-void memory_buffer_alloc_max_reset( void );
+void mbedtls_memory_buffer_alloc_max_reset( void );
 
 /**
  * \brief   Get the current heap usage
@@ -117,29 +117,29 @@ void memory_buffer_alloc_max_reset( void );
  * \param cur_used      Number of bytes reauested by the application
  * \param cur_blocks    Number of blocks reauested by the application
  */
-void memory_buffer_alloc_cur_get( size_t *cur_used, size_t *cur_blocks );
-#endif /* POLARSSL_MEMORY_DEBUG */
+void mbedtls_memory_buffer_alloc_cur_get( size_t *cur_used, size_t *cur_blocks );
+#endif /* MBEDTLS_MEMORY_DEBUG */
 
 /**
  * \brief   Verifies that all headers in the memory buffer are correct
  *          and contain sane values. Helps debug buffer-overflow errors.
  *
- *          Prints out first failure if POLARSSL_MEMORY_DEBUG is defined.
- *          Prints out full header information if POLARSSL_MEMORY_DEBUG
+ *          Prints out first failure if MBEDTLS_MEMORY_DEBUG is defined.
+ *          Prints out full header information if MBEDTLS_MEMORY_DEBUG
  *          is defined. (Includes stack trace information for each block if
- *          POLARSSL_MEMORY_BACKTRACE is defined as well).
+ *          MBEDTLS_MEMORY_BACKTRACE is defined as well).
  *
  * \returns             0 if verified, 1 otherwise
  */
-int memory_buffer_alloc_verify( void );
+int mbedtls_memory_buffer_alloc_verify( void );
 
-#if defined(POLARSSL_SELF_TEST)
+#if defined(MBEDTLS_SELF_TEST)
 /**
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if a test failed
  */
-int memory_buffer_alloc_self_test( int verbose );
+int mbedtls_memory_buffer_alloc_self_test( int verbose );
 #endif
 
 #ifdef __cplusplus

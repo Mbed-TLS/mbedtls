@@ -21,8 +21,8 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_ECDSA_H
-#define POLARSSL_ECDSA_H
+#ifndef MBEDTLS_ECDSA_H
+#define MBEDTLS_ECDSA_H
 
 #include "ecp.h"
 #include "md.h"
@@ -41,16 +41,16 @@
  * (assuming ECP_MAX_BYTES is less than 126 for r and s,
  * and less than 124 (total len <= 255) for the sequence)
  */
-#if POLARSSL_ECP_MAX_BYTES > 124
-#error "POLARSSL_ECP_MAX_BYTES bigger than expected, please fix POLARSSL_ECDSA_MAX_LEN"
+#if MBEDTLS_ECP_MAX_BYTES > 124
+#error "MBEDTLS_ECP_MAX_BYTES bigger than expected, please fix MBEDTLS_ECDSA_MAX_LEN"
 #endif
 /** Maximum size of an ECDSA signature in bytes */
-#define POLARSSL_ECDSA_MAX_LEN  ( 3 + 2 * ( 3 + POLARSSL_ECP_MAX_BYTES ) )
+#define MBEDTLS_ECDSA_MAX_LEN  ( 3 + 2 * ( 3 + MBEDTLS_ECP_MAX_BYTES ) )
 
 /**
  * \brief           ECDSA context structure
  */
-typedef ecp_keypair ecdsa_context;
+typedef mbedtls_ecp_keypair mbedtls_ecdsa_context;
 
 #ifdef __cplusplus
 extern "C" {
@@ -71,13 +71,13 @@ extern "C" {
  * \param p_rng     RNG parameter
  *
  * \return          0 if successful,
- *                  or a POLARSSL_ERR_ECP_XXX or POLARSSL_MPI_XXX error code
+ *                  or a MBEDTLS_ERR_ECP_XXX or MBEDTLS_MPI_XXX error code
  */
-int ecdsa_sign( ecp_group *grp, mpi *r, mpi *s,
-                const mpi *d, const unsigned char *buf, size_t blen,
+int mbedtls_ecdsa_sign( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
+                const mbedtls_mpi *d, const unsigned char *buf, size_t blen,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
-#if defined(POLARSSL_ECDSA_DETERMINISTIC)
+#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
 /**
  * \brief           Compute ECDSA signature of a previously hashed message,
  *                  deterministic version (RFC 6979).
@@ -91,12 +91,12 @@ int ecdsa_sign( ecp_group *grp, mpi *r, mpi *s,
  * \param md_alg    MD algorithm used to hash the message
  *
  * \return          0 if successful,
- *                  or a POLARSSL_ERR_ECP_XXX or POLARSSL_MPI_XXX error code
+ *                  or a MBEDTLS_ERR_ECP_XXX or MBEDTLS_MPI_XXX error code
  */
-int ecdsa_sign_det( ecp_group *grp, mpi *r, mpi *s,
-                    const mpi *d, const unsigned char *buf, size_t blen,
-                    md_type_t md_alg );
-#endif /* POLARSSL_ECDSA_DETERMINISTIC */
+int mbedtls_ecdsa_sign_det( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
+                    const mbedtls_mpi *d, const unsigned char *buf, size_t blen,
+                    mbedtls_md_type_t md_alg );
+#endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
 /**
  * \brief           Verify ECDSA signature of a previously hashed message
@@ -109,12 +109,12 @@ int ecdsa_sign_det( ecp_group *grp, mpi *r, mpi *s,
  * \param s         Second integer of the signature
  *
  * \return          0 if successful,
- *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA if signature is invalid
- *                  or a POLARSSL_ERR_ECP_XXX or POLARSSL_MPI_XXX error code
+ *                  MBEDTLS_ERR_ECP_BAD_INPUT_DATA if signature is invalid
+ *                  or a MBEDTLS_ERR_ECP_XXX or MBEDTLS_MPI_XXX error code
  */
-int ecdsa_verify( ecp_group *grp,
+int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
                   const unsigned char *buf, size_t blen,
-                  const ecp_point *Q, const mpi *r, const mpi *s);
+                  const mbedtls_ecp_point *Q, const mbedtls_mpi *r, const mbedtls_mpi *s);
 
 /**
  * \brief           Compute ECDSA signature and write it to buffer,
@@ -122,7 +122,7 @@ int ecdsa_verify( ecp_group *grp,
  *                  (Not thread-safe to use same context in multiple threads)
  *
  * \note            The deterministice version (RFC 6979) is used if
- *                  POLARSSL_ECDSA_DETERMINISTIC is defined.
+ *                  MBEDTLS_ECDSA_DETERMINISTIC is defined.
  *
  * \param ctx       ECDSA context
  * \param md_alg    Algorithm that was used to hash the message
@@ -135,24 +135,24 @@ int ecdsa_verify( ecp_group *grp,
  *
  * \note            The "sig" buffer must be at least as large as twice the
  *                  size of the curve used, plus 9 (eg. 73 bytes if a 256-bit
- *                  curve is used). POLARSSL_ECDSA_MAX_LEN is always safe.
+ *                  curve is used). MBEDTLS_ECDSA_MAX_LEN is always safe.
  *
  * \return          0 if successful,
- *                  or a POLARSSL_ERR_ECP_XXX, POLARSSL_ERR_MPI_XXX or
- *                  POLARSSL_ERR_ASN1_XXX error code
+ *                  or a MBEDTLS_ERR_ECP_XXX, MBEDTLS_ERR_MPI_XXX or
+ *                  MBEDTLS_ERR_ASN1_XXX error code
  */
-int ecdsa_write_signature( ecdsa_context *ctx, md_type_t md_alg,
+int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t md_alg,
                            const unsigned char *hash, size_t hlen,
                            unsigned char *sig, size_t *slen,
                            int (*f_rng)(void *, unsigned char *, size_t),
                            void *p_rng );
 
-#if defined(POLARSSL_ECDSA_DETERMINISTIC)
-#if ! defined(POLARSSL_DEPRECATED_REMOVED)
-#if defined(POLARSSL_DEPRECATED_WARNING)
-#define DEPRECATED    __attribute__((deprecated))
+#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
+#if ! defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED    __attribute__((deprecated))
 #else
-#define DEPRECATED
+#define MBEDTLS_DEPRECATED
 #endif
 /**
  * \brief           Compute ECDSA signature and write it to buffer,
@@ -160,7 +160,7 @@ int ecdsa_write_signature( ecdsa_context *ctx, md_type_t md_alg,
  *                  Deterministic version, RFC 6979.
  *                  (Not thread-safe to use same context in multiple threads)
  *
- * \deprecated      Superseded by ecdsa_write_signature() in 2.0.0
+ * \deprecated      Superseded by mbedtls_ecdsa_write_signature() in 2.0.0
  *
  * \param ctx       ECDSA context
  * \param hash      Message hash
@@ -171,19 +171,19 @@ int ecdsa_write_signature( ecdsa_context *ctx, md_type_t md_alg,
  *
  * \note            The "sig" buffer must be at least as large as twice the
  *                  size of the curve used, plus 9 (eg. 73 bytes if a 256-bit
- *                  curve is used). POLARSSL_ECDSA_MAX_LEN is always safe.
+ *                  curve is used). MBEDTLS_ECDSA_MAX_LEN is always safe.
  *
  * \return          0 if successful,
- *                  or a POLARSSL_ERR_ECP_XXX, POLARSSL_ERR_MPI_XXX or
- *                  POLARSSL_ERR_ASN1_XXX error code
+ *                  or a MBEDTLS_ERR_ECP_XXX, MBEDTLS_ERR_MPI_XXX or
+ *                  MBEDTLS_ERR_ASN1_XXX error code
  */
-int ecdsa_write_signature_det( ecdsa_context *ctx,
+int mbedtls_ecdsa_write_signature_det( mbedtls_ecdsa_context *ctx,
                                const unsigned char *hash, size_t hlen,
                                unsigned char *sig, size_t *slen,
-                               md_type_t md_alg ) DEPRECATED;
-#undef DEPRECATED
-#endif /* POLARSSL_DEPRECATED_REMOVED */
-#endif /* POLARSSL_ECDSA_DETERMINISTIC */
+                               mbedtls_md_type_t md_alg ) MBEDTLS_DEPRECATED;
+#undef MBEDTLS_DEPRECATED
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
+#endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
 /**
  * \brief           Read and verify an ECDSA signature
@@ -195,12 +195,12 @@ int ecdsa_write_signature_det( ecdsa_context *ctx,
  * \param slen      Size of sig
  *
  * \return          0 if successful,
- *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA if signature is invalid,
- *                  POLARSSL_ERR_ECP_SIG_LEN_MISMATCH if the signature is
+ *                  MBEDTLS_ERR_ECP_BAD_INPUT_DATA if signature is invalid,
+ *                  MBEDTLS_ERR_ECP_SIG_LEN_MISMATCH if the signature is
  *                  valid but its actual length is less than siglen,
- *                  or a POLARSSL_ERR_ECP_XXX or POLARSSL_ERR_MPI_XXX error code
+ *                  or a MBEDTLS_ERR_ECP_XXX or MBEDTLS_ERR_MPI_XXX error code
  */
-int ecdsa_read_signature( ecdsa_context *ctx,
+int mbedtls_ecdsa_read_signature( mbedtls_ecdsa_context *ctx,
                           const unsigned char *hash, size_t hlen,
                           const unsigned char *sig, size_t slen );
 
@@ -209,13 +209,13 @@ int ecdsa_read_signature( ecdsa_context *ctx,
  *
  * \param ctx       ECDSA context in which the keypair should be stored
  * \param gid       Group (elliptic curve) to use. One of the various
- *                  POLARSSL_ECP_DP_XXX macros depending on configuration.
+ *                  MBEDTLS_ECP_DP_XXX macros depending on configuration.
  * \param f_rng     RNG function
  * \param p_rng     RNG parameter
  *
- * \return          0 on success, or a POLARSSL_ERR_ECP_XXX code.
+ * \return          0 on success, or a MBEDTLS_ERR_ECP_XXX code.
  */
-int ecdsa_genkey( ecdsa_context *ctx, ecp_group_id gid,
+int mbedtls_ecdsa_genkey( mbedtls_ecdsa_context *ctx, mbedtls_ecp_group_id gid,
                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 /**
@@ -224,23 +224,23 @@ int ecdsa_genkey( ecdsa_context *ctx, ecp_group_id gid,
  * \param ctx       ECDSA context to set
  * \param key       EC key to use
  *
- * \return          0 on success, or a POLARSSL_ERR_ECP_XXX code.
+ * \return          0 on success, or a MBEDTLS_ERR_ECP_XXX code.
  */
-int ecdsa_from_keypair( ecdsa_context *ctx, const ecp_keypair *key );
+int mbedtls_ecdsa_from_keypair( mbedtls_ecdsa_context *ctx, const mbedtls_ecp_keypair *key );
 
 /**
  * \brief           Initialize context
  *
  * \param ctx       Context to initialize
  */
-void ecdsa_init( ecdsa_context *ctx );
+void mbedtls_ecdsa_init( mbedtls_ecdsa_context *ctx );
 
 /**
  * \brief           Free context
  *
  * \param ctx       Context to free
  */
-void ecdsa_free( ecdsa_context *ctx );
+void mbedtls_ecdsa_free( mbedtls_ecdsa_context *ctx );
 
 #ifdef __cplusplus
 }

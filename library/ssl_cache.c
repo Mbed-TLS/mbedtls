@@ -24,49 +24,49 @@
  * to store and retrieve the session information.
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_SSL_CACHE_C)
+#if defined(MBEDTLS_SSL_CACHE_C)
 
 #include "mbedtls/ssl_cache.h"
 
 #include <string.h>
 
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdlib.h>
-#define polarssl_malloc     malloc
-#define polarssl_free       free
+#define mbedtls_malloc     malloc
+#define mbedtls_free       free
 #endif
 
-void ssl_cache_init( ssl_cache_context *cache )
+void mbedtls_ssl_cache_init( mbedtls_ssl_cache_context *cache )
 {
-    memset( cache, 0, sizeof( ssl_cache_context ) );
+    memset( cache, 0, sizeof( mbedtls_ssl_cache_context ) );
 
-    cache->timeout = SSL_CACHE_DEFAULT_TIMEOUT;
-    cache->max_entries = SSL_CACHE_DEFAULT_MAX_ENTRIES;
+    cache->timeout = MBEDTLS_SSL_CACHE_DEFAULT_TIMEOUT;
+    cache->max_entries = MBEDTLS_SSL_CACHE_DEFAULT_MAX_ENTRIES;
 
-#if defined(POLARSSL_THREADING_C)
-    polarssl_mutex_init( &cache->mutex );
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_init( &cache->mutex );
 #endif
 }
 
-int ssl_cache_get( void *data, ssl_session *session )
+int mbedtls_ssl_cache_get( void *data, mbedtls_ssl_session *session )
 {
     int ret = 1;
-#if defined(POLARSSL_HAVE_TIME)
+#if defined(MBEDTLS_HAVE_TIME)
     time_t t = time( NULL );
 #endif
-    ssl_cache_context *cache = (ssl_cache_context *) data;
-    ssl_cache_entry *cur, *entry;
+    mbedtls_ssl_cache_context *cache = (mbedtls_ssl_cache_context *) data;
+    mbedtls_ssl_cache_entry *cur, *entry;
 
-#if defined(POLARSSL_THREADING_C)
-    if( polarssl_mutex_lock( &cache->mutex ) != 0 )
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &cache->mutex ) != 0 )
         return( 1 );
 #endif
 
@@ -78,7 +78,7 @@ int ssl_cache_get( void *data, ssl_session *session )
         entry = cur;
         cur = cur->next;
 
-#if defined(POLARSSL_HAVE_TIME)
+#if defined(MBEDTLS_HAVE_TIME)
         if( cache->timeout != 0 &&
             (int) ( t - entry->timestamp ) > cache->timeout )
             continue;
@@ -97,57 +97,57 @@ int ssl_cache_get( void *data, ssl_session *session )
 
         session->verify_result = entry->session.verify_result;
 
-#if defined(POLARSSL_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
         /*
          * Restore peer certificate (without rest of the original chain)
          */
         if( entry->peer_cert.p != NULL )
         {
-            if( ( session->peer_cert = polarssl_malloc(
-                                 sizeof(x509_crt) ) ) == NULL )
+            if( ( session->peer_cert = mbedtls_malloc(
+                                 sizeof(mbedtls_x509_crt) ) ) == NULL )
             {
                 ret = 1;
                 goto exit;
             }
 
-            x509_crt_init( session->peer_cert );
-            if( x509_crt_parse( session->peer_cert, entry->peer_cert.p,
+            mbedtls_x509_crt_init( session->peer_cert );
+            if( mbedtls_x509_crt_parse( session->peer_cert, entry->peer_cert.p,
                                 entry->peer_cert.len ) != 0 )
             {
-                polarssl_free( session->peer_cert );
+                mbedtls_free( session->peer_cert );
                 session->peer_cert = NULL;
                 ret = 1;
                 goto exit;
             }
         }
-#endif /* POLARSSL_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
         ret = 0;
         goto exit;
     }
 
 exit:
-#if defined(POLARSSL_THREADING_C)
-    if( polarssl_mutex_unlock( &cache->mutex ) != 0 )
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &cache->mutex ) != 0 )
         ret = 1;
 #endif
 
     return( ret );
 }
 
-int ssl_cache_set( void *data, const ssl_session *session )
+int mbedtls_ssl_cache_set( void *data, const mbedtls_ssl_session *session )
 {
     int ret = 1;
-#if defined(POLARSSL_HAVE_TIME)
+#if defined(MBEDTLS_HAVE_TIME)
     time_t t = time( NULL ), oldest = 0;
-    ssl_cache_entry *old = NULL;
+    mbedtls_ssl_cache_entry *old = NULL;
 #endif
-    ssl_cache_context *cache = (ssl_cache_context *) data;
-    ssl_cache_entry *cur, *prv;
+    mbedtls_ssl_cache_context *cache = (mbedtls_ssl_cache_context *) data;
+    mbedtls_ssl_cache_entry *cur, *prv;
     int count = 0;
 
-#if defined(POLARSSL_THREADING_C)
-    if( ( ret = polarssl_mutex_lock( &cache->mutex ) ) != 0 )
+#if defined(MBEDTLS_THREADING_C)
+    if( ( ret = mbedtls_mutex_lock( &cache->mutex ) ) != 0 )
         return( ret );
 #endif
 
@@ -158,7 +158,7 @@ int ssl_cache_set( void *data, const ssl_session *session )
     {
         count++;
 
-#if defined(POLARSSL_HAVE_TIME)
+#if defined(MBEDTLS_HAVE_TIME)
         if( cache->timeout != 0 &&
             (int) ( t - cur->timestamp ) > cache->timeout )
         {
@@ -170,7 +170,7 @@ int ssl_cache_set( void *data, const ssl_session *session )
         if( memcmp( session->id, cur->session.id, cur->session.length ) == 0 )
             break; /* client reconnected, keep timestamp for session id */
 
-#if defined(POLARSSL_HAVE_TIME)
+#if defined(MBEDTLS_HAVE_TIME)
         if( oldest == 0 || cur->timestamp < oldest )
         {
             oldest = cur->timestamp;
@@ -184,7 +184,7 @@ int ssl_cache_set( void *data, const ssl_session *session )
 
     if( cur == NULL )
     {
-#if defined(POLARSSL_HAVE_TIME)
+#if defined(MBEDTLS_HAVE_TIME)
         /*
          * Reuse oldest entry if max_entries reached
          */
@@ -198,7 +198,7 @@ int ssl_cache_set( void *data, const ssl_session *session )
 
             cur = old;
         }
-#else /* POLARSSL_HAVE_TIME */
+#else /* MBEDTLS_HAVE_TIME */
         /*
          * Reuse first entry in chain if max_entries reached,
          * but move to last place
@@ -216,20 +216,20 @@ int ssl_cache_set( void *data, const ssl_session *session )
             cur->next = NULL;
             prv->next = cur;
         }
-#endif /* POLARSSL_HAVE_TIME */
+#endif /* MBEDTLS_HAVE_TIME */
         else
         {
             /*
              * max_entries not reached, create new entry
              */
-            cur = polarssl_malloc( sizeof(ssl_cache_entry) );
+            cur = mbedtls_malloc( sizeof(mbedtls_ssl_cache_entry) );
             if( cur == NULL )
             {
                 ret = 1;
                 goto exit;
             }
 
-            memset( cur, 0, sizeof(ssl_cache_entry) );
+            memset( cur, 0, sizeof(mbedtls_ssl_cache_entry) );
 
             if( prv == NULL )
                 cache->chain = cur;
@@ -237,21 +237,21 @@ int ssl_cache_set( void *data, const ssl_session *session )
                 prv->next = cur;
         }
 
-#if defined(POLARSSL_HAVE_TIME)
+#if defined(MBEDTLS_HAVE_TIME)
         cur->timestamp = t;
 #endif
     }
 
-    memcpy( &cur->session, session, sizeof( ssl_session ) );
+    memcpy( &cur->session, session, sizeof( mbedtls_ssl_session ) );
 
-#if defined(POLARSSL_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
     /*
      * If we're reusing an entry, free its certificate first
      */
     if( cur->peer_cert.p != NULL )
     {
-        polarssl_free( cur->peer_cert.p );
-        memset( &cur->peer_cert, 0, sizeof(x509_buf) );
+        mbedtls_free( cur->peer_cert.p );
+        memset( &cur->peer_cert, 0, sizeof(mbedtls_x509_buf) );
     }
 
     /*
@@ -259,7 +259,7 @@ int ssl_cache_set( void *data, const ssl_session *session )
      */
     if( session->peer_cert != NULL )
     {
-        cur->peer_cert.p = polarssl_malloc( session->peer_cert->raw.len );
+        cur->peer_cert.p = mbedtls_malloc( session->peer_cert->raw.len );
         if( cur->peer_cert.p == NULL )
         {
             ret = 1;
@@ -272,38 +272,38 @@ int ssl_cache_set( void *data, const ssl_session *session )
 
         cur->session.peer_cert = NULL;
     }
-#endif /* POLARSSL_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     ret = 0;
 
 exit:
-#if defined(POLARSSL_THREADING_C)
-    if( polarssl_mutex_unlock( &cache->mutex ) != 0 )
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &cache->mutex ) != 0 )
         ret = 1;
 #endif
 
     return( ret );
 }
 
-#if defined(POLARSSL_HAVE_TIME)
-void ssl_cache_set_timeout( ssl_cache_context *cache, int timeout )
+#if defined(MBEDTLS_HAVE_TIME)
+void mbedtls_ssl_cache_set_timeout( mbedtls_ssl_cache_context *cache, int timeout )
 {
     if( timeout < 0 ) timeout = 0;
 
     cache->timeout = timeout;
 }
-#endif /* POLARSSL_HAVE_TIME */
+#endif /* MBEDTLS_HAVE_TIME */
 
-void ssl_cache_set_max_entries( ssl_cache_context *cache, int max )
+void mbedtls_ssl_cache_set_max_entries( mbedtls_ssl_cache_context *cache, int max )
 {
     if( max < 0 ) max = 0;
 
     cache->max_entries = max;
 }
 
-void ssl_cache_free( ssl_cache_context *cache )
+void mbedtls_ssl_cache_free( mbedtls_ssl_cache_context *cache )
 {
-    ssl_cache_entry *cur, *prv;
+    mbedtls_ssl_cache_entry *cur, *prv;
 
     cur = cache->chain;
 
@@ -312,18 +312,18 @@ void ssl_cache_free( ssl_cache_context *cache )
         prv = cur;
         cur = cur->next;
 
-        ssl_session_free( &prv->session );
+        mbedtls_ssl_session_free( &prv->session );
 
-#if defined(POLARSSL_X509_CRT_PARSE_C)
-        polarssl_free( prv->peer_cert.p );
-#endif /* POLARSSL_X509_CRT_PARSE_C */
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+        mbedtls_free( prv->peer_cert.p );
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-        polarssl_free( prv );
+        mbedtls_free( prv );
     }
 
-#if defined(POLARSSL_THREADING_C)
-    polarssl_mutex_free( &cache->mutex );
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_free( &cache->mutex );
 #endif
 }
 
-#endif /* POLARSSL_SSL_CACHE_C */
+#endif /* MBEDTLS_SSL_CACHE_C */

@@ -3,7 +3,7 @@
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:POLARSSL_DHM_C:POLARSSL_BIGNUM_C
+ * depends_on:MBEDTLS_DHM_C:MBEDTLS_BIGNUM_C
  * END_DEPENDENCIES
  */
 
@@ -11,8 +11,8 @@
 void dhm_do_dhm( int radix_P, char *input_P,
                  int radix_G, char *input_G )
 {
-    dhm_context ctx_srv;
-    dhm_context ctx_cli;
+    mbedtls_dhm_context ctx_srv;
+    mbedtls_dhm_context ctx_cli;
     unsigned char ske[1000];
     unsigned char *p = ske;
     unsigned char pub_cli[1000];
@@ -25,8 +25,8 @@ void dhm_do_dhm( int radix_P, char *input_P,
     int x_size, i;
     rnd_pseudo_info rnd_info;
 
-    dhm_init( &ctx_srv );
-    dhm_init( &ctx_cli );
+    mbedtls_dhm_init( &ctx_srv );
+    mbedtls_dhm_init( &ctx_cli );
     memset( ske, 0x00, 1000 );
     memset( pub_cli, 0x00, 1000 );
     memset( sec_srv, 0x00, 1000 );
@@ -36,24 +36,24 @@ void dhm_do_dhm( int radix_P, char *input_P,
     /*
      * Set params
      */
-    TEST_ASSERT( mpi_read_string( &ctx_srv.P, radix_P, input_P ) == 0 );
-    TEST_ASSERT( mpi_read_string( &ctx_srv.G, radix_G, input_G ) == 0 );
-    x_size = mpi_size( &ctx_srv.P );
+    TEST_ASSERT( mbedtls_mpi_read_string( &ctx_srv.P, radix_P, input_P ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &ctx_srv.G, radix_G, input_G ) == 0 );
+    x_size = mbedtls_mpi_size( &ctx_srv.P );
     pub_cli_len = x_size;
 
     /*
      * First key exchange
      */
-    TEST_ASSERT( dhm_make_params( &ctx_srv, x_size, ske, &ske_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( mbedtls_dhm_make_params( &ctx_srv, x_size, ske, &ske_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
     ske[ske_len++] = 0;
     ske[ske_len++] = 0;
-    TEST_ASSERT( dhm_read_params( &ctx_cli, &p, ske + ske_len ) == 0 );
+    TEST_ASSERT( mbedtls_dhm_read_params( &ctx_cli, &p, ske + ske_len ) == 0 );
 
-    TEST_ASSERT( dhm_make_public( &ctx_cli, x_size, pub_cli, pub_cli_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
-    TEST_ASSERT( dhm_read_public( &ctx_srv, pub_cli, pub_cli_len ) == 0 );
+    TEST_ASSERT( mbedtls_dhm_make_public( &ctx_cli, x_size, pub_cli, pub_cli_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( mbedtls_dhm_read_public( &ctx_srv, pub_cli, pub_cli_len ) == 0 );
 
-    TEST_ASSERT( dhm_calc_secret( &ctx_srv, sec_srv, &sec_srv_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
-    TEST_ASSERT( dhm_calc_secret( &ctx_cli, sec_cli, &sec_cli_len, NULL, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_dhm_calc_secret( &ctx_srv, sec_srv, &sec_srv_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( mbedtls_dhm_calc_secret( &ctx_cli, sec_cli, &sec_cli_len, NULL, NULL ) == 0 );
 
     TEST_ASSERT( sec_srv_len == sec_cli_len );
     TEST_ASSERT( sec_srv_len != 0 );
@@ -63,7 +63,7 @@ void dhm_do_dhm( int radix_P, char *input_P,
     for( i = 0; i < 3; i++ )
     {
         sec_srv_len = 1000;
-        TEST_ASSERT( dhm_calc_secret( &ctx_srv, sec_srv, &sec_srv_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
+        TEST_ASSERT( mbedtls_dhm_calc_secret( &ctx_srv, sec_srv, &sec_srv_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
 
         TEST_ASSERT( sec_srv_len == sec_cli_len );
         TEST_ASSERT( sec_srv_len != 0 );
@@ -77,54 +77,54 @@ void dhm_do_dhm( int radix_P, char *input_P,
     sec_srv_len = 1000;
     p = ske;
 
-    TEST_ASSERT( dhm_make_params( &ctx_srv, x_size, ske, &ske_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( mbedtls_dhm_make_params( &ctx_srv, x_size, ske, &ske_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
     ske[ske_len++] = 0;
     ske[ske_len++] = 0;
-    TEST_ASSERT( dhm_read_params( &ctx_cli, &p, ske + ske_len ) == 0 );
+    TEST_ASSERT( mbedtls_dhm_read_params( &ctx_cli, &p, ske + ske_len ) == 0 );
 
-    TEST_ASSERT( dhm_make_public( &ctx_cli, x_size, pub_cli, pub_cli_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
-    TEST_ASSERT( dhm_read_public( &ctx_srv, pub_cli, pub_cli_len ) == 0 );
+    TEST_ASSERT( mbedtls_dhm_make_public( &ctx_cli, x_size, pub_cli, pub_cli_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( mbedtls_dhm_read_public( &ctx_srv, pub_cli, pub_cli_len ) == 0 );
 
-    TEST_ASSERT( dhm_calc_secret( &ctx_srv, sec_srv, &sec_srv_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
-    TEST_ASSERT( dhm_calc_secret( &ctx_cli, sec_cli, &sec_cli_len, NULL, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_dhm_calc_secret( &ctx_srv, sec_srv, &sec_srv_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( mbedtls_dhm_calc_secret( &ctx_cli, sec_cli, &sec_cli_len, NULL, NULL ) == 0 );
 
     TEST_ASSERT( sec_srv_len == sec_cli_len );
     TEST_ASSERT( sec_srv_len != 0 );
     TEST_ASSERT( memcmp( sec_srv, sec_cli, sec_srv_len ) == 0 );
 
 exit:
-    dhm_free( &ctx_srv );
-    dhm_free( &ctx_cli );
+    mbedtls_dhm_free( &ctx_srv );
+    mbedtls_dhm_free( &ctx_cli );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_FS_IO */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO */
 void dhm_file( char *filename, char *p, char *g, int len )
 {
-    dhm_context ctx;
-    mpi P, G;
+    mbedtls_dhm_context ctx;
+    mbedtls_mpi P, G;
 
-    dhm_init( &ctx );
-    mpi_init( &P ); mpi_init( &G );
+    mbedtls_dhm_init( &ctx );
+    mbedtls_mpi_init( &P ); mbedtls_mpi_init( &G );
 
-    TEST_ASSERT( mpi_read_string( &P, 16, p ) == 0 );
-    TEST_ASSERT( mpi_read_string( &G, 16, g ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &P, 16, p ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &G, 16, g ) == 0 );
 
-    TEST_ASSERT( dhm_parse_dhmfile( &ctx, filename ) == 0 );
+    TEST_ASSERT( mbedtls_dhm_parse_dhmfile( &ctx, filename ) == 0 );
 
     TEST_ASSERT( ctx.len == (size_t) len );
-    TEST_ASSERT( mpi_cmp_mpi( &ctx.P, &P ) == 0 );
-    TEST_ASSERT( mpi_cmp_mpi( &ctx.G, &G ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &ctx.P, &P ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &ctx.G, &G ) == 0 );
 
 exit:
-    mpi_free( &P ); mpi_free( &G );
-    dhm_free( &ctx );
+    mbedtls_mpi_free( &P ); mbedtls_mpi_free( &G );
+    mbedtls_dhm_free( &ctx );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_SELF_TEST */
+/* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void dhm_selftest()
 {
-    TEST_ASSERT( dhm_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_dhm_self_test( 0 ) == 0 );
 }
 /* END_CASE */

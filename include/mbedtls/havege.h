@@ -21,12 +21,12 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_HAVEGE_H
-#define POLARSSL_HAVEGE_H
+#ifndef MBEDTLS_HAVEGE_H
+#define MBEDTLS_HAVEGE_H
 
 #include <stddef.h>
 
-#define COLLECT_SIZE 1024
+#define MBEDTLS_HAVEGE_COLLECT_SIZE 1024
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,24 +38,24 @@ extern "C" {
 typedef struct
 {
     int PT1, PT2, offset[2];
-    int pool[COLLECT_SIZE];
+    int pool[MBEDTLS_HAVEGE_COLLECT_SIZE];
     int WALK[8192];
 }
-havege_state;
+mbedtls_havege_state;
 
 /**
  * \brief          HAVEGE initialization
  *
  * \param hs       HAVEGE state to be initialized
  */
-void havege_init( havege_state *hs );
+void mbedtls_havege_init( mbedtls_havege_state *hs );
 
 /**
  * \brief          Clear HAVEGE state
  *
  * \param hs       HAVEGE state to be cleared
  */
-void havege_free( havege_state *hs );
+void mbedtls_havege_free( mbedtls_havege_state *hs );
 
 /**
  * \brief          HAVEGE rand function
@@ -66,7 +66,7 @@ void havege_free( havege_state *hs );
  *
  * \return         0
  */
-int havege_random( void *p_rng, unsigned char *output, size_t len );
+int mbedtls_havege_random( void *p_rng, unsigned char *output, size_t len );
 
 #ifdef __cplusplus
 }

@@ -22,64 +22,43 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef POLARSSL_PK_H
-#define POLARSSL_PK_H
+#ifndef MBEDTLS_PK_H
+#define MBEDTLS_PK_H
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
 #include "md.h"
 
-#if defined(POLARSSL_RSA_C)
+#if defined(MBEDTLS_RSA_C)
 #include "rsa.h"
 #endif
 
-#if defined(POLARSSL_ECP_C)
+#if defined(MBEDTLS_ECP_C)
 #include "ecp.h"
 #endif
 
-#if defined(POLARSSL_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C)
 #include "ecdsa.h"
 #endif
 
-#define POLARSSL_ERR_PK_MALLOC_FAILED       -0x2F80  /**< Memory alloation failed. */
-#define POLARSSL_ERR_PK_TYPE_MISMATCH       -0x2F00  /**< Type mismatch, eg attempt to encrypt with an ECDSA key */
-#define POLARSSL_ERR_PK_BAD_INPUT_DATA      -0x2E80  /**< Bad input parameters to function. */
-#define POLARSSL_ERR_PK_FILE_IO_ERROR       -0x2E00  /**< Read/write of file failed. */
-#define POLARSSL_ERR_PK_KEY_INVALID_VERSION -0x2D80  /**< Unsupported key version */
-#define POLARSSL_ERR_PK_KEY_INVALID_FORMAT  -0x2D00  /**< Invalid key tag or value. */
-#define POLARSSL_ERR_PK_UNKNOWN_PK_ALG      -0x2C80  /**< Key algorithm is unsupported (only RSA and EC are supported). */
-#define POLARSSL_ERR_PK_PASSWORD_REQUIRED   -0x2C00  /**< Private key password can't be empty. */
-#define POLARSSL_ERR_PK_PASSWORD_MISMATCH   -0x2B80  /**< Given private key password does not allow for correct decryption. */
-#define POLARSSL_ERR_PK_INVALID_PUBKEY      -0x2B00  /**< The pubkey tag or value is invalid (only RSA and EC are supported). */
-#define POLARSSL_ERR_PK_INVALID_ALG         -0x2A80  /**< The algorithm tag or value is invalid. */
-#define POLARSSL_ERR_PK_UNKNOWN_NAMED_CURVE -0x2A00  /**< Elliptic curve is unsupported (only NIST curves are supported). */
-#define POLARSSL_ERR_PK_FEATURE_UNAVAILABLE -0x2980  /**< Unavailable feature, e.g. RSA disabled for RSA key. */
-#define POLARSSL_ERR_PK_SIG_LEN_MISMATCH    -0x2000  /**< The signature is valid but its length is less than expected. */
-
-
-#if defined(POLARSSL_RSA_C)
-/**
- * Quick access to an RSA context inside a PK context.
- *
- * \warning You must make sure the PK context actually holds an RSA context
- * before using this macro!
- */
-#define pk_rsa( pk )        ( (rsa_context *) (pk).pk_ctx )
-#endif /* POLARSSL_RSA_C */
-
-#if defined(POLARSSL_ECP_C)
-/**
- * Quick access to an EC context inside a PK context.
- *
- * \warning You must make sure the PK context actually holds an EC context
- * before using this macro!
- */
-#define pk_ec( pk )         ( (ecp_keypair *) (pk).pk_ctx )
-#endif /* POLARSSL_ECP_C */
+#define MBEDTLS_ERR_PK_MALLOC_FAILED       -0x2F80  /**< Memory alloation failed. */
+#define MBEDTLS_ERR_PK_TYPE_MISMATCH       -0x2F00  /**< Type mismatch, eg attempt to encrypt with an ECDSA key */
+#define MBEDTLS_ERR_PK_BAD_INPUT_DATA      -0x2E80  /**< Bad input parameters to function. */
+#define MBEDTLS_ERR_PK_FILE_IO_ERROR       -0x2E00  /**< Read/write of file failed. */
+#define MBEDTLS_ERR_PK_KEY_INVALID_VERSION -0x2D80  /**< Unsupported key version */
+#define MBEDTLS_ERR_PK_KEY_INVALID_FORMAT  -0x2D00  /**< Invalid key tag or value. */
+#define MBEDTLS_ERR_PK_UNKNOWN_PK_ALG      -0x2C80  /**< Key algorithm is unsupported (only RSA and EC are supported). */
+#define MBEDTLS_ERR_PK_PASSWORD_REQUIRED   -0x2C00  /**< Private key password can't be empty. */
+#define MBEDTLS_ERR_PK_PASSWORD_MISMATCH   -0x2B80  /**< Given private key password does not allow for correct decryption. */
+#define MBEDTLS_ERR_PK_INVALID_PUBKEY      -0x2B00  /**< The pubkey tag or value is invalid (only RSA and EC are supported). */
+#define MBEDTLS_ERR_PK_INVALID_ALG         -0x2A80  /**< The algorithm tag or value is invalid. */
+#define MBEDTLS_ERR_PK_UNKNOWN_NAMED_CURVE -0x2A00  /**< Elliptic curve is unsupported (only NIST curves are supported). */
+#define MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE -0x2980  /**< Unavailable feature, e.g. RSA disabled for RSA key. */
+#define MBEDTLS_ERR_PK_SIG_LEN_MISMATCH    -0x2000  /**< The signature is valid but its length is less than expected. */
 
 
 #ifdef __cplusplus
@@ -90,76 +69,102 @@ extern "C" {
  * \brief          Public key types
  */
 typedef enum {
-    POLARSSL_PK_NONE=0,
-    POLARSSL_PK_RSA,
-    POLARSSL_PK_ECKEY,
-    POLARSSL_PK_ECKEY_DH,
-    POLARSSL_PK_ECDSA,
-    POLARSSL_PK_RSA_ALT,
-    POLARSSL_PK_RSASSA_PSS,
-} pk_type_t;
+    MBEDTLS_PK_NONE=0,
+    MBEDTLS_PK_RSA,
+    MBEDTLS_PK_ECKEY,
+    MBEDTLS_PK_ECKEY_DH,
+    MBEDTLS_PK_ECDSA,
+    MBEDTLS_PK_RSA_ALT,
+    MBEDTLS_PK_RSASSA_PSS,
+} mbedtls_pk_type_t;
 
 /**
  * \brief           Options for RSASSA-PSS signature verification.
- *                  See \c rsa_rsassa_pss_verify_ext()
+ *                  See \c mbedtls_rsa_rsassa_pss_verify_ext()
  */
 typedef struct
 {
-    md_type_t mgf1_hash_id;
+    mbedtls_md_type_t mgf1_hash_id;
     int expected_salt_len;
 
-} pk_rsassa_pss_options;
+} mbedtls_pk_rsassa_pss_options;
 
 /**
  * \brief           Types for interfacing with the debug module
  */
 typedef enum
 {
-    POLARSSL_PK_DEBUG_NONE = 0,
-    POLARSSL_PK_DEBUG_MPI,
-    POLARSSL_PK_DEBUG_ECP,
-} pk_debug_type;
+    MBEDTLS_PK_DEBUG_NONE = 0,
+    MBEDTLS_PK_DEBUG_MPI,
+    MBEDTLS_PK_DEBUG_ECP,
+} mbedtls_pk_debug_type;
 
 /**
  * \brief           Item to send to the debug module
  */
 typedef struct
 {
-    pk_debug_type type;
+    mbedtls_pk_debug_type type;
     const char *name;
     void *value;
-} pk_debug_item;
+} mbedtls_pk_debug_item;
 
 /** Maximum number of item send for debugging, plus 1 */
-#define POLARSSL_PK_DEBUG_MAX_ITEMS 3
+#define MBEDTLS_PK_DEBUG_MAX_ITEMS 3
 
 /**
  * \brief           Public key information and operations
  */
-typedef struct _pk_info_t pk_info_t;
+typedef struct mbedtls_pk_info_t mbedtls_pk_info_t;
 
 /**
  * \brief           Public key container
  */
 typedef struct
 {
-    const pk_info_t *   pk_info;    /**< Public key informations        */
-    void *              pk_ctx;     /**< Underlying public key context  */
-} pk_context;
+    const mbedtls_pk_info_t *   pk_info; /**< Public key informations        */
+    void *                      pk_ctx;  /**< Underlying public key context  */
+} mbedtls_pk_context;
 
-#if defined(POLARSSL_PK_RSA_ALT_SUPPORT)
+#if defined(MBEDTLS_RSA_C)
+/**
+ * Quick access to an RSA context inside a PK context.
+ *
+ * \warning You must make sure the PK context actually holds an RSA context
+ * before using this function!
+ */
+static inline mbedtls_rsa_context *mbedtls_pk_rsa( const mbedtls_pk_context pk )
+{
+    return( (mbedtls_rsa_context *) (pk).pk_ctx );
+}
+#endif /* MBEDTLS_RSA_C */
+
+#if defined(MBEDTLS_ECP_C)
+/**
+ * Quick access to an EC context inside a PK context.
+ *
+ * \warning You must make sure the PK context actually holds an EC context
+ * before using this function!
+ */
+static inline mbedtls_ecp_keypair *mbedtls_pk_ec( const mbedtls_pk_context pk )
+{
+    return( (mbedtls_ecp_keypair *) (pk).pk_ctx );
+}
+#endif /* MBEDTLS_ECP_C */
+
+#if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /**
  * \brief           Types for RSA-alt abstraction
  */
-typedef int (*pk_rsa_alt_decrypt_func)( void *ctx, int mode, size_t *olen,
+typedef int (*mbedtls_pk_rsa_alt_decrypt_func)( void *ctx, int mode, size_t *olen,
                     const unsigned char *input, unsigned char *output,
                     size_t output_max_len );
-typedef int (*pk_rsa_alt_sign_func)( void *ctx,
+typedef int (*mbedtls_pk_rsa_alt_sign_func)( void *ctx,
                     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
-                    int mode, md_type_t md_alg, unsigned int hashlen,
+                    int mode, mbedtls_md_type_t md_alg, unsigned int hashlen,
                     const unsigned char *hash, unsigned char *sig );
-typedef size_t (*pk_rsa_alt_key_len_func)( void *ctx );
-#endif /* POLARSSL_PK_RSA_ALT_SUPPORT */
+typedef size_t (*mbedtls_pk_rsa_alt_key_len_func)( void *ctx );
+#endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
 
 /**
  * \brief           Return information associated with the given PK type
@@ -168,17 +173,17 @@ typedef size_t (*pk_rsa_alt_key_len_func)( void *ctx );
  *
  * \return          The PK info associated with the type or NULL if not found.
  */
-const pk_info_t *pk_info_from_type( pk_type_t pk_type );
+const mbedtls_pk_info_t *mbedtls_pk_info_from_type( mbedtls_pk_type_t pk_type );
 
 /**
- * \brief           Initialize a pk_context (as NONE)
+ * \brief           Initialize a mbedtls_pk_context (as NONE)
  */
-void pk_init( pk_context *ctx );
+void mbedtls_pk_init( mbedtls_pk_context *ctx );
 
 /**
- * \brief           Free a pk_context
+ * \brief           Free a mbedtls_pk_context
  */
-void pk_free( pk_context *ctx );
+void mbedtls_pk_free( mbedtls_pk_context *ctx );
 
 /**
  * \brief           Initialize a PK context with the information given
@@ -188,15 +193,15 @@ void pk_free( pk_context *ctx );
  * \param info      Information to use
  *
  * \return          0 on success,
- *                  POLARSSL_ERR_PK_BAD_INPUT_DATA on invalid input,
- *                  POLARSSL_ERR_PK_MALLOC_FAILED on allocation failure.
+ *                  MBEDTLS_ERR_PK_BAD_INPUT_DATA on invalid input,
+ *                  MBEDTLS_ERR_PK_MALLOC_FAILED on allocation failure.
  *
  * \note            For contexts holding an RSA-alt key, use
- *                  \c pk_init_ctx_rsa_alt() instead.
+ *                  \c mbedtls_pk_init_ctx_rsa_alt() instead.
  */
-int pk_init_ctx( pk_context *ctx, const pk_info_t *info );
+int mbedtls_pk_init_ctx( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info );
 
-#if defined(POLARSSL_PK_RSA_ALT_SUPPORT)
+#if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /**
  * \brief           Initialize an RSA-alt context
  *
@@ -206,16 +211,16 @@ int pk_init_ctx( pk_context *ctx, const pk_info_t *info );
  * \param sign_func     Signing function
  * \param key_len_func  Function returning key length in bytes
  *
- * \return          0 on success, or POLARSSL_ERR_PK_BAD_INPUT_DATA if the
+ * \return          0 on success, or MBEDTLS_ERR_PK_BAD_INPUT_DATA if the
  *                  context wasn't already initialized as RSA_ALT.
  *
- * \note            This function replaces \c pk_init_ctx() for RSA-alt.
+ * \note            This function replaces \c mbedtls_pk_init_ctx() for RSA-alt.
  */
-int pk_init_ctx_rsa_alt( pk_context *ctx, void * key,
-                         pk_rsa_alt_decrypt_func decrypt_func,
-                         pk_rsa_alt_sign_func sign_func,
-                         pk_rsa_alt_key_len_func key_len_func );
-#endif /* POLARSSL_PK_RSA_ALT_SUPPORT */
+int mbedtls_pk_init_ctx_rsa_alt( mbedtls_pk_context *ctx, void * key,
+                         mbedtls_pk_rsa_alt_decrypt_func decrypt_func,
+                         mbedtls_pk_rsa_alt_sign_func sign_func,
+                         mbedtls_pk_rsa_alt_key_len_func key_len_func );
+#endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
 
 /**
  * \brief           Get the size in bits of the underlying key
@@ -224,7 +229,7 @@ int pk_init_ctx_rsa_alt( pk_context *ctx, void * key,
  *
  * \return          Key size in bits, or 0 on error
  */
-size_t pk_get_size( const pk_context *ctx );
+size_t mbedtls_pk_get_size( const mbedtls_pk_context *ctx );
 
 /**
  * \brief           Get the length in bytes of the underlying key
@@ -232,9 +237,9 @@ size_t pk_get_size( const pk_context *ctx );
  *
  * \return          Key length in bytes, or 0 on error
  */
-static inline size_t pk_get_len( const pk_context *ctx )
+static inline size_t mbedtls_pk_get_len( const mbedtls_pk_context *ctx )
 {
-    return( ( pk_get_size( ctx ) + 7 ) / 8 );
+    return( ( mbedtls_pk_get_size( ctx ) + 7 ) / 8 );
 }
 
 /**
@@ -246,7 +251,7 @@ static inline size_t pk_get_len( const pk_context *ctx )
  * \return          0 if context can't do the operations,
  *                  1 otherwise.
  */
-int pk_can_do( const pk_context *ctx, pk_type_t type );
+int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type );
 
 /**
  * \brief           Verify signature (including padding if relevant).
@@ -259,20 +264,20 @@ int pk_can_do( const pk_context *ctx, pk_type_t type );
  * \param sig_len   Signature length
  *
  * \return          0 on success (signature is valid),
- *                  POLARSSL_ERR_PK_SIG_LEN_MISMATCH if the signature is
+ *                  MBEDTLS_ERR_PK_SIG_LEN_MISMATCH if the signature is
  *                  valid but its actual length is less than sig_len,
  *                  or a specific error code.
  *
  * \note            For RSA keys, the default padding type is PKCS#1 v1.5.
- *                  Use \c pk_verify_ext( POLARSSL_PK_RSASSA_PSS, ... )
+ *                  Use \c mbedtls_pk_verify_ext( MBEDTLS_PK_RSASSA_PSS, ... )
  *                  to verify RSASSA_PSS signatures.
  *
  * \note            If hash_len is 0, then the length associated with md_alg
  *                  is used instead, or an error returned if it is invalid.
  *
- * \note            md_alg may be POLARSSL_MD_NONE, only if hash_len != 0
+ * \note            md_alg may be MBEDTLS_MD_NONE, only if hash_len != 0
  */
-int pk_verify( pk_context *ctx, md_type_t md_alg,
+int mbedtls_pk_verify( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
                const unsigned char *hash, size_t hash_len,
                const unsigned char *sig, size_t sig_len );
 
@@ -290,23 +295,23 @@ int pk_verify( pk_context *ctx, md_type_t md_alg,
  * \param sig_len   Signature length
  *
  * \return          0 on success (signature is valid),
- *                  POLARSSL_ERR_PK_TYPE_MISMATCH if the PK context can't be
+ *                  MBEDTLS_ERR_PK_TYPE_MISMATCH if the PK context can't be
  *                  used for this type of signatures,
- *                  POLARSSL_ERR_PK_SIG_LEN_MISMATCH if the signature is
+ *                  MBEDTLS_ERR_PK_SIG_LEN_MISMATCH if the signature is
  *                  valid but its actual length is less than sig_len,
  *                  or a specific error code.
  *
  * \note            If hash_len is 0, then the length associated with md_alg
  *                  is used instead, or an error returned if it is invalid.
  *
- * \note            md_alg may be POLARSSL_MD_NONE, only if hash_len != 0
+ * \note            md_alg may be MBEDTLS_MD_NONE, only if hash_len != 0
  *
- * \note            If type is POLARSSL_PK_RSASSA_PSS, then options must point
- *                  to a pk_rsassa_pss_options structure,
+ * \note            If type is MBEDTLS_PK_RSASSA_PSS, then options must point
+ *                  to a mbedtls_pk_rsassa_pss_options structure,
  *                  otherwise it must be NULL.
  */
-int pk_verify_ext( pk_type_t type, const void *options,
-                   pk_context *ctx, md_type_t md_alg,
+int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
+                   mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
                    const unsigned char *hash, size_t hash_len,
                    const unsigned char *sig, size_t sig_len );
 
@@ -331,10 +336,10 @@ int pk_verify_ext( pk_type_t type, const void *options,
  * \note            If hash_len is 0, then the length associated with md_alg
  *                  is used instead, or an error returned if it is invalid.
  *
- * \note            For RSA, md_alg may be POLARSSL_MD_NONE if hash_len != 0.
- *                  For ECDSA, md_alg may never be POLARSSL_MD_NONE.
+ * \note            For RSA, md_alg may be MBEDTLS_MD_NONE if hash_len != 0.
+ *                  For ECDSA, md_alg may never be MBEDTLS_MD_NONE.
  */
-int pk_sign( pk_context *ctx, md_type_t md_alg,
+int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
              const unsigned char *hash, size_t hash_len,
              unsigned char *sig, size_t *sig_len,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
@@ -355,7 +360,7 @@ int pk_sign( pk_context *ctx, md_type_t md_alg,
  *
  * \return          0 on success, or a specific error code.
  */
-int pk_decrypt( pk_context *ctx,
+int mbedtls_pk_decrypt( mbedtls_pk_context *ctx,
                 const unsigned char *input, size_t ilen,
                 unsigned char *output, size_t *olen, size_t osize,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
@@ -376,7 +381,7 @@ int pk_decrypt( pk_context *ctx,
  *
  * \return          0 on success, or a specific error code.
  */
-int pk_encrypt( pk_context *ctx,
+int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
                 const unsigned char *input, size_t ilen,
                 unsigned char *output, size_t *olen, size_t osize,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
@@ -387,9 +392,9 @@ int pk_encrypt( pk_context *ctx,
  * \param pub       Context holding a public key.
  * \param prv       Context holding a private (and public) key.
  *
- * \return          0 on success or POLARSSL_ERR_PK_BAD_INPUT_DATA
+ * \return          0 on success or MBEDTLS_ERR_PK_BAD_INPUT_DATA
  */
-int pk_check_pair( const pk_context *pub, const pk_context *prv );
+int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_context *prv );
 
 /**
  * \brief           Export debug information
@@ -397,9 +402,9 @@ int pk_check_pair( const pk_context *pub, const pk_context *prv );
  * \param ctx       Context to use
  * \param items     Place to write debug items
  *
- * \return          0 on success or POLARSSL_ERR_PK_BAD_INPUT_DATA
+ * \return          0 on success or MBEDTLS_ERR_PK_BAD_INPUT_DATA
  */
-int pk_debug( const pk_context *ctx, pk_debug_item *items );
+int mbedtls_pk_debug( const mbedtls_pk_context *ctx, mbedtls_pk_debug_item *items );
 
 /**
  * \brief           Access the type name
@@ -408,18 +413,18 @@ int pk_debug( const pk_context *ctx, pk_debug_item *items );
  *
  * \return          Type name on success, or "invalid PK"
  */
-const char * pk_get_name( const pk_context *ctx );
+const char * mbedtls_pk_get_name( const mbedtls_pk_context *ctx );
 
 /**
  * \brief           Get the key type
  *
  * \param ctx       Context to use
  *
- * \return          Type on success, or POLARSSL_PK_NONE
+ * \return          Type on success, or MBEDTLS_PK_NONE
  */
-pk_type_t pk_get_type( const pk_context *ctx );
+mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx );
 
-#if defined(POLARSSL_PK_PARSE_C)
+#if defined(MBEDTLS_PK_PARSE_C)
 /** \ingroup pk_module */
 /**
  * \brief           Parse a private key
@@ -431,14 +436,14 @@ pk_type_t pk_get_type( const pk_context *ctx );
  * \param pwdlen    size of the password
  *
  * \note            On entry, ctx must be empty, either freshly initialised
- *                  with pk_init() or reset with pk_free(). If you need a
- *                  specific key type, check the result with pk_can_do().
+ *                  with mbedtls_pk_init() or reset with mbedtls_pk_free(). If you need a
+ *                  specific key type, check the result with mbedtls_pk_can_do().
  *
  * \note            The key is also checked for correctness.
  *
  * \return          0 if successful, or a specific PK or PEM error code
  */
-int pk_parse_key( pk_context *ctx,
+int mbedtls_pk_parse_key( mbedtls_pk_context *ctx,
                   const unsigned char *key, size_t keylen,
                   const unsigned char *pwd, size_t pwdlen );
 
@@ -451,17 +456,17 @@ int pk_parse_key( pk_context *ctx,
  * \param keylen    size of the buffer
  *
  * \note            On entry, ctx must be empty, either freshly initialised
- *                  with pk_init() or reset with pk_free(). If you need a
- *                  specific key type, check the result with pk_can_do().
+ *                  with mbedtls_pk_init() or reset with mbedtls_pk_free(). If you need a
+ *                  specific key type, check the result with mbedtls_pk_can_do().
  *
  * \note            The key is also checked for correctness.
  *
  * \return          0 if successful, or a specific PK or PEM error code
  */
-int pk_parse_public_key( pk_context *ctx,
+int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
                          const unsigned char *key, size_t keylen );
 
-#if defined(POLARSSL_FS_IO)
+#if defined(MBEDTLS_FS_IO)
 /** \ingroup pk_module */
 /**
  * \brief           Load and parse a private key
@@ -471,14 +476,14 @@ int pk_parse_public_key( pk_context *ctx,
  * \param password  password to decrypt the file (can be NULL)
  *
  * \note            On entry, ctx must be empty, either freshly initialised
- *                  with pk_init() or reset with pk_free(). If you need a
- *                  specific key type, check the result with pk_can_do().
+ *                  with mbedtls_pk_init() or reset with mbedtls_pk_free(). If you need a
+ *                  specific key type, check the result with mbedtls_pk_can_do().
  *
  * \note            The key is also checked for correctness.
  *
  * \return          0 if successful, or a specific PK or PEM error code
  */
-int pk_parse_keyfile( pk_context *ctx,
+int mbedtls_pk_parse_keyfile( mbedtls_pk_context *ctx,
                       const char *path, const char *password );
 
 /** \ingroup pk_module */
@@ -489,18 +494,18 @@ int pk_parse_keyfile( pk_context *ctx,
  * \param path      filename to read the private key from
  *
  * \note            On entry, ctx must be empty, either freshly initialised
- *                  with pk_init() or reset with pk_free(). If you need a
- *                  specific key type, check the result with pk_can_do().
+ *                  with mbedtls_pk_init() or reset with mbedtls_pk_free(). If you need a
+ *                  specific key type, check the result with mbedtls_pk_can_do().
  *
  * \note            The key is also checked for correctness.
  *
  * \return          0 if successful, or a specific PK or PEM error code
  */
-int pk_parse_public_keyfile( pk_context *ctx, const char *path );
-#endif /* POLARSSL_FS_IO */
-#endif /* POLARSSL_PK_PARSE_C */
+int mbedtls_pk_parse_public_keyfile( mbedtls_pk_context *ctx, const char *path );
+#endif /* MBEDTLS_FS_IO */
+#endif /* MBEDTLS_PK_PARSE_C */
 
-#if defined(POLARSSL_PK_WRITE_C)
+#if defined(MBEDTLS_PK_WRITE_C)
 /**
  * \brief           Write a private key to a PKCS#1 or SEC1 DER structure
  *                  Note: data is written at the end of the buffer! Use the
@@ -514,7 +519,7 @@ int pk_parse_public_keyfile( pk_context *ctx, const char *path );
  * \return          length of data written if successful, or a specific
  *                  error code
  */
-int pk_write_key_der( pk_context *ctx, unsigned char *buf, size_t size );
+int mbedtls_pk_write_key_der( mbedtls_pk_context *ctx, unsigned char *buf, size_t size );
 
 /**
  * \brief           Write a public key to a SubjectPublicKeyInfo DER structure
@@ -529,9 +534,9 @@ int pk_write_key_der( pk_context *ctx, unsigned char *buf, size_t size );
  * \return          length of data written if successful, or a specific
  *                  error code
  */
-int pk_write_pubkey_der( pk_context *ctx, unsigned char *buf, size_t size );
+int mbedtls_pk_write_pubkey_der( mbedtls_pk_context *ctx, unsigned char *buf, size_t size );
 
-#if defined(POLARSSL_PEM_WRITE_C)
+#if defined(MBEDTLS_PEM_WRITE_C)
 /**
  * \brief           Write a public key to a PEM string
  *
@@ -541,7 +546,7 @@ int pk_write_pubkey_der( pk_context *ctx, unsigned char *buf, size_t size );
  *
  * \return          0 successful, or a specific error code
  */
-int pk_write_pubkey_pem( pk_context *ctx, unsigned char *buf, size_t size );
+int mbedtls_pk_write_pubkey_pem( mbedtls_pk_context *ctx, unsigned char *buf, size_t size );
 
 /**
  * \brief           Write a private key to a PKCS#1 or SEC1 PEM string
@@ -552,16 +557,16 @@ int pk_write_pubkey_pem( pk_context *ctx, unsigned char *buf, size_t size );
  *
  * \return          0 successful, or a specific error code
  */
-int pk_write_key_pem( pk_context *ctx, unsigned char *buf, size_t size );
-#endif /* POLARSSL_PEM_WRITE_C */
-#endif /* POLARSSL_PK_WRITE_C */
+int mbedtls_pk_write_key_pem( mbedtls_pk_context *ctx, unsigned char *buf, size_t size );
+#endif /* MBEDTLS_PEM_WRITE_C */
+#endif /* MBEDTLS_PK_WRITE_C */
 
 /*
  * WARNING: Low-level functions. You probably do not want to use these unless
  *          you are certain you do ;)
  */
 
-#if defined(POLARSSL_PK_PARSE_C)
+#if defined(MBEDTLS_PK_PARSE_C)
 /**
  * \brief           Parse a SubjectPublicKeyInfo DER structure
  *
@@ -571,11 +576,11 @@ int pk_write_key_pem( pk_context *ctx, unsigned char *buf, size_t size );
  *
  * \return          0 if successful, or a specific PK error code
  */
-int pk_parse_subpubkey( unsigned char **p, const unsigned char *end,
-                        pk_context *pk );
-#endif /* POLARSSL_PK_PARSE_C */
+int mbedtls_pk_parse_subpubkey( unsigned char **p, const unsigned char *end,
+                        mbedtls_pk_context *pk );
+#endif /* MBEDTLS_PK_PARSE_C */
 
-#if defined(POLARSSL_PK_WRITE_C)
+#if defined(MBEDTLS_PK_WRITE_C)
 /**
  * \brief           Write a subjectPublicKey to ASN.1 data
  *                  Note: function works backwards in data buffer
@@ -586,20 +591,20 @@ int pk_parse_subpubkey( unsigned char **p, const unsigned char *end,
  *
  * \return          the length written or a negative error code
  */
-int pk_write_pubkey( unsigned char **p, unsigned char *start,
-                     const pk_context *key );
-#endif /* POLARSSL_PK_WRITE_C */
+int mbedtls_pk_write_pubkey( unsigned char **p, unsigned char *start,
+                     const mbedtls_pk_context *key );
+#endif /* MBEDTLS_PK_WRITE_C */
 
 /*
  * Internal module functions. You probably do not want to use these unless you
  * know you do.
  */
-#if defined(POLARSSL_FS_IO)
-int pk_load_file( const char *path, unsigned char **buf, size_t *n );
+#if defined(MBEDTLS_FS_IO)
+int mbedtls_pk_load_file( const char *path, unsigned char **buf, size_t *n );
 #endif
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* POLARSSL_PK_H */
+#endif /* MBEDTLS_PK_H */

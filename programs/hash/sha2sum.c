@@ -20,43 +20,43 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define polarssl_fprintf    fprintf
-#define polarssl_printf     printf
+#define mbedtls_fprintf    fprintf
+#define mbedtls_printf     printf
 #endif
 
-#if defined(POLARSSL_SHA256_C) && defined(POLARSSL_FS_IO)
+#if defined(MBEDTLS_SHA256_C) && defined(MBEDTLS_FS_IO)
 #include "mbedtls/sha256.h"
 
 #include <stdio.h>
 #include <string.h>
 #endif
 
-#if !defined(POLARSSL_SHA256_C) || !defined(POLARSSL_FS_IO)
+#if !defined(MBEDTLS_SHA256_C) || !defined(MBEDTLS_FS_IO)
 int main( void )
 {
-    polarssl_printf("POLARSSL_SHA256_C and/or POLARSSL_FS_IO not defined.\n");
+    mbedtls_printf("MBEDTLS_SHA256_C and/or MBEDTLS_FS_IO not defined.\n");
     return( 0 );
 }
 #else
 static int sha256_wrapper( char *filename, unsigned char *sum )
 {
-    int ret = sha256_file( filename, sum, 0 );
+    int ret = mbedtls_sha256_file( filename, sum, 0 );
 
     if( ret == 1 )
-        polarssl_fprintf( stderr, "failed to open: %s\n", filename );
+        mbedtls_fprintf( stderr, "failed to open: %s\n", filename );
 
     if( ret == 2 )
-        polarssl_fprintf( stderr, "failed to read: %s\n", filename );
+        mbedtls_fprintf( stderr, "failed to read: %s\n", filename );
 
     return( ret );
 }
@@ -70,9 +70,9 @@ static int sha256_print( char *filename )
         return( 1 );
 
     for( i = 0; i < 32; i++ )
-        polarssl_printf( "%02x", sum[i] );
+        mbedtls_printf( "%02x", sum[i] );
 
-    polarssl_printf( "  %s\n", filename );
+    mbedtls_printf( "  %s\n", filename );
     return( 0 );
 }
 
@@ -89,7 +89,7 @@ static int sha256_check( char *filename )
 
     if( ( f = fopen( filename, "rb" ) ) == NULL )
     {
-        polarssl_printf( "failed to open: %s\n", filename );
+        mbedtls_printf( "failed to open: %s\n", filename );
         return( 1 );
     }
 
@@ -134,7 +134,7 @@ static int sha256_check( char *filename )
         if( diff != 0 )
         {
             nb_err2++;
-            polarssl_fprintf( stderr, "wrong checksum: %s\n", line + 66 );
+            mbedtls_fprintf( stderr, "wrong checksum: %s\n", line + 66 );
         }
 
         n = sizeof( line );
@@ -144,13 +144,13 @@ static int sha256_check( char *filename )
 
     if( nb_err1 != 0 )
     {
-        polarssl_printf( "WARNING: %d (out of %d) input files could "
+        mbedtls_printf( "WARNING: %d (out of %d) input files could "
                 "not be read\n", nb_err1, nb_tot1 );
     }
 
     if( nb_err2 != 0 )
     {
-        polarssl_printf( "WARNING: %d (out of %d) computed checksums did "
+        mbedtls_printf( "WARNING: %d (out of %d) computed checksums did "
                 "not match\n", nb_err2, nb_tot2 );
     }
 
@@ -163,11 +163,11 @@ int main( int argc, char *argv[] )
 
     if( argc == 1 )
     {
-        polarssl_printf( "print mode:  sha256sum <file> <file> ...\n" );
-        polarssl_printf( "check mode:  sha256sum -c <checksum file>\n" );
+        mbedtls_printf( "print mode:  sha256sum <file> <file> ...\n" );
+        mbedtls_printf( "check mode:  sha256sum -c <checksum file>\n" );
 
 #if defined(_WIN32)
-        polarssl_printf( "\n  Press Enter to exit this program.\n" );
+        mbedtls_printf( "\n  Press Enter to exit this program.\n" );
         fflush( stdout ); getchar();
 #endif
 
@@ -183,4 +183,4 @@ int main( int argc, char *argv[] )
 
     return( ret );
 }
-#endif /* POLARSSL_SHA256_C && POLARSSL_FS_IO */
+#endif /* MBEDTLS_SHA256_C && MBEDTLS_FS_IO */

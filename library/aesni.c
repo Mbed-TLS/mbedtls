@@ -25,24 +25,24 @@
  * [CLMUL-WP] http://software.intel.com/en-us/articles/intel-carry-less-multiplication-instruction-and-its-usage-for-computing-the-gcm-mode/
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_AESNI_C)
+#if defined(MBEDTLS_AESNI_C)
 
 #include "mbedtls/aesni.h"
 
 #include <string.h>
 
-#if defined(POLARSSL_HAVE_X86_64)
+#if defined(MBEDTLS_HAVE_X86_64)
 
 /*
  * AES-NI support detection routine
  */
-int aesni_supports( unsigned int what )
+int mbedtls_aesni_supports( unsigned int what )
 {
     static int done = 0;
     static unsigned int c = 0;
@@ -89,7 +89,7 @@ int aesni_supports( unsigned int what )
 /*
  * AES-NI AES-ECB block en(de)cryption
  */
-int aesni_crypt_ecb( aes_context *ctx,
+int mbedtls_aesni_crypt_ecb( mbedtls_aes_context *ctx,
                      int mode,
                      const unsigned char input[16],
                      unsigned char output[16] )
@@ -135,7 +135,7 @@ int aesni_crypt_ecb( aes_context *ctx,
  * GCM multiplication: c = a times b in GF(2^128)
  * Based on [CLMUL-WP] algorithms 1 (with equation 27) and 5.
  */
-void aesni_gcm_mult( unsigned char c[16],
+void mbedtls_aesni_gcm_mult( unsigned char c[16],
                      const unsigned char a[16],
                      const unsigned char b[16] )
 {
@@ -246,7 +246,7 @@ void aesni_gcm_mult( unsigned char c[16],
 /*
  * Compute decryption round keys from encryption round keys
  */
-void aesni_inverse_key( unsigned char *invkey,
+void mbedtls_aesni_inverse_key( unsigned char *invkey,
                         const unsigned char *fwdkey, int nr )
 {
     unsigned char *ik = invkey;
@@ -423,7 +423,7 @@ static void aesni_setkey_enc_256( unsigned char *rk,
 
          /*
           * Main "loop" - Generating one more key than necessary,
-          * see definition of aes_context.buf
+          * see definition of mbedtls_aes_context.buf
           */
          "2:                                \n\t"
          AESKEYGENA xmm1_xmm2 ",0x01        \n\tcall 1b \n\t"
@@ -441,7 +441,7 @@ static void aesni_setkey_enc_256( unsigned char *rk,
 /*
  * Key expansion, wrapper
  */
-int aesni_setkey_enc( unsigned char *rk,
+int mbedtls_aesni_setkey_enc( unsigned char *rk,
                       const unsigned char *key,
                       size_t bits )
 {
@@ -450,12 +450,12 @@ int aesni_setkey_enc( unsigned char *rk,
         case 128: aesni_setkey_enc_128( rk, key ); break;
         case 192: aesni_setkey_enc_192( rk, key ); break;
         case 256: aesni_setkey_enc_256( rk, key ); break;
-        default : return( POLARSSL_ERR_AES_INVALID_KEY_LENGTH );
+        default : return( MBEDTLS_ERR_AES_INVALID_KEY_LENGTH );
     }
 
     return( 0 );
 }
 
-#endif /* POLARSSL_HAVE_X86_64 */
+#endif /* MBEDTLS_HAVE_X86_64 */
 
-#endif /* POLARSSL_AESNI_C */
+#endif /* MBEDTLS_AESNI_C */

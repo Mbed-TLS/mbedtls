@@ -3,7 +3,7 @@
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:POLARSSL_CAMELLIA_C
+ * depends_on:MBEDTLS_CAMELLIA_C
  * END_DEPENDENCIES
  */
 
@@ -15,29 +15,29 @@ void camellia_encrypt_ecb( char *hex_key_string, char *hex_src_string,
     unsigned char src_str[100];
     unsigned char dst_str[100];
     unsigned char output[100];
-    camellia_context ctx;
+    mbedtls_camellia_context ctx;
     int key_len;
 
     memset(key_str, 0x00, 100);
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
-    camellia_init( &ctx );
+    mbedtls_camellia_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
     unhexify( src_str, hex_src_string );
 
-    TEST_ASSERT( camellia_setkey_enc( &ctx, key_str, key_len * 8 ) == setkey_result );
+    TEST_ASSERT( mbedtls_camellia_setkey_enc( &ctx, key_str, key_len * 8 ) == setkey_result );
     if( setkey_result == 0 )
     {
-        TEST_ASSERT( camellia_crypt_ecb( &ctx, CAMELLIA_ENCRYPT, src_str, output ) == 0 );
+        TEST_ASSERT( mbedtls_camellia_crypt_ecb( &ctx, MBEDTLS_CAMELLIA_ENCRYPT, src_str, output ) == 0 );
         hexify( dst_str, output, 16 );
 
         TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
     }
 
 exit:
-    camellia_free( &ctx );
+    mbedtls_camellia_free( &ctx );
 }
 /* END_CASE */
 
@@ -49,33 +49,33 @@ void camellia_decrypt_ecb( char *hex_key_string, char *hex_src_string,
     unsigned char src_str[100];
     unsigned char dst_str[100];
     unsigned char output[100];
-    camellia_context ctx;
+    mbedtls_camellia_context ctx;
     int key_len;
 
     memset(key_str, 0x00, 100);
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
-    camellia_init( &ctx );
+    mbedtls_camellia_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
     unhexify( src_str, hex_src_string );
 
-    TEST_ASSERT( camellia_setkey_dec( &ctx, key_str, key_len * 8 ) == setkey_result );
+    TEST_ASSERT( mbedtls_camellia_setkey_dec( &ctx, key_str, key_len * 8 ) == setkey_result );
     if( setkey_result == 0 )
     {
-        TEST_ASSERT( camellia_crypt_ecb( &ctx, CAMELLIA_DECRYPT, src_str, output ) == 0 );
+        TEST_ASSERT( mbedtls_camellia_crypt_ecb( &ctx, MBEDTLS_CAMELLIA_DECRYPT, src_str, output ) == 0 );
         hexify( dst_str, output, 16 );
 
         TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
     }
 
 exit:
-    camellia_free( &ctx );
+    mbedtls_camellia_free( &ctx );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_CIPHER_MODE_CBC */
+/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CBC */
 void camellia_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
                            char *hex_src_string, char *hex_dst_string,
                            int cbc_result )
@@ -85,7 +85,7 @@ void camellia_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
     unsigned char src_str[100];
     unsigned char dst_str[100];
     unsigned char output[100];
-    camellia_context ctx;
+    mbedtls_camellia_context ctx;
     int key_len, data_len;
 
     memset(key_str, 0x00, 100);
@@ -93,14 +93,14 @@ void camellia_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
-    camellia_init( &ctx );
+    mbedtls_camellia_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
     unhexify( iv_str, hex_iv_string );
     data_len = unhexify( src_str, hex_src_string );
 
-    camellia_setkey_enc( &ctx, key_str, key_len * 8 );
-    TEST_ASSERT( camellia_crypt_cbc( &ctx, CAMELLIA_ENCRYPT, data_len, iv_str, src_str, output) == cbc_result );
+    mbedtls_camellia_setkey_enc( &ctx, key_str, key_len * 8 );
+    TEST_ASSERT( mbedtls_camellia_crypt_cbc( &ctx, MBEDTLS_CAMELLIA_ENCRYPT, data_len, iv_str, src_str, output) == cbc_result );
     if( cbc_result == 0 )
     {
         hexify( dst_str, output, data_len );
@@ -109,11 +109,11 @@ void camellia_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
     }
 
 exit:
-    camellia_free( &ctx );
+    mbedtls_camellia_free( &ctx );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_CIPHER_MODE_CBC */
+/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CBC */
 void camellia_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
                            char *hex_src_string, char *hex_dst_string,
                            int cbc_result )
@@ -123,7 +123,7 @@ void camellia_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
     unsigned char src_str[100];
     unsigned char dst_str[100];
     unsigned char output[100];
-    camellia_context ctx;
+    mbedtls_camellia_context ctx;
     int key_len, data_len;
 
     memset(key_str, 0x00, 100);
@@ -131,14 +131,14 @@ void camellia_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
-    camellia_init( &ctx );
+    mbedtls_camellia_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
     unhexify( iv_str, hex_iv_string );
     data_len = unhexify( src_str, hex_src_string );
 
-    camellia_setkey_dec( &ctx, key_str, key_len * 8 );
-    TEST_ASSERT( camellia_crypt_cbc( &ctx, CAMELLIA_DECRYPT, data_len, iv_str, src_str, output ) == cbc_result );
+    mbedtls_camellia_setkey_dec( &ctx, key_str, key_len * 8 );
+    TEST_ASSERT( mbedtls_camellia_crypt_cbc( &ctx, MBEDTLS_CAMELLIA_DECRYPT, data_len, iv_str, src_str, output ) == cbc_result );
     if( cbc_result == 0 )
     {
         hexify( dst_str, output, data_len );
@@ -147,11 +147,11 @@ void camellia_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
     }
 
 exit:
-    camellia_free( &ctx );
+    mbedtls_camellia_free( &ctx );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_CIPHER_MODE_CFB */
+/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CFB */
 void camellia_encrypt_cfb128( char *hex_key_string, char *hex_iv_string,
                               char *hex_src_string, char *hex_dst_string )
 {
@@ -160,7 +160,7 @@ void camellia_encrypt_cfb128( char *hex_key_string, char *hex_iv_string,
     unsigned char src_str[100];
     unsigned char dst_str[100];
     unsigned char output[100];
-    camellia_context ctx;
+    mbedtls_camellia_context ctx;
     size_t iv_offset = 0;
     int key_len;
 
@@ -169,24 +169,24 @@ void camellia_encrypt_cfb128( char *hex_key_string, char *hex_iv_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
-    camellia_init( &ctx );
+    mbedtls_camellia_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
     unhexify( iv_str, hex_iv_string );
     unhexify( src_str, hex_src_string );
 
-    camellia_setkey_enc( &ctx, key_str, key_len * 8 );
-    TEST_ASSERT( camellia_crypt_cfb128( &ctx, CAMELLIA_ENCRYPT, 16, &iv_offset, iv_str, src_str, output ) == 0 );
+    mbedtls_camellia_setkey_enc( &ctx, key_str, key_len * 8 );
+    TEST_ASSERT( mbedtls_camellia_crypt_cfb128( &ctx, MBEDTLS_CAMELLIA_ENCRYPT, 16, &iv_offset, iv_str, src_str, output ) == 0 );
     hexify( dst_str, output, 16 );
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
 
 exit:
-    camellia_free( &ctx );
+    mbedtls_camellia_free( &ctx );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_CIPHER_MODE_CFB */
+/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CFB */
 void camellia_decrypt_cfb128( char *hex_key_string, char *hex_iv_string,
                               char *hex_src_string, char *hex_dst_string )
 {
@@ -195,7 +195,7 @@ void camellia_decrypt_cfb128( char *hex_key_string, char *hex_iv_string,
     unsigned char src_str[100];
     unsigned char dst_str[100];
     unsigned char output[100];
-    camellia_context ctx;
+    mbedtls_camellia_context ctx;
     size_t iv_offset = 0;
     int key_len;
 
@@ -204,26 +204,26 @@ void camellia_decrypt_cfb128( char *hex_key_string, char *hex_iv_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
-    camellia_init( &ctx );
+    mbedtls_camellia_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
     unhexify( iv_str, hex_iv_string );
     unhexify( src_str, hex_src_string );
 
-    camellia_setkey_enc( &ctx, key_str, key_len * 8 );
-    TEST_ASSERT( camellia_crypt_cfb128( &ctx, CAMELLIA_DECRYPT, 16, &iv_offset, iv_str, src_str, output ) == 0 );
+    mbedtls_camellia_setkey_enc( &ctx, key_str, key_len * 8 );
+    TEST_ASSERT( mbedtls_camellia_crypt_cfb128( &ctx, MBEDTLS_CAMELLIA_DECRYPT, 16, &iv_offset, iv_str, src_str, output ) == 0 );
     hexify( dst_str, output, 16 );
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
 
 exit:
-    camellia_free( &ctx );
+    mbedtls_camellia_free( &ctx );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_SELF_TEST */
+/* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void camellia_selftest()
 {
-    TEST_ASSERT( camellia_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_camellia_self_test( 0 ) == 0 );
 }
 /* END_CASE */

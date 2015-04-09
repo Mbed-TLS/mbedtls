@@ -21,13 +21,13 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_AES_H
-#define POLARSSL_AES_H
+#ifndef MBEDTLS_AES_H
+#define MBEDTLS_AES_H
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
 #include <stddef.h>
@@ -40,13 +40,13 @@ typedef UINT32 uint32_t;
 #endif
 
 /* padlock.c and aesni.c rely on these values! */
-#define AES_ENCRYPT     1
-#define AES_DECRYPT     0
+#define MBEDTLS_AES_ENCRYPT     1
+#define MBEDTLS_AES_DECRYPT     0
 
-#define POLARSSL_ERR_AES_INVALID_KEY_LENGTH                -0x0020  /**< Invalid key length. */
-#define POLARSSL_ERR_AES_INVALID_INPUT_LENGTH              -0x0022  /**< Invalid data input length. */
+#define MBEDTLS_ERR_AES_INVALID_KEY_LENGTH                -0x0020  /**< Invalid key length. */
+#define MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH              -0x0022  /**< Invalid data input length. */
 
-#if !defined(POLARSSL_AES_ALT)
+#if !defined(MBEDTLS_AES_ALT)
 // Regular implementation
 //
 
@@ -68,21 +68,21 @@ typedef struct
     uint32_t *rk;               /*!<  AES round keys    */
     uint32_t buf[68];           /*!<  unaligned data    */
 }
-aes_context;
+mbedtls_aes_context;
 
 /**
  * \brief          Initialize AES context
  *
  * \param ctx      AES context to be initialized
  */
-void aes_init( aes_context *ctx );
+void mbedtls_aes_init( mbedtls_aes_context *ctx );
 
 /**
  * \brief          Clear AES context
  *
  * \param ctx      AES context to be cleared
  */
-void aes_free( aes_context *ctx );
+void mbedtls_aes_free( mbedtls_aes_context *ctx );
 
 /**
  * \brief          AES key schedule (encryption)
@@ -91,9 +91,9 @@ void aes_free( aes_context *ctx );
  * \param key      encryption key
  * \param keysize  must be 128, 192 or 256
  *
- * \return         0 if successful, or POLARSSL_ERR_AES_INVALID_KEY_LENGTH
+ * \return         0 if successful, or MBEDTLS_ERR_AES_INVALID_KEY_LENGTH
  */
-int aes_setkey_enc( aes_context *ctx, const unsigned char *key,
+int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
                     unsigned int keysize );
 
 /**
@@ -103,27 +103,27 @@ int aes_setkey_enc( aes_context *ctx, const unsigned char *key,
  * \param key      decryption key
  * \param keysize  must be 128, 192 or 256
  *
- * \return         0 if successful, or POLARSSL_ERR_AES_INVALID_KEY_LENGTH
+ * \return         0 if successful, or MBEDTLS_ERR_AES_INVALID_KEY_LENGTH
  */
-int aes_setkey_dec( aes_context *ctx, const unsigned char *key,
+int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
                     unsigned int keysize );
 
 /**
  * \brief          AES-ECB block encryption/decryption
  *
  * \param ctx      AES context
- * \param mode     AES_ENCRYPT or AES_DECRYPT
+ * \param mode     MBEDTLS_AES_ENCRYPT or MBEDTLS_AES_DECRYPT
  * \param input    16-byte input block
  * \param output   16-byte output block
  *
  * \return         0 if successful
  */
-int aes_crypt_ecb( aes_context *ctx,
+int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
                     int mode,
                     const unsigned char input[16],
                     unsigned char output[16] );
 
-#if defined(POLARSSL_CIPHER_MODE_CBC)
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
 /**
  * \brief          AES-CBC buffer encryption/decryption
  *                 Length should be a multiple of the block
@@ -138,29 +138,29 @@ int aes_crypt_ecb( aes_context *ctx,
  *                 module instead.
  *
  * \param ctx      AES context
- * \param mode     AES_ENCRYPT or AES_DECRYPT
+ * \param mode     MBEDTLS_AES_ENCRYPT or MBEDTLS_AES_DECRYPT
  * \param length   length of the input data
  * \param iv       initialization vector (updated after use)
  * \param input    buffer holding the input data
  * \param output   buffer holding the output data
  *
- * \return         0 if successful, or POLARSSL_ERR_AES_INVALID_INPUT_LENGTH
+ * \return         0 if successful, or MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH
  */
-int aes_crypt_cbc( aes_context *ctx,
+int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
                     int mode,
                     size_t length,
                     unsigned char iv[16],
                     const unsigned char *input,
                     unsigned char *output );
-#endif /* POLARSSL_CIPHER_MODE_CBC */
+#endif /* MBEDTLS_CIPHER_MODE_CBC */
 
-#if defined(POLARSSL_CIPHER_MODE_CFB)
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
 /**
  * \brief          AES-CFB128 buffer encryption/decryption.
  *
  * Note: Due to the nature of CFB you should use the same key schedule for
  * both encryption and decryption. So a context initialized with
- * aes_setkey_enc() for both AES_ENCRYPT and AES_DECRYPT.
+ * mbedtls_aes_setkey_enc() for both MBEDTLS_AES_ENCRYPT and MBEDTLS_AES_DECRYPT.
  *
  * \note           Upon exit, the content of the IV is updated so that you can
  *                 call the function same function again on the following
@@ -171,7 +171,7 @@ int aes_crypt_cbc( aes_context *ctx,
  *                 module instead.
  *
  * \param ctx      AES context
- * \param mode     AES_ENCRYPT or AES_DECRYPT
+ * \param mode     MBEDTLS_AES_ENCRYPT or MBEDTLS_AES_DECRYPT
  * \param length   length of the input data
  * \param iv_off   offset in IV (updated after use)
  * \param iv       initialization vector (updated after use)
@@ -180,7 +180,7 @@ int aes_crypt_cbc( aes_context *ctx,
  *
  * \return         0 if successful
  */
-int aes_crypt_cfb128( aes_context *ctx,
+int mbedtls_aes_crypt_cfb128( mbedtls_aes_context *ctx,
                        int mode,
                        size_t length,
                        size_t *iv_off,
@@ -193,7 +193,7 @@ int aes_crypt_cfb128( aes_context *ctx,
  *
  * Note: Due to the nature of CFB you should use the same key schedule for
  * both encryption and decryption. So a context initialized with
- * aes_setkey_enc() for both AES_ENCRYPT and AES_DECRYPT.
+ * mbedtls_aes_setkey_enc() for both MBEDTLS_AES_ENCRYPT and MBEDTLS_AES_DECRYPT.
  *
  * \note           Upon exit, the content of the IV is updated so that you can
  *                 call the function same function again on the following
@@ -204,7 +204,7 @@ int aes_crypt_cfb128( aes_context *ctx,
  *                 module instead.
  *
  * \param ctx      AES context
- * \param mode     AES_ENCRYPT or AES_DECRYPT
+ * \param mode     MBEDTLS_AES_ENCRYPT or MBEDTLS_AES_DECRYPT
  * \param length   length of the input data
  * \param iv       initialization vector (updated after use)
  * \param input    buffer holding the input data
@@ -212,15 +212,15 @@ int aes_crypt_cfb128( aes_context *ctx,
  *
  * \return         0 if successful
  */
-int aes_crypt_cfb8( aes_context *ctx,
+int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
                     int mode,
                     size_t length,
                     unsigned char iv[16],
                     const unsigned char *input,
                     unsigned char *output );
-#endif /*POLARSSL_CIPHER_MODE_CFB */
+#endif /*MBEDTLS_CIPHER_MODE_CFB */
 
-#if defined(POLARSSL_CIPHER_MODE_CTR)
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
 /**
  * \brief               AES-CTR buffer encryption/decryption
  *
@@ -228,7 +228,7 @@ int aes_crypt_cfb8( aes_context *ctx,
  *
  * Note: Due to the nature of CTR you should use the same key schedule for
  * both encryption and decryption. So a context initialized with
- * aes_setkey_enc() for both AES_ENCRYPT and AES_DECRYPT.
+ * mbedtls_aes_setkey_enc() for both MBEDTLS_AES_ENCRYPT and MBEDTLS_AES_DECRYPT.
  *
  * \param ctx           AES context
  * \param length        The length of the data
@@ -243,22 +243,22 @@ int aes_crypt_cfb8( aes_context *ctx,
  *
  * \return         0 if successful
  */
-int aes_crypt_ctr( aes_context *ctx,
+int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
                        size_t length,
                        size_t *nc_off,
                        unsigned char nonce_counter[16],
                        unsigned char stream_block[16],
                        const unsigned char *input,
                        unsigned char *output );
-#endif /* POLARSSL_CIPHER_MODE_CTR */
+#endif /* MBEDTLS_CIPHER_MODE_CTR */
 
 #ifdef __cplusplus
 }
 #endif
 
-#else  /* POLARSSL_AES_ALT */
+#else  /* MBEDTLS_AES_ALT */
 #include "aes_alt.h"
-#endif /* POLARSSL_AES_ALT */
+#endif /* MBEDTLS_AES_ALT */
 
 #ifdef __cplusplus
 extern "C" {
@@ -269,7 +269,7 @@ extern "C" {
  *
  * \return         0 if successful, or 1 if the test failed
  */
-int aes_self_test( int verbose );
+int mbedtls_aes_self_test( int verbose );
 
 #ifdef __cplusplus
 }

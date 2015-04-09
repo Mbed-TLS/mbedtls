@@ -4,12 +4,12 @@
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:POLARSSL_PEM_WRITE_C
+ * depends_on:MBEDTLS_PEM_WRITE_C
  * END_DEPENDENCIES
  */
 
 /* BEGIN_CASE */
-void pem_write_buffer( char *start, char *end, char *buf_str, char *result_str )
+void mbedtls_pem_write_buffer( char *start, char *end, char *buf_str, char *result_str )
 {
     unsigned char buf[5000];
     unsigned char *check_buf = NULL;
@@ -20,14 +20,14 @@ void pem_write_buffer( char *start, char *end, char *buf_str, char *result_str )
 
     buf_len = unhexify( buf, buf_str );
 
-    ret = pem_write_buffer( start, end, buf, buf_len, NULL, 0, &olen );
-    TEST_ASSERT( ret == POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL );
+    ret = mbedtls_pem_write_buffer( start, end, buf, buf_len, NULL, 0, &olen );
+    TEST_ASSERT( ret == MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL );
 
-    check_buf = (unsigned char *) polarssl_malloc( olen );
+    check_buf = (unsigned char *) mbedtls_malloc( olen );
     TEST_ASSERT( check_buf != NULL );
 
     memset( check_buf, 0, olen );
-    ret = pem_write_buffer( start, end, buf, buf_len, check_buf, olen, &olen2 );
+    ret = mbedtls_pem_write_buffer( start, end, buf, buf_len, check_buf, olen, &olen2 );
 
     TEST_ASSERT( olen2 <= olen );
     TEST_ASSERT( olen > strlen( (char*) result_str ) );
@@ -35,6 +35,6 @@ void pem_write_buffer( char *start, char *end, char *buf_str, char *result_str )
     TEST_ASSERT( strncmp( (char *) check_buf, (char *) result_str, olen ) == 0 );
 
 exit:
-    polarssl_free( check_buf );
+    mbedtls_free( check_buf );
 }
 /* END_CASE */

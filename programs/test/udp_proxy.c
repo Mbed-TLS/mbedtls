@@ -20,23 +20,23 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
-#include POLARSSL_CONFIG_FILE
+#include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
-#define polarssl_printf     printf
+#define mbedtls_printf     printf
 #endif
 
-#if !defined(POLARSSL_NET_C)
+#if !defined(MBEDTLS_NET_C)
 #include <stdio.h>
 int main( void )
 {
-    polarssl_printf( "POLARSSL_NET_C not defined.\n" );
+    mbedtls_printf( "MBEDTLS_NET_C not defined.\n" );
     return( 0 );
 }
 #else
@@ -129,11 +129,11 @@ static struct options
 static void exit_usage( const char *name, const char *value )
 {
     if( value == NULL )
-        polarssl_printf( " unknown option or missing value: %s\n", name );
+        mbedtls_printf( " unknown option or missing value: %s\n", name );
     else
-        polarssl_printf( " option %s: illegal value: %s\n", name, value );
+        mbedtls_printf( " option %s: illegal value: %s\n", name, value );
 
-    polarssl_printf( USAGE );
+    mbedtls_printf( USAGE );
     exit( 1 );
 }
 
@@ -235,10 +235,10 @@ static const char *msg_type( unsigned char *msg, size_t len )
     if( len < 1 )                           return( "Invalid" );
     switch( msg[0] )
     {
-        case SSL_MSG_CHANGE_CIPHER_SPEC:    return( "ChangeCipherSpec" );
-        case SSL_MSG_ALERT:                 return( "Alert" );
-        case SSL_MSG_APPLICATION_DATA:      return( "ApplicationData" );
-        case SSL_MSG_HANDSHAKE:             break; /* See below */
+        case MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC:    return( "ChangeCipherSpec" );
+        case MBEDTLS_SSL_MSG_ALERT:                 return( "Alert" );
+        case MBEDTLS_SSL_MSG_APPLICATION_DATA:      return( "ApplicationData" );
+        case MBEDTLS_SSL_MSG_HANDSHAKE:             break; /* See below */
         default:                            return( "Unknown" );
     }
 
@@ -253,18 +253,18 @@ static const char *msg_type( unsigned char *msg, size_t len )
 
     switch( msg[13] )
     {
-        case SSL_HS_HELLO_REQUEST:          return( "HelloRequest" );
-        case SSL_HS_CLIENT_HELLO:           return( "ClientHello" );
-        case SSL_HS_SERVER_HELLO:           return( "ServerHello" );
-        case SSL_HS_HELLO_VERIFY_REQUEST:   return( "HelloVerifyRequest" );
-        case SSL_HS_NEW_SESSION_TICKET:     return( "NewSessionTicket" );
-        case SSL_HS_CERTIFICATE:            return( "Certificate" );
-        case SSL_HS_SERVER_KEY_EXCHANGE:    return( "ServerKeyExchange" );
-        case SSL_HS_CERTIFICATE_REQUEST:    return( "CertificateRequest" );
-        case SSL_HS_SERVER_HELLO_DONE:      return( "ServerHelloDone" );
-        case SSL_HS_CERTIFICATE_VERIFY:     return( "CertificateVerify" );
-        case SSL_HS_CLIENT_KEY_EXCHANGE:    return( "ClientKeyExchange" );
-        case SSL_HS_FINISHED:               return( "Finished" );
+        case MBEDTLS_SSL_HS_HELLO_REQUEST:          return( "HelloRequest" );
+        case MBEDTLS_SSL_HS_CLIENT_HELLO:           return( "ClientHello" );
+        case MBEDTLS_SSL_HS_SERVER_HELLO:           return( "ServerHello" );
+        case MBEDTLS_SSL_HS_HELLO_VERIFY_REQUEST:   return( "HelloVerifyRequest" );
+        case MBEDTLS_SSL_HS_NEW_SESSION_TICKET:     return( "NewSessionTicket" );
+        case MBEDTLS_SSL_HS_CERTIFICATE:            return( "Certificate" );
+        case MBEDTLS_SSL_HS_SERVER_KEY_EXCHANGE:    return( "ServerKeyExchange" );
+        case MBEDTLS_SSL_HS_CERTIFICATE_REQUEST:    return( "CertificateRequest" );
+        case MBEDTLS_SSL_HS_SERVER_HELLO_DONE:      return( "ServerHelloDone" );
+        case MBEDTLS_SSL_HS_CERTIFICATE_VERIFY:     return( "CertificateVerify" );
+        case MBEDTLS_SSL_HS_CLIENT_KEY_EXCHANGE:    return( "ClientKeyExchange" );
+        case MBEDTLS_SSL_HS_FINISHED:               return( "Finished" );
         default:                            return( "Unknown handshake" );
     }
 }
@@ -303,10 +303,10 @@ typedef struct
 void print_packet( const packet *p, const char *why )
 {
     if( why == NULL )
-        polarssl_printf( "  %05lu %s %s (%u bytes)\n",
+        mbedtls_printf( "  %05lu %s %s (%u bytes)\n",
                 ellapsed_time(), p->way, p->type, p->len );
     else
-        polarssl_printf( "        %s %s (%u bytes): %s\n",
+        mbedtls_printf( "        %s %s (%u bytes): %s\n",
                 p->way, p->type, p->len, why );
     fflush( stdout );
 }
@@ -325,17 +325,17 @@ int send_packet( const packet *p, const char *why )
         ++buf[p->len - 1];
 
         print_packet( p, "corrupted" );
-        if( ( ret = net_send( &dst, buf, p->len ) ) <= 0 )
+        if( ( ret = mbedtls_net_send( &dst, buf, p->len ) ) <= 0 )
         {
-            polarssl_printf( "  ! net_send returned %d\n", ret );
+            mbedtls_printf( "  ! mbedtls_net_send returned %d\n", ret );
             return( ret );
         }
     }
 
     print_packet( p, why );
-    if( ( ret = net_send( &dst, p->buf, p->len ) ) <= 0 )
+    if( ( ret = mbedtls_net_send( &dst, p->buf, p->len ) ) <= 0 )
     {
-        polarssl_printf( "  ! net_send returned %d\n", ret );
+        mbedtls_printf( "  ! mbedtls_net_send returned %d\n", ret );
         return( ret );
     }
 
@@ -346,9 +346,9 @@ int send_packet( const packet *p, const char *why )
     {
         print_packet( p, "duplicated" );
 
-        if( ( ret = net_send( &dst, p->buf, p->len ) ) <= 0 )
+        if( ( ret = mbedtls_net_send( &dst, p->buf, p->len ) ) <= 0 )
         {
-            polarssl_printf( "  ! net_send returned %d\n", ret );
+            mbedtls_printf( "  ! mbedtls_net_send returned %d\n", ret );
             return( ret );
         }
     }
@@ -407,9 +407,9 @@ int handle_message( const char *way, int dst, int src )
     size_t id;
 
     /* receive packet */
-    if( ( ret = net_recv( &src, cur.buf, sizeof( cur.buf ) ) ) <= 0 )
+    if( ( ret = mbedtls_net_recv( &src, cur.buf, sizeof( cur.buf ) ) ) <= 0 )
     {
-        polarssl_printf( "  ! net_recv returned %d\n", ret );
+        mbedtls_printf( "  ! mbedtls_net_recv returned %d\n", ret );
         return( ret );
     }
 
@@ -490,7 +490,7 @@ int main( int argc, char *argv[] )
     if( opt.seed == 0 )
     {
         opt.seed = time( NULL );
-        polarssl_printf( "  . Pseudo-random seed: %u\n", opt.seed );
+        mbedtls_printf( "  . Pseudo-random seed: %u\n", opt.seed );
     }
 
     srand( opt.seed );
@@ -498,63 +498,63 @@ int main( int argc, char *argv[] )
     /*
      * 0. "Connect" to the server
      */
-    polarssl_printf( "  . Connect to server on UDP/%s/%d ...",
+    mbedtls_printf( "  . Connect to server on UDP/%s/%d ...",
             opt.server_addr, opt.server_port );
     fflush( stdout );
 
-    if( ( ret = net_connect( &server_fd, opt.server_addr, opt.server_port,
-                             NET_PROTO_UDP ) ) != 0 )
+    if( ( ret = mbedtls_net_connect( &server_fd, opt.server_addr, opt.server_port,
+                             MBEDTLS_NET_PROTO_UDP ) ) != 0 )
     {
-        polarssl_printf( " failed\n  ! net_connect returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_net_connect returned %d\n\n", ret );
         goto exit;
     }
 
-    polarssl_printf( " ok\n" );
+    mbedtls_printf( " ok\n" );
 
     /*
      * 1. Setup the "listening" UDP socket
      */
-    polarssl_printf( "  . Bind on UDP/%s/%d ...",
+    mbedtls_printf( "  . Bind on UDP/%s/%d ...",
             opt.listen_addr, opt.listen_port );
     fflush( stdout );
 
-    if( ( ret = net_bind( &listen_fd, opt.listen_addr, opt.listen_port,
-                          NET_PROTO_UDP ) ) != 0 )
+    if( ( ret = mbedtls_net_bind( &listen_fd, opt.listen_addr, opt.listen_port,
+                          MBEDTLS_NET_PROTO_UDP ) ) != 0 )
     {
-        polarssl_printf( " failed\n  ! net_bind returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_net_bind returned %d\n\n", ret );
         goto exit;
     }
 
-    polarssl_printf( " ok\n" );
+    mbedtls_printf( " ok\n" );
 
     /*
      * 2. Wait until a client connects
      */
 accept:
-    polarssl_printf( "  . Waiting for a remote connection ..." );
+    mbedtls_printf( "  . Waiting for a remote connection ..." );
     fflush( stdout );
 
-    if( ( ret = net_accept( listen_fd, &client_fd, NULL ) ) != 0 )
+    if( ( ret = mbedtls_net_accept( listen_fd, &client_fd, NULL ) ) != 0 )
     {
-        polarssl_printf( " failed\n  ! net_accept returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_net_accept returned %d\n\n", ret );
         goto exit;
     }
 
-    polarssl_printf( " ok\n" );
+    mbedtls_printf( " ok\n" );
     fflush( stdout );
 
-    polarssl_printf( "  . Re-bind on UDP/%s/%d ...",
+    mbedtls_printf( "  . Re-bind on UDP/%s/%d ...",
             opt.listen_addr, opt.listen_port );
     fflush( stdout );
 
-    if( ( ret = net_bind( &listen_fd, opt.listen_addr, opt.listen_port,
-                          NET_PROTO_UDP ) ) != 0 )
+    if( ( ret = mbedtls_net_bind( &listen_fd, opt.listen_addr, opt.listen_port,
+                          MBEDTLS_NET_PROTO_UDP ) ) != 0 )
     {
-        polarssl_printf( " failed\n  ! net_bind returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_net_bind returned %d\n\n", ret );
         goto exit;
     }
 
-    polarssl_printf( " ok\n" );
+    mbedtls_printf( " ok\n" );
 
     /*
      * 3. Forward packets forever (kill the process to terminate it)
@@ -602,28 +602,28 @@ accept:
 
 exit:
 
-#ifdef POLARSSL_ERROR_C
+#ifdef MBEDTLS_ERROR_C
     if( ret != 0 )
     {
         char error_buf[100];
-        polarssl_strerror( ret, error_buf, 100 );
-        polarssl_printf( "Last error was: -0x%04X - %s\n\n", - ret, error_buf );
+        mbedtls_strerror( ret, error_buf, 100 );
+        mbedtls_printf( "Last error was: -0x%04X - %s\n\n", - ret, error_buf );
         fflush( stdout );
     }
 #endif
 
     if( client_fd != -1 )
-        net_close( client_fd );
+        mbedtls_net_close( client_fd );
 
     if( listen_fd != -1 )
-        net_close( listen_fd );
+        mbedtls_net_close( listen_fd );
 
 #if defined(_WIN32)
-    polarssl_printf( "  Press Enter to exit this program.\n" );
+    mbedtls_printf( "  Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 
     return( ret != 0 );
 }
 
-#endif /* POLARSSL_NET_C */
+#endif /* MBEDTLS_NET_C */

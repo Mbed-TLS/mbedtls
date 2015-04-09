@@ -23,6 +23,15 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+#if ! defined(MBEDTLS_DEPRECATED_REMOVED)
+
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#warning "Including compat-1.2.h is deprecated"
+#endif
+
+#ifndef MBEDTLS_COMPAT13_H
+#define MBEDTLS_COMPAT13_H
+
 #ifndef POLARSSL_COMPAT_1_2_H
 #define POLARSSL_COMPAT_1_2_H
 
@@ -386,3 +395,4 @@ static inline int x509_write_key_der( unsigned char *buf, size_t len, rsa_contex
 }
 #endif /* POLARSSL_PK_WRITE_C && POLARSSL_RSA_C */
 #endif /* compat-1.2.h */
+#endif /* MBEDTLS_DEPRECATED_REMOVED */

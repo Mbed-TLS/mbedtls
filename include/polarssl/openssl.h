@@ -23,9 +23,17 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+
 /*
  * OpenSSL wrapper contributed by David Barett
  */
+
+#if ! defined(MBEDTLS_DEPRECATED_REMOVED)
+
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#warning "Including openssl.h is deprecated"
+#endif
+
 #ifndef POLARSSL_OPENSSL_H
 #define POLARSSL_OPENSSL_H
 
@@ -137,3 +145,4 @@ inline int RSA_private_encrypt( int size, unsigned char* input, unsigned char* o
 #endif
 
 #endif /* openssl.h */
+#endif /* MBEDTLS_DEPRECATED_REMOVED */

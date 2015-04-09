@@ -19,9 +19,9 @@ Features
      speed and RAM (heap only for now) usage.
    * New script memory.sh helps measuring the ROM and RAM requirements of two
      reduced configurations (PSK-CCM and NSA suite B).
-   * Add config flags POLARSSL_DEPRECATED_WARNING (off by default) to produce
+   * Add config flag POLARSSL_DEPRECATED_WARNING (off by default) to produce
      warnings on use of deprecated functions (with GCC and Clang only).
-   * Add config flags POLARSSL_DEPRECATED_REMOVED (off by default) to produce
+   * Add config flag POLARSSL_DEPRECATED_REMOVED (off by default) to produce
      errors on use of deprecated functions.
 
 Bugfix
@@ -43,6 +43,7 @@ Bugfix
      curve picked by the server was actually allowed.
 
 Changes
+   * compat-1.2.h and openssl.h are deprecated.
    * Adjusting/overriding CFLAGS and LDFLAGS with the make build syste is now
      more flexible (warning: OFLAGS is not used any more) (see the README)
      (contributed by Alon Bar-Lev).

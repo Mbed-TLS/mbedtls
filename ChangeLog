@@ -9,6 +9,7 @@ Features
     to override the whole module.
 
 API Changes
+   * Configuration options POLARSSL_HAVE_LONGLONG was removed (now always on).
    * Configuration options POLARSSL_HAVE_INT8 and POLARSSL_HAVE_INT16 have
      been removed (compiler is required to support 32-bit operations).
    * Configuration option POLARSSL_HAVE_IPV6 was removed (always enabled).

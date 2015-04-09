@@ -13,7 +13,6 @@
 #define MBEDTLS_CONFIG_H
 
 /* System support */
-#define MBEDTLS_HAVE_LONGLONG
 #define MBEDTLS_HAVE_ASM
 #define MBEDTLS_HAVE_TIME
 

@@ -40,14 +40,6 @@
  */
 
 /**
- * \def MBEDTLS_HAVE_LONGLONG
- *
- * The compiler supports the 'long long' type.
- * (Only used on 32-bit platforms)
- */
-#define MBEDTLS_HAVE_LONGLONG
-
-/**
  * \def MBEDTLS_HAVE_ASM
  *
  * The compiler has support for asm().

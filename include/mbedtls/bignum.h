@@ -138,15 +138,8 @@ typedef UINT64 uint64_t;
      #define MBEDTLS_HAVE_INT32
      typedef  int32_t mbedtls_mpi_sint;
      typedef uint32_t mbedtls_mpi_uint;
-     #if ( defined(_MSC_VER) && defined(_M_IX86) )
-       typedef uint64_t mbedtls_t_udbl;
-       #define MBEDTLS_HAVE_UDBL
-     #else
-       #if defined( MBEDTLS_HAVE_LONGLONG )
-         typedef unsigned long long mbedtls_t_udbl;
-         #define MBEDTLS_HAVE_UDBL
-       #endif
-     #endif
+     typedef uint64_t mbedtls_t_udbl;
+     #define MBEDTLS_HAVE_UDBL
   #endif /* !MBEDTLS_HAVE_INT32 && __GNUC__ && 64-bit platform */
 #endif /* !MBEDTLS_HAVE_INT32 && _MSC_VER && _M_AMD64 */
 

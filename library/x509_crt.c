@@ -1108,7 +1108,7 @@ static int compat_snprintf( char *str, size_t size, const char *format, ... )
 #define snprintf compat_snprintf
 #endif /* _MSC_VER  && !snprintf && !EFIX64 && !EFI32 */
 
-#define MBEDTLS_ERR_DEBUG_BUF_TOO_SMALL    -2
+#define ERR_BUF_TOO_SMALL    -2
 
 #define SAFE_SNPRINTF()                             \
 {                                                   \
@@ -1117,7 +1117,7 @@ static int compat_snprintf( char *str, size_t size, const char *format, ... )
                                                     \
     if( (unsigned int) ret > n ) {                  \
         p[n - 1] = '\0';                            \
-        return( MBEDTLS_ERR_DEBUG_BUF_TOO_SMALL ); \
+        return( ERR_BUF_TOO_SMALL ); \
     }                                               \
                                                     \
     n -= (unsigned int) ret;                        \
@@ -1139,7 +1139,7 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
         if( cur->buf.len + sep_len >= n )
         {
             *p = '\0';
-            return( MBEDTLS_ERR_DEBUG_BUF_TOO_SMALL );
+            return( ERR_BUF_TOO_SMALL );
         }
 
         n -= cur->buf.len + sep_len;

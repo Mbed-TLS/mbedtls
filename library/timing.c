@@ -62,10 +62,10 @@ struct _hr_time
 
 #endif /* _WIN32 && !EFIX64 && !EFI32 */
 
-#if !defined(MBEDTLS_HAVE_HARDCLOCK) && defined(MBEDTLS_HAVE_ASM) &&  \
+#if !defined(HAVE_HARDCLOCK) && defined(MBEDTLS_HAVE_ASM) &&  \
     ( defined(_MSC_VER) && defined(_M_IX86) ) || defined(__WATCOMC__)
 
-#define MBEDTLS_HAVE_HARDCLOCK
+#define HAVE_HARDCLOCK
 
 unsigned long mbedtls_timing_hardclock( void )
 {
@@ -74,15 +74,15 @@ unsigned long mbedtls_timing_hardclock( void )
     __asm   mov  [tsc], eax
     return( tsc );
 }
-#endif /* !MBEDTLS_HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
+#endif /* !HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
           ( _MSC_VER && _M_IX86 ) || __WATCOMC__ */
 
 /* some versions of mingw-64 have 32-bit longs even on x84_64 */
-#if !defined(MBEDTLS_HAVE_HARDCLOCK) && defined(MBEDTLS_HAVE_ASM) &&  \
+#if !defined(HAVE_HARDCLOCK) && defined(MBEDTLS_HAVE_ASM) &&  \
     defined(__GNUC__) && ( defined(__i386__) || (                       \
     ( defined(__amd64__) || defined( __x86_64__) ) && __SIZEOF_LONG__ == 4 ) )
 
-#define MBEDTLS_HAVE_HARDCLOCK
+#define HAVE_HARDCLOCK
 
 unsigned long mbedtls_timing_hardclock( void )
 {
@@ -90,13 +90,13 @@ unsigned long mbedtls_timing_hardclock( void )
     asm volatile( "rdtsc" : "=a" (lo), "=d" (hi) );
     return( lo );
 }
-#endif /* !MBEDTLS_HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
+#endif /* !HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
           __GNUC__ && __i386__ */
 
-#if !defined(MBEDTLS_HAVE_HARDCLOCK) && defined(MBEDTLS_HAVE_ASM) &&  \
+#if !defined(HAVE_HARDCLOCK) && defined(MBEDTLS_HAVE_ASM) &&  \
     defined(__GNUC__) && ( defined(__amd64__) || defined(__x86_64__) )
 
-#define MBEDTLS_HAVE_HARDCLOCK
+#define HAVE_HARDCLOCK
 
 unsigned long mbedtls_timing_hardclock( void )
 {
@@ -104,13 +104,13 @@ unsigned long mbedtls_timing_hardclock( void )
     asm volatile( "rdtsc" : "=a" (lo), "=d" (hi) );
     return( lo | ( hi << 32 ) );
 }
-#endif /* !MBEDTLS_HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
+#endif /* !HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
           __GNUC__ && ( __amd64__ || __x86_64__ ) */
 
-#if !defined(MBEDTLS_HAVE_HARDCLOCK) && defined(MBEDTLS_HAVE_ASM) &&  \
+#if !defined(HAVE_HARDCLOCK) && defined(MBEDTLS_HAVE_ASM) &&  \
     defined(__GNUC__) && ( defined(__powerpc__) || defined(__ppc__) )
 
-#define MBEDTLS_HAVE_HARDCLOCK
+#define HAVE_HARDCLOCK
 
 unsigned long mbedtls_timing_hardclock( void )
 {
@@ -126,16 +126,16 @@ unsigned long mbedtls_timing_hardclock( void )
 
     return( tbl );
 }
-#endif /* !MBEDTLS_HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
+#endif /* !HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
           __GNUC__ && ( __powerpc__ || __ppc__ ) */
 
-#if !defined(MBEDTLS_HAVE_HARDCLOCK) && defined(MBEDTLS_HAVE_ASM) &&  \
+#if !defined(HAVE_HARDCLOCK) && defined(MBEDTLS_HAVE_ASM) &&  \
     defined(__GNUC__) && defined(__sparc64__)
 
 #if defined(__OpenBSD__)
 #warning OpenBSD does not allow access to tick register using software version instead
 #else
-#define MBEDTLS_HAVE_HARDCLOCK
+#define HAVE_HARDCLOCK
 
 unsigned long mbedtls_timing_hardclock( void )
 {
@@ -144,13 +144,13 @@ unsigned long mbedtls_timing_hardclock( void )
     return( tick );
 }
 #endif /* __OpenBSD__ */
-#endif /* !MBEDTLS_HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
+#endif /* !HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
           __GNUC__ && __sparc64__ */
 
-#if !defined(MBEDTLS_HAVE_HARDCLOCK) && defined(MBEDTLS_HAVE_ASM) &&  \
+#if !defined(HAVE_HARDCLOCK) && defined(MBEDTLS_HAVE_ASM) &&  \
     defined(__GNUC__) && defined(__sparc__) && !defined(__sparc64__)
 
-#define MBEDTLS_HAVE_HARDCLOCK
+#define HAVE_HARDCLOCK
 
 unsigned long mbedtls_timing_hardclock( void )
 {
@@ -159,13 +159,13 @@ unsigned long mbedtls_timing_hardclock( void )
     asm volatile( "mov   %%g1, %0" : "=r" (tick) );
     return( tick );
 }
-#endif /* !MBEDTLS_HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
+#endif /* !HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
           __GNUC__ && __sparc__ && !__sparc64__ */
 
-#if !defined(MBEDTLS_HAVE_HARDCLOCK) && defined(MBEDTLS_HAVE_ASM) &&      \
+#if !defined(HAVE_HARDCLOCK) && defined(MBEDTLS_HAVE_ASM) &&      \
     defined(__GNUC__) && defined(__alpha__)
 
-#define MBEDTLS_HAVE_HARDCLOCK
+#define HAVE_HARDCLOCK
 
 unsigned long mbedtls_timing_hardclock( void )
 {
@@ -173,13 +173,13 @@ unsigned long mbedtls_timing_hardclock( void )
     asm volatile( "rpcc %0" : "=r" (cc) );
     return( cc & 0xFFFFFFFF );
 }
-#endif /* !MBEDTLS_HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
+#endif /* !HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
           __GNUC__ && __alpha__ */
 
-#if !defined(MBEDTLS_HAVE_HARDCLOCK) && defined(MBEDTLS_HAVE_ASM) &&      \
+#if !defined(HAVE_HARDCLOCK) && defined(MBEDTLS_HAVE_ASM) &&      \
     defined(__GNUC__) && defined(__ia64__)
 
-#define MBEDTLS_HAVE_HARDCLOCK
+#define HAVE_HARDCLOCK
 
 unsigned long mbedtls_timing_hardclock( void )
 {
@@ -187,13 +187,13 @@ unsigned long mbedtls_timing_hardclock( void )
     asm volatile( "mov %0 = ar.itc" : "=r" (itc) );
     return( itc );
 }
-#endif /* !MBEDTLS_HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
+#endif /* !HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
           __GNUC__ && __ia64__ */
 
-#if !defined(MBEDTLS_HAVE_HARDCLOCK) && defined(_MSC_VER) && \
+#if !defined(HAVE_HARDCLOCK) && defined(_MSC_VER) && \
     !defined(EFIX64) && !defined(EFI32)
 
-#define MBEDTLS_HAVE_HARDCLOCK
+#define HAVE_HARDCLOCK
 
 unsigned long mbedtls_timing_hardclock( void )
 {
@@ -203,11 +203,11 @@ unsigned long mbedtls_timing_hardclock( void )
 
     return( (unsigned long)( offset.QuadPart ) );
 }
-#endif /* !MBEDTLS_HAVE_HARDCLOCK && _MSC_VER && !EFIX64 && !EFI32 */
+#endif /* !HAVE_HARDCLOCK && _MSC_VER && !EFIX64 && !EFI32 */
 
-#if !defined(MBEDTLS_HAVE_HARDCLOCK)
+#if !defined(HAVE_HARDCLOCK)
 
-#define MBEDTLS_HAVE_HARDCLOCK
+#define HAVE_HARDCLOCK
 
 static int hardclock_init = 0;
 static struct timeval tv_init;
@@ -226,7 +226,7 @@ unsigned long mbedtls_timing_hardclock( void )
     return( ( tv_cur.tv_sec  - tv_init.tv_sec  ) * 1000000
           + ( tv_cur.tv_usec - tv_init.tv_usec ) );
 }
-#endif /* !MBEDTLS_HAVE_HARDCLOCK */
+#endif /* !HAVE_HARDCLOCK */
 
 volatile int mbedtls_timing_alarmed = 0;
 

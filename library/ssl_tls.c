@@ -1208,7 +1208,7 @@ static void ssl_mac( mbedtls_md_context_t *md_ctx, unsigned char *secret,
 #if defined(MBEDTLS_ARC4_C) || defined(MBEDTLS_CIPHER_NULL_CIPHER) ||     \
     ( defined(MBEDTLS_CIPHER_MODE_CBC) &&                                  \
       ( defined(MBEDTLS_AES_C) || defined(MBEDTLS_CAMELLIA_C) ) )
-#define MBEDTLS_SOME_MODES_USE_MAC
+#define SSL_SOME_MODES_USE_MAC
 #endif
 
 /*
@@ -1235,7 +1235,7 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
     /*
      * Add MAC before if needed
      */
-#if defined(MBEDTLS_SOME_MODES_USE_MAC)
+#if defined(SSL_SOME_MODES_USE_MAC)
     if( mode == MBEDTLS_MODE_STREAM ||
         ( mode == MBEDTLS_MODE_CBC
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
@@ -1538,14 +1538,14 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
-#define MBEDTLS_SSL_MAX_MAC_SIZE   48
+#define SSL_MAX_MAC_SIZE   48
 
 static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
 {
     size_t i;
     mbedtls_cipher_mode_t mode;
     int auth_done = 0;
-#if defined(MBEDTLS_SOME_MODES_USE_MAC)
+#if defined(SSL_SOME_MODES_USE_MAC)
     size_t padlen = 0, correct = 1;
 #endif
 
@@ -1707,7 +1707,7 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
         if( ssl->session_in->encrypt_then_mac == MBEDTLS_SSL_ETM_ENABLED )
         {
-            unsigned char computed_mac[MBEDTLS_SSL_MAX_MAC_SIZE];
+            unsigned char computed_mac[SSL_MAX_MAC_SIZE];
             unsigned char pseudo_hdr[13];
 
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "using encrypt then mac" ) );
@@ -1891,10 +1891,10 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
      * Authenticate if not done yet.
      * Compute the MAC regardless of the padding result (RFC4346, CBCTIME).
      */
-#if defined(MBEDTLS_SOME_MODES_USE_MAC)
+#if defined(SSL_SOME_MODES_USE_MAC)
     if( auth_done == 0 )
     {
-        unsigned char tmp[MBEDTLS_SSL_MAX_MAC_SIZE];
+        unsigned char tmp[SSL_MAX_MAC_SIZE];
 
         ssl->in_msglen -= ssl->transform_in->maclen;
 
@@ -1976,7 +1976,7 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
         if( correct == 0 )
             return( MBEDTLS_ERR_SSL_INVALID_MAC );
     }
-#endif /* MBEDTLS_SOME_MODES_USE_MAC */
+#endif /* SSL_SOME_MODES_USE_MAC */
 
     /* Make extra sure authentication was performed, exactly once */
     if( auth_done != 1 )

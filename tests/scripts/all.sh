@@ -76,6 +76,10 @@ scripts/recursion.pl library/*.c
 msg "test: freshness of generated source files" # < 1s
 tests/scripts/check-generated-files.sh
 
+msg "test/build: declared and exported names" # < 3s
+cleanup
+tests/scripts/check-names.sh
+
 msg "build: cmake, gcc, ASan" # ~ 1 min 50s
 cleanup
 CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .

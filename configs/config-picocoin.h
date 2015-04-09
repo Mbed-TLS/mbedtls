@@ -16,7 +16,6 @@
 #define MBEDTLS_HAVE_LONGLONG
 #define MBEDTLS_HAVE_ASM
 #define MBEDTLS_HAVE_TIME
-#define MBEDTLS_HAVE_IPV6
 
 /* mbed TLS feature support */
 #define MBEDTLS_CIPHER_MODE_CBC

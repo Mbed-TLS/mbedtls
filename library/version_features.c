@@ -57,9 +57,6 @@ static const char *features[] = {
 #if defined(MBEDTLS_HAVE_TIME)
     "MBEDTLS_HAVE_TIME",
 #endif /* MBEDTLS_HAVE_TIME */
-#if defined(MBEDTLS_HAVE_IPV6)
-    "MBEDTLS_HAVE_IPV6",
-#endif /* MBEDTLS_HAVE_IPV6 */
 #if defined(MBEDTLS_PLATFORM_MEMORY)
     "MBEDTLS_PLATFORM_MEMORY",
 #endif /* MBEDTLS_PLATFORM_MEMORY */

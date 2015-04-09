@@ -9,6 +9,7 @@ Features
     to override the whole module.
 
 API Changes
+   * Configuration option POLARSSL_HAVE_IPV6 was removed (always enabled).
    * All public identifiers moved to the mbedtls_* or MBEDTLS_* namespace.
    * ecdsa_write_signature() gained an addtional md_alg argument and
      ecdsa_write_signature_det() was deprecated.
@@ -57,6 +58,7 @@ Default behavior changes
      custom config.h
 
 Changes
+   * The NET layer now unconditionnaly relies on getaddrinfo().
    * Remove test program o_p_test, the script compat.sh does more.
    * Remove test program ssl_test, superseded by ssl-opt.sh.
    * Remove helper script active-config.pl

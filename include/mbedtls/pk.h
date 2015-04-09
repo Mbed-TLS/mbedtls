@@ -61,27 +61,6 @@
 #define MBEDTLS_ERR_PK_SIG_LEN_MISMATCH    -0x2000  /**< The signature is valid but its length is less than expected. */
 
 
-#if defined(MBEDTLS_RSA_C)
-/**
- * Quick access to an RSA context inside a PK context.
- *
- * \warning You must make sure the PK context actually holds an RSA context
- * before using this macro!
- */
-#define mbedtls_pk_rsa( pk )        ( (mbedtls_rsa_context *) (pk).pk_ctx )
-#endif /* MBEDTLS_RSA_C */
-
-#if defined(MBEDTLS_ECP_C)
-/**
- * Quick access to an EC context inside a PK context.
- *
- * \warning You must make sure the PK context actually holds an EC context
- * before using this macro!
- */
-#define mbedtls_pk_ec( pk )         ( (mbedtls_ecp_keypair *) (pk).pk_ctx )
-#endif /* MBEDTLS_ECP_C */
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -143,9 +122,35 @@ typedef struct mbedtls_pk_info_t mbedtls_pk_info_t;
  */
 typedef struct
 {
-    const mbedtls_pk_info_t *   pk_info;    /**< Public key informations        */
-    void *              pk_ctx;     /**< Underlying public key context  */
+    const mbedtls_pk_info_t *   pk_info; /**< Public key informations        */
+    void *                      pk_ctx;  /**< Underlying public key context  */
 } mbedtls_pk_context;
+
+#if defined(MBEDTLS_RSA_C)
+/**
+ * Quick access to an RSA context inside a PK context.
+ *
+ * \warning You must make sure the PK context actually holds an RSA context
+ * before using this function!
+ */
+static inline mbedtls_rsa_context *mbedtls_pk_rsa( const mbedtls_pk_context pk )
+{
+    return( (mbedtls_rsa_context *) (pk).pk_ctx );
+}
+#endif /* MBEDTLS_RSA_C */
+
+#if defined(MBEDTLS_ECP_C)
+/**
+ * Quick access to an EC context inside a PK context.
+ *
+ * \warning You must make sure the PK context actually holds an EC context
+ * before using this function!
+ */
+static inline mbedtls_ecp_keypair *mbedtls_pk_ec( const mbedtls_pk_context pk )
+{
+    return( (mbedtls_ecp_keypair *) (pk).pk_ctx );
+}
+#endif /* MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /**

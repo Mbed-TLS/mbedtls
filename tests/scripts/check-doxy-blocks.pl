@@ -12,7 +12,7 @@ use warnings;
 use strict;
 use File::Basename;
 
-# header files in the following directories will be checked
+# C/header files in the following directories will be checked
 my @directories = qw(include/mbedtls library doxygen/input);
 
 # very naive pattern to find directives:

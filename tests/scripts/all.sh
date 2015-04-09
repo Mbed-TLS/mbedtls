@@ -71,10 +71,13 @@ msg()
 # Indicative running times are given for reference.
 
 msg "test: recursion.pl" # < 1s
-scripts/recursion.pl library/*.c
+tests/scripts/recursion.pl library/*.c
 
 msg "test: freshness of generated source files" # < 1s
 tests/scripts/check-generated-files.sh
+
+msg "test: doxygen markup outside doxygen blocks" # < 1s
+tests/scripts/check-doxy-blocks.pl
 
 msg "test/build: declared and exported names" # < 3s
 cleanup

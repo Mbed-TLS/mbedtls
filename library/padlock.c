@@ -98,7 +98,7 @@ int padlock_xcryptecb( aes_context *ctx,
          "movl    %1, %%ebx             \n\t"
          : "=m" (ebx)
          :  "m" (ebx), "m" (ctrl), "m" (rk), "m" (blk)
-         : "ecx", "edx", "esi", "edi" );
+         : "memory", "ecx", "edx", "esi", "edi" );
 
     memcpy( output, blk, 16 );
 
@@ -149,7 +149,7 @@ int padlock_xcryptcbc( aes_context *ctx,
          : "=m" (ebx)
          :  "m" (ebx), "m" (count), "m" (ctrl),
             "m"  (rk), "m" (input), "m" (output), "m" (iw)
-         : "eax", "ecx", "edx", "esi", "edi" );
+         : "memory", "eax", "ecx", "edx", "esi", "edi" );
 
     memcpy( iv, iw, 16 );
 

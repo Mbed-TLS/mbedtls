@@ -11,7 +11,7 @@ use open qw(:std utf8);
 
 my $usage = "Usage: $0 [-f datafile] [-s] [--] [filenames...]\n";
 
-(my $datafile = $0) =~ s/(rename-1\.3-2\.0)\.pl$/data_files\/$1.txt/;
+(my $datafile = $0) =~ s/rename.pl$/data_files\/rename-1.3-2.0.txt/;
 my $do_strings = 0;
 
 while( @ARGV && $ARGV[0] =~ /^-/ ) {
@@ -27,16 +27,18 @@ while( @ARGV && $ARGV[0] =~ /^-/ ) {
     }
 }
 
-open my $nfh, '<', $datafile or die "Could not read $datafile\n";
-my @names = <$nfh>;
-close $nfh or die;
-
 my %subst;
-for my $name (@names) {
-    chomp $name;
-    my ($old, $new) = split / /, $name;
+open my $nfh, '<', $datafile or die "Could not read $datafile\n";
+my $ident = qr/[_A-Za-z][_A-Za-z0-9]*/;
+while( my $line = <$nfh> ) {
+    chomp $line;
+    my ( $old, $new ) = ( $line =~ /^($ident)\s+($ident)$/ );
+    if( ! $old || ! $new ) {
+        die "$0: $datafile:$.: bad input '$line'\n";
+    }
     $subst{$old} = $new;
 }
+close $nfh or die;
 
 my $string = qr/"(?:\\.|[^\\"])*"/;
 my $space = qr/\s+/;

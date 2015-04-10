@@ -1,5 +1,11 @@
 PolarSSL ChangeLog
 
+= Version 1.2.14 released 2015-04-??
+
+Security
+   * Fix potential invalid memory read in the server, that allows a client to
+     crash it remotely (found by Caj Larsson).
+
 = Version 1.2.13 released 2015-02-16
 Note: Although PolarSSL has been renamed to mbed TLS, no changes reflecting
       this will be made in the 1.2 branch at this point.

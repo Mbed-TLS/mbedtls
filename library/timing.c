@@ -229,20 +229,24 @@ unsigned long get_timer( struct hr_time *val, int reset )
     return( delta );
 }
 
-DWORD WINAPI TimerProc( LPVOID uElapse )
-{   
-    Sleep( (DWORD) uElapse );
-    alarmed = 1; 
+/* It's OK to use a global because alarm() is supposed to be global anyway */
+static DWORD alarmMs;
+
+static DWORD WINAPI TimerProc( LPVOID TimerContext )
+{
+    ((void) TimerContext);
+    Sleep( alarmMs );
+    alarmed = 1;
     return( TRUE );
 }
 
 void set_alarm( int seconds )
-{   
+{
     DWORD ThreadId;
 
-    alarmed = 0; 
-    CloseHandle( CreateThread( NULL, 0, TimerProc,
-        (LPVOID) ( seconds * 1000 ), 0, &ThreadId ) );
+    alarmed = 0;
+    alarmMs = seconds * 1000;
+    CloseHandle( CreateThread( NULL, 0, TimerProc, NULL, 0, &ThreadId ) );
 }
 
 void m_sleep( int milliseconds )

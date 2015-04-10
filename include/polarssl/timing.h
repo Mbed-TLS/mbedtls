@@ -55,6 +55,10 @@ unsigned long get_timer( struct hr_time *val, int reset );
  * \brief          Setup an alarm clock
  *
  * \param seconds  delay before the "alarmed" flag is set
+ *
+ * \warning        Only one alarm at a time  is supported. In a threaded
+ *                 context, this means one for the whole process, not one per
+ *                 thread.
  */
 void set_alarm( int seconds );
 

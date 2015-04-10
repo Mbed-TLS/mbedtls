@@ -62,7 +62,7 @@ int asn1_get_len( unsigned char **p,
             if( ( end - *p ) < 3 )
                 return( POLARSSL_ERR_ASN1_OUT_OF_DATA );
 
-            *len = ( (*p)[1] << 8 ) | (*p)[2];
+            *len = ( (size_t)(*p)[1] << 8 ) | (*p)[2];
             (*p) += 3;
             break;
 
@@ -70,7 +70,8 @@ int asn1_get_len( unsigned char **p,
             if( ( end - *p ) < 4 )
                 return( POLARSSL_ERR_ASN1_OUT_OF_DATA );
 
-            *len = ( (*p)[1] << 16 ) | ( (*p)[2] << 8 ) | (*p)[3];
+            *len = ( (size_t)(*p)[1] << 16 ) |
+                   ( (size_t)(*p)[2] << 8  ) | (*p)[3];
             (*p) += 4;
             break;
 
@@ -78,7 +79,8 @@ int asn1_get_len( unsigned char **p,
             if( ( end - *p ) < 5 )
                 return( POLARSSL_ERR_ASN1_OUT_OF_DATA );
 
-            *len = ( (*p)[1] << 24 ) | ( (*p)[2] << 16 ) | ( (*p)[3] << 8 ) | (*p)[4];
+            *len = ( (size_t)(*p)[1] << 24 ) | ( (size_t)(*p)[2] << 16 ) |
+                   ( (size_t)(*p)[3] << 8  ) |           (*p)[4];
             (*p) += 5;
             break;
 

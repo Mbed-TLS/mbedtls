@@ -6,6 +6,10 @@ Security
    * Fix potential invalid memory read in the server, that allows a client to
      crash it remotely (found by Caj Larsson).
 
+Bugfix
+   * Fix potential unintended sign extension in asn1_get_len() on 64-bit
+     platforms (found with Coverity Scan).
+
 = Version 1.2.13 released 2015-02-16
 Note: Although PolarSSL has been renamed to mbed TLS, no changes reflecting
       this will be made in the 1.2 branch at this point.

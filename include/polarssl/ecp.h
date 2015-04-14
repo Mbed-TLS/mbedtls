@@ -642,7 +642,7 @@ int ecp_gen_key( ecp_group_id grp_id, ecp_keypair *key,
  * \param pub       Keypair structure holding a public key
  * \param prv       Keypair structure holding a private (plus public) key
  *
- * \return          0 if successfull (keys are valid and match), or
+ * \return          0 if successful (keys are valid and match), or
  *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA, or
  *                  a POLARSSL_ERR_ECP_XXX or POLARSSL_ERR_MPI_XXX code.
  */

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Measure heap usage (and perfomance) of ECC operations with various values of
+# Measure heap usage (and performance) of ECC operations with various values of
 # the relevant tunable compile-time parameters.
 #
 # Usage (preferably on a 32-bit platform):

@@ -642,7 +642,7 @@ int mbedtls_ecp_gen_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
  * \param pub       Keypair structure holding a public key
  * \param prv       Keypair structure holding a private (plus public) key
  *
- * \return          0 if successfull (keys are valid and match), or
+ * \return          0 if successful (keys are valid and match), or
  *                  MBEDTLS_ERR_ECP_BAD_INPUT_DATA, or
  *                  a MBEDTLS_ERR_ECP_XXX or MBEDTLS_ERR_MPI_XXX code.
  */

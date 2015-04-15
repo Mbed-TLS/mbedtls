@@ -91,6 +91,8 @@ Features
      errors on use of deprecated functions.
 
 Bugfix
+   * Fix bug in pk_parse_key() that caused some valid private EC keys to be
+     rejected.
    * Fix bug in Via Padlock support (found by Nikos Mavrogiannopoulos).
    * Fix thread safety bug in RSA operations (found by Fredrik Axelsson).
    * Fix hardclock() (only used in the benchmarking program) with some

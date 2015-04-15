@@ -31,13 +31,7 @@
 #endif
 
 #include <stddef.h>
-
-#if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
-#include <basetsd.h>
-typedef UINT32 uint32_t;
-#else
-#include <inttypes.h>
-#endif
+#include <stdint.h>
 
 #define MBEDTLS_ERR_MD5_FILE_IO_ERROR                 -0x0074  /**< Read/write error in file. */
 

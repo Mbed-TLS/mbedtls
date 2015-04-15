@@ -31,12 +31,7 @@
 #endif
 
 #include <stddef.h>
-
-#if defined(_MSC_VER) || defined(__WATCOMC__)
-  typedef unsigned __int64 uint64_t;
-#else
-  #include <inttypes.h>
-#endif
+#include <stdint.h>
 
 #define MBEDTLS_ERR_SHA512_FILE_IO_ERROR              -0x007A  /**< Read/write error in file. */
 

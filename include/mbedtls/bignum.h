@@ -31,20 +31,11 @@
 #endif
 
 #include <stddef.h>
+#include <stdint.h>
 
 #if defined(MBEDTLS_FS_IO)
 #include <stdio.h>
 #endif
-
-#if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
-#include <basetsd.h>
-typedef  INT32  int32_t;
-typedef  INT64  int64_t;
-typedef UINT32 uint32_t;
-typedef UINT64 uint64_t;
-#else
-#include <inttypes.h>
-#endif /* _MSC_VER && !EFIX64 && !EFI32 */
 
 #define MBEDTLS_ERR_MPI_FILE_IO_ERROR                     -0x0002  /**< An error occurred while reading from or writing to a file. */
 #define MBEDTLS_ERR_MPI_BAD_INPUT_DATA                    -0x0004  /**< Bad input parameters to function. */

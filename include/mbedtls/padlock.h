@@ -35,12 +35,7 @@
 #define MBEDTLS_HAVE_X86
 #endif
 
-#if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
-#include <basetsd.h>
-typedef INT32 int32_t;
-#else
-#include <inttypes.h>
-#endif
+#include <stdint.h>
 
 #define MBEDTLS_PADLOCK_RNG 0x000C
 #define MBEDTLS_PADLOCK_ACE 0x00C0

@@ -61,6 +61,7 @@ Default behavior changes
      custom config.h
 
 Changes
+   * The minimum MSVC version required is now 2010 (better C99 support).
    * The NET layer now unconditionnaly relies on getaddrinfo().
    * Remove test program o_p_test, the script compat.sh does more.
    * Remove test program ssl_test, superseded by ssl-opt.sh.

@@ -26,13 +26,7 @@
 
 #include "cipher.h"
 
-#if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
-#include <basetsd.h>
-typedef UINT32 uint32_t;
-typedef UINT64 uint64_t;
-#else
 #include <stdint.h>
-#endif
 
 #define MBEDTLS_GCM_ENCRYPT     1
 #define MBEDTLS_GCM_DECRYPT     0

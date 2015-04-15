@@ -96,7 +96,7 @@ cleanup:
 
     if( ret != 0 )
     {
-        polarssl_printf( "\nAn error occurred.\n" );
+        mbedtls_printf( "\nAn error occurred.\n" );
         ret = 1;
     }
 

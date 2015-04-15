@@ -2887,7 +2887,7 @@ static int ssl_parse_encrypted_pms( ssl_context *ssl,
     unsigned char *pms = ssl->handshake->premaster + pms_offset;
     unsigned char fake_pms[48], peer_pms[48];
     unsigned char mask;
-    size_t i;
+    size_t i, diff, peer_pmslen;
 
     if( ! pk_can_do( ssl_own_key( ssl ), POLARSSL_PK_RSA ) )
     {
@@ -2929,16 +2929,17 @@ static int ssl_parse_encrypted_pms( ssl_context *ssl,
         return( ret );
 
     ret = pk_decrypt( ssl_own_key( ssl ), p, len,
-                      peer_pms, &ssl->handshake->pmslen,
+                      peer_pms, &peer_pmslen,
                       sizeof( peer_pms ),
                       ssl->f_rng, ssl->p_rng );
 
-    ret |= ssl->handshake->pmslen - 48;
-    ret |= peer_pms[0] - ssl->handshake->max_major_ver;
-    ret |= peer_pms[1] - ssl->handshake->max_minor_ver;
+    diff  = (size_t) ret;
+    diff |= peer_pmslen ^ 48;
+    diff |= peer_pms[0] ^ ssl->handshake->max_major_ver;
+    diff |= peer_pms[1] ^ ssl->handshake->max_minor_ver;
 
 #if defined(POLARSSL_SSL_DEBUG_ALL)
-    if( ret != 0 )
+    if( diff != 0 )
         SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
 #endif
 
@@ -2950,7 +2951,8 @@ static int ssl_parse_encrypted_pms( ssl_context *ssl,
     }
     ssl->handshake->pmslen = 48;
 
-    mask = (unsigned char)( - ( ret != 0 ) ); /* ret ? 0xff : 0x00 */
+    mask = ( diff | - diff ) >> ( sizeof( size_t ) * 8 - 1 );
+    mask = (unsigned char)( - ( ret != 0 ) ); /* mask = diff ? 0xff : 0x00 */
     for( i = 0; i < ssl->handshake->pmslen; i++ )
         pms[i] = ( mask & fake_pms[i] ) | ( (~mask) & peer_pms[i] );
 

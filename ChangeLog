@@ -27,6 +27,9 @@ Features
      errors on use of deprecated functions.
 
 Bugfix
+   * Fix potential NULL pointer dereference (not trigerrable remotely) when
+     ssl_write() is called before the handshake is finished (introduced in
+     1.3.10) (first reported by Martin Blumenstingl).
    * Fix bug in pk_parse_key() that caused some valid private EC keys to be
      rejected.
    * Fix bug in Via Padlock support (found by Nikos Mavrogiannopoulos).

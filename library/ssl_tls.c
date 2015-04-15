@@ -4754,36 +4754,15 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
 }
 
 /*
- * Send application data to be encrypted by the SSL layer
+ * Send application data to be encrypted by the SSL layer,
+ * taking care of max fragment length and buffer size
  */
-#if defined(POLARSSL_SSL_CBC_RECORD_SPLITTING)
-static int ssl_write_real( ssl_context *ssl, const unsigned char *buf, size_t len )
-#else
-int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
-#endif
+static int ssl_write_real( ssl_context *ssl,
+                           const unsigned char *buf, size_t len )
 {
     int ret;
     size_t n;
     unsigned int max_len = SSL_MAX_CONTENT_LEN;
-
-    SSL_DEBUG_MSG( 2, ( "=> write" ) );
-
-#if defined(POLARSSL_SSL_RENEGOTIATION)
-    if( ( ret = ssl_check_ctr_renegotiate( ssl ) ) != 0 )
-    {
-        SSL_DEBUG_RET( 1, "ssl_check_ctr_renegotiate", ret );
-        return( ret );
-    }
-#endif
-
-    if( ssl->state != SSL_HANDSHAKE_OVER )
-    {
-        if( ( ret = ssl_handshake( ssl ) ) != 0 )
-        {
-            SSL_DEBUG_RET( 1, "ssl_handshake", ret );
-            return( ret );
-        }
-    }
 
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
     /*
@@ -4824,8 +4803,6 @@ int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
         }
     }
 
-    SSL_DEBUG_MSG( 2, ( "<= write" ) );
-
     return( (int) n );
 }
 
@@ -4837,7 +4814,8 @@ int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
  * remember wether we already did the split or not.
  */
 #if defined(POLARSSL_SSL_CBC_RECORD_SPLITTING)
-int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
+static int ssl_write_split( ssl_context *ssl,
+                            const unsigned char *buf, size_t len )
 {
     int ret;
 
@@ -4864,6 +4842,43 @@ int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
     return( ret + 1 );
 }
 #endif /* POLARSSL_SSL_CBC_RECORD_SPLITTING */
+
+/*
+ * Write application data (public-facing wrapper)
+ */
+int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
+{
+    int ret;
+
+    SSL_DEBUG_MSG( 2, ( "=> write" ) );
+
+#if defined(POLARSSL_SSL_RENEGOTIATION)
+    if( ( ret = ssl_check_ctr_renegotiate( ssl ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "ssl_check_ctr_renegotiate", ret );
+        return( ret );
+    }
+#endif
+
+    if( ssl->state != SSL_HANDSHAKE_OVER )
+    {
+        if( ( ret = ssl_handshake( ssl ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ssl_handshake", ret );
+            return( ret );
+        }
+    }
+
+#if defined(POLARSSL_SSL_CBC_RECORD_SPLITTING)
+    ret = ssl_write_split( ssl, buf, len );
+#else
+    ret = ssl_write_real( ssl, buf, len );
+#endif
+
+    SSL_DEBUG_MSG( 2, ( "<= write" ) );
+
+    return( ret );
+}
 
 /*
  * Notify the peer that the connection is being closed

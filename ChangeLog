@@ -5,6 +5,8 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Security
 
 Features
+   * Add support for reading DH parameters with privateValueLength included
+     (contributed by Daniel Khan Gillmor).
    * Add support for bit strings in X.509 names (request by Fredrik Axelsson).
    * Add support for id-at-uniqueIdentifier in X.509 names.
    * Add support for overriding snprintf() (except on Windows) and exit() in

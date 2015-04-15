@@ -28,9 +28,9 @@
  * OpenSSL wrapper contributed by David Barett
  */
 
-#if ! defined(MBEDTLS_DEPRECATED_REMOVED)
+#if ! defined(POLARSSL_DEPRECATED_REMOVED)
 
-#if defined(MBEDTLS_DEPRECATED_WARNING)
+#if defined(POLARSSL_DEPRECATED_WARNING)
 #warning "Including openssl.h is deprecated"
 #endif
 
@@ -145,4 +145,4 @@ inline int RSA_private_encrypt( int size, unsigned char* input, unsigned char* o
 #endif
 
 #endif /* openssl.h */
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
+#endif /* POLARSSL_DEPRECATED_REMOVED */

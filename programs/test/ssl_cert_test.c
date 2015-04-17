@@ -173,19 +173,14 @@ int main( void )
         {
             if( ret == POLARSSL_ERR_X509_CERT_VERIFY_FAILED )
             {
-                if( flags & BADCERT_CN_MISMATCH )
-                    polarssl_printf( " CN_MISMATCH " );
-                if( flags & BADCERT_EXPIRED )
-                    polarssl_printf( " EXPIRED " );
-                if( flags & BADCERT_REVOKED )
-                    polarssl_printf( " REVOKED " );
-                if( flags & BADCERT_NOT_TRUSTED )
-                    polarssl_printf( " NOT_TRUSTED " );
-                if( flags & BADCRL_NOT_TRUSTED )
-                    polarssl_printf( " CRL_NOT_TRUSTED " );
-                if( flags & BADCRL_EXPIRED )
-                    polarssl_printf( " CRL_EXPIRED " );
-            } else {
+                char vrfy_buf[512];
+
+                polarssl_printf( " failed\n" );
+                x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", ret );
+                polarssl_printf( "%s\n", vrfy_buf );
+            }
+            else
+            {
                 polarssl_printf( " failed\n  !  x509_crt_verify returned %d\n\n", ret );
                 goto exit;
             }

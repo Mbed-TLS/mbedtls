@@ -169,7 +169,7 @@ static void my_debug( void *ctx, int level, const char *str )
     }
 }
 
-static int do_handshake( ssl_context *ssl, struct options *opt )
+static int do_handshake( ssl_context *ssl )
 {
     int ret;
     unsigned char buf[1024];
@@ -201,24 +201,16 @@ static int do_handshake( ssl_context *ssl, struct options *opt )
      */
     polarssl_printf( "  . Verifying peer X.509 certificate..." );
 
-    /* In real life, we may want to bail out when ret != 0 */
+    /* In real life, we probably want to bail out when ret != 0 */
     if( ( ret = ssl_get_verify_result( ssl ) ) != 0 )
     {
+        char vrfy_buf[512];
+
         polarssl_printf( " failed\n" );
 
-        if( ( ret & BADCERT_EXPIRED ) != 0 )
-            polarssl_printf( "  ! server certificate has expired\n" );
+        x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", ret );
 
-        if( ( ret & BADCERT_REVOKED ) != 0 )
-            polarssl_printf( "  ! server certificate has been revoked\n" );
-
-        if( ( ret & BADCERT_CN_MISMATCH ) != 0 )
-            polarssl_printf( "  ! CN mismatch (expected CN=%s)\n", opt->server_name );
-
-        if( ( ret & BADCERT_NOT_TRUSTED ) != 0 )
-            polarssl_printf( "  ! self-signed or not signed by a trusted CA\n" );
-
-        polarssl_printf( "\n" );
+        polarssl_printf( "%s\n", vrfy_buf );
     }
     else
         polarssl_printf( " ok\n" );
@@ -638,7 +630,7 @@ int main( int argc, char *argv[] )
 
     if( opt.mode == MODE_SSL_TLS )
     {
-        if( do_handshake( &ssl, &opt ) != 0 )
+        if( do_handshake( &ssl ) != 0 )
             goto exit;
 
         polarssl_printf( "  > Get header from server:" );
@@ -707,7 +699,7 @@ int main( int argc, char *argv[] )
 
         polarssl_printf(" ok\n" );
 
-        if( do_handshake( &ssl, &opt ) != 0 )
+        if( do_handshake( &ssl ) != 0 )
             goto exit;
     }
 

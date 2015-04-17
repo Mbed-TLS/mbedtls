@@ -350,29 +350,13 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
     x509_crt_info( buf, sizeof( buf ) - 1, "", crt );
     polarssl_printf( "%s", buf );
 
-    if( ( (*flags) & BADCERT_EXPIRED ) != 0 )
-        polarssl_printf( "  ! server certificate has expired\n" );
-
-    if( ( (*flags) & BADCERT_REVOKED ) != 0 )
-        polarssl_printf( "  ! server certificate has been revoked\n" );
-
-    if( ( (*flags) & BADCERT_CN_MISMATCH ) != 0 )
-        polarssl_printf( "  ! CN mismatch\n" );
-
-    if( ( (*flags) & BADCERT_NOT_TRUSTED ) != 0 )
-        polarssl_printf( "  ! self-signed or not signed by a trusted CA\n" );
-
-    if( ( (*flags) & BADCRL_NOT_TRUSTED ) != 0 )
-        polarssl_printf( "  ! CRL not trusted\n" );
-
-    if( ( (*flags) & BADCRL_EXPIRED ) != 0 )
-        polarssl_printf( "  ! CRL expired\n" );
-
-    if( ( (*flags) & BADCERT_OTHER ) != 0 )
-        polarssl_printf( "  ! other (unknown) flag\n" );
-
     if ( ( *flags ) == 0 )
         polarssl_printf( "  This certificate has no flags\n" );
+    else
+    {
+        x509_crt_verify_info( buf, sizeof( buf ), "  ! ", *flags );
+        polarssl_printf( "%s\n", buf );
+    }
 
     return( 0 );
 }
@@ -1142,21 +1126,13 @@ int main( int argc, char *argv[] )
 
     if( ( ret = ssl_get_verify_result( &ssl ) ) != 0 )
     {
+        char vrfy_buf[512];
+
         polarssl_printf( " failed\n" );
 
-        if( ( ret & BADCERT_EXPIRED ) != 0 )
-            polarssl_printf( "  ! server certificate has expired\n" );
+        x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", ret );
 
-        if( ( ret & BADCERT_REVOKED ) != 0 )
-            polarssl_printf( "  ! server certificate has been revoked\n" );
-
-        if( ( ret & BADCERT_CN_MISMATCH ) != 0 )
-            polarssl_printf( "  ! CN mismatch (expected CN=%s)\n", opt.server_name );
-
-        if( ( ret & BADCERT_NOT_TRUSTED ) != 0 )
-            polarssl_printf( "  ! self-signed or not signed by a trusted CA\n" );
-
-        polarssl_printf( "\n" );
+        polarssl_printf( "%s\n", vrfy_buf );
     }
     else
         polarssl_printf( " ok\n" );

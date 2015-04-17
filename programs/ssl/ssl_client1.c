@@ -203,24 +203,16 @@ int main( void )
      */
     polarssl_printf( "  . Verifying peer X.509 certificate..." );
 
-    /* In real life, we may want to bail out when ret != 0 */
+    /* In real life, we probably want to bail out when ret != 0 */
     if( ( ret = ssl_get_verify_result( &ssl ) ) != 0 )
     {
+        char vrfy_buf[512];
+
         polarssl_printf( " failed\n" );
 
-        if( ( ret & BADCERT_EXPIRED ) != 0 )
-            polarssl_printf( "  ! server certificate has expired\n" );
+        x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", ret );
 
-        if( ( ret & BADCERT_REVOKED ) != 0 )
-            polarssl_printf( "  ! server certificate has been revoked\n" );
-
-        if( ( ret & BADCERT_CN_MISMATCH ) != 0 )
-            polarssl_printf( "  ! CN mismatch (expected CN=%s)\n", "PolarSSL Server 1" );
-
-        if( ( ret & BADCERT_NOT_TRUSTED ) != 0 )
-            polarssl_printf( "  ! self-signed or not signed by a trusted CA\n" );
-
-        polarssl_printf( "\n" );
+        polarssl_printf( "%s\n", vrfy_buf );
     }
     else
         polarssl_printf( " ok\n" );

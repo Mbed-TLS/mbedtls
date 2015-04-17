@@ -1626,21 +1626,13 @@ reset:
 
     if( ( ret = ssl_get_verify_result( &ssl ) ) != 0 )
     {
+        char vrfy_buf[512];
+
         polarssl_printf( " failed\n" );
 
-        if( !ssl_get_peer_cert( &ssl ) )
-            polarssl_printf( "  ! no client certificate sent\n" );
+        x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", ret );
 
-        if( ( ret & BADCERT_EXPIRED ) != 0 )
-            polarssl_printf( "  ! client certificate has expired\n" );
-
-        if( ( ret & BADCERT_REVOKED ) != 0 )
-            polarssl_printf( "  ! client certificate has been revoked\n" );
-
-        if( ( ret & BADCERT_NOT_TRUSTED ) != 0 )
-            polarssl_printf( "  ! self-signed or not signed by a trusted CA\n" );
-
-        polarssl_printf( "\n" );
+        polarssl_printf( "%s\n", vrfy_buf );
     }
     else
         polarssl_printf( " ok\n" );

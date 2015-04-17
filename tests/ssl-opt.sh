@@ -1338,7 +1338,7 @@ run_test    "Authentication: server badcert, client required" \
             "$P_CLI debug_level=1 auth_mode=required" \
             1 \
             -c "x509_verify_cert() returned" \
-            -c "! self-signed or not signed by a trusted CA" \
+            -c "! The certificate is not correctly signed by the trusted CA" \
             -c "! ssl_handshake returned" \
             -c "X509 - Certificate verification failed"
 
@@ -1348,7 +1348,7 @@ run_test    "Authentication: server badcert, client optional" \
             "$P_CLI debug_level=1 auth_mode=optional" \
             0 \
             -c "x509_verify_cert() returned" \
-            -c "! self-signed or not signed by a trusted CA" \
+            -c "! The certificate is not correctly signed by the trusted CA" \
             -C "! ssl_handshake returned" \
             -C "X509 - Certificate verification failed"
 
@@ -1358,7 +1358,7 @@ run_test    "Authentication: server badcert, client none" \
             "$P_CLI debug_level=1 auth_mode=none" \
             0 \
             -C "x509_verify_cert() returned" \
-            -C "! self-signed or not signed by a trusted CA" \
+            -C "! The certificate is not correctly signed by the trusted CA" \
             -C "! ssl_handshake returned" \
             -C "X509 - Certificate verification failed"
 
@@ -1374,7 +1374,7 @@ run_test    "Authentication: client badcert, server required" \
             -C "skip write certificate verify" \
             -S "skip parse certificate verify" \
             -s "x509_verify_cert() returned" \
-            -S "! self-signed or not signed by a trusted CA" \
+            -S "! The certificate is not correctly signed by the trusted CA" \
             -s "! ssl_handshake returned" \
             -c "! ssl_handshake returned" \
             -s "X509 - Certificate verification failed"
@@ -1391,7 +1391,7 @@ run_test    "Authentication: client badcert, server optional" \
             -C "skip write certificate verify" \
             -S "skip parse certificate verify" \
             -s "x509_verify_cert() returned" \
-            -s "! self-signed or not signed by a trusted CA" \
+            -s "! The certificate is not correctly signed by the trusted CA" \
             -S "! ssl_handshake returned" \
             -C "! ssl_handshake returned" \
             -S "X509 - Certificate verification failed"
@@ -1408,7 +1408,7 @@ run_test    "Authentication: client badcert, server none" \
             -c "skip write certificate verify" \
             -s "skip parse certificate verify" \
             -S "x509_verify_cert() returned" \
-            -S "! self-signed or not signed by a trusted CA" \
+            -S "! The certificate is not correctly signed by the trusted CA" \
             -S "! ssl_handshake returned" \
             -C "! ssl_handshake returned" \
             -S "X509 - Certificate verification failed"
@@ -1425,7 +1425,7 @@ run_test    "Authentication: client no cert, server optional" \
             -S "SSLv3 client has no certificate" \
             -c "skip write certificate verify" \
             -s "skip parse certificate verify" \
-            -s "! no client certificate sent" \
+            -s "! Certificate was missing" \
             -S "! ssl_handshake returned" \
             -C "! ssl_handshake returned" \
             -S "X509 - Certificate verification failed"
@@ -1436,7 +1436,7 @@ run_test    "Authentication: openssl client no cert, server optional" \
             0 \
             -S "skip write certificate request" \
             -s "skip parse certificate verify" \
-            -s "! no client certificate sent" \
+            -s "! Certificate was missing" \
             -S "! ssl_handshake returned" \
             -S "X509 - Certificate verification failed"
 
@@ -1462,7 +1462,7 @@ run_test    "Authentication: client no cert, ssl3" \
             -c "got no certificate to send" \
             -s "SSLv3 client has no certificate" \
             -s "skip parse certificate verify" \
-            -s "! no client certificate sent" \
+            -s "! Certificate was missing" \
             -S "! ssl_handshake returned" \
             -C "! ssl_handshake returned" \
             -S "X509 - Certificate verification failed"

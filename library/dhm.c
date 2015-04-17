@@ -444,8 +444,9 @@ int mbedtls_dhm_parse_dhm( mbedtls_dhm_context *dhm, const unsigned char *dhmin,
 
     /*
      *  DHParams ::= SEQUENCE {
-     *      prime            INTEGER,  -- P
-     *      generator        INTEGER,  -- g
+     *      prime              INTEGER,  -- P
+     *      generator          INTEGER,  -- g
+     *      privateValueLength INTEGER OPTIONAL
      *  }
      */
     if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
@@ -466,9 +467,23 @@ int mbedtls_dhm_parse_dhm( mbedtls_dhm_context *dhm, const unsigned char *dhmin,
 
     if( p != end )
     {
-        ret = MBEDTLS_ERR_DHM_INVALID_FORMAT +
-              MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
-        goto exit;
+        /* This might be the optional privateValueLength.
+         * If so, we can cleanly discard it */
+        mbedtls_mpi rec;
+        mbedtls_mpi_init( &rec );
+        ret = mbedtls_asn1_get_mpi( &p, end, &rec );
+        mbedtls_mpi_free( &rec );
+        if ( ret != 0 )
+        {
+            ret = MBEDTLS_ERR_DHM_INVALID_FORMAT + ret;
+            goto exit;
+        }
+        if ( p != end )
+        {
+            ret = MBEDTLS_ERR_DHM_INVALID_FORMAT +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
+            goto exit;
+        }
     }
 
     ret = 0;

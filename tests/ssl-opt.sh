@@ -1878,6 +1878,17 @@ run_test    "keyUsage cli: KeyEncipherment, DHE-RSA: fail" \
             -c "Processing of the Certificate handshake message failed" \
             -C "Ciphersuite is TLS-"
 
+run_test    "keyUsage cli: KeyEncipherment, DHE-RSA: fail, soft" \
+            "$O_SRV -key data_files/server2.key \
+             -cert data_files/server2.ku-ke.crt" \
+            "$P_CLI debug_level=1 auth_mode=optional \
+             force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA" \
+            0 \
+            -c "bad certificate (usage extensions)" \
+            -C "Processing of the Certificate handshake message failed" \
+            -c "Ciphersuite is TLS-" \
+            -c "! Usage does not match the keyUsage extension"
+
 run_test    "keyUsage cli: DigitalSignature, DHE-RSA: OK" \
             "$O_SRV -key data_files/server2.key \
              -cert data_files/server2.ku-ds.crt" \
@@ -1897,6 +1908,17 @@ run_test    "keyUsage cli: DigitalSignature, RSA: fail" \
             -c "bad certificate (usage extensions)" \
             -c "Processing of the Certificate handshake message failed" \
             -C "Ciphersuite is TLS-"
+
+run_test    "keyUsage cli: DigitalSignature, RSA: fail, soft" \
+            "$O_SRV -key data_files/server2.key \
+             -cert data_files/server2.ku-ds.crt" \
+            "$P_CLI debug_level=1 auth_mode=optional \
+             force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            0 \
+            -c "bad certificate (usage extensions)" \
+            -C "Processing of the Certificate handshake message failed" \
+            -c "Ciphersuite is TLS-" \
+            -c "! Usage does not match the keyUsage extension"
 
 # Tests for keyUsage in leaf certificates, part 3:
 # server-side checking of client cert

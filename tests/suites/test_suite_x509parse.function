@@ -102,6 +102,22 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:POLARSSL_X509_CRT_PARSE_C */
+void x509_verify_info( int flags, char *prefix, char *result_str )
+{
+    char buf[2000];
+    int res;
+
+    memset( buf, 0, sizeof( buf ) );
+
+    res = x509_crt_verify_info( buf, sizeof( buf ), prefix, flags );
+
+    TEST_ASSERT( res >= 0 );
+
+    TEST_ASSERT( strcmp( buf, result_str ) == 0 );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_CRT_PARSE_C:POLARSSL_X509_CRL_PARSE_C */
 void x509_verify( char *crt_file, char *ca_file, char *crl_file,
                   char *cn_name_str, int result, int flags_result,

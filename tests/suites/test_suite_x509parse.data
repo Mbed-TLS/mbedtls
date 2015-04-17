@@ -262,6 +262,27 @@ X509 CSR Information RSA-PSS with SHA512
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA512_C
 x509_csr_info:"data_files/server9.req.sha512":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: RSASSA-PSS (SHA512, MGF1-SHA512, 0x3E)\nRSA key size  \: 1024 bits\n"
 
+X509 Verify Information: empty
+x509_verify_info:0:"":""
+
+X509 Verify Information: one issue
+x509_verify_info:BADCERT_MISSING:"":"Certificate was missing\n"
+
+X509 Verify Information: two issues
+x509_verify_info:BADCERT_EXPIRED | BADCRL_EXPIRED:"":"The certificate validity has expired\nThe CRL is expired\n"
+
+X509 Verify Information: two issues, one unknown
+x509_verify_info:BADCERT_OTHER | 0x8000:"":"Other reason (can be used by verify callback)\nUnknown reason (this should not happen)\n"
+
+X509 Verify Information: empty, with prefix
+x509_verify_info:0:"  ! ":""
+
+X509 Verify Information: one issue, with prefix
+x509_verify_info:BADCERT_MISSING:"  ! ":"  ! Certificate was missing\n"
+
+X509 Verify Information: two issues, with prefix
+x509_verify_info:BADCERT_EXPIRED | BADCRL_EXPIRED:"  ! ":"  ! The certificate validity has expired\n  ! The CRL is expired\n"
+
 X509 Get Distinguished Name #1
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_dn_gets:"data_files/server1.crt":"subject":"C=NL, O=PolarSSL, CN=PolarSSL Server 1"

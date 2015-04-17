@@ -114,6 +114,9 @@ Bugfix
      curve picked by the server was actually allowed.
 
 Changes
+   * Remove bias in mpi_gen_prime (contributed by Pascal Junod).
+   * Remove potential sources of timing variations (some contributed by Pascal
+     Junod).
    * Options POLARSSL_HAVE_INT8 and POLARSSL_HAVE_INT16 are deprecated.
    * Enabling POLARSSL_NET_C without POLARSSL_HAVE_IPV6 is deprecated.
    * compat-1.2.h and openssl.h are deprecated.

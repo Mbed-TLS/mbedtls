@@ -223,8 +223,8 @@ int mbedtls_mpi_safe_cond_assign( mbedtls_mpi *X, const mbedtls_mpi *Y, unsigned
     int ret = 0;
     size_t i;
 
-    /* make sure assign is 0 or 1 */
-    assign = ( assign != 0 );
+    /* make sure assign is 0 or 1 in a time-constant manner */
+    assign = (assign | (unsigned char)-assign) >> 7;
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, Y->n ) );
 
@@ -255,8 +255,8 @@ int mbedtls_mpi_safe_cond_swap( mbedtls_mpi *X, mbedtls_mpi *Y, unsigned char sw
     if( X == Y )
         return( 0 );
 
-    /* make sure swap is 0 or 1 */
-    swap = ( swap != 0 );
+    /* make sure swap is 0 or 1 in a time-constant manner */
+    swap = (swap | (unsigned char)-swap) >> 7;
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, Y->n ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( Y, X->n ) );
@@ -1958,8 +1958,8 @@ static int mpi_miller_rabin( const mbedtls_mpi *X,
                              int (*f_rng)(void *, unsigned char *, size_t),
                              void *p_rng )
 {
-    int ret;
-    size_t i, j, n, s;
+    int ret, count;
+    size_t i, j, k, n, s;
     mbedtls_mpi W, R, T, A, RR;
 
     mbedtls_mpi_init( &W ); mbedtls_mpi_init( &R ); mbedtls_mpi_init( &T ); mbedtls_mpi_init( &A );
@@ -1995,6 +1995,23 @@ static int mpi_miller_rabin( const mbedtls_mpi *X,
             MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &A, j + 1 ) );
         }
         A.p[0] |= 3;
+
+        count = 0;
+        do {
+            MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &A, X->n * ciL, f_rng, p_rng ) );
+
+            j = mbedtls_mpi_msb( &A );
+            k = mbedtls_mpi_msb( &W );
+            if (j > k) {
+                MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &A, j - k ) );
+            }
+
+            if (count++ > 30) {
+                return MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
+            }
+
+        } while ( mbedtls_mpi_cmp_mpi( &A, &W ) >= 0 ||
+                  mbedtls_mpi_cmp_int( &A, 1 )  <= 0    );
 
         /*
          * A = A^R mod |X|
@@ -2092,10 +2109,11 @@ int mbedtls_mpi_gen_prime( mbedtls_mpi *X, size_t nbits, int dh_flag,
     MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( X, n * ciL, f_rng, p_rng ) );
 
     k = mbedtls_mpi_msb( X );
-    if( k < nbits ) MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( X, nbits - k ) );
-    if( k > nbits ) MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( X, k - nbits ) );
+    if( k > nbits ) MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( X, k - nbits + 1 ) );
 
-    X->p[0] |= 3;
+    mbedtls_mpi_set_bit( X, nbits-1, 1 );
+
+    X->p[0] |= 1;
 
     if( dh_flag == 0 )
     {
@@ -2114,6 +2132,9 @@ int mbedtls_mpi_gen_prime( mbedtls_mpi *X, size_t nbits, int dh_flag,
          * is X = 2 mod 3 (which is equivalent to Y = 2 mod 3).
          * Make sure it is satisfied, while keeping X = 3 mod 4
          */
+
+        X->p[0] |= 2;
+
         MBEDTLS_MPI_CHK( mbedtls_mpi_mod_int( &r, X, 3 ) );
         if( r == 0 )
             MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( X, X, 8 ) );

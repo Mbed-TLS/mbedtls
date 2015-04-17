@@ -773,7 +773,7 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
     for( i = 0; i < ilen - 2 * hlen - 2; i++ )
     {
         pad_done |= p[i];
-        pad_len += ( pad_done == 0 );
+        pad_len += ((pad_done | (unsigned char)-pad_done) >> 7) ^ 1;
     }
 
     p += pad_len;
@@ -847,8 +847,8 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
          * (minus one, for the 00 byte) */
         for( i = 0; i < ilen - 3; i++ )
         {
-            pad_done |= ( p[i] == 0 );
-            pad_count += ( pad_done == 0 );
+            pad_done  |= ((p[i] | (unsigned char)-p[i]) >> 7) ^ 1;
+            pad_count += ((pad_done | (unsigned char)-pad_done) >> 7) ^ 1;
         }
 
         p += pad_count;

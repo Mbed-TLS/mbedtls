@@ -6327,37 +6327,16 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
 }
 
 /*
- * Send application data to be encrypted by the SSL layer
+ * Send application data to be encrypted by the SSL layer,
+ * taking care of max fragment length and buffer size
  */
-#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
-static int ssl_write_real( mbedtls_ssl_context *ssl, const unsigned char *buf, size_t len )
-#else
-int mbedtls_ssl_write( mbedtls_ssl_context *ssl, const unsigned char *buf, size_t len )
-#endif
+static int ssl_write_real( mbedtls_ssl_context *ssl,
+                           const unsigned char *buf, size_t len )
 {
     int ret;
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     unsigned int max_len;
 #endif
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write" ) );
-
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if( ( ret = ssl_check_ctr_renegotiate( ssl ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_check_ctr_renegotiate", ret );
-        return( ret );
-    }
-#endif
-
-    if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
-    {
-        if( ( ret = mbedtls_ssl_handshake( ssl ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_handshake", ret );
-            return( ret );
-        }
-    }
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     /*
@@ -6411,8 +6390,6 @@ int mbedtls_ssl_write( mbedtls_ssl_context *ssl, const unsigned char *buf, size_
         }
     }
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write" ) );
-
     return( (int) len );
 }
 
@@ -6424,7 +6401,8 @@ int mbedtls_ssl_write( mbedtls_ssl_context *ssl, const unsigned char *buf, size_
  * remember wether we already did the split or not.
  */
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
-int mbedtls_ssl_write( mbedtls_ssl_context *ssl, const unsigned char *buf, size_t len )
+static int ssl_write_split( mbedtls_ssl_context *ssl,
+                            const unsigned char *buf, size_t len )
 {
     int ret;
 
@@ -6451,6 +6429,43 @@ int mbedtls_ssl_write( mbedtls_ssl_context *ssl, const unsigned char *buf, size_
     return( ret + 1 );
 }
 #endif /* MBEDTLS_SSL_CBC_RECORD_SPLITTING */
+
+/*
+ * Write application data (public-facing wrapper)
+ */
+int mbedtls_ssl_write( mbedtls_ssl_context *ssl, const unsigned char *buf, size_t len )
+{
+    int ret;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write" ) );
+
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    if( ( ret = ssl_check_ctr_renegotiate( ssl ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_check_ctr_renegotiate", ret );
+        return( ret );
+    }
+#endif
+
+    if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
+    {
+        if( ( ret = mbedtls_ssl_handshake( ssl ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_handshake", ret );
+            return( ret );
+        }
+    }
+
+#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
+    ret = ssl_write_split( ssl, buf, len );
+#else
+    ret = ssl_write_real( ssl, buf, len );
+#endif
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write" ) );
+
+    return( ret );
+}
 
 /*
  * Notify the peer that the connection is being closed

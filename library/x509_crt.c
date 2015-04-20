@@ -1380,6 +1380,57 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
     return( (int) ( size - n ) );
 }
 
+struct x509_crt_verify_string {
+    int code;
+    const char *string;
+};
+
+static const struct x509_crt_verify_string x509_crt_verify_strings[] = {
+    { MBEDTLS_BADCERT_EXPIRED,       "The certificate validity has expired" },
+    { MBEDTLS_X509_BADCERT_REVOKED,       "The certificate has been revoked (is on a CRL)" },
+    { MBEDTLS_X509_BADCERT_CN_MISMATCH,   "The certificate Common Name (CN) does not match with the expected CN" },
+    { MBEDTLS_X509_BADCERT_NOT_TRUSTED,   "The certificate is not correctly signed by the trusted CA" },
+    { MBEDTLS_X509_BADCRL_NOT_TRUSTED,    "The CRL is not correctly signed by the trusted CA" },
+    { MBEDTLS_X509_BADCRL_EXPIRED,        "The CRL is expired" },
+    { MBEDTLS_BADCERT_MISSING,       "Certificate was missing" },
+    { MBEDTLS_BADCERT_SKIP_VERIFY,   "Certificate verification was skipped" },
+    { MBEDTLS_BADCERT_OTHER,         "Other reason (can be used by verify callback)" },
+    { MBEDTLS_X509_BADCERT_FUTURE,        "The certificate validity starts in the future" },
+    { MBEDTLS_BADCRL_FUTURE,         "The CRL is from the future" },
+    { MBEDTLS_BADCERT_KEY_USAGE,     "Usage does not match the keyUsage extension" },
+    { MBEDTLS_BADCERT_EXT_KEY_USAGE, "Usage does not match the extendedKeyUsage extension" },
+    { MBEDTLS_BADCERT_NS_CERT_TYPE,  "Usage does not match the nsCertType extension" },
+    { 0, NULL }
+};
+
+int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
+                          int flags )
+{
+    int ret;
+    const struct x509_crt_verify_string *cur;
+    char *p = buf;
+    size_t n = size;
+
+    for( cur = x509_crt_verify_strings; cur->string != NULL ; cur++ )
+    {
+        if( ( flags & cur->code ) == 0 )
+            continue;
+
+        ret = mbedtls_snprintf( p, n, "%s%s\n", prefix, cur->string );
+        SAFE_SNPRINTF();
+        flags ^= cur->code;
+    }
+
+    if( flags != 0 )
+    {
+        ret = mbedtls_snprintf( p, n, "%sUnknown reason "
+                                       "(this should not happen)\n", prefix );
+        SAFE_SNPRINTF();
+    }
+
+    return( (int) ( size - n ) );
+}
+
 #if defined(MBEDTLS_X509_CHECK_KEY_USAGE)
 int mbedtls_x509_crt_check_key_usage( const mbedtls_x509_crt *crt, unsigned int usage )
 {

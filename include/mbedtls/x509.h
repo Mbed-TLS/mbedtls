@@ -82,17 +82,21 @@
  * \name X509 Verify codes
  * \{
  */
+/* Reminder: update x509_crt_verify_strings[] in library/x509_crt.c */
 #define MBEDTLS_BADCERT_EXPIRED             0x01  /**< The certificate validity has expired. */
 #define MBEDTLS_X509_BADCERT_REVOKED             0x02  /**< The certificate has been revoked (is on a CRL). */
 #define MBEDTLS_X509_BADCERT_CN_MISMATCH         0x04  /**< The certificate Common Name (CN) does not match with the expected CN. */
 #define MBEDTLS_X509_BADCERT_NOT_TRUSTED         0x08  /**< The certificate is not correctly signed by the trusted CA. */
-#define MBEDTLS_X509_BADCRL_NOT_TRUSTED          0x10  /**< CRL is not correctly signed by the trusted CA. */
-#define MBEDTLS_X509_BADCRL_EXPIRED              0x20  /**< CRL is expired. */
+#define MBEDTLS_X509_BADCRL_NOT_TRUSTED          0x10  /**< The CRL is not correctly signed by the trusted CA. */
+#define MBEDTLS_X509_BADCRL_EXPIRED              0x20  /**< The CRL is expired. */
 #define MBEDTLS_BADCERT_MISSING             0x40  /**< Certificate was missing. */
 #define MBEDTLS_BADCERT_SKIP_VERIFY         0x80  /**< Certificate verification was skipped. */
 #define MBEDTLS_BADCERT_OTHER             0x0100  /**< Other reason (can be used by verify callback) */
 #define MBEDTLS_X509_BADCERT_FUTURE            0x0200  /**< The certificate validity starts in the future. */
 #define MBEDTLS_BADCRL_FUTURE             0x0400  /**< The CRL is from the future */
+#define MBEDTLS_BADCERT_KEY_USAGE         0x0800  /**< Usage does not match the keyUsage extension. */
+#define MBEDTLS_BADCERT_EXT_KEY_USAGE     0x1000  /**< Usage does not match the extendedKeyUsage extension. */
+#define MBEDTLS_BADCERT_NS_CERT_TYPE      0x2000  /**< Usage does not match the nsCertType extension. */
 /* \} name */
 /* \} addtogroup x509_module */
 

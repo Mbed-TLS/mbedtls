@@ -72,6 +72,7 @@ Changes
 Security
 
 Features
+   * Add mbedtls_x509_crt_verify_info() to display certificate verification results.
    * Add support for reading DH parameters with privateValueLength included
      (contributed by Daniel Kahn Gillmor).
    * Add support for bit strings in X.509 names (request by Fredrik Axelsson).

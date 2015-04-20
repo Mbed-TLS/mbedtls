@@ -217,6 +217,21 @@ int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
                           int flags );
 
 /**
+ * \brief          Returns an informational string about the
+ *                 verification status of a certificate.
+ *
+ * \param buf      Buffer to write to
+ * \param size     Maximum size of buffer
+ * \param prefix   A line prefix
+ * \param flags    Verification flags created by x509_crt_verify()
+ *
+ * \return         The amount of data written to the buffer, or -1 in
+ *                 case of an error.
+ */
+int x509_crt_verify_info( char *buf, size_t size, const char *prefix,
+                          int flags );
+
+/**
  * \brief          Verify the certificate signature
  *
  *                 The verify callback is a user-supplied callback that

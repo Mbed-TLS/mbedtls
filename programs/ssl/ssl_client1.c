@@ -187,24 +187,16 @@ int main( void )
      */
     mbedtls_printf( "  . Verifying peer X.509 certificate..." );
 
-    /* In real life, we may want to bail out when ret != 0 */
+    /* In real life, we probably want to bail out when ret != 0 */
     if( ( ret = mbedtls_ssl_get_verify_result( &ssl ) ) != 0 )
     {
+        char vrfy_buf[512];
+
         mbedtls_printf( " failed\n" );
 
-        if( ( ret & MBEDTLS_BADCERT_EXPIRED ) != 0 )
-            mbedtls_printf( "  ! server certificate has expired\n" );
+        mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", ret );
 
-        if( ( ret & MBEDTLS_X509_BADCERT_REVOKED ) != 0 )
-            mbedtls_printf( "  ! server certificate has been revoked\n" );
-
-        if( ( ret & MBEDTLS_X509_BADCERT_CN_MISMATCH ) != 0 )
-            mbedtls_printf( "  ! CN mismatch (expected CN=%s)\n", "PolarSSL Server 1" );
-
-        if( ( ret & MBEDTLS_X509_BADCERT_NOT_TRUSTED ) != 0 )
-            mbedtls_printf( "  ! self-signed or not signed by a trusted CA\n" );
-
-        mbedtls_printf( "\n" );
+        mbedtls_printf( "%s\n", vrfy_buf );
     }
     else
         mbedtls_printf( " ok\n" );

@@ -173,19 +173,14 @@ int main( void )
         {
             if( ret == MBEDTLS_ERR_X509_CERT_VERIFY_FAILED )
             {
-                if( flags & MBEDTLS_X509_BADCERT_CN_MISMATCH )
-                    mbedtls_printf( " CN_MISMATCH " );
-                if( flags & MBEDTLS_BADCERT_EXPIRED )
-                    mbedtls_printf( " EXPIRED " );
-                if( flags & MBEDTLS_X509_BADCERT_REVOKED )
-                    mbedtls_printf( " REVOKED " );
-                if( flags & MBEDTLS_X509_BADCERT_NOT_TRUSTED )
-                    mbedtls_printf( " NOT_TRUSTED " );
-                if( flags & MBEDTLS_X509_BADCRL_NOT_TRUSTED )
-                    mbedtls_printf( " CRL_NOT_TRUSTED " );
-                if( flags & MBEDTLS_X509_BADCRL_EXPIRED )
-                    mbedtls_printf( " CRL_EXPIRED " );
-            } else {
+                 char vrfy_buf[512];
+
+                 mbedtls_printf( " failed\n" );
+                 mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", ret );
+                 mbedtls_printf( "%s\n", vrfy_buf );
+             }
+             else
+             {
                 mbedtls_printf( " failed\n  !  mbedtls_x509_crt_verify returned %d\n\n", ret );
                 goto exit;
             }

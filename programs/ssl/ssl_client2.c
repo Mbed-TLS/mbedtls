@@ -373,29 +373,13 @@ static int my_verify( void *data, mbedtls_x509_crt *crt, int depth, int *flags )
     mbedtls_x509_crt_info( buf, sizeof( buf ) - 1, "", crt );
     mbedtls_printf( "%s", buf );
 
-    if( ( (*flags) & MBEDTLS_BADCERT_EXPIRED ) != 0 )
-        mbedtls_printf( "  ! server certificate has expired\n" );
-
-    if( ( (*flags) & MBEDTLS_X509_BADCERT_REVOKED ) != 0 )
-        mbedtls_printf( "  ! server certificate has been revoked\n" );
-
-    if( ( (*flags) & MBEDTLS_X509_BADCERT_CN_MISMATCH ) != 0 )
-        mbedtls_printf( "  ! CN mismatch\n" );
-
-    if( ( (*flags) & MBEDTLS_X509_BADCERT_NOT_TRUSTED ) != 0 )
-        mbedtls_printf( "  ! self-signed or not signed by a trusted CA\n" );
-
-    if( ( (*flags) & MBEDTLS_X509_BADCRL_NOT_TRUSTED ) != 0 )
-        mbedtls_printf( "  ! CRL not trusted\n" );
-
-    if( ( (*flags) & MBEDTLS_X509_BADCRL_EXPIRED ) != 0 )
-        mbedtls_printf( "  ! CRL expired\n" );
-
-    if( ( (*flags) & MBEDTLS_BADCERT_OTHER ) != 0 )
-        mbedtls_printf( "  ! other (unknown) flag\n" );
-
     if ( ( *flags ) == 0 )
         mbedtls_printf( "  This certificate has no flags\n" );
+    else
+    {
+        mbedtls_x509_crt_verify_info( buf, sizeof( buf ), "  ! ", *flags );
+        mbedtls_printf( "%s\n", buf );
+    }
 
     return( 0 );
 }
@@ -1287,21 +1271,13 @@ int main( int argc, char *argv[] )
 
     if( ( ret = mbedtls_ssl_get_verify_result( &ssl ) ) != 0 )
     {
+        char vrfy_buf[512];
+
         mbedtls_printf( " failed\n" );
 
-        if( ( ret & MBEDTLS_BADCERT_EXPIRED ) != 0 )
-            mbedtls_printf( "  ! server certificate has expired\n" );
+        mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", ret );
 
-        if( ( ret & MBEDTLS_X509_BADCERT_REVOKED ) != 0 )
-            mbedtls_printf( "  ! server certificate has been revoked\n" );
-
-        if( ( ret & MBEDTLS_X509_BADCERT_CN_MISMATCH ) != 0 )
-            mbedtls_printf( "  ! CN mismatch (expected CN=%s)\n", opt.server_name );
-
-        if( ( ret & MBEDTLS_X509_BADCERT_NOT_TRUSTED ) != 0 )
-            mbedtls_printf( "  ! self-signed or not signed by a trusted CA\n" );
-
-        mbedtls_printf( "\n" );
+        mbedtls_printf( "%s\n", vrfy_buf );
     }
     else
         mbedtls_printf( " ok\n" );

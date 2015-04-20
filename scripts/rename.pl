@@ -43,7 +43,7 @@ close $nfh or die;
 my $string = qr/"(?:\\.|[^\\"])*"/;
 my $space = qr/\s+/;
 my $idnum = qr/[a-zA-Z0-9_]+/;
-my $symbols = qr/[-!#$%&'()*+,.\/:;<=>?@[\\\]^_`{|}~]+|"/;
+my $symbols = qr/[-!#\$%&'()*+,.\/:;<=>?@[\\\]^_`{|}~]+|"/;
 
 # if we replace inside strings, we don't consider them a token
 my $token = $do_strings ?         qr/$space|$idnum|$symbols/

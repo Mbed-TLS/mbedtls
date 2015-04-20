@@ -11,7 +11,7 @@ int verify_none( void *data, mbedtls_x509_crt *crt, int certificate_depth, int *
     ((void) data);
     ((void) crt);
     ((void) certificate_depth);
-    *flags |= MBEDTLS_BADCERT_OTHER;
+    *flags |= MBEDTLS_X509_BADCERT_OTHER;
 
     return 0;
 }

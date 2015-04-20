@@ -266,43 +266,43 @@ X509 Verify Information: empty
 x509_verify_info:0:"":""
 
 X509 Verify Information: one issue
-x509_verify_info:MBEDTLS_BADCERT_MISSING:"":"Certificate was missing\n"
+x509_verify_info:MBEDTLS_X509_BADCERT_MISSING:"":"Certificate was missing\n"
 
 X509 Verify Information: two issues
-x509_verify_info:MBEDTLS_BADCERT_EXPIRED | MBEDTLS_X509_BADCRL_EXPIRED:"":"The certificate validity has expired\nThe CRL is expired\n"
+x509_verify_info:MBEDTLS_X509_BADCERT_EXPIRED | MBEDTLS_X509_BADCRL_EXPIRED:"":"The certificate validity has expired\nThe CRL is expired\n"
 
 X509 Verify Information: two issues, one unknown
-x509_verify_info:MBEDTLS_BADCERT_OTHER | 0x8000:"":"Other reason (can be used by verify callback)\nUnknown reason (this should not happen)\n"
+x509_verify_info:MBEDTLS_X509_BADCERT_OTHER | 0x8000:"":"Other reason (can be used by verify callback)\nUnknown reason (this should not happen)\n"
 
 X509 Verify Information: empty, with prefix
 x509_verify_info:0:"  ! ":""
 
 X509 Verify Information: one issue, with prefix
-x509_verify_info:MBEDTLS_BADCERT_MISSING:"  ! ":"  ! Certificate was missing\n"
+x509_verify_info:MBEDTLS_X509_BADCERT_MISSING:"  ! ":"  ! Certificate was missing\n"
 
 X509 Verify Information: two issues, with prefix
-x509_verify_info:MBEDTLS_BADCERT_EXPIRED | MBEDTLS_X509_BADCRL_EXPIRED:"  ! ":"  ! The certificate validity has expired\n  ! The CRL is expired\n"
+x509_verify_info:MBEDTLS_X509_BADCERT_EXPIRED | MBEDTLS_X509_BADCRL_EXPIRED:"  ! ":"  ! The certificate validity has expired\n  ! The CRL is expired\n"
 
 X509 Verify Information: empty
 x509_verify_info:0:"":""
 
 X509 Verify Information: one issue
-x509_verify_info:BADCERT_MISSING:"":"Certificate was missing\n"
+x509_verify_info:MBEDTLS_X509_BADCERT_MISSING:"":"Certificate was missing\n"
 
 X509 Verify Information: two issues
-x509_verify_info:BADCERT_EXPIRED | BADCRL_EXPIRED:"":"The certificate validity has expired\nThe CRL is expired\n"
+x509_verify_info:MBEDTLS_X509_BADCERT_EXPIRED | MBEDTLS_X509_BADCRL_EXPIRED:"":"The certificate validity has expired\nThe CRL is expired\n"
 
 X509 Verify Information: two issues, one unknown
-x509_verify_info:BADCERT_OTHER | 0x8000:"":"Other reason (can be used by verify callback)\nUnknown reason (this should not happen)\n"
+x509_verify_info:MBEDTLS_X509_BADCERT_OTHER | 0x8000:"":"Other reason (can be used by verify callback)\nUnknown reason (this should not happen)\n"
 
 X509 Verify Information: empty, with prefix
 x509_verify_info:0:"  ! ":""
 
 X509 Verify Information: one issue, with prefix
-x509_verify_info:BADCERT_MISSING:"  ! ":"  ! Certificate was missing\n"
+x509_verify_info:MBEDTLS_X509_BADCERT_MISSING:"  ! ":"  ! Certificate was missing\n"
 
 X509 Verify Information: two issues, with prefix
-x509_verify_info:BADCERT_EXPIRED | BADCRL_EXPIRED:"  ! ":"  ! The certificate validity has expired\n  ! The CRL is expired\n"
+x509_verify_info:MBEDTLS_X509_BADCERT_EXPIRED | MBEDTLS_X509_BADCRL_EXPIRED:"  ! ":"  ! The certificate validity has expired\n  ! The CRL is expired\n"
 
 X509 Get Distinguished Name #1
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C
@@ -374,7 +374,7 @@ x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl_ex
 
 X509 Certificate verification #1a (Revoked Cert, Future CRL, no CN)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SHA1_C
-x509_verify:"data_files/server6.crt":"data_files/test-ca2.crt":"data_files/crl-future.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_REVOKED | MBEDTLS_BADCRL_FUTURE:"NULL"
+x509_verify:"data_files/server6.crt":"data_files/test-ca2.crt":"data_files/crl-future.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_REVOKED | MBEDTLS_X509_BADCRL_FUTURE:"NULL"
 
 X509 Certificate verification #2 (Revoked Cert, Expired CRL)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
@@ -382,7 +382,7 @@ x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl_ex
 
 X509 Certificate verification #2a (Revoked Cert, Future CRL)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SHA1_C
-x509_verify:"data_files/server6.crt":"data_files/test-ca2.crt":"data_files/crl-future.pem":"localhost":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_REVOKED | MBEDTLS_BADCRL_FUTURE:"NULL"
+x509_verify:"data_files/server6.crt":"data_files/test-ca2.crt":"data_files/crl-future.pem":"localhost":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_REVOKED | MBEDTLS_X509_BADCRL_FUTURE:"NULL"
 
 X509 Certificate verification #3 (Revoked Cert, Future CRL, CN Mismatch)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
@@ -390,7 +390,7 @@ x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl_ex
 
 X509 Certificate verification #3a (Revoked Cert, Expired CRL, CN Mismatch)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SHA1_C
-x509_verify:"data_files/server6.crt":"data_files/test-ca2.crt":"data_files/crl-future.pem":"Wrong CN":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_REVOKED | MBEDTLS_BADCRL_FUTURE | MBEDTLS_X509_BADCERT_CN_MISMATCH:"NULL"
+x509_verify:"data_files/server6.crt":"data_files/test-ca2.crt":"data_files/crl-future.pem":"Wrong CN":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_REVOKED | MBEDTLS_X509_BADCRL_FUTURE | MBEDTLS_X509_BADCERT_CN_MISMATCH:"NULL"
 
 X509 Certificate verification #4 (Valid Cert, Expired CRL)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
@@ -398,7 +398,7 @@ x509_verify:"data_files/server2.crt":"data_files/test-ca.crt":"data_files/crl_ex
 
 X509 Certificate verification #4a (Revoked Cert, Future CRL)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SHA1_C
-x509_verify:"data_files/server5.crt":"data_files/test-ca2.crt":"data_files/crl-future.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_BADCRL_FUTURE:"NULL"
+x509_verify:"data_files/server5.crt":"data_files/test-ca2.crt":"data_files/crl-future.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCRL_FUTURE:"NULL"
 
 X509 Certificate verification #5 (Revoked Cert)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
@@ -418,7 +418,7 @@ x509_verify:"data_files/server5.crt":"data_files/test-ca2.crt":"data_files/crl-e
 
 X509 Certificate verification #8a (Expired Cert)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SHA1_C
-x509_verify:"data_files/server5-expired.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha1.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_BADCERT_EXPIRED:"NULL"
+x509_verify:"data_files/server5-expired.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha1.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_EXPIRED:"NULL"
 
 X509 Certificate verification #8b (Future Cert)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SHA1_C
@@ -462,7 +462,7 @@ x509_verify:"data_files/cert_sha512.crt":"data_files/test-ca.crt":"data_files/cr
 
 X509 Certificate verification #19 (Valid Cert, denying callback)
 depends_on:MBEDTLS_SHA512_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
-x509_verify:"data_files/cert_sha512.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_BADCERT_OTHER:"verify_none"
+x509_verify:"data_files/cert_sha512.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_OTHER:"verify_none"
 
 X509 Certificate verification #19 (Not trusted Cert, allowing callback)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
@@ -706,7 +706,7 @@ x509_verify:"data_files/server6.crt":"data_files/test-ca_cat12.crt":"data_files/
 
 X509 Certificate verification #79 (multiple CRLs, revoked by future)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
-x509_verify:"data_files/server6.crt":"data_files/test-ca_cat12.crt":"data_files/crl_cat_ecfut-rsa.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_REVOKED|MBEDTLS_BADCRL_FUTURE:"NULL"
+x509_verify:"data_files/server6.crt":"data_files/test-ca_cat12.crt":"data_files/crl_cat_ecfut-rsa.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_REVOKED|MBEDTLS_X509_BADCRL_FUTURE:"NULL"
 
 X509 Certificate verification #80 (multiple CRLs, first future, revoked by second)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
@@ -1122,7 +1122,7 @@ X509 OID numstring #5 (arithmetic overflow)
 x509_oid_numstr:"2A8648F9F8F7F6F5F4F3F2F1F001":"":100:MBEDTLS_ERR_OID_BUF_TOO_SMALL
 
 X509 crt keyUsage #1 (no extension, expected KU)
-x509_check_key_usage:"data_files/server1.crt":MBEDTLS_X509_KU_DIGITAL_SIGNATURE|MBEDTLS_KU_KEY_ENCIPHERMENT:0
+x509_check_key_usage:"data_files/server1.crt":MBEDTLS_X509_KU_DIGITAL_SIGNATURE|MBEDTLS_X509_KU_KEY_ENCIPHERMENT:0
 
 X509 crt keyUsage #2 (no extension, surprising KU)
 x509_check_key_usage:"data_files/server1.crt":MBEDTLS_X509_KU_KEY_CERT_SIGN:0
@@ -1137,13 +1137,13 @@ X509 crt keyUsage #5 (extension present, single KU absent)
 x509_check_key_usage:"data_files/server1.key_usage.crt":MBEDTLS_X509_KU_KEY_CERT_SIGN:MBEDTLS_ERR_X509_BAD_INPUT_DATA
 
 X509 crt keyUsage #6 (extension present, combined KU present)
-x509_check_key_usage:"data_files/server1.key_usage.crt":MBEDTLS_X509_KU_DIGITAL_SIGNATURE|MBEDTLS_KU_KEY_ENCIPHERMENT:0
+x509_check_key_usage:"data_files/server1.key_usage.crt":MBEDTLS_X509_KU_DIGITAL_SIGNATURE|MBEDTLS_X509_KU_KEY_ENCIPHERMENT:0
 
 X509 crt keyUsage #7 (extension present, combined KU both absent)
 x509_check_key_usage:"data_files/server1.key_usage.crt":MBEDTLS_X509_KU_KEY_CERT_SIGN|MBEDTLS_X509_KU_CRL_SIGN:MBEDTLS_ERR_X509_BAD_INPUT_DATA
 
 X509 crt keyUsage #8 (extension present, combined KU one absent)
-x509_check_key_usage:"data_files/server1.key_usage.crt":MBEDTLS_KU_KEY_ENCIPHERMENT|MBEDTLS_KU_KEY_AGREEMENT:MBEDTLS_ERR_X509_BAD_INPUT_DATA
+x509_check_key_usage:"data_files/server1.key_usage.crt":MBEDTLS_X509_KU_KEY_ENCIPHERMENT|MBEDTLS_X509_KU_KEY_AGREEMENT:MBEDTLS_ERR_X509_BAD_INPUT_DATA
 
 X509 crt extendedKeyUsage #1 (no extension, serverAuth)
 depends_on:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED

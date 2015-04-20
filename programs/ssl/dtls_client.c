@@ -213,7 +213,7 @@ int main( int argc, char *argv[] )
     {
         mbedtls_printf( " failed\n" );
 
-        if( ( ret & MBEDTLS_BADCERT_EXPIRED ) != 0 )
+        if( ( ret & MBEDTLS_X509_BADCERT_EXPIRED ) != 0 )
             mbedtls_printf( "  ! server certificate has expired\n" );
 
         if( ( ret & MBEDTLS_X509_BADCERT_REVOKED ) != 0 )

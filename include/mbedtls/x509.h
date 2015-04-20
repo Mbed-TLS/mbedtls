@@ -83,20 +83,20 @@
  * \{
  */
 /* Reminder: update x509_crt_verify_strings[] in library/x509_crt.c */
-#define MBEDTLS_BADCERT_EXPIRED             0x01  /**< The certificate validity has expired. */
+#define MBEDTLS_X509_BADCERT_EXPIRED             0x01  /**< The certificate validity has expired. */
 #define MBEDTLS_X509_BADCERT_REVOKED             0x02  /**< The certificate has been revoked (is on a CRL). */
 #define MBEDTLS_X509_BADCERT_CN_MISMATCH         0x04  /**< The certificate Common Name (CN) does not match with the expected CN. */
 #define MBEDTLS_X509_BADCERT_NOT_TRUSTED         0x08  /**< The certificate is not correctly signed by the trusted CA. */
 #define MBEDTLS_X509_BADCRL_NOT_TRUSTED          0x10  /**< The CRL is not correctly signed by the trusted CA. */
 #define MBEDTLS_X509_BADCRL_EXPIRED              0x20  /**< The CRL is expired. */
-#define MBEDTLS_BADCERT_MISSING             0x40  /**< Certificate was missing. */
-#define MBEDTLS_BADCERT_SKIP_VERIFY         0x80  /**< Certificate verification was skipped. */
-#define MBEDTLS_BADCERT_OTHER             0x0100  /**< Other reason (can be used by verify callback) */
+#define MBEDTLS_X509_BADCERT_MISSING             0x40  /**< Certificate was missing. */
+#define MBEDTLS_X509_BADCERT_SKIP_VERIFY         0x80  /**< Certificate verification was skipped. */
+#define MBEDTLS_X509_BADCERT_OTHER             0x0100  /**< Other reason (can be used by verify callback) */
 #define MBEDTLS_X509_BADCERT_FUTURE            0x0200  /**< The certificate validity starts in the future. */
-#define MBEDTLS_BADCRL_FUTURE             0x0400  /**< The CRL is from the future */
-#define MBEDTLS_BADCERT_KEY_USAGE         0x0800  /**< Usage does not match the keyUsage extension. */
-#define MBEDTLS_BADCERT_EXT_KEY_USAGE     0x1000  /**< Usage does not match the extendedKeyUsage extension. */
-#define MBEDTLS_BADCERT_NS_CERT_TYPE      0x2000  /**< Usage does not match the nsCertType extension. */
+#define MBEDTLS_X509_BADCRL_FUTURE             0x0400  /**< The CRL is from the future */
+#define MBEDTLS_X509_BADCERT_KEY_USAGE         0x0800  /**< Usage does not match the keyUsage extension. */
+#define MBEDTLS_X509_BADCERT_EXT_KEY_USAGE     0x1000  /**< Usage does not match the extendedKeyUsage extension. */
+#define MBEDTLS_X509_BADCERT_NS_CERT_TYPE      0x2000  /**< Usage does not match the nsCertType extension. */
 /* \} name */
 /* \} addtogroup x509_module */
 
@@ -105,9 +105,9 @@
  */
 #define MBEDTLS_X509_KU_DIGITAL_SIGNATURE            (0x80)  /* bit 0 */
 #define MBEDTLS_X509_KU_NON_REPUDIATION              (0x40)  /* bit 1 */
-#define MBEDTLS_KU_KEY_ENCIPHERMENT             (0x20)  /* bit 2 */
-#define MBEDTLS_KU_DATA_ENCIPHERMENT            (0x10)  /* bit 3 */
-#define MBEDTLS_KU_KEY_AGREEMENT                (0x08)  /* bit 4 */
+#define MBEDTLS_X509_KU_KEY_ENCIPHERMENT             (0x20)  /* bit 2 */
+#define MBEDTLS_X509_KU_DATA_ENCIPHERMENT            (0x10)  /* bit 3 */
+#define MBEDTLS_X509_KU_KEY_AGREEMENT                (0x08)  /* bit 4 */
 #define MBEDTLS_X509_KU_KEY_CERT_SIGN                (0x04)  /* bit 5 */
 #define MBEDTLS_X509_KU_CRL_SIGN                     (0x02)  /* bit 6 */
 
@@ -117,13 +117,13 @@
  */
 
 #define MBEDTLS_X509_NS_CERT_TYPE_SSL_CLIENT         (0x80)  /* bit 0 */
-#define MBEDTLS_NS_CERT_TYPE_SSL_SERVER         (0x40)  /* bit 1 */
+#define MBEDTLS_X509_NS_CERT_TYPE_SSL_SERVER         (0x40)  /* bit 1 */
 #define MBEDTLS_X509_NS_CERT_TYPE_EMAIL              (0x20)  /* bit 2 */
 #define MBEDTLS_X509_NS_CERT_TYPE_OBJECT_SIGNING     (0x10)  /* bit 3 */
 #define MBEDTLS_X509_NS_CERT_TYPE_RESERVED           (0x08)  /* bit 4 */
-#define MBEDTLS_NS_CERT_TYPE_SSL_CA             (0x04)  /* bit 5 */
-#define MBEDTLS_NS_CERT_TYPE_EMAIL_CA           (0x02)  /* bit 6 */
-#define MBEDTLS_NS_CERT_TYPE_OBJECT_SIGNING_CA  (0x01)  /* bit 7 */
+#define MBEDTLS_X509_NS_CERT_TYPE_SSL_CA             (0x04)  /* bit 5 */
+#define MBEDTLS_X509_NS_CERT_TYPE_EMAIL_CA           (0x02)  /* bit 6 */
+#define MBEDTLS_X509_NS_CERT_TYPE_OBJECT_SIGNING_CA  (0x01)  /* bit 7 */
 
 /*
  * X.509 extension types
@@ -132,20 +132,20 @@
  * different for writing certificates or reading CRLs or CSRs.
  */
 #define MBEDTLS_X509_EXT_AUTHORITY_KEY_IDENTIFIER    (1 << 0)
-#define MBEDTLS_EXT_SUBJECT_KEY_IDENTIFIER      (1 << 1)
-#define MBEDTLS_X509_EXT_KEY_USAGE                   (1 << 2)    /* Parsed but not used */
+#define MBEDTLS_X509_EXT_SUBJECT_KEY_IDENTIFIER      (1 << 1)
+#define MBEDTLS_X509_EXT_KEY_USAGE                   (1 << 2)
 #define MBEDTLS_X509_EXT_CERTIFICATE_POLICIES        (1 << 3)
 #define MBEDTLS_X509_EXT_POLICY_MAPPINGS             (1 << 4)
-#define MBEDTLS_EXT_SUBJECT_ALT_NAME            (1 << 5)    /* Supported (DNS) */
-#define MBEDTLS_EXT_ISSUER_ALT_NAME             (1 << 6)
+#define MBEDTLS_X509_EXT_SUBJECT_ALT_NAME            (1 << 5)    /* Supported (DNS) */
+#define MBEDTLS_X509_EXT_ISSUER_ALT_NAME             (1 << 6)
 #define MBEDTLS_X509_EXT_SUBJECT_DIRECTORY_ATTRS     (1 << 7)
-#define MBEDTLS_EXT_BASIC_CONSTRAINTS           (1 << 8)    /* Supported */
-#define MBEDTLS_EXT_NAME_CONSTRAINTS            (1 << 9)
-#define MBEDTLS_EXT_POLICY_CONSTRAINTS          (1 << 10)
-#define MBEDTLS_X509_EXT_EXTENDED_KEY_USAGE          (1 << 11)   /* Parsed but not used */
-#define MBEDTLS_EXT_CRL_DISTRIBUTION_POINTS     (1 << 12)
+#define MBEDTLS_X509_EXT_BASIC_CONSTRAINTS           (1 << 8)    /* Supported */
+#define MBEDTLS_X509_EXT_NAME_CONSTRAINTS            (1 << 9)
+#define MBEDTLS_X509_EXT_POLICY_CONSTRAINTS          (1 << 10)
+#define MBEDTLS_X509_EXT_EXTENDED_KEY_USAGE          (1 << 11)
+#define MBEDTLS_X509_EXT_CRL_DISTRIBUTION_POINTS     (1 << 12)
 #define MBEDTLS_X509_EXT_INIHIBIT_ANYPOLICY          (1 << 13)
-#define MBEDTLS_EXT_FRESHEST_CRL                (1 << 14)
+#define MBEDTLS_X509_EXT_FRESHEST_CRL                (1 << 14)
 
 #define MBEDTLS_X509_EXT_NS_CERT_TYPE                (1 << 16)   /* Parsed (and then ?) */
 

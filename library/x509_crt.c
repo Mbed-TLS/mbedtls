@@ -485,7 +485,7 @@ static int x509_get_crt_ext( unsigned char **p,
 
         switch( ext_type )
         {
-        case MBEDTLS_EXT_BASIC_CONSTRAINTS:
+        case MBEDTLS_X509_EXT_BASIC_CONSTRAINTS:
             /* Parse basic constraints */
             if( ( ret = x509_get_basic_constraints( p, end_ext_octet,
                     &crt->ca_istrue, &crt->max_pathlen ) ) != 0 )
@@ -506,7 +506,7 @@ static int x509_get_crt_ext( unsigned char **p,
                 return( ret );
             break;
 
-        case MBEDTLS_EXT_SUBJECT_ALT_NAME:
+        case MBEDTLS_X509_EXT_SUBJECT_ALT_NAME:
             /* Parse subject alt name */
             if( ( ret = x509_get_subject_alt_name( p, end_ext_octet,
                     &crt->subject_alt_names ) ) != 0 )
@@ -1182,13 +1182,13 @@ static int x509_info_cert_type( char **buf, size_t *size,
     const char *sep = "";
 
     CERT_TYPE( MBEDTLS_X509_NS_CERT_TYPE_SSL_CLIENT,         "SSL Client" );
-    CERT_TYPE( MBEDTLS_NS_CERT_TYPE_SSL_SERVER,         "SSL Server" );
+    CERT_TYPE( MBEDTLS_X509_NS_CERT_TYPE_SSL_SERVER,         "SSL Server" );
     CERT_TYPE( MBEDTLS_X509_NS_CERT_TYPE_EMAIL,              "Email" );
     CERT_TYPE( MBEDTLS_X509_NS_CERT_TYPE_OBJECT_SIGNING,     "Object Signing" );
     CERT_TYPE( MBEDTLS_X509_NS_CERT_TYPE_RESERVED,           "Reserved" );
-    CERT_TYPE( MBEDTLS_NS_CERT_TYPE_SSL_CA,             "SSL CA" );
-    CERT_TYPE( MBEDTLS_NS_CERT_TYPE_EMAIL_CA,           "Email CA" );
-    CERT_TYPE( MBEDTLS_NS_CERT_TYPE_OBJECT_SIGNING_CA,  "Object Signing CA" );
+    CERT_TYPE( MBEDTLS_X509_NS_CERT_TYPE_SSL_CA,             "SSL CA" );
+    CERT_TYPE( MBEDTLS_X509_NS_CERT_TYPE_EMAIL_CA,           "Email CA" );
+    CERT_TYPE( MBEDTLS_X509_NS_CERT_TYPE_OBJECT_SIGNING_CA,  "Object Signing CA" );
 
     *size = n;
     *buf = p;
@@ -1210,9 +1210,9 @@ static int x509_info_key_usage( char **buf, size_t *size,
 
     KEY_USAGE( MBEDTLS_X509_KU_DIGITAL_SIGNATURE,    "Digital Signature" );
     KEY_USAGE( MBEDTLS_X509_KU_NON_REPUDIATION,      "Non Repudiation" );
-    KEY_USAGE( MBEDTLS_KU_KEY_ENCIPHERMENT,     "Key Encipherment" );
-    KEY_USAGE( MBEDTLS_KU_DATA_ENCIPHERMENT,    "Data Encipherment" );
-    KEY_USAGE( MBEDTLS_KU_KEY_AGREEMENT,        "Key Agreement" );
+    KEY_USAGE( MBEDTLS_X509_KU_KEY_ENCIPHERMENT,     "Key Encipherment" );
+    KEY_USAGE( MBEDTLS_X509_KU_DATA_ENCIPHERMENT,    "Data Encipherment" );
+    KEY_USAGE( MBEDTLS_X509_KU_KEY_AGREEMENT,        "Key Agreement" );
     KEY_USAGE( MBEDTLS_X509_KU_KEY_CERT_SIGN,        "Key Cert Sign" );
     KEY_USAGE( MBEDTLS_X509_KU_CRL_SIGN,             "CRL Sign" );
 
@@ -1323,7 +1323,7 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
      * Optional extensions
      */
 
-    if( crt->ext_types & MBEDTLS_EXT_BASIC_CONSTRAINTS )
+    if( crt->ext_types & MBEDTLS_X509_EXT_BASIC_CONSTRAINTS )
     {
         ret = mbedtls_snprintf( p, n, "\n%sbasic constraints : CA=%s", prefix,
                         crt->ca_istrue ? "true" : "false" );
@@ -1336,7 +1336,7 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
         }
     }
 
-    if( crt->ext_types & MBEDTLS_EXT_SUBJECT_ALT_NAME )
+    if( crt->ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME )
     {
         ret = mbedtls_snprintf( p, n, "\n%ssubject alt name  : ", prefix );
         SAFE_SNPRINTF();
@@ -1386,20 +1386,20 @@ struct x509_crt_verify_string {
 };
 
 static const struct x509_crt_verify_string x509_crt_verify_strings[] = {
-    { MBEDTLS_BADCERT_EXPIRED,       "The certificate validity has expired" },
+    { MBEDTLS_X509_BADCERT_EXPIRED,       "The certificate validity has expired" },
     { MBEDTLS_X509_BADCERT_REVOKED,       "The certificate has been revoked (is on a CRL)" },
     { MBEDTLS_X509_BADCERT_CN_MISMATCH,   "The certificate Common Name (CN) does not match with the expected CN" },
     { MBEDTLS_X509_BADCERT_NOT_TRUSTED,   "The certificate is not correctly signed by the trusted CA" },
     { MBEDTLS_X509_BADCRL_NOT_TRUSTED,    "The CRL is not correctly signed by the trusted CA" },
     { MBEDTLS_X509_BADCRL_EXPIRED,        "The CRL is expired" },
-    { MBEDTLS_BADCERT_MISSING,       "Certificate was missing" },
-    { MBEDTLS_BADCERT_SKIP_VERIFY,   "Certificate verification was skipped" },
-    { MBEDTLS_BADCERT_OTHER,         "Other reason (can be used by verify callback)" },
+    { MBEDTLS_X509_BADCERT_MISSING,       "Certificate was missing" },
+    { MBEDTLS_X509_BADCERT_SKIP_VERIFY,   "Certificate verification was skipped" },
+    { MBEDTLS_X509_BADCERT_OTHER,         "Other reason (can be used by verify callback)" },
     { MBEDTLS_X509_BADCERT_FUTURE,        "The certificate validity starts in the future" },
-    { MBEDTLS_BADCRL_FUTURE,         "The CRL is from the future" },
-    { MBEDTLS_BADCERT_KEY_USAGE,     "Usage does not match the keyUsage extension" },
-    { MBEDTLS_BADCERT_EXT_KEY_USAGE, "Usage does not match the extendedKeyUsage extension" },
-    { MBEDTLS_BADCERT_NS_CERT_TYPE,  "Usage does not match the nsCertType extension" },
+    { MBEDTLS_X509_BADCRL_FUTURE,         "The CRL is from the future" },
+    { MBEDTLS_X509_BADCERT_KEY_USAGE,     "Usage does not match the keyUsage extension" },
+    { MBEDTLS_X509_BADCERT_EXT_KEY_USAGE, "Usage does not match the extendedKeyUsage extension" },
+    { MBEDTLS_X509_BADCERT_NS_CERT_TYPE,  "Usage does not match the nsCertType extension" },
     { 0, NULL }
 };
 
@@ -1568,7 +1568,7 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
             flags |= MBEDTLS_X509_BADCRL_EXPIRED;
 
         if( mbedtls_x509_time_future( &crl_list->this_update ) )
-            flags |= MBEDTLS_BADCRL_FUTURE;
+            flags |= MBEDTLS_X509_BADCRL_FUTURE;
 
         /*
          * Check if certificate is revoked
@@ -1773,7 +1773,7 @@ static int x509_crt_verify_top(
     const mbedtls_md_info_t *md_info;
 
     if( mbedtls_x509_time_expired( &child->valid_to ) )
-        *flags |= MBEDTLS_BADCERT_EXPIRED;
+        *flags |= MBEDTLS_X509_BADCERT_EXPIRED;
 
     if( mbedtls_x509_time_future( &child->valid_from ) )
         *flags |= MBEDTLS_X509_BADCERT_FUTURE;
@@ -1848,7 +1848,7 @@ static int x509_crt_verify_top(
 #endif
 
         if( mbedtls_x509_time_expired( &trust_ca->valid_to ) )
-            ca_flags |= MBEDTLS_BADCERT_EXPIRED;
+            ca_flags |= MBEDTLS_X509_BADCERT_EXPIRED;
 
         if( mbedtls_x509_time_future( &trust_ca->valid_from ) )
             ca_flags |= MBEDTLS_X509_BADCERT_FUTURE;
@@ -1895,7 +1895,7 @@ static int x509_crt_verify_child(
     }
 
     if( mbedtls_x509_time_expired( &child->valid_to ) )
-        *flags |= MBEDTLS_BADCERT_EXPIRED;
+        *flags |= MBEDTLS_X509_BADCERT_EXPIRED;
 
     if( mbedtls_x509_time_future( &child->valid_from ) )
         *flags |= MBEDTLS_X509_BADCERT_FUTURE;
@@ -1985,7 +1985,7 @@ int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
         name = &crt->subject;
         cn_len = strlen( cn );
 
-        if( crt->ext_types & MBEDTLS_EXT_SUBJECT_ALT_NAME )
+        if( crt->ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME )
         {
             cur = &crt->subject_alt_names;
 

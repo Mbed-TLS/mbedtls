@@ -200,11 +200,11 @@ int main( int argc, char *argv[] )
                 else if( strcmp( q, "non_repudiation" ) == 0 )
                     opt.key_usage |= MBEDTLS_X509_KU_NON_REPUDIATION;
                 else if( strcmp( q, "key_encipherment" ) == 0 )
-                    opt.key_usage |= MBEDTLS_KU_KEY_ENCIPHERMENT;
+                    opt.key_usage |= MBEDTLS_X509_KU_KEY_ENCIPHERMENT;
                 else if( strcmp( q, "data_encipherment" ) == 0 )
-                    opt.key_usage |= MBEDTLS_KU_DATA_ENCIPHERMENT;
+                    opt.key_usage |= MBEDTLS_X509_KU_DATA_ENCIPHERMENT;
                 else if( strcmp( q, "key_agreement" ) == 0 )
-                    opt.key_usage |= MBEDTLS_KU_KEY_AGREEMENT;
+                    opt.key_usage |= MBEDTLS_X509_KU_KEY_AGREEMENT;
                 else if( strcmp( q, "key_cert_sign" ) == 0 )
                     opt.key_usage |= MBEDTLS_X509_KU_KEY_CERT_SIGN;
                 else if( strcmp( q, "crl_sign" ) == 0 )
@@ -225,17 +225,17 @@ int main( int argc, char *argv[] )
                 if( strcmp( q, "ssl_client" ) == 0 )
                     opt.ns_cert_type |= MBEDTLS_X509_NS_CERT_TYPE_SSL_CLIENT;
                 else if( strcmp( q, "ssl_server" ) == 0 )
-                    opt.ns_cert_type |= MBEDTLS_NS_CERT_TYPE_SSL_SERVER;
+                    opt.ns_cert_type |= MBEDTLS_X509_NS_CERT_TYPE_SSL_SERVER;
                 else if( strcmp( q, "email" ) == 0 )
                     opt.ns_cert_type |= MBEDTLS_X509_NS_CERT_TYPE_EMAIL;
                 else if( strcmp( q, "object_signing" ) == 0 )
                     opt.ns_cert_type |= MBEDTLS_X509_NS_CERT_TYPE_OBJECT_SIGNING;
                 else if( strcmp( q, "ssl_ca" ) == 0 )
-                    opt.ns_cert_type |= MBEDTLS_NS_CERT_TYPE_SSL_CA;
+                    opt.ns_cert_type |= MBEDTLS_X509_NS_CERT_TYPE_SSL_CA;
                 else if( strcmp( q, "email_ca" ) == 0 )
-                    opt.ns_cert_type |= MBEDTLS_NS_CERT_TYPE_EMAIL_CA;
+                    opt.ns_cert_type |= MBEDTLS_X509_NS_CERT_TYPE_EMAIL_CA;
                 else if( strcmp( q, "object_signing_ca" ) == 0 )
-                    opt.ns_cert_type |= MBEDTLS_NS_CERT_TYPE_OBJECT_SIGNING_CA;
+                    opt.ns_cert_type |= MBEDTLS_X509_NS_CERT_TYPE_OBJECT_SIGNING_CA;
                 else
                     goto usage;
 

@@ -3852,7 +3852,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         ( ssl->authmode == MBEDTLS_SSL_VERIFY_NONE ||
           ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ) )
     {
-        ssl->session_negotiate->verify_result = MBEDTLS_BADCERT_SKIP_VERIFY;
+        ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_SKIP_VERIFY;
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
         ssl->state++;
         return( 0 );
@@ -3882,7 +3882,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "SSLv3 client has no certificate" ) );
 
-            ssl->session_negotiate->verify_result = MBEDTLS_BADCERT_MISSING;
+            ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_MISSING;
             if( ssl->authmode == MBEDTLS_SSL_VERIFY_OPTIONAL )
                 return( 0 );
             else
@@ -3903,7 +3903,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "TLSv1 client has no certificate" ) );
 
-            ssl->session_negotiate->verify_result = MBEDTLS_BADCERT_MISSING;
+            ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_MISSING;
             if( ssl->authmode == MBEDTLS_SSL_VERIFY_REQUIRED )
                 return( MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE );
             else
@@ -6817,7 +6817,7 @@ int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
         {
             case MBEDTLS_KEY_EXCHANGE_RSA:
             case MBEDTLS_KEY_EXCHANGE_RSA_PSK:
-                usage = MBEDTLS_KU_KEY_ENCIPHERMENT;
+                usage = MBEDTLS_X509_KU_KEY_ENCIPHERMENT;
                 break;
 
             case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
@@ -6828,7 +6828,7 @@ int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
 
             case MBEDTLS_KEY_EXCHANGE_ECDH_RSA:
             case MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA:
-                usage = MBEDTLS_KU_KEY_AGREEMENT;
+                usage = MBEDTLS_X509_KU_KEY_AGREEMENT;
                 break;
 
             /* Don't use default: we want warnings when adding new values */
@@ -6847,7 +6847,7 @@ int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
 
     if( mbedtls_x509_crt_check_key_usage( cert, usage ) != 0 )
     {
-        *flags |= MBEDTLS_BADCERT_KEY_USAGE;
+        *flags |= MBEDTLS_X509_BADCERT_KEY_USAGE;
         ret = -1;
     }
 #else
@@ -6868,7 +6868,7 @@ int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
 
     if( mbedtls_x509_crt_check_extended_key_usage( cert, ext_oid, ext_len ) != 0 )
     {
-        *flags |= MBEDTLS_BADCERT_EXT_KEY_USAGE;
+        *flags |= MBEDTLS_X509_BADCERT_EXT_KEY_USAGE;
         ret = -1;
     }
 #endif /* MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE */

@@ -279,7 +279,7 @@ int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
  * \brief          Check usage of certificate against keyUsage extension.
  *
  * \param crt      Leaf certificate used.
- * \param usage    Intended usage(s) (eg MBEDTLS_KU_KEY_ENCIPHERMENT before using the
+ * \param usage    Intended usage(s) (eg MBEDTLS_X509_KU_KEY_ENCIPHERMENT before using the
  *                 certificate to perform an RSA key exchange).
  *
  * \return         0 is these uses of the certificate are allowed,

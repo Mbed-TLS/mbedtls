@@ -3290,7 +3290,7 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
     diff |= peer_pms[0] ^ ssl->handshake->max_major_ver;
     diff |= peer_pms[1] ^ ssl->handshake->max_minor_ver;
 
-#if defined(POLARSSL_SSL_DEBUG_ALL)
+#if defined(MBEDTLS_SSL_DEBUG_ALL)
     if( diff != 0 )
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
 #endif

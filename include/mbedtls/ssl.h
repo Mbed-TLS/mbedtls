@@ -2281,7 +2281,8 @@ static inline mbedtls_x509_crt *mbedtls_ssl_own_cert( mbedtls_ssl_context *ssl )
  */
 int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
                           const mbedtls_ssl_ciphersuite_t *ciphersuite,
-                          int cert_endpoint );
+                          int cert_endpoint,
+                          int *flags );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 void mbedtls_ssl_write_version( int major, int minor, int transport,

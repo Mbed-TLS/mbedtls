@@ -4059,7 +4059,8 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 
         if( mbedtls_ssl_check_cert_usage( ssl->session_negotiate->peer_cert,
                                   ciphersuite_info,
-                                  ! ssl->endpoint ) != 0 )
+                                  ! ssl->endpoint,
+                                 &ssl->session_negotiate->verify_result ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate (usage extensions)" ) );
             if( ret == 0 )
@@ -6789,8 +6790,10 @@ int mbedtls_ssl_curve_is_acceptable( const mbedtls_ssl_context *ssl, mbedtls_ecp
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
                           const mbedtls_ssl_ciphersuite_t *ciphersuite,
-                          int cert_endpoint )
+                          int cert_endpoint,
+                          int *flags )
 {
+    int ret = 0;
 #if defined(MBEDTLS_X509_CHECK_KEY_USAGE)
     int usage = 0;
 #endif
@@ -6803,6 +6806,7 @@ int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
     !defined(MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE)
     ((void) cert);
     ((void) cert_endpoint);
+    ((void) flags);
 #endif
 
 #if defined(MBEDTLS_X509_CHECK_KEY_USAGE)
@@ -6842,7 +6846,10 @@ int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
     }
 
     if( mbedtls_x509_crt_check_key_usage( cert, usage ) != 0 )
-        return( -1 );
+    {
+        *flags |= MBEDTLS_BADCERT_KEY_USAGE;
+        ret = -1;
+    }
 #else
     ((void) ciphersuite);
 #endif /* MBEDTLS_X509_CHECK_KEY_USAGE */
@@ -6860,10 +6867,13 @@ int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
     }
 
     if( mbedtls_x509_crt_check_extended_key_usage( cert, ext_oid, ext_len ) != 0 )
-        return( -1 );
+    {
+        *flags |= MBEDTLS_BADCERT_EXT_KEY_USAGE;
+        ret = -1;
+    }
 #endif /* MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE */
 
-    return( 0 );
+    return( ret );
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 

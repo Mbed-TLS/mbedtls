@@ -868,6 +868,7 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
 {
     mbedtls_ssl_key_cert *cur, *list, *fallback = NULL;
     mbedtls_pk_type_t pk_alg = mbedtls_ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
+    int flags;
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     if( ssl->handshake->sni_key_cert != NULL )
@@ -901,7 +902,7 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
          * and decrypting with the same RSA key.
          */
         if( mbedtls_ssl_check_cert_usage( cur->cert, ciphersuite_info,
-                                  MBEDTLS_SSL_IS_SERVER ) != 0 )
+                                  MBEDTLS_SSL_IS_SERVER, &flags ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "certificate mismatch: "
                                 "(extended) key usage extension" ) );

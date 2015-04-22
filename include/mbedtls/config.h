@@ -1049,7 +1049,7 @@
  *
  * Comment this macro to disable support for DTLS
  */
-//#define MBEDTLS_SSL_PROTO_DTLS
+#define MBEDTLS_SSL_PROTO_DTLS
 
 /**
  * \def MBEDTLS_SSL_ALPN
@@ -1073,7 +1073,7 @@
  *
  * Comment this to disable anti-replay in DTLS.
  */
-//#define MBEDTLS_SSL_DTLS_ANTI_REPLAY
+#define MBEDTLS_SSL_DTLS_ANTI_REPLAY
 
 /**
  * \def MBEDTLS_SSL_DTLS_HELLO_VERIFY
@@ -1092,7 +1092,7 @@
  *
  * Comment this to disable support for HelloVerifyRequest.
  */
-//#define MBEDTLS_SSL_DTLS_HELLO_VERIFY
+#define MBEDTLS_SSL_DTLS_HELLO_VERIFY
 
 /**
  * \def MBEDTLS_SSL_DTLS_BADMAC_LIMIT
@@ -1103,7 +1103,7 @@
  *
  * Requires: MBEDTLS_SSL_PROTO_DTLS
  */
-//#define MBEDTLS_SSL_DTLS_BADMAC_LIMIT
+#define MBEDTLS_SSL_DTLS_BADMAC_LIMIT
 
 /**
  * \def MBEDTLS_SSL_SESSION_TICKETS
@@ -2087,7 +2087,7 @@
  *
  * Requires: MBEDTLS_SSL_DTLS_HELLO_VERIFY
  */
-//#define MBEDTLS_SSL_COOKIE_C
+#define MBEDTLS_SSL_COOKIE_C
 
 /**
  * \def MBEDTLS_SSL_CLI_C
@@ -2164,7 +2164,7 @@
  *
  * This module is used by the HAVEGE random number generator.
  */
-//#define MBEDTLS_TIMING_C
+#define MBEDTLS_TIMING_C
 
 /**
  * \def MBEDTLS_VERSION_C

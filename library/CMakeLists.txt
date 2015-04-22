@@ -60,7 +60,8 @@ set(src
      ssl_srv.c
      ssl_tls.c
      threading.c
-     timing.c
+     #timing.c
+     timing.cpp
      version.c
      version_features.c
      x509.c

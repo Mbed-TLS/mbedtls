@@ -1,13 +1,13 @@
 {
     "name": "mbedtls",
-    "version": "1.5.0-alpha1",
-    "licenses":[{
+    "version": "1.5.0-alpha2",
+    "private": true,
+    "licenses": [{
         "type": "GPL-2.0",
         "url": "https://spdx.org/licenses/GPL-2.0"
     }],
     "extraIncludes": ["include"],
-    "dependencies":{
-    },
+    "dependencies": {},
     "targetDependencies": {
         "arm": {
             "mbed": "ARMmbed/mbed-sdk"

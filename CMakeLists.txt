@@ -42,8 +42,8 @@ endif(CMAKE_BUILD_TYPE STREQUAL "Coverage")
 option(USE_PKCS11_HELPER_LIBRARY "Build mbed TLS with the pkcs11-helper library." OFF)
 
 option(ENABLE_ZLIB_SUPPORT "Build mbed TLS with zlib library." OFF)
-option(ENABLE_PROGRAMS "Build mbed TLS programs." ON)
-option(ENABLE_TESTING "Build mbed TLS tests." ON)
+option(ENABLE_PROGRAMS "Build mbed TLS programs." OFF)
+option(ENABLE_TESTING "Build mbed TLS tests." OFF)
 
 if(ENABLE_TESTING)
   enable_testing()

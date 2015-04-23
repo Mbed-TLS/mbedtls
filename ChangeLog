@@ -5,6 +5,9 @@ PolarSSL ChangeLog
 Security
    * Fix potential invalid memory read in the server, that allows a client to
      crash it remotely (found by Caj Larsson).
+   * Fix potential invalid memory read in certificate parsing, that allows a
+     client to crash the server remotely if client authentication is enabled
+     (found using Codenomicon Defensics).
 
 Bugfix
    * Fix bug in Via Padlock support (found by Nikos Mavrogiannopoulos).

@@ -519,8 +519,7 @@ static int x509_get_sig( unsigned char **p,
     if( ( ret = asn1_get_tag( p, end, &len, ASN1_BIT_STRING ) ) != 0 )
         return( POLARSSL_ERR_X509_CERT_INVALID_SIGNATURE + ret );
 
-
-    if( --len < 1 || *(*p)++ != 0 )
+    if( len-- < 2 || *(*p)++ != 0 )
         return( POLARSSL_ERR_X509_CERT_INVALID_SIGNATURE );
 
     sig->len = len;

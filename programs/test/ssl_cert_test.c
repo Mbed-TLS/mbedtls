@@ -176,7 +176,7 @@ int main( void )
                 char vrfy_buf[512];
 
                 polarssl_printf( " failed\n" );
-                x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", ret );
+                x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", flags );
                 polarssl_printf( "%s\n", vrfy_buf );
             }
             else

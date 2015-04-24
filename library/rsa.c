@@ -283,7 +283,8 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
     }
 
 #if defined(MBEDTLS_THREADING_C)
-    mbedtls_mutex_lock( &ctx->mutex );
+    if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
+        return( ret );
 #endif
 
     olen = ctx->len;
@@ -292,7 +293,8 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
 
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
-    mbedtls_mutex_unlock( &ctx->mutex );
+    if( ( ret = mbedtls_mutex_unlock( &ctx->mutex ) ) != 0 )
+        return( ret );
 #endif
 
     mbedtls_mpi_free( &T );
@@ -315,7 +317,8 @@ static int rsa_prepare_blinding( mbedtls_rsa_context *ctx, mbedtls_mpi *Vi, mbed
     int ret, count = 0;
 
 #if defined(MBEDTLS_THREADING_C)
-    mbedtls_mutex_lock( &ctx->mutex );
+    if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
+        return( ret );
 #endif
 
     if( ctx->Vf.p != NULL )
@@ -351,7 +354,8 @@ done:
 
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
-    mbedtls_mutex_unlock( &ctx->mutex );
+    if( ( ret = mbedtls_mutex_unlock( &ctx->mutex ) ) != 0 )
+        return( ret );
 #endif
 
     return( ret );
@@ -408,7 +412,8 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
     }
 
 #if defined(MBEDTLS_THREADING_C)
-    mbedtls_mutex_lock( &ctx->mutex );
+    if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
+        return( ret );
 #endif
 
 #if defined(MBEDTLS_RSA_NO_CRT)
@@ -452,7 +457,8 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
 
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
-    mbedtls_mutex_unlock( &ctx->mutex );
+    if( ( ret = mbedtls_mutex_unlock( &ctx->mutex ) ) != 0 )
+        return( ret );
     mbedtls_mpi_free( &Vi_copy ); mbedtls_mpi_free( &Vf_copy );
 #endif
     mbedtls_mpi_free( &T ); mbedtls_mpi_free( &T1 ); mbedtls_mpi_free( &T2 );

@@ -53,6 +53,11 @@ typedef pthread_mutex_t mbedtls_threading_mutex_t;
  * \brief           Set your alternate threading implementation function
  *                  pointers
  *
+ * \note            mutex_init() and mutex_free() don't return a status code.
+ *                  If mutex_init() fails, it should leave its argument (the
+ *                  mutex) in a state such that mutex_lock() will fail when
+ *                  called with this argument.
+ *
  * \param mutex_init    the init function implementation
  * \param mutex_free    the free function implementation
  * \param mutex_lock    the lock function implementation
@@ -60,8 +65,8 @@ typedef pthread_mutex_t mbedtls_threading_mutex_t;
  *
  * \return              0 if successful
  */
-int mbedtls_threading_set_alt( int (*mutex_init)( mbedtls_threading_mutex_t * ),
-                       int (*mutex_free)( mbedtls_threading_mutex_t * ),
+int mbedtls_threading_set_alt( void (*mutex_init)( mbedtls_threading_mutex_t * ),
+                       void (*mutex_free)( mbedtls_threading_mutex_t * ),
                        int (*mutex_lock)( mbedtls_threading_mutex_t * ),
                        int (*mutex_unlock)( mbedtls_threading_mutex_t * ) );
 #endif /* MBEDTLS_THREADING_ALT */
@@ -71,8 +76,8 @@ int mbedtls_threading_set_alt( int (*mutex_init)( mbedtls_threading_mutex_t * ),
  *
  * All these functions are expected to work or the result will be undefined.
  */
-extern int (*mbedtls_mutex_init)( mbedtls_threading_mutex_t *mutex );
-extern int (*mbedtls_mutex_free)( mbedtls_threading_mutex_t *mutex );
+extern void (*mbedtls_mutex_init)( mbedtls_threading_mutex_t *mutex );
+extern void (*mbedtls_mutex_free)( mbedtls_threading_mutex_t *mutex );
 extern int (*mbedtls_mutex_lock)( mbedtls_threading_mutex_t *mutex );
 extern int (*mbedtls_mutex_unlock)( mbedtls_threading_mutex_t *mutex );
 

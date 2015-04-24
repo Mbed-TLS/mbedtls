@@ -9,6 +9,8 @@ Features
     to override the whole module.
 
 API Changes
+   * In the threading layer, mbedtls_mutex_init() and mbedtls_mutex_free() now
+     return void.
    * Configuration options POLARSSL_HAVE_LONGLONG was removed (now always on).
    * Configuration options POLARSSL_HAVE_INT8 and POLARSSL_HAVE_INT16 have
      been removed (compiler is required to support 32-bit operations).

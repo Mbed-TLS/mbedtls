@@ -181,7 +181,7 @@ int main( void )
              }
              else
              {
-                mbedtls_printf( " failed\n  !  mbedtls_x509_crt_verify returned %d\n\n", ret );
+                mbedtls_printf( " failed\n  !  mbedtls_x509_crt_verify returned %d\n\n", flags );
                 goto exit;
             }
         }

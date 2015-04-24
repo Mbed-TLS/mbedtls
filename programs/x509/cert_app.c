@@ -346,7 +346,7 @@ int main( int argc, char *argv[] )
 
                 mbedtls_printf( " failed\n" );
 
-                mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", ret );
+                mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", flags );
 
                 mbedtls_printf( "%s\n", vrfy_buf );
             }

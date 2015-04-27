@@ -23,7 +23,7 @@ install:
 	cp -r include/polarssl $(DESTDIR)/include
 	
 	mkdir -p $(DESTDIR)/lib
-	cp library/libpolarssl.* library/libmbedtls.* $(DESTDIR)/lib
+	cp -d library/libpolarssl.* library/libmbedtls.* $(DESTDIR)/lib
 	
 	mkdir -p $(DESTDIR)/bin
 	for p in programs/*/* ; do              \

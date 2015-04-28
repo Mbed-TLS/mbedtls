@@ -59,6 +59,12 @@ typedef struct {
 } mbedtls_pkcs11_context;
 
 /**
+ * Initialize a mbetls_pkcs11_context.
+ * (Just making memory references valid.)
+ */
+void mbedtls_pkcs11_init( mbedtls_pkcs11_context *ctx );
+
+/**
  * Fill in a mbed TLS certificate, based on the given PKCS11 helper certificate.
  *
  * \param cert          X.509 certificate to fill
@@ -66,10 +72,10 @@ typedef struct {
  *
  * \return              0 on success.
  */
-int mbedtls_pkcs11_x509_cert_init( mbedtls_x509_crt *cert, pkcs11h_certificate_t pkcs11h_cert );
+int mbedtls_pkcs11_x509_cert_bind( mbedtls_x509_crt *cert, pkcs11h_certificate_t pkcs11h_cert );
 
 /**
- * Initialise a mbedtls_pkcs11_context, storing the given certificate. Note that the
+ * Set up a mbedtls_pkcs11_context storing the given certificate. Note that the
  * mbedtls_pkcs11_context will take over control of the certificate, freeing it when
  * done.
  *
@@ -78,7 +84,7 @@ int mbedtls_pkcs11_x509_cert_init( mbedtls_x509_crt *cert, pkcs11h_certificate_t
  *
  * \return              0 on success
  */
-int mbedtls_pkcs11_priv_key_init( mbedtls_pkcs11_context *priv_key,
+int mbedtls_pkcs11_priv_key_bind( mbedtls_pkcs11_context *priv_key,
         pkcs11h_certificate_t pkcs11_cert );
 
 /**

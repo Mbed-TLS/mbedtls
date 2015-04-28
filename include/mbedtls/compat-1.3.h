@@ -2256,9 +2256,9 @@
 #define pkcs11_context mbedtls_pkcs11_context
 #define pkcs11_decrypt mbedtls_pkcs11_decrypt
 #define pkcs11_priv_key_free mbedtls_pkcs11_priv_key_free
-#define pkcs11_priv_key_init mbedtls_pkcs11_priv_key_init
+#define pkcs11_priv_key_init mbedtls_pkcs11_priv_key_bind
 #define pkcs11_sign mbedtls_pkcs11_sign
-#define pkcs11_x509_cert_init mbedtls_pkcs11_x509_cert_init
+#define pkcs11_x509_cert_init mbedtls_pkcs11_x509_cert_bind
 #define pkcs12_derivation mbedtls_pkcs12_derivation
 #define pkcs12_pbe mbedtls_pkcs12_pbe
 #define pkcs12_pbe_sha1_rc4_128 mbedtls_pkcs12_pbe_sha1_rc4_128

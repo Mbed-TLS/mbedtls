@@ -367,7 +367,7 @@ int main( int argc, char *argv[] )
      * Make sure memory references are valid in case we exit early.
      */
     server_fd = 0;
-    memset( &ssl, 0, sizeof( mbedtls_ssl_context ) );
+    mbedtls_ssl_init( &ssl );
     memset( &buf, 0, sizeof( buf ) );
     mbedtls_x509_crt_init( &cacert );
     mbedtls_x509_crt_init( &clicert );
@@ -582,9 +582,9 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "  . Setting up the SSL/TLS structure..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_ssl_init( &ssl ) ) != 0 )
+    if( ( ret = mbedtls_ssl_setup( &ssl ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_init returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned %d\n\n", ret );
         goto exit;
     }
 

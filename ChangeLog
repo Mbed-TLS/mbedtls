@@ -15,6 +15,7 @@ API Changes
    * Headers are now found in the 'mbedtls' directory (previously 'polarssl').
    * The following _init() functions that could return errors have
      been split into an _init() that returns void and another function:
+     mbedtls_ssl_init() -> mbedtls_ssl_setup()
      mbedtls_ccm_init() -> mbedtls_ccm_setkey()
      mbedtls_gcm_init() -> mbedtls_gcm_setkey()
      mbedtls_hmac_drbg_init() -> mbedtls_hmac_drbg_init(_buf)()

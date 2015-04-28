@@ -1098,14 +1098,22 @@ int mbedtls_ssl_get_ciphersuite_id( const char *ciphersuite_name );
 
 /**
  * \brief          Initialize an SSL context
- *                 (An individual SSL context is not thread-safe)
+ *                 Just makes the context ready for mbetls_ssl_setup() or
+ *                 mbedtls_ssl_free()
+ *
+ * \param ssl      SSL context
+ */
+void mbedtls_ssl_init( mbedtls_ssl_context *ssl );
+
+/**
+ * \brief          Set up an SSL context for use
  *
  * \param ssl      SSL context
  *
  * \return         0 if successful, or MBEDTLS_ERR_SSL_MALLOC_FAILED if
  *                 memory allocation failed
  */
-int mbedtls_ssl_init( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_setup( mbedtls_ssl_context *ssl );
 
 /**
  * \brief          Reset an already initialized SSL context for re-use

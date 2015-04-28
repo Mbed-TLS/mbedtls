@@ -248,9 +248,9 @@ int main( void )
             goto exit;
         }
 
-        if( ( ret = mbedtls_ssl_init( &ssl ) ) != 0 )
+        if( ( ret = mbedtls_ssl_setup( &ssl ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_init returned %d\n\n", ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned %d\n\n", ret );
             goto exit;
         }
 

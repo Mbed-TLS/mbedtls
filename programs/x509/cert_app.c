@@ -160,6 +160,7 @@ int main( int argc, char *argv[] )
      */
     server_fd = 0;
     mbedtls_ctr_drbg_init( &ctr_drbg );
+    mbedtls_ssl_init( &ssl );
     mbedtls_x509_crt_init( &cacert );
     mbedtls_x509_crt_init( &clicert );
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
@@ -393,9 +394,9 @@ int main( int argc, char *argv[] )
         /*
          * 3. Setup stuff
          */
-        if( ( ret = mbedtls_ssl_init( &ssl ) ) != 0 )
+        if( ( ret = mbedtls_ssl_setup( &ssl ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_init returned %d\n\n", ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned %d\n\n", ret );
             goto exit;
         }
 

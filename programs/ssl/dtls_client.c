@@ -104,7 +104,7 @@ int main( int argc, char *argv[] )
     /*
      * 0. Initialize the RNG and the session data
      */
-    memset( &ssl, 0, sizeof( mbedtls_ssl_context ) );
+    mbedtls_ssl_init( &ssl );
     mbedtls_x509_crt_init( &cacert );
     mbedtls_ctr_drbg_init( &ctr_drbg );
 
@@ -160,9 +160,9 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "  . Setting up the DTLS structure..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_ssl_init( &ssl ) ) != 0 )
+    if( ( ret = mbedtls_ssl_setup( &ssl ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_init returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned %d\n\n", ret );
         goto exit;
     }
 

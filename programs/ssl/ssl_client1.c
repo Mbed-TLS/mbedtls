@@ -92,7 +92,7 @@ int main( void )
     /*
      * 0. Initialize the RNG and the session data
      */
-    memset( &ssl, 0, sizeof( mbedtls_ssl_context ) );
+    mbedtls_ssl_init( &ssl );
     mbedtls_x509_crt_init( &cacert );
     mbedtls_ctr_drbg_init( &ctr_drbg );
 
@@ -148,9 +148,9 @@ int main( void )
     mbedtls_printf( "  . Setting up the SSL/TLS structure..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_ssl_init( &ssl ) ) != 0 )
+    if( ( ret = mbedtls_ssl_setup( &ssl ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_init returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned %d\n\n", ret );
         goto exit;
     }
 
@@ -277,8 +277,6 @@ exit:
     mbedtls_ssl_free( &ssl );
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
-
-    memset( &ssl, 0, sizeof( ssl ) );
 
 #if defined(_WIN32)
     mbedtls_printf( "  + Press Enter to exit this program.\n" );

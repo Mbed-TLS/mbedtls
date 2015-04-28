@@ -4944,12 +4944,18 @@ static int ssl_cookie_check_dummy( void *ctx,
 /*
  * Initialize an SSL context
  */
-int mbedtls_ssl_init( mbedtls_ssl_context *ssl )
+void mbedtls_ssl_init( mbedtls_ssl_context *ssl )
+{
+    memset( ssl, 0, sizeof( mbedtls_ssl_context ) );
+}
+
+/*
+ * Setup an SSL context
+ */
+int mbedtls_ssl_setup( mbedtls_ssl_context *ssl )
 {
     int ret;
     int len = MBEDTLS_SSL_BUFFER_LEN;
-
-    memset( ssl, 0, sizeof( mbedtls_ssl_context ) );
 
     /*
      * Sane defaults

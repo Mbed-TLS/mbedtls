@@ -13,7 +13,9 @@ void ssl_dtls_replay( char *prevs, char *new, int ret )
     mbedtls_ssl_context ssl;
     char *end_prevs = prevs + strlen( prevs ) + 1;
 
-    TEST_ASSERT( mbedtls_ssl_init( &ssl ) == 0 );
+    mbedtls_ssl_init( &ssl );
+
+    TEST_ASSERT( mbedtls_ssl_setup( &ssl ) == 0 );
     TEST_ASSERT( mbedtls_ssl_set_transport( &ssl, MBEDTLS_SSL_TRANSPORT_DATAGRAM ) == 0 );
 
     /* Read previous record numbers */

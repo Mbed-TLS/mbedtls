@@ -103,7 +103,7 @@ int main( void )
     mbedtls_ssl_cache_context cache;
 #endif
 
-    memset( &ssl, 0, sizeof(mbedtls_ssl_context) );
+    mbedtls_ssl_init( &ssl );
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_init( &cache );
 #endif
@@ -189,9 +189,9 @@ int main( void )
     mbedtls_printf( "  . Setting up the SSL data...." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_ssl_init( &ssl ) ) != 0 )
+    if( ( ret = mbedtls_ssl_setup( &ssl ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_init returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned %d\n\n", ret );
         goto exit;
     }
 

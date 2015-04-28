@@ -110,6 +110,7 @@ int main( int argc, char *argv[] )
 
     mbedtls_ecdsa_init( &ctx_sign );
     mbedtls_ecdsa_init( &ctx_verify );
+    mbedtls_ctr_drbg_init( &ctr_drbg );
 
     memset(sig, 0, sizeof( sig ) );
     ret = 1;
@@ -132,11 +133,11 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
     mbedtls_entropy_init( &entropy );
-    if( ( ret = mbedtls_ctr_drbg_init( &ctr_drbg, mbedtls_entropy_func, &entropy,
+    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_init returned %d\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned %d\n", ret );
         goto exit;
     }
 

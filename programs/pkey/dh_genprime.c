@@ -72,6 +72,7 @@ int main( void )
     FILE *fout;
 
     mbedtls_mpi_init( &G ); mbedtls_mpi_init( &P ); mbedtls_mpi_init( &Q );
+    mbedtls_ctr_drbg_init( &ctr_drbg );
     mbedtls_entropy_init( &entropy );
 
     if( ( ret = mbedtls_mpi_read_string( &G, 10, GENERATOR ) ) != 0 )
@@ -92,11 +93,11 @@ int main( void )
     mbedtls_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_ctr_drbg_init( &ctr_drbg, mbedtls_entropy_func, &entropy,
+    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_init returned %d\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned %d\n", ret );
         goto exit;
     }
 

@@ -211,6 +211,7 @@ int main( int argc, char *argv[] )
     mbedtls_pk_init( &loaded_issuer_key );
     mbedtls_pk_init( &loaded_subject_key );
     mbedtls_mpi_init( &serial );
+    mbedtls_ctr_drbg_init( &ctr_drbg );
 #if defined(MBEDTLS_X509_CSR_PARSE_C)
     mbedtls_x509_csr_init( &csr );
 #endif
@@ -371,12 +372,12 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
     mbedtls_entropy_init( &entropy );
-    if( ( ret = mbedtls_ctr_drbg_init( &ctr_drbg, mbedtls_entropy_func, &entropy,
+    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
         mbedtls_strerror( ret, buf, 1024 );
-        mbedtls_printf( " failed\n  !  mbedtls_ctr_drbg_init returned %d - %s\n", ret, buf );
+        mbedtls_printf( " failed\n  !  mbedtls_ctr_drbg_seed returned %d - %s\n", ret, buf );
         goto exit;
     }
 

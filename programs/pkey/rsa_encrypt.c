@@ -68,6 +68,7 @@ int main( int argc, char *argv[] )
     unsigned char buf[512];
     const char *pers = "rsa_encrypt";
 
+    mbedtls_ctr_drbg_init( &ctr_drbg );
     ret = 1;
 
     if( argc != 2 )
@@ -85,11 +86,11 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
     mbedtls_entropy_init( &entropy );
-    if( ( ret = mbedtls_ctr_drbg_init( &ctr_drbg, mbedtls_entropy_func, &entropy,
+    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_init returned %d\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned %d\n", ret );
         goto exit;
     }
 

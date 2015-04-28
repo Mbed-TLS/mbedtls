@@ -58,6 +58,8 @@ int main( int argc, char *argv[] )
     mbedtls_entropy_context entropy;
     unsigned char buf[1024];
 
+    mbedtls_ctr_drbg_init( &ctr_drbg );
+
     if( argc < 2 )
     {
         mbedtls_fprintf( stderr, "usage: %s <output filename>\n", argv[0] );
@@ -71,10 +73,10 @@ int main( int argc, char *argv[] )
     }
 
     mbedtls_entropy_init( &entropy );
-    ret = mbedtls_ctr_drbg_init( &ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *) "RANDOM_GEN", 10 );
+    ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *) "RANDOM_GEN", 10 );
     if( ret != 0 )
     {
-        mbedtls_printf( "failed in mbedtls_ctr_drbg_init: %d\n", ret );
+        mbedtls_printf( "failed in mbedtls_ctr_drbg_seed: %d\n", ret );
         goto cleanup;
     }
     mbedtls_ctr_drbg_set_prediction_resistance( &ctr_drbg, MBEDTLS_CTR_DRBG_PR_OFF );

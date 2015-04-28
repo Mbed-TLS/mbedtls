@@ -134,7 +134,7 @@ static void *handle_ssl_connection( void *data )
 
     /* Make sure memory references are valid */
     memset( &ssl, 0, sizeof( mbedtls_ssl_context ) );
-    memset( &ctr_drbg, 0, sizeof( mbedtls_ctr_drbg_context ) );
+    mbedtls_ctr_drbg_init( &ctr_drbg );
 
     mbedtls_snprintf( pers, sizeof(pers), "SSL Pthread Thread %d", thread_id );
     mbedtls_printf( "  [ #%d ]  Client FD %d\n", thread_id, client_fd );
@@ -142,11 +142,11 @@ static void *handle_ssl_connection( void *data )
 
     /* mbedtls_entropy_func() is thread-safe if MBEDTLS_THREADING_C is set
      */
-    if( ( ret = mbedtls_ctr_drbg_init( &ctr_drbg, mbedtls_entropy_func, thread_info->entropy,
+    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, thread_info->entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        mbedtls_printf( "  [ #%d ]  failed: mbedtls_ctr_drbg_init returned -0x%04x\n",
+        mbedtls_printf( "  [ #%d ]  failed: mbedtls_ctr_drbg_seed returned -0x%04x\n",
                 thread_id, -ret );
         goto thread_exit;
     }

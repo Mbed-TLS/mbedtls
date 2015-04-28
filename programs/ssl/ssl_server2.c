@@ -762,6 +762,7 @@ int main( int argc, char *argv[] )
      */
     listen_fd = 0;
     memset( &ssl, 0, sizeof( mbedtls_ssl_context ) );
+    mbedtls_ctr_drbg_init( &ctr_drbg );
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_x509_crt_init( &cacert );
     mbedtls_x509_crt_init( &srvcert );
@@ -1296,11 +1297,11 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
     mbedtls_entropy_init( &entropy );
-    if( ( ret = mbedtls_ctr_drbg_init( &ctr_drbg, mbedtls_entropy_func, &entropy,
+    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_init returned -0x%x\n", -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n", -ret );
         goto exit;
     }
 

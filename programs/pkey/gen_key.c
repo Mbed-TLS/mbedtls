@@ -201,6 +201,7 @@ int main( int argc, char *argv[] )
      * Set to sane values
      */
     mbedtls_pk_init( &key );
+    mbedtls_ctr_drbg_init( &ctr_drbg );
     memset( buf, 0, sizeof( buf ) );
 
     if( argc == 0 )
@@ -296,11 +297,11 @@ int main( int argc, char *argv[] )
     }
 #endif /* !_WIN32 && MBEDTLS_FS_IO */
 
-    if( ( ret = mbedtls_ctr_drbg_init( &ctr_drbg, mbedtls_entropy_func, &entropy,
+    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_init returned -0x%04x\n", -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%04x\n", -ret );
         goto exit;
     }
 

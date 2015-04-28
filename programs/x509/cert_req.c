@@ -149,6 +149,7 @@ int main( int argc, char *argv[] )
     mbedtls_x509write_csr_init( &req );
     mbedtls_x509write_csr_set_md_alg( &req, MBEDTLS_MD_SHA256 );
     mbedtls_pk_init( &key );
+    mbedtls_ctr_drbg_init( &ctr_drbg );
     memset( buf, 0, sizeof( buf ) );
 
     if( argc == 0 )
@@ -259,11 +260,11 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
     mbedtls_entropy_init( &entropy );
-    if( ( ret = mbedtls_ctr_drbg_init( &ctr_drbg, mbedtls_entropy_func, &entropy,
+    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_ctr_drbg_init returned %d", ret );
+        mbedtls_printf( " failed\n  !  mbedtls_ctr_drbg_seed returned %d", ret );
         goto exit;
     }
 

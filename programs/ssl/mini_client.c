@@ -146,7 +146,7 @@ const unsigned char ca_cert[] = {
 enum exit_codes
 {
     exit_ok = 0,
-    ctr_drbg_init_failed,
+    ctr_drbg_seed_failed,
     ssl_init_failed,
     socket_failed,
     connect_failed,
@@ -167,6 +167,7 @@ int main( void )
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     mbedtls_ssl_context ssl;
+    mbedtls_ctr_drbg_init( &ctr_drbg );
 
     /*
      * 0. Initialize and setup stuff
@@ -177,7 +178,7 @@ int main( void )
 #endif
 
     mbedtls_entropy_init( &entropy );
-    if( mbedtls_ctr_drbg_init( &ctr_drbg, mbedtls_entropy_func, &entropy,
+    if( mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
                        (const unsigned char *) pers, strlen( pers ) ) != 0 )
     {
         ret = ssl_init_failed;

@@ -87,6 +87,7 @@ int main( void )
     memset( &rsa, 0, sizeof( rsa ) );
     mbedtls_dhm_init( &dhm );
     mbedtls_aes_init( &aes );
+    mbedtls_ctr_drbg_init( &ctr_drbg );
 
     /*
      * 1. Setup the RNG
@@ -95,11 +96,11 @@ int main( void )
     fflush( stdout );
 
     mbedtls_entropy_init( &entropy );
-    if( ( ret = mbedtls_ctr_drbg_init( &ctr_drbg, mbedtls_entropy_func, &entropy,
+    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_init returned %d\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned %d\n", ret );
         goto exit;
     }
 

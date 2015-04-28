@@ -10,7 +10,7 @@
     "dependencies": {},
     "targetDependencies": {
         "arm": {
-            "mbed": "ARMmbed/mbed-sdk"
+            "mbed": "~3.0.0-alpha2"
         }
     }
 }

@@ -1825,7 +1825,8 @@ static int ssl_decrypt_buf( ssl_context *ssl )
                              ssl->in_msglen );
             md_hmac_finish( &ssl->transform_in->md_ctx_dec,
                              ssl->in_msg + ssl->in_msglen );
-            for( j = 0; j < extra_run; j++ )
+            /* Call md_process at least once due to cache attacks */
+            for( j = 0; j < extra_run + 1; j++ )
                 md_process( &ssl->transform_in->md_ctx_dec, ssl->in_msg );
 
             md_hmac_reset( &ssl->transform_in->md_ctx_dec );

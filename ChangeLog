@@ -6,6 +6,8 @@ Security
    * With authmode set to SSL_VERIFY_OPTIONAL, verification of keyUsage and
      extendedKeyUsage on the leaf certificate was lost (results not accessible
      via ssl_get_verify_results()).
+   * Add countermeasure against "Lucky 13 strikes back" cache-based attack,
+     https://dl.acm.org/citation.cfm?id=2714625
 
 Features
    * Add x509_crt_verify_info() to display certificate verification results.

@@ -103,12 +103,22 @@ typedef struct
 mbedtls_ctr_drbg_context;
 
 /**
- * \brief               CTR_DRBG initialization
+ * \brief               CTR_DRBG context initialization
+ *                      Makes the context ready for mbetls_ctr_drbg_seed() or
+ *                      mbedtls_ctr_drbg_free().
+ *
+ * \param ctx           CTR_DRBG context to be initialized
+ */
+void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx );
+
+/**
+ * \brief               CTR_DRBG initial seeding
+ *                      Seed and setup entropy source for future reseeds.
  *
  * Note: Personalization data can be provided in addition to the more generic
  *       entropy source to make this instantiation as unique as possible.
  *
- * \param ctx           CTR_DRBG context to be initialized
+ * \param ctx           CTR_DRBG context to be seeded
  * \param f_entropy     Entropy callback (p_entropy, buffer to fill, buffer
  *                      length)
  * \param p_entropy     Entropy context
@@ -119,7 +129,7 @@ mbedtls_ctr_drbg_context;
  * \return              0 if successful, or
  *                      MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED
  */
-int mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx,
+int mbedtls_ctr_drbg_seed( mbedtls_ctr_drbg_context *ctx,
                    int (*f_entropy)(void *, unsigned char *, size_t),
                    void *p_entropy,
                    const unsigned char *custom,
@@ -262,7 +272,7 @@ int mbedtls_ctr_drbg_update_seed_file( mbedtls_ctr_drbg_context *ctx, const char
 int mbedtls_ctr_drbg_self_test( int verbose );
 
 /* Internal functions (do not call directly) */
-int mbedtls_ctr_drbg_init_entropy_len( mbedtls_ctr_drbg_context *,
+int mbedtls_ctr_drbg_seed_entropy_len( mbedtls_ctr_drbg_context *,
                                int (*)(void *, unsigned char *, size_t), void *,
                                const unsigned char *, size_t, size_t );
 

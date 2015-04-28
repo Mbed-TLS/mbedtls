@@ -90,7 +90,7 @@ typedef struct
 } mbedtls_hmac_drbg_context;
 
 /**
- * \brief               HMAC_DRBG initialization (just make references valid)
+ * \brief               HMAC_DRBG context initialization
  *                      Makes the context ready for mbetls_hmac_drbg_seed(),
  *                      mbedtls_hmac_drbg_seed_buf() or
  *                      mbedtls_hmac_drbg_free().
@@ -101,7 +101,7 @@ void mbedtls_hmac_drbg_init( mbedtls_hmac_drbg_context *ctx );
 
 /**
  * \brief               HMAC_DRBG initial seeding
- *                      Seed and setup entropy pool for later re-seeding.
+ *                      Seed and setup entropy source for future reseeds.
  *
  * \param ctx           HMAC_DRBG context to be seeded
  * \param md_info       MD algorithm to use for HMAC_DRBG

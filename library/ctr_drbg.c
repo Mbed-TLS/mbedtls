@@ -56,10 +56,18 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 }
 
 /*
+ * CTR_DRBG context initialization
+ */
+void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx )
+{
+    memset( ctx, 0, sizeof( mbedtls_ctr_drbg_context ) );
+}
+
+/*
  * Non-public function wrapped by ctr_crbg_init(). Necessary to allow NIST
  * tests to succeed (which require known length fixed entropy)
  */
-int mbedtls_ctr_drbg_init_entropy_len(
+int mbedtls_ctr_drbg_seed_entropy_len(
                    mbedtls_ctr_drbg_context *ctx,
                    int (*f_entropy)(void *, unsigned char *, size_t),
                    void *p_entropy,
@@ -92,13 +100,13 @@ int mbedtls_ctr_drbg_init_entropy_len(
     return( 0 );
 }
 
-int mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx,
+int mbedtls_ctr_drbg_seed( mbedtls_ctr_drbg_context *ctx,
                    int (*f_entropy)(void *, unsigned char *, size_t),
                    void *p_entropy,
                    const unsigned char *custom,
                    size_t len )
 {
-    return( mbedtls_ctr_drbg_init_entropy_len( ctx, f_entropy, p_entropy, custom, len,
+    return( mbedtls_ctr_drbg_seed_entropy_len( ctx, f_entropy, p_entropy, custom, len,
                                        MBEDTLS_CTR_DRBG_ENTROPY_LEN ) );
 }
 
@@ -513,6 +521,8 @@ int mbedtls_ctr_drbg_self_test( int verbose )
     mbedtls_ctr_drbg_context ctx;
     unsigned char buf[16];
 
+    mbedtls_ctr_drbg_init( &ctx );
+
     /*
      * Based on a NIST CTR_DRBG test vector (PR = True)
      */
@@ -520,7 +530,7 @@ int mbedtls_ctr_drbg_self_test( int verbose )
         mbedtls_printf( "  CTR_DRBG (PR = TRUE) : " );
 
     test_offset = 0;
-    CHK( mbedtls_ctr_drbg_init_entropy_len( &ctx, ctr_drbg_self_test_entropy,
+    CHK( mbedtls_ctr_drbg_seed_entropy_len( &ctx, ctr_drbg_self_test_entropy,
                                 (void *) entropy_source_pr, nonce_pers_pr, 16, 32 ) );
     mbedtls_ctr_drbg_set_prediction_resistance( &ctx, MBEDTLS_CTR_DRBG_PR_ON );
     CHK( mbedtls_ctr_drbg_random( &ctx, buf, MBEDTLS_CTR_DRBG_BLOCKSIZE ) );
@@ -537,7 +547,7 @@ int mbedtls_ctr_drbg_self_test( int verbose )
         mbedtls_printf( "  CTR_DRBG (PR = FALSE): " );
 
     test_offset = 0;
-    CHK( mbedtls_ctr_drbg_init_entropy_len( &ctx, ctr_drbg_self_test_entropy,
+    CHK( mbedtls_ctr_drbg_seed_entropy_len( &ctx, ctr_drbg_self_test_entropy,
                             (void *) entropy_source_nopr, nonce_pers_nopr, 16, 32 ) );
     CHK( mbedtls_ctr_drbg_random( &ctx, buf, 16 ) );
     CHK( mbedtls_ctr_drbg_reseed( &ctx, NULL, 0 ) );

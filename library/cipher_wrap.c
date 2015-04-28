@@ -332,7 +332,7 @@ static const mbedtls_cipher_info_t aes_256_ctr_info = {
 static int gcm_aes_setkey_wrap( void *ctx, const unsigned char *key,
                                 unsigned int key_length )
 {
-    return mbedtls_gcm_init( (mbedtls_gcm_context *) ctx, MBEDTLS_CIPHER_ID_AES,
+    return mbedtls_gcm_setkey( (mbedtls_gcm_context *) ctx, MBEDTLS_CIPHER_ID_AES,
                      key, key_length );
 }
 
@@ -689,7 +689,7 @@ static const mbedtls_cipher_info_t camellia_256_ctr_info = {
 static int gcm_camellia_setkey_wrap( void *ctx, const unsigned char *key,
                                      unsigned int key_length )
 {
-    return mbedtls_gcm_init( (mbedtls_gcm_context *) ctx, MBEDTLS_CIPHER_ID_CAMELLIA,
+    return mbedtls_gcm_setkey( (mbedtls_gcm_context *) ctx, MBEDTLS_CIPHER_ID_CAMELLIA,
                      key, key_length );
 }
 

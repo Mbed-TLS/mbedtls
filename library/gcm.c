@@ -84,6 +84,14 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 }
 
 /*
+ * Initialize a context
+ */
+void mbedtls_gcm_init( mbedtls_gcm_context *ctx )
+{
+    memset( ctx, 0, sizeof( mbedtls_gcm_context ) );
+}
+
+/*
  * Precompute small multiples of H, that is set
  *      HH[i] || HL[i] = H times i,
  * where i is seen as a field element as in [MGV], ie high-order bits
@@ -151,8 +159,10 @@ static int gcm_gen_table( mbedtls_gcm_context *ctx )
     return( 0 );
 }
 
-int mbedtls_gcm_init( mbedtls_gcm_context *ctx, mbedtls_cipher_id_t cipher, const unsigned char *key,
-              unsigned int keysize )
+int mbedtls_gcm_setkey( mbedtls_gcm_context *ctx,
+                        mbedtls_cipher_id_t cipher,
+                        const unsigned char *key,
+                        unsigned int keysize )
 {
     int ret;
     const mbedtls_cipher_info_t *cipher_info;
@@ -736,6 +746,8 @@ int mbedtls_gcm_self_test( int verbose )
     int i, j, ret;
     mbedtls_cipher_id_t cipher = MBEDTLS_CIPHER_ID_AES;
 
+    mbedtls_gcm_init( &ctx );
+
     for( j = 0; j < 3; j++ )
     {
         int key_len = 128 + 64 * j;
@@ -746,7 +758,7 @@ int mbedtls_gcm_self_test( int verbose )
                 mbedtls_printf( "  AES-GCM-%3d #%d (%s): ",
                                  key_len, i, "enc" );
 
-            mbedtls_gcm_init( &ctx, cipher, key[key_index[i]], key_len );
+            mbedtls_gcm_setkey( &ctx, cipher, key[key_index[i]], key_len );
 
             ret = mbedtls_gcm_crypt_and_tag( &ctx, MBEDTLS_GCM_ENCRYPT,
                                      pt_len[i],
@@ -773,7 +785,7 @@ int mbedtls_gcm_self_test( int verbose )
                 mbedtls_printf( "  AES-GCM-%3d #%d (%s): ",
                                  key_len, i, "dec" );
 
-            mbedtls_gcm_init( &ctx, cipher, key[key_index[i]], key_len );
+            mbedtls_gcm_setkey( &ctx, cipher, key[key_index[i]], key_len );
 
             ret = mbedtls_gcm_crypt_and_tag( &ctx, MBEDTLS_GCM_DECRYPT,
                                      pt_len[i],
@@ -800,7 +812,7 @@ int mbedtls_gcm_self_test( int verbose )
                 mbedtls_printf( "  AES-GCM-%3d #%d split (%s): ",
                                  key_len, i, "enc" );
 
-            mbedtls_gcm_init( &ctx, cipher, key[key_index[i]], key_len );
+            mbedtls_gcm_setkey( &ctx, cipher, key[key_index[i]], key_len );
 
             ret = mbedtls_gcm_starts( &ctx, MBEDTLS_GCM_ENCRYPT,
                               iv[iv_index[i]], iv_len[i],
@@ -867,7 +879,7 @@ int mbedtls_gcm_self_test( int verbose )
                 mbedtls_printf( "  AES-GCM-%3d #%d split (%s): ",
                                  key_len, i, "dec" );
 
-            mbedtls_gcm_init( &ctx, cipher, key[key_index[i]], key_len );
+            mbedtls_gcm_setkey( &ctx, cipher, key[key_index[i]], key_len );
 
             ret = mbedtls_gcm_starts( &ctx, MBEDTLS_GCM_DECRYPT,
                               iv[iv_index[i]], iv_len[i],

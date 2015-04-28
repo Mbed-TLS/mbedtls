@@ -55,6 +55,15 @@ typedef struct {
 mbedtls_gcm_context;
 
 /**
+ * \brief           Initialize GCM context (just makes references valid)
+ *                  Makes the context ready for mbedtls_gcm_setkey() or
+ *                  mbedtls_gcm_free().
+ *
+ * \param ctx       GCM context to initialize
+ */
+void mbedtls_gcm_init( mbedtls_gcm_context *ctx );
+
+/**
  * \brief           GCM initialization (encryption)
  *
  * \param ctx       GCM context to be initialized
@@ -64,8 +73,10 @@ mbedtls_gcm_context;
  *
  * \return          0 if successful, or a cipher specific error code
  */
-int mbedtls_gcm_init( mbedtls_gcm_context *ctx, mbedtls_cipher_id_t cipher, const unsigned char *key,
-              unsigned int keysize );
+int mbedtls_gcm_setkey( mbedtls_gcm_context *ctx,
+                        mbedtls_cipher_id_t cipher,
+                        const unsigned char *key,
+                        unsigned int keysize );
 
 /**
  * \brief           GCM buffer encryption/decryption using a block cipher

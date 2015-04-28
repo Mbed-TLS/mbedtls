@@ -412,13 +412,15 @@ int main( int argc, char *argv[] )
     {
         int keysize;
         mbedtls_gcm_context gcm;
+
+        mbedtls_gcm_init( &gcm );
         for( keysize = 128; keysize <= 256; keysize += 64 )
         {
             mbedtls_snprintf( title, sizeof( title ), "AES-GCM-%d", keysize );
 
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
-            mbedtls_gcm_init( &gcm, MBEDTLS_CIPHER_ID_AES, tmp, keysize );
+            mbedtls_gcm_setkey( &gcm, MBEDTLS_CIPHER_ID_AES, tmp, keysize );
 
             TIME_AND_TSC( title,
                     mbedtls_gcm_crypt_and_tag( &gcm, MBEDTLS_GCM_ENCRYPT, BUFSIZE, tmp,

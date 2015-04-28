@@ -538,18 +538,20 @@ int main( int argc, char *argv[] )
         mbedtls_hmac_drbg_context hmac_drbg;
         const mbedtls_md_info_t *md_info;
 
+        mbedtls_hmac_drbg_init( &hmac_drbg );
+
 #if defined(MBEDTLS_SHA1_C)
         if( ( md_info = mbedtls_md_info_from_type( MBEDTLS_MD_SHA1 ) ) == NULL )
             mbedtls_exit(1);
 
-        if( mbedtls_hmac_drbg_init( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
+        if( mbedtls_hmac_drbg_seed( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
             mbedtls_exit(1);
         TIME_AND_TSC( "HMAC_DRBG SHA-1 (NOPR)",
                 if( mbedtls_hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) != 0 )
                 mbedtls_exit(1) );
         mbedtls_hmac_drbg_free( &hmac_drbg );
 
-        if( mbedtls_hmac_drbg_init( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
+        if( mbedtls_hmac_drbg_seed( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
             mbedtls_exit(1);
         mbedtls_hmac_drbg_set_prediction_resistance( &hmac_drbg,
                                              MBEDTLS_HMAC_DRBG_PR_ON );
@@ -563,14 +565,14 @@ int main( int argc, char *argv[] )
         if( ( md_info = mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 ) ) == NULL )
             mbedtls_exit(1);
 
-        if( mbedtls_hmac_drbg_init( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
+        if( mbedtls_hmac_drbg_seed( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
             mbedtls_exit(1);
         TIME_AND_TSC( "HMAC_DRBG SHA-256 (NOPR)",
                 if( mbedtls_hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) != 0 )
                 mbedtls_exit(1) );
         mbedtls_hmac_drbg_free( &hmac_drbg );
 
-        if( mbedtls_hmac_drbg_init( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
+        if( mbedtls_hmac_drbg_seed( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
             mbedtls_exit(1);
         mbedtls_hmac_drbg_set_prediction_resistance( &hmac_drbg,
                                              MBEDTLS_HMAC_DRBG_PR_ON );

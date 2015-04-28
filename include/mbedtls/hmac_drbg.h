@@ -90,9 +90,20 @@ typedef struct
 } mbedtls_hmac_drbg_context;
 
 /**
- * \brief               HMAC_DRBG initialisation
+ * \brief               HMAC_DRBG initialization (just make references valid)
+ *                      Makes the context ready for mbetls_hmac_drbg_seed(),
+ *                      mbedtls_hmac_drbg_seed_buf() or
+ *                      mbedtls_hmac_drbg_free().
  *
- * \param ctx           HMAC_DRBG context to be initialised
+ * \param ctx           HMAC_DRBG context to be initialized
+ */
+void mbedtls_hmac_drbg_init( mbedtls_hmac_drbg_context *ctx );
+
+/**
+ * \brief               HMAC_DRBG initial seeding
+ *                      Seed and setup entropy pool for later re-seeding.
+ *
+ * \param ctx           HMAC_DRBG context to be seeded
  * \param md_info       MD algorithm to use for HMAC_DRBG
  * \param f_entropy     Entropy callback (p_entropy, buffer to fill, buffer
  *                      length)
@@ -110,9 +121,9 @@ typedef struct
  * \return              0 if successful, or
  *                      MBEDTLS_ERR_MD_BAD_INPUT_DATA, or
  *                      MBEDTLS_ERR_MD_ALLOC_FAILED, or
- *                      MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED.
+ *                      MBEDTLS_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED.
  */
-int mbedtls_hmac_drbg_init( mbedtls_hmac_drbg_context *ctx,
+int mbedtls_hmac_drbg_seed( mbedtls_hmac_drbg_context *ctx,
                     const mbedtls_md_info_t * md_info,
                     int (*f_entropy)(void *, unsigned char *, size_t),
                     void *p_entropy,
@@ -132,7 +143,7 @@ int mbedtls_hmac_drbg_init( mbedtls_hmac_drbg_context *ctx,
  *                      MBEDTLS_ERR_MD_BAD_INPUT_DATA, or
  *                      MBEDTLS_ERR_MD_ALLOC_FAILED.
  */
-int mbedtls_hmac_drbg_init_buf( mbedtls_hmac_drbg_context *ctx,
+int mbedtls_hmac_drbg_seed_buf( mbedtls_hmac_drbg_context *ctx,
                         const mbedtls_md_info_t * md_info,
                         const unsigned char *data, size_t data_len );
 

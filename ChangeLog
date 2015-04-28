@@ -17,6 +17,7 @@ API Changes
      been split into an _init() that returns void and another function:
      mbedtls_ccm_init() -> mbedtls_ccm_setkey()
      mbedtls_gcm_init() -> mbedtls_gcm_setkey()
+     mbedtls_hmac_drbg_init() -> mbedtls_hmac_drbg_init(_buf)()
    * In the threading layer, mbedtls_mutex_init() and mbedtls_mutex_free() now
      return void.
    * ecdsa_write_signature() gained an addtional md_alg argument and

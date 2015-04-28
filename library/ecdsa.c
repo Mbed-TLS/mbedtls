@@ -174,13 +174,13 @@ int mbedtls_ecdsa_sign_det( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi 
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     mbedtls_mpi_init( &h );
-    memset( &rng_ctx, 0, sizeof( mbedtls_hmac_drbg_context ) );
+    mbedtls_hmac_drbg_init( &rng_ctx );
 
     /* Use private key and message hash (reduced) to initialize HMAC_DRBG */
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( d, data, grp_len ) );
     MBEDTLS_MPI_CHK( derive_mpi( grp, &h, buf, blen ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &h, data + grp_len, grp_len ) );
-    mbedtls_hmac_drbg_init_buf( &rng_ctx, md_info, data, 2 * grp_len );
+    mbedtls_hmac_drbg_seed_buf( &rng_ctx, md_info, data, 2 * grp_len );
 
     ret = mbedtls_ecdsa_sign( grp, r, s, d, buf, blen,
                       mbedtls_hmac_drbg_random, &rng_ctx );

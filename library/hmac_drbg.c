@@ -57,6 +57,14 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 }
 
 /*
+ * HMAC_DRBG context initialization
+ */
+void mbedtls_hmac_drbg_init( mbedtls_hmac_drbg_context *ctx )
+{
+    memset( ctx, 0, sizeof( mbedtls_hmac_drbg_context ) );
+}
+
+/*
  * HMAC_DRBG update, using optional additional data (10.1.2.2)
  */
 void mbedtls_hmac_drbg_update( mbedtls_hmac_drbg_context *ctx,
@@ -87,7 +95,7 @@ void mbedtls_hmac_drbg_update( mbedtls_hmac_drbg_context *ctx,
 /*
  * Simplified HMAC_DRBG initialisation (for use with deterministic ECDSA)
  */
-int mbedtls_hmac_drbg_init_buf( mbedtls_hmac_drbg_context *ctx,
+int mbedtls_hmac_drbg_seed_buf( mbedtls_hmac_drbg_context *ctx,
                         const mbedtls_md_info_t * md_info,
                         const unsigned char *data, size_t data_len )
 {
@@ -157,7 +165,7 @@ int mbedtls_hmac_drbg_reseed( mbedtls_hmac_drbg_context *ctx,
 /*
  * HMAC_DRBG initialisation (10.1.2.3 + 9.1)
  */
-int mbedtls_hmac_drbg_init( mbedtls_hmac_drbg_context *ctx,
+int mbedtls_hmac_drbg_seed( mbedtls_hmac_drbg_context *ctx,
                     const mbedtls_md_info_t * md_info,
                     int (*f_entropy)(void *, unsigned char *, size_t),
                     void *p_entropy,
@@ -455,6 +463,8 @@ int mbedtls_hmac_drbg_self_test( int verbose )
     unsigned char buf[OUTPUT_LEN];
     const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( MBEDTLS_MD_SHA1 );
 
+    mbedtls_hmac_drbg_init( &ctx );
+
     /*
      * PR = True
      */
@@ -462,7 +472,7 @@ int mbedtls_hmac_drbg_self_test( int verbose )
         mbedtls_printf( "  HMAC_DRBG (PR = True) : " );
 
     test_offset = 0;
-    CHK( mbedtls_hmac_drbg_init( &ctx, md_info,
+    CHK( mbedtls_hmac_drbg_seed( &ctx, md_info,
                          hmac_drbg_self_test_entropy, (void *) entropy_pr,
                          NULL, 0 ) );
     mbedtls_hmac_drbg_set_prediction_resistance( &ctx, MBEDTLS_HMAC_DRBG_PR_ON );
@@ -481,7 +491,7 @@ int mbedtls_hmac_drbg_self_test( int verbose )
         mbedtls_printf( "  HMAC_DRBG (PR = False) : " );
 
     test_offset = 0;
-    CHK( mbedtls_hmac_drbg_init( &ctx, md_info,
+    CHK( mbedtls_hmac_drbg_seed( &ctx, md_info,
                          hmac_drbg_self_test_entropy, (void *) entropy_nopr,
                          NULL, 0 ) );
     CHK( mbedtls_hmac_drbg_reseed( &ctx, NULL, 0 ) );

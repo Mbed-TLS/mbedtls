@@ -42,7 +42,11 @@ extern "C" {
 
 #if defined(MBEDTLS_THREADING_PTHREAD)
 #include <pthread.h>
-typedef pthread_mutex_t mbedtls_threading_mutex_t;
+typedef struct
+{
+    pthread_mutex_t mutex;
+    char is_valid;
+} mbedtls_threading_mutex_t;
 #endif
 
 #if defined(MBEDTLS_THREADING_ALT)

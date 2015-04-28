@@ -959,7 +959,10 @@ int mbedtls_x509_crt_parse_file( mbedtls_x509_crt *chain, const char *path )
 }
 
 #if defined(MBEDTLS_THREADING_PTHREAD)
-static mbedtls_threading_mutex_t readdir_mutex = PTHREAD_MUTEX_INITIALIZER;
+static mbedtls_threading_mutex_t readdir_mutex = {
+    PTHREAD_MUTEX_INITIALIZER,
+    1
+};
 #endif
 
 int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path )

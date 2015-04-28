@@ -322,6 +322,7 @@ int ecies_decrypt(ecp_keypair *key, const unsigned char *input, size_t ilen,
     // Init structures.
     *olen = 0;
     cipher_init(&cipher_ctx);
+    mpi_init(&shared_key);
     cipher_enc_header = (unsigned char *)input;
     INVOKE_AND_CHECK(result,
         ecies_read_envelope(&cipher_enc_header, input + ilen,
@@ -350,7 +351,6 @@ int ecies_decrypt(ecp_keypair *key, const unsigned char *input, size_t ilen,
                 &cipher_enc_data_len)
     );
 
-    mpi_init(&shared_key);
     INVOKE_AND_CHECK(result,
         cipher_init_ctx(&cipher_ctx, cipher_info_from_type(cipher_type))
     );

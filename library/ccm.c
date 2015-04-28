@@ -61,8 +61,15 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 /*
  * Initialize context
  */
-int mbedtls_ccm_init( mbedtls_ccm_context *ctx, mbedtls_cipher_id_t cipher,
-              const unsigned char *key, unsigned int keysize )
+void mbedtls_ccm_init( mbedtls_ccm_context *ctx )
+{
+    memset( ctx, 0, sizeof( mbedtls_ccm_context ) );
+}
+
+int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
+                        mbedtls_cipher_id_t cipher,
+                        const unsigned char *key,
+                        unsigned int keysize )
 {
     int ret;
     const mbedtls_cipher_info_t *cipher_info;
@@ -398,7 +405,9 @@ int mbedtls_ccm_self_test( int verbose )
     size_t i;
     int ret;
 
-    if( mbedtls_ccm_init( &ctx, MBEDTLS_CIPHER_ID_AES, key, 8 * sizeof key ) != 0 )
+    mbedtls_ccm_init( &ctx );
+
+    if( mbedtls_ccm_setkey( &ctx, MBEDTLS_CIPHER_ID_AES, key, 8 * sizeof key ) != 0 )
     {
         if( verbose != 0 )
             mbedtls_printf( "  CCM: setup failed" );

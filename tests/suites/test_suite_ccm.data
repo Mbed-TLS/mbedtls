@@ -3,19 +3,19 @@ mbedtls_ccm_self_test:
 
 CCM init #1 AES-128: OK
 depends_on:MBEDTLS_AES_C
-mbedtls_ccm_init:MBEDTLS_CIPHER_ID_AES:128:0
+mbedtls_ccm_setkey:MBEDTLS_CIPHER_ID_AES:128:0
 
 CCM init #2 CAMELLIA-256: OK
 depends_on:MBEDTLS_CAMELLIA_C
-mbedtls_ccm_init:MBEDTLS_CIPHER_ID_CAMELLIA:256:0
+mbedtls_ccm_setkey:MBEDTLS_CIPHER_ID_CAMELLIA:256:0
 
 CCM init #3 AES-224: bad key size
 depends_on:MBEDTLS_AES_C
-mbedtls_ccm_init:MBEDTLS_CIPHER_ID_AES:224:MBEDTLS_ERR_CCM_BAD_INPUT
+mbedtls_ccm_setkey:MBEDTLS_CIPHER_ID_AES:224:MBEDTLS_ERR_CCM_BAD_INPUT
 
 CCM init #4 BLOWFISH-128: bad block size
 depends_on:MBEDTLS_BLOWFISH_C
-mbedtls_ccm_init:MBEDTLS_CIPHER_ID_BLOWFISH:128:MBEDTLS_ERR_CCM_BAD_INPUT
+mbedtls_ccm_setkey:MBEDTLS_CIPHER_ID_BLOWFISH:128:MBEDTLS_ERR_CCM_BAD_INPUT
 
 CCM lengths #1 all OK
 ccm_lengths:5:10:5:8:0

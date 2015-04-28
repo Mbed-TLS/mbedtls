@@ -433,13 +433,15 @@ int main( int argc, char *argv[] )
     {
         int keysize;
         mbedtls_ccm_context ccm;
+
+        mbedtls_ccm_init( &ccm );
         for( keysize = 128; keysize <= 256; keysize += 64 )
         {
             mbedtls_snprintf( title, sizeof( title ), "AES-CCM-%d", keysize );
 
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
-            mbedtls_ccm_init( &ccm, MBEDTLS_CIPHER_ID_AES, tmp, keysize );
+            mbedtls_ccm_setkey( &ccm, MBEDTLS_CIPHER_ID_AES, tmp, keysize );
 
             TIME_AND_TSC( title,
                     mbedtls_ccm_encrypt_and_tag( &ccm, BUFSIZE, tmp,

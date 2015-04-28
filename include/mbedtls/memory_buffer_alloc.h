@@ -69,10 +69,8 @@ extern "C" {
  *
  * \param buf   buffer to use as heap
  * \param len   size of the buffer
- *
- * \return              0 if successful
  */
-int mbedtls_memory_buffer_alloc_init( unsigned char *buf, size_t len );
+void mbedtls_memory_buffer_alloc_init( unsigned char *buf, size_t len );
 
 /**
  * \brief   Free the mutex for thread-safety and clear remaining memory

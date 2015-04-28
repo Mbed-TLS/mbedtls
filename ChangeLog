@@ -20,6 +20,7 @@ API Changes
      mbedtls_gcm_init() -> mbedtls_gcm_setkey()
      mbedtls_hmac_drbg_init() -> mbedtls_hmac_drbg_init(_buf)()
      mbedtls_ctr_drbg_init()  -> mbedtls_ctr_drbg_init(_buf)()
+   * mbedtls_memory_bufer_alloc_init() now returns void
    * In the threading layer, mbedtls_mutex_init() and mbedtls_mutex_free() now
      return void.
    * ecdsa_write_signature() gained an addtional md_alg argument and

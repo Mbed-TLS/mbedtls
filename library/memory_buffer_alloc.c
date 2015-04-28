@@ -561,7 +561,7 @@ static void buffer_alloc_free_mutexed( void *ptr )
 }
 #endif /* MBEDTLS_THREADING_C */
 
-int mbedtls_memory_buffer_alloc_init( unsigned char *buf, size_t len )
+void mbedtls_memory_buffer_alloc_init( unsigned char *buf, size_t len )
 {
     memset( &heap, 0, sizeof(buffer_alloc_ctx) );
     memset( buf, 0, len );
@@ -591,7 +591,6 @@ int mbedtls_memory_buffer_alloc_init( unsigned char *buf, size_t len )
     heap.first->magic1 = MAGIC1;
     heap.first->magic2 = MAGIC2;
     heap.first_free = heap.first;
-    return( 0 );
 }
 
 void mbedtls_memory_buffer_alloc_free()

@@ -28,6 +28,8 @@ Features
      errors on use of deprecated functions.
 
 Bugfix
+   * mpi_size() and mpi_msb() would segfault when called on an mpi that is
+     initialized but not set (found by pravic).
    * Fix detection of support for getrandom() on Linux (reported by syzzer) by
      doing it at runtime (using uname) rather that compile time.
    * Fix handling of symlinks by "make install" (found by Gaël PORTAY).

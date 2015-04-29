@@ -356,6 +356,9 @@ size_t mpi_msb( const mpi *X )
 {
     size_t i, j;
 
+    if( X->n == 0 )
+        return( 0 );
+
     for( i = X->n - 1; i > 0; i-- )
         if( X->p[i] != 0 )
             break;

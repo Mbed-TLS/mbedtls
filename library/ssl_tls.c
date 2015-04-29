@@ -4822,6 +4822,7 @@ static int ssl_write_split( ssl_context *ssl,
     if( ssl->split_done == SSL_CBC_RECORD_SPLITTING_DISABLED ||
         len <= 1 ||
         ssl->minor_ver > SSL_MINOR_VERSION_1 ||
+        ssl->transform_out == NULL ||
         cipher_get_cipher_mode( &ssl->transform_out->cipher_ctx_enc )
                                 != POLARSSL_MODE_CBC )
     {

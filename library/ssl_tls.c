@@ -1528,7 +1528,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
          * Process MAC and always update for padlen afterwards to make
          * total time independent of padlen
          *
-         * extra_run compensates MAC check for padlen 
+         * extra_run compensates MAC check for padlen
          *
          * Known timing attacks:
          *  - Lucky Thirteen (http://www.isg.rhul.ac.uk/tls/TLStiming.pdf)
@@ -1536,6 +1536,9 @@ static int ssl_decrypt_buf( ssl_context *ssl )
          * We use ( ( Lx + 8 ) / 64 ) to handle 'negative Lx' values
          * correctly. (We round down instead of up, so -56 is the correct
          * value for our calculations instead of -55)
+         *
+         * Always call the xxx_process() function at least once due to cache
+         * attacks.
          */
         int j, extra_run = 0;
         extra_run = ( 13 + ssl->in_msglen + padlen + 8 ) / 64 -
@@ -1550,7 +1553,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
             md5_hmac_update( &ctx, ssl->in_ctr,  ssl->in_msglen + 13 );
             md5_hmac_finish( &ctx, ssl->in_msg + ssl->in_msglen );
 
-            for( j = 0; j < extra_run; j++ )
+            for( j = 0; j < extra_run + 1; j++ )
                 md5_process( &ctx, ssl->in_msg ); 
         }
         else if( ssl->transform_in->maclen == 20 )
@@ -1560,7 +1563,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
             sha1_hmac_update( &ctx, ssl->in_ctr,  ssl->in_msglen + 13 );
             sha1_hmac_finish( &ctx, ssl->in_msg + ssl->in_msglen );
 
-            for( j = 0; j < extra_run; j++ )
+            for( j = 0; j < extra_run + 1; j++ )
                 sha1_process( &ctx, ssl->in_msg ); 
         }
         else if( ssl->transform_in->maclen == 32 )
@@ -1570,7 +1573,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
             sha2_hmac_update( &ctx, ssl->in_ctr,  ssl->in_msglen + 13 );
             sha2_hmac_finish( &ctx, ssl->in_msg + ssl->in_msglen );
 
-            for( j = 0; j < extra_run; j++ )
+            for( j = 0; j < extra_run + 1; j++ )
                 sha2_process( &ctx, ssl->in_msg ); 
         }
         else if( ssl->transform_in->maclen != 0 )

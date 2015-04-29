@@ -8,6 +8,8 @@ Security
    * Fix potential invalid memory read in certificate parsing, that allows a
      client to crash the server remotely if client authentication is enabled
      (found using Codenomicon Defensics).
+   * Add countermeasure against "Lucky 13 strikes back" cache-based attack,
+     https://dl.acm.org/citation.cfm?id=2714625
 
 Bugfix
    * Fix bug in Via Padlock support (found by Nikos Mavrogiannopoulos).

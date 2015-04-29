@@ -28,6 +28,8 @@ Features
      errors on use of deprecated functions.
 
 Bugfix
+   * Fix detection of support for getrandom() on Linux (reported by syzzer) by
+     doing it at runtime (using uname) rather that compile time.
    * Fix handling of symlinks by "make install" (found by Gaël PORTAY).
    * Fix potential NULL pointer dereference (not trigerrable remotely) when
      ssl_write() is called before the handshake is finished (introduced in

@@ -584,6 +584,67 @@ Security
    * RSA blinding on CRT operations to counter timing attacks
      (found by Cyril Arnaud and Pierre-Alain Fouque)
 
+
+= Version 1.2.14 released 2015-05-??
+
+Security
+   * Fix potential invalid memory read in the server, that allows a client to
+     crash it remotely (found by Caj Larsson).
+   * Fix potential invalid memory read in certificate parsing, that allows a
+     client to crash the server remotely if client authentication is enabled
+     (found using Codenomicon Defensics).
+   * Add countermeasure against "Lucky 13 strikes back" cache-based attack,
+     https://dl.acm.org/citation.cfm?id=2714625
+
+Bugfix
+   * Fix bug in Via Padlock support (found by Nikos Mavrogiannopoulos).
+   * Fix hardclock() (only used in the benchmarking program) with some
+     versions of mingw64 (found by kxjhlele).
+   * Fix warnings from mingw64 in timing.c (found by kxjklele).
+   * Fix potential unintended sign extension in asn1_get_len() on 64-bit
+     platforms (found with Coverity Scan).
+
+= Version 1.2.13 released 2015-02-16
+Note: Although PolarSSL has been renamed to mbed TLS, no changes reflecting
+      this will be made in the 1.2 branch at this point.
+
+Security
+   * Fix remotely-triggerable uninitialised pointer dereference caused by
+     crafted X.509 certificate (TLS server is not affected if it doesn't ask
+     for a client certificate) (found using Codenomicon Defensics).
+   * Fix remotely-triggerable memory leak caused by crafted X.509 certificates
+     (TLS server is not affected if it doesn't ask for a client certificate)
+     (found using Codenomicon Defensics).
+   * Fix potential stack overflow while parsing crafted X.509 certificates
+     (TLS server is not affected if it doesn't ask for a client certificate)
+     found using Codenomicon Defensics).
+   * Fix buffer overread of size 1 when parsing crafted X.509 certificates
+     (TLS server is not affected if it doesn't ask for a client certificate).
+
+Bugfix
+   * Fix potential undefined behaviour in Camellia.
+   * Fix memory leaks in PKCS#5 and PKCS#12.
+   * Stack buffer overflow if ctr_drbg_update() is called with too large
+     add_len (found by Jean-Philippe Aumasson) (not triggerable remotely).
+   * Fix bug in MPI/bignum on s390/s390x (reported by Dan Horák) (introduced
+     in 1.2.12).
+   * Fix unchecked return code in x509_crt_parse_path() on Windows (found by
+     Peter Vaskovic).
+   * Fix assembly selection for MIPS64 (thanks to James Cowgill).
+   * ssl_get_verify_result() now works even if the handshake was aborted due
+     to a failed verification (found by Fredrik Axelsson).
+   * Skip writing and parsing signature_algorithm extension if none of the
+     key exchanges enabled needs certificates. This fixes a possible interop
+     issue with some servers when a zero-length extension was sent. (Reported
+     by Peter Dettman.)
+   * On a 0-length input, base64_encode() did not correctly set output length
+     (found by Hendrik van den Boogaard).
+
+Changes
+   * Blind RSA private operations even when POLARSSL_RSA_NO_CRT is defined.
+   * Forbid repeated extensions in X.509 certificates.
+   * Add compile-time option POLARSSL_X509_MAX_INTERMEDIATE_CA to limit the
+     length of an X.509 verification chain (default = 8).
 = Version 1.2.12 released 2014-10-24
 
 Security

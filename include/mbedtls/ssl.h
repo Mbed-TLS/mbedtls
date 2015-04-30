@@ -786,6 +786,152 @@ struct mbedtls_ssl_flight_item
 };
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
+/**
+ * SSL/TLS configuration to be shared between ssl_context structures.
+ */
+typedef struct
+{
+    /* Group items by size (largest first) to minimize padding overhead */
+
+    /*
+     * Pointers
+     */
+
+    const int *ciphersuite_list[4];     /*!< allowed ciphersuites / version */
+
+    /** Callback for printing debug output                                  */
+    void (*f_dbg)(void *, int, const char *);
+    void *p_dbg;                    /*!< context for the debug function     */
+
+    /** Callback to retrieve a session from the cache                       */
+    int (*f_get_cache)(void *, mbedtls_ssl_session *);
+    void *p_get_cache;              /*!< context for cache retrieval        */
+    /** Callback to store a session into the cache                          */
+    int (*f_set_cache)(void *, const mbedtls_ssl_session *);
+    void *p_set_cache;              /*!< context for cache store            */
+
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    /** Callback for setting cert according to SNI extension                */
+    int (*f_sni)(void *, mbedtls_ssl_context *, const unsigned char *, size_t);
+    void *p_sni;                    /*!< context for SNI callback           */
+#endif
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    /** Callback to customize X.509 certificate chain verification          */
+    int (*f_vrfy)(void *, mbedtls_x509_crt *, int, int *);
+    void *p_vrfy;                   /*!< context for X.509 verify calllback */
+#endif
+
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+    /** Callback to retrieve PSK key from identity                          */
+    int (*f_psk)(void *, mbedtls_ssl_context *, const unsigned char *, size_t);
+    void *p_psk;                    /*!< context for PSK callback           */
+#endif
+
+#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
+    /** Callback to create & write a cookie for ClientHello veirifcation    */
+    int (*f_cookie_write)( void *, unsigned char **, unsigned char *,
+                           const unsigned char *, size_t );
+    /** Callback to verify validity of a ClientHello cookie                 */
+    int (*f_cookie_check)( void *, const unsigned char *, size_t,
+                           const unsigned char *, size_t );
+    void *p_cookie;                 /*!<  context for the cookie callbacks  */
+#endif
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    mbedtls_ssl_key_cert *key_cert; /*!< own certificate/key pair(s)        */
+    mbedtls_x509_crt *ca_chain;     /*!< trusted CAs                        */
+    mbedtls_x509_crl *ca_crl;       /*!< trusted CAs CRLs                   */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+#if defined(MBEDTLS_SSL_SET_CURVES)
+    const mbedtls_ecp_group_id *curve_list; /*!<  allowed curves            */
+#endif
+
+#if defined(MBEDTLS_DHM_C)
+    mbedtls_mpi dhm_P;              /*!< prime modulus for DHM              */
+    mbedtls_mpi dhm_G;              /*!< generator for DHM                  */
+#endif
+
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+    unsigned char *psk;             /*!< pre-shared key                     */
+    size_t         psk_len;         /*!< length of the pre-shared key       */
+    unsigned char *psk_identity;    /*!< identity for PSK negotiation       */
+    size_t         psk_identity_len;/*!< length of identity                 */
+#endif
+
+#if defined(MBEDTLS_SSL_ALPN)
+    const char **alpn_list;         /*!< ordered list of protocols          */
+#endif
+
+    /*
+     * Numerical settings (int then char)
+     */
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    uint32_t hs_timeout_min;        /*!< initial value of the handshake
+                                         retransmission timeout             */
+    uint32_t hs_timeout_max;        /*!< maximum value of the handshake
+                                         retransmission timeout             */
+#endif
+
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    int renego_max_records;         /*!< grace period for renegotiation     */
+    unsigned char renego_period[8]; /*!< value of the record counters
+                                         that triggers renegotiation        */
+#endif
+
+#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
+    unsigned int badmac_limit;      /*!< limit of records with a bad MAC    */
+#endif
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    int ticket_lifetime;            /*!< session ticket lifetime (seconds)  */
+#endif
+
+    unsigned char max_major_ver;    /*!< max. major version used            */
+    unsigned char max_minor_ver;    /*!< max. minor version used            */
+    unsigned char min_major_ver;    /*!< min. major version used            */
+    unsigned char min_minor_ver;    /*!< min. minor version used            */
+
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    unsigned char mfl_code;         /*!< desired fragment length            */
+#endif
+
+    /*
+     * Flags (bitfields)
+     */
+
+    unsigned int endpoint : 1;      /*!< 0: client, 1: server               */
+    unsigned int transport : 1;     /*!< stream (TLS) or datagram (DTLS)    */
+    unsigned int arc4_disabled : 1; /*!< blacklist RC4 ciphersuites?        */
+    unsigned int authmode : 2;      /*!< MBEDTLS_SSL_VERIFY_XXX             */
+    /* needed even with renego disabled for LEGACY_BREAK_HANDSHAKE          */
+    unsigned int allow_legacy_renegotiation : 2 ; /*!< MBEDTLS_LEGACY_XXX   */
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+    unsigned int encrypt_then_mac : 1 ; /*!< negotiate encrypt-then-mac?    */
+#endif
+#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
+    unsigned int extended_ms : 1;   /*!< negotiate extended master secret?  */
+#endif
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+    unsigned int anti_replay : 1;   /*!< detect and prevent replay?         */
+#endif
+#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
+    unsigned int cbc_record_splitting : 1;  /*!< do cbc record splitting    */
+#endif
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    unsigned int disable_renegotiation : 1; /*!< disable renegotiation?     */
+#endif
+#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
+    unsigned int trunc_hmac : 1;    /*!< negotiate truncated hmac?          */
+#endif
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    unsigned int session_tickets : 1;   /*!< use session tickets?           */
+#endif
+}
+mbedtls_ssl_config;
+
 struct mbedtls_ssl_context
 {
     /*
@@ -842,7 +988,6 @@ struct mbedtls_ssl_context
     void *p_bio;                /*!< context for I/O operations   */
     void *p_get_cache;          /*!< context for cache retrieval      */
     void *p_set_cache;          /*!< context for cache store          */
-    void *p_hw_data;            /*!< context for HW acceleration      */
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     int (*f_sni)(void *, mbedtls_ssl_context *, const unsigned char *, size_t);

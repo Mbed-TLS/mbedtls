@@ -33,6 +33,8 @@ Features
      errors on use of deprecated functions.
 
 Bugfix
+   * Fix bug in ssl_mail_client when password is longer that username (found
+     by Bruno Pape).
    * Fix undefined behaviour (memcmp( NULL, NULL, 0 );) in X.509 modules
      (detected by Clang's 3.6 UBSan).
    * mpi_size() and mpi_msb() would segfault when called on an mpi that is

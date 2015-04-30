@@ -722,7 +722,7 @@ int main( int argc, char *argv[] )
         polarssl_printf( "  > Write username to server: %s", opt.user_name );
         fflush( stdout );
 
-        n = sizeof( buf );
+        n = sizeof( base );
         ret = base64_encode( base, &n, (const unsigned char *) opt.user_name,
                              strlen( opt.user_name ) );
 
@@ -743,6 +743,7 @@ int main( int argc, char *argv[] )
         polarssl_printf( "  > Write password to server: %s", opt.user_pwd );
         fflush( stdout );
 
+        n = sizeof( base );
         ret = base64_encode( base, &n, (const unsigned char *) opt.user_pwd,
                              strlen( opt.user_pwd ) );
 

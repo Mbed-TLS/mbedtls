@@ -8,6 +8,25 @@
  */
 
 /* BEGIN_CASE */
+void mpi_null( )
+{
+    mbedtls_mpi X, Y, Z;
+
+    mbedtls_mpi_init( &X );
+    mbedtls_mpi_init( &Y );
+    mbedtls_mpi_init( &Z );
+
+    TEST_ASSERT( mbedtls_mpi_get_bit( &X, 42 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lsb( &X ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_msb( &X ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_size( &X ) == 0 );
+
+exit:
+    mbedtls_mpi_free( &X );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mpi_read_write_string( int radix_X, char *input_X, int radix_A,
                             char *input_A, int output_size, int result_read,
                             int result_write )

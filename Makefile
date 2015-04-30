@@ -22,7 +22,7 @@ install:
 	cp -r include/mbedtls $(DESTDIR)/include
 	
 	mkdir -p $(DESTDIR)/lib
-	cp library/libmbedtls.* $(DESTDIR)/lib
+	cp -RP library/libmbedtls.* $(DESTDIR)/lib
 	
 	mkdir -p $(DESTDIR)/bin
 	for p in programs/*/* ; do              \

@@ -86,27 +86,46 @@ static int getrandom_wrapper( void *buf, size_t buflen, unsigned int flags )
 {
     return( syscall( SYS_getrandom, buf, buflen, flags ) );
 }
-#endif /* SYS_getrandom */
-#endif /* __linux__ */
 
-#if defined(HAVE_GETRANDOM)
-
-#include <errno.h>
-
-int mbedtls_platform_entropy_poll( void *data,
-                           unsigned char *output, size_t len, size_t *olen )
+#include <sys/utsname.h>
+/* Check if version is at least 3.17.0 */
+static int check_version_3_17_plus( void )
 {
-    int ret;
-    ((void) data);
+    int minor;
+    struct utsname un;
+    const char *ver;
 
-    if( ( ret = getrandom_wrapper( output, len, 0 ) ) < 0 )
-        return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
+    /* Get version information */
+    uname(&un);
+    ver = un.release;
 
-    *olen = ret;
+    /* Check major version; assume a single digit */
+    if( ver[0] < '3' || ver[0] > '9' || ver [1] != '.' )
+        return( -1 );
+
+    if( ver[0] - '0' > 3 )
+        return( 0 );
+
+    /* Ok, so now we know major == 3, check minor.
+     * Assume 1 or 2 digits. */
+    if( ver[2] < '0' || ver[2] > '9' )
+        return( -1 );
+
+    minor = ver[2] - '0';
+
+    if( ver[3] >= '0' && ver[3] <= '9' )
+        minor = 10 * minor + ver[3] - '0';
+    else if( ver [3] != '.' )
+        return( -1 );
+
+    if( minor < 17 )
+        return( -1 );
+
     return( 0 );
 }
-
-#else /* HAVE_GETRANDOM */
+static int has_getrandom = -1;
+#endif /* SYS_getrandom */
+#endif /* __linux__ */
 
 #include <stdio.h>
 
@@ -116,6 +135,22 @@ int mbedtls_platform_entropy_poll( void *data,
     FILE *file;
     size_t ret;
     ((void) data);
+
+#if defined(HAVE_GETRANDOM)
+    if( has_getrandom == -1 )
+        has_getrandom = ( check_version_3_17_plus() == 0 );
+
+    if( has_getrandom )
+    {
+        int ret;
+
+        if( ( ret = getrandom_wrapper( output, len, 0 ) ) < 0 )
+            return( POLARSSL_ERR_ENTROPY_SOURCE_FAILED );
+
+        *olen = ret;
+        return( 0 );
+    }
+#endif /* HAVE_GETRANDOM */
 
     *olen = 0;
 
@@ -135,7 +170,6 @@ int mbedtls_platform_entropy_poll( void *data,
 
     return( 0 );
 }
-#endif /* HAVE_GETRANDOM */
 #endif /* _WIN32 && !EFIX64 && !EFI32 */
 #endif /* !MBEDTLS_NO_PLATFORM_ENTROPY */
 

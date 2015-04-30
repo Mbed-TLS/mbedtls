@@ -150,7 +150,9 @@ typedef struct
 mbedtls_mpi;
 
 /**
- * \brief           Initialize one MPI
+ * \brief           Initialize one MPI (make internal references valid)
+ *                  This just makes it ready to be set or freed,
+ *                  but does not define a value for the MPI.
  *
  * \param X         One MPI to initialize.
  */

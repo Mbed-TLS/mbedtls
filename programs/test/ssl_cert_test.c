@@ -176,12 +176,12 @@ int main( void )
                  char vrfy_buf[512];
 
                  mbedtls_printf( " failed\n" );
-                 mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", ret );
+                 mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", flags );
                  mbedtls_printf( "%s\n", vrfy_buf );
              }
              else
              {
-                mbedtls_printf( " failed\n  !  mbedtls_x509_crt_verify returned %d\n\n", flags );
+                mbedtls_printf( " failed\n  !  mbedtls_x509_crt_verify returned %d\n\n", ret );
                 goto exit;
             }
         }

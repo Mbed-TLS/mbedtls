@@ -760,7 +760,8 @@ static int x509_crt_parse_der_core( x509_crt *crt, const unsigned char *buf,
     if( crt->sig_oid1.len != crt->sig_oid2.len ||
         memcmp( crt->sig_oid1.p, crt->sig_oid2.p, crt->sig_oid1.len ) != 0 ||
         sig_params1.len != sig_params2.len ||
-        memcmp( sig_params1.p, sig_params2.p, sig_params1.len ) != 0 )
+        ( sig_params1.len != 0 &&
+          memcmp( sig_params1.p, sig_params2.p, sig_params1.len ) != 0 ) )
     {
         x509_crt_free( crt );
         return( POLARSSL_ERR_X509_SIG_MISMATCH );

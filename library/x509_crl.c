@@ -462,7 +462,8 @@ int x509_crl_parse_der( x509_crl *chain,
     if( crl->sig_oid1.len != crl->sig_oid2.len ||
         memcmp( crl->sig_oid1.p, crl->sig_oid2.p, crl->sig_oid1.len ) != 0 ||
         sig_params1.len != sig_params2.len ||
-        memcmp( sig_params1.p, sig_params2.p, sig_params1.len ) != 0 )
+        ( sig_params1.len != 0 &&
+          memcmp( sig_params1.p, sig_params2.p, sig_params1.len ) != 0 ) )
     {
         x509_crl_free( crl );
         return( POLARSSL_ERR_X509_SIG_MISMATCH );

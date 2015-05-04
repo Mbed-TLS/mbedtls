@@ -2245,6 +2245,36 @@ int mbedtls_ssl_close_notify( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_free( mbedtls_ssl_context *ssl );
 
 /**
+ * \brief          Initialize an SSL configuration context
+ *                 Just makes the context ready for
+ *                 mbedtls_ssl_config_defaults() or mbedtls_ssl_free()
+ *
+ * \note           You need to call mbedtls_ssl_config_defaults() unless you
+ *                 manually set all of the relevent fields yourself.
+ *
+ * \param conf     SSL configuration context
+ */
+void mbedtls_ssl_config_init( mbedtls_ssl_config *conf );
+
+/**
+ * \brief          Load reasonnable default SSL configuration values.
+ *                 (You need to call mbedtls_ssl_config_init() first.)
+ *
+ * \param conf     SSL configuration context
+ *
+ * \return         0 if successful, or
+ *                 MBEDTLS_ERR_XXX_ALLOC_FAILED on memorr allocation error.
+ */
+int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf );
+
+/**
+ * \brief          Free an SSL configuration context
+ *
+ * \param conf     SSL configuration context
+ */
+void mbedtls_ssl_config_free( mbedtls_ssl_config *conf );
+
+/**
  * \brief          Initialize SSL session structure
  *
  * \param session  SSL session

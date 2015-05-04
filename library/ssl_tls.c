@@ -4956,47 +4956,22 @@ void mbedtls_ssl_init( mbedtls_ssl_context *ssl )
 int mbedtls_ssl_setup( mbedtls_ssl_context *ssl )
 {
     int ret;
-    int len = MBEDTLS_SSL_BUFFER_LEN;
+    const size_t len = MBEDTLS_SSL_BUFFER_LEN;
 
+    /*
+     * Temporary, WIP
+     */
     ssl->conf = mbedtls_malloc( sizeof( mbedtls_ssl_config ) );
     if( ssl->conf == NULL )
         return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
 
-    memset( ssl->conf, 0, sizeof( mbedtls_ssl_config ) );
-
-    /*
-     * Sane defaults
-     */
-    ssl->conf->min_major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
-    ssl->conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_1; /* TLS 1.0 */
-    ssl->conf->max_major_ver = MBEDTLS_SSL_MAX_MAJOR_VERSION;
-    ssl->conf->max_minor_ver = MBEDTLS_SSL_MAX_MINOR_VERSION;
-
-    mbedtls_ssl_set_ciphersuites( ssl, mbedtls_ssl_list_ciphersuites() );
-
-    mbedtls_ssl_set_arc4_support( ssl, MBEDTLS_SSL_ARC4_DISABLED );
-
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    ssl->conf->renego_max_records = MBEDTLS_SSL_RENEGO_MAX_RECORDS_DEFAULT;
-    memset( ssl->conf->renego_period, 0xFF, 7 );
-    ssl->conf->renego_period[7] = 0x00;
-#endif
-
-#if defined(MBEDTLS_DHM_C)
-    if( ( ret = mbedtls_mpi_read_string( &ssl->conf->dhm_P, 16,
-                                 MBEDTLS_DHM_RFC5114_MODP_1024_P) ) != 0 ||
-        ( ret = mbedtls_mpi_read_string( &ssl->conf->dhm_G, 16,
-                                 MBEDTLS_DHM_RFC5114_MODP_1024_G) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_mpi_read_string", ret );
-        return( ret );
-    }
-#endif
+    mbedtls_ssl_config_init( ssl->conf );
+    mbedtls_ssl_config_defaults( ssl->conf );
 
     /*
      * Prepare base structures
      */
-    if( ( ssl->in_buf = mbedtls_malloc( len ) ) == NULL ||
+    if( ( ssl-> in_buf = mbedtls_malloc( len ) ) == NULL ||
         ( ssl->out_buf = mbedtls_malloc( len ) ) == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed", len ) );
@@ -5005,41 +4980,8 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
     }
 
-    memset( ssl-> in_buf, 0, MBEDTLS_SSL_BUFFER_LEN );
-    memset( ssl->out_buf, 0, MBEDTLS_SSL_BUFFER_LEN );
-
-    /* No error is possible, MBEDTLS_SSL_TRANSPORT_STREAM always valid */
-    (void) mbedtls_ssl_set_transport( ssl, MBEDTLS_SSL_TRANSPORT_STREAM );
-
-#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
-    ssl->conf->encrypt_then_mac = MBEDTLS_SSL_ETM_ENABLED;
-#endif
-
-#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
-    ssl->conf->extended_ms = MBEDTLS_SSL_EXTENDED_MS_ENABLED;
-#endif
-
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    ssl->conf->ticket_lifetime = MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME;
-#endif
-
-#if defined(MBEDTLS_SSL_SET_CURVES)
-    ssl->conf->curve_list = mbedtls_ecp_grp_id_list( );
-#endif
-
-#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
-    ssl->conf->f_cookie_write = ssl_cookie_write_dummy;
-    ssl->conf->f_cookie_check = ssl_cookie_check_dummy;
-#endif
-
-#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
-    ssl->conf->anti_replay = MBEDTLS_SSL_ANTI_REPLAY_ENABLED;
-#endif
-
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    ssl->conf->hs_timeout_min = MBEDTLS_SSL_DTLS_TIMEOUT_DFL_MIN;
-    ssl->conf->hs_timeout_max = MBEDTLS_SSL_DTLS_TIMEOUT_DFL_MAX;
-#endif
+    memset( ssl-> in_buf, 0, len );
+    memset( ssl->out_buf, 0, len );
 
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
         return( ret );
@@ -6637,11 +6579,6 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
     }
 #endif
 
-#if defined(MBEDTLS_DHM_C)
-    mbedtls_mpi_free( &ssl->conf->dhm_P );
-    mbedtls_mpi_free( &ssl->conf->dhm_G );
-#endif
-
     if( ssl->transform )
     {
         mbedtls_ssl_transform_free( ssl->transform );
@@ -6682,22 +6619,6 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
     }
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
-    if( ssl->conf->psk != NULL )
-    {
-        mbedtls_zeroize( ssl->conf->psk, ssl->conf->psk_len );
-        mbedtls_zeroize( ssl->conf->psk_identity, ssl->conf->psk_identity_len );
-        mbedtls_free( ssl->conf->psk );
-        mbedtls_free( ssl->conf->psk_identity );
-        ssl->conf->psk_len = 0;
-        ssl->conf->psk_identity_len = 0;
-    }
-#endif
-
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
-    ssl_key_cert_free( ssl->conf->key_cert );
-#endif
-
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
     if( mbedtls_ssl_hw_record_finish != NULL )
     {
@@ -6710,10 +6631,124 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
     mbedtls_free( ssl->cli_id );
 #endif
 
+    /* Temporary, WIP */
+    mbedtls_ssl_config_free( ssl->conf );
+    mbedtls_free( ssl->conf );
+
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= free" ) );
 
     /* Actually clear after last debug message */
     mbedtls_zeroize( ssl, sizeof( mbedtls_ssl_context ) );
+}
+
+/*
+ * Initialze mbedtls_ssl_config
+ */
+void mbedtls_ssl_config_init( mbedtls_ssl_config *conf )
+{
+    memset( conf, 0, sizeof( mbedtls_ssl_config ) );
+}
+
+/*
+ * Load default in mbetls_ssl_config
+ */
+int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf )
+{
+    int ret;
+
+    conf->transport = MBEDTLS_SSL_TRANSPORT_STREAM;
+
+    conf->min_major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
+    conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_1; /* TLS 1.0 */
+    conf->max_major_ver = MBEDTLS_SSL_MAX_MAJOR_VERSION;
+    conf->max_minor_ver = MBEDTLS_SSL_MAX_MINOR_VERSION;
+
+    conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_0] =
+    conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_1] =
+    conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_2] =
+    conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_3] =
+                           mbedtls_ssl_list_ciphersuites();
+
+    conf->arc4_disabled = MBEDTLS_SSL_ARC4_DISABLED;
+
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+    conf->encrypt_then_mac = MBEDTLS_SSL_ETM_ENABLED;
+#endif
+
+#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
+    conf->extended_ms = MBEDTLS_SSL_EXTENDED_MS_ENABLED;
+#endif
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    conf->ticket_lifetime = MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME;
+#endif
+
+#if defined(MBEDTLS_SSL_SET_CURVES)
+    conf->curve_list = mbedtls_ecp_grp_id_list( );
+#endif
+
+#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
+    conf->f_cookie_write = ssl_cookie_write_dummy;
+    conf->f_cookie_check = ssl_cookie_check_dummy;
+#endif
+
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+    conf->anti_replay = MBEDTLS_SSL_ANTI_REPLAY_ENABLED;
+#endif
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    conf->hs_timeout_min = MBEDTLS_SSL_DTLS_TIMEOUT_DFL_MIN;
+    conf->hs_timeout_max = MBEDTLS_SSL_DTLS_TIMEOUT_DFL_MAX;
+#endif
+
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    conf->renego_max_records = MBEDTLS_SSL_RENEGO_MAX_RECORDS_DEFAULT;
+    memset( conf->renego_period, 0xFF, 7 );
+    conf->renego_period[7] = 0x00;
+#endif
+
+#if defined(MBEDTLS_DHM_C)
+    if( ( ret = mbedtls_mpi_read_string( &conf->dhm_P, 16,
+                                 MBEDTLS_DHM_RFC5114_MODP_1024_P) ) != 0 ||
+        ( ret = mbedtls_mpi_read_string( &conf->dhm_G, 16,
+                                 MBEDTLS_DHM_RFC5114_MODP_1024_G) ) != 0 )
+    {
+        mbedtls_mpi_free( &conf->dhm_P );
+        mbedtls_mpi_free( &conf->dhm_G );
+        return( ret );
+    }
+#endif
+
+    return( 0 );
+}
+
+/*
+ * Free mbedtls_ssl_config
+ */
+void mbedtls_ssl_config_free( mbedtls_ssl_config *conf )
+{
+#if defined(MBEDTLS_DHM_C)
+    mbedtls_mpi_free( &conf->dhm_P );
+    mbedtls_mpi_free( &conf->dhm_G );
+#endif
+
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+    if( conf->psk != NULL )
+    {
+        mbedtls_zeroize( conf->psk, conf->psk_len );
+        mbedtls_zeroize( conf->psk_identity, conf->psk_identity_len );
+        mbedtls_free( conf->psk );
+        mbedtls_free( conf->psk_identity );
+        conf->psk_len = 0;
+        conf->psk_identity_len = 0;
+    }
+#endif
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    ssl_key_cert_free( conf->key_cert );
+#endif
+
+    mbedtls_zeroize( conf, sizeof( mbedtls_ssl_config ) );
 }
 
 #if defined(MBEDTLS_PK_C)

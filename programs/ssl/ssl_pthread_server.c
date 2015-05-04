@@ -160,7 +160,9 @@ static void *handle_ssl_connection( void *data )
      */
     mbedtls_printf( "  [ #%d ]  Setting up the SSL data....\n", thread_id );
 
-    if( ( ret = mbedtls_ssl_config_defaults( &conf ) ) != 0 )
+    if( ( ret = mbedtls_ssl_config_defaults( &conf,
+                    MBEDTLS_SSL_IS_SERVER,
+                    MBEDTLS_SSL_TRANSPORT_STREAM ) ) != 0 )
     {
         mbedtls_printf( "  [ #%d ]  failed: mbedtls_ssl_config_defaults returned -0x%04x\n",
                 thread_id, -ret );
@@ -174,7 +176,6 @@ static void *handle_ssl_connection( void *data )
         goto thread_exit;
     }
 
-    mbedtls_ssl_set_endpoint( &ssl, MBEDTLS_SSL_IS_SERVER );
     mbedtls_ssl_set_authmode( &ssl, MBEDTLS_SSL_VERIFY_NONE );
 
     mbedtls_ssl_set_rng( &ssl, mbedtls_ctr_drbg_random, &ctr_drbg );

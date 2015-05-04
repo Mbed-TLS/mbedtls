@@ -1049,7 +1049,9 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "  . Setting up the SSL/TLS structure..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_ssl_config_defaults( &conf ) ) != 0 )
+    if( ( ret = mbedtls_ssl_config_defaults( &conf,
+                    MBEDTLS_SSL_IS_CLIENT,
+                    opt.transport ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_config_defaults returned -0x%x\n\n", -ret );
         goto exit;
@@ -1066,17 +1068,10 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_set_verify( &ssl, my_verify, NULL );
 #endif
 
-    mbedtls_ssl_set_endpoint( &ssl, MBEDTLS_SSL_IS_CLIENT );
     if( opt.auth_mode != DFL_AUTH_MODE )
         mbedtls_ssl_set_authmode( &ssl, opt.auth_mode );
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ( ret = mbedtls_ssl_set_transport( &ssl, opt.transport ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! selected transport is not available\n" );
-        goto exit;
-    }
-
     if( opt.hs_to_min != DFL_HS_TO_MIN || opt.hs_to_max != DFL_HS_TO_MAX )
         mbedtls_ssl_set_handshake_timeout( &ssl, opt.hs_to_min, opt.hs_to_max );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */

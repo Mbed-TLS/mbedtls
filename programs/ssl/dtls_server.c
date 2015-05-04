@@ -192,7 +192,9 @@ int main( void )
     printf( "  . Setting up the DTLS data..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_ssl_config_defaults( &conf ) ) != 0 )
+    if( ( ret = mbedtls_ssl_config_defaults( &conf,
+                    MBEDTLS_SSL_IS_SERVER,
+                    MBEDTLS_SSL_TRANSPORT_DATAGRAM ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_config_defaults returned %d\n\n", ret );
         goto exit;
@@ -204,8 +206,6 @@ int main( void )
         goto exit;
     }
 
-    mbedtls_ssl_set_endpoint( &ssl, MBEDTLS_SSL_IS_SERVER );
-    mbedtls_ssl_set_transport( &ssl, MBEDTLS_SSL_TRANSPORT_DATAGRAM );
     mbedtls_ssl_set_authmode( &ssl, MBEDTLS_SSL_VERIFY_NONE );
 
     mbedtls_ssl_set_rng( &ssl, mbedtls_ctr_drbg_random, &ctr_drbg );

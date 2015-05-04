@@ -4976,6 +4976,37 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
     memset( ssl-> in_buf, 0, len );
     memset( ssl->out_buf, 0, len );
 
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    {
+        ssl->out_hdr = ssl->out_buf;
+        ssl->out_ctr = ssl->out_buf +  3;
+        ssl->out_len = ssl->out_buf + 11;
+        ssl->out_iv  = ssl->out_buf + 13;
+        ssl->out_msg = ssl->out_buf + 13;
+
+        ssl->in_hdr = ssl->in_buf;
+        ssl->in_ctr = ssl->in_buf +  3;
+        ssl->in_len = ssl->in_buf + 11;
+        ssl->in_iv  = ssl->in_buf + 13;
+        ssl->in_msg = ssl->in_buf + 13;
+    }
+    else
+#endif
+    {
+        ssl->out_ctr = ssl->out_buf;
+        ssl->out_hdr = ssl->out_buf +  8;
+        ssl->out_len = ssl->out_buf + 11;
+        ssl->out_iv  = ssl->out_buf + 13;
+        ssl->out_msg = ssl->out_buf + 13;
+
+        ssl->in_ctr = ssl->in_buf;
+        ssl->in_hdr = ssl->in_buf +  8;
+        ssl->in_len = ssl->in_buf + 11;
+        ssl->in_iv  = ssl->in_buf + 13;
+        ssl->in_msg = ssl->in_buf + 13;
+    }
+
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
         return( ret );
 
@@ -5140,72 +5171,13 @@ static int ssl_ticket_keys_init( mbedtls_ssl_context *ssl )
 void mbedtls_ssl_set_endpoint( mbedtls_ssl_context *ssl, int endpoint )
 {
     ssl->conf->endpoint   = endpoint;
-
-#if defined(MBEDTLS_SSL_SESSION_TICKETS) && \
-    defined(MBEDTLS_SSL_CLI_C)
-    if( endpoint == MBEDTLS_SSL_IS_CLIENT )
-    {
-        ssl->conf->session_tickets = MBEDTLS_SSL_SESSION_TICKETS_ENABLED;
-        ssl->conf->authmode = MBEDTLS_SSL_VERIFY_REQUIRED;
-    }
-#endif
-
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-    if( endpoint == MBEDTLS_SSL_IS_SERVER )
-        ssl->conf->trunc_hmac = MBEDTLS_SSL_TRUNC_HMAC_ENABLED;
-#endif
 }
 
 int mbedtls_ssl_set_transport( mbedtls_ssl_context *ssl, int transport )
 {
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-    {
-        ssl->conf->transport = transport;
+    ssl->conf->transport = transport;
 
-        ssl->out_hdr = ssl->out_buf;
-        ssl->out_ctr = ssl->out_buf +  3;
-        ssl->out_len = ssl->out_buf + 11;
-        ssl->out_iv  = ssl->out_buf + 13;
-        ssl->out_msg = ssl->out_buf + 13;
-
-        ssl->in_hdr = ssl->in_buf;
-        ssl->in_ctr = ssl->in_buf +  3;
-        ssl->in_len = ssl->in_buf + 11;
-        ssl->in_iv  = ssl->in_buf + 13;
-        ssl->in_msg = ssl->in_buf + 13;
-
-        /* DTLS starts with TLS1.1 */
-        if( ssl->conf->min_minor_ver < MBEDTLS_SSL_MINOR_VERSION_2 )
-            ssl->conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_2;
-
-        if( ssl->conf->max_minor_ver < MBEDTLS_SSL_MINOR_VERSION_2 )
-            ssl->conf->max_minor_ver = MBEDTLS_SSL_MINOR_VERSION_2;
-
-        return( 0 );
-    }
-#endif
-
-    if( transport == MBEDTLS_SSL_TRANSPORT_STREAM )
-    {
-        ssl->conf->transport = transport;
-
-        ssl->out_ctr = ssl->out_buf;
-        ssl->out_hdr = ssl->out_buf +  8;
-        ssl->out_len = ssl->out_buf + 11;
-        ssl->out_iv  = ssl->out_buf + 13;
-        ssl->out_msg = ssl->out_buf + 13;
-
-        ssl->in_ctr = ssl->in_buf;
-        ssl->in_hdr = ssl->in_buf +  8;
-        ssl->in_len = ssl->in_buf + 11;
-        ssl->in_iv  = ssl->in_buf + 13;
-        ssl->in_msg = ssl->in_buf + 13;
-
-        return( 0 );
-    }
-
-    return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    return( 0 );
 }
 
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
@@ -6641,16 +6613,41 @@ void mbedtls_ssl_config_init( mbedtls_ssl_config *conf )
 /*
  * Load default in mbetls_ssl_config
  */
-int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf )
+int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
+                                 int endpoint, int transport )
 {
     int ret;
 
-    conf->transport = MBEDTLS_SSL_TRANSPORT_STREAM;
+    conf->endpoint  = endpoint;
+    conf->transport = transport;
 
     conf->min_major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
     conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_1; /* TLS 1.0 */
     conf->max_major_ver = MBEDTLS_SSL_MAX_MAJOR_VERSION;
     conf->max_minor_ver = MBEDTLS_SSL_MAX_MINOR_VERSION;
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    {
+        /* DTLS starts with TLS 1.1 */
+        conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_2;
+    }
+#endif
+
+#if defined(MBEDTLS_SSL_CLI_C)
+    if( endpoint == MBEDTLS_SSL_IS_CLIENT )
+    {
+        conf->authmode = MBEDTLS_SSL_VERIFY_REQUIRED;
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+        conf->session_tickets = MBEDTLS_SSL_SESSION_TICKETS_ENABLED;
+#endif
+    }
+#endif
+
+#if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_TRUNCATED_HMAC)
+    if( endpoint == MBEDTLS_SSL_IS_SERVER )
+        conf->trunc_hmac = MBEDTLS_SSL_TRUNC_HMAC_ENABLED;
+#endif
 
     conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_0] =
     conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_1] =

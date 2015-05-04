@@ -150,7 +150,9 @@ int main( void )
     mbedtls_printf( "  . Setting up the SSL/TLS structure..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_ssl_config_defaults( &conf ) ) != 0 )
+    if( ( ret = mbedtls_ssl_config_defaults( &conf,
+                    MBEDTLS_SSL_IS_CLIENT,
+                    MBEDTLS_SSL_TRANSPORT_STREAM ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_config_defaults returned %d\n\n", ret );
         goto exit;
@@ -164,7 +166,6 @@ int main( void )
 
     mbedtls_printf( " ok\n" );
 
-    mbedtls_ssl_set_endpoint( &ssl, MBEDTLS_SSL_IS_CLIENT );
     /* OPTIONAL is not optimal for security,
      * but makes interop easier in this simplified example */
     mbedtls_ssl_set_authmode( &ssl, MBEDTLS_SSL_VERIFY_OPTIONAL );

@@ -162,7 +162,9 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "  . Setting up the DTLS structure..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_ssl_config_defaults( &conf ) ) != 0 )
+    if( ( ret = mbedtls_ssl_config_defaults( &conf,
+                   MBEDTLS_SSL_IS_CLIENT,
+                   MBEDTLS_SSL_TRANSPORT_DATAGRAM ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_config_defaults returned %d\n\n", ret );
         goto exit;
@@ -175,9 +177,6 @@ int main( int argc, char *argv[] )
     }
 
     mbedtls_printf( " ok\n" );
-
-    mbedtls_ssl_set_endpoint( &ssl, MBEDTLS_SSL_IS_CLIENT );
-    mbedtls_ssl_set_transport( &ssl, MBEDTLS_SSL_TRANSPORT_DATAGRAM );
 
     /* OPTIONAL is usually a bad choice for security, but makes interop easier
      * in this simplified example, in which the ca chain is hardcoded.

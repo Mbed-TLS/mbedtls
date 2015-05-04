@@ -188,7 +188,9 @@ int main( void )
         goto exit;
     }
 
-    if( mbedtls_ssl_config_defaults( &conf ) != 0 )
+    if( mbedtls_ssl_config_defaults( &conf,
+                MBEDTLS_SSL_IS_CLIENT,
+                MBEDTLS_SSL_TRANSPORT_STREAM) != 0 )
     {
         ret = ssl_config_defaults_failed;
         goto exit;
@@ -199,8 +201,6 @@ int main( void )
         ret = ssl_setup_failed;
         goto exit;
     }
-
-    mbedtls_ssl_set_endpoint( &ssl, MBEDTLS_SSL_IS_CLIENT );
 
     mbedtls_ssl_set_rng( &ssl, mbedtls_ctr_drbg_random, &ctr_drbg );
 

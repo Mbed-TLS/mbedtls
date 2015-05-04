@@ -191,7 +191,9 @@ int main( void )
     mbedtls_printf( "  . Setting up the SSL data...." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_ssl_config_defaults( &conf ) ) != 0 )
+    if( ( ret = mbedtls_ssl_config_defaults( &conf,
+                    MBEDTLS_SSL_IS_SERVER,
+                    MBEDTLS_SSL_TRANSPORT_STREAM ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_config_defaults returned %d\n\n", ret );
         goto exit;
@@ -203,7 +205,6 @@ int main( void )
         goto exit;
     }
 
-    mbedtls_ssl_set_endpoint( &ssl, MBEDTLS_SSL_IS_SERVER );
     mbedtls_ssl_set_authmode( &ssl, MBEDTLS_SSL_VERIFY_NONE );
 
     mbedtls_ssl_set_rng( &ssl, mbedtls_ctr_drbg_random, &ctr_drbg );

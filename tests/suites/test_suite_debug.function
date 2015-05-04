@@ -36,9 +36,11 @@ void debug_print_msg_threshold( int threshold, int level, char *file, int line,
     mbedtls_ssl_context ssl;
     struct buffer_data buffer;
 
-    memset( &ssl, 0, sizeof( mbedtls_ssl_context ) );
+    mbedtls_ssl_init( &ssl );
     memset( buffer.buf, 0, 2000 );
     buffer.ptr = buffer.buf;
+
+    TEST_ASSERT( mbedtls_ssl_setup( &ssl ) == 0 );
 
     mbedtls_debug_set_log_mode( MBEDTLS_DEBUG_LOG_FULL );
     mbedtls_debug_set_threshold( threshold );
@@ -48,6 +50,9 @@ void debug_print_msg_threshold( int threshold, int level, char *file, int line,
                      mbedtls_debug_fmt("Text message, 2 == %d", 2 ) );
 
     TEST_ASSERT( strcmp( buffer.buf, result_str ) == 0 );
+
+exit:
+    mbedtls_ssl_free( &ssl );
 }
 /* END_CASE */
 
@@ -58,9 +63,11 @@ void mbedtls_debug_print_ret( int mode, char *file, int line, char *text, int va
     mbedtls_ssl_context ssl;
     struct buffer_data buffer;
 
-    memset( &ssl, 0, sizeof( mbedtls_ssl_context ) );
+    mbedtls_ssl_init( &ssl );
     memset( buffer.buf, 0, 2000 );
     buffer.ptr = buffer.buf;
+
+    TEST_ASSERT( mbedtls_ssl_setup( &ssl ) == 0 );
 
     mbedtls_debug_set_log_mode( mode );
     mbedtls_ssl_set_dbg(&ssl, string_debug, &buffer);
@@ -68,6 +75,9 @@ void mbedtls_debug_print_ret( int mode, char *file, int line, char *text, int va
     mbedtls_debug_print_ret( &ssl, 0, file, line, text, value);
 
     TEST_ASSERT( strcmp( buffer.buf, result_str ) == 0 );
+
+exit:
+    mbedtls_ssl_free( &ssl );
 }
 /* END_CASE */
 
@@ -80,12 +90,14 @@ void mbedtls_debug_print_buf( int mode, char *file, int line, char *text,
     struct buffer_data buffer;
     size_t data_len;
 
+    mbedtls_ssl_init( &ssl );
     memset( &data, 0, sizeof( data ) );
-    memset( &ssl, 0, sizeof( mbedtls_ssl_context ) );
     memset( buffer.buf, 0, 2000 );
     buffer.ptr = buffer.buf;
 
     data_len = unhexify( data, data_string );
+
+    TEST_ASSERT( mbedtls_ssl_setup( &ssl ) == 0 );
 
     mbedtls_debug_set_log_mode( mode );
     mbedtls_ssl_set_dbg(&ssl, string_debug, &buffer);
@@ -93,6 +105,9 @@ void mbedtls_debug_print_buf( int mode, char *file, int line, char *text,
     mbedtls_debug_print_buf( &ssl, 0, file, line, text, data, data_len );
 
     TEST_ASSERT( strcmp( buffer.buf, result_str ) == 0 );
+
+exit:
+    mbedtls_ssl_free( &ssl );
 }
 /* END_CASE */
 
@@ -104,10 +119,12 @@ void mbedtls_debug_print_crt( int mode, char *crt_file, char *file, int line,
     mbedtls_ssl_context ssl;
     struct buffer_data buffer;
 
+    mbedtls_ssl_init( &ssl );
     mbedtls_x509_crt_init( &crt );
-    memset( &ssl, 0, sizeof( mbedtls_ssl_context ) );
     memset( buffer.buf, 0, 2000 );
     buffer.ptr = buffer.buf;
+
+    TEST_ASSERT( mbedtls_ssl_setup( &ssl ) == 0 );
 
     mbedtls_debug_set_log_mode( mode );
     mbedtls_ssl_set_dbg(&ssl, string_debug, &buffer);
@@ -119,6 +136,7 @@ void mbedtls_debug_print_crt( int mode, char *crt_file, char *file, int line,
 
 exit:
     mbedtls_x509_crt_free( &crt );
+    mbedtls_ssl_free( &ssl );
 }
 /* END_CASE */
 
@@ -130,11 +148,12 @@ void mbedtls_debug_print_mpi( int mode, int radix, char *value, char *file, int 
     struct buffer_data buffer;
     mbedtls_mpi val;
 
+    mbedtls_ssl_init( &ssl );
     mbedtls_mpi_init( &val );
-
-    memset( &ssl, 0, sizeof( mbedtls_ssl_context ) );
     memset( buffer.buf, 0, 2000 );
     buffer.ptr = buffer.buf;
+
+    TEST_ASSERT( mbedtls_ssl_setup( &ssl ) == 0 );
 
     TEST_ASSERT( mbedtls_mpi_read_string( &val, radix, value ) == 0 );
 
@@ -147,5 +166,6 @@ void mbedtls_debug_print_mpi( int mode, int radix, char *value, char *file, int 
 
 exit:
     mbedtls_mpi_free( &val );
+    mbedtls_ssl_free( &ssl );
 }
 /* END_CASE */

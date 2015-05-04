@@ -4953,20 +4953,13 @@ void mbedtls_ssl_init( mbedtls_ssl_context *ssl )
 /*
  * Setup an SSL context
  */
-int mbedtls_ssl_setup( mbedtls_ssl_context *ssl )
+int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
+                       mbedtls_ssl_config *conf )
 {
     int ret;
     const size_t len = MBEDTLS_SSL_BUFFER_LEN;
 
-    /*
-     * Temporary, WIP
-     */
-    ssl->conf = mbedtls_malloc( sizeof( mbedtls_ssl_config ) );
-    if( ssl->conf == NULL )
-        return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
-
-    mbedtls_ssl_config_init( ssl->conf );
-    mbedtls_ssl_config_defaults( ssl->conf );
+    ssl->conf = conf;
 
     /*
      * Prepare base structures
@@ -6630,10 +6623,6 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
     mbedtls_free( ssl->cli_id );
 #endif
-
-    /* Temporary, WIP */
-    mbedtls_ssl_config_free( ssl->conf );
-    mbedtls_free( ssl->conf );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= free" ) );
 

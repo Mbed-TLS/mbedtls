@@ -103,11 +103,12 @@ int main( void )
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     mbedtls_ssl_context ssl;
+    mbedtls_ssl_config conf;
     mbedtls_x509_crt srvcert;
     mbedtls_pk_context pkey;
 
-    memset( &ssl, 0, sizeof(mbedtls_ssl_context) );
-
+    mbedtls_ssl_init( &ssl );
+    mbedtls_ssl_config_init( &conf );
     mbedtls_entropy_init( &entropy );
     mbedtls_pk_init( &pkey );
     mbedtls_x509_crt_init( &srvcert );
@@ -248,7 +249,13 @@ int main( void )
             goto exit;
         }
 
-        if( ( ret = mbedtls_ssl_setup( &ssl ) ) != 0 )
+        if( ( ret = mbedtls_ssl_config_defaults( &conf ) ) != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_config_defaults returned %d\n\n", ret );
+            goto exit;
+        }
+
+        if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned %d\n\n", ret );
             goto exit;
@@ -373,6 +380,7 @@ exit:
     mbedtls_x509_crt_free( &srvcert );
     mbedtls_pk_free( &pkey );
     mbedtls_ssl_free( &ssl );
+    mbedtls_ssl_config_free( &conf );
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
 

@@ -147,6 +147,7 @@ enum exit_codes
 {
     exit_ok = 0,
     ctr_drbg_seed_failed,
+    ssl_config_default_failed,
     ssl_setup_failed,
     socket_failed,
     connect_failed,
@@ -167,12 +168,14 @@ int main( void )
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     mbedtls_ssl_context ssl;
+    mbedtls_ssl_config conf;
     mbedtls_ctr_drbg_init( &ctr_drbg );
 
     /*
      * 0. Initialize and setup stuff
      */
     mbedtls_ssl_init( &ssl );
+    mbedtls_ssl_config_init( &conf );
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_x509_crt_init( &ca );
 #endif
@@ -185,7 +188,13 @@ int main( void )
         goto exit;
     }
 
-    if( mbedtls_ssl_setup( &ssl ) != 0 )
+    if( mbedtls_ssl_config_defaults( &conf ) != 0 )
+    {
+        ret = ssl_config_defaults_failed;
+        goto exit;
+    }
+
+    if( mbedtls_ssl_setup( &ssl, &conf ) != 0 )
     {
         ret = ssl_setup_failed;
         goto exit;
@@ -260,6 +269,7 @@ exit:
         mbedtls_net_close( server_fd );
 
     mbedtls_ssl_free( &ssl );
+    mbedtls_ssl_config_free( &conf );
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
 #if defined(MBEDTLS_X509_CRT_PARSE_C)

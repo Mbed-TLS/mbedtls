@@ -1164,11 +1164,13 @@ void mbedtls_ssl_init( mbedtls_ssl_context *ssl );
  * \brief          Set up an SSL context for use
  *
  * \param ssl      SSL context
+ * \param conf     SSL configuration to use
  *
  * \return         0 if successful, or MBEDTLS_ERR_SSL_MALLOC_FAILED if
  *                 memory allocation failed
  */
-int mbedtls_ssl_setup( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
+                       mbedtls_ssl_config *conf );
 
 /**
  * \brief          Reset an already initialized SSL context for re-use

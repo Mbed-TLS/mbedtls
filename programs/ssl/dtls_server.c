@@ -97,6 +97,7 @@ int main( void )
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     mbedtls_ssl_context ssl;
+    mbedtls_ssl_config conf;
     mbedtls_x509_crt srvcert;
     mbedtls_pk_context pkey;
 #if defined(MBEDTLS_SSL_CACHE_C)
@@ -104,6 +105,7 @@ int main( void )
 #endif
 
     mbedtls_ssl_init( &ssl );
+    mbedtls_ssl_config_init( &conf );
     mbedtls_ssl_cookie_init( &cookie_ctx );
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_init( &cache );
@@ -190,7 +192,13 @@ int main( void )
     printf( "  . Setting up the DTLS data..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_ssl_setup( &ssl ) ) != 0 )
+    if( ( ret = mbedtls_ssl_config_defaults( &conf ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_config_defaults returned %d\n\n", ret );
+        goto exit;
+    }
+
+    if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
     {
         printf( " failed\n  ! mbedtls_ssl_setup returned %d\n\n", ret );
         goto exit;
@@ -391,6 +399,7 @@ exit:
     mbedtls_x509_crt_free( &srvcert );
     mbedtls_pk_free( &pkey );
     mbedtls_ssl_free( &ssl );
+    mbedtls_ssl_config_free( &conf );
     mbedtls_ssl_cookie_free( &cookie_ctx );
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_free( &cache );

@@ -130,10 +130,12 @@ static void *handle_ssl_connection( void *data )
     unsigned char buf[1024];
     char pers[50];
     mbedtls_ssl_context ssl;
+    mbedtls_ssl_config conf;
     mbedtls_ctr_drbg_context ctr_drbg;
 
     /* Make sure memory references are valid */
     mbedtls_ssl_init( &ssl );
+    mbedtls_ssl_config_init( &conf );
     mbedtls_ctr_drbg_init( &ctr_drbg );
 
     mbedtls_snprintf( pers, sizeof(pers), "SSL Pthread Thread %d", thread_id );
@@ -158,7 +160,14 @@ static void *handle_ssl_connection( void *data )
      */
     mbedtls_printf( "  [ #%d ]  Setting up the SSL data....\n", thread_id );
 
-    if( ( ret = mbedtls_ssl_setup( &ssl ) ) != 0 )
+    if( ( ret = mbedtls_ssl_config_defaults( &conf ) ) != 0 )
+    {
+        mbedtls_printf( "  [ #%d ]  failed: mbedtls_ssl_config_defaults returned -0x%04x\n",
+                thread_id, -ret );
+        goto thread_exit;
+    }
+
+    if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
     {
         mbedtls_printf( "  [ #%d ]  failed: mbedtls_ssl_setup returned -0x%04x\n",
                 thread_id, -ret );
@@ -314,6 +323,7 @@ thread_exit:
     mbedtls_net_close( client_fd );
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_ssl_free( &ssl );
+    mbedtls_ssl_config_free( &conf );
 
     thread_info->thread_complete = 1;
 

@@ -722,6 +722,7 @@ int main( int argc, char *argv[] )
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     mbedtls_ssl_context ssl;
+    mbedtls_ssl_config conf;
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     unsigned char renego_period[8] = { 0 };
 #endif
@@ -762,6 +763,7 @@ int main( int argc, char *argv[] )
      */
     listen_fd = 0;
     mbedtls_ssl_init( &ssl );
+    mbedtls_ssl_config_init( &conf );
     mbedtls_ctr_drbg_init( &ctr_drbg );
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_x509_crt_init( &cacert );
@@ -1518,7 +1520,13 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "  . Setting up the SSL/TLS structure..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_ssl_setup( &ssl ) ) != 0 )
+    if( ( ret = mbedtls_ssl_config_defaults( &conf ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_config_defaults returned -0x%x\n\n", -ret );
+        goto exit;
+    }
+
+    if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned -0x%x\n\n", -ret );
         goto exit;
@@ -2205,6 +2213,7 @@ exit:
 #endif
 
     mbedtls_ssl_free( &ssl );
+    mbedtls_ssl_config_free( &conf );
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
 

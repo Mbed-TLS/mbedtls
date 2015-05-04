@@ -92,6 +92,7 @@ int main( int argc, char *argv[] )
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     mbedtls_ssl_context ssl;
+    mbedtls_ssl_config conf;
     mbedtls_x509_crt cacert;
 
     ((void) argc);
@@ -105,6 +106,7 @@ int main( int argc, char *argv[] )
      * 0. Initialize the RNG and the session data
      */
     mbedtls_ssl_init( &ssl );
+    mbedtls_ssl_config_init( &conf );
     mbedtls_x509_crt_init( &cacert );
     mbedtls_ctr_drbg_init( &ctr_drbg );
 
@@ -123,7 +125,7 @@ int main( int argc, char *argv[] )
     mbedtls_printf( " ok\n" );
 
     /*
-     * 0. Initialize certificates
+     * 0. Load certificates
      */
     mbedtls_printf( "  . Loading the CA root certificate ..." );
     fflush( stdout );
@@ -160,7 +162,13 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "  . Setting up the DTLS structure..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_ssl_setup( &ssl ) ) != 0 )
+    if( ( ret = mbedtls_ssl_config_defaults( &conf ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_config_defaults returned %d\n\n", ret );
+        goto exit;
+    }
+
+    if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned %d\n\n", ret );
         goto exit;
@@ -322,6 +330,7 @@ exit:
 
     mbedtls_x509_crt_free( &cacert );
     mbedtls_ssl_free( &ssl );
+    mbedtls_ssl_config_free( &conf );
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
 

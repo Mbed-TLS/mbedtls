@@ -83,18 +83,18 @@ void mbedtls_debug_print_msg( const mbedtls_ssl_context *ssl, int level,
     char str[512];
     int maxlen = sizeof( str ) - 1;
 
-    if( ssl->f_dbg == NULL || level > debug_threshold )
+    if( ssl->conf->f_dbg == NULL || level > debug_threshold )
         return;
 
     if( debug_log_mode == MBEDTLS_DEBUG_LOG_RAW )
     {
-        ssl->f_dbg( ssl->p_dbg, level, text );
+        ssl->conf->f_dbg( ssl->conf->p_dbg, level, text );
         return;
     }
 
     mbedtls_snprintf( str, maxlen, "%s(%04d): %s\n", file, line, text );
     str[maxlen] = '\0';
-    ssl->f_dbg( ssl->p_dbg, level, str );
+    ssl->conf->f_dbg( ssl->conf->p_dbg, level, str );
 }
 
 void mbedtls_debug_print_ret( const mbedtls_ssl_context *ssl, int level,
@@ -105,7 +105,7 @@ void mbedtls_debug_print_ret( const mbedtls_ssl_context *ssl, int level,
     int maxlen = sizeof( str ) - 1;
     size_t idx = 0;
 
-    if( ssl->f_dbg == NULL || level > debug_threshold )
+    if( ssl->conf->f_dbg == NULL || level > debug_threshold )
         return;
 
     if( debug_log_mode == MBEDTLS_DEBUG_LOG_FULL )
@@ -115,7 +115,7 @@ void mbedtls_debug_print_ret( const mbedtls_ssl_context *ssl, int level,
               text, ret, -ret );
 
     str[maxlen] = '\0';
-    ssl->f_dbg( ssl->p_dbg, level, str );
+    ssl->conf->f_dbg( ssl->conf->p_dbg, level, str );
 }
 
 void mbedtls_debug_print_buf( const mbedtls_ssl_context *ssl, int level,
@@ -126,7 +126,7 @@ void mbedtls_debug_print_buf( const mbedtls_ssl_context *ssl, int level,
     char txt[17];
     size_t i, maxlen = sizeof( str ) - 1, idx = 0;
 
-    if( ssl->f_dbg == NULL || level > debug_threshold )
+    if( ssl->conf->f_dbg == NULL || level > debug_threshold )
         return;
 
     if( debug_log_mode == MBEDTLS_DEBUG_LOG_FULL )
@@ -136,7 +136,7 @@ void mbedtls_debug_print_buf( const mbedtls_ssl_context *ssl, int level,
               text, (unsigned int) len );
 
     str[maxlen] = '\0';
-    ssl->f_dbg( ssl->p_dbg, level, str );
+    ssl->conf->f_dbg( ssl->conf->p_dbg, level, str );
 
     idx = 0;
     memset( txt, 0, sizeof( txt ) );
@@ -150,7 +150,7 @@ void mbedtls_debug_print_buf( const mbedtls_ssl_context *ssl, int level,
             if( i > 0 )
             {
                 mbedtls_snprintf( str + idx, maxlen - idx, "  %s\n", txt );
-                ssl->f_dbg( ssl->p_dbg, level, str );
+                ssl->conf->f_dbg( ssl->conf->p_dbg, level, str );
 
                 idx = 0;
                 memset( txt, 0, sizeof( txt ) );
@@ -175,7 +175,7 @@ void mbedtls_debug_print_buf( const mbedtls_ssl_context *ssl, int level,
             idx += mbedtls_snprintf( str + idx, maxlen - idx, "   " );
 
         mbedtls_snprintf( str + idx, maxlen - idx, "  %s\n", txt );
-        ssl->f_dbg( ssl->p_dbg, level, str );
+        ssl->conf->f_dbg( ssl->conf->p_dbg, level, str );
     }
 }
 
@@ -187,7 +187,7 @@ void mbedtls_debug_print_ecp( const mbedtls_ssl_context *ssl, int level,
     char str[512];
     int maxlen = sizeof( str ) - 1;
 
-    if( ssl->f_dbg == NULL || level > debug_threshold )
+    if( ssl->conf->f_dbg == NULL || level > debug_threshold )
         return;
 
     mbedtls_snprintf( str, maxlen, "%s(X)", text );
@@ -209,7 +209,7 @@ void mbedtls_debug_print_mpi( const mbedtls_ssl_context *ssl, int level,
     int j, k, maxlen = sizeof( str ) - 1, zeros = 1;
     size_t i, n, idx = 0;
 
-    if( ssl->f_dbg == NULL || X == NULL || level > debug_threshold )
+    if( ssl->conf->f_dbg == NULL || X == NULL || level > debug_threshold )
         return;
 
     for( n = X->n - 1; n > 0; n-- )
@@ -227,7 +227,7 @@ void mbedtls_debug_print_mpi( const mbedtls_ssl_context *ssl, int level,
               text, (int) ( ( n * ( sizeof(mbedtls_mpi_uint) << 3 ) ) + j + 1 ) );
 
     str[maxlen] = '\0';
-    ssl->f_dbg( ssl->p_dbg, level, str );
+    ssl->conf->f_dbg( ssl->conf->p_dbg, level, str );
 
     idx = 0;
     for( i = n + 1, j = 0; i > 0; i-- )
@@ -247,7 +247,7 @@ void mbedtls_debug_print_mpi( const mbedtls_ssl_context *ssl, int level,
                 if( j > 0 )
                 {
                     mbedtls_snprintf( str + idx, maxlen - idx, "\n" );
-                    ssl->f_dbg( ssl->p_dbg, level, str );
+                    ssl->conf->f_dbg( ssl->conf->p_dbg, level, str );
                     idx = 0;
                 }
 
@@ -274,7 +274,7 @@ void mbedtls_debug_print_mpi( const mbedtls_ssl_context *ssl, int level,
     }
 
     mbedtls_snprintf( str + idx, maxlen - idx, "\n" );
-    ssl->f_dbg( ssl->p_dbg, level, str );
+    ssl->conf->f_dbg( ssl->conf->p_dbg, level, str );
 }
 #endif /* MBEDTLS_BIGNUM_C */
 
@@ -322,7 +322,7 @@ void mbedtls_debug_print_crt( const mbedtls_ssl_context *ssl, int level,
     char str[1024], prefix[64];
     int i = 0, maxlen = sizeof( prefix ) - 1, idx = 0;
 
-    if( ssl->f_dbg == NULL || crt == NULL || level > debug_threshold )
+    if( ssl->conf->f_dbg == NULL || crt == NULL || level > debug_threshold )
         return;
 
     if( debug_log_mode == MBEDTLS_DEBUG_LOG_FULL )
@@ -347,7 +347,7 @@ void mbedtls_debug_print_crt( const mbedtls_ssl_context *ssl, int level,
                   text, ++i, buf );
 
         str[maxlen] = '\0';
-        ssl->f_dbg( ssl->p_dbg, level, str );
+        ssl->conf->f_dbg( ssl->conf->p_dbg, level, str );
 
         debug_print_pk( ssl, level, file, line, "crt->", &crt->pk );
 

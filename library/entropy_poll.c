@@ -145,7 +145,7 @@ int mbedtls_platform_entropy_poll( void *data,
         int ret;
 
         if( ( ret = getrandom_wrapper( output, len, 0 ) ) < 0 )
-            return( POLARSSL_ERR_ENTROPY_SOURCE_FAILED );
+            return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
 
         *olen = ret;
         return( 0 );

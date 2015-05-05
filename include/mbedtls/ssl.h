@@ -258,8 +258,8 @@
 #define MBEDTLS_SSL_SESSION_TICKETS_DISABLED     0
 #define MBEDTLS_SSL_SESSION_TICKETS_ENABLED      1
 
-#define MBEDTLS_SSL_CBC_RECORD_SPLITTING_DISABLED   -1
-#define MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED     0
+#define MBEDTLS_SSL_CBC_RECORD_SPLITTING_DISABLED    0
+#define MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED     1
 
 #define MBEDTLS_SSL_ARC4_ENABLED                0
 #define MBEDTLS_SSL_ARC4_DISABLED               1
@@ -1047,8 +1047,7 @@ struct mbedtls_ssl_context
     unsigned char *compress_buf;        /*!<  zlib data buffer        */
 #endif
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
-    signed char split_done;     /*!< flag for record splitting:
-                                     -1 disabled, 0 todo, 1 done      */
+    signed char split_done;     /*!< current record already splitted? */
 #endif
 
     /*
@@ -1914,11 +1913,11 @@ int mbedtls_ssl_set_truncated_hmac( mbedtls_ssl_config *conf, int truncate );
  * \note           Only affects SSLv3 and TLS 1.0, not higher versions.
  *                 Does not affect non-CBC ciphersuites in any version.
  *
- * \param ssl      SSL context
+ * \param conf     SSL configuration
  * \param split    MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED or
  *                 MBEDTLS_SSL_CBC_RECORD_SPLITTING_DISABLED
  */
-void mbedtls_ssl_set_cbc_record_splitting( mbedtls_ssl_context *ssl, char split );
+void mbedtls_ssl_set_cbc_record_splitting( mbedtls_ssl_config *conf, char split );
 #endif /* MBEDTLS_SSL_CBC_RECORD_SPLITTING */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)

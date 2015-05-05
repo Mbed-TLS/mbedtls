@@ -1101,7 +1101,7 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
     if( opt.recsplit != DFL_RECSPLIT )
-        mbedtls_ssl_set_cbc_record_splitting( &ssl, opt.recsplit
+        mbedtls_ssl_set_cbc_record_splitting( &conf, opt.recsplit
                                     ? MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED
                                     : MBEDTLS_SSL_CBC_RECORD_SPLITTING_DISABLED );
 #endif

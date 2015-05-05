@@ -1065,15 +1065,15 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     if( opt.debug_level > 0 )
-        mbedtls_ssl_set_verify( &ssl, my_verify, NULL );
+        mbedtls_ssl_set_verify( &conf, my_verify, NULL );
 #endif
 
     if( opt.auth_mode != DFL_AUTH_MODE )
-        mbedtls_ssl_set_authmode( &ssl, opt.auth_mode );
+        mbedtls_ssl_set_authmode( &conf, opt.auth_mode );
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( opt.hs_to_min != DFL_HS_TO_MIN || opt.hs_to_max != DFL_HS_TO_MAX )
-        mbedtls_ssl_set_handshake_timeout( &ssl, opt.hs_to_min, opt.hs_to_max );
+        mbedtls_ssl_set_handshake_timeout( &conf, opt.hs_to_min, opt.hs_to_max );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
@@ -1086,17 +1086,17 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
     if( opt.trunc_hmac != DFL_TRUNC_HMAC )
-        mbedtls_ssl_set_truncated_hmac( &ssl, opt.trunc_hmac );
+        mbedtls_ssl_set_truncated_hmac( &conf, opt.trunc_hmac );
 #endif
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
     if( opt.extended_ms != DFL_EXTENDED_MS )
-        mbedtls_ssl_set_extended_master_secret( &ssl, opt.extended_ms );
+        mbedtls_ssl_set_extended_master_secret( &conf, opt.extended_ms );
 #endif
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     if( opt.etm != DFL_ETM )
-        mbedtls_ssl_set_encrypt_then_mac( &ssl, opt.etm );
+        mbedtls_ssl_set_encrypt_then_mac( &conf, opt.etm );
 #endif
 
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
@@ -1108,7 +1108,7 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_SSL_ALPN)
     if( opt.alpn_string != NULL )
-        if( ( ret = mbedtls_ssl_set_alpn_protocols( &ssl, alpn_list ) ) != 0 )
+        if( ( ret = mbedtls_ssl_set_alpn_protocols( &conf, alpn_list ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_set_alpn_protocols returned %d\n\n", ret );
             goto exit;
@@ -1116,7 +1116,7 @@ int main( int argc, char *argv[] )
 #endif
 
     mbedtls_ssl_set_rng( &ssl, mbedtls_ctr_drbg_random, &ctr_drbg );
-    mbedtls_ssl_set_dbg( &ssl, my_debug, stdout );
+    mbedtls_ssl_set_dbg( &conf, my_debug, stdout );
 
     if( opt.nbio == 2 )
         mbedtls_ssl_set_bio_timeout( &ssl, &server_fd, my_send, my_recv, NULL,
@@ -1139,15 +1139,15 @@ int main( int argc, char *argv[] )
 #endif
 
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
-        mbedtls_ssl_set_ciphersuites( &ssl, opt.force_ciphersuite );
+        mbedtls_ssl_set_ciphersuites( &conf, opt.force_ciphersuite );
 
     if( opt.arc4 != DFL_ARC4 )
-        mbedtls_ssl_set_arc4_support( &ssl, opt.arc4 );
+        mbedtls_ssl_set_arc4_support( &conf, opt.arc4 );
 
     if( opt.allow_legacy != DFL_ALLOW_LEGACY )
-        mbedtls_ssl_legacy_renegotiation( &ssl, opt.allow_legacy );
+        mbedtls_ssl_legacy_renegotiation( &conf, opt.allow_legacy );
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
-    mbedtls_ssl_set_renegotiation( &ssl, opt.renegotiation );
+    mbedtls_ssl_set_renegotiation( &conf, opt.renegotiation );
 #endif
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -1187,7 +1187,7 @@ int main( int argc, char *argv[] )
 
     if( opt.min_version != DFL_MIN_VERSION )
     {
-        ret = mbedtls_ssl_set_min_version( &ssl, MBEDTLS_SSL_MAJOR_VERSION_3, opt.min_version );
+        ret = mbedtls_ssl_set_min_version( &conf, MBEDTLS_SSL_MAJOR_VERSION_3, opt.min_version );
         if( ret != 0 )
         {
             mbedtls_printf( " failed\n  ! selected min_version is not available\n" );
@@ -1197,7 +1197,7 @@ int main( int argc, char *argv[] )
 
     if( opt.max_version != DFL_MAX_VERSION )
     {
-        ret = mbedtls_ssl_set_max_version( &ssl, MBEDTLS_SSL_MAJOR_VERSION_3, opt.max_version );
+        ret = mbedtls_ssl_set_max_version( &conf, MBEDTLS_SSL_MAJOR_VERSION_3, opt.max_version );
         if( ret != 0 )
         {
             mbedtls_printf( " failed\n  ! selected max_version is not available\n" );

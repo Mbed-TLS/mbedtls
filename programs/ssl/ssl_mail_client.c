@@ -602,14 +602,14 @@ int main( int argc, char *argv[] )
 
     /* OPTIONAL is not optimal for security,
      * but makes interop easier in this simplified example */
-    mbedtls_ssl_set_authmode( &ssl, MBEDTLS_SSL_VERIFY_OPTIONAL );
+    mbedtls_ssl_set_authmode( &conf, MBEDTLS_SSL_VERIFY_OPTIONAL );
 
     mbedtls_ssl_set_rng( &ssl, mbedtls_ctr_drbg_random, &ctr_drbg );
-    mbedtls_ssl_set_dbg( &ssl, my_debug, stdout );
+    mbedtls_ssl_set_dbg( &conf, my_debug, stdout );
     mbedtls_ssl_set_bio_timeout( &ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv, NULL, 0 );
 
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
-        mbedtls_ssl_set_ciphersuites( &ssl, opt.force_ciphersuite );
+        mbedtls_ssl_set_ciphersuites( &conf, opt.force_ciphersuite );
 
     mbedtls_ssl_set_ca_chain( &ssl, &cacert, NULL, opt.server_name );
     if( ( ret = mbedtls_ssl_set_own_cert( &ssl, &clicert, &pkey ) ) != 0 )

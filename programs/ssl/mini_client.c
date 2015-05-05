@@ -217,7 +217,7 @@ int main( void )
     }
 
     mbedtls_ssl_set_ca_chain( &ssl, &ca, NULL, HOSTNAME );
-    mbedtls_ssl_set_authmode( &ssl, MBEDTLS_SSL_VERIFY_REQUIRED );
+    mbedtls_ssl_set_authmode( &conf, MBEDTLS_SSL_VERIFY_REQUIRED );
 #endif
 
     /*

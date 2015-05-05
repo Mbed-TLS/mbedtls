@@ -377,14 +377,14 @@ int mbedtls_ssl_set_client_transport_id( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-void mbedtls_ssl_set_dtls_cookies( mbedtls_ssl_context *ssl,
+void mbedtls_ssl_set_dtls_cookies( mbedtls_ssl_config *conf,
                            mbedtls_ssl_cookie_write_t *f_cookie_write,
                            mbedtls_ssl_cookie_check_t *f_cookie_check,
                            void *p_cookie )
 {
-    ssl->conf->f_cookie_write = f_cookie_write;
-    ssl->conf->f_cookie_check = f_cookie_check;
-    ssl->conf->p_cookie       = p_cookie;
+    conf->f_cookie_write = f_cookie_write;
+    conf->f_cookie_check = f_cookie_check;
+    conf->p_cookie       = p_cookie;
 }
 #endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY */
 

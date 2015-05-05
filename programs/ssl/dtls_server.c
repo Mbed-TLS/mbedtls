@@ -206,14 +206,13 @@ int main( void )
         goto exit;
     }
 
-    mbedtls_ssl_set_authmode( &ssl, MBEDTLS_SSL_VERIFY_NONE );
-
     mbedtls_ssl_set_rng( &ssl, mbedtls_ctr_drbg_random, &ctr_drbg );
-    mbedtls_ssl_set_dbg( &ssl, my_debug, stdout );
+    mbedtls_ssl_set_dbg( &conf, my_debug, stdout );
 
 #if defined(MBEDTLS_SSL_CACHE_C)
-    mbedtls_ssl_set_session_cache( &ssl, mbedtls_ssl_cache_get, &cache,
-                                 mbedtls_ssl_cache_set, &cache );
+    mbedtls_ssl_set_session_cache( &conf,
+                                   mbedtls_ssl_cache_get, &cache,
+                                   mbedtls_ssl_cache_set, &cache );
 #endif
 
     mbedtls_ssl_set_ca_chain( &ssl, srvcert.next, NULL, NULL );
@@ -230,7 +229,7 @@ int main( void )
         goto exit;
     }
 
-    mbedtls_ssl_set_dtls_cookies( &ssl, mbedtls_ssl_cookie_write, mbedtls_ssl_cookie_check,
+    mbedtls_ssl_set_dtls_cookies( &conf, mbedtls_ssl_cookie_write, mbedtls_ssl_cookie_check,
                                &cookie_ctx );
 
     printf( " ok\n" );

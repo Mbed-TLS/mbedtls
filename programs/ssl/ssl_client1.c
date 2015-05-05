@@ -168,11 +168,11 @@ int main( void )
 
     /* OPTIONAL is not optimal for security,
      * but makes interop easier in this simplified example */
-    mbedtls_ssl_set_authmode( &ssl, MBEDTLS_SSL_VERIFY_OPTIONAL );
+    mbedtls_ssl_set_authmode( &conf, MBEDTLS_SSL_VERIFY_OPTIONAL );
     mbedtls_ssl_set_ca_chain( &ssl, &cacert, NULL, "mbed TLS Server 1" );
 
     mbedtls_ssl_set_rng( &ssl, mbedtls_ctr_drbg_random, &ctr_drbg );
-    mbedtls_ssl_set_dbg( &ssl, my_debug, stdout );
+    mbedtls_ssl_set_dbg( &conf, my_debug, stdout );
     mbedtls_ssl_set_bio_timeout( &ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv, NULL, 0 );
 
     /*

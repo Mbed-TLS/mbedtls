@@ -265,10 +265,8 @@ int main( void )
 
         mbedtls_printf( " ok\n" );
 
-        mbedtls_ssl_set_authmode( &ssl, MBEDTLS_SSL_VERIFY_NONE );
-
         mbedtls_ssl_set_rng( &ssl, mbedtls_ctr_drbg_random, &ctr_drbg );
-        mbedtls_ssl_set_dbg( &ssl, my_debug, stdout );
+        mbedtls_ssl_set_dbg( &conf, my_debug, stdout );
         mbedtls_ssl_set_bio_timeout( &ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv, NULL, 0 );
 
         mbedtls_ssl_set_ca_chain( &ssl, srvcert.next, NULL, NULL );

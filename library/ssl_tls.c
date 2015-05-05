@@ -5168,52 +5168,52 @@ static int ssl_ticket_keys_init( mbedtls_ssl_context *ssl )
 /*
  * SSL set accessors
  */
-void mbedtls_ssl_set_endpoint( mbedtls_ssl_context *ssl, int endpoint )
+void mbedtls_ssl_set_endpoint( mbedtls_ssl_config *conf, int endpoint )
 {
-    ssl->conf->endpoint   = endpoint;
+    conf->endpoint   = endpoint;
 }
 
-int mbedtls_ssl_set_transport( mbedtls_ssl_context *ssl, int transport )
+int mbedtls_ssl_set_transport( mbedtls_ssl_config *conf, int transport )
 {
-    ssl->conf->transport = transport;
+    conf->transport = transport;
 
     return( 0 );
 }
 
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
-void mbedtls_ssl_set_dtls_anti_replay( mbedtls_ssl_context *ssl, char mode )
+void mbedtls_ssl_set_dtls_anti_replay( mbedtls_ssl_config *conf, char mode )
 {
-    ssl->conf->anti_replay = mode;
+    conf->anti_replay = mode;
 }
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
-void mbedtls_ssl_set_dtls_badmac_limit( mbedtls_ssl_context *ssl, unsigned limit )
+void mbedtls_ssl_set_dtls_badmac_limit( mbedtls_ssl_config *conf, unsigned limit )
 {
-    ssl->conf->badmac_limit = limit;
+    conf->badmac_limit = limit;
 }
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-void mbedtls_ssl_set_handshake_timeout( mbedtls_ssl_context *ssl, uint32_t min, uint32_t max )
+void mbedtls_ssl_set_handshake_timeout( mbedtls_ssl_config *conf, uint32_t min, uint32_t max )
 {
-    ssl->conf->hs_timeout_min = min;
-    ssl->conf->hs_timeout_max = max;
+    conf->hs_timeout_min = min;
+    conf->hs_timeout_max = max;
 }
 #endif
 
-void mbedtls_ssl_set_authmode( mbedtls_ssl_context *ssl, int authmode )
+void mbedtls_ssl_set_authmode( mbedtls_ssl_config *conf, int authmode )
 {
-    ssl->conf->authmode   = authmode;
+    conf->authmode   = authmode;
 }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-void mbedtls_ssl_set_verify( mbedtls_ssl_context *ssl,
+void mbedtls_ssl_set_verify( mbedtls_ssl_config *conf,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, int *),
                      void *p_vrfy )
 {
-    ssl->conf->f_vrfy      = f_vrfy;
-    ssl->conf->p_vrfy      = p_vrfy;
+    conf->f_vrfy      = f_vrfy;
+    conf->p_vrfy      = p_vrfy;
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
@@ -5225,12 +5225,12 @@ void mbedtls_ssl_set_rng( mbedtls_ssl_context *ssl,
     ssl->p_rng      = p_rng;
 }
 
-void mbedtls_ssl_set_dbg( mbedtls_ssl_context *ssl,
+void mbedtls_ssl_set_dbg( mbedtls_ssl_config *conf,
                   void (*f_dbg)(void *, int, const char *),
                   void  *p_dbg )
 {
-    ssl->conf->f_dbg      = f_dbg;
-    ssl->conf->p_dbg      = p_dbg;
+    conf->f_dbg      = f_dbg;
+    conf->p_dbg      = p_dbg;
 }
 
 #if ! defined(MBEDTLS_DEPRECATED_REMOVED)
@@ -5267,14 +5267,14 @@ void mbedtls_ssl_set_bio_timeout( mbedtls_ssl_context *ssl,
 }
 
 #if defined(MBEDTLS_SSL_SRV_C)
-void mbedtls_ssl_set_session_cache( mbedtls_ssl_context *ssl,
+void mbedtls_ssl_set_session_cache( mbedtls_ssl_config *conf,
         int (*f_get_cache)(void *, mbedtls_ssl_session *), void *p_get_cache,
         int (*f_set_cache)(void *, const mbedtls_ssl_session *), void *p_set_cache )
 {
-    ssl->conf->f_get_cache = f_get_cache;
-    ssl->conf->p_get_cache = p_get_cache;
-    ssl->conf->f_set_cache = f_set_cache;
-    ssl->conf->p_set_cache = p_set_cache;
+    conf->f_get_cache = f_get_cache;
+    conf->p_get_cache = p_get_cache;
+    conf->f_set_cache = f_set_cache;
+    conf->p_set_cache = p_set_cache;
 }
 #endif /* MBEDTLS_SSL_SRV_C */
 
@@ -5300,15 +5300,16 @@ int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session
 }
 #endif /* MBEDTLS_SSL_CLI_C */
 
-void mbedtls_ssl_set_ciphersuites( mbedtls_ssl_context *ssl, const int *ciphersuites )
+void mbedtls_ssl_set_ciphersuites( mbedtls_ssl_config *conf,
+                                   const int *ciphersuites )
 {
-    ssl->conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_0] = ciphersuites;
-    ssl->conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_1] = ciphersuites;
-    ssl->conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_2] = ciphersuites;
-    ssl->conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_3] = ciphersuites;
+    conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_0] = ciphersuites;
+    conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_1] = ciphersuites;
+    conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_2] = ciphersuites;
+    conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_3] = ciphersuites;
 }
 
-void mbedtls_ssl_set_ciphersuites_for_version( mbedtls_ssl_context *ssl,
+void mbedtls_ssl_set_ciphersuites_for_version( mbedtls_ssl_config *conf,
                                        const int *ciphersuites,
                                        int major, int minor )
 {
@@ -5318,7 +5319,7 @@ void mbedtls_ssl_set_ciphersuites_for_version( mbedtls_ssl_context *ssl,
     if( minor < MBEDTLS_SSL_MINOR_VERSION_0 || minor > MBEDTLS_SSL_MINOR_VERSION_3 )
         return;
 
-    ssl->conf->ciphersuite_list[minor] = ciphersuites;
+    conf->ciphersuite_list[minor] = ciphersuites;
 }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -5407,51 +5408,39 @@ int mbedtls_ssl_set_psk( mbedtls_ssl_context *ssl, const unsigned char *psk, siz
     return( 0 );
 }
 
-void mbedtls_ssl_set_psk_cb( mbedtls_ssl_context *ssl,
+void mbedtls_ssl_set_psk_cb( mbedtls_ssl_config *conf,
                      int (*f_psk)(void *, mbedtls_ssl_context *, const unsigned char *,
                      size_t),
                      void *p_psk )
 {
-    ssl->conf->f_psk = f_psk;
-    ssl->conf->p_psk = p_psk;
+    conf->f_psk = f_psk;
+    conf->p_psk = p_psk;
 }
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
 #if defined(MBEDTLS_DHM_C)
-int mbedtls_ssl_set_dh_param( mbedtls_ssl_context *ssl, const char *dhm_P, const char *dhm_G )
+int mbedtls_ssl_set_dh_param( mbedtls_ssl_config *conf, const char *dhm_P, const char *dhm_G )
 {
     int ret;
 
-    if( ( ret = mbedtls_mpi_read_string( &ssl->conf->dhm_P, 16, dhm_P ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_mpi_read_string", ret );
+    if( ( ret = mbedtls_mpi_read_string( &conf->dhm_P, 16, dhm_P ) ) != 0 )
         return( ret );
-    }
 
-    if( ( ret = mbedtls_mpi_read_string( &ssl->conf->dhm_G, 16, dhm_G ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_mpi_read_string", ret );
+    if( ( ret = mbedtls_mpi_read_string( &conf->dhm_G, 16, dhm_G ) ) != 0 )
         return( ret );
-    }
 
     return( 0 );
 }
 
-int mbedtls_ssl_set_dh_param_ctx( mbedtls_ssl_context *ssl, mbedtls_dhm_context *dhm_ctx )
+int mbedtls_ssl_set_dh_param_ctx( mbedtls_ssl_config *conf, mbedtls_dhm_context *dhm_ctx )
 {
     int ret;
 
-    if( ( ret = mbedtls_mpi_copy( &ssl->conf->dhm_P, &dhm_ctx->P ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_mpi_copy", ret );
+    if( ( ret = mbedtls_mpi_copy( &conf->dhm_P, &dhm_ctx->P ) ) != 0 )
         return( ret );
-    }
 
-    if( ( ret = mbedtls_mpi_copy( &ssl->conf->dhm_G, &dhm_ctx->G ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_mpi_copy", ret );
+    if( ( ret = mbedtls_mpi_copy( &conf->dhm_G, &dhm_ctx->G ) ) != 0 )
         return( ret );
-    }
 
     return( 0 );
 }
@@ -5461,9 +5450,10 @@ int mbedtls_ssl_set_dh_param_ctx( mbedtls_ssl_context *ssl, mbedtls_dhm_context 
 /*
  * Set the allowed elliptic curves
  */
-void mbedtls_ssl_set_curves( mbedtls_ssl_context *ssl, const mbedtls_ecp_group_id *curve_list )
+void mbedtls_ssl_set_curves( mbedtls_ssl_config *conf,
+                             const mbedtls_ecp_group_id *curve_list )
 {
-  ssl->conf->curve_list = curve_list;
+    conf->curve_list = curve_list;
 }
 #endif
 
@@ -5491,18 +5481,18 @@ int mbedtls_ssl_set_hostname( mbedtls_ssl_context *ssl, const char *hostname )
     return( 0 );
 }
 
-void mbedtls_ssl_set_sni( mbedtls_ssl_context *ssl,
+void mbedtls_ssl_set_sni( mbedtls_ssl_config *conf,
                   int (*f_sni)(void *, mbedtls_ssl_context *,
                                 const unsigned char *, size_t),
                   void *p_sni )
 {
-    ssl->conf->f_sni = f_sni;
-    ssl->conf->p_sni = p_sni;
+    conf->f_sni = f_sni;
+    conf->p_sni = p_sni;
 }
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
 #if defined(MBEDTLS_SSL_ALPN)
-int mbedtls_ssl_set_alpn_protocols( mbedtls_ssl_context *ssl, const char **protos )
+int mbedtls_ssl_set_alpn_protocols( mbedtls_ssl_config *conf, const char **protos )
 {
     size_t cur_len, tot_len;
     const char **p;
@@ -5521,7 +5511,7 @@ int mbedtls_ssl_set_alpn_protocols( mbedtls_ssl_context *ssl, const char **proto
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
-    ssl->conf->alpn_list = protos;
+    conf->alpn_list = protos;
 
     return( 0 );
 }
@@ -5532,16 +5522,19 @@ const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl )
 }
 #endif /* MBEDTLS_SSL_ALPN */
 
-static int ssl_check_version( const mbedtls_ssl_context *ssl, int major, int minor )
+static int ssl_check_version( const mbedtls_ssl_config *conf,
+                              int major, int minor )
 {
-    if( major < MBEDTLS_SSL_MIN_MAJOR_VERSION || major > MBEDTLS_SSL_MAX_MAJOR_VERSION ||
-        minor < MBEDTLS_SSL_MIN_MINOR_VERSION || minor > MBEDTLS_SSL_MAX_MINOR_VERSION )
+    if( major < MBEDTLS_SSL_MIN_MAJOR_VERSION ||
+        major > MBEDTLS_SSL_MAX_MAJOR_VERSION ||
+        minor < MBEDTLS_SSL_MIN_MINOR_VERSION ||
+        minor > MBEDTLS_SSL_MAX_MINOR_VERSION )
     {
         return( -1 );
     }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+    if( conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
         minor < MBEDTLS_SSL_MINOR_VERSION_2 )
     {
         return( -1 );
@@ -5553,24 +5546,24 @@ static int ssl_check_version( const mbedtls_ssl_context *ssl, int major, int min
     return( 0 );
 }
 
-int mbedtls_ssl_set_max_version( mbedtls_ssl_context *ssl, int major, int minor )
+int mbedtls_ssl_set_max_version( mbedtls_ssl_config *conf, int major, int minor )
 {
-    if( ssl_check_version( ssl, major, minor ) != 0 )
+    if( ssl_check_version( conf, major, minor ) != 0 )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    ssl->conf->max_major_ver = major;
-    ssl->conf->max_minor_ver = minor;
+    conf->max_major_ver = major;
+    conf->max_minor_ver = minor;
 
     return( 0 );
 }
 
-int mbedtls_ssl_set_min_version( mbedtls_ssl_context *ssl, int major, int minor )
+int mbedtls_ssl_set_min_version( mbedtls_ssl_config *conf, int major, int minor )
 {
-    if( ssl_check_version( ssl, major, minor ) != 0 )
+    if( ssl_check_version( conf, major, minor ) != 0 )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    ssl->conf->min_major_ver = major;
-    ssl->conf->min_minor_ver = minor;
+    conf->min_major_ver = major;
+    conf->min_minor_ver = minor;
 
     return( 0 );
 }
@@ -5583,22 +5576,22 @@ void mbedtls_ssl_set_fallback( mbedtls_ssl_context *ssl, char fallback )
 #endif
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
-void mbedtls_ssl_set_encrypt_then_mac( mbedtls_ssl_context *ssl, char etm )
+void mbedtls_ssl_set_encrypt_then_mac( mbedtls_ssl_config *conf, char etm )
 {
-    ssl->conf->encrypt_then_mac = etm;
+    conf->encrypt_then_mac = etm;
 }
 #endif
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
-void mbedtls_ssl_set_extended_master_secret( mbedtls_ssl_context *ssl, char ems )
+void mbedtls_ssl_set_extended_master_secret( mbedtls_ssl_config *conf, char ems )
 {
-    ssl->conf->extended_ms = ems;
+    conf->extended_ms = ems;
 }
 #endif
 
-void mbedtls_ssl_set_arc4_support( mbedtls_ssl_context *ssl, char arc4 )
+void mbedtls_ssl_set_arc4_support( mbedtls_ssl_config *conf, char arc4 )
 {
-    ssl->conf->arc4_disabled = arc4;
+    conf->arc4_disabled = arc4;
 }
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
@@ -5617,9 +5610,9 @@ int mbedtls_ssl_set_max_frag_len( mbedtls_ssl_context *ssl, unsigned char mfl_co
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-int mbedtls_ssl_set_truncated_hmac( mbedtls_ssl_context *ssl, int truncate )
+int mbedtls_ssl_set_truncated_hmac( mbedtls_ssl_config *conf, int truncate )
 {
-    ssl->conf->trunc_hmac = truncate;
+    conf->trunc_hmac = truncate;
 
     return( 0 );
 }
@@ -5632,26 +5625,26 @@ void mbedtls_ssl_set_cbc_record_splitting( mbedtls_ssl_context *ssl, char split 
 }
 #endif
 
-void mbedtls_ssl_legacy_renegotiation( mbedtls_ssl_context *ssl, int allow_legacy )
+void mbedtls_ssl_legacy_renegotiation( mbedtls_ssl_config *conf, int allow_legacy )
 {
-    ssl->conf->allow_legacy_renegotiation = allow_legacy;
+    conf->allow_legacy_renegotiation = allow_legacy;
 }
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
-void mbedtls_ssl_set_renegotiation( mbedtls_ssl_context *ssl, int renegotiation )
+void mbedtls_ssl_set_renegotiation( mbedtls_ssl_config *conf, int renegotiation )
 {
-    ssl->conf->disable_renegotiation = renegotiation;
+    conf->disable_renegotiation = renegotiation;
 }
 
-void mbedtls_ssl_set_renegotiation_enforced( mbedtls_ssl_context *ssl, int max_records )
+void mbedtls_ssl_set_renegotiation_enforced( mbedtls_ssl_config *conf, int max_records )
 {
-    ssl->conf->renego_max_records = max_records;
+    conf->renego_max_records = max_records;
 }
 
-void mbedtls_ssl_set_renegotiation_period( mbedtls_ssl_context *ssl,
+void mbedtls_ssl_set_renegotiation_period( mbedtls_ssl_config *conf,
                                    const unsigned char period[8] )
 {
-    memcpy( ssl->conf->renego_period, period, 8 );
+    memcpy( conf->renego_period, period, 8 );
 }
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
@@ -5674,9 +5667,9 @@ int mbedtls_ssl_set_session_tickets( mbedtls_ssl_context *ssl, int use_tickets )
     return( ssl_ticket_keys_init( ssl ) );
 }
 
-void mbedtls_ssl_set_session_ticket_lifetime( mbedtls_ssl_context *ssl, int lifetime )
+void mbedtls_ssl_set_session_ticket_lifetime( mbedtls_ssl_config *conf, int lifetime )
 {
-    ssl->conf->ticket_lifetime = lifetime;
+    conf->ticket_lifetime = lifetime;
 }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 

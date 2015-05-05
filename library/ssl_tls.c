@@ -5595,7 +5595,7 @@ void mbedtls_ssl_set_arc4_support( mbedtls_ssl_config *conf, char arc4 )
 }
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-int mbedtls_ssl_set_max_frag_len( mbedtls_ssl_context *ssl, unsigned char mfl_code )
+int mbedtls_ssl_set_max_frag_len( mbedtls_ssl_config *conf, unsigned char mfl_code )
 {
     if( mfl_code >= MBEDTLS_SSL_MAX_FRAG_LEN_INVALID ||
         mfl_code_to_length[mfl_code] > MBEDTLS_SSL_MAX_CONTENT_LEN )
@@ -5603,7 +5603,7 @@ int mbedtls_ssl_set_max_frag_len( mbedtls_ssl_context *ssl, unsigned char mfl_co
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
-    ssl->conf->mfl_code = mfl_code;
+    conf->mfl_code = mfl_code;
 
     return( 0 );
 }

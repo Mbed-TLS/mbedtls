@@ -1077,7 +1077,7 @@ int main( int argc, char *argv[] )
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    if( ( ret = mbedtls_ssl_set_max_frag_len( &ssl, opt.mfl_code ) ) != 0 )
+    if( ( ret = mbedtls_ssl_set_max_frag_len( &conf, opt.mfl_code ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_set_max_frag_len returned %d\n\n", ret );
         goto exit;

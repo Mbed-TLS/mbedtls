@@ -1880,14 +1880,14 @@ void mbedtls_ssl_set_arc4_support( mbedtls_ssl_config *conf, char arc4 );
  *                 (Client: set maximum fragment length to emit *and*
  *                 negotiate with the server during handshake)
  *
- * \param ssl      SSL context
+ * \param conf     SSL configuration
  * \param mfl_code Code for maximum fragment length (allowed values:
  *                 MBEDTLS_SSL_MAX_FRAG_LEN_512,  MBEDTLS_SSL_MAX_FRAG_LEN_1024,
  *                 MBEDTLS_SSL_MAX_FRAG_LEN_2048, MBEDTLS_SSL_MAX_FRAG_LEN_4096)
  *
  * \return         O if successful or MBEDTLS_ERR_SSL_BAD_INPUT_DATA
  */
-int mbedtls_ssl_set_max_frag_len( mbedtls_ssl_context *ssl, unsigned char mfl_code );
+int mbedtls_ssl_set_max_frag_len( mbedtls_ssl_config *conf, unsigned char mfl_code );
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)

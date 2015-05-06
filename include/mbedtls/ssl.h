@@ -1962,7 +1962,7 @@ void mbedtls_ssl_set_renegotiation( mbedtls_ssl_config *conf, int renegotiation 
  *                                        SSL_ALLOW_LEGACY_RENEGOTIATION or
  *                                        MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE)
  */
-void mbedtls_ssl_legacy_renegotiation( mbedtls_ssl_config *conf, int allow_legacy );
+void mbedtls_set_ssl_legacy_renegotiation( mbedtls_ssl_config *conf, int allow_legacy );
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
 /**

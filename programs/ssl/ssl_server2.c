@@ -1664,7 +1664,7 @@ int main( int argc, char *argv[] )
     }
 
     if( opt.allow_legacy != DFL_ALLOW_LEGACY )
-        mbedtls_ssl_legacy_renegotiation( &conf, opt.allow_legacy );
+        mbedtls_set_ssl_legacy_renegotiation( &conf, opt.allow_legacy );
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     mbedtls_ssl_set_renegotiation( &conf, opt.renegotiation );
 

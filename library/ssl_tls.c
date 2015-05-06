@@ -5609,7 +5609,7 @@ void mbedtls_ssl_set_cbc_record_splitting( mbedtls_ssl_config *conf, char split 
 }
 #endif
 
-void mbedtls_ssl_legacy_renegotiation( mbedtls_ssl_config *conf, int allow_legacy )
+void mbedtls_set_ssl_legacy_renegotiation( mbedtls_ssl_config *conf, int allow_legacy )
 {
     conf->allow_legacy_renegotiation = allow_legacy;
 }

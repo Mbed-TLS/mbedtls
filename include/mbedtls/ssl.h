@@ -1191,7 +1191,7 @@ void mbedtls_ssl_set_endpoint( mbedtls_ssl_config *conf, int endpoint );
  *
  * \note            For DTLS, you must either provide a recv callback that
  *                  doesn't block, or one that handles timeouts, see
- *                  mbedtls_ssl_set_bio_timeout()
+ *                  mbedtls_ssl_set_bio()
  */
 int mbedtls_ssl_set_transport( mbedtls_ssl_config *conf, int transport );
 
@@ -1261,33 +1261,6 @@ void mbedtls_ssl_set_dbg( mbedtls_ssl_config *conf,
                   void (*f_dbg)(void *, int, const char *),
                   void  *p_dbg );
 
-#if ! defined(MBEDTLS_DEPRECATED_REMOVED)
-#if defined(MBEDTLS_DEPRECATED_WARNING)
-#define MBEDTLS_DEPRECATED    __attribute__((deprecated))
-#else
-#define MBEDTLS_DEPRECATED
-#endif
-/**
- * \brief          Set the underlying BIO read and write callbacks
- *
- * \param ssl      SSL context
- * \param f_recv   read callback
- * \param p_recv   read parameter (must be equal to write parameter)
- * \param f_send   write callback
- * \param p_send   write parameter (must be equal to read parameter)
- *
- * \warning        It is required that p_recv == p_send. Otherwise, the first
- *                 attempt at sending or receiving will result in a
- *                 MBEDTLS_ERR_SSL_BAD_INPUT_DATA error.
- *
- * \deprecated     Superseded by mbedtls_ssl_set_bio_timeout() in 2.0.0
- */
-void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
-        int (*f_recv)(void *, unsigned char *, size_t), void *p_recv,
-        int (*f_send)(void *, const unsigned char *, size_t), void *p_send ) MBEDTLS_DEPRECATED;
-#undef MBEDTLS_DEPRECATED
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
-
 /**
  * \brief          Set the underlying BIO callbacks for write, read and
  *                 read-with-timeout.
@@ -1304,7 +1277,7 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
  *
  * \note           TODO: timeout not supported with TLS yet
  */
-void mbedtls_ssl_set_bio_timeout( mbedtls_ssl_context *ssl,
+void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
         void *p_bio,
         int (*f_send)(void *, const unsigned char *, size_t),
         int (*f_recv)(void *, unsigned char *, size_t),
@@ -1319,7 +1292,7 @@ void mbedtls_ssl_set_bio_timeout( mbedtls_ssl_context *ssl,
  *                 Use 0 for no timeout (default).
  *
  * \note           With blocking I/O, this will only work if a non-NULL
- *                 \c f_recv_timeout was set with \c mbedtls_ssl_set_bio_timeout().
+ *                 \c f_recv_timeout was set with \c mbedtls_ssl_set_bio().
  */
 void mbedtls_ssl_set_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout );
 

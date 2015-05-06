@@ -2186,7 +2186,7 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
     if( ssl->f_recv == NULL && ssl->f_recv_timeout == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Bad usage of mbedtls_ssl_set_bio() "
-                            "or mbedtls_ssl_set_bio_timeout()" ) );
+                            "or mbedtls_ssl_set_bio()" ) );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
@@ -2372,7 +2372,7 @@ int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl )
     if( ssl->f_send == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Bad usage of mbedtls_ssl_set_bio() "
-                            "or mbedtls_ssl_set_bio_timeout()" ) );
+                            "or mbedtls_ssl_set_bio()" ) );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
@@ -5226,26 +5226,7 @@ void mbedtls_ssl_set_dbg( mbedtls_ssl_config *conf,
     conf->p_dbg      = p_dbg;
 }
 
-#if ! defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
-            int (*f_recv)(void *, unsigned char *, size_t), void *p_recv,
-            int (*f_send)(void *, const unsigned char *, size_t), void *p_send )
-{
-    if( p_recv != p_send )
-    {
-        ssl->f_recv = NULL;
-        ssl->f_send = NULL;
-        ssl->p_bio  = NULL;
-        return;
-    }
-
-    ssl->f_recv     = f_recv;
-    ssl->f_send     = f_send;
-    ssl->p_bio      = p_send;
-}
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
-
-void mbedtls_ssl_set_bio_timeout( mbedtls_ssl_context *ssl,
         void *p_bio,
         int (*f_send)(void *, const unsigned char *, size_t),
         int (*f_recv)(void *, unsigned char *, size_t),

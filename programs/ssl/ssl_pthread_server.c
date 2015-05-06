@@ -197,7 +197,7 @@ static void *handle_ssl_connection( void *data )
 
     mbedtls_printf( "  [ #%d ]  ok\n", thread_id );
 
-    mbedtls_ssl_set_bio_timeout( &ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv, NULL );
+    mbedtls_ssl_set_bio( &ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv, NULL );
 
     mbedtls_printf( "  [ #%d ]  ok\n", thread_id );
 

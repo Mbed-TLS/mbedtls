@@ -1119,9 +1119,9 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_set_dbg( &conf, my_debug, stdout );
 
     if( opt.nbio == 2 )
-        mbedtls_ssl_set_bio_timeout( &ssl, &server_fd, my_send, my_recv, NULL );
+        mbedtls_ssl_set_bio( &ssl, &server_fd, my_send, my_recv, NULL );
     else
-        mbedtls_ssl_set_bio_timeout( &ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv,
+        mbedtls_ssl_set_bio( &ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv,
 #if defined(MBEDTLS_HAVE_TIME)
                              opt.nbio == 0 ? mbedtls_net_recv_timeout : NULL
 #else

@@ -190,7 +190,7 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_set_rng( &ssl, mbedtls_ctr_drbg_random, &ctr_drbg );
     mbedtls_ssl_set_dbg( &conf, my_debug, stdout );
 
-    mbedtls_ssl_set_bio_timeout( &ssl, &server_fd,
+    mbedtls_ssl_set_bio( &ssl, &server_fd,
                          mbedtls_net_send, mbedtls_net_recv, mbedtls_net_recv_timeout );
 
     mbedtls_printf( " ok\n" );

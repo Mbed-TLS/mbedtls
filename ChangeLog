@@ -83,6 +83,7 @@ Default behavior changes
 Reauirement changes
    * The minimum MSVC version required is now 2010 (better C99 support).
    * The NET layer now unconditionnaly relies on getaddrinfo().
+   * Compiler is required to support C99 types such as long long and uint32_t.
 
 = mbed TLS 1.3 branch
 

@@ -896,10 +896,6 @@ typedef struct
     unsigned char min_major_ver;    /*!< min. major version used            */
     unsigned char min_minor_ver;    /*!< min. minor version used            */
 
-#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    unsigned char mfl_code;         /*!< desired fragment length            */
-#endif
-
     /*
      * Flags (bitfields)
      */
@@ -910,6 +906,9 @@ typedef struct
     unsigned int authmode : 2;      /*!< MBEDTLS_SSL_VERIFY_XXX             */
     /* needed even with renego disabled for LEGACY_BREAK_HANDSHAKE          */
     unsigned int allow_legacy_renegotiation : 2 ; /*!< MBEDTLS_LEGACY_XXX   */
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    unsigned int mfl_code : 3;      /*!< desired fragment length            */
+#endif
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     unsigned int encrypt_then_mac : 1 ; /*!< negotiate encrypt-then-mac?    */
 #endif

@@ -1590,7 +1590,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    if( ( ret = mbedtls_ssl_set_session_tickets( &ssl, opt.tickets ) ) != 0 )
+    if( ( ret = mbedtls_ssl_set_session_tickets( &conf, opt.tickets ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_set_session_tickets returned %d\n\n", ret );
         goto exit;

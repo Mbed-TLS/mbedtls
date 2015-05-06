@@ -864,6 +864,10 @@ typedef struct
     const char **alpn_list;         /*!< ordered list of protocols          */
 #endif
 
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    mbedtls_ssl_ticket_keys *ticket_keys;       /*!<  keys for ticket encryption */
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+
     /*
      * Numerical settings (int then char)
      */
@@ -1054,13 +1058,6 @@ struct mbedtls_ssl_context
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     const char *peer_cn;                /*!<  expected peer CN          */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
-
-    /*
-     * Support for generating and checking session tickets
-     */
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    mbedtls_ssl_ticket_keys *ticket_keys;       /*!<  keys for ticket encryption */
-#endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
     int client_auth;                    /*!<  flag for client auth.   */
     int verify_result;                  /*!<  verification result     */
@@ -1928,14 +1925,14 @@ void mbedtls_ssl_set_cbc_record_splitting( mbedtls_ssl_config *conf, char split 
  *                 to allow generating the ticket encryption and
  *                 authentication keys.
  *
- * \param ssl      SSL context
+ * \param conf     SSL configuration
  * \param use_tickets   Enable or disable (MBEDTLS_SSL_SESSION_TICKETS_ENABLED or
  *                                         MBEDTLS_SSL_SESSION_TICKETS_DISABLED)
  *
  * \return         O if successful,
  *                 or a specific error code (server only).
  */
-int mbedtls_ssl_set_session_tickets( mbedtls_ssl_context *ssl, int use_tickets );
+int mbedtls_ssl_set_session_tickets( mbedtls_ssl_config *conf, int use_tickets );
 
 /**
  * \brief          Set session ticket lifetime (server only)

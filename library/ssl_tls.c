@@ -5120,13 +5120,13 @@ static void ssl_ticket_keys_free( mbedtls_ssl_ticket_keys *tkeys )
 /*
  * Allocate and initialize ticket keys
  */
-static int ssl_ticket_keys_init( mbedtls_ssl_context *ssl )
+static int ssl_ticket_keys_init( mbedtls_ssl_config *conf )
 {
     int ret;
     mbedtls_ssl_ticket_keys *tkeys;
     unsigned char buf[16];
 
-    if( ssl->ticket_keys != NULL )
+    if( conf->ticket_keys != NULL )
         return( 0 );
 
     tkeys = mbedtls_malloc( sizeof(mbedtls_ssl_ticket_keys) );
@@ -5136,15 +5136,15 @@ static int ssl_ticket_keys_init( mbedtls_ssl_context *ssl )
     mbedtls_aes_init( &tkeys->enc );
     mbedtls_aes_init( &tkeys->dec );
 
-    if( ( ret = ssl->f_rng( ssl->p_rng, tkeys->key_name, 16 ) ) != 0 )
-    {
-        ssl_ticket_keys_free( tkeys );
-        mbedtls_free( tkeys );
-        return( ret );
-    }
+    /* Temporary WIP! Using hardcoded keys. This is to remove the dependency
+     * on the RNG and allow puttint the keys in conf. Key generation will soon
+     * be move outside the main SSL module anyway. */
 
-    if( ( ret = ssl->f_rng( ssl->p_rng, buf, 16 ) ) != 0 ||
-        ( ret = mbedtls_aes_setkey_enc( &tkeys->enc, buf, 128 ) ) != 0 ||
+    memset( tkeys->key_name, 'x', 16 );
+    memset( tkeys->mac_key, 0x2a, 16 );
+    memset( buf, 0x2a, 16 );
+
+    if( ( ret = mbedtls_aes_setkey_enc( &tkeys->enc, buf, 128 ) ) != 0 ||
         ( ret = mbedtls_aes_setkey_dec( &tkeys->dec, buf, 128 ) ) != 0 )
     {
         ssl_ticket_keys_free( tkeys );
@@ -5152,14 +5152,7 @@ static int ssl_ticket_keys_init( mbedtls_ssl_context *ssl )
         return( ret );
     }
 
-    if( ( ret = ssl->f_rng( ssl->p_rng, tkeys->mac_key, 16 ) ) != 0 )
-    {
-        ssl_ticket_keys_free( tkeys );
-        mbedtls_free( tkeys );
-        return( ret );
-    }
-
-    ssl->ticket_keys = tkeys;
+    conf->ticket_keys = tkeys;
 
     return( 0 );
 }
@@ -5649,22 +5642,19 @@ void mbedtls_ssl_set_renegotiation_period( mbedtls_ssl_config *conf,
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-int mbedtls_ssl_set_session_tickets( mbedtls_ssl_context *ssl, int use_tickets )
+int mbedtls_ssl_set_session_tickets( mbedtls_ssl_config *conf, int use_tickets )
 {
-    ssl->conf->session_tickets = use_tickets;
+    conf->session_tickets = use_tickets;
 
 #if defined(MBEDTLS_SSL_CLI_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+    if( conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
         return( 0 );
 #endif
 
     if( use_tickets == MBEDTLS_SSL_SESSION_TICKETS_DISABLED )
         return( 0 );
 
-    if( ssl->f_rng == NULL )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-
-    return( ssl_ticket_keys_init( ssl ) );
+    return( ssl_ticket_keys_init( conf ) );
 }
 
 void mbedtls_ssl_set_session_ticket_lifetime( mbedtls_ssl_config *conf, int lifetime )
@@ -6562,10 +6552,10 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
     }
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    if( ssl->ticket_keys )
+    if( ssl->conf->ticket_keys )
     {
-        ssl_ticket_keys_free( ssl->ticket_keys );
-        mbedtls_free( ssl->ticket_keys );
+        ssl_ticket_keys_free( ssl->conf->ticket_keys );
+        mbedtls_free( ssl->conf->ticket_keys );
     }
 #endif
 

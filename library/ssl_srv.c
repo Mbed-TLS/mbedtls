@@ -189,11 +189,11 @@ static int ssl_write_ticket( mbedtls_ssl_context *ssl, size_t *tlen )
 
     *tlen = 0;
 
-    if( ssl->ticket_keys == NULL )
+    if( ssl->conf->ticket_keys == NULL )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     /* Write key name */
-    memcpy( p, ssl->ticket_keys->key_name, 16 );
+    memcpy( p, ssl->conf->ticket_keys->key_name, 16 );
     p += 16;
 
     /* Generate and write IV (with a copy for aes_crypt) */
@@ -224,7 +224,7 @@ static int ssl_write_ticket( mbedtls_ssl_context *ssl, size_t *tlen )
         state[i] = (unsigned char) pad_len;
 
     /* Encrypt */
-    if( ( ret = mbedtls_aes_crypt_cbc( &ssl->ticket_keys->enc, MBEDTLS_AES_ENCRYPT,
+    if( ( ret = mbedtls_aes_crypt_cbc( &ssl->conf->ticket_keys->enc, MBEDTLS_AES_ENCRYPT,
                                enc_len, iv, state, state ) ) != 0 )
     {
         return( ret );
@@ -237,7 +237,7 @@ static int ssl_write_ticket( mbedtls_ssl_context *ssl, size_t *tlen )
 
     /* Compute and write MAC( key_name + iv + enc_state_len + enc_state ) */
     if( ( ret = mbedtls_md_hmac( mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 ),
-                         ssl->ticket_keys->mac_key, 16,
+                         ssl->conf->ticket_keys->mac_key, 16,
                          start, p - start, p ) ) != 0 )
     {
         return( ret );
@@ -271,7 +271,7 @@ static int ssl_parse_ticket( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "session ticket structure", buf, len );
 
-    if( len < 34 || ssl->ticket_keys == NULL )
+    if( len < 34 || ssl->conf->ticket_keys == NULL )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     enc_len = ( enc_len_p[0] << 8 ) | enc_len_p[1];
@@ -283,12 +283,12 @@ static int ssl_parse_ticket( mbedtls_ssl_context *ssl,
     /* Check name, in constant time though it's not a big secret */
     diff = 0;
     for( i = 0; i < 16; i++ )
-        diff |= key_name[i] ^ ssl->ticket_keys->key_name[i];
+        diff |= key_name[i] ^ ssl->conf->ticket_keys->key_name[i];
     /* don't return yet, check the MAC anyway */
 
     /* Check mac, with constant-time buffer comparison */
     if( ( ret = mbedtls_md_hmac( mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 ),
-                         ssl->ticket_keys->mac_key, 16,
+                         ssl->conf->ticket_keys->mac_key, 16,
                          buf, len - 32, computed_mac ) ) != 0 )
     {
         return( ret );
@@ -303,7 +303,7 @@ static int ssl_parse_ticket( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_INVALID_MAC );
 
     /* Decrypt */
-    if( ( ret = mbedtls_aes_crypt_cbc( &ssl->ticket_keys->dec, MBEDTLS_AES_DECRYPT,
+    if( ( ret = mbedtls_aes_crypt_cbc( &ssl->conf->ticket_keys->dec, MBEDTLS_AES_DECRYPT,
                                enc_len, iv, ticket, ticket ) ) != 0 )
     {
         return( ret );

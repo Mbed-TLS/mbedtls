@@ -6618,11 +6618,6 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
     }
 #endif
 
-#if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-    if( endpoint == MBEDTLS_SSL_IS_SERVER )
-        conf->trunc_hmac = MBEDTLS_SSL_TRUNC_HMAC_ENABLED;
-#endif
-
     conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_0] =
     conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_1] =
     conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_2] =

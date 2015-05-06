@@ -1863,8 +1863,7 @@ int mbedtls_ssl_set_max_frag_len( mbedtls_ssl_config *conf, unsigned char mfl_co
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
 /**
  * \brief          Activate negotiation of truncated HMAC
- *                 (Default: MBEDTLS_SSL_TRUNC_HMAC_DISABLED on client,
- *                           MBEDTLS_SSL_TRUNC_HMAC_ENABLED on server.)
+ *                 (Default: MBEDTLS_SSL_TRUNC_HMAC_DISABLED)
  *
  * \param conf     SSL configuration
  * \param truncate Enable or disable (MBEDTLS_SSL_TRUNC_HMAC_ENABLED or

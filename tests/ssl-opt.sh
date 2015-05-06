@@ -626,8 +626,8 @@ run_test    "Truncated HMAC: client enabled, server default" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
              trunc_hmac=1" \
             0 \
-            -S "dumping 'computed mac' (20 bytes)" \
-            -s "dumping 'computed mac' (10 bytes)"
+            -s "dumping 'computed mac' (20 bytes)" \
+            -S "dumping 'computed mac' (10 bytes)"
 
 run_test    "Truncated HMAC: client enabled, server disabled" \
             "$P_SRV debug_level=4 trunc_hmac=0" \

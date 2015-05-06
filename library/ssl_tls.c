@@ -4575,7 +4575,7 @@ void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
         ssl->session->length != 0 &&
         resume == 0 )
     {
-        if( ssl->conf->f_set_cache( ssl->conf->p_set_cache, ssl->session ) != 0 )
+        if( ssl->conf->f_set_cache( ssl->conf->p_cache, ssl->session ) != 0 )
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "cache did not store session" ) );
     }
 
@@ -5245,13 +5245,13 @@ void mbedtls_ssl_set_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout )
 
 #if defined(MBEDTLS_SSL_SRV_C)
 void mbedtls_ssl_set_session_cache( mbedtls_ssl_config *conf,
-        int (*f_get_cache)(void *, mbedtls_ssl_session *), void *p_get_cache,
-        int (*f_set_cache)(void *, const mbedtls_ssl_session *), void *p_set_cache )
+        void *p_cache,
+        int (*f_get_cache)(void *, mbedtls_ssl_session *),
+        int (*f_set_cache)(void *, const mbedtls_ssl_session *) )
 {
+    conf->p_cache = p_cache;
     conf->f_get_cache = f_get_cache;
-    conf->p_get_cache = p_get_cache;
     conf->f_set_cache = f_set_cache;
-    conf->p_set_cache = p_set_cache;
 }
 #endif /* MBEDTLS_SSL_SRV_C */
 

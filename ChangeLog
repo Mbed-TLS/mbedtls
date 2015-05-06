@@ -23,6 +23,8 @@ API Changes
      mbedtls_ctr_drbg_init()  -> mbedtls_ctr_drbg_init(_buf)()
    * mbedtls_ssl_set_ca_chain() lost its last argument (peer_cn), now set
      using mbedtls_ssl_set_hostname().
+   * mbedtls_ssl_set_session_cached() changed prototype (only one context
+     pointer, parameters reordered).
    * mbedtls_memory_bufer_alloc_init() now returns void
    * In the threading layer, mbedtls_mutex_init() and mbedtls_mutex_free() now
      return void.

@@ -210,9 +210,9 @@ int main( void )
     mbedtls_ssl_set_dbg( &conf, my_debug, stdout );
 
 #if defined(MBEDTLS_SSL_CACHE_C)
-    mbedtls_ssl_set_session_cache( &conf,
-                                   mbedtls_ssl_cache_get, &cache,
-                                   mbedtls_ssl_cache_set, &cache );
+    mbedtls_ssl_set_session_cache( &conf, &cache,
+                                   mbedtls_ssl_cache_get,
+                                   mbedtls_ssl_cache_set );
 #endif
 
     mbedtls_ssl_set_ca_chain( &conf, srvcert.next, NULL );

@@ -807,10 +807,9 @@ typedef struct
 
     /** Callback to retrieve a session from the cache                       */
     int (*f_get_cache)(void *, mbedtls_ssl_session *);
-    void *p_get_cache;              /*!< context for cache retrieval        */
     /** Callback to store a session into the cache                          */
     int (*f_set_cache)(void *, const mbedtls_ssl_session *);
-    void *p_set_cache;              /*!< context for cache store            */
+    void *p_cache;                  /*!< context for cache callbacks        */
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     /** Callback for setting cert according to SNI extension                */
@@ -1482,14 +1481,14 @@ void mbedtls_ssl_set_handshake_timeout( mbedtls_ssl_config *conf, uint32_t min, 
  *                 successfully cached, return 1 otherwise.
  *
  * \param conf           SSL configuration
+ * \param p_cache        parmater (context) for both callbacks
  * \param f_get_cache    session get callback
- * \param p_get_cache    session get parameter
  * \param f_set_cache    session set callback
- * \param p_set_cache    session set parameter
  */
 void mbedtls_ssl_set_session_cache( mbedtls_ssl_config *conf,
-        int (*f_get_cache)(void *, mbedtls_ssl_session *), void *p_get_cache,
-        int (*f_set_cache)(void *, const mbedtls_ssl_session *), void *p_set_cache );
+        void *p_cache,
+        int (*f_get_cache)(void *, mbedtls_ssl_session *),
+        int (*f_set_cache)(void *, const mbedtls_ssl_session *) );
 #endif /* MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_CLI_C)

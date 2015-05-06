@@ -4030,7 +4030,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
          * Main check: verify certificate
          */
         ret = mbedtls_x509_crt_verify( ssl->session_negotiate->peer_cert,
-                               ssl->conf->ca_chain, ssl->conf->ca_crl, ssl->peer_cn,
+                               ssl->conf->ca_chain, ssl->conf->ca_crl, ssl->hostname,
                               &ssl->session_negotiate->verify_result,
                                ssl->conf->f_vrfy, ssl->conf->p_vrfy );
 
@@ -5345,12 +5345,12 @@ static mbedtls_ssl_key_cert *ssl_add_key_cert( mbedtls_ssl_context *ssl )
     return( key_cert );
 }
 
-void mbedtls_ssl_set_ca_chain( mbedtls_ssl_context *ssl, mbedtls_x509_crt *ca_chain,
-                       mbedtls_x509_crl *ca_crl, const char *peer_cn )
+void mbedtls_ssl_set_ca_chain( mbedtls_ssl_config *conf,
+                               mbedtls_x509_crt *ca_chain,
+                               mbedtls_x509_crl *ca_crl )
 {
-    ssl->conf->ca_chain   = ca_chain;
-    ssl->conf->ca_crl     = ca_crl;
-    ssl->peer_cn    = peer_cn;
+    conf->ca_chain   = ca_chain;
+    conf->ca_crl     = ca_crl;
 }
 
 int mbedtls_ssl_set_own_cert( mbedtls_ssl_context *ssl, mbedtls_x509_crt *own_cert,
@@ -5450,7 +5450,7 @@ void mbedtls_ssl_set_curves( mbedtls_ssl_config *conf,
 }
 #endif
 
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
 int mbedtls_ssl_set_hostname( mbedtls_ssl_context *ssl, const char *hostname )
 {
     size_t hostname_len;
@@ -5474,7 +5474,9 @@ int mbedtls_ssl_set_hostname( mbedtls_ssl_context *ssl, const char *hostname )
 
     return( 0 );
 }
+#endif
 
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
 void mbedtls_ssl_set_sni( mbedtls_ssl_config *conf,
                   int (*f_sni)(void *, mbedtls_ssl_context *,
                                 const unsigned char *, size_t),

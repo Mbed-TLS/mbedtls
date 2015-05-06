@@ -149,6 +149,7 @@ enum exit_codes
     ctr_drbg_seed_failed,
     ssl_config_default_failed,
     ssl_setup_failed,
+    hostname_failed,
     socket_failed,
     connect_failed,
     x509_crt_parse_failed,
@@ -216,7 +217,12 @@ int main( void )
         goto exit;
     }
 
-    mbedtls_ssl_set_ca_chain( &ssl, &ca, NULL, HOSTNAME );
+    mbedtls_ssl_set_ca_chain( &conf, &ca, NULL );
+    if( mbedtls_ssl_set_hostname( &ssl, HOSTNAME ) != 0 )
+    {
+        ret = hostname_failed;
+        goto exit;
+    }
     mbedtls_ssl_set_authmode( &conf, MBEDTLS_SSL_VERIFY_REQUIRED );
 #endif
 

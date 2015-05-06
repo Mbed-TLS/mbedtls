@@ -1055,21 +1055,15 @@ struct mbedtls_ssl_context
     /*
      * PKI layer
      */
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
-    const char *peer_cn;                /*!<  expected peer CN          */
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
-
     int client_auth;                    /*!<  flag for client auth.   */
     int verify_result;                  /*!<  verification result     */
 
     /*
      * User settings
      */
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-    /*
-     * SNI extension
-     */
-    char *hostname;
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    char *hostname;             /*!< expected peer CN for verification
+                                     (and SNI if available)                 */
 #endif
 
 #if defined(MBEDTLS_SSL_ALPN)
@@ -1575,13 +1569,13 @@ void mbedtls_ssl_set_ciphersuites_for_version( mbedtls_ssl_config *conf,
 /**
  * \brief          Set the data required to verify peer certificate
  *
- * \param ssl      SSL context
+ * \param conf     SSL configuration
  * \param ca_chain trusted CA chain (meaning all fully trusted top-level CAs)
  * \param ca_crl   trusted CA CRLs
- * \param peer_cn  expected peer CommonName (or NULL)
  */
-void mbedtls_ssl_set_ca_chain( mbedtls_ssl_context *ssl, mbedtls_x509_crt *ca_chain,
-                       mbedtls_x509_crl *ca_crl, const char *peer_cn );
+void mbedtls_ssl_set_ca_chain( mbedtls_ssl_config *conf,
+                               mbedtls_x509_crt *ca_chain,
+                               mbedtls_x509_crl *ca_crl );
 
 /**
  * \brief          Set own certificate chain and private key
@@ -1695,7 +1689,7 @@ int mbedtls_ssl_set_dh_param_ctx( mbedtls_ssl_config *conf, mbedtls_dhm_context 
 void mbedtls_ssl_set_curves( mbedtls_ssl_config *conf, const mbedtls_ecp_group_id *curves );
 #endif /* MBEDTLS_SSL_SET_CURVES */
 
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**
  * \brief          Set hostname for ServerName TLS extension
  *                 (client-side only)
@@ -1707,7 +1701,9 @@ void mbedtls_ssl_set_curves( mbedtls_ssl_config *conf, const mbedtls_ecp_group_i
  * \return         0 if successful or MBEDTLS_ERR_SSL_MALLOC_FAILED
  */
 int mbedtls_ssl_set_hostname( mbedtls_ssl_context *ssl, const char *hostname );
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
 /**
  * \brief          Set server side ServerName TLS extension callback
  *                 (optional, server-side only).

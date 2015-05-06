@@ -611,7 +611,12 @@ int main( int argc, char *argv[] )
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
         mbedtls_ssl_set_ciphersuites( &conf, opt.force_ciphersuite );
 
-    mbedtls_ssl_set_ca_chain( &ssl, &cacert, NULL, opt.server_name );
+    mbedtls_ssl_set_ca_chain( &conf, &cacert, NULL );
+    if( ( ret = mbedtls_ssl_set_hostname( &ssl, opt.server_name ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hostname returned %d\n\n", ret );
+        goto exit;
+    }
     if( ( ret = mbedtls_ssl_set_own_cert( &ssl, &clicert, &pkey ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_set_own_cert returned %d\n\n", ret );

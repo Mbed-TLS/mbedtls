@@ -413,7 +413,7 @@ int main( int argc, char *argv[] )
         if( verify )
         {
             mbedtls_ssl_set_authmode( &conf, MBEDTLS_SSL_VERIFY_REQUIRED );
-            mbedtls_ssl_set_ca_chain( &ssl, &cacert, NULL, opt.server_name );
+            mbedtls_ssl_set_ca_chain( &conf, &cacert, NULL );
             mbedtls_ssl_set_verify( &conf, my_verify, NULL );
         }
         else
@@ -429,13 +429,11 @@ int main( int argc, char *argv[] )
             goto ssl_exit;
         }
 
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
         if( ( ret = mbedtls_ssl_set_hostname( &ssl, opt.server_name ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hostname returned %d\n\n", ret );
             goto ssl_exit;
         }
-#endif
 
         /*
          * 4. Handshake

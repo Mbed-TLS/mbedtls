@@ -20,6 +20,8 @@ API Changes
      mbedtls_gcm_init() -> mbedtls_gcm_setkey()
      mbedtls_hmac_drbg_init() -> mbedtls_hmac_drbg_init(_buf)()
      mbedtls_ctr_drbg_init()  -> mbedtls_ctr_drbg_init(_buf)()
+   * mbedtls_ssl_set_ca_chain() lost its last argument (peer_cn), now set
+     using mbedtls_ssl_set_hostname().
    * Renamed mbedtls_pkcs11_priv_key_init() to ..._bind() and
      mbedtls_pkcs11_x509_cert_init() as well (handled by rename.pl and
      compat-1.3.h)

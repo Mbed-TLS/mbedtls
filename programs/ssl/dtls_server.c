@@ -215,7 +215,7 @@ int main( void )
                                    mbedtls_ssl_cache_set, &cache );
 #endif
 
-    mbedtls_ssl_set_ca_chain( &ssl, srvcert.next, NULL, NULL );
+    mbedtls_ssl_set_ca_chain( &conf, srvcert.next, NULL );
     if( ( ret = mbedtls_ssl_set_own_cert( &ssl, &srvcert, &pkey ) ) != 0 )
     {
         printf( " failed\n  ! mbedtls_ssl_set_own_cert returned %d\n\n", ret );

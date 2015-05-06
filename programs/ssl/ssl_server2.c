@@ -1682,7 +1682,7 @@ int main( int argc, char *argv[] )
     if( strcmp( opt.ca_path, "none" ) != 0 &&
         strcmp( opt.ca_file, "none" ) != 0 )
     {
-        mbedtls_ssl_set_ca_chain( &ssl, &cacert, NULL, NULL );
+        mbedtls_ssl_set_ca_chain( &conf, &cacert, NULL );
     }
     if( key_cert_init )
         if( ( ret = mbedtls_ssl_set_own_cert( &ssl, &srvcert, &pkey ) ) != 0 )

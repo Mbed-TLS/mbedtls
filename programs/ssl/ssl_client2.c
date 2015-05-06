@@ -1154,7 +1154,7 @@ int main( int argc, char *argv[] )
     if( strcmp( opt.ca_path, "none" ) != 0 &&
         strcmp( opt.ca_file, "none" ) != 0 )
     {
-        mbedtls_ssl_set_ca_chain( &ssl, &cacert, NULL, opt.server_name );
+        mbedtls_ssl_set_ca_chain( &conf, &cacert, NULL );
     }
     if( strcmp( opt.crt_file, "none" ) != 0 &&
         strcmp( opt.key_file, "none" ) != 0 )
@@ -1165,6 +1165,11 @@ int main( int argc, char *argv[] )
             goto exit;
         }
     }
+    if( ( ret = mbedtls_ssl_set_hostname( &ssl, opt.server_name ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hostname returned %d\n\n", ret );
+        goto exit;
+    }
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
@@ -1173,14 +1178,6 @@ int main( int argc, char *argv[] )
                              strlen( opt.psk_identity ) ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_set_psk returned %d\n\n", ret );
-        goto exit;
-    }
-#endif
-
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-    if( ( ret = mbedtls_ssl_set_hostname( &ssl, opt.server_name ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hostname returned %d\n\n", ret );
         goto exit;
     }
 #endif

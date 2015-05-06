@@ -1819,15 +1819,16 @@ reset:
     }
 
     if( opt.nbio == 2 )
-        mbedtls_ssl_set_bio_timeout( &ssl, &client_fd, my_send, my_recv, NULL, 0 );
+        mbedtls_ssl_set_bio_timeout( &ssl, &client_fd, my_send, my_recv, NULL );
     else
         mbedtls_ssl_set_bio_timeout( &ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv,
 #if defined(MBEDTLS_HAVE_TIME)
-                             opt.nbio == 0 ? mbedtls_net_recv_timeout : NULL,
+                             opt.nbio == 0 ? mbedtls_net_recv_timeout : NULL
 #else
-                             NULL,
+                             NULL
 #endif
-                             opt.read_timeout );
+                );
+    mbedtls_ssl_set_read_timeout( &conf, opt.read_timeout );
 
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
     if( opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )

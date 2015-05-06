@@ -5249,14 +5249,17 @@ void mbedtls_ssl_set_bio_timeout( mbedtls_ssl_context *ssl,
         void *p_bio,
         int (*f_send)(void *, const unsigned char *, size_t),
         int (*f_recv)(void *, unsigned char *, size_t),
-        int (*f_recv_timeout)(void *, unsigned char *, size_t, uint32_t),
-        uint32_t timeout )
+        int (*f_recv_timeout)(void *, unsigned char *, size_t, uint32_t) )
 {
     ssl->p_bio          = p_bio;
     ssl->f_send         = f_send;
     ssl->f_recv         = f_recv;
     ssl->f_recv_timeout = f_recv_timeout;
-    ssl->conf->read_timeout   = timeout;
+}
+
+void mbedtls_ssl_set_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout )
+{
+    conf->read_timeout   = timeout;
 }
 
 #if defined(MBEDTLS_SSL_SRV_C)

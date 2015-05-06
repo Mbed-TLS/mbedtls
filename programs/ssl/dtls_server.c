@@ -280,8 +280,7 @@ reset:
     }
 
     mbedtls_ssl_set_bio_timeout( &ssl, &client_fd,
-                         mbedtls_net_send, mbedtls_net_recv, mbedtls_net_recv_timeout,
-                         READ_TIMEOUT_MS );
+                         mbedtls_net_send, mbedtls_net_recv, mbedtls_net_recv_timeout );
 
     printf( " ok\n" );
 

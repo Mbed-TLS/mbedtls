@@ -250,7 +250,7 @@ int main( void )
         goto exit;
     }
 
-    mbedtls_ssl_set_bio_timeout( &ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv, NULL, 0 );
+    mbedtls_ssl_set_bio_timeout( &ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv, NULL );
 
     if( mbedtls_ssl_handshake( &ssl ) != 0 )
     {

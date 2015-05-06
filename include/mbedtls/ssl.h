@@ -1298,7 +1298,6 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
  * \param f_recv   read callback
  * \param f_recv_timeout read callback with timeout.
  *                 The last argument of the callback is the timeout in seconds
- * \param timeout  value of the mbedtls_ssl_read() timeout in milliseconds
  *
  * \note           f_recv_timeout is required for DTLS, unless f_recv performs
  *                 non-blocking reads.
@@ -1309,8 +1308,20 @@ void mbedtls_ssl_set_bio_timeout( mbedtls_ssl_context *ssl,
         void *p_bio,
         int (*f_send)(void *, const unsigned char *, size_t),
         int (*f_recv)(void *, unsigned char *, size_t),
-        int (*f_recv_timeout)(void *, unsigned char *, size_t, uint32_t),
-        uint32_t timeout );
+        int (*f_recv_timeout)(void *, unsigned char *, size_t, uint32_t) );
+
+/**
+ * \brief          Set the timeout period for mbedtls_ssl_read()
+ *                 (Default: no timeout.)
+ *
+ * \param conf     SSL configuration context
+ * \param timeout  Timeout value in milliseconds.
+ *                 Use 0 for no timeout (default).
+ *
+ * \note           With blocking I/O, this will only work if a non-NULL
+ *                 \c f_recv_timeout was set with \c mbedtls_ssl_set_bio_timeout().
+ */
+void mbedtls_ssl_set_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout );
 
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
 /**

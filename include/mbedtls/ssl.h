@@ -1176,9 +1176,6 @@ int mbedtls_ssl_session_reset( mbedtls_ssl_context *ssl );
  *
  * \param conf     SSL configuration
  * \param endpoint must be MBEDTLS_SSL_IS_CLIENT or MBEDTLS_SSL_IS_SERVER
- *
- * \note           This function should be called right after mbedtls_ssl_init() since
- *                 some other ssl_set_foo() functions depend on it.
  */
 void mbedtls_ssl_set_endpoint( mbedtls_ssl_config *conf, int endpoint );
 
@@ -1191,9 +1188,6 @@ void mbedtls_ssl_set_endpoint( mbedtls_ssl_config *conf, int endpoint );
  *                  MBEDTLS_SSL_TRANSPORT_STREAM for TLS,
  *                  MBEDTLS_SSL_TRANSPORT_DATAGRAM for DTLS.
  * \return          0 on success or MBEDTLS_ERR_SSL_BAD_INPUT_DATA
- *
- * \note            If DTLS is selected and max and/or min version are less
- *                  than TLS 1.1 (DTLS 1.0) they are upped to that value.
  *
  * \note            For DTLS, you must either provide a recv callback that
  *                  doesn't block, or one that handles timeouts, see
@@ -2254,6 +2248,8 @@ void mbedtls_ssl_config_init( mbedtls_ssl_config *conf );
  *                 (You need to call mbedtls_ssl_config_init() first.)
  *
  * \param conf     SSL configuration context
+ *
+ * \note           See \c mbedtls_ssl_set_transport() for notes on DTLS.
  *
  * \return         0 if successful, or
  *                 MBEDTLS_ERR_XXX_ALLOC_FAILED on memorr allocation error.

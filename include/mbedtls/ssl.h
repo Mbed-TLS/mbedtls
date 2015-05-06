@@ -1288,7 +1288,6 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
 #undef MBEDTLS_DEPRECATED
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 
-#if defined(MBEDTLS_SSL_SRV_C)
 /**
  * \brief          Set the underlying BIO callbacks for write, read and
  *                 read-with-timeout.
@@ -1463,6 +1462,7 @@ void mbedtls_ssl_set_dtls_badmac_limit( mbedtls_ssl_config *conf, unsigned limit
 void mbedtls_ssl_set_handshake_timeout( mbedtls_ssl_config *conf, uint32_t min, uint32_t max );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
+#if defined(MBEDTLS_SSL_SRV_C)
 /**
  * \brief          Set the session cache callbacks (server-side only)
  *                 If not set, no session resuming is done (except if session

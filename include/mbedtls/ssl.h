@@ -1621,11 +1621,11 @@ void mbedtls_ssl_set_psk_cb( mbedtls_ssl_config *conf,
                      void *p_psk );
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
-#if defined(MBEDTLS_DHM_C)
+#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
 /**
  * \brief          Set the Diffie-Hellman public P and G values,
  *                 read as hexadecimal strings (server-side only)
- *                 (Default: MBEDTLS_DHM_RFC5114_MODP_1024_[PG])
+ *                 (Default: MBEDTLS_DHM_RFC5114_MODP_2048_[PG])
  *
  * \param conf     SSL configuration
  * \param dhm_P    Diffie-Hellman-Merkle modulus

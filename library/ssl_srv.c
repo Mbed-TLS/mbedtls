@@ -2871,6 +2871,12 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_RSA ||
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK )
     {
+        if( ssl->conf->dhm_P.p == NULL || ssl->conf->dhm_G.p == NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "no DH parameters set" ) );
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+        }
+
         /*
          * Ephemeral DH parameters:
          *

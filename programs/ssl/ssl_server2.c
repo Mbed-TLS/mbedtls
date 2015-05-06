@@ -1727,11 +1727,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_FS_IO)
     if( opt.dhm_file != NULL )
         ret = mbedtls_ssl_set_dh_param_ctx( &conf, &dhm );
-    else
 #endif
-        ret = mbedtls_ssl_set_dh_param( &conf, MBEDTLS_DHM_RFC5114_MODP_2048_P,
-                                               MBEDTLS_DHM_RFC5114_MODP_2048_G );
-
     if( ret != 0 )
     {
         mbedtls_printf( "  failed\n  mbedtls_ssl_set_dh_param returned -0x%04X\n\n", - ret );

@@ -5400,11 +5400,13 @@ int mbedtls_ssl_set_dh_param( mbedtls_ssl_config *conf, const char *dhm_P, const
 {
     int ret;
 
-    if( ( ret = mbedtls_mpi_read_string( &conf->dhm_P, 16, dhm_P ) ) != 0 )
+    if( ( ret = mbedtls_mpi_read_string( &conf->dhm_P, 16, dhm_P ) ) != 0 ||
+        ( ret = mbedtls_mpi_read_string( &conf->dhm_G, 16, dhm_G ) ) != 0 )
+    {
+        mbedtls_mpi_free( &conf->dhm_P );
+        mbedtls_mpi_free( &conf->dhm_G );
         return( ret );
-
-    if( ( ret = mbedtls_mpi_read_string( &conf->dhm_G, 16, dhm_G ) ) != 0 )
-        return( ret );
+    }
 
     return( 0 );
 }
@@ -5413,11 +5415,13 @@ int mbedtls_ssl_set_dh_param_ctx( mbedtls_ssl_config *conf, mbedtls_dhm_context 
 {
     int ret;
 
-    if( ( ret = mbedtls_mpi_copy( &conf->dhm_P, &dhm_ctx->P ) ) != 0 )
+    if( ( ret = mbedtls_mpi_copy( &conf->dhm_P, &dhm_ctx->P ) ) != 0 ||
+        ( ret = mbedtls_mpi_copy( &conf->dhm_G, &dhm_ctx->G ) ) != 0 )
+    {
+        mbedtls_mpi_free( &conf->dhm_P );
+        mbedtls_mpi_free( &conf->dhm_G );
         return( ret );
-
-    if( ( ret = mbedtls_mpi_copy( &conf->dhm_G, &dhm_ctx->G ) ) != 0 )
-        return( ret );
+    }
 
     return( 0 );
 }
@@ -6667,15 +6671,15 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
     conf->renego_period[7] = 0x00;
 #endif
 
-#if defined(MBEDTLS_DHM_C)
-    if( ( ret = mbedtls_mpi_read_string( &conf->dhm_P, 16,
-                                 MBEDTLS_DHM_RFC5114_MODP_1024_P) ) != 0 ||
-        ( ret = mbedtls_mpi_read_string( &conf->dhm_G, 16,
-                                 MBEDTLS_DHM_RFC5114_MODP_1024_G) ) != 0 )
+#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
+    if( endpoint == MBEDTLS_SSL_IS_SERVER )
     {
-        mbedtls_mpi_free( &conf->dhm_P );
-        mbedtls_mpi_free( &conf->dhm_G );
-        return( ret );
+        if( ( ret = mbedtls_ssl_set_dh_param( conf,
+                        MBEDTLS_DHM_RFC5114_MODP_2048_P,
+                        MBEDTLS_DHM_RFC5114_MODP_2048_G ) ) != 0 )
+        {
+            return( ret );
+        }
     }
 #endif
 

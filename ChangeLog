@@ -84,6 +84,7 @@ Default behavior changes
    * Support for RSA_ALT contexts in the PK layer is now optional. Since is is
      enabled in the default configuration, this is only noticeable if using a
      custom config.h
+   * Default DHM parameters server-side upgraded from 1024 to 2048 bits.
 
 Reauirement changes
    * The minimum MSVC version required is now 2010 (better C99 support).

@@ -65,6 +65,7 @@ New deprecations
 Semi-API changes (technically public, morally private)
    * Changed md_info_t into an opaque structure (use md_get_xxx() accessors).
    * Changed pk_info_t into an opaque structure.
+   * Change cipher_base_t into an opaque structure.
    * Remove sig_oid2 and rename sig_oid1 to sig_oid in x509_crt and x509_crl.
    * x509_crt.key_usage changed from unsigned char to unsigned int.
    * Remove r and s from ecdsa_context

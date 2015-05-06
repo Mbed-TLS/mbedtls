@@ -931,6 +931,9 @@ typedef struct
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     unsigned int session_tickets : 1;   /*!< use session tickets?           */
 #endif
+#if defined(MBEDTLS_SSL_FALLBACK_SCSV) && defined(MBEDTLS_SSL_CLI_C)
+    unsigned int fallback : 1;      /*!< is this a fallback?                */
+#endif
 }
 mbedtls_ssl_config;
 
@@ -954,10 +957,6 @@ struct mbedtls_ssl_context
 
 #if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
     unsigned badmac_seen;       /*!< records with a bad MAC received    */
-#endif
-
-#if defined(MBEDTLS_SSL_FALLBACK_SCSV) && defined(MBEDTLS_SSL_CLI_C)
-    char fallback;              /*!< flag for fallback connections    */
 #endif
 
     /*
@@ -1820,10 +1819,10 @@ int mbedtls_ssl_set_min_version( mbedtls_ssl_config *conf, int major, int minor 
  *                 while, then cause failures when the server is upgraded to
  *                 support a newer TLS version.
  *
- * \param ssl      SSL context
+ * \param conf     SSL configuration
  * \param fallback MBEDTLS_SSL_IS_NOT_FALLBACK or MBEDTLS_SSL_IS_FALLBACK
  */
-void mbedtls_ssl_set_fallback( mbedtls_ssl_context *ssl, char fallback );
+void mbedtls_ssl_set_fallback( mbedtls_ssl_config *conf, char fallback );
 #endif /* MBEDTLS_SSL_FALLBACK_SCSV && MBEDTLS_SSL_CLI_C */
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)

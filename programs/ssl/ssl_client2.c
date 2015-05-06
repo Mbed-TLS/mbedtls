@@ -1207,7 +1207,7 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_SSL_FALLBACK_SCSV)
     if( opt.fallback != DFL_FALLBACK )
-        mbedtls_ssl_set_fallback( &ssl, opt.fallback );
+        mbedtls_ssl_set_fallback( &conf, opt.fallback );
 #endif
 
     mbedtls_printf( " ok\n" );

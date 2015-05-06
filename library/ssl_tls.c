@@ -5569,9 +5569,9 @@ int mbedtls_ssl_set_min_version( mbedtls_ssl_config *conf, int major, int minor 
 }
 
 #if defined(MBEDTLS_SSL_FALLBACK_SCSV) && defined(MBEDTLS_SSL_CLI_C)
-void mbedtls_ssl_set_fallback( mbedtls_ssl_context *ssl, char fallback )
+void mbedtls_ssl_set_fallback( mbedtls_ssl_config *conf, char fallback )
 {
-    ssl->fallback = fallback;
+    conf->fallback = fallback;
 }
 #endif
 

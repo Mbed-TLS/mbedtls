@@ -13,6 +13,8 @@ API Changes
      Migration helpers scripts/rename.pl and include/mbedlts/compat-1.3.h are
      provided.
    * Headers are now found in the 'mbedtls' directory (previously 'polarssl').
+   * Error codes NET_WANT_READ and NET_WANT_WRITE have been moved to the SSL
+     module and renamed accordingly (handled by rename.pl and compat-1.3.h)
    * The following _init() functions that could return errors have
      been split into an _init() that returns void and another function:
      mbedtls_ssl_init() -> mbedtls_ssl_setup()

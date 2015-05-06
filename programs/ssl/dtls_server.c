@@ -291,8 +291,8 @@ reset:
     fflush( stdout );
 
     do ret = mbedtls_ssl_handshake( &ssl );
-    while( ret == MBEDTLS_ERR_NET_WANT_READ ||
-           ret == MBEDTLS_ERR_NET_WANT_WRITE );
+    while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
+           ret == MBEDTLS_ERR_SSL_WANT_WRITE );
 
     if( ret == MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED )
     {
@@ -318,14 +318,14 @@ reset:
     memset( buf, 0, sizeof( buf ) );
 
     do ret = mbedtls_ssl_read( &ssl, buf, len );
-    while( ret == MBEDTLS_ERR_NET_WANT_READ ||
-           ret == MBEDTLS_ERR_NET_WANT_WRITE );
+    while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
+           ret == MBEDTLS_ERR_SSL_WANT_WRITE );
 
     if( ret <= 0 )
     {
         switch( ret )
         {
-            case MBEDTLS_ERR_NET_TIMEOUT:
+            case MBEDTLS_ERR_SSL_TIMEOUT:
                 printf( " timeout\n\n" );
                 goto reset;
 
@@ -350,8 +350,8 @@ reset:
     fflush( stdout );
 
     do ret = mbedtls_ssl_write( &ssl, buf, len );
-    while( ret == MBEDTLS_ERR_NET_WANT_READ ||
-           ret == MBEDTLS_ERR_NET_WANT_WRITE );
+    while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
+           ret == MBEDTLS_ERR_SSL_WANT_WRITE );
 
     if( ret < 0 )
     {
@@ -370,7 +370,7 @@ close_notify:
 
     /* No error checking, the connection might be closed already */
     do ret = mbedtls_ssl_close_notify( &ssl );
-    while( ret == MBEDTLS_ERR_NET_WANT_WRITE );
+    while( ret == MBEDTLS_ERR_SSL_WANT_WRITE );
     ret = 0;
 
     printf( " done\n" );

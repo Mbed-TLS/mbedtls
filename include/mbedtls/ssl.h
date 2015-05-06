@@ -30,7 +30,6 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "net.h"
 #include "bignum.h"
 #include "ecp.h"
 
@@ -151,6 +150,9 @@
 #define MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED             -0x6A80  /**< DTLS client must retry for hello verification */
 #define MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL                  -0x6A00  /**< A buffer is too small to receive or write a message */
 #define MBEDTLS_ERR_SSL_NO_USABLE_CIPHERSUITE             -0x6980  /**< None of the common ciphersuites is usable (eg, no suitable certificate, see debug messages). */
+#define MBEDTLS_ERR_SSL_WANT_READ                         -0x6900  /**< Connection requires a read call. */
+#define MBEDTLS_ERR_SSL_WANT_WRITE                        -0x6880  /**< Connection requires a write call. */
+#define MBEDTLS_ERR_SSL_TIMEOUT                           -0x6800  /**< The operation timed out. */
 
 /*
  * Various constants
@@ -1269,7 +1271,7 @@ void mbedtls_ssl_set_dbg( mbedtls_ssl_config *conf,
  * \param p_bio    parameter (context) shared by BIO callbacks
  * \param f_send   write callback
  * \param f_recv   read callback
- * \param f_recv_timeout read callback with timeout.
+ * \param f_recv_timeout blocking read callback with timeout.
  *                 The last argument of the callback is the timeout in seconds
  *
  * \note           f_recv_timeout is required for DTLS, unless f_recv performs
@@ -2119,8 +2121,8 @@ int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl, mbedtls_ssl_session
  *
  * \param ssl      SSL context
  *
- * \return         0 if successful, MBEDTLS_ERR_NET_WANT_READ,
- *                 MBEDTLS_ERR_NET_WANT_WRITE, or a specific SSL error code.
+ * \return         0 if successful, MBEDTLS_ERR_SSL_WANT_READ,
+ *                 MBEDTLS_ERR_SSL_WANT_WRITE, or a specific SSL error code.
  */
 int mbedtls_ssl_handshake( mbedtls_ssl_context *ssl );
 
@@ -2133,8 +2135,8 @@ int mbedtls_ssl_handshake( mbedtls_ssl_context *ssl );
  *
  * \param ssl      SSL context
  *
- * \return         0 if successful, MBEDTLS_ERR_NET_WANT_READ,
- *                 MBEDTLS_ERR_NET_WANT_WRITE, or a specific SSL error code.
+ * \return         0 if successful, MBEDTLS_ERR_SSL_WANT_READ,
+ *                 MBEDTLS_ERR_SSL_WANT_WRITE, or a specific SSL error code.
  */
 int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl );
 
@@ -2174,7 +2176,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
  * \return         This function returns the number of bytes written,
  *                 or a negative error code.
  *
- * \note           When this function returns MBEDTLS_ERR_NET_WANT_WRITE,
+ * \note           When this function returns MBEDTLS_ERR_SSL_WANT_WRITE,
  *                 it must be called later with the *same* arguments,
  *                 until it returns a positive value.
  *

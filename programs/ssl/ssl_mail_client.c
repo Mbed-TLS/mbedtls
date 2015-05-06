@@ -177,7 +177,7 @@ static int do_handshake( mbedtls_ssl_context *ssl )
 
     while( ( ret = mbedtls_ssl_handshake( ssl ) ) != 0 )
     {
-        if( ret != MBEDTLS_ERR_NET_WANT_READ && ret != MBEDTLS_ERR_NET_WANT_WRITE )
+        if( ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE )
         {
 #if defined(MBEDTLS_ERROR_C)
             mbedtls_strerror( ret, (char *) buf, 1024 );
@@ -224,7 +224,7 @@ static int write_ssl_data( mbedtls_ssl_context *ssl, unsigned char *buf, size_t 
     mbedtls_printf("\n%s", buf);
     while( len && ( ret = mbedtls_ssl_write( ssl, buf, len ) ) <= 0 )
     {
-        if( ret != MBEDTLS_ERR_NET_WANT_READ && ret != MBEDTLS_ERR_NET_WANT_WRITE )
+        if( ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_write returned %d\n\n", ret );
             return -1;
@@ -244,7 +244,7 @@ static int write_ssl_and_get_response( mbedtls_ssl_context *ssl, unsigned char *
     mbedtls_printf("\n%s", buf);
     while( len && ( ret = mbedtls_ssl_write( ssl, buf, len ) ) <= 0 )
     {
-        if( ret != MBEDTLS_ERR_NET_WANT_READ && ret != MBEDTLS_ERR_NET_WANT_WRITE )
+        if( ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_write returned %d\n\n", ret );
             return -1;
@@ -257,7 +257,7 @@ static int write_ssl_and_get_response( mbedtls_ssl_context *ssl, unsigned char *
         memset( data, 0, sizeof( data ) );
         ret = mbedtls_ssl_read( ssl, data, len );
 
-        if( ret == MBEDTLS_ERR_NET_WANT_READ || ret == MBEDTLS_ERR_NET_WANT_WRITE )
+        if( ret == MBEDTLS_ERR_SSL_WANT_READ || ret == MBEDTLS_ERR_SSL_WANT_WRITE )
             continue;
 
         if( ret == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY )

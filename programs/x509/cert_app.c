@@ -440,7 +440,7 @@ int main( int argc, char *argv[] )
          */
         while( ( ret = mbedtls_ssl_handshake( &ssl ) ) != 0 )
         {
-            if( ret != MBEDTLS_ERR_NET_WANT_READ && ret != MBEDTLS_ERR_NET_WANT_WRITE )
+            if( ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE )
             {
                 mbedtls_printf( " failed\n  ! mbedtls_ssl_handshake returned %d\n\n", ret );
                 goto ssl_exit;

@@ -208,7 +208,7 @@ static void *handle_ssl_connection( void *data )
 
     while( ( ret = mbedtls_ssl_handshake( &ssl ) ) != 0 )
     {
-        if( ret != MBEDTLS_ERR_NET_WANT_READ && ret != MBEDTLS_ERR_NET_WANT_WRITE )
+        if( ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE )
         {
             mbedtls_printf( "  [ #%d ]  failed: mbedtls_ssl_handshake returned -0x%04x\n",
                     thread_id, -ret );
@@ -229,7 +229,7 @@ static void *handle_ssl_connection( void *data )
         memset( buf, 0, sizeof( buf ) );
         ret = mbedtls_ssl_read( &ssl, buf, len );
 
-        if( ret == MBEDTLS_ERR_NET_WANT_READ || ret == MBEDTLS_ERR_NET_WANT_WRITE )
+        if( ret == MBEDTLS_ERR_SSL_WANT_READ || ret == MBEDTLS_ERR_SSL_WANT_WRITE )
             continue;
 
         if( ret <= 0 )
@@ -279,7 +279,7 @@ static void *handle_ssl_connection( void *data )
             goto thread_exit;
         }
 
-        if( ret != MBEDTLS_ERR_NET_WANT_READ && ret != MBEDTLS_ERR_NET_WANT_WRITE )
+        if( ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE )
         {
             mbedtls_printf( "  [ #%d ]  failed: mbedtls_ssl_write returned -0x%04x\n",
                     thread_id, ret );
@@ -295,8 +295,8 @@ static void *handle_ssl_connection( void *data )
 
     while( ( ret = mbedtls_ssl_close_notify( &ssl ) ) < 0 )
     {
-        if( ret != MBEDTLS_ERR_NET_WANT_READ &&
-            ret != MBEDTLS_ERR_NET_WANT_WRITE )
+        if( ret != MBEDTLS_ERR_SSL_WANT_READ &&
+            ret != MBEDTLS_ERR_SSL_WANT_WRITE )
         {
             mbedtls_printf( "  [ #%d ]  failed: mbedtls_ssl_close_notify returned -0x%04x\n",
                     thread_id, ret );

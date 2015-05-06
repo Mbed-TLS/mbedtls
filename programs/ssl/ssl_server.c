@@ -264,7 +264,7 @@ reset:
 
     while( ( ret = mbedtls_ssl_handshake( &ssl ) ) != 0 )
     {
-        if( ret != MBEDTLS_ERR_NET_WANT_READ && ret != MBEDTLS_ERR_NET_WANT_WRITE )
+        if( ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_handshake returned %d\n\n", ret );
             goto reset;
@@ -285,7 +285,7 @@ reset:
         memset( buf, 0, sizeof( buf ) );
         ret = mbedtls_ssl_read( &ssl, buf, len );
 
-        if( ret == MBEDTLS_ERR_NET_WANT_READ || ret == MBEDTLS_ERR_NET_WANT_WRITE )
+        if( ret == MBEDTLS_ERR_SSL_WANT_READ || ret == MBEDTLS_ERR_SSL_WANT_WRITE )
             continue;
 
         if( ret <= 0 )
@@ -333,7 +333,7 @@ reset:
             goto reset;
         }
 
-        if( ret != MBEDTLS_ERR_NET_WANT_READ && ret != MBEDTLS_ERR_NET_WANT_WRITE )
+        if( ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_write returned %d\n\n", ret );
             goto exit;
@@ -347,8 +347,8 @@ reset:
 
     while( ( ret = mbedtls_ssl_close_notify( &ssl ) ) < 0 )
     {
-        if( ret != MBEDTLS_ERR_NET_WANT_READ &&
-            ret != MBEDTLS_ERR_NET_WANT_WRITE )
+        if( ret != MBEDTLS_ERR_SSL_WANT_READ &&
+            ret != MBEDTLS_ERR_SSL_WANT_WRITE )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_close_notify returned %d\n\n", ret );
             goto reset;

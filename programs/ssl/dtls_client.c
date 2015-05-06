@@ -202,8 +202,8 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
     do ret = mbedtls_ssl_handshake( &ssl );
-    while( ret == MBEDTLS_ERR_NET_WANT_READ ||
-           ret == MBEDTLS_ERR_NET_WANT_WRITE );
+    while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
+           ret == MBEDTLS_ERR_SSL_WANT_WRITE );
 
     if( ret != 0 )
     {
@@ -252,8 +252,8 @@ send_request:
     len = sizeof( MESSAGE ) - 1;
 
     do ret = mbedtls_ssl_write( &ssl, (unsigned char *) MESSAGE, len );
-    while( ret == MBEDTLS_ERR_NET_WANT_READ ||
-           ret == MBEDTLS_ERR_NET_WANT_WRITE );
+    while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
+           ret == MBEDTLS_ERR_SSL_WANT_WRITE );
 
     if( ret < 0 )
     {
@@ -274,14 +274,14 @@ send_request:
     memset( buf, 0, sizeof( buf ) );
 
     do ret = mbedtls_ssl_read( &ssl, buf, len );
-    while( ret == MBEDTLS_ERR_NET_WANT_READ ||
-           ret == MBEDTLS_ERR_NET_WANT_WRITE );
+    while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
+           ret == MBEDTLS_ERR_SSL_WANT_WRITE );
 
     if( ret <= 0 )
     {
         switch( ret )
         {
-            case MBEDTLS_ERR_NET_TIMEOUT:
+            case MBEDTLS_ERR_SSL_TIMEOUT:
                 mbedtls_printf( " timeout\n\n" );
                 if( retry_left-- > 0 )
                     goto send_request;
@@ -309,7 +309,7 @@ close_notify:
 
     /* No error checking, the connection might be closed already */
     do ret = mbedtls_ssl_close_notify( &ssl );
-    while( ret == MBEDTLS_ERR_NET_WANT_WRITE );
+    while( ret == MBEDTLS_ERR_SSL_WANT_WRITE );
     ret = 0;
 
     mbedtls_printf( " done\n" );

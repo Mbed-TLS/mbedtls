@@ -2264,7 +2264,7 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
          * that will end up being dropped.
          */
         if( ssl_check_timer( ssl ) != 0 )
-            ret = MBEDTLS_ERR_NET_TIMEOUT;
+            ret = MBEDTLS_ERR_SSL_TIMEOUT;
         else
         {
             len = MBEDTLS_SSL_BUFFER_LEN - ( ssl->in_hdr - ssl->in_buf );
@@ -2288,7 +2288,7 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
                 return( MBEDTLS_ERR_SSL_CONN_EOF );
         }
 
-        if( ret == MBEDTLS_ERR_NET_TIMEOUT )
+        if( ret == MBEDTLS_ERR_SSL_TIMEOUT )
         {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "timeout" ) );
             ssl_set_timer( ssl, 0 );
@@ -2298,7 +2298,7 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
                 if( ssl_double_retransmit_timeout( ssl ) != 0 )
                 {
                     MBEDTLS_SSL_DEBUG_MSG( 1, ( "handshake timeout" ) );
-                    return( MBEDTLS_ERR_NET_TIMEOUT );
+                    return( MBEDTLS_ERR_SSL_TIMEOUT );
                 }
 
                 if( ( ret = mbedtls_ssl_resend( ssl ) ) != 0 )
@@ -2307,7 +2307,7 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
                     return( ret );
                 }
 
-                return( MBEDTLS_ERR_NET_WANT_READ );
+                return( MBEDTLS_ERR_SSL_WANT_READ );
             }
 #if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_RENEGOTIATION)
             else if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
@@ -2319,7 +2319,7 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
                     return( ret );
                 }
 
-                return( MBEDTLS_ERR_NET_WANT_READ );
+                return( MBEDTLS_ERR_SSL_WANT_READ );
             }
 #endif /* MBEDTLS_SSL_SRV_C && MBEDTLS_SSL_RENEGOTIATION */
         }
@@ -2964,7 +2964,7 @@ static int ssl_reassemble_dtls_handshake( mbedtls_ssl_context *ssl )
     if( ssl_bitmask_check( bitmask, msg_len ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "message is not complete yet" ) );
-        return( MBEDTLS_ERR_NET_WANT_READ );
+        return( MBEDTLS_ERR_SSL_WANT_READ );
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "handshake message completed" ) );
@@ -3070,7 +3070,7 @@ static int ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
                                     ssl->handshake->in_msg_seq ) );
             }
 
-            return( MBEDTLS_ERR_NET_WANT_READ );
+            return( MBEDTLS_ERR_SSL_WANT_READ );
         }
         /* Wait until message completion to increment in_msg_seq */
 
@@ -3584,7 +3584,7 @@ read_record_header:
                 return( ret );
             }
 
-            return( MBEDTLS_ERR_NET_WANT_READ );
+            return( MBEDTLS_ERR_SSL_WANT_READ );
         }
         else
         {
@@ -6063,7 +6063,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
                 /* With DTLS, drop the packet (probably from last handshake) */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
                 if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-                    return( MBEDTLS_ERR_NET_WANT_READ );
+                    return( MBEDTLS_ERR_SSL_WANT_READ );
 #endif
                 return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
             }
@@ -6076,7 +6076,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
                 /* With DTLS, drop the packet (probably from last handshake) */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
                 if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-                    return( MBEDTLS_ERR_NET_WANT_READ );
+                    return( MBEDTLS_ERR_SSL_WANT_READ );
 #endif
                 return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
             }
@@ -6144,7 +6144,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
             /* If a non-handshake record was read during renego, fallthrough,
              * else tell the user they should call mbedtls_ssl_read() again */
             if( ! record_read )
-                return( MBEDTLS_ERR_NET_WANT_READ );
+                return( MBEDTLS_ERR_SSL_WANT_READ );
         }
         else if( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_PENDING )
         {
@@ -6165,7 +6165,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
         if( ssl->in_msgtype == MBEDTLS_SSL_MSG_ALERT )
         {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "ignoring non-fatal non-closure alert" ) );
-            return( MBEDTLS_ERR_NET_WANT_READ );
+            return( MBEDTLS_ERR_SSL_WANT_READ );
         }
 
         if( ssl->in_msgtype != MBEDTLS_SSL_MSG_APPLICATION_DATA )

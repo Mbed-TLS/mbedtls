@@ -62,7 +62,7 @@
  * DES       1  0x0032-0x0032
  * CTR_DBRG  4  0x0034-0x003A
  * ENTROPY   3  0x003C-0x0040
- * NET      12  0x0042-0x0056   0x0011-0x0011
+ * NET       9  0x0042-0x0052
  * ENTROPY   1  0x0058-0x0058
  * ASN1      7  0x0060-0x006C
  * MD2       1  0x0070-0x0070
@@ -88,7 +88,7 @@
  * ECP       4   8 (Started from top)
  * MD        5   4
  * CIPHER    6   6
- * SSL       6   13 (Started from top)
+ * SSL       6   16 (Started from top)
  * SSL       7   31
  *
  * Module dependent error code (5 bits 0x.00.-0x.F8.)

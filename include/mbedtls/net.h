@@ -30,6 +30,8 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#include "ssl.h"
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -41,10 +43,7 @@
 #define MBEDTLS_ERR_NET_RECV_FAILED                       -0x004C  /**< Reading information from the socket failed. */
 #define MBEDTLS_ERR_NET_SEND_FAILED                       -0x004E  /**< Sending information through the socket failed. */
 #define MBEDTLS_ERR_NET_CONN_RESET                        -0x0050  /**< Connection was reset by peer. */
-#define MBEDTLS_ERR_NET_WANT_READ                         -0x0052  /**< Connection requires a read call. */
-#define MBEDTLS_ERR_NET_WANT_WRITE                        -0x0054  /**< Connection requires a write call. */
-#define MBEDTLS_ERR_NET_UNKNOWN_HOST                      -0x0056  /**< Failed to get an IP address for the given hostname. */
-#define MBEDTLS_ERR_NET_TIMEOUT                           -0x0011  /**< The operation timed out. */
+#define MBEDTLS_ERR_NET_UNKNOWN_HOST                      -0x0052  /**< Failed to get an IP address for the given hostname. */
 
 #define MBEDTLS_NET_LISTEN_BACKLOG         10 /**< The backlog that listen() should use. */
 
@@ -100,7 +99,7 @@ int mbedtls_net_bind( int *fd, const char *bind_ip, int port, int proto );
  *                  Must be at least 4 bytes, or 16 if IPv6 is supported
  *
  * \return          0 if successful, MBEDTLS_ERR_NET_ACCEPT_FAILED, or
- *                  MBEDTLS_ERR_NET_WANT_READ is bind_fd was set to
+ *                  MBEDTLS_ERR_SSL_WANT_READ is bind_fd was set to
  *                  non-blocking and accept() is blocking.
  *
  * \note            With UDP, connects the bind_fd to the client and just copy
@@ -148,8 +147,9 @@ void mbedtls_net_usleep( unsigned long usec );
  * \param len      Maximum length of the buffer
  *
  * \return         This function returns the number of bytes received,
- *                 or a non-zero error code; MBEDTLS_ERR_NET_WANT_READ
- *                 indicates read() is blocking.
+ *                 or a non-zero error code; with a non-blocking socket,
+ *                 MBEDTLS_ERR_SSL_WANT_READ indicates read() would be
+ *                 blocking.
  */
 int mbedtls_net_recv( void *ctx, unsigned char *buf, size_t len );
 
@@ -162,8 +162,9 @@ int mbedtls_net_recv( void *ctx, unsigned char *buf, size_t len );
  * \param len      The length of the buffer
  *
  * \return         This function returns the number of bytes sent,
- *                 or a non-zero error code; MBEDTLS_ERR_NET_WANT_WRITE
- *                 indicates write() is blocking.
+ *                 or a non-zero error code; with a non-blocking socket,
+ *                 MBEDTLS_ERR_SSL_WANT_WRITE indicates write() would be
+ *                 blocking.
  */
 int mbedtls_net_send( void *ctx, const unsigned char *buf, size_t len );
 
@@ -180,8 +181,8 @@ int mbedtls_net_send( void *ctx, const unsigned char *buf, size_t len );
  *
  * \return         This function returns the number of bytes received,
  *                 or a non-zero error code:
- *                 MBEDTLS_ERR_NET_TIMEOUT if the operation timed out,
- *                 MBEDTLS_ERR_NET_WANT_READ if interrupted by a signal.
+ *                 MBEDTLS_ERR_SSL_TIMEOUT if the operation timed out,
+ *                 MBEDTLS_ERR_SSL_WANT_READ if interrupted by a signal.
  *
  * \note           This function will block (until data becomes available or
  *                 timeout is reached) even if the socket is set to

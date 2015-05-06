@@ -65,6 +65,7 @@ static void ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
                                     size_t *olen )
 {
     unsigned char *p = buf;
+    size_t hostname_len;
 
     *olen = 0;
 
@@ -73,6 +74,8 @@ static void ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding server name extension: %s",
                    ssl->hostname ) );
+
+    hostname_len = strlen( ssl->hostname );
 
     /*
      * struct {
@@ -95,19 +98,19 @@ static void ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SERVERNAME >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SERVERNAME      ) & 0xFF );
 
-    *p++ = (unsigned char)( ( (ssl->hostname_len + 5) >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( (ssl->hostname_len + 5)      ) & 0xFF );
+    *p++ = (unsigned char)( ( (hostname_len + 5) >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( (hostname_len + 5)      ) & 0xFF );
 
-    *p++ = (unsigned char)( ( (ssl->hostname_len + 3) >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( (ssl->hostname_len + 3)      ) & 0xFF );
+    *p++ = (unsigned char)( ( (hostname_len + 3) >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( (hostname_len + 3)      ) & 0xFF );
 
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SERVERNAME_HOSTNAME ) & 0xFF );
-    *p++ = (unsigned char)( ( ssl->hostname_len >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( ssl->hostname_len      ) & 0xFF );
+    *p++ = (unsigned char)( ( hostname_len >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( hostname_len      ) & 0xFF );
 
-    memcpy( p, ssl->hostname, ssl->hostname_len );
+    memcpy( p, ssl->hostname, hostname_len );
 
-    *olen = ssl->hostname_len + 9;
+    *olen = hostname_len + 9;
 }
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 

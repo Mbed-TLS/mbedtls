@@ -1069,8 +1069,7 @@ struct mbedtls_ssl_context
     /*
      * SNI extension
      */
-    unsigned char *hostname;
-    size_t         hostname_len;
+    char *hostname;
 #endif
 
 #if defined(MBEDTLS_SSL_ALPN)

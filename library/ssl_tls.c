@@ -5453,23 +5453,24 @@ void mbedtls_ssl_set_curves( mbedtls_ssl_config *conf,
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
 int mbedtls_ssl_set_hostname( mbedtls_ssl_context *ssl, const char *hostname )
 {
+    size_t hostname_len;
+
     if( hostname == NULL )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    ssl->hostname_len = strlen( hostname );
+    hostname_len = strlen( hostname );
 
-    if( ssl->hostname_len + 1 == 0 )
+    if( hostname_len + 1 == 0 )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    ssl->hostname = mbedtls_malloc( ssl->hostname_len + 1 );
+    ssl->hostname = mbedtls_malloc( hostname_len + 1 );
 
     if( ssl->hostname == NULL )
         return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
 
-    memcpy( ssl->hostname, (const unsigned char *) hostname,
-            ssl->hostname_len );
+    memcpy( ssl->hostname, hostname, hostname_len );
 
-    ssl->hostname[ssl->hostname_len] = '\0';
+    ssl->hostname[hostname_len] = '\0';
 
     return( 0 );
 }
@@ -6562,9 +6563,8 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     if( ssl->hostname != NULL )
     {
-        mbedtls_zeroize( ssl->hostname, ssl->hostname_len );
+        mbedtls_zeroize( ssl->hostname, strlen( ssl->hostname ) );
         mbedtls_free( ssl->hostname );
-        ssl->hostname_len = 0;
     }
 #endif
 

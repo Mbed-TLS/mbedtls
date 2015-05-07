@@ -1590,7 +1590,7 @@ int mbedtls_ssl_set_own_cert( mbedtls_ssl_context *ssl, mbedtls_x509_crt *own_ce
  * \note           This is mainly useful for clients. Servers will usually
  *                 want to use \c mbedtls_ssl_set_psk_cb() instead.
  *
- * \param ssl      SSL context
+ * \param conf     SSL configuration
  * \param psk      pointer to the pre-shared key
  * \param psk_len  pre-shared key length
  * \param psk_identity      pointer to the pre-shared key identity
@@ -1598,7 +1598,7 @@ int mbedtls_ssl_set_own_cert( mbedtls_ssl_context *ssl, mbedtls_x509_crt *own_ce
  *
  * \return         0 if successful or MBEDTLS_ERR_SSL_MALLOC_FAILED
  */
-int mbedtls_ssl_set_psk( mbedtls_ssl_context *ssl,
+int mbedtls_ssl_set_psk( mbedtls_ssl_config *conf,
                 const unsigned char *psk, size_t psk_len,
                 const unsigned char *psk_identity, size_t psk_identity_len );
 

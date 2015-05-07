@@ -5362,7 +5362,7 @@ int mbedtls_ssl_set_own_cert( mbedtls_ssl_context *ssl, mbedtls_x509_crt *own_ce
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
-int mbedtls_ssl_set_psk( mbedtls_ssl_context *ssl,
+int mbedtls_ssl_set_psk( mbedtls_ssl_config *conf,
                 const unsigned char *psk, size_t psk_len,
                 const unsigned char *psk_identity, size_t psk_identity_len )
 {
@@ -5372,25 +5372,25 @@ int mbedtls_ssl_set_psk( mbedtls_ssl_context *ssl,
     if( psk_len > MBEDTLS_PSK_MAX_LEN )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    if( ssl->conf->psk != NULL || ssl->conf->psk_identity != NULL )
+    if( conf->psk != NULL || conf->psk_identity != NULL )
     {
-        mbedtls_free( ssl->conf->psk );
-        mbedtls_free( ssl->conf->psk_identity );
+        mbedtls_free( conf->psk );
+        mbedtls_free( conf->psk_identity );
     }
 
-    if( ( ssl->conf->psk = mbedtls_malloc( psk_len ) ) == NULL ||
-        ( ssl->conf->psk_identity = mbedtls_malloc( psk_identity_len ) ) == NULL )
+    if( ( conf->psk = mbedtls_malloc( psk_len ) ) == NULL ||
+        ( conf->psk_identity = mbedtls_malloc( psk_identity_len ) ) == NULL )
     {
-        mbedtls_free( ssl->conf->psk );
-        ssl->conf->psk = NULL;
+        mbedtls_free( conf->psk );
+        conf->psk = NULL;
         return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
     }
 
-    ssl->conf->psk_len = psk_len;
-    ssl->conf->psk_identity_len = psk_identity_len;
+    conf->psk_len = psk_len;
+    conf->psk_identity_len = psk_identity_len;
 
-    memcpy( ssl->conf->psk, psk, ssl->conf->psk_len );
-    memcpy( ssl->conf->psk_identity, psk_identity, ssl->conf->psk_identity_len );
+    memcpy( conf->psk, psk, conf->psk_len );
+    memcpy( conf->psk_identity, psk_identity, conf->psk_identity_len );
 
     return( 0 );
 }

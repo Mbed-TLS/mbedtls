@@ -94,6 +94,10 @@ Changes from the 1.4 preview branch
    * ssl_set_bio_timeout() was removed, split into mbedtls_ssl_set_bio() with
      new prototype, and mbedtls_ssl_set_read_timeout().
 
+Changes
+   * mbedtls_ctr_drbg_random() and mbedtls_hmac_drbg_random() are now
+     thread-safe if MBEDTLS_THREADING_C is enabled.
+
 = mbed TLS 1.3 branch
 
 Security

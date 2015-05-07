@@ -62,6 +62,10 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 void mbedtls_hmac_drbg_init( mbedtls_hmac_drbg_context *ctx )
 {
     memset( ctx, 0, sizeof( mbedtls_hmac_drbg_context ) );
+
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_init( &ctx->mutex );
+#endif
 }
 
 /*
@@ -313,7 +317,22 @@ int mbedtls_hmac_drbg_random_with_add( void *p_rng,
  */
 int mbedtls_hmac_drbg_random( void *p_rng, unsigned char *output, size_t out_len )
 {
-    return( mbedtls_hmac_drbg_random_with_add( p_rng, output, out_len, NULL, 0 ) );
+    int ret;
+    mbedtls_hmac_drbg_context *ctx = (mbedtls_hmac_drbg_context *) p_rng;
+
+#if defined(MBEDTLS_THREADING_C)
+    if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
+        return( ret );
+#endif
+
+    ret = mbedtls_hmac_drbg_random_with_add( ctx, output, out_len, NULL, 0 );
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &ctx->mutex ) != 0 )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+#endif
+
+    return( ret );
 }
 
 /*
@@ -324,8 +343,10 @@ void mbedtls_hmac_drbg_free( mbedtls_hmac_drbg_context *ctx )
     if( ctx == NULL )
         return;
 
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_free( &ctx->mutex );
+#endif
     mbedtls_md_free( &ctx->md_ctx );
-
     mbedtls_zeroize( ctx, sizeof( mbedtls_hmac_drbg_context ) );
 }
 
@@ -481,6 +502,8 @@ int mbedtls_hmac_drbg_self_test( int verbose )
     CHK( memcmp( buf, result_pr, OUTPUT_LEN ) );
     mbedtls_hmac_drbg_free( &ctx );
 
+    mbedtls_hmac_drbg_free( &ctx );
+
     if( verbose != 0 )
         mbedtls_printf( "passed\n" );
 
@@ -490,6 +513,8 @@ int mbedtls_hmac_drbg_self_test( int verbose )
     if( verbose != 0 )
         mbedtls_printf( "  HMAC_DRBG (PR = False) : " );
 
+    mbedtls_hmac_drbg_init( &ctx );
+
     test_offset = 0;
     CHK( mbedtls_hmac_drbg_seed( &ctx, md_info,
                          hmac_drbg_self_test_entropy, (void *) entropy_nopr,
@@ -498,6 +523,8 @@ int mbedtls_hmac_drbg_self_test( int verbose )
     CHK( mbedtls_hmac_drbg_random( &ctx, buf, OUTPUT_LEN ) );
     CHK( mbedtls_hmac_drbg_random( &ctx, buf, OUTPUT_LEN ) );
     CHK( memcmp( buf, result_nopr, OUTPUT_LEN ) );
+    mbedtls_hmac_drbg_free( &ctx );
+
     mbedtls_hmac_drbg_free( &ctx );
 
     if( verbose != 0 )

@@ -26,6 +26,10 @@
 
 #include "md.h"
 
+#if defined(MBEDTLS_THREADING_C)
+#include "mbedtls/threading.h"
+#endif
+
 /*
  * Error codes
  */
@@ -87,6 +91,10 @@ typedef struct
     /* Callbacks */
     int (*f_entropy)(void *, unsigned char *, size_t); /*!< entropy function */
     void *p_entropy;            /*!< context for the entropy function        */
+
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_threading_mutex_t mutex;
+#endif
 } mbedtls_hmac_drbg_context;
 
 /**

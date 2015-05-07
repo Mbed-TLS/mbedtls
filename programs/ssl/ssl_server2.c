@@ -296,7 +296,7 @@
     USAGE_ANTI_REPLAY                                       \
     USAGE_BADMAC_LIMIT                                      \
     "\n"                                                    \
-    "    auth_mode=%%s        default: (library default: required)\n"      \
+    "    auth_mode=%%s        default: (library default: none)\n"      \
     "                        options: none, optional, required\n" \
     USAGE_IO                                                \
     USAGE_SNI                                               \

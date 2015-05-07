@@ -1108,7 +1108,7 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
         /* Write length only when we know the actual value */
         if( ( ret = mbedtls_dhm_calc_secret( &ssl->handshake->dhm_ctx,
                                       p + 2, &len,
-                                      ssl->f_rng, ssl->p_rng ) ) != 0 )
+                                      ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_dhm_calc_secret", ret );
             return( ret );
@@ -1129,7 +1129,7 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
 
         if( ( ret = mbedtls_ecdh_calc_secret( &ssl->handshake->ecdh_ctx, &zlen,
                                        p + 2, end - ( p + 2 ),
-                                       ssl->f_rng, ssl->p_rng ) ) != 0 )
+                                       ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_calc_secret", ret );
             return( ret );
@@ -1338,7 +1338,7 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
          * Generate IV
          */
 #if defined(MBEDTLS_SSL_AEAD_RANDOM_IV)
-        ret = ssl->f_rng( ssl->p_rng,
+        ret = ssl->conf->f_rng( ssl->conf->p_rng,
                 ssl->transform_out->iv_enc + ssl->transform_out->fixed_ivlen,
                 ssl->transform_out->ivlen - ssl->transform_out->fixed_ivlen );
         if( ret != 0 )
@@ -1434,7 +1434,7 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
             /*
              * Generate IV
              */
-            int ret = ssl->f_rng( ssl->p_rng, ssl->transform_out->iv_enc,
+            int ret = ssl->conf->f_rng( ssl->conf->p_rng, ssl->transform_out->iv_enc,
                                   ssl->transform_out->ivlen );
             if( ret != 0 )
                 return( ret );
@@ -5210,12 +5210,12 @@ void mbedtls_ssl_set_verify( mbedtls_ssl_config *conf,
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-void mbedtls_ssl_set_rng( mbedtls_ssl_context *ssl,
+void mbedtls_ssl_set_rng( mbedtls_ssl_config *conf,
                   int (*f_rng)(void *, unsigned char *, size_t),
                   void *p_rng )
 {
-    ssl->f_rng      = f_rng;
-    ssl->p_rng      = p_rng;
+    conf->f_rng      = f_rng;
+    conf->p_rng      = p_rng;
 }
 
 void mbedtls_ssl_set_dbg( mbedtls_ssl_config *conf,

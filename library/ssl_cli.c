@@ -534,13 +534,13 @@ static int ssl_generate_random( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, current time: %lu", t ) );
 #else
-    if( ( ret = ssl->f_rng( ssl->p_rng, p, 4 ) ) != 0 )
+    if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng, p, 4 ) ) != 0 )
         return( ret );
 
     p += 4;
 #endif /* MBEDTLS_HAVE_TIME */
 
-    if( ( ret = ssl->f_rng( ssl->p_rng, p, 28 ) ) != 0 )
+    if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng, p, 28 ) ) != 0 )
         return( ret );
 
     return( 0 );
@@ -558,7 +558,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write client hello" ) );
 
-    if( ssl->f_rng == NULL )
+    if( ssl->conf->f_rng == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "no RNG provided") );
         return( MBEDTLS_ERR_SSL_NO_RNG );
@@ -640,7 +640,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
         if( ssl->session_negotiate->ticket != NULL &&
                 ssl->session_negotiate->ticket_len != 0 )
         {
-            ret = ssl->f_rng( ssl->p_rng, ssl->session_negotiate->id, 32 );
+            ret = ssl->conf->f_rng( ssl->conf->p_rng, ssl->session_negotiate->id, 32 );
 
             if( ret != 0 )
                 return( ret );
@@ -1785,7 +1785,7 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
     mbedtls_ssl_write_version( ssl->conf->max_major_ver, ssl->conf->max_minor_ver,
                        ssl->conf->transport, p );
 
-    if( ( ret = ssl->f_rng( ssl->p_rng, p + 2, 46 ) ) != 0 )
+    if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng, p + 2, 46 ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "f_rng", ret );
         return( ret );
@@ -1807,7 +1807,7 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
                             p, ssl->handshake->pmslen,
                             ssl->out_msg + offset + len_bytes, olen,
                             MBEDTLS_SSL_MAX_CONTENT_LEN - offset - len_bytes,
-                            ssl->f_rng, ssl->p_rng ) ) != 0 )
+                            ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_rsa_pkcs1_encrypt", ret );
         return( ret );
@@ -2461,7 +2461,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         ret = mbedtls_dhm_make_public( &ssl->handshake->dhm_ctx,
                                 (int) mbedtls_mpi_size( &ssl->handshake->dhm_ctx.P ),
                                &ssl->out_msg[i], n,
-                                ssl->f_rng, ssl->p_rng );
+                                ssl->conf->f_rng, ssl->conf->p_rng );
         if( ret != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_dhm_make_public", ret );
@@ -2476,7 +2476,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         if( ( ret = mbedtls_dhm_calc_secret( &ssl->handshake->dhm_ctx,
                                       ssl->handshake->premaster,
                                      &ssl->handshake->pmslen,
-                                      ssl->f_rng, ssl->p_rng ) ) != 0 )
+                                      ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_dhm_calc_secret", ret );
             return( ret );
@@ -2503,7 +2503,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         ret = mbedtls_ecdh_make_public( &ssl->handshake->ecdh_ctx,
                                 &n,
                                 &ssl->out_msg[i], 1000,
-                                ssl->f_rng, ssl->p_rng );
+                                ssl->conf->f_rng, ssl->conf->p_rng );
         if( ret != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_make_public", ret );
@@ -2516,7 +2516,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
                                       &ssl->handshake->pmslen,
                                        ssl->handshake->premaster,
                                        MBEDTLS_MPI_MAX_SIZE,
-                                       ssl->f_rng, ssl->p_rng ) ) != 0 )
+                                       ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_calc_secret", ret );
             return( ret );
@@ -2577,7 +2577,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
             ret = mbedtls_dhm_make_public( &ssl->handshake->dhm_ctx,
                     (int) mbedtls_mpi_size( &ssl->handshake->dhm_ctx.P ),
                     &ssl->out_msg[i], n,
-                    ssl->f_rng, ssl->p_rng );
+                    ssl->conf->f_rng, ssl->conf->p_rng );
             if( ret != 0 )
             {
                 MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_dhm_make_public", ret );
@@ -2594,7 +2594,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
              */
             ret = mbedtls_ecdh_make_public( &ssl->handshake->ecdh_ctx, &n,
                     &ssl->out_msg[i], MBEDTLS_SSL_MAX_CONTENT_LEN - i,
-                    ssl->f_rng, ssl->p_rng );
+                    ssl->conf->f_rng, ssl->conf->p_rng );
             if( ret != 0 )
             {
                 MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_make_public", ret );
@@ -2804,7 +2804,7 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
 
     if( ( ret = mbedtls_pk_sign( mbedtls_ssl_own_key( ssl ), md_alg, hash_start, hashlen,
                          ssl->out_msg + 6 + offset, &n,
-                         ssl->f_rng, ssl->p_rng ) ) != 0 )
+                         ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_sign", ret );
         return( ret );

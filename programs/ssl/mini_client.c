@@ -203,7 +203,7 @@ int main( void )
         goto exit;
     }
 
-    mbedtls_ssl_set_rng( &ssl, mbedtls_ctr_drbg_random, &ctr_drbg );
+    mbedtls_ssl_set_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     mbedtls_ssl_set_psk( &ssl, psk, sizeof( psk ),

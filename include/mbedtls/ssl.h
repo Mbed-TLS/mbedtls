@@ -799,11 +799,15 @@ typedef struct
      * Pointers
      */
 
-    const int *ciphersuite_list[4];     /*!< allowed ciphersuites / version */
+    const int *ciphersuite_list[4]; /*!< allowed ciphersuites per version   */
 
     /** Callback for printing debug output                                  */
     void (*f_dbg)(void *, int, const char *);
     void *p_dbg;                    /*!< context for the debug function     */
+
+    /** Callback for getting (pseudo-)random numbers                        */
+    int  (*f_rng)(void *, unsigned char *, size_t);
+    void *p_rng;                    /*!< context for the RNG function       */
 
     /** Callback to retrieve a session from the cache                       */
     int (*f_get_cache)(void *, mbedtls_ssl_session *);
@@ -836,7 +840,7 @@ typedef struct
     /** Callback to verify validity of a ClientHello cookie                 */
     int (*f_cookie_check)( void *, const unsigned char *, size_t,
                            const unsigned char *, size_t );
-    void *p_cookie;                 /*!<  context for the cookie callbacks  */
+    void *p_cookie;                 /*!< context for the cookie callbacks   */
 #endif
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -846,7 +850,7 @@ typedef struct
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_SET_CURVES)
-    const mbedtls_ecp_group_id *curve_list; /*!<  allowed curves            */
+    const mbedtls_ecp_group_id *curve_list; /*!< allowed curves             */
 #endif
 
 #if defined(MBEDTLS_DHM_C)
@@ -966,9 +970,6 @@ struct mbedtls_ssl_context
     /*
      * Callbacks
      */
-    int  (*f_rng)(void *, unsigned char *, size_t);
-    void *p_rng;                /*!< context for the RNG function     */
-
     int (*f_send)(void *, const unsigned char *, size_t);
     int (*f_recv)(void *, unsigned char *, size_t);
     int (*f_recv_timeout)(void *, unsigned char *, size_t, uint32_t);
@@ -1243,11 +1244,11 @@ void mbedtls_ssl_set_verify( mbedtls_ssl_config *conf,
 /**
  * \brief          Set the random number generator callback
  *
- * \param ssl      SSL context
+ * \param conf     SSL configuration
  * \param f_rng    RNG function
  * \param p_rng    RNG parameter
  */
-void mbedtls_ssl_set_rng( mbedtls_ssl_context *ssl,
+void mbedtls_ssl_set_rng( mbedtls_ssl_config *conf,
                   int (*f_rng)(void *, unsigned char *, size_t),
                   void *p_rng );
 

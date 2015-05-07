@@ -176,7 +176,7 @@ static void *handle_ssl_connection( void *data )
         goto thread_exit;
     }
 
-    mbedtls_ssl_set_rng( &ssl, mbedtls_ctr_drbg_random, &ctr_drbg );
+    mbedtls_ssl_set_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
     mbedtls_ssl_set_dbg( &conf, my_mutexed_debug, stdout );
 
     /* mbedtls_ssl_cache_get() and mbedtls_ssl_cache_set() are thread-safe if

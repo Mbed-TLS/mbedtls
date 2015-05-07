@@ -678,8 +678,7 @@ int psk_callback( void *p_info, mbedtls_ssl_context *ssl,
         if( name_len == strlen( cur->name ) &&
             memcmp( name, cur->name, name_len ) == 0 )
         {
-            return( mbedtls_ssl_set_psk( ssl, cur->key, cur->key_len,
-                                 name, name_len ) );
+            return( mbedtls_ssl_set_hs_psk( ssl, cur->key, cur->key_len ) );
         }
 
         cur = cur->next;

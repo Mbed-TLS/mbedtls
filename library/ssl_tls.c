@@ -1066,6 +1066,15 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
 {
     unsigned char *p = ssl->handshake->premaster;
     unsigned char *end = p + sizeof( ssl->handshake->premaster );
+    const unsigned char *psk = ssl->conf->psk;
+    size_t psk_len = ssl->conf->psk_len;
+
+    /* If the psk callback was called, use its result */
+    if( ssl->handshake->psk != NULL )
+    {
+        psk = ssl->handshake->psk;
+        psk_len = ssl->handshake->psk_len;
+    }
 
     /*
      * PMS = struct {
@@ -1077,12 +1086,12 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
 #if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
     if( key_ex == MBEDTLS_KEY_EXCHANGE_PSK )
     {
-        if( end - p < 2 + (int) ssl->conf->psk_len )
+        if( end - p < 2 + (int) psk_len )
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-        *(p++) = (unsigned char)( ssl->conf->psk_len >> 8 );
-        *(p++) = (unsigned char)( ssl->conf->psk_len      );
-        p += ssl->conf->psk_len;
+        *(p++) = (unsigned char)( psk_len >> 8 );
+        *(p++) = (unsigned char)( psk_len      );
+        p += psk_len;
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_PSK_ENABLED */
@@ -1149,13 +1158,13 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
     }
 
     /* opaque psk<0..2^16-1>; */
-    if( end - p < 2 + (int) ssl->conf->psk_len )
+    if( end - p < 2 + (int) psk_len )
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    *(p++) = (unsigned char)( ssl->conf->psk_len >> 8 );
-    *(p++) = (unsigned char)( ssl->conf->psk_len      );
-    memcpy( p, ssl->conf->psk, ssl->conf->psk_len );
-    p += ssl->conf->psk_len;
+    *(p++) = (unsigned char)( psk_len >> 8 );
+    *(p++) = (unsigned char)( psk_len      );
+    memcpy( p, psk, psk_len );
+    p += psk_len;
 
     ssl->handshake->pmslen = p - ssl->handshake->premaster;
 
@@ -5353,8 +5362,9 @@ int mbedtls_ssl_set_own_cert( mbedtls_ssl_context *ssl, mbedtls_x509_crt *own_ce
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
-int mbedtls_ssl_set_psk( mbedtls_ssl_context *ssl, const unsigned char *psk, size_t psk_len,
-                 const unsigned char *psk_identity, size_t psk_identity_len )
+int mbedtls_ssl_set_psk( mbedtls_ssl_context *ssl,
+                const unsigned char *psk, size_t psk_len,
+                const unsigned char *psk_identity, size_t psk_identity_len )
 {
     if( psk == NULL || psk_identity == NULL )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
@@ -5381,6 +5391,31 @@ int mbedtls_ssl_set_psk( mbedtls_ssl_context *ssl, const unsigned char *psk, siz
 
     memcpy( ssl->conf->psk, psk, ssl->conf->psk_len );
     memcpy( ssl->conf->psk_identity, psk_identity, ssl->conf->psk_identity_len );
+
+    return( 0 );
+}
+
+int mbedtls_ssl_set_hs_psk( mbedtls_ssl_context *ssl,
+                            const unsigned char *psk, size_t psk_len )
+{
+    if( psk == NULL || ssl->handshake == NULL )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    if( psk_len > MBEDTLS_PSK_MAX_LEN )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    if( ssl->handshake->psk != NULL )
+        mbedtls_free( ssl->conf->psk );
+
+    if( ( ssl->handshake->psk = mbedtls_malloc( psk_len ) ) == NULL )
+    {
+        mbedtls_free( ssl->handshake->psk );
+        ssl->handshake->psk = NULL;
+        return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
+    }
+
+    ssl->handshake->psk_len = psk_len;
+    memcpy( ssl->handshake->psk, psk, ssl->handshake->psk_len );
 
     return( 0 );
 }
@@ -6439,6 +6474,14 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_handshake_params *handshake )
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C)
     /* explicit void pointer cast for buggy MS compiler */
     mbedtls_free( (void *) handshake->curves );
+#endif
+
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+    if( handshake->psk != NULL )
+    {
+        mbedtls_zeroize( handshake->psk, handshake->psk_len );
+        mbedtls_free( handshake->psk );
+    }
 #endif
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && \

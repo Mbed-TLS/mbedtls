@@ -389,25 +389,6 @@ void mbedtls_ssl_set_dtls_cookies( mbedtls_ssl_config *conf,
 #endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY */
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-/*
- * Wrapper around f_sni, allowing use of mbedtls_ssl_set_own_cert() but
- * making it act on ssl->handshake->sni_key_cert instead.
- */
-static int ssl_sni_wrapper( mbedtls_ssl_context *ssl,
-                            const unsigned char* name, size_t len )
-{
-    int ret;
-    mbedtls_ssl_key_cert *key_cert_ori = ssl->conf->key_cert;
-
-    ssl->conf->key_cert = NULL;
-    ret = ssl->conf->f_sni( ssl->conf->p_sni, ssl, name, len );
-    ssl->handshake->sni_key_cert = ssl->conf->key_cert;
-
-    ssl->conf->key_cert = key_cert_ori;
-
-    return( ret );
-}
-
 static int ssl_parse_servername_ext( mbedtls_ssl_context *ssl,
                                      const unsigned char *buf,
                                      size_t len )
@@ -437,7 +418,8 @@ static int ssl_parse_servername_ext( mbedtls_ssl_context *ssl,
 
         if( p[0] == MBEDTLS_TLS_EXT_SERVERNAME_HOSTNAME )
         {
-            ret = ssl_sni_wrapper( ssl, p + 3, hostname_len );
+            ret = ssl->conf->f_sni( ssl->conf->p_sni,
+                                    ssl, p + 3, hostname_len );
             if( ret != 0 )
             {
                 MBEDTLS_SSL_DEBUG_RET( 1, "ssl_sni_wrapper", ret );

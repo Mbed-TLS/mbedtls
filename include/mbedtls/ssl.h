@@ -1707,6 +1707,22 @@ int mbedtls_ssl_set_hostname( mbedtls_ssl_context *ssl, const char *hostname );
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
 /**
+ * \brief          Set own certificate and key for the current handshake
+ *
+ * \note           Same as \c mbedtls_ssl_set_own_cert() but for use within
+ *                 the SNI callback.
+ *
+ * \param ssl      SSL context
+ * \param own_cert own public certificate chain
+ * \param pk_key   own private key
+ *
+ * \return         0 on success or MBEDTLS_ERR_SSL_MALLOC_FAILED
+ */
+int mbedtls_ssl_set_hs_own_cert( mbedtls_ssl_context *ssl,
+                                 mbedtls_x509_crt *own_cert,
+                                 mbedtls_pk_context *pk_key );
+
+/**
  * \brief          Set server side ServerName TLS extension callback
  *                 (optional, server-side only).
  *
@@ -1716,8 +1732,8 @@ int mbedtls_ssl_set_hostname( mbedtls_ssl_context *ssl, const char *hostname );
  *                 following parameters: (void *parameter, mbedtls_ssl_context *ssl,
  *                 const unsigned char *hostname, size_t len). If a suitable
  *                 certificate is found, the callback should set the
- *                 certificate and key to use with mbedtls_ssl_set_own_cert() (and
- *                 possibly adjust the CA chain as well) and return 0. The
+ *                 certificate and key to use with mbedtls_ssl_set_hs_own_cert() (and
+ *                 possibly adjust the CA chain as well TODO: broken) and return 0. The
  *                 callback should return -1 to abort the handshake at this
  *                 point.
  *

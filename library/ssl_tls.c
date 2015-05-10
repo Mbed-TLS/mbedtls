@@ -5352,6 +5352,16 @@ void mbedtls_ssl_set_ca_chain( mbedtls_ssl_config *conf,
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+int mbedtls_ssl_set_hs_own_cert( mbedtls_ssl_context *ssl,
+                                 mbedtls_x509_crt *own_cert,
+                                 mbedtls_pk_context *pk_key )
+{
+    return( ssl_append_key_cert( &ssl->handshake->sni_key_cert,
+                                 own_cert, pk_key ) );
+}
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
+
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 int mbedtls_ssl_set_psk( mbedtls_ssl_config *conf,
                 const unsigned char *psk, size_t psk_len,

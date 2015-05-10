@@ -547,7 +547,7 @@ int sni_callback( void *p_info, mbedtls_ssl_context *ssl,
         if( name_len == strlen( cur->name ) &&
             memcmp( name, cur->name, name_len ) == 0 )
         {
-            return( mbedtls_ssl_set_own_cert( ssl, cur->cert, cur->key ) );
+            return( mbedtls_ssl_set_hs_own_cert( ssl, cur->cert, cur->key ) );
         }
 
         cur = cur->next;

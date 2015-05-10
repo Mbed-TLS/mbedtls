@@ -1567,13 +1567,13 @@ void mbedtls_ssl_set_ca_chain( mbedtls_ssl_config *conf,
  *                 using ECDSA). However, on client, currently only the first
  *                 certificate is used (subsequent calls have no effect).
  *
- * \param ssl      SSL context
+ * \param conf     SSL configuration
  * \param own_cert own public certificate chain
  * \param pk_key   own private key
  *
  * \return         0 on success or MBEDTLS_ERR_SSL_MALLOC_FAILED
  */
-int mbedtls_ssl_set_own_cert( mbedtls_ssl_context *ssl,
+int mbedtls_ssl_set_own_cert( mbedtls_ssl_config *conf,
                               mbedtls_x509_crt *own_cert,
                               mbedtls_pk_context *pk_key );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */

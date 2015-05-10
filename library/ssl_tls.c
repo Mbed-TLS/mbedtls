@@ -5336,11 +5336,11 @@ static int ssl_append_key_cert( mbedtls_ssl_key_cert **head,
     return( 0 );
 }
 
-int mbedtls_ssl_set_own_cert( mbedtls_ssl_context *ssl,
+int mbedtls_ssl_set_own_cert( mbedtls_ssl_config *conf,
                               mbedtls_x509_crt *own_cert,
                               mbedtls_pk_context *pk_key )
 {
-    return( ssl_append_key_cert( &ssl->conf->key_cert, own_cert, pk_key ) );
+    return( ssl_append_key_cert( &conf->key_cert, own_cert, pk_key ) );
 }
 
 void mbedtls_ssl_set_ca_chain( mbedtls_ssl_config *conf,

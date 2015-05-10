@@ -1684,13 +1684,13 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_set_ca_chain( &conf, &cacert, NULL );
     }
     if( key_cert_init )
-        if( ( ret = mbedtls_ssl_set_own_cert( &ssl, &srvcert, &pkey ) ) != 0 )
+        if( ( ret = mbedtls_ssl_set_own_cert( &conf, &srvcert, &pkey ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_set_own_cert returned %d\n\n", ret );
             goto exit;
         }
     if( key_cert_init2 )
-        if( ( ret = mbedtls_ssl_set_own_cert( &ssl, &srvcert2, &pkey2 ) ) != 0 )
+        if( ( ret = mbedtls_ssl_set_own_cert( &conf, &srvcert2, &pkey2 ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_set_own_cert returned %d\n\n", ret );
             goto exit;

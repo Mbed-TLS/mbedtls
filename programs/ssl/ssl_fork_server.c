@@ -270,7 +270,7 @@ int main( void )
         mbedtls_ssl_set_bio( &ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv, NULL );
 
         mbedtls_ssl_set_ca_chain( &conf, srvcert.next, NULL );
-        if( ( ret = mbedtls_ssl_set_own_cert( &ssl, &srvcert, &pkey ) ) != 0 )
+        if( ( ret = mbedtls_ssl_set_own_cert( &conf, &srvcert, &pkey ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_set_own_cert returned %d\n\n", ret );
             goto exit;

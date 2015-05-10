@@ -617,7 +617,7 @@ int main( int argc, char *argv[] )
         mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hostname returned %d\n\n", ret );
         goto exit;
     }
-    if( ( ret = mbedtls_ssl_set_own_cert( &ssl, &clicert, &pkey ) ) != 0 )
+    if( ( ret = mbedtls_ssl_set_own_cert( &conf, &clicert, &pkey ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_set_own_cert returned %d\n\n", ret );
         goto exit;

@@ -1159,7 +1159,7 @@ int main( int argc, char *argv[] )
     if( strcmp( opt.crt_file, "none" ) != 0 &&
         strcmp( opt.key_file, "none" ) != 0 )
     {
-        if( ( ret = mbedtls_ssl_set_own_cert( &ssl, &clicert, &pkey ) ) != 0 )
+        if( ( ret = mbedtls_ssl_set_own_cert( &conf, &clicert, &pkey ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_set_own_cert returned %d\n\n", ret );
             goto exit;

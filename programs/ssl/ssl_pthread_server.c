@@ -189,7 +189,7 @@ static void *handle_ssl_connection( void *data )
 #endif
 
     mbedtls_ssl_set_ca_chain( &conf, thread_info->ca_chain, NULL );
-    if( ( ret = mbedtls_ssl_set_own_cert( &ssl, thread_info->server_cert, thread_info->server_key ) ) != 0 )
+    if( ( ret = mbedtls_ssl_set_own_cert( &conf, thread_info->server_cert, thread_info->server_key ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_set_own_cert returned %d\n\n", ret );
         goto thread_exit;

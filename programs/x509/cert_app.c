@@ -423,7 +423,7 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_set_dbg( &conf, my_debug, stdout );
         mbedtls_ssl_set_bio( &ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv, NULL );
 
-        if( ( ret = mbedtls_ssl_set_own_cert( &ssl, &clicert, &pkey ) ) != 0 )
+        if( ( ret = mbedtls_ssl_set_own_cert( &conf, &clicert, &pkey ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_set_own_cert returned %d\n\n", ret );
             goto ssl_exit;

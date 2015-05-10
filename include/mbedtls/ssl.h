@@ -945,7 +945,7 @@ mbedtls_ssl_config;
 
 struct mbedtls_ssl_context
 {
-    mbedtls_ssl_config *conf;   /*!< configuration information              */
+    const mbedtls_ssl_config *conf; /*!< configuration information          */
 
     /*
      * Miscellaneous
@@ -1157,7 +1157,7 @@ void mbedtls_ssl_init( mbedtls_ssl_context *ssl );
  *                 memory allocation failed
  */
 int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
-                       mbedtls_ssl_config *conf );
+                       const mbedtls_ssl_config *conf );
 
 /**
  * \brief          Reset an already initialized SSL context for re-use

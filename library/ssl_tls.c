@@ -4959,7 +4959,7 @@ void mbedtls_ssl_init( mbedtls_ssl_context *ssl )
  * Setup an SSL context
  */
 int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
-                       mbedtls_ssl_config *conf )
+                       const mbedtls_ssl_config *conf )
 {
     int ret;
     const size_t len = MBEDTLS_SSL_BUFFER_LEN;

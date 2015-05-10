@@ -572,10 +572,11 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
         ssl->minor_ver = ssl->conf->min_minor_ver;
     }
 
-    if( ssl->conf->max_major_ver == 0 && ssl->conf->max_minor_ver == 0 )
+    if( ssl->conf->max_major_ver == 0 )
     {
-        ssl->conf->max_major_ver = MBEDTLS_SSL_MAX_MAJOR_VERSION;
-        ssl->conf->max_minor_ver = MBEDTLS_SSL_MAX_MINOR_VERSION;
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "configured max major version is invalid, "
+                            "consider using mbedtls_ssl_config_defaults()" ) );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
     /*

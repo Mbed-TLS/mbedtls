@@ -677,15 +677,9 @@ struct mbedtls_ssl_handshake_params
     size_t psk_len;                     /*!<  Length of PSK from callback   */
 #endif
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-    /**
-     * Current key/cert or key/cert list.
-     * On client: pointer to ssl->key_cert, only the first entry used.
-     * On server: starts as a pointer to ssl->key_cert, then becomes
-     * a pointer to the chosen key from this list or the SNI list.
-     */
-    mbedtls_ssl_key_cert *key_cert;
+    mbedtls_ssl_key_cert *key_cert;     /*!< chosen key/cert pair (server)  */
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-    mbedtls_ssl_key_cert *sni_key_cert;         /*!<  key/cert list from SNI  */
+    mbedtls_ssl_key_cert *sni_key_cert; /*!< key/cert list from SNI         */
 #endif
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -1579,8 +1573,9 @@ void mbedtls_ssl_set_ca_chain( mbedtls_ssl_config *conf,
  *
  * \return         0 on success or MBEDTLS_ERR_SSL_MALLOC_FAILED
  */
-int mbedtls_ssl_set_own_cert( mbedtls_ssl_context *ssl, mbedtls_x509_crt *own_cert,
-                       mbedtls_pk_context *pk_key );
+int mbedtls_ssl_set_own_cert( mbedtls_ssl_context *ssl,
+                              mbedtls_x509_crt *own_cert,
+                              mbedtls_pk_context *pk_key );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
@@ -2355,14 +2350,26 @@ int mbedtls_ssl_curve_is_acceptable( const mbedtls_ssl_context *ssl, mbedtls_ecp
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 static inline mbedtls_pk_context *mbedtls_ssl_own_key( mbedtls_ssl_context *ssl )
 {
-    return( ssl->handshake->key_cert == NULL ? NULL
-            : ssl->handshake->key_cert->key );
+    mbedtls_ssl_key_cert *key_cert;
+
+    if( ssl->handshake != NULL && ssl->handshake->key_cert != NULL )
+        key_cert = ssl->handshake->key_cert;
+    else
+        key_cert = ssl->conf->key_cert;
+
+    return( key_cert == NULL ? NULL : key_cert->key );
 }
 
 static inline mbedtls_x509_crt *mbedtls_ssl_own_cert( mbedtls_ssl_context *ssl )
 {
-    return( ssl->handshake->key_cert == NULL ? NULL
-            : ssl->handshake->key_cert->cert );
+    mbedtls_ssl_key_cert *key_cert;
+
+    if( ssl->handshake != NULL && ssl->handshake->key_cert != NULL )
+        key_cert = ssl->handshake->key_cert;
+    else
+        key_cert = ssl->conf->key_cert;
+
+    return( key_cert == NULL ? NULL : key_cert->cert );
 }
 
 /*

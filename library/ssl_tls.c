@@ -4901,10 +4901,6 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
     ssl_transform_init( ssl->transform_negotiate );
     ssl_handshake_params_init( ssl->handshake );
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
-    ssl->handshake->key_cert = ssl->conf->key_cert;
-#endif
-
     /*
      * We may not know yet if we're using DTLS,
      * so always initiliase DTLS-specific fields.
@@ -5309,33 +5305,42 @@ void mbedtls_ssl_set_ciphersuites_for_version( mbedtls_ssl_config *conf,
 }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-/* Add a new (empty) key_cert entry an return a pointer to it */
-static mbedtls_ssl_key_cert *ssl_add_key_cert( mbedtls_ssl_context *ssl )
+/* Append a new keycert entry to a (possibly empty) list */
+static int ssl_append_key_cert( mbedtls_ssl_key_cert **head,
+                                mbedtls_x509_crt *cert,
+                                mbedtls_pk_context *key )
 {
-    mbedtls_ssl_key_cert *key_cert, *last;
+    mbedtls_ssl_key_cert *new;
 
-    key_cert = mbedtls_malloc( sizeof(mbedtls_ssl_key_cert) );
-    if( key_cert == NULL )
-        return( NULL );
+    new = mbedtls_malloc( sizeof( mbedtls_ssl_key_cert ) );
+    if( new == NULL )
+        return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
 
-    memset( key_cert, 0, sizeof( mbedtls_ssl_key_cert ) );
+    new->cert = cert;
+    new->key  = key;
+    new->next = NULL;
 
-    /* Append the new key_cert to the (possibly empty) current list */
-    if( ssl->conf->key_cert == NULL )
+    /* Update head is the list was null, else add to the end */
+    if( *head == NULL )
     {
-        ssl->conf->key_cert = key_cert;
-        if( ssl->handshake != NULL )
-            ssl->handshake->key_cert = key_cert;
+        *head = new;
     }
     else
     {
-        last = ssl->conf->key_cert;
-        while( last->next != NULL )
-            last = last->next;
-        last->next = key_cert;
+        mbedtls_ssl_key_cert *cur = *head;
+        while( cur->next != NULL )
+            cur = cur->next;
+        cur->next = new;
     }
 
-    return( key_cert );
+    return( 0 );
+}
+
+int mbedtls_ssl_set_own_cert( mbedtls_ssl_context *ssl,
+                              mbedtls_x509_crt *own_cert,
+                              mbedtls_pk_context *pk_key )
+{
+    return( ssl_append_key_cert( &ssl->conf->key_cert, own_cert, pk_key ) );
 }
 
 void mbedtls_ssl_set_ca_chain( mbedtls_ssl_config *conf,
@@ -5344,20 +5349,6 @@ void mbedtls_ssl_set_ca_chain( mbedtls_ssl_config *conf,
 {
     conf->ca_chain   = ca_chain;
     conf->ca_crl     = ca_crl;
-}
-
-int mbedtls_ssl_set_own_cert( mbedtls_ssl_context *ssl, mbedtls_x509_crt *own_cert,
-                       mbedtls_pk_context *pk_key )
-{
-    mbedtls_ssl_key_cert *key_cert = ssl_add_key_cert( ssl );
-
-    if( key_cert == NULL )
-        return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
-
-    key_cert->cert = own_cert;
-    key_cert->key  = pk_key;
-
-    return( 0 );
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 

@@ -875,7 +875,7 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
         list = ssl->handshake->sni_key_cert;
     else
 #endif
-        list = ssl->handshake->key_cert;
+        list = ssl->conf->key_cert;
 
     if( pk_alg == MBEDTLS_PK_NONE )
         return( 0 );
@@ -943,7 +943,7 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
         cur = fallback;
 
 
-    /* Do not update ssl->handshake->key_cert unless the is a match */
+    /* Do not update ssl->handshake->key_cert unless there is a match */
     if( cur != NULL )
     {
         ssl->handshake->key_cert = cur;

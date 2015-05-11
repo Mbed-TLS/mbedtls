@@ -27,6 +27,11 @@ API Changes
      ssl_legacy_renegotiation()) have been renamed to mbedtls_ssl_conf_xxx()
      (see rename.pl and compat-1.3.h above) and their first argument's type
      changed from ssl_context to ssl_config.
+   * The following functions have been introduced and must be used in callback
+     implementations (SNI, PSK) instead of their *conf counterparts:
+     mbedtls_ssl_set_hs_own_cert()
+     mbedtls_ssl_set_hs_ca_chain()
+     mbedtls_ssl_set_hs_psk()
    * mbedtls_ssl_conf_ca_chain() lost its last argument (peer_cn), now set
      using mbedtls_ssl_set_hostname().
    * mbedtls_ssl_conf_session_cache() changed prototype (only one context

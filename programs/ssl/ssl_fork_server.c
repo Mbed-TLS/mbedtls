@@ -257,17 +257,10 @@ int main( void )
             goto exit;
         }
 
-        if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
-        {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned %d\n\n", ret );
-            goto exit;
-        }
-
         mbedtls_printf( " ok\n" );
 
         mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
         mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
-        mbedtls_ssl_set_bio( &ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv, NULL );
 
         mbedtls_ssl_conf_ca_chain( &conf, srvcert.next, NULL );
         if( ( ret = mbedtls_ssl_conf_own_cert( &conf, &srvcert, &pkey ) ) != 0 )
@@ -275,6 +268,14 @@ int main( void )
             mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_own_cert returned %d\n\n", ret );
             goto exit;
         }
+
+        if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned %d\n\n", ret );
+            goto exit;
+        }
+
+        mbedtls_ssl_set_bio( &ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv, NULL );
 
         /*
          * 5. Handshake

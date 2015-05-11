@@ -197,12 +197,6 @@ int main( void )
         goto exit;
     }
 
-    if( mbedtls_ssl_setup( &ssl, &conf ) != 0 )
-    {
-        ret = ssl_setup_failed;
-        goto exit;
-    }
-
     mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
@@ -218,13 +212,20 @@ int main( void )
     }
 
     mbedtls_ssl_conf_ca_chain( &conf, &ca, NULL );
+    mbedtls_ssl_conf_authmode( &conf, MBEDTLS_SSL_VERIFY_REQUIRED );
+#endif
+
+    if( mbedtls_ssl_setup( &ssl, &conf ) != 0 )
+    {
+        ret = ssl_setup_failed;
+        goto exit;
+    }
+
     if( mbedtls_ssl_set_hostname( &ssl, HOSTNAME ) != 0 )
     {
         ret = hostname_failed;
         goto exit;
     }
-    mbedtls_ssl_conf_authmode( &conf, MBEDTLS_SSL_VERIFY_REQUIRED );
-#endif
 
     /*
      * 1. Start the connection

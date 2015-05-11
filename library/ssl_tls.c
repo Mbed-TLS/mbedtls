@@ -4915,18 +4915,16 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
     ssl_transform_init( ssl->transform_negotiate );
     ssl_handshake_params_init( ssl->handshake );
 
-    /*
-     * We may not know yet if we're using DTLS,
-     * so always initiliase DTLS-specific fields.
-     */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    ssl->handshake->alt_transform_out = ssl->transform_out;
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    {
+        ssl->handshake->alt_transform_out = ssl->transform_out;
 
-    // TODO: not the right place, we may not know endpoint yet
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
-        ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_PREPARING;
-    else
-        ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_WAITING;
+        if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+            ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_PREPARING;
+        else
+            ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_WAITING;
+    }
 #endif
 
     return( 0 );

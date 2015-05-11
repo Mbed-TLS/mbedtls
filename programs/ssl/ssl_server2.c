@@ -1527,12 +1527,6 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned -0x%x\n\n", -ret );
-        goto exit;
-    }
-
     if( opt.auth_mode != DFL_AUTH_MODE )
         mbedtls_ssl_conf_authmode( &conf, opt.auth_mode );
 
@@ -1740,6 +1734,23 @@ int main( int argc, char *argv[] )
     if( opt.max_version != DFL_MIN_VERSION )
         mbedtls_ssl_conf_max_version( &conf, MBEDTLS_SSL_MAJOR_VERSION_3, opt.max_version );
 
+    if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned -0x%x\n\n", -ret );
+        goto exit;
+    }
+
+    if( opt.nbio == 2 )
+        mbedtls_ssl_set_bio( &ssl, &client_fd, my_send, my_recv, NULL );
+    else
+        mbedtls_ssl_set_bio( &ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv,
+#if defined(MBEDTLS_HAVE_TIME)
+                             opt.nbio == 0 ? mbedtls_net_recv_timeout : NULL
+#else
+                             NULL
+#endif
+                );
+
     mbedtls_printf( " ok\n" );
 
 reset:
@@ -1799,16 +1810,6 @@ reset:
         goto exit;
     }
 
-    if( opt.nbio == 2 )
-        mbedtls_ssl_set_bio( &ssl, &client_fd, my_send, my_recv, NULL );
-    else
-        mbedtls_ssl_set_bio( &ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv,
-#if defined(MBEDTLS_HAVE_TIME)
-                             opt.nbio == 0 ? mbedtls_net_recv_timeout : NULL
-#else
-                             NULL
-#endif
-                );
     mbedtls_ssl_conf_read_timeout( &conf, opt.read_timeout );
 
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)

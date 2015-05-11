@@ -16,12 +16,14 @@ API Changes
    * Headers are now found in the 'mbedtls' directory (previously 'polarssl').
    * The following _init() functions that could return errors have
      been split into an _init() that returns void and another function that
-     should generally called shortly after init and can return errors:
+     should generally be the first function called on this context after init:
      mbedtls_ssl_init() -> mbedtls_ssl_setup()
      mbedtls_ccm_init() -> mbedtls_ccm_setkey()
      mbedtls_gcm_init() -> mbedtls_gcm_setkey()
      mbedtls_hmac_drbg_init() -> mbedtls_hmac_drbg_seed(_buf)()
      mbedtls_ctr_drbg_init()  -> mbedtls_ctr_drbg_seed()
+     Note that for mbetls_ssl_setup(), you need to be done setting up the
+     ssl_config structure before calling it.
    * Most ssl_set_xxx() functions (all except ssl_set_hostname(),
      ssl_set_session() and ssl_set_client_transport_id(), plus
      ssl_legacy_renegotiation()) have been renamed to mbedtls_ssl_conf_xxx()

@@ -404,12 +404,6 @@ int main( int argc, char *argv[] )
             goto exit;
         }
 
-        if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
-        {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned %d\n\n", ret );
-            goto ssl_exit;
-        }
-
         if( verify )
         {
             mbedtls_ssl_conf_authmode( &conf, MBEDTLS_SSL_VERIFY_REQUIRED );
@@ -421,11 +415,16 @@ int main( int argc, char *argv[] )
 
         mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
         mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
-        mbedtls_ssl_set_bio( &ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv, NULL );
 
         if( ( ret = mbedtls_ssl_conf_own_cert( &conf, &clicert, &pkey ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_own_cert returned %d\n\n", ret );
+            goto ssl_exit;
+        }
+
+        if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned %d\n\n", ret );
             goto ssl_exit;
         }
 
@@ -434,6 +433,8 @@ int main( int argc, char *argv[] )
             mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hostname returned %d\n\n", ret );
             goto ssl_exit;
         }
+
+        mbedtls_ssl_set_bio( &ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv, NULL );
 
         /*
          * 4. Handshake

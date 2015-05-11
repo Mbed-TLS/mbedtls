@@ -1152,6 +1152,12 @@ void mbedtls_ssl_init( mbedtls_ssl_context *ssl );
 /**
  * \brief          Set up an SSL context for use
  *
+ * \note           No copy of the configuration context is made, it can be
+ *                 shared by many ssl_context structures.
+ *
+ * \warning        Modifying the conf structure after is has been used in this
+ *                 function is unsupported!
+ *
  * \param ssl      SSL context
  * \param conf     SSL configuration to use
  *

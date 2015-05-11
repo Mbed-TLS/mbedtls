@@ -1057,12 +1057,6 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned -0x%x\n\n", -ret );
-        goto exit;
-    }
-
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     if( opt.debug_level > 0 )
         mbedtls_ssl_conf_verify( &conf, my_verify, NULL );
@@ -1118,16 +1112,6 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
     mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
 
-    if( opt.nbio == 2 )
-        mbedtls_ssl_set_bio( &ssl, &server_fd, my_send, my_recv, NULL );
-    else
-        mbedtls_ssl_set_bio( &ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv,
-#if defined(MBEDTLS_HAVE_TIME)
-                             opt.nbio == 0 ? mbedtls_net_recv_timeout : NULL
-#else
-                             NULL
-#endif
-                );
     mbedtls_ssl_conf_read_timeout( &conf, opt.read_timeout );
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
@@ -1192,6 +1176,31 @@ int main( int argc, char *argv[] )
     if( opt.fallback != DFL_FALLBACK )
         mbedtls_ssl_conf_fallback( &conf, opt.fallback );
 #endif
+
+    if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned -0x%x\n\n", -ret );
+        goto exit;
+    }
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    if( ( ret = mbedtls_ssl_set_hostname( &ssl, opt.server_name ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hostname returned %d\n\n", ret );
+        goto exit;
+    }
+#endif
+
+    if( opt.nbio == 2 )
+        mbedtls_ssl_set_bio( &ssl, &server_fd, my_send, my_recv, NULL );
+    else
+        mbedtls_ssl_set_bio( &ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv,
+#if defined(MBEDTLS_HAVE_TIME)
+                             opt.nbio == 0 ? mbedtls_net_recv_timeout : NULL
+#else
+                             NULL
+#endif
+                );
 
     mbedtls_printf( " ok\n" );
 

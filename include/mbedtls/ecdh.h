@@ -122,7 +122,7 @@ void mbedtls_ecdh_free( mbedtls_ecdh_context *ctx );
  * \param p_rng     RNG parameter
  *
  * \note            This function assumes that ctx->grp has already been
- *                  properly set (for example using mbedtls_ecp_use_known_dp).
+ *                  properly set (for example using mbedtls_ecp_group_load).
  *
  * \return          0 if successful, or an MBEDTLS_ERR_ECP_XXX error code
  */

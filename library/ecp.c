@@ -387,7 +387,7 @@ cleanup:
  */
 int mbedtls_ecp_group_copy( mbedtls_ecp_group *dst, const mbedtls_ecp_group *src )
 {
-    return mbedtls_ecp_use_known_dp( dst, src->id );
+    return mbedtls_ecp_group_load( dst, src->id );
 }
 
 /*
@@ -613,7 +613,7 @@ int mbedtls_ecp_tls_read_group( mbedtls_ecp_group *grp, const unsigned char **bu
     if( ( curve_info = mbedtls_ecp_curve_info_from_tls_id( tls_id ) ) == NULL )
         return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
 
-    return mbedtls_ecp_use_known_dp( grp, curve_info->grp_id );
+    return mbedtls_ecp_group_load( grp, curve_info->grp_id );
 }
 
 /*
@@ -1846,7 +1846,7 @@ int mbedtls_ecp_gen_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
 {
     int ret;
 
-    if( ( ret = mbedtls_ecp_use_known_dp( &key->grp, grp_id ) ) != 0 )
+    if( ( ret = mbedtls_ecp_group_load( &key->grp, grp_id ) ) != 0 )
         return( ret );
 
     return( mbedtls_ecp_gen_keypair( &key->grp, &key->d, &key->Q, f_rng, p_rng ) );
@@ -1925,9 +1925,9 @@ int mbedtls_ecp_self_test( int verbose )
 
     /* Use secp192r1 if available, or any available curve */
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
-    MBEDTLS_MPI_CHK( mbedtls_ecp_use_known_dp( &grp, MBEDTLS_ECP_DP_SECP192R1 ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_group_load( &grp, MBEDTLS_ECP_DP_SECP192R1 ) );
 #else
-    MBEDTLS_MPI_CHK( mbedtls_ecp_use_known_dp( &grp, mbedtls_ecp_curve_list()->grp_id ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_group_load( &grp, mbedtls_ecp_curve_list()->grp_id ) );
 #endif
 
     if( verbose != 0 )

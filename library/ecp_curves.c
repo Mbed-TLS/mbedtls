@@ -692,7 +692,7 @@ cleanup:
 /*
  * Set a group using well-known domain parameters
  */
-int mbedtls_ecp_use_known_dp( mbedtls_ecp_group *grp, mbedtls_ecp_group_id id )
+int mbedtls_ecp_group_load( mbedtls_ecp_group *grp, mbedtls_ecp_group_id id )
 {
     mbedtls_ecp_group_free( grp );
 

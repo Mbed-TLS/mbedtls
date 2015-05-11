@@ -373,7 +373,7 @@ static int pk_group_id_from_group( const mbedtls_ecp_group *grp, mbedtls_ecp_gro
     {
         /* Load the group associated to that id */
         mbedtls_ecp_group_free( &ref );
-        MBEDTLS_MPI_CHK( mbedtls_ecp_use_known_dp( &ref, *id ) );
+        MBEDTLS_MPI_CHK( mbedtls_ecp_group_load( &ref, *id ) );
 
         /* Compare to the group we were given, starting with easy tests */
         if( grp->pbits == ref.pbits && grp->nbits == ref.nbits &&
@@ -459,7 +459,7 @@ static int pk_use_ecparams( const mbedtls_asn1_buf *params, mbedtls_ecp_group *g
     if( grp->id != MBEDTLS_ECP_DP_NONE && grp->id != grp_id )
         return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT );
 
-    if( ( ret = mbedtls_ecp_use_known_dp( grp, grp_id ) ) != 0 )
+    if( ( ret = mbedtls_ecp_group_load( grp, grp_id ) ) != 0 )
         return( ret );
 
     return( 0 );

@@ -49,7 +49,7 @@ extern "C" {
  *
  * \warning This library does not support validation of arbitrary domain
  * parameters. Therefore, only well-known domain parameters from trusted
- * sources should be used. See mbedtls_ecp_use_known_dp().
+ * sources should be used. See mbedtls_ecp_group_load().
  */
 typedef enum
 {
@@ -450,7 +450,7 @@ int mbedtls_ecp_tls_write_point( const mbedtls_ecp_group *grp, const mbedtls_ecp
  * \note            Index should be a value of RFC 4492's enum NamedCurve,
  *                  usually in the form of a MBEDTLS_ECP_DP_XXX macro.
  */
-int mbedtls_ecp_use_known_dp( mbedtls_ecp_group *grp, mbedtls_ecp_group_id index );
+int mbedtls_ecp_group_load( mbedtls_ecp_group *grp, mbedtls_ecp_group_id index );
 
 /**
  * \brief           Set a group from a TLS ECParameters record

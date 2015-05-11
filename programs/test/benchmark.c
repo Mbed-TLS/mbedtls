@@ -729,7 +729,7 @@ int main( int argc, char *argv[] )
         {
             mbedtls_ecdh_init( &ecdh );
 
-            if( mbedtls_ecp_use_known_dp( &ecdh.grp, curve_info->grp_id ) != 0 ||
+            if( mbedtls_ecp_group_load( &ecdh.grp, curve_info->grp_id ) != 0 ||
                 mbedtls_ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
                                   myrand, NULL ) != 0 ||
                 mbedtls_ecp_copy( &ecdh.Qp, &ecdh.Q ) != 0 )
@@ -753,7 +753,7 @@ int main( int argc, char *argv[] )
         mbedtls_ecdh_init( &ecdh );
         mbedtls_mpi_init( &z );
 
-        if( mbedtls_ecp_use_known_dp( &ecdh.grp, MBEDTLS_ECP_DP_M255 ) != 0 ||
+        if( mbedtls_ecp_group_load( &ecdh.grp, MBEDTLS_ECP_DP_M255 ) != 0 ||
             mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Qp, myrand, NULL ) != 0 )
         {
             mbedtls_exit( 1 );
@@ -775,7 +775,7 @@ int main( int argc, char *argv[] )
         {
             mbedtls_ecdh_init( &ecdh );
 
-            if( mbedtls_ecp_use_known_dp( &ecdh.grp, curve_info->grp_id ) != 0 ||
+            if( mbedtls_ecp_group_load( &ecdh.grp, curve_info->grp_id ) != 0 ||
                 mbedtls_ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
                                   myrand, NULL ) != 0 ||
                 mbedtls_ecp_copy( &ecdh.Qp, &ecdh.Q ) != 0 ||
@@ -799,7 +799,7 @@ int main( int argc, char *argv[] )
         mbedtls_ecdh_init( &ecdh );
         mbedtls_mpi_init( &z );
 
-        if( mbedtls_ecp_use_known_dp( &ecdh.grp, MBEDTLS_ECP_DP_M255 ) != 0 ||
+        if( mbedtls_ecp_group_load( &ecdh.grp, MBEDTLS_ECP_DP_M255 ) != 0 ||
             mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Qp,
                              myrand, NULL ) != 0 ||
             mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Q, myrand, NULL ) != 0 )

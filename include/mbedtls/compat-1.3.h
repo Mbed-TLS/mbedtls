@@ -2003,7 +2003,7 @@
 #define ecp_tls_read_point mbedtls_ecp_tls_read_point
 #define ecp_tls_write_group mbedtls_ecp_tls_write_group
 #define ecp_tls_write_point mbedtls_ecp_tls_write_point
-#define ecp_use_known_dp mbedtls_ecp_use_known_dp
+#define ecp_use_known_dp mbedtls_ecp_group_load
 #define entropy_add_source mbedtls_entropy_add_source
 #define entropy_context mbedtls_entropy_context
 #define entropy_free mbedtls_entropy_free

@@ -1408,7 +1408,7 @@ static const struct x509_crt_verify_string x509_crt_verify_strings[] = {
 };
 
 int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
-                          int flags )
+                          uint32_t flags )
 {
     int ret;
     const struct x509_crt_verify_string *cur;
@@ -1767,12 +1767,13 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
 
 static int x509_crt_verify_top(
                 mbedtls_x509_crt *child, mbedtls_x509_crt *trust_ca,
-                mbedtls_x509_crl *ca_crl, int path_cnt, int *flags,
-                int (*f_vrfy)(void *, mbedtls_x509_crt *, int, int *),
+                mbedtls_x509_crl *ca_crl, int path_cnt, uint32_t *flags,
+                int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                 void *p_vrfy )
 {
     int ret;
-    int ca_flags = 0, check_path_cnt = path_cnt + 1;
+    uint32_t ca_flags = 0;
+    int check_path_cnt = path_cnt + 1;
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
     const mbedtls_md_info_t *md_info;
 
@@ -1881,12 +1882,12 @@ static int x509_crt_verify_top(
 
 static int x509_crt_verify_child(
                 mbedtls_x509_crt *child, mbedtls_x509_crt *parent, mbedtls_x509_crt *trust_ca,
-                mbedtls_x509_crl *ca_crl, int path_cnt, int *flags,
-                int (*f_vrfy)(void *, mbedtls_x509_crt *, int, int *),
+                mbedtls_x509_crl *ca_crl, int path_cnt, uint32_t *flags,
+                int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                 void *p_vrfy )
 {
     int ret;
-    int parent_flags = 0;
+    uint32_t parent_flags = 0;
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
     mbedtls_x509_crt *grandparent;
     const mbedtls_md_info_t *md_info;
@@ -1971,8 +1972,8 @@ static int x509_crt_verify_child(
 int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
                      mbedtls_x509_crt *trust_ca,
                      mbedtls_x509_crl *ca_crl,
-                     const char *cn, int *flags,
-                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, int *),
+                     const char *cn, uint32_t *flags,
+                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy )
 {
     size_t cn_len;

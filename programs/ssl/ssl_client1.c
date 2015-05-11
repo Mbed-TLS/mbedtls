@@ -77,6 +77,7 @@ static void my_debug( void *ctx, int level, const char *str )
 int main( void )
 {
     int ret, len, server_fd = -1;
+    uint32_t flags;
     unsigned char buf[1024];
     const char *pers = "ssl_client1";
 
@@ -204,13 +205,13 @@ int main( void )
     mbedtls_printf( "  . Verifying peer X.509 certificate..." );
 
     /* In real life, we probably want to bail out when ret != 0 */
-    if( ( ret = mbedtls_ssl_get_verify_result( &ssl ) ) != 0 )
+    if( ( flags = mbedtls_ssl_get_verify_result( &ssl ) ) != 0 )
     {
         char vrfy_buf[512];
 
         mbedtls_printf( " failed\n" );
 
-        mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", ret );
+        mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", flags );
 
         mbedtls_printf( "%s\n", vrfy_buf );
     }

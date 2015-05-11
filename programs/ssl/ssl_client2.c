@@ -364,7 +364,7 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
 /*
  * Enabled if debug_level > 1 in code below
  */
-static int my_verify( void *data, mbedtls_x509_crt *crt, int depth, int *flags )
+static int my_verify( void *data, mbedtls_x509_crt *crt, int depth, uint32_t *flags )
 {
     char buf[1024];
     ((void) data);
@@ -388,6 +388,7 @@ static int my_verify( void *data, mbedtls_x509_crt *crt, int depth, int *flags )
 int main( int argc, char *argv[] )
 {
     int ret = 0, len, tail_len, server_fd, i, written, frags, retry_left;
+    uint32_t flags;
     unsigned char buf[MBEDTLS_SSL_MAX_CONTENT_LEN + 1];
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     unsigned char psk[MBEDTLS_PSK_MAX_LEN];
@@ -1260,13 +1261,13 @@ int main( int argc, char *argv[] )
      */
     mbedtls_printf( "  . Verifying peer X.509 certificate..." );
 
-    if( ( ret = mbedtls_ssl_get_verify_result( &ssl ) ) != 0 )
+    if( ( flags = mbedtls_ssl_get_verify_result( &ssl ) ) != 0 )
     {
         char vrfy_buf[512];
 
         mbedtls_printf( " failed\n" );
 
-        mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", ret );
+        mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", flags );
 
         mbedtls_printf( "%s\n", vrfy_buf );
     }

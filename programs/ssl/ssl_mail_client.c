@@ -166,6 +166,7 @@ static void my_debug( void *ctx, int level, const char *str )
 static int do_handshake( mbedtls_ssl_context *ssl )
 {
     int ret;
+    uint32_t flags;
     unsigned char buf[1024];
     memset(buf, 0, 1024);
 
@@ -196,13 +197,13 @@ static int do_handshake( mbedtls_ssl_context *ssl )
     mbedtls_printf( "  . Verifying peer X.509 certificate..." );
 
     /* In real life, we probably want to bail out when ret != 0 */
-    if( ( ret = mbedtls_ssl_get_verify_result( ssl ) ) != 0 )
+    if( ( flags = mbedtls_ssl_get_verify_result( ssl ) ) != 0 )
     {
         char vrfy_buf[512];
 
         mbedtls_printf( " failed\n" );
 
-        mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", ret );
+        mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", flags );
 
         mbedtls_printf( "%s\n", vrfy_buf );
     }

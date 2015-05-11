@@ -850,7 +850,7 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
 {
     mbedtls_ssl_key_cert *cur, *list, *fallback = NULL;
     mbedtls_pk_type_t pk_alg = mbedtls_ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
-    int flags;
+    uint32_t flags;
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     if( ssl->handshake->sni_key_cert != NULL )

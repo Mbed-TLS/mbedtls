@@ -214,22 +214,7 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
  *                 case of an error.
  */
 int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
-                          int flags );
-
-/**
- * \brief          Returns an informational string about the
- *                 verification status of a certificate.
- *
- * \param buf      Buffer to write to
- * \param size     Maximum size of buffer
- * \param prefix   A line prefix
- * \param flags    Verification flags created by mbedtls_x509_crt_verify()
- *
- * \return         The amount of data written to the buffer, or -1 in
- *                 case of an error.
- */
-int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
-                          int flags );
+                          uint32_t flags );
 
 /**
  * \brief          Verify the certificate signature
@@ -270,8 +255,8 @@ int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
 int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
                      mbedtls_x509_crt *trust_ca,
                      mbedtls_x509_crl *ca_crl,
-                     const char *cn, int *flags,
-                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, int *),
+                     const char *cn, uint32_t *flags,
+                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy );
 
 #if defined(MBEDTLS_X509_CHECK_KEY_USAGE)

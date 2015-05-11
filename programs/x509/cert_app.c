@@ -119,7 +119,7 @@ static void my_debug( void *ctx, int level, const char *str )
     }
 }
 
-static int my_verify( void *data, mbedtls_x509_crt *crt, int depth, int *flags )
+static int my_verify( void *data, mbedtls_x509_crt *crt, int depth, uint32_t *flags )
 {
     char buf[1024];
     ((void) data);
@@ -152,7 +152,8 @@ int main( int argc, char *argv[] )
     mbedtls_x509_crl cacrl;
     mbedtls_pk_context pkey;
     int i, j;
-    int flags, verify = 0;
+    uint32_t flags;
+    int verify = 0;
     char *p, *q;
     const char *pers = "cert_app";
 

@@ -998,7 +998,7 @@ int mbedtls_x509_self_test( int verbose )
 {
 #if defined(MBEDTLS_CERTS_C) && defined(MBEDTLS_SHA1_C)
     int ret;
-    int flags;
+    uint32_t flags;
     mbedtls_x509_crt cacert;
     mbedtls_x509_crt clicert;
 

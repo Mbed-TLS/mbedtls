@@ -705,6 +705,7 @@ void term_handler( int sig )
 int main( int argc, char *argv[] )
 {
     int ret = 0, len, written, frags, exchanges_left;
+    uint32_t flags;
     int version_suites[4][2];
     unsigned char buf[IO_BUF_LEN];
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
@@ -1896,13 +1897,13 @@ reset:
      */
     mbedtls_printf( "  . Verifying peer X.509 certificate..." );
 
-    if( ( ret = mbedtls_ssl_get_verify_result( &ssl ) ) != 0 )
+    if( ( flags = mbedtls_ssl_get_verify_result( &ssl ) ) != 0 )
     {
         char vrfy_buf[512];
 
         mbedtls_printf( " failed\n" );
 
-        mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", ret );
+        mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", flags );
 
         mbedtls_printf( "%s\n", vrfy_buf );
     }

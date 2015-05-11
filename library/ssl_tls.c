@@ -5219,7 +5219,7 @@ void mbedtls_ssl_conf_authmode( mbedtls_ssl_config *conf, int authmode )
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 void mbedtls_ssl_conf_verify( mbedtls_ssl_config *conf,
-                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, int *),
+                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy )
 {
     conf->f_vrfy      = f_vrfy;
@@ -5682,7 +5682,7 @@ size_t mbedtls_ssl_get_bytes_avail( const mbedtls_ssl_context *ssl )
     return( ssl->in_offt == NULL ? 0 : ssl->in_msglen );
 }
 
-int mbedtls_ssl_get_verify_result( const mbedtls_ssl_context *ssl )
+uint32_t mbedtls_ssl_get_verify_result( const mbedtls_ssl_context *ssl )
 {
     if( ssl->session != NULL )
         return( ssl->session->verify_result );
@@ -6828,7 +6828,7 @@ int mbedtls_ssl_curve_is_acceptable( const mbedtls_ssl_context *ssl, mbedtls_ecp
 int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
                           const mbedtls_ssl_ciphersuite_t *ciphersuite,
                           int cert_endpoint,
-                          int *flags )
+                          uint32_t *flags )
 {
     int ret = 0;
 #if defined(MBEDTLS_X509_CHECK_KEY_USAGE)

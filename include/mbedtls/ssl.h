@@ -590,7 +590,7 @@ struct mbedtls_ssl_session
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_x509_crt *peer_cert;        /*!< peer X.509 cert chain */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
-    int verify_result;          /*!<  verification result     */
+    uint32_t verify_result;          /*!<  verification result     */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     unsigned char *ticket;      /*!< RFC 5077 session ticket */
@@ -823,7 +823,7 @@ typedef struct
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     /** Callback to customize X.509 certificate chain verification          */
-    int (*f_vrfy)(void *, mbedtls_x509_crt *, int, int *);
+    int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *);
     void *p_vrfy;                   /*!< context for X.509 verify calllback */
 #endif
 
@@ -1242,7 +1242,7 @@ void mbedtls_ssl_conf_authmode( mbedtls_ssl_config *conf, int authmode );
  * \param p_vrfy   verification parameter
  */
 void mbedtls_ssl_conf_verify( mbedtls_ssl_config *conf,
-                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, int *),
+                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
@@ -2107,7 +2107,7 @@ size_t mbedtls_ssl_get_bytes_avail( const mbedtls_ssl_context *ssl );
  *                 a combination of BADCERT_xxx and BADCRL_xxx flags, see
  *                 x509.h
  */
-int mbedtls_ssl_get_verify_result( const mbedtls_ssl_context *ssl );
+uint32_t mbedtls_ssl_get_verify_result( const mbedtls_ssl_context *ssl );
 
 /**
  * \brief          Return the name of the current ciphersuite
@@ -2424,7 +2424,7 @@ static inline mbedtls_x509_crt *mbedtls_ssl_own_cert( mbedtls_ssl_context *ssl )
 int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
                           const mbedtls_ssl_ciphersuite_t *ciphersuite,
                           int cert_endpoint,
-                          int *flags );
+                          uint32_t *flags );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 void mbedtls_ssl_write_version( int major, int minor, int transport,

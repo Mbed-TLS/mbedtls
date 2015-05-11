@@ -85,6 +85,7 @@ static void my_debug( void *ctx, int level, const char *str )
 int main( int argc, char *argv[] )
 {
     int ret, len, server_fd = -1;
+    uint32_t flags;
     unsigned char buf[1024];
     const char *pers = "dtls_client";
     int retry_left = MAX_RETRY;
@@ -221,23 +222,15 @@ int main( int argc, char *argv[] )
     /* In real life, we would have used MBEDTLS_SSL_VERIFY_REQUIRED so that the
      * handshake would not succeed if the peer's cert is bad.  Even if we used
      * MBEDTLS_SSL_VERIFY_OPTIONAL, we would bail out here if ret != 0 */
-    if( ( ret = mbedtls_ssl_get_verify_result( &ssl ) ) != 0 )
+    if( ( flags = mbedtls_ssl_get_verify_result( &ssl ) ) != 0 )
     {
+        char vrfy_buf[512];
+
         mbedtls_printf( " failed\n" );
 
-        if( ( ret & MBEDTLS_X509_BADCERT_EXPIRED ) != 0 )
-            mbedtls_printf( "  ! server certificate has expired\n" );
+        mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", flags );
 
-        if( ( ret & MBEDTLS_X509_BADCERT_REVOKED ) != 0 )
-            mbedtls_printf( "  ! server certificate has been revoked\n" );
-
-        if( ( ret & MBEDTLS_X509_BADCERT_CN_MISMATCH ) != 0 )
-            mbedtls_printf( "  ! CN mismatch (expected CN=%s)\n", SERVER_NAME );
-
-        if( ( ret & MBEDTLS_X509_BADCERT_NOT_TRUSTED ) != 0 )
-            mbedtls_printf( "  ! self-signed or not signed by a trusted CA\n" );
-
-        mbedtls_printf( "\n" );
+        mbedtls_printf( "%s\n", vrfy_buf );
     }
     else
         mbedtls_printf( " ok\n" );

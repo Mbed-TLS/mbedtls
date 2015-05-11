@@ -140,7 +140,7 @@ int main( void )
          * 1.3. Load own certificate
          */
         char    name[512];
-        int flags;
+        uint32_t flags;
         mbedtls_x509_crt clicert;
         mbedtls_pk_context pk;
 

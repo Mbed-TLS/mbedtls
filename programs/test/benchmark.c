@@ -97,7 +97,7 @@ int main( void )
 #define DHM_SIZES 3
 
 #define OPTIONS                                                         \
-    "mbedtls_md4, mbedtls_md5, mbedtls_ripemd160, mbedtls_sha1, mbedtls_sha256, mbedtls_sha512,\n"                      \
+    "md4, md5, ripemd160, sha1, sha256, sha512,\n"                      \
     "arc4, des3, des, aes_cbc, aes_gcm, aes_ccm, camellia, blowfish,\n" \
     "havege, ctr_drbg, hmac_drbg\n"                                     \
     "rsa, dhm, ecdsa, ecdh.\n"
@@ -239,7 +239,7 @@ void ecp_clear_precomputed( mbedtls_ecp_group *grp )
 unsigned char buf[BUFSIZE];
 
 typedef struct {
-    char mbedtls_md4, mbedtls_md5, mbedtls_ripemd160, mbedtls_sha1, mbedtls_sha256, mbedtls_sha512,
+    char md4, md5, ripemd160, sha1, sha256, sha512,
          arc4, des3, des, aes_cbc, aes_gcm, aes_ccm, camellia, blowfish,
          havege, ctr_drbg, hmac_drbg,
          rsa, dhm, ecdsa, ecdh;
@@ -265,18 +265,18 @@ int main( int argc, char *argv[] )
 
         for( i = 1; i < argc; i++ )
         {
-            if( strcmp( argv[i], "mbedtls_md4" ) == 0 )
-                todo.mbedtls_md4 = 1;
-            else if( strcmp( argv[i], "mbedtls_md5" ) == 0 )
-                todo.mbedtls_md5 = 1;
-            else if( strcmp( argv[i], "mbedtls_ripemd160" ) == 0 )
-                todo.mbedtls_ripemd160 = 1;
-            else if( strcmp( argv[i], "mbedtls_sha1" ) == 0 )
-                todo.mbedtls_sha1 = 1;
-            else if( strcmp( argv[i], "mbedtls_sha256" ) == 0 )
-                todo.mbedtls_sha256 = 1;
-            else if( strcmp( argv[i], "mbedtls_sha512" ) == 0 )
-                todo.mbedtls_sha512 = 1;
+            if( strcmp( argv[i], "md4" ) == 0 )
+                todo.md4 = 1;
+            else if( strcmp( argv[i], "md5" ) == 0 )
+                todo.md5 = 1;
+            else if( strcmp( argv[i], "ripemd160" ) == 0 )
+                todo.ripemd160 = 1;
+            else if( strcmp( argv[i], "sha1" ) == 0 )
+                todo.sha1 = 1;
+            else if( strcmp( argv[i], "sha256" ) == 0 )
+                todo.sha256 = 1;
+            else if( strcmp( argv[i], "sha512" ) == 0 )
+                todo.sha512 = 1;
             else if( strcmp( argv[i], "arc4" ) == 0 )
                 todo.arc4 = 1;
             else if( strcmp( argv[i], "des3" ) == 0 )
@@ -324,32 +324,32 @@ int main( int argc, char *argv[] )
     memset( tmp, 0xBB, sizeof( tmp ) );
 
 #if defined(MBEDTLS_MD4_C)
-    if( todo.mbedtls_md4 )
+    if( todo.md4 )
         TIME_AND_TSC( "MD4", mbedtls_md4( buf, BUFSIZE, tmp ) );
 #endif
 
 #if defined(MBEDTLS_MD5_C)
-    if( todo.mbedtls_md5 )
+    if( todo.md5 )
         TIME_AND_TSC( "MD5", mbedtls_md5( buf, BUFSIZE, tmp ) );
 #endif
 
 #if defined(MBEDTLS_RIPEMD160_C)
-    if( todo.mbedtls_ripemd160 )
+    if( todo.ripemd160 )
         TIME_AND_TSC( "RIPEMD160", mbedtls_ripemd160( buf, BUFSIZE, tmp ) );
 #endif
 
 #if defined(MBEDTLS_SHA1_C)
-    if( todo.mbedtls_sha1 )
+    if( todo.sha1 )
         TIME_AND_TSC( "SHA-1", mbedtls_sha1( buf, BUFSIZE, tmp ) );
 #endif
 
 #if defined(MBEDTLS_SHA256_C)
-    if( todo.mbedtls_sha256 )
+    if( todo.sha256 )
         TIME_AND_TSC( "SHA-256", mbedtls_sha256( buf, BUFSIZE, tmp, 0 ) );
 #endif
 
 #if defined(MBEDTLS_SHA512_C)
-    if( todo.mbedtls_sha512 )
+    if( todo.sha512 )
         TIME_AND_TSC( "SHA-512", mbedtls_sha512( buf, BUFSIZE, tmp, 0 ) );
 #endif
 

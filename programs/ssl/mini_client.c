@@ -147,7 +147,7 @@ enum exit_codes
 {
     exit_ok = 0,
     ctr_drbg_seed_failed,
-    ssl_config_default_failed,
+    ssl_config_defaults_failed,
     ssl_setup_failed,
     hostname_failed,
     socket_failed,
@@ -200,7 +200,7 @@ int main( void )
     mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
-    mbedtls_ssl_conf_psk( &ssl, psk, sizeof( psk ),
+    mbedtls_ssl_conf_psk( &conf, psk, sizeof( psk ),
                 (const unsigned char *) psk_id, sizeof( psk_id ) - 1 );
 #endif
 

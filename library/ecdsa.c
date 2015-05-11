@@ -203,9 +203,9 @@ int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
 {
     int ret;
     mbedtls_mpi e, s_inv, u1, u2;
-    mbedtls_ecp_point R, P;
+    mbedtls_ecp_point R;
 
-    mbedtls_ecp_point_init( &R ); mbedtls_ecp_point_init( &P );
+    mbedtls_ecp_point_init( &R );
     mbedtls_mpi_init( &e ); mbedtls_mpi_init( &s_inv ); mbedtls_mpi_init( &u1 ); mbedtls_mpi_init( &u2 );
 
     /* Fail cleanly on curves such as Curve25519 that can't be used for ECDSA */
@@ -249,9 +249,7 @@ int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
      * Since we're not using any secret data, no need to pass a RNG to
      * mbedtls_ecp_mul() for countermesures.
      */
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &R, &u1, &grp->G, NULL, NULL ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &P, &u2, Q, NULL, NULL ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_add( grp, &R, &R, &P ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_muladd( grp, &R, &u1, &grp->G, &u2, Q ) );
 
     if( mbedtls_ecp_is_zero( &R ) )
     {
@@ -275,7 +273,7 @@ int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
     }
 
 cleanup:
-    mbedtls_ecp_point_free( &R ); mbedtls_ecp_point_free( &P );
+    mbedtls_ecp_point_free( &R );
     mbedtls_mpi_free( &e ); mbedtls_mpi_free( &s_inv ); mbedtls_mpi_free( &u1 ); mbedtls_mpi_free( &u2 );
 
     return( ret );

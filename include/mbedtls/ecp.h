@@ -482,25 +482,18 @@ int mbedtls_ecp_tls_write_group( const mbedtls_ecp_group *grp, size_t *olen,
                          unsigned char *buf, size_t blen );
 
 /**
- * \brief           Addition: R = P + Q
- *
- * \param grp       ECP group
- * \param R         Destination point
- * \param P         Left-hand point
- * \param Q         Right-hand point
- *
- * \return          0 if successful,
- *                  MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed
- *
- * \note            This function does not support Montgomery curves, such as
- *                  Curve25519.
- */
-int mbedtls_ecp_add( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
-             const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q );
-
-/**
  * \brief           Multiplication by an integer: R = m * P
  *                  (Not thread-safe to use same group in multiple threads)
+ *
+ * \note            In order to prevent timing attacks, this function
+ *                  executes the exact same sequence of (base field)
+ *                  operations for any valid m. It avoids any if-branch or
+ *                  array index depending on the value of m.
+ *
+ * \note            If f_rng is not NULL, it is used to randomize intermediate
+ *                  results in order to prevent potential timing attacks
+ *                  targeting these results. It is recommended to always
+ *                  provide a non-NULL f_rng (the overhead is negligible).
  *
  * \param grp       ECP group
  * \param R         Destination point
@@ -513,20 +506,34 @@ int mbedtls_ecp_add( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  *                  MBEDTLS_ERR_ECP_INVALID_KEY if m is not a valid privkey
  *                  or P is not a valid pubkey,
  *                  MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed
- *
- * \note            In order to prevent timing attacks, this function
- *                  executes the exact same sequence of (base field)
- *                  operations for any valid m. It avoids any if-branch or
- *                  array index depending on the value of m.
- *
- * \note            If f_rng is not NULL, it is used to randomize intermediate
- *                  results in order to prevent potential timing attacks
- *                  targeting these results. It is recommended to always
- *                  provide a non-NULL f_rng (the overhead is negligible).
  */
 int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              const mbedtls_mpi *m, const mbedtls_ecp_point *P,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
+
+/**
+ * \brief           Multiplication and addition of two points by integers:
+ *                  R = m * P + n * Q
+ *                  (Not thread-safe to use same group in multiple threads)
+ *
+ * \note            In contrast to ecp_mul(), this function does not guarantee
+ *                  a constant execution flow and timing.
+ *
+ * \param grp       ECP group
+ * \param R         Destination point
+ * \param m         Integer by which to multiply P
+ * \param P         Point to multiply by m
+ * \param n         Integer by which to multiply Q
+ * \param Q         Point to be multiplied by n
+ *
+ * \return          0 if successful,
+ *                  MBEDTLS_ERR_ECP_INVALID_KEY if m or n is not a valid privkey
+ *                  or P or Q is not a valid pubkey,
+ *                  MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ */
+int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+             const mbedtls_mpi *m, const mbedtls_ecp_point *P,
+             const mbedtls_mpi *n, const mbedtls_ecp_point *Q );
 
 /**
  * \brief           Check that a point is a valid public key on this curve

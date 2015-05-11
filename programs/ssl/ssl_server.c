@@ -205,19 +205,19 @@ int main( void )
         goto exit;
     }
 
-    mbedtls_ssl_set_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
-    mbedtls_ssl_set_dbg( &conf, my_debug, stdout );
+    mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
+    mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
 
 #if defined(MBEDTLS_SSL_CACHE_C)
-    mbedtls_ssl_set_session_cache( &conf, &cache,
+    mbedtls_ssl_conf_session_cache( &conf, &cache,
                                    mbedtls_ssl_cache_get,
                                    mbedtls_ssl_cache_set );
 #endif
 
-    mbedtls_ssl_set_ca_chain( &conf, srvcert.next, NULL );
-    if( ( ret = mbedtls_ssl_set_own_cert( &conf, &srvcert, &pkey ) ) != 0 )
+    mbedtls_ssl_conf_ca_chain( &conf, srvcert.next, NULL );
+    if( ( ret = mbedtls_ssl_conf_own_cert( &conf, &srvcert, &pkey ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_set_own_cert returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_own_cert returned %d\n\n", ret );
         goto exit;
     }
 

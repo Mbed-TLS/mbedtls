@@ -361,7 +361,7 @@
  * Remove RC4 ciphersuites by default in SSL / TLS.
  * This flag removes the ciphersuites based on RC4 from the default list as
  * returned by mbedtls_ssl_list_ciphersuites(). However, it is still possible to
- * enable (some of) them with mbedtls_ssl_set_ciphersuites() by including them
+ * enable (some of) them with mbedtls_ssl_conf_ciphersuites() by including them
  * explicitly.
  *
  * Uncomment this macro to remove RC4 ciphersuites by default.
@@ -1064,7 +1064,7 @@
  *           MBEDTLS_SSL_PROTO_DTLS
  *
  * \warning Disabling this is often a security risk!
- * See mbedtls_ssl_set_dtls_anti_replay() for details.
+ * See mbedtls_ssl_conf_dtls_anti_replay() for details.
  *
  * Comment this to disable anti-replay in DTLS.
  */
@@ -1094,7 +1094,7 @@
  *
  * Enable support for a limit of records with bad MAC.
  *
- * See mbedtls_ssl_set_dtls_badmac_limit().
+ * See mbedtls_ssl_conf_dtls_badmac_limit().
  *
  * Requires: MBEDTLS_SSL_PROTO_DTLS
  */
@@ -1136,14 +1136,14 @@
 /**
  * \def MBEDTLS_SSL_SET_CURVES
  *
- * Enable mbedtls_ssl_set_curves().
+ * Enable mbedtls_ssl_conf_curves().
  *
  * This is disabled by default since it breaks binary compatibility with the
  * 1.3.x line. If you choose to enable it, you will need to rebuild your
  * application against the new header files, relinking will not be enough.
  * It will be enabled by default, or no longer an option, in the 1.4 branch.
  *
- * Uncomment to make mbedtls_ssl_set_curves() available.
+ * Uncomment to make mbedtls_ssl_conf_curves() available.
  */
 //#define MBEDTLS_SSL_SET_CURVES
 

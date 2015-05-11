@@ -203,10 +203,10 @@ int main( void )
         goto exit;
     }
 
-    mbedtls_ssl_set_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
+    mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
-    mbedtls_ssl_set_psk( &ssl, psk, sizeof( psk ),
+    mbedtls_ssl_conf_psk( &ssl, psk, sizeof( psk ),
                 (const unsigned char *) psk_id, sizeof( psk_id ) - 1 );
 #endif
 
@@ -217,13 +217,13 @@ int main( void )
         goto exit;
     }
 
-    mbedtls_ssl_set_ca_chain( &conf, &ca, NULL );
+    mbedtls_ssl_conf_ca_chain( &conf, &ca, NULL );
     if( mbedtls_ssl_set_hostname( &ssl, HOSTNAME ) != 0 )
     {
         ret = hostname_failed;
         goto exit;
     }
-    mbedtls_ssl_set_authmode( &conf, MBEDTLS_SSL_VERIFY_REQUIRED );
+    mbedtls_ssl_conf_authmode( &conf, MBEDTLS_SSL_VERIFY_REQUIRED );
 #endif
 
     /*

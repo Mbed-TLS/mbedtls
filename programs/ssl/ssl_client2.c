@@ -1065,58 +1065,58 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     if( opt.debug_level > 0 )
-        mbedtls_ssl_set_verify( &conf, my_verify, NULL );
+        mbedtls_ssl_conf_verify( &conf, my_verify, NULL );
 #endif
 
     if( opt.auth_mode != DFL_AUTH_MODE )
-        mbedtls_ssl_set_authmode( &conf, opt.auth_mode );
+        mbedtls_ssl_conf_authmode( &conf, opt.auth_mode );
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( opt.hs_to_min != DFL_HS_TO_MIN || opt.hs_to_max != DFL_HS_TO_MAX )
-        mbedtls_ssl_set_handshake_timeout( &conf, opt.hs_to_min, opt.hs_to_max );
+        mbedtls_ssl_conf_handshake_timeout( &conf, opt.hs_to_min, opt.hs_to_max );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    if( ( ret = mbedtls_ssl_set_max_frag_len( &conf, opt.mfl_code ) ) != 0 )
+    if( ( ret = mbedtls_ssl_conf_max_frag_len( &conf, opt.mfl_code ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_set_max_frag_len returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_max_frag_len returned %d\n\n", ret );
         goto exit;
     }
 #endif
 
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
     if( opt.trunc_hmac != DFL_TRUNC_HMAC )
-        mbedtls_ssl_set_truncated_hmac( &conf, opt.trunc_hmac );
+        mbedtls_ssl_conf_truncated_hmac( &conf, opt.trunc_hmac );
 #endif
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
     if( opt.extended_ms != DFL_EXTENDED_MS )
-        mbedtls_ssl_set_extended_master_secret( &conf, opt.extended_ms );
+        mbedtls_ssl_conf_extended_master_secret( &conf, opt.extended_ms );
 #endif
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     if( opt.etm != DFL_ETM )
-        mbedtls_ssl_set_encrypt_then_mac( &conf, opt.etm );
+        mbedtls_ssl_conf_encrypt_then_mac( &conf, opt.etm );
 #endif
 
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
     if( opt.recsplit != DFL_RECSPLIT )
-        mbedtls_ssl_set_cbc_record_splitting( &conf, opt.recsplit
+        mbedtls_ssl_conf_cbc_record_splitting( &conf, opt.recsplit
                                     ? MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED
                                     : MBEDTLS_SSL_CBC_RECORD_SPLITTING_DISABLED );
 #endif
 
 #if defined(MBEDTLS_SSL_ALPN)
     if( opt.alpn_string != NULL )
-        if( ( ret = mbedtls_ssl_set_alpn_protocols( &conf, alpn_list ) ) != 0 )
+        if( ( ret = mbedtls_ssl_conf_alpn_protocols( &conf, alpn_list ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_set_alpn_protocols returned %d\n\n", ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_alpn_protocols returned %d\n\n", ret );
             goto exit;
         }
 #endif
 
-    mbedtls_ssl_set_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
-    mbedtls_ssl_set_dbg( &conf, my_debug, stdout );
+    mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
+    mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
 
     if( opt.nbio == 2 )
         mbedtls_ssl_set_bio( &ssl, &server_fd, my_send, my_recv, NULL );
@@ -1128,40 +1128,40 @@ int main( int argc, char *argv[] )
                              NULL
 #endif
                 );
-    mbedtls_ssl_set_read_timeout( &conf, opt.read_timeout );
+    mbedtls_ssl_conf_read_timeout( &conf, opt.read_timeout );
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    if( ( ret = mbedtls_ssl_set_session_tickets( &conf, opt.tickets ) ) != 0 )
+    if( ( ret = mbedtls_ssl_conf_session_tickets( &conf, opt.tickets ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_set_session_tickets returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_session_tickets returned %d\n\n", ret );
         goto exit;
     }
 #endif
 
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
-        mbedtls_ssl_set_ciphersuites( &conf, opt.force_ciphersuite );
+        mbedtls_ssl_conf_ciphersuites( &conf, opt.force_ciphersuite );
 
     if( opt.arc4 != DFL_ARC4 )
-        mbedtls_ssl_set_arc4_support( &conf, opt.arc4 );
+        mbedtls_ssl_conf_arc4_support( &conf, opt.arc4 );
 
     if( opt.allow_legacy != DFL_ALLOW_LEGACY )
-        mbedtls_set_ssl_legacy_renegotiation( &conf, opt.allow_legacy );
+        mbedtls_ssl_conf_legacy_renegotiation( &conf, opt.allow_legacy );
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
-    mbedtls_ssl_set_renegotiation( &conf, opt.renegotiation );
+    mbedtls_ssl_conf_renegotiation( &conf, opt.renegotiation );
 #endif
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     if( strcmp( opt.ca_path, "none" ) != 0 &&
         strcmp( opt.ca_file, "none" ) != 0 )
     {
-        mbedtls_ssl_set_ca_chain( &conf, &cacert, NULL );
+        mbedtls_ssl_conf_ca_chain( &conf, &cacert, NULL );
     }
     if( strcmp( opt.crt_file, "none" ) != 0 &&
         strcmp( opt.key_file, "none" ) != 0 )
     {
-        if( ( ret = mbedtls_ssl_set_own_cert( &conf, &clicert, &pkey ) ) != 0 )
+        if( ( ret = mbedtls_ssl_conf_own_cert( &conf, &clicert, &pkey ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_set_own_cert returned %d\n\n", ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_own_cert returned %d\n\n", ret );
             goto exit;
         }
     }
@@ -1173,18 +1173,18 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
-    if( ( ret = mbedtls_ssl_set_psk( &conf, psk, psk_len,
+    if( ( ret = mbedtls_ssl_conf_psk( &conf, psk, psk_len,
                              (const unsigned char *) opt.psk_identity,
                              strlen( opt.psk_identity ) ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_set_psk returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_psk returned %d\n\n", ret );
         goto exit;
     }
 #endif
 
     if( opt.min_version != DFL_MIN_VERSION )
     {
-        ret = mbedtls_ssl_set_min_version( &conf, MBEDTLS_SSL_MAJOR_VERSION_3, opt.min_version );
+        ret = mbedtls_ssl_conf_min_version( &conf, MBEDTLS_SSL_MAJOR_VERSION_3, opt.min_version );
         if( ret != 0 )
         {
             mbedtls_printf( " failed\n  ! selected min_version is not available\n" );
@@ -1194,7 +1194,7 @@ int main( int argc, char *argv[] )
 
     if( opt.max_version != DFL_MAX_VERSION )
     {
-        ret = mbedtls_ssl_set_max_version( &conf, MBEDTLS_SSL_MAJOR_VERSION_3, opt.max_version );
+        ret = mbedtls_ssl_conf_max_version( &conf, MBEDTLS_SSL_MAJOR_VERSION_3, opt.max_version );
         if( ret != 0 )
         {
             mbedtls_printf( " failed\n  ! selected max_version is not available\n" );
@@ -1204,7 +1204,7 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_SSL_FALLBACK_SCSV)
     if( opt.fallback != DFL_FALLBACK )
-        mbedtls_ssl_set_fallback( &conf, opt.fallback );
+        mbedtls_ssl_conf_fallback( &conf, opt.fallback );
 #endif
 
     mbedtls_printf( " ok\n" );
@@ -1520,7 +1520,7 @@ reconnect:
 
         if( ( ret = mbedtls_ssl_set_session( &ssl, &saved_session ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_set_session returned %d\n\n", ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_session returned %d\n\n", ret );
             goto exit;
         }
 

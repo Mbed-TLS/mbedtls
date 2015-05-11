@@ -602,24 +602,24 @@ int main( int argc, char *argv[] )
 
     /* OPTIONAL is not optimal for security,
      * but makes interop easier in this simplified example */
-    mbedtls_ssl_set_authmode( &conf, MBEDTLS_SSL_VERIFY_OPTIONAL );
+    mbedtls_ssl_conf_authmode( &conf, MBEDTLS_SSL_VERIFY_OPTIONAL );
 
-    mbedtls_ssl_set_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
-    mbedtls_ssl_set_dbg( &conf, my_debug, stdout );
+    mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
+    mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
     mbedtls_ssl_set_bio( &ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv, NULL );
 
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
-        mbedtls_ssl_set_ciphersuites( &conf, opt.force_ciphersuite );
+        mbedtls_ssl_conf_ciphersuites( &conf, opt.force_ciphersuite );
 
-    mbedtls_ssl_set_ca_chain( &conf, &cacert, NULL );
+    mbedtls_ssl_conf_ca_chain( &conf, &cacert, NULL );
     if( ( ret = mbedtls_ssl_set_hostname( &ssl, opt.server_name ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hostname returned %d\n\n", ret );
         goto exit;
     }
-    if( ( ret = mbedtls_ssl_set_own_cert( &conf, &clicert, &pkey ) ) != 0 )
+    if( ( ret = mbedtls_ssl_conf_own_cert( &conf, &clicert, &pkey ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_set_own_cert returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_own_cert returned %d\n\n", ret );
         goto exit;
     }
 

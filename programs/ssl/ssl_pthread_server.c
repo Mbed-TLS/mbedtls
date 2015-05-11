@@ -176,22 +176,22 @@ static void *handle_ssl_connection( void *data )
         goto thread_exit;
     }
 
-    mbedtls_ssl_set_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
-    mbedtls_ssl_set_dbg( &conf, my_mutexed_debug, stdout );
+    mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
+    mbedtls_ssl_conf_dbg( &conf, my_mutexed_debug, stdout );
 
     /* mbedtls_ssl_cache_get() and mbedtls_ssl_cache_set() are thread-safe if
      * MBEDTLS_THREADING_C is set.
      */
 #if defined(MBEDTLS_SSL_CACHE_C)
-    mbedtls_ssl_set_session_cache( &conf,
+    mbedtls_ssl_conf_session_cache( &conf,
                                    mbedtls_ssl_cache_get, thread_info->cache,
                                    mbedtls_ssl_cache_set, thread_info->cache );
 #endif
 
-    mbedtls_ssl_set_ca_chain( &conf, thread_info->ca_chain, NULL );
-    if( ( ret = mbedtls_ssl_set_own_cert( &conf, thread_info->server_cert, thread_info->server_key ) ) != 0 )
+    mbedtls_ssl_conf_ca_chain( &conf, thread_info->ca_chain, NULL );
+    if( ( ret = mbedtls_ssl_conf_own_cert( &conf, thread_info->server_cert, thread_info->server_key ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_set_own_cert returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_own_cert returned %d\n\n", ret );
         goto thread_exit;
     }
 

@@ -168,16 +168,16 @@ int main( void )
 
     /* OPTIONAL is not optimal for security,
      * but makes interop easier in this simplified example */
-    mbedtls_ssl_set_authmode( &conf, MBEDTLS_SSL_VERIFY_OPTIONAL );
-    mbedtls_ssl_set_ca_chain( &conf, &cacert, NULL );
+    mbedtls_ssl_conf_authmode( &conf, MBEDTLS_SSL_VERIFY_OPTIONAL );
+    mbedtls_ssl_conf_ca_chain( &conf, &cacert, NULL );
     if( ( ret = mbedtls_ssl_set_hostname( &ssl, "mbed TLS Server 1" ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hostname returned %d\n\n", ret );
         goto exit;
     }
 
-    mbedtls_ssl_set_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
-    mbedtls_ssl_set_dbg( &conf, my_debug, stdout );
+    mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
+    mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
     mbedtls_ssl_set_bio( &ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv, NULL );
 
     /*

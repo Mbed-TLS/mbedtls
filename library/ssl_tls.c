@@ -4029,7 +4029,21 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 
     if( ssl->conf->authmode != MBEDTLS_SSL_VERIFY_NONE )
     {
-        if( ssl->conf->ca_chain == NULL )
+        mbedtls_x509_crt *ca_chain;
+        mbedtls_x509_crl *ca_crl;
+
+        if( ssl->handshake->sni_ca_chain != NULL )
+        {
+            ca_chain = ssl->handshake->sni_ca_chain;
+            ca_crl   = ssl->handshake->sni_ca_crl;
+        }
+        else
+        {
+            ca_chain = ssl->conf->ca_chain;
+            ca_crl   = ssl->conf->ca_crl;
+        }
+
+        if( ca_chain == NULL )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no CA chain" ) );
             return( MBEDTLS_ERR_SSL_CA_CHAIN_REQUIRED );
@@ -4039,7 +4053,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
          * Main check: verify certificate
          */
         ret = mbedtls_x509_crt_verify( ssl->session_negotiate->peer_cert,
-                               ssl->conf->ca_chain, ssl->conf->ca_crl, ssl->hostname,
+                               ca_chain, ca_crl, ssl->hostname,
                               &ssl->session_negotiate->verify_result,
                                ssl->conf->f_vrfy, ssl->conf->p_vrfy );
 
@@ -5359,6 +5373,14 @@ int mbedtls_ssl_set_hs_own_cert( mbedtls_ssl_context *ssl,
 {
     return( ssl_append_key_cert( &ssl->handshake->sni_key_cert,
                                  own_cert, pk_key ) );
+}
+
+void mbedtls_ssl_set_hs_ca_chain( mbedtls_ssl_context *ssl,
+                                  mbedtls_x509_crt *ca_chain,
+                                  mbedtls_x509_crl *ca_crl )
+{
+    ssl->handshake->sni_ca_chain   = ca_chain;
+    ssl->handshake->sni_ca_crl     = ca_crl;
 }
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 

@@ -680,6 +680,8 @@ struct mbedtls_ssl_handshake_params
     mbedtls_ssl_key_cert *key_cert;     /*!< chosen key/cert pair (server)  */
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     mbedtls_ssl_key_cert *sni_key_cert; /*!< key/cert list from SNI         */
+    mbedtls_x509_crt *sni_ca_chain;     /*!< trusted CAs from SNI callback  */
+    mbedtls_x509_crl *sni_ca_crl;       /*!< trusted CAs CRLs from SNI      */
 #endif
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -1562,10 +1564,15 @@ void mbedtls_ssl_set_ca_chain( mbedtls_ssl_config *conf,
  *                 certificate chain. The top certificate (self-signed)
  *                 can be omitted.
  *
- * \note           This function may be called more than once if you want to
- *                 support multiple certificates (eg, one using RSA and one
- *                 using ECDSA). However, on client, currently only the first
- *                 certificate is used (subsequent calls have no effect).
+ * \note           On server, this function can be called multiple times to
+ *                 provision more than one cert/key pair (eg one ECDSA, one
+ *                 RSA with SHA-256, one RSA with SHA-1). An adequate
+ *                 certificate will be selected according to the client's
+ *                 advertised capabilities. In case mutliple certificates are
+ *                 adequate, preference is given to the one set by the first
+ *                 call to this function, then second, etc.
+ *
+ * \note           On client, only the first call has any effect.
  *
  * \param conf     SSL configuration
  * \param own_cert own public certificate chain
@@ -1723,6 +1730,21 @@ int mbedtls_ssl_set_hs_own_cert( mbedtls_ssl_context *ssl,
                                  mbedtls_pk_context *pk_key );
 
 /**
+ * \brief          Set the data required to verify peer certificate for the
+ *                 current handshake
+ *
+ * \note           Same as \c mbedtls_ssl_set_ca_chain() but for use within
+ *                 the SNI callback.
+ *
+ * \param ssl      SSL context
+ * \param ca_chain trusted CA chain (meaning all fully trusted top-level CAs)
+ * \param ca_crl   trusted CA CRLs
+ */
+void mbedtls_ssl_set_hs_ca_chain( mbedtls_ssl_context *ssl,
+                                  mbedtls_x509_crt *ca_chain,
+                                  mbedtls_x509_crl *ca_crl );
+
+/**
  * \brief          Set server side ServerName TLS extension callback
  *                 (optional, server-side only).
  *
@@ -1732,10 +1754,11 @@ int mbedtls_ssl_set_hs_own_cert( mbedtls_ssl_context *ssl,
  *                 following parameters: (void *parameter, mbedtls_ssl_context *ssl,
  *                 const unsigned char *hostname, size_t len). If a suitable
  *                 certificate is found, the callback should set the
- *                 certificate and key to use with mbedtls_ssl_set_hs_own_cert() (and
- *                 possibly adjust the CA chain as well TODO: broken) and return 0. The
- *                 callback should return -1 to abort the handshake at this
- *                 point.
+ *                 certificate(s) and key(s) to use with \c
+ *                 mbedtls_ssl_set_hs_own_cert() (can be called repeatedly),
+ *                 and optionally adjust the CA with \c
+ *                 mbedtls_ssl_set_hs_ca_chain() and return 0. The callback
+ *                 should return -1 to abort the handshake at this point.
  *
  * \param conf     SSL configuration
  * \param f_sni    verification function

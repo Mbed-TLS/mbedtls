@@ -29,9 +29,10 @@ API Changes
      changed from ssl_context to ssl_config.
    * mbedtls_ssl_conf_ca_chain() lost its last argument (peer_cn), now set
      using mbedtls_ssl_set_hostname().
-   * mbedtls_ssl_set_session_cached() changed prototype (only one context
+   * mbedtls_ssl_conf_session_cache() changed prototype (only one context
      pointer, parameters reordered).
-   * mbedtls_memory_bufer_alloc_init() now returns void
+   * mbedtls_ssl_conf_truncated_hmac() now returns void.
+   * mbedtls_memory_bufer_alloc_init() now returns void.
    * In the threading layer, mbedtls_mutex_init() and mbedtls_mutex_free() now
      return void.
    * ecdsa_write_signature() gained an addtional md_alg argument and
@@ -96,9 +97,13 @@ Reauirement changes
    * The NET layer now unconditionnaly relies on getaddrinfo().
    * Compiler is required to support C99 types such as long long and uint32_t.
 
-Changes from the 1.4 preview branch
+API changes from the 1.4 preview branch
    * ssl_set_bio_timeout() was removed, split into mbedtls_ssl_set_bio() with
      new prototype, and mbedtls_ssl_set_read_timeout().
+   * The following functions now return void:
+     mbedtls_ssl_conf_transport()
+     mbedtls_ssl_conf_max_version()
+     mbedtls_ssl_conf_min_version()
 
 Changes
    * mbedtls_ctr_drbg_random() and mbedtls_hmac_drbg_random() are now

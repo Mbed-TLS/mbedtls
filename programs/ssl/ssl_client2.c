@@ -1183,24 +1183,10 @@ int main( int argc, char *argv[] )
 #endif
 
     if( opt.min_version != DFL_MIN_VERSION )
-    {
-        ret = mbedtls_ssl_conf_min_version( &conf, MBEDTLS_SSL_MAJOR_VERSION_3, opt.min_version );
-        if( ret != 0 )
-        {
-            mbedtls_printf( " failed\n  ! selected min_version is not available\n" );
-            goto exit;
-        }
-    }
+        mbedtls_ssl_conf_min_version( &conf, MBEDTLS_SSL_MAJOR_VERSION_3, opt.min_version );
 
     if( opt.max_version != DFL_MAX_VERSION )
-    {
-        ret = mbedtls_ssl_conf_max_version( &conf, MBEDTLS_SSL_MAJOR_VERSION_3, opt.max_version );
-        if( ret != 0 )
-        {
-            mbedtls_printf( " failed\n  ! selected max_version is not available\n" );
-            goto exit;
-        }
-    }
+        mbedtls_ssl_conf_max_version( &conf, MBEDTLS_SSL_MAJOR_VERSION_3, opt.max_version );
 
 #if defined(MBEDTLS_SSL_FALLBACK_SCSV)
     if( opt.fallback != DFL_FALLBACK )

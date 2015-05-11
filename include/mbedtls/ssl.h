@@ -1185,17 +1185,16 @@ void mbedtls_ssl_conf_endpoint( mbedtls_ssl_config *conf, int endpoint );
  * \brief           Set the transport type (TLS or DTLS).
  *                  Default: TLS
  *
+ * \note            For DTLS, you must either provide a recv callback that
+ *                  doesn't block, or one that handles timeouts, see
+ *                  mbedtls_ssl_conf_bio()
+ *
  * \param conf      SSL configuration
  * \param transport transport type:
  *                  MBEDTLS_SSL_TRANSPORT_STREAM for TLS,
  *                  MBEDTLS_SSL_TRANSPORT_DATAGRAM for DTLS.
- * \return          0 on success or MBEDTLS_ERR_SSL_BAD_INPUT_DATA
- *
- * \note            For DTLS, you must either provide a recv callback that
- *                  doesn't block, or one that handles timeouts, see
- *                  mbedtls_ssl_conf_bio()
  */
-int mbedtls_ssl_conf_transport( mbedtls_ssl_config *conf, int transport );
+void mbedtls_ssl_conf_transport( mbedtls_ssl_config *conf, int transport );
 
 /**
  * \brief          Set the certificate verification mode
@@ -1799,19 +1798,18 @@ const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl );
  *                 and/or accepted at the server side
  *                 (Default: MBEDTLS_SSL_MAX_MAJOR_VERSION, MBEDTLS_SSL_MAX_MINOR_VERSION)
  *
- *                 Note: This ignores ciphersuites from 'higher' versions.
+ * \note           This ignores ciphersuites from higher versions.
+ *
+ * \note           With DTLS, use MBEDTLS_SSL_MINOR_VERSION_2 for DTLS 1.0 and
+ *                 MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
  *
  * \param conf     SSL configuration
  * \param major    Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3 supported)
  * \param minor    Minor version number (MBEDTLS_SSL_MINOR_VERSION_0,
  *                 MBEDTLS_SSL_MINOR_VERSION_1 and MBEDTLS_SSL_MINOR_VERSION_2,
  *                 MBEDTLS_SSL_MINOR_VERSION_3 supported)
- * \return         0 on success or MBEDTLS_ERR_SSL_BAD_INPUT_DATA
- *
- * \note           With DTLS, use MBEDTLS_SSL_MINOR_VERSION_2 for DTLS 1.0 and
- *                 MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
  */
-int mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int minor );
+void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int minor );
 
 /**
  * \brief          Set the minimum accepted SSL/TLS protocol version
@@ -1822,17 +1820,16 @@ int mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int minor
  *
  * \note           MBEDTLS_SSL_MINOR_VERSION_0 (SSL v3) should be avoided.
  *
+ * \note           With DTLS, use MBEDTLS_SSL_MINOR_VERSION_2 for DTLS 1.0 and
+ *                 MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
+ *
  * \param conf     SSL configuration
  * \param major    Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3 supported)
  * \param minor    Minor version number (MBEDTLS_SSL_MINOR_VERSION_0,
  *                 MBEDTLS_SSL_MINOR_VERSION_1 and MBEDTLS_SSL_MINOR_VERSION_2,
  *                 MBEDTLS_SSL_MINOR_VERSION_3 supported)
- * \return         0 on success or MBEDTLS_ERR_SSL_BAD_INPUT_DATA
- *
- * \note           With DTLS, use MBEDTLS_SSL_MINOR_VERSION_2 for DTLS 1.0 and
- *                 MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
  */
-int mbedtls_ssl_conf_min_version( mbedtls_ssl_config *conf, int major, int minor );
+void mbedtls_ssl_conf_min_version( mbedtls_ssl_config *conf, int major, int minor );
 
 #if defined(MBEDTLS_SSL_FALLBACK_SCSV) && defined(MBEDTLS_SSL_CLI_C)
 /**
@@ -1929,10 +1926,8 @@ int mbedtls_ssl_conf_max_frag_len( mbedtls_ssl_config *conf, unsigned char mfl_c
  * \param conf     SSL configuration
  * \param truncate Enable or disable (MBEDTLS_SSL_TRUNC_HMAC_ENABLED or
  *                                    MBEDTLS_SSL_TRUNC_HMAC_DISABLED)
- *
- * \return         Always 0.
  */
-int mbedtls_ssl_conf_truncated_hmac( mbedtls_ssl_config *conf, int truncate );
+void mbedtls_ssl_conf_truncated_hmac( mbedtls_ssl_config *conf, int truncate );
 #endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
 
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)

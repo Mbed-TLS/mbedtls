@@ -5185,11 +5185,9 @@ void mbedtls_ssl_conf_endpoint( mbedtls_ssl_config *conf, int endpoint )
     conf->endpoint   = endpoint;
 }
 
-int mbedtls_ssl_conf_transport( mbedtls_ssl_config *conf, int transport )
+void mbedtls_ssl_conf_transport( mbedtls_ssl_config *conf, int transport )
 {
     conf->transport = transport;
-
-    return( 0 );
 }
 
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
@@ -5564,50 +5562,16 @@ const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl )
 }
 #endif /* MBEDTLS_SSL_ALPN */
 
-static int ssl_check_version( const mbedtls_ssl_config *conf,
-                              int major, int minor )
+void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int minor )
 {
-    if( major < MBEDTLS_SSL_MIN_MAJOR_VERSION ||
-        major > MBEDTLS_SSL_MAX_MAJOR_VERSION ||
-        minor < MBEDTLS_SSL_MIN_MINOR_VERSION ||
-        minor > MBEDTLS_SSL_MAX_MINOR_VERSION )
-    {
-        return( -1 );
-    }
-
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
-        minor < MBEDTLS_SSL_MINOR_VERSION_2 )
-    {
-        return( -1 );
-    }
-#else
-    ((void) ssl);
-#endif
-
-    return( 0 );
-}
-
-int mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int minor )
-{
-    if( ssl_check_version( conf, major, minor ) != 0 )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-
     conf->max_major_ver = major;
     conf->max_minor_ver = minor;
-
-    return( 0 );
 }
 
-int mbedtls_ssl_conf_min_version( mbedtls_ssl_config *conf, int major, int minor )
+void mbedtls_ssl_conf_min_version( mbedtls_ssl_config *conf, int major, int minor )
 {
-    if( ssl_check_version( conf, major, minor ) != 0 )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-
     conf->min_major_ver = major;
     conf->min_minor_ver = minor;
-
-    return( 0 );
 }
 
 #if defined(MBEDTLS_SSL_FALLBACK_SCSV) && defined(MBEDTLS_SSL_CLI_C)
@@ -5652,11 +5616,9 @@ int mbedtls_ssl_conf_max_frag_len( mbedtls_ssl_config *conf, unsigned char mfl_c
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-int mbedtls_ssl_conf_truncated_hmac( mbedtls_ssl_config *conf, int truncate )
+void mbedtls_ssl_conf_truncated_hmac( mbedtls_ssl_config *conf, int truncate )
 {
     conf->trunc_hmac = truncate;
-
-    return( 0 );
 }
 #endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
 

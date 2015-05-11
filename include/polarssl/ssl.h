@@ -1154,6 +1154,9 @@ int ssl_set_session( ssl_context *ssl, const ssl_session *session );
  *                      order. First in the list has the highest preference.
  *                      (Overrides all version specific lists)
  *
+ *                      The ciphersuites array is not copied, and must remain
+ *                      valid for the lifetime of the ssl_context.
+ *
  *                      Note: The server uses its own preferences
  *                      over the preference of the client unless
  *                      POLARSSL_SSL_SRV_RESPECT_CLIENT_PREFERENCE is defined!
@@ -1540,7 +1543,7 @@ void ssl_set_arc4_support( ssl_context *ssl, char arc4 );
  *                 SSL_MAX_FRAG_LEN_512,  SSL_MAX_FRAG_LEN_1024,
  *                 SSL_MAX_FRAG_LEN_2048, SSL_MAX_FRAG_LEN_4096)
  *
- * \return         O if successful or POLARSSL_ERR_SSL_BAD_INPUT_DATA
+ * \return         0 if successful or POLARSSL_ERR_SSL_BAD_INPUT_DATA
  */
 int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code );
 #endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
@@ -1589,7 +1592,7 @@ void ssl_set_cbc_record_splitting( ssl_context *ssl, char split );
  * \param use_tickets   Enable or disable (SSL_SESSION_TICKETS_ENABLED or
  *                                         SSL_SESSION_TICKETS_DISABLED)
  *
- * \return         O if successful,
+ * \return         0 if successful,
  *                 or a specific error code (server only).
  */
 int ssl_set_session_tickets( ssl_context *ssl, int use_tickets );

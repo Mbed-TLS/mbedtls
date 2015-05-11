@@ -1149,11 +1149,6 @@ int main( int argc, char *argv[] )
             goto exit;
         }
     }
-    if( ( ret = mbedtls_ssl_set_hostname( &ssl, opt.server_name ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hostname returned %d\n\n", ret );
-        goto exit;
-    }
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)

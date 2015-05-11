@@ -41,10 +41,6 @@ endif(CMAKE_BUILD_TYPE STREQUAL "Coverage")
 
 option(USE_PKCS11_HELPER_LIBRARY "Build mbed TLS with the pkcs11-helper library." OFF)
 
-option(ENABLE_ZLIB_SUPPORT "Build mbed TLS with zlib library." OFF)
-option(ENABLE_PROGRAMS "Build mbed TLS programs." OFF)
-option(ENABLE_TESTING "Build mbed TLS tests." OFF)
-
 if(ENABLE_TESTING)
   enable_testing()
 endif()
@@ -56,29 +52,8 @@ endif()
 
 include_directories(include/)
 
-if(ENABLE_ZLIB_SUPPORT)
-  find_package(ZLIB)
-
-  if(ZLIB_FOUND)
-    include_directories(${ZLIB_INCLUDE_DIR})
-  endif(ZLIB_FOUND)
-endif(ENABLE_ZLIB_SUPPORT)
-
 add_subdirectory(library)
 add_subdirectory(include)
-
-if(ENABLE_TESTING)
-  if(CMAKE_COMPILER_IS_GNUCC)
-    add_subdirectory(tests)
-  endif(CMAKE_COMPILER_IS_GNUCC)
-  if(CMAKE_COMPILER_IS_CLANG)
-    add_subdirectory(tests)
-  endif(CMAKE_COMPILER_IS_CLANG)
-endif()
-
-if(ENABLE_PROGRAMS)
-  add_subdirectory(programs)
-endif()
 
 ADD_CUSTOM_TARGET(apidoc
                   COMMAND doxygen doxygen/mbedtls.doxyfile

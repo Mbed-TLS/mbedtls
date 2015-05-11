@@ -221,11 +221,13 @@ int main( void )
         goto exit;
     }
 
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
     if( mbedtls_ssl_set_hostname( &ssl, HOSTNAME ) != 0 )
     {
         ret = hostname_failed;
         goto exit;
     }
+#endif
 
     /*
      * 1. Start the connection

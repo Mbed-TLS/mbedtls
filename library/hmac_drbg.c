@@ -105,10 +105,6 @@ int mbedtls_hmac_drbg_seed_buf( mbedtls_hmac_drbg_context *ctx,
 {
     int ret;
 
-    memset( ctx, 0, sizeof( mbedtls_hmac_drbg_context ) );
-
-    mbedtls_md_init( &ctx->md_ctx );
-
     if( ( ret = mbedtls_md_setup( &ctx->md_ctx, md_info, 1 ) ) != 0 )
         return( ret );
 
@@ -178,10 +174,6 @@ int mbedtls_hmac_drbg_seed( mbedtls_hmac_drbg_context *ctx,
 {
     int ret;
     size_t entropy_len, md_size;
-
-    memset( ctx, 0, sizeof( mbedtls_hmac_drbg_context ) );
-
-    mbedtls_md_init( &ctx->md_ctx );
 
     if( ( ret = mbedtls_md_setup( &ctx->md_ctx, md_info, 1 ) ) != 0 )
         return( ret );

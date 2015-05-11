@@ -167,10 +167,6 @@ int mbedtls_gcm_setkey( mbedtls_gcm_context *ctx,
     int ret;
     const mbedtls_cipher_info_t *cipher_info;
 
-    memset( ctx, 0, sizeof(mbedtls_gcm_context) );
-
-    mbedtls_cipher_init( &ctx->cipher_ctx );
-
     cipher_info = mbedtls_cipher_info_from_values( cipher, keysize, MBEDTLS_MODE_ECB );
     if( cipher_info == NULL )
         return( MBEDTLS_ERR_GCM_BAD_INPUT );

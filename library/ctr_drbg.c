@@ -82,7 +82,6 @@ int mbedtls_ctr_drbg_seed_entropy_len(
     int ret;
     unsigned char key[MBEDTLS_CTR_DRBG_KEYSIZE];
 
-    memset( ctx, 0, sizeof(mbedtls_ctr_drbg_context) );
     memset( key, 0, MBEDTLS_CTR_DRBG_KEYSIZE );
 
     mbedtls_aes_init( &ctx->aes_ctx );

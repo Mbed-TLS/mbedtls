@@ -10,20 +10,36 @@ Features
 
 API Changes
    * All public identifiers moved to the mbedtls_* or MBEDTLS_* namespace.
+     Some names have been further changed to make them more consistent.
      Migration helpers scripts/rename.pl and include/mbedlts/compat-1.3.h are
-     provided.
+     provided. Full list of renamings in scripts/data_files/rename-1.3-2.0.txt
    * Headers are now found in the 'mbedtls' directory (previously 'polarssl').
    * The following _init() functions that could return errors have
-     been split into an _init() that returns void and another function:
+     been split into an _init() that returns void and another function that
+     should generally be the first function called on this context after init:
      mbedtls_ssl_init() -> mbedtls_ssl_setup()
      mbedtls_ccm_init() -> mbedtls_ccm_setkey()
      mbedtls_gcm_init() -> mbedtls_gcm_setkey()
-     mbedtls_hmac_drbg_init() -> mbedtls_hmac_drbg_init(_buf)()
-     mbedtls_ctr_drbg_init()  -> mbedtls_ctr_drbg_init(_buf)()
-   * Renamed mbedtls_pkcs11_priv_key_init() to ..._bind() and
-     mbedtls_pkcs11_x509_cert_init() as well (handled by rename.pl and
-     compat-1.3.h)
-   * mbedtls_memory_bufer_alloc_init() now returns void
+     mbedtls_hmac_drbg_init() -> mbedtls_hmac_drbg_seed(_buf)()
+     mbedtls_ctr_drbg_init()  -> mbedtls_ctr_drbg_seed()
+     Note that for mbetls_ssl_setup(), you need to be done setting up the
+     ssl_config structure before calling it.
+   * Most ssl_set_xxx() functions (all except ssl_set_hostname(),
+     ssl_set_session() and ssl_set_client_transport_id(), plus
+     ssl_legacy_renegotiation()) have been renamed to mbedtls_ssl_conf_xxx()
+     (see rename.pl and compat-1.3.h above) and their first argument's type
+     changed from ssl_context to ssl_config.
+   * The following functions have been introduced and must be used in callback
+     implementations (SNI, PSK) instead of their *conf counterparts:
+     mbedtls_ssl_set_hs_own_cert()
+     mbedtls_ssl_set_hs_ca_chain()
+     mbedtls_ssl_set_hs_psk()
+   * mbedtls_ssl_conf_ca_chain() lost its last argument (peer_cn), now set
+     using mbedtls_ssl_set_hostname().
+   * mbedtls_ssl_conf_session_cache() changed prototype (only one context
+     pointer, parameters reordered).
+   * mbedtls_ssl_conf_truncated_hmac() now returns void.
+   * mbedtls_memory_bufer_alloc_init() now returns void.
    * In the threading layer, mbedtls_mutex_init() and mbedtls_mutex_free() now
      return void.
    * ecdsa_write_signature() gained an addtional md_alg argument and
@@ -39,7 +55,8 @@ API Changes
      (support for renegotiation now needs explicit enabling in config.h).
    * net_connect() and net_bind() have a new 'proto' argument to choose
      between TCP and UDP, using the macros NET_PROTO_TCP or NET_PROTO_UDP.
-   * ssl_set_bio() now requires that p_send == p_recv.
+   * ssl_set_bio() changed signature (contexts merged, order switched, one
+     additional callback for read-with-timeout).
    * Some constness fixes
 
 Removals
@@ -60,7 +77,6 @@ Removals
 New deprecations
    * md_init_ctx() is deprecated in favour of md_setup(), that adds a third
      argument (allowing memory savings if HMAC is not used)
-   * ssl_set_bio() is deprecated in favour of ssl_set_bio_timeout().
 
 Semi-API changes (technically public, morally private)
    * Changed md_info_t into an opaque structure (use md_get_xxx() accessors).
@@ -80,11 +96,25 @@ Default behavior changes
    * Support for RSA_ALT contexts in the PK layer is now optional. Since is is
      enabled in the default configuration, this is only noticeable if using a
      custom config.h
+   * Default DHM parameters server-side upgraded from 1024 to 2048 bits.
+   * Negotiation of truncated HMAC is now disabled by default on server too.
 
 Reauirement changes
    * The minimum MSVC version required is now 2010 (better C99 support).
    * The NET layer now unconditionnaly relies on getaddrinfo().
    * Compiler is required to support C99 types such as long long and uint32_t.
+
+API changes from the 1.4 preview branch
+   * ssl_set_bio_timeout() was removed, split into mbedtls_ssl_set_bio() with
+     new prototype, and mbedtls_ssl_set_read_timeout().
+   * The following functions now return void:
+     mbedtls_ssl_conf_transport()
+     mbedtls_ssl_conf_max_version()
+     mbedtls_ssl_conf_min_version()
+
+Changes
+   * mbedtls_ctr_drbg_random() and mbedtls_hmac_drbg_random() are now
+     thread-safe if MBEDTLS_THREADING_C is enabled.
 
 = mbed TLS 1.3 branch
 

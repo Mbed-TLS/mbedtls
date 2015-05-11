@@ -97,6 +97,7 @@ int main( void )
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     mbedtls_ssl_context ssl;
+    mbedtls_ssl_config conf;
     mbedtls_x509_crt srvcert;
     mbedtls_pk_context pkey;
 #if defined(MBEDTLS_SSL_CACHE_C)
@@ -104,6 +105,7 @@ int main( void )
 #endif
 
     mbedtls_ssl_init( &ssl );
+    mbedtls_ssl_config_init( &conf );
     mbedtls_ssl_cookie_init( &cookie_ctx );
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_init( &cache );
@@ -190,28 +192,27 @@ int main( void )
     printf( "  . Setting up the DTLS data..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_ssl_setup( &ssl ) ) != 0 )
+    if( ( ret = mbedtls_ssl_config_defaults( &conf,
+                    MBEDTLS_SSL_IS_SERVER,
+                    MBEDTLS_SSL_TRANSPORT_DATAGRAM ) ) != 0 )
     {
-        printf( " failed\n  ! mbedtls_ssl_setup returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_config_defaults returned %d\n\n", ret );
         goto exit;
     }
 
-    mbedtls_ssl_set_endpoint( &ssl, MBEDTLS_SSL_IS_SERVER );
-    mbedtls_ssl_set_transport( &ssl, MBEDTLS_SSL_TRANSPORT_DATAGRAM );
-    mbedtls_ssl_set_authmode( &ssl, MBEDTLS_SSL_VERIFY_NONE );
-
-    mbedtls_ssl_set_rng( &ssl, mbedtls_ctr_drbg_random, &ctr_drbg );
-    mbedtls_ssl_set_dbg( &ssl, my_debug, stdout );
+    mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
+    mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
 
 #if defined(MBEDTLS_SSL_CACHE_C)
-    mbedtls_ssl_set_session_cache( &ssl, mbedtls_ssl_cache_get, &cache,
-                                 mbedtls_ssl_cache_set, &cache );
+    mbedtls_ssl_conf_session_cache( &conf, &cache,
+                                   mbedtls_ssl_cache_get,
+                                   mbedtls_ssl_cache_set );
 #endif
 
-    mbedtls_ssl_set_ca_chain( &ssl, srvcert.next, NULL, NULL );
-    if( ( ret = mbedtls_ssl_set_own_cert( &ssl, &srvcert, &pkey ) ) != 0 )
+    mbedtls_ssl_conf_ca_chain( &conf, srvcert.next, NULL );
+   if( ( ret = mbedtls_ssl_conf_own_cert( &conf, &srvcert, &pkey ) ) != 0 )
     {
-        printf( " failed\n  ! mbedtls_ssl_set_own_cert returned %d\n\n", ret );
+        printf( " failed\n  ! mbedtls_ssl_conf_own_cert returned %d\n\n", ret );
         goto exit;
     }
 
@@ -222,8 +223,14 @@ int main( void )
         goto exit;
     }
 
-    mbedtls_ssl_set_dtls_cookies( &ssl, mbedtls_ssl_cookie_write, mbedtls_ssl_cookie_check,
+    mbedtls_ssl_conf_dtls_cookies( &conf, mbedtls_ssl_cookie_write, mbedtls_ssl_cookie_check,
                                &cookie_ctx );
+
+    if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
+    {
+        printf( " failed\n  ! mbedtls_ssl_setup returned %d\n\n", ret );
+        goto exit;
+    }
 
     printf( " ok\n" );
 
@@ -268,13 +275,12 @@ reset:
                                            sizeof( client_ip ) ) ) != 0 )
     {
         printf( " failed\n  ! "
-                "ssl_set_client_tranport_id() returned -0x%x\n\n", -ret );
+                "ssl_set_client_transport_id() returned -0x%x\n\n", -ret );
         goto exit;
     }
 
-    mbedtls_ssl_set_bio_timeout( &ssl, &client_fd,
-                         mbedtls_net_send, mbedtls_net_recv, mbedtls_net_recv_timeout,
-                         READ_TIMEOUT_MS );
+    mbedtls_ssl_set_bio( &ssl, &client_fd,
+                         mbedtls_net_send, mbedtls_net_recv, mbedtls_net_recv_timeout );
 
     printf( " ok\n" );
 
@@ -285,8 +291,8 @@ reset:
     fflush( stdout );
 
     do ret = mbedtls_ssl_handshake( &ssl );
-    while( ret == MBEDTLS_ERR_NET_WANT_READ ||
-           ret == MBEDTLS_ERR_NET_WANT_WRITE );
+    while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
+           ret == MBEDTLS_ERR_SSL_WANT_WRITE );
 
     if( ret == MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED )
     {
@@ -312,14 +318,14 @@ reset:
     memset( buf, 0, sizeof( buf ) );
 
     do ret = mbedtls_ssl_read( &ssl, buf, len );
-    while( ret == MBEDTLS_ERR_NET_WANT_READ ||
-           ret == MBEDTLS_ERR_NET_WANT_WRITE );
+    while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
+           ret == MBEDTLS_ERR_SSL_WANT_WRITE );
 
     if( ret <= 0 )
     {
         switch( ret )
         {
-            case MBEDTLS_ERR_NET_TIMEOUT:
+            case MBEDTLS_ERR_SSL_TIMEOUT:
                 printf( " timeout\n\n" );
                 goto reset;
 
@@ -344,8 +350,8 @@ reset:
     fflush( stdout );
 
     do ret = mbedtls_ssl_write( &ssl, buf, len );
-    while( ret == MBEDTLS_ERR_NET_WANT_READ ||
-           ret == MBEDTLS_ERR_NET_WANT_WRITE );
+    while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
+           ret == MBEDTLS_ERR_SSL_WANT_WRITE );
 
     if( ret < 0 )
     {
@@ -364,7 +370,7 @@ close_notify:
 
     /* No error checking, the connection might be closed already */
     do ret = mbedtls_ssl_close_notify( &ssl );
-    while( ret == MBEDTLS_ERR_NET_WANT_WRITE );
+    while( ret == MBEDTLS_ERR_SSL_WANT_WRITE );
     ret = 0;
 
     printf( " done\n" );
@@ -391,6 +397,7 @@ exit:
     mbedtls_x509_crt_free( &srvcert );
     mbedtls_pk_free( &pkey );
     mbedtls_ssl_free( &ssl );
+    mbedtls_ssl_config_free( &conf );
     mbedtls_ssl_cookie_free( &cookie_ctx );
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_free( &cache );

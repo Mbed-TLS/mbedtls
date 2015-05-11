@@ -26,6 +26,10 @@
 
 #include "aes.h"
 
+#if defined(MBEDTLS_THREADING_C)
+#include "mbedtls/threading.h"
+#endif
+
 #define MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED        -0x0034  /**< The entropy source failed. */
 #define MBEDTLS_ERR_CTR_DRBG_REQUEST_TOO_BIG              -0x0036  /**< Too many random requested in single call. */
 #define MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG                -0x0038  /**< Input too large (Entropy + additional). */
@@ -99,6 +103,10 @@ typedef struct
     int (*f_entropy)(void *, unsigned char *, size_t);
 
     void *p_entropy;            /*!<  context for the entropy function */
+
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_threading_mutex_t mutex;
+#endif
 }
 mbedtls_ctr_drbg_context;
 

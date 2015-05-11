@@ -457,6 +457,12 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
             mbedtls_snprintf( buf, buflen, "SSL - A buffer is too small to receive or write a message" );
         if( use_ret == -(MBEDTLS_ERR_SSL_NO_USABLE_CIPHERSUITE) )
             mbedtls_snprintf( buf, buflen, "SSL - None of the common ciphersuites is usable (eg, no suitable certificate, see debug messages)" );
+        if( use_ret == -(MBEDTLS_ERR_SSL_WANT_READ) )
+            mbedtls_snprintf( buf, buflen, "SSL - Connection requires a read call" );
+        if( use_ret == -(MBEDTLS_ERR_SSL_WANT_WRITE) )
+            mbedtls_snprintf( buf, buflen, "SSL - Connection requires a write call" );
+        if( use_ret == -(MBEDTLS_ERR_SSL_TIMEOUT) )
+            mbedtls_snprintf( buf, buflen, "SSL - The operation timed out" );
 #endif /* MBEDTLS_SSL_TLS_C */
 
 #if defined(MBEDTLS_X509_USE_C) || defined(MBEDTLS_X509_CREATE_C)
@@ -675,14 +681,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "NET - Sending information through the socket failed" );
     if( use_ret == -(MBEDTLS_ERR_NET_CONN_RESET) )
         mbedtls_snprintf( buf, buflen, "NET - Connection was reset by peer" );
-    if( use_ret == -(MBEDTLS_ERR_NET_WANT_READ) )
-        mbedtls_snprintf( buf, buflen, "NET - Connection requires a read call" );
-    if( use_ret == -(MBEDTLS_ERR_NET_WANT_WRITE) )
-        mbedtls_snprintf( buf, buflen, "NET - Connection requires a write call" );
     if( use_ret == -(MBEDTLS_ERR_NET_UNKNOWN_HOST) )
         mbedtls_snprintf( buf, buflen, "NET - Failed to get an IP address for the given hostname" );
-    if( use_ret == -(MBEDTLS_ERR_NET_TIMEOUT) )
-        mbedtls_snprintf( buf, buflen, "NET - The operation timed out" );
 #endif /* MBEDTLS_NET_C */
 
 #if defined(MBEDTLS_OID_C)

@@ -61,6 +61,10 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx )
 {
     memset( ctx, 0, sizeof( mbedtls_ctr_drbg_context ) );
+
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_init( &ctx->mutex );
+#endif
 }
 
 /*
@@ -78,7 +82,6 @@ int mbedtls_ctr_drbg_seed_entropy_len(
     int ret;
     unsigned char key[MBEDTLS_CTR_DRBG_KEYSIZE];
 
-    memset( ctx, 0, sizeof(mbedtls_ctr_drbg_context) );
     memset( key, 0, MBEDTLS_CTR_DRBG_KEYSIZE );
 
     mbedtls_aes_init( &ctx->aes_ctx );
@@ -115,6 +118,9 @@ void mbedtls_ctr_drbg_free( mbedtls_ctr_drbg_context *ctx )
     if( ctx == NULL )
         return;
 
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_free( &ctx->mutex );
+#endif
     mbedtls_aes_free( &ctx->aes_ctx );
     mbedtls_zeroize( ctx, sizeof( mbedtls_ctr_drbg_context ) );
 }
@@ -392,7 +398,22 @@ int mbedtls_ctr_drbg_random_with_add( void *p_rng,
 
 int mbedtls_ctr_drbg_random( void *p_rng, unsigned char *output, size_t output_len )
 {
-    return mbedtls_ctr_drbg_random_with_add( p_rng, output, output_len, NULL, 0 );
+    int ret;
+    mbedtls_ctr_drbg_context *ctx = (mbedtls_ctr_drbg_context *) p_rng;
+
+#if defined(MBEDTLS_THREADING_C)
+    if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
+        return( ret );
+#endif
+
+    ret = mbedtls_ctr_drbg_random_with_add( ctx, output, output_len, NULL, 0 );
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &ctx->mutex ) != 0 )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+#endif
+
+    return( ret );
 }
 
 #if defined(MBEDTLS_FS_IO)
@@ -537,6 +558,8 @@ int mbedtls_ctr_drbg_self_test( int verbose )
     CHK( mbedtls_ctr_drbg_random( &ctx, buf, MBEDTLS_CTR_DRBG_BLOCKSIZE ) );
     CHK( memcmp( buf, result_pr, MBEDTLS_CTR_DRBG_BLOCKSIZE ) );
 
+    mbedtls_ctr_drbg_free( &ctx );
+
     if( verbose != 0 )
         mbedtls_printf( "passed\n" );
 
@@ -546,6 +569,8 @@ int mbedtls_ctr_drbg_self_test( int verbose )
     if( verbose != 0 )
         mbedtls_printf( "  CTR_DRBG (PR = FALSE): " );
 
+    mbedtls_ctr_drbg_init( &ctx );
+
     test_offset = 0;
     CHK( mbedtls_ctr_drbg_seed_entropy_len( &ctx, ctr_drbg_self_test_entropy,
                             (void *) entropy_source_nopr, nonce_pers_nopr, 16, 32 ) );
@@ -553,6 +578,8 @@ int mbedtls_ctr_drbg_self_test( int verbose )
     CHK( mbedtls_ctr_drbg_reseed( &ctx, NULL, 0 ) );
     CHK( mbedtls_ctr_drbg_random( &ctx, buf, 16 ) );
     CHK( memcmp( buf, result_nopr, 16 ) );
+
+    mbedtls_ctr_drbg_free( &ctx );
 
     if( verbose != 0 )
         mbedtls_printf( "passed\n" );

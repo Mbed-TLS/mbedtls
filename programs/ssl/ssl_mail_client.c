@@ -177,7 +177,7 @@ static int do_handshake( mbedtls_ssl_context *ssl )
 
     while( ( ret = mbedtls_ssl_handshake( ssl ) ) != 0 )
     {
-        if( ret != MBEDTLS_ERR_NET_WANT_READ && ret != MBEDTLS_ERR_NET_WANT_WRITE )
+        if( ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE )
         {
 #if defined(MBEDTLS_ERROR_C)
             mbedtls_strerror( ret, (char *) buf, 1024 );
@@ -224,7 +224,7 @@ static int write_ssl_data( mbedtls_ssl_context *ssl, unsigned char *buf, size_t 
     mbedtls_printf("\n%s", buf);
     while( len && ( ret = mbedtls_ssl_write( ssl, buf, len ) ) <= 0 )
     {
-        if( ret != MBEDTLS_ERR_NET_WANT_READ && ret != MBEDTLS_ERR_NET_WANT_WRITE )
+        if( ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_write returned %d\n\n", ret );
             return -1;
@@ -244,7 +244,7 @@ static int write_ssl_and_get_response( mbedtls_ssl_context *ssl, unsigned char *
     mbedtls_printf("\n%s", buf);
     while( len && ( ret = mbedtls_ssl_write( ssl, buf, len ) ) <= 0 )
     {
-        if( ret != MBEDTLS_ERR_NET_WANT_READ && ret != MBEDTLS_ERR_NET_WANT_WRITE )
+        if( ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_write returned %d\n\n", ret );
             return -1;
@@ -257,7 +257,7 @@ static int write_ssl_and_get_response( mbedtls_ssl_context *ssl, unsigned char *
         memset( data, 0, sizeof( data ) );
         ret = mbedtls_ssl_read( ssl, data, len );
 
-        if( ret == MBEDTLS_ERR_NET_WANT_READ || ret == MBEDTLS_ERR_NET_WANT_WRITE )
+        if( ret == MBEDTLS_ERR_SSL_WANT_READ || ret == MBEDTLS_ERR_SSL_WANT_WRITE )
             continue;
 
         if( ret == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY )
@@ -355,6 +355,7 @@ int main( int argc, char *argv[] )
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     mbedtls_ssl_context ssl;
+    mbedtls_ssl_config conf;
     mbedtls_x509_crt cacert;
     mbedtls_x509_crt clicert;
     mbedtls_pk_context pkey;
@@ -368,6 +369,7 @@ int main( int argc, char *argv[] )
      */
     server_fd = 0;
     mbedtls_ssl_init( &ssl );
+    mbedtls_ssl_config_init( &conf );
     memset( &buf, 0, sizeof( buf ) );
     mbedtls_x509_crt_init( &cacert );
     mbedtls_x509_crt_init( &clicert );
@@ -582,40 +584,53 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "  . Setting up the SSL/TLS structure..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_ssl_setup( &ssl ) ) != 0 )
+    if( ( ret = mbedtls_ssl_config_defaults( &conf,
+                    MBEDTLS_SSL_IS_CLIENT,
+                    MBEDTLS_SSL_TRANSPORT_STREAM ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_config_defaults returned %d\n\n", ret );
+        goto exit;
+    }
+
+    /* OPTIONAL is not optimal for security,
+     * but makes interop easier in this simplified example */
+    mbedtls_ssl_conf_authmode( &conf, MBEDTLS_SSL_VERIFY_OPTIONAL );
+
+    mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
+    mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
+
+    if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
+        mbedtls_ssl_conf_ciphersuites( &conf, opt.force_ciphersuite );
+
+    mbedtls_ssl_conf_ca_chain( &conf, &cacert, NULL );
+    if( ( ret = mbedtls_ssl_set_hostname( &ssl, opt.server_name ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hostname returned %d\n\n", ret );
+        goto exit;
+    }
+    if( ( ret = mbedtls_ssl_conf_own_cert( &conf, &clicert, &pkey ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_own_cert returned %d\n\n", ret );
+        goto exit;
+    }
+
+    if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned %d\n\n", ret );
         goto exit;
     }
 
-    mbedtls_printf( " ok\n" );
-
-    mbedtls_ssl_set_endpoint( &ssl, MBEDTLS_SSL_IS_CLIENT );
-    /* OPTIONAL is not optimal for security,
-     * but makes interop easier in this simplified example */
-    mbedtls_ssl_set_authmode( &ssl, MBEDTLS_SSL_VERIFY_OPTIONAL );
-
-    mbedtls_ssl_set_rng( &ssl, mbedtls_ctr_drbg_random, &ctr_drbg );
-    mbedtls_ssl_set_dbg( &ssl, my_debug, stdout );
-    mbedtls_ssl_set_bio_timeout( &ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv, NULL, 0 );
-
-    if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
-        mbedtls_ssl_set_ciphersuites( &ssl, opt.force_ciphersuite );
-
-    mbedtls_ssl_set_ca_chain( &ssl, &cacert, NULL, opt.server_name );
-    if( ( ret = mbedtls_ssl_set_own_cert( &ssl, &clicert, &pkey ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_set_own_cert returned %d\n\n", ret );
-        goto exit;
-    }
-
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+#if defined(MBEDTLS_x509_CRT_PARSE_C)
     if( ( ret = mbedtls_ssl_set_hostname( &ssl, opt.server_name ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hostname returned %d\n\n", ret );
         goto exit;
     }
 #endif
+
+    mbedtls_ssl_set_bio( &ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv, NULL );
+
+    mbedtls_printf( " ok\n" );
 
     if( opt.mode == MODE_SSL_TLS )
     {
@@ -821,6 +836,7 @@ exit:
     mbedtls_x509_crt_free( &cacert );
     mbedtls_pk_free( &pkey );
     mbedtls_ssl_free( &ssl );
+    mbedtls_ssl_config_free( &conf );
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
 

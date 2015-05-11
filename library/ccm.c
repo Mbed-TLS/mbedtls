@@ -74,10 +74,6 @@ int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
     int ret;
     const mbedtls_cipher_info_t *cipher_info;
 
-    memset( ctx, 0, sizeof( mbedtls_ccm_context ) );
-
-    mbedtls_cipher_init( &ctx->cipher_ctx );
-
     cipher_info = mbedtls_cipher_info_from_values( cipher, keysize, MBEDTLS_MODE_ECB );
     if( cipher_info == NULL )
         return( MBEDTLS_ERR_CCM_BAD_INPUT );

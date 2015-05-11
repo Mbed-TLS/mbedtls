@@ -146,6 +146,7 @@ int main( int argc, char *argv[] )
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     mbedtls_ssl_context ssl;
+    mbedtls_ssl_config conf;
     mbedtls_x509_crt cacert;
     mbedtls_x509_crt clicert;
     mbedtls_x509_crl cacrl;
@@ -161,6 +162,7 @@ int main( int argc, char *argv[] )
     server_fd = 0;
     mbedtls_ctr_drbg_init( &ctr_drbg );
     mbedtls_ssl_init( &ssl );
+    mbedtls_ssl_config_init( &conf );
     mbedtls_x509_crt_init( &cacert );
     mbedtls_x509_crt_init( &clicert );
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
@@ -372,7 +374,7 @@ int main( int argc, char *argv[] )
                                    strlen( pers ) ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned %d\n", ret );
-            goto exit;
+            goto ssl_exit;
         }
 
         mbedtls_printf( " ok\n" );
@@ -388,56 +390,61 @@ int main( int argc, char *argv[] )
                                  opt.server_port, MBEDTLS_NET_PROTO_TCP ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_net_connect returned %d\n\n", ret );
-            goto exit;
+            goto ssl_exit;
         }
 
         /*
          * 3. Setup stuff
          */
-        if( ( ret = mbedtls_ssl_setup( &ssl ) ) != 0 )
+        if( ( ret = mbedtls_ssl_config_defaults( &conf,
+                        MBEDTLS_SSL_IS_CLIENT,
+                        MBEDTLS_SSL_TRANSPORT_STREAM ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned %d\n\n", ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_config_defaults returned %d\n\n", ret );
             goto exit;
         }
 
-        mbedtls_ssl_set_endpoint( &ssl, MBEDTLS_SSL_IS_CLIENT );
         if( verify )
         {
-            mbedtls_ssl_set_authmode( &ssl, MBEDTLS_SSL_VERIFY_REQUIRED );
-            mbedtls_ssl_set_ca_chain( &ssl, &cacert, NULL, opt.server_name );
-            mbedtls_ssl_set_verify( &ssl, my_verify, NULL );
+            mbedtls_ssl_conf_authmode( &conf, MBEDTLS_SSL_VERIFY_REQUIRED );
+            mbedtls_ssl_conf_ca_chain( &conf, &cacert, NULL );
+            mbedtls_ssl_conf_verify( &conf, my_verify, NULL );
         }
         else
-            mbedtls_ssl_set_authmode( &ssl, MBEDTLS_SSL_VERIFY_NONE );
+            mbedtls_ssl_conf_authmode( &conf, MBEDTLS_SSL_VERIFY_NONE );
 
-        mbedtls_ssl_set_rng( &ssl, mbedtls_ctr_drbg_random, &ctr_drbg );
-        mbedtls_ssl_set_dbg( &ssl, my_debug, stdout );
-        mbedtls_ssl_set_bio_timeout( &ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv, NULL, 0 );
+        mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
+        mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
 
-        if( ( ret = mbedtls_ssl_set_own_cert( &ssl, &clicert, &pkey ) ) != 0 )
+        if( ( ret = mbedtls_ssl_conf_own_cert( &conf, &clicert, &pkey ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_set_own_cert returned %d\n\n", ret );
-            goto exit;
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_own_cert returned %d\n\n", ret );
+            goto ssl_exit;
         }
 
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+        if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned %d\n\n", ret );
+            goto ssl_exit;
+        }
+
         if( ( ret = mbedtls_ssl_set_hostname( &ssl, opt.server_name ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hostname returned %d\n\n", ret );
-            goto exit;
+            goto ssl_exit;
         }
-#endif
+
+        mbedtls_ssl_set_bio( &ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv, NULL );
 
         /*
          * 4. Handshake
          */
         while( ( ret = mbedtls_ssl_handshake( &ssl ) ) != 0 )
         {
-            if( ret != MBEDTLS_ERR_NET_WANT_READ && ret != MBEDTLS_ERR_NET_WANT_WRITE )
+            if( ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE )
             {
                 mbedtls_printf( " failed\n  ! mbedtls_ssl_handshake returned %d\n\n", ret );
-                mbedtls_ssl_free( &ssl );
-                goto exit;
+                goto ssl_exit;
             }
         }
 
@@ -452,14 +459,16 @@ int main( int argc, char *argv[] )
         if( ret == -1 )
         {
             mbedtls_printf( " failed\n  !  mbedtls_x509_crt_info returned %d\n\n", ret );
-            mbedtls_ssl_free( &ssl );
-            goto exit;
+            goto ssl_exit;
         }
 
         mbedtls_printf( "%s\n", buf );
 
         mbedtls_ssl_close_notify( &ssl );
+
+ssl_exit:
         mbedtls_ssl_free( &ssl );
+        mbedtls_ssl_config_free( &conf );
     }
     else
         goto usage;

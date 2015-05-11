@@ -103,13 +103,7 @@ static void my_mutexed_debug( void *ctx, int level, const char *str )
 typedef struct {
     int client_fd;
     int thread_complete;
-    mbedtls_entropy_context *entropy;
-#if defined(MBEDTLS_SSL_CACHE_C)
-    mbedtls_ssl_cache_context *cache;
-#endif
-    mbedtls_x509_crt *ca_chain;
-    mbedtls_x509_crt *server_cert;
-    mbedtls_pk_context *server_key;
+    const mbedtls_ssl_config *config;
 } thread_info_t;
 
 typedef struct {
@@ -126,93 +120,48 @@ static void *handle_ssl_connection( void *data )
     int ret, len;
     thread_info_t *thread_info = (thread_info_t *) data;
     int client_fd = thread_info->client_fd;
-    int thread_id = (int) pthread_self();
+    long int thread_id = (long int) pthread_self();
     unsigned char buf[1024];
-    char pers[50];
     mbedtls_ssl_context ssl;
-    mbedtls_ctr_drbg_context ctr_drbg;
 
     /* Make sure memory references are valid */
     mbedtls_ssl_init( &ssl );
-    mbedtls_ctr_drbg_init( &ctr_drbg );
 
-    mbedtls_snprintf( pers, sizeof(pers), "SSL Pthread Thread %d", thread_id );
-    mbedtls_printf( "  [ #%d ]  Client FD %d\n", thread_id, client_fd );
-    mbedtls_printf( "  [ #%d ]  Seeding the random number generator...\n", thread_id );
-
-    /* mbedtls_entropy_func() is thread-safe if MBEDTLS_THREADING_C is set
-     */
-    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, thread_info->entropy,
-                               (const unsigned char *) pers,
-                               strlen( pers ) ) ) != 0 )
-    {
-        mbedtls_printf( "  [ #%d ]  failed: mbedtls_ctr_drbg_seed returned -0x%04x\n",
-                thread_id, -ret );
-        goto thread_exit;
-    }
-
-    mbedtls_printf( "  [ #%d ]  ok\n", thread_id );
+    mbedtls_printf( "  [ #%ld ]  Client FD %d\n", thread_id, client_fd );
 
     /*
-     * 4. Setup stuff
+     * 4. Get the SSL context ready
      */
-    mbedtls_printf( "  [ #%d ]  Setting up the SSL data....\n", thread_id );
-
-    if( ( ret = mbedtls_ssl_setup( &ssl ) ) != 0 )
+    if( ( ret = mbedtls_ssl_setup( &ssl, thread_info->config ) ) != 0 )
     {
-        mbedtls_printf( "  [ #%d ]  failed: mbedtls_ssl_setup returned -0x%04x\n",
+        mbedtls_printf( "  [ #%ld ]  failed: mbedtls_ssl_setup returned -0x%04x\n",
                 thread_id, -ret );
         goto thread_exit;
     }
 
-    mbedtls_ssl_set_endpoint( &ssl, MBEDTLS_SSL_IS_SERVER );
-    mbedtls_ssl_set_authmode( &ssl, MBEDTLS_SSL_VERIFY_NONE );
-
-    mbedtls_ssl_set_rng( &ssl, mbedtls_ctr_drbg_random, &ctr_drbg );
-    mbedtls_ssl_set_dbg( &ssl, my_mutexed_debug, stdout );
-
-    /* mbedtls_ssl_cache_get() and mbedtls_ssl_cache_set() are thread-safe if
-     * MBEDTLS_THREADING_C is set.
-     */
-#if defined(MBEDTLS_SSL_CACHE_C)
-    mbedtls_ssl_set_session_cache( &ssl, mbedtls_ssl_cache_get, thread_info->cache,
-                                 mbedtls_ssl_cache_set, thread_info->cache );
-#endif
-
-    mbedtls_ssl_set_ca_chain( &ssl, thread_info->ca_chain, NULL, NULL );
-    if( ( ret = mbedtls_ssl_set_own_cert( &ssl, thread_info->server_cert, thread_info->server_key ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_set_own_cert returned %d\n\n", ret );
-        goto thread_exit;
-    }
-
-    mbedtls_printf( "  [ #%d ]  ok\n", thread_id );
-
-        mbedtls_ssl_set_bio_timeout( &ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv, NULL, 0 );
-
-    mbedtls_printf( "  [ #%d ]  ok\n", thread_id );
+    mbedtls_ssl_set_bio( &ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv, NULL );
 
     /*
      * 5. Handshake
      */
-    mbedtls_printf( "  [ #%d ]  Performing the SSL/TLS handshake\n", thread_id );
+    mbedtls_printf( "  [ #%ld ]  Performing the SSL/TLS handshake\n", thread_id );
 
     while( ( ret = mbedtls_ssl_handshake( &ssl ) ) != 0 )
     {
-        if( ret != MBEDTLS_ERR_NET_WANT_READ && ret != MBEDTLS_ERR_NET_WANT_WRITE )
+        if( ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE )
         {
-            mbedtls_printf( "  [ #%d ]  failed: mbedtls_ssl_handshake returned -0x%04x\n",
+            mbedtls_printf( "  [ #%ld ]  failed: mbedtls_ssl_handshake returned -0x%04x\n",
                     thread_id, -ret );
             goto thread_exit;
         }
     }
 
-    mbedtls_printf( "  [ #%d ]  ok\n", thread_id );
+    mbedtls_printf( "  [ #%ld ]  ok\n", thread_id );
 
     /*
      * 6. Read the HTTP Request
      */
-    mbedtls_printf( "  [ #%d ]  < Read from client\n", thread_id );
+    mbedtls_printf( "  [ #%ld ]  < Read from client\n", thread_id );
 
     do
     {
@@ -220,7 +169,7 @@ static void *handle_ssl_connection( void *data )
         memset( buf, 0, sizeof( buf ) );
         ret = mbedtls_ssl_read( &ssl, buf, len );
 
-        if( ret == MBEDTLS_ERR_NET_WANT_READ || ret == MBEDTLS_ERR_NET_WANT_WRITE )
+        if( ret == MBEDTLS_ERR_SSL_WANT_READ || ret == MBEDTLS_ERR_SSL_WANT_WRITE )
             continue;
 
         if( ret <= 0 )
@@ -228,24 +177,24 @@ static void *handle_ssl_connection( void *data )
             switch( ret )
             {
                 case MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY:
-                    mbedtls_printf( "  [ #%d ]  connection was closed gracefully\n",
+                    mbedtls_printf( "  [ #%ld ]  connection was closed gracefully\n",
                             thread_id );
                     goto thread_exit;
 
                 case MBEDTLS_ERR_NET_CONN_RESET:
-                    mbedtls_printf( "  [ #%d ]  connection was reset by peer\n",
+                    mbedtls_printf( "  [ #%ld ]  connection was reset by peer\n",
                             thread_id );
                     goto thread_exit;
 
                 default:
-                    mbedtls_printf( "  [ #%d ]  mbedtls_ssl_read returned -0x%04x\n",
+                    mbedtls_printf( "  [ #%ld ]  mbedtls_ssl_read returned -0x%04x\n",
                             thread_id, -ret );
                     goto thread_exit;
             }
         }
 
         len = ret;
-        mbedtls_printf( "  [ #%d ]  %d bytes read\n=====\n%s\n=====\n",
+        mbedtls_printf( "  [ #%ld ]  %d bytes read\n=====\n%s\n=====\n",
                 thread_id, len, (char *) buf );
 
         if( ret > 0 )
@@ -256,7 +205,7 @@ static void *handle_ssl_connection( void *data )
     /*
      * 7. Write the 200 Response
      */
-    mbedtls_printf( "  [ #%d ]  > Write to client:\n", thread_id );
+    mbedtls_printf( "  [ #%ld ]  > Write to client:\n", thread_id );
 
     len = sprintf( (char *) buf, HTTP_RESPONSE,
                    mbedtls_ssl_get_ciphersuite( &ssl ) );
@@ -265,31 +214,31 @@ static void *handle_ssl_connection( void *data )
     {
         if( ret == MBEDTLS_ERR_NET_CONN_RESET )
         {
-            mbedtls_printf( "  [ #%d ]  failed: peer closed the connection\n",
+            mbedtls_printf( "  [ #%ld ]  failed: peer closed the connection\n",
                     thread_id );
             goto thread_exit;
         }
 
-        if( ret != MBEDTLS_ERR_NET_WANT_READ && ret != MBEDTLS_ERR_NET_WANT_WRITE )
+        if( ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE )
         {
-            mbedtls_printf( "  [ #%d ]  failed: mbedtls_ssl_write returned -0x%04x\n",
+            mbedtls_printf( "  [ #%ld ]  failed: mbedtls_ssl_write returned -0x%04x\n",
                     thread_id, ret );
             goto thread_exit;
         }
     }
 
     len = ret;
-    mbedtls_printf( "  [ #%d ]  %d bytes written\n=====\n%s\n=====\n",
+    mbedtls_printf( "  [ #%ld ]  %d bytes written\n=====\n%s\n=====\n",
             thread_id, len, (char *) buf );
 
-    mbedtls_printf( "  [ #%d ]  . Closing the connection...", thread_id );
+    mbedtls_printf( "  [ #%ld ]  . Closing the connection...", thread_id );
 
     while( ( ret = mbedtls_ssl_close_notify( &ssl ) ) < 0 )
     {
-        if( ret != MBEDTLS_ERR_NET_WANT_READ &&
-            ret != MBEDTLS_ERR_NET_WANT_WRITE )
+        if( ret != MBEDTLS_ERR_SSL_WANT_READ &&
+            ret != MBEDTLS_ERR_SSL_WANT_WRITE )
         {
-            mbedtls_printf( "  [ #%d ]  failed: mbedtls_ssl_close_notify returned -0x%04x\n",
+            mbedtls_printf( "  [ #%ld ]  failed: mbedtls_ssl_close_notify returned -0x%04x\n",
                     thread_id, ret );
             goto thread_exit;
         }
@@ -306,13 +255,12 @@ thread_exit:
     {
         char error_buf[100];
         mbedtls_strerror( ret, error_buf, 100 );
-        mbedtls_printf("  [ #%d ]  Last error was: -0x%04x - %s\n\n",
+        mbedtls_printf("  [ #%ld ]  Last error was: -0x%04x - %s\n\n",
                thread_id, -ret, error_buf );
     }
 #endif
 
     mbedtls_net_close( client_fd );
-    mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_ssl_free( &ssl );
 
     thread_info->thread_complete = 1;
@@ -364,9 +312,13 @@ int main( void )
     int ret;
     int listen_fd;
     int client_fd = -1;
+    const char pers[] = "ssl_pthread_server";
 
     mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
+    mbedtls_ssl_config conf;
     mbedtls_x509_crt srvcert;
+    mbedtls_x509_crt cachain;
     mbedtls_pk_context pkey;
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     unsigned char alloc_buf[100000];
@@ -381,26 +333,29 @@ int main( void )
 
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_init( &cache );
-    base_info.cache = &cache;
 #endif
 
+    mbedtls_x509_crt_init( &srvcert );
+    mbedtls_x509_crt_init( &cachain );
+
+    mbedtls_ssl_config_init( &conf );
+    mbedtls_ctr_drbg_init( &ctr_drbg );
     memset( threads, 0, sizeof(threads) );
 
     mbedtls_mutex_init( &debug_mutex );
+
+    base_info.config = &conf;
 
     /*
      * We use only a single entropy source that is used in all the threads.
      */
     mbedtls_entropy_init( &entropy );
-    base_info.entropy = &entropy;
 
     /*
      * 1. Load the certificates and private RSA key
      */
     mbedtls_printf( "\n  . Loading the server cert. and key..." );
     fflush( stdout );
-
-    mbedtls_x509_crt_init( &srvcert );
 
     /*
      * This demonstration program uses embedded test certificates.
@@ -415,7 +370,7 @@ int main( void )
         goto exit;
     }
 
-    ret = mbedtls_x509_crt_parse( &srvcert, (const unsigned char *) mbedtls_test_cas_pem,
+    ret = mbedtls_x509_crt_parse( &cachain, (const unsigned char *) mbedtls_test_cas_pem,
                           mbedtls_test_cas_pem_len );
     if( ret != 0 )
     {
@@ -432,11 +387,59 @@ int main( void )
         goto exit;
     }
 
-    base_info.ca_chain = srvcert.next;
-    base_info.server_cert = &srvcert;
-    base_info.server_key = &pkey;
+    mbedtls_printf( " ok\n" );
+
+    /*
+     * 1b. Seed the random number generator
+     */
+    mbedtls_printf( "  . Seeding the random number generator..." );
+
+    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
+                               (const unsigned char *) pers,
+                               strlen( pers ) ) ) != 0 )
+    {
+        mbedtls_printf( " failed: mbedtls_ctr_drbg_seed returned -0x%04x\n",
+                -ret );
+        goto exit;
+    }
 
     mbedtls_printf( " ok\n" );
+
+    /*
+     * 1c. Prepare SSL configuration
+     */
+    mbedtls_printf( "  . Setting up the SSL data...." );
+
+    if( ( ret = mbedtls_ssl_config_defaults( &conf,
+                    MBEDTLS_SSL_IS_SERVER,
+                    MBEDTLS_SSL_TRANSPORT_STREAM ) ) != 0 )
+    {
+        mbedtls_printf( " failed: mbedtls_ssl_config_defaults returned -0x%04x\n",
+                -ret );
+        goto exit;
+    }
+
+    mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
+    mbedtls_ssl_conf_dbg( &conf, my_mutexed_debug, stdout );
+
+    /* mbedtls_ssl_cache_get() and mbedtls_ssl_cache_set() are thread-safe if
+     * MBEDTLS_THREADING_C is set.
+     */
+#if defined(MBEDTLS_SSL_CACHE_C)
+    mbedtls_ssl_conf_session_cache( &conf, &cache,
+                                   mbedtls_ssl_cache_get,
+                                   mbedtls_ssl_cache_set );
+#endif
+
+    mbedtls_ssl_conf_ca_chain( &conf, &cachain, NULL );
+    if( ( ret = mbedtls_ssl_conf_own_cert( &conf, &srvcert, &pkey ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_own_cert returned %d\n\n", ret );
+        goto exit;
+    }
+
+    mbedtls_printf( " ok\n" );
+
 
     /*
      * 2. Setup the listening TCP socket
@@ -494,7 +497,9 @@ exit:
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_free( &cache );
 #endif
+    mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
+    mbedtls_ssl_config_free( &conf );
 
     mbedtls_mutex_free( &debug_mutex );
 

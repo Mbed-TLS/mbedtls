@@ -147,7 +147,9 @@ enum exit_codes
 {
     exit_ok = 0,
     ctr_drbg_seed_failed,
+    ssl_config_defaults_failed,
     ssl_setup_failed,
+    hostname_failed,
     socket_failed,
     connect_failed,
     x509_crt_parse_failed,
@@ -167,12 +169,14 @@ int main( void )
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     mbedtls_ssl_context ssl;
+    mbedtls_ssl_config conf;
     mbedtls_ctr_drbg_init( &ctr_drbg );
 
     /*
      * 0. Initialize and setup stuff
      */
     mbedtls_ssl_init( &ssl );
+    mbedtls_ssl_config_init( &conf );
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_x509_crt_init( &ca );
 #endif
@@ -185,18 +189,18 @@ int main( void )
         goto exit;
     }
 
-    if( mbedtls_ssl_setup( &ssl ) != 0 )
+    if( mbedtls_ssl_config_defaults( &conf,
+                MBEDTLS_SSL_IS_CLIENT,
+                MBEDTLS_SSL_TRANSPORT_STREAM) != 0 )
     {
-        ret = ssl_setup_failed;
+        ret = ssl_config_defaults_failed;
         goto exit;
     }
 
-    mbedtls_ssl_set_endpoint( &ssl, MBEDTLS_SSL_IS_CLIENT );
-
-    mbedtls_ssl_set_rng( &ssl, mbedtls_ctr_drbg_random, &ctr_drbg );
+    mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
-    mbedtls_ssl_set_psk( &ssl, psk, sizeof( psk ),
+    mbedtls_ssl_conf_psk( &conf, psk, sizeof( psk ),
                 (const unsigned char *) psk_id, sizeof( psk_id ) - 1 );
 #endif
 
@@ -207,9 +211,21 @@ int main( void )
         goto exit;
     }
 
-    mbedtls_ssl_set_ca_chain( &ssl, &ca, NULL, HOSTNAME );
-    mbedtls_ssl_set_authmode( &ssl, MBEDTLS_SSL_VERIFY_REQUIRED );
+    mbedtls_ssl_conf_ca_chain( &conf, &ca, NULL );
+    mbedtls_ssl_conf_authmode( &conf, MBEDTLS_SSL_VERIFY_REQUIRED );
 #endif
+
+    if( mbedtls_ssl_setup( &ssl, &conf ) != 0 )
+    {
+        ret = ssl_setup_failed;
+        goto exit;
+    }
+
+    if( mbedtls_ssl_set_hostname( &ssl, HOSTNAME ) != 0 )
+    {
+        ret = hostname_failed;
+        goto exit;
+    }
 
     /*
      * 1. Start the connection
@@ -235,7 +251,7 @@ int main( void )
         goto exit;
     }
 
-    mbedtls_ssl_set_bio_timeout( &ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv, NULL, 0 );
+    mbedtls_ssl_set_bio( &ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv, NULL );
 
     if( mbedtls_ssl_handshake( &ssl ) != 0 )
     {
@@ -260,6 +276,7 @@ exit:
         mbedtls_net_close( server_fd );
 
     mbedtls_ssl_free( &ssl );
+    mbedtls_ssl_config_free( &conf );
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
 #if defined(MBEDTLS_X509_CRT_PARSE_C)

@@ -338,7 +338,7 @@ int mbedtls_net_accept( int bind_fd, int *client_fd, void *client_ip )
     if( ret < 0 )
     {
         if( net_would_block( bind_fd ) != 0 )
-            return( MBEDTLS_ERR_NET_WANT_READ );
+            return( MBEDTLS_ERR_SSL_WANT_READ );
 
         return( MBEDTLS_ERR_NET_ACCEPT_FAILED );
     }
@@ -425,7 +425,7 @@ int mbedtls_net_recv( void *ctx, unsigned char *buf, size_t len )
     if( ret < 0 )
     {
         if( net_would_block( fd ) != 0 )
-            return( MBEDTLS_ERR_NET_WANT_READ );
+            return( MBEDTLS_ERR_SSL_WANT_READ );
 
 #if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
     !defined(EFI32)
@@ -436,7 +436,7 @@ int mbedtls_net_recv( void *ctx, unsigned char *buf, size_t len )
             return( MBEDTLS_ERR_NET_CONN_RESET );
 
         if( errno == EINTR )
-            return( MBEDTLS_ERR_NET_WANT_READ );
+            return( MBEDTLS_ERR_SSL_WANT_READ );
 #endif
 
         return( MBEDTLS_ERR_NET_RECV_FAILED );
@@ -467,17 +467,17 @@ int mbedtls_net_recv_timeout( void *ctx, unsigned char *buf, size_t len,
 
     /* Zero fds ready means we timed out */
     if( ret == 0 )
-        return( MBEDTLS_ERR_NET_TIMEOUT );
+        return( MBEDTLS_ERR_SSL_TIMEOUT );
 
     if( ret < 0 )
     {
 #if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
     !defined(EFI32)
         if( WSAGetLastError() == WSAEINTR )
-            return( MBEDTLS_ERR_NET_WANT_READ );
+            return( MBEDTLS_ERR_SSL_WANT_READ );
 #else
         if( errno == EINTR )
-            return( MBEDTLS_ERR_NET_WANT_READ );
+            return( MBEDTLS_ERR_SSL_WANT_READ );
 #endif
 
         return( MBEDTLS_ERR_NET_RECV_FAILED );
@@ -499,7 +499,7 @@ int mbedtls_net_send( void *ctx, const unsigned char *buf, size_t len )
     if( ret < 0 )
     {
         if( net_would_block( fd ) != 0 )
-            return( MBEDTLS_ERR_NET_WANT_WRITE );
+            return( MBEDTLS_ERR_SSL_WANT_WRITE );
 
 #if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
     !defined(EFI32)
@@ -510,7 +510,7 @@ int mbedtls_net_send( void *ctx, const unsigned char *buf, size_t len )
             return( MBEDTLS_ERR_NET_CONN_RESET );
 
         if( errno == EINTR )
-            return( MBEDTLS_ERR_NET_WANT_WRITE );
+            return( MBEDTLS_ERR_SSL_WANT_WRITE );
 #endif
 
         return( MBEDTLS_ERR_NET_SEND_FAILED );

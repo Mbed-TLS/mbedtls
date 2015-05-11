@@ -626,8 +626,8 @@ run_test    "Truncated HMAC: client enabled, server default" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
              trunc_hmac=1" \
             0 \
-            -S "dumping 'computed mac' (20 bytes)" \
-            -s "dumping 'computed mac' (10 bytes)"
+            -s "dumping 'computed mac' (20 bytes)" \
+            -S "dumping 'computed mac' (10 bytes)"
 
 run_test    "Truncated HMAC: client enabled, server disabled" \
             "$P_SRV debug_level=4 trunc_hmac=0" \
@@ -1044,7 +1044,7 @@ run_test    "Session resume using cache: cache_max=1" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-run_test    "Session resume using cache: timemout > delay" \
+run_test    "Session resume using cache: timeout > delay" \
             "$P_SRV debug_level=3 tickets=0" \
             "$P_CLI debug_level=3 tickets=0 reconnect=1 reco_delay=0" \
             0 \

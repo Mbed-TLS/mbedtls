@@ -438,25 +438,6 @@ int mbedtls_ecp_tls_write_point( const mbedtls_ecp_group *grp, const mbedtls_ecp
                          unsigned char *buf, size_t blen );
 
 /**
- * \brief           Import an ECP group from null-terminated ASCII strings
- *
- * \param grp       Destination group
- * \param radix     Input numeric base
- * \param p         Prime modulus of the base field
- * \param b         Constant term in the equation
- * \param gx        The generator's X coordinate
- * \param gy        The generator's Y coordinate
- * \param n         The generator's order
- *
- * \return          0 if successful, or a MBEDTLS_ERR_MPI_XXX error code
- *
- * \note            Sets all fields except modp.
- */
-int mbedtls_ecp_group_read_string( mbedtls_ecp_group *grp, int radix,
-                           const char *p, const char *b,
-                           const char *gx, const char *gy, const char *n);
-
-/**
  * \brief           Set a group using well-known domain parameters
  *
  * \param grp       Destination group
@@ -466,8 +447,8 @@ int mbedtls_ecp_group_read_string( mbedtls_ecp_group *grp, int radix,
  *                  MBEDTLS_ERR_MPI_XXX if initialization failed
  *                  MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE for unkownn groups
  *
- * \note            Index should be a value of RFC 4492's enum NamdeCurve,
- *                  possibly in the form of a MBEDTLS_ECP_DP_XXX macro.
+ * \note            Index should be a value of RFC 4492's enum NamedCurve,
+ *                  usually in the form of a MBEDTLS_ECP_DP_XXX macro.
  */
 int mbedtls_ecp_use_known_dp( mbedtls_ecp_group *grp, mbedtls_ecp_group_id index );
 

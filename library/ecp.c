@@ -584,30 +584,6 @@ int mbedtls_ecp_tls_write_point( const mbedtls_ecp_group *grp, const mbedtls_ecp
 }
 
 /*
- * Import an ECP group from ASCII strings, case A == -3
- */
-int mbedtls_ecp_group_read_string( mbedtls_ecp_group *grp, int radix,
-                           const char *p, const char *b,
-                           const char *gx, const char *gy, const char *n)
-{
-    int ret;
-
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &grp->P, radix, p ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &grp->B, radix, b ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_point_read_string( &grp->G, radix, gx, gy ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &grp->N, radix, n ) );
-
-    grp->pbits = mbedtls_mpi_msb( &grp->P );
-    grp->nbits = mbedtls_mpi_msb( &grp->N );
-
-cleanup:
-    if( ret != 0 )
-        mbedtls_ecp_group_free( grp );
-
-    return( ret );
-}
-
-/*
  * Set a group from an ECParameters record (RFC 4492)
  */
 int mbedtls_ecp_tls_read_group( mbedtls_ecp_group *grp, const unsigned char **buf, size_t len )

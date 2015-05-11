@@ -60,6 +60,7 @@ API Changes
    * Some constness fixes
 
 Removals
+   * Removed mbedtls_ecp_group_read_string(). Only named groups are supported.
    * Removed individual mdX_hmac and shaX_hmac functions (use generic
      md_hmac functions from md.h)
    * Removed the PBKDF2 module (use PKCS5).
@@ -99,7 +100,7 @@ Default behavior changes
    * Default DHM parameters server-side upgraded from 1024 to 2048 bits.
    * Negotiation of truncated HMAC is now disabled by default on server too.
 
-Reauirement changes
+Requirement changes
    * The minimum MSVC version required is now 2010 (better C99 support).
    * The NET layer now unconditionnaly relies on getaddrinfo().
    * Compiler is required to support C99 types such as long long and uint32_t.

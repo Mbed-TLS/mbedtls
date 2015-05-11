@@ -10,6 +10,8 @@ Security
      https://dl.acm.org/citation.cfm?id=2714625
 
 Features
+   * Improve ECC performance by using more efficient doubling formulas
+     (contributed by Peter Dettman).
    * Add x509_crt_verify_info() to display certificate verification results.
    * Add support for reading DH parameters with privateValueLength included
      (contributed by Daniel Kahn Gillmor).

@@ -4032,12 +4032,14 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         mbedtls_x509_crt *ca_chain;
         mbedtls_x509_crl *ca_crl;
 
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
         if( ssl->handshake->sni_ca_chain != NULL )
         {
             ca_chain = ssl->handshake->sni_ca_chain;
             ca_crl   = ssl->handshake->sni_ca_crl;
         }
         else
+#endif
         {
             ca_chain = ssl->conf->ca_chain;
             ca_crl   = ssl->conf->ca_crl;
@@ -6616,7 +6618,9 @@ void mbedtls_ssl_config_init( mbedtls_ssl_config *conf )
 int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
                                  int endpoint, int transport )
 {
+#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
     int ret;
+#endif
 
     conf->endpoint  = endpoint;
     conf->transport = transport;

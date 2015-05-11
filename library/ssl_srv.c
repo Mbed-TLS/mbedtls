@@ -2725,9 +2725,12 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
      * opaque DistinguishedName<1..2^16-1>;
      */
     p += 2;
-    crt = ssl->handshake->sni_ca_chain != NULL ?
-          ssl->handshake->sni_ca_chain :
-          ssl->conf->ca_chain;
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    if( ssl->handshake->sni_ca_chain != NULL )
+        crt = ssl->handshake->sni_ca_chain;
+    else
+#endif
+        crt = ssl->conf->ca_chain;
 
     total_dn_size = 0;
     while( crt != NULL && crt->version != 0 )

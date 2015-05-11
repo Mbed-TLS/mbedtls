@@ -1067,34 +1067,6 @@ cleanup:
 }
 
 /*
- * Subtraction: R = P - Q, result's coordinates normalized
- */
-int mbedtls_ecp_sub( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
-             const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q )
-{
-    int ret;
-    mbedtls_ecp_point mQ;
-
-    mbedtls_ecp_point_init( &mQ );
-
-    if( ecp_get_type( grp ) != ECP_TYPE_SHORT_WEIERSTRASS )
-        return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
-
-    /* mQ = - Q */
-    MBEDTLS_MPI_CHK( mbedtls_ecp_copy( &mQ, Q ) );
-    if( mbedtls_mpi_cmp_int( &mQ.Y, 0 ) != 0 )
-        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &mQ.Y, &grp->P, &mQ.Y ) );
-
-    MBEDTLS_MPI_CHK( ecp_add_mixed( grp, R, P, &mQ ) );
-    MBEDTLS_MPI_CHK( ecp_normalize_jac( grp, R ) );
-
-cleanup:
-    mbedtls_ecp_point_free( &mQ );
-
-    return( ret );
-}
-
-/*
  * Randomize jacobian coordinates:
  * (X, Y, Z) -> (l^2 X, l^3 Y, l Z) for random l
  * This is sort of the reverse operation of ecp_normalize_jac().

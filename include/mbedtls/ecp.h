@@ -499,23 +499,6 @@ int mbedtls_ecp_add( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q );
 
 /**
- * \brief           Subtraction: R = P - Q
- *
- * \param grp       ECP group
- * \param R         Destination point
- * \param P         Left-hand point
- * \param Q         Right-hand point
- *
- * \return          0 if successful,
- *                  MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed
- *
- * \note            This function does not support Montgomery curves, such as
- *                  Curve25519.
- */
-int mbedtls_ecp_sub( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
-             const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q );
-
-/**
  * \brief           Multiplication by an integer: R = m * P
  *                  (Not thread-safe to use same group in multiple threads)
  *

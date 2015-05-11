@@ -1,6 +1,6 @@
 {
     "name": "mbedtls",
-    "version": "2.0.0-beta1",
+    "version": "2.0.0-beta5",
     "private": true,
     "licenses": [{
         "type": "GPL-2.0",

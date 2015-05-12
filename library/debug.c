@@ -83,7 +83,7 @@ void mbedtls_debug_print_msg( const mbedtls_ssl_context *ssl, int level,
     char str[512];
     int maxlen = sizeof( str ) - 1;
 
-    if( ssl->conf->f_dbg == NULL || level > debug_threshold )
+    if( ssl->conf == NULL || ssl->conf->f_dbg == NULL || level > debug_threshold )
         return;
 
     if( debug_log_mode == MBEDTLS_DEBUG_LOG_RAW )
@@ -105,7 +105,7 @@ void mbedtls_debug_print_ret( const mbedtls_ssl_context *ssl, int level,
     int maxlen = sizeof( str ) - 1;
     size_t idx = 0;
 
-    if( ssl->conf->f_dbg == NULL || level > debug_threshold )
+    if( ssl->conf == NULL || ssl->conf->f_dbg == NULL || level > debug_threshold )
         return;
 
     /*
@@ -134,7 +134,7 @@ void mbedtls_debug_print_buf( const mbedtls_ssl_context *ssl, int level,
     char txt[17];
     size_t i, maxlen = sizeof( str ) - 1, idx = 0;
 
-    if( ssl->conf->f_dbg == NULL || level > debug_threshold )
+    if( ssl->conf == NULL || ssl->conf->f_dbg == NULL || level > debug_threshold )
         return;
 
     if( debug_log_mode == MBEDTLS_DEBUG_LOG_FULL )
@@ -195,7 +195,7 @@ void mbedtls_debug_print_ecp( const mbedtls_ssl_context *ssl, int level,
     char str[512];
     int maxlen = sizeof( str ) - 1;
 
-    if( ssl->conf->f_dbg == NULL || level > debug_threshold )
+    if( ssl->conf == NULL || ssl->conf->f_dbg == NULL || level > debug_threshold )
         return;
 
     mbedtls_snprintf( str, maxlen, "%s(X)", text );
@@ -217,7 +217,7 @@ void mbedtls_debug_print_mpi( const mbedtls_ssl_context *ssl, int level,
     int j, k, maxlen = sizeof( str ) - 1, zeros = 1;
     size_t i, n, idx = 0;
 
-    if( ssl->conf->f_dbg == NULL || X == NULL || level > debug_threshold )
+    if( ssl->conf == NULL || ssl->conf->f_dbg == NULL || X == NULL || level > debug_threshold )
         return;
 
     for( n = X->n - 1; n > 0; n-- )
@@ -330,7 +330,7 @@ void mbedtls_debug_print_crt( const mbedtls_ssl_context *ssl, int level,
     char str[1024], prefix[64];
     int i = 0, maxlen = sizeof( prefix ) - 1, idx = 0;
 
-    if( ssl->conf->f_dbg == NULL || crt == NULL || level > debug_threshold )
+    if( ssl->conf == NULL || ssl->conf->f_dbg == NULL || crt == NULL || level > debug_threshold )
         return;
 
     if( debug_log_mode == MBEDTLS_DEBUG_LOG_FULL )

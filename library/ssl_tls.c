@@ -6570,14 +6570,6 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
         mbedtls_free( ssl->session );
     }
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    if( ssl->conf->ticket_keys )
-    {
-        ssl_ticket_keys_free( ssl->conf->ticket_keys );
-        mbedtls_free( ssl->conf->ticket_keys );
-    }
-#endif
-
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     if( ssl->hostname != NULL )
     {
@@ -6730,6 +6722,14 @@ void mbedtls_ssl_config_free( mbedtls_ssl_config *conf )
         mbedtls_free( conf->psk_identity );
         conf->psk_len = 0;
         conf->psk_identity_len = 0;
+    }
+#endif
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    if( conf->ticket_keys )
+    {
+        ssl_ticket_keys_free( conf->ticket_keys );
+        mbedtls_free( conf->ticket_keys );
     }
 #endif
 

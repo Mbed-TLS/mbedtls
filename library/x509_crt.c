@@ -852,7 +852,7 @@ int mbedtls_x509_crt_parse( mbedtls_x509_crt *chain, const unsigned char *buf, s
      * one or more PEM certificates.
      */
 #if defined(MBEDTLS_PEM_PARSE_C)
-    if( buf[buflen - 1] == '\0' &&
+    if( buflen != 0 && buf[buflen - 1] == '\0' &&
         strstr( (const char *) buf, "-----BEGIN CERTIFICATE-----" ) != NULL )
     {
         buf_format = MBEDTLS_X509_FORMAT_PEM;

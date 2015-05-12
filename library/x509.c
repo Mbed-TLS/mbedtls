@@ -1038,8 +1038,6 @@ int mbedtls_x509_self_test( int verbose )
         if( verbose != 0 )
             mbedtls_printf( "failed\n" );
 
-        mbedtls_printf( "ret = %d, &flags = %04x\n", ret, flags );
-
         return( ret );
     }
 

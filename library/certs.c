@@ -319,10 +319,10 @@ const char * mbedtls_test_cas[] = {
 };
 const size_t mbedtls_test_cas_len[] = {
 #if defined(MBEDTLS_RSA_C)
-    sizeof( mbedtls_test_ca_crt_rsa_len ),
+    sizeof( mbedtls_test_ca_crt_rsa ),
 #endif
 #if defined(MBEDTLS_ECDSA_C)
-    sizeof( mbedtls_test_ca_crt_ec_len ),
+    sizeof( mbedtls_test_ca_crt_ec ),
 #endif
     0
 };

@@ -81,12 +81,14 @@ static inline size_t ssl_ep_len( const mbedtls_ssl_context *ssl )
 /*
  * Start a timer.
  * Passing millisecs = 0 cancels a running timer.
- * The timer is already running iff time_limit != 0.
  */
 static void ssl_set_timer( mbedtls_ssl_context *ssl, uint32_t millisecs )
 {
-    ssl->time_limit = millisecs;
-    mbedtls_timing_get_timer( &ssl->time_info, 1 );
+    if( ssl->f_set_timer == NULL )
+        return;
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "set_timer to %d ms", (int) millisecs ) );
+    ssl->f_set_timer( ssl->p_timer, millisecs / 4, millisecs );
 }
 
 /*
@@ -94,11 +96,11 @@ static void ssl_set_timer( mbedtls_ssl_context *ssl, uint32_t millisecs )
  */
 static int ssl_check_timer( mbedtls_ssl_context *ssl )
 {
-    if( ssl->time_limit != 0 &&
-        mbedtls_timing_get_timer( &ssl->time_info, 0 ) > ssl->time_limit )
-    {
+    if( ssl->f_get_timer == NULL )
+        return( -2 );
+
+    if( ssl->f_get_timer( ssl->p_timer ) == 2 )
         return( -1 );
-    }
 
     return( 0 );
 }
@@ -2210,6 +2212,14 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
     {
         uint32_t timeout;
 
+        /* Just to be sure */
+        if( ssl->f_set_timer == NULL || ssl->f_get_timer == NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "You must use "
+                        "mbedtls_ssl_set_timer_cb() for DTLS" ) );
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+        }
+
         /*
          * The point is, we need to always read a full datagram at once, so we
          * sometimes read more then requested, and handle the additional data.
@@ -2264,8 +2274,6 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
-
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "current timer: %u", ssl->time_limit ) );
 
         /*
          * Don't even try to read if time's out already.
@@ -4967,6 +4975,10 @@ static int ssl_cookie_check_dummy( void *ctx,
 void mbedtls_ssl_init( mbedtls_ssl_context *ssl )
 {
     memset( ssl, 0, sizeof( mbedtls_ssl_context ) );
+
+    /* Temporary WIP */
+    mbedtls_ssl_set_timer_cb( ssl, &ssl->WIP_timer,
+            mbedtls_timing_set_delay, mbedtls_timing_get_delay );
 }
 
 /*
@@ -5258,6 +5270,16 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
 void mbedtls_ssl_conf_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout )
 {
     conf->read_timeout   = timeout;
+}
+
+void mbedtls_ssl_set_timer_cb( mbedtls_ssl_context *ssl,
+                               void *p_timer,
+                               void (*f_set_timer)(void *, uint32_t int_ms, uint32_t fin_ms),
+                               int (*f_get_timer)(void *) )
+{
+    ssl->p_timer        = p_timer;
+    ssl->f_set_timer    = f_set_timer;
+    ssl->f_get_timer    = f_get_timer;
 }
 
 #if defined(MBEDTLS_SSL_SRV_C)
@@ -6040,7 +6062,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
     {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
         /* Start timer if not already running */
-        if( ssl->time_limit == 0 )
+        if( ssl->f_get_timer( ssl->p_timer ) == -1 )
             ssl_set_timer( ssl, ssl->conf->read_timeout );
 #endif
 

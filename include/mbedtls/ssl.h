@@ -998,8 +998,10 @@ struct mbedtls_ssl_context
      * Timers
      */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    struct mbedtls_timing_hr_time time_info;   /*!< timer context                      */
-    unsigned long time_limit;   /*!< limit for the running timer        */
+    mbedtls_timing_delay_context WIP_timer; /* temporary */
+    void *p_timer;              /*!< context for the timer callbacks */
+    void (*f_set_timer)(void *, uint32_t, uint32_t); /*!< set timer callback */
+    int (*f_get_timer)(void *); /*!< get timer callback             */
 #endif
 
     /*
@@ -1302,6 +1304,26 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
  *                 \c f_recv_timeout was set with \c mbedtls_ssl_set_bio().
  */
 void mbedtls_ssl_conf_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout );
+
+/**
+ * \brief          Set the timer callbacks
+ *                 (Mandatory for DTLS.)
+ *
+ * \param ssl      SSL context
+ * \param p_timer  parameter (context) shared by timer callback
+ * \param f_set_timer   set timer callback
+ *                 Accepts an intermediate and a final delay in milliseconcs
+ *                 If the final delay is 0, cancels the running timer.
+ * \param f_get_timer   get timer callback. Must return:
+ *                 -1 if cancelled
+ *                 0 if none of the delays is expired
+ *                 1 if the intermediate delay only is expired
+ *                 2 if the final delay is expired
+ */
+void mbedtls_ssl_set_timer_cb( mbedtls_ssl_context *ssl,
+                               void *p_timer,
+                               void (*f_set_timer)(void *, uint32_t int_ms, uint32_t fin_ms),
+                               int (*f_get_timer)(void *) );
 
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
 /**

@@ -196,9 +196,9 @@
  * \def MBEDTLS__MODULE_NAME__ALT
  *
  * Uncomment a macro to let mbed TLS use your alternate core implementation of
- * a symmetric or hash module (e.g. platform specific assembly optimized
- * implementations). Keep in mind that the function prototypes should remain
- * the same.
+ * a symmetric crypto or hash module (e.g. platform specific assembly
+ * optimized implementations). Keep in mind that the function prototypes
+ * should remain the same.
  *
  * This replaces the whole module. If you only want to replace one of the
  * functions, use one of the MBEDTLS__FUNCTION_NAME__ALT flags.
@@ -229,8 +229,8 @@
  * \def MBEDTLS__FUNCTION_NAME__ALT
  *
  * Uncomment a macro to let mbed TLS use you alternate core implementation of
- * symmetric of hash function. Keep in mind that function prototypes should
- * remain the same.
+ * symmetric crypto or hash function. Keep in mind that function prototypes
+ * should remain the same.
  *
  * This replaces only one function. The header file from mbed TLS is still
  * used, in contrast to the MBEDTLS__MODULE_NAME__ALT flags.
@@ -240,7 +240,6 @@
  * the other function (using your mbedtls_sha1_process() function) and the definition
  * of mbedtls_sha1_context, so your implementation of mbedtls_sha1_process must be compatible
  * with this definition.
- *
  *
  * Uncomment a macro to enable alternate implementation of the corresponding
  * function.

@@ -271,6 +271,16 @@ int mbedtls_des3_crypt_cbc( mbedtls_des3_context *ctx,
                      unsigned char *output );
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
+/**
+ * \brief          Internal function for key expansion.
+ *                 (Only exposed to allow overriding it,
+ *                 see MBEDTLS_DES_SETKEY_ALT)
+ *
+ * \param SK       Round keys
+ * \param key      Base key
+ */
+void mbedtls_des_setkey( uint32_t SK[32],
+                         const unsigned char key[MBEDTLS_DES_KEY_SIZE] );
 #ifdef __cplusplus
 }
 #endif

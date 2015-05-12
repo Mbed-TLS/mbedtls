@@ -388,7 +388,6 @@ static int my_verify( void *data, mbedtls_x509_crt *crt, int depth, uint32_t *fl
 int main( int argc, char *argv[] )
 {
     int ret = 0, len, tail_len, server_fd, i, written, frags, retry_left;
-    uint32_t flags;
     unsigned char buf[MBEDTLS_SSL_MAX_CONTENT_LEN + 1];
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     unsigned char psk[MBEDTLS_PSK_MAX_LEN];
@@ -405,6 +404,7 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_config conf;
     mbedtls_ssl_session saved_session;
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+    uint32_t flags;
     mbedtls_x509_crt cacert;
     mbedtls_x509_crt clicert;
     mbedtls_pk_context pkey;

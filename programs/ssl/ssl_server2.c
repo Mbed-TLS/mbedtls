@@ -705,7 +705,6 @@ void term_handler( int sig )
 int main( int argc, char *argv[] )
 {
     int ret = 0, len, written, frags, exchanges_left;
-    uint32_t flags;
     int version_suites[4][2];
     unsigned char buf[IO_BUF_LEN];
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
@@ -727,6 +726,7 @@ int main( int argc, char *argv[] )
     unsigned char renego_period[8] = { 0 };
 #endif
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+    uint32_t flags;
     mbedtls_x509_crt cacert;
     mbedtls_x509_crt srvcert;
     mbedtls_pk_context pkey;

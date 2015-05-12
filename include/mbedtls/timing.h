@@ -34,6 +34,8 @@
 // Regular implementation
 //
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -45,6 +47,16 @@ struct mbedtls_timing_hr_time
 {
     unsigned char opaque[32];
 };
+
+/**
+ * \brief          Context for mbedtls_timing_set/get_delay()
+ */
+typedef struct
+{
+    struct mbedtls_timing_hr_time   timer;
+    uint32_t                        int_ms;
+    uint32_t                        fin_ms;
+} mbedtls_timing_delay_context;
 
 extern volatile int mbedtls_timing_alarmed;
 
@@ -78,6 +90,32 @@ void mbedtls_set_alarm( int seconds );
  * \param milliseconds  delay in milliseconds
  */
 void mbedtls_timing_m_sleep( int milliseconds );
+
+/**
+ * \brief          Set a pair of delays to watch
+ *                 (See \c mbedtls_timing_get_delay().)
+ *
+ * \param data     Pointer to timing data
+ *                 Must point to a valid \c mbetls_timing_delay_context struct.
+ * \param int_ms   First (intermediate) delay in milliseconds.
+ * \param fin_ms   Second (final) delay in milliseconds.
+ *                 Pass 0 to cancel the current delay.
+ */
+void mbedtls_timing_set_delay( void *data, uint32_t int_ms, uint32_t fin_ms );
+
+/**
+ * \brief          Get the status of delays
+ *                 (Memory helper: number of delays passed.)
+ *
+ * \param data     Pointer to timing data
+ *                 Must point to a valid \c mbetls_timing_delay_context struct.
+ *
+ * \return         -1 if cancelled (fin_ms = 0)
+ *                  0 if none of the delays are passed,
+ *                  1 if only the intermediate delay is passed,
+ *                  2 if the final delay is passed.
+ */
+int mbedtls_timing_get_delay( void *data );
 
 #ifdef __cplusplus
 }

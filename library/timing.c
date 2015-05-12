@@ -335,6 +335,42 @@ void mbedtls_timing_m_sleep( int milliseconds )
 
 #endif /* _WIN32 && !EFIX64 && !EFI32 */
 
+/*
+ * Set delays to watch
+ */
+void mbedtls_timing_set_delay( void *data, uint32_t int_ms, uint32_t fin_ms )
+{
+    mbedtls_timing_delay_context *ctx = (mbedtls_timing_delay_context *) data;
+
+    ctx->int_ms = int_ms;
+    ctx->fin_ms = fin_ms;
+
+    if( fin_ms != 0 )
+        (void) mbedtls_timing_get_timer( &ctx->timer, 1 );
+}
+
+/*
+ * Get number of delays expired
+ */
+int mbedtls_timing_get_delay( void *data )
+{
+    mbedtls_timing_delay_context *ctx = (mbedtls_timing_delay_context *) data;
+    unsigned long elapsed_ms;
+
+    if( ctx->fin_ms == 0 )
+        return( -1 );
+
+    elapsed_ms = mbedtls_timing_get_timer( &ctx->timer, 0 );
+
+    if( elapsed_ms >= ctx->fin_ms )
+        return( 2 );
+
+    if( elapsed_ms >= ctx->int_ms )
+        return( 1 );
+
+    return( 0 );
+}
+
 #endif /* !MBEDTLS_TIMING_ALT */
 
 #if defined(MBEDTLS_SELF_TEST)
@@ -363,6 +399,14 @@ static void busy_msleep( unsigned long msec )
     (void) j;
 }
 
+#define FAIL    do                      \
+{                                       \
+    if( verbose != 0 )                  \
+        mbedtls_printf( "failed\n" );   \
+                                        \
+    return( 1 );                        \
+} while( 0 )
+
 /*
  * Checkup routine
  *
@@ -375,6 +419,8 @@ int mbedtls_timing_self_test( int verbose )
     unsigned long millisecs, secs;
     int hardfail;
     struct mbedtls_timing_hr_time hires;
+    uint32_t a, b;
+    mbedtls_timing_delay_context ctx;
 
     if( verbose != 0 )
         mbedtls_printf( "  TIMING tests note: will take some time!\n" );
@@ -472,9 +518,44 @@ hard_test:
     if( verbose != 0 )
         mbedtls_printf( "passed\n" );
 
+    if( verbose != 0 )
+        mbedtls_printf( "  TIMING test #4 (m_sleep   / delay    ): " );
+
+    for( a = 100; a <= 200; a += 100 )
+    {
+        for( b = 100; b <= 200; b += 100 )
+        {
+            mbedtls_timing_set_delay( &ctx, a, a + b );
+
+            mbedtls_timing_m_sleep( (int)( a - a / 10 ) );
+            if( mbedtls_timing_get_delay( &ctx ) != 0 )
+                FAIL;
+
+            mbedtls_timing_m_sleep( (int)( a / 5 ) );
+            if( mbedtls_timing_get_delay( &ctx ) != 1 )
+                FAIL;
+
+            mbedtls_timing_m_sleep( (int)( b - a / 5 ) );
+            if( mbedtls_timing_get_delay( &ctx ) != 1 )
+                FAIL;
+
+            mbedtls_timing_m_sleep( (int)( b / 5 ) );
+            if( mbedtls_timing_get_delay( &ctx ) != 2 )
+                FAIL;
+        }
+    }
+
+    mbedtls_timing_set_delay( &ctx, 0, 0 );
+    mbedtls_timing_m_sleep( 200 );
+    if( mbedtls_timing_get_delay( &ctx ) != -1 )
+        FAIL;
+
+    if( verbose != 0 )
+        mbedtls_printf( "passed\n" );
+
 #if defined(MBEDTLS_NET_C) && defined(MBEDTLS_HAVE_TIME)
     if( verbose != 0 )
-        mbedtls_printf( "  TIMING test #4 (net_usleep/ get_timer): " );
+        mbedtls_printf( "  TIMING test #5 (net_usleep/ get_timer): " );
 
     for( secs = 1; secs <= 3; secs++ )
     {

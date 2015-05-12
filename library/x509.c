@@ -449,7 +449,7 @@ int x509_get_name( unsigned char **p, const unsigned char *end,
             if( *p == end_set )
                 break;
 
-            /* Mark this item as being only one in a set */
+            /* Mark this item as being not the only one in a set */
             cur->next_merged = 1;
 
             cur->next = polarssl_malloc( sizeof( x509_name ) );

@@ -356,7 +356,7 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(POLARSSL_ERR_RSA_KEY_GEN_FAILED) )
             polarssl_snprintf( buf, buflen, "RSA - Something failed during generation of a key" );
         if( use_ret == -(POLARSSL_ERR_RSA_KEY_CHECK_FAILED) )
-            polarssl_snprintf( buf, buflen, "RSA - Key failed to pass the libraries validity check" );
+            polarssl_snprintf( buf, buflen, "RSA - Key failed to pass the library's validity check" );
         if( use_ret == -(POLARSSL_ERR_RSA_PUBLIC_FAILED) )
             polarssl_snprintf( buf, buflen, "RSA - The public key operation failed" );
         if( use_ret == -(POLARSSL_ERR_RSA_PRIVATE_FAILED) )

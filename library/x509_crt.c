@@ -852,8 +852,11 @@ int mbedtls_x509_crt_parse( mbedtls_x509_crt *chain, const unsigned char *buf, s
      * one or more PEM certificates.
      */
 #if defined(MBEDTLS_PEM_PARSE_C)
-    if( strstr( (const char *) buf, "-----BEGIN CERTIFICATE-----" ) != NULL )
+    if( buf[buflen - 1] == '\0' &&
+        strstr( (const char *) buf, "-----BEGIN CERTIFICATE-----" ) != NULL )
+    {
         buf_format = MBEDTLS_X509_FORMAT_PEM;
+    }
 #endif
 
     if( buf_format == MBEDTLS_X509_FORMAT_DER )
@@ -865,11 +868,13 @@ int mbedtls_x509_crt_parse( mbedtls_x509_crt *chain, const unsigned char *buf, s
         int ret;
         mbedtls_pem_context pem;
 
-        while( buflen > 0 )
+        /* 1 rather than 0 since the terminating NULL byte is counted in */
+        while( buflen > 1 )
         {
             size_t use_len;
             mbedtls_pem_init( &pem );
 
+            /* If we get there, we know the string is null-terminated */
             ret = mbedtls_pem_read_buffer( &pem,
                            "-----BEGIN CERTIFICATE-----",
                            "-----END CERTIFICATE-----",
@@ -953,7 +958,7 @@ int mbedtls_x509_crt_parse_file( mbedtls_x509_crt *chain, const char *path )
 
     ret = mbedtls_x509_crt_parse( chain, buf, n );
 
-    mbedtls_zeroize( buf, n + 1 );
+    mbedtls_zeroize( buf, n );
     mbedtls_free( buf );
 
     return( ret );

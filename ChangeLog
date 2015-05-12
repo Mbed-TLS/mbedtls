@@ -55,6 +55,9 @@ API Changes
      available if POLARSSL_PEM_PARSE_C is defined (it never worked without).
    * Test certificates in certs.c are no longer guaranteed to be nul-terminated
      strings; use the new *_len variables instead of strlen().
+   * Functions mbedtls_x509_xxx_parse(), mbedtls_pk_parse_key(),
+     mbedtls_pk_parse_public_key() and mbedtls_dhm_parse_dhm() now expect the
+     length parameter to include the terminating null byte for PEM input.
    * Signature of mpi_mul_mpi() changed to make the last argument unsigned
    * Change SSL_DISABLE_RENEGOTIATION config.h flag to SSL_RENEGOTIATION
      (support for renegotiation now needs explicit enabling in config.h).

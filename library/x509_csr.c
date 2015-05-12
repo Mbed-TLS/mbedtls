@@ -274,10 +274,15 @@ int mbedtls_x509_csr_parse( mbedtls_x509_csr *csr, const unsigned char *buf, siz
 
 #if defined(MBEDTLS_PEM_PARSE_C)
     mbedtls_pem_init( &pem );
-    ret = mbedtls_pem_read_buffer( &pem,
-                           "-----BEGIN CERTIFICATE REQUEST-----",
-                           "-----END CERTIFICATE REQUEST-----",
-                           buf, NULL, 0, &use_len );
+
+    /* Avoid calling mbedtls_pem_read_buffer() on non-null-terminated string */
+    if( buf[buflen - 1] != '\0' )
+        ret = MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
+    else
+        ret = mbedtls_pem_read_buffer( &pem,
+                               "-----BEGIN CERTIFICATE REQUEST-----",
+                               "-----END CERTIFICATE REQUEST-----",
+                               buf, NULL, 0, &use_len );
 
     if( ret == 0 )
     {
@@ -315,7 +320,7 @@ int mbedtls_x509_csr_parse_file( mbedtls_x509_csr *csr, const char *path )
 
     ret = mbedtls_x509_csr_parse( csr, buf, n );
 
-    mbedtls_zeroize( buf, n + 1 );
+    mbedtls_zeroize( buf, n );
     mbedtls_free( buf );
 
     return( ret );

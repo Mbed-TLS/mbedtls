@@ -503,6 +503,11 @@ int mbedtls_x509_crl_parse( mbedtls_x509_crl *chain, const unsigned char *buf, s
     do
     {
         mbedtls_pem_init( &pem );
+
+    /* Avoid calling mbedtls_pem_read_buffer() on non-null-terminated string */
+    if( buf[buflen - 1] != '\0' )
+        ret = MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
+    else
         ret = mbedtls_pem_read_buffer( &pem,
                                "-----BEGIN X509 CRL-----",
                                "-----END X509 CRL-----",
@@ -532,7 +537,9 @@ int mbedtls_x509_crl_parse( mbedtls_x509_crl *chain, const unsigned char *buf, s
             return( ret );
         }
     }
-    while( is_pem && buflen > 0 );
+    /* In the PEM case, buflen is 1 at the end, for the terminated NULL byte.
+     * And a valid CRL cannot be less than 1 byte anyway. */
+    while( is_pem && buflen > 1 );
 
     if( is_pem )
         return( 0 );
@@ -556,7 +563,7 @@ int mbedtls_x509_crl_parse_file( mbedtls_x509_crl *chain, const char *path )
 
     ret = mbedtls_x509_crl_parse( chain, buf, n );
 
-    mbedtls_zeroize( buf, n + 1 );
+    mbedtls_zeroize( buf, n );
     mbedtls_free( buf );
 
     return( ret );

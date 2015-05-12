@@ -141,8 +141,9 @@ int mbedtls_x509_crt_parse_der( mbedtls_x509_crt *chain, const unsigned char *bu
  *                 correctly, the first error is returned.
  *
  * \param chain    points to the start of the chain
- * \param buf      buffer holding the certificate data
+ * \param buf      buffer holding the certificate data in PEM or DER format
  * \param buflen   size of the buffer
+ *                 (including the terminating null byte for PEM data)
  *
  * \return         0 if all certificates parsed successfully, a positive number
  *                 if partly successful or a specific X509 or PEM error code

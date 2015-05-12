@@ -73,7 +73,7 @@ void mbedtls_pem_init( mbedtls_pem_context *ctx );
  * \param ctx       context to use
  * \param header    header string to seek and expect
  * \param footer    footer string to seek and expect
- * \param data      source data to look in
+ * \param data      source data to look in (must be nul-terminated)
  * \param pwd       password for decryption (can be NULL)
  * \param pwdlen    length of password
  * \param use_len   destination for total length used (set after header is

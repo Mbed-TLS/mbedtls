@@ -269,11 +269,12 @@ void mbedtls_dhm_free( mbedtls_dhm_context *ctx );
 #if defined(MBEDTLS_ASN1_PARSE_C)
 /** \ingroup x509_module */
 /**
- * \brief          Parse DHM parameters
+ * \brief          Parse DHM parameters in PEM or DER format
  *
  * \param dhm      DHM context to be initialized
  * \param dhmin    input buffer
  * \param dhminlen size of the buffer
+ *                 (including the terminating null byte for PEM data)
  *
  * \return         0 if successful, or a specific DHM or PEM error code
  */

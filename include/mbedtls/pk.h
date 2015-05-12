@@ -427,11 +427,12 @@ mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx );
 #if defined(MBEDTLS_PK_PARSE_C)
 /** \ingroup pk_module */
 /**
- * \brief           Parse a private key
+ * \brief           Parse a private key in PEM or DER format
  *
  * \param ctx       key to be initialized
  * \param key       input buffer
  * \param keylen    size of the buffer
+ *                  (including the terminating null byte for PEM data)
  * \param pwd       password for decryption (optional)
  * \param pwdlen    size of the password
  *
@@ -449,11 +450,12 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *ctx,
 
 /** \ingroup pk_module */
 /**
- * \brief           Parse a public key
+ * \brief           Parse a public key in PEM or DER format
  *
  * \param ctx       key to be initialized
  * \param key       input buffer
  * \param keylen    size of the buffer
+ *                  (including the terminating null byte for PEM data)
  *
  * \note            On entry, ctx must be empty, either freshly initialised
  *                  with mbedtls_pk_init() or reset with mbedtls_pk_free(). If you need a

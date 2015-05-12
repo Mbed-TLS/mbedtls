@@ -1008,7 +1008,7 @@ int mbedtls_x509_self_test( int verbose )
     mbedtls_x509_crt_init( &clicert );
 
     ret = mbedtls_x509_crt_parse( &clicert, (const unsigned char *) mbedtls_test_cli_crt,
-                          strlen( mbedtls_test_cli_crt ) );
+                           mbedtls_test_cli_crt_len );
     if( ret != 0 )
     {
         if( verbose != 0 )
@@ -1020,7 +1020,7 @@ int mbedtls_x509_self_test( int verbose )
     mbedtls_x509_crt_init( &cacert );
 
     ret = mbedtls_x509_crt_parse( &cacert, (const unsigned char *) mbedtls_test_ca_crt,
-                          strlen( mbedtls_test_ca_crt ) );
+                          mbedtls_test_ca_crt_len );
     if( ret != 0 )
     {
         if( verbose != 0 )

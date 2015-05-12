@@ -421,10 +421,14 @@ int mbedtls_dhm_parse_dhm( mbedtls_dhm_context *dhm, const unsigned char *dhmin,
 
     mbedtls_pem_init( &pem );
 
-    ret = mbedtls_pem_read_buffer( &pem,
-                           "-----BEGIN DH PARAMETERS-----",
-                           "-----END DH PARAMETERS-----",
-                           dhmin, NULL, 0, &dhminlen );
+    /* Avoid calling mbedtls_pem_read_buffer() on non-null-terminated string */
+    if( dhmin[dhminlen - 1] != '\0' )
+        ret = MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
+    else
+        ret = mbedtls_pem_read_buffer( &pem,
+                               "-----BEGIN DH PARAMETERS-----",
+                               "-----END DH PARAMETERS-----",
+                               dhmin, NULL, 0, &dhminlen );
 
     if( ret == 0 )
     {
@@ -503,6 +507,10 @@ exit:
 #if defined(MBEDTLS_FS_IO)
 /*
  * Load all data from a file into a given buffer.
+ *
+ * The file is expected to contain either PEM or DER encoded data.
+ * A terminating null byte is always appended. It is included in the announced
+ * length only if the data looks like it is PEM encoded.
  */
 static int load_file( const char *path, unsigned char **buf, size_t *n )
 {
@@ -540,6 +548,9 @@ static int load_file( const char *path, unsigned char **buf, size_t *n )
 
     (*buf)[*n] = '\0';
 
+    if( strstr( (const char *) *buf, "-----BEGIN " ) != NULL )
+        ++*n;
+
     return( 0 );
 }
 
@@ -557,7 +568,7 @@ int mbedtls_dhm_parse_dhmfile( mbedtls_dhm_context *dhm, const char *path )
 
     ret = mbedtls_dhm_parse_dhm( dhm, buf, n );
 
-    mbedtls_zeroize( buf, n + 1 );
+    mbedtls_zeroize( buf, n );
     mbedtls_free( buf );
 
     return( ret );
@@ -584,7 +595,7 @@ int mbedtls_dhm_self_test( int verbose )
         mbedtls_printf( "  DHM parameter load: " );
 
     if( ( ret = mbedtls_dhm_parse_dhm( &dhm, (const unsigned char *) mbedtls_test_dhm_params,
-                               strlen( mbedtls_test_dhm_params ) ) ) != 0 )
+                               mbedtls_test_dhm_params_len ) ) != 0 )
     {
         if( verbose != 0 )
             mbedtls_printf( "failed\n" );

@@ -4,9 +4,9 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 Features
   * Support for DTLS 1.0 and 1.2 (RFC 6347).
-  * Ability to override xxx_process() function from a md/sha module with
-    custom implementation (eg hardware accelerated), complementing the ability
-    to override the whole module.
+  * Ability to override core functions from MDx, SHAx, AES and DES modules
+    with custom implementation (eg hardware accelerated), complementing the
+    ability to override the whole module.
 
 API Changes
    * All public identifiers moved to the mbedtls_* or MBEDTLS_* namespace.

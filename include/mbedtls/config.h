@@ -241,6 +241,10 @@
  * of mbedtls_sha1_context, so your implementation of mbedtls_sha1_process must be compatible
  * with this definition.
  *
+ * Note: if you use the AES_xxx_ALT macros, then is is recommended to also set
+ * MBEDTLS_AES_ROM_TABLES in order to help the linker garbage-collect the AES
+ * tables.
+ *
  * Uncomment a macro to enable alternate implementation of the corresponding
  * function.
  */
@@ -254,6 +258,10 @@
 //#define MBEDTLS_DES_SETKEY_ALT
 //#define MBEDTLS_DES_CRYPT_ECB_ALT
 //#define MBEDTLS_DES3_CRYPT_ECB_ALT
+//#define MBEDTLS_AES_SETKEY_ENC_ALT
+//#define MBEDTLS_AES_SETKEY_DEC_ALT
+//#define MBEDTLS_AES_ENCRYPT_ALT
+//#define MBEDTLS_AES_DECRYPT_ALT
 
 /**
  * \def MBEDTLS_AES_ROM_TABLES

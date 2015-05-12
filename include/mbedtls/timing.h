@@ -79,6 +79,18 @@ void mbedtls_set_alarm( int seconds );
  */
 void mbedtls_timing_m_sleep( int milliseconds );
 
+#ifdef __cplusplus
+}
+#endif
+
+#else  /* MBEDTLS_TIMING_ALT */
+#include "timing_alt.h"
+#endif /* MBEDTLS_TIMING_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if defined(MBEDTLS_SELF_TEST)
 /**
  * \brief          Checkup routine
@@ -91,9 +103,5 @@ int mbedtls_timing_self_test( int verbose );
 #ifdef __cplusplus
 }
 #endif
-
-#else  /* MBEDTLS_TIMING_ALT */
-#include "timing_alt.h"
-#endif /* MBEDTLS_TIMING_ALT */
 
 #endif /* timing.h */

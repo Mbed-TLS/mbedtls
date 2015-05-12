@@ -33,9 +33,11 @@
 #define mbedtls_printf     printf
 #endif
 
-#if defined(MBEDTLS_TIMING_C) && !defined(MBEDTLS_TIMING_ALT)
+#if defined(MBEDTLS_TIMING_C)
 
 #include "mbedtls/timing.h"
+
+#if !defined(MBEDTLS_TIMING_ALT)
 
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
 
@@ -333,6 +335,8 @@ void mbedtls_timing_m_sleep( int milliseconds )
 
 #endif /* _WIN32 && !EFIX64 && !EFI32 */
 
+#endif /* !MBEDTLS_TIMING_ALT */
+
 #if defined(MBEDTLS_SELF_TEST)
 
 /* To test mbedtls_net_usleep against our functions */
@@ -501,4 +505,4 @@ hard_test:
 
 #endif /* MBEDTLS_SELF_TEST */
 
-#endif /* MBEDTLS_TIMING_C && !MBEDTLS_TIMING_ALT */
+#endif /* MBEDTLS_TIMING_C */

@@ -412,7 +412,7 @@ int mbedtls_ecp_point_read_binary( const mbedtls_ecp_group *grp, mbedtls_ecp_poi
  *
  * \note            buf is updated to point right after the ECPoint on exit
  *
- * \return          O if successful,
+ * \return          0 if successful,
  *                  MBEDTLS_ERR_MPI_XXX if initialization failed
  *                  MBEDTLS_ERR_ECP_BAD_INPUT_DATA if input is invalid
  */
@@ -443,7 +443,7 @@ int mbedtls_ecp_tls_write_point( const mbedtls_ecp_group *grp, const mbedtls_ecp
  * \param grp       Destination group
  * \param index     Index in the list of well-known domain parameters
  *
- * \return          O if successful,
+ * \return          0 if successful,
  *                  MBEDTLS_ERR_MPI_XXX if initialization failed
  *                  MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE for unkownn groups
  *
@@ -461,7 +461,7 @@ int mbedtls_ecp_group_load( mbedtls_ecp_group *grp, mbedtls_ecp_group_id index )
  *
  * \note            buf is updated to point right after ECParameters on exit
  *
- * \return          O if successful,
+ * \return          0 if successful,
  *                  MBEDTLS_ERR_MPI_XXX if initialization failed
  *                  MBEDTLS_ERR_ECP_BAD_INPUT_DATA if input is invalid
  */

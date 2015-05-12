@@ -352,7 +352,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(MBEDTLS_ERR_RSA_KEY_GEN_FAILED) )
             mbedtls_snprintf( buf, buflen, "RSA - Something failed during generation of a key" );
         if( use_ret == -(MBEDTLS_ERR_RSA_KEY_CHECK_FAILED) )
-            mbedtls_snprintf( buf, buflen, "RSA - Key failed to pass the libraries validity check" );
+            mbedtls_snprintf( buf, buflen, "RSA - Key failed to pass the library's validity check" );
         if( use_ret == -(MBEDTLS_ERR_RSA_PUBLIC_FAILED) )
             mbedtls_snprintf( buf, buflen, "RSA - The public key operation failed" );
         if( use_ret == -(MBEDTLS_ERR_RSA_PRIVATE_FAILED) )

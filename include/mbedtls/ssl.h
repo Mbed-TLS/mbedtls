@@ -1520,6 +1520,9 @@ int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session
  *                      order. First in the list has the highest preference.
  *                      (Overrides all version specific lists)
  *
+ *                      The ciphersuites array is not copied, and must remain
+ *                      valid for the lifetime of the ssl_config.
+ *
  *                      Note: The server uses its own preferences
  *                      over the preference of the client unless
  *                      MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE is defined!
@@ -1534,6 +1537,9 @@ void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
  * \brief               Set the list of allowed ciphersuites and the
  *                      preference order for a specific version of the protocol.
  *                      (Only useful on the server side)
+ *
+ *                      The ciphersuites array is not copied, and must remain
+ *                      valid for the lifetime of the ssl_config.
  *
  * \param conf          SSL configuration
  * \param ciphersuites  0-terminated list of allowed ciphersuites
@@ -1919,7 +1925,7 @@ void mbedtls_ssl_conf_arc4_support( mbedtls_ssl_config *conf, char arc4 );
  *                 MBEDTLS_SSL_MAX_FRAG_LEN_512,  MBEDTLS_SSL_MAX_FRAG_LEN_1024,
  *                 MBEDTLS_SSL_MAX_FRAG_LEN_2048, MBEDTLS_SSL_MAX_FRAG_LEN_4096)
  *
- * \return         O if successful or MBEDTLS_ERR_SSL_BAD_INPUT_DATA
+ * \return         0 if successful or MBEDTLS_ERR_SSL_BAD_INPUT_DATA
  */
 int mbedtls_ssl_conf_max_frag_len( mbedtls_ssl_config *conf, unsigned char mfl_code );
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
@@ -1965,7 +1971,7 @@ void mbedtls_ssl_conf_cbc_record_splitting( mbedtls_ssl_config *conf, char split
  * \param use_tickets   Enable or disable (MBEDTLS_SSL_SESSION_TICKETS_ENABLED or
  *                                         MBEDTLS_SSL_SESSION_TICKETS_DISABLED)
  *
- * \return         O if successful,
+ * \return         0 if successful,
  *                 or a specific error code (server only).
  */
 int mbedtls_ssl_conf_session_tickets( mbedtls_ssl_config *conf, int use_tickets );

@@ -449,7 +449,7 @@ int mbedtls_x509_get_name( unsigned char **p, const unsigned char *end,
             if( *p == end_set )
                 break;
 
-            /* Mark this item as being only one in a set */
+            /* Mark this item as being no the only one in a set */
             cur->next_merged = 1;
 
             cur->next = mbedtls_malloc( sizeof( mbedtls_x509_name ) );

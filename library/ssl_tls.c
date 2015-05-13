@@ -4975,10 +4975,6 @@ static int ssl_cookie_check_dummy( void *ctx,
 void mbedtls_ssl_init( mbedtls_ssl_context *ssl )
 {
     memset( ssl, 0, sizeof( mbedtls_ssl_context ) );
-
-    /* Temporary WIP */
-    mbedtls_ssl_set_timer_cb( ssl, &ssl->WIP_timer,
-            mbedtls_timing_set_delay, mbedtls_timing_get_delay );
 }
 
 /*

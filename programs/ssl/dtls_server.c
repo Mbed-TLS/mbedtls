@@ -29,6 +29,7 @@
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
+#include <stdio.h>
 #define mbedtls_printf     printf
 #define mbedtls_fprintf    fprintf
 #endif
@@ -37,16 +38,17 @@
     !defined(MBEDTLS_SSL_COOKIE_C) || !defined(MBEDTLS_NET_C) ||          \
     !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C) ||        \
     !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_RSA_C) ||      \
-    !defined(MBEDTLS_CERTS_C) || !defined(MBEDTLS_PEM_PARSE_C)
+    !defined(MBEDTLS_CERTS_C) || !defined(MBEDTLS_PEM_PARSE_C) ||         \
+    !defined(MBEDTLS_TIMING_C)
 
-#include <stdio.h>
 int main( void )
 {
     printf( "MBEDTLS_SSL_SRV_C and/or MBEDTLS_SSL_PROTO_DTLS and/or "
             "MBEDTLS_SSL_COOKIE_C and/or MBEDTLS_NET_C and/or "
             "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C and/or "
             "MBEDTLS_X509_CRT_PARSE_C and/or MBEDTLS_RSA_C and/or "
-            "MBEDTLS_CERTS_C and/or MBEDTLS_PEM_PARSE_C not defined.\n" );
+            "MBEDTLS_CERTS_C and/or MBEDTLS_PEM_PARSE_C and/or "
+            "MBEDTLS_TIMING_C not defined.\n" );
     return( 0 );
 }
 #else
@@ -100,6 +102,7 @@ int main( void )
     mbedtls_ssl_config conf;
     mbedtls_x509_crt srvcert;
     mbedtls_pk_context pkey;
+    mbedtls_timing_delay_context timer;
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_context cache;
 #endif
@@ -231,6 +234,9 @@ int main( void )
         printf( " failed\n  ! mbedtls_ssl_setup returned %d\n\n", ret );
         goto exit;
     }
+
+    mbedtls_ssl_set_timer_cb( &ssl, &timer, mbedtls_timing_set_delay,
+                                            mbedtls_timing_get_delay );
 
     printf( " ok\n" );
 
@@ -419,4 +425,4 @@ exit:
 #endif /* MBEDTLS_SSL_SRV_C && MBEDTLS_SSL_PROTO_DTLS &&
           MBEDTLS_SSL_COOKIE_C && MBEDTLS_NET_C && MBEDTLS_ENTROPY_C &&
           MBEDTLS_CTR_DRBG_C && MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_RSA_C
-          && MBEDTLS_CERTS_C && MBEDTLS_PEM_PARSE_C */
+          && MBEDTLS_CERTS_C && MBEDTLS_PEM_PARSE_C && MBEDTLS_TIMING_C */

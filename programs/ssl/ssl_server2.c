@@ -36,17 +36,20 @@
 #define mbedtls_printf     printf
 #endif
 
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && defined(MBEDTLS_FS_IO)
-#define SNI_OPTION
-#endif
+#if !defined(MBEDTLS_ENTROPY_C) || \
+    !defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_SRV_C) || \
+    !defined(MBEDTLS_NET_C) || !defined(MBEDTLS_CTR_DRBG_C) || \
+    !defined(MBEDTLS_TIMING_C)
+int main( void )
+{
+    mbedtls_printf("MBEDTLS_ENTROPY_C and/or "
+           "MBEDTLS_SSL_TLS_C and/or MBEDTLS_SSL_SRV_C and/or "
+           "MBEDTLS_NET_C and/or MBEDTLS_CTR_DRBG_C and/or "
+           "MBEDTLS_TIMING_C not defined.\n");
+    return( 0 );
+}
+#else
 
-#if defined(_WIN32)
-#include <windows.h>
-#endif
-
-#if defined(MBEDTLS_ENTROPY_C) && \
-    defined(MBEDTLS_SSL_TLS_C) && defined(MBEDTLS_SSL_SRV_C) && \
-    defined(MBEDTLS_NET_C) && defined(MBEDTLS_CTR_DRBG_C)
 #include "mbedtls/net.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/entropy.h"
@@ -59,7 +62,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#endif
 
 #if !defined(_WIN32)
 #include <signal.h>
@@ -75,6 +77,14 @@
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
 #include "mbedtls/memory_buffer_alloc.h"
+#endif
+
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && defined(MBEDTLS_FS_IO)
+#define SNI_OPTION
+#endif
+
+#if defined(_WIN32)
+#include <windows.h>
 #endif
 
 #define DFL_SERVER_ADDR         NULL
@@ -327,18 +337,6 @@
     "    force_ciphersuite=<name>    default: all enabled\n"            \
     " acceptable ciphersuite names:\n"
 
-#if !defined(MBEDTLS_ENTROPY_C) || \
-    !defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_SRV_C) || \
-    !defined(MBEDTLS_NET_C) || !defined(MBEDTLS_CTR_DRBG_C)
-#include <stdio.h>
-int main( void )
-{
-    mbedtls_printf("MBEDTLS_ENTROPY_C and/or "
-           "MBEDTLS_SSL_TLS_C and/or MBEDTLS_SSL_SRV_C and/or "
-           "MBEDTLS_NET_C and/or MBEDTLS_CTR_DRBG_C not defined.\n");
-    return( 0 );
-}
-#else
 /*
  * global options
  */
@@ -722,6 +720,7 @@ int main( int argc, char *argv[] )
     mbedtls_ctr_drbg_context ctr_drbg;
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
+    mbedtls_timing_delay_context timer;
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     unsigned char renego_period[8] = { 0 };
 #endif
@@ -1752,6 +1751,9 @@ int main( int argc, char *argv[] )
 #endif
                 );
 
+    mbedtls_ssl_set_timer_cb( &ssl, &timer, mbedtls_timing_set_delay,
+                                            mbedtls_timing_get_delay );
+
     mbedtls_printf( " ok\n" );
 
 reset:
@@ -2226,4 +2228,4 @@ exit:
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_ENTROPY_C && MBEDTLS_SSL_TLS_C &&
           MBEDTLS_SSL_SRV_C && MBEDTLS_NET_C && MBEDTLS_RSA_C &&
-          MBEDTLS_CTR_DRBG_C */
+          MBEDTLS_CTR_DRBG_C && MBEDTLS_TIMING_C */

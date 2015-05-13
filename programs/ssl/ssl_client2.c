@@ -36,9 +36,20 @@
 #define mbedtls_snprintf   snprintf
 #endif
 
-#if defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_FS_IO) && \
-    defined(MBEDTLS_SSL_TLS_C) && defined(MBEDTLS_SSL_CLI_C) && \
-    defined(MBEDTLS_NET_C) && defined(MBEDTLS_CTR_DRBG_C)
+#if !defined(MBEDTLS_ENTROPY_C) || \
+    !defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_CLI_C) || \
+    !defined(MBEDTLS_NET_C) || !defined(MBEDTLS_CTR_DRBG_C) || \
+    !defined(MBEDTLS_TIMING_C)
+int main( void )
+{
+    mbedtls_printf("MBEDTLS_ENTROPY_C and/or "
+           "MBEDTLS_SSL_TLS_C and/or MBEDTLS_SSL_CLI_C and/or "
+           "MBEDTLS_NET_C and/or MBEDTLS_CTR_DRBG_C and/or "
+           "MBEDTLS_TIMING_C not defined.\n");
+    return( 0 );
+}
+#else
+
 #include "mbedtls/net.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/entropy.h"
@@ -47,15 +58,11 @@
 #include "mbedtls/x509.h"
 #include "mbedtls/error.h"
 #include "mbedtls/debug.h"
+#include "mbedtls/timing.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#endif
-
-#if defined(MBEDTLS_TIMING_C)
-#include "mbedtls/timing.h"
-#endif
 
 #if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
 #if !defined  snprintf
@@ -159,13 +166,6 @@
 #define USAGE_RECSPLIT
 #endif
 
-#if defined(MBEDTLS_TIMING_C)
-#define USAGE_TIME \
-    "    reco_delay=%%d       default: 0 seconds\n"
-#else
-#define USAGE_TIME ""
-#endif /* MBEDTLS_TIMING_C */
-
 #if defined(MBEDTLS_SSL_ALPN)
 #define USAGE_ALPN \
     "    alpn=%%s             default: \"\" (disabled)\n"   \
@@ -239,7 +239,7 @@
     USAGE_RENEGO                                            \
     "    exchanges=%%d        default: 1\n"                 \
     "    reconnect=%%d        default: 0 (disabled)\n"      \
-    USAGE_TIME                                              \
+    "    reco_delay=%%d       default: 0 seconds\n"         \
     USAGE_TICKETS                                           \
     USAGE_MAX_FRAG_LEN                                      \
     USAGE_TRUNC_HMAC                                        \
@@ -258,17 +258,6 @@
     "    force_ciphersuite=<name>    default: all enabled\n"\
     " acceptable ciphersuite names:\n"
 
-#if !defined(MBEDTLS_ENTROPY_C) ||  !defined(MBEDTLS_FS_IO) || \
-    !defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_CLI_C) || \
-    !defined(MBEDTLS_NET_C) || !defined(MBEDTLS_CTR_DRBG_C)
-int main( void )
-{
-    mbedtls_printf("MBEDTLS_ENTROPY_C and/or "
-           "MBEDTLS_SSL_TLS_C and/or MBEDTLS_SSL_CLI_C and/or "
-           "MBEDTLS_NET_C and/or MBEDTLS_CTR_DRBG_C not defined.\n");
-    return( 0 );
-}
-#else
 /*
  * global options
  */
@@ -403,6 +392,7 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
     mbedtls_ssl_session saved_session;
+    mbedtls_timing_delay_context timer;
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     uint32_t flags;
     mbedtls_x509_crt cacert;
@@ -1198,6 +1188,9 @@ int main( int argc, char *argv[] )
 #endif
                 );
 
+    mbedtls_ssl_set_timer_cb( &ssl, &timer, mbedtls_timing_set_delay,
+                                            mbedtls_timing_get_delay );
+
     mbedtls_printf( " ok\n" );
 
     /*
@@ -1495,10 +1488,8 @@ reconnect:
 
         mbedtls_net_close( server_fd );
 
-#if defined(MBEDTLS_TIMING_C)
         if( opt.reco_delay > 0 )
             mbedtls_timing_m_sleep( 1000 * opt.reco_delay );
-#endif
 
         mbedtls_printf( "  . Reconnecting with saved session..." );
         fflush( stdout );
@@ -1589,4 +1580,4 @@ exit:
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_ENTROPY_C && MBEDTLS_SSL_TLS_C &&
           MBEDTLS_SSL_CLI_C && MBEDTLS_NET_C && MBEDTLS_RSA_C &&
-          MBEDTLS_CTR_DRBG_C */
+          MBEDTLS_CTR_DRBG_C && MBEDTLS_TIMING_C */

@@ -1195,7 +1195,8 @@ void mbedtls_ssl_conf_endpoint( mbedtls_ssl_config *conf, int endpoint );
  *
  * \note            For DTLS, you must either provide a recv callback that
  *                  doesn't block, or one that handles timeouts, see
- *                  mbedtls_ssl_conf_bio()
+ *                  \c mbedtls_ssl_set_bio(). You also need to provide timer
+ *                  callbacks with \c mbedtls_ssl_set_timer_cb().
  *
  * \param conf      SSL configuration
  * \param transport transport type:
@@ -1279,12 +1280,18 @@ void mbedtls_ssl_conf_dbg( mbedtls_ssl_config *conf,
  * \param f_send   write callback
  * \param f_recv   read callback
  * \param f_recv_timeout blocking read callback with timeout.
- *                 The last argument of the callback is the timeout in seconds
+ *                 The last argument is the timeout in milliseconds
  *
- * \note           f_recv_timeout is required for DTLS, unless f_recv performs
- *                 non-blocking reads.
+ * \note           One of f_recv or f_recv_timeout can be NULL, in which case
+ *                 the other is used. If both are non-NULL, f_recv_timeout is
+ *                 used and f_recv is ignored (as if it were NULL).
  *
- * \note           TODO: timeout not supported with TLS yet
+ * \note           The two most common use cases are:
+ *                 - non-blocking I/O, f_recv != NULL, f_recv_timeout == NULL
+ *                 - blocking I/O, f_recv == NULL, f_recv_timout != NULL
+ *
+ * \note           For DTLS, you need to provide either a non-NULL
+ *                 f_recv_timeout callback, or a f_recv that doesn't block.
  */
 void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
         void *p_bio,
@@ -1302,6 +1309,11 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
  *
  * \note           With blocking I/O, this will only work if a non-NULL
  *                 \c f_recv_timeout was set with \c mbedtls_ssl_set_bio().
+ *                 With non-blocking I/O, this will only work if timer
+ *                 callbacks were set with \c mbedtls_ssl_set_timer_cb().
+ *
+ * \note           With non-blocking I/O, you may also skip this function
+ *                 altogether and handle timeouts at the application layer.
  */
 void mbedtls_ssl_conf_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout );
 

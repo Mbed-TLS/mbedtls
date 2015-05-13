@@ -997,12 +997,9 @@ struct mbedtls_ssl_context
     /*
      * Timers
      */
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    mbedtls_timing_delay_context WIP_timer; /* temporary */
     void *p_timer;              /*!< context for the timer callbacks */
     void (*f_set_timer)(void *, uint32_t, uint32_t); /*!< set timer callback */
     int (*f_get_timer)(void *); /*!< get timer callback             */
-#endif
 
     /*
      * Record layer (incoming data)

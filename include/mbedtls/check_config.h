@@ -351,10 +351,9 @@
 #error "MBEDTLS_SSL_PROTO_TLS1_2 defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_SSL_PROTO_DTLS) && (       \
-    ( !defined(MBEDTLS_SSL_PROTO_TLS1_1) &&      \
-      !defined(MBEDTLS_SSL_PROTO_TLS1_2) ) ||    \
-    !defined(MBEDTLS_TIMING_C) )
+#if defined(MBEDTLS_SSL_PROTO_DTLS)     && \
+    !defined(MBEDTLS_SSL_PROTO_TLS1_1)  && \
+    !defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #error "MBEDTLS_SSL_PROTO_DTLS defined, but not all prerequisites"
 #endif
 

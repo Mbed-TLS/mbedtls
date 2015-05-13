@@ -166,11 +166,6 @@ scripts/config.pl full
 scripts/config.pl unset MBEDTLS_NET_C
 scripts/config.pl unset MBEDTLS_TIMING_C
 scripts/config.pl unset MBEDTLS_FS_IO
-scripts/config.pl unset MBEDTLS_SSL_PROTO_DTLS # timing.c
-scripts/config.pl unset MBEDTLS_SSL_DTLS_ANTI_REPLAY
-scripts/config.pl unset MBEDTLS_SSL_DTLS_HELLO_VERIFY
-scripts/config.pl unset MBEDTLS_SSL_DTLS_BADMAC_LIMIT
-scripts/config.pl unset MBEDTLS_SSL_COOKIE_C
 # following things are not in the default config
 scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
 scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
@@ -189,11 +184,6 @@ scripts/config.pl unset MBEDTLS_NET_C
 scripts/config.pl unset MBEDTLS_TIMING_C
 scripts/config.pl unset MBEDTLS_FS_IO
 scripts/config.pl unset MBEDTLS_HAVE_TIME
-scripts/config.pl unset MBEDTLS_SSL_PROTO_DTLS # timing.c
-scripts/config.pl unset MBEDTLS_SSL_DTLS_ANTI_REPLAY
-scripts/config.pl unset MBEDTLS_SSL_DTLS_HELLO_VERIFY
-scripts/config.pl unset MBEDTLS_SSL_DTLS_BADMAC_LIMIT
-scripts/config.pl unset MBEDTLS_SSL_COOKIE_C
 # following things are not in the default config
 scripts/config.pl unset MBEDTLS_DEPRECATED_WARNING
 scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c

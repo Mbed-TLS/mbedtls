@@ -76,8 +76,6 @@ static inline size_t ssl_ep_len( const mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
-
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
 /*
  * Start a timer.
  * Passing millisecs = 0 cancels a running timer.
@@ -100,11 +98,15 @@ static int ssl_check_timer( mbedtls_ssl_context *ssl )
         return( -2 );
 
     if( ssl->f_get_timer( ssl->p_timer ) == 2 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "timer expired" ) );
         return( -1 );
+    }
 
     return( 0 );
 }
 
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
 /*
  * Double the retransmit timeout value, within the allowed range,
  * returning -1 if the maximum value has already been reached.
@@ -2355,7 +2357,11 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
         while( ssl->in_left < nb_want )
         {
             len = nb_want - ssl->in_left;
-            ret = ssl->f_recv( ssl->p_bio, ssl->in_hdr + ssl->in_left, len );
+
+            if( ssl_check_timer( ssl ) != 0 )
+                ret = MBEDTLS_ERR_SSL_TIMEOUT;
+            else
+                ret = ssl->f_recv( ssl->p_bio, ssl->in_hdr + ssl->in_left, len );
 
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "in_left: %d, nb_want: %d",
                            ssl->in_left, nb_want ) );
@@ -4934,6 +4940,8 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
             ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_PREPARING;
         else
             ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_WAITING;
+
+        ssl_set_timer( ssl, 0 );
     }
 #endif
 
@@ -5049,6 +5057,9 @@ int mbedtls_ssl_session_reset( mbedtls_ssl_context *ssl )
     int ret;
 
     ssl->state = MBEDTLS_SSL_HELLO_REQUEST;
+
+    /* Cancel any possibly running timer */
+    ssl_set_timer( ssl, 0 );
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     ssl->renego_status = MBEDTLS_SSL_INITIAL_HANDSHAKE;
@@ -5276,6 +5287,9 @@ void mbedtls_ssl_set_timer_cb( mbedtls_ssl_context *ssl,
     ssl->p_timer        = p_timer;
     ssl->f_set_timer    = f_set_timer;
     ssl->f_get_timer    = f_get_timer;
+
+    /* Make sure we start with no timer running */
+    ssl_set_timer( ssl, 0 );
 }
 
 #if defined(MBEDTLS_SSL_SRV_C)
@@ -6056,11 +6070,9 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
 
     if( ssl->in_offt == NULL )
     {
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
         /* Start timer if not already running */
         if( ssl->f_get_timer( ssl->p_timer ) == -1 )
             ssl_set_timer( ssl, ssl->conf->read_timeout );
-#endif
 
         if( ! record_read )
         {
@@ -6218,12 +6230,12 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
 
         ssl->in_offt = ssl->in_msg;
 
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
         /* We're going to return something now, cancel timer,
          * except if handshake (renegotiation) is in progress */
         if( ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER )
             ssl_set_timer( ssl, 0 );
 
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
         /* If we requested renego but received AppData, resend HelloRequest.
          * Do it now, after setting in_offt, to avoid taking this branch
          * again if ssl_write_hello_request() returns WANT_WRITE */

@@ -123,6 +123,10 @@ API changes from the 1.4 preview branch
      mbedtls_ssl_conf_transport()
      mbedtls_ssl_conf_max_version()
      mbedtls_ssl_conf_min_version()
+   * DTLS no longer hard-depends on TIMING_C, but uses a callback interface
+     instead, see mbedtls_ssl_set_timer_cb(), with the Timing module providing
+     an example implementation, see mbedtls_timing_delay_context and
+     mbedtls_timing_set/get_delay().
 
 Changes
    * mbedtls_ctr_drbg_random() and mbedtls_hmac_drbg_random() are now

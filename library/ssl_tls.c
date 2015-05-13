@@ -95,7 +95,7 @@ static void ssl_set_timer( mbedtls_ssl_context *ssl, uint32_t millisecs )
 static int ssl_check_timer( mbedtls_ssl_context *ssl )
 {
     if( ssl->f_get_timer == NULL )
-        return( -2 );
+        return( 0 );
 
     if( ssl->f_get_timer( ssl->p_timer ) == 2 )
     {
@@ -6071,8 +6071,11 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
     if( ssl->in_offt == NULL )
     {
         /* Start timer if not already running */
-        if( ssl->f_get_timer( ssl->p_timer ) == -1 )
+        if( ssl->f_get_timer != NULL &&
+            ssl->f_get_timer( ssl->p_timer ) == -1 )
+        {
             ssl_set_timer( ssl, ssl->conf->read_timeout );
+        }
 
         if( ! record_read )
         {

@@ -273,11 +273,6 @@ void mbedtls_set_alarm( int seconds )
     CloseHandle( CreateThread( NULL, 0, TimerProc, NULL, 0, &ThreadId ) );
 }
 
-void mbedtls_timing_m_sleep( int milliseconds )
-{
-    Sleep( milliseconds );
-}
-
 #else /* _WIN32 && !EFIX64 && !EFI32 */
 
 unsigned long mbedtls_timing_get_timer( struct mbedtls_timing_hr_time *val, int reset )
@@ -301,14 +296,6 @@ unsigned long mbedtls_timing_get_timer( struct mbedtls_timing_hr_time *val, int 
     return( delta );
 }
 
-#if defined(INTEGRITY)
-void mbedtls_timing_m_sleep( int milliseconds )
-{
-    usleep( milliseconds * 1000 );
-}
-
-#else /* INTEGRITY */
-
 static void sighandler( int signum )
 {
     mbedtls_timing_alarmed = 1;
@@ -321,17 +308,6 @@ void mbedtls_set_alarm( int seconds )
     signal( SIGALRM, sighandler );
     alarm( seconds );
 }
-
-void mbedtls_timing_m_sleep( int milliseconds )
-{
-    struct timeval tv;
-
-    tv.tv_sec  = milliseconds / 1000;
-    tv.tv_usec = ( milliseconds % 1000 ) * 1000;
-
-    select( 0, NULL, NULL, NULL, &tv );
-}
-#endif /* INTEGRITY */
 
 #endif /* _WIN32 && !EFIX64 && !EFI32 */
 
@@ -425,31 +401,9 @@ int mbedtls_timing_self_test( int verbose )
     if( verbose != 0 )
         mbedtls_printf( "  TIMING tests note: will take some time!\n" );
 
-    if( verbose != 0 )
-        mbedtls_printf( "  TIMING test #1 (m_sleep   / get_timer): " );
-
-    for( secs = 1; secs <= 3; secs++ )
-    {
-        (void) mbedtls_timing_get_timer( &hires, 1 );
-
-        mbedtls_timing_m_sleep( (int)( 500 * secs ) );
-
-        millisecs = mbedtls_timing_get_timer( &hires, 0 );
-
-        if( millisecs < 450 * secs || millisecs > 550 * secs )
-        {
-            if( verbose != 0 )
-                mbedtls_printf( "failed\n" );
-
-            return( 1 );
-        }
-    }
 
     if( verbose != 0 )
-        mbedtls_printf( "passed\n" );
-
-    if( verbose != 0 )
-        mbedtls_printf( "  TIMING test #2 (set_alarm / get_timer): " );
+        mbedtls_printf( "  TIMING test #1 (set_alarm / get_timer): " );
 
     for( secs = 1; secs <= 3; secs++ )
     {
@@ -474,7 +428,7 @@ int mbedtls_timing_self_test( int verbose )
         mbedtls_printf( "passed\n" );
 
     if( verbose != 0 )
-        mbedtls_printf( "  TIMING test #3 (hardclock / get_timer): " );
+        mbedtls_printf( "  TIMING test #2 (hardclock / get_timer): " );
 
     /*
      * Allow one failure for possible counter wrapping.
@@ -519,7 +473,7 @@ hard_test:
         mbedtls_printf( "passed\n" );
 
     if( verbose != 0 )
-        mbedtls_printf( "  TIMING test #4 (m_sleep   / delay    ): " );
+        mbedtls_printf( "  TIMING test #3 (set/get_delay        ): " );
 
     for( a = 100; a <= 200; a += 100 )
     {
@@ -527,26 +481,26 @@ hard_test:
         {
             mbedtls_timing_set_delay( &ctx, a, a + b );
 
-            mbedtls_timing_m_sleep( (int)( a - a / 10 ) );
+            busy_msleep( a - a / 10 );
             if( mbedtls_timing_get_delay( &ctx ) != 0 )
                 FAIL;
 
-            mbedtls_timing_m_sleep( (int)( a / 5 ) );
+            busy_msleep( a / 5 );
             if( mbedtls_timing_get_delay( &ctx ) != 1 )
                 FAIL;
 
-            mbedtls_timing_m_sleep( (int)( b - a / 5 ) );
+            busy_msleep( b - a / 5 );
             if( mbedtls_timing_get_delay( &ctx ) != 1 )
                 FAIL;
 
-            mbedtls_timing_m_sleep( (int)( b / 5 ) );
+            busy_msleep( b / 5 );
             if( mbedtls_timing_get_delay( &ctx ) != 2 )
                 FAIL;
         }
     }
 
     mbedtls_timing_set_delay( &ctx, 0, 0 );
-    mbedtls_timing_m_sleep( 200 );
+    busy_msleep( 200 );
     if( mbedtls_timing_get_delay( &ctx ) != -1 )
         FAIL;
 
@@ -555,7 +509,7 @@ hard_test:
 
 #if defined(MBEDTLS_NET_C) && defined(MBEDTLS_HAVE_TIME)
     if( verbose != 0 )
-        mbedtls_printf( "  TIMING test #5 (net_usleep/ get_timer): " );
+        mbedtls_printf( "  TIMING test #4 (net_usleep/ get_timer): " );
 
     for( secs = 1; secs <= 3; secs++ )
     {

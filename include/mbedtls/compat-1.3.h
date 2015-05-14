@@ -2049,7 +2049,6 @@
 #define hmac_drbg_write_seed_file mbedtls_hmac_drbg_write_seed_file
 #define hr_time mbedtls_timing_hr_time
 #define key_exchange_type_t mbedtls_key_exchange_type_t
-#define m_sleep mbedtls_timing_m_sleep
 #define md mbedtls_md
 #define md2 mbedtls_md2
 #define md2_context mbedtls_md2_context

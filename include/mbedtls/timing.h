@@ -85,13 +85,6 @@ unsigned long mbedtls_timing_get_timer( struct mbedtls_timing_hr_time *val, int 
 void mbedtls_set_alarm( int seconds );
 
 /**
- * \brief          Sleep for a certain amount of time
- *
- * \param milliseconds  delay in milliseconds
- */
-void mbedtls_timing_m_sleep( int milliseconds );
-
-/**
  * \brief          Set a pair of delays to watch
  *                 (See \c mbedtls_timing_get_delay().)
  *

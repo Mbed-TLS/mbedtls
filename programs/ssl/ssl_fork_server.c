@@ -373,7 +373,7 @@ int main( void )
             len = ret;
             mbedtls_printf( " %d bytes written\n\n%s\n", len, (char *) buf );
 
-            mbedtls_timing_m_sleep( 1000 );
+            mbedtls_net_usleep( 1000000 );
         }
 
         mbedtls_ssl_close_notify( &ssl );

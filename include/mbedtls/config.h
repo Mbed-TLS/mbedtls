@@ -183,7 +183,7 @@
  * \def MBEDTLS_TIMING_ALT
  *
  * Uncomment to provide your own alternate implementation for mbedtls_timing_hardclock(),
- * mbedtls_timing_get_timer(), mbedtls_set_alarm() and mbedtls_timing_m_sleep().
+ * mbedtls_timing_get_timer(), mbedtls_set_alarm(), mbedtls_set/get_delay()
  *
  * Only works if you have MBEDTLS_TIMING_C enabled.
  *

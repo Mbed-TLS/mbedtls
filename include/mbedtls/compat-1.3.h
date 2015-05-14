@@ -2230,8 +2230,8 @@
 #define pk_info_from_type mbedtls_pk_info_from_type
 #define pk_info_t mbedtls_pk_info_t
 #define pk_init mbedtls_pk_init
-#define pk_init_ctx mbedtls_pk_init_ctx
-#define pk_init_ctx_rsa_alt mbedtls_pk_init_ctx_rsa_alt
+#define pk_init_ctx mbedtls_pk_setup
+#define pk_init_ctx_rsa_alt mbedtls_pk_setup_rsa_alt
 #define pk_load_file mbedtls_pk_load_file
 #define pk_parse_key mbedtls_pk_parse_key
 #define pk_parse_keyfile mbedtls_pk_parse_keyfile

@@ -99,7 +99,7 @@ const mbedtls_pk_info_t * mbedtls_pk_info_from_type( mbedtls_pk_type_t pk_type )
 /*
  * Initialise context
  */
-int mbedtls_pk_init_ctx( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info )
+int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info )
 {
     if( ctx == NULL || info == NULL || ctx->pk_info != NULL )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
@@ -116,7 +116,7 @@ int mbedtls_pk_init_ctx( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info 
 /*
  * Initialize an RSA-alt context
  */
-int mbedtls_pk_init_ctx_rsa_alt( mbedtls_pk_context *ctx, void * key,
+int mbedtls_pk_setup_rsa_alt( mbedtls_pk_context *ctx, void * key,
                          mbedtls_pk_rsa_alt_decrypt_func decrypt_func,
                          mbedtls_pk_rsa_alt_sign_func sign_func,
                          mbedtls_pk_rsa_alt_key_len_func key_len_func )

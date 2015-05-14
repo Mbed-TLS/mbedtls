@@ -1757,8 +1757,8 @@ pk_get_type mbedtls_pk_get_type
 pk_info_from_type mbedtls_pk_info_from_type
 pk_info_t mbedtls_pk_info_t
 pk_init mbedtls_pk_init
-pk_init_ctx mbedtls_pk_init_ctx
-pk_init_ctx_rsa_alt mbedtls_pk_init_ctx_rsa_alt
+pk_init_ctx mbedtls_pk_setup
+pk_init_ctx_rsa_alt mbedtls_pk_setup_rsa_alt
 pk_load_file mbedtls_pk_load_file
 pk_parse_key mbedtls_pk_parse_key
 pk_parse_keyfile mbedtls_pk_parse_keyfile

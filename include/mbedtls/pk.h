@@ -197,9 +197,9 @@ void mbedtls_pk_free( mbedtls_pk_context *ctx );
  *                  MBEDTLS_ERR_PK_MALLOC_FAILED on allocation failure.
  *
  * \note            For contexts holding an RSA-alt key, use
- *                  \c mbedtls_pk_init_ctx_rsa_alt() instead.
+ *                  \c mbedtls_pk_setup_rsa_alt() instead.
  */
-int mbedtls_pk_init_ctx( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info );
+int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info );
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /**
@@ -214,9 +214,9 @@ int mbedtls_pk_init_ctx( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info 
  * \return          0 on success, or MBEDTLS_ERR_PK_BAD_INPUT_DATA if the
  *                  context wasn't already initialized as RSA_ALT.
  *
- * \note            This function replaces \c mbedtls_pk_init_ctx() for RSA-alt.
+ * \note            This function replaces \c mbedtls_pk_setup() for RSA-alt.
  */
-int mbedtls_pk_init_ctx_rsa_alt( mbedtls_pk_context *ctx, void * key,
+int mbedtls_pk_setup_rsa_alt( mbedtls_pk_context *ctx, void * key,
                          mbedtls_pk_rsa_alt_decrypt_func decrypt_func,
                          mbedtls_pk_rsa_alt_sign_func sign_func,
                          mbedtls_pk_rsa_alt_key_len_func key_len_func );

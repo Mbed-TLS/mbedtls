@@ -11,14 +11,6 @@ use warnings;
 use strict;
 use Digest::MD5 'md5_hex';
 
-my $vs6_dir = "visualc/VS6";
-my $vs6_ext = "dsp";
-my $vs6_app_tpl_file = "scripts/data_files/vs6-app-template.$vs6_ext";
-my $vs6_main_tpl_file = "scripts/data_files/vs6-main-template.$vs6_ext";
-my $vs6_main_file = "$vs6_dir/mbedtls.$vs6_ext";
-my $vs6_wsp_tpl_file = "scripts/data_files/vs6-workspace-template.dsw";
-my $vs6_wsp_file = "$vs6_dir/mbedtls.dsw";
-
 my $vsx_dir = "visualc/VS2010";
 my $vsx_ext = "vcxproj";
 my $vsx_app_tpl_file = "scripts/data_files/vs2010-app-template.$vsx_ext";
@@ -32,31 +24,6 @@ my $header_dir = 'include/mbedtls';
 my $source_dir = 'library';
 
 # Need windows line endings!
-my $vs6_file_tpl = <<EOT;
-# Begin Source File\r
-\r
-SOURCE=..\\..\\{NAME}\r
-# End Source File\r
-EOT
-
-my $vs6_wsp_entry_tpl = <<EOT;
-###############################################################################\r
-\r
-Project: "{NAME}"=.\\{NAME}.dsp - Package Owner=<4>\r
-\r
-Package=<5>\r
-{{{\r
-}}}\r
-\r
-Package=<4>\r
-{{{\r
-    Begin Project Dependency\r
-    Project_Dep_Name mbedtls\r
-    End Project Dependency\r
-}}}\r
-\r
-EOT
-
 my $vsx_hdr_tpl = <<EOT;
     <ClInclude Include="..\\..\\{NAME}" />\r
 EOT
@@ -86,8 +53,7 @@ EOT
 exit( main() );
 
 sub check_dirs {
-    return -d $vs6_dir
-        && -d $vsx_dir
+    return -d $vsx_dir
         && -d $header_dir
         && -d $source_dir
         && -d $programs_dir;
@@ -146,11 +112,9 @@ sub get_app_list {
 sub gen_app_files {
     my @app_list = @_;
 
-    my $vs6_tpl = slurp_file( $vs6_app_tpl_file );
     my $vsx_tpl = slurp_file( $vsx_app_tpl_file );
 
     for my $app ( @app_list ) {
-        gen_app( $app, $vs6_tpl, $vs6_dir, $vs6_ext );
         gen_app( $app, $vsx_tpl, $vsx_dir, $vsx_ext );
     }
 }
@@ -178,18 +142,6 @@ sub gen_main_file {
     $out =~ s/HEADER_ENTRIES\r\n/$header_entries/m;
 
     content_to_file( $out, $main_out );
-}
-
-sub gen_vs6_workspace {
-    my (@app_names) = @_;
-
-    map { s!.*/!! } @app_names;
-    my $entries = gen_entry_list( $vs6_wsp_entry_tpl, @app_names );
-
-    my $out = slurp_file( $vs6_wsp_tpl_file );
-    $out =~ s/APP_ENTRIES\r\n/$entries/m;
-
-    content_to_file( $out, $vs6_wsp_file );
 }
 
 sub gen_vsx_solution {
@@ -234,13 +186,8 @@ sub main {
     gen_app_files( @app_list );
 
     gen_main_file( \@headers, \@sources,
-                   $vs6_file_tpl, $vs6_file_tpl,
-                   $vs6_main_tpl_file, $vs6_main_file );
-    gen_main_file( \@headers, \@sources,
                    $vsx_hdr_tpl, $vsx_src_tpl,
                    $vsx_main_tpl_file, $vsx_main_file );
-
-    gen_vs6_workspace( @app_list );
 
     gen_vsx_solution( @app_list );
 

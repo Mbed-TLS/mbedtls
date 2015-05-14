@@ -421,11 +421,12 @@ int mbedtls_entropy_self_test( int verbose )
 
     mbedtls_entropy_init( &ctx );
 
-    ret = mbedtls_entropy_add_source( &ctx, entropy_dummy_source, NULL, 16 );
-    if( ret != 0 )
+    /* First do a gather to mek sure we have default sources */
+    if( ( ret = mbedtls_entropy_gather( &ctx ) ) != 0 )
         goto cleanup;
 
-    if( ( ret = mbedtls_entropy_gather( &ctx ) ) != 0 )
+    ret = mbedtls_entropy_add_source( &ctx, entropy_dummy_source, NULL, 16 );
+    if( ret != 0 )
         goto cleanup;
 
     if( ( ret = mbedtls_entropy_update_manual( &ctx, buf, sizeof buf ) ) != 0 )

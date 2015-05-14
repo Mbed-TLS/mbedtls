@@ -139,7 +139,7 @@ void mbedtls_cipher_free( mbedtls_cipher_context_t *ctx )
     mbedtls_zeroize( ctx, sizeof(mbedtls_cipher_context_t) );
 }
 
-int mbedtls_cipher_init_ctx( mbedtls_cipher_context_t *ctx, const mbedtls_cipher_info_t *cipher_info )
+int mbedtls_cipher_setup( mbedtls_cipher_context_t *ctx, const mbedtls_cipher_info_t *cipher_info )
 {
     if( NULL == cipher_info || NULL == ctx )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );

@@ -320,7 +320,7 @@ void mbedtls_cipher_free( mbedtls_cipher_context_t *ctx );
  *                      MBEDTLS_ERR_CIPHER_ALLOC_FAILED if allocation of the
  *                      cipher-specific context failed.
  */
-int mbedtls_cipher_init_ctx( mbedtls_cipher_context_t *ctx, const mbedtls_cipher_info_t *cipher_info );
+int mbedtls_cipher_setup( mbedtls_cipher_context_t *ctx, const mbedtls_cipher_info_t *cipher_info );
 
 /**
  * \brief               Returns the block size of the given cipher.

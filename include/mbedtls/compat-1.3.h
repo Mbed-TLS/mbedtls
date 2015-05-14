@@ -1871,7 +1871,7 @@
 #define cipher_info_from_values mbedtls_cipher_info_from_values
 #define cipher_info_t mbedtls_cipher_info_t
 #define cipher_init mbedtls_cipher_init
-#define cipher_init_ctx mbedtls_cipher_init_ctx
+#define cipher_init_ctx mbedtls_cipher_setup
 #define cipher_list mbedtls_cipher_list
 #define cipher_mode_t mbedtls_cipher_mode_t
 #define cipher_padding_t mbedtls_cipher_padding_t

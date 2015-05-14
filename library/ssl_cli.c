@@ -711,9 +711,11 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
             continue;
 #endif
 
+#if defined(MBEDTLS_ARC4_C)
         if( ssl->conf->arc4_disabled == MBEDTLS_SSL_ARC4_DISABLED &&
             ciphersuite_info->cipher == MBEDTLS_CIPHER_ARC4_128 )
             continue;
+#endif
 
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, add ciphersuite: %2d",
                        ciphersuites[i] ) );
@@ -1405,14 +1407,16 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, compress alg.: %d", buf[37 + n] ) );
 
     suite_info = mbedtls_ssl_ciphersuite_from_id( ssl->session_negotiate->ciphersuite );
-    if( suite_info == NULL ||
-        ( ssl->conf->arc4_disabled &&
-          suite_info->cipher == MBEDTLS_CIPHER_ARC4_128 ) )
+    if( suite_info == NULL
+#if defined(MBEDTLS_ARC4_C)
+            || ( ssl->conf->arc4_disabled &&
+                suite_info->cipher == MBEDTLS_CIPHER_ARC4_128 )
+#endif
+        )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
-
 
     i = 0;
     while( 1 )

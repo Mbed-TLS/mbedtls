@@ -5627,10 +5627,12 @@ void mbedtls_ssl_conf_extended_master_secret( mbedtls_ssl_config *conf, char ems
 }
 #endif
 
+#if defined(MBEDTLS_ARC4_C)
 void mbedtls_ssl_conf_arc4_support( mbedtls_ssl_config *conf, char arc4 )
 {
     conf->arc4_disabled = arc4;
 }
+#endif
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 int mbedtls_ssl_conf_max_frag_len( mbedtls_ssl_config *conf, unsigned char mfl_code )
@@ -6679,7 +6681,9 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
     conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_3] =
                            mbedtls_ssl_list_ciphersuites();
 
+#if defined(MBEDTLS_ARC4_C)
     conf->arc4_disabled = MBEDTLS_SSL_ARC4_DISABLED;
+#endif
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     conf->encrypt_then_mac = MBEDTLS_SSL_ETM_ENABLED;

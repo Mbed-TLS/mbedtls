@@ -911,10 +911,12 @@ typedef struct
 
     unsigned int endpoint : 1;      /*!< 0: client, 1: server               */
     unsigned int transport : 1;     /*!< stream (TLS) or datagram (DTLS)    */
-    unsigned int arc4_disabled : 1; /*!< blacklist RC4 ciphersuites?        */
     unsigned int authmode : 2;      /*!< MBEDTLS_SSL_VERIFY_XXX             */
     /* needed even with renego disabled for LEGACY_BREAK_HANDSHAKE          */
     unsigned int allow_legacy_renegotiation : 2 ; /*!< MBEDTLS_LEGACY_XXX   */
+#if defined(MBEDTLS_ARC4_C)
+    unsigned int arc4_disabled : 1; /*!< blacklist RC4 ciphersuites?        */
+#endif
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     unsigned int mfl_code : 3;      /*!< desired fragment length            */
 #endif
@@ -1928,6 +1930,7 @@ void mbedtls_ssl_conf_encrypt_then_mac( mbedtls_ssl_config *conf, char etm );
 void mbedtls_ssl_conf_extended_master_secret( mbedtls_ssl_config *conf, char ems );
 #endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
 
+#if defined(MBEDTLS_ARC4_C)
 /**
  * \brief          Disable or enable support for RC4
  *                 (Default: MBEDTLS_SSL_ARC4_DISABLED)
@@ -1942,6 +1945,7 @@ void mbedtls_ssl_conf_extended_master_secret( mbedtls_ssl_config *conf, char ems
  * \param arc4     MBEDTLS_SSL_ARC4_ENABLED or MBEDTLS_SSL_ARC4_DISABLED
  */
 void mbedtls_ssl_conf_arc4_support( mbedtls_ssl_config *conf, char arc4 );
+#endif /* MBEDTLS_ARC4_C */
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 /**

@@ -1,11 +1,8 @@
 {
     "name": "mbedtls",
-    "version": "2.0.0-beta6",
+    "version": "2.0.0-beta9",
     "private": true,
-    "licenses": [{
-        "type": "GPL-2.0",
-        "url": "https://spdx.org/licenses/GPL-2.0"
-    }],
+    "license": "mbed partner license",
     "extraIncludes": ["include"],
     "dependencies": {},
     "targetDependencies": {

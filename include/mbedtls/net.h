@@ -104,7 +104,7 @@ int mbedtls_net_bind( int *fd, const char *bind_ip, int port, int proto );
  *                  MBEDTLS_ERR_NET_ACCEPT_FAILED, or
  *                  MBEDTLS_ERR_NET_BUFFER_TOO_SMALL if buf_size is too small,
  *                  MBEDTLS_ERR_SSL_WANT_READ if bind_fd was set to
- *                  non-blocking and accept() is blocking.
+ *                  non-blocking and accept() would block.
  *
  * \note            With UDP, connects the bind_fd to the client and just copy
  *                  its descriptor to client_fd. New clients will not be able
@@ -151,8 +151,7 @@ void mbedtls_net_usleep( unsigned long usec );
  *
  * \return         This function returns the number of bytes received,
  *                 or a non-zero error code; with a non-blocking socket,
- *                 MBEDTLS_ERR_SSL_WANT_READ indicates read() would be
- *                 blocking.
+ *                 MBEDTLS_ERR_SSL_WANT_READ indicates read() would block.
  */
 int mbedtls_net_recv( void *ctx, unsigned char *buf, size_t len );
 
@@ -166,8 +165,7 @@ int mbedtls_net_recv( void *ctx, unsigned char *buf, size_t len );
  *
  * \return         This function returns the number of bytes sent,
  *                 or a non-zero error code; with a non-blocking socket,
- *                 MBEDTLS_ERR_SSL_WANT_WRITE indicates write() would be
- *                 blocking.
+ *                 MBEDTLS_ERR_SSL_WANT_WRITE indicates write() would block.
  */
 int mbedtls_net_send( void *ctx, const unsigned char *buf, size_t len );
 

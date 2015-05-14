@@ -125,16 +125,15 @@ static int ssl_cookie_hmac( mbedtls_md_context_t *hmac_ctx,
                             unsigned char **p, unsigned char *end,
                             const unsigned char *cli_id, size_t cli_id_len )
 {
-    int ret;
     unsigned char hmac_out[COOKIE_MD_OUTLEN];
 
     if( (size_t)( end - *p ) < COOKIE_HMAC_LEN )
         return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
 
-    if( ( ret = mbedtls_md_hmac_reset(  hmac_ctx ) ) != 0 ||
-        ( ret = mbedtls_md_hmac_update( hmac_ctx, time, 4 ) ) != 0 ||
-        ( ret = mbedtls_md_hmac_update( hmac_ctx, cli_id, cli_id_len ) ) != 0 ||
-        ( ret = mbedtls_md_hmac_finish( hmac_ctx, hmac_out ) ) != 0 )
+    if( mbedtls_md_hmac_reset(  hmac_ctx ) != 0 ||
+        mbedtls_md_hmac_update( hmac_ctx, time, 4 ) != 0 ||
+        mbedtls_md_hmac_update( hmac_ctx, cli_id, cli_id_len ) != 0 ||
+        mbedtls_md_hmac_finish( hmac_ctx, hmac_out ) != 0 )
     {
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }

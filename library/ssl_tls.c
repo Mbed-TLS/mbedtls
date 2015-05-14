@@ -5722,7 +5722,7 @@ uint32_t mbedtls_ssl_get_verify_result( const mbedtls_ssl_context *ssl )
     if( ssl->session_negotiate != NULL )
         return( ssl->session_negotiate->verify_result );
 
-    return( -1 );
+    return( 0xFFFFFFFF );
 }
 
 const char *mbedtls_ssl_get_ciphersuite( const mbedtls_ssl_context *ssl )

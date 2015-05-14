@@ -6649,8 +6649,10 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
     int ret;
 #endif
 
-    conf->endpoint  = endpoint;
-    conf->transport = transport;
+    /* Use the functions here so that they are covered in tests,
+     * but otherwise access member directly for efficiency */
+    mbedtls_ssl_conf_endpoint( conf, endpoint );
+    mbedtls_ssl_conf_transport( conf, transport );
 
     conf->min_major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
     conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_1; /* TLS 1.0 */

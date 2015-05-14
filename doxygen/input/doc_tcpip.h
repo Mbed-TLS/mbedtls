@@ -13,10 +13,10 @@
  * (or Host-to-host) layer.
  * SSL/TLS resides on top of that, in the Application layer, and makes use of
  * its basic provisions:
- * - listening on a port (see \c net_bind()).
- * - accepting a connection (through \c net_accept()).
- * - read/write (through \c net_recv()/\c net_send()).
- * - close a connection (through \c net_close()).
+ * - listening on a port (see \c mbedtls_net_bind()).
+ * - accepting a connection (through \c mbedtls_net_accept()).
+ * - read/write (through \c mbedtls_net_recv()/\c mbedtls_net_send()).
+ * - close a connection (through \c mbedtls_net_close()).
  *
  * This way you have the means to, for example, implement and use an UDP or
  * IPSec communication solution as a basis.

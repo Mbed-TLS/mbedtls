@@ -15,7 +15,7 @@
  *   \c x509parse_keyfile()).
  * - X.509 certificate signature verification (see \c x509parse_verify())
  * - X.509 certificate writing and certificate request writing (see
- *   \c x509write_crt_der() and \c x509write_csr_der()).
+ *   \c mbedtls_x509write_crt_der() and \c mbedtls_x509write_csr_der()).
  *
  * This module can be used to build a certificate authority (CA) chain and
  * verify its signature. It is also used to generate Certificate Signing

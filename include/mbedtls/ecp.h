@@ -516,7 +516,7 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  *                  R = m * P + n * Q
  *                  (Not thread-safe to use same group in multiple threads)
  *
- * \note            In contrast to ecp_mul(), this function does not guarantee
+ * \note            In contrast to mbedtls_ecp_mul(), this function does not guarantee
  *                  a constant execution flow and timing.
  *
  * \param grp       ECP group

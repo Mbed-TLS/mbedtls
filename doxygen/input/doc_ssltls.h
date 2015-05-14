@@ -10,10 +10,10 @@
  * communication channel.
  *
  * The basic provisions are:
- * - initialise an SSL/TLS context (see \c ssl_init()).
- * - perform an SSL/TLS handshake (see \c ssl_handshake()).
- * - read/write (see \c ssl_read() and \c ssl_write()).
- * - notify a peer that connection is being closed (see \c ssl_close_notify()).
+ * - initialise an SSL/TLS context (see \c mbedtls_ssl_init()).
+ * - perform an SSL/TLS handshake (see \c mbedtls_ssl_handshake()).
+ * - read/write (see \c mbedtls_ssl_read() and \c mbedtls_ssl_write()).
+ * - notify a peer that connection is being closed (see \c mbedtls_ssl_close_notify()).
  *
  * Many aspects of such a channel are set through parameters and callback
  * functions:

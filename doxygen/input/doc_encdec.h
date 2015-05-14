@@ -18,31 +18,31 @@
  * specific algorithms.
  *
  * All symmetric encryption algorithms are accessible via the generic cipher layer
- * (see \c cipher_init_ctx()).
+ * (see \c mbedtls_cipher_setup()).
  *
  * The asymmetric encryptrion algorithms are accessible via the generic public
- * key layer (see \c pk_init()).
+ * key layer (see \c mbedtls_pk_init()).
  *
  * The following algorithms are provided:
  * - Symmetric:
- *   - AES (see \c aes_crypt_ecb(), \c aes_crypt_cbc(), \c aes_crypt_cfb128() and
- *     \c aes_crypt_ctr()).
- *   - ARCFOUR (see \c arc4_crypt()).
- *   - Blowfish / BF (see \c blowfish_crypt_ecb(), \c blowfish_crypt_cbc(),
- *     \c blowfish_crypt_cfb64() and \c blowfish_crypt_ctr())
- *   - Camellia (see \c camellia_crypt_ecb(), \c camellia_crypt_cbc(),
- *     \c camellia_crypt_cfb128() and \c camellia_crypt_ctr()).
- *   - DES/3DES (see \c des_crypt_ecb(), \c des_crypt_cbc(), \c des3_crypt_ecb()
- *     and \c des3_crypt_cbc()).
- *   - GCM (AES-GCM and CAMELLIA-GCM) (see \c gcm_init())
- *   - XTEA (see \c xtea_crypt_ecb()).
+ *   - AES (see \c mbedtls_aes_crypt_ecb(), \c mbedtls_aes_crypt_cbc(), \c mbedtls_aes_crypt_cfb128() and
+ *     \c mbedtls_aes_crypt_ctr()).
+ *   - ARCFOUR (see \c mbedtls_arc4_crypt()).
+ *   - Blowfish / BF (see \c mbedtls_blowfish_crypt_ecb(), \c mbedtls_blowfish_crypt_cbc(),
+ *     \c mbedtls_blowfish_crypt_cfb64() and \c mbedtls_blowfish_crypt_ctr())
+ *   - Camellia (see \c mbedtls_camellia_crypt_ecb(), \c mbedtls_camellia_crypt_cbc(),
+ *     \c mbedtls_camellia_crypt_cfb128() and \c mbedtls_camellia_crypt_ctr()).
+ *   - DES/3DES (see \c mbedtls_des_crypt_ecb(), \c mbedtls_des_crypt_cbc(), \c mbedtls_des3_crypt_ecb()
+ *     and \c mbedtls_des3_crypt_cbc()).
+ *   - GCM (AES-GCM and CAMELLIA-GCM) (see \c mbedtls_gcm_init())
+ *   - XTEA (see \c mbedtls_xtea_crypt_ecb()).
  * - Asymmetric:
- *   - Diffie-Hellman-Merkle (see \c dhm_read_public(), \c dhm_make_public()
- *     and \c dhm_calc_secret()).
- *   - RSA (see \c rsa_public() and \c rsa_private()).
- *   - Elliptic Curves over GF(p) (see \c ecp_point_init()).
- *   - Elliptic Curve Digital Signature Algorithm (ECDSA) (see \c ecdsa_init()).
- *   - Elliptic Curve Diffie Hellman (ECDH) (see \c ecdh_init()).
+ *   - Diffie-Hellman-Merkle (see \c mbedtls_dhm_read_public(), \c mbedtls_dhm_make_public()
+ *     and \c mbedtls_dhm_calc_secret()).
+ *   - RSA (see \c mbedtls_rsa_public() and \c mbedtls_rsa_private()).
+ *   - Elliptic Curves over GF(p) (see \c mbedtls_ecp_point_init()).
+ *   - Elliptic Curve Digital Signature Algorithm (ECDSA) (see \c mbedtls_ecdsa_init()).
+ *   - Elliptic Curve Diffie Hellman (ECDH) (see \c mbedtls_ecdh_init()).
  *
  * This module provides encryption/decryption which can be used to provide
  * secrecy.

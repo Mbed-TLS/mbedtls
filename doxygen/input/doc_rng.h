@@ -11,7 +11,7 @@
  *
  * The block-cipher counter-mode based deterministic random
  * bit generator (CTR_DBRG) as specified in NIST SP800-90. It needs an external
- * source of entropy. For these purposes \c entropy_func() can be used. This is
+ * source of entropy. For these purposes \c mbedtls_entropy_func() can be used. This is
  * an implementation based on a simple entropy accumulator design.
  *
  * The other number generator that is included is less strong and uses the HAVEGE

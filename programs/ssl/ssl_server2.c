@@ -1826,7 +1826,7 @@ reset:
                                                sizeof( client_ip ) ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! "
-                    "ssl_set_client_transport_id() returned -0x%x\n\n", -ret );
+                    "mbedtls_ssl_set_client_transport_id() returned -0x%x\n\n", -ret );
             goto exit;
         }
     }

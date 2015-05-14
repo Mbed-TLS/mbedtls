@@ -293,7 +293,8 @@ static int net_would_block( int fd )
 /*
  * Accept a connection from a remote client
  */
-int mbedtls_net_accept( int bind_fd, int *client_fd, void *client_ip )
+int mbedtls_net_accept( int bind_fd, int *client_fd,
+                        void *client_ip, size_t buf_size, size_t *ip_len )
 {
     int ret;
     int type;
@@ -353,14 +354,22 @@ int mbedtls_net_accept( int bind_fd, int *client_fd, void *client_ip )
         if( client_addr.ss_family == AF_INET )
         {
             struct sockaddr_in *addr4 = (struct sockaddr_in *) &client_addr;
-            memcpy( client_ip, &addr4->sin_addr.s_addr,
-                        sizeof( addr4->sin_addr.s_addr ) );
+            *ip_len = sizeof( addr4->sin_addr.s_addr );
+
+            if( buf_size < *ip_len )
+                return( MBEDTLS_ERR_NET_BUFFER_TOO_SMALL );
+
+            memcpy( client_ip, &addr4->sin_addr.s_addr, *ip_len );
         }
         else
         {
             struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *) &client_addr;
-            memcpy( client_ip, &addr6->sin6_addr.s6_addr,
-                        sizeof( addr6->sin6_addr.s6_addr ) );
+            *ip_len = sizeof( addr6->sin6_addr.s6_addr );
+
+            if( buf_size < *ip_len )
+                return( MBEDTLS_ERR_NET_BUFFER_TOO_SMALL );
+
+            memcpy( client_ip, &addr6->sin6_addr.s6_addr, *ip_len);
         }
     }
 

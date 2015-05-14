@@ -683,6 +683,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "NET - Connection was reset by peer" );
     if( use_ret == -(MBEDTLS_ERR_NET_UNKNOWN_HOST) )
         mbedtls_snprintf( buf, buflen, "NET - Failed to get an IP address for the given hostname" );
+    if( use_ret == -(MBEDTLS_ERR_NET_BUFFER_TOO_SMALL) )
+        mbedtls_snprintf( buf, buflen, "NET - Buffer is too small to hold the data" );
 #endif /* MBEDTLS_NET_C */
 
 #if defined(MBEDTLS_OID_C)

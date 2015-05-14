@@ -94,6 +94,7 @@ int main( void )
     unsigned char buf[1024];
     const char *pers = "dtls_server";
     unsigned char client_ip[16] = { 0 };
+    size_t cliip_len;
     mbedtls_ssl_cookie_ctx cookie_ctx;
 
     mbedtls_entropy_context entropy;
@@ -263,7 +264,8 @@ reset:
     printf( "  . Waiting for a remote connection ..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_net_accept( listen_fd, &client_fd, client_ip ) ) != 0 )
+    if( ( ret = mbedtls_net_accept( listen_fd, &client_fd,
+                    client_ip, sizeof( client_ip ), &cliip_len ) ) != 0 )
     {
         printf( " failed\n  ! mbedtls_net_accept returned %d\n\n", ret );
         goto exit;
@@ -277,8 +279,8 @@ reset:
     }
 
     /* For HelloVerifyRequest cookies */
-    if( ( ret = mbedtls_ssl_set_client_transport_id( &ssl, client_ip,
-                                           sizeof( client_ip ) ) ) != 0 )
+    if( ( ret = mbedtls_ssl_set_client_transport_id( &ssl,
+                    client_ip, cliip_len ) ) != 0 )
     {
         printf( " failed\n  ! "
                 "mbedtls_ssl_set_client_transport_id() returned -0x%x\n\n", -ret );

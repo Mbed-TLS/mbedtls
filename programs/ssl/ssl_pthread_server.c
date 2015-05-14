@@ -472,7 +472,8 @@ reset:
 
     mbedtls_printf( "  [ main ]  Waiting for a remote connection\n" );
 
-    if( ( ret = mbedtls_net_accept( listen_fd, &client_fd, NULL ) ) != 0 )
+    if( ( ret = mbedtls_net_accept( listen_fd, &client_fd,
+                                    NULL, 0, NULL ) ) != 0 )
     {
         mbedtls_printf( "  [ main ] failed: mbedtls_net_accept returned -0x%04x\n", ret );
         goto exit;

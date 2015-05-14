@@ -710,6 +710,7 @@ int main( int argc, char *argv[] )
 #endif
     const char *pers = "ssl_server2";
     unsigned char client_ip[16] = { 0 };
+    size_t cliip_len;
 #if defined(MBEDTLS_SSL_COOKIE_C)
     mbedtls_ssl_cookie_ctx cookie_ctx;
 #endif
@@ -1787,7 +1788,8 @@ reset:
     mbedtls_printf( "  . Waiting for a remote connection ..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_net_accept( listen_fd, &client_fd, client_ip ) ) != 0 )
+    if( ( ret = mbedtls_net_accept( listen_fd, &client_fd,
+                    client_ip, sizeof( client_ip ), &cliip_len ) ) != 0 )
     {
 #if !defined(_WIN32)
         if( received_sigterm )
@@ -1817,8 +1819,8 @@ reset:
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
     if( opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
-        if( ( ret = mbedtls_ssl_set_client_transport_id( &ssl, client_ip,
-                                               sizeof( client_ip ) ) ) != 0 )
+        if( ( ret = mbedtls_ssl_set_client_transport_id( &ssl,
+                        client_ip, cliip_len ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! "
                     "mbedtls_ssl_set_client_transport_id() returned -0x%x\n\n", -ret );

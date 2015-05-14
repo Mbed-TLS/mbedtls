@@ -220,7 +220,8 @@ int main( void )
         mbedtls_printf( "  . Waiting for a remote connection ..." );
         fflush( stdout );
 
-        if( ( ret = mbedtls_net_accept( listen_fd, &client_fd, NULL ) ) != 0 )
+        if( ( ret = mbedtls_net_accept( listen_fd, &client_fd,
+                                        NULL, 0, NULL ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_net_accept returned %d\n\n", ret );
             goto exit;

@@ -44,6 +44,7 @@
 #define MBEDTLS_ERR_NET_SEND_FAILED                       -0x004E  /**< Sending information through the socket failed. */
 #define MBEDTLS_ERR_NET_CONN_RESET                        -0x0050  /**< Connection was reset by peer. */
 #define MBEDTLS_ERR_NET_UNKNOWN_HOST                      -0x0052  /**< Failed to get an IP address for the given hostname. */
+#define MBEDTLS_ERR_NET_BUFFER_TOO_SMALL                  -0x0043  /**< Buffer is too small to hold the data. */
 
 #define MBEDTLS_NET_LISTEN_BACKLOG         10 /**< The backlog that listen() should use. */
 
@@ -96,17 +97,21 @@ int mbedtls_net_bind( int *fd, const char *bind_ip, int port, int proto );
  * \param bind_fd   Relevant socket
  * \param client_fd Will contain the connected client socket
  * \param client_ip Will contain the client IP address
- *                  Must be at least 4 bytes, or 16 if IPv6 is supported
+ * \param buf_size  Size of the client_ip buffer
+ * \param ip_len    Will receive the size of the client IP written
  *
- * \return          0 if successful, MBEDTLS_ERR_NET_ACCEPT_FAILED, or
- *                  MBEDTLS_ERR_SSL_WANT_READ is bind_fd was set to
+ * \return          0 if successful, or
+ *                  MBEDTLS_ERR_NET_ACCEPT_FAILED, or
+ *                  MBEDTLS_ERR_NET_BUFFER_TOO_SMALL if buf_size is too small,
+ *                  MBEDTLS_ERR_SSL_WANT_READ if bind_fd was set to
  *                  non-blocking and accept() is blocking.
  *
  * \note            With UDP, connects the bind_fd to the client and just copy
  *                  its descriptor to client_fd. New clients will not be able
  *                  to connect until you close the socket and bind a new one.
  */
-int mbedtls_net_accept( int bind_fd, int *client_fd, void *client_ip );
+int mbedtls_net_accept( int bind_fd, int *client_fd,
+                        void *client_ip, size_t buf_size, size_t *ip_len );
 
 /**
  * \brief          Set the socket blocking

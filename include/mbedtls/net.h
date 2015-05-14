@@ -126,7 +126,6 @@ int mbedtls_net_set_block( int fd );
  */
 int mbedtls_net_set_nonblock( int fd );
 
-#if defined(MBEDTLS_HAVE_TIME)
 /**
  * \brief          Portable usleep helper
  *
@@ -136,7 +135,6 @@ int mbedtls_net_set_nonblock( int fd );
  *                 select()'s timeout granularity (typically, 10ms).
  */
 void mbedtls_net_usleep( unsigned long usec );
-#endif
 
 /**
  * \brief          Read at most 'len' characters. If no error occurs,
@@ -168,7 +166,6 @@ int mbedtls_net_recv( void *ctx, unsigned char *buf, size_t len );
  */
 int mbedtls_net_send( void *ctx, const unsigned char *buf, size_t len );
 
-#if defined(MBEDTLS_HAVE_TIME)
 /**
  * \brief          Read at most 'len' characters, blocking for at most
  *                 'timeout' seconds. If no error occurs, the actual amount
@@ -191,7 +188,6 @@ int mbedtls_net_send( void *ctx, const unsigned char *buf, size_t len );
  */
 int mbedtls_net_recv_timeout( void *ctx, unsigned char *buf, size_t len,
                       uint32_t timeout );
-#endif /* MBEDTLS_HAVE_TIME */
 
 /**
  * \brief          Gracefully shutdown the connection

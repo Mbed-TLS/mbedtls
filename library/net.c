@@ -65,9 +65,7 @@ static int wsa_init_done = 0;
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#if defined(MBEDTLS_HAVE_TIME)
 #include <sys/time.h>
-#endif
 #include <unistd.h>
 #include <signal.h>
 #include <fcntl.h>
@@ -84,9 +82,7 @@ static int wsa_init_done = 0;
 #define  snprintf  _snprintf
 #endif
 
-#if defined(MBEDTLS_HAVE_TIME)
 #include <time.h>
-#endif
 
 #if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
 #include <basetsd.h>
@@ -396,7 +392,6 @@ int mbedtls_net_set_nonblock( int fd )
 #endif
 }
 
-#if defined(MBEDTLS_HAVE_TIME)
 /*
  * Portable usleep helper
  */
@@ -412,7 +407,6 @@ void mbedtls_net_usleep( unsigned long usec )
 #endif
     select( 0, NULL, NULL, NULL, &tv );
 }
-#endif /* MBEDTLS_HAVE_TIME */
 
 /*
  * Read at most 'len' characters
@@ -445,7 +439,6 @@ int mbedtls_net_recv( void *ctx, unsigned char *buf, size_t len )
     return( ret );
 }
 
-#if defined(MBEDTLS_HAVE_TIME)
 /*
  * Read at most 'len' characters, blocking for at most 'timeout' ms
  */
@@ -486,7 +479,6 @@ int mbedtls_net_recv_timeout( void *ctx, unsigned char *buf, size_t len,
     /* This call will not block */
     return( mbedtls_net_recv( ctx, buf, len ) );
 }
-#endif /* MBEDTLS_HAVE_TIME */
 
 /*
  * Write at most 'len' characters

@@ -1746,12 +1746,7 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_set_bio( &ssl, &client_fd, my_send, my_recv, NULL );
     else
         mbedtls_ssl_set_bio( &ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv,
-#if defined(MBEDTLS_HAVE_TIME)
-                             opt.nbio == 0 ? mbedtls_net_recv_timeout : NULL
-#else
-                             NULL
-#endif
-                );
+                             opt.nbio == 0 ? mbedtls_net_recv_timeout : NULL );
 
 #if defined(MBEDTLS_TIMING_C)
     mbedtls_ssl_set_timer_cb( &ssl, &timer, mbedtls_timing_set_delay,

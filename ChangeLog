@@ -115,7 +115,7 @@ Default behavior changes
 
 Requirement changes
    * The minimum MSVC version required is now 2010 (better C99 support).
-   * The NET layer now unconditionnaly relies on getaddrinfo().
+   * The NET layer now unconditionnaly relies on getaddrinfo() and select().
    * Compiler is required to support C99 types such as long long and uint32_t.
 
 API changes from the 1.4 preview branch

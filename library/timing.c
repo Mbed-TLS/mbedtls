@@ -352,7 +352,7 @@ int mbedtls_timing_get_delay( void *data )
 #if defined(MBEDTLS_SELF_TEST)
 
 /* To test mbedtls_net_usleep against our functions */
-#if defined(MBEDTLS_NET_C) && defined(MBEDTLS_HAVE_TIME)
+#if defined(MBEDTLS_NET_C)
 #include "mbedtls/net.h"
 #endif
 
@@ -507,7 +507,7 @@ hard_test:
     if( verbose != 0 )
         mbedtls_printf( "passed\n" );
 
-#if defined(MBEDTLS_NET_C) && defined(MBEDTLS_HAVE_TIME)
+#if defined(MBEDTLS_NET_C)
     if( verbose != 0 )
         mbedtls_printf( "  TIMING test #4 (net_usleep/ get_timer): " );
 

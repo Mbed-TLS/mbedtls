@@ -173,9 +173,9 @@ int main( int argc, char *argv[] )
         mbedtls_fprintf( stderr, "Cipher '%s' not found\n", argv[4] );
         goto exit;
     }
-    if( ( ret = mbedtls_cipher_init_ctx( &cipher_ctx, cipher_info) ) != 0 )
+    if( ( ret = mbedtls_cipher_setup( &cipher_ctx, cipher_info) ) != 0 )
     {
-        mbedtls_fprintf( stderr, "mbedtls_cipher_init_ctx failed\n" );
+        mbedtls_fprintf( stderr, "mbedtls_cipher_setup failed\n" );
         goto exit;
     }
 

@@ -198,7 +198,7 @@ int mbedtls_pkcs5_pbes2( const mbedtls_asn1_buf *pbe_params, int mode,
         goto exit;
     }
 
-    if( ( ret = mbedtls_cipher_init_ctx( &cipher_ctx, cipher_info ) ) != 0 )
+    if( ( ret = mbedtls_cipher_setup( &cipher_ctx, cipher_info ) ) != 0 )
         goto exit;
 
     if( ( ret = mbedtls_cipher_setkey( &cipher_ctx, key, 8 * keylen, (mbedtls_operation_t) mode ) ) != 0 )

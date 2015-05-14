@@ -42,9 +42,9 @@ void cipher_null_args( )
 
     TEST_ASSERT( mbedtls_cipher_info_from_string( NULL ) == NULL );
 
-    TEST_ASSERT( mbedtls_cipher_init_ctx( &ctx, NULL )
+    TEST_ASSERT( mbedtls_cipher_setup( &ctx, NULL )
                  == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_cipher_init_ctx( NULL, info )
+    TEST_ASSERT( mbedtls_cipher_setup( NULL, info )
                  == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
     TEST_ASSERT( mbedtls_cipher_setkey( NULL, buf, 0, MBEDTLS_ENCRYPT )
@@ -122,8 +122,8 @@ void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
     TEST_ASSERT( mbedtls_cipher_info_from_string( cipher_string ) == cipher_info );
 
     /* Initialise enc and dec contexts */
-    TEST_ASSERT( 0 == mbedtls_cipher_init_ctx( &ctx_dec, cipher_info ) );
-    TEST_ASSERT( 0 == mbedtls_cipher_init_ctx( &ctx_enc, cipher_info ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx_dec, cipher_info ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx_enc, cipher_info ) );
 
     TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx_dec, key, key_len, MBEDTLS_DECRYPT ) );
     TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx_enc, key, key_len, MBEDTLS_ENCRYPT ) );
@@ -242,7 +242,7 @@ void enc_fail( int cipher_id, int pad_mode, int key_len,
     TEST_ASSERT( NULL != cipher_info );
 
     /* Initialise context */
-    TEST_ASSERT( 0 == mbedtls_cipher_init_ctx( &ctx, cipher_info ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx, cipher_info ) );
     TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key, key_len, MBEDTLS_ENCRYPT ) );
 #if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
     TEST_ASSERT( 0 == mbedtls_cipher_set_padding_mode( &ctx, pad_mode ) );
@@ -291,7 +291,7 @@ void dec_empty_buf()
     cipher_info = mbedtls_cipher_info_from_type( MBEDTLS_CIPHER_AES_128_CBC );
     TEST_ASSERT( NULL != cipher_info);
 
-    TEST_ASSERT( 0 == mbedtls_cipher_init_ctx( &ctx_dec, cipher_info ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx_dec, cipher_info ) );
 
     TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx_dec, key, 128, MBEDTLS_DECRYPT ) );
 
@@ -350,8 +350,8 @@ void enc_dec_buf_multipart( int cipher_id, int key_len, int first_length_val,
     cipher_info = mbedtls_cipher_info_from_type( cipher_id );
     TEST_ASSERT( NULL != cipher_info);
 
-    TEST_ASSERT( 0 == mbedtls_cipher_init_ctx( &ctx_dec, cipher_info ) );
-    TEST_ASSERT( 0 == mbedtls_cipher_init_ctx( &ctx_enc, cipher_info ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx_dec, cipher_info ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx_enc, cipher_info ) );
 
     TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx_dec, key, key_len, MBEDTLS_DECRYPT ) );
     TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx_enc, key, key_len, MBEDTLS_ENCRYPT ) );
@@ -450,7 +450,7 @@ void decrypt_test_vec( int cipher_id, int pad_mode,
 #endif
 
     /* Prepare context */
-    TEST_ASSERT( 0 == mbedtls_cipher_init_ctx( &ctx,
+    TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx,
                                        mbedtls_cipher_info_from_type( cipher_id ) ) );
     TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key, 8 * key_len, MBEDTLS_DECRYPT ) );
 #if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
@@ -524,7 +524,7 @@ void auth_crypt_tv( int cipher_id, char *hex_key, char *hex_iv,
     tag_len     = unhexify( tag,    hex_tag     );
 
     /* Prepare context */
-    TEST_ASSERT( 0 == mbedtls_cipher_init_ctx( &ctx,
+    TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx,
                                        mbedtls_cipher_info_from_type( cipher_id ) ) );
     TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key, 8 * key_len, MBEDTLS_DECRYPT ) );
 
@@ -597,7 +597,7 @@ void test_vec_ecb( int cipher_id, int operation, char *hex_key,
     memset( output, 0x00, sizeof( output ) );
 
     /* Prepare context */
-    TEST_ASSERT( 0 == mbedtls_cipher_init_ctx( &ctx,
+    TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx,
                                        mbedtls_cipher_info_from_type( cipher_id ) ) );
 
     key_len = unhexify( key, hex_key );
@@ -636,7 +636,7 @@ void set_padding( int cipher_id, int pad_mode, int ret )
 
     cipher_info = mbedtls_cipher_info_from_type( cipher_id );
     TEST_ASSERT( NULL != cipher_info );
-    TEST_ASSERT( 0 == mbedtls_cipher_init_ctx( &ctx, cipher_info ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx, cipher_info ) );
 
     TEST_ASSERT( ret == mbedtls_cipher_set_padding_mode( &ctx, pad_mode ) );
 

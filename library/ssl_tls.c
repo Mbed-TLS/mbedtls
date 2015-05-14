@@ -867,17 +867,17 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     }
 #endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
 
-    if( ( ret = mbedtls_cipher_init_ctx( &transform->cipher_ctx_enc,
+    if( ( ret = mbedtls_cipher_setup( &transform->cipher_ctx_enc,
                                  cipher_info ) ) != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_init_ctx", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setup", ret );
         return( ret );
     }
 
-    if( ( ret = mbedtls_cipher_init_ctx( &transform->cipher_ctx_dec,
+    if( ( ret = mbedtls_cipher_setup( &transform->cipher_ctx_dec,
                                  cipher_info ) ) != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_init_ctx", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setup", ret );
         return( ret );
     }
 

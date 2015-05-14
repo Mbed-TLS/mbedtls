@@ -81,7 +81,7 @@ int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
     if( cipher_info->block_size != 16 )
         return( MBEDTLS_ERR_CCM_BAD_INPUT );
 
-    if( ( ret = mbedtls_cipher_init_ctx( &ctx->cipher_ctx, cipher_info ) ) != 0 )
+    if( ( ret = mbedtls_cipher_setup( &ctx->cipher_ctx, cipher_info ) ) != 0 )
         return( ret );
 
     if( ( ret = mbedtls_cipher_setkey( &ctx->cipher_ctx, key, keysize,

@@ -30,6 +30,13 @@
 extern "C" {
 #endif
 
+/* Temporary, WIP */
+int mbedtls_ssl_ticket_write( mbedtls_ssl_context *ssl, size_t *tlen );
+
+/* Temporary, WIP */
+int mbedtls_ssl_ticket_parse( mbedtls_ssl_context *ssl,
+                             unsigned char *buf,
+                             size_t len );
 
 #ifdef __cplusplus
 }

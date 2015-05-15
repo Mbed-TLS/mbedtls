@@ -62,7 +62,7 @@ OBJS=	aes.o		aesni.o		arc4.o			\
 		pkwrite.o	platform.o	ripemd160.o		\
 		rsa.o		sha1.o		sha256.o		\
 		sha512.o	ssl_cache.o	ssl_cli.o		\
-		ssl_cookie.o							\
+		ssl_cookie.o			ssl_ticket.o	\
 		ssl_srv.o   ssl_ciphersuites.o			\
 		ssl_tls.o	threading.o	timing.o		\
 		version.o	version_features.o			\

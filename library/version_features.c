@@ -561,6 +561,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_SSL_COOKIE_C)
     "MBEDTLS_SSL_COOKIE_C",
 #endif /* MBEDTLS_SSL_COOKIE_C */
+#if defined(MBEDTLS_SSL_TICKET_C)
+    "MBEDTLS_SSL_TICKET_C",
+#endif /* MBEDTLS_SSL_TICKET_C */
 #if defined(MBEDTLS_SSL_CLI_C)
     "MBEDTLS_SSL_CLI_C",
 #endif /* MBEDTLS_SSL_CLI_C */

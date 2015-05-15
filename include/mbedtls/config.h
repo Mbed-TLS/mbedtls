@@ -2090,6 +2090,16 @@
 #define MBEDTLS_SSL_COOKIE_C
 
 /**
+ * \def MBEDTLS_SSL_TICKET_C
+ *
+ * Enable an implementation of TLS server-side callbacks for session tickets.
+ *
+ * Module:  library/ssl_ticket.c
+ * Caller:
+ */
+#define MBEDTLS_SSL_TICKET_C
+
+/**
  * \def MBEDTLS_SSL_CLI_C
  *
  * Enable the SSL/TLS client code.

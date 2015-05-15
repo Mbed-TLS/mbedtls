@@ -1,7 +1,7 @@
 /*
  *  UDP proxy: emulate an unreliable UDP connexion for DTLS testing
  *
- *  Copyright (C) 2006-2014, Brainspark B.V.
+ *  Copyright (C) 2014-2015, ARM Limited, All Rights Reserved
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  *

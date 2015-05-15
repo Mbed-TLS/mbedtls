@@ -3,7 +3,7 @@
  *
  * \brief DTLS cookie callbacks implementation
  *
- *  Copyright (C) 2014, Brainspark B.V.
+ *  Copyright (C) 2014-2015, ARM Limited, All Rights Reserved
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  *

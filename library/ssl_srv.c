@@ -51,6 +51,11 @@
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 #include "mbedtls/ssl_ticket.h"
+
+/* Implementation that should never be optimized out by the compiler */
+static void mbedtls_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
@@ -406,6 +411,7 @@ static int ssl_parse_session_ticket_ext( mbedtls_ssl_context *ssl,
                                          size_t len )
 {
     int ret;
+    mbedtls_ssl_session session;
 
     if( ssl->conf->session_tickets == MBEDTLS_SSL_SESSION_TICKETS_DISABLED )
         return( 0 );
@@ -429,11 +435,26 @@ static int ssl_parse_session_ticket_ext( mbedtls_ssl_context *ssl,
     /*
      * Failures are ok: just ignore the ticket and proceed.
      */
-    if( ( ret = mbedtls_ssl_ticket_parse( ssl, buf, len ) ) != 0 )
+    if( ( ret = mbedtls_ssl_ticket_parse( ssl->conf, &session,
+                                          buf, len ) ) != 0 )
     {
+        mbedtls_ssl_session_free( &session );
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_ticket_parse", ret );
         return( 0 );
     }
+
+    /*
+     * Keep the session ID sent by the client, since we MUST send it back to
+     * inform them we're accepting the ticket  (RFC 5077 section 3.4)
+     */
+    session.length = ssl->session_negotiate->length;
+    memcpy( &session.id, ssl->session_negotiate->id, session.length );
+
+    mbedtls_ssl_session_free( ssl->session_negotiate );
+    memcpy( ssl->session_negotiate, &session, sizeof( mbedtls_ssl_session ) );
+
+    /* Zeroize instead of free as we copied the content */
+    mbedtls_zeroize( &session, sizeof( mbedtls_ssl_session ) );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "session successfully restored from ticket" ) );
 
@@ -3509,7 +3530,11 @@ static int ssl_write_new_session_ticket( mbedtls_ssl_context *ssl )
     ssl->out_msg[6] = ( lifetime >>  8 ) & 0xFF;
     ssl->out_msg[7] = ( lifetime       ) & 0xFF;
 
-    if( ( ret = mbedtls_ssl_ticket_write( ssl, &tlen ) ) != 0 )
+    if( ( ret = mbedtls_ssl_ticket_write( ssl->conf,
+                                ssl->session_negotiate,
+                                ssl->out_msg + 10,
+                                ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN,
+                                &tlen ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_ticket_write", ret );
         tlen = 0;

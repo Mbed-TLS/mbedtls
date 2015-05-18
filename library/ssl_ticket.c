@@ -39,11 +39,6 @@
 
 #include <string.h>
 
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
-
 /*
  * Serialize a session in the following format:
  *  0   .   n-1     session structure, n = sizeof(mbedtls_ssl_session)
@@ -167,10 +162,13 @@ static int ssl_load_session( mbedtls_ssl_session *session,
  *
  * (the internal state structure differs, however).
  */
-int mbedtls_ssl_ticket_write( mbedtls_ssl_context *ssl, size_t *tlen )
+int mbedtls_ssl_ticket_write( const mbedtls_ssl_config *conf,
+                              const mbedtls_ssl_session *session,
+                              unsigned char *start,
+                              const unsigned char *end,
+                              size_t *tlen )
 {
     int ret;
-    unsigned char * const start = ssl->out_msg + 10;
     unsigned char *p = start;
     unsigned char *state;
     unsigned char iv[16];
@@ -178,32 +176,29 @@ int mbedtls_ssl_ticket_write( mbedtls_ssl_context *ssl, size_t *tlen )
 
     *tlen = 0;
 
-    if( ssl->conf->ticket_keys == NULL )
+    if( conf->ticket_keys == NULL )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
+    /* We need at least 16 bytes for key_name, 16 for IV, 2 for len
+     * 16 for padding, 32 for MAC, in addition to session itself,
+     * that will be checked when writing it. */
+    if( end - start < 16 + 16 + 2 + 16 + 32 )
+        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+
     /* Write key name */
-    memcpy( p, ssl->conf->ticket_keys->key_name, 16 );
+    memcpy( p, conf->ticket_keys->key_name, 16 );
     p += 16;
 
     /* Generate and write IV (with a copy for aes_crypt) */
-    if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng, p, 16 ) ) != 0 )
+    if( ( ret = conf->f_rng( conf->p_rng, p, 16 ) ) != 0 )
         return( ret );
     memcpy( iv, p, 16 );
     p += 16;
 
-    /*
-     * Dump session state
-     *
-     * After the session state itself, we still need room for 16 bytes of
-     * padding and 32 bytes of MAC, so there's only so much room left
-     */
+    /* Dump session state */
     state = p + 2;
-    if( ssl_save_session( ssl->session_negotiate, state,
-                          MBEDTLS_SSL_MAX_CONTENT_LEN - ( state - ssl->out_msg ) - 48,
-                          &clear_len ) != 0 )
-    {
-        return( MBEDTLS_ERR_SSL_CERTIFICATE_TOO_LARGE );
-    }
+    if( ssl_save_session( session, state, end - state, &clear_len ) != 0 )
+        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
 
     /* Apply PKCS padding */
     pad_len = 16 - clear_len % 16;
@@ -212,7 +207,7 @@ int mbedtls_ssl_ticket_write( mbedtls_ssl_context *ssl, size_t *tlen )
         state[i] = (unsigned char) pad_len;
 
     /* Encrypt */
-    if( ( ret = mbedtls_aes_crypt_cbc( &ssl->conf->ticket_keys->enc, MBEDTLS_AES_ENCRYPT,
+    if( ( ret = mbedtls_aes_crypt_cbc( &conf->ticket_keys->enc, MBEDTLS_AES_ENCRYPT,
                                enc_len, iv, state, state ) ) != 0 )
     {
         return( ret );
@@ -225,7 +220,7 @@ int mbedtls_ssl_ticket_write( mbedtls_ssl_context *ssl, size_t *tlen )
 
     /* Compute and write MAC( key_name + iv + enc_state_len + enc_state ) */
     if( ( ret = mbedtls_md_hmac( mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 ),
-                         ssl->conf->ticket_keys->mac_key, 16,
+                         conf->ticket_keys->mac_key, 16,
                          start, p - start, p ) ) != 0 )
     {
         return( ret );
@@ -240,12 +235,12 @@ int mbedtls_ssl_ticket_write( mbedtls_ssl_context *ssl, size_t *tlen )
 /*
  * Load session ticket (see mbedtls_ssl_ticket_write for structure)
  */
-int mbedtls_ssl_ticket_parse( mbedtls_ssl_context *ssl,
-                             unsigned char *buf,
-                             size_t len )
+int mbedtls_ssl_ticket_parse( const mbedtls_ssl_config *conf,
+                              mbedtls_ssl_session *session,
+                              unsigned char *buf,
+                              size_t len )
 {
     int ret;
-    mbedtls_ssl_session session;
     unsigned char *key_name = buf;
     unsigned char *iv = buf + 16;
     unsigned char *enc_len_p = iv + 16;
@@ -255,7 +250,7 @@ int mbedtls_ssl_ticket_parse( mbedtls_ssl_context *ssl,
     size_t enc_len, clear_len, i;
     unsigned char pad_len, diff;
 
-    if( len < 34 || ssl->conf->ticket_keys == NULL )
+    if( len < 34 || conf->ticket_keys == NULL )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     enc_len = ( enc_len_p[0] << 8 ) | enc_len_p[1];
@@ -267,12 +262,12 @@ int mbedtls_ssl_ticket_parse( mbedtls_ssl_context *ssl,
     /* Check name, in constant time though it's not a big secret */
     diff = 0;
     for( i = 0; i < 16; i++ )
-        diff |= key_name[i] ^ ssl->conf->ticket_keys->key_name[i];
+        diff |= key_name[i] ^ conf->ticket_keys->key_name[i];
     /* don't return yet, check the MAC anyway */
 
     /* Check mac, with constant-time buffer comparison */
     if( ( ret = mbedtls_md_hmac( mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 ),
-                         ssl->conf->ticket_keys->mac_key, 16,
+                         conf->ticket_keys->mac_key, 16,
                          buf, len - 32, computed_mac ) ) != 0 )
     {
         return( ret );
@@ -287,7 +282,7 @@ int mbedtls_ssl_ticket_parse( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_INVALID_MAC );
 
     /* Decrypt */
-    if( ( ret = mbedtls_aes_crypt_cbc( &ssl->conf->ticket_keys->dec, MBEDTLS_AES_DECRYPT,
+    if( ( ret = mbedtls_aes_crypt_cbc( &conf->ticket_keys->dec, MBEDTLS_AES_DECRYPT,
                                enc_len, iv, ticket, ticket ) ) != 0 )
     {
         return( ret );
@@ -306,33 +301,14 @@ int mbedtls_ssl_ticket_parse( mbedtls_ssl_context *ssl,
     clear_len = enc_len - pad_len;
 
     /* Actually load session */
-    if( ( ret = ssl_load_session( &session, ticket, clear_len ) ) != 0 )
-    {
-        mbedtls_ssl_session_free( &session );
+    if( ( ret = ssl_load_session( session, ticket, clear_len ) ) != 0 )
         return( ret );
-    }
 
 #if defined(MBEDTLS_HAVE_TIME)
     /* Check if still valid */
-    if( (int) ( time( NULL) - session.start ) > ssl->conf->ticket_lifetime )
-    {
-        mbedtls_ssl_session_free( &session );
+    if( (int) ( time( NULL) - session->start ) > conf->ticket_lifetime )
         return( MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED );
-    }
 #endif
-
-    /*
-     * Keep the session ID sent by the client, since we MUST send it back to
-     * inform him we're accepting the ticket  (RFC 5077 section 3.4)
-     */
-    session.length = ssl->session_negotiate->length;
-    memcpy( &session.id, ssl->session_negotiate->id, session.length );
-
-    mbedtls_ssl_session_free( ssl->session_negotiate );
-    memcpy( ssl->session_negotiate, &session, sizeof( mbedtls_ssl_session ) );
-
-    /* Zeroize instead of free as we copied the content */
-    mbedtls_zeroize( &session, sizeof( mbedtls_ssl_session ) );
 
     return( 0 );
 }

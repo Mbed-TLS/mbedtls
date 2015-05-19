@@ -30,19 +30,69 @@
 extern "C" {
 #endif
 
-/* Temporary, WIP */
-int mbedtls_ssl_ticket_write( void *p_ticket,
-                              const mbedtls_ssl_session *session,
-                              unsigned char *start,
-                              const unsigned char *end,
-                              size_t *tlen,
-                              uint32_t *ticket_lifetime );
 
-/* Temporary, WIP */
-int mbedtls_ssl_ticket_parse( void *p_ticket,
-                              mbedtls_ssl_session *session,
-                              unsigned char *buf,
-                              size_t len );
+/**
+ * \brief   Context for session ticket handling functions
+ */
+typedef struct
+{
+    unsigned char key_name[16];     /*!< name to quickly reject bad tickets */
+    mbedtls_aes_context enc;        /*!< encryption context                 */
+    mbedtls_aes_context dec;        /*!< decryption context                 */
+    unsigned char mac_key[16];      /*!< authentication key                 */
+
+    uint32_t ticket_lifetime;       /*!< lifetime of tickets in seconds     */
+
+    /** Callback for getting (pseudo-)random numbers                        */
+    int  (*f_rng)(void *, unsigned char *, size_t);
+    void *p_rng;                    /*!< context for the RNG function       */
+}
+mbedtls_ssl_ticket_context;
+
+/**
+ * \brief           Initialize a ticket context.
+ *                  (Just make it ready for mbedtls_ssl_ticket_setup()
+ *                  or mbedtls_ssl_ticket_free().)
+ *
+ * \param ctx       Context to be initialized
+ */
+void mbedtls_ssl_ticket_init( mbedtls_ssl_ticket_context *ctx );
+
+/**
+ * \brief           Prepare context to be actually used
+ *
+ * \param ctx       Context to be set up
+ * \param f_rng     RNG callback function
+ * \param p_rng     RNG callback context
+ * \param lifetime  Tickets lifetime in seconds
+ *
+ * \return          0 is successful,
+ *                  or a specific MBEDTLS_ERR_XXX error code
+ */
+int mbedtls_ssl_ticket_setup( mbedtls_ssl_ticket_context *ctx,
+    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+    uint32_t lifetime );
+
+/**
+ * \brief           Implementation of the ticket write callback
+ *
+ * \note            See \c mbedlts_ssl_ticket_write_t for description
+ */
+mbedtls_ssl_ticket_write_t mbedtls_ssl_ticket_write;
+
+/**
+ * \brief           Implementation of the ticket parse callback
+ *
+ * \note            See \c mbedlts_ssl_ticket_parse_t for description
+ */
+mbedtls_ssl_ticket_parse_t mbedtls_ssl_ticket_parse;
+
+/**
+ * \brief           Free a context's content and zeroize it.
+ *
+ * \param ctx       Context to be cleaned up
+ */
+void mbedtls_ssl_ticket_free( mbedtls_ssl_ticket_context *ctx );
 
 #ifdef __cplusplus
 }

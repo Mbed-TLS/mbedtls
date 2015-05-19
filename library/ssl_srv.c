@@ -413,8 +413,11 @@ static int ssl_parse_session_ticket_ext( mbedtls_ssl_context *ssl,
     int ret;
     mbedtls_ssl_session session;
 
-    if( ssl->conf->session_tickets == MBEDTLS_SSL_SESSION_TICKETS_DISABLED )
+    if( ssl->conf->f_ticket_parse == NULL ||
+        ssl->conf->f_ticket_write == NULL )
+    {
         return( 0 );
+    }
 
     /* Remember the client asked us to send a new ticket */
     ssl->handshake->new_session_ticket = 1;
@@ -435,11 +438,18 @@ static int ssl_parse_session_ticket_ext( mbedtls_ssl_context *ssl,
     /*
      * Failures are ok: just ignore the ticket and proceed.
      */
-    if( ( ret = mbedtls_ssl_ticket_parse( ssl->conf->ticket_keys, &session,
-                                          buf, len ) ) != 0 )
+    if( ( ret = ssl->conf->f_ticket_parse( ssl->conf->p_ticket, &session,
+                                           buf, len ) ) != 0 )
     {
         mbedtls_ssl_session_free( &session );
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_ticket_parse", ret );
+
+        if( ret == MBEDTLS_ERR_SSL_INVALID_MAC )
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "ticket is not authentic" ) );
+        else if( ret == MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED )
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "ticket is expired" ) );
+        else
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_ticket_parse", ret );
+
         return( 0 );
     }
 
@@ -3525,7 +3535,7 @@ static int ssl_write_new_session_ticket( mbedtls_ssl_context *ssl )
      * 10 .  9+n ticket content
      */
 
-    if( ( ret = mbedtls_ssl_ticket_write( ssl->conf->ticket_keys,
+    if( ( ret = ssl->conf->f_ticket_write( ssl->conf->p_ticket,
                                 ssl->session_negotiate,
                                 ssl->out_msg + 10,
                                 ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN,

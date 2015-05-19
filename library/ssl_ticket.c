@@ -39,6 +39,56 @@
 
 #include <string.h>
 
+/* Implementation that should never be optimized out by the compiler */
+static void mbedtls_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
+/*
+ * Initialze context
+ */
+void mbedtls_ssl_ticket_init( mbedtls_ssl_ticket_context *ctx )
+{
+    memset( ctx, 0, sizeof( mbedtls_ssl_ticket_context ) );
+}
+
+/*
+ * Setup context for actual use
+ */
+int mbedtls_ssl_ticket_setup( mbedtls_ssl_ticket_context *ctx,
+    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+    uint32_t lifetime )
+{
+    int ret;
+    unsigned char buf[16];
+
+    ctx->f_rng = f_rng;
+    ctx->p_rng = p_rng;
+
+    ctx->ticket_lifetime = lifetime;
+
+    mbedtls_aes_init( &ctx->enc );
+    mbedtls_aes_init( &ctx->dec );
+
+    if( ( ret = f_rng( p_rng, ctx->key_name, 16 ) != 0 ) ||
+        ( ret = f_rng( p_rng, ctx->mac_key,  16 ) != 0 ) ||
+        ( ret = f_rng( p_rng, buf,           16 ) != 0 ) )
+    {
+        return( ret );
+    }
+
+    if( ( ret = mbedtls_aes_setkey_enc( &ctx->enc, buf, 128 ) ) != 0 ||
+        ( ret = mbedtls_aes_setkey_dec( &ctx->dec, buf, 128 ) ) != 0 )
+    {
+        mbedtls_ssl_ticket_free( ctx );
+        return( ret );
+    }
+
+    mbedtls_zeroize( buf, sizeof( buf ) );
+
+    return( 0 );
+}
+
 /*
  * Serialize a session in the following format:
  *  0   .   n-1     session structure, n = sizeof(mbedtls_ssl_session)
@@ -170,7 +220,7 @@ int mbedtls_ssl_ticket_write( void *p_ticket,
                               uint32_t *ticket_lifetime )
 {
     int ret;
-    mbedtls_ssl_ticket_keys *ctx = p_ticket;
+    mbedtls_ssl_ticket_context *ctx = p_ticket;
     unsigned char *p = start;
     unsigned char *state;
     unsigned char iv[16];
@@ -194,7 +244,8 @@ int mbedtls_ssl_ticket_write( void *p_ticket,
     p += 16;
 
     /* Generate and write IV (with a copy for aes_crypt) */
-    memset( p, 0x2a, 16 ); /* Temporary WIP */
+    if( ( ret = ctx->f_rng( ctx->p_rng, p, 16 ) ) != 0 )
+        return( ret );
     memcpy( iv, p, 16 );
     p += 16;
 
@@ -244,7 +295,7 @@ int mbedtls_ssl_ticket_parse( void *p_ticket,
                               size_t len )
 {
     int ret;
-    mbedtls_ssl_ticket_keys *ctx = p_ticket;
+    mbedtls_ssl_ticket_context *ctx = p_ticket;
     unsigned char *key_name = buf;
     unsigned char *iv = buf + 16;
     unsigned char *enc_len_p = iv + 16;
@@ -315,6 +366,17 @@ int mbedtls_ssl_ticket_parse( void *p_ticket,
 #endif
 
     return( 0 );
+}
+
+/*
+ * Free context
+ */
+void mbedtls_ssl_ticket_free( mbedtls_ssl_ticket_context *ctx )
+{
+    mbedtls_aes_free( &ctx->enc );
+    mbedtls_aes_free( &ctx->dec );
+
+    mbedtls_zeroize( ctx, sizeof( mbedtls_ssl_ticket_context ) );
 }
 
 #endif /* MBEDTLS_SSL_TICKET_C */

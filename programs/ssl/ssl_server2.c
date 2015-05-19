@@ -69,6 +69,10 @@ int main( void )
 #include "mbedtls/ssl_cache.h"
 #endif
 
+#if defined(MBEDTLS_SSL_TICKET_C)
+#include "mbedtls/ssl_ticket.h"
+#endif
+
 #if defined(MBEDTLS_SSL_COOKIE_C)
 #include "mbedtls/ssl_cookie.h"
 #endif
@@ -114,7 +118,7 @@ int main( void )
 #define DFL_MFL_CODE            MBEDTLS_SSL_MAX_FRAG_LEN_NONE
 #define DFL_TRUNC_HMAC          -1
 #define DFL_TICKETS             MBEDTLS_SSL_SESSION_TICKETS_ENABLED
-#define DFL_TICKET_TIMEOUT      -1
+#define DFL_TICKET_TIMEOUT      86400
 #define DFL_CACHE_MAX           -1
 #define DFL_CACHE_TIMEOUT       -1
 #define DFL_SNI                 NULL
@@ -190,7 +194,7 @@ int main( void )
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 #define USAGE_TICKETS                                       \
     "    tickets=%%d          default: 1 (enabled)\n"       \
-    "    ticket_timeout=%%d   default: ticket default (1d)\n"
+    "    ticket_timeout=%%d   default: 86400 (one day)\n"
 #else
 #define USAGE_TICKETS ""
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
@@ -740,6 +744,9 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_context cache;
 #endif
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    mbedtls_ssl_ticket_context ticket_ctx;
+#endif
 #if defined(SNI_OPTION)
     sni_entry *sni_info = NULL;
 #endif
@@ -777,6 +784,9 @@ int main( int argc, char *argv[] )
 #endif
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_init( &cache );
+#endif
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    mbedtls_ssl_ticket_init( &ticket_ctx );
 #endif
 #if defined(MBEDTLS_SSL_ALPN)
     memset( (void *) alpn_list, 0, sizeof( alpn_list ) );
@@ -1584,14 +1594,21 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    if( ( ret = mbedtls_ssl_conf_session_tickets( &conf, opt.tickets ) ) != 0 )
+    if( opt.tickets == MBEDTLS_SSL_SESSION_TICKETS_ENABLED )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_session_tickets returned %d\n\n", ret );
-        goto exit;
-    }
+        if( ( ret = mbedtls_ssl_ticket_setup( &ticket_ctx,
+                        mbedtls_ctr_drbg_random, &ctr_drbg,
+                        opt.ticket_timeout ) ) != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_ticket_setup returned %d\n\n", ret );
+            goto exit;
+        }
 
-    if( opt.ticket_timeout != -1 )
-        mbedtls_ssl_conf_session_ticket_lifetime( &conf, opt.ticket_timeout );
+        mbedtls_ssl_conf_session_tickets_cb( &conf,
+                mbedtls_ssl_ticket_write,
+                mbedtls_ssl_ticket_parse,
+                &ticket_ctx );
+    }
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -2202,6 +2219,9 @@ exit:
 
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_free( &cache );
+#endif
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    mbedtls_ssl_ticket_free( &ticket_ctx );
 #endif
 #if defined(MBEDTLS_SSL_COOKIE_C)
     mbedtls_ssl_cookie_free( &cookie_ctx );

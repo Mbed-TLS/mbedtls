@@ -5704,7 +5704,7 @@ int mbedtls_ssl_conf_session_tickets( mbedtls_ssl_config *conf, int use_tickets 
 
 void mbedtls_ssl_conf_session_ticket_lifetime( mbedtls_ssl_config *conf, int lifetime )
 {
-    conf->ticket_lifetime = lifetime;
+    conf->ticket_keys->ticket_lifetime = lifetime;
 }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
@@ -6700,7 +6700,8 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #endif
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    conf->ticket_lifetime = MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME;
+    ssl_ticket_keys_init( &conf );
+    conf->ticket_keys->ticket_lifetime = MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME;
 #endif
 
 #if defined(MBEDTLS_SSL_SET_CURVES)

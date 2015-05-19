@@ -162,13 +162,15 @@ static int ssl_load_session( mbedtls_ssl_session *session,
  *
  * (the internal state structure differs, however).
  */
-int mbedtls_ssl_ticket_write( const mbedtls_ssl_config *conf,
+int mbedtls_ssl_ticket_write( void *p_ticket,
                               const mbedtls_ssl_session *session,
                               unsigned char *start,
                               const unsigned char *end,
-                              size_t *tlen )
+                              size_t *tlen,
+                              uint32_t *ticket_lifetime )
 {
     int ret;
+    mbedtls_ssl_ticket_keys *ctx = p_ticket;
     unsigned char *p = start;
     unsigned char *state;
     unsigned char iv[16];
@@ -176,8 +178,10 @@ int mbedtls_ssl_ticket_write( const mbedtls_ssl_config *conf,
 
     *tlen = 0;
 
-    if( conf->ticket_keys == NULL )
+    if( ctx == NULL )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    *ticket_lifetime = ctx->ticket_lifetime;
 
     /* We need at least 16 bytes for key_name, 16 for IV, 2 for len
      * 16 for padding, 32 for MAC, in addition to session itself,
@@ -186,12 +190,11 @@ int mbedtls_ssl_ticket_write( const mbedtls_ssl_config *conf,
         return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
 
     /* Write key name */
-    memcpy( p, conf->ticket_keys->key_name, 16 );
+    memcpy( p, ctx->key_name, 16 );
     p += 16;
 
     /* Generate and write IV (with a copy for aes_crypt) */
-    if( ( ret = conf->f_rng( conf->p_rng, p, 16 ) ) != 0 )
-        return( ret );
+    memset( p, 0x2a, 16 ); /* Temporary WIP */
     memcpy( iv, p, 16 );
     p += 16;
 
@@ -207,7 +210,7 @@ int mbedtls_ssl_ticket_write( const mbedtls_ssl_config *conf,
         state[i] = (unsigned char) pad_len;
 
     /* Encrypt */
-    if( ( ret = mbedtls_aes_crypt_cbc( &conf->ticket_keys->enc, MBEDTLS_AES_ENCRYPT,
+    if( ( ret = mbedtls_aes_crypt_cbc( &ctx->enc, MBEDTLS_AES_ENCRYPT,
                                enc_len, iv, state, state ) ) != 0 )
     {
         return( ret );
@@ -220,7 +223,7 @@ int mbedtls_ssl_ticket_write( const mbedtls_ssl_config *conf,
 
     /* Compute and write MAC( key_name + iv + enc_state_len + enc_state ) */
     if( ( ret = mbedtls_md_hmac( mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 ),
-                         conf->ticket_keys->mac_key, 16,
+                         ctx->mac_key, 16,
                          start, p - start, p ) ) != 0 )
     {
         return( ret );
@@ -235,12 +238,13 @@ int mbedtls_ssl_ticket_write( const mbedtls_ssl_config *conf,
 /*
  * Load session ticket (see mbedtls_ssl_ticket_write for structure)
  */
-int mbedtls_ssl_ticket_parse( const mbedtls_ssl_config *conf,
+int mbedtls_ssl_ticket_parse( void *p_ticket,
                               mbedtls_ssl_session *session,
                               unsigned char *buf,
                               size_t len )
 {
     int ret;
+    mbedtls_ssl_ticket_keys *ctx = p_ticket;
     unsigned char *key_name = buf;
     unsigned char *iv = buf + 16;
     unsigned char *enc_len_p = iv + 16;
@@ -250,7 +254,7 @@ int mbedtls_ssl_ticket_parse( const mbedtls_ssl_config *conf,
     size_t enc_len, clear_len, i;
     unsigned char pad_len, diff;
 
-    if( len < 34 || conf->ticket_keys == NULL )
+    if( len < 34 || ctx == NULL )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     enc_len = ( enc_len_p[0] << 8 ) | enc_len_p[1];
@@ -262,12 +266,12 @@ int mbedtls_ssl_ticket_parse( const mbedtls_ssl_config *conf,
     /* Check name, in constant time though it's not a big secret */
     diff = 0;
     for( i = 0; i < 16; i++ )
-        diff |= key_name[i] ^ conf->ticket_keys->key_name[i];
+        diff |= key_name[i] ^ ctx->key_name[i];
     /* don't return yet, check the MAC anyway */
 
     /* Check mac, with constant-time buffer comparison */
     if( ( ret = mbedtls_md_hmac( mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 ),
-                         conf->ticket_keys->mac_key, 16,
+                         ctx->mac_key, 16,
                          buf, len - 32, computed_mac ) ) != 0 )
     {
         return( ret );
@@ -282,7 +286,7 @@ int mbedtls_ssl_ticket_parse( const mbedtls_ssl_config *conf,
         return( MBEDTLS_ERR_SSL_INVALID_MAC );
 
     /* Decrypt */
-    if( ( ret = mbedtls_aes_crypt_cbc( &conf->ticket_keys->dec, MBEDTLS_AES_DECRYPT,
+    if( ( ret = mbedtls_aes_crypt_cbc( &ctx->dec, MBEDTLS_AES_DECRYPT,
                                enc_len, iv, ticket, ticket ) ) != 0 )
     {
         return( ret );
@@ -306,7 +310,7 @@ int mbedtls_ssl_ticket_parse( const mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_HAVE_TIME)
     /* Check if still valid */
-    if( (int) ( time( NULL) - session->start ) > conf->ticket_lifetime )
+    if( ( time( NULL) - session->start ) > ctx->ticket_lifetime )
         return( MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED );
 #endif
 

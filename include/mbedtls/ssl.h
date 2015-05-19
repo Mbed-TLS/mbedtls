@@ -760,6 +760,7 @@ struct mbedtls_ssl_ticket_keys
     mbedtls_aes_context enc;                /*!< encryption context                  */
     mbedtls_aes_context dec;                /*!< decryption context                  */
     unsigned char mac_key[16];      /*!< authentication key                  */
+    uint32_t ticket_lifetime;
 };
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
@@ -894,10 +895,6 @@ typedef struct
 
 #if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
     unsigned int badmac_limit;      /*!< limit of records with a bad MAC    */
-#endif
-
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    int ticket_lifetime;            /*!< session ticket lifetime (seconds)  */
 #endif
 
     unsigned char max_major_ver;    /*!< max. major version used            */

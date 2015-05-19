@@ -31,14 +31,15 @@ extern "C" {
 #endif
 
 /* Temporary, WIP */
-int mbedtls_ssl_ticket_write( const mbedtls_ssl_config *conf,
+int mbedtls_ssl_ticket_write( void *p_ticket,
                               const mbedtls_ssl_session *session,
                               unsigned char *start,
                               const unsigned char *end,
-                              size_t *tlen );
+                              size_t *tlen,
+                              uint32_t *ticket_lifetime );
 
 /* Temporary, WIP */
-int mbedtls_ssl_ticket_parse( const mbedtls_ssl_config *conf,
+int mbedtls_ssl_ticket_parse( void *p_ticket,
                               mbedtls_ssl_session *session,
                               unsigned char *buf,
                               size_t len );

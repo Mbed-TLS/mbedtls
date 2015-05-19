@@ -435,7 +435,7 @@ static int ssl_parse_session_ticket_ext( mbedtls_ssl_context *ssl,
     /*
      * Failures are ok: just ignore the ticket and proceed.
      */
-    if( ( ret = mbedtls_ssl_ticket_parse( ssl->conf, &session,
+    if( ( ret = mbedtls_ssl_ticket_parse( ssl->conf->ticket_keys, &session,
                                           buf, len ) ) != 0 )
     {
         mbedtls_ssl_session_free( &session );
@@ -3507,7 +3507,7 @@ static int ssl_write_new_session_ticket( mbedtls_ssl_context *ssl )
 {
     int ret;
     size_t tlen;
-    uint32_t lifetime = (uint32_t) ssl->conf->ticket_lifetime;
+    uint32_t lifetime;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write new session ticket" ) );
 
@@ -3525,20 +3525,20 @@ static int ssl_write_new_session_ticket( mbedtls_ssl_context *ssl )
      * 10 .  9+n ticket content
      */
 
-    ssl->out_msg[4] = ( lifetime >> 24 ) & 0xFF;
-    ssl->out_msg[5] = ( lifetime >> 16 ) & 0xFF;
-    ssl->out_msg[6] = ( lifetime >>  8 ) & 0xFF;
-    ssl->out_msg[7] = ( lifetime       ) & 0xFF;
-
-    if( ( ret = mbedtls_ssl_ticket_write( ssl->conf,
+    if( ( ret = mbedtls_ssl_ticket_write( ssl->conf->ticket_keys,
                                 ssl->session_negotiate,
                                 ssl->out_msg + 10,
                                 ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN,
-                                &tlen ) ) != 0 )
+                                &tlen, &lifetime ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_ticket_write", ret );
         tlen = 0;
     }
+
+    ssl->out_msg[4] = ( lifetime >> 24 ) & 0xFF;
+    ssl->out_msg[5] = ( lifetime >> 16 ) & 0xFF;
+    ssl->out_msg[6] = ( lifetime >>  8 ) & 0xFF;
+    ssl->out_msg[7] = ( lifetime       ) & 0xFF;
 
     ssl->out_msg[8] = (unsigned char)( ( tlen >> 8 ) & 0xFF );
     ssl->out_msg[9] = (unsigned char)( ( tlen      ) & 0xFF );

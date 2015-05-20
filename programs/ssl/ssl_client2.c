@@ -1106,11 +1106,7 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_conf_read_timeout( &conf, opt.read_timeout );
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    if( ( ret = mbedtls_ssl_conf_session_tickets( &conf, opt.tickets ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_session_tickets returned %d\n\n", ret );
-        goto exit;
-    }
+    mbedtls_ssl_conf_session_tickets( &conf, opt.tickets );
 #endif
 
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )

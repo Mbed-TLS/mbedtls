@@ -188,7 +188,7 @@ static int ssl_session_copy( mbedtls_ssl_session *dst, const mbedtls_ssl_session
     }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
     if( src->ticket != NULL )
     {
         dst->ticket = mbedtls_malloc( src->ticket_len );
@@ -197,7 +197,7 @@ static int ssl_session_copy( mbedtls_ssl_session *dst, const mbedtls_ssl_session
 
         memcpy( dst->ticket, src->ticket, src->ticket_len );
     }
-#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
 
     return( 0 );
 }
@@ -5639,13 +5639,14 @@ void mbedtls_ssl_conf_renegotiation_period( mbedtls_ssl_config *conf,
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-int mbedtls_ssl_conf_session_tickets( mbedtls_ssl_config *conf, int use_tickets )
+#if defined(MBEDTLS_SSL_CLI_C)
+void mbedtls_ssl_conf_session_tickets( mbedtls_ssl_config *conf, int use_tickets )
 {
     conf->session_tickets = use_tickets;
-
-    return( 0 );
 }
+#endif
 
+#if defined(MBEDTLS_SSL_SRV_C)
 void mbedtls_ssl_conf_session_tickets_cb( mbedtls_ssl_config *conf,
         mbedtls_ssl_ticket_write_t *f_ticket_write,
         mbedtls_ssl_ticket_parse_t *f_ticket_parse,
@@ -5655,6 +5656,7 @@ void mbedtls_ssl_conf_session_tickets_cb( mbedtls_ssl_config *conf,
     conf->f_ticket_parse = f_ticket_parse;
     conf->p_ticket       = p_ticket;
 }
+#endif
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
 /*
@@ -6494,7 +6496,7 @@ void mbedtls_ssl_session_free( mbedtls_ssl_session *session )
     }
 #endif
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
     mbedtls_free( session->ticket );
 #endif
 

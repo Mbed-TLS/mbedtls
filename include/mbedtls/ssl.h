@@ -584,11 +584,11 @@ struct mbedtls_ssl_session
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
     uint32_t verify_result;          /*!<  verification result     */
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
     unsigned char *ticket;      /*!< RFC 5077 session ticket */
     size_t ticket_len;          /*!< session ticket length   */
     uint32_t ticket_lifetime;   /*!< ticket lifetime hint    */
-#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     unsigned char mfl_code;     /*!< MaxFragmentLength negotiated by peer */
@@ -822,14 +822,14 @@ typedef struct
     void *p_cookie;                 /*!< context for the cookie callbacks   */
 #endif
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_SRV_C)
     /** Callback to create & write a session ticket                         */
     int (*f_ticket_write)( void *, const mbedtls_ssl_session *,
             unsigned char *, const unsigned char *, size_t *, uint32_t * );
     /** Callback to parse a session ticket into a session structure         */
     int (*f_ticket_parse)( void *, mbedtls_ssl_session *, unsigned char *, size_t);
     void *p_ticket;                 /*!< context for the ticket callbacks   */
-#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_ssl_key_cert *key_cert; /*!< own certificate/key pair(s)        */
@@ -1317,7 +1317,6 @@ void mbedtls_ssl_set_timer_cb( mbedtls_ssl_context *ssl,
                                void (*f_set_timer)(void *, uint32_t int_ms, uint32_t fin_ms),
                                int (*f_get_timer)(void *) );
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
 /**
  * \brief           Callback type: generate and write session ticket
  *
@@ -1354,8 +1353,8 @@ typedef int mbedtls_ssl_ticket_write_t( void *p_ticket,
  *                  session.
  *
  * \note            The implementation is allowed to modify the first len
- *                  of the input buffer, eg to use it as a temporary area for
- *                  the decrypted ticket contents.
+ *                  bytes of the input buffer, eg to use it as a temporary
+ *                  area for the decrypted ticket contents.
  *
  * \param p_ticket  Context for the callback
  * \param session   SSL session to be loaded
@@ -1372,8 +1371,15 @@ typedef int mbedtls_ssl_ticket_parse_t( void *p_ticket,
                                         unsigned char *buf,
                                         size_t len );
 
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_SRV_C)
 /**
- * \brief           Configure SSL session ticket callbacks
+ * \brief           Configure SSL session ticket callbacks (server only).
+ *                  (Default: none.)
+ *
+ * \note            On server, session tickets are enabled by providing
+ *                  non-NULL callbacks.
+ *
+ * \note            On client, use \c mbedtls_ssl_conf_seesion_tickets().
  *
  * \param conf      SSL configuration context
  * \param f_ticket_write    Callback for writing a ticket
@@ -1384,8 +1390,7 @@ void mbedtls_ssl_conf_session_tickets_cb( mbedtls_ssl_config *conf,
         mbedtls_ssl_ticket_write_t *f_ticket_write,
         mbedtls_ssl_ticket_parse_t *f_ticket_parse,
         void *p_ticket );
-
-#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
 /**
@@ -2043,25 +2048,19 @@ void mbedtls_ssl_conf_truncated_hmac( mbedtls_ssl_config *conf, int truncate );
 void mbedtls_ssl_conf_cbc_record_splitting( mbedtls_ssl_config *conf, char split );
 #endif /* MBEDTLS_SSL_CBC_RECORD_SPLITTING */
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
 /**
- * \brief          Enable / Disable session tickets
- *                 (Default: MBEDTLS_SSL_SESSION_TICKETS_ENABLED on client,
- *                           MBEDTLS_SSL_SESSION_TICKETS_DISABLED on server)
+ * \brief          Enable / Disable session tickets (client only).
+ *                 (Default: MBEDTLS_SSL_SESSION_TICKETS_ENABLED.)
  *
- * \note           On server, mbedtls_ssl_conf_rng() must be called before this function
- *                 to allow generating the ticket encryption and
- *                 authentication keys.
+ * \note           On server, use \c mbedtls_ssl_conf_session_tickets_cb().
  *
  * \param conf     SSL configuration
  * \param use_tickets   Enable or disable (MBEDTLS_SSL_SESSION_TICKETS_ENABLED or
  *                                         MBEDTLS_SSL_SESSION_TICKETS_DISABLED)
- *
- * \return         0 if successful,
- *                 or a specific error code (server only).
  */
-int mbedtls_ssl_conf_session_tickets( mbedtls_ssl_config *conf, int use_tickets );
-#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+void mbedtls_ssl_conf_session_tickets( mbedtls_ssl_config *conf, int use_tickets );
+#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
 /**

@@ -387,11 +387,16 @@ int mbedtls_ssl_ticket_parse( void *p_ticket,
         goto cleanup;
 
 #if defined(MBEDTLS_HAVE_TIME)
-    /* Check if still valid */
-    if( ( time( NULL) - session->start ) > ctx->ticket_lifetime )
     {
-        ret = MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED;
-        goto cleanup;
+        /* Check for expiration */
+        time_t current_time = time( NULL );
+
+        if( current_time < session->start ||
+            (uint32_t)( current_time - session->start ) > ctx->ticket_lifetime )
+        {
+            ret = MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED;
+            goto cleanup;
+        }
     }
 #endif
 

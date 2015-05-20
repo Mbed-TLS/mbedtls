@@ -1087,8 +1087,7 @@
  *
  * \warning Disabling this can ba a security risk! (see above)
  *
- * Requires: MBEDTLS_SSL_SRV_C
- *           MBEDTLS_SSL_PROTO_DTLS
+ * Requires: MBEDTLS_SSL_PROTO_DTLS
  *
  * Comment this to disable support for HelloVerifyRequest.
  */
@@ -2085,8 +2084,6 @@
  *
  * Module:  library/ssl_cookie.c
  * Caller:
- *
- * Requires: MBEDTLS_SSL_DTLS_HELLO_VERIFY
  */
 #define MBEDTLS_SSL_COOKIE_C
 

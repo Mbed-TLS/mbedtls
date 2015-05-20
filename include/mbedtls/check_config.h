@@ -392,12 +392,7 @@
 #error "Illegal protocol selection"
 #endif
 
-#if defined(MBEDTLS_SSL_COOKIE_C) && !defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
-#error "MBEDTLS_SSL_COOKIE_C  defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) &&                              \
-    ( !defined(MBEDTLS_SSL_SRV_C) || !defined(MBEDTLS_SSL_PROTO_DTLS) )
+#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) && !defined(MBEDTLS_SSL_PROTO_DTLS)
 #error "MBEDTLS_SSL_DTLS_HELLO_VERIFY  defined, but not all prerequisites"
 #endif
 

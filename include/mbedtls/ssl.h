@@ -812,7 +812,7 @@ typedef struct
     void *p_psk;                    /*!< context for PSK callback           */
 #endif
 
-#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
+#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) && defined(MBEDTLS_SSL_SRV_C)
     /** Callback to create & write a cookie for ClientHello veirifcation    */
     int (*f_cookie_write)( void *, unsigned char **, unsigned char *,
                            const unsigned char *, size_t );
@@ -1056,7 +1056,7 @@ struct mbedtls_ssl_context
     /*
      * Information for DTLS hello verify
      */
-#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
+#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) && defined(MBEDTLS_SSL_SRV_C)
     unsigned char  *cli_id;         /*!<  transport-level ID of the client  */
     size_t          cli_id_len;     /*!<  length of cli_id                  */
 #endif
@@ -1392,30 +1392,6 @@ void mbedtls_ssl_conf_session_tickets_cb( mbedtls_ssl_config *conf,
         void *p_ticket );
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_SRV_C */
 
-#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
-/**
- * \brief          Set client's transport-level identification info.
- *                 (Server only. DTLS only.)
- *
- *                 This is usually the IP address (and port), but could be
- *                 anything identify the client depending on the underlying
- *                 network stack. Used for HelloVerifyRequest with DTLS.
- *                 This is *not* used to route the actual packets.
- *
- * \param ssl      SSL context
- * \param info     Transport-level info identifying the client (eg IP + port)
- * \param ilen     Length of info in bytes
- *
- * \note           An internal copy is made, so the info buffer can be reused.
- *
- * \return         0 on success,
- *                 MBEDTLS_ERR_SSL_BAD_INPUT_DATA if used on client,
- *                 MBEDTLS_ERR_SSL_MALLOC_FAILED if out of memory.
- */
-int mbedtls_ssl_set_client_transport_id( mbedtls_ssl_context *ssl,
-                                 const unsigned char *info,
-                                 size_t ilen );
-
 /**
  * \brief          Callback type: generate a cookie
  *
@@ -1451,6 +1427,7 @@ typedef int mbedtls_ssl_cookie_check_t( void *ctx,
                                 const unsigned char *cookie, size_t clen,
                                 const unsigned char *info, size_t ilen );
 
+#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) && defined(MBEDTLS_SSL_SRV_C)
 /**
  * \brief           Register callbacks for DTLS cookies
  *                  (Server only. DTLS only.)
@@ -1474,7 +1451,31 @@ void mbedtls_ssl_conf_dtls_cookies( mbedtls_ssl_config *conf,
                            mbedtls_ssl_cookie_write_t *f_cookie_write,
                            mbedtls_ssl_cookie_check_t *f_cookie_check,
                            void *p_cookie );
-#endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY */
+
+/**
+ * \brief          Set client's transport-level identification info.
+ *                 (Server only. DTLS only.)
+ *
+ *                 This is usually the IP address (and port), but could be
+ *                 anything identify the client depending on the underlying
+ *                 network stack. Used for HelloVerifyRequest with DTLS.
+ *                 This is *not* used to route the actual packets.
+ *
+ * \param ssl      SSL context
+ * \param info     Transport-level info identifying the client (eg IP + port)
+ * \param ilen     Length of info in bytes
+ *
+ * \note           An internal copy is made, so the info buffer can be reused.
+ *
+ * \return         0 on success,
+ *                 MBEDTLS_ERR_SSL_BAD_INPUT_DATA if used on client,
+ *                 MBEDTLS_ERR_SSL_MALLOC_FAILED if out of memory.
+ */
+int mbedtls_ssl_set_client_transport_id( mbedtls_ssl_context *ssl,
+                                 const unsigned char *info,
+                                 size_t ilen );
+
+#endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY && MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
 /**

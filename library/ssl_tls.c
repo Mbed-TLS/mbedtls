@@ -4950,7 +4950,7 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
-#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
+#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) && defined(MBEDTLS_SSL_SRV_C)
 /* Dummy cookie callbacks for defaults */
 static int ssl_cookie_write_dummy( void *ctx,
                       unsigned char **p, unsigned char *end,
@@ -4977,7 +4977,7 @@ static int ssl_cookie_check_dummy( void *ctx,
 
     return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
 }
-#endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY */
+#endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY && MBEDTLS_SSL_SRV_C */
 
 /*
  * Initialize an SSL context
@@ -5136,7 +5136,7 @@ int mbedtls_ssl_session_reset( mbedtls_ssl_context *ssl )
     ssl->alpn_chosen = NULL;
 #endif
 
-#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
+#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) && defined(MBEDTLS_SSL_SRV_C)
     mbedtls_free( ssl->cli_id );
     ssl->cli_id = NULL;
     ssl->cli_id_len = 0;
@@ -6572,7 +6572,7 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
     }
 #endif
 
-#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
+#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) && defined(MBEDTLS_SSL_SRV_C)
     mbedtls_free( ssl->cli_id );
 #endif
 
@@ -6654,7 +6654,7 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
     conf->curve_list = mbedtls_ecp_grp_id_list( );
 #endif
 
-#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
+#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) && defined(MBEDTLS_SSL_SRV_C)
     conf->f_cookie_write = ssl_cookie_write_dummy;
     conf->f_cookie_check = ssl_cookie_check_dummy;
 #endif

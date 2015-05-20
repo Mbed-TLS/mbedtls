@@ -1769,7 +1769,7 @@ int mbedtls_ssl_conf_dh_param( mbedtls_ssl_config *conf, const char *dhm_P, cons
  * \return         0 if successful
  */
 int mbedtls_ssl_conf_dh_param_ctx( mbedtls_ssl_config *conf, mbedtls_dhm_context *dhm_ctx );
-#endif /* MBEDTLS_DHM_C */
+#endif /* MBEDTLS_DHM_C && defined(MBEDTLS_SSL_SRV_C) */
 
 #if defined(MBEDTLS_SSL_SET_CURVES)
 /**

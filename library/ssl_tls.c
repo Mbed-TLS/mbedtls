@@ -161,6 +161,7 @@ static unsigned int mfl_code_to_length[MBEDTLS_SSL_MAX_FRAG_LEN_INVALID] =
 };
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
+#if defined(MBEDTLS_SSL_CLI_C)
 static int ssl_session_copy( mbedtls_ssl_session *dst, const mbedtls_ssl_session *src )
 {
     mbedtls_ssl_session_free( dst );
@@ -200,6 +201,7 @@ static int ssl_session_copy( mbedtls_ssl_session *dst, const mbedtls_ssl_session
 
     return( 0 );
 }
+#endif /* MBEDTLS_SSL_CLI_C */
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
 int (*mbedtls_ssl_hw_record_init)( mbedtls_ssl_context *ssl,
@@ -3837,7 +3839,7 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = MBEDTLS_SSL_HS_CERTIFICATE;
 
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
+#if defined(MBEDTLS_SSL_PROTO_SSL3) && defined(MBEDTLS_SSL_CLI_C)
 write_msg:
 #endif
 
@@ -5433,7 +5435,7 @@ void mbedtls_ssl_conf_psk_cb( mbedtls_ssl_config *conf,
 }
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
-#if defined(MBEDTLS_DHM_C)
+#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
 int mbedtls_ssl_conf_dh_param( mbedtls_ssl_config *conf, const char *dhm_P, const char *dhm_G )
 {
     int ret;
@@ -5463,7 +5465,7 @@ int mbedtls_ssl_conf_dh_param_ctx( mbedtls_ssl_config *conf, mbedtls_dhm_context
 
     return( 0 );
 }
-#endif /* MBEDTLS_DHM_C */
+#endif /* MBEDTLS_DHM_C && MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_SET_CURVES)
 /*

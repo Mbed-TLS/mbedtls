@@ -152,6 +152,20 @@ scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
 scripts/config.pl unset MBEDTLS_FS_IO
 CC=gcc CFLAGS='-Werror -O0' make
 
+msg "build: full config except ssl_srv.c, make, gcc" # ~ 30s
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl full
+scripts/config.pl unset MBEDTLS_SSL_SRV_C
+CC=gcc CFLAGS='-Werror -O0' make
+
+msg "build: full config except ssl_cli.c, make, gcc" # ~ 30s
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl full
+scripts/config.pl unset MBEDTLS_SSL_CLI_C
+CC=gcc CFLAGS='-Werror -O0' make
+
 if uname -a | grep -F x86_64 >/dev/null; then
 msg "build: i386, make, gcc" # ~ 30s
 cleanup

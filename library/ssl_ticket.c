@@ -50,6 +50,10 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 void mbedtls_ssl_ticket_init( mbedtls_ssl_ticket_context *ctx )
 {
     memset( ctx, 0, sizeof( mbedtls_ssl_ticket_context ) );
+
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_init( &ctx->mutex );
+#endif
 }
 
 /*
@@ -94,8 +98,6 @@ int mbedtls_ssl_ticket_setup( mbedtls_ssl_ticket_context *ctx,
  *  0   .   n-1     session structure, n = sizeof(mbedtls_ssl_session)
  *  n   .   n+2     peer_cert length = m (0 if no certificate)
  *  n+3 .   n+2+m   peer cert ASN.1
- *
- *  Assumes ticket is NULL (always true on server side).
  */
 static int ssl_save_session( const mbedtls_ssl_session *session,
                              unsigned char *buf, size_t buf_len,
@@ -108,7 +110,7 @@ static int ssl_save_session( const mbedtls_ssl_session *session,
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     if( left < sizeof( mbedtls_ssl_session ) )
-        return( -1 );
+        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
 
     memcpy( p, session, sizeof( mbedtls_ssl_session ) );
     p += sizeof( mbedtls_ssl_session );
@@ -121,7 +123,7 @@ static int ssl_save_session( const mbedtls_ssl_session *session,
         cert_len = session->peer_cert->raw.len;
 
     if( left < 3 + cert_len )
-        return( -1 );
+        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
 
     *p++ = (unsigned char)( cert_len >> 16 & 0xFF );
     *p++ = (unsigned char)( cert_len >>  8 & 0xFF );
@@ -231,13 +233,18 @@ int mbedtls_ssl_ticket_write( void *p_ticket,
     if( ctx == NULL )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    *ticket_lifetime = ctx->ticket_lifetime;
-
     /* We need at least 16 bytes for key_name, 16 for IV, 2 for len
      * 16 for padding, 32 for MAC, in addition to session itself,
      * that will be checked when writing it. */
     if( end - start < 16 + 16 + 2 + 16 + 32 )
         return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+
+#if defined(MBEDTLS_THREADING_C)
+    if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
+        return( ret );
+#endif
+
+    *ticket_lifetime = ctx->ticket_lifetime;
 
     /* Write key name */
     memcpy( p, ctx->key_name, 16 );
@@ -245,14 +252,17 @@ int mbedtls_ssl_ticket_write( void *p_ticket,
 
     /* Generate and write IV (with a copy for aes_crypt) */
     if( ( ret = ctx->f_rng( ctx->p_rng, p, 16 ) ) != 0 )
-        return( ret );
+        goto cleanup;
     memcpy( iv, p, 16 );
     p += 16;
 
     /* Dump session state */
     state = p + 2;
-    if( ssl_save_session( session, state, end - state, &clear_len ) != 0 )
-        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+    if( ( ret = ssl_save_session( session,
+                                  state, end - state, &clear_len ) ) != 0 )
+    {
+         goto cleanup;
+    }
 
     /* Apply PKCS padding */
     pad_len = 16 - clear_len % 16;
@@ -264,7 +274,7 @@ int mbedtls_ssl_ticket_write( void *p_ticket,
     if( ( ret = mbedtls_aes_crypt_cbc( &ctx->enc, MBEDTLS_AES_ENCRYPT,
                                enc_len, iv, state, state ) ) != 0 )
     {
-        return( ret );
+        goto cleanup;
     }
 
     /* Write length */
@@ -277,13 +287,19 @@ int mbedtls_ssl_ticket_write( void *p_ticket,
                          ctx->mac_key, 16,
                          start, p - start, p ) ) != 0 )
     {
-        return( ret );
+        goto cleanup;
     }
     p += 32;
 
     *tlen = p - start;
 
-    return( 0 );
+cleanup:
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &ctx->mutex ) != 0 )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+#endif
+
+    return( ret );
 }
 
 /*
@@ -308,11 +324,19 @@ int mbedtls_ssl_ticket_parse( void *p_ticket,
     if( len < 34 || ctx == NULL )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
+        return( ret );
+#endif
+
     enc_len = ( enc_len_p[0] << 8 ) | enc_len_p[1];
     mac = ticket + enc_len;
 
     if( len != enc_len + 66 )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    {
+        ret = MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        goto cleanup;
+    }
 
     /* Check name, in constant time though it's not a big secret */
     diff = 0;
@@ -325,7 +349,7 @@ int mbedtls_ssl_ticket_parse( void *p_ticket,
                          ctx->mac_key, 16,
                          buf, len - 32, computed_mac ) ) != 0 )
     {
-        return( ret );
+        goto cleanup;
     }
 
     for( i = 0; i < 32; i++ )
@@ -334,13 +358,16 @@ int mbedtls_ssl_ticket_parse( void *p_ticket,
     /* Now return if ticket is not authentic, since we want to avoid
      * decrypting arbitrary attacker-chosen data */
     if( diff != 0 )
-        return( MBEDTLS_ERR_SSL_INVALID_MAC );
+    {
+        ret = MBEDTLS_ERR_SSL_INVALID_MAC;
+        goto cleanup;
+    }
 
     /* Decrypt */
     if( ( ret = mbedtls_aes_crypt_cbc( &ctx->dec, MBEDTLS_AES_DECRYPT,
                                enc_len, iv, ticket, ticket ) ) != 0 )
     {
-        return( ret );
+        goto cleanup;
     }
 
     /* Check PKCS padding */
@@ -351,21 +378,30 @@ int mbedtls_ssl_ticket_parse( void *p_ticket,
         if( ticket[enc_len - i] != pad_len )
             ret = MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     if( ret != 0 )
-        return( ret );
+        goto cleanup;
 
     clear_len = enc_len - pad_len;
 
     /* Actually load session */
     if( ( ret = ssl_load_session( session, ticket, clear_len ) ) != 0 )
-        return( ret );
+        goto cleanup;
 
 #if defined(MBEDTLS_HAVE_TIME)
     /* Check if still valid */
     if( ( time( NULL) - session->start ) > ctx->ticket_lifetime )
-        return( MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED );
+    {
+        ret = MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED;
+        goto cleanup;
+    }
 #endif
 
-    return( 0 );
+cleanup:
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &ctx->mutex ) != 0 )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+#endif
+
+    return( ret );
 }
 
 /*
@@ -375,6 +411,10 @@ void mbedtls_ssl_ticket_free( mbedtls_ssl_ticket_context *ctx )
 {
     mbedtls_aes_free( &ctx->enc );
     mbedtls_aes_free( &ctx->dec );
+
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_free( &ctx->mutex );
+#endif
 
     mbedtls_zeroize( ctx, sizeof( mbedtls_ssl_ticket_context ) );
 }

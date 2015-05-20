@@ -27,10 +27,13 @@
 #include "ssl.h"
 #include "aes.h"
 
+#if defined(MBEDTLS_THREADING_C)
+#include "threading.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 /**
  * \brief   Context for session ticket handling functions
@@ -47,6 +50,10 @@ typedef struct
     /** Callback for getting (pseudo-)random numbers                        */
     int  (*f_rng)(void *, unsigned char *, size_t);
     void *p_rng;                    /*!< context for the RNG function       */
+
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_threading_mutex_t mutex;
+#endif
 }
 mbedtls_ssl_ticket_context;
 

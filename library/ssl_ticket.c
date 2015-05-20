@@ -64,33 +64,39 @@ int mbedtls_ssl_ticket_setup( mbedtls_ssl_ticket_context *ctx,
     uint32_t lifetime )
 {
     int ret;
-    unsigned char buf[16];
+    unsigned char buf[32];
 
     ctx->f_rng = f_rng;
     ctx->p_rng = p_rng;
 
     ctx->ticket_lifetime = lifetime;
 
-    mbedtls_aes_init( &ctx->enc );
-    mbedtls_aes_init( &ctx->dec );
-
-    if( ( ret = f_rng( p_rng, ctx->key_name, 16 ) != 0 ) ||
-        ( ret = f_rng( p_rng, ctx->mac_key,  16 ) != 0 ) ||
-        ( ret = f_rng( p_rng, buf,           16 ) != 0 ) )
+    if( ( ret = mbedtls_cipher_setup( &ctx->cipher,
+                mbedtls_cipher_info_from_type(
+                    MBEDTLS_CIPHER_AES_256_GCM ) ) ) != 0 )
     {
-        return( ret );
+        goto cleanup;
     }
 
-    if( ( ret = mbedtls_aes_setkey_enc( &ctx->enc, buf, 128 ) ) != 0 ||
-        ( ret = mbedtls_aes_setkey_dec( &ctx->dec, buf, 128 ) ) != 0 )
+    if( ( ret = f_rng( p_rng, buf, sizeof( buf ) ) != 0 ) )
     {
-        mbedtls_ssl_ticket_free( ctx );
-        return( ret );
+        goto cleanup;
     }
 
+    /* With GCM and CCM, same context can encrypt & decrypt */
+    if( ( ret = mbedtls_cipher_setkey( &ctx->cipher, buf, 256,
+                                       MBEDTLS_ENCRYPT ) ) != 0 )
+    {
+        goto cleanup;
+    }
+
+cleanup:
     mbedtls_zeroize( buf, sizeof( buf ) );
 
-    return( 0 );
+    if( ret != 0 )
+        mbedtls_ssl_ticket_free( ctx );
+
+    return( ret );
 }
 
 /*
@@ -203,16 +209,17 @@ static int ssl_load_session( mbedtls_ssl_session *session,
 }
 
 /*
- * Create session ticket, secured as recommended in RFC 5077 section 4:
+ * Create session ticket, with the following structure:
  *
  *    struct {
- *        opaque key_name[16];
- *        opaque iv[16];
+ *        opaque key_name[4];
+ *        opaque iv[12];
  *        opaque encrypted_state<0..2^16-1>;
- *        opaque mac[32];
+ *        opaque tag[16];
  *    } ticket;
  *
- * (the internal state structure differs, however).
+ * The key_name, iv, and length of encrypted_state are the additional
+ * authenticated data.
  */
 int mbedtls_ssl_ticket_write( void *p_ticket,
                               const mbedtls_ssl_session *session,
@@ -223,20 +230,21 @@ int mbedtls_ssl_ticket_write( void *p_ticket,
 {
     int ret;
     mbedtls_ssl_ticket_context *ctx = p_ticket;
-    unsigned char *p = start;
-    unsigned char *state;
-    unsigned char iv[16];
-    size_t clear_len, enc_len, pad_len, i;
+    unsigned char *key_name = start;
+    unsigned char *iv = start + 4;
+    unsigned char *state_len_bytes = iv + 12;
+    unsigned char *state = state_len_bytes + 2;
+    unsigned char *tag;
+    size_t clear_len, ciph_len;
 
     *tlen = 0;
 
-    if( ctx == NULL )
+    if( ctx == NULL || ctx->f_rng == NULL )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    /* We need at least 16 bytes for key_name, 16 for IV, 2 for len
-     * 16 for padding, 32 for MAC, in addition to session itself,
-     * that will be checked when writing it. */
-    if( end - start < 16 + 16 + 2 + 16 + 32 )
+    /* We need at least 4 bytes for key_name, 12 for IV, 2 for len 16 for tag,
+     * in addition to session itself, that will be checked when writing it. */
+    if( end - start < 4 + 12 + 2 + 16 )
         return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
 
 #if defined(MBEDTLS_THREADING_C)
@@ -246,52 +254,36 @@ int mbedtls_ssl_ticket_write( void *p_ticket,
 
     *ticket_lifetime = ctx->ticket_lifetime;
 
-    /* Write key name */
-    memcpy( p, ctx->key_name, 16 );
-    p += 16;
+    memcpy( key_name, ctx->key_name, 4 );
 
-    /* Generate and write IV (with a copy for aes_crypt) */
-    if( ( ret = ctx->f_rng( ctx->p_rng, p, 16 ) ) != 0 )
+    if( ( ret = ctx->f_rng( ctx->p_rng, iv, 12 ) ) != 0 )
         goto cleanup;
-    memcpy( iv, p, 16 );
-    p += 16;
 
     /* Dump session state */
-    state = p + 2;
     if( ( ret = ssl_save_session( session,
-                                  state, end - state, &clear_len ) ) != 0 )
+                                  state, end - state, &clear_len ) ) != 0 ||
+        (unsigned long) clear_len > 65535 )
     {
          goto cleanup;
     }
+    state_len_bytes[0] = ( clear_len >> 8 ) & 0xff;
+    state_len_bytes[1] = ( clear_len      ) & 0xff;
 
-    /* Apply PKCS padding */
-    pad_len = 16 - clear_len % 16;
-    enc_len = clear_len + pad_len;
-    for( i = clear_len; i < enc_len; i++ )
-        state[i] = (unsigned char) pad_len;
-
-    /* Encrypt */
-    if( ( ret = mbedtls_aes_crypt_cbc( &ctx->enc, MBEDTLS_AES_ENCRYPT,
-                               enc_len, iv, state, state ) ) != 0 )
+    /* Encrypt and authenticate */
+    tag = state + clear_len;
+    if( ( ret = mbedtls_cipher_auth_encrypt( &ctx->cipher,
+                    iv, 12, key_name, 4 + 12 + 2,
+                    state, clear_len, state, &ciph_len, tag, 16 ) ) != 0 )
     {
         goto cleanup;
     }
-
-    /* Write length */
-    *p++ = (unsigned char)( ( enc_len >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( enc_len      ) & 0xFF );
-    p = state + enc_len;
-
-    /* Compute and write MAC( key_name + iv + enc_state_len + enc_state ) */
-    if( ( ret = mbedtls_md_hmac( mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 ),
-                         ctx->mac_key, 16,
-                         start, p - start, p ) ) != 0 )
+    if( ciph_len != clear_len )
     {
+        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
         goto cleanup;
     }
-    p += 32;
 
-    *tlen = p - start;
+    *tlen = 4 + 12 + 2 + 16 + ciph_len;
 
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
@@ -313,16 +305,17 @@ int mbedtls_ssl_ticket_parse( void *p_ticket,
     int ret;
     mbedtls_ssl_ticket_context *ctx = p_ticket;
     unsigned char *key_name = buf;
-    unsigned char *iv = buf + 16;
-    unsigned char *enc_len_p = iv + 16;
+    unsigned char *iv = buf + 4;
+    unsigned char *enc_len_p = iv + 12;
     unsigned char *ticket = enc_len_p + 2;
-    unsigned char *mac;
-    unsigned char computed_mac[32];
-    size_t enc_len, clear_len, i;
-    unsigned char pad_len, diff;
+    unsigned char *tag;
+    size_t enc_len, clear_len;
 
-    if( len < 34 || ctx == NULL )
+    if( ctx == NULL || ctx->f_rng == NULL ||
+        len < 4 + 12 + 2 + 16 )
+    {
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
 
 #if defined(MBEDTLS_THREADING_C)
     if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
@@ -330,57 +323,34 @@ int mbedtls_ssl_ticket_parse( void *p_ticket,
 #endif
 
     enc_len = ( enc_len_p[0] << 8 ) | enc_len_p[1];
-    mac = ticket + enc_len;
+    tag = ticket + enc_len;
 
-    if( len != enc_len + 66 )
+    if( len != 4 + 12 + 2 + enc_len + 16 )
     {
         ret = MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
         goto cleanup;
     }
 
-    /* Check name, in constant time though it's not a big secret */
-    diff = 0;
-    for( i = 0; i < 16; i++ )
-        diff |= key_name[i] ^ ctx->key_name[i];
-    /* don't return yet, check the MAC anyway */
-
-    /* Check mac, with constant-time buffer comparison */
-    if( ( ret = mbedtls_md_hmac( mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 ),
-                         ctx->mac_key, 16,
-                         buf, len - 32, computed_mac ) ) != 0 )
-    {
-        goto cleanup;
-    }
-
-    for( i = 0; i < 32; i++ )
-        diff |= mac[i] ^ computed_mac[i];
-
-    /* Now return if ticket is not authentic, since we want to avoid
-     * decrypting arbitrary attacker-chosen data */
-    if( diff != 0 )
+    /* Check name (public data) */
+    if( memcmp( key_name, ctx->key_name, 4 ) != 0 )
     {
         ret = MBEDTLS_ERR_SSL_INVALID_MAC;
         goto cleanup;
     }
 
-    /* Decrypt */
-    if( ( ret = mbedtls_aes_crypt_cbc( &ctx->dec, MBEDTLS_AES_DECRYPT,
-                               enc_len, iv, ticket, ticket ) ) != 0 )
+    /* Decrypt and authenticate */
+    if( ( ret = mbedtls_cipher_auth_decrypt( &ctx->cipher, iv, 12,
+                    key_name, 4 + 12 + 2, ticket, enc_len,
+                    ticket, &clear_len, tag, 16 ) ) != 0 )
     {
+        /* TODO: convert AUTH_FAILED to INVALID_MAC */
         goto cleanup;
     }
-
-    /* Check PKCS padding */
-    pad_len = ticket[enc_len - 1];
-
-    ret = 0;
-    for( i = 2; i < pad_len; i++ )
-        if( ticket[enc_len - i] != pad_len )
-            ret = MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-    if( ret != 0 )
+    if( clear_len != enc_len )
+    {
+        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
         goto cleanup;
-
-    clear_len = enc_len - pad_len;
+    }
 
     /* Actually load session */
     if( ( ret = ssl_load_session( session, ticket, clear_len ) ) != 0 )
@@ -414,8 +384,7 @@ cleanup:
  */
 void mbedtls_ssl_ticket_free( mbedtls_ssl_ticket_context *ctx )
 {
-    mbedtls_aes_free( &ctx->enc );
-    mbedtls_aes_free( &ctx->dec );
+    mbedtls_cipher_free( &ctx->cipher );
 
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_free( &ctx->mutex );

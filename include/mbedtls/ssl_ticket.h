@@ -25,7 +25,7 @@
 #define MBEDTLS_SSL_TICKET_H
 
 #include "ssl.h"
-#include "aes.h"
+#include "cipher.h"
 
 #if defined(MBEDTLS_THREADING_C)
 #include "threading.h"
@@ -40,10 +40,8 @@ extern "C" {
  */
 typedef struct
 {
-    unsigned char key_name[16];     /*!< name to quickly reject bad tickets */
-    mbedtls_aes_context enc;        /*!< encryption context                 */
-    mbedtls_aes_context dec;        /*!< decryption context                 */
-    unsigned char mac_key[16];      /*!< authentication key                 */
+    unsigned char key_name[4];      /*!< name to quickly reject bad tickets */
+    mbedtls_cipher_context_t cipher;/*!< cipher context                     */
 
     uint32_t ticket_lifetime;       /*!< lifetime of tickets in seconds     */
 

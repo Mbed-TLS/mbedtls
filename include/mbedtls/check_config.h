@@ -425,10 +425,10 @@
 #error "MBEDTLS_SSL_EXTENDED_MASTER_SECRET defined, but not all prerequsites"
 #endif
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TLS_C) && \
+#if defined(MBEDTLS_SSL_TICKET_C) && \
     ( !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_SHA256_C) ||            \
       !defined(MBEDTLS_CIPHER_MODE_CBC) )
-#error "MBEDTLS_SSL_SESSION_TICKETS defined, but not all prerequisites"
+#error "MBEDTLS_SSL_TICKET_C defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING) && \

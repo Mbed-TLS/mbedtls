@@ -25,6 +25,7 @@
 #define MBEDTLS_SSL_TICKET_H
 
 #include "ssl.h"
+#include "aes.h"
 
 #ifdef __cplusplus
 extern "C" {

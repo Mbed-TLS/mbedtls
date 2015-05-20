@@ -50,8 +50,6 @@
 #endif
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-#include "mbedtls/ssl_ticket.h"
-
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;

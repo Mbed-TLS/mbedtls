@@ -51,11 +51,6 @@
 #include "sha512.h"
 #endif
 
-// for session tickets
-#if defined(MBEDTLS_AES_C)
-#include "aes.h"
-#endif
-
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #include "x509_crt.h"
 #include "x509_crl.h"

@@ -65,7 +65,7 @@ void mbedtls_entropy_init( mbedtls_entropy_context *ctx )
     mbedtls_entropy_add_source( ctx, mbedtls_platform_entropy_poll, NULL,
                         MBEDTLS_ENTROPY_MIN_PLATFORM );
 #endif
-#if defined(MBEDTLS_TIMING_C)
+#if defined(MBEDTLS_TIMING_C) || defined(TARGET_LIKE_CORTEX_M4)
     mbedtls_entropy_add_source( ctx, mbedtls_hardclock_poll, NULL, MBEDTLS_ENTROPY_MIN_HARDCLOCK );
 #endif
 #if defined(MBEDTLS_HAVEGE_C)

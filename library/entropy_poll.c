@@ -17,8 +17,10 @@
 #include "mbedtls/entropy.h"
 #include "mbedtls/entropy_poll.h"
 
-#if defined(MBEDTLS_TIMING_C)
+#if defined(MBEDTLS_TIMING_C) || defined(TARGET_LIKE_CORTEX_M4)
 #include <string.h>
+#endif
+#if defined(MBEDTLS_TIMING_C)
 #include "mbedtls/timing.h"
 #endif
 #if defined(MBEDTLS_HAVEGE_C)
@@ -159,7 +161,26 @@ int mbedtls_platform_entropy_poll( void *data,
 #endif /* _WIN32 && !EFIX64 && !EFI32 */
 #endif /* !MBEDTLS_NO_PLATFORM_ENTROPY */
 
-#if defined(MBEDTLS_TIMING_C)
+#if defined(TARGET_LIKE_CORTEX_M4)
+
+#include "MK64F12.h"
+#include "core_cm4.h"
+
+static unsigned long mbedtls_timing_hardclock( void )
+{
+    static int dwt_started = 0;
+
+    if( dwt_started == 0 )
+    {
+        CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+        DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+    }
+
+    return( DWT->CYCCNT );
+}
+#endif
+
+#if defined(MBEDTLS_TIMING_C) || defined(TARGET_LIKE_CORTEX_M4)
 int mbedtls_hardclock_poll( void *data,
                     unsigned char *output, size_t len, size_t *olen )
 {

@@ -47,7 +47,7 @@ int mbedtls_havege_poll( void *data,
                  unsigned char *output, size_t len, size_t *olen );
 #endif
 
-#if defined(MBEDTLS_TIMING_C)
+#if defined(MBEDTLS_TIMING_C) || defined(TARGET_LIKE_CORTEX_M4)
 /**
  * \brief           mbedtls_timing_hardclock-based entropy poll callback
  */

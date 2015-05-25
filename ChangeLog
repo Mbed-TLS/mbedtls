@@ -3,10 +3,12 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = PolarSSL 2.0 branch
 
 Features
-  * Support for DTLS 1.0 and 1.2 (RFC 6347).
-  * Ability to override core functions from MDx, SHAx, AES and DES modules
-    with custom implementation (eg hardware accelerated), complementing the
-    ability to override the whole module.
+   * Support for DTLS 1.0 and 1.2 (RFC 6347).
+   * Ability to override core functions from MDx, SHAx, AES and DES modules
+     with custom implementation (eg hardware accelerated), complementing the
+     ability to override the whole module.
+   * New server-side implementation of session tickets that rotate keys to
+     preserve forward secrecy, and allows sharing across multiple contexts.
 
 API Changes
    * All public identifiers moved to the mbedtls_* or MBEDTLS_* namespace.
@@ -38,6 +40,8 @@ API Changes
      using mbedtls_ssl_set_hostname().
    * mbedtls_ssl_conf_session_cache() changed prototype (only one context
      pointer, parameters reordered).
+   * On server, mbedtls_ssl_conf_session_tickets_cb() must now be used in
+     place of mbedtls_ssl_conf_session_tickets() to enable session tickets.
    * mbedtls_ssl_conf_truncated_hmac() now returns void.
    * mbedtls_memory_bufer_alloc_init() now returns void.
    * X.509 verification flags are now an uint32_t. Affect the signature of:

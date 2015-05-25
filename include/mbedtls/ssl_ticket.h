@@ -36,12 +36,22 @@ extern "C" {
 #endif
 
 /**
+ * \brief   Information for session ticket protection
+ */
+typedef struct
+{
+    unsigned char name[4];          /*!< random key identifier              */
+    uint32_t generation_time;       /*!< key generation timestamp (seconds) */
+    mbedtls_cipher_context_t ctx;   /*!< context for auth enc/decryption    */
+}
+mbedtls_ssl_ticket_key;
+
+/**
  * \brief   Context for session ticket handling functions
  */
 typedef struct
 {
-    unsigned char key_name[4];      /*!< name to quickly reject bad tickets */
-    mbedtls_cipher_context_t cipher;/*!< cipher context                     */
+    mbedtls_ssl_ticket_key keys[2]; /*!< ticket protection keys             */
 
     uint32_t ticket_lifetime;       /*!< lifetime of tickets in seconds     */
 

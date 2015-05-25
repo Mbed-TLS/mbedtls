@@ -56,6 +56,38 @@ void mbedtls_ssl_ticket_init( mbedtls_ssl_ticket_context *ctx )
 #endif
 }
 
+#define MAX_KEY_BYTES 32    /* 256 bits */
+
+/*
+ * Generate/update a key
+ */
+static int ssl_ticket_gen_key( mbedtls_ssl_ticket_context *ctx,
+                               unsigned char index )
+{
+    int ret;
+    unsigned char buf[MAX_KEY_BYTES];
+    mbedtls_ssl_ticket_key *key = ctx->keys + index;
+
+#if defined(MBEDTLS_HAVE_TIME)
+    key->generation_time = (uint32_t) time( NULL );
+#endif
+
+    if( ( ret = ctx->f_rng( ctx->p_rng, key->name, sizeof( key->name ) ) ) != 0 )
+        return( ret );
+
+    if( ( ret = ctx->f_rng( ctx->p_rng, buf, sizeof( buf ) ) ) != 0 )
+        return( ret );
+
+    /* With GCM and CCM, same context can encrypt & decrypt */
+    ret = mbedtls_cipher_setkey( &key->ctx, buf,
+                                 mbedtls_cipher_get_key_size( &key->ctx ),
+                                 MBEDTLS_ENCRYPT );
+
+    mbedtls_zeroize( buf, sizeof( buf ) );
+
+    return( ret );
+}
+
 /*
  * Setup context for actual use
  */
@@ -65,54 +97,39 @@ int mbedtls_ssl_ticket_setup( mbedtls_ssl_ticket_context *ctx,
     uint32_t lifetime )
 {
     int ret;
-    unsigned char buf[32];
-    mbedtls_cipher_mode_t mode;
-    size_t key_bits;
+    const mbedtls_cipher_info_t *cipher_info;
 
     ctx->f_rng = f_rng;
     ctx->p_rng = p_rng;
 
     ctx->ticket_lifetime = lifetime;
 
-    if( ( ret = mbedtls_cipher_setup( &ctx->cipher,
-                mbedtls_cipher_info_from_type( cipher) ) ) != 0 )
+    cipher_info = mbedtls_cipher_info_from_type( cipher);
+    if( cipher_info == NULL )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    if( cipher_info->mode != MBEDTLS_MODE_GCM &&
+        cipher_info->mode != MBEDTLS_MODE_CCM )
     {
-        goto cleanup;
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
-    mode = mbedtls_cipher_get_cipher_mode( &ctx->cipher );
-    if( mode != MBEDTLS_MODE_GCM && mode != MBEDTLS_MODE_CCM )
+    if( cipher_info->key_length > 8 * MAX_KEY_BYTES )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    if( ( ret = mbedtls_cipher_setup( &ctx->keys[0].ctx, cipher_info ) ) != 0 ||
+        ( ret = mbedtls_cipher_setup( &ctx->keys[1].ctx, cipher_info ) ) != 0 )
     {
-        ret = MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-        goto cleanup;
+        return( ret );
     }
 
-    key_bits = mbedtls_cipher_get_key_size( &ctx->cipher );
-    if( key_bits > 8 * sizeof( buf ) )
+    if( ( ret = ssl_ticket_gen_key( ctx, 0 ) ) != 0 ||
+        ( ret = ssl_ticket_gen_key( ctx, 1 ) ) != 0 )
     {
-        ret = MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-        goto cleanup;
+        return( ret );
     }
 
-    if( ( ret = f_rng( p_rng, buf, sizeof( buf ) ) != 0 ) )
-    {
-        goto cleanup;
-    }
-
-    /* With GCM and CCM, same context can encrypt & decrypt */
-    if( ( ret = mbedtls_cipher_setkey( &ctx->cipher, buf, key_bits,
-                                       MBEDTLS_ENCRYPT ) ) != 0 )
-    {
-        goto cleanup;
-    }
-
-cleanup:
-    mbedtls_zeroize( buf, sizeof( buf ) );
-
-    if( ret != 0 )
-        mbedtls_ssl_ticket_free( ctx );
-
-    return( ret );
+    return( 0 );
 }
 
 /*
@@ -246,6 +263,7 @@ int mbedtls_ssl_ticket_write( void *p_ticket,
 {
     int ret;
     mbedtls_ssl_ticket_context *ctx = p_ticket;
+    mbedtls_ssl_ticket_key *key = ctx->keys;
     unsigned char *key_name = start;
     unsigned char *iv = start + 4;
     unsigned char *state_len_bytes = iv + 12;
@@ -270,7 +288,7 @@ int mbedtls_ssl_ticket_write( void *p_ticket,
 
     *ticket_lifetime = ctx->ticket_lifetime;
 
-    memcpy( key_name, ctx->key_name, 4 );
+    memcpy( key_name, key->name, 4 );
 
     if( ( ret = ctx->f_rng( ctx->p_rng, iv, 12 ) ) != 0 )
         goto cleanup;
@@ -287,7 +305,7 @@ int mbedtls_ssl_ticket_write( void *p_ticket,
 
     /* Encrypt and authenticate */
     tag = state + clear_len;
-    if( ( ret = mbedtls_cipher_auth_encrypt( &ctx->cipher,
+    if( ( ret = mbedtls_cipher_auth_encrypt( &key->ctx,
                     iv, 12, key_name, 4 + 12 + 2,
                     state, clear_len, state, &ciph_len, tag, 16 ) ) != 0 )
     {
@@ -320,6 +338,7 @@ int mbedtls_ssl_ticket_parse( void *p_ticket,
 {
     int ret;
     mbedtls_ssl_ticket_context *ctx = p_ticket;
+    mbedtls_ssl_ticket_key *key = ctx->keys;
     unsigned char *key_name = buf;
     unsigned char *iv = buf + 4;
     unsigned char *enc_len_p = iv + 12;
@@ -348,14 +367,14 @@ int mbedtls_ssl_ticket_parse( void *p_ticket,
     }
 
     /* Check name (public data) */
-    if( memcmp( key_name, ctx->key_name, 4 ) != 0 )
+    if( memcmp( key_name, key->name, 4 ) != 0 )
     {
         ret = MBEDTLS_ERR_SSL_INVALID_MAC;
         goto cleanup;
     }
 
     /* Decrypt and authenticate */
-    if( ( ret = mbedtls_cipher_auth_decrypt( &ctx->cipher, iv, 12,
+    if( ( ret = mbedtls_cipher_auth_decrypt( &key->ctx, iv, 12,
                     key_name, 4 + 12 + 2, ticket, enc_len,
                     ticket, &clear_len, tag, 16 ) ) != 0 )
     {
@@ -400,7 +419,8 @@ cleanup:
  */
 void mbedtls_ssl_ticket_free( mbedtls_ssl_ticket_context *ctx )
 {
-    mbedtls_cipher_free( &ctx->cipher );
+    mbedtls_cipher_free( &ctx->keys[0].ctx );
+    mbedtls_cipher_free( &ctx->keys[1].ctx );
 
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_free( &ctx->mutex );

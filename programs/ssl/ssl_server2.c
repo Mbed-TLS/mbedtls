@@ -1598,6 +1598,7 @@ int main( int argc, char *argv[] )
     {
         if( ( ret = mbedtls_ssl_ticket_setup( &ticket_ctx,
                         mbedtls_ctr_drbg_random, &ctr_drbg,
+                        MBEDTLS_CIPHER_AES_256_GCM,
                         opt.ticket_timeout ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_ticket_setup returned %d\n\n", ret );

@@ -70,13 +70,20 @@ void mbedtls_ssl_ticket_init( mbedtls_ssl_ticket_context *ctx );
  * \param ctx       Context to be set up
  * \param f_rng     RNG callback function
  * \param p_rng     RNG callback context
+ * \param cipher    AEAD cipher to use for ticket protection, eg
+ *                  MBEDTLS_CIPHER_AES_256_GCM or MBEDTLS_CIPHER_AES_256_CCM.
  * \param lifetime  Tickets lifetime in seconds
+ *
+ * \note            It is highly recommended to select a cipher that is at
+ *                  least as strong as the the strongest ciphersuite
+ *                  supported. Usually that means a 256-bit key.
  *
  * \return          0 is successful,
  *                  or a specific MBEDTLS_ERR_XXX error code
  */
 int mbedtls_ssl_ticket_setup( mbedtls_ssl_ticket_context *ctx,
     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+    mbedtls_cipher_type_t cipher,
     uint32_t lifetime );
 
 /**

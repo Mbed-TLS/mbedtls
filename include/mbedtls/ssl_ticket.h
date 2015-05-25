@@ -24,6 +24,12 @@
 #ifndef MBEDTLS_SSL_TICKET_H
 #define MBEDTLS_SSL_TICKET_H
 
+/*
+ * This implementation of the session ticket callbacks includes key
+ * management, rotating the keys periodically in order to preserve forward
+ * secrecy, when MBEDTLS_HAVE_TIME is defined.
+ */
+
 #include "ssl.h"
 #include "cipher.h"
 

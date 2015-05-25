@@ -420,9 +420,7 @@
 #error "MBEDTLS_SSL_EXTENDED_MASTER_SECRET defined, but not all prerequsites"
 #endif
 
-#if defined(MBEDTLS_SSL_TICKET_C) && \
-    ( !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_SHA256_C) ||            \
-      !defined(MBEDTLS_CIPHER_MODE_CBC) )
+#if defined(MBEDTLS_SSL_TICKET_C) && !defined(MBEDTLS_CIPHER_C)
 #error "MBEDTLS_SSL_TICKET_C defined, but not all prerequisites"
 #endif
 

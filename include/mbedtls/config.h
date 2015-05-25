@@ -2095,9 +2095,7 @@
  * Module:  library/ssl_ticket.c
  * Caller:
  *
- * Requires: MBEDTLS_AES_C
- *           MBEDTLS_SHA256_C
- *           MBEDTLS_CIPHER_MODE_CBC
+ * Requires: MBEDTLS_CIPHER_C
  */
 #define MBEDTLS_SSL_TICKET_C
 

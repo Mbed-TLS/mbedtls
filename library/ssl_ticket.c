@@ -89,6 +89,34 @@ static int ssl_ticket_gen_key( mbedtls_ssl_ticket_context *ctx,
 }
 
 /*
+ * Rotate/generate keys if necessary
+ */
+static int ssl_ticket_update_keys( mbedtls_ssl_ticket_context *ctx )
+{
+#if !defined(MBEDTLS_HAVE_TIME)
+    ((void) ctx);
+#else
+    if( ctx->ticket_lifetime != 0 )
+    {
+        uint32_t current_time = (uint32_t) time( NULL );
+        uint32_t key_time = ctx->keys[ctx->active].generation_time;
+
+        if( current_time > key_time &&
+            current_time - key_time < ctx->ticket_lifetime )
+        {
+            return( 0 );
+        }
+
+        ctx->active = 1 - ctx->active;
+
+        return( ssl_ticket_gen_key( ctx, ctx->active ) );
+    }
+    else
+#endif /* MBEDTLS_HAVE_TIME */
+        return( 0 );
+}
+
+/*
  * Setup context for actual use
  */
 int mbedtls_ssl_ticket_setup( mbedtls_ssl_ticket_context *ctx,
@@ -263,7 +291,7 @@ int mbedtls_ssl_ticket_write( void *p_ticket,
 {
     int ret;
     mbedtls_ssl_ticket_context *ctx = p_ticket;
-    mbedtls_ssl_ticket_key *key = ctx->keys;
+    mbedtls_ssl_ticket_key *key;
     unsigned char *key_name = start;
     unsigned char *iv = start + 4;
     unsigned char *state_len_bytes = iv + 12;
@@ -285,6 +313,11 @@ int mbedtls_ssl_ticket_write( void *p_ticket,
     if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
         return( ret );
 #endif
+
+    if( ( ret = ssl_ticket_update_keys( ctx ) ) != 0 )
+        goto cleanup;
+
+    key = &ctx->keys[ctx->active];
 
     *ticket_lifetime = ctx->ticket_lifetime;
 
@@ -329,6 +362,22 @@ cleanup:
 }
 
 /*
+ * Select key based on name
+ */
+static mbedtls_ssl_ticket_key *ssl_ticket_select_key(
+        mbedtls_ssl_ticket_context *ctx,
+        const unsigned char name[4] )
+{
+    unsigned char i;
+
+    for( i = 0; i < sizeof( ctx->keys ) / sizeof( *ctx->keys ); i++ )
+        if( memcmp( name, ctx->keys[i].name, 4 ) == 0 )
+            return( &ctx->keys[i] );
+
+    return( NULL );
+}
+
+/*
  * Load session ticket (see mbedtls_ssl_ticket_write for structure)
  */
 int mbedtls_ssl_ticket_parse( void *p_ticket,
@@ -338,7 +387,7 @@ int mbedtls_ssl_ticket_parse( void *p_ticket,
 {
     int ret;
     mbedtls_ssl_ticket_context *ctx = p_ticket;
-    mbedtls_ssl_ticket_key *key = ctx->keys;
+    mbedtls_ssl_ticket_key *key;
     unsigned char *key_name = buf;
     unsigned char *iv = buf + 4;
     unsigned char *enc_len_p = iv + 12;
@@ -346,16 +395,20 @@ int mbedtls_ssl_ticket_parse( void *p_ticket,
     unsigned char *tag;
     size_t enc_len, clear_len;
 
-    if( ctx == NULL || ctx->f_rng == NULL ||
-        len < 4 + 12 + 2 + 16 )
-    {
+    if( ctx == NULL || ctx->f_rng == NULL )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-    }
+
+    /* See mbedtls_ssl_ticket_write() */
+    if( len < 4 + 12 + 2 + 16 )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_THREADING_C)
     if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
         return( ret );
 #endif
+
+    if( ( ret = ssl_ticket_update_keys( ctx ) ) != 0 )
+        goto cleanup;
 
     enc_len = ( enc_len_p[0] << 8 ) | enc_len_p[1];
     tag = ticket + enc_len;
@@ -366,10 +419,12 @@ int mbedtls_ssl_ticket_parse( void *p_ticket,
         goto cleanup;
     }
 
-    /* Check name (public data) */
-    if( memcmp( key_name, key->name, 4 ) != 0 )
+    /* Select key */
+    if( ( key = ssl_ticket_select_key( ctx, key_name ) ) == NULL )
     {
-        ret = MBEDTLS_ERR_SSL_INVALID_MAC;
+        /* We can't know for sure but this is a likely option unless we're
+         * under attack - this is only informative anyway */
+        ret = MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED;
         goto cleanup;
     }
 
@@ -378,7 +433,9 @@ int mbedtls_ssl_ticket_parse( void *p_ticket,
                     key_name, 4 + 12 + 2, ticket, enc_len,
                     ticket, &clear_len, tag, 16 ) ) != 0 )
     {
-        /* TODO: convert AUTH_FAILED to INVALID_MAC */
+        if( ret == MBEDTLS_ERR_CIPHER_AUTH_FAILED )
+            ret = MBEDTLS_ERR_SSL_INVALID_MAC;
+
         goto cleanup;
     }
     if( clear_len != enc_len )

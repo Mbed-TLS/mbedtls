@@ -52,6 +52,7 @@ mbedtls_ssl_ticket_key;
 typedef struct
 {
     mbedtls_ssl_ticket_key keys[2]; /*!< ticket protection keys             */
+    unsigned char active;           /*!< index of the currently active key  */
 
     uint32_t ticket_lifetime;       /*!< lifetime of tickets in seconds     */
 

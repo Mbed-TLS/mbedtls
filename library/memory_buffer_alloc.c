@@ -77,7 +77,7 @@ typedef struct
     memory_header   *first_free;
     int             verify;
 #if defined(MBEDTLS_MEMORY_DEBUG)
-    size_t          malloc_count;
+    size_t          alloc_count;
     size_t          free_count;
     size_t          total_used;
     size_t          maximum_used;
@@ -230,16 +230,23 @@ static int verify_chain()
     return( 0 );
 }
 
-static void *buffer_alloc_malloc( size_t len )
+static void *buffer_alloc_calloc( size_t n, size_t size )
 {
     memory_header *new, *cur = heap.first_free;
     unsigned char *p;
+    void *ret;
+    size_t original_len, len;
 #if defined(MBEDTLS_MEMORY_BACKTRACE)
     void *trace_buffer[MAX_BT];
     size_t trace_cnt;
 #endif
 
     if( heap.buf == NULL || heap.first == NULL )
+        return( NULL );
+
+    original_len = len = n * size;
+
+    if( n != 0 && len / n != size )
         return( NULL );
 
     if( len % MBEDTLS_MEMORY_ALIGN_MULTIPLE )
@@ -271,7 +278,7 @@ static void *buffer_alloc_malloc( size_t len )
     }
 
 #if defined(MBEDTLS_MEMORY_DEBUG)
-    heap.malloc_count++;
+    heap.calloc_count++;
 #endif
 
     // Found location, split block if > memory_header + 4 room left
@@ -308,7 +315,10 @@ static void *buffer_alloc_malloc( size_t len )
         if( ( heap.verify & MBEDTLS_MEMORY_VERIFY_ALLOC ) && verify_chain() != 0 )
             mbedtls_exit( 1 );
 
-        return( ( (unsigned char *) cur ) + sizeof(memory_header) );
+        ret = (unsigned char *) cur + sizeof( memory_header );
+        memset( ret, 0, original_len );
+
+        return( ret );
     }
 
     p = ( (unsigned char *) cur ) + sizeof(memory_header) + len;
@@ -363,7 +373,10 @@ static void *buffer_alloc_malloc( size_t len )
     if( ( heap.verify & MBEDTLS_MEMORY_VERIFY_ALLOC ) && verify_chain() != 0 )
         mbedtls_exit( 1 );
 
-    return( ( (unsigned char *) cur ) + sizeof(memory_header) );
+    ret = (unsigned char *) cur + sizeof( memory_header );
+    memset( ret, 0, original_len );
+
+    return( ret );
 }
 
 static void buffer_alloc_free( void *ptr )
@@ -503,12 +516,12 @@ void mbedtls_memory_buffer_alloc_status()
 {
     mbedtls_fprintf( stderr,
                       "Current use: %zu blocks / %zu bytes, max: %zu blocks / "
-                      "%zu bytes (total %zu bytes), malloc / free: %zu / %zu\n",
+                      "%zu bytes (total %zu bytes), alloc / free: %zu / %zu\n",
                       heap.header_count, heap.total_used,
                       heap.maximum_header_count, heap.maximum_used,
                       heap.maximum_header_count * sizeof( memory_header )
                       + heap.maximum_used,
-                      heap.malloc_count, heap.free_count );
+                      heap.alloc_count, heap.free_count );
 
     if( heap.first->next == NULL )
         mbedtls_fprintf( stderr, "All memory de-allocated in stack buffer\n" );
@@ -539,12 +552,12 @@ void mbedtls_memory_buffer_alloc_cur_get( size_t *cur_used, size_t *cur_blocks )
 #endif /* MBEDTLS_MEMORY_DEBUG */
 
 #if defined(MBEDTLS_THREADING_C)
-static void *buffer_alloc_malloc_mutexed( size_t len )
+static void *buffer_alloc_calloc_mutexed( size_t n, size_t size )
 {
     void *buf;
     if( mbedtls_mutex_lock( &heap.mutex ) != 0 )
         return( NULL );
-    buf = buffer_alloc_malloc( len );
+    buf = buffer_alloc_calloc( n, size );
     if( mbedtls_mutex_unlock( &heap.mutex ) )
         return( NULL );
     return( buf );
@@ -568,10 +581,10 @@ void mbedtls_memory_buffer_alloc_init( unsigned char *buf, size_t len )
 
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_init( &heap.mutex );
-    mbedtls_platform_set_malloc_free( buffer_alloc_malloc_mutexed,
+    mbedtls_platform_set_calloc_free( buffer_alloc_calloc_mutexed,
                               buffer_alloc_free_mutexed );
 #else
-    mbedtls_platform_set_malloc_free( buffer_alloc_malloc, buffer_alloc_free );
+    mbedtls_platform_set_calloc_free( buffer_alloc_calloc, buffer_alloc_free );
 #endif
 
     if( (size_t) buf % MBEDTLS_MEMORY_ALIGN_MULTIPLE )

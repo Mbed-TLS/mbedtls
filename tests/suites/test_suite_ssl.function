@@ -1,5 +1,6 @@
 /* BEGIN_HEADER */
 #include <mbedtls/ssl.h>
+#include <mbedtls/ssl_internal.h>
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

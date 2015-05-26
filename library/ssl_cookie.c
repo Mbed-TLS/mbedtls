@@ -33,6 +33,7 @@
 #if defined(MBEDTLS_SSL_COOKIE_C)
 
 #include "mbedtls/ssl_cookie.h"
+#include "mbedtls/ssl_internal.h"
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"

@@ -46,7 +46,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #define mbedtls_printf     printf
-#define mbedtls_malloc     malloc
+#define mbedtls_calloc    calloc
 #define mbedtls_free       free
 #endif
 
@@ -109,10 +109,8 @@ int mbedtls_mpi_grow( mbedtls_mpi *X, size_t nblimbs )
 
     if( X->n < nblimbs )
     {
-        if( ( p = mbedtls_malloc( nblimbs * ciL ) ) == NULL )
+        if( ( p = mbedtls_calloc( nblimbs, ciL ) ) == NULL )
             return( MBEDTLS_ERR_MPI_MALLOC_FAILED );
-
-        memset( p, 0, nblimbs * ciL );
 
         if( X->p != NULL )
         {
@@ -149,10 +147,8 @@ int mbedtls_mpi_shrink( mbedtls_mpi *X, size_t nblimbs )
     if( i < nblimbs )
         i = nblimbs;
 
-    if( ( p = mbedtls_malloc( i * ciL ) ) == NULL )
+    if( ( p = mbedtls_calloc( i, ciL ) ) == NULL )
         return( MBEDTLS_ERR_MPI_MALLOC_FAILED );
-
-    memset( p, 0, i * ciL );
 
     if( X->p != NULL )
     {

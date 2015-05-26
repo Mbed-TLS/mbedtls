@@ -36,7 +36,7 @@
 #include "mbedtls/platform.h"
 #else
 #include <stdlib.h>
-#define mbedtls_malloc     malloc
+#define mbedtls_calloc    calloc
 #define mbedtls_free       free
 #endif
 
@@ -313,13 +313,13 @@ mbedtls_asn1_named_data *mbedtls_asn1_store_named_data( mbedtls_asn1_named_data 
     {
         // Add new entry if not present yet based on OID
         //
-        if( ( cur = mbedtls_malloc( sizeof(mbedtls_asn1_named_data) ) ) == NULL )
+        if( ( cur = mbedtls_calloc( 1, sizeof(mbedtls_asn1_named_data) ) ) == NULL )
             return( NULL );
 
         memset( cur, 0, sizeof(mbedtls_asn1_named_data) );
 
         cur->oid.len = oid_len;
-        cur->oid.p = mbedtls_malloc( oid_len );
+        cur->oid.p = mbedtls_calloc( 1, oid_len );
         if( cur->oid.p == NULL )
         {
             mbedtls_free( cur );
@@ -329,7 +329,7 @@ mbedtls_asn1_named_data *mbedtls_asn1_store_named_data( mbedtls_asn1_named_data 
         memcpy( cur->oid.p, oid, oid_len );
 
         cur->val.len = val_len;
-        cur->val.p = mbedtls_malloc( val_len );
+        cur->val.p = mbedtls_calloc( 1, val_len );
         if( cur->val.p == NULL )
         {
             mbedtls_free( cur->oid.p );
@@ -348,7 +348,7 @@ mbedtls_asn1_named_data *mbedtls_asn1_store_named_data( mbedtls_asn1_named_data 
         cur->val.p = NULL;
 
         cur->val.len = val_len;
-        cur->val.p = mbedtls_malloc( val_len );
+        cur->val.p = mbedtls_calloc( 1, val_len );
         if( cur->val.p == NULL )
         {
             mbedtls_free( cur->oid.p );

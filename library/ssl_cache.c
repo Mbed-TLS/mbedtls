@@ -40,7 +40,7 @@
 #include "mbedtls/platform.h"
 #else
 #include <stdlib.h>
-#define mbedtls_malloc     malloc
+#define mbedtls_calloc    calloc
 #define mbedtls_free       free
 #endif
 
@@ -103,7 +103,7 @@ int mbedtls_ssl_cache_get( void *data, mbedtls_ssl_session *session )
          */
         if( entry->peer_cert.p != NULL )
         {
-            if( ( session->peer_cert = mbedtls_malloc(
+            if( ( session->peer_cert = mbedtls_calloc( 1,
                                  sizeof(mbedtls_x509_crt) ) ) == NULL )
             {
                 ret = 1;
@@ -222,7 +222,7 @@ int mbedtls_ssl_cache_set( void *data, const mbedtls_ssl_session *session )
             /*
              * max_entries not reached, create new entry
              */
-            cur = mbedtls_malloc( sizeof(mbedtls_ssl_cache_entry) );
+            cur = mbedtls_calloc( 1, sizeof(mbedtls_ssl_cache_entry) );
             if( cur == NULL )
             {
                 ret = 1;
@@ -259,7 +259,7 @@ int mbedtls_ssl_cache_set( void *data, const mbedtls_ssl_session *session )
      */
     if( session->peer_cert != NULL )
     {
-        cur->peer_cert.p = mbedtls_malloc( session->peer_cert->raw.len );
+        cur->peer_cert.p = mbedtls_calloc( 1, session->peer_cert->raw.len );
         if( cur->peer_cert.p == NULL )
         {
             ret = 1;

@@ -53,7 +53,7 @@
 #else
 #include <stdlib.h>
 #define mbedtls_free       free
-#define mbedtls_malloc     malloc
+#define mbedtls_calloc    calloc
 #define mbedtls_snprintf   snprintf
 #endif
 
@@ -359,7 +359,7 @@ static int x509_get_subject_alt_name( unsigned char **p,
             if( cur->next != NULL )
                 return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS );
 
-            cur->next = mbedtls_malloc( sizeof( mbedtls_asn1_sequence ) );
+            cur->next = mbedtls_calloc( 1, sizeof( mbedtls_asn1_sequence ) );
 
             if( cur->next == NULL )
                 return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
@@ -553,7 +553,7 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt, const unsigned char *
     if( crt == NULL || buf == NULL )
         return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
 
-    p = mbedtls_malloc( len = buflen );
+    p = mbedtls_calloc( 1, len = buflen );
     if( p == NULL )
         return( MBEDTLS_ERR_X509_MALLOC_FAILED );
 
@@ -808,7 +808,7 @@ int mbedtls_x509_crt_parse_der( mbedtls_x509_crt *chain, const unsigned char *bu
      */
     if( crt->version != 0 && crt->next == NULL )
     {
-        crt->next = mbedtls_malloc( sizeof( mbedtls_x509_crt ) );
+        crt->next = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt ) );
 
         if( crt->next == NULL )
             return( MBEDTLS_ERR_X509_MALLOC_FAILED );

@@ -45,6 +45,7 @@ int main( void )
 #else
 
 #include <string.h>
+#include <stdlib.h>
 
 #include "mbedtls/timing.h"
 

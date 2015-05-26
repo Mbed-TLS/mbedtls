@@ -42,7 +42,7 @@
 #include "mbedtls/platform.h"
 #else
 #include <stdlib.h>
-#define mbedtls_malloc     malloc
+#define mbedtls_calloc    calloc
 #define mbedtls_free       free
 #endif
 
@@ -67,7 +67,7 @@ int mbedtls_ssl_set_client_transport_id( mbedtls_ssl_context *ssl,
 
     mbedtls_free( ssl->cli_id );
 
-    if( ( ssl->cli_id = mbedtls_malloc( ilen ) ) == NULL )
+    if( ( ssl->cli_id = mbedtls_calloc( 1, ilen ) ) == NULL )
         return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
 
     memcpy( ssl->cli_id, info, ilen );
@@ -263,11 +263,9 @@ static int ssl_parse_supported_elliptic_curves( mbedtls_ssl_context *ssl,
     if( our_size > MBEDTLS_ECP_DP_MAX )
         our_size = MBEDTLS_ECP_DP_MAX;
 
-    if( ( curves = mbedtls_malloc( our_size * sizeof( *curves ) ) ) == NULL )
+    if( ( curves = mbedtls_calloc( our_size, sizeof( *curves ) ) ) == NULL )
         return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
 
-    /* explicit void pointer cast for buggy MS compiler */
-    memset( (void *) curves, 0, our_size * sizeof( *curves ) );
     ssl->handshake->curves = curves;
 
     p = buf + 2;

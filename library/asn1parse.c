@@ -40,7 +40,7 @@
 #include "mbedtls/platform.h"
 #else
 #include <stdlib.h>
-#define mbedtls_malloc     malloc
+#define mbedtls_calloc    calloc
 #define mbedtls_free       free
 #endif
 
@@ -270,7 +270,7 @@ int mbedtls_asn1_get_sequence_of( unsigned char **p,
         /* Allocate and assign next pointer */
         if( *p < end )
         {
-            cur->next = mbedtls_malloc( sizeof( mbedtls_asn1_sequence ) );
+            cur->next = mbedtls_calloc( 1, sizeof( mbedtls_asn1_sequence ) );
 
             if( cur->next == NULL )
                 return( MBEDTLS_ERR_ASN1_MALLOC_FAILED );

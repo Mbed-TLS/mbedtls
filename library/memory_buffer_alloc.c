@@ -649,9 +649,9 @@ int mbedtls_memory_buffer_alloc_self_test( int verbose )
 
     mbedtls_memory_buffer_alloc_init( buf, sizeof( buf ) );
 
-    p = mbedtls_malloc( 1 );
-    q = mbedtls_malloc( 128 );
-    r = mbedtls_malloc( 16 );
+    p = mbedtls_calloc( 1, 1 );
+    q = mbedtls_calloc( 1, 128 );
+    r = mbedtls_calloc( 1, 16 );
 
     TEST_ASSERT( check_pointer( p ) == 0 &&
                  check_pointer( q ) == 0 &&
@@ -678,9 +678,9 @@ int mbedtls_memory_buffer_alloc_self_test( int verbose )
 
     TEST_ASSERT( heap.buf + heap.len == end );
 
-    p = mbedtls_malloc( 1 );
-    q = mbedtls_malloc( 128 );
-    r = mbedtls_malloc( 16 );
+    p = mbedtls_calloc( 1, 1 );
+    q = mbedtls_calloc( 1, 128 );
+    r = mbedtls_calloc( 1, 16 );
 
     TEST_ASSERT( check_pointer( p ) == 0 &&
                  check_pointer( q ) == 0 &&
@@ -702,22 +702,22 @@ int mbedtls_memory_buffer_alloc_self_test( int verbose )
 
     mbedtls_memory_buffer_alloc_init( buf, sizeof( buf ) );
 
-    p = mbedtls_malloc( sizeof( buf ) - sizeof( memory_header ) );
+    p = mbedtls_calloc( 1, sizeof( buf ) - sizeof( memory_header ) );
 
     TEST_ASSERT( check_pointer( p ) == 0 );
-    TEST_ASSERT( mbedtls_malloc( 1 ) == NULL );
+    TEST_ASSERT( mbedtls_calloc( 1, 1 ) == NULL );
 
     mbedtls_free( p );
 
-    p = mbedtls_malloc( sizeof( buf ) - 2 * sizeof( memory_header ) - 16 );
-    q = mbedtls_malloc( 16 );
+    p = mbedtls_calloc( 1, sizeof( buf ) - 2 * sizeof( memory_header ) - 16 );
+    q = mbedtls_calloc( 1, 16 );
 
     TEST_ASSERT( check_pointer( p ) == 0 && check_pointer( q ) == 0 );
-    TEST_ASSERT( mbedtls_malloc( 1 ) == NULL );
+    TEST_ASSERT( mbedtls_calloc( 1, 1 ) == NULL );
 
     mbedtls_free( q );
 
-    TEST_ASSERT( mbedtls_malloc( 17 ) == NULL );
+    TEST_ASSERT( mbedtls_calloc( 1, 17 ) == NULL );
 
     mbedtls_free( p );
 

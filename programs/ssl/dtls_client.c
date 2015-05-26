@@ -59,6 +59,7 @@ int main( void )
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/error.h"
 #include "mbedtls/certs.h"
+#include "mbedtls/timing.h"
 
 #define SERVER_PORT 4433
 #define SERVER_NAME "localhost"

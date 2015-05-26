@@ -26,6 +26,22 @@
 
 #include "ssl.h"
 
+#if defined(MBEDTLS_MD5_C)
+#include "md5.h"
+#endif
+
+#if defined(MBEDTLS_SHA1_C)
+#include "sha1.h"
+#endif
+
+#if defined(MBEDTLS_SHA256_C)
+#include "sha256.h"
+#endif
+
+#if defined(MBEDTLS_SHA512_C)
+#include "sha512.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

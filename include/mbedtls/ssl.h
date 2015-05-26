@@ -35,22 +35,6 @@
 
 #include "ssl_ciphersuites.h"
 
-#if defined(MBEDTLS_MD5_C)
-#include "md5.h"
-#endif
-
-#if defined(MBEDTLS_SHA1_C)
-#include "sha1.h"
-#endif
-
-#if defined(MBEDTLS_SHA256_C)
-#include "sha256.h"
-#endif
-
-#if defined(MBEDTLS_SHA512_C)
-#include "sha512.h"
-#endif
-
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #include "x509_crt.h"
 #include "x509_crl.h"
@@ -66,10 +50,6 @@
 
 #if defined(MBEDTLS_ZLIB_SUPPORT)
 #include "zlib.h"
-#endif
-
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-#include "timing.h"
 #endif
 
 #if defined(MBEDTLS_HAVE_TIME)

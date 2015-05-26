@@ -56,6 +56,7 @@ int main( void )
 #include "mbedtls/x509.h"
 #include "mbedtls/error.h"
 #include "mbedtls/debug.h"
+#include "mbedtls/timing.h"
 
 #include <stdio.h>
 #include <stdlib.h>

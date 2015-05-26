@@ -31,15 +31,16 @@
 #include "mbedtls/platform.h"
 
 #if defined(MBEDTLS_PLATFORM_MEMORY)
-#if !defined(MBEDTLS_PLATFORM_STD_MALLOC)
-static void *platform_malloc_uninit( size_t len )
+#if !defined(MBEDTLS_PLATFORM_STD_CALLOC)
+static void *platform_calloc_uninit( size_t n, size_t size )
 {
-    ((void) len);
+    ((void) n);
+    ((void) size);
     return( NULL );
 }
 
-#define MBEDTLS_PLATFORM_STD_MALLOC   platform_malloc_uninit
-#endif /* !MBEDTLS_PLATFORM_STD_MALLOC */
+#define MBEDTLS_PLATFORM_STD_CALLOC   platform_calloc_uninit
+#endif /* !MBEDTLS_PLATFORM_STD_CALLOC */
 
 #if !defined(MBEDTLS_PLATFORM_STD_FREE)
 static void platform_free_uninit( void *ptr )
@@ -50,13 +51,13 @@ static void platform_free_uninit( void *ptr )
 #define MBEDTLS_PLATFORM_STD_FREE     platform_free_uninit
 #endif /* !MBEDTLS_PLATFORM_STD_FREE */
 
-void * (*mbedtls_malloc)( size_t ) = MBEDTLS_PLATFORM_STD_MALLOC;
+void * (*mbedtls_calloc)( size_t, size_t ) = MBEDTLS_PLATFORM_STD_CALLOC;
 void (*mbedtls_free)( void * )     = MBEDTLS_PLATFORM_STD_FREE;
 
-int mbedtls_platform_set_malloc_free( void * (*malloc_func)( size_t ),
+int mbedtls_platform_set_calloc_free( void * (*calloc_func)( size_t, size_t ),
                               void (*free_func)( void * ) )
 {
-    mbedtls_malloc = malloc_func;
+    mbedtls_calloc = calloc_func;
     mbedtls_free = free_func;
     return( 0 );
 }

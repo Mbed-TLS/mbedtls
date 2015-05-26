@@ -78,17 +78,17 @@
  *
  * Enable the memory allocation layer.
  *
- * By default mbed TLS uses the system-provided malloc() and free().
+ * By default mbed TLS uses the system-provided calloc() and free().
  * This allows different allocators (self-implemented or provided) to be
  * provided to the platform abstraction layer.
  *
  * Enabling MBEDTLS_PLATFORM_MEMORY without the
- * MBEDTLS_PLATFORM_{FREE,MALLOC}_MACROs will provide
- * "mbedtls_platform_set_malloc_free()" allowing you to set an alternative malloc() and
+ * MBEDTLS_PLATFORM_{FREE,CALLOC}_MACROs will provide
+ * "mbedtls_platform_set_calloc_free()" allowing you to set an alternative calloc() and
  * free() function pointer at runtime.
  *
  * Enabling MBEDTLS_PLATFORM_MEMORY and specifying
- * MBEDTLS_PLATFORM_{MALLOC,FREE}_MACROs will allow you to specify the
+ * MBEDTLS_PLATFORM_{CALLOC,FREE}_MACROs will allow you to specify the
  * alternate function at compile time.
  *
  * Requires: MBEDTLS_PLATFORM_C
@@ -100,8 +100,8 @@
 /**
  * \def MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
  *
- * Do not assign standard functions in the platform layer (e.g. malloc() to
- * MBEDTLS_PLATFORM_STD_MALLOC and printf() to MBEDTLS_PLATFORM_STD_PRINTF)
+ * Do not assign standard functions in the platform layer (e.g. calloc() to
+ * MBEDTLS_PLATFORM_STD_CALLOC and printf() to MBEDTLS_PLATFORM_STD_PRINTF)
  *
  * This makes sure there are no linking errors on platforms that do not support
  * these functions. You will HAVE to provide alternatives, either at runtime
@@ -1788,7 +1788,7 @@
  * \def MBEDTLS_MEMORY_BUFFER_ALLOC_C
  *
  * Enable the buffer allocator implementation that makes use of a (stack)
- * based buffer to 'allocate' dynamic memory. (replaces malloc() and free()
+ * based buffer to 'allocate' dynamic memory. (replaces calloc() and free()
  * calls)
  *
  * Module:  library/memory_buffer_alloc.c
@@ -1975,7 +1975,7 @@
  * \def MBEDTLS_PLATFORM_C
  *
  * Enable the platform abstraction layer that allows you to re-assign
- * functions like malloc(), free(), snprintf(), printf(), fprintf(), exit()
+ * functions like calloc(), free(), snprintf(), printf(), fprintf(), exit()
  *
  * Enabling MBEDTLS_PLATFORM_C enables to use of MBEDTLS_PLATFORM_XXX_ALT
  * or MBEDTLS_PLATFORM_XXX_MACRO directives, allowing the functions mentioned
@@ -1986,7 +1986,7 @@
  *
  * This module enables abstraction of common (libc) functions.
  */
-//#define MBEDTLS_PLATFORM_C
+#define MBEDTLS_PLATFORM_C
 
 /**
  * \def MBEDTLS_RIPEMD160_C
@@ -2345,7 +2345,7 @@
 
 /* Platform options */
 //#define MBEDTLS_PLATFORM_STD_MEM_HDR   <stdlib.h> /**< Header to include if MBEDTLS_PLATFORM_NO_STD_FUNCTIONS is defined. Don't define if no header is needed. */
-//#define MBEDTLS_PLATFORM_STD_MALLOC        malloc /**< Default allocator to use, can be undefined */
+//#define MBEDTLS_PLATFORM_STD_CALLOC        calloc /**< Default allocator to use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_FREE            free /**< Default free to use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_EXIT            exit /**< Default exit to use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_FPRINTF      fprintf /**< Default fprintf to use, can be undefined */
@@ -2354,7 +2354,7 @@
 
 /* To Use Function Macros MBEDTLS_PLATFORM_C must be enabled */
 /* MBEDTLS_PLATFORM_XXX_MACRO and MBEDTLS_PLATFORM_XXX_ALT cannot both be defined */
-//#define MBEDTLS_PLATFORM_MALLOC_MACRO        malloc /**< Default allocator macro to use, can be undefined */
+//#define MBEDTLS_PLATFORM_CALLOC_MACRO        calloc /**< Default allocator macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_FREE_MACRO            free /**< Default free macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_EXIT_MACRO            exit /**< Default exit macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_FPRINTF_MACRO      fprintf /**< Default fprintf macro to use, can be undefined */

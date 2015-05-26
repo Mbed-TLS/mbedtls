@@ -54,8 +54,8 @@ extern "C" {
 #if !defined(MBEDTLS_PLATFORM_STD_FPRINTF)
 #define MBEDTLS_PLATFORM_STD_FPRINTF fprintf /**< Default fprintf to use */
 #endif
-#if !defined(MBEDTLS_PLATFORM_STD_MALLOC)
-#define MBEDTLS_PLATFORM_STD_MALLOC   malloc /**< Default allocator to use */
+#if !defined(MBEDTLS_PLATFORM_STD_CALLOC)
+#define MBEDTLS_PLATFORM_STD_CALLOC   calloc /**< Default allocator to use */
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_FREE)
 #define MBEDTLS_PLATFORM_STD_FREE       free /**< Default free to use */
@@ -72,32 +72,32 @@ extern "C" {
 /* \} name SECTION: Module settings */
 
 /*
- * The function pointers for malloc and free
+ * The function pointers for calloc and free
  */
 #if defined(MBEDTLS_PLATFORM_MEMORY)
 #if defined(MBEDTLS_PLATFORM_FREE_MACRO) && \
-    defined(MBEDTLS_PLATFORM_MALLOC_MACRO)
+    defined(MBEDTLS_PLATFORM_CALLOC_MACRO)
 #define mbedtls_free       MBEDTLS_PLATFORM_FREE_MACRO
-#define mbedtls_malloc     MBEDTLS_PLATFORM_MALLOC_MACRO
+#define mbedtls_calloc     MBEDTLS_PLATFORM_CALLOC_MACRO
 #else
-extern void * (*mbedtls_malloc)( size_t len );
+extern void * (*mbedtls_calloc)( size_t n, size_t size );
 extern void (*mbedtls_free)( void *ptr );
 
 /**
  * \brief   Set your own memory implementation function pointers
  *
- * \param malloc_func   the malloc function implementation
+ * \param calloc_func   the calloc function implementation
  * \param free_func     the free function implementation
  *
  * \return              0 if successful
  */
-int mbedtls_platform_set_malloc_free( void * (*malloc_func)( size_t ),
+int mbedtls_platform_set_calloc_free( void * (*calloc_func)( size_t, size_t ),
                               void (*free_func)( void * ) );
-#endif /* MBEDTLS_PLATFORM_FREE_MACRO && MBEDTLS_PLATFORM_MALLOC_MACRO */
+#endif /* MBEDTLS_PLATFORM_FREE_MACRO && MBEDTLS_PLATFORM_CALLOC_MACRO */
 #else /* !MBEDTLS_PLATFORM_MEMORY */
 #define mbedtls_free       free
-#define mbedtls_malloc     malloc
-#endif /* MBEDTLS_PLATFORM_MEMORY && !MBEDTLS_PLATFORM_{FREE,MALLOC}_MACRO */
+#define mbedtls_calloc     calloc
+#endif /* MBEDTLS_PLATFORM_MEMORY && !MBEDTLS_PLATFORM_{FREE,CALLOC}_MACRO */
 
 /*
  * The function pointers for fprintf

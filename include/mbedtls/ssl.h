@@ -70,14 +70,6 @@
 #define MBEDTLS_KEY_EXCHANGE__SOME__ECDHE_ENABLED
 #endif
 
-#if defined(_MSC_VER) && !defined(inline)
-#define inline _inline
-#else
-#if defined(__ARMCC_VERSION) && !defined(inline)
-#define inline __inline
-#endif /* __ARMCC_VERSION */
-#endif /*_MSC_VER */
-
 /*
  * SSL Error codes
  */
@@ -141,44 +133,6 @@
 #define MBEDTLS_SSL_TRANSPORT_STREAM            0   /*!< TLS      */
 #define MBEDTLS_SSL_TRANSPORT_DATAGRAM          1   /*!< DTLS     */
 
-/* Determine minimum supported version */
-#define MBEDTLS_SSL_MIN_MAJOR_VERSION           MBEDTLS_SSL_MAJOR_VERSION_3
-
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-#define MBEDTLS_SSL_MIN_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_0
-#else
-#if defined(MBEDTLS_SSL_PROTO_TLS1)
-#define MBEDTLS_SSL_MIN_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_1
-#else
-#if defined(MBEDTLS_SSL_PROTO_TLS1_1)
-#define MBEDTLS_SSL_MIN_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_2
-#else
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-#define MBEDTLS_SSL_MIN_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_3
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-#endif /* MBEDTLS_SSL_PROTO_TLS1_1 */
-#endif /* MBEDTLS_SSL_PROTO_TLS1   */
-#endif /* MBEDTLS_SSL_PROTO_SSL3   */
-
-/* Determine maximum supported version */
-#define MBEDTLS_SSL_MAX_MAJOR_VERSION           MBEDTLS_SSL_MAJOR_VERSION_3
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-#define MBEDTLS_SSL_MAX_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_3
-#else
-#if defined(MBEDTLS_SSL_PROTO_TLS1_1)
-#define MBEDTLS_SSL_MAX_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_2
-#else
-#if defined(MBEDTLS_SSL_PROTO_TLS1)
-#define MBEDTLS_SSL_MAX_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_1
-#else
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-#define MBEDTLS_SSL_MAX_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_0
-#endif /* MBEDTLS_SSL_PROTO_SSL3   */
-#endif /* MBEDTLS_SSL_PROTO_TLS1   */
-#endif /* MBEDTLS_SSL_PROTO_TLS1_1 */
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-
 /* RFC 6066 section 4, see also mfl_code_to_length in ssl_tls.c
  * NONE must be zero so that memset()ing structure to zero works */
 #define MBEDTLS_SSL_MAX_FRAG_LEN_NONE           0   /*!< don't use this extension   */
@@ -206,11 +160,6 @@
 #define MBEDTLS_SSL_VERIFY_NONE                 0
 #define MBEDTLS_SSL_VERIFY_OPTIONAL             1
 #define MBEDTLS_SSL_VERIFY_REQUIRED             2
-
-#define MBEDTLS_SSL_INITIAL_HANDSHAKE           0
-#define MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS   1   /* In progress */
-#define MBEDTLS_SSL_RENEGOTIATION_DONE          2   /* Done or aborted */
-#define MBEDTLS_SSL_RENEGOTIATION_PENDING       3   /* Requested (server only) */
 
 #define MBEDTLS_SSL_LEGACY_RENEGOTIATION        0
 #define MBEDTLS_SSL_SECURE_RENEGOTIATION        1
@@ -240,19 +189,6 @@
 
 #define MBEDTLS_SSL_ARC4_ENABLED                0
 #define MBEDTLS_SSL_ARC4_DISABLED               1
-
-/*
- * DTLS retransmission states, see RFC 6347 4.2.4
- *
- * The SENDING state is merged in PREPARING for initial sends,
- * but is distinct for resends.
- *
- * Note: initial state is wrong for server, but is not used anyway.
- */
-#define MBEDTLS_SSL_RETRANS_PREPARING       0
-#define MBEDTLS_SSL_RETRANS_SENDING         1
-#define MBEDTLS_SSL_RETRANS_WAITING         2
-#define MBEDTLS_SSL_RETRANS_FINISHED        3
 
 /*
  * Default range for DTLS retransmission timer value, in milliseconds.
@@ -287,45 +223,6 @@
 #endif
 
 /* \} name SECTION: Module settings */
-
-/*
- * Allow extra bytes for record, authentication and encryption overhead:
- * counter (8) + header (5) + IV(16) + MAC (16-48) + padding (0-256)
- * and allow for a maximum of 1024 of compression expansion if
- * enabled.
- */
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-#define MBEDTLS_SSL_COMPRESSION_ADD          1024
-#else
-#define MBEDTLS_SSL_COMPRESSION_ADD             0
-#endif
-
-#if defined(MBEDTLS_ARC4_C) || defined(MBEDTLS_CIPHER_MODE_CBC)
-/* Ciphersuites using HMAC */
-#if defined(MBEDTLS_SHA512_C)
-#define MBEDTLS_SSL_MAC_ADD                 48  /* SHA-384 used for HMAC */
-#elif defined(MBEDTLS_SHA256_C)
-#define MBEDTLS_SSL_MAC_ADD                 32  /* SHA-256 used for HMAC */
-#else
-#define MBEDTLS_SSL_MAC_ADD                 20  /* SHA-1   used for HMAC */
-#endif
-#else
-/* AEAD ciphersuites: GCM and CCM use a 128 bits tag */
-#define MBEDTLS_SSL_MAC_ADD                 16
-#endif
-
-#if defined(MBEDTLS_CIPHER_MODE_CBC)
-#define MBEDTLS_SSL_PADDING_ADD            256
-#else
-#define MBEDTLS_SSL_PADDING_ADD              0
-#endif
-
-#define MBEDTLS_SSL_BUFFER_LEN  ( MBEDTLS_SSL_MAX_CONTENT_LEN               \
-                        + MBEDTLS_SSL_COMPRESSION_ADD               \
-                        + 29 /* counter + header + IV */    \
-                        + MBEDTLS_SSL_MAC_ADD                       \
-                        + MBEDTLS_SSL_PADDING_ADD                   \
-                        )
 
 /*
  * Length of the verify data for secure renegotiation
@@ -444,13 +341,6 @@
 #define MBEDTLS_TLS_EXT_RENEGOTIATION_INFO      0xFF01
 
 /*
- * TLS extension flags (for extensions with outgoing ServerHello content
- * that need it (e.g. for RENEGOTIATION_INFO the server already knows because
- * of state of the renegotiation flag, so no indicator is required)
- */
-#define MBEDTLS_TLS_EXT_SUPPORTED_POINT_FORMATS_PRESENT (1 << 0)
-
-/*
  * Size defines
  */
 #if !defined(MBEDTLS_PSK_MAX_LEN)
@@ -458,7 +348,7 @@
 #endif
 
 /* Dummy type used only for its size */
-union mbedtls_ssl_premaster_secret
+union mbedtls_ssl_premaster_secret_
 {
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
     unsigned char _pms_rsa[48];                         /* RFC 5246 8.1.1 */
@@ -488,7 +378,7 @@ union mbedtls_ssl_premaster_secret
 #endif
 };
 
-#define MBEDTLS_PREMASTER_SIZE     sizeof( union mbedtls_ssl_premaster_secret )
+#define MBEDTLS_PREMASTER_SIZE     sizeof( union mbedtls_ssl_premaster_secret_ )
 
 #ifdef __cplusplus
 extern "C" {

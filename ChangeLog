@@ -97,13 +97,15 @@ New deprecations
      argument (allowing memory savings if HMAC is not used)
 
 Semi-API changes (technically public, morally private)
+   * Renamed a few headers to include _internal in the name. Those headers are
+     not supposed to be included by users.
    * Changed md_info_t into an opaque structure (use md_get_xxx() accessors).
    * Changed pk_info_t into an opaque structure.
-   * Change cipher_base_t into an opaque structure.
-   * Remove sig_oid2 and rename sig_oid1 to sig_oid in x509_crt and x509_crl.
+   * Changed cipher_base_t into an opaque structure.
+   * Removed sig_oid2 and rename sig_oid1 to sig_oid in x509_crt and x509_crl.
    * x509_crt.key_usage changed from unsigned char to unsigned int.
-   * Remove r and s from ecdsa_context
-   * Remove mode from des_context and des3_context
+   * Removed r and s from ecdsa_context
+   * Removed mode from des_context and des3_context
 
 Default behavior changes
    * The default minimum TLS version is now TLS 1.0.

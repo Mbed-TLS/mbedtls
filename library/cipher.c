@@ -33,7 +33,7 @@
 #if defined(MBEDTLS_CIPHER_C)
 
 #include "mbedtls/cipher.h"
-#include "mbedtls/cipher_wrap.h"
+#include "mbedtls/cipher_internal.h"
 
 #include <stdlib.h>
 #include <string.h>

@@ -32,7 +32,7 @@
 
 #if defined(MBEDTLS_CIPHER_C)
 
-#include "mbedtls/cipher_wrap.h"
+#include "mbedtls/cipher_internal.h"
 
 #if defined(MBEDTLS_AES_C)
 #include "mbedtls/aes.h"

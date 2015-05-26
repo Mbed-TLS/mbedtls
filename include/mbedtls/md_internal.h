@@ -1,5 +1,5 @@
 /**
- * \file md_wrap.h
+ * \file md_internal.h
  *
  * \brief Message digest wrappers.
  *

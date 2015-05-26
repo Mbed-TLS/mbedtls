@@ -27,7 +27,7 @@
 #endif
 
 #if defined(MBEDTLS_PK_C)
-#include "mbedtls/pk_wrap.h"
+#include "mbedtls/pk_internal.h"
 
 /* Even if RSA not activated, for the sake of RSA-alt */
 #include "mbedtls/rsa.h"

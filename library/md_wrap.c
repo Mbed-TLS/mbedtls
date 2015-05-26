@@ -32,7 +32,7 @@
 
 #if defined(MBEDTLS_MD_C)
 
-#include "mbedtls/md_wrap.h"
+#include "mbedtls/md_internal.h"
 
 #if defined(MBEDTLS_MD2_C)
 #include "mbedtls/md2.h"

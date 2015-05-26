@@ -28,7 +28,7 @@
 
 #if defined(MBEDTLS_PK_C)
 #include "mbedtls/pk.h"
-#include "mbedtls/pk_wrap.h"
+#include "mbedtls/pk_internal.h"
 
 #if defined(MBEDTLS_RSA_C)
 #include "mbedtls/rsa.h"

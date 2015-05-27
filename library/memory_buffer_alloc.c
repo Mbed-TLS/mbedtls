@@ -278,7 +278,7 @@ static void *buffer_alloc_calloc( size_t n, size_t size )
     }
 
 #if defined(MBEDTLS_MEMORY_DEBUG)
-    heap.calloc_count++;
+    heap.alloc_count++;
 #endif
 
     // Found location, split block if > memory_header + 4 room left

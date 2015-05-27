@@ -174,6 +174,8 @@ int mbedtls_gcm_setkey( mbedtls_gcm_context *ctx,
     if( cipher_info->block_size != 16 )
         return( MBEDTLS_ERR_GCM_BAD_INPUT );
 
+    mbedtls_cipher_free( &ctx->cipher_ctx );
+
     if( ( ret = mbedtls_cipher_setup( &ctx->cipher_ctx, cipher_info ) ) != 0 )
         return( ret );
 

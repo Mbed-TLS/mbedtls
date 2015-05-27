@@ -963,13 +963,6 @@ int mbedtls_x509_crt_parse_file( mbedtls_x509_crt *chain, const char *path )
     return( ret );
 }
 
-#if defined(MBEDTLS_THREADING_PTHREAD)
-static mbedtls_threading_mutex_t readdir_mutex = {
-    PTHREAD_MUTEX_INITIALIZER,
-    1
-};
-#endif
-
 int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path )
 {
     int ret = 0;
@@ -1040,7 +1033,7 @@ int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path )
         return( MBEDTLS_ERR_X509_FILE_IO_ERROR );
 
 #if defined(MBEDTLS_THREADING_PTHREAD)
-    if( ( ret = mbedtls_mutex_lock( &readdir_mutex ) ) != 0 )
+    if( ( ret = mbedtls_mutex_lock( &mbedtls_threading_readdir_mutex ) ) != 0 )
         return( ret );
 #endif
 
@@ -1070,7 +1063,7 @@ int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path )
 
 cleanup:
 #if defined(MBEDTLS_THREADING_PTHREAD)
-    if( mbedtls_mutex_unlock( &readdir_mutex ) != 0 )
+    if( mbedtls_mutex_unlock( &mbedtls_threading_readdir_mutex ) != 0 )
         ret = MBEDTLS_ERR_THREADING_MUTEX_ERROR;
 #endif
 

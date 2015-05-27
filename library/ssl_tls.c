@@ -2931,8 +2931,6 @@ static int ssl_reassemble_dtls_handshake( mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
         }
 
-        memset( ssl->handshake->hs_msg, 0, alloc_len );
-
         /* Prepare final header: copy msg_type, length and message_seq,
          * then add standardised fragment_offset and fragment_length */
         memcpy( ssl->handshake->hs_msg, ssl->in_msg, 6 );
@@ -5010,9 +5008,6 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
         ssl->in_buf = NULL;
         return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
     }
-
-    memset( ssl-> in_buf, 0, len );
-    memset( ssl->out_buf, 0, len );
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )

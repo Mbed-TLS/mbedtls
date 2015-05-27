@@ -457,8 +457,6 @@ int mbedtls_x509_get_name( unsigned char **p, const unsigned char *end,
             if( cur->next == NULL )
                 return( MBEDTLS_ERR_X509_MALLOC_FAILED );
 
-            memset( cur->next, 0, sizeof( mbedtls_x509_name ) );
-
             cur = cur->next;
         }
 
@@ -472,8 +470,6 @@ int mbedtls_x509_get_name( unsigned char **p, const unsigned char *end,
 
         if( cur->next == NULL )
             return( MBEDTLS_ERR_X509_MALLOC_FAILED );
-
-        memset( cur->next, 0, sizeof( mbedtls_x509_name ) );
 
         cur = cur->next;
     }

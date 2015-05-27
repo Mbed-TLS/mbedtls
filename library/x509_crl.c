@@ -243,7 +243,6 @@ static int x509_get_entries( unsigned char **p,
             if( cur_entry->next == NULL )
                 return( MBEDTLS_ERR_X509_MALLOC_FAILED );
 
-            memset( cur_entry->next, 0, sizeof( mbedtls_x509_crl_entry ) );
             cur_entry = cur_entry->next;
         }
     }

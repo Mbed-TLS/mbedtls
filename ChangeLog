@@ -66,6 +66,7 @@ API Changes
    * Signature of mpi_mul_mpi() changed to make the last argument unsigned
    * calloc() is now used instead of malloc() everywhere. API of platform
      layer and the memory_buffer_alloc module changed accordingly.
+     (Thanks to Mansour Moufid for helping with the replacement.)
    * Change SSL_DISABLE_RENEGOTIATION config.h flag to SSL_RENEGOTIATION
      (support for renegotiation now needs explicit enabling in config.h).
    * net_connect() and net_bind() have a new 'proto' argument to choose

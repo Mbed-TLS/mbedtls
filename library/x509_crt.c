@@ -365,7 +365,6 @@ static int x509_get_subject_alt_name( unsigned char **p,
                 return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
                         MBEDTLS_ERR_ASN1_MALLOC_FAILED );
 
-            memset( cur->next, 0, sizeof( mbedtls_asn1_sequence ) );
             cur = cur->next;
         }
 

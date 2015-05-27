@@ -229,8 +229,6 @@ int mbedtls_ssl_cache_set( void *data, const mbedtls_ssl_session *session )
                 goto exit;
             }
 
-            memset( cur, 0, sizeof(mbedtls_ssl_cache_entry) );
-
             if( prv == NULL )
                 cache->chain = cur;
             else

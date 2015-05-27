@@ -316,8 +316,6 @@ mbedtls_asn1_named_data *mbedtls_asn1_store_named_data( mbedtls_asn1_named_data 
         if( ( cur = mbedtls_calloc( 1, sizeof(mbedtls_asn1_named_data) ) ) == NULL )
             return( NULL );
 
-        memset( cur, 0, sizeof(mbedtls_asn1_named_data) );
-
         cur->oid.len = oid_len;
         cur->oid.p = mbedtls_calloc( 1, oid_len );
         if( cur->oid.p == NULL )

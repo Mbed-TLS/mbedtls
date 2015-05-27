@@ -179,6 +179,8 @@ Features
      errors on use of deprecated functions.
 
 Bugfix
+   * Fix memory leak when gcm_setkey() and ccm_setkey() are used more than
+     once on the same context.
    * Fix bug in ssl_mail_client when password is longer that username (found
      by Bruno Pape).
    * Fix undefined behaviour (memcmp( NULL, NULL, 0 );) in X.509 modules

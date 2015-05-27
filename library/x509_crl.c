@@ -53,7 +53,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #define mbedtls_free       free
-#define mbedtls_malloc     malloc
+#define mbedtls_calloc    calloc
 #define mbedtls_snprintf   snprintf
 #endif
 
@@ -238,12 +238,11 @@ static int x509_get_entries( unsigned char **p,
 
         if( *p < end )
         {
-            cur_entry->next = mbedtls_malloc( sizeof( mbedtls_x509_crl_entry ) );
+            cur_entry->next = mbedtls_calloc( 1, sizeof( mbedtls_x509_crl_entry ) );
 
             if( cur_entry->next == NULL )
                 return( MBEDTLS_ERR_X509_MALLOC_FAILED );
 
-            memset( cur_entry->next, 0, sizeof( mbedtls_x509_crl_entry ) );
             cur_entry = cur_entry->next;
         }
     }
@@ -281,7 +280,7 @@ int mbedtls_x509_crl_parse_der( mbedtls_x509_crl *chain,
 
     if( crl->version != 0 && crl->next == NULL )
     {
-        crl->next = mbedtls_malloc( sizeof( mbedtls_x509_crl ) );
+        crl->next = mbedtls_calloc( 1, sizeof( mbedtls_x509_crl ) );
 
         if( crl->next == NULL )
         {
@@ -296,7 +295,7 @@ int mbedtls_x509_crl_parse_der( mbedtls_x509_crl *chain,
     /*
      * Copy raw DER-encoded CRL
      */
-    if( ( p = mbedtls_malloc( buflen ) ) == NULL )
+    if( ( p = mbedtls_calloc( 1, buflen ) ) == NULL )
         return( MBEDTLS_ERR_X509_MALLOC_FAILED );
 
     memcpy( p, buf, buflen );

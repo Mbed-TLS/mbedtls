@@ -66,7 +66,7 @@
 #include "mbedtls/platform.h"
 #else
 #include <stdlib.h>
-#define mbedtls_malloc     malloc
+#define mbedtls_calloc    calloc
 #define mbedtls_free       free
 #endif
 
@@ -106,7 +106,7 @@ static int md2_file_wrap( const char *path, unsigned char *output )
 
 static void * md2_ctx_alloc( void )
 {
-    return mbedtls_malloc( sizeof( mbedtls_md2_context ) );
+    return mbedtls_calloc( 1, sizeof( mbedtls_md2_context ) );
 }
 
 static void md2_ctx_free( void *ctx )
@@ -170,7 +170,7 @@ static int md4_file_wrap( const char *path, unsigned char *output )
 
 static void *md4_ctx_alloc( void )
 {
-    return mbedtls_malloc( sizeof( mbedtls_md4_context ) );
+    return mbedtls_calloc( 1, sizeof( mbedtls_md4_context ) );
 }
 
 static void md4_ctx_free( void *ctx )
@@ -232,7 +232,7 @@ static int md5_file_wrap( const char *path, unsigned char *output )
 
 static void * md5_ctx_alloc( void )
 {
-    return mbedtls_malloc( sizeof( mbedtls_md5_context ) );
+    return mbedtls_calloc( 1, sizeof( mbedtls_md5_context ) );
 }
 
 static void md5_ctx_free( void *ctx )
@@ -295,7 +295,7 @@ static int ripemd160_file_wrap( const char *path, unsigned char *output )
 static void * ripemd160_ctx_alloc( void )
 {
     mbedtls_ripemd160_context *ctx;
-    ctx = mbedtls_malloc( sizeof( mbedtls_ripemd160_context ) );
+    ctx = mbedtls_calloc( 1, sizeof( mbedtls_ripemd160_context ) );
 
     if( ctx == NULL )
         return( NULL );
@@ -365,7 +365,7 @@ static int sha1_file_wrap( const char *path, unsigned char *output )
 static void * sha1_ctx_alloc( void )
 {
     mbedtls_sha1_context *ctx;
-    ctx = mbedtls_malloc( sizeof( mbedtls_sha1_context ) );
+    ctx = mbedtls_calloc( 1, sizeof( mbedtls_sha1_context ) );
 
     if( ctx == NULL )
         return( NULL );
@@ -443,7 +443,7 @@ static int sha224_file_wrap( const char *path, unsigned char *output )
 
 static void * sha224_ctx_alloc( void )
 {
-    return mbedtls_malloc( sizeof( mbedtls_sha256_context ) );
+    return mbedtls_calloc( 1, sizeof( mbedtls_sha256_context ) );
 }
 
 static void sha224_ctx_free( void *ctx )
@@ -508,7 +508,7 @@ static int sha256_file_wrap( const char *path, unsigned char *output )
 static void * sha256_ctx_alloc( void )
 {
     mbedtls_sha256_context *ctx;
-    ctx = mbedtls_malloc( sizeof( mbedtls_sha256_context ) );
+    ctx = mbedtls_calloc( 1, sizeof( mbedtls_sha256_context ) );
 
     if( ctx == NULL )
         return( NULL );
@@ -583,7 +583,7 @@ static int sha384_file_wrap( const char *path, unsigned char *output )
 
 static void * sha384_ctx_alloc( void )
 {
-    return mbedtls_malloc( sizeof( mbedtls_sha512_context ) );
+    return mbedtls_calloc( 1, sizeof( mbedtls_sha512_context ) );
 }
 
 static void sha384_ctx_free( void *ctx )
@@ -648,7 +648,7 @@ static int sha512_file_wrap( const char *path, unsigned char *output )
 static void * sha512_ctx_alloc( void )
 {
     mbedtls_sha512_context *ctx;
-    ctx = mbedtls_malloc( sizeof( mbedtls_sha512_context ) );
+    ctx = mbedtls_calloc( 1, sizeof( mbedtls_sha512_context ) );
 
     if( ctx == NULL )
         return( NULL );

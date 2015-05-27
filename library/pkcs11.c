@@ -36,7 +36,7 @@
 #include "mbedtls/platform.h"
 #else
 #include <stdlib.h>
-#define mbedtls_malloc     malloc
+#define mbedtls_calloc    calloc
 #define mbedtls_free       free
 #endif
 
@@ -64,7 +64,7 @@ int mbedtls_pkcs11_x509_cert_bind( mbedtls_x509_crt *cert, pkcs11h_certificate_t
         goto cleanup;
     }
 
-    cert_blob = mbedtls_malloc( cert_blob_size );
+    cert_blob = mbedtls_calloc( 1, cert_blob_size );
     if( NULL == cert_blob )
     {
         ret = 4;

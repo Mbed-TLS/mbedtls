@@ -31,7 +31,7 @@
 #else
 #include <stdio.h>
 #define mbedtls_free       free
-#define mbedtls_malloc     malloc
+#define mbedtls_calloc    calloc
 #define mbedtls_fprintf    fprintf
 #define mbedtls_printf     printf
 #endif
@@ -493,7 +493,7 @@ sni_entry *sni_parse( char *sni_string )
 
     while( p <= end )
     {
-        if( ( new = mbedtls_malloc( sizeof( sni_entry ) ) ) == NULL )
+        if( ( new = mbedtls_calloc( 1, sizeof( sni_entry ) ) ) == NULL )
         {
             sni_free( cur );
             return( NULL );
@@ -501,8 +501,8 @@ sni_entry *sni_parse( char *sni_string )
 
         memset( new, 0, sizeof( sni_entry ) );
 
-        if( ( new->cert = mbedtls_malloc( sizeof( mbedtls_x509_crt ) ) ) == NULL ||
-            ( new->key = mbedtls_malloc( sizeof( mbedtls_pk_context ) ) ) == NULL )
+        if( ( new->cert = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt ) ) ) == NULL ||
+            ( new->key = mbedtls_calloc( 1, sizeof( mbedtls_pk_context ) ) ) == NULL )
         {
             mbedtls_free( new->cert );
             mbedtls_free( new );
@@ -643,7 +643,7 @@ psk_entry *psk_parse( char *psk_string )
 
     while( p <= end )
     {
-        if( ( new = mbedtls_malloc( sizeof( psk_entry ) ) ) == NULL )
+        if( ( new = mbedtls_calloc( 1, sizeof( psk_entry ) ) ) == NULL )
             goto error;
 
         memset( new, 0, sizeof( psk_entry ) );
@@ -2007,7 +2007,7 @@ data_exchange:
                 ori_len = ret;
                 extra_len = mbedtls_ssl_get_bytes_avail( &ssl );
 
-                larger_buf = mbedtls_malloc( ori_len + extra_len + 1 );
+                larger_buf = mbedtls_calloc( 1, ori_len + extra_len + 1 );
                 if( larger_buf == NULL )
                 {
                     mbedtls_printf( "  ! memory allocation failed\n" );

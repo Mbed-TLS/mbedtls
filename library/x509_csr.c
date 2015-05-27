@@ -53,7 +53,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #define mbedtls_free       free
-#define mbedtls_malloc     malloc
+#define mbedtls_calloc    calloc
 #define mbedtls_snprintf   snprintf
 #endif
 
@@ -113,7 +113,7 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
     /*
      * first copy the raw DER data
      */
-    p = mbedtls_malloc( len = buflen );
+    p = mbedtls_calloc( 1, len = buflen );
 
     if( p == NULL )
         return( MBEDTLS_ERR_X509_MALLOC_FAILED );

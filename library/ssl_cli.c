@@ -38,7 +38,7 @@
 #include "mbedtls/platform.h"
 #else
 #include <stdlib.h>
-#define mbedtls_malloc     malloc
+#define mbedtls_calloc    calloc
 #define mbedtls_free       free
 #endif
 
@@ -1151,10 +1151,10 @@ static int ssl_parse_hello_verify_request( mbedtls_ssl_context *ssl )
 
     mbedtls_free( ssl->handshake->verify_cookie );
 
-    ssl->handshake->verify_cookie = mbedtls_malloc( cookie_len );
+    ssl->handshake->verify_cookie = mbedtls_calloc( 1, cookie_len );
     if( ssl->handshake->verify_cookie  == NULL )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "malloc failed (%d bytes)", cookie_len ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc failed (%d bytes)", cookie_len ) );
         return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
     }
 
@@ -2911,9 +2911,9 @@ static int ssl_parse_new_session_ticket( mbedtls_ssl_context *ssl )
     ssl->session_negotiate->ticket = NULL;
     ssl->session_negotiate->ticket_len = 0;
 
-    if( ( ticket = mbedtls_malloc( ticket_len ) ) == NULL )
+    if( ( ticket = mbedtls_calloc( 1, ticket_len ) ) == NULL )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "ticket malloc failed" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "ticket alloc failed" ) );
         return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
     }
 

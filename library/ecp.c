@@ -59,7 +59,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #define mbedtls_printf     printf
-#define mbedtls_malloc     malloc
+#define mbedtls_calloc    calloc
 #define mbedtls_free       free
 #endif
 
@@ -790,12 +790,10 @@ static int ecp_normalize_jac_many( const mbedtls_ecp_group *grp,
     if( t_len < 2 )
         return( ecp_normalize_jac( grp, *T ) );
 
-    if( ( c = mbedtls_malloc( t_len * sizeof( mbedtls_mpi ) ) ) == NULL )
+    if( ( c = mbedtls_calloc( t_len, sizeof( mbedtls_mpi ) ) ) == NULL )
         return( MBEDTLS_ERR_ECP_MALLOC_FAILED );
 
     mbedtls_mpi_init( &u ); mbedtls_mpi_init( &Zi ); mbedtls_mpi_init( &ZZi );
-    for( i = 0; i < t_len; i++ )
-        mbedtls_mpi_init( &c[i] );
 
     /*
      * c[i] = Z_0 * ... * Z_i
@@ -1363,15 +1361,12 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
     if( T == NULL )
     {
-        T = mbedtls_malloc( pre_len * sizeof( mbedtls_ecp_point ) );
+        T = mbedtls_calloc( pre_len, sizeof( mbedtls_ecp_point ) );
         if( T == NULL )
         {
             ret = MBEDTLS_ERR_ECP_MALLOC_FAILED;
             goto cleanup;
         }
-
-        for( i = 0; i < pre_len; i++ )
-            mbedtls_ecp_point_init( &T[i] );
 
         MBEDTLS_MPI_CHK( ecp_precompute_comb( grp, T, P, w, d ) );
 

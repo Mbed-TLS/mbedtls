@@ -87,7 +87,7 @@ int main( void )
 #define MEM_BLOCK_OVERHEAD  ( 2 * sizeof( size_t ) )
 
 /*
- * Size to use for the malloc buffer if MEMORY_BUFFER_ALLOC_C is defined.
+ * Size to use for the alloc buffer if MEMORY_BUFFER_ALLOC_C is defined.
  */
 #define HEAP_SIZE       (1u << 16)  // 64k
 
@@ -253,7 +253,7 @@ int main( int argc, char *argv[] )
     char title[TITLE_LEN];
     todo_list todo;
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
-    unsigned char malloc_buf[HEAP_SIZE] = { 0 };
+    unsigned char alloc_buf[HEAP_SIZE] = { 0 };
 #endif
 
     if( argc <= 1 )
@@ -319,7 +319,7 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "\n" );
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
-    mbedtls_memory_buffer_alloc_init( malloc_buf, sizeof( malloc_buf ) );
+    mbedtls_memory_buffer_alloc_init( alloc_buf, sizeof( alloc_buf ) );
 #endif
     memset( buf, 0xAA, sizeof( buf ) );
     memset( tmp, 0xBB, sizeof( tmp ) );

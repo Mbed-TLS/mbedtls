@@ -932,7 +932,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
             ssl->compress_buf = mbedtls_calloc( 1, MBEDTLS_SSL_BUFFER_LEN );
             if( ssl->compress_buf == NULL )
             {
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed",
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed",
                                     MBEDTLS_SSL_BUFFER_LEN ) );
                 return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
             }
@@ -2456,14 +2456,14 @@ static int ssl_flight_append( mbedtls_ssl_context *ssl )
     /* Allocate space for current message */
     if( ( msg = mbedtls_calloc( 1, sizeof(  mbedtls_ssl_flight_item ) ) ) == NULL )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "malloc %d bytes failed",
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc %d bytes failed",
                             sizeof( mbedtls_ssl_flight_item ) ) );
         return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
     }
 
     if( ( msg->p = mbedtls_calloc( 1, ssl->out_msglen ) ) == NULL )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "malloc %d bytes failed", ssl->out_msglen ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc %d bytes failed", ssl->out_msglen ) );
         mbedtls_free( msg );
         return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
     }
@@ -2927,7 +2927,7 @@ static int ssl_reassemble_dtls_handshake( mbedtls_ssl_context *ssl )
         ssl->handshake->hs_msg = mbedtls_calloc( 1, alloc_len );
         if( ssl->handshake->hs_msg == NULL )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "malloc failed (%d bytes)", alloc_len ) );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc failed (%d bytes)", alloc_len ) );
             return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
         }
 
@@ -3978,7 +3978,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     if( ( ssl->session_negotiate->peer_cert = mbedtls_calloc( 1,
                     sizeof( mbedtls_x509_crt ) ) ) == NULL )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed",
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed",
                        sizeof( mbedtls_x509_crt ) ) );
         return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
     }
@@ -4916,7 +4916,7 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
         ssl->transform_negotiate == NULL ||
         ssl->session_negotiate == NULL )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "malloc() of ssl sub-contexts failed" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc() of ssl sub-contexts failed" ) );
 
         mbedtls_free( ssl->handshake );
         mbedtls_free( ssl->transform_negotiate );
@@ -5005,7 +5005,7 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
     if( ( ssl-> in_buf = mbedtls_calloc( 1, len ) ) == NULL ||
         ( ssl->out_buf = mbedtls_calloc( 1, len ) ) == NULL )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed", len ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed", len ) );
         mbedtls_free( ssl->in_buf );
         ssl->in_buf = NULL;
         return( MBEDTLS_ERR_SSL_MALLOC_FAILED );

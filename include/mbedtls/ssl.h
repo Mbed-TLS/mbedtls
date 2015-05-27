@@ -348,7 +348,7 @@
 #endif
 
 /* Dummy type used only for its size */
-union mbedtls_ssl_premaster_secret_
+union mbedtls_ssl_premaster_secret
 {
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
     unsigned char _pms_rsa[48];                         /* RFC 5246 8.1.1 */
@@ -378,7 +378,7 @@ union mbedtls_ssl_premaster_secret_
 #endif
 };
 
-#define MBEDTLS_PREMASTER_SIZE     sizeof( union mbedtls_ssl_premaster_secret_ )
+#define MBEDTLS_PREMASTER_SIZE     sizeof( union mbedtls_ssl_premaster_secret )
 
 #ifdef __cplusplus
 extern "C" {

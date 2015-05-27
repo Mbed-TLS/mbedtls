@@ -78,6 +78,8 @@ int ccm_init( ccm_context *ctx, cipher_id_t cipher,
     if( cipher_info->block_size != 16 )
         return( POLARSSL_ERR_CCM_BAD_INPUT );
 
+    cipher_free( &ctx->cipher_ctx );
+
     if( ( ret = cipher_init_ctx( &ctx->cipher_ctx, cipher_info ) ) != 0 )
         return( ret );
 

@@ -40,6 +40,8 @@
 #define mbedtls_free       free
 #endif
 
+#include <string.h>
+
 void mbedtls_pkcs11_init( mbedtls_pkcs11_context *ctx )
 {
     memset( ctx, 0, sizeof( mbedtls_pkcs11_context ) );
@@ -105,7 +107,7 @@ int mbedtls_pkcs11_priv_key_bind( mbedtls_pkcs11_context *priv_key,
     if( priv_key == NULL )
         goto cleanup;
 
-    if( 0 != mbedtls_pkcs11_x509_cert_init( &cert, pkcs11_cert ) )
+    if( 0 != mbedtls_pkcs11_x509_cert_bind( &cert, pkcs11_cert ) )
         goto cleanup;
 
     priv_key->len = mbedtls_pk_get_len( &cert.pk );

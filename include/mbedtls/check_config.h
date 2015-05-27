@@ -229,22 +229,22 @@
 #error "MBEDTLS_PLATFORM_FREE_MACRO and MBEDTLS_PLATFORM_STD_FREE cannot be defined simultaneously"
 #endif
 
-#if defined(MBEDTLS_PLATFORM_FREE_MACRO) && !defined(MBEDTLS_PLATFORM_MALLOC_MACRO)
-#error "MBEDTLS_PLATFORM_MALLOC_MACRO must be defined if MBEDTLS_PLATFORM_FREE_MACRO is"
+#if defined(MBEDTLS_PLATFORM_FREE_MACRO) && !defined(MBEDTLS_PLATFORM_CALLOC_MACRO)
+#error "MBEDTLS_PLATFORM_CALLOC_MACRO must be defined if MBEDTLS_PLATFORM_FREE_MACRO is"
 #endif
 
-#if defined(MBEDTLS_PLATFORM_MALLOC_MACRO) &&\
+#if defined(MBEDTLS_PLATFORM_CALLOC_MACRO) &&\
     ( !defined(MBEDTLS_PLATFORM_C) || !defined(MBEDTLS_PLATFORM_MEMORY) )
-#error "MBEDTLS_PLATFORM_MALLOC_MACRO defined, but not all prerequisites"
+#error "MBEDTLS_PLATFORM_CALLOC_MACRO defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_PLATFORM_MALLOC_MACRO) &&\
-    defined(MBEDTLS_PLATFORM_STD_MALLOC)
-#error "MBEDTLS_PLATFORM_MALLOC_MACRO and MBEDTLS_PLATFORM_STD_MALLOC cannot be defined simultaneously"
+#if defined(MBEDTLS_PLATFORM_CALLOC_MACRO) &&\
+    defined(MBEDTLS_PLATFORM_STD_CALLOC)
+#error "MBEDTLS_PLATFORM_CALLOC_MACRO and MBEDTLS_PLATFORM_STD_CALLOC cannot be defined simultaneously"
 #endif
 
-#if defined(MBEDTLS_PLATFORM_MALLOC_MACRO) && !defined(MBEDTLS_PLATFORM_FREE_MACRO)
-#error "MBEDTLS_PLATFORM_FREE_MACRO must be defined if MBEDTLS_PLATFORM_MALLOC_MACRO is"
+#if defined(MBEDTLS_PLATFORM_CALLOC_MACRO) && !defined(MBEDTLS_PLATFORM_FREE_MACRO)
+#error "MBEDTLS_PLATFORM_FREE_MACRO must be defined if MBEDTLS_PLATFORM_CALLOC_MACRO is"
 #endif
 
 #if defined(MBEDTLS_PLATFORM_MEMORY) && !defined(MBEDTLS_PLATFORM_C)
@@ -289,12 +289,12 @@
 #error "MBEDTLS_PLATFORM_STD_MEM_HDR defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_PLATFORM_STD_MALLOC) && !defined(MBEDTLS_PLATFORM_MEMORY)
-#error "MBEDTLS_PLATFORM_STD_MALLOC defined, but not all prerequisites"
+#if defined(MBEDTLS_PLATFORM_STD_CALLOC) && !defined(MBEDTLS_PLATFORM_MEMORY)
+#error "MBEDTLS_PLATFORM_STD_CALLOC defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_PLATFORM_STD_MALLOC) && !defined(MBEDTLS_PLATFORM_MEMORY)
-#error "MBEDTLS_PLATFORM_STD_MALLOC defined, but not all prerequisites"
+#if defined(MBEDTLS_PLATFORM_STD_CALLOC) && !defined(MBEDTLS_PLATFORM_MEMORY)
+#error "MBEDTLS_PLATFORM_STD_CALLOC defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_PLATFORM_STD_FREE) && !defined(MBEDTLS_PLATFORM_MEMORY)

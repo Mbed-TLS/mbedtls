@@ -749,7 +749,6 @@ struct mbedtls_ssl_context
      * PKI layer
      */
     int client_auth;                    /*!<  flag for client auth.   */
-    int verify_result;                  /*!<  verification result     */
 
     /*
      * User settings

@@ -435,7 +435,7 @@ void mbedtls_x509write_crt_set_md_alg( mbedtls_x509write_cert *ctx, mbedtls_md_t
  * \param val       value of the extension OCTET STRING
  * \param val_len   length of the value data
  *
- * \return          0 if successful, or a MBEDTLS_ERR_X509_MALLOC_FAILED
+ * \return          0 if successful, or a MBEDTLS_ERR_X509_ALLOC_FAILED
  */
 int mbedtls_x509write_crt_set_extension( mbedtls_x509write_cert *ctx,
                                  const char *oid, size_t oid_len,
@@ -451,7 +451,7 @@ int mbedtls_x509write_crt_set_extension( mbedtls_x509write_cert *ctx,
  *                      certificate (only for CA certificates, -1 is
  *                      inlimited)
  *
- * \return          0 if successful, or a MBEDTLS_ERR_X509_MALLOC_FAILED
+ * \return          0 if successful, or a MBEDTLS_ERR_X509_ALLOC_FAILED
  */
 int mbedtls_x509write_crt_set_basic_constraints( mbedtls_x509write_cert *ctx,
                                          int is_ca, int max_pathlen );
@@ -464,7 +464,7 @@ int mbedtls_x509write_crt_set_basic_constraints( mbedtls_x509write_cert *ctx,
  *
  * \param ctx       CRT context to use
  *
- * \return          0 if successful, or a MBEDTLS_ERR_X509_MALLOC_FAILED
+ * \return          0 if successful, or a MBEDTLS_ERR_X509_ALLOC_FAILED
  */
 int mbedtls_x509write_crt_set_subject_key_identifier( mbedtls_x509write_cert *ctx );
 
@@ -475,7 +475,7 @@ int mbedtls_x509write_crt_set_subject_key_identifier( mbedtls_x509write_cert *ct
  *
  * \param ctx       CRT context to use
  *
- * \return          0 if successful, or a MBEDTLS_ERR_X509_MALLOC_FAILED
+ * \return          0 if successful, or a MBEDTLS_ERR_X509_ALLOC_FAILED
  */
 int mbedtls_x509write_crt_set_authority_key_identifier( mbedtls_x509write_cert *ctx );
 #endif /* MBEDTLS_SHA1_C */
@@ -487,7 +487,7 @@ int mbedtls_x509write_crt_set_authority_key_identifier( mbedtls_x509write_cert *
  * \param ctx       CRT context to use
  * \param key_usage key usage flags to set
  *
- * \return          0 if successful, or MBEDTLS_ERR_X509_MALLOC_FAILED
+ * \return          0 if successful, or MBEDTLS_ERR_X509_ALLOC_FAILED
  */
 int mbedtls_x509write_crt_set_key_usage( mbedtls_x509write_cert *ctx, unsigned char key_usage );
 
@@ -498,7 +498,7 @@ int mbedtls_x509write_crt_set_key_usage( mbedtls_x509write_cert *ctx, unsigned c
  * \param ctx           CRT context to use
  * \param ns_cert_type  Netscape Cert Type flags to set
  *
- * \return          0 if successful, or MBEDTLS_ERR_X509_MALLOC_FAILED
+ * \return          0 if successful, or MBEDTLS_ERR_X509_ALLOC_FAILED
  */
 int mbedtls_x509write_crt_set_ns_cert_type( mbedtls_x509write_cert *ctx,
                                     unsigned char ns_cert_type );

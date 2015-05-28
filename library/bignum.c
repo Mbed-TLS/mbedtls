@@ -105,12 +105,12 @@ int mbedtls_mpi_grow( mbedtls_mpi *X, size_t nblimbs )
     mbedtls_mpi_uint *p;
 
     if( nblimbs > MBEDTLS_MPI_MAX_LIMBS )
-        return( MBEDTLS_ERR_MPI_MALLOC_FAILED );
+        return( MBEDTLS_ERR_MPI_ALLOC_FAILED );
 
     if( X->n < nblimbs )
     {
         if( ( p = mbedtls_calloc( nblimbs, ciL ) ) == NULL )
-            return( MBEDTLS_ERR_MPI_MALLOC_FAILED );
+            return( MBEDTLS_ERR_MPI_ALLOC_FAILED );
 
         if( X->p != NULL )
         {
@@ -148,7 +148,7 @@ int mbedtls_mpi_shrink( mbedtls_mpi *X, size_t nblimbs )
         i = nblimbs;
 
     if( ( p = mbedtls_calloc( i, ciL ) ) == NULL )
-        return( MBEDTLS_ERR_MPI_MALLOC_FAILED );
+        return( MBEDTLS_ERR_MPI_ALLOC_FAILED );
 
     if( X->p != NULL )
     {

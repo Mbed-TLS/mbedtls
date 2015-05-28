@@ -1155,7 +1155,7 @@ static int ssl_parse_hello_verify_request( mbedtls_ssl_context *ssl )
     if( ssl->handshake->verify_cookie  == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc failed (%d bytes)", cookie_len ) );
-        return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
     }
 
     memcpy( ssl->handshake->verify_cookie, p, cookie_len );
@@ -2914,7 +2914,7 @@ static int ssl_parse_new_session_ticket( mbedtls_ssl_context *ssl )
     if( ( ticket = mbedtls_calloc( 1, ticket_len ) ) == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "ticket alloc failed" ) );
-        return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
     }
 
     memcpy( ticket, msg + 6, ticket_len );

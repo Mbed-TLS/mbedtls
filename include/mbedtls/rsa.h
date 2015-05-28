@@ -626,7 +626,7 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
  * \param src      Source context
  *
  * \return         O on success,
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED on memory allocation failure
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED on memory allocation failure
  */
 int mbedtls_rsa_copy( mbedtls_rsa_context *dst, const mbedtls_rsa_context *src );
 

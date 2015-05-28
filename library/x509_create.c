@@ -137,7 +137,7 @@ int mbedtls_x509_string_to_names( mbedtls_asn1_named_data **head, const char *na
                                        (unsigned char *) data,
                                        d - data ) == NULL )
             {
-                return( MBEDTLS_ERR_X509_MALLOC_FAILED );
+                return( MBEDTLS_ERR_X509_ALLOC_FAILED );
             }
 
             while( c < end && *(c + 1) == ' ' )
@@ -177,7 +177,7 @@ int mbedtls_x509_set_extension( mbedtls_asn1_named_data **head, const char *oid,
     if( ( cur = mbedtls_asn1_store_named_data( head, oid, oid_len,
                                        NULL, val_len + 1 ) ) == NULL )
     {
-        return( MBEDTLS_ERR_X509_MALLOC_FAILED );
+        return( MBEDTLS_ERR_X509_ALLOC_FAILED );
     }
 
     cur->val.p[0] = critical;

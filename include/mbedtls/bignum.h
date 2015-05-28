@@ -44,7 +44,7 @@
 #define MBEDTLS_ERR_MPI_NEGATIVE_VALUE                    -0x000A  /**< The input arguments are negative or result in illegal output. */
 #define MBEDTLS_ERR_MPI_DIVISION_BY_ZERO                  -0x000C  /**< The input argument for division is zero, which is not allowed. */
 #define MBEDTLS_ERR_MPI_NOT_ACCEPTABLE                    -0x000E  /**< The input arguments are not acceptable. */
-#define MBEDTLS_ERR_MPI_MALLOC_FAILED                     -0x0010  /**< Memory allocation failed. */
+#define MBEDTLS_ERR_MPI_ALLOC_FAILED                      -0x0010  /**< Memory allocation failed. */
 
 #define MBEDTLS_MPI_CHK(f) do { if( ( ret = f ) != 0 ) goto cleanup; } while( 0 )
 
@@ -172,7 +172,7 @@ void mbedtls_mpi_free( mbedtls_mpi *X );
  * \param nblimbs  The target number of limbs
  *
  * \return         0 if successful,
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed
  */
 int mbedtls_mpi_grow( mbedtls_mpi *X, size_t nblimbs );
 
@@ -183,7 +183,7 @@ int mbedtls_mpi_grow( mbedtls_mpi *X, size_t nblimbs );
  * \param nblimbs  The minimum number of limbs to keep
  *
  * \return         0 if successful,
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed
  */
 int mbedtls_mpi_shrink( mbedtls_mpi *X, size_t nblimbs );
 
@@ -194,7 +194,7 @@ int mbedtls_mpi_shrink( mbedtls_mpi *X, size_t nblimbs );
  * \param Y        Source MPI
  *
  * \return         0 if successful,
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed
  */
 int mbedtls_mpi_copy( mbedtls_mpi *X, const mbedtls_mpi *Y );
 
@@ -214,7 +214,7 @@ void mbedtls_mpi_swap( mbedtls_mpi *X, mbedtls_mpi *Y );
  * \param assign   1: perform the assignment, 0: keep X's original value
  *
  * \return         0 if successful,
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed,
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed,
  *
  * \note           This function is equivalent to
  *                      if( assign ) mbedtls_mpi_copy( X, Y );
@@ -233,7 +233,7 @@ int mbedtls_mpi_safe_cond_assign( mbedtls_mpi *X, const mbedtls_mpi *Y, unsigned
  * \param assign   1: perform the swap, 0: keep X and Y's original values
  *
  * \return         0 if successful,
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed,
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed,
  *
  * \note           This function is equivalent to
  *                      if( assign ) mbedtls_mpi_swap( X, Y );
@@ -251,7 +251,7 @@ int mbedtls_mpi_safe_cond_swap( mbedtls_mpi *X, mbedtls_mpi *Y, unsigned char as
  * \param z        Value to use
  *
  * \return         0 if successful,
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed
  */
 int mbedtls_mpi_lset( mbedtls_mpi *X, mbedtls_mpi_sint z );
 
@@ -276,7 +276,7 @@ int mbedtls_mpi_get_bit( const mbedtls_mpi *X, size_t pos );
  * \param val      The value to set the bit to (0 or 1)
  *
  * \return         0 if successful,
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed,
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed,
  *                 MBEDTLS_ERR_MPI_BAD_INPUT_DATA if val is not 0 or 1
  */
 int mbedtls_mpi_set_bit( mbedtls_mpi *X, size_t pos, unsigned char val );
@@ -373,7 +373,7 @@ int mbedtls_mpi_write_file( const char *p, const mbedtls_mpi *X, int radix, FILE
  * \param buflen   Input buffer size
  *
  * \return         0 if successful,
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed
  */
 int mbedtls_mpi_read_binary( mbedtls_mpi *X, const unsigned char *buf, size_t buflen );
 
@@ -398,7 +398,7 @@ int mbedtls_mpi_write_binary( const mbedtls_mpi *X, unsigned char *buf, size_t b
  * \param count    Amount to shift
  *
  * \return         0 if successful,
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed
  */
 int mbedtls_mpi_shift_l( mbedtls_mpi *X, size_t count );
 
@@ -409,7 +409,7 @@ int mbedtls_mpi_shift_l( mbedtls_mpi *X, size_t count );
  * \param count    Amount to shift
  *
  * \return         0 if successful,
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed
  */
 int mbedtls_mpi_shift_r( mbedtls_mpi *X, size_t count );
 
@@ -457,7 +457,7 @@ int mbedtls_mpi_cmp_int( const mbedtls_mpi *X, mbedtls_mpi_sint z );
  * \param B        Right-hand MPI
  *
  * \return         0 if successful,
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed
  */
 int mbedtls_mpi_add_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B );
 
@@ -481,7 +481,7 @@ int mbedtls_mpi_sub_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
  * \param B        Right-hand MPI
  *
  * \return         0 if successful,
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed
  */
 int mbedtls_mpi_add_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B );
 
@@ -493,7 +493,7 @@ int mbedtls_mpi_add_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
  * \param B        Right-hand MPI
  *
  * \return         0 if successful,
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed
  */
 int mbedtls_mpi_sub_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B );
 
@@ -505,7 +505,7 @@ int mbedtls_mpi_sub_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
  * \param b        The integer value to add
  *
  * \return         0 if successful,
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed
  */
 int mbedtls_mpi_add_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_sint b );
 
@@ -517,7 +517,7 @@ int mbedtls_mpi_add_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_sint 
  * \param b        The integer value to subtract
  *
  * \return         0 if successful,
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed
  */
 int mbedtls_mpi_sub_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_sint b );
 
@@ -529,7 +529,7 @@ int mbedtls_mpi_sub_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_sint 
  * \param B        Right-hand MPI
  *
  * \return         0 if successful,
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed
  */
 int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B );
 
@@ -543,7 +543,7 @@ int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
  * \note           b is unsigned
  *
  * \return         0 if successful,
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed
  */
 int mbedtls_mpi_mul_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_uint b );
 
@@ -556,7 +556,7 @@ int mbedtls_mpi_mul_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_uint 
  * \param B        Right-hand MPI
  *
  * \return         0 if successful,
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed,
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed,
  *                 MBEDTLS_ERR_MPI_DIVISION_BY_ZERO if B == 0
  *
  * \note           Either Q or R can be NULL.
@@ -572,7 +572,7 @@ int mbedtls_mpi_div_mpi( mbedtls_mpi *Q, mbedtls_mpi *R, const mbedtls_mpi *A, c
  * \param b        Integer to divide by
  *
  * \return         0 if successful,
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed,
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed,
  *                 MBEDTLS_ERR_MPI_DIVISION_BY_ZERO if b == 0
  *
  * \note           Either Q or R can be NULL.
@@ -587,7 +587,7 @@ int mbedtls_mpi_div_int( mbedtls_mpi *Q, mbedtls_mpi *R, const mbedtls_mpi *A, m
  * \param B        Right-hand MPI
  *
  * \return         0 if successful,
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed,
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed,
  *                 MBEDTLS_ERR_MPI_DIVISION_BY_ZERO if B == 0,
  *                 MBEDTLS_ERR_MPI_NEGATIVE_VALUE if B < 0
  */
@@ -601,7 +601,7 @@ int mbedtls_mpi_mod_mpi( mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi
  * \param b        Integer to divide by
  *
  * \return         0 if successful,
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed,
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed,
  *                 MBEDTLS_ERR_MPI_DIVISION_BY_ZERO if b == 0,
  *                 MBEDTLS_ERR_MPI_NEGATIVE_VALUE if b < 0
  */
@@ -617,7 +617,7 @@ int mbedtls_mpi_mod_int( mbedtls_mpi_uint *r, const mbedtls_mpi *A, mbedtls_mpi_
  * \param _RR      Speed-up MPI used for recalculations
  *
  * \return         0 if successful,
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed,
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed,
  *                 MBEDTLS_ERR_MPI_BAD_INPUT_DATA if N is negative or even or
  *                 if E is negative
  *
@@ -636,7 +636,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
  * \param p_rng    RNG parameter
  *
  * \return         0 if successful,
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed
  */
 int mbedtls_mpi_fill_random( mbedtls_mpi *X, size_t size,
                      int (*f_rng)(void *, unsigned char *, size_t),
@@ -650,7 +650,7 @@ int mbedtls_mpi_fill_random( mbedtls_mpi *X, size_t size,
  * \param B        Right-hand MPI
  *
  * \return         0 if successful,
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed
  */
 int mbedtls_mpi_gcd( mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B );
 
@@ -662,7 +662,7 @@ int mbedtls_mpi_gcd( mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B 
  * \param N        Right-hand MPI
  *
  * \return         0 if successful,
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed,
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed,
  *                 MBEDTLS_ERR_MPI_BAD_INPUT_DATA if N is negative or nil
                    MBEDTLS_ERR_MPI_NOT_ACCEPTABLE if A has no inverse mod N
  */
@@ -676,7 +676,7 @@ int mbedtls_mpi_inv_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
  * \param p_rng    RNG parameter
  *
  * \return         0 if successful (probably prime),
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed,
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed,
  *                 MBEDTLS_ERR_MPI_NOT_ACCEPTABLE if X is not prime
  */
 int mbedtls_mpi_is_prime( const mbedtls_mpi *X,
@@ -694,7 +694,7 @@ int mbedtls_mpi_is_prime( const mbedtls_mpi *X,
  * \param p_rng    RNG parameter
  *
  * \return         0 if successful (probably prime),
- *                 MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed,
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed,
  *                 MBEDTLS_ERR_MPI_BAD_INPUT_DATA if nbits is < 3
  */
 int mbedtls_mpi_gen_prime( mbedtls_mpi *X, size_t nbits, int dh_flag,

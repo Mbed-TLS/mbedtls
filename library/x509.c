@@ -455,7 +455,7 @@ int mbedtls_x509_get_name( unsigned char **p, const unsigned char *end,
             cur->next = mbedtls_calloc( 1, sizeof( mbedtls_x509_name ) );
 
             if( cur->next == NULL )
-                return( MBEDTLS_ERR_X509_MALLOC_FAILED );
+                return( MBEDTLS_ERR_X509_ALLOC_FAILED );
 
             cur = cur->next;
         }
@@ -469,7 +469,7 @@ int mbedtls_x509_get_name( unsigned char **p, const unsigned char *end,
         cur->next = mbedtls_calloc( 1, sizeof( mbedtls_x509_name ) );
 
         if( cur->next == NULL )
-            return( MBEDTLS_ERR_X509_MALLOC_FAILED );
+            return( MBEDTLS_ERR_X509_ALLOC_FAILED );
 
         cur = cur->next;
     }
@@ -595,7 +595,7 @@ int mbedtls_x509_get_sig_alg( const mbedtls_x509_buf *sig_oid, const mbedtls_x50
 
         pss_opts = mbedtls_calloc( 1, sizeof( mbedtls_pk_rsassa_pss_options ) );
         if( pss_opts == NULL )
-            return( MBEDTLS_ERR_X509_MALLOC_FAILED );
+            return( MBEDTLS_ERR_X509_ALLOC_FAILED );
 
         ret = mbedtls_x509_get_rsassa_pss_params( sig_params,
                                           md_alg,

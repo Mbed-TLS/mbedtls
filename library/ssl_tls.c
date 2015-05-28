@@ -175,7 +175,7 @@ static int ssl_session_copy( mbedtls_ssl_session *dst, const mbedtls_ssl_session
 
         dst->peer_cert = mbedtls_calloc( 1, sizeof(mbedtls_x509_crt) );
         if( dst->peer_cert == NULL )
-            return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
+            return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
 
         mbedtls_x509_crt_init( dst->peer_cert );
 
@@ -194,7 +194,7 @@ static int ssl_session_copy( mbedtls_ssl_session *dst, const mbedtls_ssl_session
     {
         dst->ticket = mbedtls_calloc( 1, src->ticket_len );
         if( dst->ticket == NULL )
-            return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
+            return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
 
         memcpy( dst->ticket, src->ticket, src->ticket_len );
     }
@@ -934,7 +934,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed",
                                     MBEDTLS_SSL_BUFFER_LEN ) );
-                return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
+                return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
             }
         }
 
@@ -2458,14 +2458,14 @@ static int ssl_flight_append( mbedtls_ssl_context *ssl )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc %d bytes failed",
                             sizeof( mbedtls_ssl_flight_item ) ) );
-        return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
     }
 
     if( ( msg->p = mbedtls_calloc( 1, ssl->out_msglen ) ) == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc %d bytes failed", ssl->out_msglen ) );
         mbedtls_free( msg );
-        return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
     }
 
     /* Copy current handshake message with headers */
@@ -2928,7 +2928,7 @@ static int ssl_reassemble_dtls_handshake( mbedtls_ssl_context *ssl )
         if( ssl->handshake->hs_msg == NULL )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc failed (%d bytes)", alloc_len ) );
-            return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
+            return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
         }
 
         /* Prepare final header: copy msg_type, length and message_seq,
@@ -3978,7 +3978,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed",
                        sizeof( mbedtls_x509_crt ) ) );
-        return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
     }
 
     mbedtls_x509_crt_init( ssl->session_negotiate->peer_cert );
@@ -4924,7 +4924,7 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
         ssl->transform_negotiate = NULL;
         ssl->session_negotiate = NULL;
 
-        return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
     }
 
     /* Initialize structures */
@@ -5006,7 +5006,7 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed", len ) );
         mbedtls_free( ssl->in_buf );
         ssl->in_buf = NULL;
-        return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
     }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -5306,7 +5306,7 @@ static int ssl_append_key_cert( mbedtls_ssl_key_cert **head,
 
     new = mbedtls_calloc( 1, sizeof( mbedtls_ssl_key_cert ) );
     if( new == NULL )
-        return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
 
     new->cert = cert;
     new->key  = key;
@@ -5384,7 +5384,7 @@ int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
     {
         mbedtls_free( conf->psk );
         conf->psk = NULL;
-        return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
     }
 
     conf->psk_len = psk_len;
@@ -5412,7 +5412,7 @@ int mbedtls_ssl_set_hs_psk( mbedtls_ssl_context *ssl,
     {
         mbedtls_free( ssl->handshake->psk );
         ssl->handshake->psk = NULL;
-        return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
     }
 
     ssl->handshake->psk_len = psk_len;
@@ -5490,7 +5490,7 @@ int mbedtls_ssl_set_hostname( mbedtls_ssl_context *ssl, const char *hostname )
     ssl->hostname = mbedtls_calloc( 1, hostname_len + 1 );
 
     if( ssl->hostname == NULL )
-        return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
 
     memcpy( ssl->hostname, hostname, hostname_len );
 

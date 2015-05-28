@@ -45,7 +45,7 @@
 #include "ecdsa.h"
 #endif
 
-#define MBEDTLS_ERR_PK_MALLOC_FAILED       -0x3F80  /**< Memory alloation failed. */
+#define MBEDTLS_ERR_PK_ALLOC_FAILED        -0x3F80  /**< Memory allocation failed. */
 #define MBEDTLS_ERR_PK_TYPE_MISMATCH       -0x3F00  /**< Type mismatch, eg attempt to encrypt with an ECDSA key */
 #define MBEDTLS_ERR_PK_BAD_INPUT_DATA      -0x3E80  /**< Bad input parameters to function. */
 #define MBEDTLS_ERR_PK_FILE_IO_ERROR       -0x3E00  /**< Read/write of file failed. */
@@ -194,7 +194,7 @@ void mbedtls_pk_free( mbedtls_pk_context *ctx );
  *
  * \return          0 on success,
  *                  MBEDTLS_ERR_PK_BAD_INPUT_DATA on invalid input,
- *                  MBEDTLS_ERR_PK_MALLOC_FAILED on allocation failure.
+ *                  MBEDTLS_ERR_PK_ALLOC_FAILED on allocation failure.
  *
  * \note            For contexts holding an RSA-alt key, use
  *                  \c mbedtls_pk_setup_rsa_alt() instead.

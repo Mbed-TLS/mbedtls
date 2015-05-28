@@ -247,7 +247,7 @@ static int ssl_load_session( mbedtls_ssl_session *session,
         session->peer_cert = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt ) );
 
         if( session->peer_cert == NULL )
-            return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
+            return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
 
         mbedtls_x509_crt_init( session->peer_cert );
 

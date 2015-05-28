@@ -105,7 +105,7 @@ int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
     if( ( ctx->pk_ctx = info->ctx_alloc_func() ) == NULL )
-        return( MBEDTLS_ERR_PK_MALLOC_FAILED );
+        return( MBEDTLS_ERR_PK_ALLOC_FAILED );
 
     ctx->pk_info = info;
 
@@ -128,7 +128,7 @@ int mbedtls_pk_setup_rsa_alt( mbedtls_pk_context *ctx, void * key,
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
     if( ( ctx->pk_ctx = info->ctx_alloc_func() ) == NULL )
-        return( MBEDTLS_ERR_PK_MALLOC_FAILED );
+        return( MBEDTLS_ERR_PK_ALLOC_FAILED );
 
     ctx->pk_info = info;
 

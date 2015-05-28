@@ -68,7 +68,7 @@ int mbedtls_ssl_set_client_transport_id( mbedtls_ssl_context *ssl,
     mbedtls_free( ssl->cli_id );
 
     if( ( ssl->cli_id = mbedtls_calloc( 1, ilen ) ) == NULL )
-        return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
 
     memcpy( ssl->cli_id, info, ilen );
     ssl->cli_id_len = ilen;
@@ -264,7 +264,7 @@ static int ssl_parse_supported_elliptic_curves( mbedtls_ssl_context *ssl,
         our_size = MBEDTLS_ECP_DP_MAX;
 
     if( ( curves = mbedtls_calloc( our_size, sizeof( *curves ) ) ) == NULL )
-        return( MBEDTLS_ERR_SSL_MALLOC_FAILED );
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
 
     ssl->handshake->curves = curves;
 

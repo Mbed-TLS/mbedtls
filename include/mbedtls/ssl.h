@@ -102,7 +102,7 @@
 #define MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY         -0x7D80  /**< Processing of the CertificateVerify handshake message failed. */
 #define MBEDTLS_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC         -0x7E00  /**< Processing of the ChangeCipherSpec handshake message failed. */
 #define MBEDTLS_ERR_SSL_BAD_HS_FINISHED                   -0x7E80  /**< Processing of the Finished handshake message failed. */
-#define MBEDTLS_ERR_SSL_MALLOC_FAILED                     -0x7F00  /**< Memory allocation failed */
+#define MBEDTLS_ERR_SSL_ALLOC_FAILED                      -0x7F00  /**< Memory allocation failed */
 #define MBEDTLS_ERR_SSL_HW_ACCEL_FAILED                   -0x7F80  /**< Hardware acceleration function returned with error */
 #define MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH              -0x6F80  /**< Hardware acceleration function skipped / left alone data */
 #define MBEDTLS_ERR_SSL_COMPRESSION_FAILED                -0x6F00  /**< Processing of the compression / decompression failed */
@@ -851,7 +851,7 @@ void mbedtls_ssl_init( mbedtls_ssl_context *ssl );
  * \param ssl      SSL context
  * \param conf     SSL configuration to use
  *
- * \return         0 if successful, or MBEDTLS_ERR_SSL_MALLOC_FAILED if
+ * \return         0 if successful, or MBEDTLS_ERR_SSL_ALLOC_FAILED if
  *                 memory allocation failed
  */
 int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
@@ -1178,7 +1178,7 @@ void mbedtls_ssl_conf_dtls_cookies( mbedtls_ssl_config *conf,
  *
  * \return         0 on success,
  *                 MBEDTLS_ERR_SSL_BAD_INPUT_DATA if used on client,
- *                 MBEDTLS_ERR_SSL_MALLOC_FAILED if out of memory.
+ *                 MBEDTLS_ERR_SSL_ALLOC_FAILED if out of memory.
  */
 int mbedtls_ssl_set_client_transport_id( mbedtls_ssl_context *ssl,
                                  const unsigned char *info,
@@ -1305,7 +1305,7 @@ void mbedtls_ssl_conf_session_cache( mbedtls_ssl_config *conf,
  * \param session  session context
  *
  * \return         0 if successful,
- *                 MBEDTLS_ERR_SSL_MALLOC_FAILED if memory allocation failed,
+ *                 MBEDTLS_ERR_SSL_ALLOC_FAILED if memory allocation failed,
  *                 MBEDTLS_ERR_SSL_BAD_INPUT_DATA if used server-side or
  *                 arguments are otherwise invalid
  *
@@ -1388,7 +1388,7 @@ void mbedtls_ssl_conf_ca_chain( mbedtls_ssl_config *conf,
  * \param own_cert own public certificate chain
  * \param pk_key   own private key
  *
- * \return         0 on success or MBEDTLS_ERR_SSL_MALLOC_FAILED
+ * \return         0 on success or MBEDTLS_ERR_SSL_ALLOC_FAILED
  */
 int mbedtls_ssl_conf_own_cert( mbedtls_ssl_config *conf,
                               mbedtls_x509_crt *own_cert,
@@ -1408,7 +1408,7 @@ int mbedtls_ssl_conf_own_cert( mbedtls_ssl_config *conf,
  * \param psk_identity      pointer to the pre-shared key identity
  * \param psk_identity_len  identity key length
  *
- * \return         0 if successful or MBEDTLS_ERR_SSL_MALLOC_FAILED
+ * \return         0 if successful or MBEDTLS_ERR_SSL_ALLOC_FAILED
  */
 int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
                 const unsigned char *psk, size_t psk_len,
@@ -1425,7 +1425,7 @@ int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
  * \param psk      pointer to the pre-shared key
  * \param psk_len  pre-shared key length
  *
- * \return         0 if successful or MBEDTLS_ERR_SSL_MALLOC_FAILED
+ * \return         0 if successful or MBEDTLS_ERR_SSL_ALLOC_FAILED
  */
 int mbedtls_ssl_set_hs_psk( mbedtls_ssl_context *ssl,
                             const unsigned char *psk, size_t psk_len );
@@ -1517,7 +1517,7 @@ void mbedtls_ssl_conf_curves( mbedtls_ssl_config *conf, const mbedtls_ecp_group_
  * \param ssl      SSL context
  * \param hostname the server hostname
  *
- * \return         0 if successful or MBEDTLS_ERR_SSL_MALLOC_FAILED
+ * \return         0 if successful or MBEDTLS_ERR_SSL_ALLOC_FAILED
  */
 int mbedtls_ssl_set_hostname( mbedtls_ssl_context *ssl, const char *hostname );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
@@ -1533,7 +1533,7 @@ int mbedtls_ssl_set_hostname( mbedtls_ssl_context *ssl, const char *hostname );
  * \param own_cert own public certificate chain
  * \param pk_key   own private key
  *
- * \return         0 on success or MBEDTLS_ERR_SSL_MALLOC_FAILED
+ * \return         0 on success or MBEDTLS_ERR_SSL_ALLOC_FAILED
  */
 int mbedtls_ssl_set_hs_own_cert( mbedtls_ssl_context *ssl,
                                  mbedtls_x509_crt *own_cert,
@@ -1960,7 +1960,7 @@ const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert( const mbedtls_ssl_context *ss
  * \param session  session context
  *
  * \return         0 if successful,
- *                 MBEDTLS_ERR_SSL_MALLOC_FAILED if memory allocation failed,
+ *                 MBEDTLS_ERR_SSL_ALLOC_FAILED if memory allocation failed,
  *                 MBEDTLS_ERR_SSL_BAD_INPUT_DATA if used server-side or
  *                 arguments are otherwise invalid
  *

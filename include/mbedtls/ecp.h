@@ -33,7 +33,7 @@
 #define MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL                  -0x4F00  /**< The buffer is too small to write to. */
 #define MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE               -0x4E80  /**< Requested curve not available. */
 #define MBEDTLS_ERR_ECP_VERIFY_FAILED                     -0x4E00  /**< The signature is not valid. */
-#define MBEDTLS_ERR_ECP_MALLOC_FAILED                     -0x4D80  /**< Memory allocation failed. */
+#define MBEDTLS_ERR_ECP_ALLOC_FAILED                      -0x4D80  /**< Memory allocation failed. */
 #define MBEDTLS_ERR_ECP_RANDOM_FAILED                     -0x4D00  /**< Generation of random value, such as (ephemeral) key, failed. */
 #define MBEDTLS_ERR_ECP_INVALID_KEY                       -0x4C80  /**< Invalid private or public key. */
 #define MBEDTLS_ERR_ECP_SIG_LEN_MISMATCH                  -0x4C00  /**< Signature is valid but shorter than the user-supplied length. */
@@ -316,7 +316,7 @@ void mbedtls_ecp_keypair_free( mbedtls_ecp_keypair *key );
  * \param Q         Source point
  *
  * \return          0 if successful,
- *                  MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ *                  MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed
  */
 int mbedtls_ecp_copy( mbedtls_ecp_point *P, const mbedtls_ecp_point *Q );
 
@@ -327,7 +327,7 @@ int mbedtls_ecp_copy( mbedtls_ecp_point *P, const mbedtls_ecp_point *Q );
  * \param src       Source group
  *
  * \return          0 if successful,
- *                  MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ *                  MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed
  */
 int mbedtls_ecp_group_copy( mbedtls_ecp_group *dst, const mbedtls_ecp_group *src );
 
@@ -337,7 +337,7 @@ int mbedtls_ecp_group_copy( mbedtls_ecp_group *dst, const mbedtls_ecp_group *src
  * \param pt        Destination point
  *
  * \return          0 if successful,
- *                  MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ *                  MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed
  */
 int mbedtls_ecp_set_zero( mbedtls_ecp_point *pt );
 
@@ -391,7 +391,7 @@ int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp, const mbedtls_
  *
  * \return          0 if successful,
  *                  MBEDTLS_ERR_ECP_BAD_INPUT_DATA if input is invalid,
- *                  MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed,
+ *                  MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed,
  *                  MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if the point format
  *                  is not implemented.
  *
@@ -505,7 +505,7 @@ int mbedtls_ecp_tls_write_group( const mbedtls_ecp_group *grp, size_t *olen,
  * \return          0 if successful,
  *                  MBEDTLS_ERR_ECP_INVALID_KEY if m is not a valid privkey
  *                  or P is not a valid pubkey,
- *                  MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ *                  MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed
  */
 int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              const mbedtls_mpi *m, const mbedtls_ecp_point *P,
@@ -529,7 +529,7 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  * \return          0 if successful,
  *                  MBEDTLS_ERR_ECP_INVALID_KEY if m or n is not a valid privkey
  *                  or P or Q is not a valid pubkey,
- *                  MBEDTLS_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ *                  MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed
  */
 int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              const mbedtls_mpi *m, const mbedtls_ecp_point *P,

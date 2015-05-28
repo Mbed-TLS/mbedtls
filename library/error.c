@@ -234,7 +234,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
             mbedtls_snprintf( buf, buflen, "DHM - Calculation of the DHM secret failed" );
         if( use_ret == -(MBEDTLS_ERR_DHM_INVALID_FORMAT) )
             mbedtls_snprintf( buf, buflen, "DHM - The ASN.1 data is not formatted correctly" );
-        if( use_ret == -(MBEDTLS_ERR_DHM_MALLOC_FAILED) )
+        if( use_ret == -(MBEDTLS_ERR_DHM_ALLOC_FAILED) )
             mbedtls_snprintf( buf, buflen, "DHM - Allocation of memory failed" );
         if( use_ret == -(MBEDTLS_ERR_DHM_FILE_IO_ERROR) )
             mbedtls_snprintf( buf, buflen, "DHM - Read/write of file failed" );
@@ -249,7 +249,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
             mbedtls_snprintf( buf, buflen, "ECP - Requested curve not available" );
         if( use_ret == -(MBEDTLS_ERR_ECP_VERIFY_FAILED) )
             mbedtls_snprintf( buf, buflen, "ECP - The signature is not valid" );
-        if( use_ret == -(MBEDTLS_ERR_ECP_MALLOC_FAILED) )
+        if( use_ret == -(MBEDTLS_ERR_ECP_ALLOC_FAILED) )
             mbedtls_snprintf( buf, buflen, "ECP - Memory allocation failed" );
         if( use_ret == -(MBEDTLS_ERR_ECP_RANDOM_FAILED) )
             mbedtls_snprintf( buf, buflen, "ECP - Generation of random value, such as (ephemeral) key, failed" );
@@ -275,7 +275,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
             mbedtls_snprintf( buf, buflen, "PEM - No PEM header or footer found" );
         if( use_ret == -(MBEDTLS_ERR_PEM_INVALID_DATA) )
             mbedtls_snprintf( buf, buflen, "PEM - PEM string is not as expected" );
-        if( use_ret == -(MBEDTLS_ERR_PEM_MALLOC_FAILED) )
+        if( use_ret == -(MBEDTLS_ERR_PEM_ALLOC_FAILED) )
             mbedtls_snprintf( buf, buflen, "PEM - Failed to allocate memory" );
         if( use_ret == -(MBEDTLS_ERR_PEM_INVALID_ENC_IV) )
             mbedtls_snprintf( buf, buflen, "PEM - RSA IV is not in hex-format" );
@@ -292,7 +292,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
 #endif /* MBEDTLS_PEM_PARSE_C || MBEDTLS_PEM_WRITE_C */
 
 #if defined(MBEDTLS_PK_C)
-        if( use_ret == -(MBEDTLS_ERR_PK_MALLOC_FAILED) )
+        if( use_ret == -(MBEDTLS_ERR_PK_ALLOC_FAILED) )
             mbedtls_snprintf( buf, buflen, "PK - Memory alloation failed" );
         if( use_ret == -(MBEDTLS_ERR_PK_TYPE_MISMATCH) )
             mbedtls_snprintf( buf, buflen, "PK - Type mismatch, eg attempt to encrypt with an ECDSA key" );
@@ -427,7 +427,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
             mbedtls_snprintf( buf, buflen, "SSL - Processing of the ChangeCipherSpec handshake message failed" );
         if( use_ret == -(MBEDTLS_ERR_SSL_BAD_HS_FINISHED) )
             mbedtls_snprintf( buf, buflen, "SSL - Processing of the Finished handshake message failed" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_MALLOC_FAILED) )
+        if( use_ret == -(MBEDTLS_ERR_SSL_ALLOC_FAILED) )
             mbedtls_snprintf( buf, buflen, "SSL - Memory allocation failed" );
         if( use_ret == -(MBEDTLS_ERR_SSL_HW_ACCEL_FAILED) )
             mbedtls_snprintf( buf, buflen, "SSL - Hardware acceleration function returned with error" );
@@ -498,7 +498,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
             mbedtls_snprintf( buf, buflen, "X509 - Format not recognized as DER or PEM" );
         if( use_ret == -(MBEDTLS_ERR_X509_BAD_INPUT_DATA) )
             mbedtls_snprintf( buf, buflen, "X509 - Input invalid" );
-        if( use_ret == -(MBEDTLS_ERR_X509_MALLOC_FAILED) )
+        if( use_ret == -(MBEDTLS_ERR_X509_ALLOC_FAILED) )
             mbedtls_snprintf( buf, buflen, "X509 - Allocation of memory failed" );
         if( use_ret == -(MBEDTLS_ERR_X509_FILE_IO_ERROR) )
             mbedtls_snprintf( buf, buflen, "X509 - Read/write of file failed" );
@@ -551,7 +551,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "ASN1 - Actual length differs from expected length" );
     if( use_ret == -(MBEDTLS_ERR_ASN1_INVALID_DATA) )
         mbedtls_snprintf( buf, buflen, "ASN1 - Data is invalid. (not used)" );
-    if( use_ret == -(MBEDTLS_ERR_ASN1_MALLOC_FAILED) )
+    if( use_ret == -(MBEDTLS_ERR_ASN1_ALLOC_FAILED) )
         mbedtls_snprintf( buf, buflen, "ASN1 - Memory allocation failed" );
     if( use_ret == -(MBEDTLS_ERR_ASN1_BUF_TOO_SMALL) )
         mbedtls_snprintf( buf, buflen, "ASN1 - Buffer too small when writing ASN.1 data structure" );
@@ -579,7 +579,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "BIGNUM - The input argument for division is zero, which is not allowed" );
     if( use_ret == -(MBEDTLS_ERR_MPI_NOT_ACCEPTABLE) )
         mbedtls_snprintf( buf, buflen, "BIGNUM - The input arguments are not acceptable" );
-    if( use_ret == -(MBEDTLS_ERR_MPI_MALLOC_FAILED) )
+    if( use_ret == -(MBEDTLS_ERR_MPI_ALLOC_FAILED) )
         mbedtls_snprintf( buf, buflen, "BIGNUM - Memory allocation failed" );
 #endif /* MBEDTLS_BIGNUM_C */
 

@@ -791,7 +791,7 @@ static int ecp_normalize_jac_many( const mbedtls_ecp_group *grp,
         return( ecp_normalize_jac( grp, *T ) );
 
     if( ( c = mbedtls_calloc( t_len, sizeof( mbedtls_mpi ) ) ) == NULL )
-        return( MBEDTLS_ERR_ECP_MALLOC_FAILED );
+        return( MBEDTLS_ERR_ECP_ALLOC_FAILED );
 
     mbedtls_mpi_init( &u ); mbedtls_mpi_init( &Zi ); mbedtls_mpi_init( &ZZi );
 
@@ -1364,7 +1364,7 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         T = mbedtls_calloc( pre_len, sizeof( mbedtls_ecp_point ) );
         if( T == NULL )
         {
-            ret = MBEDTLS_ERR_ECP_MALLOC_FAILED;
+            ret = MBEDTLS_ERR_ECP_ALLOC_FAILED;
             goto cleanup;
         }
 

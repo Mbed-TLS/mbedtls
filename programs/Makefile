@@ -37,8 +37,7 @@ endif
 
 APPS =	aes/aescrypt2$(EXEXT)		aes/crypt_and_hash$(EXEXT)	\
 	hash/hello$(EXEXT)		hash/generic_sum$(EXEXT)	\
-	hash/md5sum$(EXEXT)		hash/sha1sum$(EXEXT)		\
-	hash/sha2sum$(EXEXT)		pkey/dh_client$(EXEXT)		\
+					pkey/dh_client$(EXEXT)		\
 	pkey/dh_genprime$(EXEXT)	pkey/dh_server$(EXEXT)		\
 	pkey/gen_key$(EXEXT)						\
 	pkey/key_app$(EXEXT)		pkey/key_app_writer$(EXEXT)	\
@@ -84,18 +83,6 @@ hash/hello$(EXEXT): hash/hello.c ../library/libmbedtls.a
 hash/generic_sum$(EXEXT): hash/generic_sum.c ../library/libmbedtls.a
 	echo   "  CC    hash/generic_sum.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) hash/generic_sum.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-hash/md5sum$(EXEXT): hash/md5sum.c ../library/libmbedtls.a
-	echo   "  CC    hash/md5sum.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) hash/md5sum.c      $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-hash/sha1sum$(EXEXT): hash/sha1sum.c ../library/libmbedtls.a
-	echo   "  CC    hash/sha1sum.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) hash/sha1sum.c     $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-hash/sha2sum$(EXEXT): hash/sha2sum.c ../library/libmbedtls.a
-	echo   "  CC    hash/sha2sum.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) hash/sha2sum.c     $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 pkey/dh_client$(EXEXT): pkey/dh_client.c ../library/libmbedtls.a
 	echo   "  CC    pkey/dh_client.c"

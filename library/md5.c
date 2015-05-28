@@ -37,10 +37,6 @@
 
 #include <string.h>
 
-#if defined(MBEDTLS_FS_IO)
-#include <stdio.h>
-#endif
-
 #if defined(MBEDTLS_SELF_TEST)
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -325,40 +321,6 @@ void mbedtls_md5( const unsigned char *input, size_t ilen, unsigned char output[
     mbedtls_md5_finish( &ctx, output );
     mbedtls_md5_free( &ctx );
 }
-
-#if defined(MBEDTLS_FS_IO)
-/*
- * output = MD5( file contents )
- */
-int mbedtls_md5_file( const char *path, unsigned char output[16] )
-{
-    FILE *f;
-    size_t n;
-    mbedtls_md5_context ctx;
-    unsigned char buf[1024];
-
-    if( ( f = fopen( path, "rb" ) ) == NULL )
-        return( MBEDTLS_ERR_MD5_FILE_IO_ERROR );
-
-    mbedtls_md5_init( &ctx );
-    mbedtls_md5_starts( &ctx );
-
-    while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
-        mbedtls_md5_update( &ctx, buf, n );
-
-    mbedtls_md5_finish( &ctx, output );
-    mbedtls_md5_free( &ctx );
-
-    if( ferror( f ) != 0 )
-    {
-        fclose( f );
-        return( MBEDTLS_ERR_MD5_FILE_IO_ERROR );
-    }
-
-    fclose( f );
-    return( 0 );
-}
-#endif /* MBEDTLS_FS_IO */
 
 #if defined(MBEDTLS_SELF_TEST)
 /*

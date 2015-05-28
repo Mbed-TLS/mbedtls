@@ -33,8 +33,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define MBEDTLS_ERR_MD5_FILE_IO_ERROR                 -0x0074  /**< Read/write error in file. */
-
 #if !defined(MBEDTLS_MD5_ALT)
 // Regular implementation
 //
@@ -115,16 +113,6 @@ extern "C" {
  * \param output   MD5 checksum result
  */
 void mbedtls_md5( const unsigned char *input, size_t ilen, unsigned char output[16] );
-
-/**
- * \brief          Output = MD5( file contents )
- *
- * \param path     input file name
- * \param output   MD5 checksum result
- *
- * \return         0 if successful, or MBEDTLS_ERR_MD5_FILE_IO_ERROR
- */
-int mbedtls_md5_file( const char *path, unsigned char output[16] );
 
 /**
  * \brief          Checkup routine

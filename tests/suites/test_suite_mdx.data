@@ -85,57 +85,6 @@ ripemd160_text:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":
 mbedtls_ripemd160 Test vector from paper #8
 ripemd160_text:"12345678901234567890123456789012345678901234567890123456789012345678901234567890":"9b752e45573d4b39f4dbd3323cab82bf63326bfb"
 
-MD2 Hash file #1
-mbedtls_md2_file:"data_files/hash_file_1":"b593c098712d2e21628c8986695451a8"
-
-MD2 Hash file #2
-mbedtls_md2_file:"data_files/hash_file_2":"3c027b7409909a4c4b26bbab69ad9f4f"
-
-MD2 Hash file #3
-mbedtls_md2_file:"data_files/hash_file_3":"6bb43eb285e81f414083a94cdbe2989d"
-
-MD2 Hash file #4
-mbedtls_md2_file:"data_files/hash_file_4":"8350e5a3e24c153df2275c9f80692773"
-
-MD4 Hash file #1
-mbedtls_md4_file:"data_files/hash_file_1":"8d19772c176bd27153b9486715e2c0b9"
-
-MD4 Hash file #2
-mbedtls_md4_file:"data_files/hash_file_2":"f2ac53b8542882a5a0007c6f84b4d9fd"
-
-MD4 Hash file #3
-mbedtls_md4_file:"data_files/hash_file_3":"195c15158e2d07881d9a654095ce4a42"
-
-MD4 Hash file #4
-mbedtls_md4_file:"data_files/hash_file_4":"31d6cfe0d16ae931b73c59d7e0c089c0"
-
-MD5 Hash file #1
-mbedtls_md5_file:"data_files/hash_file_1":"52bcdc983c9ed64fc148a759b3c7a415"
-
-MD5 Hash file #2
-mbedtls_md5_file:"data_files/hash_file_2":"d17d466f15891df10542207ae78277f0"
-
-MD5 Hash file #3
-mbedtls_md5_file:"data_files/hash_file_3":"d945bcc6200ea95d061a2a818167d920"
-
-MD5 Hash file #4
-mbedtls_md5_file:"data_files/hash_file_4":"d41d8cd98f00b204e9800998ecf8427e"
-
-RIPEMD160 Hash file #0 (from paper)
-mbedtls_ripemd160_file:"data_files/hash_file_5":"52783243c1697bdbe16d37f97f68f08325dc1528"
-
-RIPEMD160 Hash file #1
-mbedtls_ripemd160_file:"data_files/hash_file_1":"82f1d072f0ec0c2b353703a7b575a04c113af1a6"
-
-RIPEMD160 Hash file #2
-mbedtls_ripemd160_file:"data_files/hash_file_2":"996fbc8b79206ba7393ebcd246584069b1c08f0f"
-
-RIPEMD160 Hash file #3
-mbedtls_ripemd160_file:"data_files/hash_file_3":"8653b46d65998fa8c8846efa17937e742533ae48"
-
-RIPEMD160 Hash file #4
-mbedtls_ripemd160_file:"data_files/hash_file_4":"9c1185a5c5e9fc54612808977ee8f548b2258d31"
-
 MD2 Selftest
 md2_selftest:
 

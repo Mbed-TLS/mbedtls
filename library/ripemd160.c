@@ -38,10 +38,6 @@
 
 #include <string.h>
 
-#if defined(MBEDTLS_FS_IO)
-#include <stdio.h>
-#endif
-
 #if defined(MBEDTLS_SELF_TEST)
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -383,40 +379,6 @@ void mbedtls_ripemd160( const unsigned char *input, size_t ilen,
     mbedtls_ripemd160_finish( &ctx, output );
     mbedtls_ripemd160_free( &ctx );
 }
-
-#if defined(MBEDTLS_FS_IO)
-/*
- * output = RIPEMD-160( file contents )
- */
-int mbedtls_ripemd160_file( const char *path, unsigned char output[20] )
-{
-    FILE *f;
-    size_t n;
-    mbedtls_ripemd160_context ctx;
-    unsigned char buf[1024];
-
-    if( ( f = fopen( path, "rb" ) ) == NULL )
-        return( MBEDTLS_ERR_RIPEMD160_FILE_IO_ERROR );
-
-    mbedtls_ripemd160_init( &ctx );
-    mbedtls_ripemd160_starts( &ctx );
-
-    while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
-        mbedtls_ripemd160_update( &ctx, buf, n );
-
-    mbedtls_ripemd160_finish( &ctx, output );
-    mbedtls_ripemd160_free( &ctx );
-
-    if( ferror( f ) != 0 )
-    {
-        fclose( f );
-        return( MBEDTLS_ERR_RIPEMD160_FILE_IO_ERROR );
-    }
-
-    fclose( f );
-    return( 0 );
-}
-#endif /* MBEDTLS_FS_IO */
 
 #if defined(MBEDTLS_SELF_TEST)
 /*

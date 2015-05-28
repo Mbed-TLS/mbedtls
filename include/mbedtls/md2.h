@@ -32,8 +32,6 @@
 
 #include <stddef.h>
 
-#define MBEDTLS_ERR_MD2_FILE_IO_ERROR                 -0x0070  /**< Read/write error in file. */
-
 #if !defined(MBEDTLS_MD2_ALT)
 // Regular implementation
 //
@@ -112,16 +110,6 @@ extern "C" {
  * \param output   MD2 checksum result
  */
 void mbedtls_md2( const unsigned char *input, size_t ilen, unsigned char output[16] );
-
-/**
- * \brief          Output = MD2( file contents )
- *
- * \param path     input file name
- * \param output   MD2 checksum result
- *
- * \return         0 if successful, or MBEDTLS_ERR_MD2_FILE_IO_ERROR
- */
-int mbedtls_md2_file( const char *path, unsigned char output[16] );
 
 /**
  * \brief          Checkup routine

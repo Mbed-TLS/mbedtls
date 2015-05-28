@@ -81,9 +81,9 @@ Removals
    * Removed mbedtls_ecp_group_read_string(). Only named groups are supported.
    * Removed mbedtls_ecp_sub() and mbedtls_ecp_add(), use
      mbedtls_ecp_muladd().
-   * Removed individual mdX_hmac and shaX_hmac functions (use generic
-     md_hmac functions from md.h)
-   * Removed mbedtls_timing_msleep(). Use mbedtls_timing_usleep() or a custom
+   * Removed individual mdX_hmac, shaX_hmac, mdX_file and shaX_file functions
+     (use generic functions from md.h)
+   * Removed mbedtls_timing_msleep(). Use mbedtls_net_usleep() or a custom
      waiting function.
    * Removed the PBKDF2 module (use PKCS5).
    * Removed POLARSSL_ERROR_STRERROR_BC (use mbedtls_strerror()).

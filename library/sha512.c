@@ -43,10 +43,6 @@
 
 #include <string.h>
 
-#if defined(MBEDTLS_FS_IO)
-#include <stdio.h>
-#endif
-
 #if defined(MBEDTLS_SELF_TEST)
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -365,40 +361,6 @@ void mbedtls_sha512( const unsigned char *input, size_t ilen,
     mbedtls_sha512_finish( &ctx, output );
     mbedtls_sha512_free( &ctx );
 }
-
-#if defined(MBEDTLS_FS_IO)
-/*
- * output = SHA-512( file contents )
- */
-int mbedtls_sha512_file( const char *path, unsigned char output[64], int is384 )
-{
-    FILE *f;
-    size_t n;
-    mbedtls_sha512_context ctx;
-    unsigned char buf[1024];
-
-    if( ( f = fopen( path, "rb" ) ) == NULL )
-        return( MBEDTLS_ERR_SHA512_FILE_IO_ERROR );
-
-    mbedtls_sha512_init( &ctx );
-    mbedtls_sha512_starts( &ctx, is384 );
-
-    while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
-        mbedtls_sha512_update( &ctx, buf, n );
-
-    mbedtls_sha512_finish( &ctx, output );
-    mbedtls_sha512_free( &ctx );
-
-    if( ferror( f ) != 0 )
-    {
-        fclose( f );
-        return( MBEDTLS_ERR_SHA512_FILE_IO_ERROR );
-    }
-
-    fclose( f );
-    return( 0 );
-}
-#endif /* MBEDTLS_FS_IO */
 
 #if defined(MBEDTLS_SELF_TEST)
 

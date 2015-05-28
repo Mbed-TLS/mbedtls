@@ -33,8 +33,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define MBEDTLS_ERR_RIPEMD160_FILE_IO_ERROR              -0x007E  /**< Read/write error in file. */
-
 #if !defined(MBEDTLS_RIPEMD160_ALT)
 // Regular implementation
 //
@@ -117,18 +115,6 @@ extern "C" {
  */
 void mbedtls_ripemd160( const unsigned char *input, size_t ilen,
                 unsigned char output[20] );
-
-#if defined(MBEDTLS_FS_IO)
-/**
- * \brief          Output = RIPEMD-160( file contents )
- *
- * \param path     input file name
- * \param output   RIPEMD-160 checksum result
- *
- * \return         0 if successful, or MBEDTLS_ERR_RIPEMD160_FILE_IO_ERROR
- */
-int mbedtls_ripemd160_file( const char *path, unsigned char output[20] );
-#endif /* MBEDTLS_FS_IO */
 
 /**
  * \brief          Checkup routine

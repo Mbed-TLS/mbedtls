@@ -33,8 +33,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define MBEDTLS_ERR_MD4_FILE_IO_ERROR                 -0x0072  /**< Read/write error in file. */
-
 #if !defined(MBEDTLS_MD4_ALT)
 // Regular implementation
 //
@@ -112,16 +110,6 @@ extern "C" {
  * \param output   MD4 checksum result
  */
 void mbedtls_md4( const unsigned char *input, size_t ilen, unsigned char output[16] );
-
-/**
- * \brief          Output = MD4( file contents )
- *
- * \param path     input file name
- * \param output   MD4 checksum result
- *
- * \return         0 if successful, or MBEDTLS_ERR_MD4_FILE_IO_ERROR
- */
-int mbedtls_md4_file( const char *path, unsigned char output[16] );
 
 /**
  * \brief          Checkup routine

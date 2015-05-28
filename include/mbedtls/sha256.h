@@ -33,8 +33,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define MBEDTLS_ERR_SHA256_FILE_IO_ERROR              -0x0078  /**< Read/write error in file. */
-
 #if !defined(MBEDTLS_SHA256_ALT)
 // Regular implementation
 //
@@ -120,17 +118,6 @@ extern "C" {
  */
 void mbedtls_sha256( const unsigned char *input, size_t ilen,
            unsigned char output[32], int is224 );
-
-/**
- * \brief          Output = SHA-256( file contents )
- *
- * \param path     input file name
- * \param output   SHA-224/256 checksum result
- * \param is224    0 = use SHA256, 1 = use SHA224
- *
- * \return         0 if successful, or MBEDTLS_ERR_SHA256_FILE_IO_ERROR
- */
-int mbedtls_sha256_file( const char *path, unsigned char output[32], int is224 );
 
 /**
  * \brief          Checkup routine

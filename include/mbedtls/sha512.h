@@ -33,8 +33,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define MBEDTLS_ERR_SHA512_FILE_IO_ERROR              -0x007A  /**< Read/write error in file. */
-
 #if !defined(MBEDTLS_SHA512_ALT)
 // Regular implementation
 //
@@ -117,17 +115,6 @@ extern "C" {
  */
 void mbedtls_sha512( const unsigned char *input, size_t ilen,
              unsigned char output[64], int is384 );
-
-/**
- * \brief          Output = SHA-512( file contents )
- *
- * \param path     input file name
- * \param output   SHA-384/512 checksum result
- * \param is384    0 = use SHA512, 1 = use SHA384
- *
- * \return         0 if successful, or MBEDTLS_ERR_SHA512_FILE_IO_ERROR
- */
-int mbedtls_sha512_file( const char *path, unsigned char output[64], int is384 );
 
 /**
  * \brief          Checkup routine

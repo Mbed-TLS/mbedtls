@@ -55,11 +55,6 @@
 #define mbedtls_free       free
 #endif
 
-#if defined(_MSC_VER) && !defined strcasecmp && !defined(EFIX64) && \
-    !defined(EFI32)
-#define strcasecmp _stricmp
-#endif
-
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;

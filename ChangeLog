@@ -124,6 +124,12 @@ Default behavior changes
      custom config.h
    * Default DHM parameters server-side upgraded from 1024 to 2048 bits.
    * Negotiation of truncated HMAC is now disabled by default on server too.
+   * The following functions are now case-sensitive:
+     mbedtls_cipher_info_from_string()
+     mbedtls_ecp_curve_info_from_name()
+     mbedtls_md_info_from_string()
+     mbedtls_ssl_ciphersuite_from_string()
+     mbedtls_version_check_feature()
 
 Requirement changes
    * The minimum MSVC version required is now 2010 (better C99 support).

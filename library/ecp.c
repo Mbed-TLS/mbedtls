@@ -63,11 +63,6 @@
 #define mbedtls_free       free
 #endif
 
-#if defined(_MSC_VER) && !defined strcasecmp && !defined(EFIX64) && \
-    !defined(EFI32)
-#define strcasecmp _stricmp
-#endif
-
 #if defined(_MSC_VER) && !defined(inline)
 #define inline _inline
 #else
@@ -254,7 +249,7 @@ const mbedtls_ecp_curve_info *mbedtls_ecp_curve_info_from_name( const char *name
          curve_info->grp_id != MBEDTLS_ECP_DP_NONE;
          curve_info++ )
     {
-        if( strcasecmp( curve_info->name, name ) == 0 )
+        if( strcmp( curve_info->name, name ) == 0 )
             return( curve_info );
     }
 

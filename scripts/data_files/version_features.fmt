@@ -32,11 +32,6 @@
 
 #include <string.h>
 
-#if defined(_MSC_VER) && !defined strcasecmp && !defined(EFIX64) && \
-    !defined(EFI32)
-#define strcasecmp _stricmp
-#endif
-
 static const char *features[] = {
 #if defined(MBEDTLS_VERSION_FEATURES)
 FEATURE_DEFINES
@@ -56,7 +51,7 @@ int mbedtls_version_check_feature( const char *feature )
 
     while( *idx != NULL )
     {
-        if( !strcasecmp( *idx, feature ) )
+        if( !strcmp( *idx, feature ) )
             return( 0 );
         idx++;
     }

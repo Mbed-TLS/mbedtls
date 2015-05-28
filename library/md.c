@@ -101,35 +101,35 @@ const mbedtls_md_info_t *mbedtls_md_info_from_string( const char *md_name )
 
     /* Get the appropriate digest information */
 #if defined(MBEDTLS_MD2_C)
-    if( !strcasecmp( "MD2", md_name ) )
+    if( !strcmp( "MD2", md_name ) )
         return mbedtls_md_info_from_type( MBEDTLS_MD_MD2 );
 #endif
 #if defined(MBEDTLS_MD4_C)
-    if( !strcasecmp( "MD4", md_name ) )
+    if( !strcmp( "MD4", md_name ) )
         return mbedtls_md_info_from_type( MBEDTLS_MD_MD4 );
 #endif
 #if defined(MBEDTLS_MD5_C)
-    if( !strcasecmp( "MD5", md_name ) )
+    if( !strcmp( "MD5", md_name ) )
         return mbedtls_md_info_from_type( MBEDTLS_MD_MD5 );
 #endif
 #if defined(MBEDTLS_RIPEMD160_C)
-    if( !strcasecmp( "RIPEMD160", md_name ) )
+    if( !strcmp( "RIPEMD160", md_name ) )
         return mbedtls_md_info_from_type( MBEDTLS_MD_RIPEMD160 );
 #endif
 #if defined(MBEDTLS_SHA1_C)
-    if( !strcasecmp( "SHA1", md_name ) || !strcasecmp( "SHA", md_name ) )
+    if( !strcmp( "SHA1", md_name ) || !strcmp( "SHA", md_name ) )
         return mbedtls_md_info_from_type( MBEDTLS_MD_SHA1 );
 #endif
 #if defined(MBEDTLS_SHA256_C)
-    if( !strcasecmp( "SHA224", md_name ) )
+    if( !strcmp( "SHA224", md_name ) )
         return mbedtls_md_info_from_type( MBEDTLS_MD_SHA224 );
-    if( !strcasecmp( "SHA256", md_name ) )
+    if( !strcmp( "SHA256", md_name ) )
         return mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 );
 #endif
 #if defined(MBEDTLS_SHA512_C)
-    if( !strcasecmp( "SHA384", md_name ) )
+    if( !strcmp( "SHA384", md_name ) )
         return mbedtls_md_info_from_type( MBEDTLS_MD_SHA384 );
-    if( !strcasecmp( "SHA512", md_name ) )
+    if( !strcmp( "SHA512", md_name ) )
         return mbedtls_md_info_from_type( MBEDTLS_MD_SHA512 );
 #endif
     return( NULL );

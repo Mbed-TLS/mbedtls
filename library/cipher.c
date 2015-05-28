@@ -50,11 +50,6 @@
 #define MBEDTLS_CIPHER_MODE_STREAM
 #endif
 
-#if defined(_MSC_VER) && !defined strcasecmp && !defined(EFIX64) && \
-    !defined(EFI32)
-#define strcasecmp _stricmp
-#endif
-
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
@@ -102,7 +97,7 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_string( const char *cipher
         return( NULL );
 
     for( def = mbedtls_cipher_definitions; def->info != NULL; def++ )
-        if( !  strcasecmp( def->info->name, cipher_name ) )
+        if( !  strcmp( def->info->name, cipher_name ) )
             return( def->info );
 
     return( NULL );

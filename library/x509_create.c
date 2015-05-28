@@ -34,11 +34,6 @@
 
 #include <string.h>
 
-#if defined(_MSC_VER) && !defined strncasecmp && !defined(EFIX64) && \
-    !defined(EFI32)
-#define strncasecmp _strnicmp
-#endif
-
 typedef struct {
     const char *name;
     size_t name_len;
@@ -86,7 +81,7 @@ static const char *x509_at_oid_from_name( const char *name, size_t name_len )
 
     for( cur = x509_attrs; cur->name != NULL; cur++ )
         if( cur->name_len == name_len &&
-            strncasecmp( cur->name, name, name_len ) == 0 )
+            strncmp( cur->name, name, name_len ) == 0 )
             break;
 
     return( cur->oid );

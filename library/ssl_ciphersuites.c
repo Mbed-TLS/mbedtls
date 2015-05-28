@@ -36,11 +36,6 @@
 // #include <stdlib.h>
 #include <string.h>
 
-#if defined(_MSC_VER) && !defined strcasecmp && !defined(EFIX64) && \
-    !defined(EFI32)
-#define strcasecmp _stricmp
-#endif
-
 /*
  * Ordered from most preferred to least preferred in terms of security.
  *
@@ -1733,7 +1728,7 @@ const mbedtls_ssl_ciphersuite_t *mbedtls_ssl_ciphersuite_from_string(
 
     while( cur->id != 0 )
     {
-        if( 0 == strcasecmp( cur->name, ciphersuite_name ) )
+        if( 0 == strcmp( cur->name, ciphersuite_name ) )
             return( cur );
 
         cur++;

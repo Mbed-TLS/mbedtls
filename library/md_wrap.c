@@ -93,17 +93,6 @@ static void md2_finish_wrap( void *ctx, unsigned char *output )
     mbedtls_md2_finish( (mbedtls_md2_context *) ctx, output );
 }
 
-static int md2_file_wrap( const char *path, unsigned char *output )
-{
-#if defined(MBEDTLS_FS_IO)
-    return mbedtls_md2_file( path, output );
-#else
-    ((void) path);
-    ((void) output);
-    return( MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE );
-#endif
-}
-
 static void * md2_ctx_alloc( void )
 {
     return mbedtls_calloc( 1, sizeof( mbedtls_md2_context ) );
@@ -131,7 +120,6 @@ const mbedtls_md_info_t mbedtls_md2_info = {
     md2_update_wrap,
     md2_finish_wrap,
     mbedtls_md2,
-    md2_file_wrap,
     md2_ctx_alloc,
     md2_ctx_free,
     md2_process_wrap,
@@ -155,17 +143,6 @@ static void md4_update_wrap( void *ctx, const unsigned char *input,
 static void md4_finish_wrap( void *ctx, unsigned char *output )
 {
     mbedtls_md4_finish( (mbedtls_md4_context *) ctx, output );
-}
-
-static int md4_file_wrap( const char *path, unsigned char *output )
-{
-#if defined(MBEDTLS_FS_IO)
-    return mbedtls_md4_file( path, output );
-#else
-    ((void) path);
-    ((void) output);
-    return( MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE );
-#endif
 }
 
 static void *md4_ctx_alloc( void )
@@ -193,7 +170,6 @@ const mbedtls_md_info_t mbedtls_md4_info = {
     md4_update_wrap,
     md4_finish_wrap,
     mbedtls_md4,
-    md4_file_wrap,
     md4_ctx_alloc,
     md4_ctx_free,
     md4_process_wrap,
@@ -217,17 +193,6 @@ static void md5_update_wrap( void *ctx, const unsigned char *input,
 static void md5_finish_wrap( void *ctx, unsigned char *output )
 {
     mbedtls_md5_finish( (mbedtls_md5_context *) ctx, output );
-}
-
-static int md5_file_wrap( const char *path, unsigned char *output )
-{
-#if defined(MBEDTLS_FS_IO)
-    return mbedtls_md5_file( path, output );
-#else
-    ((void) path);
-    ((void) output);
-    return( MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE );
-#endif
 }
 
 static void * md5_ctx_alloc( void )
@@ -255,7 +220,6 @@ const mbedtls_md_info_t mbedtls_md5_info = {
     md5_update_wrap,
     md5_finish_wrap,
     mbedtls_md5,
-    md5_file_wrap,
     md5_ctx_alloc,
     md5_ctx_free,
     md5_process_wrap,
@@ -279,17 +243,6 @@ static void ripemd160_update_wrap( void *ctx, const unsigned char *input,
 static void ripemd160_finish_wrap( void *ctx, unsigned char *output )
 {
     mbedtls_ripemd160_finish( (mbedtls_ripemd160_context *) ctx, output );
-}
-
-static int ripemd160_file_wrap( const char *path, unsigned char *output )
-{
-#if defined(MBEDTLS_FS_IO)
-    return mbedtls_ripemd160_file( path, output );
-#else
-    ((void) path);
-    ((void) output);
-    return( MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE );
-#endif
 }
 
 static void * ripemd160_ctx_alloc( void )
@@ -325,7 +278,6 @@ const mbedtls_md_info_t mbedtls_ripemd160_info = {
     ripemd160_update_wrap,
     ripemd160_finish_wrap,
     mbedtls_ripemd160,
-    ripemd160_file_wrap,
     ripemd160_ctx_alloc,
     ripemd160_ctx_free,
     ripemd160_process_wrap,
@@ -349,17 +301,6 @@ static void sha1_update_wrap( void *ctx, const unsigned char *input,
 static void sha1_finish_wrap( void *ctx, unsigned char *output )
 {
     mbedtls_sha1_finish( (mbedtls_sha1_context *) ctx, output );
-}
-
-static int sha1_file_wrap( const char *path, unsigned char *output )
-{
-#if defined(MBEDTLS_FS_IO)
-    return mbedtls_sha1_file( path, output );
-#else
-    ((void) path);
-    ((void) output);
-    return( MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE );
-#endif
 }
 
 static void * sha1_ctx_alloc( void )
@@ -395,7 +336,6 @@ const mbedtls_md_info_t mbedtls_sha1_info = {
     sha1_update_wrap,
     sha1_finish_wrap,
     mbedtls_sha1,
-    sha1_file_wrap,
     sha1_ctx_alloc,
     sha1_ctx_free,
     sha1_process_wrap,
@@ -430,17 +370,6 @@ static void sha224_wrap( const unsigned char *input, size_t ilen,
     mbedtls_sha256( input, ilen, output, 1 );
 }
 
-static int sha224_file_wrap( const char *path, unsigned char *output )
-{
-#if defined(MBEDTLS_FS_IO)
-    return mbedtls_sha256_file( path, output, 1 );
-#else
-    ((void) path);
-    ((void) output);
-    return( MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE );
-#endif
-}
-
 static void * sha224_ctx_alloc( void )
 {
     return mbedtls_calloc( 1, sizeof( mbedtls_sha256_context ) );
@@ -466,7 +395,6 @@ const mbedtls_md_info_t mbedtls_sha224_info = {
     sha224_update_wrap,
     sha224_finish_wrap,
     sha224_wrap,
-    sha224_file_wrap,
     sha224_ctx_alloc,
     sha224_ctx_free,
     sha224_process_wrap,
@@ -492,17 +420,6 @@ static void sha256_wrap( const unsigned char *input, size_t ilen,
                     unsigned char *output )
 {
     mbedtls_sha256( input, ilen, output, 0 );
-}
-
-static int sha256_file_wrap( const char *path, unsigned char *output )
-{
-#if defined(MBEDTLS_FS_IO)
-    return mbedtls_sha256_file( path, output, 0 );
-#else
-    ((void) path);
-    ((void) output);
-    return( MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE );
-#endif
 }
 
 static void * sha256_ctx_alloc( void )
@@ -538,7 +455,6 @@ const mbedtls_md_info_t mbedtls_sha256_info = {
     sha256_update_wrap,
     sha256_finish_wrap,
     sha256_wrap,
-    sha256_file_wrap,
     sha256_ctx_alloc,
     sha256_ctx_free,
     sha256_process_wrap,
@@ -570,17 +486,6 @@ static void sha384_wrap( const unsigned char *input, size_t ilen,
     mbedtls_sha512( input, ilen, output, 1 );
 }
 
-static int sha384_file_wrap( const char *path, unsigned char *output )
-{
-#if defined(MBEDTLS_FS_IO)
-    return mbedtls_sha512_file( path, output, 1 );
-#else
-    ((void) path);
-    ((void) output);
-    return( MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE );
-#endif
-}
-
 static void * sha384_ctx_alloc( void )
 {
     return mbedtls_calloc( 1, sizeof( mbedtls_sha512_context ) );
@@ -606,7 +511,6 @@ const mbedtls_md_info_t mbedtls_sha384_info = {
     sha384_update_wrap,
     sha384_finish_wrap,
     sha384_wrap,
-    sha384_file_wrap,
     sha384_ctx_alloc,
     sha384_ctx_free,
     sha384_process_wrap,
@@ -632,17 +536,6 @@ static void sha512_wrap( const unsigned char *input, size_t ilen,
                     unsigned char *output )
 {
     mbedtls_sha512( input, ilen, output, 0 );
-}
-
-static int sha512_file_wrap( const char *path, unsigned char *output )
-{
-#if defined(MBEDTLS_FS_IO)
-    return mbedtls_sha512_file( path, output, 0 );
-#else
-    ((void) path);
-    ((void) output);
-    return( MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE );
-#endif
 }
 
 static void * sha512_ctx_alloc( void )
@@ -678,7 +571,6 @@ const mbedtls_md_info_t mbedtls_sha512_info = {
     sha512_update_wrap,
     sha512_finish_wrap,
     sha512_wrap,
-    sha512_file_wrap,
     sha512_ctx_alloc,
     sha512_ctx_free,
     sha512_process_wrap,

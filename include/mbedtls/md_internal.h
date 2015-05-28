@@ -71,9 +71,6 @@ struct mbedtls_md_info_t
     void (*digest_func)( const unsigned char *input, size_t ilen,
                          unsigned char *output );
 
-    /** Generic file digest function */
-    int (*file_func)( const char *path, unsigned char *output );
-
     /** Allocate a new context */
     void * (*ctx_alloc_func)( void );
 

@@ -68,7 +68,9 @@ void md_null_args( )
 
     TEST_ASSERT( mbedtls_md( NULL, buf, 1, buf ) == MBEDTLS_ERR_MD_BAD_INPUT_DATA );
 
+#if defined(MBEDTLS_FS_IO)
     TEST_ASSERT( mbedtls_md_file( NULL, "", buf ) == MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+#endif
 
     TEST_ASSERT( mbedtls_md_hmac_starts( NULL, buf, 1 )
                  == MBEDTLS_ERR_MD_BAD_INPUT_DATA );

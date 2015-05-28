@@ -247,6 +247,7 @@ int mbedtls_md_finish( mbedtls_md_context_t *ctx, unsigned char *output );
 int mbedtls_md( const mbedtls_md_info_t *md_info, const unsigned char *input, size_t ilen,
         unsigned char *output );
 
+#if defined(MBEDTLS_FS_IO)
 /**
  * \brief          Output = message_digest( file contents )
  *
@@ -259,7 +260,8 @@ int mbedtls_md( const mbedtls_md_info_t *md_info, const unsigned char *input, si
  *                 MBEDTLS_ERR_MD_BAD_INPUT_DATA if md_info was NULL.
  */
 int mbedtls_md_file( const mbedtls_md_info_t *md_info, const char *path,
-             unsigned char *output );
+                     unsigned char *output );
+#endif /* MBEDTLS_FS_IO */
 
 /**
  * \brief           Set HMAC key and prepare to authenticate a new message.

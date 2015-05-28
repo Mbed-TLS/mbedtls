@@ -45,9 +45,8 @@
 
 #include <string.h>
 
-#if defined(_MSC_VER) && !defined strcasecmp && !defined(EFIX64) && \
-    !defined(EFI32)
-#define strcasecmp  _stricmp
+#if defined(MBEDTLS_FS_IO)
+#include <stdio.h>
 #endif
 
 /* Implementation that should never be optimized out by the compiler */
@@ -270,28 +269,49 @@ int mbedtls_md( const mbedtls_md_info_t *md_info, const unsigned char *input, si
     return( 0 );
 }
 
+#if defined(MBEDTLS_FS_IO)
 int mbedtls_md_file( const mbedtls_md_info_t *md_info, const char *path, unsigned char *output )
 {
-#if defined(MBEDTLS_FS_IO)
     int ret;
-#endif
+    FILE *f;
+    size_t n;
+    mbedtls_md_context_t ctx;
+    unsigned char buf[1024];
 
     if( md_info == NULL )
         return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
 
-#if defined(MBEDTLS_FS_IO)
-    ret = md_info->file_func( path, output );
-    if( ret != 0 )
-        return( MBEDTLS_ERR_MD_FILE_IO_ERROR + ret );
+    mbedtls_md_init( &ctx );
+
+    if( ( f = fopen( path, "rb" ) ) == NULL )
+    {
+        ret = MBEDTLS_ERR_MD_FILE_IO_ERROR;
+        goto cleanup;
+    }
+
+    if( ( ret = mbedtls_md_setup( &ctx, md_info, 0 ) ) != 0 )
+        goto cleanup;
+
+    md_info->starts_func( ctx.md_ctx );
+
+    while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
+        md_info->update_func( ctx.md_ctx, buf, n );
+
+    if( ferror( f ) != 0 )
+    {
+        ret = MBEDTLS_ERR_MD_FILE_IO_ERROR;
+        goto cleanup;
+    }
+
+    md_info->finish_func( ctx.md_ctx, output );
+
+cleanup:
+    fclose( f );
+    mbedtls_md_free( &ctx );
 
     return( ret );
-#else
-    ((void) path);
-    ((void) output);
-
-    return( MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE );
-#endif /* MBEDTLS_FS_IO */
 }
+#endif /* MBEDTLS_FS_IO */
 
 int mbedtls_md_hmac_starts( mbedtls_md_context_t *ctx, const unsigned char *key, size_t keylen )
 {

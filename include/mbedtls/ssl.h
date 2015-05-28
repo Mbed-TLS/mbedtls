@@ -1141,7 +1141,7 @@ typedef int mbedtls_ssl_cookie_check_t( void *ctx,
  * \brief           Register callbacks for DTLS cookies
  *                  (Server only. DTLS only.)
  *
- *                  Default: dummy callbacks that fail, to force you to
+ *                  Default: dummy callbacks that fail, in order to force you to
  *                  register working callbacks (and initialize their context).
  *
  *                  To disable HelloVerifyRequest, register NULL callbacks.
@@ -1150,6 +1150,10 @@ typedef int mbedtls_ssl_cookie_check_t( void *ctx,
  *                  for amplification in DoS attacks against other hosts.
  *                  Only disable if you known this can't happen in your
  *                  particular environment.
+ *
+ * \note            See comments on \c mbedtls_ssl_handshake() about handling
+ *                  the MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED that is expected
+ *                  on the first handshake attempt when this is enabled.
  *
  * \param conf              SSL configuration
  * \param f_cookie_write    Cookie write callback
@@ -1980,6 +1984,13 @@ int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl, mbedtls_ssl_session
  *
  * \return         0 if successful, MBEDTLS_ERR_SSL_WANT_READ,
  *                 MBEDTLS_ERR_SSL_WANT_WRITE, or a specific SSL error code.
+ *
+ * \note           If this function returns non-zero, then the ssl context
+ *                 becomes unusable, and you should either free it or call
+ *                 \c mbedtls_ssl_session_reset() on it before re-using it.
+ *                 If DTLS is in use, then you may choose to handle
+ *                 MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED specially for logging
+ *                 purposes, but you still need to reset/free the context.
  */
 int mbedtls_ssl_handshake( mbedtls_ssl_context *ssl );
 

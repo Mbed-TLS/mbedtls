@@ -130,27 +130,25 @@ void mbedtls_sha256_starts( mbedtls_sha256_context *ctx, int is224 )
 }
 
 #if !defined(MBEDTLS_SHA256_PROCESS_ALT)
-void mbedtls_sha256_process( mbedtls_sha256_context *ctx, const unsigned char data[64] )
+static const uint32_t K[] =
 {
-    uint32_t temp1, temp2, W[64];
-    uint32_t A, B, C, D, E, F, G, H;
-
-    GET_UINT32_BE( W[ 0], data,  0 );
-    GET_UINT32_BE( W[ 1], data,  4 );
-    GET_UINT32_BE( W[ 2], data,  8 );
-    GET_UINT32_BE( W[ 3], data, 12 );
-    GET_UINT32_BE( W[ 4], data, 16 );
-    GET_UINT32_BE( W[ 5], data, 20 );
-    GET_UINT32_BE( W[ 6], data, 24 );
-    GET_UINT32_BE( W[ 7], data, 28 );
-    GET_UINT32_BE( W[ 8], data, 32 );
-    GET_UINT32_BE( W[ 9], data, 36 );
-    GET_UINT32_BE( W[10], data, 40 );
-    GET_UINT32_BE( W[11], data, 44 );
-    GET_UINT32_BE( W[12], data, 48 );
-    GET_UINT32_BE( W[13], data, 52 );
-    GET_UINT32_BE( W[14], data, 56 );
-    GET_UINT32_BE( W[15], data, 60 );
+    0x428A2F98, 0x71374491, 0xB5C0FBCF, 0xE9B5DBA5,
+    0x3956C25B, 0x59F111F1, 0x923F82A4, 0xAB1C5ED5,
+    0xD807AA98, 0x12835B01, 0x243185BE, 0x550C7DC3,
+    0x72BE5D74, 0x80DEB1FE, 0x9BDC06A7, 0xC19BF174,
+    0xE49B69C1, 0xEFBE4786, 0x0FC19DC6, 0x240CA1CC,
+    0x2DE92C6F, 0x4A7484AA, 0x5CB0A9DC, 0x76F988DA,
+    0x983E5152, 0xA831C66D, 0xB00327C8, 0xBF597FC7,
+    0xC6E00BF3, 0xD5A79147, 0x06CA6351, 0x14292967,
+    0x27B70A85, 0x2E1B2138, 0x4D2C6DFC, 0x53380D13,
+    0x650A7354, 0x766A0ABB, 0x81C2C92E, 0x92722C85,
+    0xA2BFE8A1, 0xA81A664B, 0xC24B8B70, 0xC76C51A3,
+    0xD192E819, 0xD6990624, 0xF40E3585, 0x106AA070,
+    0x19A4C116, 0x1E376C08, 0x2748774C, 0x34B0BCB5,
+    0x391C0CB3, 0x4ED8AA4A, 0x5B9CCA4F, 0x682E6FF3,
+    0x748F82EE, 0x78A5636F, 0x84C87814, 0x8CC70208,
+    0x90BEFFFA, 0xA4506CEB, 0xBEF9A3F7, 0xC67178F2,
+};
 
 #define  SHR(x,n) ((x & 0xFFFFFFFF) >> n)
 #define ROTR(x,n) (SHR(x,n) | (x << (32 - n)))
@@ -177,88 +175,44 @@ void mbedtls_sha256_process( mbedtls_sha256_context *ctx, const unsigned char da
     d += temp1; h = temp1 + temp2;              \
 }
 
-    A = ctx->state[0];
-    B = ctx->state[1];
-    C = ctx->state[2];
-    D = ctx->state[3];
-    E = ctx->state[4];
-    F = ctx->state[5];
-    G = ctx->state[6];
-    H = ctx->state[7];
+void mbedtls_sha256_process( mbedtls_sha256_context *ctx, const unsigned char data[64] )
+{
+    uint32_t temp1, temp2, W[64];
+    uint32_t A[8];
+    unsigned int i;
 
-    P( A, B, C, D, E, F, G, H, W[ 0], 0x428A2F98 );
-    P( H, A, B, C, D, E, F, G, W[ 1], 0x71374491 );
-    P( G, H, A, B, C, D, E, F, W[ 2], 0xB5C0FBCF );
-    P( F, G, H, A, B, C, D, E, W[ 3], 0xE9B5DBA5 );
-    P( E, F, G, H, A, B, C, D, W[ 4], 0x3956C25B );
-    P( D, E, F, G, H, A, B, C, W[ 5], 0x59F111F1 );
-    P( C, D, E, F, G, H, A, B, W[ 6], 0x923F82A4 );
-    P( B, C, D, E, F, G, H, A, W[ 7], 0xAB1C5ED5 );
-    P( A, B, C, D, E, F, G, H, W[ 8], 0xD807AA98 );
-    P( H, A, B, C, D, E, F, G, W[ 9], 0x12835B01 );
-    P( G, H, A, B, C, D, E, F, W[10], 0x243185BE );
-    P( F, G, H, A, B, C, D, E, W[11], 0x550C7DC3 );
-    P( E, F, G, H, A, B, C, D, W[12], 0x72BE5D74 );
-    P( D, E, F, G, H, A, B, C, W[13], 0x80DEB1FE );
-    P( C, D, E, F, G, H, A, B, W[14], 0x9BDC06A7 );
-    P( B, C, D, E, F, G, H, A, W[15], 0xC19BF174 );
-    P( A, B, C, D, E, F, G, H, R(16), 0xE49B69C1 );
-    P( H, A, B, C, D, E, F, G, R(17), 0xEFBE4786 );
-    P( G, H, A, B, C, D, E, F, R(18), 0x0FC19DC6 );
-    P( F, G, H, A, B, C, D, E, R(19), 0x240CA1CC );
-    P( E, F, G, H, A, B, C, D, R(20), 0x2DE92C6F );
-    P( D, E, F, G, H, A, B, C, R(21), 0x4A7484AA );
-    P( C, D, E, F, G, H, A, B, R(22), 0x5CB0A9DC );
-    P( B, C, D, E, F, G, H, A, R(23), 0x76F988DA );
-    P( A, B, C, D, E, F, G, H, R(24), 0x983E5152 );
-    P( H, A, B, C, D, E, F, G, R(25), 0xA831C66D );
-    P( G, H, A, B, C, D, E, F, R(26), 0xB00327C8 );
-    P( F, G, H, A, B, C, D, E, R(27), 0xBF597FC7 );
-    P( E, F, G, H, A, B, C, D, R(28), 0xC6E00BF3 );
-    P( D, E, F, G, H, A, B, C, R(29), 0xD5A79147 );
-    P( C, D, E, F, G, H, A, B, R(30), 0x06CA6351 );
-    P( B, C, D, E, F, G, H, A, R(31), 0x14292967 );
-    P( A, B, C, D, E, F, G, H, R(32), 0x27B70A85 );
-    P( H, A, B, C, D, E, F, G, R(33), 0x2E1B2138 );
-    P( G, H, A, B, C, D, E, F, R(34), 0x4D2C6DFC );
-    P( F, G, H, A, B, C, D, E, R(35), 0x53380D13 );
-    P( E, F, G, H, A, B, C, D, R(36), 0x650A7354 );
-    P( D, E, F, G, H, A, B, C, R(37), 0x766A0ABB );
-    P( C, D, E, F, G, H, A, B, R(38), 0x81C2C92E );
-    P( B, C, D, E, F, G, H, A, R(39), 0x92722C85 );
-    P( A, B, C, D, E, F, G, H, R(40), 0xA2BFE8A1 );
-    P( H, A, B, C, D, E, F, G, R(41), 0xA81A664B );
-    P( G, H, A, B, C, D, E, F, R(42), 0xC24B8B70 );
-    P( F, G, H, A, B, C, D, E, R(43), 0xC76C51A3 );
-    P( E, F, G, H, A, B, C, D, R(44), 0xD192E819 );
-    P( D, E, F, G, H, A, B, C, R(45), 0xD6990624 );
-    P( C, D, E, F, G, H, A, B, R(46), 0xF40E3585 );
-    P( B, C, D, E, F, G, H, A, R(47), 0x106AA070 );
-    P( A, B, C, D, E, F, G, H, R(48), 0x19A4C116 );
-    P( H, A, B, C, D, E, F, G, R(49), 0x1E376C08 );
-    P( G, H, A, B, C, D, E, F, R(50), 0x2748774C );
-    P( F, G, H, A, B, C, D, E, R(51), 0x34B0BCB5 );
-    P( E, F, G, H, A, B, C, D, R(52), 0x391C0CB3 );
-    P( D, E, F, G, H, A, B, C, R(53), 0x4ED8AA4A );
-    P( C, D, E, F, G, H, A, B, R(54), 0x5B9CCA4F );
-    P( B, C, D, E, F, G, H, A, R(55), 0x682E6FF3 );
-    P( A, B, C, D, E, F, G, H, R(56), 0x748F82EE );
-    P( H, A, B, C, D, E, F, G, R(57), 0x78A5636F );
-    P( G, H, A, B, C, D, E, F, R(58), 0x84C87814 );
-    P( F, G, H, A, B, C, D, E, R(59), 0x8CC70208 );
-    P( E, F, G, H, A, B, C, D, R(60), 0x90BEFFFA );
-    P( D, E, F, G, H, A, B, C, R(61), 0xA4506CEB );
-    P( C, D, E, F, G, H, A, B, R(62), 0xBEF9A3F7 );
-    P( B, C, D, E, F, G, H, A, R(63), 0xC67178F2 );
+    for( i = 0; i < 16; i++ )
+        GET_UINT32_BE( W[i], data, 4 * i );
 
-    ctx->state[0] += A;
-    ctx->state[1] += B;
-    ctx->state[2] += C;
-    ctx->state[3] += D;
-    ctx->state[4] += E;
-    ctx->state[5] += F;
-    ctx->state[6] += G;
-    ctx->state[7] += H;
+    for( i = 0; i < 8; i++ )
+        A[i] = ctx->state[i];
+
+    for( i = 0; i < 16; i += 8 )
+    {
+        P( A[0], A[1], A[2], A[3], A[4], A[5], A[6], A[7], W[i+0], K[i+0] );
+        P( A[7], A[0], A[1], A[2], A[3], A[4], A[5], A[6], W[i+1], K[i+1] );
+        P( A[6], A[7], A[0], A[1], A[2], A[3], A[4], A[5], W[i+2], K[i+2] );
+        P( A[5], A[6], A[7], A[0], A[1], A[2], A[3], A[4], W[i+3], K[i+3] );
+        P( A[4], A[5], A[6], A[7], A[0], A[1], A[2], A[3], W[i+4], K[i+4] );
+        P( A[3], A[4], A[5], A[6], A[7], A[0], A[1], A[2], W[i+5], K[i+5] );
+        P( A[2], A[3], A[4], A[5], A[6], A[7], A[0], A[1], W[i+6], K[i+6] );
+        P( A[1], A[2], A[3], A[4], A[5], A[6], A[7], A[0], W[i+7], K[i+7] );
+    }
+
+    for( i = 16; i < 64; i += 8 )
+    {
+        P( A[0], A[1], A[2], A[3], A[4], A[5], A[6], A[7], R(i+0), K[i+0] );
+        P( A[7], A[0], A[1], A[2], A[3], A[4], A[5], A[6], R(i+1), K[i+1] );
+        P( A[6], A[7], A[0], A[1], A[2], A[3], A[4], A[5], R(i+2), K[i+2] );
+        P( A[5], A[6], A[7], A[0], A[1], A[2], A[3], A[4], R(i+3), K[i+3] );
+        P( A[4], A[5], A[6], A[7], A[0], A[1], A[2], A[3], R(i+4), K[i+4] );
+        P( A[3], A[4], A[5], A[6], A[7], A[0], A[1], A[2], R(i+5), K[i+5] );
+        P( A[2], A[3], A[4], A[5], A[6], A[7], A[0], A[1], R(i+6), K[i+6] );
+        P( A[1], A[2], A[3], A[4], A[5], A[6], A[7], A[0], R(i+7), K[i+7] );
+    }
+
+    for( i = 0; i < 8; i++ )
+        ctx->state[i] += A[i];
 }
 #endif /* !MBEDTLS_SHA256_PROCESS_ALT */
 

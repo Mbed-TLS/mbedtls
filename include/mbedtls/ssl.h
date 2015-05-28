@@ -1778,9 +1778,13 @@ void mbedtls_ssl_conf_session_tickets( mbedtls_ssl_config *conf, int use_tickets
  *                 initiated by peer
  *                 (Default: MBEDTLS_SSL_RENEGOTIATION_DISABLED)
  *
- *                 Note: A server with support enabled is more vulnerable for a
- *                 resource DoS by a malicious client. You should enable this on
- *                 a client to enable server-initiated renegotiation.
+ * \warning        It is recommended to always disable renegotation unless you
+ *                 know you need it and you know what you're doing. In the
+ *                 past, there has been several issues associated with
+ *                 renegotiation or a poor understanding of its properties.
+ *
+ * \note           Server-side, enabling renegotiation also makes the server
+ *                 susceptible to a resource DoS by a malicious client.
  *
  * \param conf    SSL configuration
  * \param renegotiation     Enable or disable (MBEDTLS_SSL_RENEGOTIATION_ENABLED or

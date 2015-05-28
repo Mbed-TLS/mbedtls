@@ -35,34 +35,33 @@
 #define mbedtls_snprintf   snprintf
 #endif
 
-#if defined(MBEDTLS_BIGNUM_C) && defined(MBEDTLS_RSA_C) && \
-    defined(MBEDTLS_SHA256_C) && defined(MBEDTLS_PK_PARSE_C) && \
-    defined(MBEDTLS_FS_IO)
+#if !defined(MBEDTLS_MD_C) || !defined(MBEDTLS_ENTROPY_C) ||  \
+    !defined(MBEDTLS_RSA_C) || !defined(MBEDTLS_SHA256_C) ||        \
+    !defined(MBEDTLS_PK_PARSE_C) || !defined(MBEDTLS_FS_IO) ||    \
+    !defined(MBEDTLS_CTR_DRBG_C)
+int main( void )
+{
+    mbedtls_printf("MBEDTLS_MD_C and/or MBEDTLS_ENTROPY_C and/or "
+           "MBEDTLS_RSA_C and/or MBEDTLS_SHA256_C and/or "
+           "MBEDTLS_PK_PARSE_C and/or MBEDTLS_FS_IO and/or "
+           "MBEDTLS_CTR_DRBG_C not defined.\n");
+    return( 0 );
+}
+#else
+
 #include "mbedtls/md.h"
 #include "mbedtls/pem.h"
 #include "mbedtls/pk.h"
-#include "mbedtls/sha1.h"
+#include "mbedtls/md.h"
 #include "mbedtls/x509.h"
 
 #include <stdio.h>
 #include <string.h>
-#endif
 
 #if defined _MSC_VER && !defined snprintf
 #define snprintf _snprintf
 #endif
 
-#if !defined(MBEDTLS_BIGNUM_C) || !defined(MBEDTLS_RSA_C) ||      \
-    !defined(MBEDTLS_SHA256_C) || !defined(MBEDTLS_PK_PARSE_C) ||   \
-    !defined(MBEDTLS_FS_IO)
-int main( void )
-{
-    mbedtls_printf("MBEDTLS_BIGNUM_C and/or MBEDTLS_RSA_C and/or "
-           "MBEDTLS_SHA256_C and/or MBEDTLS_PK_PARSE_C and/or "
-           "MBEDTLS_FS_IO not defined.\n");
-    return( 0 );
-}
-#else
 int main( int argc, char *argv[] )
 {
     FILE *f;
@@ -129,7 +128,9 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "\n  . Verifying the RSA/SHA-256 signature" );
     fflush( stdout );
 
-    if( ( ret = mbedtls_sha1_file( argv[2], hash ) ) != 0 )
+    if( ( ret = mbedtls_md_file(
+                    mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 ),
+                    argv[2], hash ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! Could not open or read %s\n\n", argv[2] );
         goto exit;

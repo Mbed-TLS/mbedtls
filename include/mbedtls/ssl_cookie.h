@@ -26,6 +26,10 @@
 
 #include "ssl.h"
 
+#if defined(MBEDTLS_THREADING_C)
+#include "threading.h"
+#endif
+
 /**
  * \name SECTION: Module settings
  *
@@ -55,6 +59,9 @@ typedef struct
     unsigned long   timeout;    /*!< timeout delay, in seconds if HAVE_TIME,
                                      or in number of tickets issued */
 
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_threading_mutex_t mutex;
+#endif
 } mbedtls_ssl_cookie_ctx;
 
 /**

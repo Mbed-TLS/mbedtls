@@ -9,6 +9,8 @@ Features
      ability to override the whole module.
    * New server-side implementation of session tickets that rotate keys to
      preserve forward secrecy, and allows sharing across multiple contexts.
+   * Reduced ROM fooprint of SHA-256 and added an option to reduce it even
+     more (at the expense of performance) MBEDTLS_SHA256_SMALLER.
 
 API Changes
    * All public identifiers moved to the mbedtls_* or MBEDTLS_* namespace.

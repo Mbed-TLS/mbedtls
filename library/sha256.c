@@ -62,22 +62,22 @@ static void mbedtls_zeroize( void *v, size_t n ) {
  */
 #ifndef GET_UINT32_BE
 #define GET_UINT32_BE(n,b,i)                            \
-{                                                       \
+do {                                                    \
     (n) = ( (uint32_t) (b)[(i)    ] << 24 )             \
         | ( (uint32_t) (b)[(i) + 1] << 16 )             \
         | ( (uint32_t) (b)[(i) + 2] <<  8 )             \
         | ( (uint32_t) (b)[(i) + 3]       );            \
-}
+} while( 0 )
 #endif
 
 #ifndef PUT_UINT32_BE
 #define PUT_UINT32_BE(n,b,i)                            \
-{                                                       \
+do {                                                    \
     (b)[(i)    ] = (unsigned char) ( (n) >> 24 );       \
     (b)[(i) + 1] = (unsigned char) ( (n) >> 16 );       \
     (b)[(i) + 2] = (unsigned char) ( (n) >>  8 );       \
     (b)[(i) + 3] = (unsigned char) ( (n)       );       \
-}
+} while( 0 )
 #endif
 
 void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
@@ -181,11 +181,25 @@ void mbedtls_sha256_process( mbedtls_sha256_context *ctx, const unsigned char da
     uint32_t A[8];
     unsigned int i;
 
-    for( i = 0; i < 16; i++ )
-        GET_UINT32_BE( W[i], data, 4 * i );
-
     for( i = 0; i < 8; i++ )
         A[i] = ctx->state[i];
+
+#if defined(MBEDTLS_SHA256_SMALLER)
+    for( i = 0; i < 64; i++ )
+    {
+        if( i < 16 )
+            GET_UINT32_BE( W[i], data, 4 * i );
+        else
+            R( i );
+
+        P( A[0], A[1], A[2], A[3], A[4], A[5], A[6], A[7], W[i], K[i] );
+
+        temp1 = A[7]; A[7] = A[6]; A[6] = A[5]; A[5] = A[4]; A[4] = A[3];
+        A[3] = A[2]; A[2] = A[1]; A[1] = A[0]; A[0] = temp1;
+    }
+#else /* MBEDTLS_SHA256_SMALLER */
+    for( i = 0; i < 16; i++ )
+        GET_UINT32_BE( W[i], data, 4 * i );
 
     for( i = 0; i < 16; i += 8 )
     {
@@ -210,6 +224,7 @@ void mbedtls_sha256_process( mbedtls_sha256_context *ctx, const unsigned char da
         P( A[2], A[3], A[4], A[5], A[6], A[7], A[0], A[1], R(i+6), K[i+6] );
         P( A[1], A[2], A[3], A[4], A[5], A[6], A[7], A[0], R(i+7), K[i+7] );
     }
+#endif /* MBEDTLS_SHA256_SMALLER */
 
     for( i = 0; i < 8; i++ )
         ctx->state[i] += A[i];

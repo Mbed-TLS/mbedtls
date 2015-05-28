@@ -315,6 +315,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_SELF_TEST)
     "MBEDTLS_SELF_TEST",
 #endif /* MBEDTLS_SELF_TEST */
+#if defined(MBEDTLS_SHA256_SMALLER)
+    "MBEDTLS_SHA256_SMALLER",
+#endif /* MBEDTLS_SHA256_SMALLER */
 #if defined(MBEDTLS_SSL_AEAD_RANDOM_IV)
     "MBEDTLS_SSL_AEAD_RANDOM_IV",
 #endif /* MBEDTLS_SSL_AEAD_RANDOM_IV */

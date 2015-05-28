@@ -52,7 +52,7 @@ sort -u actual-macros enum-consts > _caps
 HEADERS=$( ls include/mbedtls/*.h | egrep -v 'compat-1\.3\.h' )
 NL='
 '
-sed -n 's/MBEDTLS_[A-Z0-9_]*/\'"$NL"'&\'"$NL"/gp \
+sed -n 's/MBED..._[A-Z0-9_]*/\'"$NL"'&\'"$NL"/gp \
     $HEADERS library/*.c \
     | grep MBEDTLS | sort -u > _MBEDTLS_XXX
 TYPOS=$( diff _caps _MBEDTLS_XXX | sed -n 's/^> //p' \

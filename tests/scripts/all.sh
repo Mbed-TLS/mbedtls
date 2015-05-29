@@ -166,6 +166,14 @@ scripts/config.pl full
 scripts/config.pl unset MBEDTLS_SSL_CLI_C
 CC=gcc CFLAGS='-Werror -O0' make
 
+msg "build: full config except net.c, make, gcc -std=c99" # ~ 30s
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl full
+scripts/config.pl unset MBEDTLS_NET_C
+scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY # uses syscall() on Linux
+CC=gcc CFLAGS='-Werror -O0 -std=c99' make
+
 if uname -a | grep -F x86_64 >/dev/null; then
 msg "build: i386, make, gcc" # ~ 30s
 cleanup

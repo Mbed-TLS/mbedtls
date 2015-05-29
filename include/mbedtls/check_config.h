@@ -30,6 +30,15 @@
 #ifndef MBEDTLS_CHECK_CONFIG_H
 #define MBEDTLS_CHECK_CONFIG_H
 
+/*
+ * We assume CHAR_BIT is 8 in many places. In practice, this is true on our
+ * target platforms, so not an issue, but let's just be extra sure.
+ */
+#include <limits.h>
+#if CHAR_BIT != 8
+#error "mbed TLS requires a platform with 8-bit chars"
+#endif
+
 #if defined(MBEDTLS_DEPRECATED_WARNING) && \
     !defined(__GNUC__) && !defined(__clang__)
 #error "MBEDTLS_DEPRECATED_WARNING only works with GCC and Clang"

@@ -72,6 +72,19 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     unsigned char buf[1000000];
 #endif
+    void *pointer;
+
+    /*
+     * The C standard doesn't guarantee that all-bits-0 is the representation
+     * of a NULL pointer. We do however use that in our code for initializing
+     * structures, which should work on every modern platform. Let's be sure.
+     */
+    memset( &pointer, 0, sizeof( void * ) );
+    if( pointer != NULL )
+    {
+        mbedtls_printf( "all-bits-zero is not a NULL pointer\n" );
+        return( 1 );
+    }
 
     if( argc == 2 && strcmp( argv[1], "-quiet" ) == 0 )
         v = 0;

@@ -2029,8 +2029,9 @@ int mbedtls_ssl_renegotiate( mbedtls_ssl_context *ssl );
  * \param buf      buffer that will hold the data
  * \param len      maximum number of bytes to read
  *
- * \return         This function returns the number of bytes read, 0 for EOF,
- *                 or a negative error code.
+ * \return         the number of bytes read, or
+ *                 0 for EOF, or
+ *                 a negative error code.
  */
 int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len );
 
@@ -2041,7 +2042,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
  * \param buf      buffer holding the data
  * \param len      how many bytes must be written
  *
- * \return         This function returns the number of bytes written,
+ * \return         the number of bytes written,
  *                 or a negative error code.
  *
  * \note           When this function returns MBEDTLS_ERR_SSL_WANT_WRITE,

@@ -273,7 +273,7 @@ int mbedtls_x509write_csr_der( mbedtls_x509write_csr *ctx, unsigned char *buf, s
  * \param f_rng     RNG function (for signature, see note)
  * \param p_rng     RNG parameter
  *
- * \return          0 successful, or a specific error code
+ * \return          0 if successful, or a specific error code
  *
  * \note            f_rng may be NULL if RSA is used for signature and the
  *                  signature is made offline (otherwise f_rng is desirable

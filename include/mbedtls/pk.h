@@ -546,7 +546,7 @@ int mbedtls_pk_write_pubkey_der( mbedtls_pk_context *ctx, unsigned char *buf, si
  * \param buf       buffer to write to
  * \param size      size of the buffer
  *
- * \return          0 successful, or a specific error code
+ * \return          0 if successful, or a specific error code
  */
 int mbedtls_pk_write_pubkey_pem( mbedtls_pk_context *ctx, unsigned char *buf, size_t size );
 
@@ -557,7 +557,7 @@ int mbedtls_pk_write_pubkey_pem( mbedtls_pk_context *ctx, unsigned char *buf, si
  * \param buf       buffer to write to
  * \param size      size of the buffer
  *
- * \return          0 successful, or a specific error code
+ * \return          0 if successful, or a specific error code
  */
 int mbedtls_pk_write_key_pem( mbedtls_pk_context *ctx, unsigned char *buf, size_t size );
 #endif /* MBEDTLS_PEM_WRITE_C */

@@ -127,7 +127,7 @@ void mbedtls_memory_buffer_alloc_cur_get( size_t *cur_used, size_t *cur_blocks )
  *          is defined. (Includes stack trace information for each block if
  *          MBEDTLS_MEMORY_BACKTRACE is defined as well).
  *
- * \returns             0 if verified, 1 otherwise
+ * \return             0 if verified, 1 otherwise
  */
 int mbedtls_memory_buffer_alloc_verify( void );
 

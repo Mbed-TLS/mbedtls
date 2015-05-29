@@ -283,7 +283,7 @@ int mbedtls_x509_crt_check_key_usage( const mbedtls_x509_crt *crt, unsigned int 
  * \param usage_oid Intended usage (eg MBEDTLS_OID_SERVER_AUTH or MBEDTLS_OID_CLIENT_AUTH).
  * \param usage_len Length of usage_oid (eg given by MBEDTLS_OID_SIZE()).
  *
- * \return         0 is this use of the certificate is allowed,
+ * \return         0 if this use of the certificate is allowed,
  *                 MBEDTLS_ERR_X509_BAD_INPUT_DATA if not.
  *
  * \note           Usually only makes sense on leaf certificates.
@@ -544,7 +544,7 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx, unsigned char *buf, 
  * \param f_rng     RNG function (for signature, see note)
  * \param p_rng     RNG parameter
  *
- * \return          0 successful, or a specific error code
+ * \return          0 if successful, or a specific error code
  *
  * \note            f_rng may be NULL if RSA is used for signature and the
  *                  signature is made offline (otherwise f_rng is desirable

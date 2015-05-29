@@ -149,7 +149,7 @@ void mbedtls_net_usleep( unsigned long usec );
  * \param buf      The buffer to write to
  * \param len      Maximum length of the buffer
  *
- * \return         This function returns the number of bytes received,
+ * \return         the number of bytes received,
  *                 or a non-zero error code; with a non-blocking socket,
  *                 MBEDTLS_ERR_SSL_WANT_READ indicates read() would block.
  */
@@ -163,7 +163,7 @@ int mbedtls_net_recv( void *ctx, unsigned char *buf, size_t len );
  * \param buf      The buffer to read from
  * \param len      The length of the buffer
  *
- * \return         This function returns the number of bytes sent,
+ * \return         the number of bytes sent,
  *                 or a non-zero error code; with a non-blocking socket,
  *                 MBEDTLS_ERR_SSL_WANT_WRITE indicates write() would block.
  */
@@ -179,7 +179,7 @@ int mbedtls_net_send( void *ctx, const unsigned char *buf, size_t len );
  * \param len      Maximum length of the buffer
  * \param timeout  Maximum number of milliseconds to wait for data
  *
- * \return         This function returns the number of bytes received,
+ * \return         the number of bytes received,
  *                 or a non-zero error code:
  *                 MBEDTLS_ERR_SSL_TIMEOUT if the operation timed out,
  *                 MBEDTLS_ERR_SSL_WANT_READ if interrupted by a signal.

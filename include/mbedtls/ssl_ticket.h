@@ -95,7 +95,7 @@ void mbedtls_ssl_ticket_init( mbedtls_ssl_ticket_context *ctx );
  *                  least as strong as the the strongest ciphersuite
  *                  supported. Usually that means a 256-bit key.
  *
- * \return          0 is successful,
+ * \return          0 if successful,
  *                  or a specific MBEDTLS_ERR_XXX error code
  */
 int mbedtls_ssl_ticket_setup( mbedtls_ssl_ticket_context *ctx,

@@ -96,6 +96,7 @@ extern int (*mbedtls_mutex_unlock)( mbedtls_threading_mutex_t *mutex );
  * Global mutexes
  */
 extern mbedtls_threading_mutex_t mbedtls_threading_readdir_mutex;
+extern mbedtls_threading_mutex_t mbedtls_threading_gmtime_mutex;
 
 #ifdef __cplusplus
 }

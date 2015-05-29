@@ -879,7 +879,7 @@ int mbedtls_x509_key_size_helper( char *buf, size_t size, const char *name )
  */
 #if defined(MBEDTLS_HAVE_TIME)
 
-static void x509_get_current_time( mbedtls_x509_time *now )
+static int x509_get_current_time( mbedtls_x509_time *now )
 {
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
     SYSTEMTIME st;
@@ -887,25 +887,38 @@ static void x509_get_current_time( mbedtls_x509_time *now )
     GetSystemTime( &st );
 
     now->year = st.wYear;
-    now->mon = st.wMonth;
-    now->day = st.wDay;
+    now->mon  = st.wMonth;
+    now->day  = st.wDay;
     now->hour = st.wHour;
-    now->min = st.wMinute;
-    now->sec = st.wSecond;
+    now->min  = st.wMinute;
+    now->sec  = st.wSecond;
 #else
-    struct tm lt;
+    struct tm *lt;
     time_t tt;
 
-    tt = time( NULL );
-    gmtime_r( &tt, &lt );
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_threading_gmtime_mutex ) != 0 )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+#endif
 
-    now->year = lt.tm_year + 1900;
-    now->mon = lt.tm_mon + 1;
-    now->day = lt.tm_mday;
-    now->hour = lt.tm_hour;
-    now->min = lt.tm_min;
-    now->sec = lt.tm_sec;
+    tt = time( NULL );
+    lt = gmtime( &tt );
+
+    now->year = lt->tm_year + 1900;
+    now->mon  = lt->tm_mon  + 1;
+    now->day  = lt->tm_mday;
+    now->hour = lt->tm_hour;
+    now->min  = lt->tm_min;
+    now->sec  = lt->tm_sec;
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_threading_gmtime_mutex ) != 0 )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+#endif
+
 #endif /* _WIN32 && !EFIX64 && !EFI32 */
+
+    return( 0 );
 }
 
 /*
@@ -953,7 +966,8 @@ int mbedtls_x509_time_expired( const mbedtls_x509_time *to )
 {
     mbedtls_x509_time now;
 
-    x509_get_current_time( &now );
+    if( x509_get_current_time( &now ) != 0 )
+        return( -1 );
 
     return( x509_check_time( &now, to ) );
 }
@@ -962,7 +976,8 @@ int mbedtls_x509_time_future( const mbedtls_x509_time *from )
 {
     mbedtls_x509_time now;
 
-    x509_get_current_time( &now );
+    if( x509_get_current_time( &now ) != 0 )
+        return( -1 );
 
     return( x509_check_time( from, &now ) );
 }

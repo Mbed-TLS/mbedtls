@@ -37,6 +37,10 @@
 
 #include <string.h>
 
+#ifndef asm
+#define asm __asm
+#endif
+
 #if defined(MBEDTLS_HAVE_X86_64)
 
 /*

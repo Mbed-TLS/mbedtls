@@ -42,6 +42,10 @@
 
 #if defined(MBEDTLS_HAVE_ASM)
 
+#ifndef asm
+#define asm __asm
+#endif
+
 #if defined(__GNUC__)
 #if defined(__i386__)
 

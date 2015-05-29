@@ -1715,7 +1715,7 @@ const int *mbedtls_ssl_list_ciphersuites( void )
     }
 
     return( supported_ciphersuites );
-};
+}
 #endif /* MBEDTLS_SSL_CIPHERSUITES */
 
 const mbedtls_ssl_ciphersuite_t *mbedtls_ssl_ciphersuite_from_string(

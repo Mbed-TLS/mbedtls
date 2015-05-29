@@ -77,7 +77,6 @@ int mbedtls_platform_entropy_poll( void *data, unsigned char *output, size_t len
  * available in GNU libc and compatible libc's (eg uClibc).
  */
 #if defined(__linux__) && defined(__GLIBC__)
-#include <linux/version.h>
 #include <unistd.h>
 #include <sys/syscall.h>
 #if defined(SYS_getrandom)

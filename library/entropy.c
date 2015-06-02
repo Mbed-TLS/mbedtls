@@ -94,10 +94,10 @@ void entropy_free( entropy_context *ctx )
 #if defined(POLARSSL_HAVEGE_C)
     havege_free( &ctx->havege_data );
 #endif
-    polarssl_zeroize( ctx, sizeof( entropy_context ) );
 #if defined(POLARSSL_THREADING_C)
     polarssl_mutex_free( &ctx->mutex );
 #endif
+    polarssl_zeroize( ctx, sizeof( entropy_context ) );
 }
 
 int entropy_add_source( entropy_context *ctx,

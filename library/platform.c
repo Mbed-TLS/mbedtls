@@ -154,7 +154,7 @@ static void platform_exit_uninit( int status )
 #define POLARSSL_PLATFORM_STD_EXIT   platform_exit_uninit
 #endif /* !POLARSSL_PLATFORM_STD_EXIT */
 
-int (*polarssl_exit)( int status ) = POLARSSL_PLATFORM_STD_EXIT;
+void (*polarssl_exit)( int status ) = POLARSSL_PLATFORM_STD_EXIT;
 
 int platform_set_exit( void (*exit_func)( int status ) )
 {

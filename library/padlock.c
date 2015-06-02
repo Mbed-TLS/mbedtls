@@ -47,7 +47,7 @@
 /*
  * PadLock detection routine
  */
-int mbedtls_padlock_supports( int feature )
+int mbedtls_padlock_has_support( int feature )
 {
     static int flags = -1;
     int ebx = 0, edx = 0;

@@ -55,7 +55,7 @@ extern "C" {
  *
  * \return         1 if CPU has support for the feature, 0 otherwise
  */
-int mbedtls_padlock_supports( int feature );
+int mbedtls_padlock_has_support( int feature );
 
 /**
  * \brief          PadLock AES-ECB block en(de)cryption

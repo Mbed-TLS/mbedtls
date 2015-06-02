@@ -962,7 +962,7 @@ static int x509_check_time( const mbedtls_x509_time *before, const mbedtls_x509_
     return( 0 );
 }
 
-int mbedtls_x509_time_expired( const mbedtls_x509_time *to )
+int mbedtls_x509_time_is_past( const mbedtls_x509_time *to )
 {
     mbedtls_x509_time now;
 
@@ -972,7 +972,7 @@ int mbedtls_x509_time_expired( const mbedtls_x509_time *to )
     return( x509_check_time( &now, to ) );
 }
 
-int mbedtls_x509_time_future( const mbedtls_x509_time *from )
+int mbedtls_x509_time_is_future( const mbedtls_x509_time *from )
 {
     mbedtls_x509_time now;
 
@@ -984,13 +984,13 @@ int mbedtls_x509_time_future( const mbedtls_x509_time *from )
 
 #else  /* MBEDTLS_HAVE_TIME */
 
-int mbedtls_x509_time_expired( const mbedtls_x509_time *to )
+int mbedtls_x509_time_is_past( const mbedtls_x509_time *to )
 {
     ((void) to);
     return( 0 );
 }
 
-int mbedtls_x509_time_future( const mbedtls_x509_time *from )
+int mbedtls_x509_time_is_future( const mbedtls_x509_time *from )
 {
     ((void) from);
     return( 0 );

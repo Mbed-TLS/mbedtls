@@ -192,7 +192,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
-void mbedtls_x509_time_expired( char *crt_file, char *entity, int result )
+void mbedtls_x509_time_is_past( char *crt_file, char *entity, int result )
 {
     mbedtls_x509_crt   crt;
 
@@ -201,9 +201,9 @@ void mbedtls_x509_time_expired( char *crt_file, char *entity, int result )
     TEST_ASSERT( mbedtls_x509_crt_parse_file( &crt, crt_file ) == 0 );
 
     if( strcmp( entity, "valid_from" ) == 0 )
-        TEST_ASSERT( mbedtls_x509_time_expired( &crt.valid_from ) == result );
+        TEST_ASSERT( mbedtls_x509_time_is_past( &crt.valid_from ) == result );
     else if( strcmp( entity, "valid_to" ) == 0 )
-        TEST_ASSERT( mbedtls_x509_time_expired( &crt.valid_to ) == result );
+        TEST_ASSERT( mbedtls_x509_time_is_past( &crt.valid_to ) == result );
     else
         TEST_ASSERT( "Unknown entity" == 0 );
 
@@ -213,7 +213,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
-void mbedtls_x509_time_future( char *crt_file, char *entity, int result )
+void mbedtls_x509_time_is_future( char *crt_file, char *entity, int result )
 {
     mbedtls_x509_crt   crt;
 
@@ -222,9 +222,9 @@ void mbedtls_x509_time_future( char *crt_file, char *entity, int result )
     TEST_ASSERT( mbedtls_x509_crt_parse_file( &crt, crt_file ) == 0 );
 
     if( strcmp( entity, "valid_from" ) == 0 )
-        TEST_ASSERT( mbedtls_x509_time_future( &crt.valid_from ) == result );
+        TEST_ASSERT( mbedtls_x509_time_is_future( &crt.valid_from ) == result );
     else if( strcmp( entity, "valid_to" ) == 0 )
-        TEST_ASSERT( mbedtls_x509_time_future( &crt.valid_to ) == result );
+        TEST_ASSERT( mbedtls_x509_time_is_future( &crt.valid_to ) == result );
     else
         TEST_ASSERT( "Unknown entity" == 0 );
 

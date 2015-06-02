@@ -49,7 +49,7 @@ extern "C" {
  *
  * \return         1 if CPU has support for the feature, 0 otherwise
  */
-int mbedtls_aesni_supports( unsigned int what );
+int mbedtls_aesni_has_support( unsigned int what );
 
 /**
  * \brief          AES-NI AES-ECB block en(de)cryption

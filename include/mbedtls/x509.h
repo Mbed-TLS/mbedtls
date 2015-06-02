@@ -238,7 +238,7 @@ int mbedtls_x509_serial_gets( char *buf, size_t size, const mbedtls_x509_buf *se
  * \return         0 if the mbedtls_x509_time is still valid,
  *                 1 otherwise.
  */
-int mbedtls_x509_time_expired( const mbedtls_x509_time *time );
+int mbedtls_x509_time_is_past( const mbedtls_x509_time *time );
 
 /**
  * \brief          Check a given mbedtls_x509_time against the system time and check
@@ -249,7 +249,7 @@ int mbedtls_x509_time_expired( const mbedtls_x509_time *time );
  * \return         0 if the mbedtls_x509_time is already valid,
  *                 1 otherwise.
  */
-int mbedtls_x509_time_future( const mbedtls_x509_time *time );
+int mbedtls_x509_time_is_future( const mbedtls_x509_time *time );
 
 /**
  * \brief          Checkup routine

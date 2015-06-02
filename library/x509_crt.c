@@ -1479,7 +1479,7 @@ int mbedtls_x509_crt_check_extended_key_usage( const mbedtls_x509_crt *crt,
 /*
  * Return 1 if the certificate is revoked, or 0 otherwise.
  */
-int mbedtls_x509_crt_revoked( const mbedtls_x509_crt *crt, const mbedtls_x509_crl *crl )
+int mbedtls_x509_crt_is_revoked( const mbedtls_x509_crt *crt, const mbedtls_x509_crl *crl )
 {
     const mbedtls_x509_crl_entry *cur = &crl->entry;
 
@@ -1488,7 +1488,7 @@ int mbedtls_x509_crt_revoked( const mbedtls_x509_crt *crt, const mbedtls_x509_cr
         if( crt->serial.len == cur->serial.len &&
             memcmp( crt->serial.p, cur->serial.p, crt->serial.len ) == 0 )
         {
-            if( mbedtls_x509_time_expired( &cur->revocation_date ) )
+            if( mbedtls_x509_time_is_past( &cur->revocation_date ) )
                 return( 1 );
         }
 
@@ -1565,16 +1565,16 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
         /*
          * Check for validity of CRL (Do not drop out)
          */
-        if( mbedtls_x509_time_expired( &crl_list->next_update ) )
+        if( mbedtls_x509_time_is_past( &crl_list->next_update ) )
             flags |= MBEDTLS_X509_BADCRL_EXPIRED;
 
-        if( mbedtls_x509_time_future( &crl_list->this_update ) )
+        if( mbedtls_x509_time_is_future( &crl_list->this_update ) )
             flags |= MBEDTLS_X509_BADCRL_FUTURE;
 
         /*
          * Check if certificate is revoked
          */
-        if( mbedtls_x509_crt_revoked( crt, crl_list ) )
+        if( mbedtls_x509_crt_is_revoked( crt, crl_list ) )
         {
             flags |= MBEDTLS_X509_BADCERT_REVOKED;
             break;
@@ -1774,10 +1774,10 @@ static int x509_crt_verify_top(
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
     const mbedtls_md_info_t *md_info;
 
-    if( mbedtls_x509_time_expired( &child->valid_to ) )
+    if( mbedtls_x509_time_is_past( &child->valid_to ) )
         *flags |= MBEDTLS_X509_BADCERT_EXPIRED;
 
-    if( mbedtls_x509_time_future( &child->valid_from ) )
+    if( mbedtls_x509_time_is_future( &child->valid_from ) )
         *flags |= MBEDTLS_X509_BADCERT_FUTURE;
 
     /*
@@ -1851,10 +1851,10 @@ static int x509_crt_verify_top(
         ((void) ca_crl);
 #endif
 
-        if( mbedtls_x509_time_expired( &trust_ca->valid_to ) )
+        if( mbedtls_x509_time_is_past( &trust_ca->valid_to ) )
             ca_flags |= MBEDTLS_X509_BADCERT_EXPIRED;
 
-        if( mbedtls_x509_time_future( &trust_ca->valid_from ) )
+        if( mbedtls_x509_time_is_future( &trust_ca->valid_from ) )
             ca_flags |= MBEDTLS_X509_BADCERT_FUTURE;
 
         if( NULL != f_vrfy )
@@ -1898,10 +1898,10 @@ static int x509_crt_verify_child(
         return( MBEDTLS_ERR_X509_CERT_VERIFY_FAILED );
     }
 
-    if( mbedtls_x509_time_expired( &child->valid_to ) )
+    if( mbedtls_x509_time_is_past( &child->valid_to ) )
         *flags |= MBEDTLS_X509_BADCERT_EXPIRED;
 
-    if( mbedtls_x509_time_future( &child->valid_from ) )
+    if( mbedtls_x509_time_is_future( &child->valid_from ) )
         *flags |= MBEDTLS_X509_BADCERT_FUTURE;
 
     md_info = mbedtls_md_info_from_type( child->sig_md );

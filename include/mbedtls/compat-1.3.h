@@ -1778,7 +1778,7 @@
 #define aesni_gcm_mult mbedtls_aesni_gcm_mult
 #define aesni_inverse_key mbedtls_aesni_inverse_key
 #define aesni_setkey_enc mbedtls_aesni_setkey_enc
-#define aesni_supports mbedtls_aesni_supports
+#define aesni_supports mbedtls_aesni_has_support
 #define alarmed mbedtls_timing_alarmed
 #define arc4_context mbedtls_arc4_context
 #define arc4_crypt mbedtls_arc4_crypt
@@ -2200,7 +2200,7 @@
 #define oid_get_sig_alg_desc mbedtls_oid_get_sig_alg_desc
 #define oid_get_x509_ext_type mbedtls_oid_get_x509_ext_type
 #define operation_t mbedtls_operation_t
-#define padlock_supports mbedtls_padlock_supports
+#define padlock_supports mbedtls_padlock_has_support
 #define padlock_xcryptcbc mbedtls_padlock_xcryptcbc
 #define padlock_xcryptecb mbedtls_padlock_xcryptecb
 #define pbkdf2_hmac mbedtls_pbkdf2_hmac
@@ -2575,7 +2575,7 @@
 #define x509_crt_parse_der mbedtls_x509_crt_parse_der
 #define x509_crt_parse_file mbedtls_x509_crt_parse_file
 #define x509_crt_parse_path mbedtls_x509_crt_parse_path
-#define x509_crt_revoked mbedtls_x509_crt_revoked
+#define x509_crt_revoked mbedtls_x509_crt_is_revoked
 #define x509_crt_verify mbedtls_x509_crt_verify
 #define x509_csr mbedtls_x509_csr
 #define x509_csr_free mbedtls_x509_csr_free
@@ -2605,8 +2605,8 @@
 #define x509_sig_alg_gets mbedtls_x509_sig_alg_gets
 #define x509_string_to_names mbedtls_x509_string_to_names
 #define x509_time mbedtls_x509_time
-#define x509_time_expired mbedtls_x509_time_expired
-#define x509_time_future mbedtls_x509_time_future
+#define x509_time_expired mbedtls_x509_time_is_past
+#define x509_time_future mbedtls_x509_time_is_future
 #define x509_write_extensions mbedtls_x509_write_extensions
 #define x509_write_names mbedtls_x509_write_names
 #define x509_write_sig mbedtls_x509_write_sig

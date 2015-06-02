@@ -303,7 +303,7 @@ int mbedtls_x509_crt_check_extended_key_usage( const mbedtls_x509_crt *crt,
  * \return         1 if the certificate is revoked, 0 otherwise
  *
  */
-int mbedtls_x509_crt_revoked( const mbedtls_x509_crt *crt, const mbedtls_x509_crl *crl );
+int mbedtls_x509_crt_is_revoked( const mbedtls_x509_crt *crt, const mbedtls_x509_crl *crl );
 #endif /* MBEDTLS_X509_CRL_PARSE_C */
 
 /**

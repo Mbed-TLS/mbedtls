@@ -46,7 +46,7 @@
 /*
  * AES-NI support detection routine
  */
-int mbedtls_aesni_supports( unsigned int what )
+int mbedtls_aesni_has_support( unsigned int what )
 {
     static int done = 0;
     static unsigned int c = 0;

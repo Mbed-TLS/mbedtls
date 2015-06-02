@@ -507,7 +507,7 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
 
 #if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_PADLOCK_ALIGN16)
     if( aes_padlock_ace == -1 )
-        aes_padlock_ace = mbedtls_padlock_supports( MBEDTLS_PADLOCK_ACE );
+        aes_padlock_ace = mbedtls_padlock_has_support( MBEDTLS_PADLOCK_ACE );
 
     if( aes_padlock_ace )
         ctx->rk = RK = MBEDTLS_PADLOCK_ALIGN16( ctx->buf );
@@ -516,7 +516,7 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
     ctx->rk = RK = ctx->buf;
 
 #if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
-    if( mbedtls_aesni_supports( MBEDTLS_AESNI_AES ) )
+    if( mbedtls_aesni_has_support( MBEDTLS_AESNI_AES ) )
         return( mbedtls_aesni_setkey_enc( (unsigned char *) ctx->rk, key, keysize ) );
 #endif
 
@@ -608,7 +608,7 @@ int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
 
 #if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_PADLOCK_ALIGN16)
     if( aes_padlock_ace == -1 )
-        aes_padlock_ace = mbedtls_padlock_supports( MBEDTLS_PADLOCK_ACE );
+        aes_padlock_ace = mbedtls_padlock_has_support( MBEDTLS_PADLOCK_ACE );
 
     if( aes_padlock_ace )
         ctx->rk = RK = MBEDTLS_PADLOCK_ALIGN16( ctx->buf );
@@ -623,7 +623,7 @@ int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
     ctx->nr = cty.nr;
 
 #if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
-    if( mbedtls_aesni_supports( MBEDTLS_AESNI_AES ) )
+    if( mbedtls_aesni_has_support( MBEDTLS_AESNI_AES ) )
     {
         mbedtls_aesni_inverse_key( (unsigned char *) ctx->rk,
                            (const unsigned char *) cty.rk, ctx->nr );
@@ -830,7 +830,7 @@ int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
                     unsigned char output[16] )
 {
 #if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
-    if( mbedtls_aesni_supports( MBEDTLS_AESNI_AES ) )
+    if( mbedtls_aesni_has_support( MBEDTLS_AESNI_AES ) )
         return( mbedtls_aesni_crypt_ecb( ctx, mode, input, output ) );
 #endif
 

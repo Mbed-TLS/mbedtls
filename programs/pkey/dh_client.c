@@ -243,8 +243,7 @@ int main( void )
     mbedtls_printf( "\n  . Shared secret: " );
     fflush( stdout );
 
-    n = dhm.len;
-    if( ( ret = mbedtls_dhm_calc_secret( &dhm, buf, &n,
+    if( ( ret = mbedtls_dhm_calc_secret( &dhm, buf, sizeof( buf ), &n,
                                  mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_dhm_calc_secret returned %d\n\n", ret );

@@ -2477,10 +2477,9 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MPI( 3, "DHM: X ", &ssl->handshake->dhm_ctx.X  );
         MBEDTLS_SSL_DEBUG_MPI( 3, "DHM: GX", &ssl->handshake->dhm_ctx.GX );
 
-        ssl->handshake->pmslen = MBEDTLS_PREMASTER_SIZE;
-
         if( ( ret = mbedtls_dhm_calc_secret( &ssl->handshake->dhm_ctx,
                                       ssl->handshake->premaster,
+                                      MBEDTLS_PREMASTER_SIZE,
                                      &ssl->handshake->pmslen,
                                       ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
         {

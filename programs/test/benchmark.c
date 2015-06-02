@@ -646,15 +646,13 @@ int main( int argc, char *argv[] )
 
             mbedtls_snprintf( title, sizeof( title ), "DHE-%d", dhm_sizes[i] );
             TIME_PUBLIC( title, "handshake",
-                    olen = sizeof( buf );
                     ret |= mbedtls_dhm_make_public( &dhm, (int) dhm.len, buf, dhm.len,
                                             myrand, NULL );
-                    ret |= mbedtls_dhm_calc_secret( &dhm, buf, &olen, myrand, NULL ) );
+                    ret |= mbedtls_dhm_calc_secret( &dhm, buf, sizeof( buf ), &olen, myrand, NULL ) );
 
             mbedtls_snprintf( title, sizeof( title ), "DH-%d", dhm_sizes[i] );
             TIME_PUBLIC( title, "handshake",
-                    olen = sizeof( buf );
-                    ret |= mbedtls_dhm_calc_secret( &dhm, buf, &olen, myrand, NULL ) );
+                    ret |= mbedtls_dhm_calc_secret( &dhm, buf, sizeof( buf ), &olen, myrand, NULL ) );
 
             mbedtls_dhm_free( &dhm );
         }

@@ -1114,11 +1114,11 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
     if( key_ex == MBEDTLS_KEY_EXCHANGE_DHE_PSK )
     {
         int ret;
-        size_t len = end - ( p + 2 );
+        size_t len;
 
         /* Write length only when we know the actual value */
         if( ( ret = mbedtls_dhm_calc_secret( &ssl->handshake->dhm_ctx,
-                                      p + 2, &len,
+                                      p + 2, end - ( p + 2 ), &len,
                                       ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_dhm_calc_secret", ret );

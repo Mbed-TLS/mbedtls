@@ -3145,10 +3145,9 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
         }
 
-        ssl->handshake->pmslen = MBEDTLS_PREMASTER_SIZE;
-
         if( ( ret = mbedtls_dhm_calc_secret( &ssl->handshake->dhm_ctx,
                                       ssl->handshake->premaster,
+                                      MBEDTLS_PREMASTER_SIZE,
                                      &ssl->handshake->pmslen,
                                       ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
         {

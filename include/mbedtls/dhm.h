@@ -241,8 +241,8 @@ int mbedtls_dhm_make_public( mbedtls_dhm_context *ctx, int x_size,
  *
  * \param ctx      DHM context
  * \param output   destination buffer
- * \param olen     on entry, must hold the size of the destination buffer
- *                 on exit, holds the actual number of bytes written
+ * \param output_size   size of the destination buffer
+ * \param olen     on exit, holds the actual number of bytes written
  * \param f_rng    RNG function, for blinding purposes
  * \param p_rng    RNG parameter
  *
@@ -255,7 +255,7 @@ int mbedtls_dhm_make_public( mbedtls_dhm_context *ctx, int x_size,
  *                 to always pass a non-NULL f_rng argument.
  */
 int mbedtls_dhm_calc_secret( mbedtls_dhm_context *ctx,
-                     unsigned char *output, size_t *olen,
+                     unsigned char *output, size_t output_size, size_t *olen,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng );
 

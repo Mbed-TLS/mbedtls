@@ -53,6 +53,12 @@ API Changes
      mbedtls_x509_ctr_verify_info()
      mbedtls_x509_crt_verify() (flags, f_vrfy -> needs to be updated)
      mbedtls_ssl_conf_verify() (f_vrfy -> needs to be updated)
+   * The following functions changed prototype to avoid an in-out length
+     parameter:
+     mbedtls_base64_encode()
+     mbedtls_base64_decode()
+     mbedtls_mpi_write_string()
+     mbedtls_dhm_calc_secret()
    * net_accept() gained new arguments for the size of the client_ip buffer.
    * In the threading layer, mbedtls_mutex_init() and mbedtls_mutex_free() now
      return void.

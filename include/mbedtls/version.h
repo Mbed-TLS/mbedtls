@@ -90,15 +90,16 @@ void mbedtls_version_get_string_full( char *string );
  *                  library was for instance compiled with or without
  *                  Multi-threading support.
  *
- *                  Note: only checks against defines in the sections "System
- *                        support", "mbed TLS modules" and "mbed TLS feature
- *                        support" in config.h
+ * \note            only checks against defines in the sections "System
+ *                  support", "mbed TLS modules" and "mbed TLS feature
+ *                  support" in config.h
  *
  * \param feature   The string for the define to check (e.g. "MBEDTLS_AES_C")
  *
- * \return          0 if the feature is present, -1 if the feature is not
- *                  present and -2 if support for feature checking as a whole
- *                  was not compiled in.
+ * \return          0 if the feature is present,
+ *                  -1 if the feature is not present and
+ *                  -2 if support for feature checking as a whole was not
+ *                  compiled in.
  */
 int mbedtls_version_check_feature( const char *feature );
 

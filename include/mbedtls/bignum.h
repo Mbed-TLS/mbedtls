@@ -324,17 +324,19 @@ int mbedtls_mpi_read_string( mbedtls_mpi *X, int radix, const char *s );
  *
  * \param X        Source MPI
  * \param radix    Output numeric base
- * \param s        String buffer
- * \param slen     String buffer size
+ * \param buf      Buffer to write the string to
+ * \param buflen   Length of buf
+ * \param olen     Length of the string written, including final NUL byte
  *
  * \return         0 if successful, or a MBEDTLS_ERR_MPI_XXX error code.
- *                 *slen is always updated to reflect the amount
+ *                 *olen is always updated to reflect the amount
  *                 of data that has (or would have) been written.
  *
- * \note           Call this function with *slen = 0 to obtain the
- *                 minimum required buffer size in *slen.
+ * \note           Call this function with buflen = 0 to obtain the
+ *                 minimum required buffer size in *olen.
  */
-int mbedtls_mpi_write_string( const mbedtls_mpi *X, int radix, char *s, size_t *slen );
+int mbedtls_mpi_write_string( const mbedtls_mpi *X, int radix,
+                              char *buf, size_t buflen, size_t *olen );
 
 #if defined(MBEDTLS_FS_IO)
 /**

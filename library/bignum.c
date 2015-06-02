@@ -490,7 +490,8 @@ cleanup:
 /*
  * Export into an ASCII string
  */
-int mbedtls_mpi_write_string( const mbedtls_mpi *X, int radix, char *s, size_t *slen )
+int mbedtls_mpi_write_string( const mbedtls_mpi *X, int radix,
+                              char *buf, size_t buflen, size_t *olen )
 {
     int ret = 0;
     size_t n;
@@ -505,13 +506,13 @@ int mbedtls_mpi_write_string( const mbedtls_mpi *X, int radix, char *s, size_t *
     if( radix >= 16 ) n >>= 1;
     n += 3;
 
-    if( *slen < n )
+    if( buflen < n )
     {
-        *slen = n;
+        *olen = n;
         return( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL );
     }
 
-    p = s;
+    p = buf;
     mbedtls_mpi_init( &T );
 
     if( X->s == -1 )
@@ -548,7 +549,7 @@ int mbedtls_mpi_write_string( const mbedtls_mpi *X, int radix, char *s, size_t *
     }
 
     *p++ = '\0';
-    *slen = p - s;
+    *olen = p - buf;
 
 cleanup:
 
@@ -604,11 +605,9 @@ int mbedtls_mpi_write_file( const char *p, const mbedtls_mpi *X, int radix, FILE
      */
     char s[ MBEDTLS_MPI_RW_BUFFER_SIZE ];
 
-    n = sizeof( s );
-    memset( s, 0, n );
-    n -= 2;
+    memset( s, 0, sizeof( s ) );
 
-    MBEDTLS_MPI_CHK( mbedtls_mpi_write_string( X, radix, s, (size_t *) &n ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_string( X, radix, s, sizeof( s ) - 2, &n ) );
 
     if( p == NULL ) p = "";
 

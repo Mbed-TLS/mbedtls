@@ -1770,7 +1770,7 @@ static int x509_crt_verify_top(
 {
     int ret;
     uint32_t ca_flags = 0;
-    int check_path_cnt = path_cnt + 1;
+    int check_path_cnt;
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
     const mbedtls_md_info_t *md_info;
 
@@ -1801,8 +1801,10 @@ static int x509_crt_verify_top(
         if( x509_crt_check_parent( child, trust_ca, 1, path_cnt == 0 ) != 0 )
             continue;
 
+        check_path_cnt = path_cnt + 1;
+
         /*
-         * Reduce path_len to check against if top of the chain is
+         * Reduce check_path_cnt to check against if top of the chain is
          * the same as the trusted CA
          */
         if( child->subject_raw.len == trust_ca->subject_raw.len &&

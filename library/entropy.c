@@ -94,10 +94,10 @@ void mbedtls_entropy_free( mbedtls_entropy_context *ctx )
 #if defined(MBEDTLS_HAVEGE_C)
     mbedtls_havege_free( &ctx->havege_data );
 #endif
-    mbedtls_zeroize( ctx, sizeof( mbedtls_entropy_context ) );
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_free( &ctx->mutex );
 #endif
+    mbedtls_zeroize( ctx, sizeof( mbedtls_entropy_context ) );
 }
 
 int mbedtls_entropy_add_source( mbedtls_entropy_context *ctx,

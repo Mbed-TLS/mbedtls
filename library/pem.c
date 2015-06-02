@@ -315,8 +315,7 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
           ( MBEDTLS_AES_C || MBEDTLS_DES_C ) */
     }
 
-    len = 0;
-    ret = mbedtls_base64_decode( NULL, &len, s1, s2 - s1 );
+    ret = mbedtls_base64_decode( NULL, 0, &len, s1, s2 - s1 );
 
     if( ret == MBEDTLS_ERR_BASE64_INVALID_CHARACTER )
         return( MBEDTLS_ERR_PEM_INVALID_DATA + ret );
@@ -324,7 +323,7 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
     if( ( buf = mbedtls_calloc( 1, len ) ) == NULL )
         return( MBEDTLS_ERR_PEM_ALLOC_FAILED );
 
-    if( ( ret = mbedtls_base64_decode( buf, &len, s1, s2 - s1 ) ) != 0 )
+    if( ( ret = mbedtls_base64_decode( buf, len, &len, s1, s2 - s1 ) ) != 0 )
     {
         mbedtls_free( buf );
         return( MBEDTLS_ERR_PEM_INVALID_DATA + ret );
@@ -396,9 +395,9 @@ int mbedtls_pem_write_buffer( const char *header, const char *footer,
 {
     int ret;
     unsigned char *encode_buf, *c, *p = buf;
-    size_t len = 0, use_len = 0, add_len = 0;
+    size_t len = 0, use_len, add_len = 0;
 
-    mbedtls_base64_encode( NULL, &use_len, der_data, der_len );
+    mbedtls_base64_encode( NULL, 0, &use_len, der_data, der_len );
     add_len = strlen( header ) + strlen( footer ) + ( use_len / 64 ) + 1;
 
     if( use_len + add_len > buf_len )
@@ -410,7 +409,7 @@ int mbedtls_pem_write_buffer( const char *header, const char *footer,
     if( ( encode_buf = mbedtls_calloc( 1, use_len ) ) == NULL )
         return( MBEDTLS_ERR_PEM_ALLOC_FAILED );
 
-    if( ( ret = mbedtls_base64_encode( encode_buf, &use_len, der_data,
+    if( ( ret = mbedtls_base64_encode( encode_buf, use_len, &use_len, der_data,
                                der_len ) ) != 0 )
     {
         mbedtls_free( encode_buf );

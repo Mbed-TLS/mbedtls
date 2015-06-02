@@ -720,8 +720,7 @@ int main( int argc, char *argv[] )
         mbedtls_printf( "  > Write username to server: %s", opt.user_name );
         fflush( stdout );
 
-        n = sizeof( base );
-        ret = mbedtls_base64_encode( base, &n, (const unsigned char *) opt.user_name,
+        ret = mbedtls_base64_encode( base, sizeof( base ), &n, (const unsigned char *) opt.user_name,
                              strlen( opt.user_name ) );
 
         if( ret != 0 ) {
@@ -741,8 +740,7 @@ int main( int argc, char *argv[] )
         mbedtls_printf( "  > Write password to server: %s", opt.user_pwd );
         fflush( stdout );
 
-        n = sizeof( base );
-        ret = mbedtls_base64_encode( base, &n, (const unsigned char *) opt.user_pwd,
+        ret = mbedtls_base64_encode( base, sizeof( base ), &n, (const unsigned char *) opt.user_pwd,
                              strlen( opt.user_pwd ) );
 
         if( ret != 0 ) {

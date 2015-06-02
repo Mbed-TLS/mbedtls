@@ -96,14 +96,14 @@ int convert_pem_to_der( const unsigned char *input, size_t ilen,
     if( s2 <= s1 || s2 > end )
         return( -1 );
 
-    ret = mbedtls_base64_decode( NULL, &len, (const unsigned char *) s1, s2 - s1 );
+    ret = mbedtls_base64_decode( NULL, 0, &len, (const unsigned char *) s1, s2 - s1 );
     if( ret == MBEDTLS_ERR_BASE64_INVALID_CHARACTER )
         return( ret );
 
     if( len > *olen )
         return( -1 );
 
-    if( ( ret = mbedtls_base64_decode( output, &len, (const unsigned char *) s1,
+    if( ( ret = mbedtls_base64_decode( output, len, &len, (const unsigned char *) s1,
                                s2 - s1 ) ) != 0 )
     {
         return( ret );

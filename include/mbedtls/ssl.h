@@ -385,19 +385,6 @@ extern "C" {
 #endif
 
 /*
- * Generic function pointers for allowing external RSA private key
- * implementations.
- */
-typedef int (*mbedtls_rsa_decrypt_func)( void *ctx, int mode, size_t *olen,
-                        const unsigned char *input, unsigned char *output,
-                        size_t output_max_len );
-typedef int (*mbedtls_rsa_sign_func)( void *ctx,
-                     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
-                     int mode, mbedtls_md_type_t md_alg, unsigned int hashlen,
-                     const unsigned char *hash, unsigned char *sig );
-typedef size_t (*mbedtls_rsa_key_len_func)( void *ctx );
-
-/*
  * SSL state machine
  */
 typedef enum

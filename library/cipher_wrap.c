@@ -1023,7 +1023,7 @@ static const mbedtls_cipher_info_t des_ede_cbc_info = {
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
 static const mbedtls_cipher_base_t des_ede3_info = {
-    MBEDTLS_CIPHER_ID_DES,
+    MBEDTLS_CIPHER_ID_3DES,
     des3_crypt_ecb_wrap,
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
     des3_crypt_cbc_wrap,

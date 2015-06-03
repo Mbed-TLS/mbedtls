@@ -36,6 +36,11 @@ POLARSSL_PKCS11_C
 _ALT\s*$
 );
 
+# Things that should be enabled in "full" even if they match @excluded
+my @non_excluded = qw(
+PLATFORM_[A-Z0-9]+_ALT
+);
+
 my $config_file = "include/polarssl/config.h";
 
 # get -f option
@@ -76,6 +81,7 @@ my @config_lines = <$config_read>;
 close $config_read;
 
 my $exclude_re = join '|', @excluded;
+my $no_exclude_re = join '|', @non_excluded;
 
 open my $config_write, '>', $config_file or die "write $config_file: $!\n";
 
@@ -86,7 +92,8 @@ for my $line (@config_lines) {
             $done = 1;
         }
 
-        if (!$done && $line =~ m!^//\s?#define! && $line !~ /$exclude_re/) {
+        if (!$done && $line =~ m!^//\s?#define! &&
+                ( $line !~ /$exclude_re/ || $line =~ /$no_exclude_re/ ) ) {
             $line =~ s!^//!!;
         }
     } elsif ($action eq "unset") {

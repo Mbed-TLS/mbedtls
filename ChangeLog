@@ -35,6 +35,8 @@ Features
      errors on use of deprecated functions.
 
 Bugfix
+   * Fix bug in entropy.c when THREADING_C is also enabled that caused
+     entropy_free() to crash (thanks to Rafał Przywara).
    * Fix memory leak when gcm_setkey() and ccm_setkey() are used more than
      once on the same context.
    * Fix bug in ssl_mail_client when password is longer that username (found
@@ -127,8 +129,6 @@ Features
      ciphersuite/certificate.
 
 Bugfix
-   * Fix bug in entropy.c when THREADING_C is also enabled that caused
-     entropy_free() to crash (thanks to Rafał Przywara).
    * Stack buffer overflow if ctr_drbg_update() is called with too large
      add_len (found by Jean-Philippe Aumasson) (not triggerable remotely).
    * Possible buffer overflow of length at most POLARSSL_MEMORY_ALIGN_MULTIPLE

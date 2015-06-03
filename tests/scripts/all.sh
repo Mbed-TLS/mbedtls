@@ -141,6 +141,10 @@ cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl unset POLARSSL_PLATFORM_C
 scripts/config.pl unset POLARSSL_PLATFORM_MEMORY
+scripts/config.pl unset POLARSSL_PLATFORM_PRINTF_ALT
+scripts/config.pl unset POLARSSL_PLATFORM_FPRINTF_ALT
+scripts/config.pl unset POLARSSL_PLATFORM_SNPRINTF_ALT
+scripts/config.pl unset POLARSSL_PLATFORM_EXIT_ALT
 scripts/config.pl unset POLARSSL_MEMORY_C
 scripts/config.pl unset POLARSSL_MEMORY_BUFFER_ALLOC_C
 scripts/config.pl unset POLARSSL_FS_IO

@@ -73,7 +73,7 @@ static int platform_snprintf_uninit( char * s, size_t n,
 {
     ((void) s);
     ((void) n);
-    ((void) format)
+    ((void) format);
     return( 0 );
 }
 
@@ -149,13 +149,12 @@ int mbedtls_platform_set_fprintf( int (*fprintf_func)( FILE *, const char *, ...
 static void platform_exit_uninit( int status )
 {
     ((void) status);
-    return( 0 );
 }
 
 #define MBEDTLS_PLATFORM_STD_EXIT   platform_exit_uninit
 #endif /* !MBEDTLS_PLATFORM_STD_EXIT */
 
-int (*mbedtls_exit)( int status ) = MBEDTLS_PLATFORM_STD_EXIT;
+void (*mbedtls_exit)( int status ) = MBEDTLS_PLATFORM_STD_EXIT;
 
 int mbedtls_platform_set_exit( void (*exit_func)( int status ) )
 {

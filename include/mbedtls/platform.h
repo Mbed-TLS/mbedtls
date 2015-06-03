@@ -80,6 +80,8 @@ extern "C" {
 #define mbedtls_free       MBEDTLS_PLATFORM_FREE_MACRO
 #define mbedtls_calloc     MBEDTLS_PLATFORM_CALLOC_MACRO
 #else
+/* For size_t */
+#include <stddef.h>
 extern void * (*mbedtls_calloc)( size_t n, size_t size );
 extern void (*mbedtls_free)( void *ptr );
 
@@ -103,6 +105,8 @@ int mbedtls_platform_set_calloc_free( void * (*calloc_func)( size_t, size_t ),
  * The function pointers for fprintf
  */
 #if defined(MBEDTLS_PLATFORM_FPRINTF_ALT)
+/* We need FILE * */
+#include <stdio.h>
 extern int (*mbedtls_fprintf)( FILE *stream, const char *format, ... );
 
 /**

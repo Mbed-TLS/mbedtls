@@ -72,7 +72,7 @@ static int platform_snprintf_uninit( char * s, size_t n,
 {
     ((void) s);
     ((void) n);
-    ((void) format)
+    ((void) format);
     return( 0 );
 }
 
@@ -148,7 +148,6 @@ int platform_set_fprintf( int (*fprintf_func)( FILE *, const char *, ... ) )
 static void platform_exit_uninit( int status )
 {
     ((void) status);
-    return( 0 );
 }
 
 #define POLARSSL_PLATFORM_STD_EXIT   platform_exit_uninit

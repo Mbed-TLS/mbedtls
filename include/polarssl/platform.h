@@ -85,6 +85,8 @@ extern "C" {
 #define polarssl_free       POLARSSL_PLATFORM_FREE_MACRO
 #define polarssl_malloc     POLARSSL_PLATFORM_MALLOC_MACRO
 #else
+/* For size_t */
+#include <stddef.h>
 extern void * (*polarssl_malloc)( size_t len );
 extern void (*polarssl_free)( void *ptr );
 
@@ -108,6 +110,8 @@ int platform_set_malloc_free( void * (*malloc_func)( size_t ),
  * The function pointers for fprintf
  */
 #if defined(POLARSSL_PLATFORM_FPRINTF_ALT)
+/* We need FILE * */
+#include <stdio.h>
 extern int (*polarssl_fprintf)( FILE *stream, const char *format, ... );
 
 /**

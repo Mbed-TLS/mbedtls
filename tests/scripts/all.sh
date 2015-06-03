@@ -146,6 +146,14 @@ scripts/config.pl unset POLARSSL_MEMORY_BUFFER_ALLOC_C
 scripts/config.pl unset POLARSSL_FS_IO
 CC=gcc CFLAGS='-Werror -O0' make
 
+# catch compile bugs in _uninit functions
+msg "build: full config with NO_STD_FUNCTION, make, gcc" # ~ 30s
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl full
+scripts/config.pl set POLARSSL_PLATFORM_NO_STD_FUNCTIONS
+CC=gcc CFLAGS='-Werror -O0' make
+
 if uname -a | grep -F x86_64 >/dev/null; then
 msg "build: i386, make, gcc" # ~ 30s
 cleanup

@@ -118,7 +118,7 @@ for my $line (@config_lines) {
 
 close $config_write;
 
-warn "configuration section not found" if ($action eq "full" && !$done);
-warn "$name not found" if ($action ne "full" && !$done);
+die "configuration section not found" if ($action eq "full" && !$done);
+die "$name not found" if ($action ne "full" && !$done);
 
 __END__

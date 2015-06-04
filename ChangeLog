@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 1.3 branch
+= mbed TLS 1.3.11 released 2015-06-04
 
 Security
    * With authmode set to SSL_VERIFY_OPTIONAL, verification of keyUsage and

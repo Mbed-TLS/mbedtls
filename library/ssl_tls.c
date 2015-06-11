@@ -5458,6 +5458,17 @@ int mbedtls_ssl_conf_dh_param_ctx( mbedtls_ssl_config *conf, mbedtls_dhm_context
 }
 #endif /* MBEDTLS_DHM_C && MBEDTLS_SSL_SRV_C */
 
+#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)
+/*
+ * Set the minimum length for Diffie-Hellman parameters
+ */
+void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
+                                      unsigned int bitlen )
+{
+    conf->dhm_min_bitlen = bitlen;
+}
+#endif /* MBEDTLS_DHM_C && MBEDTLS_SSL_CLI_C */
+
 #if defined(MBEDTLS_SSL_SET_CURVES)
 /*
  * Set the allowed elliptic curves
@@ -6663,6 +6674,10 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
     conf->renego_max_records = MBEDTLS_SSL_RENEGO_MAX_RECORDS_DEFAULT;
     memset( conf->renego_period, 0xFF, 7 );
     conf->renego_period[7] = 0x00;
+#endif
+
+#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)
+    conf->dhm_min_bitlen = 1024;
 #endif
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)

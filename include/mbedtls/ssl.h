@@ -577,6 +577,10 @@ struct mbedtls_ssl_config
     unsigned int badmac_limit;      /*!< limit of records with a bad MAC    */
 #endif
 
+#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)
+    unsigned int dhm_min_bitlen;    /*!< min. bit length of the DHM prime   */
+#endif
+
     unsigned char max_major_ver;    /*!< max. major version used            */
     unsigned char max_minor_ver;    /*!< max. minor version used            */
     unsigned char min_major_ver;    /*!< min. major version used            */
@@ -1476,6 +1480,19 @@ int mbedtls_ssl_conf_dh_param( mbedtls_ssl_config *conf, const char *dhm_P, cons
  */
 int mbedtls_ssl_conf_dh_param_ctx( mbedtls_ssl_config *conf, mbedtls_dhm_context *dhm_ctx );
 #endif /* MBEDTLS_DHM_C && defined(MBEDTLS_SSL_SRV_C) */
+
+#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)
+/**
+ * \brief          Set the minimum length for Diffie-Hellman parameters.
+ *                 (Client-side only.)
+ *                 (Default: 1024 bits.)
+ *
+ * \param conf     SSL configuration
+ * \param bitlen   Minimum bit length of the DHM prime
+ */
+void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
+                                      unsigned int bitlen );
+#endif /* MBEDTLS_DHM_C && MBEDTLS_SSL_CLI_C */
 
 #if defined(MBEDTLS_SSL_SET_CURVES)
 /**

@@ -1648,10 +1648,11 @@ static int ssl_parse_server_dh_params( mbedtls_ssl_context *ssl, unsigned char *
         return( ret );
     }
 
-    if( ssl->handshake->dhm_ctx.len < 64  ||
-        ssl->handshake->dhm_ctx.len > 512 )
+    if( ssl->handshake->dhm_ctx.len * 8 < ssl->conf->dhm_min_bitlen )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server key exchange message (DHM length)" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "DHM prime too short: %d < %d",
+                                    ssl->handshake->dhm_ctx.len * 8,
+                                    ssl->conf->dhm_min_bitlen ) );
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
     }
 

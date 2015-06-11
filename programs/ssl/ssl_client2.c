@@ -95,6 +95,7 @@ int main( void )
 #define DFL_MFL_CODE            MBEDTLS_SSL_MAX_FRAG_LEN_NONE
 #define DFL_TRUNC_HMAC          -1
 #define DFL_RECSPLIT            -1
+#define DFL_DHMLEN              -1
 #define DFL_RECONNECT           0
 #define DFL_RECO_DELAY          0
 #define DFL_TICKETS             MBEDTLS_SSL_SESSION_TICKETS_ENABLED
@@ -162,6 +163,13 @@ int main( void )
     "    recsplit=0/1        default: (library default: on)\n"
 #else
 #define USAGE_RECSPLIT
+#endif
+
+#if defined(MBEDTLS_DHM_C)
+#define USAGE_DHMLEN \
+    "    dhmlen=%%d           default: (library default: 1024 bits)\n"
+#else
+#define USAGE_DHMLEN
 #endif
 
 #if defined(MBEDTLS_SSL_ALPN)
@@ -246,6 +254,7 @@ int main( void )
     USAGE_EMS                                               \
     USAGE_ETM                                               \
     USAGE_RECSPLIT                                          \
+    USAGE_DHMLEN                                            \
     "\n"                                                    \
     "    arc4=%%d             default: (library default: 0)\n" \
     "    min_version=%%s      default: (library default: tls1)\n"       \
@@ -289,6 +298,7 @@ struct options
     unsigned char mfl_code;     /* code for maximum fragment length         */
     int trunc_hmac;             /* negotiate truncated hmac or not          */
     int recsplit;               /* enable record splitting?                 */
+    int dhmlen;                 /* minimum DHM params len in bits           */
     int reconnect;              /* attempt to resume session                */
     int reco_delay;             /* delay in seconds before resuming session */
     int tickets;                /* enable / disable session tickets         */
@@ -468,6 +478,7 @@ int main( int argc, char *argv[] )
     opt.mfl_code            = DFL_MFL_CODE;
     opt.trunc_hmac          = DFL_TRUNC_HMAC;
     opt.recsplit            = DFL_RECSPLIT;
+    opt.dhmlen              = DFL_DHMLEN;
     opt.reconnect           = DFL_RECONNECT;
     opt.reco_delay          = DFL_RECO_DELAY;
     opt.tickets             = DFL_TICKETS;
@@ -756,6 +767,12 @@ int main( int argc, char *argv[] )
         {
             opt.recsplit = atoi( q );
             if( opt.recsplit < 0 || opt.recsplit > 1 )
+                goto usage;
+        }
+        else if( strcmp( p, "dhmlen" ) == 0 )
+        {
+            opt.dhmlen = atoi( q );
+            if( opt.dhmlen < 0 )
                 goto usage;
         }
         else
@@ -1089,6 +1106,11 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_conf_cbc_record_splitting( &conf, opt.recsplit
                                     ? MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED
                                     : MBEDTLS_SSL_CBC_RECORD_SPLITTING_DISABLED );
+#endif
+
+#if defined(MBEDTLS_DHM_C)
+    if( opt.dhmlen != DFL_DHMLEN )
+        mbedtls_ssl_conf_dhm_min_bitlen( &conf, opt.dhmlen );
 #endif
 
 #if defined(MBEDTLS_SSL_ALPN)

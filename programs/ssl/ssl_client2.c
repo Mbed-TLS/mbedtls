@@ -159,7 +159,7 @@ int main( void )
 
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
 #define USAGE_RECSPLIT \
-    "    recplit=%%d          default: (library default)\n"
+    "    recsplit=0/1        default: (library default: on)\n"
 #else
 #define USAGE_RECSPLIT
 #endif

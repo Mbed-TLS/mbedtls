@@ -1075,7 +1075,7 @@ typedef int mbedtls_ssl_ticket_parse_t( void *p_ticket,
  * \note            On server, session tickets are enabled by providing
  *                  non-NULL callbacks.
  *
- * \note            On client, use \c mbedtls_ssl_conf_seesion_tickets().
+ * \note            On client, use \c mbedtls_ssl_conf_session_tickets().
  *
  * \param conf      SSL configuration context
  * \param f_ticket_write    Callback for writing a ticket
@@ -2076,7 +2076,7 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl );
 /**
  * \brief          Initialize an SSL configuration context
  *                 Just makes the context ready for
- *                 mbedtls_ssl_config_defaults() or mbedtls_ssl_free()
+ *                 mbedtls_ssl_config_defaults() or mbedtls_ssl_config_free().
  *
  * \note           You need to call mbedtls_ssl_config_defaults() unless you
  *                 manually set all of the relevent fields yourself.
@@ -2090,11 +2090,14 @@ void mbedtls_ssl_config_init( mbedtls_ssl_config *conf );
  *                 (You need to call mbedtls_ssl_config_init() first.)
  *
  * \param conf     SSL configuration context
+ * \param endpoint MBEDTLS_SSL_IS_CLIENT or MBEDTLS_SSL_IS_SERVER
+ * \param transport MBEDTLS_SSL_TRANSPORT_STREAM for TLS, or
+ *                  MBEDTLS_SSL_TRANSPORT_DATAGRAM for DTLS
  *
  * \note           See \c mbedtls_ssl_conf_transport() for notes on DTLS.
  *
  * \return         0 if successful, or
- *                 MBEDTLS_ERR_XXX_ALLOC_FAILED on memorr allocation error.
+ *                 MBEDTLS_ERR_XXX_ALLOC_FAILED on memory allocation error.
  */
 int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
                                  int endpoint, int transport );

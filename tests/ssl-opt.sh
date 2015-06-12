@@ -2304,6 +2304,43 @@ run_test    "DHM parameters: other parameters" \
             -c "value of 'DHM: P ' (1024 bits)" \
             -c "value of 'DHM: G ' (2 bits)"
 
+# Tests for DHM client-side size checking
+
+run_test    "DHM size: server default, client default, OK" \
+            "$P_SRV" \
+            "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
+                    debug_level=1" \
+            0 \
+            -C "DHM prime too short:"
+
+run_test    "DHM size: server default, client 2048, OK" \
+            "$P_SRV" \
+            "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
+                    debug_level=1 dhmlen=2048" \
+            0 \
+            -C "DHM prime too short:"
+
+run_test    "DHM size: server 1024, client default, OK" \
+            "$P_SRV dhm_file=data_files/dhparams.pem" \
+            "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
+                    debug_level=1" \
+            0 \
+            -C "DHM prime too short:"
+
+run_test    "DHM size: server 1000, client default, rejected" \
+            "$P_SRV dhm_file=data_files/dh.1000.pem" \
+            "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
+                    debug_level=1" \
+            1 \
+            -c "DHM prime too short:"
+
+run_test    "DHM size: server default, client 2049, rejected" \
+            "$P_SRV" \
+            "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
+                    debug_level=1 dhmlen=2049" \
+            1 \
+            -c "DHM prime too short:"
+
 # Tests for PSK callback
 
 run_test    "PSK callback: psk, no callback" \

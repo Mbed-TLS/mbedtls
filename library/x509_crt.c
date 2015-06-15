@@ -144,6 +144,65 @@ const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_suiteb =
 };
 
 /*
+ * Check md_alg against profile
+ * Return 0 if md_alg acceptable for this profile, -1 otherwise
+ */
+static int x509_profile_check_md_alg( const mbedtls_x509_crt_profile *profile,
+                                      mbedtls_md_type_t md_alg )
+{
+    if( ( profile->allowed_mds & MBEDTLS_X509_ID_FLAG( md_alg ) ) != 0 )
+        return( 0 );
+
+    return( -1 );
+}
+
+/*
+ * Check pk_alg against profile
+ * Return 0 if pk_alg acceptable for this profile, -1 otherwise
+ */
+static int x509_profile_check_pk_alg( const mbedtls_x509_crt_profile *profile,
+                                      mbedtls_pk_type_t pk_alg )
+{
+    if( ( profile->allowed_pks & MBEDTLS_X509_ID_FLAG( pk_alg ) ) != 0 )
+        return( 0 );
+
+    return( -1 );
+}
+
+/*
+ * Check key against profile
+ * Return 0 if pk_alg acceptable for this profile, -1 otherwise
+ */
+static int x509_profile_check_key( const mbedtls_x509_crt_profile *profile,
+                                   mbedtls_pk_type_t pk_alg,
+                                   const mbedtls_pk_context *pk )
+{
+#if defined(MBEDTLS_RSA_C)
+    if( pk_alg == MBEDTLS_PK_RSA || pk_alg == MBEDTLS_PK_RSASSA_PSS )
+    {
+        if( mbedtls_pk_get_size( pk ) >= profile->rsa_min_bitlen )
+            return( 0 );
+
+        return( -1 );
+    }
+#endif
+
+#if defined(MBEDTLS_ECDSA_C)
+    if( pk_alg == MBEDTLS_PK_ECDSA )
+    {
+        mbedtls_ecp_group_id gid = mbedtls_pk_ec( *pk )->grp.id;
+
+        if( ( profile->allowed_curves & MBEDTLS_X509_ID_FLAG( gid ) ) != 0 )
+            return( 0 );
+
+        return( -1 );
+    }
+#endif
+
+    return( -1 );
+}
+
+/*
  *  Version  ::=  INTEGER  {  v1(0), v2(1), v3(2)  }
  */
 static int x509_get_version( unsigned char **p,
@@ -1611,6 +1670,12 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
         /*
          * Check if CRL is correctly signed by the trusted CA
          */
+        if( x509_profile_check_md_alg( profile, crl_list->sig_md ) != 0 )
+            flags |= MBEDTLS_X509_BADCRL_BAD_MD;
+
+        if( x509_profile_check_pk_alg( profile, crl_list->sig_pk ) != 0 )
+            flags |= MBEDTLS_X509_BADCRL_BAD_PK;
+
         md_info = mbedtls_md_info_from_type( crl_list->sig_md );
         if( md_info == NULL )
         {
@@ -1623,7 +1688,8 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
 
         mbedtls_md( md_info, crl_list->tbs.p, crl_list->tbs.len, hash );
 
-        (void) profile; /* WIP:TODO: check profile */
+        if( x509_profile_check_key( profile, crl_list->sig_pk, &ca->pk ) != 0 )
+            flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
 
         if( mbedtls_pk_verify_ext( crl_list->sig_pk, crl_list->sig_opts, &ca->pk,
                            crl_list->sig_md, hash, mbedtls_md_get_size( md_info ),
@@ -1653,6 +1719,7 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
 
         crl_list = crl_list->next;
     }
+
     return( flags );
 }
 #endif /* MBEDTLS_X509_CRL_PARSE_C */
@@ -1853,6 +1920,12 @@ static int x509_crt_verify_top(
     if( mbedtls_x509_time_is_future( &child->valid_from ) )
         *flags |= MBEDTLS_X509_BADCERT_FUTURE;
 
+    if( x509_profile_check_md_alg( profile, child->sig_md ) != 0 )
+        *flags |= MBEDTLS_X509_BADCERT_BAD_MD;
+
+    if( x509_profile_check_pk_alg( profile, child->sig_pk ) != 0 )
+        *flags |= MBEDTLS_X509_BADCERT_BAD_PK;
+
     /*
      * Child is the top of the chain. Check against the trust_ca list.
      */
@@ -1868,8 +1941,6 @@ static int x509_crt_verify_top(
     }
     else
         mbedtls_md( md_info, child->tbs.p, child->tbs.len, hash );
-
-    (void) profile; /* WIP:TODO: check profile */
 
     for( /* trust_ca */ ; trust_ca != NULL; trust_ca = trust_ca->next )
     {
@@ -1894,6 +1965,9 @@ static int x509_crt_verify_top(
         {
             continue;
         }
+
+        if( x509_profile_check_key( profile, child->sig_pk, &trust_ca->pk ) != 0 )
+            *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
 
         if( mbedtls_pk_verify_ext( child->sig_pk, child->sig_opts, &trust_ca->pk,
                            child->sig_md, hash, mbedtls_md_get_size( md_info ),
@@ -1983,6 +2057,12 @@ static int x509_crt_verify_child(
     if( mbedtls_x509_time_is_future( &child->valid_from ) )
         *flags |= MBEDTLS_X509_BADCERT_FUTURE;
 
+    if( x509_profile_check_md_alg( profile, child->sig_md ) != 0 )
+        *flags |= MBEDTLS_X509_BADCERT_BAD_MD;
+
+    if( x509_profile_check_pk_alg( profile, child->sig_pk ) != 0 )
+        *flags |= MBEDTLS_X509_BADCERT_BAD_PK;
+
     md_info = mbedtls_md_info_from_type( child->sig_md );
     if( md_info == NULL )
     {
@@ -1993,9 +2073,10 @@ static int x509_crt_verify_child(
     }
     else
     {
-        (void) profile; /* WIP:TODO: check profile */
-
         mbedtls_md( md_info, child->tbs.p, child->tbs.len, hash );
+
+        if( x509_profile_check_key( profile, child->sig_pk, &parent->pk ) != 0 )
+            *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
 
         if( mbedtls_pk_verify_ext( child->sig_pk, child->sig_opts, &parent->pk,
                            child->sig_md, hash, mbedtls_md_get_size( md_info ),

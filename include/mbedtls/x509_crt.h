@@ -94,8 +94,8 @@ typedef struct mbedtls_x509_crt
 }
 mbedtls_x509_crt;
 
-/*
- * Security profile for certificate verification
+/**
+ * Security profile for certificate verification.
  *
  * All lists are terminated by the respective _NONE value.
  */
@@ -103,8 +103,9 @@ typedef struct
 {
     const mbedtls_md_type_t *allowed_mds;   /**< MDs for signatures         */
     const mbedtls_pk_type_t *allowed_pks;   /**< PK algs for signatures     */
-    size_t rsa_min_bitlen;                  /**< Minimum size for RSA keys  */
-    const mbedtls_ecp_group *allowed_curves;/**< Elliptic curves for ECDSA  */
+    const mbedtls_ecp_group_id *allowed_curves; /**< Elliptic curves        */
+    size_t rsa_min_bitlen;                  /**< Minimum size for RSA keys
+                                                 (must be non-zero)         */
 }
 mbedtls_x509_crt_profile;
 
@@ -134,6 +135,23 @@ typedef struct mbedtls_x509write_cert
 mbedtls_x509write_cert;
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+/**
+ * Default security profile. Should provide a good balance between security
+ * and compatibility with current deployments.
+ */
+extern const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_default;
+
+/**
+ * Expected next default profile. Recommended for new deployments.
+ * Currently targets a 128-bit security level, except for RSA-2048.
+ */
+extern const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_next;
+
+/**
+ * NSA Suite B profile.
+ */
+extern const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_suiteb;
+
 /**
  * \brief          Parse a single DER formatted certificate and add it
  *                 to the chained list.

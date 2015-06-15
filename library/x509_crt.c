@@ -82,6 +82,122 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 }
 
 /*
+ * Default profile
+ */
+static const mbedtls_md_type_t x509_prof_default_mds[] =
+{
+    MBEDTLS_MD_SHA1,
+    MBEDTLS_MD_RIPEMD160,
+    MBEDTLS_MD_SHA224,
+    MBEDTLS_MD_SHA256,
+    MBEDTLS_MD_SHA384,
+    MBEDTLS_MD_SHA512,
+    MBEDTLS_MD_NONE
+};
+
+static const mbedtls_pk_type_t x509_prof_default_pks[] =
+{
+    MBEDTLS_PK_RSA,
+    MBEDTLS_PK_ECDSA,
+    MBEDTLS_PK_NONE
+};
+
+#if defined(MBEDTLS_ECP_C)
+static const mbedtls_ecp_group_id x509_prof_default_curves[] =
+{
+    MBEDTLS_ECP_DP_SECP192R1,
+    MBEDTLS_ECP_DP_SECP224R1,
+    MBEDTLS_ECP_DP_SECP256R1,
+    MBEDTLS_ECP_DP_SECP384R1,
+    MBEDTLS_ECP_DP_SECP521R1,
+    MBEDTLS_ECP_DP_BP256R1,
+    MBEDTLS_ECP_DP_BP384R1,
+    MBEDTLS_ECP_DP_BP512R1,
+    MBEDTLS_ECP_DP_SECP192K1,
+    MBEDTLS_ECP_DP_SECP224K1,
+    MBEDTLS_ECP_DP_SECP256K1,
+};
+#else
+static const mbedtls_ecp_group_id *x509_prof_default_curves = NULL;
+#endif
+
+const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_default =
+{
+    x509_prof_default_mds,
+    x509_prof_default_pks,
+    x509_prof_default_curves,
+    2048,
+};
+
+/*
+ * Next-default profile
+ */
+static const mbedtls_md_type_t x509_prof_next_mds[] =
+{
+    MBEDTLS_MD_SHA256,
+    MBEDTLS_MD_SHA384,
+    MBEDTLS_MD_SHA512,
+    MBEDTLS_MD_NONE
+};
+
+#if defined(MBEDTLS_ECP_C)
+static const mbedtls_ecp_group_id x509_prof_next_curves[] =
+{
+    MBEDTLS_ECP_DP_SECP256R1,
+    MBEDTLS_ECP_DP_SECP384R1,
+    MBEDTLS_ECP_DP_SECP521R1,
+    MBEDTLS_ECP_DP_BP256R1,
+    MBEDTLS_ECP_DP_BP384R1,
+    MBEDTLS_ECP_DP_BP512R1,
+    MBEDTLS_ECP_DP_SECP256K1,
+};
+#else
+static const mbedtls_ecp_group_id *x509_prof_next_curves = NULL;
+#endif
+
+const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_next =
+{
+    x509_prof_next_mds,
+    x509_prof_default_pks,
+    x509_prof_next_curves,
+    2048,
+};
+
+/*
+ * NSA Suite B Profile
+ */
+static const mbedtls_md_type_t x509_prof_suiteb_mds[] =
+{
+    MBEDTLS_MD_SHA256,
+    MBEDTLS_MD_SHA384,
+    MBEDTLS_MD_NONE
+};
+
+static const mbedtls_pk_type_t x509_prof_suiteb_pks[] =
+{
+    MBEDTLS_PK_ECDSA,
+    MBEDTLS_PK_NONE
+};
+
+#if defined(MBEDTLS_ECP_C)
+static const mbedtls_ecp_group_id x509_prof_suiteb_curves[] =
+{
+    MBEDTLS_ECP_DP_SECP256R1,
+    MBEDTLS_ECP_DP_SECP384R1,
+};
+#else
+static const mbedtls_ecp_group_id *x509_prof_suiteb_curves = NULL;
+#endif
+
+const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_suiteb =
+{
+    x509_prof_suiteb_mds,
+    x509_prof_suiteb_pks,
+    x509_prof_suiteb_curves,
+    2048,
+};
+
+/*
  *  Version  ::=  INTEGER  {  v1(0), v2(1), v3(2)  }
  */
 static int x509_get_version( unsigned char **p,
@@ -1995,7 +2111,7 @@ int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
                      void *p_vrfy )
 {
     return( mbedtls_x509_crt_verify_with_profile( crt, trust_ca, ca_crl,
-                NULL /* WIP */, cn, flags, f_vrfy, p_vrfy ) );
+                &mbedtls_x509_crt_profile_default, cn, flags, f_vrfy, p_vrfy ) );
 }
 
 

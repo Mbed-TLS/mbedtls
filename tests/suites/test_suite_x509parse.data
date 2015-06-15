@@ -272,7 +272,7 @@ X509 Verify Information: two issues
 x509_verify_info:MBEDTLS_X509_BADCERT_EXPIRED | MBEDTLS_X509_BADCRL_EXPIRED:"":"The certificate validity has expired\nThe CRL is expired\n"
 
 X509 Verify Information: two issues, one unknown
-x509_verify_info:MBEDTLS_X509_BADCERT_OTHER | 0x8000:"":"Other reason (can be used by verify callback)\nUnknown reason (this should not happen)\n"
+x509_verify_info:MBEDTLS_X509_BADCERT_OTHER | 0x80000000:"":"Other reason (can be used by verify callback)\nUnknown reason (this should not happen)\n"
 
 X509 Verify Information: empty, with prefix
 x509_verify_info:0:"  ! ":""

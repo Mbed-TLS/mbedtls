@@ -94,6 +94,20 @@ typedef struct mbedtls_x509_crt
 }
 mbedtls_x509_crt;
 
+/*
+ * Security profile for certificate verification
+ *
+ * All lists are terminated by the respective _NONE value.
+ */
+typedef struct
+{
+    const mbedtls_md_type_t *allowed_mds;   /**< MDs for signatures         */
+    const mbedtls_pk_type_t *allowed_pks;   /**< PK algs for signatures     */
+    size_t rsa_min_bitlen;                  /**< Minimum size for RSA keys  */
+    const mbedtls_ecp_group *allowed_curves;/**< Elliptic curves for ECDSA  */
+}
+mbedtls_x509_crt_profile;
+
 #define MBEDTLS_X509_CRT_VERSION_1              0
 #define MBEDTLS_X509_CRT_VERSION_2              1
 #define MBEDTLS_X509_CRT_VERSION_3              2
@@ -232,6 +246,9 @@ int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
  * \note           In case verification failed, the results can be displayed
  *                 using \c mbedtls_x509_crt_verify_info()
  *
+ * \note           Same as \c mbedtls_x509_crt_verify_with_profile() with the
+ *                 default security profile.
+ *
  * \param crt      a certificate to be verified
  * \param trust_ca the trusted CA chain
  * \param ca_crl   the CRL chain for trusted CA's
@@ -251,6 +268,37 @@ int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
 int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
                      mbedtls_x509_crt *trust_ca,
                      mbedtls_x509_crl *ca_crl,
+                     const char *cn, uint32_t *flags,
+                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
+                     void *p_vrfy );
+
+/**
+ * \brief          Verify the certificate signature according to profile
+ *
+ * \note           Same as \c mbedtls_x509_crt_verify(), but with explicit
+ *                 security profile.
+ *
+ * \param crt      a certificate to be verified
+ * \param trust_ca the trusted CA chain
+ * \param ca_crl   the CRL chain for trusted CA's
+ * \param profile  security profile for verification
+ * \param cn       expected Common Name (can be set to
+ *                 NULL if the CN must not be verified)
+ * \param flags    result of the verification
+ * \param f_vrfy   verification function
+ * \param p_vrfy   verification parameter
+ *
+ * \return         0 if successful or MBEDTLS_ERR_X509_CERT_VERIFY_FAILED
+ *                 in which case *flags will have one or more
+ *                 MBEDTLS_X509_BADCERT_XXX or MBEDTLS_X509_BADCRL_XXX flags
+ *                 set,
+ *                 or another error in case of a fatal error encountered
+ *                 during the verification process.
+ */
+int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
+                     mbedtls_x509_crt *trust_ca,
+                     mbedtls_x509_crl *ca_crl,
+                     const mbedtls_x509_crt_profile *profile,
                      const char *cn, uint32_t *flags,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy );

@@ -1401,6 +1401,12 @@ static const struct x509_crt_verify_string x509_crt_verify_strings[] = {
     { MBEDTLS_X509_BADCERT_KEY_USAGE,     "Usage does not match the keyUsage extension" },
     { MBEDTLS_X509_BADCERT_EXT_KEY_USAGE, "Usage does not match the extendedKeyUsage extension" },
     { MBEDTLS_X509_BADCERT_NS_CERT_TYPE,  "Usage does not match the nsCertType extension" },
+    { MBEDTLS_X509_BADCERT_BAD_MD,        "The certificate is signed with an unacceptable hash." },
+    { MBEDTLS_X509_BADCERT_BAD_PK,        "The certificate is signed with an unacceptable PK alg (eg RSA vs ECDSA)." },
+    { MBEDTLS_X509_BADCERT_BAD_KEY,       "The certificate is signed with an unacceptable key (eg bad curve, RSA too short)." },
+    { MBEDTLS_X509_BADCRL_BAD_MD,         "The CRL is signed with an unacceptable hash." },
+    { MBEDTLS_X509_BADCRL_BAD_PK,         "The CRL is signed with an unacceptable PK alg (eg RSA vs ECDSA)." },
+    { MBEDTLS_X509_BADCRL_BAD_KEY,        "The CRL is signed with an unacceptable key (eg bad curve, RSA too short)." },
     { 0, NULL }
 };
 
@@ -1502,7 +1508,8 @@ int mbedtls_x509_crt_is_revoked( const mbedtls_x509_crt *crt, const mbedtls_x509
  * Check that the given certificate is valid according to the CRL.
  */
 static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
-                               mbedtls_x509_crl *crl_list)
+                               mbedtls_x509_crl *crl_list,
+                               const mbedtls_x509_crt_profile *profile )
 {
     int flags = 0;
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
@@ -1553,6 +1560,8 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
         }
 
         mbedtls_md( md_info, crl_list->tbs.p, crl_list->tbs.len, hash );
+
+        (void) profile; /* WIP:TODO: check profile */
 
         if( mbedtls_pk_verify_ext( crl_list->sig_pk, crl_list->sig_opts, &ca->pk,
                            crl_list->sig_md, hash, mbedtls_md_get_size( md_info ),
@@ -1764,7 +1773,9 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
 
 static int x509_crt_verify_top(
                 mbedtls_x509_crt *child, mbedtls_x509_crt *trust_ca,
-                mbedtls_x509_crl *ca_crl, int path_cnt, uint32_t *flags,
+                mbedtls_x509_crl *ca_crl,
+                const mbedtls_x509_crt_profile *profile,
+                int path_cnt, uint32_t *flags,
                 int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                 void *p_vrfy )
 {
@@ -1795,6 +1806,8 @@ static int x509_crt_verify_top(
     }
     else
         mbedtls_md( md_info, child->tbs.p, child->tbs.len, hash );
+
+    (void) profile; /* WIP:TODO: check profile */
 
     for( /* trust_ca */ ; trust_ca != NULL; trust_ca = trust_ca->next )
     {
@@ -1846,7 +1859,7 @@ static int x509_crt_verify_top(
     {
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
         /* Check trusted CA's CRL for the chain's top crt */
-        *flags |= x509_crt_verifycrl( child, trust_ca, ca_crl );
+        *flags |= x509_crt_verifycrl( child, trust_ca, ca_crl, profile );
 #else
         ((void) ca_crl);
 #endif
@@ -1880,8 +1893,10 @@ static int x509_crt_verify_top(
 }
 
 static int x509_crt_verify_child(
-                mbedtls_x509_crt *child, mbedtls_x509_crt *parent, mbedtls_x509_crt *trust_ca,
-                mbedtls_x509_crl *ca_crl, int path_cnt, uint32_t *flags,
+                mbedtls_x509_crt *child, mbedtls_x509_crt *parent,
+                mbedtls_x509_crt *trust_ca, mbedtls_x509_crl *ca_crl,
+                const mbedtls_x509_crt_profile *profile,
+                int path_cnt, uint32_t *flags,
                 int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                 void *p_vrfy )
 {
@@ -1890,6 +1905,8 @@ static int x509_crt_verify_child(
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
     mbedtls_x509_crt *grandparent;
     const mbedtls_md_info_t *md_info;
+
+    (void) profile; /* WIP */
 
     /* path_cnt is 0 for the first intermediate CA */
     if( 1 + path_cnt > MBEDTLS_X509_MAX_INTERMEDIATE_CA )
@@ -1914,6 +1931,8 @@ static int x509_crt_verify_child(
     }
     else
     {
+        (void) profile; /* WIP:TODO: check profile */
+
         mbedtls_md( md_info, child->tbs.p, child->tbs.len, hash );
 
         if( mbedtls_pk_verify_ext( child->sig_pk, child->sig_opts, &parent->pk,
@@ -1926,7 +1945,7 @@ static int x509_crt_verify_child(
 
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
     /* Check trusted CA's CRL for the given crt */
-    *flags |= x509_crt_verifycrl(child, parent, ca_crl);
+    *flags |= x509_crt_verifycrl(child, parent, ca_crl, profile );
 #endif
 
     /* Look for a grandparent upwards the chain */
@@ -1942,14 +1961,14 @@ static int x509_crt_verify_child(
     /* Is our parent part of the chain or at the top? */
     if( grandparent != NULL )
     {
-        ret = x509_crt_verify_child( parent, grandparent, trust_ca, ca_crl,
+        ret = x509_crt_verify_child( parent, grandparent, trust_ca, ca_crl, profile,
                                 path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }
     else
     {
-        ret = x509_crt_verify_top( parent, trust_ca, ca_crl,
+        ret = x509_crt_verify_top( parent, trust_ca, ca_crl, profile,
                                 path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
@@ -1971,6 +1990,22 @@ static int x509_crt_verify_child(
 int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
                      mbedtls_x509_crt *trust_ca,
                      mbedtls_x509_crl *ca_crl,
+                     const char *cn, uint32_t *flags,
+                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
+                     void *p_vrfy )
+{
+    return( mbedtls_x509_crt_verify_with_profile( crt, trust_ca, ca_crl,
+                NULL /* WIP */, cn, flags, f_vrfy, p_vrfy ) );
+}
+
+
+/*
+ * Verify the certificate validity, with profile
+ */
+int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
+                     mbedtls_x509_crt *trust_ca,
+                     mbedtls_x509_crl *ca_crl,
+                     const mbedtls_x509_crt_profile *profile,
                      const char *cn, uint32_t *flags,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy )
@@ -2044,14 +2079,14 @@ int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
     /* Are we part of the chain or at the top? */
     if( parent != NULL )
     {
-        ret = x509_crt_verify_child( crt, parent, trust_ca, ca_crl,
+        ret = x509_crt_verify_child( crt, parent, trust_ca, ca_crl, profile,
                                      pathlen, flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }
     else
     {
-        ret = x509_crt_verify_top( crt, trust_ca, ca_crl,
+        ret = x509_crt_verify_top( crt, trust_ca, ca_crl, profile,
                                    pathlen, flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );

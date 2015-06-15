@@ -84,117 +84,63 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 /*
  * Default profile
  */
-static const mbedtls_md_type_t x509_prof_default_mds[] =
-{
-    MBEDTLS_MD_SHA1,
-    MBEDTLS_MD_RIPEMD160,
-    MBEDTLS_MD_SHA224,
-    MBEDTLS_MD_SHA256,
-    MBEDTLS_MD_SHA384,
-    MBEDTLS_MD_SHA512,
-    MBEDTLS_MD_NONE
-};
-
-static const mbedtls_pk_type_t x509_prof_default_pks[] =
-{
-    MBEDTLS_PK_RSA,
-    MBEDTLS_PK_ECDSA,
-    MBEDTLS_PK_NONE
-};
-
-#if defined(MBEDTLS_ECP_C)
-static const mbedtls_ecp_group_id x509_prof_default_curves[] =
-{
-    MBEDTLS_ECP_DP_SECP192R1,
-    MBEDTLS_ECP_DP_SECP224R1,
-    MBEDTLS_ECP_DP_SECP256R1,
-    MBEDTLS_ECP_DP_SECP384R1,
-    MBEDTLS_ECP_DP_SECP521R1,
-    MBEDTLS_ECP_DP_BP256R1,
-    MBEDTLS_ECP_DP_BP384R1,
-    MBEDTLS_ECP_DP_BP512R1,
-    MBEDTLS_ECP_DP_SECP192K1,
-    MBEDTLS_ECP_DP_SECP224K1,
-    MBEDTLS_ECP_DP_SECP256K1,
-};
-#else
-static const mbedtls_ecp_group_id *x509_prof_default_curves = NULL;
-#endif
-
 const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_default =
 {
-    x509_prof_default_mds,
-    x509_prof_default_pks,
-    x509_prof_default_curves,
+    /* Hashes from SHA-1 and above */
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA1 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_RIPEMD160 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA224 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA256 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA384 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA512 ),
+    0xFFFFFFF, /* Any PK alg    */
+    0xFFFFFFF, /* Any curve     */
     2048,
 };
 
 /*
  * Next-default profile
  */
-static const mbedtls_md_type_t x509_prof_next_mds[] =
-{
-    MBEDTLS_MD_SHA256,
-    MBEDTLS_MD_SHA384,
-    MBEDTLS_MD_SHA512,
-    MBEDTLS_MD_NONE
-};
-
-#if defined(MBEDTLS_ECP_C)
-static const mbedtls_ecp_group_id x509_prof_next_curves[] =
-{
-    MBEDTLS_ECP_DP_SECP256R1,
-    MBEDTLS_ECP_DP_SECP384R1,
-    MBEDTLS_ECP_DP_SECP521R1,
-    MBEDTLS_ECP_DP_BP256R1,
-    MBEDTLS_ECP_DP_BP384R1,
-    MBEDTLS_ECP_DP_BP512R1,
-    MBEDTLS_ECP_DP_SECP256K1,
-};
-#else
-static const mbedtls_ecp_group_id *x509_prof_next_curves = NULL;
-#endif
-
 const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_next =
 {
-    x509_prof_next_mds,
-    x509_prof_default_pks,
-    x509_prof_next_curves,
+    /* Hashes from SHA-256 and above */
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA256 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA384 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA512 ),
+    0xFFFFFFF, /* Any PK alg    */
+#if defined(MBEDTLS_ECP_C)
+    /* Curves at or above 128-bit security level */
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_SECP256R1 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_SECP384R1 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_SECP521R1 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_BP256R1 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_BP384R1 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_BP512R1 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_SECP256K1 ),
+#else
+    0,
+#endif
     2048,
 };
 
 /*
  * NSA Suite B Profile
  */
-static const mbedtls_md_type_t x509_prof_suiteb_mds[] =
-{
-    MBEDTLS_MD_SHA256,
-    MBEDTLS_MD_SHA384,
-    MBEDTLS_MD_NONE
-};
-
-static const mbedtls_pk_type_t x509_prof_suiteb_pks[] =
-{
-    MBEDTLS_PK_ECDSA,
-    MBEDTLS_PK_NONE
-};
-
-#if defined(MBEDTLS_ECP_C)
-static const mbedtls_ecp_group_id x509_prof_suiteb_curves[] =
-{
-    MBEDTLS_ECP_DP_SECP256R1,
-    MBEDTLS_ECP_DP_SECP384R1,
-};
-#else
-static const mbedtls_ecp_group_id *x509_prof_suiteb_curves = NULL;
-#endif
-
 const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_suiteb =
 {
-    x509_prof_suiteb_mds,
-    x509_prof_suiteb_pks,
-    x509_prof_suiteb_curves,
-    2048,
+    /* Only SHA-256 and 384 */
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA256 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA384 ),
+    /* Only ECDSA */
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_PK_ECDSA ),
+#if defined(MBEDTLS_ECP_C)
+    /* Only NIST P-256 and P-384 */
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_SECP256R1 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_SECP384R1 ),
+#else
+    0,
+#endif
+    0,
 };
 
 /*

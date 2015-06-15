@@ -95,17 +95,22 @@ typedef struct mbedtls_x509_crt
 mbedtls_x509_crt;
 
 /**
+ * Build flag from an algorithm/curve identifier (pk, md, ecp)
+ * Since 0 is always XXX_NONE, ignore it.
+ */
+#define MBEDTLS_X509_ID_FLAG( id )   ( 1 << ( id - 1 ) )
+
+/**
  * Security profile for certificate verification.
  *
- * All lists are terminated by the respective _NONE value.
+ * All lists are bitfields, built by ORing flags from MBEDTLS_X509_ID_FLAG().
  */
 typedef struct
 {
-    const mbedtls_md_type_t *allowed_mds;   /**< MDs for signatures         */
-    const mbedtls_pk_type_t *allowed_pks;   /**< PK algs for signatures     */
-    const mbedtls_ecp_group_id *allowed_curves; /**< Elliptic curves        */
-    size_t rsa_min_bitlen;                  /**< Minimum size for RSA keys
-                                                 (must be non-zero)         */
+    uint32_t allowed_mds;       /**< MDs for signatures         */
+    uint32_t allowed_pks;       /**< PK algs for signatures     */
+    uint32_t allowed_curves;    /**< Elliptic curves for ECDSA  */
+    uint32_t rsa_min_bitlen;    /**< Minimum size for RSA keys  */
 }
 mbedtls_x509_crt_profile;
 

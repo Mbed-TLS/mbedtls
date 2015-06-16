@@ -66,7 +66,7 @@ void debug_set_threshold( int threshold )
 char *debug_fmt( const char *format, ... )
 {
     va_list argp;
-    static char str[512];
+    char str[512];
     int maxlen = sizeof( str ) - 1;
 
     va_start( argp, format );

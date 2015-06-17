@@ -6612,11 +6612,33 @@ void mbedtls_ssl_config_init( mbedtls_ssl_config *conf )
     memset( conf, 0, sizeof( mbedtls_ssl_config ) );
 }
 
+static int ssl_preset_suiteb_ciphersuites[] = {
+    MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+    MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+    0
+};
+
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED)
+static int ssl_preset_suiteb_hashes[] = {
+    MBEDTLS_MD_SHA256,
+    MBEDTLS_MD_SHA384,
+    MBEDTLS_MD_NONE
+};
+#endif
+
+#if defined(MBEDTLS_ECP_C)
+static mbedtls_ecp_group_id ssl_preset_suiteb_curves[] = {
+    MBEDTLS_ECP_DP_SECP256R1,
+    MBEDTLS_ECP_DP_SECP384R1,
+    MBEDTLS_ECP_DP_NONE
+};
+#endif
+
 /*
  * Load default in mbetls_ssl_config
  */
 int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
-                                 int endpoint, int transport )
+                                 int endpoint, int transport, int preset )
 {
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
     int ret;
@@ -6627,19 +6649,9 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
     mbedtls_ssl_conf_endpoint( conf, endpoint );
     mbedtls_ssl_conf_transport( conf, transport );
 
-    conf->min_major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
-    conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_1; /* TLS 1.0 */
-    conf->max_major_ver = MBEDTLS_SSL_MAX_MAJOR_VERSION;
-    conf->max_minor_ver = MBEDTLS_SSL_MAX_MINOR_VERSION;
-
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-    {
-        /* DTLS starts with TLS 1.1 */
-        conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_2;
-    }
-#endif
-
+    /*
+     * Things that are common to all presets
+     */
 #if defined(MBEDTLS_SSL_CLI_C)
     if( endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
@@ -6648,16 +6660,6 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
         conf->session_tickets = MBEDTLS_SSL_SESSION_TICKETS_ENABLED;
 #endif
     }
-#endif
-
-    conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_0] =
-    conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_1] =
-    conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_2] =
-    conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_3] =
-                           mbedtls_ssl_list_ciphersuites();
-
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
-    conf->cert_profile = &mbedtls_x509_crt_profile_default;
 #endif
 
 #if defined(MBEDTLS_ARC4_C)
@@ -6674,14 +6676,6 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
     conf->cbc_record_splitting = MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED;
-#endif
-
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED)
-    conf->sig_hashes = mbedtls_md_list();
-#endif
-
-#if defined(MBEDTLS_ECP_C)
-    conf->curve_list = mbedtls_ecp_grp_id_list();
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) && defined(MBEDTLS_SSL_SRV_C)
@@ -6704,21 +6698,86 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
     conf->renego_period[7] = 0x00;
 #endif
 
-#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)
-    conf->dhm_min_bitlen = 1024;
+#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
+            if( endpoint == MBEDTLS_SSL_IS_SERVER )
+            {
+                if( ( ret = mbedtls_ssl_conf_dh_param( conf,
+                                MBEDTLS_DHM_RFC5114_MODP_2048_P,
+                                MBEDTLS_DHM_RFC5114_MODP_2048_G ) ) != 0 )
+                {
+                    return( ret );
+                }
+            }
 #endif
 
-#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
-    if( endpoint == MBEDTLS_SSL_IS_SERVER )
+    /*
+     * Preset-specific defaults
+     */
+    switch( preset )
     {
-        if( ( ret = mbedtls_ssl_conf_dh_param( conf,
-                        MBEDTLS_DHM_RFC5114_MODP_2048_P,
-                        MBEDTLS_DHM_RFC5114_MODP_2048_G ) ) != 0 )
-        {
-            return( ret );
-        }
-    }
+        /*
+         * NSA Suite B
+         */
+        case MBEDTLS_SSL_PRESET_SUITEB:
+            conf->min_major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
+            conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_3; /* TLS 1.2 */
+            conf->max_major_ver = MBEDTLS_SSL_MAX_MAJOR_VERSION;
+            conf->max_minor_ver = MBEDTLS_SSL_MAX_MINOR_VERSION;
+
+            conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_0] =
+            conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_1] =
+            conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_2] =
+            conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_3] =
+                                   ssl_preset_suiteb_ciphersuites;
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+            conf->cert_profile = &mbedtls_x509_crt_profile_suiteb;
 #endif
+
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED)
+            conf->sig_hashes = ssl_preset_suiteb_hashes;
+#endif
+
+#if defined(MBEDTLS_ECP_C)
+            conf->curve_list = ssl_preset_suiteb_curves;
+#endif
+
+        /*
+         * Default
+         */
+        default:
+            conf->min_major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
+            conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_1; /* TLS 1.0 */
+            conf->max_major_ver = MBEDTLS_SSL_MAX_MAJOR_VERSION;
+            conf->max_minor_ver = MBEDTLS_SSL_MAX_MINOR_VERSION;
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+            if( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+                conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_2;
+#endif
+
+            conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_0] =
+            conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_1] =
+            conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_2] =
+            conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_3] =
+                                   mbedtls_ssl_list_ciphersuites();
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+            conf->cert_profile = &mbedtls_x509_crt_profile_default;
+#endif
+
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED)
+            conf->sig_hashes = mbedtls_md_list();
+#endif
+
+#if defined(MBEDTLS_ECP_C)
+            conf->curve_list = mbedtls_ecp_grp_id_list();
+#endif
+
+#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)
+            conf->dhm_min_bitlen = 1024;
+#endif
+    }
 
     return( 0 );
 }

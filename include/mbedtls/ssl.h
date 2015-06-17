@@ -196,6 +196,9 @@
 #define MBEDTLS_SSL_ARC4_ENABLED                0
 #define MBEDTLS_SSL_ARC4_DISABLED               1
 
+#define MBEDTLS_SSL_PRESET_DEFAULT              0
+#define MBEDTLS_SSL_PRESET_SUITEB               2
+
 /*
  * Default range for DTLS retransmission timer value, in milliseconds.
  * RFC 6347 4.2.4.1 says from 1 second to 60 seconds.
@@ -2165,6 +2168,8 @@ void mbedtls_ssl_config_init( mbedtls_ssl_config *conf );
  * \param endpoint MBEDTLS_SSL_IS_CLIENT or MBEDTLS_SSL_IS_SERVER
  * \param transport MBEDTLS_SSL_TRANSPORT_STREAM for TLS, or
  *                  MBEDTLS_SSL_TRANSPORT_DATAGRAM for DTLS
+ * \param preset   a MBEDTLS_SSL_PRESET_XXX value
+ *                 (currently unused).
  *
  * \note           See \c mbedtls_ssl_conf_transport() for notes on DTLS.
  *
@@ -2172,7 +2177,7 @@ void mbedtls_ssl_config_init( mbedtls_ssl_config *conf );
  *                 MBEDTLS_ERR_XXX_ALLOC_FAILED on memory allocation error.
  */
 int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
-                                 int endpoint, int transport );
+                                 int endpoint, int transport, int preset );
 
 /**
  * \brief          Free an SSL configuration context

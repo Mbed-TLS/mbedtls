@@ -191,7 +191,8 @@ int main( void )
 
     if( mbedtls_ssl_config_defaults( &conf,
                 MBEDTLS_SSL_IS_CLIENT,
-                MBEDTLS_SSL_TRANSPORT_STREAM) != 0 )
+                MBEDTLS_SSL_TRANSPORT_STREAM,
+                MBEDTLS_SSL_PRESET_DEFAULT ) != 0 )
     {
         ret = ssl_config_defaults_failed;
         goto exit;

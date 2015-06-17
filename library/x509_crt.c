@@ -82,6 +82,127 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 }
 
 /*
+ * Default profile
+ */
+const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_default =
+{
+    /* Hashes from SHA-1 and above */
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA1 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_RIPEMD160 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA224 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA256 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA384 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA512 ),
+    0xFFFFFFF, /* Any PK alg    */
+    0xFFFFFFF, /* Any curve     */
+    2048,
+};
+
+/*
+ * Next-default profile
+ */
+const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_next =
+{
+    /* Hashes from SHA-256 and above */
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA256 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA384 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA512 ),
+    0xFFFFFFF, /* Any PK alg    */
+#if defined(MBEDTLS_ECP_C)
+    /* Curves at or above 128-bit security level */
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_SECP256R1 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_SECP384R1 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_SECP521R1 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_BP256R1 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_BP384R1 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_BP512R1 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_SECP256K1 ),
+#else
+    0,
+#endif
+    2048,
+};
+
+/*
+ * NSA Suite B Profile
+ */
+const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_suiteb =
+{
+    /* Only SHA-256 and 384 */
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA256 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA384 ),
+    /* Only ECDSA */
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_PK_ECDSA ),
+#if defined(MBEDTLS_ECP_C)
+    /* Only NIST P-256 and P-384 */
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_SECP256R1 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_SECP384R1 ),
+#else
+    0,
+#endif
+    0,
+};
+
+/*
+ * Check md_alg against profile
+ * Return 0 if md_alg acceptable for this profile, -1 otherwise
+ */
+static int x509_profile_check_md_alg( const mbedtls_x509_crt_profile *profile,
+                                      mbedtls_md_type_t md_alg )
+{
+    if( ( profile->allowed_mds & MBEDTLS_X509_ID_FLAG( md_alg ) ) != 0 )
+        return( 0 );
+
+    return( -1 );
+}
+
+/*
+ * Check pk_alg against profile
+ * Return 0 if pk_alg acceptable for this profile, -1 otherwise
+ */
+static int x509_profile_check_pk_alg( const mbedtls_x509_crt_profile *profile,
+                                      mbedtls_pk_type_t pk_alg )
+{
+    if( ( profile->allowed_pks & MBEDTLS_X509_ID_FLAG( pk_alg ) ) != 0 )
+        return( 0 );
+
+    return( -1 );
+}
+
+/*
+ * Check key against profile
+ * Return 0 if pk_alg acceptable for this profile, -1 otherwise
+ */
+static int x509_profile_check_key( const mbedtls_x509_crt_profile *profile,
+                                   mbedtls_pk_type_t pk_alg,
+                                   const mbedtls_pk_context *pk )
+{
+#if defined(MBEDTLS_RSA_C)
+    if( pk_alg == MBEDTLS_PK_RSA || pk_alg == MBEDTLS_PK_RSASSA_PSS )
+    {
+        if( mbedtls_pk_get_size( pk ) >= profile->rsa_min_bitlen )
+            return( 0 );
+
+        return( -1 );
+    }
+#endif
+
+#if defined(MBEDTLS_ECDSA_C)
+    if( pk_alg == MBEDTLS_PK_ECDSA )
+    {
+        mbedtls_ecp_group_id gid = mbedtls_pk_ec( *pk )->grp.id;
+
+        if( ( profile->allowed_curves & MBEDTLS_X509_ID_FLAG( gid ) ) != 0 )
+            return( 0 );
+
+        return( -1 );
+    }
+#endif
+
+    return( -1 );
+}
+
+/*
  *  Version  ::=  INTEGER  {  v1(0), v2(1), v3(2)  }
  */
 static int x509_get_version( unsigned char **p,
@@ -1401,6 +1522,12 @@ static const struct x509_crt_verify_string x509_crt_verify_strings[] = {
     { MBEDTLS_X509_BADCERT_KEY_USAGE,     "Usage does not match the keyUsage extension" },
     { MBEDTLS_X509_BADCERT_EXT_KEY_USAGE, "Usage does not match the extendedKeyUsage extension" },
     { MBEDTLS_X509_BADCERT_NS_CERT_TYPE,  "Usage does not match the nsCertType extension" },
+    { MBEDTLS_X509_BADCERT_BAD_MD,        "The certificate is signed with an unacceptable hash." },
+    { MBEDTLS_X509_BADCERT_BAD_PK,        "The certificate is signed with an unacceptable PK alg (eg RSA vs ECDSA)." },
+    { MBEDTLS_X509_BADCERT_BAD_KEY,       "The certificate is signed with an unacceptable key (eg bad curve, RSA too short)." },
+    { MBEDTLS_X509_BADCRL_BAD_MD,         "The CRL is signed with an unacceptable hash." },
+    { MBEDTLS_X509_BADCRL_BAD_PK,         "The CRL is signed with an unacceptable PK alg (eg RSA vs ECDSA)." },
+    { MBEDTLS_X509_BADCRL_BAD_KEY,        "The CRL is signed with an unacceptable key (eg bad curve, RSA too short)." },
     { 0, NULL }
 };
 
@@ -1502,7 +1629,8 @@ int mbedtls_x509_crt_is_revoked( const mbedtls_x509_crt *crt, const mbedtls_x509
  * Check that the given certificate is valid according to the CRL.
  */
 static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
-                               mbedtls_x509_crl *crl_list)
+                               mbedtls_x509_crl *crl_list,
+                               const mbedtls_x509_crt_profile *profile )
 {
     int flags = 0;
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
@@ -1542,6 +1670,12 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
         /*
          * Check if CRL is correctly signed by the trusted CA
          */
+        if( x509_profile_check_md_alg( profile, crl_list->sig_md ) != 0 )
+            flags |= MBEDTLS_X509_BADCRL_BAD_MD;
+
+        if( x509_profile_check_pk_alg( profile, crl_list->sig_pk ) != 0 )
+            flags |= MBEDTLS_X509_BADCRL_BAD_PK;
+
         md_info = mbedtls_md_info_from_type( crl_list->sig_md );
         if( md_info == NULL )
         {
@@ -1553,6 +1687,9 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
         }
 
         mbedtls_md( md_info, crl_list->tbs.p, crl_list->tbs.len, hash );
+
+        if( x509_profile_check_key( profile, crl_list->sig_pk, &ca->pk ) != 0 )
+            flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
 
         if( mbedtls_pk_verify_ext( crl_list->sig_pk, crl_list->sig_opts, &ca->pk,
                            crl_list->sig_md, hash, mbedtls_md_get_size( md_info ),
@@ -1582,6 +1719,7 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
 
         crl_list = crl_list->next;
     }
+
     return( flags );
 }
 #endif /* MBEDTLS_X509_CRL_PARSE_C */
@@ -1764,7 +1902,9 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
 
 static int x509_crt_verify_top(
                 mbedtls_x509_crt *child, mbedtls_x509_crt *trust_ca,
-                mbedtls_x509_crl *ca_crl, int path_cnt, uint32_t *flags,
+                mbedtls_x509_crl *ca_crl,
+                const mbedtls_x509_crt_profile *profile,
+                int path_cnt, uint32_t *flags,
                 int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                 void *p_vrfy )
 {
@@ -1779,6 +1919,12 @@ static int x509_crt_verify_top(
 
     if( mbedtls_x509_time_is_future( &child->valid_from ) )
         *flags |= MBEDTLS_X509_BADCERT_FUTURE;
+
+    if( x509_profile_check_md_alg( profile, child->sig_md ) != 0 )
+        *flags |= MBEDTLS_X509_BADCERT_BAD_MD;
+
+    if( x509_profile_check_pk_alg( profile, child->sig_pk ) != 0 )
+        *flags |= MBEDTLS_X509_BADCERT_BAD_PK;
 
     /*
      * Child is the top of the chain. Check against the trust_ca list.
@@ -1820,6 +1966,9 @@ static int x509_crt_verify_top(
             continue;
         }
 
+        if( x509_profile_check_key( profile, child->sig_pk, &trust_ca->pk ) != 0 )
+            *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
+
         if( mbedtls_pk_verify_ext( child->sig_pk, child->sig_opts, &trust_ca->pk,
                            child->sig_md, hash, mbedtls_md_get_size( md_info ),
                            child->sig.p, child->sig.len ) != 0 )
@@ -1846,7 +1995,7 @@ static int x509_crt_verify_top(
     {
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
         /* Check trusted CA's CRL for the chain's top crt */
-        *flags |= x509_crt_verifycrl( child, trust_ca, ca_crl );
+        *flags |= x509_crt_verifycrl( child, trust_ca, ca_crl, profile );
 #else
         ((void) ca_crl);
 #endif
@@ -1880,8 +2029,10 @@ static int x509_crt_verify_top(
 }
 
 static int x509_crt_verify_child(
-                mbedtls_x509_crt *child, mbedtls_x509_crt *parent, mbedtls_x509_crt *trust_ca,
-                mbedtls_x509_crl *ca_crl, int path_cnt, uint32_t *flags,
+                mbedtls_x509_crt *child, mbedtls_x509_crt *parent,
+                mbedtls_x509_crt *trust_ca, mbedtls_x509_crl *ca_crl,
+                const mbedtls_x509_crt_profile *profile,
+                int path_cnt, uint32_t *flags,
                 int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                 void *p_vrfy )
 {
@@ -1890,6 +2041,8 @@ static int x509_crt_verify_child(
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
     mbedtls_x509_crt *grandparent;
     const mbedtls_md_info_t *md_info;
+
+    (void) profile; /* WIP */
 
     /* path_cnt is 0 for the first intermediate CA */
     if( 1 + path_cnt > MBEDTLS_X509_MAX_INTERMEDIATE_CA )
@@ -1904,6 +2057,12 @@ static int x509_crt_verify_child(
     if( mbedtls_x509_time_is_future( &child->valid_from ) )
         *flags |= MBEDTLS_X509_BADCERT_FUTURE;
 
+    if( x509_profile_check_md_alg( profile, child->sig_md ) != 0 )
+        *flags |= MBEDTLS_X509_BADCERT_BAD_MD;
+
+    if( x509_profile_check_pk_alg( profile, child->sig_pk ) != 0 )
+        *flags |= MBEDTLS_X509_BADCERT_BAD_PK;
+
     md_info = mbedtls_md_info_from_type( child->sig_md );
     if( md_info == NULL )
     {
@@ -1916,6 +2075,9 @@ static int x509_crt_verify_child(
     {
         mbedtls_md( md_info, child->tbs.p, child->tbs.len, hash );
 
+        if( x509_profile_check_key( profile, child->sig_pk, &parent->pk ) != 0 )
+            *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
+
         if( mbedtls_pk_verify_ext( child->sig_pk, child->sig_opts, &parent->pk,
                            child->sig_md, hash, mbedtls_md_get_size( md_info ),
                            child->sig.p, child->sig.len ) != 0 )
@@ -1926,7 +2088,7 @@ static int x509_crt_verify_child(
 
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
     /* Check trusted CA's CRL for the given crt */
-    *flags |= x509_crt_verifycrl(child, parent, ca_crl);
+    *flags |= x509_crt_verifycrl(child, parent, ca_crl, profile );
 #endif
 
     /* Look for a grandparent upwards the chain */
@@ -1942,14 +2104,14 @@ static int x509_crt_verify_child(
     /* Is our parent part of the chain or at the top? */
     if( grandparent != NULL )
     {
-        ret = x509_crt_verify_child( parent, grandparent, trust_ca, ca_crl,
+        ret = x509_crt_verify_child( parent, grandparent, trust_ca, ca_crl, profile,
                                 path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }
     else
     {
-        ret = x509_crt_verify_top( parent, trust_ca, ca_crl,
+        ret = x509_crt_verify_top( parent, trust_ca, ca_crl, profile,
                                 path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
@@ -1975,12 +2137,31 @@ int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy )
 {
+    return( mbedtls_x509_crt_verify_with_profile( crt, trust_ca, ca_crl,
+                &mbedtls_x509_crt_profile_default, cn, flags, f_vrfy, p_vrfy ) );
+}
+
+
+/*
+ * Verify the certificate validity, with profile
+ */
+int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
+                     mbedtls_x509_crt *trust_ca,
+                     mbedtls_x509_crl *ca_crl,
+                     const mbedtls_x509_crt_profile *profile,
+                     const char *cn, uint32_t *flags,
+                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
+                     void *p_vrfy )
+{
     size_t cn_len;
     int ret;
     int pathlen = 0;
     mbedtls_x509_crt *parent;
     mbedtls_x509_name *name;
     mbedtls_x509_sequence *cur = NULL;
+
+    if( profile == NULL )
+        return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
 
     *flags = 0;
 
@@ -2044,14 +2225,14 @@ int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
     /* Are we part of the chain or at the top? */
     if( parent != NULL )
     {
-        ret = x509_crt_verify_child( crt, parent, trust_ca, ca_crl,
+        ret = x509_crt_verify_child( crt, parent, trust_ca, ca_crl, profile,
                                      pathlen, flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }
     else
     {
-        ret = x509_crt_verify_top( crt, trust_ca, ca_crl,
+        ret = x509_crt_verify_top( crt, trust_ca, ca_crl, profile,
                                    pathlen, flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );

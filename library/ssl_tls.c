@@ -4064,10 +4064,13 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         /*
          * Main check: verify certificate
          */
-        ret = mbedtls_x509_crt_verify( ssl->session_negotiate->peer_cert,
-                               ca_chain, ca_crl, ssl->hostname,
-                              &ssl->session_negotiate->verify_result,
-                               ssl->conf->f_vrfy, ssl->conf->p_vrfy );
+        ret = mbedtls_x509_crt_verify_with_profile(
+                                ssl->session_negotiate->peer_cert,
+                                ca_chain, ca_crl,
+                                ssl->conf->cert_profile,
+                                ssl->hostname,
+                               &ssl->session_negotiate->verify_result,
+                                ssl->conf->f_vrfy, ssl->conf->p_vrfy );
 
         if( ret != 0 )
         {
@@ -4078,20 +4081,20 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
          * Secondary checks: always done, but change 'ret' only if it was 0
          */
 
-#if defined(MBEDTLS_SSL_SET_CURVES)
+#if defined(MBEDTLS_ECP_C)
         {
             const mbedtls_pk_context *pk = &ssl->session_negotiate->peer_cert->pk;
 
             /* If certificate uses an EC key, make sure the curve is OK */
             if( mbedtls_pk_can_do( pk, MBEDTLS_PK_ECKEY ) &&
-                ! mbedtls_ssl_curve_is_acceptable( ssl, mbedtls_pk_ec( *pk )->grp.id ) )
+                mbedtls_ssl_check_curve( ssl, mbedtls_pk_ec( *pk )->grp.id ) != 0 )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate (EC key curve)" ) );
                 if( ret == 0 )
                     ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE;
             }
         }
-#endif /* MBEDTLS_SSL_SET_CURVES */
+#endif /* MBEDTLS_ECP_C */
 
         if( mbedtls_ssl_check_cert_usage( ssl->session_negotiate->peer_cert,
                                   ciphersuite_info,
@@ -5292,6 +5295,12 @@ void mbedtls_ssl_conf_ciphersuites_for_version( mbedtls_ssl_config *conf,
 }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+void mbedtls_ssl_conf_cert_profile( mbedtls_ssl_config *conf,
+                                    mbedtls_x509_crt_profile *profile )
+{
+    conf->cert_profile = profile;
+}
+
 /* Append a new keycert entry to a (possibly empty) list */
 static int ssl_append_key_cert( mbedtls_ssl_key_cert **head,
                                 mbedtls_x509_crt *cert,
@@ -5458,7 +5467,29 @@ int mbedtls_ssl_conf_dh_param_ctx( mbedtls_ssl_config *conf, mbedtls_dhm_context
 }
 #endif /* MBEDTLS_DHM_C && MBEDTLS_SSL_SRV_C */
 
-#if defined(MBEDTLS_SSL_SET_CURVES)
+#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)
+/*
+ * Set the minimum length for Diffie-Hellman parameters
+ */
+void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
+                                      unsigned int bitlen )
+{
+    conf->dhm_min_bitlen = bitlen;
+}
+#endif /* MBEDTLS_DHM_C && MBEDTLS_SSL_CLI_C */
+
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED)
+/*
+ * Set allowed/preferred hashes for handshake signatures
+ */
+void mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
+                                  const int *hashes )
+{
+    conf->sig_hashes = hashes;
+}
+#endif
+
+#if defined(MBEDTLS_ECP_C)
 /*
  * Set the allowed elliptic curves
  */
@@ -6581,11 +6612,33 @@ void mbedtls_ssl_config_init( mbedtls_ssl_config *conf )
     memset( conf, 0, sizeof( mbedtls_ssl_config ) );
 }
 
+static int ssl_preset_suiteb_ciphersuites[] = {
+    MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+    MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+    0
+};
+
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED)
+static int ssl_preset_suiteb_hashes[] = {
+    MBEDTLS_MD_SHA256,
+    MBEDTLS_MD_SHA384,
+    MBEDTLS_MD_NONE
+};
+#endif
+
+#if defined(MBEDTLS_ECP_C)
+static mbedtls_ecp_group_id ssl_preset_suiteb_curves[] = {
+    MBEDTLS_ECP_DP_SECP256R1,
+    MBEDTLS_ECP_DP_SECP384R1,
+    MBEDTLS_ECP_DP_NONE
+};
+#endif
+
 /*
  * Load default in mbetls_ssl_config
  */
 int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
-                                 int endpoint, int transport )
+                                 int endpoint, int transport, int preset )
 {
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
     int ret;
@@ -6596,19 +6649,9 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
     mbedtls_ssl_conf_endpoint( conf, endpoint );
     mbedtls_ssl_conf_transport( conf, transport );
 
-    conf->min_major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
-    conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_1; /* TLS 1.0 */
-    conf->max_major_ver = MBEDTLS_SSL_MAX_MAJOR_VERSION;
-    conf->max_minor_ver = MBEDTLS_SSL_MAX_MINOR_VERSION;
-
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-    {
-        /* DTLS starts with TLS 1.1 */
-        conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_2;
-    }
-#endif
-
+    /*
+     * Things that are common to all presets
+     */
 #if defined(MBEDTLS_SSL_CLI_C)
     if( endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
@@ -6618,12 +6661,6 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #endif
     }
 #endif
-
-    conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_0] =
-    conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_1] =
-    conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_2] =
-    conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_3] =
-                           mbedtls_ssl_list_ciphersuites();
 
 #if defined(MBEDTLS_ARC4_C)
     conf->arc4_disabled = MBEDTLS_SSL_ARC4_DISABLED;
@@ -6639,10 +6676,6 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
     conf->cbc_record_splitting = MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED;
-#endif
-
-#if defined(MBEDTLS_SSL_SET_CURVES)
-    conf->curve_list = mbedtls_ecp_grp_id_list( );
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) && defined(MBEDTLS_SSL_SRV_C)
@@ -6666,16 +6699,85 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #endif
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
-    if( endpoint == MBEDTLS_SSL_IS_SERVER )
-    {
-        if( ( ret = mbedtls_ssl_conf_dh_param( conf,
-                        MBEDTLS_DHM_RFC5114_MODP_2048_P,
-                        MBEDTLS_DHM_RFC5114_MODP_2048_G ) ) != 0 )
-        {
-            return( ret );
-        }
-    }
+            if( endpoint == MBEDTLS_SSL_IS_SERVER )
+            {
+                if( ( ret = mbedtls_ssl_conf_dh_param( conf,
+                                MBEDTLS_DHM_RFC5114_MODP_2048_P,
+                                MBEDTLS_DHM_RFC5114_MODP_2048_G ) ) != 0 )
+                {
+                    return( ret );
+                }
+            }
 #endif
+
+    /*
+     * Preset-specific defaults
+     */
+    switch( preset )
+    {
+        /*
+         * NSA Suite B
+         */
+        case MBEDTLS_SSL_PRESET_SUITEB:
+            conf->min_major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
+            conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_3; /* TLS 1.2 */
+            conf->max_major_ver = MBEDTLS_SSL_MAX_MAJOR_VERSION;
+            conf->max_minor_ver = MBEDTLS_SSL_MAX_MINOR_VERSION;
+
+            conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_0] =
+            conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_1] =
+            conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_2] =
+            conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_3] =
+                                   ssl_preset_suiteb_ciphersuites;
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+            conf->cert_profile = &mbedtls_x509_crt_profile_suiteb;
+#endif
+
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED)
+            conf->sig_hashes = ssl_preset_suiteb_hashes;
+#endif
+
+#if defined(MBEDTLS_ECP_C)
+            conf->curve_list = ssl_preset_suiteb_curves;
+#endif
+
+        /*
+         * Default
+         */
+        default:
+            conf->min_major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
+            conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_1; /* TLS 1.0 */
+            conf->max_major_ver = MBEDTLS_SSL_MAX_MAJOR_VERSION;
+            conf->max_minor_ver = MBEDTLS_SSL_MAX_MINOR_VERSION;
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+            if( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+                conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_2;
+#endif
+
+            conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_0] =
+            conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_1] =
+            conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_2] =
+            conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_3] =
+                                   mbedtls_ssl_list_ciphersuites();
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+            conf->cert_profile = &mbedtls_x509_crt_profile_default;
+#endif
+
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED)
+            conf->sig_hashes = mbedtls_md_list();
+#endif
+
+#if defined(MBEDTLS_ECP_C)
+            conf->curve_list = mbedtls_ecp_grp_id_list();
+#endif
+
+#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)
+            conf->dhm_min_bitlen = 1024;
+#endif
+    }
 
     return( 0 );
 }
@@ -6745,7 +6847,7 @@ mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig( unsigned char sig )
 #endif /* MBEDTLS_PK_C */
 
 /*
- * Convert between SSL_HASH_XXX and MBEDTLS_MD_XXX
+ * Convert from MBEDTLS_SSL_HASH_XXX to MBEDTLS_MD_XXX
  */
 mbedtls_md_type_t mbedtls_ssl_md_alg_from_hash( unsigned char hash )
 {
@@ -6776,22 +6878,78 @@ mbedtls_md_type_t mbedtls_ssl_md_alg_from_hash( unsigned char hash )
     }
 }
 
-#if defined(MBEDTLS_SSL_SET_CURVES)
 /*
- * Check is a curve proposed by the peer is in our list.
- * Return 1 if we're willing to use it, 0 otherwise.
+ * Convert from MBEDTLS_MD_XXX to MBEDTLS_SSL_HASH_XXX
  */
-int mbedtls_ssl_curve_is_acceptable( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id )
+unsigned char mbedtls_ssl_hash_from_md_alg( int md )
+{
+    switch( md )
+    {
+#if defined(MBEDTLS_MD5_C)
+        case MBEDTLS_MD_MD5:
+            return( MBEDTLS_SSL_HASH_MD5 );
+#endif
+#if defined(MBEDTLS_SHA1_C)
+        case MBEDTLS_MD_SHA1:
+            return( MBEDTLS_SSL_HASH_SHA1 );
+#endif
+#if defined(MBEDTLS_SHA256_C)
+        case MBEDTLS_MD_SHA224:
+            return( MBEDTLS_SSL_HASH_SHA224 );
+        case MBEDTLS_MD_SHA256:
+            return( MBEDTLS_SSL_HASH_SHA256 );
+#endif
+#if defined(MBEDTLS_SHA512_C)
+        case MBEDTLS_MD_SHA384:
+            return( MBEDTLS_SSL_HASH_SHA384 );
+        case MBEDTLS_MD_SHA512:
+            return( MBEDTLS_SSL_HASH_SHA512 );
+#endif
+        default:
+            return( MBEDTLS_SSL_HASH_NONE );
+    }
+}
+
+#if defined(MBEDTLS_ECP_C)
+/*
+ * Check if a curve proposed by the peer is in our list.
+ * Return 0 if we're willing to use it, -1 otherwise.
+ */
+int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id )
 {
     const mbedtls_ecp_group_id *gid;
 
+    if( ssl->conf->curve_list == NULL )
+        return( -1 );
+
     for( gid = ssl->conf->curve_list; *gid != MBEDTLS_ECP_DP_NONE; gid++ )
         if( *gid == grp_id )
-            return( 1 );
+            return( 0 );
 
-    return( 0 );
+    return( -1 );
 }
-#endif /* MBEDTLS_SSL_SET_CURVES */
+#endif /* MBEDTLS_ECP_C */
+
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED)
+/*
+ * Check if a hash proposed by the peer is in our list.
+ * Return 0 if we're willing to use it, -1 otherwise.
+ */
+int mbedtls_ssl_check_sig_hash( const mbedtls_ssl_context *ssl,
+                                mbedtls_md_type_t md )
+{
+    const int *cur;
+
+    if( ssl->conf->sig_hashes == NULL )
+        return( -1 );
+
+    for( cur = ssl->conf->sig_hashes; *cur != MBEDTLS_MD_NONE; cur++ )
+        if( *cur == (int) md )
+            return( 0 );
+
+    return( -1 );
+}
+#endif /* MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,

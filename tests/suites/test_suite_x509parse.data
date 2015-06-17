@@ -272,28 +272,7 @@ X509 Verify Information: two issues
 x509_verify_info:MBEDTLS_X509_BADCERT_EXPIRED | MBEDTLS_X509_BADCRL_EXPIRED:"":"The certificate validity has expired\nThe CRL is expired\n"
 
 X509 Verify Information: two issues, one unknown
-x509_verify_info:MBEDTLS_X509_BADCERT_OTHER | 0x8000:"":"Other reason (can be used by verify callback)\nUnknown reason (this should not happen)\n"
-
-X509 Verify Information: empty, with prefix
-x509_verify_info:0:"  ! ":""
-
-X509 Verify Information: one issue, with prefix
-x509_verify_info:MBEDTLS_X509_BADCERT_MISSING:"  ! ":"  ! Certificate was missing\n"
-
-X509 Verify Information: two issues, with prefix
-x509_verify_info:MBEDTLS_X509_BADCERT_EXPIRED | MBEDTLS_X509_BADCRL_EXPIRED:"  ! ":"  ! The certificate validity has expired\n  ! The CRL is expired\n"
-
-X509 Verify Information: empty
-x509_verify_info:0:"":""
-
-X509 Verify Information: one issue
-x509_verify_info:MBEDTLS_X509_BADCERT_MISSING:"":"Certificate was missing\n"
-
-X509 Verify Information: two issues
-x509_verify_info:MBEDTLS_X509_BADCERT_EXPIRED | MBEDTLS_X509_BADCRL_EXPIRED:"":"The certificate validity has expired\nThe CRL is expired\n"
-
-X509 Verify Information: two issues, one unknown
-x509_verify_info:MBEDTLS_X509_BADCERT_OTHER | 0x8000:"":"Other reason (can be used by verify callback)\nUnknown reason (this should not happen)\n"
+x509_verify_info:MBEDTLS_X509_BADCERT_OTHER | 0x80000000:"":"Other reason (can be used by verify callback)\nUnknown reason (this should not happen)\n"
 
 X509 Verify Information: empty, with prefix
 x509_verify_info:0:"  ! ":""
@@ -434,11 +413,11 @@ x509_verify:"data_files/server2.crt":"data_files/server1.crt":"data_files/crl_ex
 
 X509 Certificate verification #12 (Valid Cert MD4 Digest)
 depends_on:MBEDTLS_MD4_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
-x509_verify:"data_files/cert_md4.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
+x509_verify:"data_files/cert_md4.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_BAD_MD:"NULL"
 
 X509 Certificate verification #13 (Valid Cert MD5 Digest)
 depends_on:MBEDTLS_MD5_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
-x509_verify:"data_files/cert_md5.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
+x509_verify:"data_files/cert_md5.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_BAD_MD:"NULL"
 
 X509 Certificate verification #14 (Valid Cert SHA1 Digest)
 depends_on:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
@@ -690,7 +669,7 @@ x509_verify:"data_files/server6-ss-child.crt":"data_files/server5-selfsigned.crt
 
 X509 Certificate verification #75 (encoding mismatch)
 depends_on:MBEDTLS_PEM_PARSE_C
-x509_verify:"data_files/enco-cert-utf8str.pem":"data_files/enco-ca-prstr.pem":"data_files/crl.pem":"NULL":0:0:"NULL"
+x509_verify:"data_files/enco-cert-utf8str.pem":"data_files/enco-ca-prstr.pem":"data_files/crl.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_BAD_KEY:"NULL"
 
 X509 Certificate verification #76 (multiple CRLs, not revoked)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
@@ -714,7 +693,7 @@ x509_verify:"data_files/server1.crt":"data_files/test-ca_cat12.crt":"data_files/
 
 X509 Certificate verification #81 (multiple CRLs, none relevant)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
-x509_verify:"data_files/enco-cert-utf8str.pem":"data_files/enco-ca-prstr.pem":"data_files/crl_cat_rsa-ec.pem":"NULL":0:0:"NULL"
+x509_verify:"data_files/enco-cert-utf8str.pem":"data_files/enco-ca-prstr.pem":"data_files/crl_cat_rsa-ec.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_BAD_KEY:"NULL"
 
 X509 Parse Selftest
 depends_on:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_CERTS_C

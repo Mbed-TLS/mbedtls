@@ -54,6 +54,9 @@ static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
+/*
+ * Reminder: update profiles in x509_crt.c when adding a new hash!
+ */
 static const int supported_digests[] = {
 
 #if defined(MBEDTLS_SHA512_C)

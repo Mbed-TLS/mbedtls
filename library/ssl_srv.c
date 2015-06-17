@@ -211,7 +211,7 @@ static int ssl_parse_signature_algorithms_ext( mbedtls_ssl_context *ssl,
      *
      * So, just look at the HashAlgorithm part.
      */
-    for( md_cur = mbedtls_md_list(); *md_cur != MBEDTLS_MD_NONE; md_cur++ ) {
+    for( md_cur = ssl->conf->sig_hashes; *md_cur != MBEDTLS_MD_NONE; md_cur++ ) {
         for( p = buf + 2; p < end; p += 2 ) {
             if( *md_cur == (int) mbedtls_ssl_md_alg_from_hash( p[0] ) ) {
                 ssl->handshake->sig_alg = p[0];
@@ -2641,7 +2641,7 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
          * } ServerECDHParams;
          */
         const mbedtls_ecp_curve_info **curve = NULL;
-#if defined(MBEDTLS_SSL_SET_CURVES)
+#if defined(MBEDTLS_ECP_C)
         const mbedtls_ecp_group_id *gid;
 
         /* Match our preference list against the offered curves */

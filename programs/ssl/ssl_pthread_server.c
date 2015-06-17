@@ -412,7 +412,8 @@ int main( void )
 
     if( ( ret = mbedtls_ssl_config_defaults( &conf,
                     MBEDTLS_SSL_IS_SERVER,
-                    MBEDTLS_SSL_TRANSPORT_STREAM ) ) != 0 )
+                    MBEDTLS_SSL_TRANSPORT_STREAM,
+                    MBEDTLS_SSL_PRESET_DEFAULT ) ) != 0 )
     {
         mbedtls_printf( " failed: mbedtls_ssl_config_defaults returned -0x%04x\n",
                 -ret );

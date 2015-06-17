@@ -1533,7 +1533,8 @@ int main( int argc, char *argv[] )
 
     if( ( ret = mbedtls_ssl_config_defaults( &conf,
                     MBEDTLS_SSL_IS_SERVER,
-                    opt.transport ) ) != 0 )
+                    opt.transport,
+                    MBEDTLS_SSL_PRESET_DEFAULT ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_config_defaults returned -0x%x\n\n", -ret );
         goto exit;

@@ -70,6 +70,12 @@
 #define MBEDTLS_KEY_EXCHANGE__SOME__ECDHE_ENABLED
 #endif
 
+#if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
+#define MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED
+#endif
+
 /*
  * SSL Error codes
  */
@@ -189,6 +195,9 @@
 
 #define MBEDTLS_SSL_ARC4_ENABLED                0
 #define MBEDTLS_SSL_ARC4_DISABLED               1
+
+#define MBEDTLS_SSL_PRESET_DEFAULT              0
+#define MBEDTLS_SSL_PRESET_SUITEB               2
 
 /*
  * Default range for DTLS retransmission timer value, in milliseconds.
@@ -529,12 +538,17 @@ struct mbedtls_ssl_config
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+    const mbedtls_x509_crt_profile *cert_profile; /*!< verification profile */
     mbedtls_ssl_key_cert *key_cert; /*!< own certificate/key pair(s)        */
     mbedtls_x509_crt *ca_chain;     /*!< trusted CAs                        */
     mbedtls_x509_crl *ca_crl;       /*!< trusted CAs CRLs                   */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-#if defined(MBEDTLS_SSL_SET_CURVES)
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED)
+    const int *sig_hashes;          /*!< allowed signature hashes           */
+#endif
+
+#if defined(MBEDTLS_ECP_C)
     const mbedtls_ecp_group_id *curve_list; /*!< allowed curves             */
 #endif
 
@@ -575,6 +589,10 @@ struct mbedtls_ssl_config
 
 #if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
     unsigned int badmac_limit;      /*!< limit of records with a bad MAC    */
+#endif
+
+#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)
+    unsigned int dhm_min_bitlen;    /*!< min. bit length of the DHM prime   */
 #endif
 
     unsigned char max_major_ver;    /*!< max. major version used            */
@@ -1348,6 +1366,15 @@ void mbedtls_ssl_conf_ciphersuites_for_version( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**
+ * \brief          Set the X.509 security profile used for verification
+ *
+ * \param conf     SSL configuration
+ * \param profile  Profile to use
+ */
+void mbedtls_ssl_conf_cert_profile( mbedtls_ssl_config *conf,
+                                    mbedtls_x509_crt_profile *profile );
+
+/**
  * \brief          Set the data required to verify peer certificate
  *
  * \param conf     SSL configuration
@@ -1477,7 +1504,20 @@ int mbedtls_ssl_conf_dh_param( mbedtls_ssl_config *conf, const char *dhm_P, cons
 int mbedtls_ssl_conf_dh_param_ctx( mbedtls_ssl_config *conf, mbedtls_dhm_context *dhm_ctx );
 #endif /* MBEDTLS_DHM_C && defined(MBEDTLS_SSL_SRV_C) */
 
-#if defined(MBEDTLS_SSL_SET_CURVES)
+#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)
+/**
+ * \brief          Set the minimum length for Diffie-Hellman parameters.
+ *                 (Client-side only.)
+ *                 (Default: 1024 bits.)
+ *
+ * \param conf     SSL configuration
+ * \param bitlen   Minimum bit length of the DHM prime
+ */
+void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
+                                      unsigned int bitlen );
+#endif /* MBEDTLS_DHM_C && MBEDTLS_SSL_CLI_C */
+
+#if defined(MBEDTLS_ECP_C)
 /**
  * \brief          Set the allowed curves in order of preference.
  *                 (Default: all defined curves.)
@@ -1490,14 +1530,49 @@ int mbedtls_ssl_conf_dh_param_ctx( mbedtls_ssl_config *conf, mbedtls_dhm_context
  *                 use. The server can override our preference order.
  *
  *                 Both sides: limits the set of curves used by peer to the
- *                 listed curves for any use (ECDH(E), certificates).
+ *                 listed curves for any use ECDHE and the end-entity
+ *                 certificate.
+ *
+ * \note           This has no influence on which curve are allowed inside the
+ *                 certificate chains, see \c mbedtls_ssl_conf_cert_profile()
+ *                 for that. For example, if the peer's certificate chain is
+ *                 EE -> CA_int -> CA_root, then the allowed curves for EE are
+ *                 controlled by \c mbedtls_ssl_conf_curves() but for CA_int
+ *                 and CA_root it's \c mbedtls_ssl_conf_cert_profile().
+ *
+ * \note           This list should be ordered by decreasing preference
+ *                 (preferred curve first).
  *
  * \param conf     SSL configuration
  * \param curves   Ordered list of allowed curves,
  *                 terminated by MBEDTLS_ECP_DP_NONE.
  */
-void mbedtls_ssl_conf_curves( mbedtls_ssl_config *conf, const mbedtls_ecp_group_id *curves );
-#endif /* MBEDTLS_SSL_SET_CURVES */
+void mbedtls_ssl_conf_curves( mbedtls_ssl_config *conf,
+                              const mbedtls_ecp_group_id *curves );
+#endif /* MBEDTLS_ECP_C */
+
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED)
+/**
+ * \brief          Set the allowed hashes for signatures during the handshake.
+ *                 (Default: all available hashes.)
+ *
+ * \note           This only affects which hashes are offered and can be used
+ *                 for signatures during the handshake. Hashes for message
+ *                 authentication and the TLS PRF are controlled by the
+ *                 ciphersuite, see \c mbedtls_ssl_conf_ciphersuites(). Hashes
+ *                 used for certificate signature are controlled by the
+ *                 verification profile, see \c mbedtls_ssl_conf_cert_profile().
+ *
+ * \note           This list should be ordered by decreasing preference
+ *                 (preferred hash first).
+ *
+ * \param conf     SSL configuration
+ * \param hashes   Ordered list of allowed signature hashes,
+ *                 terminated by \c MBEDTLS_MD_NONE.
+ */
+void mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
+                                  const int *hashes );
+#endif /* MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**
@@ -2093,6 +2168,8 @@ void mbedtls_ssl_config_init( mbedtls_ssl_config *conf );
  * \param endpoint MBEDTLS_SSL_IS_CLIENT or MBEDTLS_SSL_IS_SERVER
  * \param transport MBEDTLS_SSL_TRANSPORT_STREAM for TLS, or
  *                  MBEDTLS_SSL_TRANSPORT_DATAGRAM for DTLS
+ * \param preset   a MBEDTLS_SSL_PRESET_XXX value
+ *                 (currently unused).
  *
  * \note           See \c mbedtls_ssl_conf_transport() for notes on DTLS.
  *
@@ -2100,7 +2177,7 @@ void mbedtls_ssl_config_init( mbedtls_ssl_config *conf );
  *                 MBEDTLS_ERR_XXX_ALLOC_FAILED on memory allocation error.
  */
 int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
-                                 int endpoint, int transport );
+                                 int endpoint, int transport, int preset );
 
 /**
  * \brief          Free an SSL configuration context

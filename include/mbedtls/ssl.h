@@ -529,6 +529,7 @@ struct mbedtls_ssl_config
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+    const mbedtls_x509_crt_profile *cert_profile; /*!< verification profile       */
     mbedtls_ssl_key_cert *key_cert; /*!< own certificate/key pair(s)        */
     mbedtls_x509_crt *ca_chain;     /*!< trusted CAs                        */
     mbedtls_x509_crl *ca_crl;       /*!< trusted CAs CRLs                   */
@@ -1351,6 +1352,15 @@ void mbedtls_ssl_conf_ciphersuites_for_version( mbedtls_ssl_config *conf,
                                        int major, int minor );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+/**
+ * \brief          Set the X.509 security profile used for verification
+ *
+ * \param conf     SSL configuration
+ * \param profile  Profile to use
+ */
+void mbedtls_ssl_conf_cert_profile( mbedtls_ssl_config *conf,
+                                    mbedtls_x509_crt_profile *profile );
+
 /**
  * \brief          Set the data required to verify peer certificate
  *

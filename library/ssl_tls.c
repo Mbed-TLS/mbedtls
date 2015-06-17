@@ -4064,10 +4064,13 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         /*
          * Main check: verify certificate
          */
-        ret = mbedtls_x509_crt_verify( ssl->session_negotiate->peer_cert,
-                               ca_chain, ca_crl, ssl->hostname,
-                              &ssl->session_negotiate->verify_result,
-                               ssl->conf->f_vrfy, ssl->conf->p_vrfy );
+        ret = mbedtls_x509_crt_verify_with_profile(
+                                ssl->session_negotiate->peer_cert,
+                                ca_chain, ca_crl,
+                                ssl->conf->cert_profile,
+                                ssl->hostname,
+                               &ssl->session_negotiate->verify_result,
+                                ssl->conf->f_vrfy, ssl->conf->p_vrfy );
 
         if( ret != 0 )
         {
@@ -5292,6 +5295,12 @@ void mbedtls_ssl_conf_ciphersuites_for_version( mbedtls_ssl_config *conf,
 }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+void mbedtls_ssl_conf_cert_profile( mbedtls_ssl_config *conf,
+                                    mbedtls_x509_crt_profile *profile )
+{
+    conf->cert_profile = profile;
+}
+
 /* Append a new keycert entry to a (possibly empty) list */
 static int ssl_append_key_cert( mbedtls_ssl_key_cert **head,
                                 mbedtls_x509_crt *cert,
@@ -6635,6 +6644,10 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
     conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_2] =
     conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_3] =
                            mbedtls_ssl_list_ciphersuites();
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    conf->cert_profile = &mbedtls_x509_crt_profile_default;
+#endif
 
 #if defined(MBEDTLS_ARC4_C)
     conf->arc4_disabled = MBEDTLS_SSL_ARC4_DISABLED;

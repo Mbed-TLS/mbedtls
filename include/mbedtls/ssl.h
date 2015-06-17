@@ -70,6 +70,12 @@
 #define MBEDTLS_KEY_EXCHANGE__SOME__ECDHE_ENABLED
 #endif
 
+#if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
+#define MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED
+#endif
+
 /*
  * SSL Error codes
  */
@@ -529,11 +535,15 @@ struct mbedtls_ssl_config
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-    const mbedtls_x509_crt_profile *cert_profile; /*!< verification profile       */
+    const mbedtls_x509_crt_profile *cert_profile; /*!< verification profile */
     mbedtls_ssl_key_cert *key_cert; /*!< own certificate/key pair(s)        */
     mbedtls_x509_crt *ca_chain;     /*!< trusted CAs                        */
     mbedtls_x509_crl *ca_crl;       /*!< trusted CAs CRLs                   */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED)
+    const int *sig_hashes;          /*!< allowed signature hashes           */
+#endif
 
 #if defined(MBEDTLS_ECP_C)
     const mbedtls_ecp_group_id *curve_list; /*!< allowed curves             */
@@ -1527,12 +1537,39 @@ void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
  *                 controlled by \c mbedtls_ssl_conf_curves() but for CA_int
  *                 and CA_root it's \c mbedtls_ssl_conf_cert_profile().
  *
+ * \note           This list should be ordered by decreasing preference
+ *                 (preferred curve first).
+ *
  * \param conf     SSL configuration
  * \param curves   Ordered list of allowed curves,
  *                 terminated by MBEDTLS_ECP_DP_NONE.
  */
-void mbedtls_ssl_conf_curves( mbedtls_ssl_config *conf, const mbedtls_ecp_group_id *curves );
+void mbedtls_ssl_conf_curves( mbedtls_ssl_config *conf,
+                              const mbedtls_ecp_group_id *curves );
 #endif /* MBEDTLS_ECP_C */
+
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED)
+/**
+ * \brief          Set the allowed hashes for signatures during the handshake.
+ *                 (Default: all available hashes.)
+ *
+ * \note           This only affects which hashes are offered and can be used
+ *                 for signatures during the handshake. Hashes for message
+ *                 authentication and the TLS PRF are controlled by the
+ *                 ciphersuite, see \c mbedtls_ssl_conf_ciphersuites(). Hashes
+ *                 used for certificate signature are controlled by the
+ *                 verification profile, see \c mbedtls_ssl_conf_cert_profile().
+ *
+ * \note           This list should be ordered by decreasing preference
+ *                 (preferred hash first).
+ *
+ * \param conf     SSL configuration
+ * \param hashes   Ordered list of allowed signature hashes,
+ *                 terminated by \c MBEDTLS_MD_NONE.
+ */
+void mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
+                                  const int *hashes );
+#endif /* MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**

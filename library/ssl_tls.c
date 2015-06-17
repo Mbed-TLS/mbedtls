@@ -5478,6 +5478,17 @@ void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
 }
 #endif /* MBEDTLS_DHM_C && MBEDTLS_SSL_CLI_C */
 
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED)
+/*
+ * Set allowed/preferred hashes for handshake signatures
+ */
+void mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
+                                  const int *hashes )
+{
+    conf->sig_hashes = hashes;
+}
+#endif
+
 #if defined(MBEDTLS_ECP_C)
 /*
  * Set the allowed elliptic curves
@@ -6665,8 +6676,12 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
     conf->cbc_record_splitting = MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED;
 #endif
 
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED)
+    conf->sig_hashes = mbedtls_md_list();
+#endif
+
 #if defined(MBEDTLS_ECP_C)
-    conf->curve_list = mbedtls_ecp_grp_id_list( );
+    conf->curve_list = mbedtls_ecp_grp_id_list();
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) && defined(MBEDTLS_SSL_SRV_C)

@@ -376,7 +376,7 @@ mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig( unsigned char sig );
 mbedtls_md_type_t mbedtls_ssl_md_alg_from_hash( unsigned char hash );
 
 #if defined(MBEDTLS_ECP_C)
-int mbedtls_ssl_curve_is_acceptable( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id );
+int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id );
 #endif
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)

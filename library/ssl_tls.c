@@ -4087,7 +4087,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 
             /* If certificate uses an EC key, make sure the curve is OK */
             if( mbedtls_pk_can_do( pk, MBEDTLS_PK_ECKEY ) &&
-                ! mbedtls_ssl_curve_is_acceptable( ssl, mbedtls_pk_ec( *pk )->grp.id ) )
+                mbedtls_ssl_check_curve( ssl, mbedtls_pk_ec( *pk )->grp.id ) != 0 )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate (EC key curve)" ) );
                 if( ret == 0 )
@@ -6807,17 +6807,20 @@ mbedtls_md_type_t mbedtls_ssl_md_alg_from_hash( unsigned char hash )
 #if defined(MBEDTLS_ECP_C)
 /*
  * Check is a curve proposed by the peer is in our list.
- * Return 1 if we're willing to use it, 0 otherwise.
+ * Return 0 if we're willing to use it, -1 otherwise.
  */
-int mbedtls_ssl_curve_is_acceptable( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id )
+int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id )
 {
     const mbedtls_ecp_group_id *gid;
 
+    if( ssl->conf->curve_list == NULL )
+        return( -1 );
+
     for( gid = ssl->conf->curve_list; *gid != MBEDTLS_ECP_DP_NONE; gid++ )
         if( *gid == grp_id )
-            return( 1 );
+            return( 0 );
 
-    return( 0 );
+    return( -1 );
 }
 #endif /* MBEDTLS_ECP_C */
 

@@ -2641,7 +2641,7 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
          * } ServerECDHParams;
          */
         const mbedtls_ecp_curve_info **curve = NULL;
-#if defined(MBEDTLS_SSL_SET_CURVES)
+#if defined(MBEDTLS_ECP_C)
         const mbedtls_ecp_group_id *gid;
 
         /* Match our preference list against the offered curves */

@@ -375,7 +375,7 @@ mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig( unsigned char sig );
 
 mbedtls_md_type_t mbedtls_ssl_md_alg_from_hash( unsigned char hash );
 
-#if defined(MBEDTLS_SSL_SET_CURVES)
+#if defined(MBEDTLS_ECP_C)
 int mbedtls_ssl_curve_is_acceptable( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id );
 #endif
 

@@ -1155,20 +1155,6 @@
 #define MBEDTLS_SSL_TRUNCATED_HMAC
 
 /**
- * \def MBEDTLS_SSL_SET_CURVES
- *
- * Enable mbedtls_ssl_conf_curves().
- *
- * This is disabled by default since it breaks binary compatibility with the
- * 1.3.x line. If you choose to enable it, you will need to rebuild your
- * application against the new header files, relinking will not be enough.
- * It will be enabled by default, or no longer an option, in the 1.4 branch.
- *
- * Uncomment to make mbedtls_ssl_conf_curves() available.
- */
-//#define MBEDTLS_SSL_SET_CURVES
-
-/**
  * \def MBEDTLS_THREADING_ALT
  *
  * Provide your own alternate threading implementation.

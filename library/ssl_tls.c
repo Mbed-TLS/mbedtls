@@ -4081,7 +4081,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
          * Secondary checks: always done, but change 'ret' only if it was 0
          */
 
-#if defined(MBEDTLS_SSL_SET_CURVES)
+#if defined(MBEDTLS_ECP_C)
         {
             const mbedtls_pk_context *pk = &ssl->session_negotiate->peer_cert->pk;
 
@@ -4094,7 +4094,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
                     ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE;
             }
         }
-#endif /* MBEDTLS_SSL_SET_CURVES */
+#endif /* MBEDTLS_ECP_C */
 
         if( mbedtls_ssl_check_cert_usage( ssl->session_negotiate->peer_cert,
                                   ciphersuite_info,
@@ -5478,7 +5478,7 @@ void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
 }
 #endif /* MBEDTLS_DHM_C && MBEDTLS_SSL_CLI_C */
 
-#if defined(MBEDTLS_SSL_SET_CURVES)
+#if defined(MBEDTLS_ECP_C)
 /*
  * Set the allowed elliptic curves
  */
@@ -6665,7 +6665,7 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
     conf->cbc_record_splitting = MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED;
 #endif
 
-#if defined(MBEDTLS_SSL_SET_CURVES)
+#if defined(MBEDTLS_ECP_C)
     conf->curve_list = mbedtls_ecp_grp_id_list( );
 #endif
 
@@ -6804,7 +6804,7 @@ mbedtls_md_type_t mbedtls_ssl_md_alg_from_hash( unsigned char hash )
     }
 }
 
-#if defined(MBEDTLS_SSL_SET_CURVES)
+#if defined(MBEDTLS_ECP_C)
 /*
  * Check is a curve proposed by the peer is in our list.
  * Return 1 if we're willing to use it, 0 otherwise.
@@ -6819,7 +6819,7 @@ int mbedtls_ssl_curve_is_acceptable( const mbedtls_ssl_context *ssl, mbedtls_ecp
 
     return( 0 );
 }
-#endif /* MBEDTLS_SSL_SET_CURVES */
+#endif /* MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,

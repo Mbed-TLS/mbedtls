@@ -374,9 +374,15 @@ mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig( unsigned char sig );
 #endif
 
 mbedtls_md_type_t mbedtls_ssl_md_alg_from_hash( unsigned char hash );
+unsigned char mbedtls_ssl_hash_from_md_alg( int md );
 
 #if defined(MBEDTLS_ECP_C)
 int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id );
+#endif
+
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED)
+int mbedtls_ssl_check_sig_hash( const mbedtls_ssl_context *ssl,
+                                mbedtls_md_type_t md );
 #endif
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)

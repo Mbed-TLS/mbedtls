@@ -156,6 +156,7 @@ static void ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
 {
     unsigned char *p = buf;
     size_t sig_alg_len = 0;
+    const int *md;
 #if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECDSA_C)
     unsigned char *sig_alg_list = buf + 6;
 #endif
@@ -170,55 +171,22 @@ static void ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
     /*
      * Prepare signature_algorithms extension (TLS 1.2)
      */
-#if defined(MBEDTLS_RSA_C)
-#if defined(MBEDTLS_SHA512_C)
-    sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_HASH_SHA512;
-    sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_SIG_RSA;
-    sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_HASH_SHA384;
-    sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_SIG_RSA;
-#endif
-#if defined(MBEDTLS_SHA256_C)
-    sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_HASH_SHA256;
-    sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_SIG_RSA;
-    sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_HASH_SHA224;
-    sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_SIG_RSA;
-#endif
-#if defined(MBEDTLS_SHA1_C)
-    sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_HASH_SHA1;
-    sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_SIG_RSA;
-#endif
-#if defined(MBEDTLS_MD5_C)
-    sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_HASH_MD5;
-    sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_SIG_RSA;
-#endif
-#endif /* MBEDTLS_RSA_C */
+    for( md = ssl->conf->sig_hashes; *md != MBEDTLS_MD_NONE; md++ )
+    {
 #if defined(MBEDTLS_ECDSA_C)
-#if defined(MBEDTLS_SHA512_C)
-    sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_HASH_SHA512;
-    sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_SIG_ECDSA;
-    sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_HASH_SHA384;
-    sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_SIG_ECDSA;
+        sig_alg_list[sig_alg_len++] = mbedtls_ssl_hash_from_md_alg( *md );
+        sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_SIG_ECDSA;
 #endif
-#if defined(MBEDTLS_SHA256_C)
-    sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_HASH_SHA256;
-    sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_SIG_ECDSA;
-    sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_HASH_SHA224;
-    sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_SIG_ECDSA;
+#if defined(MBEDTLS_RSA_C)
+        sig_alg_list[sig_alg_len++] = mbedtls_ssl_hash_from_md_alg( *md );
+        sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_SIG_RSA;
 #endif
-#if defined(MBEDTLS_SHA1_C)
-    sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_HASH_SHA1;
-    sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_SIG_ECDSA;
-#endif
-#if defined(MBEDTLS_MD5_C)
-    sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_HASH_MD5;
-    sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_SIG_ECDSA;
-#endif
-#endif /* MBEDTLS_ECDSA_C */
+    }
 
     /*
      * enum {
-     *     none(0), mbedtls_md5(1), mbedtls_sha1(2), sha224(3), mbedtls_sha256(4), sha384(5),
-     *     mbedtls_sha512(6), (255)
+     *     none(0), md5(1), sha1(2), sha224(3), sha256(4), sha384(5),
+     *     sha512(6), (255)
      * } HashAlgorithm;
      *
      * enum { anonymous(0), rsa(1), dsa(2), ecdsa(3), (255) }
@@ -1873,6 +1841,16 @@ static int ssl_parse_signature_algorithm( mbedtls_ssl_context *ssl,
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "server used unsupported "
                             "SignatureAlgorithm %d", (*p)[1] ) );
+        return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+    }
+
+    /*
+     * Check if the hash is acceptable
+     */
+    if( mbedtls_ssl_check_sig_hash( ssl, *md_alg ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "server used HashAlgorithm "
+                                    "that was not offered" ) );
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
     }
 

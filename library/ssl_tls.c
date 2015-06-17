@@ -6788,7 +6788,7 @@ mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig( unsigned char sig )
 #endif /* MBEDTLS_PK_C */
 
 /*
- * Convert between SSL_HASH_XXX and MBEDTLS_MD_XXX
+ * Convert from MBEDTLS_SSL_HASH_XXX to MBEDTLS_MD_XXX
  */
 mbedtls_md_type_t mbedtls_ssl_md_alg_from_hash( unsigned char hash )
 {
@@ -6819,9 +6819,41 @@ mbedtls_md_type_t mbedtls_ssl_md_alg_from_hash( unsigned char hash )
     }
 }
 
+/*
+ * Convert from MBEDTLS_MD_XXX to MBEDTLS_SSL_HASH_XXX
+ */
+unsigned char mbedtls_ssl_hash_from_md_alg( int md )
+{
+    switch( md )
+    {
+#if defined(MBEDTLS_MD5_C)
+        case MBEDTLS_MD_MD5:
+            return( MBEDTLS_SSL_HASH_MD5 );
+#endif
+#if defined(MBEDTLS_SHA1_C)
+        case MBEDTLS_MD_SHA1:
+            return( MBEDTLS_SSL_HASH_SHA1 );
+#endif
+#if defined(MBEDTLS_SHA256_C)
+        case MBEDTLS_MD_SHA224:
+            return( MBEDTLS_SSL_HASH_SHA224 );
+        case MBEDTLS_MD_SHA256:
+            return( MBEDTLS_SSL_HASH_SHA256 );
+#endif
+#if defined(MBEDTLS_SHA512_C)
+        case MBEDTLS_MD_SHA384:
+            return( MBEDTLS_SSL_HASH_SHA384 );
+        case MBEDTLS_MD_SHA512:
+            return( MBEDTLS_SSL_HASH_SHA512 );
+#endif
+        default:
+            return( MBEDTLS_SSL_HASH_NONE );
+    }
+}
+
 #if defined(MBEDTLS_ECP_C)
 /*
- * Check is a curve proposed by the peer is in our list.
+ * Check if a curve proposed by the peer is in our list.
  * Return 0 if we're willing to use it, -1 otherwise.
  */
 int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id )
@@ -6838,6 +6870,27 @@ int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_i
     return( -1 );
 }
 #endif /* MBEDTLS_ECP_C */
+
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED)
+/*
+ * Check if a hash proposed by the peer is in our list.
+ * Return 0 if we're willing to use it, -1 otherwise.
+ */
+int mbedtls_ssl_check_sig_hash( const mbedtls_ssl_context *ssl,
+                                mbedtls_md_type_t md )
+{
+    const int *cur;
+
+    if( ssl->conf->sig_hashes == NULL )
+        return( -1 );
+
+    for( cur = ssl->conf->sig_hashes; *cur != MBEDTLS_MD_NONE; cur++ )
+        if( *cur == (int) md )
+            return( 0 );
+
+    return( -1 );
+}
+#endif /* MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,

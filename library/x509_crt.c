@@ -2160,6 +2160,9 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
     mbedtls_x509_name *name;
     mbedtls_x509_sequence *cur = NULL;
 
+    if( profile == NULL )
+        return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
+
     *flags = 0;
 
     if( cn != NULL )

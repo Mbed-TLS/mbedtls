@@ -9,8 +9,12 @@ Features
      ability to override the whole module.
    * New server-side implementation of session tickets that rotate keys to
      preserve forward secrecy, and allows sharing across multiple contexts.
-   * Reduced ROM fooprint of SHA-256 and added an option to reduce it even
-     more (at the expense of performance) MBEDTLS_SHA256_SMALLER.
+   * Added a concept of X.509 cerificate verification profile that controls
+     which algorithms and key sizes (curves for ECDSA) are acceptable.
+   * Expanded configurability of security parameters in the SSL module with
+     mbedtls_ssl_conf_dhm_min_bitlen() and mbedtls_ssl_conf_sig_hashes().
+   * Introduced a concept of presets for SSL security-relevant configuration
+     parameters.
 
 API Changes
    * All public identifiers moved to the mbedtls_* or MBEDTLS_* namespace.
@@ -129,6 +133,8 @@ Default behavior changes
      enabled in the default configuration, this is only noticeable if using a
      custom config.h
    * Default DHM parameters server-side upgraded from 1024 to 2048 bits.
+   * A minimum RSA key size of 2048 bits is now enforced during ceritificate
+     chain verification.
    * Negotiation of truncated HMAC is now disabled by default on server too.
    * The following functions are now case-sensitive:
      mbedtls_cipher_info_from_string()
@@ -157,6 +163,8 @@ API changes from the 1.4 preview branch
 Changes
    * mbedtls_ctr_drbg_random() and mbedtls_hmac_drbg_random() are now
      thread-safe if MBEDTLS_THREADING_C is enabled.
+   * Reduced ROM fooprint of SHA-256 and added an option to reduce it even
+     more (at the expense of performance) MBEDTLS_SHA256_SMALLER.
 
 = mbed TLS 1.3 branch
 

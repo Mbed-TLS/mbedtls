@@ -1517,7 +1517,15 @@ void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
  *                 use. The server can override our preference order.
  *
  *                 Both sides: limits the set of curves used by peer to the
- *                 listed curves for any use (ECDH(E), certificates).
+ *                 listed curves for any use ECDHE and the end-entity
+ *                 certificate.
+ *
+ * \note           This has no influence on which curve are allowed inside the
+ *                 certificate chains, see \c mbedtls_ssl_conf_cert_profile()
+ *                 for that. For example, if the peer's certificate chain is
+ *                 EE -> CA_int -> CA_root, then the allowed curves for EE are
+ *                 controlled by \c mbedtls_ssl_conf_curves() but for CA_int
+ *                 and CA_root it's \c mbedtls_ssl_conf_cert_profile().
  *
  * \param conf     SSL configuration
  * \param curves   Ordered list of allowed curves,

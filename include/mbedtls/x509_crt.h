@@ -301,6 +301,10 @@ int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
  * \note           Same as \c mbedtls_x509_crt_verify(), but with explicit
  *                 security profile.
  *
+ * \note           The restrictions on keys (RSA minimum size, allowed curves
+ *                 for ECDSA) only applys to (intermediate) CAs, not to the
+ *                 end-entity certificate.
+ *
  * \param crt      a certificate to be verified
  * \param trust_ca the trusted CA chain
  * \param ca_crl   the CRL chain for trusted CA's

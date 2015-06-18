@@ -749,7 +749,7 @@ setup_arguments()
     esac
 
     P_SERVER_ARGS="server_port=$PORT server_addr=0.0.0.0 force_version=$MODE arc4=1"
-    O_SERVER_ARGS="-accept $PORT -cipher NULL,ALL -$MODE"
+    O_SERVER_ARGS="-accept $PORT -cipher NULL,ALL -$MODE -dhparam data_files/dhparams.pem"
     G_SERVER_ARGS="-p $PORT --http $G_MODE"
     G_SERVER_PRIO="NORMAL:+ARCFOUR-128:+NULL:+MD5:+PSK:+DHE-PSK:+ECDHE-PSK:+RSA-PSK:-VERS-TLS-ALL:$G_PRIO_MODE"
 

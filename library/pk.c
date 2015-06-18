@@ -332,7 +332,7 @@ size_t mbedtls_pk_get_size( const mbedtls_pk_context *ctx )
     if( ctx == NULL || ctx->pk_info == NULL )
         return( 0 );
 
-    return( ctx->pk_info->get_size( ctx->pk_ctx ) );
+    return( ctx->pk_info->get_bitlen( ctx->pk_ctx ) );
 }
 
 /*

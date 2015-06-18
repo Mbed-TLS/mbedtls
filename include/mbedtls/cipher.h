@@ -191,7 +191,7 @@ typedef struct {
 
     /** Cipher key length, in bits (default length for variable sized ciphers)
      *  (Includes parity bits for ciphers like DES) */
-    unsigned int key_length;
+    unsigned int key_bitlen;
 
     /** Name of the cipher */
     const char * name;
@@ -219,7 +219,7 @@ typedef struct {
     const mbedtls_cipher_info_t *cipher_info;
 
     /** Key length to use */
-    int key_length;
+    int key_bitlen;
 
     /** Operation that the context's key has been initialised for */
     mbedtls_operation_t operation;
@@ -420,7 +420,7 @@ static inline int mbedtls_cipher_get_key_size( const mbedtls_cipher_context_t *c
     if( NULL == ctx || NULL == ctx->cipher_info )
         return MBEDTLS_KEY_LENGTH_NONE;
 
-    return ctx->cipher_info->key_length;
+    return ctx->cipher_info->key_bitlen;
 }
 
 /**

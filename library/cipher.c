@@ -111,7 +111,7 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_values( const mbedtls_ciph
 
     for( def = mbedtls_cipher_definitions; def->info != NULL; def++ )
         if( def->info->base->cipher == cipher_id &&
-            def->info->key_length == (unsigned) key_bitlen &&
+            def->info->key_bitlen == (unsigned) key_bitlen &&
             def->info->mode == mode )
             return( def->info );
 
@@ -167,12 +167,12 @@ int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx, const unsigned char *k
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
     if( ( ctx->cipher_info->flags & MBEDTLS_CIPHER_VARIABLE_KEY_LEN ) == 0 &&
-        (int) ctx->cipher_info->key_length != key_bitlen )
+        (int) ctx->cipher_info->key_bitlen != key_bitlen )
     {
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
     }
 
-    ctx->key_length = key_bitlen;
+    ctx->key_bitlen = key_bitlen;
     ctx->operation = operation;
 
     /*
@@ -183,12 +183,12 @@ int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx, const unsigned char *k
         MBEDTLS_MODE_CTR == ctx->cipher_info->mode )
     {
         return ctx->cipher_info->base->setkey_enc_func( ctx->cipher_ctx, key,
-                ctx->key_length );
+                ctx->key_bitlen );
     }
 
     if( MBEDTLS_DECRYPT == operation )
         return ctx->cipher_info->base->setkey_dec_func( ctx->cipher_ctx, key,
-                ctx->key_length );
+                ctx->key_bitlen );
 
     return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 }

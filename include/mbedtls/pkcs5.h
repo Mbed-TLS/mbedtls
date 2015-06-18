@@ -71,7 +71,7 @@ int mbedtls_pkcs5_pbes2( const mbedtls_asn1_buf *pbe_params, int mode,
  * \param salt     Salt to use when generating key
  * \param slen     Length of salt
  * \param iteration_count       Iteration count
- * \param key_length            Length of generated key
+ * \param key_length            Length of generated key in bytes
  * \param output   Generated key. Must be at least as big as key_length
  *
  * \returns        0 on success, or a MBEDTLS_ERR_XXX code if verification fails.

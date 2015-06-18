@@ -143,7 +143,7 @@ int mbedtls_ssl_ticket_setup( mbedtls_ssl_ticket_context *ctx,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
-    if( cipher_info->key_length > 8 * MAX_KEY_BYTES )
+    if( cipher_info->key_bitlen > 8 * MAX_KEY_BYTES )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     if( ( ret = mbedtls_cipher_setup( &ctx->keys[0].ctx, cipher_info ) ) != 0 ||

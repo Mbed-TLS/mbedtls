@@ -677,7 +677,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
      * Determine the appropriate key, IV and MAC length.
      */
 
-    transform->keylen = cipher_info->key_length / 8;
+    transform->keylen = cipher_info->key_bitlen / 8;
 
     if( cipher_info->mode == MBEDTLS_MODE_GCM ||
         cipher_info->mode == MBEDTLS_MODE_CCM )
@@ -880,7 +880,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     }
 
     if( ( ret = mbedtls_cipher_setkey( &transform->cipher_ctx_enc, key1,
-                               cipher_info->key_length,
+                               cipher_info->key_bitlen,
                                MBEDTLS_ENCRYPT ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setkey", ret );
@@ -888,7 +888,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     }
 
     if( ( ret = mbedtls_cipher_setkey( &transform->cipher_ctx_dec, key2,
-                               cipher_info->key_length,
+                               cipher_info->key_bitlen,
                                MBEDTLS_DECRYPT ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setkey", ret );

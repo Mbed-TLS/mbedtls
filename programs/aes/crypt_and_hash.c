@@ -310,7 +310,7 @@ int main( int argc, char *argv[] )
 
         memset( key, 0, sizeof( key ) );
 
-        if( mbedtls_cipher_setkey( &cipher_ctx, digest, cipher_info->key_length,
+        if( mbedtls_cipher_setkey( &cipher_ctx, digest, cipher_info->key_bitlen,
                            MBEDTLS_ENCRYPT ) != 0 )
         {
             mbedtls_fprintf( stderr, "mbedtls_cipher_setkey() returned error\n");
@@ -442,7 +442,7 @@ int main( int argc, char *argv[] )
 
         memset( key, 0, sizeof( key ) );
 
-        if( mbedtls_cipher_setkey( &cipher_ctx, digest, cipher_info->key_length,
+        if( mbedtls_cipher_setkey( &cipher_ctx, digest, cipher_info->key_bitlen,
                            MBEDTLS_DECRYPT ) != 0 )
         {
             mbedtls_fprintf( stderr, "mbedtls_cipher_setkey() returned error\n" );

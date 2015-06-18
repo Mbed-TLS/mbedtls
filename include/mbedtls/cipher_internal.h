@@ -79,11 +79,11 @@ struct mbedtls_cipher_base_t
 
     /** Set key for encryption purposes */
     int (*setkey_enc_func)( void *ctx, const unsigned char *key,
-                            unsigned int key_length );
+                            unsigned int key_bitlen );
 
     /** Set key for decryption purposes */
     int (*setkey_dec_func)( void *ctx, const unsigned char *key,
-                            unsigned int key_length);
+                            unsigned int key_bitlen);
 
     /** Allocate a new context */
     void * (*ctx_alloc_func)( void );

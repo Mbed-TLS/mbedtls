@@ -229,7 +229,7 @@ int mbedtls_pk_setup_rsa_alt( mbedtls_pk_context *ctx, void * key,
  *
  * \return          Key size in bits, or 0 on error
  */
-size_t mbedtls_pk_get_size( const mbedtls_pk_context *ctx );
+size_t mbedtls_pk_get_bitlen( const mbedtls_pk_context *ctx );
 
 /**
  * \brief           Get the length in bytes of the underlying key
@@ -239,7 +239,7 @@ size_t mbedtls_pk_get_size( const mbedtls_pk_context *ctx );
  */
 static inline size_t mbedtls_pk_get_len( const mbedtls_pk_context *ctx )
 {
-    return( ( mbedtls_pk_get_size( ctx ) + 7 ) / 8 );
+    return( ( mbedtls_pk_get_bitlen( ctx ) + 7 ) / 8 );
 }
 
 /**

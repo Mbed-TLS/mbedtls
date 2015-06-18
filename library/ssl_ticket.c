@@ -81,7 +81,7 @@ static int ssl_ticket_gen_key( mbedtls_ssl_ticket_context *ctx,
 
     /* With GCM and CCM, same context can encrypt & decrypt */
     ret = mbedtls_cipher_setkey( &key->ctx, buf,
-                                 mbedtls_cipher_get_key_size( &key->ctx ),
+                                 mbedtls_cipher_get_key_bitlen( &key->ctx ),
                                  MBEDTLS_ENCRYPT );
 
     mbedtls_zeroize( buf, sizeof( buf ) );

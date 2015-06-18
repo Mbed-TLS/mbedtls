@@ -418,7 +418,7 @@ int mbedtls_x509_csr_info( char *buf, size_t size, const char *prefix,
     }
 
     ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: %d bits\n", prefix, key_size_str,
-                          (int) mbedtls_pk_get_size( &csr->pk ) );
+                          (int) mbedtls_pk_get_bitlen( &csr->pk ) );
     SAFE_SNPRINTF();
 
     return( (int) ( size - n ) );

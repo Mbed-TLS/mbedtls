@@ -75,7 +75,7 @@ void pk_utils( int type, int size, int len, char *name )
 
     TEST_ASSERT( (int) mbedtls_pk_get_type( &pk ) == type );
     TEST_ASSERT( mbedtls_pk_can_do( &pk, type ) );
-    TEST_ASSERT( mbedtls_pk_get_size( &pk ) == (unsigned) size );
+    TEST_ASSERT( mbedtls_pk_get_bitlen( &pk ) == (unsigned) size );
     TEST_ASSERT( mbedtls_pk_get_len( &pk ) == (unsigned) len );
     TEST_ASSERT( strcmp( mbedtls_pk_get_name( &pk), name ) == 0 );
 
@@ -453,7 +453,7 @@ void pk_rsa_alt( )
 
     /* Test administrative functions */
     TEST_ASSERT( mbedtls_pk_can_do( &alt, MBEDTLS_PK_RSA ) );
-    TEST_ASSERT( mbedtls_pk_get_size( &alt ) == RSA_KEY_SIZE );
+    TEST_ASSERT( mbedtls_pk_get_bitlen( &alt ) == RSA_KEY_SIZE );
     TEST_ASSERT( mbedtls_pk_get_len( &alt ) == RSA_KEY_LEN );
     TEST_ASSERT( mbedtls_pk_get_type( &alt ) == MBEDTLS_PK_RSA_ALT );
     TEST_ASSERT( strcmp( mbedtls_pk_get_name( &alt ), "RSA-alt" ) == 0 );

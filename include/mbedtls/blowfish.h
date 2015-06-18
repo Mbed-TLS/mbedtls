@@ -35,8 +35,8 @@
 
 #define MBEDTLS_BLOWFISH_ENCRYPT     1
 #define MBEDTLS_BLOWFISH_DECRYPT     0
-#define MBEDTLS_BLOWFISH_MAX_KEY     448
-#define MBEDTLS_BLOWFISH_MIN_KEY     32
+#define MBEDTLS_BLOWFISH_MAX_KEY_BITS     448
+#define MBEDTLS_BLOWFISH_MIN_KEY_BITS     32
 #define MBEDTLS_BLOWFISH_ROUNDS      16         /**< Rounds to use. When increasing this value, make sure to extend the initialisation vectors */
 #define MBEDTLS_BLOWFISH_BLOCKSIZE   8          /* Blowfish uses 64 bit blocks */
 

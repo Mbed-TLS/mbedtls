@@ -178,7 +178,7 @@ int mbedtls_blowfish_setkey( mbedtls_blowfish_context *ctx, const unsigned char 
     unsigned int i, j, k;
     uint32_t data, datal, datar;
 
-    if( keybits < MBEDTLS_BLOWFISH_MIN_KEY || keybits > MBEDTLS_BLOWFISH_MAX_KEY ||
+    if( keybits < MBEDTLS_BLOWFISH_MIN_KEY_BITS || keybits > MBEDTLS_BLOWFISH_MAX_KEY_BITS ||
         ( keybits % 8 ) )
     {
         return( MBEDTLS_ERR_BLOWFISH_INVALID_KEY_LENGTH );

@@ -415,7 +415,7 @@ static inline const char *mbedtls_cipher_get_name( const mbedtls_cipher_context_
  *                      MBEDTLS_KEY_LENGTH_NONE if ctx has not been
  *                      initialised.
  */
-static inline int mbedtls_cipher_get_key_size( const mbedtls_cipher_context_t *ctx )
+static inline int mbedtls_cipher_get_key_bitlen( const mbedtls_cipher_context_t *ctx )
 {
     if( NULL == ctx || NULL == ctx->cipher_info )
         return MBEDTLS_KEY_LENGTH_NONE;

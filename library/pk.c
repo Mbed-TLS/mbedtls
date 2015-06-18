@@ -327,7 +327,7 @@ int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_conte
 /*
  * Get key size in bits
  */
-size_t mbedtls_pk_get_size( const mbedtls_pk_context *ctx )
+size_t mbedtls_pk_get_bitlen( const mbedtls_pk_context *ctx )
 {
     if( ctx == NULL || ctx->pk_info == NULL )
         return( 0 );

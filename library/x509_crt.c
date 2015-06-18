@@ -180,7 +180,7 @@ static int x509_profile_check_key( const mbedtls_x509_crt_profile *profile,
 #if defined(MBEDTLS_RSA_C)
     if( pk_alg == MBEDTLS_PK_RSA || pk_alg == MBEDTLS_PK_RSASSA_PSS )
     {
-        if( mbedtls_pk_get_size( pk ) >= profile->rsa_min_bitlen )
+        if( mbedtls_pk_get_bitlen( pk ) >= profile->rsa_min_bitlen )
             return( 0 );
 
         return( -1 );
@@ -1438,7 +1438,7 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
     }
 
     ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: %d bits", prefix, key_size_str,
-                          (int) mbedtls_pk_get_size( &crt->pk ) );
+                          (int) mbedtls_pk_get_bitlen( &crt->pk ) );
     SAFE_SNPRINTF();
 
     /*

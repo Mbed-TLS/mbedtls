@@ -709,8 +709,8 @@
 #define BLOWFISH_BLOCKSIZE MBEDTLS_BLOWFISH_BLOCKSIZE
 #define BLOWFISH_DECRYPT MBEDTLS_BLOWFISH_DECRYPT
 #define BLOWFISH_ENCRYPT MBEDTLS_BLOWFISH_ENCRYPT
-#define BLOWFISH_MAX_KEY MBEDTLS_BLOWFISH_MAX_KEY
-#define BLOWFISH_MIN_KEY MBEDTLS_BLOWFISH_MIN_KEY
+#define BLOWFISH_MAX_KEY MBEDTLS_BLOWFISH_MAX_KEY_BITS
+#define BLOWFISH_MIN_KEY MBEDTLS_BLOWFISH_MIN_KEY_BITS
 #define BLOWFISH_ROUNDS MBEDTLS_BLOWFISH_ROUNDS
 #define CAMELLIA_DECRYPT MBEDTLS_CAMELLIA_DECRYPT
 #define CAMELLIA_ENCRYPT MBEDTLS_CAMELLIA_ENCRYPT
@@ -1855,7 +1855,7 @@
 #define cipher_get_block_size mbedtls_cipher_get_block_size
 #define cipher_get_cipher_mode mbedtls_cipher_get_cipher_mode
 #define cipher_get_iv_size mbedtls_cipher_get_iv_size
-#define cipher_get_key_size mbedtls_cipher_get_key_size
+#define cipher_get_key_size mbedtls_cipher_get_key_bitlen
 #define cipher_get_name mbedtls_cipher_get_name
 #define cipher_get_operation mbedtls_cipher_get_operation
 #define cipher_get_type mbedtls_cipher_get_type
@@ -2219,7 +2219,7 @@
 #define pk_free mbedtls_pk_free
 #define pk_get_len mbedtls_pk_get_len
 #define pk_get_name mbedtls_pk_get_name
-#define pk_get_size mbedtls_pk_get_size
+#define pk_get_size mbedtls_pk_get_bitlen
 #define pk_get_type mbedtls_pk_get_type
 #define pk_info_from_type mbedtls_pk_info_from_type
 #define pk_info_t mbedtls_pk_info_t

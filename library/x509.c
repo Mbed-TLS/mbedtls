@@ -859,13 +859,13 @@ int mbedtls_x509_sig_alg_gets( char *buf, size_t size, const mbedtls_x509_buf *s
 /*
  * Helper for writing "RSA key size", "EC key size", etc
  */
-int mbedtls_x509_key_size_helper( char *buf, size_t size, const char *name )
+int mbedtls_x509_key_size_helper( char *buf, size_t buf_size, const char *name )
 {
     char *p = buf;
-    size_t n = size;
+    size_t n = buf_size;
     int ret;
 
-    if( strlen( name ) + sizeof( " key size" ) > size )
+    if( strlen( name ) + sizeof( " key size" ) > buf_size )
         return( ERR_BUF_TOO_SMALL );
 
     ret = mbedtls_snprintf( p, n, "%s key size", name );

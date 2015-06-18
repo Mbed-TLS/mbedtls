@@ -87,6 +87,8 @@ API Changes
      (Thanks to Mansour Moufid for helping with the replacement.)
    * Change SSL_DISABLE_RENEGOTIATION config.h flag to SSL_RENEGOTIATION
      (support for renegotiation now needs explicit enabling in config.h).
+   * Split MBEDTLS_HAVE_TIME into MBEDTLS_HAVE_TIME and MBEDTLS_HAVE_TIME_DATE
+     in config.h
    * net_connect() and net_bind() have a new 'proto' argument to choose
      between TCP and UDP, using the macros NET_PROTO_TCP or NET_PROTO_UDP.
    * Some constness fixes

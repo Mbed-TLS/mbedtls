@@ -874,11 +874,7 @@ int mbedtls_x509_key_size_helper( char *buf, size_t buf_size, const char *name )
     return( 0 );
 }
 
-/*
- * Return 0 if the mbedtls_x509_time is still valid, or 1 otherwise.
- */
-#if defined(MBEDTLS_HAVE_TIME)
-
+#if defined(MBEDTLS_HAVE_TIME_DATE)
 static int x509_get_current_time( mbedtls_x509_time *now )
 {
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
@@ -982,7 +978,7 @@ int mbedtls_x509_time_is_future( const mbedtls_x509_time *from )
     return( x509_check_time( from, &now ) );
 }
 
-#else  /* MBEDTLS_HAVE_TIME */
+#else  /* MBEDTLS_HAVE_TIME_DATE */
 
 int mbedtls_x509_time_is_past( const mbedtls_x509_time *to )
 {
@@ -995,7 +991,7 @@ int mbedtls_x509_time_is_future( const mbedtls_x509_time *from )
     ((void) from);
     return( 0 );
 }
-#endif /* MBEDTLS_HAVE_TIME */
+#endif /* MBEDTLS_HAVE_TIME_DATE */
 
 #if defined(MBEDTLS_SELF_TEST)
 

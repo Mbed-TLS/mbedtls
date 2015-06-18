@@ -67,11 +67,25 @@
 /**
  * \def MBEDTLS_HAVE_TIME
  *
- * System has time.h and time() / localtime()  / gettimeofday().
+ * System has time.h and time().
+ * The time does not need to be correct, only time differences are used,
+ * by contrast with MBEDTLS_HAVE_TIME_DATE
  *
  * Comment if your system does not support time functions
  */
 #define MBEDTLS_HAVE_TIME
+
+/**
+ * \def MBEDTLS_HAVE_TIME_DATE
+ *
+ * System has time.h and time(), gmtime() and the clock is correct.
+ * The time needs to be correct (not necesarily very accurate, but at least
+ * the date should be correct). This is used to verify the validity period of
+ * X.509 certificates.
+ *
+ * Comment if your system does not have a correct clock.
+ */
+#define MBEDTLS_HAVE_TIME_DATE
 
 /**
  * \def MBEDTLS_PLATFORM_MEMORY

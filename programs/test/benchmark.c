@@ -681,7 +681,7 @@ int main( int argc, char *argv[] )
             mbedtls_snprintf( title, sizeof( title ), "ECDSA-%s",
                                               curve_info->name );
             TIME_PUBLIC( title, "sign",
-                    ret = mbedtls_ecdsa_write_signature( &ecdsa, MBEDTLS_MD_SHA256, buf, curve_info->size,
+                    ret = mbedtls_ecdsa_write_signature( &ecdsa, MBEDTLS_MD_SHA256, buf, curve_info->bit_size,
                                                 tmp, &sig_len, myrand, NULL ) );
 
             mbedtls_ecdsa_free( &ecdsa );
@@ -694,7 +694,7 @@ int main( int argc, char *argv[] )
             mbedtls_ecdsa_init( &ecdsa );
 
             if( mbedtls_ecdsa_genkey( &ecdsa, curve_info->grp_id, myrand, NULL ) != 0 ||
-                mbedtls_ecdsa_write_signature( &ecdsa, MBEDTLS_MD_SHA256, buf, curve_info->size,
+                mbedtls_ecdsa_write_signature( &ecdsa, MBEDTLS_MD_SHA256, buf, curve_info->bit_size,
                                                tmp, &sig_len, myrand, NULL ) != 0 )
             {
                 mbedtls_exit( 1 );
@@ -704,7 +704,7 @@ int main( int argc, char *argv[] )
             mbedtls_snprintf( title, sizeof( title ), "ECDSA-%s",
                                               curve_info->name );
             TIME_PUBLIC( title, "verify",
-                    ret = mbedtls_ecdsa_read_signature( &ecdsa, buf, curve_info->size,
+                    ret = mbedtls_ecdsa_read_signature( &ecdsa, buf, curve_info->bit_size,
                                                 tmp, sig_len ) );
 
             mbedtls_ecdsa_free( &ecdsa );

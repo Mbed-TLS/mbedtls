@@ -24,7 +24,7 @@ void mbedtls_ecp_curve_info( int id, int tls_id, int size, char *name )
     TEST_ASSERT( by_id == by_tls  );
     TEST_ASSERT( by_id == by_name );
 
-    TEST_ASSERT( by_id->size == size );
+    TEST_ASSERT( by_id->bit_size == size );
 }
 /* END_CASE */
 

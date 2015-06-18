@@ -85,26 +85,26 @@ mbedtls_mpi_lsb:16:"24":2
 Base test mbedtls_mpi_lsb #4
 mbedtls_mpi_lsb:16:"2000":13
 
-Base test mbedtls_mpi_msb #1
-mbedtls_mpi_msb:10:"56125680981752282334141896320372489490613963693556392520816017892111350604111697682705498319512049040516698827829292076808006940873974979584527073481012636016353913462376755556720019831187364993587901952757307830896531678727717924":764
+Base test mbedtls_mpi_bitlen #1
+mbedtls_mpi_bitlen:10:"56125680981752282334141896320372489490613963693556392520816017892111350604111697682705498319512049040516698827829292076808006940873974979584527073481012636016353913462376755556720019831187364993587901952757307830896531678727717924":764
 
-Base test mbedtls_mpi_msb #2
-mbedtls_mpi_msb:10:"24":5
+Base test mbedtls_mpi_bitlen #2
+mbedtls_mpi_bitlen:10:"24":5
 
-Base test mbedtls_mpi_msb #3
-mbedtls_mpi_msb:10:"1":1
+Base test mbedtls_mpi_bitlen #3
+mbedtls_mpi_bitlen:10:"1":1
 
-Base test mbedtls_mpi_msb #4
-mbedtls_mpi_msb:10:"15":4
+Base test mbedtls_mpi_bitlen #4
+mbedtls_mpi_bitlen:10:"15":4
 
-Base test mbedtls_mpi_msb #5
-mbedtls_mpi_msb:10:"16":5
+Base test mbedtls_mpi_bitlen #5
+mbedtls_mpi_bitlen:10:"16":5
 
-Base test mbedtls_mpi_msb #6
-mbedtls_mpi_msb:10:"10":4
+Base test mbedtls_mpi_bitlen #6
+mbedtls_mpi_bitlen:10:"10":4
 
-Base test mbedtls_mpi_msb #7
-mbedtls_mpi_msb:10:"0":0
+Base test mbedtls_mpi_bitlen #7
+mbedtls_mpi_bitlen:10:"0":0
 
 Base test mbedtls_mpi_cmp_int #1
 mbedtls_mpi_cmp_int:693:693:0

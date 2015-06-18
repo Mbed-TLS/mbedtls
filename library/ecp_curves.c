@@ -594,8 +594,8 @@ static int ecp_group_load( mbedtls_ecp_group *grp,
     ecp_mpi_load( &grp->G.Y, gy, gylen );
     ecp_mpi_set1( &grp->G.Z );
 
-    grp->pbits = mbedtls_mpi_msb( &grp->P );
-    grp->nbits = mbedtls_mpi_msb( &grp->N );
+    grp->pbits = mbedtls_mpi_bitlen( &grp->P );
+    grp->nbits = mbedtls_mpi_bitlen( &grp->N );
 
     grp->h = 1;
 
@@ -670,7 +670,7 @@ static int ecp_use_curve25519( mbedtls_ecp_group *grp )
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &grp->P, 1 ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( &grp->P, 255 ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &grp->P, &grp->P, 19 ) );
-    grp->pbits = mbedtls_mpi_msb( &grp->P );
+    grp->pbits = mbedtls_mpi_bitlen( &grp->P );
 
     /* Y intentionaly not set, since we use x/z coordinates.
      * This is used as a marker to identify Montgomery curves! */

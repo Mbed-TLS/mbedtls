@@ -2149,7 +2149,7 @@
 #define mpi_lset mbedtls_mpi_lset
 #define mpi_mod_int mbedtls_mpi_mod_int
 #define mpi_mod_mpi mbedtls_mpi_mod_mpi
-#define mpi_msb mbedtls_mpi_msb
+#define mpi_msb mbedtls_mpi_bitlen
 #define mpi_mul_int mbedtls_mpi_mul_int
 #define mpi_mul_mpi mbedtls_mpi_mul_mpi
 #define mpi_read_binary mbedtls_mpi_read_binary

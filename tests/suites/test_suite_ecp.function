@@ -175,7 +175,7 @@ void ecp_fast_mod( int id, char *N_str )
     TEST_ASSERT( mbedtls_mpi_mod_mpi( &R, &N, &grp.P ) == 0 );
 
     TEST_ASSERT( grp.modp( &N ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_msb( &N ) <= grp.pbits + 3 );
+    TEST_ASSERT( mbedtls_mpi_bitlen( &N ) <= grp.pbits + 3 );
 
     /*
      * Use mod rather than addition/subtraction in case previous test fails
@@ -371,7 +371,7 @@ void mbedtls_ecp_tls_read_group( char *record, int result, int bits )
     TEST_ASSERT( ret == result );
     if( ret == 0)
     {
-        TEST_ASSERT( mbedtls_mpi_msb( &grp.P ) == (size_t) bits );
+        TEST_ASSERT( mbedtls_mpi_bitlen( &grp.P ) == (size_t) bits );
         TEST_ASSERT( *vbuf == 0x00 );
     }
 

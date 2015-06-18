@@ -118,7 +118,7 @@ int mbedtls_rsa_gen_key( mbedtls_rsa_context *ctx,
             continue;
 
         MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &ctx->N, &ctx->P, &ctx->Q ) );
-        if( mbedtls_mpi_msb( &ctx->N ) != nbits )
+        if( mbedtls_mpi_bitlen( &ctx->N ) != nbits )
             continue;
 
         MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &P1, &ctx->P, 1 ) );
@@ -139,7 +139,7 @@ int mbedtls_rsa_gen_key( mbedtls_rsa_context *ctx,
     MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &ctx->DQ, &ctx->D, &Q1 ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( &ctx->QP, &ctx->Q, &ctx->P ) );
 
-    ctx->len = ( mbedtls_mpi_msb( &ctx->N ) + 7 ) >> 3;
+    ctx->len = ( mbedtls_mpi_bitlen( &ctx->N ) + 7 ) >> 3;
 
 cleanup:
 
@@ -168,11 +168,11 @@ int mbedtls_rsa_check_pubkey( const mbedtls_rsa_context *ctx )
         ( ctx->E.p[0] & 1 ) == 0 )
         return( MBEDTLS_ERR_RSA_KEY_CHECK_FAILED );
 
-    if( mbedtls_mpi_msb( &ctx->N ) < 128 ||
-        mbedtls_mpi_msb( &ctx->N ) > MBEDTLS_MPI_MAX_BITS )
+    if( mbedtls_mpi_bitlen( &ctx->N ) < 128 ||
+        mbedtls_mpi_bitlen( &ctx->N ) > MBEDTLS_MPI_MAX_BITS )
         return( MBEDTLS_ERR_RSA_KEY_CHECK_FAILED );
 
-    if( mbedtls_mpi_msb( &ctx->E ) < 2 ||
+    if( mbedtls_mpi_bitlen( &ctx->E ) < 2 ||
         mbedtls_mpi_cmp_mpi( &ctx->E, &ctx->N ) >= 0 )
         return( MBEDTLS_ERR_RSA_KEY_CHECK_FAILED );
 
@@ -980,7 +980,7 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
 
     // Note: EMSA-PSS encoding is over the length of N - 1 bits
     //
-    msb = mbedtls_mpi_msb( &ctx->N ) - 1;
+    msb = mbedtls_mpi_bitlen( &ctx->N ) - 1;
     p += olen - hlen * 2 - 2;
     *p++ = 0x01;
     memcpy( p, salt, slen );
@@ -1008,7 +1008,7 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
 
     mbedtls_md_free( &md_ctx );
 
-    msb = mbedtls_mpi_msb( &ctx->N ) - 1;
+    msb = mbedtls_mpi_bitlen( &ctx->N ) - 1;
     sig[0] &= 0xFF >> ( olen * 8 - msb );
 
     p += hlen;
@@ -1206,7 +1206,7 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
 
     // Note: EMSA-PSS verification is over the length of N - 1 bits
     //
-    msb = mbedtls_mpi_msb( &ctx->N ) - 1;
+    msb = mbedtls_mpi_bitlen( &ctx->N ) - 1;
 
     // Compensate for boundary condition when applying mask
     //

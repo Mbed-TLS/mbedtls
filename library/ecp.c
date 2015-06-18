@@ -660,7 +660,7 @@ static int ecp_modp( mbedtls_mpi *N, const mbedtls_ecp_group *grp )
 
     /* N->s < 0 is a much faster test, which fails only if N is 0 */
     if( ( N->s < 0 && mbedtls_mpi_cmp_int( N, 0 ) != 0 ) ||
-        mbedtls_mpi_msb( N ) > 2 * grp->pbits )
+        mbedtls_mpi_bitlen( N ) > 2 * grp->pbits )
     {
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
     }
@@ -1568,7 +1568,7 @@ static int ecp_mul_mxz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         MBEDTLS_MPI_CHK( ecp_randomize_mxz( grp, &RP, f_rng, p_rng ) );
 
     /* Loop invariant: R = result so far, RP = R + P */
-    i = mbedtls_mpi_msb( m ); /* one past the (zero-based) most significant bit */
+    i = mbedtls_mpi_bitlen( m ); /* one past the (zero-based) most significant bit */
     while( i-- > 0 )
     {
         b = mbedtls_mpi_get_bit( m, i );
@@ -1747,7 +1747,7 @@ int mbedtls_ecp_check_privkey( const mbedtls_ecp_group *grp, const mbedtls_mpi *
         if( mbedtls_mpi_get_bit( d, 0 ) != 0 ||
             mbedtls_mpi_get_bit( d, 1 ) != 0 ||
             mbedtls_mpi_get_bit( d, 2 ) != 0 ||
-            mbedtls_mpi_msb( d ) - 1 != grp->nbits ) /* mbedtls_mpi_msb is one-based! */
+            mbedtls_mpi_bitlen( d ) - 1 != grp->nbits ) /* mbedtls_mpi_bitlen is one-based! */
             return( MBEDTLS_ERR_ECP_INVALID_KEY );
         else
             return( 0 );
@@ -1787,7 +1787,7 @@ int mbedtls_ecp_gen_keypair( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp
         MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( d, n_size, f_rng, p_rng ) );
 
         /* Make sure the most significant bit is nbits */
-        b = mbedtls_mpi_msb( d ) - 1; /* mbedtls_mpi_msb is one-based */
+        b = mbedtls_mpi_bitlen( d ) - 1; /* mbedtls_mpi_bitlen is one-based */
         if( b > grp->nbits )
             MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( d, b - grp->nbits ) );
         else

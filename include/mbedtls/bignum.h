@@ -299,7 +299,7 @@ size_t mbedtls_mpi_lsb( const mbedtls_mpi *X );
  *
  * \param X        MPI to use
  */
-size_t mbedtls_mpi_msb( const mbedtls_mpi *X );
+size_t mbedtls_mpi_bitlen( const mbedtls_mpi *X );
 
 /**
  * \brief          Return the total size in bytes

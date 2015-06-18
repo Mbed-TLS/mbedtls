@@ -331,7 +331,7 @@ cleanup:
 }
 
 /*
- * Return the number of least significant bits
+ * Return the number of less significant zero-bits
  */
 size_t mbedtls_mpi_lsb( const mbedtls_mpi *X )
 {
@@ -346,9 +346,9 @@ size_t mbedtls_mpi_lsb( const mbedtls_mpi *X )
 }
 
 /*
- * Return the number of most significant bits
+ * Return the number of bits
  */
-size_t mbedtls_mpi_msb( const mbedtls_mpi *X )
+size_t mbedtls_mpi_bitlen( const mbedtls_mpi *X )
 {
     size_t i, j;
 
@@ -371,7 +371,7 @@ size_t mbedtls_mpi_msb( const mbedtls_mpi *X )
  */
 size_t mbedtls_mpi_size( const mbedtls_mpi *X )
 {
-    return( ( mbedtls_mpi_msb( X ) + 7 ) >> 3 );
+    return( ( mbedtls_mpi_bitlen( X ) + 7 ) >> 3 );
 }
 
 /*
@@ -501,7 +501,7 @@ int mbedtls_mpi_write_string( const mbedtls_mpi *X, int radix,
     if( radix < 2 || radix > 16 )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
-    n = mbedtls_mpi_msb( X );
+    n = mbedtls_mpi_bitlen( X );
     if( radix >=  4 ) n >>= 1;
     if( radix >= 16 ) n >>= 1;
     n += 3;
@@ -686,7 +686,7 @@ int mbedtls_mpi_shift_l( mbedtls_mpi *X, size_t count )
     v0 = count / (biL    );
     t1 = count & (biL - 1);
 
-    i = mbedtls_mpi_msb( X ) + count;
+    i = mbedtls_mpi_bitlen( X ) + count;
 
     if( X->n * biL < i )
         MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, BITS_TO_LIMBS( i ) ) );
@@ -1212,7 +1212,7 @@ int mbedtls_mpi_div_mpi( mbedtls_mpi *Q, mbedtls_mpi *R, const mbedtls_mpi *A, c
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &T1, 2 ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &T2, 3 ) );
 
-    k = mbedtls_mpi_msb( &Y ) % biL;
+    k = mbedtls_mpi_bitlen( &Y ) % biL;
     if( k < biL - 1 )
     {
         k = biL - 1 - k;
@@ -1537,7 +1537,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     mbedtls_mpi_init( &Apos );
     memset( W, 0, sizeof( W ) );
 
-    i = mbedtls_mpi_msb( E );
+    i = mbedtls_mpi_bitlen( E );
 
     wsize = ( i > 671 ) ? 6 : ( i > 239 ) ? 5 :
             ( i >  79 ) ? 4 : ( i >  23 ) ? 3 : 1;
@@ -1972,7 +1972,7 @@ static int mpi_miller_rabin( const mbedtls_mpi *X,
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &R, &W ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &R, s ) );
 
-    i = mbedtls_mpi_msb( X );
+    i = mbedtls_mpi_bitlen( X );
     /*
      * HAC, table 4.4
      */
@@ -1989,7 +1989,7 @@ static int mpi_miller_rabin( const mbedtls_mpi *X,
 
         if( mbedtls_mpi_cmp_mpi( &A, &W ) >= 0 )
         {
-            j = mbedtls_mpi_msb( &A ) - mbedtls_mpi_msb( &W );
+            j = mbedtls_mpi_bitlen( &A ) - mbedtls_mpi_bitlen( &W );
             MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &A, j + 1 ) );
         }
         A.p[0] |= 3;
@@ -1998,8 +1998,8 @@ static int mpi_miller_rabin( const mbedtls_mpi *X,
         do {
             MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &A, X->n * ciL, f_rng, p_rng ) );
 
-            j = mbedtls_mpi_msb( &A );
-            k = mbedtls_mpi_msb( &W );
+            j = mbedtls_mpi_bitlen( &A );
+            k = mbedtls_mpi_bitlen( &W );
             if (j > k) {
                 MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &A, j - k ) );
             }
@@ -2106,7 +2106,7 @@ int mbedtls_mpi_gen_prime( mbedtls_mpi *X, size_t nbits, int dh_flag,
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( X, n * ciL, f_rng, p_rng ) );
 
-    k = mbedtls_mpi_msb( X );
+    k = mbedtls_mpi_bitlen( X );
     if( k > nbits ) MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( X, k - nbits + 1 ) );
 
     mbedtls_mpi_set_bit( X, nbits-1, 1 );

@@ -1684,7 +1684,7 @@ mpi_lsb mbedtls_mpi_lsb
 mpi_lset mbedtls_mpi_lset
 mpi_mod_int mbedtls_mpi_mod_int
 mpi_mod_mpi mbedtls_mpi_mod_mpi
-mpi_msb mbedtls_mpi_msb
+mpi_msb mbedtls_mpi_bitlen
 mpi_mul_int mbedtls_mpi_mul_int
 mpi_mul_mpi mbedtls_mpi_mul_mpi
 mpi_read_binary mbedtls_mpi_read_binary

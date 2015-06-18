@@ -274,7 +274,7 @@ static int pk_group_from_specified( const mbedtls_asn1_buf *params, mbedtls_ecp_
     if( ( ret = mbedtls_asn1_get_mpi( &p, end_field, &grp->P ) ) != 0 )
         return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
 
-    grp->pbits = mbedtls_mpi_msb( &grp->P );
+    grp->pbits = mbedtls_mpi_bitlen( &grp->P );
 
     if( p != end_field )
         return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT +
@@ -355,7 +355,7 @@ static int pk_group_from_specified( const mbedtls_asn1_buf *params, mbedtls_ecp_
     if( ( ret = mbedtls_asn1_get_mpi( &p, end, &grp->N ) ) != 0 )
         return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
 
-    grp->nbits = mbedtls_mpi_msb( &grp->N );
+    grp->nbits = mbedtls_mpi_bitlen( &grp->N );
 
     /*
      * Allow optional elements by purposefully not enforcing p == end here.

@@ -18,7 +18,7 @@ void mpi_null( )
 
     TEST_ASSERT( mbedtls_mpi_get_bit( &X, 42 ) == 0 );
     TEST_ASSERT( mbedtls_mpi_lsb( &X ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_msb( &X ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_bitlen( &X ) == 0 );
     TEST_ASSERT( mbedtls_mpi_size( &X ) == 0 );
 
 exit:
@@ -217,13 +217,13 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_msb( int radix_X, char *input_X, int nr_bits )
+void mbedtls_mpi_bitlen( int radix_X, char *input_X, int nr_bits )
 {
     mbedtls_mpi X;
     mbedtls_mpi_init( &X );
 
     TEST_ASSERT( mbedtls_mpi_read_string( &X, radix_X, input_X ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_msb( &X ) == (size_t) nr_bits );
+    TEST_ASSERT( mbedtls_mpi_bitlen( &X ) == (size_t) nr_bits );
 
 exit:
     mbedtls_mpi_free( &X );
@@ -789,7 +789,7 @@ void mbedtls_mpi_gen_prime( int bits, int safe, int ref_ret )
 
     if( ref_ret == 0 )
     {
-        size_t actual_bits = mbedtls_mpi_msb( &X );
+        size_t actual_bits = mbedtls_mpi_bitlen( &X );
 
         TEST_ASSERT( actual_bits >= (size_t) bits );
         TEST_ASSERT( actual_bits <= (size_t) bits + 1 );

@@ -120,7 +120,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    rsa.len = ( mbedtls_mpi_msb( &rsa.N ) + 7 ) >> 3;
+    rsa.len = ( mbedtls_mpi_bitlen( &rsa.N ) + 7 ) >> 3;
 
     fclose( f );
 

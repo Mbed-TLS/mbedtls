@@ -56,14 +56,14 @@ void mbedtls_ccm_init( mbedtls_ccm_context *ctx );
  * \param ctx       CCM context to be initialized
  * \param cipher    cipher to use (a 128-bit block cipher)
  * \param key       encryption key
- * \param keysize   key size in bits (must be acceptable by the cipher)
+ * \param keybits   key size in bits (must be acceptable by the cipher)
  *
  * \return          0 if successful, or a cipher specific error code
  */
 int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
                         mbedtls_cipher_id_t cipher,
                         const unsigned char *key,
-                        unsigned int keysize );
+                        unsigned int keybits );
 
 /**
  * \brief           Free a CCM context and underlying cipher sub-context

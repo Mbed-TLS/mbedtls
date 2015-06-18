@@ -119,7 +119,7 @@ extern "C" {
 typedef struct mbedtls_asn1_buf
 {
     int tag;                /**< ASN1 type, e.g. MBEDTLS_ASN1_UTF8_STRING. */
-    size_t len;             /**< ASN1 length, e.g. in octets. */
+    size_t len;             /**< ASN1 length, in octets. */
     unsigned char *p;       /**< ASN1 data, e.g. in ASCII. */
 }
 mbedtls_asn1_buf;
@@ -129,7 +129,7 @@ mbedtls_asn1_buf;
  */
 typedef struct mbedtls_asn1_bitstring
 {
-    size_t len;                 /**< ASN1 length, e.g. in octets. */
+    size_t len;                 /**< ASN1 length, in octets. */
     unsigned char unused_bits;  /**< Number of unused bits at the end of the string */
     unsigned char *p;           /**< Raw ASN1 data for the bit string */
 }

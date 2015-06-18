@@ -172,7 +172,7 @@ int mbedtls_md_setup( mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_inf
  *
  * \param md_info   message digest info
  *
- * \return          size of the message digest output.
+ * \return          size of the message digest output in bytes.
  */
 unsigned char mbedtls_md_get_size( const mbedtls_md_info_t *md_info );
 
@@ -269,7 +269,7 @@ int mbedtls_md_file( const mbedtls_md_info_t *md_info, const char *path,
  *
  * \param ctx       HMAC context
  * \param key       HMAC secret key
- * \param keylen    length of the HMAC key
+ * \param keylen    length of the HMAC key in bytes
  *
  * \returns         0 on success, MBEDTLS_ERR_MD_BAD_INPUT_DATA if parameter
  *                  verification fails.
@@ -323,7 +323,7 @@ int mbedtls_md_hmac_reset( mbedtls_md_context_t *ctx );
  *
  * \param md_info  message digest info
  * \param key      HMAC secret key
- * \param keylen   length of the HMAC key
+ * \param keylen   length of the HMAC key in bytes
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  * \param output   Generic HMAC-result

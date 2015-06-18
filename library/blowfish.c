@@ -173,18 +173,18 @@ void mbedtls_blowfish_free( mbedtls_blowfish_context *ctx )
  * Blowfish key schedule
  */
 int mbedtls_blowfish_setkey( mbedtls_blowfish_context *ctx, const unsigned char *key,
-                     unsigned int keysize )
+                     unsigned int keybits )
 {
     unsigned int i, j, k;
     uint32_t data, datal, datar;
 
-    if( keysize < MBEDTLS_BLOWFISH_MIN_KEY || keysize > MBEDTLS_BLOWFISH_MAX_KEY ||
-        ( keysize % 8 ) )
+    if( keybits < MBEDTLS_BLOWFISH_MIN_KEY || keybits > MBEDTLS_BLOWFISH_MAX_KEY ||
+        ( keybits % 8 ) )
     {
         return( MBEDTLS_ERR_BLOWFISH_INVALID_KEY_LENGTH );
     }
 
-    keysize >>= 3;
+    keybits >>= 3;
 
     for( i = 0; i < 4; i++ )
     {
@@ -199,7 +199,7 @@ int mbedtls_blowfish_setkey( mbedtls_blowfish_context *ctx, const unsigned char 
         for( k = 0; k < 4; ++k )
         {
             data = ( data << 8 ) | key[j++];
-            if( j >= keysize )
+            if( j >= keybits )
                 j = 0;
         }
         ctx->P[i] = P[i] ^ data;

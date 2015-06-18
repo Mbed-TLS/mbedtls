@@ -282,14 +282,14 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_type( const mbedtls_cipher
  *
  * \param cipher_id     Id of the cipher to search for
  *                      (e.g. MBEDTLS_CIPHER_ID_AES)
- * \param key_length    Length of the key in bits
+ * \param key_bitlen    Length of the key in bits
  * \param mode          Cipher mode (e.g. MBEDTLS_MODE_CBC)
  *
  * \return              the cipher information structure associated with the
  *                      given cipher_type, or NULL if not found.
  */
 const mbedtls_cipher_info_t *mbedtls_cipher_info_from_values( const mbedtls_cipher_id_t cipher_id,
-                                              int key_length,
+                                              int key_bitlen,
                                               const mbedtls_cipher_mode_t mode );
 
 /**
@@ -447,7 +447,7 @@ static inline mbedtls_operation_t mbedtls_cipher_get_operation( const mbedtls_ci
  *                      initialised using cipher_context_from_type or
  *                      cipher_context_from_string.
  * \param key           The key to use.
- * \param key_length    key length to use, in bits.
+ * \param key_bitlen    key length to use, in bits.
  * \param operation     Operation that the key will be used for, either
  *                      MBEDTLS_ENCRYPT or MBEDTLS_DECRYPT.
  *
@@ -456,7 +456,7 @@ static inline mbedtls_operation_t mbedtls_cipher_get_operation( const mbedtls_ci
  *                      error code.
  */
 int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx, const unsigned char *key,
-                   int key_length, const mbedtls_operation_t operation );
+                   int key_bitlen, const mbedtls_operation_t operation );
 
 #if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
 /**

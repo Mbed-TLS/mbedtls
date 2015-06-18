@@ -76,24 +76,24 @@ void mbedtls_camellia_free( mbedtls_camellia_context *ctx );
  *
  * \param ctx      CAMELLIA context to be initialized
  * \param key      encryption key
- * \param keysize  must be 128, 192 or 256
+ * \param keybits  must be 128, 192 or 256
  *
  * \return         0 if successful, or MBEDTLS_ERR_CAMELLIA_INVALID_KEY_LENGTH
  */
 int mbedtls_camellia_setkey_enc( mbedtls_camellia_context *ctx, const unsigned char *key,
-                         unsigned int keysize );
+                         unsigned int keybits );
 
 /**
  * \brief          CAMELLIA key schedule (decryption)
  *
  * \param ctx      CAMELLIA context to be initialized
  * \param key      decryption key
- * \param keysize  must be 128, 192 or 256
+ * \param keybits  must be 128, 192 or 256
  *
  * \return         0 if successful, or MBEDTLS_ERR_CAMELLIA_INVALID_KEY_LENGTH
  */
 int mbedtls_camellia_setkey_dec( mbedtls_camellia_context *ctx, const unsigned char *key,
-                         unsigned int keysize );
+                         unsigned int keybits );
 
 /**
  * \brief          CAMELLIA-ECB block encryption/decryption

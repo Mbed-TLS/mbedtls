@@ -341,7 +341,7 @@ void mbedtls_camellia_free( mbedtls_camellia_context *ctx )
  * Camellia key schedule (encryption)
  */
 int mbedtls_camellia_setkey_enc( mbedtls_camellia_context *ctx, const unsigned char *key,
-                         unsigned int keysize )
+                         unsigned int keybits )
 {
     int idx;
     size_t i;
@@ -356,7 +356,7 @@ int mbedtls_camellia_setkey_enc( mbedtls_camellia_context *ctx, const unsigned c
     memset( t, 0, 64 );
     memset( RK, 0, sizeof(ctx->rk) );
 
-    switch( keysize )
+    switch( keybits )
     {
         case 128: ctx->nr = 3; idx = 0; break;
         case 192:
@@ -364,10 +364,10 @@ int mbedtls_camellia_setkey_enc( mbedtls_camellia_context *ctx, const unsigned c
         default : return( MBEDTLS_ERR_CAMELLIA_INVALID_KEY_LENGTH );
     }
 
-    for( i = 0; i < keysize / 8; ++i )
+    for( i = 0; i < keybits / 8; ++i )
         t[i] = key[i];
 
-    if( keysize == 192 ) {
+    if( keybits == 192 ) {
         for( i = 0; i < 8; i++ )
             t[24 + i] = ~t[16 + i];
     }
@@ -403,7 +403,7 @@ int mbedtls_camellia_setkey_enc( mbedtls_camellia_context *ctx, const unsigned c
     camellia_feistel( KC + 8, SIGMA[2], KC + 10 );
     camellia_feistel( KC + 10, SIGMA[3], KC + 8 );
 
-    if( keysize > 128 ) {
+    if( keybits > 128 ) {
         /* Generate KB */
         for( i = 0; i < 4; ++i )
             KC[12 + i] = KC[4 + i] ^ KC[8 + i];
@@ -420,7 +420,7 @@ int mbedtls_camellia_setkey_enc( mbedtls_camellia_context *ctx, const unsigned c
     SHIFT_AND_PLACE( idx, 0 );
 
     /* Manipulating KR */
-    if( keysize > 128 ) {
+    if( keybits > 128 ) {
         SHIFT_AND_PLACE( idx, 1 );
     }
 
@@ -428,7 +428,7 @@ int mbedtls_camellia_setkey_enc( mbedtls_camellia_context *ctx, const unsigned c
     SHIFT_AND_PLACE( idx, 2 );
 
     /* Manipulating KB */
-    if( keysize > 128 ) {
+    if( keybits > 128 ) {
         SHIFT_AND_PLACE( idx, 3 );
     }
 
@@ -446,7 +446,7 @@ int mbedtls_camellia_setkey_enc( mbedtls_camellia_context *ctx, const unsigned c
  * Camellia key schedule (decryption)
  */
 int mbedtls_camellia_setkey_dec( mbedtls_camellia_context *ctx, const unsigned char *key,
-                         unsigned int keysize )
+                         unsigned int keybits )
 {
     int idx, ret;
     size_t i;
@@ -456,8 +456,8 @@ int mbedtls_camellia_setkey_dec( mbedtls_camellia_context *ctx, const unsigned c
 
     mbedtls_camellia_init( &cty );
 
-    /* Also checks keysize */
-    if( ( ret = mbedtls_camellia_setkey_enc( &cty, key, keysize ) ) != 0 )
+    /* Also checks keybits */
+    if( ( ret = mbedtls_camellia_setkey_enc( &cty, key, keybits ) ) != 0 )
         goto exit;
 
     ctx->nr = cty.nr;

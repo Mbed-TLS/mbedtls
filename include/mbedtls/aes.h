@@ -83,24 +83,24 @@ void mbedtls_aes_free( mbedtls_aes_context *ctx );
  *
  * \param ctx      AES context to be initialized
  * \param key      encryption key
- * \param keysize  must be 128, 192 or 256
+ * \param keybits  must be 128, 192 or 256
  *
  * \return         0 if successful, or MBEDTLS_ERR_AES_INVALID_KEY_LENGTH
  */
 int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
-                    unsigned int keysize );
+                    unsigned int keybits );
 
 /**
  * \brief          AES key schedule (decryption)
  *
  * \param ctx      AES context to be initialized
  * \param key      decryption key
- * \param keysize  must be 128, 192 or 256
+ * \param keybits  must be 128, 192 or 256
  *
  * \return         0 if successful, or MBEDTLS_ERR_AES_INVALID_KEY_LENGTH
  */
 int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
-                    unsigned int keysize );
+                    unsigned int keybits );
 
 /**
  * \brief          AES-ECB block encryption/decryption

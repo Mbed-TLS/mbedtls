@@ -80,12 +80,12 @@ void mbedtls_blowfish_free( mbedtls_blowfish_context *ctx );
  *
  * \param ctx      Blowfish context to be initialized
  * \param key      encryption key
- * \param keysize  must be between 32 and 448 bits
+ * \param keybits  must be between 32 and 448 bits
  *
  * \return         0 if successful, or MBEDTLS_ERR_BLOWFISH_INVALID_KEY_LENGTH
  */
 int mbedtls_blowfish_setkey( mbedtls_blowfish_context *ctx, const unsigned char *key,
-                     unsigned int keysize );
+                     unsigned int keybits );
 
 /**
  * \brief          Blowfish-ECB block encryption/decryption

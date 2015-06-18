@@ -483,7 +483,7 @@ void mbedtls_aes_free( mbedtls_aes_context *ctx )
  */
 #if !defined(MBEDTLS_AES_SETKEY_ENC_ALT)
 int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
-                    unsigned int keysize )
+                    unsigned int keybits )
 {
     unsigned int i;
     uint32_t *RK;
@@ -497,7 +497,7 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
     }
 #endif
 
-    switch( keysize )
+    switch( keybits )
     {
         case 128: ctx->nr = 10; break;
         case 192: ctx->nr = 12; break;
@@ -517,10 +517,10 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
 
 #if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
     if( mbedtls_aesni_has_support( MBEDTLS_AESNI_AES ) )
-        return( mbedtls_aesni_setkey_enc( (unsigned char *) ctx->rk, key, keysize ) );
+        return( mbedtls_aesni_setkey_enc( (unsigned char *) ctx->rk, key, keybits ) );
 #endif
 
-    for( i = 0; i < ( keysize >> 5 ); i++ )
+    for( i = 0; i < ( keybits >> 5 ); i++ )
     {
         GET_UINT32_LE( RK[i], key, i << 2 );
     }
@@ -597,7 +597,7 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
  */
 #if !defined(MBEDTLS_AES_SETKEY_DEC_ALT)
 int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
-                    unsigned int keysize )
+                    unsigned int keybits )
 {
     int i, j, ret;
     mbedtls_aes_context cty;
@@ -616,8 +616,8 @@ int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
 #endif
     ctx->rk = RK = ctx->buf;
 
-    /* Also checks keysize */
-    if( ( ret = mbedtls_aes_setkey_enc( &cty, key, keysize ) ) != 0 )
+    /* Also checks keybits */
+    if( ( ret = mbedtls_aes_setkey_enc( &cty, key, keybits ) ) != 0 )
         goto exit;
 
     ctx->nr = cty.nr;

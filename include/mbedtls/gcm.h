@@ -69,14 +69,14 @@ void mbedtls_gcm_init( mbedtls_gcm_context *ctx );
  * \param ctx       GCM context to be initialized
  * \param cipher    cipher to use (a 128-bit block cipher)
  * \param key       encryption key
- * \param keysize   must be 128, 192 or 256
+ * \param keybits   must be 128, 192 or 256
  *
  * \return          0 if successful, or a cipher specific error code
  */
 int mbedtls_gcm_setkey( mbedtls_gcm_context *ctx,
                         mbedtls_cipher_id_t cipher,
                         const unsigned char *key,
-                        unsigned int keysize );
+                        unsigned int keybits );
 
 /**
  * \brief           GCM buffer encryption/decryption using a block cipher

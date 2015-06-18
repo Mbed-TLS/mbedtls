@@ -454,8 +454,8 @@ static int ssl_parse_session_ticket_ext( mbedtls_ssl_context *ssl,
      * Keep the session ID sent by the client, since we MUST send it back to
      * inform them we're accepting the ticket  (RFC 5077 section 3.4)
      */
-    session.length = ssl->session_negotiate->length;
-    memcpy( &session.id, ssl->session_negotiate->id, session.length );
+    session.id_len = ssl->session_negotiate->id_len;
+    memcpy( &session.id, ssl->session_negotiate->id, session.id_len );
 
     mbedtls_ssl_session_free( ssl->session_negotiate );
     memcpy( ssl->session_negotiate, &session, sizeof( mbedtls_ssl_session ) );
@@ -888,10 +888,10 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
                    buf + 6 + ciph_len + sess_len, chal_len );
 
     p = buf + 6 + ciph_len;
-    ssl->session_negotiate->length = sess_len;
+    ssl->session_negotiate->id_len = sess_len;
     memset( ssl->session_negotiate->id, 0,
             sizeof( ssl->session_negotiate->id ) );
-    memcpy( ssl->session_negotiate->id, p, ssl->session_negotiate->length );
+    memcpy( ssl->session_negotiate->id, p, ssl->session_negotiate->id_len );
 
     p += sess_len;
     memset( ssl->handshake->randbytes, 0, 64 );
@@ -1338,11 +1338,11 @@ read_record_header:
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, session id", buf + 35, sess_len );
 
-    ssl->session_negotiate->length = sess_len;
+    ssl->session_negotiate->id_len = sess_len;
     memset( ssl->session_negotiate->id, 0,
             sizeof( ssl->session_negotiate->id ) );
     memcpy( ssl->session_negotiate->id, buf + 35,
-            ssl->session_negotiate->length );
+            ssl->session_negotiate->id_len );
 
     /*
      * Check the cookie length and content
@@ -2180,7 +2180,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
         ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE &&
 #endif
-        ssl->session_negotiate->length != 0 &&
+        ssl->session_negotiate->id_len != 0 &&
         ssl->conf->f_get_cache != NULL &&
         ssl->conf->f_get_cache( ssl->conf->p_cache, ssl->session_negotiate ) == 0 )
     {
@@ -2203,13 +2203,13 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
         if( ssl->handshake->new_session_ticket != 0 )
         {
-            ssl->session_negotiate->length = n = 0;
+            ssl->session_negotiate->id_len = n = 0;
             memset( ssl->session_negotiate->id, 0, 32 );
         }
         else
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
         {
-            ssl->session_negotiate->length = n = 32;
+            ssl->session_negotiate->id_len = n = 32;
             if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng, ssl->session_negotiate->id,
                                     n ) ) != 0 )
                 return( ret );
@@ -2220,7 +2220,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
         /*
          * Resuming a session
          */
-        n = ssl->session_negotiate->length;
+        n = ssl->session_negotiate->id_len;
         ssl->state = MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC;
 
         if( ( ret = mbedtls_ssl_derive_keys( ssl ) ) != 0 )
@@ -2238,9 +2238,9 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
      *   42+n . 43+n    extensions length
      *   44+n . 43+n+m  extensions
      */
-    *p++ = (unsigned char) ssl->session_negotiate->length;
-    memcpy( p, ssl->session_negotiate->id, ssl->session_negotiate->length );
-    p += ssl->session_negotiate->length;
+    *p++ = (unsigned char) ssl->session_negotiate->id_len;
+    memcpy( p, ssl->session_negotiate->id, ssl->session_negotiate->id_len );
+    p += ssl->session_negotiate->id_len;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, session id len.: %d", n ) );
     MBEDTLS_SSL_DEBUG_BUF( 3,   "server hello, session id", buf + 39, n );

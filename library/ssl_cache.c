@@ -86,11 +86,11 @@ int mbedtls_ssl_cache_get( void *data, mbedtls_ssl_session *session )
 
         if( session->ciphersuite != entry->session.ciphersuite ||
             session->compression != entry->session.compression ||
-            session->length != entry->session.length )
+            session->id_len != entry->session.id_len )
             continue;
 
         if( memcmp( session->id, entry->session.id,
-                    entry->session.length ) != 0 )
+                    entry->session.id_len ) != 0 )
             continue;
 
         memcpy( session->master, entry->session.master, 48 );
@@ -167,7 +167,7 @@ int mbedtls_ssl_cache_set( void *data, const mbedtls_ssl_session *session )
         }
 #endif
 
-        if( memcmp( session->id, cur->session.id, cur->session.length ) == 0 )
+        if( memcmp( session->id, cur->session.id, cur->session.id_len ) == 0 )
             break; /* client reconnected, keep timestamp for session id */
 
 #if defined(MBEDTLS_HAVE_TIME)

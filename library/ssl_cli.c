@@ -587,7 +587,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
      *   ..   . ..    extensions length (2 bytes)
      *   ..   . ..    extensions
      */
-    n = ssl->session_negotiate->length;
+    n = ssl->session_negotiate->id_len;
 
     if( n < 16 || n > 32 ||
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
@@ -615,7 +615,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
             if( ret != 0 )
                 return( ret );
 
-            ssl->session_negotiate->length = n = 32;
+            ssl->session_negotiate->id_len = n = 32;
         }
     }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
@@ -1345,7 +1345,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 #endif
         ssl->session_negotiate->ciphersuite != i ||
         ssl->session_negotiate->compression != comp ||
-        ssl->session_negotiate->length != n ||
+        ssl->session_negotiate->id_len != n ||
         memcmp( ssl->session_negotiate->id, buf + 35, n ) != 0 )
     {
         ssl->state++;
@@ -1355,7 +1355,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 #endif
         ssl->session_negotiate->ciphersuite = i;
         ssl->session_negotiate->compression = comp;
-        ssl->session_negotiate->length = n;
+        ssl->session_negotiate->id_len = n;
         memcpy( ssl->session_negotiate->id, buf + 35, n );
     }
     else
@@ -2902,7 +2902,7 @@ static int ssl_parse_new_session_ticket( mbedtls_ssl_context *ssl )
      * discards any Session ID that was sent in the ServerHello."
      */
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "ticket in use, discarding session id" ) );
-    ssl->session_negotiate->length = 0;
+    ssl->session_negotiate->id_len = 0;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse new session ticket" ) );
 

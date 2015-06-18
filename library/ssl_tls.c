@@ -4610,7 +4610,7 @@ void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
      * Add cache entry
      */
     if( ssl->conf->f_set_cache != NULL &&
-        ssl->session->length != 0 &&
+        ssl->session->id_len != 0 &&
         resume == 0 )
     {
         if( ssl->conf->f_set_cache( ssl->conf->p_cache, ssl->session ) != 0 )

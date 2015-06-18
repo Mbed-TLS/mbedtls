@@ -445,7 +445,7 @@ struct mbedtls_ssl_session
 #endif
     int ciphersuite;            /*!< chosen ciphersuite */
     int compression;            /*!< chosen compression */
-    size_t length;              /*!< session id length  */
+    size_t id_len;              /*!< session id length  */
     unsigned char id[32];       /*!< session identifier */
     unsigned char master[48];   /*!< the master secret  */
 

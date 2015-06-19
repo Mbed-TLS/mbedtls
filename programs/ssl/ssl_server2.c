@@ -210,8 +210,8 @@ int main( void )
 
 #if defined(SNI_OPTION)
 #define USAGE_SNI                                                           \
-    "    sni=%%s              name1,cert1,key1[,name2,cert2,key2[,...]]\n"  \
-    "                         default: disabled\n"
+    "    sni=%%s              name1,cert1,key1,ca1,crl1,auth1[,...]\n"  \
+    "                        default: disabled\n"
 #else
 #define USAGE_SNI ""
 #endif /* SNI_OPTION */
@@ -437,6 +437,21 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
 }
 
 /*
+ * Return authmode from string, or -1 on error
+ */
+static int get_auth_mode( const char *s )
+{
+    if( strcmp( s, "none" ) == 0 )
+        return( MBEDTLS_SSL_VERIFY_NONE );
+    if( strcmp( s, "optional" ) == 0 )
+        return( MBEDTLS_SSL_VERIFY_OPTIONAL );
+    if( strcmp( s, "required" ) == 0 )
+        return( MBEDTLS_SSL_VERIFY_REQUIRED );
+
+    return( -1 );
+}
+
+/*
  * Used by sni_parse and psk_parse to handle coma-separated lists
  */
 #define GET_ITEM( dst )         \
@@ -453,6 +468,9 @@ struct _sni_entry {
     const char *name;
     mbedtls_x509_crt *cert;
     mbedtls_pk_context *key;
+    mbedtls_x509_crt* ca;
+    mbedtls_x509_crl* crl;
+    int authmode;
     sni_entry *next;
 };
 
@@ -468,6 +486,12 @@ void sni_free( sni_entry *head )
         mbedtls_pk_free( cur->key );
         mbedtls_free( cur->key );
 
+        mbedtls_x509_crt_free( cur->ca );
+        mbedtls_free( cur->ca );
+
+        mbedtls_x509_crl_free( cur->crl );
+        mbedtls_free( cur->crl );
+
         next = cur->next;
         mbedtls_free( cur );
         cur = next;
@@ -475,8 +499,9 @@ void sni_free( sni_entry *head )
 }
 
 /*
- * Parse a string of triplets name1,crt1,key1[,name2,crt2,key2[,...]]
- * into a usable sni_entry list.
+ * Parse a string of sextuples name1,crt1,key1,ca1,crl1,auth1[,...]
+ * into a usable sni_entry list. For ca1, crl1, auth1, the special value
+ * '-' means unset. If ca1 is unset, then crl1 is ignored too.
  *
  * Modifies the input string! This is not production quality!
  */
@@ -485,7 +510,7 @@ sni_entry *sni_parse( char *sni_string )
     sni_entry *cur = NULL, *new = NULL;
     char *p = sni_string;
     char *end = p;
-    char *crt_file, *key_file;
+    char *crt_file, *key_file, *ca_file, *crl_file, *auth_str;
 
     while( *end != '\0' )
         ++end;
@@ -499,29 +524,53 @@ sni_entry *sni_parse( char *sni_string )
             return( NULL );
         }
 
-        memset( new, 0, sizeof( sni_entry ) );
+        GET_ITEM( new->name );
+        GET_ITEM( crt_file );
+        GET_ITEM( key_file );
+        GET_ITEM( ca_file );
+        GET_ITEM( crl_file );
+        GET_ITEM( auth_str );
 
         if( ( new->cert = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt ) ) ) == NULL ||
             ( new->key = mbedtls_calloc( 1, sizeof( mbedtls_pk_context ) ) ) == NULL )
-        {
-            mbedtls_free( new->cert );
-            mbedtls_free( new );
-            sni_free( cur );
-            return( NULL );
-        }
+            goto error;
 
         mbedtls_x509_crt_init( new->cert );
         mbedtls_pk_init( new->key );
 
-        GET_ITEM( new->name );
-        GET_ITEM( crt_file );
-        GET_ITEM( key_file );
-
         if( mbedtls_x509_crt_parse_file( new->cert, crt_file ) != 0 ||
             mbedtls_pk_parse_keyfile( new->key, key_file, "" ) != 0 )
-        {
             goto error;
+
+        if( strcmp( ca_file, "-" ) != 0 )
+        {
+            if( ( new->ca = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt ) ) ) == NULL )
+                goto error;
+
+            mbedtls_x509_crt_init( new->ca );
+
+            if( mbedtls_x509_crt_parse_file( new->ca, ca_file ) != 0 )
+                goto error;
         }
+
+        if( strcmp( crl_file, "-" ) != 0 )
+        {
+            if( ( new->crl = mbedtls_calloc( 1, sizeof( mbedtls_x509_crl ) ) ) == NULL )
+                goto error;
+
+            mbedtls_x509_crl_init( new->crl );
+
+            if( mbedtls_x509_crl_parse_file( new->crl, crl_file ) != 0 )
+                goto error;
+        }
+
+        if( strcmp( auth_str, "-" ) != 0 )
+        {
+            if( ( new->authmode = get_auth_mode( auth_str ) ) < 0 )
+                goto error;
+        }
+        else
+            new->authmode = DFL_AUTH_MODE;
 
         new->next = cur;
         cur = new;
@@ -541,13 +590,19 @@ error:
 int sni_callback( void *p_info, mbedtls_ssl_context *ssl,
                   const unsigned char *name, size_t name_len )
 {
-    sni_entry *cur = (sni_entry *) p_info;
+    const sni_entry *cur = (const sni_entry *) p_info;
 
     while( cur != NULL )
     {
         if( name_len == strlen( cur->name ) &&
             memcmp( name, cur->name, name_len ) == 0 )
         {
+            if( cur->ca != NULL )
+                mbedtls_ssl_set_hs_ca_chain( ssl, cur->ca, cur->crl );
+
+            if( cur->authmode != DFL_AUTH_MODE )
+                mbedtls_ssl_set_hs_authmode( ssl, cur->authmode );
+
             return( mbedtls_ssl_set_hs_own_cert( ssl, cur->cert, cur->key ) );
         }
 
@@ -1055,13 +1110,7 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "auth_mode" ) == 0 )
         {
-            if( strcmp( q, "none" ) == 0 )
-                opt.auth_mode = MBEDTLS_SSL_VERIFY_NONE;
-            else if( strcmp( q, "optional" ) == 0 )
-                opt.auth_mode = MBEDTLS_SSL_VERIFY_OPTIONAL;
-            else if( strcmp( q, "required" ) == 0 )
-                opt.auth_mode = MBEDTLS_SSL_VERIFY_REQUIRED;
-            else
+            if( ( opt.auth_mode = get_auth_mode( q ) ) < 0 )
                 goto usage;
         }
         else if( strcmp( p, "max_frag_len" ) == 0 )

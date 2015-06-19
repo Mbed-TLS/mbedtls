@@ -1758,7 +1758,7 @@ run_test    "SNI: no SNI callback" \
 run_test    "SNI: matching cert 1" \
             "$P_SRV debug_level=3 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
-             sni=localhost,data_files/server2.crt,data_files/server2.key,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key" \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
             "$P_CLI server_name=localhost" \
              0 \
              -s "parse ServerName extension" \
@@ -1768,7 +1768,7 @@ run_test    "SNI: matching cert 1" \
 run_test    "SNI: matching cert 2" \
             "$P_SRV debug_level=3 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
-             sni=localhost,data_files/server2.crt,data_files/server2.key,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key" \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
             "$P_CLI server_name=polarssl.example" \
              0 \
              -s "parse ServerName extension" \
@@ -1778,7 +1778,7 @@ run_test    "SNI: matching cert 2" \
 run_test    "SNI: no matching cert" \
             "$P_SRV debug_level=3 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
-             sni=localhost,data_files/server2.crt,data_files/server2.key,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key" \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
             "$P_CLI server_name=nonesuch.example" \
              1 \
              -s "parse ServerName extension" \

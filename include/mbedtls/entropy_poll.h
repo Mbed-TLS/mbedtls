@@ -37,11 +37,11 @@ extern "C" {
 #endif
 
 /*
- * Default thresholds for built-in sources
+ * Default thresholds for built-in sources, in bytes
  */
-#define MBEDTLS_ENTROPY_MIN_PLATFORM    128     /**< Minimum for platform source    */
-#define MBEDTLS_ENTROPY_MIN_HAVEGE      128     /**< Minimum for HAVEGE             */
-#define MBEDTLS_ENTROPY_MIN_HARDCLOCK    32     /**< Minimum for mbedtls_timing_hardclock()        */
+#define MBEDTLS_ENTROPY_MIN_PLATFORM     32     /**< Minimum for platform source    */
+#define MBEDTLS_ENTROPY_MIN_HAVEGE       32     /**< Minimum for HAVEGE             */
+#define MBEDTLS_ENTROPY_MIN_HARDCLOCK     4     /**< Minimum for mbedtls_timing_hardclock()        */
 
 #if !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
 /**

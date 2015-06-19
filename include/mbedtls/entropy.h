@@ -107,8 +107,8 @@ typedef struct
 {
     mbedtls_entropy_f_source_ptr    f_source;   /**< The entropy source callback */
     void *          p_source;   /**< The callback data pointer */
-    size_t          size;       /**< Amount received */
-    size_t          threshold;  /**< Minimum level required before release */
+    size_t          size;       /**< Amount received in bytes */
+    size_t          threshold;  /**< Minimum bytes required before release */
 }
 mbedtls_entropy_source_state;
 
@@ -155,7 +155,7 @@ void mbedtls_entropy_free( mbedtls_entropy_context *ctx );
  * \param f_source  Entropy function
  * \param p_source  Function data
  * \param threshold Minimum required from source before entropy is released
- *                  ( with mbedtls_entropy_func() )
+ *                  ( with mbedtls_entropy_func() ) (in bytes)
  *
  * \return          0 if successful or MBEDTLS_ERR_ENTROPY_MAX_SOURCES
  */

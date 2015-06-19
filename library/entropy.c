@@ -77,18 +77,23 @@ void mbedtls_entropy_init( mbedtls_entropy_context *ctx )
 #if !defined(MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES)
 #if !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
     mbedtls_entropy_add_source( ctx, mbedtls_platform_entropy_poll, NULL,
-                        MBEDTLS_ENTROPY_MIN_PLATFORM );
+                                MBEDTLS_ENTROPY_MIN_PLATFORM,
+                                MBEDTLS_ENTROPY_SOURCE_STRONG );
 #endif
 #if defined(MBEDTLS_TIMING_C)
-    mbedtls_entropy_add_source( ctx, mbedtls_hardclock_poll, NULL, MBEDTLS_ENTROPY_MIN_HARDCLOCK );
+    mbedtls_entropy_add_source( ctx, mbedtls_hardclock_poll, NULL,
+                                MBEDTLS_ENTROPY_MIN_HARDCLOCK,
+                                MBEDTLS_ENTROPY_SOURCE_WEAK );
 #endif
 #if defined(MBEDTLS_HAVEGE_C)
     mbedtls_entropy_add_source( ctx, mbedtls_havege_poll, &ctx->havege_data,
-                        MBEDTLS_ENTROPY_MIN_HAVEGE );
+                                MBEDTLS_ENTROPY_MIN_HAVEGE,
+                                MBEDTLS_ENTROPY_SOURCE_STRONG );
 #endif
 #if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
     mbedtls_entropy_add_source( ctx, mbedtls_hardware_poll, NULL
-                                MBEDTLS_ENTROPY_MIN_HARDWARE );
+                                MBEDTLS_ENTROPY_MIN_HARDWARE,
+                                MBEDTLS_ENTROPY_SOURCE_STRONG );
 #endif
 #endif /* MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES */
 }
@@ -106,7 +111,7 @@ void mbedtls_entropy_free( mbedtls_entropy_context *ctx )
 
 int mbedtls_entropy_add_source( mbedtls_entropy_context *ctx,
                         mbedtls_entropy_f_source_ptr f_source, void *p_source,
-                        size_t threshold )
+                        size_t threshold, int strong )
 {
     int index, ret = 0;
 
@@ -122,9 +127,10 @@ int mbedtls_entropy_add_source( mbedtls_entropy_context *ctx,
         goto exit;
     }
 
-    ctx->source[index].f_source = f_source;
-    ctx->source[index].p_source = p_source;
+    ctx->source[index].f_source  = f_source;
+    ctx->source[index].p_source  = p_source;
     ctx->source[index].threshold = threshold;
+    ctx->source[index].strong    = strong;
 
     ctx->source_count++;
 
@@ -198,7 +204,7 @@ int mbedtls_entropy_update_manual( mbedtls_entropy_context *ctx,
  */
 static int entropy_gather_internal( mbedtls_entropy_context *ctx )
 {
-    int ret, i;
+    int ret, i, have_one_strong = 0;
     unsigned char buf[MBEDTLS_ENTROPY_MAX_GATHER];
     size_t olen;
 
@@ -210,6 +216,9 @@ static int entropy_gather_internal( mbedtls_entropy_context *ctx )
      */
     for( i = 0; i < ctx->source_count; i++ )
     {
+        if( ctx->source[i].strong == MBEDTLS_ENTROPY_SOURCE_STRONG )
+            have_one_strong = 1;
+
         olen = 0;
         if( ( ret = ctx->source[i].f_source( ctx->source[i].p_source,
                         buf, MBEDTLS_ENTROPY_MAX_GATHER, &olen ) ) != 0 )
@@ -226,6 +235,9 @@ static int entropy_gather_internal( mbedtls_entropy_context *ctx )
             ctx->source[i].size += olen;
         }
     }
+
+    if( have_one_strong == 0 )
+        return( MBEDTLS_ERR_ENTROPY_NO_STRONG_SOURCE );
 
     return( 0 );
 }
@@ -424,11 +436,12 @@ int mbedtls_entropy_self_test( int verbose )
 
     mbedtls_entropy_init( &ctx );
 
-    /* First do a gather to mek sure we have default sources */
+    /* First do a gather to make sure we have default sources */
     if( ( ret = mbedtls_entropy_gather( &ctx ) ) != 0 )
         goto cleanup;
 
-    ret = mbedtls_entropy_add_source( &ctx, entropy_dummy_source, NULL, 16 );
+    ret = mbedtls_entropy_add_source( &ctx, entropy_dummy_source, NULL, 16,
+                                      MBEDTLS_ENTROPY_SOURCE_WEAK );
     if( ret != 0 )
         goto cleanup;
 

@@ -53,7 +53,8 @@
 #define MBEDTLS_ERR_ENTROPY_SOURCE_FAILED                 -0x003C  /**< Critical entropy source failure. */
 #define MBEDTLS_ERR_ENTROPY_MAX_SOURCES                   -0x003E  /**< No more sources can be added. */
 #define MBEDTLS_ERR_ENTROPY_NO_SOURCES_DEFINED            -0x0040  /**< No sources have been added to poll. */
-#define MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR                 -0x0058  /**< Read/write error in file. */
+#define MBEDTLS_ERR_ENTROPY_NO_STRONG_SOURCE              -0x003D  /**< No strong sources have been added to poll. */
+#define MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR                 -0x003F  /**< Read/write error in file. */
 
 /**
  * \name SECTION: Module settings
@@ -82,6 +83,9 @@
 #define MBEDTLS_ENTROPY_MAX_SEED_SIZE   1024    /**< Maximum size of seed we read from seed file */
 #define MBEDTLS_ENTROPY_SOURCE_MANUAL   MBEDTLS_ENTROPY_MAX_SOURCES
 
+#define MBEDTLS_ENTROPY_SOURCE_STRONG   1       /**< Entropy source is strong   */
+#define MBEDTLS_ENTROPY_SOURCE_WEAK     0       /**< Entropy source is weak     */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -109,6 +113,7 @@ typedef struct
     void *          p_source;   /**< The callback data pointer */
     size_t          size;       /**< Amount received in bytes */
     size_t          threshold;  /**< Minimum bytes required before release */
+    int             strong;     /**< Is the source strong? */
 }
 mbedtls_entropy_source_state;
 
@@ -156,12 +161,17 @@ void mbedtls_entropy_free( mbedtls_entropy_context *ctx );
  * \param p_source  Function data
  * \param threshold Minimum required from source before entropy is released
  *                  ( with mbedtls_entropy_func() ) (in bytes)
+ * \param strong    MBEDTLS_ENTROPY_SOURCE_STRONG or
+ *                  MBEDTSL_ENTROPY_SOURCE_WEAK.
+ *                  At least one strong source needs to be added.
+ *                  Weaker sources (such as the cycle counter) can be used as
+ *                  a complement.
  *
  * \return          0 if successful or MBEDTLS_ERR_ENTROPY_MAX_SOURCES
  */
 int mbedtls_entropy_add_source( mbedtls_entropy_context *ctx,
                         mbedtls_entropy_f_source_ptr f_source, void *p_source,
-                        size_t threshold );
+                        size_t threshold, int strong );
 
 /**
  * \brief           Trigger an extra gather poll for the accumulator

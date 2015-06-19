@@ -286,7 +286,8 @@ int main( int argc, char *argv[] )
     if( opt.use_dev_random )
     {
         if( ( ret = mbedtls_entropy_add_source( &entropy, dev_random_entropy_poll,
-                                        NULL, DEV_RANDOM_THRESHOLD ) ) != 0 )
+                                        NULL, DEV_RANDOM_THRESHOLD,
+                                        MBEDTLS_ENTROPY_SOURCE_STRONG ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_entropy_add_source returned -0x%04x\n", -ret );
             goto exit;

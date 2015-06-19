@@ -68,9 +68,11 @@ void entropy_too_many_sources( )
      * since we don't know how many sources were automatically added.
      */
     for( i = 0; i < MBEDTLS_ENTROPY_MAX_SOURCES; i++ )
-        (void) mbedtls_entropy_add_source( &ctx, entropy_dummy_source, NULL, 16 );
+        (void) mbedtls_entropy_add_source( &ctx, entropy_dummy_source, NULL,
+                                           16, MBEDTLS_ENTROPY_SOURCE_WEAK );
 
-    TEST_ASSERT( mbedtls_entropy_add_source( &ctx, entropy_dummy_source, NULL, 16 )
+    TEST_ASSERT( mbedtls_entropy_add_source( &ctx, entropy_dummy_source, NULL,
+                                             16, MBEDTLS_ENTROPY_SOURCE_WEAK )
                  == MBEDTLS_ERR_ENTROPY_MAX_SOURCES );
 
 exit:
@@ -116,7 +118,9 @@ void entropy_source_fail( char *path )
 
     mbedtls_entropy_init( &ctx );
 
-    TEST_ASSERT( mbedtls_entropy_add_source( &ctx, entropy_dummy_source, &fail, 16 )
+    TEST_ASSERT( mbedtls_entropy_add_source( &ctx, entropy_dummy_source,
+                                             &fail, 16,
+                                             MBEDTLS_ENTROPY_SOURCE_WEAK )
                  == 0 );
 
     TEST_ASSERT( mbedtls_entropy_func( &ctx, buf, sizeof( buf ) )
@@ -147,7 +151,8 @@ void entropy_threshold( int threshold, int chunk_size, int result )
     mbedtls_entropy_init( &ctx );
 
     TEST_ASSERT( mbedtls_entropy_add_source( &ctx, entropy_dummy_source,
-                                     &chunk_size, threshold ) == 0 );
+                                     &chunk_size, threshold,
+                                     MBEDTLS_ENTROPY_SOURCE_WEAK ) == 0 );
 
     entropy_dummy_calls = 0;
     ret = mbedtls_entropy_func( &ctx, buf, sizeof( buf ) );

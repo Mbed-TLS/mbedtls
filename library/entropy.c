@@ -86,6 +86,10 @@ void mbedtls_entropy_init( mbedtls_entropy_context *ctx )
     mbedtls_entropy_add_source( ctx, mbedtls_havege_poll, &ctx->havege_data,
                         MBEDTLS_ENTROPY_MIN_HAVEGE );
 #endif
+#if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
+    mbedtls_entropy_add_source( ctx, mbedtls_hardware_poll, NULL
+                                MBEDTLS_ENTROPY_MIN_HARDWARE );
+#endif
 #endif /* MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES */
 }
 

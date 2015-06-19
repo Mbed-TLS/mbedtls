@@ -278,6 +278,19 @@
 //#define MBEDTLS_AES_DECRYPT_ALT
 
 /**
+ * \def MBEDTLS_EMTROPY_HARDWARE_ALT
+ *
+ * Uncomment this macro to let mbed TLS use your own implementation of a
+ * hardware entropy collector.
+ *
+ * Your function must be called \c mbedtls_hardware_poll(), have the same
+ * prototype as declared in entropy_poll.h, and accept NULL as first argument.
+ *
+ * Uncomment to use your own hardware entropy collector.
+ */
+//#define MBEDTLS_ENTROPY_HARDWARE_ALT
+
+/**
  * \def MBEDTLS_AES_ROM_TABLES
  *
  * Store the AES tables in ROM.

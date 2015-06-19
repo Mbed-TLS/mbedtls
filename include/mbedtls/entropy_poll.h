@@ -42,6 +42,7 @@ extern "C" {
 #define MBEDTLS_ENTROPY_MIN_PLATFORM     32     /**< Minimum for platform source    */
 #define MBEDTLS_ENTROPY_MIN_HAVEGE       32     /**< Minimum for HAVEGE             */
 #define MBEDTLS_ENTROPY_MIN_HARDCLOCK     4     /**< Minimum for mbedtls_timing_hardclock()        */
+#define MBEDTLS_ENTROPY_MIN_HARDWARE     32     /**< Minimum for the hardware source */
 
 #if !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
 /**
@@ -67,6 +68,19 @@ int mbedtls_havege_poll( void *data,
  */
 int mbedtls_hardclock_poll( void *data,
                     unsigned char *output, size_t len, size_t *olen );
+#endif
+
+#if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
+/**
+ * \brief           Entropy poll callback for a hardware source
+ *
+ * \warning         This is not provided by mbed TLS!
+ *                  See \c MBEDTLS_ENTROPY_HARDWARE_ALT in config.h.
+ *
+ * \note            This must accept NULL as its first argument.
+ */
+int mbedtls_hardware_poll( void *data,
+                           unsigned char *output, size_t len, size_t *olen );
 #endif
 
 #ifdef __cplusplus

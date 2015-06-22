@@ -238,24 +238,30 @@ int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn );
 int mbedtls_x509_serial_gets( char *buf, size_t size, const mbedtls_x509_buf *serial );
 
 /**
- * \brief          Check a given mbedtls_x509_time against the system time and check
- *                 if it is not expired.
+ * \brief          Check a given mbedtls_x509_time against the system time
+ *                 and tell if it's in the past.
+ *
+ * \note           Intended usage is "if( is_past( valid_to ) ) ERROR".
+ *                 Hence the return value of 1 if on internal errors.
  *
  * \param time     mbedtls_x509_time to check
  *
- * \return         0 if the mbedtls_x509_time is still valid,
- *                 1 otherwise.
+ * \return         1 if the given time is in the past or an error occured,
+ *                 0 otherwise.
  */
 int mbedtls_x509_time_is_past( const mbedtls_x509_time *time );
 
 /**
- * \brief          Check a given mbedtls_x509_time against the system time and check
- *                 if it is not from the future.
+ * \brief          Check a given mbedtls_x509_time against the system time
+ *                 and tell if it's in the future.
+ *
+ * \note           Intended usage is "if( is_future( valid_from ) ) ERROR".
+ *                 Hence the return value of 1 if on internal errors.
  *
  * \param time     mbedtls_x509_time to check
  *
- * \return         0 if the mbedtls_x509_time is already valid,
- *                 1 otherwise.
+ * \return         1 if the given time is in the future or an error occured,
+ *                 0 otherwise.
  */
 int mbedtls_x509_time_is_future( const mbedtls_x509_time *time );
 

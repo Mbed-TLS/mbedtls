@@ -922,7 +922,7 @@ int mbedtls_x509_time_is_past( const mbedtls_x509_time *to )
     mbedtls_x509_time now;
 
     if( x509_get_current_time( &now ) != 0 )
-        return( -1 );
+        return( 1 );
 
     return( x509_check_time( &now, to ) );
 }
@@ -932,7 +932,7 @@ int mbedtls_x509_time_is_future( const mbedtls_x509_time *from )
     mbedtls_x509_time now;
 
     if( x509_get_current_time( &now ) != 0 )
-        return( -1 );
+        return( 1 );
 
     return( x509_check_time( from, &now ) );
 }

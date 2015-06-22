@@ -98,10 +98,7 @@ static unsigned long add_count, dbl_count, mul_count;
 #define ECP_SHORTWEIERSTRASS
 #endif
 
-#if defined(MBEDTLS_ECP_DP_M221_ENABLED) ||   \
-    defined(MBEDTLS_ECP_DP_M255_ENABLED) ||   \
-    defined(MBEDTLS_ECP_DP_M383_ENABLED) ||   \
-    defined(MBEDTLS_ECP_DP_M511_ENABLED)
+#if defined(MBEDTLS_ECP_DP_M255_ENABLED)
 #define ECP_MONTGOMERY
 #endif
 

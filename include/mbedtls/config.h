@@ -421,10 +421,7 @@
 #define MBEDTLS_ECP_DP_BP256R1_ENABLED
 #define MBEDTLS_ECP_DP_BP384R1_ENABLED
 #define MBEDTLS_ECP_DP_BP512R1_ENABLED
-//#define MBEDTLS_ECP_DP_M221_ENABLED  // Not implemented yet!
 #define MBEDTLS_ECP_DP_M255_ENABLED
-//#define MBEDTLS_ECP_DP_M383_ENABLED  // Not implemented yet!
-//#define MBEDTLS_ECP_DP_M511_ENABLED  // Not implemented yet!
 
 /**
  * \def MBEDTLS_ECP_NIST_OPTIM

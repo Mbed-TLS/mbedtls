@@ -62,10 +62,7 @@ typedef enum
     MBEDTLS_ECP_DP_BP256R1,        /*!< 256-bits Brainpool curve */
     MBEDTLS_ECP_DP_BP384R1,        /*!< 384-bits Brainpool curve */
     MBEDTLS_ECP_DP_BP512R1,        /*!< 512-bits Brainpool curve */
-    MBEDTLS_ECP_DP_M221,           /*!< (not implemented yet)    */
     MBEDTLS_ECP_DP_M255,           /*!< Curve25519               */
-    MBEDTLS_ECP_DP_M383,           /*!< (not implemented yet)    */
-    MBEDTLS_ECP_DP_M511,           /*!< (not implemented yet)    */
     MBEDTLS_ECP_DP_SECP192K1,      /*!< 192-bits "Koblitz" curve */
     MBEDTLS_ECP_DP_SECP224K1,      /*!< 224-bits "Koblitz" curve */
     MBEDTLS_ECP_DP_SECP256K1,      /*!< 256-bits "Koblitz" curve */

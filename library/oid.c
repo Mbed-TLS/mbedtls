@@ -598,55 +598,14 @@ FN_OID_TYPED_FROM_ASN1(oid_pkcs12_pbe_alg_t, pkcs12_pbe_alg, oid_pkcs12_pbe_alg)
 FN_OID_GET_ATTR2(mbedtls_oid_get_pkcs12_pbe_alg, oid_pkcs12_pbe_alg_t, pkcs12_pbe_alg, mbedtls_md_type_t, md_alg, mbedtls_cipher_type_t, cipher_alg)
 #endif /* MBEDTLS_PKCS12_C */
 
-#if defined(_MSC_VER) && !defined snprintf && !defined(EFIX64) && \
-    !defined(EFI32)
-#include <stdarg.h>
-
-#if !defined vsnprintf
-#define vsnprintf _vsnprintf
-#endif // vsnprintf
-
-/*
- * Windows _snprintf and _vsnprintf are not compatible to linux versions.
- * Result value is not size of buffer needed, but -1 if no fit is possible.
- *
- * This fuction tries to 'fix' this by at least suggesting enlarging the
- * size by 20.
- */
-static int compat_snprintf( char *str, size_t size, const char *format, ... )
-{
-    va_list ap;
-    int res = -1;
-
-    va_start( ap, format );
-
-    res = vsnprintf( str, size, format, ap );
-
-    va_end( ap );
-
-    // No quick fix possible
-    if( res < 0 )
-        return( (int) size + 20 );
-
-    return( res );
-}
-
-#define snprintf compat_snprintf
-#endif /* _MSC_VER && !snprintf && !EFIX64 && !EFI32 */
-
-#define SAFE_SNPRINTF()                             \
-{                                                   \
-    if( ret == -1 )                                 \
-        return( MBEDTLS_ERR_OID_BUF_TOO_SMALL );   \
-                                                    \
-    if( (unsigned int) ret >= n ) {                 \
-        p[n - 1] = '\0';                            \
-        return( MBEDTLS_ERR_OID_BUF_TOO_SMALL );   \
-    }                                               \
-                                                    \
-    n -= (unsigned int) ret;                        \
-    p += (unsigned int) ret;                        \
-}
+#define OID_SAFE_SNPRINTF                               \
+    do {                                                \
+        if( ret < 0 || (size_t) ret >= n )              \
+            return( MBEDTLS_ERR_OID_BUF_TOO_SMALL );    \
+                                                        \
+        n -= (size_t) ret;                              \
+        p += (size_t) ret;                              \
+    } while( 0 )
 
 /* Return the x.y.z.... style numeric string for the given OID */
 int mbedtls_oid_get_numeric_string( char *buf, size_t size,
@@ -664,7 +623,7 @@ int mbedtls_oid_get_numeric_string( char *buf, size_t size,
     if( oid->len > 0 )
     {
         ret = mbedtls_snprintf( p, n, "%d.%d", oid->p[0] / 40, oid->p[0] % 40 );
-        SAFE_SNPRINTF();
+        OID_SAFE_SNPRINTF;
     }
 
     value = 0;
@@ -681,7 +640,7 @@ int mbedtls_oid_get_numeric_string( char *buf, size_t size,
         {
             /* Last byte */
             ret = mbedtls_snprintf( p, n, ".%d", value );
-            SAFE_SNPRINTF();
+            OID_SAFE_SNPRINTF;
             value = 0;
         }
     }

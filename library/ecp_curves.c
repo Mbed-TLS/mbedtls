@@ -626,7 +626,7 @@ static int ecp_mod_p521( mbedtls_mpi * );
 #endif /* MBEDTLS_ECP_NIST_OPTIM */
 
 /* Additional forward declarations */
-#if defined(MBEDTLS_ECP_DP_M255_ENABLED)
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
 static int ecp_mod_p255( mbedtls_mpi * );
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
@@ -655,7 +655,7 @@ static int ecp_mod_p256k1( mbedtls_mpi * );
                             G ## _gy, sizeof( G ## _gy ),   \
                             G ## _n,  sizeof( G ## _n  ) )
 
-#if defined(MBEDTLS_ECP_DP_M255_ENABLED)
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
 /*
  * Specialized function for creating the Curve25519 group
  */
@@ -687,7 +687,7 @@ cleanup:
 
     return( ret );
 }
-#endif /* MBEDTLS_ECP_DP_M255_ENABLED */
+#endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED */
 
 /*
  * Set a group using well-known domain parameters
@@ -763,11 +763,11 @@ int mbedtls_ecp_group_load( mbedtls_ecp_group *grp, mbedtls_ecp_group_id id )
             return( LOAD_GROUP_A( brainpoolP512r1 ) );
 #endif /* MBEDTLS_ECP_DP_BP512R1_ENABLED */
 
-#if defined(MBEDTLS_ECP_DP_M255_ENABLED)
-        case MBEDTLS_ECP_DP_M255:
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+        case MBEDTLS_ECP_DP_CURVE25519:
             grp->modp = ecp_mod_p255;
             return( ecp_use_curve25519( grp ) );
-#endif /* MBEDTLS_ECP_DP_M255_ENABLED */
+#endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED */
 
         default:
             mbedtls_ecp_group_free( grp );
@@ -1155,7 +1155,7 @@ cleanup:
 
 #endif /* MBEDTLS_ECP_NIST_OPTIM */
 
-#if defined(MBEDTLS_ECP_DP_M255_ENABLED)
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
 
 /* Size of p255 in terms of mbedtls_mpi_uint */
 #define P255_WIDTH      ( 255 / 8 / sizeof( mbedtls_mpi_uint ) + 1 )
@@ -1197,7 +1197,7 @@ static int ecp_mod_p255( mbedtls_mpi *N )
 cleanup:
     return( ret );
 }
-#endif /* MBEDTLS_ECP_DP_M255_ENABLED */
+#endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED */
 
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED) ||   \
     defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED) ||   \

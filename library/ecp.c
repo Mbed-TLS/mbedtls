@@ -28,7 +28,7 @@
  * FIPS 186-3 http://csrc.nist.gov/publications/fips/fips186-3/fips_186-3.pdf
  * RFC 4492 for the related TLS structures and constants
  *
- * [M255] http://cr.yp.to/ecdh/curve25519-20060209.pdf
+ * [Curve25519] http://cr.yp.to/ecdh/curve25519-20060209.pdf
  *
  * [2] CORON, Jean-S'ebastien. Resistance against differential power analysis
  *     for elliptic curve cryptosystems. In : Cryptographic Hardware and
@@ -98,7 +98,7 @@ static unsigned long add_count, dbl_count, mul_count;
 #define ECP_SHORTWEIERSTRASS
 #endif
 
-#if defined(MBEDTLS_ECP_DP_M255_ENABLED)
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
 #define ECP_MONTGOMERY
 #endif
 
@@ -1704,7 +1704,7 @@ cleanup:
  */
 static int ecp_check_pubkey_mx( const mbedtls_ecp_group *grp, const mbedtls_ecp_point *pt )
 {
-    /* [M255 p. 5] Just check X is the correct number of bytes */
+    /* [Curve25519 p. 5] Just check X is the correct number of bytes */
     if( mbedtls_mpi_size( &pt->X ) > ( grp->nbits + 7 ) / 8 )
         return( MBEDTLS_ERR_ECP_INVALID_KEY );
 
@@ -1740,7 +1740,7 @@ int mbedtls_ecp_check_privkey( const mbedtls_ecp_group *grp, const mbedtls_mpi *
 #if defined(ECP_MONTGOMERY)
     if( ecp_get_type( grp ) == ECP_TYPE_MONTGOMERY )
     {
-        /* see [M255] page 5 */
+        /* see [Curve25519] page 5 */
         if( mbedtls_mpi_get_bit( d, 0 ) != 0 ||
             mbedtls_mpi_get_bit( d, 1 ) != 0 ||
             mbedtls_mpi_get_bit( d, 2 ) != 0 ||

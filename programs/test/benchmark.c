@@ -716,7 +716,7 @@ int main( int argc, char *argv[] )
     if( todo.ecdh )
     {
         mbedtls_ecdh_context ecdh;
-#if defined(MBEDTLS_ECP_DP_M255_ENABLED)
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
         mbedtls_mpi z;
 #endif
         const mbedtls_ecp_curve_info *curve_info;
@@ -748,11 +748,11 @@ int main( int argc, char *argv[] )
         }
 
         /* Curve25519 needs to be handled separately */
-#if defined(MBEDTLS_ECP_DP_M255_ENABLED)
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
         mbedtls_ecdh_init( &ecdh );
         mbedtls_mpi_init( &z );
 
-        if( mbedtls_ecp_group_load( &ecdh.grp, MBEDTLS_ECP_DP_M255 ) != 0 ||
+        if( mbedtls_ecp_group_load( &ecdh.grp, MBEDTLS_ECP_DP_CURVE25519 ) != 0 ||
             mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Qp, myrand, NULL ) != 0 )
         {
             mbedtls_exit( 1 );
@@ -794,11 +794,11 @@ int main( int argc, char *argv[] )
         }
 
         /* Curve25519 needs to be handled separately */
-#if defined(MBEDTLS_ECP_DP_M255_ENABLED)
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
         mbedtls_ecdh_init( &ecdh );
         mbedtls_mpi_init( &z );
 
-        if( mbedtls_ecp_group_load( &ecdh.grp, MBEDTLS_ECP_DP_M255 ) != 0 ||
+        if( mbedtls_ecp_group_load( &ecdh.grp, MBEDTLS_ECP_DP_CURVE25519 ) != 0 ||
             mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Qp,
                              myrand, NULL ) != 0 ||
             mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Q, myrand, NULL ) != 0 )

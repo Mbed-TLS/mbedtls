@@ -62,7 +62,7 @@ typedef enum
     MBEDTLS_ECP_DP_BP256R1,        /*!< 256-bits Brainpool curve */
     MBEDTLS_ECP_DP_BP384R1,        /*!< 384-bits Brainpool curve */
     MBEDTLS_ECP_DP_BP512R1,        /*!< 512-bits Brainpool curve */
-    MBEDTLS_ECP_DP_M255,           /*!< Curve25519               */
+    MBEDTLS_ECP_DP_CURVE25519,           /*!< Curve25519               */
     MBEDTLS_ECP_DP_SECP192K1,      /*!< 192-bits "Koblitz" curve */
     MBEDTLS_ECP_DP_SECP224K1,      /*!< 224-bits "Koblitz" curve */
     MBEDTLS_ECP_DP_SECP256K1,      /*!< 256-bits "Koblitz" curve */
@@ -108,7 +108,7 @@ mbedtls_ecp_point;
  *
  * We consider two types of curves equations:
  * 1. Short Weierstrass y^2 = x^3 + A x + B     mod P   (SEC1 + RFC 4492)
- * 2. Montgomery,       y^2 = x^3 + A x^2 + x   mod P   (M255 + draft)
+ * 2. Montgomery,       y^2 = x^3 + A x^2 + x   mod P   (Curve25519 + draft)
  * In both cases, a generator G for a prime-order subgroup is fixed. In the
  * short weierstrass, this subgroup is actually the whole curve, and its
  * cardinal is denoted by N.

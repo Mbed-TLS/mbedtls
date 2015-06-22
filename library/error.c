@@ -599,6 +599,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "ENTROPY - No more sources can be added" );
     if( use_ret == -(MBEDTLS_ERR_ENTROPY_NO_SOURCES_DEFINED) )
         mbedtls_snprintf( buf, buflen, "ENTROPY - No sources have been added to poll" );
+    if( use_ret == -(MBEDTLS_ERR_ENTROPY_NO_STRONG_SOURCE) )
+        mbedtls_snprintf( buf, buflen, "ENTROPY - No strong sources have been added to poll" );
     if( use_ret == -(MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR) )
         mbedtls_snprintf( buf, buflen, "ENTROPY - Read/write error in file" );
 #endif /* MBEDTLS_ENTROPY_C */

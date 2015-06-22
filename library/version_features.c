@@ -43,6 +43,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_HAVE_TIME)
     "MBEDTLS_HAVE_TIME",
 #endif /* MBEDTLS_HAVE_TIME */
+#if defined(MBEDTLS_HAVE_TIME_DATE)
+    "MBEDTLS_HAVE_TIME_DATE",
+#endif /* MBEDTLS_HAVE_TIME_DATE */
 #if defined(MBEDTLS_PLATFORM_MEMORY)
     "MBEDTLS_PLATFORM_MEMORY",
 #endif /* MBEDTLS_PLATFORM_MEMORY */
@@ -151,6 +154,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_AES_DECRYPT_ALT)
     "MBEDTLS_AES_DECRYPT_ALT",
 #endif /* MBEDTLS_AES_DECRYPT_ALT */
+#if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
+    "MBEDTLS_ENTROPY_HARDWARE_ALT",
+#endif /* MBEDTLS_ENTROPY_HARDWARE_ALT */
 #if defined(MBEDTLS_AES_ROM_TABLES)
     "MBEDTLS_AES_ROM_TABLES",
 #endif /* MBEDTLS_AES_ROM_TABLES */

@@ -662,58 +662,6 @@ int mbedtls_x509_get_ext( unsigned char **p, const unsigned char *end,
     return( 0 );
 }
 
-#if defined(_MSC_VER) && !defined snprintf && !defined(EFIX64) && \
-    !defined(EFI32)
-#include <stdarg.h>
-
-#if !defined vsnprintf
-#define vsnprintf _vsnprintf
-#endif // vsnprintf
-
-/*
- * Windows _snprintf and _vsnprintf are not compatible to linux versions.
- * Result value is not size of buffer needed, but -1 if no fit is possible.
- *
- * This fuction tries to 'fix' this by at least suggesting enlarging the
- * size by 20.
- */
-static int compat_snprintf( char *str, size_t size, const char *format, ... )
-{
-    va_list ap;
-    int res = -1;
-
-    va_start( ap, format );
-
-    res = vsnprintf( str, size, format, ap );
-
-    va_end( ap );
-
-    // No quick fix possible
-    if( res < 0 )
-        return( (int) size + 20 );
-
-    return( res );
-}
-
-#define snprintf compat_snprintf
-#endif /* _MSC_VER && !snprintf && !EFIX64 && !EFI32 */
-
-#define ERR_BUF_TOO_SMALL    -2
-
-#define SAFE_SNPRINTF()                             \
-{                                                   \
-    if( ret == -1 )                                 \
-        return( -1 );                               \
-                                                    \
-    if( (unsigned int) ret > n ) {                  \
-        p[n - 1] = '\0';                            \
-        return( ERR_BUF_TOO_SMALL ); \
-    }                                               \
-                                                    \
-    n -= (unsigned int) ret;                        \
-    p += (unsigned int) ret;                        \
-}
-
 /*
  * Store the name in printable form into buf; no more
  * than size characters will be written
@@ -744,7 +692,7 @@ int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn )
         if( name != dn )
         {
             ret = mbedtls_snprintf( p, n, merge ? " + " : ", " );
-            SAFE_SNPRINTF();
+            MBEDTLS_X509_SAFE_SNPRINTF;
         }
 
         ret = mbedtls_oid_get_attr_short_name( &name->oid, &short_name );
@@ -753,7 +701,7 @@ int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn )
             ret = mbedtls_snprintf( p, n, "%s=", short_name );
         else
             ret = mbedtls_snprintf( p, n, "\?\?=" );
-        SAFE_SNPRINTF();
+        MBEDTLS_X509_SAFE_SNPRINTF;
 
         for( i = 0; i < name->val.len; i++ )
         {
@@ -767,7 +715,7 @@ int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn )
         }
         s[i] = '\0';
         ret = mbedtls_snprintf( p, n, "%s", s );
-        SAFE_SNPRINTF();
+        MBEDTLS_X509_SAFE_SNPRINTF;
 
         merge = name->next_merged;
         name = name->next;
@@ -799,13 +747,13 @@ int mbedtls_x509_serial_gets( char *buf, size_t size, const mbedtls_x509_buf *se
 
         ret = mbedtls_snprintf( p, n, "%02X%s",
                 serial->p[i], ( i < nr - 1 ) ? ":" : "" );
-        SAFE_SNPRINTF();
+        MBEDTLS_X509_SAFE_SNPRINTF;
     }
 
     if( nr != serial->len )
     {
         ret = mbedtls_snprintf( p, n, "...." );
-        SAFE_SNPRINTF();
+        MBEDTLS_X509_SAFE_SNPRINTF;
     }
 
     return( (int) ( size - n ) );
@@ -828,7 +776,7 @@ int mbedtls_x509_sig_alg_gets( char *buf, size_t size, const mbedtls_x509_buf *s
         ret = mbedtls_snprintf( p, n, "???"  );
     else
         ret = mbedtls_snprintf( p, n, "%s", desc );
-    SAFE_SNPRINTF();
+    MBEDTLS_X509_SAFE_SNPRINTF;
 
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
     if( pk_alg == MBEDTLS_PK_RSASSA_PSS )
@@ -845,7 +793,7 @@ int mbedtls_x509_sig_alg_gets( char *buf, size_t size, const mbedtls_x509_buf *s
                               md_info ? mbedtls_md_get_name( md_info ) : "???",
                               mgf_md_info ? mbedtls_md_get_name( mgf_md_info ) : "???",
                               pss_opts->expected_salt_len );
-        SAFE_SNPRINTF();
+        MBEDTLS_X509_SAFE_SNPRINTF;
     }
 #else
     ((void) pk_alg);
@@ -865,11 +813,8 @@ int mbedtls_x509_key_size_helper( char *buf, size_t buf_size, const char *name )
     size_t n = buf_size;
     int ret;
 
-    if( strlen( name ) + sizeof( " key size" ) > buf_size )
-        return( ERR_BUF_TOO_SMALL );
-
     ret = mbedtls_snprintf( p, n, "%s key size", name );
-    SAFE_SNPRINTF();
+    MBEDTLS_X509_SAFE_SNPRINTF;
 
     return( 0 );
 }

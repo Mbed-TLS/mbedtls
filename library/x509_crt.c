@@ -1194,58 +1194,6 @@ cleanup:
 }
 #endif /* MBEDTLS_FS_IO */
 
-#if defined(_MSC_VER) && !defined snprintf && !defined(EFIX64) && \
-    !defined(EFI32)
-#include <stdarg.h>
-
-#if !defined vsnprintf
-#define vsnprintf _vsnprintf
-#endif // vsnprintf
-
-/*
- * Windows _snprintf and _vsnprintf are not compatible to linux versions.
- * Result value is not size of buffer needed, but -1 if no fit is possible.
- *
- * This fuction tries to 'fix' this by at least suggesting enlarging the
- * size by 20.
- */
-static int compat_snprintf( char *str, size_t size, const char *format, ... )
-{
-    va_list ap;
-    int res = -1;
-
-    va_start( ap, format );
-
-    res = vsnprintf( str, size, format, ap );
-
-    va_end( ap );
-
-    // No quick fix possible
-    if( res < 0 )
-        return( (int) size + 20 );
-
-    return( res );
-}
-
-#define snprintf compat_snprintf
-#endif /* _MSC_VER  && !snprintf && !EFIX64 && !EFI32 */
-
-#define ERR_BUF_TOO_SMALL    -2
-
-#define SAFE_SNPRINTF()                             \
-{                                                   \
-    if( ret == -1 )                                 \
-        return( -1 );                               \
-                                                    \
-    if( (unsigned int) ret > n ) {                  \
-        p[n - 1] = '\0';                            \
-        return( ERR_BUF_TOO_SMALL ); \
-    }                                               \
-                                                    \
-    n -= (unsigned int) ret;                        \
-    p += (unsigned int) ret;                        \
-}
-
 static int x509_info_subject_alt_name( char **buf, size_t *size,
                                        const mbedtls_x509_sequence *subject_alt_name )
 {
@@ -1261,7 +1209,7 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
         if( cur->buf.len + sep_len >= n )
         {
             *p = '\0';
-            return( ERR_BUF_TOO_SMALL );
+            return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
         }
 
         n -= cur->buf.len + sep_len;
@@ -1287,7 +1235,7 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
 #define PRINT_ITEM(i)                           \
     {                                           \
         ret = mbedtls_snprintf( p, n, "%s" i, sep );    \
-        SAFE_SNPRINTF();                        \
+        MBEDTLS_X509_SAFE_SNPRINTF;                        \
         sep = ", ";                             \
     }
 
@@ -1360,7 +1308,7 @@ static int x509_info_ext_key_usage( char **buf, size_t *size,
             desc = "???";
 
         ret = mbedtls_snprintf( p, n, "%s%s", sep, desc );
-        SAFE_SNPRINTF();
+        MBEDTLS_X509_SAFE_SNPRINTF;
 
         sep = ", ";
 
@@ -1391,44 +1339,44 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
 
     ret = mbedtls_snprintf( p, n, "%scert. version     : %d\n",
                                prefix, crt->version );
-    SAFE_SNPRINTF();
+    MBEDTLS_X509_SAFE_SNPRINTF;
     ret = mbedtls_snprintf( p, n, "%sserial number     : ",
                                prefix );
-    SAFE_SNPRINTF();
+    MBEDTLS_X509_SAFE_SNPRINTF;
 
     ret = mbedtls_x509_serial_gets( p, n, &crt->serial );
-    SAFE_SNPRINTF();
+    MBEDTLS_X509_SAFE_SNPRINTF;
 
     ret = mbedtls_snprintf( p, n, "\n%sissuer name       : ", prefix );
-    SAFE_SNPRINTF();
+    MBEDTLS_X509_SAFE_SNPRINTF;
     ret = mbedtls_x509_dn_gets( p, n, &crt->issuer  );
-    SAFE_SNPRINTF();
+    MBEDTLS_X509_SAFE_SNPRINTF;
 
     ret = mbedtls_snprintf( p, n, "\n%ssubject name      : ", prefix );
-    SAFE_SNPRINTF();
+    MBEDTLS_X509_SAFE_SNPRINTF;
     ret = mbedtls_x509_dn_gets( p, n, &crt->subject );
-    SAFE_SNPRINTF();
+    MBEDTLS_X509_SAFE_SNPRINTF;
 
     ret = mbedtls_snprintf( p, n, "\n%sissued  on        : " \
                    "%04d-%02d-%02d %02d:%02d:%02d", prefix,
                    crt->valid_from.year, crt->valid_from.mon,
                    crt->valid_from.day,  crt->valid_from.hour,
                    crt->valid_from.min,  crt->valid_from.sec );
-    SAFE_SNPRINTF();
+    MBEDTLS_X509_SAFE_SNPRINTF;
 
     ret = mbedtls_snprintf( p, n, "\n%sexpires on        : " \
                    "%04d-%02d-%02d %02d:%02d:%02d", prefix,
                    crt->valid_to.year, crt->valid_to.mon,
                    crt->valid_to.day,  crt->valid_to.hour,
                    crt->valid_to.min,  crt->valid_to.sec );
-    SAFE_SNPRINTF();
+    MBEDTLS_X509_SAFE_SNPRINTF;
 
     ret = mbedtls_snprintf( p, n, "\n%ssigned using      : ", prefix );
-    SAFE_SNPRINTF();
+    MBEDTLS_X509_SAFE_SNPRINTF;
 
     ret = mbedtls_x509_sig_alg_gets( p, n, &crt->sig_oid, crt->sig_pk,
                              crt->sig_md, crt->sig_opts );
-    SAFE_SNPRINTF();
+    MBEDTLS_X509_SAFE_SNPRINTF;
 
     /* Key size */
     if( ( ret = mbedtls_x509_key_size_helper( key_size_str, BEFORE_COLON,
@@ -1439,7 +1387,7 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
 
     ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: %d bits", prefix, key_size_str,
                           (int) mbedtls_pk_get_bitlen( &crt->pk ) );
-    SAFE_SNPRINTF();
+    MBEDTLS_X509_SAFE_SNPRINTF;
 
     /*
      * Optional extensions
@@ -1449,19 +1397,19 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
     {
         ret = mbedtls_snprintf( p, n, "\n%sbasic constraints : CA=%s", prefix,
                         crt->ca_istrue ? "true" : "false" );
-        SAFE_SNPRINTF();
+        MBEDTLS_X509_SAFE_SNPRINTF;
 
         if( crt->max_pathlen > 0 )
         {
             ret = mbedtls_snprintf( p, n, ", max_pathlen=%d", crt->max_pathlen - 1 );
-            SAFE_SNPRINTF();
+            MBEDTLS_X509_SAFE_SNPRINTF;
         }
     }
 
     if( crt->ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME )
     {
         ret = mbedtls_snprintf( p, n, "\n%ssubject alt name  : ", prefix );
-        SAFE_SNPRINTF();
+        MBEDTLS_X509_SAFE_SNPRINTF;
 
         if( ( ret = x509_info_subject_alt_name( &p, &n,
                                             &crt->subject_alt_names ) ) != 0 )
@@ -1471,7 +1419,7 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
     if( crt->ext_types & MBEDTLS_X509_EXT_NS_CERT_TYPE )
     {
         ret = mbedtls_snprintf( p, n, "\n%scert. type        : ", prefix );
-        SAFE_SNPRINTF();
+        MBEDTLS_X509_SAFE_SNPRINTF;
 
         if( ( ret = x509_info_cert_type( &p, &n, crt->ns_cert_type ) ) != 0 )
             return( ret );
@@ -1480,7 +1428,7 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
     if( crt->ext_types & MBEDTLS_X509_EXT_KEY_USAGE )
     {
         ret = mbedtls_snprintf( p, n, "\n%skey usage         : ", prefix );
-        SAFE_SNPRINTF();
+        MBEDTLS_X509_SAFE_SNPRINTF;
 
         if( ( ret = x509_info_key_usage( &p, &n, crt->key_usage ) ) != 0 )
             return( ret );
@@ -1489,7 +1437,7 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
     if( crt->ext_types & MBEDTLS_X509_EXT_EXTENDED_KEY_USAGE )
     {
         ret = mbedtls_snprintf( p, n, "\n%sext key usage     : ", prefix );
-        SAFE_SNPRINTF();
+        MBEDTLS_X509_SAFE_SNPRINTF;
 
         if( ( ret = x509_info_ext_key_usage( &p, &n,
                                              &crt->ext_key_usage ) ) != 0 )
@@ -1497,7 +1445,7 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
     }
 
     ret = mbedtls_snprintf( p, n, "\n" );
-    SAFE_SNPRINTF();
+    MBEDTLS_X509_SAFE_SNPRINTF;
 
     return( (int) ( size - n ) );
 }
@@ -1545,7 +1493,7 @@ int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
             continue;
 
         ret = mbedtls_snprintf( p, n, "%s%s\n", prefix, cur->string );
-        SAFE_SNPRINTF();
+        MBEDTLS_X509_SAFE_SNPRINTF;
         flags ^= cur->code;
     }
 
@@ -1553,7 +1501,7 @@ int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
     {
         ret = mbedtls_snprintf( p, n, "%sUnknown reason "
                                        "(this should not happen)\n", prefix );
-        SAFE_SNPRINTF();
+        MBEDTLS_X509_SAFE_SNPRINTF;
     }
 
     return( (int) ( size - n ) );

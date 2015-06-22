@@ -1155,7 +1155,10 @@ int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path )
 
 #if defined(MBEDTLS_THREADING_PTHREAD)
     if( ( ret = mbedtls_mutex_lock( &mbedtls_threading_readdir_mutex ) ) != 0 )
+    {
+        closedir( dir );
         return( ret );
+    }
 #endif
 
     while( ( entry = readdir( dir ) ) != NULL )

@@ -247,7 +247,6 @@ msg "build: MSan (clang)" # ~ 1 min 20s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl unset MBEDTLS_AESNI_C # memsan doesn't grok asm
-scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY # memsan vs getrandom()
 CC=clang cmake -D CMAKE_BUILD_TYPE:String=MemSan .
 make
 

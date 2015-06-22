@@ -81,8 +81,16 @@ int mbedtls_platform_entropy_poll( void *data, unsigned char *output, size_t len
 #include <sys/syscall.h>
 #if defined(SYS_getrandom)
 #define HAVE_GETRANDOM
+
 static int getrandom_wrapper( void *buf, size_t buflen, unsigned int flags )
 {
+    /* MemSan cannot understand that the syscall writes to the buffer */
+#if defined(__has_feature)
+#if __has_feature(memory_sanitizer)
+    memset( buf, 0, buflen );
+#endif
+#endif
+
     return( syscall( SYS_getrandom, buf, buflen, flags ) );
 }
 

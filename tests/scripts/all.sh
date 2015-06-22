@@ -209,7 +209,7 @@ scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
 CC=arm-none-eabi-gcc CFLAGS=-Werror make lib
 fi # arm-gcc
 
-if which armcc >/dev/null; then
+if which armcc >/dev/null && armcc --help >/dev/null; then
 msg "build: armcc, make"
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
@@ -218,6 +218,7 @@ scripts/config.pl unset MBEDTLS_NET_C
 scripts/config.pl unset MBEDTLS_TIMING_C
 scripts/config.pl unset MBEDTLS_FS_IO
 scripts/config.pl unset MBEDTLS_HAVE_TIME
+scripts/config.pl unset MBEDTLS_HAVE_TIME_DATE
 # following things are not in the default config
 scripts/config.pl unset MBEDTLS_DEPRECATED_WARNING
 scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c

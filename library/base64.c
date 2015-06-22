@@ -34,7 +34,7 @@
 #include <basetsd.h>
 typedef UINT32 uint32_t;
 #else
-#include <inttypes.h>
+#include <stdint.h>
 #endif
 
 #if defined(MBEDTLS_SELF_TEST)

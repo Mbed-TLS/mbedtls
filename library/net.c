@@ -83,7 +83,7 @@ static int wsa_init_done = 0;
 #include <basetsd.h>
 typedef UINT32 uint32_t;
 #else
-#include <inttypes.h>
+#include <stdint.h>
 #endif
 
 #if defined(MBEDTLS_PLATFORM_C)

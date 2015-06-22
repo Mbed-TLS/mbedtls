@@ -76,6 +76,7 @@
 #define MBEDTLS_ERR_X509_BAD_INPUT_DATA                   -0x2800  /**< Input invalid. */
 #define MBEDTLS_ERR_X509_ALLOC_FAILED                     -0x2880  /**< Allocation of memory failed. */
 #define MBEDTLS_ERR_X509_FILE_IO_ERROR                    -0x2900  /**< Read/write of file failed. */
+#define MBEDTLS_ERR_X509_BUFFER_TOO_SMALL                 -0x2980  /**< Destination buffer is too small. */
 /* \} name */
 
 /**
@@ -305,6 +306,15 @@ int mbedtls_x509_write_names( unsigned char **p, unsigned char *start,
 int mbedtls_x509_write_sig( unsigned char **p, unsigned char *start,
                     const char *oid, size_t oid_len,
                     unsigned char *sig, size_t size );
+
+#define MBEDTLS_X509_SAFE_SNPRINTF                          \
+    do {                                                    \
+        if( ret < 0 || (size_t) ret >= n )                  \
+            return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );    \
+                                                            \
+        n -= (size_t) ret;                                  \
+        p += (size_t) ret;                                  \
+    } while( 0 )
 
 #ifdef __cplusplus
 }

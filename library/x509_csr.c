@@ -327,58 +327,6 @@ int mbedtls_x509_csr_parse_file( mbedtls_x509_csr *csr, const char *path )
 }
 #endif /* MBEDTLS_FS_IO */
 
-#if defined(_MSC_VER) && !defined snprintf && !defined(EFIX64) && \
-    !defined(EFI32)
-#include <stdarg.h>
-
-#if !defined vsnprintf
-#define vsnprintf _vsnprintf
-#endif // vsnprintf
-
-/*
- * Windows _snprintf and _vsnprintf are not compatible to linux versions.
- * Result value is not size of buffer needed, but -1 if no fit is possible.
- *
- * This fuction tries to 'fix' this by at least suggesting enlarging the
- * size by 20.
- */
-static int compat_snprintf( char *str, size_t size, const char *format, ... )
-{
-    va_list ap;
-    int res = -1;
-
-    va_start( ap, format );
-
-    res = vsnprintf( str, size, format, ap );
-
-    va_end( ap );
-
-    // No quick fix possible
-    if( res < 0 )
-        return( (int) size + 20 );
-
-    return( res );
-}
-
-#define snprintf compat_snprintf
-#endif /* _MSC_VER && !snprintf && !EFIX64 && !EFI32 */
-
-#define ERR_BUF_TOO_SMALL    -2
-
-#define SAFE_SNPRINTF()                             \
-{                                                   \
-    if( ret == -1 )                                 \
-        return( -1 );                               \
-                                                    \
-    if( (unsigned int) ret > n ) {                  \
-        p[n - 1] = '\0';                            \
-        return( ERR_BUF_TOO_SMALL ); \
-    }                                               \
-                                                    \
-    n -= (unsigned int) ret;                        \
-    p += (unsigned int) ret;                        \
-}
-
 #define BEFORE_COLON    14
 #define BC              "14"
 /*
@@ -397,19 +345,19 @@ int mbedtls_x509_csr_info( char *buf, size_t size, const char *prefix,
 
     ret = mbedtls_snprintf( p, n, "%sCSR version   : %d",
                                prefix, csr->version );
-    SAFE_SNPRINTF();
+    MBEDTLS_X509_SAFE_SNPRINTF;
 
     ret = mbedtls_snprintf( p, n, "\n%ssubject name  : ", prefix );
-    SAFE_SNPRINTF();
+    MBEDTLS_X509_SAFE_SNPRINTF;
     ret = mbedtls_x509_dn_gets( p, n, &csr->subject );
-    SAFE_SNPRINTF();
+    MBEDTLS_X509_SAFE_SNPRINTF;
 
     ret = mbedtls_snprintf( p, n, "\n%ssigned using  : ", prefix );
-    SAFE_SNPRINTF();
+    MBEDTLS_X509_SAFE_SNPRINTF;
 
     ret = mbedtls_x509_sig_alg_gets( p, n, &csr->sig_oid, csr->sig_pk, csr->sig_md,
                              csr->sig_opts );
-    SAFE_SNPRINTF();
+    MBEDTLS_X509_SAFE_SNPRINTF;
 
     if( ( ret = mbedtls_x509_key_size_helper( key_size_str, BEFORE_COLON,
                                       mbedtls_pk_get_name( &csr->pk ) ) ) != 0 )
@@ -419,7 +367,7 @@ int mbedtls_x509_csr_info( char *buf, size_t size, const char *prefix,
 
     ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: %d bits\n", prefix, key_size_str,
                           (int) mbedtls_pk_get_bitlen( &csr->pk ) );
-    SAFE_SNPRINTF();
+    MBEDTLS_X509_SAFE_SNPRINTF;
 
     return( (int) ( size - n ) );
 }

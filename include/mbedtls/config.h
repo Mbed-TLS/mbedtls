@@ -142,10 +142,7 @@
  *
  * All these define require MBEDTLS_PLATFORM_C to be defined!
  *
- * WARNING: MBEDTLS_PLATFORM_SNPRINTF_ALT is not available on Windows
- * for compatibility reasons.
- *
- * WARNING: MBEDTLS_PLATFORM_XXX_ALT cannot be defined at the same time as
+ * \warning MBEDTLS_PLATFORM_XXX_ALT cannot be defined at the same time as
  * MBEDTLS_PLATFORM_XXX_MACRO!
  *
  * Uncomment a macro to enable alternate implementation of specific base
@@ -2004,11 +2001,14 @@
  * \def MBEDTLS_PLATFORM_C
  *
  * Enable the platform abstraction layer that allows you to re-assign
- * functions like calloc(), free(), snprintf(), printf(), fprintf(), exit()
+ * functions like calloc(), free(), snprintf(), printf(), fprintf(), exit().
  *
  * Enabling MBEDTLS_PLATFORM_C enables to use of MBEDTLS_PLATFORM_XXX_ALT
  * or MBEDTLS_PLATFORM_XXX_MACRO directives, allowing the functions mentioned
  * above to be specified at runtime or compile time respectively.
+ *
+ * \note This abstraction layer must be enabled on Windows (including MSYS2)
+ * as other module rely on it for a fixed snprintf implementation.
  *
  * Module:  library/platform.c
  * Caller:  Most other .c files
@@ -2379,6 +2379,7 @@
 //#define MBEDTLS_PLATFORM_STD_EXIT            exit /**< Default exit to use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_FPRINTF      fprintf /**< Default fprintf to use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_PRINTF        printf /**< Default printf to use, can be undefined */
+/* Note: your snprintf must correclty zero-terminate the buffer! */
 //#define MBEDTLS_PLATFORM_STD_SNPRINTF    snprintf /**< Default snprintf to use, can be undefined */
 
 /* To Use Function Macros MBEDTLS_PLATFORM_C must be enabled */
@@ -2388,6 +2389,7 @@
 //#define MBEDTLS_PLATFORM_EXIT_MACRO            exit /**< Default exit macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_FPRINTF_MACRO      fprintf /**< Default fprintf macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_PRINTF_MACRO        printf /**< Default printf macro to use, can be undefined */
+/* Note: your snprintf must correclty zero-terminate the buffer! */
 //#define MBEDTLS_PLATFORM_SNPRINTF_MACRO    snprintf /**< Default snprintf macro to use, can be undefined */
 
 /* SSL Cache options */

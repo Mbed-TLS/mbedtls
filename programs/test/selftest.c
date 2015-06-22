@@ -60,11 +60,40 @@
 #else
 #include <stdio.h>
 #define mbedtls_printf     printf
+#define mbedtls_snprintf   snprintf
 #endif
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
 #include "mbedtls/memory_buffer_alloc.h"
 #endif
+
+static int test_snprintf( size_t n, const char ref_buf[10], int ref_ret )
+{
+    int ret;
+    char buf[10] = "xxxxxxxxx";
+
+    ret = mbedtls_snprintf( buf, n, "%s", "123" );
+    if( ret < 0 || (size_t) ret >= n )
+        ret = -1;
+
+    if( memcmp( ref_buf, buf, sizeof buf ) != 0 ||
+        ref_ret != ret )
+    {
+        return( 1 );
+    }
+
+    return( 0 );
+}
+
+static int run_test_snprintf( void )
+{
+    return( test_snprintf( 0, "xxxxxxxxx",  -1 ) != 0 ||
+            test_snprintf( 1, "\0xxxxxxxx", -1 ) != 0 ||
+            test_snprintf( 2, "1\0xxxxxxx", -1 ) != 0 ||
+            test_snprintf( 3, "12\0xxxxxx", -1 ) != 0 ||
+            test_snprintf( 4, "123\0xxxxx",  3 ) != 0 ||
+            test_snprintf( 5, "123\0xxxxx",  3 ) != 0 );
+}
 
 int main( int argc, char *argv[] )
 {
@@ -84,6 +113,15 @@ int main( int argc, char *argv[] )
     {
         mbedtls_printf( "all-bits-zero is not a NULL pointer\n" );
         return( 1 );
+    }
+
+    /*
+     * Make sure we have a snprintf that correctly zero-terminates
+     */
+    if( run_test_snprintf() != 0 )
+    {
+        mbedtls_printf( "the snprintf implementation is broken\n" );
+        return( 0 );
     }
 
     if( argc == 2 && strcmp( argv[1], "-quiet" ) == 0 )

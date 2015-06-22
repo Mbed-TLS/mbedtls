@@ -39,6 +39,10 @@
 #error "mbed TLS requires a platform with 8-bit chars"
 #endif
 
+#if defined(_WIN32) && !defined(MBEDTLS_PLATFORM_C)
+#error "MBEDTLS_PLATFORM_C is required on Windows"
+#endif
+
 #if defined(MBEDTLS_DEPRECATED_WARNING) && \
     !defined(__GNUC__) && !defined(__clang__)
 #error "MBEDTLS_DEPRECATED_WARNING only works with GCC and Clang"

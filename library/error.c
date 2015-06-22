@@ -149,10 +149,6 @@
 #include "mbedtls/xtea.h"
 #endif
 
-#if defined(_MSC_VER) && !defined  snprintf && !defined(EFIX64) && \
-    !defined(EFI32)
-#define  snprintf  _snprintf
-#endif
 
 void mbedtls_strerror( int ret, char *buf, size_t buflen )
 {
@@ -163,8 +159,6 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         return;
 
     memset( buf, 0x00, buflen );
-    /* Reduce buflen to make sure MSVC _snprintf() ends with \0 as well */
-    buflen -= 1;
 
     if( ret < 0 )
         ret = -ret;
@@ -474,6 +468,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
             mbedtls_snprintf( buf, buflen, "X509 - Allocation of memory failed" );
         if( use_ret == -(MBEDTLS_ERR_X509_FILE_IO_ERROR) )
             mbedtls_snprintf( buf, buflen, "X509 - Read/write of file failed" );
+        if( use_ret == -(MBEDTLS_ERR_X509_BUFFER_TOO_SMALL) )
+            mbedtls_snprintf( buf, buflen, "X509 - Destination buffer is too small" );
 #endif /* MBEDTLS_X509_USE_C || MBEDTLS_X509_CREATE_C */
         // END generated code
 

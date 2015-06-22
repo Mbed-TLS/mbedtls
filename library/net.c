@@ -77,11 +77,6 @@ static int wsa_init_done = 0;
 #include <stdlib.h>
 #include <stdio.h>
 
-#if defined(_MSC_VER) && !defined  snprintf && !defined(EFIX64) && \
-    !defined(EFI32)
-#define  snprintf  _snprintf
-#endif
-
 #include <time.h>
 
 #if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)

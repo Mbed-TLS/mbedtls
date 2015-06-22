@@ -63,6 +63,21 @@ int mbedtls_platform_set_calloc_free( void * (*calloc_func)( size_t, size_t ),
 }
 #endif /* MBEDTLS_PLATFORM_MEMORY */
 
+#if defined(_WIN32)
+#include <stdarg.h>
+int mbedtls_platform_win32_snprintf( char *s, size_t n, const char *fmt, ... )
+{
+    int ret;
+    va_list argp;
+
+    va_start( argp, fmt );
+    ret = _vsnprintf_s( s, n, _TRUNCATE, fmt, argp );
+    va_end( argp );
+
+    return( ret );
+}
+#endif
+
 #if defined(MBEDTLS_PLATFORM_SNPRINTF_ALT)
 #if !defined(MBEDTLS_PLATFORM_STD_SNPRINTF)
 /*

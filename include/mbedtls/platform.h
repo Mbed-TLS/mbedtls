@@ -46,7 +46,11 @@ extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
 #if !defined(MBEDTLS_PLATFORM_STD_SNPRINTF)
+#if defined(_WIN32)
+#define MBEDTLS_PLATFORM_STD_SNPRINTF   mbedtls_platform_win32_snprintf /**< Default snprintf to use  */
+#else
 #define MBEDTLS_PLATFORM_STD_SNPRINTF   snprintf /**< Default snprintf to use  */
+#endif
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_PRINTF)
 #define MBEDTLS_PLATFORM_STD_PRINTF   printf /**< Default printf to use  */
@@ -150,7 +154,18 @@ int mbedtls_platform_set_printf( int (*printf_func)( const char *, ... ) );
 
 /*
  * The function pointers for snprintf
+ *
+ * The snprintf implementation should conform to C99:
+ * - it *must* always correctly zero-terminate the buffer
+ *   (except when n == 0, then it must leave the buffer untouched)
+ * - however it is acceptable to return -1 instead of the required length when
+ *   the destination buffer is too short.
  */
+#if defined(_WIN32)
+/* For Windows (inc. MSYS2), we provide our own fixed implementation */
+int mbedtls_platform_win32_snprintf( char *s, size_t n, const char *fmt, ... );
+#endif
+
 #if defined(MBEDTLS_PLATFORM_SNPRINTF_ALT)
 extern int (*mbedtls_snprintf)( char * s, size_t n, const char * format, ... );
 

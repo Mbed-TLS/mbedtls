@@ -3855,6 +3855,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     size_t i, n;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
+    int authmode = ssl->conf->authmode;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
 
@@ -3869,8 +3870,20 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL_SRV_C)
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
-        ( ssl->conf->authmode == MBEDTLS_SSL_VERIFY_NONE ||
-          ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ) )
+        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
+        ssl->state++;
+        return( 0 );
+    }
+
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    if( ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET )
+        authmode = ssl->handshake->sni_authmode;
+#endif
+
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
+        authmode == MBEDTLS_SSL_VERIFY_NONE )
     {
         ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_SKIP_VERIFY;
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
@@ -3903,7 +3916,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "SSLv3 client has no certificate" ) );
 
             ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_MISSING;
-            if( ssl->conf->authmode == MBEDTLS_SSL_VERIFY_OPTIONAL )
+            if( authmode == MBEDTLS_SSL_VERIFY_OPTIONAL )
                 return( 0 );
             else
                 return( MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE );
@@ -3924,10 +3937,10 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "TLSv1 client has no certificate" ) );
 
             ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_MISSING;
-            if( ssl->conf->authmode == MBEDTLS_SSL_VERIFY_REQUIRED )
-                return( MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE );
-            else
+            if( authmode == MBEDTLS_SSL_VERIFY_OPTIONAL )
                 return( 0 );
+            else
+                return( MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE );
         }
     }
 #endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \
@@ -4037,7 +4050,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     }
 #endif /* MBEDTLS_SSL_RENEGOTIATION && MBEDTLS_SSL_CLI_C */
 
-    if( ssl->conf->authmode != MBEDTLS_SSL_VERIFY_NONE )
+    if( authmode != MBEDTLS_SSL_VERIFY_NONE )
     {
         mbedtls_x509_crt *ca_chain;
         mbedtls_x509_crl *ca_crl;
@@ -4106,7 +4119,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
                 ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE;
         }
 
-        if( ssl->conf->authmode != MBEDTLS_SSL_VERIFY_REQUIRED )
+        if( authmode == MBEDTLS_SSL_VERIFY_OPTIONAL )
             ret = 0;
     }
 
@@ -4860,6 +4873,10 @@ static void ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )
 #if defined(MBEDTLS_ECDH_C)
     mbedtls_ecdh_init( &handshake->ecdh_ctx );
 #endif
+
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    handshake->sni_authmode = MBEDTLS_SSL_VERIFY_UNSET;
+#endif
 }
 
 static void ssl_transform_init( mbedtls_ssl_transform *transform )
@@ -5363,6 +5380,12 @@ void mbedtls_ssl_set_hs_ca_chain( mbedtls_ssl_context *ssl,
 {
     ssl->handshake->sni_ca_chain   = ca_chain;
     ssl->handshake->sni_ca_crl     = ca_crl;
+}
+
+void mbedtls_ssl_set_hs_authmode( mbedtls_ssl_context *ssl,
+                                  int authmode )
+{
+    ssl->handshake->sni_authmode = authmode;
 }
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 

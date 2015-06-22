@@ -166,6 +166,7 @@
 #define MBEDTLS_SSL_VERIFY_NONE                 0
 #define MBEDTLS_SSL_VERIFY_OPTIONAL             1
 #define MBEDTLS_SSL_VERIFY_REQUIRED             2
+#define MBEDTLS_SSL_VERIFY_UNSET                3 /* Used only for sni_authmode */
 
 #define MBEDTLS_SSL_LEGACY_RENEGOTIATION        0
 #define MBEDTLS_SSL_SECURE_RENEGOTIATION        1
@@ -1621,6 +1622,19 @@ void mbedtls_ssl_set_hs_ca_chain( mbedtls_ssl_context *ssl,
                                   mbedtls_x509_crl *ca_crl );
 
 /**
+ * \brief          Set authmode for the current handshake.
+ *
+ * \note           Same as \c mbedtls_ssl_conf_authmode() but for use within
+ *                 the SNI callback.
+ *
+ * \param ssl      SSL context
+ * \param authmode MBEDTLS_SSL_VERIFY_NONE, MBEDTLS_SSL_VERIFY_OPTIONAL or
+ *                 MBEDTLS_SSL_VERIFY_REQUIRED
+ */
+void mbedtls_ssl_set_hs_authmode( mbedtls_ssl_context *ssl,
+                                  int authmode );
+
+/**
  * \brief          Set server side ServerName TLS extension callback
  *                 (optional, server-side only).
  *
@@ -1629,12 +1643,15 @@ void mbedtls_ssl_set_hs_ca_chain( mbedtls_ssl_context *ssl,
  *                 during a handshake. The ServerName callback has the
  *                 following parameters: (void *parameter, mbedtls_ssl_context *ssl,
  *                 const unsigned char *hostname, size_t len). If a suitable
- *                 certificate is found, the callback should set the
+ *                 certificate is found, the callback must set the
  *                 certificate(s) and key(s) to use with \c
  *                 mbedtls_ssl_set_hs_own_cert() (can be called repeatedly),
- *                 and optionally adjust the CA with \c
- *                 mbedtls_ssl_set_hs_ca_chain() and return 0. The callback
- *                 should return -1 to abort the handshake at this point.
+ *                 and may optionally adjust the CA and associated CRL with \c
+ *                 mbedtls_ssl_set_hs_ca_chain() as well as the client
+ *                 authentication mode with \c mbedtls_ssl_set_hs_authmode(),
+ *                 then must return 0. If no matching name is found, the
+ *                 callback must either set a default cert, or
+ *                 return non-zero to abort the handshake at this point.
  *
  * \param conf     SSL configuration
  * \param f_sni    verification function

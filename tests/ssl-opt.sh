@@ -1787,6 +1787,45 @@ run_test    "SNI: no matching cert" \
              -c "mbedtls_ssl_handshake returned" \
              -c "SSL - A fatal alert message was received from our peer"
 
+run_test    "SNI: client auth no override: optional" \
+            "$P_SRV debug_level=3 auth_mode=optional \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-" \
+            "$P_CLI debug_level=3 server_name=localhost" \
+             0 \
+            -S "skip write certificate request" \
+            -C "skip parse certificate request" \
+            -c "got a certificate request" \
+            -C "skip write certificate" \
+            -C "skip write certificate verify" \
+            -S "skip parse certificate verify"
+
+run_test    "SNI: client auth override: none -> optional" \
+            "$P_SRV debug_level=3 auth_mode=none \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,optional" \
+            "$P_CLI debug_level=3 server_name=localhost" \
+             0 \
+            -S "skip write certificate request" \
+            -C "skip parse certificate request" \
+            -c "got a certificate request" \
+            -C "skip write certificate" \
+            -C "skip write certificate verify" \
+            -S "skip parse certificate verify"
+
+run_test    "SNI: client auth override: optional -> none" \
+            "$P_SRV debug_level=3 auth_mode=optional \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,none" \
+            "$P_CLI debug_level=3 server_name=localhost" \
+             0 \
+            -s "skip write certificate request" \
+            -C "skip parse certificate request" \
+            -c "got no certificate request" \
+            -c "skip write certificate" \
+            -c "skip write certificate verify" \
+            -s "skip parse certificate verify"
+
 # Tests for non-blocking I/O: exercise a variety of handshake flows
 
 run_test    "Non-blocking I/O: basic handshake" \

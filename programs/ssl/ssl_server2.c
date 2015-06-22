@@ -1941,6 +1941,19 @@ reset:
     else if( ret != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_handshake returned -0x%x\n\n", -ret );
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+        if( ret == MBEDTLS_ERR_X509_CERT_VERIFY_FAILED )
+        {
+            char vrfy_buf[512];
+            uint32_t flags = mbedtls_ssl_get_verify_result( &ssl );
+
+            mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", flags );
+
+            mbedtls_printf( "%s\n", vrfy_buf );
+        }
+#endif
+
         goto reset;
     }
     else /* ret == 0 */

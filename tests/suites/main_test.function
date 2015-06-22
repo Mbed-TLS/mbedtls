@@ -22,23 +22,22 @@ static int test_errors = 0;
 SUITE_PRE_DEP
 #define TEST_SUITE_ACTIVE
 
-static int test_assert( int correct, const char *test )
+static void test_fail( const char *test )
 {
-    if( correct )
-        return( 0 );
-
     test_errors++;
     if( test_errors == 1 )
         mbedtls_printf( "FAILED\n" );
     mbedtls_printf( "  %s\n", test );
-
-    return( 1 );
 }
 
 #define TEST_ASSERT( TEST )                         \
-        do { test_assert( (TEST) ? 1 : 0, #TEST );  \
-             if( test_errors) goto exit;            \
-        } while (0)
+    do {                                            \
+        if( ! (TEST) )                              \
+        {                                           \
+            test_fail( #TEST );                     \
+            goto exit;                              \
+        }                                           \
+    } while( 0 )
 
 int verify_string( char **str )
 {

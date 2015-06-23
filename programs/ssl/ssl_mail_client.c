@@ -154,13 +154,14 @@ struct options
     int force_ciphersuite[2];   /* protocol/ciphersuite to use, or all      */
 } opt;
 
-static void my_debug( void *ctx, int level, const char *str )
+static void my_debug( void *ctx, int level,
+                      const char *file, int line,
+                      const char *str )
 {
-    if( level < opt.debug_level )
-    {
-        mbedtls_fprintf( (FILE *) ctx, "%s", str );
-        fflush(  (FILE *) ctx  );
-    }
+    ((void) level);
+
+    mbedtls_fprintf( (FILE *) ctx, "%s:%04d: %s", file, line, str );
+    fflush(  (FILE *) ctx  );
 }
 
 static int do_handshake( mbedtls_ssl_context *ssl )

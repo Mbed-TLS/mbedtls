@@ -79,11 +79,13 @@ int main( void )
 #define READ_TIMEOUT_MS 10000   /* 5 seconds */
 #define DEBUG_LEVEL 0
 
-static void my_debug( void *ctx, int level, const char *str )
+static void my_debug( void *ctx, int level,
+                      const char *file, int line,
+                      const char *str )
 {
     ((void) level);
 
-    mbedtls_fprintf( (FILE *) ctx, "%s", str );
+    mbedtls_fprintf( (FILE *) ctx, "%s:%04d: %s", file, line, str );
     fflush(  (FILE *) ctx  );
 }
 

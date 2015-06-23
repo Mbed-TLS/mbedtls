@@ -89,14 +89,19 @@ int main( void )
 
 mbedtls_threading_mutex_t debug_mutex;
 
-static void my_mutexed_debug( void *ctx, int level, const char *str )
+static void my_mutexed_debug( void *ctx, int level,
+                      const char *file, int line,
+                      const char *str )
 {
+    long int thread_id = (long int) pthread_self();
+
     mbedtls_mutex_lock( &debug_mutex );
-    if( level < DEBUG_LEVEL )
-    {
-        mbedtls_fprintf( (FILE *) ctx, "%s", str );
-        fflush(  (FILE *) ctx  );
-    }
+
+    ((void) level);
+    mbedtls_fprintf( (FILE *) ctx, "%s:%04d: [ #%ld ] %s",
+                                    file, line, thread_id, str );
+    fflush(  (FILE *) ctx  );
+
     mbedtls_mutex_unlock( &debug_mutex );
 }
 

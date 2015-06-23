@@ -83,13 +83,14 @@ int main( void )
 
 #define DEBUG_LEVEL 0
 
-static void my_debug( void *ctx, int level, const char *str )
+static void my_debug( void *ctx, int level,
+                      const char *file, int line,
+                      const char *str )
 {
-    if( level < DEBUG_LEVEL )
-    {
-        mbedtls_fprintf( (FILE *) ctx, "%s", str );
-        fflush(  (FILE *) ctx  );
-    }
+    ((void) level);
+
+    mbedtls_fprintf( (FILE *) ctx, "%s:%04d: %s", file, line, str );
+    fflush(  (FILE *) ctx  );
 }
 
 int main( void )

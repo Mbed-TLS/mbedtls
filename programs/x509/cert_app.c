@@ -110,13 +110,14 @@ struct options
     int permissive;             /* permissive parsing                   */
 } opt;
 
-static void my_debug( void *ctx, int level, const char *str )
+static void my_debug( void *ctx, int level,
+                      const char *file, int line,
+                      const char *str )
 {
-    if( level < opt.debug_level )
-    {
-        mbedtls_fprintf( (FILE *) ctx, "%s", str );
-        fflush(  (FILE *) ctx  );
-    }
+    ((void) level);
+
+    mbedtls_fprintf( (FILE *) ctx, "%s:%04d: %s", file, line, str );
+    fflush(  (FILE *) ctx  );
 }
 
 static int my_verify( void *data, mbedtls_x509_crt *crt, int depth, uint32_t *flags )

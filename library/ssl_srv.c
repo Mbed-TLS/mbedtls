@@ -2647,7 +2647,6 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
          * } ServerECDHParams;
          */
         const mbedtls_ecp_curve_info **curve = NULL;
-#if defined(MBEDTLS_ECP_C)
         const mbedtls_ecp_group_id *gid;
 
         /* Match our preference list against the offered curves */
@@ -2657,11 +2656,7 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
                     goto curve_matching_done;
 
 curve_matching_done:
-#else
-        curve = ssl->handshake->curves;
-#endif
-
-        if( *curve == NULL )
+        if( curve == NULL || *curve == NULL )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "no matching curve for ECDHE" ) );
             return( MBEDTLS_ERR_SSL_NO_CIPHER_CHOSEN );

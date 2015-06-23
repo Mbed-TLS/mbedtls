@@ -100,12 +100,12 @@ for my $line (@config_lines) {
             $line =~ s!^!//!;
         }
     } elsif ($action eq "unset") {
-        if (!$done && $line =~ /^\s*#define\s*$name/) {
+        if (!$done && $line =~ /^\s*#define\s*$name\b/) {
             $line = '//' . $line;
             $done = 1;
         }
     } elsif (!$done && $action eq "set") {
-        if ($line =~ m!^(?://)?\s*#define\s*$name!) {
+        if ($line =~ m!^(?://)?\s*#define\s*$name\b!) {
             $line = "#define $name";
             $line .= " $value" if defined $value && $value ne "";
             $line .= "\n";

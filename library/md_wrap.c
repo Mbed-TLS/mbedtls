@@ -93,9 +93,14 @@ static void md2_finish_wrap( void *ctx, unsigned char *output )
     mbedtls_md2_finish( (mbedtls_md2_context *) ctx, output );
 }
 
-static void * md2_ctx_alloc( void )
+static void *md2_ctx_alloc( void )
 {
-    return mbedtls_calloc( 1, sizeof( mbedtls_md2_context ) );
+    void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_md2_context ) );
+
+    if( ctx != NULL )
+        mbedtls_md2_init( (mbedtls_md2_context *) ctx );
+
+    return( ctx );
 }
 
 static void md2_ctx_free( void *ctx )
@@ -147,7 +152,12 @@ static void md4_finish_wrap( void *ctx, unsigned char *output )
 
 static void *md4_ctx_alloc( void )
 {
-    return mbedtls_calloc( 1, sizeof( mbedtls_md4_context ) );
+    void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_md4_context ) );
+
+    if( ctx != NULL )
+        mbedtls_md4_init( (mbedtls_md4_context *) ctx );
+
+    return( ctx );
 }
 
 static void md4_ctx_free( void *ctx )
@@ -195,9 +205,14 @@ static void md5_finish_wrap( void *ctx, unsigned char *output )
     mbedtls_md5_finish( (mbedtls_md5_context *) ctx, output );
 }
 
-static void * md5_ctx_alloc( void )
+static void *md5_ctx_alloc( void )
 {
-    return mbedtls_calloc( 1, sizeof( mbedtls_md5_context ) );
+    void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_md5_context ) );
+
+    if( ctx != NULL )
+        mbedtls_md5_init( (mbedtls_md5_context *) ctx );
+
+    return( ctx );
 }
 
 static void md5_ctx_free( void *ctx )
@@ -245,15 +260,12 @@ static void ripemd160_finish_wrap( void *ctx, unsigned char *output )
     mbedtls_ripemd160_finish( (mbedtls_ripemd160_context *) ctx, output );
 }
 
-static void * ripemd160_ctx_alloc( void )
+static void *ripemd160_ctx_alloc( void )
 {
-    mbedtls_ripemd160_context *ctx;
-    ctx = mbedtls_calloc( 1, sizeof( mbedtls_ripemd160_context ) );
+    void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_ripemd160_context ) );
 
-    if( ctx == NULL )
-        return( NULL );
-
-    mbedtls_ripemd160_init( ctx );
+    if( ctx != NULL )
+        mbedtls_ripemd160_init( (mbedtls_ripemd160_context *) ctx );
 
     return( ctx );
 }
@@ -303,15 +315,12 @@ static void sha1_finish_wrap( void *ctx, unsigned char *output )
     mbedtls_sha1_finish( (mbedtls_sha1_context *) ctx, output );
 }
 
-static void * sha1_ctx_alloc( void )
+static void *sha1_ctx_alloc( void )
 {
-    mbedtls_sha1_context *ctx;
-    ctx = mbedtls_calloc( 1, sizeof( mbedtls_sha1_context ) );
+    void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_sha1_context ) );
 
-    if( ctx == NULL )
-        return( NULL );
-
-    mbedtls_sha1_init( ctx );
+    if( ctx != NULL )
+        mbedtls_sha1_init( (mbedtls_sha1_context *) ctx );
 
     return( ctx );
 }
@@ -370,9 +379,14 @@ static void sha224_wrap( const unsigned char *input, size_t ilen,
     mbedtls_sha256( input, ilen, output, 1 );
 }
 
-static void * sha224_ctx_alloc( void )
+static void *sha224_ctx_alloc( void )
 {
-    return mbedtls_calloc( 1, sizeof( mbedtls_sha256_context ) );
+    void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_sha256_context ) );
+
+    if( ctx != NULL )
+        mbedtls_sha256_init( (mbedtls_sha256_context *) ctx );
+
+    return( ctx );
 }
 
 static void sha224_ctx_free( void *ctx )
@@ -422,15 +436,12 @@ static void sha256_wrap( const unsigned char *input, size_t ilen,
     mbedtls_sha256( input, ilen, output, 0 );
 }
 
-static void * sha256_ctx_alloc( void )
+static void *sha256_ctx_alloc( void )
 {
-    mbedtls_sha256_context *ctx;
-    ctx = mbedtls_calloc( 1, sizeof( mbedtls_sha256_context ) );
+    void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_sha256_context ) );
 
-    if( ctx == NULL )
-        return( NULL );
-
-    mbedtls_sha256_init( ctx );
+    if( ctx != NULL )
+        mbedtls_sha256_init( (mbedtls_sha256_context *) ctx );
 
     return( ctx );
 }
@@ -486,9 +497,14 @@ static void sha384_wrap( const unsigned char *input, size_t ilen,
     mbedtls_sha512( input, ilen, output, 1 );
 }
 
-static void * sha384_ctx_alloc( void )
+static void *sha384_ctx_alloc( void )
 {
-    return mbedtls_calloc( 1, sizeof( mbedtls_sha512_context ) );
+    void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_sha512_context ) );
+
+    if( ctx != NULL )
+        mbedtls_sha512_init( (mbedtls_sha512_context *) ctx );
+
+    return( ctx );
 }
 
 static void sha384_ctx_free( void *ctx )
@@ -538,15 +554,12 @@ static void sha512_wrap( const unsigned char *input, size_t ilen,
     mbedtls_sha512( input, ilen, output, 0 );
 }
 
-static void * sha512_ctx_alloc( void )
+static void *sha512_ctx_alloc( void )
 {
-    mbedtls_sha512_context *ctx;
-    ctx = mbedtls_calloc( 1, sizeof( mbedtls_sha512_context ) );
+    void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_sha512_context ) );
 
-    if( ctx == NULL )
-        return( NULL );
-
-    mbedtls_sha512_init( ctx );
+    if( ctx != NULL )
+        mbedtls_sha512_init( (mbedtls_sha512_context *) ctx );
 
     return( ctx );
 }

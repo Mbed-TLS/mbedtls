@@ -34,8 +34,6 @@ void pbkdf2_hmac( int hash, char *hex_password_string,
 
     info = mbedtls_md_info_from_type( hash );
     TEST_ASSERT( info != NULL );
-    if( info == NULL )
-        return;
     TEST_ASSERT( mbedtls_md_setup( &ctx, info, 1 ) == 0 );
     TEST_ASSERT( mbedtls_pkcs5_pbkdf2_hmac( &ctx, pw_str, pw_len, salt_str, salt_len,
                                      it_cnt, key_len, key ) == 0 );

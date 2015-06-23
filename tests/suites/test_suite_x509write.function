@@ -119,8 +119,8 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
     f = fopen( cert_check_file, "r" );
     TEST_ASSERT( f != NULL );
     olen = fread( check_buf, 1, sizeof(check_buf), f );
-    TEST_ASSERT( olen < sizeof(check_buf) );
     fclose( f );
+    TEST_ASSERT( olen < sizeof(check_buf) );
 
     TEST_ASSERT( olen >= pem_len - 1 );
     TEST_ASSERT( memcmp( buf, check_buf, pem_len - 1 ) == 0 );

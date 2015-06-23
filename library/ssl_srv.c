@@ -1932,8 +1932,6 @@ static void ssl_write_renegotiation_ext( mbedtls_ssl_context *ssl,
         p += ssl->verify_data_len;
         memcpy( p, ssl->own_verify_data, ssl->verify_data_len );
         p += ssl->verify_data_len;
-
-        *olen = 5 + ssl->verify_data_len * 2;
     }
     else
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
@@ -1941,9 +1939,9 @@ static void ssl_write_renegotiation_ext( mbedtls_ssl_context *ssl,
         *p++ = 0x00;
         *p++ = 0x01;
         *p++ = 0x00;
-
-        *olen = 5;
     }
+
+    *olen = p - buf;
 }
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
@@ -2856,7 +2854,6 @@ curve_matching_done:
 
         MBEDTLS_SSL_DEBUG_BUF( 3, "my signature", p, signature_len );
 
-        p += signature_len;
         n += signature_len;
     }
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED) ||

@@ -2343,7 +2343,6 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
         size_t sig_alg_len = ( ( buf[mbedtls_ssl_hs_hdr_len( ssl ) + 1 + n] <<  8 )
                              | ( buf[mbedtls_ssl_hs_hdr_len( ssl ) + 2 + n]       ) );
 
-        p = buf + mbedtls_ssl_hs_hdr_len( ssl ) + 3 + n;
         m += 2;
         n += sig_alg_len;
 

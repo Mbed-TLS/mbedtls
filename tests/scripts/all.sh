@@ -238,6 +238,7 @@ if which i686-w64-mingw32-gcc >/dev/null; then
 msg "build: cross-mingw64, make" # ~ 30s
 cleanup
 CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar CFLAGS=-Werror WINDOWS_BUILD=1 make
+WINDOWS_BUILD=1 make clean
 fi
 
 # MemSan currently only available on Linux 64 bits

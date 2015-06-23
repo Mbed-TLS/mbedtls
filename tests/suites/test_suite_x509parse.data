@@ -90,6 +90,10 @@ X509 Certificate information, Key Usage
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C
 x509_cert_info:"data_files/server1.key_usage.crt":"cert. version     \: 3\nserial number     \: 01\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nissued  on        \: 2011-02-12 14\:44\:06\nexpires on        \: 2021-02-12 14\:44\:06\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\nkey usage         \: Digital Signature, Non Repudiation, Key Encipherment\n"
 
+X509 Certificate information, Key Usage with decipherOnly
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C
+x509_cert_info:"data_files/keyUsage.decipherOnly.crt":"cert. version     \: 3\nserial number     \: 9B\:13\:CE\:4C\:A5\:6F\:DE\:52\nissuer name       \: C=GB, L=Cambridge, O=Default Company Ltd\nsubject name      \: C=GB, L=Cambridge, O=Default Company Ltd\nissued  on        \: 2015-05-12 10\:36\:55\nexpires on        \: 2018-05-11 10\:36\:55\nsigned using      \: RSA with SHA1\nRSA key size      \: 1024 bits\nbasic constraints \: CA=false\nkey usage         \: Digital Signature, Non Repudiation, Key Encipherment, Decipher Only\n"
+
 X509 Certificate information, Subject Alt Name
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C
 x509_cert_info:"data_files/cert_example_multi.crt":"cert. version     \: 3\nserial number     \: 11\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=www.example.com\nissued  on        \: 2012-05-10 13\:23\:41\nexpires on        \: 2022-05-11 13\:23\:41\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\nsubject alt name  \: example.com, example.net, *.example.org\n"

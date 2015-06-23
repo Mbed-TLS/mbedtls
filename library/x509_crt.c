@@ -371,6 +371,7 @@ static int x509_get_key_usage( unsigned char **p,
                                unsigned int *key_usage)
 {
     int ret;
+    size_t i;
     mbedtls_x509_bitstring bs = { 0, 0, NULL };
 
     if( ( ret = mbedtls_asn1_get_bitstring( p, end, &bs ) ) != 0 )
@@ -381,7 +382,12 @@ static int x509_get_key_usage( unsigned char **p,
                 MBEDTLS_ERR_ASN1_INVALID_LENGTH );
 
     /* Get actual bitstring */
-    *key_usage = *bs.p;
+    *key_usage = 0;
+    for( i = 0; i < bs.len && i < sizeof( unsigned int ); i++ )
+    {
+        *key_usage |= (unsigned int) bs.p[i] << (8*i);
+    }
+
     return( 0 );
 }
 
@@ -1274,7 +1280,7 @@ static int x509_info_cert_type( char **buf, size_t *size,
         PRINT_ITEM( name );
 
 static int x509_info_key_usage( char **buf, size_t *size,
-                                unsigned char key_usage )
+                                unsigned int key_usage )
 {
     int ret;
     size_t n = *size;
@@ -1288,6 +1294,8 @@ static int x509_info_key_usage( char **buf, size_t *size,
     KEY_USAGE( MBEDTLS_X509_KU_KEY_AGREEMENT,        "Key Agreement" );
     KEY_USAGE( MBEDTLS_X509_KU_KEY_CERT_SIGN,        "Key Cert Sign" );
     KEY_USAGE( MBEDTLS_X509_KU_CRL_SIGN,             "CRL Sign" );
+    KEY_USAGE( MBEDTLS_X509_KU_ENCIPHER_ONLY,        "Encipher Only" );
+    KEY_USAGE( MBEDTLS_X509_KU_DECIPHER_ONLY,        "Decipher Only" );
 
     *size = n;
     *buf = p;

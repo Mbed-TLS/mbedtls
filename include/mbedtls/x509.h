@@ -110,6 +110,7 @@
 
 /*
  * X.509 v3 Key Usage Extension flags
+ * Reminder: update x509_info_key_usage() when adding new flags.
  */
 #define MBEDTLS_X509_KU_DIGITAL_SIGNATURE            (0x80)  /* bit 0 */
 #define MBEDTLS_X509_KU_NON_REPUDIATION              (0x40)  /* bit 1 */
@@ -118,6 +119,8 @@
 #define MBEDTLS_X509_KU_KEY_AGREEMENT                (0x08)  /* bit 4 */
 #define MBEDTLS_X509_KU_KEY_CERT_SIGN                (0x04)  /* bit 5 */
 #define MBEDTLS_X509_KU_CRL_SIGN                     (0x02)  /* bit 6 */
+#define MBEDTLS_X509_KU_ENCIPHER_ONLY                (0x01)  /* bit 7 */
+#define MBEDTLS_X509_KU_DECIPHER_ONLY              (0x8000)  /* bit 8 */
 
 /*
  * Netscape certificate types

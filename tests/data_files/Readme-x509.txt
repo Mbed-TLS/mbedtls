@@ -23,6 +23,7 @@ Finally, other CAs for specific purposes:
 - test-ca-v1.crt: v1 "CA", signs
     server1-v1.crt: v1 "intermediate CA", signs
         server2-v1*.crt: EE cert (without of with chain in same file)
+- keyUsage.decipherOnly.crt: has the decipherOnly keyUsage bit set
 
 End-entity certificates
 -----------------------

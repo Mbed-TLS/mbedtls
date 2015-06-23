@@ -54,6 +54,8 @@ API Changes
      pointer, parameters reordered).
    * On server, mbedtls_ssl_conf_session_tickets_cb() must now be used in
      place of mbedtls_ssl_conf_session_tickets() to enable session tickets.
+   * The SSL debug callback gained two new arguments (file name, line number).
+   * Debug modes were removed.
    * mbedtls_ssl_conf_truncated_hmac() now returns void.
    * mbedtls_memory_buffer_alloc_init() now returns void.
    * X.509 verification flags are now an uint32_t. Affect the signature of:

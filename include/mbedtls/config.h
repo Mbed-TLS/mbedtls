@@ -2413,9 +2413,6 @@
  */
 //#define MBEDTLS_SSL_CIPHERSUITES MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
 
-/* Debug options */
-//#define MBEDTLS_DEBUG_DFL_MODE MBEDTLS_DEBUG_LOG_FULL /**< Default log: Full or Raw */
-
 /* X509 options */
 //#define MBEDTLS_X509_MAX_INTERMEDIATE_CA   8   /**< Maximum number of intermediate CAs in a verification chain. */
 

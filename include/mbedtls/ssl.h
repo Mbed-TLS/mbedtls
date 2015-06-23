@@ -488,7 +488,7 @@ struct mbedtls_ssl_config
     const int *ciphersuite_list[4]; /*!< allowed ciphersuites per version   */
 
     /** Callback for printing debug output                                  */
-    void (*f_dbg)(void *, int, const char *);
+    void (*f_dbg)(void *, int, const char *, int, const char *);
     void *p_dbg;                    /*!< context for the debug function     */
 
     /** Callback for getting (pseudo-)random numbers                        */
@@ -957,12 +957,19 @@ void mbedtls_ssl_conf_rng( mbedtls_ssl_config *conf,
 /**
  * \brief          Set the debug callback
  *
+ *                 The callback has the following argument:
+ *                 void *           opaque context for the callback
+ *                 int              debug level
+ *                 const char *     file name
+ *                 int              line number
+ *                 const char *     message
+ *
  * \param conf     SSL configuration
  * \param f_dbg    debug function
  * \param p_dbg    debug parameter
  */
 void mbedtls_ssl_conf_dbg( mbedtls_ssl_config *conf,
-                  void (*f_dbg)(void *, int, const char *),
+                  void (*f_dbg)(void *, int, const char *, int, const char *),
                   void  *p_dbg );
 
 /**

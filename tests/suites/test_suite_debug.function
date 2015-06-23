@@ -7,20 +7,32 @@ struct buffer_data
     char *ptr;
 };
 
-void string_debug(void *data, int level, const char *str)
+void string_debug(void *data, int level, const char *file, int line, const char *str)
 {
     struct buffer_data *buffer = (struct buffer_data *) data;
+    char *p = buffer->ptr;
     ((void) level);
 
-    memcpy(buffer->ptr, str, strlen(str));
-    buffer->ptr += strlen(str);
+    memcpy( p, file, strlen( file ) );
+    p += strlen( file );
+
+    *p++ = '(';
+    *p++ = '0' + ( line / 1000 ) % 10;
+    *p++ = '0' + ( line / 100  ) % 10;
+    *p++ = '0' + ( line / 10   ) % 10;
+    *p++ = '0' + ( line / 1    ) % 10;
+    *p++ = ')';
+    *p++ = ':';
+    *p++ = ' ';
+
+    memcpy( p, str, strlen( str ) );
+    p += strlen( str );
 
     /* Detect if debug messages output partial lines and mark them */
-    if( *(buffer->ptr - 1) != '\n' )
-    {
-        *buffer->ptr = '*';
-        buffer->ptr++;
-    }
+    if( p[-1] != '\n' )
+        *p++ = '*';
+
+    buffer->ptr = p;
 }
 /* END_HEADER */
 
@@ -44,7 +56,6 @@ void debug_print_msg_threshold( int threshold, int level, char *file, int line,
 
     TEST_ASSERT( mbedtls_ssl_setup( &ssl, &conf ) == 0 );
 
-    mbedtls_debug_set_log_mode( MBEDTLS_DEBUG_LOG_FULL );
     mbedtls_debug_set_threshold( threshold );
     mbedtls_ssl_conf_dbg( &conf, string_debug, &buffer);
 
@@ -60,7 +71,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_debug_print_ret( int mode, char *file, int line, char *text, int value,
+void mbedtls_debug_print_ret( char *file, int line, char *text, int value,
                       char *result_str )
 {
     mbedtls_ssl_context ssl;
@@ -74,7 +85,6 @@ void mbedtls_debug_print_ret( int mode, char *file, int line, char *text, int va
 
     TEST_ASSERT( mbedtls_ssl_setup( &ssl, &conf ) == 0 );
 
-    mbedtls_debug_set_log_mode( mode );
     mbedtls_ssl_conf_dbg( &conf, string_debug, &buffer);
 
     mbedtls_debug_print_ret( &ssl, 0, file, line, text, value);
@@ -88,7 +98,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_debug_print_buf( int mode, char *file, int line, char *text,
+void mbedtls_debug_print_buf( char *file, int line, char *text,
                       char *data_string, char *result_str )
 {
     unsigned char data[10000];
@@ -107,7 +117,6 @@ void mbedtls_debug_print_buf( int mode, char *file, int line, char *text,
 
     TEST_ASSERT( mbedtls_ssl_setup( &ssl, &conf ) == 0 );
 
-    mbedtls_debug_set_log_mode( mode );
     mbedtls_ssl_conf_dbg( &conf, string_debug, &buffer);
 
     mbedtls_debug_print_buf( &ssl, 0, file, line, text, data, data_len );
@@ -121,7 +130,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
-void mbedtls_debug_print_crt( int mode, char *crt_file, char *file, int line,
+void mbedtls_debug_print_crt( char *crt_file, char *file, int line,
                       char *prefix, char *result_str )
 {
     mbedtls_x509_crt   crt;
@@ -137,7 +146,6 @@ void mbedtls_debug_print_crt( int mode, char *crt_file, char *file, int line,
 
     TEST_ASSERT( mbedtls_ssl_setup( &ssl, &conf ) == 0 );
 
-    mbedtls_debug_set_log_mode( mode );
     mbedtls_ssl_conf_dbg( &conf, string_debug, &buffer);
 
     TEST_ASSERT( mbedtls_x509_crt_parse_file( &crt, crt_file ) == 0 );
@@ -153,7 +161,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_BIGNUM_C */
-void mbedtls_debug_print_mpi( int mode, int radix, char *value, char *file, int line,
+void mbedtls_debug_print_mpi( int radix, char *value, char *file, int line,
                       char *prefix, char *result_str )
 {
     mbedtls_ssl_context ssl;
@@ -171,7 +179,6 @@ void mbedtls_debug_print_mpi( int mode, int radix, char *value, char *file, int 
 
     TEST_ASSERT( mbedtls_mpi_read_string( &val, radix, value ) == 0 );
 
-    mbedtls_debug_set_log_mode( mode );
     mbedtls_ssl_conf_dbg( &conf, string_debug, &buffer);
 
     mbedtls_debug_print_mpi( &ssl, 0, file, line, prefix, &val);

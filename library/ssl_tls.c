@@ -5228,7 +5228,7 @@ void mbedtls_ssl_conf_rng( mbedtls_ssl_config *conf,
 }
 
 void mbedtls_ssl_conf_dbg( mbedtls_ssl_config *conf,
-                  void (*f_dbg)(void *, int, const char *),
+                  void (*f_dbg)(void *, int, const char *, int, const char *),
                   void  *p_dbg )
 {
     conf->f_dbg      = f_dbg;

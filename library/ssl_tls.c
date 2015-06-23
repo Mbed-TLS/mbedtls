@@ -2686,6 +2686,13 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl )
 #endif
     if( ssl->out_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE )
     {
+        if( ssl->out_msg[0] != MBEDTLS_SSL_HS_HELLO_REQUEST &&
+            ssl->handshake == NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+
         ssl->out_msg[1] = (unsigned char)( ( len - 4 ) >> 16 );
         ssl->out_msg[2] = (unsigned char)( ( len - 4 ) >>  8 );
         ssl->out_msg[3] = (unsigned char)( ( len - 4 )       );
@@ -3118,8 +3125,11 @@ static int ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
     }
 
-    if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
+    if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER &&
+        ssl->handshake != NULL )
+    {
         ssl->handshake->update_checksum( ssl, ssl->in_msg, ssl->in_hslen );
+    }
 
     /* Handshake message is complete, increment counter */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

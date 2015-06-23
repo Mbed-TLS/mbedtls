@@ -73,7 +73,8 @@ API Changes
    * ecdsa_write_signature() gained an addtional md_alg argument and
      ecdsa_write_signature_det() was deprecated.
    * pk_sign() no longer accepts md_alg == POLARSSL_MD_NONE with ECDSA.
-   * Last argument of x509_crt_check_key_usage() changed from int to unsigned.
+   * Last argument of x509_crt_check_key_usage() and
+     mbedtls_x509write_crt_set_key_usage() changed from int to unsigned.
    * test_ca_list (from certs.h) is renamed to test_cas_pem and is only
      available if POLARSSL_PEM_PARSE_C is defined (it never worked without).
    * Test certificates in certs.c are no longer guaranteed to be nul-terminated

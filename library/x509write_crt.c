@@ -217,15 +217,21 @@ int mbedtls_x509write_crt_set_authority_key_identifier( mbedtls_x509write_cert *
 }
 #endif /* MBEDTLS_SHA1_C */
 
-int mbedtls_x509write_crt_set_key_usage( mbedtls_x509write_cert *ctx, unsigned char key_usage )
+int mbedtls_x509write_crt_set_key_usage( mbedtls_x509write_cert *ctx,
+                                         unsigned int key_usage )
 {
-    unsigned char buf[4];
+    unsigned char buf[4], ku;
     unsigned char *c;
     int ret;
 
-    c = buf + 4;
+    /* We currently only support 7 bits, from 0x80 to 0x02 */
+    if( ( key_usage & ~0xfe ) != 0 )
+        return( MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE );
 
-    if( ( ret = mbedtls_asn1_write_bitstring( &c, buf, &key_usage, 7 ) ) != 4 )
+    c = buf + 4;
+    ku = (unsigned char) key_usage;
+
+    if( ( ret = mbedtls_asn1_write_bitstring( &c, buf, &ku, 7 ) ) != 4 )
         return( ret );
 
     ret = mbedtls_x509write_crt_set_extension( ctx, MBEDTLS_OID_KEY_USAGE,

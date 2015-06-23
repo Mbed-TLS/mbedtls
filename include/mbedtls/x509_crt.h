@@ -570,7 +570,8 @@ int mbedtls_x509write_crt_set_authority_key_identifier( mbedtls_x509write_cert *
  *
  * \return          0 if successful, or MBEDTLS_ERR_X509_ALLOC_FAILED
  */
-int mbedtls_x509write_crt_set_key_usage( mbedtls_x509write_cert *ctx, unsigned char key_usage );
+int mbedtls_x509write_crt_set_key_usage( mbedtls_x509write_cert *ctx,
+                                         unsigned int key_usage );
 
 /**
  * \brief           Set the Netscape Cert Type flags

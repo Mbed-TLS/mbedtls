@@ -76,9 +76,9 @@ int main( void )
 #define MAX_MSG_SIZE            16384 + 2048 /* max record/datagram size */
 
 #define DFL_SERVER_ADDR         "localhost"
-#define DFL_SERVER_PORT         4433
+#define DFL_SERVER_PORT         "4433"
 #define DFL_LISTEN_ADDR         "localhost"
-#define DFL_LISTEN_PORT         5556
+#define DFL_LISTEN_PORT         "5556"
 
 #define USAGE                                                               \
     "\n usage: udp_proxy param=<>...\n"                                     \
@@ -110,9 +110,9 @@ int main( void )
 static struct options
 {
     const char *server_addr;    /* address to forward packets to            */
-    int server_port;            /* port to forward packets to               */
+    const char *server_port;    /* port to forward packets to               */
     const char *listen_addr;    /* address for accepting client connections */
-    int listen_port;            /* port for accepting client connections    */
+    const char *listen_port;    /* port for accepting client connections    */
 
     int duplicate;              /* duplicate 1 in N packets (none if 0)     */
     int delay;                  /* delay 1 packet in N (none if 0)          */
@@ -158,19 +158,11 @@ static void get_options( int argc, char *argv[] )
         if( strcmp( p, "server_addr" ) == 0 )
             opt.server_addr = q;
         else if( strcmp( p, "server_port" ) == 0 )
-        {
-            opt.server_port = atoi( q );
-            if( opt.server_port < 1 || opt.server_port > 65535 )
-                exit_usage( p, q );
-        }
+            opt.server_port = q;
         else if( strcmp( p, "listen_addr" ) == 0 )
             opt.listen_addr = q;
         else if( strcmp( p, "listen_port" ) == 0 )
-        {
-            opt.listen_port = atoi( q );
-            if( opt.listen_port < 1 || opt.listen_port > 65535 )
-                exit_usage( p, q );
-        }
+            opt.listen_port = q;
         else if( strcmp( p, "duplicate" ) == 0 )
         {
             opt.duplicate = atoi( q );
@@ -498,7 +490,7 @@ int main( int argc, char *argv[] )
     /*
      * 0. "Connect" to the server
      */
-    mbedtls_printf( "  . Connect to server on UDP/%s/%d ...",
+    mbedtls_printf( "  . Connect to server on UDP/%s/%s ...",
             opt.server_addr, opt.server_port );
     fflush( stdout );
 
@@ -514,7 +506,7 @@ int main( int argc, char *argv[] )
     /*
      * 1. Setup the "listening" UDP socket
      */
-    mbedtls_printf( "  . Bind on UDP/%s/%d ...",
+    mbedtls_printf( "  . Bind on UDP/%s/%s ...",
             opt.listen_addr, opt.listen_port );
     fflush( stdout );
 
@@ -544,7 +536,7 @@ accept:
     mbedtls_printf( " ok\n" );
     fflush( stdout );
 
-    mbedtls_printf( "  . Re-bind on UDP/%s/%d ...",
+    mbedtls_printf( "  . Re-bind on UDP/%s/%s ...",
             opt.listen_addr, opt.listen_port );
     fflush( stdout );
 

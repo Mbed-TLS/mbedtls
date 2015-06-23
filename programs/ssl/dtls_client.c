@@ -61,7 +61,7 @@ int main( void )
 #include "mbedtls/certs.h"
 #include "mbedtls/timing.h"
 
-#define SERVER_PORT 4433
+#define SERVER_PORT "4433"
 #define SERVER_NAME "localhost"
 #define SERVER_ADDR "127.0.0.1" /* forces IPv4 */
 #define MESSAGE     "Echo this"
@@ -142,8 +142,7 @@ int main( int argc, char *argv[] )
     /*
      * 1. Start the connection
      */
-    mbedtls_printf( "  . Connecting to udp/%s/%4d...", SERVER_NAME,
-                                               SERVER_PORT );
+    mbedtls_printf( "  . Connecting to udp/%s/%s...", SERVER_NAME, SERVER_PORT );
     fflush( stdout );
 
     if( ( ret = mbedtls_net_connect( &server_fd, SERVER_ADDR,

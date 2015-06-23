@@ -70,7 +70,7 @@ int main( void )
 #define DFL_CRL_FILE            ""
 #define DFL_CA_PATH             ""
 #define DFL_SERVER_NAME         "localhost"
-#define DFL_SERVER_PORT         4433
+#define DFL_SERVER_PORT         "4433"
 #define DFL_DEBUG_LEVEL         0
 #define DFL_PERMISSIVE          0
 
@@ -105,7 +105,7 @@ struct options
     const char *crl_file;       /* the file with the CRL to use         */
     const char *ca_path;        /* the path with the CA certificate(s) reside */
     const char *server_name;    /* hostname of the server (client only) */
-    int server_port;            /* port on which the ssl service runs   */
+    const char *server_port;    /* port on which the ssl service runs   */
     int debug_level;            /* level of debugging                   */
     int permissive;             /* permissive parsing                   */
 } opt;
@@ -226,11 +226,7 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "server_name" ) == 0 )
             opt.server_name = q;
         else if( strcmp( p, "server_port" ) == 0 )
-        {
-            opt.server_port = atoi( q );
-            if( opt.server_port < 1 || opt.server_port > 65535 )
-                goto usage;
-        }
+            opt.server_port = q;
         else if( strcmp( p, "debug_level" ) == 0 )
         {
             opt.debug_level = atoi( q );
@@ -383,8 +379,8 @@ int main( int argc, char *argv[] )
         /*
          * 2. Start the connection
          */
-        mbedtls_printf( "  . SSL connection to tcp/%s/%-4d...", opt.server_name,
-                                                        opt.server_port );
+        mbedtls_printf( "  . SSL connection to tcp/%s/%s...", opt.server_name,
+                                                              opt.server_port );
         fflush( stdout );
 
         if( ( ret = mbedtls_net_connect( &server_fd, opt.server_name,

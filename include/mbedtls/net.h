@@ -70,7 +70,7 @@ extern "C" {
  *
  * \note           Sets the socket in connected mode even with UDP.
  */
-int mbedtls_net_connect( int *fd, const char *host, int port, int proto );
+int mbedtls_net_connect( int *fd, const char *host, const char *port, int proto );
 
 /**
  * \brief          Create a receiving socket on bind_ip:port in the chosen
@@ -89,7 +89,7 @@ int mbedtls_net_connect( int *fd, const char *host, int port, int proto );
  * \note           Regardless of the protocol, opens the sockets and binds it.
  *                 In addition, make the socket listening if protocol is TCP.
  */
-int mbedtls_net_bind( int *fd, const char *bind_ip, int port, int proto );
+int mbedtls_net_bind( int *fd, const char *bind_ip, const char *port, int proto );
 
 /**
  * \brief           Accept a connection from a remote client

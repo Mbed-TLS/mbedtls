@@ -84,7 +84,7 @@ int main( void )
 #endif
 
 #define DFL_SERVER_NAME         "localhost"
-#define DFL_SERVER_PORT         465
+#define DFL_SERVER_PORT         "465"
 #define DFL_USER_NAME           "user"
 #define DFL_USER_PWD            "password"
 #define DFL_MAIL_FROM           ""
@@ -140,7 +140,7 @@ int main( void )
 struct options
 {
     const char *server_name;    /* hostname of the server (client only)     */
-    int server_port;            /* port on which the ssl service runs       */
+    const char *server_port;    /* port on which the ssl service runs       */
     int debug_level;            /* level of debugging                       */
     int authentication;         /* if authentication is required            */
     int mode;                   /* SSL/TLS (0) or STARTTLS (1)              */
@@ -416,11 +416,7 @@ int main( int argc, char *argv[] )
         if( strcmp( p, "server_name" ) == 0 )
             opt.server_name = q;
         else if( strcmp( p, "server_port" ) == 0 )
-        {
-            opt.server_port = atoi( q );
-            if( opt.server_port < 1 || opt.server_port > 65535 )
-                goto usage;
-        }
+            opt.server_port = q;
         else if( strcmp( p, "debug_level" ) == 0 )
         {
             opt.debug_level = atoi( q );
@@ -566,7 +562,7 @@ int main( int argc, char *argv[] )
     /*
      * 2. Start the connection
      */
-    mbedtls_printf( "  . Connecting to tcp/%s/%-4d...", opt.server_name,
+    mbedtls_printf( "  . Connecting to tcp/%s/%s...", opt.server_name,
                                                 opt.server_port );
     fflush( stdout );
 

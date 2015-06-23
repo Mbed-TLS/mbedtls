@@ -91,7 +91,7 @@ int main( void )
 #endif
 
 #define DFL_SERVER_ADDR         NULL
-#define DFL_SERVER_PORT         4433
+#define DFL_SERVER_PORT         "4433"
 #define DFL_DEBUG_LEVEL         0
 #define DFL_NBIO                0
 #define DFL_READ_TIMEOUT        0
@@ -346,7 +346,7 @@ int main( void )
 struct options
 {
     const char *server_addr;    /* address on which the ssl service runs    */
-    int server_port;            /* port on which the ssl service runs       */
+    const char *server_port;    /* port on which the ssl service runs       */
     int debug_level;            /* level of debugging                       */
     int nbio;                   /* should I/O be blocking?                  */
     uint32_t read_timeout;      /* timeout on mbedtls_ssl_read() in milliseconds    */
@@ -931,11 +931,7 @@ int main( int argc, char *argv[] )
         *q++ = '\0';
 
         if( strcmp( p, "server_port" ) == 0 )
-        {
-            opt.server_port = atoi( q );
-            if( opt.server_port < 1 || opt.server_port > 65535 )
-                goto usage;
-        }
+            opt.server_port = q;
         else if( strcmp( p, "server_addr" ) == 0 )
             opt.server_addr = q;
         else if( strcmp( p, "dtls" ) == 0 )
@@ -1558,7 +1554,7 @@ int main( int argc, char *argv[] )
     /*
      * 2. Setup the listening TCP socket
      */
-    mbedtls_printf( "  . Bind on %s://%s:%-4d/ ...",
+    mbedtls_printf( "  . Bind on %s://%s:%s/ ...",
             opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM ? "tcp" : "udp",
             opt.server_addr ? opt.server_addr : "*",
             opt.server_port );
@@ -1906,7 +1902,7 @@ reset:
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
-        mbedtls_printf( "  . Re-bind on udp://%s:%-4d/ ...",
+        mbedtls_printf( "  . Re-bind on udp://%s:%s/ ...",
                 opt.server_addr ? opt.server_addr : "*",
                 opt.server_port );
         fflush( stdout );

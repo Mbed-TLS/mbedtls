@@ -50,7 +50,7 @@
 #endif
 
 #define SERVER_NAME "localhost"
-#define SERVER_PORT 11999
+#define SERVER_PORT "11999"
 
 #if !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_DHM_C) ||     \
     !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_NET_C) ||  \
@@ -134,7 +134,7 @@ int main( void )
     /*
      * 3. Initiate the connection
      */
-    mbedtls_printf( "\n  . Connecting to tcp/%s/%d", SERVER_NAME,
+    mbedtls_printf( "\n  . Connecting to tcp/%s/%s", SERVER_NAME,
                                              SERVER_PORT );
     fflush( stdout );
 

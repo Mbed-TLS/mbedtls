@@ -60,7 +60,7 @@ int main( void )
 
 #include <string.h>
 
-#define SERVER_PORT 4433
+#define SERVER_PORT "4433"
 #define SERVER_NAME "localhost"
 #define GET_REQUEST "GET / HTTP/1.0\r\n\r\n"
 
@@ -132,8 +132,7 @@ int main( void )
     /*
      * 1. Start the connection
      */
-    mbedtls_printf( "  . Connecting to tcp/%s/%4d...", SERVER_NAME,
-                                               SERVER_PORT );
+    mbedtls_printf( "  . Connecting to tcp/%s/%s...", SERVER_NAME, SERVER_PORT );
     fflush( stdout );
 
     if( ( ret = mbedtls_net_connect( &server_fd, SERVER_NAME,

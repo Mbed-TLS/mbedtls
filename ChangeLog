@@ -92,6 +92,7 @@ API Changes
      in config.h
    * net_connect() and net_bind() have a new 'proto' argument to choose
      between TCP and UDP, using the macros NET_PROTO_TCP or NET_PROTO_UDP.
+     Their 'port' argument type is changed to a string.
    * Some constness fixes
 
 Removals

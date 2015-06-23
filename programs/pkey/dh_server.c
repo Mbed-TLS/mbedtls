@@ -49,7 +49,7 @@
 #include <string.h>
 #endif
 
-#define SERVER_PORT 11999
+#define SERVER_PORT "11999"
 #define PLAINTEXT "==Hello there!=="
 
 #if !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_DHM_C) ||     \

@@ -70,7 +70,7 @@ int main( void )
 
 #define DFL_SERVER_NAME         "localhost"
 #define DFL_SERVER_ADDR         NULL
-#define DFL_SERVER_PORT         4433
+#define DFL_SERVER_PORT         "4433"
 #define DFL_REQUEST_PAGE        "/"
 #define DFL_REQUEST_SIZE        -1
 #define DFL_DEBUG_LEVEL         0
@@ -272,7 +272,7 @@ struct options
 {
     const char *server_name;    /* hostname of the server (client only)     */
     const char *server_addr;    /* address of the server (client only)      */
-    int server_port;            /* port on which the ssl service runs       */
+    const char *server_port;    /* port on which the ssl service runs       */
     int debug_level;            /* level of debugging                       */
     int nbio;                   /* should I/O be blocking?                  */
     uint32_t read_timeout;      /* timeout on mbedtls_ssl_read() in milliseconds    */
@@ -502,11 +502,7 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "server_addr" ) == 0 )
             opt.server_addr = q;
         else if( strcmp( p, "server_port" ) == 0 )
-        {
-            opt.server_port = atoi( q );
-            if( opt.server_port < 1 || opt.server_port > 65535 )
-                goto usage;
-        }
+            opt.server_port = q;
         else if( strcmp( p, "dtls" ) == 0 )
         {
             int t = atoi( q );
@@ -1026,7 +1022,7 @@ int main( int argc, char *argv[] )
     if( opt.server_addr == NULL)
         opt.server_addr = opt.server_name;
 
-    mbedtls_printf( "  . Connecting to %s/%s/%-4d...",
+    mbedtls_printf( "  . Connecting to %s/%s/%s...",
             opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM ? "tcp" : "udp",
             opt.server_addr, opt.server_port );
     fflush( stdout );

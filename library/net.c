@@ -86,12 +86,6 @@ typedef UINT32 uint32_t;
 #include <stdint.h>
 #endif
 
-#if defined(MBEDTLS_PLATFORM_C)
-#include "mbedtls/platform.h"
-#else
-#define mbedtls_snprintf snprintf
-#endif
-
 /*
  * Prepare for using the sockets interface
  */
@@ -119,18 +113,13 @@ static int net_prepare( void )
 /*
  * Initiate a TCP connection with host:port and the given protocol
  */
-int mbedtls_net_connect( int *fd, const char *host, int port, int proto )
+int mbedtls_net_connect( int *fd, const char *host, const char *port, int proto )
 {
     int ret;
     struct addrinfo hints, *addr_list, *cur;
-    char port_str[6];
 
     if( ( ret = net_prepare() ) != 0 )
         return( ret );
-
-    /* getaddrinfo expects port as a string */
-    memset( port_str, 0, sizeof( port_str ) );
-    mbedtls_snprintf( port_str, sizeof( port_str ), "%d", port );
 
     /* Do name resolution with both IPv6 and IPv4 */
     memset( &hints, 0, sizeof( hints ) );
@@ -138,7 +127,7 @@ int mbedtls_net_connect( int *fd, const char *host, int port, int proto )
     hints.ai_socktype = proto == MBEDTLS_NET_PROTO_UDP ? SOCK_DGRAM : SOCK_STREAM;
     hints.ai_protocol = proto == MBEDTLS_NET_PROTO_UDP ? IPPROTO_UDP : IPPROTO_TCP;
 
-    if( getaddrinfo( host, port_str, &hints, &addr_list ) != 0 )
+    if( getaddrinfo( host, port, &hints, &addr_list ) != 0 )
         return( MBEDTLS_ERR_NET_UNKNOWN_HOST );
 
     /* Try the sockaddrs until a connection succeeds */
@@ -171,18 +160,13 @@ int mbedtls_net_connect( int *fd, const char *host, int port, int proto )
 /*
  * Create a listening socket on bind_ip:port
  */
-int mbedtls_net_bind( int *fd, const char *bind_ip, int port, int proto )
+int mbedtls_net_bind( int *fd, const char *bind_ip, const char *port, int proto )
 {
     int n, ret;
     struct addrinfo hints, *addr_list, *cur;
-    char port_str[6];
 
     if( ( ret = net_prepare() ) != 0 )
         return( ret );
-
-    /* getaddrinfo expects port as a string */
-    memset( port_str, 0, sizeof( port_str ) );
-    mbedtls_snprintf( port_str, sizeof( port_str ), "%d", port );
 
     /* Bind to IPv6 and/or IPv4, but only in TCP */
     memset( &hints, 0, sizeof( hints ) );
@@ -192,7 +176,7 @@ int mbedtls_net_bind( int *fd, const char *bind_ip, int port, int proto )
     if( bind_ip == NULL )
         hints.ai_flags = AI_PASSIVE;
 
-    if( getaddrinfo( bind_ip, port_str, &hints, &addr_list ) != 0 )
+    if( getaddrinfo( bind_ip, port, &hints, &addr_list ) != 0 )
         return( MBEDTLS_ERR_NET_UNKNOWN_HOST );
 
     /* Try the sockaddrs until a binding succeeds */

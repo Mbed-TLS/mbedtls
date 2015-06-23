@@ -6017,7 +6017,6 @@ static int ssl_check_ctr_renegotiate( mbedtls_ssl_context *ssl )
         return( 0 );
     }
 
-    // TODO: adapt for DTLS
     if( memcmp( ssl->in_ctr,  ssl->conf->renego_period, 8 ) <= 0 &&
         memcmp( ssl->out_ctr, ssl->conf->renego_period, 8 ) <= 0 )
     {

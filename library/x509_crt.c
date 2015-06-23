@@ -2014,8 +2014,6 @@ static int x509_crt_verify_child(
     mbedtls_x509_crt *grandparent;
     const mbedtls_md_info_t *md_info;
 
-    (void) profile; /* WIP */
-
     /* path_cnt is 0 for the first intermediate CA */
     if( 1 + path_cnt > MBEDTLS_X509_MAX_INTERMEDIATE_CA )
     {

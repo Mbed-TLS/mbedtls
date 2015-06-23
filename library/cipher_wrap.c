@@ -78,7 +78,12 @@
 /* shared by all GCM ciphers */
 static void *gcm_ctx_alloc( void )
 {
-    return mbedtls_calloc( 1, sizeof( mbedtls_gcm_context ) );
+    void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_gcm_context ) );
+
+    if( ctx != NULL )
+        mbedtls_gcm_init( (mbedtls_gcm_context *) ctx );
+
+    return( ctx );
 }
 
 static void gcm_ctx_free( void *ctx )
@@ -92,7 +97,12 @@ static void gcm_ctx_free( void *ctx )
 /* shared by all CCM ciphers */
 static void *ccm_ctx_alloc( void )
 {
-    return mbedtls_calloc( 1, sizeof( mbedtls_ccm_context ) );
+    void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_ccm_context ) );
+
+    if( ctx != NULL )
+        mbedtls_ccm_init( (mbedtls_ccm_context *) ctx );
+
+    return( ctx );
 }
 
 static void ccm_ctx_free( void *ctx )

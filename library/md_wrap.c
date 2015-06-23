@@ -419,42 +419,10 @@ static void sha256_starts_wrap( void *ctx )
     mbedtls_sha256_starts( (mbedtls_sha256_context *) ctx, 0 );
 }
 
-static void sha256_update_wrap( void *ctx, const unsigned char *input,
-                                size_t ilen )
-{
-    mbedtls_sha256_update( (mbedtls_sha256_context *) ctx, input, ilen );
-}
-
-static void sha256_finish_wrap( void *ctx, unsigned char *output )
-{
-    mbedtls_sha256_finish( (mbedtls_sha256_context *) ctx, output );
-}
-
 static void sha256_wrap( const unsigned char *input, size_t ilen,
                     unsigned char *output )
 {
     mbedtls_sha256( input, ilen, output, 0 );
-}
-
-static void *sha256_ctx_alloc( void )
-{
-    void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_sha256_context ) );
-
-    if( ctx != NULL )
-        mbedtls_sha256_init( (mbedtls_sha256_context *) ctx );
-
-    return( ctx );
-}
-
-static void sha256_ctx_free( void *ctx )
-{
-    mbedtls_sha256_free( (mbedtls_sha256_context *) ctx );
-    mbedtls_free( ctx );
-}
-
-static void sha256_process_wrap( void *ctx, const unsigned char *data )
-{
-    mbedtls_sha256_process( (mbedtls_sha256_context *) ctx, data );
 }
 
 const mbedtls_md_info_t mbedtls_sha256_info = {
@@ -463,12 +431,12 @@ const mbedtls_md_info_t mbedtls_sha256_info = {
     32,
     64,
     sha256_starts_wrap,
-    sha256_update_wrap,
-    sha256_finish_wrap,
+    sha224_update_wrap,
+    sha224_finish_wrap,
     sha256_wrap,
-    sha256_ctx_alloc,
-    sha256_ctx_free,
-    sha256_process_wrap,
+    sha224_ctx_alloc,
+    sha224_ctx_free,
+    sha224_process_wrap,
 };
 
 #endif /* MBEDTLS_SHA256_C */
@@ -537,42 +505,10 @@ static void sha512_starts_wrap( void *ctx )
     mbedtls_sha512_starts( (mbedtls_sha512_context *) ctx, 0 );
 }
 
-static void sha512_update_wrap( void *ctx, const unsigned char *input,
-                                size_t ilen )
-{
-    mbedtls_sha512_update( (mbedtls_sha512_context *) ctx, input, ilen );
-}
-
-static void sha512_finish_wrap( void *ctx, unsigned char *output )
-{
-    mbedtls_sha512_finish( (mbedtls_sha512_context *) ctx, output );
-}
-
 static void sha512_wrap( const unsigned char *input, size_t ilen,
                     unsigned char *output )
 {
     mbedtls_sha512( input, ilen, output, 0 );
-}
-
-static void *sha512_ctx_alloc( void )
-{
-    void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_sha512_context ) );
-
-    if( ctx != NULL )
-        mbedtls_sha512_init( (mbedtls_sha512_context *) ctx );
-
-    return( ctx );
-}
-
-static void sha512_ctx_free( void *ctx )
-{
-    mbedtls_sha512_free( (mbedtls_sha512_context *) ctx );
-    mbedtls_free( ctx );
-}
-
-static void sha512_process_wrap( void *ctx, const unsigned char *data )
-{
-    mbedtls_sha512_process( (mbedtls_sha512_context *) ctx, data );
 }
 
 const mbedtls_md_info_t mbedtls_sha512_info = {
@@ -581,12 +517,12 @@ const mbedtls_md_info_t mbedtls_sha512_info = {
     64,
     128,
     sha512_starts_wrap,
-    sha512_update_wrap,
-    sha512_finish_wrap,
+    sha384_update_wrap,
+    sha384_finish_wrap,
     sha512_wrap,
-    sha512_ctx_alloc,
-    sha512_ctx_free,
-    sha512_process_wrap,
+    sha384_ctx_alloc,
+    sha384_ctx_free,
+    sha384_process_wrap,
 };
 
 #endif /* MBEDTLS_SHA512_C */

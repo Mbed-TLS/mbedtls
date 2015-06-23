@@ -222,8 +222,8 @@ mbedtls_x509_time;
  * \param size     Maximum size of buffer
  * \param dn       The X509 name to represent
  *
- * \return         The amount of data written to the buffer, or -1 in
- *                 case of an error.
+ * \return         The length of the string written (not including the
+ *                 terminated nul byte), or a negative error code.
  */
 int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn );
 
@@ -235,8 +235,8 @@ int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn );
  * \param size     Maximum size of buffer
  * \param serial   The X509 serial to represent
  *
- * \return         The amount of data written to the buffer, or -1 in
- *                 case of an error.
+ * \return         The length of the string written (not including the
+ *                 terminated nul byte), or a negative error code.
  */
 int mbedtls_x509_serial_gets( char *buf, size_t size, const mbedtls_x509_buf *serial );
 

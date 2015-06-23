@@ -228,8 +228,8 @@ int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path );
  * \param prefix   A line prefix
  * \param crt      The X509 certificate to represent
  *
- * \return         The amount of data written to the buffer, or -1 in
- *                 case of an error.
+ * \return         The length of the string written (not including the
+ *                 terminated nul byte), or a negative error code.
  */
 int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
                    const mbedtls_x509_crt *crt );
@@ -243,8 +243,8 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
  * \param prefix   A line prefix
  * \param flags    Verification flags created by mbedtls_x509_crt_verify()
  *
- * \return         The amount of data written to the buffer, or -1 in
- *                 case of an error.
+ * \return         The length of the string written (not including the
+ *                 terminated nul byte), or a negative error code.
  */
 int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
                           uint32_t flags );

@@ -143,8 +143,8 @@ int mbedtls_x509_crl_parse_file( mbedtls_x509_crl *chain, const char *path );
  * \param prefix   A line prefix
  * \param crl      The X509 CRL to represent
  *
- * \return         The amount of data written to the buffer, or -1 in
- *                 case of an error.
+ * \return         The length of the string written (not including the
+ *                 terminated nul byte), or a negative error code.
  */
 int mbedtls_x509_crl_info( char *buf, size_t size, const char *prefix,
                    const mbedtls_x509_crl *crl );

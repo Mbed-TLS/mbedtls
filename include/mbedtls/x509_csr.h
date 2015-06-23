@@ -126,8 +126,8 @@ int mbedtls_x509_csr_parse_file( mbedtls_x509_csr *csr, const char *path );
  * \param prefix   A line prefix
  * \param csr      The X509 CSR to represent
  *
- * \return         The length of the string written (exluding the terminating
- *                 null byte), or a negative value in case of an error.
+ * \return         The length of the string written (not including the
+ *                 terminated nul byte), or a negative error code.
  */
 int mbedtls_x509_csr_info( char *buf, size_t size, const char *prefix,
                    const mbedtls_x509_csr *csr );

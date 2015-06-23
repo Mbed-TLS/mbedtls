@@ -284,13 +284,10 @@ int mbedtls_md_file( const mbedtls_md_info_t *md_info, const char *path, unsigne
     if( md_info == NULL )
         return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
 
-    mbedtls_md_init( &ctx );
-
     if( ( f = fopen( path, "rb" ) ) == NULL )
-    {
-        ret = MBEDTLS_ERR_MD_FILE_IO_ERROR;
-        goto cleanup;
-    }
+        return( MBEDTLS_ERR_MD_FILE_IO_ERROR );
+
+    mbedtls_md_init( &ctx );
 
     if( ( ret = mbedtls_md_setup( &ctx, md_info, 0 ) ) != 0 )
         goto cleanup;

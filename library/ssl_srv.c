@@ -2595,7 +2595,7 @@ curve_matching_done:
         curve = ssl->handshake->curves;
 #endif
 
-        if( *curve == NULL )
+        if( curve == NULL || *curve == NULL )
         {
             SSL_DEBUG_MSG( 1, ( "no matching curve for ECDHE" ) );
             return( POLARSSL_ERR_SSL_NO_CIPHER_CHOSEN );

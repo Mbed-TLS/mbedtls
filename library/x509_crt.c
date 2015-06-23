@@ -1705,10 +1705,9 @@ static int x509_memcasecmp( const void *s1, const void *s2, size_t len )
 }
 
 /*
- * Return 1 if match, 0 if not
- * TODO: inverted return value!
+ * Return 0 if name matches wildcard, -1 otherwise
  */
-static int x509_wildcard_verify( const char *cn, mbedtls_x509_buf *name )
+static int x509_check_wildcard( const char *cn, mbedtls_x509_buf *name )
 {
     size_t i;
     size_t cn_idx = 0, cn_len = strlen( cn );
@@ -1726,15 +1725,15 @@ static int x509_wildcard_verify( const char *cn, mbedtls_x509_buf *name )
     }
 
     if( cn_idx == 0 )
-        return( 0 );
+        return( -1 );
 
     if( cn_len - cn_idx == name->len - 1 &&
         x509_memcasecmp( name->p + 1, cn + cn_idx, name->len - 1 ) == 0 )
     {
-        return( 1 );
+        return( 0 );
     }
 
-    return( 0 );
+    return( -1 );
 }
 
 /*
@@ -2133,8 +2132,10 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
 
                 if( cur->buf.len > 2 &&
                     memcmp( cur->buf.p, "*.", 2 ) == 0 &&
-                            x509_wildcard_verify( cn, &cur->buf ) )
+                    x509_check_wildcard( cn, &cur->buf ) == 0 )
+                {
                     break;
+                }
 
                 cur = cur->next;
             }
@@ -2154,7 +2155,7 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
 
                     if( name->val.len > 2 &&
                         memcmp( name->val.p, "*.", 2 ) == 0 &&
-                                x509_wildcard_verify( cn, &name->val ) )
+                        x509_check_wildcard( cn, &name->val ) == 0 )
                         break;
                 }
 

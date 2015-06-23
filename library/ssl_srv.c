@@ -2959,7 +2959,8 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
     unsigned char ver[2];
     unsigned char fake_pms[48], peer_pms[48];
     unsigned char mask;
-    size_t i, diff, peer_pmslen;
+    size_t i, peer_pmslen;
+    unsigned int diff;
 
     if( ! mbedtls_pk_can_do( mbedtls_ssl_own_key( ssl ), MBEDTLS_PK_RSA ) )
     {
@@ -2992,6 +2993,7 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
     mbedtls_ssl_write_version( ssl->handshake->max_major_ver,
                        ssl->handshake->max_minor_ver,
                        ssl->conf->transport, ver );
+
     /*
      * Protection against Bleichenbacher's attack: invalid PKCS#1 v1.5 padding
      * must not cause the connection to end immediately; instead, send a
@@ -3008,10 +3010,10 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
                       sizeof( peer_pms ),
                       ssl->conf->f_rng, ssl->conf->p_rng );
 
-    diff  = (size_t) ret;
+    diff  = (unsigned int) ret;
     diff |= peer_pmslen ^ 48;
-    diff |= peer_pms[0] ^ ssl->handshake->max_major_ver;
-    diff |= peer_pms[1] ^ ssl->handshake->max_minor_ver;
+    diff |= peer_pms[0] ^ ver[0];
+    diff |= peer_pms[1] ^ ver[1];
 
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
     if( diff != 0 )
@@ -3026,8 +3028,8 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
     }
     ssl->handshake->pmslen = 48;
 
-    mask = ( diff | - diff ) >> ( sizeof( size_t ) * 8 - 1 );
-    mask = (unsigned char)( - ( ret != 0 ) ); /* mask = diff ? 0xff : 0x00 */
+    /* mask = diff ? 0xff : 0x00 */
+    mask = - ( ( diff | - diff ) >> ( sizeof( unsigned int ) * 8 - 1 ) );
     for( i = 0; i < ssl->handshake->pmslen; i++ )
         pms[i] = ( mask & fake_pms[i] ) | ( (~mask) & peer_pms[i] );
 

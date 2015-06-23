@@ -57,7 +57,7 @@
 
 
 #define MBEDTLS_SSL_DEBUG_MSG( level, args )                    \
-    mbedtls_debug_print_msg( ssl, level, __FILE__, __LINE__, mbedtls_debug_fmt args )
+    mbedtls_debug_print_msg_free( ssl, level, __FILE__, __LINE__, mbedtls_debug_fmt args )
 
 #define MBEDTLS_SSL_DEBUG_RET( level, text, ret )                \
     mbedtls_debug_print_ret( ssl, level, __FILE__, __LINE__, text, ret )
@@ -117,6 +117,9 @@ char *mbedtls_debug_fmt( const char *format, ... );
 
 void mbedtls_debug_print_msg( const mbedtls_ssl_context *ssl, int level,
                       const char *file, int line, const char *text );
+
+void mbedtls_debug_print_msg_free( const mbedtls_ssl_context *ssl, int level,
+                      const char *file, int line, char *text );
 
 void mbedtls_debug_print_ret( const mbedtls_ssl_context *ssl, int level,
                       const char *file, int line,

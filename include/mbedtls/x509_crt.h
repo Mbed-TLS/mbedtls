@@ -335,19 +335,25 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
  * \brief          Check usage of certificate against keyUsage extension.
  *
  * \param crt      Leaf certificate used.
- * \param usage    Intended usage(s) (eg MBEDTLS_X509_KU_KEY_ENCIPHERMENT before using the
- *                 certificate to perform an RSA key exchange).
+ * \param usage    Intended usage(s) (eg MBEDTLS_X509_KU_KEY_ENCIPHERMENT
+ *                 before using the certificate to perform an RSA key
+ *                 exchange).
+ *
+ * \note           Except for decipherOnly and encipherOnly, a bit set in the
+ *                 usage argument means this bit MUST be set in the
+ *                 certificate. For decipherOnly and encipherOnly, it means
+ *                 that bit MAY be set.
  *
  * \return         0 is these uses of the certificate are allowed,
  *                 MBEDTLS_ERR_X509_BAD_INPUT_DATA if the keyUsage extension
- *                 is present but does not contain all the bits set in the
- *                 usage argument.
+ *                 is present but does not match the usage argument.
  *
  * \note           You should only call this function on leaf certificates, on
  *                 (intermediate) CAs the keyUsage extension is automatically
  *                 checked by \c mbedtls_x509_crt_verify().
  */
-int mbedtls_x509_crt_check_key_usage( const mbedtls_x509_crt *crt, unsigned int usage );
+int mbedtls_x509_crt_check_key_usage( const mbedtls_x509_crt *crt,
+                                      unsigned int usage );
 #endif /* MBEDTLS_X509_CHECK_KEY_USAGE) */
 
 #if defined(MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE)

@@ -37,6 +37,9 @@ LOCAL_LDFLAGS += -lws2_32
 ifdef SHARED
 SHARED_SUFFIX=.$(DLEXT)
 endif
+else
+EXEXT=
+SHARED_SUFFIX=
 endif
 
 # Zlib shared library extensions:

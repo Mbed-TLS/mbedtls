@@ -4,20 +4,23 @@ PREFIX=mbedtls_
 
 .SILENT:
 
-all:	programs tests
+.PHONY: all no_test programs lib tests install uninstall clean test check covtest lcov apidoc apidoc_clean
 
-no_test:	programs
+all: programs tests
 
-programs:	lib
+no_test: programs
+
+programs:
 	$(MAKE) -C programs
 
 lib:
 	$(MAKE) -C library
 
-tests:	lib
+tests:
 	$(MAKE) -C tests
 
-install:
+ifndef WINDOWS
+install: all
 	mkdir -p $(DESTDIR)/include/mbedtls
 	cp -r include/mbedtls $(DESTDIR)/include
 	
@@ -46,21 +49,24 @@ uninstall:
 	        rm -f $(DESTDIR)/bin/$$o ;      \
 	    fi                                  \
 	done
+endif
 
 clean:
 	$(MAKE) -C library clean
 	$(MAKE) -C programs clean
 	$(MAKE) -C tests clean
+ifndef WINDOWS
 	find . \( -name \*.gcno -o -name \*.gcda -o -name *.info \) -exec rm {} +
+endif
 
-check: tests
+ifndef WINDOWS
+check:
 	$(MAKE) -C tests check
 
-test-ref-configs:
-	tests/scripts/test-ref-configs.pl
+test: check
 
 # note: for coverage testing, build with:
-# CFLAGS='--coverage' make OFLAGS='-g3 -O0'
+# make CFLAGS='--coverage -g3 -O0'
 covtest:
 	make check
 	programs/test/selftest
@@ -82,7 +88,5 @@ apidoc:
 	doxygen doxygen/mbedtls.doxyfile
 
 apidoc_clean:
-	if [ -d apidoc ] ;			\
-	then				    	\
-		rm -rf apidoc ;			\
-	fi
+	rm -rf apidoc
+endif

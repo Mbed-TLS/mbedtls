@@ -1,4 +1,4 @@
 *.o
-libmbedtls.*
+libmbed*
 *.sln
 *.vcxproj

@@ -35,7 +35,7 @@ In order to run the tests, enter::
 
     make check
 
-In order to build for a Windows platform, you should use WINDOWS_BUILD=1 if the target is Windows but the build environment is Unix-like (eg when cross-compiling, or compiling from an MSYS shell), and WINDOWS=1 if the build environment is a Windows shell.
+In order to build for a Windows platform, you should use WINDOWS_BUILD=1 if the target is Windows but the build environment is Unix-like (eg when cross-compiling, or compiling from an MSYS shell), and WINDOWS=1 if the build environment is a Windows shell (in that case some targets will not be available).
 
 Setting the variable SHARED in your environment will build a shared library in addition to the static library. Setting DEBUG gives you a debug build.  You can override CFLAGS and LDFLAGS by setting them in your environment or on the make command line; if you do so, essential parts such as -I will still be preserved.  Warning options may be overridden separately using WARNING_CFLAGS.
 

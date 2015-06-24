@@ -74,37 +74,86 @@ OBJS=$(OBJS_CRYPTO) $(OBJS_X509) $(OBJS_TLS)
 
 .SILENT:
 
+.PHONY: all static shared clean
+
 ifndef SHARED
 all: static
 else
 all: shared static
 endif
 
-static: libmbedtls.a
+static: libmbedcrypto.a libmbedx509.a libmbedtls.a
 
-shared: libmbedtls.$(DLEXT)
+shared: libmbedcrypto.$(DLEXT) libmbedx509.$(DLEXT) libmbedtls.$(DLEXT)
 
-libmbedtls.a: $(OBJS)
+# tls
+libmbedtls.a: $(OBJS_TLS)
 	echo "  AR    $@"
-	$(AR) rc $@ $(OBJS)
+	$(AR) rc $@ $(OBJS_TLS)
 	echo "  RL    $@"
 	$(AR) s $@
 
-libmbedtls.$(SOEXT): $(OBJS)
+libmbedtls.$(SOEXT): $(OBJS_TLS)
 	echo "  LD    $@"
-	$(CC) -shared -Wl,-soname,$@ $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS)
+	$(CC) -shared -Wl,-soname,$@ $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_TLS)
 
 libmbedtls.so: libmbedtls.$(SOEXT)
 	echo "  LN    $@ -> libmbedtls.$(SOEXT)"
 	ln -sf libmbedtls.$(SOEXT) $@
 
-libmbedtls.dylib: $(OBJS)
+libmbedtls.dylib: $(OBJS_TLS)
 	echo "  LD    $@"
-	$(CC) -dynamiclib $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS)
+	$(CC) -dynamiclib $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_TLS)
 
-libmbedtls.dll: $(OBJS)
+libmbedtls.dll: $(OBJS_TLS)
 	echo "  LD    $@"
-	$(CC) -shared -Wl,-soname,$@ -Wl,--out-implib,$@.a -o $@ $(OBJS) -lws2_32 -lwinmm -lgdi32 $(LOCAL_LDFLAGS) $(LDFLAGS)
+	$(CC) -shared -Wl,-soname,$@ -Wl,--out-implib,$@.a -o $@ $(OBJS_TLS) -lws2_32 -lwinmm -lgdi32 $(LOCAL_LDFLAGS) $(LDFLAGS)
+
+# x509
+libmbedx509.a: $(OBJS_X509)
+	echo "  AR    $@"
+	$(AR) rc $@ $(OBJS_X509)
+	echo "  RL    $@"
+	$(AR) s $@
+
+libmbedx509.$(SOEXT): $(OBJS_X509)
+	echo "  LD    $@"
+	$(CC) -shared -Wl,-soname,$@ $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_X509)
+
+libmbedx509.so: libmbedx509.$(SOEXT)
+	echo "  LN    $@ -> libmbedx509.$(SOEXT)"
+	ln -sf libmbedx509.$(SOEXT) $@
+
+libmbedx509.dylib: $(OBJS_X509)
+	echo "  LD    $@"
+	$(CC) -dynamiclib $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_X509)
+
+libmbedx509.dll: $(OBJS_X509)
+	echo "  LD    $@"
+	$(CC) -shared -Wl,-soname,$@ -Wl,--out-implib,$@.a -o $@ $(OBJS_X509) -lws2_32 -lwinmm -lgdi32 $(LOCAL_LDFLAGS) $(LDFLAGS)
+
+# crypto
+libmbedcrypto.a: $(OBJS_CRYPTO)
+	echo "  AR    $@"
+	$(AR) rc $@ $(OBJS_CRYPTO)
+	echo "  RL    $@"
+	$(AR) s $@
+
+libmbedcrypto.$(SOEXT): $(OBJS_CRYPTO)
+	echo "  LD    $@"
+	$(CC) -shared -Wl,-soname,$@ $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_CRYPTO)
+
+libmbedcrypto.so: libmbedcrypto.$(SOEXT)
+	echo "  LN    $@ -> libmbedcrypto.$(SOEXT)"
+	ln -sf libmbedcrypto.$(SOEXT) $@
+
+libmbedcrypto.dylib: $(OBJS_CRYPTO)
+	echo "  LD    $@"
+	$(CC) -dynamiclib $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_CRYPTO)
+
+libmbedcrypto.dll: $(OBJS_CRYPTO)
+	echo "  LD    $@"
+	$(CC) -shared -Wl,-soname,$@ -Wl,--out-implib,$@.a -o $@ $(OBJS_CRYPTO) -lws2_32 -lwinmm -lgdi32 $(LOCAL_LDFLAGS) $(LDFLAGS)
 
 .c.o:
 	echo "  CC    $<"
@@ -112,8 +161,7 @@ libmbedtls.dll: $(OBJS)
 
 clean:
 ifndef WINDOWS
-	rm -f *.o libmbedtls.*
-endif
-ifdef WINDOWS
-	del /Q /F *.o libmbedtls.*
+	rm -f *.o libmbed*
+else
+	del /Q /F *.o libmbed*
 endif

@@ -982,7 +982,7 @@ void mbedtls_ssl_conf_dbg( mbedtls_ssl_config *conf,
  * \param f_recv   read callback
  * \param f_recv_timeout blocking read callback with timeout.
  *                 The last argument is the timeout in milliseconds,
- *                 0 means no timeout
+ *                 0 means no timeout (block forever until a message comes)
  *
  * \note           One of f_recv or f_recv_timeout can be NULL, in which case
  *                 the other is used. If both are non-NULL, f_recv_timeout is

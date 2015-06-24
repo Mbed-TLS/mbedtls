@@ -2293,7 +2293,7 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
 
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "f_recv_timeout: %u ms", timeout ) );
 
-            if( ssl->f_recv_timeout != NULL && timeout != 0 )
+            if( ssl->f_recv_timeout != NULL )
                 ret = ssl->f_recv_timeout( ssl->p_bio, ssl->in_hdr, len,
                                                                     timeout );
             else
@@ -2359,11 +2359,23 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
             if( ssl_check_timer( ssl ) != 0 )
                 ret = MBEDTLS_ERR_SSL_TIMEOUT;
             else
-                ret = ssl->f_recv( ssl->p_bio, ssl->in_hdr + ssl->in_left, len );
+            {
+                if( ssl->f_recv_timeout != NULL )
+                {
+                    ret = ssl->f_recv_timeout( ssl->p_bio,
+                                               ssl->in_hdr + ssl->in_left, len,
+                                               ssl->conf->read_timeout );
+                }
+                else
+                {
+                    ret = ssl->f_recv( ssl->p_bio,
+                                       ssl->in_hdr + ssl->in_left, len );
+                }
+            }
 
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "in_left: %d, nb_want: %d",
-                           ssl->in_left, nb_want ) );
-            MBEDTLS_SSL_DEBUG_RET( 2, "ssl->f_recv", ret );
+                                        ssl->in_left, nb_want ) );
+            MBEDTLS_SSL_DEBUG_RET( 2, "ssl->f_recv(_timeout)", ret );
 
             if( ret == 0 )
                 return( MBEDTLS_ERR_SSL_CONN_EOF );

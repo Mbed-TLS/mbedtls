@@ -178,6 +178,7 @@ int mbedtls_net_send( void *ctx, const unsigned char *buf, size_t len );
  * \param buf      The buffer to write to
  * \param len      Maximum length of the buffer
  * \param timeout  Maximum number of milliseconds to wait for data
+ *                 0 means no timeout (wait forever)
  *
  * \return         the number of bytes received,
  *                 or a non-zero error code:

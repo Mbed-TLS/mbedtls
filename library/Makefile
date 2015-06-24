@@ -42,34 +42,35 @@ ifdef WINDOWS_BUILD
 DLEXT=dll
 endif
 
-OBJS=	aes.o		aesni.o		arc4.o			\
-		asn1parse.o								\
-		asn1write.o base64.o	bignum.o		\
-		blowfish.o	camellia.o	ccm.o			\
-		certs.o		cipher.o	cipher_wrap.o	\
-		ctr_drbg.o	debug.o		des.o			\
-		dhm.o		ecdh.o		ecdsa.o			\
-		ecp.o		ecp_curves.o				\
-		entropy.o	entropy_poll.o				\
-		error.o		gcm.o		havege.o		\
-		hmac_drbg.o								\
-		md.o		md_wrap.o	md2.o			\
-		md4.o		md5.o						\
-		memory_buffer_alloc.o	net.o			\
-		oid.o		padlock.o	pem.o			\
-		pkcs5.o		pkcs11.o	pkcs12.o		\
-		pk.o		pk_wrap.o	pkparse.o		\
-		pkwrite.o	platform.o	ripemd160.o		\
-		rsa.o		sha1.o		sha256.o		\
-		sha512.o	ssl_cache.o	ssl_cli.o		\
-		ssl_cookie.o			ssl_ticket.o	\
-		ssl_srv.o   ssl_ciphersuites.o			\
-		ssl_tls.o	threading.o	timing.o		\
-		version.o	version_features.o			\
-		x509.o		x509_create.o				\
-		x509_crl.o	x509_crt.o	x509_csr.o		\
-		x509write_crt.o			x509write_csr.o	\
-		xtea.o
+OBJS_CRYPTO=	aes.o		aesni.o		arc4.o		\
+		asn1parse.o	asn1write.o	base64.o	\
+		bignum.o	blowfish.o	camellia.o	\
+		ccm.o		cipher.o	cipher_wrap.o	\
+		ctr_drbg.o	des.o		dhm.o		\
+		ecdh.o		ecdsa.o		ecp.o		\
+		ecp_curves.o	entropy.o	entropy_poll.o	\
+		error.o		gcm.o		havege.o	\
+		hmac_drbg.o	md.o		md2.o		\
+		md4.o		md5.o		md_wrap.o	\
+		memory_buffer_alloc.o		oid.o		\
+		padlock.o	pem.o		pk.o		\
+		pk_wrap.o	pkcs12.o	pkcs5.o		\
+		pkparse.o	pkwrite.o	platform.o	\
+		ripemd160.o	rsa.o		sha1.o		\
+		sha256.o	sha512.o	threading.o	\
+		timing.o	version.o			\
+		version_features.o		xtea.o
+
+OBJS_X509=	certs.o		pkcs11.o	x509.o		\
+		x509_create.o	x509_crl.o	x509_crt.o	\
+		x509_csr.o	x509write_crt.o	x509write_csr.o
+
+OBJS_TLS=	debug.o		net.o		ssl_cache.o	\
+		ssl_ciphersuites.o		ssl_cli.o	\
+		ssl_cookie.o	ssl_srv.o	ssl_ticket.o	\
+		ssl_tls.o
+
+OBJS=$(OBJS_CRYPTO) $(OBJS_X509) $(OBJS_TLS)
 
 .SILENT:
 

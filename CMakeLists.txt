@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
-project(MBEDTLS C)
+project("mbed TLS" C)
 
 string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
 
@@ -31,12 +31,9 @@ set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
     FORCE)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
-  if(CMAKE_COMPILER_IS_GNUCC)
+  if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANG)
     set(CMAKE_SHARED_LINKER_FLAGS "--coverage")
-  endif(CMAKE_COMPILER_IS_GNUCC)
-  if(CMAKE_COMPILER_IS_CLANG)
-    set(CMAKE_SHARED_LINKER_FLAGS "--coverage")
-  endif(CMAKE_COMPILER_IS_CLANG)
+  endif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANG)
 endif(CMAKE_BUILD_TYPE STREQUAL "Coverage")
 
 option(USE_PKCS11_HELPER_LIBRARY "Build mbed TLS with the pkcs11-helper library." OFF)
@@ -68,12 +65,9 @@ add_subdirectory(library)
 add_subdirectory(include)
 
 if(ENABLE_TESTING)
-  if(CMAKE_COMPILER_IS_GNUCC)
+  if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANG)
     add_subdirectory(tests)
-  endif(CMAKE_COMPILER_IS_GNUCC)
-  if(CMAKE_COMPILER_IS_CLANG)
-    add_subdirectory(tests)
-  endif(CMAKE_COMPILER_IS_CLANG)
+  endif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANG)
 endif()
 
 if(ENABLE_PROGRAMS)
@@ -85,10 +79,6 @@ ADD_CUSTOM_TARGET(apidoc
                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(ENABLE_TESTING)
-  ADD_CUSTOM_TARGET(test-ref-config
-    COMMAND tests/scripts/test-ref-configs.pl
-    )
-
   ADD_CUSTOM_TARGET(covtest
     COMMAND make test
     COMMAND programs/test/selftest

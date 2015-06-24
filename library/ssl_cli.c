@@ -1147,7 +1147,10 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     size_t n;
     size_t ext_len;
     unsigned char *buf, *ext;
-    unsigned char comp, accept_comp;
+    unsigned char comp;
+#if defined(MBEDTLS_ZLIB_SUPPORT)
+    int accept_comp;
+#endif
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     int renegotiation_info_seen = 0;
 #endif
@@ -1302,19 +1305,19 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     comp = buf[37 + n];
 
 #if defined(MBEDTLS_ZLIB_SUPPORT)
-    accept_comp = 1;
-#else
-    accept_comp = 0;
-#endif
-
     /* See comments in ssl_write_client_hello() */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
         accept_comp = 0;
+    else
 #endif
+        accept_comp = 1;
 
-    if( ( accept_comp == 0 && comp != MBEDTLS_SSL_COMPRESS_NULL ) ||
-        ( comp != MBEDTLS_SSL_COMPRESS_NULL && comp != MBEDTLS_SSL_COMPRESS_DEFLATE ) )
+    if( comp != MBEDTLS_SSL_COMPRESS_NULL &&
+        ( comp != MBEDTLS_SSL_COMPRESS_DEFLATE || accept_comp == 0 ) )
+#else /* MBEDTLS_ZLIB_SUPPORT */
+    if( comp != MBEDTLS_SSL_COMPRESS_NULL )
+#endif/* MBEDTLS_ZLIB_SUPPORT */
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "server hello, bad compression: %d", comp ) );
         return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );

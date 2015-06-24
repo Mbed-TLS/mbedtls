@@ -410,6 +410,8 @@ static int ssl_parse_session_ticket_ext( mbedtls_ssl_context *ssl,
     int ret;
     mbedtls_ssl_session session;
 
+    mbedtls_ssl_session_init( &session );
+
     if( ssl->conf->f_ticket_parse == NULL ||
         ssl->conf->f_ticket_write == NULL )
     {

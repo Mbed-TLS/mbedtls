@@ -1,5 +1,5 @@
 set(libs
-     mbedtls
+    mbedtls
 )
 
 if(USE_PKCS11_HELPER_LIBRARY)
@@ -12,9 +12,9 @@ endif(ENABLE_ZLIB_SUPPORT)
 
 function(add_test_suite suite_name)
     if(ARGV1)
-    set(data_name ${ARGV1})
+        set(data_name ${ARGV1})
     else()
-    set(data_name ${suite_name})
+        set(data_name ${suite_name})
     endif()
 
     add_custom_command(

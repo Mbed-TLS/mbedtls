@@ -215,7 +215,7 @@ scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
 CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS=-Werror make lib
 fi # arm-gcc
 
-if which armcc >/dev/null && armcc --help >/dev/null; then
+if which armcc >/dev/null && armcc --help >/dev/null 2>&1; then
 msg "build: armcc, make"
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"

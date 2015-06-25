@@ -424,7 +424,7 @@ test_suite_version$(EXEXT): test_suite_version.c $(DEP)
 
 clean:
 ifndef WINDOWS
-	rm -f $(APPS)
+	rm -f $(APPS) *.c
 else
 	del /Q /F *.c *.exe
 endif

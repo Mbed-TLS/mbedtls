@@ -267,7 +267,7 @@ clean:
 ifndef WINDOWS
 	rm -f $(APPS)
 else
-	del /Q /F *.c *.exe
+	del /S /Q /F *.o *.exe
 endif
 
 list:

@@ -355,11 +355,6 @@ int mbedtls_timing_get_delay( void *data )
 
 #if defined(MBEDTLS_SELF_TEST)
 
-/* To test mbedtls_net_usleep against our functions */
-#if defined(MBEDTLS_NET_C)
-#include "mbedtls/net.h"
-#endif
-
 /*
  * Busy-waits for the given number of milliseconds.
  * Used for testing mbedtls_timing_hardclock.
@@ -510,31 +505,6 @@ hard_test:
 
     if( verbose != 0 )
         mbedtls_printf( "passed\n" );
-
-#if defined(MBEDTLS_NET_C)
-    if( verbose != 0 )
-        mbedtls_printf( "  TIMING test #4 (net_usleep/ get_timer): " );
-
-    for( secs = 1; secs <= 3; secs++ )
-    {
-        (void) mbedtls_timing_get_timer( &hires, 1 );
-
-        mbedtls_net_usleep( 500000 * secs );
-
-        millisecs = mbedtls_timing_get_timer( &hires, 0 );
-
-        if( millisecs < 450 * secs || millisecs > 550 * secs )
-        {
-            if( verbose != 0 )
-                mbedtls_printf( "failed\n" );
-
-            return( 1 );
-        }
-    }
-
-    if( verbose != 0 )
-        mbedtls_printf( "passed\n" );
-#endif /* MBEDTLS_NET_C */
 
     if( verbose != 0 )
         mbedtls_printf( "\n" );

@@ -50,6 +50,7 @@ set(src_crypto
     sha256.c
     sha512.c
     threading.c
+    timing.c
     version.c
     version_features.c
     xtea.c
@@ -77,7 +78,6 @@ set(src_tls
     ssl_srv.c
     ssl_ticket.c
     ssl_tls.c
-    timing.c
 )
 
 set(src

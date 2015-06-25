@@ -17,6 +17,8 @@ Features
      parameters.
 
 API Changes
+   * The library has been split into libmbedcrypto, libmbedx509, libmbedtls.
+     You now need to link to all of them if you use TLS for example.
    * All public identifiers moved to the mbedtls_* or MBEDTLS_* namespace.
      Some names have been further changed to make them more consistent.
      Migration helpers scripts/rename.pl and include/mbedlts/compat-1.3.h are

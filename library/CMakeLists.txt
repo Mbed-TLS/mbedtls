@@ -80,12 +80,6 @@ set(src_tls
     ssl_tls.c
 )
 
-set(src
-    ${src_crypto}
-    ${src_x509}
-    ${src_tls}
-)
-
 if(CMAKE_COMPILER_IS_GNUCC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmissing-declarations -Wmissing-prototypes")
 endif(CMAKE_COMPILER_IS_GNUCC)

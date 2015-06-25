@@ -72,8 +72,6 @@ OBJS_TLS=	debug.o		net.o		ssl_cache.o	\
 		ssl_cookie.o	ssl_srv.o	ssl_ticket.o	\
 		ssl_tls.o
 
-OBJS=$(OBJS_CRYPTO) $(OBJS_X509) $(OBJS_TLS)
-
 .SILENT:
 
 .PHONY: all static shared clean

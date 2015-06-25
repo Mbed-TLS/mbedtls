@@ -144,11 +144,11 @@ endif()
 
 if(USE_SHARED_MBEDTLS_LIBRARY)
     add_library(mbedcrypto SHARED ${src_crypto})
-    set_target_properties(mbedcrypto PROPERTIES VERSION 1.4.0 SOVERSION 8)
+    set_target_properties(mbedcrypto PROPERTIES VERSION 1.4.0 SOVERSION 0)
     target_link_libraries(mbedcrypto ${libs})
 
     add_library(mbedx509 SHARED ${src_x509})
-    set_target_properties(mbedx509 PROPERTIES VERSION 1.4.0 SOVERSION 8)
+    set_target_properties(mbedx509 PROPERTIES VERSION 1.4.0 SOVERSION 0)
     target_link_libraries(mbedx509 ${libs} mbedcrypto)
 
     add_library(mbedtls SHARED ${src_tls})

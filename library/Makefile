@@ -31,7 +31,9 @@ LOCAL_CFLAGS += -fPIC -fpic
 endif
 endif
 
-SOEXT=so.8
+SOEXT_TLS=so.8
+SOEXT_X509=so.0
+SOEXT_CRYPTO=so.0
 
 DLEXT=so
 # OSX shared library extension:
@@ -93,13 +95,13 @@ libmbedtls.a: $(OBJS_TLS)
 	echo "  RL    $@"
 	$(AR) s $@
 
-libmbedtls.$(SOEXT): $(OBJS_TLS)
+libmbedtls.$(SOEXT_TLS): $(OBJS_TLS)
 	echo "  LD    $@"
 	$(CC) -shared -Wl,-soname,$@ $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_TLS)
 
-libmbedtls.so: libmbedtls.$(SOEXT)
-	echo "  LN    $@ -> libmbedtls.$(SOEXT)"
-	ln -sf libmbedtls.$(SOEXT) $@
+libmbedtls.so: libmbedtls.$(SOEXT_TLS)
+	echo "  LN    $@ -> $<"
+	ln -sf $< $@
 
 libmbedtls.dylib: $(OBJS_TLS)
 	echo "  LD    $@"
@@ -116,13 +118,13 @@ libmbedx509.a: $(OBJS_X509)
 	echo "  RL    $@"
 	$(AR) s $@
 
-libmbedx509.$(SOEXT): $(OBJS_X509)
+libmbedx509.$(SOEXT_X509): $(OBJS_X509)
 	echo "  LD    $@"
 	$(CC) -shared -Wl,-soname,$@ $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_X509)
 
-libmbedx509.so: libmbedx509.$(SOEXT)
-	echo "  LN    $@ -> libmbedx509.$(SOEXT)"
-	ln -sf libmbedx509.$(SOEXT) $@
+libmbedx509.so: libmbedx509.$(SOEXT_X509)
+	echo "  LN    $@ -> $<"
+	ln -sf $< $@
 
 libmbedx509.dylib: $(OBJS_X509)
 	echo "  LD    $@"
@@ -139,13 +141,13 @@ libmbedcrypto.a: $(OBJS_CRYPTO)
 	echo "  RL    $@"
 	$(AR) s $@
 
-libmbedcrypto.$(SOEXT): $(OBJS_CRYPTO)
+libmbedcrypto.$(SOEXT_CRYPTO): $(OBJS_CRYPTO)
 	echo "  LD    $@"
-	$(CC) -shared -Wl,-soname,$@ $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_CRYPTO)
+	$(CC) -shared -Wl,-soname,$@ $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_CRYPTO_CRYPTO)
 
-libmbedcrypto.so: libmbedcrypto.$(SOEXT)
-	echo "  LN    $@ -> libmbedcrypto.$(SOEXT)"
-	ln -sf libmbedcrypto.$(SOEXT) $@
+libmbedcrypto.so: libmbedcrypto.$(SOEXT_CRYPTO)
+	echo "  LN    $@ -> $<"
+	ln -sf $< $@
 
 libmbedcrypto.dylib: $(OBJS_CRYPTO)
 	echo "  LD    $@"

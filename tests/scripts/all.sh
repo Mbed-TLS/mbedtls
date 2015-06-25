@@ -206,7 +206,7 @@ scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
 scripts/config.pl unset MBEDTLS_THREADING_C
 scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
 scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
-CC=arm-none-eabi-gcc CFLAGS=-Werror make lib
+CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS=-Werror make lib
 fi # arm-gcc
 
 if which armcc >/dev/null && armcc --help >/dev/null; then
@@ -237,7 +237,7 @@ fi # armcc
 if which i686-w64-mingw32-gcc >/dev/null; then
 msg "build: cross-mingw64, make" # ~ 30s
 cleanup
-CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar CFLAGS=-Werror WINDOWS_BUILD=1 make
+CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS=-Werror WINDOWS_BUILD=1 make
 WINDOWS_BUILD=1 make clean
 fi
 

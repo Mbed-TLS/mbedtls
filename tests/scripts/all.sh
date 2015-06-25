@@ -186,6 +186,12 @@ scripts/config.pl unset MBEDTLS_NET_C # getaddrinfo() undeclared, etc.
 scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY # uses syscall() on GNU/Linux
 CC=gcc CFLAGS='-Werror -O0 -std=c99 -pedantic' make lib
 
+if uname -a | grep -F Linux >/dev/null; then
+msg "build/test: make shared" # ~ 40s
+cleanup
+make SHARED=1 all check
+fi
+
 if uname -a | grep -F x86_64 >/dev/null; then
 msg "build: i386, make, gcc" # ~ 30s
 cleanup

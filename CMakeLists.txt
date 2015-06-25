@@ -64,12 +64,6 @@ endif(ENABLE_ZLIB_SUPPORT)
 add_subdirectory(library)
 add_subdirectory(include)
 
-if(ENABLE_TESTING)
-    if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANG)
-        add_subdirectory(tests)
-    endif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANG)
-endif()
-
 if(ENABLE_PROGRAMS)
     add_subdirectory(programs)
 endif()
@@ -79,6 +73,8 @@ ADD_CUSTOM_TARGET(apidoc
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(ENABLE_TESTING)
+    add_subdirectory(tests)
+
     ADD_CUSTOM_TARGET(covtest
         COMMAND make test
         COMMAND programs/test/selftest

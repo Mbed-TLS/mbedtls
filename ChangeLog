@@ -105,6 +105,7 @@ Removals
      (use generic functions from md.h)
    * Removed mbedtls_timing_msleep(). Use mbedtls_net_usleep() or a custom
      waiting function.
+   * Removed test DHM parameters from the test certs module.
    * Removed the PBKDF2 module (use PKCS5).
    * Removed POLARSSL_ERROR_STRERROR_BC (use mbedtls_strerror()).
    * Removed compat-1.2.h (helper for migrating from 1.2 to 1.3).

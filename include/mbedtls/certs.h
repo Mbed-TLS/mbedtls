@@ -93,11 +93,6 @@ extern const char   mbedtls_test_cli_key_rsa[];
 extern const size_t mbedtls_test_cli_key_rsa_len;
 #endif
 
-#if defined(MBEDTLS_DHM_C)
-extern const char   mbedtls_test_dhm_params[];
-extern const size_t mbedtls_test_dhm_params_len;
-#endif
-
 #ifdef __cplusplus
 }
 #endif

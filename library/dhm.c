@@ -578,14 +578,20 @@ int mbedtls_dhm_parse_dhmfile( mbedtls_dhm_context *dhm, const char *path )
 
 #if defined(MBEDTLS_SELF_TEST)
 
-#include "mbedtls/certs.h"
+static const char mbedtls_test_dhm_params[] =
+"-----BEGIN DH PARAMETERS-----\r\n"
+"MIGHAoGBAJ419DBEOgmQTzo5qXl5fQcN9TN455wkOL7052HzxxRVMyhYmwQcgJvh\r\n"
+"1sa18fyfR9OiVEMYglOpkqVoGLN7qd5aQNNi5W7/C+VBdHTBJcGZJyyP5B3qcz32\r\n"
+"9mLJKudlVudV0Qxk5qUJaPZ/xupz0NyoVpviuiBOI1gNi8ovSXWzAgEC\r\n"
+"-----END DH PARAMETERS-----\r\n";
+
+static const size_t mbedtls_test_dhm_params_len = sizeof( mbedtls_test_dhm_params );
 
 /*
  * Checkup routine
  */
 int mbedtls_dhm_self_test( int verbose )
 {
-#if defined(MBEDTLS_CERTS_C)
     int ret;
     mbedtls_dhm_context dhm;
 
@@ -594,8 +600,9 @@ int mbedtls_dhm_self_test( int verbose )
     if( verbose != 0 )
         mbedtls_printf( "  DHM parameter load: " );
 
-    if( ( ret = mbedtls_dhm_parse_dhm( &dhm, (const unsigned char *) mbedtls_test_dhm_params,
-                               mbedtls_test_dhm_params_len ) ) != 0 )
+    if( ( ret = mbedtls_dhm_parse_dhm( &dhm,
+                    (const unsigned char *) mbedtls_test_dhm_params,
+                    mbedtls_test_dhm_params_len ) ) != 0 )
     {
         if( verbose != 0 )
             mbedtls_printf( "failed\n" );
@@ -611,12 +618,6 @@ exit:
     mbedtls_dhm_free( &dhm );
 
     return( ret );
-#else
-    if( verbose != 0 )
-        mbedtls_printf( "  DHM parameter load: skipped\n" );
-
-    return( 0 );
-#endif /* MBEDTLS_CERTS_C */
 }
 
 #endif /* MBEDTLS_SELF_TEST */

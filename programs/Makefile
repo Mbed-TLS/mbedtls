@@ -8,9 +8,9 @@ LDFLAGS ?=
 
 LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../include -D_FILE_OFFSET_BITS=64
 LOCAL_LDFLAGS = -L../library 			\
-		-lmbedcrypto$(SHARED_SUFFIX)	\
+		-lmbedtls$(SHARED_SUFFIX)	\
 		-lmbedx509$(SHARED_SUFFIX)	\
-		-lmbedtls$(SHARED_SUFFIX)
+		-lmbedcrypto$(SHARED_SUFFIX)
 
 ifndef SHARED
 DEP=../library/libmbedcrypto.a ../library/libmbedx509.a ../library/libmbedtls.a

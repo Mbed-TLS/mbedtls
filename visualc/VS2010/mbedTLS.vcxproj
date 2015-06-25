@@ -156,7 +156,7 @@
     <ClInclude Include="..\..\include\mbedtls\certs.h" />
     <ClInclude Include="..\..\include\mbedtls\check_config.h" />
     <ClInclude Include="..\..\include\mbedtls\cipher.h" />
-    <ClInclude Include="..\..\include\mbedtls\cipher_wrap.h" />
+    <ClInclude Include="..\..\include\mbedtls\cipher_internal.h" />
     <ClInclude Include="..\..\include\mbedtls\compat-1.3.h" />
     <ClInclude Include="..\..\include\mbedtls\config.h" />
     <ClInclude Include="..\..\include\mbedtls\ctr_drbg.h" />
@@ -176,14 +176,14 @@
     <ClInclude Include="..\..\include\mbedtls\md2.h" />
     <ClInclude Include="..\..\include\mbedtls\md4.h" />
     <ClInclude Include="..\..\include\mbedtls\md5.h" />
-    <ClInclude Include="..\..\include\mbedtls\md_wrap.h" />
+    <ClInclude Include="..\..\include\mbedtls\md_internal.h" />
     <ClInclude Include="..\..\include\mbedtls\memory_buffer_alloc.h" />
     <ClInclude Include="..\..\include\mbedtls\net.h" />
     <ClInclude Include="..\..\include\mbedtls\oid.h" />
     <ClInclude Include="..\..\include\mbedtls\padlock.h" />
     <ClInclude Include="..\..\include\mbedtls\pem.h" />
     <ClInclude Include="..\..\include\mbedtls\pk.h" />
-    <ClInclude Include="..\..\include\mbedtls\pk_wrap.h" />
+    <ClInclude Include="..\..\include\mbedtls\pk_internal.h" />
     <ClInclude Include="..\..\include\mbedtls\pkcs11.h" />
     <ClInclude Include="..\..\include\mbedtls\pkcs12.h" />
     <ClInclude Include="..\..\include\mbedtls\pkcs5.h" />
@@ -197,6 +197,8 @@
     <ClInclude Include="..\..\include\mbedtls\ssl_cache.h" />
     <ClInclude Include="..\..\include\mbedtls\ssl_ciphersuites.h" />
     <ClInclude Include="..\..\include\mbedtls\ssl_cookie.h" />
+    <ClInclude Include="..\..\include\mbedtls\ssl_internal.h" />
+    <ClInclude Include="..\..\include\mbedtls\ssl_ticket.h" />
     <ClInclude Include="..\..\include\mbedtls\threading.h" />
     <ClInclude Include="..\..\include\mbedtls\timing.h" />
     <ClInclude Include="..\..\include\mbedtls\version.h" />
@@ -262,6 +264,7 @@
     <ClCompile Include="..\..\library\ssl_cli.c" />
     <ClCompile Include="..\..\library\ssl_cookie.c" />
     <ClCompile Include="..\..\library\ssl_srv.c" />
+    <ClCompile Include="..\..\library\ssl_ticket.c" />
     <ClCompile Include="..\..\library\ssl_tls.c" />
     <ClCompile Include="..\..\library\threading.c" />
     <ClCompile Include="..\..\library\timing.c" />

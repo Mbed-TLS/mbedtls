@@ -14,10 +14,8 @@ LOCAL_LDFLAGS = -L../library 			\
 
 ifndef SHARED
 DEP=../library/libmbedcrypto.a ../library/libmbedx509.a ../library/libmbedtls.a
-CHECK_PRELOAD=
 else
 DEP=../library/libmbedcrypto.$(DLEXT) ../library/libmbedx509.$(DLEXT) ../library/libmbedtls.$(DLEXT)
-CHECK_PRELOAD= LD_PRELOAD=$(DEP)
 endif
 
 ifdef DEBUG
@@ -438,7 +436,7 @@ check: $(APPS)
 	for i in $(APPS);														\
 	do																		\
 		echo " - $${i}";													\
-		RESULT=`$(CHECK_PRELOAD) ./$${i} | grep -v 'PASS$$' | grep -v -- '----' | grep -v '^$$'`;	\
+		RESULT=`LD_LIBRARY_PATH=../library ./$${i} | grep -v 'PASS$$' | grep -v -- '----' | grep -v '^$$'`;	\
 		PASSED=`echo $$RESULT |grep PASSED`; 								\
 		echo "   $$RESULT";													\
 		if [ "x$$PASSED" = "x" ];											\

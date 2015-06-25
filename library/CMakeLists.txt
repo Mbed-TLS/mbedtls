@@ -134,7 +134,7 @@ if(USE_STATIC_MBEDTLS_LIBRARY)
     install(TARGETS ${mbedtls_static_target} ${mbedx509_static_target} ${mbedcrypt_static_target}
             DESTINATION ${LIB_INSTALL_DIR}
             PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
-endif()
+endif(USE_STATIC_MBEDTLS_LIBRARY)
 
 if(USE_SHARED_MBEDTLS_LIBRARY)
     add_library(mbedcrypto SHARED ${src_crypto})
@@ -153,3 +153,8 @@ if(USE_SHARED_MBEDTLS_LIBRARY)
             DESTINATION ${LIB_INSTALL_DIR}
             PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 endif(USE_SHARED_MBEDTLS_LIBRARY)
+
+add_custom_target(lib DEPENDS mbedcrypto mbedx509 mbedtls)
+if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
+    add_dependencies(lib mbedcrypto_static mbedx509_static mbedtls_static)
+endif()

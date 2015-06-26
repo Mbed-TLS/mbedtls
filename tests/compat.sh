@@ -25,7 +25,7 @@ SRVMEM=0
 : ${GNUTLS_SERV:=gnutls-serv}
 
 # do we have a recent enough GnuTLS?
-if ( which $GNUTLS_CLI && which $GNUTLS_SERV ) >/dev/null; then
+if ( which $GNUTLS_CLI && which $GNUTLS_SERV ) >/dev/null 2>&1; then
     G_VER="$( $GNUTLS_CLI --version | head -n1 )"
     if echo "$G_VER" | grep '@VERSION@' > /dev/null; then # git version
         PEER_GNUTLS=" GnuTLS"

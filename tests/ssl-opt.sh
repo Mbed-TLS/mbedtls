@@ -107,7 +107,7 @@ requires_openssl_with_fallback_scsv() {
 # skip next test if GnuTLS isn't available
 requires_gnutls() {
     if [ -z "${GNUTLS_AVAILABLE:-}" ]; then
-        if ( which "$GNUTLS_CLI" && which "$GNUTLS_SERV" ) >/dev/null; then
+        if ( which "$GNUTLS_CLI" && which "$GNUTLS_SERV" ) >/dev/null 2>&1; then
             GNUTLS_AVAILABLE="YES"
         else
             GNUTLS_AVAILABLE="NO"
@@ -229,7 +229,7 @@ has_mem_err() {
 
 # wait for server to start: two versions depending on lsof availability
 wait_server_start() {
-    if which lsof >/dev/null; then
+    if which lsof >/dev/null 2>&1; then
         # make sure we don't loop forever
         ( sleep "$DOG_DELAY"; echo "SERVERSTART TIMEOUT"; kill $MAIN_PID ) &
         DOG_PID=$!

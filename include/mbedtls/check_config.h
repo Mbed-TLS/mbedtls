@@ -39,9 +39,18 @@
 #error "mbed TLS requires a platform with 8-bit chars"
 #endif
 
-#if defined(_WIN32) && !defined(MBEDTLS_PLATFORM_C)
+#if defined(_WIN32)
+#if !defined(MBEDTLS_PLATFORM_C)
 #error "MBEDTLS_PLATFORM_C is required on Windows"
 #endif
+
+/* Fix the config here. Not convenient to put an #ifdef _WIN32 in config.h as
+ * it would confuse config.pl. */
+#if !defined(MBEDTLS_PLATFORM_SNPRINTF_ALT) && \
+    !defined(MBEDTLS_PLATFORM_SNPRINTF_MACRO)
+#define MBEDTLS_PLATFORM_SNPRINTF_ALT
+#endif
+#endif /* _WIN32 */
 
 #if defined(MBEDTLS_DEPRECATED_WARNING) && \
     !defined(__GNUC__) && !defined(__clang__)
@@ -284,11 +293,6 @@
 
 #if defined(MBEDTLS_PLATFORM_SNPRINTF_ALT) && !defined(MBEDTLS_PLATFORM_C)
 #error "MBEDTLS_PLATFORM_SNPRINTF_ALT defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_PLATFORM_SNPRINTF_ALT) && ( defined(_WIN32)\
-    && !defined(EFIX64) && !defined(EFI32) )
-#error "MBEDTLS_PLATFORM_SNPRINTF_ALT defined but not available on Windows"
 #endif
 
 #if defined(MBEDTLS_PLATFORM_SNPRINTF_MACRO) && !defined(MBEDTLS_PLATFORM_C)

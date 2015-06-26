@@ -142,6 +142,9 @@
  *
  * All these define require MBEDTLS_PLATFORM_C to be defined!
  *
+ * \note MBEDTLS_PLATFORM_SNPRINTF_ALT is required on Windows;
+ * it will be enabled automatically by check_config.h
+ *
  * \warning MBEDTLS_PLATFORM_XXX_ALT cannot be defined at the same time as
  * MBEDTLS_PLATFORM_XXX_MACRO!
  *

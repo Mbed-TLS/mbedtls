@@ -262,8 +262,7 @@ int main( int argc, char *argv[] )
 
 /* Slow tests last */
 
-/* Not stable enough on Windows and FreeBSD yet */
-#if __linux__ && defined(MBEDTLS_TIMING_C)
+#if defined(MBEDTLS_TIMING_C)
     if( ( ret = mbedtls_timing_self_test( v ) ) != 0 )
         return( ret );
 #endif

@@ -12,7 +12,7 @@ if [ "X$VERIFY" = "XYES" ];
 then
     P_SERVER_ARGS="auth_mode=required crt_file=data_files/server1.crt key_file=data_files/server1.key ca_file=data_files/test-ca.crt"
     P_CLIENT_ARGS="crt_file=data_files/server2.crt key_file=data_files/server2.key ca_file=data_files/test-ca.crt"
-    O_SERVER_ARGS="-verify 10 -CAfile data_files/test-ca.crt -cert data_files/server1.crt -key data_files/server1.key"
+    O_SERVER_ARGS="-verify 10 -CAfile data_files/test-ca.crt -cert data_files/server1.crt -key data_files/server1.key -dhparam data_files/dhparams.pem"
     O_CLIENT_ARGS="-cert data_files/server2.crt -key data_files/server2.key -CAfile data_files/test-ca.crt"
 fi
 

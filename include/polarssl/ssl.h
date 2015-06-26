@@ -130,6 +130,7 @@
  */
 #if !defined(POLARSSL_CONFIG_OPTIONS)
 #define SSL_MAX_CONTENT_LEN         16384   /**< Size of the input / output buffer */
+#define SSL_MIN_DHM_BYTES             128   /**< Min size of the Diffie-Hellman prime */
 #endif /* !POLARSSL_CONFIG_OPTIONS */
 
 /*

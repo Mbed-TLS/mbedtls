@@ -1,5 +1,15 @@
 PolarSSL ChangeLog
 
+= Version 1.2.15 released 2015-mm-dd
+
+Security
+   * Increase the minimum size of Diffie-Hellman parameters accepted by the
+     lient to 1024 bits, to protect against Logjam attack.
+
+Changes
+   * Add SSL_MIN_DHM_BYTES configuration parameter in config.h to choose the
+     minimum size of Diffie-Hellman parameters accepted by the client.
+
 = Version 1.2.14 released 2015-06-26
 
 Security

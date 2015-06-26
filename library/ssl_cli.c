@@ -778,7 +778,8 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
     }
 
-    if( ssl->handshake->dhm_ctx.len < 64 || ssl->handshake->dhm_ctx.len > 512 )
+    if( ssl->handshake->dhm_ctx.len < SSL_MIN_DHM_BYTES ||
+        ssl->handshake->dhm_ctx.len > 512 )
     {
         SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );

@@ -71,13 +71,15 @@ static int test_snprintf( size_t n, const char ref_buf[10], int ref_ret )
 {
     int ret;
     char buf[10] = "xxxxxxxxx";
+    const char ref[10] = "xxxxxxxxx";
 
     ret = mbedtls_snprintf( buf, n, "%s", "123" );
     if( ret < 0 || (size_t) ret >= n )
         ret = -1;
 
-    if( memcmp( ref_buf, buf, sizeof buf ) != 0 ||
-        ref_ret != ret )
+    if( strncmp( ref_buf, buf, sizeof( buf ) ) != 0 ||
+        ref_ret != ret ||
+        memcmp( buf + n, ref + n, sizeof( buf ) - n ) != 0 )
     {
         return( 1 );
     }
@@ -88,11 +90,11 @@ static int test_snprintf( size_t n, const char ref_buf[10], int ref_ret )
 static int run_test_snprintf( void )
 {
     return( test_snprintf( 0, "xxxxxxxxx",  -1 ) != 0 ||
-            test_snprintf( 1, "\0xxxxxxxx", -1 ) != 0 ||
-            test_snprintf( 2, "1\0xxxxxxx", -1 ) != 0 ||
-            test_snprintf( 3, "12\0xxxxxx", -1 ) != 0 ||
-            test_snprintf( 4, "123\0xxxxx",  3 ) != 0 ||
-            test_snprintf( 5, "123\0xxxxx",  3 ) != 0 );
+            test_snprintf( 1, "",           -1 ) != 0 ||
+            test_snprintf( 2, "1",          -1 ) != 0 ||
+            test_snprintf( 3, "12",         -1 ) != 0 ||
+            test_snprintf( 4, "123",         3 ) != 0 ||
+            test_snprintf( 5, "123",         3 ) != 0 );
 }
 
 int main( int argc, char *argv[] )

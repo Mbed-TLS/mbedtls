@@ -70,6 +70,10 @@ int mbedtls_platform_win32_snprintf( char *s, size_t n, const char *fmt, ... )
     int ret;
     va_list argp;
 
+    /* Avoid calling the invalid parameter handler by checking ourselves */
+    if( s == NULL || n == 0 || fmt == NULL )
+        return( -1 );
+
     va_start( argp, fmt );
     ret = _vsnprintf_s( s, n, _TRUNCATE, fmt, argp );
     va_end( argp );

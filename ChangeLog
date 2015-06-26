@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Version 1.2.14 released 2015-04-??
+= Version 1.2.14 released 2015-06-26
 
 Security
    * Fix potential invalid memory read in the server, that allows a client to

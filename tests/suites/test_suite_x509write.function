@@ -140,9 +140,10 @@ void mbedtls_x509_string_to_names( char *name, char *parsed_name, int result )
     size_t len = 0;
     mbedtls_asn1_named_data *names = NULL;
     mbedtls_x509_name parsed, *parsed_cur, *parsed_prv;
-    unsigned char buf[2048], *c;
+    unsigned char buf[1024], out[1024], *c;
 
     memset( &parsed, 0, sizeof( parsed ) );
+    memset( out, 0, sizeof( out ) );
     memset( buf, 0, sizeof( buf ) );
     c = buf + sizeof( buf );
 
@@ -159,10 +160,10 @@ void mbedtls_x509_string_to_names( char *name, char *parsed_name, int result )
                         MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) == 0 );
     TEST_ASSERT( mbedtls_x509_get_name( &c, buf + sizeof( buf ), &parsed ) == 0 );
 
-    ret = mbedtls_x509_dn_gets( (char *) buf, sizeof( buf ), &parsed );
+    ret = mbedtls_x509_dn_gets( (char *) out, sizeof( out ), &parsed );
     TEST_ASSERT( ret > 0 );
 
-    TEST_ASSERT( strcmp( (char *) buf, parsed_name ) == 0 );
+    TEST_ASSERT( strcmp( (char *) out, parsed_name ) == 0 );
 
 exit:
     mbedtls_asn1_free_named_data_list( &names );

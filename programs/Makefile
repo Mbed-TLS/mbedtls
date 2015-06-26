@@ -81,7 +81,7 @@ endif
 all: $(APPS)
 
 $(DEP):
-	make -C ../library
+	$(MAKE) -C ../library
 
 aes/aescrypt2$(EXEXT): aes/aescrypt2.c $(DEP)
 	echo   "  CC    aes/aescrypt2.c"

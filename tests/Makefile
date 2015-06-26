@@ -92,7 +92,7 @@ APPS =	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
 all: $(APPS)
 
 $(DEP):
-	make -C ../library
+	$(MAKE) -C ../library
 
 test_suite_aes.ecb.c : suites/test_suite_aes.function suites/test_suite_aes.ecb.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Gen   $@"

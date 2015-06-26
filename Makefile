@@ -68,7 +68,7 @@ test: check
 # note: for coverage testing, build with:
 # make CFLAGS='--coverage -g3 -O0'
 covtest:
-	make check
+	$(MAKE) check
 	programs/test/selftest
 	( cd tests && ./compat.sh )
 	( cd tests && ./ssl-opt.sh )

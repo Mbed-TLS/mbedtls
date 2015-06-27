@@ -1993,10 +1993,12 @@ reset:
     else
         mbedtls_printf( " ok\n" );
 
-    if( mbedtls_ssl_get_peer_cert( &ssl ) )
+    if( mbedtls_ssl_get_peer_cert( &ssl ) != NULL )
     {
+        char crt_buf[512];
+
         mbedtls_printf( "  . Peer certificate information    ...\n" );
-        mbedtls_x509_crt_info( (char *) buf, sizeof( buf ) - 1, "      ",
+        mbedtls_x509_crt_info( crt_buf, sizeof( crt_buf ), "      ",
                        mbedtls_ssl_get_peer_cert( &ssl ) );
         mbedtls_printf( "%s\n", buf );
     }

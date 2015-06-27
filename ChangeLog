@@ -6,6 +6,9 @@ Security
    * Increase the minimum size of Diffie-Hellman parameters accepted by the
      lient to 1024 bits, to protect against Logjam attack.
 
+Bugfix
+   * Fix thread-safety issue in the SSL debug module.
+
 Changes
    * Add SSL_MIN_DHM_BYTES configuration parameter in config.h to choose the
      minimum size of Diffie-Hellman parameters accepted by the client.

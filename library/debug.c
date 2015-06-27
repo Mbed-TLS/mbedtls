@@ -37,18 +37,31 @@
 #define vsnprintf _vsnprintf
 #endif
 
+#define DEBUG_BUF_SIZE  512
+
 char *debug_fmt( const char *format, ... )
 {
     va_list argp;
-    static char str[512];
-    int maxlen = sizeof( str ) - 1;
+    char *str = malloc( DEBUG_BUF_SIZE );
+
+    if( str == NULL )
+        return( NULL );
 
     va_start( argp, format );
-    vsnprintf( str, maxlen, format, argp );
+    vsnprintf( str, DEBUG_BUF_SIZE - 1, format, argp );
     va_end( argp );
 
-    str[maxlen] = '\0';
+    str[DEBUG_BUF_SIZE - 1] = '\0';
     return( str );
+}
+
+void debug_print_msg_free( const ssl_context *ssl, int level,
+                           const char *file, int line, char *text )
+{
+    if( text != NULL )
+        debug_print_msg( ssl, level, file, line, text );
+
+    free( text );
 }
 
 void debug_print_msg( const ssl_context *ssl, int level,

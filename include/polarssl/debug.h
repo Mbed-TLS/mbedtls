@@ -30,7 +30,7 @@
 #if defined(POLARSSL_DEBUG_C)
 
 #define SSL_DEBUG_MSG( level, args )                    \
-    debug_print_msg( ssl, level, __FILE__, __LINE__, debug_fmt args );
+    debug_print_msg_free( ssl, level, __FILE__, __LINE__, debug_fmt args );
 
 #define SSL_DEBUG_RET( level, text, ret )                \
     debug_print_ret( ssl, level, __FILE__, __LINE__, text, ret );
@@ -59,6 +59,9 @@ extern "C" {
 #endif
 
 char *debug_fmt( const char *format, ... );
+
+void debug_print_msg_free( const ssl_context *ssl, int level,
+                           const char *file, int line, char *text );
 
 void debug_print_msg( const ssl_context *ssl, int level,
                       const char *file, int line, const char *text );

@@ -1938,9 +1938,6 @@ static int x509_crt_verify_top(
             continue;
         }
 
-        if( x509_profile_check_key( profile, child->sig_pk, &trust_ca->pk ) != 0 )
-            *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
-
         if( mbedtls_pk_verify_ext( child->sig_pk, child->sig_opts, &trust_ca->pk,
                            child->sig_md, hash, mbedtls_md_get_size( md_info ),
                            child->sig.p, child->sig.len ) != 0 )
@@ -1952,6 +1949,10 @@ static int x509_crt_verify_top(
          * Top of chain is signed by a trusted CA
          */
         *flags &= ~MBEDTLS_X509_BADCERT_NOT_TRUSTED;
+
+        if( x509_profile_check_key( profile, child->sig_pk, &trust_ca->pk ) != 0 )
+            *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
+
         break;
     }
 

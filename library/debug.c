@@ -70,10 +70,14 @@ void debug_set_threshold( int threshold )
 char *debug_fmt( const char *format, ... )
 {
     va_list argp;
+#if defined(POLARSSL_THREADING_C)
     char *str = polarssl_malloc( DEBUG_BUF_SIZE );
 
     if( str == NULL )
         return( NULL );
+#else
+    static char str[DEBUG_BUF_SIZE];
+#endif
 
     va_start( argp, format );
     vsnprintf( str, DEBUG_BUF_SIZE - 1, format, argp );
@@ -89,7 +93,9 @@ void debug_print_msg_free( const ssl_context *ssl, int level,
     if( text != NULL )
         debug_print_msg( ssl, level, file, line, text );
 
+#if defined(POLARSSL_THREADING_C)
     polarssl_free( text );
+#endif
 }
 
 void debug_print_msg( const ssl_context *ssl, int level,

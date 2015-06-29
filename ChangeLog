@@ -2,8 +2,16 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 1.3.12 released 2015-07-??
 
+Security
+   * Increase the minimum size of Diffie-Hellman parameters accepted by the
+     client to 1024 bits, to protect against Logjam attack.
+
 Bugfix
    * Fix thread-safety issue in SSL debug module (found by Edwin van Vliet).
+
+Changes
+   * Add SSL_MIN_DHM_BYTES configuration parameter in config.h to choose the
+     minimum size of Diffie-Hellman parameters accepted by the client.
 
 = mbed TLS 1.3.11 released 2015-06-04
 

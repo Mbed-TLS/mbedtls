@@ -282,6 +282,12 @@
 #define SSL_MAX_CONTENT_LEN         16384   /**< Size of the input / output buffer */
 #endif
 
+/*
+ * Minimum size of the Diffie-Hellman parameters to accept from a server.
+ * The default is 1024 bits (128 bytes) for compatibility reasons.
+ * From a purely security perspective, 2048 bits would be better.
+ */
+#define SSL_MIN_DHM_BYTES             128   /**< Min size of the Diffie-Hellman prime */
 /* \} name SECTION: Module settings */
 
 /*

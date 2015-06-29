@@ -1445,7 +1445,7 @@ static int ssl_parse_server_dh_params( ssl_context *ssl, unsigned char **p,
         return( ret );
     }
 
-    if( ssl->handshake->dhm_ctx.len < 64  ||
+    if( ssl->handshake->dhm_ctx.len < SSL_MIN_DHM_BYTES ||
         ssl->handshake->dhm_ctx.len > 512 )
     {
         SSL_DEBUG_MSG( 1, ( "bad server key exchange message (DHM length)" ) );

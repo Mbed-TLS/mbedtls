@@ -3066,6 +3066,11 @@ int ssl_init( ssl_context *ssl )
     ssl->min_minor_ver = SSL_MINOR_VERSION_0;
 
     ssl->ciphersuites = malloc( sizeof(int *) * 4 );
+    if( ssl->ciphersuites == NULL )
+    {
+        SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed", sizeof(int *) * 4) );
+        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+    }
     ssl_set_ciphersuites( ssl, ssl_default_ciphersuites );
 
 #if defined(POLARSSL_DHM_C)

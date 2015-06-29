@@ -55,7 +55,7 @@
 #define DEBUG_BUF_SIZE  512
 
 static int debug_log_mode = POLARSSL_DEBUG_DFL_MODE;
-static int debug_threshold = 0;
+int debug_threshold = 0;
 
 void debug_set_log_mode( int log_mode )
 {
@@ -73,7 +73,7 @@ char *debug_fmt( const char *format, ... )
     char *str = polarssl_malloc( DEBUG_BUF_SIZE );
 
     if( str == NULL )
-        return;
+        return( NULL );
 
     va_start( argp, format );
     vsnprintf( str, DEBUG_BUF_SIZE - 1, format, argp );

@@ -80,19 +80,6 @@ void mbedtls_debug_print_fmt( const mbedtls_ssl_context *ssl, int level,
     ssl->conf->f_dbg( ssl->conf->p_dbg, level, file, line, str );
 }
 
-static void mbedtls_debug_print_msg( const mbedtls_ssl_context *ssl, int level,
-                      const char *file, int line, const char *text )
-{
-    char str[DEBUG_BUF_SIZE];
-
-    if( ssl->conf == NULL || ssl->conf->f_dbg == NULL || level > debug_threshold )
-        return;
-
-    mbedtls_snprintf( str, sizeof( str ), "%s\n", text );
-
-    ssl->conf->f_dbg( ssl->conf->p_dbg, level, file, line, str );
-}
-
 void mbedtls_debug_print_ret( const mbedtls_ssl_context *ssl, int level,
                       const char *file, int line,
                       const char *text, int ret )
@@ -265,7 +252,8 @@ static void debug_print_pk( const mbedtls_ssl_context *ssl, int level,
 
     if( mbedtls_pk_debug( pk, items ) != 0 )
     {
-        mbedtls_debug_print_msg( ssl, level, file, line, "invalid PK context" );
+        ssl->conf->f_dbg( ssl->conf->p_dbg, level, file, line,
+                          "invalid PK context\n" );
         return;
     }
 
@@ -285,7 +273,8 @@ static void debug_print_pk( const mbedtls_ssl_context *ssl, int level,
             mbedtls_debug_print_ecp( ssl, level, file, line, name, items[i].value );
         else
 #endif
-            mbedtls_debug_print_msg( ssl, level, file, line, "should not happen" );
+            ssl->conf->f_dbg( ssl->conf->p_dbg, level, file, line,
+                              "should not happen\n" );
     }
 }
 

@@ -49,7 +49,7 @@ APPS =	aes/aescrypt2$(EXEXT)		aes/crypt_and_hash$(EXEXT)	\
 	hash/hello$(EXEXT)		hash/generic_sum$(EXEXT)	\
 					pkey/dh_client$(EXEXT)		\
 	pkey/dh_genprime$(EXEXT)	pkey/dh_server$(EXEXT)		\
-	pkey/gen_key$(EXEXT)						\
+	pkey/ecdsa$(EXEXT)		pkey/gen_key$(EXEXT)		\
 	pkey/key_app$(EXEXT)		pkey/key_app_writer$(EXEXT)	\
 	pkey/mpi_demo$(EXEXT)		pkey/pk_decrypt$(EXEXT)		\
 	pkey/pk_encrypt$(EXEXT)		pkey/pk_sign$(EXEXT)		\
@@ -68,10 +68,11 @@ APPS =	aes/aescrypt2$(EXEXT)		aes/crypt_and_hash$(EXEXT)	\
 	test/selftest$(EXEXT)		test/udp_proxy$(EXEXT)		\
 	util/pem2der$(EXEXT)		util/strerror$(EXEXT)		\
 	x509/cert_app$(EXEXT)		x509/crl_app$(EXEXT)		\
-	x509/cert_req$(EXEXT)
+	x509/cert_req$(EXEXT)		x509/cert_write$(EXEXT)		\
+	x509/req_app$(EXEXT)
 
 ifdef PTHREAD
-APPS +=	ssl/ssl_pthread_server
+APPS +=	ssl/ssl_pthread_server$(EXEXT)
 endif
 
 .SILENT:
@@ -255,6 +256,10 @@ x509/cert_app$(EXEXT): x509/cert_app.c $(DEP)
 	echo   "  CC    x509/cert_app.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/cert_app.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
+x509/cert_write$(EXEXT): x509/cert_write.c $(DEP)
+	echo   "  CC    x509/cert_write.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/cert_write.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
 x509/crl_app$(EXEXT): x509/crl_app.c $(DEP)
 	echo   "  CC    x509/crl_app.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/crl_app.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
@@ -262,6 +267,10 @@ x509/crl_app$(EXEXT): x509/crl_app.c $(DEP)
 x509/cert_req$(EXEXT): x509/cert_req.c $(DEP)
 	echo   "  CC    x509/cert_req.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/cert_req.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+x509/req_app$(EXEXT): x509/req_app.c $(DEP)
+	echo   "  CC    x509/req_app.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/req_app.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 clean:
 ifndef WINDOWS

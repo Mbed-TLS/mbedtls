@@ -52,35 +52,35 @@ void mbedtls_debug_set_threshold( int threshold )
     debug_threshold = threshold;
 }
 
-char *mbedtls_debug_fmt( const char *format, ... )
+void mbedtls_debug_print_fmt( const mbedtls_ssl_context *ssl, int level,
+                              const char *file, int line,
+                              const char *format, ... )
 {
     va_list argp;
-    char *str = mbedtls_calloc( DEBUG_BUF_SIZE, 1 );
+    char str[DEBUG_BUF_SIZE];
+    int ret;
 
-    if( str == NULL )
-        return( NULL );
+    if( ssl->conf == NULL || ssl->conf->f_dbg == NULL || level > debug_threshold )
+        return;
 
     va_start( argp, format );
 #if defined(_WIN32)
-    _vsnprintf_s( str, DEBUG_BUF_SIZE, _TRUNCATE, format, argp );
+    ret = _vsnprintf_s( str, DEBUG_BUF_SIZE, _TRUNCATE, format, argp );
 #else
-    vsnprintf( str, DEBUG_BUF_SIZE, format, argp );
+    ret = vsnprintf( str, DEBUG_BUF_SIZE, format, argp );
 #endif
     va_end( argp );
 
-    return( str );
+    if( ret >= 0 && ret < DEBUG_BUF_SIZE - 1 )
+    {
+        str[ret]     = '\n';
+        str[ret + 1] = '\0';
+    }
+
+    ssl->conf->f_dbg( ssl->conf->p_dbg, level, file, line, str );
 }
 
-void mbedtls_debug_print_msg_free( const mbedtls_ssl_context *ssl, int level,
-                      const char *file, int line, char *text )
-{
-    if( text != NULL )
-        mbedtls_debug_print_msg( ssl, level, file, line, text );
-
-    mbedtls_free( text );
-}
-
-void mbedtls_debug_print_msg( const mbedtls_ssl_context *ssl, int level,
+static void mbedtls_debug_print_msg( const mbedtls_ssl_context *ssl, int level,
                       const char *file, int line, const char *text )
 {
     char str[DEBUG_BUF_SIZE];

@@ -59,8 +59,8 @@ void debug_print_msg_threshold( int threshold, int level, char *file, int line,
     mbedtls_debug_set_threshold( threshold );
     mbedtls_ssl_conf_dbg( &conf, string_debug, &buffer);
 
-    mbedtls_debug_print_msg_free( &ssl, level, file, line,
-                     mbedtls_debug_fmt("Text message, 2 == %d", 2 ) );
+    mbedtls_debug_print_fmt( &ssl, level, file, line,
+                             "Text message, 2 == %d", 2 );
 
     TEST_ASSERT( strcmp( buffer.buf, result_str ) == 0 );
 

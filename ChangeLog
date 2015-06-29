@@ -8,6 +8,8 @@ Security
 
 Bugfix
    * Fix thread-safety issue in SSL debug module (found by Edwin van Vliet).
+   * Some example programs were not built using make, not included in Visual
+     Studio projects (found by Kristian Bendiksen).
 
 Changes
    * Add SSL_MIN_DHM_BYTES configuration parameter in config.h to choose the

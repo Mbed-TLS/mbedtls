@@ -1,5 +1,10 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 1.3.12 released 2015-07-??
+
+Bugfix
+   * Fix thread-safety issue in SSL debug module (found by Edwin van Vliet).
+
 = mbed TLS 1.3.11 released 2015-06-04
 
 Security

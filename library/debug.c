@@ -52,7 +52,7 @@ void mbedtls_debug_set_threshold( int threshold )
     debug_threshold = threshold;
 }
 
-void mbedtls_debug_print_fmt( const mbedtls_ssl_context *ssl, int level,
+void mbedtls_debug_print_msg( const mbedtls_ssl_context *ssl, int level,
                               const char *file, int line,
                               const char *format, ... )
 {

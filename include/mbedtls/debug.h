@@ -41,7 +41,7 @@
 #define MBEDTLS_DEBUG_STRIP_PARENS( ... )   __VA_ARGS__
 
 #define MBEDTLS_SSL_DEBUG_MSG( level, args )                    \
-    mbedtls_debug_print_fmt( ssl, level, __FILE__, __LINE__,    \
+    mbedtls_debug_print_msg( ssl, level, __FILE__, __LINE__,    \
                              MBEDTLS_DEBUG_STRIP_PARENS args )
 
 #define MBEDTLS_SSL_DEBUG_RET( level, text, ret )                \
@@ -89,7 +89,7 @@ extern "C" {
  */
 void mbedtls_debug_set_threshold( int threshold );
 
-void mbedtls_debug_print_fmt( const mbedtls_ssl_context *ssl, int level,
+void mbedtls_debug_print_msg( const mbedtls_ssl_context *ssl, int level,
                               const char *file, int line,
                               const char *format, ... );
 

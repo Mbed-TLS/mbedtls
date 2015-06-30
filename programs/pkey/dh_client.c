@@ -281,7 +281,7 @@ int main( void )
 
 exit:
 
-    mbedtls_net_close( &server_fd );
+    mbedtls_net_free( &server_fd );
 
     mbedtls_aes_free( &aes );
     mbedtls_rsa_free( &rsa );

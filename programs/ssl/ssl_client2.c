@@ -1503,7 +1503,7 @@ reconnect:
     {
         --opt.reconnect;
 
-        mbedtls_net_close( &server_fd );
+        mbedtls_net_free( &server_fd );
 
 #if defined(MBEDTLS_TIMING_C)
         if( opt.reco_delay > 0 )
@@ -1572,7 +1572,7 @@ exit:
     }
 #endif
 
-    mbedtls_net_close( &server_fd );
+    mbedtls_net_free( &server_fd );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_x509_crt_free( &clicert );

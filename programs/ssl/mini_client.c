@@ -280,7 +280,7 @@ int main( void )
     mbedtls_ssl_close_notify( &ssl );
 
 exit:
-    mbedtls_net_close( &server_fd );
+    mbedtls_net_free( &server_fd );
 
     mbedtls_ssl_free( &ssl );
     mbedtls_ssl_config_free( &conf );

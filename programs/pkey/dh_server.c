@@ -283,8 +283,8 @@ int main( void )
 
 exit:
 
-    mbedtls_net_close( &client_fd );
-    mbedtls_net_close( &listen_fd );
+    mbedtls_net_free( &client_fd );
+    mbedtls_net_free( &listen_fd );
 
     mbedtls_aes_free( &aes );
     mbedtls_rsa_free( &rsa );

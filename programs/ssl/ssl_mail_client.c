@@ -819,7 +819,7 @@ int main( int argc, char *argv[] )
 
 exit:
 
-    mbedtls_net_close( &server_fd );
+    mbedtls_net_free( &server_fd );
     mbedtls_x509_crt_free( &clicert );
     mbedtls_x509_crt_free( &cacert );
     mbedtls_pk_free( &pkey );

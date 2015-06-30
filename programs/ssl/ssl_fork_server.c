@@ -259,11 +259,11 @@ int main( void )
                 goto exit;
             }
 
-            mbedtls_net_close( &client_fd );
+            mbedtls_net_free( &client_fd );
             continue;
         }
 
-        mbedtls_net_close( &listen_fd );
+        mbedtls_net_free( &listen_fd );
 
         /*
          * 4. Setup stuff
@@ -385,8 +385,8 @@ int main( void )
     }
 
 exit:
-    mbedtls_net_close( &client_fd );
-    mbedtls_net_close( &listen_fd );
+    mbedtls_net_free( &client_fd );
+    mbedtls_net_free( &listen_fd );
 
     mbedtls_x509_crt_free( &srvcert );
     mbedtls_pk_free( &pkey );

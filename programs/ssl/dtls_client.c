@@ -326,7 +326,7 @@ exit:
     }
 #endif
 
-    mbedtls_net_close( &server_fd );
+    mbedtls_net_free( &server_fd );
 
     mbedtls_x509_crt_free( &cacert );
     mbedtls_ssl_free( &ssl );

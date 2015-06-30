@@ -1701,7 +1701,7 @@ mpi_write_file mbedtls_mpi_write_file
 mpi_write_string mbedtls_mpi_write_string
 net_accept mbedtls_net_accept
 net_bind mbedtls_net_bind
-net_close mbedtls_net_close
+net_close mbedtls_net_free
 net_connect mbedtls_net_connect
 net_recv mbedtls_net_recv
 net_recv_timeout mbedtls_net_recv_timeout

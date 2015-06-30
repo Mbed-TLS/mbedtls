@@ -755,8 +755,8 @@ void term_handler( int sig )
 {
     ((void) sig);
     received_sigterm = 1;
-    mbedtls_net_close( &listen_fd ); /* causes mbedtls_net_accept() to abort */
-    mbedtls_net_close( &client_fd ); /* causes net_read() to abort */
+    mbedtls_net_free( &listen_fd ); /* causes mbedtls_net_accept() to abort */
+    mbedtls_net_free( &client_fd ); /* causes net_read() to abort */
 }
 #endif
 
@@ -1843,7 +1843,7 @@ reset:
     }
 #endif
 
-    mbedtls_net_close( &client_fd );
+    mbedtls_net_free( &client_fd );
 
     mbedtls_ssl_session_reset( &ssl );
 
@@ -2252,8 +2252,8 @@ exit:
     mbedtls_printf( "  . Cleaning up..." );
     fflush( stdout );
 
-    mbedtls_net_close( &client_fd );
-    mbedtls_net_close( &listen_fd );
+    mbedtls_net_free( &client_fd );
+    mbedtls_net_free( &listen_fd );
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)
     mbedtls_dhm_free( &dhm );

@@ -216,11 +216,11 @@ int mbedtls_net_recv_timeout( void *ctx, unsigned char *buf, size_t len,
                       uint32_t timeout );
 
 /**
- * \brief          Gracefully shutdown the connection
+ * \brief          Gracefully shutdown the connection and free associated data
  *
- * \param ctx      The socket to close
+ * \param ctx      The context to free
  */
-void mbedtls_net_close( mbedtls_net_context *ctx );
+void mbedtls_net_free( mbedtls_net_context *ctx );
 
 #ifdef __cplusplus
 }

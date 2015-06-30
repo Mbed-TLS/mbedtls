@@ -265,7 +265,7 @@ thread_exit:
     }
 #endif
 
-    mbedtls_net_close( client_fd );
+    mbedtls_net_free( client_fd );
     mbedtls_ssl_free( &ssl );
 
     thread_info->thread_complete = 1;
@@ -491,7 +491,7 @@ reset:
     if( ( ret = thread_create( &client_fd ) ) != 0 )
     {
         mbedtls_printf( "  [ main ]  failed: thread_create returned %d\n", ret );
-        mbedtls_net_close( &client_fd );
+        mbedtls_net_free( &client_fd );
         goto reset;
     }
 

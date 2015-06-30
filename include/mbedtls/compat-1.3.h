@@ -2157,7 +2157,7 @@
 #define mpi_write_string mbedtls_mpi_write_string
 #define net_accept mbedtls_net_accept
 #define net_bind mbedtls_net_bind
-#define net_close mbedtls_net_close
+#define net_close mbedtls_net_free
 #define net_connect mbedtls_net_connect
 #define net_recv mbedtls_net_recv
 #define net_recv_timeout mbedtls_net_recv_timeout

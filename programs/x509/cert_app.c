@@ -475,7 +475,7 @@ ssl_exit:
 
 exit:
 
-    mbedtls_net_close( &server_fd );
+    mbedtls_net_free( &server_fd );
     mbedtls_x509_crt_free( &cacert );
     mbedtls_x509_crt_free( &clicert );
 #if defined(MBEDTLS_X509_CRL_PARSE_C)

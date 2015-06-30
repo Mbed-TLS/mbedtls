@@ -309,6 +309,15 @@ int mbedtls_net_accept( int bind_fd, int *client_fd,
 
         ret = recvfrom( bind_fd, buf, sizeof( buf ), MSG_PEEK,
                         (struct sockaddr *) &client_addr, &n );
+
+#if defined(_WIN32)
+        if( ret == SOCKET_ERROR &&
+            WSAGetLastError() == WSAEMSGSIZE )
+        {
+            /* We know buf is too small, thanks, just peeking here */
+            ret = 0;
+        }
+#endif
     }
 
     if( ret < 0 )

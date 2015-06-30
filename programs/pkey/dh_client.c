@@ -71,7 +71,7 @@ int main( void )
 
     int ret;
     size_t n, buflen;
-    int server_fd = -1;
+    mbedtls_net_context server_fd;
 
     unsigned char *p, *end;
     unsigned char buf[2048];
@@ -84,7 +84,8 @@ int main( void )
     mbedtls_dhm_context dhm;
     mbedtls_aes_context aes;
 
-    memset( &rsa, 0, sizeof( rsa ) );
+    mbedtls_net_init( &server_fd );
+    mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, MBEDTLS_MD_SHA256 );
     mbedtls_dhm_init( &dhm );
     mbedtls_aes_init( &aes );
     mbedtls_ctr_drbg_init( &ctr_drbg );
@@ -280,8 +281,7 @@ int main( void )
 
 exit:
 
-    if( server_fd != -1 )
-        mbedtls_net_close( server_fd );
+    mbedtls_net_close( &server_fd );
 
     mbedtls_aes_free( &aes );
     mbedtls_rsa_free( &rsa );

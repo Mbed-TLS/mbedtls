@@ -746,7 +746,7 @@ int psk_callback( void *p_info, mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
-static int listen_fd, client_fd = -1;
+static mbedtls_net_context listen_fd, client_fd;
 
 /* Interruption handler to ensure clean exit (for valgrind testing) */
 #if !defined(_WIN32)
@@ -755,8 +755,8 @@ void term_handler( int sig )
 {
     ((void) sig);
     received_sigterm = 1;
-    mbedtls_net_close( listen_fd ); /* causes mbedtls_net_accept() to abort */
-    mbedtls_net_close( client_fd ); /* causes net_read() to abort */
+    mbedtls_net_close( &listen_fd ); /* causes mbedtls_net_accept() to abort */
+    mbedtls_net_close( &client_fd ); /* causes net_read() to abort */
 }
 #endif
 
@@ -826,7 +826,8 @@ int main( int argc, char *argv[] )
     /*
      * Make sure memory references are valid in case we exit early.
      */
-    listen_fd = 0;
+    mbedtls_net_init( &client_fd );
+    mbedtls_net_init( &listen_fd );
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_config_init( &conf );
     mbedtls_ctr_drbg_init( &ctr_drbg );
@@ -1842,20 +1843,17 @@ reset:
     }
 #endif
 
-    if( client_fd != -1 )
-        mbedtls_net_close( client_fd );
+    mbedtls_net_close( &client_fd );
 
     mbedtls_ssl_session_reset( &ssl );
 
     /*
      * 3. Wait until a client connects
      */
-    client_fd = -1;
-
     mbedtls_printf( "  . Waiting for a remote connection ..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_net_accept( listen_fd, &client_fd,
+    if( ( ret = mbedtls_net_accept( &listen_fd, &client_fd,
                     client_ip, sizeof( client_ip ), &cliip_len ) ) != 0 )
     {
 #if !defined(_WIN32)
@@ -1872,9 +1870,9 @@ reset:
     }
 
     if( opt.nbio > 0 )
-        ret = mbedtls_net_set_nonblock( client_fd );
+        ret = mbedtls_net_set_nonblock( &client_fd );
     else
-        ret = mbedtls_net_set_block( client_fd );
+        ret = mbedtls_net_set_block( &client_fd );
     if( ret != 0 )
     {
         mbedtls_printf( " failed\n  ! net_set_(non)block() returned -0x%x\n\n", -ret );
@@ -2254,8 +2252,8 @@ exit:
     mbedtls_printf( "  . Cleaning up..." );
     fflush( stdout );
 
-    if( client_fd != -1 )
-        mbedtls_net_close( client_fd );
+    mbedtls_net_close( &client_fd );
+    mbedtls_net_close( &listen_fd );
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)
     mbedtls_dhm_free( &dhm );

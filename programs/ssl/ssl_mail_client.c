@@ -66,8 +66,6 @@ int main( void )
 #include <unistd.h>
 #else
 #include <io.h>
-#define read _read
-#define write _write
 #endif
 
 #if defined(_WIN32) || defined(_WIN32_WCE)
@@ -294,7 +292,7 @@ static int write_ssl_and_get_response( mbedtls_ssl_context *ssl, unsigned char *
     while( 1 );
 }
 
-static int write_and_get_response( int sock_fd, unsigned char *buf, size_t len )
+static int write_and_get_response( mbedtls_net_context *sock_fd, unsigned char *buf, size_t len )
 {
     int ret;
     unsigned char data[128];
@@ -302,7 +300,7 @@ static int write_and_get_response( int sock_fd, unsigned char *buf, size_t len )
     size_t i, idx = 0;
 
     mbedtls_printf("\n%s", buf);
-    if( len && ( ret = write( sock_fd, buf, len ) ) <= 0 )
+    if( len && ( ret = mbedtls_net_send( sock_fd, buf, len ) ) <= 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_write returned %d\n\n", ret );
             return -1;
@@ -312,7 +310,7 @@ static int write_and_get_response( int sock_fd, unsigned char *buf, size_t len )
     {
         len = sizeof( data ) - 1;
         memset( data, 0, sizeof( data ) );
-        ret = read( sock_fd, data, len );
+        ret = mbedtls_net_recv( sock_fd, data, len );
 
         if( ret <= 0 )
         {
@@ -346,7 +344,8 @@ static int write_and_get_response( int sock_fd, unsigned char *buf, size_t len )
 
 int main( int argc, char *argv[] )
 {
-    int ret = 0, len, server_fd;
+    int ret = 0, len;
+    mbedtls_net_context server_fd;
     unsigned char buf[1024];
 #if defined(MBEDTLS_BASE64_C)
     unsigned char base[1024];
@@ -369,7 +368,7 @@ int main( int argc, char *argv[] )
     /*
      * Make sure memory references are valid in case we exit early.
      */
-    server_fd = 0;
+    mbedtls_net_init( &server_fd );
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_config_init( &conf );
     memset( &buf, 0, sizeof( buf ) );
@@ -658,7 +657,7 @@ int main( int argc, char *argv[] )
         mbedtls_printf( "  > Get header from server:" );
         fflush( stdout );
 
-        ret = write_and_get_response( server_fd, buf, 0 );
+        ret = write_and_get_response( &server_fd, buf, 0 );
         if( ret < 200 || ret > 299 )
         {
             mbedtls_printf( " failed\n  ! server responded with %d\n\n", ret );
@@ -672,7 +671,7 @@ int main( int argc, char *argv[] )
 
         gethostname( hostname, 32 );
         len = sprintf( (char *) buf, "EHLO %s\r\n", hostname );
-        ret = write_and_get_response( server_fd, buf, len );
+        ret = write_and_get_response( &server_fd, buf, len );
         if( ret < 200 || ret > 299 )
         {
             mbedtls_printf( " failed\n  ! server responded with %d\n\n", ret );
@@ -686,7 +685,7 @@ int main( int argc, char *argv[] )
 
         gethostname( hostname, 32 );
         len = sprintf( (char *) buf, "STARTTLS\r\n" );
-        ret = write_and_get_response( server_fd, buf, len );
+        ret = write_and_get_response( &server_fd, buf, len );
         if( ret < 200 || ret > 299 )
         {
             mbedtls_printf( " failed\n  ! server responded with %d\n\n", ret );
@@ -820,8 +819,7 @@ int main( int argc, char *argv[] )
 
 exit:
 
-    if( server_fd )
-        mbedtls_net_close( server_fd );
+    mbedtls_net_close( &server_fd );
     mbedtls_x509_crt_free( &clicert );
     mbedtls_x509_crt_free( &cacert );
     mbedtls_pk_free( &pkey );

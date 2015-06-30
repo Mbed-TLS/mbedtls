@@ -71,8 +71,7 @@ int main( void )
 
     int ret;
     size_t n, buflen;
-    int listen_fd = -1;
-    int client_fd = -1;
+    mbedtls_net_context listen_fd, client_fd;
 
     unsigned char buf[2048];
     unsigned char hash[20];
@@ -85,7 +84,9 @@ int main( void )
     mbedtls_dhm_context dhm;
     mbedtls_aes_context aes;
 
-    memset( &rsa, 0, sizeof( rsa ) );
+    mbedtls_net_init( &listen_fd );
+    mbedtls_net_init( &client_fd );
+    mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, MBEDTLS_MD_SHA256 );
     mbedtls_dhm_init( &dhm );
     mbedtls_aes_init( &aes );
     mbedtls_ctr_drbg_init( &ctr_drbg );
@@ -173,7 +174,7 @@ int main( void )
         goto exit;
     }
 
-    if( ( ret = mbedtls_net_accept( listen_fd, &client_fd,
+    if( ( ret = mbedtls_net_accept( &listen_fd, &client_fd,
                                     NULL, 0, NULL ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_net_accept returned %d\n\n", ret );
@@ -282,8 +283,8 @@ int main( void )
 
 exit:
 
-    if( client_fd != -1 )
-        mbedtls_net_close( client_fd );
+    mbedtls_net_close( &client_fd );
+    mbedtls_net_close( &listen_fd );
 
     mbedtls_aes_free( &aes );
     mbedtls_rsa_free( &rsa );

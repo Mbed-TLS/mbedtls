@@ -83,7 +83,8 @@ static void my_debug( void *ctx, int level,
 
 int main( int argc, char *argv[] )
 {
-    int ret, len, server_fd = -1;
+    int ret, len;
+    mbedtls_net_context server_fd;
     uint32_t flags;
     unsigned char buf[1024];
     const char *pers = "dtls_client";
@@ -106,6 +107,7 @@ int main( int argc, char *argv[] )
     /*
      * 0. Initialize the RNG and the session data
      */
+    mbedtls_net_init( &server_fd );
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_config_init( &conf );
     mbedtls_x509_crt_init( &cacert );
@@ -324,8 +326,7 @@ exit:
     }
 #endif
 
-    if( server_fd != -1 )
-        mbedtls_net_close( server_fd );
+    mbedtls_net_close( &server_fd );
 
     mbedtls_x509_crt_free( &cacert );
     mbedtls_ssl_free( &ssl );

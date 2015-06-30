@@ -32,6 +32,10 @@
  * NET module, in order to avoid the overhead of getaddrinfo() which tends to
  * dominate memory usage in small configurations. For the sake of simplicity,
  * only a Unix version is implemented.
+ *
+ * Warning: we are breaking some of the abtractions from the NET layer here.
+ * This is not a good example for general use. This programs has the specific
+ * goal of minimizing use of the libc functions on full-blown OSes.
  */
 #if defined(unix) || defined(__unix__) || defined(__unix)
 #define UNIX
@@ -160,7 +164,7 @@ enum exit_codes
 int main( void )
 {
     int ret = exit_ok;
-    int server_fd = -1;
+    mbedtls_net_context server_fd;
     struct sockaddr_in addr;
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_x509_crt ca;
@@ -175,6 +179,7 @@ int main( void )
     /*
      * 0. Initialize and setup stuff
      */
+    mbedtls_net_init( &server_fd );
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_config_init( &conf );
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -241,13 +246,13 @@ int main( void )
     addr.sin_addr.s_addr = *((char *) &ret) == ret ? ADDR_LE : ADDR_BE;
     ret = 0;
 
-    if( ( server_fd = socket( AF_INET, SOCK_STREAM, 0 ) ) < 0 )
+    if( ( server_fd.fd = socket( AF_INET, SOCK_STREAM, 0 ) ) < 0 )
     {
         ret = socket_failed;
         goto exit;
     }
 
-    if( connect( server_fd,
+    if( connect( server_fd.fd,
                 (const struct sockaddr *) &addr, sizeof( addr ) ) < 0 )
     {
         ret = connect_failed;
@@ -275,8 +280,7 @@ int main( void )
     mbedtls_ssl_close_notify( &ssl );
 
 exit:
-    if( server_fd != -1 )
-        mbedtls_net_close( server_fd );
+    mbedtls_net_close( &server_fd );
 
     mbedtls_ssl_free( &ssl );
     mbedtls_ssl_config_free( &conf );

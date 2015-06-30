@@ -386,7 +386,8 @@ static int my_verify( void *data, mbedtls_x509_crt *crt, int depth, uint32_t *fl
 
 int main( int argc, char *argv[] )
 {
-    int ret = 0, len, tail_len, server_fd, i, written, frags, retry_left;
+    int ret = 0, len, tail_len, i, written, frags, retry_left;
+    mbedtls_net_context server_fd;
     unsigned char buf[MBEDTLS_SSL_MAX_CONTENT_LEN + 1];
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     unsigned char psk[MBEDTLS_PSK_MAX_LEN];
@@ -417,7 +418,7 @@ int main( int argc, char *argv[] )
     /*
      * Make sure memory references are valid.
      */
-    server_fd = 0;
+    mbedtls_net_init( &server_fd );
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_config_init( &conf );
     memset( &saved_session, 0, sizeof( mbedtls_ssl_session ) );
@@ -1038,9 +1039,9 @@ int main( int argc, char *argv[] )
     }
 
     if( opt.nbio > 0 )
-        ret = mbedtls_net_set_nonblock( server_fd );
+        ret = mbedtls_net_set_nonblock( &server_fd );
     else
-        ret = mbedtls_net_set_block( server_fd );
+        ret = mbedtls_net_set_block( &server_fd );
     if( ret != 0 )
     {
         mbedtls_printf( " failed\n  ! net_set_(non)block() returned -0x%x\n\n", -ret );
@@ -1502,7 +1503,7 @@ reconnect:
     {
         --opt.reconnect;
 
-        mbedtls_net_close( server_fd );
+        mbedtls_net_close( &server_fd );
 
 #if defined(MBEDTLS_TIMING_C)
         if( opt.reco_delay > 0 )
@@ -1533,9 +1534,9 @@ reconnect:
         }
 
         if( opt.nbio > 0 )
-            ret = mbedtls_net_set_nonblock( server_fd );
+            ret = mbedtls_net_set_nonblock( &server_fd );
         else
-            ret = mbedtls_net_set_block( server_fd );
+            ret = mbedtls_net_set_block( &server_fd );
         if( ret != 0 )
         {
             mbedtls_printf( " failed\n  ! net_set_(non)block() returned -0x%x\n\n",
@@ -1571,8 +1572,7 @@ exit:
     }
 #endif
 
-    if( server_fd )
-        mbedtls_net_close( server_fd );
+    mbedtls_net_close( &server_fd );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_x509_crt_free( &clicert );

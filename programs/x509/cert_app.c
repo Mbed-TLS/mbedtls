@@ -142,7 +142,8 @@ static int my_verify( void *data, mbedtls_x509_crt *crt, int depth, uint32_t *fl
 
 int main( int argc, char *argv[] )
 {
-    int ret = 0, server_fd;
+    int ret = 0;
+    mbedtls_net_context server_fd;
     unsigned char buf[1024];
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
@@ -161,7 +162,7 @@ int main( int argc, char *argv[] )
     /*
      * Set to sane values
      */
-    server_fd = 0;
+    mbedtls_net_init( &server_fd );
     mbedtls_ctr_drbg_init( &ctr_drbg );
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_config_init( &conf );
@@ -474,8 +475,7 @@ ssl_exit:
 
 exit:
 
-    if( server_fd )
-        mbedtls_net_close( server_fd );
+    mbedtls_net_close( &server_fd );
     mbedtls_x509_crt_free( &cacert );
     mbedtls_x509_crt_free( &clicert );
 #if defined(MBEDTLS_X509_CRL_PARSE_C)

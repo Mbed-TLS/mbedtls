@@ -96,8 +96,7 @@ static void my_debug( void *ctx, int level,
 int main( void )
 {
     int ret, len, cnt = 0, pid;
-    int listen_fd;
-    int client_fd = -1;
+    mbedtls_net_context listen_fd, client_fd;
     unsigned char buf[1024];
     const char *pers = "ssl_fork_server";
 
@@ -108,6 +107,8 @@ int main( void )
     mbedtls_x509_crt srvcert;
     mbedtls_pk_context pkey;
 
+    mbedtls_net_init( &listen_fd );
+    mbedtls_net_init( &client_fd );
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_config_init( &conf );
     mbedtls_entropy_init( &entropy );
@@ -216,13 +217,13 @@ int main( void )
         /*
          * 3. Wait until a client connects
          */
-        client_fd = -1;
-        memset( &ssl, 0, sizeof( ssl ) );
+        mbedtls_net_init( &client_fd );
+        mbedtls_ssl_init( &ssl );
 
         mbedtls_printf( "  . Waiting for a remote connection ..." );
         fflush( stdout );
 
-        if( ( ret = mbedtls_net_accept( listen_fd, &client_fd,
+        if( ( ret = mbedtls_net_accept( &listen_fd, &client_fd,
                                         NULL, 0, NULL ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_net_accept returned %d\n\n", ret );
@@ -258,11 +259,11 @@ int main( void )
                 goto exit;
             }
 
-            close( client_fd );
+            mbedtls_net_close( &client_fd );
             continue;
         }
 
-        close( listen_fd );
+        mbedtls_net_close( &listen_fd );
 
         /*
          * 4. Setup stuff
@@ -384,9 +385,8 @@ int main( void )
     }
 
 exit:
-
-    if( client_fd != -1 )
-        mbedtls_net_close( client_fd );
+    mbedtls_net_close( &client_fd );
+    mbedtls_net_close( &listen_fd );
 
     mbedtls_x509_crt_free( &srvcert );
     mbedtls_pk_free( &pkey );

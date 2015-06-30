@@ -106,7 +106,7 @@ static void my_mutexed_debug( void *ctx, int level,
 }
 
 typedef struct {
-    int client_fd;
+    mbedtls_net_context client_fd;
     int thread_complete;
     const mbedtls_ssl_config *config;
 } thread_info_t;
@@ -124,7 +124,7 @@ static void *handle_ssl_connection( void *data )
 {
     int ret, len;
     thread_info_t *thread_info = (thread_info_t *) data;
-    int client_fd = thread_info->client_fd;
+    mbedtls_net_context *client_fd = &thread_info->client_fd;
     long int thread_id = (long int) pthread_self();
     unsigned char buf[1024];
     mbedtls_ssl_context ssl;
@@ -132,7 +132,7 @@ static void *handle_ssl_connection( void *data )
     /* Make sure memory references are valid */
     mbedtls_ssl_init( &ssl );
 
-    mbedtls_printf( "  [ #%ld ]  Client FD %d\n", thread_id, client_fd );
+    mbedtls_printf( "  [ #%ld ]  Setting up SSL/TLS data\n", thread_id );
 
     /*
      * 4. Get the SSL context ready
@@ -144,7 +144,7 @@ static void *handle_ssl_connection( void *data )
         goto thread_exit;
     }
 
-    mbedtls_ssl_set_bio( &ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv, NULL );
+    mbedtls_ssl_set_bio( &ssl, client_fd, mbedtls_net_send, mbedtls_net_recv, NULL );
 
     /*
      * 5. Handshake
@@ -273,7 +273,7 @@ thread_exit:
     return( NULL );
 }
 
-static int thread_create( int client_fd )
+static int thread_create( mbedtls_net_context *client_fd )
 {
     int ret, i;
 
@@ -302,9 +302,10 @@ static int thread_create( int client_fd )
      */
     memcpy( &threads[i].data, &base_info, sizeof(base_info) );
     threads[i].active = 1;
-    threads[i].data.client_fd = client_fd;
+    memcpy( &threads[i].data.client_fd, client_fd, sizeof( mbedtls_net_context ) );
 
-    if( ( ret = pthread_create( &threads[i].thread, NULL, handle_ssl_connection,                                &threads[i].data ) ) != 0 )
+    if( ( ret = pthread_create( &threads[i].thread, NULL, handle_ssl_connection,
+                                &threads[i].data ) ) != 0 )
     {
         return( ret );
     }
@@ -315,8 +316,7 @@ static int thread_create( int client_fd )
 int main( void )
 {
     int ret;
-    int listen_fd;
-    int client_fd = -1;
+    mbedtls_net_context listen_fd, client_fd;
     const char pers[] = "ssl_pthread_server";
 
     mbedtls_entropy_context entropy;
@@ -346,6 +346,8 @@ int main( void )
     mbedtls_ssl_config_init( &conf );
     mbedtls_ctr_drbg_init( &ctr_drbg );
     memset( threads, 0, sizeof(threads) );
+    mbedtls_net_init( &listen_fd );
+    mbedtls_net_init( &client_fd );
 
     mbedtls_mutex_init( &debug_mutex );
 
@@ -474,11 +476,9 @@ reset:
     /*
      * 3. Wait until a client connects
      */
-    client_fd = -1;
-
     mbedtls_printf( "  [ main ]  Waiting for a remote connection\n" );
 
-    if( ( ret = mbedtls_net_accept( listen_fd, &client_fd,
+    if( ( ret = mbedtls_net_accept( &listen_fd, &client_fd,
                                     NULL, 0, NULL ) ) != 0 )
     {
         mbedtls_printf( "  [ main ] failed: mbedtls_net_accept returned -0x%04x\n", ret );
@@ -488,10 +488,10 @@ reset:
     mbedtls_printf( "  [ main ]  ok\n" );
     mbedtls_printf( "  [ main ]  Creating a new thread\n" );
 
-    if( ( ret = thread_create( client_fd ) ) != 0 )
+    if( ( ret = thread_create( &client_fd ) ) != 0 )
     {
         mbedtls_printf( "  [ main ]  failed: thread_create returned %d\n", ret );
-        mbedtls_net_close( client_fd );
+        mbedtls_net_close( &client_fd );
         goto reset;
     }
 
@@ -507,6 +507,8 @@ exit:
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
     mbedtls_ssl_config_free( &conf );
+
+    mbedtls_net_free( &listen_fd );
 
     mbedtls_mutex_free( &debug_mutex );
 

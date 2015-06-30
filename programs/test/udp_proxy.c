@@ -20,6 +20,12 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+/*
+ * Warning: this is an internal utility program we use for tests.
+ * It does break some abstractions from the NET layer, and is thus NOT an
+ * example of good general usage.
+ */
+
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
@@ -284,7 +290,7 @@ static unsigned long ellapsed_time( void )
 
 typedef struct
 {
-    int dst;
+    mbedtls_net_context *dst;
     const char *way;
     const char *type;
     unsigned len;
@@ -306,7 +312,7 @@ void print_packet( const packet *p, const char *why )
 int send_packet( const packet *p, const char *why )
 {
     int ret;
-    int dst = p->dst;
+    mbedtls_net_context *dst = p->dst;
 
     /* insert corrupted ApplicationData record? */
     if( opt.bad_ad &&
@@ -317,7 +323,7 @@ int send_packet( const packet *p, const char *why )
         ++buf[p->len - 1];
 
         print_packet( p, "corrupted" );
-        if( ( ret = mbedtls_net_send( &dst, buf, p->len ) ) <= 0 )
+        if( ( ret = mbedtls_net_send( dst, buf, p->len ) ) <= 0 )
         {
             mbedtls_printf( "  ! mbedtls_net_send returned %d\n", ret );
             return( ret );
@@ -325,7 +331,7 @@ int send_packet( const packet *p, const char *why )
     }
 
     print_packet( p, why );
-    if( ( ret = mbedtls_net_send( &dst, p->buf, p->len ) ) <= 0 )
+    if( ( ret = mbedtls_net_send( dst, p->buf, p->len ) ) <= 0 )
     {
         mbedtls_printf( "  ! mbedtls_net_send returned %d\n", ret );
         return( ret );
@@ -338,7 +344,7 @@ int send_packet( const packet *p, const char *why )
     {
         print_packet( p, "duplicated" );
 
-        if( ( ret = mbedtls_net_send( &dst, p->buf, p->len ) ) <= 0 )
+        if( ( ret = mbedtls_net_send( dst, p->buf, p->len ) ) <= 0 )
         {
             mbedtls_printf( "  ! mbedtls_net_send returned %d\n", ret );
             return( ret );
@@ -392,14 +398,16 @@ void update_dropped( const packet *p )
     }
 }
 
-int handle_message( const char *way, int dst, int src )
+int handle_message( const char *way,
+                    mbedtls_net_context *dst,
+                    mbedtls_net_context *src )
 {
     int ret;
     packet cur;
     size_t id;
 
     /* receive packet */
-    if( ( ret = mbedtls_net_recv( &src, cur.buf, sizeof( cur.buf ) ) ) <= 0 )
+    if( ( ret = mbedtls_net_recv( src, cur.buf, sizeof( cur.buf ) ) ) <= 0 )
     {
         mbedtls_printf( "  ! mbedtls_net_recv returned %d\n", ret );
         return( ret );
@@ -432,7 +440,7 @@ int handle_message( const char *way, int dst, int src )
                strcmp( cur.type, "ApplicationData" ) != 0 &&
                ! ( opt.protect_hvr &&
                    strcmp( cur.type, "HelloVerifyRequest" ) == 0 ) &&
-               prev.dst == 0 &&
+               prev.dst == NULL &&
                cur.len != (size_t) opt.protect_len &&
                dropped[id] < DROP_MAX &&
                rand() % opt.delay == 0 ) )
@@ -446,7 +454,7 @@ int handle_message( const char *way, int dst, int src )
             return( ret );
 
         /* send previously delayed message if any */
-        if( prev.dst != 0 )
+        if( prev.dst != NULL )
         {
             ret = send_packet( &prev, "delayed" );
             memset( &prev, 0, sizeof( packet ) );
@@ -462,12 +470,14 @@ int main( int argc, char *argv[] )
 {
     int ret;
 
-    int listen_fd = -1;
-    int client_fd = -1;
-    int server_fd = -1;
+    mbedtls_net_context listen_fd, client_fd, server_fd;
 
     int nb_fds;
     fd_set read_fds;
+
+    mbedtls_net_init( &listen_fd );
+    mbedtls_net_init( &client_fd );
+    mbedtls_net_init( &server_fd );
 
     get_options( argc, argv );
 
@@ -526,7 +536,7 @@ accept:
     mbedtls_printf( "  . Waiting for a remote connection ..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_net_accept( listen_fd, &client_fd,
+    if( ( ret = mbedtls_net_accept( &listen_fd, &client_fd,
                                     NULL, 0, NULL ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_net_accept returned %d\n\n", ret );
@@ -555,19 +565,19 @@ accept:
     clear_pending();
     memset( dropped, 0, sizeof( dropped ) );
 
-    nb_fds = client_fd;
-    if( nb_fds < server_fd )
-        nb_fds = server_fd;
-    if( nb_fds < listen_fd )
-        nb_fds = listen_fd;
+    nb_fds = client_fd.fd;
+    if( nb_fds < server_fd.fd )
+        nb_fds = server_fd.fd;
+    if( nb_fds < listen_fd.fd )
+        nb_fds = listen_fd.fd;
     ++nb_fds;
 
     while( 1 )
     {
         FD_ZERO( &read_fds );
-        FD_SET( server_fd, &read_fds );
-        FD_SET( client_fd, &read_fds );
-        FD_SET( listen_fd, &read_fds );
+        FD_SET( server_fd.fd, &read_fds );
+        FD_SET( client_fd.fd, &read_fds );
+        FD_SET( listen_fd.fd, &read_fds );
 
         if( ( ret = select( nb_fds, &read_fds, NULL, NULL, NULL ) ) <= 0 )
         {
@@ -575,20 +585,20 @@ accept:
             goto exit;
         }
 
-        if( FD_ISSET( listen_fd, &read_fds ) )
+        if( FD_ISSET( listen_fd.fd, &read_fds ) )
             goto accept;
 
-        if( FD_ISSET( client_fd, &read_fds ) )
+        if( FD_ISSET( client_fd.fd, &read_fds ) )
         {
             if( ( ret = handle_message( "S <- C",
-                                        server_fd, client_fd ) ) != 0 )
+                                        &server_fd, &client_fd ) ) != 0 )
                 goto accept;
         }
 
-        if( FD_ISSET( server_fd, &read_fds ) )
+        if( FD_ISSET( server_fd.fd, &read_fds ) )
         {
             if( ( ret = handle_message( "S -> C",
-                                        client_fd, server_fd ) ) != 0 )
+                                        &client_fd, &server_fd ) ) != 0 )
                 goto accept;
         }
     }
@@ -605,11 +615,9 @@ exit:
     }
 #endif
 
-    if( client_fd != -1 )
-        mbedtls_net_close( client_fd );
-
-    if( listen_fd != -1 )
-        mbedtls_net_close( listen_fd );
+    mbedtls_net_close( &client_fd );
+    mbedtls_net_close( &server_fd );
+    mbedtls_net_close( &listen_fd );
 
 #if defined(_WIN32)
     mbedtls_printf( "  Press Enter to exit this program.\n" );

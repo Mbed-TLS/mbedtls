@@ -71,6 +71,8 @@ API Changes
      mbedtls_base64_decode()
      mbedtls_mpi_write_string()
      mbedtls_dhm_calc_secret()
+   * In the NET module, all "int" and "int *" arguments for file descriptors
+     changed type to "mbedtls_net_context *".
    * net_accept() gained new arguments for the size of the client_ip buffer.
    * In the threading layer, mbedtls_mutex_init() and mbedtls_mutex_free() now
      return void.

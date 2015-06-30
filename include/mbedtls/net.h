@@ -56,9 +56,30 @@ extern "C" {
 #endif
 
 /**
+ * Wrapper type for sockets.
+ *
+ * Currently backed by just a file descriptor, but might be more in the future
+ * (eg two file descriptors for combined IPv4 + IPv6 support, or additional
+ * structures for hand-made UDP demultiplexing).
+ */
+typedef struct
+{
+    int fd;             /**< The underlying file descriptor                 */
+}
+mbedtls_net_context;
+
+/**
+ * \brief          Initialize a context
+ *                 Just makes the context ready to be used or freed safely.
+ *
+ * \param ctx      Context to initialize
+ */
+void mbedtls_net_init( mbedtls_net_context *ctx );
+
+/**
  * \brief          Initiate a connection with host:port in the given protocol
  *
- * \param fd       Socket to use
+ * \param ctx      Socket to use
  * \param host     Host to connect to
  * \param port     Port to connect to
  * \param proto    Protocol: MBEDTLS_NET_PROTO_TCP or MBEDTLS_NET_PROTO_UDP
@@ -70,13 +91,13 @@ extern "C" {
  *
  * \note           Sets the socket in connected mode even with UDP.
  */
-int mbedtls_net_connect( int *fd, const char *host, const char *port, int proto );
+int mbedtls_net_connect( mbedtls_net_context *ctx, const char *host, const char *port, int proto );
 
 /**
  * \brief          Create a receiving socket on bind_ip:port in the chosen
  *                 protocol. If bind_ip == NULL, all interfaces are bound.
  *
- * \param fd       Socket to use
+ * \param ctx      Socket to use
  * \param bind_ip  IP to bind to, can be NULL
  * \param port     Port number to use
  * \param proto    Protocol: MBEDTLS_NET_PROTO_TCP or MBEDTLS_NET_PROTO_UDP
@@ -89,13 +110,13 @@ int mbedtls_net_connect( int *fd, const char *host, const char *port, int proto 
  * \note           Regardless of the protocol, opens the sockets and binds it.
  *                 In addition, make the socket listening if protocol is TCP.
  */
-int mbedtls_net_bind( int *fd, const char *bind_ip, const char *port, int proto );
+int mbedtls_net_bind( mbedtls_net_context *ctx, const char *bind_ip, const char *port, int proto );
 
 /**
  * \brief           Accept a connection from a remote client
  *
- * \param bind_fd   Relevant socket
- * \param client_fd Will contain the connected client socket
+ * \param bind_ctx  Relevant socket
+ * \param client_ctx Will contain the connected client socket
  * \param client_ip Will contain the client IP address
  * \param buf_size  Size of the client_ip buffer
  * \param ip_len    Will receive the size of the client IP written
@@ -110,26 +131,27 @@ int mbedtls_net_bind( int *fd, const char *bind_ip, const char *port, int proto 
  *                  its descriptor to client_fd. New clients will not be able
  *                  to connect until you close the socket and bind a new one.
  */
-int mbedtls_net_accept( int bind_fd, int *client_fd,
+int mbedtls_net_accept( mbedtls_net_context *bind_ctx,
+                        mbedtls_net_context *client_ctx,
                         void *client_ip, size_t buf_size, size_t *ip_len );
 
 /**
  * \brief          Set the socket blocking
  *
- * \param fd       Socket to set
+ * \param ctx      Socket to set
  *
  * \return         0 if successful, or a non-zero error code
  */
-int mbedtls_net_set_block( int fd );
+int mbedtls_net_set_block( mbedtls_net_context *ctx );
 
 /**
  * \brief          Set the socket non-blocking
  *
- * \param fd       Socket to set
+ * \param ctx      Socket to set
  *
  * \return         0 if successful, or a non-zero error code
  */
-int mbedtls_net_set_nonblock( int fd );
+int mbedtls_net_set_nonblock( mbedtls_net_context *ctx );
 
 /**
  * \brief          Portable usleep helper
@@ -196,9 +218,9 @@ int mbedtls_net_recv_timeout( void *ctx, unsigned char *buf, size_t len,
 /**
  * \brief          Gracefully shutdown the connection
  *
- * \param fd       The socket to close
+ * \param ctx      The socket to close
  */
-void mbedtls_net_close( int fd );
+void mbedtls_net_close( mbedtls_net_context *ctx );
 
 #ifdef __cplusplus
 }

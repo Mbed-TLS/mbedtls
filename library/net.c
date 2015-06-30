@@ -338,13 +338,34 @@ int mbedtls_net_accept( mbedtls_net_context *bind_ctx,
         return( MBEDTLS_ERR_NET_ACCEPT_FAILED );
     }
 
-    /* UDP: hijack the listening socket for communicating with the client */
+    /* UDP: hijack the listening socket to communicate with the client,
+     * then bind a new socket to accept new connections */
     if( type != SOCK_STREAM )
     {
+        struct sockaddr_storage local_addr;
+        int one = 1;
+
         if( connect( bind_ctx->fd, (struct sockaddr *) &client_addr, n ) != 0 )
             return( MBEDTLS_ERR_NET_ACCEPT_FAILED );
 
         client_ctx->fd = bind_ctx->fd;
+        bind_ctx->fd   = -1; /* In case we exit early */
+
+        n = sizeof( struct sockaddr_storage );
+        if( getsockname( client_ctx->fd,
+                         (struct sockaddr *) &local_addr, &n ) != 0 ||
+            ( bind_ctx->fd = (int) socket( local_addr.ss_family,
+                                           SOCK_DGRAM, IPPROTO_UDP ) ) < 0 ||
+            setsockopt( bind_ctx->fd, SOL_SOCKET, SO_REUSEADDR,
+                        (const char *) &one, sizeof( one ) ) != 0 )
+        {
+            return( MBEDTLS_ERR_NET_SOCKET_FAILED );
+        }
+
+        if( bind( bind_ctx->fd, (struct sockaddr *) &local_addr, n ) != 0 )
+        {
+            return( MBEDTLS_ERR_NET_BIND_FAILED );
+        }
     }
 
     if( client_ip != NULL )

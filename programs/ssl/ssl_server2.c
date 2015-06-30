@@ -1897,28 +1897,6 @@ reset:
     mbedtls_printf( " ok\n" );
 
     /*
-     * With UDP, bind_fd is hijacked by client_fd, so bind a new one
-     */
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-    {
-        mbedtls_printf( "  . Re-bind on udp://%s:%s/ ...",
-                opt.server_addr ? opt.server_addr : "*",
-                opt.server_port );
-        fflush( stdout );
-
-        if( ( ret = mbedtls_net_bind( &listen_fd, opt.server_addr,
-                              opt.server_port, MBEDTLS_NET_PROTO_UDP ) ) != 0 )
-        {
-            mbedtls_printf( " failed\n  ! mbedtls_net_bind returned -0x%x\n\n", -ret );
-            goto exit;
-        }
-
-        mbedtls_printf( " ok\n" );
-    }
-#endif /* MBEDTLS_SSL_PROTO_DTLS */
-
-    /*
      * 4. Handshake
      */
     mbedtls_printf( "  . Performing the SSL/TLS handshake..." );

@@ -533,6 +533,8 @@ int main( int argc, char *argv[] )
      * 2. Wait until a client connects
      */
 accept:
+    mbedtls_net_free( &client_fd );
+
     mbedtls_printf( "  . Waiting for a remote connection ..." );
     fflush( stdout );
 
@@ -540,20 +542,6 @@ accept:
                                     NULL, 0, NULL ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_net_accept returned %d\n\n", ret );
-        goto exit;
-    }
-
-    mbedtls_printf( " ok\n" );
-    fflush( stdout );
-
-    mbedtls_printf( "  . Re-bind on UDP/%s/%s ...",
-            opt.listen_addr, opt.listen_port );
-    fflush( stdout );
-
-    if( ( ret = mbedtls_net_bind( &listen_fd, opt.listen_addr, opt.listen_port,
-                          MBEDTLS_NET_PROTO_UDP ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_net_bind returned %d\n\n", ret );
         goto exit;
     }
 

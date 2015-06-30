@@ -174,6 +174,8 @@ API changes from the 1.4 preview branch
      instead, see mbedtls_ssl_set_timer_cb(), with the Timing module providing
      an example implementation, see mbedtls_timing_delay_context and
      mbedtls_timing_set/get_delay().
+   * With UDP sockets, it is no longer necessary to call net_bind() again
+     after a successful net_accept().
 
 Changes
    * mbedtls_ctr_drbg_random() and mbedtls_hmac_drbg_random() are now

@@ -273,13 +273,6 @@ reset:
         goto exit;
     }
 
-    /* With UDP, bind_fd is hijacked by client_fd, so bind a new one */
-    if( ( ret = mbedtls_net_bind( &listen_fd, NULL, "4433", MBEDTLS_NET_PROTO_UDP ) ) != 0 )
-    {
-        printf( " failed\n  ! mbedtls_net_bind returned -0x%x\n\n", -ret );
-        goto exit;
-    }
-
     /* For HelloVerifyRequest cookies */
     if( ( ret = mbedtls_ssl_set_client_transport_id( &ssl,
                     client_ip, cliip_len ) ) != 0 )

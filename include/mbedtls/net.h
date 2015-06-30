@@ -126,10 +126,6 @@ int mbedtls_net_bind( mbedtls_net_context *ctx, const char *bind_ip, const char 
  *                  MBEDTLS_ERR_NET_BUFFER_TOO_SMALL if buf_size is too small,
  *                  MBEDTLS_ERR_SSL_WANT_READ if bind_fd was set to
  *                  non-blocking and accept() would block.
- *
- * \note            With UDP, connects the bind_fd to the client and just copy
- *                  its descriptor to client_fd. New clients will not be able
- *                  to connect until you close the socket and bind a new one.
  */
 int mbedtls_net_accept( mbedtls_net_context *bind_ctx,
                         mbedtls_net_context *client_ctx,

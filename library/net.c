@@ -176,7 +176,7 @@ int mbedtls_net_bind( mbedtls_net_context *ctx, const char *bind_ip, const char 
     if( ( ret = net_prepare() ) != 0 )
         return( ret );
 
-    /* Bind to IPv6 and/or IPv4, but only in TCP */
+    /* Bind to IPv6 and/or IPv4, but only in the desired protocol */
     memset( &hints, 0, sizeof( hints ) );
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = proto == MBEDTLS_NET_PROTO_UDP ? SOCK_DGRAM : SOCK_STREAM;

@@ -425,15 +425,19 @@ int mbedtls_net_set_nonblock( mbedtls_net_context *ctx )
  */
 void mbedtls_net_usleep( unsigned long usec )
 {
+#if defined(_WIN32)
+    Sleep( ( usec + 999 ) / 1000 );
+#else
     struct timeval tv;
     tv.tv_sec  = usec / 1000000;
-#if !defined(_WIN32) && ( defined(__unix__) || defined(__unix) || \
-    ( defined(__APPLE__) && defined(__MACH__) ) )
+#if defined(__unix__) || defined(__unix) || \
+    ( defined(__APPLE__) && defined(__MACH__) )
     tv.tv_usec = (suseconds_t) usec % 1000000;
 #else
     tv.tv_usec = usec % 1000000;
 #endif
     select( 0, NULL, NULL, NULL, &tv );
+#endif
 }
 
 /*

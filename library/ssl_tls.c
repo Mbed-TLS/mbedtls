@@ -1614,10 +1614,10 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
         unsigned char add_data[13];
         unsigned char taglen = ssl->transform_in->ciphersuite_info->flags &
                                MBEDTLS_CIPHERSUITE_SHORT_TAG ? 8 : 16;
-        unsigned char explicit_iv_len =  ssl->transform_in->ivlen -
-                                         ssl->transform_in->fixed_ivlen;
+        size_t explicit_iv_len = ssl->transform_in->ivlen -
+                                 ssl->transform_in->fixed_ivlen;
 
-        if( ssl->in_msglen < (size_t) explicit_iv_len + taglen )
+        if( ssl->in_msglen < explicit_iv_len + taglen )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "msglen (%d) < explicit_iv_len (%d) "
                                 "+ taglen (%d)", ssl->in_msglen,
@@ -5793,7 +5793,7 @@ const char *mbedtls_ssl_get_version( const mbedtls_ssl_context *ssl )
 
 int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
 {
-    int transform_expansion;
+    size_t transform_expansion;
     const mbedtls_ssl_transform *transform = ssl->transform_out;
 
 #if defined(MBEDTLS_ZLIB_SUPPORT)
@@ -5802,7 +5802,7 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
 #endif
 
     if( transform == NULL )
-        return( mbedtls_ssl_hdr_len( ssl ) );
+        return( (int) mbedtls_ssl_hdr_len( ssl ) );
 
     switch( mbedtls_cipher_get_cipher_mode( &transform->cipher_ctx_enc ) )
     {
@@ -5822,7 +5822,7 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-    return( mbedtls_ssl_hdr_len( ssl ) + transform_expansion );
+    return( (int)( mbedtls_ssl_hdr_len( ssl ) + transform_expansion ) );
 }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)

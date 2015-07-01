@@ -2049,7 +2049,7 @@ data_exchange:
                 unsigned char *larger_buf;
 
                 ori_len = ret;
-                extra_len = mbedtls_ssl_get_bytes_avail( &ssl );
+                extra_len = (int) mbedtls_ssl_get_bytes_avail( &ssl );
 
                 larger_buf = mbedtls_calloc( 1, ori_len + extra_len + 1 );
                 if( larger_buf == NULL )

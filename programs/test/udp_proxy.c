@@ -491,7 +491,7 @@ int main( int argc, char *argv[] )
      */
     if( opt.seed == 0 )
     {
-        opt.seed = time( NULL );
+        opt.seed = (unsigned int) time( NULL );
         mbedtls_printf( "  . Pseudo-random seed: %u\n", opt.seed );
     }
 

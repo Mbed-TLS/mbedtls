@@ -1022,11 +1022,11 @@ have_ciphersuite_v2:
 static int ssl_parse_client_hello( mbedtls_ssl_context *ssl )
 {
     int ret, got_common_suite;
-    unsigned int i, j;
-    unsigned int ciph_offset, comp_offset, ext_offset;
-    unsigned int msg_len, ciph_len, sess_len, comp_len, ext_len;
+    size_t i, j;
+    size_t ciph_offset, comp_offset, ext_offset;
+    size_t msg_len, ciph_len, sess_len, comp_len, ext_len;
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    unsigned int cookie_offset, cookie_len;
+    size_t cookie_offset, cookie_len;
 #endif
     unsigned char *buf, *p, *ext;
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
@@ -3025,8 +3025,18 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
     }
     ssl->handshake->pmslen = 48;
 
-    /* mask = diff ? 0xff : 0x00 */
+    /* mask = diff ? 0xff : 0x00 using bit operations to avoid branches */
+    /* MSVC has a warning about unary minus on unsigned, but this is
+     * well-defined and precisely what we want to do here */
+#if defined(_MSC_VER)
+#pragma warning( push )
+#pragma warning( disable : 4146 )
+#endif
     mask = - ( ( diff | - diff ) >> ( sizeof( unsigned int ) * 8 - 1 ) );
+#if defined(_MSC_VER)
+#pragma warning( pop )
+#endif
+
     for( i = 0; i < ssl->handshake->pmslen; i++ )
         pms[i] = ( mask & fake_pms[i] ) | ( (~mask) & peer_pms[i] );
 

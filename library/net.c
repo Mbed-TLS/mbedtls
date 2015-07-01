@@ -74,6 +74,14 @@ static int wsa_init_done = 0;
 
 #endif /* ( _WIN32 || _WIN32_WCE ) && !EFIX64 && !EFI32 */
 
+/* Some MS functions want int and MSVC warns if we pass size_t,
+ * but the standard fucntions use socklen_t, so cast only for MSVC */
+#if defined(_MSC_VER)
+#define MSVC_INT_CAST   (int)
+#else
+#define MSVC_INT_CAST
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -150,7 +158,7 @@ int mbedtls_net_connect( mbedtls_net_context *ctx, const char *host, const char 
             continue;
         }
 
-        if( connect( ctx->fd, cur->ai_addr, cur->ai_addrlen ) == 0 )
+        if( connect( ctx->fd, cur->ai_addr, MSVC_INT_CAST cur->ai_addrlen ) == 0 )
         {
             ret = 0;
             break;
@@ -208,7 +216,7 @@ int mbedtls_net_bind( mbedtls_net_context *ctx, const char *bind_ip, const char 
             continue;
         }
 
-        if( bind( ctx->fd, cur->ai_addr, cur->ai_addrlen ) != 0 )
+        if( bind( ctx->fd, cur->ai_addr, MSVC_INT_CAST cur->ai_addrlen ) != 0 )
         {
             close( ctx->fd );
             ret = MBEDTLS_ERR_NET_BIND_FAILED;

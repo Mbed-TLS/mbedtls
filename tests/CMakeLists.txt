@@ -29,7 +29,9 @@ function(add_test_suite suite_name)
     add_test(${data_name}-suite test_suite_${data_name})
 endfunction(add_test_suite)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-function")
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANG)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-function")
+endif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANG)
 
 add_test_suite(aes aes.ecb)
 add_test_suite(aes aes.cbc)

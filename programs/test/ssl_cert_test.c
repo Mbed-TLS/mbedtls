@@ -32,7 +32,6 @@
 #include <stdio.h>
 #define mbedtls_snprintf   snprintf
 #define mbedtls_printf     printf
-#define mbedtls_snprintf   snprintf
 #endif
 
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_X509_CRT_PARSE_C) && \
@@ -42,10 +41,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#endif
-
-#if defined _MSC_VER && !defined snprintf
-#define snprintf _snprintf
 #endif
 
 #define MAX_CLIENT_CERTS    8

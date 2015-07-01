@@ -32,7 +32,6 @@
 #include <stdio.h>
 #define mbedtls_snprintf   snprintf
 #define mbedtls_printf     printf
-#define mbedtls_snprintf   snprintf
 #endif
 
 #if !defined(MBEDTLS_MD_C) || !defined(MBEDTLS_ENTROPY_C) ||  \
@@ -58,10 +57,6 @@ int main( void )
 
 #include <stdio.h>
 #include <string.h>
-
-#if defined _MSC_VER && !defined snprintf
-#define snprintf _snprintf
-#endif
 
 int main( int argc, char *argv[] )
 {

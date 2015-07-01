@@ -75,10 +75,6 @@ int main( void )
 #include "mbedtls/memory_buffer_alloc.h"
 #endif
 
-#if defined _MSC_VER && !defined snprintf
-#define snprintf _snprintf
-#endif
-
 /*
  * For heap usage estimates, we need an estimate of the overhead per allocated
  * block. ptmalloc2/3 (used in gnu libc for instance) uses 2 size_t per block,

@@ -32,7 +32,6 @@
 #include <stdio.h>
 #define mbedtls_printf     printf
 #define mbedtls_fprintf    fprintf
-#define mbedtls_printf     printf
 #define mbedtls_snprintf   snprintf
 #endif
 
@@ -61,12 +60,6 @@ int main( void )
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
-#if !defined  snprintf
-#define  snprintf  _snprintf
-#endif
-#endif
 
 #define DFL_SERVER_NAME         "localhost"
 #define DFL_SERVER_ADDR         NULL

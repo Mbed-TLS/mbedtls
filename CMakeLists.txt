@@ -73,31 +73,37 @@ ADD_CUSTOM_TARGET(apidoc
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(ENABLE_TESTING)
-    add_subdirectory(tests)
+    find_package(PERL)
 
-    ADD_CUSTOM_TARGET(covtest
-        COMMAND make test
-        COMMAND programs/test/selftest
-        COMMAND cd tests && ./compat.sh
-        COMMAND cd tests && ./ssl-opt.sh
-    )
+    if(PERL_FOUND)
+        add_subdirectory(tests)
 
-    ADD_CUSTOM_TARGET(lcov
-        COMMAND rm -rf Coverage
-        COMMAND lcov --capture --initial --directory library/CMakeFiles/mbedtls.dir -o files.info
-        COMMAND lcov --capture --directory library/CMakeFiles/mbedtls.dir -o tests.info
-        COMMAND lcov --add-tracefile files.info --add-tracefile tests.info -o all.info
-        COMMAND lcov --remove all.info -o final.info '*.h'
-        COMMAND gendesc tests/Descriptions.txt -o descriptions
-        COMMAND genhtml --title "mbed TLS" --description-file descriptions --keep-descriptions --legend --no-branch-coverage -o Coverage final.info
-        COMMAND rm -f files.info tests.info all.info final.info descriptions
-    )
+        if(UNIX)
+            ADD_CUSTOM_TARGET(covtest
+                COMMAND make test
+                COMMAND programs/test/selftest
+                COMMAND cd tests && ./compat.sh
+                COMMAND cd tests && ./ssl-opt.sh
+            )
 
-    ADD_CUSTOM_TARGET(memcheck
-        COMMAND sed -i.bak s+/usr/bin/valgrind+`which valgrind`+ DartConfiguration.tcl
-        COMMAND ctest -O memcheck.log -D ExperimentalMemCheck
-        COMMAND tail -n1 memcheck.log | grep 'Memory checking results:' > /dev/null
-        COMMAND rm -f memcheck.log
-        COMMAND mv DartConfiguration.tcl.bak DartConfiguration.tcl
-    )
+            ADD_CUSTOM_TARGET(lcov
+                COMMAND rm -rf Coverage
+                COMMAND lcov --capture --initial --directory library/CMakeFiles/mbedtls.dir -o files.info
+                COMMAND lcov --capture --directory library/CMakeFiles/mbedtls.dir -o tests.info
+                COMMAND lcov --add-tracefile files.info --add-tracefile tests.info -o all.info
+                COMMAND lcov --remove all.info -o final.info '*.h'
+                COMMAND gendesc tests/Descriptions.txt -o descriptions
+                COMMAND genhtml --title "mbed TLS" --description-file descriptions --keep-descriptions --legend --no-branch-coverage -o Coverage final.info
+                COMMAND rm -f files.info tests.info all.info final.info descriptions
+            )
+
+            ADD_CUSTOM_TARGET(memcheck
+                COMMAND sed -i.bak s+/usr/bin/valgrind+`which valgrind`+ DartConfiguration.tcl
+                COMMAND ctest -O memcheck.log -D ExperimentalMemCheck
+                COMMAND tail -n1 memcheck.log | grep 'Memory checking results:' > /dev/null
+                COMMAND rm -f memcheck.log
+                COMMAND mv DartConfiguration.tcl.bak DartConfiguration.tcl
+            )
+        endif(UNIX)
+    endif(PERL_FOUND)
 endif()

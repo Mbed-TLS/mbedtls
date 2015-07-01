@@ -14,7 +14,7 @@ my @consts;
 my $state = 'out';
 while (<>)
 {
-    if( $state eq 'out' and /^(typedef )?enum {/ ) {
+    if( $state eq 'out' and /^(typedef )?enum \{/ ) {
         $state = 'in';
     } elsif( $state eq 'out' and /^(typedef )?enum/ ) {
         $state = 'start';

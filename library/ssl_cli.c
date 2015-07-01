@@ -42,12 +42,7 @@
 #define mbedtls_free       free
 #endif
 
-#if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
-#include <basetsd.h>
-typedef UINT32 uint32_t;
-#else
 #include <stdint.h>
-#endif
 
 #if defined(MBEDTLS_HAVE_TIME)
 #include <time.h>

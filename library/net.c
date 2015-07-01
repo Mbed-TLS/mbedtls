@@ -87,12 +87,7 @@ static int wsa_init_done = 0;
 
 #include <time.h>
 
-#if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
-#include <basetsd.h>
-typedef UINT32 uint32_t;
-#else
 #include <stdint.h>
-#endif
 
 /*
  * Prepare for using the sockets interface

@@ -30,12 +30,7 @@
 
 #include "mbedtls/base64.h"
 
-#if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
-#include <basetsd.h>
-typedef UINT32 uint32_t;
-#else
 #include <stdint.h>
-#endif
 
 #if defined(MBEDTLS_SELF_TEST)
 #include <string.h>

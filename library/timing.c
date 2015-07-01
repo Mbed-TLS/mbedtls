@@ -427,52 +427,7 @@ int mbedtls_timing_self_test( int verbose )
         mbedtls_printf( "passed\n" );
 
     if( verbose != 0 )
-        mbedtls_printf( "  TIMING test #2 (hardclock / get_timer): " );
-
-    /*
-     * Allow one failure for possible counter wrapping.
-     * On a 4Ghz 32-bit machine the cycle counter wraps about once per second;
-     * since the whole test is about 10ms, it shouldn't happen twice in a row.
-     */
-    hardfail = 0;
-
-hard_test:
-    if( hardfail > 1 )
-    {
-        if( verbose != 0 )
-            mbedtls_printf( "failed\n" );
-
-        return( 1 );
-    }
-
-    /* Get a reference ratio cycles/ms */
-    millisecs = 1;
-    cycles = mbedtls_timing_hardclock();
-    busy_msleep( millisecs );
-    cycles = mbedtls_timing_hardclock() - cycles;
-    ratio = cycles / millisecs;
-
-    /* Check that the ratio is mostly constant */
-    for( millisecs = 2; millisecs <= 4; millisecs++ )
-    {
-        cycles = mbedtls_timing_hardclock();
-        busy_msleep( millisecs );
-        cycles = mbedtls_timing_hardclock() - cycles;
-
-        /* Allow variation up to 20% */
-        if( cycles / millisecs < ratio - ratio / 5 ||
-            cycles / millisecs > ratio + ratio / 5 )
-        {
-            hardfail++;
-            goto hard_test;
-        }
-    }
-
-    if( verbose != 0 )
-        mbedtls_printf( "passed\n" );
-
-    if( verbose != 0 )
-        mbedtls_printf( "  TIMING test #3 (set/get_delay        ): " );
+        mbedtls_printf( "  TIMING test #2 (set/get_delay        ): " );
 
     for( a = 100; a <= 200; a += 100 )
     {
@@ -505,6 +460,53 @@ hard_test:
 
     if( verbose != 0 )
         mbedtls_printf( "passed\n" );
+
+    if( verbose != 0 )
+        mbedtls_printf( "  TIMING test #3 (hardclock / get_timer): " );
+
+    /*
+     * Allow one failure for possible counter wrapping.
+     * On a 4Ghz 32-bit machine the cycle counter wraps about once per second;
+     * since the whole test is about 10ms, it shouldn't happen twice in a row.
+     */
+    hardfail = 0;
+
+hard_test:
+    if( hardfail > 1 )
+    {
+        if( verbose != 0 )
+            mbedtls_printf( "failed (ignored)\n" );
+
+        goto hard_test_done;
+    }
+
+    /* Get a reference ratio cycles/ms */
+    millisecs = 1;
+    cycles = mbedtls_timing_hardclock();
+    busy_msleep( millisecs );
+    cycles = mbedtls_timing_hardclock() - cycles;
+    ratio = cycles / millisecs;
+
+    /* Check that the ratio is mostly constant */
+    for( millisecs = 2; millisecs <= 4; millisecs++ )
+    {
+        cycles = mbedtls_timing_hardclock();
+        busy_msleep( millisecs );
+        cycles = mbedtls_timing_hardclock() - cycles;
+
+        /* Allow variation up to 20% */
+        if( cycles / millisecs < ratio - ratio / 5 ||
+            cycles / millisecs > ratio + ratio / 5 )
+        {
+            hardfail++;
+            goto hard_test;
+        }
+    }
+
+    if( verbose != 0 )
+        mbedtls_printf( "passed\n" );
+
+hard_test_done:
 
     if( verbose != 0 )
         mbedtls_printf( "\n" );

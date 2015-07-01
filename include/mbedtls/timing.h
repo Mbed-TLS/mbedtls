@@ -62,6 +62,10 @@ extern volatile int mbedtls_timing_alarmed;
 
 /**
  * \brief          Return the CPU cycle counter value
+ *
+ * \warning        This is only a best effort! Do not rely on this!
+ *                 In particular, it is known to be unreliable on virtual
+ *                 machines.
  */
 unsigned long mbedtls_timing_hardclock( void );
 

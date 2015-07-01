@@ -63,13 +63,9 @@
 #define mbedtls_free       free
 #endif
 
-#if defined(_MSC_VER) && !defined(inline)
-#define inline _inline
-#else
 #if defined(__ARMCC_VERSION) && !defined(inline)
 #define inline __inline
 #endif /* __ARMCC_VERSION */
-#endif /*_MSC_VER */
 
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {

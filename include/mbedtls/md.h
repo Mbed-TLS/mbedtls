@@ -28,13 +28,9 @@
 
 #include <stddef.h>
 
-#if defined(_MSC_VER) && !defined(inline)
-#define inline _inline
-#else
 #if defined(__ARMCC_VERSION) && !defined(inline)
 #define inline __inline
 #endif /* __ARMCC_VERSION */
-#endif /*_MSC_VER */
 
 #define MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE                -0x5080  /**< The selected feature is not available. */
 #define MBEDTLS_ERR_MD_BAD_INPUT_DATA                     -0x5100  /**< Bad input parameters to function. */

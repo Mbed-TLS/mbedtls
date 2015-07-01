@@ -315,9 +315,14 @@ static void my_debug( void *ctx, int level,
                       const char *file, int line,
                       const char *str )
 {
-    ((void) level);
+    const char *p, *basename;
 
-    mbedtls_fprintf( (FILE *) ctx, "%s:%04d: %s", file, line, str );
+    /* Extract basename from file */
+    for( p = basename = file; *p != '\0'; p++ )
+        if( *p == '/' || *p == '\\' )
+            basename = p + 1;
+
+    mbedtls_fprintf( (FILE *) ctx, "%s:%04d: |%d| %s", basename, line, level, str );
     fflush(  (FILE *) ctx  );
 }
 

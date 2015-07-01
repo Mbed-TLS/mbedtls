@@ -40,10 +40,14 @@ option(USE_PKCS11_HELPER_LIBRARY "Build mbed TLS with the pkcs11-helper library.
 
 option(ENABLE_ZLIB_SUPPORT "Build mbed TLS with zlib library." OFF)
 option(ENABLE_PROGRAMS "Build mbed TLS programs." ON)
-option(ENABLE_TESTING "Build mbed TLS tests." ON)
 
-if(ENABLE_TESTING)
-    enable_testing()
+# Tests need Perl. Ideally we would use CMake's FindPerl module,
+# but it is only available since CMake 3.0 (released June 2014).
+# Assume Perl is available on Unix, and allow user to override.
+if(UNIX)
+    option(ENABLE_TESTING "Build mbed TLS tests." ON)
+else()
+    option(ENABLE_TESTING "Build mbed TLS tests." OFF)
 endif()
 
 if(LIB_INSTALL_DIR)
@@ -73,37 +77,37 @@ ADD_CUSTOM_TARGET(apidoc
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(ENABLE_TESTING)
-    find_package(PERL)
+    enable_testing()
 
-    if(PERL_FOUND)
-        add_subdirectory(tests)
+    add_subdirectory(tests)
 
-        if(UNIX)
-            ADD_CUSTOM_TARGET(covtest
-                COMMAND make test
-                COMMAND programs/test/selftest
-                COMMAND cd tests && ./compat.sh
-                COMMAND cd tests && ./ssl-opt.sh
-            )
+    # additional convenience targets for Unix only
+    if(UNIX)
 
-            ADD_CUSTOM_TARGET(lcov
-                COMMAND rm -rf Coverage
-                COMMAND lcov --capture --initial --directory library/CMakeFiles/mbedtls.dir -o files.info
-                COMMAND lcov --capture --directory library/CMakeFiles/mbedtls.dir -o tests.info
-                COMMAND lcov --add-tracefile files.info --add-tracefile tests.info -o all.info
-                COMMAND lcov --remove all.info -o final.info '*.h'
-                COMMAND gendesc tests/Descriptions.txt -o descriptions
-                COMMAND genhtml --title "mbed TLS" --description-file descriptions --keep-descriptions --legend --no-branch-coverage -o Coverage final.info
-                COMMAND rm -f files.info tests.info all.info final.info descriptions
-            )
+        ADD_CUSTOM_TARGET(covtest
+            COMMAND make test
+            COMMAND programs/test/selftest
+            COMMAND cd tests && ./compat.sh
+            COMMAND cd tests && ./ssl-opt.sh
+        )
 
-            ADD_CUSTOM_TARGET(memcheck
-                COMMAND sed -i.bak s+/usr/bin/valgrind+`which valgrind`+ DartConfiguration.tcl
-                COMMAND ctest -O memcheck.log -D ExperimentalMemCheck
-                COMMAND tail -n1 memcheck.log | grep 'Memory checking results:' > /dev/null
-                COMMAND rm -f memcheck.log
-                COMMAND mv DartConfiguration.tcl.bak DartConfiguration.tcl
-            )
-        endif(UNIX)
-    endif(PERL_FOUND)
+        ADD_CUSTOM_TARGET(lcov
+            COMMAND rm -rf Coverage
+            COMMAND lcov --capture --initial --directory library/CMakeFiles/mbedtls.dir -o files.info
+            COMMAND lcov --capture --directory library/CMakeFiles/mbedtls.dir -o tests.info
+            COMMAND lcov --add-tracefile files.info --add-tracefile tests.info -o all.info
+            COMMAND lcov --remove all.info -o final.info '*.h'
+            COMMAND gendesc tests/Descriptions.txt -o descriptions
+            COMMAND genhtml --title "mbed TLS" --description-file descriptions --keep-descriptions --legend --no-branch-coverage -o Coverage final.info
+            COMMAND rm -f files.info tests.info all.info final.info descriptions
+        )
+
+        ADD_CUSTOM_TARGET(memcheck
+            COMMAND sed -i.bak s+/usr/bin/valgrind+`which valgrind`+ DartConfiguration.tcl
+            COMMAND ctest -O memcheck.log -D ExperimentalMemCheck
+            COMMAND tail -n1 memcheck.log | grep 'Memory checking results:' > /dev/null
+            COMMAND rm -f memcheck.log
+            COMMAND mv DartConfiguration.tcl.bak DartConfiguration.tcl
+        )
+    endif(UNIX)
 endif()

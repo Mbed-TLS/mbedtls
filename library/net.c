@@ -448,8 +448,13 @@ void mbedtls_net_usleep( unsigned long usec )
  */
 int mbedtls_net_recv( void *ctx, unsigned char *buf, size_t len )
 {
+    int ret;
     int fd = ((mbedtls_net_context *) ctx)->fd;
-    int ret = (int) read( fd, buf, len );
+
+    if( fd < 0 )
+        return( MBEDTLS_ERR_NET_INVALID_CONTEXT );
+
+    ret = (int) read( fd, buf, len );
 
     if( ret < 0 )
     {
@@ -484,6 +489,9 @@ int mbedtls_net_recv_timeout( void *ctx, unsigned char *buf, size_t len,
     struct timeval tv;
     fd_set read_fds;
     int fd = ((mbedtls_net_context *) ctx)->fd;
+
+    if( fd < 0 )
+        return( MBEDTLS_ERR_NET_INVALID_CONTEXT );
 
     FD_ZERO( &read_fds );
     FD_SET( fd, &read_fds );
@@ -520,8 +528,13 @@ int mbedtls_net_recv_timeout( void *ctx, unsigned char *buf, size_t len,
  */
 int mbedtls_net_send( void *ctx, const unsigned char *buf, size_t len )
 {
+    int ret;
     int fd = ((mbedtls_net_context *) ctx)->fd;
-    int ret = (int) write( fd, buf, len );
+
+    if( fd < 0 )
+        return( MBEDTLS_ERR_NET_INVALID_CONTEXT );
+
+    ret = (int) write( fd, buf, len );
 
     if( ret < 0 )
     {

@@ -640,6 +640,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "NET - Failed to get an IP address for the given hostname" );
     if( use_ret == -(MBEDTLS_ERR_NET_BUFFER_TOO_SMALL) )
         mbedtls_snprintf( buf, buflen, "NET - Buffer is too small to hold the data" );
+    if( use_ret == -(MBEDTLS_ERR_NET_INVALID_CONTEXT) )
+        mbedtls_snprintf( buf, buflen, "NET - The context is invalid, eg because it was free()ed" );
 #endif /* MBEDTLS_NET_C */
 
 #if defined(MBEDTLS_OID_C)

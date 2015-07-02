@@ -30,7 +30,7 @@
  * Error code layout.
  *
  * Currently we try to keep all error codes within the negative space of 16
- * bytes signed integers to support all platforms (-0x0000 - -0x8000). In
+ * bits signed integers to support all platforms (-0x0001 - -0x7FFF). In
  * addition we'd like to give two layers of information on the error if
  * possible.
  *
@@ -38,7 +38,7 @@
  *
  * 16 bit error code bit-segmentation
  *
- * 1 bit  - Sign bit
+ * 1 bit  - Unused (sign bit)
  * 3 bits - High level module ID
  * 5 bits - Module-dependent error code
  * 7 bits - Low level module errors

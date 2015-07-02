@@ -71,7 +71,7 @@ There are many different build modes available within the CMake buildsystem. Mos
   This instruments the code with MemorySanitizer to check for uninitialised
   memory reads. Experimental, needs recent clang on Linux/x86_64.
 - MemSanDbg.
-  Same as ASan but slower, with debug information, better stack traces and
+  Same as MemSan but slower, with debug information, better stack traces and
   origin tracking.
 - Check.
   This activates the compiler warnings that depend on optimization and treats

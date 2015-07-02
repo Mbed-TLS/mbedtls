@@ -10,13 +10,13 @@ all: programs tests
 
 no_test: programs
 
-programs:
+programs: lib
 	$(MAKE) -C programs
 
 lib:
 	$(MAKE) -C library
 
-tests:
+tests: lib
 	$(MAKE) -C tests
 
 ifndef WINDOWS
@@ -60,7 +60,7 @@ ifndef WINDOWS
 endif
 
 ifndef WINDOWS
-check:
+check: lib
 	$(MAKE) -C tests check
 
 test: check

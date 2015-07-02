@@ -1981,7 +1981,7 @@ reset:
         mbedtls_printf( "  . Peer certificate information    ...\n" );
         mbedtls_x509_crt_info( crt_buf, sizeof( crt_buf ), "      ",
                        mbedtls_ssl_get_peer_cert( &ssl ) );
-        mbedtls_printf( "%s\n", buf );
+        mbedtls_printf( "%s\n", crt_buf );
     }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 

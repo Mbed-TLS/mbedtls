@@ -1327,7 +1327,7 @@ void ssl_set_psk_cb( ssl_context *ssl,
 /**
  * \brief          Set the Diffie-Hellman public P and G values,
  *                 read as hexadecimal strings (server-side only)
- *                 (Default: POLARSSL_DHM_RFC5114_MODP_1024_[PG])
+ *                 (Default: POLARSSL_DHM_RFC5114_MODP_2048_[PG])
  *
  * \param ssl      SSL context
  * \param dhm_P    Diffie-Hellman-Merkle modulus

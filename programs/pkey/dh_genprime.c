@@ -25,6 +25,7 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "polarssl/config.h"
 
@@ -32,11 +33,17 @@
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
 
+#define USAGE \
+    "\n usage: dh_genprime param=<>...\n"                                   \
+    "\n acceprable parameters:\n"                                           \
+    "    bits=%%d           default: 2048\n"
+
+#define DFL_BITS    2048
+
 /*
  * Note: G = 4 is always a quadratic residue mod P,
  * so it is a generator of order Q (with P = 2*Q+1).
  */
-#define DH_P_SIZE 1024
 #define GENERATOR "4"
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||   \
@@ -61,25 +68,42 @@ int main( int argc, char *argv[] )
     ctr_drbg_context ctr_drbg;
     const char *pers = "dh_genprime";
     FILE *fout;
-
-    ((void) argc);
-    ((void) argv);
+    int nbits = DFL_BITS;
+    int i;
+    char *p, *q;
 
     mpi_init( &G ); mpi_init( &P ); mpi_init( &Q );
     entropy_init( &entropy );
+
+    if( argc == 0 )
+    {
+    usage:
+        printf( USAGE );
+        return( 1 );
+    }
+
+    for( i = 1; i < argc; i++ )
+    {
+        p = argv[i];
+        if( ( q = strchr( p, '=' ) ) == NULL )
+            goto usage;
+        *q++ = '\0';
+
+        if( strcmp( p, "bits" ) == 0 )
+        {
+            nbits = atoi( q );
+            if( nbits < 0 || nbits > POLARSSL_MPI_MAX_BITS )
+                goto usage;
+        }
+        else
+            goto usage;
+    }
 
     if( ( ret = mpi_read_string( &G, 10, GENERATOR ) ) != 0 )
     {
         printf( " failed\n  ! mpi_read_string returned %d\n", ret );
         goto exit;
     }
-
-    printf( "\nWARNING: You should not generate and use your own DHM primes\n" );
-    printf( "         unless you are very certain of what you are doing!\n" );
-    printf( "         Failing to follow this instruction may result in\n" );
-    printf( "         weak security for your connections! Use the\n" );
-    printf( "         predefined DHM parameters from dhm.h instead!\n\n" );
-    printf( "============================================================\n\n" );
 
     printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
@@ -98,7 +122,7 @@ int main( int argc, char *argv[] )
     /*
      * This can take a long time...
      */
-    if( ( ret = mpi_gen_prime( &P, DH_P_SIZE, 1,
+    if( ( ret = mpi_gen_prime( &P, nbits, 1,
                                ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
         printf( " failed\n  ! mpi_gen_prime returned %d\n\n", ret );

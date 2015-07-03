@@ -4,7 +4,9 @@ PolarSSL ChangeLog
 
 Security
    * Increase the minimum size of Diffie-Hellman parameters accepted by the
-     lient to 1024 bits, to protect against Logjam attack.
+     client to 1024 bits, to protect against Logjam attack.
+   * Increase the size of default Diffie-Hellman parameters on the server to
+     2048 bits. This can be changed with ssl_set_dh_params().
 
 Bugfix
    * Fix thread-safety issue in the SSL debug module.

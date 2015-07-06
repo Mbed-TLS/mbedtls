@@ -70,11 +70,6 @@
 #define mbedtls_free       free
 #endif
 
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
-
 #if defined(MBEDTLS_MD2_C)
 
 static void md2_starts_wrap( void *ctx )
@@ -105,7 +100,7 @@ static void *md2_ctx_alloc( void )
 
 static void md2_ctx_free( void *ctx )
 {
-    mbedtls_zeroize( ctx, sizeof( mbedtls_md2_context ) );
+    mbedtls_md2_free( (mbedtls_md2_context *) ctx );
     mbedtls_free( ctx );
 }
 
@@ -162,7 +157,7 @@ static void *md4_ctx_alloc( void )
 
 static void md4_ctx_free( void *ctx )
 {
-    mbedtls_zeroize( ctx, sizeof( mbedtls_md4_context ) );
+    mbedtls_md4_free( (mbedtls_md4_context *) ctx );
     mbedtls_free( ctx );
 }
 
@@ -217,7 +212,7 @@ static void *md5_ctx_alloc( void )
 
 static void md5_ctx_free( void *ctx )
 {
-    mbedtls_zeroize( ctx, sizeof( mbedtls_md5_context ) );
+    mbedtls_md5_free( (mbedtls_md5_context *) ctx );
     mbedtls_free( ctx );
 }
 
@@ -391,7 +386,7 @@ static void *sha224_ctx_alloc( void )
 
 static void sha224_ctx_free( void *ctx )
 {
-    mbedtls_zeroize( ctx, sizeof( mbedtls_sha256_context ) );
+    mbedtls_sha256_free( (mbedtls_sha256_context *) ctx );
     mbedtls_free( ctx );
 }
 
@@ -477,7 +472,7 @@ static void *sha384_ctx_alloc( void )
 
 static void sha384_ctx_free( void *ctx )
 {
-    mbedtls_zeroize( ctx, sizeof( mbedtls_sha512_context ) );
+    mbedtls_sha512_free( (mbedtls_sha512_context *) ctx );
     mbedtls_free( ctx );
 }
 

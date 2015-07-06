@@ -588,7 +588,7 @@ int main( int argc, char *argv[] )
     {
         int keysize;
         mbedtls_rsa_context rsa;
-        for( keysize = 1024; keysize <= 4096; keysize *= 2 )
+        for( keysize = 2048; keysize <= 4096; keysize *= 2 )
         {
             mbedtls_snprintf( title, sizeof( title ), "RSA-%d", keysize );
 
@@ -611,14 +611,12 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_BIGNUM_C)
     if( todo.dhm )
     {
-        int dhm_sizes[DHM_SIZES] = { 1024, 2048, 3072 };
+        int dhm_sizes[DHM_SIZES] = { 2048, 3072 };
         const char *dhm_P[DHM_SIZES] = {
-            MBEDTLS_DHM_RFC5114_MODP_1024_P,
             MBEDTLS_DHM_RFC3526_MODP_2048_P,
             MBEDTLS_DHM_RFC3526_MODP_3072_P,
         };
         const char *dhm_G[DHM_SIZES] = {
-            MBEDTLS_DHM_RFC5114_MODP_1024_G,
             MBEDTLS_DHM_RFC3526_MODP_2048_G,
             MBEDTLS_DHM_RFC3526_MODP_3072_G,
         };

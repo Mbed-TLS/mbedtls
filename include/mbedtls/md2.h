@@ -67,6 +67,15 @@ void mbedtls_md2_init( mbedtls_md2_context *ctx );
 void mbedtls_md2_free( mbedtls_md2_context *ctx );
 
 /**
+ * \brief          Clone (the state of) an MD2 context
+ *
+ * \param dst      The destination context
+ * \param src      The context to be cloned
+ */
+void mbedtls_md2_clone( mbedtls_md2_context *dst,
+                        const mbedtls_md2_context *src );
+
+/**
  * \brief          MD2 context setup
  *
  * \param ctx      context to be initialized

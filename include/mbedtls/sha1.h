@@ -67,6 +67,15 @@ void mbedtls_sha1_init( mbedtls_sha1_context *ctx );
 void mbedtls_sha1_free( mbedtls_sha1_context *ctx );
 
 /**
+ * \brief          Clone (the state of) a SHA-1 context
+ *
+ * \param dst      The destination context
+ * \param src      The context to be cloned
+ */
+void mbedtls_sha1_clone( mbedtls_sha1_context *dst,
+                         const mbedtls_sha1_context *src );
+
+/**
  * \brief          SHA-1 context setup
  *
  * \param ctx      context to be initialized

@@ -67,6 +67,15 @@ void mbedtls_ripemd160_init( mbedtls_ripemd160_context *ctx );
 void mbedtls_ripemd160_free( mbedtls_ripemd160_context *ctx );
 
 /**
+ * \brief          Clone (the state of) an RIPEMD-160 context
+ *
+ * \param dst      The destination context
+ * \param src      The context to be cloned
+ */
+void mbedtls_ripemd160_clone( mbedtls_ripemd160_context *dst,
+                        const mbedtls_ripemd160_context *src );
+
+/**
  * \brief          RIPEMD-160 context setup
  *
  * \param ctx      context to be initialized

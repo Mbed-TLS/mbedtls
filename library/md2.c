@@ -97,6 +97,12 @@ void mbedtls_md2_free( mbedtls_md2_context *ctx )
     mbedtls_zeroize( ctx, sizeof( mbedtls_md2_context ) );
 }
 
+void mbedtls_md2_clone( mbedtls_md2_context *dst,
+                        const mbedtls_md2_context *src )
+{
+    *dst = *src;
+}
+
 /*
  * MD2 context setup
  */

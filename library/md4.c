@@ -90,6 +90,12 @@ void mbedtls_md4_free( mbedtls_md4_context *ctx )
     mbedtls_zeroize( ctx, sizeof( mbedtls_md4_context ) );
 }
 
+void mbedtls_md4_clone( mbedtls_md4_context *dst,
+                        const mbedtls_md4_context *src )
+{
+    *dst = *src;
+}
+
 /*
  * MD4 context setup
  */

@@ -68,6 +68,15 @@ void mbedtls_sha512_init( mbedtls_sha512_context *ctx );
 void mbedtls_sha512_free( mbedtls_sha512_context *ctx );
 
 /**
+ * \brief          Clone (the state of) a SHA-512 context
+ *
+ * \param dst      The destination context
+ * \param src      The context to be cloned
+ */
+void mbedtls_sha512_clone( mbedtls_sha512_context *dst,
+                           const mbedtls_sha512_context *src );
+
+/**
  * \brief          SHA-512 context setup
  *
  * \param ctx      context to be initialized

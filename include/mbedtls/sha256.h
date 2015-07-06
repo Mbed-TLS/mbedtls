@@ -68,6 +68,15 @@ void mbedtls_sha256_init( mbedtls_sha256_context *ctx );
 void mbedtls_sha256_free( mbedtls_sha256_context *ctx );
 
 /**
+ * \brief          Clone (the state of) a SHA-256 context
+ *
+ * \param dst      The destination context
+ * \param src      The context to be cloned
+ */
+void mbedtls_sha256_clone( mbedtls_sha256_context *dst,
+                           const mbedtls_sha256_context *src );
+
+/**
  * \brief          SHA-256 context setup
  *
  * \param ctx      context to be initialized

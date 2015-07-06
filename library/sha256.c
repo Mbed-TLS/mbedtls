@@ -89,6 +89,12 @@ void mbedtls_sha256_free( mbedtls_sha256_context *ctx )
     mbedtls_zeroize( ctx, sizeof( mbedtls_sha256_context ) );
 }
 
+void mbedtls_sha256_clone( mbedtls_sha256_context *dst,
+                           const mbedtls_sha256_context *src )
+{
+    *dst = *src;
+}
+
 /*
  * SHA-256 context setup
  */

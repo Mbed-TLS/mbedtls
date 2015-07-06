@@ -67,6 +67,15 @@ void mbedtls_md5_init( mbedtls_md5_context *ctx );
 void mbedtls_md5_free( mbedtls_md5_context *ctx );
 
 /**
+ * \brief          Clone (the state of) an MD5 context
+ *
+ * \param dst      The destination context
+ * \param src      The context to be cloned
+ */
+void mbedtls_md5_clone( mbedtls_md5_context *dst,
+                        const mbedtls_md5_context *src );
+
+/**
  * \brief          MD5 context setup
  *
  * \param ctx      context to be initialized

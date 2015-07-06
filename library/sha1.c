@@ -89,6 +89,12 @@ void mbedtls_sha1_free( mbedtls_sha1_context *ctx )
     mbedtls_zeroize( ctx, sizeof( mbedtls_sha1_context ) );
 }
 
+void mbedtls_sha1_clone( mbedtls_sha1_context *dst,
+                         const mbedtls_sha1_context *src )
+{
+    *dst = *src;
+}
+
 /*
  * SHA-1 context setup
  */

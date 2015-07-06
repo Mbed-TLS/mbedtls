@@ -89,6 +89,12 @@ void mbedtls_md5_free( mbedtls_md5_context *ctx )
     mbedtls_zeroize( ctx, sizeof( mbedtls_md5_context ) );
 }
 
+void mbedtls_md5_clone( mbedtls_md5_context *dst,
+                        const mbedtls_md5_context *src )
+{
+    *dst = *src;
+}
+
 /*
  * MD5 context setup
  */

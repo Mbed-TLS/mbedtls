@@ -150,6 +150,12 @@ void mbedtls_sha512_free( mbedtls_sha512_context *ctx )
     mbedtls_zeroize( ctx, sizeof( mbedtls_sha512_context ) );
 }
 
+void mbedtls_sha512_clone( mbedtls_sha512_context *dst,
+                           const mbedtls_sha512_context *src )
+{
+    *dst = *src;
+}
+
 /*
  * SHA-512 context setup
  */

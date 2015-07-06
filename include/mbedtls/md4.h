@@ -67,6 +67,15 @@ void mbedtls_md4_init( mbedtls_md4_context *ctx );
 void mbedtls_md4_free( mbedtls_md4_context *ctx );
 
 /**
+ * \brief          Clone (the state of) an MD4 context
+ *
+ * \param dst      The destination context
+ * \param src      The context to be cloned
+ */
+void mbedtls_md4_clone( mbedtls_md4_context *dst,
+                        const mbedtls_md4_context *src );
+
+/**
  * \brief          MD4 context setup
  *
  * \param ctx      context to be initialized

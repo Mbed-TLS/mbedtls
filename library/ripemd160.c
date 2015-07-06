@@ -88,6 +88,12 @@ void mbedtls_ripemd160_free( mbedtls_ripemd160_context *ctx )
     mbedtls_zeroize( ctx, sizeof( mbedtls_ripemd160_context ) );
 }
 
+void mbedtls_ripemd160_clone( mbedtls_ripemd160_context *dst,
+                        const mbedtls_ripemd160_context *src )
+{
+    *dst = *src;
+}
+
 /*
  * RIPEMD-160 context setup
  */

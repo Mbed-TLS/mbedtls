@@ -437,9 +437,9 @@ hard_test:
     if( hardfail > 1 )
     {
         if( verbose != 0 )
-            polarssl_printf( "failed\n" );
+            polarssl_printf( "failed (ignored)\n" );
 
-        return( 1 );
+        goto hard_test_done;
     }
 
     /* Get a reference ratio cycles/ms */
@@ -467,6 +467,8 @@ hard_test:
 
     if( verbose != 0 )
         polarssl_printf( "passed\n" );
+
+hard_test_done:
 
 #if defined(POLARSSL_NET_C) && defined(POLARSSL_HAVE_TIME)
     if( verbose != 0 )

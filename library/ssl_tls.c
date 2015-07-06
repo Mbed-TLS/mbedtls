@@ -6501,6 +6501,20 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_handshake_params *handshake )
     if( handshake == NULL )
         return;
 
+#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
+    defined(MBEDTLS_SSL_PROTO_TLS1_1)
+    mbedtls_md5_free(    &handshake->fin_md5  );
+    mbedtls_sha1_free(   &handshake->fin_sha1 );
+#endif
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SHA256_C)
+    mbedtls_sha256_free(   &handshake->fin_sha256    );
+#endif
+#if defined(MBEDTLS_SHA512_C)
+    mbedtls_sha512_free(   &handshake->fin_sha512    );
+#endif
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
 #if defined(MBEDTLS_DHM_C)
     mbedtls_dhm_free( &handshake->dhm_ctx );
 #endif

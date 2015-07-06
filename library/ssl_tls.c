@@ -963,8 +963,11 @@ void ssl_calc_verify_ssl( mbedtls_ssl_context *ssl, unsigned char hash[36] )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc verify ssl" ) );
 
-    memcpy( &md5 , &ssl->handshake->fin_md5 , sizeof(mbedtls_md5_context)  );
-    memcpy( &sha1, &ssl->handshake->fin_sha1, sizeof(mbedtls_sha1_context) );
+    mbedtls_md5_init( &md5 );
+    mbedtls_sha1_init( &sha1 );
+
+    mbedtls_md5_clone( &md5, &ssl->handshake->fin_md5 );
+    mbedtls_sha1_clone( &sha1, &ssl->handshake->fin_sha1 );
 
     memset( pad_1, 0x36, 48 );
     memset( pad_2, 0x5C, 48 );
@@ -1007,8 +1010,11 @@ void ssl_calc_verify_tls( mbedtls_ssl_context *ssl, unsigned char hash[36] )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc verify tls" ) );
 
-    memcpy( &md5 , &ssl->handshake->fin_md5 , sizeof(mbedtls_md5_context)  );
-    memcpy( &sha1, &ssl->handshake->fin_sha1, sizeof(mbedtls_sha1_context) );
+    mbedtls_md5_init( &md5 );
+    mbedtls_sha1_init( &sha1 );
+
+    mbedtls_md5_clone( &md5, &ssl->handshake->fin_md5 );
+    mbedtls_sha1_clone( &sha1, &ssl->handshake->fin_sha1 );
 
      mbedtls_md5_finish( &md5,  hash );
     mbedtls_sha1_finish( &sha1, hash + 16 );
@@ -1029,9 +1035,11 @@ void ssl_calc_verify_tls_sha256( mbedtls_ssl_context *ssl, unsigned char hash[32
 {
     mbedtls_sha256_context sha256;
 
+    mbedtls_sha256_init( &sha256 );
+
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc verify sha256" ) );
 
-    memcpy( &sha256, &ssl->handshake->fin_sha256, sizeof(mbedtls_sha256_context) );
+    mbedtls_sha256_clone( &sha256, &ssl->handshake->fin_sha256 );
     mbedtls_sha256_finish( &sha256, hash );
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "calculated verify result", hash, 32 );
@@ -1047,6 +1055,8 @@ void ssl_calc_verify_tls_sha256( mbedtls_ssl_context *ssl, unsigned char hash[32
 void ssl_calc_verify_tls_sha384( mbedtls_ssl_context *ssl, unsigned char hash[48] )
 {
     mbedtls_sha512_context sha512;
+
+    mbedtls_sha512_init( &sha512 );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc verify sha384" ) );
 
@@ -4369,8 +4379,11 @@ static void ssl_calc_finished_ssl(
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc  finished ssl" ) );
 
-    memcpy( &md5 , &ssl->handshake->fin_md5 , sizeof(mbedtls_md5_context)  );
-    memcpy( &sha1, &ssl->handshake->fin_sha1, sizeof(mbedtls_sha1_context) );
+    mbedtls_md5_init( &md5 );
+    mbedtls_sha1_init( &sha1 );
+
+    mbedtls_md5_clone( &md5, &ssl->handshake->fin_md5 );
+    mbedtls_sha1_clone( &sha1, &ssl->handshake->fin_sha1 );
 
     /*
      * SSLv3:
@@ -4449,8 +4462,11 @@ static void ssl_calc_finished_tls(
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc  finished tls" ) );
 
-    memcpy( &md5 , &ssl->handshake->fin_md5 , sizeof(mbedtls_md5_context)  );
-    memcpy( &sha1, &ssl->handshake->fin_sha1, sizeof(mbedtls_sha1_context) );
+    mbedtls_md5_init( &md5 );
+    mbedtls_sha1_init( &sha1 );
+
+    mbedtls_md5_clone( &md5, &ssl->handshake->fin_md5 );
+    mbedtls_sha1_clone( &sha1, &ssl->handshake->fin_sha1 );
 
     /*
      * TLSv1:
@@ -4503,9 +4519,11 @@ static void ssl_calc_finished_tls_sha256(
     if( !session )
         session = ssl->session;
 
+    mbedtls_sha256_init( &sha256 );
+
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc  finished tls sha256" ) );
 
-    memcpy( &sha256, &ssl->handshake->fin_sha256, sizeof(mbedtls_sha256_context) );
+    mbedtls_sha256_clone( &sha256, &ssl->handshake->fin_sha256 );
 
     /*
      * TLSv1.2:
@@ -4550,9 +4568,11 @@ static void ssl_calc_finished_tls_sha384(
     if( !session )
         session = ssl->session;
 
+    mbedtls_sha512_init( &sha512 );
+
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc  finished tls sha384" ) );
 
-    memcpy( &mbedtls_sha512, &ssl->handshake->fin_sha512, sizeof(mbedtls_sha512_context) );
+    mbedtls_sha512_clone( &sha512, &ssl->handshake->fin_sha512 );
 
     /*
      * TLSv1.2:

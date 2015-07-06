@@ -224,14 +224,14 @@ static int ssl3_prf( const unsigned char *secret, size_t slen,
                      unsigned char *dstbuf, size_t dlen )
 {
     size_t i;
-    mbedtls_md5_context mbedtls_md5;
-    mbedtls_sha1_context mbedtls_sha1;
+    mbedtls_md5_context md5;
+    mbedtls_sha1_context sha1;
     unsigned char padding[16];
     unsigned char sha1sum[20];
     ((void)label);
 
-    mbedtls_md5_init(  &mbedtls_md5  );
-    mbedtls_sha1_init( &mbedtls_sha1 );
+    mbedtls_md5_init(  &md5  );
+    mbedtls_sha1_init( &sha1 );
 
     /*
      *  SSLv3:
@@ -245,20 +245,20 @@ static int ssl3_prf( const unsigned char *secret, size_t slen,
     {
         memset( padding, (unsigned char) ('A' + i), 1 + i );
 
-        mbedtls_sha1_starts( &mbedtls_sha1 );
-        mbedtls_sha1_update( &mbedtls_sha1, padding, 1 + i );
-        mbedtls_sha1_update( &mbedtls_sha1, secret, slen );
-        mbedtls_sha1_update( &mbedtls_sha1, random, rlen );
-        mbedtls_sha1_finish( &mbedtls_sha1, sha1sum );
+        mbedtls_sha1_starts( &sha1 );
+        mbedtls_sha1_update( &sha1, padding, 1 + i );
+        mbedtls_sha1_update( &sha1, secret, slen );
+        mbedtls_sha1_update( &sha1, random, rlen );
+        mbedtls_sha1_finish( &sha1, sha1sum );
 
-        mbedtls_md5_starts( &mbedtls_md5 );
-        mbedtls_md5_update( &mbedtls_md5, secret, slen );
-        mbedtls_md5_update( &mbedtls_md5, sha1sum, 20 );
-        mbedtls_md5_finish( &mbedtls_md5, dstbuf + i * 16 );
+        mbedtls_md5_starts( &md5 );
+        mbedtls_md5_update( &md5, secret, slen );
+        mbedtls_md5_update( &md5, sha1sum, 20 );
+        mbedtls_md5_finish( &md5, dstbuf + i * 16 );
     }
 
-    mbedtls_md5_free(  &mbedtls_md5  );
-    mbedtls_sha1_free( &mbedtls_sha1 );
+    mbedtls_md5_free(  &md5  );
+    mbedtls_sha1_free( &sha1 );
 
     mbedtls_zeroize( padding, sizeof( padding ) );
     mbedtls_zeroize( sha1sum, sizeof( sha1sum ) );
@@ -956,44 +956,44 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
 void ssl_calc_verify_ssl( mbedtls_ssl_context *ssl, unsigned char hash[36] )
 {
-    mbedtls_md5_context mbedtls_md5;
-    mbedtls_sha1_context mbedtls_sha1;
+    mbedtls_md5_context md5;
+    mbedtls_sha1_context sha1;
     unsigned char pad_1[48];
     unsigned char pad_2[48];
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc verify ssl" ) );
 
-    memcpy( &mbedtls_md5 , &ssl->handshake->fin_md5 , sizeof(mbedtls_md5_context)  );
-    memcpy( &mbedtls_sha1, &ssl->handshake->fin_sha1, sizeof(mbedtls_sha1_context) );
+    memcpy( &md5 , &ssl->handshake->fin_md5 , sizeof(mbedtls_md5_context)  );
+    memcpy( &sha1, &ssl->handshake->fin_sha1, sizeof(mbedtls_sha1_context) );
 
     memset( pad_1, 0x36, 48 );
     memset( pad_2, 0x5C, 48 );
 
-    mbedtls_md5_update( &mbedtls_md5, ssl->session_negotiate->master, 48 );
-    mbedtls_md5_update( &mbedtls_md5, pad_1, 48 );
-    mbedtls_md5_finish( &mbedtls_md5, hash );
+    mbedtls_md5_update( &md5, ssl->session_negotiate->master, 48 );
+    mbedtls_md5_update( &md5, pad_1, 48 );
+    mbedtls_md5_finish( &md5, hash );
 
-    mbedtls_md5_starts( &mbedtls_md5 );
-    mbedtls_md5_update( &mbedtls_md5, ssl->session_negotiate->master, 48 );
-    mbedtls_md5_update( &mbedtls_md5, pad_2, 48 );
-    mbedtls_md5_update( &mbedtls_md5, hash,  16 );
-    mbedtls_md5_finish( &mbedtls_md5, hash );
+    mbedtls_md5_starts( &md5 );
+    mbedtls_md5_update( &md5, ssl->session_negotiate->master, 48 );
+    mbedtls_md5_update( &md5, pad_2, 48 );
+    mbedtls_md5_update( &md5, hash,  16 );
+    mbedtls_md5_finish( &md5, hash );
 
-    mbedtls_sha1_update( &mbedtls_sha1, ssl->session_negotiate->master, 48 );
-    mbedtls_sha1_update( &mbedtls_sha1, pad_1, 40 );
-    mbedtls_sha1_finish( &mbedtls_sha1, hash + 16 );
+    mbedtls_sha1_update( &sha1, ssl->session_negotiate->master, 48 );
+    mbedtls_sha1_update( &sha1, pad_1, 40 );
+    mbedtls_sha1_finish( &sha1, hash + 16 );
 
-    mbedtls_sha1_starts( &mbedtls_sha1 );
-    mbedtls_sha1_update( &mbedtls_sha1, ssl->session_negotiate->master, 48 );
-    mbedtls_sha1_update( &mbedtls_sha1, pad_2, 40 );
-    mbedtls_sha1_update( &mbedtls_sha1, hash + 16, 20 );
-    mbedtls_sha1_finish( &mbedtls_sha1, hash + 16 );
+    mbedtls_sha1_starts( &sha1 );
+    mbedtls_sha1_update( &sha1, ssl->session_negotiate->master, 48 );
+    mbedtls_sha1_update( &sha1, pad_2, 40 );
+    mbedtls_sha1_update( &sha1, hash + 16, 20 );
+    mbedtls_sha1_finish( &sha1, hash + 16 );
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "calculated verify result", hash, 36 );
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
 
-    mbedtls_md5_free(  &mbedtls_md5  );
-    mbedtls_sha1_free( &mbedtls_sha1 );
+    mbedtls_md5_free(  &md5  );
+    mbedtls_sha1_free( &sha1 );
 
     return;
 }
@@ -1002,22 +1002,22 @@ void ssl_calc_verify_ssl( mbedtls_ssl_context *ssl, unsigned char hash[36] )
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
 void ssl_calc_verify_tls( mbedtls_ssl_context *ssl, unsigned char hash[36] )
 {
-    mbedtls_md5_context mbedtls_md5;
-    mbedtls_sha1_context mbedtls_sha1;
+    mbedtls_md5_context md5;
+    mbedtls_sha1_context sha1;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc verify tls" ) );
 
-    memcpy( &mbedtls_md5 , &ssl->handshake->fin_md5 , sizeof(mbedtls_md5_context)  );
-    memcpy( &mbedtls_sha1, &ssl->handshake->fin_sha1, sizeof(mbedtls_sha1_context) );
+    memcpy( &md5 , &ssl->handshake->fin_md5 , sizeof(mbedtls_md5_context)  );
+    memcpy( &sha1, &ssl->handshake->fin_sha1, sizeof(mbedtls_sha1_context) );
 
-     mbedtls_md5_finish( &mbedtls_md5,  hash );
-    mbedtls_sha1_finish( &mbedtls_sha1, hash + 16 );
+     mbedtls_md5_finish( &md5,  hash );
+    mbedtls_sha1_finish( &sha1, hash + 16 );
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "calculated verify result", hash, 36 );
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
 
-    mbedtls_md5_free(  &mbedtls_md5  );
-    mbedtls_sha1_free( &mbedtls_sha1 );
+    mbedtls_md5_free(  &md5  );
+    mbedtls_sha1_free( &sha1 );
 
     return;
 }
@@ -1027,17 +1027,17 @@ void ssl_calc_verify_tls( mbedtls_ssl_context *ssl, unsigned char hash[36] )
 #if defined(MBEDTLS_SHA256_C)
 void ssl_calc_verify_tls_sha256( mbedtls_ssl_context *ssl, unsigned char hash[32] )
 {
-    mbedtls_sha256_context mbedtls_sha256;
+    mbedtls_sha256_context sha256;
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc verify mbedtls_sha256" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc verify sha256" ) );
 
-    memcpy( &mbedtls_sha256, &ssl->handshake->fin_sha256, sizeof(mbedtls_sha256_context) );
-    mbedtls_sha256_finish( &mbedtls_sha256, hash );
+    memcpy( &sha256, &ssl->handshake->fin_sha256, sizeof(mbedtls_sha256_context) );
+    mbedtls_sha256_finish( &sha256, hash );
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "calculated verify result", hash, 32 );
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
 
-    mbedtls_sha256_free( &mbedtls_sha256 );
+    mbedtls_sha256_free( &sha256 );
 
     return;
 }
@@ -1046,17 +1046,17 @@ void ssl_calc_verify_tls_sha256( mbedtls_ssl_context *ssl, unsigned char hash[32
 #if defined(MBEDTLS_SHA512_C)
 void ssl_calc_verify_tls_sha384( mbedtls_ssl_context *ssl, unsigned char hash[48] )
 {
-    mbedtls_sha512_context mbedtls_sha512;
+    mbedtls_sha512_context sha512;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc verify sha384" ) );
 
-    memcpy( &mbedtls_sha512, &ssl->handshake->fin_sha512, sizeof(mbedtls_sha512_context) );
-    mbedtls_sha512_finish( &mbedtls_sha512, hash );
+    mbedtls_sha512_clone( &sha512, &ssl->handshake->fin_sha512 );
+    mbedtls_sha512_finish( &sha512, hash );
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "calculated verify result", hash, 48 );
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
 
-    mbedtls_sha512_free( &mbedtls_sha512 );
+    mbedtls_sha512_free( &sha512 );
 
     return;
 }
@@ -4356,8 +4356,8 @@ static void ssl_calc_finished_ssl(
                 mbedtls_ssl_context *ssl, unsigned char *buf, int from )
 {
     const char *sender;
-    mbedtls_md5_context  mbedtls_md5;
-    mbedtls_sha1_context mbedtls_sha1;
+    mbedtls_md5_context  md5;
+    mbedtls_sha1_context sha1;
 
     unsigned char padbuf[48];
     unsigned char md5sum[16];
@@ -4369,8 +4369,8 @@ static void ssl_calc_finished_ssl(
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc  finished ssl" ) );
 
-    memcpy( &mbedtls_md5 , &ssl->handshake->fin_md5 , sizeof(mbedtls_md5_context)  );
-    memcpy( &mbedtls_sha1, &ssl->handshake->fin_sha1, sizeof(mbedtls_sha1_context) );
+    memcpy( &md5 , &ssl->handshake->fin_md5 , sizeof(mbedtls_md5_context)  );
+    memcpy( &sha1, &ssl->handshake->fin_sha1, sizeof(mbedtls_sha1_context) );
 
     /*
      * SSLv3:
@@ -4382,13 +4382,13 @@ static void ssl_calc_finished_ssl(
      */
 
 #if !defined(MBEDTLS_MD5_ALT)
-    MBEDTLS_SSL_DEBUG_BUF( 4, "finished  mbedtls_md5 state", (unsigned char *)
-                    mbedtls_md5.state, sizeof(  mbedtls_md5.state ) );
+    MBEDTLS_SSL_DEBUG_BUF( 4, "finished  md5 state", (unsigned char *)
+                    md5.state, sizeof(  md5.state ) );
 #endif
 
 #if !defined(MBEDTLS_SHA1_ALT)
-    MBEDTLS_SSL_DEBUG_BUF( 4, "finished mbedtls_sha1 state", (unsigned char *)
-                   mbedtls_sha1.state, sizeof( mbedtls_sha1.state ) );
+    MBEDTLS_SSL_DEBUG_BUF( 4, "finished sha1 state", (unsigned char *)
+                   sha1.state, sizeof( sha1.state ) );
 #endif
 
     sender = ( from == MBEDTLS_SSL_IS_CLIENT ) ? "CLNT"
@@ -4396,34 +4396,34 @@ static void ssl_calc_finished_ssl(
 
     memset( padbuf, 0x36, 48 );
 
-    mbedtls_md5_update( &mbedtls_md5, (const unsigned char *) sender, 4 );
-    mbedtls_md5_update( &mbedtls_md5, session->master, 48 );
-    mbedtls_md5_update( &mbedtls_md5, padbuf, 48 );
-    mbedtls_md5_finish( &mbedtls_md5, md5sum );
+    mbedtls_md5_update( &md5, (const unsigned char *) sender, 4 );
+    mbedtls_md5_update( &md5, session->master, 48 );
+    mbedtls_md5_update( &md5, padbuf, 48 );
+    mbedtls_md5_finish( &md5, md5sum );
 
-    mbedtls_sha1_update( &mbedtls_sha1, (const unsigned char *) sender, 4 );
-    mbedtls_sha1_update( &mbedtls_sha1, session->master, 48 );
-    mbedtls_sha1_update( &mbedtls_sha1, padbuf, 40 );
-    mbedtls_sha1_finish( &mbedtls_sha1, sha1sum );
+    mbedtls_sha1_update( &sha1, (const unsigned char *) sender, 4 );
+    mbedtls_sha1_update( &sha1, session->master, 48 );
+    mbedtls_sha1_update( &sha1, padbuf, 40 );
+    mbedtls_sha1_finish( &sha1, sha1sum );
 
     memset( padbuf, 0x5C, 48 );
 
-    mbedtls_md5_starts( &mbedtls_md5 );
-    mbedtls_md5_update( &mbedtls_md5, session->master, 48 );
-    mbedtls_md5_update( &mbedtls_md5, padbuf, 48 );
-    mbedtls_md5_update( &mbedtls_md5, md5sum, 16 );
-    mbedtls_md5_finish( &mbedtls_md5, buf );
+    mbedtls_md5_starts( &md5 );
+    mbedtls_md5_update( &md5, session->master, 48 );
+    mbedtls_md5_update( &md5, padbuf, 48 );
+    mbedtls_md5_update( &md5, md5sum, 16 );
+    mbedtls_md5_finish( &md5, buf );
 
-    mbedtls_sha1_starts( &mbedtls_sha1 );
-    mbedtls_sha1_update( &mbedtls_sha1, session->master, 48 );
-    mbedtls_sha1_update( &mbedtls_sha1, padbuf , 40 );
-    mbedtls_sha1_update( &mbedtls_sha1, sha1sum, 20 );
-    mbedtls_sha1_finish( &mbedtls_sha1, buf + 16 );
+    mbedtls_sha1_starts( &sha1 );
+    mbedtls_sha1_update( &sha1, session->master, 48 );
+    mbedtls_sha1_update( &sha1, padbuf , 40 );
+    mbedtls_sha1_update( &sha1, sha1sum, 20 );
+    mbedtls_sha1_finish( &sha1, buf + 16 );
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "calc finished result", buf, 36 );
 
-    mbedtls_md5_free(  &mbedtls_md5  );
-    mbedtls_sha1_free( &mbedtls_sha1 );
+    mbedtls_md5_free(  &md5  );
+    mbedtls_sha1_free( &sha1 );
 
     mbedtls_zeroize(  padbuf, sizeof(  padbuf ) );
     mbedtls_zeroize(  md5sum, sizeof(  md5sum ) );
@@ -4439,8 +4439,8 @@ static void ssl_calc_finished_tls(
 {
     int len = 12;
     const char *sender;
-    mbedtls_md5_context  mbedtls_md5;
-    mbedtls_sha1_context mbedtls_sha1;
+    mbedtls_md5_context  md5;
+    mbedtls_sha1_context sha1;
     unsigned char padbuf[36];
 
     mbedtls_ssl_session *session = ssl->session_negotiate;
@@ -4449,8 +4449,8 @@ static void ssl_calc_finished_tls(
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc  finished tls" ) );
 
-    memcpy( &mbedtls_md5 , &ssl->handshake->fin_md5 , sizeof(mbedtls_md5_context)  );
-    memcpy( &mbedtls_sha1, &ssl->handshake->fin_sha1, sizeof(mbedtls_sha1_context) );
+    memcpy( &md5 , &ssl->handshake->fin_md5 , sizeof(mbedtls_md5_context)  );
+    memcpy( &sha1, &ssl->handshake->fin_sha1, sizeof(mbedtls_sha1_context) );
 
     /*
      * TLSv1:
@@ -4459,29 +4459,29 @@ static void ssl_calc_finished_tls(
      */
 
 #if !defined(MBEDTLS_MD5_ALT)
-    MBEDTLS_SSL_DEBUG_BUF( 4, "finished  mbedtls_md5 state", (unsigned char *)
-                    mbedtls_md5.state, sizeof(  mbedtls_md5.state ) );
+    MBEDTLS_SSL_DEBUG_BUF( 4, "finished  md5 state", (unsigned char *)
+                    md5.state, sizeof(  md5.state ) );
 #endif
 
 #if !defined(MBEDTLS_SHA1_ALT)
-    MBEDTLS_SSL_DEBUG_BUF( 4, "finished mbedtls_sha1 state", (unsigned char *)
-                   mbedtls_sha1.state, sizeof( mbedtls_sha1.state ) );
+    MBEDTLS_SSL_DEBUG_BUF( 4, "finished sha1 state", (unsigned char *)
+                   sha1.state, sizeof( sha1.state ) );
 #endif
 
     sender = ( from == MBEDTLS_SSL_IS_CLIENT )
              ? "client finished"
              : "server finished";
 
-    mbedtls_md5_finish(  &mbedtls_md5, padbuf );
-    mbedtls_sha1_finish( &mbedtls_sha1, padbuf + 16 );
+    mbedtls_md5_finish(  &md5, padbuf );
+    mbedtls_sha1_finish( &sha1, padbuf + 16 );
 
     ssl->handshake->tls_prf( session->master, 48, sender,
                              padbuf, 36, buf, len );
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
 
-    mbedtls_md5_free(  &mbedtls_md5  );
-    mbedtls_sha1_free( &mbedtls_sha1 );
+    mbedtls_md5_free(  &md5  );
+    mbedtls_sha1_free( &sha1 );
 
     mbedtls_zeroize(  padbuf, sizeof(  padbuf ) );
 
@@ -4496,16 +4496,16 @@ static void ssl_calc_finished_tls_sha256(
 {
     int len = 12;
     const char *sender;
-    mbedtls_sha256_context mbedtls_sha256;
+    mbedtls_sha256_context sha256;
     unsigned char padbuf[32];
 
     mbedtls_ssl_session *session = ssl->session_negotiate;
     if( !session )
         session = ssl->session;
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc  finished tls mbedtls_sha256" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc  finished tls sha256" ) );
 
-    memcpy( &mbedtls_sha256, &ssl->handshake->fin_sha256, sizeof(mbedtls_sha256_context) );
+    memcpy( &sha256, &ssl->handshake->fin_sha256, sizeof(mbedtls_sha256_context) );
 
     /*
      * TLSv1.2:
@@ -4515,21 +4515,21 @@ static void ssl_calc_finished_tls_sha256(
 
 #if !defined(MBEDTLS_SHA256_ALT)
     MBEDTLS_SSL_DEBUG_BUF( 4, "finished sha2 state", (unsigned char *)
-                   mbedtls_sha256.state, sizeof( mbedtls_sha256.state ) );
+                   sha256.state, sizeof( sha256.state ) );
 #endif
 
     sender = ( from == MBEDTLS_SSL_IS_CLIENT )
              ? "client finished"
              : "server finished";
 
-    mbedtls_sha256_finish( &mbedtls_sha256, padbuf );
+    mbedtls_sha256_finish( &sha256, padbuf );
 
     ssl->handshake->tls_prf( session->master, 48, sender,
                              padbuf, 32, buf, len );
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
 
-    mbedtls_sha256_free( &mbedtls_sha256 );
+    mbedtls_sha256_free( &sha256 );
 
     mbedtls_zeroize(  padbuf, sizeof(  padbuf ) );
 
@@ -4543,7 +4543,7 @@ static void ssl_calc_finished_tls_sha384(
 {
     int len = 12;
     const char *sender;
-    mbedtls_sha512_context mbedtls_sha512;
+    mbedtls_sha512_context sha512;
     unsigned char padbuf[48];
 
     mbedtls_ssl_session *session = ssl->session_negotiate;
@@ -4561,22 +4561,22 @@ static void ssl_calc_finished_tls_sha384(
      */
 
 #if !defined(MBEDTLS_SHA512_ALT)
-    MBEDTLS_SSL_DEBUG_BUF( 4, "finished mbedtls_sha512 state", (unsigned char *)
-                   mbedtls_sha512.state, sizeof( mbedtls_sha512.state ) );
+    MBEDTLS_SSL_DEBUG_BUF( 4, "finished sha512 state", (unsigned char *)
+                   sha512.state, sizeof( sha512.state ) );
 #endif
 
     sender = ( from == MBEDTLS_SSL_IS_CLIENT )
              ? "client finished"
              : "server finished";
 
-    mbedtls_sha512_finish( &mbedtls_sha512, padbuf );
+    mbedtls_sha512_finish( &sha512, padbuf );
 
     ssl->handshake->tls_prf( session->master, 48, sender,
                              padbuf, 48, buf, len );
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
 
-    mbedtls_sha512_free( &mbedtls_sha512 );
+    mbedtls_sha512_free( &sha512 );
 
     mbedtls_zeroize(  padbuf, sizeof( padbuf ) );
 

@@ -74,21 +74,6 @@ requires_config_enabled() {
     fi
 }
 
-# skip next test if OpenSSL can't send SSLv2 ClientHello
-requires_openssl_with_sslv2() {
-    if [ -z "${OPENSSL_HAS_SSL2:-}" ]; then
-        if $OPENSSL_CMD ciphers -ssl2 >/dev/null 2>&1; then
-            OPENSSL_HAS_SSL2="YES"
-        else
-            OPENSSL_HAS_SSL2="NO"
-        fi
-    fi
-
-    if [ "$OPENSSL_HAS_SSL2" = "NO" ]; then
-        SKIP_NEXT="YES"
-    fi
-}
-
 # skip next test if OpenSSL doesn't support FALLBACK_SCSV
 requires_openssl_with_fallback_scsv() {
     if [ -z "${OPENSSL_HAS_FBSCSV:-}" ]; then
@@ -582,27 +567,6 @@ run_test    "RC4: both enabled" \
             0 \
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - The server has no ciphersuites in common"
-
-# Test for SSLv2 ClientHello
-
-requires_openssl_with_sslv2
-requires_config_enabled MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
-run_test    "SSLv2 ClientHello: reference" \
-            "$P_SRV debug_level=3" \
-            "$O_CLI -no_ssl2" \
-            0 \
-            -S "parse client hello v2" \
-            -S "mbedtls_ssl_handshake returned"
-
-# Adding a SSL2-only suite makes OpenSSL client send SSLv2 ClientHello
-requires_openssl_with_sslv2
-requires_config_enabled MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
-run_test    "SSLv2 ClientHello: actual test" \
-            "$P_SRV debug_level=2" \
-            "$O_CLI -cipher 'DES-CBC-MD5:ALL'" \
-            0 \
-            -s "parse client hello v2" \
-            -S "mbedtls_ssl_handshake returned"
 
 # Tests for Truncated HMAC extension
 

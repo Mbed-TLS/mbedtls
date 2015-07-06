@@ -77,6 +77,9 @@ struct mbedtls_md_info_t
     /** Free the given context */
     void (*ctx_free_func)( void *ctx );
 
+    /** Clone state from a context */
+    void (*clone_func)( void *dst, const void *src );
+
     /** Internal use only */
     void (*process_func)( void *ctx, const unsigned char *input );
 };

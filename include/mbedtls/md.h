@@ -164,6 +164,23 @@ int mbedtls_md_init_ctx( mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_
 int mbedtls_md_setup( mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_info, int hmac );
 
 /**
+ * \brief           Clone the state of an MD context
+ *
+ * \note            The two contexts must have been setup to the same type
+ *                  (cloning from SHA-256 to SHA-512 make no sense).
+ *
+ * \warning         Only clones the MD state, not the HMAC state! (for now)
+ *
+ * \param dst       The destination context
+ * \param src       The context to be cloned
+ *
+ * \return          \c 0 on success,
+ *                  \c MBEDTLS_ERR_MD_BAD_INPUT_DATA on parameter failure.
+ */
+int mbedtls_md_clone( mbedtls_md_context_t *dst,
+                      const mbedtls_md_context_t *src );
+
+/**
  * \brief           Returns the size of the message digest output.
  *
  * \param md_info   message digest info

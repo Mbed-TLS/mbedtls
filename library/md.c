@@ -201,6 +201,21 @@ void mbedtls_md_free( mbedtls_md_context_t *ctx )
     mbedtls_zeroize( ctx, sizeof( mbedtls_md_context_t ) );
 }
 
+int mbedtls_md_clone( mbedtls_md_context_t *dst,
+                      const mbedtls_md_context_t *src )
+{
+    if( dst == NULL || dst->md_info == NULL ||
+        src == NULL || src->md_info == NULL ||
+        dst->md_info != src->md_info )
+    {
+        return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+    }
+
+    dst->md_info->clone_func( dst->md_ctx, src->md_ctx );
+
+    return( 0 );
+}
+
 #if ! defined(MBEDTLS_DEPRECATED_REMOVED)
 int mbedtls_md_init_ctx( mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_info )
 {

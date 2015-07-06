@@ -104,6 +104,12 @@ static void md2_ctx_free( void *ctx )
     mbedtls_free( ctx );
 }
 
+static void md2_clone_wrap( void *dst, const void *src )
+{
+    mbedtls_md2_clone( (mbedtls_md2_context *) dst,
+                 (const mbedtls_md2_context *) src );
+}
+
 static void md2_process_wrap( void *ctx, const unsigned char *data )
 {
     ((void) data);
@@ -122,6 +128,7 @@ const mbedtls_md_info_t mbedtls_md2_info = {
     mbedtls_md2,
     md2_ctx_alloc,
     md2_ctx_free,
+    md2_clone_wrap,
     md2_process_wrap,
 };
 
@@ -161,6 +168,12 @@ static void md4_ctx_free( void *ctx )
     mbedtls_free( ctx );
 }
 
+static void md4_clone_wrap( void *dst, const void *src )
+{
+    mbedtls_md4_clone( (mbedtls_md4_context *) dst,
+                 (const mbedtls_md4_context *) src );
+}
+
 static void md4_process_wrap( void *ctx, const unsigned char *data )
 {
     mbedtls_md4_process( (mbedtls_md4_context *) ctx, data );
@@ -177,6 +190,7 @@ const mbedtls_md_info_t mbedtls_md4_info = {
     mbedtls_md4,
     md4_ctx_alloc,
     md4_ctx_free,
+    md4_clone_wrap,
     md4_process_wrap,
 };
 
@@ -216,6 +230,12 @@ static void md5_ctx_free( void *ctx )
     mbedtls_free( ctx );
 }
 
+static void md5_clone_wrap( void *dst, const void *src )
+{
+    mbedtls_md5_clone( (mbedtls_md5_context *) dst,
+                 (const mbedtls_md5_context *) src );
+}
+
 static void md5_process_wrap( void *ctx, const unsigned char *data )
 {
     mbedtls_md5_process( (mbedtls_md5_context *) ctx, data );
@@ -232,6 +252,7 @@ const mbedtls_md_info_t mbedtls_md5_info = {
     mbedtls_md5,
     md5_ctx_alloc,
     md5_ctx_free,
+    md5_clone_wrap,
     md5_process_wrap,
 };
 
@@ -271,6 +292,12 @@ static void ripemd160_ctx_free( void *ctx )
     mbedtls_free( ctx );
 }
 
+static void ripemd160_clone_wrap( void *dst, const void *src )
+{
+    mbedtls_ripemd160_clone( (mbedtls_ripemd160_context *) dst,
+                       (const mbedtls_ripemd160_context *) src );
+}
+
 static void ripemd160_process_wrap( void *ctx, const unsigned char *data )
 {
     mbedtls_ripemd160_process( (mbedtls_ripemd160_context *) ctx, data );
@@ -287,6 +314,7 @@ const mbedtls_md_info_t mbedtls_ripemd160_info = {
     mbedtls_ripemd160,
     ripemd160_ctx_alloc,
     ripemd160_ctx_free,
+    ripemd160_clone_wrap,
     ripemd160_process_wrap,
 };
 
@@ -320,6 +348,12 @@ static void *sha1_ctx_alloc( void )
     return( ctx );
 }
 
+static void sha1_clone_wrap( void *dst, const void *src )
+{
+    mbedtls_sha1_clone( (mbedtls_sha1_context *) dst,
+                  (const mbedtls_sha1_context *) src );
+}
+
 static void sha1_ctx_free( void *ctx )
 {
     mbedtls_sha1_free( (mbedtls_sha1_context *) ctx );
@@ -342,6 +376,7 @@ const mbedtls_md_info_t mbedtls_sha1_info = {
     mbedtls_sha1,
     sha1_ctx_alloc,
     sha1_ctx_free,
+    sha1_clone_wrap,
     sha1_process_wrap,
 };
 
@@ -390,6 +425,12 @@ static void sha224_ctx_free( void *ctx )
     mbedtls_free( ctx );
 }
 
+static void sha224_clone_wrap( void *dst, const void *src )
+{
+    mbedtls_sha256_clone( (mbedtls_sha256_context *) dst,
+                    (const mbedtls_sha256_context *) src );
+}
+
 static void sha224_process_wrap( void *ctx, const unsigned char *data )
 {
     mbedtls_sha256_process( (mbedtls_sha256_context *) ctx, data );
@@ -406,6 +447,7 @@ const mbedtls_md_info_t mbedtls_sha224_info = {
     sha224_wrap,
     sha224_ctx_alloc,
     sha224_ctx_free,
+    sha224_clone_wrap,
     sha224_process_wrap,
 };
 
@@ -431,6 +473,7 @@ const mbedtls_md_info_t mbedtls_sha256_info = {
     sha256_wrap,
     sha224_ctx_alloc,
     sha224_ctx_free,
+    sha224_clone_wrap,
     sha224_process_wrap,
 };
 
@@ -476,6 +519,12 @@ static void sha384_ctx_free( void *ctx )
     mbedtls_free( ctx );
 }
 
+static void sha384_clone_wrap( void *dst, const void *src )
+{
+    mbedtls_sha512_clone( (mbedtls_sha512_context *) dst,
+                    (const mbedtls_sha512_context *) src );
+}
+
 static void sha384_process_wrap( void *ctx, const unsigned char *data )
 {
     mbedtls_sha512_process( (mbedtls_sha512_context *) ctx, data );
@@ -492,6 +541,7 @@ const mbedtls_md_info_t mbedtls_sha384_info = {
     sha384_wrap,
     sha384_ctx_alloc,
     sha384_ctx_free,
+    sha384_clone_wrap,
     sha384_process_wrap,
 };
 
@@ -517,6 +567,7 @@ const mbedtls_md_info_t mbedtls_sha512_info = {
     sha512_wrap,
     sha384_ctx_alloc,
     sha384_ctx_free,
+    sha384_clone_wrap,
     sha384_process_wrap,
 };
 

@@ -589,6 +589,12 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite requires certificate" ) );
 
+    if( list == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "server has no certificate" ) );
+        return( -1 );
+    }
+
     for( cur = list; cur != NULL; cur = cur->next )
     {
         MBEDTLS_SSL_DEBUG_CRT( 3, "candidate certificate chain, certificate",
@@ -648,7 +654,6 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
 
     if( cur == NULL )
         cur = fallback;
-
 
     /* Do not update ssl->handshake->key_cert unless there is a match */
     if( cur != NULL )

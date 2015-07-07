@@ -2515,7 +2515,10 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
          * opaque psk_identity<0..2^16-1>;
          */
         if( ssl->conf->psk == NULL || ssl->conf->psk_identity == NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no private key for PSK" ) );
             return( MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED );
+        }
 
         i = 4;
         n = ssl->conf->psk_identity_len;
@@ -2695,7 +2698,7 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
 
     if( mbedtls_ssl_own_key( ssl ) == NULL )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no private key" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no private key for certificate" ) );
         return( MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED );
     }
 

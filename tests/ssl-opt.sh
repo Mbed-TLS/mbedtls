@@ -2256,11 +2256,10 @@ run_test    "extKeyUsage srv: codeSign,anyEKU -> OK" \
             "$P_CLI" \
             0
 
-# add psk to leave an option for client to send SERVERQUIT
 run_test    "extKeyUsage srv: codeSign -> fail" \
-            "$P_SRV psk=abc123 key_file=data_files/server5.key \
+            "$P_SRV key_file=data_files/server5.key \
              crt_file=data_files/server5.eku-cli.crt" \
-            "$P_CLI psk=badbad" \
+            "$P_CLI" \
             1
 
 # Tests for extendedKeyUsage, part 2: client-side checking of server cert

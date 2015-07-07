@@ -690,7 +690,7 @@ add_mbedtls_ciphersuites()
             ;;
 
         "PSK")
-            # *PKS-NULL-SHA suites supported by GnuTLS 3.3.5 but not 3.2.15
+            # *PSK-NULL-SHA suites supported by GnuTLS 3.3.5 but not 3.2.15
             P_CIPHERS="$P_CIPHERS                        \
                 TLS-PSK-WITH-NULL-SHA                    \
                 TLS-DHE-PSK-WITH-NULL-SHA                \

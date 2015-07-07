@@ -32,9 +32,9 @@
 
 #include <string.h>
 
-#if defined(__ARMCC_VERSION) && !defined(inline)
+#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && !defined(inline)
 #define inline __inline
-#endif /* __ARMCC_VERSION */
+#endif
 
 /*
  * Conversion macros for embedded constants:

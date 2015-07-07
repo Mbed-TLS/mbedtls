@@ -42,9 +42,9 @@
 #include "sha512.h"
 #endif
 
-#if defined(__ARMCC_VERSION) && !defined(inline)
+#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && !defined(inline)
 #define inline __inline
-#endif /* __ARMCC_VERSION */
+#endif
 
 /* Determine minimum supported version */
 #define MBEDTLS_SSL_MIN_MAJOR_VERSION           MBEDTLS_SSL_MAJOR_VERSION_3

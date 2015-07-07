@@ -38,9 +38,9 @@
 
 #include <pkcs11-helper-1.0/pkcs11h-certificate.h>
 
-#if defined(__ARMCC_VERSION) && !defined(inline)
+#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && !defined(inline)
 #define inline __inline
-#endif /* __ARMCC_VERSION */
+#endif
 
 #ifdef __cplusplus
 extern "C" {

@@ -45,14 +45,7 @@ option(USE_PKCS11_HELPER_LIBRARY "Build mbed TLS with the pkcs11-helper library.
 option(ENABLE_ZLIB_SUPPORT "Build mbed TLS with zlib library." OFF)
 option(ENABLE_PROGRAMS "Build mbed TLS programs." ON)
 
-# Tests need Perl. Ideally we would use CMake's FindPerl module,
-# but it is only available since CMake 3.0 (released June 2014).
-# Assume Perl is available on Unix, and allow user to override.
-if(UNIX)
-    option(ENABLE_TESTING "Build mbed TLS tests." ON)
-else()
-    option(ENABLE_TESTING "Build mbed TLS tests." OFF)
-endif()
+option(ENABLE_TESTING "Build mbed TLS tests." ON)
 
 if(LIB_INSTALL_DIR)
 else()

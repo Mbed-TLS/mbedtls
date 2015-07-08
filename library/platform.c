@@ -75,7 +75,16 @@ int mbedtls_platform_win32_snprintf( char *s, size_t n, const char *fmt, ... )
         return( -1 );
 
     va_start( argp, fmt );
+#if defined(_TRUNCATE)
     ret = _vsnprintf_s( s, n, _TRUNCATE, fmt, argp );
+#else
+    ret = _vsnprintf( s, n, fmt, argp );
+    if( ret < 0 || (size_t) ret == n )
+    {
+        s[n-1] = '\0';
+        ret = -1;
+    }
+#endif
     va_end( argp );
 
     return( ret );

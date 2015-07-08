@@ -15,8 +15,6 @@ my $sed_cmd = 's/^#define \(MBEDTLS_ECP_DP.*_ENABLED\)/\1/p';
 my $config_h = 'include/mbedtls/config.h';
 my @curves = split( /\s+/, `sed -n -e '$sed_cmd' $config_h` );
 
-my $test = system( "grep -i cmake Makefile >/dev/null" ) ? 'check' : 'test';
-
 system( "cp $config_h $config_h.bak" ) and die;
 sub abort {
     system( "mv $config_h.bak $config_h" ) and warn "$config_h not restored\n";
@@ -36,7 +34,7 @@ for my $curve (@curves) {
 
     system( "make mbedtls" ) and abort "Failed to build lib: $curve\n";
     system( "cd tests && make" ) and abort "Failed to build tests: $curve\n";
-    system( "make $test" ) and abort "Failed test suite: $curve\n";
+    system( "make test" ) and abort "Failed test suite: $curve\n";
 
 }
 

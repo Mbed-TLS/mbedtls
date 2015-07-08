@@ -38,8 +38,6 @@ if ($#ARGV >= 0) {
 
 -d 'library' && -d 'include' && -d 'tests' or die "Must be run from root\n";
 
-my $test = system( "grep -i cmake Makefile >/dev/null" ) ? 'check' : 'test';
-
 my $config_h = 'include/mbedtls/config.h';
 
 system( "cp $config_h $config_h.bak" ) and die;
@@ -60,7 +58,7 @@ while( my ($conf, $args) = each %configs ) {
         and abort "Failed to activate $conf\n";
 
     system( "make" ) and abort "Failed to build: $conf\n";
-    system( "make $test" ) and abort "Failed test suite: $conf\n";
+    system( "make test" ) and abort "Failed test suite: $conf\n";
 
     if( $args )
     {

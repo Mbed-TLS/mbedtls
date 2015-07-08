@@ -1,6 +1,16 @@
 cmake_minimum_required(VERSION 2.6)
 project("mbed TLS" C)
 
+option(USE_PKCS11_HELPER_LIBRARY "Build mbed TLS with the pkcs11-helper library." OFF)
+option(ENABLE_ZLIB_SUPPORT "Build mbed TLS with zlib library." OFF)
+
+option(ENABLE_PROGRAMS "Build mbed TLS programs." ON)
+option(ENABLE_TESTING "Build mbed TLS tests." ON)
+
+set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
+    CACHE STRING "Choose the type of build: None Debug Release Coverage ASan ASanDbg MemSan MemSanDbg Check CheckFull"
+    FORCE)
+
 string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
 
 if(CMAKE_COMPILER_IS_GNUCC)
@@ -30,22 +40,11 @@ if(MSVC)
     set(CMAKE_C_FLAGS_CHECK       "/WX")
 endif(MSVC)
 
-set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
-    CACHE STRING "Choose the type of build: None Debug Release Coverage ASan ASanDbg MemSan MemSanDbg Check CheckFull"
-    FORCE)
-
 if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
     if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANG)
         set(CMAKE_SHARED_LINKER_FLAGS "--coverage")
     endif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANG)
 endif(CMAKE_BUILD_TYPE STREQUAL "Coverage")
-
-option(USE_PKCS11_HELPER_LIBRARY "Build mbed TLS with the pkcs11-helper library." OFF)
-
-option(ENABLE_ZLIB_SUPPORT "Build mbed TLS with zlib library." OFF)
-option(ENABLE_PROGRAMS "Build mbed TLS programs." ON)
-
-option(ENABLE_TESTING "Build mbed TLS tests." ON)
 
 if(LIB_INSTALL_DIR)
 else()

@@ -59,12 +59,12 @@ ifndef WINDOWS
 	find . \( -name \*.gcno -o -name \*.gcda -o -name *.info \) -exec rm {} +
 endif
 
-ifndef WINDOWS
 check: lib
 	$(MAKE) -C tests check
 
 test: check
 
+ifndef WINDOWS
 # note: for coverage testing, build with:
 # make CFLAGS='--coverage -g3 -O0'
 covtest:

@@ -431,24 +431,7 @@ else
 	del /Q /F *.c *.exe
 endif
 
-ifndef WINDOWS
 check: $(APPS)
-	echo "Running checks (Success if all tests PASSED)"
-	RETURN=0;																\
-	for i in $(APPS);														\
-	do																		\
-		echo " - $${i}";													\
-		RESULT=`LD_LIBRARY_PATH=../library ./$${i} | grep -v 'PASS$$' | grep -v -- '----' | grep -v '^$$'`;	\
-		PASSED=`echo $$RESULT |grep PASSED`; 								\
-		echo "   $$RESULT";													\
-		if [ "x$$PASSED" = "x" ];											\
-		then																\
-			echo "**** Failed ***************";								\
-			RETURN=1;														\
-		fi; 																\
-		echo "";															\
-	done;																	\
-	if [ "$$RETURN" -eq 1 ]; then exit 1; fi
+	perl scripts/run-test-suites.pl
 
 test: check
-endif

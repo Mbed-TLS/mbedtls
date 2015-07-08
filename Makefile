@@ -70,8 +70,8 @@ ifndef WINDOWS
 covtest:
 	$(MAKE) check
 	programs/test/selftest
-	( cd tests && ./compat.sh )
-	( cd tests && ./ssl-opt.sh )
+	tests/compat.sh
+	tests/ssl-opt.sh
 
 lcov:
 	rm -rf Coverage

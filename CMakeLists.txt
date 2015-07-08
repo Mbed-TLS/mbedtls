@@ -84,8 +84,8 @@ if(ENABLE_TESTING)
         ADD_CUSTOM_TARGET(covtest
             COMMAND make test
             COMMAND programs/test/selftest
-            COMMAND cd tests && ./compat.sh
-            COMMAND cd tests && ./ssl-opt.sh
+            COMMAND tests/compat.sh
+            COMMAND tests/ssl-opt.sh
         )
 
         ADD_CUSTOM_TARGET(lcov

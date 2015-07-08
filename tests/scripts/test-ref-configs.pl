@@ -65,7 +65,7 @@ while( my ($conf, $args) = each %configs ) {
     if( $args )
     {
         print "\nrunning compat.sh $args\n";
-        system( "cd tests && ./compat.sh $args" )
+        system( "tests/compat.sh $args" )
             and abort "Failed compat.sh: $conf\n";
     }
     else

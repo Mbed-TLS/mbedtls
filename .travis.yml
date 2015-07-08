@@ -8,8 +8,8 @@ script:
 - cmake -D CMAKE_BUILD_TYPE:String="Check" .
 - make
 - make test
-- ( cd tests && ./compat.sh )
-- ( cd tests && ./ssl-opt.sh )
+- tests/compat.sh
+- tests/ssl-opt.sh
 - tests/scripts/test-ref-configs.pl
 env:
   global:

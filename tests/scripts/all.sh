@@ -93,9 +93,7 @@ make test
 programs/test/selftest
 
 msg "test: ssl-opt.sh (ASan build)" # ~ 1 min
-cd tests
-./ssl-opt.sh
-cd ..
+tests/ssl-opt.sh
 
 msg "test/build: ref-configs (ASan build)" # ~ 6 min 20s
 tests/scripts/test-ref-configs.pl
@@ -106,9 +104,7 @@ msg "build: with ASan (rebuild after ref-configs)" # ~ 1 min
 make
 
 msg "test: compat.sh (ASan build)" # ~ 6 min
-cd tests
-./compat.sh
-cd ..
+tests/compat.sh
 
 msg "build: cmake, full config, clang" # ~ 50s
 cleanup
@@ -122,14 +118,10 @@ msg "test: main suites (full config)" # ~ 5s
 make test
 
 msg "test: ssl-opt.sh default (full config)" # ~ 1s
-cd tests
-./ssl-opt.sh -f Default
-cd ..
+tests/ssl-opt.sh -f Default
 
 msg "test: compat.sh RC4, DES & NULL (full config)" # ~ 2 min
-cd tests
-./compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR'
-cd ..
+tests/compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR'
 
 msg "test/build: curves.pl (gcc)" # ~ 5 min (?)
 cleanup
@@ -261,17 +253,13 @@ msg "test: main suites (MSan)" # ~ 10s
 make test
 
 msg "test: ssl-opt.sh (MSan)" # ~ 1 min
-cd tests
-./ssl-opt.sh
-cd ..
+tests/ssl-opt.sh
 
 # Optional part(s)
 
 if [ "$MEMORY" -gt 0 ]; then
     msg "test: compat.sh (MSan)" # ~ 6 min 20s
-    cd tests
-    ./compat.sh
-    cd ..
+    tests/compat.sh
 fi
 
 else # no MemSan
@@ -290,16 +278,12 @@ make test
 
 if [ "$MEMORY" -gt 0 ]; then
     msg "test: ssl-opt.sh --memcheck (Release)"
-    cd tests
-    ./ssl-opt.sh --memcheck
-    cd ..
+    tests/ssl-opt.sh --memcheck
 fi
 
 if [ "$MEMORY" -gt 1 ]; then
     msg "test: compat.sh --memcheck (Release)"
-    cd tests
-    ./compat.sh --memcheck
-    cd ..
+    tests/compat.sh --memcheck
 fi
 
 fi # MemSan

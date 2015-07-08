@@ -35,7 +35,15 @@ In order to run the tests, enter::
 
     make check
 
-In order to build for a Windows platform, you should use WINDOWS_BUILD=1 if the target is Windows but the build environment is Unix-like (eg when cross-compiling, or compiling from an MSYS shell), and WINDOWS=1 if the build environment is a Windows shell (in that case some targets will not be available).
+The tests need Perl to be built and run. If you don't have Perl installed, you can skip buiding the tests with::
+
+    make no_test
+
+You'll still be able to run a much smaller set of tests with::
+
+    programs/test/selftest
+
+In order to build for a Windows platform, you should use WINDOWS_BUILD=1 if the target is Windows but the build environment is Unix-like (for instance when cross-compiling, or compiling from an MSYS shell), and WINDOWS=1 if the build environment is a Windows shell (for instance using mingw32-make) (in that case some targets will not be available).
 
 Setting the variable SHARED in your environment will build a shared library in addition to the static library. Setting DEBUG gives you a debug build.  You can override CFLAGS and LDFLAGS by setting them in your environment or on the make command line; if you do so, essential parts such as -I will still be preserved.  Warning options may be overridden separately using WARNING_CFLAGS.
 
@@ -51,6 +59,10 @@ In order to build the source using CMake, just enter at the command line::
     cmake .
 
     make
+
+The test suites need Perl to be built. If you don't have Perl installed, you'll want to disable the test suites with::
+
+    cmake -DENABLE_TESTING=Off .
 
 There are many different build modes available within the CMake buildsystem. Most of them are available for gcc and clang, though some are compiler-specific:
 
@@ -90,12 +102,16 @@ In order to run the tests, enter::
 
     make test
 
+If you disabled the test suites, but kept the progams enabled, you can still run a much smaller set of tests with::
+
+    programs/test/selftest
+
 Microsoft Visual Studio
 -----------------------
 
 The build files for Microsoft Visual Studio are generated for Visual Studio 2010.
 
-The solution file 'mbedTLS.sln' contains all the basic projects needed to build the library and all the programs. The files in tests are not generated and compiled, as these need a perl environment as well.
+The solution file 'mbedTLS.sln' contains all the basic projects needed to build the library and all the programs. The files in tests are not generated and compiled, as these need a perl environment as well. However, the `selftest` program in *programs/test/* is still available.
 
 Example programs
 ================
@@ -105,14 +121,14 @@ We've included example programs for a lot of different features and uses in *pro
 Tests
 =====
 
-mbed TLS includes an elaborate test suite in *tests/* that initially requires Perl to generate the tests files (e.g. *test_suite_mpi.c*). These files are generates from a **function file** (e.g. *suites/test_suite_mpi.function*) and a **data file** (e.g. *suites/test_suite_mpi.data*). The **function file** contains the template for each test function. The **data file** contains the test cases, specified as parameters that should be pushed into a template function.
+mbed TLS includes an elaborate test suite in *tests/* that initially requires Perl to generate the tests files (e.g. *test_suite_mpi.c*). These files are generates from a **function file** (e.g. *suites/test_suite_mpi.function*) and a **data file** (e.g. *suites/test_suite_mpi.data*). The **function file** contains the test functions. The **data file** contains the test cases, specified as parameters that will be passed to the test function.
 
 For machines with a Unix shell and OpenSSL (and optionally GnuTLS) installed, additional test scripts are available:
 
 - *tests/ssl-opt.sh* runs integration tests for various TLS options (renegotiation, resumption, etc.) and tests interoperability of these options with other implementations.
 - *tests/compat.sh* tests interoperability of every ciphersuite with other implementations.
 - *tests/scripts/test-ref-configs.pl* test builds in various reduced configurations.
-- *tests/scripts/all.sh* runs a combination of the above tests with various build options (eg ASan).
+- *tests/scripts/all.sh* runs a combination of the above tests, plus some more, with various build options (such as ASan, full *config.h*, etc).
 
 Configurations
 ==============

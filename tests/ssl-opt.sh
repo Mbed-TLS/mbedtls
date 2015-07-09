@@ -2249,7 +2249,7 @@ run_test    "extKeyUsage cli-auth: codeSign -> fail (hard)" \
 
 # Tests for DHM parameters loading
 
-run_test    "DHM parameters: reference" \
+: run_test    "DHM parameters: reference" \
             "$P_SRV" \
             "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
                     debug_level=3" \
@@ -2257,7 +2257,7 @@ run_test    "DHM parameters: reference" \
             -c "value of 'DHM: P ' (2048 bits)" \
             -c "value of 'DHM: G ' (2048 bits)"
 
-run_test    "DHM parameters: other parameters" \
+: run_test    "DHM parameters: other parameters" \
             "$P_SRV dhm_file=data_files/dhparams.pem" \
             "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
                     debug_level=3" \

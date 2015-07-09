@@ -1840,4 +1840,91 @@ int ssl_ciphersuite_uses_psk( const ssl_ciphersuite_t *info )
 }
 #endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
+#if defined(POLARSSL_KEIF_C)
+
+static const key_agree_t key_agree_definitions[] = {
+    { POLARSSL_KEY_EXCHANGE_NONE        , POLARSSL_KE_NONE  , POLARSSL_PK_NONE  , 0 , 0 },
+    { POLARSSL_KEY_EXCHANGE_RSA         , POLARSSL_KE_NONE  , 0                 , 1 , 0 },
+    { POLARSSL_KEY_EXCHANGE_DHE_RSA     , POLARSSL_KE_DHM   , POLARSSL_PK_RSA   , 0 , 0 },
+    { POLARSSL_KEY_EXCHANGE_ECDHE_RSA   , POLARSSL_KE_ECDHE , POLARSSL_PK_RSA   , 0 , 0 },
+    { POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA , POLARSSL_KE_ECDHE , POLARSSL_PK_ECDSA , 0 , 0 },
+    { POLARSSL_KEY_EXCHANGE_PSK         , POLARSSL_KE_NONE  , POLARSSL_PK_NONE  , 0 , 0 },
+    { POLARSSL_KEY_EXCHANGE_DHE_PSK     , POLARSSL_KE_DHM   , 0                 , 0 , 1 },
+    { POLARSSL_KEY_EXCHANGE_RSA_PSK     , POLARSSL_KE_NONE  , 0                 , 1 , 1 },
+    { POLARSSL_KEY_EXCHANGE_ECDHE_PSK   , POLARSSL_KE_ECDHE , 0                 , 0 , 1 },
+    { POLARSSL_KEY_EXCHANGE_ECDH_RSA    , POLARSSL_KE_ECDH  , POLARSSL_PK_RSA   , 0 , 0 },
+    { POLARSSL_KEY_EXCHANGE_ECDH_ECDSA  , POLARSSL_KE_ECDH  , POLARSSL_PK_ECDSA , 0 , 0 },
+    { 0                                 , 0                 , 0                 , 0 , 0 }
+};
+
+const key_agree_t *ssl_ke_recognize( key_exchange_type_t key_exchange )
+{
+    int idx = (int) key_exchange;
+    const key_agree_t *ret;
+    const int num = sizeof( key_agree_definitions ) / sizeof( key_agree_t );
+
+    if( 0 > idx || idx > num )
+        return( &key_agree_definitions[0] );
+
+    ret = &key_agree_definitions[idx];
+    if( ret->key_exchange == key_exchange )
+        return( ret );
+
+    idx = 0;
+
+    for( ret = &key_agree_definitions[idx];
+         0 != ret->key_exchange;
+         ret = &key_agree_definitions[++idx] )
+    {
+       if( ret->key_exchange == key_exchange )
+           return( ret );
+    }
+
+    return( ret );
+}
+
+ke_type_t ssl_ke_dh_type( key_exchange_type_t ssl_type )
+{
+    const key_agree_t *ke = ssl_ke_recognize( ssl_type );
+    return ke->ke_alg;
+}
+
+int ssl_ke_is_dh_ephemeral( key_exchange_type_t ssl_type )
+{
+    if( 0 == ssl_ke_is_dh( ssl_type ) )
+        return( 0 );
+
+    if( POLARSSL_KEY_EXCHANGE_ECDH_RSA == ssl_type ||
+        POLARSSL_KEY_EXCHANGE_ECDH_ECDSA == ssl_type )
+        return( 0 );
+
+    return( 1 );
+}
+
+int ssl_ke_is_dh( key_exchange_type_t ssl_type )
+{
+    if( POLARSSL_KE_NONE != ssl_ke_dh_type( ssl_type ) )
+        return( 1 );
+    return( 0 );
+}
+
+int ssl_ke_psk_auth( key_exchange_type_t ssl_type )
+{
+    const key_agree_t *ke = ssl_ke_recognize( ssl_type );
+
+    return( ke->psk_auth );
+}
+
+int ssl_ke_req_pkcsign( key_exchange_type_t ssl_type )
+{
+    const key_agree_t *ke = ssl_ke_recognize( ssl_type );
+
+    if( POLARSSL_PK_NONE != ke->sig_alg )
+        return( 1 );
+
+    return( 0 );
+}
+
+#endif /* POLARSSL_KEIF_C */
+
 #endif /* POLARSSL_SSL_TLS_C */

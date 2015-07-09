@@ -1575,6 +1575,21 @@
 #define POLARSSL_DES_C
 
 /**
+ * \def POLARSSL_KEIF_C
+ *
+ * Enable DH-like key exchange interfaces.
+ *
+ * Module:  library/ke.c
+ * Caller:  library/ssl_tls.c
+ *          library/ssl_cli.c
+ *          library/ssl_srv.c
+ * Requires:
+ *
+ * This module is the abstract layer of DH-like key exchange algorithms.
+ */
+#define POLARSSL_KEIF_C
+
+/**
  * \def POLARSSL_DHM_C
  *
  * Enable the Diffie-Hellman-Merkle module.
@@ -1585,6 +1600,8 @@
  *
  * This module is used by the following key exchanges:
  *      DHE-RSA, DHE-PSK
+ *
+ * Requires: POLARSSL_KEIF_C
  */
 #define POLARSSL_DHM_C
 
@@ -1600,7 +1617,7 @@
  * This module is used by the following key exchanges:
  *      ECDHE-ECDSA, ECDHE-RSA, DHE-PSK
  *
- * Requires: POLARSSL_ECP_C
+ * Requires: POLARSSL_ECP_C, POLARSSL_KEIF_C
  */
 #define POLARSSL_ECDH_C
 

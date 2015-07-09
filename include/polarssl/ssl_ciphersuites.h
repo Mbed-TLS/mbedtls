@@ -27,6 +27,7 @@
 #include "pk.h"
 #include "cipher.h"
 #include "md.h"
+#include "ke.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -296,6 +297,27 @@ pk_type_t ssl_get_ciphersuite_sig_pk_alg( const ssl_ciphersuite_t *info );
 
 int ssl_ciphersuite_uses_ec( const ssl_ciphersuite_t *info );
 int ssl_ciphersuite_uses_psk( const ssl_ciphersuite_t *info );
+
+#if defined(POLARSSL_KEIF_C)
+
+typedef struct _key_agreement_t
+{
+    key_exchange_type_t key_exchange;
+    ke_type_t ke_alg;
+    pk_type_t sig_alg;
+    int pkc_enc;
+    int psk_auth;
+} key_agree_t;
+
+const key_agree_t *ssl_ke_recognize( key_exchange_type_t key_exchange );
+
+ke_type_t ssl_ke_dh_type( key_exchange_type_t ssl_type );
+int ssl_ke_is_dh_ephemeral( key_exchange_type_t ssl_type );
+int ssl_ke_is_dh( key_exchange_type_t ssl_type );
+int ssl_ke_req_pkcsign( key_exchange_type_t ssl_type );
+int ssl_ke_psk_auth( key_exchange_type_t ssl_type );
+
+#endif /* POLARSSL_KEIF_C */
 
 #ifdef __cplusplus
 }

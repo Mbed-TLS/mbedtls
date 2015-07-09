@@ -30,6 +30,8 @@ set(src
      gcm.c
      havege.c
      hmac_drbg.c
+     ke.c
+     ke_wrap.c
      md.c
      md_wrap.c
      md2.c

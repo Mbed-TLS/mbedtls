@@ -67,6 +67,10 @@
 #include "x509_crl.h"
 #endif
 
+#if defined(POLARSSL_KEIF_C)
+#include "ke.h"
+#endif
+
 #if defined(POLARSSL_DHM_C)
 #include "dhm.h"
 #endif
@@ -666,14 +670,14 @@ struct _ssl_handshake_params
     int sig_alg;                        /*!<  Hash algorithm for signature   */
     int cert_type;                      /*!<  Requested cert type            */
     int verify_sig_alg;                 /*!<  Signature algorithm for verify */
-#if defined(POLARSSL_DHM_C)
-    dhm_context dhm_ctx;                /*!<  DHM key exchange        */
-#endif
-#if defined(POLARSSL_ECDH_C)
-    ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
-#endif
+
+#if defined(POLARSSL_KEIF_C)
+    ke_context_t ke_ctx;                /*!<  DH-like key exchange interface */
+#endif /* POLARSSL_KEIF_C */
+
 #if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
     const ecp_curve_info **curves;      /*!<  Supported elliptic curves */
+    int point_format;                   /*!< XXX KEIF additional params for EC */
 #endif
 #if defined(POLARSSL_X509_CRT_PARSE_C)
     /**

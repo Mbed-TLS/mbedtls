@@ -56,6 +56,7 @@ OBJS=	aes.o		aesni.o		arc4.o			\
 		entropy.o	entropy_poll.o				\
 		error.o		gcm.o		havege.o		\
 		hmac_drbg.o								\
+		ke.o		ke_wrap.o					\
 		md.o		md_wrap.o	md2.o			\
 		md4.o		md5.o						\
 		memory_buffer_alloc.o	net.o			\

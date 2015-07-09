@@ -449,6 +449,11 @@
 #error "POLARSSL_SSL_SERVER_NAME_INDICATION defined, but not all prerequisites"
 #endif
 
+#if defined(POLARSSL_ECDH_C) || defined(POLARSSL_DHM_C)
+// XXX
+#define POLARSSL_KEIF_C
+#endif
+
 #if defined(POLARSSL_THREADING_PTHREAD)
 #if !defined(POLARSSL_THREADING_C) || defined(POLARSSL_THREADING_IMPL)
 #error "POLARSSL_THREADING_PTHREAD defined, but not all prerequisites"

@@ -5,7 +5,14 @@ option(USE_PKCS11_HELPER_LIBRARY "Build mbed TLS with the pkcs11-helper library.
 option(ENABLE_ZLIB_SUPPORT "Build mbed TLS with zlib library." OFF)
 
 option(ENABLE_PROGRAMS "Build mbed TLS programs." ON)
-option(ENABLE_TESTING "Build mbed TLS tests." ON)
+
+
+# the test suites currently have compile errors with MSVC
+if(MSVC)
+    option(ENABLE_TESTING "Build mbed TLS tests." OFF)
+else()
+    option(ENABLE_TESTING "Build mbed TLS tests." ON)
+endif()
 
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
     CACHE STRING "Choose the type of build: None Debug Release Coverage ASan ASanDbg MemSan MemSanDbg Check CheckFull"

@@ -2513,7 +2513,7 @@
 #define test_ca_key mbedtls_test_ca_key
 #define test_ca_key_ec mbedtls_test_ca_key_ec
 #define test_ca_key_rsa mbedtls_test_ca_key_rsa
-#define test_ca_list mbedtls_test_ca_list
+#define test_ca_list mbedtls_test_cas_pem
 #define test_ca_pwd mbedtls_test_ca_pwd
 #define test_ca_pwd_ec mbedtls_test_ca_pwd_ec
 #define test_ca_pwd_rsa mbedtls_test_ca_pwd_rsa

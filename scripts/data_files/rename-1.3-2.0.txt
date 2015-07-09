@@ -2055,7 +2055,7 @@ test_ca_crt_rsa mbedtls_test_ca_crt_rsa
 test_ca_key mbedtls_test_ca_key
 test_ca_key_ec mbedtls_test_ca_key_ec
 test_ca_key_rsa mbedtls_test_ca_key_rsa
-test_ca_list mbedtls_test_ca_list
+test_ca_list mbedtls_test_cas_pem
 test_ca_pwd mbedtls_test_ca_pwd
 test_ca_pwd_ec mbedtls_test_ca_pwd_ec
 test_ca_pwd_rsa mbedtls_test_ca_pwd_rsa

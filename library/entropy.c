@@ -91,7 +91,7 @@ void mbedtls_entropy_init( mbedtls_entropy_context *ctx )
                                 MBEDTLS_ENTROPY_SOURCE_STRONG );
 #endif
 #if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
-    mbedtls_entropy_add_source( ctx, mbedtls_hardware_poll, NULL
+    mbedtls_entropy_add_source( ctx, mbedtls_hardware_poll, NULL,
                                 MBEDTLS_ENTROPY_MIN_HARDWARE,
                                 MBEDTLS_ENTROPY_SOURCE_STRONG );
 #endif

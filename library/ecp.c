@@ -448,11 +448,12 @@ int ecp_point_write_binary( const ecp_group *grp, const ecp_point *P,
      */
     if( mpi_cmp_int( &P->Z, 0 ) == 0 )
     {
-        if( buflen < 1 )
+        *olen = 1;
+        
+        if( buflen < *olen )
             return( POLARSSL_ERR_ECP_BUFFER_TOO_SMALL );
 
         buf[0] = 0x00;
-        *olen = 1;
 
         return( 0 );
     }

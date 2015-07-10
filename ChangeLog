@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= PolarSSL 2.0 branch
+= mbed TLS 2.0.0 released 2015-07-13
 
 Features
    * Support for DTLS 1.0 and 1.2 (RFC 6347).

@@ -568,7 +568,11 @@ int ecp_tls_write_point( const ecp_group *grp, const ecp_point *pt,
      * buffer length must be at least one, for our length byte
      */
     if( blen < 1 )
-        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+    {
+        ecp_point_write_binary(grp, pt, format, olen, NULL, 0);
+        ++*olen
+        return( POLARSSL_ERR_ECP_BUFFER_TOO_SMALL );
+    }
 
     if( ( ret = ecp_point_write_binary( grp, pt, format,
                     olen, buf + 1, blen - 1) ) != 0 )

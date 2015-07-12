@@ -272,7 +272,7 @@ int main( int argc, char *argv[] )
     /*
      * 1.0. Check the subject name for validity
      */
-    polarssl_printf( "  . Checking subjet name..." );
+    polarssl_printf( "  . Checking subject name..." );
     fflush( stdout );
 
     if( ( ret = x509write_csr_set_subject_name( &req, opt.subject_name ) ) != 0 )

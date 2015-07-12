@@ -40,7 +40,7 @@
 int main( void )
 {
     polarssl_printf( "POLARSSL_X509_CRT_WRITE_C and/or POLARSSL_X509_CRT_PARSE_C and/or "
-            "POLARSSL_FS_IO and/or POLARSSL_SHA256_C and_or "
+            "POLARSSL_FS_IO and/or POLARSSL_SHA256_C and/or "
             "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C and/or "
             "POLARSSL_ERROR_C not defined.\n");
     return( 0 );
@@ -226,7 +226,6 @@ int main( int argc, char *argv[] )
     }
 
     opt.issuer_crt          = DFL_ISSUER_CRT;
-    opt.request_file        = DFL_REQUEST_FILE;
     opt.request_file        = DFL_REQUEST_FILE;
     opt.subject_key         = DFL_SUBJECT_KEY;
     opt.issuer_key          = DFL_ISSUER_KEY;

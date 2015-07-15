@@ -6,7 +6,7 @@ use strict;
 use utf8;
 use open qw(:std utf8);
 
-my @suites = grep { ! /\.c$/ } glob 'test_suite_*';
+my @suites = grep { ! /\.(?:c|gcno)$/ } glob 'test_suite_*';
 die "$0: no test suite found\n" unless @suites;
 
 # in case test suites are linked dynamically

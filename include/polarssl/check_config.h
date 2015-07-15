@@ -44,6 +44,51 @@
 #endif
 #endif /* POLARSSL_NET_C && !POLARSSL_HAVE_IPV6 */
 
+#if defined(POLARSSL_ERROR_STRERROR_BC)
+#if defined(POLARSSL_DEPRECATED_WARNING)
+#warning "POLARSSL_ERROR_STRERROR_BC is deprecated"
+#endif
+#if defined(POLARSSL_DEPRECATED_REMOVED)
+#error "POLARSSL_ERROR_STRERROR_BC is deprecated"
+#endif
+#endif /* POLARSSL_ERROR_STRERROR_BC */
+
+#if defined(POLARSSL_MEMORY_C)
+#if defined(POLARSSL_DEPRECATED_WARNING)
+#warning "POLARSSL_MEMORY_C is deprecated"
+#endif
+#if defined(POLARSSL_DEPRECATED_REMOVED)
+#error "POLARSSL_MEMORY_C is deprecated"
+#endif
+#endif /* POLARSSL_MEMORY_C */
+
+#if defined(POLARSSL_PBKDF2_C)
+#if defined(POLARSSL_DEPRECATED_WARNING)
+#warning "POLARSSL_PBKDF2_C is deprecated"
+#endif
+#if defined(POLARSSL_DEPRECATED_REMOVED)
+#error "POLARSSL_PBKDF2_C is deprecated"
+#endif
+#endif /* POLARSSL_PBKDF2_C */
+
+#if defined(POLARSSL_HAVE_INT8)
+#if defined(POLARSSL_DEPRECATED_WARNING)
+#warning "POLARSSL_HAVE_INT8 is deprecated"
+#endif
+#if defined(POLARSSL_DEPRECATED_REMOVED)
+#error "POLARSSL_HAVE_INT8 is deprecated"
+#endif
+#endif /* POLARSSL_HAVE_INT8 */
+
+#if defined(POLARSSL_HAVE_INT16)
+#if defined(POLARSSL_DEPRECATED_WARNING)
+#warning "POLARSSL_HAVE_INT16 is deprecated"
+#endif
+#if defined(POLARSSL_DEPRECATED_REMOVED)
+#error "POLARSSL_HAVE_INT16 is deprecated"
+#endif
+#endif /* POLARSSL_HAVE_INT16 */
+
 #if defined(POLARSSL_AESNI_C) && !defined(POLARSSL_HAVE_ASM)
 #error "POLARSSL_AESNI_C defined, but not all prerequisites"
 #endif

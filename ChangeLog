@@ -8,11 +8,12 @@ Security
    * Increase the size of default Diffie-Hellman parameters on the server to
      2048 bits. This can be changed with ssl_set_dh_params().
 
-
 Bugfix
    * Fix thread-safety issue in SSL debug module (found by Edwin van Vliet).
    * Some example programs were not built using make, not included in Visual
      Studio projects (found by Kristian Bendiksen).
+   * Fix build error with CMake and pre-4.5 versions of GCC (found by Hugo
+     Leisink).
 
 Changes
    * Add SSL_MIN_DHM_BYTES configuration parameter in config.h to choose the

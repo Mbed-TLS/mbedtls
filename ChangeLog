@@ -1,5 +1,10 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2 branch
+
+Bugfix
+   * Fix segfault in the benchmark program when benchmarking DHM.
+
 = mbed TLS 2.0.0 released 2015-07-13
 
 Features

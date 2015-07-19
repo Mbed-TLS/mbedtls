@@ -91,8 +91,6 @@ int main( void )
 #define HEADER_FORMAT   "  %-24s :  "
 #define TITLE_LEN       25
 
-#define DHM_SIZES 3
-
 #define OPTIONS                                                         \
     "md4, md5, ripemd160, sha1, sha256, sha512,\n"                      \
     "arc4, des3, des, aes_cbc, aes_gcm, aes_ccm, camellia, blowfish,\n" \
@@ -611,19 +609,19 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_BIGNUM_C)
     if( todo.dhm )
     {
-        int dhm_sizes[DHM_SIZES] = { 2048, 3072 };
-        const char *dhm_P[DHM_SIZES] = {
+        int dhm_sizes[] = { 2048, 3072 };
+        const char *dhm_P[] = {
             MBEDTLS_DHM_RFC3526_MODP_2048_P,
             MBEDTLS_DHM_RFC3526_MODP_3072_P,
         };
-        const char *dhm_G[DHM_SIZES] = {
+        const char *dhm_G[] = {
             MBEDTLS_DHM_RFC3526_MODP_2048_G,
             MBEDTLS_DHM_RFC3526_MODP_3072_G,
         };
 
         mbedtls_dhm_context dhm;
         size_t olen;
-        for( i = 0; i < DHM_SIZES; i++ )
+        for( i = 0; (size_t) i < sizeof( dhm_sizes ) / sizeof( dhm_sizes[0] ); i++ )
         {
             mbedtls_dhm_init( &dhm );
 

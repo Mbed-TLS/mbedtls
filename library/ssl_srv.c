@@ -2482,7 +2482,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
         memcpy( p, crt->subject_raw.p, dn_size );
         p += dn_size;
 
-        MBEDTLS_SSL_DEBUG_BUF( 3, "requested DN", p, dn_size );
+        MBEDTLS_SSL_DEBUG_BUF( 3, "requested DN", p - dn_size, dn_size );
 
         total_dn_size += 2 + dn_size;
         crt = crt->next;

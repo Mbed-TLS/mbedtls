@@ -2172,7 +2172,7 @@ static int ssl_resend_hello_request( mbedtls_ssl_context *ssl )
 
         if( ++ssl->renego_records_seen > doublings )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 0, ( "no longer retransmitting hello request" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "no longer retransmitting hello request" ) );
             return( 0 );
         }
     }
@@ -5838,7 +5838,7 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
             break;
 
         default:
-            MBEDTLS_SSL_DEBUG_MSG( 0, ( "should never happen" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
@@ -6055,7 +6055,7 @@ static int ssl_check_ctr_renegotiate( mbedtls_ssl_context *ssl )
         return( 0 );
     }
 
-    MBEDTLS_SSL_DEBUG_MSG( 0, ( "record counter limit reached: renegotiate" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 1, ( "record counter limit reached: renegotiate" ) );
     return( mbedtls_ssl_renegotiate( ssl ) );
 }
 #endif /* MBEDTLS_SSL_RENEGOTIATION */

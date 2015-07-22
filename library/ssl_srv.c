@@ -1643,11 +1643,11 @@ read_record_header:
         if( p[0] == (unsigned char)( ( MBEDTLS_SSL_FALLBACK_SCSV_VALUE >> 8 ) & 0xff ) &&
             p[1] == (unsigned char)( ( MBEDTLS_SSL_FALLBACK_SCSV_VALUE      ) & 0xff ) )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 0, ( "received FALLBACK_SCSV" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "received FALLBACK_SCSV" ) );
 
             if( ssl->minor_ver < ssl->conf->max_minor_ver )
             {
-                MBEDTLS_SSL_DEBUG_MSG( 0, ( "inapropriate fallback" ) );
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "inapropriate fallback" ) );
 
                 mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_INAPROPRIATE_FALLBACK );

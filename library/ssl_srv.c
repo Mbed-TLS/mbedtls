@@ -1480,8 +1480,6 @@ read_record_header:
             msg_len != ext_offset + 2 + ext_len )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            MBEDTLS_SSL_DEBUG_BUF( 3, "client hello extensions",
-                              buf + ext_offset + 2, ext_len );
             return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
         }
     }
@@ -1489,6 +1487,7 @@ read_record_header:
         ext_len = 0;
 
     ext = buf + ext_offset + 2;
+    MBEDTLS_SSL_DEBUG_BUF( 3, "client hello extensions", ext, ext_len );
 
     while( ext_len != 0 )
     {

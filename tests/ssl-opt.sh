@@ -2488,6 +2488,14 @@ run_test    "Per-version suites: TLS 1.2" \
             0 \
             -c "Ciphersuite is TLS-RSA-WITH-AES-128-GCM-SHA256"
 
+# Test for ClientHello without extensions
+
+run_test    "CLientHello without extensions" \
+            "$P_SRV debug_level=3" \
+            "$G_CLI --priority=NORMAL:%NO_EXTENSIONS:%DISABLE_SAFE_RENEGOTIATION" \
+            0 \
+            -s "dumping 'client hello extensions' (0 bytes)"
+
 # Tests for mbedtls_ssl_get_bytes_avail()
 
 run_test    "mbedtls_ssl_get_bytes_avail: no extra data" \

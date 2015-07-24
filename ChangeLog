@@ -6,6 +6,8 @@ Bugfix
    * Fix segfault in the benchmark program when benchmarking DHM.
    * Fix build error with CMake and pre-4.5 versions of GCC (found by Hugo
      Leisink).
+   * Fix bug in CMake lists that cause libmbedcrypto.a not to be installed
+     (found by Benoit Lecocq).
 
 = mbed TLS 2.0.0 released 2015-07-13
 

@@ -26,6 +26,10 @@ install: all
 	
 	mkdir -p $(DESTDIR)/lib
 	cp -RP library/libmbedtls.* $(DESTDIR)/lib
+	mkdir -p $(DESTDIR)/lib
+	cp -RP library/libmbedcrypto.* $(DESTDIR)/lib
+	mkdir -p $(DESTDIR)/lib
+	cp -RP library/libmbedx509.* $(DESTDIR)/lib
 	
 	mkdir -p $(DESTDIR)/bin
 	for p in programs/*/* ; do              \

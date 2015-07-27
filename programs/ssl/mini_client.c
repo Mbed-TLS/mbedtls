@@ -2,7 +2,7 @@
  *  Minimal SSL client, used for memory measurements.
  *  (meant to be used with config-suite-b.h or config-ccm-psk-tls1_2.h)
  *
- *  Copyright (C) 2014, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  *

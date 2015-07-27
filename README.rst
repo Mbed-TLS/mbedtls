@@ -150,7 +150,8 @@ Process
    `start a discussion <https://tls.mbed.org/discussions>`_ around a feature
    idea or a bug.
 #. Fork the `mbed TLS repository on Github <https://github.com/ARMmbed/mbedtls>`_
-   to start making your changes.
+   to start making your changes. As a general rule, you should use the
+   "development" branch as a basis.
 #. Write a test which shows that the bug was fixed or that the feature works
    as expected.
 #. Send a pull request and bug us until it gets merged and published. We will

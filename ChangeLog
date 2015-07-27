@@ -8,6 +8,11 @@ Bugfix
      Leisink).
    * Fix bug when parsing a ServerHello without extensions (found by David
      Sears).
+   * Fix bug in CMake lists that caused libmbedcrypto.a not to be installed
+     (found by Benoit Lecocq).
+   * Fix bug in Makefile that caused libmbedcrypto and libmbedx509 not to be
+     installed (found by Rawi666).
+
 
 = mbed TLS 2.0.0 released 2015-07-13
 

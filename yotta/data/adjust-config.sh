@@ -46,7 +46,7 @@ conf unset MBEDTLS_PEM_WRITE_C
 conf unset MBEDTLS_PKCS5_C
 conf unset MBEDTLS_PKCS12_C
 conf unset MBEDTLS_RIPEMD160_C
-#conf unset MBEDTLS_SHA1_C
+conf unset MBEDTLS_SHA1_C
 conf unset MBEDTLS_XTEA_C
 
 conf unset MBEDTLS_X509_RSASSA_PSS_SUPPORT

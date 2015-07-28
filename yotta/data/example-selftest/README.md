@@ -57,10 +57,6 @@ To build and run this example the requirements below are necessary:
     {{test_id;MBEDTLS_SELFTEST}}
     {{start}}
 
-      SHA-1 test #1: passed
-      SHA-1 test #2: passed
-      SHA-1 test #3: passed
-
       SHA-224 test #1: passed
       SHA-224 test #2: passed
       SHA-224 test #3: passed

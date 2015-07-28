@@ -2,7 +2,7 @@
 
 mbed TLS (formerly known as PolarSSL) makes it trivially easy for developers to include cryptographic and SSL/TLS capabilities in their (embedded) products, facilitating this functionality with a minimal coding footprint. It offers an SSL library with an intuitive API and readable source code.
 
-The Beta release of mbed TLS is an integration of TLS, mbed SDK and yotta. It is a testing preview only and **not suitable for deployment**: there is currently no source of random numbers, meaning no security at all for (D)TLS communication and other protocols that rely on random numbers.
+The Beta release of mbed TLS is an integration of mbed TLS in mbed OS. It is a testing preview only and **not suitable for deployment**: there is currently no source of random numbers, meaning no security at all for (D)TLS communication and other protocols that rely on random numbers.
 
 ## Sample programs
 

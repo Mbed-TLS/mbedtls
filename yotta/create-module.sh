@@ -2,11 +2,9 @@
 
 set -eu
 
+# relative to the script's directory
 TREE=..
-
-# default values, can be overriden by the environment
-: ${DEST:=module}
-: ${BUILD:=1}
+DEST=module
 
 # make sure we're running in our own directory
 if [ -f create-module.sh ]; then :; else
@@ -44,23 +42,3 @@ rsync -cr --delete --exclude build --exclude yotta_\* $TMP/ $DEST/
 rm -rf $TMP
 
 echo "mbed TLS yotta module created in '$DEST'."
-
-test_build()
-{
-    TARGET=$1
-    echo; echo "*** Doing a test build for $TARGET ***"
-    ( cd $DEST && yt target $TARGET && yt build )
-}
-
-if [ $BUILD -eq 1 ]; then
-    if uname -a | grep 'Linux.*x86' >/dev/null; then
-        test_build x86-linux-native
-    fi
-
-    if uname -a | grep 'Darwin.*x86' >/dev/null; then
-        test_build x86-osx-native
-    fi
-
-    # do that one last so that it remains the target
-    test_build frdm-k64f-gcc
-fi

@@ -41,7 +41,7 @@ cleanup()
 {
     make clean
 
-    find . -iname '*cmake*' -not -name CMakeLists.txt -exec rm -rf {} \+
+    find . -name yotta -prune -o -iname '*cmake*' -not -name CMakeLists.txt -exec rm -rf {} \+
     rm -f include/Makefile include/mbedtls/Makefile programs/*/Makefile
     git update-index --no-skip-worktree Makefile library/Makefile programs/Makefile tests/Makefile
     git checkout -- Makefile library/Makefile programs/Makefile tests/Makefile
@@ -82,6 +82,10 @@ tests/scripts/check-doxy-blocks.pl
 msg "test/build: declared and exported names" # < 3s
 cleanup
 tests/scripts/check-names.sh
+
+msg "build: create and build yotta module" # ~ 30s
+cleanup
+tests/scripts/yotta-build.sh
 
 msg "build: cmake, gcc, ASan" # ~ 1 min 50s
 cleanup

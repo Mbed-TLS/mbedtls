@@ -52,6 +52,11 @@
 #endif
 #endif /* _WIN32 */
 
+#if defined(TARGET_LIKE_MBED) && \
+    ( defined(MBEDTLS_NET_C) || defined(MBEDTLS_TIMING_C) )
+#error "The NET and TIMING modules are not available for mbed OS - please use the network and timing functions provided by mbed OS"
+#endif
+
 #if defined(MBEDTLS_DEPRECATED_WARNING) && \
     !defined(__GNUC__) && !defined(__clang__)
 #error "MBEDTLS_DEPRECATED_WARNING only works with GCC and Clang"

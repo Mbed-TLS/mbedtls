@@ -109,6 +109,10 @@ mv tmp include/mbedtls/version.h
 sed -e "s/version:\".\{1,\}/version:\"$VERSION\"/g" < tests/suites/test_suite_version.data > tmp
 mv tmp tests/suites/test_suite_version.data
 
+[ $VERBOSE ] && echo "Bumping version in yotta/data/module.json"
+sed -e "s/\"version\": \".\{1,\}\"/version: \"$VERSION\"/g" < yotta/data/module.json > tmp
+mv tmp yotta/data/module.json
+
 [ $VERBOSE ] && echo "Bumping PROJECT_NAME in doxygen/mbedtls.doxyfile and doxygen/input/doc_mainpage.h"
 for i in doxygen/mbedtls.doxyfile doxygen/input/doc_mainpage.h;
 do

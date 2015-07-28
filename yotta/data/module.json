@@ -1,0 +1,13 @@
+{
+    "name": "mbedtls",
+    "version": "2.0.1",
+    "private": true,
+    "license": "GPL-2.0",
+    "dependencies": {},
+    "targetDependencies": {
+        "mbed": { "cmsis-core": "~0.2.1" }
+    },
+    "testTargetDependencies": {
+        "mbed": { "mbed-net-sockets": "~0.1.3" }
+    }
+}

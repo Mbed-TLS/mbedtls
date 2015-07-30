@@ -46,7 +46,8 @@
 #define asm __asm
 #endif
 
-#if defined(__GNUC__)
+/* armcc5 --gnu defined __GNUC__ but doesn't support GNU's extended asm */
+#if defined(__GNUC__) && !defined(__ARMCC_VERSION)
 #if defined(__i386__)
 
 #define MULADDC_INIT                        \

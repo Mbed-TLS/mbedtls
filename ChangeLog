@@ -12,6 +12,7 @@ Bugfix
      (found by Benoit Lecocq).
    * Fix bug in Makefile that caused libmbedcrypto and libmbedx509 not to be
      installed (found by Rawi666).
+   * Fix compile error with armcc 5 with --gnu option.
 
 
 = mbed TLS 2.0.0 released 2015-07-13

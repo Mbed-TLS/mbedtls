@@ -14,6 +14,8 @@ Bugfix
      installed (found by Rawi666).
    * Fix compile error with armcc 5 with --gnu option.
 
+Changes
+   * The PEM parser now accepts a trailing space at end of lines (#226).
 
 = mbed TLS 2.0.0 released 2015-07-13
 

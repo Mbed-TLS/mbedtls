@@ -236,12 +236,14 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
         return( MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT );
 
     s1 += strlen( header );
+    if( *s1 == ' '  ) s1++;
     if( *s1 == '\r' ) s1++;
     if( *s1 == '\n' ) s1++;
     else return( MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT );
 
     end = s2;
     end += strlen( footer );
+    if( *end == ' '  ) end++;
     if( *end == '\r' ) end++;
     if( *end == '\n' ) end++;
     *use_len = end - data;

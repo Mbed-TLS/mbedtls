@@ -19,6 +19,7 @@ Bugfix
 Changes
    * Add SSL_MIN_DHM_BYTES configuration parameter in config.h to choose the
      minimum size of Diffie-Hellman parameters accepted by the client.
+   * The PEM parser now accepts a trailing space at end of lines (#226).
 
 = Version 1.2.14 released 2015-06-26
 

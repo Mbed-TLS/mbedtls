@@ -1355,3 +1355,7 @@ x509parse_crt_file:"data_files/server7_pem_space.crt":1
 X509 File parse (all certificates fail)
 depends_on:POLARSSL_ECP_C
 x509parse_crt_file:"data_files/server7_all_space.crt":POLARSSL_ERR_PEM_INVALID_DATA + POLARSSL_ERR_BASE64_INVALID_CHARACTER
+
+X509 File parse (trailing spaces, OK)
+depends_on:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP256R1_ENABLED
+x509parse_crt_file:"data_files/server7_trailing_space.crt":0

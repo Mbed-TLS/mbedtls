@@ -20,6 +20,22 @@ These examples are integrated as yotta tests so that they are build automaticall
 
 Please follow the instructions in the [TLS client sample](https://github.com/ARMmbed/mbedtls/tree/master/yotta/data/example-tls-client). These include a list of prerequisites and an explanation of building mbed TLS with yotta.
 
+## Configuring mbed TLS features
+
+**Warning:** This is only a preview of a future feature that will require support from yotta; as of yotta 0.5.2 this is not supported yet.
+
+mbed TLS makes it easy to disable during the compilation any feature that is not needed for a particular project. The default configuration enables all modern and widely-used features, which should meet the need of any new project; it disables all features that are either older or less mainstrem, in order to keep the footprint low. The list of available compile flags is available in the fully documented [config.h file](https://github.com/ARMmbed/mbedtls/blob/master/include/mbedtls/config.h), present in the `mbedtls` directory of the yotta module.
+
+Should you need to adjust those flags, you can provide your own configuration file with the suitable `#define` and `#undef` statements, to be included between the default definitions and the sanity checks. This file should be in your application's include directory and can be named freely; you just need to let mbed TLS know the name of the file, by using yotta's [configuration system](http://docs.yottabuild.org/reference/config.html). This name should go in your `config.json`, under mbedtls, as the key `user-config-file`, for example:
+
+    {
+       "mbedtls": {
+          "user-config-file": "\"myapp/my_mbedtls_config_changes.h\""
+       }
+    }
+
+Please note you need to provide the exact name that will be used in the `#include` directive, including the `<>` or quotes around the name.
+
 ## Contributing
 
 We graciously accept bugs and contributions from the community. There are some requirements we need to fulfil in order to be able to integrate contributions in the main code:

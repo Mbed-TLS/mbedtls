@@ -2,6 +2,9 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2 branch
 
+Features
+   * Added support for yotta as a build system
+
 Bugfix
    * Fix segfault in the benchmark program when benchmarking DHM.
    * Fix build error with CMake and pre-4.5 versions of GCC (found by Hugo
@@ -20,6 +23,9 @@ Bugfix
 
 Changes
    * The PEM parser now accepts a trailing space at end of lines (#226).
+   * It is now possible to #include a user-provided configuration file at the
+     end of the default config.h by defining MBEDTLS_USER_CONFIG_FILE on the
+     compiler's command line.
 
 = mbed TLS 2.0.0 released 2015-07-13
 

@@ -2421,6 +2421,10 @@
 
 /* \} name SECTION: Module configuration options */
 
+#if defined(TARGET_LIKE_MBED)
+#include "mbedtls/target_config.h"
+#endif
+
 #include "check_config.h"
 
 #endif /* MBEDTLS_CONFIG_H */

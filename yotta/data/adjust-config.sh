@@ -68,5 +68,3 @@ conf unset MBEDTLS_SSL_PROTO_SSL3
 conf unset MBEDTLS_SSL_PROTO_TLS1
 conf unset MBEDTLS_SSL_PROTO_TLS1_1
 conf unset MBEDTLS_SSL_TRUNCATED_HMAC
-
-perl -pi -e 's/#include "check_config.h"/#include "target_config.h"\n$&/' $FILE

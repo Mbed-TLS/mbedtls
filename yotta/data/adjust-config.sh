@@ -14,8 +14,12 @@ conf() {
     $SCRIPT -f $FILE $@
 }
 
+# not supported on mbed OS, nor used by mbed Client
 conf unset MBEDTLS_NET_C
 conf unset MBEDTLS_TIMING_C
+
+# not supported on all targets with mbed OS, nor used by mbed Client
+conf unset MBEDTLS_FS_IO
 
 conf unset MBEDTLS_CIPHER_MODE_CFB
 conf unset MBEDTLS_CIPHER_MODE_CTR

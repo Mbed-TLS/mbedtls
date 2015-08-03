@@ -35,7 +35,6 @@ install: all
 	    then                                \
 	        f=$(PREFIX)`basename $$p` ;     \
 	        cp $$p $(DESTDIR)/bin/$$f ;     \
-	        ln -sf $$f $(DESTDIR)/bin/$$o ; \
 	    fi                                  \
 	done
 
@@ -50,7 +49,6 @@ uninstall:
 	    then                                \
 	        f=$(PREFIX)`basename $$p` ;     \
 	        rm -f $(DESTDIR)/bin/$$f ;      \
-	        rm -f $(DESTDIR)/bin/$$o ;      \
 	    fi                                  \
 	done
 endif

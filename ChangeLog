@@ -15,6 +15,8 @@ Bugfix
    * Fix compile error with armcc 5 with --gnu option.
    * Fix bug in Makefile that caused programs not to be installed correctly
      (found by robotanarchy) (#232).
+   * Fix bug in Makefile that prevented from installing without building the
+     tests (found by robotanarchy) (#232).
 
 Changes
    * The PEM parser now accepts a trailing space at end of lines (#226).

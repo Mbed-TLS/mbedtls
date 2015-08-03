@@ -20,7 +20,7 @@ tests: lib
 	$(MAKE) -C tests
 
 ifndef WINDOWS
-install: all
+install: no_test
 	mkdir -p $(DESTDIR)/include/mbedtls
 	cp -r include/mbedtls $(DESTDIR)/include
 	

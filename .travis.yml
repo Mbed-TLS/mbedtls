@@ -3,10 +3,6 @@ compiler:
 - clang
 - gcc
 sudo: false
-addons:
-  apt:
-    packages:
-    - valgrind
 script:
 - tests/scripts/recursion.pl library/*.c
 - tests/scripts/check-generated-files.sh
@@ -20,9 +16,6 @@ script:
 - tests/ssl-opt.sh -e '\(DTLS\|SCSV\).*openssl'
 - tests/scripts/test-ref-configs.pl
 - tests/scripts/curves.pl
-- make
-- make memcheck
-- tests/ssl-opt.sh -e '\(DTLS\|SCSV\).*openssl' --memcheck
 env:
   global:
     secure: "barHldniAfXyoWOD/vcO+E6/Xm4fmcaUoC9BeKW+LwsHqlDMLvugaJnmLXkSpkbYhVL61Hzf3bo0KPJn88AFc5Rkf8oYHPjH4adMnVXkf3B9ghHCgznqHsAH3choo6tnPxaFgOwOYmLGb382nQxfE5lUdvnM/W/psQjWt66A1+k="

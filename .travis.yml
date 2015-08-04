@@ -8,7 +8,7 @@ script:
 - cmake -D CMAKE_BUILD_TYPE:String="Check" .
 - make
 - make test
-- tests/compat.sh
+- tests/compat.sh -p mbedtls
 - tests/ssl-opt.sh
 - tests/scripts/test-ref-configs.pl
 env:

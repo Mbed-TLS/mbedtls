@@ -270,7 +270,7 @@ CC=clang cmake -D CMAKE_BUILD_TYPE:String=Release .
 make
 
 msg "test: main suites valgrind (Release)"
-make test
+make memcheck
 
 # Optional part(s)
 # Currently broken, programs don't seem to receive signals

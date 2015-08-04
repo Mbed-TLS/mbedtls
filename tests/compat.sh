@@ -945,7 +945,7 @@ run_client() {
             CLIENT_CMD="$OPENSSL_CMD s_client $O_CLIENT_ARGS -cipher $2"
             log "$CLIENT_CMD"
             echo "$CLIENT_CMD" > $CLI_OUT
-            ( echo -e 'GET HTTP/1.0'; echo; ) | $CLIENT_CMD >> $CLI_OUT 2>&1 &
+            printf 'GET HTTP/1.0\r\n\r\n' | $CLIENT_CMD >> $CLI_OUT 2>&1 &
             wait_client_done
 
             if [ $EXIT -eq 0 ]; then
@@ -969,7 +969,7 @@ run_client() {
             CLIENT_CMD="$GNUTLS_CLI $G_CLIENT_ARGS --priority $G_PRIO_MODE:$2 $G_HOST"
             log "$CLIENT_CMD"
             echo "$CLIENT_CMD" > $CLI_OUT
-            ( echo -e 'GET HTTP/1.0'; echo; ) | $CLIENT_CMD >> $CLI_OUT 2>&1 &
+            printf 'GET HTTP/1.0\r\n\r\n' | $CLIENT_CMD >> $CLI_OUT 2>&1 &
             wait_client_done
 
             if [ $EXIT -eq 0 ]; then

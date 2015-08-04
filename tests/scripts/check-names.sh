@@ -11,7 +11,7 @@ FAIL=0
 
 printf "Exported symbols declared in header: "
 UNDECLARED=$( diff exported-symbols identifiers | sed -n -e 's/^< //p' )
-if [ "x$UNDECLARED" == "x" ]; then
+if [ "x$UNDECLARED" = "x" ]; then
     echo "PASS"
 else
     echo "FAIL"
@@ -58,7 +58,7 @@ sed -n 's/MBED..._[A-Z0-9_]*/\'"$NL"'&\'"$NL"/gp \
 TYPOS=$( diff _caps _MBEDTLS_XXX | sed -n 's/^> //p' \
             | egrep -v 'XXX|__|_$|^MBEDTLS_CONFIG_FILE$' || true )
 rm _MBEDTLS_XXX _caps
-if [ "x$TYPOS" == "x" ]; then
+if [ "x$TYPOS" = "x" ]; then
     echo "PASS"
 else
     echo "FAIL"

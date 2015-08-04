@@ -2490,7 +2490,8 @@ run_test    "Per-version suites: TLS 1.2" \
 
 # Test for ClientHello without extensions
 
-run_test    "CLientHello without extensions" \
+requires_gnutls
+run_test    "ClientHello without extensions" \
             "$P_SRV debug_level=3" \
             "$G_CLI --priority=NORMAL:%NO_EXTENSIONS:%DISABLE_SAFE_RENEGOTIATION" \
             0 \

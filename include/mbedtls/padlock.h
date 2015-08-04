@@ -29,7 +29,15 @@
 
 #define MBEDTLS_ERR_PADLOCK_DATA_MISALIGNED               -0x0030  /**< Input data should be aligned. */
 
-#if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) && defined(__i386__)
+#if defined(__has_feature)
+#if __has_feature(address_sanitizer)
+#define MBEDTLS_HAVE_ASAN
+#endif
+#endif
+
+/* Some versions of ASan result in errors about not enough registers */
+#if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) && defined(__i386__) && \
+    defined(MBEDTLS_HAVE_ASAN)
 
 #ifndef MBEDTLS_HAVE_X86
 #define MBEDTLS_HAVE_X86

@@ -7,7 +7,7 @@ script:
 - cmake -D CMAKE_BUILD_TYPE:String="Check" .
 - make
 - make test
-- tests/compat.sh -p mbedtls
+- OSSL_NO_DTLS=1 tests/compat.sh
 - tests/ssl-opt.sh -e '\(DTLS\|SCSV\).*openssl'
 - tests/scripts/test-ref-configs.pl
 env:

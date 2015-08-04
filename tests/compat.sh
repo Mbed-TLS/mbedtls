@@ -6,7 +6,7 @@
 # with and without client authentication.
 #
 # Peer version requirements:
-# - OpenSSL 1.0.1e 11 Feb 2013 (probably since 1.0.1, tested with 1.0.1e)
+# - OpenSSL 1.0.1e 11 Feb 2013 (probably NOT since 1.0.1, tested with 1.0.1e)
 # - GnuTLS 3.2.15 (probably works since 3.2.12 but tested only with 3.2.15)
 
 set -u
@@ -53,6 +53,10 @@ EXCLUDE='NULL\|DES-CBC-\|RC4\|ARCFOUR' # avoid plain DES but keep 3DES-EDE-CBC (
 VERBOSE=""
 MEMCHECK=0
 PEERS="OpenSSL$PEER_GNUTLS mbedTLS"
+
+# hidden option: skip DTLS with OpenSSL
+# (travis CI has a version that doesn't work for us)
+: ${OSSL_NO_DTLS:=0}
 
 print_usage() {
     echo "Usage: $0"
@@ -1121,6 +1125,10 @@ for VERIFY in $VERIFIES; do
             case "$PEER" in
 
                 [Oo]pen*)
+
+                    if test "$OSSL_NO_DTLS" -gt 0 && is_dtls "$MODE"; then
+                        continue;
+                    fi
 
                     reset_ciphersuites
                     add_common_ciphersuites

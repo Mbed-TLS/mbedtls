@@ -18,7 +18,6 @@ addons:
   coverity_scan:
     project:
       name: "ARMmbed/mbedtls"
-      description: "mbed TLS Open Source SSL Library"
     notification_email: p.j.bakker@polarssl.org
     build_command_prepend:
     build_command: make

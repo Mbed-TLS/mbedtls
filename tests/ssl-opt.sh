@@ -215,21 +215,33 @@ has_mem_err() {
 # wait for server to start: two versions depending on lsof availability
 wait_server_start() {
     if which lsof >/dev/null 2>&1; then
-        # make sure we don't loop forever
-        ( sleep "$DOG_DELAY"; echo "SERVERSTART TIMEOUT"; kill $MAIN_PID ) &
-        DOG_PID=$!
+        START_TIME=$( date +%s )
+        DONE=0
 
         # make a tight loop, server usually takes less than 1 sec to start
         if [ "$DTLS" -eq 1 ]; then
-            until lsof -nbi UDP:"$SRV_PORT" 2>/dev/null | grep UDP >/dev/null;
-            do :; done
+            while [ $DONE -eq 0 ]; do
+                if lsof -nbi UDP:"$SRV_PORT" 2>/dev/null | grep UDP >/dev/null
+                then
+                    DONE=1
+                elif [ $(( $( date +%s ) - $START_TIME )) -gt $DOG_DELAY ]; then
+                    echo "SERVERSTART TIMEOUT"
+                    echo "SERVERSTART TIMEOUT" >> $SRV_OUT
+                    DONE=1
+                fi
+            done
         else
-            until lsof -nbi TCP:"$SRV_PORT" 2>/dev/null | grep LISTEN >/dev/null;
-            do :; done
+            while [ $DONE -eq 0 ]; do
+                if lsof -nbi TCP:"$SRV_PORT" 2>/dev/null | grep LISTEN >/dev/null
+                then
+                    DONE=1
+                elif [ $(( $( date +%s ) - $START_TIME )) -gt $DOG_DELAY ]; then
+                    echo "SERVERSTART TIMEOUT"
+                    echo "SERVERSTART TIMEOUT" >> $SRV_OUT
+                    DONE=1
+                fi
+            done
         fi
-
-        kill $DOG_PID >/dev/null 2>&1
-        wait $DOG_PID
     else
         sleep "$START_DELAY"
     fi

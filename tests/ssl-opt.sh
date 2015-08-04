@@ -255,7 +255,7 @@ wait_client_done() {
     CLI_DELAY=$(( $DOG_DELAY * $CLI_DELAY_FACTOR ))
     CLI_DELAY_FACTOR=1
 
-    ( sleep $CLI_DELAY; echo "TIMEOUT" >> $CLI_OUT; kill $CLI_PID ) &
+    ( sleep $CLI_DELAY; echo "===CLIENT_TIMEOUT===" >> $CLI_OUT; kill $CLI_PID ) &
     DOG_PID=$!
 
     wait $CLI_PID
@@ -335,6 +335,10 @@ run_test() {
         fi
     fi
 
+    TIMES_LEFT=2
+    while [ $TIMES_LEFT -gt 0 ]; do
+    TIMES_LEFT=$(( $TIMES_LEFT - 1 ))
+
     # run the commands
     if [ -n "$PXY_CMD" ]; then
         echo "$PXY_CMD" > $PXY_OUT
@@ -360,6 +364,14 @@ run_test() {
         kill $PXY_PID >/dev/null 2>&1
         wait $PXY_PID
     fi
+
+    # retry only on timeouts
+    if grep '===CLIENT_TIMEOUT===' $CLI_OUT >/dev/null; then
+        printf "RETRY "
+    else
+        TIMES_LEFT=0
+    fi
+    done
 
     # check if the client and server went at least to the handshake stage
     # (useful to avoid tests with only negative assertions and non-zero

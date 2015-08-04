@@ -7,9 +7,9 @@ script:
 - cmake -D CMAKE_BUILD_TYPE:String="Check" .
 - make
 - make test
-- which openssl
-- openssl version
-- apt-cache policy openssl
+- tests/compat.sh -p mbedtls
+- tests/ssl-opt.sh -e '\(DTLS\|SCSV\).*openssl'
+- tests/scripts/test-ref-configs.pl
 env:
   global:
     secure: "barHldniAfXyoWOD/vcO+E6/Xm4fmcaUoC9BeKW+LwsHqlDMLvugaJnmLXkSpkbYhVL61Hzf3bo0KPJn88AFc5Rkf8oYHPjH4adMnVXkf3B9ghHCgznqHsAH3choo6tnPxaFgOwOYmLGb382nQxfE5lUdvnM/W/psQjWt66A1+k="

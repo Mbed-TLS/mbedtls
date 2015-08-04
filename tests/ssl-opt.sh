@@ -2851,6 +2851,13 @@ run_test    "DTLS client auth: none, client has no cert" \
             -c "skip write certificate$" \
             -s "! Certificate verification was skipped"
 
+run_test    "DTLS wrong PSK: badmac alert" \
+            "$P_SRV dtls=1 psk=abc123 force_ciphersuite=TLS-PSK-WITH-AES-128-GCM-SHA256" \
+            "$P_CLI dtls=1 psk=abc124" \
+            1 \
+            -s "SSL - Verification of the message MAC failed" \
+            -c "SSL - A fatal alert message was received from our peer"
+
 # Tests for receiving fragmented handshake messages with DTLS
 
 requires_gnutls

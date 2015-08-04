@@ -3573,6 +3573,23 @@ read_record_header:
             if( ret == MBEDTLS_ERR_SSL_INVALID_RECORD ||
                 ret == MBEDTLS_ERR_SSL_INVALID_MAC )
             {
+                /* Except when waiting for Finished as a bad mac here
+                 * probably means something went wrong in the handshake
+                 * (eg wrong psk used, mitm downgrade attempt, etc.) */
+                if( ssl->state == MBEDTLS_SSL_CLIENT_FINISHED ||
+                    ssl->state == MBEDTLS_SSL_SERVER_FINISHED )
+                {
+#if defined(MBEDTLS_SSL_ALL_ALERT_MESSAGES)
+                    if( ret == MBEDTLS_ERR_SSL_INVALID_MAC )
+                    {
+                        mbedtls_ssl_send_alert_message( ssl,
+                                MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                MBEDTLS_SSL_ALERT_MSG_BAD_RECORD_MAC );
+                    }
+#endif
+                    return( ret );
+                }
+
 #if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
                 if( ssl->conf->badmac_limit != 0 &&
                     ++ssl->badmac_seen >= ssl->conf->badmac_limit )

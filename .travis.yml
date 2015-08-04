@@ -2,8 +2,7 @@ language: c
 compiler:
 - clang
 - gcc
-before_install: sudo apt-get update
-install: sudo apt-get install valgrind perl
+sudo: false
 script:
 - cmake -D CMAKE_BUILD_TYPE:String="Check" .
 - make

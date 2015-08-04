@@ -337,40 +337,40 @@ run_test() {
 
     TIMES_LEFT=2
     while [ $TIMES_LEFT -gt 0 ]; do
-    TIMES_LEFT=$(( $TIMES_LEFT - 1 ))
+        TIMES_LEFT=$(( $TIMES_LEFT - 1 ))
 
-    # run the commands
-    if [ -n "$PXY_CMD" ]; then
-        echo "$PXY_CMD" > $PXY_OUT
-        $PXY_CMD >> $PXY_OUT 2>&1 &
-        PXY_PID=$!
-        # assume proxy starts faster than server
-    fi
+        # run the commands
+        if [ -n "$PXY_CMD" ]; then
+            echo "$PXY_CMD" > $PXY_OUT
+            $PXY_CMD >> $PXY_OUT 2>&1 &
+            PXY_PID=$!
+            # assume proxy starts faster than server
+        fi
 
-    check_osrv_dtls
-    echo "$SRV_CMD" > $SRV_OUT
-    provide_input | $SRV_CMD >> $SRV_OUT 2>&1 &
-    SRV_PID=$!
-    wait_server_start
+        check_osrv_dtls
+        echo "$SRV_CMD" > $SRV_OUT
+        provide_input | $SRV_CMD >> $SRV_OUT 2>&1 &
+        SRV_PID=$!
+        wait_server_start
 
-    echo "$CLI_CMD" > $CLI_OUT
-    eval "$CLI_CMD" >> $CLI_OUT 2>&1 &
-    wait_client_done
+        echo "$CLI_CMD" > $CLI_OUT
+        eval "$CLI_CMD" >> $CLI_OUT 2>&1 &
+        wait_client_done
 
-    # terminate the server (and the proxy)
-    kill $SRV_PID
-    wait $SRV_PID
-    if [ -n "$PXY_CMD" ]; then
-        kill $PXY_PID >/dev/null 2>&1
-        wait $PXY_PID
-    fi
+        # terminate the server (and the proxy)
+        kill $SRV_PID
+        wait $SRV_PID
+        if [ -n "$PXY_CMD" ]; then
+            kill $PXY_PID >/dev/null 2>&1
+            wait $PXY_PID
+        fi
 
-    # retry only on timeouts
-    if grep '===CLIENT_TIMEOUT===' $CLI_OUT >/dev/null; then
-        printf "RETRY "
-    else
-        TIMES_LEFT=0
-    fi
+        # retry only on timeouts
+        if grep '===CLIENT_TIMEOUT===' $CLI_OUT >/dev/null; then
+            printf "RETRY "
+        else
+            TIMES_LEFT=0
+        fi
     done
 
     # check if the client and server went at least to the handshake stage

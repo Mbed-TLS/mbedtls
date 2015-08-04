@@ -755,7 +755,7 @@ run_test    "Extended Master Secret: client enabled, server SSLv3" \
 # Tests for FALLBACK_SCSV
 
 run_test    "Fallback SCSV: default" \
-            "$P_SRV" \
+            "$P_SRV debug_level=2" \
             "$P_CLI debug_level=3 force_version=tls1_1" \
             0 \
             -C "adding FALLBACK_SCSV" \
@@ -764,7 +764,7 @@ run_test    "Fallback SCSV: default" \
             -C "is a fatal alert message (msg 86)"
 
 run_test    "Fallback SCSV: explicitly disabled" \
-            "$P_SRV" \
+            "$P_SRV debug_level=2" \
             "$P_CLI debug_level=3 force_version=tls1_1 fallback=0" \
             0 \
             -C "adding FALLBACK_SCSV" \
@@ -773,7 +773,7 @@ run_test    "Fallback SCSV: explicitly disabled" \
             -C "is a fatal alert message (msg 86)"
 
 run_test    "Fallback SCSV: enabled" \
-            "$P_SRV" \
+            "$P_SRV debug_level=2" \
             "$P_CLI debug_level=3 force_version=tls1_1 fallback=1" \
             1 \
             -c "adding FALLBACK_SCSV" \
@@ -782,7 +782,7 @@ run_test    "Fallback SCSV: enabled" \
             -c "is a fatal alert message (msg 86)"
 
 run_test    "Fallback SCSV: enabled, max version" \
-            "$P_SRV" \
+            "$P_SRV debug_level=2" \
             "$P_CLI debug_level=3 fallback=1" \
             0 \
             -c "adding FALLBACK_SCSV" \
@@ -808,7 +808,7 @@ run_test    "Fallback SCSV: enabled, openssl server" \
 
 requires_openssl_with_fallback_scsv
 run_test    "Fallback SCSV: disabled, openssl client" \
-            "$P_SRV" \
+            "$P_SRV debug_level=2" \
             "$O_CLI -tls1_1" \
             0 \
             -S "received FALLBACK_SCSV" \
@@ -816,7 +816,7 @@ run_test    "Fallback SCSV: disabled, openssl client" \
 
 requires_openssl_with_fallback_scsv
 run_test    "Fallback SCSV: enabled, openssl client" \
-            "$P_SRV" \
+            "$P_SRV debug_level=2" \
             "$O_CLI -tls1_1 -fallback_scsv" \
             1 \
             -s "received FALLBACK_SCSV" \
@@ -824,7 +824,7 @@ run_test    "Fallback SCSV: enabled, openssl client" \
 
 requires_openssl_with_fallback_scsv
 run_test    "Fallback SCSV: enabled, max version, openssl client" \
-            "$P_SRV" \
+            "$P_SRV debug_level=2" \
             "$O_CLI -fallback_scsv" \
             0 \
             -s "received FALLBACK_SCSV" \

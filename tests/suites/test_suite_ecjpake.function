@@ -1,0 +1,15 @@
+/* BEGIN_HEADER */
+#include "mbedtls/ecjpake.h"
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_ECJPAKE_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
+void ecjpake_selftest()
+{
+    TEST_ASSERT( mbedtls_ecjpake_self_test( 0 ) == 0 );
+}
+/* END_CASE */

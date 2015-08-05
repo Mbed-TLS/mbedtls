@@ -20,6 +20,7 @@ set(src_crypto
     dhm.c
     ecdh.c
     ecdsa.c
+    ecjpake.c
     ecp.c
     ecp_curves.c
     entropy.c

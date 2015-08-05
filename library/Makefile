@@ -49,7 +49,8 @@ OBJS_CRYPTO=	aes.o		aesni.o		arc4.o		\
 		bignum.o	blowfish.o	camellia.o	\
 		ccm.o		cipher.o	cipher_wrap.o	\
 		ctr_drbg.o	des.o		dhm.o		\
-		ecdh.o		ecdsa.o		ecp.o		\
+		ecdh.o		ecdsa.o		ecjpake.o	\
+		ecp.o						\
 		ecp_curves.o	entropy.o	entropy_poll.o	\
 		error.o		gcm.o		havege.o	\
 		hmac_drbg.o	md.o		md2.o		\

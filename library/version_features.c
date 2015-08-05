@@ -462,6 +462,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_ECDSA_C)
     "MBEDTLS_ECDSA_C",
 #endif /* MBEDTLS_ECDSA_C */
+#if defined(MBEDTLS_ECJPAKE_C)
+    "MBEDTLS_ECJPAKE_C",
+#endif /* MBEDTLS_ECJPAKE_C */
 #if defined(MBEDTLS_ECP_C)
     "MBEDTLS_ECP_C",
 #endif /* MBEDTLS_ECP_C */

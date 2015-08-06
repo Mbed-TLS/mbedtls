@@ -14,13 +14,45 @@ Compiler options can be set using standard variables such as *CC* and *CFLAGS* w
 Compiling
 =========
 
-There are currently three active build systems within the mbed TLS releases:
+There are currently four active build systems within the mbed TLS releases:
 
+- yotta
 - Make
 - CMake
 - Microsoft Visual Studio (Visual Studio 6 and Visual Studio 2010)
 
-The main system used for development is CMake. That system is always the most up-to-date. The others should reflect all changes present in the CMake build system, but some features are not ported there by default.
+The main systems used for development are CMake and yotta. Those systems are always complete and up-to-date. The others should reflect all changes present in the CMake and yotta build system, but some features are not ported there by default.
+
+Please note that the yotta option is slightly different from the other build systems:
+
+- a more minimalistic configuration file is used by default
+- depending on the yotta target, features of mbed OS will be used in examples and tests
+
+Yotta
+-----
+
+`yotta <http://yottabuild.org>` is a package manager and build system developped by mbed; it is the build system of mbed OS. To install it on your platform, please follow the `yotta installation instructions <http://docs.yottabuild.org/#installing>`.
+
+Once yotta is installed, you can use it to download the latest version of mbed TLS form the yotta registry with::
+
+    yotta install mbedtls
+
+and build it with::
+
+    yotta build
+
+If, on the other hand, you already have a copy of mbed TLS from a source other than the yotta registry, for example from cloning our github repository, or from downloading a tarball of the standalone edition, then you'll need first need to generate the yotta module by running::
+
+    yotta/create-module.sh
+
+from the mbed TLS root directory. This will create the yotta module in the *yotta/module* directory. You can then change to that directory and build as usual::
+
+    cd yotta/module
+    yotta build
+
+In any case, you'll probably want to set the yotta target before building unless it's already set globally; for more information on using yotta, please consult the `yotta documentation <http://docs.yottabuild.org/>`.
+
+The yotta edition of mbed TLS includes a few example programs, some of which demonstrate integration with mbed OS; for more details, please consult the `Readme of mbed TLS, yotta edition <https://github.com/ARMmbed/mbedtls/master/tree/yotta/data/README.md>`.
 
 Make
 ----

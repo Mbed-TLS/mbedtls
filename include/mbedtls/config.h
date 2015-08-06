@@ -2421,6 +2421,23 @@
 
 /* \} name SECTION: Module configuration options */
 
+#if defined(TARGET_LIKE_MBED)
+#include "mbedtls/target_config.h"
+#endif
+
+/*
+ * Allow user to override any previous default.
+ *
+ * Use two macro names for that, as:
+ * - with yotta the prefix YOTTA_CFG_ is forced
+ * - without yotta is looks weird to have a YOTTA prefix.
+ */
+#if defined(YOTTA_CFG_MBEDTLS_USER_CONFIG_FILE)
+#include YOTTA_CFG_MBEDTLS_USER_CONFIG_FILE
+#elif defined(MBEDTLS_USER_CONFIG_FILE)
+#include MBEDTLS_USER_CONFIG_FILE
+#endif
+
 #include "check_config.h"
 
 #endif /* MBEDTLS_CONFIG_H */

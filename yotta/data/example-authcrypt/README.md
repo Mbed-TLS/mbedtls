@@ -44,7 +44,7 @@ To build and run this example the requirements below are necessary:
 
 6. Copy `build/frdm-k64f-gcc/test/mbedtls-test-example-authcrypt.bin` to your mbed board and wait until the LED next to the USB port stops blinking.
 
-7. Start the serial terminal emulator and connect to the virtual serial port presented by FRDM-K64F. For settings, use 9600 baud, 8N1, no flow control.
+7. Start the serial terminal emulator and connect to the virtual serial port presented by FRDM-K64F. For settings, use 115200 baud, 8N1, no flow control. **Warning:** for this example, the baud rate is not the default 9600, it is 115200.
 
 8. Press the reset button on the board.
 

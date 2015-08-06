@@ -161,6 +161,10 @@ static int example(void)
 #include "mbed/test_env.h"
 
 int main() {
+    /* Use 115200 bps for consistency with other examples */
+    Serial pc(USBTX, USBRX);
+    pc.baud(115200);
+
     MBED_HOSTTEST_TIMEOUT(10);
     MBED_HOSTTEST_SELECT(default);
     MBED_HOSTTEST_DESCRIPTION(mbed TLS example authcrypt);

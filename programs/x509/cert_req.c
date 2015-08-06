@@ -273,7 +273,7 @@ int main( int argc, char *argv[] )
     /*
      * 1.0. Check the subject name for validity
      */
-    mbedtls_printf( "  . Checking subjet name..." );
+    mbedtls_printf( "  . Checking subject name..." );
     fflush( stdout );
 
     if( ( ret = mbedtls_x509write_csr_set_subject_name( &req, opt.subject_name ) ) != 0 )

@@ -40,7 +40,7 @@
 int main( void )
 {
     mbedtls_printf( "MBEDTLS_X509_CRT_WRITE_C and/or MBEDTLS_X509_CRT_PARSE_C and/or "
-            "MBEDTLS_FS_IO and/or MBEDTLS_SHA256_C and_or "
+            "MBEDTLS_FS_IO and/or MBEDTLS_SHA256_C and/or "
             "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C and/or "
             "MBEDTLS_ERROR_C not defined.\n");
     return( 0 );
@@ -227,7 +227,6 @@ int main( int argc, char *argv[] )
     }
 
     opt.issuer_crt          = DFL_ISSUER_CRT;
-    opt.request_file        = DFL_REQUEST_FILE;
     opt.request_file        = DFL_REQUEST_FILE;
     opt.subject_key         = DFL_SUBJECT_KEY;
     opt.issuer_key          = DFL_ISSUER_KEY;

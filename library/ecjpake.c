@@ -20,8 +20,8 @@
  */
 
 /*
- * EC-JPAKE is defined in Chapter 7.4 of the Thread specification.
- * References below are base on the draft-1.0.0 spec.
+ * We implement EC-JPAKE as defined in Chapter 7.4 of the Thread v1.0
+ * Specification. References below are to this document.
  */
 
 #if !defined(MBEDTLS_CONFIG_FILE)
@@ -87,7 +87,7 @@ static int ecjpake_hash( const mbedtls_md_info_t *md_info,
     unsigned char buf[ECJPAKE_HASH_BUF_LEN];
     unsigned char *p = buf;
     const unsigned char *end = buf + sizeof( buf );
-    size_t id_len = strlen( id );
+    const size_t id_len = strlen( id );
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
 
     /* Write things to temporary buffer */
@@ -115,6 +115,62 @@ static int ecjpake_hash( const mbedtls_md_info_t *md_info,
     MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( h, h, &grp->N ) );
 
 cleanup:
+    return( ret );
+}
+
+/*
+ * Generate ZKP (7.4.2.3.2) and write it as ECSchnorrZKP (7.4.2.2.2)
+ */
+static int ecjpake_write_zkp( const mbedtls_md_info_t *md_info,
+                              const mbedtls_ecp_group *grp,
+                              const mbedtls_ecp_point *G,
+                              const mbedtls_mpi *x,
+                              const mbedtls_ecp_point *X,
+                              const char *id,
+                              unsigned char **p,
+                              const unsigned char *end,
+                              int (*f_rng)(void *, unsigned char *, size_t),
+                              void *p_rng )
+{
+    int ret;
+    mbedtls_ecp_point V;
+    mbedtls_mpi v;
+    mbedtls_mpi h; /* later recycled to hold r */
+    size_t len;
+
+    if( end < *p )
+        return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+
+    mbedtls_ecp_point_init( &V );
+    mbedtls_mpi_init( &v );
+    mbedtls_mpi_init( &h );
+
+    /* Compute signature */
+    MBEDTLS_MPI_CHK( mbedtls_ecp_gen_keypair( (mbedtls_ecp_group *) grp,
+                                              &v, &V, f_rng, p_rng ) ); /* TODO: wrong base point! */
+    MBEDTLS_MPI_CHK( ecjpake_hash( md_info, grp, G, &V, X, id, &h ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &h, &h, x ) ); /* x*h */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &h, &v, &h ) ); /* v - x*h */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &h, &h, &grp->N ) ); /* r */
+
+    /* Write it out */
+    MBEDTLS_MPI_CHK( mbedtls_ecp_tls_write_point( grp, &V,
+                MBEDTLS_ECP_PF_UNCOMPRESSED, &len, *p, end - *p ) );
+    *p += len;
+
+    len = mbedtls_mpi_size( &h ); /* actually r */
+    if( end < *p || (size_t)( end - *p ) < 1 + len || len > 255 )
+        return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+
+    *(*p)++ = (unsigned char)( len & 0xFF );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &h, *p, len ) ); /* r */
+    *p += len;
+
+cleanup:
+    mbedtls_ecp_point_free( &V );
+    mbedtls_mpi_free( &v );
+    mbedtls_mpi_free( &h );
+
     return( ret );
 }
 
@@ -169,6 +225,25 @@ static const unsigned char ecjpake_test_h[] = {
     0x51, 0x69, 0xfe, 0xa7, 0xa3, 0xf7, 0x79, 0x10
 };
 
+/* For tests we don't need a secure RNG;
+ * use the LGC from Numerical Recipes for simplicity */
+static int ecjpake_lgc( void *p, unsigned char *out, size_t len )
+{
+    static uint32_t x = 42;
+    (void) p;
+
+    while( len > 0 )
+    {
+        size_t use_len = len > 4 ? 4 : len;
+        x = 1664525 * x + 1013904223;
+        memcpy( out, &x, use_len );
+        out += use_len;
+        len -= use_len;
+    }
+
+    return( 0 );
+}
+
 /*
  * Checkup routine
  */
@@ -177,8 +252,10 @@ int mbedtls_ecjpake_self_test( int verbose )
     int ret;
     mbedtls_ecp_group grp;
     mbedtls_ecp_point G, V, X;
-    mbedtls_mpi h, h_ref;
+    mbedtls_mpi x, h, h_ref;
     const mbedtls_md_info_t *md_info;
+    unsigned char buf[1000];
+    unsigned char *p;
 
     mbedtls_ecp_group_init( &grp );
     mbedtls_ecp_point_init( &G );
@@ -186,12 +263,15 @@ int mbedtls_ecjpake_self_test( int verbose )
     mbedtls_ecp_point_init( &X );
     mbedtls_mpi_init( &h_ref );
     mbedtls_mpi_init( &h );
+    mbedtls_mpi_init( &x );
+
+    /* Common to all tests */
+    md_info = mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_group_load( &grp, MBEDTLS_ECP_DP_SECP256R1 ) );
 
     if( verbose != 0 )
         mbedtls_printf( "  ECJPAKE test #1 (hash): " );
 
-    md_info = mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_group_load( &grp, MBEDTLS_ECP_DP_SECP256R1 ) );
     MBEDTLS_MPI_CHK( mbedtls_ecp_point_read_binary( &grp, &G, ecjpake_test_G,
                                                       sizeof( ecjpake_test_G ) ) );
     MBEDTLS_MPI_CHK( mbedtls_ecp_point_read_binary( &grp, &V, ecjpake_test_V,
@@ -212,6 +292,20 @@ int mbedtls_ecjpake_self_test( int verbose )
     if( verbose != 0 )
         mbedtls_printf( "passed\n" );
 
+    if( verbose != 0 )
+        mbedtls_printf( "  ECJPAKE test #2 (zkp, WIP): " );
+
+    MBEDTLS_MPI_CHK( mbedtls_ecp_gen_keypair( &grp, &x, &X,
+                                              ecjpake_lgc, NULL ) );
+
+    p = buf;
+    MBEDTLS_MPI_CHK( ecjpake_write_zkp( md_info, &grp, &G, &x, &X, "client",
+                                        &p, buf + sizeof( buf ),
+                                        ecjpake_lgc, NULL ) );
+
+    if( verbose != 0 )
+        mbedtls_printf( "passed\n" );
+
 cleanup:
     mbedtls_ecp_group_free( &grp );
     mbedtls_ecp_point_free( &G );
@@ -219,6 +313,7 @@ cleanup:
     mbedtls_ecp_point_free( &X );
     mbedtls_mpi_free( &h_ref );
     mbedtls_mpi_free( &h );
+    mbedtls_mpi_free( &x );
 
     if( ret != 0 )
     {

@@ -1016,7 +1016,7 @@ int mbedtls_x509_self_test( int verbose )
     return( 0 );
 #else
     ((void) verbose);
-    return( MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE );
+    return( 0 );
 #endif /* MBEDTLS_CERTS_C && MBEDTLS_SHA1_C */
 }
 

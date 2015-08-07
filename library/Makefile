@@ -105,9 +105,9 @@ libmbedtls.dylib: $(OBJS_TLS)
 	echo "  LD    $@"
 	$(CC) -dynamiclib $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_TLS)
 
-libmbedtls.dll: $(OBJS_TLS)
+libmbedtls.dll: $(OBJS_TLS) libmbedx509.dll
 	echo "  LD    $@"
-	$(CC) -shared -Wl,-soname,$@ -Wl,--out-implib,$@.a -o $@ $(OBJS_TLS) -lws2_32 -lwinmm -lgdi32 -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
+	$(CC) -shared -Wl,-soname,$@ -Wl,--out-implib,$@.a -o $@ $(OBJS_TLS) -lws2_32 -lwinmm -lgdi32 -L. -lmbedcrypto -lmbedx509 -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
 
 # x509
 libmbedx509.a: $(OBJS_X509)
@@ -128,9 +128,9 @@ libmbedx509.dylib: $(OBJS_X509)
 	echo "  LD    $@"
 	$(CC) -dynamiclib $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_X509)
 
-libmbedx509.dll: $(OBJS_X509)
+libmbedx509.dll: $(OBJS_X509) libmbedcrypto.dll
 	echo "  LD    $@"
-	$(CC) -shared -Wl,-soname,$@ -Wl,--out-implib,$@.a -o $@ $(OBJS_X509) -lws2_32 -lwinmm -lgdi32 -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
+	$(CC) -shared -Wl,-soname,$@ -Wl,--out-implib,$@.a -o $@ $(OBJS_X509) -lws2_32 -lwinmm -lgdi32 -L. -lmbedcrypto -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
 
 # crypto
 libmbedcrypto.a: $(OBJS_CRYPTO)

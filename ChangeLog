@@ -20,6 +20,9 @@ Bugfix
      (found by robotanarchy) (#232).
    * Fix bug in Makefile that prevented from installing without building the
      tests (found by robotanarchy) (#232).
+   * Fix missing -static-libgcc when building shared libraries for Windows
+     with make.
+   * Fix link error when building shared libraries for Windows with make.
 
 Changes
    * The PEM parser now accepts a trailing space at end of lines (#226).

@@ -241,6 +241,8 @@ msg "build: cross-mingw64, make" # ~ 30s
 cleanup
 CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS=-Werror WINDOWS_BUILD=1 make
 WINDOWS_BUILD=1 make clean
+CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS=-Werror WINDOWS_BUILD=1 SHARED=1 make
+WINDOWS_BUILD=1 make clean
 fi
 
 # MemSan currently only available on Linux 64 bits

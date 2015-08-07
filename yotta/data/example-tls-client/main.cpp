@@ -63,11 +63,11 @@ int main() {
 #include "lwipv4_init.h"
 
 namespace {
-const char *HTTPS_SERVER_NAME = "developer.mbed.org";
+const char *HTTPS_SERVER_NAME = "mbed.org";
 const int HTTPS_SERVER_PORT = 443;
 const int RECV_BUFFER_SIZE = 600;
 
-const char HTTPS_PATH[] = "/media/uploads/mbed_official/hello.txt";
+const char HTTPS_PATH[] = "/assets/uploads/hello.txt";
 const size_t HTTPS_PATH_LEN = sizeof(HTTPS_PATH) - 1;
 
 /* Test related data */
@@ -149,7 +149,7 @@ public:
      * @param[in] path The path of the file to fetch from the HTTPS server
      * @return SOCKET_ERROR_NONE on success, or an error code on failure
      */
-    socket_error_t startTest(const char *path) {
+    void startTest(const char *path) {
         /* Initialize the flags */
         _got200 = false;
         _gothello = false;
@@ -167,13 +167,15 @@ public:
                           (const unsigned char *) DRBG_PERS,
                           sizeof (DRBG_PERS))) != 0) {
             print_mbedtls_error("mbedtls_crt_drbg_init", ret);
-            return SOCKET_ERROR_UNKNOWN;
+            _error = true;
+            return;
         }
 
         if ((ret = mbedtls_x509_crt_parse(&_cacert, (const unsigned char *) SSL_CA_PEM,
                            sizeof (SSL_CA_PEM))) != 0) {
             print_mbedtls_error("mbedtls_x509_crt_parse", ret);
-            return SOCKET_ERROR_UNKNOWN;
+            _error = true;
+            return;
         }
 
         if ((ret = mbedtls_ssl_config_defaults(&_ssl_conf,
@@ -181,7 +183,8 @@ public:
                         MBEDTLS_SSL_TRANSPORT_STREAM,
                         MBEDTLS_SSL_PRESET_DEFAULT)) != 0) {
             print_mbedtls_error("mbedtls_ssl_config_defaults", ret);
-            return SOCKET_ERROR_UNKNOWN;
+            _error = true;
+            return;
         }
 
         mbedtls_ssl_conf_ca_chain(&_ssl_conf, &_cacert, NULL);
@@ -199,7 +202,8 @@ public:
 
         if ((ret = mbedtls_ssl_setup(&_ssl, &_ssl_conf)) != 0) {
             print_mbedtls_error("mbedtls_ssl_setup", ret);
-            return SOCKET_ERROR_UNKNOWN;
+            _error = true;
+            return;
         }
 
         mbedtls_ssl_set_hostname(&_ssl, HTTPS_SERVER_NAME);
@@ -212,7 +216,8 @@ public:
         printf("Connecting to %s:%d\r\n", _domain, _port);
         /* Resolve the domain name: */
         socket_error_t err = _stream.resolve(_domain, TCPStream::DNSHandler_t(this, &HelloHTTPS::onDNS));
-        return err;
+        if(err != SOCKET_ERROR_NONE)
+            _error = true;
     }
     /**
      * Check if the test has completed.
@@ -477,19 +482,15 @@ int example_client() {
     printf("Client IP Address is %s\r\n", eth.getIPAddress());
 
     HelloHTTPS hello(HTTPS_SERVER_NAME, HTTPS_SERVER_PORT);
-    socket_error_t rc = hello.startTest(HTTPS_PATH);
-    if (rc != SOCKET_ERROR_NONE) {
-        return 1;
+    {
+        mbed::FunctionPointer1<void, const char*> fp(&hello, &HelloHTTPS::startTest);
+        minar::Scheduler::postCallback(fp.bind(HTTPS_PATH));
     }
-    while (!hello.done()) {
-        __WFI();
-    }
-    if (hello.error()) {
-        printf("Failed to fetch %s from %s:%d\r\n", HTTPS_PATH, HTTPS_SERVER_NAME, HTTPS_SERVER_PORT);
-    }
-    /* Shut down the socket before the ethernet interface */
-    hello.close();
+
+    minar::Scheduler::start();
+
     eth.disconnect();
+
     return static_cast<int>(hello.error());
 }
 

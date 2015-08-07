@@ -408,10 +408,7 @@ int mbedtls_hmac_drbg_update_seed_file( mbedtls_hmac_drbg_context *ctx, const ch
 /* Dummy checkup routine */
 int mbedtls_hmac_drbg_self_test( int verbose )
 {
-
-    if( verbose != 0 )
-        mbedtls_printf( "\n" );
-
+    (void) verbose;
     return( 0 );
 }
 #else

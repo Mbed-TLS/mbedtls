@@ -1642,9 +1642,12 @@ int mbedtls_rsa_self_test( int verbose )
         return( 1 );
     }
 
+    if( verbose != 0 )
+        mbedtls_printf( "passed\n" );
+
 #if defined(MBEDTLS_SHA1_C)
     if( verbose != 0 )
-        mbedtls_printf( "passed\n  PKCS#1 data sign  : " );
+        mbedtls_printf( "PKCS#1 data sign  : " );
 
     mbedtls_sha1( rsa_plaintext, PT_LEN, sha1sum );
 
@@ -1670,8 +1673,11 @@ int mbedtls_rsa_self_test( int verbose )
     }
 
     if( verbose != 0 )
-        mbedtls_printf( "passed\n\n" );
+        mbedtls_printf( "passed\n" );
 #endif /* MBEDTLS_SHA1_C */
+
+    if( verbose != 0 )
+        mbedtls_printf( "\n" );
 
 cleanup:
     mbedtls_rsa_free( &rsa );

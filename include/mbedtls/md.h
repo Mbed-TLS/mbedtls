@@ -154,7 +154,7 @@ int mbedtls_md_init_ctx( mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_
  *
  * \param ctx       Context to set up.
  * \param md_info   Message digest to use.
- * \param hmac      0 to save some meory is HMAC will not be use,
+ * \param hmac      0 to save some memory if HMAC will not be used,
  *                  non-zero is HMAC is going to be used with this context.
  *
  * \returns         \c 0 on success,

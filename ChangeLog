@@ -14,6 +14,8 @@ Bugfix
      Studio projects (found by Kristian Bendiksen).
    * Fix build error with CMake and pre-4.5 versions of GCC (found by Hugo
      Leisink).
+   * Fix missing -static-ligcc when building shared libraries for Windows with
+     make.
 
 Changes
    * Add SSL_MIN_DHM_BYTES configuration parameter in config.h to choose the

@@ -158,6 +158,12 @@ scripts/config.pl full
 scripts/config.pl set POLARSSL_PLATFORM_NO_STD_FUNCTIONS
 CC=gcc CFLAGS='-Werror -O0' make
 
+if uname -a | grep -F Linux >/dev/null; then
+msg "build/test: make shared" # ~ 40s
+cleanup
+make SHARED=1 all check
+fi
+
 if uname -a | grep -F x86_64 >/dev/null; then
 msg "build: i386, make, gcc" # ~ 30s
 cleanup
@@ -208,7 +214,10 @@ fi # armcc
 if which i686-w64-mingw32-gcc >/dev/null; then
 msg "build: cross-mingw64, make" # ~ 30s
 cleanup
-CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar CFLAGS=-Werror WINDOWS_BUILD=1 make
+CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS=-Werror WINDOWS_BUILD=1 make
+WINDOWS_BUILD=1 make clean
+CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS=-Werror WINDOWS_BUILD=1 SHARED=1 make
+WINDOWS_BUILD=1 make clean
 fi
 
 # MemSan currently only available on Linux 64 bits

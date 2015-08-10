@@ -126,7 +126,7 @@ libmbedtls.dylib: $(OBJS)
 
 libmbedtls.dll: $(OBJS)
 	echo "  LD    $@"
-	$(CC) -shared -Wl,-soname,$@ -Wl,--out-implib,$@.a -o $@ $(OBJS) -lws2_32 -lwinmm -lgdi32 $(LOCAL_LDFLAGS) $(LDFLAGS)
+	$(CC) -shared -Wl,-soname,$@ -Wl,--out-implib,$@.a -o $@ $(OBJS) -lws2_32 -lwinmm -lgdi32 -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
 
 .c.o:
 	echo "  CC    $<"

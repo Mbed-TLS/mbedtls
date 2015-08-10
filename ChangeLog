@@ -23,6 +23,7 @@ Bugfix
    * Fix missing -static-libgcc when building shared libraries for Windows
      with make.
    * Fix link error when building shared libraries for Windows with make.
+   * Fix error when loading libmbedtls.so.
 
 Changes
    * The PEM parser now accepts a trailing space at end of lines (#226).

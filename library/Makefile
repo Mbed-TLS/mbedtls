@@ -93,9 +93,9 @@ libmbedtls.a: $(OBJS_TLS)
 	echo "  RL    $@"
 	$(AR) s $@
 
-libmbedtls.$(SOEXT_TLS): $(OBJS_TLS)
+libmbedtls.$(SOEXT_TLS): $(OBJS_TLS) libmbedx509.so
 	echo "  LD    $@"
-	$(CC) -shared -Wl,-soname,$@ $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_TLS)
+	$(CC) -shared -Wl,-soname,$@ -L. -lmbedcrypto -lmbedx509 $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_TLS)
 
 libmbedtls.so: libmbedtls.$(SOEXT_TLS)
 	echo "  LN    $@ -> $<"
@@ -116,9 +116,9 @@ libmbedx509.a: $(OBJS_X509)
 	echo "  RL    $@"
 	$(AR) s $@
 
-libmbedx509.$(SOEXT_X509): $(OBJS_X509)
+libmbedx509.$(SOEXT_X509): $(OBJS_X509) libmbedcrypto.so
 	echo "  LD    $@"
-	$(CC) -shared -Wl,-soname,$@ $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_X509)
+	$(CC) -shared -Wl,-soname,$@ -L. -lmbedcrypto $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_X509)
 
 libmbedx509.so: libmbedx509.$(SOEXT_X509)
 	echo "  LN    $@ -> $<"

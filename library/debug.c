@@ -55,7 +55,7 @@
 #define DEBUG_BUF_SIZE  512
 
 static int debug_log_mode = POLARSSL_DEBUG_DFL_MODE;
-int debug_threshold = 0;
+static int debug_threshold = 0;
 
 void debug_set_log_mode( int log_mode )
 {

@@ -57,10 +57,7 @@
 
 
 #define SSL_DEBUG_MSG( level, args )                    \
-    do {                                                \
-        if( level <= debug_threshold )                  \
-            debug_print_msg_free( ssl, level, __FILE__, __LINE__, debug_fmt args ); \
-    } while( 0 )
+    debug_print_msg_free( ssl, level, __FILE__, __LINE__, debug_fmt args );
 
 #define SSL_DEBUG_RET( level, text, ret )                \
     debug_print_ret( ssl, level, __FILE__, __LINE__, text, ret );
@@ -149,8 +146,6 @@ void debug_print_crt( const ssl_context *ssl, int level,
                       const char *file, int line,
                       const char *text, const x509_crt *crt );
 #endif
-
-extern int debug_threshold;
 
 #ifdef __cplusplus
 }

@@ -18,7 +18,7 @@ x509_cert_req_check:key_file:md_type:cert_req_check_file
     unsigned char buf[4000];
     unsigned char check_buf[4000];
     int ret;
-    size_t olen = 2000;
+    size_t olen = 2000, r;
     FILE *f;
 
     cur = &req_name;
@@ -52,8 +52,9 @@ x509_cert_req_check:key_file:md_type:cert_req_check_file
 
     f = fopen( {cert_req_check_file}, "r" );
     TEST_ASSERT( f != NULL );
-    (void) fread( check_buf, 1, 4000, f );
+    r = fread( check_buf, 1, 4000, f );
     fclose( f );
+    TEST_ASSERT( r != 0 );
 
     pem_init( &pem );
     pem_read_buffer( &pem, (char *) "-----BEGIN CERTIFICATE REQUEST-----", (char *) "-----END CERTIFICATE REQUEST-----", check_buf, NULL, 0, &olen );

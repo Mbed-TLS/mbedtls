@@ -1,3 +1,7 @@
+if(CMAKE_COMPILER_IS_GNUCC)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-result")
+endif(CMAKE_COMPILER_IS_GNUCC)
+
 add_subdirectory(aes)
 add_subdirectory(hash)
 add_subdirectory(pkey)

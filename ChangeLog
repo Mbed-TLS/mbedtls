@@ -16,6 +16,7 @@ Bugfix
      Leisink).
    * Fix missing -static-ligcc when building shared libraries for Windows with
      make.
+   * Fix compile error with armcc5 --gnu.
 
 Changes
    * Add SSL_MIN_DHM_BYTES configuration parameter in config.h to choose the

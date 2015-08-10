@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Version 1.2.15 released 2015-mm-dd
+= Version 1.2.15 released 2015-08-10
 
 Security
    * Increase the minimum size of Diffie-Hellman parameters accepted by the

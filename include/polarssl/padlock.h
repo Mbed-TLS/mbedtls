@@ -29,7 +29,15 @@
 
 #define POLARSSL_ERR_PADLOCK_DATA_MISALIGNED               -0x0030  /**< Input data should be aligned. */
 
-#if defined(POLARSSL_HAVE_ASM) && defined(__GNUC__) && defined(__i386__)
+#if defined(__has_feature)
+#if __has_feature(address_sanitizer)
+#define POLARSSL_HAVE_ASAN
+#endif
+#endif
+
+/* Some versions of ASan result in errors about not enough registers */
+#if defined(POLARSSL_HAVE_ASM) && defined(__GNUC__) && defined(__i386__) && \
+    !defined(POLARSSL_HAVE_ASAN)
 
 #ifndef POLARSSL_HAVE_X86
 #define POLARSSL_HAVE_X86

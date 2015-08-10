@@ -3238,7 +3238,6 @@ run_test    "DTLS proxy: 3d, openssl server" \
             "$O_SRV -dtls1 -mtu 2048" \
             "$P_CLI dtls=1 hs_timeout=250-60000 tickets=0" \
             0 \
-            -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
 needs_more_time 8
@@ -3247,7 +3246,6 @@ run_test    "DTLS proxy: 3d, openssl server, fragmentation" \
             "$O_SRV -dtls1 -mtu 768" \
             "$P_CLI dtls=1 hs_timeout=250-60000 tickets=0" \
             0 \
-            -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
 needs_more_time 8
@@ -3256,7 +3254,6 @@ run_test    "DTLS proxy: 3d, openssl server, fragmentation, nbio" \
             "$O_SRV -dtls1 -mtu 768" \
             "$P_CLI dtls=1 hs_timeout=250-60000 nbio=2 tickets=0" \
             0 \
-            -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
 requires_gnutls

@@ -52,7 +52,7 @@ x509_cert_req_check:key_file:md_type:cert_req_check_file
 
     f = fopen( {cert_req_check_file}, "r" );
     TEST_ASSERT( f != NULL );
-    fread( check_buf, 1, 4000, f );
+    (void) fread( check_buf, 1, 4000, f );
     fclose( f );
 
     pem_init( &pem );

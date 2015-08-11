@@ -1761,9 +1761,11 @@ int mbedtls_ecp_check_privkey( const mbedtls_ecp_group *grp, const mbedtls_mpi *
 }
 
 /*
- * Generate a keypair
+ * Generate a keypair with configurable base point
  */
-int mbedtls_ecp_gen_keypair( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp_point *Q,
+int mbedtls_ecp_gen_keypair_base( mbedtls_ecp_group *grp,
+                     const mbedtls_ecp_point *G,
+                     mbedtls_mpi *d, mbedtls_ecp_point *Q,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng )
 {
@@ -1835,7 +1837,18 @@ cleanup:
     if( ret != 0 )
         return( ret );
 
-    return( mbedtls_ecp_mul( grp, Q, d, &grp->G, f_rng, p_rng ) );
+    return( mbedtls_ecp_mul( grp, Q, d, G, f_rng, p_rng ) );
+}
+
+/*
+ * Generate key pair, wrapper for conventional base point
+ */
+int mbedtls_ecp_gen_keypair( mbedtls_ecp_group *grp,
+                             mbedtls_mpi *d, mbedtls_ecp_point *Q,
+                             int (*f_rng)(void *, unsigned char *, size_t),
+                             void *p_rng )
+{
+    return( mbedtls_ecp_gen_keypair_base( grp, &grp->G, d, Q, f_rng, p_rng ) );
 }
 
 /*

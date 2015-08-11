@@ -6836,6 +6836,7 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #if defined(MBEDTLS_ECP_C)
             conf->curve_list = ssl_preset_suiteb_curves;
 #endif
+            break;
 
         /*
          * Default

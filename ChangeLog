@@ -24,6 +24,8 @@ Bugfix
      with make.
    * Fix link error when building shared libraries for Windows with make.
    * Fix error when loading libmbedtls.so.
+   * Fix bug in mbedtls_ssl_conf_default() that caused the default preset to
+     be always used (found by dcb314) (#235)
 
 Changes
    * The PEM parser now accepts a trailing space at end of lines (#226).

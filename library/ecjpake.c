@@ -121,7 +121,7 @@ cleanup:
 /*
  * Generate ZKP (7.4.2.3.2) and write it as ECSchnorrZKP (7.4.2.2.2)
  */
-static int ecjpake_write_zkp( const mbedtls_md_info_t *md_info,
+static int ecjpake_zkp_write( const mbedtls_md_info_t *md_info,
                               const mbedtls_ecp_group *grp,
                               const mbedtls_ecp_point *G,
                               const mbedtls_mpi *x,
@@ -173,6 +173,69 @@ cleanup:
 
     return( ret );
 }
+
+/*
+ * Parse a ECShnorrZKP (7.4.2.2.2) and verify it (7.4.2.3.3)
+ */
+static int ecjpake_zkp_read( const mbedtls_md_info_t *md_info,
+                             const mbedtls_ecp_group *grp,
+                             const mbedtls_ecp_point *G,
+                             const mbedtls_ecp_point *X,
+                             const char *id,
+                             unsigned char **p,
+                             const unsigned char *end )
+{
+    int ret;
+    mbedtls_ecp_point V, VV;
+    mbedtls_mpi r, h;
+    size_t r_len;
+
+    mbedtls_ecp_point_init( &V );
+    mbedtls_ecp_point_init( &VV );
+    mbedtls_mpi_init( &r );
+    mbedtls_mpi_init( &h );
+
+    /*
+     * struct {
+     *     ECPoint V;
+     *     opaque r<1..2^8-1>;
+     * } ECSchnorrZKP;
+     */
+    if( end < *p )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+    MBEDTLS_MPI_CHK( mbedtls_ecp_tls_read_point( grp, &V,
+                     (const unsigned char **) p, end - *p ) );
+
+    if( end < *p || (size_t)( end - *p ) < 1 )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+    r_len = *(*p)++;
+    if( end < *p || (size_t)( end - *p ) < r_len )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &r, *p, r_len ) );
+    *p += r_len;
+
+    /*
+     * Verification
+     */
+    MBEDTLS_MPI_CHK( ecjpake_hash( md_info, grp, G, &V, X, id, &h ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_muladd( (mbedtls_ecp_group *) grp,
+                     &VV, &h, X, &r, G ) );
+
+    if( mbedtls_ecp_point_cmp( &VV, &V ) != 0 )
+        return( MBEDTLS_ERR_ECP_VERIFY_FAILED );
+
+cleanup:
+    mbedtls_ecp_point_free( &V );
+    mbedtls_ecp_point_free( &VV );
+    mbedtls_mpi_free( &r );
+    mbedtls_mpi_free( &h );
+
+    return( ret );
+}
+
 
 #if defined(MBEDTLS_SELF_TEST)
 
@@ -293,15 +356,19 @@ int mbedtls_ecjpake_self_test( int verbose )
         mbedtls_printf( "passed\n" );
 
     if( verbose != 0 )
-        mbedtls_printf( "  ECJPAKE test #2 (zkp, WIP): " );
+        mbedtls_printf( "  ECJPAKE test #2 (zkp write/read): " );
 
     MBEDTLS_MPI_CHK( mbedtls_ecp_gen_keypair_base( &grp, &G, &x, &X,
                                                    ecjpake_lgc, NULL ) );
 
     p = buf;
-    MBEDTLS_MPI_CHK( ecjpake_write_zkp( md_info, &grp, &G, &x, &X, "client",
+    MBEDTLS_MPI_CHK( ecjpake_zkp_write( md_info, &grp, &G, &x, &X, "client",
                                         &p, buf + sizeof( buf ),
                                         ecjpake_lgc, NULL ) );
+
+    p = buf;
+    MBEDTLS_MPI_CHK( ecjpake_zkp_read( md_info, &grp, &G, &X, "client",
+                                       &p, buf + sizeof( buf ) ) );
 
     if( verbose != 0 )
         mbedtls_printf( "passed\n" );

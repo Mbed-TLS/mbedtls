@@ -403,6 +403,22 @@ int mbedtls_ecp_is_zero( mbedtls_ecp_point *pt )
 }
 
 /*
+ * Compare two points lazyly
+ */
+int mbedtls_ecp_point_cmp( const mbedtls_ecp_point *P,
+                           const mbedtls_ecp_point *Q )
+{
+    if( mbedtls_mpi_cmp_mpi( &P->X, &Q->X ) == 0 &&
+        mbedtls_mpi_cmp_mpi( &P->Y, &Q->Y ) == 0 &&
+        mbedtls_mpi_cmp_mpi( &P->Z, &Q->Z ) == 0 )
+    {
+        return( 0 );
+    }
+
+    return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+}
+
+/*
  * Import a non-zero point from ASCII strings
  */
 int mbedtls_ecp_point_read_string( mbedtls_ecp_point *P, int radix,

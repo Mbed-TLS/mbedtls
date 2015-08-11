@@ -347,6 +347,21 @@ int mbedtls_ecp_set_zero( mbedtls_ecp_point *pt );
 int mbedtls_ecp_is_zero( mbedtls_ecp_point *pt );
 
 /**
+ * \brief           Compare two points
+ *
+ * \note            This assumes the points are normalized. Otherwise,
+ *                  they may compare as "not equal" even if they are.
+ *
+ * \param P         First point to compare
+ * \param Q         Second point to compare
+ *
+ * \return          0 if the points are equal,
+ *                  MBEDTLS_ERR_ECP_BAD_INPUT_DATA otherwise
+ */
+int mbedtls_ecp_point_cmp( const mbedtls_ecp_point *P,
+                           const mbedtls_ecp_point *Q );
+
+/**
  * \brief           Import a non-zero point from two ASCII strings
  *
  * \param P         Destination point

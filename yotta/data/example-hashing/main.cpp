@@ -153,8 +153,9 @@ int example(void)
 #if defined(TARGET_LIKE_MBED)
 
 #include "mbed/test_env.h"
+#include "minar/minar.h"
 
-int main() {
+static void run() {
     /* Use 115200 bps for consistency with other examples */
     Serial pc(USBTX, USBRX);
     pc.baud(115200);
@@ -164,6 +165,10 @@ int main() {
     MBED_HOSTTEST_DESCRIPTION(mbed TLS example on hashing);
     MBED_HOSTTEST_START("MBEDTLS_EX_HASHING");
     MBED_HOSTTEST_RESULT(example() == 0);
+}
+
+void app_start(int, char*[]) {
+    minar::Scheduler::postCallback(FunctionPointer0<void>(run).bind());
 }
 
 #else

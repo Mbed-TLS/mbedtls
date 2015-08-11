@@ -8,6 +8,9 @@
         "mbed": { "cmsis-core": "~0.2.3" }
     },
     "testTargetDependencies": {
-        "mbed": { "mbed-net-sockets": "~0.2.0" }
+        "mbed": {
+            "mbed-drivers": "~0.6.3",
+            "sockets": "~0.2.1"
+        }
     }
 }

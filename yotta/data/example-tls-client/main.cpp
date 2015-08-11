@@ -48,7 +48,7 @@ int main() {
 #define UNSAFE 0
 
 #include "mbed.h"
-#include "mbed-net-lwip-eth/EthernetInterface.h"
+#include "sal-iface-eth/EthernetInterface.h"
 #include "mbed-net-sockets/TCPStream.h"
 #include "minar/minar.h"
 
@@ -495,8 +495,9 @@ int example_client() {
 }
 
 #include "mbed/test_env.h"
+#include "minar/minar.h"
 
-int main() {
+static void run() {
     /* The default 9600 bps is too slow to print full TLS debug info and could
      * cause the other party to time out. Select a higher baud rate for
      * printf(), regardless of debug level for the sake of uniformity. */
@@ -508,6 +509,10 @@ int main() {
     MBED_HOSTTEST_DESCRIPTION(mbed TLS example HTTPS client);
     MBED_HOSTTEST_START("MBEDTLS_EX_HTTPS_CLIENT");
     MBED_HOSTTEST_RESULT(example_client() == 0);
+}
+
+void app_start(int, char*[]) {
+    minar::Scheduler::postCallback(FunctionPointer0<void>(run).bind());
 }
 
 #endif /* TARGET_LIKE_MBED */

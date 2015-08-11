@@ -1,6 +1,6 @@
 {
     "name": "mbedtls",
-    "version": "2.0.3",
+    "version": "2.0.4",
     "private": true,
     "licenses": [
         {
@@ -13,9 +13,6 @@
         "mbed": { "cmsis-core": "~0.2.3" }
     },
     "testTargetDependencies": {
-        "mbed": {
-            "mbed-drivers": "~0.6.3",
-            "sockets": "~0.2.1"
-        }
+        "mbed": { "sockets": "~0.3.0" }
     }
 }

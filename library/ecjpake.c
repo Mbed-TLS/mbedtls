@@ -146,8 +146,8 @@ static int ecjpake_write_zkp( const mbedtls_md_info_t *md_info,
     mbedtls_mpi_init( &h );
 
     /* Compute signature */
-    MBEDTLS_MPI_CHK( mbedtls_ecp_gen_keypair( (mbedtls_ecp_group *) grp,
-                                              &v, &V, f_rng, p_rng ) ); /* TODO: wrong base point! */
+    MBEDTLS_MPI_CHK( mbedtls_ecp_gen_keypair_base( (mbedtls_ecp_group *) grp,
+                                                   G, &v, &V, f_rng, p_rng ) );
     MBEDTLS_MPI_CHK( ecjpake_hash( md_info, grp, G, &V, X, id, &h ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &h, &h, x ) ); /* x*h */
     MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &h, &v, &h ) ); /* v - x*h */
@@ -295,8 +295,8 @@ int mbedtls_ecjpake_self_test( int verbose )
     if( verbose != 0 )
         mbedtls_printf( "  ECJPAKE test #2 (zkp, WIP): " );
 
-    MBEDTLS_MPI_CHK( mbedtls_ecp_gen_keypair( &grp, &x, &X,
-                                              ecjpake_lgc, NULL ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_gen_keypair_base( &grp, &G, &x, &X,
+                                                   ecjpake_lgc, NULL ) );
 
     p = buf;
     MBEDTLS_MPI_CHK( ecjpake_write_zkp( md_info, &grp, &G, &x, &X, "client",

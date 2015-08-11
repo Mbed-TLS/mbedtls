@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 1.3.12 released 2015-07-??
+= mbed TLS 1.3.12 released 2015-08-11
 
 Security
    * Increase the minimum size of Diffie-Hellman parameters accepted by the

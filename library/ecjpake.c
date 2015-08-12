@@ -119,65 +119,6 @@ cleanup:
 }
 
 /*
- * Generate ZKP (7.4.2.3.2) and write it as ECSchnorrZKP (7.4.2.2.2)
- */
-static int ecjpake_zkp_write( const mbedtls_md_info_t *md_info,
-                              const mbedtls_ecp_group *grp,
-                              const mbedtls_ecp_point *G,
-                              const mbedtls_mpi *x,
-                              const mbedtls_ecp_point *X,
-                              const char *id,
-                              unsigned char **p,
-                              const unsigned char *end,
-                              int (*f_rng)(void *, unsigned char *, size_t),
-                              void *p_rng )
-{
-    int ret;
-    mbedtls_ecp_point V;
-    mbedtls_mpi v;
-    mbedtls_mpi h; /* later recycled to hold r */
-    size_t len;
-
-    if( end < *p )
-        return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
-
-    mbedtls_ecp_point_init( &V );
-    mbedtls_mpi_init( &v );
-    mbedtls_mpi_init( &h );
-
-    /* Compute signature */
-    MBEDTLS_MPI_CHK( mbedtls_ecp_gen_keypair_base( (mbedtls_ecp_group *) grp,
-                                                   G, &v, &V, f_rng, p_rng ) );
-    MBEDTLS_MPI_CHK( ecjpake_hash( md_info, grp, G, &V, X, id, &h ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &h, &h, x ) ); /* x*h */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &h, &v, &h ) ); /* v - x*h */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &h, &h, &grp->N ) ); /* r */
-
-    /* Write it out */
-    MBEDTLS_MPI_CHK( mbedtls_ecp_tls_write_point( grp, &V,
-                MBEDTLS_ECP_PF_UNCOMPRESSED, &len, *p, end - *p ) );
-    *p += len;
-
-    len = mbedtls_mpi_size( &h ); /* actually r */
-    if( end < *p || (size_t)( end - *p ) < 1 + len || len > 255 )
-    {
-        ret = MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
-        goto cleanup;
-    }
-
-    *(*p)++ = (unsigned char)( len & 0xFF );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &h, *p, len ) ); /* r */
-    *p += len;
-
-cleanup:
-    mbedtls_ecp_point_free( &V );
-    mbedtls_mpi_free( &v );
-    mbedtls_mpi_free( &h );
-
-    return( ret );
-}
-
-/*
  * Parse a ECShnorrZKP (7.4.2.2.2) and verify it (7.4.2.3.3)
  */
 static int ecjpake_zkp_read( const mbedtls_md_info_t *md_info,
@@ -243,6 +184,65 @@ cleanup:
     mbedtls_ecp_point_free( &V );
     mbedtls_ecp_point_free( &VV );
     mbedtls_mpi_free( &r );
+    mbedtls_mpi_free( &h );
+
+    return( ret );
+}
+
+/*
+ * Generate ZKP (7.4.2.3.2) and write it as ECSchnorrZKP (7.4.2.2.2)
+ */
+static int ecjpake_zkp_write( const mbedtls_md_info_t *md_info,
+                              const mbedtls_ecp_group *grp,
+                              const mbedtls_ecp_point *G,
+                              const mbedtls_mpi *x,
+                              const mbedtls_ecp_point *X,
+                              const char *id,
+                              unsigned char **p,
+                              const unsigned char *end,
+                              int (*f_rng)(void *, unsigned char *, size_t),
+                              void *p_rng )
+{
+    int ret;
+    mbedtls_ecp_point V;
+    mbedtls_mpi v;
+    mbedtls_mpi h; /* later recycled to hold r */
+    size_t len;
+
+    if( end < *p )
+        return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+
+    mbedtls_ecp_point_init( &V );
+    mbedtls_mpi_init( &v );
+    mbedtls_mpi_init( &h );
+
+    /* Compute signature */
+    MBEDTLS_MPI_CHK( mbedtls_ecp_gen_keypair_base( (mbedtls_ecp_group *) grp,
+                                                   G, &v, &V, f_rng, p_rng ) );
+    MBEDTLS_MPI_CHK( ecjpake_hash( md_info, grp, G, &V, X, id, &h ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &h, &h, x ) ); /* x*h */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &h, &v, &h ) ); /* v - x*h */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &h, &h, &grp->N ) ); /* r */
+
+    /* Write it out */
+    MBEDTLS_MPI_CHK( mbedtls_ecp_tls_write_point( grp, &V,
+                MBEDTLS_ECP_PF_UNCOMPRESSED, &len, *p, end - *p ) );
+    *p += len;
+
+    len = mbedtls_mpi_size( &h ); /* actually r */
+    if( end < *p || (size_t)( end - *p ) < 1 + len || len > 255 )
+    {
+        ret = MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
+        goto cleanup;
+    }
+
+    *(*p)++ = (unsigned char)( len & 0xFF );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &h, *p, len ) ); /* r */
+    *p += len;
+
+cleanup:
+    mbedtls_ecp_point_free( &V );
+    mbedtls_mpi_free( &v );
     mbedtls_mpi_free( &h );
 
     return( ret );

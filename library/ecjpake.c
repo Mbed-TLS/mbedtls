@@ -437,6 +437,56 @@ cleanup:
     return( ret );
 }
 
+/*
+ * Read the contents of the ClientHello extension
+ */
+int mbedtls_ecjpake_tls_read_client_ext( mbedtls_ecjpake_context *ctx,
+                                         const unsigned char *buf,
+                                         size_t len )
+{
+    return( ecjpake_kkpp_read( ctx->md_info, &ctx->grp, &ctx->grp.G,
+                               &ctx->X1, &ctx->X2, "client",
+                               buf, len ) );
+}
+
+/*
+ * Read the contents of the ServerHello extension
+ */
+int mbedtls_ecjpake_tls_read_server_ext( mbedtls_ecjpake_context *ctx,
+                                         const unsigned char *buf,
+                                         size_t len )
+{
+    return( ecjpake_kkpp_read( ctx->md_info, &ctx->grp, &ctx->grp.G,
+                               &ctx->X3, &ctx->X4, "server",
+                               buf, len ) );
+}
+
+/*
+ * Generate the contents of the ClientHello extension
+ */
+int mbedtls_ecjpake_tls_write_client_ext( mbedtls_ecjpake_context *ctx,
+                            unsigned char *buf, size_t len, size_t *olen,
+                            int (*f_rng)(void *, unsigned char *, size_t),
+                            void *p_rng )
+{
+    return( ecjpake_kkpp_write( ctx->md_info, &ctx->grp, &ctx->grp.G,
+                                &ctx->xa, &ctx->X1, &ctx->xb, &ctx->X2,
+                                "client", buf, len, olen, f_rng, p_rng ) );
+}
+
+/*
+ * Generate the contents of the ServerHello extension
+ */
+int mbedtls_ecjpake_tls_write_server_ext( mbedtls_ecjpake_context *ctx,
+                            unsigned char *buf, size_t len, size_t *olen,
+                            int (*f_rng)(void *, unsigned char *, size_t),
+                            void *p_rng )
+{
+    return( ecjpake_kkpp_write( ctx->md_info, &ctx->grp, &ctx->grp.G,
+                                &ctx->xa, &ctx->X3, &ctx->xb, &ctx->X4,
+                                "server", buf, len, olen, f_rng, p_rng ) );
+}
+
 #if defined(MBEDTLS_SELF_TEST)
 
 #if defined(MBEDTLS_PLATFORM_C)
@@ -522,36 +572,27 @@ static int ecjpake_lgc( void *p, unsigned char *out, size_t len )
 int mbedtls_ecjpake_self_test( int verbose )
 {
     int ret;
-    mbedtls_ecp_group grp;
-    mbedtls_ecp_point Xa, Xb;
-    mbedtls_mpi xa, xb;
-    const mbedtls_md_info_t *md_info;
+    mbedtls_ecjpake_context ctx;
     unsigned char buf[1000];
     size_t len;
 
-    mbedtls_ecp_group_init( &grp );
-    mbedtls_ecp_point_init( &Xa );
-    mbedtls_ecp_point_init( &Xb );
-    mbedtls_mpi_init( &xa );
-    mbedtls_mpi_init( &xb );
+    mbedtls_ecjpake_init( &ctx );
 
     /* Common to all tests */
-    md_info = mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_group_load( &grp, MBEDTLS_ECP_DP_SECP256R1 ) );
+    TEST_ASSERT( mbedtls_ecjpake_setup( &ctx, MBEDTLS_MD_SHA256,
+                                        MBEDTLS_ECP_DP_SECP256R1 ) == 0 );
 
     if( verbose != 0 )
-        mbedtls_printf( "  ECJPAKE test #1 (kkpp read): " );
+        mbedtls_printf( "  ECJPAKE test #1 (client ext read): " );
 
-    TEST_ASSERT( ecjpake_kkpp_read( md_info, &grp, &grp.G,
-                                    &Xa, &Xb, "client",
+    TEST_ASSERT( mbedtls_ecjpake_tls_read_client_ext( &ctx,
                                     ecjpake_test_kkpp,
                             sizeof( ecjpake_test_kkpp ) ) == 0 );
 
     /* Corrupt message */
     memcpy( buf, ecjpake_test_kkpp, sizeof( ecjpake_test_kkpp ) );
     buf[sizeof( ecjpake_test_kkpp ) - 1]--;
-    TEST_ASSERT( ecjpake_kkpp_read( md_info, &grp, &grp.G,
-                                    &Xa, &Xb, "client",
+    TEST_ASSERT( mbedtls_ecjpake_tls_read_client_ext( &ctx,
                                     buf, sizeof( ecjpake_test_kkpp ) )
                     == MBEDTLS_ERR_ECP_VERIFY_FAILED );
 
@@ -559,26 +600,19 @@ int mbedtls_ecjpake_self_test( int verbose )
         mbedtls_printf( "passed\n" );
 
     if( verbose != 0 )
-        mbedtls_printf( "  ECJPAKE test #2 (kkpp write/read): " );
+        mbedtls_printf( "  ECJPAKE test #2 (client ext write/read): " );
 
-    TEST_ASSERT( ecjpake_kkpp_write( md_info, &grp, &grp.G,
-                                     &xa, &Xa, &xb, &Xb, "client",
+    TEST_ASSERT( mbedtls_ecjpake_tls_write_client_ext( &ctx,
                                      buf, sizeof( buf ), &len,
                                      ecjpake_lgc, NULL ) == 0 );
 
-    TEST_ASSERT( ecjpake_kkpp_read( md_info, &grp, &grp.G,
-                                    &Xa, &Xb, "client",
-                                    buf, len ) == 0 );
+    TEST_ASSERT( mbedtls_ecjpake_tls_read_client_ext( &ctx, buf, len ) == 0 );
 
     if( verbose != 0 )
         mbedtls_printf( "passed\n" );
 
 cleanup:
-    mbedtls_ecp_group_free( &grp );
-    mbedtls_ecp_point_free( &Xa );
-    mbedtls_ecp_point_free( &Xb );
-    mbedtls_mpi_free( &xa );
-    mbedtls_mpi_free( &xb );
+    mbedtls_ecjpake_free( &ctx );
 
     if( ret != 0 )
     {

@@ -53,13 +53,6 @@ typedef struct
 void mbedtls_ecjpake_init( mbedtls_ecjpake_context *ctx );
 
 /*
- * \brief           Free a context's content
- *
- * \param ctx       context to free
- */
-void mbedtls_ecjpake_free( mbedtls_ecjpake_context *ctx );
-
-/*
  * \brief           Set up a context for use
  *
  * \note            Currently the only values for hash/curve allowed by the
@@ -75,6 +68,79 @@ void mbedtls_ecjpake_free( mbedtls_ecjpake_context *ctx );
 int mbedtls_ecjpake_setup( mbedtls_ecjpake_context *ctx,
                            mbedtls_md_type_t hash,
                            mbedtls_ecp_group_id curve );
+
+/*
+ * \brief           Generate and write contents of ClientHello extension
+ *                  (excluding extension type and length bytes)
+ *
+ * \param ctx       Context to use
+ * \param buf       Buffer to write the contents to
+ * \param len       Buffer size
+ * \param olen      Will be updated with the number of bytes written
+ * \param f_rng     RNG function
+ * \param p_rng     RNG parameter
+ *
+ * \return          0 if successfull,
+ *                  a negative error code otherwise
+ */
+int mbedtls_ecjpake_tls_write_client_ext( mbedtls_ecjpake_context *ctx,
+                            unsigned char *buf, size_t len, size_t *olen,
+                            int (*f_rng)(void *, unsigned char *, size_t),
+                            void *p_rng );
+/*
+ * \brief           Read and process contents of the ClientHello extension
+ *                  (excluding extension type and length bytes)
+ *
+ * \param ctx       Context to use
+ * \param buf       Pointer to extension contents
+ * \param len       Extension length
+ *
+ * \return          0 if successfull,
+ *                  a negative error code otherwise
+ */
+int mbedtls_ecjpake_tls_read_client_ext( mbedtls_ecjpake_context *ctx,
+                                         const unsigned char *buf,
+                                         size_t len );
+
+/*
+ * \brief           Generate and write contents of ServerHello extension
+ *                  (excluding extension type and length bytes)
+ *
+ * \param ctx       Context to use
+ * \param buf       Buffer to write the contents to
+ * \param len       Buffer size
+ * \param olen      Will be updated with the number of bytes written
+ * \param f_rng     RNG function
+ * \param p_rng     RNG parameter
+ *
+ * \return          0 if successfull,
+ *                  a negative error code otherwise
+ */
+int mbedtls_ecjpake_tls_write_server_ext( mbedtls_ecjpake_context *ctx,
+                            unsigned char *buf, size_t len, size_t *olen,
+                            int (*f_rng)(void *, unsigned char *, size_t),
+                            void *p_rng );
+/*
+ * \brief           Read and process contents of the ServerHello extension
+ *                  (excluding extension type and length bytes)
+ *
+ * \param ctx       Context to use
+ * \param buf       Pointer to extension contents
+ * \param len       Extension length
+ *
+ * \return          0 if successfull,
+ *                  a negative error code otherwise
+ */
+int mbedtls_ecjpake_tls_read_server_ext( mbedtls_ecjpake_context *ctx,
+                                         const unsigned char *buf,
+                                         size_t len );
+
+/*
+ * \brief           Free a context's content
+ *
+ * \param ctx       context to free
+ */
+void mbedtls_ecjpake_free( mbedtls_ecjpake_context *ctx );
 
 #if defined(MBEDTLS_SELF_TEST)
 /**

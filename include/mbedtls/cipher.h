@@ -367,7 +367,7 @@ static inline int mbedtls_cipher_get_iv_size( const mbedtls_cipher_context_t *ct
     if( ctx->iv_size != 0 )
         return (int) ctx->iv_size;
 
-    return ctx->cipher_info->iv_size;
+    return (int) ctx->cipher_info->iv_size;
 }
 
 /**
@@ -415,7 +415,7 @@ static inline int mbedtls_cipher_get_key_bitlen( const mbedtls_cipher_context_t 
     if( NULL == ctx || NULL == ctx->cipher_info )
         return MBEDTLS_KEY_LENGTH_NONE;
 
-    return ctx->cipher_info->key_bitlen;
+    return (int) ctx->cipher_info->key_bitlen;
 }
 
 /**

@@ -160,7 +160,10 @@ static int ecjpake_zkp_write( const mbedtls_md_info_t *md_info,
 
     len = mbedtls_mpi_size( &h ); /* actually r */
     if( end < *p || (size_t)( end - *p ) < 1 + len || len > 255 )
-        return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+    {
+        ret = MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
+        goto cleanup;
+    }
 
     *(*p)++ = (unsigned char)( len & 0xFF );
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &h, *p, len ) ); /* r */
@@ -208,11 +211,17 @@ static int ecjpake_zkp_read( const mbedtls_md_info_t *md_info,
                      (const unsigned char **) p, end - *p ) );
 
     if( end < *p || (size_t)( end - *p ) < 1 )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+    {
+        ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+        goto cleanup;
+    }
 
     r_len = *(*p)++;
     if( end < *p || (size_t)( end - *p ) < r_len )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+    {
+        ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+        goto cleanup;
+    }
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &r, *p, r_len ) );
     *p += r_len;
@@ -225,7 +234,10 @@ static int ecjpake_zkp_read( const mbedtls_md_info_t *md_info,
                      &VV, &h, X, &r, G ) );
 
     if( mbedtls_ecp_point_cmp( &VV, &V ) != 0 )
-        return( MBEDTLS_ERR_ECP_VERIFY_FAILED );
+    {
+        ret = MBEDTLS_ERR_ECP_VERIFY_FAILED;
+        goto cleanup;
+    }
 
 cleanup:
     mbedtls_ecp_point_free( &V );

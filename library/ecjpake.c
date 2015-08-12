@@ -236,6 +236,72 @@ cleanup:
     return( ret );
 }
 
+/*
+ * Parse verify a ECJPAKEKeyKP (7.4.2.2.1)
+ * Output: public key X
+ */
+static int ecjpake_kkp_read( const mbedtls_md_info_t *md_info,
+                             const mbedtls_ecp_group *grp,
+                             const mbedtls_ecp_point *G,
+                             mbedtls_ecp_point *X,
+                             const char *id,
+                             unsigned char **p,
+                             const unsigned char *end )
+{
+    int ret;
+
+    if( end < *p )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+    /*
+     * struct {
+     *     ECPoint X;
+     *     ECSchnorrZKP zkp;
+     * } ECJPAKEKeyKP;
+     */
+    MBEDTLS_MPI_CHK( mbedtls_ecp_tls_read_point( grp, X,
+                    (const unsigned char **) p, end - *p ) );
+    MBEDTLS_MPI_CHK( ecjpake_zkp_read( md_info, grp, G, X, id, p, end ) );
+
+cleanup:
+    return( ret );
+}
+
+/*
+ * Generate an ECJPAKEKeyKP
+ * Output: the serialized structure, plus private/public key pair
+ */
+static int ecjpake_kkp_write( const mbedtls_md_info_t *md_info,
+                              const mbedtls_ecp_group *grp,
+                              const mbedtls_ecp_point *G,
+                              mbedtls_mpi *x,
+                              mbedtls_ecp_point *X,
+                              const char *id,
+                              unsigned char **p,
+                              const unsigned char *end,
+                              int (*f_rng)(void *, unsigned char *, size_t),
+                              void *p_rng )
+{
+    int ret;
+    size_t len;
+
+    if( end < *p )
+        return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+
+    /* Generate key (7.4.2.3.1) and write it out */
+    MBEDTLS_MPI_CHK( mbedtls_ecp_gen_keypair_base( (mbedtls_ecp_group *) grp, G, x, X,
+                                                   f_rng, p_rng ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_tls_write_point( grp, X,
+                MBEDTLS_ECP_PF_UNCOMPRESSED, &len, *p, end - *p ) );
+    *p += len;
+
+    /* Generate and write proof */
+    MBEDTLS_MPI_CHK( ecjpake_zkp_write( md_info, grp, G, x, X, id,
+                                        p, end, f_rng, p_rng ) );
+
+cleanup:
+    return( ret );
+}
 
 #if defined(MBEDTLS_SELF_TEST)
 
@@ -255,25 +321,21 @@ int mbedtls_ecjpake_self_test( int verbose )
 }
 #else
 
-static const unsigned char ecjpake_test_X[] = {
-    0x04, 0xac, 0xcf, 0x01, 0x06, 0xef, 0x85, 0x8f, 0xa2, 0xd9, 0x19, 0x33,
-    0x13, 0x46, 0x80, 0x5a, 0x78, 0xb5, 0x8b, 0xba, 0xd0, 0xb8, 0x44, 0xe5,
-    0xc7, 0x89, 0x28, 0x79, 0x14, 0x61, 0x87, 0xdd, 0x26, 0x66, 0xad, 0xa7,
-    0x81, 0xbb, 0x7f, 0x11, 0x13, 0x72, 0x25, 0x1a, 0x89, 0x10, 0x62, 0x1f,
-    0x63, 0x4d, 0xf1, 0x28, 0xac, 0x48, 0xe3, 0x81, 0xfd, 0x6e, 0xf9, 0x06,
-    0x07, 0x31, 0xf6, 0x94, 0xa4
-};
-
-static const unsigned char ecjpake_test_zkp[] = {
-    0x41, 0x04, 0x1d, 0xd0, 0xbd, 0x5d, 0x45, 0x66, 0xc9, 0xbe, 0xd9, 0xce,
-    0x7d, 0xe7, 0x01, 0xb5, 0xe8, 0x2e, 0x08, 0xe8, 0x4b, 0x73, 0x04, 0x66,
-    0x01, 0x8a, 0xb9, 0x03, 0xc7, 0x9e, 0xb9, 0x82, 0x17, 0x22, 0x36, 0xc0,
-    0xc1, 0x72, 0x8a, 0xe4, 0xbf, 0x73, 0x61, 0x0d, 0x34, 0xde, 0x44, 0x24,
-    0x6e, 0xf3, 0xd9, 0xc0, 0x5a, 0x22, 0x36, 0xfb, 0x66, 0xa6, 0x58, 0x3d,
-    0x74, 0x49, 0x30, 0x8b, 0xab, 0xce, 0x20, 0x72, 0xfe, 0x16, 0x66, 0x29,
-    0x92, 0xe9, 0x23, 0x5c, 0x25, 0x00, 0x2f, 0x11, 0xb1, 0x50, 0x87, 0xb8,
-    0x27, 0x38, 0xe0, 0x3c, 0x94, 0x5b, 0xf7, 0xa2, 0x99, 0x5d, 0xda, 0x1e,
-    0x98, 0x34, 0x58
+static const unsigned char ecjpake_test_kkp[] = {
+    0x41, 0x04, 0xac, 0xcf, 0x01, 0x06, 0xef, 0x85, 0x8f, 0xa2, 0xd9, 0x19,
+    0x33, 0x13, 0x46, 0x80, 0x5a, 0x78, 0xb5, 0x8b, 0xba, 0xd0, 0xb8, 0x44,
+    0xe5, 0xc7, 0x89, 0x28, 0x79, 0x14, 0x61, 0x87, 0xdd, 0x26, 0x66, 0xad,
+    0xa7, 0x81, 0xbb, 0x7f, 0x11, 0x13, 0x72, 0x25, 0x1a, 0x89, 0x10, 0x62,
+    0x1f, 0x63, 0x4d, 0xf1, 0x28, 0xac, 0x48, 0xe3, 0x81, 0xfd, 0x6e, 0xf9,
+    0x06, 0x07, 0x31, 0xf6, 0x94, 0xa4, 0x41, 0x04, 0x1d, 0xd0, 0xbd, 0x5d,
+    0x45, 0x66, 0xc9, 0xbe, 0xd9, 0xce, 0x7d, 0xe7, 0x01, 0xb5, 0xe8, 0x2e,
+    0x08, 0xe8, 0x4b, 0x73, 0x04, 0x66, 0x01, 0x8a, 0xb9, 0x03, 0xc7, 0x9e,
+    0xb9, 0x82, 0x17, 0x22, 0x36, 0xc0, 0xc1, 0x72, 0x8a, 0xe4, 0xbf, 0x73,
+    0x61, 0x0d, 0x34, 0xde, 0x44, 0x24, 0x6e, 0xf3, 0xd9, 0xc0, 0x5a, 0x22,
+    0x36, 0xfb, 0x66, 0xa6, 0x58, 0x3d, 0x74, 0x49, 0x30, 0x8b, 0xab, 0xce,
+    0x20, 0x72, 0xfe, 0x16, 0x66, 0x29, 0x92, 0xe9, 0x23, 0x5c, 0x25, 0x00,
+    0x2f, 0x11, 0xb1, 0x50, 0x87, 0xb8, 0x27, 0x38, 0xe0, 0x3c, 0x94, 0x5b,
+    0xf7, 0xa2, 0x99, 0x5d, 0xda, 0x1e, 0x98, 0x34, 0x58
 };
 
 /* For tests we don't need a secure RNG;
@@ -294,6 +356,17 @@ static int ecjpake_lgc( void *p, unsigned char *out, size_t len )
 
     return( 0 );
 }
+
+#define TEST_ASSERT( x )    \
+    do {                    \
+        if( x )             \
+            ret = 0;        \
+        else                \
+        {                   \
+            ret = 1;        \
+            goto cleanup;   \
+        }                   \
+    } while( 0 )
 
 /*
  * Checkup routine
@@ -318,48 +391,38 @@ int mbedtls_ecjpake_self_test( int verbose )
     MBEDTLS_MPI_CHK( mbedtls_ecp_group_load( &grp, MBEDTLS_ECP_DP_SECP256R1 ) );
 
     if( verbose != 0 )
-        mbedtls_printf( "  ECJPAKE test #1 (zkp read): " );
+        mbedtls_printf( "  ECJPAKE test #1 (kkp read): " );
 
-    MBEDTLS_MPI_CHK( mbedtls_ecp_point_read_binary( &grp, &X,
-                                            ecjpake_test_X,
-                                    sizeof( ecjpake_test_X ) ) );
-
-    p = (unsigned char *) ecjpake_test_zkp;
-    end = ecjpake_test_zkp + sizeof( ecjpake_test_zkp );
-    MBEDTLS_MPI_CHK( ecjpake_zkp_read( md_info, &grp, &grp.G, &X, "client",
+    p = (unsigned char *) ecjpake_test_kkp;
+    end = ecjpake_test_kkp + sizeof( ecjpake_test_kkp );
+    MBEDTLS_MPI_CHK( ecjpake_kkp_read( md_info, &grp, &grp.G, &X, "client",
                                        &p, end ) );
 
-    /* Corrupt proof */
-    memcpy( buf, ecjpake_test_zkp, sizeof( ecjpake_test_zkp ) );
-    buf[sizeof( ecjpake_test_zkp ) - 1]--;
-    p = buf;
-    end = buf + sizeof( ecjpake_test_zkp );
-    ret = ecjpake_zkp_read( md_info, &grp, &grp.G, &X, "client", &p, end );
+    TEST_ASSERT( p == end );
 
-    if( ret != MBEDTLS_ERR_ECP_VERIFY_FAILED )
-    {
-        ret = 1;
-        goto cleanup;
-    }
-    ret = 0;
+    /* Corrupt proof */
+    memcpy( buf, ecjpake_test_kkp, sizeof( ecjpake_test_kkp ) );
+    buf[sizeof( ecjpake_test_kkp ) - 1]--;
+    p = buf;
+    end = buf + sizeof( ecjpake_test_kkp );
+    ret = ecjpake_kkp_read( md_info, &grp, &grp.G, &X, "client", &p, end );
+
+    TEST_ASSERT( ret == MBEDTLS_ERR_ECP_VERIFY_FAILED );
 
     if( verbose != 0 )
         mbedtls_printf( "passed\n" );
 
     if( verbose != 0 )
-        mbedtls_printf( "  ECJPAKE test #2 (zkp write/read): " );
-
-    MBEDTLS_MPI_CHK( mbedtls_ecp_gen_keypair_base( &grp, &grp.G, &x, &X,
-                                                   ecjpake_lgc, NULL ) );
+        mbedtls_printf( "  ECJPAKE test #2 (kkp write/read): " );
 
     p = buf;
-    MBEDTLS_MPI_CHK( ecjpake_zkp_write( md_info, &grp, &grp.G, &x, &X, "client",
+    MBEDTLS_MPI_CHK( ecjpake_kkp_write( md_info, &grp, &grp.G, &x, &X, "client",
                                         &p, buf + sizeof( buf ),
                                         ecjpake_lgc, NULL ) );
-
+    end = p;
     p = buf;
-    MBEDTLS_MPI_CHK( ecjpake_zkp_read( md_info, &grp, &grp.G, &X, "client",
-                                       &p, buf + sizeof( buf ) ) );
+    MBEDTLS_MPI_CHK( ecjpake_kkp_read( md_info, &grp, &grp.G, &X, "client",
+                                       &p, end ) );
 
     if( verbose != 0 )
         mbedtls_printf( "passed\n" );
@@ -382,6 +445,8 @@ cleanup:
 
     return( ret );
 }
+
+#undef TEST_ASSERT
 
 #endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED && MBEDTLS_SHA256_C */
 

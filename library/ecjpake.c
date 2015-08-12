@@ -37,6 +37,64 @@
 #include <string.h>
 
 /*
+ * Initialize context
+ */
+void mbedtls_ecjpake_init( mbedtls_ecjpake_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    ctx->md_info = NULL;
+    mbedtls_ecp_group_init( &ctx->grp );
+
+    mbedtls_ecp_point_init( &ctx->X1 );
+    mbedtls_ecp_point_init( &ctx->X2 );
+    mbedtls_ecp_point_init( &ctx->X3 );
+    mbedtls_ecp_point_init( &ctx->X4 );
+
+    mbedtls_mpi_init( &ctx->xa );
+    mbedtls_mpi_init( &ctx->xb );
+}
+
+/*
+ * Free context
+ */
+void mbedtls_ecjpake_free( mbedtls_ecjpake_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    ctx->md_info = NULL;
+    mbedtls_ecp_group_free( &ctx->grp );
+
+    mbedtls_ecp_point_free( &ctx->X1 );
+    mbedtls_ecp_point_free( &ctx->X2 );
+    mbedtls_ecp_point_free( &ctx->X3 );
+    mbedtls_ecp_point_free( &ctx->X4 );
+
+    mbedtls_mpi_free( &ctx->xa );
+    mbedtls_mpi_free( &ctx->xb );
+}
+
+/*
+ * Setup context
+ */
+int mbedtls_ecjpake_setup( mbedtls_ecjpake_context *ctx,
+                           mbedtls_md_type_t hash,
+                           mbedtls_ecp_group_id curve )
+{
+    int ret;
+
+    if( ( ctx->md_info = mbedtls_md_info_from_type( hash ) ) == NULL )
+        return( MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE );
+
+    if( ( ret = mbedtls_ecp_group_load( &ctx->grp, curve ) ) != 0 )
+        return( ret );
+
+    return( 0 );
+}
+
+/*
  * Write a point plus its length to a buffer
  */
 static int ecjpake_write_len_point( unsigned char **p,

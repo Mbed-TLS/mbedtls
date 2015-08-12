@@ -30,6 +30,52 @@
 extern "C" {
 #endif
 
+typedef struct
+{
+    const mbedtls_md_info_t *md_info;   /**< Hash to use                    */
+    mbedtls_ecp_group grp;              /**< Elliptic curve                 */
+
+    mbedtls_ecp_point X1;               /**< Public key one                 */
+    mbedtls_ecp_point X2;               /**< Public key two                 */
+    mbedtls_ecp_point X3;               /**< Public key three               */
+    mbedtls_ecp_point X4;               /**< Public key four                */
+
+    mbedtls_mpi xa;                     /**< Our first secret (x1 or x3)    */
+    mbedtls_mpi xb;                     /**< Our second secret (x2 or x4)   */
+} mbedtls_ecjpake_context;
+
+/*
+ * \brief           Initialize a context
+ *                  (just makes it ready for setup() or free()).
+ *
+ * \param ctx       context to initialize
+ */
+void mbedtls_ecjpake_init( mbedtls_ecjpake_context *ctx );
+
+/*
+ * \brief           Free a context's content
+ *
+ * \param ctx       context to free
+ */
+void mbedtls_ecjpake_free( mbedtls_ecjpake_context *ctx );
+
+/*
+ * \brief           Set up a context for use
+ *
+ * \note            Currently the only values for hash/curve allowed by the
+ *                  standard are MBEDTLS_MD_SHA256/MBEDTLS_ECP_DP_SECP256R1.
+ *
+ * \param ctx       context to set up
+ * \param hash      hash function to use (MBEDTLS_MD_XXX)
+ * \param curve     elliptic curve identifier (MBEDTLS_ECP_DP_XXX)
+ *
+ * \return          0 if successfull,
+ *                  a negative error code otherwise
+ */
+int mbedtls_ecjpake_setup( mbedtls_ecjpake_context *ctx,
+                           mbedtls_md_type_t hash,
+                           mbedtls_ecp_group_id curve );
+
 #if defined(MBEDTLS_SELF_TEST)
 /**
  * \brief          Checkup routine

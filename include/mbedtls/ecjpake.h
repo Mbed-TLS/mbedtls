@@ -39,6 +39,7 @@ typedef struct
     mbedtls_ecp_point X2;               /**< Public key two                 */
     mbedtls_ecp_point X3;               /**< Public key three               */
     mbedtls_ecp_point X4;               /**< Public key four                */
+    mbedtls_ecp_point Xp;               /**< Peer's public key (Xs or Xc)   */
 
     mbedtls_mpi xa;                     /**< Our first secret (x1 or x3)    */
     mbedtls_mpi xb;                     /**< Our second secret (x2 or x4)   */
@@ -126,6 +127,7 @@ int mbedtls_ecjpake_tls_write_server_ext( mbedtls_ecjpake_context *ctx,
                             unsigned char *buf, size_t len, size_t *olen,
                             int (*f_rng)(void *, unsigned char *, size_t),
                             void *p_rng );
+
 /*
  * \brief           Read and process contents of the ServerHello extension
  *                  (excluding extension type and length bytes)
@@ -140,6 +142,40 @@ int mbedtls_ecjpake_tls_write_server_ext( mbedtls_ecjpake_context *ctx,
 int mbedtls_ecjpake_tls_read_server_ext( mbedtls_ecjpake_context *ctx,
                                          const unsigned char *buf,
                                          size_t len );
+
+/*
+ * \brief           Generate and write ServerECJPAKEParams
+ *                  (the contents for the ServerKeyExchange)
+ *
+ * \param ctx       Context to use
+ * \param buf       Buffer to write the contents to
+ * \param len       Buffer size
+ * \param olen      Will be updated with the number of bytes written
+ * \param f_rng     RNG function
+ * \param p_rng     RNG parameter
+ *
+ * \return          0 if successfull,
+ *                  a negative error code otherwise
+ */
+int mbedtls_ecjpake_tls_write_server_params( mbedtls_ecjpake_context *ctx,
+                            unsigned char *buf, size_t len, size_t *olen,
+                            int (*f_rng)(void *, unsigned char *, size_t),
+                            void *p_rng );
+
+/*
+ * \brief           Read and process ServerECJPAKEParams
+ *                  (the contents for the ServerKeyExchange)
+ *
+ * \param ctx       Context to use
+ * \param buf       Pointer to the message
+ * \param len       Message length
+ *
+ * \return          0 if successfull,
+ *                  a negative error code otherwise
+ */
+int mbedtls_ecjpake_tls_read_server_params( mbedtls_ecjpake_context *ctx,
+                                            const unsigned char *buf,
+                                            size_t len );
 
 /*
  * \brief           Free a context's content

@@ -500,6 +500,29 @@ int mbedtls_ecjpake_tls_write_server_ext( mbedtls_ecjpake_context *ctx,
 }
 
 /*
+ * Compute the sum of three points R = A + B + C
+ */
+static int ecjpake_ecp_add3( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+                             const mbedtls_ecp_point *A,
+                             const mbedtls_ecp_point *B,
+                             const mbedtls_ecp_point *C )
+{
+    int ret;
+    mbedtls_mpi one;
+
+    mbedtls_mpi_init( &one );
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &one, 1 ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_muladd( grp, R, &one, A, &one, B ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_muladd( grp, R, &one, R, &one, C ) );
+
+cleanup:
+    mbedtls_mpi_free( &one );
+
+    return( ret );
+}
+
+/*
  * Read and process ServerECJPAKEParams (7.4.2.5)
  */
 int mbedtls_ecjpake_tls_read_server_params( mbedtls_ecjpake_context *ctx,
@@ -511,21 +534,16 @@ int mbedtls_ecjpake_tls_read_server_params( mbedtls_ecjpake_context *ctx,
     const unsigned char *end = buf + len;
     mbedtls_ecp_group grp;
     mbedtls_ecp_point GB;
-    mbedtls_mpi one;
 
     mbedtls_ecp_group_init( &grp );
     mbedtls_ecp_point_init( &GB );
-    mbedtls_mpi_init( &one );
 
     /*
-     * We need that before parsing in order to check Xs as we read it
      * GB = X1 + X2 + X3 (7.4.2.5.1)
+     * We need that before parsing in order to check Xs as we read it
      */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &one, 1 ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_muladd( &ctx->grp, &GB, &one, &ctx->X1,
-                                                         &one, &ctx->X2 ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_muladd( &ctx->grp, &GB, &one, &GB,
-                                                         &one, &ctx->X3 ) );
+    MBEDTLS_MPI_CHK( ecjpake_ecp_add3( &ctx->grp, &GB,
+                                       &ctx->X1, &ctx->X2, &ctx->X3 ) );
 
     /*
      * struct {
@@ -555,7 +573,71 @@ int mbedtls_ecjpake_tls_read_server_params( mbedtls_ecjpake_context *ctx,
 cleanup:
     mbedtls_ecp_group_free( &grp );
     mbedtls_ecp_point_free( &GB );
-    mbedtls_mpi_free( &one );
+
+    return( ret );
+}
+
+/*
+ * Generate and write ServerECJPAKEParams (7.4.2.5)
+ */
+int mbedtls_ecjpake_tls_write_server_params( mbedtls_ecjpake_context *ctx,
+                            unsigned char *buf, size_t len, size_t *olen,
+                            int (*f_rng)(void *, unsigned char *, size_t),
+                            void *p_rng )
+{
+    int ret;
+    mbedtls_ecp_point GB, Xs;
+    mbedtls_mpi xs;
+    unsigned char *p = buf;
+    const unsigned char *end = buf + len;
+    size_t ec_len;
+
+    if( end < *p )
+        return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+
+    mbedtls_ecp_point_init( &GB );
+    mbedtls_ecp_point_init( &Xs );
+    mbedtls_mpi_init( &xs );
+
+    /*
+     * First generate private/public key pair (7.4.2.5.1)
+     *
+     * GB = X1 + X2 + X3
+     * xs = x4 * s mod n
+     * Xs = xs * GB
+     */
+    MBEDTLS_MPI_CHK( ecjpake_ecp_add3( &ctx->grp, &GB,
+                                       &ctx->X1, &ctx->X2, &ctx->X3 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &xs, &ctx->xb, &ctx->s ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &xs, &xs, &ctx->grp.N ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &ctx->grp, &Xs, &xs, &GB, f_rng, p_rng ) );
+
+    /*
+     * Now write things out
+     */
+    MBEDTLS_MPI_CHK( mbedtls_ecp_tls_write_group( &ctx->grp, &ec_len,
+                                                  p, end - p ) );
+    p += ec_len;
+
+    if( end < p )
+    {
+        ret = MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
+        goto cleanup;
+    }
+    MBEDTLS_MPI_CHK( mbedtls_ecp_tls_write_point( &ctx->grp, &Xs,
+                     MBEDTLS_ECP_PF_UNCOMPRESSED, &ec_len, p, end - p ) );
+    p += ec_len;
+
+    MBEDTLS_MPI_CHK( ecjpake_zkp_write( ctx->md_info, &ctx->grp,
+                                        &GB, &xs, &Xs, "server",
+                                        &p, end, f_rng, p_rng ) );
+
+    *olen = p - buf;
+
+cleanup:
+    mbedtls_ecp_point_free( &GB );
+    mbedtls_ecp_point_free( &Xs );
+    mbedtls_mpi_free( &xs );
 
     return( ret );
 }
@@ -758,6 +840,11 @@ int mbedtls_ecjpake_self_test( int verbose )
                  buf, sizeof( buf ), &len, ecjpake_lgc, NULL ) == 0 );
 
     TEST_ASSERT( mbedtls_ecjpake_tls_read_server_ext( &cli, buf, len ) == 0 );
+
+    TEST_ASSERT( mbedtls_ecjpake_tls_write_server_params( &srv,
+                 buf, sizeof( buf ), &len, ecjpake_lgc, NULL ) == 0 );
+
+    TEST_ASSERT( mbedtls_ecjpake_tls_read_server_params( &cli, buf, len ) == 0 );
 
     if( verbose != 0 )
         mbedtls_printf( "passed\n" );

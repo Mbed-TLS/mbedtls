@@ -8,17 +8,17 @@ The Beta release of mbed TLS is an integration of mbed TLS in mbed OS. It is a t
 
 This release includes the following examples:
 
-1. [**TLS client:**](https://github.com/ARMmbed/mbedtls/tree/development/yotta/data/example-tls-client) downloads a file from an HTTPS server (mbed.org) and looks for a specific string in that file.
+1. [**TLS client:**](https://github.com/ARMmbed/mbedtls/blob/development/yotta/data/example-tls-client), found in `tests/example-tls-client`, downloads a file from an HTTPS server (mbed.org) and looks for a specific string in that file.
 
-2. [**Self test:**](https://github.com/ARMmbed/mbedtls/tree/development/yotta/data/example-selftest) tests different mbed TLS base functionalities.
+2. [**Self test:**](https://github.com/ARMmbed/mbedtls/blob/development/yotta/data/example-selftest), found in `tests/example-selftest`, tests different mbed TLS base functionalities.
 
-3. [**Benchmark:**](https://github.com/ARMmbed/mbedtls/tree/development/yotta/data/example-benchmark) tests the time required to perform TLS base crypto functions.
+3. [**Benchmark:**](https://github.com/ARMmbed/mbedtls/blob/development/yotta/data/example-benchmark), found in `tests/example-benchmark`, tests the time required to perform TLS base crypto functions.
 
 These examples are integrated as yotta tests so that they are build automatically when you build mbed TLS. You'll find other examples in the various `tests/example-*` directories.
 
 ## Running TLS
 
-Please follow the instructions in the [TLS client sample](https://github.com/ARMmbed/mbedtls/tree/development/yotta/data/example-tls-client). These include a list of prerequisites and an explanation of building mbed TLS with yotta.
+Please follow the instructions in the [TLS client sample](https://github.com/ARMmbed/mbedtls/blob/development/yotta/data/example-tls-client). These include a list of prerequisites and an explanation of building mbed TLS with yotta.
 
 ## Configuring mbed TLS features
 

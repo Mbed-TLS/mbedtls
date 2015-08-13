@@ -84,12 +84,15 @@ void mbedtls_ecjpake_free( mbedtls_ecjpake_context *ctx )
  * Setup context
  */
 int mbedtls_ecjpake_setup( mbedtls_ecjpake_context *ctx,
+                           mbedtls_ecjpake_role role,
                            mbedtls_md_type_t hash,
                            mbedtls_ecp_group_id curve,
                            const unsigned char *secret,
                            size_t len )
 {
     int ret;
+
+    ctx->role = role;
 
     if( ( ctx->md_info = mbedtls_md_info_from_type( hash ) ) == NULL )
         return( MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE );
@@ -932,12 +935,12 @@ int mbedtls_ecjpake_self_test( int verbose )
     if( verbose != 0 )
         mbedtls_printf( "  ECJPAKE test #0 (setup): " );
 
-    TEST_ASSERT( mbedtls_ecjpake_setup( &cli,
+    TEST_ASSERT( mbedtls_ecjpake_setup( &cli, MBEDTLS_ECJPAKE_CLIENT,
                     MBEDTLS_MD_SHA256, MBEDTLS_ECP_DP_SECP256R1,
                     ecjpake_test_password,
             sizeof( ecjpake_test_password ) ) == 0 );
 
-    TEST_ASSERT( mbedtls_ecjpake_setup( &srv,
+    TEST_ASSERT( mbedtls_ecjpake_setup( &srv, MBEDTLS_ECJPAKE_SERVER,
                     MBEDTLS_MD_SHA256, MBEDTLS_ECP_DP_SECP256R1,
                     ecjpake_test_password,
             sizeof( ecjpake_test_password ) ) == 0 );

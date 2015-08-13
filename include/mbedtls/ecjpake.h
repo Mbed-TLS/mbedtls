@@ -30,10 +30,16 @@
 extern "C" {
 #endif
 
+typedef enum {
+    MBEDTLS_ECJPAKE_CLIENT,
+    MBEDTLS_ECJPAKE_SERVER,
+} mbedtls_ecjpake_role;
+
 typedef struct
 {
     const mbedtls_md_info_t *md_info;   /**< Hash to use                    */
     mbedtls_ecp_group grp;              /**< Elliptic curve                 */
+    mbedtls_ecjpake_role role;          /**< Are we client or server?       */
 
     mbedtls_ecp_point X1;               /**< Public key one                 */
     mbedtls_ecp_point X2;               /**< Public key two                 */
@@ -62,6 +68,7 @@ void mbedtls_ecjpake_init( mbedtls_ecjpake_context *ctx );
  *                  standard are MBEDTLS_MD_SHA256/MBEDTLS_ECP_DP_SECP256R1.
  *
  * \param ctx       context to set up
+ * \param role      Our role: client or server
  * \param hash      hash function to use (MBEDTLS_MD_XXX)
  * \param curve     elliptic curve identifier (MBEDTLS_ECP_DP_XXX)
  * \param secret    shared secret
@@ -71,6 +78,7 @@ void mbedtls_ecjpake_init( mbedtls_ecjpake_context *ctx );
  *                  a negative error code otherwise
  */
 int mbedtls_ecjpake_setup( mbedtls_ecjpake_context *ctx,
+                           mbedtls_ecjpake_role role,
                            mbedtls_md_type_t hash,
                            mbedtls_ecp_group_id curve,
                            const unsigned char *secret,

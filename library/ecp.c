@@ -1682,8 +1682,17 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
     mbedtls_ecp_point_init( &mP );
 
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &mP, m, P, NULL, NULL ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, R,   n, Q, NULL, NULL ) );
+    /* Optimize some simple special cases */
+    if( mbedtls_mpi_cmp_int( m, 1 ) == 0 )
+        MBEDTLS_MPI_CHK( mbedtls_ecp_copy( &mP, P ) );
+    else
+        MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &mP, m, P, NULL, NULL ) );
+
+    if( mbedtls_mpi_cmp_int( n, 1 ) == 0 )
+        MBEDTLS_MPI_CHK( mbedtls_ecp_copy( R, Q ) );
+    else
+        MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, R,   n, Q, NULL, NULL ) );
+
     MBEDTLS_MPI_CHK( ecp_add_mixed( grp, R, &mP, R ) );
     MBEDTLS_MPI_CHK( ecp_normalize_jac( grp, R ) );
 

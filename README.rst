@@ -52,7 +52,7 @@ from the mbed TLS root directory. This will create the yotta module in the *yott
 
 In any case, you'll probably want to set the yotta target before building unless it's already set globally; for more information on using yotta, please consult the `yotta documentation <http://docs.yottabuild.org/>`.
 
-The yotta edition of mbed TLS includes a few example programs, some of which demonstrate integration with mbed OS; for more details, please consult the `Readme of mbed TLS, yotta edition <https://github.com/ARMmbed/mbedtls/master/tree/yotta/data/README.md>`.
+The yotta edition of mbed TLS includes a few example programs, some of which demonstrate integration with mbed OS; for more details, please consult the `Readme at the root of the yotta module <https://github.com/ARMmbed/mbedtls/development/tree/yotta/data/README.md>`.
 
 Make
 ----

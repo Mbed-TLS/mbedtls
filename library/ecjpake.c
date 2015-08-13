@@ -686,6 +686,62 @@ cleanup:
     return( ret );
 }
 
+/*
+ * Generate and write ClientECJPAKEParams (7.4.2.6)
+ */
+int mbedtls_ecjpake_tls_write_client_params( mbedtls_ecjpake_context *ctx,
+                            unsigned char *buf, size_t len, size_t *olen,
+                            int (*f_rng)(void *, unsigned char *, size_t),
+                            void *p_rng )
+{
+    int ret;
+    mbedtls_ecp_point GA, Xc;
+    mbedtls_mpi xc;
+    unsigned char *p = buf;
+    const unsigned char *end = buf + len;
+    size_t ec_len;
+
+    if( end < p )
+        return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+
+    mbedtls_ecp_point_init( &GA );
+    mbedtls_ecp_point_init( &Xc );
+    mbedtls_mpi_init( &xc );
+
+    /*
+     * First generate private/public key pair (7.4.2.6.1)
+     *
+     * GA = X1 + X3 + X4
+     * xc = x2 * s mod n
+     * Xc = xc * GA
+     */
+    MBEDTLS_MPI_CHK( ecjpake_ecp_add3( &ctx->grp, &GA,
+                                       &ctx->X1, &ctx->X3, &ctx->X4 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &xc, &ctx->xb, &ctx->s ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &xc, &xc, &ctx->grp.N ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &ctx->grp, &Xc, &xc, &GA, f_rng, p_rng ) );
+
+    /*
+     * Now write things out
+     */
+    MBEDTLS_MPI_CHK( mbedtls_ecp_tls_write_point( &ctx->grp, &Xc,
+                     MBEDTLS_ECP_PF_UNCOMPRESSED, &ec_len, p, end - p ) );
+    p += ec_len;
+
+    MBEDTLS_MPI_CHK( ecjpake_zkp_write( ctx->md_info, &ctx->grp,
+                                        &GA, &xc, &Xc, "client",
+                                        &p, end, f_rng, p_rng ) );
+
+    *olen = p - buf;
+
+cleanup:
+    mbedtls_ecp_point_free( &GA );
+    mbedtls_ecp_point_free( &Xc );
+    mbedtls_mpi_free( &xc );
+
+    return( ret );
+}
+
 #if defined(MBEDTLS_SELF_TEST)
 
 #if defined(MBEDTLS_PLATFORM_C)
@@ -906,6 +962,11 @@ int mbedtls_ecjpake_self_test( int verbose )
                  buf, sizeof( buf ), &len, ecjpake_lgc, NULL ) == 0 );
 
     TEST_ASSERT( mbedtls_ecjpake_tls_read_server_params( &cli, buf, len ) == 0 );
+
+    TEST_ASSERT( mbedtls_ecjpake_tls_write_client_params( &cli,
+                 buf, sizeof( buf ), &len, ecjpake_lgc, NULL ) == 0 );
+
+    TEST_ASSERT( mbedtls_ecjpake_tls_read_client_params( &srv, buf, len ) == 0 );
 
     if( verbose != 0 )
         mbedtls_printf( "passed\n" );

@@ -178,6 +178,25 @@ int mbedtls_ecjpake_tls_read_server_params( mbedtls_ecjpake_context *ctx,
                                             size_t len );
 
 /*
+ * \brief           Generate and write ClientECJPAKEParams
+ *                  (the contents for the ClientKeyExchange)
+ *
+ * \param ctx       Context to use
+ * \param buf       Buffer to write the contents to
+ * \param len       Buffer size
+ * \param olen      Will be updated with the number of bytes written
+ * \param f_rng     RNG function
+ * \param p_rng     RNG parameter
+ *
+ * \return          0 if successfull,
+ *                  a negative error code otherwise
+ */
+int mbedtls_ecjpake_tls_write_client_params( mbedtls_ecjpake_context *ctx,
+                            unsigned char *buf, size_t len, size_t *olen,
+                            int (*f_rng)(void *, unsigned char *, size_t),
+                            void *p_rng );
+
+/*
  * \brief           Read and process ClientECJPAKEParams
  *                  (the contents for the ClientKeyExchange)
  *

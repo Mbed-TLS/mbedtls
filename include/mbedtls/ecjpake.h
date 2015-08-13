@@ -42,6 +42,8 @@ typedef struct
 
     mbedtls_mpi xa;                     /**< Our first secret (x1 or x3)    */
     mbedtls_mpi xb;                     /**< Our second secret (x2 or x4)   */
+
+    mbedtls_mpi s;                      /**< Pre-shared secret              */
 } mbedtls_ecjpake_context;
 
 /*
@@ -61,13 +63,17 @@ void mbedtls_ecjpake_init( mbedtls_ecjpake_context *ctx );
  * \param ctx       context to set up
  * \param hash      hash function to use (MBEDTLS_MD_XXX)
  * \param curve     elliptic curve identifier (MBEDTLS_ECP_DP_XXX)
+ * \param secret    shared secret
+ * \param len       length of the shared secret
  *
  * \return          0 if successfull,
  *                  a negative error code otherwise
  */
 int mbedtls_ecjpake_setup( mbedtls_ecjpake_context *ctx,
                            mbedtls_md_type_t hash,
-                           mbedtls_ecp_group_id curve );
+                           mbedtls_ecp_group_id curve,
+                           const unsigned char *secret,
+                           size_t len );
 
 /*
  * \brief           Generate and write contents of ClientHello extension

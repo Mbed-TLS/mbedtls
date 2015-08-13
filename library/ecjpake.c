@@ -54,6 +54,7 @@ void mbedtls_ecjpake_init( mbedtls_ecjpake_context *ctx )
 
     mbedtls_mpi_init( &ctx->xa );
     mbedtls_mpi_init( &ctx->xb );
+    mbedtls_mpi_init( &ctx->s  );
 }
 
 /*
@@ -74,6 +75,7 @@ void mbedtls_ecjpake_free( mbedtls_ecjpake_context *ctx )
 
     mbedtls_mpi_free( &ctx->xa );
     mbedtls_mpi_free( &ctx->xb );
+    mbedtls_mpi_free( &ctx->s  );
 }
 
 /*
@@ -81,17 +83,25 @@ void mbedtls_ecjpake_free( mbedtls_ecjpake_context *ctx )
  */
 int mbedtls_ecjpake_setup( mbedtls_ecjpake_context *ctx,
                            mbedtls_md_type_t hash,
-                           mbedtls_ecp_group_id curve )
+                           mbedtls_ecp_group_id curve,
+                           const unsigned char *secret,
+                           size_t len )
 {
     int ret;
 
     if( ( ctx->md_info = mbedtls_md_info_from_type( hash ) ) == NULL )
         return( MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE );
 
-    if( ( ret = mbedtls_ecp_group_load( &ctx->grp, curve ) ) != 0 )
-        return( ret );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_group_load( &ctx->grp, curve ) );
 
-    return( 0 );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &ctx->s, secret, len ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &ctx->s, &ctx->s, &ctx->grp.N ) );
+
+cleanup:
+    if( ret != 0 )
+        mbedtls_ecjpake_free( ctx );
+
+    return( ret );
 }
 
 /*
@@ -575,12 +585,15 @@ int mbedtls_ecjpake_self_test( int verbose )
     mbedtls_ecjpake_context ctx;
     unsigned char buf[1000];
     size_t len;
+    char secret[] = "test passphrase";
 
     mbedtls_ecjpake_init( &ctx );
 
     /* Common to all tests */
-    TEST_ASSERT( mbedtls_ecjpake_setup( &ctx, MBEDTLS_MD_SHA256,
-                                        MBEDTLS_ECP_DP_SECP256R1 ) == 0 );
+    TEST_ASSERT( mbedtls_ecjpake_setup( &ctx,
+                    MBEDTLS_MD_SHA256, MBEDTLS_ECP_DP_SECP256R1,
+                    (const unsigned char *) secret,
+                    sizeof( secret ) - 1 ) == 0 );
 
     if( verbose != 0 )
         mbedtls_printf( "  ECJPAKE test #1 (client ext read): " );

@@ -592,7 +592,7 @@ int mbedtls_ecjpake_tls_write_server_params( mbedtls_ecjpake_context *ctx,
     const unsigned char *end = buf + len;
     size_t ec_len;
 
-    if( end < *p )
+    if( end < p )
         return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
 
     mbedtls_ecp_point_init( &GB );
@@ -638,6 +638,50 @@ cleanup:
     mbedtls_ecp_point_free( &GB );
     mbedtls_ecp_point_free( &Xs );
     mbedtls_mpi_free( &xs );
+
+    return( ret );
+}
+
+/*
+ * Read and process ClientECJPAKEParams (7.4.2.6)
+ */
+int mbedtls_ecjpake_tls_read_client_params( mbedtls_ecjpake_context *ctx,
+                                            const unsigned char *buf,
+                                            size_t len )
+{
+    int ret;
+    const unsigned char *p = buf;
+    const unsigned char *end = buf + len;
+    mbedtls_ecp_group grp;
+    mbedtls_ecp_point GA;
+
+    mbedtls_ecp_group_init( &grp );
+    mbedtls_ecp_point_init( &GA );
+
+    /*
+     * GA = X1 + X3 + X4 (7.4.2.6.1)
+     * We need that before parsing in order to check Xc as we read it
+     */
+    MBEDTLS_MPI_CHK( ecjpake_ecp_add3( &ctx->grp, &GA,
+                                       &ctx->X1, &ctx->X3, &ctx->X4 ) );
+
+    /*
+     * struct {
+     *     ECJPAKEKeyKP ecjpake_key_kp;
+     * } CLientECJPAKEParams;
+     */
+    MBEDTLS_MPI_CHK( ecjpake_kkp_read( ctx->md_info, &ctx->grp,
+                            &GA, &ctx->Xp, "client", &p, end ) );
+
+    if( p != end )
+    {
+        ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+        goto cleanup;
+    }
+
+cleanup:
+    mbedtls_ecp_group_free( &grp );
+    mbedtls_ecp_point_free( &GA );
 
     return( ret );
 }
@@ -768,6 +812,23 @@ static const unsigned char ecjpake_test_srv_kx[] = {
     0x7c, 0x9b, 0xce, 0x35, 0x25, 0xf5, 0x08, 0x27, 0x6f, 0x26, 0x83, 0x6c
 };
 
+static const unsigned char ecjpake_test_cli_kx[] = {
+    0x41, 0x04, 0x69, 0xd5, 0x4e, 0xe8, 0x5e, 0x90, 0xce, 0x3f, 0x12, 0x46,
+    0x74, 0x2d, 0xe5, 0x07, 0xe9, 0x39, 0xe8, 0x1d, 0x1d, 0xc1, 0xc5, 0xcb,
+    0x98, 0x8b, 0x58, 0xc3, 0x10, 0xc9, 0xfd, 0xd9, 0x52, 0x4d, 0x93, 0x72,
+    0x0b, 0x45, 0x54, 0x1c, 0x83, 0xee, 0x88, 0x41, 0x19, 0x1d, 0xa7, 0xce,
+    0xd8, 0x6e, 0x33, 0x12, 0xd4, 0x36, 0x23, 0xc1, 0xd6, 0x3e, 0x74, 0x98,
+    0x9a, 0xba, 0x4a, 0xff, 0xd1, 0xee, 0x41, 0x04, 0x07, 0x7e, 0x8c, 0x31,
+    0xe2, 0x0e, 0x6b, 0xed, 0xb7, 0x60, 0xc1, 0x35, 0x93, 0xe6, 0x9f, 0x15,
+    0xbe, 0x85, 0xc2, 0x7d, 0x68, 0xcd, 0x09, 0xcc, 0xb8, 0xc4, 0x18, 0x36,
+    0x08, 0x91, 0x7c, 0x5c, 0x3d, 0x40, 0x9f, 0xac, 0x39, 0xfe, 0xfe, 0xe8,
+    0x2f, 0x72, 0x92, 0xd3, 0x6f, 0x0d, 0x23, 0xe0, 0x55, 0x91, 0x3f, 0x45,
+    0xa5, 0x2b, 0x85, 0xdd, 0x8a, 0x20, 0x52, 0xe9, 0xe1, 0x29, 0xbb, 0x4d,
+    0x20, 0x0f, 0x01, 0x1f, 0x19, 0x48, 0x35, 0x35, 0xa6, 0xe8, 0x9a, 0x58,
+    0x0c, 0x9b, 0x00, 0x03, 0xba, 0xf2, 0x14, 0x62, 0xec, 0xe9, 0x1a, 0x82,
+    0xcc, 0x38, 0xdb, 0xdc, 0xae, 0x60, 0xd9, 0xc5, 0x4c
+};
+
 /* For tests we don't need a secure RNG;
  * use the LGC from Numerical Recipes for simplicity */
 static int ecjpake_lgc( void *p, unsigned char *out, size_t len )
@@ -885,6 +946,11 @@ int mbedtls_ecjpake_self_test( int verbose )
     TEST_ASSERT( mbedtls_ecjpake_tls_read_server_params( &cli,
                                     ecjpake_test_srv_kx,
                             sizeof( ecjpake_test_srv_kx ) ) == 0 );
+
+    /* Server reads client key exchange */
+    TEST_ASSERT( mbedtls_ecjpake_tls_read_client_params( &srv,
+                                    ecjpake_test_cli_kx,
+                            sizeof( ecjpake_test_cli_kx ) ) == 0 );
 
     if( verbose != 0 )
         mbedtls_printf( "passed\n" );

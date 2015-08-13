@@ -178,6 +178,21 @@ int mbedtls_ecjpake_tls_read_server_params( mbedtls_ecjpake_context *ctx,
                                             size_t len );
 
 /*
+ * \brief           Read and process ClientECJPAKEParams
+ *                  (the contents for the ClientKeyExchange)
+ *
+ * \param ctx       Context to use
+ * \param buf       Pointer to the message
+ * \param len       Message length
+ *
+ * \return          0 if successfull,
+ *                  a negative error code otherwise
+ */
+int mbedtls_ecjpake_tls_read_client_params( mbedtls_ecjpake_context *ctx,
+                                            const unsigned char *buf,
+                                            size_t len );
+
+/*
  * \brief           Free a context's content
  *
  * \param ctx       context to free

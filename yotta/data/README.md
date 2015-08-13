@@ -8,23 +8,23 @@ The Beta release of mbed TLS is an integration of mbed TLS in mbed OS. It is a t
 
 This release includes the following examples:
 
-1. [**TLS client:**](https://github.com/ARMmbed/mbedtls/tree/master/yotta/data/example-tls-client) downloads a file from an HTTPS server (mbed.org) and looks for a specific string in that file.
+1. [**TLS client:**](https://github.com/ARMmbed/mbedtls/blob/development/yotta/data/example-tls-client) found in `tests/example-tls-client`, downloads a file from an HTTPS server (mbed.org) and looks for a specific string in that file.
 
-2. [**Self test:**](https://github.com/ARMmbed/mbedtls/tree/master/yotta/data/example-selftest) tests different mbed TLS base functionalities.
+2. [**Self test:**](https://github.com/ARMmbed/mbedtls/blob/development/yotta/data/example-selftest) found in `tests/example-selftest`, tests different mbed TLS base functionalities.
 
-3. [**Benchmark:**](https://github.com/ARMmbed/mbedtls/tree/master/yotta/data/example-benchmark) tests the time required to perform TLS base crypto functions.
+3. [**Benchmark:**](https://github.com/ARMmbed/mbedtls/blob/development/yotta/data/example-benchmark) found in `tests/example-benchmark`, tests the time required to perform TLS base crypto functions.
 
 These examples are integrated as yotta tests so that they are build automatically when you build mbed TLS. You'll find other examples in the various `tests/example-*` directories.
 
 ## Running TLS
 
-Please follow the instructions in the [TLS client sample](https://github.com/ARMmbed/mbedtls/tree/master/yotta/data/example-tls-client). These include a list of prerequisites and an explanation of building mbed TLS with yotta.
+Please follow the instructions in the [TLS client sample](https://github.com/ARMmbed/mbedtls/blob/development/yotta/data/example-tls-client). These include a list of prerequisites and an explanation of building mbed TLS with yotta.
 
 ## Configuring mbed TLS features
 
 **Warning:** This is only a preview of a future feature that will require support from yotta; as of yotta 0.5.2 this is not supported yet.
 
-mbed TLS makes it easy to disable during the compilation any feature that is not needed for a particular project. The default configuration enables all modern and widely-used features, which should meet the need of any new project; it disables all features that are either older or less mainstrem, in order to keep the footprint low. The list of available compile flags is available in the fully documented [config.h file](https://github.com/ARMmbed/mbedtls/blob/master/include/mbedtls/config.h), present in the `mbedtls` directory of the yotta module.
+mbed TLS makes it easy to disable during the compilation any feature that is not needed for a particular project. The default configuration enables all modern and widely-used features, which should meet the need of any new project; it disables all features that are either older or less mainstrem, in order to keep the footprint low. The list of available compile flags is available in the fully documented [config.h file](https://github.com/ARMmbed/mbedtls/blob/development/include/mbedtls/config.h), present in the `mbedtls` directory of the yotta module.
 
 Should you need to adjust those flags, you can provide your own configuration file with the suitable `#define` and `#undef` statements, to be included between the default definitions and the sanity checks. This file should be in your application's include directory and can be named freely; you just need to let mbed TLS know the name of the file, by using yotta's [configuration system](http://docs.yottabuild.org/reference/config.html). This name should go in your `config.json`, under mbedtls, as the key `user-config-file`, for example:
 

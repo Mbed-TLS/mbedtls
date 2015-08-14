@@ -464,11 +464,11 @@ cleanup:
 }
 
 /*
- * Read the contents of the ClientHello extension
+ * Read and process the first round message
  */
-int mbedtls_ecjpake_tls_read_client_ext( mbedtls_ecjpake_context *ctx,
-                                         const unsigned char *buf,
-                                         size_t len )
+int mbedtls_ecjpake_read_round_one( mbedtls_ecjpake_context *ctx,
+                                    const unsigned char *buf,
+                                    size_t len )
 {
     return( ecjpake_kkpp_read( ctx->md_info, &ctx->grp, &ctx->grp.G,
                                &ctx->Xp1, &ctx->Xp2, ID_PEER,
@@ -476,34 +476,9 @@ int mbedtls_ecjpake_tls_read_client_ext( mbedtls_ecjpake_context *ctx,
 }
 
 /*
- * Read the contents of the ServerHello extension
+ * Generate and write the first round message
  */
-int mbedtls_ecjpake_tls_read_server_ext( mbedtls_ecjpake_context *ctx,
-                                         const unsigned char *buf,
-                                         size_t len )
-{
-    return( ecjpake_kkpp_read( ctx->md_info, &ctx->grp, &ctx->grp.G,
-                               &ctx->Xp1, &ctx->Xp2, ID_PEER,
-                               buf, len ) );
-}
-
-/*
- * Generate the contents of the ClientHello extension
- */
-int mbedtls_ecjpake_tls_write_client_ext( mbedtls_ecjpake_context *ctx,
-                            unsigned char *buf, size_t len, size_t *olen,
-                            int (*f_rng)(void *, unsigned char *, size_t),
-                            void *p_rng )
-{
-    return( ecjpake_kkpp_write( ctx->md_info, &ctx->grp, &ctx->grp.G,
-                                &ctx->xm1, &ctx->Xm1, &ctx->xm2, &ctx->Xm2,
-                                ID_MINE, buf, len, olen, f_rng, p_rng ) );
-}
-
-/*
- * Generate the contents of the ServerHello extension
- */
-int mbedtls_ecjpake_tls_write_server_ext( mbedtls_ecjpake_context *ctx,
+int mbedtls_ecjpake_write_round_one( mbedtls_ecjpake_context *ctx,
                             unsigned char *buf, size_t len, size_t *olen,
                             int (*f_rng)(void *, unsigned char *, size_t),
                             void *p_rng )
@@ -1047,15 +1022,15 @@ int mbedtls_ecjpake_self_test( int verbose )
     if( verbose != 0 )
         mbedtls_printf( "  ECJPAKE test #1 (random handshake): " );
 
-    TEST_ASSERT( mbedtls_ecjpake_tls_write_client_ext( &cli,
+    TEST_ASSERT( mbedtls_ecjpake_write_round_one( &cli,
                  buf, sizeof( buf ), &len, ecjpake_lgc, NULL ) == 0 );
 
-    TEST_ASSERT( mbedtls_ecjpake_tls_read_client_ext( &srv, buf, len ) == 0 );
+    TEST_ASSERT( mbedtls_ecjpake_read_round_one( &srv, buf, len ) == 0 );
 
-    TEST_ASSERT( mbedtls_ecjpake_tls_write_server_ext( &srv,
+    TEST_ASSERT( mbedtls_ecjpake_write_round_one( &srv,
                  buf, sizeof( buf ), &len, ecjpake_lgc, NULL ) == 0 );
 
-    TEST_ASSERT( mbedtls_ecjpake_tls_read_server_ext( &cli, buf, len ) == 0 );
+    TEST_ASSERT( mbedtls_ecjpake_read_round_one( &cli, buf, len ) == 0 );
 
     TEST_ASSERT( mbedtls_ecjpake_tls_write_server_params( &srv,
                  buf, sizeof( buf ), &len, ecjpake_lgc, NULL ) == 0 );
@@ -1088,7 +1063,7 @@ int mbedtls_ecjpake_self_test( int verbose )
                 ecjpake_test_x2, sizeof( ecjpake_test_x2 ) ) );
 
     /* Server reads client ext */
-    TEST_ASSERT( mbedtls_ecjpake_tls_read_client_ext( &srv,
+    TEST_ASSERT( mbedtls_ecjpake_read_round_one( &srv,
                                     ecjpake_test_cli_ext,
                             sizeof( ecjpake_test_cli_ext ) ) == 0 );
 
@@ -1098,7 +1073,7 @@ int mbedtls_ecjpake_self_test( int verbose )
                 ecjpake_test_x4, sizeof( ecjpake_test_x4 ) ) );
 
     /* Client reads server ext and key exchange */
-    TEST_ASSERT( mbedtls_ecjpake_tls_read_server_ext( &cli,
+    TEST_ASSERT( mbedtls_ecjpake_read_round_one( &cli,
                                     ecjpake_test_srv_ext,
                             sizeof( ecjpake_test_srv_ext ) ) == 0 );
 

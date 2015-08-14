@@ -27,8 +27,17 @@
  * Implementation based on Chapter 7.4 of the Thread v1.0 Specification,
  * available from the Thread Group http://threadgroup.org/
  *
- * This file implements the EC J-PAKE algorithm, with payload serializations
+ * J-PAKE is a password-authenticated key exchange that allows deriving a
+ * strong shared secret from a (potentially low entropy) pre-shared
+ * passphrase, with forward secrecy and mutual authentication.
+ * https://en.wikipedia.org/wiki/Password_Authenticated_Key_Exchange_by_Juggling
+ *
+ * This file implements the EC J-PAKE algorithm with payload serializations
  * suitable for use in TLS, but the result could be used outside TLS.
+ *
+ * As the J-PAKE algorithm is inherently symmetric, so is our API.
+ * Each party needs to send its first round message, in any order, to the
+ * other party, then each sends its second round message, in any order.
  */
 
 #include "ecp.h"
@@ -107,8 +116,9 @@ int mbedtls_ecjpake_setup( mbedtls_ecjpake_context *ctx,
                            size_t len );
 
 /*
- * \brief           Generate and write contents of ClientHello extension
- *                  (excluding extension type and length bytes)
+ * \brief           Generate and write the first round message
+ *                  (TLS: contents of the Client/ServerHello extension,
+ *                  excluding extension type and length bytes)
  *
  * \param ctx       Context to use
  * \param buf       Buffer to write the contents to
@@ -120,13 +130,14 @@ int mbedtls_ecjpake_setup( mbedtls_ecjpake_context *ctx,
  * \return          0 if successfull,
  *                  a negative error code otherwise
  */
-int mbedtls_ecjpake_tls_write_client_ext( mbedtls_ecjpake_context *ctx,
+int mbedtls_ecjpake_write_round_one( mbedtls_ecjpake_context *ctx,
                             unsigned char *buf, size_t len, size_t *olen,
                             int (*f_rng)(void *, unsigned char *, size_t),
                             void *p_rng );
 /*
- * \brief           Read and process contents of the ClientHello extension
- *                  (excluding extension type and length bytes)
+ * \brief           Generate and write the first round message
+ *                  (TLS: contents of the Client/ServerHello extension,
+ *                  excluding extension type and length bytes)
  *
  * \param ctx       Context to use
  * \param buf       Pointer to extension contents
@@ -135,43 +146,9 @@ int mbedtls_ecjpake_tls_write_client_ext( mbedtls_ecjpake_context *ctx,
  * \return          0 if successfull,
  *                  a negative error code otherwise
  */
-int mbedtls_ecjpake_tls_read_client_ext( mbedtls_ecjpake_context *ctx,
-                                         const unsigned char *buf,
-                                         size_t len );
-
-/*
- * \brief           Generate and write contents of ServerHello extension
- *                  (excluding extension type and length bytes)
- *
- * \param ctx       Context to use
- * \param buf       Buffer to write the contents to
- * \param len       Buffer size
- * \param olen      Will be updated with the number of bytes written
- * \param f_rng     RNG function
- * \param p_rng     RNG parameter
- *
- * \return          0 if successfull,
- *                  a negative error code otherwise
- */
-int mbedtls_ecjpake_tls_write_server_ext( mbedtls_ecjpake_context *ctx,
-                            unsigned char *buf, size_t len, size_t *olen,
-                            int (*f_rng)(void *, unsigned char *, size_t),
-                            void *p_rng );
-
-/*
- * \brief           Read and process contents of the ServerHello extension
- *                  (excluding extension type and length bytes)
- *
- * \param ctx       Context to use
- * \param buf       Pointer to extension contents
- * \param len       Extension length
- *
- * \return          0 if successfull,
- *                  a negative error code otherwise
- */
-int mbedtls_ecjpake_tls_read_server_ext( mbedtls_ecjpake_context *ctx,
-                                         const unsigned char *buf,
-                                         size_t len );
+int mbedtls_ecjpake_read_round_one( mbedtls_ecjpake_context *ctx,
+                                    const unsigned char *buf,
+                                    size_t len );
 
 /*
  * \brief           Generate and write ServerECJPAKEParams

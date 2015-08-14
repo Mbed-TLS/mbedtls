@@ -21,7 +21,7 @@
 
 /*
  * References in the code are to the Thread v1.0 Specification,
- * available from the Thread Group http://threadgroup.org/
+ * available to members of the Thread Group http://threadgroup.org/
  */
 
 #if !defined(MBEDTLS_CONFIG_FILE)
@@ -522,7 +522,7 @@ int mbedtls_ecjpake_read_round_two( mbedtls_ecjpake_context *ctx,
     const unsigned char *p = buf;
     const unsigned char *end = buf + len;
     mbedtls_ecp_group grp;
-    mbedtls_ecp_point G;
+    mbedtls_ecp_point G;    /* C: GB, S: GA */
 
     mbedtls_ecp_group_init( &grp );
     mbedtls_ecp_point_init( &G );
@@ -653,8 +653,8 @@ int mbedtls_ecjpake_derive_secret( mbedtls_ecjpake_context *ctx,
                             void *p_rng )
 {
     int ret;
-    mbedtls_ecp_point K, *X42;
-    mbedtls_mpi xbs, one;
+    mbedtls_ecp_point K;
+    mbedtls_mpi m_xm2_s, one;
     unsigned char kx[MBEDTLS_ECP_MAX_BYTES];
     size_t x_bytes;
 
@@ -663,24 +663,23 @@ int mbedtls_ecjpake_derive_secret( mbedtls_ecjpake_context *ctx,
         return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
 
     mbedtls_ecp_point_init( &K );
-    mbedtls_mpi_init( &xbs );
+    mbedtls_mpi_init( &m_xm2_s );
     mbedtls_mpi_init( &one );
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &one, 1 ) );
-    X42 = ctx->role == MBEDTLS_ECJPAKE_CLIENT ? &ctx->Xp2 : &ctx->Xp2;
 
     /*
-     * Client:  K = ( Xs - X4  * x2 * s ) * x2
-     * Server:  K = ( Xc - X2  * x4 * s ) * x4
-     * Unified: K = ( Xp - X42 * xm2 * x ) * xm2
+     * Client:  K = ( Xs - X4  * x2  * s ) * x2
+     * Server:  K = ( Xc - X2  * x4  * s ) * x4
+     * Unified: K = ( Xp - Xp2 * xm2 * x ) * xm2
      */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &xbs, &ctx->xm2, &ctx->s ) );
-    xbs.s *= -1;
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &xbs, &xbs, &ctx->grp.N ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &m_xm2_s, &ctx->xm2, &ctx->s ) );
+    m_xm2_s.s *= -1;
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &m_xm2_s, &m_xm2_s, &ctx->grp.N ) );
 
     MBEDTLS_MPI_CHK( mbedtls_ecp_muladd( &ctx->grp, &K,
                                          &one, &ctx->Xp,
-                                         &xbs, X42 ) );
+                                         &m_xm2_s, &ctx->Xp2 ) );
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &ctx->grp, &K, &ctx->xm2, &K,
                                       f_rng, p_rng ) );
 
@@ -691,7 +690,7 @@ int mbedtls_ecjpake_derive_secret( mbedtls_ecjpake_context *ctx,
 
 cleanup:
     mbedtls_ecp_point_free( &K );
-    mbedtls_mpi_free( &xbs );
+    mbedtls_mpi_free( &m_xm2_s );
     mbedtls_mpi_free( &one );
 
     return( ret );
@@ -748,7 +747,7 @@ static const unsigned char ecjpake_test_x4[] = {
     0xd9, 0xda, 0xdb, 0xdc, 0xdd, 0xde, 0xdf, 0xe1
 };
 
-static const unsigned char ecjpake_test_cli_ext[] = {
+static const unsigned char ecjpake_test_cli_one[] = {
     0x41, 0x04, 0xac, 0xcf, 0x01, 0x06, 0xef, 0x85, 0x8f, 0xa2, 0xd9, 0x19,
     0x33, 0x13, 0x46, 0x80, 0x5a, 0x78, 0xb5, 0x8b, 0xba, 0xd0, 0xb8, 0x44,
     0xe5, 0xc7, 0x89, 0x28, 0x79, 0x14, 0x61, 0x87, 0xdd, 0x26, 0x66, 0xad,
@@ -779,7 +778,7 @@ static const unsigned char ecjpake_test_cli_ext[] = {
     0x8b, 0x01, 0x0e, 0x44, 0x3e, 0xf0
 };
 
-static const unsigned char ecjpake_test_srv_ext[] = {
+static const unsigned char ecjpake_test_srv_one[] = {
     0x41, 0x04, 0x7e, 0xa6, 0xe3, 0xa4, 0x48, 0x70, 0x37, 0xa9, 0xe0, 0xdb,
     0xd7, 0x92, 0x62, 0xb2, 0xcc, 0x27, 0x3e, 0x77, 0x99, 0x30, 0xfc, 0x18,
     0x40, 0x9a, 0xc5, 0x36, 0x1c, 0x5f, 0xe6, 0x69, 0xd7, 0x02, 0xe1, 0x47,
@@ -810,7 +809,7 @@ static const unsigned char ecjpake_test_srv_ext[] = {
     0xec, 0x00, 0xc2, 0xc9, 0xeb, 0x12
 };
 
-static const unsigned char ecjpake_test_srv_kx[] = {
+static const unsigned char ecjpake_test_srv_two[] = {
     0x03, 0x00, 0x17, 0x41, 0x04, 0x0f, 0xb2, 0x2b, 0x1d, 0x5d, 0x11, 0x23,
     0xe0, 0xef, 0x9f, 0xeb, 0x9d, 0x8a, 0x2e, 0x59, 0x0a, 0x1f, 0x4d, 0x7c,
     0xed, 0x2c, 0x2b, 0x06, 0x58, 0x6e, 0x8f, 0x2a, 0x16, 0xd4, 0xeb, 0x2f,
@@ -827,7 +826,7 @@ static const unsigned char ecjpake_test_srv_kx[] = {
     0x7c, 0x9b, 0xce, 0x35, 0x25, 0xf5, 0x08, 0x27, 0x6f, 0x26, 0x83, 0x6c
 };
 
-static const unsigned char ecjpake_test_cli_kx[] = {
+static const unsigned char ecjpake_test_cli_two[] = {
     0x41, 0x04, 0x69, 0xd5, 0x4e, 0xe8, 0x5e, 0x90, 0xce, 0x3f, 0x12, 0x46,
     0x74, 0x2d, 0xe5, 0x07, 0xe9, 0x39, 0xe8, 0x1d, 0x1d, 0xc1, 0xc5, 0xcb,
     0x98, 0x8b, 0x58, 0xc3, 0x10, 0xc9, 0xfd, 0xd9, 0x52, 0x4d, 0x93, 0x72,
@@ -966,34 +965,32 @@ int mbedtls_ecjpake_self_test( int verbose )
     if( verbose != 0 )
         mbedtls_printf( "  ECJPAKE test #2 (reference handshake): " );
 
-    /* Simulate key generation on client, skip writing client_ext */
+    /* Simulate generation of round one */
     MBEDTLS_MPI_CHK( ecjpake_test_load( &cli,
                 ecjpake_test_x1, sizeof( ecjpake_test_x1 ),
                 ecjpake_test_x2, sizeof( ecjpake_test_x2 ) ) );
 
-    /* Server reads client ext */
-    TEST_ASSERT( mbedtls_ecjpake_read_round_one( &srv,
-                                    ecjpake_test_cli_ext,
-                            sizeof( ecjpake_test_cli_ext ) ) == 0 );
-
-    /* Simulate key generation on server, skip writing server_ext */
     MBEDTLS_MPI_CHK( ecjpake_test_load( &srv,
                 ecjpake_test_x3, sizeof( ecjpake_test_x3 ),
                 ecjpake_test_x4, sizeof( ecjpake_test_x4 ) ) );
 
-    /* Client reads server ext and key exchange */
+    /* Read round one */
+    TEST_ASSERT( mbedtls_ecjpake_read_round_one( &srv,
+                                    ecjpake_test_cli_one,
+                            sizeof( ecjpake_test_cli_one ) ) == 0 );
+
     TEST_ASSERT( mbedtls_ecjpake_read_round_one( &cli,
-                                    ecjpake_test_srv_ext,
-                            sizeof( ecjpake_test_srv_ext ) ) == 0 );
+                                    ecjpake_test_srv_one,
+                            sizeof( ecjpake_test_srv_one ) ) == 0 );
 
+    /* Skip generation of round two, read round two */
     TEST_ASSERT( mbedtls_ecjpake_read_round_two( &cli,
-                                    ecjpake_test_srv_kx,
-                            sizeof( ecjpake_test_srv_kx ) ) == 0 );
+                                    ecjpake_test_srv_two,
+                            sizeof( ecjpake_test_srv_two ) ) == 0 );
 
-    /* Server reads client key exchange */
     TEST_ASSERT( mbedtls_ecjpake_read_round_two( &srv,
-                                    ecjpake_test_cli_kx,
-                            sizeof( ecjpake_test_cli_kx ) ) == 0 );
+                                    ecjpake_test_cli_two,
+                            sizeof( ecjpake_test_cli_two ) ) == 0 );
 
     /* Server derives PMS */
     TEST_ASSERT( mbedtls_ecjpake_derive_secret( &srv,

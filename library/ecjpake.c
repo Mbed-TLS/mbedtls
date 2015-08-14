@@ -58,15 +58,15 @@ void mbedtls_ecjpake_init( mbedtls_ecjpake_context *ctx )
     ctx->md_info = NULL;
     mbedtls_ecp_group_init( &ctx->grp );
 
-    mbedtls_ecp_point_init( &ctx->X1 );
-    mbedtls_ecp_point_init( &ctx->X2 );
-    mbedtls_ecp_point_init( &ctx->X3 );
-    mbedtls_ecp_point_init( &ctx->X4 );
-    mbedtls_ecp_point_init( &ctx->Xp );
+    mbedtls_ecp_point_init( &ctx->Xm1 );
+    mbedtls_ecp_point_init( &ctx->Xm2 );
+    mbedtls_ecp_point_init( &ctx->Xp1 );
+    mbedtls_ecp_point_init( &ctx->Xp2 );
+    mbedtls_ecp_point_init( &ctx->Xp  );
 
-    mbedtls_mpi_init( &ctx->xa );
-    mbedtls_mpi_init( &ctx->xb );
-    mbedtls_mpi_init( &ctx->s  );
+    mbedtls_mpi_init( &ctx->xm1 );
+    mbedtls_mpi_init( &ctx->xm2 );
+    mbedtls_mpi_init( &ctx->s   );
 }
 
 /*
@@ -80,15 +80,15 @@ void mbedtls_ecjpake_free( mbedtls_ecjpake_context *ctx )
     ctx->md_info = NULL;
     mbedtls_ecp_group_free( &ctx->grp );
 
-    mbedtls_ecp_point_free( &ctx->X1 );
-    mbedtls_ecp_point_free( &ctx->X2 );
-    mbedtls_ecp_point_free( &ctx->X3 );
-    mbedtls_ecp_point_free( &ctx->X4 );
-    mbedtls_ecp_point_free( &ctx->Xp );
+    mbedtls_ecp_point_free( &ctx->Xm1 );
+    mbedtls_ecp_point_free( &ctx->Xm2 );
+    mbedtls_ecp_point_free( &ctx->Xp1 );
+    mbedtls_ecp_point_free( &ctx->Xp2 );
+    mbedtls_ecp_point_free( &ctx->Xp  );
 
-    mbedtls_mpi_free( &ctx->xa );
-    mbedtls_mpi_free( &ctx->xb );
-    mbedtls_mpi_free( &ctx->s  );
+    mbedtls_mpi_free( &ctx->xm1 );
+    mbedtls_mpi_free( &ctx->xm2 );
+    mbedtls_mpi_free( &ctx->s   );
 }
 
 /*
@@ -437,9 +437,9 @@ cleanup:
 static int ecjpake_kkpp_write( const mbedtls_md_info_t *md_info,
                                const mbedtls_ecp_group *grp,
                                const mbedtls_ecp_point *G,
-                               mbedtls_mpi *xa,
+                               mbedtls_mpi *xm1,
                                mbedtls_ecp_point *Xa,
-                               mbedtls_mpi *xb,
+                               mbedtls_mpi *xm2,
                                mbedtls_ecp_point *Xb,
                                const char *id,
                                unsigned char *buf,
@@ -452,9 +452,9 @@ static int ecjpake_kkpp_write( const mbedtls_md_info_t *md_info,
     unsigned char *p = buf;
     const unsigned char *end = buf + len;
 
-    MBEDTLS_MPI_CHK( ecjpake_kkp_write( md_info, grp, G, xa, Xa, id,
+    MBEDTLS_MPI_CHK( ecjpake_kkp_write( md_info, grp, G, xm1, Xa, id,
                 &p, end, f_rng, p_rng ) );
-    MBEDTLS_MPI_CHK( ecjpake_kkp_write( md_info, grp, G, xb, Xb, id,
+    MBEDTLS_MPI_CHK( ecjpake_kkp_write( md_info, grp, G, xm2, Xb, id,
                 &p, end, f_rng, p_rng ) );
 
     *olen = p - buf;
@@ -471,7 +471,7 @@ int mbedtls_ecjpake_tls_read_client_ext( mbedtls_ecjpake_context *ctx,
                                          size_t len )
 {
     return( ecjpake_kkpp_read( ctx->md_info, &ctx->grp, &ctx->grp.G,
-                               &ctx->X1, &ctx->X2, ID_PEER,
+                               &ctx->Xp1, &ctx->Xp2, ID_PEER,
                                buf, len ) );
 }
 
@@ -483,7 +483,7 @@ int mbedtls_ecjpake_tls_read_server_ext( mbedtls_ecjpake_context *ctx,
                                          size_t len )
 {
     return( ecjpake_kkpp_read( ctx->md_info, &ctx->grp, &ctx->grp.G,
-                               &ctx->X3, &ctx->X4, ID_PEER,
+                               &ctx->Xp1, &ctx->Xp2, ID_PEER,
                                buf, len ) );
 }
 
@@ -496,7 +496,7 @@ int mbedtls_ecjpake_tls_write_client_ext( mbedtls_ecjpake_context *ctx,
                             void *p_rng )
 {
     return( ecjpake_kkpp_write( ctx->md_info, &ctx->grp, &ctx->grp.G,
-                                &ctx->xa, &ctx->X1, &ctx->xb, &ctx->X2,
+                                &ctx->xm1, &ctx->Xm1, &ctx->xm2, &ctx->Xm2,
                                 ID_MINE, buf, len, olen, f_rng, p_rng ) );
 }
 
@@ -509,7 +509,7 @@ int mbedtls_ecjpake_tls_write_server_ext( mbedtls_ecjpake_context *ctx,
                             void *p_rng )
 {
     return( ecjpake_kkpp_write( ctx->md_info, &ctx->grp, &ctx->grp.G,
-                                &ctx->xa, &ctx->X3, &ctx->xb, &ctx->X4,
+                                &ctx->xm1, &ctx->Xm1, &ctx->xm2, &ctx->Xm2,
                                 ID_MINE, buf, len, olen, f_rng, p_rng ) );
 }
 
@@ -553,11 +553,12 @@ int mbedtls_ecjpake_tls_read_server_params( mbedtls_ecjpake_context *ctx,
     mbedtls_ecp_point_init( &GB );
 
     /*
-     * GB = X1 + X2 + X3 (7.4.2.5.1)
-     * We need that before parsing in order to check Xs as we read it
+     * Client:  GB = X1  + X2  + X3     (7.4.2.5.1)
+     * Unified: GB = Xm1 + Xm2 + Xp1
+     * We need that before parsing in order to check Xp as we read it
      */
     MBEDTLS_MPI_CHK( ecjpake_ecp_add3( &ctx->grp, &GB,
-                                       &ctx->X1, &ctx->X2, &ctx->X3 ) );
+                                       &ctx->Xm1, &ctx->Xm2, &ctx->Xp1 ) );
 
     /*
      * struct {
@@ -616,13 +617,14 @@ int mbedtls_ecjpake_tls_write_server_params( mbedtls_ecjpake_context *ctx,
     /*
      * First generate private/public key pair (7.4.2.5.1)
      *
-     * GB = X1 + X2 + X3
+     * Server:  GB = X1 + X2 + X3
+     * Unified:
      * xs = x4 * s mod n
      * Xs = xs * GB
      */
     MBEDTLS_MPI_CHK( ecjpake_ecp_add3( &ctx->grp, &GB,
-                                       &ctx->X1, &ctx->X2, &ctx->X3 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &xs, &ctx->xb, &ctx->s ) );
+                                       &ctx->Xp1, &ctx->Xp2, &ctx->Xm1 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &xs, &ctx->xm2, &ctx->s ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &xs, &xs, &ctx->grp.N ) );
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &ctx->grp, &Xs, &xs, &GB, f_rng, p_rng ) );
 
@@ -673,11 +675,12 @@ int mbedtls_ecjpake_tls_read_client_params( mbedtls_ecjpake_context *ctx,
     mbedtls_ecp_point_init( &GA );
 
     /*
-     * GA = X1 + X3 + X4 (7.4.2.6.1)
+     * Server: GA = X1 + X3 + X4 (7.4.2.6.1)
+     * Unified: G = Xp1 + Xm1 + Xm2
      * We need that before parsing in order to check Xc as we read it
      */
     MBEDTLS_MPI_CHK( ecjpake_ecp_add3( &ctx->grp, &GA,
-                                       &ctx->X1, &ctx->X3, &ctx->X4 ) );
+                                       &ctx->Xp1, &ctx->Xm1, &ctx->Xm2 ) );
 
     /*
      * struct {
@@ -725,13 +728,14 @@ int mbedtls_ecjpake_tls_write_client_params( mbedtls_ecjpake_context *ctx,
     /*
      * First generate private/public key pair (7.4.2.6.1)
      *
-     * GA = X1 + X3 + X4
+     * Client:  GA = X1 + X3 + X4
+     * Unified: G  = Xm1 + Xp1 + Xp2
      * xc = x2 * s mod n
      * Xc = xc * GA
      */
     MBEDTLS_MPI_CHK( ecjpake_ecp_add3( &ctx->grp, &GA,
-                                       &ctx->X1, &ctx->X3, &ctx->X4 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &xc, &ctx->xb, &ctx->s ) );
+                                       &ctx->Xm1, &ctx->Xp1, &ctx->Xp2 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &xc, &ctx->xm2, &ctx->s ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &xc, &xc, &ctx->grp.N ) );
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &ctx->grp, &Xc, &xc, &GA, f_rng, p_rng ) );
 
@@ -779,21 +783,21 @@ int mbedtls_ecjpake_tls_derive_pms( mbedtls_ecjpake_context *ctx,
     mbedtls_mpi_init( &one );
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &one, 1 ) );
-    X42 = ctx->role == MBEDTLS_ECJPAKE_CLIENT ? &ctx->X4 : &ctx->X2;
+    X42 = ctx->role == MBEDTLS_ECJPAKE_CLIENT ? &ctx->Xp2 : &ctx->Xp2;
 
     /*
      * Client:  K = ( Xs - X4  * x2 * s ) * x2
      * Server:  K = ( Xc - X2  * x4 * s ) * x4
-     * Unified: K = ( Xp - X42 * xb * x ) * xb
+     * Unified: K = ( Xp - X42 * xm2 * x ) * xm2
      */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &xbs, &ctx->xb, &ctx->s ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &xbs, &ctx->xm2, &ctx->s ) );
     xbs.s *= -1;
     MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &xbs, &xbs, &ctx->grp.N ) );
 
     MBEDTLS_MPI_CHK( mbedtls_ecp_muladd( &ctx->grp, &K,
                                          &one, &ctx->Xp,
                                          &xbs, X42 ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &ctx->grp, &K, &ctx->xb, &K,
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &ctx->grp, &K, &ctx->xm2, &K,
                                       f_rng, p_rng ) );
 
     /* PMS = SHA-256( K.X ) */
@@ -1061,13 +1065,13 @@ int mbedtls_ecjpake_self_test( int verbose )
         mbedtls_printf( "  ECJPAKE test #2 (reference handshake): " );
 
     /* Simulate key generation on client, skip writing client_ext */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &cli.xa,
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &cli.xm1,
                 ecjpake_test_x1, sizeof( ecjpake_test_x1 ) ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &cli.xb,
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &cli.xm2,
                 ecjpake_test_x2, sizeof( ecjpake_test_x2 ) ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &cli.grp, &cli.X1, &cli.xa,
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &cli.grp, &cli.Xm1, &cli.xm1,
                                       &cli.grp.G, NULL, NULL ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &cli.grp, &cli.X2, &cli.xb,
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &cli.grp, &cli.Xm2, &cli.xm2,
                                       &cli.grp.G, NULL, NULL ) );
 
     /* Server reads client ext */
@@ -1076,13 +1080,13 @@ int mbedtls_ecjpake_self_test( int verbose )
                             sizeof( ecjpake_test_cli_ext ) ) == 0 );
 
     /* Simulate key generation on server, skip writing server_ext */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &srv.xa,
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &srv.xm1,
                 ecjpake_test_x3, sizeof( ecjpake_test_x3 ) ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &srv.xb,
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &srv.xm2,
                 ecjpake_test_x4, sizeof( ecjpake_test_x4 ) ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &srv.grp, &srv.X3, &srv.xa,
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &srv.grp, &srv.Xm1, &srv.xm1,
                                       &srv.grp.G, NULL, NULL ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &srv.grp, &srv.X4, &srv.xb,
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &srv.grp, &srv.Xm2, &srv.xm2,
                                       &srv.grp.G, NULL, NULL ) );
 
     /* Client reads server ext and key exchange */

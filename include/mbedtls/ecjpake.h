@@ -47,7 +47,15 @@ typedef enum {
 } mbedtls_ecjpake_role;
 
 /**
- * EC J-PAKE context structure
+ * EC J-PAKE context structure.
+ *
+ * J-PAKE is a symmetric protocol, except for the identifiers used in
+ * Zero-Knowledge Proofs, and the serialization of the second message
+ * (KeyExchange) as defined by the Thread spec.
+ *
+ * In order to benefit from this symmetry, we choose a different naming
+ * convetion from the Thread v1.0 spec. Correspondance is indicated in the
+ * description as a pair C: <client name>, S: <server name>
  */
 typedef struct
 {
@@ -55,14 +63,14 @@ typedef struct
     mbedtls_ecp_group grp;              /**< Elliptic curve                 */
     mbedtls_ecjpake_role role;          /**< Are we client or server?       */
 
-    mbedtls_ecp_point X1;               /**< Public key one                 */
-    mbedtls_ecp_point X2;               /**< Public key two                 */
-    mbedtls_ecp_point X3;               /**< Public key three               */
-    mbedtls_ecp_point X4;               /**< Public key four                */
-    mbedtls_ecp_point Xp;               /**< Peer's public key (Xs or Xc)   */
+    mbedtls_ecp_point Xm1;              /**< My public key 1   C: X1, S: X3 */
+    mbedtls_ecp_point Xm2;              /**< My public key 2   C: X2, S: X4 */
+    mbedtls_ecp_point Xp1;              /**< Peer public key 1 C: X3, S: X1 */
+    mbedtls_ecp_point Xp2;              /**< Peer public key 2 C: X4, S: X2 */
+    mbedtls_ecp_point Xp;               /**< Peer public key   C: Xs, S: Xc */
 
-    mbedtls_mpi xa;                     /**< Our first secret (x1 or x3)    */
-    mbedtls_mpi xb;                     /**< Our second secret (x2 or x4)   */
+    mbedtls_mpi xm1;                    /**< My private key 1  C: x1, S: x3 */
+    mbedtls_mpi xm2;                    /**< My private key 2  C: x2, S: x4 */
 
     mbedtls_mpi s;                      /**< Pre-shared secret (passphrase) */
 } mbedtls_ecjpake_context;

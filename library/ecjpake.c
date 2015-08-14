@@ -745,6 +745,59 @@ cleanup:
     return( ret );
 }
 
+/*
+ * Derive PMS (7.4.2.7 / 7.4.2.8)
+ */
+int mbedtls_ecjpake_tls_derive_pms( mbedtls_ecjpake_context *ctx,
+                            unsigned char *buf, size_t len, size_t *olen,
+                            int (*f_rng)(void *, unsigned char *, size_t),
+                            void *p_rng )
+{
+    int ret;
+    mbedtls_ecp_point K, *X42;
+    mbedtls_mpi xbs, one;
+    unsigned char kx[MBEDTLS_ECP_MAX_BYTES];
+    size_t x_bytes;
+
+    *olen = mbedtls_md_get_size( ctx->md_info );
+    if( len < *olen )
+        return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+
+    mbedtls_ecp_point_init( &K );
+    mbedtls_mpi_init( &xbs );
+    mbedtls_mpi_init( &one );
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &one, 1 ) );
+    X42 = ctx->role == MBEDTLS_ECJPAKE_CLIENT ? &ctx->X4 : &ctx->X2;
+
+    /*
+     * Client:  K = ( Xs - X4  * x2 * s ) * x2
+     * Server:  K = ( Xc - X2  * x4 * s ) * x4
+     * Unified: K = ( Xp - X42 * xb * x ) * xb
+     */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &xbs, &ctx->xb, &ctx->s ) );
+    xbs.s *= -1;
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &xbs, &xbs, &ctx->grp.N ) );
+
+    MBEDTLS_MPI_CHK( mbedtls_ecp_muladd( &ctx->grp, &K,
+                                         &one, &ctx->Xp,
+                                         &xbs, X42 ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &ctx->grp, &K, &ctx->xb, &K,
+                                      f_rng, p_rng ) );
+
+    /* PMS = SHA-256( K.X ) */
+    x_bytes = ( ctx->grp.pbits + 7 ) / 8;
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &K.X, kx, x_bytes ) );
+    MBEDTLS_MPI_CHK( mbedtls_md( ctx->md_info, kx, x_bytes, buf ) );
+
+cleanup:
+    mbedtls_ecp_point_free( &K );
+    mbedtls_mpi_free( &xbs );
+    mbedtls_mpi_free( &one );
+
+    return( ret );
+}
+
 #if defined(MBEDTLS_SELF_TEST)
 
 #if defined(MBEDTLS_PLATFORM_C)
@@ -888,6 +941,12 @@ static const unsigned char ecjpake_test_cli_kx[] = {
     0xcc, 0x38, 0xdb, 0xdc, 0xae, 0x60, 0xd9, 0xc5, 0x4c
 };
 
+static const unsigned char ecjpake_test_pms[] = {
+    0xf3, 0xd4, 0x7f, 0x59, 0x98, 0x44, 0xdb, 0x92, 0xa5, 0x69, 0xbb, 0xe7,
+    0x98, 0x1e, 0x39, 0xd9, 0x31, 0xfd, 0x74, 0x3b, 0xf2, 0x2e, 0x98, 0xf9,
+    0xb4, 0x38, 0xf7, 0x19, 0xd3, 0xc4, 0xf3, 0x51
+};
+
 /* For tests we don't need a secure RNG;
  * use the LGC from Numerical Recipes for simplicity */
 static int ecjpake_lgc( void *p, unsigned char *out, size_t len )
@@ -926,8 +985,8 @@ int mbedtls_ecjpake_self_test( int verbose )
     int ret;
     mbedtls_ecjpake_context cli;
     mbedtls_ecjpake_context srv;
-    unsigned char buf[512];
-    size_t len;
+    unsigned char buf[512], pms[32];
+    size_t len, pmslen;
 
     mbedtls_ecjpake_init( &cli );
     mbedtls_ecjpake_init( &srv );
@@ -966,10 +1025,19 @@ int mbedtls_ecjpake_self_test( int verbose )
 
     TEST_ASSERT( mbedtls_ecjpake_tls_read_server_params( &cli, buf, len ) == 0 );
 
+    TEST_ASSERT( mbedtls_ecjpake_tls_derive_pms( &cli,
+                 pms, sizeof( pms ), &pmslen, ecjpake_lgc, NULL ) == 0 );
+
     TEST_ASSERT( mbedtls_ecjpake_tls_write_client_params( &cli,
                  buf, sizeof( buf ), &len, ecjpake_lgc, NULL ) == 0 );
 
     TEST_ASSERT( mbedtls_ecjpake_tls_read_client_params( &srv, buf, len ) == 0 );
+
+    TEST_ASSERT( mbedtls_ecjpake_tls_derive_pms( &srv,
+                 buf, sizeof( buf ), &len, ecjpake_lgc, NULL ) == 0 );
+
+    TEST_ASSERT( len == pmslen );
+    TEST_ASSERT( memcmp( buf, pms, len ) == 0 );
 
     if( verbose != 0 )
         mbedtls_printf( "passed\n" );
@@ -1015,6 +1083,22 @@ int mbedtls_ecjpake_self_test( int verbose )
     TEST_ASSERT( mbedtls_ecjpake_tls_read_client_params( &srv,
                                     ecjpake_test_cli_kx,
                             sizeof( ecjpake_test_cli_kx ) ) == 0 );
+
+    /* Server derives PMS */
+    TEST_ASSERT( mbedtls_ecjpake_tls_derive_pms( &srv,
+                 buf, sizeof( buf ), &len, ecjpake_lgc, NULL ) == 0 );
+
+    TEST_ASSERT( len == sizeof( ecjpake_test_pms ) );
+    TEST_ASSERT( memcmp( buf, ecjpake_test_pms, len ) == 0 );
+
+    memset( buf, 0, len ); /* Avoid interferences with next step */
+
+    /* Client derives PMS */
+    TEST_ASSERT( mbedtls_ecjpake_tls_derive_pms( &cli,
+                 buf, sizeof( buf ), &len, ecjpake_lgc, NULL ) == 0 );
+
+    TEST_ASSERT( len == sizeof( ecjpake_test_pms ) );
+    TEST_ASSERT( memcmp( buf, ecjpake_test_pms, len ) == 0 );
 
     if( verbose != 0 )
         mbedtls_printf( "passed\n" );

@@ -220,6 +220,24 @@ int mbedtls_ecjpake_tls_read_client_params( mbedtls_ecjpake_context *ctx,
                                             size_t len );
 
 /*
+ * \brief           Derive the Pre-Master Secret used by TLS
+ *
+ * \param ctx
+ * \param buf       Buffer to write the contents to
+ * \param len       Buffer size
+ * \param olen      Will be updated with the number of bytes written
+ * \param f_rng     RNG function
+ * \param p_rng     RNG parameter
+ *
+ * \return          0 if successfull,
+ *                  a negative error code otherwise
+ */
+int mbedtls_ecjpake_tls_derive_pms( mbedtls_ecjpake_context *ctx,
+                            unsigned char *buf, size_t len, size_t *olen,
+                            int (*f_rng)(void *, unsigned char *, size_t),
+                            void *p_rng );
+
+/*
  * \brief           Free a context's content
  *
  * \param ctx       context to free

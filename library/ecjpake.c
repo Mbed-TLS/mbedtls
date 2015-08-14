@@ -37,6 +37,17 @@
 #include <string.h>
 
 /*
+ * Convert a mbedtls_ecjpake_role to identifier string
+ */
+static const char * const ecjpake_id[] = {
+    "client",
+    "server"
+};
+
+#define ID_MINE     ( ecjpake_id[ ctx->role ] )
+#define ID_PEER     ( ecjpake_id[ 1 - ctx->role ] )
+
+/*
  * Initialize context
  */
 void mbedtls_ecjpake_init( mbedtls_ecjpake_context *ctx )
@@ -460,7 +471,7 @@ int mbedtls_ecjpake_tls_read_client_ext( mbedtls_ecjpake_context *ctx,
                                          size_t len )
 {
     return( ecjpake_kkpp_read( ctx->md_info, &ctx->grp, &ctx->grp.G,
-                               &ctx->X1, &ctx->X2, "client",
+                               &ctx->X1, &ctx->X2, ID_PEER,
                                buf, len ) );
 }
 
@@ -472,7 +483,7 @@ int mbedtls_ecjpake_tls_read_server_ext( mbedtls_ecjpake_context *ctx,
                                          size_t len )
 {
     return( ecjpake_kkpp_read( ctx->md_info, &ctx->grp, &ctx->grp.G,
-                               &ctx->X3, &ctx->X4, "server",
+                               &ctx->X3, &ctx->X4, ID_PEER,
                                buf, len ) );
 }
 
@@ -486,7 +497,7 @@ int mbedtls_ecjpake_tls_write_client_ext( mbedtls_ecjpake_context *ctx,
 {
     return( ecjpake_kkpp_write( ctx->md_info, &ctx->grp, &ctx->grp.G,
                                 &ctx->xa, &ctx->X1, &ctx->xb, &ctx->X2,
-                                "client", buf, len, olen, f_rng, p_rng ) );
+                                ID_MINE, buf, len, olen, f_rng, p_rng ) );
 }
 
 /*
@@ -499,7 +510,7 @@ int mbedtls_ecjpake_tls_write_server_ext( mbedtls_ecjpake_context *ctx,
 {
     return( ecjpake_kkpp_write( ctx->md_info, &ctx->grp, &ctx->grp.G,
                                 &ctx->xa, &ctx->X3, &ctx->xb, &ctx->X4,
-                                "server", buf, len, olen, f_rng, p_rng ) );
+                                ID_MINE, buf, len, olen, f_rng, p_rng ) );
 }
 
 /*
@@ -556,7 +567,7 @@ int mbedtls_ecjpake_tls_read_server_params( mbedtls_ecjpake_context *ctx,
      */
     MBEDTLS_MPI_CHK( mbedtls_ecp_tls_read_group( &grp, &p, len ) );
     MBEDTLS_MPI_CHK( ecjpake_kkp_read( ctx->md_info, &ctx->grp,
-                            &GB, &ctx->Xp, "server", &p, end ) );
+                            &GB, &ctx->Xp, ID_PEER, &p, end ) );
 
     if( p != end )
     {
@@ -632,7 +643,7 @@ int mbedtls_ecjpake_tls_write_server_params( mbedtls_ecjpake_context *ctx,
     p += ec_len;
 
     MBEDTLS_MPI_CHK( ecjpake_zkp_write( ctx->md_info, &ctx->grp,
-                                        &GB, &xs, &Xs, "server",
+                                        &GB, &xs, &Xs, ID_MINE,
                                         &p, end, f_rng, p_rng ) );
 
     *olen = p - buf;
@@ -674,7 +685,7 @@ int mbedtls_ecjpake_tls_read_client_params( mbedtls_ecjpake_context *ctx,
      * } CLientECJPAKEParams;
      */
     MBEDTLS_MPI_CHK( ecjpake_kkp_read( ctx->md_info, &ctx->grp,
-                            &GA, &ctx->Xp, "client", &p, end ) );
+                            &GA, &ctx->Xp, ID_PEER, &p, end ) );
 
     if( p != end )
     {
@@ -732,7 +743,7 @@ int mbedtls_ecjpake_tls_write_client_params( mbedtls_ecjpake_context *ctx,
     p += ec_len;
 
     MBEDTLS_MPI_CHK( ecjpake_zkp_write( ctx->md_info, &ctx->grp,
-                                        &GA, &xc, &Xc, "client",
+                                        &GA, &xc, &Xc, ID_MINE,
                                         &p, end, f_rng, p_rng ) );
 
     *olen = p - buf;
@@ -797,6 +808,10 @@ cleanup:
 
     return( ret );
 }
+
+#undef ID_MINE
+#undef ID_PEER
+
 
 #if defined(MBEDTLS_SELF_TEST)
 

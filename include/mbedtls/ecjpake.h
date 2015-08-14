@@ -31,7 +31,7 @@ extern "C" {
 #endif
 
 typedef enum {
-    MBEDTLS_ECJPAKE_CLIENT,
+    MBEDTLS_ECJPAKE_CLIENT = 0,
     MBEDTLS_ECJPAKE_SERVER,
 } mbedtls_ecjpake_role;
 

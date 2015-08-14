@@ -20,8 +20,8 @@
  */
 
 /*
- * We implement EC-JPAKE as defined in Chapter 7.4 of the Thread v1.0
- * Specification. References below are to this document.
+ * References in the code are to the Thread v1.0 Specification,
+ * available from the Thread Group http://threadgroup.org/
  */
 
 #if !defined(MBEDTLS_CONFIG_FILE)

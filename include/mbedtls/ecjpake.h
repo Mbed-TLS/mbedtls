@@ -23,6 +23,14 @@
 #ifndef MBEDTLS_ECJPAKE_H
 #define MBEDTLS_ECJPAKE_H
 
+/*
+ * Implementation based on Chapter 7.4 of the Thread v1.0 Specification,
+ * available from the Thread Group http://threadgroup.org/
+ *
+ * This file implements the EC J-PAKE algorithm, with payload serializations
+ * suitable for use in TLS, but the result could be used outside TLS.
+ */
+
 #include "ecp.h"
 #include "md.h"
 
@@ -30,11 +38,17 @@
 extern "C" {
 #endif
 
+/**
+ * Roles in the EC J-PAKE exchange
+ */
 typedef enum {
-    MBEDTLS_ECJPAKE_CLIENT = 0,
-    MBEDTLS_ECJPAKE_SERVER,
+    MBEDTLS_ECJPAKE_CLIENT = 0,         /**< Client                         */
+    MBEDTLS_ECJPAKE_SERVER,             /**< Server                         */
 } mbedtls_ecjpake_role;
 
+/**
+ * EC J-PAKE context structure
+ */
 typedef struct
 {
     const mbedtls_md_info_t *md_info;   /**< Hash to use                    */
@@ -50,7 +64,7 @@ typedef struct
     mbedtls_mpi xa;                     /**< Our first secret (x1 or x3)    */
     mbedtls_mpi xb;                     /**< Our second secret (x2 or x4)   */
 
-    mbedtls_mpi s;                      /**< Pre-shared secret              */
+    mbedtls_mpi s;                      /**< Pre-shared secret (passphrase) */
 } mbedtls_ecjpake_context;
 
 /*
@@ -71,7 +85,7 @@ void mbedtls_ecjpake_init( mbedtls_ecjpake_context *ctx );
  * \param role      Our role: client or server
  * \param hash      hash function to use (MBEDTLS_MD_XXX)
  * \param curve     elliptic curve identifier (MBEDTLS_ECP_DP_XXX)
- * \param secret    shared secret
+ * \param secret    pre-shared secret (passphrase)
  * \param len       length of the shared secret
  *
  * \return          0 if successfull,

@@ -189,7 +189,7 @@ int mbedtls_ecjpake_read_round_two( mbedtls_ecjpake_context *ctx,
  * \brief           Derive the shared secret
  *                  (TLS: Pre-Master Secret)
  *
- * \param ctx
+ * \param ctx       Context to use
  * \param buf       Buffer to write the contents to
  * \param len       Buffer size
  * \param olen      Will be updated with the number of bytes written

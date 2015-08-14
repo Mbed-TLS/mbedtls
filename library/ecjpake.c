@@ -966,6 +966,24 @@ static const unsigned char ecjpake_test_pms[] = {
     0xb4, 0x38, 0xf7, 0x19, 0xd3, 0xc4, 0xf3, 0x51
 };
 
+/* Load my private keys and generate the correponding public keys */
+static int ecjpake_test_load( mbedtls_ecjpake_context *ctx,
+                              const unsigned char *xm1, size_t len1,
+                              const unsigned char *xm2, size_t len2 )
+{
+    int ret;
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &ctx->xm1, xm1, len1 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &ctx->xm2, xm2, len2 ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &ctx->grp, &ctx->Xm1, &ctx->xm1,
+                                      &ctx->grp.G, NULL, NULL ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &ctx->grp, &ctx->Xm2, &ctx->xm2,
+                                      &ctx->grp.G, NULL, NULL ) );
+
+cleanup:
+    return( ret );
+}
+
 /* For tests we don't need a secure RNG;
  * use the LGC from Numerical Recipes for simplicity */
 static int ecjpake_lgc( void *p, unsigned char *out, size_t len )
@@ -1065,14 +1083,9 @@ int mbedtls_ecjpake_self_test( int verbose )
         mbedtls_printf( "  ECJPAKE test #2 (reference handshake): " );
 
     /* Simulate key generation on client, skip writing client_ext */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &cli.xm1,
-                ecjpake_test_x1, sizeof( ecjpake_test_x1 ) ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &cli.xm2,
+    MBEDTLS_MPI_CHK( ecjpake_test_load( &cli,
+                ecjpake_test_x1, sizeof( ecjpake_test_x1 ),
                 ecjpake_test_x2, sizeof( ecjpake_test_x2 ) ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &cli.grp, &cli.Xm1, &cli.xm1,
-                                      &cli.grp.G, NULL, NULL ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &cli.grp, &cli.Xm2, &cli.xm2,
-                                      &cli.grp.G, NULL, NULL ) );
 
     /* Server reads client ext */
     TEST_ASSERT( mbedtls_ecjpake_tls_read_client_ext( &srv,
@@ -1080,14 +1093,9 @@ int mbedtls_ecjpake_self_test( int verbose )
                             sizeof( ecjpake_test_cli_ext ) ) == 0 );
 
     /* Simulate key generation on server, skip writing server_ext */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &srv.xm1,
-                ecjpake_test_x3, sizeof( ecjpake_test_x3 ) ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &srv.xm2,
+    MBEDTLS_MPI_CHK( ecjpake_test_load( &srv,
+                ecjpake_test_x3, sizeof( ecjpake_test_x3 ),
                 ecjpake_test_x4, sizeof( ecjpake_test_x4 ) ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &srv.grp, &srv.Xm1, &srv.xm1,
-                                      &srv.grp.G, NULL, NULL ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &srv.grp, &srv.Xm2, &srv.xm2,
-                                      &srv.grp.G, NULL, NULL ) );
 
     /* Client reads server ext and key exchange */
     TEST_ASSERT( mbedtls_ecjpake_tls_read_server_ext( &cli,

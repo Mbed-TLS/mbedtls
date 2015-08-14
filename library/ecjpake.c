@@ -111,7 +111,6 @@ int mbedtls_ecjpake_setup( mbedtls_ecjpake_context *ctx,
     MBEDTLS_MPI_CHK( mbedtls_ecp_group_load( &ctx->grp, curve ) );
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &ctx->s, secret, len ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &ctx->s, &ctx->s, &ctx->grp.N ) );
 
 cleanup:
     if( ret != 0 )
@@ -569,6 +568,37 @@ cleanup:
 }
 
 /*
+ * Compute R = +/- X * S mod N, taking care not to leak S
+ */
+static int ecjpake_mul_secret( mbedtls_mpi *R, int sign,
+                               const mbedtls_mpi *X,
+                               const mbedtls_mpi *S,
+                               const mbedtls_mpi *N,
+                               int (*f_rng)(void *, unsigned char *, size_t),
+                               void *p_rng )
+{
+    int ret;
+    mbedtls_mpi b; /* Blinding value, then s + N * blinding */
+
+    mbedtls_mpi_init( &b );
+
+    /* b = s + rnd-128-bit * N */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &b, 16, f_rng, p_rng ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &b, &b, N ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &b, &b, S ) );
+
+    /* R = sign * X * b mod N */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( R, X, &b ) );
+    R->s *= sign;
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( R, R, N ) );
+
+cleanup:
+    mbedtls_mpi_free( &b );
+
+    return( ret );
+}
+
+/*
  * Generate and write the second round message (S: 7.4.2.5, C: 7.4.2.6)
  */
 int mbedtls_ecjpake_write_round_two( mbedtls_ecjpake_context *ctx,
@@ -597,8 +627,8 @@ int mbedtls_ecjpake_write_round_two( mbedtls_ecjpake_context *ctx,
      */
     MBEDTLS_MPI_CHK( ecjpake_ecp_add3( &ctx->grp, &G,
                                        &ctx->Xp1, &ctx->Xp2, &ctx->Xm1 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &xm, &ctx->xm2, &ctx->s ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &xm, &xm, &ctx->grp.N ) );
+    MBEDTLS_MPI_CHK( ecjpake_mul_secret( &xm, 1, &ctx->xm2, &ctx->s,
+                                         &ctx->grp.N, f_rng, p_rng ) );
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &ctx->grp, &Xm, &xm, &G, f_rng, p_rng ) );
 
     /*
@@ -671,12 +701,10 @@ int mbedtls_ecjpake_derive_secret( mbedtls_ecjpake_context *ctx,
     /*
      * Client:  K = ( Xs - X4  * x2  * s ) * x2
      * Server:  K = ( Xc - X2  * x4  * s ) * x4
-     * Unified: K = ( Xp - Xp2 * xm2 * x ) * xm2
+     * Unified: K = ( Xp - Xp2 * xm2 * s ) * xm2
      */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &m_xm2_s, &ctx->xm2, &ctx->s ) );
-    m_xm2_s.s *= -1;
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &m_xm2_s, &m_xm2_s, &ctx->grp.N ) );
-
+    MBEDTLS_MPI_CHK( ecjpake_mul_secret( &m_xm2_s, -1, &ctx->xm2, &ctx->s,
+                                         &ctx->grp.N, f_rng, p_rng ) );
     MBEDTLS_MPI_CHK( mbedtls_ecp_muladd( &ctx->grp, &K,
                                          &one, &ctx->Xp,
                                          &m_xm2_s, &ctx->Xp2 ) );

@@ -24,20 +24,20 @@
 #define MBEDTLS_ECJPAKE_H
 
 /*
- * Implementation based on Chapter 7.4 of the Thread v1.0 Specification,
- * available from the Thread Group http://threadgroup.org/
- *
  * J-PAKE is a password-authenticated key exchange that allows deriving a
  * strong shared secret from a (potentially low entropy) pre-shared
  * passphrase, with forward secrecy and mutual authentication.
  * https://en.wikipedia.org/wiki/Password_Authenticated_Key_Exchange_by_Juggling
  *
- * This file implements the EC J-PAKE algorithm with payload serializations
- * suitable for use in TLS, but the result could be used outside TLS.
+ * This file implements the Elliptic Curve variant of J-PAKE,
+ * as defined in Chapter 7.4 of the Thread v1.0 Specification,
+ * available to members of the Thread Group http://threadgroup.org/
  *
  * As the J-PAKE algorithm is inherently symmetric, so is our API.
  * Each party needs to send its first round message, in any order, to the
  * other party, then each sends its second round message, in any order.
+ * The payloads are serialized in a way suitable for use in TLS, but could
+ * also be use outside TLS.
  */
 
 #include "ecp.h"
@@ -84,7 +84,7 @@ typedef struct
     mbedtls_mpi s;                      /**< Pre-shared secret (passphrase) */
 } mbedtls_ecjpake_context;
 
-/*
+/**
  * \brief           Initialize a context
  *                  (just makes it ready for setup() or free()).
  *
@@ -92,7 +92,7 @@ typedef struct
  */
 void mbedtls_ecjpake_init( mbedtls_ecjpake_context *ctx );
 
-/*
+/**
  * \brief           Set up a context for use
  *
  * \note            Currently the only values for hash/curve allowed by the
@@ -115,7 +115,7 @@ int mbedtls_ecjpake_setup( mbedtls_ecjpake_context *ctx,
                            const unsigned char *secret,
                            size_t len );
 
-/*
+/**
  * \brief           Generate and write the first round message
  *                  (TLS: contents of the Client/ServerHello extension,
  *                  excluding extension type and length bytes)
@@ -134,8 +134,9 @@ int mbedtls_ecjpake_write_round_one( mbedtls_ecjpake_context *ctx,
                             unsigned char *buf, size_t len, size_t *olen,
                             int (*f_rng)(void *, unsigned char *, size_t),
                             void *p_rng );
-/*
- * \brief           Generate and write the first round message
+
+/**
+ * \brief           Read and process the first round message
  *                  (TLS: contents of the Client/ServerHello extension,
  *                  excluding extension type and length bytes)
  *
@@ -150,9 +151,9 @@ int mbedtls_ecjpake_read_round_one( mbedtls_ecjpake_context *ctx,
                                     const unsigned char *buf,
                                     size_t len );
 
-/*
- * \brief           Generate and write ClientECJPAKEParams
- *                  (the contents for the ClientKeyExchange)
+/**
+ * \brief           Generate and write the second round message
+ *                  (TLS: contents of the Client/ServerKeyExchange)
  *
  * \param ctx       Context to use
  * \param buf       Buffer to write the contents to
@@ -169,9 +170,9 @@ int mbedtls_ecjpake_write_round_two( mbedtls_ecjpake_context *ctx,
                             int (*f_rng)(void *, unsigned char *, size_t),
                             void *p_rng );
 
-/*
- * \brief           Read and process ClientECJPAKEParams
- *                  (the contents for the ClientKeyExchange)
+/**
+ * \brief           Read and process the second round message
+ *                  (TLS: contents of the Client/ServerKeyExchange)
  *
  * \param ctx       Context to use
  * \param buf       Pointer to the message
@@ -181,11 +182,12 @@ int mbedtls_ecjpake_write_round_two( mbedtls_ecjpake_context *ctx,
  *                  a negative error code otherwise
  */
 int mbedtls_ecjpake_read_round_two( mbedtls_ecjpake_context *ctx,
-                                            const unsigned char *buf,
-                                            size_t len );
+                                    const unsigned char *buf,
+                                    size_t len );
 
-/*
- * \brief           Derive the Pre-Master Secret used by TLS
+/**
+ * \brief           Derive the shared secret
+ *                  (TLS: Pre-Master Secret)
  *
  * \param ctx
  * \param buf       Buffer to write the contents to
@@ -197,12 +199,12 @@ int mbedtls_ecjpake_read_round_two( mbedtls_ecjpake_context *ctx,
  * \return          0 if successfull,
  *                  a negative error code otherwise
  */
-int mbedtls_ecjpake_tls_derive_pms( mbedtls_ecjpake_context *ctx,
+int mbedtls_ecjpake_derive_secret( mbedtls_ecjpake_context *ctx,
                             unsigned char *buf, size_t len, size_t *olen,
                             int (*f_rng)(void *, unsigned char *, size_t),
                             void *p_rng );
 
-/*
+/**
  * \brief           Free a context's content
  *
  * \param ctx       context to free

@@ -647,7 +647,7 @@ cleanup:
 /*
  * Derive PMS (7.4.2.7 / 7.4.2.8)
  */
-int mbedtls_ecjpake_tls_derive_pms( mbedtls_ecjpake_context *ctx,
+int mbedtls_ecjpake_derive_secret( mbedtls_ecjpake_context *ctx,
                             unsigned char *buf, size_t len, size_t *olen,
                             int (*f_rng)(void *, unsigned char *, size_t),
                             void *p_rng )
@@ -946,7 +946,7 @@ int mbedtls_ecjpake_self_test( int verbose )
 
     TEST_ASSERT( mbedtls_ecjpake_read_round_two( &cli, buf, len ) == 0 );
 
-    TEST_ASSERT( mbedtls_ecjpake_tls_derive_pms( &cli,
+    TEST_ASSERT( mbedtls_ecjpake_derive_secret( &cli,
                  pms, sizeof( pms ), &pmslen, ecjpake_lgc, NULL ) == 0 );
 
     TEST_ASSERT( mbedtls_ecjpake_write_round_two( &cli,
@@ -954,7 +954,7 @@ int mbedtls_ecjpake_self_test( int verbose )
 
     TEST_ASSERT( mbedtls_ecjpake_read_round_two( &srv, buf, len ) == 0 );
 
-    TEST_ASSERT( mbedtls_ecjpake_tls_derive_pms( &srv,
+    TEST_ASSERT( mbedtls_ecjpake_derive_secret( &srv,
                  buf, sizeof( buf ), &len, ecjpake_lgc, NULL ) == 0 );
 
     TEST_ASSERT( len == pmslen );
@@ -996,7 +996,7 @@ int mbedtls_ecjpake_self_test( int verbose )
                             sizeof( ecjpake_test_cli_kx ) ) == 0 );
 
     /* Server derives PMS */
-    TEST_ASSERT( mbedtls_ecjpake_tls_derive_pms( &srv,
+    TEST_ASSERT( mbedtls_ecjpake_derive_secret( &srv,
                  buf, sizeof( buf ), &len, ecjpake_lgc, NULL ) == 0 );
 
     TEST_ASSERT( len == sizeof( ecjpake_test_pms ) );
@@ -1005,7 +1005,7 @@ int mbedtls_ecjpake_self_test( int verbose )
     memset( buf, 0, len ); /* Avoid interferences with next step */
 
     /* Client derives PMS */
-    TEST_ASSERT( mbedtls_ecjpake_tls_derive_pms( &cli,
+    TEST_ASSERT( mbedtls_ecjpake_derive_secret( &cli,
                  buf, sizeof( buf ), &len, ecjpake_lgc, NULL ) == 0 );
 
     TEST_ASSERT( len == sizeof( ecjpake_test_pms ) );

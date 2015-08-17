@@ -63,11 +63,11 @@ int main() {
 #include "lwipv4_init.h"
 
 namespace {
-const char *HTTPS_SERVER_NAME = "mbed.org";
+const char *HTTPS_SERVER_NAME = "developer.mbed.org";
 const int HTTPS_SERVER_PORT = 443;
 const int RECV_BUFFER_SIZE = 600;
 
-const char HTTPS_PATH[] = "/assets/uploads/hello.txt";
+const char HTTPS_PATH[] = "/media/uploads/mbed_official/hello.txt";
 const size_t HTTPS_PATH_LEN = sizeof(HTTPS_PATH) - 1;
 
 /* Test related data */

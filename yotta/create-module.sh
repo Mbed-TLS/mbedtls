@@ -41,4 +41,4 @@ mkdir -p $DEST
 rsync -cr --delete --exclude build --exclude yotta_\* $TMP/ $DEST/
 rm -rf $TMP
 
-echo "mbed TLS yotta module created in '$DEST'."
+echo "mbed TLS yotta module created in '$PWD/$DEST'."

@@ -548,7 +548,15 @@ int mbedtls_ecjpake_read_round_two( mbedtls_ecjpake_context *ctx,
      * } Client/ServerECJPAKEParams;
      */
     if( ctx->role == MBEDTLS_ECJPAKE_CLIENT )
+    {
         MBEDTLS_MPI_CHK( mbedtls_ecp_tls_read_group( &grp, &p, len ) );
+        if( grp.id != ctx->grp.id )
+        {
+            ret = MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
+            goto cleanup;
+        }
+    }
+
     MBEDTLS_MPI_CHK( ecjpake_kkp_read( ctx->md_info, &ctx->grp,
                             &G, &ctx->Xp, ID_PEER, &p, end ) );
 
@@ -558,14 +566,6 @@ int mbedtls_ecjpake_read_round_two( mbedtls_ecjpake_context *ctx,
         goto cleanup;
     }
 
-    /*
-     * Xs already checked, only thing left to check is the group,
-     */
-    if( ctx->role == MBEDTLS_ECJPAKE_CLIENT && grp.id != ctx->grp.id )
-    {
-        ret = MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
-        goto cleanup;
-    }
 cleanup:
     mbedtls_ecp_group_free( &grp );
     mbedtls_ecp_point_free( &G );

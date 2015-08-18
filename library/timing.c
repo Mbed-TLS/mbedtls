@@ -386,7 +386,7 @@ int timing_self_test( int verbose )
 
         millisecs = get_timer( &hires, 0 );
 
-        if( millisecs < 450 * secs || millisecs > 550 * secs )
+        if( millisecs < 400 * secs || millisecs > 600 * secs )
         {
             if( verbose != 0 )
                 polarssl_printf( "failed\n" );
@@ -411,7 +411,9 @@ int timing_self_test( int verbose )
 
         millisecs = get_timer( &hires, 0 );
 
-        if( millisecs < 900 * secs || millisecs > 1100 * secs )
+        /* For some reason on Windows it looks like alarm has an extra delay
+         * (maybe related to creating a new thread). Allow some room here. */
+        if( millisecs < 800 * secs || millisecs > 1200 * secs + 300 )
         {
             if( verbose != 0 )
                 polarssl_printf( "failed\n" );

@@ -26,10 +26,10 @@
 #endif
 
 /*
- * WARNING: this is a temporary hack!
- * 2. This should be in a separete yotta module which would be a target
+ * WARNING: this is temporary!
+ * This should be in a separate yotta module which would be a target
  * dependency of mbedtls (see IOTSSL-313)
  */
-#if defined(TARGET_LIKE_CORTEX_M4)
+#if defined(TARGET_LIKE_K64F)
 #define MBEDTLS_ENTROPY_HARDWARE_ALT
 #endif

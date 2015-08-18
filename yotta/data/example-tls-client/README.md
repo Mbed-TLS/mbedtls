@@ -49,16 +49,19 @@ To build and run this example the requirements below are necessary:
 9. The output in the terminal window should look like:
 
     ```
-    {timeout;120}}
+    {{timeout;120}}
     {{host_test_name;default}}
     {{description;mbed TLS example HTTPS client}}
     {{test_id;MBEDTLS_EX_HTTPS_CLIENT}}
     {{start}}
 
-
     Client IP Address is 192.168.0.2
-    Connecting to developer.mbed.org:443
-    developer.mbed.org address: 217.140.101.20
+    Starting DNS lookup for developer.mbed.org
+    DNS Response Received:
+    developer.mbed.org: 217.140.101.30
+    Connecting to 217.140.101.30:443
+    Connected to 217.140.101.30:443
+    Starting the TLS handshake...
     TLS connection to developer.mbed.org established
     Server certificate:
         cert. version     : 3
@@ -75,25 +78,25 @@ To build and run this example the requirements below are necessary:
         ext key usage     : TLS Web Server Authentication, TLS Web Client Authentication
     Certificate verification passed
 
-    HTTPS: Received 469 chars from server
+    HTTPS: Received 473 chars from server
     HTTPS: Received 200 OK status ... [OK]
     HTTPS: Received 'Hello world!' status ... [OK]
     HTTPS: Received message:
 
     HTTP/1.1 200 OK
     Server: nginx/1.7.10
-    Date: Mon, 17 Aug 2015 11:46:19 GMT
+    Date: Tue, 18 Aug 2015 18:34:04 GMT
     Content-Type: text/plain
     Content-Length: 14
     Connection: keep-alive
     Last-Modified: Fri, 27 Jul 2012 13:30:34 GMT
     Accept-Ranges: bytes
     Cache-Control: max-age=36000
-    Expires: Mon, 17 Aug 2015 21:46:19 GMT
+    Expires: Wed, 19 Aug 2015 04:34:04 GMT
     X-Upstream-L3: 172.17.42.1:8080
-    X-Upstream-L2: developer-sjc-cyan-1-nginx
-    X-Upstream-L1-next-hop: 217.140.101.22:8001
-    X-Upstream-L1: developer-sjc-cyan-border-nginx
+    X-Upstream-L2: developer-sjc-indigo-2-nginx
+    X-Upstream-L1-next-hop: 217.140.101.86:8001
+    X-Upstream-L1: developer-sjc-indigo-border-nginx
 
     Hello world!
     {{success}}

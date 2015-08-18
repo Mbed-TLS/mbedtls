@@ -495,7 +495,6 @@ void app_start(int, char*[]) {
 
     hello = new HelloHTTPS(HTTPS_SERVER_NAME, HTTPS_SERVER_PORT);
 
-    printf("\r\n\r\n");
     printf("Client IP Address is %s\r\n", eth.getIPAddress());
 
     mbed::FunctionPointer1<void, const char*> fp(hello, &HelloHTTPS::startTest);

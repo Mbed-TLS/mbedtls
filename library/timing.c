@@ -484,7 +484,7 @@ hard_test_done:
 
         millisecs = get_timer( &hires, 0 );
 
-        if( millisecs < 450 * secs || millisecs > 550 * secs )
+        if( millisecs < 400 * secs || millisecs > 600 * secs )
         {
             if( verbose != 0 )
                 polarssl_printf( "failed\n" );

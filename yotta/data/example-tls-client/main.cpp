@@ -47,9 +47,12 @@ int main() {
 #define UNSAFE 0
 
 #include "mbed.h"
-#include "sal-iface-eth/EthernetInterface.h"
+#include "EthernetInterface.h"
 #include "mbed-net-sockets/TCPStream.h"
+#include "test_env.h"
 #include "minar/minar.h"
+
+#include "lwipv4_init.h"
 
 #include "mbedtls/ssl.h"
 #include "mbedtls/entropy.h"
@@ -58,8 +61,6 @@ int main() {
 #if DEBUG_LEVEL > 0
 #include "mbedtls/debug.h"
 #endif
-
-#include "lwipv4_init.h"
 
 namespace {
 const char *HTTPS_SERVER_NAME = "developer.mbed.org";
@@ -212,11 +213,10 @@ public:
 
 
         /* Connect to the server */
-        printf("Connecting to %s:%d\r\n", _domain, _port);
+        printf("Starting DNS lookup for %s\r\n", _domain);
         /* Resolve the domain name: */
         socket_error_t err = _stream.resolve(_domain, TCPStream::DNSHandler_t(this, &HelloHTTPS::onDNS));
-        if(err != SOCKET_ERROR_NONE)
-            _error = true;
+        _stream.error_check(err);
     }
     /**
      * Check if the test has completed.
@@ -255,19 +255,27 @@ protected:
      * Debug callback for mbed TLS
      * Just prints on the USB serial port
      */
-    static void my_debug(void *ctx, int level, const char *str)
+    static void my_debug(void *ctx, int level, const char *file, int line,
+                         const char *str)
     {
+        const char *p, *basename;
         (void) ctx;
-        (void) level;
 
-        printf("%s", str);
+        /* Extract basename from file */
+        for(p = basename = file; *p != '\0'; p++) {
+            if(*p == '/' || *p == '\\') {
+                basename = p + 1;
+            }
+        }
+
+        printf("%s:%04d: |%d| %s", basename, line, level, str);
     }
 
     /**
      * Certificate verification callback for mbed TLS
      * Here we only use it to display information on each cert in the chain
      */
-    static int my_verify(void *data, mbedtls_x509_crt *crt, int depth, int *flags)
+    static int my_verify(void *data, mbedtls_x509_crt *crt, int depth, uint32_t *flags)
     {
         char buf[1024];
         (void) data;
@@ -326,23 +334,28 @@ protected:
         printf("MBED: Socket Error: %s (%d)\r\n", socket_strerror(err), err);
         _stream.close();
         _error = true;
-        minar::Scheduler::stop();
+        MBED_HOSTTEST_RESULT(false);
     }
     /**
      * On Connect handler
      * Starts the TLS handshake
      */
     void onConnect(TCPStream *s) {
+        char buf[16];
+        _remoteAddr.fmtIPv4(buf,sizeof(buf));
+        printf("Connected to %s:%d\r\n", buf, _port);
+
         s->setOnReadable(TCPStream::ReadableHandler_t(this, &HelloHTTPS::onReceive));
         s->setOnDisconnect(TCPStream::DisconnectHandler_t(this, &HelloHTTPS::onDisconnect));
 
         /* Start the handshake, the rest will be done in onReceive() */
+        printf("Starting the TLS handshake...\r\n");
         int ret = mbedtls_ssl_handshake(&_ssl);
         if (ret < 0) {
             if (ret != MBEDTLS_ERR_SSL_WANT_READ &&
                 ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
                 print_mbedtls_error("mbedtls_ssl_handshake", ret);
-                _error = true;
+                onError(s, SOCKET_ERROR_UNKNOWN);
             }
             return;
         }
@@ -352,9 +365,6 @@ protected:
      * Parses the response from the server, to check for the HTTPS 200 status code and the expected response ("Hello World!")
      */
     void onReceive(Socket *s) {
-        if (_error)
-            return;
-
         /* Send request if not done yet */
         if (!_request_sent) {
             int ret = mbedtls_ssl_write(&_ssl, (const unsigned char *) _buffer, _bpos);
@@ -362,7 +372,7 @@ protected:
                 if (ret != MBEDTLS_ERR_SSL_WANT_READ &&
                     ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
                     print_mbedtls_error("mbedtls_ssl_write", ret);
-                    _error = true;
+                    onError(s, SOCKET_ERROR_UNKNOWN);
                 }
                 return;
             }
@@ -394,10 +404,9 @@ protected:
         /* Read data out of the socket */
         int ret = mbedtls_ssl_read(&_ssl, (unsigned char *) _buffer, sizeof(_buffer));
         if (ret < 0) {
-            if (ret != MBEDTLS_ERR_SSL_WANT_READ &&
-                ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
-                    print_mbedtls_error("mbedtls_ssl_read", ret);
-                _error = true;
+            if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
+                print_mbedtls_error("mbedtls_ssl_read", ret);
+                onError(s, SOCKET_ERROR_UNKNOWN);
             }
             return;
         }
@@ -434,7 +443,8 @@ protected:
             char buf[16];
             _remoteAddr.setAddr(&addr);
             _remoteAddr.fmtIPv4(buf,sizeof(buf));
-            printf("%s address: %s\r\n",domain, buf);
+            printf("DNS Response Received:\r\n%s: %s\r\n", domain, buf);
+            printf("Connecting to %s:%d\r\n", buf, _port);
             socket_error_t err = _stream.connect(_remoteAddr, _port, TCPStream::ConnectHandler_t(this, &HelloHTTPS::onConnect));
 
             if (err != SOCKET_ERROR_NONE) {
@@ -444,7 +454,7 @@ protected:
     }
     void onDisconnect(TCPStream *s) {
         s->close();
-        minar::Scheduler::stop();
+        MBED_HOSTTEST_RESULT(!error());
     }
 
 protected:
@@ -470,33 +480,10 @@ protected:
 /**
  * The main loop of the HTTPS Hello World test
  */
-int example_client() {
-    EthernetInterface eth;
-    /* Initialise with DHCP, connect, and start up the stack */
-    eth.init();
-    eth.connect();
-    lwipv4_socket_init();
+EthernetInterface eth;
+HelloHTTPS *hello;
 
-    printf("\r\n\r\n");
-    printf("Client IP Address is %s\r\n", eth.getIPAddress());
-
-    HelloHTTPS hello(HTTPS_SERVER_NAME, HTTPS_SERVER_PORT);
-    {
-        mbed::FunctionPointer1<void, const char*> fp(&hello, &HelloHTTPS::startTest);
-        minar::Scheduler::postCallback(fp.bind(HTTPS_PATH));
-    }
-
-    minar::Scheduler::start();
-
-    eth.disconnect();
-
-    return static_cast<int>(hello.error());
-}
-
-#include "mbed/test_env.h"
-#include "minar/minar.h"
-
-static void run() {
+void app_start(int, char*[]) {
     /* The default 9600 bps is too slow to print full TLS debug info and could
      * cause the other party to time out. Select a higher baud rate for
      * printf(), regardless of debug level for the sake of uniformity. */
@@ -507,11 +494,18 @@ static void run() {
     MBED_HOSTTEST_SELECT(default);
     MBED_HOSTTEST_DESCRIPTION(mbed TLS example HTTPS client);
     MBED_HOSTTEST_START("MBEDTLS_EX_HTTPS_CLIENT");
-    MBED_HOSTTEST_RESULT(example_client() == 0);
-}
 
-void app_start(int, char*[]) {
-    minar::Scheduler::postCallback(FunctionPointer0<void>(run).bind());
+    /* Initialise with DHCP, connect, and start up the stack */
+    eth.init();
+    eth.connect();
+    lwipv4_socket_init();
+
+    hello = new HelloHTTPS(HTTPS_SERVER_NAME, HTTPS_SERVER_PORT);
+
+    printf("Client IP Address is %s\r\n", eth.getIPAddress());
+
+    mbed::FunctionPointer1<void, const char*> fp(hello, &HelloHTTPS::startTest);
+    minar::Scheduler::postCallback(fp.bind(HTTPS_PATH));
 }
 
 #endif /* TARGET_LIKE_MBED */

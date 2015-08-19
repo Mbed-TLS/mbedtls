@@ -1,10 +1,10 @@
-# Authenticated encryption example
+# Authenticated Encryption Example
 
 This application performs authenticated encryption and authenticated decryption of a buffer. It serves as a tutorial for the basic authenticated encryption functions of mbed TLS.
 
 ## Pre-requisites
 
-To build and run this example the requirements below are necessary:
+To build and run this example the following requirements are necessary:
 
 * A computer with the following software installed:
   * [CMake](http://www.cmake.org/download/).
@@ -12,13 +12,13 @@ To build and run this example the requirements below are necessary:
   * [Python](https://www.python.org/downloads/).
   * [ARM GCC toolchain](https://launchpad.net/gcc-arm-embedded).
   * A serial terminal emulator (e.g. screen, pySerial, cu).
-* An [FRDM-K64F](http://developer.mbed.org/platforms/FRDM-K64F/) development board, or another board supported by mbed OS (in that case you'll have to substitute frdm-k64f-gcc with the appropriate target below).
+* An [FRDM-K64F](http://developer.mbed.org/platforms/FRDM-K64F/) development board, or another board supported by mbed OS (in which case you'll have to substitute frdm-k64f-gcc with the appropriate target in the instructions below).
 * A micro-USB cable.
 * If your OS is Windows, please follow the installation instructions [for the serial port driver](https://developer.mbed.org/handbook/Windows-serial-configuration).
 
 ## Getting started
 
-1. Connect the FRDM-K64F to the computer with the micro-USB cable, being careful to use the micro-usb port labeled "OpenSDA".
+1. Connect the FRDM-K64F to the computer with the micro-USB cable, being careful to use the "OpenSDA" connector on the target board.
 
 2. Navigate to the mbedtls directory supplied with your release and open a terminal.
 
@@ -31,15 +31,15 @@ To build and run this example the requirements below are necessary:
 4. Check that there are no missing dependencies:
 
     ```
-    $ yt ls
+    $ yotta ls
     ```
 
-    If there are, yotta will list them in the terminal. Please install them before proceeding.
-
-5. Build mbedtls and the examples. This will take a long time if it is the first time:
+    If there are missing dependencies, yotta will list them in the terminal. Please install these before proceeding.
+    
+5. Build mbedtls and the examples. This may take a long time if this is your first compilation:
 
     ```
-    $ yt build
+    $ yotta build
     ```
 
 6. Copy `build/frdm-k64f-gcc/test/mbedtls-test-example-authcrypt.bin` to your mbed board and wait until the LED next to the USB port stops blinking.

@@ -28,27 +28,19 @@ To build and run this example the following requirements are necessary:
     yotta target frdm-k64f-gcc
     ```
 
-4. Check that there are no missing dependencies:
-
-    ```
-    $ yotta ls
-    ```
-
-    If there are missing dependencies, yotta will list them in the terminal. Please install these before proceeding.
-
-5. Build mbedtls and the examples. This may take a long time if this is your first compilation:
+4. Build mbedtls and the examples. This may take a long time if this is your first compilation:
 
     ```
     $ yotta build
     ```
 
-6. Copy `build/frdm-k64f-gcc/test/mbedtls-test-example-benchmark.bin` to your mbed board and wait until the LED next to the USB port stops blinking.
+5. Copy `build/frdm-k64f-gcc/test/mbedtls-test-example-benchmark.bin` to your mbed board and wait until the LED next to the USB port stops blinking.
 
-7. Start the serial terminal emulator and connect to the virtual serial port presented by FRDM-K64F. For settings, use 115200 baud, 8N1, no flow control. **Warning:** for this example, the baud rate is not the default 9600, it is 115200.
+6. Start the serial terminal emulator and connect to the virtual serial port presented by FRDM-K64F. For settings, use 115200 baud, 8N1, no flow control. **Warning:** for this example, the baud rate is not the default 9600, it is 115200.
 
-8. Press the reset button on the board.
+7. Press the reset button on the board.
 
-9. The output in the terminal window should look like:
+8. The output in the terminal window should look like:
 
     ```
     {{timeout;150}}

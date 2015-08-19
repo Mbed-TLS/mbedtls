@@ -58,7 +58,7 @@ void pk_write_key_check( char *key_file )
     TEST_ASSERT( mbedtls_pk_parse_keyfile( &key, key_file, NULL ) == 0 );
 
     ret = mbedtls_pk_write_key_pem( &key, buf, sizeof( buf ));
-    TEST_ASSERT( ret >= 0 );
+    TEST_ASSERT( ret == 0 );
 
     f = fopen( key_file, "r" );
     TEST_ASSERT( f != NULL );

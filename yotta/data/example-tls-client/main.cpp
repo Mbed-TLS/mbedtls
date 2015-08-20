@@ -121,10 +121,6 @@ public:
      * HelloHTTPS Constructor
      * Initializes the TCP socket, sets up event handlers and flags.
      *
-     * Note that CThunk is used for event handlers.  This will be changed to a C++
-     * function pointer in an upcoming release.
-     *
-     *
      * @param[in] domain The domain name to fetch from
      * @param[in] port The port of the HTTPS server
      */
@@ -144,6 +140,16 @@ public:
         mbedtls_x509_crt_init(&_cacert);
         mbedtls_ssl_init(&_ssl);
         mbedtls_ssl_config_init(&_ssl_conf);
+    }
+    /**
+     * HelloHTTPS Desctructor
+     */
+    ~HelloHTTPS() {
+        mbedtls_entropy_free(&_entropy);
+        mbedtls_ctr_drbg_free(&_ctr_drbg);
+        mbedtls_x509_crt_free(&_cacert);
+        mbedtls_ssl_free(&_ssl);
+        mbedtls_ssl_config_free(&_ssl_conf);
     }
     /**
      * Initiate the test.

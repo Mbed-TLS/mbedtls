@@ -1,10 +1,10 @@
-# mbed TLS selftest programs
+# mbed TLS Selftest Example
 
-This application runs the various selftest function of individual mbed TLS components. It serves as a basic sanity check for mbed TLS on your platform. In the future, a wider portion of the mbed TLS test suite will be ported on mbed OS.
+This application runs the various selftest function of individual mbed TLS components. It serves as a basic sanity check to verify operation of mbed TLS on your platform. In the future, a wider portion of the mbed TLS test suite will become part of this example application.
 
 ## Pre-requisites
 
-To build and run this example the requirements below are necessary:
+To build and run this example the following requirements are necessary:
 
 * A computer with the following software installed:
   * [CMake](http://www.cmake.org/download/).
@@ -12,13 +12,13 @@ To build and run this example the requirements below are necessary:
   * [Python](https://www.python.org/downloads/).
   * [ARM GCC toolchain](https://launchpad.net/gcc-arm-embedded).
   * A serial terminal emulator (e.g. screen, pySerial, cu).
-* An [FRDM-K64F](http://developer.mbed.org/platforms/FRDM-K64F/) development board, or another board supported by mbed OS (in that case you'll have to substitute frdm-k64f-gcc with the appropriate target below).
+* An [FRDM-K64F](http://developer.mbed.org/platforms/FRDM-K64F/) development board, or another board supported by mbed OS (in which case you'll have to substitute frdm-k64f-gcc with the appropriate target in the instructions below).
 * A micro-USB cable.
 * If your OS is Windows, please follow the installation instructions [for the serial port driver](https://developer.mbed.org/handbook/Windows-serial-configuration).
 
 ## Getting started
 
-1. Connect the FRDM-K64F to the computer with the micro-USB cable, being careful to use the micro-usb port labeled "OpenSDA".
+1. Connect the FRDM-K64F to the computer with the micro-USB cable, being careful to use the "OpenSDA" connector on the target board.
 
 2. Navigate to the mbedtls directory supplied with your release and open a terminal.
 
@@ -28,10 +28,10 @@ To build and run this example the requirements below are necessary:
     yotta target frdm-k64f-gcc
     ```
 
-4. Build mbedtls and the examples. This will take a long time if it is the first time:
+4. Build mbedtls and the examples. This may take a long time if this is your first compilation:
 
     ```
-    $ yt build
+    $ yotta build
     ```
 
 5. Copy `build/frdm-k64f-gcc/test/mbedtls-test-example-selftest.bin` to your mbed board and wait until the LED next to the USB port stops blinking.

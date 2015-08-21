@@ -153,7 +153,7 @@ We've included example programs for a lot of different features and uses in *pro
 Tests
 =====
 
-mbed TLS includes an elaborate test suite in *tests/* that initially requires Perl to generate the tests files (e.g. *test_suite_mpi.c*). These files are generates from a **function file** (e.g. *suites/test_suite_mpi.function*) and a **data file** (e.g. *suites/test_suite_mpi.data*). The **function file** contains the test functions. The **data file** contains the test cases, specified as parameters that will be passed to the test function.
+mbed TLS includes an elaborate test suite in *tests/* that initially requires Perl to generate the tests files (e.g. *test_suite_mpi.c*). These files are generated from a **function file** (e.g. *suites/test_suite_mpi.function*) and a **data file** (e.g. *suites/test_suite_mpi.data*). The **function file** contains the test functions. The **data file** contains the test cases, specified as parameters that will be passed to the test function.
 
 For machines with a Unix shell and OpenSSL (and optionally GnuTLS) installed, additional test scripts are available:
 
@@ -170,11 +170,11 @@ We provide some non-standard configurations focused on specific use cases in the
 Contributing
 ============
 
-We graciously accept bugs and contributions from the community. There are some requirements we need to fulfil in order to be able to integrate contributions in the main code.
+We gratefully accept bugs and contributions from the community. There are some requirements we need to fulfil in order to be able to integrate contributions:
 
-Simple bug fixes to existing code do not contain copyright themselves and we can integrate those without any issue. The same goes for trivial contributions.
+- Simple bug fixes to existing code do not contain copyright themselves and we can integrate without issue. The same is true of trivial contributions.
 
-For larger contributions, e.g. a new feature, the code possible falls under copyright law. We then need your consent to share in the ownership of the copyright. We have a form for that, which we will mail to you in case you submit a contribution or pull request that we deem this necessary for.
+- For larger contributions, such as a new feature, the code can possibly fall under copyright law. We then need your consent to share in the ownership of the copyright. We have a form for this, which we will mail to you in case you submit a contribution or pull request that we deem this necessary for.
 
 Process
 -------

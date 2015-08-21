@@ -1,12 +1,12 @@
-# HTTPS file downloader (TLS client example)
+# HTTPS File Download Example/ TLS Client
 
-This application downloads a file from an HTTPS server (mbed.org) and looks for a specific string in that file.
+This application downloads a file from an HTTPS server (developer.mbed.org) and looks for a specific string in that file.
 
 This example is implemented as a logic class (HelloHTTPS) wrapping a TCP socket and a TLS context. The logic class handles all events, leaving the main loop to just check if the process has finished.
 
 ## Pre-requisites
 
-To build and run this example the requirements below are necessary:
+To build and run this example the following requirements are necessary:
 
 * A computer with the following software installed:
   * [CMake](http://www.cmake.org/download/).
@@ -14,9 +14,9 @@ To build and run this example the requirements below are necessary:
   * [Python](https://www.python.org/downloads/).
   * [ARM GCC toolchain](https://launchpad.net/gcc-arm-embedded).
   * A serial terminal emulator (e.g. screen, pySerial, cu).
-* An [FRDM-K64F](http://developer.mbed.org/platforms/FRDM-K64F/) development board, or another board that has an Ethernet port and is supported by mbed OS (in that case you'll have to substitute frdm-k64f-gcc with the appropriate target below).
-* An Ethernet connection to the internet.
-* An Ethernet cable.
+* An [FRDM-K64F](http://developer.mbed.org/platforms/FRDM-K64F/) development board, or another board that has an ethernet port and is supported by mbed OS (in which case you'll have to substitute frdm-k64f-gcc with the appropriate target in the instructions below).
+* An ethernet connection to the internet.
+* An ethernet cable.
 * A micro-USB cable.
 * If your OS is Windows, please follow the installation instructions [for the serial port driver](https://developer.mbed.org/handbook/Windows-serial-configuration).
 
@@ -24,7 +24,7 @@ To build and run this example the requirements below are necessary:
 
 1. Connect the FRDM-K64F to the internet using the ethernet cable.
 
-2. Connect the FRDM-K64F to the computer with the micro-USB cable, being careful to use the micro-usb port labeled "OpenSDA".
+2. Connect the FRDM-K64F to the computer with the micro-USB cable, being        careful to use the "OpenSDA" connector on the target board.
 
 3. Navigate to the mbedtls directory supplied with your release and open a terminal.
 
@@ -37,7 +37,7 @@ To build and run this example the requirements below are necessary:
 5. Build mbedtls and the examples. This will take a long time if it is the first time:
 
     ```
-    $ yt build
+    $ yotta build
     ```
 
 6. Copy `build/frdm-k64f-gcc/test/mbedtls-test-example-tls-client.bin` to your mbed board and wait until the LED next to the USB port stops blinking.
@@ -46,7 +46,7 @@ To build and run this example the requirements below are necessary:
 
 8. Press the reset button on the board.
 
-9. The output in the terminal window should look like:
+9. The output in the terminal window should look similar to this:
 
     ```
     {{timeout;120}}
@@ -117,6 +117,7 @@ To print out more debug information about the TLS connection, edit the file `sou
 
 * Level 4 (the maximum) includes full binary dumps of the packets.
 
+
 If the TLS connection is failing with an error similar to:
 
     ```
@@ -124,4 +125,4 @@ If the TLS connection is failing with an error similar to:
     Failed to fetch /media/uploads/mbed_official/hello.txt from developer.mbed.org:443
     ```
 
-it probably means you need to update the contents of the `SSL_CA_PEM` constant (this can happen if you modify `HTTPS_SERVER_NAME`, or when `mbed.org` switches to a new CA when updating its certificate). Alternatively, this could mean someone is performing a man-in-the-middle attack on your connection. You can ignore this error and proceed with the connection anyway by changing the definition of `UNSAFE` near the top of the file from 0 to 1. **Warning:** this removes all security against an active attacker, use at your own risk, for debugging only!
+it probably means you need to update the contents of the `SSL_CA_PEM` constant (this can happen if you modify `HTTPS_SERVER_NAME`, or when `developer.mbed.org` switches to a new CA when updating its certificate). Another reason for this error may be a proxy providing a different certificate. Proxys can be used in some network configurations or for performing man-in-the-middle attacks. If you choose to ignore this error and proceed with the connection anyway, you can change the definition of `UNSAFE` near the top of the file from 0 to 1. **Warning:** this removes all security against a possible attacker, therefore use at your own risk, or for debugging only!

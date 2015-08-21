@@ -37,6 +37,9 @@ cp -r data/example-* $TMP/test
 cp data/module.json $TMP
 cp data/README.md $TMP
 
+cp ../LICENSE $TMP
+if [ -f ../apache-2.0.txt ]; then cp ../apache-2.0.txt $TMP; fi
+
 mkdir -p $DEST
 rsync -cr --delete --exclude build --exclude yotta_\* $TMP/ $DEST/
 rm -rf $TMP

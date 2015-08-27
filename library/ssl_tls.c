@@ -566,8 +566,6 @@ int ssl_derive_keys( ssl_context *ssl )
     }
     else
     {
-        int ret;
-
         /* Initialize HMAC contexts */
         if( ( ret = md_init_ctx( &transform->md_ctx_enc, md_info ) ) != 0 ||
             ( ret = md_init_ctx( &transform->md_ctx_dec, md_info ) ) != 0 )
@@ -1307,7 +1305,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
             /*
              * Generate IV
              */
-            int ret = ssl->f_rng( ssl->p_rng, ssl->transform_out->iv_enc,
+            ret = ssl->f_rng( ssl->p_rng, ssl->transform_out->iv_enc,
                                   ssl->transform_out->ivlen );
             if( ret != 0 )
                 return( ret );

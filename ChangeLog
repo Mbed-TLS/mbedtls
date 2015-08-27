@@ -8,6 +8,7 @@ Bugfix
    * Fix bug in mbedtls_rsa_public() and mbedtls_rsa_private() that could
      result trying to unlock an unlocked mutex on invalid input (found by
      Fredrik Axelsson) (#257)
+   * Fix -Wshadow warnings (found by hnrkp) (#240)
 
 = mbed TLS 1.3.12 released 2015-08-11
 

@@ -35,6 +35,7 @@ Bugfix
      Aleksandrs Saveljevs) (#238)
    * Fix unused function warning when using MBEDTLS_MDx_ALT or
      MBEDTLS_SHAxxx_ALT (found by Henrik) (#239)
+   * Fix memory corruption in pkey programs (found by yankuncheng) (#210)
 
 Changes
    * The PEM parser now accepts a trailing space at end of lines (#226).

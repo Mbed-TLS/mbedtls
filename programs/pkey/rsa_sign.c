@@ -59,7 +59,7 @@ int main( int argc, char *argv[] )
     int ret;
     size_t i;
     mbedtls_rsa_context rsa;
-    unsigned char hash[20];
+    unsigned char hash[32];
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
     char filename[512];
 

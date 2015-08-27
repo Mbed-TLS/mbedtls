@@ -59,7 +59,7 @@ int main( int argc, char *argv[] )
     int ret = 1;
     size_t i;
     mbedtls_pk_context pk;
-    unsigned char hash[20];
+    unsigned char hash[32];
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
     char filename[512];
 

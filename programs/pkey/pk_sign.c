@@ -64,7 +64,7 @@ int main( int argc, char *argv[] )
     mbedtls_pk_context pk;
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
-    unsigned char hash[20];
+    unsigned char hash[32];
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
     char filename[512];
     const char *pers = "mbedtls_pk_sign";

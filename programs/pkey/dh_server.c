@@ -74,7 +74,7 @@ int main( void )
     mbedtls_net_context listen_fd, client_fd;
 
     unsigned char buf[2048];
-    unsigned char hash[20];
+    unsigned char hash[32];
     unsigned char buf2[2];
     const char *pers = "dh_server";
 

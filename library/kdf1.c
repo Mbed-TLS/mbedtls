@@ -43,6 +43,8 @@
 
 #if defined(POLARSSL_KDF1_C)
 
+#include <string.h>
+
 #include "polarssl/kdf1.h"
 #include "polarssl/md.h"
 

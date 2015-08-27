@@ -123,8 +123,8 @@ int main( int argc, char *argv[] )
     }
 
     /*
-     * Compute the SHA-256 hash of the input file and compare
-     * it with the hash decrypted from the RSA signature.
+     * Compute the SHA-256 hash of the input file and
+     * verify the signature
      */
     mbedtls_printf( "\n  . Verifying the RSA/SHA-256 signature" );
     fflush( stdout );
@@ -144,7 +144,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    mbedtls_printf( "\n  . OK (the decrypted SHA-256 hash matches)\n\n" );
+    mbedtls_printf( "\n  . OK (the signature is valid)\n\n" );
 
     ret = 0;
 

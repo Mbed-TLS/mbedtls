@@ -274,6 +274,11 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
 
     mbedtls_mpi_init( &T );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
+        return( ret );
+#endif
+
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &T, input, ctx->len ) );
 
     if( mbedtls_mpi_cmp_mpi( &T, &ctx->N ) >= 0 )
@@ -281,11 +286,6 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
         mbedtls_mpi_free( &T );
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     }
-
-#if defined(MBEDTLS_THREADING_C)
-    if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
-        return( ret );
-#endif
 
     olen = ctx->len;
     MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &T, &T, &ctx->E, &ctx->N, &ctx->RN ) );
@@ -311,15 +311,10 @@ cleanup:
  *  DSS, and other systems. In : Advances in Cryptology-CRYPTO'96. Springer
  *  Berlin Heidelberg, 1996. p. 104-113.
  */
-static int rsa_prepare_blinding( mbedtls_rsa_context *ctx, mbedtls_mpi *Vi, mbedtls_mpi *Vf,
+static int rsa_prepare_blinding( mbedtls_rsa_context *ctx,
                  int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret, count = 0;
-
-#if defined(MBEDTLS_THREADING_C)
-    if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
-        return( ret );
-#endif
 
     if( ctx->Vf.p != NULL )
     {
@@ -329,7 +324,7 @@ static int rsa_prepare_blinding( mbedtls_rsa_context *ctx, mbedtls_mpi *Vi, mbed
         MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &ctx->Vf, &ctx->Vf, &ctx->Vf ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &ctx->Vf, &ctx->Vf, &ctx->N ) );
 
-        goto done;
+        goto cleanup;
     }
 
     /* Unblinding value: Vf = random number, invertible mod N */
@@ -345,19 +340,8 @@ static int rsa_prepare_blinding( mbedtls_rsa_context *ctx, mbedtls_mpi *Vi, mbed
     MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( &ctx->Vi, &ctx->Vf, &ctx->N ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &ctx->Vi, &ctx->Vi, &ctx->E, &ctx->N, &ctx->RN ) );
 
-done:
-    if( Vi != &ctx->Vi )
-    {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_copy( Vi, &ctx->Vi ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_copy( Vf, &ctx->Vf ) );
-    }
 
 cleanup:
-#if defined(MBEDTLS_THREADING_C)
-    if( ( ret = mbedtls_mutex_unlock( &ctx->mutex ) ) != 0 )
-        return( ret );
-#endif
-
     return( ret );
 }
 
@@ -373,25 +357,13 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
     int ret;
     size_t olen;
     mbedtls_mpi T, T1, T2;
-    mbedtls_mpi *Vi, *Vf;
-
-    /*
-     * When using the Chinese Remainder Theorem, we use blinding values.
-     * Without threading, we just read them directly from the context,
-     * otherwise we make a local copy in order to reduce locking contention.
-     */
-#if defined(MBEDTLS_THREADING_C)
-    mbedtls_mpi Vi_copy, Vf_copy;
-
-    mbedtls_mpi_init( &Vi_copy ); mbedtls_mpi_init( &Vf_copy );
-    Vi = &Vi_copy;
-    Vf = &Vf_copy;
-#else
-    Vi = &ctx->Vi;
-    Vf = &ctx->Vf;
-#endif
 
     mbedtls_mpi_init( &T ); mbedtls_mpi_init( &T1 ); mbedtls_mpi_init( &T2 );
+
+#if defined(MBEDTLS_THREADING_C)
+    if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
+        return( ret );
+#endif
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &T, input, ctx->len ) );
     if( mbedtls_mpi_cmp_mpi( &T, &ctx->N ) >= 0 )
@@ -406,15 +378,10 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
          * Blinding
          * T = T * Vi mod N
          */
-        MBEDTLS_MPI_CHK( rsa_prepare_blinding( ctx, Vi, Vf, f_rng, p_rng ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &T, &T, Vi ) );
+        MBEDTLS_MPI_CHK( rsa_prepare_blinding( ctx, f_rng, p_rng ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &T, &T, &ctx->Vi ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &T, &T, &ctx->N ) );
     }
-
-#if defined(MBEDTLS_THREADING_C)
-    if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
-        return( ret );
-#endif
 
 #if defined(MBEDTLS_RSA_NO_CRT)
     MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &T, &T, &ctx->D, &ctx->N, &ctx->RN ) );
@@ -448,7 +415,7 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
          * Unblind
          * T = T * Vf mod N
          */
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &T, &T, Vf ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &T, &T, &ctx->Vf ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &T, &T, &ctx->N ) );
     }
 
@@ -459,8 +426,8 @@ cleanup:
 #if defined(MBEDTLS_THREADING_C)
     if( ( ret = mbedtls_mutex_unlock( &ctx->mutex ) ) != 0 )
         return( ret );
-    mbedtls_mpi_free( &Vi_copy ); mbedtls_mpi_free( &Vf_copy );
 #endif
+
     mbedtls_mpi_free( &T ); mbedtls_mpi_free( &T1 ); mbedtls_mpi_free( &T2 );
 
     if( ret != 0 )

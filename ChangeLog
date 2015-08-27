@@ -26,6 +26,9 @@ Bugfix
    * Fix error when loading libmbedtls.so.
    * Fix bug in mbedtls_ssl_conf_default() that caused the default preset to
      be always used (found by dcb314) (#235)
+   * Fix bug in mbedtls_rsa_public() and mbedtls_rsa_private() that could
+     result trying to unlock an unlocked mutex on invalid input (found by
+     Fredrik Axelsson) (#257)
 
 Changes
    * The PEM parser now accepts a trailing space at end of lines (#226).

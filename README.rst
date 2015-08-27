@@ -170,18 +170,18 @@ We provide some non-standard configurations focused on specific use cases in the
 Contributing
 ============
 
-We gratefully accept bugs and contributions from the community. There are some requirements we need to fulfil in order to be able to integrate contributions:
+We gratefully accept bug reports and contributions from the community. There are some requirements we need to fulfill in order to be able to integrate contributions:
 
 - Simple bug fixes to existing code do not contain copyright themselves and we can integrate without issue. The same is true of trivial contributions.
 
-- For larger contributions, such as a new feature, the code can possibly fall under copyright law. We then need your consent to share in the ownership of the copyright. We have a form for this, which we will mail to you in case you submit a contribution or pull request that we deem this necessary for.
+- For larger contributions, such as a new feature, the code can possibly fall under copyright law. We then need your consent to share in the ownership of the copyright. We have a form for this, which we will send to you in case you submit a contribution or pull request that we deem this necessary for.
 
 Process
 -------
 #. `Check for open issues <https://github.com/ARMmbed/mbedtls/issues>`_ or
    `start a discussion <https://tls.mbed.org/discussions>`_ around a feature
    idea or a bug.
-#. Fork the `mbed TLS repository on Github <https://github.com/ARMmbed/mbedtls>`_
+#. Fork the `mbed TLS repository on GitHub <https://github.com/ARMmbed/mbedtls>`_
    to start making your changes. As a general rule, you should use the
    "development" branch as a basis.
 #. Write a test which shows that the bug was fixed or that the feature works

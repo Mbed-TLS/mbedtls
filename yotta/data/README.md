@@ -38,7 +38,7 @@ Please note: you need to provide the exact name that will be used in the `#inclu
 
 ## Contributing
 
-We gratefully accept bug reports and contributions from the community. There are some requirements we need to fullfil in order to be able to integrate contributions:
+We gratefully accept bug reports and contributions from the community. There are some requirements we need to fulfill in order to be able to integrate contributions:
 
 * Simple bug fixes to existing code do not contain copyright themselves and we can integrate without issue. The same is true of trivial contributions.
 

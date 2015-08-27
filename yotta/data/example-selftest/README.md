@@ -1,17 +1,17 @@
 # mbed TLS Selftest Example
 
-This application runs the various selftest function of individual mbed TLS components. It serves as a basic sanity check to verify operation of mbed TLS on your platform. In the future, a wider portion of the mbed TLS test suite will become part of this example application.
+This application runs the various selftest functions of individual mbed TLS components. It serves as a basic sanity check to verify operation of mbed TLS on your platform. In the future, a wider portion of the mbed TLS test suite will become part of this example application.
 
 ## Pre-requisites
 
-To build and run this example the following requirements are necessary:
+To build and run this example you must have:
 
 * A computer with the following software installed:
   * [CMake](http://www.cmake.org/download/).
   * [yotta](https://github.com/ARMmbed/yotta). Please note that **yotta has its own set of dependencies**, listed in the [installation instructions](http://armmbed.github.io/yotta/#installing-on-windows).
   * [Python](https://www.python.org/downloads/).
-  * [ARM GCC toolchain](https://launchpad.net/gcc-arm-embedded).
-  * A serial terminal emulator (e.g. screen, pySerial, cu).
+  * [The ARM GCC toolchain](https://launchpad.net/gcc-arm-embedded).
+  * A serial terminal emulator (Like screen, pySerial and cu).
 * An [FRDM-K64F](http://developer.mbed.org/platforms/FRDM-K64F/) development board, or another board supported by mbed OS (in which case you'll have to substitute frdm-k64f-gcc with the appropriate target in the instructions below).
 * A micro-USB cable.
 * If your OS is Windows, please follow the installation instructions [for the serial port driver](https://developer.mbed.org/handbook/Windows-serial-configuration).
@@ -36,9 +36,15 @@ To build and run this example the following requirements are necessary:
 
 5. Copy `build/frdm-k64f-gcc/test/mbedtls-test-example-selftest.bin` to your mbed board and wait until the LED next to the USB port stops blinking.
 
-6. Start the serial terminal emulator and connect to the virtual serial port presented by FRDM-K64F. For settings, use 115200 baud, 8N1, no flow control. **Warning:** for this example, the baud rate is not the default 9600, it is 115200.
+6. Start the serial terminal emulator and connect to the virtual serial port presented by FRDM-K64F. 
 
-7. Press the reset button on the board.
+	Use the following settings:
+
+	* 115200 baud (not 9600).
+	* 8N1.
+	* No flow control. 
+
+7. Press the Reset button on the board.
 
 8. The output in the terminal window should look like:
 

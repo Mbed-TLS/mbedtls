@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2011, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,21 +29,21 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
-#define polarssl_printf     printf
+#include <stdio.h>
 #define polarssl_fprintf    fprintf
+#define polarssl_printf     printf
 #endif
 
+#if defined(POLARSSL_HAVEGE_C) && defined(POLARSSL_FS_IO)
 #include "polarssl/havege.h"
 
-#include <time.h>
 #include <stdio.h>
+#include <time.h>
+#endif
 
-#if !defined(POLARSSL_HAVEGE_C)
-int main( int argc, char *argv[] )
+#if !defined(POLARSSL_HAVEGE_C) || !defined(POLARSSL_FS_IO)
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_HAVEGE_C not defined.\n");
     return( 0 );
 }

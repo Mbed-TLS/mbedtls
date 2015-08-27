@@ -1,5 +1,5 @@
 /* BEGIN_HEADER */
-#include <polarssl/entropy.h>
+#include "polarssl/entropy.h"
 
 /*
  * Number of calls made to entropy_dummy_source()

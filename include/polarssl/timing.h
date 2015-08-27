@@ -5,7 +5,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -65,6 +65,10 @@ unsigned long get_timer( struct hr_time *val, int reset );
  * \brief          Setup an alarm clock
  *
  * \param seconds  delay before the "alarmed" flag is set
+ *
+ * \warning        Only one alarm at a time  is supported. In a threaded
+ *                 context, this means one for the whole process, not one per
+ *                 thread.
  */
 void set_alarm( int seconds );
 

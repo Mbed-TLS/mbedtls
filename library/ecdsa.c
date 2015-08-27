@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -37,6 +37,8 @@
 #include "polarssl/ecdsa.h"
 #include "polarssl/asn1write.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_ECDSA_DETERMINISTIC)
 #include "polarssl/hmac_drbg.h"
 #endif
@@ -57,7 +59,7 @@ static const md_info_t *md_info_by_size( size_t min_size )
 
     for( md_alg = md_list(); *md_alg != 0; md_alg++ )
     {
-        if( ( md_cur = md_info_from_type( *md_alg ) ) == NULL ||
+        if( ( md_cur = md_info_from_type( (md_type_t) *md_alg ) ) == NULL ||
             (size_t) md_cur->size < min_size ||
             ( md_picked != NULL && md_cur->size > md_picked->size ) )
             continue;

@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -36,11 +36,16 @@
 
 #include "polarssl/des.h"
 
+#include <string.h>
+
+#if defined(POLARSSL_SELF_TEST)
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf printf
-#endif
+#endif /* POLARSSL_PLATFORM_C */
+#endif /* POLARSSL_SELF_TEST */
 
 #if !defined(POLARSSL_DES_ALT)
 
@@ -802,9 +807,6 @@ int des3_crypt_cbc( des3_context *ctx,
 #endif /* !POLARSSL_DES_ALT */
 
 #if defined(POLARSSL_SELF_TEST)
-
-#include <stdio.h>
-
 /*
  * DES and 3DES test vectors from:
  *

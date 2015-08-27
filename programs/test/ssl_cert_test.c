@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2011, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,36 +29,37 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
+#define polarssl_snprintf   snprintf
 #define polarssl_printf     printf
+#define polarssl_snprintf   snprintf
 #endif
 
-#include <string.h>
+#if defined(POLARSSL_RSA_C) && defined(POLARSSL_X509_CRT_PARSE_C) && \
+    defined(POLARSSL_FS_IO) && defined(POLARSSL_X509_CRL_PARSE_C)
+#include "polarssl/certs.h"
+#include "polarssl/x509_crt.h"
+
 #include <stdio.h>
+#include <string.h>
+#endif
+
+#if defined _MSC_VER && !defined snprintf
+#define snprintf _snprintf
+#endif
+
+#define MAX_CLIENT_CERTS    8
 
 #if !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_CRT_PARSE_C) || \
     !defined(POLARSSL_FS_IO) || !defined(POLARSSL_X509_CRL_PARSE_C)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_RSA_C and/or POLARSSL_X509_CRT_PARSE_C "
            "POLARSSL_FS_IO and/or POLARSSL_X509_CRL_PARSE_C "
            "not defined.\n");
     return( 0 );
 }
 #else
-
-#include "polarssl/certs.h"
-#include "polarssl/x509_crt.h"
-
-#if defined _MSC_VER && !defined snprintf
-#define snprintf _snprintf
-#endif
-
-
-#define MAX_CLIENT_CERTS    8
-
 const char *client_certificates[MAX_CLIENT_CERTS] =
 {
     "client1.crt",
@@ -83,15 +84,12 @@ const char *client_private_keys[MAX_CLIENT_CERTS] =
     "cert_digest.key"
 };
 
-int main( int argc, char *argv[] )
+int main( void )
 {
     int ret, i;
     x509_crt cacert;
     x509_crl crl;
     char buf[10240];
-
-    ((void) argc);
-    ((void) argv);
 
     x509_crt_init( &cacert );
     x509_crl_init( &crl );
@@ -149,7 +147,7 @@ int main( int argc, char *argv[] )
         x509_crt_init( &clicert );
         pk_init( &pk );
 
-        snprintf(name, 512, "ssl/test-ca/%s", client_certificates[i]);
+        polarssl_snprintf(name, 512, "ssl/test-ca/%s", client_certificates[i]);
 
         polarssl_printf( "  . Loading the client certificate %s...", name );
         fflush( stdout );
@@ -175,19 +173,14 @@ int main( int argc, char *argv[] )
         {
             if( ret == POLARSSL_ERR_X509_CERT_VERIFY_FAILED )
             {
-                if( flags & BADCERT_CN_MISMATCH )
-                    polarssl_printf( " CN_MISMATCH " );
-                if( flags & BADCERT_EXPIRED )
-                    polarssl_printf( " EXPIRED " );
-                if( flags & BADCERT_REVOKED )
-                    polarssl_printf( " REVOKED " );
-                if( flags & BADCERT_NOT_TRUSTED )
-                    polarssl_printf( " NOT_TRUSTED " );
-                if( flags & BADCRL_NOT_TRUSTED )
-                    polarssl_printf( " CRL_NOT_TRUSTED " );
-                if( flags & BADCRL_EXPIRED )
-                    polarssl_printf( " CRL_EXPIRED " );
-            } else {
+                char vrfy_buf[512];
+
+                polarssl_printf( " failed\n" );
+                x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", flags );
+                polarssl_printf( "%s\n", vrfy_buf );
+            }
+            else
+            {
                 polarssl_printf( " failed\n  !  x509_crt_verify returned %d\n\n", ret );
                 goto exit;
             }
@@ -198,7 +191,7 @@ int main( int argc, char *argv[] )
         /*
          * 1.5. Load own private key
          */
-        snprintf(name, 512, "ssl/test-ca/%s", client_private_keys[i]);
+        polarssl_snprintf(name, 512, "ssl/test-ca/%s", client_private_keys[i]);
 
         polarssl_printf( "  . Loading the client private key %s...", name );
         fflush( stdout );

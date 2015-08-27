@@ -2,13 +2,14 @@
  * \file pbkdf2.h
  *
  * \brief Password-Based Key Derivation Function 2 (from PKCS#5)
- *        DEPRECATED: use pkcs5.h instead.
+ *
+ * \deprecated Use pkcs5.h instead.
  *
  * \author Mathias Olsson <mathias@kompetensum.com>
  *
  *  Copyright (C) 2006-2012, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,9 +28,9 @@
 #ifndef POLARSSL_PBKDF2_H
 #define POLARSSL_PBKDF2_H
 
-#include <string.h>
-
 #include "md.h"
+
+#include <stddef.h>
 
 #if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
 #include <basetsd.h>
@@ -44,9 +45,16 @@ typedef UINT32 uint32_t;
 extern "C" {
 #endif
 
+#if ! defined(POLARSSL_DEPRECATED_REMOVED)
+#if defined(POLARSSL_DEPRECATED_WARNING)
+#define DEPRECATED    __attribute__((deprecated))
+#else
+#define DEPRECATED
+#endif
 /**
  * \brief          PKCS#5 PBKDF2 using HMAC
- *                 DEPRECATED: Use pkcs5_pbkdf2_hmac() instead!
+ *
+ * \deprecated     Use pkcs5_pbkdf2_hmac() instead
  *
  * \param ctx      Generic HMAC context
  * \param password Password to use when generating key
@@ -62,15 +70,18 @@ extern "C" {
 int pbkdf2_hmac( md_context_t *ctx, const unsigned char *password,
                  size_t plen, const unsigned char *salt, size_t slen,
                  unsigned int iteration_count,
-                 uint32_t key_length, unsigned char *output );
+                 uint32_t key_length, unsigned char *output ) DEPRECATED;
 
 /**
  * \brief          Checkup routine
- *                 DEPRECATED: Use pkcs5_self_test() instead!
+ *
+ * \deprecated     Use pkcs5_self_test() instead
  *
  * \return         0 if successful, or 1 if the test failed
  */
-int pbkdf2_self_test( int verbose );
+int pbkdf2_self_test( int verbose ) DEPRECATED;
+#undef DEPRECATED
+#endif /* POLARSSL_DEPRECATED_REMOVED */
 
 #ifdef __cplusplus
 }

@@ -5,7 +5,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,13 +24,13 @@
 #ifndef POLARSSL_BIGNUM_H
 #define POLARSSL_BIGNUM_H
 
-#include <string.h>
-
 #if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
+
+#include <stddef.h>
 
 #if defined(POLARSSL_FS_IO)
 #include <stdio.h>
@@ -188,7 +188,9 @@ typedef struct
 mpi;
 
 /**
- * \brief           Initialize one MPI
+ * \brief           Initialize one MPI (make internal references valid)
+ *                  This just makes it ready to be set or freed,
+ *                  but does not define a value for the MPI.
  *
  * \param X         One MPI to initialize.
  */

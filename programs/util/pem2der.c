@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2013, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,27 +29,34 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
-#define polarssl_printf     printf
-#define polarssl_malloc     malloc
+#include <stdio.h>
 #define polarssl_free       free
+#define polarssl_malloc     malloc
+#define polarssl_printf     printf
 #endif
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-
+#if defined(POLARSSL_BASE64_C) && defined(POLARSSL_FS_IO)
 #include "polarssl/error.h"
 #include "polarssl/base64.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#endif
 
 #define DFL_FILENAME            "file.pem"
 #define DFL_OUTPUT_FILENAME     "file.der"
 
-#if !defined(POLARSSL_BASE64_C) || !defined(POLARSSL_FS_IO)
-int main( int argc, char *argv[] )
-{
-    ((void) argc);
-    ((void) argv);
+#define USAGE \
+    "\n usage: pem2der param=<>...\n"                   \
+    "\n acceptable parameters:\n"                       \
+    "    filename=%%s         default: file.pem\n"      \
+    "    output_file=%%s      default: file.der\n"      \
+    "\n"
 
+#if !defined(POLARSSL_BASE64_C) || !defined(POLARSSL_FS_IO)
+int main( void )
+{
     polarssl_printf("POLARSSL_BASE64_C and/or POLARSSL_FS_IO not defined.\n");
     return( 0 );
 }
@@ -129,7 +136,7 @@ static int load_file( const char *path, unsigned char **buf, size_t *n )
     *n = (size_t) size;
 
     if( *n + 1 == 0 ||
-        ( *buf = (unsigned char *) polarssl_malloc( *n + 1 ) ) == NULL )
+        ( *buf = polarssl_malloc( *n + 1 ) ) == NULL )
     {
         fclose( f );
         return( -1 );
@@ -169,13 +176,6 @@ static int write_file( const char *path, unsigned char *buf, size_t n )
     fclose( f );
     return( 0 );
 }
-
-#define USAGE \
-    "\n usage: pem2der param=<>...\n"                   \
-    "\n acceptable parameters:\n"                       \
-    "    filename=%%s         default: file.pem\n"      \
-    "    output_file=%%s      default: file.der\n"      \
-    "\n"
 
 int main( int argc, char *argv[] )
 {

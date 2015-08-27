@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2011, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,31 +29,26 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
-#include <stdio.h>
-
+#if defined(POLARSSL_MD5_C)
 #include "polarssl/md5.h"
+#endif
 
 #if !defined(POLARSSL_MD5_C)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_MD5_C not defined.\n");
     return( 0 );
 }
 #else
-int main( int argc, char *argv[] )
+int main( void )
 {
     int i;
     unsigned char digest[16];
     char str[] = "Hello, world!";
-
-    ((void) argc);
-    ((void) argv);
 
     polarssl_printf( "\n  MD5('%s') = ", str );
 

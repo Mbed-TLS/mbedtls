@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -31,15 +31,15 @@
 #include "polarssl/debug.h"
 #include "polarssl/ssl.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdlib.h>
 #define polarssl_malloc     malloc
 #define polarssl_free       free
 #endif
-
-#include <stdlib.h>
-#include <stdio.h>
 
 #if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
 #include <basetsd.h>
@@ -602,8 +602,8 @@ static int ssl_write_client_hello( ssl_context *ssl )
      */
 #if defined(POLARSSL_SSL_RENEGOTIATION)
     if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
-    {
 #endif
+    {
         if( ssl->session_negotiate->ticket != NULL &&
                 ssl->session_negotiate->ticket_len != 0 )
         {
@@ -1445,7 +1445,7 @@ static int ssl_parse_server_dh_params( ssl_context *ssl, unsigned char **p,
         return( ret );
     }
 
-    if( ssl->handshake->dhm_ctx.len < 64  ||
+    if( ssl->handshake->dhm_ctx.len < SSL_MIN_DHM_BYTES ||
         ssl->handshake->dhm_ctx.len > 512 )
     {
         SSL_DEBUG_MSG( 1, ( "bad server key exchange message (DHM length)" ) );
@@ -1479,7 +1479,7 @@ static int ssl_check_server_ecdh_params( const ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "ECDH curve: %s", curve_info->name ) );
 
-#if defined(POLARSSL_SSL_ECP_SET_CURVES)
+#if defined(POLARSSL_SSL_SET_CURVES)
     if( ! ssl_curve_is_acceptable( ssl, ssl->handshake->ecdh_ctx.grp.id ) )
 #else
     if( ssl->handshake->ecdh_ctx.grp.nbits < 163 ||

@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2011, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,16 +29,22 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
-#include <stdio.h>
-
+#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_ENTROPY_C) && \
+    defined(POLARSSL_RSA_C) && defined(POLARSSL_GENPRIME) && \
+    defined(POLARSSL_FS_IO) && defined(POLARSSL_CTR_DRBG_C)
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
 #include "polarssl/bignum.h"
 #include "polarssl/x509.h"
 #include "polarssl/rsa.h"
+
+#include <stdio.h>
+#include <string.h>
+#endif
 
 #define KEY_SIZE 1024
 #define EXPONENT 65537
@@ -46,18 +52,15 @@
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||   \
     !defined(POLARSSL_RSA_C) || !defined(POLARSSL_GENPRIME) ||      \
     !defined(POLARSSL_FS_IO) || !defined(POLARSSL_CTR_DRBG_C)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
            "POLARSSL_RSA_C and/or POLARSSL_GENPRIME and/or "
            "POLARSSL_FS_IO and/or POLARSSL_CTR_DRBG_C not defined.\n");
     return( 0 );
 }
 #else
-int main( int argc, char *argv[] )
+int main( void )
 {
     int ret;
     rsa_context rsa;
@@ -66,9 +69,6 @@ int main( int argc, char *argv[] )
     FILE *fpub  = NULL;
     FILE *fpriv = NULL;
     const char *pers = "rsa_genkey";
-
-    ((void) argc);
-    ((void) argv);
 
     polarssl_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
@@ -86,7 +86,7 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
     rsa_init( &rsa, RSA_PKCS_V15, 0 );
-    
+
     if( ( ret = rsa_gen_key( &rsa, ctr_drbg_random, &ctr_drbg, KEY_SIZE,
                              EXPONENT ) ) != 0 )
     {

@@ -5,7 +5,7 @@
  *
  *  Copyright (C) 2013, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -36,6 +36,10 @@
 #endif
 
 #if defined(POLARSSL_HAVE_X86_64)
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief          AES-NI features detection routine
@@ -98,6 +102,10 @@ void aesni_inverse_key( unsigned char *invkey,
 int aesni_setkey_enc( unsigned char *rk,
                       const unsigned char *key,
                       size_t bits );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* POLARSSL_HAVE_X86_64 */
 

@@ -38,6 +38,7 @@ ssl/ssl_mail_client
 ssl/ssl_pthread_server
 ssl/ssl_server
 ssl/ssl_server2
+ssl/mini_client
 test/benchmark
 test/ecp-bench
 test/o_p_test

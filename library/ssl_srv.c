@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,6 +30,9 @@
 
 #include "polarssl/debug.h"
 #include "polarssl/ssl.h"
+
+#include <string.h>
+
 #if defined(POLARSSL_ECP_C)
 #include "polarssl/ecp.h"
 #endif
@@ -37,12 +40,10 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdlib.h>
 #define polarssl_malloc     malloc
 #define polarssl_free       free
 #endif
-
-#include <stdlib.h>
-#include <stdio.h>
 
 #if defined(POLARSSL_HAVE_TIME)
 #include <time.h>
@@ -828,6 +829,7 @@ static int ssl_pick_cert( ssl_context *ssl,
 {
     ssl_key_cert *cur, *list, *fallback = NULL;
     pk_type_t pk_alg = ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
+    int flags;
 
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
     if( ssl->handshake->sni_key_cert != NULL )
@@ -861,7 +863,7 @@ static int ssl_pick_cert( ssl_context *ssl,
          * and decrypting with the same RSA key.
          */
         if( ssl_check_cert_usage( cur->cert, ciphersuite_info,
-                                  SSL_IS_SERVER ) != 0 )
+                                  SSL_IS_SERVER, &flags ) != 0 )
         {
             SSL_DEBUG_MSG( 3, ( "certificate mismatch: "
                                 "(extended) key usage extension" ) );
@@ -2593,7 +2595,7 @@ curve_matching_done:
         curve = ssl->handshake->curves;
 #endif
 
-        if( *curve == NULL )
+        if( curve == NULL || *curve == NULL )
         {
             SSL_DEBUG_MSG( 1, ( "no matching curve for ECDHE" ) );
             return( POLARSSL_ERR_SSL_NO_CIPHER_CHOSEN );
@@ -2886,8 +2888,8 @@ static int ssl_parse_encrypted_pms( ssl_context *ssl,
     unsigned char *pms = ssl->handshake->premaster + pms_offset;
     unsigned char fake_pms[48], peer_pms[48];
     unsigned char mask;
-    unsigned int uret;
-    size_t i;
+    size_t i, peer_pmslen;
+    unsigned int diff;
 
     if( ! pk_can_do( ssl_own_key( ssl ), POLARSSL_PK_RSA ) )
     {
@@ -2929,16 +2931,17 @@ static int ssl_parse_encrypted_pms( ssl_context *ssl,
         return( ret );
 
     ret = pk_decrypt( ssl_own_key( ssl ), p, len,
-                      peer_pms, &ssl->handshake->pmslen,
+                      peer_pms, &peer_pmslen,
                       sizeof( peer_pms ),
                       ssl->f_rng, ssl->p_rng );
 
-    ret |= ssl->handshake->pmslen - 48;
-    ret |= peer_pms[0] - ssl->handshake->max_major_ver;
-    ret |= peer_pms[1] - ssl->handshake->max_minor_ver;
+    diff  = (unsigned int) ret;
+    diff |= peer_pmslen ^ 48;
+    diff |= peer_pms[0] ^ ssl->handshake->max_major_ver;
+    diff |= peer_pms[1] ^ ssl->handshake->max_minor_ver;
 
 #if defined(POLARSSL_SSL_DEBUG_ALL)
-    if( ret != 0 )
+    if( diff != 0 )
         SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
 #endif
 
@@ -2950,10 +2953,8 @@ static int ssl_parse_encrypted_pms( ssl_context *ssl,
     }
     ssl->handshake->pmslen = 48;
 
-    uret = (unsigned) ret;
-    uret |= -uret; /* msb = ( ret != 0 ) */
-    uret >>= 8 * sizeof( uret ) - 1; /* uret = ( ret != 0 ) */
-    mask = (unsigned char)( -uret ) ; /* ret ? 0xff : 0x00 */
+    /* mask = diff ? 0xff : 0x00 */
+    mask = - ( diff | - diff ) >> ( sizeof( unsigned int ) * 8 - 1 );
     for( i = 0; i < ssl->handshake->pmslen; i++ )
         pms[i] = ( mask & fake_pms[i] ) | ( (~mask) & peer_pms[i] );
 

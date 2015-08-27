@@ -7,7 +7,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 #ifndef POLARSSL_MD_H
 #define POLARSSL_MD_H
 
-#include <string.h>
+#include <stddef.h>
 
 #if defined(_MSC_VER) && !defined(inline)
 #define inline _inline
@@ -200,17 +200,25 @@ void md_free( md_context_t *ctx );
  */
 int md_init_ctx( md_context_t *ctx, const md_info_t *md_info );
 
+#if ! defined(POLARSSL_DEPRECATED_REMOVED)
+#if defined(POLARSSL_DEPRECATED_WARNING)
+#define DEPRECATED    __attribute__((deprecated))
+#else
+#define DEPRECATED
+#endif
 /**
  * \brief          Free the message-specific context of ctx. Freeing ctx itself
  *                 remains the responsibility of the caller.
  *
- * \note           Deprecated: Redirects to md_free()
+ * \deprecated     Use md_free() instead
  *
  * \param ctx      Free the message-specific context
  *
  * \returns        0
  */
-int md_free_ctx( md_context_t *ctx );
+int md_free_ctx( md_context_t *ctx ) DEPRECATED;
+#undef DEPRECATED
+#endif /* POLARSSL_DEPRECATED_REMOVED */
 
 /**
  * \brief           Returns the size of the message digest output.

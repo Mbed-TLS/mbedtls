@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -36,6 +36,8 @@
 #if defined(POLARSSL_ECDH_C)
 
 #include "polarssl/ecdh.h"
+
+#include <string.h>
 
 /*
  * Generate public key: simple wrapper around ecp_gen_keypair

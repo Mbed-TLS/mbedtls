@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2013, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,17 +29,12 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-
-#if !defined(_WIN32) && defined(POLARSSL_FS_IO)
-#include <unistd.h>
-#endif /* !_WIN32 && POLARSSL_FS_IO */
-
+#if defined(POLARSSL_PK_WRITE_C) && defined(POLARSSL_FS_IO) && \
+    defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_CTR_DRBG_C)
 #include "polarssl/error.h"
 #include "polarssl/pk.h"
 #include "polarssl/ecdsa.h"
@@ -48,49 +43,12 @@
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
 
-#if !defined(POLARSSL_PK_WRITE_C) || !defined(POLARSSL_FS_IO) ||    \
-    !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C)
-int main( int argc, char *argv[] )
-{
-    ((void) argc);
-    ((void) argv);
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-    polarssl_printf( "POLARSSL_PK_WRITE_C and/or POLARSSL_FS_IO and/or "
-            "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C "
-            "not defined.\n" );
-    return( 0 );
-}
-#else
-
-#define FORMAT_PEM              0
-#define FORMAT_DER              1
-
-#define DFL_TYPE                POLARSSL_PK_RSA
-#define DFL_RSA_KEYSIZE         4096
-#define DFL_FILENAME            "keyfile.key"
-#define DFL_FORMAT              FORMAT_PEM
-#define DFL_USE_DEV_RANDOM      0
-
-#if defined(POLARSSL_ECP_C)
-#define DFL_EC_CURVE            ecp_curve_list()->grp_id
-#else
-#define DFL_EC_CURVE            0
-#endif
-
-/*
- * global options
- */
-struct options
-{
-    int type;                   /* the type of key to generate          */
-    int rsa_keysize;            /* length of key in bits                */
-    int ec_curve;               /* curve identifier for EC keys         */
-    const char *filename;       /* filename of the key file             */
-    int format;                 /* the output format to use             */
-    int use_dev_random;         /* use /dev/random as entropy source    */
-} opt;
-
-#if !defined(_WIN32) && defined(POLARSSL_FS_IO)
+#if !defined(_WIN32)
+#include <unistd.h>
 
 #define DEV_RANDOM_THRESHOLD        32
 
@@ -127,7 +85,64 @@ int dev_random_entropy_poll( void *data, unsigned char *output,
 
     return( 0 );
 }
+#endif /* !_WIN32 */
+#endif
+
+#if defined(POLARSSL_ECP_C)
+#define DFL_EC_CURVE            ecp_curve_list()->grp_id
+#else
+#define DFL_EC_CURVE            0
+#endif
+
+#if !defined(_WIN32) && defined(POLARSSL_FS_IO)
+#define USAGE_DEV_RANDOM \
+    "    use_dev_random=0|1    default: 0\n"
+#else
+#define USAGE_DEV_RANDOM ""
 #endif /* !_WIN32 && POLARSSL_FS_IO */
+
+#define FORMAT_PEM              0
+#define FORMAT_DER              1
+
+#define DFL_TYPE                POLARSSL_PK_RSA
+#define DFL_RSA_KEYSIZE         4096
+#define DFL_FILENAME            "keyfile.key"
+#define DFL_FORMAT              FORMAT_PEM
+#define DFL_USE_DEV_RANDOM      0
+
+#define USAGE \
+    "\n usage: gen_key param=<>...\n"                   \
+    "\n acceptable parameters:\n"                       \
+    "    type=rsa|ec           default: rsa\n"          \
+    "    rsa_keysize=%%d        default: 4096\n"        \
+    "    ec_curve=%%s           see below\n"            \
+    "    filename=%%s           default: keyfile.key\n" \
+    "    format=pem|der        default: pem\n"          \
+    USAGE_DEV_RANDOM                                    \
+    "\n"
+
+#if !defined(POLARSSL_PK_WRITE_C) || !defined(POLARSSL_FS_IO) ||    \
+    !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C)
+int main( void )
+{
+    polarssl_printf( "POLARSSL_PK_WRITE_C and/or POLARSSL_FS_IO and/or "
+            "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C "
+            "not defined.\n" );
+    return( 0 );
+}
+#else
+/*
+ * global options
+ */
+struct options
+{
+    int type;                   /* the type of key to generate          */
+    int rsa_keysize;            /* length of key in bits                */
+    int ec_curve;               /* curve identifier for EC keys         */
+    const char *filename;       /* filename of the key file             */
+    int format;                 /* the output format to use             */
+    int use_dev_random;         /* use /dev/random as entropy source    */
+} opt;
 
 static int write_private_key( pk_context *key, const char *output_file )
 {
@@ -167,24 +182,6 @@ static int write_private_key( pk_context *key, const char *output_file )
 
     return( 0 );
 }
-
-#if !defined(_WIN32) && defined(POLARSSL_FS_IO)
-#define USAGE_DEV_RANDOM \
-    "    use_dev_random=0|1    default: 0\n"
-#else
-#define USAGE_DEV_RANDOM ""
-#endif /* !_WIN32 && POLARSSL_FS_IO */
-
-#define USAGE \
-    "\n usage: gen_key param=<>...\n"                   \
-    "\n acceptable parameters:\n"                       \
-    "    type=rsa|ec           default: rsa\n"          \
-    "    rsa_keysize=%%d        default: 4096\n"        \
-    "    ec_curve=%%s           see below\n"            \
-    "    filename=%%s           default: keyfile.key\n" \
-    "    format=pem|der        default: pem\n"          \
-    USAGE_DEV_RANDOM                                    \
-    "\n"
 
 int main( int argc, char *argv[] )
 {

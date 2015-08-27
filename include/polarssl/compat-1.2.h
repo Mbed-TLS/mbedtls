@@ -3,9 +3,11 @@
  *
  * \brief Backwards compatibility header for PolarSSL-1.2 from PolarSSL-1.3
  *
+ * \deprecated  Use native PolarSSL 1.3 functions instead.
+ *
  *  Copyright (C) 2006-2013, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,6 +23,12 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+#if ! defined(POLARSSL_DEPRECATED_REMOVED)
+
+#if defined(POLARSSL_DEPRECATED_WARNING)
+#warning "Including compat-1.2.h is deprecated"
+#endif
+
 #ifndef POLARSSL_COMPAT_1_2_H
 #define POLARSSL_COMPAT_1_2_H
 
@@ -384,3 +392,4 @@ static inline int x509_write_key_der( unsigned char *buf, size_t len, rsa_contex
 }
 #endif /* POLARSSL_PK_WRITE_C && POLARSSL_RSA_C */
 #endif /* compat-1.2.h */
+#endif /* POLARSSL_DEPRECATED_REMOVED */

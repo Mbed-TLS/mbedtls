@@ -1,5 +1,126 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 1.3.13 reladsed 2015-??-??
+
+Bugfix
+   * Setting SSL_MIN_DHM_BYTES in config.h had no effect (overriden in ssl.h)
+     (found by Fabio Solari) (#256)
+
+= mbed TLS 1.3.12 released 2015-08-11
+
+Security
+   * Increase the minimum size of Diffie-Hellman parameters accepted by the
+     client to 1024 bits, to protect against Logjam attack.
+   * Increase the size of default Diffie-Hellman parameters on the server to
+     2048 bits. This can be changed with ssl_set_dh_params().
+
+Bugfix
+   * Fix thread-safety issue in SSL debug module (found by Edwin van Vliet).
+   * Some example programs were not built using make, not included in Visual
+     Studio projects (found by Kristian Bendiksen).
+   * Fix build error with CMake and pre-4.5 versions of GCC (found by Hugo
+     Leisink).
+   * Fix missing -static-ligcc when building shared libraries for Windows with
+     make.
+   * Fix compile error with armcc5 --gnu.
+
+Changes
+   * Add SSL_MIN_DHM_BYTES configuration parameter in config.h to choose the
+     minimum size of Diffie-Hellman parameters accepted by the client.
+   * The PEM parser now accepts a trailing space at end of lines (#226).
+
+= mbed TLS 1.3.11 released 2015-06-04
+
+Security
+   * With authmode set to SSL_VERIFY_OPTIONAL, verification of keyUsage and
+     extendedKeyUsage on the leaf certificate was lost (results not accessible
+     via ssl_get_verify_results()).
+   * Add countermeasure against "Lucky 13 strikes back" cache-based attack,
+     https://dl.acm.org/citation.cfm?id=2714625
+
+Features
+   * Improve ECC performance by using more efficient doubling formulas
+     (contributed by Peter Dettman).
+   * Add x509_crt_verify_info() to display certificate verification results.
+   * Add support for reading DH parameters with privateValueLength included
+     (contributed by Daniel Kahn Gillmor).
+   * Add support for bit strings in X.509 names (request by Fredrik Axelsson).
+   * Add support for id-at-uniqueIdentifier in X.509 names.
+   * Add support for overriding snprintf() (except on Windows) and exit() in
+     the platform layer.
+   * Add an option to use macros instead of function pointers in the platform
+     layer (helps get rid of unwanted references).
+   * Improved Makefiles for Windows targets by fixing library targets and making
+     cross-compilation easier (thanks to Alon Bar-Lev).
+   * The benchmark program also prints heap usage for public-key primitives
+     if POLARSSL_MEMORY_BUFFER_ALLOC_C and POLARSSL_MEMORY_DEBUG are defined.
+   * New script ecc-heap.sh helps measuring the impact of ECC parameters on
+     speed and RAM (heap only for now) usage.
+   * New script memory.sh helps measuring the ROM and RAM requirements of two
+     reduced configurations (PSK-CCM and NSA suite B).
+   * Add config flag POLARSSL_DEPRECATED_WARNING (off by default) to produce
+     warnings on use of deprecated functions (with GCC and Clang only).
+   * Add config flag POLARSSL_DEPRECATED_REMOVED (off by default) to produce
+     errors on use of deprecated functions.
+
+Bugfix
+   * Fix compile errors with PLATFORM_NO_STD_FUNCTIONS.
+   * Fix compile error with PLATFORM_EXIT_ALT (thanks to Rafał Przywara).
+   * Fix bug in entropy.c when THREADING_C is also enabled that caused
+     entropy_free() to crash (thanks to Rafał Przywara).
+   * Fix memory leak when gcm_setkey() and ccm_setkey() are used more than
+     once on the same context.
+   * Fix bug in ssl_mail_client when password is longer that username (found
+     by Bruno Pape).
+   * Fix undefined behaviour (memcmp( NULL, NULL, 0 );) in X.509 modules
+     (detected by Clang's 3.6 UBSan).
+   * mpi_size() and mpi_msb() would segfault when called on an mpi that is
+     initialized but not set (found by pravic).
+   * Fix detection of support for getrandom() on Linux (reported by syzzer) by
+     doing it at runtime (using uname) rather that compile time.
+   * Fix handling of symlinks by "make install" (found by Gaël PORTAY).
+   * Fix potential NULL pointer dereference (not trigerrable remotely) when
+     ssl_write() is called before the handshake is finished (introduced in
+     1.3.10) (first reported by Martin Blumenstingl).
+   * Fix bug in pk_parse_key() that caused some valid private EC keys to be
+     rejected.
+   * Fix bug in Via Padlock support (found by Nikos Mavrogiannopoulos).
+   * Fix thread safety bug in RSA operations (found by Fredrik Axelsson).
+   * Fix hardclock() (only used in the benchmarking program) with some
+     versions of mingw64 (found by kxjhlele).
+   * Fix warnings from mingw64 in timing.c (found by kxjklele).
+   * Fix potential unintended sign extension in asn1_get_len() on 64-bit
+     platforms.
+   * Fix potential memory leak in ssl_set_psk() (found by Mansour Moufid).
+   * Fix compile error when POLARSSL_SSL_DISABLE_RENEGOTATION and
+     POLARSSL_SSL_SSESSION_TICKETS where both enabled in config.h (introduced
+     in 1.3.10).
+   * Add missing extern "C" guard in aesni.h (reported by amir zamani).
+   * Add missing dependency on SHA-256 in some x509 programs (reported by
+     Gergely Budai).
+   * Fix bug related to ssl_set_curves(): the client didn't check that the
+     curve picked by the server was actually allowed.
+
+Changes
+   * Remove bias in mpi_gen_prime (contributed by Pascal Junod).
+   * Remove potential sources of timing variations (some contributed by Pascal
+     Junod).
+   * Options POLARSSL_HAVE_INT8 and POLARSSL_HAVE_INT16 are deprecated.
+   * Enabling POLARSSL_NET_C without POLARSSL_HAVE_IPV6 is deprecated.
+   * compat-1.2.h and openssl.h are deprecated.
+   * Adjusting/overriding CFLAGS and LDFLAGS with the make build system is now
+     more flexible (warning: OFLAGS is not used any more) (see the README)
+     (contributed by Alon Bar-Lev).
+   * ssl_set_own_cert() no longer calls pk_check_pair() since the
+     performance impact was bad for some users (this was introduced in 1.3.10).
+   * Move from SHA-1 to SHA-256 in example programs using signatures
+     (suggested by Thorsten Mühlfelder).
+   * Remove some unneeded inclusions of header files from the standard library
+     "minimize" others (eg use stddef.h if only size_t is needed).
+   * Change #include lines in test files to use double quotes instead of angle
+     brackets for uniformity with the rest of the code.
+   * Remove dependency on sscanf() in X.509 parsing modules.
+
 = mbed TLS 1.3.10 released 2015-02-09
 Security
    * NULL pointer dereference in the buffer-based allocator when the buffer is
@@ -29,7 +150,7 @@ Features
      length of an X.509 verification chain.
    * Support for renegotiation can now be disabled at compile-time
    * Support for 1/n-1 record splitting, a countermeasure against BEAST.
-   * Certificate selection based on signature hash, prefering SHA-1 over SHA-2
+   * Certificate selection based on signature hash, preferring SHA-1 over SHA-2
      for pre-1.2 clients when multiple certificates are available.
    * Add support for getrandom() syscall on recent Linux kernels with Glibc or
      a compatible enough libc (eg uClibc).
@@ -504,6 +625,67 @@ Security
    * RSA blinding on CRT operations to counter timing attacks
      (found by Cyril Arnaud and Pierre-Alain Fouque)
 
+
+= Version 1.2.14 released 2015-05-??
+
+Security
+   * Fix potential invalid memory read in the server, that allows a client to
+     crash it remotely (found by Caj Larsson).
+   * Fix potential invalid memory read in certificate parsing, that allows a
+     client to crash the server remotely if client authentication is enabled
+     (found using Codenomicon Defensics).
+   * Add countermeasure against "Lucky 13 strikes back" cache-based attack,
+     https://dl.acm.org/citation.cfm?id=2714625
+
+Bugfix
+   * Fix bug in Via Padlock support (found by Nikos Mavrogiannopoulos).
+   * Fix hardclock() (only used in the benchmarking program) with some
+     versions of mingw64 (found by kxjhlele).
+   * Fix warnings from mingw64 in timing.c (found by kxjklele).
+   * Fix potential unintended sign extension in asn1_get_len() on 64-bit
+     platforms (found with Coverity Scan).
+
+= Version 1.2.13 released 2015-02-16
+Note: Although PolarSSL has been renamed to mbed TLS, no changes reflecting
+      this will be made in the 1.2 branch at this point.
+
+Security
+   * Fix remotely-triggerable uninitialised pointer dereference caused by
+     crafted X.509 certificate (TLS server is not affected if it doesn't ask
+     for a client certificate) (found using Codenomicon Defensics).
+   * Fix remotely-triggerable memory leak caused by crafted X.509 certificates
+     (TLS server is not affected if it doesn't ask for a client certificate)
+     (found using Codenomicon Defensics).
+   * Fix potential stack overflow while parsing crafted X.509 certificates
+     (TLS server is not affected if it doesn't ask for a client certificate)
+     found using Codenomicon Defensics).
+   * Fix buffer overread of size 1 when parsing crafted X.509 certificates
+     (TLS server is not affected if it doesn't ask for a client certificate).
+
+Bugfix
+   * Fix potential undefined behaviour in Camellia.
+   * Fix memory leaks in PKCS#5 and PKCS#12.
+   * Stack buffer overflow if ctr_drbg_update() is called with too large
+     add_len (found by Jean-Philippe Aumasson) (not triggerable remotely).
+   * Fix bug in MPI/bignum on s390/s390x (reported by Dan Horák) (introduced
+     in 1.2.12).
+   * Fix unchecked return code in x509_crt_parse_path() on Windows (found by
+     Peter Vaskovic).
+   * Fix assembly selection for MIPS64 (thanks to James Cowgill).
+   * ssl_get_verify_result() now works even if the handshake was aborted due
+     to a failed verification (found by Fredrik Axelsson).
+   * Skip writing and parsing signature_algorithm extension if none of the
+     key exchanges enabled needs certificates. This fixes a possible interop
+     issue with some servers when a zero-length extension was sent. (Reported
+     by Peter Dettman.)
+   * On a 0-length input, base64_encode() did not correctly set output length
+     (found by Hendrik van den Boogaard).
+
+Changes
+   * Blind RSA private operations even when POLARSSL_RSA_NO_CRT is defined.
+   * Forbid repeated extensions in X.509 certificates.
+   * Add compile-time option POLARSSL_X509_MAX_INTERMEDIATE_CA to limit the
+     length of an X.509 verification chain (default = 8).
 = Version 1.2.12 released 2014-10-24
 
 Security

@@ -5,7 +5,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,14 +30,12 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
-#include <string.h>
+#include <stddef.h>
 
 #if defined(_MSC_VER) || defined(__WATCOMC__)
-  #define UL64(x) x##ui64
   typedef unsigned __int64 uint64_t;
 #else
   #include <inttypes.h>
-  #define UL64(x) x##ULL
 #endif
 
 #define POLARSSL_ERR_SHA512_FILE_IO_ERROR              -0x007A  /**< Read/write error in file. */

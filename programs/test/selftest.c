@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2013, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,15 +25,6 @@
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
-
-#if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
-#else
-#define polarssl_printf     printf
-#endif
-
-#include <string.h>
-#include <stdio.h>
 
 #include "polarssl/entropy.h"
 #include "polarssl/hmac_drbg.h"
@@ -61,6 +52,16 @@
 #include "polarssl/pbkdf2.h"
 #include "polarssl/ecp.h"
 #include "polarssl/timing.h"
+
+#include <stdio.h>
+#include <string.h>
+
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#include <stdio.h>
+#define polarssl_printf     printf
+#endif
 
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
 #include "polarssl/memory_buffer_alloc.h"
@@ -202,20 +203,18 @@ int main( int argc, char *argv[] )
         return( ret );
 #endif
 
-/* Slow tests last */
-
-#if defined(POLARSSL_PBKDF2_C)
+#if defined(POLARSSL_PBKDF2_C) && !defined(POLARSSL_DEPRECATED_REMOVED)
     if( ( ret = pbkdf2_self_test( v ) ) != 0 )
         return( ret );
-#else
+#endif
 #if defined(POLARSSL_PKCS5_C)
     if( ( ret = pkcs5_self_test( v ) ) != 0 )
         return( ret );
 #endif
-#endif
 
-/* Not stable enough on Windows and FreeBSD yet */
-#if __linux__ && defined(POLARSSL_TIMING_C)
+/* Slow tests last */
+
+#if defined(POLARSSL_TIMING_C)
     if( ( ret = timing_self_test( v ) ) != 0 )
         return( ret );
 #endif

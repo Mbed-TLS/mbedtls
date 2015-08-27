@@ -1,5 +1,5 @@
 /* BEGIN_HEADER */
-#include <polarssl/ctr_drbg.h>
+#include "polarssl/ctr_drbg.h"
 
 int test_offset_idx;
 int entropy_func( void *data, unsigned char *buf, size_t len )

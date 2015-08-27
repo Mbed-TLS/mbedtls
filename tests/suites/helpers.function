@@ -1,8 +1,15 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
+#define polarssl_printf     printf
+#define polarssl_fprintf    fprintf
 #define polarssl_malloc     malloc
 #define polarssl_free       free
+#define polarssl_exit       exit
+#define polarssl_fprintf    fprintf
+#define polarssl_printf     printf
+#define polarssl_snprintf   snprintf
 #endif
 
 #ifdef _MSC_VER
@@ -12,9 +19,16 @@ typedef UINT32 uint32_t;
 #include <inttypes.h>
 #endif
 
-#include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#define assert(a) if( !( a ) )                                      \
+{                                                                   \
+    polarssl_fprintf( stderr, "Assertion Failed at %s:%d - %s\n",   \
+                             __FILE__, __LINE__, #a );              \
+    polarssl_exit( 1 );                                             \
+}
 
 /*
  * 32-bit integer manipulation macros (big endian)
@@ -39,13 +53,13 @@ typedef UINT32 uint32_t;
 }
 #endif
 
-static int unhexify(unsigned char *obuf, const char *ibuf)
+static int unhexify( unsigned char *obuf, const char *ibuf )
 {
     unsigned char c, c2;
-    int len = strlen(ibuf) / 2;
-    assert(!(strlen(ibuf) %1)); // must be even number of bytes
+    int len = strlen( ibuf ) / 2;
+    assert( strlen( ibuf ) % 2 == 0 ); // must be even number of bytes
 
-    while (*ibuf != 0)
+    while( *ibuf != 0 )
     {
         c = *ibuf++;
         if( c >= '0' && c <= '9' )
@@ -73,14 +87,14 @@ static int unhexify(unsigned char *obuf, const char *ibuf)
     return len;
 }
 
-static void hexify(unsigned char *obuf, const unsigned char *ibuf, int len)
+static void hexify( unsigned char *obuf, const unsigned char *ibuf, int len )
 {
     unsigned char l, h;
 
-    while (len != 0)
+    while( len != 0 )
     {
-        h = (*ibuf) / 16;
-        l = (*ibuf) % 16;
+        h = *ibuf / 16;
+        l = *ibuf % 16;
 
         if( h < 10 )
             *obuf++ = '0' + h;
@@ -107,7 +121,7 @@ static void hexify(unsigned char *obuf, const unsigned char *ibuf, int len)
 static unsigned char *zero_alloc( size_t len )
 {
     void *p;
-    size_t actual_len = len != 0 ? len : 1;
+    size_t actual_len = ( len != 0 ) ? len : 1;
 
     p = polarssl_malloc( actual_len );
     assert( p != NULL );
@@ -131,7 +145,7 @@ static unsigned char *unhexify_alloc( const char *ibuf, size_t *olen )
 {
     unsigned char *obuf;
 
-    *olen = strlen(ibuf) / 2;
+    *olen = strlen( ibuf ) / 2;
 
     if( *olen == 0 )
         return( zero_alloc( *olen ) );
@@ -269,9 +283,11 @@ static int rnd_pseudo_rand( void *rng_state, unsigned char *output, size_t len )
 
         for( i = 0; i < 32; i++ )
         {
-            info->v0 += (((info->v1 << 4) ^ (info->v1 >> 5)) + info->v1) ^ (sum + k[sum & 3]);
+            info->v0 += ( ( ( info->v1 << 4 ) ^ ( info->v1 >> 5 ) )
+                            + info->v1 ) ^ ( sum + k[sum & 3] );
             sum += delta;
-            info->v1 += (((info->v0 << 4) ^ (info->v0 >> 5)) + info->v0) ^ (sum + k[(sum>>11) & 3]);
+            info->v1 += ( ( ( info->v0 << 4 ) ^ ( info->v0 >> 5 ) )
+                            + info->v0 ) ^ ( sum + k[( sum>>11 ) & 3] );
         }
 
         PUT_UINT32_BE( info->v0, result, 0 );

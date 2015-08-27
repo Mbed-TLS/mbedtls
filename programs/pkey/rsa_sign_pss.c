@@ -1,9 +1,9 @@
 /*
- *  RSASSA-PSS/SHA-1 signature creation program
+ *  RSASSA-PSS/SHA-256 signature creation program
  *
  *  Copyright (C) 2006-2011, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,12 +29,16 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
+#define polarssl_snprintf   snprintf
 #define polarssl_printf     printf
+#define polarssl_snprintf   snprintf
 #endif
 
-#include <string.h>
-#include <stdio.h>
-
+#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_ENTROPY_C) && \
+    defined(POLARSSL_RSA_C) && defined(POLARSSL_SHA256_C) && \
+    defined(POLARSSL_PK_PARSE_C) && defined(POLARSSL_FS_IO) && \
+    defined(POLARSSL_CTR_DRBG_C)
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
 #include "polarssl/md.h"
@@ -42,21 +46,22 @@
 #include "polarssl/sha1.h"
 #include "polarssl/x509.h"
 
+#include <stdio.h>
+#include <string.h>
+#endif
+
 #if defined _MSC_VER && !defined snprintf
 #define snprintf _snprintf
 #endif
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
-    !defined(POLARSSL_RSA_C) || !defined(POLARSSL_SHA1_C) ||        \
+    !defined(POLARSSL_RSA_C) || !defined(POLARSSL_SHA256_C) ||        \
     !defined(POLARSSL_PK_PARSE_C) || !defined(POLARSSL_FS_IO) ||    \
     !defined(POLARSSL_CTR_DRBG_C)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
-           "POLARSSL_RSA_C and/or POLARSSL_SHA1_C and/or "
+           "POLARSSL_RSA_C and/or POLARSSL_SHA256_C and/or "
            "POLARSSL_PK_PARSE_C and/or POLARSSL_FS_IO and/or "
            "POLARSSL_CTR_DRBG_C not defined.\n");
     return( 0 );
@@ -118,13 +123,13 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    rsa_set_padding( pk_rsa( pk ), RSA_PKCS_V21, POLARSSL_MD_SHA1 );
+    rsa_set_padding( pk_rsa( pk ), RSA_PKCS_V21, POLARSSL_MD_SHA256 );
 
     /*
-     * Compute the SHA-1 hash of the input file,
+     * Compute the SHA-256 hash of the input file,
      * then calculate the RSA signature of the hash.
      */
-    polarssl_printf( "\n  . Generating the RSA/SHA-1 signature" );
+    polarssl_printf( "\n  . Generating the RSA/SHA-256 signature" );
     fflush( stdout );
 
     if( ( ret = sha1_file( argv[2], hash ) ) != 0 )
@@ -133,7 +138,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    if( ( ret = pk_sign( &pk, POLARSSL_MD_SHA1, hash, 0, buf, &olen,
+    if( ( ret = pk_sign( &pk, POLARSSL_MD_SHA256, hash, 0, buf, &olen,
                          ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
         polarssl_printf( " failed\n  ! pk_sign returned %d\n\n", ret );
@@ -143,7 +148,7 @@ int main( int argc, char *argv[] )
     /*
      * Write the signature into <filename>-sig.txt
      */
-    snprintf( filename, 512, "%s.sig", argv[2] );
+    polarssl_snprintf( filename, 512, "%s.sig", argv[2] );
 
     if( ( f = fopen( filename, "wb+" ) ) == NULL )
     {
@@ -175,5 +180,5 @@ exit:
     return( ret );
 }
 #endif /* POLARSSL_BIGNUM_C && POLARSSL_ENTROPY_C && POLARSSL_RSA_C &&
-          POLARSSL_SHA1_C && POLARSSL_PK_PARSE_C && POLARSSL_FS_IO &&
+          POLARSSL_SHA256_C && POLARSSL_PK_PARSE_C && POLARSSL_FS_IO &&
           POLARSSL_CTR_DRBG_C */

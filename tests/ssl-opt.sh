@@ -17,7 +17,7 @@ set -u
 : ${GNUTLS_CLI:=gnutls-cli}
 : ${GNUTLS_SERV:=gnutls-serv}
 
-O_SRV="$OPENSSL_CMD s_server -www -cert data_files/server5.crt -key data_files/server5.key"
+O_SRV="$OPENSSL_CMD s_server -www -cert data_files/server5.crt -key data_files/server5.key -dhparam data_files/dhparams.pem"
 O_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_CMD s_client"
 G_SRV="$GNUTLS_SERV --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key"
 G_CLI="echo 'GET / HTTP/1.0' | $GNUTLS_CLI --x509cafile data_files/test-ca_cat12.crt"
@@ -157,17 +157,21 @@ has_mem_err() {
 
 # wait for server to start: two versions depending on lsof availability
 wait_server_start() {
-    if which lsof >/dev/null; then
-        # make sure we don't loop forever
-        ( sleep "$DOG_DELAY"; echo "SERVERSTART TIMEOUT"; kill $MAIN_PID ) &
-        WATCHDOG_PID=$!
+    if which lsof >/dev/null 2>&1; then
+        START_TIME=$( date +%s )
+        DONE=0
 
         # make a tight loop, server usually takes less than 1 sec to start
-        until lsof -nbi TCP:"$PORT" 2>/dev/null | grep LISTEN >/dev/null; 
-        do :; done
-
-        kill $WATCHDOG_PID
-        wait $WATCHDOG_PID
+        while [ $DONE -eq 0 ]; do
+            if lsof -nbi TCP:"$PORT" 2>/dev/null | grep LISTEN >/dev/null
+            then
+                DONE=1
+            elif [ $(( $( date +%s ) - $START_TIME )) -gt $DOG_DELAY ]; then
+                echo "SERVERSTART TIMEOUT"
+                echo "SERVERSTART TIMEOUT" >> $SRV_OUT
+                DONE=1
+            fi
+        done
     else
         sleep "$START_DELAY"
     fi
@@ -341,6 +345,11 @@ cleanup() {
 #
 # MAIN
 #
+
+if cd $( dirname $0 ); then :; else
+    echo "cd $( dirname $0 ) failed" >&2
+    exit 1
+fi
 
 get_options "$@"
 
@@ -1333,7 +1342,7 @@ run_test    "Authentication: server badcert, client required" \
             "$P_CLI debug_level=1 auth_mode=required" \
             1 \
             -c "x509_verify_cert() returned" \
-            -c "! self-signed or not signed by a trusted CA" \
+            -c "! The certificate is not correctly signed by the trusted CA" \
             -c "! ssl_handshake returned" \
             -c "X509 - Certificate verification failed"
 
@@ -1343,7 +1352,7 @@ run_test    "Authentication: server badcert, client optional" \
             "$P_CLI debug_level=1 auth_mode=optional" \
             0 \
             -c "x509_verify_cert() returned" \
-            -c "! self-signed or not signed by a trusted CA" \
+            -c "! The certificate is not correctly signed by the trusted CA" \
             -C "! ssl_handshake returned" \
             -C "X509 - Certificate verification failed"
 
@@ -1353,7 +1362,7 @@ run_test    "Authentication: server badcert, client none" \
             "$P_CLI debug_level=1 auth_mode=none" \
             0 \
             -C "x509_verify_cert() returned" \
-            -C "! self-signed or not signed by a trusted CA" \
+            -C "! The certificate is not correctly signed by the trusted CA" \
             -C "! ssl_handshake returned" \
             -C "X509 - Certificate verification failed"
 
@@ -1369,7 +1378,7 @@ run_test    "Authentication: client badcert, server required" \
             -C "skip write certificate verify" \
             -S "skip parse certificate verify" \
             -s "x509_verify_cert() returned" \
-            -S "! self-signed or not signed by a trusted CA" \
+            -S "! The certificate is not correctly signed by the trusted CA" \
             -s "! ssl_handshake returned" \
             -c "! ssl_handshake returned" \
             -s "X509 - Certificate verification failed"
@@ -1386,7 +1395,7 @@ run_test    "Authentication: client badcert, server optional" \
             -C "skip write certificate verify" \
             -S "skip parse certificate verify" \
             -s "x509_verify_cert() returned" \
-            -s "! self-signed or not signed by a trusted CA" \
+            -s "! The certificate is not correctly signed by the trusted CA" \
             -S "! ssl_handshake returned" \
             -C "! ssl_handshake returned" \
             -S "X509 - Certificate verification failed"
@@ -1403,7 +1412,7 @@ run_test    "Authentication: client badcert, server none" \
             -c "skip write certificate verify" \
             -s "skip parse certificate verify" \
             -S "x509_verify_cert() returned" \
-            -S "! self-signed or not signed by a trusted CA" \
+            -S "! The certificate is not correctly signed by the trusted CA" \
             -S "! ssl_handshake returned" \
             -C "! ssl_handshake returned" \
             -S "X509 - Certificate verification failed"
@@ -1420,7 +1429,7 @@ run_test    "Authentication: client no cert, server optional" \
             -S "SSLv3 client has no certificate" \
             -c "skip write certificate verify" \
             -s "skip parse certificate verify" \
-            -s "! no client certificate sent" \
+            -s "! Certificate was missing" \
             -S "! ssl_handshake returned" \
             -C "! ssl_handshake returned" \
             -S "X509 - Certificate verification failed"
@@ -1431,7 +1440,7 @@ run_test    "Authentication: openssl client no cert, server optional" \
             0 \
             -S "skip write certificate request" \
             -s "skip parse certificate verify" \
-            -s "! no client certificate sent" \
+            -s "! Certificate was missing" \
             -S "! ssl_handshake returned" \
             -S "X509 - Certificate verification failed"
 
@@ -1457,7 +1466,7 @@ run_test    "Authentication: client no cert, ssl3" \
             -c "got no certificate to send" \
             -s "SSLv3 client has no certificate" \
             -s "skip parse certificate verify" \
-            -s "! no client certificate sent" \
+            -s "! Certificate was missing" \
             -S "! ssl_handshake returned" \
             -C "! ssl_handshake returned" \
             -S "X509 - Certificate verification failed"
@@ -1873,6 +1882,17 @@ run_test    "keyUsage cli: KeyEncipherment, DHE-RSA: fail" \
             -c "Processing of the Certificate handshake message failed" \
             -C "Ciphersuite is TLS-"
 
+run_test    "keyUsage cli: KeyEncipherment, DHE-RSA: fail, soft" \
+            "$O_SRV -key data_files/server2.key \
+             -cert data_files/server2.ku-ke.crt" \
+            "$P_CLI debug_level=1 auth_mode=optional \
+             force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA" \
+            0 \
+            -c "bad certificate (usage extensions)" \
+            -C "Processing of the Certificate handshake message failed" \
+            -c "Ciphersuite is TLS-" \
+            -c "! Usage does not match the keyUsage extension"
+
 run_test    "keyUsage cli: DigitalSignature, DHE-RSA: OK" \
             "$O_SRV -key data_files/server2.key \
              -cert data_files/server2.ku-ds.crt" \
@@ -1892,6 +1912,17 @@ run_test    "keyUsage cli: DigitalSignature, RSA: fail" \
             -c "bad certificate (usage extensions)" \
             -c "Processing of the Certificate handshake message failed" \
             -C "Ciphersuite is TLS-"
+
+run_test    "keyUsage cli: DigitalSignature, RSA: fail, soft" \
+            "$O_SRV -key data_files/server2.key \
+             -cert data_files/server2.ku-ds.crt" \
+            "$P_CLI debug_level=1 auth_mode=optional \
+             force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            0 \
+            -c "bad certificate (usage extensions)" \
+            -C "Processing of the Certificate handshake message failed" \
+            -c "Ciphersuite is TLS-" \
+            -c "! Usage does not match the keyUsage extension"
 
 # Tests for keyUsage in leaf certificates, part 3:
 # server-side checking of client cert

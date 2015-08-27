@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2013, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,27 +29,41 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-
+#if defined(POLARSSL_PK_WRITE_C) && defined(POLARSSL_FS_IO)
 #include "polarssl/error.h"
 #include "polarssl/pk.h"
 #include "polarssl/error.h"
 
-#if !defined(POLARSSL_PK_WRITE_C) || !defined(POLARSSL_FS_IO)
-int main( int argc, char *argv[] )
-{
-    ((void) argc);
-    ((void) argv);
+#include <stdio.h>
+#include <string.h>
+#endif
 
-    polarssl_printf( "POLARSSL_PK_WRITE_C and/or POLARSSL_FS_IO not defined.\n" );
-    return( 0 );
-}
+#if defined(POLARSSL_PEM_WRITE_C)
+#define USAGE_OUT \
+    "    output_file=%%s      default: keyfile.pem\n"   \
+    "    output_format=pem|der default: pem\n"
 #else
+#define USAGE_OUT \
+    "    output_file=%%s      default: keyfile.der\n"   \
+    "    output_format=der     default: der\n"
+#endif
+
+#if defined(POLARSSL_PEM_WRITE_C)
+#define DFL_OUTPUT_FILENAME     "keyfile.pem"
+#define DFL_OUTPUT_FORMAT       OUTPUT_FORMAT_PEM
+#else
+#define DFL_OUTPUT_FILENAME     "keyfile.der"
+#define DFL_OUTPUT_FORMAT       OUTPUT_FORMAT_DER
+#endif
+
+#define DFL_MODE                MODE_NONE
+#define DFL_FILENAME            "keyfile.key"
+#define DFL_DEBUG_LEVEL         0
+#define DFL_OUTPUT_MODE         OUTPUT_MODE_NONE
 
 #define MODE_NONE               0
 #define MODE_PRIVATE            1
@@ -62,18 +76,22 @@ int main( int argc, char *argv[] )
 #define OUTPUT_FORMAT_PEM              0
 #define OUTPUT_FORMAT_DER              1
 
-#define DFL_MODE                MODE_NONE
-#define DFL_FILENAME            "keyfile.key"
-#define DFL_DEBUG_LEVEL         0
-#define DFL_OUTPUT_MODE         OUTPUT_MODE_NONE
-#if defined(POLARSSL_PEM_WRITE_C)
-#define DFL_OUTPUT_FILENAME     "keyfile.pem"
-#define DFL_OUTPUT_FORMAT       OUTPUT_FORMAT_PEM
-#else
-#define DFL_OUTPUT_FILENAME     "keyfile.der"
-#define DFL_OUTPUT_FORMAT       OUTPUT_FORMAT_DER
-#endif
+#define USAGE \
+    "\n usage: key_app param=<>...\n"                   \
+    "\n acceptable parameters:\n"                       \
+    "    mode=private|public default: none\n"           \
+    "    filename=%%s         default: keyfile.key\n"   \
+    "    output_mode=private|public default: none\n"    \
+    USAGE_OUT                                           \
+    "\n"
 
+#if !defined(POLARSSL_PK_WRITE_C) || !defined(POLARSSL_FS_IO)
+int main( void )
+{
+    polarssl_printf( "POLARSSL_PK_WRITE_C and/or POLARSSL_FS_IO not defined.\n" );
+    return( 0 );
+}
+#else
 /*
  * global options
  */
@@ -169,25 +187,6 @@ static int write_private_key( pk_context *key, const char *output_file )
 
     return( 0 );
 }
-
-#if defined(POLARSSL_PEM_WRITE_C)
-#define USAGE_OUT \
-    "    output_file=%%s      default: keyfile.pem\n"   \
-    "    output_format=pem|der default: pem\n"
-#else
-#define USAGE_OUT \
-    "    output_file=%%s      default: keyfile.der\n"   \
-    "    output_format=der     default: der\n"
-#endif
-
-#define USAGE \
-    "\n usage: key_app param=<>...\n"                   \
-    "\n acceptable parameters:\n"                       \
-    "    mode=private|public default: none\n"           \
-    "    filename=%%s         default: keyfile.key\n"   \
-    "    output_mode=private|public default: none\n"    \
-    USAGE_OUT                                           \
-    "\n"
 
 int main( int argc, char *argv[] )
 {

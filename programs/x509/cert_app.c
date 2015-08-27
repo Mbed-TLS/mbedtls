@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2013, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,30 +29,18 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
-#define polarssl_printf     printf
-#define polarssl_fprintf    fprintf
-#endif
-
-#include <string.h>
-#include <stdlib.h>
 #include <stdio.h>
-
-#include "polarssl/entropy.h"
-#include "polarssl/ctr_drbg.h"
-#include "polarssl/net.h"
-#include "polarssl/ssl.h"
-#include "polarssl/x509.h"
+#define polarssl_fprintf    fprintf
+#define polarssl_printf     printf
+#endif
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
     !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_CLI_C) || \
     !defined(POLARSSL_NET_C) || !defined(POLARSSL_RSA_C) ||         \
     !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_FS_IO) ||  \
     !defined(POLARSSL_CTR_DRBG_C)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
            "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_CLI_C and/or "
            "POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
@@ -61,6 +49,16 @@ int main( int argc, char *argv[] )
     return( 0 );
 }
 #else
+
+#include "polarssl/entropy.h"
+#include "polarssl/ctr_drbg.h"
+#include "polarssl/net.h"
+#include "polarssl/ssl.h"
+#include "polarssl/x509.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define MODE_NONE               0
 #define MODE_FILE               1
@@ -75,6 +73,26 @@ int main( int argc, char *argv[] )
 #define DFL_SERVER_PORT         4433
 #define DFL_DEBUG_LEVEL         0
 #define DFL_PERMISSIVE          0
+
+#define USAGE_IO \
+    "    ca_file=%%s          The single file containing the top-level CA(s) you fully trust\n" \
+    "                        default: \"\" (none)\n" \
+    "    crl_file=%%s         The single CRL file you want to use\n" \
+    "                        default: \"\" (none)\n" \
+    "    ca_path=%%s          The path containing the top-level CA(s) you fully trust\n" \
+    "                        default: \"\" (none) (overrides ca_file)\n"
+
+#define USAGE \
+    "\n usage: cert_app param=<>...\n"                  \
+    "\n acceptable parameters:\n"                       \
+    "    mode=file|ssl       default: none\n"           \
+    "    filename=%%s         default: cert.crt\n"      \
+    USAGE_IO                                            \
+    "    server_name=%%s      default: localhost\n"     \
+    "    server_port=%%d      default: 4433\n"          \
+    "    debug_level=%%d      default: 0 (disabled)\n"  \
+    "    permissive=%%d       default: 0 (disabled)\n"  \
+    "\n"
 
 /*
  * global options
@@ -110,52 +128,16 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
     x509_crt_info( buf, sizeof( buf ) - 1, "", crt );
     polarssl_printf( "%s", buf );
 
-    if( ( (*flags) & BADCERT_EXPIRED ) != 0 )
-        polarssl_printf( "  ! server certificate has expired\n" );
-
-    if( ( (*flags) & BADCERT_REVOKED ) != 0 )
-        polarssl_printf( "  ! server certificate has been revoked\n" );
-
-    if( ( (*flags) & BADCERT_CN_MISMATCH ) != 0 )
-        polarssl_printf( "  ! CN mismatch\n" );
-
-    if( ( (*flags) & BADCERT_NOT_TRUSTED ) != 0 )
-        polarssl_printf( "  ! self-signed or not signed by a trusted CA\n" );
-
-    if( ( (*flags) & BADCRL_NOT_TRUSTED ) != 0 )
-        polarssl_printf( "  ! CRL not trusted\n" );
-
-    if( ( (*flags) & BADCRL_EXPIRED ) != 0 )
-        polarssl_printf( "  ! CRL expired\n" );
-
-    if( ( (*flags) & BADCERT_OTHER ) != 0 )
-        polarssl_printf( "  ! other (unknown) flag\n" );
-
     if ( ( *flags ) == 0 )
         polarssl_printf( "  This certificate has no flags\n" );
+    else
+    {
+        x509_crt_verify_info( buf, sizeof( buf ), "  ! ", *flags );
+        polarssl_printf( "%s\n", buf );
+    }
 
     return( 0 );
 }
-
-#define USAGE_IO \
-    "    ca_file=%%s          The single file containing the top-level CA(s) you fully trust\n" \
-    "                        default: \"\" (none)\n" \
-    "    crl_file=%%s         The single CRL file you want to use\n" \
-    "                        default: \"\" (none)\n" \
-    "    ca_path=%%s          The path containing the top-level CA(s) you fully trust\n" \
-    "                        default: \"\" (none) (overrides ca_file)\n"
-
-#define USAGE \
-    "\n usage: cert_app param=<>...\n"                  \
-    "\n acceptable parameters:\n"                       \
-    "    mode=file|ssl       default: none\n"           \
-    "    filename=%%s         default: cert.crt\n"      \
-    USAGE_IO                                            \
-    "    server_name=%%s      default: localhost\n"     \
-    "    server_port=%%d      default: 4433\n"          \
-    "    debug_level=%%d      default: 0 (disabled)\n"  \
-    "    permissive=%%d       default: 0 (disabled)\n"  \
-    "\n"
 
 int main( int argc, char *argv[] )
 {
@@ -348,6 +330,8 @@ int main( int argc, char *argv[] )
             cur = cur->next;
         }
 
+        ret = 0;
+
         /*
          * 1.3 Verify the certificate
          */
@@ -358,21 +342,13 @@ int main( int argc, char *argv[] )
             if( ( ret = x509_crt_verify( &crt, &cacert, &cacrl, NULL, &flags,
                                          my_verify, NULL ) ) != 0 )
             {
+                char vrfy_buf[512];
+
                 polarssl_printf( " failed\n" );
 
-                if( ( ret & BADCERT_EXPIRED ) != 0 )
-                    polarssl_printf( "  ! server certificate has expired\n" );
+                x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", flags );
 
-                if( ( ret & BADCERT_REVOKED ) != 0 )
-                    polarssl_printf( "  ! server certificate has been revoked\n" );
-
-                if( ( ret & BADCERT_CN_MISMATCH ) != 0 )
-                    polarssl_printf( "  ! CN mismatch (expected CN=%s)\n", opt.server_name );
-
-                if( ( ret & BADCERT_NOT_TRUSTED ) != 0 )
-                    polarssl_printf( "  ! self-signed or not signed by a trusted CA\n" );
-
-                polarssl_printf( "\n" );
+                polarssl_printf( "%s\n", vrfy_buf );
             }
             else
                 polarssl_printf( " ok\n" );

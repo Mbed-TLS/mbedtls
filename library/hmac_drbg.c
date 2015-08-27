@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -36,15 +36,20 @@
 
 #include "polarssl/hmac_drbg.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_FS_IO)
 #include <stdio.h>
 #endif
 
+#if defined(POLARSSL_SELF_TEST)
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf printf
-#endif
+#endif /* POLARSSL_SELF_TEST */
+#endif /* POLARSSL_PLATFORM_C */
 
 /* Implementation that should never be optimized out by the compiler */
 static void polarssl_zeroize( void *v, size_t n ) {
@@ -309,7 +314,7 @@ void hmac_drbg_free( hmac_drbg_context *ctx )
     if( ctx == NULL )
         return;
 
-    md_free_ctx( &ctx->md_ctx );
+    md_free( &ctx->md_ctx );
 
     polarssl_zeroize( ctx, sizeof( hmac_drbg_context ) );
 }
@@ -376,8 +381,6 @@ int hmac_drbg_update_seed_file( hmac_drbg_context *ctx, const char *path )
 
 #if defined(POLARSSL_SELF_TEST)
 
-#include <stdio.h>
-
 #if !defined(POLARSSL_SHA1_C)
 /* Dummy checkup routine */
 int hmac_drbg_self_test( int verbose )
@@ -393,7 +396,7 @@ int hmac_drbg_self_test( int verbose )
 #define OUTPUT_LEN  80
 
 /* From a NIST PR=true test vector */
-static unsigned char entropy_pr[] = {
+static const unsigned char entropy_pr[] = {
     0xa0, 0xc9, 0xab, 0x58, 0xf1, 0xe2, 0xe5, 0xa4, 0xde, 0x3e, 0xbd, 0x4f,
     0xf7, 0x3e, 0x9c, 0x5b, 0x64, 0xef, 0xd8, 0xca, 0x02, 0x8c, 0xf8, 0x11,
     0x48, 0xa5, 0x84, 0xfe, 0x69, 0xab, 0x5a, 0xee, 0x42, 0xaa, 0x4d, 0x42,
@@ -409,7 +412,7 @@ static const unsigned char result_pr[OUTPUT_LEN] = {
     0xe1, 0x5c, 0x02, 0x9b, 0x44, 0xaf, 0x03, 0x44 };
 
 /* From a NIST PR=false test vector */
-static unsigned char entropy_nopr[] = {
+static const unsigned char entropy_nopr[] = {
     0x79, 0x34, 0x9b, 0xbf, 0x7c, 0xdd, 0xa5, 0x79, 0x95, 0x57, 0x86, 0x66,
     0x21, 0xc9, 0x13, 0x83, 0x11, 0x46, 0x73, 0x3a, 0xbf, 0x8c, 0x35, 0xc8,
     0xc7, 0x21, 0x5b, 0x5b, 0x96, 0xc4, 0x8e, 0x9b, 0x33, 0x8c, 0x74, 0xe3,
@@ -458,7 +461,7 @@ int hmac_drbg_self_test( int verbose )
 
     test_offset = 0;
     CHK( hmac_drbg_init( &ctx, md_info,
-                         hmac_drbg_self_test_entropy, entropy_pr,
+                         hmac_drbg_self_test_entropy, (void *) entropy_pr,
                          NULL, 0 ) );
     hmac_drbg_set_prediction_resistance( &ctx, POLARSSL_HMAC_DRBG_PR_ON );
     CHK( hmac_drbg_random( &ctx, buf, OUTPUT_LEN ) );
@@ -477,7 +480,7 @@ int hmac_drbg_self_test( int verbose )
 
     test_offset = 0;
     CHK( hmac_drbg_init( &ctx, md_info,
-                         hmac_drbg_self_test_entropy, entropy_nopr,
+                         hmac_drbg_self_test_entropy, (void *) entropy_nopr,
                          NULL, 0 ) );
     CHK( hmac_drbg_reseed( &ctx, NULL, 0 ) );
     CHK( hmac_drbg_random( &ctx, buf, OUTPUT_LEN ) );

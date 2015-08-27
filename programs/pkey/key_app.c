@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2013, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,29 +29,18 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-
+#if defined(POLARSSL_BIGNUM_C) && \
+    defined(POLARSSL_PK_PARSE_C) && defined(POLARSSL_FS_IO)
 #include "polarssl/error.h"
 #include "polarssl/rsa.h"
 #include "polarssl/x509.h"
 
-#if !defined(POLARSSL_BIGNUM_C) ||                                  \
-    !defined(POLARSSL_PK_PARSE_C) || !defined(POLARSSL_FS_IO)
-int main( int argc, char *argv[] )
-{
-    ((void) argc);
-    ((void) argv);
-
-    polarssl_printf("POLARSSL_BIGNUM_C and/or "
-           "POLARSSL_PK_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
-    return( 0 );
-}
-#else
+#include <string.h>
+#endif
 
 #define MODE_NONE               0
 #define MODE_PRIVATE            1
@@ -63,6 +52,25 @@ int main( int argc, char *argv[] )
 #define DFL_PASSWORD_FILE       ""
 #define DFL_DEBUG_LEVEL         0
 
+#define USAGE \
+    "\n usage: key_app param=<>...\n"                   \
+    "\n acceptable parameters:\n"                       \
+    "    mode=private|public default: none\n"           \
+    "    filename=%%s         default: keyfile.key\n"   \
+    "    password=%%s         default: \"\"\n"          \
+    "    password_file=%%s    default: \"\"\n"          \
+    "\n"
+
+
+#if !defined(POLARSSL_BIGNUM_C) ||                                  \
+    !defined(POLARSSL_PK_PARSE_C) || !defined(POLARSSL_FS_IO)
+int main( void )
+{
+    polarssl_printf("POLARSSL_BIGNUM_C and/or "
+           "POLARSSL_PK_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
+    return( 0 );
+}
+#else
 /*
  * global options
  */
@@ -73,15 +81,6 @@ struct options
     const char *password;       /* password for the private key         */
     const char *password_file;  /* password_file for the private key    */
 } opt;
-
-#define USAGE \
-    "\n usage: key_app param=<>...\n"                   \
-    "\n acceptable parameters:\n"                       \
-    "    mode=private|public default: none\n"           \
-    "    filename=%%s         default: keyfile.key\n"   \
-    "    password=%%s         default: \"\"\n"          \
-    "    password_file=%%s    default: \"\"\n"          \
-    "\n"
 
 int main( int argc, char *argv[] )
 {

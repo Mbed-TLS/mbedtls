@@ -4,7 +4,14 @@ project(MBEDTLS C)
 string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
 
 if(CMAKE_COMPILER_IS_GNUCC)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -W -Wdeclaration-after-statement -Wwrite-strings -Wlogical-op")
+  # some warnings we want are not available with old GCC versions
+  # note: starting with CMake 2.8 we could use CMAKE_C_COMPILER_VERSION
+  execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion
+                  OUTPUT_VARIABLE GCC_VERSION)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -W -Wdeclaration-after-statement -Wwrite-strings")
+  if (GCC_VERSION VERSION_GREATER 4.5 OR GCC_VERSION VERSION_EQUAL 4.5)
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wlogical-op")
+  endif()
   set(CMAKE_C_FLAGS_RELEASE     "-O2")
   set(CMAKE_C_FLAGS_DEBUG       "-O0 -g3")
   set(CMAKE_C_FLAGS_COVERAGE    "-O0 -g3 --coverage")

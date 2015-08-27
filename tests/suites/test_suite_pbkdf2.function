@@ -1,9 +1,9 @@
 /* BEGIN_HEADER */
-#include <polarssl/pbkdf2.h>
+#include "polarssl/pbkdf2.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:POLARSSL_PBKDF2_C
+ * depends_on:POLARSSL_PBKDF2_C:!POLARSSL_DEPRECATED_REMOVED
  * END_DEPENDENCIES
  */
 

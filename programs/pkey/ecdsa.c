@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2013, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,15 +29,18 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
+#if defined(POLARSSL_ECDSA_C) && \
+    defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_CTR_DRBG_C)
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
 #include "polarssl/ecdsa.h"
 
 #include <string.h>
-#include <stdio.h>
+#endif
 
 /*
  * Uncomment to show key and signature details
@@ -55,17 +58,13 @@
 
 #if !defined(POLARSSL_ECDSA_C) || \
     !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_ECDSA_C and/or "
            "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C not defined\n");
     return( 0 );
 }
 #else
-
 #if defined(VERBOSE)
 static void dump_buf( const char *title, unsigned char *buf, size_t len )
 {

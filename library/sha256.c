@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -35,15 +35,20 @@
 
 #include "polarssl/sha256.h"
 
-#if defined(POLARSSL_FS_IO) || defined(POLARSSL_SELF_TEST)
+#include <string.h>
+
+#if defined(POLARSSL_FS_IO)
 #include <stdio.h>
 #endif
 
+#if defined(POLARSSL_SELF_TEST)
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf printf
-#endif
+#endif /* POLARSSL_PLATFORM_C */
+#endif /* POLARSSL_SELF_TEST */
 
 /* Implementation that should never be optimized out by the compiler */
 static void polarssl_zeroize( void *v, size_t n ) {
@@ -478,7 +483,7 @@ void sha256_hmac( const unsigned char *key, size_t keylen,
 /*
  * FIPS-180-2 test vectors
  */
-static unsigned char sha256_test_buf[3][57] =
+static const unsigned char sha256_test_buf[3][57] =
 {
     { "abc" },
     { "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq" },
@@ -528,7 +533,7 @@ static const unsigned char sha256_test_sum[6][32] =
 /*
  * RFC 4231 test vectors
  */
-static unsigned char sha256_hmac_test_key[7][26] =
+static const unsigned char sha256_hmac_test_key[7][26] =
 {
     { "\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B"
       "\x0B\x0B\x0B\x0B" },
@@ -548,7 +553,7 @@ static const int sha256_hmac_test_keylen[7] =
     20, 4, 20, 25, 20, 131, 131
 };
 
-static unsigned char sha256_hmac_test_buf[7][153] =
+static const unsigned char sha256_hmac_test_buf[7][153] =
 {
     { "Hi There" },
     { "what do ya want for nothing?" },
@@ -698,7 +703,7 @@ int sha256_self_test( int verbose )
 
         if( j == 5 || j == 6 )
         {
-            memset( buf, '\xAA', buflen = 131 );
+            memset( buf, 0xAA, buflen = 131 );
             sha256_hmac_starts( &ctx, buf, buflen, k );
         }
         else

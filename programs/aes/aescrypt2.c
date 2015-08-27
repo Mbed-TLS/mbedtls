@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2013, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,8 +29,19 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
-#define polarssl_printf     printf
+#include <stdio.h>
 #define polarssl_fprintf    fprintf
+#define polarssl_printf     printf
+#endif
+
+#if defined(POLARSSL_AES_C) && defined(POLARSSL_SHA256_C) && \
+ defined(POLARSSL_FS_IO)
+#include "polarssl/aes.h"
+#include "polarssl/sha256.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #endif
 
 #if defined(_WIN32)
@@ -43,14 +54,6 @@
 #include <unistd.h>
 #endif
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <time.h>
-
-#include "polarssl/aes.h"
-#include "polarssl/sha256.h"
-
 #define MODE_ENCRYPT    0
 #define MODE_DECRYPT    1
 
@@ -60,12 +63,11 @@
     "\n  example: aescrypt2 0 file file.aes hex:E76B2413958B00E193\n" \
     "\n"
 
-#if !defined(POLARSSL_AES_C) || !defined(POLARSSL_SHA256_C)
-int main( int argc, char *argv[] )
+#if !defined(POLARSSL_AES_C) || !defined(POLARSSL_SHA256_C) || \
+    !defined(POLARSSL_FS_IO)
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-    polarssl_printf("POLARSSL_AES_C and/or POLARSSL_SHA256_C not defined.\n");
+    polarssl_printf("POLARSSL_AES_C and/or POLARSSL_SHA256_C and/or POLARSSL_FS_IO not defined.\n");
     return( 0 );
 }
 #else
@@ -442,4 +444,4 @@ exit:
 
     return( ret );
 }
-#endif /* POLARSSL_AES_C && POLARSSL_SHA256_C */
+#endif /* POLARSSL_AES_C && POLARSSL_SHA256_C && POLARSSL_FS_IO */

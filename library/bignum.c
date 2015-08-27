@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -38,15 +38,17 @@
 #include "polarssl/bignum.h"
 #include "polarssl/bn_mul.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
+#include <stdlib.h>
 #define polarssl_printf     printf
 #define polarssl_malloc     malloc
 #define polarssl_free       free
 #endif
-
-#include <stdlib.h>
 
 /* Implementation that should never be optimized out by the compiler */
 static void polarssl_zeroize( void *v, size_t n ) {
@@ -107,7 +109,7 @@ int mpi_grow( mpi *X, size_t nblimbs )
 
     if( X->n < nblimbs )
     {
-        if( ( p = (t_uint *) polarssl_malloc( nblimbs * ciL ) ) == NULL )
+        if( ( p = polarssl_malloc( nblimbs * ciL ) ) == NULL )
             return( POLARSSL_ERR_MPI_MALLOC_FAILED );
 
         memset( p, 0, nblimbs * ciL );
@@ -147,7 +149,7 @@ int mpi_shrink( mpi *X, size_t nblimbs )
     if( i < nblimbs )
         i = nblimbs;
 
-    if( ( p = (t_uint *) polarssl_malloc( i * ciL ) ) == NULL )
+    if( ( p = polarssl_malloc( i * ciL ) ) == NULL )
         return( POLARSSL_ERR_MPI_MALLOC_FAILED );
 
     memset( p, 0, i * ciL );
@@ -221,8 +223,8 @@ int mpi_safe_cond_assign( mpi *X, const mpi *Y, unsigned char assign )
     int ret = 0;
     size_t i;
 
-    /* make sure assign is 0 or 1 */
-    assign = ( assign != 0 );
+    /* make sure assign is 0 or 1 in a time-constant manner */
+    assign = (assign | (unsigned char)-assign) >> 7;
 
     MPI_CHK( mpi_grow( X, Y->n ) );
 
@@ -253,8 +255,8 @@ int mpi_safe_cond_swap( mpi *X, mpi *Y, unsigned char swap )
     if( X == Y )
         return( 0 );
 
-    /* make sure swap is 0 or 1 */
-    swap = ( swap != 0 );
+    /* make sure swap is 0 or 1 in a time-constant manner */
+    swap = (swap | (unsigned char)-swap) >> 7;
 
     MPI_CHK( mpi_grow( X, Y->n ) );
     MPI_CHK( mpi_grow( Y, X->n ) );
@@ -353,6 +355,9 @@ size_t mpi_lsb( const mpi *X )
 size_t mpi_msb( const mpi *X )
 {
     size_t i, j;
+
+    if( X->n == 0 )
+        return( 0 );
 
     for( i = X->n - 1; i > 0; i-- )
         if( X->p[i] != 0 )
@@ -1238,17 +1243,7 @@ int mpi_div_mpi( mpi *Q, mpi *R, const mpi *A, const mpi *B )
             Z.p[i - t - 1] = ~0;
         else
         {
-            /*
-             * The version of Clang shipped by Apple with Mavericks around
-             * 2014-03 can't handle 128-bit division properly. Disable
-             * 128-bits division for this version. Let's be optimistic and
-             * assume it'll be fixed in the next minor version (next
-             * patchlevel is probably a bit too optimistic).
-             */
-#if defined(POLARSSL_HAVE_UDBL) &&                          \
-    ! ( defined(__x86_64__) && defined(__APPLE__) &&        \
-        defined(__clang_major__) && __clang_major__ == 5 && \
-        defined(__clang_minor__) && __clang_minor__ == 0 )
+#if defined(POLARSSL_HAVE_UDBL)
             t_udbl r;
 
             r  = (t_udbl) X.p[i] << biL;
@@ -1966,8 +1961,8 @@ static int mpi_miller_rabin( const mpi *X,
                              int (*f_rng)(void *, unsigned char *, size_t),
                              void *p_rng )
 {
-    int ret;
-    size_t i, j, n, s;
+    int ret, count;
+    size_t i, j, k, n, s;
     mpi W, R, T, A, RR;
 
     mpi_init( &W ); mpi_init( &R ); mpi_init( &T ); mpi_init( &A );
@@ -1995,14 +1990,23 @@ static int mpi_miller_rabin( const mpi *X,
         /*
          * pick a random A, 1 < A < |X| - 1
          */
-        MPI_CHK( mpi_fill_random( &A, X->n * ciL, f_rng, p_rng ) );
 
-        if( mpi_cmp_mpi( &A, &W ) >= 0 )
-        {
-            j = mpi_msb( &A ) - mpi_msb( &W );
-            MPI_CHK( mpi_shift_r( &A, j + 1 ) );
-        }
-        A.p[0] |= 3;
+        count = 0;
+        do {
+            MPI_CHK( mpi_fill_random( &A, X->n * ciL, f_rng, p_rng ) );
+
+            j = mpi_msb( &A );
+            k = mpi_msb( &W );
+            if (j > k) {
+                MPI_CHK( mpi_shift_r( &A, j - k ) );
+            }
+
+            if (count++ > 30) {
+                return POLARSSL_ERR_MPI_NOT_ACCEPTABLE;
+            }
+
+        } while ( (mpi_cmp_mpi( &A, &W ) >= 0) ||
+                  (mpi_cmp_int( &A, 1 )  <= 0)    );
 
         /*
          * A = A^R mod |X|
@@ -2100,10 +2104,11 @@ int mpi_gen_prime( mpi *X, size_t nbits, int dh_flag,
     MPI_CHK( mpi_fill_random( X, n * ciL, f_rng, p_rng ) );
 
     k = mpi_msb( X );
-    if( k < nbits ) MPI_CHK( mpi_shift_l( X, nbits - k ) );
-    if( k > nbits ) MPI_CHK( mpi_shift_r( X, k - nbits ) );
+    if( k > nbits ) MPI_CHK( mpi_shift_r( X, k - nbits + 1 ) );
 
-    X->p[0] |= 3;
+    mpi_set_bit( X, nbits-1, 1 );
+
+    X->p[0] |= 1;
 
     if( dh_flag == 0 )
     {
@@ -2122,6 +2127,9 @@ int mpi_gen_prime( mpi *X, size_t nbits, int dh_flag,
          * is X = 2 mod 3 (which is equivalent to Y = 2 mod 3).
          * Make sure it is satisfied, while keeping X = 3 mod 4
          */
+
+        X->p[0] |= 2;
+
         MPI_CHK( mpi_mod_int( &r, X, 3 ) );
         if( r == 0 )
             MPI_CHK( mpi_add_int( X, X, 8 ) );

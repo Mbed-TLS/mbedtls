@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2012, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,37 +29,43 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
-
-#include <stdio.h>
-
-#include "polarssl/bignum.h"
-#include "polarssl/entropy.h"
-#include "polarssl/ctr_drbg.h"
-
-/*
- * Note: G = 4 is always a quadratic residue mod P,
- * so it is a generator of order Q (with P = 2*Q+1).
- */
-#define DH_P_SIZE 1024
-#define GENERATOR "4"
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||   \
     !defined(POLARSSL_FS_IO) || !defined(POLARSSL_CTR_DRBG_C) ||     \
     !defined(POLARSSL_GENPRIME)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
            "POLARSSL_FS_IO and/or POLARSSL_CTR_DRBG_C and/or "
            "POLARSSL_GENPRIME not defined.\n");
     return( 0 );
 }
 #else
-int main( int argc, char *argv[] )
+
+#include "polarssl/bignum.h"
+#include "polarssl/entropy.h"
+#include "polarssl/ctr_drbg.h"
+
+#include <stdio.h>
+#include <string.h>
+
+#define USAGE \
+    "\n usage: dh_genprime param=<>...\n"                                   \
+    "\n acceprable parameters:\n"                                           \
+    "    bits=%%d           default: 2048\n"
+
+#define DFL_BITS    2048
+
+/*
+ * Note: G = 4 is always a quadratic residue mod P,
+ * so it is a generator of order Q (with P = 2*Q+1).
+ */
+#define GENERATOR "4"
+
+int main( int argc, char **argv )
 {
     int ret = 1;
     mpi G, P, Q;
@@ -67,25 +73,42 @@ int main( int argc, char *argv[] )
     ctr_drbg_context ctr_drbg;
     const char *pers = "dh_genprime";
     FILE *fout;
-
-    ((void) argc);
-    ((void) argv);
+    int nbits = DFL_BITS;
+    int i;
+    char *p, *q;
 
     mpi_init( &G ); mpi_init( &P ); mpi_init( &Q );
     entropy_init( &entropy );
+
+    if( argc == 0 )
+    {
+    usage:
+        polarssl_printf( USAGE );
+        return( 1 );
+    }
+
+    for( i = 1; i < argc; i++ )
+    {
+        p = argv[i];
+        if( ( q = strchr( p, '=' ) ) == NULL )
+            goto usage;
+        *q++ = '\0';
+
+        if( strcmp( p, "bits" ) == 0 )
+        {
+            nbits = atoi( q );
+            if( nbits < 0 || nbits > POLARSSL_MPI_MAX_BITS )
+                goto usage;
+        }
+        else
+            goto usage;
+    }
 
     if( ( ret = mpi_read_string( &G, 10, GENERATOR ) ) != 0 )
     {
         polarssl_printf( " failed\n  ! mpi_read_string returned %d\n", ret );
         goto exit;
     }
-
-    polarssl_printf( "\nWARNING: You should not generate and use your own DHM primes\n" );
-    polarssl_printf( "         unless you are very certain of what you are doing!\n" );
-    polarssl_printf( "         Failing to follow this instruction may result in\n" );
-    polarssl_printf( "         weak security for your connections! Use the\n" );
-    polarssl_printf( "         predefined DHM parameters from dhm.h instead!\n\n" );
-    polarssl_printf( "============================================================\n\n" );
 
     polarssl_printf( "  ! Generating large primes may take minutes!\n" );
 
@@ -106,7 +129,7 @@ int main( int argc, char *argv[] )
     /*
      * This can take a long time...
      */
-    if( ( ret = mpi_gen_prime( &P, DH_P_SIZE, 1,
+    if( ( ret = mpi_gen_prime( &P, nbits, 1,
                                ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
         polarssl_printf( " failed\n  ! mpi_gen_prime returned %d\n\n", ret );

@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2013, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,13 +29,15 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
-#define polarssl_printf     printf
+#include <stdio.h>
 #define polarssl_fprintf    fprintf
+#define polarssl_printf     printf
 #endif
 
-#include <string.h>
-#include <stdio.h>
-
+#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_ENTROPY_C) && \
+    defined(POLARSSL_SSL_TLS_C) && defined(POLARSSL_SSL_CLI_C) && \
+    defined(POLARSSL_NET_C) && defined(POLARSSL_RSA_C) && \
+    defined(POLARSSL_CTR_DRBG_C) && defined(POLARSSL_X509_CRT_PARSE_C)
 #include "polarssl/net.h"
 #include "polarssl/debug.h"
 #include "polarssl/ssl.h"
@@ -44,15 +46,22 @@
 #include "polarssl/error.h"
 #include "polarssl/certs.h"
 
+#include <stdio.h>
+#include <string.h>
+#endif
+
+#define SERVER_PORT 4433
+#define SERVER_NAME "localhost"
+#define GET_REQUEST "GET / HTTP/1.0\r\n\r\n"
+
+#define DEBUG_LEVEL 1
+
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
     !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_CLI_C) || \
     !defined(POLARSSL_NET_C) || !defined(POLARSSL_RSA_C) ||         \
     !defined(POLARSSL_CTR_DRBG_C) || !defined(POLARSSL_X509_CRT_PARSE_C)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
            "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_CLI_C and/or "
            "POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
@@ -61,13 +70,6 @@ int main( int argc, char *argv[] )
     return( 0 );
 }
 #else
-
-#define SERVER_PORT 4433
-#define SERVER_NAME "localhost"
-#define GET_REQUEST "GET / HTTP/1.0\r\n\r\n"
-
-#define DEBUG_LEVEL 1
-
 static void my_debug( void *ctx, int level, const char *str )
 {
     ((void) level);
@@ -76,7 +78,7 @@ static void my_debug( void *ctx, int level, const char *str )
     fflush(  (FILE *) ctx  );
 }
 
-int main( int argc, char *argv[] )
+int main( void )
 {
     int ret, len, server_fd = -1;
     unsigned char buf[1024];
@@ -86,9 +88,6 @@ int main( int argc, char *argv[] )
     ctr_drbg_context ctr_drbg;
     ssl_context ssl;
     x509_crt cacert;
-
-    ((void) argc);
-    ((void) argv);
 
 #if defined(POLARSSL_DEBUG_C)
     debug_set_threshold( DEBUG_LEVEL );
@@ -204,24 +203,16 @@ int main( int argc, char *argv[] )
      */
     polarssl_printf( "  . Verifying peer X.509 certificate..." );
 
-    /* In real life, we may want to bail out when ret != 0 */
+    /* In real life, we probably want to bail out when ret != 0 */
     if( ( ret = ssl_get_verify_result( &ssl ) ) != 0 )
     {
+        char vrfy_buf[512];
+
         polarssl_printf( " failed\n" );
 
-        if( ( ret & BADCERT_EXPIRED ) != 0 )
-            polarssl_printf( "  ! server certificate has expired\n" );
+        x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", ret );
 
-        if( ( ret & BADCERT_REVOKED ) != 0 )
-            polarssl_printf( "  ! server certificate has been revoked\n" );
-
-        if( ( ret & BADCERT_CN_MISMATCH ) != 0 )
-            polarssl_printf( "  ! CN mismatch (expected CN=%s)\n", "PolarSSL Server 1" );
-
-        if( ( ret & BADCERT_NOT_TRUSTED ) != 0 )
-            polarssl_printf( "  ! self-signed or not signed by a trusted CA\n" );
-
-        polarssl_printf( "\n" );
+        polarssl_printf( "%s\n", vrfy_buf );
     }
     else
         polarssl_printf( " ok\n" );

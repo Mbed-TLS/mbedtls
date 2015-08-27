@@ -1,5 +1,5 @@
 /* BEGIN_HEADER */
-#include <polarssl/debug.h>
+#include "polarssl/debug.h"
 
 struct buffer_data
 {
@@ -44,8 +44,8 @@ void debug_print_msg_threshold( int threshold, int level, char *file, int line,
     debug_set_threshold( threshold );
     ssl_set_dbg(&ssl, string_debug, &buffer);
 
-    debug_print_msg( &ssl, level, file, line,
-                     debug_fmt("Text message, 2 == %d", 2 ) );
+    debug_print_msg_free( &ssl, level, file, line,
+                          debug_fmt("Text message, 2 == %d", 2 ) );
 
     TEST_ASSERT( strcmp( buffer.buf, result_str ) == 0 );
 }

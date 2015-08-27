@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,6 +29,8 @@
 #if defined(POLARSSL_NET_C)
 
 #include "polarssl/net.h"
+
+#include <string.h>
 
 #if (defined(_WIN32) || defined(_WIN32_WCE)) && !defined(EFIX64) && \
     !defined(EFI32)
@@ -127,6 +129,12 @@ typedef UINT32 uint32_t;
                            (((unsigned long )(n) & 0xFF000000) >> 24))
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_snprintf snprintf
+#endif
+
 unsigned short net_htons( unsigned short n );
 unsigned long  net_htonl( unsigned long  n );
 #define net_htons(n) POLARSSL_HTONS(n)
@@ -171,7 +179,7 @@ int net_connect( int *fd, const char *host, int port )
 
     /* getaddrinfo expects port as a string */
     memset( port_str, 0, sizeof( port_str ) );
-    snprintf( port_str, sizeof( port_str ), "%d", port );
+    polarssl_snprintf( port_str, sizeof( port_str ), "%d", port );
 
     /* Do name resolution with both IPv6 and IPv4, but only TCP */
     memset( &hints, 0, sizeof( hints ) );
@@ -257,7 +265,7 @@ int net_bind( int *fd, const char *bind_ip, int port )
 
     /* getaddrinfo expects port as a string */
     memset( port_str, 0, sizeof( port_str ) );
-    snprintf( port_str, sizeof( port_str ), "%d", port );
+    polarssl_snprintf( port_str, sizeof( port_str ), "%d", port );
 
     /* Bind to IPv6 and/or IPv4, but only in TCP */
     memset( &hints, 0, sizeof( hints ) );

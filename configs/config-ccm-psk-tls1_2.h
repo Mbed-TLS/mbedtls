@@ -12,7 +12,7 @@
 #define POLARSSL_CONFIG_H
 
 /* System support */
-//#define POLARSSL_HAVE_IPV6 /* Optional */
+#define POLARSSL_HAVE_IPV6 /* Now mandatory for NET_C */
 //#define POLARSSL_HAVE_TIME /* Optionally used in Hello messages */
 /* Other POLARSSL_HAVE_XXX flags irrelevant for this configuration */
 

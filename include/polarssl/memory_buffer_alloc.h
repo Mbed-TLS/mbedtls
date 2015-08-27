@@ -5,7 +5,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
-#include <stdlib.h>
+#include <stddef.h>
 
 /**
  * \name SECTION: Module settings
@@ -97,6 +97,27 @@ void memory_buffer_set_verify( int verify );
  *          trace if POLARSSL_MEMORY_BACKTRACE is defined.
  */
 void memory_buffer_alloc_status( void );
+
+/**
+ * \brief   Get the peak heap usage so far
+ *
+ * \param max_used      Peak number of bytes reauested by the application
+ * \param max_blocks    Peak number of blocks reauested by the application
+ */
+void memory_buffer_alloc_max_get( size_t *max_used, size_t *max_blocks );
+
+/**
+ * \brief   Reset peak statistics
+ */
+void memory_buffer_alloc_max_reset( void );
+
+/**
+ * \brief   Get the current heap usage
+ *
+ * \param cur_used      Number of bytes reauested by the application
+ * \param cur_blocks    Number of blocks reauested by the application
+ */
+void memory_buffer_alloc_cur_get( size_t *cur_used, size_t *cur_blocks );
 #endif /* POLARSSL_MEMORY_DEBUG */
 
 /**

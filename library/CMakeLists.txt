@@ -88,7 +88,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
 endif(CMAKE_COMPILER_IS_GNUCC)
 
 if(CMAKE_COMPILER_IS_CLANG)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmissing-declarations -Wmissing-prototypes -Wdocumentation -Wunreachable-code")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmissing-declarations -Wmissing-prototypes -Wdocumentation -Wno-documentation-deprecated-sync -Wunreachable-code")
 endif(CMAKE_COMPILER_IS_CLANG)
 
 if (NOT USE_STATIC_MBEDTLS_LIBRARY AND NOT USE_SHARED_MBEDTLS_LIBRARY)
@@ -123,7 +123,7 @@ endif()
 
 if(USE_SHARED_MBEDTLS_LIBRARY)
 	add_library(mbedtls SHARED ${src})
-	set_target_properties(mbedtls PROPERTIES VERSION 1.3.10 SOVERSION 8)
+	set_target_properties(mbedtls PROPERTIES VERSION 1.3.12 SOVERSION 9)
 
 	target_link_libraries(mbedtls ${libs})
 

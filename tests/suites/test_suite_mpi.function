@@ -1,11 +1,30 @@
 /* BEGIN_HEADER */
-#include <polarssl/bignum.h>
+#include "polarssl/bignum.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
  * depends_on:POLARSSL_BIGNUM_C
  * END_DEPENDENCIES
  */
+
+/* BEGIN_CASE */
+void mpi_null( )
+{
+    mpi X, Y, Z;
+
+    mpi_init( &X );
+    mpi_init( &Y );
+    mpi_init( &Z );
+
+    TEST_ASSERT( mpi_get_bit( &X, 42 ) == 0 );
+    TEST_ASSERT( mpi_lsb( &X ) == 0 );
+    TEST_ASSERT( mpi_msb( &X ) == 0 );
+    TEST_ASSERT( mpi_size( &X ) == 0 );
+
+exit:
+    mpi_free( &X );
+}
+/* END_CASE */
 
 /* BEGIN_CASE */
 void mpi_read_write_string( int radix_X, char *input_X, int radix_A,
@@ -97,6 +116,7 @@ void mpi_read_file( int radix_X, char *input_file, char *input_A,
     unsigned char buf[1000];
     size_t buflen;
     FILE *file;
+    int ret;
 
     memset( buf, 0x00, 1000 );
     memset( str, 0x00, 1000 );
@@ -105,8 +125,9 @@ void mpi_read_file( int radix_X, char *input_file, char *input_A,
 
     file = fopen( input_file, "r" );
     TEST_ASSERT( file != NULL );
-    TEST_ASSERT( mpi_read_file( &X, radix_X, file ) == result );
+    ret = mpi_read_file( &X, radix_X, file );
     fclose(file);
+    TEST_ASSERT( ret == result );
 
     if( result == 0 )
     {

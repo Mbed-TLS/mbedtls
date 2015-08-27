@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,6 +30,8 @@
 
 #include "polarssl/asn1.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_BIGNUM_C)
 #include "polarssl/bignum.h"
 #endif
@@ -37,12 +39,10 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdlib.h>
 #define polarssl_malloc     malloc
 #define polarssl_free       free
 #endif
-
-#include <string.h>
-#include <stdlib.h>
 
 /* Implementation that should never be optimized out by the compiler */
 static void polarssl_zeroize( void *v, size_t n ) {
@@ -77,7 +77,7 @@ int asn1_get_len( unsigned char **p,
             if( ( end - *p ) < 3 )
                 return( POLARSSL_ERR_ASN1_OUT_OF_DATA );
 
-            *len = ( (*p)[1] << 8 ) | (*p)[2];
+            *len = ( (size_t)(*p)[1] << 8 ) | (*p)[2];
             (*p) += 3;
             break;
 
@@ -85,7 +85,8 @@ int asn1_get_len( unsigned char **p,
             if( ( end - *p ) < 4 )
                 return( POLARSSL_ERR_ASN1_OUT_OF_DATA );
 
-            *len = ( (*p)[1] << 16 ) | ( (*p)[2] << 8 ) | (*p)[3];
+            *len = ( (size_t)(*p)[1] << 16 ) |
+                   ( (size_t)(*p)[2] << 8  ) | (*p)[3];
             (*p) += 4;
             break;
 
@@ -93,8 +94,8 @@ int asn1_get_len( unsigned char **p,
             if( ( end - *p ) < 5 )
                 return( POLARSSL_ERR_ASN1_OUT_OF_DATA );
 
-            *len = ( (*p)[1] << 24 ) | ( (*p)[2] << 16 ) | ( (*p)[3] << 8 ) |
-                   (*p)[4];
+            *len = ( (size_t)(*p)[1] << 24 ) | ( (size_t)(*p)[2] << 16 ) |
+                   ( (size_t)(*p)[3] << 8  ) |           (*p)[4];
             (*p) += 5;
             break;
 
@@ -269,8 +270,7 @@ int asn1_get_sequence_of( unsigned char **p,
         /* Allocate and assign next pointer */
         if( *p < end )
         {
-            cur->next = (asn1_sequence *) polarssl_malloc(
-                 sizeof( asn1_sequence ) );
+            cur->next = polarssl_malloc( sizeof( asn1_sequence ) );
 
             if( cur->next == NULL )
                 return( POLARSSL_ERR_ASN1_MALLOC_FAILED );

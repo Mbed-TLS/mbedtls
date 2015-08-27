@@ -5,7 +5,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -33,7 +33,8 @@
 #include "polarssl/ssl_ciphersuites.h"
 #include "polarssl/ssl.h"
 
-#include <stdlib.h>
+// #include <stdlib.h>
+#include <string.h>
 
 #if defined(_MSC_VER) && !defined strcasecmp && !defined(EFIX64) && \
     !defined(EFI32)
@@ -1673,7 +1674,9 @@ static const ssl_ciphersuite_t ciphersuite_definitions[] =
 #endif /* POLARSSL_DES_C */
 #endif /* POLARSSL_ENABLE_WEAK_CIPHERSUITES */
 
-    { 0, "", 0, 0, 0, 0, 0, 0, 0, 0 }
+    { 0, "",
+      POLARSSL_CIPHER_NONE, POLARSSL_MD_NONE, POLARSSL_KEY_EXCHANGE_NONE,
+      0, 0, 0, 0, 0 }
 };
 
 #if defined(SSL_CIPHERSUITES)

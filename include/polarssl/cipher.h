@@ -7,7 +7,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -33,6 +33,8 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#include <stddef.h>
+
 #if defined(POLARSSL_GCM_C) || defined(POLARSSL_CCM_C)
 #define POLARSSL_CIPHER_MODE_AEAD
 #endif
@@ -41,7 +43,9 @@
 #define POLARSSL_CIPHER_MODE_WITH_PADDING
 #endif
 
-#include <string.h>
+#if defined(POLARSSL_ARC4_C)
+#define POLARSSL_CIPHER_MODE_STREAM
+#endif
 
 #if defined(_MSC_VER) && !defined(inline)
 #define inline _inline
@@ -70,7 +74,7 @@ typedef enum {
     POLARSSL_CIPHER_ID_NULL,
     POLARSSL_CIPHER_ID_AES,
     POLARSSL_CIPHER_ID_DES,
-    POLARSSL_CIPHER_ID_3DES,
+    POLARSSL_CIPHER_ID_3DES, /* Unused! */
     POLARSSL_CIPHER_ID_CAMELLIA,
     POLARSSL_CIPHER_ID_BLOWFISH,
     POLARSSL_CIPHER_ID_ARC4,
@@ -182,24 +186,32 @@ typedef struct {
     int (*ecb_func)( void *ctx, operation_t mode,
                      const unsigned char *input, unsigned char *output );
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
     /** Encrypt using CBC */
     int (*cbc_func)( void *ctx, operation_t mode, size_t length,
                      unsigned char *iv, const unsigned char *input,
                      unsigned char *output );
+#endif
 
+#if defined(POLARSSL_CIPHER_MODE_CFB)
     /** Encrypt using CFB (Full length) */
     int (*cfb_func)( void *ctx, operation_t mode, size_t length, size_t *iv_off,
                      unsigned char *iv, const unsigned char *input,
                      unsigned char *output );
+#endif
 
+#if defined(POLARSSL_CIPHER_MODE_CTR)
     /** Encrypt using CTR */
     int (*ctr_func)( void *ctx, size_t length, size_t *nc_off,
                      unsigned char *nonce_counter, unsigned char *stream_block,
                      const unsigned char *input, unsigned char *output );
+#endif
 
+#if defined(POLARSSL_CIPHER_MODE_STREAM)
     /** Encrypt using STREAM */
     int (*stream_func)( void *ctx, size_t length,
                         const unsigned char *input, unsigned char *output );
+#endif
 
     /** Set key for encryption purposes */
     int (*setkey_enc_func)( void *ctx, const unsigned char *key,
@@ -262,9 +274,11 @@ typedef struct {
     /** Operation that the context's key has been initialised for */
     operation_t operation;
 
+#if defined(POLARSSL_CIPHER_MODE_WITH_PADDING)
     /** Padding functions to use, if relevant for cipher mode */
     void (*add_padding)( unsigned char *output, size_t olen, size_t data_len );
     int (*get_padding)( unsigned char *input, size_t ilen, size_t *data_len );
+#endif
 
     /** Buffer for data that hasn't been encrypted yet */
     unsigned char unprocessed_data[POLARSSL_MAX_BLOCK_LENGTH];
@@ -358,17 +372,25 @@ void cipher_free( cipher_context_t *ctx );
  */
 int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info );
 
+#if ! defined(POLARSSL_DEPRECATED_REMOVED)
+#if defined(POLARSSL_DEPRECATED_WARNING)
+#define DEPRECATED    __attribute__((deprecated))
+#else
+#define DEPRECATED
+#endif
 /**
  * \brief               Free the cipher-specific context of ctx. Freeing ctx
  *                      itself remains the responsibility of the caller.
  *
- * \note                Deprecated: Redirects to cipher_free()
+ * \deprecated          Use cipher_free() instead
  *
  * \param ctx           Free the cipher-specific context
  *
  * \returns             0
  */
-int cipher_free_ctx( cipher_context_t *ctx );
+int cipher_free_ctx( cipher_context_t *ctx ) DEPRECATED;
+#undef DEPRECATED
+#endif /* POLARSSL_DEPRECATED_REMOVED */
 
 /**
  * \brief               Returns the block size of the given cipher.
@@ -463,7 +485,7 @@ static inline const char *cipher_get_name( const cipher_context_t *ctx )
  *                      POLARSSL_KEY_LENGTH_NONE if ctx has not been
  *                      initialised.
  */
-static inline int cipher_get_key_size ( const cipher_context_t *ctx )
+static inline int cipher_get_key_size( const cipher_context_t *ctx )
 {
     if( NULL == ctx || NULL == ctx->cipher_info )
         return POLARSSL_KEY_LENGTH_NONE;

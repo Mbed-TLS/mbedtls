@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2013, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,30 +29,16 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #define polarssl_fprintf    fprintf
+#define polarssl_printf     printf
+#define polarssl_snprintf   snprintf
 #endif
 
-#if !defined(POLARSSL_ENTROPY_C) ||  \
-    !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_CLI_C) || \
-    !defined(POLARSSL_NET_C) || !defined(POLARSSL_CTR_DRBG_C)
-#include <stdio.h>
-int main( int argc, char *argv[] )
-{
-    ((void) argc);
-    ((void) argv);
-
-    polarssl_printf("POLARSSL_ENTROPY_C and/or "
-           "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_CLI_C and/or "
-           "POLARSSL_NET_C and/or POLARSSL_CTR_DRBG_C not defined.\n");
-    return( 0 );
-}
-#else
-
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-
+#if defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_FS_IO) && \
+    defined(POLARSSL_SSL_TLS_C) && defined(POLARSSL_SSL_CLI_C) && \
+    defined(POLARSSL_NET_C) && defined(POLARSSL_CTR_DRBG_C)
 #include "polarssl/net.h"
 #include "polarssl/ssl.h"
 #include "polarssl/entropy.h"
@@ -61,6 +47,11 @@ int main( int argc, char *argv[] )
 #include "polarssl/x509.h"
 #include "polarssl/error.h"
 #include "polarssl/debug.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#endif
 
 #if defined(POLARSSL_TIMING_C)
 #include "polarssl/timing.h"
@@ -107,133 +98,6 @@ int main( int argc, char *argv[] )
 
 #define GET_REQUEST "GET %s HTTP/1.0\r\nExtra-header: "
 #define GET_REQUEST_END "\r\n\r\n"
-
-/*
- * global options
- */
-struct options
-{
-    const char *server_name;    /* hostname of the server (client only)     */
-    const char *server_addr;    /* address of the server (client only)      */
-    int server_port;            /* port on which the ssl service runs       */
-    int debug_level;            /* level of debugging                       */
-    int nbio;                   /* should I/O be blocking?                  */
-    const char *request_page;   /* page on server to request                */
-    int request_size;           /* pad request with header to requested size */
-    const char *ca_file;        /* the file with the CA certificate(s)      */
-    const char *ca_path;        /* the path with the CA certificate(s) reside */
-    const char *crt_file;       /* the file with the client certificate     */
-    const char *key_file;       /* the file with the client key             */
-    const char *psk;            /* the pre-shared key                       */
-    const char *psk_identity;   /* the pre-shared key identity              */
-    int force_ciphersuite[2];   /* protocol/ciphersuite to use, or all      */
-    int renegotiation;          /* enable / disable renegotiation           */
-    int allow_legacy;           /* allow legacy renegotiation               */
-    int renegotiate;            /* attempt renegotiation?                   */
-    int renego_delay;           /* delay before enforcing renegotiation     */
-    int exchanges;              /* number of data exchanges                 */
-    int min_version;            /* minimum protocol version accepted        */
-    int max_version;            /* maximum protocol version accepted        */
-    int arc4;                   /* flag for arc4 suites support             */
-    int auth_mode;              /* verify mode for connection               */
-    unsigned char mfl_code;     /* code for maximum fragment length         */
-    int trunc_hmac;             /* negotiate truncated hmac or not          */
-    int recsplit;               /* enable record splitting?                 */
-    int reconnect;              /* attempt to resume session                */
-    int reco_delay;             /* delay in seconds before resuming session */
-    int tickets;                /* enable / disable session tickets         */
-    const char *alpn_string;    /* ALPN supported protocols                 */
-    int fallback;               /* is this a fallback connection?           */
-    int extended_ms;            /* negotiate extended master secret?        */
-    int etm;                    /* negotiate encrypt then mac?              */
-} opt;
-
-static void my_debug( void *ctx, int level, const char *str )
-{
-    ((void) level);
-
-    polarssl_fprintf( (FILE *) ctx, "%s", str );
-    fflush(  (FILE *) ctx  );
-}
-
-/*
- * Test recv/send functions that make sure each try returns
- * WANT_READ/WANT_WRITE at least once before sucesseding
- */
-static int my_recv( void *ctx, unsigned char *buf, size_t len )
-{
-    static int first_try = 1;
-    int ret;
-
-    if( first_try )
-    {
-        first_try = 0;
-        return( POLARSSL_ERR_NET_WANT_READ );
-    }
-
-    ret = net_recv( ctx, buf, len );
-    if( ret != POLARSSL_ERR_NET_WANT_READ )
-        first_try = 1; /* Next call will be a new operation */
-    return( ret );
-}
-
-static int my_send( void *ctx, const unsigned char *buf, size_t len )
-{
-    static int first_try = 1;
-    int ret;
-
-    if( first_try )
-    {
-        first_try = 0;
-        return( POLARSSL_ERR_NET_WANT_WRITE );
-    }
-
-    ret = net_send( ctx, buf, len );
-    if( ret != POLARSSL_ERR_NET_WANT_WRITE )
-        first_try = 1; /* Next call will be a new operation */
-    return( ret );
-}
-
-#if defined(POLARSSL_X509_CRT_PARSE_C)
-/*
- * Enabled if debug_level > 1 in code below
- */
-static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
-{
-    char buf[1024];
-    ((void) data);
-
-    polarssl_printf( "\nVerify requested for (Depth %d):\n", depth );
-    x509_crt_info( buf, sizeof( buf ) - 1, "", crt );
-    polarssl_printf( "%s", buf );
-
-    if( ( (*flags) & BADCERT_EXPIRED ) != 0 )
-        polarssl_printf( "  ! server certificate has expired\n" );
-
-    if( ( (*flags) & BADCERT_REVOKED ) != 0 )
-        polarssl_printf( "  ! server certificate has been revoked\n" );
-
-    if( ( (*flags) & BADCERT_CN_MISMATCH ) != 0 )
-        polarssl_printf( "  ! CN mismatch\n" );
-
-    if( ( (*flags) & BADCERT_NOT_TRUSTED ) != 0 )
-        polarssl_printf( "  ! self-signed or not signed by a trusted CA\n" );
-
-    if( ( (*flags) & BADCRL_NOT_TRUSTED ) != 0 )
-        polarssl_printf( "  ! CRL not trusted\n" );
-
-    if( ( (*flags) & BADCRL_EXPIRED ) != 0 )
-        polarssl_printf( "  ! CRL expired\n" );
-
-    if( ( (*flags) & BADCERT_OTHER ) != 0 )
-        polarssl_printf( "  ! other (unknown) flag\n" );
-
-    if ( ( *flags ) == 0 )
-        polarssl_printf( "  This certificate has no flags\n" );
-
-    return( 0 );
-}
-#endif /* POLARSSL_X509_CRT_PARSE_C */
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
 #if defined(POLARSSL_FS_IO)
@@ -375,6 +239,128 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
     "\n"                                                    \
     "    force_ciphersuite=<name>    default: all enabled\n"\
     " acceptable ciphersuite names:\n"
+
+#if !defined(POLARSSL_ENTROPY_C) ||  !defined(POLARSSL_FS_IO) || \
+    !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_CLI_C) || \
+    !defined(POLARSSL_NET_C) || !defined(POLARSSL_CTR_DRBG_C)
+int main( void )
+{
+    polarssl_printf("POLARSSL_ENTROPY_C and/or "
+           "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_CLI_C and/or "
+           "POLARSSL_NET_C and/or POLARSSL_CTR_DRBG_C not defined.\n");
+    return( 0 );
+}
+#else
+/*
+ * global options
+ */
+struct options
+{
+    const char *server_name;    /* hostname of the server (client only)     */
+    const char *server_addr;    /* address of the server (client only)      */
+    int server_port;            /* port on which the ssl service runs       */
+    int debug_level;            /* level of debugging                       */
+    int nbio;                   /* should I/O be blocking?                  */
+    const char *request_page;   /* page on server to request                */
+    int request_size;           /* pad request with header to requested size */
+    const char *ca_file;        /* the file with the CA certificate(s)      */
+    const char *ca_path;        /* the path with the CA certificate(s) reside */
+    const char *crt_file;       /* the file with the client certificate     */
+    const char *key_file;       /* the file with the client key             */
+    const char *psk;            /* the pre-shared key                       */
+    const char *psk_identity;   /* the pre-shared key identity              */
+    int force_ciphersuite[2];   /* protocol/ciphersuite to use, or all      */
+    int renegotiation;          /* enable / disable renegotiation           */
+    int allow_legacy;           /* allow legacy renegotiation               */
+    int renegotiate;            /* attempt renegotiation?                   */
+    int renego_delay;           /* delay before enforcing renegotiation     */
+    int exchanges;              /* number of data exchanges                 */
+    int min_version;            /* minimum protocol version accepted        */
+    int max_version;            /* maximum protocol version accepted        */
+    int arc4;                   /* flag for arc4 suites support             */
+    int auth_mode;              /* verify mode for connection               */
+    unsigned char mfl_code;     /* code for maximum fragment length         */
+    int trunc_hmac;             /* negotiate truncated hmac or not          */
+    int recsplit;               /* enable record splitting?                 */
+    int reconnect;              /* attempt to resume session                */
+    int reco_delay;             /* delay in seconds before resuming session */
+    int tickets;                /* enable / disable session tickets         */
+    const char *alpn_string;    /* ALPN supported protocols                 */
+    int fallback;               /* is this a fallback connection?           */
+    int extended_ms;            /* negotiate extended master secret?        */
+    int etm;                    /* negotiate encrypt then mac?              */
+} opt;
+
+static void my_debug( void *ctx, int level, const char *str )
+{
+    ((void) level);
+
+    polarssl_fprintf( (FILE *) ctx, "%s", str );
+    fflush(  (FILE *) ctx  );
+}
+
+/*
+ * Test recv/send functions that make sure each try returns
+ * WANT_READ/WANT_WRITE at least once before sucesseding
+ */
+static int my_recv( void *ctx, unsigned char *buf, size_t len )
+{
+    static int first_try = 1;
+    int ret;
+
+    if( first_try )
+    {
+        first_try = 0;
+        return( POLARSSL_ERR_NET_WANT_READ );
+    }
+
+    ret = net_recv( ctx, buf, len );
+    if( ret != POLARSSL_ERR_NET_WANT_READ )
+        first_try = 1; /* Next call will be a new operation */
+    return( ret );
+}
+
+static int my_send( void *ctx, const unsigned char *buf, size_t len )
+{
+    static int first_try = 1;
+    int ret;
+
+    if( first_try )
+    {
+        first_try = 0;
+        return( POLARSSL_ERR_NET_WANT_WRITE );
+    }
+
+    ret = net_send( ctx, buf, len );
+    if( ret != POLARSSL_ERR_NET_WANT_WRITE )
+        first_try = 1; /* Next call will be a new operation */
+    return( ret );
+}
+
+#if defined(POLARSSL_X509_CRT_PARSE_C)
+/*
+ * Enabled if debug_level > 1 in code below
+ */
+static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
+{
+    char buf[1024];
+    ((void) data);
+
+    polarssl_printf( "\nVerify requested for (Depth %d):\n", depth );
+    x509_crt_info( buf, sizeof( buf ) - 1, "", crt );
+    polarssl_printf( "%s", buf );
+
+    if ( ( *flags ) == 0 )
+        polarssl_printf( "  This certificate has no flags\n" );
+    else
+    {
+        x509_crt_verify_info( buf, sizeof( buf ), "  ! ", *flags );
+        polarssl_printf( "%s\n", buf );
+    }
+
+    return( 0 );
+}
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
 int main( int argc, char *argv[] )
 {
@@ -1140,21 +1126,13 @@ int main( int argc, char *argv[] )
 
     if( ( ret = ssl_get_verify_result( &ssl ) ) != 0 )
     {
+        char vrfy_buf[512];
+
         polarssl_printf( " failed\n" );
 
-        if( ( ret & BADCERT_EXPIRED ) != 0 )
-            polarssl_printf( "  ! server certificate has expired\n" );
+        x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", ret );
 
-        if( ( ret & BADCERT_REVOKED ) != 0 )
-            polarssl_printf( "  ! server certificate has been revoked\n" );
-
-        if( ( ret & BADCERT_CN_MISMATCH ) != 0 )
-            polarssl_printf( "  ! CN mismatch (expected CN=%s)\n", opt.server_name );
-
-        if( ( ret & BADCERT_NOT_TRUSTED ) != 0 )
-            polarssl_printf( "  ! self-signed or not signed by a trusted CA\n" );
-
-        polarssl_printf( "\n" );
+        polarssl_printf( "%s\n", vrfy_buf );
     }
     else
         polarssl_printf( " ok\n" );
@@ -1197,7 +1175,7 @@ send_request:
     polarssl_printf( "  > Write to server:" );
     fflush( stdout );
 
-    len = snprintf( (char *) buf, sizeof(buf) - 1, GET_REQUEST,
+    len = polarssl_snprintf( (char *) buf, sizeof(buf) - 1, GET_REQUEST,
                     opt.request_page );
     tail_len = strlen( GET_REQUEST_END );
 

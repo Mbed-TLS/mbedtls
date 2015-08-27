@@ -50,8 +50,9 @@ my %mapping_values;
 while (@var_req_arr)
 {
     my $req = shift @var_req_arr;
+    $req =~ s/(!?)(.*)/$1defined($2)/;
 
-    $suite_pre_code .= "#ifdef $req\n";
+    $suite_pre_code .= "#if $req\n";
     $suite_post_code .= "#endif /* $req */\n";
 }
 
@@ -65,11 +66,11 @@ print TEST_FILE << "END";
 #include POLARSSL_CONFIG_FILE
 #endif
 
+$test_helpers
+
 $suite_pre_code
 $suite_header
 $suite_post_code
-
-$test_helpers
 
 END
 
@@ -138,7 +139,7 @@ while($test_cases =~ /\/\* BEGIN_CASE *([\w:]*) \*\/\n(.*?)\n\/\* END_CASE \*\//
             $param_defs .= "    char *param$i = params[$i];\n";
             $param_checks .= "    if( verify_string( &param$i ) != 0 ) return( 2 );\n";
             push @dispatch_params, "param$i";
-            $mapping_regex .= ":[^:]+";
+            $mapping_regex .= ":[^:\n]+";
         }
         else
         {

@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -62,6 +62,36 @@ int platform_set_malloc_free( void * (*malloc_func)( size_t ),
 }
 #endif /* POLARSSL_PLATFORM_MEMORY */
 
+#if defined(POLARSSL_PLATFORM_SNPRINTF_ALT)
+#if !defined(POLARSSL_PLATFORM_STD_SNPRINTF)
+/*
+ * Make dummy function to prevent NULL pointer dereferences
+ */
+static int platform_snprintf_uninit( char * s, size_t n,
+                                     const char * format, ... )
+{
+    ((void) s);
+    ((void) n);
+    ((void) format);
+    return( 0 );
+}
+
+#define POLARSSL_PLATFORM_STD_SNPRINTF    platform_snprintf_uninit
+#endif /* !POLARSSL_PLATFORM_STD_SNPRINTF */
+
+int (*polarssl_snprintf)( char * s, size_t n,
+                          const char * format,
+                          ... ) = POLARSSL_PLATFORM_STD_SNPRINTF;
+
+int platform_set_snprintf( int (*snprintf_func)( char * s, size_t n,
+                                                 const char * format,
+                                                 ... ) )
+{
+    polarssl_snprintf = snprintf_func;
+    return( 0 );
+}
+#endif /* POLARSSL_PLATFORM_SNPRINTF_ALT */
+
 #if defined(POLARSSL_PLATFORM_PRINTF_ALT)
 #if !defined(POLARSSL_PLATFORM_STD_PRINTF)
 /*
@@ -109,5 +139,27 @@ int platform_set_fprintf( int (*fprintf_func)( FILE *, const char *, ... ) )
     return( 0 );
 }
 #endif /* POLARSSL_PLATFORM_FPRINTF_ALT */
+
+#if defined(POLARSSL_PLATFORM_EXIT_ALT)
+#if !defined(POLARSSL_PLATFORM_STD_EXIT)
+/*
+ * Make dummy function to prevent NULL pointer dereferences
+ */
+static void platform_exit_uninit( int status )
+{
+    ((void) status);
+}
+
+#define POLARSSL_PLATFORM_STD_EXIT   platform_exit_uninit
+#endif /* !POLARSSL_PLATFORM_STD_EXIT */
+
+void (*polarssl_exit)( int status ) = POLARSSL_PLATFORM_STD_EXIT;
+
+int platform_set_exit( void (*exit_func)( int status ) )
+{
+    polarssl_exit = exit_func;
+    return( 0 );
+}
+#endif /* POLARSSL_PLATFORM_EXIT_ALT */
 
 #endif /* POLARSSL_PLATFORM_C */

@@ -1,3 +1,6 @@
+Arguments with no value
+mpi_null:
+
 Base test mpi_read_write_string #1
 mpi_read_write_string:10:"128":10:"128":100:0:0
 

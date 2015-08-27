@@ -1,7 +1,7 @@
 /* BEGIN_HEADER */
-#include <polarssl/sha1.h>
-#include <polarssl/sha256.h>
-#include <polarssl/sha512.h>
+#include "polarssl/sha1.h"
+#include "polarssl/sha256.h"
+#include "polarssl/sha512.h"
 /* END_HEADER */
 
 /* BEGIN_CASE depends_on:POLARSSL_SHA1_C */

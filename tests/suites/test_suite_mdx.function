@@ -1,8 +1,8 @@
 /* BEGIN_HEADER */
-#include <polarssl/md2.h>
-#include <polarssl/md4.h>
-#include <polarssl/md5.h>
-#include <polarssl/ripemd160.h>
+#include "polarssl/md2.h"
+#include "polarssl/md4.h"
+#include "polarssl/md5.h"
+#include "polarssl/ripemd160.h"
 /* END_HEADER */
 
 /* BEGIN_CASE depends_on:POLARSSL_MD2_C */

@@ -4,7 +4,7 @@
  *
  *  Copyright (C) 2006-2011, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,8 +30,19 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
-#define polarssl_printf     printf
+#include <stdio.h>
 #define polarssl_fprintf    fprintf
+#define polarssl_printf     printf
+#endif
+
+#if defined(POLARSSL_CIPHER_C) && defined(POLARSSL_MD_C) && \
+ defined(POLARSSL_FS_IO)
+#include "polarssl/cipher.h"
+#include "polarssl/md.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #endif
 
 #if defined(_WIN32)
@@ -44,14 +55,6 @@
 #include <unistd.h>
 #endif
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <time.h>
-
-#include "polarssl/cipher.h"
-#include "polarssl/md.h"
-
 #define MODE_ENCRYPT    0
 #define MODE_DECRYPT    1
 
@@ -61,13 +64,11 @@
     "\n  example: crypt_and_hash 0 file file.aes AES-128-CBC SHA1 hex:E76B2413958B00E193\n" \
     "\n"
 
-#if !defined(POLARSSL_CIPHER_C) || !defined(POLARSSL_MD_C)
-int main( int argc, char *argv[] )
+#if !defined(POLARSSL_CIPHER_C) || !defined(POLARSSL_MD_C) || \
+    !defined(POLARSSL_FS_IO)
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
-    polarssl_printf("POLARSSL_CIPHER_C and/or POLARSSL_MD_C not defined.\n");
+    polarssl_printf("POLARSSL_CIPHER_C and/or POLARSSL_MD_C and/or POLARSSL_FS_IO not defined.\n");
     return( 0 );
 }
 #else
@@ -399,7 +400,7 @@ int main( int argc, char *argv[] )
             goto exit;
         }
 
-        if( ( ( filesize - md_get_size( md_info ) ) % 
+        if( ( ( filesize - md_get_size( md_info ) ) %
                 cipher_get_block_size( &cipher_ctx ) ) != 0 )
         {
             polarssl_fprintf( stderr, "File content not a multiple of the block size (%d).\n",
@@ -542,4 +543,4 @@ exit:
 
     return( ret );
 }
-#endif /* POLARSSL_CIPHER_C && POLARSSL_MD_C */
+#endif /* POLARSSL_CIPHER_C && POLARSSL_MD_C && POLARSSL_FS_IO */

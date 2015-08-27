@@ -33,7 +33,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "hello"=.\hello.dsp - Package Owner=<4>
+Project: "generic_sum"=.\generic_sum.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -48,7 +48,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "generic_sum"=.\generic_sum.dsp - Package Owner=<4>
+Project: "hello"=.\hello.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -139,6 +139,21 @@ Package=<4>
 ###############################################################################
 
 Project: "dh_server"=.\dh_server.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name mbedtls
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "ecdsa"=.\ecdsa.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -453,6 +468,21 @@ Package=<4>
 
 ###############################################################################
 
+Project: "mini_client"=.\mini_client.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name mbedtls
+    End Project Dependency
+}}}
+
+###############################################################################
+
 Project: "ssl_mail_client"=.\ssl_mail_client.dsp - Package Owner=<4>
 
 Package=<5>
@@ -618,7 +648,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "crl_app"=.\crl_app.dsp - Package Owner=<4>
+Project: "cert_write"=.\cert_write.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -634,6 +664,36 @@ Package=<4>
 ###############################################################################
 
 Project: "cert_req"=.\cert_req.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name mbedtls
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "crl_app"=.\crl_app.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name mbedtls
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "req_app"=.\req_app.dsp - Package Owner=<4>
 
 Package=<5>
 {{{

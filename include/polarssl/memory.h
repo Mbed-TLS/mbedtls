@@ -1,11 +1,13 @@
 /**
  * \file memory.h
  *
- * \brief Memory allocation layer (Deprecated to platform layer)
+ * \brief Memory allocation layer
+ *
+ * \deprecated Use the platform layer instead
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -35,11 +37,26 @@
 #include "platform.h"
 #include "memory_buffer_alloc.h"
 
+#if ! defined(POLARSSL_DEPRECATED_REMOVED)
+#if defined(POLARSSL_DEPRECATED_WARNING)
+#define DEPRECATED    __attribute__((deprecated))
+#else
+#define DEPRECATED
+#endif
+/**
+ * \brief   Set malloc() / free() callback
+ *
+ * \deprecated Use platform_set_malloc_free instead
+ */
+int memory_set_own( void * (*malloc_func)( size_t ),
+                    void (*free_func)( void * ) ) DEPRECATED;
 int memory_set_own( void * (*malloc_func)( size_t ),
                     void (*free_func)( void * ) )
 {
     return platform_set_malloc_free( malloc_func, free_func );
 }
+#undef DEPRECATED
+#endif /* POLARSSL_DEPRECATED_REMOVED */
 
 
 #endif /* memory.h */

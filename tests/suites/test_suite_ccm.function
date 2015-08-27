@@ -1,5 +1,5 @@
 /* BEGIN_HEADER */
-#include <polarssl/ccm.h>
+#include "polarssl/ccm.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -146,6 +146,7 @@ void ccm_auth_decrypt( int cipher_id,
     if( strcmp( "FAIL", result_hex ) == 0 )
     {
         ret = POLARSSL_ERR_CCM_AUTH_FAILED;
+        result_len = -1;
     }
     else
     {

@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2013, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,30 +29,34 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-
-#include "polarssl/x509_csr.h"
-
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||  \
     !defined(POLARSSL_X509_CSR_PARSE_C) || !defined(POLARSSL_FS_IO)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
            "POLARSSL_X509_CSR_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
     return( 0 );
 }
 #else
 
+#include "polarssl/x509_csr.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #define DFL_FILENAME            "cert.req"
 #define DFL_DEBUG_LEVEL         0
+
+#define USAGE \
+    "\n usage: req_app param=<>...\n"                   \
+    "\n acceptable parameters:\n"                       \
+    "    filename=%%s         default: cert.req\n"      \
+    "\n"
 
 /*
  * global options
@@ -61,12 +65,6 @@ struct options
 {
     const char *filename;       /* filename of the certificate request  */
 } opt;
-
-#define USAGE \
-    "\n usage: req_app param=<>...\n"                   \
-    "\n acceptable parameters:\n"                       \
-    "    filename=%%s         default: cert.req\n"      \
-    "\n"
 
 int main( int argc, char *argv[] )
 {

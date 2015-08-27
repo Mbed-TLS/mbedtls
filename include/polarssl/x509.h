@@ -5,7 +5,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -82,17 +82,21 @@
  * \name X509 Verify codes
  * \{
  */
+/* Reminder: update x509_crt_verify_strings[] in library/x509_crt.c */
 #define BADCERT_EXPIRED             0x01  /**< The certificate validity has expired. */
 #define BADCERT_REVOKED             0x02  /**< The certificate has been revoked (is on a CRL). */
 #define BADCERT_CN_MISMATCH         0x04  /**< The certificate Common Name (CN) does not match with the expected CN. */
 #define BADCERT_NOT_TRUSTED         0x08  /**< The certificate is not correctly signed by the trusted CA. */
-#define BADCRL_NOT_TRUSTED          0x10  /**< CRL is not correctly signed by the trusted CA. */
-#define BADCRL_EXPIRED              0x20  /**< CRL is expired. */
+#define BADCRL_NOT_TRUSTED          0x10  /**< The CRL is not correctly signed by the trusted CA. */
+#define BADCRL_EXPIRED              0x20  /**< The CRL is expired. */
 #define BADCERT_MISSING             0x40  /**< Certificate was missing. */
 #define BADCERT_SKIP_VERIFY         0x80  /**< Certificate verification was skipped. */
 #define BADCERT_OTHER             0x0100  /**< Other reason (can be used by verify callback) */
 #define BADCERT_FUTURE            0x0200  /**< The certificate validity starts in the future. */
 #define BADCRL_FUTURE             0x0400  /**< The CRL is from the future */
+#define BADCERT_KEY_USAGE         0x0800  /**< Usage does not match the keyUsage extension. */
+#define BADCERT_EXT_KEY_USAGE     0x1000  /**< Usage does not match the extendedKeyUsage extension. */
+#define BADCERT_NS_CERT_TYPE      0x2000  /**< Usage does not match the nsCertType extension. */
 /* \} name */
 /* \} addtogroup x509_module */
 
@@ -225,21 +229,30 @@ int x509_dn_gets( char *buf, size_t size, const x509_name *dn );
  */
 int x509_serial_gets( char *buf, size_t size, const x509_buf *serial );
 
+#if ! defined(POLARSSL_DEPRECATED_REMOVED)
+#if defined(POLARSSL_DEPRECATED_WARNING)
+#define DEPRECATED    __attribute__((deprecated))
+#else
+#define DEPRECATED
+#endif
 /**
  * \brief          Give an known OID, return its descriptive string.
- *                 (Deprecated. Use oid_get_extended_key_usage() instead.)
- *                 Warning: only works for extended_key_usage OIDs!
+ *
+ * \deprecated     Use oid_get_extended_key_usage() instead.
+ *
+ * \warning        Only works for extended_key_usage OIDs!
  *
  * \param oid      buffer containing the oid
  *
  * \return         Return a string if the OID is known,
  *                 or NULL otherwise.
  */
-const char *x509_oid_get_description( x509_buf *oid );
+const char *x509_oid_get_description( x509_buf *oid ) DEPRECATED;
 
 /**
  * \brief          Give an OID, return a string version of its OID number.
- *                 (Deprecated. Use oid_get_numeric_string() instead)
+ *
+ * \deprecated     Use oid_get_numeric_string() instead.
  *
  * \param buf      Buffer to write to
  * \param size     Maximum size of buffer
@@ -248,7 +261,9 @@ const char *x509_oid_get_description( x509_buf *oid );
  * \return         Length of the string written (excluding final NULL) or
  *                 POLARSSL_ERR_OID_BUF_TO_SMALL in case of error
  */
-int x509_oid_get_numeric_string( char *buf, size_t size, x509_buf *oid );
+int x509_oid_get_numeric_string( char *buf, size_t size, x509_buf *oid ) DEPRECATED;
+#undef DEPRECATED
+#endif /* POLARSSL_DEPRECATED_REMOVED */
 
 /**
  * \brief          Check a given x509_time against the system time and check

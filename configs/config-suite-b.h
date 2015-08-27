@@ -68,8 +68,8 @@
 #define POLARSSL_ECP_WINDOW_SIZE        2
 #define POLARSSL_ECP_FIXED_POINT_OPTIM  0
 
-/* Uncomment for a significant speed benefit at the expense of some ROM */
-//#define POLARSSL_ECP_NIST_OPTIM
+/* Significant speed benefit at the expense of some ROM */
+#define POLARSSL_ECP_NIST_OPTIM
 
 /*
  * You should adjust this to the exact number of sources you're using: default

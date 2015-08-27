@@ -5,7 +5,7 @@
  *
  *  Copyright (C) 2006-2013, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -31,7 +31,6 @@
 #endif
 
 #include "x509.h"
-
 #include "x509_crl.h"
 
 /**
@@ -204,6 +203,21 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
                    const x509_crt *crt );
 
 /**
+ * \brief          Returns an informational string about the
+ *                 verification status of a certificate.
+ *
+ * \param buf      Buffer to write to
+ * \param size     Maximum size of buffer
+ * \param prefix   A line prefix
+ * \param flags    Verification flags created by x509_crt_verify()
+ *
+ * \return         The amount of data written to the buffer, or -1 in
+ *                 case of an error.
+ */
+int x509_crt_verify_info( char *buf, size_t size, const char *prefix,
+                          int flags );
+
+/**
  * \brief          Verify the certificate signature
  *
  *                 The verify callback is a user-supplied callback that
@@ -220,6 +234,9 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
  *                 are also returned to the application. The function should
  *                 return 0 for anything but a fatal error.
  *
+ * \note           In case verification failed, the results can be displayed
+ *                 using \c x509_crt_verify_info()
+ *
  * \param crt      a certificate to be verified
  * \param trust_ca the trusted CA chain
  * \param ca_crl   the CRL chain for trusted CA's
@@ -230,12 +247,8 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
  * \param p_vrfy   verification parameter
  *
  * \return         0 if successful or POLARSSL_ERR_X509_SIG_VERIFY_FAILED,
- *                 in which case *flags will have one or more of
- *                 the following values set:
- *                      BADCERT_EXPIRED --
- *                      BADCERT_REVOKED --
- *                      BADCERT_CN_MISMATCH --
- *                      BADCERT_NOT_TRUSTED
+ *                 in which case *flags will have one or more BADCERT_XXX or
+ *                 BADCRL_XXX flags set,
  *                 or another error in case of a fatal error encountered
  *                 during the verification process.
  */

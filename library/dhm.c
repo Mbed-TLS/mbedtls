@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -35,6 +35,8 @@
 
 #include "polarssl/dhm.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_PEM_PARSE_C)
 #include "polarssl/pem.h"
 #endif
@@ -47,6 +49,7 @@
 #include "polarssl/platform.h"
 #else
 #include <stdlib.h>
+#include <stdio.h>
 #define polarssl_printf     printf
 #define polarssl_malloc     malloc
 #define polarssl_free       free
@@ -441,8 +444,9 @@ int dhm_parse_dhm( dhm_context *dhm, const unsigned char *dhmin,
 
     /*
      *  DHParams ::= SEQUENCE {
-     *      prime            INTEGER,  -- P
-     *      generator        INTEGER,  -- g
+     *      prime              INTEGER,  -- P
+     *      generator          INTEGER,  -- g
+     *      privateValueLength INTEGER OPTIONAL
      *  }
      */
     if( ( ret = asn1_get_tag( &p, end, &len,
@@ -463,9 +467,23 @@ int dhm_parse_dhm( dhm_context *dhm, const unsigned char *dhmin,
 
     if( p != end )
     {
-        ret = POLARSSL_ERR_DHM_INVALID_FORMAT +
-              POLARSSL_ERR_ASN1_LENGTH_MISMATCH;
-        goto exit;
+        /* this might be the optional privateValueLength; If so, we
+         can cleanly discard it; */
+        mpi rec;
+        mpi_init( &rec );
+        ret = asn1_get_mpi( &p, end, &rec );
+        mpi_free( &rec );
+        if ( ret != 0 )
+        {
+            ret = POLARSSL_ERR_DHM_INVALID_FORMAT + ret;
+            goto exit;
+        }
+        if ( p != end )
+        {
+            ret = POLARSSL_ERR_DHM_INVALID_FORMAT +
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH;
+            goto exit;
+        }
     }
 
     ret = 0;
@@ -505,7 +523,7 @@ static int load_file( const char *path, unsigned char **buf, size_t *n )
     *n = (size_t) size;
 
     if( *n + 1 == 0 ||
-        ( *buf = (unsigned char *) polarssl_malloc( *n + 1 ) ) == NULL )
+        ( *buf = polarssl_malloc( *n + 1 ) ) == NULL )
     {
         fclose( f );
         return( POLARSSL_ERR_DHM_MALLOC_FAILED );

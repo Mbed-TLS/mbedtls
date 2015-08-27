@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2013, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,23 +29,21 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
-#define polarssl_printf     printf
+#include <stdio.h>
 #define polarssl_fprintf    fprintf
+#define polarssl_printf     printf
 #endif
 
 #if defined(_WIN32)
 #include <windows.h>
 #endif
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <signal.h>
-
-#if !defined(_MSC_VER) || defined(EFIX64) || defined(EFI32)
-#include <unistd.h>
-#endif
-
+#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_CERTS_C) && \
+    defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_SSL_TLS_C) && \
+    defined(POLARSSL_SSL_SRV_C) && defined(POLARSSL_NET_C) && \
+    defined(POLARSSL_RSA_C) && defined(POLARSSL_CTR_DRBG_C) && \
+    defined(POLARSSL_X509_CRT_PARSE_C) && defined(POLARSSL_TIMING_C) && \
+    defined(POLARSSL_FS_IO)
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
 #include "polarssl/certs.h"
@@ -53,6 +51,15 @@
 #include "polarssl/ssl.h"
 #include "polarssl/net.h"
 #include "polarssl/timing.h"
+
+#include <string.h>
+#include <stdio.h>
+#include <signal.h>
+#endif
+
+#if !defined(_MSC_VER) || defined(EFIX64) || defined(EFI32)
+#include <unistd.h>
+#endif
 
 #define HTTP_RESPONSE \
     "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" \
@@ -63,7 +70,8 @@
     !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_SSL_TLS_C) || \
     !defined(POLARSSL_SSL_SRV_C) || !defined(POLARSSL_NET_C) ||     \
     !defined(POLARSSL_RSA_C) || !defined(POLARSSL_CTR_DRBG_C) ||    \
-    !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_TIMING_C)
+    !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_TIMING_C) || \
+    !defined(POLARSSL_FS_IO)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
@@ -77,11 +85,8 @@ int main( int argc, char *argv[] )
     return( 0 );
 }
 #elif defined(_WIN32)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("_WIN32 defined. This application requires fork() and signals "
            "to work correctly.\n");
     return( 0 );
@@ -99,7 +104,7 @@ static void my_debug( void *ctx, int level, const char *str )
     }
 }
 
-int main( int argc, char *argv[] )
+int main( void )
 {
     int ret, len, cnt = 0, pid;
     int listen_fd;
@@ -112,9 +117,6 @@ int main( int argc, char *argv[] )
     ssl_context ssl;
     x509_crt srvcert;
     pk_context pkey;
-
-    ((void) argc);
-    ((void) argv);
 
     memset( &ssl, 0, sizeof(ssl_context) );
 
@@ -340,8 +342,11 @@ int main( int argc, char *argv[] )
 
             len = ret;
             polarssl_printf( " %d bytes read\n\n%s", len, (char *) buf );
+
+            if( ret > 0 )
+                break;
         }
-        while( 0 );
+        while( 1 );
 
         /*
          * 7. Write the 200 Response

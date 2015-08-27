@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -38,6 +38,8 @@
 #include "polarssl/oid.h"
 #include "polarssl/asn1write.h"
 #include "polarssl/sha1.h"
+
+#include <string.h>
 
 #if defined(POLARSSL_PEM_WRITE_C)
 #include "polarssl/pem.h"

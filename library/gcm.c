@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -40,15 +40,20 @@
 
 #include "polarssl/gcm.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_AESNI_C)
 #include "polarssl/aesni.h"
 #endif
 
+#if defined(POLARSSL_SELF_TEST) && defined(POLARSSL_AES_C)
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf printf
-#endif
+#endif /* POLARSSL_PLATFORM_C */
+#endif /* POLARSSL_SELF_TEST && POLARSSL_AES_C */
 
 /*
  * 32-bit integer manipulation macros (big endian)
@@ -131,7 +136,7 @@ static int gcm_gen_table( gcm_context *ctx )
         ctx->HH[i] = vh;
     }
 
-    for( i = 2; i < 16; i <<= 1 )
+    for( i = 2; i <= 8; i *= 2 )
     {
         uint64_t *HiL = ctx->HL + i, *HiH = ctx->HH + i;
         vh = *HiH;
@@ -162,6 +167,8 @@ int gcm_init( gcm_context *ctx, cipher_id_t cipher, const unsigned char *key,
 
     if( cipher_info->block_size != 16 )
         return( POLARSSL_ERR_GCM_BAD_INPUT );
+
+    cipher_free( &ctx->cipher_ctx );
 
     if( ( ret = cipher_init_ctx( &ctx->cipher_ctx, cipher_info ) ) != 0 )
         return( ret );
@@ -496,9 +503,6 @@ void gcm_free( gcm_context *ctx )
 }
 
 #if defined(POLARSSL_SELF_TEST) && defined(POLARSSL_AES_C)
-
-#include <stdio.h>
-
 /*
  * AES-GCM test vectors from:
  *
@@ -506,10 +510,10 @@ void gcm_free( gcm_context *ctx )
  */
 #define MAX_TESTS   6
 
-int key_index[MAX_TESTS] =
+static const int key_index[MAX_TESTS] =
     { 0, 0, 1, 1, 1, 1 };
 
-unsigned char key[MAX_TESTS][32] =
+static const unsigned char key[MAX_TESTS][32] =
 {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -521,13 +525,13 @@ unsigned char key[MAX_TESTS][32] =
       0x6d, 0x6a, 0x8f, 0x94, 0x67, 0x30, 0x83, 0x08 },
 };
 
-size_t iv_len[MAX_TESTS] =
+static const size_t iv_len[MAX_TESTS] =
     { 12, 12, 12, 12, 8, 60 };
 
-int iv_index[MAX_TESTS] =
+static const int iv_index[MAX_TESTS] =
     { 0, 0, 1, 1, 1, 2 };
 
-unsigned char iv[MAX_TESTS][64] =
+static const unsigned char iv[MAX_TESTS][64] =
 {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00 },
@@ -543,13 +547,13 @@ unsigned char iv[MAX_TESTS][64] =
       0xa6, 0x37, 0xb3, 0x9b },
 };
 
-size_t add_len[MAX_TESTS] =
+static const size_t add_len[MAX_TESTS] =
     { 0, 0, 0, 20, 20, 20 };
 
-int add_index[MAX_TESTS] =
+static const int add_index[MAX_TESTS] =
     { 0, 0, 0, 1, 1, 1 };
 
-unsigned char additional[MAX_TESTS][64] =
+static const unsigned char additional[MAX_TESTS][64] =
 {
     { 0x00 },
     { 0xfe, 0xed, 0xfa, 0xce, 0xde, 0xad, 0xbe, 0xef,
@@ -557,13 +561,13 @@ unsigned char additional[MAX_TESTS][64] =
       0xab, 0xad, 0xda, 0xd2 },
 };
 
-size_t pt_len[MAX_TESTS] =
+static const size_t pt_len[MAX_TESTS] =
     { 0, 16, 64, 60, 60, 60 };
 
-int pt_index[MAX_TESTS] =
+static const int pt_index[MAX_TESTS] =
     { 0, 0, 1, 1, 1, 1 };
 
-unsigned char pt[MAX_TESTS][64] =
+static const unsigned char pt[MAX_TESTS][64] =
 {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
@@ -577,7 +581,7 @@ unsigned char pt[MAX_TESTS][64] =
       0xba, 0x63, 0x7b, 0x39, 0x1a, 0xaf, 0xd2, 0x55 },
 };
 
-unsigned char ct[MAX_TESTS * 3][64] =
+static const unsigned char ct[MAX_TESTS * 3][64] =
 {
     { 0x00 },
     { 0x03, 0x88, 0xda, 0xce, 0x60, 0xb6, 0xa3, 0x92,
@@ -686,7 +690,7 @@ unsigned char ct[MAX_TESTS * 3][64] =
       0x44, 0xae, 0x7e, 0x3f },
 };
 
-unsigned char tag[MAX_TESTS * 3][16] =
+static const unsigned char tag[MAX_TESTS * 3][16] =
 {
     { 0x58, 0xe2, 0xfc, 0xce, 0xfa, 0x7e, 0x30, 0x61,
       0x36, 0x7f, 0x1d, 0x57, 0xa4, 0xe7, 0x45, 0x5a },
@@ -936,8 +940,6 @@ int gcm_self_test( int verbose )
 
     return( 0 );
 }
-
-
 
 #endif /* POLARSSL_SELF_TEST && POLARSSL_AES_C */
 

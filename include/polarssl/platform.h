@@ -5,7 +5,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,12 +30,10 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
-/* Temporary compability hack for to keep the deprecated MEMORY_C working */
+/* Temporary compatibility hack for to keep MEMORY_C working */
 #if defined(POLARSSL_MEMORY_C) && !defined(POLARSSL_PLATFORM_MEMORY)
 #define POLARSSL_PLATFORM_MEMORY
 #endif
-
-#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,7 +48,11 @@ extern "C" {
  */
 
 #if !defined(POLARSSL_PLATFORM_NO_STD_FUNCTIONS)
+#include <stdio.h>
 #include <stdlib.h>
+#if !defined(POLARSSL_PLATFORM_STD_SNPRINTF)
+#define POLARSSL_PLATFORM_STD_SNPRINTF   snprintf /**< Default snprintf to use  */
+#endif
 #if !defined(POLARSSL_PLATFORM_STD_PRINTF)
 #define POLARSSL_PLATFORM_STD_PRINTF   printf /**< Default printf to use  */
 #endif
@@ -62,6 +64,9 @@ extern "C" {
 #endif
 #if !defined(POLARSSL_PLATFORM_STD_FREE)
 #define POLARSSL_PLATFORM_STD_FREE       free /**< Default free to use */
+#endif
+#if !defined(POLARSSL_PLATFORM_STD_EXIT)
+#define POLARSSL_PLATFORM_STD_EXIT      exit /**< Default free to use */
 #endif
 #else /* POLARSSL_PLATFORM_NO_STD_FUNCTIONS */
 #if defined(POLARSSL_PLATFORM_STD_MEM_HDR)
@@ -75,6 +80,13 @@ extern "C" {
  * The function pointers for malloc and free
  */
 #if defined(POLARSSL_PLATFORM_MEMORY)
+#if defined(POLARSSL_PLATFORM_FREE_MACRO) && \
+    defined(POLARSSL_PLATFORM_MALLOC_MACRO)
+#define polarssl_free       POLARSSL_PLATFORM_FREE_MACRO
+#define polarssl_malloc     POLARSSL_PLATFORM_MALLOC_MACRO
+#else
+/* For size_t */
+#include <stddef.h>
 extern void * (*polarssl_malloc)( size_t len );
 extern void (*polarssl_free)( void *ptr );
 
@@ -88,10 +100,36 @@ extern void (*polarssl_free)( void *ptr );
  */
 int platform_set_malloc_free( void * (*malloc_func)( size_t ),
                               void (*free_func)( void * ) );
-#else /* POLARSSL_PLATFORM_ENTROPY */
-#define polarssl_malloc     malloc
+#endif /* POLARSSL_PLATFORM_FREE_MACRO && POLARSSL_PLATFORM_MALLOC_MACRO */
+#else /* !POLARSSL_PLATFORM_MEMORY */
 #define polarssl_free       free
-#endif /* POLARSSL_PLATFORM_ENTROPY */
+#define polarssl_malloc     malloc
+#endif /* POLARSSL_PLATFORM_MEMORY && !POLARSSL_PLATFORM_{FREE,MALLOC}_MACRO */
+
+/*
+ * The function pointers for fprintf
+ */
+#if defined(POLARSSL_PLATFORM_FPRINTF_ALT)
+/* We need FILE * */
+#include <stdio.h>
+extern int (*polarssl_fprintf)( FILE *stream, const char *format, ... );
+
+/**
+ * \brief   Set your own fprintf function pointer
+ *
+ * \param fprintf_func   the fprintf function implementation
+ *
+ * \return              0
+ */
+int platform_set_fprintf( int (*fprintf_func)( FILE *stream, const char *,
+                                               ... ) );
+#else
+#if defined(POLARSSL_PLATFORM_FPRINTF_MACRO)
+#define polarssl_fprintf    POLARSSL_PLATFORM_FPRINTF_MACRO
+#else
+#define polarssl_fprintf    fprintf
+#endif /* POLARSSL_PLATFORM_FPRINTF_MACRO */
+#endif /* POLARSSL_PLATFORM_FPRINTF_ALT */
 
 /*
  * The function pointers for printf
@@ -107,21 +145,58 @@ extern int (*polarssl_printf)( const char *format, ... );
  * \return              0
  */
 int platform_set_printf( int (*printf_func)( const char *, ... ) );
-#else /* POLARSSL_PLATFORM_PRINTF_ALT */
+#else /* !POLARSSL_PLATFORM_PRINTF_ALT */
+#if defined(POLARSSL_PLATFORM_PRINTF_MACRO)
+#define polarssl_printf     POLARSSL_PLATFORM_PRINTF_MACRO
+#else
 #define polarssl_printf     printf
+#endif /* POLARSSL_PLATFORM_PRINTF_MACRO */
 #endif /* POLARSSL_PLATFORM_PRINTF_ALT */
 
 /*
- * The function pointers for fprintf
+ * The function pointers for snprintf
  */
-#if defined(POLARSSL_PLATFORM_FPRINTF_ALT)
-extern int (*polarssl_fprintf)( FILE *stream, const char *format, ... );
+#if defined(POLARSSL_PLATFORM_SNPRINTF_ALT)
+extern int (*polarssl_snprintf)( char * s, size_t n, const char * format, ... );
 
-int platform_set_fprintf( int (*fprintf_func)( FILE *stream, const char *,
-                                               ... ) );
+/**
+ * \brief   Set your own snprintf function pointer
+ *
+ * \param snprintf_func   the snprintf function implementation
+ *
+ * \return              0
+ */
+int platform_set_snprintf( int (*snprintf_func)( char * s, size_t n,
+                                                 const char * format, ... ) );
+#else /* POLARSSL_PLATFORM_SNPRINTF_ALT */
+#if defined(POLARSSL_PLATFORM_SNPRINTF_MACRO)
+#define polarssl_snprintf   POLARSSL_PLATFORM_SNPRINTF_MACRO
 #else
-#define polarssl_fprintf    fprintf
-#endif
+#define polarssl_snprintf   snprintf
+#endif /* POLARSSL_PLATFORM_SNPRINTF_MACRO */
+#endif /* POLARSSL_PLATFORM_SNPRINTF_ALT */
+
+/*
+ * The function pointers for exit
+ */
+#if defined(POLARSSL_PLATFORM_EXIT_ALT)
+extern void (*polarssl_exit)( int status );
+
+/**
+ * \brief   Set your own exit function pointer
+ *
+ * \param exit_func   the exit function implementation
+ *
+ * \return              0
+ */
+int platform_set_exit( void (*exit_func)( int status ) );
+#else
+#if defined(POLARSSL_PLATFORM_EXIT_MACRO)
+#define polarssl_exit   POLARSSL_PLATFORM_EXIT_MACRO
+#else
+#define polarssl_exit   exit
+#endif /* POLARSSL_PLATFORM_EXIT_MACRO */
+#endif /* POLARSSL_PLATFORM_EXIT_ALT */
 
 #ifdef __cplusplus
 }

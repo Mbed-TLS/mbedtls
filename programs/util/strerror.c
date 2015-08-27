@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2012, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,25 +29,25 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
+#if defined(POLARSSL_ERROR_C) || defined(POLARSSL_ERROR_STRERROR_DUMMY)
+#include "polarssl/error.h"
+
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
-
-#include "polarssl/error.h"
+#endif
 
 #define USAGE \
     "\n usage: strerror <errorcode>\n" \
     "\n where <errorcode> can be a decimal or hexadecimal (starts with 0x or -0x)\n"
 
 #if !defined(POLARSSL_ERROR_C) && !defined(POLARSSL_ERROR_STRERROR_DUMMY)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_ERROR_C and/or POLARSSL_ERROR_STRERROR_DUMMY not defined.\n");
     return( 0 );
 }

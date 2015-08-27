@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2013, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,18 +29,20 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
-#define polarssl_printf     printf
+#include <stdio.h>
 #define polarssl_fprintf    fprintf
+#define polarssl_printf     printf
 #endif
 
 #if defined(_WIN32)
 #include <windows.h>
 #endif
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-
+#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_CERTS_C) && \
+    defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_SSL_TLS_C) && \
+    defined(POLARSSL_SSL_SRV_C) && defined(POLARSSL_NET_C) && \
+    defined(POLARSSL_RSA_C) && defined(POLARSSL_CTR_DRBG_C) && \
+    defined(POLARSSL_X509_CRT_PARSE_C) && defined(POLARSSL_FS_IO)
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
 #include "polarssl/certs.h"
@@ -50,28 +52,14 @@
 #include "polarssl/error.h"
 #include "polarssl/debug.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#endif
+
 #if defined(POLARSSL_SSL_CACHE_C)
 #include "polarssl/ssl_cache.h"
 #endif
-
-#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_CERTS_C) ||    \
-    !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_SSL_TLS_C) || \
-    !defined(POLARSSL_SSL_SRV_C) || !defined(POLARSSL_NET_C) ||     \
-    !defined(POLARSSL_RSA_C) || !defined(POLARSSL_CTR_DRBG_C) ||    \
-    !defined(POLARSSL_X509_CRT_PARSE_C)
-int main( int argc, char *argv[] )
-{
-    ((void) argc);
-    ((void) argv);
-
-    polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_CERTS_C and/or POLARSSL_ENTROPY_C "
-           "and/or POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_SRV_C and/or "
-           "POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_CTR_DRBG_C and/or POLARSSL_X509_CRT_PARSE_C "
-           "not defined.\n");
-    return( 0 );
-}
-#else
 
 #define HTTP_RESPONSE \
     "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" \
@@ -80,6 +68,21 @@ int main( int argc, char *argv[] )
 
 #define DEBUG_LEVEL 0
 
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_CERTS_C) ||    \
+    !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_SSL_TLS_C) || \
+    !defined(POLARSSL_SSL_SRV_C) || !defined(POLARSSL_NET_C) ||     \
+    !defined(POLARSSL_RSA_C) || !defined(POLARSSL_CTR_DRBG_C) ||    \
+    !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_FS_IO)
+int main( void )
+{
+    polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_CERTS_C and/or POLARSSL_ENTROPY_C "
+           "and/or POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_SRV_C and/or "
+           "POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
+           "POLARSSL_CTR_DRBG_C and/or POLARSSL_X509_CRT_PARSE_C "
+           "not defined.\n");
+    return( 0 );
+}
+#else
 static void my_debug( void *ctx, int level, const char *str )
 {
     ((void) level);
@@ -88,7 +91,7 @@ static void my_debug( void *ctx, int level, const char *str )
     fflush(  (FILE *) ctx  );
 }
 
-int main( int argc, char *argv[] )
+int main( void )
 {
     int ret, len;
     int listen_fd;
@@ -104,9 +107,6 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_context cache;
 #endif
-
-    ((void) argc);
-    ((void) argv);
 
     memset( &ssl, 0, sizeof(ssl_context) );
 #if defined(POLARSSL_SSL_CACHE_C)

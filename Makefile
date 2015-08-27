@@ -5,24 +5,25 @@ OLDPREFIX=polarssl_
 
 .SILENT:
 
-all:
-	cd library  && $(MAKE) all && cd ..
-	cd programs && $(MAKE) all && cd ..
-	cd tests    && $(MAKE) all && cd ..
+all:	programs tests
 
-no_test:
-	cd library  && $(MAKE) all && cd ..
-	cd programs && $(MAKE) all && cd ..
+no_test:	programs
+
+programs:	lib
+	$(MAKE) -C programs
 
 lib:
-	cd library  && $(MAKE) all && cd ..
+	$(MAKE) -C library
+
+tests:	lib
+	$(MAKE) -C tests
 
 install:
 	mkdir -p $(DESTDIR)/include/polarssl
 	cp -r include/polarssl $(DESTDIR)/include
 	
 	mkdir -p $(DESTDIR)/lib
-	cp library/libpolarssl.* library/libmbedtls.* $(DESTDIR)/lib
+	cp -RP library/libpolarssl.* library/libmbedtls.* $(DESTDIR)/lib
 	
 	mkdir -p $(DESTDIR)/bin
 	for p in programs/*/* ; do              \
@@ -51,13 +52,13 @@ uninstall:
 	done
 
 clean:
-	cd library  && $(MAKE) clean && cd ..
-	cd programs && $(MAKE) clean && cd ..
-	cd tests    && $(MAKE) clean && cd ..
+	$(MAKE) -C library clean
+	$(MAKE) -C programs clean
+	$(MAKE) -C tests clean
 	find . \( -name \*.gcno -o -name \*.gcda -o -name *.info \) -exec rm {} +
 
-check: lib
-	( cd tests && $(MAKE) && $(MAKE) check )
+check: tests
+	$(MAKE) -C tests check
 
 test-ref-configs:
 	tests/scripts/test-ref-configs.pl

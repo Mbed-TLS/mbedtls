@@ -1,5 +1,5 @@
 /* BEGIN_HEADER */
-#include <polarssl/version.h>
+#include "polarssl/version.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -17,10 +17,10 @@ void check_compiletime_version( char *version_str )
     memset( build_str, 0, 100 );
     memset( build_str_full, 0, 100 );
 
-    snprintf (build_str, 100, "%d.%d.%d", POLARSSL_VERSION_MAJOR,
+    polarssl_snprintf( build_str, 100, "%d.%d.%d", POLARSSL_VERSION_MAJOR,
         POLARSSL_VERSION_MINOR, POLARSSL_VERSION_PATCH );
 
-    snprintf( build_str_full, 100, "mbed TLS %d.%d.%d", POLARSSL_VERSION_MAJOR,
+    polarssl_snprintf( build_str_full, 100, "mbed TLS %d.%d.%d", POLARSSL_VERSION_MAJOR,
         POLARSSL_VERSION_MINOR, POLARSSL_VERSION_PATCH );
 
     build_int = POLARSSL_VERSION_MAJOR << 24 |
@@ -52,11 +52,11 @@ void check_runtime_version( char *version_str )
     version_get_string( get_str );
     version_get_string_full( get_str_full );
 
-    snprintf( build_str, 100, "%d.%d.%d",
+    polarssl_snprintf( build_str, 100, "%d.%d.%d",
         (get_int >> 24) & 0xFF,
         (get_int >> 16) & 0xFF,
         (get_int >> 8) & 0xFF );
-    snprintf( build_str_full, 100, "mbed TLS %s", version_str );
+    polarssl_snprintf( build_str_full, 100, "mbed TLS %s", version_str );
 
     TEST_ASSERT( strcmp( build_str, version_str ) == 0 );
     TEST_ASSERT( strcmp( build_str_full, get_str_full ) == 0 );

@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2011-2012 ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,19 +29,18 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/stat.h>
-
+#if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_RSA_C) && \
+    defined(POLARSSL_PK_PARSE_C) && defined(POLARSSL_FS_IO)
 #include <openssl/rsa.h>
+
 #ifndef OPENSSL_NO_ENGINE
 #include <openssl/engine.h>
 #endif
+
 #include <openssl/pem.h>
 #include <openssl/bio.h>
 
@@ -50,13 +49,15 @@
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#endif
+
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||         \
     !defined(POLARSSL_PK_PARSE_C) || !defined(POLARSSL_FS_IO)
-int main( int argc, char *argv[] )
+int main( void )
 {
-    ((void) argc);
-    ((void) argv);
-
     polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
            "POLARSSL_PK_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
     return( 0 );

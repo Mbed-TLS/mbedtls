@@ -5,7 +5,7 @@
  *
  *  Copyright (C) 2006-2013, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -412,7 +412,7 @@ int ecp_point_read_binary( const ecp_group *grp, ecp_point *P,
  *
  * \note            buf is updated to point right after the ECPoint on exit
  *
- * \return          O if successful,
+ * \return          0 if successful,
  *                  POLARSSL_ERR_MPI_XXX if initialization failed
  *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA if input is invalid
  */
@@ -462,7 +462,7 @@ int ecp_group_read_string( ecp_group *grp, int radix,
  * \param grp       Destination group
  * \param index     Index in the list of well-known domain parameters
  *
- * \return          O if successful,
+ * \return          0 if successful,
  *                  POLARSSL_ERR_MPI_XXX if initialization failed
  *                  POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE for unkownn groups
  *
@@ -480,7 +480,7 @@ int ecp_use_known_dp( ecp_group *grp, ecp_group_id index );
  *
  * \note            buf is updated to point right after ECParameters on exit
  *
- * \return          O if successful,
+ * \return          0 if successful,
  *                  POLARSSL_ERR_MPI_XXX if initialization failed
  *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA if input is invalid
  */
@@ -642,7 +642,7 @@ int ecp_gen_key( ecp_group_id grp_id, ecp_keypair *key,
  * \param pub       Keypair structure holding a public key
  * \param prv       Keypair structure holding a private (plus public) key
  *
- * \return          0 if successfull (keys are valid and match), or
+ * \return          0 if successful (keys are valid and match), or
  *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA, or
  *                  a POLARSSL_ERR_ECP_XXX or POLARSSL_ERR_MPI_XXX code.
  */

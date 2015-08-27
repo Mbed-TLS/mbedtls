@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,14 +28,20 @@
 
 #if defined(POLARSSL_ERROR_C) || defined(POLARSSL_ERROR_STRERROR_DUMMY)
 #include "polarssl/error.h"
+#include <string.h>
+#endif
+
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_snprintf snprintf
 #endif
 
 #if defined(POLARSSL_ERROR_C)
 
-HEADER_INCLUDED
 #include <stdio.h>
-#include <string.h>
 
+HEADER_INCLUDED
 #if defined(_MSC_VER) && !defined  snprintf && !defined(EFIX64) && \
     !defined(EFI32)
 #define  snprintf  _snprintf
@@ -67,7 +73,7 @@ HIGH_LEVEL_CODE_CHECKS
         // END generated code
 
         if( strlen( buf ) == 0 )
-            snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
+            polarssl_snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
     }
 
     use_ret = ret & ~0xFF80;
@@ -85,7 +91,7 @@ HIGH_LEVEL_CODE_CHECKS
         if( buflen - len < 5 )
             return;
 
-        snprintf( buf + len, buflen - len, " : " );
+        polarssl_snprintf( buf + len, buflen - len, " : " );
 
         buf += len + 3;
         buflen -= len + 3;
@@ -100,7 +106,7 @@ LOW_LEVEL_CODE_CHECKS
     if( strlen( buf ) != 0 )
         return;
 
-    snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
+    polarssl_snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
 }
 
 #if defined(POLARSSL_ERROR_STRERROR_BC)
@@ -113,8 +119,6 @@ void error_strerror( int ret, char *buf, size_t buflen )
 #else /* POLARSSL_ERROR_C */
 
 #if defined(POLARSSL_ERROR_STRERROR_DUMMY)
-
-#include <string.h>
 
 /*
  * Provide an non-function in case POLARSSL_ERROR_C is not defined

@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@
 #define strcasecmp _stricmp
 #endif
 
-const char *features[] = {
+static const char *features[] = {
 #if defined(POLARSSL_VERSION_FEATURES)
 #if defined(POLARSSL_HAVE_INT8)
     "POLARSSL_HAVE_INT8",
@@ -66,12 +66,24 @@ const char *features[] = {
 #if defined(POLARSSL_PLATFORM_NO_STD_FUNCTIONS)
     "POLARSSL_PLATFORM_NO_STD_FUNCTIONS",
 #endif /* POLARSSL_PLATFORM_NO_STD_FUNCTIONS */
-#if defined(POLARSSL_PLATFORM_PRINTF_ALT)
-    "POLARSSL_PLATFORM_PRINTF_ALT",
-#endif /* POLARSSL_PLATFORM_PRINTF_ALT */
+#if defined(POLARSSL_PLATFORM_EXIT_ALT)
+    "POLARSSL_PLATFORM_EXIT_ALT",
+#endif /* POLARSSL_PLATFORM_EXIT_ALT */
 #if defined(POLARSSL_PLATFORM_FPRINTF_ALT)
     "POLARSSL_PLATFORM_FPRINTF_ALT",
 #endif /* POLARSSL_PLATFORM_FPRINTF_ALT */
+#if defined(POLARSSL_PLATFORM_PRINTF_ALT)
+    "POLARSSL_PLATFORM_PRINTF_ALT",
+#endif /* POLARSSL_PLATFORM_PRINTF_ALT */
+#if defined(POLARSSL_PLATFORM_SNPRINTF_ALT)
+    "POLARSSL_PLATFORM_SNPRINTF_ALT",
+#endif /* POLARSSL_PLATFORM_SNPRINTF_ALT */
+#if defined(POLARSSL_DEPRECATED_WARNING)
+    "POLARSSL_DEPRECATED_WARNING",
+#endif /* POLARSSL_DEPRECATED_WARNING */
+#if defined(POLARSSL_DEPRECATED_REMOVED)
+    "POLARSSL_DEPRECATED_REMOVED",
+#endif /* POLARSSL_DEPRECATED_REMOVED */
 #if defined(POLARSSL_TIMING_ALT)
     "POLARSSL_TIMING_ALT",
 #endif /* POLARSSL_TIMING_ALT */
@@ -117,6 +129,9 @@ const char *features[] = {
 #if defined(POLARSSL_AES_ROM_TABLES)
     "POLARSSL_AES_ROM_TABLES",
 #endif /* POLARSSL_AES_ROM_TABLES */
+#if defined(POLARSSL_CAMELLIA_SMALL_MEMORY)
+    "POLARSSL_CAMELLIA_SMALL_MEMORY",
+#endif /* POLARSSL_CAMELLIA_SMALL_MEMORY */
 #if defined(POLARSSL_CIPHER_MODE_CBC)
     "POLARSSL_CIPHER_MODE_CBC",
 #endif /* POLARSSL_CIPHER_MODE_CBC */

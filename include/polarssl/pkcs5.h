@@ -7,7 +7,7 @@
  *
  *  Copyright (C) 2006-2013, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,10 +26,10 @@
 #ifndef POLARSSL_PKCS5_H
 #define POLARSSL_PKCS5_H
 
-#include <string.h>
-
 #include "asn1.h"
 #include "md.h"
+
+#include <stddef.h>
 
 #if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
 #include <basetsd.h>

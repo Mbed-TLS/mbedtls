@@ -5,7 +5,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -282,6 +282,14 @@
 #define SSL_MAX_CONTENT_LEN         16384   /**< Size of the input / output buffer */
 #endif
 
+/*
+ * Minimum size of the Diffie-Hellman parameters to accept from a server.
+ * The default is 1024 bits (128 bytes) for compatibility reasons.
+ * From a purely security perspective, 2048 bits would be better.
+ */
+#if !defined(SSL_MIN_DHM_BYTES)
+#define SSL_MIN_DHM_BYTES             128   /**< Min size of the Diffie-Hellman prime */
+#endif
 /* \} name SECTION: Module settings */
 
 /*
@@ -1154,6 +1162,9 @@ int ssl_set_session( ssl_context *ssl, const ssl_session *session );
  *                      order. First in the list has the highest preference.
  *                      (Overrides all version specific lists)
  *
+ *                      The ciphersuites array is not copied, and must remain
+ *                      valid for the lifetime of the ssl_context.
+ *
  *                      Note: The server uses its own preferences
  *                      over the preference of the client unless
  *                      POLARSSL_SSL_SRV_RESPECT_CLIENT_PREFERENCE is defined!
@@ -1213,6 +1224,12 @@ void ssl_set_ca_chain( ssl_context *ssl, x509_crt *ca_chain,
 int ssl_set_own_cert( ssl_context *ssl, x509_crt *own_cert,
                        pk_context *pk_key );
 
+#if ! defined(POLARSSL_DEPRECATED_REMOVED)
+#if defined(POLARSSL_DEPRECATED_WARNING)
+#define DEPRECATED    __attribute__((deprecated))
+#else
+#define DEPRECATED
+#endif
 #if defined(POLARSSL_RSA_C)
 /**
  * \brief          Set own certificate chain and private RSA key
@@ -1221,8 +1238,7 @@ int ssl_set_own_cert( ssl_context *ssl, x509_crt *own_cert,
  *                 up your certificate chain. The top certificate (self-signed)
  *                 can be omitted.
  *
- * \warning        This backwards-compatibility function is deprecated!
- *                 Please use \c ssl_set_own_cert() instead.
+ * \deprecated     Please use \c ssl_set_own_cert() instead.
  *
  * \param ssl      SSL context
  * \param own_cert own public certificate chain
@@ -1231,7 +1247,7 @@ int ssl_set_own_cert( ssl_context *ssl, x509_crt *own_cert,
  * \return          0 on success, or a specific error code.
  */
 int ssl_set_own_cert_rsa( ssl_context *ssl, x509_crt *own_cert,
-                          rsa_context *rsa_key );
+                          rsa_context *rsa_key ) DEPRECATED;
 #endif /* POLARSSL_RSA_C */
 
 /**
@@ -1246,8 +1262,7 @@ int ssl_set_own_cert_rsa( ssl_context *ssl, x509_crt *own_cert,
  *                 up your certificate chain. The top certificate (self-signed)
  *                 can be omitted.
  *
- * \warning        This backwards-compatibility function is deprecated!
- *                 Please use \c pk_init_ctx_rsa_alt()
+ * \deprecated     Please use \c pk_init_ctx_rsa_alt()
  *                 and \c ssl_set_own_cert() instead.
  *
  * \param ssl      SSL context
@@ -1263,7 +1278,9 @@ int ssl_set_own_cert_alt( ssl_context *ssl, x509_crt *own_cert,
                           void *rsa_key,
                           rsa_decrypt_func rsa_decrypt,
                           rsa_sign_func rsa_sign,
-                          rsa_key_len_func rsa_key_len );
+                          rsa_key_len_func rsa_key_len ) DEPRECATED;
+#undef DEPRECATED
+#endif /* POLARSSL_DEPRECATED_REMOVED */
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
@@ -1312,7 +1329,7 @@ void ssl_set_psk_cb( ssl_context *ssl,
 /**
  * \brief          Set the Diffie-Hellman public P and G values,
  *                 read as hexadecimal strings (server-side only)
- *                 (Default: POLARSSL_DHM_RFC5114_MODP_1024_[PG])
+ *                 (Default: POLARSSL_DHM_RFC5114_MODP_2048_[PG])
  *
  * \param ssl      SSL context
  * \param dhm_P    Diffie-Hellman-Merkle modulus
@@ -1534,7 +1551,7 @@ void ssl_set_arc4_support( ssl_context *ssl, char arc4 );
  *                 SSL_MAX_FRAG_LEN_512,  SSL_MAX_FRAG_LEN_1024,
  *                 SSL_MAX_FRAG_LEN_2048, SSL_MAX_FRAG_LEN_4096)
  *
- * \return         O if successful or POLARSSL_ERR_SSL_BAD_INPUT_DATA
+ * \return         0 if successful or POLARSSL_ERR_SSL_BAD_INPUT_DATA
  */
 int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code );
 #endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
@@ -1583,7 +1600,7 @@ void ssl_set_cbc_record_splitting( ssl_context *ssl, char split );
  * \param use_tickets   Enable or disable (SSL_SESSION_TICKETS_ENABLED or
  *                                         SSL_SESSION_TICKETS_DISABLED)
  *
- * \return         O if successful,
+ * \return         0 if successful,
  *                 or a specific error code (server only).
  */
 int ssl_set_session_tickets( ssl_context *ssl, int use_tickets );
@@ -1974,7 +1991,8 @@ static inline x509_crt *ssl_own_cert( ssl_context *ssl )
  */
 int ssl_check_cert_usage( const x509_crt *cert,
                           const ssl_ciphersuite_t *ciphersuite,
-                          int cert_endpoint );
+                          int cert_endpoint,
+                          int *flags );
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
 /* constant-time buffer comparison */

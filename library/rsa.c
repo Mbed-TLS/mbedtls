@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -37,16 +37,20 @@
 #include "polarssl/rsa.h"
 #include "polarssl/oid.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_PKCS1_V21)
 #include "polarssl/md.h"
 #endif
 
+#if defined(POLARSSL_PKCS1_V15) && !defined(__OpenBSD__)
 #include <stdlib.h>
-#include <stdio.h>
+#endif
 
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf printf
 #endif
 
@@ -278,11 +282,18 @@ int rsa_public( rsa_context *ctx,
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
     }
 
+#if defined(POLARSSL_THREADING_C)
+    polarssl_mutex_lock( &ctx->mutex );
+#endif
+
     olen = ctx->len;
     MPI_CHK( mpi_exp_mod( &T, &T, &ctx->E, &ctx->N, &ctx->RN ) );
     MPI_CHK( mpi_write_binary( &T, output, olen ) );
 
 cleanup:
+#if defined(POLARSSL_THREADING_C)
+    polarssl_mutex_unlock( &ctx->mutex );
+#endif
 
     mpi_free( &T );
 
@@ -396,6 +407,10 @@ int rsa_private( rsa_context *ctx,
         MPI_CHK( mpi_mod_mpi( &T, &T, &ctx->N ) );
     }
 
+#if defined(POLARSSL_THREADING_C)
+    polarssl_mutex_lock( &ctx->mutex );
+#endif
+
 #if defined(POLARSSL_RSA_NO_CRT)
     MPI_CHK( mpi_exp_mod( &T, &T, &ctx->D, &ctx->N, &ctx->RN ) );
 #else
@@ -436,10 +451,11 @@ int rsa_private( rsa_context *ctx,
     MPI_CHK( mpi_write_binary( &T, output, olen ) );
 
 cleanup:
-    mpi_free( &T ); mpi_free( &T1 ); mpi_free( &T2 );
 #if defined(POLARSSL_THREADING_C)
+    polarssl_mutex_unlock( &ctx->mutex );
     mpi_free( &Vi_copy ); mpi_free( &Vf_copy );
 #endif
+    mpi_free( &T ); mpi_free( &T1 ); mpi_free( &T2 );
 
     if( ret != 0 )
         return( POLARSSL_ERR_RSA_PRIVATE_FAILED + ret );
@@ -522,7 +538,7 @@ int rsa_rsaes_oaep_encrypt( rsa_context *ctx,
     if( f_rng == NULL )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
-    md_info = md_info_from_type( ctx->hash_id );
+    md_info = md_info_from_type( (md_type_t) ctx->hash_id );
     if( md_info == NULL )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
@@ -701,7 +717,7 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
     if( ilen < 16 || ilen > sizeof( buf ) )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
-    md_info = md_info_from_type( ctx->hash_id );
+    md_info = md_info_from_type( (md_type_t) ctx->hash_id );
     if( md_info == NULL )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
@@ -757,7 +773,7 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
     for( i = 0; i < ilen - 2 * hlen - 2; i++ )
     {
         pad_done |= p[i];
-        pad_len += ( pad_done == 0 );
+        pad_len += ((pad_done | (unsigned char)-pad_done) >> 7) ^ 1;
     }
 
     p += pad_len;
@@ -831,8 +847,8 @@ int rsa_rsaes_pkcs1_v15_decrypt( rsa_context *ctx,
          * (minus one, for the 00 byte) */
         for( i = 0; i < ilen - 3; i++ )
         {
-            pad_done |= ( p[i] == 0 );
-            pad_count += ( pad_done == 0 );
+            pad_done  |= ((p[i] | (unsigned char)-p[i]) >> 7) ^ 1;
+            pad_count += ((pad_done | (unsigned char)-pad_done) >> 7) ^ 1;
         }
 
         p += pad_count;
@@ -939,7 +955,7 @@ int rsa_rsassa_pss_sign( rsa_context *ctx,
         hashlen = md_get_size( md_info );
     }
 
-    md_info = md_info_from_type( ctx->hash_id );
+    md_info = md_info_from_type( (md_type_t) ctx->hash_id );
     if( md_info == NULL )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 

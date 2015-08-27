@@ -7,7 +7,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -43,9 +43,12 @@
 #include "polarssl/cipher.h"
 #include "polarssl/oid.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf printf
 #endif
 
@@ -208,7 +211,7 @@ int pkcs5_pbes2_ext( asn1_buf *pbe_params, int mode,
     if( ( ret = cipher_init_ctx( &cipher_ctx, cipher_info ) ) != 0 )
         goto exit;
 
-    if( ( ret = cipher_setkey( &cipher_ctx, key, 8 * keylen, mode ) ) != 0 )
+    if( ( ret = cipher_setkey( &cipher_ctx, key, 8 * keylen, (operation_t) mode ) ) != 0 )
         goto exit;
 
     if( ( ret = cipher_crypt( &cipher_ctx, iv, enc_scheme_params.len,
@@ -305,16 +308,13 @@ int pkcs5_self_test( int verbose )
 }
 #else
 
-#include <stdio.h>
-
 #define MAX_TESTS   6
 
-size_t plen[MAX_TESTS] =
-    { 8, 8, 8, 8, 24, 9 };
+static const size_t plen[MAX_TESTS] =
+    { 8, 8, 8, 24, 9 };
 
-unsigned char password[MAX_TESTS][32] =
+static const unsigned char password[MAX_TESTS][32] =
 {
-    "password",
     "password",
     "password",
     "password",
@@ -322,12 +322,11 @@ unsigned char password[MAX_TESTS][32] =
     "pass\0word",
 };
 
-size_t slen[MAX_TESTS] =
-    { 4, 4, 4, 4, 36, 5 };
+static const size_t slen[MAX_TESTS] =
+    { 4, 4, 4, 36, 5 };
 
-unsigned char salt[MAX_TESTS][40] =
+static const unsigned char salt[MAX_TESTS][40] =
 {
-    "salt",
     "salt",
     "salt",
     "salt",
@@ -335,14 +334,13 @@ unsigned char salt[MAX_TESTS][40] =
     "sa\0lt",
 };
 
-uint32_t it_cnt[MAX_TESTS] =
-    { 1, 2, 4096, 16777216, 4096, 4096 };
+static const uint32_t it_cnt[MAX_TESTS] =
+    { 1, 2, 4096, 4096, 4096 };
 
-uint32_t key_len[MAX_TESTS] =
-    { 20, 20, 20, 20, 25, 16 };
+static const uint32_t key_len[MAX_TESTS] =
+    { 20, 20, 20, 25, 16 };
 
-
-unsigned char result_key[MAX_TESTS][32] =
+static const unsigned char result_key[MAX_TESTS][32] =
 {
     { 0x0c, 0x60, 0xc8, 0x0f, 0x96, 0x1f, 0x0e, 0x71,
       0xf3, 0xa9, 0xb5, 0x24, 0xaf, 0x60, 0x12, 0x06,
@@ -353,9 +351,6 @@ unsigned char result_key[MAX_TESTS][32] =
     { 0x4b, 0x00, 0x79, 0x01, 0xb7, 0x65, 0x48, 0x9a,
       0xbe, 0xad, 0x49, 0xd9, 0x26, 0xf7, 0x21, 0xd0,
       0x65, 0xa4, 0x29, 0xc1 },
-    { 0xee, 0xfe, 0x3d, 0x61, 0xcd, 0x4d, 0xa4, 0xe4,
-      0xe9, 0x94, 0x5b, 0x3d, 0x6b, 0xa2, 0x15, 0x8c,
-      0x26, 0x34, 0xe9, 0x84 },
     { 0x3d, 0x2e, 0xec, 0x4f, 0xe4, 0x1c, 0x84, 0x9b,
       0x80, 0xc8, 0xd8, 0x36, 0x62, 0xc0, 0xe4, 0x4a,
       0x8b, 0x29, 0x1a, 0x96, 0x4c, 0xf2, 0xf0, 0x70,
@@ -385,9 +380,6 @@ int pkcs5_self_test( int verbose )
         ret = 1;
         goto exit;
     }
-
-    if( verbose != 0 )
-        polarssl_printf( "  PBKDF2 note: test #3 may be slow!\n" );
 
     for( i = 0; i < MAX_TESTS; i++ )
     {

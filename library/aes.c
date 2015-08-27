@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -34,6 +34,8 @@
 
 #if defined(POLARSSL_AES_C)
 
+#include <string.h>
+
 #include "polarssl/aes.h"
 #if defined(POLARSSL_PADLOCK_C)
 #include "polarssl/padlock.h"
@@ -42,11 +44,14 @@
 #include "polarssl/aesni.h"
 #endif
 
+#if defined(POLARSSL_SELF_TEST)
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf printf
-#endif
+#endif /* POLARSSL_PLATFORM_C */
+#endif /* POLARSSL_SELF_TEST */
 
 #if !defined(POLARSSL_AES_ALT)
 
@@ -926,7 +931,6 @@ int aes_crypt_cfb128( aes_context *ctx,
 /*
  * AES-CFB8 buffer encryption/decryption
  */
-#include <stdio.h>
 int aes_crypt_cfb8( aes_context *ctx,
                        int mode,
                        size_t length,
@@ -996,9 +1000,6 @@ int aes_crypt_ctr( aes_context *ctx,
 #endif /* !POLARSSL_AES_ALT */
 
 #if defined(POLARSSL_SELF_TEST)
-
-#include <stdio.h>
-
 /*
  * AES test vectors from:
  *

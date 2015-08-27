@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://polarssl.org)
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -34,14 +34,15 @@
 
 #include "polarssl/ssl_cache.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdlib.h>
 #define polarssl_malloc     malloc
 #define polarssl_free       free
 #endif
-
-#include <stdlib.h>
 
 void ssl_cache_init( ssl_cache_context *cache )
 {
@@ -102,7 +103,7 @@ int ssl_cache_get( void *data, ssl_session *session )
          */
         if( entry->peer_cert.p != NULL )
         {
-            if( ( session->peer_cert = (x509_crt *) polarssl_malloc(
+            if( ( session->peer_cert = polarssl_malloc(
                                  sizeof(x509_crt) ) ) == NULL )
             {
                 ret = 1;
@@ -221,7 +222,7 @@ int ssl_cache_set( void *data, const ssl_session *session )
             /*
              * max_entries not reached, create new entry
              */
-            cur = (ssl_cache_entry *) polarssl_malloc( sizeof(ssl_cache_entry) );
+            cur = polarssl_malloc( sizeof(ssl_cache_entry) );
             if( cur == NULL )
             {
                 ret = 1;
@@ -258,8 +259,7 @@ int ssl_cache_set( void *data, const ssl_session *session )
      */
     if( session->peer_cert != NULL )
     {
-        cur->peer_cert.p = (unsigned char *) polarssl_malloc(
-                            session->peer_cert->raw.len );
+        cur->peer_cert.p = polarssl_malloc( session->peer_cert->raw.len );
         if( cur->peer_cert.p == NULL )
         {
             ret = 1;

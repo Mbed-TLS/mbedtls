@@ -110,6 +110,10 @@ X509 Certificate information EC signed by RSA
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED
 x509_cert_info:"data_files/server3.crt":"cert. version     \: 3\nserial number     \: 0D\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2013-08-09 09\:17\:03\nexpires on        \: 2023-08-07 09\:17\:03\nsigned using      \: RSA with SHA1\nEC key size       \: 192 bits\nbasic constraints \: CA=false\n"
 
+X509 Certificate information Bitstring in subject name
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
+x509_cert_info:"data_files/bitstring-in-dn.pem":"cert. version     \: 3\nserial number     \: 02\nissuer name       \: CN=Test CA 01, ST=Ecnivorp, C=XX, emailAddress=tca@example.com, O=Test CA Authority\nsubject name      \: C=XX, O=tca, ST=Ecnivorp, OU=TCA, CN=Client, emailAddress=client@example.com, serialNumber=7101012255, uniqueIdentifier=?7101012255\nissued  on        \: 2015-03-11 12\:06\:51\nexpires on        \: 2025-03-08 12\:06\:51\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\nsubject alt name  \: \next key usage     \: TLS Web Client Authentication\n"
+
 X509 certificate v1 with extension
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C:POLARSSL_X509_ALLOW_EXTENSIONS_NON_V3
 x509_cert_info:"data_files/cert_v1_with_ext.crt":"cert. version     \: 1\nserial number     \: BD\:ED\:44\:C7\:D2\:3E\:C2\:A4\nissuer name       \: C=XX, ST=XX, L=XX, O=XX, OU=XX, emailAddress=admin@identity-check.org, CN=identity-check.org\nsubject name      \: C=XX, ST=XX, L=XX, O=XX, OU=XX, emailAddress=admin@identity-check.org, CN=identity-check.org\nissued  on        \: 2013-07-04 16\:17\:02\nexpires on        \: 2014-07-04 16\:17\:02\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nsubject alt name  \: identity-check.org, www.identity-check.org\n"
@@ -257,6 +261,27 @@ x509_csr_info:"data_files/server9.req.sha384":"CSR version   \: 1\nsubject name 
 X509 CSR Information RSA-PSS with SHA512
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA512_C
 x509_csr_info:"data_files/server9.req.sha512":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: RSASSA-PSS (SHA512, MGF1-SHA512, 0x3E)\nRSA key size  \: 1024 bits\n"
+
+X509 Verify Information: empty
+x509_verify_info:0:"":""
+
+X509 Verify Information: one issue
+x509_verify_info:BADCERT_MISSING:"":"Certificate was missing\n"
+
+X509 Verify Information: two issues
+x509_verify_info:BADCERT_EXPIRED | BADCRL_EXPIRED:"":"The certificate validity has expired\nThe CRL is expired\n"
+
+X509 Verify Information: two issues, one unknown
+x509_verify_info:BADCERT_OTHER | 0x8000:"":"Other reason (can be used by verify callback)\nUnknown reason (this should not happen)\n"
+
+X509 Verify Information: empty, with prefix
+x509_verify_info:0:"  ! ":""
+
+X509 Verify Information: one issue, with prefix
+x509_verify_info:BADCERT_MISSING:"  ! ":"  ! Certificate was missing\n"
+
+X509 Verify Information: two issues, with prefix
+x509_verify_info:BADCERT_EXPIRED | BADCRL_EXPIRED:"  ! ":"  ! The certificate validity has expired\n  ! The CRL is expired\n"
 
 X509 Get Distinguished Name #1
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
@@ -1330,3 +1355,7 @@ x509parse_crt_file:"data_files/server7_pem_space.crt":1
 X509 File parse (all certificates fail)
 depends_on:POLARSSL_ECP_C
 x509parse_crt_file:"data_files/server7_all_space.crt":POLARSSL_ERR_PEM_INVALID_DATA + POLARSSL_ERR_BASE64_INVALID_CHARACTER
+
+X509 File parse (trailing spaces, OK)
+depends_on:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP256R1_ENABLED
+x509parse_crt_file:"data_files/server7_trailing_space.crt":0

@@ -33,6 +33,8 @@ Bugfix
    * Fix memory corruption on client with overlong PSK identity, around
      SSL_MAX_CONTENT_LEN or higher - not triggerrable remotely (found by
      Aleksandrs Saveljevs) (#238)
+   * Fix unused function warning when using MBEDTLS_MDx_ALT or
+     MBEDTLS_SHAxxx_ALT (found by Henrik) (#239)
 
 Changes
    * The PEM parser now accepts a trailing space at end of lines (#226).

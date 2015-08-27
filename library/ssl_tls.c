@@ -5457,6 +5457,13 @@ int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
     if( psk_len > MBEDTLS_PSK_MAX_LEN )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
+    /* Identity len will be encoded on two bytes */
+    if( ( psk_identity_len >> 16 ) != 0 ||
+        psk_identity_len > MBEDTLS_SSL_MAX_CONTENT_LEN )
+    {
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+
     if( conf->psk != NULL || conf->psk_identity != NULL )
     {
         mbedtls_free( conf->psk );

@@ -694,8 +694,6 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     }
     else
     {
-        int ret;
-
         /* Initialize HMAC contexts */
         if( ( ret = mbedtls_md_setup( &transform->md_ctx_enc, md_info, 1 ) ) != 0 ||
             ( ret = mbedtls_md_setup( &transform->md_ctx_dec, md_info, 1 ) ) != 0 )
@@ -1455,7 +1453,7 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
             /*
              * Generate IV
              */
-            int ret = ssl->conf->f_rng( ssl->conf->p_rng, ssl->transform_out->iv_enc,
+            ret = ssl->conf->f_rng( ssl->conf->p_rng, ssl->transform_out->iv_enc,
                                   ssl->transform_out->ivlen );
             if( ret != 0 )
                 return( ret );

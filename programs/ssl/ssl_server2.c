@@ -1925,7 +1925,7 @@ reset:
         if( ret == MBEDTLS_ERR_X509_CERT_VERIFY_FAILED )
         {
             char vrfy_buf[512];
-            uint32_t flags = mbedtls_ssl_get_verify_result( &ssl );
+            flags = mbedtls_ssl_get_verify_result( &ssl );
 
             mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", flags );
 

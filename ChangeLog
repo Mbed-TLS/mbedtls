@@ -29,6 +29,7 @@ Bugfix
    * Fix bug in mbedtls_rsa_public() and mbedtls_rsa_private() that could
      result trying to unlock an unlocked mutex on invalid input (found by
      Fredrik Axelsson) (#257)
+   * Fix -Wshadow warnings (found by hnrkp) (#240)
 
 Changes
    * The PEM parser now accepts a trailing space at end of lines (#226).

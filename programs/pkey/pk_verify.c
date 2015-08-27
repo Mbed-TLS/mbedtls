@@ -86,7 +86,7 @@ int main( int argc, char *argv[] )
     }
 
     /*
-     * Extract the signature from the text file
+     * Extract the signature from the file
      */
     ret = 1;
     mbedtls_snprintf( filename, sizeof(filename), "%s.sig", argv[2] );

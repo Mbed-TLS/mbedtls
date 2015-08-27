@@ -100,7 +100,7 @@ int main( int argc, char *argv[] )
     mbedtls_rsa_set_padding( mbedtls_pk_rsa( pk ), MBEDTLS_RSA_PKCS_V21, MBEDTLS_MD_SHA256 );
 
     /*
-     * Extract the RSA signature from the text file
+     * Extract the RSA signature from the file
      */
     ret = 1;
     mbedtls_snprintf( filename, 512, "%s.sig", argv[2] );

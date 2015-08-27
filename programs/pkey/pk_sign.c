@@ -129,7 +129,7 @@ int main( int argc, char *argv[] )
     }
 
     /*
-     * Write the signature into <filename>-sig.txt
+     * Write the signature into <filename>.sig
      */
     mbedtls_snprintf( filename, sizeof(filename), "%s.sig", argv[2] );
 

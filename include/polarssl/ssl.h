@@ -287,7 +287,9 @@
  * The default is 1024 bits (128 bytes) for compatibility reasons.
  * From a purely security perspective, 2048 bits would be better.
  */
+#if !defined(SSL_MIN_DHM_BYTES)
 #define SSL_MIN_DHM_BYTES             128   /**< Min size of the Diffie-Hellman prime */
+#endif
 /* \} name SECTION: Module settings */
 
 /*

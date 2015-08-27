@@ -12,6 +12,9 @@ Bugfix
    * Fix unused function warning when using MBEDTLS_MDx_ALT or
      MBEDTLS_SHAxxx_ALT (found by Henrik) (#239)
    * Fix memory corruption in pkey programs (found by yankuncheng) (#210)
+   * Fix memory corruption on client with overlong PSK identity, around
+     SSL_MAX_CONTENT_LEN or higher - not triggerrable remotely (found by
+     Aleksandrs Saveljevs) (#238)
 
 = mbed TLS 1.3.12 released 2015-08-11
 

@@ -151,8 +151,11 @@ exit:
     mbedtls_entropy_free( &entropy );
 
 #if defined(MBEDTLS_ERROR_C)
-    mbedtls_strerror( ret, (char *) buf, sizeof(buf) );
-    mbedtls_printf( "  !  Last error was: %s\n", buf );
+    if( ret != 0 )
+    {
+        mbedtls_strerror( ret, (char *) buf, sizeof(buf) );
+        mbedtls_printf( "  !  Last error was: %s\n", buf );
+    }
 #endif
 
 #if defined(_WIN32)

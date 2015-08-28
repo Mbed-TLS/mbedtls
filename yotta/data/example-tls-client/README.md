@@ -1,4 +1,4 @@
-# HTTPS File Download Example/ TLS Client
+# HTTPS File Download Example for TLS Client
 
 This application downloads a file from an HTTPS server (developer.mbed.org) and looks for a specific string in that file.
 
@@ -6,25 +6,25 @@ This example is implemented as a logic class (HelloHTTPS) wrapping a TCP socket 
 
 ## Pre-requisites
 
-To build and run this example the following requirements are necessary:
+To build and run this example you must have:
 
 * A computer with the following software installed:
   * [CMake](http://www.cmake.org/download/).
   * [yotta](https://github.com/ARMmbed/yotta). Please note that **yotta has its own set of dependencies**, listed in the [installation instructions](http://armmbed.github.io/yotta/#installing-on-windows).
   * [Python](https://www.python.org/downloads/).
-  * [ARM GCC toolchain](https://launchpad.net/gcc-arm-embedded).
-  * A serial terminal emulator (e.g. screen, pySerial, cu).
-* An [FRDM-K64F](http://developer.mbed.org/platforms/FRDM-K64F/) development board, or another board that has an ethernet port and is supported by mbed OS (in which case you'll have to substitute frdm-k64f-gcc with the appropriate target in the instructions below).
-* An ethernet connection to the internet.
-* An ethernet cable.
+  * [The ARM GCC toolchain](https://launchpad.net/gcc-arm-embedded).
+  * A serial terminal emulator (Like screen, pySerial and cu).
+* An [FRDM-K64F](http://developer.mbed.org/platforms/FRDM-K64F/) development board, or another board supported by mbed OS (in which case you'll have to substitute frdm-k64f-gcc with the appropriate target in the instructions below).
 * A micro-USB cable.
+* An Ethernet connection to the internet.
+* An Ethernet cable.
 * If your OS is Windows, please follow the installation instructions [for the serial port driver](https://developer.mbed.org/handbook/Windows-serial-configuration).
 
 ## Getting started
 
-1. Connect the FRDM-K64F to the internet using the ethernet cable.
+1. Connect the FRDM-K64F to the internet using the Ethernet cable.
 
-2. Connect the FRDM-K64F to the computer with the micro-USB cable, being        careful to use the "OpenSDA" connector on the target board.
+2. Connect the FRDM-K64F to the computer with the micro-USB cable, being careful to use the "OpenSDA" connector on the target board.
 
 3. Navigate to the mbedtls directory supplied with your release and open a terminal.
 
@@ -42,9 +42,15 @@ To build and run this example the following requirements are necessary:
 
 6. Copy `build/frdm-k64f-gcc/test/mbedtls-test-example-tls-client.bin` to your mbed board and wait until the LED next to the USB port stops blinking.
 
-7. Start the serial terminal emulator and connect to the virtual serial port presented by FRDM-K64F. For settings, use 115200 baud, 8N1, no flow control. **Warning:** for this example, the baud rate is not the default 9600, it is 115200.
+7. Start the serial terminal emulator and connect to the virtual serial port presented by FRDM-K64F. 
 
-8. Press the reset button on the board.
+	Use the following settings:
+
+	* 115200 baud (not 9600).
+	* 8N1.
+	* No flow control. 
+
+8. Press the Reset button on the board.
 
 9. The output in the terminal window should look similar to this:
 
@@ -105,9 +111,9 @@ To build and run this example the following requirements are necessary:
 
 ## Debugging the TLS connection
 
-If you are experiencing problems with this example, you should first rule out network issues by making sure the [simple HTTP file downloader example](https://github.com/ARMmbed/mbed-example-network-private/tree/maste r/test/helloworld-tcpclient) for the TCP module works as expected. If not, please follow the debug instructions for this example.
+If you are experiencing problems with this example, you should first rule out network issues by making sure the [simple HTTP file downloader example](https://github.com/ARMmbed/mbed-example-network-private/tree/master/test/helloworld-tcpclient) for the TCP module works as expected. If not, please follow the debug instructions below.
 
-To print out more debug information about the TLS connection, edit the file `source/main.cpp` and change the definition of `DEBUG_LEVEL` near the top of the file from 0 to a positive number:
+To print out more debug information about the TLS connection, edit the file `source/main.cpp` and change the definition of `DEBUG_LEVEL` (near the top of the file) from 0 to a positive number:
 
 * Level 1 only prints non-zero return codes from SSL functions and information about the full certificate chain being verified.
 
@@ -125,4 +131,6 @@ If the TLS connection is failing with an error similar to:
     Failed to fetch /media/uploads/mbed_official/hello.txt from developer.mbed.org:443
     ```
 
-it probably means you need to update the contents of the `SSL_CA_PEM` constant (this can happen if you modify `HTTPS_SERVER_NAME`, or when `developer.mbed.org` switches to a new CA when updating its certificate). Another reason for this error may be a proxy providing a different certificate. Proxys can be used in some network configurations or for performing man-in-the-middle attacks. If you choose to ignore this error and proceed with the connection anyway, you can change the definition of `UNSAFE` near the top of the file from 0 to 1. **Warning:** this removes all security against a possible attacker, therefore use at your own risk, or for debugging only!
+it probably means you need to update the contents of the `SSL_CA_PEM` constant (this can happen if you modify `HTTPS_SERVER_NAME`, or when `developer.mbed.org` switches to a new CA when updating its certificate). 
+
+Another reason for this error may be a proxy providing a different certificate. Proxies can be used in some network configurations or for performing man-in-the-middle attacks. If you choose to ignore this error and proceed with the connection anyway, you can change the definition of `UNSAFE` near the top of the file from 0 to 1. **Warning:** this removes all security against a possible attacker, therefore use at your own risk, or for debugging only!

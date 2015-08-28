@@ -283,8 +283,8 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
 
     if( mbedtls_mpi_cmp_mpi( &T, &ctx->N ) >= 0 )
     {
-        mbedtls_mpi_free( &T );
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+        ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+        goto cleanup;
     }
 
     olen = ctx->len;
@@ -293,8 +293,8 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
 
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
-    if( ( ret = mbedtls_mutex_unlock( &ctx->mutex ) ) != 0 )
-        return( ret );
+    if( mbedtls_mutex_unlock( &ctx->mutex ) != 0 )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 #endif
 
     mbedtls_mpi_free( &T );
@@ -368,8 +368,8 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &T, input, ctx->len ) );
     if( mbedtls_mpi_cmp_mpi( &T, &ctx->N ) >= 0 )
     {
-        mbedtls_mpi_free( &T );
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+        ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+        goto cleanup;
     }
 
     if( f_rng != NULL )
@@ -424,8 +424,8 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
 
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
-    if( ( ret = mbedtls_mutex_unlock( &ctx->mutex ) ) != 0 )
-        return( ret );
+    if( mbedtls_mutex_unlock( &ctx->mutex ) != 0 )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 #endif
 
     mbedtls_mpi_free( &T ); mbedtls_mpi_free( &T1 ); mbedtls_mpi_free( &T2 );

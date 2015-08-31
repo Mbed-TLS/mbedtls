@@ -35,6 +35,8 @@ Changes
    * It is now possible to #include a user-provided configuration file at the
      end of the default config.h by defining MBEDTLS_USER_CONFIG_FILE on the
      compiler's command line.
+   * Prepend a "thread identifier" to debug messages (issue pointed out by
+     Hugo Leisink) (#210).
 
 = mbed TLS 2.0.0 released 2015-07-13
 

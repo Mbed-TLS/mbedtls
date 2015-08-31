@@ -32,6 +32,7 @@
 #include <stdio.h>
 #define polarssl_fprintf    fprintf
 #define polarssl_printf     printf
+#define polarssl_snprintf   snprintf
 #endif
 
 #if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_RSA_C) && \
@@ -41,6 +42,10 @@
 
 #include <stdio.h>
 #include <string.h>
+#endif
+
+#if defined _MSC_VER && !defined snprintf
+#define snprintf _snprintf
 #endif
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||  \

@@ -141,7 +141,7 @@ int main( int argc, char *argv[] )
     /*
      * Write the signature into <filename>.sig
      */
-    snprintf( filename, sizeof( filename ), "%s.sig", argv[1] );
+    polarssl_snprintf( filename, sizeof( filename ), "%s.sig", argv[1] );
 
     if( ( f = fopen( filename, "wb+" ) ) == NULL )
     {

@@ -105,7 +105,7 @@ int main( int argc, char *argv[] )
      * Extract the RSA signature from the text file
      */
     ret = 1;
-    snprintf( filename, sizeof( filename ), "%s.sig", argv[1] );
+    polarssl_snprintf( filename, sizeof( filename ), "%s.sig", argv[1] );
 
     if( ( f = fopen( filename, "rb" ) ) == NULL )
     {

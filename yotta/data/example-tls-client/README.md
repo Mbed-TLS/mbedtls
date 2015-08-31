@@ -111,7 +111,7 @@ To build and run this example you must have:
 
 ## Debugging the TLS connection
 
-If you are experiencing problems with this example, you should first rule out network issues by making sure the [simple HTTP file downloader example](https://github.com/ARMmbed/mbed-example-network-private/tree/master/test/helloworld-tcpclient) for the TCP module works as expected. If not, please follow the debug instructions below.
+If you are experiencing problems with this example, you should first rule out network issues by making sure the [simple HTTP file downloader example](https://github.com/ARMmbed/mbed-example-network-private/tree/master/test/helloworld-tcpclient) for the TCP module works as expected. If not, please follow the debug instructions for the HTTP file example before proceeding with the instructions below.
 
 To print out more debug information about the TLS connection, edit the file `source/main.cpp` and change the definition of `DEBUG_LEVEL` (near the top of the file) from 0 to a positive number:
 
@@ -133,4 +133,4 @@ If the TLS connection is failing with an error similar to:
 
 it probably means you need to update the contents of the `SSL_CA_PEM` constant (this can happen if you modify `HTTPS_SERVER_NAME`, or when `developer.mbed.org` switches to a new CA when updating its certificate). 
 
-Another reason for this error may be a proxy providing a different certificate. Proxies can be used in some network configurations or for performing man-in-the-middle attacks. If you choose to ignore this error and proceed with the connection anyway, you can change the definition of `UNSAFE` near the top of the file from 0 to 1. **Warning:** this removes all security against a possible attacker, therefore use at your own risk, or for debugging only!
+Another reason for this error may be a proxy providing a different certificate. Proxies can be used in some network configurations or for performing man-in-the-middle attacks. If you choose to ignore this error and proceed with the connection anyway, you can change the definition of `UNSAFE` near the top of the file from 0 to 1. **Warning:** this removes all security against a possible active attacker, therefore use at your own risk, or for debugging only!

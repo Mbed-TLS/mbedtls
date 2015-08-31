@@ -2144,26 +2144,33 @@ int mbedtls_ssl_renegotiate( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len );
 
 /**
- * \brief          Write exactly 'len' application data bytes
+ * \brief          Try to write exactly 'len' application data bytes
+ *
+ * \warning        This function will do partial writes in some cases. If the
+ *                 return value is non-negative but less than length, the
+ *                 function must be called again with updated arguments:
+ *                 buf + ret, len - ret (if ret is the return value) until
+ *                 it returns a value equal to the last 'len' argument.
  *
  * \param ssl      SSL context
  * \param buf      buffer holding the data
  * \param len      how many bytes must be written
  *
- * \return         the number of bytes written,
- *                 or a negative error code.
+ * \return         the number of bytes actually written (may be less than len),
+ *                 or MBEDTLS_ERR_SSL_WANT_WRITE of MBEDTLS_ERR_SSL_WANT_READ,
+ *                 or another negative error code.
  *
- * \note           When this function returns MBEDTLS_ERR_SSL_WANT_WRITE,
+ * \note           When this function returns MBEDTLS_ERR_SSL_WANT_WRITE/READ,
  *                 it must be called later with the *same* arguments,
  *                 until it returns a positive value.
  *
  * \note           If the requested length is greater than the maximum
  *                 fragment length (either the built-in limit or the one set
  *                 or negotiated with the peer), then:
- *                 - with TLS, less bytes than requested are written. (In
- *                 order to write larger messages, this function should be
- *                 called in a loop.)
+ *                 - with TLS, less bytes than requested are written.
  *                 - with DTLS, MBEDTLS_ERR_SSL_BAD_INPUT_DATA is returned.
+ *                 \c mbedtls_ssl_get_max_frag_len() may be used to query the
+ *                 active maximum fragment length.
  */
 int mbedtls_ssl_write( mbedtls_ssl_context *ssl, const unsigned char *buf, size_t len );
 

@@ -5862,6 +5862,29 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
     return( (int)( mbedtls_ssl_hdr_len( ssl ) + transform_expansion ) );
 }
 
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+size_t mbedtls_ssl_get_max_frag_len( const mbedtls_ssl_context *ssl )
+{
+    size_t max_len;
+
+    /*
+     * Assume mfl_code is correct since it was checked when set
+     */
+    max_len = mfl_code_to_length[ssl->conf->mfl_code];
+
+    /*
+     * Check if a smaller max length was negotiated
+     */
+    if( ssl->session_out != NULL &&
+        mfl_code_to_length[ssl->session_out->mfl_code] < max_len )
+    {
+        max_len = mfl_code_to_length[ssl->session_out->mfl_code];
+    }
+
+    return max_len;
+}
+#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert( const mbedtls_ssl_context *ssl )
 {
@@ -6339,23 +6362,7 @@ static int ssl_write_real( mbedtls_ssl_context *ssl,
 {
     int ret;
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    unsigned int max_len;
-#endif
-
-#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    /*
-     * Assume mfl_code is correct since it was checked when set
-     */
-    max_len = mfl_code_to_length[ssl->conf->mfl_code];
-
-    /*
-     * Check if a smaller max length was negotiated
-     */
-    if( ssl->session_out != NULL &&
-        mfl_code_to_length[ssl->session_out->mfl_code] < max_len )
-    {
-        max_len = mfl_code_to_length[ssl->session_out->mfl_code];
-    }
+    size_t max_len = mbedtls_ssl_get_max_frag_len( ssl );
 
     if( len > max_len )
     {

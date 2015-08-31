@@ -2027,6 +2027,26 @@ const char *mbedtls_ssl_get_version( const mbedtls_ssl_context *ssl );
  */
 int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl );
 
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+/**
+ * \brief          Return the maximum fragment length (payload, in bytes).
+ *                 This is the value negotiated with peer if any,
+ *                 or the locally configured value.
+ *
+ * \note           With DTLS, \c mbedtls_ssl_write() will return an error if
+ *                 called with a larger length value.
+ *                 With TLS, \c mbedtls_ssl_write() will fragment the input if
+ *                 necessary and return the number of bytes written; it is up
+ *                 to the caller to call \c mbedtls_ssl_write() again in
+ *                 order to send the remaining bytes if any.
+ *
+ * \param ssl      SSL context
+ *
+ * \return         Current maximum fragment length.
+ */
+size_t mbedtls_ssl_get_max_frag_len( const mbedtls_ssl_context *ssl );
+#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**
  * \brief          Return the peer certificate from the current connection

@@ -37,6 +37,8 @@ Changes
      compiler's command line.
    * Prepend a "thread identifier" to debug messages (issue pointed out by
      Hugo Leisink) (#210).
+   * Add mbedtls_ssl_get_max_frag_len() to query the current maximum fragment
+     length.
 
 = mbed TLS 2.0.0 released 2015-07-13
 

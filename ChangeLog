@@ -1,5 +1,11 @@
 PolarSSL ChangeLog
 
+= Version 1.2.16 released 2015-??-??
+
+Bugfix
+   * Fix unused function warning when using MBEDTLS_MDx_ALT or
+     MBEDTLS_SHAxxx_ALT (found by Henrik) (#239)
+
 = Version 1.2.15 released 2015-08-10
 
 Security

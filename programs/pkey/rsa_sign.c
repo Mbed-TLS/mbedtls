@@ -60,6 +60,7 @@ int main( int argc, char *argv[] )
     rsa_context rsa;
     unsigned char hash[20];
     unsigned char buf[POLARSSL_MPI_MAX_SIZE];
+    char filename[512];
 
     ret = 1;
 
@@ -133,14 +134,14 @@ int main( int argc, char *argv[] )
     }
 
     /*
-     * Write the signature into <filename>-sig.txt
+     * Write the signature into <filename>.sig
      */
-    memcpy( argv[1] + strlen( argv[1] ), ".sig", 5 );
+    snprintf( filename, sizeof( filename ), "%s.sig", argv[1] );
 
-    if( ( f = fopen( argv[1], "wb+" ) ) == NULL )
+    if( ( f = fopen( filename, "wb+" ) ) == NULL )
     {
         ret = 1;
-        polarssl_printf( " failed\n  ! Could not create %s\n\n", argv[1] );
+        polarssl_printf( " failed\n  ! Could not create %s\n\n", filename );
         goto exit;
     }
 
@@ -150,7 +151,7 @@ int main( int argc, char *argv[] )
 
     fclose( f );
 
-    polarssl_printf( "\n  . Done (created \"%s\")\n\n", argv[1] );
+    polarssl_printf( "\n  . Done (created \"%s\")\n\n", filename );
 
 exit:
 

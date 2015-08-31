@@ -59,6 +59,7 @@ int main( int argc, char *argv[] )
     rsa_context rsa;
     unsigned char hash[20];
     unsigned char buf[POLARSSL_MPI_MAX_SIZE];
+    char filename[512];
 
     ret = 1;
     if( argc != 2 )
@@ -99,17 +100,15 @@ int main( int argc, char *argv[] )
      * Extract the RSA signature from the text file
      */
     ret = 1;
-    i = strlen( argv[1] );
-    memcpy( argv[1] + i, ".sig", 5 );
+    snprintf( filename, sizeof( filename ), "%s.sig", argv[1] );
 
-    if( ( f = fopen( argv[1], "rb" ) ) == NULL )
+    if( ( f = fopen( filename, "rb" ) ) == NULL )
     {
-        polarssl_printf( "\n  ! Could not open %s\n\n", argv[1] );
+        polarssl_printf( "\n  ! Could not open %s\n\n", filename );
         goto exit;
     }
 
-    argv[1][i] = '\0', i = 0;
-
+    i = 0;
     while( fscanf( f, "%02X", &c ) > 0 &&
            i < (int) sizeof( buf ) )
         buf[i++] = (unsigned char) c;

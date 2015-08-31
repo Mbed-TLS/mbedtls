@@ -57,7 +57,7 @@ int main( int argc, char *argv[] )
     int ret, c;
     size_t i;
     rsa_context rsa;
-    unsigned char hash[20];
+    unsigned char hash[32];
     unsigned char buf[POLARSSL_MPI_MAX_SIZE];
     char filename[512];
 

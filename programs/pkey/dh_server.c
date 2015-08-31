@@ -75,7 +75,7 @@ int main( void )
     int client_fd = -1;
 
     unsigned char buf[2048];
-    unsigned char hash[20];
+    unsigned char hash[32];
     unsigned char buf2[2];
     const char *pers = "dh_server";
 

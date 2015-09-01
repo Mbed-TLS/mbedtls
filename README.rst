@@ -28,6 +28,8 @@ Please note that the yotta option is slightly different from the other build sys
 - a more minimalistic configuration file is used by default
 - depending on the yotta target, features of mbed OS will be used in examples and tests
 
+The Make and CMake build systems create three libraries: libmbedcrypto, libmbedx509, and libmbedtls. Note that libmbedtls depends on libmbedx509 and libmbedcrypto, and libmbedx509 depends on libmbedcrypto. As a result, some linkers will expect flags to be in a specific order, for example the GNU linker wants `-lmbedtls -lmbedx509 -lmbedcrypto`. Also, when loading shared libraries using `dlopen()`, you'll need to load `libmbedcrypto` first, then `libmbedx509`, before you can load `libmbedtls`.
+
 Yotta
 -----
 
@@ -77,7 +79,7 @@ You'll still be able to run a much smaller set of tests with::
 
 In order to build for a Windows platform, you should use WINDOWS_BUILD=1 if the target is Windows but the build environment is Unix-like (for instance when cross-compiling, or compiling from an MSYS shell), and WINDOWS=1 if the build environment is a Windows shell (for instance using mingw32-make) (in that case some targets will not be available).
 
-Setting the variable SHARED in your environment will build a shared library in addition to the static library. Setting DEBUG gives you a debug build.  You can override CFLAGS and LDFLAGS by setting them in your environment or on the make command line; if you do so, essential parts such as -I will still be preserved.  Warning options may be overridden separately using WARNING_CFLAGS.
+Setting the variable SHARED in your environment will build shared libraries in addition to the static libraries. Setting DEBUG gives you a debug build.  You can override CFLAGS and LDFLAGS by setting them in your environment or on the make command line; if you do so, essential parts such as -I will still be preserved.  Warning options may be overridden separately using WARNING_CFLAGS.
 
 Depending on your platform, you might run into some issues. Please check the Makefiles in *library/*, *programs/* and *tests/* for options to manually add or remove for specific platforms. You can also check `the mbed TLS Knowledge Base <https://tls.mbed.org/kb>`_ for articles on your platform or issue.
 
@@ -103,7 +105,7 @@ If you disabled the test suites, but kept the programs enabled, you can still ru
 
     programs/test/selftest
 
-To configure CMake for building a shared library, use::
+To configure CMake for building shared libraries, use::
 
     cmake -DUSE_SHARED_MBEDTLS_LIBRARY=On .
 

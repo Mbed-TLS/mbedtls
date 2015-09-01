@@ -35,6 +35,9 @@ Changes
    * It is now possible to #include a user-provided configuration file at the
      end of the default config.h by defining MBEDTLS_USER_CONFIG_FILE on the
      compiler's command line.
+   * When verifying a certificate chain, if an intermediate certificate is
+     trusted, no later cert is checked. (suggested by hannes-landeholm)
+     (#220).
 
 = mbed TLS 2.0.0 released 2015-07-13
 

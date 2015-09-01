@@ -3718,6 +3718,9 @@ int mbedtls_ssl_send_alert_message( mbedtls_ssl_context *ssl,
 {
     int ret;
 
+    if( ssl == NULL || ssl->conf == NULL )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> send alert message" ) );
 
     ssl->out_msgtype = MBEDTLS_SSL_MSG_ALERT;
@@ -5917,6 +5920,9 @@ int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
 
+    if( ssl == NULL || ssl->conf == NULL )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
 #if defined(MBEDTLS_SSL_CLI_C)
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
         ret = mbedtls_ssl_handshake_client_step( ssl );
@@ -5935,6 +5941,9 @@ int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl )
 int mbedtls_ssl_handshake( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
+
+    if( ssl == NULL || ssl->conf == NULL )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> handshake" ) );
 
@@ -6031,6 +6040,9 @@ int mbedtls_ssl_renegotiate( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
 
+    if( ssl == NULL || ssl->conf == NULL )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
 #if defined(MBEDTLS_SSL_SRV_C)
     /* On server, just send the request */
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
@@ -6107,6 +6119,9 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
 {
     int ret, record_read = 0;
     size_t n;
+
+    if( ssl == NULL || ssl->conf == NULL )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> read" ) );
 
@@ -6451,6 +6466,9 @@ int mbedtls_ssl_write( mbedtls_ssl_context *ssl, const unsigned char *buf, size_
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write" ) );
 
+    if( ssl == NULL || ssl->conf == NULL )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     if( ( ret = ssl_check_ctr_renegotiate( ssl ) ) != 0 )
     {
@@ -6485,6 +6503,9 @@ int mbedtls_ssl_write( mbedtls_ssl_context *ssl, const unsigned char *buf, size_
 int mbedtls_ssl_close_notify( mbedtls_ssl_context *ssl )
 {
     int ret;
+
+    if( ssl == NULL || ssl->conf == NULL )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write close notify" ) );
 

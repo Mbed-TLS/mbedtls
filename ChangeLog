@@ -16,6 +16,11 @@ Bugfix
      SSL_MAX_CONTENT_LEN or higher - not triggerrable remotely (found by
      Aleksandrs Saveljevs) (#238)
 
+Changes
+   * When verifying a certificate chain, if an intermediate certificate is
+     trusted, no later cert is checked. (suggested by hannes-landeholm)
+     (#220).
+
 = mbed TLS 1.3.12 released 2015-08-11
 
 Security

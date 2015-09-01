@@ -89,12 +89,23 @@ CMake
 In order to build the source using CMake, just enter at the command line::
 
     cmake .
-
     make
+
+In order to run the tests, enter::
+
+    make test
 
 The test suites need Perl to be built. If you don't have Perl installed, you'll want to disable the test suites with::
 
     cmake -DENABLE_TESTING=Off .
+
+If you disabled the test suites, but kept the programs enabled, you can still run a much smaller set of tests with::
+
+    programs/test/selftest
+
+To configure CMake for building a shared library, use::
+
+    cmake -DUSE_SHARED_MBEDTLS_LIBRARY=On .
 
 There are many different build modes available within the CMake buildsystem. Most of them are available for gcc and clang, though some are compiler-specific:
 
@@ -121,22 +132,18 @@ There are many different build modes available within the CMake buildsystem. Mos
   This activates the compiler warnings that depend on optimization and treats
   all warnings as errors.
 
-Switching build modes in CMake is simple. For debug mode, enter at the command line:
+Switching build modes in CMake is simple. For debug mode, enter at the command line::
 
-    cmake -D CMAKE_BUILD_TYPE:String="Debug" .
+    cmake -D CMAKE_BUILD_TYPE=Debug .
+
+To list other available CMake options, use::
+
+    cmake -LH
 
 Note that, with CMake, if you want to change the compiler or its options after you already ran CMake, you need to clear its cache first, eg (using GNU find)::
 
     find . -iname '*cmake*' -not -name CMakeLists.txt -exec rm -rf {} +
     CC=gcc CFLAGS='-fstack-protector-strong -Wa,--noexecstack' cmake .
-
-In order to run the tests, enter::
-
-    make test
-
-If you disabled the test suites, but kept the progams enabled, you can still run a much smaller set of tests with::
-
-    programs/test/selftest
 
 Microsoft Visual Studio
 -----------------------

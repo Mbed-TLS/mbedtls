@@ -17,6 +17,9 @@ Two intermediate CAs are signed by them:
 - test-int-ca2.crt "C=NL, O=PolarSSL, CN=PolarSSL Test Intermediate EC CA"
   uses an EC key with NIST P-256, signed by test-ca
 
+A third intermediate CA is signed by test-int-ca2.crt:
+- test-int-ca3.crt "C=UK, O=mbed TLS, CN=mbed TLS Test intermediate CA 3"
+
 Finally, other CAs for specific purposes:
 - enco-ca-prstr.pem: has its CN encoded as a printable string, but child cert
   enco-cert-utf8str.pem has its issuer's CN encoded as a UTF-8 string.
@@ -34,11 +37,12 @@ Short information fields:
                 2   -> test-ca2.crt
                 I1  -> test-int-ca.crt
                 I2  -> test-int-ca2.crt
+                I3  -> test-int-ca3.crt
                 O   -> other
 - key type: R -> RSA, E -> EC
 - C -> there is a CRL revoking this cert (see below)
 - L -> CN=localhost (useful for local test servers)
-- P1, P2 if the file include parent (resp. parent + grandparent)
+- P1, P2 if the file includes parent (resp. parent + grandparent)
 - free-form comments
 
 List of certificates:
@@ -49,8 +53,9 @@ List of certificates:
 - cert_v1_with_ext.crt: 1 R: v1 with extensions (illegal)
 - cli2.crt: 2 E: basic
 - enco-cert-utf8str.pem: see enco-ca-prstr.pem above
-- server1*.crt: 1* R C*: misc *(server1-v1 see test-ca-v1.crt above)
+- server1*.crt: 1* R C* P1*: misc *(server1-v1 see test-ca-v1.crt above)
     *CRL for: .cert_type.crt, .crt, .key_usage.crt, .v1.crt
+    P1 only for _ca.crt
 - server2-v1*.crt: O R: see test-ca-v1.crt above
 - server2*.crt: 1 R L: misc
 - server3.crt: 1 E L: EC cert signed by RSA CA
@@ -61,11 +66,13 @@ List of certificates:
     -ku*: keyUsage (ds = signatures, ke/ka = key exchange/agreement)
 - server6-ss-child.crt: O E: "child" of non-CA server5-selfsigned
 - server6.crt, server6.pem: 2 E L C: revoked
-- server7*.crt: I1 E L P1*: EC signed by RSA signed by EC *(except 7.crt)
+- server7*.crt: I1 E L P1*: EC signed by RSA signed by EC
+    *P1 except 7.crt, P2 _int-ca_ca2.crt
     *_space: with PEM error(s)
 - server8*.crt: I2 R L: RSA signed by EC signed by RSA (P1 for _int-ca2)
 - server9*.crt: 1 R C* L P1*: signed using RSASSA-PSS
     *CRL for: 9.crt, -badsign, -with-ca (P1)
+- server10*.crt: I3 E L P2/P3
 
 Certificate revocation lists
 ----------------------------

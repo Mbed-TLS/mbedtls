@@ -568,11 +568,11 @@ depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_RSA_C:POLARSSL_ECP_DP_
 x509_verify:"data_files/server8_int-ca2.crt":"data_files/test-ca.crt":"data_files/crl-ec-sha256.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #50 (Valid, multiple CAs)
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP383R1_ENABLED
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP384R1_ENABLED
 x509_verify:"data_files/server2.crt":"data_files/test-ca_cat12.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #51 (Valid, multiple CAs, reverse order)
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP383R1_ENABLED
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP384R1_ENABLED
 x509_verify:"data_files/server2.crt":"data_files/test-ca_cat21.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #52 (CA keyUsage valid)

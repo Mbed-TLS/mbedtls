@@ -249,7 +249,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_CRT_C */
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_CRT_PARSE_C */
 void x509_dn_gets( char *crt_file, char *entity, char *result_str )
 {
     x509_crt   crt;
@@ -277,7 +277,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_CRT_C */
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_CRT_PARSE_C */
 void x509_time_expired( char *crt_file, char *entity, int result )
 {
     x509_crt   crt;
@@ -298,7 +298,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_CRT_C */
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_CRT_PARSE_C */
 void x509_time_future( char *crt_file, char *entity, int result )
 {
     x509_crt   crt;

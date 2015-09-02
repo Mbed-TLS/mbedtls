@@ -32,6 +32,7 @@
 #include <stdio.h>
 #define mbedtls_fprintf    fprintf
 #define mbedtls_printf     printf
+#define mbedtls_snprintf   snprintf
 #endif
 
 #if !defined(MBEDTLS_BIGNUM_C) || !defined(MBEDTLS_RSA_C) ||  \
@@ -58,8 +59,9 @@ int main( int argc, char *argv[] )
     int ret;
     size_t i;
     mbedtls_rsa_context rsa;
-    unsigned char hash[20];
+    unsigned char hash[32];
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
+    char filename[512];
 
     ret = 1;
 
@@ -135,11 +137,11 @@ int main( int argc, char *argv[] )
     }
 
     /*
-     * Write the signature into <filename>-sig.txt
+     * Write the signature into <filename>.sig
      */
-    memcpy( argv[1] + strlen( argv[1] ), ".sig", 5 );
+    mbedtls_snprintf( filename, sizeof(filename), "%s.sig", argv[1] );
 
-    if( ( f = fopen( argv[1], "wb+" ) ) == NULL )
+    if( ( f = fopen( filename, "wb+" ) ) == NULL )
     {
         ret = 1;
         mbedtls_printf( " failed\n  ! Could not create %s\n\n", argv[1] );
@@ -152,7 +154,7 @@ int main( int argc, char *argv[] )
 
     fclose( f );
 
-    mbedtls_printf( "\n  . Done (created \"%s\")\n\n", argv[1] );
+    mbedtls_printf( "\n  . Done (created \"%s\")\n\n", filename );
 
 exit:
 

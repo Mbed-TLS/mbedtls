@@ -140,7 +140,7 @@ int mbedtls_platform_entropy_poll( void *data,
                            unsigned char *output, size_t len, size_t *olen )
 {
     FILE *file;
-    size_t ret;
+    size_t read_len;
     ((void) data);
 
 #if defined(HAVE_GETRANDOM)
@@ -165,8 +165,8 @@ int mbedtls_platform_entropy_poll( void *data,
     if( file == NULL )
         return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
 
-    ret = fread( output, 1, len, file );
-    if( ret != len )
+    read_len = fread( output, 1, len, file );
+    if( read_len != len )
     {
         fclose( file );
         return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );

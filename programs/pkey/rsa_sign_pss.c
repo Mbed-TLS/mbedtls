@@ -65,7 +65,7 @@ int main( int argc, char *argv[] )
     mbedtls_pk_context pk;
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
-    unsigned char hash[20];
+    unsigned char hash[32];
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
     char filename[512];
     const char *pers = "rsa_sign_pss";
@@ -140,7 +140,7 @@ int main( int argc, char *argv[] )
     }
 
     /*
-     * Write the signature into <filename>-sig.txt
+     * Write the signature into <filename>.sig
      */
     mbedtls_snprintf( filename, 512, "%s.sig", argv[2] );
 

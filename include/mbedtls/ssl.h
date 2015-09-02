@@ -219,7 +219,9 @@
 #endif
 
 /*
- * Size of the input / output buffer.
+ * Maxium fragment length in bytes,
+ * determines the size of each of the two internal I/O buffers.
+ *
  * Note: the RFC defines the default size of SSL / TLS messages. If you
  * change the value here, other clients / servers may not be able to
  * communicate with you anymore. Only change this value if you control

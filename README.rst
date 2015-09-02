@@ -28,6 +28,8 @@ Please note that the yotta option is slightly different from the other build sys
 - a more minimalistic configuration file is used by default
 - depending on the yotta target, features of mbed OS will be used in examples and tests
 
+The Make and CMake build systems create three libraries: libmbedcrypto, libmbedx509, and libmbedtls. Note that libmbedtls depends on libmbedx509 and libmbedcrypto, and libmbedx509 depends on libmbedcrypto. As a result, some linkers will expect flags to be in a specific order, for example the GNU linker wants `-lmbedtls -lmbedx509 -lmbedcrypto`. Also, when loading shared libraries using `dlopen()`, you'll need to load `libmbedcrypto` first, then `libmbedx509`, before you can load `libmbedtls`.
+
 Yotta
 -----
 
@@ -77,7 +79,7 @@ You'll still be able to run a much smaller set of tests with::
 
 In order to build for a Windows platform, you should use WINDOWS_BUILD=1 if the target is Windows but the build environment is Unix-like (for instance when cross-compiling, or compiling from an MSYS shell), and WINDOWS=1 if the build environment is a Windows shell (for instance using mingw32-make) (in that case some targets will not be available).
 
-Setting the variable SHARED in your environment will build a shared library in addition to the static library. Setting DEBUG gives you a debug build.  You can override CFLAGS and LDFLAGS by setting them in your environment or on the make command line; if you do so, essential parts such as -I will still be preserved.  Warning options may be overridden separately using WARNING_CFLAGS.
+Setting the variable SHARED in your environment will build shared libraries in addition to the static libraries. Setting DEBUG gives you a debug build.  You can override CFLAGS and LDFLAGS by setting them in your environment or on the make command line; if you do so, essential parts such as -I will still be preserved.  Warning options may be overridden separately using WARNING_CFLAGS.
 
 Depending on your platform, you might run into some issues. Please check the Makefiles in *library/*, *programs/* and *tests/* for options to manually add or remove for specific platforms. You can also check `the mbed TLS Knowledge Base <https://tls.mbed.org/kb>`_ for articles on your platform or issue.
 
@@ -89,12 +91,23 @@ CMake
 In order to build the source using CMake, just enter at the command line::
 
     cmake .
-
     make
+
+In order to run the tests, enter::
+
+    make test
 
 The test suites need Perl to be built. If you don't have Perl installed, you'll want to disable the test suites with::
 
     cmake -DENABLE_TESTING=Off .
+
+If you disabled the test suites, but kept the programs enabled, you can still run a much smaller set of tests with::
+
+    programs/test/selftest
+
+To configure CMake for building shared libraries, use::
+
+    cmake -DUSE_SHARED_MBEDTLS_LIBRARY=On .
 
 There are many different build modes available within the CMake buildsystem. Most of them are available for gcc and clang, though some are compiler-specific:
 
@@ -121,22 +134,18 @@ There are many different build modes available within the CMake buildsystem. Mos
   This activates the compiler warnings that depend on optimization and treats
   all warnings as errors.
 
-Switching build modes in CMake is simple. For debug mode, enter at the command line:
+Switching build modes in CMake is simple. For debug mode, enter at the command line::
 
-    cmake -D CMAKE_BUILD_TYPE:String="Debug" .
+    cmake -D CMAKE_BUILD_TYPE=Debug .
+
+To list other available CMake options, use::
+
+    cmake -LH
 
 Note that, with CMake, if you want to change the compiler or its options after you already ran CMake, you need to clear its cache first, eg (using GNU find)::
 
     find . -iname '*cmake*' -not -name CMakeLists.txt -exec rm -rf {} +
     CC=gcc CFLAGS='-fstack-protector-strong -Wa,--noexecstack' cmake .
-
-In order to run the tests, enter::
-
-    make test
-
-If you disabled the test suites, but kept the progams enabled, you can still run a much smaller set of tests with::
-
-    programs/test/selftest
 
 Microsoft Visual Studio
 -----------------------
@@ -170,18 +179,18 @@ We provide some non-standard configurations focused on specific use cases in the
 Contributing
 ============
 
-We gratefully accept bugs and contributions from the community. There are some requirements we need to fulfil in order to be able to integrate contributions:
+We gratefully accept bug reports and contributions from the community. There are some requirements we need to fulfill in order to be able to integrate contributions:
 
 - Simple bug fixes to existing code do not contain copyright themselves and we can integrate without issue. The same is true of trivial contributions.
 
-- For larger contributions, such as a new feature, the code can possibly fall under copyright law. We then need your consent to share in the ownership of the copyright. We have a form for this, which we will mail to you in case you submit a contribution or pull request that we deem this necessary for.
+- For larger contributions, such as a new feature, the code can possibly fall under copyright law. We then need your consent to share in the ownership of the copyright. We have a form for this, which we will send to you in case you submit a contribution or pull request that we deem this necessary for.
 
 Process
 -------
 #. `Check for open issues <https://github.com/ARMmbed/mbedtls/issues>`_ or
    `start a discussion <https://tls.mbed.org/discussions>`_ around a feature
    idea or a bug.
-#. Fork the `mbed TLS repository on Github <https://github.com/ARMmbed/mbedtls>`_
+#. Fork the `mbed TLS repository on GitHub <https://github.com/ARMmbed/mbedtls>`_
    to start making your changes. As a general rule, you should use the
    "development" branch as a basis.
 #. Write a test which shows that the bug was fixed or that the feature works

@@ -108,6 +108,8 @@ cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl unset POLARSSL_MEMORY_BACKTRACE # too slow for tests
+scripts/config.pl unset POLARSSL_ERROR_STRERROR_BC # deprecated
+scripts/config.pl unset POLARSSL_PBKDF2_C # deprecated
 CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check .
 make
 

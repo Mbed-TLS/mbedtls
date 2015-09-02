@@ -1085,6 +1085,8 @@ run_test    "Max fragment length: not used, reference" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3" \
             0 \
+            -c "Maximum fragment length is 16384" \
+            -s "Maximum fragment length is 16384" \
             -C "client hello, adding max_fragment_length extension" \
             -S "found max fragment length extension" \
             -S "server hello, max_fragment_length extension" \
@@ -1094,6 +1096,8 @@ run_test    "Max fragment length: used by client" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3 max_frag_len=4096" \
             0 \
+            -c "Maximum fragment length is 4096" \
+            -s "Maximum fragment length is 4096" \
             -c "client hello, adding max_fragment_length extension" \
             -s "found max fragment length extension" \
             -s "server hello, max_fragment_length extension" \
@@ -1103,6 +1107,8 @@ run_test    "Max fragment length: used by server" \
             "$P_SRV debug_level=3 max_frag_len=4096" \
             "$P_CLI debug_level=3" \
             0 \
+            -c "Maximum fragment length is 16384" \
+            -s "Maximum fragment length is 4096" \
             -C "client hello, adding max_fragment_length extension" \
             -S "found max fragment length extension" \
             -S "server hello, max_fragment_length extension" \
@@ -1113,6 +1119,7 @@ run_test    "Max fragment length: gnutls server" \
             "$G_SRV" \
             "$P_CLI debug_level=3 max_frag_len=4096" \
             0 \
+            -c "Maximum fragment length is 4096" \
             -c "client hello, adding max_fragment_length extension" \
             -c "found max_fragment_length extension"
 
@@ -1120,6 +1127,8 @@ run_test    "Max fragment length: client, message just fits" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3 max_frag_len=2048 request_size=2048" \
             0 \
+            -c "Maximum fragment length is 2048" \
+            -s "Maximum fragment length is 2048" \
             -c "client hello, adding max_fragment_length extension" \
             -s "found max fragment length extension" \
             -s "server hello, max_fragment_length extension" \
@@ -1131,6 +1140,8 @@ run_test    "Max fragment length: client, larger message" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3 max_frag_len=2048 request_size=2345" \
             0 \
+            -c "Maximum fragment length is 2048" \
+            -s "Maximum fragment length is 2048" \
             -c "client hello, adding max_fragment_length extension" \
             -s "found max fragment length extension" \
             -s "server hello, max_fragment_length extension" \
@@ -1143,6 +1154,8 @@ run_test    "Max fragment length: DTLS client, larger message" \
             "$P_SRV debug_level=3 dtls=1" \
             "$P_CLI debug_level=3 dtls=1 max_frag_len=2048 request_size=2345" \
             1 \
+            -c "Maximum fragment length is 2048" \
+            -s "Maximum fragment length is 2048" \
             -c "client hello, adding max_fragment_length extension" \
             -s "found max fragment length extension" \
             -s "server hello, max_fragment_length extension" \

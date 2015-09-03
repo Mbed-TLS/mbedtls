@@ -42,6 +42,9 @@ Changes
    * It is now possible to #include a user-provided configuration file at the
      end of the default config.h by defining MBEDTLS_USER_CONFIG_FILE on the
      compiler's command line.
+   * When verifying a certificate chain, if an intermediate certificate is
+     trusted, no later cert is checked. (suggested by hannes-landeholm)
+     (#220).
    * Prepend a "thread identifier" to debug messages (issue pointed out by
      Hugo Leisink) (#210).
    * Add mbedtls_ssl_get_max_frag_len() to query the current maximum fragment

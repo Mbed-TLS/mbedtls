@@ -2062,8 +2062,8 @@ static int x509_crt_verify_child(
     *flags |= x509_crt_verifycrl(child, parent, ca_crl, profile );
 #endif
 
-    /* Look for a grandparent upwards the chain */
-    for( grandparent = parent->next;
+    /* Look for a grandparent in trusted CAs */
+    for( grandparent = trust_ca;
          grandparent != NULL;
          grandparent = grandparent->next )
     {
@@ -2072,20 +2072,42 @@ static int x509_crt_verify_child(
             break;
     }
 
-    /* Is our parent part of the chain or at the top? */
     if( grandparent != NULL )
     {
-        ret = x509_crt_verify_child( parent, grandparent, trust_ca, ca_crl, profile,
+        ret = x509_crt_verify_top( parent, grandparent, ca_crl, profile,
                                 path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }
     else
     {
-        ret = x509_crt_verify_top( parent, trust_ca, ca_crl, profile,
-                                path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
-        if( ret != 0 )
-            return( ret );
+        /* Look for a grandparent upwards the chain */
+        for( grandparent = parent->next;
+             grandparent != NULL;
+             grandparent = grandparent->next )
+        {
+            if( x509_crt_check_parent( parent, grandparent,
+                                       0, path_cnt == 0 ) == 0 )
+                break;
+        }
+
+        /* Is our parent part of the chain or at the top? */
+        if( grandparent != NULL )
+        {
+            ret = x509_crt_verify_child( parent, grandparent, trust_ca, ca_crl,
+                                         profile, path_cnt + 1, &parent_flags,
+                                         f_vrfy, p_vrfy );
+            if( ret != 0 )
+                return( ret );
+        }
+        else
+        {
+            ret = x509_crt_verify_top( parent, trust_ca, ca_crl, profile,
+                                       path_cnt + 1, &parent_flags,
+                                       f_vrfy, p_vrfy );
+            if( ret != 0 )
+                return( ret );
+        }
     }
 
     /* child is verified to be a child of the parent, call verify callback */
@@ -2188,27 +2210,44 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
         }
     }
 
-    /* Look for a parent upwards the chain */
-    for( parent = crt->next; parent != NULL; parent = parent->next )
+    /* Look for a parent in trusted CAs */
+    for( parent = trust_ca; parent != NULL; parent = parent->next )
     {
         if( x509_crt_check_parent( crt, parent, 0, pathlen == 0 ) == 0 )
             break;
     }
 
-    /* Are we part of the chain or at the top? */
     if( parent != NULL )
     {
-        ret = x509_crt_verify_child( crt, parent, trust_ca, ca_crl, profile,
-                                     pathlen, flags, f_vrfy, p_vrfy );
+        ret = x509_crt_verify_top( crt, parent, ca_crl, profile,
+                                   pathlen, flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }
     else
     {
-        ret = x509_crt_verify_top( crt, trust_ca, ca_crl, profile,
-                                   pathlen, flags, f_vrfy, p_vrfy );
-        if( ret != 0 )
-            return( ret );
+        /* Look for a parent upwards the chain */
+        for( parent = crt->next; parent != NULL; parent = parent->next )
+        {
+            if( x509_crt_check_parent( crt, parent, 0, pathlen == 0 ) == 0 )
+                break;
+        }
+
+        /* Are we part of the chain or at the top? */
+        if( parent != NULL )
+        {
+            ret = x509_crt_verify_child( crt, parent, trust_ca, ca_crl, profile,
+                                         pathlen, flags, f_vrfy, p_vrfy );
+            if( ret != 0 )
+                return( ret );
+        }
+        else
+        {
+            ret = x509_crt_verify_top( crt, trust_ca, ca_crl, profile,
+                                       pathlen, flags, f_vrfy, p_vrfy );
+            if( ret != 0 )
+                return( ret );
+        }
     }
 
     if( *flags != 0 )

@@ -1602,6 +1602,12 @@ static int ssl_write_encrypted_pms( ssl_context *ssl,
 
     ssl->handshake->pmslen = 48;
 
+    if( ssl->session_negotiate->peer_cert == NULL )
+    {
+        SSL_DEBUG_MSG( 2, ( "certificate required" ) );
+        return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
+    }
+
     /*
      * Now write it out, encrypted
      */
@@ -1698,6 +1704,12 @@ static int ssl_get_ecdh_params_from_cert( ssl_context *ssl )
 {
     int ret;
     const ecp_keypair *peer_key;
+
+    if( ssl->session_negotiate->peer_cert == NULL )
+    {
+        SSL_DEBUG_MSG( 2, ( "certificate required" ) );
+        return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
+    }
 
     if( ! pk_can_do( &ssl->session_negotiate->peer_cert->pk,
                      POLARSSL_PK_ECKEY ) )
@@ -2011,6 +2023,12 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
 
         SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen != 0 ? hashlen :
                 (unsigned int) ( md_info_from_type( md_alg ) )->size );
+
+        if( ssl->session_negotiate->peer_cert == NULL )
+        {
+            SSL_DEBUG_MSG( 2, ( "certificate required" ) );
+            return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
+        }
 
         /*
          * Verify signature

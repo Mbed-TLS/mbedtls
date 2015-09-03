@@ -919,6 +919,11 @@ int rsa_rsassa_pkcs1_v15_sign( rsa_context *ctx,
 {
     size_t nb_pad, olen;
     unsigned char *p = sig;
+    unsigned char *sig_try = NULL, *verif = NULL;
+    size_t i;
+    unsigned char diff;
+    volatile unsigned char diff_no_optimize;
+    int ret;
 
     if( ctx->padding != RSA_PKCS_V15 )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
@@ -1021,9 +1026,39 @@ int rsa_rsassa_pkcs1_v15_sign( rsa_context *ctx,
             return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
     }
 
-    return( ( mode == RSA_PUBLIC )
-            ? rsa_public(  ctx, sig, sig )
-            : rsa_private( ctx, f_rng, p_rng, sig, sig ) );
+    if( mode == RSA_PUBLIC )
+        return( rsa_public(  ctx, sig, sig ) );
+
+    /*
+     * In order to prevent Lenstra's attack, make the signature in a
+     * temporary buffer and check it before returning it.
+     */
+    sig_try = malloc( ctx->len );
+    verif   = malloc( ctx->len );
+    if( sig_try == NULL || verif == NULL )
+        return( POLARSSL_ERR_MPI_MALLOC_FAILED );
+
+    MPI_CHK( rsa_private( ctx, f_rng, p_rng, sig, sig_try ) );
+    MPI_CHK( rsa_public( ctx, sig_try, verif ) );
+
+    /* Compare in constant time just in case */
+    for( diff = 0, i = 0; i < ctx->len; i++ )
+        diff |= verif[i] ^ sig[i];
+    diff_no_optimize = diff;
+
+    if( diff_no_optimize != 0 )
+    {
+        ret = POLARSSL_ERR_RSA_PRIVATE_FAILED;
+        goto cleanup;
+    }
+
+    memcpy( sig, sig_try, ctx->len );
+
+cleanup:
+    free( sig_try );
+    free( verif );
+
+    return( ret );
 }
 
 /*

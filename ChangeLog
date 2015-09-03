@@ -6,6 +6,9 @@ Security
    * Fix possible client-side NULL pointer dereference (read) when the client
      tries to continue the handshake after it failed (a misuse of the API).
      (Found by GDS Labs using afl-fuzz.)
+   * Add countermeasure against Lenstra's RSA-CRT attack for PKCS#1 v1.5
+     signatures. (Found by Florian Weimer, Red Hat.)
+     https://securityblog.redhat.com/2015/09/02/factoring-rsa-keys-with-tls-perfect-forward-secrecy/
 
 Bugfix
    * Fix unused function warning when using MBEDTLS_MDx_ALT or

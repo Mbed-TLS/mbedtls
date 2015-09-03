@@ -2,6 +2,11 @@ PolarSSL ChangeLog
 
 = Version 1.2.16 released 2015-??-??
 
+Security
+   * Fix possible client-side NULL pointer dereference (read) when the client
+     tries to continue the handshake after it failed (a misuse of the API).
+     (Found by GDS Labs using afl-fuzz.)
+
 Bugfix
    * Fix unused function warning when using MBEDTLS_MDx_ALT or
      MBEDTLS_SHAxxx_ALT (found by Henrik) (#239)

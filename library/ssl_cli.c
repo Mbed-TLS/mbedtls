@@ -1747,6 +1747,12 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
     size_t len_bytes = ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ? 0 : 2;
     unsigned char *p = ssl->handshake->premaster + pms_offset;
 
+    if( offset + len_bytes > MBEDTLS_SSL_MAX_CONTENT_LEN )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small for encrypted pms" ) );
+        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+    }
+
     /*
      * Generate (part of) the pre-master as
      *  struct {
@@ -2521,6 +2527,14 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
 
         i = 4;
         n = ssl->conf->psk_identity_len;
+
+        if( i + 2 + n > MBEDTLS_SSL_MAX_CONTENT_LEN )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "psk identity too long or "
+                                        "SSL buffer too short" ) );
+            return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+        }
+
         ssl->out_msg[i++] = (unsigned char)( n >> 8 );
         ssl->out_msg[i++] = (unsigned char)( n      );
 
@@ -2549,6 +2563,14 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
              * ClientDiffieHellmanPublic public (DHM send G^X mod P)
              */
             n = ssl->handshake->dhm_ctx.len;
+
+            if( i + 2 + n > MBEDTLS_SSL_MAX_CONTENT_LEN )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "psk identity or DHM size too long"
+                                            " or SSL buffer too short" ) );
+                return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+            }
+
             ssl->out_msg[i++] = (unsigned char)( n >> 8 );
             ssl->out_msg[i++] = (unsigned char)( n      );
 

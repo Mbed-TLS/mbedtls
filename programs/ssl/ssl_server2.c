@@ -1924,7 +1924,7 @@ reset:
         if( ret == MBEDTLS_ERR_X509_CERT_VERIFY_FAILED )
         {
             char vrfy_buf[512];
-            uint32_t flags = mbedtls_ssl_get_verify_result( &ssl );
+            flags = mbedtls_ssl_get_verify_result( &ssl );
 
             mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", flags );
 
@@ -1944,6 +1944,11 @@ reset:
         mbedtls_printf( "    [ Record expansion is %d ]\n", ret );
     else
         mbedtls_printf( "    [ Record expansion is unknown (compression) ]\n" );
+
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    mbedtls_printf( "    [ Maximum fragment length is %u ]\n",
+                    (unsigned int) mbedtls_ssl_get_max_frag_len( &ssl ) );
+#endif
 
 #if defined(MBEDTLS_SSL_ALPN)
     if( opt.alpn_string != NULL )

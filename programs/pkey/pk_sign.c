@@ -63,7 +63,7 @@ int main( int argc, char *argv[] )
     mbedtls_pk_context pk;
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
-    unsigned char hash[20];
+    unsigned char hash[32];
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
     char filename[512];
     const char *pers = "mbedtls_pk_sign";
@@ -128,7 +128,7 @@ int main( int argc, char *argv[] )
     }
 
     /*
-     * Write the signature into <filename>-sig.txt
+     * Write the signature into <filename>.sig
      */
     mbedtls_snprintf( filename, sizeof(filename), "%s.sig", argv[2] );
 
@@ -155,8 +155,11 @@ exit:
     mbedtls_entropy_free( &entropy );
 
 #if defined(MBEDTLS_ERROR_C)
-    mbedtls_strerror( ret, (char *) buf, sizeof(buf) );
-    mbedtls_printf( "  !  Last error was: %s\n", buf );
+    if( ret != 0 )
+    {
+        mbedtls_strerror( ret, (char *) buf, sizeof(buf) );
+        mbedtls_printf( "  !  Last error was: %s\n", buf );
+    }
 #endif
 
 #if defined(_WIN32)

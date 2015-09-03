@@ -74,7 +74,7 @@ int main( void )
 
     unsigned char *p, *end;
     unsigned char buf[2048];
-    unsigned char hash[20];
+    unsigned char hash[32];
     const char *pers = "dh_client";
 
     mbedtls_entropy_context entropy;

@@ -45,7 +45,7 @@
 #include <string.h>
 #endif
 
-#define KEY_SIZE 1024
+#define KEY_SIZE 2048
 #define EXPONENT 65537
 
 #if !defined(MBEDTLS_BIGNUM_C) || !defined(MBEDTLS_ENTROPY_C) ||   \

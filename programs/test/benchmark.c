@@ -107,31 +107,31 @@ int main( void )
 
 #define TIME_AND_TSC( TITLE, CODE )                                     \
 do {                                                                    \
-    unsigned long i, j, tsc;                                            \
+    unsigned long ii, jj, tsc;                                          \
                                                                         \
-    mbedtls_printf( HEADER_FORMAT, TITLE );                            \
+    mbedtls_printf( HEADER_FORMAT, TITLE );                             \
     fflush( stdout );                                                   \
                                                                         \
-    mbedtls_set_alarm( 1 );                                                     \
-    for( i = 1; ! mbedtls_timing_alarmed; i++ )                                        \
+    mbedtls_set_alarm( 1 );                                             \
+    for( ii = 1; ! mbedtls_timing_alarmed; ii++ )                       \
     {                                                                   \
         CODE;                                                           \
     }                                                                   \
                                                                         \
-    tsc = mbedtls_timing_hardclock();                                                  \
-    for( j = 0; j < 1024; j++ )                                         \
+    tsc = mbedtls_timing_hardclock();                                   \
+    for( jj = 0; jj < 1024; jj++ )                                      \
     {                                                                   \
         CODE;                                                           \
     }                                                                   \
                                                                         \
-    mbedtls_printf( "%9lu Kb/s,  %9lu cycles/byte\n",                  \
-                     i * BUFSIZE / 1024,                                \
-                     ( mbedtls_timing_hardclock() - tsc ) / ( j * BUFSIZE ) );         \
+    mbedtls_printf( "%9lu Kb/s,  %9lu cycles/byte\n",                   \
+                     ii * BUFSIZE / 1024,                               \
+                     ( mbedtls_timing_hardclock() - tsc ) / ( jj * BUFSIZE ) );         \
 } while( 0 )
 
 #if defined(MBEDTLS_ERROR_C)
 #define PRINT_ERROR                                                     \
-        mbedtls_strerror( ret, ( char * )tmp, sizeof( tmp ) );         \
+        mbedtls_strerror( ret, ( char * )tmp, sizeof( tmp ) );          \
         mbedtls_printf( "FAILED: %s\n", tmp );
 #else
 #define PRINT_ERROR                                                     \
@@ -143,12 +143,12 @@ do {                                                                    \
 #define MEMORY_MEASURE_INIT                                             \
     size_t max_used, max_blocks, max_bytes;                             \
     size_t prv_used, prv_blocks;                                        \
-    mbedtls_memory_buffer_alloc_cur_get( &prv_used, &prv_blocks );              \
+    mbedtls_memory_buffer_alloc_cur_get( &prv_used, &prv_blocks );      \
     mbedtls_memory_buffer_alloc_max_reset( );
 
 #define MEMORY_MEASURE_PRINT( title_len )                               \
-    mbedtls_memory_buffer_alloc_max_get( &max_used, &max_blocks );              \
-    for( i = 12 - title_len; i != 0; i-- ) mbedtls_printf( " " );      \
+    mbedtls_memory_buffer_alloc_max_get( &max_used, &max_blocks );      \
+    for( ii = 12 - title_len; ii != 0; ii-- ) mbedtls_printf( " " );    \
     max_used -= prv_used;                                               \
     max_blocks -= prv_blocks;                                           \
     max_bytes = max_used + MEM_BLOCK_OVERHEAD * max_blocks;             \
@@ -161,16 +161,16 @@ do {                                                                    \
 
 #define TIME_PUBLIC( TITLE, TYPE, CODE )                                \
 do {                                                                    \
-    unsigned long i;                                                    \
+    unsigned long ii;                                                   \
     int ret;                                                            \
     MEMORY_MEASURE_INIT;                                                \
                                                                         \
-    mbedtls_printf( HEADER_FORMAT, TITLE );                            \
+    mbedtls_printf( HEADER_FORMAT, TITLE );                             \
     fflush( stdout );                                                   \
-    mbedtls_set_alarm( 3 );                                                     \
+    mbedtls_set_alarm( 3 );                                             \
                                                                         \
     ret = 0;                                                            \
-    for( i = 1; ! mbedtls_timing_alarmed && ! ret ; i++ )                              \
+    for( ii = 1; ! mbedtls_timing_alarmed && ! ret ; ii++ )             \
     {                                                                   \
         CODE;                                                           \
     }                                                                   \
@@ -181,9 +181,9 @@ do {                                                                    \
     }                                                                   \
     else                                                                \
     {                                                                   \
-        mbedtls_printf( "%6lu " TYPE "/s", i / 3 );                    \
+        mbedtls_printf( "%6lu " TYPE "/s", ii / 3 );                    \
         MEMORY_MEASURE_PRINT( sizeof( TYPE ) + 1 );                     \
-        mbedtls_printf( "\n" );                                        \
+        mbedtls_printf( "\n" );                                         \
     }                                                                   \
 } while( 0 )
 

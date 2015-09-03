@@ -6,6 +6,11 @@ Features
    * Added support for yotta as a build system.
    * Primary open source license changed to Apache 2.0 license.
 
+Security
+   * Fix possible client-side NULL pointer dereference (read) when the client
+     tries to continue the handshake after it failed (a misuse of the API).
+     (Found by GDS Labs using afl-fuzz, patch provided by GDS Labs.)
+
 Bugfix
    * Fix segfault in the benchmark program when benchmarking DHM.
    * Fix build error with CMake and pre-4.5 versions of GCC (found by Hugo

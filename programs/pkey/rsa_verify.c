@@ -31,6 +31,7 @@
 #else
 #include <stdio.h>
 #define mbedtls_printf     printf
+#define mbedtls_snprintf   snprintf
 #endif
 
 #if !defined(MBEDTLS_BIGNUM_C) || !defined(MBEDTLS_RSA_C) ||  \
@@ -57,8 +58,9 @@ int main( int argc, char *argv[] )
     int ret, c;
     size_t i;
     mbedtls_rsa_context rsa;
-    unsigned char hash[20];
+    unsigned char hash[32];
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
+    char filename[512];
 
     ret = 1;
     if( argc != 2 )
@@ -99,17 +101,15 @@ int main( int argc, char *argv[] )
      * Extract the RSA signature from the text file
      */
     ret = 1;
-    i = strlen( argv[1] );
-    memcpy( argv[1] + i, ".sig", 5 );
+    mbedtls_snprintf( filename, sizeof(filename), "%s.sig", argv[1] );
 
-    if( ( f = fopen( argv[1], "rb" ) ) == NULL )
+    if( ( f = fopen( filename, "rb" ) ) == NULL )
     {
-        mbedtls_printf( "\n  ! Could not open %s\n\n", argv[1] );
+        mbedtls_printf( "\n  ! Could not open %s\n\n", filename );
         goto exit;
     }
 
-    argv[1][i] = '\0', i = 0;
-
+    i = 0;
     while( fscanf( f, "%02X", &c ) > 0 &&
            i < (int) sizeof( buf ) )
         buf[i++] = (unsigned char) c;
@@ -123,8 +123,8 @@ int main( int argc, char *argv[] )
     }
 
     /*
-     * Compute the SHA-256 hash of the input file and compare
-     * it with the hash decrypted from the RSA signature.
+     * Compute the SHA-256 hash of the input file and
+     * verify the signature
      */
     mbedtls_printf( "\n  . Verifying the RSA/SHA-256 signature" );
     fflush( stdout );
@@ -144,7 +144,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    mbedtls_printf( "\n  . OK (the decrypted SHA-256 hash matches)\n\n" );
+    mbedtls_printf( "\n  . OK (the signature is valid)\n\n" );
 
     ret = 0;
 

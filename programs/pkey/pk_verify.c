@@ -59,7 +59,7 @@ int main( int argc, char *argv[] )
     int ret = 1;
     size_t i;
     mbedtls_pk_context pk;
-    unsigned char hash[20];
+    unsigned char hash[32];
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
     char filename[512];
 
@@ -86,7 +86,7 @@ int main( int argc, char *argv[] )
     }
 
     /*
-     * Extract the signature from the text file
+     * Extract the signature from the file
      */
     ret = 1;
     mbedtls_snprintf( filename, sizeof(filename), "%s.sig", argv[2] );
@@ -103,8 +103,8 @@ int main( int argc, char *argv[] )
     fclose( f );
 
     /*
-     * Compute the SHA-256 hash of the input file and compare
-     * it with the hash decrypted from the signature.
+     * Compute the SHA-256 hash of the input file and
+     * verify the signature
      */
     mbedtls_printf( "\n  . Verifying the SHA-256 signature" );
     fflush( stdout );
@@ -124,7 +124,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    mbedtls_printf( "\n  . OK (the decrypted SHA-256 hash matches)\n\n" );
+    mbedtls_printf( "\n  . OK (the signature is valid)\n\n" );
 
     ret = 0;
 
@@ -132,8 +132,11 @@ exit:
     mbedtls_pk_free( &pk );
 
 #if defined(MBEDTLS_ERROR_C)
-    mbedtls_strerror( ret, (char *) buf, sizeof(buf) );
-    mbedtls_printf( "  !  Last error was: %s\n", buf );
+    if( ret != 0 )
+    {
+        mbedtls_strerror( ret, (char *) buf, sizeof(buf) );
+        mbedtls_printf( "  !  Last error was: %s\n", buf );
+    }
 #endif
 
 #if defined(_WIN32)

@@ -389,7 +389,7 @@ void update_dropped( const packet *p )
 
     while( cur < end )
     {
-        size_t len = ( ( cur[11] << 8 ) | cur[12] ) + 13;
+        len = ( ( cur[11] << 8 ) | cur[12] ) + 13;
 
         id = len % sizeof( dropped );
         ++dropped[id];

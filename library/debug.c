@@ -43,6 +43,10 @@
 #define mbedtls_snprintf    snprintf
 #endif
 
+#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && !defined(inline)
+#define inline __inline
+#endif
+
 #define DEBUG_BUF_SIZE      512
 
 static int debug_threshold = 0;
@@ -50,6 +54,27 @@ static int debug_threshold = 0;
 void mbedtls_debug_set_threshold( int threshold )
 {
     debug_threshold = threshold;
+}
+
+/*
+ * All calls to f_dbg must be made via this function
+ */
+static inline void debug_send_line( const mbedtls_ssl_context *ssl, int level,
+                                    const char *file, int line,
+                                    const char *str )
+{
+    /*
+     * If in a threaded environment, we need a thread identifier.
+     * Since there is no portable way to get one, use the address of the ssl
+     * context instead, as it shouldn't be shared between threads.
+     */
+#if defined(MBEDTLS_THREADING_C)
+    char idstr[20 + DEBUG_BUF_SIZE]; /* 0x + 16 nibbles + ': ' */
+    mbedtls_snprintf( idstr, sizeof( idstr ), "%p: %s", ssl, str );
+    ssl->conf->f_dbg( ssl->conf->p_dbg, level, file, line, idstr );
+#else
+    ssl->conf->f_dbg( ssl->conf->p_dbg, level, file, line, str );
+#endif
 }
 
 void mbedtls_debug_print_msg( const mbedtls_ssl_context *ssl, int level,
@@ -86,7 +111,7 @@ void mbedtls_debug_print_msg( const mbedtls_ssl_context *ssl, int level,
         str[ret + 1] = '\0';
     }
 
-    ssl->conf->f_dbg( ssl->conf->p_dbg, level, file, line, str );
+    debug_send_line( ssl, level, file, line, str );
 }
 
 void mbedtls_debug_print_ret( const mbedtls_ssl_context *ssl, int level,
@@ -109,7 +134,7 @@ void mbedtls_debug_print_ret( const mbedtls_ssl_context *ssl, int level,
     mbedtls_snprintf( str, sizeof( str ), "%s() returned %d (-0x%04x)\n",
               text, ret, -ret );
 
-    ssl->conf->f_dbg( ssl->conf->p_dbg, level, file, line, str );
+    debug_send_line( ssl, level, file, line, str );
 }
 
 void mbedtls_debug_print_buf( const mbedtls_ssl_context *ssl, int level,
@@ -126,7 +151,7 @@ void mbedtls_debug_print_buf( const mbedtls_ssl_context *ssl, int level,
     mbedtls_snprintf( str + idx, sizeof( str ) - idx, "dumping '%s' (%u bytes)\n",
               text, (unsigned int) len );
 
-    ssl->conf->f_dbg( ssl->conf->p_dbg, level, file, line, str );
+    debug_send_line( ssl, level, file, line, str );
 
     idx = 0;
     memset( txt, 0, sizeof( txt ) );
@@ -140,7 +165,7 @@ void mbedtls_debug_print_buf( const mbedtls_ssl_context *ssl, int level,
             if( i > 0 )
             {
                 mbedtls_snprintf( str + idx, sizeof( str ) - idx, "  %s\n", txt );
-                ssl->conf->f_dbg( ssl->conf->p_dbg, level, file, line, str );
+                debug_send_line( ssl, level, file, line, str );
 
                 idx = 0;
                 memset( txt, 0, sizeof( txt ) );
@@ -162,7 +187,7 @@ void mbedtls_debug_print_buf( const mbedtls_ssl_context *ssl, int level,
             idx += mbedtls_snprintf( str + idx, sizeof( str ) - idx, "   " );
 
         mbedtls_snprintf( str + idx, sizeof( str ) - idx, "  %s\n", txt );
-        ssl->conf->f_dbg( ssl->conf->p_dbg, level, file, line, str );
+        debug_send_line( ssl, level, file, line, str );
     }
 }
 
@@ -207,7 +232,7 @@ void mbedtls_debug_print_mpi( const mbedtls_ssl_context *ssl, int level,
     mbedtls_snprintf( str + idx, sizeof( str ) - idx, "value of '%s' (%d bits) is:\n",
               text, (int) ( ( n * ( sizeof(mbedtls_mpi_uint) << 3 ) ) + j + 1 ) );
 
-    ssl->conf->f_dbg( ssl->conf->p_dbg, level, file, line, str );
+    debug_send_line( ssl, level, file, line, str );
 
     idx = 0;
     for( i = n + 1, j = 0; i > 0; i-- )
@@ -227,7 +252,7 @@ void mbedtls_debug_print_mpi( const mbedtls_ssl_context *ssl, int level,
                 if( j > 0 )
                 {
                     mbedtls_snprintf( str + idx, sizeof( str ) - idx, "\n" );
-                    ssl->conf->f_dbg( ssl->conf->p_dbg, level, file, line, str );
+                    debug_send_line( ssl, level, file, line, str );
                     idx = 0;
                 }
             }
@@ -244,7 +269,7 @@ void mbedtls_debug_print_mpi( const mbedtls_ssl_context *ssl, int level,
         idx += mbedtls_snprintf( str + idx, sizeof( str ) - idx, " 00" );
 
     mbedtls_snprintf( str + idx, sizeof( str ) - idx, "\n" );
-    ssl->conf->f_dbg( ssl->conf->p_dbg, level, file, line, str );
+    debug_send_line( ssl, level, file, line, str );
 }
 #endif /* MBEDTLS_BIGNUM_C */
 
@@ -261,7 +286,7 @@ static void debug_print_pk( const mbedtls_ssl_context *ssl, int level,
 
     if( mbedtls_pk_debug( pk, items ) != 0 )
     {
-        ssl->conf->f_dbg( ssl->conf->p_dbg, level, file, line,
+        debug_send_line( ssl, level, file, line,
                           "invalid PK context\n" );
         return;
     }
@@ -282,7 +307,7 @@ static void debug_print_pk( const mbedtls_ssl_context *ssl, int level,
             mbedtls_debug_print_ecp( ssl, level, file, line, name, items[i].value );
         else
 #endif
-            ssl->conf->f_dbg( ssl->conf->p_dbg, level, file, line,
+            debug_send_line( ssl, level, file, line,
                               "should not happen\n" );
     }
 }
@@ -305,7 +330,7 @@ static void debug_print_line_by_line( const mbedtls_ssl_context *ssl, int level,
             memcpy( str, start, len );
             str[len] = '\0';
 
-            ssl->conf->f_dbg( ssl->conf->p_dbg, level, file, line, str );
+            debug_send_line( ssl, level, file, line, str );
 
             start = cur + 1;
         }
@@ -327,7 +352,7 @@ void mbedtls_debug_print_crt( const mbedtls_ssl_context *ssl, int level,
         char buf[1024];
 
         mbedtls_snprintf( str, sizeof( str ), "%s #%d:\n", text, ++i );
-        ssl->conf->f_dbg( ssl->conf->p_dbg, level, file, line, str );
+        debug_send_line( ssl, level, file, line, str );
 
         mbedtls_x509_crt_info( buf, sizeof( buf ) - 1, "", crt );
         debug_print_line_by_line( ssl, level, file, line, buf );

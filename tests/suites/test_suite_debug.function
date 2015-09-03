@@ -25,6 +25,11 @@ void string_debug(void *data, int level, const char *file, int line, const char 
     *p++ = ':';
     *p++ = ' ';
 
+#if defined(MBEDTLS_THREADING_C)
+    /* Skip "thread ID" (up to the first space) as it is not predictable */
+    while( *str++ != ' ' );
+#endif
+
     memcpy( p, str, strlen( str ) );
     p += strlen( str );
 

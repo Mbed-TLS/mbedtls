@@ -3,7 +3,8 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS 2.1.0 released 2015-09-04
 
 Features
-   * Added support for yotta as a build system
+   * Added support for yotta as a build system.
+   * Primary open source license changed to Apache 2.0 license.
 
 Bugfix
    * Fix segfault in the benchmark program when benchmarking DHM.

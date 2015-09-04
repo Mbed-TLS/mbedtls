@@ -3341,13 +3341,35 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
         if( rec_epoch != ssl->in_epoch )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "record from another epoch: "
-                                "expected %d, received %d",
-                                 ssl->in_epoch, rec_epoch ) );
-            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
+                                        "expected %d, received %d",
+                                        ssl->in_epoch, rec_epoch ) );
+
+#if defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE) && \
+    defined(MBEDTLS_SSL_SRV_C)
+            /*
+             * Check for an epoch 0 ClientHello. We can't use in_msg here to
+             * access the first byte of record content (handshake type), as we
+             * have an active transform (possibly iv_len != 0), so use the
+             * fact that the record header len is 13 instead.
+             */
+            if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
+                rec_epoch == 0 &&
+                ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE &&
+                ssl->in_left > 13 &&
+                ssl->in_buf[13] == MBEDTLS_SSL_HS_CLIENT_HELLO )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "possible client reconnect "
+                                            "from the same port" ) );
+            }
+            else
+#endif /* MBEDTLS_SSL_DLTS_CLIENT_PORT_REUSE && MBEDTLS_SSL_SRV_C */
+                return( MBEDTLS_ERR_SSL_INVALID_RECORD );
         }
 
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
-        if( mbedtls_ssl_dtls_replay_check( ssl ) != 0 )
+        /* Replay detection only works for the current epoch */
+        if( rec_epoch == ssl->in_epoch &&
+            mbedtls_ssl_dtls_replay_check( ssl ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "replayed record" ) );
             return( MBEDTLS_ERR_SSL_INVALID_RECORD );

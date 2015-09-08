@@ -3276,7 +3276,7 @@ static int ssl_dummy_recv(void *ctx, unsigned char *buf, size_t len) {
  *   return MBEDTLS_ERR_SSL_INVALID_RECORD (ignore this record)
  * - if the input looks like a ClientHello with a valid cookie,
  *   reset the session of the current context, and
- *   return MBEDTLS_ERR_SSL_CLIENT_RECONNECT (WIP: TODO)
+ *   return MBEDTLS_ERR_SSL_CLIENT_RECONNECT
  *
  * Currently adopts a heavyweight strategy by allocating a secondary ssl
  * context. Will be refactored into something more acceptable later.
@@ -3293,8 +3293,7 @@ static int ssl_handle_possible_reconnect( mbedtls_ssl_context *ssl )
     ret = mbedtls_ssl_setup( &tmp_ssl, ssl->conf );
     if( ret != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 0, "nested ssl_setup", ret );
-        ret = MBEDTLS_ERR_SSL_INVALID_RECORD;
+        MBEDTLS_SSL_DEBUG_RET( 1, "nested ssl_setup", ret );
         goto cleanup;
     }
 
@@ -3305,8 +3304,7 @@ static int ssl_handle_possible_reconnect( mbedtls_ssl_context *ssl )
                                                ssl->cli_id, ssl->cli_id_len );
     if( ret != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 0, "nested set_client_id", ret );
-        ret = MBEDTLS_ERR_SSL_INVALID_RECORD;
+        MBEDTLS_SSL_DEBUG_RET( 1, "nested set_client_id", ret );
         goto cleanup;
     }
 
@@ -3322,22 +3320,20 @@ static int ssl_handle_possible_reconnect( mbedtls_ssl_context *ssl )
     ret = mbedtls_ssl_handshake_step( &tmp_ssl );
     if( ret != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 0, "nested handshake_step", ret );
-        ret = MBEDTLS_ERR_SSL_INVALID_RECORD;
+        MBEDTLS_SSL_DEBUG_RET( 1, "nested handshake_step", ret );
         goto cleanup;
     }
 
     cookie_is_good = tmp_ssl.handshake->verify_cookie_len == 0;
-    MBEDTLS_SSL_DEBUG_MSG( 0, ( "good ClientHello with %s cookie",
+    MBEDTLS_SSL_DEBUG_MSG( 1, ( "good ClientHello with %s cookie",
                         cookie_is_good ? "good" : "bad" ) );
 
     /* Send HelloVerifyRequest? */
     if( !cookie_is_good )
     {
         ret = mbedtls_ssl_handshake_step( &tmp_ssl );
-        MBEDTLS_SSL_DEBUG_RET( 0, "nested handshake_step", ret );
-
-        ret = MBEDTLS_ERR_SSL_INVALID_RECORD;
+        if( ret != 0 )
+            MBEDTLS_SSL_DEBUG_RET( 1, "nested handshake_step", ret );
         goto cleanup;
     }
 
@@ -3346,10 +3342,13 @@ static int ssl_handle_possible_reconnect( mbedtls_ssl_context *ssl )
      * that the client will resend */
     mbedtls_ssl_session_reset( ssl );
 
-    /* ret = ... */
+    ret = MBEDTLS_ERR_SSL_CLIENT_RECONNECT;
 
 cleanup:
     mbedtls_ssl_free( &tmp_ssl );
+
+    if( ret != MBEDTLS_ERR_SSL_CLIENT_RECONNECT )
+        ret = MBEDTLS_ERR_SSL_INVALID_RECORD;
 
     return( ret );
 }
@@ -3658,7 +3657,8 @@ read_record_header:
     if( ( ret = ssl_parse_record_header( ssl ) ) != 0 )
     {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-        if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+        if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+            ret != MBEDTLS_ERR_SSL_CLIENT_RECONNECT )
         {
             /* Ignore bad record and get next one; drop the whole datagram
              * since current header cannot be trusted to find the next record

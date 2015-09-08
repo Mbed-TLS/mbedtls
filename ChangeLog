@@ -2,6 +2,11 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.1.0 released 2015-09-04
 
+Security
+   * Add countermeasure against Lenstra's RSA-CRT attack for PKCS#1 v1.5
+     signatures. (Found by Florian Weimer, Red Hat.)
+     https://securityblog.redhat.com/2015/09/02/factoring-rsa-keys-with-tls-perfect-forward-secrecy/
+
 Features
    * Added support for yotta as a build system.
    * Primary open source license changed to Apache 2.0 license.

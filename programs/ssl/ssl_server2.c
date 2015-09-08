@@ -1838,6 +1838,12 @@ reset:
     }
 #endif
 
+    if( ret == MBEDTLS_ERR_SSL_CLIENT_RECONNECT )
+    {
+        mbedtls_printf( "  ! Client initiated reconnection from same port\n" );
+        goto handshake;
+    }
+
 #ifdef MBEDTLS_ERROR_C
     if( ret != 0 )
     {
@@ -1903,6 +1909,7 @@ reset:
     /*
      * 4. Handshake
      */
+handshake:
     mbedtls_printf( "  . Performing the SSL/TLS handshake..." );
     fflush( stdout );
 

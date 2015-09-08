@@ -3262,6 +3262,9 @@ static int ssl_dummy_get_timer(void *ctx) { (void) ctx; return( 0 ); }
 static int ssl_dummy_recv(void *ctx, unsigned char *buf, size_t len) {
     (void) ctx; (void) buf; (void) len; return( 0 ); }
 
+/* Forward declatation */
+static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial );
+
 /*
  * Handle possible client reconnect with the same UDP quadruplet
  * (RFC 6347 Section 4.2.8).
@@ -3337,10 +3340,13 @@ static int ssl_handle_possible_reconnect( mbedtls_ssl_context *ssl )
         goto cleanup;
     }
 
-    /* We should retrieve the content of the ClientHello from tmp_ssl,
-     * instead let's play it dirty for this temporary version and just trust
-     * that the client will resend */
-    mbedtls_ssl_session_reset( ssl );
+    /* Reset context while preserving some information */
+    ret = ssl_session_reset_int( ssl, 1 );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "reset", ret );
+        goto cleanup;
+    }
 
     ret = MBEDTLS_ERR_SSL_CLIENT_RECONNECT;
 
@@ -5253,8 +5259,11 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
 /*
  * Reset an initialized and used SSL context for re-use while retaining
  * all application-set variables, function pointers and data.
+ *
+ * If partial is non-zero, keep data in the input buffer and client ID.
+ * (Use when a DTLS client reconnects from the same port.)
  */
-int mbedtls_ssl_session_reset( mbedtls_ssl_context *ssl )
+static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
 {
     int ret;
 
@@ -5278,7 +5287,8 @@ int mbedtls_ssl_session_reset( mbedtls_ssl_context *ssl )
     ssl->in_msg = ssl->in_buf + 13;
     ssl->in_msgtype = 0;
     ssl->in_msglen = 0;
-    ssl->in_left = 0;
+    if( partial == 0 )
+        ssl->in_left = 0;
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     ssl->next_record_offset = 0;
     ssl->in_epoch = 0;
@@ -5304,7 +5314,8 @@ int mbedtls_ssl_session_reset( mbedtls_ssl_context *ssl )
     ssl->transform_out = NULL;
 
     memset( ssl->out_buf, 0, MBEDTLS_SSL_BUFFER_LEN );
-    memset( ssl->in_buf, 0, MBEDTLS_SSL_BUFFER_LEN );
+    if( partial == 0 )
+        memset( ssl->in_buf, 0, MBEDTLS_SSL_BUFFER_LEN );
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
     if( mbedtls_ssl_hw_record_reset != NULL )
@@ -5337,15 +5348,27 @@ int mbedtls_ssl_session_reset( mbedtls_ssl_context *ssl )
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) && defined(MBEDTLS_SSL_SRV_C)
-    mbedtls_free( ssl->cli_id );
-    ssl->cli_id = NULL;
-    ssl->cli_id_len = 0;
+    if( partial == 0 )
+    {
+        mbedtls_free( ssl->cli_id );
+        ssl->cli_id = NULL;
+        ssl->cli_id_len = 0;
+    }
 #endif
 
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
         return( ret );
 
     return( 0 );
+}
+
+/*
+ * Reset an initialized and used SSL context for re-use while retaining
+ * all application-set variables, function pointers and data.
+ */
+int mbedtls_ssl_session_reset( mbedtls_ssl_context *ssl )
+{
+    return( ssl_session_reset_int( ssl, 0 ) );
 }
 
 /*

@@ -3250,20 +3250,135 @@ void mbedtls_ssl_dtls_replay_update( mbedtls_ssl_context *ssl )
 }
 #endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
 
-#if defined(MBEDTLS_SSL_PROTO_DTLS) && \
-    defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE) && \
-    defined(MBEDTLS_SSL_SRV_C)
-/* Dummy timer callbacks (temporary) */
-static void ssl_dummy_set_timer(void *ctx, uint32_t int_ms, uint32_t fin_ms) {
-    (void) ctx; (void) int_ms; (void) fin_ms; }
-static int ssl_dummy_get_timer(void *ctx) { (void) ctx; return( 0 ); }
-
-/* Dummy recv callback (temporary) */
-static int ssl_dummy_recv(void *ctx, unsigned char *buf, size_t len) {
-    (void) ctx; (void) buf; (void) len; return( 0 ); }
-
-/* Forward declatation */
+#if defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE)
+/* Forward declaration */
 static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial );
+
+/*
+ * Without any SSL context, check if a datagram looks like a ClientHello with
+ * a valid cookie, and if it doesn't, generate a HelloVerifyRequest message.
+ * Both input and input include full DTLS headers.
+ *
+ * - if cookie is valid, return 0
+ * - if ClientHello looks superficially valid but cookie is not,
+ *   fill obuf and set olen, then
+ *   return MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED
+ * - otherwise return a specific error code
+ */
+static int ssl_check_dtls_clihlo_cookie(
+                           mbedtls_ssl_cookie_write_t *f_cookie_write,
+                           mbedtls_ssl_cookie_check_t *f_cookie_check,
+                           void *p_cookie,
+                           const unsigned char *cli_id, size_t cli_id_len,
+                           const unsigned char *in, size_t in_len,
+                           unsigned char *obuf, size_t buf_len, size_t *olen )
+{
+    size_t sid_len, cookie_len;
+    unsigned char *p;
+
+    if( f_cookie_write == NULL || f_cookie_check == NULL )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    /*
+     * Structure of ClientHello with record and handshake headers,
+     * and expected values. We don't need to check a lot, more checks will be
+     * done when actually parsing the ClientHello - skipping those checks
+     * avoids code duplication and does not make cookie forging any easier.
+     *
+     *  0-0  ContentType type;                  copied, must be handshake
+     *  1-2  ProtocolVersion version;           copied
+     *  3-4  uint16 epoch;                      copied, must be 0
+     *  5-10 uint48 sequence_number;            copied
+     * 11-12 uint16 length;                     (ignored)
+     *
+     * 13-13 HandshakeType msg_type;            (ignored)
+     * 14-16 uint24 length;                     (ignored)
+     * 17-18 uint16 message_seq;                copied
+     * 19-21 uint24 fragment_offset;            copied, must be 0
+     * 22-24 uint24 fragment_length;            (ignored)
+     *
+     * 25-26 ProtocolVersion client_version;    (ignored)
+     * 27-58 Random random;                     (ignored)
+     * 59-xx SessionID session_id;              1 byte len + sid_len content
+     * 60+   opaque cookie<0..2^8-1>;           1 byte len + content
+     *       ...
+     *
+     * Minimum length is 61 bytes.
+     */
+    if( in_len < 61 ||
+        in[0] != MBEDTLS_SSL_MSG_HANDSHAKE ||
+        in[3] != 0 || in[4] != 0 ||
+        in[19] != 0 || in[20] != 0 || in[21] != 0 )
+    {
+        return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
+    sid_len = in[59];
+    if( sid_len > in_len - 61 )
+        return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
+
+    cookie_len = in[60 + sid_len];
+    if( cookie_len > in_len - 60 )
+        return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
+
+    if( f_cookie_check( p_cookie, in + sid_len + 61, cookie_len,
+                        cli_id, cli_id_len ) == 0 )
+    {
+        /* Valid cookie */
+        return( 0 );
+    }
+
+    /*
+     * If we get here, we've got an invalid cookie, let's prepare HVR.
+     *
+     *  0-0  ContentType type;                  copied
+     *  1-2  ProtocolVersion version;           copied
+     *  3-4  uint16 epoch;                      copied
+     *  5-10 uint48 sequence_number;            copied
+     * 11-12 uint16 length;                     olen - 13
+     *
+     * 13-13 HandshakeType msg_type;            hello_verify_request
+     * 14-16 uint24 length;                     olen - 25
+     * 17-18 uint16 message_seq;                copied
+     * 19-21 uint24 fragment_offset;            copied
+     * 22-24 uint24 fragment_length;            olen - 25
+     *
+     * 25-26 ProtocolVersion server_version;    0xfe 0xff
+     * 27-27 opaque cookie<0..2^8-1>;           cookie_len = olen - 27, cookie
+     *
+     * Minimum length is 28.
+     */
+    if( buf_len < 28 )
+        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+
+    /* Copy most fields and adapt others */
+    memcpy( obuf, in, 25 );
+    obuf[13] = MBEDTLS_SSL_HS_HELLO_VERIFY_REQUEST;
+    obuf[25] = 0xfe;
+    obuf[26] = 0xff;
+
+    /* Generate and write actual cookie */
+    p = obuf + 28;
+    if( f_cookie_write( p_cookie,
+                        &p, obuf + buf_len, cli_id, cli_id_len ) != 0 )
+    {
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+
+    *olen = p - obuf;
+
+    /* Go back and fill length fields */
+    obuf[27] = (unsigned char)( *olen - 28 );
+
+    obuf[14] = obuf[22] = (unsigned char)( ( *olen - 25 ) >> 16 );
+    obuf[15] = obuf[23] = (unsigned char)( ( *olen - 25 ) >>  8 );
+    obuf[16] = obuf[24] = (unsigned char)( ( *olen - 25 )       );
+
+    obuf[11] = (unsigned char)( ( *olen - 13 ) >>  8 );
+    obuf[12] = (unsigned char)( ( *olen - 13 )       );
+
+    return( MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED );
+}
 
 /*
  * Handle possible client reconnect with the same UDP quadruplet
@@ -3272,95 +3387,57 @@ static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial );
  * Called by ssl_parse_record_header() in case we receive an epoch 0 record
  * that looks like a ClientHello.
  *
- * - if the input looks wrong,
- *   return MBEDTLS_ERR_SSL_INVALID_RECORD (ignore this record)
  * - if the input looks like a ClientHello without cookies,
  *   send back HelloVerifyRequest, then
- *   return MBEDTLS_ERR_SSL_INVALID_RECORD (ignore this record)
+ *   return MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED
  * - if the input looks like a ClientHello with a valid cookie,
  *   reset the session of the current context, and
  *   return MBEDTLS_ERR_SSL_CLIENT_RECONNECT
+ * - if anything goes wrong, return a specific error code
  *
- * Currently adopts a heavyweight strategy by allocating a secondary ssl
- * context. Will be refactored into something more acceptable later.
+ * mbedtls_ssl_read_record() will ignore the record if anything else than
+ * MBEDTLS_ERR_SSL_CLIENT_RECONNECT or 0 is returned (we never return 0).
  */
 static int ssl_handle_possible_reconnect( mbedtls_ssl_context *ssl )
 {
     int ret;
-    mbedtls_ssl_context tmp_ssl;
-    int cookie_is_good;
+    size_t len;
 
-    mbedtls_ssl_init( &tmp_ssl );
+    ret = ssl_check_dtls_clihlo_cookie(
+            ssl->conf->f_cookie_write,
+            ssl->conf->f_cookie_check,
+            ssl->conf->p_cookie,
+            ssl->cli_id, ssl->cli_id_len,
+            ssl->in_buf, ssl->in_left,
+            ssl->out_buf, MBEDTLS_SSL_MAX_CONTENT_LEN, &len );
 
-    /* Prepare temporary ssl context */
-    ret = mbedtls_ssl_setup( &tmp_ssl, ssl->conf );
-    if( ret != 0 )
+    MBEDTLS_SSL_DEBUG_RET( 2, "ssl_check_dtls_clihlo_cookie", ret );
+
+    if( ret == MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "nested ssl_setup", ret );
-        goto cleanup;
+        /* Dont check write errors as we can't do anything here.
+         * If the error is permanent we'll catch it later,
+         * if it's not, then hopefully it'll work next time. */
+        (void) ssl->f_send( ssl->p_bio, ssl->out_buf, len );
+
+        return( MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED );
     }
 
-    mbedtls_ssl_set_timer_cb( &tmp_ssl, NULL, ssl_dummy_set_timer,
-                                              ssl_dummy_get_timer );
-
-    ret = mbedtls_ssl_set_client_transport_id( &tmp_ssl,
-                                               ssl->cli_id, ssl->cli_id_len );
-    if( ret != 0 )
+    if( ret == 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "nested set_client_id", ret );
-        goto cleanup;
+        /* Got a valid cookie, partially reset context */
+        if( ( ret = ssl_session_reset_int( ssl, 1 ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "reset", ret );
+            return( ret );
+        }
+
+        return( MBEDTLS_ERR_SSL_CLIENT_RECONNECT );
     }
-
-    mbedtls_ssl_set_bio( &tmp_ssl, ssl->p_bio, ssl->f_send,
-                         ssl_dummy_recv, NULL );
-
-    memcpy( tmp_ssl.in_buf, ssl->in_buf, ssl->in_left );
-    tmp_ssl.in_left = ssl->in_left;
-
-    tmp_ssl.state = MBEDTLS_SSL_CLIENT_HELLO;
-
-    /* Parse packet and check if cookie is good */
-    ret = mbedtls_ssl_handshake_step( &tmp_ssl );
-    if( ret != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "nested handshake_step", ret );
-        goto cleanup;
-    }
-
-    cookie_is_good = tmp_ssl.handshake->verify_cookie_len == 0;
-    MBEDTLS_SSL_DEBUG_MSG( 1, ( "good ClientHello with %s cookie",
-                        cookie_is_good ? "good" : "bad" ) );
-
-    /* Send HelloVerifyRequest? */
-    if( !cookie_is_good )
-    {
-        ret = mbedtls_ssl_handshake_step( &tmp_ssl );
-        if( ret != 0 )
-            MBEDTLS_SSL_DEBUG_RET( 1, "nested handshake_step", ret );
-        goto cleanup;
-    }
-
-    /* Reset context while preserving some information */
-    ret = ssl_session_reset_int( ssl, 1 );
-    if( ret != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "reset", ret );
-        goto cleanup;
-    }
-
-    ret = MBEDTLS_ERR_SSL_CLIENT_RECONNECT;
-
-cleanup:
-    mbedtls_ssl_free( &tmp_ssl );
-
-    if( ret != MBEDTLS_ERR_SSL_CLIENT_RECONNECT )
-        ret = MBEDTLS_ERR_SSL_INVALID_RECORD;
 
     return( ret );
 }
-#endif /* MBEDTLS_SSL_PROTO_DTLS &&
-          MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE &&
-          MBEDTLS_SSL_SRV_C */
+#endif /* MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE */
 
 /*
  * ContentType type;
@@ -3456,8 +3533,7 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
                                         "expected %d, received %d",
                                         ssl->in_epoch, rec_epoch ) );
 
-#if defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE) && \
-    defined(MBEDTLS_SSL_SRV_C)
+#if defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE)
             /*
              * Check for an epoch 0 ClientHello. We can't use in_msg here to
              * access the first byte of record content (handshake type), as we
@@ -3475,7 +3551,7 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
                 return( ssl_handle_possible_reconnect( ssl ) );
             }
             else
-#endif /* MBEDTLS_SSL_DLTS_CLIENT_PORT_REUSE && MBEDTLS_SSL_SRV_C */
+#endif /* MBEDTLS_SSL_DLTS_CLIENT_PORT_REUSE */
                 return( MBEDTLS_ERR_SSL_INVALID_RECORD );
         }
 

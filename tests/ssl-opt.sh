@@ -2867,6 +2867,28 @@ run_test    "DTLS cookie: enabled, nbio" \
             -s "hello verification requested" \
             -S "SSL - The requested feature is not available"
 
+# Tests for client reconnecting from the same port with DTLS
+
+run_test    "DTLS client reconnect from same port: reference" \
+            "$P_SRV dtls=1 exchanges=2" \
+            "$P_CLI dtls=1 exchanges=2 debug_level=2" \
+            0 \
+            -C "resend" \
+            -S "Client initiated reconnection from same port"
+
+run_test    "DTLS client reconnect from same port: reconnect" \
+            "$P_SRV dtls=1 exchanges=2" \
+            "$P_CLI dtls=1 exchanges=2 debug_level=2 reconnect_hard=1" \
+            0 \
+            -C "resend" \
+            -s "Client initiated reconnection from same port"
+
+run_test    "DTLS client reconnect from same port: reconnect, nbio" \
+            "$P_SRV dtls=1 exchanges=2 nbio=2" \
+            "$P_CLI dtls=1 exchanges=2 debug_level=2 reconnect_hard=1" \
+            0 \
+            -s "Client initiated reconnection from same port"
+
 # Tests for various cases of client authentication with DTLS
 # (focused on handshake flows and message parsing)
 

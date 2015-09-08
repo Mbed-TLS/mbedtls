@@ -1,5 +1,16 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.1.1 released 2015-09-??
+
+Changes
+   * When a client initiates a reconnect from the same port as a live
+     connection, if cookie verification is available
+     (MBEDTLS_SSL_DTLS_HELLO_VERIFY defined in config.h, and usable cookie
+     callbacks set with mbedtls_ssl_conf_dtls_cookies()), this will be
+     detected and mbedtls_ssl_read() will return
+     MBEDTLS_ERR_SSL_CLIENT_RECONNECT - it is then possible to start a new
+     handshake with the same context. (See RFC 6347 section 4.2.8.)
+
 = mbed TLS 2.1.0 released 2015-09-04
 
 Features

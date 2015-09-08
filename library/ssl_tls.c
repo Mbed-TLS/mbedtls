@@ -3250,6 +3250,113 @@ void mbedtls_ssl_dtls_replay_update( mbedtls_ssl_context *ssl )
 }
 #endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
 
+#if defined(MBEDTLS_SSL_PROTO_DTLS) && \
+    defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE) && \
+    defined(MBEDTLS_SSL_SRV_C)
+/* Dummy timer callbacks (temporary) */
+static void ssl_dummy_set_timer(void *ctx, uint32_t int_ms, uint32_t fin_ms) {
+    (void) ctx; (void) int_ms; (void) fin_ms; }
+static int ssl_dummy_get_timer(void *ctx) { (void) ctx; return( 0 ); }
+
+/* Dummy recv callback (temporary) */
+static int ssl_dummy_recv(void *ctx, unsigned char *buf, size_t len) {
+    (void) ctx; (void) buf; (void) len; return( 0 ); }
+
+/*
+ * Handle possible client reconnect with the same UDP quadruplet
+ * (RFC 6347 Section 4.2.8).
+ *
+ * Called by ssl_parse_record_header() in case we receive an epoch 0 record
+ * that looks like a ClientHello.
+ *
+ * - if the input looks wrong,
+ *   return MBEDTLS_ERR_SSL_INVALID_RECORD (ignore this record)
+ * - if the input looks like a ClientHello without cookies,
+ *   send back HelloVerifyRequest, then
+ *   return MBEDTLS_ERR_SSL_INVALID_RECORD (ignore this record)
+ * - if the input looks like a ClientHello with a valid cookie,
+ *   reset the session of the current context, and
+ *   return MBEDTLS_ERR_SSL_CLIENT_RECONNECT (WIP: TODO)
+ *
+ * Currently adopts a heavyweight strategy by allocating a secondary ssl
+ * context. Will be refactored into something more acceptable later.
+ */
+static int ssl_handle_possible_reconnect( mbedtls_ssl_context *ssl )
+{
+    int ret;
+    mbedtls_ssl_context tmp_ssl;
+    int cookie_is_good;
+
+    mbedtls_ssl_init( &tmp_ssl );
+
+    /* Prepare temporary ssl context */
+    ret = mbedtls_ssl_setup( &tmp_ssl, ssl->conf );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 0, "nested ssl_setup", ret );
+        ret = MBEDTLS_ERR_SSL_INVALID_RECORD;
+        goto cleanup;
+    }
+
+    mbedtls_ssl_set_timer_cb( &tmp_ssl, NULL, ssl_dummy_set_timer,
+                                              ssl_dummy_get_timer );
+
+    ret = mbedtls_ssl_set_client_transport_id( &tmp_ssl,
+                                               ssl->cli_id, ssl->cli_id_len );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 0, "nested set_client_id", ret );
+        ret = MBEDTLS_ERR_SSL_INVALID_RECORD;
+        goto cleanup;
+    }
+
+    mbedtls_ssl_set_bio( &tmp_ssl, ssl->p_bio, ssl->f_send,
+                         ssl_dummy_recv, NULL );
+
+    memcpy( tmp_ssl.in_buf, ssl->in_buf, ssl->in_left );
+    tmp_ssl.in_left = ssl->in_left;
+
+    tmp_ssl.state = MBEDTLS_SSL_CLIENT_HELLO;
+
+    /* Parse packet and check if cookie is good */
+    ret = mbedtls_ssl_handshake_step( &tmp_ssl );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 0, "nested handshake_step", ret );
+        ret = MBEDTLS_ERR_SSL_INVALID_RECORD;
+        goto cleanup;
+    }
+
+    cookie_is_good = tmp_ssl.handshake->verify_cookie_len == 0;
+    MBEDTLS_SSL_DEBUG_MSG( 0, ( "good ClientHello with %s cookie",
+                        cookie_is_good ? "good" : "bad" ) );
+
+    /* Send HelloVerifyRequest? */
+    if( !cookie_is_good )
+    {
+        ret = mbedtls_ssl_handshake_step( &tmp_ssl );
+        MBEDTLS_SSL_DEBUG_RET( 0, "nested handshake_step", ret );
+
+        ret = MBEDTLS_ERR_SSL_INVALID_RECORD;
+        goto cleanup;
+    }
+
+    /* We should retrieve the content of the ClientHello from tmp_ssl,
+     * instead let's play it dirty for this temporary version and just trust
+     * that the client will resend */
+    mbedtls_ssl_session_reset( ssl );
+
+    /* ret = ... */
+
+cleanup:
+    mbedtls_ssl_free( &tmp_ssl );
+
+    return( ret );
+}
+#endif /* MBEDTLS_SSL_PROTO_DTLS &&
+          MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE &&
+          MBEDTLS_SSL_SRV_C */
+
 /*
  * ContentType type;
  * ProtocolVersion version;
@@ -3360,6 +3467,7 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "possible client reconnect "
                                             "from the same port" ) );
+                return( ssl_handle_possible_reconnect( ssl ) );
             }
             else
 #endif /* MBEDTLS_SSL_DLTS_CLIENT_PORT_REUSE && MBEDTLS_SSL_SRV_C */

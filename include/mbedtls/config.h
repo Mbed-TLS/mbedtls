@@ -1145,7 +1145,6 @@
  * flag enables that support.
  *
  * Requires: MBEDTLS_SSL_DTLS_HELLO_VERIFY
- *           MBEDTLS_SSL_SRV_C
  *
  * Comment this to disable support for clients reusing the source port.
  */

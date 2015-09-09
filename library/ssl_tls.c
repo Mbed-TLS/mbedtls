@@ -3250,7 +3250,7 @@ void mbedtls_ssl_dtls_replay_update( mbedtls_ssl_context *ssl )
 }
 #endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
 
-#if defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE)
+#if defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE) && defined(MBEDTLS_SSL_SRV_C)
 /* Forward declaration */
 static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial );
 
@@ -3437,7 +3437,7 @@ static int ssl_handle_possible_reconnect( mbedtls_ssl_context *ssl )
 
     return( ret );
 }
-#endif /* MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE */
+#endif /* MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE && MBEDTLS_SSL_SRV_C */
 
 /*
  * ContentType type;
@@ -3533,7 +3533,7 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
                                         "expected %d, received %d",
                                         ssl->in_epoch, rec_epoch ) );
 
-#if defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE)
+#if defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE) && defined(MBEDTLS_SSL_SRV_C)
             /*
              * Check for an epoch 0 ClientHello. We can't use in_msg here to
              * access the first byte of record content (handshake type), as we
@@ -3551,7 +3551,7 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
                 return( ssl_handle_possible_reconnect( ssl ) );
             }
             else
-#endif /* MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE */
+#endif /* MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE && MBEDTLS_SSL_SRV_C */
                 return( MBEDTLS_ERR_SSL_INVALID_RECORD );
         }
 

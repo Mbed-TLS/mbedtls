@@ -1,0 +1,23 @@
+/*
+    mbedtls.me -- MakeMe file for MbedTLS
+ */
+
+Me.load({
+    blend: [ 'osdep' ],
+
+    targets: {
+        libmbedtls: {
+            type: 'lib',
+            static: true,
+            headers: [ '*.h' ],
+            depends: [ 'osdep' ],
+            sources: [ 'mbedtlsLib.c' ],
+            '-compiler': [
+                '-Wall',
+                '-Wshorten-64-to-32',
+                '-W3',
+            ],
+            ifdef: [ 'mbedtls' ],
+        }
+	}
+})

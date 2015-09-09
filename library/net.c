@@ -319,7 +319,7 @@ int mbedtls_net_accept( mbedtls_net_context *bind_ctx,
         /* UDP: wait for a message, but keep it in the queue */
         char buf[1] = { 0 };
 
-        ret = recvfrom( bind_ctx->fd, buf, sizeof( buf ), MSG_PEEK,
+        ret = (int) recvfrom( bind_ctx->fd, buf, sizeof( buf ), MSG_PEEK,
                         (struct sockaddr *) &client_addr, &n );
 
 #if defined(_WIN32)

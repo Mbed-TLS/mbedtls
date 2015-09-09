@@ -242,6 +242,40 @@ int mbedtls_x509write_crt_set_key_usage( mbedtls_x509write_cert *ctx,
     return( 0 );
 }
 
+int mbedtls_x509write_crt_set_ext_key_usage( mbedtls_x509write_cert *ctx,
+                                             const mbedtls_asn1_sequence *exts )
+{
+    unsigned char buf[256];
+    unsigned char *c = buf + sizeof(buf);
+    int ret;
+    size_t len = 0;
+
+    if( exts == NULL )
+        return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
+
+    while( exts != NULL )
+    {
+        if( exts->buf.tag != MBEDTLS_ASN1_OID )
+            return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_raw_buffer( &c, buf, exts->buf.p, exts->buf.len ) );
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, buf, exts->buf.len ) );
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &c, buf, MBEDTLS_ASN1_OID ) );
+        exts = exts->next;
+    }
+
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, buf, len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &c, buf, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) );
+
+    ret = mbedtls_x509write_crt_set_extension( ctx,
+                         MBEDTLS_OID_EXTENDED_KEY_USAGE,
+                         MBEDTLS_OID_SIZE( MBEDTLS_OID_EXTENDED_KEY_USAGE ),
+                         1, c, len );
+    if( ret != 0 )
+        return( ret );
+
+    return( 0 );
+}
+
 int mbedtls_x509write_crt_set_ns_cert_type( mbedtls_x509write_cert *ctx,
                                     unsigned char ns_cert_type )
 {

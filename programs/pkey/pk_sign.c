@@ -40,7 +40,7 @@
 int main( void )
 {
     mbedtls_printf("MBEDTLS_BIGNUM_C and/or MBEDTLS_ENTROPY_C and/or "
-           "MBEDTLS_SHA256_C and/or MBEDLTS_MD_C and/or "
+           "MBEDTLS_SHA256_C and/or MBEDTLS_MD_C and/or "
            "MBEDTLS_PK_PARSE_C and/or MBEDTLS_FS_IO and/or "
            "MBEDTLS_CTR_DRBG_C not defined.\n");
     return( 0 );

@@ -3551,7 +3551,7 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
                 return( ssl_handle_possible_reconnect( ssl ) );
             }
             else
-#endif /* MBEDTLS_SSL_DLTS_CLIENT_PORT_REUSE */
+#endif /* MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE */
                 return( MBEDTLS_ERR_SSL_INVALID_RECORD );
         }
 

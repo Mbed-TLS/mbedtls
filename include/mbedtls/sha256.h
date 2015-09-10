@@ -30,7 +30,9 @@
 #endif
 
 #include <stddef.h>
+#if !VXWORKS
 #include <stdint.h>
+#endif
 
 #if !defined(MBEDTLS_SHA256_ALT)
 // Regular implementation

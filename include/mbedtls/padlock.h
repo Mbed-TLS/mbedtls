@@ -42,7 +42,9 @@
 #define MBEDTLS_HAVE_X86
 #endif
 
+#if !VXWORKS
 #include <stdint.h>
+#endif
 
 #define MBEDTLS_PADLOCK_RNG 0x000C
 #define MBEDTLS_PADLOCK_ACE 0x00C0

@@ -56,7 +56,9 @@ struct _hr_time
 
 #include <unistd.h>
 #include <sys/types.h>
+#if !VXWORKS
 #include <sys/time.h>
+#endif
 #include <signal.h>
 #include <time.h>
 

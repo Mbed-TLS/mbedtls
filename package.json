@@ -1,0 +1,24 @@
+{
+    "name": "mbedtls",
+    "title": "Mbedtls",
+    "description": "Mbedtls SSL Stack",
+    "version": "1.3.11",
+    "license": "GPLv2",
+    "keywords": [
+        "mbedtls",
+        "ssl",
+        "tls"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/ARMmbed/mbedtls.git"
+    },
+    "files": [
+        "dist/"
+    ],
+    "pak": {
+        "import": true,
+        "origin": "ARMmbed/mbedtls"
+    }
+}
+

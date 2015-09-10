@@ -44,7 +44,7 @@
 #endif
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
+static void asn1_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
@@ -312,7 +312,7 @@ int mbedtls_asn1_get_alg( unsigned char **p,
 
     if( *p == end )
     {
-        mbedtls_zeroize( params, sizeof(mbedtls_asn1_buf) );
+        asn1_zeroize( params, sizeof(mbedtls_asn1_buf) );
         return( 0 );
     }
 
@@ -357,7 +357,7 @@ void mbedtls_asn1_free_named_data( mbedtls_asn1_named_data *cur )
     mbedtls_free( cur->oid.p );
     mbedtls_free( cur->val.p );
 
-    mbedtls_zeroize( cur, sizeof( mbedtls_asn1_named_data ) );
+    asn1_zeroize( cur, sizeof( mbedtls_asn1_named_data ) );
 }
 
 void mbedtls_asn1_free_named_data_list( mbedtls_asn1_named_data **head )

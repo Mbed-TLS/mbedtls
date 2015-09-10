@@ -55,7 +55,7 @@
 #endif
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
+static void dhm_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
@@ -402,7 +402,7 @@ void mbedtls_dhm_free( mbedtls_dhm_context *ctx )
     mbedtls_mpi_free( &ctx->GX ); mbedtls_mpi_free( &ctx->X ); mbedtls_mpi_free( &ctx->G );
     mbedtls_mpi_free( &ctx->P );
 
-    mbedtls_zeroize( ctx, sizeof( mbedtls_dhm_context ) );
+    dhm_zeroize( ctx, sizeof( mbedtls_dhm_context ) );
 }
 
 #if defined(MBEDTLS_ASN1_PARSE_C)
@@ -567,7 +567,7 @@ int mbedtls_dhm_parse_dhmfile( mbedtls_dhm_context *dhm, const char *path )
 
     ret = mbedtls_dhm_parse_dhm( dhm, buf, n );
 
-    mbedtls_zeroize( buf, n );
+    dhm_zeroize( buf, n );
     mbedtls_free( buf );
 
     return( ret );

@@ -43,7 +43,7 @@
 #endif
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
+static void memory_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
@@ -610,7 +610,7 @@ void mbedtls_memory_buffer_alloc_free()
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_free( &heap.mutex );
 #endif
-    mbedtls_zeroize( &heap, sizeof(buffer_alloc_ctx) );
+    memory_zeroize( &heap, sizeof(buffer_alloc_ctx) );
 }
 
 #if defined(MBEDTLS_SELF_TEST)

@@ -647,4 +647,7 @@ int mbedtls_oid_get_numeric_string( char *buf, size_t size,
     return( (int) ( size - n ) );
 }
 
+/* Amalgamated Release Mappings */
+#undef SAFE_SNPRINTF
+
 #endif /* MBEDTLS_OID_C */

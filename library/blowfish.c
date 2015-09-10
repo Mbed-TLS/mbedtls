@@ -40,7 +40,7 @@
 #if !defined(MBEDTLS_BLOWFISH_ALT)
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
+static void blowfish_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
@@ -165,7 +165,7 @@ void mbedtls_blowfish_free( mbedtls_blowfish_context *ctx )
     if( ctx == NULL )
         return;
 
-    mbedtls_zeroize( ctx, sizeof( mbedtls_blowfish_context ) );
+    blowfish_zeroize( ctx, sizeof( mbedtls_blowfish_context ) );
 }
 
 /*

@@ -54,8 +54,11 @@
 
 #if !defined(MBEDTLS_AES_ALT)
 
+/* Amalgamated Release Mappings */
+#define FSb AESFSb
+
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
+static void aes_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
@@ -474,7 +477,7 @@ void mbedtls_aes_free( mbedtls_aes_context *ctx )
     if( ctx == NULL )
         return;
 
-    mbedtls_zeroize( ctx, sizeof( mbedtls_aes_context ) );
+    aes_zeroize( ctx, sizeof( mbedtls_aes_context ) );
 }
 
 /*
@@ -1486,5 +1489,8 @@ exit:
 }
 
 #endif /* MBEDTLS_SELF_TEST */
+
+/* Amalgamated Release Mappings */
+#undef FSb
 
 #endif /* MBEDTLS_AES_C */

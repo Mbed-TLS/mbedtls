@@ -45,7 +45,7 @@
 #endif
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
+static void pem_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
@@ -105,7 +105,7 @@ static void pem_pbkdf1( unsigned char *key, size_t keylen,
         memcpy( key, md5sum, keylen );
 
         mbedtls_md5_free( &md5_ctx );
-        mbedtls_zeroize( md5sum, 16 );
+        pem_zeroize( md5sum, 16 );
         return;
     }
 
@@ -127,7 +127,7 @@ static void pem_pbkdf1( unsigned char *key, size_t keylen,
     memcpy( key + 16, md5sum, use_len );
 
     mbedtls_md5_free( &md5_ctx );
-    mbedtls_zeroize( md5sum, 16 );
+    pem_zeroize( md5sum, 16 );
 }
 
 #if defined(MBEDTLS_DES_C)
@@ -150,7 +150,7 @@ static void pem_des_decrypt( unsigned char des_iv[8],
                      des_iv, buf, buf );
 
     mbedtls_des_free( &des_ctx );
-    mbedtls_zeroize( des_key, 8 );
+    pem_zeroize( des_key, 8 );
 }
 
 /*
@@ -172,7 +172,7 @@ static void pem_des3_decrypt( unsigned char des3_iv[8],
                      des3_iv, buf, buf );
 
     mbedtls_des3_free( &des3_ctx );
-    mbedtls_zeroize( des3_key, 24 );
+    pem_zeroize( des3_key, 24 );
 }
 #endif /* MBEDTLS_DES_C */
 
@@ -196,7 +196,7 @@ static void pem_aes_decrypt( unsigned char aes_iv[16], unsigned int keylen,
                      aes_iv, buf, buf );
 
     mbedtls_aes_free( &aes_ctx );
-    mbedtls_zeroize( aes_key, keylen );
+    pem_zeroize( aes_key, keylen );
 }
 #endif /* MBEDTLS_AES_C */
 
@@ -385,7 +385,7 @@ void mbedtls_pem_free( mbedtls_pem_context *ctx )
     mbedtls_free( ctx->buf );
     mbedtls_free( ctx->info );
 
-    mbedtls_zeroize( ctx, sizeof( mbedtls_pem_context ) );
+    pem_zeroize( ctx, sizeof( mbedtls_pem_context ) );
 }
 #endif /* MBEDTLS_PEM_PARSE_C */
 

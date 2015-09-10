@@ -67,7 +67,7 @@
 #endif
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
+static void ecp_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
@@ -340,7 +340,7 @@ void mbedtls_ecp_group_free( mbedtls_ecp_group *grp )
         mbedtls_free( grp->T );
     }
 
-    mbedtls_zeroize( grp, sizeof( mbedtls_ecp_group ) );
+    ecp_zeroize( grp, sizeof( mbedtls_ecp_group ) );
 }
 
 /*

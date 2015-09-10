@@ -54,7 +54,7 @@
 #if !defined(MBEDTLS_SHA512_ALT)
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
+static void sha512_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
@@ -92,6 +92,10 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 /*
  * Round constants
  */
+
+/* Amalgamated Release Mappings */
+#define K K512
+
 static const uint64_t K[80] =
 {
     UL64(0x428A2F98D728AE22),  UL64(0x7137449123EF65CD),
@@ -146,7 +150,7 @@ void mbedtls_sha512_free( mbedtls_sha512_context *ctx )
     if( ctx == NULL )
         return;
 
-    mbedtls_zeroize( ctx, sizeof( mbedtls_sha512_context ) );
+    sha512_zeroize( ctx, sizeof( mbedtls_sha512_context ) );
 }
 
 void mbedtls_sha512_clone( mbedtls_sha512_context *dst,
@@ -496,5 +500,18 @@ exit:
 }
 
 #endif /* MBEDTLS_SELF_TEST */
+
+/* Amalgamated Release Mappings */
+#undef P
+#undef R
+#undef SHR
+#undef ROTR
+#undef S0
+#undef S1
+#undef S2
+#undef S3
+#undef F0
+#undef F1
+#undef K
 
 #endif /* MBEDTLS_SHA512_C */

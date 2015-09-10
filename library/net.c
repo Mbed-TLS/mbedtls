@@ -52,6 +52,11 @@
 #endif
 #endif /* _MSC_VER */
 
+/* Amalgamated Release Mappings */
+#undef read
+#undef write
+#undef close
+
 #define read(fd,buf,len)        recv(fd,(char*)buf,(int) len,0)
 #define write(fd,buf,len)       send(fd,(char*)buf,(int) len,0)
 #define close(fd)               closesocket(fd)
@@ -319,7 +324,7 @@ int mbedtls_net_accept( mbedtls_net_context *bind_ctx,
         /* UDP: wait for a message, but keep it in the queue */
         char buf[1] = { 0 };
 
-        ret = recvfrom( bind_ctx->fd, buf, sizeof( buf ), MSG_PEEK,
+        ret = (int) recvfrom( bind_ctx->fd, buf, sizeof( buf ), MSG_PEEK,
                         (struct sockaddr *) &client_addr, &n );
 
 #if defined(_WIN32)
@@ -571,5 +576,15 @@ void mbedtls_net_free( mbedtls_net_context *ctx )
 
     ctx->fd = -1;
 }
+
+#if (defined(_WIN32) || defined(_WIN32_WCE)) && !defined(EFIX64) && !defined(EFI32)
+/* Amalgamated Release Mappings */
+    #undef read
+    #undef write
+    #undef close
+    #define read _read
+    #define write _write
+    #define close _close
+#endif
 
 #endif /* MBEDTLS_NET_C */

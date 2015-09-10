@@ -50,9 +50,12 @@
 #endif
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
+static void cipher_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
+
+/* Amalgamated Release Mappings */
+#define supported_init cipher_supported_init
 
 static int supported_init = 0;
 
@@ -130,7 +133,7 @@ void mbedtls_cipher_free( mbedtls_cipher_context_t *ctx )
     if( ctx->cipher_ctx )
         ctx->cipher_info->base->ctx_free_func( ctx->cipher_ctx );
 
-    mbedtls_zeroize( ctx, sizeof(mbedtls_cipher_context_t) );
+    cipher_zeroize( ctx, sizeof(mbedtls_cipher_context_t) );
 }
 
 int mbedtls_cipher_setup( mbedtls_cipher_context_t *ctx, const mbedtls_cipher_info_t *cipher_info )
@@ -882,5 +885,8 @@ int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,
     return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
 }
 #endif /* MBEDTLS_CIPHER_MODE_AEAD */
+
+/* Amalgamated Release Mappings */
+#undef supported_init
 
 #endif /* MBEDTLS_CIPHER_C */

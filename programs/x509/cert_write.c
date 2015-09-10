@@ -84,6 +84,7 @@ int main( void )
 #define DFL_SELFSIGN            0
 #define DFL_IS_CA               0
 #define DFL_MAX_PATHLEN         -1
+#define DFL_SIG_ALG             MBEDTLS_MD_SHA256
 #define DFL_KEY_USAGE           0
 #define DFL_EXT_KEY_USAGE       0
 #define DFL_NS_CERT_TYPE        0
@@ -113,6 +114,7 @@ int main( void )
     "    not_after=%%s        default: 20301231235959\n"\
     "    is_ca=%%d            default: 0 (disabled)\n"  \
     "    max_pathlen=%%d      default: -1 (none)\n"     \
+    "    sig_alg=%%s          default: SHA-256\n"       \
     "    key_usage=%%s        default: (empty)\n"       \
     "                        Comma-separated-list of values:\n"     \
     "                          digital_signature\n"     \
@@ -161,6 +163,7 @@ struct options
     int selfsign;               /* selfsign the certificate             */
     int is_ca;                  /* is a CA certificate                  */
     int max_pathlen;            /* maximum CA path length               */
+    mbedtls_md_type_t sig_alg;  /* MD to use generating signature       */
     unsigned char key_usage;    /* key usage flags                      */
     mbedtls_asn1_sequence *ext_key_usage; /* extended key usages        */
     unsigned char ns_cert_type; /* NS cert type                         */
@@ -221,7 +224,6 @@ int main( int argc, char *argv[] )
      * Set to sane values
      */
     mbedtls_x509write_crt_init( &crt );
-    mbedtls_x509write_crt_set_md_alg( &crt, MBEDTLS_MD_SHA256 );
     mbedtls_pk_init( &loaded_issuer_key );
     mbedtls_pk_init( &loaded_subject_key );
     mbedtls_mpi_init( &serial );
@@ -255,6 +257,7 @@ int main( int argc, char *argv[] )
     opt.selfsign            = DFL_SELFSIGN;
     opt.is_ca               = DFL_IS_CA;
     opt.max_pathlen         = DFL_MAX_PATHLEN;
+    opt.sig_alg             = DFL_SIG_ALG;
     opt.key_usage           = DFL_KEY_USAGE;
     opt.ext_key_usage       = DFL_EXT_KEY_USAGE;
     opt.ns_cert_type        = DFL_NS_CERT_TYPE;
@@ -317,6 +320,17 @@ int main( int argc, char *argv[] )
         {
             opt.max_pathlen = atoi( q );
             if( opt.max_pathlen < -1 || opt.max_pathlen > 127 )
+                goto usage;
+        }
+        else if( strcmp( p, "sig_alg") == 0 )
+        {
+            if( strcmp( q, "SHA-1" ) == 0 )
+                opt.sig_alg = MBEDTLS_MD_SHA1;
+            else if( strcmp( q, "SHA-256" ) == 0 )
+                opt.sig_alg = MBEDTLS_MD_SHA256;
+            else if( strcmp( q, "MD5" ) == 0 )
+                opt.sig_alg = MBEDTLS_MD_MD5;
+            else
                 goto usage;
         }
         else if( strcmp( p, "key_usage" ) == 0 )
@@ -615,6 +629,8 @@ int main( int argc, char *argv[] )
     }
 
     mbedtls_printf( " ok\n" );
+
+    mbedtls_x509write_crt_set_md_alg( &crt, opt.sig_alg );
 
 #if defined(MBEDTLS_SHA1_C)
     mbedtls_printf( "  . Adding the Subject Key Identifier ..." );

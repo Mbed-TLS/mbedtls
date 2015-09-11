@@ -3396,7 +3396,7 @@ static int ssl_check_dtls_clihlo_cookie(
  * - if anything goes wrong, return a specific error code
  *
  * mbedtls_ssl_read_record() will ignore the record if anything else than
- * MBEDTLS_ERR_SSL_CLIENT_RECONNECT or 0 is returned (we never return 0).
+ * MBEDTLS_ERR_SSL_CLIENT_RECONNECT or 0 is returned.
  */
 static int ssl_handle_possible_reconnect( mbedtls_ssl_context *ssl )
 {

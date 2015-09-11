@@ -50,6 +50,8 @@ Changes
      Hugo Leisink) (#210).
    * Add mbedtls_ssl_get_max_frag_len() to query the current maximum fragment
      length.
+   * Made X509 profile pointer const in mbedtls_ssl_conf_cert_profile() to allow
+     use of mbedtls_x509_crt_profile_next. (found by NWilson)
 
 = mbed TLS 2.0.0 released 2015-07-13
 

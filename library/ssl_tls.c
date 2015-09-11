@@ -3257,7 +3257,7 @@ static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial );
 /*
  * Without any SSL context, check if a datagram looks like a ClientHello with
  * a valid cookie, and if it doesn't, generate a HelloVerifyRequest message.
- * Both input and input include full DTLS headers.
+ * Both input and output include full DTLS headers.
  *
  * - if cookie is valid, return 0
  * - if ClientHello looks superficially valid but cookie is not,

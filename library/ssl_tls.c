@@ -5372,7 +5372,7 @@ void mbedtls_ssl_conf_ciphersuites_for_version( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 void mbedtls_ssl_conf_cert_profile( mbedtls_ssl_config *conf,
-                                    mbedtls_x509_crt_profile *profile )
+                                    const mbedtls_x509_crt_profile *profile )
 {
     conf->cert_profile = profile;
 }

@@ -2097,7 +2097,7 @@ int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl, mbedtls_ssl_session
  *
  * \return         0 if successful, or
  *                 MBEDTLS_ERR_SSL_WANT_READ or MBEDTLS_ERR_SSL_WANT_WRITE, or
- *                 MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED (see belowe), or
+ *                 MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED (see below), or
  *                 a specific SSL error code.
  *
  * \note           If this function returns something other than 0 or

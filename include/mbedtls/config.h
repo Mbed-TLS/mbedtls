@@ -1141,7 +1141,7 @@
  *
  * Some clients unexpectedly close the connection and try to reconnect using the
  * same source port. This needs special support from the server to handle the
- * new connection securely, as described in section 4.1.8 of RFC 6347. This
+ * new connection securely, as described in section 4.2.8 of RFC 6347. This
  * flag enables that support.
  *
  * Requires: MBEDTLS_SSL_DTLS_HELLO_VERIFY

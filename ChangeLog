@@ -2,6 +2,9 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.1.1 released 2015-09-??
 
+Bugfix
+   * Fix warning when using a 64bit platform. (found by embedthis) (#275)
+   
 Changes
    * Made X509 profile pointer const in mbedtls_ssl_conf_cert_profile() to allow
      use of mbedtls_x509_crt_profile_next. (found by NWilson)

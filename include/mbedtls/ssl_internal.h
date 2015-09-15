@@ -41,6 +41,10 @@
 #include "sha512.h"
 #endif
 
+#if defined(MBEDTLS_ECJPAKE_C)
+#include "ecjpake.h"
+#endif
+
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && !defined(inline)
 #define inline __inline
 #endif
@@ -167,6 +171,9 @@ struct mbedtls_ssl_handshake_params
 #endif
 #if defined(MBEDTLS_ECDH_C)
     mbedtls_ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
+#endif
+#if defined(MBEDTLS_ECJPAKE_C)
+    mbedtls_ecjpake_context ecjpake_ctx;        /*!< EC J-PAKE key exchange */
 #endif
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
     defined(MBEDTLS_ECJPAKE_C)

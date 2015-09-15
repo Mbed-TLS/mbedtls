@@ -2896,8 +2896,8 @@ run_test    "DTLS client reconnect from same port: reconnect, nbio" \
 
 run_test    "DTLS client reconnect from same port: no cookies" \
             "$P_SRV dtls=1 exchanges=2 read_timeout=1000 cookies=0" \
-            "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-1000 reconnect_hard=1" \
-            1 \
+            "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-8000 reconnect_hard=1" \
+            0 \
             -s "The operation timed out" \
             -S "Client initiated reconnection from same port"
 

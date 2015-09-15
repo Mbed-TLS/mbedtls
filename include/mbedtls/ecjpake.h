@@ -115,6 +115,16 @@ int mbedtls_ecjpake_setup( mbedtls_ecjpake_context *ctx,
                            const unsigned char *secret,
                            size_t len );
 
+/*
+ * \brief           Check if a context is ready for use
+ *
+ * \param ctx       Context to check
+ *
+ * \return          0 if the context is ready for use,
+ *                  MBEDTLS_ERR_ECP_BAD_INPUT_DATA otherwise
+ */
+int mbedtls_ecjpake_check( const mbedtls_ecjpake_context *ctx );
+
 /**
  * \brief           Generate and write the first round message
  *                  (TLS: contents of the Client/ServerHello extension,

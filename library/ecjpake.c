@@ -120,6 +120,21 @@ cleanup:
 }
 
 /*
+ * Check if context is ready for use
+ */
+int mbedtls_ecjpake_check( const mbedtls_ecjpake_context *ctx )
+{
+    if( ctx->md_info == NULL ||
+        ctx->grp.id == MBEDTLS_ECP_DP_NONE ||
+        ctx->s.p == NULL )
+    {
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+    }
+
+    return( 0 );
+}
+
+/*
  * Write a point plus its length to a buffer
  */
 static int ecjpake_write_len_point( unsigned char **p,

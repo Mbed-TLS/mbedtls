@@ -5451,6 +5451,32 @@ void mbedtls_ssl_set_hs_authmode( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
+#if defined(MBEDTLS_ECJPAKE_C)
+/*
+ * Set EC J-PAKE password for current handshake
+ */
+int mbedtls_ssl_set_hs_ecjpake_password( mbedtls_ssl_context *ssl,
+                                         const unsigned char *pw,
+                                         size_t pw_len )
+{
+    mbedtls_ecjpake_role role;
+
+    if( ssl->handshake == NULL && ssl->conf == NULL )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
+        role = MBEDTLS_ECJPAKE_SERVER;
+    else
+        role = MBEDTLS_ECJPAKE_CLIENT;
+
+    return( mbedtls_ecjpake_setup( &ssl->handshake->ecjpake_ctx,
+                                   role,
+                                   MBEDTLS_MD_SHA256,
+                                   MBEDTLS_ECP_DP_SECP256R1,
+                                   pw, pw_len ) );
+}
+#endif /* MBEDTLS_ECJPAKE_C */
+
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
                 const unsigned char *psk, size_t psk_len,

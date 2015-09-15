@@ -1671,6 +1671,29 @@ void mbedtls_ssl_conf_sni( mbedtls_ssl_config *conf,
                   void *p_sni );
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
+#if defined(MBEDTLS_ECJPAKE_C)
+/**
+ * \brief          Set the EC J-PAKE password for current handshake.
+ *
+ * \note           An internal copy is made, and destroyed as soon as the
+ *                 handshake is completed, or when the SSL context is reset or
+ *                 freed.
+ *
+ * \note           The SSL context needs to be already set up. The right place
+ *                 to call this function is between \c mbedtls_ssl_setup() or
+ *                 \c mbedtls_ssl_reset() and \c mbedtls_ssl_handshake().
+ *
+ * \param ssl      SSL context
+ * \param pw       EC J-PAKE password (pre-shared secret)
+ * \param pw_len   length of pw in bytes
+ *
+ * \return         0 on success, or a negative error code.
+ */
+int mbedtls_ssl_set_hs_ecjpake_password( mbedtls_ssl_context *ssl,
+                                         const unsigned char *pw,
+                                         size_t pw_len );
+#endif /*MBEDTLS_ECJPAKE_C */
+
 #if defined(MBEDTLS_SSL_ALPN)
 /**
  * \brief          Set the supported Application Layer Protocols.

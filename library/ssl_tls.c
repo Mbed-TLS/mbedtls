@@ -3542,6 +3542,7 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
              * fact that the record header len is 13 instead.
              */
             if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
+                ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER &&
                 rec_epoch == 0 &&
                 ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE &&
                 ssl->in_left > 13 &&

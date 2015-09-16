@@ -2540,7 +2540,29 @@ run_test    "ECJPAKE: working, TLS" \
             -S "ciphersuite mismatch: ecjpake not configured" \
             -s "server hello, ecjpake kkpp extension" \
             -c "found ecjpake_kkpp extension" \
-            -S "None of the common ciphersuites is usable"
+            -S "None of the common ciphersuites is usable" \
+            -S "SSL - Verification of the message MAC failed"
+
+run_test    "ECJPAKE: password mismatch, TLS" \
+            "$P_SRV debug_level=3 ecjpake_pw=bla" \
+            "$P_CLI debug_level=3 ecjpake_pw=bad \
+             force_ciphersuite=TLS-ECJPAKE-WITH-AES-128-CCM-8" \
+            1 \
+            -s "SSL - Verification of the message MAC failed"
+
+run_test    "ECJPAKE: working, DTLS" \
+            "$P_SRV debug_level=3 dtls=1 ecjpake_pw=bla" \
+            "$P_CLI debug_level=3 dtls=1 ecjpake_pw=bla \
+             force_ciphersuite=TLS-ECJPAKE-WITH-AES-128-CCM-8" \
+            0 \
+            -S "SSL - Verification of the message MAC failed"
+
+run_test    "ECJPAKE: password mismatch, DTLS" \
+            "$P_SRV debug_level=3 dtls=1 ecjpake_pw=bla" \
+            "$P_CLI debug_level=3 dtls=1 ecjpake_pw=bad \
+             force_ciphersuite=TLS-ECJPAKE-WITH-AES-128-CCM-8" \
+            1 \
+            -s "SSL - Verification of the message MAC failed"
 
 # Tests for ciphersuites per version
 

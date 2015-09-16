@@ -90,6 +90,7 @@ int main( void )
 #define DFL_DHMLEN              -1
 #define DFL_RECONNECT           0
 #define DFL_RECO_DELAY          0
+#define DFL_RECONNECT_HARD      0
 #define DFL_TICKETS             MBEDTLS_SSL_SESSION_TICKETS_ENABLED
 #define DFL_ALPN_STRING         NULL
 #define DFL_TRANSPORT           MBEDTLS_SSL_TRANSPORT_STREAM
@@ -222,7 +223,7 @@ int main( void )
     "    debug_level=%%d      default: 0 (disabled)\n"      \
     "    nbio=%%d             default: 0 (blocking I/O)\n"  \
     "                        options: 1 (non-blocking), 2 (added delays)\n" \
-    "    read_timeout=%%d     default: 0 (no timeout)\n"    \
+    "    read_timeout=%%d     default: 0 ms (no timeout)\n"    \
     "    max_resend=%%d       default: 0 (no resend on timeout)\n" \
     "\n"                                                    \
     USAGE_DTLS                                              \
@@ -238,6 +239,7 @@ int main( void )
     "    exchanges=%%d        default: 1\n"                 \
     "    reconnect=%%d        default: 0 (disabled)\n"      \
     "    reco_delay=%%d       default: 0 seconds\n"         \
+    "    reconnect_hard=%%d   default: 0 (disabled)\n"      \
     USAGE_TICKETS                                           \
     USAGE_MAX_FRAG_LEN                                      \
     USAGE_TRUNC_HMAC                                        \
@@ -293,6 +295,7 @@ struct options
     int dhmlen;                 /* minimum DHM params len in bits           */
     int reconnect;              /* attempt to resume session                */
     int reco_delay;             /* delay in seconds before resuming session */
+    int reconnect_hard;         /* unexpectedly reconnect from the same port */
     int tickets;                /* enable / disable session tickets         */
     const char *alpn_string;    /* ALPN supported protocols                 */
     int transport;              /* TLS or DTLS?                             */
@@ -481,6 +484,7 @@ int main( int argc, char *argv[] )
     opt.dhmlen              = DFL_DHMLEN;
     opt.reconnect           = DFL_RECONNECT;
     opt.reco_delay          = DFL_RECO_DELAY;
+    opt.reconnect_hard      = DFL_RECONNECT_HARD;
     opt.tickets             = DFL_TICKETS;
     opt.alpn_string         = DFL_ALPN_STRING;
     opt.transport           = DFL_TRANSPORT;
@@ -601,6 +605,12 @@ int main( int argc, char *argv[] )
         {
             opt.reco_delay = atoi( q );
             if( opt.reco_delay < 0 )
+                goto usage;
+        }
+        else if( strcmp( p, "reconnect_hard" ) == 0 )
+        {
+            opt.reconnect_hard = atoi( q );
+            if( opt.reconnect_hard < 0 || opt.reconnect_hard > 1 )
                 goto usage;
         }
         else if( strcmp( p, "tickets" ) == 0 )
@@ -1479,7 +1489,38 @@ send_request:
     }
 
     /*
-     * 7b. Continue doing data exchanges?
+     * 7b. Simulate hard reset and reconnect from same port?
+     */
+    if( opt.reconnect_hard != 0 )
+    {
+        opt.reconnect_hard = 0;
+
+        mbedtls_printf( "  . Restarting connection from same port..." );
+        fflush( stdout );
+
+        if( ( ret = mbedtls_ssl_session_reset( &ssl ) ) != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_session_reset returned -0x%x\n\n", -ret );
+            goto exit;
+        }
+
+        while( ( ret = mbedtls_ssl_handshake( &ssl ) ) != 0 )
+        {
+            if( ret != MBEDTLS_ERR_SSL_WANT_READ &&
+                ret != MBEDTLS_ERR_SSL_WANT_WRITE )
+            {
+                mbedtls_printf( " failed\n  ! mbedtls_ssl_handshake returned -0x%x\n\n", -ret );
+                goto exit;
+            }
+        }
+
+        mbedtls_printf( " ok\n" );
+
+        goto send_request;
+    }
+
+    /*
+     * 7c. Continue doing data exchanges?
      */
     if( --opt.exchanges > 0 )
         goto send_request;
@@ -1489,6 +1530,7 @@ send_request:
      */
 close_notify:
     mbedtls_printf( "  . Closing the connection..." );
+    fflush( stdout );
 
     /* No error checking, the connection might be closed already */
     do ret = mbedtls_ssl_close_notify( &ssl );
@@ -1513,7 +1555,6 @@ reconnect:
 #endif
 
         mbedtls_printf( "  . Reconnecting with saved session..." );
-        fflush( stdout );
 
         if( ( ret = mbedtls_ssl_session_reset( &ssl ) ) != 0 )
         {

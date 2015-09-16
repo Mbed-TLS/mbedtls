@@ -2867,6 +2867,40 @@ run_test    "DTLS cookie: enabled, nbio" \
             -s "hello verification requested" \
             -S "SSL - The requested feature is not available"
 
+# Tests for client reconnecting from the same port with DTLS
+
+not_with_valgrind # spurious resend
+run_test    "DTLS client reconnect from same port: reference" \
+            "$P_SRV dtls=1 exchanges=2 read_timeout=1000" \
+            "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-1000" \
+            0 \
+            -C "resend" \
+            -S "The operation timed out" \
+            -S "Client initiated reconnection from same port"
+
+not_with_valgrind # spurious resend
+run_test    "DTLS client reconnect from same port: reconnect" \
+            "$P_SRV dtls=1 exchanges=2 read_timeout=1000" \
+            "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-1000 reconnect_hard=1" \
+            0 \
+            -C "resend" \
+            -S "The operation timed out" \
+            -s "Client initiated reconnection from same port"
+
+run_test    "DTLS client reconnect from same port: reconnect, nbio" \
+            "$P_SRV dtls=1 exchanges=2 read_timeout=1000 nbio=2" \
+            "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-1000 reconnect_hard=1" \
+            0 \
+            -S "The operation timed out" \
+            -s "Client initiated reconnection from same port"
+
+run_test    "DTLS client reconnect from same port: no cookies" \
+            "$P_SRV dtls=1 exchanges=2 read_timeout=1000 cookies=0" \
+            "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-8000 reconnect_hard=1" \
+            0 \
+            -s "The operation timed out" \
+            -S "Client initiated reconnection from same port"
+
 # Tests for various cases of client authentication with DTLS
 # (focused on handshake flows and message parsing)
 

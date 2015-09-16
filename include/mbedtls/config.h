@@ -1135,6 +1135,22 @@
 #define MBEDTLS_SSL_DTLS_HELLO_VERIFY
 
 /**
+ * \def MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE
+ *
+ * Enable server-side support for clients that reconnect from the same port.
+ *
+ * Some clients unexpectedly close the connection and try to reconnect using the
+ * same source port. This needs special support from the server to handle the
+ * new connection securely, as described in section 4.2.8 of RFC 6347. This
+ * flag enables that support.
+ *
+ * Requires: MBEDTLS_SSL_DTLS_HELLO_VERIFY
+ *
+ * Comment this to disable support for clients reusing the source port.
+ */
+#define MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE
+
+/**
  * \def MBEDTLS_SSL_DTLS_BADMAC_LIMIT
  *
  * Enable support for a limit of records with bad MAC.

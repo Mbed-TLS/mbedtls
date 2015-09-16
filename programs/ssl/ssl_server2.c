@@ -301,7 +301,7 @@ int main( void )
     "    debug_level=%%d      default: 0 (disabled)\n"      \
     "    nbio=%%d             default: 0 (blocking I/O)\n"  \
     "                        options: 1 (non-blocking), 2 (added delays)\n" \
-    "    read_timeout=%%d     default: 0 (no timeout)\n"    \
+    "    read_timeout=%%d     default: 0 ms (no timeout)\n"    \
     "\n"                                                    \
     USAGE_DTLS                                              \
     USAGE_COOKIES                                           \
@@ -1838,6 +1838,12 @@ reset:
     }
 #endif
 
+    if( ret == MBEDTLS_ERR_SSL_CLIENT_RECONNECT )
+    {
+        mbedtls_printf( "  ! Client initiated reconnection from same port\n" );
+        goto handshake;
+    }
+
 #ifdef MBEDTLS_ERROR_C
     if( ret != 0 )
     {
@@ -1903,6 +1909,7 @@ reset:
     /*
      * 4. Handshake
      */
+handshake:
     mbedtls_printf( "  . Performing the SSL/TLS handshake..." );
     fflush( stdout );
 

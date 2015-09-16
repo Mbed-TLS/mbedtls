@@ -1676,7 +1676,7 @@ void mbedtls_ssl_conf_sni( mbedtls_ssl_config *conf,
                   void *p_sni );
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
-#if defined(MBEDTLS_ECJPAKE_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 /**
  * \brief          Set the EC J-PAKE password for current handshake.
  *
@@ -1697,7 +1697,7 @@ void mbedtls_ssl_conf_sni( mbedtls_ssl_config *conf,
 int mbedtls_ssl_set_hs_ecjpake_password( mbedtls_ssl_context *ssl,
                                          const unsigned char *pw,
                                          size_t pw_len );
-#endif /*MBEDTLS_ECJPAKE_C */
+#endif /*MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_SSL_ALPN)
 /**

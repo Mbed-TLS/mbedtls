@@ -2511,6 +2511,7 @@ run_test    "ECJPAKE: client not configured" \
             -S "skip ecjpake kkpp extension" \
             -S "ciphersuite mismatch: ecjpake not configured" \
             -S "server hello, ecjpake kkpp extension" \
+            -C "found ecjpake_kkpp extension" \
             -S "None of the common ciphersuites is usable"
 
 run_test    "ECJPAKE: server not configured" \
@@ -2524,6 +2525,7 @@ run_test    "ECJPAKE: server not configured" \
             -s "skip ecjpake kkpp extension" \
             -s "ciphersuite mismatch: ecjpake not configured" \
             -S "server hello, ecjpake kkpp extension" \
+            -C "found ecjpake_kkpp extension" \
             -s "None of the common ciphersuites is usable"
 
 run_test    "ECJPAKE: working, TLS" \
@@ -2537,6 +2539,7 @@ run_test    "ECJPAKE: working, TLS" \
             -S "skip ecjpake kkpp extension" \
             -S "ciphersuite mismatch: ecjpake not configured" \
             -s "server hello, ecjpake kkpp extension" \
+            -c "found ecjpake_kkpp extension" \
             -S "None of the common ciphersuites is usable"
 
 # Tests for ciphersuites per version

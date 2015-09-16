@@ -1076,6 +1076,31 @@ static int ssl_parse_supported_point_formats_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C */
 
+#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+static int ssl_parse_ecjpake_kkpp( mbedtls_ssl_context *ssl,
+                                   const unsigned char *buf,
+                                   size_t len )
+{
+    int ret;
+
+    if( ssl->transform_negotiate->ciphersuite_info->key_exchange !=
+        MBEDTLS_KEY_EXCHANGE_ECJPAKE )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "skip ecjpake kkpp extension" ) );
+        return( 0 );
+    }
+
+    if( ( ret = mbedtls_ecjpake_read_round_one( &ssl->handshake->ecjpake_ctx,
+                                                buf, len ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecjpake_read_round_one", ret );
+        return( ret );
+    }
+
+    return( 0 );
+}
+#endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
+
 #if defined(MBEDTLS_SSL_ALPN)
 static int ssl_parse_alpn_ext( mbedtls_ssl_context *ssl,
                                const unsigned char *buf, size_t len )
@@ -1576,6 +1601,19 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 
             break;
 #endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C */
+
+#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+        case MBEDTLS_TLS_EXT_ECJPAKE_KKPP:
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "found ecjpake_kkpp extension" ) );
+
+            if( ( ret = ssl_parse_ecjpake_kkpp( ssl,
+                            ext + 4, ext_size ) ) != 0 )
+            {
+                return( ret );
+            }
+
+            break;
+#endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_SSL_ALPN)
         case MBEDTLS_TLS_EXT_ALPN:

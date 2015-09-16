@@ -150,6 +150,7 @@
  * of state of the renegotiation flag, so no indicator is required)
  */
 #define MBEDTLS_TLS_EXT_SUPPORTED_POINT_FORMATS_PRESENT (1 << 0)
+#define MBEDTLS_TLS_EXT_ECJPAKE_KKPP_OK                 (1 << 1)
 
 #ifdef __cplusplus
 extern "C" {

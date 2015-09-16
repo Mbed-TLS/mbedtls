@@ -2507,6 +2507,8 @@ run_test    "ECJPAKE: client not configured" \
             0 \
             -C "add ciphersuite: c0ff" \
             -C "adding ecjpake_kkpp extension" \
+            -S "found ecjpake kkpp extension" \
+            -S "skip ecjpake kkpp extension" \
             -S "ciphersuite mismatch: ecjpake not configured" \
             -S "None of the common ciphersuites is usable"
 
@@ -2517,8 +2519,22 @@ run_test    "ECJPAKE: server not configured" \
             1 \
             -c "add ciphersuite: c0ff" \
             -c "adding ecjpake_kkpp extension" \
+            -s "found ecjpake kkpp extension" \
+            -s "skip ecjpake kkpp extension" \
             -s "ciphersuite mismatch: ecjpake not configured" \
             -s "None of the common ciphersuites is usable"
+
+run_test    "ECJPAKE: working, TLS" \
+            "$P_SRV debug_level=3 ecjpake_pw=bla" \
+            "$P_CLI debug_level=3 ecjpake_pw=bla \
+             force_ciphersuite=TLS-ECJPAKE-WITH-AES-128-CCM-8" \
+            1 \
+            -c "add ciphersuite: c0ff" \
+            -c "adding ecjpake_kkpp extension" \
+            -s "found ecjpake kkpp extension" \
+            -S "skip ecjpake kkpp extension" \
+            -S "ciphersuite mismatch: ecjpake not configured" \
+            -S "None of the common ciphersuites is usable"
 
 # Tests for ciphersuites per version
 

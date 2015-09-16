@@ -318,6 +318,33 @@ static int ssl_parse_supported_point_formats( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C */
 
+#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+static int ssl_parse_ecjpake_kkpp( mbedtls_ssl_context *ssl,
+                                   const unsigned char *buf,
+                                   size_t len )
+{
+    int ret;
+
+    if( mbedtls_ecjpake_check( &ssl->handshake->ecjpake_ctx ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "skip ecjpake kkpp extension" ) );
+        return( 0 );
+    }
+
+    if( ( ret = mbedtls_ecjpake_read_round_one( &ssl->handshake->ecjpake_ctx,
+                                                buf, len ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecjpake_read_round_one", ret );
+        return( ret );
+    }
+
+    /* Only mark the extension as OK when we're sure it is */
+    ssl->handshake->cli_exts |= MBEDTLS_TLS_EXT_ECJPAKE_KKPP_OK;
+
+    return( 0 );
+}
+#endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
+
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 static int ssl_parse_max_fragment_length_ext( mbedtls_ssl_context *ssl,
                                               const unsigned char *buf,
@@ -709,10 +736,10 @@ static int ssl_ciphersuite_match( mbedtls_ssl_context *ssl, int suite_id,
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if( suite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE &&
-        mbedtls_ecjpake_check( &ssl->handshake->ecjpake_ctx ) != 0 )
+        ( ssl->handshake->cli_exts & MBEDTLS_TLS_EXT_ECJPAKE_KKPP_OK ) == 0 )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: "
-                                    "ecjpake not configured" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: ecjpake "
+                                    "not configured or ext missing" ) );
         return( 0 );
     }
 #endif
@@ -1570,6 +1597,16 @@ read_record_header:
                 return( ret );
             break;
 #endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C */
+
+#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+        case MBEDTLS_TLS_EXT_ECJPAKE_KKPP:
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "found ecjpake kkpp extension" ) );
+
+            ret = ssl_parse_ecjpake_kkpp( ssl, ext + 4, ext_size );
+            if( ret != 0 )
+                return( ret );
+            break;
+#endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
         case MBEDTLS_TLS_EXT_MAX_FRAGMENT_LENGTH:

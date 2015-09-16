@@ -4,7 +4,9 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 Bugfix
    * Fix warning when using a 64bit platform. (found by embedthis) (#275)
-   
+   * Fix off-by-one error in parsing Supported Point Format extension that
+     caused some handshakes to fail.
+
 Changes
    * Made X509 profile pointer const in mbedtls_ssl_conf_cert_profile() to allow
      use of mbedtls_x509_crt_profile_next. (found by NWilson)

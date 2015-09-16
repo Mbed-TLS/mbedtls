@@ -729,8 +729,8 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
             continue;
 #endif
 
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, add ciphersuite: %2d",
-                       ciphersuites[i] ) );
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, add ciphersuite: %04x",
+                                    ciphersuites[i] ) );
 
         n++;
         *p++ = (unsigned char)( ciphersuites[i] >> 8 );
@@ -1424,7 +1424,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "%s session has been resumed",
                    ssl->handshake->resume ? "a" : "no" ) );
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: %d", i ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: %04x", i ) );
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, compress alg.: %d", buf[37 + n] ) );
 
     suite_info = mbedtls_ssl_ciphersuite_from_id( ssl->session_negotiate->ciphersuite );
@@ -1438,6 +1438,8 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: %s", suite_info->name ) );
 
     i = 0;
     while( 1 )

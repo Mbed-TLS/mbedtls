@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.1.1 released 2015-09-??
+= mbed TLS 2.1.1 released 2015-09-16
 
 Security
    * Add countermeasure against Lenstra's RSA-CRT attack for PKCS#1 v1.5
@@ -9,6 +9,22 @@ Security
    * Fix possible client-side NULL pointer dereference (read) when the client
      tries to continue the handshake after it failed (a misuse of the API).
      (Found by GDS Labs using afl-fuzz, patch provided by GDS Labs.)
+
+Bugfix
+   * Fix warning when using a 64bit platform. (found by embedthis) (#275)
+   * Fix off-by-one error in parsing Supported Point Format extension that
+     caused some handshakes to fail.
+
+Changes
+   * Made X509 profile pointer const in mbedtls_ssl_conf_cert_profile() to allow
+     use of mbedtls_x509_crt_profile_next. (found by NWilson)
+   * When a client initiates a reconnect from the same port as a live
+     connection, if cookie verification is available
+     (MBEDTLS_SSL_DTLS_HELLO_VERIFY defined in config.h, and usable cookie
+     callbacks set with mbedtls_ssl_conf_dtls_cookies()), this will be
+     detected and mbedtls_ssl_read() will return
+     MBEDTLS_ERR_SSL_CLIENT_RECONNECT - it is then possible to start a new
+     handshake with the same context. (See RFC 6347 section 4.2.8.)
 
 = mbed TLS 2.1.0 released 2015-09-04
 

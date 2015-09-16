@@ -707,6 +707,17 @@ static int ssl_ciphersuite_match( mbedtls_ssl_context *ssl, int suite_id,
     }
 #endif
 
+#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+    if( suite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE &&
+        mbedtls_ecjpake_check( &ssl->handshake->ecjpake_ctx ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: "
+                                    "ecjpake not configured" ) );
+        return( 0 );
+    }
+#endif
+
+
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C)
     if( mbedtls_ssl_ciphersuite_uses_ec( suite_info ) &&
         ( ssl->handshake->curves == NULL ||

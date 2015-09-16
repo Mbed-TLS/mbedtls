@@ -23,6 +23,8 @@ Bugfix
    * Fix memory corruption on client with overlong PSK identity, around
      SSL_MAX_CONTENT_LEN or higher - not triggerrable remotely (found by
      Aleksandrs Saveljevs) (#238)
+   * Fix off-by-one error in parsing Supported Point Format extension that
+     caused some handshakes to fail.
 
 Changes
    * When verifying a certificate chain, if an intermediate certificate is

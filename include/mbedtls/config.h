@@ -699,7 +699,9 @@
  *
  * Enable the ECJPAKE based ciphersuite modes in SSL / TLS.
  *
- * \warning Those are currently experimental.
+ * \warning This is currently experimental. EC J-PAKE support is based on the
+ * Thread v1.0.0 specification; incompatible changes to the specification
+ * might still happen. For this reason, this is disabled by default.
  *
  * Requires: MBEDTLS_ECJPAKE_C
  *           MBEDTLS_SHA256_C
@@ -1691,6 +1693,10 @@
  * \def MBEDTLS_ECJPAKE_C
  *
  * Enable the elliptic curve J-PAKE library.
+ *
+ * \warning This is currently experimental. EC J-PAKE support is based on the
+ * Thread v1.0.0 specification; incompatible changes to the specification
+ * might still happen. For this reason, this is disabled by default.
  *
  * Module:  library/ecjpake.c
  * Caller:

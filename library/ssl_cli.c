@@ -1771,6 +1771,12 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
 
     ssl->handshake->pmslen = 48;
 
+    if( ssl->session_negotiate->peer_cert == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "certificate required" ) );
+        return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
+    }
+
     /*
      * Now write it out, encrypted
      */
@@ -1872,6 +1878,12 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
 {
     int ret;
     const mbedtls_ecp_keypair *peer_key;
+
+    if( ssl->session_negotiate->peer_cert == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "certificate required" ) );
+        return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
+    }
 
     if( ! mbedtls_pk_can_do( &ssl->session_negotiate->peer_cert->pk,
                      MBEDTLS_PK_ECKEY ) )
@@ -2181,6 +2193,12 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
 
         MBEDTLS_SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen != 0 ? hashlen :
             (unsigned int) ( mbedtls_md_get_size( mbedtls_md_info_from_type( md_alg ) ) ) );
+
+        if( ssl->session_negotiate->peer_cert == NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "certificate required" ) );
+            return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
+        }
 
         /*
          * Verify signature

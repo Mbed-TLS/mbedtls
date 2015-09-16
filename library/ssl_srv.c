@@ -299,7 +299,7 @@ static int ssl_parse_supported_point_formats( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
 
-    p = buf + 2;
+    p = buf + 1;
     while( list_size > 0 )
     {
         if( p[0] == MBEDTLS_ECP_PF_UNCOMPRESSED ||

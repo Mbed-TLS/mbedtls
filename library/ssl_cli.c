@@ -693,6 +693,12 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
     }
 
+    if( ssl->session_negotiate->peer_cert == NULL )
+    {
+        SSL_DEBUG_MSG( 2, ( "certificate required" ) );
+        return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
+    }
+
     SSL_DEBUG_BUF( 3,   "server key exchange", ssl->in_msg + 4, ssl->in_hslen - 4 );
 
     /*
@@ -1119,6 +1125,12 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
         /*
          * RSA key exchange -- send rsa_public(pkcs1 v1.5(premaster))
          */
+        if( ssl->session_negotiate->peer_cert == NULL )
+        {
+            SSL_DEBUG_MSG( 2, ( "certificate required" ) );
+            return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
+        }
+
         ssl->handshake->premaster[0] = (unsigned char) ssl->max_major_ver;
         ssl->handshake->premaster[1] = (unsigned char) ssl->max_minor_ver;
         ssl->handshake->pmslen = 48;

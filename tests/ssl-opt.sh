@@ -2535,6 +2535,7 @@ run_test    "ECJPAKE: working, TLS" \
             0 \
             -c "add ciphersuite: c0ff" \
             -c "adding ecjpake_kkpp extension" \
+            -C "re-using cached ecjpake parameters" \
             -s "found ecjpake kkpp extension" \
             -S "skip ecjpake kkpp extension" \
             -S "ciphersuite mismatch: ecjpake not configured" \
@@ -2548,6 +2549,7 @@ run_test    "ECJPAKE: password mismatch, TLS" \
             "$P_CLI debug_level=3 ecjpake_pw=bad \
              force_ciphersuite=TLS-ECJPAKE-WITH-AES-128-CCM-8" \
             1 \
+            -C "re-using cached ecjpake parameters" \
             -s "SSL - Verification of the message MAC failed"
 
 run_test    "ECJPAKE: working, DTLS" \
@@ -2555,6 +2557,15 @@ run_test    "ECJPAKE: working, DTLS" \
             "$P_CLI debug_level=3 dtls=1 ecjpake_pw=bla \
              force_ciphersuite=TLS-ECJPAKE-WITH-AES-128-CCM-8" \
             0 \
+            -c "re-using cached ecjpake parameters" \
+            -S "SSL - Verification of the message MAC failed"
+
+run_test    "ECJPAKE: working, DTLS, no cookie" \
+            "$P_SRV debug_level=3 dtls=1 ecjpake_pw=bla cookies=0" \
+            "$P_CLI debug_level=3 dtls=1 ecjpake_pw=bla \
+             force_ciphersuite=TLS-ECJPAKE-WITH-AES-128-CCM-8" \
+            0 \
+            -C "re-using cached ecjpake parameters" \
             -S "SSL - Verification of the message MAC failed"
 
 run_test    "ECJPAKE: password mismatch, DTLS" \
@@ -2562,6 +2573,7 @@ run_test    "ECJPAKE: password mismatch, DTLS" \
             "$P_CLI debug_level=3 dtls=1 ecjpake_pw=bad \
              force_ciphersuite=TLS-ECJPAKE-WITH-AES-128-CCM-8" \
             1 \
+            -c "re-using cached ecjpake parameters" \
             -s "SSL - Verification of the message MAC failed"
 
 # Tests for ciphersuites per version

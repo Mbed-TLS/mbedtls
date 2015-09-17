@@ -307,12 +307,47 @@ static void ssl_write_ecjpake_kkpp_ext( mbedtls_ssl_context *ssl,
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_ECJPAKE_KKPP >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_ECJPAKE_KKPP      ) & 0xFF );
 
-    if( ( ret = mbedtls_ecjpake_write_round_one( &ssl->handshake->ecjpake_ctx,
-                    p + 2, end - p - 2, &kkpp_len,
-                    ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+    /*
+     * We may need to send ClientHello multiple times for Hello verification.
+     * We don't want to compute fresh values every time (both for performance
+     * and consistency reasons), so cache the extension content.
+     */
+    if( ssl->handshake->ecjpake_cache == NULL ||
+        ssl->handshake->ecjpake_cache_len == 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1 , "mbedtls_ecjpake_write_round_one", ret );
-        return;
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "generating new ecjpake parameters" ) );
+
+        if( ( ret = mbedtls_ecjpake_write_round_one( &ssl->handshake->ecjpake_ctx,
+                        p + 2, end - p - 2, &kkpp_len,
+                        ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1 , "mbedtls_ecjpake_write_round_one", ret );
+            return;
+        }
+
+        ssl->handshake->ecjpake_cache = mbedtls_calloc( 1, kkpp_len );
+        if( ssl->handshake->ecjpake_cache == NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "allocation failed" ) );
+            return;
+        }
+
+        memcpy( ssl->handshake->ecjpake_cache, p + 2, kkpp_len );
+        ssl->handshake->ecjpake_cache_len = kkpp_len;
+    }
+    else
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "re-using cached ecjpake parameters" ) );
+
+        kkpp_len = ssl->handshake->ecjpake_cache_len;
+
+        if( (size_t)( end - p - 2 ) < kkpp_len )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
+            return;
+        }
+
+        memcpy( p + 2, ssl->handshake->ecjpake_cache, kkpp_len );
     }
 
     *p++ = (unsigned char)( ( kkpp_len >> 8 ) & 0xFF );
@@ -1089,6 +1124,11 @@ static int ssl_parse_ecjpake_kkpp( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "skip ecjpake kkpp extension" ) );
         return( 0 );
     }
+
+    /* If we got here, we no longer need our cached extension */
+    mbedtls_free( ssl->handshake->ecjpake_cache );
+    ssl->handshake->ecjpake_cache = NULL;
+    ssl->handshake->ecjpake_cache_len = 0;
 
     if( ( ret = mbedtls_ecjpake_read_round_one( &ssl->handshake->ecjpake_ctx,
                                                 buf, len ) ) != 0 )

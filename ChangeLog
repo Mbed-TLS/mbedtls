@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.1.1 released 2015-09-16
+= mbed TLS 2.1.1 released 2015-09-17
 
 Security
    * Add countermeasure against Lenstra's RSA-CRT attack for PKCS#1 v1.5

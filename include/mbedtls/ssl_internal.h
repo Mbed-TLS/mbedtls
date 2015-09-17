@@ -175,6 +175,10 @@ struct mbedtls_ssl_handshake_params
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     mbedtls_ecjpake_context ecjpake_ctx;        /*!< EC J-PAKE key exchange */
+#if defined(MBEDTLS_SSL_CLI_C)
+    unsigned char *ecjpake_cache;               /*!< Cache for ClientHello ext */
+    size_t ecjpake_cache_len;                   /*!< Length of cached data */
+#endif
 #endif
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)

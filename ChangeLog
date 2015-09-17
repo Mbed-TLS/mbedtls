@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Version 1.2.16 released 2015-??-??
+= Version 1.2.16 released 2015-09-17
 
 Security
    * Fix possible client-side NULL pointer dereference (read) when the client

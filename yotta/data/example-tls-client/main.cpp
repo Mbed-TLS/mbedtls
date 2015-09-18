@@ -513,7 +513,7 @@ void app_start(int, char*[]) {
 
     printf("Client IP Address is %s\r\n", eth.getIPAddress());
 
-    mbed::FunctionPointer1<void, const char*> fp(hello, &HelloHTTPS::startTest);
+    mbed::util::FunctionPointer1<void, const char*> fp(hello, &HelloHTTPS::startTest);
     minar::Scheduler::postCallback(fp.bind(HTTPS_PATH));
 }
 

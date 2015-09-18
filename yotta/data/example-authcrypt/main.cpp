@@ -187,7 +187,7 @@ static void run() {
 }
 
 void app_start(int, char*[]) {
-    minar::Scheduler::postCallback(FunctionPointer0<void>(run).bind());
+    minar::Scheduler::postCallback(mbed::util::FunctionPointer0<void>(run).bind());
 }
 
 #else

@@ -29,12 +29,20 @@
 
 #if defined(TARGET_LIKE_CORTEX_M4)
 
+#if defined(TARGET_K64F)
 #include "MK64F12.h"
+#elif defined(TARGET_STM32F4)
+#warning "NO TRUE ENTROPY SOURCE FOR STM32F4"
+#include "stm32f429xx.h"
+#else
+#error "TRUE ENTROPY SOURCE REQUIRED. NONE DEFINED FOR THIS TARGET."
+#endif
 #include "core_cm4.h"
 #include <string.h>
 
 unsigned long hardclock( void )
 {
+#if !defined(TARGET_STM32F4)
     static int dwt_started = 0;
 
     if( dwt_started == 0 )
@@ -42,13 +50,14 @@ unsigned long hardclock( void )
         CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
         DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
     }
-
+#endif
     return( DWT->CYCCNT );
 }
 
 int mbedtls_hardware_poll( void *data,
                     unsigned char *output, size_t len, size_t *olen )
 {
+#if !defined(TARGET_STM32F4)
     unsigned long timer = hardclock();
     ((void) data);
     *olen = 0;
@@ -58,7 +67,7 @@ int mbedtls_hardware_poll( void *data,
 
     memcpy( output, &timer, sizeof(unsigned long) );
     *olen = sizeof(unsigned long);
-
+#endif
     return( 0 );
 }
 

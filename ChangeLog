@@ -5,7 +5,8 @@ PolarSSL ChangeLog
 Security
    * Fix possible client-side NULL pointer dereference (read) when the client
      tries to continue the handshake after it failed (a misuse of the API).
-     (Found by GDS Labs using afl-fuzz.)
+     (Found and patch provided by Fabian Foerg, Gotham Digital Science using
+     afl-fuzz.)
    * Add countermeasure against Lenstra's RSA-CRT attack for PKCS#1 v1.5
      signatures. (Found by Florian Weimer, Red Hat.)
      https://securityblog.redhat.com/2015/09/02/factoring-rsa-keys-with-tls-perfect-forward-secrecy/

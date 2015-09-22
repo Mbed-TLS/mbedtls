@@ -1,5 +1,5 @@
 /*
- *  Minimal configuration for TLS 1.2 with ECDHE-PSK and AES ciphersuites
+ *  Minimal configuration for TLS 1.2 with ECDHE-PSK and AES-CBC ciphersuites
  *
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
@@ -19,12 +19,14 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 /*
- * Minimal configuration for TLS 1.2 with PSK and AES-CCM ciphersuites
+ * Minimal configuration for TLS 1.2 with ECDHE-PSK and AES-CBC ciphersuites
  * Distinguishing features:
- * - no bignum, no PK, no X509
+ * - no PK, no X509
  * - fully modern and secure (provided the pre-shared keys have high entropy)
- * - very low record overhead with CCM-8
+ * - Perfect forward secrecy
  * - optimized for low RAM usage
+ * - NIST P-256 and NIST P-384 curves
+ * - SHA-2 only
  *
  * See README.txt for usage instructions.
  */
@@ -76,7 +78,7 @@
 #define MBEDTLS_ENTROPY_MAX_SOURCES 2
 
 /*
- * Use only CCM_8 ciphersuites, and
+ * Use only AES-CBC ciphersuites with SHA-2, and
  * save ROM and a few bytes of RAM by specifying our own ciphersuite list
  */
 #define MBEDTLS_SSL_CIPHERSUITES                        \

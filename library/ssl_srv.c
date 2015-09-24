@@ -2062,7 +2062,7 @@ static void ssl_write_ecjpake_kkpp_ext( mbedtls_ssl_context *ssl,
 {
     int ret;
     unsigned char *p = buf;
-    const unsigned char *end = ssl->out_buf + MBEDTLS_SSL_MAX_CONTENT_LEN;
+    const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN;
     size_t kkpp_len;
 
     *olen = 0;
@@ -2679,7 +2679,7 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
     {
         size_t jlen;
-        const unsigned char *end = ssl->out_buf + MBEDTLS_SSL_MAX_CONTENT_LEN;
+        const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN;
 
         ret = mbedtls_ecjpake_write_round_two( &ssl->handshake->ecjpake_ctx,
                 p, end - p, &jlen, ssl->conf->f_rng, ssl->conf->p_rng );

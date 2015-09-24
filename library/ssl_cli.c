@@ -287,7 +287,7 @@ static void ssl_write_ecjpake_kkpp_ext( mbedtls_ssl_context *ssl,
 {
     int ret;
     unsigned char *p = buf;
-    const unsigned char *end = ssl->out_buf + MBEDTLS_SSL_MAX_CONTENT_LEN;
+    const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN;
     size_t kkpp_len;
 
     *olen = 0;

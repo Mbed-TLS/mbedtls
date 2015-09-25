@@ -54,7 +54,7 @@ typedef struct {
 } mbedtls_pkcs11_context;
 
 /**
- * Initialize a mbetls_pkcs11_context.
+ * Initialize a mbedtls_pkcs11_context.
  * (Just making memory references valid.)
  */
 void mbedtls_pkcs11_init( mbedtls_pkcs11_context *ctx );

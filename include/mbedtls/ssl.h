@@ -840,7 +840,7 @@ int mbedtls_ssl_get_ciphersuite_id( const char *ciphersuite_name );
 
 /**
  * \brief          Initialize an SSL context
- *                 Just makes the context ready for mbetls_ssl_setup() or
+ *                 Just makes the context ready for mbedtls_ssl_setup() or
  *                 mbedtls_ssl_free()
  *
  * \param ssl      SSL context

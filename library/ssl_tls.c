@@ -5833,6 +5833,9 @@ int mbedtls_ssl_set_hostname( mbedtls_ssl_context *ssl, const char *hostname )
     if( hostname_len + 1 == 0 )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
+    if( hostname_len > MBEDTLS_SSL_MAX_HOST_NAME )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
     ssl->hostname = mbedtls_calloc( 1, hostname_len + 1 );
 
     if( ssl->hostname == NULL )

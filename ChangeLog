@@ -1,12 +1,16 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-
 = mbed TLS 1.3.14 reladsed 2015-10-??
 
 Security
    * Fix stack buffer overflow in pkcs12 decryption (used by
      mbedtls_pk_parse_key(file)() when the password is > 129 bytes.
      Found by Guido Vranken. Not triggerable remotely.
+   * Fix potential buffer overflow in mbedtls_mpi_read_string().
+     Found by Guido Vranken. Not exploitable remotely in the context of TLS,
+     but might be in other uses. On 32 bit machines, requires reading a string
+     of close to or larger than 1GB to exploit; on 64 bit machines, would require
+     reading a string of close to or larger than 2^62 bytes.
 
 = mbed TLS 1.3.13 reladsed 2015-09-17
 

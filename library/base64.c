@@ -190,7 +190,10 @@ int base64_decode( unsigned char *dst, size_t *dlen,
     }
 
     if( n == 0 )
+    {
+        *dlen = 0;
         return( 0 );
+    }
 
     n = ( ( n * 6 ) + 7 ) >> 3;
     n -= j;

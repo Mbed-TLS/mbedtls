@@ -87,6 +87,8 @@ static int pkcs12_parse_pbe_params( asn1_buf *params,
     return( 0 );
 }
 
+#define PKCS12_MAX_PWDLEN 128
+
 static int pkcs12_pbe_derive_key_iv( asn1_buf *pbe_params, md_type_t md_type,
                                      const unsigned char *pwd,  size_t pwdlen,
                                      unsigned char *key, size_t keylen,
@@ -95,7 +97,10 @@ static int pkcs12_pbe_derive_key_iv( asn1_buf *pbe_params, md_type_t md_type,
     int ret, iterations;
     asn1_buf salt;
     size_t i;
-    unsigned char unipwd[258];
+    unsigned char unipwd[PKCS12_MAX_PWDLEN * 2 + 2];
+
+    if( pwdlen > PKCS12_MAX_PWDLEN )
+        return( POLARSSL_ERR_PKCS12_BAD_INPUT_DATA );
 
     memset( &salt, 0, sizeof(asn1_buf) );
     memset( &unipwd, 0, sizeof(unipwd) );
@@ -125,6 +130,8 @@ static int pkcs12_pbe_derive_key_iv( asn1_buf *pbe_params, md_type_t md_type,
     }
     return( 0 );
 }
+
+#undef PKCS12_MAX_PWDLEN
 
 int pkcs12_pbe_sha1_rc4_128( asn1_buf *pbe_params, int mode,
                              const unsigned char *pwd,  size_t pwdlen,

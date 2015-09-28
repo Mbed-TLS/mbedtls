@@ -1,5 +1,13 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+
+= mbed TLS 1.3.14 reladsed 2015-10-??
+
+Security
+   * Fix stack buffer overflow in pkcs12 decryption (used by
+     mbedtls_pk_parse_key(file)() when the password is > 129 bytes.
+     Found by Guido Vranken. Not triggerable remotely.
+
 = mbed TLS 1.3.13 reladsed 2015-09-17
 
 Security

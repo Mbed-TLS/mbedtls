@@ -73,12 +73,11 @@ static void ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
 
     hostname_len = strlen( ssl->hostname );
 
-    if( (size_t)(end - p) < hostname_len + 9 )
+    if( end < p || (size_t)( end - p ) < hostname_len + 9 )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small for hostname" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
         return;
     }
-
 
     /*
      * struct {
@@ -132,7 +131,7 @@ static void ssl_write_renegotiation_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding renegotiation extension" ) );
 
-    if( (size_t)(end - p) < 5 + ssl->verify_data_len )
+    if( end < p || (size_t)( end - p ) < 5 + ssl->verify_data_len )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
         return;
@@ -188,7 +187,7 @@ static void ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
 #endif
     }
 
-    if( (size_t)(end - p) < sig_alg_len + 6 )
+    if( end < p || (size_t)( end - p ) < sig_alg_len + 6 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
         return;
@@ -273,7 +272,7 @@ static void ssl_write_supported_elliptic_curves_ext( mbedtls_ssl_context *ssl,
         elliptic_curve_len += 2;
     }
 
-    if( (size_t)(end - p) < 6 + elliptic_curve_len )
+    if( end < p || (size_t)( end - p ) < 6 + elliptic_curve_len )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
         return;
@@ -320,7 +319,7 @@ static void ssl_write_supported_point_formats_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding supported_point_formats extension" ) );
 
-    if( (size_t)(end - p) < 6 )
+    if( end < p || (size_t)( end - p ) < 6 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
         return;
@@ -347,14 +346,15 @@ static void ssl_write_max_fragment_length_ext( mbedtls_ssl_context *ssl,
     unsigned char *p = buf;
     const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN;
 
+    *olen = 0;
+
     if( ssl->conf->mfl_code == MBEDTLS_SSL_MAX_FRAG_LEN_NONE ) {
-        *olen = 0;
         return;
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding max_fragment_length extension" ) );
 
-    if( (size_t)(end - p) < 5 )
+    if( end < p || (size_t)( end - p ) < 5 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
         return;
@@ -379,15 +379,16 @@ static void ssl_write_truncated_hmac_ext( mbedtls_ssl_context *ssl,
     unsigned char *p = buf;
     const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN;
 
+    *olen = 0;
+
     if( ssl->conf->trunc_hmac == MBEDTLS_SSL_TRUNC_HMAC_DISABLED )
     {
-        *olen = 0;
         return;
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding truncated_hmac extension" ) );
 
-    if( (size_t)(end - p) < 4 )
+    if( end < p || (size_t)( end - p ) < 4 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
         return;
@@ -410,17 +411,18 @@ static void ssl_write_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,
     unsigned char *p = buf;
     const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN;
 
+    *olen = 0;
+
     if( ssl->conf->encrypt_then_mac == MBEDTLS_SSL_ETM_DISABLED ||
         ssl->conf->max_minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
     {
-        *olen = 0;
         return;
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding encrypt_then_mac "
                         "extension" ) );
 
-    if( (size_t)(end - p) < 4 )
+    if( end < p || (size_t)( end - p ) < 4 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
         return;
@@ -443,17 +445,18 @@ static void ssl_write_extended_ms_ext( mbedtls_ssl_context *ssl,
     unsigned char *p = buf;
     const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN;
 
+    *olen = 0;
+
     if( ssl->conf->extended_ms == MBEDTLS_SSL_EXTENDED_MS_DISABLED ||
         ssl->conf->max_minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
     {
-        *olen = 0;
         return;
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding extended_master_secret "
                         "extension" ) );
 
-    if( (size_t)(end - p) < 4 )
+    if( end < p || (size_t)( end - p ) < 4 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
         return;
@@ -477,15 +480,16 @@ static void ssl_write_session_ticket_ext( mbedtls_ssl_context *ssl,
     const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN;
     size_t tlen = ssl->session_negotiate->ticket_len;
 
+    *olen = 0;
+
     if( ssl->conf->session_tickets == MBEDTLS_SSL_SESSION_TICKETS_DISABLED )
     {
-        *olen = 0;
         return;
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding session ticket extension" ) );
 
-    if( (size_t)(end - p) < 4 + tlen )
+    if( end < p || (size_t)( end - p ) < 4 + tlen )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
         return;
@@ -521,9 +525,10 @@ static void ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
     size_t alpnlen = 0;
     const char **cur;
 
+    *olen = 0;
+
     if( ssl->conf->alpn_list == NULL )
     {
-        *olen = 0;
         return;
     }
 
@@ -532,7 +537,7 @@ static void ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
     for( cur = ssl->conf->alpn_list; *cur != NULL; cur++ )
         alpnlen +=   *p = (unsigned char)( strlen( *cur ) & 0xFF );
 
-    if( (size_t)(end - p) < 6 + alpnlen )
+    if( end < p || (size_t)( end - p ) < 6 + alpnlen )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
         return;

@@ -11,6 +11,10 @@ Security
      but might be in other uses. On 32 bit machines, requires reading a string
      of close to or larger than 1GB to exploit; on 64 bit machines, would require
      reading a string of close to or larger than 2^62 bytes.
+   * Fix potential random memory allocation in mbedtls_pem_read_buffer()
+     on crafted PEM input data. Found an fix provided by Guid Vranken.
+     Not triggerable remotely in TLS. Triggerable remotely if you accept PEM
+     data from an untrusted source.
 
 = Version 1.2.16 released 2015-09-17
 

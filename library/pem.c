@@ -287,6 +287,9 @@ int pem_read_buffer( pem_context *ctx, char *header, char *footer, const unsigne
 #endif /* POLARSSL_MD5_C && (POLARSSL_AES_C || POLARSSL_DES_C) */
     }
 
+    if( s1 == s2 )
+        return( POLARSSL_ERR_PEM_INVALID_DATA );
+
     len = 0;
     ret = base64_decode( NULL, &len, s1, s2 - s1 );
 

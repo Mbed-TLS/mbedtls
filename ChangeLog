@@ -1,6 +1,16 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.1.1 released 2015-09-17
+= mbed TLS 2.1.2 released 2015-10-xx
+
+Security
+   * Added fix for CVE-2015-xxxxx to prevent heap corruption due to buffer
+     overflow of the hostname or session ticket.
+
+Changes
+   * Added checking of hostname length in mbedtls_ssl_set_hostname() to ensure
+     domain names are compliant with RFC 1035.
+
+= mbe TLS 2.1.1 released 2015-09-17
 
 Security
    * Add countermeasure against Lenstra's RSA-CRT attack for PKCS#1 v1.5

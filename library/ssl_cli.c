@@ -535,7 +535,7 @@ static void ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding alpn extension" ) );
 
     for( cur = ssl->conf->alpn_list; *cur != NULL; cur++ )
-        alpnlen +=   *p = (unsigned char)( strlen( *cur ) & 0xFF );
+        alpnlen += (unsigned char)( strlen( *cur ) & 0xFF ) + 1;
 
     if( end < p || (size_t)( end - p ) < 6 + alpnlen )
     {

@@ -5707,7 +5707,9 @@ int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
         ( conf->psk_identity = mbedtls_calloc( 1, psk_identity_len ) ) == NULL )
     {
         mbedtls_free( conf->psk );
+        mbedtls_free( conf->psk_identity );
         conf->psk = NULL;
+        conf->psk_identity = NULL;
         return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
     }
 

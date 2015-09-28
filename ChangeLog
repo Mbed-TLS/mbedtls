@@ -1,5 +1,12 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.1.2 released 2015-??-??
+
+Security
+   * Fix potential double-free if mbedtls_conf_psk() is called repeatedly on
+     the same mbedtls_ssl_config object and some memory allocations fail.
+     Found by Guido Vranken. Can not be forced remotely.
+
 = mbed TLS 2.1.1 released 2015-09-17
 
 Security

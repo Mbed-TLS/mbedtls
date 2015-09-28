@@ -38,6 +38,7 @@
 #include "mbedtls/bn_mul.h"
 
 #include <string.h>
+#include <limits.h>
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -60,9 +61,10 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 
 /*
  * Convert between bits/chars and number of limbs
+ * Divide first in order to avoid potential overflows
  */
-#define BITS_TO_LIMBS(i)  (((i) + biL - 1) / biL)
-#define CHARS_TO_LIMBS(i) (((i) + ciL - 1) / ciL)
+#define BITS_TO_LIMBS(i)  ( (i) / biL + ( (i) % biL != 0 ) )
+#define CHARS_TO_LIMBS(i) ( (i) / ciL + ( (i) % ciL != 0 ) )
 
 /*
  * Initialize one MPI
@@ -409,6 +411,9 @@ int mbedtls_mpi_read_string( mbedtls_mpi *X, int radix, const char *s )
 
     if( radix == 16 )
     {
+        if( slen > SIZE_T_MAX >> 2 )
+            return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+
         n = BITS_TO_LIMBS( slen << 2 );
 
         MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, n ) );

@@ -1,5 +1,12 @@
 PolarSSL ChangeLog
 
+= Version 1.2.16 released 2015-10-??
+
+Security
+   * Fix stack buffer overflow in pkcs12 decryption (used by
+     mbedtls_pk_parse_key(file)() when the password is > 129 bytes.
+     Found by Guido Vranken. Not triggerable remotely.
+
 = Version 1.2.16 released 2015-09-17
 
 Security

@@ -62,10 +62,6 @@
 #define mbedtls_free       free
 #endif
 
-#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && !defined(inline)
-#define inline __inline
-#endif
-
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
@@ -253,7 +249,7 @@ const mbedtls_ecp_curve_info *mbedtls_ecp_curve_info_from_name( const char *name
 /*
  * Get the type of a curve
  */
-static inline ecp_curve_type ecp_get_type( const mbedtls_ecp_group *grp )
+static MBEDTLS_INLINE ecp_curve_type ecp_get_type( const mbedtls_ecp_group *grp )
 {
     if( grp->G.X.p == NULL )
         return( ECP_TYPE_NONE );

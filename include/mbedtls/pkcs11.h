@@ -37,10 +37,6 @@
 
 #include <pkcs11-helper-1.0/pkcs11h-certificate.h>
 
-#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && !defined(inline)
-#define inline __inline
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -139,7 +135,7 @@ int mbedtls_pkcs11_sign( mbedtls_pkcs11_context *ctx,
 /**
  * SSL/TLS wrappers for PKCS#11 functions
  */
-static inline int mbedtls_ssl_pkcs11_decrypt( void *ctx, int mode, size_t *olen,
+static MBEDTLS_INLINE int mbedtls_ssl_pkcs11_decrypt( void *ctx, int mode, size_t *olen,
                         const unsigned char *input, unsigned char *output,
                         size_t output_max_len )
 {
@@ -147,7 +143,7 @@ static inline int mbedtls_ssl_pkcs11_decrypt( void *ctx, int mode, size_t *olen,
                            output_max_len );
 }
 
-static inline int mbedtls_ssl_pkcs11_sign( void *ctx,
+static MBEDTLS_INLINE int mbedtls_ssl_pkcs11_sign( void *ctx,
                      int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
                      int mode, mbedtls_md_type_t md_alg, unsigned int hashlen,
                      const unsigned char *hash, unsigned char *sig )
@@ -158,7 +154,7 @@ static inline int mbedtls_ssl_pkcs11_sign( void *ctx,
                         hashlen, hash, sig );
 }
 
-static inline size_t mbedtls_ssl_pkcs11_key_len( void *ctx )
+static MBEDTLS_INLINE size_t mbedtls_ssl_pkcs11_key_len( void *ctx )
 {
     return ( (mbedtls_pkcs11_context *) ctx )->len;
 }

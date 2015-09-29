@@ -121,6 +121,8 @@
 #define SSL_LEGACY_ALLOW_RENEGOTIATION  1
 #define SSL_LEGACY_BREAK_HANDSHAKE      2
 
+#define SSL_MAX_HOST_NAME_LEN           255 /*!< Maximum host name defined in RFC 1035 */
+
 /*
  * Size of the input / output buffer.
  * Note: the RFC defines the default size of SSL / TLS messages. If you

@@ -89,6 +89,17 @@
 #define MBEDTLS_HAVE_TIME_DATE
 
 /**
+ * \def MBEDTLS_INLINE
+ *
+ * Compiler inline keyword.
+ *
+ * If undefined, check_config.h defines an appropriate per platform value.
+ *
+ * An empty definition may be used to disable explicit inlining.
+ */
+//#define MBEDTLS_INLINE inline
+
+/**
  * \def MBEDTLS_PLATFORM_MEMORY
  *
  * Enable the memory allocation layer.

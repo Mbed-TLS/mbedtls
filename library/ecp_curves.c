@@ -31,10 +31,6 @@
 
 #include <string.h>
 
-#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && !defined(inline)
-#define inline __inline
-#endif
-
 /*
  * Conversion macros for embedded constants:
  * build lists of mbedtls_mpi_uint's from lists of unsigned char's grouped by 8, 4 or 2
@@ -550,7 +546,7 @@ static const mbedtls_mpi_uint brainpoolP512r1_n[] = {
  * Create an MPI from embedded constants
  * (assumes len is an exact multiple of sizeof mbedtls_mpi_uint)
  */
-static inline void ecp_mpi_load( mbedtls_mpi *X, const mbedtls_mpi_uint *p, size_t len )
+static MBEDTLS_INLINE void ecp_mpi_load( mbedtls_mpi *X, const mbedtls_mpi_uint *p, size_t len )
 {
     X->s = 1;
     X->n = len / sizeof( mbedtls_mpi_uint );
@@ -560,7 +556,7 @@ static inline void ecp_mpi_load( mbedtls_mpi *X, const mbedtls_mpi_uint *p, size
 /*
  * Set an MPI to static value 1
  */
-static inline void ecp_mpi_set1( mbedtls_mpi *X )
+static MBEDTLS_INLINE void ecp_mpi_set1( mbedtls_mpi *X )
 {
     static mbedtls_mpi_uint one[] = { 1 };
     X->s = 1;
@@ -795,7 +791,7 @@ int mbedtls_ecp_group_load( mbedtls_ecp_group *grp, mbedtls_ecp_group_id id )
  */
 
 /* Add 64-bit chunks (dst += src) and update carry */
-static inline void add64( mbedtls_mpi_uint *dst, mbedtls_mpi_uint *src, mbedtls_mpi_uint *carry )
+static MBEDTLS_INLINE void add64( mbedtls_mpi_uint *dst, mbedtls_mpi_uint *src, mbedtls_mpi_uint *carry )
 {
     unsigned char i;
     mbedtls_mpi_uint c = 0;
@@ -808,7 +804,7 @@ static inline void add64( mbedtls_mpi_uint *dst, mbedtls_mpi_uint *src, mbedtls_
 }
 
 /* Add carry to a 64-bit chunk and update carry */
-static inline void carry64( mbedtls_mpi_uint *dst, mbedtls_mpi_uint *carry )
+static MBEDTLS_INLINE void carry64( mbedtls_mpi_uint *dst, mbedtls_mpi_uint *carry )
 {
     unsigned char i;
     for( i = 0; i < 8 / sizeof( mbedtls_mpi_uint ); i++, dst++ )
@@ -899,13 +895,13 @@ cleanup:
 /*
  * Helpers for addition and subtraction of chunks, with signed carry.
  */
-static inline void add32( uint32_t *dst, uint32_t src, signed char *carry )
+static MBEDTLS_INLINE void add32( uint32_t *dst, uint32_t src, signed char *carry )
 {
     *dst += src;
     *carry += ( *dst < src );
 }
 
-static inline void sub32( uint32_t *dst, uint32_t src, signed char *carry )
+static MBEDTLS_INLINE void sub32( uint32_t *dst, uint32_t src, signed char *carry )
 {
     *carry -= ( *dst < src );
     *dst -= src;
@@ -952,7 +948,7 @@ static inline void sub32( uint32_t *dst, uint32_t src, signed char *carry )
  * If the result is negative, we get it in the form
  * c * 2^(bits + 32) + N, with c negative and N positive shorter than 'bits'
  */
-static inline int fix_negative( mbedtls_mpi *N, signed char c, mbedtls_mpi *C, size_t bits )
+static MBEDTLS_INLINE int fix_negative( mbedtls_mpi *N, signed char c, mbedtls_mpi *C, size_t bits )
 {
     int ret;
 
@@ -1206,7 +1202,7 @@ cleanup:
  */
 #define P_KOBLITZ_MAX   ( 256 / 8 / sizeof( mbedtls_mpi_uint ) )  // Max limbs in P
 #define P_KOBLITZ_R     ( 8 / sizeof( mbedtls_mpi_uint ) )        // Limbs in R
-static inline int ecp_mod_koblitz( mbedtls_mpi *N, mbedtls_mpi_uint *Rp, size_t p_limbs,
+static MBEDTLS_INLINE int ecp_mod_koblitz( mbedtls_mpi *N, mbedtls_mpi_uint *Rp, size_t p_limbs,
                                    size_t adjust, size_t shift, mbedtls_mpi_uint mask )
 {
     int ret;

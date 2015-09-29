@@ -52,7 +52,9 @@
 #endif /* _WIN32 */
 
 #if !defined(MBEDTLS_INLINE)
-#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) )
+#if defined(__cplusplus)
+#define MBEDTLS_INLINE inline
+#elif ( defined(__ARMCC_VERSION) || defined(_MSC_VER) )
 #define MBEDTLS_INLINE __inline
 #else
 #define MBEDTLS_INLINE inline

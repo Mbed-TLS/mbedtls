@@ -4148,6 +4148,9 @@ int ssl_set_hostname( ssl_context *ssl, const char *hostname )
     if( ssl->hostname_len + 1 == 0 )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
+    if( ssl->hostname_len > SSL_MAX_HOST_NAME_LEN )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
     ssl->hostname = polarssl_malloc( ssl->hostname_len + 1 );
 
     if( ssl->hostname == NULL )

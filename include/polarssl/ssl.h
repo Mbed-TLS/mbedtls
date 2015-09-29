@@ -198,6 +198,8 @@
 #endif /* POLARSSL_SSL_PROTO_TLS1_1 */
 #endif /* POLARSSL_SSL_PROTO_TLS1_2 */
 
+#define SSL_MAX_HOST_NAME_LEN           255 /*!< Maximum host name defined in RFC 1035 */
+
 /* RFC 6066 section 4, see also mfl_code_to_length in ssl_tls.c
  * NONE must be zero so that memset()ing structure to zero works */
 #define SSL_MAX_FRAG_LEN_NONE           0   /*!< don't use this extension   */

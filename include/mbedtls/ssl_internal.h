@@ -41,10 +41,6 @@
 #include "sha512.h"
 #endif
 
-#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && !defined(inline)
-#define inline __inline
-#endif
-
 /* Determine minimum supported version */
 #define MBEDTLS_SSL_MIN_MAJOR_VERSION           MBEDTLS_SSL_MAJOR_VERSION_3
 
@@ -382,7 +378,7 @@ int mbedtls_ssl_check_sig_hash( const mbedtls_ssl_context *ssl,
 #endif
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-static inline mbedtls_pk_context *mbedtls_ssl_own_key( mbedtls_ssl_context *ssl )
+static MBEDTLS_INLINE mbedtls_pk_context *mbedtls_ssl_own_key( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_key_cert *key_cert;
 
@@ -394,7 +390,7 @@ static inline mbedtls_pk_context *mbedtls_ssl_own_key( mbedtls_ssl_context *ssl 
     return( key_cert == NULL ? NULL : key_cert->key );
 }
 
-static inline mbedtls_x509_crt *mbedtls_ssl_own_cert( mbedtls_ssl_context *ssl )
+static MBEDTLS_INLINE mbedtls_x509_crt *mbedtls_ssl_own_cert( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_key_cert *key_cert;
 
@@ -426,7 +422,7 @@ void mbedtls_ssl_write_version( int major, int minor, int transport,
 void mbedtls_ssl_read_version( int *major, int *minor, int transport,
                        const unsigned char ver[2] );
 
-static inline size_t mbedtls_ssl_hdr_len( const mbedtls_ssl_context *ssl )
+static MBEDTLS_INLINE size_t mbedtls_ssl_hdr_len( const mbedtls_ssl_context *ssl )
 {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
@@ -437,7 +433,7 @@ static inline size_t mbedtls_ssl_hdr_len( const mbedtls_ssl_context *ssl )
     return( 5 );
 }
 
-static inline size_t mbedtls_ssl_hs_hdr_len( const mbedtls_ssl_context *ssl )
+static MBEDTLS_INLINE size_t mbedtls_ssl_hs_hdr_len( const mbedtls_ssl_context *ssl )
 {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
@@ -461,7 +457,7 @@ void mbedtls_ssl_dtls_replay_update( mbedtls_ssl_context *ssl );
 #endif
 
 /* constant-time buffer comparison */
-static inline int mbedtls_ssl_safer_memcmp( const void *a, const void *b, size_t n )
+static MBEDTLS_INLINE int mbedtls_ssl_safer_memcmp( const void *a, const void *b, size_t n )
 {
     size_t i;
     const unsigned char *A = (const unsigned char *) a;

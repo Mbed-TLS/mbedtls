@@ -24,6 +24,7 @@
 #define MBEDTLS_BASE64_H
 
 #include <stddef.h>
+#include <limits.h>
 
 #define MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL               -0x002A  /**< Output buffer too small. */
 #define MBEDTLS_ERR_BASE64_INVALID_CHARACTER              -0x002C  /**< Invalid character in input. */
@@ -44,6 +45,8 @@ extern "C" {
  * \return         0 if successful, or MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL.
  *                 *olen is always updated to reflect the amount
  *                 of data that has (or would have) been written.
+ *                 If that length cannot be represented, then no data is
+ *                 written to the buffer and *olen is set to SIZE_T_MAX.
  *
  * \note           Call this function with dlen = 0 to obtain the
  *                 required buffer size in *olen

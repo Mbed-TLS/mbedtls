@@ -65,6 +65,7 @@ static void ssl_write_hostname_ext( ssl_context *ssl,
                                     size_t *olen )
 {
     unsigned char *p = buf;
+    const unsigned char *end = ssl->out_msg + SSL_MAX_CONTENT_LEN;
 
     *olen = 0;
 
@@ -73,6 +74,12 @@ static void ssl_write_hostname_ext( ssl_context *ssl,
 
     SSL_DEBUG_MSG( 3, ( "client hello, adding server name extension: %s",
                    ssl->hostname ) );
+
+    if( (size_t)(end - p) < ssl->hostname_len + 9 )
+    {
+         SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
+         return;
+    }
 
     /*
      * struct {
@@ -117,6 +124,7 @@ static void ssl_write_renegotiation_ext( ssl_context *ssl,
                                          size_t *olen )
 {
     unsigned char *p = buf;
+    const unsigned char *end = ssl->out_msg + SSL_MAX_CONTENT_LEN;
 
     *olen = 0;
 
@@ -124,6 +132,12 @@ static void ssl_write_renegotiation_ext( ssl_context *ssl,
         return;
 
     SSL_DEBUG_MSG( 3, ( "client hello, adding renegotiation extension" ) );
+
+    if( (size_t)(end - p) < 5 + ssl->verify_data_len )
+    {
+        SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
+        return;
+    }
 
     /*
      * Secure renegotiation
@@ -151,6 +165,7 @@ static void ssl_write_signature_algorithms_ext( ssl_context *ssl,
                                                 size_t *olen )
 {
     unsigned char *p = buf;
+    const unsigned char *end = ssl->out_msg + SSL_MAX_CONTENT_LEN;
     size_t sig_alg_len = 0;
 #if defined(POLARSSL_RSA_C) || defined(POLARSSL_ECDSA_C)
     unsigned char *sig_alg_list = buf + 6;
@@ -163,9 +178,54 @@ static void ssl_write_signature_algorithms_ext( ssl_context *ssl,
 
     SSL_DEBUG_MSG( 3, ( "client hello, adding signature_algorithms extension" ) );
 
+#if defined(POLARSSL_RSA_C)
+#if defined(POLARSSL_SHA512_C)
+    /* SHA512 + RSA signature, SHA384 + RSA signature */
+    sig_alg_len += 4;
+#endif
+#if defined(POLARSSL_SHA256_C)
+    /* SHA256 + RSA signature, SHA224 + RSA signature */
+    sig_alg_len += 4;
+#endif
+#if defined(POLARSSL_SHA1_C)
+    /* SHA1 + RSA signature */
+    sig_alg_len += 2;
+#endif
+#if defined(POLARSSL_MD5_C)
+    /* MD5 + RSA signature */
+    sig_alg_len += 2;
+#endif
+#endif /* POLARSSL_RSA_C */
+#if defined(POLARSSL_ECDSA_C)
+#if defined(POLARSSL_SHA512_C)
+    /* SHA512 + ECDSA signature, SHA384 + ECDSA signature */
+    sig_alg_len += 4;
+#endif
+#if defined(POLARSSL_SHA256_C)
+    /* SHA256 + ECDSA signature, SHA224 + ECDSA signature */
+    sig_alg_len += 4;
+#endif
+#if defined(POLARSSL_SHA1_C)
+    /* SHA1 + ECDSA signature */
+    sig_alg_len += 2;
+#endif
+#if defined(POLARSSL_MD5_C)
+    /* MD5 + ECDSA signature */
+    sig_alg_len += 2;
+#endif
+#endif /* POLARSSL_ECDSA_C */
+
+    if( end < p || (size_t)( end - p ) < sig_alg_len + 6 )
+    {
+        SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
+        return;
+    }
+
     /*
      * Prepare signature_algorithms extension (TLS 1.2)
      */
+    sig_alg_len = 0;
+
 #if defined(POLARSSL_RSA_C)
 #if defined(POLARSSL_SHA512_C)
     sig_alg_list[sig_alg_len++] = SSL_HASH_SHA512;
@@ -248,6 +308,7 @@ static void ssl_write_supported_elliptic_curves_ext( ssl_context *ssl,
                                                      size_t *olen )
 {
     unsigned char *p = buf;
+    const unsigned char *end = ssl->out_msg + SSL_MAX_CONTENT_LEN;
     unsigned char *elliptic_curve_list = p + 6;
     size_t elliptic_curve_len = 0;
     const ecp_curve_info *info;
@@ -265,6 +326,25 @@ static void ssl_write_supported_elliptic_curves_ext( ssl_context *ssl,
     for( grp_id = ssl->curve_list; *grp_id != POLARSSL_ECP_DP_NONE; grp_id++ )
     {
         info = ecp_curve_info_from_grp_id( *grp_id );
+#else
+    for( info = ecp_curve_list(); info->grp_id != POLARSSL_ECP_DP_NONE; info++ )
+    {
+#endif
+        elliptic_curve_len += 2;
+    }
+
+    if( end < p || (size_t)( end - p ) < 6 + elliptic_curve_len )
+    {
+        SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
+        return;
+    }
+
+    elliptic_curve_len = 0;
+
+#if defined(POLARSSL_SSL_SET_CURVES)
+    for( grp_id = ssl->curve_list; *grp_id != POLARSSL_ECP_DP_NONE; grp_id++ )
+    {
+       info = ecp_curve_info_from_grp_id( *grp_id );
 #else
     for( info = ecp_curve_list(); info->grp_id != POLARSSL_ECP_DP_NONE; info++ )
     {
@@ -294,11 +374,17 @@ static void ssl_write_supported_point_formats_ext( ssl_context *ssl,
                                                    size_t *olen )
 {
     unsigned char *p = buf;
-    ((void) ssl);
+    const unsigned char *end = ssl->out_msg + SSL_MAX_CONTENT_LEN;
 
     *olen = 0;
 
     SSL_DEBUG_MSG( 3, ( "client hello, adding supported_point_formats extension" ) );
+
+    if( end < p || (size_t)( end - p ) < 6 )
+    {
+        SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
+        return;
+    }
 
     *p++ = (unsigned char)( ( TLS_EXT_SUPPORTED_POINT_FORMATS >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( TLS_EXT_SUPPORTED_POINT_FORMATS      ) & 0xFF );
@@ -319,13 +405,20 @@ static void ssl_write_max_fragment_length_ext( ssl_context *ssl,
                                                size_t *olen )
 {
     unsigned char *p = buf;
+    const unsigned char *end = ssl->out_msg + SSL_MAX_CONTENT_LEN;
 
-    if( ssl->mfl_code == SSL_MAX_FRAG_LEN_NONE ) {
-        *olen = 0;
+    *olen = 0;
+
+    if( ssl->mfl_code == SSL_MAX_FRAG_LEN_NONE )
         return;
-    }
 
     SSL_DEBUG_MSG( 3, ( "client hello, adding max_fragment_length extension" ) );
+
+    if( end < p || (size_t)( end - p ) < 5 )
+    {
+        SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
+        return;
+    }
 
     *p++ = (unsigned char)( ( TLS_EXT_MAX_FRAGMENT_LENGTH >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( TLS_EXT_MAX_FRAGMENT_LENGTH      ) & 0xFF );
@@ -344,14 +437,20 @@ static void ssl_write_truncated_hmac_ext( ssl_context *ssl,
                                           unsigned char *buf, size_t *olen )
 {
     unsigned char *p = buf;
+    const unsigned char *end = ssl->out_msg + SSL_MAX_CONTENT_LEN;
+
+    *olen = 0;
 
     if( ssl->trunc_hmac == SSL_TRUNC_HMAC_DISABLED )
-    {
-        *olen = 0;
         return;
-    }
 
     SSL_DEBUG_MSG( 3, ( "client hello, adding truncated_hmac extension" ) );
+
+    if( end < p || (size_t)( end - p ) < 4 )
+    {
+        SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
+        return;
+    }
 
     *p++ = (unsigned char)( ( TLS_EXT_TRUNCATED_HMAC >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( TLS_EXT_TRUNCATED_HMAC      ) & 0xFF );
@@ -368,16 +467,24 @@ static void ssl_write_encrypt_then_mac_ext( ssl_context *ssl,
                                        unsigned char *buf, size_t *olen )
 {
     unsigned char *p = buf;
+    const unsigned char *end = ssl->out_msg + SSL_MAX_CONTENT_LEN;
+
+    *olen = 0;
 
     if( ssl->encrypt_then_mac == SSL_ETM_DISABLED ||
         ssl->max_minor_ver == SSL_MINOR_VERSION_0 )
     {
-        *olen = 0;
         return;
     }
 
     SSL_DEBUG_MSG( 3, ( "client hello, adding encrypt_then_mac "
                         "extension" ) );
+
+    if( end < p || (size_t)( end - p ) < 4 )
+    {
+        SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
+        return;
+    }
 
     *p++ = (unsigned char)( ( TLS_EXT_ENCRYPT_THEN_MAC >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( TLS_EXT_ENCRYPT_THEN_MAC      ) & 0xFF );
@@ -394,16 +501,24 @@ static void ssl_write_extended_ms_ext( ssl_context *ssl,
                                        unsigned char *buf, size_t *olen )
 {
     unsigned char *p = buf;
+    const unsigned char *end = ssl->out_msg + SSL_MAX_CONTENT_LEN;
+
+    *olen = 0;
 
     if( ssl->extended_ms == SSL_EXTENDED_MS_DISABLED ||
         ssl->max_minor_ver == SSL_MINOR_VERSION_0 )
     {
-        *olen = 0;
         return;
     }
 
     SSL_DEBUG_MSG( 3, ( "client hello, adding extended_master_secret "
                         "extension" ) );
+
+    if( end < p || (size_t)( end - p ) < 4 )
+    {
+        SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
+        return;
+    }
 
     *p++ = (unsigned char)( ( TLS_EXT_EXTENDED_MASTER_SECRET >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( TLS_EXT_EXTENDED_MASTER_SECRET      ) & 0xFF );
@@ -420,15 +535,21 @@ static void ssl_write_session_ticket_ext( ssl_context *ssl,
                                           unsigned char *buf, size_t *olen )
 {
     unsigned char *p = buf;
+    const unsigned char *end = ssl->out_msg + SSL_MAX_CONTENT_LEN;
     size_t tlen = ssl->session_negotiate->ticket_len;
 
+    *olen = 0;
+
     if( ssl->session_tickets == SSL_SESSION_TICKETS_DISABLED )
-    {
-        *olen = 0;
         return;
-    }
 
     SSL_DEBUG_MSG( 3, ( "client hello, adding session ticket extension" ) );
+
+    if( end < p || (size_t)( end - p ) < 4 + tlen )
+    {
+        SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
+        return;
+    }
 
     *p++ = (unsigned char)( ( TLS_EXT_SESSION_TICKET >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( TLS_EXT_SESSION_TICKET      ) & 0xFF );
@@ -457,15 +578,25 @@ static void ssl_write_alpn_ext( ssl_context *ssl,
                                 unsigned char *buf, size_t *olen )
 {
     unsigned char *p = buf;
+    const unsigned char *end = ssl->out_msg + SSL_MAX_CONTENT_LEN;
+    size_t alpnlen = 0;
     const char **cur;
 
+    *olen = 0;
+
     if( ssl->alpn_list == NULL )
-    {
-        *olen = 0;
         return;
-    }
 
     SSL_DEBUG_MSG( 3, ( "client hello, adding alpn extension" ) );
+
+    for( cur = ssl->alpn_list; *cur != NULL; cur++ )
+        alpnlen += (unsigned char)( strlen( *cur ) & 0xFF ) + 1;
+
+    if( end < p || (size_t)( end - p ) < 6 + alpnlen )
+    {
+        SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
+        return;
+    }
 
     *p++ = (unsigned char)( ( TLS_EXT_ALPN >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( TLS_EXT_ALPN      ) & 0xFF );

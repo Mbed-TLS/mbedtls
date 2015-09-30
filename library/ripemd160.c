@@ -70,7 +70,7 @@
 #endif
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
+static void ripemd_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
@@ -84,7 +84,7 @@ void mbedtls_ripemd160_free( mbedtls_ripemd160_context *ctx )
     if( ctx == NULL )
         return;
 
-    mbedtls_zeroize( ctx, sizeof( mbedtls_ripemd160_context ) );
+    ripemd_zeroize( ctx, sizeof( mbedtls_ripemd160_context ) );
 }
 
 void mbedtls_ripemd160_clone( mbedtls_ripemd160_context *dst,
@@ -460,5 +460,16 @@ int mbedtls_ripemd160_self_test( int verbose )
 }
 
 #endif /* MBEDTLS_SELF_TEST */
+
+/* Amalgamated Release Mappings */
+#undef F
+#undef K
+#undef F1
+#undef F2
+#undef F3
+#undef F4
+#undef F5
+#undef P
+#undef S
 
 #endif /* MBEDTLS_RIPEMD160_C */

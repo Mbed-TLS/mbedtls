@@ -43,7 +43,7 @@
 #if !defined(MBEDTLS_XTEA_ALT)
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
+static void xtea_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
@@ -80,7 +80,7 @@ void mbedtls_xtea_free( mbedtls_xtea_context *ctx )
     if( ctx == NULL )
         return;
 
-    mbedtls_zeroize( ctx, sizeof( mbedtls_xtea_context ) );
+    xtea_zeroize( ctx, sizeof( mbedtls_xtea_context ) );
 }
 
 /*

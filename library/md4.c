@@ -49,7 +49,7 @@
 #if !defined(MBEDTLS_MD4_ALT)
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
+static void md4_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
@@ -86,7 +86,7 @@ void mbedtls_md4_free( mbedtls_md4_context *ctx )
     if( ctx == NULL )
         return;
 
-    mbedtls_zeroize( ctx, sizeof( mbedtls_md4_context ) );
+    md4_zeroize( ctx, sizeof( mbedtls_md4_context ) );
 }
 
 void mbedtls_md4_clone( mbedtls_md4_context *dst,

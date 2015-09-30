@@ -44,7 +44,7 @@
 #include <string.h>
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
+static void ssl_cookie_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
@@ -101,7 +101,7 @@ void mbedtls_ssl_cookie_free( mbedtls_ssl_cookie_ctx *ctx )
     mbedtls_mutex_init( &ctx->mutex );
 #endif
 
-    mbedtls_zeroize( ctx, sizeof( mbedtls_ssl_cookie_ctx ) );
+    ssl_cookie_zeroize( ctx, sizeof( mbedtls_ssl_cookie_ctx ) );
 }
 
 int mbedtls_ssl_cookie_setup( mbedtls_ssl_cookie_ctx *ctx,
@@ -122,7 +122,7 @@ int mbedtls_ssl_cookie_setup( mbedtls_ssl_cookie_ctx *ctx,
     if( ret != 0 )
         return( ret );
 
-    mbedtls_zeroize( key, sizeof( key ) );
+    ssl_cookie_zeroize( key, sizeof( key ) );
 
     return( 0 );
 }

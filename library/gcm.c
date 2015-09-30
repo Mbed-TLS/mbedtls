@@ -78,7 +78,7 @@
 #endif
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
+static void gcm_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
@@ -494,7 +494,7 @@ int mbedtls_gcm_auth_decrypt( mbedtls_gcm_context *ctx,
 
     if( diff != 0 )
     {
-        mbedtls_zeroize( output, length );
+        gcm_zeroize( output, length );
         return( MBEDTLS_ERR_GCM_AUTH_FAILED );
     }
 
@@ -504,7 +504,7 @@ int mbedtls_gcm_auth_decrypt( mbedtls_gcm_context *ctx,
 void mbedtls_gcm_free( mbedtls_gcm_context *ctx )
 {
     mbedtls_cipher_free( &ctx->cipher_ctx );
-    mbedtls_zeroize( ctx, sizeof( mbedtls_gcm_context ) );
+    gcm_zeroize( ctx, sizeof( mbedtls_gcm_context ) );
 }
 
 #if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)

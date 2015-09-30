@@ -51,7 +51,7 @@
 #endif /* MBEDTLS_PLATFORM_C */
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
+static void hmac_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
@@ -338,7 +338,7 @@ void mbedtls_hmac_drbg_free( mbedtls_hmac_drbg_context *ctx )
     mbedtls_mutex_free( &ctx->mutex );
 #endif
     mbedtls_md_free( &ctx->md_ctx );
-    mbedtls_zeroize( ctx, sizeof( mbedtls_hmac_drbg_context ) );
+    hmac_zeroize( ctx, sizeof( mbedtls_hmac_drbg_context ) );
 }
 
 #if defined(MBEDTLS_FS_IO)

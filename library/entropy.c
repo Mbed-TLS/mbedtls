@@ -50,7 +50,7 @@
 #endif
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
+static void entropy_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
@@ -105,7 +105,7 @@ void mbedtls_entropy_free( mbedtls_entropy_context *ctx )
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_free( &ctx->mutex );
 #endif
-    mbedtls_zeroize( ctx, sizeof( mbedtls_entropy_context ) );
+    entropy_zeroize( ctx, sizeof( mbedtls_entropy_context ) );
 }
 
 int mbedtls_entropy_add_source( mbedtls_entropy_context *ctx,

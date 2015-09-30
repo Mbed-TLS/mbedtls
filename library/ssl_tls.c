@@ -55,7 +55,7 @@
 #endif
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
+static void ssl_tls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
@@ -259,8 +259,8 @@ static int ssl3_prf( const unsigned char *secret, size_t slen,
     mbedtls_md5_free(  &md5  );
     mbedtls_sha1_free( &sha1 );
 
-    mbedtls_zeroize( padding, sizeof( padding ) );
-    mbedtls_zeroize( sha1sum, sizeof( sha1sum ) );
+    ssl_tls_zeroize( padding, sizeof( padding ) );
+    ssl_tls_zeroize( sha1sum, sizeof( sha1sum ) );
 
     return( 0 );
 }
@@ -357,8 +357,8 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
 
     mbedtls_md_free( &md_ctx );
 
-    mbedtls_zeroize( tmp, sizeof( tmp ) );
-    mbedtls_zeroize( h_i, sizeof( h_i ) );
+    ssl_tls_zeroize( tmp, sizeof( tmp ) );
+    ssl_tls_zeroize( h_i, sizeof( h_i ) );
 
     return( 0 );
 }
@@ -422,8 +422,8 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
 
     mbedtls_md_free( &md_ctx );
 
-    mbedtls_zeroize( tmp, sizeof( tmp ) );
-    mbedtls_zeroize( h_i, sizeof( h_i ) );
+    ssl_tls_zeroize( tmp, sizeof( tmp ) );
+    ssl_tls_zeroize( h_i, sizeof( h_i ) );
 
     return( 0 );
 }
@@ -631,7 +631,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
             return( ret );
         }
 
-        mbedtls_zeroize( handshake->premaster, sizeof(handshake->premaster) );
+        ssl_tls_zeroize( handshake->premaster, sizeof(handshake->premaster) );
     }
     else
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "no premaster (session resumed)" ) );
@@ -642,7 +642,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     memcpy( tmp, handshake->randbytes, 64 );
     memcpy( handshake->randbytes, tmp + 32, 32 );
     memcpy( handshake->randbytes + 32, tmp, 32 );
-    mbedtls_zeroize( tmp, sizeof( tmp ) );
+    ssl_tls_zeroize( tmp, sizeof( tmp ) );
 
     /*
      *  SSLv3:
@@ -670,7 +670,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_BUF( 4, "random bytes", handshake->randbytes, 64 );
     MBEDTLS_SSL_DEBUG_BUF( 4, "key block", keyblk, 256 );
 
-    mbedtls_zeroize( handshake->randbytes, sizeof( handshake->randbytes ) );
+    ssl_tls_zeroize( handshake->randbytes, sizeof( handshake->randbytes ) );
 
     /*
      * Determine the appropriate key, IV and MAC length.
@@ -911,7 +911,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
-    mbedtls_zeroize( keyblk, sizeof( keyblk ) );
+    ssl_tls_zeroize( keyblk, sizeof( keyblk ) );
 
 #if defined(MBEDTLS_ZLIB_SUPPORT)
     // Initialize compression
@@ -4669,9 +4669,9 @@ static void ssl_calc_finished_ssl(
     mbedtls_md5_free(  &md5  );
     mbedtls_sha1_free( &sha1 );
 
-    mbedtls_zeroize(  padbuf, sizeof(  padbuf ) );
-    mbedtls_zeroize(  md5sum, sizeof(  md5sum ) );
-    mbedtls_zeroize( sha1sum, sizeof( sha1sum ) );
+    ssl_tls_zeroize(  padbuf, sizeof(  padbuf ) );
+    ssl_tls_zeroize(  md5sum, sizeof(  md5sum ) );
+    ssl_tls_zeroize( sha1sum, sizeof( sha1sum ) );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
@@ -4730,7 +4730,7 @@ static void ssl_calc_finished_tls(
     mbedtls_md5_free(  &md5  );
     mbedtls_sha1_free( &sha1 );
 
-    mbedtls_zeroize(  padbuf, sizeof(  padbuf ) );
+    ssl_tls_zeroize(  padbuf, sizeof(  padbuf ) );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
@@ -4780,7 +4780,7 @@ static void ssl_calc_finished_tls_sha256(
 
     mbedtls_sha256_free( &sha256 );
 
-    mbedtls_zeroize(  padbuf, sizeof(  padbuf ) );
+    ssl_tls_zeroize(  padbuf, sizeof(  padbuf ) );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
@@ -4829,7 +4829,7 @@ static void ssl_calc_finished_tls_sha384(
 
     mbedtls_sha512_free( &sha512 );
 
-    mbedtls_zeroize(  padbuf, sizeof( padbuf ) );
+    ssl_tls_zeroize(  padbuf, sizeof( padbuf ) );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
@@ -6779,7 +6779,7 @@ void mbedtls_ssl_transform_free( mbedtls_ssl_transform *transform )
     mbedtls_md_free( &transform->md_ctx_enc );
     mbedtls_md_free( &transform->md_ctx_dec );
 
-    mbedtls_zeroize( transform, sizeof( mbedtls_ssl_transform ) );
+    ssl_tls_zeroize( transform, sizeof( mbedtls_ssl_transform ) );
 }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -6830,7 +6830,7 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_handshake_params *handshake )
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     if( handshake->psk != NULL )
     {
-        mbedtls_zeroize( handshake->psk, handshake->psk_len );
+        ssl_tls_zeroize( handshake->psk, handshake->psk_len );
         mbedtls_free( handshake->psk );
     }
 #endif
@@ -6860,7 +6860,7 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_handshake_params *handshake )
     ssl_flight_free( handshake->flight );
 #endif
 
-    mbedtls_zeroize( handshake, sizeof( mbedtls_ssl_handshake_params ) );
+    ssl_tls_zeroize( handshake, sizeof( mbedtls_ssl_handshake_params ) );
 }
 
 void mbedtls_ssl_session_free( mbedtls_ssl_session *session )
@@ -6880,7 +6880,7 @@ void mbedtls_ssl_session_free( mbedtls_ssl_session *session )
     mbedtls_free( session->ticket );
 #endif
 
-    mbedtls_zeroize( session, sizeof( mbedtls_ssl_session ) );
+    ssl_tls_zeroize( session, sizeof( mbedtls_ssl_session ) );
 }
 
 /*
@@ -6895,20 +6895,20 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
 
     if( ssl->out_buf != NULL )
     {
-        mbedtls_zeroize( ssl->out_buf, MBEDTLS_SSL_BUFFER_LEN );
+        ssl_tls_zeroize( ssl->out_buf, MBEDTLS_SSL_BUFFER_LEN );
         mbedtls_free( ssl->out_buf );
     }
 
     if( ssl->in_buf != NULL )
     {
-        mbedtls_zeroize( ssl->in_buf, MBEDTLS_SSL_BUFFER_LEN );
+        ssl_tls_zeroize( ssl->in_buf, MBEDTLS_SSL_BUFFER_LEN );
         mbedtls_free( ssl->in_buf );
     }
 
 #if defined(MBEDTLS_ZLIB_SUPPORT)
     if( ssl->compress_buf != NULL )
     {
-        mbedtls_zeroize( ssl->compress_buf, MBEDTLS_SSL_BUFFER_LEN );
+        ssl_tls_zeroize( ssl->compress_buf, MBEDTLS_SSL_BUFFER_LEN );
         mbedtls_free( ssl->compress_buf );
     }
 #endif
@@ -6939,7 +6939,7 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     if( ssl->hostname != NULL )
     {
-        mbedtls_zeroize( ssl->hostname, strlen( ssl->hostname ) );
+        ssl_tls_zeroize( ssl->hostname, strlen( ssl->hostname ) );
         mbedtls_free( ssl->hostname );
     }
 #endif
@@ -6959,7 +6959,7 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= free" ) );
 
     /* Actually clear after last debug message */
-    mbedtls_zeroize( ssl, sizeof( mbedtls_ssl_context ) );
+    ssl_tls_zeroize( ssl, sizeof( mbedtls_ssl_context ) );
 }
 
 /*
@@ -7154,8 +7154,8 @@ void mbedtls_ssl_config_free( mbedtls_ssl_config *conf )
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     if( conf->psk != NULL )
     {
-        mbedtls_zeroize( conf->psk, conf->psk_len );
-        mbedtls_zeroize( conf->psk_identity, conf->psk_identity_len );
+        ssl_tls_zeroize( conf->psk, conf->psk_len );
+        ssl_tls_zeroize( conf->psk_identity, conf->psk_identity_len );
         mbedtls_free( conf->psk );
         mbedtls_free( conf->psk_identity );
         conf->psk_len = 0;
@@ -7167,7 +7167,7 @@ void mbedtls_ssl_config_free( mbedtls_ssl_config *conf )
     ssl_key_cert_free( conf->key_cert );
 #endif
 
-    mbedtls_zeroize( conf, sizeof( mbedtls_ssl_config ) );
+    ssl_tls_zeroize( conf, sizeof( mbedtls_ssl_config ) );
 }
 
 #if defined(MBEDTLS_PK_C)

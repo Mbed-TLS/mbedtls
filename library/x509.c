@@ -1021,4 +1021,7 @@ int mbedtls_x509_self_test( int verbose )
 
 #endif /* MBEDTLS_SELF_TEST */
 
+/* Amalgamated Release Mappings */
+#undef SAFE_SNPRINTF
+
 #endif /* MBEDTLS_X509_USE_C */

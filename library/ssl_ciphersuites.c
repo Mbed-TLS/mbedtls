@@ -1682,6 +1682,10 @@ const int *mbedtls_ssl_list_ciphersuites( void )
 #define MAX_CIPHERSUITES    sizeof( ciphersuite_definitions     ) /         \
                             sizeof( ciphersuite_definitions[0]  )
 static int supported_ciphersuites[MAX_CIPHERSUITES];
+
+/* Amalgamated Release Mappings */
+#define supported_init suites_supported_init
+
 static int supported_init = 0;
 
 const int *mbedtls_ssl_list_ciphersuites( void )
@@ -1833,5 +1837,8 @@ int mbedtls_ssl_ciphersuite_uses_psk( const mbedtls_ssl_ciphersuite_t *info )
     }
 }
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
+
+/* Amalgamated Release Mappings */
+#undef supported_init
 
 #endif /* MBEDTLS_SSL_TLS_C */

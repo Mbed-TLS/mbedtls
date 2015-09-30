@@ -46,10 +46,13 @@
 #endif /* MBEDTLS_PLATFORM_C */
 #endif /* MBEDTLS_SELF_TEST */
 
+/* Amalgamated Release Mappings */
+#define FSb CAMELLIAFSb
+
 #if !defined(MBEDTLS_CAMELLIA_ALT)
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
+static void camellia_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
@@ -333,7 +336,7 @@ void mbedtls_camellia_free( mbedtls_camellia_context *ctx )
     if( ctx == NULL )
         return;
 
-    mbedtls_zeroize( ctx, sizeof( mbedtls_camellia_context ) );
+    camellia_zeroize( ctx, sizeof( mbedtls_camellia_context ) );
 }
 
 /*
@@ -1068,5 +1071,8 @@ int mbedtls_camellia_self_test( int verbose )
 }
 
 #endif /* MBEDTLS_SELF_TEST */
+
+/* Amalgamated Release Mappings */
+#undef FSb
 
 #endif /* MBEDTLS_CAMELLIA_C */

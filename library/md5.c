@@ -48,7 +48,7 @@
 #if !defined(MBEDTLS_MD5_ALT)
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
+static void md5_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
@@ -85,7 +85,7 @@ void mbedtls_md5_free( mbedtls_md5_context *ctx )
     if( ctx == NULL )
         return;
 
-    mbedtls_zeroize( ctx, sizeof( mbedtls_md5_context ) );
+    md5_zeroize( ctx, sizeof( mbedtls_md5_context ) );
 }
 
 void mbedtls_md5_clone( mbedtls_md5_context *dst,
@@ -400,5 +400,10 @@ int mbedtls_md5_self_test( int verbose )
 }
 
 #endif /* MBEDTLS_SELF_TEST */
+
+/* Amalgamated Release Mappings */
+#undef F
+#undef P
+#undef S
 
 #endif /* MBEDTLS_MD5_C */

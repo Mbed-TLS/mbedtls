@@ -35,6 +35,9 @@
 #define inline __inline
 #endif
 
+/* Amalgamated Release Mappings */
+#undef ADD
+
 /*
  * Conversion macros for embedded constants:
  * build lists of mbedtls_mpi_uint's from lists of unsigned char's grouped by 8, 4 or 2
@@ -1320,5 +1323,8 @@ static int ecp_mod_p256k1( mbedtls_mpi *N )
     return( ecp_mod_koblitz( N, Rp, 256 / 8 / sizeof( mbedtls_mpi_uint ), 0, 0, 0 ) );
 }
 #endif /* MBEDTLS_ECP_DP_SECP256K1_ENABLED */
+
+/* Amalgamated Release Mappings */
+#undef ADD
 
 #endif /* MBEDTLS_ECP_C */

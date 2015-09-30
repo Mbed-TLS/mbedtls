@@ -62,7 +62,7 @@
 
 #if defined(MBEDTLS_FS_IO)
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
+static void pkparse_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
@@ -134,7 +134,7 @@ int mbedtls_pk_parse_keyfile( mbedtls_pk_context *ctx,
         ret = mbedtls_pk_parse_key( ctx, buf, n,
                 (const unsigned char *) pwd, strlen( pwd ) );
 
-    mbedtls_zeroize( buf, n );
+    pkparse_zeroize( buf, n );
     mbedtls_free( buf );
 
     return( ret );
@@ -154,7 +154,7 @@ int mbedtls_pk_parse_public_keyfile( mbedtls_pk_context *ctx, const char *path )
 
     ret = mbedtls_pk_parse_public_key( ctx, buf, n );
 
-    mbedtls_zeroize( buf, n );
+    pkparse_zeroize( buf, n );
     mbedtls_free( buf );
 
     return( ret );

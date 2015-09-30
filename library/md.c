@@ -49,7 +49,7 @@
 #endif
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
+static void md_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
@@ -193,11 +193,11 @@ void mbedtls_md_free( mbedtls_md_context_t *ctx )
 
     if( ctx->hmac_ctx != NULL )
     {
-        mbedtls_zeroize( ctx->hmac_ctx, 2 * ctx->md_info->block_size );
+        md_zeroize( ctx->hmac_ctx, 2 * ctx->md_info->block_size );
         mbedtls_free( ctx->hmac_ctx );
     }
 
-    mbedtls_zeroize( ctx, sizeof( mbedtls_md_context_t ) );
+    md_zeroize( ctx, sizeof( mbedtls_md_context_t ) );
 }
 
 int mbedtls_md_clone( mbedtls_md_context_t *dst,
@@ -358,7 +358,7 @@ int mbedtls_md_hmac_starts( mbedtls_md_context_t *ctx, const unsigned char *key,
         opad[i] = (unsigned char)( opad[i] ^ key[i] );
     }
 
-    mbedtls_zeroize( sum, sizeof( sum ) );
+    md_zeroize( sum, sizeof( sum ) );
 
     ctx->md_info->starts_func( ctx->md_ctx );
     ctx->md_info->update_func( ctx->md_ctx, ipad, ctx->md_info->block_size );

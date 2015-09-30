@@ -48,7 +48,7 @@
 #if !defined(MBEDTLS_SHA1_ALT)
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
+static void sha1_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
@@ -85,7 +85,7 @@ void mbedtls_sha1_free( mbedtls_sha1_context *ctx )
     if( ctx == NULL )
         return;
 
-    mbedtls_zeroize( ctx, sizeof( mbedtls_sha1_context ) );
+    sha1_zeroize( ctx, sizeof( mbedtls_sha1_context ) );
 }
 
 void mbedtls_sha1_clone( mbedtls_sha1_context *dst,
@@ -444,5 +444,11 @@ exit:
 }
 
 #endif /* MBEDTLS_SELF_TEST */
+
+/* Amalgamated Release Mappings */
+#undef F
+#undef P
+#undef R
+#undef S
 
 #endif /* MBEDTLS_SHA1_C */

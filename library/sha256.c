@@ -48,7 +48,7 @@
 #if !defined(MBEDTLS_SHA256_ALT)
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
+static void sha256_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
@@ -85,7 +85,7 @@ void mbedtls_sha256_free( mbedtls_sha256_context *ctx )
     if( ctx == NULL )
         return;
 
-    mbedtls_zeroize( ctx, sizeof( mbedtls_sha256_context ) );
+    sha256_zeroize( ctx, sizeof( mbedtls_sha256_context ) );
 }
 
 void mbedtls_sha256_clone( mbedtls_sha256_context *dst,
@@ -131,6 +131,10 @@ void mbedtls_sha256_starts( mbedtls_sha256_context *ctx, int is224 )
 }
 
 #if !defined(MBEDTLS_SHA256_PROCESS_ALT)
+
+/* Amalgamated Release Mappings */
+#define K K256
+
 static const uint32_t K[] =
 {
     0x428A2F98, 0x71374491, 0xB5C0FBCF, 0xE9B5DBA5,
@@ -441,5 +445,18 @@ exit:
 }
 
 #endif /* MBEDTLS_SELF_TEST */
+
+/* Amalgamated Release Mappings */
+#undef P
+#undef R
+#undef SHR
+#undef ROTR
+#undef S0
+#undef S1
+#undef S2
+#undef S3
+#undef F0
+#undef F1
+#undef K
 
 #endif /* MBEDTLS_SHA256_C */

@@ -50,7 +50,7 @@
 #endif
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
+static void bignum_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
@@ -87,7 +87,7 @@ void mbedtls_mpi_free( mbedtls_mpi *X )
 
     if( X->p != NULL )
     {
-        mbedtls_zeroize( X->p, X->n * ciL );
+        bignum_zeroize( X->p, X->n * ciL );
         mbedtls_free( X->p );
     }
 
@@ -114,7 +114,7 @@ int mbedtls_mpi_grow( mbedtls_mpi *X, size_t nblimbs )
         if( X->p != NULL )
         {
             memcpy( p, X->p, X->n * ciL );
-            mbedtls_zeroize( X->p, X->n * ciL );
+            bignum_zeroize( X->p, X->n * ciL );
             mbedtls_free( X->p );
         }
 
@@ -152,7 +152,7 @@ int mbedtls_mpi_shrink( mbedtls_mpi *X, size_t nblimbs )
     if( X->p != NULL )
     {
         memcpy( p, X->p, i * ciL );
-        mbedtls_zeroize( X->p, X->n * ciL );
+        bignum_zeroize( X->p, X->n * ciL );
         mbedtls_free( X->p );
     }
 

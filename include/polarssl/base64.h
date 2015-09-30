@@ -25,6 +25,7 @@
 #define POLARSSL_BASE64_H
 
 #include <string.h>
+#include <limits.h>
 
 #define POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL               -0x002A  /**< Output buffer too small. */
 #define POLARSSL_ERR_BASE64_INVALID_CHARACTER              -0x002C  /**< Invalid character in input. */
@@ -44,6 +45,8 @@ extern "C" {
  * \return         0 if successful, or POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL.
  *                 *dlen is always updated to reflect the amount
  *                 of data that has (or would have) been written.
+ *                 If that length cannot be represented, then no data is
+ *                 written to the buffer and *dlen is set to SIZE_T_MAX.
  *
  * \note           Call this function with *dlen = 0 to obtain the
  *                 required buffer size in *dlen

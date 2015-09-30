@@ -15,6 +15,9 @@ Security
      on crafted PEM input data. Found an fix provided by Guid Vranken.
      Not triggerable remotely in TLS. Triggerable remotely if you accept PEM
      data from an untrusted source.
+   * Fix possible heap buffer overflow in base64_encode() when the input
+     buffer is 512MB or larger on 32-bit platforms.
+     Found by Guido Vranken. Not trigerrable remotely in TLS.
 
 = Version 1.2.16 released 2015-09-17
 

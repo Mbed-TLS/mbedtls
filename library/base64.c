@@ -91,14 +91,15 @@ int base64_encode( unsigned char *dst, size_t *dlen,
         return( 0 );
     }
 
-    n = ( slen << 3 ) / 6;
+    n = slen / 3 + ( slen % 3 != 0 );
 
-    switch( ( slen << 3 ) - ( n * 6 ) )
+    if( n > ( SIZE_T_MAX - 1 ) / 4 )
     {
-        case  2: n += 3; break;
-        case  4: n += 2; break;
-        default: break;
+        *dlen = SIZE_T_MAX;
+        return( POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL );
     }
+
+    n *= 4;
 
     if( *dlen < n + 1 )
     {

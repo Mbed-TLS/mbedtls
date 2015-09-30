@@ -18,6 +18,9 @@ Security
    * Fix potential double-free if ssl_set_psk() is called repeatedly on
      the same ssl_context object and some memory allocations fail.
      Found by Guido Vranken. Can not be forced remotely.
+   * Fix possible heap buffer overflow in base64_encode() when the input
+     buffer is 512MB or larger on 32-bit platforms.
+     Found by Guido Vranken. Not trigerrable remotely in TLS.
 
 = mbed TLS 1.3.13 reladsed 2015-09-17
 

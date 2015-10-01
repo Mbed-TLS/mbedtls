@@ -1,5 +1,15 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 1.3.14 released 2015-10-xx
+
+Security
+   * Added fix for CVE-2015-xxxxx to prevent heap corruption due to buffer
+     overflow of the hostname or session ticket. (Found by Guido Vranken)
+
+Changes
+   * Added checking of hostname length in ssl_set_hostname() to ensure domain
+     names are compliant with RFC 1035.
+
 = mbed TLS 1.3.13 reladsed 2015-09-17
 
 Security

@@ -75,7 +75,7 @@ static void ssl_write_hostname_ext( ssl_context *ssl,
     SSL_DEBUG_MSG( 3, ( "client hello, adding server name extension: %s",
                    ssl->hostname ) );
 
-    if( (size_t)(end - p) < ssl->hostname_len + 9 )
+    if( end < p || (size_t)( end - p ) < ssl->hostname_len + 9 )
     {
          SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
          return;
@@ -877,13 +877,13 @@ static int ssl_write_client_hello( ssl_context *ssl )
     ext_len += olen;
 #endif
 
-#if defined(POLARSSL_SSL_SESSION_TICKETS)
-    ssl_write_session_ticket_ext( ssl, p + 2 + ext_len, &olen );
+#if defined(POLARSSL_SSL_ALPN)
+    ssl_write_alpn_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
 #endif
 
-#if defined(POLARSSL_SSL_ALPN)
-    ssl_write_alpn_ext( ssl, p + 2 + ext_len, &olen );
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
+    ssl_write_session_ticket_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
 #endif
 

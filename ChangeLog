@@ -12,7 +12,7 @@ Security
      of close to or larger than 1GB to exploit; on 64 bit machines, would require
      reading a string of close to or larger than 2^62 bytes.
    * Fix potential random memory allocation in mbedtls_pem_read_buffer()
-     on crafted PEM input data. Found an fix provided by Guid Vranken.
+     on crafted PEM input data. Found and fix provided by Guido Vranken.
      Not triggerable remotely in TLS. Triggerable remotely if you accept PEM
      data from an untrusted source.
    * Fix possible heap buffer overflow in base64_encode() when the input

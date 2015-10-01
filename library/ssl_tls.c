@@ -6993,7 +6993,7 @@ static mbedtls_ecp_group_id ssl_preset_suiteb_curves[] = {
 #endif
 
 /*
- * Load default in mbetls_ssl_config
+ * Load default in mbedtls_ssl_config
  */
 int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
                                  int endpoint, int transport, int preset )

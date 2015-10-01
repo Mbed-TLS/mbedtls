@@ -119,7 +119,7 @@ API Changes
      mbedtls_gcm_init() -> mbedtls_gcm_setkey()
      mbedtls_hmac_drbg_init() -> mbedtls_hmac_drbg_seed(_buf)()
      mbedtls_ctr_drbg_init()  -> mbedtls_ctr_drbg_seed()
-     Note that for mbetls_ssl_setup(), you need to be done setting up the
+     Note that for mbedtls_ssl_setup(), you need to be done setting up the
      ssl_config structure before calling it.
    * Most ssl_set_xxx() functions (all except ssl_set_bio(), ssl_set_hostname(),
      ssl_set_session() and ssl_set_client_transport_id(), plus

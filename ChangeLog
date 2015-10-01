@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 1.3.14 reladsed 2015-10-??
+= mbed TLS 1.3.14 released 2015-10-??
 
 Security
    * Fix stack buffer overflow in pkcs12 decryption (used by
@@ -22,7 +22,7 @@ Security
      buffer is 512MB or larger on 32-bit platforms.
      Found by Guido Vranken. Not trigerrable remotely in TLS.
 
-= mbed TLS 1.3.13 reladsed 2015-09-17
+= mbed TLS 1.3.13 released 2015-09-17
 
 Security
    * Fix possible client-side NULL pointer dereference (read) when the client

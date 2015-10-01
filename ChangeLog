@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.1.2 released 2015-10-xx
+
+Changes
+   * Fixed paths for check_config.h in example config files. (Found by bachp)
+     (#291)
+
 = mbed TLS 2.1.1 released 2015-09-17
 
 Security

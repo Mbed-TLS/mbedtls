@@ -46,7 +46,7 @@ extern "C" {
  *                 *dlen is always updated to reflect the amount
  *                 of data that has (or would have) been written.
  *                 If that length cannot be represented, then no data is
- *                 written to the buffer and *olen is set to SIZE_T_MAX.
+ *                 written to the buffer and *dlen is set to SIZE_T_MAX.
  *
  * \note           Call this function with *dlen = 0 to obtain the
  *                 required buffer size in *dlen

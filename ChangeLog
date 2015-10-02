@@ -18,6 +18,10 @@ Security
    * Fix possible heap buffer overflow in base64_encode() when the input
      buffer is 512MB or larger on 32-bit platforms.
      Found by Guido Vranken. Not trigerrable remotely in TLS.
+   * Fix potential heap buffer overflow in servers that perform client
+     authentication against a crafted CA cert. Cannot be triggered remotely
+     unless you allow third parties to pick trust CAs for client auth.
+     Found by Guido Vranken.
 
 = Version 1.2.16 released 2015-09-17
 

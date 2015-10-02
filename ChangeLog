@@ -2,6 +2,12 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.1.2 released 2015-10-xx
 
+Security
+   * Fix potential heap buffer overflow in servers that perform client
+     authentication against a crafted CA cert. Cannot be triggered remotely
+     unless you allow third parties to pick trust CAs for client auth.
+     Found by Guido Vranken.
+
 Changes
    * Fixed paths for check_config.h in example config files. (Found by bachp)
      (#291)

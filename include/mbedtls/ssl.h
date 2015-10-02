@@ -544,6 +544,13 @@ struct mbedtls_ssl_config
     void *p_ticket;                 /*!< context for the ticket callbacks   */
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_SRV_C */
 
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+    /** Callback to export key block and master key                         */
+    int (*f_export_keys)( void *, const unsigned char *,
+            const unsigned char *, size_t, size_t, size_t );
+    void *p_export_keys;            /*!< context for key export callback    */
+#endif
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     const mbedtls_x509_crt_profile *cert_profile; /*!< verification profile */
     mbedtls_ssl_key_cert *key_cert; /*!< own certificate/key pair(s)        */
@@ -1071,6 +1078,34 @@ typedef int mbedtls_ssl_ticket_write_t( void *p_ticket,
                                         size_t *tlen,
                                         uint32_t *lifetime );
 
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+/**
+ * \brief           Callback type: Export key block and master key
+ *
+ * \note            This is required for certain uses of TLS, e.g. EAP-TLS
+ *                  (RFC 5216). The key pointers are ephemeral and therefore
+ *                  must not be stored. The keys should not be copied 
+ *                  verbatim and should be used specifically for key
+ *                  derivation purposes
+ *
+ * \param p_expkey  Context for the callback
+ * \param kb        Pointer to key block 
+ * \param mk        Pointer to master key
+ * \param maclen    MAC length
+ * \param keylen    Key length
+ * \param ivlen     IV length
+ *
+ * \return          0 if successful, or
+ *                  a specific MBEDTLS_ERR_XXX code.
+ */
+typedef int mbedtls_ssl_export_keys_t( void *p_expkey,
+                                const unsigned char *kb,
+                                const unsigned char *mk, 
+                                size_t maclen,
+                                size_t keylen,
+                                size_t ivlen );
+#endif /* MBEDTLS_SSL_EXPORT_KEYS */
+                                        
 /**
  * \brief           Callback type: parse and load session ticket
  *
@@ -1119,6 +1154,26 @@ void mbedtls_ssl_conf_session_tickets_cb( mbedtls_ssl_config *conf,
         mbedtls_ssl_ticket_parse_t *f_ticket_parse,
         void *p_ticket );
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_SRV_C */
+
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+/**
+ * \brief           Configure key export callback.
+ *                  (Default: none.)
+ *
+ * \note            This is required for certain uses of TLS, e.g. EAP-TLS
+ *                  (RFC 5216). The key pointers are ephemeral and therefore
+ *                  must not be stored. The keys should not be copied 
+ *                  verbatim and should be used specifically for key
+ *                  derivation purposes
+ *
+ * \param conf      SSL configuration context
+ * \param f_export_keys     Callback for exporting keys
+ * \param p_export_key      Context shared by the callback
+ */
+void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
+        mbedtls_ssl_export_keys_t *f_export_keys,
+        void *p_export_keys );
+#endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 /**
  * \brief          Callback type: generate a cookie

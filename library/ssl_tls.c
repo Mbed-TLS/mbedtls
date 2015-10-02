@@ -862,6 +862,16 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     }
 #endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
 
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)    
+    if( ssl->conf->f_export_keys != NULL)
+    {
+        ssl->conf->f_export_keys( ssl->conf->p_export_keys, 
+                                  keyblk, session->master,
+                                  transform->maclen, transform->keylen,
+                                  iv_copy_len );
+    }
+#endif
+
     if( ( ret = mbedtls_cipher_setup( &transform->cipher_ctx_enc,
                                  cipher_info ) ) != 0 )
     {
@@ -5806,6 +5816,16 @@ void mbedtls_ssl_conf_session_tickets_cb( mbedtls_ssl_config *conf,
 }
 #endif
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
+
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
+        mbedtls_ssl_export_keys_t *f_export_keys,
+        void *p_export_keys )
+{
+    conf->f_export_keys = f_export_keys;
+    conf->p_export_keys = p_export_keys;
+}
+#endif
 
 /*
  * SSL get accessors

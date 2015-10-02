@@ -1,5 +1,16 @@
 PolarSSL ChangeLog
 
+= Version 1.2.17 released 2015-10-xx
+
+Security
+   * Fix possible heap buffer overflow in SSL if a very long hostname is used.
+     Can be trigerred remotely if you accept hostnames from untrusted parties.
+     Found by Guido Vranken.
+
+Changes
+   * ssl_set_hostname() now rejects host names longer that 255 bytes (maximum
+     defined by RFC 1035)
+
 = Version 1.2.16 released 2015-09-17
 
 Security

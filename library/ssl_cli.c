@@ -133,7 +133,7 @@ static void ssl_write_renegotiation_ext( ssl_context *ssl,
 
     SSL_DEBUG_MSG( 3, ( "client hello, adding renegotiation extension" ) );
 
-    if( (size_t)(end - p) < 5 + ssl->verify_data_len )
+    if( end < p || (size_t)(end - p) < 5 + ssl->verify_data_len )
     {
         SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
         return;

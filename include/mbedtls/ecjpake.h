@@ -71,6 +71,7 @@ typedef struct
     const mbedtls_md_info_t *md_info;   /**< Hash to use                    */
     mbedtls_ecp_group grp;              /**< Elliptic curve                 */
     mbedtls_ecjpake_role role;          /**< Are we client or server?       */
+    int point_format;                   /**< Format for point export        */
 
     mbedtls_ecp_point Xm1;              /**< My public key 1   C: X1, S: X3 */
     mbedtls_ecp_point Xm2;              /**< My public key 2   C: X2, S: X4 */

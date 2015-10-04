@@ -184,7 +184,10 @@ int mbedtls_base64_decode( unsigned char *dst, size_t dlen, size_t *olen,
     }
 
     if( n == 0 )
+    {
+        *olen = 0;
         return( 0 );
+    }
 
     n = ( ( n * 6 ) + 7 ) >> 3;
     n -= j;

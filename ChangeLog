@@ -4,7 +4,10 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 Security
    * Added fix for CVE-2015-xxxxx to prevent heap corruption due to buffer
-     overflow of the hostname or session ticket.
+     overflow of the hostname or session ticket. (Found by Guido Vranken).
+   * Fix potential double-free if mbedtls_ssl_set_hs_psk() is called more than
+     once in the same handhake and mbedtls_ssl_conf_psk() was used.
+     Found and patch provided by Guido Vranken. Cannot be forced remotely.
 
 Changes
    * Added checking of hostname length in mbedtls_ssl_set_hostname() to ensure
@@ -20,7 +23,8 @@ Security
      https://securityblog.redhat.com/2015/09/02/factoring-rsa-keys-with-tls-perfect-forward-secrecy/
    * Fix possible client-side NULL pointer dereference (read) when the client
      tries to continue the handshake after it failed (a misuse of the API).
-     (Found and patch provided by Fabian Foerg, Gotham Digital Science using afl-fuzz.)
+     (Found and patch provided by Fabian Foerg, Gotham Digital Science using
+     afl-fuzz.)
 
 Bugfix
    * Fix warning when using a 64bit platform. (found by embedthis) (#275)

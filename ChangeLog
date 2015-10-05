@@ -5,6 +5,7 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Bugfix
    * Fix compile error in net.c with musl libc. Found and patch provided by
      zhasha (#278).
+   * Fix macroization of 'inline' keyword when building as C++. (#279)
 
 Changes
    * Fixed paths for check_config.h in example config files. (Found by bachp)

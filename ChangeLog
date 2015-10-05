@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Version 1.2.17 released 2015-10-xx
+= Version 1.2.17 released 2015-10-06
 
 Security
    * Fix for CVE-2015-5291. Possible heap buffer overflow in SSL if a very long

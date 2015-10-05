@@ -1,5 +1,11 @@
 PolarSSL ChangeLog
 
+= Version 1.2.17 released 2015-10-xx
+
+Bugfix
+   * Fix compile error in net.c with musl libc. Found and patch provided by
+     zhasha (#278).
+
 = Version 1.2.16 released 2015-09-17
 
 Security

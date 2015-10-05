@@ -3,7 +3,7 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS 2.1.2 released 2015-10-xx
 
 Security
-   * Added fix for CVE-2015-xxxxx to prevent heap corruption due to buffer
+   * Added fix for CVE-2015-5291 to prevent heap corruption due to buffer
      overflow of the hostname or session ticket. Found by Guido Vranken,
      Intelworks.
    * Fix potential double-free if mbedtls_ssl_set_hs_psk() is called more than

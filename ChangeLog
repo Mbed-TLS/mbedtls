@@ -28,6 +28,10 @@ Security
    * Fix potential double-free if mbedtls_conf_psk() is called repeatedly on
      the same mbedtls_ssl_config object and memory allocation fails. Found by
      Guido Vranken, Intelworks. Cannot be forced remotely.
+   * Fix potential heap buffer overflow in servers that perform client
+     authentication against a crafted CA cert. Cannot be triggered remotely
+     unless you allow third parties to pick trust CAs for client auth.
+     Found by Guido Vranken, Intelworks.
 
 Changes
    * Added checking of hostname length in mbedtls_ssl_set_hostname() to ensure

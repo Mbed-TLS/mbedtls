@@ -5,6 +5,7 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Bugfix
    * Fix compile error in net.c with musl libc. Found and patch provided by
      zhasha (#278).
+   * Fix macroization of 'inline' keywork when building as C++. (#279)
 
 = mbed TLS 1.3.13 released 2015-09-17
 

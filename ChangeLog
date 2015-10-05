@@ -5,6 +5,7 @@ PolarSSL ChangeLog
 Bugfix
    * Fix compile error in net.c with musl libc. Found and patch provided by
      zhasha (#278).
+   * Fix macroization of 'inline' keywork when building as C++. (#279)
 
 = Version 1.2.16 released 2015-09-17
 

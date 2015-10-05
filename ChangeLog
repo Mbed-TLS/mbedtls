@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 1.3.14 released 2015-10-xx
+= mbed TLS 1.3.14 released 2015-10-06
 
 Security
    * Added fix for CVE-2015-5291 to prevent heap corruption due to buffer

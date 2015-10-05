@@ -36,6 +36,7 @@ Security
 Bugfix
    * Fix compile error in net.c with musl libc. Found and patch provided by
      zhasha (#278).
+   * Fix macroization of 'inline' keyword when building as C++. (#279)
 
 Changes
    * Added checking of hostname length in mbedtls_ssl_set_hostname() to ensure

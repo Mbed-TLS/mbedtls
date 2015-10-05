@@ -29,6 +29,11 @@ Security
      unless you allow third parties to pick trust CAs for client auth. Found by
      Guido Vranken, Intelworks.
 
+Bugfix
+   * Fix compile error in net.c with musl libc. Found and patch provided by
+     zhasha (#278).
+   * Fix macroization of 'inline' keywork when building as C++. (#279)
+
 Changes
    * Added checking of hostname length in ssl_set_hostname() to ensure domain
      names are compliant with RFC 1035.

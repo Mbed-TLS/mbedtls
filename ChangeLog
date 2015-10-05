@@ -2,6 +2,10 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.1.2 released 2015-10-xx
 
+Bugfix
+   * Fix compile error in net.c with musl libc. Found and patch provided by
+     zhasha (#278).
+
 Changes
    * Fixed paths for check_config.h in example config files. (Found by bachp)
      (#291)

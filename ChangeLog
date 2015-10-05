@@ -3,9 +3,9 @@ PolarSSL ChangeLog
 = Version 1.2.17 released 2015-10-xx
 
 Security
-   * Fix possible heap buffer overflow in SSL if a very long hostname is used.
-     Can be trigerred remotely if you accept hostnames from untrusted parties.
-     Found by Guido Vranken, Intelworks.
+   * Fix for CVE-2015-5291. Possible heap buffer overflow in SSL if a very long
+     hostname is used. Can be trigerred remotely if you accept hostnames from
+     untrusted parties. Found by Guido Vranken, Intelworks.
    * Fix stack buffer overflow in pkcs12 decryption (used by
      mbedtls_pk_parse_key(file)() when the password is > 129 bytes. Found by
      Guido Vranken, Intelworks. Not triggerable remotely.

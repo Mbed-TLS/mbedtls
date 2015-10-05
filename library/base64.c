@@ -69,6 +69,8 @@ static const unsigned char base64_dec_map[128] =
      49,  50,  51, 127, 127, 127, 127, 127
 };
 
+#define BASE64_SIZE_T_MAX   ( (size_t) -1 ) /* SIZE_T_MAX is not standard */
+
 /*
  * Encode a buffer into base64 format
  */
@@ -87,9 +89,9 @@ int mbedtls_base64_encode( unsigned char *dst, size_t dlen, size_t *olen,
 
     n = slen / 3 + ( slen % 3 != 0 );
 
-    if( n > ( SIZE_T_MAX - 1 ) / 4 )
+    if( n > ( BASE64_SIZE_T_MAX - 1 ) / 4 )
     {
-        *olen = SIZE_T_MAX;
+        *olen = BASE64_SIZE_T_MAX;
         return( MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL );
     }
 

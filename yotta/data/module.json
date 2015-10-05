@@ -13,6 +13,6 @@
         "mbed": { "cmsis-core": "~0.2.3" }
     },
     "testTargetDependencies": {
-        "mbed": { "sockets": "~0.4.0" }
+        "mbed": { "sockets": "~0.5.0" }
     }
 }

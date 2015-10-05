@@ -923,6 +923,7 @@ static int ssl_write_certificate_request( ssl_context *ssl )
     size_t n = 0, dn_size, total_dn_size;
     unsigned char *buf, *p;
     const x509_cert *crt;
+    const unsigned char * const end = ssl->out_msg + SSL_MAX_CONTENT_LEN;
 
     SSL_DEBUG_MSG( 2, ( "=> write certificate request" ) );
 
@@ -987,10 +988,14 @@ static int ssl_write_certificate_request( ssl_context *ssl )
     total_dn_size = 0;
     while( crt != NULL && crt->version != 0)
     {
-        if( p - buf > 4096 )
-            break;
-
         dn_size = crt->subject_raw.len;
+
+        if( end < p || (size_t)( end - p ) < 2 + dn_size )
+        {
+            SSL_DEBUG_MSG( 1, ( "skipping CAs: buffer too short" ) );
+            break;
+        }
+
         *p++ = (unsigned char)( dn_size >> 8 );
         *p++ = (unsigned char)( dn_size      );
         memcpy( p, crt->subject_raw.p, dn_size );

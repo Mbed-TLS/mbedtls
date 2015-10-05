@@ -6,6 +6,25 @@ Security
    * Fix possible heap buffer overflow in SSL if a very long hostname is used.
      Can be trigerred remotely if you accept hostnames from untrusted parties.
      Found by Guido Vranken.
+   * Fix stack buffer overflow in pkcs12 decryption (used by
+     mbedtls_pk_parse_key(file)() when the password is > 129 bytes.
+     Found by Guido Vranken. Not triggerable remotely.
+   * Fix potential buffer overflow in mbedtls_mpi_read_string().
+     Found by Guido Vranken. Not exploitable remotely in the context of TLS,
+     but might be in other uses. On 32 bit machines, requires reading a string
+     of close to or larger than 1GB to exploit; on 64 bit machines, would require
+     reading a string of close to or larger than 2^62 bytes.
+   * Fix potential random memory allocation in mbedtls_pem_read_buffer()
+     on crafted PEM input data. Found and fix provided by Guido Vranken.
+     Not triggerable remotely in TLS. Triggerable remotely if you accept PEM
+     data from an untrusted source.
+   * Fix possible heap buffer overflow in base64_encode() when the input
+     buffer is 512MB or larger on 32-bit platforms.
+     Found by Guido Vranken. Not trigerrable remotely in TLS.
+   * Fix potential heap buffer overflow in servers that perform client
+     authentication against a crafted CA cert. Cannot be triggered remotely
+     unless you allow third parties to pick trust CAs for client auth.
+     Found by Guido Vranken.
 
 Changes
    * ssl_set_hostname() now rejects host names longer that 255 bytes (maximum

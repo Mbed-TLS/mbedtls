@@ -4064,7 +4064,9 @@ int ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
         ( ssl->psk_identity = polarssl_malloc( psk_identity_len ) ) == NULL )
     {
         polarssl_free( ssl->psk );
+        polarssl_free( ssl->psk_identity );
         ssl->psk = NULL;
+        ssl->psk_identity = NULL;
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
     }
 

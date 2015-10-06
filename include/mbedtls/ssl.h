@@ -1168,7 +1168,7 @@ void mbedtls_ssl_conf_session_tickets_cb( mbedtls_ssl_config *conf,
  *
  * \param conf      SSL configuration context
  * \param f_export_keys     Callback for exporting keys
- * \param p_export_key      Context shared by the callback
+ * \param p_export_keys     Context shared by the callback
  */
 void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
         mbedtls_ssl_export_keys_t *f_export_keys,

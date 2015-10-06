@@ -233,7 +233,7 @@ have_sig_alg:
           MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
-    defined(MBEDTLS_ECJPAKE_C)
+    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 static int ssl_parse_supported_elliptic_curves( mbedtls_ssl_context *ssl,
                                                 const unsigned char *buf,
                                                 size_t len )
@@ -309,7 +309,7 @@ static int ssl_parse_supported_point_formats( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C)
             ssl->handshake->ecdh_ctx.point_format = p[0];
 #endif
-#if defined(MBEDTLS_ECJPAKE_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
             ssl->handshake->ecjpake_ctx.point_format = p[0];
 #endif
             MBEDTLS_SSL_DEBUG_MSG( 4, ( "point format selected: %d", p[0] ) );
@@ -322,7 +322,8 @@ static int ssl_parse_supported_point_formats( mbedtls_ssl_context *ssl,
 
     return( 0 );
 }
-#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C || MBEDTLS_ECJPAKE_C */
+#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ||
+          MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 static int ssl_parse_ecjpake_kkpp( mbedtls_ssl_context *ssl,
@@ -1586,7 +1587,7 @@ read_record_header:
           MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
-    defined(MBEDTLS_ECJPAKE_C)
+    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
         case MBEDTLS_TLS_EXT_SUPPORTED_ELLIPTIC_CURVES:
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "found supported elliptic curves extension" ) );
 
@@ -1603,7 +1604,8 @@ read_record_header:
             if( ret != 0 )
                 return( ret );
             break;
-#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C || MBEDTLS_ECJPAKE_C */
+#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ||
+          MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
         case MBEDTLS_TLS_EXT_ECJPAKE_KKPP:
@@ -2390,7 +2392,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 #endif
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
-    defined(MBEDTLS_ECJPAKE_C)
+    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     ssl_write_supported_point_formats_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
 #endif

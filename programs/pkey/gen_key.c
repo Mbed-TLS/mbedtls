@@ -209,7 +209,7 @@ int main( int argc, char *argv[] )
         ret = 1;
         mbedtls_printf( USAGE );
 #if defined(MBEDTLS_ECP_C)
-        mbedtls_printf( " availabled ec_curve values:\n" );
+        mbedtls_printf( " available ec_curve values:\n" );
         curve_info = mbedtls_ecp_curve_list();
         mbedtls_printf( "    %s (default)\n", curve_info->name );
         while( ( ++curve_info )->name != NULL )

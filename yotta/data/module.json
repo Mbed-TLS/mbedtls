@@ -10,9 +10,9 @@
     ],
     "dependencies": {},
     "targetDependencies": {
-        "mbed": { "cmsis-core": "~0.2.3" }
+        "mbed": { "cmsis-core": "~0.4.0" }
     },
     "testTargetDependencies": {
-        "mbed": { "sockets": "~0.5.0" }
+        "mbed": { "sockets": "~0.6.0" }
     }
 }

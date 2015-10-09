@@ -8,6 +8,12 @@ Changes
 
 = mbed TLS 2.1.2 released 2015-10-06
 
+Bugfix
+   * Fix build error with configurations where ECDHE-PSK is the only key
+     exchange. Found and fix provided by Chris Hammond. #270
+
+= mbed TLS 2.1.2 released 2015-10-06
+
 Security
    * Added fix for CVE-2015-5291 to prevent heap corruption due to buffer
      overflow of the hostname or session ticket. Found by Guido Vranken,

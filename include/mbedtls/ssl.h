@@ -55,26 +55,6 @@
 #include <time.h>
 #endif
 
-/* For convenience below and in programs */
-#if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED) ||                           \
-    defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED) ||                       \
-    defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
-#define MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED
-#endif
-
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
-#define MBEDTLS_KEY_EXCHANGE__SOME__ECDHE_ENABLED
-#endif
-
-#if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
-#define MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED
-#endif
-
 /*
  * SSL Error codes
  */

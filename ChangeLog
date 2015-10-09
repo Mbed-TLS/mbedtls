@@ -5,6 +5,9 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Bugfix
    * Fix bug causing some handshakes to fail due to some non-fatal alerts not
      begin properly ignored. Found by mancha and Kasom Koht-arsa, #308
+   * Fix build error with configurations where ECDHE-PSK is the only key
+     exchange. Found and fix provided by Chris Hammond. #270
+
 
 = mbed TLS 1.3.14 released 2015-10-06
 

@@ -4039,6 +4039,7 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     size_t i, n;
     const mbedtls_x509_crt *crt;
+    mbedtls_pk_context *key;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate" ) );
@@ -4093,36 +4094,49 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
     }
 #endif
 
-    MBEDTLS_SSL_DEBUG_CRT( 3, "own certificate", mbedtls_ssl_own_cert( ssl ) );
+#if defined(MBEDTLS_RAW_PUBLIC_KEY_SUPPORT)
+    if (ssl->handshake->server_cert_type == MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY) {
+        key = mbedtls_ssl_own_key( ssl );
+        i = 7;        
+        unsigned char keybuf[512];
+        n = mbedtls_pk_write_pubkey_der( key, keybuf, 512 );
+        memcpy(ssl->out_msg + i, keybuf + 512 - n, n);
+        MBEDTLS_SSL_DEBUG_BUF( 3, ( "own raw public key" ), ssl->out_msg + i, n );
+        i += n;
+    }
+#endif
+    if (ssl->handshake->server_cert_type == MBEDTLS_TLS_CERT_TYPE_X509) {
+        MBEDTLS_SSL_DEBUG_CRT( 3, "own certificate", mbedtls_ssl_own_cert( ssl ) );
 
-    /*
-     *     0  .  0    handshake type
-     *     1  .  3    handshake length
-     *     4  .  6    length of all certs
-     *     7  .  9    length of cert. 1
-     *    10  . n-1   peer certificate
-     *     n  . n+2   length of cert. 2
-     *    n+3 . ...   upper level cert, etc.
-     */
-    i = 7;
-    crt = mbedtls_ssl_own_cert( ssl );
+        /*
+         *     0  .  0    handshake type
+         *     1  .  3    handshake length
+         *     4  .  6    length of all certs
+         *     7  .  9    length of cert. 1
+         *    10  . n-1   peer certificate
+         *     n  . n+2   length of cert. 2
+         *    n+3 . ...   upper level cert, etc.
+         */
+        i = 7;
+        crt = mbedtls_ssl_own_cert( ssl );
 
-    while( crt != NULL )
-    {
-        n = crt->raw.len;
-        if( n > MBEDTLS_SSL_MAX_CONTENT_LEN - 3 - i )
+        while( crt != NULL )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "certificate too large, %d > %d",
-                           i + 3 + n, MBEDTLS_SSL_MAX_CONTENT_LEN ) );
-            return( MBEDTLS_ERR_SSL_CERTIFICATE_TOO_LARGE );
+            n = crt->raw.len;
+            if( n > MBEDTLS_SSL_MAX_CONTENT_LEN - 3 - i )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "certificate too large, %d > %d",
+                               i + 3 + n, MBEDTLS_SSL_MAX_CONTENT_LEN ) );
+                return( MBEDTLS_ERR_SSL_CERTIFICATE_TOO_LARGE );
+            }
+
+            ssl->out_msg[i    ] = (unsigned char)( n >> 16 );
+            ssl->out_msg[i + 1] = (unsigned char)( n >>  8 );
+            ssl->out_msg[i + 2] = (unsigned char)( n       );
+
+            i += 3; memcpy( ssl->out_msg + i, crt->raw.p, n );
+            i += n; crt = crt->next;
         }
-
-        ssl->out_msg[i    ] = (unsigned char)( n >> 16 );
-        ssl->out_msg[i + 1] = (unsigned char)( n >>  8 );
-        ssl->out_msg[i + 2] = (unsigned char)( n       );
-
-        i += 3; memcpy( ssl->out_msg + i, crt->raw.p, n );
-        i += n; crt = crt->next;
     }
 
     ssl->out_msg[4]  = (unsigned char)( ( i - 7 ) >> 16 );
@@ -4292,38 +4306,51 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 
     mbedtls_x509_crt_init( ssl->session_negotiate->peer_cert );
 
-    i += 3;
-
-    while( i < ssl->in_hslen )
-    {
-        if( ssl->in_msg[i] != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
-            return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
-        }
-
-        n = ( (unsigned int) ssl->in_msg[i + 1] << 8 )
+#if defined(MBEDTLS_RAW_PUBLIC_KEY_SUPPORT)
+    if (ssl->handshake->client_cert_type == MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY) {
+        n = ( (unsigned int) ssl->in_msg[i    ] << 16 )
+            | (unsigned int) ssl->in_msg[i + 1] << 8
             | (unsigned int) ssl->in_msg[i + 2];
+
         i += 3;
-
-        if( n < 128 || i + n > ssl->in_hslen )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
-            return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
-        }
-
-        ret = mbedtls_x509_crt_parse_der( ssl->session_negotiate->peer_cert,
-                                  ssl->in_msg + i, n );
-        if( ret != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, " mbedtls_x509_crt_parse_der", ret );
-            return( ret );
-        }
-
+        mbedtls_pk_parse_public_key( &ssl->session_negotiate->peer_cert->pk, ssl->in_msg + i, n);
+        MBEDTLS_SSL_DEBUG_BUF( 3, "peer raw public key", ssl->in_msg + i, n );
         i += n;
     }
+#endif /* MBEDTLS_RAW_PUBLIC_KEY_SUPPORT */
+    if (ssl->handshake->client_cert_type == MBEDTLS_TLS_CERT_TYPE_X509) {
+        i += 3;
 
-    MBEDTLS_SSL_DEBUG_CRT( 3, "peer certificate", ssl->session_negotiate->peer_cert );
+        while( i < ssl->in_hslen )
+        {
+            if( ssl->in_msg[i] != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
+                return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
+            }
+
+            n = ( (unsigned int) ssl->in_msg[i + 1] << 8 )
+                | (unsigned int) ssl->in_msg[i + 2];
+            i += 3;
+
+            if( n < 128 || i + n > ssl->in_hslen )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
+                return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
+            }
+
+            ret = mbedtls_x509_crt_parse_der( ssl->session_negotiate->peer_cert,
+                                      ssl->in_msg + i, n );
+            if( ret != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, " mbedtls_x509_crt_parse_der", ret );
+                return( ret );
+            }
+
+            i += n;
+        }
+        MBEDTLS_SSL_DEBUG_CRT( 3, "peer certificate", ssl->session_negotiate->peer_cert );
+    }    
 
     /*
      * On client, make sure the server cert doesn't change during renego to
@@ -4353,42 +4380,45 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 
     if( authmode != MBEDTLS_SSL_VERIFY_NONE )
     {
-        mbedtls_x509_crt *ca_chain;
-        mbedtls_x509_crl *ca_crl;
+        if (ssl->handshake->client_cert_type == MBEDTLS_TLS_CERT_TYPE_X509)
+        {
+            mbedtls_x509_crt *ca_chain;
+            mbedtls_x509_crl *ca_crl;
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-        if( ssl->handshake->sni_ca_chain != NULL )
-        {
-            ca_chain = ssl->handshake->sni_ca_chain;
-            ca_crl   = ssl->handshake->sni_ca_crl;
-        }
-        else
+            if( ssl->handshake->sni_ca_chain != NULL )
+            {
+                ca_chain = ssl->handshake->sni_ca_chain;
+                ca_crl   = ssl->handshake->sni_ca_crl;
+            }
+            else
 #endif
-        {
-            ca_chain = ssl->conf->ca_chain;
-            ca_crl   = ssl->conf->ca_crl;
-        }
+            {
+                ca_chain = ssl->conf->ca_chain;
+                ca_crl   = ssl->conf->ca_crl;
+            }
 
-        if( ca_chain == NULL )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no CA chain" ) );
-            return( MBEDTLS_ERR_SSL_CA_CHAIN_REQUIRED );
-        }
+            if( ca_chain == NULL )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no CA chain" ) );
+                return( MBEDTLS_ERR_SSL_CA_CHAIN_REQUIRED );
+            }
 
-        /*
-         * Main check: verify certificate
-         */
-        ret = mbedtls_x509_crt_verify_with_profile(
-                                ssl->session_negotiate->peer_cert,
-                                ca_chain, ca_crl,
-                                ssl->conf->cert_profile,
-                                ssl->hostname,
-                               &ssl->session_negotiate->verify_result,
-                                ssl->conf->f_vrfy, ssl->conf->p_vrfy );
+            /*
+             * Main check: verify certificate
+             */
+            ret = mbedtls_x509_crt_verify_with_profile(
+                                    ssl->session_negotiate->peer_cert,
+                                    ca_chain, ca_crl,
+                                    ssl->conf->cert_profile,
+                                    ssl->hostname,
+                                   &ssl->session_negotiate->verify_result,
+                                    ssl->conf->f_vrfy, ssl->conf->p_vrfy );
 
-        if( ret != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "x509_verify_cert", ret );
+            if( ret != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "x509_verify_cert", ret );
+            }
         }
 
         /*

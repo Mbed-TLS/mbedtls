@@ -152,6 +152,8 @@
  */
 #define MBEDTLS_TLS_EXT_SUPPORTED_POINT_FORMATS_PRESENT (1 << 0)
 #define MBEDTLS_TLS_EXT_ECJPAKE_KKPP_OK                 (1 << 1)
+#define MBEDTLS_TLS_EXT_CLIENT_CERTIFICATE_TYPE_PRESENT (1 << 2)
+#define MBEDTLS_TLS_EXT_SERVER_CERTIFICATE_TYPE_PRESENT (1 << 3)
 
 #ifdef __cplusplus
 extern "C" {
@@ -261,6 +263,11 @@ struct mbedtls_ssl_handshake_params
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
     int extended_ms;                    /*!< use Extended Master Secret? */
+#endif
+
+#if defined(MBEDTLS_RAW_PUBLIC_KEY_SUPPORT)
+    int client_cert_type;    /* cert types supported */
+    int server_cert_type;    /* cert types supported */
 #endif
 };
 

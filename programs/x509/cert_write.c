@@ -189,11 +189,11 @@ int main( int argc, char *argv[] )
     mbedtls_pk_context *issuer_key = &loaded_issuer_key,
                 *subject_key = &loaded_subject_key;
     char buf[1024];
-    char issuer_name[128];
+    char issuer_name[256];
     int i;
     char *p, *q, *r;
 #if defined(MBEDTLS_X509_CSR_PARSE_C)
-    char subject_name[128];
+    char subject_name[256];
     mbedtls_x509_csr csr;
 #endif
     mbedtls_x509write_cert crt;

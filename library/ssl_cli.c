@@ -418,6 +418,52 @@ static void ssl_write_ecjpake_kkpp_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
+#if defined(MBEDTLS_RAW_PUBLIC_KEY_SUPPORT)
+static void ssl_write_client_certificate_ext( mbedtls_ssl_context *ssl,
+                                              unsigned char *buf,
+                                              size_t *olen )
+{
+    unsigned char *p = buf;
+    ((void) ssl);
+
+    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_CLIENT_CERTIFICATE_TYPE >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_CLIENT_CERTIFICATE_TYPE      ) & 0xFF );
+
+    *p++ = 0x00;
+    *p++ = 4;
+
+    *p++ = 0x00;
+    *p++ = 2;
+
+    *p++ = MBEDTLS_TLS_CERT_TYPE_X509;
+    *p++ = MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY;
+
+    *olen = 8;
+}
+
+static void ssl_write_server_certificate_ext( mbedtls_ssl_context *ssl,
+                                              unsigned char *buf,
+                                              size_t *olen )
+{
+    unsigned char *p = buf;
+    ((void) ssl);
+
+    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SERVER_CERTIFICATE_TYPE >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SERVER_CERTIFICATE_TYPE      ) & 0xFF );
+
+    *p++ = 0x00;
+    *p++ = 4;
+
+    *p++ = 0x00;
+    *p++ = 2;
+
+    *p++ = MBEDTLS_TLS_CERT_TYPE_X509;
+    *p++ = MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY;
+
+    *olen = 8;
+}
+#endif /* MBEDTLS_RAW_PUBLIC_KEY_SUPPORT */
+
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 static void ssl_write_max_fragment_length_ext( mbedtls_ssl_context *ssl,
                                                unsigned char *buf,
@@ -1011,6 +1057,14 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     ext_len += olen;
 #endif
 
+#if defined(MBEDTLS_RAW_PUBLIC_KEY_SUPPORT)
+    ssl_write_client_certificate_ext( ssl, p + 2 + ext_len, &olen );
+    ext_len += olen;
+    
+    ssl_write_server_certificate_ext( ssl, p + 2 + ext_len, &olen );
+    ext_len += olen;
+#endif
+
     /* olen unused if all extensions are disabled */
     ((void) olen);
 
@@ -1259,6 +1313,46 @@ static int ssl_parse_ecjpake_kkpp( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
+
+#if defined(MBEDTLS_RAW_PUBLIC_KEY_SUPPORT)
+static int ssl_parse_client_cert_ext( mbedtls_ssl_context *ssl,
+                                      const unsigned char *buf,
+                                      size_t len )
+{
+    if( len != 1 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
+        return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
+    }
+
+    ssl->handshake->client_cert_type = buf[0];
+
+    if (ssl->handshake->client_cert_type == MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY) {
+        MBEDTLS_SSL_DEBUG_MSG( 4, ( "raw public key client certificate type selected" ) );
+    }
+
+    return 0;
+}
+
+static int ssl_parse_server_cert_ext( mbedtls_ssl_context *ssl,
+                                      const unsigned char *buf,
+                                      size_t len )
+{
+    if( len != 1 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
+        return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
+    }
+
+    ssl->handshake->server_cert_type = buf[0];
+
+    if (ssl->handshake->server_cert_type == MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY) {
+        MBEDTLS_SSL_DEBUG_MSG( 4, ( "raw public key server certificate type selected" ) );
+    }
+
+    return 0;
+}
+#endif /* MBEDTLS_RAW_PUBLIC_KEY_SUPPORT */
 
 #if defined(MBEDTLS_SSL_ALPN)
 static int ssl_parse_alpn_ext( mbedtls_ssl_context *ssl,
@@ -1785,6 +1879,24 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 
             break;
 #endif /* MBEDTLS_SSL_ALPN */
+
+#if defined(MBEDTLS_RAW_PUBLIC_KEY_SUPPORT)
+        case MBEDTLS_TLS_EXT_CLIENT_CERTIFICATE_TYPE:
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "found client certificate type extension" ) );
+            
+            ret = ssl_parse_client_cert_ext( ssl, ext + 4, ext_size );
+            if( ret != 0 )
+                return( ret );
+            break;
+
+        case MBEDTLS_TLS_EXT_SERVER_CERTIFICATE_TYPE:
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "found server certificate type extension" ) );
+            
+            ret = ssl_parse_server_cert_ext( ssl, ext + 4, ext_size );
+            if( ret != 0 )
+                return( ret );
+            break;
+#endif /* MBEDTLS_RAW_PUBLIC_KEY_SUPPORT */
 
         default:
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "unknown extension found: %d (ignoring)",

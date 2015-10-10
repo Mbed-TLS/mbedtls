@@ -75,7 +75,7 @@ int main( void )
     "                          key_encipherment\n"      \
     "                          data_encipherment\n"     \
     "                          key_agreement\n"         \
-    "                          key_certificate_sign\n"  \
+    "                          key_cert_sign\n"  \
     "                          crl_sign\n"              \
     "    ns_cert_type=%%s     default: (empty)\n"       \
     "                        Comma-separated-list of values:\n"     \

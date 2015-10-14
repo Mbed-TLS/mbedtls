@@ -192,7 +192,7 @@ int asn1_write_bool( unsigned char **p, unsigned char *start, int boolean )
     if( *p - start < 1 )
         return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
 
-    *--(*p) = (boolean) ? 1 : 0;
+    *--(*p) = (boolean) ? 255 : 0;
     len++;
 
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );

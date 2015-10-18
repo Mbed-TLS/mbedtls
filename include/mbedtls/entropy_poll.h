@@ -56,6 +56,11 @@ extern "C" {
 
 #if !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
 /**
+ * \brief           Platform-specific entropy initialization
+ */
+int mbedtls_platform_entropy_init( void );
+
+/**
  * \brief           Platform-specific entropy poll callback
  */
 int mbedtls_platform_entropy_poll( void *data,

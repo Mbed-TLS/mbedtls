@@ -56,6 +56,11 @@
 #include <windows.h>
 #include <wincrypt.h>
 
+int mbedtls_platform_entropy_init( void )
+{
+    return( 0 );
+}
+
 int mbedtls_platform_entropy_poll( void *data, unsigned char *output, size_t len,
                            size_t *olen )
 {
@@ -147,10 +152,27 @@ static int has_getrandom = -1;
 
 #include <stdio.h>
 
+#if !defined(HAVE_GETRANDOM)
+static FILE *urandom_file = NULL;
+#endif /* !HAVE_GETRANDOM */
+
+int mbedtls_platform_entropy_init( void )
+{
+#if !defined(HAVE_GETRANDOM)
+    if( urandom_file != NULL )
+        fclose( urandom_file );
+
+    urandom_file = fopen( "/dev/urandom", "rb" );
+    if( urandom_file == NULL )
+        return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
+#endif /* !HAVE_GETRANDOM */
+
+    return( 0 );
+}
+
 int mbedtls_platform_entropy_poll( void *data,
                            unsigned char *output, size_t len, size_t *olen )
 {
-    FILE *file;
     size_t read_len;
     ((void) data);
 
@@ -172,18 +194,21 @@ int mbedtls_platform_entropy_poll( void *data,
 
     *olen = 0;
 
-    file = fopen( "/dev/urandom", "rb" );
-    if( file == NULL )
-        return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
+    if( urandom_file == NULL )
+    {
+        int ret = mbedtls_platform_entropy_init();
+        if( ret != 0 )
+            return( ret );
+    }
 
-    read_len = fread( output, 1, len, file );
+    read_len = fread( output, 1, len, urandom_file );
     if( read_len != len )
     {
-        fclose( file );
+        fclose( urandom_file );
+        urandom_file = NULL;
         return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
     }
 
-    fclose( file );
     *olen = len;
 
     return( 0 );

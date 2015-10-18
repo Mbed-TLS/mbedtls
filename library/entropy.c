@@ -95,6 +95,7 @@ void mbedtls_entropy_init( mbedtls_entropy_context *ctx )
 
 #if !defined(MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES)
 #if !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
+    mbedtls_platform_entropy_init();
     mbedtls_entropy_add_source( ctx, mbedtls_platform_entropy_poll, NULL,
                                 MBEDTLS_ENTROPY_MIN_PLATFORM,
                                 MBEDTLS_ENTROPY_SOURCE_STRONG );

@@ -7004,7 +7004,8 @@ void mbedtls_ssl_config_free( mbedtls_ssl_config *conf )
     mbedtls_zeroize( conf, sizeof( mbedtls_ssl_config ) );
 }
 
-#if defined(MBEDTLS_PK_C)
+#if defined(MBEDTLS_PK_C) && \
+    ( defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECDSA_C) )
 /*
  * Convert between MBEDTLS_PK_XXX and SSL_SIG_XXX
  */
@@ -7037,7 +7038,7 @@ mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig( unsigned char sig )
             return( MBEDTLS_PK_NONE );
     }
 }
-#endif /* MBEDTLS_PK_C */
+#endif /* MBEDTLS_PK_C && ( MBEDTLS_RSA_C || MBEDTLS_ECDSA_C ) */
 
 /*
  * Convert from MBEDTLS_SSL_HASH_XXX to MBEDTLS_MD_XXX

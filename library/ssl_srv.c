@@ -2092,9 +2092,10 @@ static void ssl_write_ecjpake_kkpp_ext( mbedtls_ssl_context *ssl,
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_ECJPAKE_KKPP >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_ECJPAKE_KKPP      ) & 0xFF );
 
-    if( ( ret = mbedtls_ecjpake_write_round_one( &ssl->handshake->ecjpake_ctx,
-                    p + 2, end - p - 2, &kkpp_len,
-                    ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+    ret = mbedtls_ecjpake_write_round_one( &ssl->handshake->ecjpake_ctx,
+                                        p + 2, end - p - 2, &kkpp_len,
+                                        ssl->conf->f_rng, ssl->conf->p_rng );
+    if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1 , "mbedtls_ecjpake_write_round_one", ret );
         return;

@@ -38,6 +38,7 @@
 #define MBEDTLS_HAVE_ASM
 
 /* mbed TLS feature support */
+#define MBEDTLS_AES_ROM_TABLES
 #define MBEDTLS_ECP_DP_SECP256R1_ENABLED
 #define MBEDTLS_ECP_NIST_OPTIM
 #define MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
@@ -69,7 +70,13 @@
 #define MBEDTLS_SSL_CLI_C
 #define MBEDTLS_SSL_SRV_C
 #define MBEDTLS_SSL_TLS_C
-#define MBEDTLS_VERSION_C
+
+/* Save RAM by adjusting to our exact needs */
+#define MBEDTLS_ECP_MAX_BITS             256
+#define MBEDTLS_ENTROPY_MAX_SOURCES        2
+
+/* Save ROM and a few bytes of RAM by specifying our own ciphersuite list */
+#define MBEDTLS_SSL_CIPHERSUITES MBEDTLS_TLS_ECJPAKE_WITH_AES_128_CCM_8
 
 #if defined(TARGET_LIKE_MBED)
 #include "mbedtls/target_config.h"

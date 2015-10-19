@@ -862,11 +862,11 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     }
 #endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
 
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)    
-    if( ssl->conf->f_export_keys != NULL)
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+    if( ssl->conf->f_export_keys != NULL )
     {
-        ssl->conf->f_export_keys( ssl->conf->p_export_keys, 
-                                  keyblk, session->master,
+        ssl->conf->f_export_keys( ssl->conf->p_export_keys,
+                                  session->master, keyblk,
                                   transform->maclen, transform->keylen,
                                   iv_copy_len );
     }

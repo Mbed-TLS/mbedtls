@@ -94,7 +94,7 @@ int ssl_cache_set( void *data, const ssl_session *session );
 void ssl_cache_set_timeout( ssl_cache_context *cache, int timeout );
 
 /**
- * \brief          Set the cache timeout
+ * \brief          Set the maximun number of cache entries
  *                 (Default: SSL_CACHE_DEFAULT_MAX_ENTRIES (50))
  *
  * \param cache    SSL cache context

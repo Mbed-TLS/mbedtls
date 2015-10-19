@@ -57,6 +57,7 @@ void mbedtls_ecjpake_init( mbedtls_ecjpake_context *ctx )
 
     ctx->md_info = NULL;
     mbedtls_ecp_group_init( &ctx->grp );
+    ctx->point_format = MBEDTLS_ECP_PF_UNCOMPRESSED;
 
     mbedtls_ecp_point_init( &ctx->Xm1 );
     mbedtls_ecp_point_init( &ctx->Xm2 );

@@ -168,9 +168,9 @@ static int ecjpake_write_len_point( unsigned char **p,
 
 /*
  * Size of the temporary buffer for ecjpake_hash:
- * 3 EC points plus their length, plus ID (6 bytes)
+ * 3 EC points plus their length, plus ID and its length (4 + 6 bytes)
  */
-#define ECJPAKE_HASH_BUF_LEN    ( 3 * ( 4 + MBEDTLS_ECP_MAX_PT_LEN ) + 6 )
+#define ECJPAKE_HASH_BUF_LEN    ( 3 * ( 4 + MBEDTLS_ECP_MAX_PT_LEN ) + 4 + 6 )
 
 /*
  * Compute hash for ZKP (7.4.2.2.2.1)
@@ -196,13 +196,16 @@ static int ecjpake_hash( const mbedtls_md_info_t *md_info,
     MBEDTLS_MPI_CHK( ecjpake_write_len_point( &p, end, grp, pf, V ) );
     MBEDTLS_MPI_CHK( ecjpake_write_len_point( &p, end, grp, pf, X ) );
 
-    if( end < p || (size_t)( end - p ) < id_len )
+    if( end - p < 4 )
         return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
 
     *p++ = (unsigned char)( ( id_len >> 24 ) & 0xFF );
     *p++ = (unsigned char)( ( id_len >> 16 ) & 0xFF );
     *p++ = (unsigned char)( ( id_len >>  8 ) & 0xFF );
     *p++ = (unsigned char)( ( id_len       ) & 0xFF );
+
+    if( end < p || (size_t)( end - p ) < id_len )
+        return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
 
     memcpy( p, id, id_len );
     p += id_len;

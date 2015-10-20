@@ -1,6 +1,6 @@
 {
     "name": "mbedtls",
-    "version": "2.1.3",
+    "version": "2.1.4",
     "description": "The mbed TLS crypto/SSL/TLS library",
     "licenses": [
         {
@@ -10,9 +10,9 @@
     ],
     "dependencies": {},
     "targetDependencies": {
-        "mbed": { "cmsis-core": "~0.4.0" }
+        "mbed": { "cmsis-core": "^1.0.0" }
     },
     "testTargetDependencies": {
-        "mbed": { "sockets": "~0.6.0" }
+        "mbed": { "sockets": "^1.0.0" }
     }
 }

@@ -75,9 +75,12 @@
 #define MBEDTLS_NET_C
 #define MBEDTLS_TIMING_C
 
+/* Save RAM at the expense of ROM */
+#define MBEDTLS_AES_ROM_TABLES
+
 /* Save RAM by adjusting to our exact needs */
 #define MBEDTLS_ECP_MAX_BITS             256
-#define MBEDTLS_ENTROPY_MAX_SOURCES        2
+#define MBEDTLS_MPI_MAX_SIZE              32 // 256 bits is 32 bytes
 
 /* Save ROM and a few bytes of RAM by specifying our own ciphersuite list */
 #define MBEDTLS_SSL_CIPHERSUITES MBEDTLS_TLS_ECJPAKE_WITH_AES_128_CCM_8
@@ -86,6 +89,6 @@
 #include "mbedtls/target_config.h"
 #endif
 
-#include "check_config.h"
+#include "mbedtls/check_config.h"
 
 #endif /* MBEDTLS_CONFIG_H */

@@ -5735,11 +5735,7 @@ int mbedtls_ssl_set_hs_psk( mbedtls_ssl_context *ssl,
         mbedtls_free( ssl->handshake->psk );
 
     if( ( ssl->handshake->psk = mbedtls_calloc( 1, psk_len ) ) == NULL )
-    {
-        mbedtls_free( ssl->handshake->psk );
-        ssl->handshake->psk = NULL;
         return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
-    }
 
     ssl->handshake->psk_len = psk_len;
     memcpy( ssl->handshake->psk, psk, ssl->handshake->psk_len );

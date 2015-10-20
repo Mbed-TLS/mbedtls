@@ -1,5 +1,76 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.1.2 released 2015-10-06
+
+Security
+   * Added fix for CVE-2015-5291 to prevent heap corruption due to buffer
+     overflow of the hostname or session ticket. Found by Guido Vranken,
+     Intelworks.
+   * Fix potential double-free if mbedtls_ssl_set_hs_psk() is called more than
+     once in the same handhake and mbedtls_ssl_conf_psk() was used.
+     Found and patch provided by Guido Vranken, Intelworks. Cannot be forced
+     remotely.
+   * Fix stack buffer overflow in pkcs12 decryption (used by
+     mbedtls_pk_parse_key(file)() when the password is > 129 bytes.
+     Found by Guido Vranken, Intelworks. Not triggerable remotely.
+   * Fix potential buffer overflow in mbedtls_mpi_read_string().
+     Found by Guido Vranken, Intelworks. Not exploitable remotely in the context
+     of TLS, but might be in other uses. On 32 bit machines, requires reading a
+     string of close to or larger than 1GB to exploit; on 64 bit machines, would
+     require reading a string of close to or larger than 2^62 bytes.
+   * Fix potential random memory allocation in mbedtls_pem_read_buffer()
+     on crafted PEM input data. Found and fix provided by Guido Vranken,
+     Intelworks. Not triggerable remotely in TLS. Triggerable remotely if you
+     accept PEM data from an untrusted source.
+   * Fix possible heap buffer overflow in base64_encoded() when the input
+     buffer is 512MB or larger on 32-bit platforms. Found by Guido Vranken,
+     Intelworks. Not trigerrable remotely in TLS.
+   * Fix potential double-free if mbedtls_conf_psk() is called repeatedly on
+     the same mbedtls_ssl_config object and memory allocation fails. Found by
+     Guido Vranken, Intelworks. Cannot be forced remotely.
+   * Fix potential heap buffer overflow in servers that perform client
+     authentication against a crafted CA cert. Cannot be triggered remotely
+     unless you allow third parties to pick trust CAs for client auth.
+     Found by Guido Vranken, Intelworks.
+
+Bugfix
+   * Fix compile error in net.c with musl libc. Found and patch provided by
+     zhasha (#278).
+   * Fix macroization of 'inline' keyword when building as C++. (#279)
+
+Changes
+   * Added checking of hostname length in mbedtls_ssl_set_hostname() to ensure
+     domain names are compliant with RFC 1035.
+   * Fixed paths for check_config.h in example config files. (Found by bachp)
+     (#291)
+
+= mbed TLS 2.1.1 released 2015-09-17
+
+Security
+   * Add countermeasure against Lenstra's RSA-CRT attack for PKCS#1 v1.5
+     signatures. (Found by Florian Weimer, Red Hat.)
+     https://securityblog.redhat.com/2015/09/02/factoring-rsa-keys-with-tls-perfect-forward-secrecy/
+   * Fix possible client-side NULL pointer dereference (read) when the client
+     tries to continue the handshake after it failed (a misuse of the API).
+     (Found and patch provided by Fabian Foerg, Gotham Digital Science using
+     afl-fuzz.)
+
+Bugfix
+   * Fix warning when using a 64bit platform. (found by embedthis) (#275)
+   * Fix off-by-one error in parsing Supported Point Format extension that
+     caused some handshakes to fail.
+
+Changes
+   * Made X509 profile pointer const in mbedtls_ssl_conf_cert_profile() to allow
+     use of mbedtls_x509_crt_profile_next. (found by NWilson)
+   * When a client initiates a reconnect from the same port as a live
+     connection, if cookie verification is available
+     (MBEDTLS_SSL_DTLS_HELLO_VERIFY defined in config.h, and usable cookie
+     callbacks set with mbedtls_ssl_conf_dtls_cookies()), this will be
+     detected and mbedtls_ssl_read() will return
+     MBEDTLS_ERR_SSL_CLIENT_RECONNECT - it is then possible to start a new
+     handshake with the same context. (See RFC 6347 section 4.2.8.)
+
 = mbed TLS 2.1.0 released 2015-09-04
 
 Features
@@ -87,7 +158,7 @@ API Changes
      mbedtls_gcm_init() -> mbedtls_gcm_setkey()
      mbedtls_hmac_drbg_init() -> mbedtls_hmac_drbg_seed(_buf)()
      mbedtls_ctr_drbg_init()  -> mbedtls_ctr_drbg_seed()
-     Note that for mbetls_ssl_setup(), you need to be done setting up the
+     Note that for mbedtls_ssl_setup(), you need to be done setting up the
      ssl_config structure before calling it.
    * Most ssl_set_xxx() functions (all except ssl_set_bio(), ssl_set_hostname(),
      ssl_set_session() and ssl_set_client_transport_id(), plus

@@ -6,7 +6,7 @@ set -eu
 
 yotta/create-module.sh
 cd yotta/module
-# yt update # needs network
+yt update || true # needs network
 
 yotta_build()
 {

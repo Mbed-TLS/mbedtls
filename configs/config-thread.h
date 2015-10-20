@@ -71,6 +71,10 @@
 #define MBEDTLS_SSL_SRV_C
 #define MBEDTLS_SSL_TLS_C
 
+/* For tests using ssl-opt.sh */
+#define MBEDTLS_NET_C
+#define MBEDTLS_TIMING_C
+
 /* Save RAM by adjusting to our exact needs */
 #define MBEDTLS_ECP_MAX_BITS             256
 #define MBEDTLS_ENTROPY_MAX_SOURCES        2

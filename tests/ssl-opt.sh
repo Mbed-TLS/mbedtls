@@ -2576,6 +2576,13 @@ run_test    "ECJPAKE: password mismatch, DTLS" \
             -c "re-using cached ecjpake parameters" \
             -s "SSL - Verification of the message MAC failed"
 
+# for tests with configs/config-thread.h
+run_test    "ECJPAKE: working, DTLS, nolog" \
+            "$P_SRV dtls=1 ecjpake_pw=bla" \
+            "$P_CLI dtls=1 ecjpake_pw=bla \
+             force_ciphersuite=TLS-ECJPAKE-WITH-AES-128-CCM-8" \
+            0
+
 # Tests for ciphersuites per version
 
 run_test    "Per-version suites: SSL3" \

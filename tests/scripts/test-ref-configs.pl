@@ -22,6 +22,9 @@ my %configs = (
     'config-ccm-psk-tls1_2.h' => {
         'compat' => '-m tls1_2 -f \'^TLS-PSK-WITH-AES-...-CCM-8\'',
     },
+    'config-thread.h' => {
+        'opt' => '-f ECJPAKE.*nolog',
+    },
 );
 
 # If no config-name is provided, use all known configs.
@@ -73,6 +76,18 @@ while( my ($conf, $data) = each %configs ) {
     else
     {
         print "\nskipping compat.sh\n";
+    }
+
+    my $opt = $data->{'opt'};
+    if( $opt )
+    {
+        print "\nrunning ssl-opt.sh $opt\n";
+        system( "tests/ssl-opt.sh $opt" )
+            and abort "Failed ssl-opt.sh: $conf\n";
+    }
+    else
+    {
+        print "\nskipping ssl-opt.sh\n";
     }
 }
 

@@ -3,6 +3,9 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS 2.1.3 released 2015-10-xx
 
 Security
+   * Fix potential double free if mbedtls_ssl_conf_psk() is called more than
+     once and some allocation fails. Cannot be forced remotely. Found by Guido
+     Vranken, Intelworks.
    * The X509 max_pathlen constraint was not enforced on intermediate
      certificates. Found by Nicholas Wilson, fix and tests provided by
      Janos Follath. #280 and #319

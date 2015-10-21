@@ -6,6 +6,9 @@ Security
    * Fix potential double free if mbedtls_ssl_conf_psk() is called more than
      once and some allocation fails. Cannot be forced remotely. Found by Guido
      Vranken, Intelworks.
+   * Fix potential heap corruption on Windows when
+     mbedtls_x509_crt_parse_path() is passed a path longer than 2GB. Cannot be
+     triggered remotely. Found by Guido Vranken, Interlworks.
    * The X509 max_pathlen constraint was not enforced on intermediate
      certificates. Found by Nicholas Wilson, fix and tests provided by
      Janos Follath. #280 and #319

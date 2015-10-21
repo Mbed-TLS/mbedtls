@@ -949,11 +949,16 @@ int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex )
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
     if( key_ex == POLARSSL_KEY_EXCHANGE_PSK )
     {
-        if( end - p < 2 + (int) ssl->psk_len )
+        if( end - p < 2 )
             return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
         *(p++) = (unsigned char)( ssl->psk_len >> 8 );
         *(p++) = (unsigned char)( ssl->psk_len      );
+
+        if( end < p || (size_t)( end - p ) < ssl->psk_len )
+            return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+        memset( p, 0, ssl->psk_len );
         p += ssl->psk_len;
     }
     else
@@ -1021,11 +1026,15 @@ int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex )
     }
 
     /* opaque psk<0..2^16-1>; */
-    if( end - p < 2 + (int) ssl->psk_len )
-            return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+    if( end - p < 2 )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
     *(p++) = (unsigned char)( ssl->psk_len >> 8 );
     *(p++) = (unsigned char)( ssl->psk_len      );
+
+    if( end < p || (size_t)( end - p ) < ssl->psk_len )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
     memcpy( p, ssl->psk, ssl->psk_len );
     p += ssl->psk_len;
 

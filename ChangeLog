@@ -1,5 +1,13 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.2.R0released 2015-10-xx
+
+Security
+   * Fix potential buffer overflow in some asn1_write_xxx() functions.
+     Cannot be triggered remotely unless you create X.509 certificates based
+     on untrusted input or write keys of untrusted origin. Found by Guido
+     Vranken, Interlworks.
+
 = mbed TLS 2.1.2 released 2015-10-06
 
 Security

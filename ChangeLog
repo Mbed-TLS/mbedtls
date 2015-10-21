@@ -9,6 +9,10 @@ Security
    * Fix potential heap corruption on Windows when
      x509_crt_parse_path() is passed a path longer than 2GB. Cannot be
      triggered remotely. Found by Guido Vranken, Interlworks.
+   * Fix potential buffer overflow in some asn1_write_xxx() functions.
+     Cannot be triggered remotely unless you create X.509 certificates based
+     on untrusted input or write keys of untrusted origin. Found by Guido
+     Vranken, Interlworks.
 
 = mbed TLS 1.3.14 released 2015-10-06
 

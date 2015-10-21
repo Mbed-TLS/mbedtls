@@ -88,7 +88,7 @@ int asn1_write_raw_buffer( unsigned char **p, unsigned char *start,
 {
     size_t len = 0;
 
-    if( *p - start < (int) size )
+    if( *p < start || (size_t)( *p - start ) < size )
         return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
 
     len = size;
@@ -108,7 +108,7 @@ int asn1_write_mpi( unsigned char **p, unsigned char *start, mpi *X )
     //
     len = mpi_size( X );
 
-    if( *p - start < (int) len )
+    if( *p < start || (size_t)( *p - start ) < len )
         return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
 
     (*p) -= len;
@@ -271,7 +271,7 @@ int asn1_write_bitstring( unsigned char **p, unsigned char *start,
 
     // Calculate byte length
     //
-    if( *p - start < (int) size + 1 )
+    if( *p < start || (size_t)( *p - start ) < size + 1 )
         return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
 
     len = size + 1;

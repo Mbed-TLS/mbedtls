@@ -8,17 +8,17 @@ The Beta release of mbed TLS integrates the mbed TLS library into mbed OS, mbed 
 
 This release includes the following examples:
 
-1. [**TLS client:**](https://github.com/ARMmbed/mbedtls/blob/development/yotta/data/example-tls-client) found in `test/example-tls-client`. Downloads a test file from an HTTPS server and looks for a specific string in that file.
+1. [**Self test:**](https://github.com/ARMmbed/mbedtls/blob/development/yotta/data/example-selftest) found in `test/example-selftest`. Tests different basic functions in the mbed TLS library.
 
-2. [**Self test:**](https://github.com/ARMmbed/mbedtls/blob/development/yotta/data/example-selftest) found in `test/example-selftest`. Tests different basic functions in the mbed TLS library.
-
-3. [**Benchmark:**](https://github.com/ARMmbed/mbedtls/blob/development/yotta/data/example-benchmark) found in `test/example-benchmark`. Measures the time taken to perform basic cryptographic functions used in the library.
+2. [**Benchmark:**](https://github.com/ARMmbed/mbedtls/blob/development/yotta/data/example-benchmark) found in `test/example-benchmark`. Measures the time taken to perform basic cryptographic functions used in the library.
 
 These examples are integrated as yotta tests, so that they are built automatically when you build mbed TLS. You'll find more examples in the various `test/example-*` directories.
 
-## Running mbed TLS
+## Performing TLS and DTLS connections
 
-To build and run the example, please follow the instructions in the [TLS client example](https://github.com/ARMmbed/mbedtls/blob/development/yotta/data/example-tls-client) directory. These include a list of prerequisites and an explanation of building mbed TLS with yotta.
+A high-level API for performing TLS and DTLS connections with mbed TLS in mbed OS is provided in a separate yotta module: [mbed-tls-sockets](https://github.com/ARMmbed/mbed-tls-sockets). It is the recommended API for TLS and DTLS connections.  It is very similar to the API provided by the [sockets](https://github.com/ARMmbed/sockets) module for unencrypted TCP and UDP connections.
+
+The `mbed-tls-sockets` module includes a complete [example TLS client](https://github.com/ARMmbed/mbed-tls-sockets/blob/master/test/tls-client/main.cpp) with [usage instructions](https://github.com/ARMmbed/mbed-tls-sockets/blob/master/test/tls-client/README.md).
 
 ## Configuring mbed TLS features
 

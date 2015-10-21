@@ -16,7 +16,11 @@ This release includes the following examples:
 
 2. [**Benchmark:**](https://github.com/ARMmbed/mbedtls/blob/development/yotta/data/example-benchmark) found in `test/example-benchmark`. Measures the time taken to perform basic cryptographic functions used in the library.
 
-These examples are integrated as yotta tests, so that they are built automatically when you build mbed TLS. You'll find more examples in the various `test/example-*` directories.
+3. [**Hashing:**](https://github.com/ARMmbed/mbedtls/blob/development/yotta/data/example-hashing) found in `test/example-hashing`. Demonstrates the various APIs for computes hashes of data (also known as message digests) with SHA-256.
+
+4. [**Authenticated encrypted:**](https://github.com/ARMmbed/mbedtls/blob/development/yotta/data/example-authcrypt) found in `test/example-authcrypt`. Demonstrates usage of the Cipher API for encrypting and authenticating data with AES-CCM.
+
+These examples are integrated as yotta tests, so that they are built automatically when you build mbed TLS. Each of them comes with complete usage instructions as a Readme file in its directory.
 
 ## Performing TLS and DTLS connections
 

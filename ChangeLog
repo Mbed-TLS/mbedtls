@@ -21,6 +21,8 @@ Bugfix
      size/curve against the profile. Before that, there was no way to set a
      minimum key size for end-entity certificates with RSA keys. Found by
      Matthew Page of Scannex Electronics Ltd.
+   * Fix failures in MPI on Sparc(64) due to use of bad assembly code.
+     Found by Kurt Danielson. #292
 
 Changes
    * Improved performance of mbedtls_ecp_muladd() when one of the scalars is 1

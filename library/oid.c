@@ -268,7 +268,7 @@ static const oid_x509_ext_t oid_x509_ext[] =
         EXT_KEY_USAGE,
     },
     {
-        { ADD_LEN( OID_EXTENDED_KEY_USAGE ),   "id-ce-keyUsage",           "Extended Key Usage" },
+        { ADD_LEN( OID_EXTENDED_KEY_USAGE ),   "id-ce-extKeyUsage",        "Extended Key Usage" },
         EXT_EXTENDED_KEY_USAGE,
     },
     {

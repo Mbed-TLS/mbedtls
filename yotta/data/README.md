@@ -4,6 +4,10 @@ mbed TLS (formerly known as PolarSSL) makes it trivially easy for developers to 
 
 The Beta release of mbed TLS integrates the mbed TLS library into mbed OS, mbed SDK and yotta. This is a preview release intended for evaluation only and is **not recommended for deployment**. It currently implements no secure source of random numbers, weakening its security.
 
+Currently the only supported yotta targets are:
+- `frdm-k64f-gcc` and `frdm-k64f-armcc`
+- `x86-linux-native` and `x86-osx-native`
+
 ## Sample programs
 
 This release includes the following examples:

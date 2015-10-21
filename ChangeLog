@@ -5,6 +5,7 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Bugfix
    * Fix failures in MPI on Sparc(64) due to use of bad assembly code.
      Found by Kurt Danielson. #292
+   * Fix typo in name of the extKeyUsage OID. Found by inestlerode, #314
 
 = mbed TLS 2.1.2 released 2015-10-06
 

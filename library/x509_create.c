@@ -265,12 +265,15 @@ int x509_write_sig( unsigned char **p, unsigned char *start,
     int ret;
     size_t len = 0;
 
-    if( *p - start < (int) size + 1 )
+    if( *p < start || (size_t)( *p - start ) < size )
         return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
 
     len = size;
     (*p) -= len;
     memcpy( *p, sig, len );
+
+    if( *p - start < 1 )
+        return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
 
     *--(*p) = 0;
     len += 1;

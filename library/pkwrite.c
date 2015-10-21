@@ -97,7 +97,7 @@ static int pk_write_ec_pubkey( unsigned char **p, unsigned char *start,
         return( ret );
     }
 
-    if( *p - start < (int) len )
+    if( *p < start || (size_t)( *p - start ) < len )
         return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
 
     *p -= len;

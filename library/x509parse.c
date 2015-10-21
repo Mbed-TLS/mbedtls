@@ -1932,7 +1932,7 @@ int x509parse_crtpath( x509_cert *chain, const char *path )
     WCHAR szDir[MAX_PATH];
     char filename[MAX_PATH];
 	char *p;
-    int len = strlen( path );
+    size_t len = strlen( path );
 
 	WIN32_FIND_DATAW file_data;
     HANDLE hFind;
@@ -1947,7 +1947,7 @@ int x509parse_crtpath( x509_cert *chain, const char *path )
 	p = filename + len;
     filename[len++] = '*';
 
-	w_ret = MultiByteToWideChar( CP_ACP, 0, filename, len, szDir, MAX_PATH - 3 );
+	w_ret = MultiByteToWideChar( CP_ACP, 0, filename, (int) len, szDir, MAX_PATH - 3 );
     if( w_ret == 0 )
         return( POLARSSL_ERR_X509_INVALID_INPUT );
 
@@ -1965,7 +1965,7 @@ int x509parse_crtpath( x509_cert *chain, const char *path )
 
 		w_ret = WideCharToMultiByte( CP_ACP, 0, file_data.cFileName,
 									 lstrlenW(file_data.cFileName),
-									 p, len - 1,
+									 p, (int) len - 1,
 									 NULL, NULL );
         if( w_ret == 0 )
             return( POLARSSL_ERR_X509_FILE_IO_ERROR );

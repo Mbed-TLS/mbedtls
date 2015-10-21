@@ -1,11 +1,18 @@
 PolarSSL ChangeLog
 
+= Version 1.2.18 released 2015-10-xx
+
+Security
+   * Fix potential heap corruption on Windows when
+     x509_crt_parse_path() is passed a path longer than 2GB. Cannot be
+     triggered remotely. Found by Guido Vranken, Interlworks.
+
 = Version 1.2.17 released 2015-10-06
 
 Security
-   * Fix for CVE-2015-5291. Possible heap buffer overflow in SSL if a very long
-     hostname is used. Can be trigerred remotely if you accept hostnames from
-     untrusted parties. Found by Guido Vranken, Intelworks.
+   * Fix for CVE-2015-5291 to prevent heap corruption due to buffer
+     overflow of the hostname or session ticket. Found by Guido Vranken,
+     Intelworks.
    * Fix stack buffer overflow in pkcs12 decryption (used by
      mbedtls_pk_parse_key(file)() when the password is > 129 bytes. Found by
      Guido Vranken, Intelworks. Not triggerable remotely.

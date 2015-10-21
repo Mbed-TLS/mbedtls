@@ -26,15 +26,24 @@ The `mbed-tls-sockets` module includes a complete [example TLS client](https://g
 
 ## Configuring mbed TLS features
 
-mbed TLS makes it easy to disable any feature during compilation that isn't required for a particular project. The default configuration enables all modern and widely-used features, which should meet the needs of new projects, and disables all features that are older or less common, to minimize the code footprint. 
+mbed TLS makes it easy to disable any feature during compilation that isn't required for a particular project. The default configuration enables all modern and widely-used features, which should meet the needs of new projects, and disables all features that are older or less common, to minimize the code footprint.
 
 The list of available compilation flags is presented in the fully documented [config.h file](https://github.com/ARMmbed/mbedtls/blob/development/include/mbedtls/config.h), present in the `mbedtls` directory of the yotta module.
 
-If you need to adjust those flags, you can provide your own configuration file with suitable `#define` and `#undef` statements. These will be included between the default definitions and the sanity checks. Your configuration file should be in your application's `include` directory, and can be named freely; you just need to let mbed TLS know the file's name. To do that, use yotta's [configuration system](http://docs.yottabuild.org/reference/config.html). The file's name should be in your `config.json` file, under mbedtls, as the key `user-config-file`. For example:
+If you need to adjust those flags, you can provide your own configuration-adjustment file with suitable `#define` and `#undef` statements. These will be included between the default definitions and the sanity checks. Your configuration file should be in your application's include directory, and can be named freely; you just need to let mbed TLS know the file's name. To do that, use yotta's [configuration system](http://docs.yottabuild.org/reference/config.html). The file's name should be in your `config.json` file, under mbedtls, as the key `user-config-file`.
+
+For example, in an application called `myapp`, if you want to enable the EC J-PAKE key exchange and disable the CBC cipher mode, you can create a file named for example `mbedtls-config-changes.h` in the `myapp` directory containing the following lines:
+
+    #define MBEDTLS_ECJPAKE_C
+    #define MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
+
+    #undef MBEDTLS_CIPHER_MODE_CBC
+
+and then create a file named `config.json` at the root of your application with the following contents:
 
     {
        "mbedtls": {
-          "user-config-file": "\"myapp/my_mbedtls_config_changes.h\""
+          "user-config-file": "\"myapp/mbedtls-config-changes.h\""
        }
     }
 

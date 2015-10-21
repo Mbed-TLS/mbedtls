@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.2.0 released 2015-10-xx
+
+Bugfix
+   * Fix failures in MPI on Sparc(64) due to use of bad assembly code.
+     Found by Kurt Danielson. #292
+
 = mbed TLS 2.1.2 released 2015-10-06
 
 Security

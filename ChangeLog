@@ -1,5 +1,12 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.2.0 released 2015-10-xx
+
+Security
+   * Fix potential heap corruption on Windows when
+     mbedtls_x509_crt_parse_path() is passed a path longer than 2GB. Cannot be
+     triggered remotely. Found by Guido Vranken, Interlworks.
+
 = mbed TLS 2.1.2 released 2015-10-06
 
 Security

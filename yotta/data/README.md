@@ -53,6 +53,25 @@ and then create a file named `config.json` at the root of your application with 
 
 Please note: you need to provide the exact name that will be used in the `#include` directive, including the `<>` or quotes around the name.
 
+## Getting mbed TLS from GitHub
+
+Like most components of mbed OS, mbed TLS is developed in the open and its source can be found on GitHub: [ARMmbed/mbedtls](https://github.com/ARMmbed/mbedtls). Unlike most other mbed OS components however, you cannot just clone the repository and run `yotta build` from its root. This is because mbed TLS also exists as an independent component, so its repository includes things that are not relevant for mbed OS, as well as other build systems.
+
+The way to use mbed TLS from a clone of the GitHub repository is to run the following commands from the root of a checkout:
+
+    yotta/create-module.sh
+    cd yotta/module
+
+You can then run any yotta command you would normally run, such as `yotta build` or `yotta link`.
+
+## Differences between the standalone and mbed OS editions
+
+While the two editions share the same code base, there are still a number of differences, mainly in configuration and in integration. You should keep in mind those differences when reading some articles of our [knowledge base](https://tls.mbed.org/kb), as currently the articles are about the standalone edition.
+
+* The mbed OS edition has a smaller set of features enabled by default in `config.h`, in order to reduce footprint. While the default configuration of the standalone edition puts more emphasize on maintaining interoperability with old peers, the mbed OS edition only enables the most modern ciphers and the latest version of (D)TLS.
+* The following components of mbed TLS are not enabled in the mbed OS edition as mbed OS already includes equivalent facilities: `net.c` and `timing.c`.
+* The mbed OS edition comes with a fully integrated API for (D)TLS connections in a companion module: [mbed-tls-sockets](https://github.com/ARMmbed/mbed-tls-sockets), see "Performing TLS and DTLS connections" above.
+
 ## Contributing
 
 We gratefully accept bug reports and contributions from the community. There are some requirements we need to fulfill in order to be able to integrate contributions:

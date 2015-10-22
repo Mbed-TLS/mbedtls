@@ -19,6 +19,8 @@ my %configs = (
         => 0,
     'config-ccm-psk-tls1_2.h'
         => '-m tls1_2 -f \'^TLS-PSK-WITH-AES-...-CCM-8\'',
+    'config-ecdhe-psk-tls1_2.h'
+        => '-m tls1_2 -f \'^TLS-ECDHE-PSK-WITH-AES...\'',
 );
 
 # If no config-name is provided, use all known configs.

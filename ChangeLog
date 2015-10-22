@@ -1,10 +1,12 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.1.2 released 2015-10-06
+= mbed TLS 2.2.0 released 2015-10-xx
 
 Bugfix
    * Fix build error with configurations where ECDHE-PSK is the only key
      exchange. Found and fix provided by Chris Hammond. #270
+   * Fix build error with configurations where RSA, RSA-PSK, ECDH-RSA or
+     ECHD-ECDSA if the only key exchange. Multiple reports. #310
 
 = mbed TLS 2.1.2 released 2015-10-06
 

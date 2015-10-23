@@ -3696,8 +3696,9 @@ static void ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl );
 /*
  * Read a record.
  *
- * For DTLS, silently ignore invalid records (RFC 4.1.2.7.)
- * and continue reading until a valid record is found.
+ * Silently ignore non-fatal alert (and for DTLS, invalid records as well,
+ * RFC 6347 4.1.2.7) and continue reading until a valid record is found.
+ *
  */
 int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl )
 {
@@ -3729,9 +3730,7 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl )
     /*
      * Read the record header and parse it
      */
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
 read_record_header:
-#endif
     if( ( ret = mbedtls_ssl_fetch_input( ssl, mbedtls_ssl_hdr_len( ssl ) ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_fetch_input", ret );
@@ -3887,7 +3886,7 @@ read_record_header:
                        ssl->in_msg[0], ssl->in_msg[1] ) );
 
         /*
-         * Ignore non-fatal alerts, except close_notify
+         * Ignore non-fatal alerts, except close_notify and no_renego
          */
         if( ssl->in_msg[0] == MBEDTLS_SSL_ALERT_LEVEL_FATAL )
         {
@@ -3902,6 +3901,31 @@ read_record_header:
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "is a close notify message" ) );
             return( MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY );
         }
+
+#if defined(MBEDTLS_SSL_RENEGOTIATION_ENABLED)
+        if( ssl->in_msg[0] == MBEDTLS_SSL_ALERT_LEVEL_WARNING &&
+            ssl->in_msg[1] == MBEDTLS_SSL_ALERT_MSG_NO_RENEGOTIATION )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "is a SSLv3 no_cert" ) );
+            /* Will be handled when trying to parse ServerHello */
+            return( 0 );
+        }
+#endif
+
+#if defined(MBEDTLS_SSL_PROTO_SSL3) && defined(MBEDTLS_SSL_SRV_C)
+        if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 &&
+            ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
+            ssl->in_msg[0] == MBEDTLS_SSL_ALERT_LEVEL_WARNING &&
+            ssl->in_msg[1] == MBEDTLS_SSL_ALERT_MSG_NO_CERT )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "is a SSLv3 no_cert" ) );
+            /* Will be handled in mbedtls_ssl_parse_certificate() */
+            return( 0 );
+        }
+#endif /* MBEDTLS_SSL_PROTO_SSL3 && MBEDTLS_SSL_SRV_C */
+
+        /* Silently ignore: fetch new message */
+        goto read_record_header;
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= read record" ) );

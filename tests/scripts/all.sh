@@ -127,10 +127,15 @@ tests/ssl-opt.sh -f Default
 msg "test: compat.sh RC4, DES & NULL (full config)" # ~ 2 min
 tests/compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR'
 
-msg "test/build: curves.pl (gcc)" # ~ 5 min (?)
+msg "test/build: curves.pl (gcc)" # ~ 4 min
 cleanup
 cmake -D CMAKE_BUILD_TYPE:String=Debug .
 tests/scripts/curves.pl
+
+msg "test/build: key-exchanges (gcc)" # ~ 1 min
+cleanup
+cmake -D CMAKE_BUILD_TYPE:String=Check .
+tests/scripts/key-exchanges.pl
 
 msg "build: Unix make, -Os (gcc)" # ~ 30s
 cleanup

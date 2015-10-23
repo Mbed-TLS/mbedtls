@@ -1,5 +1,13 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.2.0 released 2015-10-06
+
+Bugfix
+   * mbedtls_x509_crt_verify(_with_profile)() now also checks the key type and
+     size/curve against the profile. Before that, there was no way to set a
+     minimum key size for end-entity certificates with RSA keys. Found by
+     Matthew Page.
+
 = mbed TLS 2.1.2 released 2015-10-06
 
 Security

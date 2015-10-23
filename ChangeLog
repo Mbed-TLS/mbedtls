@@ -8,7 +8,7 @@ Bugfix
    * Fix build error with configurations where RSA, RSA-PSK, ECDH-RSA or
      ECHD-ECDSA if the only key exchange. Multiple reports. #310
    * Fix bug causing some handshakes to fail due to some non-fatal alerts not
-     begin properly ignored. Found by Kasom Koht-arsa, #308
+     begin properly ignored. Found by mancha and Kasom Koht-arsa, #308
 
 Changes
    * Improved performance of mbedtls_ecp_muladd() when one of the scalars is 1

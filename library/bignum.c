@@ -889,23 +889,22 @@ int mpi_add_abs( mpi *X, const mpi *A, const mpi *B )
 {
     int ret;
     size_t i, j;
-    t_uint *o, *p, c;
+    mpi_uint *o, *p, c;
+    mpi TB;
 
     if( X == B )
     {
+        B = A; A = X;
+
         if( B == A )
         {
             // Making a temporary copy instead of shifting by one to deny
             // the possibility of corresponding side-channel attacks.
-            mpi TB;
-
             mpi_init( &TB );
-            MBEDTLS_MPI_CHK( mpi_copy( &TB, B ) );
+            MPI_CHK( mpi_copy( &TB, B ) );
 
-            return mpi_add_abs( X, A, &TB );
+            B = &TB;
         }
-
-        B = A; A = X;
     }
 
     if( X != A )
@@ -942,6 +941,10 @@ int mpi_add_abs( mpi *X, const mpi *A, const mpi *B )
     }
 
 cleanup:
+    if( &TB == B ) 
+    {
+        mpi_free( &TB );
+    }
 
     return( ret );
 }

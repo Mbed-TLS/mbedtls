@@ -887,7 +887,12 @@ int mbedtls_mpi_add_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
 
     if( X == B )
     {
-        const mbedtls_mpi *T = A; A = X; B = T;
+        const mbedtls_mpi *T;
+
+        if( B == A)
+            return mbedtls_mpi_shift_l( X, 1 );
+
+        T = A; A = X; B = T;
     }
 
     if( X != A )

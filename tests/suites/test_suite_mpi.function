@@ -440,6 +440,23 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mpi_add_mpi_inplace( int radix_X, char *input_X, int radix_A, char *input_A )
+{
+    mpi X, A;
+    mpi_init( &X ); mbedtls_mpi_init( &A );
+
+    TEST_ASSERT( mpi_read_string( &X, radix_X, input_X ) == 0 );
+    TEST_ASSERT( mpi_read_string( &A, radix_A, input_A ) == 0 );
+    TEST_ASSERT( mpi_add_mpi( &X, &X, &X ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &X, &A ) == 0 );
+
+exit:
+    mpi_free( &X ); mbedtls_mpi_free( &A );
+}
+/* END_CASE */
+
+
+/* BEGIN_CASE */
 void mpi_add_abs( int radix_X, char *input_X, int radix_Y, char *input_Y,
                   int radix_A, char *input_A )
 {

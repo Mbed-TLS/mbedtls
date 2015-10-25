@@ -893,7 +893,12 @@ int mpi_add_abs( mpi *X, const mpi *A, const mpi *B )
 
     if( X == B )
     {
-        const mpi *T = A; A = X; B = T;
+        const mpi *T;
+
+        if( B == A)
+            return mpi_shift_l( X, 1 );
+
+        T = A; A = X; B = T;
     }
 
     if( X != A )

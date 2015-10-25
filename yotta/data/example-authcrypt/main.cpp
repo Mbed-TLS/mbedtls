@@ -171,7 +171,7 @@ static int example(void)
 
 #if defined(TARGET_LIKE_MBED)
 
-#include "mbed/test_env.h"
+#include "mbed-drivers/test_env.h"
 #include "minar/minar.h"
 
 static void run() {

@@ -27,7 +27,7 @@
 #include "mbedtls/md.h"     /* generic interface */
 
 #if defined(TARGET_LIKE_MBED)
-#include "mbed/mbed.h"
+#include "mbed-drivers/mbed.h"
 #endif
 #include <cstdio>
 
@@ -151,7 +151,7 @@ int example(void)
 
 #if defined(TARGET_LIKE_MBED)
 
-#include "mbed/test_env.h"
+#include "mbed-drivers/test_env.h"
 #include "minar/minar.h"
 
 static void run() {

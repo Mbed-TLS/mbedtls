@@ -71,7 +71,7 @@ int main() {
 #include "mbedtls/ecdh.h"
 #include "mbedtls/error.h"
 
-#include "mbed.h"
+#include "mbed-drivers/mbed.h"
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
 #include "mbedtls/memory_buffer_alloc.h"
@@ -931,7 +931,7 @@ int benchmark( int argc, char *argv[] )
     return( 0 );
 }
 
-#include "mbed/test_env.h"
+#include "mbed-drivers/test_env.h"
 #include "minar/minar.h"
 
 static void run() {

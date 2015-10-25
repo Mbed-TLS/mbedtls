@@ -884,22 +884,21 @@ int mbedtls_mpi_add_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     int ret;
     size_t i, j;
     mbedtls_mpi_uint *o, *p, c;
+    mbedtls_mpi TB;
 
     if( X == B )
     {
+        B = A; A = X;
+
         if( B == A )
         {
             // Making a temporary copy instead of shifting by one to deny
             // the possibility of corresponding side-channel attacks.
-            mbedtls_mpi TB;
-
             mbedtls_mpi_init( &TB );
             MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &TB, B ) );
             
-            return mbedtls_mpi_add_abs( X, A, &TB );
+            B = &TB;
         }
-
-        B = A; A = X;
     }
 
     if( X != A )
@@ -936,6 +935,10 @@ int mbedtls_mpi_add_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     }
 
 cleanup:
+    if( &TB == B ) 
+    {
+        mbedtls_mpi_free( &TB );
+    }
 
     return( ret );
 }

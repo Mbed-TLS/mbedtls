@@ -893,12 +893,19 @@ int mpi_add_abs( mpi *X, const mpi *A, const mpi *B )
 
     if( X == B )
     {
-        const mpi *T;
+        if( B == A )
+        {
+            // Making a temporary copy instead of shifting by one to deny
+            // the possibility of corresponding side-channel attacks.
+            mpi TB;
 
-        if( B == A)
-            return mpi_shift_l( X, 1 );
+            mpi_init( &TB );
+            MBEDTLS_MPI_CHK( mpi_copy( &TB, B ) );
 
-        T = A; A = X; B = T;
+            return mpi_add_abs( X, A, &TB );
+        }
+
+        B = A; A = X;
     }
 
     if( X != A )

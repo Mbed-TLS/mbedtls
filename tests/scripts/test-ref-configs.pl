@@ -11,14 +11,20 @@ use warnings;
 use strict;
 
 my %configs = (
-    'config-mini-tls1_1.h'
-        => '-m tls1_1 -f \'^DES-CBC3-SHA$\|^TLS-RSA-WITH-3DES-EDE-CBC-SHA$\'',
-    'config-suite-b.h'
-        => "-m tls1_2 -f 'ECDHE-ECDSA.*AES.*GCM' -p mbedTLS",
-    'config-picocoin.h'
-        => 0,
-    'config-ccm-psk-tls1_2.h'
-        => '-m tls1_2 -f \'^TLS-PSK-WITH-AES-...-CCM-8\'',
+    'config-mini-tls1_1.h' => {
+        'compat' => '-m tls1_1 -f \'^DES-CBC3-SHA$\|^TLS-RSA-WITH-3DES-EDE-CBC-SHA$\'',
+    },
+    'config-suite-b.h' => {
+        'compat' => "-m tls1_2 -f 'ECDHE-ECDSA.*AES.*GCM' -p mbedTLS",
+    },
+    'config-picocoin.h' => {
+    },
+    'config-ccm-psk-tls1_2.h' => {
+        'compat' => '-m tls1_2 -f \'^TLS-PSK-WITH-AES-...-CCM-8\'',
+    },
+    'config-thread.h' => {
+        'opt' => '-f ECJPAKE.*nolog',
+    },
 );
 
 # If no config-name is provided, use all known configs.
@@ -46,7 +52,7 @@ sub abort {
     die $_[0];
 }
 
-while( my ($conf, $args) = each %configs ) {
+while( my ($conf, $data) = each %configs ) {
     system( "cp $config_h.bak $config_h" ) and die;
     system( "make clean" ) and die;
 
@@ -60,15 +66,28 @@ while( my ($conf, $args) = each %configs ) {
     system( "make CFLAGS='-Os -Werror'" ) and abort "Failed to build: $conf\n";
     system( "make test" ) and abort "Failed test suite: $conf\n";
 
-    if( $args )
+    my $compat = $data->{'compat'};
+    if( $compat )
     {
-        print "\nrunning compat.sh $args\n";
-        system( "tests/compat.sh $args" )
+        print "\nrunning compat.sh $compat\n";
+        system( "tests/compat.sh $compat" )
             and abort "Failed compat.sh: $conf\n";
     }
     else
     {
         print "\nskipping compat.sh\n";
+    }
+
+    my $opt = $data->{'opt'};
+    if( $opt )
+    {
+        print "\nrunning ssl-opt.sh $opt\n";
+        system( "tests/ssl-opt.sh $opt" )
+            and abort "Failed ssl-opt.sh: $conf\n";
+    }
+    else
+    {
+        print "\nskipping ssl-opt.sh\n";
     }
 }
 

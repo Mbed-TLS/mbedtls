@@ -186,8 +186,10 @@ static int x509_profile_check_key( const mbedtls_x509_crt_profile *profile,
     }
 #endif
 
-#if defined(MBEDTLS_ECDSA_C)
-    if( pk_alg == MBEDTLS_PK_ECDSA )
+#if defined(MBEDTLS_ECP_C)
+    if( pk_alg == MBEDTLS_PK_ECDSA ||
+        pk_alg == MBEDTLS_PK_ECKEY ||
+        pk_alg == MBEDTLS_PK_ECKEY_DH )
     {
         mbedtls_ecp_group_id gid = mbedtls_pk_ec( *pk )->grp.id;
 
@@ -2151,6 +2153,7 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
     mbedtls_x509_crt *parent;
     mbedtls_x509_name *name;
     mbedtls_x509_sequence *cur = NULL;
+    mbedtls_pk_type_t pk_type;
 
     if( profile == NULL )
         return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
@@ -2208,6 +2211,15 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
                 *flags |= MBEDTLS_X509_BADCERT_CN_MISMATCH;
         }
     }
+
+    /* Check the type and size of the key */
+    pk_type = mbedtls_pk_get_type( &crt->pk );
+
+    if( x509_profile_check_pk_alg( profile, pk_type ) != 0 )
+        *flags |= MBEDTLS_X509_BADCERT_BAD_PK;
+
+    if( x509_profile_check_key( profile, pk_type, &crt->pk ) != 0 )
+        *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
 
     /* Look for a parent in trusted CAs */
     for( parent = trust_ca; parent != NULL; parent = parent->next )

@@ -23,6 +23,8 @@ sub abort {
 
 for my $curve (@curves) {
     system( "cp $config_h.bak $config_h" ) and die "$config_h not restored\n";
+    # depends on a specific curve. Also, ignore error if it wasn't enabled
+    system( "scripts/config.pl unset MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED" );
     system( "make clean" ) and die;
 
     print "\n******************************************\n";

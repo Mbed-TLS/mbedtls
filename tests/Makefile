@@ -60,7 +60,7 @@ APPS =	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
 	test_suite_ctr_drbg$(EXEXT)	test_suite_debug$(EXEXT)	\
 	test_suite_des$(EXEXT)		test_suite_dhm$(EXEXT)		\
 	test_suite_ecdh$(EXEXT)		test_suite_ecdsa$(EXEXT)	\
-	test_suite_ecp$(EXEXT)						\
+	test_suite_ecjpake$(EXEXT)	test_suite_ecp$(EXEXT)		\
 	test_suite_error$(EXEXT)	test_suite_entropy$(EXEXT)	\
 	test_suite_gcm.aes128_de$(EXEXT)				\
 	test_suite_gcm.aes192_de$(EXEXT)				\
@@ -289,6 +289,10 @@ test_suite_ecdh$(EXEXT): test_suite_ecdh.c $(DEP)
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_ecdsa$(EXEXT): test_suite_ecdsa.c $(DEP)
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+test_suite_ecjpake$(EXEXT): test_suite_ecjpake.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 

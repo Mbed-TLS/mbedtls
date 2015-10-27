@@ -8,6 +8,10 @@ Features
    * Added a key extraction callback to accees the master secret and key
      block. (Potential uses include EAP-TLS and Thread.)
 
+Changes
+   * Improved performance of mbedtls_ecp_muladd() when one of the scalars is 1
+     or -1.
+
 = mbed TLS 2.1.2 released 2015-10-06
 
 Security

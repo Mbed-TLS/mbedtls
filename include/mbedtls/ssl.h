@@ -1442,6 +1442,10 @@ void mbedtls_ssl_conf_ciphersuites_for_version( mbedtls_ssl_config *conf,
 /**
  * \brief          Set the X.509 security profile used for verification
  *
+ * \note           The restrictions are enforced for all certificates in the
+ *                 chain. However, signatures in the handshake are not covered
+ *                 by this setting but by \b mbedtls_ssl_conf_sig_hashes().
+ *
  * \param conf     SSL configuration
  * \param profile  Profile to use
  */
@@ -1603,16 +1607,14 @@ void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
  *                 On client: this affects the list of curves offered for any
  *                 use. The server can override our preference order.
  *
- *                 Both sides: limits the set of curves used by peer to the
- *                 listed curves for any use ECDHE and the end-entity
- *                 certificate.
+ *                 Both sides: limits the set of curves accepted for use in
+ *                 ECDHE and in the peer's end-entity certificate.
  *
- * \note           This has no influence on which curve are allowed inside the
+ * \note           This has no influence on which curves are allowed inside the
  *                 certificate chains, see \c mbedtls_ssl_conf_cert_profile()
- *                 for that. For example, if the peer's certificate chain is
- *                 EE -> CA_int -> CA_root, then the allowed curves for EE are
- *                 controlled by \c mbedtls_ssl_conf_curves() but for CA_int
- *                 and CA_root it's \c mbedtls_ssl_conf_cert_profile().
+ *                 for that. For the end-entity certificate however, the key
+ *                 will be accepted only if it is allowed both by this list
+ *                 and by the cert profile.
  *
  * \note           This list should be ordered by decreasing preference
  *                 (preferred curve first).

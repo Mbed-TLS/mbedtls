@@ -49,6 +49,7 @@
 #include "mbedtls/xtea.h"
 #include "mbedtls/pkcs5.h"
 #include "mbedtls/ecp.h"
+#include "mbedtls/ecjpake.h"
 #include "mbedtls/timing.h"
 
 #include <stdio.h>
@@ -241,6 +242,11 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_ECP_C)
     if( ( ret = mbedtls_ecp_self_test( v ) ) != 0 )
+        return( ret );
+#endif
+
+#if defined(MBEDTLS_ECJPAKE_C)
+    if( ( ret = mbedtls_ecjpake_self_test( v ) ) != 0 )
         return( ret );
 #endif
 

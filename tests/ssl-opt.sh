@@ -2499,6 +2499,98 @@ run_test    "PSK callback: wrong key" \
             -S "SSL - Unknown identity received" \
             -s "SSL - Verification of the message MAC failed"
 
+# Tests for EC J-PAKE
+
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE
+run_test    "ECJPAKE: client not configured" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI debug_level=3" \
+            0 \
+            -C "add ciphersuite: c0ff" \
+            -C "adding ecjpake_kkpp extension" \
+            -S "found ecjpake kkpp extension" \
+            -S "skip ecjpake kkpp extension" \
+            -S "ciphersuite mismatch: ecjpake not configured" \
+            -S "server hello, ecjpake kkpp extension" \
+            -C "found ecjpake_kkpp extension" \
+            -S "None of the common ciphersuites is usable"
+
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE
+run_test    "ECJPAKE: server not configured" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI debug_level=3 ecjpake_pw=bla \
+             force_ciphersuite=TLS-ECJPAKE-WITH-AES-128-CCM-8" \
+            1 \
+            -c "add ciphersuite: c0ff" \
+            -c "adding ecjpake_kkpp extension" \
+            -s "found ecjpake kkpp extension" \
+            -s "skip ecjpake kkpp extension" \
+            -s "ciphersuite mismatch: ecjpake not configured" \
+            -S "server hello, ecjpake kkpp extension" \
+            -C "found ecjpake_kkpp extension" \
+            -s "None of the common ciphersuites is usable"
+
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE
+run_test    "ECJPAKE: working, TLS" \
+            "$P_SRV debug_level=3 ecjpake_pw=bla" \
+            "$P_CLI debug_level=3 ecjpake_pw=bla \
+             force_ciphersuite=TLS-ECJPAKE-WITH-AES-128-CCM-8" \
+            0 \
+            -c "add ciphersuite: c0ff" \
+            -c "adding ecjpake_kkpp extension" \
+            -C "re-using cached ecjpake parameters" \
+            -s "found ecjpake kkpp extension" \
+            -S "skip ecjpake kkpp extension" \
+            -S "ciphersuite mismatch: ecjpake not configured" \
+            -s "server hello, ecjpake kkpp extension" \
+            -c "found ecjpake_kkpp extension" \
+            -S "None of the common ciphersuites is usable" \
+            -S "SSL - Verification of the message MAC failed"
+
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE
+run_test    "ECJPAKE: password mismatch, TLS" \
+            "$P_SRV debug_level=3 ecjpake_pw=bla" \
+            "$P_CLI debug_level=3 ecjpake_pw=bad \
+             force_ciphersuite=TLS-ECJPAKE-WITH-AES-128-CCM-8" \
+            1 \
+            -C "re-using cached ecjpake parameters" \
+            -s "SSL - Verification of the message MAC failed"
+
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE
+run_test    "ECJPAKE: working, DTLS" \
+            "$P_SRV debug_level=3 dtls=1 ecjpake_pw=bla" \
+            "$P_CLI debug_level=3 dtls=1 ecjpake_pw=bla \
+             force_ciphersuite=TLS-ECJPAKE-WITH-AES-128-CCM-8" \
+            0 \
+            -c "re-using cached ecjpake parameters" \
+            -S "SSL - Verification of the message MAC failed"
+
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE
+run_test    "ECJPAKE: working, DTLS, no cookie" \
+            "$P_SRV debug_level=3 dtls=1 ecjpake_pw=bla cookies=0" \
+            "$P_CLI debug_level=3 dtls=1 ecjpake_pw=bla \
+             force_ciphersuite=TLS-ECJPAKE-WITH-AES-128-CCM-8" \
+            0 \
+            -C "re-using cached ecjpake parameters" \
+            -S "SSL - Verification of the message MAC failed"
+
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE
+run_test    "ECJPAKE: password mismatch, DTLS" \
+            "$P_SRV debug_level=3 dtls=1 ecjpake_pw=bla" \
+            "$P_CLI debug_level=3 dtls=1 ecjpake_pw=bad \
+             force_ciphersuite=TLS-ECJPAKE-WITH-AES-128-CCM-8" \
+            1 \
+            -c "re-using cached ecjpake parameters" \
+            -s "SSL - Verification of the message MAC failed"
+
+# for tests with configs/config-thread.h
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE
+run_test    "ECJPAKE: working, DTLS, nolog" \
+            "$P_SRV dtls=1 ecjpake_pw=bla" \
+            "$P_CLI dtls=1 ecjpake_pw=bla \
+             force_ciphersuite=TLS-ECJPAKE-WITH-AES-128-CCM-8" \
+            0
+
 # Tests for ciphersuites per version
 
 run_test    "Per-version suites: SSL3" \

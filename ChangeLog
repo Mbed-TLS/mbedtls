@@ -1,12 +1,22 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.2.0 released 2015-10-06
+= mbed TLS 2.2.0 released 2015-10-xx
+
+Features
+   * Experimental support for EC J-PAKE as defined in Thread 1.0.0.
+     Disabled by default as the specification might still change.
+   * Added a key extraction callback to accees the master secret and key
+     block. (Potential uses include EAP-TLS and Thread.)
 
 Bugfix
    * mbedtls_x509_crt_verify(_with_profile)() now also checks the key type and
      size/curve against the profile. Before that, there was no way to set a
      minimum key size for end-entity certificates with RSA keys. Found by
-     Matthew Page.
+     Matthew Page of Scannex Electronics Ltd.
+
+Changes
+   * Improved performance of mbedtls_ecp_muladd() when one of the scalars is 1
+     or -1.
 
 = mbed TLS 2.1.2 released 2015-10-06
 

@@ -9,6 +9,8 @@ Features
      block. (Potential uses include EAP-TLS and Thread.)
 
 Bugfix
+   * Fixed a bug causing some handshakes to fail due to some non-fatal alerts
+     not being properly ignored. Found by mancha and Kasom Koht-arsa, #308
    * mbedtls_x509_crt_verify(_with_profile)() now also checks the key type and
      size/curve against the profile. Before that, there was no way to set a
      minimum key size for end-entity certificates with RSA keys. Found by

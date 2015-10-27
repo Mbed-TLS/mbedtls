@@ -78,7 +78,7 @@ int asn1_write_mpi( unsigned char **p, unsigned char *start, mpi *X )
     //
     len = mpi_size( X );
 
-    if( *p - start < (int) len )
+    if( *p < start || (size_t)( *p - start ) < len )
         return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
 
     (*p) -= len;
@@ -127,7 +127,7 @@ int asn1_write_oid( unsigned char **p, unsigned char *start, char *oid )
     //
     len = strlen( oid );
 
-    if( *p - start < (int) len )
+    if( *p < start || (size_t)( *p - start ) < len )
         return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
 
     (*p) -= len;
@@ -203,7 +203,7 @@ int asn1_write_printable_string( unsigned char **p, unsigned char *start,
     //
     len = strlen( text );
 
-    if( *p - start < (int) len )
+    if( *p < start || (size_t)( *p - start ) < len )
         return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
 
     (*p) -= len;
@@ -225,7 +225,7 @@ int asn1_write_ia5_string( unsigned char **p, unsigned char *start,
     //
     len = strlen( text );
 
-    if( *p - start < (int) len )
+    if( *p < start || (size_t)( *p - start ) < len )
         return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
 
     (*p) -= len;

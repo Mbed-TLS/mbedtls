@@ -7,6 +7,9 @@ target_link_libraries(dh_genprime mbedtls)
 add_executable(dh_server dh_server.c)
 target_link_libraries(dh_server mbedtls)
 
+add_executable(ecdh_curve25519 ecdh_curve25519.c)
+target_link_libraries(ecdh_curve25519 mbedtls)
+
 add_executable(ecdsa ecdsa.c)
 target_link_libraries(ecdsa mbedtls)
 

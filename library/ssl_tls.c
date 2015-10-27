@@ -3896,7 +3896,7 @@ read_record_header:
                        ssl->in_msg[0], ssl->in_msg[1] ) );
 
         /*
-         * Ignore non-fatal alerts, except close_notify and no_renego
+         * Ignore non-fatal alerts, except close_notify and no_renegotiation
          */
         if( ssl->in_msg[0] == MBEDTLS_SSL_ALERT_LEVEL_FATAL )
         {

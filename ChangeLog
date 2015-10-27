@@ -13,6 +13,8 @@ Bugfix
    * Fix bug in ASN.1 encoding of booleans that caused generated CA
      certificates to be rejected by some applications, including OS X
      Keychain. Found and fixed by Jonathan Leroy, Inikup.
+   * Fix "Destination buffer is too small" error in cert_write program.
+     Found and fixed by Jonathan Leroy, Inikup.
 
 = mbed TLS 1.3.14 released 2015-10-06
 

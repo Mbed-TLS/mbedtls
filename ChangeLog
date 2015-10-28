@@ -7,12 +7,12 @@ Bugfix
      exchange. Found and fix provided by Chris Hammond. #270
    * Fix build error with configurations where RSA, RSA-PSK, ECDH-RSA or
      ECHD-ECDSA if the only key exchange. Multiple reports. #310
-   * Fix bug causing some handshakes to fail due to some non-fatal alerts not
-     begin properly ignored. Found by mancha and Kasom Koht-arsa, #308
+   * Fixed a bug causing some handshakes to fail due to some non-fatal alerts
+     not being properly ignored. Found by mancha and Kasom Koht-arsa, #308
    * mbedtls_x509_crt_verify(_with_profile)() now also checks the key type and
      size/curve against the profile. Before that, there was no way to set a
      minimum key size for end-entity certificates with RSA keys. Found by
-     Matthew Page.
+     Matthew Page of Scannex Electronics Ltd.
 
 Changes
    * Improved performance of mbedtls_ecp_muladd() when one of the scalars is 1

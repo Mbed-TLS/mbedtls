@@ -1877,7 +1877,7 @@ static int x509_crt_verify_top(
                 mbedtls_x509_crt *child, mbedtls_x509_crt *trust_ca,
                 mbedtls_x509_crl *ca_crl,
                 const mbedtls_x509_crt_profile *profile,
-                int path_cnt, uint32_t *flags,
+                int path_cnt, int self_cnt, uint32_t *flags,
                 int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                 void *p_vrfy )
 {
@@ -1933,8 +1933,9 @@ static int x509_crt_verify_top(
             check_path_cnt--;
         }
 
+        /* Self signed certificates do not count towards the limit */
         if( trust_ca->max_pathlen > 0 &&
-            trust_ca->max_pathlen < check_path_cnt )
+            trust_ca->max_pathlen < check_path_cnt - self_cnt )
         {
             continue;
         }
@@ -2006,7 +2007,7 @@ static int x509_crt_verify_child(
                 mbedtls_x509_crt *child, mbedtls_x509_crt *parent,
                 mbedtls_x509_crt *trust_ca, mbedtls_x509_crl *ca_crl,
                 const mbedtls_x509_crt_profile *profile,
-                int path_cnt, uint32_t *flags,
+                int path_cnt, int self_cnt, uint32_t *flags,
                 int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                 void *p_vrfy )
 {
@@ -2015,6 +2016,10 @@ static int x509_crt_verify_child(
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
     mbedtls_x509_crt *grandparent;
     const mbedtls_md_info_t *md_info;
+    
+    /* Counting intermediate self signed certificates */
+    if( ( path_cnt != 0 ) && x509_name_cmp( &child->issuer, &child->subject ) == 0 ) 
+        self_cnt++;
 
     /* path_cnt is 0 for the first intermediate CA */
     if( 1 + path_cnt > MBEDTLS_X509_MAX_INTERMEDIATE_CA )
@@ -2076,7 +2081,7 @@ static int x509_crt_verify_child(
     if( grandparent != NULL )
     {
         ret = x509_crt_verify_top( parent, grandparent, ca_crl, profile,
-                                path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
+                                path_cnt + 1, self_cnt, &parent_flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }
@@ -2087,6 +2092,15 @@ static int x509_crt_verify_child(
              grandparent != NULL;
              grandparent = grandparent->next )
         {
+            /* +2 because the current step is not yet accounted for
+             * and because max_pathlen is one higher than it should be.
+             * Also self signed certificates do not count to the limit. */  
+            if( grandparent->max_pathlen > 0 &&
+                grandparent->max_pathlen < 2 + path_cnt - self_cnt )
+            {
+                continue;
+            }
+
             if( x509_crt_check_parent( parent, grandparent,
                                        0, path_cnt == 0 ) == 0 )
                 break;
@@ -2096,7 +2110,7 @@ static int x509_crt_verify_child(
         if( grandparent != NULL )
         {
             ret = x509_crt_verify_child( parent, grandparent, trust_ca, ca_crl,
-                                         profile, path_cnt + 1, &parent_flags,
+                                         profile, path_cnt + 1, self_cnt, &parent_flags,
                                          f_vrfy, p_vrfy );
             if( ret != 0 )
                 return( ret );
@@ -2104,7 +2118,7 @@ static int x509_crt_verify_child(
         else
         {
             ret = x509_crt_verify_top( parent, trust_ca, ca_crl, profile,
-                                       path_cnt + 1, &parent_flags,
+                                       path_cnt + 1, self_cnt, &parent_flags,
                                        f_vrfy, p_vrfy );
             if( ret != 0 )
                 return( ret );
@@ -2149,7 +2163,7 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
 {
     size_t cn_len;
     int ret;
-    int pathlen = 0;
+    int pathlen = 0, selfsigned = 0;
     mbedtls_x509_crt *parent;
     mbedtls_x509_name *name;
     mbedtls_x509_sequence *cur = NULL;
@@ -2231,7 +2245,7 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
     if( parent != NULL )
     {
         ret = x509_crt_verify_top( crt, parent, ca_crl, profile,
-                                   pathlen, flags, f_vrfy, p_vrfy );
+                                   pathlen, selfsigned, flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }
@@ -2240,6 +2254,14 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
         /* Look for a parent upwards the chain */
         for( parent = crt->next; parent != NULL; parent = parent->next )
         {
+            /* +2 because the current step is not yet accounted for
+             * and because max_pathlen is one higher than it should be */  
+            if( parent->max_pathlen > 0 &&
+                parent->max_pathlen < 2 + pathlen )
+            {
+                continue;
+            }
+
             if( x509_crt_check_parent( crt, parent, 0, pathlen == 0 ) == 0 )
                 break;
         }
@@ -2248,14 +2270,14 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
         if( parent != NULL )
         {
             ret = x509_crt_verify_child( crt, parent, trust_ca, ca_crl, profile,
-                                         pathlen, flags, f_vrfy, p_vrfy );
+                                         pathlen, selfsigned, flags, f_vrfy, p_vrfy );
             if( ret != 0 )
                 return( ret );
         }
         else
         {
             ret = x509_crt_verify_top( crt, trust_ca, ca_crl, profile,
-                                       pathlen, flags, f_vrfy, p_vrfy );
+                                       pathlen, selfsigned, flags, f_vrfy, p_vrfy );
             if( ret != 0 )
                 return( ret );
         }

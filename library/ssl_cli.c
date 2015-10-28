@@ -430,15 +430,14 @@ static void ssl_write_client_certificate_ext( mbedtls_ssl_context *ssl,
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_CLIENT_CERTIFICATE_TYPE      ) & 0xFF );
 
     *p++ = 0x00;
-    *p++ = 4;
+    *p++ = 3;
 
-    *p++ = 0x00;
     *p++ = 2;
 
     *p++ = MBEDTLS_TLS_CERT_TYPE_X509;
     *p++ = MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY;
 
-    *olen = 8;
+    *olen = 7;
 }
 
 static void ssl_write_server_certificate_ext( mbedtls_ssl_context *ssl,
@@ -452,15 +451,14 @@ static void ssl_write_server_certificate_ext( mbedtls_ssl_context *ssl,
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SERVER_CERTIFICATE_TYPE      ) & 0xFF );
 
     *p++ = 0x00;
-    *p++ = 4;
+    *p++ = 3;
 
-    *p++ = 0x00;
     *p++ = 2;
 
     *p++ = MBEDTLS_TLS_CERT_TYPE_X509;
     *p++ = MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY;
 
-    *olen = 8;
+    *olen = 7;
 }
 #endif /* MBEDTLS_RAW_PUBLIC_KEY_SUPPORT */
 

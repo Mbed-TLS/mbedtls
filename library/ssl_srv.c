@@ -370,7 +370,8 @@ static int ssl_parse_client_cert_ext( mbedtls_ssl_context *ssl,
     p = buf + 1;
     while( list_size > 0 )
     {
-        if (p[0] == MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY) {
+        if( p[0] == MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY )
+        {
             ssl->handshake->client_cert_type = MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY;
             MBEDTLS_SSL_DEBUG_MSG( 4, ( "raw public key client certificate type selected" ) );
             return 0;
@@ -400,7 +401,8 @@ static int ssl_parse_server_cert_ext( mbedtls_ssl_context *ssl,
     p = buf + 1;
     while( list_size > 0 )
     {
-        if (p[0] == MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY) {
+        if( p[0] == MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY )
+        {
             ssl->handshake->server_cert_type = MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY;
             MBEDTLS_SSL_DEBUG_MSG( 4, ( "raw public key server certificate type selected" ) );
             return 0;

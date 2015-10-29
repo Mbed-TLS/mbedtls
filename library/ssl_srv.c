@@ -2198,7 +2198,6 @@ static void ssl_write_client_certificate_ext( mbedtls_ssl_context *ssl,
                                               size_t *olen )
 {
     unsigned char *p = buf;
-    ((void) ssl);
 
     if( ( ssl->handshake->cli_exts &
           MBEDTLS_TLS_EXT_CLIENT_CERTIFICATE_TYPE_PRESENT ) == 0 )
@@ -2223,7 +2222,6 @@ static void ssl_write_server_certificate_ext( mbedtls_ssl_context *ssl,
                                               size_t *olen )
 {
     unsigned char *p = buf;
-    ((void) ssl);
 
     if( ( ssl->handshake->cli_exts &
           MBEDTLS_TLS_EXT_SERVER_CERTIFICATE_TYPE_PRESENT ) == 0 )

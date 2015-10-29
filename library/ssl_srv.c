@@ -2198,11 +2198,17 @@ static void ssl_write_client_certificate_ext( mbedtls_ssl_context *ssl,
                                               size_t *olen )
 {
     unsigned char *p = buf;
+    const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN;
+
+    *olen = 0;
 
     if( ( ssl->handshake->cli_exts &
           MBEDTLS_TLS_EXT_CLIENT_CERTIFICATE_TYPE_PRESENT ) == 0 )
+        return;
+
+    if( end - p < 5 )
     {
-        *olen = 0;
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
         return;
     }
 
@@ -2222,11 +2228,17 @@ static void ssl_write_server_certificate_ext( mbedtls_ssl_context *ssl,
                                               size_t *olen )
 {
     unsigned char *p = buf;
+    const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN;
+
+    *olen = 0;
 
     if( ( ssl->handshake->cli_exts &
           MBEDTLS_TLS_EXT_SERVER_CERTIFICATE_TYPE_PRESENT ) == 0 )
+        return;
+
+    if( end - p < 5 )
     {
-        *olen = 0;
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
         return;
     }
 

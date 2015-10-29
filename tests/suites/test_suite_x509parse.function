@@ -275,11 +275,11 @@ x509parse_key:key_data:result_str:result
 END_CASE
 
 BEGIN_CASE
-x509_crt_verify_chain:chain_paths_str:trusted_ca:ret
+x509_crt_verify_chain:chain_paths_str:trusted_ca:flags_result
 {
     char *act;
     int flags;
-    int res;
+    int result, res;
     x509_cert trusted, chain;
     char *chain_paths;
 
@@ -297,7 +297,10 @@ x509_crt_verify_chain:chain_paths_str:trusted_ca:ret
     x509_free( &trusted );
     x509_free( &chain );
 
-    TEST_ASSERT( ( {ret} ) == res );
+    result = ( {flags_result} ) ? POLARSSL_ERR_X509_CERT_VERIFY_FAILED : 0;
+
+    TEST_ASSERT( res == result );
+    TEST_ASSERT( flags == ( {flags_result} ) );
 }
 END_CASE
 

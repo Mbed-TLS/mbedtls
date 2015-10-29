@@ -4037,8 +4037,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
-    size_t i, n;
-    const mbedtls_x509_crt *crt;
+    size_t i;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate" ) );
@@ -4100,6 +4099,7 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
           ssl->handshake->client_cert_type == MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY ) )
     {
         mbedtls_pk_context *key;
+        size_t n;
 
         key = mbedtls_ssl_own_key( ssl );
         i = 7;        
@@ -4109,43 +4109,22 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_BUF( 3, ( "own raw public key" ), ssl->out_msg + i, n );
         i += n;
     }
-#endif
+
     if( ( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
           ssl->handshake->server_cert_type == MBEDTLS_TLS_CERT_TYPE_X509 ) ||
         ( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
           ssl->handshake->client_cert_type == MBEDTLS_TLS_CERT_TYPE_X509 ) )
+#endif
     {
         MBEDTLS_SSL_DEBUG_CRT( 3, "own certificate", mbedtls_ssl_own_cert( ssl ) );
 
-        /*
-         *     0  .  0    handshake type
-         *     1  .  3    handshake length
-         *     4  .  6    length of all certs
-         *     7  .  9    length of cert. 1
-         *    10  . n-1   peer certificate
-         *     n  . n+2   length of cert. 2
-         *    n+3 . ...   upper level cert, etc.
-         */
-        i = 7;
-        crt = mbedtls_ssl_own_cert( ssl );
-
-        while( crt != NULL )
+        size_t clen = 0;
+        if( ( ret = mbedtls_ssl_write_x509_certificate( ssl, &clen ) ) != 0)
         {
-            n = crt->raw.len;
-            if( n > MBEDTLS_SSL_MAX_CONTENT_LEN - 3 - i )
-            {
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "certificate too large, %d > %d",
-                               i + 3 + n, MBEDTLS_SSL_MAX_CONTENT_LEN ) );
-                return( MBEDTLS_ERR_SSL_CERTIFICATE_TOO_LARGE );
-            }
-
-            ssl->out_msg[i    ] = (unsigned char)( n >> 16 );
-            ssl->out_msg[i + 1] = (unsigned char)( n >>  8 );
-            ssl->out_msg[i + 2] = (unsigned char)( n       );
-
-            i += 3; memcpy( ssl->out_msg + i, crt->raw.p, n );
-            i += n; crt = crt->next;
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_x509_certificate", ret );
+            return( ret );
         }
+        i = clen;
     }
 
     ssl->out_msg[4]  = (unsigned char)( ( i - 7 ) >> 16 );
@@ -4171,6 +4150,45 @@ write_msg:
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write certificate" ) );
 
     return( ret );
+}
+
+int mbedtls_ssl_write_x509_certificate( mbedtls_ssl_context *ssl,
+                                        size_t *clen )
+{
+    size_t n = 0, i = 7;
+    const mbedtls_x509_crt *crt;
+    /*
+     *     0  .  0    handshake type
+     *     1  .  3    handshake length
+     *     4  .  6    length of all certs
+     *     7  .  9    length of cert. 1
+     *    10  . n-1   peer certificate
+     *     n  . n+2   length of cert. 2
+     *    n+3 . ...   upper level cert, etc.
+     */
+    crt = mbedtls_ssl_own_cert( ssl );
+    *clen = 0;
+
+    while( crt != NULL )
+    {
+        n = crt->raw.len;
+        if( n > MBEDTLS_SSL_MAX_CONTENT_LEN - 3 - i )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "certificate too large, %d > %d",
+                           i + 3 + n, MBEDTLS_SSL_MAX_CONTENT_LEN ) );
+            return( MBEDTLS_ERR_SSL_CERTIFICATE_TOO_LARGE );
+        }
+
+        ssl->out_msg[i    ] = (unsigned char)( n >> 16 );
+        ssl->out_msg[i + 1] = (unsigned char)( n >>  8 );
+        ssl->out_msg[i + 2] = (unsigned char)( n       );
+
+        i += 3; memcpy( ssl->out_msg + i, crt->raw.p, n );
+        i += n; crt = crt->next;
+    }
+
+    *clen = i;
+    return( 0 );
 }
 
 int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
@@ -4330,11 +4348,12 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_BUF( 3, "peer raw public key", ssl->in_msg + i, n );
         i += n;
     }
-#endif /* MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT */
+
     if( ( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
           ssl->handshake->client_cert_type == MBEDTLS_TLS_CERT_TYPE_X509 ) ||
         ( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
           ssl->handshake->server_cert_type == MBEDTLS_TLS_CERT_TYPE_X509 ) )
+#endif /* MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT */
     {
         i += 3;
 
@@ -4397,10 +4416,12 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 
     if( authmode != MBEDTLS_SSL_VERIFY_NONE )
     {
+#if defined(MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT)
         if( ( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
               ssl->handshake->client_cert_type == MBEDTLS_TLS_CERT_TYPE_X509 ) ||
             ( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
               ssl->handshake->server_cert_type == MBEDTLS_TLS_CERT_TYPE_X509 ) )
+#endif
         {
             mbedtls_x509_crt *ca_chain;
             mbedtls_x509_crl *ca_crl;

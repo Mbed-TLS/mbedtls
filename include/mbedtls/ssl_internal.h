@@ -440,6 +440,9 @@ int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
                           const mbedtls_ssl_ciphersuite_t *ciphersuite,
                           int cert_endpoint,
                           uint32_t *flags );
+
+int mbedtls_ssl_write_x509_certificate( mbedtls_ssl_context *ssl,
+                                        size_t *clen );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 void mbedtls_ssl_write_version( int major, int minor, int transport,

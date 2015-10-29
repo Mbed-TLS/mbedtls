@@ -429,6 +429,8 @@ static void ssl_write_client_certificate_ext( mbedtls_ssl_context *ssl,
 
     *olen = 0;
 
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding client_certificate_type extension" ) );
+
     if( end - p < 7 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
@@ -458,6 +460,8 @@ static void ssl_write_server_certificate_ext( mbedtls_ssl_context *ssl,
     ((void) ssl);
 
     *olen = 0;
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding server_certificate_type extension" ) );
 
     if( end - p < 7 )
     {

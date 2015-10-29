@@ -2206,6 +2206,8 @@ static void ssl_write_client_certificate_ext( mbedtls_ssl_context *ssl,
           MBEDTLS_TLS_EXT_CLIENT_CERTIFICATE_TYPE_PRESENT ) == 0 )
         return;
 
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, client certificate type extension" ) );
+
     if( end - p < 5 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
@@ -2235,6 +2237,8 @@ static void ssl_write_server_certificate_ext( mbedtls_ssl_context *ssl,
     if( ( ssl->handshake->cli_exts &
           MBEDTLS_TLS_EXT_SERVER_CERTIFICATE_TYPE_PRESENT ) == 0 )
         return;
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, server certificate type extension" ) );
 
     if( end - p < 5 )
     {

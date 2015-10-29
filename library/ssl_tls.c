@@ -4094,11 +4094,10 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
 #endif
 
 #if defined(MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT)
-#if defined(MBEDTLS_SSL_SRV_C)
-    if ( ssl->handshake->server_cert_type == MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY )
-#elif defined(MBEDTLS_SSL_CLI_C)
-    if ( ssl->handshake->client_cert_type == MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY )
-#endif
+    if( ( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
+          ssl->handshake->server_cert_type == MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY ) ||
+        ( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
+          ssl->handshake->client_cert_type == MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY ) )
     {
         mbedtls_pk_context *key;
 
@@ -4111,11 +4110,10 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
         i += n;
     }
 #endif
-#if defined(MBEDTLS_SSL_SRV_C)
-    if ( ssl->handshake->server_cert_type == MBEDTLS_TLS_CERT_TYPE_X509 )
-#elif defined(MBEDTLS_SSL_CLI_C)
-    if ( ssl->handshake->client_cert_type == MBEDTLS_TLS_CERT_TYPE_X509 )
-#endif
+    if( ( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
+          ssl->handshake->server_cert_type == MBEDTLS_TLS_CERT_TYPE_X509 ) ||
+        ( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
+          ssl->handshake->client_cert_type == MBEDTLS_TLS_CERT_TYPE_X509 ) )
     {
         MBEDTLS_SSL_DEBUG_CRT( 3, "own certificate", mbedtls_ssl_own_cert( ssl ) );
 
@@ -4318,11 +4316,10 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     mbedtls_x509_crt_init( ssl->session_negotiate->peer_cert );
 
 #if defined(MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT)
-#if defined(MBEDTLS_SSL_SRV_C)
-    if ( ssl->handshake->client_cert_type == MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY )
-#elif defined(MBEDTLS_SSL_CLI_C)
-    if  (ssl->handshake->server_cert_type == MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY )
-#endif
+    if( ( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
+          ssl->handshake->client_cert_type == MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY ) ||
+        ( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
+          ssl->handshake->server_cert_type == MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY ) )
     {
         n = ( (unsigned int) ssl->in_msg[i    ] << 16 )
             | (unsigned int) ssl->in_msg[i + 1] << 8
@@ -4334,11 +4331,10 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         i += n;
     }
 #endif /* MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT */
-#if defined(MBEDTLS_SSL_SRV_C)
-    if ( ssl->handshake->client_cert_type == MBEDTLS_TLS_CERT_TYPE_X509 )
-#elif defined(MBEDTLS_SSL_CLI_C)
-    if ( ssl->handshake->server_cert_type == MBEDTLS_TLS_CERT_TYPE_X509 )
-#endif
+    if( ( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
+          ssl->handshake->client_cert_type == MBEDTLS_TLS_CERT_TYPE_X509 ) ||
+        ( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
+          ssl->handshake->server_cert_type == MBEDTLS_TLS_CERT_TYPE_X509 ) )
     {
         i += 3;
 
@@ -4401,11 +4397,10 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 
     if( authmode != MBEDTLS_SSL_VERIFY_NONE )
     {
-#if defined(MBEDTLS_SSL_SRV_C)
-        if ( ssl->handshake->client_cert_type == MBEDTLS_TLS_CERT_TYPE_X509 )
-#elif defined(MBEDTLS_SSL_CLI_C)
-        if ( ssl->handshake->server_cert_type == MBEDTLS_TLS_CERT_TYPE_X509 )
-#endif
+        if( ( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
+              ssl->handshake->client_cert_type == MBEDTLS_TLS_CERT_TYPE_X509 ) ||
+            ( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
+              ssl->handshake->server_cert_type == MBEDTLS_TLS_CERT_TYPE_X509 ) )
         {
             mbedtls_x509_crt *ca_chain;
             mbedtls_x509_crl *ca_crl;

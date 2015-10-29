@@ -3387,7 +3387,8 @@ static int x509_wildcard_verify( const char *cn, x509_buf *name )
 
 static int x509parse_verify_top(
                 x509_cert *child, x509_cert *trust_ca,
-                x509_crl *ca_crl, int path_cnt, int *flags,
+                x509_crl *ca_crl,
+                int path_cnt, int self_cnt, int *flags,
                 int (*f_vrfy)(void *, x509_cert *, int, int *),
                 void *p_vrfy )
 {
@@ -3428,8 +3429,9 @@ static int x509parse_verify_top(
             check_path_cnt--;
         }
 
+        /* Self signed certificates do not count towards the limit */
         if( trust_ca->max_pathlen > 0 &&
-            trust_ca->max_pathlen < check_path_cnt )
+            trust_ca->max_pathlen < check_path_cnt - self_cnt )
         {
             trust_ca = trust_ca->next;
             continue;
@@ -3493,7 +3495,8 @@ static int x509parse_verify_top(
 
 static int x509parse_verify_child(
                 x509_cert *child, x509_cert *parent, x509_cert *trust_ca,
-                x509_crl *ca_crl, int path_cnt, int *flags,
+                x509_crl *ca_crl,
+                int path_cnt, int self_cnt, int *flags,
                 int (*f_vrfy)(void *, x509_cert *, int, int *),
                 void *p_vrfy )
 {
@@ -3501,6 +3504,15 @@ static int x509parse_verify_child(
     int parent_flags = 0;
     unsigned char hash[64];
     x509_cert *grandparent;
+
+    /* Counting intermediate self signed certificates */
+    if( path_cnt != 0 &&
+        child->issuer_raw.len == child->subject_raw.len &&
+        memcmp( child->issuer_raw.p, child->subject_raw.p,
+                child->issuer_raw.len ) == 0 )
+    {
+        self_cnt++;
+    }
 
     /* path_cnt is 0 for the first intermediate CA */
     if( 1 + path_cnt > POLARSSL_X509_MAX_INTERMEDIATE_CA )
@@ -3539,6 +3551,17 @@ static int x509parse_verify_child(
             grandparent = grandparent->next;
             continue;
         }
+
+        /* +2 because the current step is not yet accounted for
+         * and because max_pathlen is one higher than it should be.
+         * Also self signed certificates do not count to the limit. */
+        if( grandparent->max_pathlen > 0 &&
+            grandparent->max_pathlen < 2 + path_cnt - self_cnt )
+        {
+            grandparent = grandparent->next;
+            continue;
+        }
+
         break;
     }
 
@@ -3547,13 +3570,13 @@ static int x509parse_verify_child(
         /*
          * Part of the chain
          */
-        ret = x509parse_verify_child( parent, grandparent, trust_ca, ca_crl, path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
+        ret = x509parse_verify_child( parent, grandparent, trust_ca, ca_crl, path_cnt + 1, self_cnt, &parent_flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }
     else
     {
-        ret = x509parse_verify_top( parent, trust_ca, ca_crl, path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
+        ret = x509parse_verify_top( parent, trust_ca, ca_crl, path_cnt + 1, self_cnt, &parent_flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }
@@ -3581,6 +3604,7 @@ int x509parse_verify( x509_cert *crt,
     size_t cn_len;
     int ret;
     int pathlen = 0;
+    int selfsigned = 0;
     x509_cert *parent;
     x509_name *name;
     x509_sequence *cur = NULL;
@@ -3654,6 +3678,16 @@ int x509parse_verify( x509_cert *crt,
             parent = parent->next;
             continue;
         }
+
+        /* +2 because the current step is not yet accounted for
+         * and because max_pathlen is one higher than it should be */
+        if( parent->max_pathlen > 0 &&
+            parent->max_pathlen < 2 + pathlen )
+        {
+            parent = parent->next;
+            continue;
+        }
+
         break;
     }
 
@@ -3662,13 +3696,13 @@ int x509parse_verify( x509_cert *crt,
         /*
          * Part of the chain
          */
-        ret = x509parse_verify_child( crt, parent, trust_ca, ca_crl, pathlen, flags, f_vrfy, p_vrfy );
+        ret = x509parse_verify_child( crt, parent, trust_ca, ca_crl, pathlen, selfsigned, flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     } 
     else
     {
-        ret = x509parse_verify_top( crt, trust_ca, ca_crl, pathlen, flags, f_vrfy, p_vrfy );
+        ret = x509parse_verify_top( crt, trust_ca, ca_crl, pathlen, selfsigned, flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }

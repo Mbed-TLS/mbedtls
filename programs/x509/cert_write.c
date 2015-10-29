@@ -190,11 +190,11 @@ int main( int argc, char *argv[] )
     pk_context *issuer_key = &loaded_issuer_key,
                 *subject_key = &loaded_subject_key;
     char buf[1024];
-    char issuer_name[128];
+    char issuer_name[256];
     int i;
     char *p, *q, *r;
 #if defined(POLARSSL_X509_CSR_PARSE_C)
-    char subject_name[128];
+    char subject_name[256];
     x509_csr csr;
 #endif
     x509write_cert crt;

@@ -566,8 +566,6 @@ int ssl_derive_keys( ssl_context *ssl )
     }
     else
     {
-        int ret;
-
         /* Initialize HMAC contexts */
         if( ( ret = md_init_ctx( &transform->md_ctx_enc, md_info ) ) != 0 ||
             ( ret = md_init_ctx( &transform->md_ctx_dec, md_info ) ) != 0 )
@@ -1307,7 +1305,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
             /*
              * Generate IV
              */
-            int ret = ssl->f_rng( ssl->p_rng, ssl->transform_out->iv_enc,
+            ret = ssl->f_rng( ssl->p_rng, ssl->transform_out->iv_enc,
                                   ssl->transform_out->ivlen );
             if( ret != 0 )
                 return( ret );
@@ -2213,6 +2211,7 @@ int ssl_read_record( ssl_context *ssl )
     /*
      * Read the record header and validate it
      */
+read_record_header:
     if( ( ret = ssl_fetch_input( ssl, 5 ) ) != 0 )
     {
         SSL_DEBUG_RET( 1, "ssl_fetch_input", ret );
@@ -2410,7 +2409,7 @@ int ssl_read_record( ssl_context *ssl )
                        ssl->in_msg[0], ssl->in_msg[1] ) );
 
         /*
-         * Ignore non-fatal alerts, except close_notify
+         * Ignore non-fatal alerts, except close_notify and no_renego
          */
         if( ssl->in_msg[0] == SSL_ALERT_LEVEL_FATAL )
         {
@@ -2425,6 +2424,29 @@ int ssl_read_record( ssl_context *ssl )
             SSL_DEBUG_MSG( 2, ( "is a close notify message" ) );
             return( POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY );
         }
+
+        if( ssl->in_msg[0] == SSL_ALERT_LEVEL_WARNING &&
+            ssl->in_msg[1] == SSL_ALERT_MSG_NO_RENEGOTIATION )
+        {
+            SSL_DEBUG_MSG( 2, ( "is a no_renegotiation" ) );
+            /* Will be handled when trying to parse ServerHello */
+            ssl->in_left = 0;
+            return( 0 );
+        }
+
+        if( ssl->minor_ver == SSL_MINOR_VERSION_0 &&
+            ssl->endpoint == SSL_IS_SERVER &&
+            ssl->in_msg[0] == SSL_ALERT_LEVEL_WARNING &&
+            ssl->in_msg[1] == SSL_ALERT_MSG_NO_CERT )
+        {
+            SSL_DEBUG_MSG( 2, ( "is a SSLv3 no_cert" ) );
+            /* Will be handled in ssl_parse_certificate() */
+            ssl->in_left = 0;
+            return( 0 );
+        }
+
+        /* Silently discard: fetch new message */
+        goto read_record_header;
     }
 
     ssl->in_left = 0;
@@ -4049,6 +4071,13 @@ int ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
     if( psk_len > POLARSSL_PSK_MAX_LEN )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
+    /* Identity len will be encoded on two bytes */
+    if( ( psk_identity_len >> 16 ) != 0 ||
+        psk_identity_len > SSL_MAX_CONTENT_LEN )
+    {
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+    }
+
     if( ssl->psk != NULL || ssl->psk_identity != NULL )
     {
         polarssl_free( ssl->psk );
@@ -4059,7 +4088,9 @@ int ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
         ( ssl->psk_identity = polarssl_malloc( psk_identity_len ) ) == NULL )
     {
         polarssl_free( ssl->psk );
+        polarssl_free( ssl->psk_identity );
         ssl->psk = NULL;
+        ssl->psk_identity = NULL;
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
     }
 
@@ -4141,6 +4172,9 @@ int ssl_set_hostname( ssl_context *ssl, const char *hostname )
     ssl->hostname_len = strlen( hostname );
 
     if( ssl->hostname_len + 1 == 0 )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+    if( ssl->hostname_len > SSL_MAX_HOST_NAME_LEN )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
     ssl->hostname = polarssl_malloc( ssl->hostname_len + 1 );

@@ -122,7 +122,7 @@ void ssl_cache_set_timeout( ssl_cache_context *cache, int timeout );
 #endif /* POLARSSL_HAVE_TIME */
 
 /**
- * \brief          Set the cache timeout
+ * \brief          Set the maximum number of cache entries
  *                 (Default: SSL_CACHE_DEFAULT_MAX_ENTRIES (50))
  *
  * \param cache    SSL cache context

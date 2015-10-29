@@ -1,10 +1,89 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 1.3.13 reladsed 2015-??-??
+= mbed TLS 1.3.15 released 2015-10-xx
+
+Bugfix
+   * Fix bug causing some handshakes to fail due to some non-fatal alerts not
+     begin properly ignored. Found by mancha and Kasom Koht-arsa, #308
+   * Fix build error with configurations where ECDHE-PSK is the only key
+     exchange. Found and fix provided by Chris Hammond. #270
+   * Fix failures in MPI on Sparc(64) due to use of bad assembly code.
+     Found by Kurt Danielson. #292
+   * Fix typo in name of the extKeyUsage OID. Found by inestlerode, #314
+   * Fix bug in ASN.1 encoding of booleans that caused generated CA
+     certificates to be rejected by some applications, including OS X
+     Keychain. Found and fixed by Jonathan Leroy, Inikup.
+   * Fix "Destination buffer is too small" error in cert_write program.
+     Found and fixed by Jonathan Leroy, Inikup.
+
+= mbed TLS 1.3.14 released 2015-10-06
+
+Security
+   * Added fix for CVE-2015-5291 to prevent heap corruption due to buffer
+     overflow of the hostname or session ticket. Found by Guido Vranken,
+     Intelworks.
+   * Fix stack buffer overflow in pkcs12 decryption (used by
+     mbedtls_pk_parse_key(file)() when the password is > 129 bytes. Found by
+     Guido Vranken, Intelworks. Not triggerable remotely.
+   * Fix potential buffer overflow in mbedtls_mpi_read_string().
+     Found by Guido Vranken, Intelworks. Not exploitable remotely in the context
+     of TLS, but might be in other uses. On 32 bit machines, requires reading a
+     string of close to or larger than 1GB to exploit; on 64 bit machines, would
+     require reading a string of close to or larger than 2^62 bytes.
+   * Fix potential random memory allocation in mbedtls_pem_read_buffer()
+     on crafted PEM input data. Found and fix provided by Guido Vranken,
+     Intelworks. Not triggerable remotely in TLS. Triggerable remotely if you
+     accept PEM data from an untrusted source.
+   * Fix potential double-free if ssl_set_psk() is called repeatedly on
+     the same ssl_context object and some memory allocations fail. Found by
+     Guido Vranken, Intelworks. Can not be forced remotely.
+   * Fix possible heap buffer overflow in base64_encode() when the input
+     buffer is 512MB or larger on 32-bit platforms. Found by Guido Vranken,
+     Intelworks. Found by Guido Vranken. Not trigerrable remotely in TLS.
+   * Fix potential heap buffer overflow in servers that perform client
+     authentication against a crafted CA cert. Cannot be triggered remotely
+     unless you allow third parties to pick trust CAs for client auth. Found by
+     Guido Vranken, Intelworks.
+
+Bugfix
+   * Fix compile error in net.c with musl libc. Found and patch provided by
+     zhasha (#278).
+   * Fix macroization of 'inline' keywork when building as C++. (#279)
+
+Changes
+   * Added checking of hostname length in ssl_set_hostname() to ensure domain
+     names are compliant with RFC 1035.
+
+= mbed TLS 1.3.13 released 2015-09-17
+
+Security
+   * Fix possible client-side NULL pointer dereference (read) when the client
+     tries to continue the handshake after it failed (a misuse of the API).
+     (Found and patch provided by Fabian Foerg, Gotham Digital Science using afl-fuzz.)
+   * Add countermeasure against Lenstra's RSA-CRT attack for PKCS#1 v1.5
+     signatures. (Found by Florian Weimer, Red Hat.)
+     https://securityblog.redhat.com/2015/09/02/factoring-rsa-keys-with-tls-perfect-forward-secrecy/
 
 Bugfix
    * Setting SSL_MIN_DHM_BYTES in config.h had no effect (overriden in ssl.h)
      (found by Fabio Solari) (#256)
+   * Fix bug in mbedtls_rsa_public() and mbedtls_rsa_private() that could
+     result trying to unlock an unlocked mutex on invalid input (found by
+     Fredrik Axelsson) (#257)
+   * Fix -Wshadow warnings (found by hnrkp) (#240)
+   * Fix unused function warning when using MBEDTLS_MDx_ALT or
+     MBEDTLS_SHAxxx_ALT (found by Henrik) (#239)
+   * Fix memory corruption in pkey programs (found by yankuncheng) (#210)
+   * Fix memory corruption on client with overlong PSK identity, around
+     SSL_MAX_CONTENT_LEN or higher - not triggerrable remotely (found by
+     Aleksandrs Saveljevs) (#238)
+   * Fix off-by-one error in parsing Supported Point Format extension that
+     caused some handshakes to fail.
+
+Changes
+   * When verifying a certificate chain, if an intermediate certificate is
+     trusted, no later cert is checked. (suggested by hannes-landeholm)
+     (#220).
 
 = mbed TLS 1.3.12 released 2015-08-11
 

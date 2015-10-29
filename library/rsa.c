@@ -52,6 +52,8 @@
 #else
 #include <stdio.h>
 #define polarssl_printf printf
+#define polarssl_malloc malloc
+#define polarssl_free   free
 #endif
 
 /*
@@ -274,17 +276,18 @@ int rsa_public( rsa_context *ctx,
 
     mpi_init( &T );
 
+#if defined(POLARSSL_THREADING_C)
+    if( ( ret = polarssl_mutex_lock( &ctx->mutex ) ) != 0 )
+            return( ret );
+#endif
+
     MPI_CHK( mpi_read_binary( &T, input, ctx->len ) );
 
     if( mpi_cmp_mpi( &T, &ctx->N ) >= 0 )
     {
-        mpi_free( &T );
-        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+        ret = POLARSSL_ERR_MPI_BAD_INPUT_DATA;
+        goto cleanup;
     }
-
-#if defined(POLARSSL_THREADING_C)
-    polarssl_mutex_lock( &ctx->mutex );
-#endif
 
     olen = ctx->len;
     MPI_CHK( mpi_exp_mod( &T, &T, &ctx->E, &ctx->N, &ctx->RN ) );
@@ -292,7 +295,8 @@ int rsa_public( rsa_context *ctx,
 
 cleanup:
 #if defined(POLARSSL_THREADING_C)
-    polarssl_mutex_unlock( &ctx->mutex );
+    if( polarssl_mutex_unlock( &ctx->mutex ) != 0 )
+        return( POLARSSL_ERR_THREADING_MUTEX_ERROR );
 #endif
 
     mpi_free( &T );
@@ -309,14 +313,10 @@ cleanup:
  *  DSS, and other systems. In : Advances in Cryptology—CRYPTO’96. Springer
  *  Berlin Heidelberg, 1996. p. 104-113.
  */
-static int rsa_prepare_blinding( rsa_context *ctx, mpi *Vi, mpi *Vf,
+static int rsa_prepare_blinding( rsa_context *ctx,
                  int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret, count = 0;
-
-#if defined(POLARSSL_THREADING_C)
-    polarssl_mutex_lock( &ctx->mutex );
-#endif
 
     if( ctx->Vf.p != NULL )
     {
@@ -326,7 +326,7 @@ static int rsa_prepare_blinding( rsa_context *ctx, mpi *Vi, mpi *Vf,
         MPI_CHK( mpi_mul_mpi( &ctx->Vf, &ctx->Vf, &ctx->Vf ) );
         MPI_CHK( mpi_mod_mpi( &ctx->Vf, &ctx->Vf, &ctx->N ) );
 
-        goto done;
+        goto cleanup;
     }
 
     /* Unblinding value: Vf = random number, invertible mod N */
@@ -342,18 +342,7 @@ static int rsa_prepare_blinding( rsa_context *ctx, mpi *Vi, mpi *Vf,
     MPI_CHK( mpi_inv_mod( &ctx->Vi, &ctx->Vf, &ctx->N ) );
     MPI_CHK( mpi_exp_mod( &ctx->Vi, &ctx->Vi, &ctx->E, &ctx->N, &ctx->RN ) );
 
-done:
-    if( Vi != &ctx->Vi )
-    {
-        MPI_CHK( mpi_copy( Vi, &ctx->Vi ) );
-        MPI_CHK( mpi_copy( Vf, &ctx->Vf ) );
-    }
-
 cleanup:
-#if defined(POLARSSL_THREADING_C)
-    polarssl_mutex_unlock( &ctx->mutex );
-#endif
-
     return( ret );
 }
 
@@ -369,31 +358,19 @@ int rsa_private( rsa_context *ctx,
     int ret;
     size_t olen;
     mpi T, T1, T2;
-    mpi *Vi, *Vf;
-
-    /*
-     * When using the Chinese Remainder Theorem, we use blinding values.
-     * Without threading, we just read them directly from the context,
-     * otherwise we make a local copy in order to reduce locking contention.
-     */
-#if defined(POLARSSL_THREADING_C)
-    mpi Vi_copy, Vf_copy;
-
-    mpi_init( &Vi_copy ); mpi_init( &Vf_copy );
-    Vi = &Vi_copy;
-    Vf = &Vf_copy;
-#else
-    Vi = &ctx->Vi;
-    Vf = &ctx->Vf;
-#endif
 
     mpi_init( &T ); mpi_init( &T1 ); mpi_init( &T2 );
+
+#if defined(POLARSSL_THREADING_C)
+    if( ( ret = polarssl_mutex_lock( &ctx->mutex ) ) != 0 )
+        return( ret );
+#endif
 
     MPI_CHK( mpi_read_binary( &T, input, ctx->len ) );
     if( mpi_cmp_mpi( &T, &ctx->N ) >= 0 )
     {
-        mpi_free( &T );
-        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+        ret = POLARSSL_ERR_MPI_BAD_INPUT_DATA;
+        goto cleanup;
     }
 
     if( f_rng != NULL )
@@ -402,14 +379,10 @@ int rsa_private( rsa_context *ctx,
          * Blinding
          * T = T * Vi mod N
          */
-        MPI_CHK( rsa_prepare_blinding( ctx, Vi, Vf, f_rng, p_rng ) );
-        MPI_CHK( mpi_mul_mpi( &T, &T, Vi ) );
+        MPI_CHK( rsa_prepare_blinding( ctx, f_rng, p_rng ) );
+        MPI_CHK( mpi_mul_mpi( &T, &T, &ctx->Vi ) );
         MPI_CHK( mpi_mod_mpi( &T, &T, &ctx->N ) );
     }
-
-#if defined(POLARSSL_THREADING_C)
-    polarssl_mutex_lock( &ctx->mutex );
-#endif
 
 #if defined(POLARSSL_RSA_NO_CRT)
     MPI_CHK( mpi_exp_mod( &T, &T, &ctx->D, &ctx->N, &ctx->RN ) );
@@ -443,7 +416,7 @@ int rsa_private( rsa_context *ctx,
          * Unblind
          * T = T * Vf mod N
          */
-        MPI_CHK( mpi_mul_mpi( &T, &T, Vf ) );
+        MPI_CHK( mpi_mul_mpi( &T, &T, &ctx->Vf ) );
         MPI_CHK( mpi_mod_mpi( &T, &T, &ctx->N ) );
     }
 
@@ -452,9 +425,10 @@ int rsa_private( rsa_context *ctx,
 
 cleanup:
 #if defined(POLARSSL_THREADING_C)
-    polarssl_mutex_unlock( &ctx->mutex );
-    mpi_free( &Vi_copy ); mpi_free( &Vf_copy );
+    if( polarssl_mutex_unlock( &ctx->mutex ) != 0 )
+        return( POLARSSL_ERR_THREADING_MUTEX_ERROR );
 #endif
+
     mpi_free( &T ); mpi_free( &T1 ); mpi_free( &T2 );
 
     if( ret != 0 )
@@ -1033,6 +1007,11 @@ int rsa_rsassa_pkcs1_v15_sign( rsa_context *ctx,
     size_t nb_pad, olen, oid_size = 0;
     unsigned char *p = sig;
     const char *oid = NULL;
+    unsigned char *sig_try = NULL, *verif = NULL;
+    size_t i;
+    unsigned char diff;
+    volatile unsigned char diff_no_optimize;
+    int ret;
 
     if( mode == RSA_PRIVATE && ctx->padding != RSA_PKCS_V15 )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
@@ -1095,9 +1074,39 @@ int rsa_rsassa_pkcs1_v15_sign( rsa_context *ctx,
         memcpy( p, hash, hashlen );
     }
 
-    return( ( mode == RSA_PUBLIC )
-            ? rsa_public(  ctx, sig, sig )
-            : rsa_private( ctx, f_rng, p_rng, sig, sig ) );
+    if( mode == RSA_PUBLIC )
+        return( rsa_public(  ctx, sig, sig ) );
+
+    /*
+     * In order to prevent Lenstra's attack, make the signature in a
+     * temporary buffer and check it before returning it.
+     */
+    sig_try = polarssl_malloc( ctx->len );
+    verif   = polarssl_malloc( ctx->len );
+    if( sig_try == NULL || verif == NULL )
+        return( POLARSSL_ERR_MPI_MALLOC_FAILED );
+
+    MPI_CHK( rsa_private( ctx, f_rng, p_rng, sig, sig_try ) );
+    MPI_CHK( rsa_public( ctx, sig_try, verif ) );
+
+    /* Compare in constant time just in case */
+    for( diff = 0, i = 0; i < ctx->len; i++ )
+        diff |= verif[i] ^ sig[i];
+    diff_no_optimize = diff;
+
+    if( diff_no_optimize != 0 )
+    {
+        ret = POLARSSL_ERR_RSA_PRIVATE_FAILED;
+        goto cleanup;
+    }
+
+    memcpy( sig, sig_try, ctx->len );
+
+cleanup:
+    polarssl_free( sig_try );
+    polarssl_free( verif );
+
+    return( ret );
 }
 #endif /* POLARSSL_PKCS1_V15 */
 

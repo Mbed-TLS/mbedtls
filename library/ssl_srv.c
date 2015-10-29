@@ -582,7 +582,7 @@ static int ssl_parse_supported_point_formats( ssl_context *ssl,
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
 
-    p = buf + 2;
+    p = buf + 1;
     while( list_size > 0 )
     {
         if( p[0] == POLARSSL_ECP_PF_UNCOMPRESSED ||
@@ -2300,6 +2300,7 @@ static int ssl_write_certificate_request( ssl_context *ssl )
     size_t ct_len, sa_len; /* including length bytes */
     unsigned char *buf, *p;
     const x509_crt *crt;
+    const unsigned char * const end = ssl->out_msg + SSL_MAX_CONTENT_LEN;
 
     SSL_DEBUG_MSG( 2, ( "=> write certificate request" ) );
 
@@ -2406,10 +2407,14 @@ static int ssl_write_certificate_request( ssl_context *ssl )
     total_dn_size = 0;
     while( crt != NULL && crt->version != 0 )
     {
-        if( p - buf > 4096 )
-            break;
-
         dn_size = crt->subject_raw.len;
+
+        if( end < p || (size_t)( end - p ) < 2 + dn_size )
+        {
+            SSL_DEBUG_MSG( 1, ( "skipping CAs: buffer too short" ) );
+            break;
+        }
+
         *p++ = (unsigned char)( dn_size >> 8 );
         *p++ = (unsigned char)( dn_size      );
         memcpy( p, crt->subject_raw.p, dn_size );

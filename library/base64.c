@@ -75,6 +75,8 @@ static const unsigned char base64_dec_map[128] =
      49,  50,  51, 127, 127, 127, 127, 127
 };
 
+#define BASE64_SIZE_T_MAX   ( (size_t) -1 ) /* SIZE_T_MAX is not standard */
+
 /*
  * Encode a buffer into base64 format
  */
@@ -91,14 +93,15 @@ int base64_encode( unsigned char *dst, size_t *dlen,
         return( 0 );
     }
 
-    n = ( slen << 3 ) / 6;
+    n = slen / 3 + ( slen % 3 != 0 );
 
-    switch( ( slen << 3 ) - ( n * 6 ) )
+    if( n > ( BASE64_SIZE_T_MAX - 1 ) / 4 )
     {
-        case  2: n += 3; break;
-        case  4: n += 2; break;
-        default: break;
+        *dlen = BASE64_SIZE_T_MAX;
+        return( POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL );
     }
+
+    n *= 4;
 
     if( *dlen < n + 1 )
     {
@@ -190,7 +193,10 @@ int base64_decode( unsigned char *dst, size_t *dlen,
     }
 
     if( n == 0 )
+    {
+        *dlen = 0;
         return( 0 );
+    }
 
     n = ( ( n * 6 ) + 7 ) >> 3;
     n -= j;

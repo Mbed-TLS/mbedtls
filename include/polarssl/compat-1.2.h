@@ -41,13 +41,10 @@
 // Comment out to disable prototype change warnings
 #define SHOW_PROTOTYPE_CHANGE_WARNINGS
 
-#if defined(_MSC_VER) && !defined(inline)
-#define inline _inline
-#else
-#if defined(__ARMCC_VERSION) && !defined(inline)
+#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
+    !defined(inline) && !defined(__cplusplus)
 #define inline __inline
-#endif /* __ARMCC_VERSION */
-#endif /* _MSC_VER */
+#endif
 
 #if defined(_MSC_VER)
 // MSVC does not support #warning

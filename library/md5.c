@@ -50,12 +50,12 @@
 #endif /* POLARSSL_PLATFORM_C */
 #endif /* POLARSSL_SELF_TEST */
 
+#if !defined(POLARSSL_MD5_ALT)
+
 /* Implementation that should never be optimized out by the compiler */
 static void polarssl_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
-
-#if !defined(POLARSSL_MD5_ALT)
 
 /*
  * 32-bit integer manipulation macros (little endian)

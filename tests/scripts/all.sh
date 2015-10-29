@@ -108,6 +108,8 @@ cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl unset POLARSSL_MEMORY_BACKTRACE # too slow for tests
+scripts/config.pl unset POLARSSL_ERROR_STRERROR_BC # deprecated
+scripts/config.pl unset POLARSSL_PBKDF2_C # deprecated
 CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check .
 make
 
@@ -148,6 +150,8 @@ scripts/config.pl unset POLARSSL_PLATFORM_EXIT_ALT
 scripts/config.pl unset POLARSSL_MEMORY_C
 scripts/config.pl unset POLARSSL_MEMORY_BUFFER_ALLOC_C
 scripts/config.pl unset POLARSSL_FS_IO
+scripts/config.pl unset POLARSSL_ERROR_STRERROR_BC # deprecated
+scripts/config.pl unset POLARSSL_PBKDF2_C # deprecated
 CC=gcc CFLAGS='-Werror -O0' make
 
 # catch compile bugs in _uninit functions
@@ -156,6 +160,8 @@ cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl set POLARSSL_PLATFORM_NO_STD_FUNCTIONS
+scripts/config.pl unset POLARSSL_ERROR_STRERROR_BC # deprecated
+scripts/config.pl unset POLARSSL_PBKDF2_C # deprecated
 CC=gcc CFLAGS='-Werror -O0' make
 
 if uname -a | grep -F Linux >/dev/null; then
@@ -178,6 +184,8 @@ scripts/config.pl full
 scripts/config.pl unset POLARSSL_NET_C
 scripts/config.pl unset POLARSSL_TIMING_C
 scripts/config.pl unset POLARSSL_FS_IO
+scripts/config.pl unset POLARSSL_ERROR_STRERROR_BC # deprecated
+scripts/config.pl unset POLARSSL_PBKDF2_C # deprecated
 # following things are not in the default config
 scripts/config.pl unset POLARSSL_HAVEGE_C # depends on timing.c
 scripts/config.pl unset POLARSSL_THREADING_PTHREAD
@@ -196,6 +204,8 @@ scripts/config.pl unset POLARSSL_NET_C
 scripts/config.pl unset POLARSSL_TIMING_C
 scripts/config.pl unset POLARSSL_FS_IO
 scripts/config.pl unset POLARSSL_HAVE_TIME
+scripts/config.pl unset POLARSSL_ERROR_STRERROR_BC # deprecated
+scripts/config.pl unset POLARSSL_PBKDF2_C # deprecated
 # following things are not in the default config
 scripts/config.pl unset POLARSSL_DEPRECATED_WARNING
 scripts/config.pl unset POLARSSL_HAVEGE_C # depends on timing.c

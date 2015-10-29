@@ -59,11 +59,14 @@ static void polarssl_zeroize( void *v, size_t n ) {
 #define biL    (ciL << 3)               /* bits  in limb  */
 #define biH    (ciL << 2)               /* half limb size */
 
+#define MPI_SIZE_T_MAX  ( (size_t) -1 ) /* SIZE_T_MAX is not standard */
+
 /*
  * Convert between bits/chars and number of limbs
+ * Divide first in order to avoid potential overflows
  */
-#define BITS_TO_LIMBS(i)  (((i) + biL - 1) / biL)
-#define CHARS_TO_LIMBS(i) (((i) + ciL - 1) / ciL)
+#define BITS_TO_LIMBS(i)  ( (i) / biL + ( (i) % biL != 0 ) )
+#define CHARS_TO_LIMBS(i) ( (i) / ciL + ( (i) % ciL != 0 ) )
 
 /*
  * Initialize one MPI
@@ -414,6 +417,9 @@ int mpi_read_string( mpi *X, int radix, const char *s )
 
     if( radix == 16 )
     {
+        if( slen > MPI_SIZE_T_MAX >> 2 )
+            return( POLARSSL_ERR_MPI_BAD_INPUT_DATA );
+
         n = BITS_TO_LIMBS( slen << 2 );
 
         MPI_CHK( mpi_grow( X, n ) );

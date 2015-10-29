@@ -1172,6 +1172,8 @@
  * If set, the X509 parser will not break-off when parsing an X509 certificate
  * and encountering an unknown critical extension.
  *
+ * \warning Depending on your PKI use, enabling this can be a security risk!
+ *
  * Uncomment to prevent an error.
  */
 //#define POLARSSL_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION

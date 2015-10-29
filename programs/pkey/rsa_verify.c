@@ -31,6 +31,7 @@
 #else
 #include <stdio.h>
 #define polarssl_printf     printf
+#define polarssl_snprintf   snprintf
 #endif
 
 #if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_RSA_C) && \
@@ -40,6 +41,10 @@
 
 #include <stdio.h>
 #include <string.h>
+#endif
+
+#if defined _MSC_VER && !defined snprintf
+#define snprintf _snprintf
 #endif
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||  \
@@ -57,8 +62,9 @@ int main( int argc, char *argv[] )
     int ret, c;
     size_t i;
     rsa_context rsa;
-    unsigned char hash[20];
+    unsigned char hash[32];
     unsigned char buf[POLARSSL_MPI_MAX_SIZE];
+    char filename[512];
 
     ret = 1;
     if( argc != 2 )
@@ -99,17 +105,15 @@ int main( int argc, char *argv[] )
      * Extract the RSA signature from the text file
      */
     ret = 1;
-    i = strlen( argv[1] );
-    memcpy( argv[1] + i, ".sig", 5 );
+    polarssl_snprintf( filename, sizeof( filename ), "%s.sig", argv[1] );
 
-    if( ( f = fopen( argv[1], "rb" ) ) == NULL )
+    if( ( f = fopen( filename, "rb" ) ) == NULL )
     {
-        polarssl_printf( "\n  ! Could not open %s\n\n", argv[1] );
+        polarssl_printf( "\n  ! Could not open %s\n\n", filename );
         goto exit;
     }
 
-    argv[1][i] = '\0', i = 0;
-
+    i = 0;
     while( fscanf( f, "%02X", &c ) > 0 &&
            i < (int) sizeof( buf ) )
         buf[i++] = (unsigned char) c;

@@ -97,13 +97,10 @@
 #define POLARSSL_KEY_EXCHANGE__SOME__ECDHE_ENABLED
 #endif
 
-#if defined(_MSC_VER) && !defined(inline)
-#define inline _inline
-#else
-#if defined(__ARMCC_VERSION) && !defined(inline)
+#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
+    !defined(inline) && !defined(__cplusplus)
 #define inline __inline
-#endif /* __ARMCC_VERSION */
-#endif /*_MSC_VER */
+#endif
 
 /*
  * SSL Error codes
@@ -197,6 +194,8 @@
 #endif /* POLARSSL_SSL_PROTO_TLS1   */
 #endif /* POLARSSL_SSL_PROTO_TLS1_1 */
 #endif /* POLARSSL_SSL_PROTO_TLS1_2 */
+
+#define SSL_MAX_HOST_NAME_LEN           255 /*!< Maximum host name defined in RFC 1035 */
 
 /* RFC 6066 section 4, see also mfl_code_to_length in ssl_tls.c
  * NONE must be zero so that memset()ing structure to zero works */

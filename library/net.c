@@ -428,7 +428,7 @@ int net_accept( int bind_fd, int *client_fd, void *client_ip )
 #endif
 
 #if defined(__socklen_t_defined) || defined(_SOCKLEN_T) ||  \
-    defined(_SOCKLEN_T_DECLARED)
+    defined(_SOCKLEN_T_DECLARED) || defined(__DEFINED_socklen_t)
     socklen_t n = (socklen_t) sizeof( client_addr );
 #else
     int n = (int) sizeof( client_addr );

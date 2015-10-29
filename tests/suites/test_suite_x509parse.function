@@ -26,6 +26,63 @@ int verify_all( void *data, x509_crt *crt, int certificate_depth, int *flags )
     return 0;
 }
 
+#if defined(POLARSSL_X509_CRT_PARSE_C)
+typedef struct {
+    char buf[512];
+    char *p;
+} verify_print_context;
+
+void verify_print_init( verify_print_context *ctx )
+{
+    memset( ctx, 0, sizeof( verify_print_context ) );
+    ctx->p = ctx->buf;
+}
+
+#if defined(_MSC_VER) && !defined snprintf
+#define snprintf _snprintf
+#endif
+
+#define SAFE_SNPRINTF                               \
+do                                                  \
+{                                                   \
+    if( ret < 0 || (size_t) ret > n )               \
+    {                                               \
+        p[n - 1] = '\0';                            \
+        return( -1 );                               \
+    }                                               \
+                                                    \
+    n -= (unsigned int) ret;                        \
+    p += (unsigned int) ret;                        \
+} while( 0 )
+
+int verify_print( void *data, x509_crt *crt, int certificate_depth, int *flags )
+{
+    int ret;
+    verify_print_context *ctx = (verify_print_context *) data;
+    char *p = ctx->p;
+    size_t n = ctx->buf + sizeof( ctx->buf ) - ctx->p;
+    ((void) flags);
+
+    ret = polarssl_snprintf( p, n, "depth %d - serial ", certificate_depth );
+    SAFE_SNPRINTF;
+
+    ret = x509_serial_gets( p, n, &crt->serial );
+    SAFE_SNPRINTF;
+
+    ret = polarssl_snprintf( p, n, " - subject " );
+    SAFE_SNPRINTF;
+
+    ret = x509_dn_gets( p, n, &crt->subject );
+    SAFE_SNPRINTF;
+
+    ret = polarssl_snprintf( p, n, "\n" );
+    SAFE_SNPRINTF;
+
+    ctx->p = p;
+
+    return( 0 );
+}
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -163,7 +220,36 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_CRT_C */
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_CRT_PARSE_C */
+void x509_verify_callback( char *crt_file, char *ca_file,
+                           int exp_ret, char *exp_vrfy_out )
+{
+    int ret;
+    x509_crt crt;
+    x509_crt ca;
+    int flags = 0;
+    verify_print_context vrfy_ctx;
+
+    x509_crt_init( &crt );
+    x509_crt_init( &ca );
+    verify_print_init( &vrfy_ctx );
+
+    TEST_ASSERT( x509_crt_parse_file( &crt, crt_file ) == 0 );
+    TEST_ASSERT( x509_crt_parse_file( &ca, ca_file ) == 0 );
+
+    ret = x509_crt_verify( &crt, &ca, NULL, NULL, &flags,
+                                   verify_print, &vrfy_ctx );
+
+    TEST_ASSERT( ret == exp_ret );
+    TEST_ASSERT( strcmp( vrfy_ctx.buf, exp_vrfy_out ) == 0 );
+
+exit:
+    x509_crt_free( &crt );
+    x509_crt_free( &ca );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_CRT_PARSE_C */
 void x509_dn_gets( char *crt_file, char *entity, char *result_str )
 {
     x509_crt   crt;
@@ -191,7 +277,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_CRT_C */
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_CRT_PARSE_C */
 void x509_time_expired( char *crt_file, char *entity, int result )
 {
     x509_crt   crt;
@@ -212,7 +298,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_CRT_C */
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_CRT_PARSE_C */
 void x509_time_future( char *crt_file, char *entity, int result )
 {
     x509_crt   crt;

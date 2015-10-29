@@ -113,26 +113,26 @@ int main( void )
 
 #define TIME_AND_TSC( TITLE, CODE )                                     \
 do {                                                                    \
-    unsigned long i, j, tsc;                                            \
+    unsigned long ii, jj, tsc;                                          \
                                                                         \
     polarssl_printf( HEADER_FORMAT, TITLE );                            \
     fflush( stdout );                                                   \
                                                                         \
     set_alarm( 1 );                                                     \
-    for( i = 1; ! alarmed; i++ )                                        \
+    for( ii = 1; ! alarmed; ii++ )                                      \
     {                                                                   \
         CODE;                                                           \
     }                                                                   \
                                                                         \
     tsc = hardclock();                                                  \
-    for( j = 0; j < 1024; j++ )                                         \
+    for( jj = 0; jj < 1024; jj++ )                                      \
     {                                                                   \
         CODE;                                                           \
     }                                                                   \
                                                                         \
     polarssl_printf( "%9lu Kb/s,  %9lu cycles/byte\n",                  \
-                     i * BUFSIZE / 1024,                                \
-                     ( hardclock() - tsc ) / ( j * BUFSIZE ) );         \
+                     ii * BUFSIZE / 1024,                               \
+                     ( hardclock() - tsc ) / ( jj * BUFSIZE ) );        \
 } while( 0 )
 
 #if defined(POLARSSL_ERROR_C)
@@ -154,7 +154,7 @@ do {                                                                    \
 
 #define MEMORY_MEASURE_PRINT( title_len )                               \
     memory_buffer_alloc_max_get( &max_used, &max_blocks );              \
-    for( i = 12 - title_len; i != 0; i-- ) polarssl_printf( " " );      \
+    for( ii = 12 - title_len; ii != 0; ii-- ) polarssl_printf( " " );   \
     max_used -= prv_used;                                               \
     max_blocks -= prv_blocks;                                           \
     max_bytes = max_used + MEM_BLOCK_OVERHEAD * max_blocks;             \
@@ -167,7 +167,7 @@ do {                                                                    \
 
 #define TIME_PUBLIC( TITLE, TYPE, CODE )                                \
 do {                                                                    \
-    unsigned long i;                                                    \
+    unsigned long ii;                                                   \
     int ret;                                                            \
     MEMORY_MEASURE_INIT;                                                \
                                                                         \
@@ -176,7 +176,7 @@ do {                                                                    \
     set_alarm( 3 );                                                     \
                                                                         \
     ret = 0;                                                            \
-    for( i = 1; ! alarmed && ! ret ; i++ )                              \
+    for( ii = 1; ! alarmed && ! ret ; ii++ )                            \
     {                                                                   \
         CODE;                                                           \
     }                                                                   \
@@ -187,7 +187,7 @@ do {                                                                    \
     }                                                                   \
     else                                                                \
     {                                                                   \
-        polarssl_printf( "%6lu " TYPE "/s", i / 3 );                    \
+        polarssl_printf( "%6lu " TYPE "/s", ii / 3 );                   \
         MEMORY_MEASURE_PRINT( sizeof( TYPE ) + 1 );                     \
         polarssl_printf( "\n" );                                        \
     }                                                                   \

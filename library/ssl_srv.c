@@ -352,7 +352,7 @@ static int ssl_parse_ecjpake_kkpp( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
-#if defined(MBEDTLS_RAW_PUBLIC_KEY_SUPPORT)
+#if defined(MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT)
 static int ssl_parse_client_cert_ext( mbedtls_ssl_context *ssl,
                                       const unsigned char *buf,
                                       size_t len )
@@ -412,7 +412,7 @@ static int ssl_parse_server_cert_ext( mbedtls_ssl_context *ssl,
 
     return 0;
 }
-#endif /* MBEDTLS_RAW_PUBLIC_KEY_SUPPORT */
+#endif /* MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT */
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 static int ssl_parse_max_fragment_length_ext( mbedtls_ssl_context *ssl,
@@ -1739,7 +1739,7 @@ read_record_header:
             break;
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
-#if defined(MBEDTLS_RAW_PUBLIC_KEY_SUPPORT)
+#if defined(MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT)
         case MBEDTLS_TLS_EXT_CLIENT_CERTIFICATE_TYPE:
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "found client certificate type extension" ) );
             ssl->handshake->cli_exts |= MBEDTLS_TLS_EXT_CLIENT_CERTIFICATE_TYPE_PRESENT;
@@ -1757,7 +1757,7 @@ read_record_header:
             if( ret != 0 )
                 return( ret );
             break;
-#endif /* MBEDTLS_RAW_PUBLIC_KEY_SUPPORT */
+#endif /* MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT */
 
         default:
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "unknown extension found: %d (ignoring)",
@@ -2190,7 +2190,7 @@ static void ssl_write_ecjpake_kkpp_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
-#if defined(MBEDTLS_RAW_PUBLIC_KEY_SUPPORT)
+#if defined(MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT)
 static void ssl_write_client_certificate_ext( mbedtls_ssl_context *ssl,
                                               unsigned char *buf,
                                               size_t *olen )
@@ -2240,7 +2240,7 @@ static void ssl_write_server_certificate_ext( mbedtls_ssl_context *ssl,
 
     *olen = 5;
 }
-#endif /* MBEDTLS_RAW_PUBLIC_KEY_SUPPORT */
+#endif /* MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT */
 
 #if defined(MBEDTLS_SSL_ALPN )
 static void ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
@@ -2542,7 +2542,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     ext_len += olen;
 #endif
 
-#if defined(MBEDTLS_RAW_PUBLIC_KEY_SUPPORT)
+#if defined(MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT)
     ssl_write_client_certificate_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
     

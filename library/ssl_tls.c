@@ -4094,7 +4094,7 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
     }
 #endif
 
-#if defined(MBEDTLS_RAW_PUBLIC_KEY_SUPPORT)
+#if defined(MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT)
 #if defined(MBEDTLS_SSL_SRV_C)
     if (ssl->handshake->server_cert_type == MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY) {
 #elif defined(MBEDTLS_SSL_CLI_C)
@@ -4314,7 +4314,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 
     mbedtls_x509_crt_init( ssl->session_negotiate->peer_cert );
 
-#if defined(MBEDTLS_RAW_PUBLIC_KEY_SUPPORT)
+#if defined(MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT)
 #if defined(MBEDTLS_SSL_SRV_C)
     if (ssl->handshake->client_cert_type == MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY) {
 #elif defined(MBEDTLS_SSL_CLI_C)
@@ -4329,7 +4329,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_BUF( 3, "peer raw public key", ssl->in_msg + i, n );
         i += n;
     }
-#endif /* MBEDTLS_RAW_PUBLIC_KEY_SUPPORT */
+#endif /* MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT */
 #if defined(MBEDTLS_SSL_SRV_C)
     if (ssl->handshake->client_cert_type == MBEDTLS_TLS_CERT_TYPE_X509) {
 #elif defined(MBEDTLS_SSL_CLI_C)

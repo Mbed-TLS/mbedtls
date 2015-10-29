@@ -1319,12 +1319,12 @@
 #define MBEDTLS_X509_RSASSA_PSS_SUPPORT
 
 /**
- * \def MBEDTLS_RAW_PUBLIC_KEY_SUPPORT
+ * \def MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT
  *
  * Enable parsing and verification of raw public keys,
  * according to RFC7250
  */
-#define MBEDTLS_RAW_PUBLIC_KEY_SUPPORT
+#define MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT
 
 /**
  * \def MBEDTLS_ZLIB_SUPPORT

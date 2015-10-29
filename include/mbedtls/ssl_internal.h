@@ -265,7 +265,7 @@ struct mbedtls_ssl_handshake_params
     int extended_ms;                    /*!< use Extended Master Secret? */
 #endif
 
-#if defined(MBEDTLS_RAW_PUBLIC_KEY_SUPPORT)
+#if defined(MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT)
     int client_cert_type;    /* cert types supported */
     int server_cert_type;    /* cert types supported */
 #endif

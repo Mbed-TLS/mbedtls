@@ -2220,6 +2220,7 @@ int ssl_read_record( ssl_context *ssl )
     /*
      * Read the record header and validate it
      */
+read_record_header:
     if( ( ret = ssl_fetch_input( ssl, 5 ) ) != 0 )
     {
         SSL_DEBUG_RET( 1, "ssl_fetch_input", ret );
@@ -2417,7 +2418,7 @@ int ssl_read_record( ssl_context *ssl )
                        ssl->in_msg[0], ssl->in_msg[1] ) );
 
         /*
-         * Ignore non-fatal alerts, except close_notify
+         * Ignore non-fatal alerts, except close_notify and no_renego
          */
         if( ssl->in_msg[0] == SSL_ALERT_LEVEL_FATAL )
         {
@@ -2432,6 +2433,29 @@ int ssl_read_record( ssl_context *ssl )
             SSL_DEBUG_MSG( 2, ( "is a close notify message" ) );
             return( POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY );
         }
+
+        if( ssl->in_msg[0] == SSL_ALERT_LEVEL_WARNING &&
+            ssl->in_msg[1] == SSL_ALERT_MSG_NO_RENEGOTIATION )
+        {
+            SSL_DEBUG_MSG( 2, ( "is a no_renegotiation" ) );
+            /* Will be handled when trying to parse ServerHello */
+            ssl->in_left = 0;
+            return( 0 );
+        }
+
+        if( ssl->minor_ver == SSL_MINOR_VERSION_0 &&
+            ssl->endpoint == SSL_IS_SERVER &&
+            ssl->in_msg[0] == SSL_ALERT_LEVEL_WARNING &&
+            ssl->in_msg[1] == SSL_ALERT_MSG_NO_CERT )
+        {
+            SSL_DEBUG_MSG( 2, ( "is a SSLv3 no_cert" ) );
+            /* Will be handled in ssl_parse_certificate() */
+            ssl->in_left = 0;
+            return( 0 );
+        }
+
+        /* Silently discard: fetch new message */
+        goto read_record_header;
     }
 
     ssl->in_left = 0;

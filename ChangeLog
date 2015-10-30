@@ -14,6 +14,20 @@ Security
      on untrusted input or write keys of untrusted origin. Found by Guido
      Vranken, Interlworks.
 
+Bugfix
+   * Fix bug causing some handshakes to fail due to some non-fatal alerts not
+     begin properly ignored. Found by mancha and Kasom Koht-arsa, #308
+   * Fix build error with configurations where ECDHE-PSK is the only key
+     exchange. Found and fix provided by Chris Hammond. #270
+   * Fix failures in MPI on Sparc(64) due to use of bad assembly code.
+     Found by Kurt Danielson. #292
+   * Fix typo in name of the extKeyUsage OID. Found by inestlerode, #314
+   * Fix bug in ASN.1 encoding of booleans that caused generated CA
+     certificates to be rejected by some applications, including OS X
+     Keychain. Found and fixed by Jonathan Leroy, Inikup.
+   * Fix "Destination buffer is too small" error in cert_write program.
+     Found and fixed by Jonathan Leroy, Inikup.
+
 = mbed TLS 1.3.14 released 2015-10-06
 
 Security

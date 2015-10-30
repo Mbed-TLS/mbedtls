@@ -2016,9 +2016,9 @@ static int x509_crt_verify_child(
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
     mbedtls_x509_crt *grandparent;
     const mbedtls_md_info_t *md_info;
-    
+
     /* Counting intermediate self signed certificates */
-    if( ( path_cnt != 0 ) && x509_name_cmp( &child->issuer, &child->subject ) == 0 ) 
+    if( ( path_cnt != 0 ) && x509_name_cmp( &child->issuer, &child->subject ) == 0 )
         self_cnt++;
 
     /* path_cnt is 0 for the first intermediate CA */
@@ -2094,7 +2094,7 @@ static int x509_crt_verify_child(
         {
             /* +2 because the current step is not yet accounted for
              * and because max_pathlen is one higher than it should be.
-             * Also self signed certificates do not count to the limit. */  
+             * Also self signed certificates do not count to the limit. */
             if( grandparent->max_pathlen > 0 &&
                 grandparent->max_pathlen < 2 + path_cnt - self_cnt )
             {
@@ -2255,7 +2255,7 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
         for( parent = crt->next; parent != NULL; parent = parent->next )
         {
             /* +2 because the current step is not yet accounted for
-             * and because max_pathlen is one higher than it should be */  
+             * and because max_pathlen is one higher than it should be */
             if( parent->max_pathlen > 0 &&
                 parent->max_pathlen < 2 + pathlen )
             {

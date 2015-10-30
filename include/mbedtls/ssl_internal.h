@@ -498,6 +498,11 @@ static inline int mbedtls_ssl_safer_memcmp( const void *a, const void *b, size_t
     return( diff );
 }
 
+#if defined(MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT)
+int mbedtls_ssl_check_client_certificate_type( const mbedtls_ssl_context *ssl, int cert_type );
+int mbedtls_ssl_check_server_certificate_type( const mbedtls_ssl_context *ssl, int cert_type );
+#endif
+
 #ifdef __cplusplus
 }
 #endif

@@ -425,9 +425,14 @@ static void ssl_write_client_certificate_ext( mbedtls_ssl_context *ssl,
 {
     unsigned char *p = buf;
     const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN;
-    ((void) ssl);
+    unsigned char *certificate_type_list = p + 5;
+    size_t certificate_type_len = 0;
+    const int *ctype;
 
     *olen = 0;
+
+    if ( ssl->conf->client_certificate_type_list == NULL )
+        return;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding client_certificate_type extension" ) );
 
@@ -441,14 +446,13 @@ static void ssl_write_client_certificate_ext( mbedtls_ssl_context *ssl,
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_CLIENT_CERTIFICATE_TYPE      ) & 0xFF );
 
     *p++ = 0x00;
-    *p++ = 3;
+    
+    for( ctype = ssl->conf->client_certificate_type_list; *ctype != MBEDTLS_TLS_CERT_TYPE_NONE; ctype++ )
+        certificate_type_list[certificate_type_len++] = (unsigned char)*ctype;
 
-    *p++ = 2;
-
-    *p++ = MBEDTLS_TLS_CERT_TYPE_X509;
-    *p++ = MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY;
-
-    *olen = 7;
+    *p++ = 1 + certificate_type_len;
+    *p++ = certificate_type_len;
+    *olen = 5 + certificate_type_len;
 }
 
 static void ssl_write_server_certificate_ext( mbedtls_ssl_context *ssl,
@@ -457,9 +461,14 @@ static void ssl_write_server_certificate_ext( mbedtls_ssl_context *ssl,
 {
     unsigned char *p = buf;
     const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN;
-    ((void) ssl);
+    unsigned char *certificate_type_list = p + 5;
+    size_t certificate_type_len = 0;
+    const int *ctype;
 
     *olen = 0;
+
+    if ( ssl->conf->server_certificate_type_list == NULL )
+        return;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding server_certificate_type extension" ) );
 
@@ -473,14 +482,13 @@ static void ssl_write_server_certificate_ext( mbedtls_ssl_context *ssl,
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SERVER_CERTIFICATE_TYPE      ) & 0xFF );
 
     *p++ = 0x00;
-    *p++ = 3;
 
-    *p++ = 2;
+    for( ctype = ssl->conf->server_certificate_type_list; *ctype != MBEDTLS_TLS_CERT_TYPE_NONE; ctype++ )
+        certificate_type_list[certificate_type_len++] = (unsigned char)*ctype;
 
-    *p++ = MBEDTLS_TLS_CERT_TYPE_X509;
-    *p++ = MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY;
-
-    *olen = 7;
+    *p++ = 1 + certificate_type_len;
+    *p++ = certificate_type_len;
+    *olen = 5 + certificate_type_len;
 }
 #endif /* MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT */
 

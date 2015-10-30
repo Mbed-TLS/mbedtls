@@ -370,18 +370,21 @@ static int ssl_parse_client_cert_ext( mbedtls_ssl_context *ssl,
     p = buf + 1;
     while( list_size > 0 )
     {
-        if( p[0] == MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY )
+        if ( mbedtls_ssl_check_client_certificate_type( ssl, p[0] ) == 0 )
         {
-            ssl->handshake->client_cert_type = MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY;
-            MBEDTLS_SSL_DEBUG_MSG( 4, ( "raw public key client certificate type selected" ) );
-            return 0;
+            ssl->handshake->client_cert_type = p[0];
+            MBEDTLS_SSL_DEBUG_MSG( 4, ( "%d client certificate type selected", p[0] ) );
+            return( 0 );
         }
 
         list_size--;
         p++;
     }
 
-    return 0;
+    mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                     MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT );
+
+    return( MBEDTLS_ERR_SSL_NO_CERTIFICATE_TYPE_CHOSEN );
 }
 
 static int ssl_parse_server_cert_ext( mbedtls_ssl_context *ssl,
@@ -401,18 +404,21 @@ static int ssl_parse_server_cert_ext( mbedtls_ssl_context *ssl,
     p = buf + 1;
     while( list_size > 0 )
     {
-        if( p[0] == MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY )
+        if( mbedtls_ssl_check_server_certificate_type( ssl, p[0] ) == 0 )
         {
-            ssl->handshake->server_cert_type = MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY;
-            MBEDTLS_SSL_DEBUG_MSG( 4, ( "raw public key server certificate type selected" ) );
-            return 0;
+            ssl->handshake->server_cert_type = p[0];
+            MBEDTLS_SSL_DEBUG_MSG( 4, ( "%d server certificate type selected", p[0] ) );
+            return( 0 );
         }
 
         list_size--;
         p++;
     }
 
-    return 0;
+    mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                     MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT );
+
+    return( MBEDTLS_ERR_SSL_NO_CERTIFICATE_TYPE_CHOSEN );
 }
 #endif /* MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT */
 

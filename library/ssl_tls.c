@@ -5266,6 +5266,11 @@ static void ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     handshake->sni_authmode = MBEDTLS_SSL_VERIFY_UNSET;
 #endif
+
+#if defined(MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT)
+    handshake->client_cert_type = MBEDTLS_TLS_CERT_TYPE_X509;
+    handshake->server_cert_type = MBEDTLS_TLS_CERT_TYPE_X509;
+#endif
 }
 
 static void ssl_transform_init( mbedtls_ssl_transform *transform )
@@ -5957,6 +5962,26 @@ void mbedtls_ssl_conf_curves( mbedtls_ssl_config *conf,
                              const mbedtls_ecp_group_id *curve_list )
 {
     conf->curve_list = curve_list;
+}
+#endif
+
+#if defined(MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT)
+/**
+ * Set allowed/preferred client certificate types
+ */
+void mbedtls_ssl_conf_client_certificate_types( mbedtls_ssl_config *conf,
+                                                const int *cert_types )
+{
+    conf->client_certificate_type_list = cert_types;
+}
+
+/**
+ * Set allowed/preferred server certificate types
+ */
+void mbedtls_ssl_conf_server_certificate_types( mbedtls_ssl_config *conf,
+                                                const int *cert_types )
+{
+    conf->server_certificate_type_list = cert_types;
 }
 #endif
 
@@ -7153,6 +7178,13 @@ static mbedtls_ecp_group_id ssl_preset_suiteb_curves[] = {
 };
 #endif
 
+#if defined(MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT)
+static int ssl_preset_certificate_types[] = {
+    MBEDTLS_TLS_CERT_TYPE_X509,
+    MBEDTLS_TLS_CERT_TYPE_NONE
+};
+#endif
+
 /*
  * Load default in mbedtls_ssl_config
  */
@@ -7215,6 +7247,11 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
     conf->renego_max_records = MBEDTLS_SSL_RENEGO_MAX_RECORDS_DEFAULT;
     memset( conf->renego_period, 0xFF, 7 );
     conf->renego_period[7] = 0x00;
+#endif
+
+#if defined(MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT)
+    conf->client_certificate_type_list = ssl_preset_certificate_types;
+    conf->server_certificate_type_list = ssl_preset_certificate_types;
 #endif
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
@@ -7615,5 +7652,43 @@ void mbedtls_ssl_read_version( int *major, int *minor, int transport,
         *minor = ver[1];
     }
 }
+
+#if defined(MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT)
+/*
+ * Check if a client certificate type proposed by the peer is in our list.
+ * Return 0 if we're willing to use it, -1 otherwise.
+ */
+int mbedtls_ssl_check_client_certificate_type( const mbedtls_ssl_context *ssl, int cert_type )
+{
+    const int *ctype;
+
+    if( ssl->conf->client_certificate_type_list == NULL )
+        return( -1 );
+
+    for( ctype = ssl->conf->client_certificate_type_list; *ctype != MBEDTLS_TLS_CERT_TYPE_NONE; ctype++ )
+        if( *ctype == cert_type )
+            return( 0 );
+
+    return( -1 );
+}
+
+/*
+ * Check if a server certificate type proposed by the peer is in our list.
+ * Return 0 if we're willing to use it, -1 otherwise.
+ */
+int mbedtls_ssl_check_server_certificate_type( const mbedtls_ssl_context *ssl, int cert_type )
+{
+    const int *ctype;
+
+    if( ssl->conf->server_certificate_type_list == NULL )
+        return( -1 );
+
+    for( ctype = ssl->conf->server_certificate_type_list; *ctype != MBEDTLS_TLS_CERT_TYPE_NONE; ctype++ )
+        if( *ctype == cert_type )
+            return( 0 );
+
+    return( -1 );
+}
+#endif /* MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT */
 
 #endif /* MBEDTLS_SSL_TLS_C */

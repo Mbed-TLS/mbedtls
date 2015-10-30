@@ -1,5 +1,17 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.2.0 released 2015-10-xx
+
+Security
+   * The X509 max_pathlen constraint was not enforced on intermediate
+     certificates. Found by Nicholas Wilson, fix and tests provided by
+     Janos Follath. #280 and #319
+
+Bugfix
+   * Self-signed certificates were not excluded from pathlen counting,
+     resulting in some valid X.509 being incorrectly rejected. Found and fix
+     provided by Janos Follath. #319
+
 = mbed TLS 2.1.2 released 2015-10-06
 
 Security

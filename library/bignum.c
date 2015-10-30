@@ -889,22 +889,11 @@ int mpi_add_abs( mpi *X, const mpi *A, const mpi *B )
 {
     int ret;
     size_t i, j;
-    mpi_uint *o, *p, c;
-    mpi TB;
+    mpi_uint *o, *p, c, tmp;
 
     if( X == B )
     {
-        B = A; A = X;
-
-        if( B == A )
-        {
-            // Making a temporary copy instead of shifting by one to deny
-            // the possibility of corresponding side-channel attacks.
-            mpi_init( &TB );
-            MPI_CHK( mpi_copy( &TB, B ) );
-
-            B = &TB;
-        }
+        const mpi *T = A; A = X; B = T;
     }
 
     if( X != A )
@@ -923,10 +912,14 @@ int mpi_add_abs( mpi *X, const mpi *A, const mpi *B )
 
     o = B->p; p = X->p; c = 0;
 
+    /*
+     * tmp is used because it might happen that p == o
+     */
     for( i = 0; i < j; i++, o++, p++ )
     {
+        tmp= *o;
         *p +=  c; c  = ( *p <  c );
-        *p += *o; c += ( *p < *o );
+        *p += tmp; c += ( *p < tmp );
     }
 
     while( c != 0 )
@@ -941,10 +934,13 @@ int mpi_add_abs( mpi *X, const mpi *A, const mpi *B )
     }
 
 cleanup:
+<<<<<<< HEAD
     if( &TB == B ) 
     {
         mpi_free( &TB );
     }
+=======
+>>>>>>> 6c9226809370... Improved on the previous fix and added a test case to cover both types
 
     return( ret );
 }

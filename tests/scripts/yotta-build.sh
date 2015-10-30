@@ -12,8 +12,7 @@ yotta_build()
 {
     TARGET=$1
     echo; echo "*** $TARGET ***"
-    yt target $TARGET
-    yt build
+    yt -t $TARGET build
 }
 
 if uname -a | grep 'Linux.*x86' >/dev/null; then

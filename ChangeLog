@@ -11,6 +11,10 @@ Security
      on untrusted input or write keys of untrusted origin. Found by Guido
      Vranken, Interlworks.
 
+Bugfix
+   * Fix failures in MPI on Sparc(64) due to use of bad assembly code.
+     Found by Kurt Danielson. #292
+
 = Version 1.2.17 released 2015-10-06
 
 Security

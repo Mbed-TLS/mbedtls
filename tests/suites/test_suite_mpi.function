@@ -89,7 +89,7 @@ void mbedtls_mpi_write_binary( int radix_X, char *input_X, char *input_A,
     mbedtls_mpi_init( &X );
 
     TEST_ASSERT( mbedtls_mpi_read_string( &X, radix_X, input_X ) == 0 );
-    
+
     buflen = mbedtls_mpi_size( &X );
     if( buflen > (size_t) output_size )
         buflen = (size_t) output_size;
@@ -542,7 +542,7 @@ void mbedtls_mpi_sub_abs( int radix_X, char *input_X, int radix_Y, char *input_Y
     TEST_ASSERT( mbedtls_mpi_read_string( &X, radix_X, input_X ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &Y, radix_Y, input_Y ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &A, radix_A, input_A ) == 0 );
-    
+
     res = mbedtls_mpi_sub_abs( &Z, &X, &Y );
     TEST_ASSERT( res == sub_result );
     if( res == 0 )

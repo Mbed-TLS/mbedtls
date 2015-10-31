@@ -2508,9 +2508,9 @@ static int ssl_hs_queue_append( mbedtls_ssl_context *ssl, unsigned int seq )
     mbedtls_ssl_hs_queue_item *msg, *cur;
     size_t total_len = ssl->in_msglen;
 
-    if( ssl->handshake->hs_queue != NULL )
+    cur = ssl->handshake->hs_queue;
+    if( cur != NULL )
     {
-        cur = ssl->handshake->hs_queue;
         while( cur->next != NULL )
         {
             total_len += cur->len;
@@ -2547,7 +2547,7 @@ static int ssl_hs_queue_append( mbedtls_ssl_context *ssl, unsigned int seq )
     msg->next = NULL;
 
     /* Append to the current flight */
-    if( ssl->handshake->hs_queue == NULL )
+    if( cur == NULL )
         ssl->handshake->hs_queue = msg;
     else
         cur->next = msg;

@@ -39,6 +39,36 @@ int verify_all( void *data, mbedtls_x509_crt *crt, int certificate_depth, uint32
     return 0;
 }
 
+/* strsep() not available on Windows */
+char *mystrsep(char **stringp, const char *delim)
+{
+    const char *p;
+    char *ret = *stringp;
+
+    if( *stringp == NULL )
+        return( NULL );
+
+    for( ; ; (*stringp)++ )
+    {
+        if( **stringp == '\0' )
+        {
+            *stringp = NULL;
+            goto done;
+        }
+
+        for( p = delim; *p != '\0'; p++ )
+            if( **stringp == *p )
+            {
+                **stringp = '\0';
+                (*stringp)++;
+                goto done;
+            }
+    }
+
+done:
+    return( ret );
+}
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 typedef struct {
     char buf[512];
@@ -453,7 +483,7 @@ void mbedtls_x509_crt_verify_chain(  char *chain_paths, char *trusted_ca, int fl
     mbedtls_x509_crt_init( &chain );
     mbedtls_x509_crt_init( &trusted );
 
-    while( ( act = strsep( &chain_paths, " " ) ) != NULL )
+    while( ( act = mystrsep( &chain_paths, " " ) ) != NULL )
         TEST_ASSERT( mbedtls_x509_crt_parse_file( &chain, act ) == 0 );
     TEST_ASSERT( mbedtls_x509_crt_parse_file( &trusted, trusted_ca ) == 0 );
 

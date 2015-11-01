@@ -358,6 +358,10 @@ X509 Certificate verification #31 (domain not matching multi certificate without
 depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
 x509_verify:"data_files/cert_example_multi_nocn.crt":"data_files/test-ca.crt":"data_files/crl.pem":"www.example.net":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_CN_MISMATCH + BADCERT_NOT_TRUSTED:NULL
 
+X509 CRT verify path (4 certs)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA2_C
+x509_crt_verify_chain:"data_files/dir4/cert14.crt data_files/dir4/cert13.crt data_files/dir4/cert12.crt":"data_files/dir4/cert11.crt":8
+
 X509 Parse Selftest
 depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_SELF_TEST
 x509_selftest:

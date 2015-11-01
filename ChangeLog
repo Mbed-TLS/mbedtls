@@ -30,6 +30,9 @@ Bugfix
    * Fix failures in MPI on Sparc(64) due to use of bad assembly code.
      Found by Kurt Danielson. #292
    * Fix typo in name of the extKeyUsage OID. Found by inestlerode, #314
+   * Fix bug in ASN.1 encoding of booleans that caused generated CA
+     certificates to be rejected by some applications, including OS X
+     Keychain. Found and fixed by Jonathan Leroy, Inikup.
 
 Changes
    * Improved performance of mbedtls_ecp_muladd() when one of the scalars is 1

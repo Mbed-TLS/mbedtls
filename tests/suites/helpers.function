@@ -212,7 +212,7 @@ typedef struct
  * This function returns random based on a buffer it receives.
  *
  * rng_state shall be a pointer to a rnd_buf_info structure.
- * 
+ *
  * The number of bytes released from the buffer on each call to
  * the random function is specified by per_call. (Can be between
  * 1 and 4)

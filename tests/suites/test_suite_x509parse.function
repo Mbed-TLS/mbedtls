@@ -22,6 +22,35 @@ int verify_all( void *data, x509_cert *crt, int certificate_depth, int *flags )
     return 0;
 }
 
+/* strsep() not available on Windows */
+char *mystrsep(char **stringp, const char *delim)
+{
+    const char *p;
+    char *ret = *stringp;
+
+    if( *stringp == NULL )
+        return( NULL );
+
+    for( ; ; (*stringp)++ )
+    {
+        if( **stringp == '\0' )
+        {
+            *stringp = NULL;
+            goto done;
+        }
+
+        for( p = delim; *p != '\0'; p++ )
+            if( **stringp == *p )
+            {
+                **stringp = '\0';
+                (*stringp)++;
+                goto done;
+            }
+    }
+
+done:
+    return( ret );
+}
 END_HEADER
 
 BEGIN_DEPENDENCIES
@@ -288,7 +317,7 @@ x509_crt_verify_chain:chain_paths_str:trusted_ca:flags_result
     chain_paths = strdup( {chain_paths_str} );
     TEST_ASSERT( chain_paths != NULL );
 
-    while( ( act = strsep( &chain_paths, " " ) ) != NULL )
+    while( ( act = mystrsep( &chain_paths, " " ) ) != NULL )
         TEST_ASSERT( x509parse_crtfile( &chain, act ) == 0 );
     TEST_ASSERT( x509parse_crtfile( &trusted, {trusted_ca} ) == 0 );
 

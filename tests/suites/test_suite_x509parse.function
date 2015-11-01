@@ -22,6 +22,35 @@ int verify_all( void *data, x509_cert *crt, int certificate_depth, int *flags )
     return 0;
 }
 
+/* strsep() not available on Windows */
+char *mystrsep(char **stringp, const char *delim)
+{
+    const char *p;
+    char *ret = *stringp;
+
+    if( *stringp == NULL )
+        return( NULL );
+
+    for( ; ; (*stringp)++ )
+    {
+        if( **stringp == '\0' )
+        {
+            *stringp = NULL;
+            goto done;
+        }
+
+        for( p = delim; *p != '\0'; p++ )
+            if( **stringp == *p )
+            {
+                **stringp = '\0';
+                (*stringp)++;
+                goto done;
+            }
+    }
+
+done:
+    return( ret );
+}
 END_HEADER
 
 BEGIN_DEPENDENCIES
@@ -271,6 +300,36 @@ x509parse_key:key_data:result_str:result
     }
 
     rsa_free( &rsa );
+}
+END_CASE
+
+BEGIN_CASE
+x509_crt_verify_chain:chain_paths_str:trusted_ca:flags_result
+{
+    char *act;
+    int flags;
+    int result, res;
+    x509_cert trusted, chain;
+    char *chain_paths;
+
+    memset( &chain, 0, sizeof( x509_cert ) );
+    memset( &trusted, 0, sizeof( x509_cert ) );
+    chain_paths = strdup( {chain_paths_str} );
+    TEST_ASSERT( chain_paths != NULL );
+
+    while( ( act = mystrsep( &chain_paths, " " ) ) != NULL )
+        TEST_ASSERT( x509parse_crtfile( &chain, act ) == 0 );
+    TEST_ASSERT( x509parse_crtfile( &trusted, {trusted_ca} ) == 0 );
+
+    res = x509parse_verify( &chain, &trusted, NULL, NULL, &flags, NULL, NULL );
+
+    x509_free( &trusted );
+    x509_free( &chain );
+
+    result = ( {flags_result} ) ? POLARSSL_ERR_X509_CERT_VERIFY_FAILED : 0;
+
+    TEST_ASSERT( res == result );
+    TEST_ASSERT( flags == ( {flags_result} ) );
 }
 END_CASE
 

@@ -1105,11 +1105,16 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
 #if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
     if( key_ex == MBEDTLS_KEY_EXCHANGE_PSK )
     {
-        if( end - p < 2 + (int) psk_len )
+        if( end - p < 2 )
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
         *(p++) = (unsigned char)( psk_len >> 8 );
         *(p++) = (unsigned char)( psk_len      );
+
+        if( end < p || (size_t)( end - p ) < psk_len )
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+        memset( p, 0, psk_len );
         p += psk_len;
     }
     else
@@ -1177,11 +1182,15 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
     }
 
     /* opaque psk<0..2^16-1>; */
-    if( end - p < 2 + (int) psk_len )
-            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    if( end - p < 2 )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     *(p++) = (unsigned char)( psk_len >> 8 );
     *(p++) = (unsigned char)( psk_len      );
+
+    if( end < p || (size_t)( end - p ) < psk_len )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
     memcpy( p, psk, psk_len );
     p += psk_len;
 

@@ -2471,32 +2471,35 @@ int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl )
 /*
  * Check if desired message sequence is in the queue
  */
-static int ssl_check_hs_queue( mbedtls_ssl_context *ssl )
+static int ssl_hs_queue_check( mbedtls_ssl_context *ssl )
 {
-    if( ssl->handshake->hs_queue != NULL )
+    mbedtls_ssl_hs_queue_item *prev = NULL, *cur = NULL;
+
+    if( ssl->handshake->hs_queue == NULL )
+        return( -1 );
+
+    cur = ssl->handshake->hs_queue;
+    while( cur != NULL )
     {
-        mbedtls_ssl_hs_queue_item *prev = NULL;
-        mbedtls_ssl_hs_queue_item *cur = ssl->handshake->hs_queue;
-        while( cur != NULL )
+        if( cur->seq == ssl->handshake->in_msg_seq )
         {
-            if( cur->seq == ssl->handshake->in_msg_seq )
-            {
-                ssl->in_msglen = cur->len;
-                ssl->in_msgtype = cur->type;
-                memmove( ssl->in_msg, cur->p, cur->len );
+            ssl->in_msglen = cur->len;
+            ssl->in_msgtype = cur->type;
+            memmove( ssl->in_msg, cur->p, cur->len );
 
-                if( prev != NULL )
-                    prev->next = cur->next;
-                else
-                    ssl->handshake->hs_queue = cur->next;
+            if( prev != NULL )
+                prev->next = cur->next;
+            else
+                ssl->handshake->hs_queue = cur->next;
 
-                mbedtls_free( cur );
-                return( 0 );
-            }
-            prev = cur;
-            cur = cur->next;
+            mbedtls_free( cur->p );
+            mbedtls_free( cur );
+            return( 0 );
         }
+        prev = cur;
+        cur = cur->next;
     }
+
     return( -1 );
 }
 
@@ -2518,10 +2521,10 @@ static int ssl_hs_queue_append( mbedtls_ssl_context *ssl, unsigned int seq )
         }
     }
 
-    if( total_len > MBEDTLS_SSL_DTLS_MAX_QUEUE_LEN )
+    if( total_len > MBEDTLS_SSL_DTLS_HS_MAX_QUEUE_LEN )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "dropping out-of-sequence message due to queue size limit" ) );
-        return( MBEDTLS_ERR_SSL_WANT_READ );
+        return( -1 );
     }
 
     /* Allocate space for current message */
@@ -2529,14 +2532,14 @@ static int ssl_hs_queue_append( mbedtls_ssl_context *ssl, unsigned int seq )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc %d bytes failed",
                             sizeof( mbedtls_ssl_hs_queue_item ) ) );
-        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+        return( -1 );
     }
 
     if( ( msg->p = mbedtls_calloc( 1, ssl->in_msglen ) ) == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc %d bytes failed", ssl->in_msglen ) );
         mbedtls_free( msg );
-        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+        return( -1 );
     }
 
     /* Copy current message with headers */
@@ -2546,7 +2549,7 @@ static int ssl_hs_queue_append( mbedtls_ssl_context *ssl, unsigned int seq )
     msg->seq = seq;
     msg->next = NULL;
 
-    /* Append to the current flight */
+    /* Append to the current queue */
     if( cur == NULL )
         ssl->handshake->hs_queue = msg;
     else
@@ -3231,7 +3234,7 @@ static int ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
                 if( ( ret = ssl_hs_queue_append( ssl, recv_msg_seq ) ) != 0 )
                 {
                     MBEDTLS_SSL_DEBUG_RET( 1, "ssl_hs_queue_append", ret );
-                    return( ret );
+                    /* even in the error case we need to read so fall through */
                 }
             }
 #endif
@@ -3847,10 +3850,7 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_BUF( 4, "remaining content in record",
                            ssl->in_msg, ssl->in_msglen );
 
-        if( ( ret = ssl_prepare_handshake_record( ssl ) ) != 0 )
-            return( ret );
-
-        return( 0 );
+        return( ssl_prepare_handshake_record( ssl ) );
     }
 
     ssl->in_hslen = 0;
@@ -3860,7 +3860,7 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl )
         ssl->handshake != NULL &&
         ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
     {
-        if( ssl_check_hs_queue( ssl ) == 0 )
+        if( ssl_hs_queue_check( ssl ) == 0 )
         {
             if( ( ret = ssl_prepare_handshake_record( ssl ) ) != 0 )
                 return( ret );

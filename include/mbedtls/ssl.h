@@ -216,8 +216,12 @@
 #define MBEDTLS_SSL_MAX_CONTENT_LEN         16384   /**< Size of the input / output buffer */
 #endif
 
-#if !defined(MBEDTLS_SSL_DTLS_MAX_QUEUE_LEN)
-#define MBEDTLS_SSL_DTLS_MAX_QUEUE_LEN      16384
+/**
+ * Maximum length of queued handshake messages
+ * received out-of-sequence
+ */
+#if !defined(MBEDTLS_SSL_DTLS_HS_MAX_QUEUE_LEN)
+#define MBEDTLS_SSL_DTLS_HS_MAX_QUEUE_LEN      16384   /**< Maximum size of the out-of-sequence handshake queue */
 #endif
 
 /* \} name SECTION: Module settings */

@@ -5772,6 +5772,8 @@ int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
     {
         mbedtls_free( conf->psk );
         mbedtls_free( conf->psk_identity );
+        conf->psk = NULL;
+        conf->psk_identity = NULL;
     }
 
     if( ( conf->psk = mbedtls_calloc( 1, psk_len ) ) == NULL ||

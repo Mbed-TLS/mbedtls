@@ -234,11 +234,7 @@ void x509_verify( char *crt_file, char *ca_file, char *crl_file,
     TEST_ASSERT( mbedtls_x509_crt_parse_file( &ca, ca_file ) == 0 );
     TEST_ASSERT( mbedtls_x509_crl_parse_file( &crl, crl_file ) == 0 );
 
-    //puts( "" );
     res = mbedtls_x509_crt_verify_with_profile( &crt, &ca, &crl, &compat_profile, cn_name, &flags, f_vrfy, NULL );
-
-    //printf( "exp: -%04x, %08x\n", result, flags_result );
-    //printf( "got: -%04x, %08x\n", res, flags );
 
     TEST_ASSERT( res == ( result ) );
     TEST_ASSERT( flags == (uint32_t)( flags_result ) );

@@ -2471,7 +2471,9 @@ int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl )
 /*
  * Check if desired message sequence is in the queue
  */
-static int ssl_hs_queue_check( mbedtls_ssl_context *ssl )
+static int ssl_hs_queue_get( mbedtls_ssl_context *ssl,
+                             unsigned char type,
+                             unsigned int seq )
 {
     mbedtls_ssl_hs_queue_item *prev = NULL, *cur = NULL;
 
@@ -2481,7 +2483,7 @@ static int ssl_hs_queue_check( mbedtls_ssl_context *ssl )
     cur = ssl->handshake->hs_queue;
     while( cur != NULL )
     {
-        if( cur->seq == ssl->handshake->in_msg_seq )
+        if( cur->seq == seq && cur->type == type )
         {
             ssl->in_msglen = cur->len;
             ssl->in_msgtype = cur->type;
@@ -2501,6 +2503,16 @@ static int ssl_hs_queue_check( mbedtls_ssl_context *ssl )
     }
 
     return( -1 );
+}
+
+static int ssl_hs_queue_get_hs( mbedtls_ssl_context *ssl )
+{
+    return( ssl_hs_queue_get( ssl, MBEDTLS_SSL_MSG_HANDSHAKE, ssl->handshake->in_msg_seq ) );
+}
+
+static int ssl_hs_queue_get_ccs( mbedtls_ssl_context *ssl )
+{
+    return( ssl_hs_queue_get( ssl, MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC, 0 ) );
 }
 
 /*
@@ -3620,6 +3632,24 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
             ssl->state != MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC &&
             ssl->state != MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC )
         {
+#if defined(MBEDTLS_SSL_DTLS_HANDSHAKE_QUEUE)
+            /* Finished state means the CCS is late */
+            if ( ssl->in_epoch == 0 &&
+                 ( ( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
+                     ssl->state != MBEDTLS_SSL_CLIENT_FINISHED ) ||
+                   ( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
+                     ssl->state != MBEDTLS_SSL_SERVER_FINISHED ) ) )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 2, ( "queuing future ChangeCipherSpec message" ) );
+                if( ( ret = ssl_hs_queue_append( ssl, 0 ) ) != 0 )
+                {
+                    MBEDTLS_SSL_DEBUG_RET( 1, "ssl_hs_queue_append", ret );
+                    return( MBEDTLS_ERR_SSL_INVALID_RECORD );
+                }
+
+                return( MBEDTLS_ERR_SSL_WANT_READ );
+            }
+#endif
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "dropping unexpected ChangeCipherSpec" ) );
             return( MBEDTLS_ERR_SSL_INVALID_RECORD );
         }
@@ -3860,11 +3890,20 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl )
         ssl->handshake != NULL &&
         ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
     {
-        if( ssl_hs_queue_check( ssl ) == 0 )
+        if( ssl->state == MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC ||
+            ssl->state == MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC )
         {
-            if( ( ret = ssl_prepare_handshake_record( ssl ) ) != 0 )
-                return( ret );
-            return( 0 );
+            if( ssl_hs_queue_get_ccs( ssl ) == 0 )
+            {
+                return( ssl_prepare_record_content( ssl ) );
+            }
+        }
+        else 
+        {
+            if( ssl_hs_queue_get_hs( ssl ) == 0 )
+            {
+                return( ssl_prepare_handshake_record( ssl ) );
+            }
         }
     }
 #endif

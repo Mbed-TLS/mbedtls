@@ -83,9 +83,10 @@ msg "test/build: declared and exported names" # < 3s
 cleanup
 tests/scripts/check-names.sh
 
-msg "build: create and build yotta module" # ~ 30s
-cleanup
-tests/scripts/yotta-build.sh
+# Yotta not supported in 2.1 branch
+#msg "build: create and build yotta module" # ~ 30s
+#cleanup
+#tests/scripts/yotta-build.sh
 
 msg "build: cmake, gcc, ASan" # ~ 1 min 50s
 cleanup

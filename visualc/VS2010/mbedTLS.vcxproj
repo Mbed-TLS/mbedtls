@@ -165,6 +165,7 @@
     <ClInclude Include="..\..\include\mbedtls\dhm.h" />
     <ClInclude Include="..\..\include\mbedtls\ecdh.h" />
     <ClInclude Include="..\..\include\mbedtls\ecdsa.h" />
+    <ClInclude Include="..\..\include\mbedtls\ecjpake.h" />
     <ClInclude Include="..\..\include\mbedtls\ecp.h" />
     <ClInclude Include="..\..\include\mbedtls\entropy.h" />
     <ClInclude Include="..\..\include\mbedtls\entropy_poll.h" />
@@ -228,6 +229,7 @@
     <ClCompile Include="..\..\library\dhm.c" />
     <ClCompile Include="..\..\library\ecdh.c" />
     <ClCompile Include="..\..\library\ecdsa.c" />
+    <ClCompile Include="..\..\library\ecjpake.c" />
     <ClCompile Include="..\..\library\ecp.c" />
     <ClCompile Include="..\..\library\ecp_curves.c" />
     <ClCompile Include="..\..\library\entropy.c" />

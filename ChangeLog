@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.2.0 released 2015-10-xx
+= mbed TLS 2.2.0 released 2015-11-04
 
 Security
    * Fix potential double free if mbedtls_ssl_conf_psk() is called more than

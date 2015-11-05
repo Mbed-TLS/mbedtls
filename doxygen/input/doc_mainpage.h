@@ -4,7 +4,7 @@
  */
 
 /**
- * @mainpage PolarSSL v1.2.17 source code documentation
+ * @mainpage PolarSSL v1.2.18 source code documentation
  * 
  * This documentation describes the internal structure of PolarSSL.  It was
  * automatically generated from specially formatted comment blocks in

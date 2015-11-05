@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Version 1.2.18 released 2015-10-xx
+= Version 1.2.18 released 2015-11-04
 
 Security
    * Fix potential heap corruption on Windows when

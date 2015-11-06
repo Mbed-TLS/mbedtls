@@ -337,6 +337,7 @@ struct mbedtls_ssl_hs_queue_item
 {
     unsigned char *p;       /*!< message, including handshake headers   */
     size_t len;             /*!< length of p                            */
+    size_t msglen;          /*!< message length                         */
     unsigned char type;     /*!< type of the message: handshake or CCS  */
     unsigned int seq;       /*!< sequence number of queued message      */
     mbedtls_ssl_hs_queue_item *next;  /*!< next queued message(s)              */

@@ -2485,9 +2485,9 @@ static int ssl_hs_queue_get( mbedtls_ssl_context *ssl,
     {
         if( cur->seq == seq && cur->type == type )
         {
-            ssl->in_msglen = cur->len;
+            ssl->in_msglen = cur->msglen;
             ssl->in_msgtype = cur->type;
-            memmove( ssl->in_msg, cur->p, cur->len );
+            memmove( ssl->in_hdr, cur->p, cur->len );
 
             if( prev != NULL )
                 prev->next = cur->next;
@@ -2505,9 +2505,9 @@ static int ssl_hs_queue_get( mbedtls_ssl_context *ssl,
     return( -1 );
 }
 
-static int ssl_hs_queue_get_hs( mbedtls_ssl_context *ssl )
+static int ssl_hs_queue_get_hs( mbedtls_ssl_context *ssl, unsigned int seq )
 {
-    return( ssl_hs_queue_get( ssl, MBEDTLS_SSL_MSG_HANDSHAKE, ssl->handshake->in_msg_seq ) );
+    return( ssl_hs_queue_get( ssl, MBEDTLS_SSL_MSG_HANDSHAKE, seq ) );
 }
 
 static int ssl_hs_queue_get_ccs( mbedtls_ssl_context *ssl )
@@ -2521,7 +2521,8 @@ static int ssl_hs_queue_get_ccs( mbedtls_ssl_context *ssl )
 static int ssl_hs_queue_append( mbedtls_ssl_context *ssl, unsigned int seq )
 {
     mbedtls_ssl_hs_queue_item *msg, *cur;
-    size_t total_len = ssl->in_msglen;
+    size_t cur_len = ssl->in_msglen + (ssl->in_msg - ssl->in_hdr);
+    size_t total_len = cur_len;
 
     cur = ssl->handshake->hs_queue;
     if( cur != NULL )
@@ -2547,16 +2548,17 @@ static int ssl_hs_queue_append( mbedtls_ssl_context *ssl, unsigned int seq )
         return( -1 );
     }
 
-    if( ( msg->p = mbedtls_calloc( 1, ssl->in_msglen ) ) == NULL )
+    if( ( msg->p = mbedtls_calloc( 1, cur_len ) ) == NULL )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc %d bytes failed", ssl->in_msglen ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc %d bytes failed", cur_len ) );
         mbedtls_free( msg );
         return( -1 );
     }
 
     /* Copy current message with headers */
-    memcpy( msg->p, ssl->in_msg, ssl->in_msglen );
-    msg->len = ssl->in_msglen;
+    memcpy( msg->p, ssl->in_hdr, cur_len );
+    msg->len = cur_len;
+    msg->msglen = ssl->in_msglen;
     msg->type = ssl->in_msgtype;
     msg->seq = seq;
     msg->next = NULL;
@@ -3900,7 +3902,7 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl )
         }
         else 
         {
-            if( ssl_hs_queue_get_hs( ssl ) == 0 )
+            if( ssl_hs_queue_get_hs( ssl, ssl->handshake->in_msg_seq ) == 0 )
             {
                 return( ssl_prepare_handshake_record( ssl ) );
             }

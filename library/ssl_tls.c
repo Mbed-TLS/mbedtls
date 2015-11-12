@@ -4002,7 +4002,9 @@ read_record_header:
         goto read_record_header;
     }
 #endif
+#if defined(MBEDTLS_SSL_PROTO_DTLS) && defined(MBEDTLS_SSL_DTLS_HANDSHAKE_QUEUE)
 prepare_record_content:
+#endif
     if( ( ret = ssl_prepare_record_content( ssl ) ) != 0 )
     {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

@@ -471,12 +471,14 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
-void mbedtls_x509_crt_verify_chain(  char *chain_paths, char *trusted_ca, int flags_result )
+void mbedtls_x509_crt_verify_chain(  char *chain_paths, char *trusted_ca,
+                                     int flags_result, char *profile )
 {
     char* act;
     uint32_t flags;
     int result, res;
     mbedtls_x509_crt trusted, chain;
+    const mbedtls_x509_crt_profile *prof;
 
     result= flags_result?MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:0;
 
@@ -487,10 +489,65 @@ void mbedtls_x509_crt_verify_chain(  char *chain_paths, char *trusted_ca, int fl
         TEST_ASSERT( mbedtls_x509_crt_parse_file( &chain, act ) == 0 );
     TEST_ASSERT( mbedtls_x509_crt_parse_file( &trusted, trusted_ca ) == 0 );
 
-    res = mbedtls_x509_crt_verify( &chain, &trusted, NULL, NULL, &flags, NULL, NULL );
+    prof = &mbedtls_x509_crt_profile_default;
+    if( strcmp( profile, "next" ) == 0 )
+        prof = &mbedtls_x509_crt_profile_next;
+    else if( strcmp( profile, "suiteb" ) == 0 )
+        prof = &mbedtls_x509_crt_profile_suiteb;
+
+    res = mbedtls_x509_crt_verify_with_profile( &chain, &trusted, NULL, prof,
+                                                NULL, &flags, NULL, NULL );
 
     TEST_ASSERT( res == ( result ) );
     TEST_ASSERT( flags == (uint32_t)( flags_result ) );
+
+exit:
+    mbedtls_x509_crt_free( &trusted );
+    mbedtls_x509_crt_free( &chain );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
+void mbedtls_x509_crt_verify_max( char *chain_dir, char *trusted_ca )
+{
+    char file_buf[128];
+    int i, ret, max;
+    uint32_t flags;
+    mbedtls_x509_crt trusted, chain;
+
+    mbedtls_x509_crt_init( &chain );
+    mbedtls_x509_crt_init( &trusted );
+
+    /* First, test that a chain with MBEDTLS_X509_MAX_INTERMEDIATE_CA
+       intermediates is OK. We load one root cert, then "max+1" chain certs so
+       that there will be "max" intermediates.  */
+
+    max = MBEDTLS_X509_MAX_INTERMEDIATE_CA;
+    TEST_ASSERT( mbedtls_x509_crt_parse_file( &trusted, trusted_ca ) == 0 );
+    for( i = max; i >= 0; --i )
+    {
+        ret = mbedtls_snprintf( file_buf, sizeof file_buf, "%s.%d", chain_dir, i+2 );
+        TEST_ASSERT( ret > 0 && (size_t)ret < sizeof file_buf );
+        TEST_ASSERT( mbedtls_x509_crt_parse_file( &chain, file_buf ) == 0 );
+    }
+
+    ret = mbedtls_x509_crt_verify( &chain, &trusted, NULL, NULL, &flags, NULL, NULL );
+    TEST_ASSERT( !ret );
+    TEST_ASSERT( flags == 0 );
+
+    /* Now, add another certificate to the chain and see if we come unstuck! */
+    mbedtls_x509_crt_free( &chain );
+    mbedtls_x509_crt_init( &chain );
+    for( i = max + 1; i >= 0; --i )
+    {
+        ret = mbedtls_snprintf( file_buf, sizeof file_buf, "%s.%d", chain_dir, i+2 );
+        TEST_ASSERT( ret > 0 && (size_t)ret < sizeof file_buf );
+        TEST_ASSERT( mbedtls_x509_crt_parse_file( &chain, file_buf ) == 0 );
+    }
+
+    ret = mbedtls_x509_crt_verify( &chain, &trusted, NULL, NULL, &flags, NULL, NULL );
+    TEST_ASSERT( ret == MBEDTLS_ERR_X509_CERT_VERIFY_FAILED );
+    TEST_ASSERT( flags == 0 );
 
 exit:
     mbedtls_x509_crt_free( &trusted );

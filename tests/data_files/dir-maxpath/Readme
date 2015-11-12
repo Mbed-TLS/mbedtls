@@ -1,0 +1,3 @@
+These certificates form a very long chain, with crt.1 being the root
+CA.  The chain is used to test the MBEDTLS_X509_MAX_INTERMEDIATE_CA
+limit.

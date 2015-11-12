@@ -3978,28 +3978,30 @@ read_record_header:
         ssl->in_left = 0;
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS) && defined(MBEDTLS_SSL_DTLS_HANDSHAKE_QUEUE)
-    unsigned int rec_epoch = ( ssl->in_ctr[0] << 8 ) | ssl->in_ctr[1];
-
-    /*
-     * Check for early Finished now that we have read the message
-     */
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
-        rec_epoch != ssl->in_epoch &&
-        rec_epoch == 1 &&
-        ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE &&
-        ( ssl->state == MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC ||
-          ssl->state == MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC ) )
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "queuing potential future Finished message" ) );
-        /* queueing with seq num 0 since we do not know real seq num yet */
-        if( ( ret = ssl_hs_queue_append( ssl, 0 ) ) != 0 )
+        unsigned int rec_epoch = ( ssl->in_ctr[0] << 8 ) | ssl->in_ctr[1];
+
+        /*
+         * Check for early Finished now that we have read the message
+         */
+        if( rec_epoch != ssl->in_epoch &&
+            rec_epoch == 1 &&
+            ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE &&
+            ( ssl->state == MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC ||
+              ssl->state == MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC ) )
         {
-            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_hs_queue_append", ret );
-            ssl->next_record_offset = 0;
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "discarding invalid record" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "queuing potential future Finished message" ) );
+            /* queueing with seq num 0 since we do not know real seq num yet */
+            if( ( ret = ssl_hs_queue_append( ssl, 0 ) ) != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "ssl_hs_queue_append", ret );
+                ssl->next_record_offset = 0;
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "discarding invalid record" ) );
+            }
+            
+            goto read_record_header;
         }
-        
-        goto read_record_header;
     }
 #endif
 #if defined(MBEDTLS_SSL_PROTO_DTLS) && defined(MBEDTLS_SSL_DTLS_HANDSHAKE_QUEUE)

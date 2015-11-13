@@ -249,18 +249,22 @@ int mbedtls_x509write_crt_set_ext_key_usage( mbedtls_x509write_cert *ctx,
     unsigned char *c = buf + sizeof(buf);
     int ret;
     size_t len = 0;
+    const mbedtls_asn1_sequence *last_ext = 0, *ext;
 
+    /* We need at least one extension: SEQUENCE SIZE (1..MAX) OF KeyPurposeId */
     if( exts == NULL )
         return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
 
-    while( exts != NULL )
+    /* Iterate over exts backwards, so we write them out in the requested order */
+    while( last_ext != exts )
     {
-        if( exts->buf.tag != MBEDTLS_ASN1_OID )
+        for( ext = exts; ext->next != last_ext; ext = ext->next ) {}
+        if( ext->buf.tag != MBEDTLS_ASN1_OID )
             return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
-        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_raw_buffer( &c, buf, exts->buf.p, exts->buf.len ) );
-        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, buf, exts->buf.len ) );
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_raw_buffer( &c, buf, ext->buf.p, ext->buf.len ) );
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, buf, ext->buf.len ) );
         MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &c, buf, MBEDTLS_ASN1_OID ) );
-        exts = exts->next;
+        last_ext = ext;
     }
 
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, buf, len ) );

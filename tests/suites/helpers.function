@@ -15,6 +15,8 @@
 #ifdef _MSC_VER
 #include <basetsd.h>
 typedef UINT32 uint32_t;
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
 #else
 #include <inttypes.h>
 #endif

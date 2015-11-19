@@ -40,3 +40,8 @@ cert71.crt (max_pathlen=1) -> cert72.crt -> cert73.crt (self signed) -> cert74.c
 ```
 cert81.crt -> cert82.crt (max_pathlen=0) -> cert83.crt
 ```
+
+9. zero pathlen constraint on trusted root (valid)
+```
+cert91.crt (max_pathlen=0) -> cert92.crt
+```

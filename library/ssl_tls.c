@@ -3723,9 +3723,15 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
              */
             if( rec_epoch == 1 &&
                 ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE &&
-                ( ssl->state == MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC ||
-                  ssl->state == MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC ) )
+                ( ( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
+                    ( ssl->state == MBEDTLS_SSL_CLIENT_CERTIFICATE ||
+                      ssl->state == MBEDTLS_SSL_CLIENT_KEY_EXCHANGE ||
+                      ssl->state == MBEDTLS_SSL_CERTIFICATE_VERIFY ||
+                      ssl->state == MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC ) ) ||
+                  ( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
+                    ssl->state == MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC ) ) )
             {
+
                 MBEDTLS_SSL_DEBUG_MSG( 2, ( "allowing potential future Finished message through epoch check" ) );
             }
             else
@@ -3988,8 +3994,13 @@ read_record_header:
         if( rec_epoch != ssl->in_epoch &&
             rec_epoch == 1 &&
             ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE &&
-            ( ssl->state == MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC ||
-              ssl->state == MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC ) )
+            ( ( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
+                ( ssl->state == MBEDTLS_SSL_CLIENT_CERTIFICATE ||
+                  ssl->state == MBEDTLS_SSL_CLIENT_KEY_EXCHANGE ||
+                  ssl->state == MBEDTLS_SSL_CERTIFICATE_VERIFY ||
+                  ssl->state == MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC ) ) ||
+              ( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
+                ssl->state == MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC ) ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "queuing potential future Finished message" ) );
             /* queueing with seq num 0 since we do not know real seq num yet */

@@ -362,7 +362,7 @@ size_t mbedtls_mpi_lsb( const mbedtls_mpi *X )
 static size_t mbedtls_clz( const mbedtls_mpi_uint x )
 {
     size_t j;
-    mbedtls_mpi_uint mask = 1 << (biL - 1);
+    mbedtls_mpi_uint mask = (mbedtls_mpi_uint) 1 << (biL - 1);
 
     for( j = 0; j < biL; j++ )
     {

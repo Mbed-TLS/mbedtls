@@ -1217,6 +1217,10 @@ int mbedtls_mpi_mul_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_uint 
 static mbedtls_mpi_uint mbedtls_int_div_int(mbedtls_mpi_uint u1,
             mbedtls_mpi_uint u0, mbedtls_mpi_uint d, mbedtls_mpi_uint *r)
 {
+#if defined(MBEDTLS_HAVE_UDBL)
+    mbedtls_t_udbl dividend, quotient;
+#endif
+
     /*
      * Check for overflow
      */
@@ -1228,9 +1232,6 @@ static mbedtls_mpi_uint mbedtls_int_div_int(mbedtls_mpi_uint u1,
     }
 
 #if defined(MBEDTLS_HAVE_UDBL)
-    mbedtls_t_udbl dividend;
-    mbedtls_mpi_uint quotient;
-
     dividend  = (mbedtls_t_udbl) u1 << biL;
     dividend |= (mbedtls_t_udbl) u0;
     quotient = dividend / d;

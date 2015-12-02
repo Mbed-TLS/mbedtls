@@ -219,7 +219,10 @@ struct mbedtls_ssl_handshake_params
                                               resending messages             */
     unsigned char alt_out_ctr[8];       /*!<  Alternative record epoch/counter
                                               for resending messages         */
+#if defined(MBEDTLS_SSL_DTLS_HANDSHAKE_QUEUE)
+    mbedtls_ssl_hs_queue_item *hs_queue;          /*!<  Queued out of order messages */
 #endif
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
     /*
      * Checksum contexts
@@ -328,6 +331,18 @@ struct mbedtls_ssl_flight_item
     unsigned char type;     /*!< type of the message: handshake or CCS  */
     mbedtls_ssl_flight_item *next;  /*!< next handshake message(s)              */
 };
+
+#if defined(MBEDTLS_SSL_DTLS_HANDSHAKE_QUEUE)
+struct mbedtls_ssl_hs_queue_item
+{
+    unsigned char *p;       /*!< message, including handshake headers   */
+    size_t len;             /*!< length of p                            */
+    size_t msglen;          /*!< message length                         */
+    unsigned char type;     /*!< type of the message: handshake or CCS  */
+    unsigned int seq;       /*!< sequence number of queued message      */
+    mbedtls_ssl_hs_queue_item *next;  /*!< next queued message(s)              */
+};
+#endif
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
 

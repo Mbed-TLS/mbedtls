@@ -3206,13 +3206,11 @@ run_test    "DTLS proxy: inject invalid AD record, badmac_limit 2, exchanges 2"\
 
 run_test    "DTLS proxy: delay ChangeCipherSpec" \
             -p "$P_PXY delay_ccs=1" \
-            "$P_SRV dtls=1 debug_level=1" \
-            "$P_CLI dtls=1 debug_level=1" \
+            "$P_SRV dtls=1 debug_level=5" \
+            "$P_CLI dtls=1 debug_level=5" \
             0 \
             -c "record from another epoch" \
             -s "record from another epoch" \
-            -c "discarding invalid record" \
-            -s "discarding invalid record" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 

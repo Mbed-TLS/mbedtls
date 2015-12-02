@@ -216,6 +216,14 @@
 #define MBEDTLS_SSL_MAX_CONTENT_LEN         16384   /**< Size of the input / output buffer */
 #endif
 
+/**
+ * Maximum length of queued handshake messages
+ * received out-of-sequence
+ */
+#if !defined(MBEDTLS_SSL_DTLS_HS_MAX_QUEUE_LEN)
+#define MBEDTLS_SSL_DTLS_HS_MAX_QUEUE_LEN      16384   /**< Maximum size of the out-of-sequence handshake queue */
+#endif
+
 /* \} name SECTION: Module settings */
 
 /*
@@ -423,6 +431,9 @@ typedef struct mbedtls_ssl_key_cert mbedtls_ssl_key_cert;
 #endif
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
+#if defined(MBEDTLS_SSL_DTLS_HANDSHAKE_QUEUE)
+typedef struct mbedtls_ssl_hs_queue_item mbedtls_ssl_hs_queue_item;
+#endif
 #endif
 
 /*

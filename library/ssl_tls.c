@@ -2475,10 +2475,134 @@ int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+#if defined(MBEDTLS_SSL_DTLS_HANDSHAKE_QUEUE)
+/*
+ * Check if desired message sequence is in the queue
+ */
+static int ssl_hs_queue_get( mbedtls_ssl_context *ssl,
+                             unsigned char type,
+                             unsigned int seq )
+{
+    mbedtls_ssl_hs_queue_item *prev = NULL, *cur = NULL;
+
+    if( ssl->handshake->hs_queue == NULL )
+        return( -1 );
+
+    cur = ssl->handshake->hs_queue;
+    while( cur != NULL )
+    {
+        if( cur->seq == seq && cur->type == type )
+        {
+            ssl->in_msglen = cur->msglen;
+            ssl->in_msgtype = cur->type;
+            memmove( ssl->in_hdr, cur->p, cur->len );
+
+            if( prev != NULL )
+                prev->next = cur->next;
+            else
+                ssl->handshake->hs_queue = cur->next;
+
+            mbedtls_free( cur->p );
+            mbedtls_free( cur );
+            return( 0 );
+        }
+        prev = cur;
+        cur = cur->next;
+    }
+
+    return( -1 );
+}
+
+static int ssl_hs_queue_get_hs( mbedtls_ssl_context *ssl, unsigned int seq )
+{
+    return( ssl_hs_queue_get( ssl, MBEDTLS_SSL_MSG_HANDSHAKE, seq ) );
+}
+
+static int ssl_hs_queue_get_ccs( mbedtls_ssl_context *ssl )
+{
+    return( ssl_hs_queue_get( ssl, MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC, 0 ) );
+}
+
+/*
+ * Append current message to out-of-order queue
+ */
+static int ssl_hs_queue_append( mbedtls_ssl_context *ssl, unsigned int seq )
+{
+    mbedtls_ssl_hs_queue_item *msg, *cur;
+    size_t cur_len = ssl->in_msglen + (ssl->in_msg - ssl->in_hdr);
+    size_t total_len = cur_len;
+
+    cur = ssl->handshake->hs_queue;
+    if( cur != NULL )
+    {
+        while( cur->next != NULL )
+        {
+            total_len += cur->len;
+            cur = cur->next;
+        }
+    }
+
+    if( total_len > MBEDTLS_SSL_DTLS_HS_MAX_QUEUE_LEN )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "dropping out-of-sequence message due to queue size limit" ) );
+        return( -1 );
+    }
+
+    /* Allocate space for current message */
+    if( ( msg = mbedtls_calloc( 1, sizeof(  mbedtls_ssl_hs_queue_item ) ) ) == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc %d bytes failed",
+                            sizeof( mbedtls_ssl_hs_queue_item ) ) );
+        return( -1 );
+    }
+
+    if( ( msg->p = mbedtls_calloc( 1, cur_len ) ) == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc %d bytes failed", cur_len ) );
+        mbedtls_free( msg );
+        return( -1 );
+    }
+
+    /* Copy current message with headers */
+    memcpy( msg->p, ssl->in_hdr, cur_len );
+    msg->len = cur_len;
+    msg->msglen = ssl->in_msglen;
+    msg->type = ssl->in_msgtype;
+    msg->seq = seq;
+    msg->next = NULL;
+
+    /* Append to the current queue */
+    if( cur == NULL )
+        ssl->handshake->hs_queue = msg;
+    else
+        cur->next = msg;
+
+    return( 0 );
+}
+
+/*
+ * Free the current queue of messages
+ */
+static void ssl_hs_queue_free( mbedtls_ssl_hs_queue_item *queue )
+{
+    mbedtls_ssl_hs_queue_item *cur = queue;
+    mbedtls_ssl_hs_queue_item *next;
+
+    while( cur != NULL )
+    {
+        next = cur->next;
+
+        mbedtls_free( cur->p );
+        mbedtls_free( cur );
+
+        cur = next;
+    }
+}
+#endif
 /*
  * Functions to handle the DTLS retransmission state machine
  */
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
 /*
  * Append current handshake message to current outgoing flight
  */
@@ -3126,6 +3250,17 @@ static int ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
                     return( ret );
                 }
             }
+#if defined(MBEDTLS_SSL_DTLS_HANDSHAKE_QUEUE)
+            else if( recv_msg_seq > ssl->handshake->in_msg_seq )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 2, ( "queuing future sequence message" ) );
+                if( ( ret = ssl_hs_queue_append( ssl, recv_msg_seq ) ) != 0 )
+                {
+                    MBEDTLS_SSL_DEBUG_RET( 1, "ssl_hs_queue_append", ret );
+                    /* even in the error case we need to read so fall through */
+                }
+            }
+#endif
             else
             {
                 MBEDTLS_SSL_DEBUG_MSG( 2, ( "dropping out-of-sequence message: "
@@ -3508,6 +3643,24 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
             ssl->state != MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC &&
             ssl->state != MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC )
         {
+#if defined(MBEDTLS_SSL_DTLS_HANDSHAKE_QUEUE)
+            /* Finished state means the CCS is late */
+            if ( ssl->in_epoch == 0 &&
+                 ( ( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
+                     ssl->state != MBEDTLS_SSL_CLIENT_FINISHED ) ||
+                   ( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
+                     ssl->state != MBEDTLS_SSL_SERVER_FINISHED ) ) )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 2, ( "queuing future ChangeCipherSpec message" ) );
+                if( ( ret = ssl_hs_queue_append( ssl, 0 ) ) != 0 )
+                {
+                    MBEDTLS_SSL_DEBUG_RET( 1, "ssl_hs_queue_append", ret );
+                    return( MBEDTLS_ERR_SSL_INVALID_RECORD );
+                }
+
+                return( MBEDTLS_ERR_SSL_WANT_READ );
+            }
+#endif
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "dropping unexpected ChangeCipherSpec" ) );
             return( MBEDTLS_ERR_SSL_INVALID_RECORD );
         }
@@ -3573,6 +3726,25 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
             }
             else
 #endif /* MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE && MBEDTLS_SSL_SRV_C */
+#if defined(MBEDTLS_SSL_DTLS_HANDSHAKE_QUEUE)
+            /*
+             * Check for an epoch 1 Finished while waiting for CCS
+             */
+            if( rec_epoch == 1 &&
+                ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE &&
+                ( ( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
+                    ( ssl->state == MBEDTLS_SSL_CLIENT_CERTIFICATE ||
+                      ssl->state == MBEDTLS_SSL_CLIENT_KEY_EXCHANGE ||
+                      ssl->state == MBEDTLS_SSL_CERTIFICATE_VERIFY ||
+                      ssl->state == MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC ) ) ||
+                  ( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
+                    ssl->state == MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC ) ) )
+            {
+
+                MBEDTLS_SSL_DEBUG_MSG( 2, ( "allowing potential future Finished message through epoch check" ) );
+            }
+            else
+#endif
                 return( MBEDTLS_ERR_SSL_INVALID_RECORD );
         }
 
@@ -3738,14 +3910,41 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_BUF( 4, "remaining content in record",
                            ssl->in_msg, ssl->in_msglen );
 
-        if( ( ret = ssl_prepare_handshake_record( ssl ) ) != 0 )
-            return( ret );
-
-        return( 0 );
+        return( ssl_prepare_handshake_record( ssl ) );
     }
 
     ssl->in_hslen = 0;
 
+#if defined(MBEDTLS_SSL_PROTO_DTLS) && defined(MBEDTLS_SSL_DTLS_HANDSHAKE_QUEUE)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+        ssl->handshake != NULL &&
+        ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
+    {
+        if( ssl->state == MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC ||
+            ssl->state == MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC )
+        {
+            if( ssl_hs_queue_get_ccs( ssl ) == 0 )
+            {
+                return( ssl_prepare_record_content( ssl ) );
+            }
+        }
+        else if( ssl->state == MBEDTLS_SSL_CLIENT_FINISHED ||
+                 ssl->state == MBEDTLS_SSL_SERVER_FINISHED )
+        {
+            if( ssl_hs_queue_get_hs( ssl, 0 ) == 0 )
+            {
+                goto prepare_record_content;
+            }
+        }
+        else 
+        {
+            if( ssl_hs_queue_get_hs( ssl, ssl->handshake->in_msg_seq ) == 0 )
+            {
+                return( ssl_prepare_handshake_record( ssl ) );
+            }
+        }
+    }
+#endif
     /*
      * Read the record header and parse it
      */
@@ -3793,6 +3992,41 @@ read_record_header:
 #endif
         ssl->in_left = 0;
 
+#if defined(MBEDTLS_SSL_PROTO_DTLS) && defined(MBEDTLS_SSL_DTLS_HANDSHAKE_QUEUE)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    {
+        unsigned int rec_epoch = ( ssl->in_ctr[0] << 8 ) | ssl->in_ctr[1];
+
+        /*
+         * Check for early Finished now that we have read the message
+         */
+        if( rec_epoch != ssl->in_epoch &&
+            rec_epoch == 1 &&
+            ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE &&
+            ( ( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
+                ( ssl->state == MBEDTLS_SSL_CLIENT_CERTIFICATE ||
+                  ssl->state == MBEDTLS_SSL_CLIENT_KEY_EXCHANGE ||
+                  ssl->state == MBEDTLS_SSL_CERTIFICATE_VERIFY ||
+                  ssl->state == MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC ) ) ||
+              ( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
+                ssl->state == MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC ) ) )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "queuing potential future Finished message" ) );
+            /* queueing with seq num 0 since we do not know real seq num yet */
+            if( ( ret = ssl_hs_queue_append( ssl, 0 ) ) != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "ssl_hs_queue_append", ret );
+                ssl->next_record_offset = 0;
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "discarding invalid record" ) );
+            }
+            
+            goto read_record_header;
+        }
+    }
+#endif
+#if defined(MBEDTLS_SSL_PROTO_DTLS) && defined(MBEDTLS_SSL_DTLS_HANDSHAKE_QUEUE)
+prepare_record_content:
+#endif
     if( ( ret = ssl_prepare_record_content( ssl ) ) != 0 )
     {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -5203,6 +5437,9 @@ static void ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     handshake->sni_authmode = MBEDTLS_SSL_VERIFY_UNSET;
+#endif
+#if defined(MBEDTLS_SSL_DTLS_HANDSHAKE_QUEUE)
+    handshake->hs_queue = NULL;
 #endif
 }
 
@@ -6959,6 +7196,9 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_handshake_params *handshake )
     mbedtls_free( handshake->verify_cookie );
     mbedtls_free( handshake->hs_msg );
     ssl_flight_free( handshake->flight );
+#if defined(MBEDTLS_SSL_DTLS_HANDSHAKE_QUEUE)
+    ssl_hs_queue_free( handshake->hs_queue );
+#endif
 #endif
 
     mbedtls_zeroize( handshake, sizeof( mbedtls_ssl_handshake_params ) );

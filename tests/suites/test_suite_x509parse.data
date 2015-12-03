@@ -390,9 +390,13 @@ X509 CRT verify chain #8 (self signed maxpathlen root)
 depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA2_C
 x509_crt_verify_chain:"data_files/dir4/cert61.crt data_files/dir4/cert63.crt data_files/dir4/cert62.crt":"data_files/dir4/cert61.crt":0
 
-X509 CRT verify chain #9 (self signed maxpathlen root)
+X509 CRT verify chain #9 (zero pathlen first intermediate, valid)
 depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA2_C
 x509_crt_verify_chain:"data_files/dir4/cert83.crt data_files/dir4/cert82.crt":"data_files/dir4/cert81.crt":0
+
+X509 CRT verify chain #10 (zero pathlen root, valid)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA2_C
+x509_crt_verify_chain:"data_files/dir4/cert92.crt":"data_files/dir4/cert91.crt":0
 
 X509 Parse Selftest
 depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_SELF_TEST

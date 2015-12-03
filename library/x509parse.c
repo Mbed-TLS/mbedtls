@@ -3679,15 +3679,6 @@ int x509parse_verify( x509_cert *crt,
             continue;
         }
 
-        /* +2 because the current step is not yet accounted for
-         * and because max_pathlen is one higher than it should be */
-        if( parent->max_pathlen > 0 &&
-            parent->max_pathlen < 2 + pathlen )
-        {
-            parent = parent->next;
-            continue;
-        }
-
         break;
     }
 

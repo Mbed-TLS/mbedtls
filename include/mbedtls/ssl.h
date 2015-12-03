@@ -341,6 +341,8 @@
 
 #define MBEDTLS_TLS_EXT_SIG_ALG                     13
 
+#define MBEDTLS_TLS_EXT_USE_SRTP                    14
+
 #define MBEDTLS_TLS_EXT_ALPN                        16
 
 #define MBEDTLS_TLS_EXT_ENCRYPT_THEN_MAC            22 /* 0x16 */
@@ -351,6 +353,14 @@
 #define MBEDTLS_TLS_EXT_ECJPAKE_KKPP               256 /* experimental */
 
 #define MBEDTLS_TLS_EXT_RENEGOTIATION_INFO      0xFF01
+
+/*
+ * use_srtp extension protection profiles values as defined in http://www.iana.org/assignments/srtp-protection/srtp-protection.xhtml
+ */
+#define MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_80_IANA_VALUE     0x0001
+#define MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_32_IANA_VALUE     0x0002
+#define MBEDTLS_SRTP_NULL_HMAC_SHA1_80_IANA_VALUE          0x0005
+#define MBEDTLS_SRTP_NULL_HMAC_SHA1_32_IANA_VALUE          0x0006
 
 /*
  * Size defines
@@ -551,6 +561,19 @@ typedef struct mbedtls_ssl_key_cert mbedtls_ssl_key_cert;
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
 #endif
+
+#if defined(MBEDTLS_SSL_DTLS_SRTP)
+/*
+ * List of SRTP profiles for DTLS-SRTP
+ */
+enum mbedtls_DTLS_SRTP_protection_profiles {
+    MBEDTLS_SRTP_UNSET_PROFILE,
+    MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_80,
+    MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_32,
+    MBEDTLS_SRTP_NULL_HMAC_SHA1_80,
+    MBEDTLS_SRTP_NULL_HMAC_SHA1_32,
+};
+#endif /* MBEDTLS_SSL_DTLS_SRTP */
 
 /*
  * This structure is used for storing current session data.
@@ -904,6 +927,17 @@ struct mbedtls_ssl_context
 #if defined(MBEDTLS_SSL_ALPN)
     const char *alpn_chosen;    /*!<  negotiated protocol                   */
 #endif
+
+#if defined(MBEDTLS_SSL_DTLS_SRTP)
+    /*
+     * use_srtp extension
+     */
+    enum mbedtls_DTLS_SRTP_protection_profiles *dtls_srtp_profiles_list; /*!< ordered list of supported srtp profile */
+    size_t dtls_srtp_profiles_list_len; /*!< number of supported profiles */
+    enum mbedtls_DTLS_SRTP_protection_profiles chosen_dtls_srtp_profile; /*!< negotiated profil */
+    unsigned char *dtls_srtp_keys; /*<! master keys and master salt for SRTP generated during handshake */
+    size_t dtls_srtp_keys_len; /*<! length in bytes of master keys and master salt for SRTP generated during handshake */
+#endif /* MBEDTLS_SSL_DTLS_SRTP */
 
     /*
      * Information for DTLS hello verify
@@ -1996,6 +2030,31 @@ int mbedtls_ssl_conf_alpn_protocols( mbedtls_ssl_config *conf, const char **prot
  */
 const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl );
 #endif /* MBEDTLS_SSL_ALPN */
+
+#if defined(MBEDTLS_SSL_DTLS_SRTP)
+/**
+ * \brief                   Set the supported DTLS-SRTP protection profiles.
+ *
+ * \param ssl               SSL context
+ * \param protos            List of supported protection profiles,
+ *                          in decreasing preference order.
+ * \param profiles_number   Number of supported profiles.
+ *
+ * \return         0 on success, or MBEDTLS_ERR_SSL_BAD_INPUT_DATA.
+ */
+int mbedtls_ssl_set_dtls_srtp_protection_profiles( mbedtls_ssl_context *ssl, const enum mbedtls_DTLS_SRTP_protection_profiles *profiles, size_t profiles_number);
+
+/**
+ * \brief          Get the negotiated DTLS-SRTP Protection Profile.
+ *                 This function should be called after the handshake is
+ *                 completed.
+ *
+ * \param ssl      SSL context
+ *
+ * \return         Protection Profile enum member, SRTP_UNSET_PROFILE if no protocol was negotiated.
+ */
+enum mbedtls_DTLS_SRTP_protection_profiles mbedtls_ssl_get_dtls_srtp_protection_profile( const mbedtls_ssl_context *ssl);
+#endif /* MBEDTLS_SSL_DTLS_SRTP */
 
 /**
  * \brief          Set the maximum supported version sent from the client side

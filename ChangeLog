@@ -3,7 +3,8 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS 2.1.4 released 2015-12-xx
 
 Security
-   * Disable MD5 for handshake signatures by default.
+   * Disable MD5 handshake signatures in TLS 1.2 by default
+     (Reported by Karthikeyan Bhargavan and Gaëtan Leurent.)
 
 = mbed TLS 2.1.3 released 2015-11-04
 

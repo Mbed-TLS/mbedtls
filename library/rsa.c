@@ -42,14 +42,11 @@
 #include "mbedtls/md.h"
 #endif
 
-#if defined(MBEDTLS_PKCS1_V15) && !defined(__OpenBSD__)
-#include <stdlib.h>
-#endif
-
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
+#include <stdlib.h>
 #define mbedtls_printf printf
 #define mbedtls_calloc calloc
 #define mbedtls_free   free

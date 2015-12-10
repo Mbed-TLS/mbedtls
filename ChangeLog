@@ -1,5 +1,10 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.2.1 released 2015-12-xx
+
+Bugfix
+   * Fix over-restricive length limit in GCM. Found by Andreas-N. #362
+
 = mbed TLS 2.2.0 released 2015-11-04
 
 Security

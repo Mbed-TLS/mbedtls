@@ -100,7 +100,7 @@ int mbedtls_cmac_generate( mbedtls_cmac_context *ctx, size_t length,
  *                  must be 4, 6, 8, 10, 14 or 16
  *
  * \return          0 if successful and authenticated,
- *                  MBEDTLS_ERR_CMAC_AUTH_FAILED if tag does not match
+ *                  MBEDTLS_ERR_CMAC_VERIFY_FAILED if tag does not match
  */
 int mbedtls_cmac_verify( mbedtls_cmac_context *ctx, size_t length,
                          const unsigned char *input,

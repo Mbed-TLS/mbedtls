@@ -450,6 +450,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_CERTS_C)
     "MBEDTLS_CERTS_C",
 #endif /* MBEDTLS_CERTS_C */
+#if defined(MBEDTLS_CMAC_C)
+    "MBEDTLS_CMAC_C",
+#endif /* MBEDTLS_CMAC_C */
 #if defined(MBEDTLS_CIPHER_C)
     "MBEDTLS_CIPHER_C",
 #endif /* MBEDTLS_CIPHER_C */

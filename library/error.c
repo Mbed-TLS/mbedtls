@@ -68,6 +68,10 @@
 #include "mbedtls/cipher.h"
 #endif
 
+#if defined(MBEDTLS_CMAC_C)
+#include "mbedtls/cmac.h"
+#endif
+
 #if defined(MBEDTLS_CTR_DRBG_C)
 #include "mbedtls/ctr_drbg.h"
 #endif
@@ -572,6 +576,13 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_CCM_AUTH_FAILED) )
         mbedtls_snprintf( buf, buflen, "CCM - Authenticated decryption failed" );
 #endif /* MBEDTLS_CCM_C */
+
+#if defined(MBEDTLS_CMAC_C)
+    if( use_ret == -(MBEDTLS_ERR_CMAC_BAD_INPUT) )
+        mbedtls_snprintf( buf, buflen, "CMAC - Bad input parameters to function" );
+    if( use_ret == -(MBEDTLS_ERR_CMAC_VERIFY_FAILED) )
+        mbedtls_snprintf( buf, buflen, "CMAC - Verification failed" );
+#endif /* MBEDTLS_CMAC_C */
 
 #if defined(MBEDTLS_CTR_DRBG_C)
     if( use_ret == -(MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED) )

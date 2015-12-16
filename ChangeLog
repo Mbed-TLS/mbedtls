@@ -1,5 +1,15 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.1.4 released 2015-12-xx
+
+Changes
+   * To avoid dropping an entire DTLS datagram if a single record in a datagram
+     is invalid, we now only drop the record and look at subsequent records (if
+     any are present) in the same datagram to avoid interoperability issues.
+     Previously the library was dropping the entire datagram, Where a record is
+     unexpected, the function mbedtls_ssl_read_record() will now return
+     MBEDTLS_ERR_SSL_UNEXPECTED_RECORD.
+
 = mbed TLS 2.1.3 released 2015-11-04
 
 Security

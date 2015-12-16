@@ -3457,16 +3457,16 @@ static int ssl_handle_possible_reconnect( mbedtls_ssl_context *ssl )
  * uint16 length;
  *
  * Return 0 if header looks sane (and, for DTLS, the record is expected)
- * MBEDTLS_ERR_SSL_INVALID_RECORD is the header looks bad,
+ * MBEDTLS_ERR_SSL_INVALID_RECORD if the header looks bad,
  * MBEDTLS_ERR_SSL_UNEXPECTED_RECORD (DTLS only) if sane but unexpected.
  *
  * With DTLS, mbedtls_ssl_read_record() will:
- * 1. proceed with the record if we return 0
- * 2. drop only the current record if we return UNEXPECTED_RECORD
- * 3. return CLIENT_RECONNECT if we return that
- * 4. drop the whole datagram if we return anything else.
- * Point 2 is needed when the peer is resending, and we already received the
- * first record from a datagram but are still waiting for the others.
+ * 1. proceed with the record if this function returns 0
+ * 2. drop only the current record if this function returns UNEXPECTED_RECORD
+ * 3. return CLIENT_RECONNECT if this function returns that value
+ * 4. drop the whole datagram if this function returns anything else.
+ * Point 2 is needed when the peer is resending, and we have already received
+ * the first record from a datagram but are still waiting for the others.
  */
 static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
 {

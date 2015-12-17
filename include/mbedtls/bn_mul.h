@@ -162,10 +162,6 @@
 
 #define MULADDC_INIT                        \
     asm(                                    \
-        "movq   %3, %%rsi           \n\t"   \
-        "movq   %4, %%rdi           \n\t"   \
-        "movq   %5, %%rcx           \n\t"   \
-        "movq   %6, %%rbx           \n\t"   \
         "xorq   %%r8, %%r8          \n\t"
 
 #define MULADDC_CORE                        \
@@ -181,12 +177,9 @@
         "addq   $8,      %%rdi      \n\t"
 
 #define MULADDC_STOP                        \
-        "movq   %%rcx, %0           \n\t"   \
-        "movq   %%rdi, %1           \n\t"   \
-        "movq   %%rsi, %2           \n\t"   \
-        : "=m" (c), "=m" (d), "=m" (s)                      \
-        : "m" (s), "m" (d), "m" (c), "m" (b)                \
-        : "rax", "rcx", "rdx", "rbx", "rsi", "rdi", "r8"    \
+        : "+c" (c), "+D" (d), "+S" (s)      \
+        : "b" (b)                           \
+        : "rax", "rdx", "r8"                \
     );
 
 #endif /* AMD64 */

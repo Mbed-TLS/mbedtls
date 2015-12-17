@@ -1832,11 +1832,12 @@ static int x509_name_cmp( const mbedtls_x509_name *a, const mbedtls_x509_name *b
  * Return 0 if yes, -1 if not.
  *
  * top means parent is a locally-trusted certificate
- * bottom means child is the end entity cert
+ * path_cnt is the number of intermediate certificates in the path below (0
+ * means child is the end entity cert)
  */
 static int x509_crt_check_parent( const mbedtls_x509_crt *child,
                                   const mbedtls_x509_crt *parent,
-                                  int top, int bottom )
+                                  int top, int path_cnt )
 {
     int need_ca_bit;
 
@@ -1851,15 +1852,14 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
     if( top && parent->version < 3 )
         need_ca_bit = 0;
 
-    /* Exception: self-signed end-entity certs that are locally trusted. */
-    if( top && bottom &&
-        child->raw.len == parent->raw.len &&
-        memcmp( child->raw.p, parent->raw.p, child->raw.len ) == 0 )
-    {
-        need_ca_bit = 0;
-    }
-
     if( need_ca_bit && ! parent->ca_istrue )
+        return( -1 );
+
+    /* The basicConstraints pathLenConstraint prevents a certificate from being
+     * the parent in a long chain. A cert with pathLenConstraint=0 can only
+     * sign end entities (max_pathlen = 1 for this in our code); max_pathlen = 2
+     * implies one intermediate CA is allowed, and so on. */
+    if( parent->max_pathlen > 0 && parent->max_pathlen - 1 < path_cnt )
         return( -1 );
 
 #if defined(MBEDTLS_X509_CHECK_KEY_USAGE)
@@ -1873,261 +1873,205 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
     return( 0 );
 }
 
-static int x509_crt_verify_top(
-                mbedtls_x509_crt *child, mbedtls_x509_crt *trust_ca,
-                mbedtls_x509_crl *ca_crl,
-                const mbedtls_x509_crt_profile *profile,
-                int path_cnt, int self_cnt, uint32_t *flags,
-                int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
-                void *p_vrfy )
+/*
+ * Check the signature in 'child', using the public key from 'parent'.
+ * Return 0 if it's OK, -1 if not.  It additionally sets some flags if the
+ * parent's key or the signature itself are weak.
+ */
+static int x509_crt_verify_sig(
+                mbedtls_x509_crt *child, mbedtls_x509_crt *parent,
+                const mbedtls_x509_crt_profile *profile, uint32_t *flags )
 {
-    int ret;
-    uint32_t ca_flags = 0;
-    int check_path_cnt;
-    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
     const mbedtls_md_info_t *md_info;
-
-    if( mbedtls_x509_time_is_past( &child->valid_to ) )
-        *flags |= MBEDTLS_X509_BADCERT_EXPIRED;
-
-    if( mbedtls_x509_time_is_future( &child->valid_from ) )
-        *flags |= MBEDTLS_X509_BADCERT_FUTURE;
-
-    if( x509_profile_check_md_alg( profile, child->sig_md ) != 0 )
-        *flags |= MBEDTLS_X509_BADCERT_BAD_MD;
-
-    if( x509_profile_check_pk_alg( profile, child->sig_pk ) != 0 )
-        *flags |= MBEDTLS_X509_BADCERT_BAD_PK;
-
-    /*
-     * Child is the top of the chain. Check against the trust_ca list.
-     */
-    *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
 
     md_info = mbedtls_md_info_from_type( child->sig_md );
     if( md_info == NULL )
     {
         /*
-         * Cannot check 'unknown', no need to try any CA
+         * We cannot check an unknown hash
          */
-        trust_ca = NULL;
+        return( -1 );
     }
-    else
-        mbedtls_md( md_info, child->tbs.p, child->tbs.len, hash );
 
-    for( /* trust_ca */ ; trust_ca != NULL; trust_ca = trust_ca->next )
+    mbedtls_md( md_info, child->tbs.p, child->tbs.len, hash );
+
+    if( x509_profile_check_pk_alg( profile, child->sig_pk ) != 0 )
+        *flags |= MBEDTLS_X509_BADCERT_BAD_PK;
+
+    if( x509_profile_check_key( profile, child->sig_pk, &parent->pk ) != 0 )
+        *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
+
+    if( x509_profile_check_md_alg( profile, child->sig_md ) != 0 )
+        *flags |= MBEDTLS_X509_BADCERT_BAD_MD;
+
+    if( mbedtls_pk_verify_ext( child->sig_pk, child->sig_opts, &parent->pk,
+                       child->sig_md, hash, mbedtls_md_get_size( md_info ),
+                       child->sig.p, child->sig.len ) != 0 )
     {
-        if( x509_crt_check_parent( child, trust_ca, 1, path_cnt == 0 ) != 0 )
-            continue;
-
-        check_path_cnt = path_cnt + 1;
-
         /*
-         * Reduce check_path_cnt to check against if top of the chain is
-         * the same as the trusted CA
+         * Signature is corrupted, fraudulent, or we're somehow checking against
+         * the wrong certificate.
          */
-        if( child->subject_raw.len == trust_ca->subject_raw.len &&
-            memcmp( child->subject_raw.p, trust_ca->subject_raw.p,
-                            child->issuer_raw.len ) == 0 )
-        {
-            check_path_cnt--;
-        }
-
-        /* Self signed certificates do not count towards the limit */
-        if( trust_ca->max_pathlen > 0 &&
-            trust_ca->max_pathlen < check_path_cnt - self_cnt )
-        {
-            continue;
-        }
-
-        if( mbedtls_pk_verify_ext( child->sig_pk, child->sig_opts, &trust_ca->pk,
-                           child->sig_md, hash, mbedtls_md_get_size( md_info ),
-                           child->sig.p, child->sig.len ) != 0 )
-        {
-            continue;
-        }
-
-        /*
-         * Top of chain is signed by a trusted CA
-         */
-        *flags &= ~MBEDTLS_X509_BADCERT_NOT_TRUSTED;
-
-        if( x509_profile_check_key( profile, child->sig_pk, &trust_ca->pk ) != 0 )
-            *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
-
-        break;
+        return( -1 );
     }
-
-    /*
-     * If top of chain is not the same as the trusted CA send a verify request
-     * to the callback for any issues with validity and CRL presence for the
-     * trusted CA certificate.
-     */
-    if( trust_ca != NULL &&
-        ( child->subject_raw.len != trust_ca->subject_raw.len ||
-          memcmp( child->subject_raw.p, trust_ca->subject_raw.p,
-                            child->issuer_raw.len ) != 0 ) )
-    {
-#if defined(MBEDTLS_X509_CRL_PARSE_C)
-        /* Check trusted CA's CRL for the chain's top crt */
-        *flags |= x509_crt_verifycrl( child, trust_ca, ca_crl, profile );
-#else
-        ((void) ca_crl);
-#endif
-
-        if( mbedtls_x509_time_is_past( &trust_ca->valid_to ) )
-            ca_flags |= MBEDTLS_X509_BADCERT_EXPIRED;
-
-        if( mbedtls_x509_time_is_future( &trust_ca->valid_from ) )
-            ca_flags |= MBEDTLS_X509_BADCERT_FUTURE;
-
-        if( NULL != f_vrfy )
-        {
-            if( ( ret = f_vrfy( p_vrfy, trust_ca, path_cnt + 1,
-                                &ca_flags ) ) != 0 )
-            {
-                return( ret );
-            }
-        }
-    }
-
-    /* Call callback on top cert */
-    if( NULL != f_vrfy )
-    {
-        if( ( ret = f_vrfy( p_vrfy, child, path_cnt, flags ) ) != 0 )
-            return( ret );
-    }
-
-    *flags |= ca_flags;
 
     return( 0 );
 }
 
-static int x509_crt_verify_child(
-                mbedtls_x509_crt *child, mbedtls_x509_crt *parent,
-                mbedtls_x509_crt *trust_ca, mbedtls_x509_crl *ca_crl,
+/* Checks the certificate for use in a chain and returns its flags */
+static int x509_crt_verify_flags(
+                mbedtls_x509_crt *crt, const mbedtls_x509_crt_profile *profile )
+{
+    int flags = 0;
+    mbedtls_pk_type_t pk_type;
+
+    /* Check the expiry of the certificate in the chain */
+    if( mbedtls_x509_time_is_past( &crt->valid_to ) )
+        flags |= MBEDTLS_X509_BADCERT_EXPIRED;
+
+    if( mbedtls_x509_time_is_future( &crt->valid_from ) )
+        flags |= MBEDTLS_X509_BADCERT_FUTURE;
+
+    /* Check the type and size of the key */
+    pk_type = mbedtls_pk_get_type( &crt->pk );
+
+    if( x509_profile_check_pk_alg( profile, pk_type ) != 0 )
+        flags |= MBEDTLS_X509_BADCERT_BAD_PK;
+
+    if( x509_profile_check_key( profile, pk_type, &crt->pk ) != 0 )
+        flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
+
+    return( flags );
+}
+
+static int x509_crt_verify_chain_step(
+                mbedtls_x509_crt *crt, mbedtls_x509_crt *trust_ca,
+                mbedtls_x509_crl *ca_crl,
                 const mbedtls_x509_crt_profile *profile,
-                int path_cnt, int self_cnt, uint32_t *flags,
+                int path_cnt, uint32_t *flags,
                 int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                 void *p_vrfy )
 {
-    int ret;
+    int ret, trusted_parent;
     uint32_t parent_flags = 0;
-    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
-    mbedtls_x509_crt *grandparent;
-    const mbedtls_md_info_t *md_info;
+    mbedtls_x509_crt *parent;
 
-    /* Counting intermediate self signed certificates */
-    if( ( path_cnt != 0 ) && x509_name_cmp( &child->issuer, &child->subject ) == 0 )
-        self_cnt++;
+    /* Check the cert for expiry and policy violations */
+    *flags |= x509_crt_verify_flags( crt, profile );
 
-    /* path_cnt is 0 for the first intermediate CA */
-    if( 1 + path_cnt > MBEDTLS_X509_MAX_INTERMEDIATE_CA )
+    /* We start off assuming it's trusted, and clear this later if we find a
+     * valid parent. */
+    *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
+
+    /*
+     * There are two main cases when we're building the chain.  If the cert is
+     * self-issued, then we've reached the end of the chain.  In this case,
+     * the only way it could be trusted is if the certificate is explicitly
+     * included in the trust_ca list.
+     *
+     * Otherwise, the certificate has a parent, so have to try and build a
+     * chain from here.
+     */
+
+    if( x509_name_cmp( &crt->issuer, &crt->subject ) == 0 )
     {
-        *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
-        return( MBEDTLS_ERR_X509_CERT_VERIFY_FAILED );
+        for( parent = trust_ca; parent != NULL; parent = parent->next )
+        {
+            /* Check for an exact match only.  Otherwise, anyone could make a
+             * self-signed cert with subject name "GeoTrust Root CA" and it
+             * would be trusted!  */
+            if( crt->raw.len == parent->raw.len &&
+                memcmp( crt->raw.p, parent->raw.p, crt->raw.len ) == 0 )
+            {
+                *flags &= ~MBEDTLS_X509_BADCERT_NOT_TRUSTED;
+                break;
+            }
+        }
     }
-
-    if( mbedtls_x509_time_is_past( &child->valid_to ) )
-        *flags |= MBEDTLS_X509_BADCERT_EXPIRED;
-
-    if( mbedtls_x509_time_is_future( &child->valid_from ) )
-        *flags |= MBEDTLS_X509_BADCERT_FUTURE;
-
-    if( x509_profile_check_md_alg( profile, child->sig_md ) != 0 )
-        *flags |= MBEDTLS_X509_BADCERT_BAD_MD;
-
-    if( x509_profile_check_pk_alg( profile, child->sig_pk ) != 0 )
-        *flags |= MBEDTLS_X509_BADCERT_BAD_PK;
-
-    md_info = mbedtls_md_info_from_type( child->sig_md );
-    if( md_info == NULL )
+    else
     {
         /*
-         * Cannot check 'unknown' hash
+         * We always look for parents first in the trusted CAs, then in
+         * crt->next, since crt->next is often an old intermediate chaining to a
+         * cross-signing root; therefore if the parent can be found in trust_ca
+         * it is probably the preferred parent.
          */
-        *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
-    }
-    else
-    {
-        mbedtls_md( md_info, child->tbs.p, child->tbs.len, hash );
-
-        if( x509_profile_check_key( profile, child->sig_pk, &parent->pk ) != 0 )
-            *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
-
-        if( mbedtls_pk_verify_ext( child->sig_pk, child->sig_opts, &parent->pk,
-                           child->sig_md, hash, mbedtls_md_get_size( md_info ),
-                           child->sig.p, child->sig.len ) != 0 )
+        trusted_parent = 0;
+        for( parent = trust_ca; parent != NULL; parent = parent->next )
         {
-            *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
-        }
-    }
-
-#if defined(MBEDTLS_X509_CRL_PARSE_C)
-    /* Check trusted CA's CRL for the given crt */
-    *flags |= x509_crt_verifycrl(child, parent, ca_crl, profile );
-#endif
-
-    /* Look for a grandparent in trusted CAs */
-    for( grandparent = trust_ca;
-         grandparent != NULL;
-         grandparent = grandparent->next )
-    {
-        if( x509_crt_check_parent( parent, grandparent,
-                                   0, path_cnt == 0 ) == 0 )
-            break;
-    }
-
-    if( grandparent != NULL )
-    {
-        ret = x509_crt_verify_top( parent, grandparent, ca_crl, profile,
-                                path_cnt + 1, self_cnt, &parent_flags, f_vrfy, p_vrfy );
-        if( ret != 0 )
-            return( ret );
-    }
-    else
-    {
-        /* Look for a grandparent upwards the chain */
-        for( grandparent = parent->next;
-             grandparent != NULL;
-             grandparent = grandparent->next )
-        {
-            /* +2 because the current step is not yet accounted for
-             * and because max_pathlen is one higher than it should be.
-             * Also self signed certificates do not count to the limit. */
-            if( grandparent->max_pathlen > 0 &&
-                grandparent->max_pathlen < 2 + path_cnt - self_cnt )
+            if( x509_crt_check_parent( crt, parent, 1, path_cnt ) == 0 )
             {
-                continue;
+                trusted_parent = 1;
+                break;
+            }
+        }
+
+        if( parent == NULL )
+        {
+            /*
+             * We bail out if we need to extend the chain but we've reached
+             * the limit. path_cnt is 0 for the first intermediate CA.
+             */
+            if( 1 + path_cnt > MBEDTLS_X509_MAX_INTERMEDIATE_CA )
+            {
+                return( MBEDTLS_ERR_X509_CERT_VERIFY_FAILED );
             }
 
-            if( x509_crt_check_parent( parent, grandparent,
-                                       0, path_cnt == 0 ) == 0 )
-                break;
+            /* Look for a parent upwards in the chain */
+            for( parent = crt->next; parent != NULL; parent = parent->next )
+            {
+                if( x509_crt_check_parent( crt, parent, 0, path_cnt ) == 0 )
+                    break;
+            }
         }
 
-        /* Is our parent part of the chain or at the top? */
-        if( grandparent != NULL )
+        if( parent != NULL )
         {
-            ret = x509_crt_verify_child( parent, grandparent, trust_ca, ca_crl,
-                                         profile, path_cnt + 1, self_cnt, &parent_flags,
-                                         f_vrfy, p_vrfy );
-            if( ret != 0 )
-                return( ret );
-        }
-        else
-        {
-            ret = x509_crt_verify_top( parent, trust_ca, ca_crl, profile,
-                                       path_cnt + 1, self_cnt, &parent_flags,
-                                       f_vrfy, p_vrfy );
-            if( ret != 0 )
-                return( ret );
+            if( x509_crt_verify_sig( crt, parent, profile, flags ) == 0 )
+            {
+                *flags &= ~MBEDTLS_X509_BADCERT_NOT_TRUSTED;
+            }
+
+#if defined(MBEDTLS_X509_CRL_PARSE_C)
+            /* Check trusted CA's CRL for the given crt */
+            *flags |= x509_crt_verifycrl( crt, parent, ca_crl, profile );
+#endif
+
+            if( trusted_parent )
+            {
+                /*
+                 * Check the trusted cert for expiry and policy violations and
+                 * notify the callback, since it won't get its own
+                 * chain-building step.
+                 */
+                parent_flags |= x509_crt_verify_flags( parent, profile );
+
+                if( NULL != f_vrfy )
+                {
+                    if( ( ret = f_vrfy( p_vrfy, parent, path_cnt + 1,
+                                        &parent_flags ) ) != 0 )
+                    {
+                        return( ret );
+                    }
+                }
+            }
+            else
+            {
+                ret = x509_crt_verify_chain_step( parent, trust_ca, ca_crl,
+                                                  profile, path_cnt + 1,
+                                                  &parent_flags, f_vrfy,
+                                                  p_vrfy );
+                if( ret != 0 )
+                    return( ret );
+            }
         }
     }
 
-    /* child is verified to be a child of the parent, call verify callback */
+    /* The verify callback is called from the trusted end of the chain all the
+     * way down, with the flags set for that stage of the chain. */
     if( NULL != f_vrfy )
-        if( ( ret = f_vrfy( p_vrfy, child, path_cnt, flags ) ) != 0 )
+        if( ( ret = f_vrfy( p_vrfy, crt, path_cnt, flags ) ) != 0 )
             return( ret );
 
     *flags |= parent_flags;
@@ -2163,11 +2107,8 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
 {
     size_t cn_len;
     int ret;
-    int pathlen = 0, selfsigned = 0;
-    mbedtls_x509_crt *parent;
     mbedtls_x509_name *name;
     mbedtls_x509_sequence *cur = NULL;
-    mbedtls_pk_type_t pk_type;
 
     if( profile == NULL )
         return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
@@ -2226,62 +2167,10 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
         }
     }
 
-    /* Check the type and size of the key */
-    pk_type = mbedtls_pk_get_type( &crt->pk );
-
-    if( x509_profile_check_pk_alg( profile, pk_type ) != 0 )
-        *flags |= MBEDTLS_X509_BADCERT_BAD_PK;
-
-    if( x509_profile_check_key( profile, pk_type, &crt->pk ) != 0 )
-        *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
-
-    /* Look for a parent in trusted CAs */
-    for( parent = trust_ca; parent != NULL; parent = parent->next )
-    {
-        if( x509_crt_check_parent( crt, parent, 0, pathlen == 0 ) == 0 )
-            break;
-    }
-
-    if( parent != NULL )
-    {
-        ret = x509_crt_verify_top( crt, parent, ca_crl, profile,
-                                   pathlen, selfsigned, flags, f_vrfy, p_vrfy );
-        if( ret != 0 )
-            return( ret );
-    }
-    else
-    {
-        /* Look for a parent upwards the chain */
-        for( parent = crt->next; parent != NULL; parent = parent->next )
-        {
-            /* +2 because the current step is not yet accounted for
-             * and because max_pathlen is one higher than it should be */
-            if( parent->max_pathlen > 0 &&
-                parent->max_pathlen < 2 + pathlen )
-            {
-                continue;
-            }
-
-            if( x509_crt_check_parent( crt, parent, 0, pathlen == 0 ) == 0 )
-                break;
-        }
-
-        /* Are we part of the chain or at the top? */
-        if( parent != NULL )
-        {
-            ret = x509_crt_verify_child( crt, parent, trust_ca, ca_crl, profile,
-                                         pathlen, selfsigned, flags, f_vrfy, p_vrfy );
-            if( ret != 0 )
-                return( ret );
-        }
-        else
-        {
-            ret = x509_crt_verify_top( crt, trust_ca, ca_crl, profile,
-                                       pathlen, selfsigned, flags, f_vrfy, p_vrfy );
-            if( ret != 0 )
-                return( ret );
-        }
-    }
+    ret = x509_crt_verify_chain_step( crt, trust_ca, ca_crl, profile, 0, flags,
+                                      f_vrfy, p_vrfy );
+    if( ret != 0 )
+        return( ret );
 
     if( *flags != 0 )
         return( MBEDTLS_ERR_X509_CERT_VERIFY_FAILED );

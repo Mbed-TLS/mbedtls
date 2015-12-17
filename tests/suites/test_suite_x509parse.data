@@ -699,6 +699,18 @@ X509 Certificate verification #81 (multiple CRLs, none relevant)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
 x509_verify:"data_files/enco-cert-utf8str.pem":"data_files/enco-ca-prstr.pem":"data_files/crl_cat_rsa-ec.pem":"NULL":0:0:"NULL"
 
+X509 Certificate verification #82 (leaf bad keysize)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
+mbedtls_x509_crt_verify_chain:"data_files/cert_small_rsa.crt":"data_files/test-ca.crt":MBEDTLS_X509_BADCERT_BAD_KEY:""
+
+X509 Certificate verification #82 (leaf bad key alg)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
+mbedtls_x509_crt_verify_chain:"data_files/cert_small_rsa.crt":"data_files/test-ca.crt":MBEDTLS_X509_BADCERT_BAD_PK:"suiteb"
+
+X509 Certificate verification maxpath checks
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
+mbedtls_x509_crt_verify_max:"data_files/dir-maxpath/crt":"data_files/dir-maxpath/root.crt"
+
 X509 Certificate verification callback: trusted EE cert
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
 x509_verify_callback:"data_files/server5-selfsigned.crt":"data_files/server5-selfsigned.crt":0:"depth 0 - serial 53\:A2\:CB\:4B\:12\:4E\:AD\:83\:7D\:A8\:94\:B2 - subject CN=selfsigned, OU=testing, O=PolarSSL, C=NL\n"
@@ -1130,35 +1142,31 @@ mbedtls_x509_crt_parse_path:"data_files/dir3":1:2
 
 X509 CRT verify chain #1 (zero pathlen intermediate)
 depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
-mbedtls_x509_crt_verify_chain:"data_files/dir4/cert14.crt data_files/dir4/cert13.crt data_files/dir4/cert12.crt":"data_files/dir4/cert11.crt":MBEDTLS_X509_BADCERT_NOT_TRUSTED
+mbedtls_x509_crt_verify_chain:"data_files/dir4/cert14.crt data_files/dir4/cert13.crt data_files/dir4/cert12.crt":"data_files/dir4/cert11.crt":MBEDTLS_X509_BADCERT_NOT_TRUSTED:""
 
 X509 CRT verify chain #2 (zero pathlen root)
 depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
-mbedtls_x509_crt_verify_chain:"data_files/dir4/cert23.crt data_files/dir4/cert22.crt":"data_files/dir4/cert21.crt":MBEDTLS_X509_BADCERT_NOT_TRUSTED
+mbedtls_x509_crt_verify_chain:"data_files/dir4/cert23.crt data_files/dir4/cert22.crt":"data_files/dir4/cert21.crt":MBEDTLS_X509_BADCERT_NOT_TRUSTED:""
 
 X509 CRT verify chain #3 (nonzero pathlen root)
 depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
-mbedtls_x509_crt_verify_chain:"data_files/dir4/cert34.crt data_files/dir4/cert33.crt data_files/dir4/cert32.crt":"data_files/dir4/cert31.crt":MBEDTLS_X509_BADCERT_NOT_TRUSTED
+mbedtls_x509_crt_verify_chain:"data_files/dir4/cert34.crt data_files/dir4/cert33.crt data_files/dir4/cert32.crt":"data_files/dir4/cert31.crt":MBEDTLS_X509_BADCERT_NOT_TRUSTED:""
 
 X509 CRT verify chain #4 (nonzero pathlen intermediate)
 depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
-mbedtls_x509_crt_verify_chain:"data_files/dir4/cert45.crt data_files/dir4/cert44.crt data_files/dir4/cert43.crt data_files/dir4/cert42.crt":"data_files/dir4/cert41.crt":MBEDTLS_X509_BADCERT_NOT_TRUSTED
+mbedtls_x509_crt_verify_chain:"data_files/dir4/cert45.crt data_files/dir4/cert44.crt data_files/dir4/cert43.crt data_files/dir4/cert42.crt":"data_files/dir4/cert41.crt":MBEDTLS_X509_BADCERT_NOT_TRUSTED:""
 
 X509 CRT verify chain #5 (nonzero maxpathlen intermediate)
 depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
-mbedtls_x509_crt_verify_chain:"data_files/dir4/cert54.crt data_files/dir4/cert53.crt data_files/dir4/cert52.crt":"data_files/dir4/cert51.crt":0
+mbedtls_x509_crt_verify_chain:"data_files/dir4/cert54.crt data_files/dir4/cert53.crt data_files/dir4/cert52.crt":"data_files/dir4/cert51.crt":0:""
 
 X509 CRT verify chain #6 (nonzero maxpathlen root)
 depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
-mbedtls_x509_crt_verify_chain:"data_files/dir4/cert63.crt data_files/dir4/cert62.crt":"data_files/dir4/cert61.crt":0
-
-X509 CRT verify chain #7 (maxpathlen root, self signed in path)
-depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
-mbedtls_x509_crt_verify_chain:"data_files/dir4/cert74.crt data_files/dir4/cert73.crt data_files/dir4/cert72.crt":"data_files/dir4/cert71.crt":0
+mbedtls_x509_crt_verify_chain:"data_files/dir4/cert63.crt data_files/dir4/cert62.crt":"data_files/dir4/cert61.crt":0:""
 
 X509 CRT verify chain #8 (self signed maxpathlen root)
 depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
-mbedtls_x509_crt_verify_chain:"data_files/dir4/cert61.crt data_files/dir4/cert63.crt data_files/dir4/cert62.crt":"data_files/dir4/cert61.crt":0
+mbedtls_x509_crt_verify_chain:"data_files/dir4/cert61.crt data_files/dir4/cert63.crt data_files/dir4/cert62.crt":"data_files/dir4/cert61.crt":0:""
 
 X509 OID description #1
 x509_oid_desc:"2B06010505070301":"TLS Web Server Authentication"

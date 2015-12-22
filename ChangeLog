@@ -2,6 +2,9 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.2.1 released 2015-12-xx
 
+Bugfix
+   * Fix over-restricive length limit in GCM. Found by Andreas-N. #362
+
 Changes
    * To avoid dropping an entire DTLS datagram if a single record in a datagram
      is invalid, we now only drop the record and look at subsequent records (if

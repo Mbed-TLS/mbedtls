@@ -3,9 +3,12 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS 2.1.4 released 2015-12-xx
 
 Security
+
    * Fix potential double free when mbedtls_asn1_store_named_data() fails to
      allocate memory. Only used for certificate generation, not triggerable
      remotely in SSL/TLS. Found by Rafał Przywara. #367
+   * Disable MD5 handshake signatures in TLS 1.2 by default
+     (Reported by Karthikeyan Bhargavan and Gaëtan Leurent.)
 
 Bugfix
    * Fix over-restrictive length limit in GCM. Found by Andreas-N. #362

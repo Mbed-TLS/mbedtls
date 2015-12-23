@@ -517,6 +517,18 @@ static const oid_cipher_alg_t oid_cipher_alg[] =
         POLARSSL_CIPHER_AES_256_CBC,
     },
     {
+        { ADD_LEN( OID_AES_128_GCM ),          "aes128-GCM", "AES-128-GCM" },
+        POLARSSL_CIPHER_AES_128_GCM,
+    },
+    {
+        { ADD_LEN( OID_AES_192_GCM ),          "aes192-GCM", "AES-192-GCM" },
+        POLARSSL_CIPHER_AES_192_GCM,
+    },
+    {
+        { ADD_LEN( OID_AES_256_GCM ),          "aes256-GCM", "AES-256-GCM" },
+        POLARSSL_CIPHER_AES_256_GCM,
+    },
+    {
         { NULL, 0, NULL, NULL },
         POLARSSL_CIPHER_NONE,
     },

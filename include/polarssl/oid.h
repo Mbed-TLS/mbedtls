@@ -241,6 +241,9 @@
 #define OID_AES_128_CBC                 OID_GOV "\x03\x04\x01\x02" /**< aes128-CBC OBJECT IDENTIFIER ::= { joint-iso-itu-t(2) country(16) us(840) organization(1) gov(101) csor(3) nistAlgorithm(4) aes(1) aes128-CBC(2) } */
 #define OID_AES_192_CBC                 OID_GOV "\x03\x04\x01\x16" /**< aes192-CBC OBJECT IDENTIFIER ::= { joint-iso-itu-t(2) country(16) us(840) organization(1) gov(101) csor(3) nistAlgorithm(4) aes(1) aes192-CBC(22) } */
 #define OID_AES_256_CBC                 OID_GOV "\x03\x04\x01\x2A" /**< aes256-CBC OBJECT IDENTIFIER ::= { joint-iso-itu-t(2) country(16) us(840) organization(1) gov(101) csor(3) nistAlgorithm(4) aes(1) aes256-CBC(42) } */
+#define OID_AES_128_GCM                 OID_GOV "\x03\x04\x01\x06" /**< aes128-GCM OBJECT IDENTIFIER ::= { joint-iso-itu-t(2) country(16) us(840) organization(1) gov(101) csor(3) nistAlgorithm(4) aes(1) aes128-GCM(6) } */
+#define OID_AES_192_GCM                 OID_GOV "\x03\x04\x01\x1A" /**< aes192-GCM OBJECT IDENTIFIER ::= { joint-iso-itu-t(2) country(16) us(840) organization(1) gov(101) csor(3) nistAlgorithm(4) aes(1) aes192-GCM(26) } */
+#define OID_AES_256_GCM                 OID_GOV "\x03\x04\x01\x2E" /**< aes256-GCM OBJECT IDENTIFIER ::= { joint-iso-itu-t(2) country(16) us(840) organization(1) gov(101) csor(3) nistAlgorithm(4) aes(1) aes256-GCM(46) } */
 
 /*
  * PKCS#5 OIDs

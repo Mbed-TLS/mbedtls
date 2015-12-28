@@ -33,7 +33,7 @@
  *  [3] GNU Multi-Precision Arithmetic Library
  *      https://gmplib.org/manual/index.html
  *
-*/
+ */
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -1212,23 +1212,29 @@ int mbedtls_mpi_mul_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_uint 
 }
 
 /*
- * Unsigned integer divide - 64bit dividend and 32bit divisor
+ * Unsigned integer divide - double mbedtls_mpi_uint dividend, u1/u0, and
+ * mbedtls_mpi_uint divisor, d
  */
-static mbedtls_mpi_uint mbedtls_int_div_int(mbedtls_mpi_uint u1,
-            mbedtls_mpi_uint u0, mbedtls_mpi_uint d, mbedtls_mpi_uint *r)
+static mbedtls_mpi_uint mbedtls_int_div_int( mbedtls_mpi_uint u1,
+            mbedtls_mpi_uint u0, mbedtls_mpi_uint d, mbedtls_mpi_uint *r )
 {
 #if defined(MBEDTLS_HAVE_UDBL)
     mbedtls_t_udbl dividend, quotient;
+#else
+    const mbedtls_mpi_uint radix = 1 << biH;
+    mbedtls_mpi_uint d0, d1, q0, q1, rAX, r0, quotient;
+    mbedtls_mpi_uint u0_msw, u0_lsw;
+    int s;
 #endif
 
     /*
      * Check for overflow
      */
-    if(( 0 == d ) || ( u1 >= d ))
+    if( 0 == d || u1 >= d )
     {
-        if (r != NULL) *r = (~0);
+        if (r != NULL) *r = ~0;
 
-        return (~0);
+        return ( ~0 );
     }
 
 #if defined(MBEDTLS_HAVE_UDBL)
@@ -1243,10 +1249,6 @@ static mbedtls_mpi_uint mbedtls_int_div_int(mbedtls_mpi_uint u1,
 
     return (mbedtls_mpi_uint) quotient;
 #else
-    const mbedtls_mpi_uint radix = 1 << biH;
-    mbedtls_mpi_uint d0, d1, q0, q1, rAX, r0, quotient;
-    mbedtls_mpi_uint u0_msw, u0_lsw;
-    int s;
 
     /*
      * Algorithm D, Section 4.3.1 - The Art of Computer Programming
@@ -1260,7 +1262,7 @@ static mbedtls_mpi_uint mbedtls_int_div_int(mbedtls_mpi_uint u1,
     d = d << s;
 
     u1 = u1 << s;
-    u1 |= (u0 >> (32 - s)) & ( (-s) >> 31);
+    u1 |= ( u0 >> ( 32 - s ) ) & ( -s >> 31 );
     u0 =  u0 << s;
 
     d1 = d >> biH;
@@ -1283,7 +1285,7 @@ static mbedtls_mpi_uint mbedtls_int_div_int(mbedtls_mpi_uint u1,
         if ( r0 >= radix ) break;
     }
 
-    rAX = (u1 * radix) + (u0_msw - q1 * d);
+    rAX = ( u1 * radix ) + ( u0_msw - q1 * d );
     q0 = rAX / d1;
     r0 = rAX - q0 * d1;
 
@@ -1296,7 +1298,7 @@ static mbedtls_mpi_uint mbedtls_int_div_int(mbedtls_mpi_uint u1,
     }
 
     if (r != NULL)
-        *r = (rAX * radix + u0_lsw - q0 * d) >> s;
+        *r = ( rAX * radix + u0_lsw - q0 * d ) >> s;
 
     quotient = q1 * radix + q0;
 

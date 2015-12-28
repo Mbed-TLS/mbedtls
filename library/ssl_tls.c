@@ -7032,6 +7032,7 @@ void mbedtls_ssl_config_init( mbedtls_ssl_config *conf )
     memset( conf, 0, sizeof( mbedtls_ssl_config ) );
 }
 
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
 static int ssl_preset_default_hashes[] = {
 #if defined(MBEDTLS_SHA512_C)
     MBEDTLS_MD_SHA512,
@@ -7046,6 +7047,7 @@ static int ssl_preset_default_hashes[] = {
 #endif
     MBEDTLS_MD_NONE
 };
+#endif
 
 static int ssl_preset_suiteb_ciphersuites[] = {
     MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,

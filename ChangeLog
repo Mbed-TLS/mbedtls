@@ -11,6 +11,9 @@ Security
 
 Bugfix
    * Fix over-restrictive length limit in GCM. Found by Andreas-N. #362
+   * Fix bug in certificate validation that caused valid chains to be rejected
+     when the first intermediate certificate has pathLenConstraint=0. Found by
+     Nicholas Wilson. Introduced in mbed TLS 2.1.4. #280
 
 Changes
    * To avoid dropping an entire DTLS datagram if a single record in a datagram

@@ -342,19 +342,18 @@ asn1_named_data *asn1_store_named_data( asn1_named_data **head,
     }
     else if( cur->val.len < val_len )
     {
-        // Enlarge existing value buffer if needed
-        //
-        polarssl_free( cur->val.p );
-        cur->val.p = NULL;
-
-        cur->val.len = val_len;
-        cur->val.p = polarssl_malloc( val_len );
-        if( cur->val.p == NULL )
-        {
-            polarssl_free( cur->oid.p );
-            polarssl_free( cur );
+        /*
+         * Enlarge existing value buffer if needed
+         * Preserve old data until the allocation succeeded, to leave list in
+         * a consistent state in case allocation fails.
+         */
+        void *p = polarssl_malloc( val_len );
+        if( p == NULL )
             return( NULL );
-        }
+
+        polarssl_free( cur->val.p );
+        cur->val.p = p;
+        cur->val.len = val_len;
     }
 
     if( val != NULL )

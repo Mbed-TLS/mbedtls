@@ -1093,6 +1093,19 @@
 #define POLARSSL_SSL_TRUNCATED_HMAC
 
 /**
+ * \def POLARSSL_SSL_ENABLE_MD5_SIGNATURES
+ *
+ * Offer, accept and do MD5-based signatures in the TLS 1.2 handshake.
+ * Has no effect on which algorithms are accepted for certificates.
+ * Has no effect on other SSL/TLS versions.
+ *
+ * \warning Enabling this could be a security risk!
+ *
+ * Uncomment to enable MD5 signatures in TLS 1.2
+ */
+//#define POLARSSL_SSL_ENABLE_MD5_SIGNATURES
+
+/**
  * \def POLARSSL_SSL_SET_CURVES
  *
  * Enable ssl_set_curves().

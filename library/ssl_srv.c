@@ -492,6 +492,12 @@ static int ssl_parse_signature_algorithms_ext( ssl_context *ssl,
      * So, just look at the HashAlgorithm part.
      */
     for( md_cur = md_list(); *md_cur != POLARSSL_MD_NONE; md_cur++ ) {
+#if !defined(POLARSSL_SSL_ENABLE_MD5_SIGNATURES)
+        /* Skip MD5 */
+        if( *md_cur == POLARSSL_MD_MD5 )
+            continue;
+#endif
+
         for( p = buf + 2; p < end; p += 2 ) {
             if( *md_cur == (int) ssl_md_alg_from_hash( p[0] ) ) {
                 ssl->handshake->sig_alg = p[0];

@@ -34,7 +34,7 @@
  *  [3] GNU Multi-Precision Arithmetic Library
  *      https://gmplib.org/manual/index.html
  *
-*/
+ */
 
 #if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
@@ -1218,22 +1218,28 @@ int mpi_mul_int( mpi *X, const mpi *A, t_sint b )
 }
 
 /*
- * Unsigned integer divide - 64bit dividend and 32bit divisor
+ * Unsigned integer divide - double t_uint, dividend, u1/u0, and t_uint
+ * divisor, d
  */
-static t_uint int_div_int(t_uint u1, t_uint u0, t_uint d, t_uint *r)
+static t_uint int_div_int( t_uint u1, t_uint u0, t_uint d, t_uint *r )
 {
 #if defined(POLARSSL_HAVE_UDBL)
     t_udbl dividend, quotient;
+#else
+    const t_uint radix = 1 << biH;
+    t_uint d0, d1, q0, q1, rAX, r0, quotient;
+    t_uint u0_msw, u0_lsw;
+    int s;
 #endif
 
     /*
      * Check for overflow
      */
-    if(( 0 == d ) || ( u1 >= d ))
+    if( 0 == d || u1 >= d )
     {
-        if (r != NULL) *r = (~0);
+        if ( r != NULL ) *r = ~0;
 
-        return (~0);
+        return ( ~0 );
     }
 
 #if defined(POLARSSL_HAVE_UDBL)
@@ -1248,10 +1254,6 @@ static t_uint int_div_int(t_uint u1, t_uint u0, t_uint d, t_uint *r)
 
     return (t_uint) quotient;
 #else
-    const t_uint radix = 1 << biH;
-    t_uint d0, d1, q0, q1, rAX, r0, quotient;
-    t_uint u0_msw, u0_lsw;
-    int s;
 
     /*
      * Algorithm D, Section 4.3.1 - The Art of Computer Programming
@@ -1265,7 +1267,7 @@ static t_uint int_div_int(t_uint u1, t_uint u0, t_uint d, t_uint *r)
     d = d << s;
 
     u1 = u1 << s;
-    u1 |= (u0 >> (32 - s)) & ( (-s) >> 31);
+    u1 |= ( u0 >> ( 32 - s ) ) & ( -s >> 31 );
     u0 =  u0 << s;
 
     d1 = d >> biH;
@@ -1288,7 +1290,7 @@ static t_uint int_div_int(t_uint u1, t_uint u0, t_uint d, t_uint *r)
         if ( r0 >= radix ) break;
     }
 
-    rAX = (u1 * radix) + (u0_msw - q1 * d);
+    rAX = ( u1 * radix ) + ( u0_msw - q1 * d );
     q0 = rAX / d1;
     r0 = rAX - q0 * d1;
 
@@ -1301,7 +1303,7 @@ static t_uint int_div_int(t_uint u1, t_uint u0, t_uint d, t_uint *r)
     }
 
     if (r != NULL)
-        *r = (rAX * radix + u0_lsw - q0 * d) >> s;
+        *r = ( rAX * radix + u0_lsw - q0 * d ) >> s;
 
     quotient = q1 * radix + q0;
 

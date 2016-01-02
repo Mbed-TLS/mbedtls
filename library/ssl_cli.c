@@ -191,7 +191,7 @@ static void ssl_write_signature_algorithms_ext( ssl_context *ssl,
     /* SHA1 + RSA signature */
     sig_alg_len += 2;
 #endif
-#if defined(POLARSSL_MD5_C)
+#if defined(POLARSSL_MD5_C) && defined(POLARSSL_SSL_ENABLE_MD5_SIGNATURES)
     /* MD5 + RSA signature */
     sig_alg_len += 2;
 #endif
@@ -209,7 +209,7 @@ static void ssl_write_signature_algorithms_ext( ssl_context *ssl,
     /* SHA1 + ECDSA signature */
     sig_alg_len += 2;
 #endif
-#if defined(POLARSSL_MD5_C)
+#if defined(POLARSSL_MD5_C) && defined(POLARSSL_SSL_ENABLE_MD5_SIGNATURES)
     /* MD5 + ECDSA signature */
     sig_alg_len += 2;
 #endif
@@ -243,7 +243,7 @@ static void ssl_write_signature_algorithms_ext( ssl_context *ssl,
     sig_alg_list[sig_alg_len++] = SSL_HASH_SHA1;
     sig_alg_list[sig_alg_len++] = SSL_SIG_RSA;
 #endif
-#if defined(POLARSSL_MD5_C)
+#if defined(POLARSSL_MD5_C) && defined(POLARSSL_SSL_ENABLE_MD5_SIGNATURES)
     sig_alg_list[sig_alg_len++] = SSL_HASH_MD5;
     sig_alg_list[sig_alg_len++] = SSL_SIG_RSA;
 #endif
@@ -265,7 +265,7 @@ static void ssl_write_signature_algorithms_ext( ssl_context *ssl,
     sig_alg_list[sig_alg_len++] = SSL_HASH_SHA1;
     sig_alg_list[sig_alg_len++] = SSL_SIG_ECDSA;
 #endif
-#if defined(POLARSSL_MD5_C)
+#if defined(POLARSSL_MD5_C) && defined(POLARSSL_SSL_ENABLE_MD5_SIGNATURES)
     sig_alg_list[sig_alg_len++] = SSL_HASH_MD5;
     sig_alg_list[sig_alg_len++] = SSL_SIG_ECDSA;
 #endif
@@ -2035,6 +2035,14 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
                 SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
                 return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
             }
+
+#if !defined(POLARSSL_SSL_ENABLE_MD5_SIGNATURES)
+            if( md_alg == POLARSSL_MD_MD5 )
+            {
+                SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
+                return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+            }
+#endif
         }
         else
 #endif /* POLARSSL_SSL_PROTO_TLS1_2 */

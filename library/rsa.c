@@ -1082,9 +1082,15 @@ int rsa_rsassa_pkcs1_v15_sign( rsa_context *ctx,
      * temporary buffer and check it before returning it.
      */
     sig_try = polarssl_malloc( ctx->len );
-    verif   = polarssl_malloc( ctx->len );
-    if( sig_try == NULL || verif == NULL )
+    if( sig_try == NULL )
         return( POLARSSL_ERR_MPI_MALLOC_FAILED );
+
+    verif   = polarssl_malloc( ctx->len );
+    if( verif == NULL )
+    {
+        polarssl_free( sig_try );
+        return( POLARSSL_ERR_MPI_MALLOC_FAILED );
+    }
 
     MPI_CHK( rsa_private( ctx, f_rng, p_rng, sig, sig_try ) );
     MPI_CHK( rsa_public( ctx, sig_try, verif ) );

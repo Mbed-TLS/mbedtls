@@ -1226,10 +1226,11 @@ static t_uint int_div_int( t_uint u1, t_uint u0, t_uint d, t_uint *r )
 #if defined(POLARSSL_HAVE_UDBL)
     t_udbl dividend, quotient;
 #else
-    const t_uint radix = 1 << biH;
+    const t_uint radix = (t_uint) 1 << biH;
+    const t_uint uint_halfword_mask = ( (t_uint) 1 << biH ) - 1;
     t_uint d0, d1, q0, q1, rAX, r0, quotient;
     t_uint u0_msw, u0_lsw;
-    int s;
+    size_t s;
 #endif
 
     /*
@@ -1250,7 +1251,7 @@ static t_uint int_div_int( t_uint u1, t_uint u0, t_uint d, t_uint *r )
         quotient = ( (t_udbl) 1 << biL ) - 1;
 
     if( r != NULL )
-        *r = dividend - (quotient * d);
+        *r = (t_uint)( dividend - (quotient * d ) );
 
     return (t_uint) quotient;
 #else
@@ -1267,14 +1268,14 @@ static t_uint int_div_int( t_uint u1, t_uint u0, t_uint d, t_uint *r )
     d = d << s;
 
     u1 = u1 << s;
-    u1 |= ( u0 >> ( 32 - s ) ) & ( -s >> 31 );
+    u1 |= ( u0 >> ( biL - s ) ) & ( -(t_sint)s >> ( biL - 1 ) );
     u0 =  u0 << s;
 
     d1 = d >> biH;
-    d0 = d & 0xffff;
+    d0 = d & uint_halfword_mask;
 
     u0_msw = u0 >> biH;
-    u0_lsw = u0 & 0xffff;
+    u0_lsw = u0 & uint_halfword_mask;
 
     /*
      * Find the first quotient and remainder

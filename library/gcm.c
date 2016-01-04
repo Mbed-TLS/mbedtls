@@ -199,7 +199,7 @@ int gcm_crypt_and_tag( gcm_context *ctx,
     if( ( (uint64_t) iv_len  ) >> 61 != 0 ||
         ( (uint64_t) add_len ) >> 61 != 0 ||
         tag_len > 16 || tag_len < 4 ||
-        length > 0x03FFFFE0llu )
+        length > 0x03FFFFE0ull )
     {
         return( POLARSSL_ERR_GCM_BAD_INPUT );
     }

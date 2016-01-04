@@ -1,9 +1,8 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.1.4 released 2015-12-xx
+= mbed TLS 2.1.4 released 2016-01-05
 
 Security
-
    * Fix potential double free when mbedtls_asn1_store_named_data() fails to
      allocate memory. Only used for certificate generation, not triggerable
      remotely in SSL/TLS. Found by Rafał Przywara. #367
@@ -13,7 +12,7 @@ Bugfix
    * Fix over-restrictive length limit in GCM. Found by Andreas-N. #362
    * Fix bug in certificate validation that caused valid chains to be rejected
      when the first intermediate certificate has pathLenConstraint=0. Found by
-     Nicholas Wilson. Introduced in mbed TLS 2.1.4. #280
+     Nicholas Wilson. Introduced in mbed TLS 2.1.3. #280
    * Removed potential leak in mbedtls_rsa_rsassa_pkcs1_v15_sign(), found by
      JayaraghavendranK. #372
    * Fix suboptimal handling of unexpected records that caused interop issues

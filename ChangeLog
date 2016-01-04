@@ -13,16 +13,13 @@ Bugfix
    * Fix bug in certificate validation that caused valid chains to be rejected
      when the first intermediate certificate has pathLenConstraint=0. Found by
      Nicholas Wilson. Introduced in mbed TLS 2.2.0. #280
-   * Removed potential leak in mbedtls_rsa_rsassa_pkcs1_v15_sign(), found by 
+   * Removed potential leak in mbedtls_rsa_rsassa_pkcs1_v15_sign(), found by
      JayaraghavendranK. #372
-
-Change
-   * To avoid dropping an entire DTLS datagram if a single record in a datagram
-     is invalid, we now only drop the record and look at subsequent records (if
-     any are presemt) in the same datagram to avoid interoperability issues.
-     Previously the library was dropping the entire datagram. Where a record is
-     unexpected, the function mbedtls_ssl_read_record() will now return
-     MBEDTLS_ERR_SSL_UNEXPECTED_RECORD.
+   * Fix suboptimal handling of unexpected records that caused interop issues
+     with some peers over unreliable links. Avoid dropping an entire DTLS
+     datagram if a single record in a datagram is unexpected, instead only
+     drop the record and look at subsequent records (if any are present) in
+     the same datagram. Found by jeannotlapin. #345
 
 = mbed TLS 2.2.0 released 2015-11-04
 

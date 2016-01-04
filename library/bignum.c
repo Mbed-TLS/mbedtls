@@ -1127,10 +1127,6 @@ static t_uint int_div_int(t_uint u1, t_uint u0, t_uint d, t_uint *r)
 
     return (t_uint) quotient;
 #else
-    const t_uint radix = 1 << biH;
-    t_uint d0, d1, q0, q1, rAX, r0, quotient;
-    t_uint u0_msw, u0_lsw;
-    int s;
 
     /*
      * Algorithm D, Section 4.3.1 - The Art of Computer Programming

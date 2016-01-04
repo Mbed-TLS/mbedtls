@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Version 1.2.19 released 2015-12-xx
+= Version 1.2.19 released 2016-01-05
 
 Bugfix
    * Fix bug in certificate validation that caused valid chains to be rejected

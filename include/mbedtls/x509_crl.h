@@ -101,6 +101,7 @@ mbedtls_x509_crl;
  * \param chain    points to the start of the chain
  * \param buf      buffer holding the CRL data in DER format
  * \param buflen   size of the buffer
+ *                 (including the terminating null byte for PEM data)
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */

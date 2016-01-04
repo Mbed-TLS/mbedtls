@@ -10,7 +10,7 @@ $0 [-f <file>] unset <name>
 $0 [-f <file>] set <name> [<value>]
 EOU
 # for our eyes only:
-# $0 [-f <file>] full
+# $0 [-f <file>] full|realfull
 
 # Things that shouldn't be enabled with "full".
 # Notes:
@@ -61,7 +61,7 @@ die $usage unless @ARGV;
 my $action = shift;
 
 my ($name, $value);
-if ($action eq "full") {
+if ($action eq "full" || $action eq "realfull") {
     # nothing to do
 } elsif ($action eq "unset") {
     die $usage unless @ARGV;
@@ -79,14 +79,20 @@ open my $config_read, '<', $config_file or die "read $config_file: $!\n";
 my @config_lines = <$config_read>;
 close $config_read;
 
-my $exclude_re = join '|', @excluded;
-my $no_exclude_re = join '|', @non_excluded;
+my ($exclude_re, $no_exclude_re);
+if ($action eq "realfull") {
+    $exclude_re = qr/^$/;
+    $no_exclude_re = qr/./;
+} else {
+    $exclude_re = join '|', @excluded;
+    $no_exclude_re = join '|', @non_excluded;
+}
 
 open my $config_write, '>', $config_file or die "write $config_file: $!\n";
 
 my $done;
 for my $line (@config_lines) {
-    if ($action eq "full") {
+    if ($action eq "full" || $action eq "realfull") {
         if ($line =~ /name SECTION: Module configuration options/) {
             $done = 1;
         }

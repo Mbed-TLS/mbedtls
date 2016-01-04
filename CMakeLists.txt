@@ -85,9 +85,20 @@ if(ENABLE_PROGRAMS)
     add_subdirectory(programs)
 endif()
 
-ADD_CUSTOM_TARGET(apidoc
-    COMMAND doxygen doxygen/mbedtls.doxyfile
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+# targets for doxygen only work on Unix
+if(UNIX)
+    ADD_CUSTOM_TARGET(apidoc
+        COMMAND mkdir -p apidoc
+        COMMAND cp include/mbedtls/config.h include/mbedtls/config.h.bak
+        COMMAND scripts/config.pl realfull
+        COMMAND doxygen doxygen/mbedtls.doxyfile
+        COMMAND mv include/mbedtls/config.h.bak include/mbedtls/config.h
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+    ADD_CUSTOM_TARGET(apidoc_clean
+        COMMAND rm -rf apidoc
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+endif(UNIX)
 
 if(ENABLE_TESTING)
     enable_testing()

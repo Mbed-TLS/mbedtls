@@ -83,6 +83,12 @@ msg "test/build: declared and exported names" # < 3s
 cleanup
 tests/scripts/check-names.sh
 
+if which doxygen >/dev/null; then
+    msg "test: doxygen warnings" # ~ 3s
+    cleanup
+    tests/scripts/doxygen.sh
+fi
+
 msg "build: create and build yotta module" # ~ 30s
 cleanup
 tests/scripts/yotta-build.sh

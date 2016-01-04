@@ -10,6 +10,7 @@ script:
 - tests/scripts/check-doxy-blocks.pl
 - tests/scripts/check-names.sh
 - tests/scripts/check-files.py
+- tests/scripts/doxygen.sh
 - cmake -D CMAKE_BUILD_TYPE:String="Check" .
 - make
 - make test
@@ -24,6 +25,10 @@ env:
     secure: "barHldniAfXyoWOD/vcO+E6/Xm4fmcaUoC9BeKW+LwsHqlDMLvugaJnmLXkSpkbYhVL61Hzf3bo0KPJn88AFc5Rkf8oYHPjH4adMnVXkf3B9ghHCgznqHsAH3choo6tnPxaFgOwOYmLGb382nQxfE5lUdvnM/W/psQjWt66A1+k="
 
 addons:
+  apt:
+    packages:
+    - doxygen
+    - graphviz
   coverity_scan:
     project:
       name: "ARMmbed/mbedtls"

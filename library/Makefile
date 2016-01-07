@@ -93,9 +93,9 @@ endif
 
 libmbedtls.a: $(OBJS)
 	echo "  AR    $@"
-	$(AR) rc $@ $(OBJS)
+	$(AR) -rc $@ $(OBJS)
 	echo "  RL    $@"
-	$(AR) s $@
+	$(AR) -s $@
 
 libpolarssl.$(DLEXT): libmbedtls.$(DLEXT)
 	echo "  LN    $@ -> $?"

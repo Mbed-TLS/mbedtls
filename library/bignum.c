@@ -883,7 +883,7 @@ int mbedtls_mpi_add_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
 {
     int ret;
     size_t i, j;
-    mbedtls_mpi_uint *o, *p, c;
+    mbedtls_mpi_uint *o, *p, c, tmp;
 
     if( X == B )
     {
@@ -906,10 +906,14 @@ int mbedtls_mpi_add_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
 
     o = B->p; p = X->p; c = 0;
 
+    /*
+     * tmp is used because it might happen that p == o
+     */
     for( i = 0; i < j; i++, o++, p++ )
     {
+        tmp= *o;
         *p +=  c; c  = ( *p <  c );
-        *p += *o; c += ( *p < *o );
+        *p += tmp; c += ( *p < tmp );
     }
 
     while( c != 0 )

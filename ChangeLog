@@ -1,5 +1,12 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 1.3.x branch
+
+Bugfix
+   * Fix bug in mbedtls_mpi_add_mpi() that caused wrong results when the three
+     arguments where the same (in-place doubling). Found and fixed by Janos
+     Follath.
+
 = mbed TLS 1.3.16 released 2016-01-05
 
 Security

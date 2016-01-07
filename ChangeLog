@@ -5,7 +5,8 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Bugfix
    * Fix bug in mbedtls_mpi_add_mpi() that caused wrong results when the three
      arguments where the same (in-place doubling). Found and fixed by Janos
-     Follath.
+     Follath. #309
+   * Fix issue in Makefile that prevented building using armar. #386
 
 = mbed TLS 2.1.4 released 2016-01-05
 

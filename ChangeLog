@@ -6,7 +6,10 @@ Security
    * Fix potential double free when mbedtls_asn1_store_named_data() fails to
      allocate memory. Only used for certificate generation, not triggerable
      remotely in SSL/TLS. Found by Rafał Przywara. #367
-   * Disable MD5 handshake signatures in TLS 1.2 by default
+   * Disable MD5 handshake signatures in TLS 1.2 by default to prevent the
+     SLOTH attack on TLS 1.2 server authentication (other attacks from the
+     SLOTH paper do not apply to any version of mbed TLS or PolarSSL).
+     https://www.mitls.org/pages/attacks/SLOTH
 
 Bugfix
    * Fix over-restricive length limit in GCM. Found by Andreas-N. #362

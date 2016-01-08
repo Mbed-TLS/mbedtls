@@ -8,6 +8,11 @@ Bugfix
      Follath. #309
    * Fix issue in Makefile that prevented building using armar. #386
 
+Changes
+   * On ARM platforms, when compiling with -O0 with GCC, Clang or armcc5,
+     don't use the optimized assembly for bignum multiplication. This removes
+     the need to pass -fomit-frame-pointer to avoid a build error with -O0.
+
 = mbed TLS 2.2.1 released 2016-01-05
 
 Security

@@ -21,11 +21,15 @@ CONFIG_H='include/mbedtls/config.h'
 CONFIG_BAK="$CONFIG_H.bak"
 
 MEMORY=0
+SHORT=0
 
 while [ $# -gt 0 ]; do
     case "$1" in
         -m*)
             MEMORY=${1#-m}
+            ;;
+        -s)
+            SHORT=1
             ;;
         *)
             echo "Unknown argument: '$1'" >&2
@@ -109,6 +113,11 @@ msg "test/build: ref-configs (ASan build)" # ~ 6 min 20s
 tests/scripts/test-ref-configs.pl
 
 # Most frequent issues are likely to be caught at this point
+if [ $SHORT -eq 1 ]; then
+    msg "Done, cleaning up"
+    cleanup
+    exit 0
+fi
 
 msg "build: with ASan (rebuild after ref-configs)" # ~ 1 min
 make

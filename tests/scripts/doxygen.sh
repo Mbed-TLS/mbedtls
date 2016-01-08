@@ -16,10 +16,14 @@ if make apidoc > doc.out 2>doc.err; then :; else
     exit 1;
 fi
 
-if grep warning doc.out doc.err; then
+cat doc.out doc.err | \
+    grep -v "warning: ignoring unsupported tag" \
+    > doc.filtered
+
+if grep "warning" doc.filtered; then
     echo "FAIL" >&2
     exit 1;
 fi
 
 make apidoc_clean
-rm -f doc.out doc.err
+rm -f doc.out doc.err doc.filtered

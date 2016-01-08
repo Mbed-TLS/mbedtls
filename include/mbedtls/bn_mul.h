@@ -576,10 +576,10 @@
  * the build error and is pretty reasonable anyway.
  */
 #if defined(__GNUC__) && !defined(__OPTIMIZE__)
-#define CANNOT_USE_R7
+#define MULADDC_CANNOT_USE_R7
 #endif
 
-#if defined(__arm__) && !defined(CANNOT_USE_R7)
+#if defined(__arm__) && !defined(MULADDC_CANNOT_USE_R7)
 
 #if defined(__thumb__) && !defined(__thumb2__)
 

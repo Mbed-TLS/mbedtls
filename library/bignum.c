@@ -889,7 +889,7 @@ int mpi_add_abs( mpi *X, const mpi *A, const mpi *B )
 {
     int ret;
     size_t i, j;
-    mpi_uint *o, *p, c, tmp;
+    t_uint *o, *p, c, tmp;
 
     if( X == B )
     {
@@ -934,14 +934,6 @@ int mpi_add_abs( mpi *X, const mpi *A, const mpi *B )
     }
 
 cleanup:
-<<<<<<< HEAD
-    if( &TB == B ) 
-    {
-        mpi_free( &TB );
-    }
-=======
->>>>>>> 6c9226809370... Improved on the previous fix and added a test case to cover both types
-
     return( ret );
 }
 

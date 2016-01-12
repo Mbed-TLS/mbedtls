@@ -10,7 +10,7 @@ if [ -d library -a -d include -a -d tests ]; then :; else
     exit 1
 fi
 
-if make apidoc > doc.out 2>doc.err; then :; else
+if scripts/apidoc_full.sh > doc.out 2>doc.err; then :; else
     cat doc.err
     echo "FAIL" >&2
     exit 1;
@@ -20,7 +20,7 @@ cat doc.out doc.err | \
     grep -v "warning: ignoring unsupported tag" \
     > doc.filtered
 
-if grep "warning" doc.filtered; then
+if egrep "(warning|error):" doc.filtered; then
     echo "FAIL" >&2
     exit 1;
 fi

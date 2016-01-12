@@ -89,7 +89,7 @@ endif()
 if(UNIX)
     ADD_CUSTOM_TARGET(apidoc
         COMMAND mkdir -p apidoc
-        COMMAND cp include/mbedtls/config.h include/mbedtls/config.h.bak
+        COMMAND cp -p include/mbedtls/config.h include/mbedtls/config.h.bak
         COMMAND scripts/config.pl realfull
         COMMAND doxygen doxygen/mbedtls.doxyfile
         COMMAND mv include/mbedtls/config.h.bak include/mbedtls/config.h

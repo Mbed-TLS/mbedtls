@@ -24,6 +24,8 @@ Bugfix
      (found by Catena cyber using oss-fuzz)
    * Fix memory leak and free without initialization in pk_encrypt
      and pk_decrypt example programs. Reported by Brace Stout. Fixes #1128.
+   * Fix potential build failures related to the 'apidoc' target, introduced
+     in the previous patch release. Found by Robert Scheck. #390 #391
 
 = mbed TLS 2.1.14 branch released 2018-07-25
 

@@ -87,10 +87,7 @@ lcov:
 
 apidoc:
 	mkdir -p apidoc
-	cp include/mbedtls/config.h include/mbedtls/config.h.bak
-	scripts/config.pl realfull
 	doxygen doxygen/mbedtls.doxyfile
-	mv include/mbedtls/config.h.bak include/mbedtls/config.h
 
 apidoc_clean:
 	rm -rf apidoc

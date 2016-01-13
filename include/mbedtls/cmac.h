@@ -108,6 +108,7 @@ int mbedtls_cmac_verify( mbedtls_cmac_context *ctx,
 
 /**
  * \brief           AES-CMAC-128-PRF
+ * TODO: add reference to the standard
  *
  * \param ctx       CMAC context
  * \param key       PRF key
@@ -115,6 +116,7 @@ int mbedtls_cmac_verify( mbedtls_cmac_context *ctx,
  * \param input     buffer holding the input data
  * \param in_len    length of the input data in bytes
  * \param tag       buffer holding the tag to verify (16 bytes)
+ *                  TODO: update description of tag
  *
  * \return          0 if successful
  */

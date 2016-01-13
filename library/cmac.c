@@ -69,7 +69,8 @@ void mbedtls_cmac_init( mbedtls_cmac_context *ctx )
  *
  * Input and output MUST not point to the same buffer
  */
-static void multiply_by_u( unsigned char *output, const unsigned char *input )
+static void cmac_multiply_by_u( unsigned char *output,
+                                const unsigned char *input )
 {
     const unsigned char Rb = 0x87; /* block size 16 only */
     unsigned char mask;
@@ -101,7 +102,7 @@ static void multiply_by_u( unsigned char *output, const unsigned char *input )
 /*
  * Generate subkeys
  */
-static int generate_subkeys( mbedtls_cmac_context *ctx )
+static int cmac_generate_subkeys( mbedtls_cmac_context *ctx )
 {
     int ret;
     unsigned char L[16];
@@ -118,14 +119,17 @@ static int generate_subkeys( mbedtls_cmac_context *ctx )
     /*
      * Generate K1 and K2
      */
-    multiply_by_u( ctx->K1, L );
-    multiply_by_u( ctx->K2, ctx->K1 );
+    cmac_multiply_by_u( ctx->K1, L );
+    cmac_multiply_by_u( ctx->K2, ctx->K1 );
 
     mbedtls_zeroize( L, sizeof( L ) );
 
     return( 0 );
 }
 
+/*
+ * Set key and prepare context for use
+ */
 int mbedtls_cmac_setkey( mbedtls_cmac_context *ctx,
                          mbedtls_cipher_id_t cipher,
                          const unsigned char *key,
@@ -153,7 +157,7 @@ int mbedtls_cmac_setkey( mbedtls_cmac_context *ctx,
         return( ret );
     }
 
-    return( generate_subkeys( ctx ) );
+    return( cmac_generate_subkeys( ctx ) );
 }
 
 /*
@@ -171,9 +175,9 @@ void mbedtls_cmac_free( mbedtls_cmac_context *ctx )
  * We can't use the padding option from the cipher layer, as it only works for
  * CBC and we use ECB mode, and anyway we need to XOR K1 or K2 in addition.
  */
-static void padding( unsigned char padded_block[16],
-                     const unsigned char *last_block,
-                     size_t length )
+static void cmac_pad( unsigned char padded_block[16],
+                      const unsigned char *last_block,
+                      size_t length )
 {
     size_t j;
 
@@ -237,7 +241,7 @@ int mbedtls_cmac_generate( mbedtls_cmac_context *ctx,
     /* Calculate last block */
     if( needs_padding )
     {
-        padding( M_last, input + 16 * ( n - 1 ), in_len % 16 );
+        cmac_pad( M_last, input + 16 * ( n - 1 ), in_len % 16 );
         XOR_128( M_last, M_last, ctx->K2 );
     }
     else
@@ -262,7 +266,7 @@ int mbedtls_cmac_generate( mbedtls_cmac_context *ctx,
 #undef UPDATE_CMAC
 
 /*
- * Authenticated decryption
+ * Verify tag on complete message
  */
 int mbedtls_cmac_verify( mbedtls_cmac_context *ctx,
                          const unsigned char *input, size_t in_len,
@@ -281,18 +285,19 @@ int mbedtls_cmac_verify( mbedtls_cmac_context *ctx,
 
     /* Check tag in "constant-time" */
     for( diff = 0, i = 0; i < tag_len; i++ )
-    {
         diff |= tag[i] ^ check_tag[i];
-    }
 
     if( diff != 0 )
-    {
         return( MBEDTLS_ERR_CMAC_VERIFY_FAILED );
-    }
 
     return( 0 );
 }
 
+/*
+ * PRF based on CMAC with AES-128
+ * TODO: add reference to the standard
+ * TODO: do we need to take a cmac_context as an argument here?
+ */
 int mbedtls_aes_cmac_prf_128( mbedtls_cmac_context *ctx,
                               const unsigned char *key, size_t key_length,
                               const unsigned char *input, size_t in_len,
@@ -317,22 +322,17 @@ int mbedtls_aes_cmac_prf_128( mbedtls_cmac_context *ctx,
         ret = mbedtls_cmac_setkey( &zero_ctx, MBEDTLS_CIPHER_ID_AES,
                                    zero_key, 8 * sizeof zero_key );
         if( ret != 0 )
-        {
             return( ret );
-        }
+
         ret = mbedtls_cmac_generate( &zero_ctx, key, key_length, int_key, 16 );
         if( ret != 0 )
-        {
             return( ret );
-        }
     }
 
     ret = mbedtls_cmac_setkey( ctx, MBEDTLS_CIPHER_ID_AES,
                                int_key, 8 * sizeof int_key );
     if( ret != 0 )
-    {
         return( ret );
-    }
 
     mbedtls_zeroize( int_key, sizeof( int_key ) );
 
@@ -341,7 +341,7 @@ int mbedtls_aes_cmac_prf_128( mbedtls_cmac_context *ctx,
 
 #if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
 /*
- * Examples 1 to 4 from SP800-3B corrected Appendix D.1
+ * Examples 1 to 4 from SP800-38B corrected Appendix D.1
  * http://csrc.nist.gov/publications/nistpubs/800-38B/Updated_CMAC_Examples.pdf
  */
 
@@ -456,7 +456,7 @@ int mbedtls_cmac_self_test( int verbose )
     if( mbedtls_cmac_setkey( &ctx, MBEDTLS_CIPHER_ID_AES, key, 8 * sizeof key ) != 0 )
     {
         if( verbose != 0 )
-            mbedtls_printf( "  CMAC: setup failed" );
+            mbedtls_printf( "  CMAC: setup failed\n" );
 
         return( 1 );
     }
@@ -465,7 +465,7 @@ int mbedtls_cmac_self_test( int verbose )
         ( memcmp( ctx.K2, K2, 16 ) != 0 ) )
     {
         if( verbose != 0 )
-            mbedtls_printf( "  CMAC: subkey generation failed" );
+            mbedtls_printf( "  CMAC: subkey generation failed\n" );
 
         return( 1 );
     }

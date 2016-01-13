@@ -46,29 +46,6 @@
 #endif /* MBEDTLS_PLATFORM_C */
 #endif /* MBEDTLS_SELF_TEST && MBEDTLS_AES_C */
 
-/*
- * Macros for common operations.
- * Results in smaller compiled code than static inline functions.
- */
-
-/*
- * XOR 128-bit
- */
-#define XOR_128( o, i1, i2 )                                                \
-    for( i = 0; i < 16; i++ )                                               \
-        ( o )[i] = ( i1 )[i] ^ ( i2 )[i];
-
-/*
- * Update the CMAC state using an input block x
- */
-#define UPDATE_CMAC( x )                                                    \
-do {                                                                        \
-    XOR_128( state, ( x ), state );                                         \
-    if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx,                    \
-                                       state, 16, state, &olen ) ) != 0 )   \
-        return( ret );                                                      \
-} while( 0 )
-
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
@@ -212,6 +189,25 @@ static void padding( unsigned char padded_block[16],
 }
 
 /*
+ * XOR 128-bit
+ * Here, macro results in smaller compiled code than static inline function
+ */
+#define XOR_128( o, i1, i2 )                                                \
+    for( i = 0; i < 16; i++ )                                               \
+        ( o )[i] = ( i1 )[i] ^ ( i2 )[i];
+
+/*
+ * Update the CMAC state using an input block x
+ */
+#define UPDATE_CMAC( x )                                                    \
+do {                                                                        \
+    XOR_128( state, ( x ), state );                                         \
+    if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx,                    \
+                                       state, 16, state, &olen ) ) != 0 )   \
+        return( ret );                                                      \
+} while( 0 )
+
+/*
  * Generate tag on complete message
  */
 static int cmac_generate( mbedtls_cmac_context *ctx,
@@ -260,6 +256,9 @@ static int cmac_generate( mbedtls_cmac_context *ctx,
 
     return( 0 );
 }
+
+#undef XOR_128
+#undef UPDATE_CMAC
 
 int mbedtls_cmac_generate( mbedtls_cmac_context *ctx,
                            const unsigned char *input, size_t in_len,

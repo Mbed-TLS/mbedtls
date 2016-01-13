@@ -129,6 +129,8 @@ static int generate_subkeys( mbedtls_cmac_context *ctx )
     multiply_by_u( ctx->K1, L );
     multiply_by_u( ctx->K2, ctx->K1 );
 
+    mbedtls_zeroize( L, sizeof( L ) );
+
     return( 0 );
 }
 
@@ -336,6 +338,9 @@ int mbedtls_aes_cmac_prf_128( mbedtls_cmac_context *ctx,
     {
         return( ret );
     }
+
+    mbedtls_zeroize( int_key, sizeof( int_key ) );
+
     return( mbedtls_cmac_generate( ctx, input, in_len, tag, 16 ) );
 }
 

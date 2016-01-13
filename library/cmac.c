@@ -82,24 +82,28 @@ void mbedtls_cmac_init( mbedtls_cmac_context *ctx )
 }
 
 /*
- * Leftshift a 16-byte block by 1 bit
- * \note output can be same as input
+ * Multiply by u in GF(2^128)
+ *
+ * As explained in the paper, this can be achieved as
+ * If MSB(p) = 0, then p = (p << 1)
+ * If MSB(p) = 1, then p = (p << 1) ^ Rb
+ * with Rb = 0x87
+ *
+ * Input and output MUST not point to the same buffer
  */
-static void leftshift_onebit( unsigned char *input, unsigned char *output )
+static void multiply_by_u( unsigned char *output, const unsigned char *input )
 {
-    int i;
-    unsigned char temp;
+    static const unsigned char Rb[2] = { 0x00, 0x87 }; /* block size 16 only */
     unsigned char overflow = 0;
+    int i;
 
     for( i = 15; i >= 0; i-- )
     {
-        temp = input[i];
-        output[i] = temp << 1;
-        output[i] |= overflow;
-        overflow = temp >> 7;
+        output[i] = input[i] << 1 | overflow;
+        overflow = input[i] >> 7;
     }
 
-    return;
+    output[15] ^= Rb[input[0] >> 7]; /* "Constant-time" operation */
 }
 
 /*
@@ -107,7 +111,6 @@ static void leftshift_onebit( unsigned char *input, unsigned char *output )
  */
 static int generate_subkeys( mbedtls_cmac_context *ctx )
 {
-    static const unsigned char Rb[2] = { 0x00, 0x87 }; /* block size 16 only */
     int ret;
     unsigned char L[16];
     size_t olen;
@@ -121,20 +124,10 @@ static int generate_subkeys( mbedtls_cmac_context *ctx )
     }
 
     /*
-     * Generate K1
-     * If MSB(L) = 0, then K1 = (L << 1)
-     * If MSB(L) = 1, then K1 = (L << 1) ^ Rb
+     * Generate K1 and K2
      */
-    leftshift_onebit( L, ctx->K1 );
-    ctx->K1[15] ^= Rb[L[0] >> 7]; /* "Constant-time" operation */
-
-    /*
-     * Generate K2
-     * If MSB(K1) == 0, then K2 = (K1 << 1)
-     * If MSB(K1) == 1, then K2 = (K1 << 1) ^ Rb
-     */
-    leftshift_onebit( ctx->K1, ctx->K2 );
-    ctx->K2[15] ^= Rb[ctx->K1[0] >> 7]; /* "Constant-time" operation */
+    multiply_by_u( ctx->K1, L );
+    multiply_by_u( ctx->K2, ctx->K1 );
 
     return( 0 );
 }

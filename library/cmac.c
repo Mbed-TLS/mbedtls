@@ -93,7 +93,8 @@ void mbedtls_cmac_init( mbedtls_cmac_context *ctx )
  */
 static void multiply_by_u( unsigned char *output, const unsigned char *input )
 {
-    static const unsigned char Rb[2] = { 0x00, 0x87 }; /* block size 16 only */
+    const unsigned char Rb = 0x87; /* block size 16 only */
+    unsigned char mask;
     unsigned char overflow = 0;
     int i;
 
@@ -103,7 +104,20 @@ static void multiply_by_u( unsigned char *output, const unsigned char *input )
         overflow = input[i] >> 7;
     }
 
-    output[15] ^= Rb[input[0] >> 7]; /* "Constant-time" operation */
+    /* mask = ( input[0] >> 7 ) ? 0xff : 0x00
+     * using bit operations to avoid branches */
+    /* MSVC has a warning about unary minus on unsigned, but this is
+     * well-defined and precisely what we want to do here */
+#if defined(_MSC_VER)
+#pragma warning( push )
+#pragma warning( disable : 4146 )
+#endif
+    mask = - ( input[0] >> 7 );
+#if defined(_MSC_VER)
+#pragma warning( pop )
+#endif
+
+    output[15] ^= Rb & mask;
 }
 
 /*

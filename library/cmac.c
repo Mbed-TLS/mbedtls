@@ -54,7 +54,7 @@
 /*
  * XOR 128-bit
  */
-#define XOR_128(i1, i2, o)                                                  \
+#define XOR_128( i1, i2, o )                                                \
     for( i = 0; i < 16; i++ )                                               \
         ( o )[i] = ( i1 )[i] ^ ( i2 )[i];
 
@@ -64,7 +64,8 @@
  */
 #define UPDATE_CMAC( x )                                                    \
     XOR_128( Mn, ( x ), Mn );                                               \
-    if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx, Mn, 16, Mn, &olen ) ) != 0 ) \
+    if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx,                    \
+                                       Mn, 16, Mn, &olen ) ) != 0 )         \
         return( ret );
 
 /* Implementation that should never be optimized out by the compiler */
@@ -84,7 +85,7 @@ void mbedtls_cmac_init( mbedtls_cmac_context *ctx )
  * Leftshift a 16-byte block by 1 bit
  * \note output can be same as input
  */
-static void leftshift_onebit(unsigned char *input, unsigned char *output)
+static void leftshift_onebit( unsigned char *input, unsigned char *output )
 {
     int i;
     unsigned char temp;
@@ -97,27 +98,29 @@ static void leftshift_onebit(unsigned char *input, unsigned char *output)
         output[i] |= overflow;
         overflow = temp >> 7;
     }
+
     return;
 }
 
 /*
  * Generate subkeys
  */
-static int generate_subkeys(mbedtls_cmac_context *ctx)
+static int generate_subkeys( mbedtls_cmac_context *ctx )
 {
-    static const unsigned char Rb[2] = {0x00, 0x87}; /* Note - block size 16 only */
+    static const unsigned char Rb[2] = { 0x00, 0x87 }; /* block size 16 only */
     int ret;
     unsigned char L[16];
     size_t olen;
 
     /* Calculate Ek(0) */
     memset( L, 0, 16 );
-    if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx, L, 16, L, &olen ) ) != 0 )
+    if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx,
+                                       L, 16, L, &olen ) ) != 0 )
     {
         return( ret );
     }
 
-    /* 
+    /*
      * Generate K1
      * If MSB(L) = 0, then K1 = (L << 1)
      * If MSB(L) = 1, then K1 = (L << 1) ^ Rb
@@ -132,7 +135,7 @@ static int generate_subkeys(mbedtls_cmac_context *ctx)
      */
     leftshift_onebit( ctx->K1, ctx->K2 );
     ctx->K2[15] ^= Rb[ctx->K1[0] >> 7]; /* "Constant-time" operation */
-    
+
     return( 0 );
 }
 
@@ -144,7 +147,8 @@ int mbedtls_cmac_setkey( mbedtls_cmac_context *ctx,
     int ret;
     const mbedtls_cipher_info_t *cipher_info;
 
-    cipher_info = mbedtls_cipher_info_from_values( cipher, keybits, MBEDTLS_MODE_ECB );
+    cipher_info = mbedtls_cipher_info_from_values( cipher, keybits,
+                                                   MBEDTLS_MODE_ECB );
     if( cipher_info == NULL )
         return( MBEDTLS_ERR_CMAC_BAD_INPUT );
 
@@ -157,12 +161,12 @@ int mbedtls_cmac_setkey( mbedtls_cmac_context *ctx,
         return( ret );
 
     if( ( ret = mbedtls_cipher_setkey( &ctx->cipher_ctx, key, keybits,
-                               MBEDTLS_ENCRYPT ) ) != 0 )
+                                       MBEDTLS_ENCRYPT ) ) != 0 )
     {
         return( ret );
     }
 
-    return( generate_subkeys(ctx) );
+    return( generate_subkeys( ctx ) );
 }
 
 /*
@@ -175,7 +179,9 @@ void mbedtls_cmac_free( mbedtls_cmac_context *ctx )
 }
 
 /* TODO: Use cipher padding function? */
-static void padding(const unsigned char *lastb, unsigned char *pad, const size_t length)
+static void padding( const unsigned char *lastb,
+                     unsigned char *pad,
+                     const size_t length )
 {
     size_t j;
 
@@ -236,12 +242,12 @@ static int cmac_generate( mbedtls_cmac_context *ctx,
     if( flag )
     {
         /* Last block is complete block */
-        XOR_128( &input[16 * (n - 1)], ctx->K1, M_last );
+        XOR_128( &input[16 * ( n - 1 )], ctx->K1, M_last );
     }
     else
     {
         /* TODO: Use cipher padding function? */
-        padding( &input[16 * (n - 1)], padded, in_len % 16 );
+        padding( &input[16 * ( n - 1 )], padded, in_len % 16 );
         XOR_128( padded, ctx->K2, M_last );
     }
 
@@ -249,10 +255,10 @@ static int cmac_generate( mbedtls_cmac_context *ctx,
 
     for( j = 0; j < n - 1; j++ )
     {
-        UPDATE_CMAC(&input[16 * j]);
+        UPDATE_CMAC( &input[16 * j] );
     }
 
-    UPDATE_CMAC(M_last);
+    UPDATE_CMAC( M_last );
 
     memcpy( tag, Mn, 16 );
 
@@ -277,8 +283,8 @@ int mbedtls_cmac_verify( mbedtls_cmac_context *ctx,
     unsigned char check_tag[16];
     unsigned char i;
     int diff;
-    
-    if( ( ret = cmac_generate( ctx, input, in_len, check_tag, tag_len) ) != 0 )
+
+    if( ( ret = cmac_generate( ctx, input, in_len, check_tag, tag_len ) ) != 0 )
     {
         return ret;
     }
@@ -309,7 +315,7 @@ int mbedtls_aes_cmac_prf_128( mbedtls_cmac_context *ctx,
     if( key_length == 16 )
     {
         /* Use key as is */
-        memcpy(int_key, key, 16);
+        memcpy( int_key, key, 16 );
     }
     else
     {
@@ -317,8 +323,9 @@ int mbedtls_aes_cmac_prf_128( mbedtls_cmac_context *ctx,
 
         /* Key is AES_CMAC(0, key) */
         mbedtls_cmac_init( &zero_ctx );
-        memset(zero_key, 0, 16);
-        ret = mbedtls_cmac_setkey( &zero_ctx, MBEDTLS_CIPHER_ID_AES, zero_key, 8 * sizeof zero_key );
+        memset( zero_key, 0, 16 );
+        ret = mbedtls_cmac_setkey( &zero_ctx, MBEDTLS_CIPHER_ID_AES,
+                                   zero_key, 8 * sizeof zero_key );
         if( ret != 0 )
         {
             return( ret );
@@ -330,7 +337,8 @@ int mbedtls_aes_cmac_prf_128( mbedtls_cmac_context *ctx,
         }
     }
 
-    ret = mbedtls_cmac_setkey( ctx, MBEDTLS_CIPHER_ID_AES, int_key, 8 * sizeof int_key );
+    ret = mbedtls_cmac_setkey( ctx, MBEDTLS_CIPHER_ID_AES,
+                               int_key, 8 * sizeof int_key );
     if( ret != 0 )
     {
         return( ret );
@@ -424,7 +432,7 @@ static const size_t PRFKlen[NB_PRF_TESTS] = {
 static const unsigned char PRFM[] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
     0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
-    0x10, 0x11, 0x12, 0x13    
+    0x10, 0x11, 0x12, 0x13
 };
 
 static const unsigned char PRFT[NB_PRF_TESTS][16] = {
@@ -472,7 +480,7 @@ int mbedtls_cmac_self_test( int verbose )
     for( i = 0; i < NB_CMAC_TESTS; i++ )
     {
         mbedtls_printf( "  AES-128-CMAC #%u: ", i );
-        
+
         ret = mbedtls_cmac_generate( &ctx, M, Mlen[i], tag, 16 );
         if( ret != 0 ||
             memcmp( tag, T[i], 16 ) != 0 )
@@ -482,6 +490,7 @@ int mbedtls_cmac_self_test( int verbose )
 
             return( 1 );
         }
+
         ret = mbedtls_cmac_verify( &ctx, M, Mlen[i], T[i], 16 );
         if( ret != 0 )
         {
@@ -499,8 +508,8 @@ int mbedtls_cmac_self_test( int verbose )
     {
         mbedtls_printf( "  AES-CMAC-128-PRF #%u: ", i );
 
-        mbedtls_aes_cmac_prf_128( &ctx, PRFK, PRFKlen[i], PRFM, 20, tag);
-        
+        mbedtls_aes_cmac_prf_128( &ctx, PRFK, PRFKlen[i], PRFM, 20, tag );
+
         if( ret != 0 ||
             memcmp( tag, PRFT[i], 16 ) != 0 )
         {

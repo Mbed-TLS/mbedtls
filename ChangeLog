@@ -5,9 +5,15 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Bugfix
    * Fix bug in mbedtls_mpi_add_mpi() that caused wrong results when the three
      arguments where the same (in-place doubling). Found and fixed by Janos
-     Follath.
+     Follath. #309
    * Fix potential build failures related to the 'apidoc' target, introduced
      in the previous patch release. Found by Robert Scheck. #390 #391
+   * Fix issue in Makefile that prevented building using armar. #386
+
+Changes
+   * On ARM platforms, when compiling with -O0 with GCC, Clang or armcc5,
+     don't use the optimized assembly for bignum multiplication. This removes
+     the need to pass -fomit-frame-pointer to avoid a build error with -O0.
 
 = mbed TLS 2.2.1 released 2016-01-05
 

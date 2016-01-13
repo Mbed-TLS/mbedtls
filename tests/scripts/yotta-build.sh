@@ -11,8 +11,12 @@ yt update || true # needs network
 yotta_build()
 {
     TARGET=$1
-    echo; echo "*** $TARGET ***"
+
+    echo; echo "*** $TARGET (release) ***"
     yt -t $TARGET build
+
+    echo; echo "*** $TARGET (debug) ***"
+    yt -t $TARGET build -d
 }
 
 if uname -a | grep 'Linux.*x86' >/dev/null; then

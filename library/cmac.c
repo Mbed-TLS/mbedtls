@@ -200,8 +200,8 @@ static void padding(const unsigned char *lastb, unsigned char *pad, const size_t
 /*
  * Generate tag on complete message
  */
-static int cmac_generate( mbedtls_cmac_context *ctx, size_t length,
-                          const unsigned char *input,
+static int cmac_generate( mbedtls_cmac_context *ctx,
+                          const unsigned char *input, size_t in_len,
                           unsigned char *tag, size_t tag_len )
 {
     unsigned char Mn[16];
@@ -211,7 +211,7 @@ static int cmac_generate( mbedtls_cmac_context *ctx, size_t length,
     size_t olen;
 
     /*
-     * Check length requirements: SP800-38B A
+     * Check in_len requirements: SP800-38B A
      * 4 is a worst case bottom limit
      */
     if( tag_len < 4 || tag_len > 16 || tag_len % 2 != 0 )
@@ -220,7 +220,7 @@ static int cmac_generate( mbedtls_cmac_context *ctx, size_t length,
     /* TODO: Use cipher padding function? */
     // mbedtls_cipher_set_padding_mode( ctx->cipher, MBEDTLS_PADDING_ONE_AND_ZEROS );
 
-    n = ( length + 15 ) / 16;       /* n is number of rounds */
+    n = ( in_len + 15 ) / 16;       /* n is number of rounds */
 
     if( n == 0 )
     {
@@ -229,7 +229,7 @@ static int cmac_generate( mbedtls_cmac_context *ctx, size_t length,
     }
     else
     {
-        flag = ( ( length % 16 ) == 0);
+        flag = ( ( in_len % 16 ) == 0);
     }
 
     /* Calculate last block */
@@ -241,7 +241,7 @@ static int cmac_generate( mbedtls_cmac_context *ctx, size_t length,
     else
     {
         /* TODO: Use cipher padding function? */
-        padding( &input[16 * (n - 1)], padded, length % 16 );
+        padding( &input[16 * (n - 1)], padded, in_len % 16 );
         XOR_128( padded, ctx->K2, M_last );
     }
 
@@ -259,18 +259,18 @@ static int cmac_generate( mbedtls_cmac_context *ctx, size_t length,
     return( 0 );
 }
 
-int mbedtls_cmac_generate( mbedtls_cmac_context *ctx, size_t length,
-                           const unsigned char *input,
+int mbedtls_cmac_generate( mbedtls_cmac_context *ctx,
+                           const unsigned char *input, size_t in_len,
                            unsigned char *tag, size_t tag_len )
 {
-    return( cmac_generate( ctx, length, input, tag, tag_len ) );
+    return( cmac_generate( ctx, input, in_len, tag, tag_len ) );
 }
 
 /*
  * Authenticated decryption
  */
-int mbedtls_cmac_verify( mbedtls_cmac_context *ctx, size_t length,
-                         const unsigned char *input,
+int mbedtls_cmac_verify( mbedtls_cmac_context *ctx,
+                         const unsigned char *input, size_t in_len,
                          const unsigned char *tag, size_t tag_len )
 {
     int ret;
@@ -278,7 +278,7 @@ int mbedtls_cmac_verify( mbedtls_cmac_context *ctx, size_t length,
     unsigned char i;
     int diff;
     
-    if( ( ret = cmac_generate( ctx, length, input, check_tag, tag_len) ) != 0 )
+    if( ( ret = cmac_generate( ctx, input, in_len, check_tag, tag_len) ) != 0 )
     {
         return ret;
     }
@@ -297,9 +297,9 @@ int mbedtls_cmac_verify( mbedtls_cmac_context *ctx, size_t length,
     return( 0 );
 }
 
-int mbedtls_aes_cmac_prf_128( mbedtls_cmac_context *ctx, size_t length,
+int mbedtls_aes_cmac_prf_128( mbedtls_cmac_context *ctx,
                               const unsigned char *key, size_t key_length,
-                              const unsigned char *input,
+                              const unsigned char *input, size_t in_len,
                               unsigned char *tag )
 {
     int ret;
@@ -323,7 +323,7 @@ int mbedtls_aes_cmac_prf_128( mbedtls_cmac_context *ctx, size_t length,
         {
             return( ret );
         }
-        ret = mbedtls_cmac_generate( &zero_ctx, key_length, key, int_key, 16 );
+        ret = mbedtls_cmac_generate( &zero_ctx, key, key_length, int_key, 16 );
         if( ret != 0 )
         {
             return( ret );
@@ -335,7 +335,7 @@ int mbedtls_aes_cmac_prf_128( mbedtls_cmac_context *ctx, size_t length,
     {
         return( ret );
     }
-    return( mbedtls_cmac_generate( ctx, length, input, tag, 16 ) );
+    return( mbedtls_cmac_generate( ctx, input, in_len, tag, 16 ) );
 }
 
 #if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
@@ -473,7 +473,7 @@ int mbedtls_cmac_self_test( int verbose )
     {
         mbedtls_printf( "  AES-128-CMAC #%u: ", i );
         
-        ret = mbedtls_cmac_generate( &ctx, Mlen[i], M, tag, 16 );
+        ret = mbedtls_cmac_generate( &ctx, M, Mlen[i], tag, 16 );
         if( ret != 0 ||
             memcmp( tag, T[i], 16 ) != 0 )
         {
@@ -482,7 +482,7 @@ int mbedtls_cmac_self_test( int verbose )
 
             return( 1 );
         }
-        ret = mbedtls_cmac_verify( &ctx, Mlen[i], M, T[i], 16 );
+        ret = mbedtls_cmac_verify( &ctx, M, Mlen[i], T[i], 16 );
         if( ret != 0 )
         {
             if( verbose != 0 )
@@ -499,7 +499,7 @@ int mbedtls_cmac_self_test( int verbose )
     {
         mbedtls_printf( "  AES-CMAC-128-PRF #%u: ", i );
 
-        mbedtls_aes_cmac_prf_128( &ctx, 20, PRFK, PRFKlen[i], PRFM, tag);
+        mbedtls_aes_cmac_prf_128( &ctx, PRFK, PRFKlen[i], PRFM, 20, tag);
         
         if( ret != 0 ||
             memcmp( tag, PRFT[i], 16 ) != 0 )

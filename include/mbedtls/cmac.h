@@ -77,24 +77,24 @@ void mbedtls_cmac_free( mbedtls_cmac_context *ctx );
  * \brief           CMAC generate
  *
  * \param ctx       CMAC context
- * \param length    length of the input data in bytes
  * \param input     buffer holding the input data
+ * \param in_len    length of the input data in bytes
  * \param tag       buffer for holding the generated tag
  * \param tag_len   length of the tag to generate in bytes
  *                  must be between 4, 6, 8, 10, 14 or 16
  *
  * \return          0 if successful
  */
-int mbedtls_cmac_generate( mbedtls_cmac_context *ctx, size_t length,
-                           const unsigned char *input,
+int mbedtls_cmac_generate( mbedtls_cmac_context *ctx,
+                           const unsigned char *input, size_t in_len,
                            unsigned char *tag, size_t tag_len );
 
 /**
  * \brief           CMAC verify
  *
  * \param ctx       CMAC context
- * \param length    length of the input data in bytes
  * \param input     buffer holding the input data
+ * \param in_len    length of the input data in bytes
  * \param tag       buffer holding the tag to verify
  * \param tag_len   length of the tag to verify in bytes
  *                  must be 4, 6, 8, 10, 14 or 16
@@ -102,25 +102,25 @@ int mbedtls_cmac_generate( mbedtls_cmac_context *ctx, size_t length,
  * \return          0 if successful and authenticated,
  *                  MBEDTLS_ERR_CMAC_VERIFY_FAILED if tag does not match
  */
-int mbedtls_cmac_verify( mbedtls_cmac_context *ctx, size_t length,
-                         const unsigned char *input,
+int mbedtls_cmac_verify( mbedtls_cmac_context *ctx,
+                         const unsigned char *input, size_t in_len,
                          const unsigned char *tag, size_t tag_len );
 
 /**
  * \brief           AES-CMAC-128-PRF
  *
  * \param ctx       CMAC context
- * \param length    length of the input data in bytes
  * \param key       PRF key
  * \param key_len   PRF key length
  * \param input     buffer holding the input data
+ * \param in_len    length of the input data in bytes
  * \param tag       buffer holding the tag to verify (16 bytes)
  *
  * \return          0 if successful
  */
-int mbedtls_aes_cmac_prf_128( mbedtls_cmac_context *ctx, size_t length,
+int mbedtls_aes_cmac_prf_128( mbedtls_cmac_context *ctx,
                               const unsigned char *key, size_t key_len,
-                              const unsigned char *input,
+                              const unsigned char *input, size_t in_len,
                               unsigned char *tag );
 
 #if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)

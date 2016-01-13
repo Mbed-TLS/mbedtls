@@ -187,28 +187,26 @@ void mbedtls_cmac_free( mbedtls_cmac_context *ctx )
     mbedtls_zeroize( ctx, sizeof( mbedtls_cmac_context ) );
 }
 
-/* TODO: Use cipher padding function? */
-static void padding( const unsigned char *lastb,
-                     unsigned char *pad,
-                     const size_t length )
+/*
+ * Create padded last block from (partial) last block.
+ *
+ * We can't use the padding option from the cipher layer, as it only works for
+ * CBC and we use ECB mode, and anyway we need to XOR K1 or K2 in addition.
+ */
+static void padding( unsigned char padded_block[16],
+                     const unsigned char *last_block,
+                     size_t length )
 {
     size_t j;
 
-    /* original last block */
     for( j = 0; j < 16; j++ )
     {
         if( j < length )
-        {
-            pad[j] = lastb[j];
-        }
+            padded_block[j] = last_block[j];
         else if( j == length )
-        {
-            pad[j] = 0x80;
-        }
+            padded_block[j] = 0x80;
         else
-        {
-            pad[j] = 0x00;
-        }
+            padded_block[j] = 0x00;
     }
 }
 
@@ -232,9 +230,6 @@ static int cmac_generate( mbedtls_cmac_context *ctx,
     if( tag_len < 4 || tag_len > 16 || tag_len % 2 != 0 )
         return( MBEDTLS_ERR_CMAC_BAD_INPUT );
 
-    /* TODO: Use cipher padding function? */
-    // mbedtls_cipher_set_padding_mode( ctx->cipher, MBEDTLS_PADDING_ONE_AND_ZEROS );
-
     n = ( in_len + 15 ) / 16;       /* n is number of rounds */
 
     if( n == 0 )
@@ -255,8 +250,7 @@ static int cmac_generate( mbedtls_cmac_context *ctx,
     }
     else
     {
-        /* TODO: Use cipher padding function? */
-        padding( &input[16 * ( n - 1 )], padded, in_len % 16 );
+        padding( padded, &input[16 * ( n - 1 )], in_len % 16 );
         XOR_128( padded, ctx->K2, M_last );
     }
 

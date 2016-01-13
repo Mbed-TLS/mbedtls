@@ -210,9 +210,10 @@ do {                                                                        \
 /*
  * Generate tag on complete message
  */
-static int cmac_generate( mbedtls_cmac_context *ctx,
-                          const unsigned char *input, size_t in_len,
-                          unsigned char *tag, size_t tag_len )
+int mbedtls_cmac_generate( mbedtls_cmac_context *ctx,
+                           const unsigned char *input, size_t in_len,
+                           unsigned char *tag, size_t tag_len )
+
 {
     unsigned char state[16];
     unsigned char M_last[16];
@@ -260,13 +261,6 @@ static int cmac_generate( mbedtls_cmac_context *ctx,
 #undef XOR_128
 #undef UPDATE_CMAC
 
-int mbedtls_cmac_generate( mbedtls_cmac_context *ctx,
-                           const unsigned char *input, size_t in_len,
-                           unsigned char *tag, size_t tag_len )
-{
-    return( cmac_generate( ctx, input, in_len, tag, tag_len ) );
-}
-
 /*
  * Authenticated decryption
  */
@@ -279,7 +273,8 @@ int mbedtls_cmac_verify( mbedtls_cmac_context *ctx,
     unsigned char i;
     int diff;
 
-    if( ( ret = cmac_generate( ctx, input, in_len, check_tag, tag_len ) ) != 0 )
+    if( ( ret = mbedtls_cmac_generate( ctx, input, in_len,
+                                       check_tag, tag_len ) ) != 0 )
     {
         return ret;
     }

@@ -54,19 +54,20 @@
 /*
  * XOR 128-bit
  */
-#define XOR_128( i1, i2, o )                                                \
+#define XOR_128( o, i1, i2 )                                                \
     for( i = 0; i < 16; i++ )                                               \
         ( o )[i] = ( i1 )[i] ^ ( i2 )[i];
 
 /*
- * Update the CMAC state in Mn using an input block x
- * TODO: Compiler optimisation
+ * Update the CMAC state using an input block x
  */
 #define UPDATE_CMAC( x )                                                    \
-    XOR_128( Mn, ( x ), Mn );                                               \
+do {                                                                        \
+    XOR_128( state, ( x ), state );                                         \
     if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx,                    \
-                                       Mn, 16, Mn, &olen ) ) != 0 )         \
-        return( ret );
+                                       state, 16, state, &olen ) ) != 0 )   \
+        return( ret );                                                      \
+} while( 0 )
 
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
@@ -217,10 +218,9 @@ static int cmac_generate( mbedtls_cmac_context *ctx,
                           const unsigned char *input, size_t in_len,
                           unsigned char *tag, size_t tag_len )
 {
-    unsigned char Mn[16];
+    unsigned char state[16];
     unsigned char M_last[16];
-    unsigned char padded[16];
-    int     n, i, j, ret, flag;
+    int     n, i, j, ret, needs_padding;
     size_t olen;
 
     /*
@@ -230,40 +230,33 @@ static int cmac_generate( mbedtls_cmac_context *ctx,
     if( tag_len < 4 || tag_len > 16 || tag_len % 2 != 0 )
         return( MBEDTLS_ERR_CMAC_BAD_INPUT );
 
-    n = ( in_len + 15 ) / 16;       /* n is number of rounds */
-
-    if( n == 0 )
-    {
-        n = 1;
-        flag = 0;
-    }
+    if( in_len == 0 )
+        needs_padding = 1;
     else
-    {
-        flag = ( ( in_len % 16 ) == 0);
-    }
+        needs_padding = in_len % 16 != 0;
+
+    n = in_len / 16 + needs_padding;
 
     /* Calculate last block */
-    if( flag )
+    if( needs_padding )
     {
-        /* Last block is complete block */
-        XOR_128( &input[16 * ( n - 1 )], ctx->K1, M_last );
+        padding( M_last, input + 16 * ( n - 1 ), in_len % 16 );
+        XOR_128( M_last, M_last, ctx->K2 );
     }
     else
     {
-        padding( padded, &input[16 * ( n - 1 )], in_len % 16 );
-        XOR_128( padded, ctx->K2, M_last );
+        /* Last block is complete block */
+        XOR_128( M_last, input + 16 * ( n - 1 ), ctx->K1 );
     }
 
-    memset( Mn, 0, 16 );
+    memset( state, 0, 16 );
 
     for( j = 0; j < n - 1; j++ )
-    {
-        UPDATE_CMAC( &input[16 * j] );
-    }
+        UPDATE_CMAC( input + 16 * j );
 
     UPDATE_CMAC( M_last );
 
-    memcpy( tag, Mn, 16 );
+    memcpy( tag, state, 16 );
 
     return( 0 );
 }

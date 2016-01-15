@@ -1162,6 +1162,8 @@ void mpi_mul_hlp( size_t i, mbedtls_mpi_uint *s, mbedtls_mpi_uint *d, mbedtls_mp
     while( c != 0 );
 }
 
+#if defined(MBEDTLS_MPI_SQR)
+
 /*
  * Squarification helper: X = A * A
  */
@@ -1258,6 +1260,8 @@ cleanup:
     return( ret );
 }
 
+#endif /* MBEDTLS_MPI_SQR */
+
 /*
  * Baseline multiplication: X = A * B  (HAC 14.12)
  */
@@ -1267,10 +1271,12 @@ int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     size_t i, j;
     mbedtls_mpi TA, TB;
     
+#if defined(MBEDTLS_MPI_SQR)
     if( A == B )
     {
         return mpi_sqr_hlp( X, A );
     }
+#endif
     
     mbedtls_mpi_init( &TA ); mbedtls_mpi_init( &TB );
 

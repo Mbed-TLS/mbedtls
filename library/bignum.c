@@ -205,7 +205,13 @@ int mbedtls_mpi_copy( mbedtls_mpi *X, const mbedtls_mpi *Y )
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, i ) );
 
-    memset( X->p, 0, X->n * ciL );
+    if( X->n > i )
+    {
+        // clear only unused limbs
+        // used ones will be overwritten by following memcpy()
+        memset( X->p + i, 0, ( X->n - i ) * ciL );
+    }
+    
     memcpy( X->p, Y->p, i * ciL );
 
 cleanup:

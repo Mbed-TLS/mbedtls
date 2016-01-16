@@ -1172,7 +1172,7 @@ static int mpi_sqr_hlp( mbedtls_mpi *X, const mbedtls_mpi *A )
     int ret;
     size_t n, k;
     mbedtls_mpi TA;
-    mbedtls_mpi_uint r0, r1;
+    mbedtls_mpi_uint r0, r1, tmp;
     mbedtls_mpi_uint d0 = 0, d1 = 0, d2 = 0;
 
     mbedtls_mpi_init( &TA );
@@ -1195,8 +1195,9 @@ static int mpi_sqr_hlp( mbedtls_mpi *X, const mbedtls_mpi *A )
     
 #define SQR_STEP_ADD \
     d0 += r0;                           \
+    tmp = d1;                           \
     d1 += r1 + (d0 < r0);               \
-    d2 += (d1 < r1);
+    d2 += (d1 < tmp);
     
 #define SQR_STEP_ADD_DBL \
     d2 += (r1 >> (biL - 1));            \

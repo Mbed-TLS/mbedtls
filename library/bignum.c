@@ -1175,13 +1175,20 @@ static int mpi_sqr_hlp( mbedtls_mpi *X, const mbedtls_mpi *A )
     mbedtls_mpi_uint r0, r1, tmp;
     mbedtls_mpi_uint d0 = 0, d1 = 0, d2 = 0;
 
-    mbedtls_mpi_init( &TA );
-    
-    if( X == A ) { MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &TA, A ) ); A = &TA; }
-    
     for( n = A->n; n > 0; n-- )
         if( A->p[n - 1] != 0 )
             break;
+
+    if( n == 0 )
+    {
+        // final 'X->p[2 * n - 1] = d0' will fail if input has zero length
+        // check it from the start to be sure the number is valid
+        return mbedtls_mpi_lset( X, 0 );
+    }
+
+    mbedtls_mpi_init( &TA );
+    
+    if( X == A ) { MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &TA, A ) ); A = &TA; }
     
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, n * 2 ) );
     

@@ -19,10 +19,16 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 /*
- *  RSA was designed by Ron Rivest, Adi Shamir and Len Adleman.
+ *  The following sources were referenced in the design of this implementation
+ *  of the RSA algorithm:
  *
- *  http://theory.lcs.mit.edu/~rivest/rsapaper.pdf
- *  http://www.cacr.math.uwaterloo.ca/hac/about/chap8.pdf
+ *  [1] A method for obtaining digital signatures and public-key cryptosystems
+ *      R Rivest, A Shamir, and L Adleman
+ *      http://people.csail.mit.edu/rivest/pubs.html#RSA78
+ *
+ *  [2] Handbook of Applied Cryptography - 1997, Chapter 8
+ *      Menezes, van Oorschot and Vanstone
+ *
  */
 
 #if !defined(MBEDTLS_CONFIG_FILE)

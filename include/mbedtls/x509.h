@@ -85,7 +85,7 @@
 /* Reminder: update x509_crt_verify_strings[] in library/x509_crt.c */
 #define MBEDTLS_X509_BADCERT_EXPIRED             0x01  /**< The certificate validity has expired. */
 #define MBEDTLS_X509_BADCERT_REVOKED             0x02  /**< The certificate has been revoked (is on a CRL). */
-#define MBEDTLS_X509_BADCERT_CN_MISMATCH         0x04  /**< The certificate Common Name (CN) does not match with the expected CN. */
+#define MBEDTLS_X509_BADCERT_CN_MISMATCH         0x04  /**< The certificate Common Name (CN) or subjectAltName (SAN) does not match with the expected name. */
 #define MBEDTLS_X509_BADCERT_NOT_TRUSTED         0x08  /**< The certificate is not correctly signed by the trusted CA. */
 #define MBEDTLS_X509_BADCRL_NOT_TRUSTED          0x10  /**< The CRL is not correctly signed by the trusted CA. */
 #define MBEDTLS_X509_BADCRL_EXPIRED              0x20  /**< The CRL is expired. */

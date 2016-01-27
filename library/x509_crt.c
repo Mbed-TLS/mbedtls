@@ -1470,7 +1470,7 @@ struct x509_crt_verify_string {
 static const struct x509_crt_verify_string x509_crt_verify_strings[] = {
     { MBEDTLS_X509_BADCERT_EXPIRED,       "The certificate validity has expired" },
     { MBEDTLS_X509_BADCERT_REVOKED,       "The certificate has been revoked (is on a CRL)" },
-    { MBEDTLS_X509_BADCERT_CN_MISMATCH,   "The certificate Common Name (CN) does not match with the expected CN" },
+    { MBEDTLS_X509_BADCERT_CN_MISMATCH,   "The certificate Common Name (CN) or subjectAltName (SAN) does not match with the expected name" },
     { MBEDTLS_X509_BADCERT_NOT_TRUSTED,   "The certificate is not correctly signed by the trusted CA" },
     { MBEDTLS_X509_BADCRL_NOT_TRUSTED,    "The CRL is not correctly signed by the trusted CA" },
     { MBEDTLS_X509_BADCRL_EXPIRED,        "The CRL is expired" },

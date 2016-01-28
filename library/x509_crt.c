@@ -442,8 +442,8 @@ static int x509_get_ext_key_usage( unsigned char **p,
  * NOTE: update x509_info_subject_alt_name() and x509_crt_verify() if and when
  * adding support for more name types.
  */
-#define X509_CRT_SAN_DNS_NAME   2
-#define X509_CRT_SAN_IP_ADDRESS 7
+#define X509_CRT_SAN_TAG_DNS_NAME   ( MBEDTLS_ASN1_CONTEXT_SPECIFIC | 2 )
+#define X509_CRT_SAN_TAG_IP_ADDRESS ( MBEDTLS_ASN1_CONTEXT_SPECIFIC | 7 )
 
 static int x509_get_subject_alt_name( unsigned char **p,
                                       const unsigned char *end,
@@ -481,7 +481,7 @@ static int x509_get_subject_alt_name( unsigned char **p,
 
         /* Skip everything but DNS name and IP address */
 #if defined(MBEDTLS_X509_SAN_IP_ADDRESS_SUPPORT)
-        if( tag == ( MBEDTLS_ASN1_CONTEXT_SPECIFIC | X509_CRT_SAN_IP_ADDRESS ) )
+        if( tag == X509_CRT_SAN_TAG_IP_ADDRESS )
         {
             /* If IP adress, only valid lengths are 4 and 16 */
             if( tag_len != 4 && tag_len != 16 )
@@ -489,7 +489,7 @@ static int x509_get_subject_alt_name( unsigned char **p,
         }
         else
 #endif
-        if( tag != ( MBEDTLS_ASN1_CONTEXT_SPECIFIC | X509_CRT_SAN_DNS_NAME ) )
+        if( tag != X509_CRT_SAN_TAG_DNS_NAME )
         {
             *p += tag_len;
             continue;
@@ -1231,7 +1231,7 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
 
     while( cur != NULL )
     {
-        if( cur->buf.tag == ( MBEDTLS_ASN1_CONTEXT_SPECIFIC | X509_CRT_SAN_DNS_NAME ) )
+        if( cur->buf.tag == X509_CRT_SAN_TAG_DNS_NAME )
         {
             if( cur->buf.len + sep_len >= n )
             {
@@ -1246,7 +1246,7 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
                 *p++ = cur->buf.p[i];
         }
 #if defined(MBEDTLS_X509_SAN_IP_ADDRESS_SUPPORT)
-        else if( cur->buf.tag == ( MBEDTLS_ASN1_CONTEXT_SPECIFIC | X509_CRT_SAN_IP_ADDRESS ) )
+        else if( cur->buf.tag == X509_CRT_SAN_TAG_IP_ADDRESS )
         {
             if( cur->buf.len == 4 )
             {

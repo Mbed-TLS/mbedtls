@@ -99,8 +99,8 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C
 x509_cert_info:"data_files/cert_example_multi.crt":"cert. version     \: 3\nserial number     \: 11\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=www.example.com\nissued  on        \: 2012-05-10 13\:23\:41\nexpires on        \: 2022-05-11 13\:23\:41\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\nsubject alt name  \: example.com, example.net, *.example.org\n"
 
 X509 Certificate information, Subject Alt Name + Key Usage
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C
-x509_cert_info:"data_files/cert_example_multi_nocn.crt":"cert. version     \: 3\nserial number     \: F7\:C6\:7F\:F8\:E9\:A9\:63\:F9\nissuer name       \: C=NL\nsubject name      \: C=NL\nissued  on        \: 2014-01-22 10\:04\:33\nexpires on        \: 2024-01-22 10\:04\:33\nsigned using      \: RSA with SHA1\nRSA key size      \: 1024 bits\nbasic constraints \: CA=false\nsubject alt name  \: www.shotokan-braunschweig.de, www.massimo-abate.eu\nkey usage         \: Digital Signature, Non Repudiation, Key Encipherment\n"
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_X509_SAN_IP_ADDRESS_SUPPORT
+x509_cert_info:"data_files/cert_example_multi_nocn.crt":"cert. version     \: 3\nserial number     \: F7\:C6\:7F\:F8\:E9\:A9\:63\:F9\nissuer name       \: C=NL\nsubject name      \: C=NL\nissued  on        \: 2014-01-22 10\:04\:33\nexpires on        \: 2024-01-22 10\:04\:33\nsigned using      \: RSA with SHA1\nRSA key size      \: 1024 bits\nbasic constraints \: CA=false\nsubject alt name  \: www.shotokan-braunschweig.de, www.massimo-abate.eu, IP\:192.168.1.135, IP\:192.168.69.48\nkey usage         \: Digital Signature, Non Repudiation, Key Encipherment\n"
 
 X509 Certificate information, Key Usage + Extended Key Usage
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C
@@ -117,6 +117,10 @@ x509_cert_info:"data_files/server3.crt":"cert. version     \: 3\nserial number  
 X509 Certificate information Bitstring in subject name
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C
 x509_cert_info:"data_files/bitstring-in-dn.pem":"cert. version     \: 3\nserial number     \: 02\nissuer name       \: CN=Test CA 01, ST=Ecnivorp, C=XX, emailAddress=tca@example.com, O=Test CA Authority\nsubject name      \: C=XX, O=tca, ST=Ecnivorp, OU=TCA, CN=Client, emailAddress=client@example.com, serialNumber=7101012255, uniqueIdentifier=?7101012255\nissued  on        \: 2015-03-11 12\:06\:51\nexpires on        \: 2025-03-08 12\:06\:51\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\nsubject alt name  \: \next key usage     \: TLS Web Client Authentication\n"
+
+X509 Certificate information SAN with IP
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_X509_SAN_IP_ADDRESS_SUPPORT
+x509_cert_info:"data_files/server5-san-ip.crt":"cert. version     \: 3\nserial number     \: 50\nissuer name       \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name      \: CN=Test\nissued  on        \: 2016-01-27 16\:34\:43\nexpires on        \: 2026-01-24 16\:34\:43\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\nsubject alt name  \: foo.test, bar.test, IP\:127.0.0.135, IP\:192.168.0.135, IP\:fe80\:0000\:0000\:0000\:0000\:0000\:0000\:0001, IP\:1234\:5678\:9abc\:def0\:0fde\:cba9\:8765\:4321\n"
 
 X509 certificate v1 with extension
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3

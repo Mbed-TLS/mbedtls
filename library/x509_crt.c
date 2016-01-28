@@ -438,8 +438,13 @@ static int x509_get_ext_key_usage( unsigned char **p,
  *      nameAssigner            [0]     DirectoryString OPTIONAL,
  *      partyName               [1]     DirectoryString }
  *
- * NOTE: we only parse and use dNSName at this point.
+ * NOTE: we only parse and use dNSName and iPAddress at this point.
+ * NOTE: update x509_info_subject_alt_name() and x509_crt_verify() if and when
+ * adding support for more name types.
  */
+#define X509_CRT_SAN_DNS_NAME   2
+#define X509_CRT_SAN_IP_ADDRESS 7
+
 static int x509_get_subject_alt_name( unsigned char **p,
                                       const unsigned char *end,
                                       mbedtls_x509_sequence *subject_alt_name )
@@ -474,8 +479,17 @@ static int x509_get_subject_alt_name( unsigned char **p,
             return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
                     MBEDTLS_ERR_ASN1_UNEXPECTED_TAG );
 
-        /* Skip everything but DNS name */
-        if( tag != ( MBEDTLS_ASN1_CONTEXT_SPECIFIC | 2 ) )
+        /* Skip everything but DNS name and IP address */
+#if defined(MBEDTLS_X509_SAN_IP_ADDRESS_SUPPORT)
+        if( tag == ( MBEDTLS_ASN1_CONTEXT_SPECIFIC | X509_CRT_SAN_IP_ADDRESS ) )
+        {
+            /* If IP adress, only valid lengths are 4 and 16 */
+            if( tag_len != 4 && tag_len != 16 )
+                return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS );
+        }
+        else
+#endif
+        if( tag != ( MBEDTLS_ASN1_CONTEXT_SPECIFIC | X509_CRT_SAN_DNS_NAME ) )
         {
             *p += tag_len;
             continue;
@@ -1213,20 +1227,74 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
     const mbedtls_x509_sequence *cur = subject_alt_name;
     const char *sep = "";
     size_t sep_len = 0;
+    int ret;
 
     while( cur != NULL )
     {
-        if( cur->buf.len + sep_len >= n )
+        if( cur->buf.tag == ( MBEDTLS_ASN1_CONTEXT_SPECIFIC | X509_CRT_SAN_DNS_NAME ) )
         {
-            *p = '\0';
-            return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
-        }
+            if( cur->buf.len + sep_len >= n )
+            {
+                *p = '\0';
+                return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
+            }
 
-        n -= cur->buf.len + sep_len;
-        for( i = 0; i < sep_len; i++ )
-            *p++ = sep[i];
-        for( i = 0; i < cur->buf.len; i++ )
-            *p++ = cur->buf.p[i];
+            n -= cur->buf.len + sep_len;
+            for( i = 0; i < sep_len; i++ )
+                *p++ = sep[i];
+            for( i = 0; i < cur->buf.len; i++ )
+                *p++ = cur->buf.p[i];
+        }
+#if defined(MBEDTLS_X509_SAN_IP_ADDRESS_SUPPORT)
+        else if( cur->buf.tag == ( MBEDTLS_ASN1_CONTEXT_SPECIFIC | X509_CRT_SAN_IP_ADDRESS ) )
+        {
+            if( cur->buf.len == 4 )
+            {
+                ret = mbedtls_snprintf( p, n, "%sIP:%d.%d.%d.%d", sep,
+                                              cur->buf.p[0], cur->buf.p[1],
+                                              cur->buf.p[2], cur->buf.p[4] );
+                MBEDTLS_X509_SAFE_SNPRINTF;
+            }
+            else if( cur->buf.len == 16 )
+            {
+                if( sep_len + 2 >= n )
+                {
+                    *p = '\0';
+                    return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
+                }
+
+                memcpy( p, sep, sep_len );
+                p += sep_len;
+                n -= sep_len;
+
+                memcpy( p, "IP", 2 );
+                p += 2;
+                n -= 2;
+
+                for( i = 0; i < 8; i++ )
+                {
+                    ret = mbedtls_snprintf( p, n, ":%02x%02x",
+                                                 cur->buf.p[2 * i],
+                                                 cur->buf.p[2 * i + 1] );
+                    MBEDTLS_X509_SAFE_SNPRINTF;
+                }
+            }
+            else
+            {
+                ret = mbedtls_snprintf( p, n, "IP:???" );
+                MBEDTLS_X509_SAFE_SNPRINTF;
+            }
+        }
+#endif /* MBEDTLS_X509_SAN_IP_ADDRESS_SUPPORT */
+        /*
+         * tag == 0 happens when the extension is present but with only unknow
+         * types: we get a list with one uninitialized  element
+         */
+        else if( cur->buf.tag != 0 )
+        {
+            ret = mbedtls_snprintf( p, n, "???unknown name type???" );
+            MBEDTLS_X509_SAFE_SNPRINTF;
+        }
 
         sep = ", ";
         sep_len = 2;

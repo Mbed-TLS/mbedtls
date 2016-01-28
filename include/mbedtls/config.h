@@ -1319,6 +1319,18 @@
 #define MBEDTLS_X509_RSASSA_PSS_SUPPORT
 
 /**
+ * \def MBEDTLS_X509_SAN_IP_ADDRESS_SUPPORT
+ *
+ * Enable support for IP addresses (IPv4 and IPv6) in subjectAltName in
+ * certificates. This includes parsing, printing with
+ * \c mbedtls_x509_crt_info(), and verification - see the documentation of
+ * \c mbedtls_x509_crt_verify_with_profile()
+ *
+ * Comment this macro to disallow using IP addresses in
+ */
+#define MBEDTLS_X509_SAN_IP_ADDRESS_SUPPORT
+
+/**
  * \def MBEDTLS_ZLIB_SUPPORT
  *
  * If set, the SSL/TLS module uses ZLIB to support compression and

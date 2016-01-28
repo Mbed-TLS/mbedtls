@@ -2239,29 +2239,25 @@ static int x509_crt_verify_name( const mbedtls_x509_crt *crt,
 
     if( crt->ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME )
     {
-        const mbedtls_x509_sequence *cur = &crt->subject_alt_names;
+        const mbedtls_x509_sequence *cur;
 
-        while( cur != NULL )
+        for( cur = &crt->subject_alt_names; cur != NULL; cur = cur->next )
         {
             if( x509_check_dns_name( exp_name, exp_len, &cur->buf ) == 0 )
                 return( 0 );
-
-            cur = cur->next;
         }
     }
     else
     {
-        const mbedtls_x509_name *name = &crt->subject;
+        const mbedtls_x509_name *cur;
 
-        while( name != NULL )
+        for( cur = &crt->subject; cur != NULL; cur = cur->next )
         {
-            if( MBEDTLS_OID_CMP( MBEDTLS_OID_AT_CN, &name->oid ) == 0 )
+            if( MBEDTLS_OID_CMP( MBEDTLS_OID_AT_CN, &cur->oid ) == 0 &&
+                x509_check_dns_name( exp_name, exp_len, &cur->val ) == 0 )
             {
-                if( x509_check_dns_name( exp_name, exp_len, &name->val ) == 0 )
-                    return( 0 );
+                return( 0 );
             }
-
-            name = name->next;
         }
     }
 

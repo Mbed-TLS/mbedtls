@@ -2208,6 +2208,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_HAVE_TIME)
     time_t t;
 #if defined(WINCE)
+    SYSTEMTIME st;
     FILETIME ft;
 #endif /* WINCE */
 #endif
@@ -2253,7 +2254,8 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_HAVE_TIME)
 #if defined(WINCE)
-    GetSystemTimeAsFileTime(&ft);
+    GetSystemTime(&st);
+    SystemTimeToFileTime(&st, &ft);
     t = (time_t)( ( *( ( DWORDLONG* ) &ft ) / 10000000) - 11644473600LL);
 #else
     t = time( NULL );
@@ -2307,7 +2309,8 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_HAVE_TIME)
 #if defined(WINCE)
-        GetSystemTimeAsFileTime(&ft);
+        GetSystemTime(&st);
+        SystemTimeToFileTime(&st, &ft);
         ssl->session_negotiate->start = (time_t)( ( *( ( DWORDLONG* ) &ft ) / 10000000) - 11644473600LL);
 #else
         ssl->session_negotiate->start = time( NULL );

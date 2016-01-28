@@ -166,6 +166,7 @@ int mbedtls_ssl_cookie_write( void *p_ctx,
     unsigned long t;
 #if defined(MBEDTLS_HAVE_TIME)
 #if defined(WINCE)
+    SYSTEMTIME st;
     FILETIME ft;
 #endif /* WINCE */
 #endif /* MBEDTLS_HAVE_TIME */
@@ -178,7 +179,8 @@ int mbedtls_ssl_cookie_write( void *p_ctx,
 
 #if defined(MBEDTLS_HAVE_TIME)
 #if defined(WINCE)
-    GetSystemTimeAsFileTime(&ft);
+    GetSystemTime(&st);
+    SystemTimeToFileTime(&st, &ft);
     t = (unsigned long)( ( *( ( DWORDLONG* ) &ft ) / 10000000) - 11644473600LL);
 #else
     t = (unsigned long) time( NULL );
@@ -223,6 +225,7 @@ int mbedtls_ssl_cookie_check( void *p_ctx,
     mbedtls_ssl_cookie_ctx *ctx = (mbedtls_ssl_cookie_ctx *) p_ctx;
     unsigned long cur_time, cookie_time;
 #if defined(MBEDTLS_HAVE_TIME) && defined(WINCE)
+    SYSTEMTIME st;
     FILETIME ft;
 #endif /* MBEDTLS_HAVE_TIME && WINCE */
 
@@ -256,11 +259,13 @@ int mbedtls_ssl_cookie_check( void *p_ctx,
 
 #if defined(MBEDTLS_HAVE_TIME)
 #if defined(WINCE)
-    GetSystemTimeAsFileTime(&ft);
+    GetSystemTime(&st);
+    SystemTimeToFileTime(&st, &ft);
     cur_time = (unsigned long)( ( *( ( DWORDLONG* ) &ft ) / 10000000) - 11644473600LL);
 #else
     cur_time = (unsigned long) time( NULL );
 #endif /* WINCE */
+
 #else
     cur_time = ctx->serial;
 #endif

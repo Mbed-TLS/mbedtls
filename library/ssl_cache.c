@@ -61,6 +61,7 @@ int mbedtls_ssl_cache_get( void *data, mbedtls_ssl_session *session )
 #if defined(MBEDTLS_HAVE_TIME)
     time_t t;
 #if defined(WINCE)
+    SYSTEMTIME st;
     FILETIME ft;
 #endif /* WINCE */
 #endif /* MBEDTLS_HAVE_TIME */
@@ -83,8 +84,9 @@ int mbedtls_ssl_cache_get( void *data, mbedtls_ssl_session *session )
 
 #if defined(MBEDTLS_HAVE_TIME)
 #if defined(WINCE)
-    GetSystemTimeAsFileTime(&ft);
-    t = (time_t)( ( *( ( DWORDLONG* ) &ft ) / 10000000) - 11644473600LL);
+        GetSystemTime(&st);
+        SystemTimeToFileTime(&st, &ft);
+        t = (time_t)( ( *( ( DWORDLONG* ) &ft ) / 10000000) - 11644473600LL);
 #else
     t = time( NULL );
 #endif /* WINCE */
@@ -151,6 +153,7 @@ int mbedtls_ssl_cache_set( void *data, const mbedtls_ssl_session *session )
     time_t t, oldest = 0;
     mbedtls_ssl_cache_entry *old = NULL;
 #if defined(WINCE)
+    SYSTEMTIME st;
     FILETIME ft;
 #endif /* WINCE */
 #endif /* MBEDTLS_HAVE_TIME */
@@ -168,7 +171,8 @@ int mbedtls_ssl_cache_set( void *data, const mbedtls_ssl_session *session )
 
 #if defined(MBEDTLS_HAVE_TIME)
 #if defined(WINCE)
-    GetSystemTimeAsFileTime(&ft);
+    GetSystemTime(&st);
+    SystemTimeToFileTime(&st, &ft);
     t = (time_t)( ( *( ( DWORDLONG* ) &ft ) / 10000000) - 11644473600LL);
 #else
     t = time( NULL );
@@ -181,8 +185,9 @@ int mbedtls_ssl_cache_set( void *data, const mbedtls_ssl_session *session )
 
 #if defined(MBEDTLS_HAVE_TIME)
 #if defined(WINCE)
-    GetSystemTimeAsFileTime(&ft);
-    t = (time_t)( ( *( ( DWORDLONG* ) &ft ) / 10000000) - 11644473600LL);
+        GetSystemTime(&st);
+        SystemTimeToFileTime(&st, &ft);
+        t = (time_t)( ( *( ( DWORDLONG* ) &ft ) / 10000000) - 11644473600LL);
 #else
     t = time( NULL );
 #endif /* WINCE */

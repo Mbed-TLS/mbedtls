@@ -69,8 +69,14 @@ static int ssl_ticket_gen_key( mbedtls_ssl_ticket_context *ctx,
     mbedtls_ssl_ticket_key *key = ctx->keys + index;
 
 #if defined(MBEDTLS_HAVE_TIME)
+#if defined(WINCE)
+    FILETIME ft;
+    GetSystemTimeAsFileTime(&ft);
+    key->generation_time = (uint32_t)( ( *( ( DWORDLONG* ) &ft ) / 10000000) - 11644473600LL);
+#else
     key->generation_time = (uint32_t) time( NULL );
-#endif
+#endif /* WINCE */
+#endif /* MBEDTLS_HAVE_TIME */
 
     if( ( ret = ctx->f_rng( ctx->p_rng, key->name, sizeof( key->name ) ) ) != 0 )
         return( ret );
@@ -98,8 +104,15 @@ static int ssl_ticket_update_keys( mbedtls_ssl_ticket_context *ctx )
 #else
     if( ctx->ticket_lifetime != 0 )
     {
-        uint32_t current_time = (uint32_t) time( NULL );
-        uint32_t key_time = ctx->keys[ctx->active].generation_time;
+        uint32_t current_time, key_time;
+#if defined(WINCE)
+        FILETIME ft;
+        GetSystemTimeAsFileTime(&ft);
+        current_time = (uint32_t)( ( *( ( DWORDLONG* ) &ft ) / 10000000) - 11644473600LL);
+#else
+        current_time = (uint32_t) time( NULL );
+#endif /* WINCE */
+        key_time = ctx->keys[ctx->active].generation_time;
 
         if( current_time > key_time &&
             current_time - key_time < ctx->ticket_lifetime )
@@ -451,7 +464,14 @@ int mbedtls_ssl_ticket_parse( void *p_ticket,
 #if defined(MBEDTLS_HAVE_TIME)
     {
         /* Check for expiration */
-        time_t current_time = time( NULL );
+        time_t current_time;
+#if defined(WINCE)
+        FILETIME ft;
+        GetSystemTimeAsFileTime(&ft);
+        current_time = (time_t)( ( *( ( DWORDLONG* ) &ft ) / 10000000) - 11644473600LL);
+#else
+        current_time = time( NULL );
+#endif /* WINCE */
 
         if( current_time < session->start ||
             (uint32_t)( current_time - session->start ) > ctx->ticket_lifetime )

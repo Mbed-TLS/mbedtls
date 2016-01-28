@@ -43,9 +43,6 @@
 
 #include <stdint.h>
 
-#if defined(MBEDTLS_HAVE_TIME)
-#include <time.h>
-#endif
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 /* Implementation that should never be optimized out by the compiler */
@@ -664,8 +661,11 @@ static int ssl_generate_random( mbedtls_ssl_context *ssl )
     int ret;
     unsigned char *p = ssl->handshake->randbytes;
 #if defined(MBEDTLS_HAVE_TIME)
+#if defined(WINCE)
+    FILETIME ft;
+#endif /* WINCE */
     time_t t;
-#endif
+#endif /* MBEDTLS_HAVE_TIME */
 
     /*
      * When responding to a verify request, MUST reuse random (RFC 6347 4.2.1)
@@ -679,7 +679,12 @@ static int ssl_generate_random( mbedtls_ssl_context *ssl )
 #endif
 
 #if defined(MBEDTLS_HAVE_TIME)
+#if defined(WINCE)
+    GetSystemTimeAsFileTime(&ft);
+    t = (time_t)( ( *( ( DWORDLONG* ) &ft ) / 10000000) - 11644473600LL);
+#else
     t = time( NULL );
+#endif /* WINCE */
     *p++ = (unsigned char)( t >> 24 );
     *p++ = (unsigned char)( t >> 16 );
     *p++ = (unsigned char)( t >>  8 );
@@ -1392,6 +1397,9 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_DEBUG_C)
     uint32_t t;
 #endif
+#if defined(WINCE)
+    FILETIME ft;
+#endif /* WINCE */
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse server hello" ) );
 
@@ -1587,8 +1595,13 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
         ssl->state++;
         ssl->handshake->resume = 0;
 #if defined(MBEDTLS_HAVE_TIME)
-        ssl->session_negotiate->start = time( NULL );
-#endif
+#if defined(WINCE)
+    GetSystemTimeAsFileTime(&ft);
+    ssl->session_negotiate->start = (time_t)( ( *( ( DWORDLONG* ) &ft ) / 10000000) - 11644473600LL);
+#else
+    ssl->session_negotiate->start = time( NULL );
+#endif /* WINCE */
+#endif /* MBEDTLS_HAVE_TIME */
         ssl->session_negotiate->ciphersuite = i;
         ssl->session_negotiate->compression = comp;
         ssl->session_negotiate->id_len = n;

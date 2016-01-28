@@ -52,7 +52,11 @@
 #endif
 
 #if defined(MBEDTLS_HAVE_TIME)
+#if defined(WINCE)
+#include <windows.h>
+#else
 #include <time.h>
+#endif /* WINCE */
 #endif
 
 /*

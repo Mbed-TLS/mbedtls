@@ -1798,28 +1798,28 @@ static int x509_memcasecmp( const void *s1, const void *s2, size_t len )
 /*
  * Return 0 if name matches wildcard, -1 otherwise
  */
-static int x509_check_wildcard( const char *cn, mbedtls_x509_buf *name )
+static int x509_check_wildcard( const char *exp_name, mbedtls_x509_buf *name )
 {
     size_t i;
-    size_t cn_idx = 0, cn_len = strlen( cn );
+    size_t idx = 0, exp_len = strlen( exp_name );
 
     if( name->len < 3 || name->p[0] != '*' || name->p[1] != '.' )
         return( 0 );
 
-    for( i = 0; i < cn_len; ++i )
+    for( i = 0; i < exp_len; ++i )
     {
-        if( cn[i] == '.' )
+        if( exp_name[i] == '.' )
         {
-            cn_idx = i;
+            idx = i;
             break;
         }
     }
 
-    if( cn_idx == 0 )
+    if( idx == 0 )
         return( -1 );
 
-    if( cn_len - cn_idx == name->len - 1 &&
-        x509_memcasecmp( name->p + 1, cn + cn_idx, name->len - 1 ) == 0 )
+    if( exp_len - idx == name->len - 1 &&
+        x509_memcasecmp( name->p + 1, exp_name + idx, name->len - 1 ) == 0 )
     {
         return( 0 );
     }
@@ -2209,26 +2209,27 @@ static int x509_crt_verify_child(
 int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
                      mbedtls_x509_crt *trust_ca,
                      mbedtls_x509_crl *ca_crl,
-                     const char *cn, uint32_t *flags,
+                     const char *exp_name, uint32_t *flags,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy )
 {
     return( mbedtls_x509_crt_verify_with_profile( crt, trust_ca, ca_crl,
-                &mbedtls_x509_crt_profile_default, cn, flags, f_vrfy, p_vrfy ) );
+                                        &mbedtls_x509_crt_profile_default,
+                                        exp_name, flags, f_vrfy, p_vrfy ) );
 }
 
 /*
  * Verify that the certificate matches wit the expected name
  */
 static int x509_crt_verify_name( mbedtls_x509_crt *crt,
-                                  const char *cn )
+                                  const char *exp_name )
 {
-    size_t cn_len;
+    size_t exp_len;
     mbedtls_x509_name *name;
     mbedtls_x509_sequence *cur;
 
     name = &crt->subject;
-    cn_len = strlen( cn );
+    exp_len = strlen( exp_name );
 
     if( crt->ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME )
     {
@@ -2236,15 +2237,15 @@ static int x509_crt_verify_name( mbedtls_x509_crt *crt,
 
         while( cur != NULL )
         {
-            if( cur->buf.len == cn_len &&
-                x509_memcasecmp( cn, cur->buf.p, cn_len ) == 0 )
+            if( cur->buf.len == exp_len &&
+                x509_memcasecmp( exp_name, cur->buf.p, exp_len ) == 0 )
             {
                 return( 0 );
             }
 
             if( cur->buf.len > 2 &&
                 memcmp( cur->buf.p, "*.", 2 ) == 0 &&
-                x509_check_wildcard( cn, &cur->buf ) == 0 )
+                x509_check_wildcard( exp_name, &cur->buf ) == 0 )
             {
                 return( 0 );
             }
@@ -2258,15 +2259,15 @@ static int x509_crt_verify_name( mbedtls_x509_crt *crt,
         {
             if( MBEDTLS_OID_CMP( MBEDTLS_OID_AT_CN, &name->oid ) == 0 )
             {
-                if( name->val.len == cn_len &&
-                    x509_memcasecmp( name->val.p, cn, cn_len ) == 0 )
+                if( name->val.len == exp_len &&
+                    x509_memcasecmp( name->val.p, exp_name, exp_len ) == 0 )
                 {
                     return( 0 );
                 }
 
                 if( name->val.len > 2 &&
                     memcmp( name->val.p, "*.", 2 ) == 0 &&
-                    x509_check_wildcard( cn, &name->val ) == 0 )
+                    x509_check_wildcard( exp_name, &name->val ) == 0 )
                 {
                     return( 0 );
                 }
@@ -2286,7 +2287,7 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
                      mbedtls_x509_crt *trust_ca,
                      mbedtls_x509_crl *ca_crl,
                      const mbedtls_x509_crt_profile *profile,
-                     const char *cn, uint32_t *flags,
+                     const char *exp_name, uint32_t *flags,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy )
 {
@@ -2301,10 +2302,8 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
     *flags = 0;
 
     /* Check the expected name */
-    if( cn != NULL && x509_crt_verify_name( crt, cn ) != 0 )
-    {
+    if( exp_name != NULL && x509_crt_verify_name( crt, exp_name ) != 0 )
         *flags |= MBEDTLS_X509_BADCERT_CN_MISMATCH;
-    }
 
     /* Check the type and size of the key */
     pk_type = mbedtls_pk_get_type( &crt->pk );

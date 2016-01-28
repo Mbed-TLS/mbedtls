@@ -274,7 +274,7 @@ int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
  * \param crt      a certificate to be verified
  * \param trust_ca the trusted CA chain
  * \param ca_crl   the CRL chain for trusted CA's
- * \param cn       expected Common Name (can be set to
+ * \param exp_name expected Common Name (can be set to
  *                 NULL if the CN must not be verified)
  * \param flags    result of the verification
  * \param f_vrfy   verification function
@@ -290,7 +290,7 @@ int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
 int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
                      mbedtls_x509_crt *trust_ca,
                      mbedtls_x509_crl *ca_crl,
-                     const char *cn, uint32_t *flags,
+                     const char *exp_name, uint32_t *flags,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy );
 
@@ -308,7 +308,7 @@ int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
  * \param trust_ca the trusted CA chain
  * \param ca_crl   the CRL chain for trusted CA's
  * \param profile  security profile for verification
- * \param cn       expected Common Name (can be set to
+ * \param exp_name expected Common Name (can be set to
  *                 NULL if the CN must not be verified)
  * \param flags    result of the verification
  * \param f_vrfy   verification function
@@ -325,7 +325,7 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
                      mbedtls_x509_crt *trust_ca,
                      mbedtls_x509_crl *ca_crl,
                      const mbedtls_x509_crt_profile *profile,
-                     const char *cn, uint32_t *flags,
+                     const char *exp_name, uint32_t *flags,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy );
 

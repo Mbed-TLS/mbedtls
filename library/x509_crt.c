@@ -1796,16 +1796,26 @@ static int x509_memcasecmp( const void *s1, const void *s2, size_t len )
 }
 
 /*
- * Return 0 if name matches wildcard, -1 otherwise
+ * Return 0 if names matche as DNS names (inc. wildcard),
+ * -1 otherwise
  */
-static int x509_check_wildcard( const char *exp_name,
+static int x509_check_dns_name( const char *exp_name,
+                                size_t exp_len,
                                 const mbedtls_x509_buf *name )
 {
     size_t i;
-    size_t idx = 0, exp_len = strlen( exp_name );
+    size_t idx = 0;
 
-    if( name->len < 3 || name->p[0] != '*' || name->p[1] != '.' )
+    /* First check if the names are equal */
+    if( name->len == exp_len &&
+        x509_memcasecmp( exp_name, name->p, exp_len ) == 0 )
+    {
         return( 0 );
+    }
+
+    /* Now try a wildcard match */
+    if( name->len < 3 || name->p[0] != '*' || name->p[1] != '.' )
+        return( -1 );
 
     for( i = 0; i < exp_len; ++i )
     {
@@ -2233,18 +2243,8 @@ static int x509_crt_verify_name( const mbedtls_x509_crt *crt,
 
         while( cur != NULL )
         {
-            if( cur->buf.len == exp_len &&
-                x509_memcasecmp( exp_name, cur->buf.p, exp_len ) == 0 )
-            {
+            if( x509_check_dns_name( exp_name, exp_len, &cur->buf ) == 0 )
                 return( 0 );
-            }
-
-            if( cur->buf.len > 2 &&
-                memcmp( cur->buf.p, "*.", 2 ) == 0 &&
-                x509_check_wildcard( exp_name, &cur->buf ) == 0 )
-            {
-                return( 0 );
-            }
 
             cur = cur->next;
         }
@@ -2257,18 +2257,8 @@ static int x509_crt_verify_name( const mbedtls_x509_crt *crt,
         {
             if( MBEDTLS_OID_CMP( MBEDTLS_OID_AT_CN, &name->oid ) == 0 )
             {
-                if( name->val.len == exp_len &&
-                    x509_memcasecmp( name->val.p, exp_name, exp_len ) == 0 )
-                {
+                if( x509_check_dns_name( exp_name, exp_len, &name->val ) == 0 )
                     return( 0 );
-                }
-
-                if( name->val.len > 2 &&
-                    memcmp( name->val.p, "*.", 2 ) == 0 &&
-                    x509_check_wildcard( exp_name, &name->val ) == 0 )
-                {
-                    return( 0 );
-                }
             }
 
             name = name->next;

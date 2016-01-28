@@ -251,41 +251,22 @@ int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
 /**
  * \brief          Verify the certificate signature
  *
- *                 The verify callback is a user-supplied callback that
- *                 can clear / modify / add flags for a certificate. If set,
- *                 the verification callback is called for each
- *                 certificate in the chain (from the trust-ca down to the
- *                 presented crt). The parameters for the callback are:
- *                 (void *parameter, mbedtls_x509_crt *crt, int certificate_depth,
- *                 int *flags). With the flags representing current flags for
- *                 that specific certificate and the certificate depth from
- *                 the bottom (Peer cert depth = 0).
- *
- *                 All flags left after returning from the callback
- *                 are also returned to the application. The function should
- *                 return 0 for anything but a fatal error.
- *
- * \note           In case verification failed, the results can be displayed
- *                 using \c mbedtls_x509_crt_verify_info()
- *
  * \note           Same as \c mbedtls_x509_crt_verify_with_profile() with the
- *                 default security profile.
+ *                 default security profile, so see that function for details.
  *
- * \param crt      a certificate to be verified
- * \param trust_ca the trusted CA chain
- * \param ca_crl   the CRL chain for trusted CA's
- * \param exp_name expected Common Name (can be set to
- *                 NULL if the CN must not be verified)
+ * \param crt      a certificate (chain) to be verified
+ *                 Must start with the end entity certificate, then
+ *                 intermediate CA certificates if any.
+ * \param trust_ca the list of trusted root CAs
+ * \param ca_crl   the list of CRLs for trusted CAs
+ * \param exp_name expected name to be checked against the subjectAltName
+ *                 extension if present, or the Common Name of the Subject.
+ *                 Usually a DNS name; see note below for other name types.
  * \param flags    result of the verification
- * \param f_vrfy   verification function
- * \param p_vrfy   verification parameter
+ * \param f_vrfy   verification callback
+ * \param p_vrfy   context for the verification callback
  *
- * \return         0 if successful or MBEDTLS_ERR_X509_CERT_VERIFY_FAILED
- *                 in which case *flags will have one or more
- *                 MBEDTLS_X509_BADCERT_XXX or MBEDTLS_X509_BADCRL_XXX flags
- *                 set,
- *                 or another error in case of a fatal error encountered
- *                 during the verification process.
+ * \return         see \c mbedtls_x509_crt_verify_with_profile()
  */
 int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
                      mbedtls_x509_crt *trust_ca,
@@ -300,19 +281,40 @@ int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
  * \note           Same as \c mbedtls_x509_crt_verify(), but with explicit
  *                 security profile.
  *
+ * \note           In case verification failed, the results can be displayed
+ *                 using \c mbedtls_x509_crt_verify_info()
+ *
+ * \note           The verify callback is a user-supplied callback that
+ *                 can clear / modify / add flags for a certificate. If set,
+ *                 the verification callback is called for each
+ *                 certificate in the chain (from the trust-ca down to the
+ *                 presented crt). The parameters for the callback are:
+ *                 (void *context, mbedtls_x509_crt *crt, int certificate_depth,
+ *                 int *flags). With the flags representing current flags for
+ *                 that specific certificate and the certificate depth from
+ *                 the bottom (Peer cert depth = 0). All flags left after
+ *                 returning from the callback are also returned to the
+ *                 application. The function should return 0 for anything but
+ *                 a fatal error.
+ *
+ * \param crt      a certificate (chain) to be verified
+ *                 Must start with the end entity certificate, then
+ *                 intermediate CA certificates if any.
+ * \param trust_ca the list of trusted root CAs
+ * \param ca_crl   the list of CRLs for trusted CAs
+ * \param profile  security profile for verification, see note below
+ * \param exp_name expected name to be checked against the subjectAltName
+ *                 extension if present, or the Common Name of the Subject.
+ *                 Usually a DNS name; see note below for other name types.
+ * \param flags    result of the verification
+ * \param f_vrfy   verification callback
+ * \param p_vrfy   context for the verification callback
+ *
  * \note           The restrictions on keys (RSA minimum size, allowed curves
  *                 for ECDSA) apply to all certificates: trusted root,
  *                 intermediate CAs if any, and end entity certificate.
  *
- * \param crt      a certificate to be verified
- * \param trust_ca the trusted CA chain
- * \param ca_crl   the CRL chain for trusted CA's
- * \param profile  security profile for verification
- * \param exp_name expected Common Name (can be set to
- *                 NULL if the CN must not be verified)
- * \param flags    result of the verification
- * \param f_vrfy   verification function
- * \param p_vrfy   verification parameter
+ * \note           TODO: IP addresses in exp_name
  *
  * \return         0 if successful or MBEDTLS_ERR_X509_CERT_VERIFY_FAILED
  *                 in which case *flags will have one or more

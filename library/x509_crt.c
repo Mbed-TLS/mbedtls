@@ -1798,7 +1798,8 @@ static int x509_memcasecmp( const void *s1, const void *s2, size_t len )
 /*
  * Return 0 if name matches wildcard, -1 otherwise
  */
-static int x509_check_wildcard( const char *exp_name, mbedtls_x509_buf *name )
+static int x509_check_wildcard( const char *exp_name,
+                                const mbedtls_x509_buf *name )
 {
     size_t i;
     size_t idx = 0, exp_len = strlen( exp_name );
@@ -2221,19 +2222,14 @@ int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
 /*
  * Verify that the certificate matches wit the expected name
  */
-static int x509_crt_verify_name( mbedtls_x509_crt *crt,
-                                  const char *exp_name )
+static int x509_crt_verify_name( const mbedtls_x509_crt *crt,
+                                 const char *exp_name )
 {
-    size_t exp_len;
-    mbedtls_x509_name *name;
-    mbedtls_x509_sequence *cur;
-
-    name = &crt->subject;
-    exp_len = strlen( exp_name );
+    const size_t exp_len = strlen( exp_name );
 
     if( crt->ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME )
     {
-        cur = &crt->subject_alt_names;
+        const mbedtls_x509_sequence *cur = &crt->subject_alt_names;
 
         while( cur != NULL )
         {
@@ -2255,6 +2251,8 @@ static int x509_crt_verify_name( mbedtls_x509_crt *crt,
     }
     else
     {
+        const mbedtls_x509_name *name = &crt->subject;
+
         while( name != NULL )
         {
             if( MBEDTLS_OID_CMP( MBEDTLS_OID_AT_CN, &name->oid ) == 0 )

@@ -1309,9 +1309,24 @@ void mbedtls_ssl_conf_dtls_badmac_limit( mbedtls_ssl_config *conf, unsigned limi
  *
  * \note           Default values are from RFC 6347 section 4.2.4.1.
  *
- * \note           Higher values for initial timeout may increase average
- *                 handshake latency. Lower values may increase the risk of
- *                 network congestion by causing more retransmissions.
+ * \note           The 'min' value should typically be slightly above the
+ *                 expected round-trip time to your peer, plus whatever time
+ *                 it takes for the peer to process the message. For example,
+ *                 if your RTT is about 600ms and you peer needs up to 1s to
+ *                 do the cryptographic operations in the handshake, then you
+ *                 should set 'min' slightly above 1600. Lower values of 'min'
+ *                 might cause spurious resends which waste network resources,
+ *                 while larger value of 'min' will increase overall latency
+ *                 on unreliable network links.
+ *
+ * \note           The more unreliable your network connection is, the larger
+ *                 your max / min ratio needs to be in order to achieve
+ *                 reliable handshakes.
+ *
+ * \note           Messages are retransmitted up to log2(ceil(max/min)) times.
+ *                 For example, if min = 1s and max = 5s, the retransmit plan
+ *                 goes: send ... 1s -> resend ... 2s -> resend ... 4s ->
+ *                 resend ... 5s -> give up and return a timeout error.
  */
 void mbedtls_ssl_conf_handshake_timeout( mbedtls_ssl_config *conf, uint32_t min, uint32_t max );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */

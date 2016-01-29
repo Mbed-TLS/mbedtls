@@ -2,6 +2,9 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.x branch
 
+Features
+   * Add support for IP adresses in subjectAltName of X.509 certificates.
+
 Bugfix
    * Fix bug in mbedtls_mpi_add_mpi() that caused wrong results when the three
      arguments where the same (in-place doubling). Found and fixed by Janos

@@ -703,6 +703,26 @@ X509 Certificate verification #81 (multiple CRLs, none relevant)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
 x509_verify:"data_files/enco-cert-utf8str.pem":"data_files/enco-ca-prstr.pem":"data_files/crl_cat_rsa-ec.pem":"NULL":0:0:"NULL"
 
+X509 Certificate verification #82 (SAN with IP, IPv4, OK)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_X509_SAN_IP_ADDRESS_SUPPORT
+x509_verify:"data_files/server5-san-ip.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha256.pem":"IP\:192.168.0.42":0:0:"NULL"
+
+X509 Certificate verification #83 (SAN with IP, IPv4, bad)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_X509_SAN_IP_ADDRESS_SUPPORT
+x509_verify:"data_files/server5-san-ip.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha256.pem":"IP\:192.168.0.24":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"NULL"
+
+X509 Certificate verification #84 (SAN with IP, IPv6, OK)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_X509_SAN_IP_ADDRESS_SUPPORT
+x509_verify:"data_files/server5-san-ip.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha256.pem":"IP\:FE80\:0000\:0000\:0000\:0000\:0000\:0000\:0001":0:0:"NULL"
+
+X509 Certificate verification #85 (SAN with IP, IPv6, bad)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_X509_SAN_IP_ADDRESS_SUPPORT
+x509_verify:"data_files/server5-san-ip.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha256.pem":"IP\:FE80\:0000\:0000\:0000\:0000\:0000\:0000\:0002":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"NULL"
+
+X509 Certificate verification #86 (IP without SAN, bad)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_X509_SAN_IP_ADDRESS_SUPPORT
+x509_verify:"data_files/server5.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha256.pem":"IP\:FE80\:0000\:0000\:0000\:0000\:0000\:0000\:0001":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"NULL"
+
 X509 Certificate verification callback: trusted EE cert
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
 x509_verify_callback:"data_files/server5-selfsigned.crt":"data_files/server5-selfsigned.crt":0:"depth 0 - serial 53\:A2\:CB\:4B\:12\:4E\:AD\:83\:7D\:A8\:94\:B2 - subject CN=selfsigned, OU=testing, O=PolarSSL, C=NL\n"

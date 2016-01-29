@@ -314,7 +314,16 @@ int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
  *                 for ECDSA) apply to all certificates: trusted root,
  *                 intermediate CAs if any, and end entity certificate.
  *
- * \note           TODO: IP addresses in exp_name
+ * \note           If MBEDTLS_X509_SAN_IP_ADDRESS_SUPPORT is enabled, instead
+ *                 of a DNS name, exp_name can also contain the string "IP:"
+ *                 followed by an IP address. This address must be either an
+ *                 IPv4 address in dotted decimal notation, or an IPv6
+ *                 address consisting of exactly 8 groups of 4 hexadecimal
+ *                 digits separated by colons. For example, if the expected
+ *                 IPv6 is fe80::1, then exp_name must be the string
+ *                 "IP:fe80:0000:0000:0000:0000:0000:0000:0001" or its
+ *                 uppercase equivalent. If the expected IPv4 is 127.0.0.1,
+ *                 then exp_name should be "IP:127.0.0.1".
  *
  * \return         0 if successful or MBEDTLS_ERR_X509_CERT_VERIFY_FAILED
  *                 in which case *flags will have one or more

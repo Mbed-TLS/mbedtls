@@ -1796,7 +1796,7 @@ static int x509_memcasecmp( const void *s1, const void *s2, size_t len )
 }
 
 /*
- * Return 0 if names matche as DNS names (inc. wildcard),
+ * Return 0 if names match as DNS names (inc. wildcard),
  * -1 otherwise
  */
 static int x509_check_dns_name( const char *exp_name,
@@ -2229,13 +2229,79 @@ int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
                                         exp_name, flags, f_vrfy, p_vrfy ) );
 }
 
+#if defined(MBEDTLS_X509_SAN_IP_ADDRESS_SUPPORT)
 /*
- * Verify that the certificate matches wit the expected name
+ * Return 0 if exp_name and name contain the same IP address,
+ * -1 otherwise.
+ *
+ * exp_name must be "IP:" followed by either an IPv4 addres in dotted-quad
+ * notation, or an IPv6 address with no shortcuts and all leading zeros.
+ *
+ * name contains the IP as an octet string
+ */
+static int x509_check_ip_address( const char *exp_name,
+                                  size_t exp_len,
+                                  const mbedtls_x509_buf *name )
+{
+    /* Print IPv6 addresses with a leading colon for convenience, so
+     * we have 32 hex digits, 8 colons, plus terminating NULL */
+    char ip[32 + 8 + 1];
+    int ret;
+
+    if( name->len == 4 )
+    {
+        ret = mbedtls_snprintf( ip, sizeof( ip ), "%d.%d.%d.%d",
+                name->p[0], name->p[1], name->p[2], name->p[3] );
+
+        if( ret < 0 || (size_t) ret > sizeof( ip ) )
+            return( -1 );
+
+        if( (size_t) ret + 3 == exp_len &&
+            memcmp( ip, exp_name + 3, exp_len - 3 ) == 0 )
+        {
+            return( 0 );
+        }
+    }
+    else if( name->len == 16 )
+    {
+        size_t i, n;
+        char *p;
+
+        /* "IP:" + 32 hex digits + 7 colons */
+        if( exp_len != 3 + 32 + 7 )
+            return( -1 );
+
+        for( i = 0, n = sizeof( ip ), p = ip;
+             i < 16;
+             i += 2, n -= 5, p += 5 )
+        {
+            ret = mbedtls_snprintf( p, n, ":%02x%02x",
+                                    name->p[i], name->p[i+1] );
+            if( ret < 0 || (size_t) ret > n )
+                return( -1 );
+        }
+
+        if( x509_memcasecmp( ip + 1, exp_name + 3, exp_len - 3 ) == 0 )
+            return( 0 );
+    }
+
+    return( -1 );
+}
+#endif /* MBEDTLS_X509_SAN_IP_ADDRESS_SUPPORT */
+
+/*
+ * Verify that the certificate matches with the expected name
  */
 static int x509_crt_verify_name( const mbedtls_x509_crt *crt,
                                  const char *exp_name )
 {
     const size_t exp_len = strlen( exp_name );
+    unsigned char exp_tag = X509_CRT_SAN_TAG_DNS_NAME;
+
+#if defined(MBEDTLS_X509_SAN_IP_ADDRESS_SUPPORT)
+    if( exp_len >= 3 && memcmp( exp_name, "IP:", 3 ) == 0 )
+        exp_tag = X509_CRT_SAN_TAG_IP_ADDRESS;
+#endif
 
     if( crt->ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME )
     {
@@ -2243,11 +2309,26 @@ static int x509_crt_verify_name( const mbedtls_x509_crt *crt,
 
         for( cur = &crt->subject_alt_names; cur != NULL; cur = cur->next )
         {
-            if( x509_check_dns_name( exp_name, exp_len, &cur->buf ) == 0 )
+            if( cur->buf.tag != exp_tag )
+                continue;
+
+            if( exp_tag == X509_CRT_SAN_TAG_DNS_NAME &&
+                x509_check_dns_name( exp_name, exp_len, &cur->buf ) == 0 )
+            {
                 return( 0 );
+            }
+
+#if defined(MBEDTLS_X509_SAN_IP_ADDRESS_SUPPORT)
+            if( exp_tag == X509_CRT_SAN_TAG_IP_ADDRESS &&
+                x509_check_ip_address( exp_name, exp_len, &cur->buf ) == 0 )
+            {
+                return( 0 );
+            }
+#endif
         }
     }
-    else
+    /* Only DNS names can match the Common Name */
+    else if( exp_tag == X509_CRT_SAN_TAG_DNS_NAME )
     {
         const mbedtls_x509_name *cur;
 

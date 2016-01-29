@@ -1633,12 +1633,14 @@ void mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**
- * \brief          Set hostname for ServerName TLS extension
- *                 (client-side only)
- *
+ * \brief          Set hostname for ServerName TLS extension and verification
+ *                 of the server's certificate (client-side only)
  *
  * \param ssl      SSL context
  * \param hostname the server hostname
+ *                 Usually a DNS hostname, but other options are available,
+ *                 see the \c exp_name parameter of \c
+ *                 mbedtls_x509_crt_verify_with_profile()
  *
  * \return         0 if successful or MBEDTLS_ERR_SSL_ALLOC_FAILED
  */

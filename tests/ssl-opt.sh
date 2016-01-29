@@ -1691,6 +1691,52 @@ run_test    "Authentication: client no cert, ssl3" \
             -C "! mbedtls_ssl_handshake returned" \
             -S "X509 - Certificate verification failed"
 
+# tests for IP adresses in subjectAlternativeName
+
+requires_config_enabled MBEDTLS_X509_SAN_IP_ADDRESS_SUPPORT
+run_test    "IP address in SAN: IPv4, good" \
+            "$P_SRV crt_file=data_files/server5-san-ip.crt \
+             key_file=data_files/server5.key" \
+            "$P_CLI debug_level=1 auth_mode=required server_name=IP:127.0.0.1" \
+            0 \
+            -C "x509_verify_cert() returned" \
+            -C "! The certificate Common Name (CN) or subjectAltName (SAN) does not match with the expected name" \
+            -C "! mbedtls_ssl_handshake returned" \
+            -C "X509 - Certificate verification failed"
+
+requires_config_enabled MBEDTLS_X509_SAN_IP_ADDRESS_SUPPORT
+run_test    "IP address in SAN: IPv4, bad" \
+            "$P_SRV crt_file=data_files/server5-san-ip.crt \
+             key_file=data_files/server5.key" \
+            "$P_CLI debug_level=1 auth_mode=required server_name=IP:127.0.0.2" \
+            1 \
+            -c "x509_verify_cert() returned" \
+            -c "! The certificate Common Name (CN) or subjectAltName (SAN) does not match with the expected name" \
+            -c "! mbedtls_ssl_handshake returned" \
+            -c "X509 - Certificate verification failed"
+
+requires_config_enabled MBEDTLS_X509_SAN_IP_ADDRESS_SUPPORT
+run_test    "IP address in SAN: IPv6, good" \
+            "$P_SRV crt_file=data_files/server5-san-ip.crt \
+             key_file=data_files/server5.key" \
+            "$P_CLI debug_level=1 auth_mode=required server_name=IP:fe80:0000:0000:0000:0000:0000:0000:0001" \
+            0 \
+            -C "x509_verify_cert() returned" \
+            -C "! The certificate Common Name (CN) or subjectAltName (SAN) does not match with the expected name" \
+            -C "! mbedtls_ssl_handshake returned" \
+            -C "X509 - Certificate verification failed"
+
+requires_config_enabled MBEDTLS_X509_SAN_IP_ADDRESS_SUPPORT
+run_test    "IP address in SAN: IPv6, bad" \
+            "$P_SRV crt_file=data_files/server5-san-ip.crt \
+             key_file=data_files/server5.key" \
+            "$P_CLI debug_level=1 auth_mode=required server_name=IP:fe80:0000:0000:0000:0000:0000:0000:0002" \
+            1 \
+            -c "x509_verify_cert() returned" \
+            -c "! The certificate Common Name (CN) or subjectAltName (SAN) does not match with the expected name" \
+            -c "! mbedtls_ssl_handshake returned" \
+            -c "X509 - Certificate verification failed"
+
 # Tests for certificate selection based on SHA verson
 
 run_test    "Certificate hash: client TLS 1.2 -> SHA-2" \

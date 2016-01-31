@@ -44,6 +44,10 @@
 #include "mbedtls/aesni.h"
 #endif
 
+#if defined(MBEDTLS_CIPHER_MODE_XEX)
+#include "mbedtls/gf128mul.h"
+#endif
+
 #if defined(MBEDTLS_SELF_TEST)
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -982,6 +986,55 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
     return( 0 );
 }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
+
+#if defined(MBEDTLS_CIPHER_MODE_XEX)
+/*
+ * AES-XEX buffer encryption/decryption
+ */
+int mbedtls_aes_crypt_xex( mbedtls_aes_context *crypt_ctx,
+                    mbedtls_aes_context *tweak_ctx,
+                    int mode,
+                    size_t length,
+                    unsigned char iv[16],
+                    const unsigned char *input,
+                    unsigned char *output )
+{
+    int i;
+    unsigned char t_buf[16];
+    unsigned char scratch[16];
+
+    if( length % 16 )
+        return( MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH );
+
+
+    mbedtls_aes_crypt_ecb( tweak_ctx, MBEDTLS_AES_ENCRYPT, iv, t_buf );
+
+    goto first;
+
+    do
+    {
+        gf128mul_x_ble( t_buf, t_buf );
+
+first:
+        /* PP <- T xor P */
+        for( i = 0; i < 16; i++ )
+            scratch[i] = (unsigned char)( input[i] ^ t_buf[i] );
+
+        /* CC <- E(Key2,PP) */
+        mbedtls_aes_crypt_ecb( crypt_ctx, mode, scratch, output );
+
+        /* C <- T xor CC */
+        for( i = 0; i < 16; i++ )
+            output[i] = (unsigned char)( output[i] ^ t_buf[i] );
+
+        input  += 16;
+        output += 16;
+        length -= 16;
+    } while( length > 0 );
+
+    return( 0 );
+}
+#endif /* MBEDTLS_CIPHER_MODE_XEX */
 
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
 /*

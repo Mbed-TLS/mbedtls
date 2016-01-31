@@ -30,7 +30,7 @@ extern "C" {
 /**
  * \brief          Big-Endian definition for 128 bits elements
  */
-typedef unsigned char be128[16];
+typedef unsigned char mbedtls_be128[16];
 
 /**
  * \brief          Multiplication in GF(128):
@@ -39,7 +39,7 @@ typedef unsigned char be128[16];
  * \param x        the 128-bits number you want to multiply
  * \param r        result
  */
-void gf128mul_x_ble(be128 r, const be128 x);
+void mbedtls_gf128mul_x_ble(mbedtls_be128 r, const mbedtls_be128 x);
 
 
 

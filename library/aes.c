@@ -1013,7 +1013,7 @@ int mbedtls_aes_crypt_xex( mbedtls_aes_context *crypt_ctx,
 
     do
     {
-        gf128mul_x_ble( t_buf, t_buf );
+        mbedtls_gf128mul_x_ble( t_buf, t_buf );
 
 first:
         /* PP <- T xor P */

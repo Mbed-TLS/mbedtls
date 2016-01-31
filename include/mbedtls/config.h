@@ -318,6 +318,13 @@
 #define MBEDTLS_CIPHER_MODE_CBC
 
 /**
+ * \def MBEDTLS_CIPHER_MODE_XEX
+ *
+ * Enable Xor-encrypt-xor mode (XEX) for symmetric ciphers.
+ */
+#define MBEDTLS_CIPHER_MODE_XEX
+
+/**
  * \def MBEDTLS_CIPHER_MODE_CFB
  *
  * Enable Cipher Feedback mode (CFB) for symmetric ciphers.

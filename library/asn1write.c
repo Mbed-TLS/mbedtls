@@ -204,25 +204,65 @@ int mbedtls_asn1_write_int( unsigned char **p, unsigned char *start, int val )
 {
     int ret;
     size_t len = 0;
+    size_t val_buf_len = 0;
+    unsigned char val_buf[8]; // consider that size of int <= 64 bit
 
-    // TODO negative values and values larger than 128
-    // DER format assumes 2s complement for numbers, so the leftmost bit
-    // should be 0 for positive numbers and 1 for negative numbers.
-    //
+    const int one_const = 1;
+    const int is_bigendian = (*(char*)&one_const) == 0;
+
+    const unsigned char * begin = is_bigendian ?
+            (const unsigned char *)&val :
+            (const unsigned char *)&val + sizeof(val) - 1;
+
+    const unsigned char * end = is_bigendian ?
+            (const unsigned char *)&val + sizeof(val) :
+            (const unsigned char *)&val - 1;
+
+    const int inc = is_bigendian ? +1 : -1;
+
+    const unsigned char * prev = begin;
+    const unsigned char * curr = begin + inc;
+    int is_trim_finished = 0;
+    size_t trimed_cnt = 0;
+
     if( *p - start < 1 )
         return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
 
-    len += 1;
-    *--(*p) = val;
-
-    if( val > 0 && **p & 0x80 )
+    for(; curr != end; curr += inc )
     {
-        if( *p - start < 1 )
-            return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+        if( !is_trim_finished )
+        {
+            const int is_ones_leading =
+                    ( *prev == 0xFF ) && ( ( *curr & 0x80 ) == 0x80 );
+            const int is_zeros_leading =
+                    ( *prev == 0x00 ) && ( ( *curr & 0x80 ) == 0x00 );
+            if( is_ones_leading || is_zeros_leading )
+            {
+                ++trimed_cnt;
+            }
+            else
+            {
+                is_trim_finished = 1;
+            }
+        }
 
-        *--(*p) = 0x00;
-        len += 1;
+        if( is_trim_finished )
+        { // Not else for previous 'if' statement
+            val_buf[val_buf_len++] = *prev;
+        }
+
+        prev = curr;
     }
+
+    /* process integer last byte */
+    val_buf[val_buf_len++] = *prev;
+
+    if( *p - start < (int)val_buf_len )
+        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+
+    *p -= val_buf_len;
+    len += val_buf_len;
+    memcpy( *p, val_buf, val_buf_len );
 
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( p, start, len ) );
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( p, start, MBEDTLS_ASN1_INTEGER ) );

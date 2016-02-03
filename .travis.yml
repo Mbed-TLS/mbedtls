@@ -20,13 +20,13 @@ script:
 - tests/scripts/key-exchanges.pl
 env:
   global:
-    secure: "barHldniAfXyoWOD/vcO+E6/Xm4fmcaUoC9BeKW+LwsHqlDMLvugaJnmLXkSpkbYhVL61Hzf3bo0KPJn88AFc5Rkf8oYHPjH4adMnVXkf3B9ghHCgznqHsAH3choo6tnPxaFgOwOYmLGb382nQxfE5lUdvnM/W/psQjWt66A1+k="
+    secure: "h8SbQY2B7QC6rg6EtUgRgV2sgUf58QYdStdgA8wbKluoz1Km7Q0bgtdcpnyFrfOK84G4yJQifNW3OohBnqfjCmQNsVBYHExMTEqzcDVCYLV0eFdDHf3SJnp4wJYQ21ZXpzinZYww8lOhyMSjaoi9vnxZGbJyLW6Y/Zwa68KTSbc="
 
 addons:
   coverity_scan:
     project:
-      name: "ARMmbed/mbedtls"
-    notification_email: p.j.bakker@polarssl.org
+      name: "VirgilSecurity/mbedtls"
+    notification_email: sseroshtan@virgilsecurity.com
     build_command_prepend:
     build_command: make
     branch_pattern: coverity_scan

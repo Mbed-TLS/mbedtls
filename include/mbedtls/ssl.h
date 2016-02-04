@@ -723,6 +723,14 @@ struct mbedtls_ssl_config
     const char **alpn_list;         /*!< ordered list of protocols          */
 #endif
 
+#if defined(MBEDTLS_SSL_DTLS_SRTP)
+    /*
+     * use_srtp extension
+     */
+    enum mbedtls_DTLS_SRTP_protection_profiles *dtls_srtp_profiles_list; /*!< ordered list of supported srtp profile */
+    size_t dtls_srtp_profiles_list_len; /*!< number of supported profiles */
+#endif /* MBEDTLS_SSL_DTLS_SRTP */
+
     /*
      * Numerical settings (int then char)
      */
@@ -932,9 +940,7 @@ struct mbedtls_ssl_context
     /*
      * use_srtp extension
      */
-    enum mbedtls_DTLS_SRTP_protection_profiles *dtls_srtp_profiles_list; /*!< ordered list of supported srtp profile */
-    size_t dtls_srtp_profiles_list_len; /*!< number of supported profiles */
-    enum mbedtls_DTLS_SRTP_protection_profiles chosen_dtls_srtp_profile; /*!< negotiated profil */
+    enum mbedtls_DTLS_SRTP_protection_profiles chosen_dtls_srtp_profile; /*!< negotiated SRTP profile */
     unsigned char *dtls_srtp_keys; /*<! master keys and master salt for SRTP generated during handshake */
     size_t dtls_srtp_keys_len; /*<! length in bytes of master keys and master salt for SRTP generated during handshake */
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
@@ -2035,14 +2041,14 @@ const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl );
 /**
  * \brief                   Set the supported DTLS-SRTP protection profiles.
  *
- * \param ssl               SSL context
+ * \param ssl               SSL configuration
  * \param protos            List of supported protection profiles,
  *                          in decreasing preference order.
  * \param profiles_number   Number of supported profiles.
  *
  * \return         0 on success, or MBEDTLS_ERR_SSL_BAD_INPUT_DATA.
  */
-int mbedtls_ssl_set_dtls_srtp_protection_profiles( mbedtls_ssl_context *ssl, const enum mbedtls_DTLS_SRTP_protection_profiles *profiles, size_t profiles_number);
+int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf, const enum mbedtls_DTLS_SRTP_protection_profiles *profiles, size_t profiles_number);
 
 /**
  * \brief          Get the negotiated DTLS-SRTP Protection Profile.

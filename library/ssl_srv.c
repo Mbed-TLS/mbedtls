@@ -663,7 +663,7 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
     uint16_t profile_length;
 
     /* If use_srtp is not configured, just ignore the extension */
-    if( ( ssl->dtls_srtp_profiles_list == NULL ) || ( ssl->dtls_srtp_profiles_list_len == 0 ) )
+    if( ( ssl->conf->dtls_srtp_profiles_list == NULL ) || ( ssl->conf->dtls_srtp_profiles_list_len == 0 ) )
         return( 0 );
 
     /* RFC5764 section 4.1.1
@@ -687,7 +687,7 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
      * Use our order of preference
      */
     profile_length = buf[0]<<8|buf[1]; /* first 2 bytes are protection profile length(in bytes) */
-    for( i=0; i < ssl->dtls_srtp_profiles_list_len; i++)
+    for( i=0; i < ssl->conf->dtls_srtp_profiles_list_len; i++)
     {
         /* parse the extension list values are defined in http://www.iana.org/assignments/srtp-protection/srtp-protection.xhtml */
         for (j=0; j<profile_length; j+=2) { /* parse only the protection profile, srtp_mki is not supported and ignored */
@@ -711,8 +711,8 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
                     break;
             }
 
-            if (client_protection == ssl->dtls_srtp_profiles_list[i]) {
-                ssl->chosen_dtls_srtp_profile = ssl->dtls_srtp_profiles_list[i];
+            if (client_protection == ssl->conf->dtls_srtp_profiles_list[i]) {
+                ssl->chosen_dtls_srtp_profile = ssl->conf->dtls_srtp_profiles_list[i];
                 return 0;
             }
         }

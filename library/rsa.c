@@ -844,6 +844,9 @@ int rsa_rsaes_pkcs1_v15_decrypt( rsa_context *ctx,
         bad |= *p++; /* Must be zero */
     }
 
+    if( pad_count < 8 )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
     if( bad )
         return( POLARSSL_ERR_RSA_INVALID_PADDING );
 

@@ -2057,9 +2057,23 @@ int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf, co
  *
  * \param ssl      SSL context
  *
- * \return         Protection Profile enum member, SRTP_UNSET_PROFILE if no protocol was negotiated.
+ * \return         Protection Profile enum member, MBEDTLS_SRTP_UNSET_PROFILE if no protocol was negotiated.
  */
 enum mbedtls_DTLS_SRTP_protection_profiles mbedtls_ssl_get_dtls_srtp_protection_profile( const mbedtls_ssl_context *ssl);
+
+/**
+ * \brief                  Get the generated DTLS-SRTP key material.
+ *                         This function should be called after the handshake is
+ *                         completed. It shall returns 80 bytes of key material generated according to RFC5764
+ *
+ * \param ssl              SSL context
+ * \param key              Buffer to hold the generated key material
+ * \param key_buffer_len   Length in bytes of the key buffer
+ * \param key_len          Actual length of data written in the key buffer
+ *
+ * \return         0 on succes, MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL if the key buffer is too small to hold the generated key
+ */
+int mbedtls_ssl_get_dtls_srtp_key_material( const mbedtls_ssl_context *ssl, unsigned char *key, const size_t key_buffer_len, size_t *key_len );
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 
 /**

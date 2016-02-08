@@ -6416,6 +6416,19 @@ enum mbedtls_DTLS_SRTP_protection_profiles mbedtls_ssl_get_dtls_srtp_protection_
     return( ssl->chosen_dtls_srtp_profile);
 }
 
+int mbedtls_ssl_get_dtls_srtp_key_material( const mbedtls_ssl_context *ssl, unsigned char *key, const size_t key_buffer_len, size_t *key_len ) {
+    *key_len = 0;
+
+    /* check output buffer size */
+    if ( key_buffer_len < ssl->dtls_srtp_keys_len) {
+        return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
+    }
+
+    memcpy( key, ssl->dtls_srtp_keys, ssl->dtls_srtp_keys_len);
+    *key_len = ssl->dtls_srtp_keys_len;
+
+    return 0;
+}
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 
 void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int minor )

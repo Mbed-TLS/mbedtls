@@ -717,8 +717,12 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
      */
     hlen = md_get_size( md_info );
 
-    md_init( &md_ctx );
-    md_init_ctx( &md_ctx, md_info );
+    // checking for integer underflow
+    if( 2 * hlen + 2 > ilen )
+        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+
+    mbedtls_md_init( &md_ctx );
+    mbedtls_md_setup( &md_ctx, md_info, 0 );
 
     /* Generate lHash */
     md( md_info, label, label_len, lhash );

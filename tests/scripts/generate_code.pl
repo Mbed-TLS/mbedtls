@@ -1,4 +1,12 @@
 #!/usr/bin/env perl
+
+# generate_code.pl
+#
+# Generates the test suite code given inputs of the test suite directory that
+# contain the test suites, and the test suite file names for the test code and
+# test data.
+#
+# Usage: generate_code.pl <suite dir> <code file> <data file> [main code file]
 #
 #       A test data file consists of a sequence of paragraphs separated by
 #       a single empty line. Line breaks may be in Unix (LF) or Windows (CRLF)
@@ -20,7 +28,6 @@
 #       parameter may either be an integer written in decimal or hexadecimal,
 #       or a string surrounded by double quotes which may not contain the
 #       ':' character.
-#
 
 use strict;
 

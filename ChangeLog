@@ -9,6 +9,8 @@ Bugfix
    * Fix potential build failures related to the 'apidoc' target, introduced
      in the previous patch release. Found by Robert Scheck. #390 #391
    * Fix issue in Makefile that prevented building using armar. #386
+   * Fix memory leak that occured only when ECJPAKE was enabled and ECDHE and
+     ECDSA was disabled in config.h . The leak didn't occur by default.
 
 Changes
    * On ARM platforms, when compiling with -O0 with GCC, Clang or armcc5,

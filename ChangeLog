@@ -2,6 +2,10 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.x branch
 
+Security
+   * Fix potential integer overflow to buffer overflow in
+     mbedtls_rsa_rsaes_pkcs1_v15_encrypt and mbedtls_rsa_rsaes_oaep_encrypt
+
 Bugfix
    * Fix bug in mbedtls_mpi_add_mpi() that caused wrong results when the three
      arguments where the same (in-place doubling). Found and fixed by Janos

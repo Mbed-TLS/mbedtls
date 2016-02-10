@@ -5,8 +5,8 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Security
    * Fix missing padding length check in mbedtls_rsa_rsaes_pkcs1_v15_decrypt 
      required by PKCS1 v2.2
-
-Security
+   * Fix a potential integer underflow to buffer overread in 
+     mbedtls_rsa_rsaes_oaep_decrypt
    * Fix potential integer overflow to buffer overflow in
      mbedtls_rsa_rsaes_pkcs1_v15_encrypt and mbedtls_rsa_rsaes_oaep_encrypt
 

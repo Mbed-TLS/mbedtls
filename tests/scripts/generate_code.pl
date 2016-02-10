@@ -1,5 +1,12 @@
 #!/usr/bin/env perl
+
+# generate_code.pl
 #
+# Generates the test suite code given inputs of the test suite directory that
+# contain the test suites, and the test suite file names for the test code and
+# test data.
+#
+# Usage: generate_code.pl <suite dir> <code file> <data file> [main code file]
 
 use strict;
 

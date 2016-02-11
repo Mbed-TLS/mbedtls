@@ -4,7 +4,8 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 Security
    * Fix a potential integer underflow to buffer overread in 
-     mbedtls_rsa_rsaes_oaep_decrypt
+     mbedtls_rsa_rsaes_oaep_decrypt. It is not triggerable remotely in
+     SSL/TLS.
 
 Bugfix
    * Fix bug in mbedtls_mpi_add_mpi() that caused wrong results when the three

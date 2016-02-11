@@ -6,7 +6,8 @@ Security
    * Fix missing padding length check in mbedtls_rsa_rsaes_pkcs1_v15_decrypt 
      required by PKCS1 v2.2
    * Fix a potential integer underflow to buffer overread in 
-     mbedtls_rsa_rsaes_oaep_decrypt
+     mbedtls_rsa_rsaes_oaep_decrypt. It is not triggerable remotely in
+     SSL/TLS.
    * Fix potential integer overflow to buffer overflow in
      mbedtls_rsa_rsaes_pkcs1_v15_encrypt and mbedtls_rsa_rsaes_oaep_encrypt
 

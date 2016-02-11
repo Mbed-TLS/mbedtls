@@ -702,6 +702,12 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
     if( md_info == NULL )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
+    hlen = mbedtls_md_get_size( md_info );
+
+    // checking for integer underflow
+    if( 2 * hlen + 2 > ilen )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
     /*
      * RSA operation
      */

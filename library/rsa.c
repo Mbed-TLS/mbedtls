@@ -848,8 +848,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
         bad |= *p++; /* Must be zero */
     }
 
-    if( pad_count < 8 )
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    bad |= ( pad_count < 8 );
 
     if( bad )
         return( MBEDTLS_ERR_RSA_INVALID_PADDING );

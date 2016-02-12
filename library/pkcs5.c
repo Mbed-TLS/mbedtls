@@ -96,10 +96,30 @@ static int pkcs5_parse_pbkdf2_params( const mbedtls_asn1_buf *params,
     if( ( ret = mbedtls_asn1_get_alg_null( &p, end, &prf_alg_oid ) ) != 0 )
         return( MBEDTLS_ERR_PKCS5_INVALID_FORMAT + ret );
 
-    if( MBEDTLS_OID_CMP( MBEDTLS_OID_HMAC_SHA1, &prf_alg_oid ) != 0 )
+    if( MBEDTLS_OID_CMP( MBEDTLS_OID_HMAC_SHA1, &prf_alg_oid ) == 0 )
+    {
+        *md_type = MBEDTLS_MD_SHA1;
+    }
+    else if( MBEDTLS_OID_CMP( MBEDTLS_OID_HMAC_SHA224, &prf_alg_oid ) == 0 )
+    {
+        *md_type = MBEDTLS_MD_SHA224;
+    }
+    else if( MBEDTLS_OID_CMP( MBEDTLS_OID_HMAC_SHA256, &prf_alg_oid ) == 0 )
+    {
+        *md_type = MBEDTLS_MD_SHA256;
+    }
+    else if( MBEDTLS_OID_CMP( MBEDTLS_OID_HMAC_SHA384, &prf_alg_oid ) == 0 )
+    {
+        *md_type = MBEDTLS_MD_SHA384;
+    }
+    else if( MBEDTLS_OID_CMP( MBEDTLS_OID_HMAC_SHA512, &prf_alg_oid ) == 0 )
+    {
+        *md_type = MBEDTLS_MD_SHA512;
+    }
+    else
+    {
         return( MBEDTLS_ERR_PKCS5_FEATURE_UNAVAILABLE );
-
-    *md_type = MBEDTLS_MD_SHA1;
+    }
 
     if( p != end )
         return( MBEDTLS_ERR_PKCS5_INVALID_FORMAT +

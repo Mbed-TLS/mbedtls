@@ -12,21 +12,21 @@ void pbkdf2_hmac( int hash, char *hex_password_string,
                   char *hex_salt_string, int it_cnt, int key_len,
                   char *result_key_string )
 {
-    unsigned char pw_str[100];
-    unsigned char salt_str[100];
-    unsigned char dst_str[100];
+    unsigned char pw_str[256];
+    unsigned char salt_str[256];
+    unsigned char dst_str[256];
 
     mbedtls_md_context_t ctx;
     const mbedtls_md_info_t *info;
 
     int pw_len, salt_len;
-    unsigned char key[100];
+    unsigned char key[256];
 
     mbedtls_md_init( &ctx );
 
-    memset(pw_str, 0x00, 100);
-    memset(salt_str, 0x00, 100);
-    memset(dst_str, 0x00, 100);
+    memset(pw_str, 0x00, 256);
+    memset(salt_str, 0x00, 256);
+    memset(dst_str, 0x00, 256);
 
     pw_len = unhexify( pw_str, hex_password_string );
     salt_len = unhexify( salt_str, hex_salt_string );

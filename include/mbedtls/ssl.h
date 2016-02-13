@@ -1882,8 +1882,11 @@ int mbedtls_ssl_set_hs_ecjpake_password( mbedtls_ssl_context *ssl,
  * \brief          Set the supported Application Layer Protocols.
  *
  * \param conf     SSL configuration
- * \param protos   NULL-terminated list of supported protocols,
- *                 in decreasing preference order.
+ * \param protos   Pointer to a NULL-terminated list of supported protocols,
+ *                 in decreasing preference order. The pointer to the list is
+ *                 recorded by the library for later reference as required, so
+ *                 the lifetime of the table should be as long as the
+ *                 SSL configuration structure.
  *
  * \return         0 on success, or MBEDTLS_ERR_SSL_BAD_INPUT_DATA.
  */

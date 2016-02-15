@@ -101,8 +101,16 @@ MAPPING_CODE
     return( -1 );
 }
 
+
+/*----------------------------------------------------------------------------*/
+/* Test Case code */
+
 FUNCTION_CODE
 SUITE_POST_DEP
+
+
+/*----------------------------------------------------------------------------*/
+/* Test dispatch code */
 
 int dep_check( char *str )
 {
@@ -132,6 +140,10 @@ DISPATCH_FUNCTION
 #endif
     return( ret );
 }
+
+
+/*----------------------------------------------------------------------------*/
+/* Main Test code */
 
 /** Retrieve one input line into buf, which must have room for len
  * bytes. The trailing line break (if any) is stripped from the result.

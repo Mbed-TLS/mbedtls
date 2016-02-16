@@ -1252,7 +1252,7 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
             {
                 ret = mbedtls_snprintf( p, n, "%sIP:%d.%d.%d.%d", sep,
                                               cur->buf.p[0], cur->buf.p[1],
-                                              cur->buf.p[2], cur->buf.p[4] );
+                                              cur->buf.p[2], cur->buf.p[3] );
                 MBEDTLS_X509_SAFE_SNPRINTF;
             }
             else if( cur->buf.len == 16 )
@@ -1287,8 +1287,8 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
         }
 #endif /* MBEDTLS_X509_SAN_IP_ADDRESS_SUPPORT */
         /*
-         * tag == 0 happens when the extension is present but with only unknow
-         * types: we get a list with one uninitialized  element
+         * tag == 0 happens when the extension is present but with only
+         * unknown types: we get a list with one uninitialized element
          */
         else if( cur->buf.tag != 0 )
         {

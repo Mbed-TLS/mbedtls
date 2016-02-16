@@ -61,9 +61,6 @@ int mbedtls_aes_armcrypto_crypt_ecb( mbedtls_aes_context *ctx,
 
 		// Final Forward (AESE) round (AddRoundKey, SubBytes and ShiftRows). No Mix columns
 		state_vec = vaeseq_u8(state_vec, roundkey_vec);
-
-		// Manually apply final Add RoundKey step (EOR)
-		state_vec = veorq_u8(state_vec, roundkey_vec);
 	}
 	else
 	{
@@ -72,15 +69,15 @@ int mbedtls_aes_armcrypto_crypt_ecb( mbedtls_aes_context *ctx,
 			// Reverse (AESD) round (AddRoundKey, SubBytes and ShiftRows)
 			state_vec = vaesdq_u8(state_vec, roundkey_vec);
 			// Inverse Mix Columns (AESIMC)
-			state_vec = vaesmcq_u8(state_vec);
+			state_vec = vaesimcq_u8(state_vec);
 		}
 
 		// Final Reverse (AESD) round (AddRoundKey, SubBytes and ShiftRows). No Mix columns
-		state_vec = vaeseq_u8(state_vec, roundkey_vec);
-
-		// Manually apply final Add RoundKey step (EOR)
-		state_vec = veorq_u8(state_vec, roundkey_vec);
+		state_vec = vaesdq_u8(state_vec, roundkey_vec);
 	}
+
+	// Manually apply final Add RoundKey step (EOR)
+	state_vec = veorq_u8(state_vec, roundkey_vec);
 
 	// Write results back to output array
 	vst1q_u8 (output, state_vec);

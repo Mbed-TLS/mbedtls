@@ -47,8 +47,10 @@ set(src_crypto
     platform.c
     ripemd160.c
     rsa.c
+    sha1cx.c
     sha1.c
     sha256.c
+    sha256cx.c
     sha512.c
     threading.c
     timing.c

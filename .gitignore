@@ -21,5 +21,13 @@ massif-*
 *.ilk
 *.lib
 
+# eclipse CDT
+/.project
+/.cproject
+
 # CMake generates *.dir/ folders for in-tree builds (used by MSVC projects), ignore all of those:
 *.dir/
+
+# out of tree builds and docs
+/apidoc/
+/build/

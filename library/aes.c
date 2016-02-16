@@ -31,8 +31,6 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "mbedtls/config_arm_test.h"
-
 #if defined(MBEDTLS_AES_C)
 
 #include <string.h>
@@ -43,6 +41,10 @@
 #endif
 #if defined(MBEDTLS_AESNI_C)
 #include "mbedtls/aesni.h"
+#endif
+
+#if defined(MBEDTLS_ARM_CRYTO_C)
+#include "mbedtls/aes_armcrypto.h"
 #endif
 
 #if defined(MBEDTLS_SELF_TEST)
@@ -521,6 +523,7 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
         return( mbedtls_aesni_setkey_enc( (unsigned char *) ctx->rk, key, keybits ) );
 #endif
 
+
     for( i = 0; i < ( keybits >> 5 ); i++ )
     {
         GET_UINT32_LE( RK[i], key, i << 2 );
@@ -833,6 +836,11 @@ int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
 #if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
     if( mbedtls_aesni_has_support( MBEDTLS_AESNI_AES ) )
         return( mbedtls_aesni_crypt_ecb( ctx, mode, input, output ) );
+#endif
+
+#if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_ARM_CRYTO_C)
+    if( 1 ) // TODO: Implement runtime feature test
+    	return( mbedtls_aes_armcrypto_crypt_ecb( ctx, mode, input, output ) );
 #endif
 
 #if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)

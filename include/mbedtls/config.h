@@ -1395,7 +1395,6 @@
  */
 #define MBEDTLS_ARM_NEON_C
 
-
 /**
  * \def MBEDTLS_AES_C
  *

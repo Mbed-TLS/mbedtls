@@ -1,7 +1,7 @@
 
 # Also see "include/mbedtls/config.h"
 
-CFLAGS	?= -O2
+CFLAGS	?= -O2 
 WARNING_CFLAGS ?=  -Wall -W -Wdeclaration-after-statement
 LDFLAGS ?=
 
@@ -10,6 +10,10 @@ LOCAL_LDFLAGS =
 
 ifdef DEBUG
 LOCAL_CFLAGS += -g3
+endif
+
+ifdef ARMCRYPTO
+CFLAGS += -march=armv8-a+crypto
 endif
 
 # MicroBlaze specific options:

@@ -31,7 +31,7 @@
 #include "mbedtls/aes_armcrypto.h"
 
 #include <arm_neon.h>
-
+#include <stdio.h>
 
 /*
  * AES-NI AES-ECB block en(de)cryption
@@ -43,40 +43,51 @@ int mbedtls_aes_armcrypto_crypt_ecb( mbedtls_aes_context *ctx,
 {
 	int i;
 	uint8x16_t state_vec, roundkey_vec;
+	uint8_t *RK = (uint8_t*)ctx->rk;
 
 	// Load input and round key into into their vectors
 	state_vec = vld1q_u8(input);
-	roundkey_vec = vld1q_u8((uint8_t*)ctx->rk);
-
 
 	if ( mode == MBEDTLS_AES_ENCRYPT )
 	{
 		// Initial AddRoundKey is in the loop due to AES instruction always doing AddRoundKey first
-		for( i = ctx->nr - 1; i > 0; i-- ) {
+		for( i = 0; i < ctx->nr - 1; i++ ) {
+			// Load Round Key
+			roundkey_vec = vld1q_u8(RK);
 			// Forward (AESE) round (AddRoundKey, SubBytes and ShiftRows)
 			state_vec = vaeseq_u8(state_vec, roundkey_vec);
 			// Mix Columns (AESMC)
 			state_vec = vaesmcq_u8(state_vec);
+			// Move pointer ready to load next round key
+			RK += 16;
 		}
 
 		// Final Forward (AESE) round (AddRoundKey, SubBytes and ShiftRows). No Mix columns
+		roundkey_vec = vld1q_u8(RK); /* RK already moved in loop */
 		state_vec = vaeseq_u8(state_vec, roundkey_vec);
 	}
 	else
 	{
 		// Initial AddRoundKey is in the loop due to AES instruction always doing AddRoundKey first
-		for( i = ctx->nr - 1; i > 0; i-- ) {
+		for( i = 0; i < ctx->nr - 1; i++ ) {
+			// Load Round Key
+			roundkey_vec = vld1q_u8(RK);
 			// Reverse (AESD) round (AddRoundKey, SubBytes and ShiftRows)
 			state_vec = vaesdq_u8(state_vec, roundkey_vec);
 			// Inverse Mix Columns (AESIMC)
 			state_vec = vaesimcq_u8(state_vec);
+			// Move pointer ready to load next round key
+			RK += 16;
 		}
 
 		// Final Reverse (AESD) round (AddRoundKey, SubBytes and ShiftRows). No Mix columns
+		roundkey_vec = vld1q_u8(RK); /* RK already moved in loop */
 		state_vec = vaesdq_u8(state_vec, roundkey_vec);
 	}
 
 	// Manually apply final Add RoundKey step (EOR)
+	RK += 16;
+	roundkey_vec = vld1q_u8(RK);
 	state_vec = veorq_u8(state_vec, roundkey_vec);
 
 	// Write results back to output array

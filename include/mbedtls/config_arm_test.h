@@ -77,11 +77,11 @@ int mbedtls_arm_has_support( unsigned int what );
 /* Check that we are delivering what the config file is expecting */
 
 #if defined(MBEDTLS_ARM_NEON_C) && ( !defined(MBEDTLS_HAVE_ARM_NEON) )
-#error "MBEDTLS_ARM_NEON_C defined in config.h but support not available on platform."
+#error "MBEDTLS_ARM_NEON_C defined in config.h but support not available on platform. Try passing ARMCRYPTO=1 to Make"
 #endif
 
 #if defined(MBEDTLS_ARM_CRYTO_C) && ( !defined(MBEDTLS_HAVE_ARM_CRYPTO) )
-#error "MBEDTLS_ARM_CRYTO_C defined in config.h but support not available on platform."
+#error "MBEDTLS_ARM_CRYTO_C defined in config.h but support not available on platform. Try passing ARMCRYPTO=1 to Make"
 #endif
 
 #endif /* MBEDTLS_CONFIG_ARM_TEST_H */

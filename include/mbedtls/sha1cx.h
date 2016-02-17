@@ -25,6 +25,8 @@
 
 #include "sha1.h"
 
+#define MBEDTLS_SHA1CX_SHA1      0x00000001u
+
 #if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) &&  \
     defined(__aarch64__)   &&  \
     ! defined(MBEDTLS_HAVE_AARCH64)
@@ -45,6 +47,9 @@ extern "C" {
  * \return         1 if CPU has support for the feature, 0 otherwise
  */
 int mbedtls_sha1cx_has_support( unsigned int what );
+
+/* Internal use */
+void mbedtls_sha1cx_process( mbedtls_sha1_context *ctx, const unsigned char data[64] );
 
 #ifdef __cplusplus
 }

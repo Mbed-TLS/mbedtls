@@ -7,6 +7,8 @@ Bugfix
      arguments where the same (in-place doubling). Found and fixed by Janos
      Follath. #309
    * Fix issue in Makefile that prevented building using armar. #386
+   * Fix bug in mbedtls_x509_crt_parse that caused trailing extra data in the
+     buffer after DER certificates to be included in the raw representation.
 
 Changes
    * On ARM platforms, when compiling with -O0 with GCC, Clang or armcc5,

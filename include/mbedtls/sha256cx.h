@@ -25,6 +25,8 @@
 
 #include "sha256.h"
 
+#define MBEDTLS_SHA256CX_SHA2      0x00000010u
+
 #if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) &&  \
     defined(__aarch64__)   &&  \
     ! defined(MBEDTLS_HAVE_AARCH64)
@@ -45,6 +47,9 @@ extern "C" {
  * \return         1 if CPU has support for the feature, 0 otherwise
  */
 int mbedtls_sha256cx_has_support( unsigned int what );
+
+/* Internal use */
+void mbedtls_sha256cx_process( mbedtls_sha256_context *ctx, const unsigned char data[64] );
 
 #ifdef __cplusplus
 }

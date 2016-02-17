@@ -152,7 +152,7 @@ print TEST_FILE << "END";
 
 
 /*----------------------------------------------------------------------------*/
-/* Common helper functions */
+/* Common helper code */
 
 $test_common_helpers
 

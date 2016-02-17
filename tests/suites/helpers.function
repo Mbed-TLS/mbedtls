@@ -1,3 +1,6 @@
+/*----------------------------------------------------------------------------*/
+/* Headers */
+
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
@@ -12,6 +15,10 @@
 #define mbedtls_snprintf   snprintf
 #endif
 
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
+#include "mbedtls/memory_buffer_alloc.h"
+#endif
+
 #ifdef _MSC_VER
 #include <basetsd.h>
 typedef UINT32 uint32_t;
@@ -24,6 +31,25 @@ typedef UINT32 uint32_t;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+
+/*----------------------------------------------------------------------------*/
+/* Global variables */
+
+static int test_errors = 0;
+
+
+/*----------------------------------------------------------------------------*/
+/* Macros */
+
+#define TEST_ASSERT( TEST )                         \
+    do {                                            \
+        if( ! (TEST) )                              \
+        {                                           \
+            test_fail( #TEST );                     \
+            goto exit;                              \
+        }                                           \
+    } while( 0 )
 
 #define assert(a) if( !( a ) )                                      \
 {                                                                   \
@@ -66,11 +92,14 @@ typedef UINT32 uint32_t;
 #define ENTROPY_HAVE_STRONG
 #endif
 
+/*----------------------------------------------------------------------------*/
+/* Helper Functions */
+
 static int unhexify( unsigned char *obuf, const char *ibuf )
 {
     unsigned char c, c2;
     int len = strlen( ibuf ) / 2;
-    assert( strlen( ibuf ) % 2 == 0 ); // must be even number of bytes
+    assert( strlen( ibuf ) % 2 == 0 ); /* must be even number of bytes */
 
     while( *ibuf != 0 )
     {
@@ -311,3 +340,12 @@ static int rnd_pseudo_rand( void *rng_state, unsigned char *output, size_t len )
 
     return( 0 );
 }
+
+static void test_fail( const char *test )
+{
+    test_errors++;
+    if( test_errors == 1 )
+        mbedtls_printf( "FAILED\n" );
+    mbedtls_printf( "  %s\n", test );
+}
+

@@ -695,6 +695,14 @@ X509 Certificate verification #81 (multiple CRLs, none relevant)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_ECP_DP_SECP384R1_ENABLED:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_SHA256_C:POLARSSL_RSA_C
 x509_verify:"data_files/enco-cert-utf8str.pem":"data_files/enco-ca-prstr.pem":"data_files/crl_cat_rsa-ec.pem":"NULL":0:0:"NULL"
 
+X509 Certificate verification #82 (Not yet valid CA and valid CA)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+x509_verify:"data_files/server5.crt":"data_files/test-ca2_cat-future-present.crt":"data_files/crl-ec-sha1.pem":"NULL":0:0:"NULL"
+
+X509 Certificate verification #83 (valid CA and Not yet valid CA)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+x509_verify:"data_files/server5.crt":"data_files/test-ca2_cat-present-future.crt":"data_files/crl-ec-sha1.pem":"NULL":0:0:"NULL"
+
 X509 Certificate verification callback: trusted EE cert
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_SHA256_C:POLARSSL_ECP_DP_SECP256R1_ENABLED
 x509_verify_callback:"data_files/server5-selfsigned.crt":"data_files/server5-selfsigned.crt":0:"depth 0 - serial 53\:A2\:CB\:4B\:12\:4E\:AD\:83\:7D\:A8\:94\:B2 - subject CN=selfsigned, OU=testing, O=PolarSSL, C=NL\n"

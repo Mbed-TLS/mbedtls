@@ -28,6 +28,7 @@
 #ifndef MBEDTLS_CONFIG_ARM_TEST_H
 #define MBEDTLS_CONFIG_ARM_TEST_H
 
+
 /*
  * Set compile time flags for capabilities
  * Here we separate out the detection of NEON
@@ -51,37 +52,50 @@
 #define MBEDTLS_HAVE_ARM_CRYPTO
 #endif
 
-#if 0
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- * \brief          ARMv8 features detection routine
- *
- * \param what     The feature to detect
- *                 (MBEDTLS_ARM_CRYPTO or MBEDTLS_ARM_NEON)
- *
- * \return         1 if CPU has support for the feature, 0 otherwise
- */
-int mbedtls_arm_has_support( unsigned int what );
+#if defined(linux)
+#include <sys/auxv.h>
+#include <asm/hwcap.h>
+
+#define MBEDTLS_ARM_CRYTO_CRC32	HWCAP_CRC32
+#define MBEDTLS_ARM_CRYTO_SHA2	HWCAP_SHA2
+#define MBEDTLS_ARM_CRYTO_SHA1	HWCAP_SHA1
+#define MBEDTLS_ARM_CRYTO_AES	HWCAP_AES
+#define MBEDTLS_ARM_CRYTO_PMULL HWCAP_PMULL
+
+#define mbedtls_arm_has_support( what ) ((getauxval(AT_HWCAP) & what) != 0)
+
+#else /* Not Linux so don't have a solution for accessing EL1 registers just now */
+
+#define MBEDTLS_ARM_CRYTO_CRC32	0
+#define MBEDTLS_ARM_CRYTO_SHA2	0
+#define MBEDTLS_ARM_CRYTO_SHA1	0
+#define MBEDTLS_ARM_CRYTO_AES	0
+#define MBEDTLS_ARM_CRYTO_PMULL 0
+
+#define mbedtls_arm_has_support( what ) (0)
+
+#endif /* defined(linux) */
+
+
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* #if 0 until we implement feature test*/
 
 
 /* Check that we are delivering what the config file is expecting */
 
 #if defined(MBEDTLS_ARM_NEON_C) && ( !defined(MBEDTLS_HAVE_ARM_NEON) )
-#error "MBEDTLS_ARM_NEON_C defined in config.h but support not available on platform."
+#error "MBEDTLS_ARM_NEON_C defined in config.h but support not available on platform. Try adding ARMCRYPTO=1 to make command line."
 #endif
 
 #if defined(MBEDTLS_ARM_CRYTO_C) && ( !defined(MBEDTLS_HAVE_ARM_CRYPTO) )
-#error "MBEDTLS_ARM_CRYTO_C defined in config.h but support not available on platform."
+#error "MBEDTLS_ARM_CRYTO_C defined in config.h but support not available on platform. Try adding ARMCRYPTO=1 to make command line."
 #endif
 
 #endif /* MBEDTLS_CONFIG_ARM_TEST_H */

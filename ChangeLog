@@ -40,6 +40,11 @@ Changes
      accepting certificates with non-standard time format (that is without
      seconds or with a time zone). Patch provided by OpenVPN.
 
+Bugfix
+   * Fix an issue that caused valid certificates being rejected whenever an
+   expired or not yet valid version of the trusted certificate was before the
+   valid version in the trusted certificate list.
+
 = mbed TLS 1.3.17 branch 2016-06-28
 
 Security

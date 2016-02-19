@@ -1823,6 +1823,16 @@ static int x509_crt_verify_top(
             continue;
         }
 
+        if( x509_time_expired( &trust_ca->valid_to ) )
+        {
+            continue;
+        }
+
+        if( x509_time_future( &trust_ca->valid_from ) )
+        {
+            continue;
+        }
+
         if( pk_verify_ext( child->sig_pk, child->sig_opts, &trust_ca->pk,
                            child->sig_md, hash, md_info->size,
                            child->sig.p, child->sig.len ) != 0 )
@@ -1853,12 +1863,6 @@ static int x509_crt_verify_top(
 #else
         ((void) ca_crl);
 #endif
-
-        if( x509_time_expired( &trust_ca->valid_to ) )
-            ca_flags |= BADCERT_EXPIRED;
-
-        if( x509_time_future( &trust_ca->valid_from ) )
-            ca_flags |= BADCERT_FUTURE;
 
         if( NULL != f_vrfy )
         {

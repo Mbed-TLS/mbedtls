@@ -839,7 +839,7 @@ int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
 #endif
 
 #if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_ARM_CRYTO_C)
-    if( 1 ) // TODO: Implement runtime feature test
+    if(mbedtls_arm_has_support(MBEDTLS_ARM_CRYTO_AES))
     	return( mbedtls_aes_armcrypto_crypt_ecb( ctx, mode, input, output ) );
 #endif
 

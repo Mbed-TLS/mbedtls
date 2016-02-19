@@ -13,7 +13,7 @@ LOCAL_CFLAGS += -g3
 endif
 
 ifdef ARMCRYPTO
-CFLAGS += -march=armv8-a+crypto
+LOCAL_CFLAGS += -march=armv8-a+crypto
 endif
 
 # MicroBlaze specific options:

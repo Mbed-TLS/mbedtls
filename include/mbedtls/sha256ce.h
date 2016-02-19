@@ -1,7 +1,7 @@
 /**
- * \file sha256cx.h
+ * \file sha256ce.h
  *
- * \brief SHA256-CX for hardware SHA256 acceleration on some ARM processors
+ * \brief SHA256-CE for hardware SHA256 acceleration on some ARM processors
  *
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
@@ -20,12 +20,12 @@
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
-#ifndef MBEDTLS_SHA256CX_H
-#define MBEDTLS_SHA256CX_H
+#ifndef MBEDTLS_SHA256CE_H
+#define MBEDTLS_SHA256CE_H
 
 #include "sha256.h"
 
-#define MBEDTLS_SHA256CX_SHA2      0x00000010u
+#define MBEDTLS_SHA256CE_SHA2      0x00000010u
 
 #if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) &&  \
     defined(__aarch64__)   &&  \
@@ -40,16 +40,16 @@ extern "C" {
 #endif
 
 /**
- * \brief          SHA256-CX features detection routine
+ * \brief          SHA256-CE features detection routine
  *
  * \param what     The feature to detect.
  *
  * \return         1 if CPU has support for the feature, 0 otherwise
  */
-int mbedtls_sha256cx_has_support( unsigned int what );
+int mbedtls_sha256ce_has_support( unsigned int what );
 
 /* Internal use */
-void mbedtls_sha256cx_process( mbedtls_sha256_context *ctx, const unsigned char data[64] );
+void mbedtls_sha256ce_process( mbedtls_sha256_context *ctx, const unsigned char data[64] );
 
 #ifdef __cplusplus
 }
@@ -57,4 +57,4 @@ void mbedtls_sha256cx_process( mbedtls_sha256_context *ctx, const unsigned char 
 
 #endif /* MBEDTLS_HAVE_AARCH64 */
 
-#endif /* MBEDTLS_SHA256CX_H */
+#endif /* MBEDTLS_SHA256CE_H */

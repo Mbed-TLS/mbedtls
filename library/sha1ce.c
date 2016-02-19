@@ -1,5 +1,5 @@
 /*
- *  SHA1-CX support functions
+ *  SHA1-CE support functions
  *
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
@@ -25,9 +25,9 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_SHA1CX_C)
+#if defined(MBEDTLS_SHA1CE_C)
 
-#include "mbedtls/sha1cx.h"
+#include "mbedtls/sha1ce.h"
 
 #include <string.h>
 
@@ -61,9 +61,9 @@
 #endif
 
 /*
- * SHA1-CX support detection routine
+ * SHA1-CE support detection routine
  */
-int mbedtls_sha1cx_has_support( unsigned int what )
+int mbedtls_sha1ce_has_support( unsigned int what )
 {
     static int done = 0;
     static unsigned int c = 0;
@@ -77,7 +77,7 @@ int mbedtls_sha1cx_has_support( unsigned int what )
     return( ( c & what ) != 0 );
 }
 
-void mbedtls_sha1cx_process( mbedtls_sha1_context *ctx, const unsigned char data[64] )
+void mbedtls_sha1ce_process( mbedtls_sha1_context *ctx, const unsigned char data[64] )
 {
     uint32_t temp, W[16], A, B, C, D, E;
 
@@ -235,4 +235,4 @@ void mbedtls_sha1cx_process( mbedtls_sha1_context *ctx, const unsigned char data
 
 #endif /* MBEDTLS_HAVE_AARCH64 */
 
-#endif /* MBEDTLS_SHA1CX_C */
+#endif /* MBEDTLS_SHA1CE_C */

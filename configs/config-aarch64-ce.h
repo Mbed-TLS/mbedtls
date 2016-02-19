@@ -1,5 +1,5 @@
 /**
- * \file config-aarch64-cx.h
+ * \file config-aarch64-ce.h
  *
  * \brief Default configuration for ARM aarch64 with crypto extensions
  *
@@ -21,8 +21,8 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
-#ifndef MBEDTLS_CONFIG_AARCH64_CX_H
-#define MBEDTLS_CONFIG_AARCH64_CX_H
+#ifndef MBEDTLS_CONFIG_AARCH64_CE_H
+#define MBEDTLS_CONFIG_AARCH64_CE_H
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
 #define _CRT_SECURE_NO_DEPRECATE 1
@@ -30,6 +30,7 @@
 
 /* System support */
 
+#if 0
 #define MBEDTLS_CONFIG_H
 #define _CRT_SECURE_NO_DEPRECATE 1
 #define MBEDTLS_HAVE_ASM
@@ -210,9 +211,9 @@
 #define MBEDTLS_PLATFORM_C
 #define MBEDTLS_RIPEMD160_C
 #define MBEDTLS_RSA_C
-#define MBEDTLS_SHA1CX_C
+#define MBEDTLS_SHA1CE_C
 #define MBEDTLS_SHA1_C
-#define MBEDTLS_SHA256CX_C
+#define MBEDTLS_SHA256CE_C
 #define MBEDTLS_SHA256_C
 #define MBEDTLS_SHA512_C
 #define MBEDTLS_SSL_CACHE_C
@@ -289,6 +290,22 @@
 #include YOTTA_CFG_MBEDTLS_USER_CONFIG_FILE
 #elif defined(MBEDTLS_USER_CONFIG_FILE)
 #include MBEDTLS_USER_CONFIG_FILE
+#endif
+
+#else
+
+#define MBEDTLS_CONFIG_H
+#define MBEDTLS_HAVE_ASM
+#define MBEDTLS_HAVE_TIME
+#define MBEDTLS_HAVE_TIME_DATE
+#define MBEDTLS_SELF_TEST
+//#define MBEDTLS_SHA256_SMALLER
+#define MBEDTLS_SHA1CE_C
+#define MBEDTLS_SHA1_C
+#define MBEDTLS_SHA256CE_C
+#define MBEDTLS_SHA256_C
+#define MBEDTLS_SHA512_C
+
 #endif
 
 #include "mbedtls/check_config.h"

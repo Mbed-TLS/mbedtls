@@ -2115,11 +2115,11 @@
 #define MBEDTLS_RSA_C
 
 /**
- * \def MBEDTLS_SHA1CX_C
+ * \def MBEDTLS_SHA1CE_C
  *
  * Enable SHA1 crypto extensions support on aarch64.
  *
- * Module:  library/sha1cx.c
+ * Module:  library/sha1ce.c
  * Caller:  library/sha1.c
  *
  * Requires: MBEDTLS_HAVE_ASM
@@ -2127,7 +2127,7 @@
  *
  * This modules adds support for the crypto extensions instructions on ARM aarc64.
  */
-//#define MBEDTLS_SHA1CX_C
+//#define MBEDTLS_SHA1CE_C
 
 /**
  * \def MBEDTLS_SHA1_C
@@ -2146,11 +2146,11 @@
 #define MBEDTLS_SHA1_C
 
 /**
- * \def MBEDTLS_SHA256CX_C
+ * \def MBEDTLS_SHA256CE_C
  *
  * Enable SHA256 crypto extensions support on aarch64.
  *
- * Module:  library/sha256cx.c
+ * Module:  library/sha256ce.c
  * Caller:  library/sha256.c
  *
  * Requires: MBEDTLS_HAVE_ASM
@@ -2158,7 +2158,7 @@
  *
  * This modules adds support for the crypto extensions instructions on ARM aarc64.
  */
-//#define MBEDTLS_SHA256CX_C
+//#define MBEDTLS_SHA256CE_C
 
 /**
  * \def MBEDTLS_SHA256_C

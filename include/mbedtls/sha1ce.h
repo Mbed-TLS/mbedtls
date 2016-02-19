@@ -1,7 +1,7 @@
 /**
- * \file sha1cx.h
+ * \file sha1ce.h
  *
- * \brief SHA1-CX for hardware SHA1 acceleration on some ARM processors
+ * \brief SHA1-CE for hardware SHA1 acceleration on some ARM processors
  *
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
@@ -20,12 +20,12 @@
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
-#ifndef MBEDTLS_SHA1CX_H
-#define MBEDTLS_SHA1CX_H
+#ifndef MBEDTLS_SHA1CE_H
+#define MBEDTLS_SHA1CE_H
 
 #include "sha1.h"
 
-#define MBEDTLS_SHA1CX_SHA1      0x00000001u
+#define MBEDTLS_SHA1CE_SHA1      0x00000001u
 
 #if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) &&  \
     defined(__aarch64__)   &&  \
@@ -40,16 +40,16 @@ extern "C" {
 #endif
 
 /**
- * \brief          SHA1-CX features detection routine
+ * \brief          SHA1-CE features detection routine
  *
  * \param what     The feature to detect.
  *
  * \return         1 if CPU has support for the feature, 0 otherwise
  */
-int mbedtls_sha1cx_has_support( unsigned int what );
+int mbedtls_sha1ce_has_support( unsigned int what );
 
 /* Internal use */
-void mbedtls_sha1cx_process( mbedtls_sha1_context *ctx, const unsigned char data[64] );
+void mbedtls_sha1ce_process( mbedtls_sha1_context *ctx, const unsigned char data[64] );
 
 #ifdef __cplusplus
 }
@@ -57,4 +57,4 @@ void mbedtls_sha1cx_process( mbedtls_sha1_context *ctx, const unsigned char data
 
 #endif /* MBEDTLS_HAVE_AARCH64 */
 
-#endif /* MBEDTLS_SHA1CX_H */
+#endif /* MBEDTLS_SHA1CE_H */

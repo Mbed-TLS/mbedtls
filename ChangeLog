@@ -1,5 +1,12 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.1.x
+
+Bugfix
+   * Fix an issue that caused valid certificates being rejected whenever an
+   expired or not yet valid version of the trusted certificate was before the
+   valid version in the trusted certificate list.
+
 = mbed TLS 2.1.5 branch released 2016-06-28
 
 Security

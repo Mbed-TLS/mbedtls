@@ -36,8 +36,8 @@
 
 #include <string.h>
 
-#if defined(MBEDTLS_SHA1CX_C)
-#include "mbedtls/sha1cx.h"
+#if defined(MBEDTLS_SHA1CE_C)
+#include "mbedtls/sha1ce.h"
 #endif
 
 #if defined(MBEDTLS_SELF_TEST)
@@ -118,9 +118,9 @@ void mbedtls_sha1_process( mbedtls_sha1_context *ctx, const unsigned char data[6
 {
     uint32_t temp, W[16], A, B, C, D, E;
 
-#if defined(MBEDTLS_SHA1CX_C) && defined(MBEDTLS_HAVE_AARCH64)
-    if( mbedtls_sha1cx_has_support( MBEDTLS_SHA1CX_SHA1 ) )
-        return( mbedtls_sha1cx_process( ctx, data ) );
+#if defined(MBEDTLS_SHA1CE_C) && defined(MBEDTLS_HAVE_AARCH64)
+    if( mbedtls_sha1ce_has_support( MBEDTLS_SHA1CE_SHA1 ) )
+        return( mbedtls_sha1ce_process( ctx, data ) );
 #endif
 
     GET_UINT32_BE( W[ 0], data,  0 );

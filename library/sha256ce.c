@@ -37,6 +37,31 @@
 
 #if defined(MBEDTLS_HAVE_AARCH64)
 
+#include <sys/auxv.h>
+#include <asm/hwcap.h>
+#include <arm_neon.h>
+
+/*
+ * SHA1-CE support detection routine
+ */
+int mbedtls_sha256ce_has_support( unsigned int what )
+{
+	long mask;
+    static int done = 0;
+    static long hwcaps = 0;
+
+    if( ! done )
+    {
+        hwcaps= getauxval( AT_HWCAP );
+        done = 1;
+    }
+
+    mask = 0;
+    if( what & MBEDTLS_SHA256CE_SHA2 ) mask |= HWCAP_SHA2;
+
+    return ( (mask & hwcaps) == mask );
+}
+
 /*
  * 32-bit integer manipulation macros (big endian)
  */
@@ -60,22 +85,6 @@
 }
 #endif
 
-/*
- * SHA256-CE support detection routine
- */
-int mbedtls_sha256ce_has_support( unsigned int what )
-{
-    static int done = 0;
-    static unsigned int c = 0;
-
-    if( ! done )
-    {
-    	c = ~0; /** \todo add feature test here */
-        done = 1;
-    }
-
-    return( ( c & what ) != 0 );
-}
 static const uint32_t K[] =
 {
     0x428A2F98, 0x71374491, 0xB5C0FBCF, 0xE9B5DBA5,

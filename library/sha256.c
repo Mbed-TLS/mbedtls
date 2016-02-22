@@ -186,9 +186,9 @@ void mbedtls_sha256_process( mbedtls_sha256_context *ctx, const unsigned char da
     uint32_t A[8];
     unsigned int i;
 
-#if defined(MBEDTLS_SHA256CX_C) && defined(MBEDTLS_HAVE_AARCH64)
-    if( mbedtls_sha256cx_has_support( MBEDTLS_SHA256CX_SHA2 ) )
-        return( mbedtls_sha256cx_process( ctx, data ) );
+#if defined(MBEDTLS_SHA256CE_C) && defined(MBEDTLS_HAVE_AARCH64)
+    if( mbedtls_sha256ce_has_support( MBEDTLS_SHA256CE_SHA2 ) )
+        return( mbedtls_sha256ce_process( ctx, data ) );
 #endif
 
     for( i = 0; i < 8; i++ )

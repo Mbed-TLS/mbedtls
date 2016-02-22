@@ -25,7 +25,7 @@
 
 #include "sha256.h"
 
-#define MBEDTLS_SHA256CE_SHA2      0x00000010u
+#define MBEDTLS_SHA256CE_SHA2      1
 
 #if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) &&  \
     defined(__aarch64__)   &&  \
@@ -42,9 +42,9 @@ extern "C" {
 /**
  * \brief          SHA256-CE features detection routine
  *
- * \param what     The feature to detect.
+ * \param what     The features to detect.
  *
- * \return         1 if CPU has support for the feature, 0 otherwise
+ * \return         1 if CPU has support for all features, 0 otherwise
  */
 int mbedtls_sha256ce_has_support( unsigned int what );
 

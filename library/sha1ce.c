@@ -47,6 +47,8 @@
 # error macro __BYTE_ORDER__ is not defined for this compiler
 #endif
 
+#include <sys/auxv.h>
+#include <asm/hwcap.h>
 #include <arm_neon.h>
 
 /*
@@ -54,16 +56,20 @@
  */
 int mbedtls_sha1ce_has_support( unsigned int what )
 {
+	long mask;
     static int done = 0;
-    static unsigned int c = 0;
+    static long hwcaps = 0;
 
     if( ! done )
     {
-        c = ~0; /** \todo add feature test here (currently assuming feature exists) */
+        hwcaps= getauxval( AT_HWCAP );
         done = 1;
     }
 
-    return( ( c & what ) != 0 );
+    mask = 0;
+    if( what & MBEDTLS_SHA1CE_SHA1 ) mask |= HWCAP_SHA1;
+
+    return ( (mask & hwcaps) == mask );
 }
 
 void mbedtls_sha1ce_process( mbedtls_sha1_context *ctx, const unsigned char data[64] )

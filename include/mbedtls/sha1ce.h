@@ -25,7 +25,7 @@
 
 #include "sha1.h"
 
-#define MBEDTLS_SHA1CE_SHA1      0x00000001u
+#define MBEDTLS_SHA1CE_SHA1      1
 
 #if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) &&  \
     defined(__aarch64__)   &&  \
@@ -42,9 +42,9 @@ extern "C" {
 /**
  * \brief          SHA1-CE features detection routine
  *
- * \param what     The feature to detect.
+ * \param what     The features to detect.
  *
- * \return         1 if CPU has support for the feature, 0 otherwise
+ * \return         1 if CPU has support for all features, 0 otherwise
  */
 int mbedtls_sha1ce_has_support( unsigned int what );
 

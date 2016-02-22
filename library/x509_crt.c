@@ -1600,7 +1600,8 @@ int mbedtls_x509_crt_is_revoked( const mbedtls_x509_crt *crt, const mbedtls_x509
 }
 
 /*
- * Check that the given certificate is valid according to the CRL.
+ * Check that the given certificate is not revoked according to the CRL.
+ * Skip validation is no CRL for the given CA is present.
  */
 static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
                                mbedtls_x509_crl *crl_list,
@@ -1612,12 +1613,6 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
 
     if( ca == NULL )
         return( flags );
-
-    /*
-     * TODO: What happens if no CRL is present?
-     * Suggestion: Revocation state should be unknown if no CRL is present.
-     * For backwards compatibility this is not yet implemented.
-     */
 
     while( crl_list != NULL )
     {

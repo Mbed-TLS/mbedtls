@@ -36,7 +36,7 @@
  * This is not a good example for general use. This programs has the specific
  * goal of minimizing use of the libc functions on full-blown OSes.
  */
-#if defined(unix) || defined(__unix__) || defined(__unix)
+#if defined(unix) || defined(__unix__) || defined(__unix) || defined(__APPLE__)
 #define UNIX
 #endif
 

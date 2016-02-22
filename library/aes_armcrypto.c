@@ -19,6 +19,9 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
+/*
+ * [GCM-WP] http://conradoplg.cryptoland.net/files/2010/12/gcm14.pdf
+ */
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -96,15 +99,59 @@ int mbedtls_aes_armcrypto_crypt_ecb( mbedtls_aes_context *ctx,
 	return 0;
 }
 
+/* because the vmull_p64 intrinsic uses the wrong argument types: */
+#define vmull_low_p64(A, B) ({                               \
+	poly128_t res__;                                         \
+	asm("pmull    %0.1q, %1.1d, %2.1d                \n\t"   \
+        : "=w" (res__) : "w" (A), "w" (B) );                 \
+    res__;                                                   \
+})
+
 /*
  * GCM multiplication: c = a times b in GF(2^128)
- * Based on [CLMUL-WP] algorithms 1 (with equation 27) and 5.
+ * Based on [GCM-WP] algorithms 3 and 5.
+ * This method assumes both inputs are in gcm format (little byte + big bit endianness).
  */
 void mbedtls_aes_armcrypto_gcm_mult( unsigned char c[16],
                      const unsigned char a[16],
                      const unsigned char b[16] )
 {
+	/* vector variables */
+	uint8x16_t a_p, b_p; /* inputs */
+	uint8x16_t z, p; /* constants */
+	uint8x16_t r0, r1; /* full width multiply result (before reduction) */
+	uint8x16_t t0, t1; /* temps */
+	uint8x16_t c_p; /* output */
 
+	/* reverse bits in each byte to convert from gcm format to little-little endian */
+	a_p = vrbitq_u8(vld1q_u8(a));
+	b_p = vrbitq_u8(vld1q_u8(b));
+
+	/* polynomial multiply (128*128->256bit). See [GCM-WP] algorithms 3. */
+	z = vdupq_n_u8(0);
+	r0 = (uint8x16_t)vmull_low_p64((poly64x2_t)a_p, (poly64x2_t)b_p);
+	r1 = (uint8x16_t)vmull_high_p64((poly64x2_t)a_p, (poly64x2_t)b_p);
+	t0 = vextq_u8(b_p, b_p, 8);
+	t1 = (uint8x16_t)vmull_low_p64((poly64x2_t)a_p, (poly64x2_t)t0);
+	t0 = (uint8x16_t)vmull_high_p64((poly64x2_t)a_p, (poly64x2_t)t0);
+	t0 = veorq_u8(t0, t1);
+	t1 = vextq_u8(z, t0, 8);
+	r0 = veorq_u8(r0, t1);
+	t1 = vextq_u8(t0, z, 8);
+	r1 = veorq_u8(r1, t1);
+
+	/* polynomial reduction (256->128bit). See [GCM-WP] algorithms 5. */
+	p = (uint8x16_t)vdupq_n_u64(0x0000000000000087);
+	t0 = (uint8x16_t)vmull_high_p64((poly64x2_t)r1, (poly64x2_t)p);
+	t1 = vextq_u8(t0, z, 8);
+	r1 = veorq_u8(r1, t1);
+	t1 = vextq_u8(z, t0, 8);
+	r0 = veorq_u8(r0, t1);
+	t0 = (uint8x16_t)vmull_low_p64((poly64x2_t)r1, (poly64x2_t)p);
+	c_p = veorq_u8(r0, t0);
+
+	/* reverse bits in each byte to convert from little-little endian to gcm format */
+	vst1q_u8(c, vrbitq_u8(c_p));
     return;
 }
 

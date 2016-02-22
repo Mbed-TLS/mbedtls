@@ -2581,9 +2581,6 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
 
     ssl->record_read = 0;
 
-    // TODO: handshake_failure alert for an anonymous server to request
-    // client authentication
-
     /*
      *  struct {
      *      ClientCertificateType certificate_types<1..2^8-1>;

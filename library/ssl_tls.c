@@ -5011,7 +5011,12 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
 
     ssl->handshake->calc_finished( ssl, ssl->out_msg + 4, ssl->conf->endpoint );
 
-    // TODO TLS/1.2 Hash length is determined by cipher suite (Page 63)
+    /*
+     * RFC 5246 7.4.9 (Page 63) says 12 is the default length and ciphersuites
+     * may define some other value. Currently (early 2016), no defined
+     * ciphersuite does this (and this is unlikely to change as activity has
+     * moved to TLS 1.3 now) so we can keep the hardcoded 12 here.
+     */
     hash_len = ( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ) ? 36 : 12;
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)

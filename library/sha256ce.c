@@ -37,6 +37,16 @@
 
 #if defined(MBEDTLS_HAVE_AARCH64)
 
+#if defined(__BYTE_ORDER__)
+# if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+#  define IS_BIG_ENDIAN
+# else
+#  define IS_LITTLE_ENDIAN
+# endif
+#else
+# error macro __BYTE_ORDER__ is not defined for this compiler
+#endif
+
 #include <sys/auxv.h>
 #include <asm/hwcap.h>
 #include <arm_neon.h>
@@ -62,29 +72,6 @@ int mbedtls_sha256ce_has_support( unsigned int what )
     return ( (mask & hwcaps) == mask );
 }
 
-/*
- * 32-bit integer manipulation macros (big endian)
- */
-#ifndef GET_UINT32_BE
-#define GET_UINT32_BE(n,b,i)                            \
-{                                                       \
-    (n) = ( (uint32_t) (b)[(i)    ] << 24 )             \
-        | ( (uint32_t) (b)[(i) + 1] << 16 )             \
-        | ( (uint32_t) (b)[(i) + 2] <<  8 )             \
-        | ( (uint32_t) (b)[(i) + 3]       );            \
-}
-#endif
-
-#ifndef PUT_UINT32_BE
-#define PUT_UINT32_BE(n,b,i)                            \
-{                                                       \
-    (b)[(i)    ] = (unsigned char) ( (n) >> 24 );       \
-    (b)[(i) + 1] = (unsigned char) ( (n) >> 16 );       \
-    (b)[(i) + 2] = (unsigned char) ( (n) >>  8 );       \
-    (b)[(i) + 3] = (unsigned char) ( (n)       );       \
-}
-#endif
-
 static const uint32_t K[] =
 {
     0x428A2F98, 0x71374491, 0xB5C0FBCF, 0xE9B5DBA5,
@@ -105,84 +92,107 @@ static const uint32_t K[] =
     0x90BEFFFA, 0xA4506CEB, 0xBEF9A3F7, 0xC67178F2,
 };
 
-#define  SHR(x,n) ((x & 0xFFFFFFFF) >> n)
-#define ROTR(x,n) (SHR(x,n) | (x << (32 - n)))
+#define Rx( T0, T1, K, W0, W1, W2, W3) \
+	W0 = vsha256su0q_u32( W0, W1 );    \
+	d2 = d0;                           \
+    T1 = vaddq_u32( W1, K );           \
+    d0 = vsha256hq_u32( d0, d1, T0);   \
+    d1 = vsha256h2q_u32( d1, d2, T0 ); \
+	W0 = vsha256su1q_u32( W0, W2, W3 );
 
-#define S0(x) (ROTR(x, 7) ^ ROTR(x,18) ^  SHR(x, 3))
-#define S1(x) (ROTR(x,17) ^ ROTR(x,19) ^  SHR(x,10))
+#define Ry( T0, T1, K,    W1         ) \
+	d2 = d0;                           \
+    T1 = vaddq_u32( W1, K  );          \
+    d0 = vsha256hq_u32( d0, d1, T0);   \
+    d1 = vsha256h2q_u32( d1, d2, T0 );
 
-#define S2(x) (ROTR(x, 2) ^ ROTR(x,13) ^ ROTR(x,22))
-#define S3(x) (ROTR(x, 6) ^ ROTR(x,11) ^ ROTR(x,25))
-
-#define F0(x,y,z) ((x & y) | (z & (x | y)))
-#define F1(x,y,z) (z ^ (x & (y ^ z)))
-
-#define R(t)                                    \
-(                                               \
-    W[t] = S1(W[t -  2]) + W[t -  7] +          \
-           S0(W[t - 15]) + W[t - 16]            \
-)
-
-#define P(a,b,c,d,e,f,g,h,x,K)                  \
-{                                               \
-    temp1 = h + S3(e) + F1(e,f,g) + K + x;      \
-    temp2 = S2(a) + F0(a,b,c);                  \
-    d += temp1; h = temp1 + temp2;              \
-}
+#define Rz( T0                       ) \
+	d2 = d0;                           \
+    d0 = vsha256hq_u32( d0, d1, T0);   \
+    d1 = vsha256h2q_u32( d1, d2, T0 );
 
 void mbedtls_sha256ce_process( mbedtls_sha256_context *ctx, const unsigned char data[64] )
 {
-    uint32_t temp1, temp2, W[64];
-    uint32_t A[8];
-    unsigned int i;
+	/* declare variables */
 
-    for( i = 0; i < 8; i++ )
-        A[i] = ctx->state[i];
+	uint32x4_t k0, k1, k2, k3, k4, k5, k6, k7, k8, k9, ka, kb, kc, kd, ke, kf;
+	uint32x4_t s0, s1;
+	uint32x4_t w0, w1, w2, w3;
+	uint32x4_t d0, d1, d2;
+	uint32x4_t t0, t1;
 
-#if defined(MBEDTLS_SHA256_SMALLER)
-    for( i = 0; i < 64; i++ )
-    {
-        if( i < 16 )
-            GET_UINT32_BE( W[i], data, 4 * i );
-        else
-            R( i );
+	/* set K0..Kf constants */
 
-        P( A[0], A[1], A[2], A[3], A[4], A[5], A[6], A[7], W[i], K[i] );
+	k0 = vld1q_u32 (&K[0x00]);
+	k1 = vld1q_u32 (&K[0x04]);
+	k2 = vld1q_u32 (&K[0x08]);
+	k3 = vld1q_u32 (&K[0x0c]);
+	k4 = vld1q_u32 (&K[0x10]);
+	k5 = vld1q_u32 (&K[0x14]);
+	k6 = vld1q_u32 (&K[0x18]);
+	k7 = vld1q_u32 (&K[0x1c]);
+	k8 = vld1q_u32 (&K[0x20]);
+	k9 = vld1q_u32 (&K[0x24]);
+	ka = vld1q_u32 (&K[0x28]);
+	kb = vld1q_u32 (&K[0x2c]);
+	kc = vld1q_u32 (&K[0x30]);
+	kd = vld1q_u32 (&K[0x34]);
+	ke = vld1q_u32 (&K[0x38]);
+	kf = vld1q_u32 (&K[0x3c]);
 
-        temp1 = A[7]; A[7] = A[6]; A[6] = A[5]; A[5] = A[4]; A[4] = A[3];
-        A[3] = A[2]; A[2] = A[1]; A[1] = A[0]; A[0] = temp1;
-    }
-#else /* MBEDTLS_SHA256_SMALLER */
-    for( i = 0; i < 16; i++ )
-        GET_UINT32_BE( W[i], data, 4 * i );
+	/* load state */
 
-    for( i = 0; i < 16; i += 8 )
-    {
-        P( A[0], A[1], A[2], A[3], A[4], A[5], A[6], A[7], W[i+0], K[i+0] );
-        P( A[7], A[0], A[1], A[2], A[3], A[4], A[5], A[6], W[i+1], K[i+1] );
-        P( A[6], A[7], A[0], A[1], A[2], A[3], A[4], A[5], W[i+2], K[i+2] );
-        P( A[5], A[6], A[7], A[0], A[1], A[2], A[3], A[4], W[i+3], K[i+3] );
-        P( A[4], A[5], A[6], A[7], A[0], A[1], A[2], A[3], W[i+4], K[i+4] );
-        P( A[3], A[4], A[5], A[6], A[7], A[0], A[1], A[2], W[i+5], K[i+5] );
-        P( A[2], A[3], A[4], A[5], A[6], A[7], A[0], A[1], W[i+6], K[i+6] );
-        P( A[1], A[2], A[3], A[4], A[5], A[6], A[7], A[0], W[i+7], K[i+7] );
-    }
+	s0 = vld1q_u32 (&ctx->state[0]);
+	s1 = vld1q_u32 (&ctx->state[4]);
 
-    for( i = 16; i < 64; i += 8 )
-    {
-        P( A[0], A[1], A[2], A[3], A[4], A[5], A[6], A[7], R(i+0), K[i+0] );
-        P( A[7], A[0], A[1], A[2], A[3], A[4], A[5], A[6], R(i+1), K[i+1] );
-        P( A[6], A[7], A[0], A[1], A[2], A[3], A[4], A[5], R(i+2), K[i+2] );
-        P( A[5], A[6], A[7], A[0], A[1], A[2], A[3], A[4], R(i+3), K[i+3] );
-        P( A[4], A[5], A[6], A[7], A[0], A[1], A[2], A[3], R(i+4), K[i+4] );
-        P( A[3], A[4], A[5], A[6], A[7], A[0], A[1], A[2], R(i+5), K[i+5] );
-        P( A[2], A[3], A[4], A[5], A[6], A[7], A[0], A[1], R(i+6), K[i+6] );
-        P( A[1], A[2], A[3], A[4], A[5], A[6], A[7], A[0], R(i+7), K[i+7] );
-    }
-#endif /* MBEDTLS_SHA256_SMALLER */
+	/* load message */
 
-    for( i = 0; i < 8; i++ )
-        ctx->state[i] += A[i];
+	w0 = vld1q_u32 ((uint32_t const *)(data));
+	w1 = vld1q_u32 ((uint32_t const *)(data + 16));
+	w2 = vld1q_u32 ((uint32_t const *)(data + 32));
+	w3 = vld1q_u32 ((uint32_t const *)(data + 48));
+
+	#ifdef IS_LITTLE_ENDIAN
+	w0 = vreinterpretq_u32_u8 (vrev32q_u8 (vreinterpretq_u8_u32 (w0)));
+	w1 = vreinterpretq_u32_u8 (vrev32q_u8 (vreinterpretq_u8_u32 (w1)));
+	w2 = vreinterpretq_u32_u8 (vrev32q_u8 (vreinterpretq_u8_u32 (w2)));
+	w3 = vreinterpretq_u32_u8 (vrev32q_u8 (vreinterpretq_u8_u32 (w3)));
+	#endif
+
+	/* initialize t0, d0, d1 */
+
+	t0 = vaddq_u32 (w0, k0);
+	d0 = s0;
+	d1 = s1;
+
+	/* perform rounds of four */
+
+    Rx(t0, t1, k1, w0, w1, w2, w3);
+    Rx(t1, t0, k2, w1, w2, w3, w0);
+    Rx(t0, t1, k3, w2, w3, w0, w1);
+    Rx(t1, t0, k4, w3, w0, w1, w2);
+    Rx(t0, t1, k5, w0, w1, w2, w3);
+    Rx(t1, t0, k6, w1, w2, w3, w0);
+    Rx(t0, t1, k7, w2, w3, w0, w1);
+    Rx(t1, t0, k8, w3, w0, w1, w2);
+    Rx(t0, t1, k9, w0, w1, w2, w3);
+    Rx(t1, t0, ka, w1, w2, w3, w0);
+    Rx(t0, t1, kb, w2, w3, w0, w1);
+    Rx(t1, t0, kc, w3, w0, w1, w2);
+    Ry(t0, t1, kd,     w1        );
+    Ry(t1, t0, ke,     w2        );
+    Ry(t0, t1, kf,     w3        );
+    Rz(t1                        );
+
+    /* update state */
+
+	s0 = vaddq_u32(s0, d0);
+	s1 = vaddq_u32(s1, d1);
+
+	/* save state */
+
+	vst1q_u32 (&ctx->state[0], s0);
+	vst1q_u32 (&ctx->state[4], s1);
 }
 
 #endif /* MBEDTLS_HAVE_AARCH64 */

@@ -36,8 +36,8 @@
 
 #include <string.h>
 
-#if defined(MBEDTLS_SHA256CX_C)
-#include "mbedtls/sha256cx.h"
+#if defined(MBEDTLS_SHA256CE_C)
+#include "mbedtls/sha256ce.h"
 #endif
 
 #if defined(MBEDTLS_SELF_TEST)

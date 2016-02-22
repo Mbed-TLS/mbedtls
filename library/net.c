@@ -27,6 +27,11 @@
 
 #if defined(MBEDTLS_NET_C)
 
+#if !defined(unix) && !defined(__unix__) && !defined(__unix) && \
+    !defined(__APPLE__) && !defined(_WIN32)
+#error "This module only works on Unix and Windows, see MBEDTLS_NET_C in config.h"
+#endif
+
 #include "mbedtls/net.h"
 
 #include <string.h>

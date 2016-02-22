@@ -1897,11 +1897,15 @@
 /**
  * \def MBEDTLS_NET_C
  *
- * Enable the TCP/IP networking routines.
+ * Enable the TCP and UDP over IPv6/IPv4 networking routines.
+ *
+ * \note This module only works on Unix (including Linux, BSD and OS X) and
+ * Windows. For other platforms, you'll want to disable it, and write your
+ * own networking callbacks to be passed to \c mbedtls_ssl_set_bio().
  *
  * Module:  library/net.c
  *
- * This module provides TCP/IP networking routines.
+ * This module provides networking routines.
  */
 #define MBEDTLS_NET_C
 
@@ -2264,7 +2268,14 @@
 /**
  * \def MBEDTLS_TIMING_C
  *
- * Enable the portable timing interface.
+ * Enable the semi-portable timing interface.
+ *
+ * \note The provided implementation only works on Unix (including Linux, BSD
+ * and OS X) and Windows. On other platforms, you can either disable that
+ * module and provide your own implementations of the callbacks needed by
+ * \c mbedtls_ssl_set_timer_cb() for DTLS, or leave it enabled and provide
+ * your own implementation of the whole module by setting
+ * \c MBEDTLS_TIMING_ALT in the current file.
  *
  * Module:  library/timing.c
  * Caller:  library/havege.c

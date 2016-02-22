@@ -1981,8 +1981,11 @@ static int ssl_parse_server_psk_hint( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
     }
 
-    // TODO: Retrieve PSK identity hint and callback to app
-    //
+    /*
+     * Note: we currently ignore the PKS identity hint, as we only allow one
+     * PSK to be provisionned on the client. This could be changed later if
+     * someone needs that feature.
+     */
     *p += len;
     ret = 0;
 

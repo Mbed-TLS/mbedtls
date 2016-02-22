@@ -1613,6 +1613,11 @@ int mbedtls_ssl_conf_own_cert( mbedtls_ssl_config *conf,
  * \note           This is mainly useful for clients. Servers will usually
  *                 want to use \c mbedtls_ssl_conf_psk_cb() instead.
  *
+ * \note           Currently clients can only register one pre-shared key.
+ *                 In other words, the servers' idendity hint is ignored.
+ *                 Please contact us if you need ability to set multiple PSKs
+ *                 on clients and select one based on the identity hint.
+ *
  * \param conf     SSL configuration
  * \param psk      pointer to the pre-shared key
  * \param psk_len  pre-shared key length

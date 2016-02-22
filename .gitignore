@@ -23,3 +23,8 @@ massif-*
 
 # CMake generates *.dir/ folders for in-tree builds (used by MSVC projects), ignore all of those:
 *.dir/
+
+# Eclipse project files
+.project
+.cproject
+language.settings.xml

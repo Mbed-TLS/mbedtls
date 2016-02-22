@@ -1,7 +1,7 @@
 
 # Also see "include/mbedtls/config.h"
 
-CFLAGS	?= -O2
+CFLAGS	?= -O2 
 WARNING_CFLAGS ?=  -Wall -W -Wdeclaration-after-statement
 LDFLAGS ?=
 
@@ -10,6 +10,10 @@ LOCAL_LDFLAGS =
 
 ifdef DEBUG
 LOCAL_CFLAGS += -g3
+endif
+
+ifdef ARMCRYPTO
+LOCAL_CFLAGS += -march=armv8-a+crypto
 endif
 
 # MicroBlaze specific options:
@@ -44,7 +48,7 @@ ifdef WINDOWS_BUILD
 DLEXT=dll
 endif
 
-OBJS_CRYPTO=	aes.o		aesni.o		arc4.o		\
+OBJS_CRYPTO=	aes.o		aesni.o		aes_armcrypto.o arc4.o		\
 		asn1parse.o	asn1write.o	base64.o	\
 		bignum.o	blowfish.o	camellia.o	\
 		ccm.o		cipher.o	cipher_wrap.o	\

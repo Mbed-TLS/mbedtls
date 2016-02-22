@@ -3706,10 +3706,6 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
             MBEDTLS_SSL_DEBUG_RET( 1, "ssl_decompress_buf", ret );
             return( ret );
         }
-
-        // TODO: what's the purpose of these lines? is in_len used?
-        ssl->in_len[0] = (unsigned char)( ssl->in_msglen >> 8 );
-        ssl->in_len[1] = (unsigned char)( ssl->in_msglen      );
     }
 #endif /* MBEDTLS_ZLIB_SUPPORT */
 

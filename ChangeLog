@@ -9,6 +9,8 @@ Bugfix
    * Fix issue in Makefile that prevented building using armar. #386
    * Fix bug in mbedtls_x509_crt_parse that caused trailing extra data in the
      buffer after DER certificates to be included in the raw representation.
+   * Fix issue that caused a crash if invalid curves were passed to
+     mbedtls_ssl_conf_curves. #373
 
 Changes
    * On ARM platforms, when compiling with -O0 with GCC, Clang or armcc5,

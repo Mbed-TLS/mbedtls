@@ -2718,7 +2718,8 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK ||
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK )
     {
-        /* TODO: Support identity hints */
+        /* Note: we don't support identity hints, until someone asks
+         * for them. */
         *(p++) = 0x00;
         *(p++) = 0x00;
 

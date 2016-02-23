@@ -21,10 +21,15 @@ massif-*
 *.ilk
 *.lib
 
+# eclipse CDT
+/.project
+/.cproject
+language.settings.xml
+
 # CMake generates *.dir/ folders for in-tree builds (used by MSVC projects), ignore all of those:
 *.dir/
 
-# Eclipse project files
-.project
-.cproject
-language.settings.xml
+# out of tree builds and docs
+/apidoc/
+/build/
+

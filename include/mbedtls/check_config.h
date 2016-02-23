@@ -367,6 +367,22 @@
 #error "MBEDTLS_X509_RSASSA_PSS_SUPPORT defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_SHA1CX_C) && !defined(__aarch64__)
+#error "MBEDTLS_SHA1CX_C defined, but architecture is nor ARM aarch64"
+#endif
+
+#if defined(MBEDTLS_SHA1CX_C) && !defined(MBEDTLS_HAVE_ASM)
+#error "MBEDTLS_SHA1CX_C defined, but not ASM support"
+#endif
+
+#if defined(MBEDTLS_SHA256CX_C) && !defined(__aarch64__)
+#error "MBEDTLS_SHA256CX_C defined, but architecture is nor ARM aarch64"
+#endif
+
+#if defined(MBEDTLS_SHA256CX_C) && !defined(MBEDTLS_HAVE_ASM)
+#error "MBEDTLS_SHA256CX_C defined, but not ASM support"
+#endif
+
 #if defined(MBEDTLS_SSL_PROTO_SSL3) && ( !defined(MBEDTLS_MD5_C) ||     \
     !defined(MBEDTLS_SHA1_C) )
 #error "MBEDTLS_SSL_PROTO_SSL3 defined, but not all prerequisites"

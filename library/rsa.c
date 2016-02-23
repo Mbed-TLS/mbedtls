@@ -96,7 +96,8 @@ int mbedtls_rsa_gen_key( mbedtls_rsa_context *ctx,
     if( f_rng == NULL || nbits < 128 || exponent < 3 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
-    mbedtls_mpi_init( &P1 ); mbedtls_mpi_init( &Q1 ); mbedtls_mpi_init( &H ); mbedtls_mpi_init( &G );
+    mbedtls_mpi_init( &P1 ); mbedtls_mpi_init( &Q1 ); 
+    mbedtls_mpi_init( &H ); mbedtls_mpi_init( &G );
 
     /*
      * find primes P and Q with Q < P so that:
@@ -106,14 +107,15 @@ int mbedtls_rsa_gen_key( mbedtls_rsa_context *ctx,
 
     do
     {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_gen_prime( &ctx->P, ( nbits + 1 ) >> 1, 0,
+        MBEDTLS_MPI_CHK( mbedtls_mpi_gen_prime( &ctx->P, nbits >> 1, 0,
                                 f_rng, p_rng ) );
 
-        MBEDTLS_MPI_CHK( mbedtls_mpi_gen_prime( &ctx->Q, ( nbits + 1 ) >> 1, 0,
+        if( nbits % 2 )
+            MBEDTLS_MPI_CHK( mbedtls_mpi_gen_prime( &ctx->Q, ( nbits >> 1 ) + 1, 0,
                                 f_rng, p_rng ) );
-
-        if( mbedtls_mpi_cmp_mpi( &ctx->P, &ctx->Q ) < 0 )
-            mbedtls_mpi_swap( &ctx->P, &ctx->Q );
+        else
+            MBEDTLS_MPI_CHK( mbedtls_mpi_gen_prime( &ctx->Q, nbits >> 1, 0,
+                                f_rng, p_rng ) );
 
         if( mbedtls_mpi_cmp_mpi( &ctx->P, &ctx->Q ) == 0 )
             continue;

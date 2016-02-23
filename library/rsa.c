@@ -97,7 +97,8 @@ int rsa_gen_key( rsa_context *ctx,
     if( f_rng == NULL || nbits < 128 || exponent < 3 )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
-    mpi_init( &P1 ); mpi_init( &Q1 ); mpi_init( &H ); mpi_init( &G );
+    mpi_init( &P1 ); mpi_init( &Q1 );
+    mpi_init( &H ); mpi_init( &G );
 
     /*
      * find primes P and Q with Q < P so that:
@@ -107,14 +108,15 @@ int rsa_gen_key( rsa_context *ctx,
 
     do
     {
-        MPI_CHK( mpi_gen_prime( &ctx->P, ( nbits + 1 ) >> 1, 0,
+       MPI_CHK( mpi_gen_prime( &ctx->P, nbits >> 1, 0,
                                 f_rng, p_rng ) );
 
-        MPI_CHK( mpi_gen_prime( &ctx->Q, ( nbits + 1 ) >> 1, 0,
+        if( nbits % 2 )
+            MPI_CHK( mpi_gen_prime( &ctx->Q, ( nbits >> 1 ) + 1, 0,
                                 f_rng, p_rng ) );
-
-        if( mpi_cmp_mpi( &ctx->P, &ctx->Q ) < 0 )
-            mpi_swap( &ctx->P, &ctx->Q );
+        else
+            MPI_CHK( mpi_gen_prime( &ctx->Q, nbits >> 1, 0,
+                                f_rng, p_rng ) );
 
         if( mpi_cmp_mpi( &ctx->P, &ctx->Q ) == 0 )
             continue;

@@ -1594,7 +1594,12 @@ void mbedtls_ssl_conf_ca_chain( mbedtls_ssl_config *conf,
  *                 adequate, preference is given to the one set by the first
  *                 call to this function, then second, etc.
  *
- * \note           On client, only the first call has any effect.
+ * \note           On client, only the first call has any effect. That is,
+ *                 only one client certificate can be provisioned. The
+ *                 server's preferences in its CertficateRequest message will
+ *                 be ignored and our only cert will be sent regardless of
+ *                 whether it matches those preferences - the server can then
+ *                 decide what it wants to do with it.
  *
  * \param conf     SSL configuration
  * \param own_cert own public certificate chain

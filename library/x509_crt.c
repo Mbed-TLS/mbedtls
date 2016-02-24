@@ -516,9 +516,6 @@ static int x509_get_subject_alt_name( unsigned char **p,
 /*
  * X.509 v3 extensions
  *
- * TODO: Perform all of the basic constraints tests required by the RFC
- * TODO: Set values for undetected extensions to a sane default?
- *
  */
 static int x509_get_crt_ext( unsigned char **p,
                              const unsigned char *end,

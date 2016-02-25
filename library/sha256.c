@@ -186,7 +186,7 @@ void mbedtls_sha256_process( mbedtls_sha256_context *ctx, const unsigned char da
     uint32_t A[8];
     unsigned int i;
 
-#if defined(MBEDTLS_ARM_CRYTO_C)
+#if defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_HAVE_ARM_CRYPTO)
     if( mbedtls_arm_has_support( MBEDTLS_ARM_CRYTO_SHA2 ) )
         return( mbedtls_sha256ce_process( ctx, data ) );
 #endif

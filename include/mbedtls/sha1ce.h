@@ -25,15 +25,12 @@
 
 #include "sha1.h"
 #include "config_arm_test.h"
-
-#define MBEDTLS_SHA1CE_SHA1      1
-
 /*
  * Enable this module if requested in the config.h
  * We only want to incude this code if both SHA1 and ARM Crypto
  * are configured
  */
-#if defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_SHA1_C)
+#if defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_SHA1_C) && defined(MBEDTLS_HAVE_ARM_CRYPTO)
 
 
 #ifdef __cplusplus

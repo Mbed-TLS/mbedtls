@@ -32,9 +32,7 @@
  * We only want to incude this code if both SHA256 and ARM Crypto
  * are configured
  */
-#if defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_SHA256_C)
-
-#define MBEDTLS_SHA256CE_SHA2      1
+#if defined(MBEDTLS_SHA256_C) && defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_HAVE_ARM_CRYPTO)
 
 #ifdef __cplusplus
 extern "C" {

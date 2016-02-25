@@ -25,8 +25,12 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+/* Check if the module is enabled */
 #if defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_SHA256_C)
 #include "mbedtls/sha256ce.h"
+
+/* Check if crypto is supported */
+#if defined(MBEDTLS_HAVE_ARM_CRYPTO)
 
 #include <string.h>
 
@@ -172,5 +176,6 @@ void mbedtls_sha256ce_process( mbedtls_sha256_context *ctx, const unsigned char 
 	vst1q_u32 (&ctx->state[4], s1);
 }
 
+#endif /* #if defined(MBEDTLS_HAVE_ARM_CRYPTO) */
 
 #endif /* MBEDTLS_SHA256CE_C */

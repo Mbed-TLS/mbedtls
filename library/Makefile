@@ -12,10 +12,8 @@ ifdef DEBUG
 LOCAL_CFLAGS += -g3
 endif
 
-# All GCC to use crypto instructions for ARMv8
-ifdef ARMCRYPTO
+# Need to tell GCC to use crypto instructions for ARMv8
 LOCAL_CFLAGS += -march=armv8-a+crypto
-endif
 
 # MicroBlaze specific options:
 # CFLAGS += -mno-xl-soft-mul -mxl-barrel-shift

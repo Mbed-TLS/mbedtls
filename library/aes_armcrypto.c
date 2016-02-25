@@ -29,9 +29,12 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-
-#if defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_AES_C)
+/* Check if the module is enabled */
+#if defined(MBEDTLS_AES_C) && defined(MBEDTLS_ARM_CRYTO_C)
 #include "mbedtls/aes_armcrypto.h"
+
+/* Check if crypto is supported */
+#if defined(MBEDTLS_HAVE_ARM_CRYPTO)
 
 #include <arm_neon.h>
 #include <stdio.h>
@@ -155,5 +158,7 @@ void mbedtls_aes_armcrypto_gcm_mult( unsigned char c[16],
     return;
 }
 
+#endif /* #if defined(MBEDTLS_HAVE_ARM_CRYPTO) */
 
 #endif /* defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_AES_C) */
+

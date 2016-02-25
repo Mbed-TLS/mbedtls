@@ -31,32 +31,34 @@
 
 /*
  * Set compile time flags for capabilities
- * Here we separate out the detection of NEON
- * and the optional Crypto extensions.
+ * Here we separate out the detection of the
+ * optional Crypto extensions.
  *
  * To limit complexity we will only support
- * ARMv8, A profile, AArch64 code.
+ * ARMv8, A profile, AArch64 code on Linux
+ *
+ * If the platform is suitable, then we define
+ * MBEDTLS_HAVE_ARM_CRYPTO which should then be
+ * used whenever a platform test is required.
  *
  */
 
-#if defined(__GNUC__) && __ARM_ARCH >= 8 && \
-    defined(__ARM_64BIT_STATE)  &&  __ARM_ARCH_PROFILE == 'A' && \
-    ! defined(MBEDTLS_HAVE_ARM_NEON)
-/* We always have NEON in this case */
-#define MBEDTLS_HAVE_ARM_NEON
-#endif
 
 
-/* Check for the optional Crypto extensions now */
-#if defined(MBEDTLS_HAVE_ARM_NEON) && defined(__ARM_FEATURE_CRYPTO) && ! defined(MBEDTLS_HAVE_ARM_CRYPTO)
+#if defined(__GNUC__) && \
+	defined(linux) && \
+	__ARM_ARCH >= 8 && \
+	__ARM_ARCH_PROFILE == 'A' && \
+    defined(__ARM_64BIT_STATE)  &&  \
+	defined(__ARM_FEATURE_CRYPTO) && \
+    ! defined(MBEDTLS_HAVE_ARM_CRYPTO)
+
 #define MBEDTLS_HAVE_ARM_CRYPTO
-#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#if defined(linux)
 #include <sys/auxv.h>
 #include <asm/hwcap.h>
 
@@ -68,34 +70,10 @@ extern "C" {
 
 #define mbedtls_arm_has_support( what ) ((getauxval(AT_HWCAP) & what) != 0)
 
-#else /* Not Linux so don't have a solution for accessing EL1 registers just now */
-
-#define MBEDTLS_ARM_CRYTO_CRC32	0
-#define MBEDTLS_ARM_CRYTO_SHA2	0
-#define MBEDTLS_ARM_CRYTO_SHA1	0
-#define MBEDTLS_ARM_CRYTO_AES	0
-#define MBEDTLS_ARM_CRYTO_PMULL 0
-
-#define mbedtls_arm_has_support( what ) (0)
-
-#endif /* defined(linux) */
-
-
-
 #ifdef __cplusplus
 }
 #endif
 
-
-/* Check that we are delivering what the config file is expecting */
-
-#if defined(MBEDTLS_ARM_NEON_C) && ( !defined(MBEDTLS_HAVE_ARM_NEON) )
-#error "MBEDTLS_ARM_NEON_C defined in config.h but support not available on platform. Try adding ARMCRYPTO=1 to make command line."
-#endif
-
-#if defined(MBEDTLS_ARM_CRYTO_C) && ( !defined(MBEDTLS_HAVE_ARM_CRYPTO) )
-#error "MBEDTLS_ARM_CRYTO_C defined in config.h but support not available on platform. Try adding ARMCRYPTO=1 to make command line."
-
-#endif
+#endif /* MBEDTLS_HAVE_ARM_CRYPTO */
 
 #endif /* MBEDTLS_CONFIG_ARM_TEST_H */

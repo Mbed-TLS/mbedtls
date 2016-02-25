@@ -28,10 +28,10 @@
 
 /*
  * Enable this module if requested in the config.h
- * We only want to incude this code if both AES and ARM Crypto
+ * We only want to include this code if both AES and ARM Crypto
  * are configured
  */
-#if defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_AES_C)
+#if defined(MBEDTLS_AES_C) && defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_HAVE_ARM_CRYPTO)
 
 #ifdef __cplusplus
 extern "C" {

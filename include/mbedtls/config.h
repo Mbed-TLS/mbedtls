@@ -1378,23 +1378,6 @@
  */
 #define MBEDTLS_ARM_CRYTO_C
 
-
-/**
- * \def MBEDTLS_ARM_NEON_C
- *
- * Enable the use of ARM NEON instructions to accelerate PKC
- *
- * Module:  library/aescryptoext.c
- *   		TODO: Add more
- * Caller:  library/aes.c
- * 			TODO: Add more
- *
- * Requires: MBEDTLS_HAVE_ARM_NEON
- *
- * This flag enables the use of ARM NEON instructions to accelerate PKC.
- */
-#define MBEDTLS_ARM_NEON_C
-
 /**
  * \def MBEDTLS_AES_C
  *

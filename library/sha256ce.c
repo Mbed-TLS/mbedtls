@@ -25,8 +25,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_SHA256CE_C)
-
+#if defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_SHA256_C)
 #include "mbedtls/sha256ce.h"
 
 #include <string.h>
@@ -35,7 +34,6 @@
 #define asm __asm
 #endif
 
-#if defined(MBEDTLS_HAVE_AARCH64)
 
 #if defined(__BYTE_ORDER__)
 # if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
@@ -50,27 +48,6 @@
 #include <sys/auxv.h>
 #include <asm/hwcap.h>
 #include <arm_neon.h>
-
-/*
- * SHA1-CE support detection routine
- */
-int mbedtls_sha256ce_has_support( unsigned int what )
-{
-	long mask;
-    static int done = 0;
-    static long hwcaps = 0;
-
-    if( ! done )
-    {
-        hwcaps= getauxval( AT_HWCAP );
-        done = 1;
-    }
-
-    mask = 0;
-    if( what & MBEDTLS_SHA256CE_SHA2 ) mask |= HWCAP_SHA2;
-
-    return ( (mask & hwcaps) == mask );
-}
 
 static const uint32_t K[] =
 {
@@ -195,6 +172,5 @@ void mbedtls_sha256ce_process( mbedtls_sha256_context *ctx, const unsigned char 
 	vst1q_u32 (&ctx->state[4], s1);
 }
 
-#endif /* MBEDTLS_HAVE_AARCH64 */
 
 #endif /* MBEDTLS_SHA256CE_C */

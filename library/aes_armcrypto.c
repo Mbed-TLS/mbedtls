@@ -30,7 +30,7 @@
 #endif
 
 
-#if defined(MBEDTLS_ARM_CRYTO_C)
+#if defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_AES_C)
 #include "mbedtls/aes_armcrypto.h"
 
 #include <arm_neon.h>
@@ -156,4 +156,4 @@ void mbedtls_aes_armcrypto_gcm_mult( unsigned char c[16],
 }
 
 
-#endif /* MBEDTLS_AESNI_C */
+#endif /* defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_AES_C) */

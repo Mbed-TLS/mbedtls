@@ -25,8 +25,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_SHA1CE_C)
-
+#if defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_SHA1_C)
 #include "mbedtls/sha1ce.h"
 
 #include <string.h>
@@ -35,7 +34,6 @@
 #define asm __asm
 #endif
 
-#if defined(MBEDTLS_HAVE_AARCH64)
 
 #if defined(__BYTE_ORDER__)
 # if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
@@ -47,30 +45,7 @@
 # error macro __BYTE_ORDER__ is not defined for this compiler
 #endif
 
-#include <sys/auxv.h>
-#include <asm/hwcap.h>
 #include <arm_neon.h>
-
-/*
- * SHA1-CE support detection routine
- */
-int mbedtls_sha1ce_has_support( unsigned int what )
-{
-	long mask;
-    static int done = 0;
-    static long hwcaps = 0;
-
-    if( ! done )
-    {
-        hwcaps= getauxval( AT_HWCAP );
-        done = 1;
-    }
-
-    mask = 0;
-    if( what & MBEDTLS_SHA1CE_SHA1 ) mask |= HWCAP_SHA1;
-
-    return ( (mask & hwcaps) == mask );
-}
 
 void mbedtls_sha1ce_process( mbedtls_sha1_context *ctx, const unsigned char data[64] )
 {
@@ -257,6 +232,6 @@ void mbedtls_sha1ce_process( mbedtls_sha1_context *ctx, const unsigned char data
 	ctx->state[4] = e;
 }
 
-#endif /* MBEDTLS_HAVE_AARCH64 */
+#endif /* defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_SHA1_C) */
 
-#endif /* MBEDTLS_SHA1CE_C */
+

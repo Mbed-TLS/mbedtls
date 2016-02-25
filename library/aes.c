@@ -873,7 +873,7 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
     unsigned char temp[16];
     static int (* ecb_func)(mbedtls_aes_context*, int, const unsigned char*, unsigned char*) = mbedtls_aes_crypt_ecb;
 
-#if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_ARM_CRYTO_C)
+#if defined(MBEDTLS_ARM_CRYTO_C)
 	if( mbedtls_arm_has_support(MBEDTLS_ARM_CRYTO_AES) ) {
 		ecb_func = mbedtls_aes_armcrypto_crypt_ecb;
 	}
@@ -947,7 +947,7 @@ int mbedtls_aes_crypt_cfb128( mbedtls_aes_context *ctx,
     size_t n = *iv_off;
     static int (* ecb_func)(mbedtls_aes_context*, int, const unsigned char*, unsigned char*) = mbedtls_aes_crypt_ecb;
 
-#if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_ARM_CRYTO_C)
+#if defined(MBEDTLS_ARM_CRYTO_C)
    	if( mbedtls_arm_has_support(MBEDTLS_ARM_CRYTO_AES) ) {
    		ecb_func = mbedtls_aes_armcrypto_crypt_ecb;
    	}
@@ -999,7 +999,7 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
     unsigned char ov[17];
     static int (* ecb_func)(mbedtls_aes_context*, int, const unsigned char*, unsigned char*) = mbedtls_aes_crypt_ecb;
 
-#if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_ARM_CRYTO_C)
+#if defined(MBEDTLS_ARM_CRYTO_C)
 	if( mbedtls_arm_has_support(MBEDTLS_ARM_CRYTO_AES) ) {
 		ecb_func = mbedtls_aes_armcrypto_crypt_ecb;
 	}
@@ -1041,7 +1041,7 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
     size_t n = *nc_off;
     static int (* ecb_func)(mbedtls_aes_context*, int, const unsigned char*, unsigned char*) = mbedtls_aes_crypt_ecb;
 
-#if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_ARM_CRYTO_C)
+#if defined(MBEDTLS_ARM_CRYTO_C)
 	if( mbedtls_arm_has_support(MBEDTLS_ARM_CRYTO_AES) ) {
 		ecb_func = mbedtls_aes_armcrypto_crypt_ecb;
 	}

@@ -24,29 +24,22 @@
 #define MBEDTLS_SHA1CE_H
 
 #include "sha1.h"
+#include "config_arm_test.h"
 
 #define MBEDTLS_SHA1CE_SHA1      1
 
-#if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) &&  \
-    defined(__aarch64__)   &&  \
-    ! defined(MBEDTLS_HAVE_AARCH64)
-#define MBEDTLS_HAVE_AARCH64
-#endif
+/*
+ * Enable this module if requested in the config.h
+ * We only want to incude this code if both SHA1 and ARM Crypto
+ * are configured
+ */
+#if defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_SHA1_C)
 
-#if defined(MBEDTLS_HAVE_AARCH64)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- * \brief          SHA1-CE features detection routine
- *
- * \param what     The features to detect.
- *
- * \return         1 if CPU has support for all features, 0 otherwise
- */
-int mbedtls_sha1ce_has_support( unsigned int what );
 
 /* Internal use */
 void mbedtls_sha1ce_process( mbedtls_sha1_context *ctx, const unsigned char data[64] );
@@ -55,6 +48,6 @@ void mbedtls_sha1ce_process( mbedtls_sha1_context *ctx, const unsigned char data
 }
 #endif
 
-#endif /* MBEDTLS_HAVE_AARCH64 */
+#endif /*  defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_SHA1_C) */
 
 #endif /* MBEDTLS_SHA1CE_H */

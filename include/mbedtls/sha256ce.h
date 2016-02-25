@@ -24,29 +24,21 @@
 #define MBEDTLS_SHA256CE_H
 
 #include "sha256.h"
+#include "config_arm_test.h"
+
+
+/*
+ * Enable this module if requested in the config.h
+ * We only want to incude this code if both SHA256 and ARM Crypto
+ * are configured
+ */
+#if defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_SHA256_C)
 
 #define MBEDTLS_SHA256CE_SHA2      1
-
-#if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) &&  \
-    defined(__aarch64__)   &&  \
-    ! defined(MBEDTLS_HAVE_AARCH64)
-#define MBEDTLS_HAVE_AARCH64
-#endif
-
-#if defined(MBEDTLS_HAVE_AARCH64)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/**
- * \brief          SHA256-CE features detection routine
- *
- * \param what     The features to detect.
- *
- * \return         1 if CPU has support for all features, 0 otherwise
- */
-int mbedtls_sha256ce_has_support( unsigned int what );
 
 /* Internal use */
 void mbedtls_sha256ce_process( mbedtls_sha256_context *ctx, const unsigned char data[64] );
@@ -55,6 +47,6 @@ void mbedtls_sha256ce_process( mbedtls_sha256_context *ctx, const unsigned char 
 }
 #endif
 
-#endif /* MBEDTLS_HAVE_AARCH64 */
+#endif /* defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_SHA256_C) */
 
 #endif /* MBEDTLS_SHA256CE_H */

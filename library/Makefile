@@ -1,7 +1,7 @@
 
 # Also see "include/mbedtls/config.h"
 
-CFLAGS	?= -O3 
+CFLAGS	?= -O2
 WARNING_CFLAGS ?=  -Wall -W -Wdeclaration-after-statement
 LDFLAGS ?=
 
@@ -12,6 +12,7 @@ ifdef DEBUG
 LOCAL_CFLAGS += -g3
 endif
 
+# All GCC to use crypto instructions for ARMv8
 ifdef ARMCRYPTO
 LOCAL_CFLAGS += -march=armv8-a+crypto
 endif
@@ -63,8 +64,8 @@ OBJS_CRYPTO=	aes.o		aesni.o		aes_armcrypto.o arc4.o		\
 		padlock.o	pem.o		pk.o		\
 		pk_wrap.o	pkcs12.o	pkcs5.o		\
 		pkparse.o	pkwrite.o	platform.o	\
-		ripemd160.o	rsa.o		sha1.o		\
-		sha256.o	sha512.o	threading.o	\
+		ripemd160.o	rsa.o		sha1.o 		sha1ce.o		\
+		sha256.o	sha256ce.o sha512.o	threading.o	\
 		timing.o	version.o			\
 		version_features.o		xtea.o
 

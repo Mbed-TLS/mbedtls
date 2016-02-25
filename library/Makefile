@@ -13,7 +13,7 @@ LOCAL_CFLAGS += -g3
 endif
 
 # Need to tell GCC to use crypto instructions for ARMv8
-LOCAL_CFLAGS += -march=armv8-a+crypto
+# LOCAL_CFLAGS += -march=armv8-a+crypto
 
 ifdef MTUNE
 CFLAGS += -mtune=$(MTUNE)

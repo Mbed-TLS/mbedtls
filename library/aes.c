@@ -838,6 +838,13 @@ int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
         return( mbedtls_aesni_crypt_ecb( ctx, mode, input, output ) );
 #endif
 
+#if  defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_HAVE_ARM_CRYPTO)
+    if( mbedtls_arm_has_support(MBEDTLS_ARM_CRYTO_AES) ) {
+    	return (mbedtls_aes_armcrypto_crypt_ecb( ctx, mode, input, output ));
+    }
+
+#endif
+
 #if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)
     if( aes_padlock_ace )
     {

@@ -5,6 +5,7 @@ option(LINK_WITH_PTHREAD "Explicitly link mbed TLS library to pthread." OFF)
 set(src_crypto
     aes.c
     aesni.c
+    aes_armcrypto.c
     arc4.c
     asn1parse.c
     asn1write.c
@@ -90,6 +91,14 @@ endif(CMAKE_COMPILER_IS_GNUCC)
 if(CMAKE_COMPILER_IS_CLANG)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmissing-declarations -Wmissing-prototypes -Wdocumentation -Wno-documentation-deprecated-sync -Wunreachable-code")
 endif(CMAKE_COMPILER_IS_CLANG)
+
+if(ARMCRYPTO)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=armv8-a+crypto")
+endif(ARMCRYPTO)
+
+if(MTUNE)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mtune=${MTUNE}")
+endif(MTUNE)
 
 if(WIN32)
     set(libs ${libs} ws2_32)

@@ -52,54 +52,56 @@ int mbedtls_aes_armcrypto_crypt_ecb( mbedtls_aes_context *ctx,
 	uint8_t *RK = (uint8_t*)ctx->rk;
 
 	// Load input and round key into into their vectors
-	state_vec = vld1q_u8(input);
+	state_vec = vld1q_u8( input );
 
 	if ( mode == MBEDTLS_AES_ENCRYPT )
 	{
 		// Initial AddRoundKey is in the loop due to AES instruction always doing AddRoundKey first
-		for( i = 0; i < ctx->nr - 1; i++ ) {
+		for( i = 0; i < ctx->nr - 1; i++ )
+		{
 			// Load Round Key
-			roundkey_vec = vld1q_u8(RK);
+			roundkey_vec = vld1q_u8( RK );
 			// Forward (AESE) round (AddRoundKey, SubBytes and ShiftRows)
-			state_vec = vaeseq_u8(state_vec, roundkey_vec);
+			state_vec = vaeseq_u8( state_vec, roundkey_vec );
 			// Mix Columns (AESMC)
-			state_vec = vaesmcq_u8(state_vec);
+			state_vec = vaesmcq_u8( state_vec );
 			// Move pointer ready to load next round key
 			RK += 16;
 		}
 
 		// Final Forward (AESE) round (AddRoundKey, SubBytes and ShiftRows). No Mix columns
-		roundkey_vec = vld1q_u8(RK); /* RK already moved in loop */
-		state_vec = vaeseq_u8(state_vec, roundkey_vec);
+		roundkey_vec = vld1q_u8( RK ); /* RK already moved in loop */
+		state_vec = vaeseq_u8( state_vec, roundkey_vec );
 	}
 	else
 	{
 		// Initial AddRoundKey is in the loop due to AES instruction always doing AddRoundKey first
-		for( i = 0; i < ctx->nr - 1; i++ ) {
+		for( i = 0; i < ctx->nr - 1; i++ )
+		{
 			// Load Round Key
-			roundkey_vec = vld1q_u8(RK);
+			roundkey_vec = vld1q_u8( RK );
 			// Reverse (AESD) round (AddRoundKey, SubBytes and ShiftRows)
-			state_vec = vaesdq_u8(state_vec, roundkey_vec);
+			state_vec = vaesdq_u8( state_vec, roundkey_vec );
 			// Inverse Mix Columns (AESIMC)
-			state_vec = vaesimcq_u8(state_vec);
+			state_vec = vaesimcq_u8( state_vec );
 			// Move pointer ready to load next round key
 			RK += 16;
 		}
 
 		// Final Reverse (AESD) round (AddRoundKey, SubBytes and ShiftRows). No Mix columns
-		roundkey_vec = vld1q_u8(RK); /* RK already moved in loop */
-		state_vec = vaesdq_u8(state_vec, roundkey_vec);
+		roundkey_vec = vld1q_u8( RK ); /* RK already moved in loop */
+		state_vec = vaesdq_u8( state_vec, roundkey_vec );
 	}
 
 	// Manually apply final Add RoundKey step (EOR)
 	RK += 16;
-	roundkey_vec = vld1q_u8(RK);
-	state_vec = veorq_u8(state_vec, roundkey_vec);
+	roundkey_vec = vld1q_u8( RK );
+	state_vec = veorq_u8( state_vec, roundkey_vec );
 
 	// Write results back to output array
-	vst1q_u8 (output, state_vec);
+	vst1q_u8( output, state_vec );
 
-	return 0;
+	return( 0 );
 }
 
 /* because the vmull_p64 intrinsic uses the wrong argument types: */
@@ -127,34 +129,34 @@ void mbedtls_aes_armcrypto_gcm_mult( unsigned char c[16],
 	uint8x16_t c_p; /* output */
 
 	/* reverse bits in each byte to convert from gcm format to little-little endian */
-	a_p = vrbitq_u8(vld1q_u8(a));
-	b_p = vrbitq_u8(vld1q_u8(b));
+	a_p = vrbitq_u8( vld1q_u8( a ) );
+	b_p = vrbitq_u8( vld1q_u8( b ) );
 
 	/* polynomial multiply (128*128->256bit). See [GCM-WP] algorithms 3. */
-	z = vdupq_n_u8(0);
-	r0 = (uint8x16_t)vmull_low_p64((poly64x2_t)a_p, (poly64x2_t)b_p);
-	r1 = (uint8x16_t)vmull_high_p64((poly64x2_t)a_p, (poly64x2_t)b_p);
-	t0 = vextq_u8(b_p, b_p, 8);
-	t1 = (uint8x16_t)vmull_low_p64((poly64x2_t)a_p, (poly64x2_t)t0);
-	t0 = (uint8x16_t)vmull_high_p64((poly64x2_t)a_p, (poly64x2_t)t0);
-	t0 = veorq_u8(t0, t1);
-	t1 = vextq_u8(z, t0, 8);
-	r0 = veorq_u8(r0, t1);
-	t1 = vextq_u8(t0, z, 8);
-	r1 = veorq_u8(r1, t1);
+	z = vdupq_n_u8( 0 );
+	r0 = (uint8x16_t)vmull_low_p64( (poly64x2_t)a_p, (poly64x2_t)b_p );
+	r1 = (uint8x16_t)vmull_high_p64( (poly64x2_t)a_p, (poly64x2_t)b_p );
+	t0 = vextq_u8( b_p, b_p, 8 );
+	t1 = (uint8x16_t)vmull_low_p64( (poly64x2_t)a_p, (poly64x2_t)t0 );
+	t0 = (uint8x16_t)vmull_high_p64( (poly64x2_t)a_p, (poly64x2_t)t0 );
+	t0 = veorq_u8( t0, t1 );
+	t1 = vextq_u8( z, t0, 8 );
+	r0 = veorq_u8( r0, t1 );
+	t1 = vextq_u8( t0, z, 8 );
+	r1 = veorq_u8( r1, t1 );
 
 	/* polynomial reduction (256->128bit). See [GCM-WP] algorithms 5. */
-	p = (uint8x16_t)vdupq_n_u64(0x0000000000000087);
-	t0 = (uint8x16_t)vmull_high_p64((poly64x2_t)r1, (poly64x2_t)p);
-	t1 = vextq_u8(t0, z, 8);
-	r1 = veorq_u8(r1, t1);
-	t1 = vextq_u8(z, t0, 8);
-	r0 = veorq_u8(r0, t1);
-	t0 = (uint8x16_t)vmull_low_p64((poly64x2_t)r1, (poly64x2_t)p);
-	c_p = veorq_u8(r0, t0);
+	p = (uint8x16_t)vdupq_n_u64( 0x0000000000000087 );
+	t0 = (uint8x16_t)vmull_high_p64( (poly64x2_t)r1, (poly64x2_t)p );
+	t1 = vextq_u8( t0, z, 8 );
+	r1 = veorq_u8( r1, t1 );
+	t1 = vextq_u8( z, t0, 8 );
+	r0 = veorq_u8( r0, t1 );
+	t0 = (uint8x16_t)vmull_low_p64( (poly64x2_t)r1, (poly64x2_t)p );
+	c_p = veorq_u8( r0, t0 );
 
 	/* reverse bits in each byte to convert from little-little endian to gcm format */
-	vst1q_u8(c, vrbitq_u8(c_p));
+	vst1q_u8( c, vrbitq_u8( c_p ) );
     return;
 }
 

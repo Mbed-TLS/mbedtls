@@ -135,7 +135,7 @@ static int gcm_gen_table( mbedtls_gcm_context *ctx )
 
 #if defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_HAVE_ARM_CRYPTO)
     /* With CLMUL support, we need only h, not the rest of the table */
-    if( mbedtls_arm_has_support(MBEDTLS_ARM_CRYTO_PMULL) )
+    if( mbedtls_arm_has_support( MBEDTLS_ARM_CRYTO_PMULL ) )
         return( 0 );
 #endif
 
@@ -239,7 +239,7 @@ static void gcm_mult( mbedtls_gcm_context *ctx, const unsigned char x[16],
 #endif /* MBEDTLS_AESNI_C && MBEDTLS_HAVE_X86_64 */
 
 #if defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_HAVE_ARM_CRYPTO)
-    if(mbedtls_arm_has_support(MBEDTLS_ARM_CRYTO_PMULL))
+    if( mbedtls_arm_has_support( MBEDTLS_ARM_CRYTO_PMULL ) )
     {
         unsigned char h[16];
 

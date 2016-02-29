@@ -1,5 +1,5 @@
 /**
- * \file aescryptoext.h
+ * \file aes_armcrypto.h
  *
  * \brief AES Crypto Extension for hardware AES acceleration on some ARMv8-A processors.
  *
@@ -20,7 +20,7 @@
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
-#ifndef MBEDTLS_AESCRYPTOEXT_H
+#ifndef MBEDTLS_AES_ARMCRYPTO_H
 #define MBEDTLS_AES_ARMCRYPTO_H
 
 #include "aes.h"

@@ -178,4 +178,4 @@ void mbedtls_sha256ce_process( mbedtls_sha256_context *ctx, const unsigned char 
 
 #endif /* #if defined(MBEDTLS_HAVE_ARM_CRYPTO) */
 
-#endif /* MBEDTLS_SHA256CE_C */
+#endif /* #if defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_SHA256_C) */

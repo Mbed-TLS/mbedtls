@@ -45,13 +45,7 @@
 
 
 
-#if defined(__GNUC__) && \
-	defined(linux) && \
-	__ARM_ARCH >= 8 && \
-	__ARM_ARCH_PROFILE == 'A' && \
-    defined(__ARM_64BIT_STATE)  &&  \
-	defined(__ARM_FEATURE_CRYPTO) && \
-    ! defined(MBEDTLS_HAVE_ARM_CRYPTO)
+#if defined(__GNUC__) && defined(linux) && __ARM_ARCH >= 8 && __ARM_ARCH_PROFILE == 'A' && defined(__ARM_64BIT_STATE)  &&  defined(__ARM_FEATURE_CRYPTO) && ! defined(MBEDTLS_HAVE_ARM_CRYPTO)
 
 #define MBEDTLS_HAVE_ARM_CRYPTO
 
@@ -68,7 +62,7 @@ extern "C" {
 #define MBEDTLS_ARM_CRYTO_AES	HWCAP_AES
 #define MBEDTLS_ARM_CRYTO_PMULL HWCAP_PMULL
 
-#define mbedtls_arm_has_support( what ) ((getauxval(AT_HWCAP) & what) != 0)
+#define MBEDTLS_ARM_HAS_SUPPORT( what ) ((getauxval(AT_HWCAP) & what) != 0)
 
 #ifdef __cplusplus
 }

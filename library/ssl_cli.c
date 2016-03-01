@@ -2600,7 +2600,7 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
      *
      *  Same goes for the hash in TLS 1.2's signature_algorithms: at this
      *  point we only have one hash available (see comments in
-     *  write_certificate_verify), so let's jsut use what we have.
+     *  write_certificate_verify), so let's just use what we have.
      *
      *  However, we still minimally parse the message to check it is at least
      *  superficially sane.

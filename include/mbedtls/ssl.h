@@ -995,7 +995,8 @@ typedef int mbedtls_ssl_send_t( void *ctx,
  *
  * \note           That callback may be either blocking or non-blocking.
  *
- * \param ctx      Context for the send callback (typically a file descriptor)
+ * \param ctx      Context for the receive callback (typically a file
+ *                 descriptor)
  * \param buf      Buffer to write the received data to
  * \param len      Length of the receive buffer
  *
@@ -1019,7 +1020,7 @@ typedef int mbedtls_ssl_recv_t( void *ctx,
  *                 timeout delay expires, or the operation is interrupted by a
  *                 signal.
  *
- * \param ctx      Context for the send callback (typically a file descriptor)
+ * \param ctx      Context for the receive callback (typically a file descriptor)
  * \param buf      Buffer to write the received data to
  * \param len      Length of the receive buffer
  * \param timeout  Maximum nomber of millisecondes to wait for data
@@ -1620,9 +1621,10 @@ int mbedtls_ssl_conf_own_cert( mbedtls_ssl_config *conf,
  *                 want to use \c mbedtls_ssl_conf_psk_cb() instead.
  *
  * \note           Currently clients can only register one pre-shared key.
- *                 In other words, the servers' idendity hint is ignored.
- *                 Please contact us if you need ability to set multiple PSKs
- *                 on clients and select one based on the identity hint.
+ *                 In other words, the servers' identity hint is ignored.
+ *                 Support for setting multiple PSKs on clients and selecting
+ *                 one based on the identity hint is not a planned feature but
+ *                 feedback is welcomed.
  *
  * \param conf     SSL configuration
  * \param psk      pointer to the pre-shared key

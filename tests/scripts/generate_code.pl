@@ -2,6 +2,8 @@
 
 # generate_code.pl
 #
+# Copyright (c) 2009-2016, ARM Limited, All Rights Reserved
+#
 # Purpose
 #
 # Generates the test suite code given inputs of the test suite directory that
@@ -117,7 +119,7 @@ print TEST_FILE << "END";
  *      Main code file  : $test_main_file
  *      Helper file     : $test_common_helper_file
  *      Test suite file : $test_case_file
- *      Test suite daya : $test_case_data
+ *      Test suite data : $test_case_data
  *
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)

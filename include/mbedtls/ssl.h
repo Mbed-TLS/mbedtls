@@ -411,6 +411,116 @@ typedef enum
 }
 mbedtls_ssl_states;
 
+/**
+ * \brief          Callback type: send data on the network.
+ *
+ * \note           That callback may be either blocking or non-blocking.
+ *
+ * \param ctx      Context for the send callback (typically a file descriptor)
+ * \param buf      Buffer holding the date to send
+ * \param len      Length of the data to send
+ *
+ * \return         The callback must return the number of bytes sent if any,
+ *                 or a non-zero error code.
+ *                 If performing non-blocking I/O, \c MBEDTLS_ERR_SSL_WANT_WRITE
+ *                 must be returned when the operation would block.
+ *
+ * \note           The callback is allowed to send less bytes than requested.
+ *                 It must always return the number of bytes actually sent.
+ */
+typedef int mbedtls_ssl_send_t( void *ctx,
+                                const unsigned char *buf,
+                                size_t len );
+
+/**
+ * \brief          Callback type: receive data from the network.
+ *
+ * \note           That callback may be either blocking or non-blocking.
+ *
+ * \param ctx      Context for the receive callback (typically a file
+ *                 descriptor)
+ * \param buf      Buffer to write the received data to
+ * \param len      Length of the receive buffer
+ *
+ * \return         The callback must return the number of bytes received,
+ *                 or a non-zero error code.
+ *                 If performing non-blocking I/O, \c MBEDTLS_ERR_SSL_WANT_READ
+ *                 must be returned when the operation would block.
+ *
+ * \note           The callback may receive less bytes than the length of the
+ *                 buffer. It must always return the number of bytes actually
+ *                 received and written to the buffer.
+ */
+typedef int mbedtls_ssl_recv_t( void *ctx,
+                                unsigned char *buf,
+                                size_t len );
+
+/**
+ * \brief          Callback type: receive data from the network, with timeout
+ *
+ * \note           That callback must block until data is received, or the
+ *                 timeout delay expires, or the operation is interrupted by a
+ *                 signal.
+ *
+ * \param ctx      Context for the receive callback (typically a file descriptor)
+ * \param buf      Buffer to write the received data to
+ * \param len      Length of the receive buffer
+ * \param timeout  Maximum nomber of millisecondes to wait for data
+ *                 0 means no timeout (potentially wait forever)
+ *
+ * \return         The callback must return the number of bytes received,
+ *                 or a non-zero error code:
+ *                 \c MBEDTLS_ERR_SSL_TIMEOUT if the operation timed out,
+ *                 \c MBEDTLS_ERR_SSL_WANT_READ if interrupted by a signal.
+ *
+ * \note           The callback may receive less bytes than the length of the
+ *                 buffer. It must always return the number of bytes actually
+ *                 received and written to the buffer.
+ */
+typedef int mbedtls_ssl_recv_timeout_t( void *ctx,
+                                        unsigned char *buf,
+                                        size_t len,
+                                        uint32_t timeout );
+/**
+ * \brief          Callback type: set a pair of timers/delays to watch
+ *
+ * \param ctx      Context pointer
+ * \param int_ms   Intermediate delay in milliseconds
+ * \param fin_ms   Final delay in milliseconds
+ *                 0 cancels the current timer.
+ *
+ * \note           This callback must at least store the necessary information
+ *                 for the associated \c mbedtls_ssl_get_timer_t callback to
+ *                 return correct information.
+ *
+ * \note           If using a event-driven style of programming, an event must
+ *                 be generated when the final delay is passed. The event must
+ *                 cause a call to \c mbedtls_ssl_handshake() with the proper
+ *                 SSL context to be scheduled. Care must be taken to ensure
+ *                 that at most one such call happens at a time.
+ *
+ * \note           Only one timer at a time must be running. Calling this
+ *                 function while a timer is running must cancel it. Cancelled
+ *                 timers must not generate any event.
+ */
+typedef void mbedtls_ssl_set_timer_t( void * ctx,
+                                      uint32_t int_ms,
+                                      uint32_t fin_ms );
+
+/**
+ * \brief          Callback type: get status of timers/delays
+ *
+ * \param ctx      Context pointer
+ *
+ * \return         This callback must return:
+ *                 -1 if cancelled (fin_ms == 0),
+ *                  0 if none of the delays is passed,
+ *                  1 if only the intermediate delay is passed,
+ *                  2 if the final delay is passed.
+ */
+typedef int mbedtls_ssl_get_timer_t( void * ctx );
+
+
 /* Defined below */
 typedef struct mbedtls_ssl_session mbedtls_ssl_session;
 typedef struct mbedtls_ssl_context mbedtls_ssl_context;
@@ -662,12 +772,11 @@ struct mbedtls_ssl_context
     unsigned badmac_seen;       /*!< records with a bad MAC received    */
 #endif
 
-    /*
-     * Callbacks
-     */
-    int (*f_send)(void *, const unsigned char *, size_t);
-    int (*f_recv)(void *, unsigned char *, size_t);
-    int (*f_recv_timeout)(void *, unsigned char *, size_t, uint32_t);
+    mbedtls_ssl_send_t *f_send; /*!< Callback for network send */
+    mbedtls_ssl_recv_t *f_recv; /*!< Callback for network receive */
+    mbedtls_ssl_recv_timeout_t *f_recv_timeout;
+                                /*!< Callback for network receive with timeout */
+
     void *p_bio;                /*!< context for I/O operations   */
 
     /*
@@ -693,8 +802,9 @@ struct mbedtls_ssl_context
      * Timers
      */
     void *p_timer;              /*!< context for the timer callbacks */
-    void (*f_set_timer)(void *, uint32_t, uint32_t); /*!< set timer callback */
-    int (*f_get_timer)(void *); /*!< get timer callback             */
+
+    mbedtls_ssl_set_timer_t *f_set_timer;       /*!< set timer callback */
+    mbedtls_ssl_get_timer_t *f_get_timer;       /*!< get timer callback */
 
     /*
      * Record layer (incoming data)
@@ -970,77 +1080,6 @@ void mbedtls_ssl_conf_dbg( mbedtls_ssl_config *conf,
                   void  *p_dbg );
 
 /**
- * \brief          Callback type: send data on the network.
- *
- * \note           That callback may be either blocking or non-blocking.
- *
- * \param ctx      Context for the send callback (typically a file descriptor)
- * \param buf      Buffer holding the date to send
- * \param len      Length of the data to send
- *
- * \return         The callback must return the number of bytes sent if any,
- *                 or a non-zero error code.
- *                 If performing non-blocking I/O, \c MBEDTLS_ERR_SSL_WANT_WRITE
- *                 must be returned when the operation would block.
- *
- * \note           The callback is allowed to send less bytes than requested.
- *                 It must always return the number of bytes actually sent.
- */
-typedef int mbedtls_ssl_send_t( void *ctx,
-                                const unsigned char *buf,
-                                size_t len );
-
-/**
- * \brief          Callback type: receive data from the network.
- *
- * \note           That callback may be either blocking or non-blocking.
- *
- * \param ctx      Context for the receive callback (typically a file
- *                 descriptor)
- * \param buf      Buffer to write the received data to
- * \param len      Length of the receive buffer
- *
- * \return         The callback must return the number of bytes received,
- *                 or a non-zero error code.
- *                 If performing non-blocking I/O, \c MBEDTLS_ERR_SSL_WANT_READ
- *                 must be returned when the operation would block.
- *
- * \note           The callback may receive less bytes than the length of the
- *                 buffer. It must always return the number of bytes actually
- *                 received and written to the buffer.
- */
-typedef int mbedtls_ssl_recv_t( void *ctx,
-                                unsigned char *buf,
-                                size_t len );
-
-/**
- * \brief          Callback type: receive data from the network, with timeout
- *
- * \note           That callback must block until data is received, or the
- *                 timeout delay expires, or the operation is interrupted by a
- *                 signal.
- *
- * \param ctx      Context for the receive callback (typically a file descriptor)
- * \param buf      Buffer to write the received data to
- * \param len      Length of the receive buffer
- * \param timeout  Maximum nomber of millisecondes to wait for data
- *                 0 means no timeout (potentially wait forever)
- *
- * \return         The callback must return the number of bytes received,
- *                 or a non-zero error code:
- *                 \c MBEDTLS_ERR_SSL_TIMEOUT if the operation timed out,
- *                 \c MBEDTLS_ERR_SSL_WANT_READ if interrupted by a signal.
- *
- * \note           The callback may receive less bytes than the length of the
- *                 buffer. It must always return the number of bytes actually
- *                 received and written to the buffer.
- */
-typedef int mbedtls_ssl_recv_timeout_t( void *ctx,
-                                        unsigned char *buf,
-                                        size_t len,
-                                        uint32_t timeout );
-
-/**
  * \brief          Set the underlying BIO callbacks for write, read and
  *                 read-with-timeout.
  *
@@ -1092,45 +1131,6 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
  *                 altogether and handle timeouts at the application layer.
  */
 void mbedtls_ssl_conf_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout );
-
-/**
- * \brief          Callback type: set a pair of timers/delays to watch
- *
- * \param ctx      Context pointer
- * \param int_ms   Intermediate delay in milliseconds
- * \param fin_ms   Final delay in milliseconds
- *                 0 cancels the current timer.
- *
- * \note           This callback must at least store the necessary information
- *                 for the associated \c mbedtls_ssl_get_timer_t callback to
- *                 return correct information.
- *
- * \note           If using a event-driven style of programming, an event must
- *                 be generated when the final delay is passed. The event must
- *                 cause a call to \c mbedtls_ssl_handshake() with the proper
- *                 SSL context to be scheduled. Care must be taken to ensure
- *                 that at most one such call happens at a time.
- *
- * \note           Only one timer at a time must be running. Calling this
- *                 function while a timer is running must cancel it. Cancelled
- *                 timers must not generate any event.
- */
-typedef void mbedtls_ssl_set_timer_t( void * ctx,
-                                      uint32_t int_ms,
-                                      uint32_t fin_ms );
-
-/**
- * \brief          Callback type: get status of timers/delays
- *
- * \param ctx      Context pointer
- *
- * \return         This callback must return:
- *                 -1 if cancelled (fin_ms == 0),
- *                  0 if none of the delays is passed,
- *                  1 if only the intermediate delay is passed,
- *                  2 if the final delay is passed.
- */
-typedef int mbedtls_ssl_get_timer_t( void * ctx );
 
 /**
  * \brief          Set the timer callbacks (Mandatory for DTLS.)

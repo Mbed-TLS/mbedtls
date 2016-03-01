@@ -11,9 +11,9 @@ Bugfix
    * Fix issue in Makefile that prevented building using armar. #386
    * Fix memory leak that occured only when ECJPAKE was enabled and ECDHE and
      ECDSA was disabled in config.h . The leak didn't occur by default.
-   * Fix an issue that caused valid certificates being rejected whenever an
-   expired or not yet valid version of the trusted certificate was before the
-   valid version in the trusted certificate list.
+   * Fix an issue that caused valid certificates to be rejected whenever an
+     expired or not yet valid certificate was parsed before a valid certificate
+     in the trusted certificate list.
 
 Changes
    * On ARM platforms, when compiling with -O0 with GCC, Clang or armcc5,

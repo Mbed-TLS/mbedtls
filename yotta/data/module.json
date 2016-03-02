@@ -13,6 +13,6 @@
         "mbed": { "cmsis-core": "^1.0.0" }
     },
     "testTargetDependencies": {
-        "mbed": { "mbed-drivers": "~0.11.0" }
+        "mbed": { "mbed-drivers": "^1.0.0" }
     }
 }

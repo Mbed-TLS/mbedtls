@@ -1,10 +1,25 @@
 #!/usr/bin/perl
 
-# test dependencies on individual curves in tests
-# - build
-# - run test suite
+# curves.pl
 #
-# Usage: tests/scripts/curves.pl
+# Copyright (c) 2014-2016, ARM Limited, All Rights Reserved
+#
+# Purpose
+#
+# To test the code dependencies on individual curves in each test suite. This
+# is a verification step to ensure we don't ship test suites that do not work
+# for some build options.
+#
+# The process is:
+#       for each possible curve
+#           build the library and test suites with the curve disabled
+#           execute the test suites
+#
+# And any test suite with the wrong dependencies will fail.
+#
+# Usage: curves.pl
+#
+# This script should be executed from the root of the project directory.
 
 use warnings;
 use strict;

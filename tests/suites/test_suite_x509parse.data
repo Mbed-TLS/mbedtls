@@ -696,19 +696,19 @@ depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_ECP_DP_SECP384R1_ENABL
 x509_verify:"data_files/enco-cert-utf8str.pem":"data_files/enco-ca-prstr.pem":"data_files/crl_cat_rsa-ec.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #82 (Not yet valid CA and valid CA)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED
 x509_verify:"data_files/server5.crt":"data_files/test-ca2_cat-future-present.crt":"data_files/crl-ec-sha1.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #83 (valid CA and Not yet valid CA)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED
 x509_verify:"data_files/server5.crt":"data_files/test-ca2_cat-present-future.crt":"data_files/crl-ec-sha1.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #84 (valid CA and Not yet valid CA)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED
 x509_verify:"data_files/server5.crt":"data_files/test-ca2_cat-present-past.crt":"data_files/crl-ec-sha1.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #85 (Not yet valid CA and valid CA)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED
 x509_verify:"data_files/server5.crt":"data_files/test-ca2_cat-past-present.crt":"data_files/crl-ec-sha1.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification callback: trusted EE cert

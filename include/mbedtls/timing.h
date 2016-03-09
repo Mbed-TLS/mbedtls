@@ -33,7 +33,9 @@
 // Regular implementation
 //
 
+#if !VXWORKS
 #include <stdint.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {

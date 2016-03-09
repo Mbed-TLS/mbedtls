@@ -41,7 +41,9 @@
 #define mbedtls_free       free
 #endif
 
+#if !VXWORKS
 #include <stdint.h>
+#endif
 
 #if defined(MBEDTLS_HAVE_TIME)
 #include <time.h>

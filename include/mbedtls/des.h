@@ -30,7 +30,9 @@
 #endif
 
 #include <stddef.h>
+#if !VXWORKS
 #include <stdint.h>
+#endif
 
 #define MBEDTLS_DES_ENCRYPT     1
 #define MBEDTLS_DES_DECRYPT     0

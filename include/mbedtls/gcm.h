@@ -25,7 +25,9 @@
 
 #include "cipher.h"
 
+#if !VXWORKS
 #include <stdint.h>
+#endif
 
 #define MBEDTLS_GCM_ENCRYPT     1
 #define MBEDTLS_GCM_DECRYPT     0

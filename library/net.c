@@ -69,7 +69,9 @@ static int wsa_init_done = 0;
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#if !VXWORKS
 #include <sys/time.h>
+#endif
 #include <unistd.h>
 #include <signal.h>
 #include <fcntl.h>
@@ -91,7 +93,9 @@ static int wsa_init_done = 0;
 
 #include <time.h>
 
+#if !VXWORKS
 #include <stdint.h>
+#endif
 
 /*
  * Prepare for using the sockets interface
@@ -208,7 +212,11 @@ int mbedtls_net_bind( mbedtls_net_context *ctx, const char *bind_ip, const char 
 
         n = 1;
         if( setsockopt( ctx->fd, SOL_SOCKET, SO_REUSEADDR,
+#if VXWORKS
+                        (char *) &n, sizeof( n ) ) != 0 )
+#else
                         (const char *) &n, sizeof( n ) ) != 0 )
+#endif
         {
             close( ctx->fd );
             ret = MBEDTLS_ERR_NET_SOCKET_FAILED;
@@ -363,8 +371,13 @@ int mbedtls_net_accept( mbedtls_net_context *bind_ctx,
                          (struct sockaddr *) &local_addr, &n ) != 0 ||
             ( bind_ctx->fd = (int) socket( local_addr.ss_family,
                                            SOCK_DGRAM, IPPROTO_UDP ) ) < 0 ||
+#if VXWORKS
+            setsockopt( bind_ctx->fd, SOL_SOCKET, SO_REUSEADDR,
+                        (char *) &one, sizeof( one ) ) != 0 )
+#else
             setsockopt( bind_ctx->fd, SOL_SOCKET, SO_REUSEADDR,
                         (const char *) &one, sizeof( one ) ) != 0 )
+#endif
         {
             return( MBEDTLS_ERR_NET_SOCKET_FAILED );
         }
@@ -538,7 +551,11 @@ int mbedtls_net_send( void *ctx, const unsigned char *buf, size_t len )
     if( fd < 0 )
         return( MBEDTLS_ERR_NET_INVALID_CONTEXT );
 
+#if VXWORKS
+    ret = (int) write( fd, (char*) buf, len );
+#else
     ret = (int) write( fd, buf, len );
+#endif
 
     if( ret < 0 )
     {

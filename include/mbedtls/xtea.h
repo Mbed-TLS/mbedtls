@@ -30,7 +30,9 @@
 #endif
 
 #include <stddef.h>
+#if !VXWORKS
 #include <stdint.h>
+#endif
 
 #define MBEDTLS_XTEA_ENCRYPT     1
 #define MBEDTLS_XTEA_DECRYPT     0

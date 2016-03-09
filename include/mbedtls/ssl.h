@@ -417,7 +417,7 @@ mbedtls_ssl_states;
  * \note           That callback may be either blocking or non-blocking.
  *
  * \param ctx      Context for the send callback (typically a file descriptor)
- * \param buf      Buffer holding the date to send
+ * \param buf      Buffer holding the data to send
  * \param len      Length of the data to send
  *
  * \return         The callback must return the number of bytes sent if any,
@@ -425,7 +425,7 @@ mbedtls_ssl_states;
  *                 If performing non-blocking I/O, \c MBEDTLS_ERR_SSL_WANT_WRITE
  *                 must be returned when the operation would block.
  *
- * \note           The callback is allowed to send less bytes than requested.
+ * \note           The callback is allowed to send fewer bytes than requested.
  *                 It must always return the number of bytes actually sent.
  */
 typedef int mbedtls_ssl_send_t( void *ctx,
@@ -447,7 +447,7 @@ typedef int mbedtls_ssl_send_t( void *ctx,
  *                 If performing non-blocking I/O, \c MBEDTLS_ERR_SSL_WANT_READ
  *                 must be returned when the operation would block.
  *
- * \note           The callback may receive less bytes than the length of the
+ * \note           The callback may receive fewer bytes than the length of the
  *                 buffer. It must always return the number of bytes actually
  *                 received and written to the buffer.
  */
@@ -473,7 +473,7 @@ typedef int mbedtls_ssl_recv_t( void *ctx,
  *                 \c MBEDTLS_ERR_SSL_TIMEOUT if the operation timed out,
  *                 \c MBEDTLS_ERR_SSL_WANT_READ if interrupted by a signal.
  *
- * \note           The callback may receive less bytes than the length of the
+ * \note           The callback may receive fewer bytes than the length of the
  *                 buffer. It must always return the number of bytes actually
  *                 received and written to the buffer.
  */
@@ -1102,7 +1102,7 @@ void mbedtls_ssl_conf_dbg( mbedtls_ssl_config *conf,
  *
  * \note           See the documentations of \c mbedtls_ssl_sent_t,
  *                 \c mbedtls_ssl_recv_t and \c mbedtls_ssl_recv_timeout_t for
- *                 the convetions those callbacks must follow.
+ *                 the conventions those callbacks must follow.
  *
  * \note           On some platforms, net.c provides \c mbedtls_net_send(),
  *                 \c mbedtls_net_recv() and \c mbedtls_net_recv_timeout()

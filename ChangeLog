@@ -14,6 +14,8 @@ Bugfix
    * Fix an issue that caused valid certificates to be rejected whenever an
      expired or not yet valid certificate was parsed before a valid certificate
      in the trusted certificate list.
+   * Fix bug in mbedtls_x509_crt_parse that caused trailing extra data in the 
+     buffer after DER certificates to be included in the raw representation.
 
 Changes
    * On ARM platforms, when compiling with -O0 with GCC, Clang or armcc5,

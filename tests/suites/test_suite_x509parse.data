@@ -771,7 +771,7 @@ X509 Certificate ASN1 (Incorrect first tag)
 x509parse_crt:"":"":MBEDTLS_ERR_X509_INVALID_FORMAT
 
 X509 Certificate ASN1 (Correct first tag, data length does not match)
-x509parse_crt:"300000":"":MBEDTLS_ERR_X509_INVALID_FORMAT + MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+x509parse_crt:"300000":"":MBEDTLS_ERR_X509_INVALID_FORMAT + MBEDTLS_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (Correct first tag, no more data)
 x509parse_crt:"3000":"":MBEDTLS_ERR_X509_INVALID_FORMAT + MBEDTLS_ERR_ASN1_OUT_OF_DATA

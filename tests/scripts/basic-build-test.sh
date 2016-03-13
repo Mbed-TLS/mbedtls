@@ -117,8 +117,8 @@ TOTAL_AVAIL=$(($TOTAL_AVAIL + $PASSED_TESTS + $FAILED_TESTS + $SKIPPED_TESTS))
 TOTAL_EXED=$(($TOTAL_EXED + $PASSED_TESTS + $FAILED_TESTS))
 
 
-# Step 3c - System tests
-echo "System tests - tests/ssl-opt.sh"
+# Step 3c - TLS Options tests
+echo "TLS Options tests - tests/ssl-opt.sh"
 
 PASSED_TESTS=$(tail -n5 sys-test-$TEST_OUTPUT|sed -n -e 's/.* (\([0-9]*\) \/ [0-9]* tests ([0-9]* skipped))$/\1/p')
 SKIPPED_TESTS=$(tail -n5 sys-test-$TEST_OUTPUT|sed -n -e 's/.* ([0-9]* \/ [0-9]* tests (\([0-9]*\) skipped))$/\1/p')
@@ -139,8 +139,8 @@ TOTAL_AVAIL=$(($TOTAL_AVAIL + $TOTAL_TESTS + $SKIPPED_TESTS))
 TOTAL_EXED=$(($TOTAL_EXED + $TOTAL_TESTS))
 
 
-# Step 3d - Compatibility tests
-echo "Compatibility tests - tests/compat.sh"
+# Step 3d - System Compatibility tests
+echo "System/Compatibility tests - tests/compat.sh"
 
 PASSED_TESTS=$(tail -n5 compat-test-$TEST_OUTPUT|sed -n -e 's/.* (\([0-9]*\) \/ [0-9]* tests ([0-9]* skipped))$/\1/p')
 SKIPPED_TESTS=$(tail -n5 compat-test-$TEST_OUTPUT|sed -n -e 's/.* ([0-9]* \/ [0-9]* tests (\([0-9]*\) skipped))$/\1/p')
@@ -179,7 +179,7 @@ echo "Coverage"
 LINES_TESTED=$(tail -n3 cov-$TEST_OUTPUT|sed -n -e 's/  lines......: [0-9]*.[0-9]% (\([0-9]*\) of [0-9]* lines)/\1/p')
 LINES_TOTAL=$(tail -n3 cov-$TEST_OUTPUT|sed -n -e 's/  lines......: [0-9]*.[0-9]% ([0-9]* of \([0-9]*\) lines)/\1/p')
 FUNCS_TESTED=$(tail -n3 cov-$TEST_OUTPUT|sed -n -e 's/  functions..: [0-9]*.[0-9]% (\([0-9]*\) of [0-9]* functions)$/\1/p')
-FUNCS_TOTAL=$(tail -n3 cov-$TEST_OUTPUT|sed -n -e 's/  functions..: [0-9.]*.[0-9]% (\([0-9]*\) of [0-9]* functions)$/\1/p')
+FUNCS_TOTAL=$(tail -n3 cov-$TEST_OUTPUT|sed -n -e 's/  functions..: [0-9]*.[0-9]% ([0-9]* of \([0-9]*\) functions)$/\1/p')
 
 LINES_PERCENT=$((1000*$LINES_TESTED/$LINES_TOTAL))
 LINES_PERCENT="$(($LINES_PERCENT/10)).$(($LINES_PERCENT-($LINES_PERCENT/10)*10))"

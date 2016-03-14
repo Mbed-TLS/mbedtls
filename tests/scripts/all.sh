@@ -133,6 +133,7 @@ tests/compat.sh
 
 msg "build: Default + SSLv3 (ASan build)" # ~ 6 min
 cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl set MBEDTLS_SSL_PROTO_SSL3
 CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
 make
@@ -149,7 +150,6 @@ tests/ssl-opt.sh
 
 msg "build: cmake, full config, clang" # ~ 50s
 cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
 CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check .

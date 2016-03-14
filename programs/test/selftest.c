@@ -99,7 +99,7 @@ static int run_test_snprintf( void )
 
 int main( int argc, char *argv[] )
 {
-    int ret = 0, v, suites_tested = 0, suites_failed =0,
+    int ret = 0, v, suites_tested = 0, suites_failed = 0,
         exitcode = EXIT_SUCCESS;
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     unsigned char buf[1000000];
@@ -376,7 +376,7 @@ int main( int argc, char *argv[] )
 
     if( v != 0 )
     {
-        mbedtls_printf( "  Executed %d test suites\n\n", suites_tested);
+        mbedtls_printf( "  Executed %d test suites\n\n", suites_tested );
 
         if( suites_failed > 0)
         {
@@ -395,6 +395,6 @@ int main( int argc, char *argv[] )
     if( suites_failed > 0)
         exitcode = EXIT_FAILURE;
 
-    exit(exitcode);
+    exit( exitcode );
 }
 

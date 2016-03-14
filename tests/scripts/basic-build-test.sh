@@ -94,7 +94,7 @@ TOTAL_AVAIL=$(($PASSED_TESTS + $FAILED_TESTS))
 TOTAL_EXED=$(($PASSED_TESTS + $FAILED_TESTS))
 
 
-# Step 3b - Unit tests
+# Step 4b - Unit tests
 echo "Unit tests - tests/scripts/run-test-suites.pl"
 
 PASSED_TESTS=$(tail -n6 unit-test-$TEST_OUTPUT|sed -n -e 's/test cases passed :[\t]*\([0-9]*\)/\1/p'| tr -d ' ')
@@ -117,7 +117,7 @@ TOTAL_AVAIL=$(($TOTAL_AVAIL + $PASSED_TESTS + $FAILED_TESTS + $SKIPPED_TESTS))
 TOTAL_EXED=$(($TOTAL_EXED + $PASSED_TESTS + $FAILED_TESTS))
 
 
-# Step 3c - TLS Options tests
+# Step 4c - TLS Options tests
 echo "TLS Options tests - tests/ssl-opt.sh"
 
 PASSED_TESTS=$(tail -n5 sys-test-$TEST_OUTPUT|sed -n -e 's/.* (\([0-9]*\) \/ [0-9]* tests ([0-9]* skipped))$/\1/p')
@@ -139,7 +139,7 @@ TOTAL_AVAIL=$(($TOTAL_AVAIL + $TOTAL_TESTS + $SKIPPED_TESTS))
 TOTAL_EXED=$(($TOTAL_EXED + $TOTAL_TESTS))
 
 
-# Step 3d - System Compatibility tests
+# Step 4d - System Compatibility tests
 echo "System/Compatibility tests - tests/compat.sh"
 
 PASSED_TESTS=$(tail -n5 compat-test-$TEST_OUTPUT|sed -n -e 's/.* (\([0-9]*\) \/ [0-9]* tests ([0-9]* skipped))$/\1/p')
@@ -161,7 +161,7 @@ TOTAL_AVAIL=$(($TOTAL_AVAIL + $EXED_TESTS + $SKIPPED_TESTS))
 TOTAL_EXED=$(($TOTAL_EXED + $EXED_TESTS))
 
 
-# Step 3e - Grand totals
+# Step 4e - Grand totals
 echo "-------------------------------------------------------------------------"
 echo "Total tests"
 
@@ -173,7 +173,7 @@ echo "Total avail tests  : $TOTAL_AVAIL"
 echo
 
 
-# Step 3f - Coverage
+# Step 4f - Coverage
 echo "Coverage"
 
 LINES_TESTED=$(tail -n3 cov-$TEST_OUTPUT|sed -n -e 's/  lines......: [0-9]*.[0-9]% (\([0-9]*\) of [0-9]* lines)/\1/p')

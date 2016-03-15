@@ -45,7 +45,7 @@ else
 fi
 
 # default values for options
-MODES="ssl3 tls1 tls1_1 tls1_2 dtls1 dtls1_2"
+MODES="tls1 tls1_1 tls1_2 dtls1 dtls1_2"
 VERIFIES="NO YES"
 TYPES="ECDSA RSA PSK"
 FILTER=""

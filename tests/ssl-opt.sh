@@ -1559,6 +1559,64 @@ run_test    "Renego ext: gnutls client unsafe, server break legacy" \
             -S "received TLS_EMPTY_RENEGOTIATION_INFO\|found renegotiation extension" \
             -S "server hello, secure renegotiation extension"
 
+# Tests for silently dropping trailing extra bytes in .der certificates
+
+requires_gnutls
+run_test    "DER format: no trailing bytes" \
+            "$P_SRV crt_file=data_files/server5-der0.crt \
+             key_file=data_files/server5.key" \
+            "$G_CLI " \
+            0 \
+            -c "Handshake was completed" \
+
+requires_gnutls
+run_test    "DER format: with a trailing zero byte" \
+            "$P_SRV crt_file=data_files/server5-der1a.crt \
+             key_file=data_files/server5.key" \
+            "$G_CLI " \
+            0 \
+            -c "Handshake was completed" \
+
+requires_gnutls
+run_test    "DER format: with a trailing random byte" \
+            "$P_SRV crt_file=data_files/server5-der1b.crt \
+             key_file=data_files/server5.key" \
+            "$G_CLI " \
+            0 \
+            -c "Handshake was completed" \
+
+requires_gnutls
+run_test    "DER format: with 2 trailing random bytes" \
+            "$P_SRV crt_file=data_files/server5-der2.crt \
+             key_file=data_files/server5.key" \
+            "$G_CLI " \
+            0 \
+            -c "Handshake was completed" \
+
+requires_gnutls
+run_test    "DER format: with 4 trailing random bytes" \
+            "$P_SRV crt_file=data_files/server5-der4.crt \
+             key_file=data_files/server5.key" \
+            "$G_CLI " \
+            0 \
+            -c "Handshake was completed" \
+
+requires_gnutls
+run_test    "DER format: with 8 trailing random bytes" \
+            "$P_SRV crt_file=data_files/server5-der8.crt \
+             key_file=data_files/server5.key" \
+            "$G_CLI " \
+            0 \
+            -c "Handshake was completed" \
+
+requires_gnutls
+run_test    "DER format: with 9 trailing random bytes" \
+            "$P_SRV crt_file=data_files/server5-der9.crt \
+             key_file=data_files/server5.key" \
+            "$G_CLI " \
+            0 \
+            -c "Handshake was completed" \
+
 # Tests for auth_mode
 
 run_test    "Authentication: server badcert, client required" \

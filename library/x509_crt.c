@@ -677,14 +677,9 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt, const unsigned char *
     if( crt == NULL || buf == NULL )
         return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
 
-    p = mbedtls_calloc( 1, len = buflen );
-    if( p == NULL )
-        return( MBEDTLS_ERR_X509_ALLOC_FAILED );
-
-    memcpy( p, buf, buflen );
-
-    crt->raw.p = p;
-    crt->raw.len = len;
+    // Use the original buffer until we figure out actual length
+    p = (unsigned char*) buf;
+    len = buflen;
     end = p + len;
 
     /*
@@ -707,6 +702,18 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt, const unsigned char *
                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
     }
     crt_end = p + len;
+
+    // Create and populate a new buffer for the raw field
+    crt->raw.len = crt_end - buf;
+    crt->raw.p = p = mbedtls_calloc( 1, crt->raw.len );
+    if( p == NULL )
+        return( MBEDTLS_ERR_X509_ALLOC_FAILED );
+
+    memcpy( p, buf, crt->raw.len );
+
+    // Direct pointers to the new buffer 
+    p += crt->raw.len - len;
+    end = crt_end = p + len;
 
     /*
      * TBSCertificate  ::=  SEQUENCE  {

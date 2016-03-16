@@ -11,11 +11,6 @@ Security
    * Fix potential integer overflow to buffer overflow in
      mbedtls_rsa_rsaes_pkcs1_v15_encrypt and mbedtls_rsa_rsaes_oaep_encrypt
 
-Security
-   * Fix a potential integer underflow to buffer overread in 
-     mbedtls_rsa_rsaes_oaep_decrypt. It is not triggerable remotely in
-     SSL/TLS.
-
 Bugfix
    * Fix bug in mbedtls_mpi_add_mpi() that caused wrong results when the three
      arguments where the same (in-place doubling). Found and fixed by Janos

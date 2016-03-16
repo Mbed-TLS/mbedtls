@@ -1,10 +1,10 @@
 /* BEGIN_HEADER */
-#include "mbedtls/rsa.h"
-#include "mbedtls/md.h"
+#include "polarssl/rsa.h"
+#include "polarssl/md.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
+ * depends_on:POLARSSL_PKCS1_V15:POLARSSL_RSA_C:POLARSSL_SHA1_C
  * END_DEPENDENCIES
  */
 
@@ -18,27 +18,27 @@ void pkcs1_rsaes_v15_encrypt( int mod, int radix_N, char *input_N, int radix_E,
     unsigned char output[1000];
     unsigned char output_str[1000];
     unsigned char rnd_buf[1000];
-    mbedtls_rsa_context ctx;
+    rsa_context ctx;
     size_t msg_len;
     rnd_buf_info info;
 
     info.length = unhexify( rnd_buf, seed );
     info.buf = rnd_buf;
 
-    mbedtls_rsa_init( &ctx, MBEDTLS_RSA_PKCS_V15, hash );
+    rsa_init( &ctx, RSA_PKCS_V15, hash );
     memset( message_str, 0x00, 1000 );
     memset( output, 0x00, 1000 );
     memset( output_str, 0x00, 1000 );
 
     ctx.len = mod / 8 + ( ( mod % 8 ) ? 1 : 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &ctx.N, radix_N, input_N ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &ctx.E, radix_E, input_E ) == 0 );
+    TEST_ASSERT( mpi_read_string( &ctx.N, radix_N, input_N ) == 0 );
+    TEST_ASSERT( mpi_read_string( &ctx.E, radix_E, input_E ) == 0 );
 
-    TEST_ASSERT( mbedtls_rsa_check_pubkey( &ctx ) == 0 );
+    TEST_ASSERT( rsa_check_pubkey( &ctx ) == 0 );
 
     msg_len = unhexify( message_str, message_hex_string );
 
-    TEST_ASSERT( mbedtls_rsa_pkcs1_encrypt( &ctx, &rnd_buffer_rand, &info, MBEDTLS_RSA_PUBLIC, msg_len, message_str, output ) == result );
+    TEST_ASSERT( rsa_pkcs1_encrypt( &ctx, &rnd_buffer_rand, &info, RSA_PUBLIC, msg_len, message_str, output ) == result );
     if( result == 0 )
     {
         hexify( output_str, output, ctx.len );
@@ -47,7 +47,7 @@ void pkcs1_rsaes_v15_encrypt( int mod, int radix_N, char *input_N, int radix_E,
     }
 
 exit:
-    mbedtls_rsa_free( &ctx );
+    rsa_free( &ctx );
 }
 /* END_CASE */
 
@@ -61,14 +61,14 @@ void pkcs1_rsaes_v15_decrypt( int mod, int radix_P, char *input_P,
     unsigned char message_str[1000];
     unsigned char output[1000];
     unsigned char output_str[1000];
-    mbedtls_rsa_context ctx;
-    mbedtls_mpi P1, Q1, H, G;
+    rsa_context ctx;
+    mpi P1, Q1, H, G;
     size_t output_len;
     rnd_pseudo_info rnd_info;
     ((void) seed);
 
-    mbedtls_mpi_init( &P1 ); mbedtls_mpi_init( &Q1 ); mbedtls_mpi_init( &H ); mbedtls_mpi_init( &G );
-    mbedtls_rsa_init( &ctx, MBEDTLS_RSA_PKCS_V15, hash );
+    mpi_init( &P1 ); mpi_init( &Q1 ); mpi_init( &H ); mpi_init( &G );
+    rsa_init( &ctx, RSA_PKCS_V15, hash );
 
     memset( message_str, 0x00, 1000 );
     memset( output, 0x00, 1000 );
@@ -76,25 +76,25 @@ void pkcs1_rsaes_v15_decrypt( int mod, int radix_P, char *input_P,
     memset( &rnd_info, 0, sizeof( rnd_pseudo_info ) );
 
     ctx.len = mod / 8 + ( ( mod % 8 ) ? 1 : 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &ctx.P, radix_P, input_P ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &ctx.Q, radix_Q, input_Q ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &ctx.N, radix_N, input_N ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &ctx.E, radix_E, input_E ) == 0 );
+    TEST_ASSERT( mpi_read_string( &ctx.P, radix_P, input_P ) == 0 );
+    TEST_ASSERT( mpi_read_string( &ctx.Q, radix_Q, input_Q ) == 0 );
+    TEST_ASSERT( mpi_read_string( &ctx.N, radix_N, input_N ) == 0 );
+    TEST_ASSERT( mpi_read_string( &ctx.E, radix_E, input_E ) == 0 );
 
-    TEST_ASSERT( mbedtls_mpi_sub_int( &P1, &ctx.P, 1 ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_sub_int( &Q1, &ctx.Q, 1 ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_mul_mpi( &H, &P1, &Q1 ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_gcd( &G, &ctx.E, &H  ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_inv_mod( &ctx.D , &ctx.E, &H  ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_mod_mpi( &ctx.DP, &ctx.D, &P1 ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_mod_mpi( &ctx.DQ, &ctx.D, &Q1 ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_inv_mod( &ctx.QP, &ctx.Q, &ctx.P ) == 0 );
+    TEST_ASSERT( mpi_sub_int( &P1, &ctx.P, 1 ) == 0 );
+    TEST_ASSERT( mpi_sub_int( &Q1, &ctx.Q, 1 ) == 0 );
+    TEST_ASSERT( mpi_mul_mpi( &H, &P1, &Q1 ) == 0 );
+    TEST_ASSERT( mpi_gcd( &G, &ctx.E, &H  ) == 0 );
+    TEST_ASSERT( mpi_inv_mod( &ctx.D , &ctx.E, &H  ) == 0 );
+    TEST_ASSERT( mpi_mod_mpi( &ctx.DP, &ctx.D, &P1 ) == 0 );
+    TEST_ASSERT( mpi_mod_mpi( &ctx.DQ, &ctx.D, &Q1 ) == 0 );
+    TEST_ASSERT( mpi_inv_mod( &ctx.QP, &ctx.Q, &ctx.P ) == 0 );
 
-    TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
+    TEST_ASSERT( rsa_check_privkey( &ctx ) == 0 );
 
     unhexify( message_str, message_hex_string );
 
-    TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx, &rnd_pseudo_rand, &rnd_info, MBEDTLS_RSA_PRIVATE, &output_len, message_str, output, 1000 ) == result );
+    TEST_ASSERT( rsa_pkcs1_decrypt( &ctx, &rnd_pseudo_rand, &rnd_info, RSA_PRIVATE, &output_len, message_str, output, 1000 ) == result );
     if( result == 0 )
     {
         hexify( output_str, output, ctx.len );
@@ -103,8 +103,8 @@ void pkcs1_rsaes_v15_decrypt( int mod, int radix_P, char *input_P,
     }
 
 exit:
-    mbedtls_mpi_free( &P1 ); mbedtls_mpi_free( &Q1 ); mbedtls_mpi_free( &H ); mbedtls_mpi_free( &G );
-    mbedtls_rsa_free( &ctx );
+    mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &H ); mpi_free( &G );
+    rsa_free( &ctx );
 }
 /* END_CASE */
 

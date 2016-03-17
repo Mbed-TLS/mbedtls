@@ -702,11 +702,11 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
     if( md_info == NULL )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
-    hlen = mbedtls_md_get_size( md_info );
+    hlen = md_get_size( md_info );
 
     // checking for integer underflow
     if( 2 * hlen + 2 > ilen )
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
     /*
      * RSA operation
@@ -727,8 +727,8 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
     if( 2 * hlen + 2 > ilen )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
-    mbedtls_md_init( &md_ctx );
-    mbedtls_md_setup( &md_ctx, md_info, 0 );
+    md_init( &md_ctx );
+    md_init_ctx( &md_ctx, md_info );
 
     /* Generate lHash */
     md( md_info, label, label_len, lhash );

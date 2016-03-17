@@ -69,6 +69,8 @@ int main( int argc, char *argv[] )
     ((void) argv);
 
     memset(result, 0, sizeof( result ) );
+    entropy_init( &entropy );
+    rsa_init( &rsa, RSA_PKCS_V15, 0 );
     ret = 1;
 
     if( argc != 1 )
@@ -79,13 +81,12 @@ int main( int argc, char *argv[] )
         polarssl_printf( "\n" );
 #endif
 
-        goto exit;
+        return ret;
     }
 
     polarssl_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
-    entropy_init( &entropy );
     if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
@@ -103,8 +104,6 @@ int main( int argc, char *argv[] )
                 "  ! Please run rsa_genkey first\n\n" );
         goto exit;
     }
-
-    rsa_init( &rsa, RSA_PKCS_V15, 0 );
 
     if( ( ret = mpi_read_file( &rsa.N , 16, f ) ) != 0 ||
         ( ret = mpi_read_file( &rsa.E , 16, f ) ) != 0 ||
@@ -171,6 +170,7 @@ int main( int argc, char *argv[] )
 exit:
     ctr_drbg_free( &ctr_drbg );
     entropy_free( &entropy );
+    rsa_free( &rsa );
 
 #if defined(_WIN32)
     polarssl_printf( "  + Press Enter to exit this program.\n" );

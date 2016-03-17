@@ -67,6 +67,7 @@ int main( int argc, char *argv[] )
     unsigned char buf[POLARSSL_MPI_MAX_SIZE];
     char filename[512];
 
+    rsa_init( &rsa, RSA_PKCS_V15, 0 );
     ret = 1;
 
     if( argc != 2 )
@@ -90,8 +91,6 @@ int main( int argc, char *argv[] )
                 "  ! Please run rsa_genkey first\n\n" );
         goto exit;
     }
-
-    rsa_init( &rsa, RSA_PKCS_V15, 0 );
 
     if( ( ret = mpi_read_file( &rsa.N , 16, f ) ) != 0 ||
         ( ret = mpi_read_file( &rsa.E , 16, f ) ) != 0 ||
@@ -159,6 +158,8 @@ int main( int argc, char *argv[] )
     polarssl_printf( "\n  . Done (created \"%s\")\n\n", filename );
 
 exit:
+
+    rsa_free( &rsa );
 
 #if defined(_WIN32)
     polarssl_printf( "  + Press Enter to exit this program.\n" );

@@ -67,6 +67,7 @@ int main( int argc, char *argv[] )
     unsigned char buf[512];
     const char *pers = "rsa_encrypt";
 
+    mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
     mbedtls_ctr_drbg_init( &ctr_drbg );
     ret = 1;
 
@@ -103,8 +104,6 @@ int main( int argc, char *argv[] )
                 "  ! Please run rsa_genkey first\n\n" );
         goto exit;
     }
-
-    mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
 
     if( ( ret = mbedtls_mpi_read_file( &rsa.N, 16, f ) ) != 0 ||
         ( ret = mbedtls_mpi_read_file( &rsa.E, 16, f ) ) != 0 )
@@ -160,6 +159,7 @@ int main( int argc, char *argv[] )
 exit:
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
+    mbedtls_rsa_free( &rsa );
 
 #if defined(_WIN32)
     mbedtls_printf( "  + Press Enter to exit this program.\n" );

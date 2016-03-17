@@ -69,6 +69,8 @@ int main( int argc, char *argv[] )
 
     memset(result, 0, sizeof( result ) );
     mbedtls_ctr_drbg_init( &ctr_drbg );
+    mbedtls_entropy_init( &entropy );
+    mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
     ret = 1;
 
     if( argc != 1 )
@@ -85,7 +87,6 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
-    mbedtls_entropy_init( &entropy );
     if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
@@ -103,8 +104,6 @@ int main( int argc, char *argv[] )
                 "  ! Please run rsa_genkey first\n\n" );
         goto exit;
     }
-
-    mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
 
     if( ( ret = mbedtls_mpi_read_file( &rsa.N , 16, f ) ) != 0 ||
         ( ret = mbedtls_mpi_read_file( &rsa.E , 16, f ) ) != 0 ||
@@ -171,6 +170,7 @@ int main( int argc, char *argv[] )
 exit:
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
+    mbedtls_rsa_free( &rsa );
 
 #if defined(_WIN32)
     mbedtls_printf( "  + Press Enter to exit this program.\n" );

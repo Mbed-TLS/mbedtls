@@ -3,9 +3,6 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS 2.x branch
 
 Security
-   * Fix potential integer overflow to buffer overflow in
-     mbedtls_rsa_rsaes_pkcs1_v15_encrypt and mbedtls_rsa_rsaes_oaep_encrypt
-     (not triggerable remotely in (D)TLS).
    * Fix missing padding length check in mbedtls_rsa_rsaes_pkcs1_v15_decrypt
      required by PKCS1 v2.2
    * Fix potential integer overflow to buffer overflow in

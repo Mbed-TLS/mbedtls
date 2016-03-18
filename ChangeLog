@@ -8,6 +8,8 @@ Bugfix
      Follath. #309
    * Fix issue in Makefile that prevented building using armar. #386
    * Fix issue that caused a hang up when generating RSA keys of odd bitlength
+   * Fix bug in mbedtls_rsa_rsaes_pkcs1_v15_encrypt that made null pointer
+     dereference possible.
 
 Changes
    * On ARM platforms, when compiling with -O0 with GCC, Clang or armcc5,

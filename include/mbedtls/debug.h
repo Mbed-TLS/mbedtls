@@ -97,7 +97,7 @@ extern "C" {
 void mbedtls_debug_set_threshold( int threshold );
 
 /**
-* \brief    Print a message to the debug output. This function is always used
+ * \brief    Print a message to the debug output. This function is always used
  *          through the MBEDTLS_SSL_DEBUG_MSG() macro, which supplies the ssl
  *          context, file and line number parameters.
  *

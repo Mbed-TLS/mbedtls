@@ -2012,11 +2012,13 @@ void mbedtls_ssl_conf_extended_master_secret( mbedtls_ssl_config *conf, char ems
  * \brief          Disable or enable support for RC4
  *                 (Default: MBEDTLS_SSL_ARC4_DISABLED)
  *
- * \warning        Use of RC4 in (D)TLS has been prohibited by RFC ????
- *                 for security reasons. Use at your own risks.
+ * \warning        Use of RC4 in DTLS/TLS has been prohibited by RFC-7465
+ *                 for security reasons. Use at your own risk.
  *
- * \note           This function will likely be removed in future versions as
- *                 RC4 will then be disabled by default at compile time.
+ * \note           This function is deprecated and will likely be removed in
+ *                 a future version of the library.
+ *                 RC4 is disabled by default at compile time and needs to be
+ *                 actively enabled for use with legacy systems.
  *
  * \param conf     SSL configuration
  * \param arc4     MBEDTLS_SSL_ARC4_ENABLED or MBEDTLS_SSL_ARC4_DISABLED

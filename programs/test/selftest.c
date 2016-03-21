@@ -52,7 +52,6 @@
 #include "mbedtls/ecjpake.h"
 #include "mbedtls/timing.h"
 
-//#include <stdio.h>
 #include <string.h>
 
 #if defined(MBEDTLS_PLATFORM_C)

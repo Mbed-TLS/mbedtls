@@ -131,7 +131,7 @@
 //#define MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
 
 /**
- * \def MBEDTLS_PLATFORM_XXX_ALT
+ * \def MBEDTLS_PLATFORM_EXIT_ALT
  *
  * MBEDTLS_PLATFORM_XXX_ALT: Uncomment a macro to let mbed TLS support the
  * function in the platform abstraction layer.

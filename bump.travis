@@ -1,3 +1,4 @@
 Make Travis run the test suite again in hope of triggering the bug and finally get hold of the log files.
+After the 2nd try I rebased the branch to fix the build and make it easier to spot the bug, commiting that was the 3rd try.
 
-2nd try.
+4th try.

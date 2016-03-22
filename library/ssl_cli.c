@@ -330,6 +330,12 @@ static void ssl_write_supported_elliptic_curves_ext( ssl_context *ssl,
     for( info = ecp_curve_list(); info->grp_id != POLARSSL_ECP_DP_NONE; info++ )
     {
 #endif
+        if( info == NULL )
+        {
+            SSL_DEBUG_MSG( 1, ( "invalid curve in ssl configuration" ) );
+            return;
+        }
+
         elliptic_curve_len += 2;
     }
 

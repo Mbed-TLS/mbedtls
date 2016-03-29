@@ -52,15 +52,18 @@
 #include "mbedtls/ecjpake.h"
 #include "mbedtls/timing.h"
 
-#include <stdio.h>
 #include <string.h>
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
+#include <stdlib.h>
 #define mbedtls_printf     printf
 #define mbedtls_snprintf   snprintf
+#define mbedtls_exit       exit
+#define MBEDTLS_EXIT_SUCCESS EXIT_SUCCESS
+#define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
 #endif
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
@@ -99,8 +102,7 @@ static int run_test_snprintf( void )
 
 int main( int argc, char *argv[] )
 {
-    int ret = 0, v, suites_tested = 0, suites_failed = 0,
-        exitcode = EXIT_SUCCESS;
+    int v, suites_tested = 0, suites_failed = 0;
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     unsigned char buf[1000000];
 #endif
@@ -115,7 +117,7 @@ int main( int argc, char *argv[] )
     if( pointer != NULL )
     {
         mbedtls_printf( "all-bits-zero is not a NULL pointer\n" );
-        return( 1 );
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 
     /*
@@ -124,7 +126,7 @@ int main( int argc, char *argv[] )
     if( run_test_snprintf() != 0 )
     {
         mbedtls_printf( "the snprintf implementation is broken\n" );
-        return( 0 );
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 
     if( argc == 2 && ( strcmp( argv[1], "--quiet" ) == 0  ||
@@ -145,7 +147,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_MD2_C)
-    if( ( ret = mbedtls_md2_self_test( v ) ) != 0 )
+    if( mbedtls_md2_self_test( v )  != 0 )
     {
         suites_failed++;
     }
@@ -153,7 +155,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_MD4_C)
-    if( ( ret = mbedtls_md4_self_test( v ) ) != 0 )
+    if( mbedtls_md4_self_test( v ) != 0 )
     {
         suites_failed++;
     }
@@ -161,7 +163,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_MD5_C)
-    if( ( ret = mbedtls_md5_self_test( v ) ) != 0 )
+    if( mbedtls_md5_self_test( v ) != 0 )
     {
         suites_failed++;
     }
@@ -169,7 +171,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_RIPEMD160_C)
-    if( ( ret = mbedtls_ripemd160_self_test( v ) ) != 0 )
+    if( mbedtls_ripemd160_self_test( v ) != 0 )
     {
         suites_failed++;
     }
@@ -177,7 +179,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_SHA1_C)
-    if( ( ret = mbedtls_sha1_self_test( v ) ) != 0 )
+    if( mbedtls_sha1_self_test( v ) != 0 )
     {
         suites_failed++;
     }
@@ -185,7 +187,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_SHA256_C)
-    if( ( ret = mbedtls_sha256_self_test( v ) ) != 0 )
+    if( mbedtls_sha256_self_test( v ) != 0 )
     {
         suites_failed++;
     }
@@ -193,7 +195,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_SHA512_C)
-    if( ( ret = mbedtls_sha512_self_test( v ) ) != 0 )
+    if( mbedtls_sha512_self_test( v ) != 0 )
     {
         suites_failed++;
     }
@@ -201,7 +203,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_ARC4_C)
-    if( ( ret = mbedtls_arc4_self_test( v ) ) != 0 )
+    if( mbedtls_arc4_self_test( v ) != 0 )
     {
         suites_failed++;
     }
@@ -209,7 +211,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_DES_C)
-    if( ( ret = mbedtls_des_self_test( v ) ) != 0 )
+    if( mbedtls_des_self_test( v ) != 0 )
     {
         suites_failed++;
     }
@@ -217,7 +219,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_AES_C)
-    if( ( ret = mbedtls_aes_self_test( v ) ) != 0 )
+    if( mbedtls_aes_self_test( v ) != 0 )
     {
         suites_failed++;
     }
@@ -225,7 +227,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_GCM_C) && defined(MBEDTLS_AES_C)
-    if( ( ret = mbedtls_gcm_self_test( v ) ) != 0 )
+    if( mbedtls_gcm_self_test( v ) != 0 )
     {
         suites_failed++;
     }
@@ -233,7 +235,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_CCM_C) && defined(MBEDTLS_AES_C)
-    if( ( ret = mbedtls_ccm_self_test( v ) ) != 0 )
+    if( mbedtls_ccm_self_test( v ) != 0 )
     {
         suites_failed++;
     }
@@ -241,7 +243,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_BASE64_C)
-    if( ( ret = mbedtls_base64_self_test( v ) ) != 0 )
+    if( mbedtls_base64_self_test( v ) != 0 )
     {
         suites_failed++;
     }
@@ -249,7 +251,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_BIGNUM_C)
-    if( ( ret = mbedtls_mpi_self_test( v ) ) != 0 )
+    if( mbedtls_mpi_self_test( v ) != 0 )
     {
         suites_failed++;
     }
@@ -257,7 +259,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_RSA_C)
-    if( ( ret = mbedtls_rsa_self_test( v ) ) != 0 )
+    if( mbedtls_rsa_self_test( v ) != 0 )
     {
         suites_failed++;
     }
@@ -265,7 +267,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_X509_USE_C)
-    if( ( ret = mbedtls_x509_self_test( v ) ) != 0 )
+    if( mbedtls_x509_self_test( v ) != 0 )
     {
         suites_failed++;
     }
@@ -273,7 +275,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_XTEA_C)
-    if( ( ret = mbedtls_xtea_self_test( v ) ) != 0 )
+    if( mbedtls_xtea_self_test( v ) != 0 )
     {
         suites_failed++;
     }
@@ -281,7 +283,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_CAMELLIA_C)
-    if( ( ret = mbedtls_camellia_self_test( v ) ) != 0 )
+    if( mbedtls_camellia_self_test( v ) != 0 )
     {
         suites_failed++;
     }
@@ -289,7 +291,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_CTR_DRBG_C)
-    if( ( ret = mbedtls_ctr_drbg_self_test( v ) ) != 0 )
+    if( mbedtls_ctr_drbg_self_test( v ) != 0 )
     {
         suites_failed++;
     }
@@ -297,7 +299,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_HMAC_DRBG_C)
-    if( ( ret = mbedtls_hmac_drbg_self_test( v ) ) != 0 )
+    if( mbedtls_hmac_drbg_self_test( v ) != 0 )
     {
         suites_failed++;
     }
@@ -305,7 +307,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_ECP_C)
-    if( ( ret = mbedtls_ecp_self_test( v ) ) != 0 )
+    if( mbedtls_ecp_self_test( v ) != 0 )
     {
         suites_failed++;
     }
@@ -313,7 +315,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_ECJPAKE_C)
-    if( ( ret = mbedtls_ecjpake_self_test( v ) ) != 0 )
+    if( mbedtls_ecjpake_self_test( v ) != 0 )
     {
         suites_failed++;
     }
@@ -321,7 +323,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_DHM_C)
-    if( ( ret = mbedtls_dhm_self_test( v ) ) != 0 )
+    if( mbedtls_dhm_self_test( v ) != 0 )
     {
         suites_failed++;
     }
@@ -329,7 +331,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_ENTROPY_C)
-    if( ( ret = mbedtls_entropy_self_test( v ) ) != 0 )
+    if( mbedtls_entropy_self_test( v ) != 0 )
     {
         suites_failed++;
     }
@@ -337,7 +339,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_PKCS5_C)
-    if( ( ret = mbedtls_pkcs5_self_test( v ) ) != 0 )
+    if( mbedtls_pkcs5_self_test( v ) != 0 )
     {
         suites_failed++;
     }
@@ -347,7 +349,7 @@ int main( int argc, char *argv[] )
 /* Slow tests last */
 
 #if defined(MBEDTLS_TIMING_C)
-    if( ( ret = mbedtls_timing_self_test( v ) ) != 0 )
+    if( mbedtls_timing_self_test( v ) != 0 )
     {
         suites_failed++;
     }
@@ -367,7 +369,7 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     mbedtls_memory_buffer_alloc_free();
-    if( ( ret = mbedtls_memory_buffer_alloc_self_test( v ) ) != 0 )
+    if( mbedtls_memory_buffer_alloc_self_test( v ) != 0 )
     {
         suites_failed++;
     }
@@ -393,8 +395,8 @@ int main( int argc, char *argv[] )
     }
 
     if( suites_failed > 0)
-        exitcode = EXIT_FAILURE;
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
 
-    exit( exitcode );
+    mbedtls_exit( MBEDTLS_EXIT_SUCCESS );
 }
 

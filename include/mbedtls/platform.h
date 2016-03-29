@@ -64,7 +64,13 @@ extern "C" {
 #define MBEDTLS_PLATFORM_STD_FREE       free /**< Default free to use */
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_EXIT)
-#define MBEDTLS_PLATFORM_STD_EXIT      exit /**< Default free to use */
+#define MBEDTLS_PLATFORM_STD_EXIT      exit /**< Default exit to use */
+#endif
+#if !defined(MBEDTLS_PLATFORM_STD_EXIT_SUCCESS)
+#define MBEDTLS_PLATFORM_STD_EXIT_SUCCESS  EXIT_SUCCESS /**< Default exit value to use */
+#endif
+#if !defined(MBEDTLS_PLATFORM_STD_EXIT_FAILURE)
+#define MBEDTLS_PLATFORM_STD_EXIT_FAILURE  EXIT_FAILURE /**< Default exit value to use */
 #endif
 #else /* MBEDTLS_PLATFORM_NO_STD_FUNCTIONS */
 #if defined(MBEDTLS_PLATFORM_STD_MEM_HDR)
@@ -206,6 +212,20 @@ int mbedtls_platform_set_exit( void (*exit_func)( int status ) );
 #define mbedtls_exit   exit
 #endif /* MBEDTLS_PLATFORM_EXIT_MACRO */
 #endif /* MBEDTLS_PLATFORM_EXIT_ALT */
+
+/*
+ * The default exit values
+ */
+#if defined(MBEDTLS_PLATFORM_STD_EXIT_SUCCESS)
+#define MBEDTLS_EXIT_SUCCESS MBEDTLS_PLATFORM_STD_EXIT_SUCCESS
+#else
+#define MBEDTLS_EXIT_SUCCESS 0
+#endif
+#if defined(MBEDTLS_PLATFORM_STD_EXIT_FAILURE)
+#define MBEDTLS_EXIT_FAILURE MBEDTLS_PLATFORM_STD_EXIT_FAILURE
+#else
+#define MBEDTLS_EXIT_FAILURE 1
+#endif
 
 #ifdef __cplusplus
 }

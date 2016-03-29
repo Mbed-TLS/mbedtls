@@ -111,7 +111,7 @@ if(ENABLE_TESTING)
         ADD_CUSTOM_TARGET(covtest
             COMMAND make test
             COMMAND programs/test/selftest
-            COMMAND tests/compat.sh
+            COMMAND tests/compat.sh -m 'tls1 tls1_1 tls1_2 dtls1 dtls1_2'
             COMMAND tests/ssl-opt.sh
         )
 

@@ -111,6 +111,23 @@ make
 msg "test: compat.sh (ASan build)" # ~ 6 min
 tests/compat.sh
 
+msg "build: Default + SSLv3 (ASan build)" # ~ 6 min
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_SSL_PROTO_SSL3
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make
+
+msg "test: SSLv3 - main suites and selftest (ASan build)" # ~ 50s
+make test
+programs/test/selftest
+
+msg "build: SSLv3 - compat.sh (ASan build)" # ~ 6 min
+tests/compat.sh -m 'ssl3 tls1 tls1_1 tls1_2 dtls1 dtls1_2'
+
+msg "build: SSLv3 - ssl-opt.sh (ASan build)" # ~ 6 min
+tests/ssl-opt.sh
+
 msg "build: cmake, full config, clang" # ~ 50s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"

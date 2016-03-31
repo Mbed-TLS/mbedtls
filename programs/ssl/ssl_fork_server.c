@@ -258,11 +258,10 @@ int main( void )
                 goto exit;
             }
 
-            mbedtls_net_free( &client_fd );
             continue;
         }
 
-        mbedtls_net_free( &listen_fd );
+        mbedtls_net_init( &listen_fd );
 
         /*
          * 4. Setup stuff

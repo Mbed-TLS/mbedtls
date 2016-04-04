@@ -97,16 +97,16 @@ my $force_option = 0;
 
 my ($arg, $name, $value, $action);
 
-while ( $arg = shift) {
+while ($arg = shift) {
 
     # Check if the argument is an option
-    if ( $arg eq "-f" || $arg eq "--file" ) {
+    if ($arg eq "-f" || $arg eq "--file") {
         $config_file = shift;
 
         -f $config_file or die "No such file: $config_file\n";
 
     }
-    elsif ( $arg eq "-o" || $arg eq "--force" ) {
+    elsif ($arg eq "-o" || $arg eq "--force") {
         $force_option = 1;
 
     }

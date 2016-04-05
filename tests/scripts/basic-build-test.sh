@@ -36,7 +36,8 @@ fi
 
 
 # Step 1 - Make and instrumented build for code coverage
-CFLAGS=' --coverage -g3 -O0 '
+export CFLAGS=' --coverage -g3 -O0 '
+make clean
 make
 
 

@@ -1,22 +1,73 @@
 #!/usr/bin/perl
-
-# Tune the configuration file
+#
+# This file is part of mbed TLS (https://tls.mbed.org)
+#
+# Copyright (c) 2014-2016, ARM Limited, All Rights Reserved
+#
+# Purpose
+#
+# Comments and uncomments #define lines in the given header file and optionally
+# sets their value. This is to provide scripting control of what preprocessor
+# symbols, and therefore what build time configuration flags are set in the
+# 'config.h' file.
+#
+# Usage: config.pl [-f <file> | --file <file>] [-o | --force]
+#                   [set <symbol> <value> | unset <symbol> | full | realfull]
+#
+# Full usage description provided below.
+#
+# Things that shouldn't be enabled with "full".
+#
+#   MBEDTLS_DEPRECATED_REMOVED
+#   MBEDTLS_HAVE_SSE2
+#   MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
+#   MBEDTLS_ECP_DP_M221_ENABLED
+#   MBEDTLS_ECP_DP_M383_ENABLED
+#   MBEDTLS_ECP_DP_M511_ENABLED
+#   MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
+#   MBEDTLS_NO_PLATFORM_ENTROPY
+#   MBEDTLS_REMOVE_ARC4_CIPHERSUITES
+#   MBEDTLS_SSL_HW_RECORD_ACCEL
+#   MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3
+#   MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
+#       - this could be enabled if the respective tests were adapted
+#   MBEDTLS_ZLIB_SUPPORT
+#   MBEDTLS_PKCS11_C
+#   and any symbol beginning _ALT
+#
 
 use warnings;
 use strict;
 
+my $config_file = "include/mbedtls/config.h";
 my $usage = <<EOU;
-$0 [-f <file>] unset <name>
-$0 [-f <file>] set <name> [<value>]
-EOU
-# for our eyes only:
-# $0 [-f <file>] full|realfull
+$0 [-f <file> | --file <file>] [-o | --force]
+                   [set <symbol> <value> | unset <symbol> | full | realfull]
 
-# Things that shouldn't be enabled with "full".
-# Notes:
-# - MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3 and
-#   MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION could be enabled if the
-#   respective tests were adapted
+Commands
+    set <symbol> [<value]   - Uncomments or adds a #define for the <symnol> to
+                              the configuration file, and optionally making it
+                              of <value>.
+                              If the symbol isn't present in the file an error
+                              is returned.
+    unset <symbol>          - Comments out any #define present in the
+                              configuration file.
+    full                    - Uncomments all #define's in the configuration file
+                              excluding some reserved symbols, until the 
+                              'Module configuration options' section
+    realfull                - Uncomments all #define's with no exclusions
+
+Options
+    -f | --file <filename>  - The file or file path for the configuration file
+                              to edit. When omitted, the following default is
+                              used:
+                                $config_file
+    -o | --force            - If the symbol isn't present in the configuration
+                              file when setting it's value, a #define is
+                              appended to the end of the file.
+
+EOU
+
 my @excluded = qw(
 MBEDTLS_DEPRECATED_REMOVED
 MBEDTLS_HAVE_SSE2
@@ -40,40 +91,65 @@ my @non_excluded = qw(
 PLATFORM_[A-Z0-9]+_ALT
 );
 
-my $config_file = "include/mbedtls/config.h";
+# Process the command line arguments
 
-# get -f option
-if (@ARGV >= 2 && $ARGV[0] eq "-f") {
-    shift; # -f
-    $config_file = shift;
+my $force_option = 0;
 
-    -f $config_file or die "No such file: $config_file\n";
-} else {
-    if (! -f $config_file)  {
-        chdir '..' or die;
-        -f $config_file
-            or die "Without -f, must be run from root or scripts\n"
+my ($arg, $name, $value, $action);
+
+while ($arg = shift) {
+
+    # Check if the argument is an option
+    if ($arg eq "-f" || $arg eq "--file") {
+        $config_file = shift;
+
+        -f $config_file or die "No such file: $config_file\n";
+
+    }
+    elsif ($arg eq "-o" || $arg eq "--force") {
+        $force_option = 1;
+
+    }
+    else
+    {
+        # ...else assume it's a command
+        $action = $arg;
+
+        if ($action eq "full" || $action eq "realfull") {
+            # No additional parameters
+            die $usage if @ARGV;
+
+        }
+        elsif ($action eq "unset") {
+            die $usage unless @ARGV;
+            $name = shift;
+
+        }
+        elsif ($action eq "set") {
+            die $usage unless @ARGV;
+            $name = shift;
+            $value = shift if @ARGV;
+
+        }
+        else {
+            die "Command '$action' not recognised.\n\n".$usage;
+        }
     }
 }
 
-# get action
-die $usage unless @ARGV;
-my $action = shift;
+# Check the config file is present
+if (! -f $config_file)  {
 
-my ($name, $value);
-if ($action eq "full" || $action eq "realfull") {
-    # nothing to do
-} elsif ($action eq "unset") {
-    die $usage unless @ARGV;
-    $name = shift;
-} elsif ($action eq "set") {
-    die $usage unless @ARGV;
-    $name = shift;
-    $value = shift if @ARGV;
-} else {
-    die $usage;
+    chdir '..' or die;
+
+    # Confirm this is the project root directory and try again
+    if ( !(-d 'scripts' && -d 'include' && -d 'library' && -f $config_file) ) {
+        die "If no file specified, must be run from the project root or scripts directory.\n";
+    }
 }
-die $usage if @ARGV;
+
+
+# Now read the file and process the contents
 
 open my $config_read, '<', $config_file or die "read $config_file: $!\n";
 my @config_lines = <$config_read>;
@@ -122,9 +198,27 @@ for my $line (@config_lines) {
     print $config_write $line;
 }
 
+# Did the set command work?
+if ($action eq "set"&& $force_option && !$done) {
+
+    # If the force option was set, append the symbol to the end of the file
+    my $line = "#define $name";
+    $line .= " $value" if defined $value && $value ne "";
+    $line .= "\n";
+    $done = 1;
+
+    print $config_write $line;
+}
+
 close $config_write;
 
-die "configuration section not found" if ($action eq "full" && !$done);
-die "$name not found" if ($action ne "full" && !$done);
+if ($action eq "full" && !$done) {
+    die "Configuration section was not found in $config_file\n";
+
+}
+
+if ($action ne "full" && $action ne "unset" && !$done) {
+    die "A #define for the symbol $name was not found in $config_file\n";
+}
 
 __END__

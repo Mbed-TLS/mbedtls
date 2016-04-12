@@ -32,6 +32,7 @@
 #include <stdio.h>
 #define polarssl_fprintf    fprintf
 #define polarssl_printf     printf
+#define polarssl_exit       exit
 #endif
 
 #if defined(POLARSSL_BIGNUM_C) && defined(POLARSSL_RSA_C) && \
@@ -59,7 +60,7 @@ int main( void )
 int main( int argc, char *argv[] )
 {
     FILE *f;
-    int ret;
+    int return_val, exit_val;
     size_t i;
     rsa_context rsa;
     entropy_context entropy;
@@ -68,8 +69,7 @@ int main( int argc, char *argv[] )
     unsigned char buf[512];
     const char *pers = "rsa_encrypt";
 
-    rsa_init( &rsa, RSA_PKCS_V15, 0 );
-    ret = 1;
+    exit_val = 0;
 
     if( argc != 2 )
     {
@@ -79,18 +79,24 @@ int main( int argc, char *argv[] )
         polarssl_printf( "\n" );
 #endif
 
-        goto exit;
+        polarssl_exit( 1 );
     }
 
     polarssl_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
     entropy_init( &entropy );
-    if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
-                               (const unsigned char *) pers,
-                               strlen( pers ) ) ) != 0 )
+    rsa_init( &rsa, RSA_PKCS_V15, 0 );
+
+    return_val = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
+                                (const unsigned char *) pers,
+                                strlen( pers ) );
+
+    if( return_val != 0 )
     {
-        polarssl_printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
+        exit_val = 1;
+        polarssl_printf( " failed\n  ! ctr_drbg_init returned %d\n",
+                         return_val );
         goto exit;
     }
 
@@ -99,16 +105,18 @@ int main( int argc, char *argv[] )
 
     if( ( f = fopen( "rsa_pub.txt", "rb" ) ) == NULL )
     {
-        ret = 1;
+        exit_val = 1;
         polarssl_printf( " failed\n  ! Could not open rsa_pub.txt\n" \
-                "  ! Please run rsa_genkey first\n\n" );
+                         "  ! Please run rsa_genkey first\n\n" );
         goto exit;
     }
 
-    if( ( ret = mpi_read_file( &rsa.N, 16, f ) ) != 0 ||
-        ( ret = mpi_read_file( &rsa.E, 16, f ) ) != 0 )
+    if( ( return_val = mpi_read_file( &rsa.N, 16, f ) ) != 0 ||
+        ( return_val = mpi_read_file( &rsa.E, 16, f ) ) != 0 )
     {
-        polarssl_printf( " failed\n  ! mpi_read_file returned %d\n\n", ret );
+        exit_val = 1;
+        polarssl_printf( " failed\n  ! mpi_read_file returned %d\n\n",
+                         return_val );
         goto exit;
     }
 
@@ -118,6 +126,7 @@ int main( int argc, char *argv[] )
 
     if( strlen( argv[1] ) > 100 )
     {
+        exit_val = 1;
         polarssl_printf( " Input data larger than 100 characters.\n\n" );
         goto exit;
     }
@@ -130,11 +139,13 @@ int main( int argc, char *argv[] )
     polarssl_printf( "\n  . Generating the RSA encrypted value" );
     fflush( stdout );
 
-    if( ( ret = rsa_pkcs1_encrypt( &rsa, ctr_drbg_random, &ctr_drbg,
-                                   RSA_PUBLIC, strlen( argv[1] ),
-                                   input, buf ) ) != 0 )
+    if( ( return_val = rsa_pkcs1_encrypt( &rsa, ctr_drbg_random, &ctr_drbg,
+                                          RSA_PUBLIC, strlen( argv[1] ),
+                                          input, buf ) ) != 0 )
     {
-        polarssl_printf( " failed\n  ! rsa_pkcs1_encrypt returned %d\n\n", ret );
+        exit_val = 1;
+        polarssl_printf( " failed\n  ! rsa_pkcs1_encrypt returned %d\n\n",
+                         return_val );
         goto exit;
     }
 
@@ -143,7 +154,7 @@ int main( int argc, char *argv[] )
      */
     if( ( f = fopen( "result-enc.txt", "wb+" ) ) == NULL )
     {
-        ret = 1;
+        exit_val = 1;
         polarssl_printf( " failed\n  ! Could not create %s\n\n", "result-enc.txt" );
         goto exit;
     }
@@ -166,7 +177,7 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
-    return( ret );
+    return( exit_val );
 }
 #endif /* POLARSSL_BIGNUM_C && POLARSSL_RSA_C && POLARSSL_ENTROPY_C &&
           POLARSSL_FS_IO && POLARSSL_CTR_DRBG_C */

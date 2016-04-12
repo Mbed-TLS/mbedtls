@@ -31,8 +31,6 @@
 #include <stdio.h>
 #define mbedtls_printf     printf
 #define mbedtls_exit       exit
-#define MBEDTLS_EXIT_SUCCESS EXIT_SUCCESS
-#define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
 #endif
 
 #if defined(MBEDTLS_BIGNUM_C) && defined(MBEDTLS_RSA_C) && \
@@ -71,7 +69,7 @@ int main( int argc, char *argv[] )
     ((void) argv);
 
     memset(result, 0, sizeof( result ) );
-    exit_val = MBEDTLS_EXIT_SUCCESS;
+    exit_val = 0;
 
     if( argc != 1 )
     {
@@ -81,7 +79,7 @@ int main( int argc, char *argv[] )
         mbedtls_printf( "\n" );
 #endif
 
-        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+        mbedtls_exit( 1 );
     }
 
     mbedtls_printf( "\n  . Seeding the random number generator..." );
@@ -95,7 +93,7 @@ int main( int argc, char *argv[] )
                                         strlen( pers ) );
     if( return_val != 0 )
     {
-        exit_val = MBEDTLS_EXIT_FAILURE;
+        exit_val = 1;
         mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned %d\n",
                         return_val );
         goto exit;
@@ -106,7 +104,7 @@ int main( int argc, char *argv[] )
 
     if( ( f = fopen( "rsa_priv.txt", "rb" ) ) == NULL )
     {
-        exit_val = MBEDTLS_EXIT_FAILURE;
+        exit_val = 1;
         mbedtls_printf( " failed\n  ! Could not open rsa_priv.txt\n" \
                 "  ! Please run rsa_genkey first\n\n" );
         goto exit;
@@ -121,7 +119,7 @@ int main( int argc, char *argv[] )
         ( return_val = mbedtls_mpi_read_file( &rsa.DQ, 16, f ) ) != 0 ||
         ( return_val = mbedtls_mpi_read_file( &rsa.QP, 16, f ) ) != 0 )
     {
-        exit_val = MBEDTLS_EXIT_FAILURE;
+        exit_val = 1;
         mbedtls_printf( " failed\n  ! mbedtls_mpi_read_file returned %d\n\n",
                         return_val );
         goto exit;
@@ -136,7 +134,7 @@ int main( int argc, char *argv[] )
      */
     if( ( f = fopen( "result-enc.txt", "rb" ) ) == NULL )
     {
-        exit_val = MBEDTLS_EXIT_FAILURE;
+        exit_val = 1;
         mbedtls_printf( "\n  ! Could not open %s\n\n", "result-enc.txt" );
         goto exit;
     }
@@ -151,7 +149,7 @@ int main( int argc, char *argv[] )
 
     if( i != rsa.len )
     {
-        exit_val = MBEDTLS_EXIT_FAILURE;
+        exit_val = 1;
         mbedtls_printf( "\n  ! Invalid RSA signature format\n\n" );
         goto exit;
     }
@@ -167,7 +165,7 @@ int main( int argc, char *argv[] )
                                             buf, result, 1024 );
     if( return_val != 0 )
     {
-        exit_val = MBEDTLS_EXIT_FAILURE;
+        exit_val = 1;
         mbedtls_printf( " failed\n  ! mbedtls_rsa_pkcs1_decrypt returned %d\n\n",
                         return_val );
         goto exit;

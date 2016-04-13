@@ -209,7 +209,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_PKCS1_V15 MBEDTLS_PKCS1_V21 */
 void pkcs1_rsassa_v15_verify_ext( int mod,
                                   int radix_N, char *input_N,
                                   int radix_E, char *input_E,

@@ -83,7 +83,7 @@ static int generic_check( const mbedtls_md_info_t *md_info, char *filename )
     int nb_err1, nb_err2;
     int nb_tot1, nb_tot2;
     unsigned char sum[MBEDTLS_MD_MAX_SIZE];
-    char buf[MBEDTLS_MD_MAX_SIZE * 2 + 1], line[1024];
+    char buf[MBEDTLS_MD_MAX_SIZE * 2 + 1] = { }, line[1024];
     char diff;
 
     if( ( f = fopen( filename, "rb" ) ) == NULL )

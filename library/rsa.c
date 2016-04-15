@@ -112,11 +112,15 @@ int rsa_gen_key( rsa_context *ctx,
                                 f_rng, p_rng ) );
 
         if( nbits % 2 )
+        {
             MPI_CHK( mpi_gen_prime( &ctx->Q, ( nbits >> 1 ) + 1, 0,
                                 f_rng, p_rng ) );
+        }
         else
+        {
             MPI_CHK( mpi_gen_prime( &ctx->Q, nbits >> 1, 0,
                                 f_rng, p_rng ) );
+        }
 
         if( mpi_cmp_mpi( &ctx->P, &ctx->Q ) == 0 )
             continue;

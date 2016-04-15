@@ -111,11 +111,15 @@ int mbedtls_rsa_gen_key( mbedtls_rsa_context *ctx,
                                 f_rng, p_rng ) );
 
         if( nbits % 2 )
+        {
             MBEDTLS_MPI_CHK( mbedtls_mpi_gen_prime( &ctx->Q, ( nbits >> 1 ) + 1, 0,
                                 f_rng, p_rng ) );
+        }
         else
+        {
             MBEDTLS_MPI_CHK( mbedtls_mpi_gen_prime( &ctx->Q, nbits >> 1, 0,
                                 f_rng, p_rng ) );
+        }
 
         if( mbedtls_mpi_cmp_mpi( &ctx->P, &ctx->Q ) == 0 )
             continue;

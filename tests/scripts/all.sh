@@ -2,20 +2,24 @@
 
 # all.sh
 #
+# This file is part of mbed TLS (https://tls.mbed.org)
+#
 # Copyright (c) 2014-2016, ARM Limited, All Rights Reserved
 #
 # Purpose
 #
-# Run all available tests (mostly).
+# To run all tests possible or available on the platform.
 #
-# Warning: includes various build modes, so it will mess with the current
-# CMake configuration. After this script is run, the CMake cache is lost and
-# CMake is not initialised any more!
+# Warning: the test is destructive. It includes various build modes and
+# configurations, and can and will arbitrarily change the current CMake
+# configuration. After this script has been run, the CMake cache will be lost
+# and CMake will no longer be initialised.
 #
-# Assumes gcc and clang (recent enough for using ASan with gcc and MemSan with
-# clang, or valgrind) are available, as well as cmake and a "good" find.
+# The script assumes the presence of gcc and clang (recent enough for using
+# ASan with gcc and MemSan with clang, or valgrind) are available, as well as
+# cmake and a "good" find.
 
-# Abort on errors (and uninitiliased variables)
+# Abort on errors (and uninitialised variables)
 set -eu
 
 if [ -d library -a -d include -a -d tests ]; then :; else
@@ -28,23 +32,16 @@ CONFIG_BAK="$CONFIG_H.bak"
 
 MEMORY=0
 SHORT=0
+FORCE=0
 
-while [ $# -gt 0 ]; do
-    case "$1" in
-        -m*)
-            MEMORY=${1#-m}
-            ;;
-        -s)
-            SHORT=1
-            ;;
-        *)
-            echo "Unknown argument: '$1'" >&2
-            echo "Use the source, Luke!" >&2
-            exit 1
-            ;;
-    esac
-    shift
-done
+usage()
+{
+    echo "Usage: $0"
+    echo -e "  -h|--help\t\tPrint this help."
+    echo -e "  -m|--memory\t\tAdditional optional memory tests."
+    echo -e "  -s|--short\t\tSubset of tests."
+    echo -e "  -f|--force\t\tForce the tests to overwrite any modified files."
+}
 
 # remove built files as well as the cmake cache/config
 cleanup()
@@ -72,6 +69,50 @@ msg()
     echo "******************************************************************"
 }
 
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --memory|-m*)
+            MEMORY=${1#-m}
+            ;;
+        --short|-s)
+            SHORT=1
+            ;;
+        --force|-f)
+            FORCE=1
+            ;;
+        --help|-h|*)
+            usage()
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+if [ $FORCE -eq 1 ]; then
+    rm -rf yotta/module
+    git checkout-index -f -q $CONFIG_H
+    cleanup
+else
+
+    if [ -d yotta/module ]; then
+        echo "Warning - there is an existing yotta module in the directory 'yotta/module'" >&2
+        echo "You can either delete your work and retry, or force the test to overwrite the"
+        echo "test by rerunning the script as: $0 --force"
+        exit 1
+    fi
+
+    if ! git diff-files --quiet include/mbedtls/config.h; then
+        echo $?
+        echo "Warning - the configuration file 'include/mbedtls/config.h' has been edited. " >&2
+        echo "You can either delete or preserve your work, or force the test by rerunning the"
+        echo "script as: $0 --force"
+        exit 1
+    fi
+fi
+
+#
+# Test Suites to be executed
+#
 # The test ordering tries to optimize for the following criteria:
 # 1. Catch possible problems early, by running first tests that run quickly
 #    and/or are more likely to fail than others (eg I use Clang most of the

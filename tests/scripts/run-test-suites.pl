@@ -2,6 +2,8 @@
 
 # run-test-suites.pl
 #
+# This file is part of mbed TLS (https://tls.mbed.org)
+#
 # Copyright (c) 2015-2016, ARM Limited, All Rights Reserved
 #
 # Purpose
@@ -66,7 +68,8 @@ for my $suite (@suites)
         print "(test cases passed:", $suite_cases_passed,
                 " failed:", $suite_cases_failed,
                 " skipped:", $suite_cases_skipped,
-                " of total:", ( $suite_cases_passed + $suite_cases_failed ),
+                " of total:", ($suite_cases_passed + $suite_cases_failed +
+                               $suite_cases_skipped),
                 ")\n"
     }
 

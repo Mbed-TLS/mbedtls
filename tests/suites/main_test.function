@@ -356,7 +356,7 @@ int main(int argc, const char *argv[])
                         if(  unmet_dependencies[ i-1 ] == NULL )
                         {
                             mbedtls_printf("FATAL: Out of memory\n");
-                            mbedtls_exit( MBEDTLS_PLATFORM_STD_EXIT_FAILURE );
+                            mbedtls_exit( MBEDTLS_EXIT_FAILURE );
                         }
                         unmet_dep_count++;
                     }

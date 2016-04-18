@@ -397,6 +397,6 @@ int main( int argc, char *argv[] )
     if( suites_failed > 0)
         mbedtls_exit( MBEDTLS_EXIT_FAILURE );
 
-    mbedtls_exit( MBEDTLS_EXIT_SUCCESS );
+    return( MBEDTLS_EXIT_SUCCESS );
 }
 

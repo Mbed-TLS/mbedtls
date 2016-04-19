@@ -38,6 +38,7 @@ fi
 # Step 1 - Make and instrumented build for code coverage
 export CFLAGS=' --coverage -g3 -O0 '
 make clean
+scripts/config.pl full
 make
 
 

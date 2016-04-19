@@ -2,6 +2,8 @@
 
 # generate_code.pl
 #
+# This file is part of mbed TLS (https://tls.mbed.org)
+#
 # Copyright (c) 2009-2016, ARM Limited, All Rights Reserved
 #
 # Purpose
@@ -202,7 +204,7 @@ while($test_cases =~ /\/\* BEGIN_CASE *([\w:]*) \*\/\n(.*?)\n\/\* END_CASE \*\//
         if( substr($def, 0, 4) eq "int " )
         {
             $param_defs .= "    int param$i;\n";
-            $param_checks .= "    if( verify_int( params[$i], &param$i ) != 0 ) return( 2 );\n";
+            $param_checks .= "    if( verify_int( params[$i], &param$i ) != 0 ) return( DISPATCH_INVALID_TEST_DATA );\n";
             push @dispatch_params, "param$i";
 
             $mapping_regex .= ":([\\d\\w |\\+\\-\\(\\)]+)";
@@ -211,7 +213,7 @@ while($test_cases =~ /\/\* BEGIN_CASE *([\w:]*) \*\/\n(.*?)\n\/\* END_CASE \*\//
         elsif( substr($def, 0, 6) eq "char *" )
         {
             $param_defs .= "    char *param$i = params[$i];\n";
-            $param_checks .= "    if( verify_string( &param$i ) != 0 ) return( 2 );\n";
+            $param_checks .= "    if( verify_string( &param$i ) != 0 ) return( DISPATCH_INVALID_TEST_DATA );\n";
             push @dispatch_params, "param$i";
             $mapping_regex .= ":[^:\n]+";
         }
@@ -248,14 +250,14 @@ $param_defs
     if( cnt != $param_count )
     {
         mbedtls_fprintf( stderr, "\\nIncorrect argument count (%d != %d)\\n", cnt, $param_count );
-        return( 2 );
+        return( DISPATCH_INVALID_TEST_DATA );
     }
 
 $param_checks
     test_suite_$function_name( $call_params );
-    return ( 0 );
+    return ( DISPATCH_TEST_SUCCESS );
 $function_post_code
-    return ( 3 );
+    return ( DISPATCH_UNSUPPORTED_SUITE );
 }
 else
 END
@@ -283,9 +285,9 @@ while( my ($key, $value) = each(%case_deps) )
     if( strcmp( str, "$key" ) == 0 )
     {
 #if defined($key)
-        return( 0 );
+        return( DEPENDENCY_SUPPORTED );
 #else
-        return( 1 );
+        return( DEPENDENCY_NOT_SUPPORTED );
 #endif
     }
 END
@@ -298,7 +300,7 @@ while( my ($key, $value) = each(%mapping_values) )
     if( strcmp( str, "$key" ) == 0 )
     {
         *value = ( $key );
-        return( 0 );
+        return( KEY_VALUE_MAPPING_FOUND );
     }
 END
 
@@ -315,7 +317,7 @@ END
 
 $dispatch_code =~ s/^(.+)/    $1/mg;
 
-$test_main =~ s/TEST_FILENAME/$test_case_data/;
+$test_main =~ s/TEST_FILENAME/$test_case_data/g;
 $test_main =~ s/FUNCTION_CODE//;
 $test_main =~ s/DEP_CHECK_CODE/$dep_check_code/;
 $test_main =~ s/DISPATCH_FUNCTION/$dispatch_code/;

@@ -10,6 +10,8 @@ Bugfix
    * Fix issue that caused a hang up when generating RSA keys of odd bitlength
    * Fix bug in mbedtls_rsa_rsaes_pkcs1_v15_encrypt that made null pointer
      dereference possible.
+   * Fix issue that caused a crash if invalid curves were passed to
+     mbedtls_ssl_conf_curves. #373
 
 Changes
    * On ARM platforms, when compiling with -O0 with GCC, Clang or armcc5,

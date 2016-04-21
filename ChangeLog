@@ -11,6 +11,8 @@ Bugfix
    * Fix issue in Makefile that prevented building using armar. #386
    * Fix memory leak that occured only when ECJPAKE was enabled and ECDHE and
      ECDSA was disabled in config.h . The leak didn't occur by default.
+   * Fix issue that caused a crash if invalid curves were passed to
+     mbedtls_ssl_conf_curves. #373
 
 Changes
    * On ARM platforms, when compiling with -O0 with GCC, Clang or armcc5,

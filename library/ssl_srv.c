@@ -45,10 +45,6 @@
 #define mbedtls_free       free
 #endif
 
-#if defined(MBEDTLS_HAVE_TIME)
-#include <time.h>
-#endif
-
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
@@ -2211,6 +2207,10 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 {
 #if defined(MBEDTLS_HAVE_TIME)
     time_t t;
+#if defined(WINCE)
+    SYSTEMTIME st;
+    FILETIME ft;
+#endif /* WINCE */
 #endif
     int ret;
     size_t olen, ext_len = 0, n;
@@ -2253,7 +2253,13 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
                         buf[4], buf[5] ) );
 
 #if defined(MBEDTLS_HAVE_TIME)
+#if defined(WINCE)
+    GetSystemTime(&st);
+    SystemTimeToFileTime(&st, &ft);
+    t = (time_t)( ( *( ( DWORDLONG* ) &ft ) / 10000000) - 11644473600LL);
+#else
     t = time( NULL );
+#endif /* WINCE */
     *p++ = (unsigned char)( t >> 24 );
     *p++ = (unsigned char)( t >> 16 );
     *p++ = (unsigned char)( t >>  8 );
@@ -2302,7 +2308,13 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
         ssl->state++;
 
 #if defined(MBEDTLS_HAVE_TIME)
+#if defined(WINCE)
+        GetSystemTime(&st);
+        SystemTimeToFileTime(&st, &ft);
+        ssl->session_negotiate->start = (time_t)( ( *( ( DWORDLONG* ) &ft ) / 10000000) - 11644473600LL);
+#else
         ssl->session_negotiate->start = time( NULL );
+#endif /* WINCE */
 #endif
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)

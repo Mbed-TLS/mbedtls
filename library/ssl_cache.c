@@ -59,8 +59,13 @@ int mbedtls_ssl_cache_get( void *data, mbedtls_ssl_session *session )
 {
     int ret = 1;
 #if defined(MBEDTLS_HAVE_TIME)
-    time_t t = time( NULL );
-#endif
+    time_t t;
+#if defined(WINCE)
+    SYSTEMTIME st;
+    FILETIME ft;
+#endif /* WINCE */
+#endif /* MBEDTLS_HAVE_TIME */
+
     mbedtls_ssl_cache_context *cache = (mbedtls_ssl_cache_context *) data;
     mbedtls_ssl_cache_entry *cur, *entry;
 
@@ -78,6 +83,13 @@ int mbedtls_ssl_cache_get( void *data, mbedtls_ssl_session *session )
         cur = cur->next;
 
 #if defined(MBEDTLS_HAVE_TIME)
+#if defined(WINCE)
+        GetSystemTime(&st);
+        SystemTimeToFileTime(&st, &ft);
+        t = (time_t)( ( *( ( DWORDLONG* ) &ft ) / 10000000) - 11644473600LL);
+#else
+    t = time( NULL );
+#endif /* WINCE */
         if( cache->timeout != 0 &&
             (int) ( t - entry->timestamp ) > cache->timeout )
             continue;
@@ -138,9 +150,13 @@ int mbedtls_ssl_cache_set( void *data, const mbedtls_ssl_session *session )
 {
     int ret = 1;
 #if defined(MBEDTLS_HAVE_TIME)
-    time_t t = time( NULL ), oldest = 0;
+    time_t t, oldest = 0;
     mbedtls_ssl_cache_entry *old = NULL;
-#endif
+#if defined(WINCE)
+    SYSTEMTIME st;
+    FILETIME ft;
+#endif /* WINCE */
+#endif /* MBEDTLS_HAVE_TIME */
     mbedtls_ssl_cache_context *cache = (mbedtls_ssl_cache_context *) data;
     mbedtls_ssl_cache_entry *cur, *prv;
     int count = 0;
@@ -153,11 +169,28 @@ int mbedtls_ssl_cache_set( void *data, const mbedtls_ssl_session *session )
     cur = cache->chain;
     prv = NULL;
 
+#if defined(MBEDTLS_HAVE_TIME)
+#if defined(WINCE)
+    GetSystemTime(&st);
+    SystemTimeToFileTime(&st, &ft);
+    t = (time_t)( ( *( ( DWORDLONG* ) &ft ) / 10000000) - 11644473600LL);
+#else
+    t = time( NULL );
+#endif /* WINCE */
+#endif /* MBEDTLS_HAVE_TIME */
+
     while( cur != NULL )
     {
         count++;
 
 #if defined(MBEDTLS_HAVE_TIME)
+#if defined(WINCE)
+        GetSystemTime(&st);
+        SystemTimeToFileTime(&st, &ft);
+        t = (time_t)( ( *( ( DWORDLONG* ) &ft ) / 10000000) - 11644473600LL);
+#else
+    t = time( NULL );
+#endif /* WINCE */
         if( cache->timeout != 0 &&
             (int) ( t - cur->timestamp ) > cache->timeout )
         {

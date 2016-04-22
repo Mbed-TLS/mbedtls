@@ -332,7 +332,7 @@ static void ssl_write_supported_elliptic_curves_ext( ssl_context *ssl,
 #endif
         if( info == NULL )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "invalid curve in ssl configuration" ) );
+            SSL_DEBUG_MSG( 1, ( "invalid curve in ssl configuration" ) );
             return;
         }
 

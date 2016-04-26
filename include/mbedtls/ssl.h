@@ -542,7 +542,7 @@ typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
 struct mbedtls_ssl_session
 {
 #if defined(MBEDTLS_HAVE_TIME)
-    time_t start;               /*!< starting time      */
+    mbedtls_time_t start;       /*!< starting time      */
 #endif
     int ciphersuite;            /*!< chosen ciphersuite */
     int compression;            /*!< chosen compression */

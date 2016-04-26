@@ -35,6 +35,15 @@
 
 #if defined(MBEDTLS_SSL_TLS_C)
 
+#if defined(MBEDTLS_PLATFORM_C)
+#include "mbedtls/platform.h"
+#else
+#include <stdlib.h>
+#define mbedtls_calloc    calloc
+#define mbedtls_free      free
+#define mbedtls_time_t    time_t
+#endif
+
 #include "mbedtls/debug.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/ssl_internal.h"
@@ -44,14 +53,6 @@
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && \
     defined(MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE)
 #include "mbedtls/oid.h"
-#endif
-
-#if defined(MBEDTLS_PLATFORM_C)
-#include "mbedtls/platform.h"
-#else
-#include <stdlib.h>
-#define mbedtls_calloc    calloc
-#define mbedtls_free       free
 #endif
 
 /* Implementation that should never be optimized out by the compiler */

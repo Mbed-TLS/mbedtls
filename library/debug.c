@@ -27,20 +27,21 @@
 
 #if defined(MBEDTLS_DEBUG_C)
 
-#include "mbedtls/debug.h"
-
-#include <stdarg.h>
-#include <stdio.h>
-#include <string.h>
-
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdlib.h>
 #define mbedtls_calloc      calloc
 #define mbedtls_free        free
+#define mbedtls_time_t      time_t
 #define mbedtls_snprintf    snprintf
 #endif
+
+#include "mbedtls/debug.h"
+
+#include <stdarg.h>
+#include <stdio.h>
+#include <string.h>
 
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)

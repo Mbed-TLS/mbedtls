@@ -234,11 +234,11 @@ int mbedtls_platform_set_exit( void (*exit_func)( int status ) );
 /*
  * The time_t datatype
  */
-#if defined(MBEDTLS_PLATFORM_TIME_T_MACRO)
-#define mbedtls_time_t MBEDTLS_PLATFORM_TIME_T_MACRO
+#if defined(MBEDTLS_PLATFORM_TIME_TYPE_MACRO)
+typedef MBEDTLS_PLATFORM_TIME_TYPE_MACRO mbedtls_time_t;
 #else
-#define mbedtls_time_t time_t
-#endif /* MBEDTLS_PLATFORM_TIME_T_MACRO */
+typedef time_t mbedtls_time_t;
+#endif /* MBEDTLS_PLATFORM_TIME_TYPE_MACRO */
 
 /*
  * The function pointers for time

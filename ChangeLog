@@ -27,7 +27,8 @@ Changes
      don't use the optimized assembly for bignum multiplication. This removes
      the need to pass -fomit-frame-pointer to avoid a build error with -O0.
    * Disabled SSLv3 in the default configuration.
-   * Optimized mbedtls_zeroize() for MPI integer size. (Fix by Alexey Skalozub)
+   * Optimized mbedtls_mpi_zeroize() for MPI integer size. (Fix by Alexey
+     Skalozub).
 
 = mbed TLS 2.2.1 released 2016-01-05
 

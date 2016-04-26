@@ -198,15 +198,15 @@ int mbedtls_platform_set_exit( void (*exit_func)( int status ) )
 static mbedtls_time_t platform_time_uninit( mbedtls_time_t* timer )
 {
     ((void) timer);
-    return( NULL );
+    return( 0 );
 }
 
 #define MBEDTLS_PLATFORM_STD_TIME   platform_time_uninit
 #endif /* !MBEDTLS_PLATFORM_STD_TIME */
 
-time_t (*mbedtls_time)( mbedtls_time_t* timer ) = MBEDTLS_PLATFORM_STD_TIME;
+mbedtls_time_t (*mbedtls_time)( mbedtls_time_t* timer ) = MBEDTLS_PLATFORM_STD_TIME;
 
-int mbedtls_platform_set_exit( mbedtls_time_t (*time_func)( mbedtls_time_t timer ) )
+int mbedtls_platform_set_time( mbedtls_time_t (*time_func)( mbedtls_time_t* timer ) )
 {
     mbedtls_time = time_func;
     return( 0 );

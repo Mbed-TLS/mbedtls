@@ -190,4 +190,27 @@ int mbedtls_platform_set_exit( void (*exit_func)( int status ) )
 }
 #endif /* MBEDTLS_PLATFORM_EXIT_ALT */
 
+#if defined(MBEDTLS_PLATFORM_TIME_ALT)
+#if !defined(MBEDTLS_PLATFORM_STD_TIME)
+/*
+ * Make dummy function to prevent NULL pointer dereferences
+ */
+static mbedtls_time_t platform_time_uninit( mbedtls_time_t* timer )
+{
+    ((void) timer);
+    return( 0 );
+}
+
+#define MBEDTLS_PLATFORM_STD_TIME   platform_time_uninit
+#endif /* !MBEDTLS_PLATFORM_STD_TIME */
+
+mbedtls_time_t (*mbedtls_time)( mbedtls_time_t* timer ) = MBEDTLS_PLATFORM_STD_TIME;
+
+int mbedtls_platform_set_time( mbedtls_time_t (*time_func)( mbedtls_time_t* timer ) )
+{
+    mbedtls_time = time_func;
+    return( 0 );
+}
+#endif /* MBEDTLS_PLATFORM_TIME_ALT */
+
 #endif /* MBEDTLS_PLATFORM_C */

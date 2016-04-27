@@ -44,6 +44,7 @@ extern "C" {
 #if !defined(MBEDTLS_PLATFORM_NO_STD_FUNCTIONS)
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #if !defined(MBEDTLS_PLATFORM_STD_SNPRINTF)
 #if defined(_WIN32)
 #define MBEDTLS_PLATFORM_STD_SNPRINTF   mbedtls_platform_win32_snprintf /**< Default snprintf to use  */
@@ -65,6 +66,9 @@ extern "C" {
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_EXIT)
 #define MBEDTLS_PLATFORM_STD_EXIT      exit /**< Default exit to use */
+#endif
+#if !defined(MBEDTLS_PLATFORM_STD_TIME)
+#define MBEDTLS_PLATFORM_STD_TIME       time    /**< Default time to use */
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_EXIT_SUCCESS)
 #define MBEDTLS_PLATFORM_STD_EXIT_SUCCESS  EXIT_SUCCESS /**< Default exit value to use */
@@ -226,6 +230,37 @@ int mbedtls_platform_set_exit( void (*exit_func)( int status ) );
 #else
 #define MBEDTLS_EXIT_FAILURE 1
 #endif
+
+/*
+ * The time_t datatype
+ */
+#if defined(MBEDTLS_PLATFORM_TIME_TYPE_MACRO)
+typedef MBEDTLS_PLATFORM_TIME_TYPE_MACRO mbedtls_time_t;
+#else
+typedef time_t mbedtls_time_t;
+#endif /* MBEDTLS_PLATFORM_TIME_TYPE_MACRO */
+
+/*
+ * The function pointers for time
+ */
+#if defined(MBEDTLS_PLATFORM_TIME_ALT)
+extern mbedtls_time_t (*mbedtls_time)( mbedtls_time_t* time );
+
+/**
+ * \brief   Set your own time function pointer
+ *
+ * \param   time_func   the time function implementation
+ *
+ * \return              0
+ */
+int mbedtls_platform_set_time( mbedtls_time_t (*time_func)( mbedtls_time_t* time ) );
+#else
+#if defined(MBEDTLS_PLATFORM_TIME_MACRO)
+#define mbedtls_time    MBEDTLS_PLATFORM_TIME_MACRO
+#else
+#define mbedtls_time   time
+#endif /* MBEDTLS_PLATFORM_TIME_MACRO */
+#endif /* MBEDTLS_PLATFORM_TIME_ALT */
 
 #ifdef __cplusplus
 }

@@ -1,3 +1,4 @@
+#line 1 "main_test.function"
 SUITE_PRE_DEP
 #define TEST_SUITE_ACTIVE
 
@@ -70,6 +71,8 @@ MAPPING_CODE
 FUNCTION_CODE
 SUITE_POST_DEP
 
+#line !LINE_NO! "main_test.function"
+
 
 /*----------------------------------------------------------------------------*/
 /* Test dispatch code */
@@ -111,6 +114,8 @@ DISPATCH_FUNCTION
 /*----------------------------------------------------------------------------*/
 /* Main Test code */
 
+#line !LINE_NO! "main_test.function"
+
 #define USAGE \
     "Usage: %s [OPTIONS] files...\n\n" \
     "   Command line arguments:\n" \
@@ -121,7 +126,7 @@ DISPATCH_FUNCTION
     "     -v | --verbose    Display full information about each test\n" \
     "     -h | --help       Display this information\n\n", \
     argv[0], \
-    "TEST_FILENAME"
+    "TESTCASE_FILENAME"
 
 
 int get_line( FILE *f, char *buf, size_t len )
@@ -234,7 +239,7 @@ static int run_test_snprintf( void )
 int main(int argc, const char *argv[])
 {
     /* Local Configurations and options */
-    const char *default_filename = "TEST_FILENAME";
+    const char *default_filename = "TESTCASE_FILENAME";
     const char *test_filename = NULL;
     const char **test_files = NULL;
     int testfile_count = 0;

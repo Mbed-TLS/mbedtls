@@ -12,6 +12,10 @@ Security
      mbedtls_rsa_rsaes_oaep_decrypt. It is not triggerable remotely in
      SSL/TLS.
 
+Features
+   * Support for platform abstraction of the standard C library time()
+     function.
+
 Bugfix
    * Fix bug in mbedtls_mpi_add_mpi() that caused wrong results when the three
      arguments where the same (in-place doubling). Found and fixed by Janos
@@ -29,12 +33,16 @@ Bugfix
    * Fix issue that caused a hang when generating RSA keys of odd bitlength
    * Fix bug in mbedtls_rsa_rsaes_pkcs1_v15_encrypt that made null pointer
      dereference possible.
+   * Fix issue that caused a crash if invalid curves were passed to
+     mbedtls_ssl_conf_curves. #373
 
 Changes
    * On ARM platforms, when compiling with -O0 with GCC, Clang or armcc5,
      don't use the optimized assembly for bignum multiplication. This removes
      the need to pass -fomit-frame-pointer to avoid a build error with -O0.
-   * Disabled SSLv3 in the default configuration. 
+   * Disabled SSLv3 in the default configuration.
+   * Optimized mbedtls_mpi_zeroize() for MPI integer size. (Fix by Alexey
+     Skalozub).
 
 = mbed TLS 2.2.1 released 2016-01-05
 

@@ -25,6 +25,7 @@ Bugfix
      dereference possible.
    * Fix issue that caused a crash if invalid curves were passed to
      mbedtls_ssl_conf_curves. #373
+   * Fix issue in ssl_fork_server which was preventing it from functioning. #429
 
 Changes
    * On ARM platforms, when compiling with -O0 with GCC, Clang or armcc5,

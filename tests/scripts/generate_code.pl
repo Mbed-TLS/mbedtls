@@ -77,7 +77,7 @@ close(TEST_HELPERS);
 open(TEST_MAIN, "$test_main_file") or die "Opening test main '$test_main_file': $!";
 my @test_main_lines = split/^/,  <TEST_MAIN>;
 my $test_main;
-my $index = 1;
+my $index = 2;
 for my $line (@test_main_lines) {
     $line =~ s/!LINE_NO!/$index/;
     $test_main = $test_main.$line;
@@ -88,7 +88,7 @@ close(TEST_MAIN);
 open(TEST_CASES, "$test_case_file") or die "Opening test cases '$test_case_file': $!";
 my @test_cases_lines = split/^/,  <TEST_CASES>;
 my $test_cases;
-my $index = 1;
+my $index = 2;
 for my $line (@test_cases_lines) {
     if ($line =~ /^\/\* BEGIN_CASE .*\*\//)
     {

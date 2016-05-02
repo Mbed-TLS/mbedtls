@@ -95,6 +95,8 @@ for my $line (@test_cases_lines) {
         $line = $line."#line $index \"$test_case_file\"\n";
     }
 
+    $line =~ s/!LINE_NO!/$index/;
+
     $test_cases = $test_cases.$line;
     $index++;
 }

@@ -854,7 +854,7 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
  *                 pointers and data.
  *
  * \param ssl      SSL context
- * \return         0 if successful, or POLASSL_ERR_SSL_MALLOC_FAILED,
+ * \return         0 if successful, or MBEDTLS_ERR_SSL_ALLOC_FAILED,
                    MBEDTLS_ERR_SSL_HW_ACCEL_FAILED or
  *                 MBEDTLS_ERR_SSL_COMPRESSION_FAILED
  */

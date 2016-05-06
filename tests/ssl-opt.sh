@@ -587,7 +587,7 @@ run_test    "Encrypt then MAC: client enabled, server SSLv3" \
             "$P_CLI debug_level=3 min_version=ssl3" \
             0 \
             -c "client hello, adding encrypt_then_mac extension" \
-            -s "found encrypt then mac extension" \
+            -S "found encrypt then mac extension" \
             -S "server hello, adding encrypt then mac extension" \
             -C "found encrypt_then_mac extension" \
             -C "using encrypt then mac" \
@@ -646,7 +646,7 @@ run_test    "Extended Master Secret: client enabled, server SSLv3" \
             "$P_CLI debug_level=3 min_version=ssl3" \
             0 \
             -c "client hello, adding extended_master_secret extension" \
-            -s "found extended master secret extension" \
+            -S "found extended master secret extension" \
             -S "server hello, adding extended master secret extension" \
             -C "found extended_master_secret extension" \
             -C "using extended master secret" \
@@ -2353,6 +2353,16 @@ run_test    "Small packet TLS 1.2 AEAD shorter tag" \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CCM-8" \
             0 \
             -s "Read from client: 1 bytes read"
+
+# A test for extensions in SSLv3
+
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
+run_test    "SSLv3 with extensions, server side" \
+            "$P_SRV min_version=ssl3 debug_level=3" \
+            "$P_CLI force_version=ssl3 tickets=1 max_frag_len=4096 alpn=abc,1234" \
+            0 \
+            -S "dumping 'client hello extensions'" \
+            -S "server hello, total extension length:"
 
 # Test for large packets
 

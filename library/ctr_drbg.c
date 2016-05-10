@@ -67,7 +67,7 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx )
 }
 
 /*
- * Non-public function wrapped by ctr_crbg_init(). Necessary to allow NIST
+ * Non-public function wrapped by mbedtls_ctr_crbg_seed(). Necessary to allow NIST
  * tests to succeed (which require known length fixed entropy)
  */
 int mbedtls_ctr_drbg_seed_entropy_len(

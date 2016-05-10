@@ -36,6 +36,8 @@ EXCLUDE='^$'
 SHOW_TEST_NUMBER=0
 RUN_TEST_NUMBER=''
 
+PRESERVE_LOGS=0
+
 print_usage() {
     echo "Usage: $0 [options]"
     printf "  -h|--help\tPrint this help.\n"
@@ -44,6 +46,7 @@ print_usage() {
     printf "  -e|--exclude\tMatching tests are excluded (default: '$EXCLUDE')\n"
     printf "  -n|--number\tExecute only numbered test (comma-separated, e.g. '245,256')\n"
     printf "  -s|--show-numbers\tShow test numbers in front of test names\n"
+    printf "  -p|--preserve-logs\tPreserve logs of successful tests as well\n"
 }
 
 get_options() {
@@ -63,6 +66,9 @@ get_options() {
                 ;;
             -s|--show-numbers)
                 SHOW_TEST_NUMBER=1
+                ;;
+            -p|--preserve-logs)
+                PRESERVE_LOGS=1
                 ;;
             -h|--help)
                 print_usage
@@ -485,6 +491,11 @@ run_test() {
 
     # if we're here, everything is ok
     echo "PASS"
+    if [ "$PRESERVE_LOGS" -gt 0 ]; then
+        mv $SRV_OUT o-srv-${TESTS}.log
+        mv $CLI_OUT o-cli-${TESTS}.log
+    fi
+
     rm -f $SRV_OUT $CLI_OUT $PXY_OUT
 }
 

@@ -212,7 +212,7 @@ void memory_buffer_alloc_oom_test()
     TEST_ASSERT( ptr_c == NULL );
 
     mbedtls_memory_buffer_alloc_cur_get( &reported_bytes, &reported_blocks );
-    TEST_ASSERT( reported_bytes == 864 );
+    TEST_ASSERT( reported_bytes >= 864 && reported_bytes <= sizeof(buf) );
 
     mbedtls_free( ptr_a );
     ptr_a = NULL;

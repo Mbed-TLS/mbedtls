@@ -33,6 +33,7 @@ MEMCHECK=0
 FILTER='.*'
 EXCLUDE='^$'
 
+SHOW_TEST_NUMBER=0
 RUN_TEST_NUMBER=''
 
 print_usage() {
@@ -42,6 +43,7 @@ print_usage() {
     printf "  -f|--filter\tOnly matching tests are executed (default: '$FILTER')\n"
     printf "  -e|--exclude\tMatching tests are excluded (default: '$EXCLUDE')\n"
     printf "  -n|--number\tExecute only numbered test (comma-separated, e.g. '245,256')\n"
+    printf "  -s|--show-numbers\tShow test numbers in front of test names\n"
 }
 
 get_options() {
@@ -58,6 +60,9 @@ get_options() {
                 ;;
             -n|--number)
                 shift; RUN_TEST_NUMBER=$1
+                ;;
+            -s|--show-numbers)
+                SHOW_TEST_NUMBER=1
                 ;;
             -h|--help)
                 print_usage
@@ -143,12 +148,19 @@ needs_more_time() {
 
 # print_name <name>
 print_name() {
-    printf "$1 "
-    LEN=$(( 72 - `echo "$1" | wc -c` ))
+    TESTS=$(( $TESTS + 1 ))
+    LINE=""
+
+    if [ "$SHOW_TEST_NUMBER" -gt 0 ]; then
+        LINE="$TESTS "
+    fi
+
+    LINE="$LINE$1"
+    printf "$LINE "
+    LEN=$(( 72 - `echo "$LINE" | wc -c` ))
     for i in `seq 1 $LEN`; do printf '.'; done
     printf ' '
 
-    TESTS=$(( $TESTS + 1 ))
 }
 
 # fail <message>

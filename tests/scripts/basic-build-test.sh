@@ -39,6 +39,7 @@ fi
 export CFLAGS=' --coverage -g3 -O0 '
 make clean
 scripts/config.pl full
+scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE
 make
 
 

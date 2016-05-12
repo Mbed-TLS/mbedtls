@@ -321,6 +321,9 @@ int main(int argc, const char *argv[])
           testfile_index < testfile_count;
           testfile_index++ )
     {
+        int unmet_dep_count = 0;
+        char *unmet_dependencies[20];
+
         test_filename = test_files[ testfile_index ];
 
         file = fopen( test_filename, "r" );
@@ -333,8 +336,12 @@ int main(int argc, const char *argv[])
 
         while( !feof( file ) )
         {
-            int unmet_dep_count = 0;
-            char *unmet_dependencies[20];
+            if( unmet_dep_count > 0 )
+            {
+                mbedtls_printf("FATAL: Dep count larger than zero at start of loop\n");
+                mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+            }
+            unmet_dep_count = 0;
 
             if( ( ret = get_line( file, buf, sizeof(buf) ) ) != 0 )
                 break;
@@ -399,16 +406,17 @@ int main(int argc, const char *argv[])
                 if( 1 == option_verbose && unmet_dep_count > 0 )
                 {
                     mbedtls_fprintf( stdout, "   Unmet dependencies: " );
-                    while( unmet_dep_count > 0)
+                    for( i = 0; i < unmet_dep_count; i++ )
                     {
                         mbedtls_fprintf(stdout, "%s  ",
-                                        unmet_dependencies[unmet_dep_count - 1]);
-                        free(unmet_dependencies[unmet_dep_count - 1]);
-                        unmet_dep_count--;
+                                        unmet_dependencies[i]);
+                        free(unmet_dependencies[i]);
                     }
                     mbedtls_fprintf( stdout, "\n" );
                 }
                 fflush( stdout );
+
+                unmet_dep_count = 0;
             }
             else if( ret == DISPATCH_TEST_SUCCESS && test_errors == 0 )
             {
@@ -434,6 +442,10 @@ int main(int argc, const char *argv[])
             }
         }
         fclose(file);
+
+        /* In case we encounter early end of file */
+        for( i = 0; i < unmet_dep_count; i++ )
+            free( unmet_dependencies[i] );
     }
 
     mbedtls_fprintf( stdout, "\n----------------------------------------------------------------------------\n\n");

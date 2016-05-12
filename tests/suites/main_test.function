@@ -357,8 +357,8 @@ int main(int argc, const char *argv[])
                 {
                     if( dep_check( params[i] ) != DEPENDENCY_SUPPORTED )
                     {
-                        unmet_dependencies[ i-1 ] = strdup(params[i]);
-                        if(  unmet_dependencies[ i-1 ] == NULL )
+                        unmet_dependencies[ unmet_dep_count ] = strdup(params[i]);
+                        if(  unmet_dependencies[ unmet_dep_count ] == NULL )
                         {
                             mbedtls_printf("FATAL: Out of memory\n");
                             mbedtls_exit( MBEDTLS_EXIT_FAILURE );

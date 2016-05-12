@@ -1,5 +1,5 @@
 /*
- *  ARMv8 crytpo extension AES support functions
+ *  ARMv8-A Cryptography Extension AES support functions
  *
  *  Copyright (C) 2016, CriticalBlue Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
@@ -30,11 +30,11 @@
 #endif
 
 /* Check if the module is enabled */
-#if defined(MBEDTLS_AES_C) && defined(MBEDTLS_ARM_CRYTO_C)
-#include "mbedtls/aes_armcrypto.h"
+#if defined(MBEDTLS_AES_C) && defined(MBEDTLS_ARMV8A_CE_C)
+#include "mbedtls/aes_armv8a_ce.h"
 
-/* Check if crypto is supported */
-#if defined(MBEDTLS_HAVE_ARM_CRYPTO)
+/* Check if ARMv8-A Cryptography Extension is supported */
+#if defined(MBEDTLS_HAVE_ARMV8A_CE)
 
 #include <arm_neon.h>
 #include <stdio.h>
@@ -42,7 +42,7 @@
 /*
  * AES-NI AES-ECB block en(de)cryption
  */
-int mbedtls_aes_armcrypto_crypt_ecb( mbedtls_aes_context *ctx,
+int mbedtls_armv8a_ce_aes_crypt_ecb( mbedtls_aes_context *ctx,
                      int mode,
                      const unsigned char input[16],
                      unsigned char output[16] )
@@ -117,7 +117,7 @@ int mbedtls_aes_armcrypto_crypt_ecb( mbedtls_aes_context *ctx,
  * Based on [GCM-WP] algorithms 3 and 5.
  * This method assumes both inputs are in gcm format (little byte + big bit endianness).
  */
-void mbedtls_aes_armcrypto_gcm_mult( unsigned char c[16],
+void mbedtls_armv8a_ce_gcm_mult( unsigned char c[16],
                      const unsigned char a[16],
                      const unsigned char b[16] )
 {
@@ -160,7 +160,7 @@ void mbedtls_aes_armcrypto_gcm_mult( unsigned char c[16],
     return;
 }
 
-#endif /* #if defined(MBEDTLS_HAVE_ARM_CRYPTO) */
+#endif /* #if defined(MBEDTLS_HAVE_ARMV8A_CE) */
 
-#endif /* defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_AES_C) */
+#endif /* defined(MBEDTLS_ARMV8A_CE_C) && defined(MBEDTLS_AES_C) */
 

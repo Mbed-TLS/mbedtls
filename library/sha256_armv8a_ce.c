@@ -1,7 +1,7 @@
 /*
- *  SHA256-CE support functions
+ *  ARMv8-A Cryptography Extension SHA256 support functions
  *
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2016, CriticalBlue Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -26,11 +26,11 @@
 #endif
 
 /* Check if the module is enabled */
-#if defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_SHA256_C)
-#include "mbedtls/sha256ce.h"
+#if defined(MBEDTLS_ARMV8A_CE_C) && defined(MBEDTLS_SHA256_C)
+#include "mbedtls/sha256_armv8a_ce.h"
 
 /* Check if crypto is supported */
-#if defined(MBEDTLS_HAVE_ARM_CRYPTO)
+#if defined(MBEDTLS_HAVE_ARMV8A_CE)
 
 #include <string.h>
 
@@ -92,7 +92,7 @@ static const uint32_t K[] =
     d0 = vsha256hq_u32( d0, d1, T0 );  \
     d1 = vsha256h2q_u32( d1, d2, T0 );
 
-void mbedtls_sha256ce_process( mbedtls_sha256_context *ctx, const unsigned char data[64] )
+void mbedtls_armv8a_ce_sha256_process( mbedtls_sha256_context *ctx, const unsigned char data[64] )
 {
 	/* declare variables */
 
@@ -176,6 +176,6 @@ void mbedtls_sha256ce_process( mbedtls_sha256_context *ctx, const unsigned char 
 	vst1q_u32( &ctx->state[4], s1 );
 }
 
-#endif /* #if defined(MBEDTLS_HAVE_ARM_CRYPTO) */
+#endif /* #if defined(MBEDTLS_HAVE_ARMV8A_CE) */
 
-#endif /* #if defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_SHA256_C) */
+#endif /* #if defined(MBEDTLS_ARMV8A_CE_C) && defined(MBEDTLS_SHA256_C) */

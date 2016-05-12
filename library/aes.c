@@ -43,8 +43,8 @@
 #include "mbedtls/aesni.h"
 #endif
 
-#if defined(MBEDTLS_ARM_CRYTO_C)
-#include "mbedtls/aes_armcrypto.h"
+#if defined(MBEDTLS_ARMV8A_CE_C)
+#include "mbedtls/aes_armv8a_ce.h"
 #endif
 
 #if defined(MBEDTLS_SELF_TEST)
@@ -838,9 +838,9 @@ int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
         return( mbedtls_aesni_crypt_ecb( ctx, mode, input, output ) );
 #endif
 
-#if  defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_HAVE_ARM_CRYPTO)
-    if( mbedtls_arm_has_support( MBEDTLS_ARM_CRYTO_AES ) )
-    	return (mbedtls_aes_armcrypto_crypt_ecb( ctx, mode, input, output ));
+#if  defined(MBEDTLS_ARMV8A_CE_C) && defined(MBEDTLS_HAVE_ARMV8A_CE)
+    if( mbedtls_armv8a_ce_has_support( MBEDTLS_ARMV8A_CE_AES ) )
+		return (mbedtls_armv8a_ce_aes_crypt_ecb( ctx, mode, input, output ));
 #endif
 
 #if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)
@@ -879,9 +879,9 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
     static int (* ecb_func)( mbedtls_aes_context*, int, const unsigned char*, unsigned char* )
     		= mbedtls_aes_crypt_ecb;
 
-#if defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_HAVE_ARM_CRYPTO)
-	if( mbedtls_arm_has_support( MBEDTLS_ARM_CRYTO_AES ) )
-		ecb_func = mbedtls_aes_armcrypto_crypt_ecb;
+#if defined(MBEDTLS_ARMV8A_CE_C) && defined(MBEDTLS_HAVE_ARMV8A_CE)
+	if( mbedtls_armv8a_ce_has_support( MBEDTLS_ARMV8A_CE_AES ) )
+		ecb_func = mbedtls_armv8a_ce_aes_crypt_ecb;
 #endif
 
     if( length % 16 )
@@ -953,9 +953,9 @@ int mbedtls_aes_crypt_cfb128( mbedtls_aes_context *ctx,
     static int (* ecb_func)( mbedtls_aes_context*, int, const unsigned char*, unsigned char* )
     		= mbedtls_aes_crypt_ecb;
 
-#if defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_HAVE_ARM_CRYPTO)
-   	if( mbedtls_arm_has_support( MBEDTLS_ARM_CRYTO_AES ) )
-   		ecb_func = mbedtls_aes_armcrypto_crypt_ecb;
+#if defined(MBEDTLS_ARMV8A_CE_C) && defined(MBEDTLS_HAVE_ARMV8A_CE)
+	if( mbedtls_armv8a_ce_has_support( MBEDTLS_ARMV8A_CE_AES ) )
+		ecb_func = mbedtls_armv8a_ce_aes_crypt_ecb;
 #endif
 
     if( mode == MBEDTLS_AES_DECRYPT )
@@ -1005,9 +1005,9 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
     static int (* ecb_func)( mbedtls_aes_context*, int, const unsigned char*, unsigned char* )
     		= mbedtls_aes_crypt_ecb;
 
-#if defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_HAVE_ARM_CRYPTO)
-	if( mbedtls_arm_has_support( MBEDTLS_ARM_CRYTO_AES ) )
-		ecb_func = mbedtls_aes_armcrypto_crypt_ecb;
+#if defined(MBEDTLS_ARMV8A_CE_C) && defined(MBEDTLS_HAVE_ARMV8A_CE)
+	if( mbedtls_armv8a_ce_has_support( MBEDTLS_ARMV8A_CE_AES ) )
+		ecb_func = mbedtls_armv8a_ce_aes_crypt_ecb;
 #endif
 
     while( length-- )
@@ -1047,9 +1047,9 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
     static int (* ecb_func)( mbedtls_aes_context*, int, const unsigned char*, unsigned char* )
     		= mbedtls_aes_crypt_ecb;
 
-#if defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_HAVE_ARM_CRYPTO)
-	if( mbedtls_arm_has_support( MBEDTLS_ARM_CRYTO_AES ) )
-		ecb_func = mbedtls_aes_armcrypto_crypt_ecb;
+#if defined(MBEDTLS_ARMV8A_CE_C) && defined(MBEDTLS_HAVE_ARMV8A_CE)
+	if( mbedtls_armv8a_ce_has_support( MBEDTLS_ARMV8A_CE_AES ) )
+		ecb_func = mbedtls_armv8a_ce_aes_crypt_ecb;
 #endif
 
 

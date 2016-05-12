@@ -12,8 +12,9 @@ ifdef DEBUG
 LOCAL_CFLAGS += -g3
 endif
 
-# Need to tell GCC to use crypto instructions for ARMv8
-# LOCAL_CFLAGS += -march=armv8-a+crypto
+ifdef MARCH
+LOCAL_CFLAGS += -march=$(MARCH)
+endif
 
 ifdef MTUNE
 CFLAGS += -mtune=$(MTUNE)
@@ -51,7 +52,8 @@ ifdef WINDOWS_BUILD
 DLEXT=dll
 endif
 
-OBJS_CRYPTO=	aes.o		aesni.o		aes_armcrypto.o arc4.o		\
+OBJS_CRYPTO=	aes.o		aesni.o		aes_armv8a_ce.o \
+		arc4.o		armv8a_ce.o \
 		asn1parse.o	asn1write.o	base64.o	\
 		bignum.o	blowfish.o	camellia.o	\
 		ccm.o		cipher.o	cipher_wrap.o	\
@@ -67,7 +69,7 @@ OBJS_CRYPTO=	aes.o		aesni.o		aes_armcrypto.o arc4.o		\
 		pk_wrap.o	pkcs12.o	pkcs5.o		\
 		pkparse.o	pkwrite.o	platform.o	\
 		ripemd160.o	rsa.o		sha1.o		\
-		sha1ce.o	sha256.o	sha256ce.o	\
+		sha1_armv8a_ce.o	sha256.o	sha256_armv8a_ce.o	\
 		sha512.o	threading.o	\
 		timing.o	version.o			\
 		version_features.o		xtea.o

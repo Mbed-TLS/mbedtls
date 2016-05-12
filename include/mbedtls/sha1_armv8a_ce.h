@@ -1,9 +1,10 @@
 /**
- * \file sha1ce.h
+ * \file sha1_armv8a_ce.h
  *
- * \brief SHA1-CE for hardware SHA1 acceleration on some ARM processors
+ * \brief SHA-1 support function using the ARMv8-A Cryptography Extension for
+ * hardware acceleration on some ARM processors.
  *
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2016, CriticalBlue Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -20,17 +21,17 @@
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
-#ifndef MBEDTLS_SHA1CE_H
-#define MBEDTLS_SHA1CE_H
+#ifndef MBEDTLS_SHA1_ARMV8A_CE_H
+#define MBEDTLS_SHA1_ARMV8A_CE_H
 
 #include "sha1.h"
-#include "config_arm_test.h"
+#include "armv8a_ce.h"
 /*
  * Enable this module if requested in the config.h
- * We only want to incude this code if both SHA1 and ARM Crypto
- * are configured
+ * We only want to incude this code if both SHA1 and ARMv8-A
+ * Cryptography Extension are configured
  */
-#if defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_SHA1_C) && defined(MBEDTLS_HAVE_ARM_CRYPTO)
+#if defined(MBEDTLS_ARMV8A_CE_C) && defined(MBEDTLS_SHA1_C) && defined(MBEDTLS_HAVE_ARMV8A_CE)
 
 
 #ifdef __cplusplus
@@ -39,12 +40,12 @@ extern "C" {
 
 
 /* Internal use */
-void mbedtls_sha1ce_process( mbedtls_sha1_context *ctx, const unsigned char data[64] );
+void mbedtls_armv8a_ce_sha1_process( mbedtls_sha1_context *ctx, const unsigned char data[64] );
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /*  defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_SHA1_C) */
+#endif /*  defined(MBEDTLS_ARMV8A_CE_C) && defined(MBEDTLS_SHA1_C) */
 
-#endif /* MBEDTLS_SHA1CE_H */
+#endif /* MBEDTLS_SHA1_ARMV8A_CE_H */

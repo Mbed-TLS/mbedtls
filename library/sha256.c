@@ -36,8 +36,8 @@
 
 #include <string.h>
 
-#if defined(MBEDTLS_ARM_CRYTO_C)
-#include "mbedtls/sha256ce.h"
+#if defined(MBEDTLS_ARMV8A_CE_C)
+#include "mbedtls/sha256_armv8a_ce.h"
 #endif
 
 #if defined(MBEDTLS_SELF_TEST)
@@ -186,9 +186,9 @@ void mbedtls_sha256_process( mbedtls_sha256_context *ctx, const unsigned char da
     uint32_t A[8];
     unsigned int i;
 
-#if defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_HAVE_ARM_CRYPTO)
-    if( mbedtls_arm_has_support( MBEDTLS_ARM_CRYTO_SHA2 ) )
-        return( mbedtls_sha256ce_process( ctx, data ) );
+#if defined(MBEDTLS_ARMV8A_CE_C) && defined(MBEDTLS_HAVE_ARMV8A_CE)
+    if( mbedtls_armv8a_ce_has_support( MBEDTLS_ARMV8A_CE_SHA2 ) )
+        return( mbedtls_armv8a_ce_sha256_process( ctx, data ) );
 #endif
 
     for( i = 0; i < 8; i++ )

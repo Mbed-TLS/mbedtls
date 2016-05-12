@@ -1,7 +1,7 @@
 /*
- *  SHA1-CE support functions
+ *  ARMv8-A Cryptography Extension SHA-1 support functions
  *
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2016, CriticalBlue Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -26,11 +26,11 @@
 #endif
 
 /* Check if the module is enabled */
-#if defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_SHA1_C)
-#include "mbedtls/sha1ce.h"
+#if defined(MBEDTLS_ARMV8A_CE_C) && defined(MBEDTLS_SHA1_C)
+#include "mbedtls/sha1_armv8a_ce.h"
 
 /* Check if crypto is supported */
-#if defined(MBEDTLS_HAVE_ARM_CRYPTO)
+#if defined(MBEDTLS_HAVE_ARMV8A_CE)
 
 #include <string.h>
 
@@ -51,7 +51,7 @@
 
 #include <arm_neon.h>
 
-void mbedtls_sha1ce_process( mbedtls_sha1_context *ctx, const unsigned char data[64] )
+void mbedtls_armv8a_ce_sha1_process( mbedtls_sha1_context *ctx, const unsigned char data[64] )
 {
 	/* declare variables */
 
@@ -236,8 +236,8 @@ void mbedtls_sha1ce_process( mbedtls_sha1_context *ctx, const unsigned char data
 	ctx->state[4] = e;
 }
 
-#endif /* #if defined(MBEDTLS_HAVE_ARM_CRYPTO) */
+#endif /* #if defined(MBEDTLS_HAVE_ARMV8A_CE) */
 
-#endif /* defined(MBEDTLS_ARM_CRYTO_C) && defined(MBEDTLS_SHA1_C) */
+#endif /* defined(MBEDTLS_ARMV8A_CE_C) && defined(MBEDTLS_SHA1_C) */
 
 

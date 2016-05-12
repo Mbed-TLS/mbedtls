@@ -119,7 +119,7 @@
         defined(__ia64__)  || defined(__alpha__)     || \
         (defined(__sparc__) && defined(__arch64__))  || \
         defined(__s390x__) || defined(__mips64)      || \
-        defined(__ARM_64BIT_STATE)) )
+        defined(__aarch64__)) )
      #define MBEDTLS_HAVE_INT64
      typedef  int64_t mbedtls_mpi_sint;
      typedef uint64_t mbedtls_mpi_uint;

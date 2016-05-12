@@ -33,6 +33,10 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANG)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-function")
 endif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANG)
 
+if(MARCH)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=${MARCH}")
+endif(MARCH)
+
 if(MSVC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /w") # no warnings here
 endif(MSVC)

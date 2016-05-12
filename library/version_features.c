@@ -420,9 +420,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_AESNI_C)
     "MBEDTLS_AESNI_C",
 #endif /* MBEDTLS_AESNI_C */
-#if defined(MBEDTLS_ARM_CRYTO_C)
-    "MBEDTLS_ARM_CRYTO_C",
-#endif /* MBEDTLS_ARM_CRYTO_C */
+#if defined(MBEDTLS_ARMV8A_CE_C)
+    "MBEDTLS_ARMV8A_CE_C",
+#endif /* MBEDTLS_ARMV8A_CE_C */
 #if defined(MBEDTLS_AES_C)
     "MBEDTLS_AES_C",
 #endif /* MBEDTLS_AES_C */

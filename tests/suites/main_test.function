@@ -357,6 +357,13 @@ int main(int argc, const char *argv[])
                 {
                     if( dep_check( params[i] ) != DEPENDENCY_SUPPORTED )
                     {
+                        if( 0 == option_verbose )
+                        {
+                            /* Only one count is needed if not verbose */
+                            unmet_dep_count++;
+                            break;
+                        }
+
                         unmet_dependencies[ unmet_dep_count ] = strdup(params[i]);
                         if(  unmet_dependencies[ unmet_dep_count ] == NULL )
                         {

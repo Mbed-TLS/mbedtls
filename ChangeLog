@@ -27,6 +27,7 @@ Bugfix
      mbedtls_ssl_conf_curves. #373
    * Fix issue in ssl_fork_server which was preventing it from functioning. #429
    * Fix memory leaks in test framework
+   * Fix test in ssl-opt.sh that does not run properly with valgrind
 
 Changes
    * On ARM platforms, when compiling with -O0 with GCC, Clang or armcc5,

@@ -53,6 +53,7 @@ int main( void )
 #include "mbedtls/ripemd160.h"
 #include "mbedtls/sha1.h"
 #include "mbedtls/sha256.h"
+#include "mbedtls/sha3.h"
 #include "mbedtls/sha512.h"
 
 #include "mbedtls/arc4.h"
@@ -101,6 +102,7 @@ int main( void )
 
 #define OPTIONS                                                         \
     "md4, md5, ripemd160, sha1, sha256, sha512,\n"                      \
+    "sha3_224, sha3_256, sha3_384, sha3_512,\n"                         \
     "arc4, des3, des, camellia, blowfish, chacha20,\n"                  \
     "aes_cbc, aes_gcm, aes_ccm, aes_ctx, chachapoly,\n"                 \
     "aes_cmac, des3_cmac, poly1305\n"                                   \
@@ -245,6 +247,7 @@ unsigned char buf[BUFSIZE];
 
 typedef struct {
     char md4, md5, ripemd160, sha1, sha256, sha512,
+         sha3_224, sha3_256, sha3_384, sha3_512,
          arc4, des3, des,
          aes_cbc, aes_gcm, aes_ccm, aes_xts, chachapoly,
          aes_cmac, des3_cmac,
@@ -286,6 +289,14 @@ int main( int argc, char *argv[] )
                 todo.sha256 = 1;
             else if( strcmp( argv[i], "sha512" ) == 0 )
                 todo.sha512 = 1;
+            else if( strcmp( argv[i], "sha3_224" ) == 0 )
+                todo.sha3_224 = 1;
+            else if( strcmp( argv[i], "sha3_256" ) == 0 )
+                todo.sha3_256 = 1;
+            else if( strcmp( argv[i], "sha3_384" ) == 0 )
+                todo.sha3_384 = 1;
+            else if( strcmp( argv[i], "sha3_512" ) == 0 )
+                todo.sha3_512 = 1;
             else if( strcmp( argv[i], "arc4" ) == 0 )
                 todo.arc4 = 1;
             else if( strcmp( argv[i], "des3" ) == 0 )
@@ -374,6 +385,17 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SHA512_C)
     if( todo.sha512 )
         TIME_AND_TSC( "SHA-512", mbedtls_sha512_ret( buf, BUFSIZE, tmp, 0 ) );
+#endif
+
+#if defined(MBEDTLS_SHA3_C)
+    if ( todo.sha3_224 )
+        TIME_AND_TSC( "SHA3-224", mbedtls_sha3( buf, BUFSIZE, MBEDTLS_SHA3_224, tmp ) );
+    if ( todo.sha3_256 )
+        TIME_AND_TSC( "SHA3-256", mbedtls_sha3( buf, BUFSIZE, MBEDTLS_SHA3_256, tmp ) );
+    if ( todo.sha3_384 )
+        TIME_AND_TSC( "SHA3-384", mbedtls_sha3( buf, BUFSIZE, MBEDTLS_SHA3_384, tmp ) );
+    if ( todo.sha3_512 )
+        TIME_AND_TSC( "SHA3-512", mbedtls_sha3( buf, BUFSIZE, MBEDTLS_SHA3_512, tmp ) );
 #endif
 
 #if defined(MBEDTLS_ARC4_C)

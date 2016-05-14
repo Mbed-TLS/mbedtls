@@ -62,6 +62,7 @@ OBJS_CRYPTO=	aes.o		aesni.o		arc4.o		\
 		pkparse.o	pkwrite.o	platform.o	\
 		ripemd160.o	rsa.o		sha1.o		\
 		sha256.o	sha3.o		sha512.o	\
+		shake.o								\
 		threading.o	timing.o	version.o	\
 		version_features.o		xtea.o
 

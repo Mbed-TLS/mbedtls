@@ -62,6 +62,7 @@ set(src_crypto
     sha256.c
     sha3.c
     sha512.c
+    shake.c
     threading.c
     timing.c
     version.c

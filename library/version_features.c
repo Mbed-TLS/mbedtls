@@ -99,6 +99,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_CCM_ALT)
     "MBEDTLS_CCM_ALT",
 #endif /* MBEDTLS_CCM_ALT */
+#if defined(MBEDTLS_CHACHA20_ALT)
+    "MBEDTLS_CHACHA20_ALT",
+#endif /* MBEDTLS_CHACHA20_ALT */
 #if defined(MBEDTLS_CMAC_ALT)
     "MBEDTLS_CMAC_ALT",
 #endif /* MBEDTLS_CMAC_ALT */
@@ -537,6 +540,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_CERTS_C)
     "MBEDTLS_CERTS_C",
 #endif /* MBEDTLS_CERTS_C */
+#if defined(MBEDTLS_CHACHA20_C)
+    "MBEDTLS_CHACHA20_C",
+#endif /* MBEDTLS_CHACHA20_C */
 #if defined(MBEDTLS_CIPHER_C)
     "MBEDTLS_CIPHER_C",
 #endif /* MBEDTLS_CIPHER_C */

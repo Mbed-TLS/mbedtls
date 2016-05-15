@@ -13,6 +13,7 @@ set(src_crypto
     blowfish.c
     camellia.c
     ccm.c
+    chacha20.c
     cipher.c
     cipher_wrap.c
     cmac.c

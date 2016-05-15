@@ -274,6 +274,7 @@
 //#define MBEDTLS_BLOWFISH_ALT
 //#define MBEDTLS_CAMELLIA_ALT
 //#define MBEDTLS_CCM_ALT
+//#define MBEDTLS_CHACHA20_ALT
 //#define MBEDTLS_CMAC_ALT
 //#define MBEDTLS_DES_ALT
 //#define MBEDTLS_DHM_ALT
@@ -1860,6 +1861,15 @@
  * This module is used for testing (ssl_client/server).
  */
 #define MBEDTLS_CERTS_C
+
+/**
+ * \def MBEDTLS_CHACHA20_C
+ *
+ * Enable the ChaCha20 stream cipher.
+ *
+ * Module:  library/chacha20.c
+ */
+#define MBEDTLS_CHACHA20_C
 
 /**
  * \def MBEDTLS_CIPHER_C

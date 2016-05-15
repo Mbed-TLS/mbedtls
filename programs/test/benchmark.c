@@ -59,6 +59,7 @@ int main( void )
 #include "mbedtls/aes.h"
 #include "mbedtls/blowfish.h"
 #include "mbedtls/camellia.h"
+#include "mbedtls/chacha20.h"
 #include "mbedtls/gcm.h"
 #include "mbedtls/ccm.h"
 #include "mbedtls/cmac.h"
@@ -93,7 +94,7 @@ int main( void )
 
 #define OPTIONS                                                         \
     "md4, md5, ripemd160, sha1, sha256, sha512,\n"                      \
-    "arc4, des3, des, camellia, blowfish,\n"                            \
+    "arc4, des3, des, camellia, blowfish, chacha20,\n"                  \
     "aes_cbc, aes_gcm, aes_ccm, aes_cmac, des3_cmac,\n"                 \
     "havege, ctr_drbg, hmac_drbg\n"                                     \
     "rsa, dhm, ecdsa, ecdh.\n"
@@ -229,7 +230,7 @@ typedef struct {
     char md4, md5, ripemd160, sha1, sha256, sha512,
          arc4, des3, des,
          aes_cbc, aes_gcm, aes_ccm, aes_cmac, des3_cmac,
-         camellia, blowfish,
+         camellia, blowfish, chacha20,
          havege, ctr_drbg, hmac_drbg,
          rsa, dhm, ecdsa, ecdh;
 } todo_list;
@@ -286,6 +287,8 @@ int main( int argc, char *argv[] )
                 todo.camellia = 1;
             else if( strcmp( argv[i], "blowfish" ) == 0 )
                 todo.blowfish = 1;
+            else if( strcmp( argv[i], "chacha20" ) == 0 )
+                todo.chacha20 = 1;
             else if( strcmp( argv[i], "havege" ) == 0 )
                 todo.havege = 1;
             else if( strcmp( argv[i], "ctr_drbg" ) == 0 )
@@ -517,6 +520,13 @@ int main( int argc, char *argv[] )
                         BUFSIZE, tmp, buf, buf ) );
         }
         mbedtls_camellia_free( &camellia );
+    }
+#endif
+
+#if defined(MBEDTLS_CHACHA20_C)
+    if ( todo.chacha20 )
+    {
+        TIME_AND_TSC( "ChaCha20", mbedtls_chacha20_crypt( buf, buf, 0U, BUFSIZE, buf, buf ) );
     }
 #endif
 

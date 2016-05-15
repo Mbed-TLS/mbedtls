@@ -245,7 +245,7 @@ int mbedtls_chacha20_starts( mbedtls_chacha20_context* ctx,
     return( 0 );
 }
 
-int mbedtls_chacha20_process( mbedtls_chacha20_context *ctx,
+int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
                               size_t size,
                               const unsigned char *input,
                               unsigned char *output )
@@ -333,7 +333,7 @@ int mbedtls_chacha20_crypt( const unsigned char key[32],
     if ( result != 0 )
         goto cleanup;
 
-    result = mbedtls_chacha20_process( &ctx, data_len, input, output );
+    result = mbedtls_chacha20_update( &ctx, data_len, input, output );
 
 cleanup:
     mbedtls_chacha20_free( &ctx );

@@ -46,6 +46,10 @@
 #include "mbedtls/ccm.h"
 #endif
 
+#if defined(MBEDTLS_CHACHA20_C)
+#include "mbedtls/chacha20.h"
+#endif
+
 #if defined(MBEDTLS_CMAC_C)
 #include "mbedtls/cmac.h"
 #endif
@@ -231,6 +235,18 @@ int mbedtls_cipher_set_iv( mbedtls_cipher_context_t *ctx,
             return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
     }
 
+#if defined(MBEDTLS_CHACHA20_C)
+    if ( ctx->cipher_info->type == MBEDTLS_CIPHER_CHACHA20 )
+    {
+        if ( 0 != mbedtls_chacha20_starts( (mbedtls_chacha20_context*)ctx->cipher_ctx,
+                                           iv,
+                                           0U ) ) /* Initial counter value */
+        {
+            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+        }
+    }
+#endif
+
     memcpy( ctx->iv, iv, actual_iv_size );
     ctx->iv_size = actual_iv_size;
 
@@ -313,6 +329,16 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
     {
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
     }
+
+
+#if defined(MBEDTLS_CHACHA20_C)
+    if ( ctx->cipher_info->type == MBEDTLS_CIPHER_CHACHA20 )
+    {
+        *olen = ilen;
+        return mbedtls_chacha20_update( (mbedtls_chacha20_context*) ctx->cipher_ctx,
+                                         ilen, input, output );
+    }
+#endif
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
     if( ctx->cipher_info->mode == MBEDTLS_MODE_CBC )
@@ -642,6 +668,11 @@ int mbedtls_cipher_finish( mbedtls_cipher_context_t *ctx,
         MBEDTLS_MODE_CTR == ctx->cipher_info->mode ||
         MBEDTLS_MODE_GCM == ctx->cipher_info->mode ||
         MBEDTLS_MODE_STREAM == ctx->cipher_info->mode )
+    {
+        return( 0 );
+    }
+
+    if ( MBEDTLS_CIPHER_CHACHA20 == ctx->cipher_info->type )
     {
         return( 0 );
     }

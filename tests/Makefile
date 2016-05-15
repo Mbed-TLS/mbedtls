@@ -53,6 +53,7 @@ APPS =	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
 	test_suite_chacha20$(EXEXT)	test_suite_cmac$(EXEXT)		\
 	test_suite_cipher.aes$(EXEXT)					\
 	test_suite_cipher.arc4$(EXEXT)	test_suite_cipher.ccm$(EXEXT)	\
+	test_suite_cipher.chacha20$(EXEXT)				\
 	test_suite_cipher.gcm$(EXEXT)					\
 	test_suite_cipher.blowfish$(EXEXT)				\
 	test_suite_cipher.camellia$(EXEXT)				\
@@ -124,6 +125,10 @@ test_suite_cipher.arc4.c : suites/test_suite_cipher.function suites/test_suite_c
 test_suite_cipher.ccm.c : suites/test_suite_cipher.function suites/test_suite_cipher.ccm.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
 	perl scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.ccm
+
+test_suite_cipher.chacha20.c : suites/test_suite_cipher.function suites/test_suite_cipher.chacha20.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+	echo "  Gen   $@"
+	perl scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.chacha20
 
 test_suite_cipher.gcm.c : suites/test_suite_cipher.function suites/test_suite_cipher.gcm.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
@@ -254,6 +259,10 @@ test_suite_cipher.arc4$(EXEXT): test_suite_cipher.arc4.c $(DEP)
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_cipher.ccm$(EXEXT): test_suite_cipher.ccm.c $(DEP)
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+test_suite_cipher.chacha20$(EXEXT): test_suite_cipher.chacha20.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 

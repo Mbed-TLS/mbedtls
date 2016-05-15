@@ -121,7 +121,7 @@ int mbedtls_chacha20_starts( mbedtls_chacha20_context* ctx,
  *                  output pointers are NULL.
  *                  Otherwise, 0 is returned to indicate success.
  */
-int mbedtls_chacha20_process( mbedtls_chacha20_context *ctx,
+int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
                               size_t size,
                               const unsigned char *input,
                               unsigned char *output );

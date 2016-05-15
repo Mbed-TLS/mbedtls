@@ -237,6 +237,7 @@
 //#define MBEDTLS_ARC4_ALT
 //#define MBEDTLS_BLOWFISH_ALT
 //#define MBEDTLS_CAMELLIA_ALT
+//#define MBEDTLS_CHACHA20_ALT
 //#define MBEDTLS_DES_ALT
 //#define MBEDTLS_XTEA_ALT
 //#define MBEDTLS_MD2_ALT
@@ -1632,6 +1633,15 @@
  *      MBEDTLS_TLS_PSK_WITH_CAMELLIA_128_CBC_SHA256
  */
 #define MBEDTLS_CAMELLIA_C
+
+/**
+ * \def MBEDTLS_CHACHA20_C
+ *
+ * Enable the ChaCha20 block cipher.
+ *
+ * Module:  library/chacha20.c
+ */
+#define MBEDTLS_CHACHA20_C
 
 /**
  * \def MBEDTLS_CCM_C

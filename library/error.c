@@ -65,6 +65,10 @@
 #include "mbedtls/ccm.h"
 #endif
 
+#if defined(MBEDTLS_CHACHA20_C)
+#include "mbedtls/chacha20.h"
+#endif
+
 #if defined(MBEDTLS_CIPHER_C)
 #include "mbedtls/cipher.h"
 #endif
@@ -577,6 +581,11 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_CCM_AUTH_FAILED) )
         mbedtls_snprintf( buf, buflen, "CCM - Authenticated decryption failed" );
 #endif /* MBEDTLS_CCM_C */
+
+#if defined(MBEDTLS_CHACHA20_C)
+    if( use_ret == -(MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA) )
+        mbedtls_snprintf( buf, buflen, "CHACHA20 - Invalid input parameter(s)" );
+#endif /* MBEDTLS_CHACHA20_C */
 
 #if defined(MBEDTLS_CTR_DRBG_C)
     if( use_ret == -(MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED) )

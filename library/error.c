@@ -97,6 +97,14 @@
 #include "mbedtls/hmac_drbg.h"
 #endif
 
+#if defined(MBEDTLS_KECCAK_SPONGE_C)
+#include "mbedtls/keccak_sponge.h"
+#endif
+
+#if defined(MBEDTLS_KECCAKF_C)
+#include "mbedtls/keccakf.h"
+#endif
+
 #if defined(MBEDTLS_MD_C)
 #include "mbedtls/md.h"
 #endif
@@ -131,6 +139,14 @@
 
 #if defined(MBEDTLS_RSA_C)
 #include "mbedtls/rsa.h"
+#endif
+
+#if defined(MBEDTLS_SHA3_C)
+#include "mbedtls/sha3.h"
+#endif
+
+#if defined(MBEDTLS_SHAKE_C)
+#include "mbedtls/shake.h"
 #endif
 
 #if defined(MBEDTLS_SSL_TLS_C)
@@ -625,6 +641,20 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "HMAC_DRBG - The entropy source failed" );
 #endif /* MBEDTLS_HMAC_DRBG_C */
 
+#if defined(MBEDTLS_KECCAK_SPONGE_C)
+    if( use_ret == -(MBEDTLS_ERR_KECCAK_SPONGE_BAD_INPUT_DATA) )
+        mbedtls_snprintf( buf, buflen, "KECCAK_SPONGE - Invalid input parameter(s)" );
+    if( use_ret == -(MBEDTLS_ERR_KECCAK_SPONGE_NOT_SETUP) )
+        mbedtls_snprintf( buf, buflen, "KECCAK_SPONGE - mbedtls_keccak_sponge_starts has not been called" );
+    if( use_ret == -(MBEDTLS_ERR_KECCAK_SPONGE_BAD_STATE) )
+        mbedtls_snprintf( buf, buflen, "KECCAK_SPONGE - Requested operation cannot be performed with the current context state" );
+#endif /* MBEDTLS_KECCAK_SPONGE_C */
+
+#if defined(MBEDTLS_KECCAKF_C)
+    if( use_ret == -(MBEDTLS_ERR_KECCAKF_BAD_INPUT_DATA) )
+        mbedtls_snprintf( buf, buflen, "KECCAKF - Invalid input parameter(s)" );
+#endif /* MBEDTLS_KECCAKF_C */
+
 #if defined(MBEDTLS_NET_C)
     if( use_ret == -(MBEDTLS_ERR_NET_SOCKET_FAILED) )
         mbedtls_snprintf( buf, buflen, "NET - Failed to open a socket" );
@@ -661,6 +691,24 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_PADLOCK_DATA_MISALIGNED) )
         mbedtls_snprintf( buf, buflen, "PADLOCK - Input data should be aligned" );
 #endif /* MBEDTLS_PADLOCK_C */
+
+#if defined(MBEDTLS_SHA3_C)
+    if( use_ret == -(MBEDTLS_ERR_SHA3_BAD_INPUT_DATA) )
+        mbedtls_snprintf( buf, buflen, "SHA3 - Invalid input parameter(s)" );
+    if( use_ret == -(MBEDTLS_ERR_SHA3_BAD_NOT_STARTED) )
+        mbedtls_snprintf( buf, buflen, "SHA3 - mbedtls_keccak_sponge_starts has not been called" );
+    if( use_ret == -(MBEDTLS_ERR_SHA3_BAD_STATE) )
+        mbedtls_snprintf( buf, buflen, "SHA3 - Requested operation cannot be performed with the current context state" );
+#endif /* MBEDTLS_SHA3_C */
+
+#if defined(MBEDTLS_SHAKE_C)
+    if( use_ret == -(MBEDTLS_ERR_SHAKE_BAD_INPUT_DATA) )
+        mbedtls_snprintf( buf, buflen, "SHAKE - Invalid input parameter(s)" );
+    if( use_ret == -(MBEDTLS_ERR_SHAKE_BAD_NOT_STARTED) )
+        mbedtls_snprintf( buf, buflen, "SHAKE - mbedtls_keccak_sponge_starts has not been called" );
+    if( use_ret == -(MBEDTLS_ERR_SHAKE_BAD_STATE) )
+        mbedtls_snprintf( buf, buflen, "SHAKE - Requested operation cannot be performed with the current context state" );
+#endif /* MBEDTLS_SHAKE_C */
 
 #if defined(MBEDTLS_THREADING_C)
     if( use_ret == -(MBEDTLS_ERR_THREADING_FEATURE_UNAVAILABLE) )

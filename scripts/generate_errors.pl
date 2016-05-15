@@ -33,7 +33,8 @@ my @low_level_modules = ( "AES", "ASN1", "BLOWFISH", "CAMELLIA", "BIGNUM",
                           "BASE64", "XTEA", "PBKDF2", "OID",
                           "PADLOCK", "DES", "NET", "CTR_DRBG", "ENTROPY",
                           "HMAC_DRBG", "MD2", "MD4", "MD5", "RIPEMD160",
-                          "SHA1", "SHA256", "SHA512", "GCM", "THREADING", "CCM" );
+                          "SHA1", "SHA256", "SHA512", "GCM", "THREADING", "CCM",
+                          "KECCAKF", "KECCAK_SPONGE", "SHA3", "SHAKE" );
 my @high_level_modules = ( "PEM", "X509", "DHM", "RSA", "ECP", "MD", "CIPHER", "SSL",
                            "PK", "PKCS12", "PKCS5" );
 
@@ -79,6 +80,7 @@ while (my $line = <GREP>)
     $module_name = "BIGNUM" if ($module_name eq "MPI");
     $module_name = "CTR_DRBG" if ($module_name eq "CTR");
     $module_name = "HMAC_DRBG" if ($module_name eq "HMAC");
+    $module_name = "KECCAK_SPONGE" if ($module_name eq "KECCAK");
 
     my $define_name = $module_name;
     $define_name = "X509_USE,X509_CREATE" if ($define_name eq "X509");

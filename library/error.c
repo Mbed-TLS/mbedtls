@@ -133,6 +133,10 @@
 #include "mbedtls/pkcs5.h"
 #endif
 
+#if defined(MBEDTLS_POLY1305_C)
+#include "mbedtls/poly1305.h"
+#endif
+
 #if defined(MBEDTLS_RSA_C)
 #include "mbedtls/rsa.h"
 #endif
@@ -670,6 +674,11 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_PADLOCK_DATA_MISALIGNED) )
         mbedtls_snprintf( buf, buflen, "PADLOCK - Input data should be aligned" );
 #endif /* MBEDTLS_PADLOCK_C */
+
+#if defined(MBEDTLS_POLY1305_C)
+    if( use_ret == -(MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA) )
+        mbedtls_snprintf( buf, buflen, "POLY1305 - Invalid input parameter(s)" );
+#endif /* MBEDTLS_POLY1305_C */
 
 #if defined(MBEDTLS_THREADING_C)
     if( use_ret == -(MBEDTLS_ERR_THREADING_FEATURE_UNAVAILABLE) )

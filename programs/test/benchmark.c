@@ -62,6 +62,7 @@ int main( void )
 #include "mbedtls/chacha20.h"
 #include "mbedtls/gcm.h"
 #include "mbedtls/ccm.h"
+#include "mbedtls/poly1305.h"
 #include "mbedtls/havege.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/hmac_drbg.h"
@@ -94,7 +95,7 @@ int main( void )
 #define OPTIONS                                                         \
     "md4, md5, ripemd160, sha1, sha256, sha512,\n"                      \
     "arc4, des3, des, aes_cbc, aes_gcm, aes_ccm, camellia, blowfish,\n" \
-    "chacha20,\n"                                                       \
+    "chacha20, poly1305,\n"                                             \
     "havege, ctr_drbg, hmac_drbg\n"                                     \
     "rsa, dhm, ecdsa, ecdh.\n"
 
@@ -237,6 +238,7 @@ unsigned char buf[BUFSIZE];
 typedef struct {
     char md4, md5, ripemd160, sha1, sha256, sha512,
          arc4, des3, des, aes_cbc, aes_gcm, aes_ccm, camellia, blowfish, chacha20,
+         poly1305,
          havege, ctr_drbg, hmac_drbg,
          rsa, dhm, ecdsa, ecdh;
 } todo_list;
@@ -291,6 +293,8 @@ int main( int argc, char *argv[] )
                 todo.blowfish = 1;
             else if( strcmp( argv[i], "chacha20" ) == 0 )
                 todo.chacha20 = 1;
+            else if( strcmp( argv[i], "poly1305" ) == 0 )
+                todo.poly1305 = 1;
             else if( strcmp( argv[i], "havege" ) == 0 )
                 todo.havege = 1;
             else if( strcmp( argv[i], "ctr_drbg" ) == 0 )
@@ -479,6 +483,13 @@ int main( int argc, char *argv[] )
     if ( todo.chacha20 )
     {
         TIME_AND_TSC( "ChaCha20", mbedtls_chacha20_crypt( buf, buf, 0U, BUFSIZE, buf, buf ) );
+    }
+#endif
+
+#if defined(MBEDTLS_POLY1305_C)
+    if ( todo.poly1305 )
+    {
+        TIME_AND_TSC( "Poly1305", mbedtls_poly1305_mac( buf, BUFSIZE, buf, buf ) );
     }
 #endif
 

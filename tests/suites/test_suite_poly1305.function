@@ -1,0 +1,35 @@
+/* BEGIN_HEADER */
+#include "mbedtls/poly1305.h"
+#include <stddef.h>
+/* END_HEADER */
+
+/* BEGIN_CASE depends_on:MBEDTLS_POLY1305_C */
+void mbedtls_poly1305( char *hex_key_string, char *hex_mac_string, char *hex_src_string  )
+{
+    unsigned char src_str[10000];
+    unsigned char mac_str[100];
+    unsigned char key[32];
+    unsigned char mac[16];
+    size_t src_len;
+
+    memset(src_str, 0x00, 10000);
+    memset(mac_str, 0x00, 100);
+    memset(key,     0x00, 32);
+    memset(mac,     0x00, 16);
+
+    src_len = unhexify( src_str, hex_src_string );
+    unhexify( key, hex_key_string );
+
+    mbedtls_poly1305_mac( key, src_len, src_str, mac );
+    hexify( mac_str, mac, 16 );
+
+    TEST_ASSERT( strcmp( (char *) mac_str, hex_mac_string ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_POLY1305_C:MBEDTLS_SELF_TEST */
+void poly1305_selftest()
+{
+    TEST_ASSERT( mbedtls_poly1305_self_test( 0 ) == 0 );
+}
+/* END_CASE */

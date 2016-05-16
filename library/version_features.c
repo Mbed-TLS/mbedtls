@@ -162,6 +162,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_AES_DECRYPT_ALT)
     "MBEDTLS_AES_DECRYPT_ALT",
 #endif /* MBEDTLS_AES_DECRYPT_ALT */
+#if defined(MBEDTLS_POLY1305_ALT)
+    "MBEDTLS_POLY1305_ALT",
+#endif /* MBEDTLS_POLY1305_ALT */
 #if defined(MBEDTLS_TEST_NULL_ENTROPY)
     "MBEDTLS_TEST_NULL_ENTROPY",
 #endif /* MBEDTLS_TEST_NULL_ENTROPY */
@@ -561,6 +564,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_PLATFORM_C)
     "MBEDTLS_PLATFORM_C",
 #endif /* MBEDTLS_PLATFORM_C */
+#if defined(MBEDTLS_POLY1305_C)
+    "MBEDTLS_POLY1305_C",
+#endif /* MBEDTLS_POLY1305_C */
 #if defined(MBEDTLS_RIPEMD160_C)
     "MBEDTLS_RIPEMD160_C",
 #endif /* MBEDTLS_RIPEMD160_C */

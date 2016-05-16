@@ -375,7 +375,7 @@ static const uint32_t test_counters[2] =
     1U
 };
 
-static const unsigned char test_input[2][381] =
+static const unsigned char test_input[2][375] =
 {
     {
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -438,7 +438,7 @@ static const unsigned char test_input[2][381] =
     }
 };
 
-static const unsigned char test_output[2][381] =
+static const unsigned char test_output[2][375] =
 {
     {
         0x76, 0xb8, 0xe0, 0xad, 0xa0, 0xf1, 0x3d, 0x90,
@@ -504,7 +504,7 @@ static const unsigned char test_output[2][381] =
 static const size_t test_lengths[2] =
 {
     64U,
-    381U
+    375U
 };
 
 int mbedtls_chacha20_self_test( int verbose )

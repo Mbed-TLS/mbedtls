@@ -168,6 +168,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_SHA512_PROCESS_ALT)
     "MBEDTLS_SHA512_PROCESS_ALT",
 #endif /* MBEDTLS_SHA512_PROCESS_ALT */
+#if defined(MBEDTLS_POLY1305_ALT)
+    "MBEDTLS_POLY1305_ALT",
+#endif /* MBEDTLS_POLY1305_ALT */
 #if defined(MBEDTLS_DES_SETKEY_ALT)
     "MBEDTLS_DES_SETKEY_ALT",
 #endif /* MBEDTLS_DES_SETKEY_ALT */
@@ -639,6 +642,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_PLATFORM_C)
     "MBEDTLS_PLATFORM_C",
 #endif /* MBEDTLS_PLATFORM_C */
+#if defined(MBEDTLS_POLY1305_C)
+    "MBEDTLS_POLY1305_C",
+#endif /* MBEDTLS_POLY1305_C */
 #if defined(MBEDTLS_RIPEMD160_C)
     "MBEDTLS_RIPEMD160_C",
 #endif /* MBEDTLS_RIPEMD160_C */

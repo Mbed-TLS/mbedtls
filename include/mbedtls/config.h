@@ -283,6 +283,7 @@
 //#define MBEDTLS_MD2_ALT
 //#define MBEDTLS_MD4_ALT
 //#define MBEDTLS_MD5_ALT
+//#define MBEDTLS_POLY1305_ALT
 //#define MBEDTLS_RIPEMD160_ALT
 //#define MBEDTLS_RSA_ALT
 //#define MBEDTLS_SHA1_ALT
@@ -2397,6 +2398,15 @@
  * This module enables abstraction of common (libc) functions.
  */
 #define MBEDTLS_PLATFORM_C
+
+/**
+ * \def MBEDTLS_POLY1305_C
+ *
+ * Enable the Poly1305 MAC algorithm.
+ *
+ * Module:  library/poly1305.c
+ */
+#define MBEDTLS_POLY1305_C
 
 /**
  * \def MBEDTLS_RIPEMD160_C

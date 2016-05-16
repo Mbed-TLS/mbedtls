@@ -67,7 +67,10 @@ int mbedtls_platform_entropy_poll( void *data, unsigned char *output, size_t len
     }
 
     if( CryptGenRandom( provider, (DWORD) len, output ) == FALSE )
+    {
+        CryptReleaseContext( provider, 0 );
         return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
+    }
 
     CryptReleaseContext( provider, 0 );
     *olen = len;

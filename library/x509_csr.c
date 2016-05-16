@@ -104,7 +104,7 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
     /*
      * Check for valid input
      */
-    if( csr == NULL || buf == NULL )
+    if( csr == NULL || buf == NULL || buflen == 0 )
         return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
 
     mbedtls_x509_csr_init( csr );
@@ -274,14 +274,14 @@ int mbedtls_x509_csr_parse( mbedtls_x509_csr *csr, const unsigned char *buf, siz
     /*
      * Check for valid input
      */
-    if( csr == NULL || buf == NULL )
+    if( csr == NULL || buf == NULL || buflen == 0 )
         return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_PEM_PARSE_C)
     mbedtls_pem_init( &pem );
 
     /* Avoid calling mbedtls_pem_read_buffer() on non-null-terminated string */
-    if( buflen == 0 || buf[buflen - 1] != '\0' )
+    if( buf[buflen - 1] != '\0' )
         ret = MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
     else
         ret = mbedtls_pem_read_buffer( &pem,

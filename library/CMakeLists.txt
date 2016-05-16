@@ -48,6 +48,7 @@ set(src_crypto
     pkwrite.c
     platform.c
     platform_util.c
+    poly1305.c
     ripemd160.c
     rsa.c
     rsa_internal.c

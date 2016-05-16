@@ -237,6 +237,8 @@ int mbedtls_platform_set_exit( void (*exit_func)( int status ) );
 #if defined(MBEDTLS_PLATFORM_TIME_TYPE_MACRO)
 typedef MBEDTLS_PLATFORM_TIME_TYPE_MACRO mbedtls_time_t;
 #else
+/* For time_t */
+#include <time.h>
 typedef time_t mbedtls_time_t;
 #endif /* MBEDTLS_PLATFORM_TIME_TYPE_MACRO */
 

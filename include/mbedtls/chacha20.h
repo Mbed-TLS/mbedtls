@@ -126,6 +126,10 @@ int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
                               const unsigned char *input,
                               unsigned char *output );
 
+#else  /* MBEDTLS_CHACHA20_ALT */
+#include "chacha20_alt.h"
+#endif /* MBEDTLS_CHACHA20_ALT */
+
 /**
  * \brief           Encrypt or decrypt a message using ChaCha20.
  *
@@ -155,14 +159,11 @@ int mbedtls_chacha20_crypt( const unsigned char key[32],
                             const unsigned char* input,
                             unsigned char* output );
 
-#else  /* MBEDTLS_CHACHA20_ALT */
-#include "chacha20_alt.h"
-#endif /* MBEDTLS_CHACHA20_ALT */
-
-#if defined(MBEDTLS_SELF_TEST)
-
+/**
+ * \brief           Checkup routine
+ *
+ * \return          0 if successful, or 1 if the test failed
+ */
 int mbedtls_chacha20_self_test( int verbose );
-
-#endif /* MBEDTLS_SELF_TEST */
 
 #endif /* MBEDTLS_CHACHA20_H */

@@ -513,7 +513,7 @@ int mbedtls_chacha20_self_test( int verbose )
     size_t i;
     int result;
 
-    for ( i = 0U; i < 1U; i++ )
+    for ( i = 0U; i < 2U; i++ )
     {
         result = mbedtls_chacha20_crypt( test_keys[i],
                                          test_nonces[i],

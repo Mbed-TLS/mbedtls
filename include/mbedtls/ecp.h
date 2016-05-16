@@ -144,7 +144,7 @@ typedef struct
     mbedtls_mpi A;              /*!<  1. A in the equation, or 2. (A + 2) / 4       */
     mbedtls_mpi B;              /*!<  1. B in the equation, or 2. unused            */
     mbedtls_ecp_point G;        /*!<  generator of the (sub)group used              */
-    mbedtls_mpi N;              /*!<  1. the order of G, or 2. unused               */
+    mbedtls_mpi N;              /*!<  the order of G                                */
     size_t pbits;       /*!<  number of bits in P                           */
     size_t nbits;       /*!<  number of bits in 1. P, or 2. private keys    */
     unsigned int h;     /*!<  internal: 1 if the constants are static       */

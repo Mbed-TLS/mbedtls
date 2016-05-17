@@ -325,7 +325,7 @@ int mbedtls_poly1305_update( mbedtls_poly1305_context *ctx,
             ctx->queue_len = 0U;
 
             mbedtls_poly1305_process( ctx,
-                                      POLY1305_BLOCK_SIZE_BYTES,
+                                      1U,
                                       ctx->queue,
                                       1U ); /* add padding bit */
 

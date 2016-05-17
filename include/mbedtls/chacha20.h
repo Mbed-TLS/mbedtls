@@ -136,7 +136,9 @@ int mbedtls_chacha20_keystream_block( const mbedtls_chacha20_context *ctx,
  * \param ctx       The ChaCha20 context.
  * \param size      The length (in bytes) to process. This can have any length.
  * \param input     Buffer containing the input data.
+ *                  This pointer can be NULL if size == 0.
  * \param output    Buffer containing the output data.
+ *                  This pointer can be NULL if size == 0.
  *
  * \return          MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA if the ctx, input, or
  *                  output pointers are NULL.

@@ -174,8 +174,13 @@ int mbedtls_aead_chacha20_poly1305_update_aad( mbedtls_aead_chacha20_poly1305_co
                                                size_t aad_len,
                                                const unsigned char *aad )
 {
-    if ( ( ctx == NULL ) || ( aad == NULL ) )
+    if ( ctx == NULL )
     {
+        return( MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_INPUT_DATA );
+    }
+    else if ( ( aad_len > 0U ) && ( aad == NULL ) )
+    {
+        /* aad pointer is allowed to be NULL if aad_len == 0 */
         return( MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_INPUT_DATA );
     }
     else if ( ctx->state != AEAD_CHACHA20_POLY1305_STATE_AAD )
@@ -195,6 +200,11 @@ int mbedtls_aead_chacha20_poly1305_update( mbedtls_aead_chacha20_poly1305_contex
 {
     if ( ( ctx == NULL ) || ( input == NULL ) || ( output == NULL ) )
     {
+        return( MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_INPUT_DATA );
+    }
+    else if ( ( len > 0U ) && ( ( input == NULL ) || ( output == NULL ) ) )
+    {
+        /* input and output pointers are allowed to be NULL if len == 0 */
         return( MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_INPUT_DATA );
     }
     else if ( ( ctx->state != AEAD_CHACHA20_POLY1305_STATE_AAD ) &&

@@ -124,6 +124,7 @@ int mbedtls_aead_chacha20_poly1305_starts( mbedtls_aead_chacha20_poly1305_contex
  * \param aad_len       The length (in bytes) of the AAD. The length has no
  *                      restrictions.
  * \param aad           Buffer containing the AAD.
+ *                      This pointer can be NULL if aad_len == 0.
  *
  * \return              MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_INPUT_DATA is returned
  *                      if \p ctx or \p aad are NULL.
@@ -151,7 +152,9 @@ int mbedtls_aead_chacha20_poly1305_update_aad( mbedtls_aead_chacha20_poly1305_co
  * \param ctx           The ChaCha20-Poly1305 context.
  * \param len           The length (in bytes) of the data to encrypt or decrypt.
  * \param input         Buffer containing the data to encrypt or decrypt.
+ *                      This pointer can be NULL if len == 0.
  * \param output        Buffer to where the encrypted or decrypted data is written.
+ *                      This pointer can be NULL if len == 0.
  *
  * \return              MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_INPUT_DATA is returned
  *                      if \p ctx, \p input, or \p output are NULL.
@@ -195,9 +198,12 @@ int mbedtls_aead_chacha20_poly1305_finish( mbedtls_aead_chacha20_poly1305_contex
  *                      parameter does not matter.
  * \param aad_len       The length (in bytes) of the AAD data to process.
  * \param aad           Buffer containing the additional authenticated data (AAD).
+ *                      This pointer can be NULL if aad_len == 0.
  * \param ilen          The length (in bytes) of the data to encrypt or decrypt.
  * \param input         Buffer containing the data to encrypt or decrypt.
+ *                      This pointer can be NULL if ilen == 0.
  * \param output        Buffer to where the encrypted or decrypted data is written.
+ *                      This pointer can be NULL if ilen == 0.
  * \param mac           Buffer to where the computed 128-bit (16 bytes) MAC is written.
  *
  * \return              MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_INPUT_DATA is returned

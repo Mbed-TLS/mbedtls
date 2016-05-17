@@ -269,6 +269,7 @@
  *            digests and ciphers instead.
  *
  */
+//#define MBEDTLS_AEAD_CHACHA20_POLY1305_ALT
 //#define MBEDTLS_AES_ALT
 //#define MBEDTLS_ARC4_ALT
 //#define MBEDTLS_BLOWFISH_ALT
@@ -1689,6 +1690,17 @@
 #define MBEDTLS_AES_C
 
 /**
+ * \def MBEDTLS_AEAD_CHACHA20_POLY1305_C
+ *
+ * Enable the ChaCha20-Poly1305 AEAD algorithm.
+ *
+ * Module:  library/aead_chacha20_poly1305.c
+ *
+ * This module requires: MBEDTLS_CHACHA20_C, MBEDTLS_POLY1305_C
+ */
+#define MBEDTLS_AEAD_CHACHA20_POLY1305_C
+
+/**
  * \def MBEDTLS_ARC4_C
  *
  * Enable the ARCFOUR stream cipher.
@@ -1836,6 +1848,16 @@
  *      MBEDTLS_TLS_PSK_WITH_CAMELLIA_128_CBC_SHA256
  */
 #define MBEDTLS_CAMELLIA_C
+
+/**
+ * \def MBEDTLS_CHACHA20_C
+ *
+ * Enable the ChaCha20 block cipher.
+ *
+ * Module:  library/chacha20.c
+ * Caller:  library/aead_chacha20_poly1305.c
+ */
+#define MBEDTLS_CHACHA20_C
 
 /**
  * \def MBEDTLS_CCM_C
@@ -2405,6 +2427,7 @@
  * Enable the Poly1305 MAC algorithm.
  *
  * Module:  library/poly1305.c
+ * Caller:  library/aead_chacha20_poly1305.c
  */
 #define MBEDTLS_POLY1305_C
 

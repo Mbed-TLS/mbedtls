@@ -41,6 +41,10 @@
 
 #include <stdio.h>
 
+#if defined(MBEDTLS_AEAD_CHACHA20_POLY1305_C)
+#include "mbedtls/aead_chacha20_poly1305.h"
+#endif
+
 #if defined(MBEDTLS_AES_C)
 #include "mbedtls/aes.h"
 #endif
@@ -575,6 +579,13 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     // Low level error codes
     //
     // BEGIN generated code
+#if defined(MBEDTLS_AEAD_CHACHA20_POLY1305_C)
+    if( use_ret == -(MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_INPUT_DATA) )
+        mbedtls_snprintf( buf, buflen, "AEAD_CHACHA20_POLY1305 - Invalid input parameter(s)" );
+    if( use_ret == -(MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_STATE) )
+        mbedtls_snprintf( buf, buflen, "AEAD_CHACHA20_POLY1305 - The requested operation is not permitted in the current state" );
+#endif /* MBEDTLS_AEAD_CHACHA20_POLY1305_C */
+
 #if defined(MBEDTLS_AES_C)
     if( use_ret == -(MBEDTLS_ERR_AES_INVALID_KEY_LENGTH) )
         mbedtls_snprintf( buf, buflen, "AES - Invalid key length" );

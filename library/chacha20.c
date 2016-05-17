@@ -134,46 +134,47 @@ static void mbedtls_chacha20_inner_block( uint32_t state[16] )
  * \param working_state This state is used as a temporary working area.
  * \param keystream     Generated keystream bytes are written to this buffer.
  */
-static void mbedtls_chacha20_block( mbedtls_chacha20_context *ctx,
+static void mbedtls_chacha20_block( const uint32_t initial_state[16],
+                                    uint32_t working_state[16],
                                     unsigned char keystream[64] )
 {
     size_t i;
     size_t offset;
 
-    memcpy( ctx->working_state,
-            ctx->initial_state,
-            sizeof(ctx->initial_state) );
+    memcpy( working_state,
+            initial_state,
+            CHACHA20_BLOCK_SIZE_BYTES );
 
     for ( i = 0U; i < 10U; i++ )
     {
-        mbedtls_chacha20_inner_block( ctx->working_state );
+        mbedtls_chacha20_inner_block( working_state );
     }
 
-    ctx->working_state[0]  += ctx->initial_state[0];
-    ctx->working_state[1]  += ctx->initial_state[1];
-    ctx->working_state[2]  += ctx->initial_state[2];
-    ctx->working_state[3]  += ctx->initial_state[3];
-    ctx->working_state[4]  += ctx->initial_state[4];
-    ctx->working_state[5]  += ctx->initial_state[5];
-    ctx->working_state[6]  += ctx->initial_state[6];
-    ctx->working_state[7]  += ctx->initial_state[7];
-    ctx->working_state[8]  += ctx->initial_state[8];
-    ctx->working_state[9]  += ctx->initial_state[9];
-    ctx->working_state[10] += ctx->initial_state[10];
-    ctx->working_state[11] += ctx->initial_state[11];
-    ctx->working_state[12] += ctx->initial_state[12];
-    ctx->working_state[13] += ctx->initial_state[13];
-    ctx->working_state[14] += ctx->initial_state[14];
-    ctx->working_state[15] += ctx->initial_state[15];
+    working_state[0]  += initial_state[0];
+    working_state[1]  += initial_state[1];
+    working_state[2]  += initial_state[2];
+    working_state[3]  += initial_state[3];
+    working_state[4]  += initial_state[4];
+    working_state[5]  += initial_state[5];
+    working_state[6]  += initial_state[6];
+    working_state[7]  += initial_state[7];
+    working_state[8]  += initial_state[8];
+    working_state[9]  += initial_state[9];
+    working_state[10] += initial_state[10];
+    working_state[11] += initial_state[11];
+    working_state[12] += initial_state[12];
+    working_state[13] += initial_state[13];
+    working_state[14] += initial_state[14];
+    working_state[15] += initial_state[15];
 
     for ( i = 0U; i < 16; i++ )
     {
         offset = i * 4U;
 
-        keystream[offset     ] = (unsigned char)  ctx->working_state[i];
-        keystream[offset + 1U] = (unsigned char)( ctx->working_state[i] >> 8  );
-        keystream[offset + 2U] = (unsigned char)( ctx->working_state[i] >> 16 );
-        keystream[offset + 3U] = (unsigned char)( ctx->working_state[i] >> 24 );
+        keystream[offset     ] = (unsigned char)  working_state[i];
+        keystream[offset + 1U] = (unsigned char)( working_state[i] >> 8  );
+        keystream[offset + 2U] = (unsigned char)( working_state[i] >> 16 );
+        keystream[offset + 3U] = (unsigned char)( working_state[i] >> 24 );
     }
 }
 
@@ -245,6 +246,43 @@ int mbedtls_chacha20_starts( mbedtls_chacha20_context* ctx,
     return( 0 );
 }
 
+int mbedtls_chacha20_keystream_block( const mbedtls_chacha20_context *ctx,
+                                      uint32_t counter,
+                                      unsigned char keystream[64] )
+{
+    uint32_t initial_state[16];
+    uint32_t working_state[16];
+
+    if ( ( ctx == NULL ) || ( keystream == NULL ) )
+    {
+        return( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
+    }
+
+    initial_state[0]  = ctx->initial_state[0];
+    initial_state[1]  = ctx->initial_state[1];
+    initial_state[2]  = ctx->initial_state[2];
+    initial_state[3]  = ctx->initial_state[3];
+    initial_state[4]  = ctx->initial_state[4];
+    initial_state[5]  = ctx->initial_state[5];
+    initial_state[6]  = ctx->initial_state[6];
+    initial_state[7]  = ctx->initial_state[7];
+    initial_state[8]  = ctx->initial_state[8];
+    initial_state[9]  = ctx->initial_state[9];
+    initial_state[10] = ctx->initial_state[10];
+    initial_state[11] = ctx->initial_state[11];
+    initial_state[12] = counter;
+    initial_state[13] = ctx->initial_state[13];
+    initial_state[14] = ctx->initial_state[14];
+    initial_state[15] = ctx->initial_state[15];
+
+    mbedtls_chacha20_block( initial_state, working_state, keystream );
+
+    mbedtls_zeroize( initial_state, sizeof(initial_state) );
+    mbedtls_zeroize( working_state, sizeof(working_state) );
+
+    return ( 0 );
+}
+
 int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
                               size_t size,
                               const unsigned char *input,
@@ -271,7 +309,7 @@ int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
     /* Process full blocks */
     while ( size >= CHACHA20_BLOCK_SIZE_BYTES )
     {
-        mbedtls_chacha20_block( ctx, &output[offset] );
+        mbedtls_chacha20_block( ctx->initial_state, ctx->working_state, &output[offset] );
 
         for ( i = 0U; i < 64U; i += 8U )
         {
@@ -288,14 +326,14 @@ int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
         /* Increment counter */
         ctx->initial_state[CHACHA20_CTR_INDEX]++;
 
-        offset += 64U;
-        size   -= 64U;
+        offset += CHACHA20_BLOCK_SIZE_BYTES;
+        size   -= CHACHA20_BLOCK_SIZE_BYTES;
     }
 
     /* Last (partial) block */
     if ( size > 0U )
     {
-        mbedtls_chacha20_block( ctx, ctx->keystream8 );
+        mbedtls_chacha20_block( ctx->initial_state, ctx->working_state, ctx->keystream8 );
 
         for ( i = 0U; i < size; i++)
         {

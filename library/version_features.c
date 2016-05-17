@@ -84,6 +84,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_TIMING_ALT)
     "MBEDTLS_TIMING_ALT",
 #endif /* MBEDTLS_TIMING_ALT */
+#if defined(MBEDTLS_AEAD_CHACHA20_POLY1305_ALT)
+    "MBEDTLS_AEAD_CHACHA20_POLY1305_ALT",
+#endif /* MBEDTLS_AEAD_CHACHA20_POLY1305_ALT */
 #if defined(MBEDTLS_AES_ALT)
     "MBEDTLS_AES_ALT",
 #endif /* MBEDTLS_AES_ALT */
@@ -126,6 +129,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_MD5_ALT)
     "MBEDTLS_MD5_ALT",
 #endif /* MBEDTLS_MD5_ALT */
+#if defined(MBEDTLS_POLY1305_ALT)
+    "MBEDTLS_POLY1305_ALT",
+#endif /* MBEDTLS_POLY1305_ALT */
 #if defined(MBEDTLS_RIPEMD160_ALT)
     "MBEDTLS_RIPEMD160_ALT",
 #endif /* MBEDTLS_RIPEMD160_ALT */
@@ -168,9 +174,6 @@ static const char *features[] = {
 #if defined(MBEDTLS_SHA512_PROCESS_ALT)
     "MBEDTLS_SHA512_PROCESS_ALT",
 #endif /* MBEDTLS_SHA512_PROCESS_ALT */
-#if defined(MBEDTLS_POLY1305_ALT)
-    "MBEDTLS_POLY1305_ALT",
-#endif /* MBEDTLS_POLY1305_ALT */
 #if defined(MBEDTLS_DES_SETKEY_ALT)
     "MBEDTLS_DES_SETKEY_ALT",
 #endif /* MBEDTLS_DES_SETKEY_ALT */
@@ -540,6 +543,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_CAMELLIA_C)
     "MBEDTLS_CAMELLIA_C",
 #endif /* MBEDTLS_CAMELLIA_C */
+#if defined(MBEDTLS_CHACHA20_C)
+    "MBEDTLS_CHACHA20_C",
+#endif /* MBEDTLS_CHACHA20_C */
 #if defined(MBEDTLS_CCM_C)
     "MBEDTLS_CCM_C",
 #endif /* MBEDTLS_CCM_C */

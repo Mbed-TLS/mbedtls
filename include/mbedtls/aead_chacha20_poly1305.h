@@ -204,15 +204,15 @@ int mbedtls_aead_chacha20_poly1305_finish( mbedtls_aead_chacha20_poly1305_contex
  *                      if one or more of the required parameters are NULL.
  *                      Otherwise, 0 is returned to indicate success.
  */
-int mbedtls_aead_chacha20_poly1305_crypt_and_mac ( const unsigned char key[32],
-                                                   const unsigned char nonce[12],
-                                                   mbedtls_aead_chacha20_poly1305_mode_t mode,
-                                                   size_t aad_len,
-                                                   const unsigned char *aad,
-                                                   size_t ilen,
-                                                   const unsigned char *input,
-                                                   unsigned char *output,
-                                                   unsigned char mac[16] );
+int mbedtls_aead_chacha20_poly1305_crypt_and_mac( const unsigned char key[32],
+                                                  const unsigned char nonce[12],
+                                                  mbedtls_aead_chacha20_poly1305_mode_t mode,
+                                                  size_t aad_len,
+                                                  const unsigned char *aad,
+                                                  size_t ilen,
+                                                  const unsigned char *input,
+                                                  unsigned char *output,
+                                                  unsigned char mac[16] );
 
 /**
  * \brief               Checkup routine

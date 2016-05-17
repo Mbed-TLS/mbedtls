@@ -85,6 +85,7 @@ int mbedtls_poly1305_setkey( mbedtls_poly1305_context *ctx,
  * \param ctx           The Poly1305 context.
  * \param ilen          The input length (in bytes). Any value is accepted.
  * \param input         Buffer containing the input data to Process.
+ *                      This pointer can be NULL if ilen == 0.
  *
  * \return              MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA is returned if ctx
  *                      or input are NULL.

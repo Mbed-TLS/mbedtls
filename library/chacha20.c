@@ -291,8 +291,13 @@ int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
     size_t offset = 0U;
     size_t i;
 
-    if ( ( ctx == NULL ) || ( input == NULL ) || ( output == NULL ) )
+    if ( ctx == NULL )
     {
+        return( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
+    }
+    else if ( ( size > 0U ) && ( ( input == NULL ) || ( output == NULL ) ) )
+    {
+        /* input and output pointers are allowed to be NULL only if size == 0 */
         return( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
     }
 

@@ -100,6 +100,27 @@ int mbedtls_chacha20_starts( mbedtls_chacha20_context* ctx,
                              uint32_t counter );
 
 /**
+ * \brief           Generates a block of keystream bytes for a specific counter value.
+ *
+ *                  This function uses the key and nonce previously set in
+ *                  the context (via mbedtls_chacha20_setkey and
+ *                  mbedtls_chacha20_starts), but ignores the previously
+ *                  set counter and uses the counter given as the parameter to
+ *                  this function.
+ *
+ * \param ctx       The ChaCha20 context. This context is not modified.
+ * \param counter   The counter value to use.
+ * \param keystream Buffer to where the generated keystream bytes are written.
+ *
+ * \return          MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA if ctx or keystream are
+ *                  NULL.
+ *                  Otherwise, 0 is returned to indicate success.
+ */
+int mbedtls_chacha20_keystream_block( const mbedtls_chacha20_context *ctx,
+                                      uint32_t counter,
+                                      unsigned char keystream[64] );
+
+/**
  * \brief           Encrypt or decrypt data.
  *
  *                  This function is used to both encrypt and decrypt data.

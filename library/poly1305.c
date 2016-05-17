@@ -293,12 +293,17 @@ int mbedtls_poly1305_update( mbedtls_poly1305_context *ctx,
     size_t queue_free_len;
     size_t nblocks;
 
-    if ( ( ctx == NULL ) || ( input == NULL ) )
+    if ( ctx == NULL )
     {
         return( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     }
+    else if ( ( ilen > 0U ) && ( input == NULL ) )
+    {
+        /* input pointer is allowed to be NULL only if ilen == 0 */
+        return( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
+    }
 
-    if ( ctx->queue_len > 0U )
+    if ( ( remaining > 0U ) && ( ctx->queue_len > 0U ) )
     {
         queue_free_len = ( POLY1305_BLOCK_SIZE_BYTES - ctx->queue_len );
 

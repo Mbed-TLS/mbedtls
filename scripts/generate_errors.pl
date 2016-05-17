@@ -29,7 +29,7 @@ if( @ARGV ) {
 
 my $error_format_file = $data_dir.'/error.fmt';
 
-my @low_level_modules = qw( AES ARC4 ASN1 BASE64 BIGNUM BLOWFISH
+my @low_level_modules = qw( AEAD_CHACHA20_POLY1305 AES ARC4 ASN1 BASE64 BIGNUM BLOWFISH
                             CAMELLIA CCM CHACHA20 CMAC CTR_DRBG DES
                             ENTROPY GCM HMAC_DRBG MD2 MD4 MD5
                             NET OID PADLOCK PBKDF2 POLY1305 RIPEMD160
@@ -88,6 +88,7 @@ foreach my $line (@matches)
     $module_name = "BIGNUM" if ($module_name eq "MPI");
     $module_name = "CTR_DRBG" if ($module_name eq "CTR");
     $module_name = "HMAC_DRBG" if ($module_name eq "HMAC");
+    $module_name = "AEAD_CHACHA20_POLY1305" if ($module_name eq "AEAD");
 
     my $define_name = $module_name;
     $define_name = "X509_USE,X509_CREATE" if ($define_name eq "X509");

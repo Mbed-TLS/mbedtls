@@ -490,6 +490,11 @@ int mbedtls_poly1305_self_test( int verbose )
 
     for ( i = 0U; i < 2U; i++ )
     {
+        if ( verbose != 0 )
+        {
+            mbedtls_printf( "  Poly1305 test %zi ", i );
+        }
+
         result = mbedtls_poly1305_mac( test_keys[i],
                                         test_data_len[i],
                                         test_data[i],
@@ -498,7 +503,7 @@ int mbedtls_poly1305_self_test( int verbose )
         {
             if ( verbose != 0 )
             {
-                mbedtls_printf( "Poly1305 test %zi error code: %i\n", i, result );
+                mbedtls_printf( "error code: %i\n", result );
             }
 
             return( -1 );
@@ -508,11 +513,21 @@ int mbedtls_poly1305_self_test( int verbose )
         {
             if ( verbose != 0 )
             {
-                mbedtls_printf( "Poly1305 test %zi failed\n", i );
+                mbedtls_printf( "failed\n" );
             }
 
             return( -1 );
         }
+
+        if ( verbose != 0 )
+        {
+            mbedtls_printf( "passed\n" );
+        }
+    }
+
+    if( verbose != 0 )
+    {
+        mbedtls_printf( "\n" );
     }
 
     return( 0 );

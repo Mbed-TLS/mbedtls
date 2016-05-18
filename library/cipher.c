@@ -62,9 +62,13 @@ static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = (unsigned char*)v; while( n-- ) *p++ = 0;
 }
 
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_AEAD_CHACHA20_POLY1305_C)
+
 /* Compare the contents of two buffers in constant time.
  * Returns 0 if the contents are bitwise identical, otherwise returns
- * a non-zero value. */
+ * a non-zero value.
+ * This is currently only used by GCM and ChaCha20+Poly1305.
+ */
 static int mbedtls_constant_time_memcmp( const void *v1, const void *v2, size_t len )
 {
     const unsigned char *p1 = (const unsigned char*) v1;
@@ -77,6 +81,8 @@ static int mbedtls_constant_time_memcmp( const void *v1, const void *v2, size_t 
 
     return (int)diff;
 }
+
+#endif /* MBEDTLS_GCM_C || MBEDTLS_AEAD_CHACHA20_POLY1305_C */
 
 static int supported_init = 0;
 

@@ -1688,7 +1688,7 @@ int mbedtls_rsa_self_test( int verbose )
 
 #if defined(MBEDTLS_SHA1_C)
     if( verbose != 0 )
-        mbedtls_printf( "PKCS#1 data sign  : " );
+        mbedtls_printf( "  PKCS#1 data sign  : " );
 
     mbedtls_sha1( rsa_plaintext, PT_LEN, sha1sum );
 

@@ -43,6 +43,9 @@
 #include "mbedtls/des.h"
 #include "mbedtls/aes.h"
 #include "mbedtls/camellia.h"
+#include "mbedtls/chacha20.h"
+#include "mbedtls/poly1305.h"
+#include "mbedtls/aead_chacha20_poly1305.h"
 #include "mbedtls/base64.h"
 #include "mbedtls/bignum.h"
 #include "mbedtls/rsa.h"
@@ -380,6 +383,30 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_PKCS5_C)
     if( mbedtls_pkcs5_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
+#endif
+
+#if defined(MBEDTLS_CHACHA20_C)
+    if ( mbedtls_chacha20_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
+#endif
+
+#if defined(MBEDTLS_POLY1305_C)
+    if ( mbedtls_poly1305_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
+#endif
+
+#if defined(MBEDTLS_AEAD_CHACHA20_POLY1305_C)
+    if ( mbedtls_aead_chacha20_poly1305_self_test( v ) != 0 )
     {
         suites_failed++;
     }

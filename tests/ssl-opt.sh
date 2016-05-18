@@ -33,12 +33,20 @@ MEMCHECK=0
 FILTER='.*'
 EXCLUDE='^$'
 
+SHOW_TEST_NUMBER=0
+RUN_TEST_NUMBER=''
+
+PRESERVE_LOGS=0
+
 print_usage() {
     echo "Usage: $0 [options]"
     printf "  -h|--help\tPrint this help.\n"
     printf "  -m|--memcheck\tCheck memory leaks and errors.\n"
     printf "  -f|--filter\tOnly matching tests are executed (default: '$FILTER')\n"
     printf "  -e|--exclude\tMatching tests are excluded (default: '$EXCLUDE')\n"
+    printf "  -n|--number\tExecute only numbered test (comma-separated, e.g. '245,256')\n"
+    printf "  -s|--show-numbers\tShow test numbers in front of test names\n"
+    printf "  -p|--preserve-logs\tPreserve logs of successful tests as well\n"
 }
 
 get_options() {
@@ -52,6 +60,15 @@ get_options() {
                 ;;
             -m|--memcheck)
                 MEMCHECK=1
+                ;;
+            -n|--number)
+                shift; RUN_TEST_NUMBER=$1
+                ;;
+            -s|--show-numbers)
+                SHOW_TEST_NUMBER=1
+                ;;
+            -p|--preserve-logs)
+                PRESERVE_LOGS=1
                 ;;
             -h|--help)
                 print_usage
@@ -144,12 +161,19 @@ needs_more_time() {
 
 # print_name <name>
 print_name() {
-    printf "$1 "
-    LEN=$(( 72 - `echo "$1" | wc -c` ))
+    TESTS=$(( $TESTS + 1 ))
+    LINE=""
+
+    if [ "$SHOW_TEST_NUMBER" -gt 0 ]; then
+        LINE="$TESTS "
+    fi
+
+    LINE="$LINE$1"
+    printf "$LINE "
+    LEN=$(( 72 - `echo "$LINE" | wc -c` ))
     for i in `seq 1 $LEN`; do printf '.'; done
     printf ' '
 
-    TESTS=$(( $TESTS + 1 ))
 }
 
 # fail <message>
@@ -299,6 +323,13 @@ run_test() {
     fi
 
     print_name "$NAME"
+
+    # Do we only run numbered tests?
+    if [ "X$RUN_TEST_NUMBER" = "X" ]; then :
+    elif echo ",$RUN_TEST_NUMBER," | grep ",$TESTS," >/dev/null; then :
+    else
+        SKIP_NEXT="YES"
+    fi
 
     # should we skip?
     if [ "X$SKIP_NEXT" = "XYES" ]; then
@@ -468,6 +499,11 @@ run_test() {
 
     # if we're here, everything is ok
     echo "PASS"
+    if [ "$PRESERVE_LOGS" -gt 0 ]; then
+        mv $SRV_OUT o-srv-${TESTS}.log
+        mv $CLI_OUT o-cli-${TESTS}.log
+    fi
+
     rm -f $SRV_OUT $CLI_OUT $PXY_OUT
 }
 

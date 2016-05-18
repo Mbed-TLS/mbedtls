@@ -61,7 +61,7 @@ static void mbedtls_zeroize( void *v, size_t n ) {
  * \brief                   Process blocks with Poly1305.
  *
  * \param ctx               The Poly1305 context.
- * \param ilen              Number of bytes to process. Note that this function
+ * \param nblocks           Number of blocks to process. Note that this function
  *                          only processes full blocks.
  * \param input             Buffer containing the input block(s).
  * \param needs_padding     Set to 0 if the padding bit has already been applied

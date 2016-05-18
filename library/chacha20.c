@@ -130,7 +130,8 @@ static void mbedtls_chacha20_inner_block( uint32_t state[16] )
 /**
  * \brief               Generates a keystream block.
  *
- * \param ctx           ChaCha20 context to update.
+ * \param initial_state The initial ChaCha20 state (containing the key, nonce, counter).
+ * \param working_state This state is used as a temporary working area.
  * \param keystream     Generated keystream bytes are written to this buffer.
  */
 static void mbedtls_chacha20_block( const uint32_t initial_state[16],

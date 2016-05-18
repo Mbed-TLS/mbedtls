@@ -37,8 +37,8 @@ extern "C" {
  */
 typedef struct {
     mbedtls_cipher_context_t cipher_ctx;    /*!< cipher context used */
-    unsigned char K1[16];
-    unsigned char K2[16];
+    unsigned char* K1;
+    unsigned char* K2;
 }
 mbedtls_cmac_context;
 
@@ -108,9 +108,8 @@ int mbedtls_cmac_verify( mbedtls_cmac_context *ctx,
 
 /**
  * \brief           AES-CMAC-128-PRF
- * TODO: add reference to the standard
+ *  See RFC
  *
- * \param ctx       CMAC context
  * \param key       PRF key
  * \param key_len   PRF key length
  * \param input     buffer holding the input data
@@ -120,8 +119,7 @@ int mbedtls_cmac_verify( mbedtls_cmac_context *ctx,
  *
  * \return          0 if successful
  */
-int mbedtls_aes_cmac_prf_128( mbedtls_cmac_context *ctx,
-                              const unsigned char *key, size_t key_len,
+int mbedtls_aes_cmac_prf_128( const unsigned char *key, size_t key_len,
                               const unsigned char *input, size_t in_len,
                               unsigned char *tag );
 

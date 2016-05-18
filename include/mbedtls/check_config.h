@@ -362,6 +362,11 @@
 #error "MBEDTLS_RSA_C defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_RSA_C) && ( !defined(MBEDTLS_PKCS1_V21) &&         \
+    !defined(MBEDTLS_PKCS1_V15) )
+#error "MBEDTLS_RSA_C defined, but none of the PKCS1 versions enabled"
+#endif
+
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) &&                        \
     ( !defined(MBEDTLS_RSA_C) || !defined(MBEDTLS_PKCS1_V21) )
 #error "MBEDTLS_X509_RSASSA_PSS_SUPPORT defined, but not all prerequisites"

@@ -428,6 +428,11 @@ int mbedtls_aead_chacha20_poly1305_self_test( int verbose )
 
     for ( i = 0U; i < 1U; i++ )
     {
+        if ( verbose != 0 )
+        {
+            mbedtls_printf( "  ChaCha20-Poly1305 test %zi ", i );
+        }
+
         result = mbedtls_aead_chacha20_poly1305_crypt_and_mac( test_key[i],
                                                                test_nonce[i],
                                                                MBEDTLS_AEAD_CHACHA20_POLY1305_ENCRYPT,
@@ -441,7 +446,7 @@ int mbedtls_aead_chacha20_poly1305_self_test( int verbose )
         {
             if ( verbose != 0 )
             {
-                mbedtls_printf( "ChaCha20-Poly1305 test %zi error code: %i\n", i, result );
+                mbedtls_printf( "error code: %i\n", result );
             }
             return( -1 );
         }
@@ -450,7 +455,7 @@ int mbedtls_aead_chacha20_poly1305_self_test( int verbose )
         {
             if ( verbose != 0 )
             {
-                mbedtls_printf( "ChaCha20-Poly1305 test %zi failure (wrong output)\n", i );
+                mbedtls_printf( "failure (wrong output)\n" );
             }
             return( -1 );
         }
@@ -459,10 +464,20 @@ int mbedtls_aead_chacha20_poly1305_self_test( int verbose )
         {
             if ( verbose != 0 )
             {
-                mbedtls_printf( "ChaCha20-Poly1305 test %zi failure (wrong MAC)\n", i );
+                mbedtls_printf( "failure (wrong MAC)\n" );
             }
             return( -1 );
         }
+
+        if ( verbose != 0 )
+        {
+            mbedtls_printf( "passed\n" );
+        }
+    }
+
+    if( verbose != 0 )
+    {
+        mbedtls_printf( "\n" );
     }
 
     return( 0 );

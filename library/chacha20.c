@@ -558,6 +558,11 @@ int mbedtls_chacha20_self_test( int verbose )
 
     for ( i = 0U; i < 2U; i++ )
     {
+        if ( verbose != 0 )
+        {
+            mbedtls_printf( "  ChaCha20 test %zi ", i );
+        }
+
         result = mbedtls_chacha20_crypt( test_keys[i],
                                          test_nonces[i],
                                          test_counters[i],
@@ -568,7 +573,7 @@ int mbedtls_chacha20_self_test( int verbose )
         {
             if ( verbose != 0 )
             {
-                mbedtls_printf( "ChaCha20 test %zi error code: %i\n", i, result );
+                mbedtls_printf( "error code: %i\n", result );
             }
 
             return( -1 );
@@ -578,11 +583,21 @@ int mbedtls_chacha20_self_test( int verbose )
         {
             if ( verbose != 0 )
             {
-                mbedtls_printf( "ChaCha20 test %zi failed\n", i );
+                mbedtls_printf( "failed\n" );
             }
 
             return( -1 );
         }
+
+        if ( verbose != 0 )
+        {
+            mbedtls_printf( "passed\n" );
+        }
+    }
+
+    if( verbose != 0 )
+    {
+        mbedtls_printf( "\n" );
     }
 
     return( 0 );

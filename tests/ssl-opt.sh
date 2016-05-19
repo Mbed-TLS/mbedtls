@@ -1,12 +1,23 @@
 #!/bin/sh
 
-# Test various options that are not covered by compat.sh
+# ssl-opt.sh
 #
-# Here the goal is not to cover every ciphersuite/version, but
-# rather specific options (max fragment length, truncated hmac, etc)
-# or procedures (session resumption from cache or ticket, renego, etc).
+# This file is part of mbed TLS (https://tls.mbed.org)
 #
-# Assumes a build with default options.
+# Copyright (c) 2016, ARM Limited, All Rights Reserved
+#
+# Purpose
+#
+# Executes tests to prove various TLS/SSL options and extensions.
+#
+# The goal is not to cover every ciphersuite/version, but instead to cover
+# specific options (max fragment length, truncated hmac, etc) or procedures
+# (session resumption from cache or ticket, renego, etc).
+#
+# The tests assume a build with default options, with exceptions expressed
+# with a dependency.  The tests focus on functionality and do not consider
+# performance.
+#
 
 set -u
 

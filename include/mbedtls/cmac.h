@@ -106,6 +106,7 @@ int mbedtls_cmac_verify( mbedtls_cmac_context *ctx,
                          const unsigned char *input, size_t in_len,
                          const unsigned char *tag, size_t tag_len );
 
+#ifdef MBEDTLS_AES_C
 /**
  * \brief           AES-CMAC-128-PRF
  *  See RFC
@@ -122,6 +123,7 @@ int mbedtls_cmac_verify( mbedtls_cmac_context *ctx,
 int mbedtls_aes_cmac_prf_128( const unsigned char *key, size_t key_len,
                               const unsigned char *input, size_t in_len,
                               unsigned char *tag );
+#endif /* MBEDTLS_AES_C */
 
 #if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
 /**

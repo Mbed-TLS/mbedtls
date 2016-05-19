@@ -344,6 +344,7 @@ int mbedtls_cmac_verify( mbedtls_cmac_context *ctx,
         return ret;
 }
 
+#ifdef MBEDTLS_AES_C
 /*
  * PRF based on CMAC with AES-128
  * See RFC 4615
@@ -393,9 +394,8 @@ int mbedtls_aes_cmac_prf_128( const unsigned char *key, size_t key_length,
     exit:
 	     mbedtls_cmac_free(&ctx);
 	     return( ret );
-
-
 }
+#endif /* MBEDTLS_AES_C */
 
 #ifdef MBEDTLS_SELF_TEST
 /*

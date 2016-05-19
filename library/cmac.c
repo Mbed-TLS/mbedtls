@@ -397,108 +397,23 @@ int mbedtls_aes_cmac_prf_128( const unsigned char *key, size_t key_length,
 
 }
 
-#if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
+#ifdef MBEDTLS_SELF_TEST
 /*
- * Examples 1 to 4 from SP800-38B corrected Appendix D.1
+ * CMAC test data from SP800-38B Appendix D.1 (corrected)
  * http://csrc.nist.gov/publications/nistpubs/800-38B/Updated_CMAC_Examples.pdf
+ *
+ * AES-CMAC-PRF-128 test data from RFC 4615
+ * https://tools.ietf.org/html/rfc4615#page-4
  */
 
-#define NB_CMAC_TESTS_AES_128 4
-#define NB_CMAC_TESTS_AES_192 4
-#define NB_CMAC_TESTS_AES_256 4
-#define NB_CMAC_TESTS_3DES 4
-
+#define NB_CMAC_TESTS_PER_KEY 4
 #define NB_PRF_TESTS 3
+#define AES_BLOCK_SIZE 16
+#define DES3_BLOCK_SIZE 8
 
-/* AES 128 Key */
-static const unsigned char aes_128_key[] = {
-    0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6,
-    0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c
-};
-
-/* AES 192 Key */
-static const unsigned char aes_192_key[] = {
-		0x8e, 0x73, 0xb0, 0xf7, 0xda, 0x0e, 0x64, 0x52,
-		0xc8, 0x10, 0xf3, 0x2b, 0x80, 0x90, 0x79, 0xe5,
-		0x62, 0xf8, 0xea, 0xd2, 0x52, 0x2c, 0x6b, 0x7b
-};
-
-/* AES 256 Key */
-static const unsigned char aes_256_key[] = {
-		0x60, 0x3d, 0xeb, 0x10, 0x15, 0xca, 0x71, 0xbe,
-		0x2b, 0x73, 0xae, 0xf0, 0x85, 0x7d, 0x77, 0x81,
-		0x1f, 0x35, 0x2c, 0x07, 0x3b, 0x61, 0x08, 0xd7,
-		0x2d, 0x98, 0x10, 0xa3, 0x09, 0x14, 0xdf, 0xf4
-};
-
-/* 3DES 112 bit key */
-static const unsigned char des3_2key_key[] = {
-		0x4c, 0xf1, 0x51, 0x34, 0xa2, 0x85, 0x0d, 0xd5,
-		0x8a, 0x3d, 0x10, 0xba, 0x80, 0x57, 0x0d, 0x38,
-		0x4c, 0xf1, 0x51, 0x34, 0xa2, 0x85, 0x0d, 0xd5
-};
-
-/* 3DES 168 bit key */
-static const unsigned char des3_3key_key[] = {
-		0x8a, 0xa8, 0x3b, 0xf8, 0xcb, 0xda, 0x10, 0x62,
-		0x0b, 0xc1, 0xbf, 0x19, 0xfb, 0xb6, 0xcd, 0x58,
-		0xbc, 0x31, 0x3d, 0x4a, 0x37, 0x1c, 0xa8, 0xb5
-};
-
-static const unsigned char aes_128_subkeys[2][16] = {
-    {
-        0xfb, 0xee, 0xd6, 0x18, 0x35, 0x71, 0x33, 0x66,
-        0x7c, 0x85, 0xe0, 0x8f, 0x72, 0x36, 0xa8, 0xde
-    },
-    {
-        0xf7, 0xdd, 0xac, 0x30, 0x6a, 0xe2, 0x66, 0xcc,
-        0xf9, 0x0b, 0xc1, 0x1e, 0xe4, 0x6d, 0x51, 0x3b
-    }
-};
-
-static const unsigned char aes_192_subkeys[2][16] = {
-    {
-        0x44, 0x8a, 0x5b, 0x1c, 0x93, 0x51, 0x4b, 0x27,
-        0x3e, 0xe6, 0x43, 0x9d, 0xd4, 0xda, 0xa2, 0x96
-    },
-    {
-        0x89, 0x14, 0xb6, 0x39, 0x26, 0xa2, 0x96, 0x4e,
-        0x7d, 0xcc, 0x87, 0x3b, 0xa9, 0xb5, 0x45, 0x2c
-    }
-};
-
-static const unsigned char aes_256_subkeys[2][16] = {
-    {
-        0xca, 0xd1, 0xed, 0x03, 0x29, 0x9e, 0xed, 0xac,
-        0x2e, 0x9a, 0x99, 0x80, 0x86, 0x21, 0x50, 0x2f
-    },
-    {
-        0x95, 0xa3, 0xda, 0x06, 0x53, 0x3d, 0xdb, 0x58,
-        0x5d, 0x35, 0x33, 0x01, 0x0c, 0x42, 0xa0, 0xd9
-    }
-};
-
-static const unsigned char des3_2key_subkeys[2][8] = {
-    {
-        0x8e, 0xcf, 0x37, 0x3e, 0xd7, 0x1a, 0xfa, 0xef
-    },
-    {
-        0x1d, 0x9e, 0x6e, 0x7d, 0xae, 0x35, 0xf5, 0xc5
-    }
-};
-
-static const unsigned char des3_3key_subkeys[2][8] = {
-    {
-        0x91, 0x98, 0xe9, 0xd3, 0x14, 0xe6, 0x53, 0x5f
-    },
-    {
-        0x23, 0x31, 0xd3, 0xa6, 0x29, 0xcc, 0xa6, 0xa5
-    }
-};
-
-
-/* All Messages are truncated from the same 64 byte buffer. */
-static const unsigned char M[] = {
+#if defined(MBEDTLS_AES_C) || defined(MBEDTLS_DES_C)
+/* All CMAC test inputs are truncated from the same 64 byte buffer. */
+static const unsigned char test_message[] = {
     0x6b, 0xc1, 0xbe, 0xe2, 0x2e, 0x40, 0x9f, 0x96,
     0xe9, 0x3d, 0x7e, 0x11, 0x73, 0x93, 0x17, 0x2a,
     0xae, 0x2d, 0x8a, 0x57, 0x1e, 0x03, 0xac, 0x9c,
@@ -508,8 +423,33 @@ static const unsigned char M[] = {
     0xf6, 0x9f, 0x24, 0x45, 0xdf, 0x4f, 0x9b, 0x17,
     0xad, 0x2b, 0x41, 0x7b, 0xe6, 0x6c, 0x37, 0x10
 };
+#endif /* defined(MBEDTLS_AES_C) || defined(MBEDTLS_DES_C) */
 
-static const unsigned char T_128[NB_CMAC_TESTS_3DES][16] = {
+#ifdef MBEDTLS_AES_C
+/* Truncation point of message for AES CMAC tests  */
+static const size_t aes_message_lengths[NB_CMAC_TESTS_PER_KEY] = {
+    0,
+    16,
+    40,
+    64
+};
+
+/* AES 128 CMAC Test Data */
+static const unsigned char aes_128_key[] = {
+    0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6,
+    0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c
+};
+static const unsigned char aes_128_subkeys[2][AES_BLOCK_SIZE] = {
+    {
+        0xfb, 0xee, 0xd6, 0x18, 0x35, 0x71, 0x33, 0x66,
+        0x7c, 0x85, 0xe0, 0x8f, 0x72, 0x36, 0xa8, 0xde
+    },
+    {
+        0xf7, 0xdd, 0xac, 0x30, 0x6a, 0xe2, 0x66, 0xcc,
+        0xf9, 0x0b, 0xc1, 0x1e, 0xe4, 0x6d, 0x51, 0x3b
+    }
+};
+static const unsigned char aes_128_expected_result[NB_CMAC_TESTS_PER_KEY][AES_BLOCK_SIZE] = {
     {
         0xbb, 0x1d, 0x69, 0x29, 0xe9, 0x59, 0x37, 0x28,
         0x7f, 0xa3, 0x7d, 0x12, 0x9b, 0x75, 0x67, 0x46
@@ -528,43 +468,23 @@ static const unsigned char T_128[NB_CMAC_TESTS_3DES][16] = {
     }
 };
 
-/* Sizes in bytes */
-static const size_t Mlen[NB_CMAC_TESTS_AES_192] = {
-    0,
-    16,
-    40,
-    64
+/* AES 192 CMAC Test Data */
+static const unsigned char aes_192_key[] = {
+		0x8e, 0x73, 0xb0, 0xf7, 0xda, 0x0e, 0x64, 0x52,
+		0xc8, 0x10, 0xf3, 0x2b, 0x80, 0x90, 0x79, 0xe5,
+		0x62, 0xf8, 0xea, 0xd2, 0x52, 0x2c, 0x6b, 0x7b
 };
-
-static const size_t Mlen_3des[NB_CMAC_TESTS_AES_192] = {
-    0,
-    8,
-    20,
-    32
-};
-
-
-
-static const unsigned char T_256[NB_CMAC_TESTS_AES_192][16] = {
+static const unsigned char aes_192_subkeys[2][AES_BLOCK_SIZE] = {
     {
-        0x02, 0x89, 0x62, 0xf6, 0x1b, 0x7b, 0xf8, 0x9e,
-        0xfc, 0x6b, 0x55, 0x1f, 0x46, 0x67, 0xd9, 0x83
+        0x44, 0x8a, 0x5b, 0x1c, 0x93, 0x51, 0x4b, 0x27,
+        0x3e, 0xe6, 0x43, 0x9d, 0xd4, 0xda, 0xa2, 0x96
     },
     {
-        0x28, 0xa7, 0x02, 0x3f, 0x45, 0x2e, 0x8f, 0x82,
-        0xbd, 0x4b, 0xf2, 0x8d, 0x8c, 0x37, 0xc3, 0x5c
-    },
-    {
-        0xaa, 0xf3, 0xd8, 0xf1, 0xde, 0x56, 0x40, 0xc2,
-        0x32, 0xf5, 0xb1, 0x69, 0xb9, 0xc9, 0x11, 0xe6
-    },
-    {
-        0xe1, 0x99, 0x21, 0x90, 0x54, 0x9f, 0x6e, 0xd5,
-        0x69, 0x6a, 0x2c, 0x05, 0x6c, 0x31, 0x54, 0x10
+        0x89, 0x14, 0xb6, 0x39, 0x26, 0xa2, 0x96, 0x4e,
+        0x7d, 0xcc, 0x87, 0x3b, 0xa9, 0xb5, 0x45, 0x2c
     }
 };
-
-static const unsigned char T_192[NB_CMAC_TESTS_AES_192][16] = {
+static const unsigned char aes_192_expected_result[NB_CMAC_TESTS_PER_KEY][AES_BLOCK_SIZE] = {
     {
         0xd1, 0x7d, 0xdf, 0x46, 0xad, 0xaa, 0xcd, 0xe5,
         0x31, 0xca, 0xc4, 0x83, 0xde, 0x7a, 0x93, 0x67
@@ -583,7 +503,67 @@ static const unsigned char T_192[NB_CMAC_TESTS_AES_192][16] = {
     }
 };
 
-static const unsigned char T_3des_2key[4][8] = {
+/* AES 256 CMAC Test Data */
+static const unsigned char aes_256_key[] = {
+		0x60, 0x3d, 0xeb, 0x10, 0x15, 0xca, 0x71, 0xbe,
+		0x2b, 0x73, 0xae, 0xf0, 0x85, 0x7d, 0x77, 0x81,
+		0x1f, 0x35, 0x2c, 0x07, 0x3b, 0x61, 0x08, 0xd7,
+		0x2d, 0x98, 0x10, 0xa3, 0x09, 0x14, 0xdf, 0xf4
+};
+static const unsigned char aes_256_subkeys[2][AES_BLOCK_SIZE] = {
+    {
+        0xca, 0xd1, 0xed, 0x03, 0x29, 0x9e, 0xed, 0xac,
+        0x2e, 0x9a, 0x99, 0x80, 0x86, 0x21, 0x50, 0x2f
+    },
+    {
+        0x95, 0xa3, 0xda, 0x06, 0x53, 0x3d, 0xdb, 0x58,
+        0x5d, 0x35, 0x33, 0x01, 0x0c, 0x42, 0xa0, 0xd9
+    }
+};
+static const unsigned char aes_256_expected_result[NB_CMAC_TESTS_PER_KEY][AES_BLOCK_SIZE] = {
+    {
+        0x02, 0x89, 0x62, 0xf6, 0x1b, 0x7b, 0xf8, 0x9e,
+        0xfc, 0x6b, 0x55, 0x1f, 0x46, 0x67, 0xd9, 0x83
+    },
+    {
+        0x28, 0xa7, 0x02, 0x3f, 0x45, 0x2e, 0x8f, 0x82,
+        0xbd, 0x4b, 0xf2, 0x8d, 0x8c, 0x37, 0xc3, 0x5c
+    },
+    {
+        0xaa, 0xf3, 0xd8, 0xf1, 0xde, 0x56, 0x40, 0xc2,
+        0x32, 0xf5, 0xb1, 0x69, 0xb9, 0xc9, 0x11, 0xe6
+    },
+    {
+        0xe1, 0x99, 0x21, 0x90, 0x54, 0x9f, 0x6e, 0xd5,
+        0x69, 0x6a, 0x2c, 0x05, 0x6c, 0x31, 0x54, 0x10
+    }
+};
+#endif /* MBEDTLS_AES_C */
+
+#ifdef MBEDTLS_DES_C
+/* Truncation point of message for 3DES CMAC tests  */
+static const size_t des3_message_lengths[NB_CMAC_TESTS_PER_KEY] = {
+    0,
+    8,
+    20,
+    32
+};
+
+/* 3DES 2 Key CMAC Test Data */
+static const unsigned char des3_2key_key[] = {
+		0x4c, 0xf1, 0x51, 0x34, 0xa2, 0x85, 0x0d, 0xd5,
+		0x8a, 0x3d, 0x10, 0xba, 0x80, 0x57, 0x0d, 0x38,
+		0x4c, 0xf1, 0x51, 0x34, 0xa2, 0x85, 0x0d, 0xd5
+};
+static const unsigned char des3_2key_subkeys[2][8] = {
+    {
+        0x8e, 0xcf, 0x37, 0x3e, 0xd7, 0x1a, 0xfa, 0xef
+    },
+    {
+        0x1d, 0x9e, 0x6e, 0x7d, 0xae, 0x35, 0xf5, 0xc5
+    }
+};
+static const unsigned char T_3des_2key[NB_CMAC_TESTS_PER_KEY][DES3_BLOCK_SIZE] = {
     {
         0xbd, 0x2e, 0xbf, 0x9a, 0x3b, 0xa0, 0x03, 0x61
     },
@@ -598,7 +578,21 @@ static const unsigned char T_3des_2key[4][8] = {
     }
 };
 
-static const unsigned char T_3des_3key[4][8] = {
+/* 3DES 3 Key CMAC Test Data */
+static const unsigned char des3_3key_key[] = {
+		0x8a, 0xa8, 0x3b, 0xf8, 0xcb, 0xda, 0x10, 0x62,
+		0x0b, 0xc1, 0xbf, 0x19, 0xfb, 0xb6, 0xcd, 0x58,
+		0xbc, 0x31, 0x3d, 0x4a, 0x37, 0x1c, 0xa8, 0xb5
+};
+static const unsigned char des3_3key_subkeys[2][8] = {
+    {
+        0x91, 0x98, 0xe9, 0xd3, 0x14, 0xe6, 0x53, 0x5f
+    },
+    {
+        0x23, 0x31, 0xd3, 0xa6, 0x29, 0xcc, 0xa6, 0xa5
+    }
+};
+static const unsigned char T_3des_3key[NB_CMAC_TESTS_PER_KEY][DES3_BLOCK_SIZE] = {
     {
         0xb7, 0xa6, 0x88, 0xe1, 0x22, 0xff, 0xaf, 0x95
     },
@@ -613,8 +607,10 @@ static const unsigned char T_3des_3key[4][8] = {
     }
 };
 
+#endif /* MBEDTLS_DES_C */
 
-/* PRF K */
+#ifdef MBEDTLS_AES_C
+/* AES AES-CMAC-PRF-128 Test Data */
 static const unsigned char PRFK[] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
     0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
@@ -649,6 +645,7 @@ static const unsigned char PRFT[NB_PRF_TESTS][16] = {
         0x14, 0x1f, 0xcf, 0x64, 0xc0, 0xb7, 0x2f, 0x3d
     }
 };
+#endif /* MBEDTLS_AES_C */
 
 int test_cmac_with_cipher(int verbose,
 		                  const unsigned char* testname,
@@ -716,94 +713,104 @@ int test_cmac_with_cipher(int verbose,
         return( ret );
 }
 
-int mbedtls_cmac_self_test( int verbose )
-{
-    mbedtls_cmac_context ctx;
-    unsigned char tag[16];
+#ifdef MBEDTLS_AES_C
+int test_aes128_cmac_prf( verbose ) {
     int i;
     int ret;
-
-    test_cmac_with_cipher(verbose,
-                             "AES 128",
-                              aes_128_key,
-                              128,
-                              M,
-                              Mlen,
-                              aes_128_subkeys,
-                              T_128,
-                              MBEDTLS_CIPHER_ID_AES,
-                              16 );
-
-    test_cmac_with_cipher(verbose,
-                             "AES 192",
-                              aes_192_key,
-                              192,
-                              M,
-                              Mlen,
-                              aes_192_subkeys,
-                              T_192,
-                              MBEDTLS_CIPHER_ID_AES,
-                              16 );
-
-    test_cmac_with_cipher(verbose,
-                             "AES 256",
-                              aes_256_key,
-                              256,
-                              M,
-                              Mlen,
-                              aes_256_subkeys,
-                              T_256,
-                              MBEDTLS_CIPHER_ID_AES,
-                              16 );
-
-    test_cmac_with_cipher(verbose,
-                             "3DES 2 key",
-                              des3_2key_key,
-                              192,
-                              M,
-                              Mlen_3des,
-                              des3_2key_subkeys,
-                              T_3des_2key,
-                              MBEDTLS_CIPHER_ID_3DES,
-                              8 );
-
-    test_cmac_with_cipher(verbose,
-                             "3DES 3 key",
-                              des3_3key_key,
-                              192,
-                              M,
-                              Mlen_3des,
-                              des3_3key_subkeys,
-                              T_3des_3key,
-                              MBEDTLS_CIPHER_ID_3DES,
-                              8 );
-
-
+    unsigned char tag[16];
     for( i = 0; i < NB_PRF_TESTS; i++ )
     {
-        mbedtls_printf( "  AES-CMAC-128-PRF #%u: ", i );
-
-        mbedtls_aes_cmac_prf_128( PRFK, PRFKlen[i], PRFM, 20, tag );
-
+        mbedtls_printf( "  AES CMAC 128 PRF #%u: ", i );
+        ret = mbedtls_aes_cmac_prf_128( PRFK, PRFKlen[i], PRFM, 20, tag );
         if( ret != 0 ||
             memcmp( tag, PRFT[i], 16 ) != 0 )
         {
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
 
-            return( 1 );
+            return( ret );
         } else if( verbose != 0 )
         {
             mbedtls_printf( "passed\n" );
         }
     }
+    return( ret );
+}
+#endif /* MBEDTLS_AES_C */
+
+int mbedtls_cmac_self_test( int verbose )
+{
+    int ret;
+    
+#ifdef MBEDTLS_AES_C
+    test_cmac_with_cipher(verbose,
+                             "AES 128",
+                              aes_128_key,
+                              128,
+                              test_message,
+                              aes_message_lengths,
+                              aes_128_subkeys,
+                              aes_128_expected_result,
+                              MBEDTLS_CIPHER_ID_AES,
+                              AES_BLOCK_SIZE );
+
+    test_cmac_with_cipher(verbose,
+                             "AES 192",
+                              aes_192_key,
+                              192,
+                              test_message,
+                              aes_message_lengths,
+                              aes_192_subkeys,
+                              aes_192_expected_result,
+                              MBEDTLS_CIPHER_ID_AES,
+                              AES_BLOCK_SIZE );
+
+    test_cmac_with_cipher(verbose,
+                             "AES 256",
+                              aes_256_key,
+                              256,
+                              test_message,
+                              aes_message_lengths,
+                              aes_256_subkeys,
+                              aes_256_expected_result,
+                              MBEDTLS_CIPHER_ID_AES,
+                              AES_BLOCK_SIZE );
+#endif /* MBEDTLS_AES_C */
+
+#ifdef MBEDTLS_DES_C
+    test_cmac_with_cipher(verbose,
+                             "3DES 2 key",
+                              des3_2key_key,
+                              192,
+                              test_message,
+                              des3_message_lengths,
+                              des3_2key_subkeys,
+                              T_3des_2key,
+                              MBEDTLS_CIPHER_ID_3DES,
+                              DES3_BLOCK_SIZE );
+
+    test_cmac_with_cipher(verbose,
+                             "3DES 3 key",
+                              des3_3key_key,
+                              192,
+                              test_message,
+                              des3_message_lengths,
+                              des3_3key_subkeys,
+                              T_3des_3key,
+                              MBEDTLS_CIPHER_ID_3DES,
+                              DES3_BLOCK_SIZE );
+#endif /* MBEDTLS_DES_C */
+
+#ifdef MBEDTLS_AES_C
+    test_aes128_cmac_prf( verbose );
+#endif /* MBEDTLS_AES_C */
 
     if( verbose != 0 )
         mbedtls_printf( "\n" );
-*/
+
     return( 0 );
 }
 
-#endif /* MBEDTLS_SELF_TEST && MBEDTLS_AES_C */
+#endif /* MBEDTLS_SELF_TEST */
 
 #endif /* MBEDTLS_CMAC_C */

@@ -351,7 +351,7 @@ int mbedtls_cmac_verify( mbedtls_cmac_context *ctx,
  */
 int mbedtls_aes_cmac_prf_128( const unsigned char *key, size_t key_length,
                               const unsigned char *input, size_t in_len,
-                              unsigned char *tag )
+                              unsigned char tag[16] )
 {
     int ret;
     mbedtls_cmac_context ctx;

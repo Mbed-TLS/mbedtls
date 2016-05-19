@@ -492,7 +492,7 @@ int mbedtls_poly1305_self_test( int verbose )
     {
         if ( verbose != 0 )
         {
-            mbedtls_printf( "  Poly1305 test %zi ", i );
+            mbedtls_printf( "  Poly1305 test %zu ", i );
         }
 
         result = mbedtls_poly1305_mac( test_keys[i],

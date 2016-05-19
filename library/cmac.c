@@ -59,6 +59,7 @@ void mbedtls_cmac_init( mbedtls_cmac_context *ctx )
     memset( ctx, 0, sizeof( mbedtls_cmac_context ) );
 }
 
+
 /*
  * Multiplication by u in the Galois field of GF(2^n)
  *
@@ -444,74 +445,59 @@ static const unsigned char des3_3key_key[] = {
 		0xbc, 0x31, 0x3d, 0x4a, 0x37, 0x1c, 0xa8, 0xb5
 };
 
-
-
-/* Assume we don't need to test Ek0 as this is a function of the cipher */
-
-/* Subkey K1 */
-static const unsigned char aes_128_k1[] = {
-    0xfb, 0xee, 0xd6, 0x18, 0x35, 0x71, 0x33, 0x66,
-    0x7c, 0x85, 0xe0, 0x8f, 0x72, 0x36, 0xa8, 0xde
+static const unsigned char aes_128_subkeys[2][16] = {
+    {
+        0xfb, 0xee, 0xd6, 0x18, 0x35, 0x71, 0x33, 0x66,
+        0x7c, 0x85, 0xe0, 0x8f, 0x72, 0x36, 0xa8, 0xde
+    },
+    {
+        0xf7, 0xdd, 0xac, 0x30, 0x6a, 0xe2, 0x66, 0xcc,
+        0xf9, 0x0b, 0xc1, 0x1e, 0xe4, 0x6d, 0x51, 0x3b
+    }
 };
 
-/* Subkey K2 */
-static const unsigned char aes_128_k2[] = {
-    0xf7, 0xdd, 0xac, 0x30, 0x6a, 0xe2, 0x66, 0xcc,
-    0xf9, 0x0b, 0xc1, 0x1e, 0xe4, 0x6d, 0x51, 0x3b
+static const unsigned char aes_192_subkeys[2][16] = {
+    {
+        0x44, 0x8a, 0x5b, 0x1c, 0x93, 0x51, 0x4b, 0x27,
+        0x3e, 0xe6, 0x43, 0x9d, 0xd4, 0xda, 0xa2, 0x96
+    },
+    {
+        0x89, 0x14, 0xb6, 0x39, 0x26, 0xa2, 0x96, 0x4e,
+        0x7d, 0xcc, 0x87, 0x3b, 0xa9, 0xb5, 0x45, 0x2c
+    }
+};
+
+static const unsigned char aes_256_subkeys[2][16] = {
+    {
+        0xca, 0xd1, 0xed, 0x03, 0x29, 0x9e, 0xed, 0xac,
+        0x2e, 0x9a, 0x99, 0x80, 0x86, 0x21, 0x50, 0x2f
+    },
+    {
+        0x95, 0xa3, 0xda, 0x06, 0x53, 0x3d, 0xdb, 0x58,
+        0x5d, 0x35, 0x33, 0x01, 0x0c, 0x42, 0xa0, 0xd9
+    }
+};
+
+static const unsigned char des3_2key_subkeys[2][8] = {
+    {
+        0x8e, 0xcf, 0x37, 0x3e, 0xd7, 0x1a, 0xfa, 0xef
+    },
+    {
+        0x1d, 0x9e, 0x6e, 0x7d, 0xae, 0x35, 0xf5, 0xc5
+    }
+};
+
+static const unsigned char des3_3key_subkeys[2][8] = {
+    {
+        0x91, 0x98, 0xe9, 0xd3, 0x14, 0xe6, 0x53, 0x5f
+    },
+    {
+        0x23, 0x31, 0xd3, 0xa6, 0x29, 0xcc, 0xa6, 0xa5
+    }
 };
 
 
-
-/* Subkey K1 */
-static const unsigned char aes_192_k1[] = {
-		0x44, 0x8a, 0x5b, 0x1c, 0x93, 0x51, 0x4b, 0x27,
-		0x3e, 0xe6, 0x43, 0x9d, 0xd4, 0xda, 0xa2, 0x96
-};
-
-/* Subkey K2 */
-static const unsigned char aes_192_k2[] = {
-		0x89, 0x14, 0xb6, 0x39, 0x26, 0xa2, 0x96, 0x4e,
-		0x7d, 0xcc, 0x87, 0x3b, 0xa9, 0xb5, 0x45, 0x2c
-};
-
-/* Subkey K1 */
-static const unsigned char aes_256_k1[] = {
-		0xca, 0xd1, 0xed, 0x03, 0x29, 0x9e, 0xed, 0xac,
-		0x2e, 0x9a, 0x99, 0x80, 0x86, 0x21, 0x50, 0x2f
-};
-
-/* Subkey K2 */
-static const unsigned char aes_256_k2[] = {
-		0x95, 0xa3, 0xda, 0x06, 0x53, 0x3d, 0xdb, 0x58,
-		0x5d, 0x35, 0x33, 0x01, 0x0c, 0x42, 0xa0, 0xd9
-};
-
-
-/* Subkey K1 */
-static const unsigned char des3_2key_k1[] = {
-		0x8e, 0xcf, 0x37, 0x3e, 0xd7, 0x1a, 0xfa, 0xef
-};
-
-/* Subkey K2 */
-static const unsigned char des3_2key_k2[] = {
-		0x1d, 0x9e, 0x6e, 0x7d, 0xae, 0x35, 0xf5, 0xc5
-};
-
-/* Subkey K1 */
-static const unsigned char des3_3key_k1[] = {
-		0x91, 0x98, 0xe9, 0xd3, 0x14, 0xe6, 0x53, 0x5f
-};
-
-/* Subkey K2 */
-static const unsigned char des3_3key_k2[] = {
-		0x23, 0x31, 0xd3, 0xa6, 0x29, 0xcc, 0xa6, 0xa5
-};
-
-/* Assume we don't need to test Ek0 as this is a function of the cipher */
-
-
-
-/* All Messages are the same.  The difference is the length */
+/* All Messages are truncated from the same 64 byte buffer. */
 static const unsigned char M[] = {
     0x6b, 0xc1, 0xbe, 0xe2, 0x2e, 0x40, 0x9f, 0x96,
     0xe9, 0x3d, 0x7e, 0x11, 0x73, 0x93, 0x17, 0x2a,
@@ -597,7 +583,7 @@ static const unsigned char T_192[NB_CMAC_TESTS_AES_192][16] = {
     }
 };
 
-static const unsigned char T_3des_2key[NB_CMAC_TESTS_AES_192][16] = {
+static const unsigned char T_3des_2key[4][8] = {
     {
         0xbd, 0x2e, 0xbf, 0x9a, 0x3b, 0xa0, 0x03, 0x61
     },
@@ -612,7 +598,7 @@ static const unsigned char T_3des_2key[NB_CMAC_TESTS_AES_192][16] = {
     }
 };
 
-static const unsigned char T_3des_3key[NB_CMAC_TESTS_AES_192][16] = {
+static const unsigned char T_3des_3key[4][8] = {
     {
         0xb7, 0xa6, 0x88, 0xe1, 0x22, 0xff, 0xaf, 0x95
     },
@@ -664,6 +650,71 @@ static const unsigned char PRFT[NB_PRF_TESTS][16] = {
     }
 };
 
+int test_cmac_with_cipher(int verbose,
+		                  const unsigned char* testname,
+		                  const unsigned char* key,
+		                  int keybits,
+		                  const unsigned char* messages,
+		                  size_t message_lengths[4],
+						  const unsigned char* subkeys,
+						  const unsigned char* expected_result,
+						  mbedtls_cipher_id_t cipher_id,
+						  int block_size)
+{
+	const int num_tests = 4;
+	mbedtls_cmac_context ctx;
+    int i, ret;
+    unsigned char* tag;
+
+    tag = mbedtls_calloc( block_size, sizeof( unsigned char ) );
+    mbedtls_cmac_init( &ctx );
+
+    if( ( ret = mbedtls_cmac_setkey( &ctx, cipher_id, key, keybits ) ) != 0 )
+    {
+        if( verbose != 0 )
+            mbedtls_printf( "  CMAC: setup failed\n" );
+        goto exit;
+    }
+
+    if( ( ret = memcmp( ctx.K1, subkeys, block_size ) != 0 ) ||
+        ( ret = memcmp( ctx.K2, &subkeys[block_size], block_size ) != 0 ) )
+    {
+        if( verbose != 0 )
+            mbedtls_printf( "  CMAC: subkey generation failed\n" );
+        goto exit;
+    }
+
+    for( i = 0; i < num_tests; i++ )
+    {
+        if( verbose != 0 )
+            mbedtls_printf( "  %s CMAC #%u: ", testname, i +1 );
+
+        if( ( ret = mbedtls_cmac_generate( &ctx, messages, message_lengths[i], tag, block_size ) ) != 0 )
+        {
+            if( verbose != 0 )
+                mbedtls_printf( "failed\n" );
+            goto exit;
+        }
+        if( ( ret = memcmp( tag, &expected_result[i * block_size], block_size ) ) != 0 )
+        {
+            if( verbose != 0 )
+                mbedtls_printf( "failed\n" );
+            goto exit;
+        }
+
+        if( ( ret = mbedtls_cmac_verify( &ctx, messages, message_lengths[i], &expected_result[i * block_size], block_size ) != 0 ) )
+        {
+                if( verbose != 0 )
+                    mbedtls_printf( "failed\n" );
+                goto exit;
+        }
+        mbedtls_printf( "passed\n" );
+    }
+    exit:
+        free( tag );
+        mbedtls_cmac_free( &ctx );
+        return( ret );
+}
 
 int mbedtls_cmac_self_test( int verbose )
 {
@@ -672,189 +723,61 @@ int mbedtls_cmac_self_test( int verbose )
     int i;
     int ret;
 
-    mbedtls_cmac_init( &ctx );
+    test_cmac_with_cipher(verbose,
+                             "AES 128",
+                              aes_128_key,
+                              128,
+                              M,
+                              Mlen,
+                              aes_128_subkeys,
+                              T_128,
+                              MBEDTLS_CIPHER_ID_AES,
+                              16 );
 
-    // AES 128 bit key
-    if( mbedtls_cmac_setkey( &ctx, MBEDTLS_CIPHER_ID_AES, aes_128_key, 8 * sizeof(aes_128_key) ) != 0 )
-    {
-        if( verbose != 0 )
-            mbedtls_printf( "  CMAC: setup failed\n" );
+    test_cmac_with_cipher(verbose,
+                             "AES 192",
+                              aes_192_key,
+                              192,
+                              M,
+                              Mlen,
+                              aes_192_subkeys,
+                              T_192,
+                              MBEDTLS_CIPHER_ID_AES,
+                              16 );
 
-        return( 1 );
-    }
+    test_cmac_with_cipher(verbose,
+                             "AES 256",
+                              aes_256_key,
+                              256,
+                              M,
+                              Mlen,
+                              aes_256_subkeys,
+                              T_256,
+                              MBEDTLS_CIPHER_ID_AES,
+                              16 );
 
-    if( ( memcmp( ctx.K1, aes_128_k1, 16 ) != 0 ) ||
-        ( memcmp( ctx.K2, aes_128_k2, 16 ) != 0 ) )
-    {
-        if( verbose != 0 )
-            mbedtls_printf( "  CMAC: subkey generation failed\n" );
+    test_cmac_with_cipher(verbose,
+                             "3DES 2 key",
+                              des3_2key_key,
+                              192,
+                              M,
+                              Mlen_3des,
+                              des3_2key_subkeys,
+                              T_3des_2key,
+                              MBEDTLS_CIPHER_ID_3DES,
+                              8 );
 
-        return( 1 );
-    }
+    test_cmac_with_cipher(verbose,
+                             "3DES 3 key",
+                              des3_3key_key,
+                              192,
+                              M,
+                              Mlen_3des,
+                              des3_3key_subkeys,
+                              T_3des_3key,
+                              MBEDTLS_CIPHER_ID_3DES,
+                              8 );
 
-    for( i = 0; i < NB_CMAC_TESTS_AES_128; i++ )
-    {
-        mbedtls_printf( "  AES-128-CMAC #%u: ", i );
-
-        ret = mbedtls_cmac_generate( &ctx, M, Mlen[i], tag, 16 );
-        if( ret != 0 ||
-            memcmp( tag, T_128[i], 16 ) != 0 )
-        {
-            if( verbose != 0 )
-                mbedtls_printf( "failed\n" );
-
-            return( 1 );
-        }
-
-        ret = mbedtls_cmac_verify( &ctx, M, Mlen[i], T_128[i], 16 );
-        if( ret != 0 )
-        {
-            if( verbose != 0 )
-                mbedtls_printf( "failed\n" );
-
-            return( 1 );
-        }
-
-        if( verbose != 0 )
-            mbedtls_printf( "passed\n" );
-    }
-
-    // AES 192 bit key
-    if( mbedtls_cmac_setkey( &ctx, MBEDTLS_CIPHER_ID_AES, aes_192_key, 8 * sizeof(aes_192_key) ) != 0 )
-    {
-        if( verbose != 0 )
-            mbedtls_printf( "  CMAC: setup failed\n" );
-
-        return( 1 );
-    }
-
-    if( ( memcmp( ctx.K1, aes_192_k1, 16 ) != 0 ) ||
-        ( memcmp( ctx.K2, aes_192_k2, 16 ) != 0 ) )
-    {
-        if( verbose != 0 )
-            mbedtls_printf( "  CMAC: subkey generation failed\n" );
-
-        return( 1 );
-    }
-
-    for( i = 0; i < NB_CMAC_TESTS_AES_192; i++ )
-    {
-        mbedtls_printf( "  AES-192-CMAC #%u: ", i );
-
-        ret = mbedtls_cmac_generate( &ctx, M, Mlen[i], tag, 16 );
-        if( ret != 0 ||
-            memcmp( tag, T_192[i], 16 ) != 0 )
-        {
-            if( verbose != 0 )
-                mbedtls_printf( "failed\n" );
-
-            return( 1 );
-        }
-
-        ret = mbedtls_cmac_verify( &ctx, M, Mlen[i], T_192[i], 16 );
-        if( ret != 0 )
-        {
-            if( verbose != 0 )
-                mbedtls_printf( "failed\n" );
-
-            return( 1 );
-        }
-
-        if( verbose != 0 )
-            mbedtls_printf( "passed\n" );
-    }
-
-    // 3DES 2 key  bit key
-    if( (ret = mbedtls_cmac_setkey( &ctx, MBEDTLS_CIPHER_ID_3DES, des3_2key_key, 8 * sizeof(des3_2key_key) )) != 0 )
-    {
-        if( verbose != 0 )
-            mbedtls_printf( "  CMAC: setup failed %i\n",  ret);
-
-        return( 1 );
-    }
-
-    if( ( memcmp( ctx.K1, des3_2key_k1, 8 ) != 0 ) ||
-        ( memcmp( ctx.K2, des3_2key_k2, 8 ) != 0 ) )
-    {
-        if( verbose != 0 )
-            mbedtls_printf( "  CMAC: subkey generation failed\n" );
-
-        return( 1 );
-    }
-
-    for( i = 0; i < NB_CMAC_TESTS_3DES; i++ )
-    {
-        mbedtls_printf( "  DES-112-CMAC #%u: ", i );
-
-        ret = mbedtls_cmac_generate( &ctx, M, Mlen_3des[i], tag, 8 );
-        if( ret != 0 ||
-            memcmp( tag, T_3des_2key[i], 8 ) != 0 )
-        {
-            if( verbose != 0 )
-                mbedtls_printf( "failed\n" );
-
-            return( 1 );
-        }
-
-        ret = mbedtls_cmac_verify( &ctx, M, Mlen_3des[i], T_3des_2key[i], 8 );
-        if( ret != 0 )
-        {
-            if( verbose != 0 )
-                mbedtls_printf( "failed\n" );
-
-            return( 1 );
-        }
-
-        if( verbose != 0 )
-            mbedtls_printf( "passed\n" );
-    }
-
-    // 3DES 3 key
-    if( (ret = mbedtls_cmac_setkey( &ctx, MBEDTLS_CIPHER_ID_3DES, des3_3key_key, 8 * sizeof(des3_3key_key) )) != 0 )
-    {
-        if( verbose != 0 )
-            mbedtls_printf( "  CMAC: setup failed %i\n",  ret);
-
-        return( 1 );
-    }
-
-    if( ( memcmp( ctx.K1, des3_3key_k1, 8 ) != 0 ) ||
-        ( memcmp( ctx.K2, des3_3key_k2, 8 ) != 0 ) )
-    {
-        if( verbose != 0 )
-            mbedtls_printf( "  CMAC: subkey generation failed\n" );
-
-        return( 1 );
-    }
-
-    for( i = 0; i < NB_CMAC_TESTS_3DES; i++ )
-    {
-        mbedtls_printf( "  DES-168-CMAC #%u: ", i );
-
-        ret = mbedtls_cmac_generate( &ctx, M, Mlen_3des[i], tag, 8 );
-        if( ret != 0 ||
-            memcmp( tag, T_3des_3key[i], 8 ) != 0 )
-        {
-            if( verbose != 0 )
-                mbedtls_printf( "failed\n" );
-
-            return( 1 );
-        }
-
-        ret = mbedtls_cmac_verify( &ctx, M, Mlen_3des[i], T_3des_3key[i], 8 );
-        if( ret != 0 )
-        {
-            if( verbose != 0 )
-                mbedtls_printf( "failed\n" );
-
-            return( 1 );
-        }
-
-        if( verbose != 0 )
-            mbedtls_printf( "passed\n" );
-    }
-
-    mbedtls_cmac_free( &ctx );
 
     for( i = 0; i < NB_PRF_TESTS; i++ )
     {
@@ -877,7 +800,7 @@ int mbedtls_cmac_self_test( int verbose )
 
     if( verbose != 0 )
         mbedtls_printf( "\n" );
-
+*/
     return( 0 );
 }
 

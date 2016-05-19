@@ -430,7 +430,7 @@ int mbedtls_aead_chacha20_poly1305_self_test( int verbose )
     {
         if ( verbose != 0 )
         {
-            mbedtls_printf( "  ChaCha20-Poly1305 test %zi ", i );
+            mbedtls_printf( "  ChaCha20-Poly1305 test %zu ", i );
         }
 
         result = mbedtls_aead_chacha20_poly1305_crypt_and_mac( test_key[i],

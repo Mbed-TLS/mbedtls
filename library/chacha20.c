@@ -561,7 +561,7 @@ int mbedtls_chacha20_self_test( int verbose )
     {
         if ( verbose != 0 )
         {
-            mbedtls_printf( "  ChaCha20 test %zi ", i );
+            mbedtls_printf( "  ChaCha20 test %zu ", i );
         }
 
         result = mbedtls_chacha20_crypt( test_keys[i],

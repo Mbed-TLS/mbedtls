@@ -298,7 +298,7 @@ int mbedtls_cmac_generate( mbedtls_cmac_context *ctx,
 
     UPDATE_CMAC( M_last );
 
-    memcpy( tag, state, block_size );
+    memcpy( tag, state, tag_len );
 
     exit:
         free(state);

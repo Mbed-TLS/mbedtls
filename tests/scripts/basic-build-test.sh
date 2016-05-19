@@ -2,6 +2,8 @@
 
 # basic-build-tests.sh
 #
+# This file is part of mbed TLS (https://tls.mbed.org)
+#
 # Copyright (c) 2016, ARM Limited, All Rights Reserved
 #
 # Purpose
@@ -40,7 +42,7 @@ export CFLAGS=' --coverage -g3 -O0 '
 make clean
 scripts/config.pl full
 scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE
-make
+make -j
 
 
 # Step 2 - Execute the tests

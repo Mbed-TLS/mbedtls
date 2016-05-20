@@ -128,13 +128,12 @@ static int cmac_generate_subkeys( mbedtls_cmac_context *ctx )
     block_size = ctx->cipher_ctx.cipher_info->block_size;
 
     L = mbedtls_calloc( block_size, sizeof( unsigned char ) );
-    if( L == NULL)
+    if( L == NULL )
     {
         ret = MBEDTLS_ERR_CMAC_ALLOC_FAILED;
         goto exit;
     }
     /* Calculate Ek(0) */
-    memset( L, 0, block_size );
     if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx,
                                        L, block_size, L, &olen ) ) != 0 )
     {
@@ -175,7 +174,7 @@ int mbedtls_cmac_setkey( mbedtls_cmac_context *ctx,
     ctx->K1 = mbedtls_calloc( cipher_info->block_size, sizeof( unsigned char ) );
     ctx->K2 = mbedtls_calloc( cipher_info->block_size, sizeof( unsigned char ) );
 
-    if(ctx->K1 == NULL || ctx->K2 == NULL )
+    if( ctx->K1 == NULL || ctx->K2 == NULL )
         return MBEDTLS_ERR_CMAC_ALLOC_FAILED;
 
     mbedtls_cipher_free( &ctx->cipher_ctx );
@@ -304,8 +303,6 @@ int mbedtls_cmac_generate( mbedtls_cmac_context *ctx,
         XOR_BLOCK( M_last, input + block_size * ( n - 1 ), ctx->K1 );
     }
 
-    memset( state, 0, block_size );
-
     for( j = 0; j < n - 1; j++ )
         UPDATE_CMAC( input + block_size * j );
 
@@ -336,7 +333,7 @@ int mbedtls_cmac_verify( mbedtls_cmac_context *ctx,
 
     check_tag = mbedtls_calloc( ctx->cipher_ctx.cipher_info->block_size,
                                 sizeof( unsigned char ) );
-    if(check_tag == NULL)
+    if( check_tag == NULL )
     {
         ret = MBEDTLS_ERR_CMAC_ALLOC_FAILED;
         goto exit;

@@ -432,7 +432,7 @@ static const unsigned char test_message[] = {
 
 #ifdef MBEDTLS_AES_C
 /* Truncation point of message for AES CMAC tests  */
-static const size_t aes_message_lengths[NB_CMAC_TESTS_PER_KEY] = {
+static const  unsigned int  aes_message_lengths[NB_CMAC_TESTS_PER_KEY] = {
     0,
     16,
     40,
@@ -547,7 +547,7 @@ static const unsigned char aes_256_expected_result[NB_CMAC_TESTS_PER_KEY][AES_BL
 
 #ifdef MBEDTLS_DES_C
 /* Truncation point of message for 3DES CMAC tests  */
-static const size_t des3_message_lengths[NB_CMAC_TESTS_PER_KEY] = {
+static const unsigned int des3_message_lengths[NB_CMAC_TESTS_PER_KEY] = {
     0,
     8,
     20,
@@ -657,7 +657,7 @@ int test_cmac_with_cipher( int verbose,
 		                  const unsigned char* key,
 		                  int keybits,
 		                  const unsigned char* messages,
-		                  int message_lengths[4],
+		                  const unsigned int message_lengths[4],
 						  const unsigned char* subkeys,
 						  const unsigned char* expected_result,
 						  mbedtls_cipher_id_t cipher_id,
@@ -754,8 +754,8 @@ int mbedtls_cmac_self_test( int verbose )
                                        128,
                                        test_message,
                                        aes_message_lengths,
-                                       aes_128_subkeys,
-                                       aes_128_expected_result,
+                                       (const unsigned char*) aes_128_subkeys,
+                                       (const unsigned char*) aes_128_expected_result,
                                        MBEDTLS_CIPHER_ID_AES,
                                        AES_BLOCK_SIZE ) !=0 ) )
     {
@@ -768,8 +768,8 @@ int mbedtls_cmac_self_test( int verbose )
                                        192,
                                        test_message,
                                        aes_message_lengths,
-                                       aes_192_subkeys,
-                                       aes_192_expected_result,
+                                       (const unsigned char*) aes_192_subkeys,
+                                       (const unsigned char*) aes_192_expected_result,
                                        MBEDTLS_CIPHER_ID_AES,
                                        AES_BLOCK_SIZE ) !=0 ) )
     {
@@ -782,8 +782,8 @@ int mbedtls_cmac_self_test( int verbose )
                                          256,
                                          test_message,
                                          aes_message_lengths,
-                                         aes_256_subkeys,
-                                         aes_256_expected_result,
+                                         (const unsigned char*) aes_256_subkeys,
+                                         (const unsigned char*) aes_256_expected_result,
                                          MBEDTLS_CIPHER_ID_AES,
                                          AES_BLOCK_SIZE ) !=0 ) )
     {
@@ -798,8 +798,8 @@ int mbedtls_cmac_self_test( int verbose )
                                         192,
                                         test_message,
                                         des3_message_lengths,
-                                        des3_2key_subkeys,
-                                        des3_2key_expected_result,
+                                        (const unsigned char*) des3_2key_subkeys,
+                                        (const unsigned char*) des3_2key_expected_result,
                                         MBEDTLS_CIPHER_ID_3DES,
                                         DES3_BLOCK_SIZE ) !=0 ) )
     {
@@ -812,8 +812,8 @@ int mbedtls_cmac_self_test( int verbose )
                                         192,
                                         test_message,
                                         des3_message_lengths,
-                                        des3_3key_subkeys,
-                                        des3_3key_expected_result,
+                                        (const unsigned char*) des3_3key_subkeys,
+                                        (const unsigned char*) des3_3key_expected_result,
                                         MBEDTLS_CIPHER_ID_3DES,
                                         DES3_BLOCK_SIZE ) !=0 ) )
     {

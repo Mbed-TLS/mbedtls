@@ -62,7 +62,7 @@ void mbedtls_cmac_init( mbedtls_cmac_context *ctx )
 /*
  * Multiplication by u in the Galois field of GF(2^n)
  *
- * As explained in the paper, this can computed:
+ * As explained in the paper, this can be computed:
  * If MSB(p) = 0, then p = (p << 1)
  * If MSB(p) = 1, then p = (p << 1) ^ R_n
  * with R_64 = 0x1B and  R_128 = 0x87
@@ -245,7 +245,7 @@ static void cmac_pad( unsigned char padded_block[16],
         ( o )[i] = ( i1 )[i] ^ ( i2 )[i];
 
 /*
- * Update the CMAC state using an input block x
+ * Update the CMAC state using an input block
  */
 #define UPDATE_CMAC( x )                                                    \
 do {                                                                        \
@@ -283,11 +283,7 @@ int mbedtls_cmac_generate( mbedtls_cmac_context *ctx,
         goto exit;
     }
 
-    /*
-     * Check in_len requirements: SP800-38B A
-     * 4 is a worst case bottom limit
-     */
-    if( tag_len < 4 || tag_len > block_size || tag_len % 2 != 0 )
+    if( tag_len < 2 || tag_len > block_size || tag_len % 2 != 0 )
     {
         ret = MBEDTLS_ERR_CMAC_BAD_INPUT;
         goto exit;
@@ -495,9 +491,9 @@ static const unsigned char aes_128_expected_result[NB_CMAC_TESTS_PER_KEY][AES_BL
 
 /* AES 192 CMAC Test Data */
 static const unsigned char aes_192_key[24] = {
-		0x8e, 0x73, 0xb0, 0xf7, 0xda, 0x0e, 0x64, 0x52,
-		0xc8, 0x10, 0xf3, 0x2b, 0x80, 0x90, 0x79, 0xe5,
-		0x62, 0xf8, 0xea, 0xd2, 0x52, 0x2c, 0x6b, 0x7b
+    0x8e, 0x73, 0xb0, 0xf7, 0xda, 0x0e, 0x64, 0x52,
+    0xc8, 0x10, 0xf3, 0x2b, 0x80, 0x90, 0x79, 0xe5,
+    0x62, 0xf8, 0xea, 0xd2, 0x52, 0x2c, 0x6b, 0x7b
 };
 static const unsigned char aes_192_subkeys[2][AES_BLOCK_SIZE] = {
     {
@@ -530,10 +526,10 @@ static const unsigned char aes_192_expected_result[NB_CMAC_TESTS_PER_KEY][AES_BL
 
 /* AES 256 CMAC Test Data */
 static const unsigned char aes_256_key[32] = {
-		0x60, 0x3d, 0xeb, 0x10, 0x15, 0xca, 0x71, 0xbe,
-		0x2b, 0x73, 0xae, 0xf0, 0x85, 0x7d, 0x77, 0x81,
-		0x1f, 0x35, 0x2c, 0x07, 0x3b, 0x61, 0x08, 0xd7,
-		0x2d, 0x98, 0x10, 0xa3, 0x09, 0x14, 0xdf, 0xf4
+    0x60, 0x3d, 0xeb, 0x10, 0x15, 0xca, 0x71, 0xbe,
+    0x2b, 0x73, 0xae, 0xf0, 0x85, 0x7d, 0x77, 0x81,
+    0x1f, 0x35, 0x2c, 0x07, 0x3b, 0x61, 0x08, 0xd7,
+    0x2d, 0x98, 0x10, 0xa3, 0x09, 0x14, 0xdf, 0xf4
 };
 static const unsigned char aes_256_subkeys[2][AES_BLOCK_SIZE] = {
     {
@@ -576,9 +572,9 @@ static const unsigned int des3_message_lengths[NB_CMAC_TESTS_PER_KEY] = {
 
 /* 3DES 2 Key CMAC Test Data */
 static const unsigned char des3_2key_key[24] = {
-		0x4c, 0xf1, 0x51, 0x34, 0xa2, 0x85, 0x0d, 0xd5,
-		0x8a, 0x3d, 0x10, 0xba, 0x80, 0x57, 0x0d, 0x38,
-		0x4c, 0xf1, 0x51, 0x34, 0xa2, 0x85, 0x0d, 0xd5
+    0x4c, 0xf1, 0x51, 0x34, 0xa2, 0x85, 0x0d, 0xd5,
+    0x8a, 0x3d, 0x10, 0xba, 0x80, 0x57, 0x0d, 0x38,
+    0x4c, 0xf1, 0x51, 0x34, 0xa2, 0x85, 0x0d, 0xd5
 };
 static const unsigned char des3_2key_subkeys[2][8] = {
     {
@@ -605,9 +601,9 @@ static const unsigned char des3_2key_expected_result[NB_CMAC_TESTS_PER_KEY][DES3
 
 /* 3DES 3 Key CMAC Test Data */
 static const unsigned char des3_3key_key[24] = {
-		0x8a, 0xa8, 0x3b, 0xf8, 0xcb, 0xda, 0x10, 0x62,
-		0x0b, 0xc1, 0xbf, 0x19, 0xfb, 0xb6, 0xcd, 0x58,
-		0xbc, 0x31, 0x3d, 0x4a, 0x37, 0x1c, 0xa8, 0xb5
+    0x8a, 0xa8, 0x3b, 0xf8, 0xcb, 0xda, 0x10, 0x62,
+    0x0b, 0xc1, 0xbf, 0x19, 0xfb, 0xb6, 0xcd, 0x58,
+    0xbc, 0x31, 0x3d, 0x4a, 0x37, 0x1c, 0xa8, 0xb5
 };
 static const unsigned char des3_3key_subkeys[2][8] = {
     {
@@ -673,18 +669,18 @@ static const unsigned char PRFT[NB_PRF_TESTS][16] = {
 #endif /* MBEDTLS_AES_C */
 
 int test_cmac_with_cipher( int verbose,
-		                  char* testname,
-		                  const unsigned char* key,
-		                  int keybits,
-		                  const unsigned char* messages,
-		                  const unsigned int message_lengths[4],
-						  const unsigned char* subkeys,
-						  const unsigned char* expected_result,
-						  mbedtls_cipher_id_t cipher_id,
-						  int block_size )
+                           char* testname,
+                           const unsigned char* key,
+                           int keybits,
+                           const unsigned char* messages,
+                           const unsigned int message_lengths[4],
+                           const unsigned char* subkeys,
+                           const unsigned char* expected_result,
+                           mbedtls_cipher_id_t cipher_id,
+                           int block_size )
 {
-	const int num_tests = 4;
-	mbedtls_cmac_context ctx;
+    const int num_tests = 4;
+    mbedtls_cmac_context ctx;
     int i, ret;
     unsigned char* tag;
 

@@ -241,7 +241,7 @@ static void cmac_pad( unsigned char padded_block[16],
         ( o )[i] = ( i1 )[i] ^ ( i2 )[i];
 
 /*
- * Update the CMAC state using an input block x
+ * Update the CMAC state using an input block
  */
 #define UPDATE_CMAC( x )                                                    \
 do {                                                                        \
@@ -279,11 +279,7 @@ int mbedtls_cmac_generate( mbedtls_cmac_context *ctx,
         goto exit;
     }
 
-    /*
-     * Check in_len requirements: SP800-38B A
-     * 4 is a worst case bottom limit
-     */
-    if( tag_len < 4 || tag_len > block_size || tag_len % 2 != 0 )
+    if( tag_len < 2 || tag_len > block_size || tag_len % 2 != 0 )
     {
         ret = MBEDTLS_ERR_CMAC_BAD_INPUT;
         goto exit;

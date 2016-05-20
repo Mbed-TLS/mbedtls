@@ -59,7 +59,6 @@ void mbedtls_cmac_init( mbedtls_cmac_context *ctx )
     memset( ctx, 0, sizeof( mbedtls_cmac_context ) );
 }
 
-
 /*
  * Multiplication by u in the Galois field of GF(2^n)
  *
@@ -263,12 +262,10 @@ int mbedtls_cmac_generate( mbedtls_cmac_context *ctx,
                            unsigned char *tag, size_t tag_len )
 
 {
-
     unsigned char *state;
     unsigned char *M_last;
     int     n, j, ret, needs_padding;
     size_t olen, block_size, i;
-
 
     ret = 0;
     block_size = ctx->cipher_ctx.cipher_info->block_size;

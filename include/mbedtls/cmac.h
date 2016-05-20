@@ -84,8 +84,8 @@ void mbedtls_cmac_free( mbedtls_cmac_context *ctx );
  * \param in_len    length of the input data in bytes
  * \param tag       buffer for holding the generated tag
  * \param tag_len   length of the tag to generate in bytes
- *                  Must be 4, 6, 8 if cipher block size is 64
- *                  Must be 4, 6, 8 , 10, 12, 14 or 16 if cipher block size is 128
+ *                  Must be 2, 4, 6, 8 if cipher block size is 64
+ *                  Must be 2, 4, 6, 8, 10, 12, 14 or 16 if cipher block size is 128
  *
  * \return          0 if successful
  */
@@ -101,8 +101,8 @@ int mbedtls_cmac_generate( mbedtls_cmac_context *ctx,
  * \param in_len    length of the input data in bytes
  * \param tag       buffer holding the tag to verify
  * \param tag_len   length of the tag to verify in bytes
- *                  Must be 4, 6, 8 if cipher block size is 64
- *                  Must be 4, 6, 8 , 10, 12, 14 or 16 if cipher block size is 128
+ *                  Must be 2, 4, 6, 8 if cipher block size is 64
+ *                  Must be 2, 4, 6, 8, 10, 12, 14 or 16 if cipher block size is 128
  * \return          0 if successful and authenticated
  *                  MBEDTLS_ERR_CMAC_VERIFY_FAILED if tag does not match
  */

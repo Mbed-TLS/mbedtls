@@ -62,7 +62,7 @@ void mbedtls_cmac_init( mbedtls_cmac_context *ctx )
 /*
  * Multiplication by u in the Galois field of GF(2^n)
  *
- * As explained in the paper, this can computed:
+ * As explained in the paper, this can be computed:
  * If MSB(p) = 0, then p = (p << 1)
  * If MSB(p) = 1, then p = (p << 1) ^ R_n
  * with R_64 = 0x1B and  R_128 = 0x87

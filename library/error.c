@@ -582,6 +582,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "CMAC - Bad input parameters to function" );
     if( use_ret == -(MBEDTLS_ERR_CMAC_VERIFY_FAILED) )
         mbedtls_snprintf( buf, buflen, "CMAC - Verification failed" );
+    if( use_ret == -(MBEDTLS_ERR_CMAC_ALLOC_FAILED) )
+            mbedtls_snprintf( buf, buflen, "CMAC - Failed to allocate memory" );
 #endif /* MBEDTLS_CMAC_C */
 
 #if defined(MBEDTLS_CTR_DRBG_C)

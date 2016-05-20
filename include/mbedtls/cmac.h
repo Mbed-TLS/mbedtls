@@ -27,6 +27,8 @@
 
 #define MBEDTLS_ERR_CMAC_BAD_INPUT      -0x0011 /**< Bad input parameters to function. */
 #define MBEDTLS_ERR_CMAC_VERIFY_FAILED  -0x0013 /**< Verification failed. */
+#define MBEDTLS_ERR_CMAC_ALLOC_FAILED   -0x0015 /**< Memory Allocation failed. */
+
 
 #ifdef __cplusplus
 extern "C" {

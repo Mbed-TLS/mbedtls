@@ -129,7 +129,11 @@ static int cmac_generate_subkeys( mbedtls_cmac_context *ctx )
     block_size = ctx->cipher_ctx.cipher_info->block_size;
 
     L = mbedtls_calloc( block_size, sizeof( unsigned char ) );
-
+    if( L == NULL)
+    {
+        ret = MBEDTLS_ERR_CMAC_ALLOC_FAILED;
+        goto exit;
+    }
     /* Calculate Ek(0) */
     memset( L, 0, block_size );
     if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx,
@@ -147,7 +151,8 @@ static int cmac_generate_subkeys( mbedtls_cmac_context *ctx )
         goto exit;
 
     exit:
-        mbedtls_zeroize( L, sizeof( L ) );
+        if( L != NULL )
+            mbedtls_zeroize( L, sizeof( L ) );
 		free( L );
         return( ret );
 }
@@ -170,6 +175,9 @@ int mbedtls_cmac_setkey( mbedtls_cmac_context *ctx,
 
     ctx->K1 = mbedtls_calloc( cipher_info->block_size, sizeof( unsigned char ) );
     ctx->K2 = mbedtls_calloc( cipher_info->block_size, sizeof( unsigned char ) );
+
+    if(ctx->K1 == NULL || ctx->K2 == NULL )
+        return MBEDTLS_ERR_CMAC_ALLOC_FAILED;
 
     mbedtls_cipher_free( &ctx->cipher_ctx );
 
@@ -268,6 +276,12 @@ int mbedtls_cmac_generate( mbedtls_cmac_context *ctx,
     state = mbedtls_calloc( block_size,  sizeof( unsigned char ) );
     M_last = mbedtls_calloc( block_size, sizeof( unsigned char ) );
 
+    if( state == NULL || M_last == NULL )
+    {
+        ret = MBEDTLS_ERR_CMAC_ALLOC_FAILED;
+        goto exit;
+    }
+
     /*
      * Check in_len requirements: SP800-38B A
      * 4 is a worst case bottom limit
@@ -329,6 +343,11 @@ int mbedtls_cmac_verify( mbedtls_cmac_context *ctx,
 
     check_tag = mbedtls_calloc( ctx->cipher_ctx.cipher_info->block_size,
                                 sizeof( unsigned char ) );
+    if(check_tag == NULL)
+    {
+        ret = MBEDTLS_ERR_CMAC_ALLOC_FAILED;
+        goto exit;
+    }
 
     if( ( ret = mbedtls_cmac_generate( ctx, input, in_len,
                                        check_tag, tag_len ) ) != 0 )
@@ -669,6 +688,11 @@ int test_cmac_with_cipher( int verbose,
     unsigned char* tag;
 
     tag = mbedtls_calloc( block_size, sizeof( unsigned char ) );
+    if( tag == NULL ){
+        ret = MBEDTLS_ERR_CMAC_ALLOC_FAILED;
+        goto exit;
+    }
+
     mbedtls_cmac_init( &ctx );
 
     if( ( ret = mbedtls_cmac_setkey( &ctx, cipher_id, key, keybits ) ) != 0 )

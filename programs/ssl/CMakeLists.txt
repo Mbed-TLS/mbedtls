@@ -24,6 +24,10 @@ if(ENABLE_ZLIB_SUPPORT)
     set(libs ${libs} ${ZLIB_LIBRARIES})
 endif(ENABLE_ZLIB_SUPPORT)
 
+if(ENABLE_MILAGRO_SUPPORT)
+    set(libs ${libs} amcl mpin wcc)
+endif(ENABLE_MILAGRO_SUPPORT)
+
 add_executable(dtls_client dtls_client.c)
 target_link_libraries(dtls_client ${libs})
 

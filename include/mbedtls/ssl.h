@@ -31,6 +31,7 @@
 
 #include "bignum.h"
 #include "ecp.h"
+#include "platform.h"
 
 #include "ssl_ciphersuites.h"
 
@@ -41,6 +42,11 @@
 
 #if defined(MBEDTLS_DHM_C)
 #include "dhm.h"
+#endif
+
+#if defined(MBEDTLS_TLS_MILAGRO_CS) || \
+defined(MBEDTLS_TLS_MILAGRO_P2P)
+#include "milagro.h"
 #endif
 
 #if defined(MBEDTLS_ECDH_C)
@@ -54,6 +60,7 @@
 #if defined(MBEDTLS_HAVE_TIME)
 #include <time.h>
 #endif
+
 
 /*
  * SSL Error codes
@@ -107,7 +114,24 @@
 #define MBEDTLS_ERR_SSL_TIMEOUT                           -0x6800  /**< The operation timed out. */
 #define MBEDTLS_ERR_SSL_CLIENT_RECONNECT                  -0x6780  /**< The client initiated a reconnect from the same port. */
 #define MBEDTLS_ERR_SSL_UNEXPECTED_RECORD                 -0x6700  /**< Record header looks valid but is not expected. */
-
+/*
+ * MILAGRO_CS errors
+ */
+#define MBEDTLS_ERR_MILAGRO_CS_AUTHENTICATION_FAILED    -0x6680  /**< The server has failed authenticating the client. */
+#define MBEDTLS_ERR_MILAGRO_CS_SRV_PUB_PARAM_FAILED     -0x6600  /**< The server has failed computing the public parameter. */
+#define MBEDTLS_ERR_MILAGRO_CS_CLI_PUB_PARAM_FAILED     -0x6580  /**< The client has failed computing the public parameter. */
+#define MBEDTLS_ERR_MILAGRO_CS_READ_PARAM_FAILED        -0x6560  /**< The client/server has failed reading a public parameter. */
+#define MBEDTLS_ERR_MILAGRO_CS_WRITE_PARAM_FAILED       -0x6540  /**< Failed while writing the parameters. */
+#define MBEDTLS_ERR_MILAGRO_CS_KEY_COMPUTATOIN_FAILED   -0X6500  /**< The client/server has failed computing the premaster key. */
+#define MBEDTLS_ERR_MILAGRO_CS_BAD_INPUT_DATA           -0x6480  /**< This should never happen. */
+/*
+ * MILAGRO_P2P errors
+ */
+#define MBEDTLS_ERR_MILAGRO_P2P_READ_PARAM_FAILED               -0x6400
+#define MBEDTLS_ERR_MILAGRO_P2P_PARAMETERS_COMPUTATOIN_FAILED   -0x6380  /**< The client/server has failed computing the parameters. */
+#define MBEDTLS_ERR_MILAGRO_P2P_MSECRET_COMPUTATOIN_FAILED      -0x6360  /**< The client/server has failed computing the premaster secret. */
+#define MBEDTLS_ERR_MILAGRO_P2P_BAD_INPUT_DATA                  -0x6340  /**< This should never happen. */
+#define MBEDTLS_ERR_MILAGRO_P2P_WRITE_PARAM_FAILED              -0x6520  /**< Failed while writing the parameters. */
 /*
  * Various constants
  */
@@ -337,6 +361,8 @@
 
 #define MBEDTLS_TLS_EXT_RENEGOTIATION_INFO      0xFF01
 
+#define MBEDTLS_TLS_EXT_MILAGRO_CS        37 /* experimental */ //TODO this number could be modified
+
 /*
  * Size defines
  */
@@ -375,6 +401,12 @@ union mbedtls_ssl_premaster_secret
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     unsigned char _pms_ecjpake[32];     /* Thread spec: SHA-256 output */
+#endif
+#if defined(MBEDTLS_KEY_EXCHANGE_MILAGRO_CS_ENABLED)
+    unsigned char _pms_milagro_cs[4 + 2 * MBEDTLS_SIZE_PMASTER_MILAGRO_CS];
+#endif
+#if defined(MBEDTLS_KEY_EXCHANGE_MILAGRO_P2P_ENABLED)
+    unsigned char _pms_milagro_p2p[4 + 2 * MBEDTLS_SIZE_PMASTER_MILAGRO_P2P];
 #endif
 };
 
@@ -969,6 +1001,40 @@ void mbedtls_ssl_init( mbedtls_ssl_context *ssl );
  */
 int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
                        const mbedtls_ssl_config *conf );
+
+#if defined (MBEDTLS_TLS_MILAGRO_CS)
+    /**
+     * \brief                Set up a milagro_cs context in ssl.hansshake for use
+     *
+     * \note                 No copy of the milagro_cs context is made, it can be
+     *                       shared by many mbedtls_ssl_context structures.
+     *
+     * \warning              Modifying the conf structure after is has been used in this
+     *                       function is unsupported!
+     *
+     * \param handshake      hanshake context
+     * \param milagro_cs     context milagro_cs to use
+     *
+     */
+    void mbedtls_ssl_set_milagro_cs(mbedtls_ssl_handshake_params * handshake, mbedtls_milagro_cs_context * milagro_cs);
+#endif
+    
+#if defined (MBEDTLS_TLS_MILAGRO_P2P)
+    /**
+     * \brief                 Set up a milagro_p2p context in ssl.hanshake for use
+     *
+     * \note                  No copy of the milagro_p2p context is made, it can be
+     *                        shared by many mbedtls_ssl_context structures.
+     *
+     * \warning               Modifying the conf structure after is has been used in this
+     *                        function is unsupported!
+     *
+     * \param handshake       hanshake context
+     * \param milagro_p2p     context milagro_p2p to use
+     *
+     */
+    void mbedtls_ssl_set_milagro_p2p(mbedtls_ssl_handshake_params * handshake, mbedtls_milagro_p2p_context * milagro_p2p);
+#endif
 
 /**
  * \brief          Reset an already initialized SSL context for re-use

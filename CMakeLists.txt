@@ -6,6 +6,7 @@ option(ENABLE_ZLIB_SUPPORT "Build mbed TLS with zlib library." OFF)
 
 option(ENABLE_PROGRAMS "Build mbed TLS programs." ON)
 
+option(ENABLE_MILAGRO_SUPPORT "Build mbed TLS with Milagro library" ON)
 
 # the test suites currently have compile errors with MSVC
 if(MSVC)
@@ -77,6 +78,14 @@ if(ENABLE_ZLIB_SUPPORT)
         include_directories(${ZLIB_INCLUDE_DIR})
     endif(ZLIB_FOUND)
 endif(ENABLE_ZLIB_SUPPORT)
+
+if(ENABLE_MILAGRO_SUPPORT)
+    set(AMCL_INSTALL_DIR "/opt/amcl" CACHE STRING "Path to AMCL")
+    message(STATUS "AMCL_INSTALL_DIR ${AMCL_INSTALL_DIR}")
+    include_directories("${AMCL_INSTALL_DIR}/include/" )
+    link_directories("${AMCL_INSTALL_DIR}/lib/" )
+    set(CMAKE_C_FLAGS "-D_POSIX_SOURCE -std=c99 ${CMAKE_C_FLAGS}")
+endif(ENABLE_MILAGRO_SUPPORT)
 
 add_subdirectory(library)
 add_subdirectory(include)

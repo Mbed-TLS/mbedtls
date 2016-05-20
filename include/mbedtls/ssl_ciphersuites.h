@@ -231,6 +231,10 @@ extern "C" {
 
 #define MBEDTLS_TLS_ECJPAKE_WITH_AES_128_CCM_8          0xC0FF  /**< experimental */
 
+#define MBEDTLS_TLS_MILAGRO_CS_WITH_AES_128_GCM_SHA256   0xC0B1  /**< TLS 1.2, experimental */
+#define MBEDTLS_TLS_MILAGRO_P2P_WITH_AES_128_GCM_SHA256  0xC0B2  /**< TLS 1.2, experimental */
+
+
 /* Reminder: update mbedtls_ssl_premaster_secret when adding a new key exchange.
  * Reminder: update MBEDTLS_KEY_EXCHANGE__xxx below
  */
@@ -247,6 +251,8 @@ typedef enum {
     MBEDTLS_KEY_EXCHANGE_ECDH_RSA,
     MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA,
     MBEDTLS_KEY_EXCHANGE_ECJPAKE,
+    MBEDTLS_KEY_EXCHANGE_MILAGRO_CS,
+    MBEDTLS_KEY_EXCHANGE_MILAGRO_P2P,
 } mbedtls_key_exchange_type_t;
 
 /* Key exchanges using a certificate */

@@ -551,6 +551,12 @@ if [ ! -x "$P_PXY" ]; then
     echo "Command '$P_PXY' is not an executable file"
     exit 1
 fi
+if [ "$MEMCHECK" -gt 0 ]; then
+    if which valgrind >/dev/null 2>&1; then :; else
+        echo "Memcheck not possible. Valgrind not found"
+        exit 1
+    fi
+fi
 if which $OPENSSL_CMD >/dev/null 2>&1; then :; else
     echo "Command '$OPENSSL_CMD' not found"
     exit 1

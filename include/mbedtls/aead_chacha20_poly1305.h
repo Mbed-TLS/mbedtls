@@ -34,8 +34,8 @@
 #include "chacha20.h"
 #include "poly1305.h"
 
-#define MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_INPUT_DATA -0x000E1 /**< Invalid input parameter(s). */
-#define MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_STATE      -0x000E2 /**< The requested operation is not permitted in the current state */
+#define MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_INPUT_DATA -0x00015 /**< Invalid input parameter(s). */
+#define MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_STATE      -0x00017 /**< The requested operation is not permitted in the current state */
 
 typedef enum
 {

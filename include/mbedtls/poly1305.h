@@ -34,7 +34,7 @@
 
 #if !defined(MBEDTLS_POLY1305_ALT)
 
-#define MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA -0x00D1 /**< Invalid input parameter(s). */
+#define MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA -0x0013 /**< Invalid input parameter(s). */
 
 typedef struct
 {

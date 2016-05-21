@@ -36,7 +36,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA -0x00C1 /**< Invalid input parameter(s). */
+#define MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA -0x0011 /**< Invalid input parameter(s). */
 
 typedef struct
 {

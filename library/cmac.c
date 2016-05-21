@@ -74,7 +74,6 @@ static int cmac_multiply_by_u( unsigned char *output,
                                const unsigned char *input,
 							   size_t blocksize )
 {
-
     const unsigned char R_128 = 0x87;
     const unsigned char R_64 = 0x1B;
     unsigned char R_n, mask;
@@ -90,7 +89,6 @@ static int cmac_multiply_by_u( unsigned char *output,
     } else {
         return( MBEDTLS_ERR_CMAC_BAD_INPUT );
     }
-
 
     for( i = starting_index; i >= 0; i-- )
     {

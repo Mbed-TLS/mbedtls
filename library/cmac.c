@@ -151,7 +151,7 @@ static int cmac_generate_subkeys( mbedtls_cmac_context *ctx )
     exit:
         if( L != NULL )
             mbedtls_zeroize( L, sizeof( L ) );
-		free( L );
+		mbedtls_free( L );
         return( ret );
 }
 
@@ -311,8 +311,8 @@ int mbedtls_cmac_generate( mbedtls_cmac_context *ctx,
     memcpy( tag, state, tag_len );
 
     exit:
-        free( state );
-        free( M_last );
+        mbedtls_free( state );
+        mbedtls_free( M_last );
         return( ret );
 }
 
@@ -354,7 +354,7 @@ int mbedtls_cmac_verify( mbedtls_cmac_context *ctx,
         goto exit;
 
     exit:
-	    free( check_tag );
+        mbedtls_free( check_tag );
         return( ret );
 }
 
@@ -720,14 +720,14 @@ int test_cmac_with_cipher( int verbose,
 
         if( ( ret = mbedtls_cmac_verify( &ctx, messages, message_lengths[i], &expected_result[i * block_size], block_size ) != 0 ) )
         {
-                if( verbose != 0 )
-                    mbedtls_printf( "failed\n" );
-                goto exit;
+             if( verbose != 0 )
+                 mbedtls_printf( "failed\n" );
+             goto exit;
         }
         mbedtls_printf( "passed\n" );
     }
     exit:
-        free( tag );
+        mbedtls_free( tag );
         mbedtls_cmac_free( &ctx );
         return( ret );
 }

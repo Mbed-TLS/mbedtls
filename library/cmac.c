@@ -199,8 +199,10 @@ void mbedtls_cmac_free( mbedtls_cmac_context *ctx )
 
     mbedtls_cipher_free( &ctx->cipher_ctx );
 
-    mbedtls_zeroize( ctx->K1, block_size * sizeof( unsigned char ) );
-    mbedtls_zeroize( ctx->K2, block_size * sizeof( unsigned char ) );
+    if(  ctx->K1 != NULL )
+         mbedtls_zeroize( ctx->K1, block_size * sizeof( unsigned char ) );
+    if(  ctx->K2 != NULL )
+         mbedtls_zeroize( ctx->K2, block_size * sizeof( unsigned char ) );
     mbedtls_free( ctx->K1 );
     mbedtls_free( ctx->K2 );
 }

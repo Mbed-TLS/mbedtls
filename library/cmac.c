@@ -792,14 +792,14 @@ int mbedtls_cmac_self_test( int verbose )
 
     if( ( ret = test_cmac_with_cipher ( verbose,
                                         "AES 256",
-                                         aes_256_key,
-                                         256,
-                                         test_message,
-                                         aes_message_lengths,
-                                         (const unsigned char*) aes_256_subkeys,
-                                         (const unsigned char*) aes_256_expected_result,
-                                         MBEDTLS_CIPHER_ID_AES,
-                                         AES_BLOCK_SIZE ) !=0 ) )
+                                        aes_256_key,
+                                        256,
+                                        test_message,
+                                        aes_message_lengths,
+                                        (const unsigned char*) aes_256_subkeys,
+                                        (const unsigned char*) aes_256_expected_result,
+                                        MBEDTLS_CIPHER_ID_AES,
+                                        AES_BLOCK_SIZE ) !=0 ) )
     {
         return( ret );
     }
@@ -808,28 +808,28 @@ int mbedtls_cmac_self_test( int verbose )
 #ifdef MBEDTLS_DES_C
     if( ( ret = test_cmac_with_cipher( verbose,
                                        "3DES 2 key",
-                                        des3_2key_key,
-                                        192,
-                                        test_message,
-                                        des3_message_lengths,
-                                        (const unsigned char*) des3_2key_subkeys,
-                                        (const unsigned char*) des3_2key_expected_result,
-                                        MBEDTLS_CIPHER_ID_3DES,
-                                        DES3_BLOCK_SIZE ) !=0 ) )
+                                       des3_2key_key,
+                                       192,
+                                       test_message,
+                                       des3_message_lengths,
+                                       (const unsigned char*) des3_2key_subkeys,
+                                       (const unsigned char*) des3_2key_expected_result,
+                                       MBEDTLS_CIPHER_ID_3DES,
+                                       DES3_BLOCK_SIZE ) !=0 ) )
     {
         return( ret );
     }
 
     if( ( ret = test_cmac_with_cipher( verbose,
                                        "3DES 3 key",
-                                        des3_3key_key,
-                                        192,
-                                        test_message,
-                                        des3_message_lengths,
-                                        (const unsigned char*) des3_3key_subkeys,
-                                        (const unsigned char*) des3_3key_expected_result,
-                                        MBEDTLS_CIPHER_ID_3DES,
-                                        DES3_BLOCK_SIZE ) !=0 ) )
+                                       des3_3key_key,
+                                       192,
+                                       test_message,
+                                       des3_message_lengths,
+                                       (const unsigned char*) des3_3key_subkeys,
+                                       (const unsigned char*) des3_3key_expected_result,
+                                       MBEDTLS_CIPHER_ID_3DES,
+                                       DES3_BLOCK_SIZE ) !=0 ) )
     {
         return( ret );
     }

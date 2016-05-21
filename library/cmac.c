@@ -82,11 +82,14 @@ static int cmac_multiply_by_u( unsigned char *output,
 
     starting_index = blocksize -1;
 
-    if( blocksize == 16 ){
+    if( blocksize == 16 )
+    {
         R_n = R_128;
-    } else if( blocksize == 8 ) {
+    } else if( blocksize == 8
+    {
         R_n = R_64;
-    } else {
+    } else
+    {
         return( MBEDTLS_ERR_CMAC_BAD_INPUT );
     }
 
@@ -122,7 +125,6 @@ static int cmac_generate_subkeys( mbedtls_cmac_context *ctx )
     unsigned char *L;
     size_t olen, block_size;
 
-    ret = 0;
     block_size = ctx->cipher_ctx.cipher_info->block_size;
 
     L = mbedtls_calloc( block_size, sizeof( unsigned char ) );
@@ -143,7 +145,7 @@ static int cmac_generate_subkeys( mbedtls_cmac_context *ctx )
      */
     if( ( ret = cmac_multiply_by_u( ctx->K1, L , block_size ) ) != 0 )
         goto exit;
-    if( ( cmac_multiply_by_u( ctx->K2, ctx->K1 , block_size ) ) != 0 )
+    if( ( ret = cmac_multiply_by_u( ctx->K2, ctx->K1 , block_size ) ) != 0 )
         goto exit;
 
     exit:
@@ -259,7 +261,6 @@ do {                                                                        \
 int mbedtls_cmac_generate( mbedtls_cmac_context *ctx,
                            const unsigned char *input, size_t in_len,
                            unsigned char *tag, size_t tag_len )
-
 {
     unsigned char *state;
     unsigned char *M_last;
@@ -387,7 +388,7 @@ int mbedtls_aes_cmac_prf_128( const unsigned char *key, size_t key_length,
         mbedtls_cmac_init( &zero_ctx );
         memset( zero_key, 0, 16 );
         ret = mbedtls_cmac_setkey( &zero_ctx, MBEDTLS_CIPHER_ID_AES,
-                                   zero_key, 8 * sizeof zero_key );
+                                   zero_key, 8 * sizeof( zero_key ) );
         if( ret != 0 )
             goto exit;
 
@@ -397,17 +398,16 @@ int mbedtls_aes_cmac_prf_128( const unsigned char *key, size_t key_length,
     }
 
     ret = mbedtls_cmac_setkey( &ctx, MBEDTLS_CIPHER_ID_AES,
-                               int_key, 8 * sizeof int_key );
+                               int_key, 8 * sizeof( int_key ) );
     if( ret != 0 )
         goto exit;
-
-    mbedtls_zeroize( int_key, sizeof( int_key ) );
 
     ret =  mbedtls_cmac_generate( &ctx, input, in_len, tag, 16 );
 
     exit:
-	     mbedtls_cmac_free( &ctx );
-	     return( ret );
+        mbedtls_zeroize( int_key, sizeof( int_key ) );
+        mbedtls_cmac_free( &ctx );
+	    return( ret );
 }
 #endif /* MBEDTLS_AES_C */
 
@@ -678,7 +678,8 @@ int test_cmac_with_cipher( int verbose,
     unsigned char* tag;
 
     tag = mbedtls_calloc( block_size, sizeof( unsigned char ) );
-    if( tag == NULL ){
+    if( tag == NULL )
+    {
         ret = MBEDTLS_ERR_CMAC_ALLOC_FAILED;
         goto exit;
     }
@@ -733,7 +734,8 @@ int test_cmac_with_cipher( int verbose,
 }
 
 #ifdef MBEDTLS_AES_C
-int test_aes128_cmac_prf( int verbose ) {
+int test_aes128_cmac_prf( int verbose )
+{
     int i;
     int ret;
     unsigned char tag[16];
@@ -838,7 +840,6 @@ int mbedtls_cmac_self_test( int verbose )
 #ifdef MBEDTLS_AES_C
     if( ( ret = test_aes128_cmac_prf( verbose ) != 0 ) )
         return( ret );
-
 #endif /* MBEDTLS_AES_C */
 
     if( verbose != 0 )

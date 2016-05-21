@@ -63,12 +63,15 @@
  * CTR_DBRG  4  0x0034-0x003A
  * ENTROPY   3  0x003C-0x0040   0x003D-0x003F
  * NET      13  0x0042-0x0052   0x0043-0x0049
+ * CHACHAPOLY 2 0x0054-0x0056
  * ARIA      4  0x0058-0x005E
  * ASN1      7  0x0060-0x006C
  * CMAC      1  0x007A-0x007A
  * PBKDF2    1  0x007C-0x007C
  * HMAC_DRBG 4                  0x0003-0x0009
  * CCM       3                  0x000D-0x0011
+ * Keccak-f  1                  0x0015-0x0015
+ * Sponge    3                  0x001B-0x001F
  * ARC4      1                  0x0019-0x0019
  * MD2       1                  0x002B-0x002B
  * MD4       1                  0x002D-0x002D
@@ -79,7 +82,8 @@
  * SHA512    1                  0x0039-0x0039
  * CHACHA20  3                  0x0051-0x0055
  * POLY1305  3                  0x0057-0x005B
- * CHACHAPOLY 2 0x0054-0x0056
+ * SHA-3     3                  0x0061-0x0065
+ * SHAKE     3                  0x0067-0x006B
  *
  * High-level module nr (3 bits - 0x0...-0x7...)
  * Name      ID  Nr of Errors

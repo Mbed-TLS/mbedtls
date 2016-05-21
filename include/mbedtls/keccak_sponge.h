@@ -39,9 +39,9 @@
 extern "C" {
 #endif
 
-#define MBEDTLS_ERR_KECCAK_SPONGE_BAD_INPUT_DATA -0x0081 /**< Invalid input parameter(s). */
-#define MBEDTLS_ERR_KECCAK_SPONGE_NOT_SETUP      -0x0082 /**< mbedtls_keccak_sponge_starts has not been called. */
-#define MBEDTLS_ERR_KECCAK_SPONGE_BAD_STATE      -0x0083 /**< Requested operation cannot be performed with the current context state. */
+#define MBEDTLS_ERR_KECCAK_SPONGE_BAD_INPUT_DATA -0x001B /**< Invalid input parameter(s). */
+#define MBEDTLS_ERR_KECCAK_SPONGE_NOT_SETUP      -0x001D /**< mbedtls_keccak_sponge_starts has not been called. */
+#define MBEDTLS_ERR_KECCAK_SPONGE_BAD_STATE      -0x001F /**< Requested operation cannot be performed with the current context state. */
 
 typedef struct
 {

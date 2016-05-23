@@ -20,6 +20,8 @@ Changes
    * On ARM platforms, when compiling with -O0 with GCC, Clang or armcc5,
      don't use the optimized assembly for bignum multiplication. This removes
      the need to pass -fomit-frame-pointer to avoid a build error with -O0.
+  * Fix non-compliance server extension handling. Extensions for SSLv3 are now
+     ignored, as required by RFC6101.
 
 = mbed TLS 2.1.4 released 2016-01-05
 

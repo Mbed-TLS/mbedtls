@@ -18,6 +18,8 @@ Changes
      don't use the optimized assembly for bignum multiplication. This removes
      the need to pass -fomit-frame-pointer to avoid a build error with -O0.
    * Disabled SSLv3 in the default configuration.
+   * Fix non-compliance server extension handling. Extensions for SSLv3 are now
+     ignored, as required by RFC6101.
 
 = mbed TLS 1.3.16 released 2016-01-05
 

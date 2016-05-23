@@ -1564,154 +1564,164 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     }
 #endif /* POLARSSL_SSL_FALLBACK_SCSV */
 
-    ext = buf + 44 + sess_len + ciph_len + comp_len;
-
-    while( ext_len )
+    /* Do not parse the extensions if the protocol is SSLv3 */
+#if defined(POLARSSL_SSL_PROTO_SSL3)
+    if( ( ssl->major_ver != 3 ) || ( ssl->minor_ver != 0 ) )
     {
-        unsigned int ext_id   = ( ( ext[0] <<  8 )
-                                | ( ext[1]       ) );
-        unsigned int ext_size = ( ( ext[2] <<  8 )
-                                | ( ext[3]       ) );
-
-        if( ext_size + 4 > ext_len )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
-        }
-        switch( ext_id )
-        {
-#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
-        case TLS_EXT_SERVERNAME:
-            SSL_DEBUG_MSG( 3, ( "found ServerName extension" ) );
-            if( ssl->f_sni == NULL )
-                break;
-
-            ret = ssl_parse_servername_ext( ssl, ext + 4, ext_size );
-            if( ret != 0 )
-                return( ret );
-            break;
-#endif /* POLARSSL_SSL_SERVER_NAME_INDICATION */
-
-        case TLS_EXT_RENEGOTIATION_INFO:
-            SSL_DEBUG_MSG( 3, ( "found renegotiation extension" ) );
-#if defined(POLARSSL_SSL_RENEGOTIATION)
-            renegotiation_info_seen = 1;
 #endif
 
-            ret = ssl_parse_renegotiation_info( ssl, ext + 4, ext_size );
-            if( ret != 0 )
-                return( ret );
-            break;
+        ext = buf + 44 + sess_len + ciph_len + comp_len;
 
-#if defined(POLARSSL_SSL_PROTO_TLS1_2) && \
-    defined(POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED)
-        case TLS_EXT_SIG_ALG:
-            SSL_DEBUG_MSG( 3, ( "found signature_algorithms extension" ) );
-#if defined(POLARSSL_SSL_RENEGOTIATION)
-            if( ssl->renegotiation == SSL_RENEGOTIATION )
-                break;
-#endif
-
-            ret = ssl_parse_signature_algorithms_ext( ssl, ext + 4, ext_size );
-            if( ret != 0 )
-                return( ret );
-            break;
-#endif /* POLARSSL_SSL_PROTO_TLS1_2 &&
-          POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED */
-
-#if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
-        case TLS_EXT_SUPPORTED_ELLIPTIC_CURVES:
-            SSL_DEBUG_MSG( 3, ( "found supported elliptic curves extension" ) );
-
-            ret = ssl_parse_supported_elliptic_curves( ssl, ext + 4, ext_size );
-            if( ret != 0 )
-                return( ret );
-            break;
-
-        case TLS_EXT_SUPPORTED_POINT_FORMATS:
-            SSL_DEBUG_MSG( 3, ( "found supported point formats extension" ) );
-            ssl->handshake->cli_exts |= TLS_EXT_SUPPORTED_POINT_FORMATS_PRESENT;
-
-            ret = ssl_parse_supported_point_formats( ssl, ext + 4, ext_size );
-            if( ret != 0 )
-                return( ret );
-            break;
-#endif /* POLARSSL_ECDH_C || POLARSSL_ECDSA_C */
-
-#if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
-        case TLS_EXT_MAX_FRAGMENT_LENGTH:
-            SSL_DEBUG_MSG( 3, ( "found max fragment length extension" ) );
-
-            ret = ssl_parse_max_fragment_length_ext( ssl, ext + 4, ext_size );
-            if( ret != 0 )
-                return( ret );
-            break;
-#endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
-
-#if defined(POLARSSL_SSL_TRUNCATED_HMAC)
-        case TLS_EXT_TRUNCATED_HMAC:
-            SSL_DEBUG_MSG( 3, ( "found truncated hmac extension" ) );
-
-            ret = ssl_parse_truncated_hmac_ext( ssl, ext + 4, ext_size );
-            if( ret != 0 )
-                return( ret );
-            break;
-#endif /* POLARSSL_SSL_TRUNCATED_HMAC */
-
-#if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
-        case TLS_EXT_ENCRYPT_THEN_MAC:
-            SSL_DEBUG_MSG( 3, ( "found encrypt then mac extension" ) );
-
-            ret = ssl_parse_encrypt_then_mac_ext( ssl, ext + 4, ext_size );
-            if( ret != 0 )
-                return( ret );
-            break;
-#endif /* POLARSSL_SSL_ENCRYPT_THEN_MAC */
-
-#if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
-        case TLS_EXT_EXTENDED_MASTER_SECRET:
-            SSL_DEBUG_MSG( 3, ( "found extended master secret extension" ) );
-
-            ret = ssl_parse_extended_ms_ext( ssl, ext + 4, ext_size );
-            if( ret != 0 )
-                return( ret );
-            break;
-#endif /* POLARSSL_SSL_EXTENDED_MASTER_SECRET */
-
-#if defined(POLARSSL_SSL_SESSION_TICKETS)
-        case TLS_EXT_SESSION_TICKET:
-            SSL_DEBUG_MSG( 3, ( "found session ticket extension" ) );
-
-            ret = ssl_parse_session_ticket_ext( ssl, ext + 4, ext_size );
-            if( ret != 0 )
-                return( ret );
-            break;
-#endif /* POLARSSL_SSL_SESSION_TICKETS */
-
-#if defined(POLARSSL_SSL_ALPN)
-        case TLS_EXT_ALPN:
-            SSL_DEBUG_MSG( 3, ( "found alpn extension" ) );
-
-            ret = ssl_parse_alpn_ext( ssl, ext + 4, ext_size );
-            if( ret != 0 )
-                return( ret );
-            break;
-#endif /* POLARSSL_SSL_SESSION_TICKETS */
-
-        default:
-            SSL_DEBUG_MSG( 3, ( "unknown extension found: %d (ignoring)",
-                           ext_id ) );
-        }
-
-        ext_len -= 4 + ext_size;
-        ext += 4 + ext_size;
-
-        if( ext_len > 0 && ext_len < 4 )
+        while( ext_len )
         {
-            SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+            unsigned int ext_id   = ( ( ext[0] <<  8 )
+                                    | ( ext[1]       ) );
+            unsigned int ext_size = ( ( ext[2] <<  8 )
+                                    | ( ext[3]       ) );
+
+            if( ext_size + 4 > ext_len )
+            {
+                SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+                return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+            }
+            switch( ext_id )
+            {
+    #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
+            case TLS_EXT_SERVERNAME:
+                SSL_DEBUG_MSG( 3, ( "found ServerName extension" ) );
+                if( ssl->f_sni == NULL )
+                    break;
+
+                ret = ssl_parse_servername_ext( ssl, ext + 4, ext_size );
+                if( ret != 0 )
+                    return( ret );
+                break;
+    #endif /* POLARSSL_SSL_SERVER_NAME_INDICATION */
+
+            case TLS_EXT_RENEGOTIATION_INFO:
+                SSL_DEBUG_MSG( 3, ( "found renegotiation extension" ) );
+    #if defined(POLARSSL_SSL_RENEGOTIATION)
+                renegotiation_info_seen = 1;
+    #endif
+
+                ret = ssl_parse_renegotiation_info( ssl, ext + 4, ext_size );
+                if( ret != 0 )
+                    return( ret );
+                break;
+
+    #if defined(POLARSSL_SSL_PROTO_TLS1_2) && \
+        defined(POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED)
+            case TLS_EXT_SIG_ALG:
+                SSL_DEBUG_MSG( 3, ( "found signature_algorithms extension" ) );
+    #if defined(POLARSSL_SSL_RENEGOTIATION)
+                if( ssl->renegotiation == SSL_RENEGOTIATION )
+                    break;
+    #endif
+
+                ret = ssl_parse_signature_algorithms_ext( ssl, ext + 4, ext_size );
+                if( ret != 0 )
+                    return( ret );
+                break;
+    #endif /* POLARSSL_SSL_PROTO_TLS1_2 &&
+              POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED */
+
+    #if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
+            case TLS_EXT_SUPPORTED_ELLIPTIC_CURVES:
+                SSL_DEBUG_MSG( 3, ( "found supported elliptic curves extension" ) );
+
+                ret = ssl_parse_supported_elliptic_curves( ssl, ext + 4, ext_size );
+                if( ret != 0 )
+                    return( ret );
+                break;
+
+            case TLS_EXT_SUPPORTED_POINT_FORMATS:
+                SSL_DEBUG_MSG( 3, ( "found supported point formats extension" ) );
+                ssl->handshake->cli_exts |= TLS_EXT_SUPPORTED_POINT_FORMATS_PRESENT;
+
+                ret = ssl_parse_supported_point_formats( ssl, ext + 4, ext_size );
+                if( ret != 0 )
+                    return( ret );
+                break;
+    #endif /* POLARSSL_ECDH_C || POLARSSL_ECDSA_C */
+
+    #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
+            case TLS_EXT_MAX_FRAGMENT_LENGTH:
+                SSL_DEBUG_MSG( 3, ( "found max fragment length extension" ) );
+
+                ret = ssl_parse_max_fragment_length_ext( ssl, ext + 4, ext_size );
+                if( ret != 0 )
+                    return( ret );
+                break;
+    #endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
+
+    #if defined(POLARSSL_SSL_TRUNCATED_HMAC)
+            case TLS_EXT_TRUNCATED_HMAC:
+                SSL_DEBUG_MSG( 3, ( "found truncated hmac extension" ) );
+
+                ret = ssl_parse_truncated_hmac_ext( ssl, ext + 4, ext_size );
+                if( ret != 0 )
+                    return( ret );
+                break;
+    #endif /* POLARSSL_SSL_TRUNCATED_HMAC */
+
+    #if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
+            case TLS_EXT_ENCRYPT_THEN_MAC:
+                SSL_DEBUG_MSG( 3, ( "found encrypt then mac extension" ) );
+
+                ret = ssl_parse_encrypt_then_mac_ext( ssl, ext + 4, ext_size );
+                if( ret != 0 )
+                    return( ret );
+                break;
+    #endif /* POLARSSL_SSL_ENCRYPT_THEN_MAC */
+
+    #if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
+            case TLS_EXT_EXTENDED_MASTER_SECRET:
+                SSL_DEBUG_MSG( 3, ( "found extended master secret extension" ) );
+
+                ret = ssl_parse_extended_ms_ext( ssl, ext + 4, ext_size );
+                if( ret != 0 )
+                    return( ret );
+                break;
+    #endif /* POLARSSL_SSL_EXTENDED_MASTER_SECRET */
+
+    #if defined(POLARSSL_SSL_SESSION_TICKETS)
+            case TLS_EXT_SESSION_TICKET:
+                SSL_DEBUG_MSG( 3, ( "found session ticket extension" ) );
+
+                ret = ssl_parse_session_ticket_ext( ssl, ext + 4, ext_size );
+                if( ret != 0 )
+                    return( ret );
+                break;
+    #endif /* POLARSSL_SSL_SESSION_TICKETS */
+
+    #if defined(POLARSSL_SSL_ALPN)
+            case TLS_EXT_ALPN:
+                SSL_DEBUG_MSG( 3, ( "found alpn extension" ) );
+
+                ret = ssl_parse_alpn_ext( ssl, ext + 4, ext_size );
+                if( ret != 0 )
+                    return( ret );
+                break;
+    #endif /* POLARSSL_SSL_SESSION_TICKETS */
+
+            default:
+                SSL_DEBUG_MSG( 3, ( "unknown extension found: %d (ignoring)",
+                               ext_id ) );
+            }
+
+            ext_len -= 4 + ext_size;
+            ext += 4 + ext_size;
+
+            if( ext_len > 0 && ext_len < 4 )
+            {
+                SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+                return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+            }
         }
+
+#if defined(POLARSSL_SSL_PROTO_SSL3)
     }
+#endif
 
     /*
      * Renegotiation security checks

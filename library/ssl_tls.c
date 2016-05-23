@@ -55,8 +55,8 @@
 #include "mbedtls/oid.h"
 #endif
 
-#if defined(MBEDTLS_MILAGRO_CS_C) || \
-defined(MBEDTLS_MILAGRO_P2P_C)
+#if defined(MBEDTLS_TLS_MILAGRO_CS) || \
+defined(MBEDTLS_TLS_MILAGRO_P2P)
 #include "mbedtls/milagro.h"
 #endif
 
@@ -1106,7 +1106,7 @@ int mbedtls_ssl_milagro_cs_derive_premaster(int client_or_server, mbedtls_ssl_co
                       &ssl->handshake->milagro_cs->W,
                       &ssl->handshake->milagro_cs->H);
         
-        if (client_or_server == MBEDTLS_MILAGRO_IS_SERVER)
+        if (client_or_server == MBEDTLS_SSL_IS_SERVER)
         {
             ssl->handshake->milagro_cs->R.max = 65;
             ssl->handshake->milagro_cs->UT.max = 65;
@@ -1137,7 +1137,7 @@ int mbedtls_ssl_milagro_cs_derive_premaster(int client_or_server, mbedtls_ssl_co
                 return (MBEDTLS_ERR_MILAGRO_CS_KEY_COMPUTATOIN_FAILED);
             }
         }
-        else if (client_or_server == MBEDTLS_MILAGRO_IS_CLIENT)
+        else if (client_or_server == MBEDTLS_SSL_IS_CLIENT)
         {
             char g1[12*PFS],g2[12*PFS];
             octet G1={0,sizeof(g1),g1}, G2={0,sizeof(g2),g2};
@@ -1199,7 +1199,7 @@ int mbedtls_ssl_milagro_p2p_derive_premaster(int client_or_server,
     
     if( key_ex == MBEDTLS_KEY_EXCHANGE_MILAGRO_P2P )
     {
-        if (client_or_server == MBEDTLS_MILAGRO_IS_SERVER)
+        if (client_or_server == MBEDTLS_SSL_IS_SERVER)
         {
             WCC_Hq(&ssl->handshake->milagro_p2p->server_pub_param_G1,
                    &ssl->handshake->milagro_p2p->client_pub_param_G2,
@@ -1226,9 +1226,9 @@ int mbedtls_ssl_milagro_p2p_derive_premaster(int client_or_server,
                 return (MBEDTLS_ERR_MILAGRO_P2P_MSECRET_COMPUTATOIN_FAILED);
             }
         }
-        else if (client_or_server == MBEDTLS_MILAGRO_IS_CLIENT)
+        else if (client_or_server == MBEDTLS_SSL_IS_CLIENT)
         {
-            mbedtls_ssl_milagro_p2p_alloc_memory(MBEDTLS_MILAGRO_IS_CLIENT,
+            mbedtls_ssl_milagro_p2p_alloc_memory(MBEDTLS_SSL_IS_CLIENT,
                                                  ssl->handshake->milagro_p2p);
             if(WCC_RANDOM_GENERATE(&ssl->handshake->milagro_p2p->RNG ,
                                    &ssl->handshake->milagro_p2p->W) != 0)
@@ -4319,7 +4319,7 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
     }
 
 #if defined(MBEDTLS_SSL_CLI_C)
-    if( ssl->conf->endpoint == MBEDTLS_MILAGRO_IS_CLIENT )
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
         if( ssl->client_auth == 0 )
         {
@@ -5918,14 +5918,14 @@ void mbedtls_ssl_conf_ciphersuites_for_version( mbedtls_ssl_config *conf,
     conf->ciphersuite_list[minor] = ciphersuites;
 }
 
-#if defined(MBEDTLS_MILAGRO_CS_C)
+#if defined(MBEDTLS_TLS_MILAGRO_CS)
 void mbedtls_ssl_set_milagro_cs(mbedtls_ssl_handshake_params * handshake, mbedtls_milagro_cs_context * milagro_cs)
 {
     handshake->milagro_cs = milagro_cs;
 }
 #endif
 
-#if defined(MBEDTLS_MILAGRO_P2P_C)
+#if defined(MBEDTLS_TLS_MILAGRO_P2P)
 void mbedtls_ssl_set_milagro_p2p(mbedtls_ssl_handshake_params * handshake, mbedtls_milagro_p2p_context * milagro_p2p)
 {
     handshake->milagro_p2p = milagro_p2p;
@@ -7200,10 +7200,10 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_handshake_params *handshake )
 #endif
 #endif
 
-#if defined(MBEDTLS_MILAGRO_CS_C)
+#if defined(MBEDTLS_TLS_MILAGRO_CS)
     mbedtls_milagro_cs_free(handshake->milagro_cs);
 #endif
-#if defined(MBEDTLS_MILAGRO_P2P_C)
+#if defined(MBEDTLS_TLS_MILAGRO_P2P)
     mbedtls_milagro_p2p_free(handshake->milagro_p2p);
 #endif
 

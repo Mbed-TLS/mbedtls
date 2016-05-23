@@ -23,6 +23,7 @@
  *
  */
 
+
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
@@ -37,7 +38,7 @@
 #define mbedtls_free       free
 #define mbedtls_time       time
 #define mbedtls_time_t     time_t
-#define mbedtls_calloc     calloc
+#define mbedtls_calloc    calloc
 #define mbedtls_fprintf    fprintf
 #define mbedtls_printf     printf
 #endif
@@ -269,16 +270,12 @@ int main( int argc, char *argv[] )
     mbedtls_ctr_drbg_context ctr_drbg;
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
-    const int *ciphersuites;
     char *cs_server_key;
     char *p2p_server_key;
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
-    int got_milagro_cs_ciphersuite;
-    int got_milagro_p2p_ciphersuite;
-#if defined(MBEDTLS_MILAGRO_CS_C)
+#if defined(MBEDTLS_TLS_MILAGRO_CS)
     mbedtls_milagro_cs_context milagro_cs;
 #endif
-#if defined(MBEDTLS_MILAGRO_P2P_C)
+#if defined(MBEDTLS_TLS_MILAGRO_P2P)
     mbedtls_milagro_p2p_context milagro_p2p;
 #endif
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
@@ -300,10 +297,10 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_config_init( &conf );
     mbedtls_ctr_drbg_init( &ctr_drbg );
-#if defined(MBEDTLS_MILAGRO_CS_C)
+#if defined(MBEDTLS_TLS_MILAGRO_CS)
     mbedtls_ssl_milagro_cs_init(&milagro_cs );
 #endif
-#if defined(MBEDTLS_MILAGRO_P2P_C)
+#if defined(MBEDTLS_TLS_MILAGRO_P2P)
     mbedtls_ssl_milagro_p2p_init(&milagro_p2p);
 #endif
 #if !defined(_WIN32)
@@ -511,31 +508,8 @@ reset:
 
     mbedtls_net_free( &client_fd );
     mbedtls_ssl_session_reset( &ssl );
-
-    ciphersuites = ssl.conf->ciphersuite_list[ssl.minor_ver];
-    got_milagro_cs_ciphersuite = 0;
-    got_milagro_p2p_ciphersuite = 0;
-    ciphersuite_info = NULL;
     
-    for(i = 0; ciphersuites[i] != 0; i++ )
-    {
-        ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(ciphersuites[i]);
-        if (ciphersuite_info->id ==
-            mbedtls_ssl_get_ciphersuite_id( "TLS-MILAGRO-CS-WITH-AES-128-GCM-SHA256" ) )
-        {
-            got_milagro_cs_ciphersuite++;
-        }
-        else if(ciphersuite_info->id ==
-                mbedtls_ssl_get_ciphersuite_id( "TLS-MILAGRO-P2P-WITH-AES-128-GCM-SHA256" ) )
-        {
-            got_milagro_p2p_ciphersuite++;
-        }
-    }
-    
-#if defined(MBEDTLS_MILAGRO_CS_C)
-    
-    if(got_milagro_cs_ciphersuite>0)
-    {
+#if defined(MBEDTLS_TLS_MILAGRO_CS)
         /*
          * 2.5 Setup MILAGRO_CS parameters
          */
@@ -557,13 +531,12 @@ reset:
         mbedtls_ssl_set_milagro_cs(ssl.handshake, &milagro_cs);
     
         printf( " ok\n" );
-    }
-#endif /* MBEDTLS_MILAGRO_CS_C */
+
+#endif /* MBEDTLS_TLS_MILAGRO_CS */
     
     
-#if defined(MBEDTLS_MILAGRO_P2P_C)
-    if(got_milagro_p2p_ciphersuite>0)
-    {
+#if defined(MBEDTLS_TLS_MILAGRO_P2P)
+
         /*
          * 2.5 Setup MILAGRO_P2P parameters
          */
@@ -573,7 +546,7 @@ reset:
     
         read_from_file("P2PServerKey", p2p_server_key, 2*(2*PFS+1));
     
-        mbedtls_ssl_milagro_p2p_set_key(MBEDTLS_MILAGRO_IS_SERVER, &milagro_p2p, p2p_server_key, 2*PFS+1); free(p2p_server_key);
+        mbedtls_ssl_milagro_p2p_set_key(MBEDTLS_SSL_IS_SERVER, &milagro_p2p, p2p_server_key, 2*PFS+1); free(p2p_server_key);
     
         if (mbedtls_ssl_milagro_p2p_setup_RNG( &milagro_p2p, &entropy) != 0 )
         {
@@ -581,13 +554,12 @@ reset:
             exit(-1);
         }
     
-        mbedtls_ssl_milagro_p2p_set_identity(MBEDTLS_MILAGRO_IS_SERVER, &milagro_p2p, (char *)"server.miracl.com");
+        mbedtls_ssl_milagro_p2p_set_identity(MBEDTLS_SSL_IS_SERVER, &milagro_p2p, (char *)"server.miracl.com");
     
         mbedtls_ssl_set_milagro_p2p(ssl.handshake, &milagro_p2p);
     
         mbedtls_printf( " ok\n" );
-    }
-#endif /* MBEDTLS_MILAGRO_P2P_C */
+#endif /* MBEDTLS_TLS_MILAGRO_P2P */
     
     
     /*

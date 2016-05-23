@@ -31,7 +31,6 @@
 
 #include "bignum.h"
 #include "ecp.h"
-//#include "platform.h"
 
 #include "ssl_ciphersuites.h"
 
@@ -44,8 +43,8 @@
 #include "dhm.h"
 #endif
 
-#if defined(MBEDTLS_MILAGRO_CS_C) || \
-defined(MBEDTLS_MILAGRO_P2P_C)
+#if defined(MBEDTLS_TLS_MILAGRO_CS) || \
+defined(MBEDTLS_TLS_MILAGRO_P2P)
 #include "milagro.h"
 #endif
 
@@ -114,6 +113,7 @@ defined(MBEDTLS_MILAGRO_P2P_C)
 #define MBEDTLS_ERR_SSL_TIMEOUT                           -0x6800  /**< The operation timed out. */
 #define MBEDTLS_ERR_SSL_CLIENT_RECONNECT                  -0x6780  /**< The client initiated a reconnect from the same port. */
 #define MBEDTLS_ERR_SSL_UNEXPECTED_RECORD                 -0x6700  /**< Record header looks valid but is not expected. */
+
 /*
  * Various constants
  */
@@ -351,14 +351,8 @@ defined(MBEDTLS_MILAGRO_P2P_C)
 #if !defined(MBEDTLS_PSK_MAX_LEN)
 #define MBEDTLS_PSK_MAX_LEN            32 /* 256 bits */
 #endif
-
-#if defined(MBEDTLS_MILAGRO_CS_C)
-#define MBEDTLS_SIZE_PMASTER_MILAGRO_CS     16 /* 128 bits */
-#endif
-
-#if defined(MBEDTLS_MILAGRO_P2P_C)
+#define MBEDTLS_SIZE_PMASTER_MILAGRO_CS      16 /* 128 bits */
 #define MBEDTLS_SIZE_PMASTER_MILAGRO_P2P     16 /* 128 bits */
-#endif
 
 /* Dummy type used only for its size */
 union mbedtls_ssl_premaster_secret
@@ -992,7 +986,7 @@ void mbedtls_ssl_init( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
                        const mbedtls_ssl_config *conf );
 
-#if defined (MBEDTLS_MILAGRO_CS_C)
+#if defined (MBEDTLS_TLS_MILAGRO_CS)
     /**
      * \brief                Set up a milagro_cs context in ssl.hansshake for use
      *
@@ -1009,8 +1003,8 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
     void mbedtls_ssl_set_milagro_cs(mbedtls_ssl_handshake_params * handshake, mbedtls_milagro_cs_context * milagro_cs);
 #endif
     
-#if defined (MBEDTLS_MILAGRO_P2P_C)
-    /**
+#if defined (MBEDTLS_TLS_MILAGRO_P2P)
+    /*
      * \brief                 Set up a milagro_p2p context in ssl.hanshake for use
      *
      * \note                  No copy of the milagro_p2p context is made, it can be

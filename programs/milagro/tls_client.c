@@ -37,23 +37,18 @@
 #define mbedtls_free       free
 #define mbedtls_time       time
 #define mbedtls_time_t     time_t
-#define mbedtls_calloc     calloc
+#define mbedtls_calloc    calloc
 #define mbedtls_fprintf    fprintf
 #define mbedtls_printf     printf
 #endif
 
-#if defined(MBEDTLS_MILAGRO_CS_C) || \
-defined(MBEDTLS_MILAGRO_P2P_C)
-#include "mbedtls/milagro.h"
-#endif
-
 #if !defined(MBEDTLS_ENTROPY_C) || \
-!defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_CLI_C) || \
+!defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_SRV_C) || \
 !defined(MBEDTLS_NET_C) || !defined(MBEDTLS_CTR_DRBG_C)
 int main( void )
 {
     mbedtls_printf("MBEDTLS_ENTROPY_C and/or "
-                   "MBEDTLS_SSL_TLS_C and/or MBEDTLS_SSL_CLI_C and/or "
+                   "MBEDTLS_SSL_TLS_C and/or MBEDTLS_SSL_SRV_C and/or "
                    "MBEDTLS_NET_C and/or MBEDTLS_CTR_DRBG_C and/or not defined.\n");
     return( 0 );
 }
@@ -70,6 +65,14 @@ int main( void )
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && defined(MBEDTLS_FS_IO)
+#define SNI_OPTION
+#endif
+
+#if defined(_WIN32)
+#include <windows.h>
+#endif
 
 #define DFL_CLIENT_IDENTITY     "client@miracl.com"
 #define DFL_SERVER_NAME         "localhost"
@@ -250,10 +253,10 @@ int main( int argc, char *argv[] )
     char *p2p_client_key;
     int got_milagro_cs_ciphersuite;
     int got_milagro_p2p_ciphersuite;
-#if defined(MBEDTLS_MILAGRO_CS_C)
+#if defined(MBEDTLS_TLS_MILAGRO_CS)
     mbedtls_milagro_cs_context milagro_cs;
 #endif
-#if defined(MBEDTLS_MILAGRO_P2P_C)
+#if defined(MBEDTLS_TLS_MILAGRO_P2P)
     mbedtls_milagro_p2p_context milagro_p2p;
 #endif
     
@@ -267,10 +270,10 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_config_init( &conf );
     memset( &saved_session, 0, sizeof( mbedtls_ssl_session ) );
     mbedtls_ctr_drbg_init( &ctr_drbg );
-#if defined(MBEDTLS_MILAGRO_CS_C)
+#if defined(MBEDTLS_TLS_MILAGRO_CS)
     mbedtls_ssl_milagro_cs_init(&milagro_cs );
 #endif
-#if defined(MBEDTLS_MILAGRO_P2P_C)
+#if defined(MBEDTLS_TLS_MILAGRO_P2P)
     mbedtls_ssl_milagro_p2p_init(&milagro_p2p);
 #endif
     
@@ -521,7 +524,7 @@ int main( int argc, char *argv[] )
          * 3.5 Setup MILAGRO_CS parameters
          */
     
-#if defined(MBEDTLS_MILAGRO_CS_C)
+#if defined(MBEDTLS_TLS_MILAGRO_CS)
     
         mbedtls_printf( "  . Setting up MILAGRO_CS parameters..." );
         fflush( stdout );
@@ -552,10 +555,10 @@ int main( int argc, char *argv[] )
     
         mbedtls_printf( " ok\n" );
     }
-#endif /* MBEDTLS_MILAGRO_CS_C */
+#endif /* MBEDTLS_TLS_MILAGRO_CS */
     
     
-#if defined(MBEDTLS_MILAGRO_P2P_C)
+#if defined(MBEDTLS_TLS_MILAGRO_P2P)
     if(got_milagro_p2p_ciphersuite>0)
     {
         /*
@@ -567,7 +570,7 @@ int main( int argc, char *argv[] )
     
         read_from_file("P2PClientKey", p2p_client_key, 2*(4*PFS));
     
-        mbedtls_ssl_milagro_p2p_set_key(MBEDTLS_MILAGRO_IS_CLIENT, &milagro_p2p, p2p_client_key, 4*PFS); free(p2p_client_key);
+        mbedtls_ssl_milagro_p2p_set_key(MBEDTLS_SSL_IS_CLIENT, &milagro_p2p, p2p_client_key, 4*PFS); free(p2p_client_key);
     
         if (mbedtls_ssl_milagro_p2p_setup_RNG( &milagro_p2p, &entropy) != 0 )
         {
@@ -575,13 +578,13 @@ int main( int argc, char *argv[] )
             exit(-1);
         }
     
-        mbedtls_ssl_milagro_p2p_set_identity(MBEDTLS_MILAGRO_IS_CLIENT, &milagro_p2p, (char *)DFL_CLIENT_IDENTITY);
+        mbedtls_ssl_milagro_p2p_set_identity(MBEDTLS_SSL_IS_CLIENT, &milagro_p2p, (char *)DFL_CLIENT_IDENTITY);
 
         mbedtls_ssl_set_milagro_p2p(ssl.handshake, &milagro_p2p);
     
         mbedtls_printf( " ok\n" );
     }
-#endif /* MBEDTLS_MILAGRO_P2P_C */
+#endif /* MBEDTLS_TLS_MILAGRO_P2P */
     
     
     /*

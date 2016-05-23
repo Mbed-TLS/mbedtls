@@ -45,8 +45,8 @@
 #include "ecjpake.h"
 #endif
 
-#if defined(MBEDTLS_MILAGRO_CS_C) || \
-defined(MBEDTLS_MILAGRO_P2P_C)
+#if defined(MBEDTLS_TLS_MILAGRO_CS) || \
+defined(MBEDTLS_TLS_MILAGRO_P2P)
 #include "milagro.h"
 #endif
 
@@ -267,12 +267,12 @@ struct mbedtls_ssl_handshake_params
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
     int extended_ms;                    /*!< use Extended Master Secret? */
 #endif
-#if defined(MBEDTLS_MILAGRO_CS_C)
+#if defined(MBEDTLS_TLS_MILAGRO_CS)
     mbedtls_milagro_cs_context *milagro_cs;
-#endif /* MBEDTLS_MILAGRO_CS_C */
-#if defined(MBEDTLS_MILAGRO_P2P_C)
+#endif /* MBEDTLS_TLS_MILAGRO_CS */
+#if defined(MBEDTLS_TLS_MILAGRO_P2P)
     mbedtls_milagro_p2p_context *milagro_p2p;
-#endif /* MBEDTLS_MILAGRO_P2P_C */
+#endif /* MBEDTLS_TLS_MILAGRO_P2P */
 };
 
 /*

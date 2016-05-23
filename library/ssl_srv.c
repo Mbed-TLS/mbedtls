@@ -47,8 +47,8 @@
 #include "mbedtls/ecp.h"
 #endif
 
-#if defined(MBEDTLS_MILAGRO_CS_C) || \
-defined(MBEDTLS_MILAGRO_P2P_C)
+#if defined(MBEDTLS_TLS_MILAGRO_CS) || \
+defined(MBEDTLS_TLS_MILAGRO_P2P)
 #include "mbedtls/milagro.h"
 #endif
 
@@ -149,7 +149,7 @@ static int ssl_parse_servername_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
-#if defined(MBEDTLS_MILAGRO_CS_C)
+#if defined(MBEDTLS_TLS_MILAGRO_CS)
 
 static int ssl_parse_milagro_cs_ext( mbedtls_ssl_context *ssl,
                                     const unsigned char *buf,
@@ -157,13 +157,13 @@ static int ssl_parse_milagro_cs_ext( mbedtls_ssl_context *ssl,
 {
     int ret;
     
-    if (mbedtls_ssl_milagro_cs_alloc_memory(MBEDTLS_MILAGRO_IS_SERVER, ssl->handshake->milagro_cs) != 0)
+    if (mbedtls_ssl_milagro_cs_alloc_memory(MBEDTLS_SSL_IS_SERVER, ssl->handshake->milagro_cs) != 0)
     {
         printf("\n\nFailed while allocating memory for the MILAGRO_CS parameters\n");
         exit(-1);
     }
     
-    if( mbedtls_milagro_cs_check(MBEDTLS_MILAGRO_IS_SERVER, ssl->handshake->milagro_cs ) != 0 )
+    if( mbedtls_milagro_cs_check(MBEDTLS_SSL_IS_SERVER, ssl->handshake->milagro_cs ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "skip milagro_cs extension" ) );
         return( 0 );
@@ -184,7 +184,7 @@ static int ssl_parse_milagro_cs_ext( mbedtls_ssl_context *ssl,
     
     return( 0 );
 }
-#endif /* MBEDTLS_MILAGRO_CS_C */
+#endif /* MBEDTLS_TLS_MILAGRO_CS */
 
 static int ssl_parse_renegotiation_info( mbedtls_ssl_context *ssl,
                                          const unsigned char *buf,
@@ -1651,14 +1651,14 @@ read_record_header:
 #endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ||
           MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
-#if defined(MBEDTLS_MILAGRO_CS_C)
+#if defined(MBEDTLS_TLS_MILAGRO_CS)
             case MBEDTLS_TLS_EXT_MILAGRO_CS:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found milagro_cs extension" ) );
                 ret = ssl_parse_milagro_cs_ext( ssl, ext + 4, ext_size );
                 if( ret != 0 )
                     return( ret );
                 break;
-#endif /* MBEDTLS_MILAGRO_CS_C */
+#endif /* MBEDTLS_TLS_MILAGRO_CS */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
         case MBEDTLS_TLS_EXT_ECJPAKE_KKPP:
@@ -2777,7 +2777,7 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
     {
         size_t ec_point_len;
         const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN;
-        ret = mbedtls_milagro_cs_write_exchange_parameter(MBEDTLS_MILAGRO_IS_SERVER, ssl->handshake->milagro_cs,
+        ret = mbedtls_milagro_cs_write_exchange_parameter(MBEDTLS_SSL_IS_SERVER, ssl->handshake->milagro_cs,
                                                           p, end - p, &ec_point_len);
         if (ret != 0)
         {
@@ -2801,7 +2801,7 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
             return( ret );
         }
         
-        ret = mbedtls_milagro_p2p_write_public_parameters(MBEDTLS_MILAGRO_IS_SERVER, ssl->handshake->milagro_p2p,
+        ret = mbedtls_milagro_p2p_write_public_parameters(MBEDTLS_SSL_IS_SERVER, ssl->handshake->milagro_p2p,
                                                           p, end - p, &ec_point_len);
         if (ret != 0)
         {
@@ -3590,14 +3590,14 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_KEY_EXCHANGE_MILAGRO_CS_ENABLED)
         if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_MILAGRO_CS )
         {
-            ret = mbedtls_milagro_cs_read_public_parameter( MBEDTLS_MILAGRO_IS_SERVER, ssl->handshake->milagro_cs,
+            ret = mbedtls_milagro_cs_read_public_parameter( MBEDTLS_SSL_IS_SERVER, ssl->handshake->milagro_cs,
                                                            p, end - p );
             if( ret != 0 )
             {
                 MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_milagro_cs_read_public_parameter", ret );
                 return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
             }
-            if( ( ret = mbedtls_ssl_milagro_cs_derive_premaster(MBEDTLS_MILAGRO_IS_SERVER, ssl,
+            if( ( ret = mbedtls_ssl_milagro_cs_derive_premaster(MBEDTLS_SSL_IS_SERVER, ssl,
                                                                 MBEDTLS_KEY_EXCHANGE_MILAGRO_CS ) ) != 0 )
             {
                 MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_milagro_cs_derive_premaster", ret );
@@ -3609,14 +3609,14 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_KEY_EXCHANGE_MILAGRO_P2P_ENABLED)
             if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_MILAGRO_P2P )
             {
-                ret = mbedtls_milagro_p2p_read_public_parameters( MBEDTLS_MILAGRO_IS_SERVER, ssl->handshake->milagro_p2p,
+                ret = mbedtls_milagro_p2p_read_public_parameters( MBEDTLS_SSL_IS_SERVER, ssl->handshake->milagro_p2p,
                                                                  p, end - p );
                 if( ret != 0 )
                 {
                     MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_milagro_p2p_read_public_parameter", ret );
                     return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
                 }
-                if( ( ret = mbedtls_ssl_milagro_p2p_derive_premaster(MBEDTLS_MILAGRO_IS_SERVER, ssl,
+                if( ( ret = mbedtls_ssl_milagro_p2p_derive_premaster(MBEDTLS_SSL_IS_SERVER, ssl,
                                                                      MBEDTLS_KEY_EXCHANGE_MILAGRO_P2P ) ) != 0 )
                 {
                     MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_milagro_p2p_derive_premaster", ret );

@@ -26,10 +26,9 @@
 
 #include "mbedtls/milagro.h"
 
+
 #include <string.h>
 #include <stdlib.h>
-
-#include <limits.h>
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -38,6 +37,8 @@
 #define mbedtls_calloc    calloc
 #define mbedtls_free       free
 #endif
+
+#include <limits.h>
 
 void* mbedtls_alloc_or_die(size_t nbytes)
 {
@@ -68,7 +69,7 @@ void mbedtls_free_octet(octet *to_be_freed)
 
 
 
-#if defined(MBEDTLS_MILAGRO_CS_C)
+#if defined(MBEDTLS_TLS_MILAGRO_CS)
 
 void mbedtls_ssl_milagro_cs_init( mbedtls_milagro_cs_context * milagro_cs)
 {
@@ -329,7 +330,7 @@ int mbedtls_milagro_cs_write_exchange_parameter( int client_or_server, mbedtls_m
     }
     else
     {
-        return(-1);
+        return(MBEDTLS_ERR_MILAGRO_BAD_INPUT);
     }
     
     if( end < p )
@@ -374,7 +375,7 @@ int mbedtls_milagro_cs_read_public_parameter( int client_or_server, mbedtls_mila
     }
     else
 #endif
-        return(-1);
+        return(MBEDTLS_ERR_MILAGRO_BAD_INPUT);
     
     return 0;
 }
@@ -410,11 +411,11 @@ void mbedtls_milagro_cs_free( mbedtls_milagro_cs_context *milagro_cs)
 }
 
 
-#endif /* MBEDTLS_MILAGRO_CS_C */
+#endif /* MBEDTLS_TLS_MILAGRO_CS */
 
 
 
-#if defined(MBEDTLS_MILAGRO_P2P_C)
+#if defined(MBEDTLS_TLS_MILAGRO_P2P)
 
 
 int mbedtls_ssl_milagro_p2p_alloc_memory(int client_or_server, mbedtls_milagro_p2p_context *milagro_p2p)
@@ -446,7 +447,7 @@ int mbedtls_ssl_milagro_p2p_alloc_memory(int client_or_server, mbedtls_milagro_p
     }
     else
     {
-        exit(MBEDTLS_ERR_MILAGRO_P2P_BAD_INPUT_DATA);
+        exit(MBEDTLS_ERR_MILAGRO_BAD_INPUT);
     }
     return 0;
 }
@@ -478,7 +479,7 @@ int mbedtls_ssl_milagro_p2p_set_identity(int client_or_server, mbedtls_milagro_p
     }
     else
     {
-        exit(MBEDTLS_ERR_MILAGRO_P2P_BAD_INPUT_DATA);
+        exit(MBEDTLS_ERR_MILAGRO_BAD_INPUT);
     }
     
     return 0;
@@ -504,7 +505,7 @@ void mbedtls_ssl_milagro_p2p_set_key(int client_or_server, mbedtls_milagro_p2p_c
     }
     else
     {
-        exit(MBEDTLS_ERR_MILAGRO_P2P_BAD_INPUT_DATA);
+        exit(MBEDTLS_ERR_MILAGRO_BAD_INPUT);
     }
 }
 
@@ -585,12 +586,12 @@ int mbedtls_milagro_p2p_write_public_parameters(int client_or_server, mbedtls_mi
     }
     else
     {
-        exit(MBEDTLS_ERR_MILAGRO_P2P_BAD_INPUT_DATA);
+        exit(MBEDTLS_ERR_MILAGRO_BAD_INPUT);
     }
     
     if( end < p )
     {
-        return(MBEDTLS_ERR_MILAGRO_P2P_BAD_INPUT_DATA);
+        return(MBEDTLS_ERR_MILAGRO_BAD_INPUT);
     }
     
     
@@ -697,4 +698,4 @@ void mbedtls_milagro_p2p_free( mbedtls_milagro_p2p_context *milagro_p2p)
 
 
 
-#endif /* MBEDTLS_MILAGRO_P2P_C */
+#endif /* MBEDTLS_TLS_MILAGRO_P2P */

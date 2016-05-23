@@ -29,27 +29,47 @@
 #ifndef milagro_h
 #define milagro_h
 
+#if !defined(MBEDTLS_CONFIG_FILE)
+#include "config.h"
+#else
+#include MBEDTLS_CONFIG_FILE
+#endif
+
 #include "mpin.h"
 #include "utils.h"
 #include "wcc.h"
 #include "mbedtls/entropy.h"
 
-#define mbedtls_calloc    calloc
-#define mbedtls_free       free
-
-#define MBEDTLS_SIZE_PMASTER_MILAGRO_CS      PAS /* 128 bits */
-#define MBEDTLS_SIZE_PMASTER_MILAGRO_P2P     PAS /* 128 bits */
 #define MILAGRO_CS_TV_DIFFERENCE             5   /* maximum difference of time_values permitted */
 #define hashDoneOFF                          0   /* parameter needed by Milagro_p2p */
 #define hashDoneON                           1   /* parameter needed by Milagro_p2p */
-
 
 
 /* defined below */
 typedef struct mbedtls_milagro_cs_context mbedtls_milagro_cs_context;
 typedef struct mbedtls_milagro_p2p_context mbedtls_milagro_p2p_context;
 
+/*
+ * MILAGRO_CS errors
+ */
+#define MBEDTLS_ERR_MILAGRO_CS_AUTHENTICATION_FAILED    -0x6680  /**< The server has failed authenticating the client. */
+#define MBEDTLS_ERR_MILAGRO_CS_SRV_PUB_PARAM_FAILED     -0x6600  /**< The server has failed computing the public parameter. */
+#define MBEDTLS_ERR_MILAGRO_CS_CLI_PUB_PARAM_FAILED     -0x6580  /**< The client has failed computing the public parameter. */
+#define MBEDTLS_ERR_MILAGRO_CS_READ_PARAM_FAILED        -0x6560  /**< The client/server has failed reading a public parameter. */
+#define MBEDTLS_ERR_MILAGRO_CS_WRITE_PARAM_FAILED       -0x6540  /**< Failed while writing the parameters. */
+#define MBEDTLS_ERR_MILAGRO_CS_KEY_COMPUTATOIN_FAILED   -0X6500  /**< The client/server has failed computing the premaster key. */
+#define MBEDTLS_ERR_MILAGRO_CS_BAD_INPUT_DATA           -0x6480  /**< This should never happen. */
+/*
+ * MILAGRO_P2P errors
+ */
+#define MBEDTLS_ERR_MILAGRO_P2P_READ_PARAM_FAILED               -0x6400
+#define MBEDTLS_ERR_MILAGRO_P2P_PARAMETERS_COMPUTATOIN_FAILED   -0x6380  /**< The client/server has failed computing the parameters. */
+#define MBEDTLS_ERR_MILAGRO_P2P_MSECRET_COMPUTATOIN_FAILED      -0x6360  /**< The client/server has failed computing the premaster secret. */
+#define MBEDTLS_ERR_MILAGRO_P2P_BAD_INPUT_DATA                  -0x6340  /**< This should never happen. */
+#define MBEDTLS_ERR_MILAGRO_P2P_WRITE_PARAM_FAILED              -0x6520  /**< Failed while writing the parameters. */
 
+#define MBEDTLS_MILAGRO_IS_CLIENT   0
+#define MBEDTLS_MILAGRO_IS_SERVER   1
 
 /**
  * \brief           Allocating function used internally in milagro.c

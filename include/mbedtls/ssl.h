@@ -31,7 +31,7 @@
 
 #include "bignum.h"
 #include "ecp.h"
-#include "platform.h"
+//#include "platform.h"
 
 #include "ssl_ciphersuites.h"
 
@@ -44,8 +44,8 @@
 #include "dhm.h"
 #endif
 
-#if defined(MBEDTLS_TLS_MILAGRO_CS) || \
-defined(MBEDTLS_TLS_MILAGRO_P2P)
+#if defined(MBEDTLS_MILAGRO_CS_C) || \
+defined(MBEDTLS_MILAGRO_P2P_C)
 #include "milagro.h"
 #endif
 
@@ -114,24 +114,6 @@ defined(MBEDTLS_TLS_MILAGRO_P2P)
 #define MBEDTLS_ERR_SSL_TIMEOUT                           -0x6800  /**< The operation timed out. */
 #define MBEDTLS_ERR_SSL_CLIENT_RECONNECT                  -0x6780  /**< The client initiated a reconnect from the same port. */
 #define MBEDTLS_ERR_SSL_UNEXPECTED_RECORD                 -0x6700  /**< Record header looks valid but is not expected. */
-/*
- * MILAGRO_CS errors
- */
-#define MBEDTLS_ERR_MILAGRO_CS_AUTHENTICATION_FAILED    -0x6680  /**< The server has failed authenticating the client. */
-#define MBEDTLS_ERR_MILAGRO_CS_SRV_PUB_PARAM_FAILED     -0x6600  /**< The server has failed computing the public parameter. */
-#define MBEDTLS_ERR_MILAGRO_CS_CLI_PUB_PARAM_FAILED     -0x6580  /**< The client has failed computing the public parameter. */
-#define MBEDTLS_ERR_MILAGRO_CS_READ_PARAM_FAILED        -0x6560  /**< The client/server has failed reading a public parameter. */
-#define MBEDTLS_ERR_MILAGRO_CS_WRITE_PARAM_FAILED       -0x6540  /**< Failed while writing the parameters. */
-#define MBEDTLS_ERR_MILAGRO_CS_KEY_COMPUTATOIN_FAILED   -0X6500  /**< The client/server has failed computing the premaster key. */
-#define MBEDTLS_ERR_MILAGRO_CS_BAD_INPUT_DATA           -0x6480  /**< This should never happen. */
-/*
- * MILAGRO_P2P errors
- */
-#define MBEDTLS_ERR_MILAGRO_P2P_READ_PARAM_FAILED               -0x6400
-#define MBEDTLS_ERR_MILAGRO_P2P_PARAMETERS_COMPUTATOIN_FAILED   -0x6380  /**< The client/server has failed computing the parameters. */
-#define MBEDTLS_ERR_MILAGRO_P2P_MSECRET_COMPUTATOIN_FAILED      -0x6360  /**< The client/server has failed computing the premaster secret. */
-#define MBEDTLS_ERR_MILAGRO_P2P_BAD_INPUT_DATA                  -0x6340  /**< This should never happen. */
-#define MBEDTLS_ERR_MILAGRO_P2P_WRITE_PARAM_FAILED              -0x6520  /**< Failed while writing the parameters. */
 /*
  * Various constants
  */
@@ -368,6 +350,14 @@ defined(MBEDTLS_TLS_MILAGRO_P2P)
  */
 #if !defined(MBEDTLS_PSK_MAX_LEN)
 #define MBEDTLS_PSK_MAX_LEN            32 /* 256 bits */
+#endif
+
+#if defined(MBEDTLS_MILAGRO_CS_C)
+#define MBEDTLS_SIZE_PMASTER_MILAGRO_CS     16 /* 128 bits */
+#endif
+
+#if defined(MBEDTLS_MILAGRO_P2P_C)
+#define MBEDTLS_SIZE_PMASTER_MILAGRO_P2P     16 /* 128 bits */
 #endif
 
 /* Dummy type used only for its size */
@@ -1002,7 +992,7 @@ void mbedtls_ssl_init( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
                        const mbedtls_ssl_config *conf );
 
-#if defined (MBEDTLS_TLS_MILAGRO_CS)
+#if defined (MBEDTLS_MILAGRO_CS_C)
     /**
      * \brief                Set up a milagro_cs context in ssl.hansshake for use
      *
@@ -1019,7 +1009,7 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
     void mbedtls_ssl_set_milagro_cs(mbedtls_ssl_handshake_params * handshake, mbedtls_milagro_cs_context * milagro_cs);
 #endif
     
-#if defined (MBEDTLS_TLS_MILAGRO_P2P)
+#if defined (MBEDTLS_MILAGRO_P2P_C)
     /**
      * \brief                 Set up a milagro_p2p context in ssl.hanshake for use
      *

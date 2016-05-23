@@ -1507,6 +1507,12 @@ read_record_header:
         ssl->session_negotiate->compression = MBEDTLS_SSL_COMPRESS_NULL;
 #endif
 
+    /* Do not parse the extensions if the protocol is SSLv3 */
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+    if( ( ssl->major_ver != 3 ) || ( ssl->minor_ver != 0 ) )
+    {
+#endif
+
     /*
      * Check the extension length
      */
@@ -1692,7 +1698,12 @@ read_record_header:
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
             return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
         }
+
     }
+
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+    }
+#endif
 
 #if defined(MBEDTLS_SSL_FALLBACK_SCSV)
     for( i = 0, p = buf + 41 + sess_len; i < ciph_len; i += 2, p += 2 )
@@ -2363,6 +2374,12 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, compress alg.: 0x%02X",
                    ssl->session_negotiate->compression ) );
 
+    /* Do not write the extensions if the protocol is SSLv3 */
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+    if( ( ssl->major_ver != 3 ) || ( ssl->minor_ver != 0 ) )
+    {
+#endif
+
     /*
      *  First write extensions, then the total length
      */
@@ -2418,6 +2435,10 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
         *p++ = (unsigned char)( ( ext_len      ) & 0xFF );
         p += ext_len;
     }
+
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+    }
+#endif
 
     ssl->out_msglen  = p - buf;
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;

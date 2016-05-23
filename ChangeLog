@@ -34,6 +34,8 @@ Changes
    * Disabled SSLv3 in the default configuration.
    * Optimized mbedtls_mpi_zeroize() for MPI integer size. (Fix by Alexey
      Skalozub).
+   * Fix non-compliance server extension handling. Extensions for SSLv3 are now
+     ignored, as required by RFC6101.
 
 = mbed TLS 2.2.1 released 2016-01-05
 

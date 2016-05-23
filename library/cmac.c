@@ -85,7 +85,7 @@ static int cmac_multiply_by_u( unsigned char *output,
     if( blocksize == 16 )
     {
         R_n = R_128;
-    } else if( blocksize == 8
+    } else if( blocksize == 8 )
     {
         R_n = R_64;
     } else

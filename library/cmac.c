@@ -437,6 +437,14 @@ static const unsigned char test_message[] = {
     0xf6, 0x9f, 0x24, 0x45, 0xdf, 0x4f, 0x9b, 0x17,
     0xad, 0x2b, 0x41, 0x7b, 0xe6, 0x6c, 0x37, 0x10
 };
+/* Function Prototype */
+int test_cmac_with_cipher( int verbose, const char* testname,  const unsigned char* key,
+                           int keybits, const unsigned char* messages,
+                           const unsigned int message_lengths[4], const unsigned char* subkeys,
+                           const unsigned char* expected_result,  mbedtls_cipher_id_t cipher_id,
+                           int block_size );
+
+
 #endif /* defined(MBEDTLS_AES_C) || defined(MBEDTLS_DES_C) */
 
 #ifdef MBEDTLS_AES_C
@@ -662,7 +670,7 @@ static const unsigned char PRFT[NB_PRF_TESTS][16] = {
 #endif /* MBEDTLS_AES_C */
 
 int test_cmac_with_cipher( int verbose,
-                           char* testname,
+                           const char* testname,
                            const unsigned char* key,
                            int keybits,
                            const unsigned char* messages,
@@ -734,6 +742,9 @@ int test_cmac_with_cipher( int verbose,
 }
 
 #ifdef MBEDTLS_AES_C
+/* Function Prototype */
+int test_aes128_cmac_prf( int verbose );
+
 int test_aes128_cmac_prf( int verbose )
 {
     int i;

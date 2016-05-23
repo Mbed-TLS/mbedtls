@@ -83,6 +83,7 @@ int dep_check( char *str )
         return( 1 );
 
 DEP_CHECK_CODE
+#line !LINE_NO! "main_test.function"
 
     return( DEPENDENCY_NOT_SUPPORTED );
 }
@@ -96,8 +97,12 @@ int dispatch_test(int cnt, char *params[50])
 #if defined(TEST_SUITE_ACTIVE)
     ret = DISPATCH_TEST_SUCCESS;
 
+    // Cast to void to avoid compiler warnings
+    (void)ret;
+
 DISPATCH_FUNCTION
     {
+#line !LINE_NO! "main_test.function"
         mbedtls_fprintf( stdout,
                          "FAILED\nSkipping unknown test function '%s'\n",
                          params[0] );

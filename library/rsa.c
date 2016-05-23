@@ -804,12 +804,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
     int ret;
     size_t ilen, pad_count = 0, i;
     unsigned char *p, bad, pad_done = 0;
-#if defined(__clang_analyzer__)
-    /* Shut up Clang, mbedtls_rsa_public/private writes to this */
-    unsigned char buf[MBEDTLS_MPI_MAX_SIZE] = { };
-#else
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
-#endif
 
     if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V15 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
@@ -1193,12 +1188,7 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
     size_t slen, msb;
     const mbedtls_md_info_t *md_info;
     mbedtls_md_context_t md_ctx;
-#if defined(__clang_analyzer__)
-    /* Shut up Clang, mbedtls_rsa_public/private writes to this */
-    unsigned char buf[MBEDTLS_MPI_MAX_SIZE] = { };
-#else
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
-#endif
 
     if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V21 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
@@ -1340,12 +1330,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
     mbedtls_md_type_t msg_md_alg;
     const mbedtls_md_info_t *md_info;
     mbedtls_asn1_buf oid;
-#if defined(__clang_analyzer__)
-    /* Shut up Clang, mbedtls_rsa_public/private writes to this */
-    unsigned char buf[MBEDTLS_MPI_MAX_SIZE] = { };
-#else
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
-#endif
 
     if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V15 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );

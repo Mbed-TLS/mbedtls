@@ -45,11 +45,11 @@
 
 #define POLY1305_BLOCK_SIZE_BYTES ( 16U )
 
-#define BYTES_TO_U32_LE( data, offset )                   \
-    ( (uint32_t)data[offset] |                            \
-      (uint32_t)( (uint32_t)data[(offset) + 1] << 8 )  |  \
-      (uint32_t)( (uint32_t)data[(offset) + 2] << 16 ) |  \
-      (uint32_t)( (uint32_t)data[(offset) + 3] << 24 )    \
+#define BYTES_TO_U32_LE( data, offset )                           \
+    ( (uint32_t) data[offset]                                     \
+          | (uint32_t) ( (uint32_t) data[( offset ) + 1] << 8 )   \
+          | (uint32_t) ( (uint32_t) data[( offset ) + 2] << 16 )  \
+          | (uint32_t) ( (uint32_t) data[( offset ) + 3] << 24 )  \
     )
 
 /* Implementation that should never be optimized out by the compiler */
@@ -100,59 +100,59 @@ static void mbedtls_poly1305_process( mbedtls_poly1305_context *ctx,
     {
         /* Compute: acc += block */
         /* Note that the input block is treated as a 128-bit little-endian integer */
-        d0   = (uint64_t)acc0 + BYTES_TO_U32_LE( input, offset + 0  );
-        d1   = (uint64_t)acc1 + BYTES_TO_U32_LE( input, offset + 4  ) + ( d0 >> 32U );
-        d2   = (uint64_t)acc2 + BYTES_TO_U32_LE( input, offset + 8  ) + ( d1 >> 32U );
-        d3   = (uint64_t)acc3 + BYTES_TO_U32_LE( input, offset + 12 ) + ( d2 >> 32U );
-        acc0 = (uint32_t)d0;
-        acc1 = (uint32_t)d1;
-        acc2 = (uint32_t)d2;
-        acc3 = (uint32_t)d3;
-        acc4 += (uint32_t)( d3 >> 32U ) + needs_padding;
+        d0   = (uint64_t) acc0 + BYTES_TO_U32_LE( input, offset + 0  );
+        d1   = (uint64_t) acc1 + BYTES_TO_U32_LE( input, offset + 4  ) + ( d0 >> 32U );
+        d2   = (uint64_t) acc2 + BYTES_TO_U32_LE( input, offset + 8  ) + ( d1 >> 32U );
+        d3   = (uint64_t) acc3 + BYTES_TO_U32_LE( input, offset + 12 ) + ( d2 >> 32U );
+        acc0 = (uint32_t) d0;
+        acc1 = (uint32_t) d1;
+        acc2 = (uint32_t) d2;
+        acc3 = (uint32_t) d3;
+        acc4 += (uint32_t) ( d3 >> 32U ) + needs_padding;
 
         /* Compute: acc *= r */
-        d0 = ( (uint64_t)acc0 * r0  ) +
-             ( (uint64_t)acc1 * rs3 ) +
-             ( (uint64_t)acc2 * rs2 ) +
-             ( (uint64_t)acc3 * rs1 );
-        d1 = ( (uint64_t)acc0 * r1  ) +
-             ( (uint64_t)acc1 * r0  ) +
-             ( (uint64_t)acc2 * rs3 ) +
-             ( (uint64_t)acc3 * rs2 ) +
-             ( (uint64_t)acc4 * rs1 );
-        d2 = ( (uint64_t)acc0 * r2  ) +
-             ( (uint64_t)acc1 * r1  ) +
-             ( (uint64_t)acc2 * r0  ) +
-             ( (uint64_t)acc3 * rs3 ) +
-             ( (uint64_t)acc4 * rs2 );
-        d3 = ( (uint64_t)acc0 * r3  ) +
-             ( (uint64_t)acc1 * r2  ) +
-             ( (uint64_t)acc2 * r1  ) +
-             ( (uint64_t)acc3 * r0  ) +
-             ( (uint64_t)acc4 * rs3 );
+        d0 = ( (uint64_t) acc0 * r0  ) +
+             ( (uint64_t) acc1 * rs3 ) +
+             ( (uint64_t) acc2 * rs2 ) +
+             ( (uint64_t) acc3 * rs1 );
+        d1 = ( (uint64_t) acc0 * r1  ) +
+             ( (uint64_t) acc1 * r0  ) +
+             ( (uint64_t) acc2 * rs3 ) +
+             ( (uint64_t) acc3 * rs2 ) +
+             ( (uint64_t) acc4 * rs1 );
+        d2 = ( (uint64_t) acc0 * r2  ) +
+             ( (uint64_t) acc1 * r1  ) +
+             ( (uint64_t) acc2 * r0  ) +
+             ( (uint64_t) acc3 * rs3 ) +
+             ( (uint64_t) acc4 * rs2 );
+        d3 = ( (uint64_t) acc0 * r3  ) +
+             ( (uint64_t) acc1 * r2  ) +
+             ( (uint64_t) acc2 * r1  ) +
+             ( (uint64_t) acc3 * r0  ) +
+             ( (uint64_t) acc4 * rs3 );
         acc4 *= r0;
 
         /* Compute: acc %= (2^130 - 5) (partial remainder) */
         d1 += ( d0 >> 32 );
         d2 += ( d1 >> 32 );
         d3 += ( d2 >> 32 );
-        acc0 = (uint32_t)d0;
-        acc1 = (uint32_t)d1;
-        acc2 = (uint32_t)d2;
-        acc3 = (uint32_t)d3;
-        acc4 = (uint32_t)( d3 >> 32 ) + acc4;
+        acc0 = (uint32_t) d0;
+        acc1 = (uint32_t) d1;
+        acc2 = (uint32_t) d2;
+        acc3 = (uint32_t) d3;
+        acc4 = (uint32_t) ( d3 >> 32 ) + acc4;
 
-        d0 = (uint64_t)acc0 + ( acc4 >> 2 ) + ( acc4 & 0xFFFFFFFCU );
+        d0 = (uint64_t) acc0 + ( acc4 >> 2 ) + ( acc4 & 0xFFFFFFFCU );
         acc4 &= 3U;
-        acc0 = (uint32_t)d0;
-        d0 = (uint64_t)acc1 + ( d0 >> 32U );
-        acc1 = (uint32_t)d0;
-        d0 = (uint64_t)acc2 + ( d0 >> 32U );
-        acc2 = (uint32_t)d0;
-        d0 = (uint64_t)acc3 + ( d0 >> 32U );
-        acc3 = (uint32_t)d0;
-        d0 = (uint64_t)acc4 + ( d0 >> 32U );
-        acc4 = (uint32_t)d0;
+        acc0 = (uint32_t) d0;
+        d0 = (uint64_t) acc1 + ( d0 >> 32U );
+        acc1 = (uint32_t) d0;
+        d0 = (uint64_t) acc2 + ( d0 >> 32U );
+        acc2 = (uint32_t) d0;
+        d0 = (uint64_t) acc3 + ( d0 >> 32U );
+        acc3 = (uint32_t) d0;
+        d0 = (uint64_t) acc4 + ( d0 >> 32U );
+        acc4 = (uint32_t) d0;
 
         offset    += POLY1305_BLOCK_SIZE_BYTES;
     }
@@ -192,18 +192,18 @@ static void mbedtls_poly1305_compute_mac( const mbedtls_poly1305_context *ctx,
      */
 
     /* Calculate acc + -(2^130 - 5) */
-    d  = ( (uint64_t)acc0 + 5U );
-    g0 = (uint32_t)d;
-    d  = ( (uint64_t)acc1 + ( d >> 32 ) );
-    g1 = (uint32_t)d;
-    d  = ( (uint64_t)acc2 + ( d >> 32 ) );
-    g2 = (uint32_t)d;
-    d  = ( (uint64_t)acc3 + ( d >> 32 ) );
-    g3 = (uint32_t)d;
-    g4 = acc4 + (uint32_t)( d >> 32U );
+    d  = ( (uint64_t) acc0 + 5U );
+    g0 = (uint32_t) d;
+    d  = ( (uint64_t) acc1 + ( d >> 32 ) );
+    g1 = (uint32_t) d;
+    d  = ( (uint64_t) acc2 + ( d >> 32 ) );
+    g2 = (uint32_t) d;
+    d  = ( (uint64_t) acc3 + ( d >> 32 ) );
+    g3 = (uint32_t) d;
+    g4 = acc4 + (uint32_t) ( d >> 32U );
 
     /* mask == 0xFFFFFFFF if 131st bit is set, otherwise mask == 0 */
-    mask = (uint32_t)0U - ( g4 >> 2U );
+    mask = (uint32_t) 0U - ( g4 >> 2U );
     mask_inv = ~mask;
 
     /* If 131st bit is set then acc=g, otherwise, acc is unmodified */
@@ -213,38 +213,38 @@ static void mbedtls_poly1305_compute_mac( const mbedtls_poly1305_context *ctx,
     acc3 = ( acc3 & mask_inv ) | ( g3 & mask );
 
     /* Add 's' */
-    d = (uint64_t)acc0 + ctx->s[0];
-    acc0 = (uint32_t)d;
-    d = (uint64_t)acc1 + ctx->s[1] + ( d >> 32U );
-    acc1 = (uint32_t)d;
-    d = (uint64_t)acc2 + ctx->s[2] + ( d >> 32U );
-    acc2 = (uint32_t)d;
-    acc3 += ctx->s[3] + (uint32_t)( d >> 32U );
+    d = (uint64_t) acc0 + ctx->s[0];
+    acc0 = (uint32_t) d;
+    d = (uint64_t) acc1 + ctx->s[1] + ( d >> 32U );
+    acc1 = (uint32_t) d;
+    d = (uint64_t) acc2 + ctx->s[2] + ( d >> 32U );
+    acc2 = (uint32_t) d;
+    acc3 += ctx->s[3] + (uint32_t) ( d >> 32U );
 
     /* Compute MAC (128 least significant bits of the accumulator) */
-    mac[0]  = (uint8_t)acc0;
-    mac[1]  = (uint8_t)( acc0 >> 8  );
-    mac[2]  = (uint8_t)( acc0 >> 16 );
-    mac[3]  = (uint8_t)( acc0 >> 24 );
-    mac[4]  = (uint8_t)acc1;
-    mac[5]  = (uint8_t)( acc1 >> 8  );
-    mac[6]  = (uint8_t)( acc1 >> 16 );
-    mac[7]  = (uint8_t)( acc1 >> 24 );
-    mac[8]  = (uint8_t)acc2;
-    mac[9]  = (uint8_t)( acc2 >> 8  );
-    mac[10] = (uint8_t)( acc2 >> 16 );
-    mac[11] = (uint8_t)( acc2 >> 24 );
-    mac[12] = (uint8_t)acc3;
-    mac[13] = (uint8_t)( acc3 >> 8  );
-    mac[14] = (uint8_t)( acc3 >> 16 );
-    mac[15] = (uint8_t)( acc3 >> 24 );
+    mac[0]  = (unsigned char) acc0;
+    mac[1]  = (unsigned char) ( acc0 >> 8  );
+    mac[2]  = (unsigned char) ( acc0 >> 16 );
+    mac[3]  = (unsigned char) ( acc0 >> 24 );
+    mac[4]  = (unsigned char) acc1;
+    mac[5]  = (unsigned char) ( acc1 >> 8  );
+    mac[6]  = (unsigned char) ( acc1 >> 16 );
+    mac[7]  = (unsigned char) ( acc1 >> 24 );
+    mac[8]  = (unsigned char) acc2;
+    mac[9]  = (unsigned char) ( acc2 >> 8  );
+    mac[10] = (unsigned char) ( acc2 >> 16 );
+    mac[11] = (unsigned char) ( acc2 >> 24 );
+    mac[12] = (unsigned char) acc3;
+    mac[13] = (unsigned char) ( acc3 >> 8  );
+    mac[14] = (unsigned char) ( acc3 >> 16 );
+    mac[15] = (unsigned char) ( acc3 >> 24 );
 }
 
 void mbedtls_poly1305_init( mbedtls_poly1305_context *ctx )
 {
     if ( ctx != NULL )
     {
-        mbedtls_zeroize( ctx, sizeof(mbedtls_poly1305_context) );
+        mbedtls_zeroize( ctx, sizeof( mbedtls_poly1305_context ) );
     }
 }
 
@@ -252,7 +252,7 @@ void mbedtls_poly1305_free( mbedtls_poly1305_context *ctx )
 {
     if ( ctx != NULL )
     {
-        mbedtls_zeroize( ctx, sizeof(mbedtls_poly1305_context) );
+        mbedtls_zeroize( ctx, sizeof( mbedtls_poly1305_context ) );
     }
 }
 
@@ -281,7 +281,7 @@ int mbedtls_poly1305_setkey( mbedtls_poly1305_context *ctx,
     ctx->acc[2] = 0U;
     ctx->acc[3] = 0U;
 
-    return 0;
+    return( 0 );
 }
 
 int mbedtls_poly1305_update( mbedtls_poly1305_context *ctx,
@@ -484,7 +484,7 @@ static const unsigned char test_mac[2][16] =
 
 int mbedtls_poly1305_self_test( int verbose )
 {
-    uint8_t mac[16];
+    unsigned char mac[16];
     size_t i;
     int result;
 
@@ -496,9 +496,9 @@ int mbedtls_poly1305_self_test( int verbose )
         }
 
         result = mbedtls_poly1305_mac( test_keys[i],
-                                        test_data_len[i],
-                                        test_data[i],
-                                        mac );
+                                       test_data_len[i],
+                                       test_data[i],
+                                       mac );
         if ( result != 0 )
         {
             if ( verbose != 0 )

@@ -46,14 +46,14 @@
 #endif /* MBEDTLS_PLATFORM_C */
 #endif /* MBEDTLS_SELF_TEST */
 
-#define BYTES_TO_U32_LE( data, offset )                   \
-    ( (uint32_t)data[offset] |                            \
-      (uint32_t)( (uint32_t)data[(offset) + 1] << 8 )  |  \
-      (uint32_t)( (uint32_t)data[(offset) + 2] << 16 ) |  \
-      (uint32_t)( (uint32_t)data[(offset) + 3] << 24 )    \
+#define BYTES_TO_U32_LE( data, offset )                           \
+    ( (uint32_t) data[offset]                                     \
+          | (uint32_t) ( (uint32_t) data[( offset ) + 1] << 8 )   \
+          | (uint32_t) ( (uint32_t) data[( offset ) + 2] << 16 )  \
+          | (uint32_t) ( (uint32_t) data[( offset ) + 3] << 24 )  \
     )
 
-#define ROTL32( value, amount ) ( (uint32_t)( value << amount ) | ( value >> ( 32 - amount ) ) )
+#define ROTL32( value, amount ) ( (uint32_t) ( value << amount ) | ( value >> ( 32 - amount ) ) )
 
 #define CHACHA20_CTR_INDEX ( 12U )
 
@@ -171,10 +171,10 @@ static void mbedtls_chacha20_block( const uint32_t initial_state[16],
     {
         offset = i * 4U;
 
-        keystream[offset     ] = (unsigned char)  working_state[i];
-        keystream[offset + 1U] = (unsigned char)( working_state[i] >> 8  );
-        keystream[offset + 2U] = (unsigned char)( working_state[i] >> 16 );
-        keystream[offset + 3U] = (unsigned char)( working_state[i] >> 24 );
+        keystream[offset     ] = (unsigned char)   working_state[i];
+        keystream[offset + 1U] = (unsigned char) ( working_state[i] >> 8  );
+        keystream[offset + 2U] = (unsigned char) ( working_state[i] >> 16 );
+        keystream[offset + 3U] = (unsigned char) ( working_state[i] >> 24 );
     }
 }
 
@@ -277,10 +277,10 @@ int mbedtls_chacha20_keystream_block( const mbedtls_chacha20_context *ctx,
 
     mbedtls_chacha20_block( initial_state, working_state, keystream );
 
-    mbedtls_zeroize( initial_state, sizeof(initial_state) );
-    mbedtls_zeroize( working_state, sizeof(working_state) );
+    mbedtls_zeroize( initial_state, sizeof( initial_state ) );
+    mbedtls_zeroize( working_state, sizeof( working_state ) );
 
-    return ( 0 );
+    return( 0 );
 }
 
 int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
@@ -351,7 +351,7 @@ int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
         ctx->initial_state[CHACHA20_CTR_INDEX]++;
     }
 
-    return 0;
+    return( 0 );
 }
 
 #endif /* !MBEDTLS_CHACHA20_ALT */
@@ -380,7 +380,7 @@ int mbedtls_chacha20_crypt( const unsigned char key[32],
 
 cleanup:
     mbedtls_chacha20_free( &ctx );
-    return result;
+    return( result );
 }
 
 #if defined(MBEDTLS_SELF_TEST)

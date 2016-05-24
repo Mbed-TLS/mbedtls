@@ -627,7 +627,7 @@ static const unsigned char des3_3key_expected_result[NB_CMAC_TESTS_PER_KEY][DES3
 
 #ifdef MBEDTLS_AES_C
 /* AES AES-CMAC-PRF-128 Test Data */
-static const unsigned char PRFK[] = {
+static unsigned char PRFK[] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
     0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
     0xed, 0xcb
@@ -641,13 +641,13 @@ static const size_t PRFKlen[NB_PRF_TESTS] = {
 };
 
 /* PRF M */
-static const unsigned char PRFM[] = {
+const unsigned char PRFM[] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
     0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
     0x10, 0x11, 0x12, 0x13
 };
 
-static const unsigned char PRFT[NB_PRF_TESTS][16] = {
+const unsigned char PRFT[NB_PRF_TESTS][16] = {
     {
         0x84, 0xa3, 0x48, 0xa4, 0xa4, 0x5d, 0x23, 0x5b,
         0xab, 0xff, 0xfc, 0x0d, 0x2b, 0x4d, 0xa0, 0x9a
@@ -663,7 +663,7 @@ static const unsigned char PRFT[NB_PRF_TESTS][16] = {
 };
 #endif /* MBEDTLS_AES_C */
 
-static inline int  cmac_test_wth_cipher( int verbose,
+static inline int cmac_test_wth_cipher( int verbose,
                           const char* testname,
                           const unsigned char* key,
                           int keybits,
@@ -736,7 +736,7 @@ static inline int  cmac_test_wth_cipher( int verbose,
 }
 
 #ifdef MBEDTLS_AES_C
-inline int test_aes128_cmac_prf( int verbose )
+static inline int test_aes128_cmac_prf(  int verbose )
 {
     int i;
     int ret;

@@ -171,12 +171,6 @@ int mbedtls_cmac_setkey( mbedtls_cmac_context *ctx,
     if( cipher_info == NULL )
         return( MBEDTLS_ERR_CMAC_BAD_INPUT );
 
-    ctx->K1 = mbedtls_calloc( cipher_info->block_size, sizeof( unsigned char ) );
-    ctx->K2 = mbedtls_calloc( cipher_info->block_size, sizeof( unsigned char ) );
-
-    if( ctx->K1 == NULL || ctx->K2 == NULL )
-        return MBEDTLS_ERR_CMAC_ALLOC_FAILED;
-
     mbedtls_cipher_free( &ctx->cipher_ctx );
 
     if( ( ret = mbedtls_cipher_setup( &ctx->cipher_ctx, cipher_info ) ) != 0 )
@@ -186,6 +180,16 @@ int mbedtls_cmac_setkey( mbedtls_cmac_context *ctx,
                                        MBEDTLS_ENCRYPT ) ) != 0 )
     {
         return( ret );
+    }
+
+    ctx->K1 = mbedtls_calloc( cipher_info->block_size, sizeof( unsigned char ) );
+    ctx->K2 = mbedtls_calloc( cipher_info->block_size, sizeof( unsigned char ) );
+
+    if( ctx->K1 == NULL || ctx->K2 == NULL )
+    {
+        mbedtls_free(ctx->K1);
+        mbedtls_free(ctx->K2);
+        return( MBEDTLS_ERR_CMAC_ALLOC_FAILED );
     }
 
     return( cmac_generate_subkeys( ctx ) );

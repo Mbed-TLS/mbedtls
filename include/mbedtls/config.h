@@ -480,7 +480,7 @@
  *
  * Enable the MILAGRO_CS based ciphersuit modes in TLS.
  *
- * Requires: MBEDTLS_TLS_MILAGRO_CS
+ * Requires: MBEDTLS_MILAGRO_CS_C
  *
  * This enables the following ciphersuite:
  *      MBEDTLS_TLS_MILAGRO_CS_WITH_AES_128_GCM_SHA256
@@ -493,7 +493,7 @@
  *
  * Enable the MILAGRO_P2P PROTOCOL based ciphersuit modes in TLS.
  *
- * Requires: MBEDTLS_TLS_MILAGRO_P2P
+ * Requires: MBEDTLS_MILAGRO_P2P_C
  *
  * This enables the following ciphersuite:
  *      MBEDTLS_TLS_MILAGRO_P2P_WITH_AES_128_GCM_SHA256
@@ -786,7 +786,7 @@
 #define MBEDTLS_FS_IO
 
 /**
- * \def MBEDTLS_TLS_MILAGRO_CS
+ * \def MBEDTLS_MILAGRO_CS_C
  *
  * Enable support for autentication using MILAGRO_CS
  *
@@ -794,10 +794,10 @@
  *
  * Comment this macro to disable support for autentication using MILAGRO_CS in TLS
  */
-#define MBEDTLS_TLS_MILAGRO_CS
+#define MBEDTLS_MILAGRO_CS_C
 
 /**
- * \def MBEDTLS_TLS_MILAGRO_P2P
+ * \def MBEDTLS_MILAGRO_P2P_C
  *
  * Enable support for using MILAGRO_P2P PROTOCOL
  *
@@ -805,29 +805,29 @@
  *
  * Comment this macro to disable support for using MILAGRO_P2P in TLS
  */
-#define MBEDTLS_TLS_MILAGRO_P2P
+#define MBEDTLS_MILAGRO_P2P_C
 
 /**
- * \def MBEDTLS_TLS_MILAGRO_CS_TIME_PERMITS
+ * \def MBEDTLS_MILAGRO_CS_TIME_PERMITS
  *
  * Enable support for time permits in MILAGRO_CS
  *
- * Requires: MBEDTLS_TLS_MILAGRO_CS
+ * Requires: MBEDTLS_MILAGRO_CS_C
  *
  * Comment this macro to disable support for time permits in MILAGRO_CS
  */
-#define MBEDTLS_TLS_MILAGRO_CS_TIME_PERMITS
+#define MBEDTLS_MILAGRO_CS_TIME_PERMITS
 
 /**
- * \def MBEDTLS_TLS_MILAGRO_CS_ENABLE_PIN
+ * \def MBEDTLS_MILAGRO_CS_ENABLE_PIN
  *
  * Enable support for the use of PIN in MILAGRO_CS
  *
- * Requires: MBEDTLS_TLS_MILAGRO_CS
+ * Requires: MBEDTLS_MILAGRO_CS_C
  *
  * Comment this macro to disable the use of PIN in MILAGRO_CS
  */
-//#define MBEDTLS_TLS_MILAGRO_CS_ENABLE_PIN
+//#define MBEDTLS_MILAGRO_CS_ENABLE_PIN
 
 /**
  * \def MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES

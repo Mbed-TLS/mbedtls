@@ -55,6 +55,31 @@
 #define MBEDTLS_MILAGRO_IS_SERVER                   1
 
 /*
+ * Definition functions from milagro-crypto library
+ */
+#define mbedtls_milagro_cs_today MPIN_today 
+#define mbedtls_milagro_cs_create_csprng MPIN_CREATE_CSPRNG
+#define mbedtls_milagro_cs_hash_id MPIN_HASH_ID
+#define mbedtls_milagro_cs_get_time MPIN_GET_TIME
+#define mbedtls_milagro_cs_client MPIN_CLIENT
+#define mbedtls_milagro_cs_server MPIN_SERVER
+#define mbedtls_milagro_cs_get_g1_multiple MPIN_GET_G1_MULTIPLE
+#define mbedtls_milagro_cs_kill_csprng MPIN_KILL_CSPRNG
+#define mbedtls_milagro_cs_hash_all MPIN_HASH_ALL
+#define mbedtls_milagro_cs_server_key MPIN_SERVER_KEY
+#define mbedtls_milagro_cs_precompute MPIN_PRECOMPUTE
+#define mbedtls_milagro_cs_client_key MPIN_CLIENT_KEY
+#define mbedtls_milagro_p2p_create_csprng WCC_CREATE_CSPRNG
+#define mbedtls_milagro_p2p_random_generate WCC_RANDOM_GENERATE
+#define mbedtls_milagro_p2p_get_g1_multiple WCC_GET_G1_MULTIPLE
+#define mbedtls_milagro_p2p_get_g2_multiple WCC_GET_G2_MULTIPLE
+#define mbedtls_milagro_p2p_kill_csprng WCC_KILL_CSPRNG
+#define mbedtls_milagro_p2p_hq WCC_Hq
+#define mbedtls_milagro_p2p_sender_key WCC_SENDER_KEY
+#define mbedtls_milagro_p2p_receiver_key WCC_RECEIVER_KEY
+
+
+/*
  * MILAGRO_CS errors
  */
 #define MBEDTLS_ERR_MILAGRO_CS_AUTHENTICATION_FAILED    -0x6680  /**< The server has failed authenticating the client. */
@@ -148,7 +173,7 @@ struct mbedtls_milagro_cs_context
  * \param milagro_cs          milagro_cs to be initialized
  *
  */
-void mbedtls_ssl_milagro_cs_init( struct mbedtls_milagro_cs_context * milagro_cs);
+void mbedtls_milagro_cs_init( struct mbedtls_milagro_cs_context * milagro_cs);
 
 
 /**
@@ -162,7 +187,7 @@ void mbedtls_ssl_milagro_cs_init( struct mbedtls_milagro_cs_context * milagro_cs
  * \param entropy       entropy already initialized
  *
  */
-int mbedtls_ssl_milagro_cs_setup_RNG( mbedtls_milagro_cs_context *milagro_cs, mbedtls_entropy_context *entropy);
+int mbedtls_milagro_cs_setup_RNG( mbedtls_milagro_cs_context *milagro_cs, mbedtls_entropy_context *entropy);
 
 
 /**
@@ -174,7 +199,7 @@ int mbedtls_ssl_milagro_cs_setup_RNG( mbedtls_milagro_cs_context *milagro_cs, mb
  * \param len_secret      length of the secret
  *
  */
-void mbedtls_ssl_milagro_cs_set_secret( mbedtls_milagro_cs_context *milagro_cs, char* secret, int len_secret);
+void mbedtls_milagro_cs_set_secret( mbedtls_milagro_cs_context *milagro_cs, char* secret, int len_secret);
 
 #if defined(MBEDTLS_SSL_CLI_C)
 /**
@@ -185,7 +210,7 @@ void mbedtls_ssl_milagro_cs_set_secret( mbedtls_milagro_cs_context *milagro_cs, 
  * \param client_identity       the identity of the client
  *
  */
-void mbedtls_ssl_milagro_cs_set_client_identity(mbedtls_milagro_cs_context *milagro_cs, char * client_identity);
+void mbedtls_milagro_cs_set_client_identity(mbedtls_milagro_cs_context *milagro_cs, char * client_identity);
 #endif
 
 /**
@@ -197,7 +222,7 @@ void mbedtls_ssl_milagro_cs_set_client_identity(mbedtls_milagro_cs_context *mila
  * \param len_timepermit      length of time permit
  *
  */
-void mbedtls_ssl_milagro_cs_set_timepermit( mbedtls_milagro_cs_context *milagro_cs, char* timepermit, int len_timepermit);
+void mbedtls_milagro_cs_set_timepermit( mbedtls_milagro_cs_context *milagro_cs, char* timepermit, int len_timepermit);
 
 
 /**
@@ -210,7 +235,7 @@ void mbedtls_ssl_milagro_cs_set_timepermit( mbedtls_milagro_cs_context *milagro_
  *                  to be initialized
  *
  */
-int mbedtls_ssl_milagro_cs_alloc_memory(int client_or_server, mbedtls_milagro_cs_context *milagro_cs);
+int mbedtls_milagro_cs_alloc_memory(int client_or_server, mbedtls_milagro_cs_context *milagro_cs);
 
 /**
  * \brief           Check if the server's parameters are ok
@@ -337,7 +362,7 @@ struct mbedtls_milagro_p2p_context
  * \param milagro_p2p      milagro_cs to be initialized
  *
  */
-void mbedtls_ssl_milagro_p2p_init( mbedtls_milagro_p2p_context * milagro_p2p);
+void mbedtls_milagro_p2p_init( mbedtls_milagro_p2p_context * milagro_p2p);
 
 
 /**
@@ -349,7 +374,7 @@ void mbedtls_ssl_milagro_p2p_init( mbedtls_milagro_p2p_context * milagro_p2p);
  * \param len_key         length of the key
  *
  */
-void mbedtls_ssl_milagro_p2p_set_key(int client_or_server, mbedtls_milagro_p2p_context *milagro_p2p, char* key, int len_key);
+void mbedtls_milagro_p2p_set_key(int client_or_server, mbedtls_milagro_p2p_context *milagro_p2p, char* key, int len_key);
 
 
 /**
@@ -373,7 +398,7 @@ int mbedtls_milagro_p2p_compute_public_param( mbedtls_milagro_p2p_context *milag
  * \param entropy        entropy already initialized
  *
  */
-int mbedtls_ssl_milagro_p2p_setup_RNG( mbedtls_milagro_p2p_context *milagro_p2p, mbedtls_entropy_context *entropy);
+int mbedtls_milagro_p2p_setup_RNG( mbedtls_milagro_p2p_context *milagro_p2p, mbedtls_entropy_context *entropy);
 
 
 /**
@@ -385,7 +410,7 @@ int mbedtls_ssl_milagro_p2p_setup_RNG( mbedtls_milagro_p2p_context *milagro_p2p,
  *
  * \return                    0 if successful, error otherwise
  */
-int mbedtls_ssl_milagro_p2p_set_identity(int client_or_server, mbedtls_milagro_p2p_context *milagro_p2p, char * identity);
+int mbedtls_milagro_p2p_set_identity(int client_or_server, mbedtls_milagro_p2p_context *milagro_p2p, char * identity);
 
 
 /**
@@ -396,7 +421,7 @@ int mbedtls_ssl_milagro_p2p_set_identity(int client_or_server, mbedtls_milagro_p
  *                            to be initialized
  *
  * \return                    0 if successful, error otherwise
- */int mbedtls_ssl_milagro_p2p_alloc_memory(int client_or_server, mbedtls_milagro_p2p_context *milagro_p2p);
+ */int mbedtls_milagro_p2p_alloc_memory(int client_or_server, mbedtls_milagro_p2p_context *milagro_p2p);
 
 
 /**

@@ -45,8 +45,8 @@
 #include "ecjpake.h"
 #endif
 
-#if defined(MBEDTLS_TLS_MILAGRO_CS) || \
-defined(MBEDTLS_TLS_MILAGRO_P2P)
+#if defined(MBEDTLS_MILAGRO_CS_C) || \
+defined(MBEDTLS_MILAGRO_P2P_C)
 #include "milagro.h"
 #endif
 
@@ -267,12 +267,12 @@ struct mbedtls_ssl_handshake_params
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
     int extended_ms;                    /*!< use Extended Master Secret? */
 #endif
-#if defined(MBEDTLS_TLS_MILAGRO_CS)
+#if defined(MBEDTLS_MILAGRO_CS_C)
     mbedtls_milagro_cs_context *milagro_cs;
-#endif /* MBEDTLS_TLS_MILAGRO_CS */
-#if defined(MBEDTLS_TLS_MILAGRO_P2P)
+#endif /* MBEDTLS_MILAGRO_CS_C */
+#if defined(MBEDTLS_MILAGRO_P2P_C)
     mbedtls_milagro_p2p_context *milagro_p2p;
-#endif /* MBEDTLS_TLS_MILAGRO_P2P */
+#endif /* MBEDTLS_MILAGRO_P2P_C */
 };
 
 /*
@@ -386,13 +386,13 @@ void mbedtls_ssl_optimize_checksum( mbedtls_ssl_context *ssl,
                             const mbedtls_ssl_ciphersuite_t *ciphersuite_info );
 
 #if defined(MBEDTLS_KEY_EXCHANGE_MILAGRO_CS_ENABLED)
-    int mbedtls_ssl_milagro_cs_derive_premaster(int client_or_server,
+    int mbedtls_milagro_cs_derive_premaster(int client_or_server,
                                                 mbedtls_ssl_context *ssl,
                                                 mbedtls_key_exchange_type_t key_ex );
 #endif
     
 #if defined(MBEDTLS_KEY_EXCHANGE_MILAGRO_P2P_ENABLED)
-    int mbedtls_ssl_milagro_p2p_derive_premaster(int client_or_server,
+    int mbedtls_milagro_p2p_derive_premaster(int client_or_server,
                                                  mbedtls_ssl_context *ssl,
                                                  mbedtls_key_exchange_type_t key_ex );
 #endif

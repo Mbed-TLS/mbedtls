@@ -272,10 +272,10 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_config conf;
     char *cs_server_key;
     char *p2p_server_key;
-#if defined(MBEDTLS_TLS_MILAGRO_CS)
+#if defined(MBEDTLS_MILAGRO_CS_C)
     mbedtls_milagro_cs_context milagro_cs;
 #endif
-#if defined(MBEDTLS_TLS_MILAGRO_P2P)
+#if defined(MBEDTLS_MILAGRO_P2P_C)
     mbedtls_milagro_p2p_context milagro_p2p;
 #endif
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
@@ -297,11 +297,11 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_config_init( &conf );
     mbedtls_ctr_drbg_init( &ctr_drbg );
-#if defined(MBEDTLS_TLS_MILAGRO_CS)
-    mbedtls_ssl_milagro_cs_init(&milagro_cs );
+#if defined(MBEDTLS_MILAGRO_CS_C)
+    mbedtls_milagro_cs_init(&milagro_cs );
 #endif
-#if defined(MBEDTLS_TLS_MILAGRO_P2P)
-    mbedtls_ssl_milagro_p2p_init(&milagro_p2p);
+#if defined(MBEDTLS_MILAGRO_P2P_C)
+    mbedtls_milagro_p2p_init(&milagro_p2p);
 #endif
 #if !defined(_WIN32)
     /* Abort cleanly on SIGTERM and SIGINT */
@@ -509,7 +509,7 @@ reset:
     mbedtls_net_free( &client_fd );
     mbedtls_ssl_session_reset( &ssl );
     
-#if defined(MBEDTLS_TLS_MILAGRO_CS)
+#if defined(MBEDTLS_MILAGRO_CS_C)
         /*
          * 2.5 Setup MILAGRO_CS parameters
          */
@@ -520,9 +520,9 @@ reset:
     
         read_from_file("CSServerKey", cs_server_key, 2*(4*PFS));
     
-        mbedtls_ssl_milagro_cs_set_secret(&milagro_cs, cs_server_key, 4*PFS); free(cs_server_key);
+        mbedtls_milagro_cs_set_secret(&milagro_cs, cs_server_key, 4*PFS); free(cs_server_key);
     
-        if( mbedtls_ssl_milagro_cs_setup_RNG(&milagro_cs, &entropy) != 0)
+        if( mbedtls_milagro_cs_setup_RNG(&milagro_cs, &entropy) != 0)
         {
             printf("\n\nFailed while setting the RNG in MILAGRO_CS\n");
             exit(-1);
@@ -532,10 +532,10 @@ reset:
     
         printf( " ok\n" );
 
-#endif /* MBEDTLS_TLS_MILAGRO_CS */
+#endif /* MBEDTLS_MILAGRO_CS_C */
     
     
-#if defined(MBEDTLS_TLS_MILAGRO_P2P)
+#if defined(MBEDTLS_MILAGRO_P2P_C)
 
         /*
          * 2.5 Setup MILAGRO_P2P parameters
@@ -546,20 +546,20 @@ reset:
     
         read_from_file("P2PServerKey", p2p_server_key, 2*(2*PFS+1));
     
-        mbedtls_ssl_milagro_p2p_set_key(MBEDTLS_SSL_IS_SERVER, &milagro_p2p, p2p_server_key, 2*PFS+1); free(p2p_server_key);
+        mbedtls_milagro_p2p_set_key(MBEDTLS_SSL_IS_SERVER, &milagro_p2p, p2p_server_key, 2*PFS+1); free(p2p_server_key);
     
-        if (mbedtls_ssl_milagro_p2p_setup_RNG( &milagro_p2p, &entropy) != 0 )
+        if (mbedtls_milagro_p2p_setup_RNG( &milagro_p2p, &entropy) != 0 )
         {
-            printf("\n\nFailed while setting the RNG in MPIN\n");
+            printf("\n\nFailed while setting the RNG in MILAGRO_P2P\n");
             exit(-1);
         }
     
-        mbedtls_ssl_milagro_p2p_set_identity(MBEDTLS_SSL_IS_SERVER, &milagro_p2p, (char *)"server.miracl.com");
+        mbedtls_milagro_p2p_set_identity(MBEDTLS_SSL_IS_SERVER, &milagro_p2p, (char *)"server.miracl.com");
     
         mbedtls_ssl_set_milagro_p2p(ssl.handshake, &milagro_p2p);
     
         mbedtls_printf( " ok\n" );
-#endif /* MBEDTLS_TLS_MILAGRO_P2P */
+#endif /* MBEDTLS_MILAGRO_P2P_C */
     
     
     /*

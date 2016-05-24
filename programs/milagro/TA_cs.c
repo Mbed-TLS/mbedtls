@@ -31,7 +31,13 @@
 #include <time.h>
 #include "mpin.h"
 #include "mbedtls/config.h"
+#include "mbedtls/milagro.h"
 
+#define mbedtls_milagro_cs_extract_pin MPIN_EXTRACT_PIN
+#define mbedtls_milagro_cs_random_generate MPIN_RANDOM_GENERATE
+#define mbedtls_milagro_cs_get_server_secret MPIN_GET_SERVER_SECRET
+#define mbedtls_milagro_cs_get_client_secret MPIN_GET_CLIENT_SECRET
+#define mbedtls_milagro_cs_get_client_permit MPIN_GET_CLIENT_PERMIT
 
 int write_to_file(const char * path, octet to_write)
 {
@@ -71,11 +77,11 @@ int main(){
     char serverSecret[4*PFS];
     octet ServerSecret={sizeof(serverSecret),sizeof(serverSecret),serverSecret};
 
-#if defined(MBEDTLS_TLS_MILAGRO_CS_TIME_PERMITS)
+#if defined(MBEDTLS_MILAGRO_CS_TIME_PERMITS)
     /* Time Permit and shares */
     char tp[2*PFS+1];
     octet TP={sizeof(tp),sizeof(tp),tp};
-    int date = MPIN_today();
+    int date = mbedtls_milagro_cs_today();
 #endif
     
     /* Token stored on computer */
@@ -97,70 +103,70 @@ int main(){
     printf("\n");
 #endif
 
-    MPIN_CREATE_CSPRNG(&RNG,&SEED);
+    mbedtls_milagro_cs_create_csprng(&RNG,&SEED);
     
     /* Assign the End-User an ID */
     user = "client@miracl.com";
     OCT_jstring(&CLIENT_ID, (char*)user);
     
     /* Hash CLIENT_ID */
-    MPIN_HASH_ID(&CLIENT_ID,&HASH_ID);
+    mbedtls_milagro_cs_hash_id(&CLIENT_ID,&HASH_ID);
     
     /* master secret */
-    rtn = MPIN_RANDOM_GENERATE(&RNG,&MS1);
+    rtn = mbedtls_milagro_cs_random_generate(&RNG,&MS1);
     if (rtn != 0)
     {
-        printf("MILAGRO_CS_RANDOM_GENERATE(&RNG,&MS1) Error %d\n", rtn);
+        printf("mbedtls_milagro_cs_random_generate(&RNG,&MS1) Error %d\n", rtn);
         return 1;
     }
 
     /* server secret */
-    rtn = MPIN_GET_SERVER_SECRET(&MS1,&ServerSecret);
+    rtn = mbedtls_milagro_cs_get_server_secret(&MS1,&ServerSecret);
     if (rtn != 0)
     {
-        printf("MILAGRO_CS_GET_SERVER_SECRET(&MS1,&SS1) Error %d\n", rtn);
+        printf("mbedtls_milagro_cs_get_server_secret(&MS1,&SS1) Error %d\n", rtn);
         return 1;
     }
     printf("Server Secret = 0x");
     OCT_output(&ServerSecret);
     
     /* client secret */
-    rtn = MPIN_GET_CLIENT_SECRET(&MS1,&HASH_ID,&TOKEN);
+    rtn = mbedtls_milagro_cs_get_client_secret(&MS1,&HASH_ID,&TOKEN);
     if (rtn != 0)
     {
-        printf("MILAGRO_CS_GET_CLIENT_SECRET(&MS1,&HASH_ID,&CS1) Error %d\n", rtn);
+        printf("mbedtls_milagro_cs_get_client_secret(&MS1,&HASH_ID,&CS1) Error %d\n", rtn);
         return 1;
     }
     printf("Client Secret = 0x");
     OCT_output(&TOKEN);
 
-#if defined(MBEDTLS_TLS_MILAGRO_CS_TIME_PERMITS)
+#if defined(MBEDTLS_MILAGRO_CS_TIME_PERMITS)
     /* Generate Time Permits */
-    rtn = MPIN_GET_CLIENT_PERMIT(date,&MS1,&HASH_ID,&TP);
+    rtn = mbedtls_milagro_cs_get_client_permit(date,&MS1,&HASH_ID,&TP);
     if (rtn != 0)
     {
-        printf("MILAGRO_CS_GET_CLIENT_PERMIT(date,&MS1,&HASH_ID,&TP1) Error %d\n", rtn);
+        printf("mbedtls_milagro_cs_get_client_permit(date,&MS1,&HASH_ID,&TP1) Error %d\n", rtn);
         return 1;
     }
     printf("\nTime Permit = 0x");
     OCT_output(&TP);
 #endif
-#if defined(MBEDTLS_TLS_MILAGRO_CS_ENABLE_PIN)
+#if defined(MBEDTLS_MILAGRO_CS_ENABLE_PIN)
     /* Client extracts PIN from secret to create Token */
     PIN = 1234;
 #else
     PIN = 0;
 #endif
-    rtn = MPIN_EXTRACT_PIN(&HASH_ID, PIN, &TOKEN);
+    rtn = mbedtls_milagro_cs_extract_pin(&HASH_ID, PIN, &TOKEN);
     if (rtn != 0)
     {
-        printf("MILAGRO_CS_EXTRACT_PIN( &HASH_ID, PIN, &TOKEN) Error %d\n", rtn);
+        printf("mbedtls_milagro_cs_extract_pin( &HASH_ID, PIN, &TOKEN) Error %d\n", rtn);
         return 1;
     }
     printf("\nToken = 0x");
     OCT_output(&TOKEN);
     
-#if defined(MBEDTLS_TLS_MILAGRO_CS_TIME_PERMITS)
+#if defined(MBEDTLS_MILAGRO_CS_TIME_PERMITS)
     write_to_file("CSTimePermit", TP);
 #endif
     write_to_file("CSServerKey", ServerSecret);

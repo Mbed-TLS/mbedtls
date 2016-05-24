@@ -43,8 +43,8 @@
 #include "dhm.h"
 #endif
 
-#if defined(MBEDTLS_TLS_MILAGRO_CS) || \
-defined(MBEDTLS_TLS_MILAGRO_P2P)
+#if defined(MBEDTLS_MILAGRO_CS_C) || \
+defined(MBEDTLS_MILAGRO_P2P_C)
 #include "milagro.h"
 #endif
 
@@ -986,7 +986,7 @@ void mbedtls_ssl_init( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
                        const mbedtls_ssl_config *conf );
 
-#if defined (MBEDTLS_TLS_MILAGRO_CS)
+#if defined (MBEDTLS_MILAGRO_CS_C)
     /**
      * \brief                Set up a milagro_cs context in ssl.hansshake for use
      *
@@ -1003,7 +1003,7 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
     void mbedtls_ssl_set_milagro_cs(mbedtls_ssl_handshake_params * handshake, mbedtls_milagro_cs_context * milagro_cs);
 #endif
     
-#if defined (MBEDTLS_TLS_MILAGRO_P2P)
+#if defined (MBEDTLS_MILAGRO_P2P_C)
     /*
      * \brief                 Set up a milagro_p2p context in ssl.hanshake for use
      *

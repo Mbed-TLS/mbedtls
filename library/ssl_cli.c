@@ -50,8 +50,8 @@
 #endif
 
 
-#if defined(MBEDTLS_TLS_MILAGRO_CS)  \
-|| defined(MBEDTLS_TLS_MILAGRO_P2P)
+#if defined(MBEDTLS_MILAGRO_CS_C)  \
+|| defined(MBEDTLS_MILAGRO_P2P_C)
 #include "mbedtls/milagro.h"
 #endif
 
@@ -124,7 +124,7 @@ static void ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
-#if defined(MBEDTLS_TLS_MILAGRO_CS)
+#if defined(MBEDTLS_MILAGRO_CS_C)
 
 static void ssl_write_milagro_cs_ext( mbedtls_ssl_context *ssl,
                                      unsigned char *buf,
@@ -158,7 +158,7 @@ static void ssl_write_milagro_cs_ext( mbedtls_ssl_context *ssl,
     p = buf;
     end = ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN;
     
-    if (mbedtls_ssl_milagro_cs_alloc_memory(MBEDTLS_SSL_IS_CLIENT, ssl->handshake->milagro_cs) != 0)
+    if (mbedtls_milagro_cs_alloc_memory(MBEDTLS_SSL_IS_CLIENT, ssl->handshake->milagro_cs) != 0)
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Failed while allocating memory for the MILAGRO_CS parameters, impossible to write this extension" ) );
         return;
@@ -187,7 +187,7 @@ static void ssl_write_milagro_cs_ext( mbedtls_ssl_context *ssl,
     *p++ = (unsigned char)( ( ( ssl->handshake->milagro_cs->hash_client_id.len     ) >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( ( ssl->handshake->milagro_cs->hash_client_id.len     )      ) & 0xFF );
     
-#if defined(MBEDTLS_TLS_MILAGRO_CS_TIME_PERMITS)
+#if defined(MBEDTLS_MILAGRO_CS_TIME_PERMITS)
     *p++ = (unsigned char)( ( ( ssl->handshake->milagro_cs->UT.len     ) >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( ( ssl->handshake->milagro_cs->UT.len     )      ) & 0xFF );
 #else
@@ -202,7 +202,7 @@ static void ssl_write_milagro_cs_ext( mbedtls_ssl_context *ssl,
     memcpy( p, ssl->handshake->milagro_cs->hash_client_id.val, ssl->handshake->milagro_cs->hash_client_id.len);
     *olen += ssl->handshake->milagro_cs->hash_client_id.len;
     p += ssl->handshake->milagro_cs->hash_client_id.len;
-#if defined(MBEDTLS_TLS_MILAGRO_CS_TIME_PERMITS)
+#if defined(MBEDTLS_MILAGRO_CS_TIME_PERMITS)
     memcpy( p, ssl->handshake->milagro_cs->UT.val, ssl->handshake->milagro_cs->UT.len);
     *olen += ssl->handshake->milagro_cs->UT.len;
     p += ssl->handshake->milagro_cs->UT.len;
@@ -221,7 +221,7 @@ static void ssl_write_milagro_cs_ext( mbedtls_ssl_context *ssl,
     *p++ = (unsigned char)( ( ( ssl->handshake->milagro_cs->timevalue     )       ) & 0xFF );
     *olen += sizeof(unsign32);
 }
-#endif /* MBEDTLS_TLS_MILAGRO_CS */
+#endif /* MBEDTLS_MILAGRO_CS_C */
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
 static void ssl_write_renegotiation_ext( mbedtls_ssl_context *ssl,
@@ -1099,7 +1099,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     ext_len += olen;
 #endif
 
-#if defined(MBEDTLS_TLS_MILAGRO_CS)
+#if defined(MBEDTLS_MILAGRO_CS_C)
     ssl_write_milagro_cs_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
 #endif
@@ -3095,10 +3095,10 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
                 MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_milagro_cs_write_public_parameter", ret );
                 return( ret );
             }
-            if( ( ret = mbedtls_ssl_milagro_cs_derive_premaster(MBEDTLS_SSL_IS_CLIENT, ssl,
+            if( ( ret = mbedtls_milagro_cs_derive_premaster(MBEDTLS_SSL_IS_CLIENT, ssl,
                                                                 MBEDTLS_KEY_EXCHANGE_MILAGRO_CS ) ) != 0 )
             {
-                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_milagro_cs_derive_premaster", ret );
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_milagro_cs_derive_premaster", ret );
                 return( ret );
             }
         }
@@ -3110,10 +3110,10 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
             {
                 i = 4;
                 
-                if( ( ret = mbedtls_ssl_milagro_p2p_derive_premaster(MBEDTLS_SSL_IS_CLIENT, ssl,
+                if( ( ret = mbedtls_milagro_p2p_derive_premaster(MBEDTLS_SSL_IS_CLIENT, ssl,
                                                                      MBEDTLS_KEY_EXCHANGE_MILAGRO_P2P ) ) != 0 )
                 {
-                    MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_milagro_p2p_derive_premaster", ret );
+                    MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_milagro_p2p_derive_premaster", ret );
                     return( ret );
                 }
                 ret = mbedtls_milagro_p2p_write_public_parameters(MBEDTLS_SSL_IS_CLIENT, ssl->handshake->milagro_p2p,

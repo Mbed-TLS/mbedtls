@@ -253,10 +253,10 @@ int main( int argc, char *argv[] )
     char *p2p_client_key;
     int got_milagro_cs_ciphersuite;
     int got_milagro_p2p_ciphersuite;
-#if defined(MBEDTLS_TLS_MILAGRO_CS)
+#if defined(MBEDTLS_MILAGRO_CS_C)
     mbedtls_milagro_cs_context milagro_cs;
 #endif
-#if defined(MBEDTLS_TLS_MILAGRO_P2P)
+#if defined(MBEDTLS_MILAGRO_P2P_C)
     mbedtls_milagro_p2p_context milagro_p2p;
 #endif
     
@@ -270,11 +270,11 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_config_init( &conf );
     memset( &saved_session, 0, sizeof( mbedtls_ssl_session ) );
     mbedtls_ctr_drbg_init( &ctr_drbg );
-#if defined(MBEDTLS_TLS_MILAGRO_CS)
-    mbedtls_ssl_milagro_cs_init(&milagro_cs );
+#if defined(MBEDTLS_MILAGRO_CS_C)
+    mbedtls_milagro_cs_init(&milagro_cs );
 #endif
-#if defined(MBEDTLS_TLS_MILAGRO_P2P)
-    mbedtls_ssl_milagro_p2p_init(&milagro_p2p);
+#if defined(MBEDTLS_MILAGRO_P2P_C)
+    mbedtls_milagro_p2p_init(&milagro_p2p);
 #endif
     
     if( argc == 0 )
@@ -524,29 +524,29 @@ int main( int argc, char *argv[] )
          * 3.5 Setup MILAGRO_CS parameters
          */
     
-#if defined(MBEDTLS_TLS_MILAGRO_CS)
+#if defined(MBEDTLS_MILAGRO_CS_C)
     
         mbedtls_printf( "  . Setting up MILAGRO_CS parameters..." );
         fflush( stdout );
 
         cs_client_key = calloc(2*PFS+1,sizeof(char));
         read_from_file("CSClientKey", cs_client_key, 2*(2*PFS+1));
-        mbedtls_ssl_milagro_cs_set_secret(&milagro_cs, cs_client_key, 2*PFS+1); free(cs_client_key);
-        mbedtls_ssl_milagro_cs_set_client_identity (&milagro_cs, (char *)DFL_CLIENT_IDENTITY);
+        mbedtls_milagro_cs_set_secret(&milagro_cs, cs_client_key, 2*PFS+1); free(cs_client_key);
+        mbedtls_milagro_cs_set_client_identity (&milagro_cs, (char *)DFL_CLIENT_IDENTITY);
     
-#if defined(MBEDTLS_TLS_MILAGRO_CS_TIME_PERMITS)
+#if defined(MBEDTLS_MILAGRO_CS_TIME_PERMITS)
         cs_tp = calloc(2*PFS+1,sizeof(char));
         read_from_file("CSTimePermit", cs_tp, 2*(2*PFS+1));
-        mbedtls_ssl_milagro_cs_set_timepermit(&milagro_cs, cs_tp, 2*PFS+1); free(cs_tp);
+        mbedtls_milagro_cs_set_timepermit(&milagro_cs, cs_tp, 2*PFS+1); free(cs_tp);
 #endif
     
-        if (mbedtls_ssl_milagro_cs_setup_RNG(&milagro_cs, &entropy) != 0)
+        if (mbedtls_milagro_cs_setup_RNG(&milagro_cs, &entropy) != 0)
         {
-            printf("\n\nFailed while setting the RNG in MPIN\n");
+            printf("\n\nFailed while setting the RNG in MILAGRO_CS\n");
             exit(-1);
         }
     
-#if defined(MBEDTLS_TLS_MILAGRO_CS_ENABLE_PIN)
+#if defined(MBEDTLS_MILAGRO_CS_ENABLE_PIN)
         printf("\n Enter pin: ");
         scanf("%d",&milagro_cs.pin);
 #endif
@@ -555,10 +555,10 @@ int main( int argc, char *argv[] )
     
         mbedtls_printf( " ok\n" );
     }
-#endif /* MBEDTLS_TLS_MILAGRO_CS */
+#endif /* MBEDTLS_MILAGRO_CS_C */
     
     
-#if defined(MBEDTLS_TLS_MILAGRO_P2P)
+#if defined(MBEDTLS_MILAGRO_P2P_C)
     if(got_milagro_p2p_ciphersuite>0)
     {
         /*
@@ -570,21 +570,21 @@ int main( int argc, char *argv[] )
     
         read_from_file("P2PClientKey", p2p_client_key, 2*(4*PFS));
     
-        mbedtls_ssl_milagro_p2p_set_key(MBEDTLS_SSL_IS_CLIENT, &milagro_p2p, p2p_client_key, 4*PFS); free(p2p_client_key);
+        mbedtls_milagro_p2p_set_key(MBEDTLS_SSL_IS_CLIENT, &milagro_p2p, p2p_client_key, 4*PFS); free(p2p_client_key);
     
-        if (mbedtls_ssl_milagro_p2p_setup_RNG( &milagro_p2p, &entropy) != 0 )
+        if (mbedtls_milagro_p2p_setup_RNG( &milagro_p2p, &entropy) != 0 )
         {
-            printf("\n\nFailed while setting the RNG in MPIN\n");
+            printf("\n\nFailed while setting the RNG in MILAGRO_P2P\n");
             exit(-1);
         }
     
-        mbedtls_ssl_milagro_p2p_set_identity(MBEDTLS_SSL_IS_CLIENT, &milagro_p2p, (char *)DFL_CLIENT_IDENTITY);
+        mbedtls_milagro_p2p_set_identity(MBEDTLS_SSL_IS_CLIENT, &milagro_p2p, (char *)DFL_CLIENT_IDENTITY);
 
         mbedtls_ssl_set_milagro_p2p(ssl.handshake, &milagro_p2p);
     
         mbedtls_printf( " ok\n" );
     }
-#endif /* MBEDTLS_TLS_MILAGRO_P2P */
+#endif /* MBEDTLS_MILAGRO_P2P_C */
     
     
     /*

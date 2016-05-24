@@ -198,24 +198,24 @@
 #error "MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_TLS_MILAGRO_CS_ENABLE_PIN) &&                    \
-!defined(MBEDTLS_TLS_MILAGRO_CS)
-#error "MBEDTLS_TLS_MILAGRO_CS_ENABLE_PIN defined, but not all prerequisites"
+#if defined(MBEDTLS_MILAGRO_CS_ENABLE_PIN) &&                    \
+!defined(MBEDTLS_MILAGRO_CS_C)
+#error "MBEDTLS_MILAGRO_CS_ENABLE_PIN defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_TLS_MILAGRO_CS_TIME_PERMITS) &&                    \
-!defined(MBEDTLS_TLS_MILAGRO_CS)
-#error "MBEDTLS_TLS_MILAGRO_CS_TIME_PERMITS defined, but not all prerequisites"
+#if defined(MBEDTLS_MILAGRO_CS_TIME_PERMITS) &&                    \
+!defined(MBEDTLS_MILAGRO_CS_C)
+#error "MBEDTLS_MILAGRO_CS_TIME_PERMITS defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_MILAGRO_CS_ENABLED) &&                    \
-( !defined(MBEDTLS_TLS_MILAGRO_CS) || !defined(MBEDTLS_AES_C) ||            \
+( !defined(MBEDTLS_MILAGRO_CS_C) || !defined(MBEDTLS_AES_C) ||            \
 !defined(MBEDTLS_GCM_C) || !defined(MBEDTLS_SHA256_C) )
 #error "MBEDTLS_KEY_EXCHANGE_MILAGRO_CS_ENABLED defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_MILAGRO_P2P_ENABLED) &&                    \
-( !defined(MBEDTLS_TLS_MILAGRO_P2P) || !defined(MBEDTLS_AES_C) ||            \
+( !defined(MBEDTLS_MILAGRO_P2P_C) || !defined(MBEDTLS_AES_C) ||            \
 !defined(MBEDTLS_GCM_C) || !defined(MBEDTLS_SHA256_C) )
 #error "MBEDTLS_KEY_EXCHANGE_MILAGRO_P2P_ENABLED defined, but not all prerequisites"
 #endif

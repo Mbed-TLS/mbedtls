@@ -30,6 +30,12 @@
 #include <time.h>
 #include "wcc.h"
 
+#define mbedtls_milagro_p2p_create_csprng WCC_CREATE_CSPRNG
+#define mbedtls_milagro_p2p_random_generate WCC_RANDOM_GENERATE
+#define mbedtls_milagro_p2p_get_g1_multiple WCC_GET_G1_MULTIPLE
+#define mbedtls_milagro_p2p_get_g2_multiple WCC_GET_G2_MULTIPLE
+#define mbedtls_milagro_p2p_kill_csprng WCC_KILL_CSPRNG
+#define mbedtls_milagro_p2p_hash_id WCC_HASH_ID
 
 int write_to_file(const char * path, octet to_write)
 {
@@ -86,12 +92,12 @@ int main()
 #endif
     
     /* initialise random number generator */
-    WCC_CREATE_CSPRNG(&RNG,&SEED);
+    mbedtls_milagro_p2p_create_csprng(&RNG,&SEED);
     
     /* TA: Generate master secret  */
-    rtn = WCC_RANDOM_GENERATE(&RNG,&MS);
+    rtn = mbedtls_milagro_p2p_random_generate(&RNG,&MS);
     if (rtn != 0) {
-        printf("TA WCC_RANDOM_GENERATE(&RNG,&MS) Error %d\n", rtn);
+        printf("TA mbedtls_milagro_p2p_random_generate(&RNG,&MS) Error %d\n", rtn);
         return 1;
     }
     
@@ -103,10 +109,10 @@ int main()
     OCT_jstring(&IdS,(char *)"server.miracl.com");
     
     // TA: Generate Servers's key
-    WCC_HASH_ID(&IdS,&HV);
-    rtn = WCC_GET_G1_MULTIPLE(hashDoneOn,&MS,&HV,&SkeyG1);
+    mbedtls_milagro_p2p_hash_id(&IdS,&HV);
+    rtn = mbedtls_milagro_p2p_get_g1_multiple(hashDoneOn,&MS,&HV,&SkeyG1);
     if (rtn != 0) {
-        printf("TA WCC_GET_G1_MULTIPLE() Error %d\n", rtn);
+        printf("TA mbedtls_milagro_p2p_get_g1_multiple() Error %d\n", rtn);
         return 1;
     }
     
@@ -118,10 +124,10 @@ int main()
     OCT_jstring(&IdC,(char *)"client@miracl.com");
     
     // TA: Generate Client's key
-    WCC_HASH_ID(&IdC,&HV);
-    rtn = WCC_GET_G2_MULTIPLE(hashDoneOn,&MS,&HV,&CkeyG2);
+    mbedtls_milagro_p2p_hash_id(&IdC,&HV);
+    rtn = mbedtls_milagro_p2p_get_g2_multiple(hashDoneOn,&MS,&HV,&CkeyG2);
     if (rtn != 0) {
-        printf("TA WCC_GET_G2_MULTIPLE() Error %d\n", rtn);
+        printf("TA mbedtls_milagro_p2p_get_g2_multiple() Error %d\n", rtn);
         return 1;
     }
     

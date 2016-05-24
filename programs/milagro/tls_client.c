@@ -29,23 +29,26 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#if defined(MBEDTLS_PLATFORM_C)
+#include "mbedtls/platform.h"
+#else
 #include <stdio.h>
-#define mbedtls_printf     printf
+#include <stdlib.h>
+#define mbedtls_free       free
+#define mbedtls_time       time
+#define mbedtls_time_t     time_t
+#define mbedtls_calloc    calloc
 #define mbedtls_fprintf    fprintf
-#define mbedtls_snprintf   snprintf
-
-#if defined(MBEDTLS_TLS_MILAGRO_CS) || \
-defined(MBEDTLS_TLS_MILAGRO_P2P)
-#include "mbedtls/milagro.h"
+#define mbedtls_printf     printf
 #endif
 
 #if !defined(MBEDTLS_ENTROPY_C) || \
-!defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_CLI_C) || \
+!defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_SRV_C) || \
 !defined(MBEDTLS_NET_C) || !defined(MBEDTLS_CTR_DRBG_C)
 int main( void )
 {
     mbedtls_printf("MBEDTLS_ENTROPY_C and/or "
-                   "MBEDTLS_SSL_TLS_C and/or MBEDTLS_SSL_CLI_C and/or "
+                   "MBEDTLS_SSL_TLS_C and/or MBEDTLS_SSL_SRV_C and/or "
                    "MBEDTLS_NET_C and/or MBEDTLS_CTR_DRBG_C and/or not defined.\n");
     return( 0 );
 }
@@ -62,6 +65,14 @@ int main( void )
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && defined(MBEDTLS_FS_IO)
+#define SNI_OPTION
+#endif
+
+#if defined(_WIN32)
+#include <windows.h>
+#endif
 
 #define DFL_CLIENT_IDENTITY     "client@miracl.com"
 #define DFL_SERVER_NAME         "localhost"

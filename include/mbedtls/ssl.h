@@ -220,7 +220,7 @@
 #endif
 
 /*
- * Maxium fragment length in bytes,
+ * Maximum fragment length in bytes,
  * determines the size of each of the two internal I/O buffers.
  *
  * Note: the RFC defines the default size of SSL / TLS messages. If you
@@ -232,6 +232,14 @@
  */
 #if !defined(MBEDTLS_SSL_MAX_CONTENT_LEN)
 #define MBEDTLS_SSL_MAX_CONTENT_LEN         16384   /**< Size of the input / output buffer */
+#endif
+
+#if !defined(MBEDTLS_SSL_IN_CONTENT_LEN)
+#define MBEDTLS_SSL_IN_CONTENT_LEN MBEDTLS_SSL_MAX_CONTENT_LEN
+#endif
+
+#if !defined(MBEDTLS_SSL_OUT_CONTENT_LEN)
+#define MBEDTLS_SSL_OUT_CONTENT_LEN MBEDTLS_SSL_MAX_CONTENT_LEN
 #endif
 
 /* \} name SECTION: Module settings */
@@ -2418,7 +2426,8 @@ void mbedtls_ssl_conf_cert_req_ca_list( mbedtls_ssl_config *conf,
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 /**
  * \brief          Set the maximum fragment length to emit and/or negotiate
- *                 (Default: MBEDTLS_SSL_MAX_CONTENT_LEN, usually 2^14 bytes)
+ *                 (Default: the smaller of MBEDTLS_SSL_IN_CONTENT_LEN and
+ *                 MBEDTLS_SSL_OUT_CONTENT_LEN, usually 2^14 bytes)
  *                 (Server: set maximum fragment length to emit,
  *                 usually negotiated by the client during handshake
  *                 (Client: set maximum fragment length to emit *and*

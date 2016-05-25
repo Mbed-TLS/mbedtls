@@ -30,6 +30,7 @@
 #else
 #include <stdio.h>
 #define mbedtls_printf     printf
+#define mbedtls_time_t     time_t
 #endif
 
 #if !defined(MBEDTLS_BIGNUM_C) || !defined(MBEDTLS_ENTROPY_C) ||   \

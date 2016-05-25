@@ -355,8 +355,15 @@ int mbedtls_cmac_verify( mbedtls_cmac_context *ctx,
         diff |= tag[i] ^ check_tag[i];
 
     if( diff != 0 )
+    {
         ret = MBEDTLS_ERR_CMAC_VERIFY_FAILED;
         goto exit;
+    }
+    else
+    {
+        ret = 0;
+        goto exit;
+    }
 
     exit:
         mbedtls_free( check_tag );
@@ -718,6 +725,7 @@ static inline int cmac_test_wth_cipher( int verbose,
                 mbedtls_printf( "failed\n" );
             goto exit;
         }
+
         if( ( ret = memcmp( tag, &expected_result[i * block_size], block_size ) ) != 0 )
         {
             if( verbose != 0 )
@@ -731,7 +739,9 @@ static inline int cmac_test_wth_cipher( int verbose,
                  mbedtls_printf( "failed\n" );
              goto exit;
         }
-        mbedtls_printf( "passed\n" );
+
+        if( verbose != 0 )
+            mbedtls_printf( "passed\n" );
     }
     exit:
         mbedtls_free( tag );

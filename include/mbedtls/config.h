@@ -2798,7 +2798,26 @@
 //#define MBEDTLS_SSL_CACHE_DEFAULT_MAX_ENTRIES      50 /**< Maximum entries in cache */
 
 /* SSL options */
-//#define MBEDTLS_SSL_MAX_CONTENT_LEN             16384 /**< Maxium fragment length in bytes, determines the size of each of the two internal I/O buffers */
+//#define MBEDTLS_SSL_MAX_CONTENT_LEN             16384 /**< Maximum fragment length in bytes, determines the size of each of the two internal I/O buffers */
+
+//#define MBEDTLS_SSL_IN_CONTENT_LEN              16384 /**< Optionally override MBEDTLS_SSL_MAX_CONTENT_LEN for the inward TLS buffer only. */
+
+/**
+ * It is possible to save RAM by setting a smaller outward buffer using
+ * MBEDTLS_SSL_OUT_CONTENT_LEN, while keeping the default inward 16384 byte
+ * buffer to conform to the TLS specification.
+ *
+ * The minimum required outgoing buffer size is determined by the handshake
+ * protocol's usage. 4096 bytes is usually adequate.
+ *
+ * (Using the RFC 6066 max_fragment_length extension is a better alternative to
+ * setting this, if both ends of the connection support that extension. If using
+ * max_fragment_length then you should just set MBEDTLS_SSL_MAX_CONTENT_LEN,
+ * rather than separate inward/outward sizes, as the connection will be
+ * negotiated to use the smallest buffer size.)
+ */
+//#define MBEDTLS_SSL_OUT_CONTENT_LEN             16384 /**< Optionally override MBEDTLS_SSL_MAX_CONTENT_LEN for the outward TLS buffer only. */
+
 //#define MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME     86400 /**< Lifetime of session tickets (if enabled) */
 //#define MBEDTLS_PSK_MAX_LEN               32 /**< Max size of TLS pre-shared keys, in bytes (default 256 bits) */
 //#define MBEDTLS_SSL_COOKIE_TIMEOUT        60 /**< Default expiration delay of DTLS cookies, in seconds if HAVE_TIME, or in number of cookies issued */

@@ -18,6 +18,9 @@ Features
      ECDH primitive functions (mbedtls_ecdh_gen_public(),
      mbedtls_ecdh_compute_shared()) are supported for now. Contributed by
      Nicholas Wilson (#348).
+   * Allow options MBEDTLS_SSL_IN_CONTENT_LEN and MBEDTLS_SSL_OUT_CONTENT_LEN in
+     order to support (optional) asymmetric in/out ssl buffer lengths for RAM
+     conservation. Suggested and contributed by projectgus in #536.
 
 API Changes
    * Add function mbedtls_net_poll to public API allowing to wait for a

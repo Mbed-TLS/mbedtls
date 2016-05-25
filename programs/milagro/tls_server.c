@@ -33,8 +33,8 @@
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
 #define mbedtls_free       free
 #define mbedtls_time       time
 #define mbedtls_time_t     time_t
@@ -55,6 +55,8 @@ int main( void )
 }
 #else
 
+#include <string.h>
+
 #include "mbedtls/net.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/entropy.h"
@@ -62,10 +64,6 @@ int main( void )
 #include "mbedtls/error.h"
 #include "mbedtls/debug.h"
 #include "mbedtls/timing.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && defined(MBEDTLS_FS_IO)
 #define SNI_OPTION

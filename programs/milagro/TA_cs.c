@@ -24,11 +24,11 @@
   *
   */
 
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <time.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+
 #include "mpin.h"
 #include "mbedtls/config.h"
 #include "mbedtls/milagro.h"

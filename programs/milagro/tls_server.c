@@ -38,9 +38,10 @@
 #define mbedtls_free       free
 #define mbedtls_time       time
 #define mbedtls_time_t     time_t
-#define mbedtls_calloc    calloc
+#define mbedtls_calloc     calloc
 #define mbedtls_fprintf    fprintf
 #define mbedtls_printf     printf
+#define mbedtls_sprintf    sprintf
 #endif
 
 #if !defined(MBEDTLS_ENTROPY_C) || \
@@ -743,7 +744,7 @@ data_exchange:
     mbedtls_printf( "  > Write to client:" );
     fflush( stdout );
 
-    len = sprintf( (char *) buf, HTTP_RESPONSE );
+    len = mbedtls_sprintf( (char *) buf, HTTP_RESPONSE );
 
 
     for( written = 0, frags = 0; written < len; written += ret, frags++ )

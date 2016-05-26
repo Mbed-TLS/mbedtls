@@ -29,6 +29,18 @@
 #ifndef milagro_h
 #define milagro_h
 
+#if defined(MBEDTLS_PLATFORM_C)
+#include "mbedtls/platform.h"
+#else
+#include <stdio.h>
+#include <time.h>
+#define mbedtls_printf printf
+#define mbedtls_calloc calloc
+#define mbedtls_free   free
+#define mbedtls_time    time
+#define mbedtls_time_t  time_t
+#endif
+
 #include "mpin.h"
 #include "utils.h"
 #include "wcc.h"

@@ -40,6 +40,7 @@
 #define mbedtls_calloc     calloc
 #define mbedtls_fprintf    fprintf
 #define mbedtls_printf     printf
+#define mbedtls_snprintf   snprintf
 #endif
 
 #if !defined(MBEDTLS_ENTROPY_C) || \

@@ -776,7 +776,7 @@
  *
  * Requires: MBEDTLS_BIGNUM_C
  */
-//#define MBEDTLS_GENPRIME
+#define MBEDTLS_GENPRIME
 
 /**
  * \def MBEDTLS_FS_IO
@@ -2162,7 +2162,7 @@
  *
  * This module enables abstraction of common (libc) functions.
  */
-//#define MBEDTLS_PLATFORM_C
+#define MBEDTLS_PLATFORM_C
 
 /**
  * \def MBEDTLS_RIPEMD160_C

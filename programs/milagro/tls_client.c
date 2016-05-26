@@ -32,14 +32,15 @@
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
 #define mbedtls_free       free
 #define mbedtls_time       time
 #define mbedtls_time_t     time_t
-#define mbedtls_calloc    calloc
+#define mbedtls_calloc     calloc
 #define mbedtls_fprintf    fprintf
 #define mbedtls_printf     printf
+#define mbedtls_snprintf   snprintf
 #endif
 
 #if !defined(MBEDTLS_ENTROPY_C) || \
@@ -54,6 +55,8 @@ int main( void )
 }
 #else
 
+#include <string.h>
+
 #include "mbedtls/net.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/entropy.h"
@@ -61,10 +64,6 @@ int main( void )
 #include "mbedtls/error.h"
 #include "mbedtls/debug.h"
 #include "mbedtls/timing.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && defined(MBEDTLS_FS_IO)
 #define SNI_OPTION
@@ -517,14 +516,12 @@ int main( int argc, char *argv[] )
     }
     
 
-    
+#if defined(MBEDTLS_MILAGRO_CS_C)
     if(got_milagro_cs_ciphersuite>0)
     {
         /*
          * 3.5 Setup MILAGRO_CS parameters
          */
-    
-#if defined(MBEDTLS_MILAGRO_CS_C)
     
         mbedtls_printf( "  . Setting up MILAGRO_CS parameters..." );
         fflush( stdout );
@@ -554,9 +551,8 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_set_milagro_cs(ssl.handshake, &milagro_cs);
     
         mbedtls_printf( " ok\n" );
-    }
+        }
 #endif /* MBEDTLS_MILAGRO_CS_C */
-    
     
 #if defined(MBEDTLS_MILAGRO_P2P_C)
     if(got_milagro_p2p_ciphersuite>0)

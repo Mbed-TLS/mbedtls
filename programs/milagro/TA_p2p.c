@@ -24,10 +24,10 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <time.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include "wcc.h"
 
 #define mbedtls_milagro_p2p_create_csprng WCC_CREATE_CSPRNG

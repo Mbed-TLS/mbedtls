@@ -1,0 +1,57 @@
+/* BEGIN_HEADER */
+#include "mbedtls/milagro.h"
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_MILAGRO_CS_C:MBEDTLS_MILAGRO_CS_TIME_PERMITS
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void milagro_cs_do_milagro_cs( char *client_identity, char *time_permit,
+                               char *client_secret, char *server_secret )
+{
+    /*
+     * Initializate parameters
+     */
+    mbedtls_milagro_cs_context milagro_cs_client;
+    mbedtls_milagro_cs_context milagro_cs_server;
+    mbedtls_milagro_cs_init(&milagro_cs_client);
+    mbedtls_milagro_cs_init(&milagro_cs_client);
+
+    /*
+     * Set external inputs
+     */
+    mbedtls_milagro_cs_set_secret(&milagro_cs_client, client_secret, 2*PFS+1);
+    mbedtls_milagro_cs_set_secret(&milagro_cs_server, server_secret, 4*PFS);
+    mbedtls_milagro_cs_set_client_identity (&milagro_cs_client, client_identity);
+    mbedtls_milagro_cs_set_timepermit(&milagro_cs_client, time_permit, 2*PFS+1);
+
+    /*
+     * Allocate memory and generation parameters from client's side
+     */
+
+    TEST_ASSERT( mbedtls_milagro_cs_alloc_memory(MBEDTLS_MILAGRO_IS_CLIENT, &milagro_cs_client) == 0 );
+    TEST_ASSERT( mbedtls_milagro_cs_alloc_memory(MBEDTLS_MILAGRO_IS_SERVER, &milagro_cs_server) == 0 );
+    int a;
+    /*
+     * Exchange parameters
+     */
+    //milagro_cs_server.UT = milagro_cs_client.UT;
+    //milagro_cs_server.V = milagro_cs_client.V;
+    //milagro_cs_server.timevalue = milagro_cs_server.timevalue;
+    //milagro_cs_server.hash_client_id = milagro_cs_client.hash_client_id;
+
+    /*
+     * Client's authentication from server'side
+     */
+    //TEST_ASSERT( mbedtls_milagro_cs_authenticate_client(&milagro_cs_server) == 0 );
+
+//exit:
+   //mbedtls_milagro_cs_free( &milagro_cs_client );
+   //mbedtls_milagro_cs_free( &milagro_cs_server );
+}
+/* END_CASE */
+
+
+

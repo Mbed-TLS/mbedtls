@@ -34,6 +34,7 @@
 #include "mbedtls/platform.h"
 #else
 #define mbedtls_snprintf snprintf
+#define mbedtls_time_t   time_t
 #endif
 
 #if defined(MBEDTLS_ERROR_C)

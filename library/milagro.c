@@ -36,6 +36,7 @@
 
 #include "mbedtls/milagro.h"
 
+#if defined(MBEDTLS_MILAGRO_CS_C) || defined(MBEDTLS_MILAGRO_P2P_C)
 
 void* mbedtls_milagro_calloc(size_t nbytes)
 {
@@ -64,7 +65,7 @@ void mbedtls_milagro_free_octet(octet *to_be_freed)
     }
 }
 
-
+#endif /* defined(MBEDTLS_MILAGRO_CS_C) || defined(MBEDTLS_MILAGRO_P2P_C) */
 
 #if defined(MBEDTLS_MILAGRO_CS_C)
 
@@ -273,10 +274,6 @@ int mbedtls_milagro_cs_read_client_parameters( mbedtls_milagro_cs_context *milag
 int mbedtls_milagro_cs_authenticate_client( mbedtls_milagro_cs_context *milagro_cs )
 {
     int ret = 0;
-#if defined(MBEDTLS_MILAGRO_CS_TIME_PERMITS)
-    milagro_cs->date=mbedtls_milagro_cs_today();
-#endif
-    
     if ( mbedtls_milagro_cs_server(milagro_cs->date,&milagro_cs->HID,&milagro_cs->HTID,&milagro_cs->Y,&milagro_cs->secret,&milagro_cs->U,
                      &milagro_cs->UT,&milagro_cs->V,NULL,NULL,&milagro_cs->hash_client_id,NULL,milagro_cs->timevalue) != 0)
     {
@@ -378,6 +375,92 @@ int mbedtls_milagro_cs_read_public_parameter( int client_or_server, mbedtls_mila
     return 0;
 }
 
+#if defined(MBEDTLS_SSL_CLI_C)
+int mbedtls_milagro_cs_share_secret_cli(mbedtls_milagro_cs_context *milagro_cs)
+{
+    int ret = 0;
+    char g1[12*PFS],g2[12*PFS];
+    octet G1={0,sizeof(g1),g1}, G2={0,sizeof(g2),g2};
+    
+    mbedtls_milagro_cs_hash_all(&milagro_cs->hash_client_id,
+                                &milagro_cs->U,
+                                &milagro_cs->UT,
+                                &milagro_cs->Y,
+                                &milagro_cs->V,
+                                &milagro_cs->R,
+                                &milagro_cs->W,
+                                &milagro_cs->H);
+    
+    if ( (ret = mbedtls_milagro_cs_precompute(&milagro_cs->secret,
+                                              &milagro_cs->hash_client_id,
+                                              &G1,&G2) ) != 0)
+    {
+        return (MBEDTLS_ERR_MILAGRO_CS_KEY_COMPUTATOIN_FAILED);
+    }
+    
+    if ( (ret = mbedtls_milagro_cs_client_key(&G1,&G2,milagro_cs->pin,
+                                              &milagro_cs->param_rand,
+                                              &milagro_cs->X,
+                                              &milagro_cs->H,
+                                              &milagro_cs->W,
+                                              &milagro_cs->Key) ) != 0)
+    {
+        return (MBEDTLS_ERR_MILAGRO_CS_KEY_COMPUTATOIN_FAILED);
+    }
+
+    
+    return 0;
+}
+#endif /* MBEDTLS_SSL_CLI_C */
+
+#if defined(MBEDTLS_SSL_SRV_C)
+
+int mbedtls_milagro_cs_share_secret_srv(mbedtls_milagro_cs_context *milagro_cs)
+{
+    int ret = 0;
+    
+    mbedtls_milagro_cs_hash_all(&milagro_cs->hash_client_id,
+                                &milagro_cs->U,
+                                &milagro_cs->UT,
+                                &milagro_cs->Y,
+                                &milagro_cs->V,
+                                &milagro_cs->R,
+                                &milagro_cs->W,
+                                &milagro_cs->H);
+    
+    milagro_cs->R.max = 2*PGS+1;
+    milagro_cs->UT.max = 2*PGS+1;
+    milagro_cs->param_rand.max = PGS;
+    milagro_cs->secret.max = 4*PGS;
+    
+#if defined(MBEDTLS_MILAGRO_CS_TIME_PERMITS)
+    ret = mbedtls_milagro_cs_server_key(&milagro_cs->R,
+                                        &milagro_cs->secret,
+                                        &milagro_cs->param_rand,
+                                        &milagro_cs->H,
+                                        &milagro_cs->HID,
+                                        NULL,
+                                        &milagro_cs->UT,
+                                        &milagro_cs->Key);
+#else
+    ret = mbedtls_milagro_cs_server_key(&milagro_cs->R,
+                                        &milagro_cs->secret,
+                                        &milagro_cs->param_rand,
+                                        &milagro_cs->H,
+                                        &milagro_cs->HID,
+                                        &milagro_cs->U,
+                                        NULL,
+                                        &milagro_cs->Key);
+#endif
+    if ( ret != 0)
+    {
+        return (MBEDTLS_ERR_MILAGRO_CS_KEY_COMPUTATOIN_FAILED);
+    }
+    
+    return 0;
+}
+
+#endif /* #if MBEDTLS_SSL_SRV_C */
 
 void mbedtls_milagro_cs_free( mbedtls_milagro_cs_context *milagro_cs)
 {
@@ -666,6 +749,87 @@ int mbedtls_milagro_p2p_read_public_parameters( int client_or_server, mbedtls_mi
     return 0;
 }
 
+int mbedtls_milagro_p2p_share_secret_cli(mbedtls_milagro_p2p_context *milagro_p2p)
+{
+    mbedtls_milagro_p2p_alloc_memory(MBEDTLS_MILAGRO_IS_CLIENT, milagro_p2p);
+    if(mbedtls_milagro_p2p_random_generate(&milagro_p2p->RNG ,
+                                           &milagro_p2p->W) != 0)
+    {
+        return (MBEDTLS_ERR_MILAGRO_P2P_PARAMETERS_COMPUTATOIN_FAILED);
+    }
+    if( mbedtls_milagro_p2p_get_g1_multiple(hashDoneOFF,&milagro_p2p->W,
+                                            &milagro_p2p->server_identity,
+                                            &milagro_p2p->client_pub_param_G1) != 0)
+    {
+        return (MBEDTLS_ERR_MILAGRO_P2P_PARAMETERS_COMPUTATOIN_FAILED);
+    }
+    if(mbedtls_milagro_p2p_random_generate(&milagro_p2p->RNG ,
+                                           &milagro_p2p->Y) != 0)
+    {
+        return (MBEDTLS_ERR_MILAGRO_P2P_PARAMETERS_COMPUTATOIN_FAILED);
+    }
+    if(mbedtls_milagro_p2p_get_g2_multiple(hashDoneOFF,&milagro_p2p->Y,
+                                           &milagro_p2p->client_identity,
+                                           &milagro_p2p->client_pub_param_G2) != 0)
+    {
+        return (MBEDTLS_ERR_MILAGRO_P2P_PARAMETERS_COMPUTATOIN_FAILED);
+    }
+    mbedtls_milagro_p2p_hq(&milagro_p2p->server_pub_param_G1,
+                           &milagro_p2p->client_pub_param_G2,
+                           &milagro_p2p->client_pub_param_G1,
+                           &milagro_p2p->client_identity,
+                           &milagro_p2p->client_PIA);
+    mbedtls_milagro_p2p_hq(&milagro_p2p->client_pub_param_G2,
+                           &milagro_p2p->server_pub_param_G1,
+                           &milagro_p2p->client_pub_param_G1,
+                           &milagro_p2p->server_identity,
+                           &milagro_p2p->client_PIB);
+    if (mbedtls_milagro_p2p_receiver_key(milagro_p2p->date,
+                                         &milagro_p2p->Y,
+                                         &milagro_p2p->W,
+                                         &milagro_p2p->client_PIA,
+                                         &milagro_p2p->client_PIB,
+                                         &milagro_p2p->server_pub_param_G1,
+                                         &milagro_p2p->client_pub_param_G1,
+                                         &milagro_p2p->client_rec_key, NULL,
+                                         &milagro_p2p->server_identity,
+                                         &milagro_p2p->shared_secret) != 0)
+    {
+        return (MBEDTLS_ERR_MILAGRO_P2P_MSECRET_COMPUTATOIN_FAILED);
+    }
+
+    return 0;
+}
+
+int mbedtls_milagro_p2p_share_secret_srv(mbedtls_milagro_p2p_context *milagro_p2p)
+{
+    mbedtls_milagro_p2p_hq(&milagro_p2p->server_pub_param_G1,
+                           &milagro_p2p->client_pub_param_G2,
+                           &milagro_p2p->client_pub_param_G1,
+                           &milagro_p2p->client_identity,
+                           &milagro_p2p->client_PIA);
+    
+    mbedtls_milagro_p2p_hq(&milagro_p2p->client_pub_param_G2,
+                           &milagro_p2p->server_pub_param_G1,
+                           &milagro_p2p->client_pub_param_G1,
+                           &milagro_p2p->server_identity,
+                           &milagro_p2p->client_PIB);
+    
+    if (mbedtls_milagro_p2p_sender_key(milagro_p2p->date,
+                                       &milagro_p2p->X,
+                                       &milagro_p2p->client_PIA,
+                                       &milagro_p2p->client_PIB,
+                                       &milagro_p2p->client_pub_param_G2,
+                                       &milagro_p2p->client_pub_param_G1,
+                                       &milagro_p2p->server_sen_key, NULL,
+                                       &milagro_p2p->client_identity,
+                                       &milagro_p2p->shared_secret) != 0)
+    {
+        return (MBEDTLS_ERR_MILAGRO_P2P_MSECRET_COMPUTATOIN_FAILED);
+    }
+    
+    return 0;
+}
 
 void mbedtls_milagro_p2p_free( mbedtls_milagro_p2p_context *milagro_p2p)
 {
@@ -687,9 +851,5 @@ void mbedtls_milagro_p2p_free( mbedtls_milagro_p2p_context *milagro_p2p)
     mbedtls_milagro_free_octet(&milagro_p2p->Y);
     mbedtls_milagro_p2p_kill_csprng(&milagro_p2p->RNG);
 }
-
-
-
-
 
 #endif /* MBEDTLS_MILAGRO_P2P_C */

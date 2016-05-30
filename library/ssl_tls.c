@@ -1097,65 +1097,18 @@ int mbedtls_milagro_cs_derive_premaster(int client_or_server, mbedtls_ssl_contex
     
     if( key_ex == MBEDTLS_KEY_EXCHANGE_MILAGRO_CS )
     {
-        mbedtls_milagro_cs_hash_all(&ssl->handshake->milagro_cs->hash_client_id,
-                                    &ssl->handshake->milagro_cs->U,
-                                    &ssl->handshake->milagro_cs->UT,
-                                    &ssl->handshake->milagro_cs->Y,
-                                    &ssl->handshake->milagro_cs->V,
-                                    &ssl->handshake->milagro_cs->R,
-                                    &ssl->handshake->milagro_cs->W,
-                                    &ssl->handshake->milagro_cs->H);
-        
         if (client_or_server == MBEDTLS_SSL_IS_SERVER)
         {
-            ssl->handshake->milagro_cs->R.max = 65;
-            ssl->handshake->milagro_cs->UT.max = 65;
-            ssl->handshake->milagro_cs->param_rand.max = 32;
-            ssl->handshake->milagro_cs->secret.max = 128;
-            
-#if defined(MBEDTLS_MILAGRO_CS_TIME_PERMITS)
-            ret = mbedtls_milagro_cs_server_key(&ssl->handshake->milagro_cs->R,
-                                                &ssl->handshake->milagro_cs->secret,
-                                                &ssl->handshake->milagro_cs->param_rand,
-                                                &ssl->handshake->milagro_cs->H,
-                                                &ssl->handshake->milagro_cs->HID,
-                                                NULL,
-                                                &ssl->handshake->milagro_cs->UT,
-                                                &ssl->handshake->milagro_cs->Key);
-#else
-            ret = mbedtls_milagro_cs_server_key(&ssl->handshake->milagro_cs->R,
-                                                &ssl->handshake->milagro_cs->secret,
-                                                &ssl->handshake->milagro_cs->param_rand,
-                                                &ssl->handshake->milagro_cs->H,
-                                                &ssl->handshake->milagro_cs->HID,
-                                                &ssl->handshake->milagro_cs->U,
-                                                NULL,
-                                                &ssl->handshake->milagro_cs->Key);
-#endif
-            if ( ret != 0)
+            if ( (ret = mbedtls_milagro_cs_share_secret_srv(ssl->handshake->milagro_cs)) != 0 )
             {
-                return (MBEDTLS_ERR_MILAGRO_CS_KEY_COMPUTATOIN_FAILED);
+                return ret;
             }
         }
         else if (client_or_server == MBEDTLS_SSL_IS_CLIENT)
         {
-            char g1[12*PFS],g2[12*PFS];
-            octet G1={0,sizeof(g1),g1}, G2={0,sizeof(g2),g2};
-            if ( (ret = mbedtls_milagro_cs_precompute(&ssl->handshake->milagro_cs->secret,
-                                        &ssl->handshake->milagro_cs->hash_client_id,
-                                        &G1,&G2) ) != 0)
+            if ( (ret = mbedtls_milagro_cs_share_secret_cli(ssl->handshake->milagro_cs)) != 0 )
             {
-                return (MBEDTLS_ERR_MILAGRO_CS_KEY_COMPUTATOIN_FAILED);
-            }
-            
-            if ( (ret = mbedtls_milagro_cs_client_key(&G1,&G2,ssl->handshake->milagro_cs->pin,
-                                                      &ssl->handshake->milagro_cs->param_rand,
-                                                      &ssl->handshake->milagro_cs->X,
-                                                      &ssl->handshake->milagro_cs->H,
-                                                      &ssl->handshake->milagro_cs->W,
-                                                      &ssl->handshake->milagro_cs->Key) ) != 0)
-            {
-                return (MBEDTLS_ERR_MILAGRO_CS_KEY_COMPUTATOIN_FAILED);
+                return ret;
             }
         }
         else
@@ -1193,6 +1146,7 @@ int mbedtls_milagro_p2p_derive_premaster(int client_or_server,
                                              mbedtls_ssl_context *ssl,
                                              mbedtls_key_exchange_type_t key_ex )
 {
+    int ret = 0;
     unsigned char *p = ssl->handshake->premaster;
     unsigned char *end = p + sizeof( ssl->handshake->premaster );
     size_t key_len;
@@ -1201,79 +1155,16 @@ int mbedtls_milagro_p2p_derive_premaster(int client_or_server,
     {
         if (client_or_server == MBEDTLS_SSL_IS_SERVER)
         {
-            mbedtls_milagro_p2p_hq(&ssl->handshake->milagro_p2p->server_pub_param_G1,
-                                   &ssl->handshake->milagro_p2p->client_pub_param_G2,
-                                   &ssl->handshake->milagro_p2p->client_pub_param_G1,
-                                   &ssl->handshake->milagro_p2p->client_identity,
-                                   &ssl->handshake->milagro_p2p->client_PIA);
-            
-            mbedtls_milagro_p2p_hq(&ssl->handshake->milagro_p2p->client_pub_param_G2,
-                                   &ssl->handshake->milagro_p2p->server_pub_param_G1,
-                                   &ssl->handshake->milagro_p2p->client_pub_param_G1,
-                                   &ssl->handshake->milagro_p2p->server_identity,
-                                   &ssl->handshake->milagro_p2p->client_PIB);
-            
-            if (mbedtls_milagro_p2p_sender_key(ssl->handshake->milagro_p2p->date,
-                                               &ssl->handshake->milagro_p2p->X,
-                                               &ssl->handshake->milagro_p2p->client_PIA,
-                                               &ssl->handshake->milagro_p2p->client_PIB,
-                                               &ssl->handshake->milagro_p2p->client_pub_param_G2,
-                                               &ssl->handshake->milagro_p2p->client_pub_param_G1,
-                                               &ssl->handshake->milagro_p2p->server_sen_key, NULL,
-                                               &ssl->handshake->milagro_p2p->client_identity,
-                                               &ssl->handshake->milagro_p2p->shared_secret) != 0)
+            if ( (ret = mbedtls_milagro_p2p_share_secret_srv(ssl->handshake->milagro_p2p)) != 0 )
             {
-                return (MBEDTLS_ERR_MILAGRO_P2P_MSECRET_COMPUTATOIN_FAILED);
+                return ret;
             }
         }
         else if (client_or_server == MBEDTLS_SSL_IS_CLIENT)
         {
-            mbedtls_milagro_p2p_alloc_memory(MBEDTLS_SSL_IS_CLIENT,
-                                                 ssl->handshake->milagro_p2p);
-            if(mbedtls_milagro_p2p_random_generate(&ssl->handshake->milagro_p2p->RNG ,
-                                                   &ssl->handshake->milagro_p2p->W) != 0)
+            if ( (ret = mbedtls_milagro_p2p_share_secret_cli(ssl->handshake->milagro_p2p)) != 0 )
             {
-                return (MBEDTLS_ERR_MILAGRO_P2P_PARAMETERS_COMPUTATOIN_FAILED);
-            }
-            if( mbedtls_milagro_p2p_get_g1_multiple(hashDoneOFF,&ssl->handshake->milagro_p2p->W,
-                                                    &ssl->handshake->milagro_p2p->server_identity,
-                                                    &ssl->handshake->milagro_p2p->client_pub_param_G1) != 0)
-            {
-                return (MBEDTLS_ERR_MILAGRO_P2P_PARAMETERS_COMPUTATOIN_FAILED);
-            }
-            if(mbedtls_milagro_p2p_random_generate(&ssl->handshake->milagro_p2p->RNG ,
-                                                   &ssl->handshake->milagro_p2p->Y) != 0)
-            {
-                return (MBEDTLS_ERR_MILAGRO_P2P_PARAMETERS_COMPUTATOIN_FAILED);
-            }
-            if(mbedtls_milagro_p2p_get_g2_multiple(hashDoneOFF,&ssl->handshake->milagro_p2p->Y,
-                                                   &ssl->handshake->milagro_p2p->client_identity,
-                                                   &ssl->handshake->milagro_p2p->client_pub_param_G2) != 0)
-            {
-                return (MBEDTLS_ERR_MILAGRO_P2P_PARAMETERS_COMPUTATOIN_FAILED);
-            }
-            mbedtls_milagro_p2p_hq(&ssl->handshake->milagro_p2p->server_pub_param_G1,
-                                   &ssl->handshake->milagro_p2p->client_pub_param_G2,
-                                   &ssl->handshake->milagro_p2p->client_pub_param_G1,
-                                   &ssl->handshake->milagro_p2p->client_identity,
-                                   &ssl->handshake->milagro_p2p->client_PIA);
-            mbedtls_milagro_p2p_hq(&ssl->handshake->milagro_p2p->client_pub_param_G2,
-                                   &ssl->handshake->milagro_p2p->server_pub_param_G1,
-                                   &ssl->handshake->milagro_p2p->client_pub_param_G1,
-                                   &ssl->handshake->milagro_p2p->server_identity,
-                                   &ssl->handshake->milagro_p2p->client_PIB);
-            if (mbedtls_milagro_p2p_receiver_key(ssl->handshake->milagro_p2p->date,
-                                                 &ssl->handshake->milagro_p2p->Y,
-                                                 &ssl->handshake->milagro_p2p->W,
-                                                 &ssl->handshake->milagro_p2p->client_PIA,
-                                                 &ssl->handshake->milagro_p2p->client_PIB,
-                                                 &ssl->handshake->milagro_p2p->server_pub_param_G1,
-                                                 &ssl->handshake->milagro_p2p->client_pub_param_G1,
-                                                 &ssl->handshake->milagro_p2p->client_rec_key, NULL,
-                                                 &ssl->handshake->milagro_p2p->server_identity,
-                                                 &ssl->handshake->milagro_p2p->shared_secret) != 0)
-            {
-                return (MBEDTLS_ERR_MILAGRO_P2P_MSECRET_COMPUTATOIN_FAILED);
+                return ret;
             }
         }
         else

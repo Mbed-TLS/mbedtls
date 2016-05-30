@@ -8,7 +8,7 @@
  */
 
 /* BEGIN_CASE */
-void milagro_cs_do_milagro_cs( char *client_identity, char *time_permit,
+void milagro_cs_do_milagro_cs( char *client_identity, unsign32 date, char *time_permit,
                                char *client_secret, char *server_secret )
 {
     /*
@@ -16,40 +16,118 @@ void milagro_cs_do_milagro_cs( char *client_identity, char *time_permit,
      */
     mbedtls_milagro_cs_context milagro_cs_client;
     mbedtls_milagro_cs_context milagro_cs_server;
-    mbedtls_milagro_cs_init(&milagro_cs_client);
-    mbedtls_milagro_cs_init(&milagro_cs_client);
-
+    memset(&milagro_cs_client,0,sizeof(milagro_cs_client));
+    memset(&milagro_cs_server,0,sizeof(milagro_cs_server));
+#if defined(MBEDTLS_MILAGRO_CS_TIME_PERMITS)
+    milagro_cs_client.date = date;
+    milagro_cs_server.date = date;
+#endif
+    
     /*
      * Set external inputs
      */
-    mbedtls_milagro_cs_set_secret(&milagro_cs_client, client_secret, 2*PFS+1);
-    mbedtls_milagro_cs_set_secret(&milagro_cs_server, server_secret, 4*PFS);
+    
+    char *cs_client_key = mbedtls_milagro_calloc(2*PFS+1);
+    char *cs_client_tp = mbedtls_milagro_calloc(2*PFS+1);
+    char *cs_server_key = mbedtls_milagro_calloc(4*PFS);
+    int tmp1,tmp2;
+    for (int i = 0; i < strlen(client_secret)/2; i++){
+        sscanf(&client_secret[i * 2], "%02x", &tmp1);
+        cs_client_key[i] = tmp1;
+        sscanf(&time_permit[i * 2], "%02x", &tmp2);
+        cs_client_tp[i] = tmp2;
+    }
+    for (int i = 0; i < strlen(server_secret)/2; i++){
+        sscanf(&server_secret[i * 2], "%02x", &tmp1);
+        cs_server_key[i] = tmp1;
+    }
+    mbedtls_milagro_cs_set_secret(&milagro_cs_client, cs_client_key, 2*PFS+1);
+    mbedtls_milagro_cs_set_secret(&milagro_cs_server, cs_server_key, 4*PFS);
     mbedtls_milagro_cs_set_client_identity (&milagro_cs_client, client_identity);
-    mbedtls_milagro_cs_set_timepermit(&milagro_cs_client, time_permit, 2*PFS+1);
-
+    mbedtls_milagro_cs_set_timepermit(&milagro_cs_client, cs_client_tp, 2*PFS+1);
+    mbedtls_free(cs_client_key); mbedtls_free(cs_server_key); mbedtls_free(cs_client_tp);
+    
+    /*
+     * Setup random generator (fake entropy)
+     */
+    
+    char seed[32] = {0};
+    octet SEED = {0,sizeof(seed),seed};
+    SEED.len=32;
+    for (int i=0;i<32;i++) SEED.val[i]=i+1;
+    mbedtls_milagro_cs_create_csprng(&milagro_cs_client.RNG,&SEED);
+    mbedtls_milagro_cs_create_csprng(&milagro_cs_server.RNG,&SEED);
+    
     /*
      * Allocate memory and generation parameters from client's side
      */
-
     TEST_ASSERT( mbedtls_milagro_cs_alloc_memory(MBEDTLS_MILAGRO_IS_CLIENT, &milagro_cs_client) == 0 );
     TEST_ASSERT( mbedtls_milagro_cs_alloc_memory(MBEDTLS_MILAGRO_IS_SERVER, &milagro_cs_server) == 0 );
-    int a;
     /*
      * Exchange parameters
      */
-    //milagro_cs_server.UT = milagro_cs_client.UT;
-    //milagro_cs_server.V = milagro_cs_client.V;
-    //milagro_cs_server.timevalue = milagro_cs_server.timevalue;
-    //milagro_cs_server.hash_client_id = milagro_cs_client.hash_client_id;
-
+    milagro_cs_server.hash_client_id.val = mbedtls_milagro_calloc(milagro_cs_client.hash_client_id.len);
+    milagro_cs_server.U.val = mbedtls_milagro_calloc(milagro_cs_client.U.len);
+    milagro_cs_server.UT.val = mbedtls_milagro_calloc(milagro_cs_client.UT.len);
+    milagro_cs_server.V.val = mbedtls_milagro_calloc(milagro_cs_client.V.len);
+    memcpy(milagro_cs_server.hash_client_id.val,milagro_cs_client.hash_client_id.val,milagro_cs_client.hash_client_id.len);
+    memcpy(milagro_cs_server.UT.val,milagro_cs_client.UT.val,milagro_cs_client.UT.len);
+    memcpy(milagro_cs_server.U.val,milagro_cs_client.U.val,milagro_cs_client.U.len);
+    memcpy(milagro_cs_server.V.val,milagro_cs_client.V.val,milagro_cs_client.V.len);
+    milagro_cs_server.hash_client_id.len = milagro_cs_client.hash_client_id.len;
+    milagro_cs_server.U.len = milagro_cs_client.U.len;
+    milagro_cs_server.UT.len = milagro_cs_client.UT.len;
+    milagro_cs_server.V.len = milagro_cs_client.V.len;
+    milagro_cs_server.timevalue = milagro_cs_server.timevalue;
+    
     /*
-     * Client's authentication from server'side
+     * Client's authentication at server'side
      */
-    //TEST_ASSERT( mbedtls_milagro_cs_authenticate_client(&milagro_cs_server) == 0 );
+    TEST_ASSERT( mbedtls_milagro_cs_authenticate_client(&milagro_cs_server) == 0 );
+    
+    /*
+     * Compute public parameters
+     */
+    
+    TEST_ASSERT( mbedtls_milagro_cs_get_g1_multiple(&milagro_cs_client.RNG,1,&milagro_cs_client.param_rand,
+                                           &milagro_cs_client.hash_client_id,&milagro_cs_client.R) == 0 );
+#if defined(MBEDTLS_MILAGRO_CS_TIME_PERMITS)
+    TEST_ASSERT( mbedtls_milagro_cs_get_g1_multiple(&milagro_cs_server.RNG,0,&milagro_cs_server.param_rand,
+                                           &milagro_cs_server.HTID,&milagro_cs_server.W) == 0 );
+#else
+    TEST_ASSERT( mbedtls_milagro_cs_get_g1_multiple(&milagro_cs_server.RNG,0,&milagro_cs_server.param_rand,
+                                           &milagro_cs_server.HID,&milagro_cs_server.W) == 0 );
+#endif
+    
+    /*
+     * Exchange public parameters
+     */
+    milagro_cs_client.W.val = mbedtls_milagro_calloc(milagro_cs_server.W.len);
+    milagro_cs_client.W.len = milagro_cs_server.W.len;
+    memcpy(milagro_cs_client.W.val, milagro_cs_server.W.val, milagro_cs_server.W.len);
+    milagro_cs_server.R.val = mbedtls_milagro_calloc(milagro_cs_client.R.len);
+    milagro_cs_server.R.len = milagro_cs_client.R.len;
+    memcpy(milagro_cs_server.R.val, milagro_cs_client.R.val, milagro_cs_client.R.len);
+    /*
+     * Compute shared secret
+     */
+    TEST_ASSERT( mbedtls_milagro_cs_share_secret_srv(&milagro_cs_server) == 0 );
+    TEST_ASSERT( mbedtls_milagro_cs_share_secret_cli(&milagro_cs_client) == 0 );
+    
+    int value_eq_key = 0;
+    for (int i = 0; i<milagro_cs_client.Key.len; i++)
+    {
+        if (milagro_cs_client.Key.val[i] != milagro_cs_server.Key.val[i])
+        {
+            eq = -1; break;
+        }
+    }
 
-//exit:
-   //mbedtls_milagro_cs_free( &milagro_cs_client );
-   //mbedtls_milagro_cs_free( &milagro_cs_server );
+    TEST_ASSERT( value_eq_key == 0 );
+    
+    exit:
+    mbedtls_milagro_cs_free( &milagro_cs_client );
+    mbedtls_milagro_cs_free( &milagro_cs_server );
 }
 /* END_CASE */
 

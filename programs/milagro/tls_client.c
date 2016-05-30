@@ -247,16 +247,16 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_session saved_session;
     const int *ciphersuites;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
-    char *cs_client_key;
-    char *cs_tp;
-    char *p2p_client_key;
     int got_milagro_cs_ciphersuite;
     int got_milagro_p2p_ciphersuite;
 #if defined(MBEDTLS_MILAGRO_CS_C)
     mbedtls_milagro_cs_context milagro_cs;
+    char *cs_client_key;
+    char *cs_tp;
 #endif
 #if defined(MBEDTLS_MILAGRO_P2P_C)
     mbedtls_milagro_p2p_context milagro_p2p;
+    char *p2p_client_key;
 #endif
     
     char *p, *q;

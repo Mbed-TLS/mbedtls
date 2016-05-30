@@ -81,7 +81,7 @@ int main(){
     /* Time Permit and shares */
     char tp[2*PFS+1];
     octet TP={sizeof(tp),sizeof(tp),tp};
-    int date = mbedtls_milagro_cs_today();
+    int date = mbedtls_milagro_cs_today()+1;
 #endif
     
     /* Token stored on computer */
@@ -96,7 +96,7 @@ int main(){
     
     /* unrandom seed value! */
     SEED.len=32;
-    for (i=0;i<32;i++) SEED.val[i]=i+1;
+    for (i=0;i<32;i++) SEED.val[i]=i+2;
 #ifdef DEBUG
     printf("SEED: ");
     OCT_output(&SEED);
@@ -106,7 +106,7 @@ int main(){
     mbedtls_milagro_cs_create_csprng(&RNG,&SEED);
     
     /* Assign the End-User an ID */
-    user = "client@miracl.com";
+    user = "alice@miracl.com";
     OCT_jstring(&CLIENT_ID, (char*)user);
     
     /* Hash CLIENT_ID */

@@ -143,8 +143,7 @@ static void ssl_write_milagro_cs_ext( mbedtls_ssl_context *ssl,
     for( int i = 0; ciphersuites[i] != 0; i++ )
     {
         ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(ciphersuites[i]);
-        if (ciphersuite_info->id ==
-            mbedtls_ssl_get_ciphersuite_id( "TLS-MILAGRO-CS-WITH-AES-128-GCM-SHA256" ) )
+        if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_MILAGRO_CS )
         {
             got_milagro_ciphersuite++;
             break;

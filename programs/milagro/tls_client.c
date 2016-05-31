@@ -110,24 +110,36 @@ int main( void )
 #endif
 
 #define USAGE \
-"\n usage: tls_client param=<>...\n"                   \
-"\n acceptable parameters:\n"                           \
-"    server_name=%%s      default: localhost\n"         \
-"    server_addr=%%s      default: given by name\n"     \
-"    server_port=%%d      default: 4444\n"              \
-"    request_page=%%s     default: \".\"\n"             \
-"    request_size=%%d     default: about 34 (basic request)\n" \
-"                        (minimum: 0, max: 16384)\n" \
-"    debug_level=%%d      default: 0 (disabled)\n"      \
-"    nbio=%%d             default: 0 (blocking I/O)\n"  \
-"                        options: 1 (non-blocking), 2 (added delays)\n" \
-"    force_ciphersuite=<name>"                          \
-" acceptable ciphersuite names:\n"                      \
+    "\n usage: tls_client param=<>...\n"                    \
+    "\n acceptable parameters:\n"                           \
+    "    server_name=%%s      default: localhost\n"         \
+    "    server_addr=%%s      default: given by name\n"     \
+    "    server_port=%%d      default: 4444\n"              \
+    "    request_page=%%s     default: \".\"\n"             \
+    "    request_size=%%d     default: about 34 (basic request)\n" \
+    "                        (minimum: 0, max: 16384)\n" \
+    "    debug_level=%%d      default: 0 (disabled)\n"      \
+    "    nbio=%%d             default: 0 (blocking I/O)\n"  \
+    "                        options: 1 (non-blocking), 2 (added delays)\n" \
+    "    force_ciphersuite=<name>"                          \
+    " acceptable ciphersuite names:\n"                      \
 "            TLS-MILAGRO-CS-WITH-AES-128-GCM-SHA256\n"  \
+"            TLS-MILAGRO-CS-WITH-AES-128-GCM-SHA512\n"  \
+"            TLS-MILAGRO-CS-WITH-CAMELLIA-128-GCM-SHA256\n"  \
+"            TLS-MILAGRO-CS-WITH-CAMELLIA-128-GCM-SHA512\n"  \
+"            TLS-MILAGRO-CS-WITH-3DES-EDE-CBC-SHA256\n"  \
+"            TLS-MILAGRO-CS-WITH-3DES-EDE-CBC-SHA512\n"  \
+"            TLS-MILAGRO-CS-WITH-NULL-SHA256\n"         \
 "            TLS-MILAGRO-P2P-WITH-AES-128-GCM-SHA256\n" \
-"\n"                                                    \
-"\n"                                                    \
-"    exchanges=%%d        default: 1\n"                 \
+"            TLS-MILAGRO-P2P-WITH-AES-128-GCM-SHA512\n" \
+"            TLS-MILAGRO-P2P-WITH-CAMELLIA-128-GCM-SHA256\n"  \
+"            TLS-MILAGRO-P2P-WITH-CAMELLIA-128-GCM-SHA512\n"  \
+"            TLS-MILAGRO-P2P-WITH-3DES-EDE-CBC-SHA256\n"  \
+"            TLS-MILAGRO-P2P-WITH-3DES-EDE-CBC-SHA512\n"  \
+"            TLS-MILAGRO-P2P-WITH-NULL-SHA256\n"         \
+    "\n"                                                    \
+    "\n"                                                    \
+    "    exchanges=%%d        default: 1\n"                 \
 USAGE_MAX_FRAG_LEN                                      \
 USAGE_FALLBACK                                          \
 "\n"                                                    \
@@ -253,7 +265,9 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_MILAGRO_CS_C)
     mbedtls_milagro_cs_context milagro_cs;
     char *cs_client_key;
+#if defined(MBEDTLS_MILAGRO_CS_TIME_PERMITS)
     char *cs_tp;
+#endif
 #endif
 #if defined(MBEDTLS_MILAGRO_P2P_C)
     mbedtls_milagro_p2p_context milagro_p2p;
@@ -504,13 +518,13 @@ int main( int argc, char *argv[] )
     for(i = 0; ciphersuites[i] != 0; i++ )
     {
         ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(ciphersuites[i]);
-        if (ciphersuite_info->id ==
-            mbedtls_ssl_get_ciphersuite_id( "TLS-MILAGRO-CS-WITH-AES-128-GCM-SHA256" ) )
+        if (ciphersuite_info->key_exchange ==
+            MBEDTLS_KEY_EXCHANGE_MILAGRO_CS )
         {
             got_milagro_cs_ciphersuite++;
         }
-        else if(ciphersuite_info->id ==
-                mbedtls_ssl_get_ciphersuite_id( "TLS-MILAGRO-P2P-WITH-AES-128-GCM-SHA256" ) )
+        else if(ciphersuite_info->key_exchange ==
+                MBEDTLS_KEY_EXCHANGE_MILAGRO_P2P )
         {
             got_milagro_p2p_ciphersuite++;
         }

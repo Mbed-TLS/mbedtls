@@ -484,7 +484,7 @@ int mbedtls_milagro_p2p_read_public_parameters( int client_or_server, mbedtls_mi
  * \return                      0 if successful, a negative error code otherwise
  *
  */
-int mbedtls_milagro_p2p_share_secret_cli(mbedtls_milagro_p2p_context *milagro_p2p);
+int mbedtls_milagro_p2p_shared_secret_cli(mbedtls_milagro_p2p_context *milagro_p2p);
 
 
 /**
@@ -495,7 +495,7 @@ int mbedtls_milagro_p2p_share_secret_cli(mbedtls_milagro_p2p_context *milagro_p2
  * \return                      0 if successful, a negative error code otherwise
  *
  */
-int mbedtls_milagro_p2p_share_secret_srv(mbedtls_milagro_p2p_context *milagro_p2p);
+int mbedtls_milagro_p2p_shared_secret_srv(mbedtls_milagro_p2p_context *milagro_p2p);
 
 
 /**

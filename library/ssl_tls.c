@@ -1155,14 +1155,14 @@ int mbedtls_milagro_p2p_derive_premaster(int client_or_server,
     {
         if (client_or_server == MBEDTLS_SSL_IS_SERVER)
         {
-            if ( (ret = mbedtls_milagro_p2p_share_secret_srv(ssl->handshake->milagro_p2p)) != 0 )
+            if ( (ret = mbedtls_milagro_p2p_shared_secret_srv(ssl->handshake->milagro_p2p)) != 0 )
             {
                 return ret;
             }
         }
         else if (client_or_server == MBEDTLS_SSL_IS_CLIENT)
         {
-            if ( (ret = mbedtls_milagro_p2p_share_secret_cli(ssl->handshake->milagro_p2p)) != 0 )
+            if ( (ret = mbedtls_milagro_p2p_shared_secret_cli(ssl->handshake->milagro_p2p)) != 0 )
             {
                 return ret;
             }

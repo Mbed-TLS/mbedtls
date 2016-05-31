@@ -34,19 +34,20 @@
 #include "mbedtls/platform.h"
 #else
 #include <stdlib.h>
-#include <stdio.h>
 #define mbedtls_free       free
 #define mbedtls_time       time
 #define mbedtls_time_t     time_t
 #define mbedtls_calloc     calloc
 #define mbedtls_fprintf    fprintf
 #define mbedtls_printf     printf
-#define mbedtls_sprintf    sprintf
 #endif
+
+#include <stdio.h>
 
 #if !defined(MBEDTLS_ENTROPY_C) || \
 !defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_SRV_C) || \
-!defined(MBEDTLS_NET_C) || !defined(MBEDTLS_CTR_DRBG_C)
+!defined(MBEDTLS_NET_C) || !defined(MBEDTLS_CTR_DRBG_C) || \
+!defined(MBEDTLS_MILAGRO_CS_C) || !defined(MBEDTLS_MILAGRO_P2P_C)
 int main( void )
 {
     mbedtls_printf("MBEDTLS_ENTROPY_C and/or "
@@ -519,7 +520,7 @@ reset:
     
         read_from_file("CSServerKey", cs_server_key, 2*(4*PFS));
     
-        mbedtls_milagro_cs_set_secret(&milagro_cs, cs_server_key, 4*PFS); free(cs_server_key);
+        mbedtls_milagro_cs_set_secret(&milagro_cs, cs_server_key, 4*PFS); mbedtls_free(cs_server_key);
     
         if( mbedtls_milagro_cs_setup_RNG(&milagro_cs, &entropy) != 0)
         {
@@ -545,15 +546,15 @@ reset:
     
         read_from_file("P2PServerKey", p2p_server_key, 2*(2*PFS+1));
     
-        mbedtls_milagro_p2p_set_key(MBEDTLS_SSL_IS_SERVER, &milagro_p2p, p2p_server_key, 2*PFS+1); free(p2p_server_key);
+        mbedtls_milagro_p2p_set_key(MBEDTLS_MILAGRO_IS_SERVER, &milagro_p2p, p2p_server_key, 2*PFS+1); mbedtls_free(p2p_server_key);
     
         if (mbedtls_milagro_p2p_setup_RNG( &milagro_p2p, &entropy) != 0 )
         {
-            printf("\n\nFailed while setting the RNG in MILAGRO_P2P\n");
+            mbedtls_printf("\n\nFailed while setting the RNG in MILAGRO_P2P\n");
             exit(-1);
         }
     
-        mbedtls_milagro_p2p_set_identity(MBEDTLS_SSL_IS_SERVER, &milagro_p2p, (char *)"server.miracl.com");
+        mbedtls_milagro_p2p_set_identity(MBEDTLS_MILAGRO_IS_SERVER, &milagro_p2p, (char *)"server@miracl.com");
     
         mbedtls_ssl_set_milagro_p2p(ssl.handshake, &milagro_p2p);
     
@@ -744,7 +745,7 @@ data_exchange:
     mbedtls_printf( "  > Write to client:" );
     fflush( stdout );
 
-    len = mbedtls_sprintf( (char *) buf, HTTP_RESPONSE );
+    len = sprintf( (char *) buf, HTTP_RESPONSE );
 
 
     for( written = 0, frags = 0; written < len; written += ret, frags++ )

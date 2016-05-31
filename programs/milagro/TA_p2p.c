@@ -106,7 +106,7 @@ int main()
     printf("\n");
     
     // Server's ID
-    OCT_jstring(&IdS,(char *)"server.miracl.com");
+    OCT_jstring(&IdS,(char *)"server@miracl.com");
     
     // TA: Generate Servers's key
     mbedtls_milagro_p2p_hash_id(&IdS,&HV);

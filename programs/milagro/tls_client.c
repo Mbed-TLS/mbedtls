@@ -45,7 +45,8 @@
 
 #if !defined(MBEDTLS_ENTROPY_C) || \
 !defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_SRV_C) || \
-!defined(MBEDTLS_NET_C) || !defined(MBEDTLS_CTR_DRBG_C)
+!defined(MBEDTLS_NET_C) || !defined(MBEDTLS_CTR_DRBG_C) || \
+!defined(MBEDTLS_MILAGRO_CS_C) || !defined(MBEDTLS_MILAGRO_P2P_C)
 int main( void )
 {
     mbedtls_printf("MBEDTLS_ENTROPY_C and/or "
@@ -247,16 +248,16 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_session saved_session;
     const int *ciphersuites;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
-    char *cs_client_key;
-    char *cs_tp;
-    char *p2p_client_key;
     int got_milagro_cs_ciphersuite;
     int got_milagro_p2p_ciphersuite;
 #if defined(MBEDTLS_MILAGRO_CS_C)
     mbedtls_milagro_cs_context milagro_cs;
+    char *cs_client_key;
+    char *cs_tp;
 #endif
 #if defined(MBEDTLS_MILAGRO_P2P_C)
     mbedtls_milagro_p2p_context milagro_p2p;
+    char *p2p_client_key;
 #endif
     
     char *p, *q;
@@ -528,13 +529,13 @@ int main( int argc, char *argv[] )
 
         cs_client_key = calloc(2*PFS+1,sizeof(char));
         read_from_file("CSClientKey", cs_client_key, 2*(2*PFS+1));
-        mbedtls_milagro_cs_set_secret(&milagro_cs, cs_client_key, 2*PFS+1); free(cs_client_key);
+        mbedtls_milagro_cs_set_secret(&milagro_cs, cs_client_key, 2*PFS+1); mbedtls_free(cs_client_key);
         mbedtls_milagro_cs_set_client_identity (&milagro_cs, (char *)DFL_CLIENT_IDENTITY);
     
 #if defined(MBEDTLS_MILAGRO_CS_TIME_PERMITS)
         cs_tp = calloc(2*PFS+1,sizeof(char));
         read_from_file("CSTimePermit", cs_tp, 2*(2*PFS+1));
-        mbedtls_milagro_cs_set_timepermit(&milagro_cs, cs_tp, 2*PFS+1); free(cs_tp);
+        mbedtls_milagro_cs_set_timepermit(&milagro_cs, cs_tp, 2*PFS+1); mbedtls_free(cs_tp);
 #endif
     
         if (mbedtls_milagro_cs_setup_RNG(&milagro_cs, &entropy) != 0)
@@ -544,7 +545,7 @@ int main( int argc, char *argv[] )
         }
     
 #if defined(MBEDTLS_MILAGRO_CS_ENABLE_PIN)
-        printf("\n Enter pin: ");
+        mbedtls_printf("\n Enter pin: ");
         scanf("%d",&milagro_cs.pin);
 #endif
     
@@ -566,7 +567,7 @@ int main( int argc, char *argv[] )
     
         read_from_file("P2PClientKey", p2p_client_key, 2*(4*PFS));
     
-        mbedtls_milagro_p2p_set_key(MBEDTLS_SSL_IS_CLIENT, &milagro_p2p, p2p_client_key, 4*PFS); free(p2p_client_key);
+        mbedtls_milagro_p2p_set_key(MBEDTLS_MILAGRO_IS_CLIENT, &milagro_p2p, p2p_client_key, 4*PFS); mbedtls_free(p2p_client_key);
     
         if (mbedtls_milagro_p2p_setup_RNG( &milagro_p2p, &entropy) != 0 )
         {
@@ -574,7 +575,7 @@ int main( int argc, char *argv[] )
             exit(-1);
         }
     
-        mbedtls_milagro_p2p_set_identity(MBEDTLS_SSL_IS_CLIENT, &milagro_p2p, (char *)DFL_CLIENT_IDENTITY);
+        mbedtls_milagro_p2p_set_identity(MBEDTLS_MILAGRO_IS_CLIENT, &milagro_p2p, (char *)DFL_CLIENT_IDENTITY);
 
         mbedtls_ssl_set_milagro_p2p(ssl.handshake, &milagro_p2p);
     
@@ -737,7 +738,6 @@ exit:
 #endif
     
     mbedtls_net_free( &server_fd );
-    
     mbedtls_ssl_session_free( &saved_session );
     mbedtls_ssl_free( &ssl );
     mbedtls_ssl_config_free( &conf );

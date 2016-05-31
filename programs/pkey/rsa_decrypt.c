@@ -116,6 +116,7 @@ int main( int argc, char *argv[] )
         ( ret = mbedtls_mpi_read_file( &rsa.QP, 16, f ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_mpi_read_file returned %d\n\n", ret );
+        fclose( f );
         goto exit;
     }
 

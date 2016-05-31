@@ -132,6 +132,7 @@ int main( void )
         ( ret = mbedtls_mpi_read_file( &rsa.QP, 16, f ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_mpi_read_file returned %d\n\n", ret );
+        fclose( f );
         goto exit;
     }
 
@@ -157,6 +158,7 @@ int main( void )
         mbedtls_mpi_read_file( &dhm.G, 16, f ) != 0 )
     {
         mbedtls_printf( " failed\n  ! Invalid DH parameter file\n\n" );
+        fclose( f );
         goto exit;
     }
 

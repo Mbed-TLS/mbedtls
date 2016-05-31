@@ -120,7 +120,19 @@ int main( void )
     "    force_ciphersuite=<name>"                          \
     " acceptable ciphersuite names:\n"                      \
     "            TLS-MILAGRO-CS-WITH-AES-128-GCM-SHA256\n"  \
+    "            TLS-MILAGRO-CS-WITH-AES-128-GCM-SHA512\n"  \
+    "            TLS-MILAGRO-CS-WITH-CAMELLIA-128-GCM-SHA256\n"  \
+    "            TLS-MILAGRO-CS-WITH-CAMELLIA-128-GCM-SHA512\n"  \
+    "            TLS-MILAGRO-CS-WITH-3DES-EDE-CBC-SHA256\n"  \
+    "            TLS-MILAGRO-CS-WITH-3DES-EDE-CBC-SHA512\n"  \
+    "            TLS-MILAGRO-CS-WITH-NULL-SHA256\n"         \
     "            TLS-MILAGRO-P2P-WITH-AES-128-GCM-SHA256\n" \
+    "            TLS-MILAGRO-P2P-WITH-AES-128-GCM-SHA512\n" \
+    "            TLS-MILAGRO-P2P-WITH-CAMELLIA-128-GCM-SHA256\n"  \
+    "            TLS-MILAGRO-P2P-WITH-CAMELLIA-128-GCM-SHA512\n"  \
+    "            TLS-MILAGRO-P2P-WITH-3DES-EDE-CBC-SHA256\n"  \
+    "            TLS-MILAGRO-P2P-WITH-3DES-EDE-CBC-SHA512\n"  \
+    "            TLS-MILAGRO-P2P-WITH-NULL-SHA256\n"         \
     "\n"                                                    \
     "\n"                                                    \
     "    exchanges=%%d        default: 1\n"                 \

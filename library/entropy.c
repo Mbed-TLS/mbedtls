@@ -1,7 +1,7 @@
 /*
  *  Entropy accumulator implementation
  *
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2006-2016, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -97,6 +97,11 @@ void mbedtls_entropy_init( mbedtls_entropy_context *ctx )
 #if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
     mbedtls_entropy_add_source( ctx, mbedtls_hardware_poll, NULL,
                                 MBEDTLS_ENTROPY_MIN_HARDWARE,
+                                MBEDTLS_ENTROPY_SOURCE_STRONG );
+#endif
+#if defined(MBEDTLS_ENTROPY_NV_SEED)
+    mbedtls_entropy_add_source( ctx, mbedtls_nv_seed_poll, NULL,
+                                MBEDTLS_ENTROPY_BLOCK_SIZE,
                                 MBEDTLS_ENTROPY_SOURCE_STRONG );
 #endif
 #endif /* MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES */

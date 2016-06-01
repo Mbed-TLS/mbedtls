@@ -270,7 +270,7 @@ void nv_seed_file_create()
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_NV_SEED:MBEDTLS_FS_IO */
+/* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_NV_SEED:MBEDTLS_FS_IO:MBEDTLS_PLATFORM_NV_SEED_ALT */
 void entropy_nv_seed_std_io()
 {
     unsigned char io_seed[MBEDTLS_ENTROPY_BLOCK_SIZE];

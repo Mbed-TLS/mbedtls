@@ -54,10 +54,6 @@ static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
-#if defined(MBEDTLS_ENTROPY_NV_SEED)
-static int initial_entropy_run = 0;
-#endif
-
 #define ENTROPY_MAX_LOOP    256     /**< Maximum amount to loop before error */
 
 void mbedtls_entropy_init( mbedtls_entropy_context *ctx )
@@ -290,9 +286,9 @@ int mbedtls_entropy_func( void *data, unsigned char *output, size_t len )
     /* Update the NV entropy seed before generating any entropy for outside
      * use.
      */
-    if( initial_entropy_run == 0 )
+    if( ctx->initial_entropy_run == 0 )
     {
-        initial_entropy_run = 1;
+        ctx->initial_entropy_run = 1;
         if( ( ret = mbedtls_entropy_update_nv_seed( ctx ) ) != 0 )
             return( ret );
     }

@@ -35,6 +35,7 @@ static int entropy_dummy_source( void *data, unsigned char *output,
     return( 0 );
 }
 
+#if defined(MBEDTLS_ENTROPY_NV_SEED)
 /*
  * Ability to clear entropy sources to allow testing with just predefined
  * entropy sources. This function or tests depending on it might break if there
@@ -114,6 +115,7 @@ static int read_nv_seed( unsigned char *buf, size_t buf_len )
 
     return( 0 );
 }
+#endif /* MBEDTLS_ENTROPY_NV_SEED */
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

@@ -3,7 +3,7 @@
  *
  * \brief Consistency checks for configuration options
  *
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2006-2016, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -355,6 +355,38 @@
 #if defined(MBEDTLS_PLATFORM_STD_SNPRINTF) &&\
     !defined(MBEDTLS_PLATFORM_SNPRINTF_ALT)
 #error "MBEDTLS_PLATFORM_STD_SNPRINTF defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_ENTROPY_NV_SEED) &&\
+    ( !defined(MBEDTLS_PLATFORM_C) || !defined(MBEDTLS_ENTROPY_C) )
+#error "MBEDTLS_ENTROPY_NV_SEED defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PLATFORM_NV_SEED_ALT) &&\
+    !defined(MBEDTLS_ENTROPY_NV_SEED)
+#error "MBEDTLS_PLATFORM_NV_SEED_ALT defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PLATFORM_STD_NV_SEED_READ) &&\
+    !defined(MBEDTLS_PLATFORM_NV_SEED_ALT)
+#error "MBEDTLS_PLATFORM_STD_NV_SEED_READ defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PLATFORM_STD_NV_SEED_WRITE) &&\
+    !defined(MBEDTLS_PLATFORM_NV_SEED_ALT)
+#error "MBEDTLS_PLATFORM_STD_NV_SEED_WRITE defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PLATFORM_NV_SEED_READ_MACRO) &&\
+    ( defined(MBEDTLS_PLATFORM_STD_NV_SEED_READ) ||\
+      defined(MBEDTLS_PLATFORM_NV_SEED_ALT) )
+#error "MBEDTLS_PLATFORM_NV_SEED_READ_MACRO and MBEDTLS_PLATFORM_STD_NV_SEED_READ cannot be defined simultaneously"
+#endif
+
+#if defined(MBEDTLS_PLATFORM_NV_SEED_WRITE_MACRO) &&\
+    ( defined(MBEDTLS_PLATFORM_STD_NV_SEED_WRITE) ||\
+      defined(MBEDTLS_PLATFORM_NV_SEED_ALT) )
+#error "MBEDTLS_PLATFORM_NV_SEED_WRITE_MACRO and MBEDTLS_PLATFORM_STD_NV_SEED_WRITE cannot be defined simultaneously"
 #endif
 
 #if defined(MBEDTLS_RSA_C) && ( !defined(MBEDTLS_BIGNUM_C) ||         \

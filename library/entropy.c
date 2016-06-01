@@ -54,6 +54,10 @@ static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
+#if defined(MBEDTLS_ENTROPY_NV_SEED)
+static int initial_entropy_run = 0;
+#endif
+
 #define ENTROPY_MAX_LOOP    256     /**< Maximum amount to loop before error */
 
 void mbedtls_entropy_init( mbedtls_entropy_context *ctx )
@@ -282,6 +286,18 @@ int mbedtls_entropy_func( void *data, unsigned char *output, size_t len )
     if( len > MBEDTLS_ENTROPY_BLOCK_SIZE )
         return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
 
+#if defined(MBEDTLS_ENTROPY_NV_SEED)
+    /* Update the NV entropy seed before generating any entropy for outside
+     * use.
+     */
+    if( initial_entropy_run == 0 )
+    {
+        initial_entropy_run = 1;
+        if( ( ret = mbedtls_entropy_update_nv_seed( ctx ) ) != 0 )
+            return( ret );
+    }
+#endif
+
 #if defined(MBEDTLS_THREADING_C)
     if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
         return( ret );
@@ -355,6 +371,27 @@ exit:
 
     return( ret );
 }
+
+#if defined(MBEDTLS_ENTROPY_NV_SEED)
+int mbedtls_entropy_update_nv_seed( mbedtls_entropy_context *ctx )
+{
+    int ret = MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR;
+    unsigned char buf[ MBEDTLS_ENTROPY_MAX_SEED_SIZE ];
+
+    /* Read new seed  and write it to NV */
+    if( ( ret = mbedtls_entropy_func( ctx, buf, MBEDTLS_ENTROPY_BLOCK_SIZE ) ) != 0 )
+        return( ret );
+
+    if( mbedtls_nv_seed_write( buf, MBEDTLS_ENTROPY_BLOCK_SIZE ) < 0 )
+        return( MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR );
+
+    /* Manually update the remaining stream with a separator value to diverge */
+    memset( buf, 0, MBEDTLS_ENTROPY_BLOCK_SIZE );
+    mbedtls_entropy_update_manual( ctx, buf, MBEDTLS_ENTROPY_BLOCK_SIZE );
+
+    return( 0 );
+}
+#endif /* MBEDTLS_ENTROPY_NV_SEED */
 
 #if defined(MBEDTLS_FS_IO)
 int mbedtls_entropy_write_seed_file( mbedtls_entropy_context *ctx, const char *path )

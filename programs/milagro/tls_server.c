@@ -59,6 +59,10 @@ int main( void )
 
 #include <string.h>
 
+#if !defined(_WIN32)
+#include <signal.h>
+#endif
+
 #include "mbedtls/net.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/entropy.h"

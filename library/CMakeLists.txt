@@ -89,6 +89,11 @@ if(CMAKE_COMPILER_IS_CLANG)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmissing-declarations -Wmissing-prototypes -Wdocumentation -Wno-documentation-deprecated-sync -Wunreachable-code")
 endif(CMAKE_COMPILER_IS_CLANG)
 
+if(ENABLE_MILAGRO_SUPPORT)
+    set(src_tls ${src_tls} milagro.c)
+    set(libs ${libs} mpin wcc)
+endif(ENABLE_MILAGRO_SUPPORT)
+
 if(WIN32)
     set(libs ${libs} ws2_32)
 endif(WIN32)

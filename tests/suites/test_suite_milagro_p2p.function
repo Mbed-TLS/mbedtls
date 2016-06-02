@@ -1,0 +1,96 @@
+/* BEGIN_HEADER */
+#include "mbedtls/milagro.h"
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_MILAGRO_P2P_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void milagro_p2p_do(char *client_identity, char *server_identity, 
+                                char *client_secret, char *server_secret, int fail_or_not)
+{
+    /*
+     * Initializate parameters
+     */
+    mbedtls_milagro_p2p_context milagro_p2p_client;
+    mbedtls_milagro_p2p_context milagro_p2p_server;
+    mbedtls_milagro_p2p_init(&milagro_p2p_client);
+    mbedtls_milagro_p2p_init(&milagro_p2p_server);
+    
+    /*
+     * Set external inputs
+     */
+    size_t len1, len2;
+    unsigned char *p2p_client_key = unhexify_alloc(client_secret,&len1);
+    unsigned char *p2p_server_key = unhexify_alloc(server_secret,&len2);    
+
+    mbedtls_milagro_p2p_set_key(MBEDTLS_MILAGRO_IS_CLIENT, &milagro_p2p_client, p2p_client_key, 4*PFS);
+    mbedtls_milagro_p2p_set_identity(MBEDTLS_MILAGRO_IS_CLIENT, &milagro_p2p_client, client_identity);
+    mbedtls_milagro_p2p_set_key(MBEDTLS_MILAGRO_IS_SERVER, &milagro_p2p_server, p2p_server_key, 2*PFS+1);
+    mbedtls_milagro_p2p_set_identity(MBEDTLS_MILAGRO_IS_SERVER, &milagro_p2p_server, server_identity);
+    
+    /*
+     * Setup random generator (fake entropy)
+     */
+    char seed[32] = {0};
+    octet SEED = {0,sizeof(seed),seed};
+    SEED.len=32;
+    for (int i=0;i<32;i++) SEED.val[i]=i+1;
+    mbedtls_milagro_p2p_create_csprng(&milagro_p2p_client.RNG,&SEED);
+    mbedtls_milagro_p2p_create_csprng(&milagro_p2p_server.RNG,&SEED);
+
+    /*
+     * Compute public parameters and exchange public parameters
+     */
+    TEST_ASSERT( mbedtls_milagro_p2p_compute_public_param(&milagro_p2p_server) == 0 );
+    milagro_p2p_client.server_identity.val = mbedtls_milagro_calloc(milagro_p2p_server.server_identity.len);
+    milagro_p2p_client.server_identity.len = milagro_p2p_server.server_identity.len;
+    memcpy(milagro_p2p_client.server_identity.val, milagro_p2p_server.server_identity.val,milagro_p2p_server.server_identity.len );
+    milagro_p2p_client.server_pub_param_G1.val = mbedtls_milagro_calloc(milagro_p2p_server.server_pub_param_G1.len);
+    milagro_p2p_client.server_pub_param_G1.len = milagro_p2p_server.server_pub_param_G1.len;
+    memcpy(milagro_p2p_client.server_pub_param_G1.val, milagro_p2p_server.server_pub_param_G1.val,milagro_p2p_server.server_pub_param_G1.len );
+    
+    /*
+     * Computation at client's side and exchange public parameters
+     */
+    TEST_ASSERT( mbedtls_milagro_p2p_shared_secret_cli(&milagro_p2p_client) == 0 );
+    milagro_p2p_server.client_identity.val = mbedtls_milagro_calloc(milagro_p2p_client.client_identity.len);
+    milagro_p2p_server.client_identity.len = milagro_p2p_client.client_identity.len;
+    memcpy(milagro_p2p_server.client_identity.val, milagro_p2p_client.client_identity.val,milagro_p2p_client.client_identity.len );
+    milagro_p2p_server.client_pub_param_G1.val = mbedtls_milagro_calloc(milagro_p2p_client.client_pub_param_G1.len);
+    milagro_p2p_server.client_pub_param_G1.len = milagro_p2p_client.client_pub_param_G1.len;
+    memcpy(milagro_p2p_server.client_pub_param_G1.val, milagro_p2p_client.client_pub_param_G1.val,milagro_p2p_client.client_pub_param_G1.len );
+    milagro_p2p_server.client_pub_param_G2.val = mbedtls_milagro_calloc(milagro_p2p_client.client_pub_param_G2.len);
+    milagro_p2p_server.client_pub_param_G2.len = milagro_p2p_client.client_pub_param_G2.len;
+    memcpy(milagro_p2p_server.client_pub_param_G2.val, milagro_p2p_client.client_pub_param_G2.val,milagro_p2p_client.client_pub_param_G2.len );
+    
+    /*
+     * Computation at server's side
+     */
+     TEST_ASSERT( mbedtls_milagro_p2p_shared_secret_srv(&milagro_p2p_server) == 0 );
+
+    /*
+     * Check shared secret
+     */
+    int value_eq_key = 0;
+    for (int i = 0; i<milagro_p2p_client.shared_secret.len; i++)
+    {
+        if (milagro_p2p_client.shared_secret.val[i] != milagro_p2p_server.shared_secret.val[i])
+        {
+            value_eq_key = -1; break;
+        }
+    }
+
+    TEST_ASSERT( value_eq_key == fail_or_not );
+
+exit:
+    mbedtls_free(p2p_client_key);mbedtls_free(p2p_server_key);
+    mbedtls_milagro_p2p_free( &milagro_p2p_client );
+    mbedtls_milagro_p2p_free( &milagro_p2p_server );
+}
+/* END_CASE */
+
+
+

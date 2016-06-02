@@ -43,6 +43,11 @@
 #include "dhm.h"
 #endif
 
+#if defined(MBEDTLS_MILAGRO_CS_C) || \
+defined(MBEDTLS_MILAGRO_P2P_C)
+#include "milagro.h"
+#endif
+
 #if defined(MBEDTLS_ECDH_C)
 #include "ecdh.h"
 #endif
@@ -54,6 +59,7 @@
 #if defined(MBEDTLS_HAVE_TIME)
 #include <time.h>
 #endif
+
 
 /*
  * SSL Error codes
@@ -337,12 +343,16 @@
 
 #define MBEDTLS_TLS_EXT_RENEGOTIATION_INFO      0xFF01
 
+#define MBEDTLS_TLS_EXT_MILAGRO_CS        37 /* experimental */ //TODO this number could be modified
+
 /*
  * Size defines
  */
 #if !defined(MBEDTLS_PSK_MAX_LEN)
 #define MBEDTLS_PSK_MAX_LEN            32 /* 256 bits */
 #endif
+#define MBEDTLS_SIZE_PMASTER_MILAGRO_CS      16 /* 128 bits */
+#define MBEDTLS_SIZE_PMASTER_MILAGRO_P2P     16 /* 128 bits */
 
 /* Dummy type used only for its size */
 union mbedtls_ssl_premaster_secret
@@ -375,6 +385,12 @@ union mbedtls_ssl_premaster_secret
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     unsigned char _pms_ecjpake[32];     /* Thread spec: SHA-256 output */
+#endif
+#if defined(MBEDTLS_KEY_EXCHANGE_MILAGRO_CS_ENABLED)
+    unsigned char _pms_milagro_cs[4 + 2 * MBEDTLS_SIZE_PMASTER_MILAGRO_CS];
+#endif
+#if defined(MBEDTLS_KEY_EXCHANGE_MILAGRO_P2P_ENABLED)
+    unsigned char _pms_milagro_p2p[4 + 2 * MBEDTLS_SIZE_PMASTER_MILAGRO_P2P];
 #endif
 };
 
@@ -969,6 +985,40 @@ void mbedtls_ssl_init( mbedtls_ssl_context *ssl );
  */
 int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
                        const mbedtls_ssl_config *conf );
+
+#if defined (MBEDTLS_MILAGRO_CS_C)
+    /**
+     * \brief                Set up a milagro_cs context in ssl.hansshake for use
+     *
+     * \note                 No copy of the milagro_cs context is made, it can be
+     *                       shared by many mbedtls_ssl_context structures.
+     *
+     * \warning              Modifying the conf structure after is has been used in this
+     *                       function is unsupported!
+     *
+     * \param handshake      hanshake context
+     * \param milagro_cs     context milagro_cs to use
+     *
+     */
+    void mbedtls_ssl_set_milagro_cs(mbedtls_ssl_handshake_params * handshake, mbedtls_milagro_cs_context * milagro_cs);
+#endif
+    
+#if defined (MBEDTLS_MILAGRO_P2P_C)
+    /*
+     * \brief                 Set up a milagro_p2p context in ssl.hanshake for use
+     *
+     * \note                  No copy of the milagro_p2p context is made, it can be
+     *                        shared by many mbedtls_ssl_context structures.
+     *
+     * \warning               Modifying the conf structure after is has been used in this
+     *                        function is unsupported!
+     *
+     * \param handshake       hanshake context
+     * \param milagro_p2p     context milagro_p2p to use
+     *
+     */
+    void mbedtls_ssl_set_milagro_p2p(mbedtls_ssl_handshake_params * handshake, mbedtls_milagro_p2p_context * milagro_p2p);
+#endif
 
 /**
  * \brief          Reset an already initialized SSL context for re-use

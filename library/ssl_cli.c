@@ -49,6 +49,12 @@
 #include <time.h>
 #endif
 
+
+#if defined(MBEDTLS_MILAGRO_CS_C)  \
+|| defined(MBEDTLS_MILAGRO_P2P_C)
+#include "mbedtls/milagro.h"
+#endif
+
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
@@ -117,6 +123,104 @@ static void ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
     *olen = hostname_len + 9;
 }
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
+
+#if defined(MBEDTLS_MILAGRO_CS_C)
+
+static void ssl_write_milagro_cs_ext( mbedtls_ssl_context *ssl,
+                                     unsigned char *buf,
+                                     size_t *olen )
+{
+    /*
+     * Check before if the ciphersuite MILAGRO_CS is in the list
+     */
+    unsigned char *p=NULL;
+    const unsigned char *end = NULL;
+    const int *ciphersuites = ssl->conf->ciphersuite_list[ssl->minor_ver];
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
+    *olen = 0;
+    int got_milagro_ciphersuite = 0;
+    ciphersuite_info = NULL;
+    for( int i = 0; ciphersuites[i] != 0; i++ )
+    {
+        ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(ciphersuites[i]);
+        if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_MILAGRO_CS )
+        {
+            got_milagro_ciphersuite++;
+            break;
+        }
+    }
+    if (got_milagro_ciphersuite == 0)
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Impossible to write this extension" ) );
+        return;
+    }
+    p = buf;
+    end = ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN;
+    
+    if (mbedtls_milagro_cs_alloc_memory(MBEDTLS_SSL_IS_CLIENT, ssl->handshake->milagro_cs) != 0)
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Failed while allocating memory for the MILAGRO_CS parameters, impossible to write this extension" ) );
+        return;
+    }
+    
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding MILAGRO_CS's parameters for authentication") );
+    
+    if( end < p || (size_t)( end - p ) < (size_t) (ssl->handshake->milagro_cs->hash_client_id.len +
+                                                   ssl->handshake->milagro_cs->U.len + ssl->handshake->milagro_cs->V.len + 6) )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
+        return;
+    }
+    
+    //TODO add a scheme about how is done the message (see other extensions)
+    
+    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_MILAGRO_CS >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_MILAGRO_CS      ) & 0xFF );
+    
+    // Write tot length of the message
+    *p++ = (unsigned char)( ( (ssl->handshake->milagro_cs->hash_client_id.len + ssl->handshake->milagro_cs->U.len +
+                               ssl->handshake->milagro_cs->V.len + 10) >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( (ssl->handshake->milagro_cs->hash_client_id.len + ssl->handshake->milagro_cs->U.len +
+                               ssl->handshake->milagro_cs->V.len + 10)      ) & 0xFF );
+    
+    *p++ = (unsigned char)( ( ( ssl->handshake->milagro_cs->hash_client_id.len     ) >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( ( ssl->handshake->milagro_cs->hash_client_id.len     )      ) & 0xFF );
+    
+#if defined(MBEDTLS_MILAGRO_CS_TIME_PERMITS)
+    *p++ = (unsigned char)( ( ( ssl->handshake->milagro_cs->UT.len     ) >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( ( ssl->handshake->milagro_cs->UT.len     )      ) & 0xFF );
+#else
+    *p++ = (unsigned char)( ( ( ssl->handshake->milagro_cs->U.len     ) >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( ( ssl->handshake->milagro_cs->U.len     )      ) & 0xFF );
+#endif
+    *p++ = (unsigned char)( ( ( ssl->handshake->milagro_cs->V.len     ) >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( ( ssl->handshake->milagro_cs->V.len     )      ) & 0xFF );
+    
+    *olen += 10;
+    
+    memcpy( p, ssl->handshake->milagro_cs->hash_client_id.val, ssl->handshake->milagro_cs->hash_client_id.len);
+    *olen += ssl->handshake->milagro_cs->hash_client_id.len;
+    p += ssl->handshake->milagro_cs->hash_client_id.len;
+#if defined(MBEDTLS_MILAGRO_CS_TIME_PERMITS)
+    memcpy( p, ssl->handshake->milagro_cs->UT.val, ssl->handshake->milagro_cs->UT.len);
+    *olen += ssl->handshake->milagro_cs->UT.len;
+    p += ssl->handshake->milagro_cs->UT.len;
+#else
+    memcpy( p, ssl->handshake->milagro_cs->U.val, ssl->handshake->milagro_cs->U.len );
+    *olen += ssl->handshake->milagro_cs->U.len;
+    p += ssl->handshake->milagro_cs->U.len;
+#endif
+    memcpy( p, ssl->handshake->milagro_cs->V.val, ssl->handshake->milagro_cs->V.len );
+    *olen += ssl->handshake->milagro_cs->V.len;
+    p += ssl->handshake->milagro_cs->V.len;
+    // Write the time
+    *p++ = (unsigned char)( ( ( ssl->handshake->milagro_cs->timevalue     ) >> 24 ) & 0xFF );
+    *p++ = (unsigned char)( ( ( ssl->handshake->milagro_cs->timevalue     ) >> 16 ) & 0xFF );
+    *p++ = (unsigned char)( ( ( ssl->handshake->milagro_cs->timevalue     ) >>  8 ) & 0xFF );
+    *p++ = (unsigned char)( ( ( ssl->handshake->milagro_cs->timevalue     )       ) & 0xFF );
+    *olen += sizeof(unsign32);
+}
+#endif /* MBEDTLS_MILAGRO_CS_C */
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
 static void ssl_write_renegotiation_ext( mbedtls_ssl_context *ssl,
@@ -877,6 +981,12 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
             continue;
 #endif
 
+#if defined(MBEDTLS_SSL_MILAGRO_CS)
+        if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_MILAGRO_CS &&
+           mbedtls_milagro_cs_check(MBEDTLS_SSL_IS_CLIENT, &ssl->handshake->milagro_cs) != 0 )
+            continue;
+#endif
+        
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
         if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE &&
             mbedtls_ecjpake_check( &ssl->handshake->ecjpake_ctx ) != 0 )
@@ -988,6 +1098,11 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     ext_len += olen;
 #endif
 
+#if defined(MBEDTLS_MILAGRO_CS_C)
+    ssl_write_milagro_cs_ext( ssl, p + 2 + ext_len, &olen );
+    ext_len += olen;
+#endif
+    
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     ssl_write_max_fragment_length_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
@@ -2320,6 +2435,32 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
+#if defined(MBEDTLS_KEY_EXCHANGE_MILAGRO_CS_ENABLED)
+        if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_MILAGRO_CS )
+        {
+            ret = mbedtls_milagro_cs_read_public_parameter( MBEDTLS_SSL_IS_CLIENT, ssl->handshake->milagro_cs,
+                                                           p, end - p );
+            if( ret != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_milagro_cs_read_public_parameter", ret );
+                return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+            }
+        }
+        else
+#endif /* MBEDTLS_KEY_EXCHANGE_MILAGRO_CS_ENABLED */
+#if defined(MBEDTLS_KEY_EXCHANGE_MILAGRO_P2P_ENABLED)
+            if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_MILAGRO_P2P )
+            {
+                ret = mbedtls_milagro_p2p_read_public_parameters( MBEDTLS_SSL_IS_CLIENT, ssl->handshake->milagro_p2p,
+                                                                 p, end - p );
+                if( ret != 0 )
+                {
+                    MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_milagro_p2p_read_public_parameter", ret );
+                    return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+                }
+            }
+            else
+#endif /* MBEDTLS_KEY_EXCHANGE_MILAGRO_P2P_ENABLED */
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
@@ -2525,7 +2666,9 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ||
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK ||
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
+       ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE ||
+       ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_MILAGRO_CS ||
+       ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_MILAGRO_P2P)
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate request" ) );
         ssl->state++;
@@ -2550,7 +2693,9 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ||
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK ||
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
+       ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE ||
+       ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_MILAGRO_CS ||
+       ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_MILAGRO_P2P)
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate request" ) );
         ssl->state++;
@@ -2935,7 +3080,52 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         }
     }
     else
-#endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
+#if defined(MBEDTLS_KEY_EXCHANGE_MILAGRO_CS_ENABLED)
+        if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_MILAGRO_CS )
+        {
+            i = 4;
+            
+            ret = mbedtls_milagro_cs_write_exchange_parameter(MBEDTLS_SSL_IS_CLIENT, ssl->handshake->milagro_cs,
+                                                              ssl->out_msg + i,
+                                                              MBEDTLS_SSL_MAX_CONTENT_LEN - i, &n);
+            if (ret != 0)
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_milagro_cs_write_public_parameter", ret );
+                return( ret );
+            }
+            if( ( ret = mbedtls_milagro_cs_derive_premaster(MBEDTLS_SSL_IS_CLIENT, ssl,
+                                                                MBEDTLS_KEY_EXCHANGE_MILAGRO_CS ) ) != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_milagro_cs_derive_premaster", ret );
+                return( ret );
+            }
+        }
+        else
+#endif /* MBEDTLS_KEY_EXCHANGE_MILAGRO_CS_ENABLED */
+#if defined(MBEDTLS_KEY_EXCHANGE_MILAGRO_P2P_ENABLED)
+            
+            if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_MILAGRO_P2P )
+            {
+                i = 4;
+                
+                if( ( ret = mbedtls_milagro_p2p_derive_premaster(MBEDTLS_SSL_IS_CLIENT, ssl,
+                                                                     MBEDTLS_KEY_EXCHANGE_MILAGRO_P2P ) ) != 0 )
+                {
+                    MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_milagro_p2p_derive_premaster", ret );
+                    return( ret );
+                }
+                ret = mbedtls_milagro_p2p_write_public_parameters(MBEDTLS_SSL_IS_CLIENT, ssl->handshake->milagro_p2p,
+                                                                  ssl->out_msg + i,
+                                                                  MBEDTLS_SSL_MAX_CONTENT_LEN - i, &n);
+                if (ret != 0)
+                {
+                    MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_milagro_p2p_write_public_parameter", ret );
+                    return( ret );
+                }
+            }
+            else
+#endif /* MBEDTLS_KEY_EXCHANGE_MILAGRO_P2P_ENABLED */
     {
         ((void) ciphersuite_info);
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
@@ -2980,7 +3170,9 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ||
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK ||
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
+       ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE ||
+       ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_MILAGRO_CS ||
+       ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_MILAGRO_P2P)
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate verify" ) );
         ssl->state++;
@@ -3013,7 +3205,9 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ||
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK ||
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
+       ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE  ||
+       ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_MILAGRO_CS ||
+       ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_MILAGRO_P2P)
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate verify" ) );
         ssl->state++;

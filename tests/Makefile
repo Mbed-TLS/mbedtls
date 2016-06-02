@@ -75,6 +75,7 @@ APPS =	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
 	test_suite_hmac_drbg.pr$(EXEXT)					\
 	test_suite_md$(EXEXT)		test_suite_mdx$(EXEXT)		\
 	test_suite_memory_buffer_alloc$(EXEXT)				\
+	test_suite_milagro_cs$(EXEXT)					\
 	test_suite_mpi$(EXEXT)						\
 	test_suite_pem$(EXEXT)						\
 	test_suite_pkcs1_v21$(EXEXT)	test_suite_pkcs5$(EXEXT)	\
@@ -361,6 +362,14 @@ test_suite_mdx$(EXEXT): test_suite_mdx.c $(DEP)
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_memory_buffer_alloc$(EXEXT): test_suite_memory_buffer_alloc.c $(DEP)
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+test_suite_milagro_cs$(EXEXT): test_suite_milagro_cs.c $(DEP)
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+test_suite_milagro_p2p$(EXEXT): test_suite_milagro_p2p.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 

@@ -361,7 +361,7 @@
  *
  * Uncomment this macro to enable the NULL cipher and ciphersuites
  */
-//#define MBEDTLS_CIPHER_NULL_CIPHER
+#define MBEDTLS_CIPHER_NULL_CIPHER
 
 /**
  * \def MBEDTLS_CIPHER_PADDING_PKCS7
@@ -474,6 +474,44 @@
  *      MBEDTLS_TLS_PSK_WITH_RC4_128_SHA
  */
 #define MBEDTLS_KEY_EXCHANGE_PSK_ENABLED
+
+/**
+ * \def MBEDTLS_KEY_EXCHANGE_MILAGRO_CS_ENABLED
+ *
+ * Enable the MILAGRO_CS based ciphersuit modes in TLS.
+ *
+ * Requires: MBEDTLS_MILAGRO_CS_C
+ *
+ * This enables the following ciphersuite:
+ *      MBEDTLS_TLS_MILAGRO_CS_WITH_AES_128_GCM_SHA256
+ *      MBEDTLS_TLS_MILAGRO_CS_WITH_AES_128_GCM_SHA512
+ *      MBEDTLS_TLS_MILAGRO_CS_WITH_CAMELLIA_128_GCM_SHA256
+ *      MBEDTLS_TLS_MILAGRO_CS_WITH_CAMELLIA_128_GCM_SHA512
+ *      MBEDTLS_TLS_MILAGRO_CS_WITH_3DES_EDE_CBC_SHA256
+ *      MBEDTLS_TLS_MILAGRO_CS_WITH_3DES_EDE_CBC_SHA512
+ *      MBEDTLS_TLS_MILAGRO_CS_WITH_NULL_SHA256
+ *
+ */
+#define MBEDTLS_KEY_EXCHANGE_MILAGRO_CS_ENABLED
+
+/**
+ * \def MBEDTLS_KEY_EXCHANGE_MILAGRO_P2P_ENABLED
+ *
+ * Enable the MILAGRO_P2P PROTOCOL based ciphersuit modes in TLS.
+ *
+ * Requires: MBEDTLS_MILAGRO_P2P_C
+ *
+ * This enables the following ciphersuite:
+ *      MBEDTLS_TLS_MILAGRO_P2P_WITH_AES_128_GCM_SHA256
+ *      MBEDTLS_TLS_MILAGRO_P2P_WITH_AES_128_GCM_SHA512
+ *      MBEDTLS_TLS_MILAGRO_P2P_WITH_CAMELLIA_128_GCM_SHA256
+ *      MBEDTLS_TLS_MILAGRO_P2P_WITH_CAMELLIA_128_GCM_SHA512
+ *      MBEDTLS_TLS_MILAGRO_P2P_WITH_3DES_EDE_CBC_SHA256
+ *      MBEDTLS_TLS_MILAGRO_P2P_WITH_3DES_EDE_CBC_SHA512
+ *      MBEDTLS_TLS_MILAGRO_P2P_WITH_NULL_SHA256
+ *
+ */
+#define MBEDTLS_KEY_EXCHANGE_MILAGRO_P2P_ENABLED
 
 /**
  * \def MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED
@@ -758,6 +796,50 @@
  * Enable functions that use the filesystem.
  */
 #define MBEDTLS_FS_IO
+
+/**
+ * \def MBEDTLS_MILAGRO_CS_C
+ *
+ * Enable support for autentication using MILAGRO_CS
+ *
+ * Requires: "mpin.h" from milagro-crypto library
+ *
+ * Comment this macro to disable support for autentication using MILAGRO_CS in TLS
+ */
+#define MBEDTLS_MILAGRO_CS_C
+
+/**
+ * \def MBEDTLS_MILAGRO_P2P_C
+ *
+ * Enable support for using MILAGRO_P2P PROTOCOL
+ *
+ * Requires: "wcc.h" from milagro-crypto library
+ *
+ * Comment this macro to disable support for using MILAGRO_P2P in TLS
+ */
+#define MBEDTLS_MILAGRO_P2P_C
+
+/**
+ * \def MBEDTLS_MILAGRO_CS_TIME_PERMITS
+ *
+ * Enable support for time permits in MILAGRO_CS
+ *
+ * Requires: MBEDTLS_MILAGRO_CS_C
+ *
+ * Comment this macro to disable support for time permits in MILAGRO_CS
+ */
+//#define MBEDTLS_MILAGRO_CS_TIME_PERMITS
+
+/**
+ * \def MBEDTLS_MILAGRO_CS_ENABLE_PIN
+ *
+ * Enable support for the use of PIN in MILAGRO_CS
+ *
+ * Requires: MBEDTLS_MILAGRO_CS_C
+ *
+ * Comment this macro to disable the use of PIN in MILAGRO_CS
+ */
+//#define MBEDTLS_MILAGRO_CS_ENABLE_PIN
 
 /**
  * \def MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
@@ -1578,6 +1660,10 @@
  *      MBEDTLS_TLS_PSK_WITH_CAMELLIA_256_CBC_SHA384
  *      MBEDTLS_TLS_PSK_WITH_CAMELLIA_128_GCM_SHA256
  *      MBEDTLS_TLS_PSK_WITH_CAMELLIA_128_CBC_SHA256
+ *      MBEDTLS_TLS_MILAGRO_CS_WITH_CAMELLIA_128_GCM_SHA256
+ *      MBEDTLS_TLS_MILAGRO_CS_WITH_CAMELLIA_128_GCM_SHA512
+ *      MBEDTLS_TLS_MILAGRO_P2P_WITH_CAMELLIA_128_GCM_SHA256
+ *      MBEDTLS_TLS_MILAGRO_P2P_WITH_CAMELLIA_128_GCM_SHA512
  */
 #define MBEDTLS_CAMELLIA_C
 
@@ -1668,6 +1754,10 @@
  *      MBEDTLS_TLS_RSA_WITH_3DES_EDE_CBC_SHA
  *      MBEDTLS_TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA
  *      MBEDTLS_TLS_PSK_WITH_3DES_EDE_CBC_SHA
+ *      MBEDTLS_MILAGRO_CS_WITH_3DES_EDE_CBC_SHA256
+ *      MBEDTLS_MILAGRO_CS_WITH_3DES_EDE_CBC_SHA512
+ *      MBEDTLS_MILAGRO_P2P_WITH_3DES_EDE_CBC_SHA256
+ *      MBEDTLS_MILAGRO_P2P_WITH_3DES_EDE_CBC_SHA512
  *
  * PEM_PARSE uses DES/3DES for decrypting encrypted keys.
  */

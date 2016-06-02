@@ -434,6 +434,37 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(MBEDTLS_ERR_SSL_UNEXPECTED_RECORD) )
             mbedtls_snprintf( buf, buflen, "SSL - Record header looks valid but is not expected" );
 #endif /* MBEDTLS_SSL_TLS_C */
+        
+#if defined(MBEDTLS_MILAGRO_CS_C)
+        if( use_ret == -(MBEDTLS_ERR_MILAGRO_CS_AUTHENTICATION_FAILED) )
+            mbedtls_snprintf( buf, buflen, "MILAGRO_CS - The server has failed authenticating the client" );
+        if (use_ret == -(MBEDTLS_ERR_MILAGRO_CS_SRV_PUB_PARAM_FAILED) )
+            mbedtls_snprintf( buf, buflen, "MILAGRO_CS - The server has failed computing the public parameter W" );
+        if (use_ret == -(MBEDTLS_ERR_MILAGRO_CS_CLI_PUB_PARAM_FAILED) )
+            mbedtls_snprintf( buf, buflen, "MILAGRO_CS - The client has failed computing the public parameter R" );
+        if (use_ret == -(MBEDTLS_ERR_MILAGRO_CS_READ_PARAM_FAILED) )
+            mbedtls_snprintf( buf, buflen, "MILAGRO_CS - Failed while reading the parameters" );
+        if (use_ret == -(MBEDTLS_ERR_MILAGRO_CS_WRITE_PARAM_FAILED) )
+            mbedtls_snprintf( buf, buflen, "MILAGRO_CS - Failed while writing the parameters" );
+        if (use_ret == -(MBEDTLS_ERR_MILAGRO_CS_KEY_COMPUTATOIN_FAILED) )
+            mbedtls_snprintf( buf, buflen, "MILAGRO_CS - Failing while computing the premaster secret" );
+#endif
+        
+#if defined(MBEDTLS_MILAGRO_P2P_C)
+        if (use_ret == -(MBEDTLS_ERR_MILAGRO_P2P_READ_PARAM_FAILED) )
+            mbedtls_snprintf( buf, buflen, "MILAGRO_P2P - Failed while reading the parameters" );
+        if (use_ret == -(MBEDTLS_ERR_MILAGRO_P2P_MSECRET_COMPUTATOIN_FAILED) )
+            mbedtls_snprintf( buf, buflen, "MILAGRO_P2P - Failed while computing the premaster secret" );
+        if (use_ret == -(MBEDTLS_ERR_MILAGRO_P2P_PARAMETERS_COMPUTATOIN_FAILED) )
+            mbedtls_snprintf( buf, buflen, "MILAGRO_P2P - Failed while computing the parameters" );
+        if (use_ret == -(MBEDTLS_ERR_MILAGRO_P2P_WRITE_PARAM_FAILED) )
+            mbedtls_snprintf( buf, buflen, "MILAGRO_P2P - Failed while writing the parameters" );
+#endif
+
+#if defined(MBEDTLS_MILAGRO_CS_C) || defined(MBEDTLS_MILAGRO_P2P_C)
+        if (use_ret == -(MBEDTLS_ERR_MILAGRO_BAD_INPUT) )
+            mbedtls_snprintf( buf, buflen, "Input function non valid." );
+#endif
 
 #if defined(MBEDTLS_X509_USE_C) || defined(MBEDTLS_X509_CREATE_C)
         if( use_ret == -(MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE) )

@@ -18,6 +18,8 @@ There are currently four active build systems within the mbed TLS releases:
 -   CMake
 -   Microsoft Visual Studio (Visual Studio 6 and Visual Studio 2010)
 
+Read Milagro.md if you want to support the milagro cipher suite to (only cmake is supported).
+
 The main systems used for development are CMake and yotta. Those systems are always complete and up-to-date. The others should reflect all changes present in the CMake and yotta build system, but some features are not ported there by default.
 
 Please note that the yotta option is slightly different from the other build systems:

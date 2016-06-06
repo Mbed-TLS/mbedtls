@@ -36,10 +36,13 @@ if [ -d library -a -d include -a -d tests ]; then :; else
     exit 1
 fi
 
+CONFIG_H='include/mbedtls/config.h'
+CONFIG_BAK="$CONFIG_H.bak"
 
 # Step 1 - Make and instrumented build for code coverage
 export CFLAGS=' --coverage -g3 -O0 '
 make clean
+cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE
 make -j
@@ -204,3 +207,9 @@ rm compat-test-$TEST_OUTPUT
 rm cov-$TEST_OUTPUT
 
 cd ..
+
+make clean
+
+if [ -f "$CONFIG_BAK" ]; then
+    mv "$CONFIG_BAK" "$CONFIG_H"
+fi

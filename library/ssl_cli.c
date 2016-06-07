@@ -2457,6 +2457,7 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
                                      mbedtls_md_info_from_type( md_alg ), 0 ) ) != 0 )
             {
                 MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_md_setup", ret );
+                mbedtls_md_free( &ctx );
                 return( ret );
             }
 

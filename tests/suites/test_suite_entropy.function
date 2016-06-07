@@ -300,7 +300,7 @@ void entropy_nv_seed_std_io()
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_NV_SEED:MBEDTLS_PLATFORM_NV_SEED_ALT:MBEDTLS_SHA512_C */
+/* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_NV_SEED:MBEDTLS_PLATFORM_NV_SEED_ALT:MBEDTLS_ENTROPY_SHA512_ACCUMULATOR */
 void entropy_nv_seed( char *read_seed_str )
 {
     mbedtls_sha512_context accumulator;

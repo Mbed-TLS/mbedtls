@@ -2960,6 +2960,7 @@ curve_matching_done:
             if( ( ret = mbedtls_md_setup( &ctx, md_info, 0 ) ) != 0 )
             {
                 MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_md_setup", ret );
+                mbedtls_md_free( &ctx );
                 return( ret );
             }
 

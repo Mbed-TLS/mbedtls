@@ -423,7 +423,10 @@ int mbedtls_md_hmac( const mbedtls_md_info_t *md_info, const unsigned char *key,
     mbedtls_md_init( &ctx );
 
     if( ( ret = mbedtls_md_setup( &ctx, md_info, 1 ) ) != 0 )
+    {
+        mbedtls_md_free( &ctx );
         return( ret );
+    }
 
     mbedtls_md_hmac_starts( &ctx, key, keylen );
     mbedtls_md_hmac_update( &ctx, input, ilen );

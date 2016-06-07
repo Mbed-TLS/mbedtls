@@ -303,8 +303,10 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 
     if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 1 ) ) != 0 )
+    {
+        mbedtls_md_free( &md_ctx );
         return( ret );
-
+    }
     mbedtls_md_hmac_starts( &md_ctx, S1, hs );
     mbedtls_md_hmac_update( &md_ctx, tmp + 20, nb );
     mbedtls_md_hmac_finish( &md_ctx, 4 + tmp );
@@ -334,7 +336,10 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 
     if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 1 ) ) != 0 )
+    {
+        mbedtls_md_free( &md_ctx );
         return( ret );
+    }
 
     mbedtls_md_hmac_starts( &md_ctx, S2, hs );
     mbedtls_md_hmac_update( &md_ctx, tmp + 20, nb );
@@ -399,8 +404,10 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
      * Compute P_<hash>(secret, label + random)[0..dlen]
      */
     if ( ( ret = mbedtls_md_setup( &md_ctx, md_info, 1 ) ) != 0 )
+    {
+        mbedtls_md_free( &md_ctx );
         return( ret );
-
+    }
     mbedtls_md_hmac_starts( &md_ctx, secret, slen );
     mbedtls_md_hmac_update( &md_ctx, tmp + md_len, nb );
     mbedtls_md_hmac_finish( &md_ctx, tmp );

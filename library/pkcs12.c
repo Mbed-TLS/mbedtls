@@ -275,7 +275,10 @@ int mbedtls_pkcs12_derivation( unsigned char *data, size_t datalen,
     mbedtls_md_init( &md_ctx );
 
     if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 0 ) ) != 0 )
+    {
+        mbedtls_md_free( &md_ctx );
         return( ret );
+    }
     hlen = mbedtls_md_get_size( md_info );
 
     if( hlen <= 32 )

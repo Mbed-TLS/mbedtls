@@ -118,9 +118,7 @@ int mbedtls_ssl_cookie_setup( mbedtls_ssl_cookie_ctx *ctx,
 
     ret = mbedtls_md_setup( &ctx->hmac_ctx, mbedtls_md_info_from_type( COOKIE_MD ), 1 );
     if( ret != 0 )
-    {
-       return( ret );
-    }
+        return( ret );
 
     ret = mbedtls_md_hmac_starts( &ctx->hmac_ctx, key, sizeof( key ) );
     if( ret != 0 )

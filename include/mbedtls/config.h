@@ -836,11 +836,20 @@
  *
  * Requires: MBEDTLS_ENTROPY_C, MBEDTLS_PLATFORM_C
  *
- * Note: If you use the default implementation functions that read a seedfile
+ * \note The read/write functions that are used by the entropy source are
+ *       determined in the platform layer, and can be modified at runtime and/or
+ *       compile-time depending on the flags (MBEDTLS_PLATFORM_NV_SEED_*) used.
+ *
+ * \note If you use the default implementation functions that read a seedfile
  *       with regular fopen(), please make sure you make a seedfile with the
  *       proper name (defined in MBEDTLS_PLATFORM_STD_NV_SEED_FILE) and at
  *       least MBEDTLS_ENTROPY_BLOCK_SIZE bytes in size that can be read from
- *       and written to or you will get an entropy source error!
+ *       and written to or you will get an entropy source error! The default
+ *       implementation will only use the first MBEDTLS_ENTROPY_BLOCK_SIZE
+ *       bytes from the file.
+ *
+ * \note The entropy collector will write to the seed file before entropy is
+ *       given to an external source, to update it.
  */
 //#define MBEDTLS_ENTROPY_NV_SEED
 

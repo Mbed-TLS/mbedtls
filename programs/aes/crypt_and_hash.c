@@ -187,7 +187,7 @@ int main( int argc, char *argv[] )
 
     if( mbedtls_md_setup( &md_ctx, md_info, 1 ) != 0 )
     {
-        mbedtls_fprintf( stderr, "mbedtls_md_setup unsuccessful: This shouldn't happen.\n" );
+        mbedtls_fprintf( stderr, "mbedtls_md_setup failed\n" );
         goto exit;
     }
 
@@ -404,12 +404,9 @@ int main( int argc, char *argv[] )
             goto exit;
         }
 
-        /*
-         * Make coverity happy.
-         */
         if( mbedtls_cipher_get_block_size( &cipher_ctx ) == 0 )
         {
-            mbedtls_fprintf( stderr, "mbedtls_cipher_get_block_size returned with 0. This shouldn't happen.\n" );
+            mbedtls_fprintf( stderr, "Invalid cipher block size: 0. \n" );
             goto exit;
         }
 

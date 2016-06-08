@@ -130,6 +130,17 @@
 #error "MBEDTLS_ENTROPY_FORCE_SHA256 defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_TEST_WO_ENTROPY)
+#warning "MBEDTLS_TEST_WO_ENTROPY defined, this build provides no security!"
+#if !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES)
+#error "MBEDTLS_TEST_WO_ENTROPY defined, but not all prerequisites"
+#endif
+#if defined(MBEDTLS_ENTROPY_NV_SEED) || defined(MBEDTLS_ENTROPY_HARDWARE_ALT) || \
+    defined(MBEDTLS_HAVEGE_C)
+#error "MBEDTLS_TEST_WO_ENTROPY defined, but entropy sources too"
+#endif
+#endif
+
 #if defined(MBEDTLS_GCM_C) && (                                        \
         !defined(MBEDTLS_AES_C) && !defined(MBEDTLS_CAMELLIA_C) )
 #error "MBEDTLS_GCM_C defined, but not all prerequisites"

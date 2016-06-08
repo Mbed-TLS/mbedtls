@@ -560,7 +560,7 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
     mbedtls_md_init( &md_ctx );
     if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 0 ) ) != 0 )
     {
-        mbedtls_md_free(&md_ctx);
+        mbedtls_md_free( &md_ctx );
         return( ret );
     }
 
@@ -734,7 +734,7 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
     mbedtls_md_init( &md_ctx );
     if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 0 ) ) != 0 )
     {
-        mbedtls_md_free(&md_ctx);
+        mbedtls_md_free( &md_ctx );
         return( ret );
     }
 
@@ -983,7 +983,7 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
     mbedtls_md_init( &md_ctx );
     if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 0 ) ) != 0 )
     {
-        mbedtls_md_free(&md_ctx);
+        mbedtls_md_free( &md_ctx );
         return( ret );
     }
 
@@ -1260,7 +1260,7 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
     mbedtls_md_init( &md_ctx );
     if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 0 ) ) != 0 )
     {
-        mbedtls_md_free(&md_ctx);
+        mbedtls_md_free( &md_ctx );
         return( ret );
     }
 

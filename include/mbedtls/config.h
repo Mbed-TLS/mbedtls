@@ -2547,11 +2547,7 @@
 /* X509 options */
 //#define MBEDTLS_X509_MAX_INTERMEDIATE_CA   8   /**< Maximum number of intermediate CAs in a verification chain. */
 
-/* \} name SECTION: Module configuration options */
-
-#if defined(TARGET_LIKE_MBED)
-#include "mbedtls/target_config.h"
-#endif
+/* \} name SECTION: Customisation configuration options */
 
 /*
  * Allow user to override any previous default.

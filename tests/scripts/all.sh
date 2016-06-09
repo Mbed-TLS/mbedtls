@@ -265,7 +265,7 @@ scripts/config.pl unset MBEDTLS_NET_C # getaddrinfo() undeclared, etc.
 scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY # uses syscall() on GNU/Linux
 CC=gcc CFLAGS='-Werror -O0 -std=c99 -pedantic' make lib
 
-msg "build: full config with  MBEDTLS_TEST_WO_ENTROPY (ASan build)"
+msg "build: default config with  MBEDTLS_TEST_WO_ENTROPY (ASan build)"
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl set MBEDTLS_TEST_WO_ENTROPY

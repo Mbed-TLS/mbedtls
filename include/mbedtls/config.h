@@ -286,6 +286,8 @@
  * example the MBEDTLS_ENTROPY_HARDWARE_ALT or the MBEDTLS_ENTROPY_NV_SEED
  * switch).
  *
+ * Requires MBEDTLS_ENTROPY_C, MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
+ *
  * WARNING! This switch is extremely DANGEROUS, don't use it in production code
  * under any circumstances. This switch nullifies any security provided by the
  * library.

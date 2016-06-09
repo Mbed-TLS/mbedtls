@@ -509,6 +509,14 @@
 #define MBEDTLS_CIPHER_MODE_XEX
 
 /**
+ * \def MBEDTLS_CIPHER_MODE_XTS
+ *
+ * Enable Xor-encrypt-xor with ciphertext stealing mode (XTS) for symmetric
+ * ciphers.
+ */
+#define MBEDTLS_CIPHER_MODE_XTS
+
+/**
  * \def MBEDTLS_CIPHER_MODE_OFB
  *
  * Enable Output Feedback mode (OFB) for symmetric ciphers.

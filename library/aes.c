@@ -44,7 +44,7 @@
 #include "mbedtls/aesni.h"
 #endif
 
-#if defined(MBEDTLS_CIPHER_MODE_XEX)
+#if defined(MBEDTLS_CIPHER_MODE_XEX) || defined(MBEDTLS_CIPHER_MODE_XTS)
 #include "mbedtls/gf128mul.h"
 #endif
 
@@ -1044,6 +1044,145 @@ first:
     return( 0 );
 }
 #endif /* MBEDTLS_CIPHER_MODE_XEX */
+
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
+/*
+ * AES-XTS buffer encryption/decryption
+ */
+int mbedtls_aes_crypt_xts( mbedtls_aes_context *crypt_ctx,
+                    mbedtls_aes_context *tweak_ctx,
+                    int mode,
+                    size_t bits_length,
+                    unsigned char iv[16],
+                    const unsigned char *input,
+                    unsigned char *output )
+{
+    union xts_buf128 {
+        uint8_t  u8[16];
+        uint64_t u64[2];
+    };
+
+    union xts_buf128 scratch;
+    union xts_buf128 cts_scratch;
+    union xts_buf128 t_buf;
+    union xts_buf128 cts_t_buf;
+    union xts_buf128 *inbuf;
+    union xts_buf128 *outbuf;
+
+    size_t length = bits_length / 8;
+    size_t nblk   = length / 16;
+    size_t remn   = length % 16;
+
+    inbuf = (union xts_buf128*)input;
+    outbuf = (union xts_buf128*)output;
+
+    /* For performing the ciphertext-stealing operation, we have to get at least
+     * one complete block */
+    if( length < 16 )
+        return( MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH );
+
+
+    mbedtls_aes_crypt_ecb( tweak_ctx, MBEDTLS_AES_ENCRYPT, iv, t_buf.u8 );
+
+    if( mode == MBEDTLS_AES_DECRYPT && remn )
+    {
+        if( nblk == 1 )
+            goto decrypt_only_one_full_block;
+        nblk--;
+    }
+
+    goto first;
+
+    do
+    {
+        mbedtls_gf128mul_x_ble( t_buf.u8, t_buf.u8 );
+
+first:
+        /* PP <- T xor P */
+        scratch.u64[0] = (uint64_t)( inbuf->u64[0] ^ t_buf.u64[0] );
+        scratch.u64[1] = (uint64_t)( inbuf->u64[1] ^ t_buf.u64[1] );
+
+        /* CC <- E(Key2,PP) */
+        mbedtls_aes_crypt_ecb( crypt_ctx, mode, scratch.u8, outbuf->u8 );
+
+        /* C <- T xor CC */
+        outbuf->u64[0] = (uint64_t)( outbuf->u64[0] ^ t_buf.u64[0] );
+        outbuf->u64[1] = (uint64_t)( outbuf->u64[1] ^ t_buf.u64[1] );
+
+        inbuf  += 1;
+        outbuf += 1;
+        nblk   -= 1;
+    } while( nblk > 0 );
+
+    /* Ciphertext stealing, if necessary */
+    if( remn != 0 )
+    {
+        outbuf = (union xts_buf128*)output;
+        inbuf =  (union xts_buf128*)input;
+        nblk = length / 16;
+
+        if( mode == MBEDTLS_AES_ENCRYPT )
+        {
+            memcpy( cts_scratch.u8,          (uint8_t*)&inbuf[nblk],              remn );
+            memcpy( cts_scratch.u8 + remn,  ((uint8_t*)&outbuf[nblk - 1]) + remn, 16 - remn );
+            memcpy( (uint8_t*)&outbuf[nblk], (uint8_t*)&outbuf[nblk - 1],         remn );
+
+            mbedtls_gf128mul_x_ble( t_buf.u8, t_buf.u8 );
+
+            /* PP <- T xor P */
+            scratch.u64[0] = (uint64_t)( cts_scratch.u64[0] ^ t_buf.u64[0] );
+            scratch.u64[1] = (uint64_t)( cts_scratch.u64[1] ^ t_buf.u64[1] );
+
+            /* CC <- E(Key2,PP) */
+            mbedtls_aes_crypt_ecb( crypt_ctx, mode, scratch.u8, scratch.u8 );
+
+            /* C <- T xor CC */
+            outbuf[nblk - 1].u64[0] = (uint64_t)( scratch.u64[0] ^ t_buf.u64[0] );
+            outbuf[nblk - 1].u64[1] = (uint64_t)( scratch.u64[1] ^ t_buf.u64[1] );
+        }
+        else /* AES_DECRYPT */
+        {
+            mbedtls_gf128mul_x_ble( t_buf.u8, t_buf.u8 );
+
+decrypt_only_one_full_block:
+            cts_t_buf.u64[0] = t_buf.u64[0];
+            cts_t_buf.u64[1] = t_buf.u64[1];
+
+            mbedtls_gf128mul_x_ble( t_buf.u8, t_buf.u8 );
+
+            /* PP <- T xor P */
+            scratch.u64[0] = (uint64_t)( inbuf[nblk - 1].u64[0] ^ t_buf.u64[0] );
+            scratch.u64[1] = (uint64_t)( inbuf[nblk - 1].u64[1] ^ t_buf.u64[1] );
+
+            /* CC <- E(Key2,PP) */
+            mbedtls_aes_crypt_ecb( crypt_ctx, mode, scratch.u8, scratch.u8 );
+
+            /* C <- T xor CC */
+            cts_scratch.u64[0] = (uint64_t)( scratch.u64[0] ^ t_buf.u64[0] );
+            cts_scratch.u64[1] = (uint64_t)( scratch.u64[1] ^ t_buf.u64[1] );
+
+
+            memcpy( (uint8_t*)&inbuf[nblk - 1], (uint8_t*)&inbuf[nblk], remn );
+            memcpy( (uint8_t*)&inbuf[nblk - 1] + remn, cts_scratch.u8 + remn, 16 - remn );
+            memcpy( (uint8_t*)&outbuf[nblk], cts_scratch.u8, remn );
+
+
+            /* PP <- T xor P */
+            scratch.u64[0] = (uint64_t)( inbuf[nblk - 1].u64[0] ^ cts_t_buf.u64[0] );
+            scratch.u64[1] = (uint64_t)( inbuf[nblk - 1].u64[1] ^ cts_t_buf.u64[1] );
+
+            /* CC <- E(Key2,PP) */
+            mbedtls_aes_crypt_ecb( crypt_ctx, mode, scratch.u8, scratch.u8 );
+
+            /* C <- T xor CC */
+            outbuf[nblk - 1].u64[0] = (uint64_t)( scratch.u64[0] ^ cts_t_buf.u64[0] );
+            outbuf[nblk - 1].u64[1] = (uint64_t)( scratch.u64[1] ^ cts_t_buf.u64[1] );
+        }
+    }
+
+    return( 0 );
+}
+#endif /* MBEDTLS_CIPHER_MODE_XTS */
 
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
 /*

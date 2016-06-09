@@ -237,6 +237,34 @@ int mbedtls_aes_crypt_xex( mbedtls_aes_context *crypt_ctx,
                     unsigned char *output );
 #endif /* MBEDTLS_CIPHER_MODE_XEX */
 
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
+/**
+ * \brief           AES-XTS buffer encryption/decryption
+ *                  Length should be greater or equal than the block size (16
+ *                  bytes, 128 bits)
+ *
+ * Warning: The bits_length parameter must given be in bits, not bytes like the
+ * other modes
+ *
+ * \param crypt_ctx AES context for encrypting data
+ * \param tweak_ctx AES context for xor-ing with data
+ * \param mode      MBEDTLS_AES_ENCRYPT or MBEDTLS_AES_DECRYPT
+ * \param bits_length length of the input data (in bits)
+ * \param iv        initialization vector
+ * \param input     buffer holding the input data
+ * \param output    buffer holding the output data
+ *
+ * \return         0 if successful, or MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH
+ */
+int mbedtls_aes_crypt_xts( mbedtls_aes_context *crypt_ctx,
+                    mbedtls_aes_context *tweak_ctx,
+                    int mode,
+                    size_t bits_length,
+                    unsigned char iv[16],
+                    const unsigned char *input,
+                    unsigned char *output );
+#endif /* MBEDTLS_CIPHER_MODE_XTS */
+
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
 /**
  * \brief This function performs an AES-CFB128 encryption or decryption

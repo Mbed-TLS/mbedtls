@@ -46,7 +46,7 @@ extern "C" {
 /**
  * \brief           Entropy poll callback that provides 0 entropy.
  */
-#if defined(MBEDTLS_TEST_WO_ENTROPY)
+#if defined(MBEDTLS_TEST_NULL_ENTROPY)
     int mbedtls_zero_entropy_poll( void *data,
                                 unsigned char *output, size_t len, size_t *olen );
 #endif

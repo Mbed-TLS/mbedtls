@@ -191,11 +191,12 @@ int mbedtls_platform_entropy_poll( void *data,
 #endif /* _WIN32 && !EFIX64 && !EFI32 */
 #endif /* !MBEDTLS_NO_PLATFORM_ENTROPY */
 
-#if defined(MBEDTLS_TEST_WO_ENTROPY)
+#if defined(MBEDTLS_TEST_NULL_ENTROPY)
 int mbedtls_zero_entropy_poll( void *data,
                     unsigned char *output, size_t len, size_t *olen )
 {
     ((void) data);
+    ((void) output);
     *olen = 0;
 
     if( len < sizeof(unsigned char) )

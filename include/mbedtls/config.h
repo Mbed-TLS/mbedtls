@@ -280,29 +280,21 @@
 //#define MBEDTLS_AES_DECRYPT_ALT
 
 /**
- * \def MBEDTLS_TEST_WO_ENTROPY
+ * \def MBEDTLS_TEST_NULL_ENTROPY
  *
- * Enable testing mbed TLS without access to any entropy. This enables testing
- * the library before the platforms entropy sources are integrated (, see for
- * example the MBEDTLS_ENTROPY_HARDWARE_ALT or the MBEDTLS_ENTROPY_NV_SEED
- * switch).
+ * Enables testing and use of mbed TLS without any configured entropy sources.
+ * This permits use of the library on platforms before an entropy source has
+ * been integrated (see for example the MBEDTLS_ENTROPY_HARDWARE_ALT or the
+ * MBEDTLS_ENTROPY_NV_SEED switches).
+ *
+ * WARNING! This switch MUST be disabled in production builds, and is suitable
+ * only for development.
+ * Enabling the switch negates any security provided by the library.
  *
  * Requires MBEDTLS_ENTROPY_C, MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
  *
- * WARNING! This switch is extremely DANGEROUS, don't use it in production code
- * under any circumstances. This switch nullifies any security provided by the
- * library.
  */
-//#define MBEDTLS_TEST_WO_ENTROPY
-
-
-/**
- * \def MBEDTLS_ENTROPY_NV_SEED
- *
- * Strong software entropy source. It is not yet implemented,
- * adding it because it is mutually exclusive with MBEDTLS_TEST_WO_ENTROPY.
- */
-//#define MBEDTLS_ENTROPY_NV_SEED
+//#define MBEDTLS_TEST_NULL_ENTROPY
 
 /**
  * \def MBEDTLS_ENTROPY_HARDWARE_ALT

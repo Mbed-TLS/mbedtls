@@ -265,6 +265,22 @@ scripts/config.pl unset MBEDTLS_NET_C # getaddrinfo() undeclared, etc.
 scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY # uses syscall() on GNU/Linux
 CC=gcc CFLAGS='-Werror -O0 -std=c99 -pedantic' make lib
 
+msg "build: default config with  MBEDTLS_TEST_NULL_ENTROPY (ASan build)"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_TEST_NULL_ENTROPY
+scripts/config.pl set MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
+scripts/config.pl set MBEDTLS_ENTROPY_C
+scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+scripts/config.pl unset MBEDTLS_ENTROPY_HARDWARE_ALT
+scripts/config.pl unset MBEDTLS_HAVEGE_C
+CC=gcc cmake -D CMAKE_C_FLAGS:String="-fsanitize=address -fno-common -O3" .
+make
+
+msg "test: MBEDTLS_TEST_NULL_ENTROPY - main suites and selftest (ASan build)"
+make test
+programs/test/selftest
+
 if uname -a | grep -F Linux >/dev/null; then
 msg "build/test: make shared" # ~ 40s
 cleanup

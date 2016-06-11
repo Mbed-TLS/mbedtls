@@ -27,6 +27,12 @@
 
 #if defined(MBEDTLS_ENTROPY_C)
 
+#if defined(MBEDTLS_TEST_NULL_ENTROPY)
+#warning "**** WARNING!  MBEDTLS_TEST_NULL_ENTROPY defined! ****"
+#warning "**** THIS BUILD HAS NO DEFINED ENTROPY SOURCES    ****"
+#warning "**** NOT SUITABLE FOR PRODUCTION                  ****"
+#endif
+
 #include "mbedtls/entropy.h"
 #include "mbedtls/entropy_poll.h"
 
@@ -71,6 +77,11 @@ void mbedtls_entropy_init( mbedtls_entropy_context *ctx )
 #endif
 #if defined(MBEDTLS_HAVEGE_C)
     mbedtls_havege_init( &ctx->havege_data );
+#endif
+
+#if defined(MBEDTLS_TEST_NULL_ENTROPY)
+    mbedtls_entropy_add_source( ctx, mbedtls_null_entropy_poll, NULL,
+                                1, MBEDTLS_ENTROPY_SOURCE_STRONG );
 #endif
 
 #if !defined(MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES)

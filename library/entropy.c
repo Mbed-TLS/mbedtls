@@ -80,7 +80,7 @@ void mbedtls_entropy_init( mbedtls_entropy_context *ctx )
 #endif
 
 #if defined(MBEDTLS_TEST_NULL_ENTROPY)
-    mbedtls_entropy_add_source( ctx, mbedtls_zero_entropy_poll, NULL,
+    mbedtls_entropy_add_source( ctx, mbedtls_null_entropy_poll, NULL,
                                 1, MBEDTLS_ENTROPY_SOURCE_STRONG );
 #endif
 

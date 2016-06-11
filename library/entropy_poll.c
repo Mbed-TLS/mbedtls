@@ -192,7 +192,7 @@ int mbedtls_platform_entropy_poll( void *data,
 #endif /* !MBEDTLS_NO_PLATFORM_ENTROPY */
 
 #if defined(MBEDTLS_TEST_NULL_ENTROPY)
-int mbedtls_zero_entropy_poll( void *data,
+int mbedtls_null_entropy_poll( void *data,
                     unsigned char *output, size_t len, size_t *olen )
 {
     ((void) data);

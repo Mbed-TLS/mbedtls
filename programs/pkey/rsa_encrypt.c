@@ -118,6 +118,7 @@ int main( int argc, char *argv[] )
         exit_val = MBEDTLS_EXIT_FAILURE;
         mbedtls_printf( " failed\n  ! mbedtls_mpi_read_file returned %d\n\n",
                         return_val );
+        fclose( f );
         goto exit;
     }
 

@@ -184,7 +184,12 @@ int main( int argc, char *argv[] )
         mbedtls_fprintf( stderr, "Message Digest '%s' not found\n", argv[5] );
         goto exit;
     }
-    mbedtls_md_setup( &md_ctx, md_info, 1 );
+
+    if( mbedtls_md_setup( &md_ctx, md_info, 1 ) != 0 )
+    {
+        mbedtls_fprintf( stderr, "mbedtls_md_setup failed\n" );
+        goto exit;
+    }
 
     /*
      * Read the secret key and clean the command line.
@@ -399,6 +404,15 @@ int main( int argc, char *argv[] )
             goto exit;
         }
 
+        if( mbedtls_cipher_get_block_size( &cipher_ctx ) == 0 )
+        {
+            mbedtls_fprintf( stderr, "Invalid cipher block size: 0. \n" );
+            goto exit;
+        }
+
+        /*
+         * Check the file size.
+         */
         if( ( ( filesize - mbedtls_md_get_size( md_info ) ) %
                 mbedtls_cipher_get_block_size( &cipher_ctx ) ) != 0 )
         {

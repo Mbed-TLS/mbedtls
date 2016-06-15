@@ -4628,6 +4628,11 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         /*
          * Main check: verify certificate
          */
+        if( ssl->conf->f_pre_vrfy != NULL )
+        {
+            ssl->conf->f_pre_vrfy( ssl->conf->p_pre_vrfy,
+                                   ssl->session_negotiate->peer_cert );
+        }
         ret = mbedtls_x509_crt_verify_with_profile(
                                 ssl->session_negotiate->peer_cert,
                                 ca_chain, ca_crl,
@@ -5876,6 +5881,14 @@ void mbedtls_ssl_conf_verify( mbedtls_ssl_config *conf,
 {
     conf->f_vrfy      = f_vrfy;
     conf->p_vrfy      = p_vrfy;
+}
+
+void mbedtls_ssl_conf_pre_verify(mbedtls_ssl_config *conf,
+                             void(*f_pre_vrfy)(void *, mbedtls_x509_crt *),
+                             void *p_pre_vrfy)
+{
+  conf->f_pre_vrfy = f_pre_vrfy;
+  conf->p_pre_vrfy = p_pre_vrfy;
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 

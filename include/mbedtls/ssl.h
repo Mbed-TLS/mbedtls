@@ -627,6 +627,10 @@ struct mbedtls_ssl_config
     /** Callback to customize X.509 certificate chain verification          */
     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *);
     void *p_vrfy;                   /*!< context for X.509 verify calllback */
+
+    /** Callback to receive notification before X.509 chain building        */
+    void (*f_pre_vrfy)(void *, mbedtls_x509_crt *);
+    void *p_pre_vrfy;               /*!< context for pre-verify calllback   */
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
@@ -1076,6 +1080,21 @@ void mbedtls_ssl_conf_authmode( mbedtls_ssl_config *conf, int authmode );
 void mbedtls_ssl_conf_verify( mbedtls_ssl_config *conf,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy );
+
+/**
+ * \brief          Set the pre-verification callback (Optional).
+ *
+ *                 If set, the pre-verification callback is called before the
+ *                 peer's certificate is verified.  This allows a client to
+ *                 dynamically populate the list of ca_certs, for example.
+ *
+ * \param conf     SSL configuration
+ * \param f_pre_vrfy pre-verification function
+ * \param p_pre_vrfy pre-verification parameter
+ */
+void mbedtls_ssl_conf_pre_verify(mbedtls_ssl_config *conf,
+                                 void(*f_pre_vrfy)(void *, mbedtls_x509_crt *),
+                                 void *p_pre_vrfy);
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 /**

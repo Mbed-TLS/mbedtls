@@ -627,7 +627,9 @@ struct mbedtls_ssl_config
     /** Callback to customize X.509 certificate chain verification          */
     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *);
     void *p_vrfy;                   /*!< context for X.509 verify calllback */
+#endif
 
+#if defined(MBEDTLS_SSL_PREVERIFY_CB)
     /** Callback to receive notification before X.509 chain building        */
     void (*f_pre_vrfy)(void *, mbedtls_x509_crt *);
     void *p_pre_vrfy;               /*!< context for pre-verify calllback   */
@@ -1080,7 +1082,9 @@ void mbedtls_ssl_conf_authmode( mbedtls_ssl_config *conf, int authmode );
 void mbedtls_ssl_conf_verify( mbedtls_ssl_config *conf,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy );
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
+#if defined(MBEDTLS_SSL_PREVERIFY_CB)
 /**
  * \brief          Set the pre-verification callback (Optional).
  *
@@ -1095,7 +1099,7 @@ void mbedtls_ssl_conf_verify( mbedtls_ssl_config *conf,
 void mbedtls_ssl_conf_pre_verify(mbedtls_ssl_config *conf,
                                  void(*f_pre_vrfy)(void *, mbedtls_x509_crt *),
                                  void *p_pre_vrfy);
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_SSL_PREVERIFY_CB */
 
 /**
  * \brief          Set the random number generator callback

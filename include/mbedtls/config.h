@@ -1437,6 +1437,15 @@
 //#define MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT
 
 /**
+ * \def MBEDTLS_SSL_PREVERIFY_CB
+ *
+ * Enable support for a pre-verification callback for received certificates.
+ *
+ * Uncomment this to enable support for the preverification callback
+ */
+//#define MBEDTLS_SSL_PREVERIFY_CB
+
+/**
  * \def MBEDTLS_THREADING_ALT
  *
  * Provide your own alternate threading implementation.

@@ -3,7 +3,6 @@
 #include <mbedtls/ssl_internal.h>
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-static int pre_vrfy_data = 0;
 static void pre_vrfy_fn( void *data, struct mbedtls_x509_crt *crt )
 {
     if( crt && crt->version == 3 )
@@ -89,6 +88,7 @@ void ssl_preverifycb( char *crt_file )
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
     mbedtls_x509_crt crt;
+    int pre_vrfy_data = 0;
 
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_config_init( &conf );

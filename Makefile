@@ -6,7 +6,7 @@ PREFIX=mbedtls_
 
 .PHONY: all no_test programs lib tests install uninstall clean test check covtest lcov apidoc apidoc_clean
 
-all: programs tests
+all: programs tests post_build
 
 no_test: programs
 
@@ -52,6 +52,20 @@ uninstall:
 	    fi                                  \
 	done
 endif
+
+WARNING_BORDER      =*******************************************************\n
+NULL_ENTROPY_WARN_L1=****  WARNING!  MBEDTLS_TEST_NULL_ENTROPY defined! ****\n
+NULL_ENTROPY_WARN_L2=****  THIS BUILD HAS NO DEFINED ENTROPY SOURCES    ****\n
+NULL_ENTROPY_WARN_L3=****  AND IS *NOT* SUITABLE FOR PRODUCTION USE     ****\n
+
+NULL_ENTROPY_WARNING=\n$(WARNING_BORDER)$(NULL_ENTROPY_WARN_L1)$(NULL_ENTROPY_WARN_L2)$(NULL_ENTROPY_WARN_L3)$(WARNING_BORDER)
+
+# Post build steps
+post_build:
+	# If NULL Entropy is configured, display an appropriate warning
+	-scripts/config.pl get MBEDTLS_TEST_NULL_ENTROPY && ([ $$? -eq 0 ]) && \
+	    echo '$(NULL_ENTROPY_WARNING)'
+
 
 clean:
 	$(MAKE) -C library clean

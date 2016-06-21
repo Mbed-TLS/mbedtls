@@ -232,7 +232,7 @@
  * Signaling ciphersuite values (SCSV)
  */
 #define MBEDTLS_SSL_EMPTY_RENEGOTIATION_INFO    0xFF   /**< renegotiation info ext */
-#define MBEDTLS_SSL_FALLBACK_SCSV_VALUE         0x5600 /**< draft-ietf-tls-downgrade-scsv-00 */
+#define MBEDTLS_SSL_FALLBACK_SCSV_VALUE         0x5600 /**< RFC 7507 section 2 */
 
 /*
  * Supported Signature and Hash algorithms (For TLS 1.2)
@@ -466,7 +466,7 @@ typedef int mbedtls_ssl_recv_t( void *ctx,
  * \param buf      Buffer to write the received data to
  * \param len      Length of the receive buffer
  * \param timeout  Maximum nomber of millisecondes to wait for data
- *                 0 means no timeout (potentially wait forever)
+ *                 0 means no timeout (potentially waiting forever)
  *
  * \return         The callback must return the number of bytes received,
  *                 or a non-zero error code:
@@ -514,9 +514,9 @@ typedef void mbedtls_ssl_set_timer_t( void * ctx,
  *
  * \return         This callback must return:
  *                 -1 if cancelled (fin_ms == 0),
- *                  0 if none of the delays is passed,
- *                  1 if only the intermediate delay is passed,
- *                  2 if the final delay is passed.
+ *                  0 if none of the delays have passed,
+ *                  1 if only the intermediate delay has passed,
+ *                  2 if the final delay has passed.
  */
 typedef int mbedtls_ssl_get_timer_t( void * ctx );
 
@@ -958,7 +958,7 @@ void mbedtls_ssl_init( mbedtls_ssl_context *ssl );
  * \note           No copy of the configuration context is made, it can be
  *                 shared by many mbedtls_ssl_context structures.
  *
- * \warning        Modifying the conf structure after is has been used in this
+ * \warning        Modifying the conf structure after it has been used in this
  *                 function is unsupported!
  *
  * \param ssl      SSL context
@@ -1024,6 +1024,7 @@ void mbedtls_ssl_conf_transport( mbedtls_ssl_config *conf, int transport );
  *
  *  MBEDTLS_SSL_VERIFY_REQUIRED:  peer *must* present a valid certificate,
  *                        handshake is aborted if verification failed.
+ *                        (default on client)
  *
  * \note On client, MBEDTLS_SSL_VERIFY_REQUIRED is the recommended mode.
  * With MBEDTLS_SSL_VERIFY_OPTIONAL, the user needs to call mbedtls_ssl_get_verify_result() at
@@ -1161,14 +1162,14 @@ void mbedtls_ssl_set_timer_cb( mbedtls_ssl_context *ssl,
  * \brief           Callback type: generate and write session ticket
  *
  * \note            This describes what a callback implementation should do.
- *                  This callback should generate and encrypted and
+ *                  This callback should generate an encrypted and
  *                  authenticated ticket for the session and write it to the
  *                  output buffer. Here, ticket means the opaque ticket part
  *                  of the NewSessionTicket structure of RFC 5077.
  *
  * \param p_ticket  Context for the callback
- * \param session   SSL session to bo written in the ticket
- * \param start     Start of the outpur buffer
+ * \param session   SSL session to be written in the ticket
+ * \param start     Start of the output buffer
  * \param end       End of the output buffer
  * \param tlen      On exit, holds the length written
  * \param lifetime  On exit, holds the lifetime of the ticket in seconds
@@ -1419,7 +1420,7 @@ void mbedtls_ssl_conf_dtls_badmac_limit( mbedtls_ssl_config *conf, unsigned limi
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 /**
- * \brief          Set retransmit timeout values for the DTLS handshale.
+ * \brief          Set retransmit timeout values for the DTLS handshake.
  *                 (DTLS only, no effect on TLS.)
  *
  * \param conf     SSL configuration
@@ -1517,7 +1518,7 @@ int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session
 /**
  * \brief               Set the list of allowed ciphersuites and the preference
  *                      order. First in the list has the highest preference.
- *                      (Overrides all version specific lists)
+ *                      (Overrides all version-specific lists)
  *
  *                      The ciphersuites array is not copied, and must remain
  *                      valid for the lifetime of the ssl_config.
@@ -1897,8 +1898,8 @@ int mbedtls_ssl_set_hs_ecjpake_password( mbedtls_ssl_context *ssl,
  * \param protos   Pointer to a NULL-terminated list of supported protocols,
  *                 in decreasing preference order. The pointer to the list is
  *                 recorded by the library for later reference as required, so
- *                 the lifetime of the table should be as long as the
- *                 SSL configuration structure.
+ *                 the lifetime of the table must be atleast as long as the
+ *                 lifetime of the SSL configuration structure.
  *
  * \return         0 on success, or MBEDTLS_ERR_SSL_BAD_INPUT_DATA.
  */
@@ -2012,7 +2013,7 @@ void mbedtls_ssl_conf_extended_master_secret( mbedtls_ssl_config *conf, char ems
  * \brief          Disable or enable support for RC4
  *                 (Default: MBEDTLS_SSL_ARC4_DISABLED)
  *
- * \warning        Use of RC4 in DTLS/TLS has been prohibited by RFC-7465
+ * \warning        Use of RC4 in DTLS/TLS has been prohibited by RFC 7465
  *                 for security reasons. Use at your own risk.
  *
  * \note           This function is deprecated and will likely be removed in
@@ -2094,7 +2095,7 @@ void mbedtls_ssl_conf_session_tickets( mbedtls_ssl_config *conf, int use_tickets
  *
  * \warning        It is recommended to always disable renegotation unless you
  *                 know you need it and you know what you're doing. In the
- *                 past, there has been several issues associated with
+ *                 past, there have been several issues associated with
  *                 renegotiation or a poor understanding of its properties.
  *
  * \note           Server-side, enabling renegotiation also makes the server
@@ -2334,8 +2335,8 @@ int mbedtls_ssl_handshake( mbedtls_ssl_context *ssl );
  * \brief          Perform a single step of the SSL handshake
  *
  * \note           The state of the context (ssl->state) will be at
- *                 the following state after execution of this function.
- *                 Do not call this function if state is MBEDTLS_SSL_HANDSHAKE_OVER.
+ *                 the next state after execution of this function. Do not
+ *                 call this function if state is MBEDTLS_SSL_HANDSHAKE_OVER.
  *
  * \note           If this function returns something other than 0 or
  *                 MBEDTLS_ERR_SSL_WANT_READ/WRITE, then the ssl context
@@ -2356,11 +2357,13 @@ int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl );
  * \brief          Initiate an SSL renegotiation on the running connection.
  *                 Client: perform the renegotiation right now.
  *                 Server: request renegotiation, which will be performed
- *                 during the next call to mbedtls_ssl_read() if honored by client.
+ *                 during the next call to mbedtls_ssl_read() if honored by
+ *                 client.
  *
  * \param ssl      SSL context
  *
- * \return         0 if successful, or any mbedtls_ssl_handshake() return value.
+ * \return         0 if successful, or any mbedtls_ssl_handshake() return
+ *                 value.
  *
  * \note           If this function returns something other than 0 or
  *                 MBEDTLS_ERR_SSL_WANT_READ/WRITE, then the ssl context

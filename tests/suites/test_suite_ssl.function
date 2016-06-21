@@ -1,6 +1,35 @@
 /* BEGIN_HEADER */
 #include <mbedtls/ssl.h>
 #include <mbedtls/ssl_internal.h>
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+static int pre_vrfy_data = 0;
+static void pre_vrfy_fn( void *data, struct mbedtls_x509_crt *crt )
+{
+    if( crt && crt->version == 3 )
+        *(int*)data = 1;
+}
+static unsigned char pre_vrfy_buffer[2048];
+static int pre_vrfy_buffer_start = 0, pre_vrfy_buffer_end = 0;
+static int pre_vrfy_send( void *ctx, const unsigned char *buf, size_t len )
+{
+    (void)ctx;
+    if ( len > sizeof( pre_vrfy_buffer ) - pre_vrfy_buffer_end )
+        len = sizeof( pre_vrfy_buffer ) - pre_vrfy_buffer_end;
+    memcpy( pre_vrfy_buffer + pre_vrfy_buffer_end, buf, len );
+    pre_vrfy_buffer_end += (int)len;
+    return( len ? (int)len : MBEDTLS_ERR_SSL_WANT_WRITE );
+}
+static int pre_vrfy_recv( void *ctx, unsigned char *buf, size_t len )
+{
+    (void)ctx;
+    if ( len > (size_t)(pre_vrfy_buffer_end - pre_vrfy_buffer_start) )
+        len = pre_vrfy_buffer_end - pre_vrfy_buffer_start;
+    memcpy( buf, pre_vrfy_buffer + pre_vrfy_buffer_start, len );
+    pre_vrfy_buffer_start += (int)len;
+    return( len ? (int)len : MBEDTLS_ERR_SSL_WANT_READ );
+}
+#endif
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -51,5 +80,45 @@ void ssl_set_hostname_twice( char *hostname0, char *hostname1 )
     TEST_ASSERT( mbedtls_ssl_set_hostname( &ssl, hostname1 ) == 0 );
 
     mbedtls_ssl_free( &ssl );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PREVERIFY_CB:MBEDTLS_FS_IO:MBEDTLS_KEY_EXCHANGE_RSA_ENABLED:MBEDTLS_AES_C:MBEDTLS_SHA256_C:MBEDTLS_CIPHER_MODE_CBC */
+void ssl_preverifycb( char *crt_file )
+{
+    mbedtls_ssl_context ssl;
+    mbedtls_ssl_config conf;
+    mbedtls_x509_crt crt;
+
+    mbedtls_ssl_init( &ssl );
+    mbedtls_ssl_config_init( &conf );
+    mbedtls_x509_crt_init( &crt );
+
+    TEST_ASSERT( mbedtls_x509_crt_parse_file( &crt, crt_file ) == 0 );
+
+    TEST_ASSERT( mbedtls_ssl_config_defaults( &conf,
+                 MBEDTLS_SSL_IS_SERVER,
+                 MBEDTLS_SSL_TRANSPORT_STREAM,
+                 MBEDTLS_SSL_PRESET_DEFAULT ) == 0 );
+    TEST_ASSERT( mbedtls_ssl_setup( &ssl, &conf ) == 0 );
+    mbedtls_ssl_conf_authmode( &conf, MBEDTLS_SSL_VERIFY_OPTIONAL );
+    mbedtls_ssl_conf_ca_chain( &conf, &crt, NULL );
+
+    /* Write out a certificate record to a buffer */
+    ssl.transform_negotiate->ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( MBEDTLS_TLS_RSA_WITH_AES_256_CBC_SHA256 );
+    mbedtls_ssl_set_bio( &ssl, NULL, pre_vrfy_send, pre_vrfy_recv, NULL );
+    TEST_ASSERT( mbedtls_ssl_conf_own_cert( &conf, &crt, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_ssl_write_certificate( &ssl ) == 0 );
+
+    /* Read in the certificate record, and check it calls the pre-verify callback */
+    conf.endpoint = MBEDTLS_SSL_IS_CLIENT;
+    mbedtls_ssl_conf_pre_verify( &conf, pre_vrfy_fn, (void*)&pre_vrfy_data );
+    TEST_ASSERT( mbedtls_ssl_parse_certificate( &ssl ) == 0 );
+
+    TEST_ASSERT( pre_vrfy_data != 0 );
+
+    mbedtls_ssl_free( &ssl );
+    mbedtls_ssl_config_free( &conf );
+    mbedtls_x509_crt_free( &crt );
 }
 /* END_CASE */

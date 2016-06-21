@@ -225,13 +225,16 @@ if ($action eq "set"&& $force_option && !$done) {
 
 close $config_write;
 
-if ($action eq "get" && $done) {
-    if ($value ne '') {
-        print $value;
+if ($action eq "get") {
+    if($done) {
+        if ($value ne '') {
+            print $value;
+        }
+        exit 0;
+    } else {
+        # If the symbol was not found, return an error
+        exit -1;
     }
-    exit 0;
-} else {
-    exit -1;
 }
 
 if ($action eq "full" && !$done) {

@@ -15,6 +15,18 @@ else()
     option(ENABLE_TESTING "Build mbed TLS tests." ON)
 endif()
 
+# Warning string - created as a list for compatibility with CMake 2.8
+set(WARNING_BORDER "*******************************************************\n")
+set(NULL_ENTROPY_WARN_L1 "****  WARNING!  MBEDTLS_TEST_NULL_ENTROPY defined!\n")
+set(NULL_ENTROPY_WARN_L2 "****  THIS BUILD HAS NO DEFINED ENTROPY SOURCES\n")
+set(NULL_ENTROPY_WARN_L3 "****  AND IS *NOT* SUITABLE FOR PRODUCTION USE\n")
+
+set(NULL_ENTROPY_WARNING "${WARNING_BORDER}"
+                         "${NULL_ENTROPY_WARN_L1}"
+                         "${NULL_ENTROPY_WARN_L2}"
+                         "${NULL_ENTROPY_WARN_L3}"
+                         "${WARNING_BORDER}")
+
 find_package(Perl)
 if(PERL_FOUND)
 
@@ -22,12 +34,8 @@ if(PERL_FOUND)
     execute_process(COMMAND ${PERL_EXECUTABLE} scripts/config.pl get MBEDTLS_TEST_NULL_ENTROPY
                         RESULT_VARIABLE result)
     if(${result} EQUAL 0)
-        message(WARNING "\
-            *******************************************************
-            ****  WARNING!  MBEDTLS_TEST_NULL_ENTROPY defined!
-            ****  THIS BUILD HAS NO DEFINED ENTROPY SOURCES
-            ****  AND IS *NOT* SUITABLE FOR PRODUCTION USE
-            *******************************************************")
+        message(WARNING ${NULL_ENTROPY_WARNING})
+
         if(NOT UNSAFE_BUILD)
             message(FATAL_ERROR "\
 \n\

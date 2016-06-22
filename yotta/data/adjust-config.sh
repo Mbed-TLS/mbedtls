@@ -14,6 +14,20 @@ conf() {
     $SCRIPT -f $FILE $@
 }
 
+# include target specific config file
+head -n -4 $FILE > adjust_mbedtls_config_to_yotta.tmp
+mv adjust_mbedtls_config_to_yotta.tmp $FILE
+
+echo '
+#if defined(TARGET_LIKE_MBED)
+#include "mbedtls/target_config.h"
+#endif
+
+#include "check_config.h"
+
+#endif /* MBEDTLS_CONFIG_H */
+' >> $FILE
+
 # not supported on mbed OS, nor used by mbed Client
 conf unset MBEDTLS_NET_C
 conf unset MBEDTLS_TIMING_C

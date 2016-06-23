@@ -2566,6 +2566,9 @@
 
 /* \} name SECTION: Customisation configuration options */
 
+/* Target and application specific configurations */
+//#define YOTTA_CFG_MBEDTLS_USER_CONFIG_FILE "target_config.h"
+
 /*
  * Allow user to override any previous default.
  *

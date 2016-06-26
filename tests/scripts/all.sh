@@ -231,6 +231,7 @@ scripts/config.pl unset MBEDTLS_PLATFORM_PRINTF_ALT
 scripts/config.pl unset MBEDTLS_PLATFORM_FPRINTF_ALT
 scripts/config.pl unset MBEDTLS_PLATFORM_SNPRINTF_ALT
 scripts/config.pl unset MBEDTLS_PLATFORM_EXIT_ALT
+scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
 scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
 scripts/config.pl unset MBEDTLS_FS_IO
 CC=gcc CFLAGS='-Werror -O0' make

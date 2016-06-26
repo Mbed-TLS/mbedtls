@@ -234,7 +234,8 @@ scripts/config.pl unset POLARSSL_THREADING_PTHREAD
 scripts/config.pl unset POLARSSL_THREADING_C
 scripts/config.pl unset POLARSSL_MEMORY_BACKTRACE # execinfo.h
 scripts/config.pl unset POLARSSL_MEMORY_BUFFER_ALLOC_C # calls exit
-CC=armcc AR=armar WARNING_CFLAGS= make lib 2> armcc.stderr
+CC=armcc AR=armar WARNING_CFLAGS=
+make lib 2> armcc.stderr
 if [ -s armcc.stderr ]; then
     cat armcc.stderr
     exit 1;

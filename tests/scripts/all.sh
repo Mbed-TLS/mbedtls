@@ -243,6 +243,7 @@ cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl set MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
+scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
 CC=gcc CFLAGS='-Werror -O0' make
 
 msg "build: full config except ssl_srv.c, make, gcc" # ~ 30s
@@ -276,7 +277,7 @@ scripts/config.pl set MBEDTLS_ENTROPY_C
 scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
 scripts/config.pl unset MBEDTLS_ENTROPY_HARDWARE_ALT
 scripts/config.pl unset MBEDTLS_HAVEGE_C
-CC=gcc cmake -D CMAKE_C_FLAGS:String="-fsanitize=address -fno-common -O3" .
+CC=gcc cmake  -D UNSAFE_BUILD=ON -D CMAKE_C_FLAGS:String="-fsanitize=address -fno-common -O3" .
 make
 
 msg "test: MBEDTLS_TEST_NULL_ENTROPY - main suites and selftest (ASan build)"
@@ -303,6 +304,7 @@ scripts/config.pl full
 scripts/config.pl unset MBEDTLS_NET_C
 scripts/config.pl unset MBEDTLS_TIMING_C
 scripts/config.pl unset MBEDTLS_FS_IO
+scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
 scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
 # following things are not in the default config
 scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c

@@ -1958,6 +1958,64 @@ cleanup:
     return( ret );
 }
 
+/*
+ *  Decompresses an EC Public Key
+ */
+int mbedtls_ecp_decompress_pubkey( const mbedtls_ecp_group *grp, const unsigned char *input, size_t ilen, unsigned char *output, size_t *olen, size_t osize ){
+
+  int ret;
+  mbedtls_mpi x, x3, ax, z, zexp, y;
+  size_t plen;
+
+  plen = mbedtls_mpi_size( &grp->P );
+  *olen = 2 * plen + 1;
+
+  if( ilen != plen + 1 || input[0] == 0x04 )
+    return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+  if( osize < 1 )
+    return( 0 );
+
+  if( osize < *olen )
+    return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+
+  mbedtls_mpi_init( &x );
+  mbedtls_mpi_init( &x3 );
+  mbedtls_mpi_init( &ax );
+  mbedtls_mpi_init( &z );
+  mbedtls_mpi_init( &zexp );
+  mbedtls_mpi_init( &y );
+
+
+  MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &x, input+1, ilen-1 ) ); // X point of the pubkey
+  MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &x3, &x, &x ) ); // X^2
+  MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &x3, &x3, &x ) ); // X^3
+  MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &ax, &grp->A, &x ) ); // AX
+  MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &z, &x3, &ax ) ); // X^3 + AX
+  MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &z, &z, &grp->B ) ); // X^3 + AX + B
+  MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &zexp, &grp->P) ); // Z exponent
+  MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( &zexp, &zexp, 1 ) ); // Z exponent + 1
+  MBEDTLS_MPI_CHK( mbedtls_mpi_div_int( &zexp, 0, &zexp, 4 ) ); // Z exponent / 4
+  MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &y, &z, &zexp, &grp->P, 0 ) ); // Z^Zexp % P
+  MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( &y, 0, input[0] == 0x03 ? 1 : 0 ) ); // Setting the correct sign
+
+  output[0] = 0x04; // Uncompressed format
+  memcpy( output+1, input+1, ilen-1 ); //0x04 + X
+  MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &y, (output+1+ilen-1), plen ) ); // 0x04 + X + Y
+
+ cleanup:
+  mbedtls_mpi_free( &x );
+  mbedtls_mpi_free( &x3 );
+  mbedtls_mpi_free( &ax );
+  mbedtls_mpi_free( &z );
+  mbedtls_mpi_free( &zexp );
+  mbedtls_mpi_free( &y );
+
+
+  return( ret );
+}
+
+
 #if defined(MBEDTLS_SELF_TEST)
 
 /*

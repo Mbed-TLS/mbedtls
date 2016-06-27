@@ -130,6 +130,13 @@ not_with_valgrind() {
     fi
 }
 
+# skip the next test if valgrind is NOT in use
+only_with_valgrind() {
+    if [ "$MEMCHECK" -eq 0 ]; then
+        SKIP_NEXT="YES"
+    fi
+}
+
 # multiply the client timeout delay by the given factor for the next test
 needs_more_time() {
     CLI_DELAY_FACTOR=$1
@@ -567,12 +574,14 @@ run_test    "Default, DTLS" \
 
 # Tests for rc4 option
 
+requires_config_enabled MBEDTLS_REMOVE_ARC4_CIPHERSUITES
 run_test    "RC4: server disabled, client enabled" \
             "$P_SRV" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             1 \
             -s "SSL - The server has no ciphersuites in common"
 
+requires_config_enabled MBEDTLS_REMOVE_ARC4_CIPHERSUITES
 run_test    "RC4: server half, client enabled" \
             "$P_SRV arc4=1" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
@@ -715,7 +724,7 @@ run_test    "Encrypt then MAC: client enabled, server SSLv3" \
             "$P_CLI debug_level=3 min_version=ssl3" \
             0 \
             -c "client hello, adding encrypt_then_mac extension" \
-            -s "found encrypt then mac extension" \
+            -S "found encrypt then mac extension" \
             -S "server hello, adding encrypt then mac extension" \
             -C "found encrypt_then_mac extension" \
             -C "using encrypt then mac" \
@@ -774,7 +783,7 @@ run_test    "Extended Master Secret: client enabled, server SSLv3" \
             "$P_CLI debug_level=3 min_version=ssl3" \
             0 \
             -c "client hello, adding extended_master_secret extension" \
-            -s "found extended master secret extension" \
+            -S "found extended master secret extension" \
             -S "server hello, adding extended master secret extension" \
             -C "found extended_master_secret extension" \
             -C "using extended master secret" \
@@ -2756,6 +2765,16 @@ run_test    "Small packet TLS 1.2 AEAD shorter tag" \
             0 \
             -s "Read from client: 1 bytes read"
 
+# A test for extensions in SSLv3
+
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
+run_test    "SSLv3 with extensions, server side" \
+            "$P_SRV min_version=ssl3 debug_level=3" \
+            "$P_CLI force_version=ssl3 tickets=1 max_frag_len=4096 alpn=abc,1234" \
+            0 \
+            -S "dumping 'client hello extensions'" \
+            -S "server hello, total extension length:"
+
 # Test for large packets
 
 requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
@@ -2956,9 +2975,18 @@ run_test    "DTLS client reconnect from same port: reconnect" \
             -S "The operation timed out" \
             -s "Client initiated reconnection from same port"
 
-run_test    "DTLS client reconnect from same port: reconnect, nbio" \
+not_with_valgrind # server/client too slow to respond in time (next test has higher timeouts)
+run_test    "DTLS client reconnect from same port: reconnect, nbio, no valgrind" \
             "$P_SRV dtls=1 exchanges=2 read_timeout=1000 nbio=2" \
             "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-1000 reconnect_hard=1" \
+            0 \
+            -S "The operation timed out" \
+            -s "Client initiated reconnection from same port"
+
+only_with_valgrind # Only with valgrind, do previous test but with higher read_timeout and hs_timeout
+run_test    "DTLS client reconnect from same port: reconnect, nbio, valgrind" \
+            "$P_SRV dtls=1 exchanges=2 read_timeout=2000 nbio=2 hs_timeout=1500-6000" \
+            "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=1500-3000 reconnect_hard=1" \
             0 \
             -S "The operation timed out" \
             -s "Client initiated reconnection from same port"

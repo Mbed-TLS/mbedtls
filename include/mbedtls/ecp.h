@@ -653,6 +653,21 @@ int mbedtls_ecp_gen_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
  */
 int mbedtls_ecp_check_pub_priv( const mbedtls_ecp_keypair *pub, const mbedtls_ecp_keypair *prv );
 
+/**
+ * \brief           Decompresses an EC Public Keypair
+ *
+ * \param grp       ECP group
+ * \param input     Compressed EC Public Key (Created using mbedtls_ecp_point_write_binary with format = MBEDTLS_ECP_PF_COMPRESSED)
+ * \param ilen      Input length
+ * \param output    Uncompressed EC Public Key
+ * \param olen      Uncompressed EC Public Key output length
+ * \param osize     Size of the output buffer
+ *
+ * \return          0 on success, or a specific error code.
+ */
+int mbedtls_ecp_decompress_pubkey( const mbedtls_ecp_group *grp, const unsigned char *input, size_t ilen,
+                    unsigned char *output, size_t *olen, size_t osize );
+
 #if defined(MBEDTLS_SELF_TEST)
 /**
  * \brief          Checkup routine

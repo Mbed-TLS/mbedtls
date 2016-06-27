@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 1.3.x branch
+= mbed TLS 1.3.17 branch 2016-06-28
 
 Security
    * Fix missing padding length check in mbedtls_rsa_rsaes_pkcs1_v15_decrypt 

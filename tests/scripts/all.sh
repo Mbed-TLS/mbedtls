@@ -323,6 +323,7 @@ scripts/config.pl full
 scripts/config.pl unset MBEDTLS_NET_C
 scripts/config.pl unset MBEDTLS_TIMING_C
 scripts/config.pl unset MBEDTLS_FS_IO
+scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
 scripts/config.pl unset MBEDTLS_HAVE_TIME
 scripts/config.pl unset MBEDTLS_HAVE_TIME_DATE
 scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY

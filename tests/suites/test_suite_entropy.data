@@ -1,3 +1,6 @@
+Create NV seed_file
+nv_seed_file_create:
+
 Entropy write/update seed file
 entropy_seed_file:"data_files/entropy_seed":0
 
@@ -36,6 +39,18 @@ entropy_threshold:16:0:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
 
 Entropy thershold #4
 entropy_threshold:1024:1:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
+
+Check NV seed standard IO
+entropy_nv_seed_std_io:
+
+Check NV seed manually #1
+entropy_nv_seed:"00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF"
+
+Check NV seed manually #2
+entropy_nv_seed:"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+
+Check NV seed manually #3
+entropy_nv_seed:"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
 
 Entropy self test
 entropy_selftest:

@@ -10,6 +10,11 @@ if(ENABLE_ZLIB_SUPPORT)
     set(libs ${libs} ${ZLIB_LIBRARIES})
 endif(ENABLE_ZLIB_SUPPORT)
 
+find_package(Perl)
+if(NOT PERL_FOUND)
+    message(FATAL_ERROR "Cannot build test suites without Perl")
+endif()
+
 function(add_test_suite suite_name)
     if(ARGV1)
         set(data_name ${ARGV1})
@@ -19,7 +24,7 @@ function(add_test_suite suite_name)
 
     add_custom_command(
         OUTPUT test_suite_${data_name}.c
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_code.pl ${CMAKE_CURRENT_SOURCE_DIR}/suites test_suite_${suite_name} test_suite_${data_name}
+        COMMAND ${PERL_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_code.pl ${CMAKE_CURRENT_SOURCE_DIR}/suites test_suite_${suite_name} test_suite_${data_name}
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_code.pl mbedtls suites/helpers.function suites/main_test.function suites/test_suite_${suite_name}.function suites/test_suite_${data_name}.data
     )
 
@@ -82,6 +87,7 @@ add_test_suite(mdx)
 add_test_suite(memory_buffer_alloc)
 add_test_suite(mpi)
 add_test_suite(pem)
+add_test_suite(pkcs1_v15)
 add_test_suite(pkcs1_v21)
 add_test_suite(pkcs5)
 add_test_suite(pk)

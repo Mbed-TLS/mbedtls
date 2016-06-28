@@ -28,7 +28,7 @@ DOXYFILE_ENCODING      = UTF-8
 # identify the project. Note that if you do not use Doxywizard you need
 # to put quotes around the project name if it contains spaces.
 
-PROJECT_NAME           = "mbed TLS v2.2.1"
+PROJECT_NAME           = "mbed TLS v2.3.0"
 
 # The PROJECT_NUMBER tag can be used to enter a project or revision number.
 # This could be handy for archiving the generated documentation or
@@ -696,7 +696,7 @@ RECURSIVE              = YES
 # Note that relative paths are relative to the directory from which doxygen is
 # run.
 
-EXCLUDE                = configs
+EXCLUDE                = configs yotta/module
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
@@ -710,7 +710,7 @@ EXCLUDE_SYMLINKS       = NO
 # against the file with absolute path, so to exclude all test directories
 # for example use the pattern */test/*
 
-EXCLUDE_PATTERNS       =
+EXCLUDE_PATTERNS       = *_internal.h *_wrap.h
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the
@@ -1485,13 +1485,13 @@ XML_OUTPUT             = xml
 # which can be used by a validating XML parser to check the
 # syntax of the XML files.
 
-XML_SCHEMA             =
+#XML_SCHEMA             =
 
 # The XML_DTD tag can be used to specify an XML DTD,
 # which can be used by a validating XML parser to check the
 # syntax of the XML files.
 
-XML_DTD                =
+#XML_DTD                =
 
 # If the XML_PROGRAMLISTING tag is set to YES Doxygen will
 # dump the program listings (including syntax highlighting

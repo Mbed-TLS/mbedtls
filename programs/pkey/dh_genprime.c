@@ -30,6 +30,7 @@
 #else
 #include <stdio.h>
 #define mbedtls_printf     printf
+#define mbedtls_time_t     time_t
 #endif
 
 #if !defined(MBEDTLS_BIGNUM_C) || !defined(MBEDTLS_ENTROPY_C) ||   \
@@ -171,6 +172,7 @@ int main( int argc, char **argv )
         ( ret = mbedtls_mpi_write_file( "G = ", &G, 16, fout ) != 0 ) )
     {
         mbedtls_printf( " failed\n  ! mbedtls_mpi_write_file returned %d\n\n", ret );
+        fclose( fout );
         goto exit;
     }
 

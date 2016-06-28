@@ -1,15 +1,25 @@
 #!/bin/sh
 
-# Run all available tests (mostly).
+# all.sh
 #
-# Warning: includes various build modes, so it will mess with the current
-# CMake configuration. After this script is run, the CMake cache is lost and
-# CMake is not initialised any more!
+# This file is part of mbed TLS (https://tls.mbed.org)
 #
-# Assumes gcc and clang (recent enough for using ASan with gcc and MemSan with
-# clang, or valgrind) are available, as well as cmake and a "good" find.
+# Copyright (c) 2014-2016, ARM Limited, All Rights Reserved
+#
+# Purpose
+#
+# To run all tests possible or available on the platform.
+#
+# Warning: the test is destructive. It includes various build modes and
+# configurations, and can and will arbitrarily change the current CMake
+# configuration. After this script has been run, the CMake cache will be lost
+# and CMake will no longer be initialised.
+#
+# The script assumes the presence of gcc and clang (recent enough for using
+# ASan with gcc and MemSan with clang, or valgrind) are available, as well as
+# cmake and a "good" find.
 
-# Abort on errors (and uninitiliased variables)
+# Abort on errors (and uninitialised variables)
 set -eu
 
 if [ -d library -a -d include -a -d tests ]; then :; else
@@ -21,20 +31,17 @@ CONFIG_H='include/mbedtls/config.h'
 CONFIG_BAK="$CONFIG_H.bak"
 
 MEMORY=0
+SHORT=0
+FORCE=0
 
-while [ $# -gt 0 ]; do
-    case "$1" in
-        -m*)
-            MEMORY=${1#-m}
-            ;;
-        *)
-            echo "Unknown argument: '$1'" >&2
-            echo "Use the source, Luke!" >&2
-            exit 1
-            ;;
-    esac
-    shift
-done
+usage()
+{
+    echo "Usage: $0"
+    echo -e "  -h|--help\t\tPrint this help."
+    echo -e "  -m|--memory\t\tAdditional optional memory tests."
+    echo -e "  -s|--short\t\tSubset of tests."
+    echo -e "  -f|--force\t\tForce the tests to overwrite any modified files."
+}
 
 # remove built files as well as the cmake cache/config
 cleanup()
@@ -62,6 +69,50 @@ msg()
     echo "******************************************************************"
 }
 
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --memory|-m*)
+            MEMORY=${1#-m}
+            ;;
+        --short|-s)
+            SHORT=1
+            ;;
+        --force|-f)
+            FORCE=1
+            ;;
+        --help|-h|*)
+            usage()
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+if [ $FORCE -eq 1 ]; then
+    rm -rf yotta/module
+    git checkout-index -f -q $CONFIG_H
+    cleanup
+else
+
+    if [ -d yotta/module ]; then
+        echo "Warning - there is an existing yotta module in the directory 'yotta/module'" >&2
+        echo "You can either delete your work and retry, or force the test to overwrite the"
+        echo "test by rerunning the script as: $0 --force"
+        exit 1
+    fi
+
+    if ! git diff-files --quiet include/mbedtls/config.h; then
+        echo $?
+        echo "Warning - the configuration file 'include/mbedtls/config.h' has been edited. " >&2
+        echo "You can either delete or preserve your work, or force the test by rerunning the"
+        echo "script as: $0 --force"
+        exit 1
+    fi
+fi
+
+#
+# Test Suites to be executed
+#
 # The test ordering tries to optimize for the following criteria:
 # 1. Catch possible problems early, by running first tests that run quickly
 #    and/or are more likely to fail than others (eg I use Clang most of the
@@ -83,6 +134,12 @@ msg "test/build: declared and exported names" # < 3s
 cleanup
 tests/scripts/check-names.sh
 
+if which doxygen >/dev/null; then
+    msg "test: doxygen warnings" # ~ 3s
+    cleanup
+    tests/scripts/doxygen.sh
+fi
+
 msg "build: create and build yotta module" # ~ 30s
 cleanup
 tests/scripts/yotta-build.sh
@@ -103,12 +160,34 @@ msg "test/build: ref-configs (ASan build)" # ~ 6 min 20s
 tests/scripts/test-ref-configs.pl
 
 # Most frequent issues are likely to be caught at this point
+if [ $SHORT -eq 1 ]; then
+    msg "Done, cleaning up"
+    cleanup
+    exit 0
+fi
 
 msg "build: with ASan (rebuild after ref-configs)" # ~ 1 min
 make
 
 msg "test: compat.sh (ASan build)" # ~ 6 min
 tests/compat.sh
+
+msg "build: Default + SSLv3 (ASan build)" # ~ 6 min
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_SSL_PROTO_SSL3
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make
+
+msg "test: SSLv3 - main suites and selftest (ASan build)" # ~ 50s
+make test
+programs/test/selftest
+
+msg "build: SSLv3 - compat.sh (ASan build)" # ~ 6 min
+tests/compat.sh -m 'ssl3 tls1 tls1_1 tls1_2 dtls1 dtls1_2'
+
+msg "build: SSLv3 - ssl-opt.sh (ASan build)" # ~ 6 min
+tests/ssl-opt.sh
 
 msg "build: cmake, full config, clang" # ~ 50s
 cleanup
@@ -153,6 +232,7 @@ scripts/config.pl unset MBEDTLS_PLATFORM_PRINTF_ALT
 scripts/config.pl unset MBEDTLS_PLATFORM_FPRINTF_ALT
 scripts/config.pl unset MBEDTLS_PLATFORM_SNPRINTF_ALT
 scripts/config.pl unset MBEDTLS_PLATFORM_EXIT_ALT
+scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
 scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
 scripts/config.pl unset MBEDTLS_FS_IO
 CC=gcc CFLAGS='-Werror -O0' make
@@ -163,6 +243,7 @@ cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl set MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
+scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
 CC=gcc CFLAGS='-Werror -O0' make
 
 msg "build: full config except ssl_srv.c, make, gcc" # ~ 30s
@@ -187,6 +268,22 @@ scripts/config.pl unset MBEDTLS_NET_C # getaddrinfo() undeclared, etc.
 scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY # uses syscall() on GNU/Linux
 CC=gcc CFLAGS='-Werror -O0 -std=c99 -pedantic' make lib
 
+msg "build: default config with  MBEDTLS_TEST_NULL_ENTROPY (ASan build)"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_TEST_NULL_ENTROPY
+scripts/config.pl set MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
+scripts/config.pl set MBEDTLS_ENTROPY_C
+scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+scripts/config.pl unset MBEDTLS_ENTROPY_HARDWARE_ALT
+scripts/config.pl unset MBEDTLS_HAVEGE_C
+CC=gcc cmake  -D UNSAFE_BUILD=ON -D CMAKE_C_FLAGS:String="-fsanitize=address -fno-common -O3" .
+make
+
+msg "test: MBEDTLS_TEST_NULL_ENTROPY - main suites and selftest (ASan build)"
+make test
+programs/test/selftest
+
 if uname -a | grep -F Linux >/dev/null; then
 msg "build/test: make shared" # ~ 40s
 cleanup
@@ -207,6 +304,8 @@ scripts/config.pl full
 scripts/config.pl unset MBEDTLS_NET_C
 scripts/config.pl unset MBEDTLS_TIMING_C
 scripts/config.pl unset MBEDTLS_FS_IO
+scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
 # following things are not in the default config
 scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
 scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
@@ -224,8 +323,10 @@ scripts/config.pl full
 scripts/config.pl unset MBEDTLS_NET_C
 scripts/config.pl unset MBEDTLS_TIMING_C
 scripts/config.pl unset MBEDTLS_FS_IO
+scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
 scripts/config.pl unset MBEDTLS_HAVE_TIME
 scripts/config.pl unset MBEDTLS_HAVE_TIME_DATE
+scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
 # following things are not in the default config
 scripts/config.pl unset MBEDTLS_DEPRECATED_WARNING
 scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
@@ -233,7 +334,7 @@ scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
 scripts/config.pl unset MBEDTLS_THREADING_C
 scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
 scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
-CC=armcc WARNING_CFLAGS= make lib 2> armcc.stderr
+CC=armcc AR=armar WARNING_CFLAGS= make lib 2> armcc.stderr
 if [ -s armcc.stderr ]; then
     cat armcc.stderr
     exit 1;

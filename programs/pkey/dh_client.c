@@ -30,6 +30,7 @@
 #else
 #include <stdio.h>
 #define mbedtls_printf     printf
+#define mbedtls_time_t     time_t
 #endif
 
 #if defined(MBEDTLS_AES_C) && defined(MBEDTLS_DHM_C) && \
@@ -124,6 +125,7 @@ int main( void )
         ( ret = mbedtls_mpi_read_file( &rsa.E, 16, f ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_mpi_read_file returned %d\n\n", ret );
+        fclose( f );
         goto exit;
     }
 

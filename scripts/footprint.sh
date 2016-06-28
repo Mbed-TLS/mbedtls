@@ -1,5 +1,23 @@
 #!/bin/sh
-
+#
+# This file is part of mbed TLS (https://tls.mbed.org)
+#
+# Copyright (c) 2015-2016, ARM Limited, All Rights Reserved
+#
+# Purpose
+#
+# This script determines ROM size (or code size) for the standard mbed TLS
+# configurations, when built for a Cortex M3/M4 target.
+#
+# Configurations included:
+#   default    include/mbedtls/config.h
+#   yotta      yotta/module/mbedtls/config.h
+#   thread     configs/config-thread.h
+#   suite-b    configs/config-suite-b.h
+#   psk        configs/config-ccm-psk-tls1_2.h
+#
+# Usage: footprint.sh
+#
 set -eu
 
 CONFIG_H='include/mbedtls/config.h'
@@ -48,6 +66,7 @@ doit()
         scripts/config.pl unset MBEDTLS_NET_C || true
         scripts/config.pl unset MBEDTLS_TIMING_C || true
         scripts/config.pl unset MBEDTLS_FS_IO || true
+        scripts/config.pl --force set MBEDTLS_NO_PLATFORM_ENTROPY || true
     } >/dev/null 2>&1
 
     CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld \

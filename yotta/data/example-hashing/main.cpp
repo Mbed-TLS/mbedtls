@@ -155,10 +155,6 @@ int example(void)
 #include "minar/minar.h"
 
 static void run() {
-    /* Use 115200 bps for consistency with other examples */
-    Serial pc(USBTX, USBRX);
-    pc.baud(115200);
-
     MBED_HOSTTEST_TIMEOUT(10);
     MBED_HOSTTEST_SELECT(default);
     MBED_HOSTTEST_DESCRIPTION(mbed TLS example on hashing);
@@ -167,6 +163,8 @@ static void run() {
 }
 
 void app_start(int, char*[]) {
+    /* Use 115200 bps for consistency with other examples */
+    get_stdio_serial().baud(115200);
     minar::Scheduler::postCallback(mbed::util::FunctionPointer0<void>(run).bind());
 }
 

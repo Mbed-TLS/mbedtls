@@ -1,12 +1,65 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.3.0 branch released 2016-06-28
+
+Security
+   * Fix missing padding length check in mbedtls_rsa_rsaes_pkcs1_v15_decrypt
+     required by PKCS1 v2.2
+   * Fix potential integer overflow to buffer overflow in
+     mbedtls_rsa_rsaes_pkcs1_v15_encrypt and mbedtls_rsa_rsaes_oaep_encrypt
+     (not triggerable remotely in (D)TLS).
+   * Fix a potential integer underflow to buffer overread in 
+     mbedtls_rsa_rsaes_oaep_decrypt. It is not triggerable remotely in
+     SSL/TLS.
+
+Features
+   * Support for platform abstraction of the standard C library time()
+     function.
+
+Bugfix
+   * Fix bug in mbedtls_mpi_add_mpi() that caused wrong results when the three
+     arguments where the same (in-place doubling). Found and fixed by Janos
+     Follath. #309
+   * Fix potential build failures related to the 'apidoc' target, introduced
+     in the previous patch release. Found by Robert Scheck. #390 #391
+   * Fix issue in Makefile that prevented building using armar. #386
+   * Fix memory leak that occured only when ECJPAKE was enabled and ECDHE and
+     ECDSA was disabled in config.h . The leak didn't occur by default.
+   * Fix an issue that caused valid certificates to be rejected whenever an
+     expired or not yet valid certificate was parsed before a valid certificate
+     in the trusted certificate list.
+   * Fix bug in mbedtls_x509_crt_parse that caused trailing extra data in the 
+     buffer after DER certificates to be included in the raw representation.
+   * Fix issue that caused a hang when generating RSA keys of odd bitlength
+   * Fix bug in mbedtls_rsa_rsaes_pkcs1_v15_encrypt that made null pointer
+     dereference possible.
+   * Fix issue that caused a crash if invalid curves were passed to
+     mbedtls_ssl_conf_curves. #373
+   * Fix issue in ssl_fork_server which was preventing it from functioning. #429
+   * Fix memory leaks in test framework
+   * Fix test in ssl-opt.sh that does not run properly with valgrind
+   * Fix unchecked calls to mmbedtls_md_setup(). Fix by Brian Murray. #502
+
+Changes
+   * On ARM platforms, when compiling with -O0 with GCC, Clang or armcc5,
+     don't use the optimized assembly for bignum multiplication. This removes
+     the need to pass -fomit-frame-pointer to avoid a build error with -O0.
+   * Disabled SSLv3 in the default configuration.
+   * Optimized mbedtls_mpi_zeroize() for MPI integer size. (Fix by Alexey
+     Skalozub).
+   * Fix non-compliance server extension handling. Extensions for SSLv3 are now
+     ignored, as required by RFC6101.
+
 = mbed TLS 2.2.1 released 2016-01-05
 
 Security
    * Fix potential double free when mbedtls_asn1_store_named_data() fails to
      allocate memory. Only used for certificate generation, not triggerable
      remotely in SSL/TLS. Found by Rafał Przywara. #367
-   * Disable MD5 handshake signatures in TLS 1.2 by default
+   * Disable MD5 handshake signatures in TLS 1.2 by default to prevent the
+     SLOTH attack on TLS 1.2 server authentication (other attacks from the
+     SLOTH paper do not apply to any version of mbed TLS or PolarSSL).
+     https://www.mitls.org/pages/attacks/SLOTH
 
 Bugfix
    * Fix over-restrictive length limit in GCM. Found by Andreas-N. #362

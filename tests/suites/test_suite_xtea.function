@@ -59,7 +59,7 @@ void xtea_decrypt_ecb( char *hex_key_string, char *hex_src_string,
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CBC */
 void xtea_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
                        char *hex_src_string, char *hex_dst_string )
 {
@@ -90,7 +90,7 @@ void xtea_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CBC */
 void xtea_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
                        char *hex_src_string, char *hex_dst_string )
 {

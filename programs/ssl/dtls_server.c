@@ -31,6 +31,7 @@
 #include <stdio.h>
 #define mbedtls_printf     printf
 #define mbedtls_fprintf    fprintf
+#define mbedtls_time_t     time_t
 #endif
 
 #if !defined(MBEDTLS_SSL_SRV_C) || !defined(MBEDTLS_SSL_PROTO_DTLS) ||    \

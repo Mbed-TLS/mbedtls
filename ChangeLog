@@ -1,6 +1,16 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.x branch
+= mbed TLS 2.3.0 branch released 2016-06-28
+
+Security
+   * Fix missing padding length check in mbedtls_rsa_rsaes_pkcs1_v15_decrypt
+     required by PKCS1 v2.2
+   * Fix potential integer overflow to buffer overflow in
+     mbedtls_rsa_rsaes_pkcs1_v15_encrypt and mbedtls_rsa_rsaes_oaep_encrypt
+     (not triggerable remotely in (D)TLS).
+   * Fix a potential integer underflow to buffer overread in 
+     mbedtls_rsa_rsaes_oaep_decrypt. It is not triggerable remotely in
+     SSL/TLS.
 
 Features
    * Support for platform abstraction of the standard C library time()
@@ -28,6 +38,7 @@ Bugfix
    * Fix issue in ssl_fork_server which was preventing it from functioning. #429
    * Fix memory leaks in test framework
    * Fix test in ssl-opt.sh that does not run properly with valgrind
+   * Fix unchecked calls to mmbedtls_md_setup(). Fix by Brian Murray. #502
 
 Changes
    * On ARM platforms, when compiling with -O0 with GCC, Clang or armcc5,

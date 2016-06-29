@@ -26,6 +26,7 @@
 #endif
 
 #include "mbedtls/entropy.h"
+#include "mbedtls/entropy_poll.h"
 #include "mbedtls/hmac_drbg.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/dhm.h"
@@ -99,6 +100,40 @@ static int run_test_snprintf( void )
             test_snprintf( 4, "123",         3 ) != 0 ||
             test_snprintf( 5, "123",         3 ) != 0 );
 }
+
+/*
+ * Check if a seed file is present, and if not create one for the entropy
+ * self-test. If this fails, we attempt the test anyway, so no error is passed
+ * back.
+ */
+#if defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_ENTROPY_NV_SEED) && \
+        !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
+static void create_entropy_seed_file( void )
+{
+    int result;
+    size_t output_len = 0;
+    unsigned char seed_value[MBEDTLS_ENTROPY_BLOCK_SIZE];
+
+    /* Attempt to read the entropy seed file. If this fails - attempt to write
+     * to the file to ensure one is present. */
+    result = mbedtls_platform_std_nv_seed_read( seed_value,
+                                                    MBEDTLS_ENTROPY_BLOCK_SIZE );
+    if( 0 == result )
+        return;
+
+    result = mbedtls_platform_entropy_poll( NULL,
+                                            seed_value,
+                                            MBEDTLS_ENTROPY_BLOCK_SIZE,
+                                            &output_len );
+    if( 0 != result )
+        return;
+
+    if( MBEDTLS_ENTROPY_BLOCK_SIZE != output_len )
+        return;
+
+    mbedtls_platform_std_nv_seed_write( seed_value, MBEDTLS_ENTROPY_BLOCK_SIZE );
+}
+#endif
 
 int main( int argc, char *argv[] )
 {
@@ -331,6 +366,11 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_ENTROPY_C)
+
+#if defined(MBEDTLS_ENTROPY_NV_SEED) && !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
+    create_entropy_seed_file();
+#endif
+
     if( mbedtls_entropy_self_test( v ) != 0 )
     {
         suites_failed++;
@@ -398,6 +438,6 @@ int main( int argc, char *argv[] )
         mbedtls_exit( MBEDTLS_EXIT_FAILURE );
 
     /* return() is here to prevent compiler warnings */
-    return( 0 );
+    return( MBEDTLS_EXIT_SUCCESS );
 }
 

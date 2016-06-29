@@ -145,6 +145,9 @@ while ($arg = shift) {
     }
 }
 
+# If no command was specified, exit...
+if ( not defined($action) ){ die $usage; }
+
 # Check the config file is present
 if (! -f $config_file)  {
 

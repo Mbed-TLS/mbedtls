@@ -52,7 +52,7 @@
 #endif
 
 #if defined(MBEDTLS_HAVE_TIME)
-#include <time.h>
+#include "platform.h"
 #endif
 
 /*

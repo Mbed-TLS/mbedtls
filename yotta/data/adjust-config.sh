@@ -16,7 +16,7 @@ conf() {
 
 
 # Set the target specific header
-conf set YOTTA_CFG_MBEDTLS_USER_CONFIG_FILE \"target_config.h\"
+conf set YOTTA_CFG_MBEDTLS_TARGET_CONFIG_FILE \"mbedtls/target_config.h\"
 
 # not supported on mbed OS, nor used by mbed Client
 conf unset MBEDTLS_NET_C

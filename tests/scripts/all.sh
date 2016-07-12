@@ -22,8 +22,11 @@
 # Abort on errors (and uninitialised variables)
 set -eu
 
-if [ -d library -a -d include -a -d tests ]; then :; else
-    err_msg "Must be run from mbed TLS root"
+if [ "$( uname )" != "Linux" ]; then
+    echo "This script only works in Linux" >&2
+    exit 1
+elif [ -d library -a -d include -a -d tests ]; then :; else
+    echo "Must be run from mbed TLS root" >&2
     exit 1
 fi
 
@@ -41,6 +44,11 @@ FORCE=0
 : ${GNUTLS_LEGACY_CLI:="$GNUTLS_CLI"}
 : ${GNUTLS_LEGACY_SERV:="$GNUTLS_SERV"}
 : ${OUT_OF_SOURCE_DIR:=./mbedtls_out_of_source_build}
+
+# if MAKEFLAGS is not set add the -j option to speed up invocations of make
+if [ -n "${MAKEFLAGS+set}" ]; then
+    export MAKEFLAGS="-j"
+fi
 
 usage()
 {

@@ -55,10 +55,13 @@
 #include <stdlib.h>
 #define mbedtls_free      free
 #define mbedtls_calloc    calloc
-#define mbedtls_time      time
-#define mbedtls_time_t    time_t
 #define mbedtls_printf    printf
 #define mbedtls_snprintf  snprintf
+#endif
+
+
+#if defined(MBEDTLS_HAVE_TIME)
+#include "mbedtls/platform_time.h"
 #endif
 
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)

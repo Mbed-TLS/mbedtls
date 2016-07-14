@@ -41,6 +41,11 @@
 
 int mbedtls_asn1_write_len( unsigned char **p, unsigned char *start, size_t len )
 {
+    // We don't support lengths over 65535 for now
+    //
+    if( len > 0xFFFF )
+        return( MBEDTLS_ERR_ASN1_INVALID_LENGTH );
+
     if( len < 0x80 )
     {
         if( *p - start < 1 )
@@ -63,8 +68,6 @@ int mbedtls_asn1_write_len( unsigned char **p, unsigned char *start, size_t len 
     if( *p - start < 3 )
         return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
 
-    // We assume we never have lengths larger than 65535 bytes
-    //
     *--(*p) = len % 256;
     *--(*p) = ( len / 256 ) % 256;
     *--(*p) = 0x82;

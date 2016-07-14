@@ -706,22 +706,25 @@ Test bit getting (Value bit 23)
 mbedtls_mpi_get_bit:10:"49979687":23:1
 
 Test bit set (Change existing value with a 1)
-mbedtls_mpi_set_bit:10:"49979687":24:1:10:"66756903"
+mbedtls_mpi_set_bit:10:"49979687":24:1:10:"66756903":0
 
 Test bit set (Change existing value with a 0)
-mbedtls_mpi_set_bit:10:"49979687":25:0:10:"16425255"
+mbedtls_mpi_set_bit:10:"49979687":25:0:10:"16425255":0
 
 Test bit set (Add above existing limbs with a 0)
-mbedtls_mpi_set_bit:10:"49979687":80:0:10:"49979687"
+mbedtls_mpi_set_bit:10:"49979687":80:0:10:"49979687":0
 
 Test bit set (Add above existing limbs with a 1)
-mbedtls_mpi_set_bit:10:"49979687":80:1:10:"1208925819614629224685863"
+mbedtls_mpi_set_bit:10:"49979687":80:1:10:"1208925819614629224685863":0
 
 Test bit set (Bit index larger than 31 with a 0)
-mbedtls_mpi_set_bit:16:"FFFFFFFFFFFFFFFF":32:0:16:"FFFFFFFEFFFFFFFF"
+mbedtls_mpi_set_bit:16:"FFFFFFFFFFFFFFFF":32:0:16:"FFFFFFFEFFFFFFFF":0
 
 Test bit set (Bit index larger than 31 with a 1)
-mbedtls_mpi_set_bit:16:"00":32:1:16:"0100000000"
+mbedtls_mpi_set_bit:16:"00":32:1:16:"0100000000":0
+
+Test bit set (Invalid bit value)
+mbedtls_mpi_set_bit:16:"00":5:2:16:"00":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
 MPI Selftest
 depends_on:MBEDTLS_SELF_TEST

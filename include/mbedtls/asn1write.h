@@ -40,8 +40,6 @@ extern "C" {
  * \param start     start of the buffer (for bounds-checking)
  * \param len       the length to write
  *
- * \note            lengths over 65535 are not supported at the moment
- *
  * \return          the length written or a negative error code
  */
 int mbedtls_asn1_write_len( unsigned char **p, unsigned char *start, size_t len );

@@ -42,6 +42,10 @@
 #include <stdio.h>
 #endif
 
+#if defined(MBEDTLS_ENTROPY_NV_SEED)
+#include "mbedtls/platform.h"
+#endif
+
 #if defined(MBEDTLS_SELF_TEST)
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"

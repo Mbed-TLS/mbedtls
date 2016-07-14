@@ -121,6 +121,9 @@ fi
 #
 # Indicative running times are given for reference.
 
+msg "info: print_dev_env.sh"
+scripts/print_dev_env.sh
+
 msg "test: recursion.pl" # < 1s
 tests/scripts/recursion.pl library/*.c
 

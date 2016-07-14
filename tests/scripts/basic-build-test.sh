@@ -39,6 +39,10 @@ fi
 CONFIG_H='include/mbedtls/config.h'
 CONFIG_BAK="$CONFIG_H.bak"
 
+# Step 0 - print build environment info
+scripts/print_dev_env.sh
+echo
+
 # Step 1 - Make and instrumented build for code coverage
 export CFLAGS=' --coverage -g3 -O0 '
 make clean

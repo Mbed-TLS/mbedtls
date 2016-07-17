@@ -9,7 +9,7 @@
  *  \name X509 Error codes
  *  \{
  */
-#define MBEDTLS_ERR_HKDF_BAD_PARAM  -0x0001  /**< Bad parameter */
+#define MBEDTLS_ERR_HKDF_BAD_PARAM  -0x5300  /**< Bad parameter */
 /* \} name */
 
 #ifdef __cplusplus

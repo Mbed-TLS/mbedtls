@@ -8,7 +8,7 @@
  *  memory footprint.
  */
 /*
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2006-2018, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -2090,6 +2090,21 @@
  * Uncomment to enable the HAVEGE random generator.
  */
 //#define MBEDTLS_HAVEGE_C
+
+/**
+ * \def MBEDTLS_HKDF_C
+ *
+ * Enable the HKDF algorithm (RFC 5869).
+ *
+ * Module:  library/hkdf.c
+ * Caller:
+ *
+ * Requires: MBEDTLS_MD_C
+ *
+ * This module adds support for the Hashed Message Authentication Code
+ * (HMAC)-based key derivation function (HKDF).
+ */
+#define MBEDTLS_HKDF_C
 
 /**
  * \def MBEDTLS_HMAC_DRBG_C

@@ -6,7 +6,7 @@
 void test_hkdf(int md_alg, char *hex_ikm_string, char *hex_salt_string,
                char *hex_info_string, char *hex_okm_string)
 {
-    int ret;
+    int ret, ikm_len, salt_len, info_len, okm_len;
     unsigned char ikm[1024] = {'\0'};
     unsigned char salt[1024] = {'\0'};
     unsigned char info[1024] = {'\0'};
@@ -17,10 +17,10 @@ void test_hkdf(int md_alg, char *hex_ikm_string, char *hex_salt_string,
     const mbedtls_md_info_t *md = mbedtls_md_info_from_type(md_alg);
     TEST_ASSERT(md != NULL);
 
-    int ikm_len = unhexify(ikm, hex_ikm_string);
-    int salt_len = unhexify(salt, hex_salt_string);
-    int info_len = unhexify(info, hex_info_string);
-    int okm_len = unhexify(expected_okm, hex_okm_string);
+    ikm_len = unhexify(ikm, hex_ikm_string);
+    salt_len = unhexify(salt, hex_salt_string);
+    info_len = unhexify(info, hex_info_string);
+    okm_len = unhexify(expected_okm, hex_okm_string);
 
     ret = mbedtls_hkdf(md, salt, salt_len, ikm, ikm_len, info, info_len, okm,
                        okm_len);

@@ -2218,6 +2218,19 @@
 #define MBEDTLS_SHA512_C
 
 /**
+ * \def MBEDTLS_HKDF_C
+ *
+ * Enable HKDF algorithm.
+ *
+ * Module:  library/hkdf.c
+ * Caller:
+ *
+ * This module adds support for the Hashed Message Authentication Code
+ * (HMAC)-based key derivation function (HKDF).
+ */
+#define MBEDTLS_SHA512_C
+
+/**
  * \def MBEDTLS_SSL_CACHE_C
  *
  * Enable simple SSL cache implementation.

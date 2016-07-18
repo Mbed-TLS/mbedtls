@@ -152,7 +152,7 @@
  * \warning MBEDTLS_PLATFORM_XXX_ALT cannot be defined at the same time as
  * MBEDTLS_PLATFORM_XXX_MACRO!
  *
- * \warning MBEDTLS_PLATFORM_TIME_ALT requires MBEDTLS_HAVE_TIME to be defined.
+ * Requires: MBEDTLS_PLATFORM_TIME_ALT requires MBEDTLS_HAVE_TIME
  *
  * Uncomment a macro to enable alternate implementation of specific base
  * platform function

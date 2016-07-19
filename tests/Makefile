@@ -81,7 +81,7 @@ APPS =	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
 	test_suite_pkparse$(EXEXT)	test_suite_pkwrite$(EXEXT)	\
 	test_suite_pk$(EXEXT)						\
 	test_suite_rsa$(EXEXT)		test_suite_shax$(EXEXT)		\
-	test_suite_ssl$(EXEXT)						\
+	test_suite_ssl$(EXEXT)		test_suite_timing$(EXEXT)			\
 	test_suite_x509parse$(EXEXT)	test_suite_x509write$(EXEXT)	\
 	test_suite_xtea$(EXEXT)		test_suite_version$(EXEXT)
 
@@ -409,6 +409,10 @@ test_suite_shax$(EXEXT): test_suite_shax.c $(DEP)
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_ssl$(EXEXT): test_suite_ssl.c $(DEP)
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+test_suite_timing$(EXEXT): test_suite_timing.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 

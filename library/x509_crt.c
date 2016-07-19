@@ -1947,6 +1947,16 @@ static int x509_crt_verify_top(
             continue;
         }
 
+        if( mbedtls_x509_time_is_past( &trust_ca->valid_to ) )
+        {
+            continue;
+        }
+
+        if( mbedtls_x509_time_is_future( &trust_ca->valid_from ) )
+        {
+            continue;
+        }
+
         if( mbedtls_pk_verify_ext( child->sig_pk, child->sig_opts, &trust_ca->pk,
                            child->sig_md, hash, mbedtls_md_get_size( md_info ),
                            child->sig.p, child->sig.len ) != 0 )
@@ -1981,12 +1991,6 @@ static int x509_crt_verify_top(
 #else
         ((void) ca_crl);
 #endif
-
-        if( mbedtls_x509_time_is_past( &trust_ca->valid_to ) )
-            ca_flags |= MBEDTLS_X509_BADCERT_EXPIRED;
-
-        if( mbedtls_x509_time_is_future( &trust_ca->valid_from ) )
-            ca_flags |= MBEDTLS_X509_BADCERT_FUTURE;
 
         if( NULL != f_vrfy )
         {

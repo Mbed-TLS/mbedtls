@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# print_dev_env.sh
+# output_env.sh
 #
 # This file is part of mbed TLS (https://tls.mbed.org)
 #

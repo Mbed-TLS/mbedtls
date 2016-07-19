@@ -40,7 +40,7 @@ CONFIG_H='include/mbedtls/config.h'
 CONFIG_BAK="$CONFIG_H.bak"
 
 # Step 0 - print build environment info
-scripts/print_dev_env.sh
+scripts/output_env.sh
 echo
 
 # Step 1 - Make and instrumented build for code coverage

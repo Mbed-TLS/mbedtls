@@ -256,6 +256,36 @@
 #error "MBEDTLS_PLATFORM_EXIT_MACRO and MBEDTLS_PLATFORM_STD_EXIT/MBEDTLS_PLATFORM_EXIT_ALT cannot be defined simultaneously"
 #endif
 
+#if defined(MBEDTLS_PLATFORM_TIME_ALT) &&\
+    ( !defined(MBEDTLS_PLATFORM_C) ||\
+        !defined(MBEDTLS_HAVE_TIME) )
+#error "MBEDTLS_PLATFORM_TIME_ALT defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PLATFORM_TIME_MACRO) &&\
+    ( !defined(MBEDTLS_PLATFORM_C) ||\
+        !defined(MBEDTLS_HAVE_TIME) )
+#error "MBEDTLS_PLATFORM_TIME_MACRO defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PLATFORM_TIME_TYPE_MACRO) &&\
+    ( !defined(MBEDTLS_PLATFORM_C) ||\
+        !defined(MBEDTLS_HAVE_TIME) )
+#error "MBEDTLS_PLATFORM_TIME_TYPE_MACRO defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PLATFORM_TIME_MACRO) &&\
+    ( defined(MBEDTLS_PLATFORM_STD_TIME) ||\
+        defined(MBEDTLS_PLATFORM_TIME_ALT) )
+#error "MBEDTLS_PLATFORM_TIME_MACRO and MBEDTLS_PLATFORM_STD_TIME/MBEDTLS_PLATFORM_TIME_ALT cannot be defined simultaneously"
+#endif
+
+#if defined(MBEDTLS_PLATFORM_TIME_TYPE_MACRO) &&\
+    ( defined(MBEDTLS_PLATFORM_STD_TIME) ||\
+        defined(MBEDTLS_PLATFORM_TIME_ALT) )
+#error "MBEDTLS_PLATFORM_TIME_TYPE_MACRO and MBEDTLS_PLATFORM_STD_TIME/MBEDTLS_PLATFORM_TIME_ALT cannot be defined simultaneously"
+#endif
+
 #if defined(MBEDTLS_PLATFORM_FPRINTF_ALT) && !defined(MBEDTLS_PLATFORM_C)
 #error "MBEDTLS_PLATFORM_FPRINTF_ALT defined, but not all prerequisites"
 #endif
@@ -350,6 +380,12 @@
 #if defined(MBEDTLS_PLATFORM_STD_EXIT) &&\
     !defined(MBEDTLS_PLATFORM_EXIT_ALT)
 #error "MBEDTLS_PLATFORM_STD_EXIT defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PLATFORM_STD_TIME) &&\
+    ( !defined(MBEDTLS_PLATFORM_TIME_ALT) ||\
+        !defined(MBEDTLS_HAVE_TIME) )
+#error "MBEDTLS_PLATFORM_STD_TIME defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_PLATFORM_STD_FPRINTF) &&\

@@ -74,7 +74,7 @@ int main( void )
 int main( int argc, char *argv[] )
 {
     int ret = 1, i, n;
-    int mode, lastn;
+    int mode;
     size_t keylen, ilen, olen;
     FILE *fkey, *fin = NULL, *fout = NULL;
 
@@ -279,15 +279,6 @@ int main( int argc, char *argv[] )
         memcpy( IV, digest, 16 );
 
         /*
-         * The last four bits in the IV are actually used
-         * to store the file size modulo the AES block size.
-         */
-        lastn = (int)( filesize & 0x0F );
-
-        IV[15] = (unsigned char)
-            ( ( IV[15] & 0xF0 ) | lastn );
-
-        /*
          * Append the IV at the beginning of the output.
          */
         if( fwrite( IV, 1, 16, fout ) != 16 )
@@ -437,7 +428,6 @@ int main( int argc, char *argv[] )
         }
 
         memcpy( IV, buffer, 16 );
-        lastn = IV[15] & 0x0F;
 
         /*
          * Hash the IV and the secret key together 8192 times

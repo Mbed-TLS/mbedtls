@@ -2511,7 +2511,9 @@ exit:
 
 #if !defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)       && \
     !defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)   && \
+    !defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)  && \
     !defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) && \
+    !defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)&& \
     !defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
 static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
 {
@@ -2657,7 +2659,9 @@ exit:
 }
 #endif /* !MBEDTLS_KEY_EXCHANGE_RSA_ENABLED &&
           !MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED &&
+          !MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED &&
           !MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED &&
+          !MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED &&
           !MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
 
 static int ssl_parse_server_hello_done( mbedtls_ssl_context *ssl )
@@ -2959,7 +2963,9 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
 
 #if !defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)       && \
     !defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)   && \
+    !defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)  && \
     !defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) && \
+    !defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)&& \
     !defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
 static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
 {
@@ -3139,7 +3145,10 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
 }
 #endif /* !MBEDTLS_KEY_EXCHANGE_RSA_ENABLED &&
           !MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED &&
-          !MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED */
+          !MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED &&
+          !MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED &&
+          !MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED &&
+          !MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 static int ssl_parse_new_session_ticket( mbedtls_ssl_context *ssl )

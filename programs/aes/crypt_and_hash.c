@@ -413,7 +413,8 @@ int main( int argc, char *argv[] )
         /*
          * Check the file size.
          */
-        if( ( ( filesize - mbedtls_md_get_size( md_info ) ) %
+        if( cipher_info->mode != MBEDTLS_MODE_GCM &&
+            ( ( filesize - mbedtls_md_get_size( md_info ) ) %
                 mbedtls_cipher_get_block_size( &cipher_ctx ) ) != 0 )
         {
             mbedtls_fprintf( stderr, "File content not a multiple of the block size (%d).\n",
@@ -481,18 +482,19 @@ int main( int argc, char *argv[] )
          */
         for( offset = 0; offset < filesize; offset += mbedtls_cipher_get_block_size( &cipher_ctx ) )
         {
-            if( fread( buffer, 1, mbedtls_cipher_get_block_size( &cipher_ctx ), fin ) !=
-                (size_t) mbedtls_cipher_get_block_size( &cipher_ctx ) )
+            ilen = ( (unsigned int) filesize - offset > mbedtls_cipher_get_block_size( &cipher_ctx ) ) ?
+                mbedtls_cipher_get_block_size( &cipher_ctx ) : (unsigned int) ( filesize - offset );
+
+            if( fread( buffer, 1, ilen, fin ) != ilen )
             {
                 mbedtls_fprintf( stderr, "fread(%d bytes) failed\n",
                     mbedtls_cipher_get_block_size( &cipher_ctx ) );
                 goto exit;
             }
 
-            mbedtls_md_hmac_update( &md_ctx, buffer, mbedtls_cipher_get_block_size( &cipher_ctx ) );
-            if( mbedtls_cipher_update( &cipher_ctx, buffer,
-                               mbedtls_cipher_get_block_size( &cipher_ctx ),
-                               output, &olen ) != 0 )
+            mbedtls_md_hmac_update( &md_ctx, buffer, ilen );
+            if( mbedtls_cipher_update( &cipher_ctx, buffer, ilen, output,
+                                       &olen ) != 0 )
             {
                 mbedtls_fprintf( stderr, "mbedtls_cipher_update() returned error\n" );
                 goto exit;

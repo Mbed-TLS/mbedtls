@@ -2,7 +2,7 @@
  *  \brief  Generic file encryption program using generic wrappers for configured
  *          security.
  *
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2006-2016, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -264,7 +264,7 @@ int main( int argc, char *argv[] )
     {
         /*
          * Generate the initialization vector as:
-         * IV = SHA-256( filesize || filename )[0..15]
+         * IV = MD( filesize || filename )[0..15]
          */
         for( i = 0; i < 8; i++ )
             buffer[i] = (unsigned char)( filesize >> ( i << 3 ) );
@@ -393,10 +393,10 @@ int main( int argc, char *argv[] )
          *  The encrypted file must be structured as follows:
          *
          *        00 .. 15              Initialization Vector
-         *        16 .. 31              AES Encrypted Block #1
+         *        16 .. 31              Encrypted Block #1
          *           ..
-         *      N*16 .. (N+1)*16 - 1    AES Encrypted Block #N
-         *  (N+1)*16 .. (N+1)*16 + 32   HMAC-SHA-256(ciphertext)
+         *      N*16 .. (N+1)*16 - 1    Encrypted Block #N
+         *  (N+1)*16 .. (N+1)*16 + n    Hash(ciphertext)
          */
         if( filesize < 16 + mbedtls_md_get_size( md_info ) )
         {

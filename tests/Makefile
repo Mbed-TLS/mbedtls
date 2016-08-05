@@ -13,7 +13,7 @@ LOCAL_LDFLAGS = -L../library 			\
 		-lmbedcrypto$(SHARED_SUFFIX)
 
 ifdef MBED_TEST
-    GEN_CODE_OPTS=--mbed
+    GEN_CODE_OPTS=--mbed --mainfile suites/main_test_mbed.function
     SRCEXT=.cpp
 else
     GEN_CODE_OPTS=

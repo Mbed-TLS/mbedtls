@@ -83,7 +83,8 @@ $suite_name ne "" or die "Missing suite name";
 $data_name ne "" or die "Missing data name";
 $test_main_file = $suite_dir."/main_test.function" if ($test_main_file eq "");
 
-my $test_file = $data_name.".c";
+# mbed files can only be c++
+my $test_file = $is_mbed ? $data_name.".cpp" : $data_name.".c";
 my $test_common_helper_file = $suite_dir."/helpers.function";
 my $test_case_file = $suite_dir."/".$suite_name.".function";
 my $test_case_data = $suite_dir."/".$data_name.".data";

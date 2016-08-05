@@ -12,6 +12,14 @@ LOCAL_LDFLAGS = -L../library 			\
 		-lmbedx509$(SHARED_SUFFIX)	\
 		-lmbedcrypto$(SHARED_SUFFIX)
 
+ifdef MBED_TEST
+    GEN_CODE_OPTS=--mbed
+    SRCEXT=.cpp
+else
+    GEN_CODE_OPTS=
+    SRCEXT=.c
+endif
+
 ifndef SHARED
 DEP=../library/libmbedcrypto.a ../library/libmbedx509.a ../library/libmbedtls.a
 else
@@ -85,6 +93,46 @@ APPS =	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
 	test_suite_x509parse$(EXEXT)	test_suite_x509write$(EXEXT)	\
 	test_suite_xtea$(EXEXT)		test_suite_version$(EXEXT)
 
+APPS_SRC =	test_suite_aes.ecb$(SRCEXT)	test_suite_aes.cbc$(SRCEXT)	\
+	test_suite_aes.cfb$(SRCEXT)	test_suite_aes.rest$(SRCEXT)	    \
+	test_suite_arc4$(SRCEXT)		test_suite_asn1write$(SRCEXT)	\
+	test_suite_base64$(SRCEXT)	test_suite_blowfish$(SRCEXT)	    \
+	test_suite_camellia$(SRCEXT)	test_suite_ccm$(SRCEXT)		    \
+	test_suite_cipher.aes$(SRCEXT)					                \
+	test_suite_cipher.arc4$(SRCEXT)	test_suite_cipher.ccm$(SRCEXT)	\
+	test_suite_cipher.gcm$(SRCEXT)					                \
+	test_suite_cipher.blowfish$(SRCEXT)				                \
+	test_suite_cipher.camellia$(SRCEXT)				                \
+	test_suite_cipher.des$(SRCEXT)	test_suite_cipher.null$(SRCEXT)	\
+	test_suite_cipher.padding$(SRCEXT)				                \
+	test_suite_ctr_drbg$(SRCEXT)	test_suite_debug$(SRCEXT)	    \
+	test_suite_des$(SRCEXT)		test_suite_dhm$(SRCEXT)		        \
+	test_suite_ecdh$(SRCEXT)		test_suite_ecdsa$(SRCEXT)	    \
+	test_suite_ecjpake$(SRCEXT)	test_suite_ecp$(SRCEXT)		        \
+	test_suite_error$(SRCEXT)	test_suite_entropy$(SRCEXT)	        \
+	test_suite_gcm.aes128_de$(SRCEXT)				                \
+	test_suite_gcm.aes192_de$(SRCEXT)				                \
+	test_suite_gcm.aes256_de$(SRCEXT)				                \
+	test_suite_gcm.aes128_en$(SRCEXT)				                \
+	test_suite_gcm.aes192_en$(SRCEXT)				                \
+	test_suite_gcm.aes256_en$(SRCEXT)				                \
+	test_suite_gcm.camellia$(SRCEXT)					            \
+	test_suite_hmac_drbg.misc$(SRCEXT)				                \
+	test_suite_hmac_drbg.no_reseed$(SRCEXT)				            \
+	test_suite_hmac_drbg.nopr$(SRCEXT)				                \
+	test_suite_hmac_drbg.pr$(SRCEXT)					            \
+	test_suite_md$(SRCEXT)		test_suite_mdx$(SRCEXT)		        \
+	test_suite_memory_buffer_alloc$(SRCEXT)				            \
+	test_suite_mpi$(SRCEXT)						                    \
+	test_suite_pem$(SRCEXT)			test_suite_pkcs1_v15$(SRCEXT)	\
+	test_suite_pkcs1_v21$(SRCEXT)	test_suite_pkcs5$(SRCEXT)	    \
+	test_suite_pkparse$(SRCEXT)	test_suite_pkwrite$(SRCEXT)	        \
+	test_suite_pk$(SRCEXT)						                    \
+	test_suite_rsa$(SRCEXT)		test_suite_shax$(SRCEXT)		    \
+	test_suite_ssl$(SRCEXT)						                    \
+	test_suite_x509parse$(SRCEXT)	test_suite_x509write$(SRCEXT)	\
+	test_suite_xtea$(SRCEXT)		test_suite_version$(SRCEXT)
+
 .SILENT:
 
 .PHONY: all check test clean
@@ -96,105 +144,105 @@ $(DEP):
 
 # invoke perl explicitly for the sake of mingw32-make
 
-test_suite_aes.ecb.c : suites/test_suite_aes.function suites/test_suite_aes.ecb.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_aes.ecb$(SRCEXT) : suites/test_suite_aes.function suites/test_suite_aes.ecb.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_aes --dataname test_suite_aes.ecb
+	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_aes --dataname test_suite_aes.ecb $(GEN_CODE_OPTS)
 
-test_suite_aes.cbc.c : suites/test_suite_aes.function suites/test_suite_aes.cbc.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_aes.cbc$(SRCEXT) : suites/test_suite_aes.function suites/test_suite_aes.cbc.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_aes --dataname test_suite_aes.cbc
+	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_aes --dataname test_suite_aes.cbc $(GEN_CODE_OPTS)
 
-test_suite_aes.cfb.c : suites/test_suite_aes.function suites/test_suite_aes.cfb.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_aes.cfb$(SRCEXT) : suites/test_suite_aes.function suites/test_suite_aes.cfb.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_aes --dataname test_suite_aes.cfb
+	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_aes --dataname test_suite_aes.cfb $(GEN_CODE_OPTS)
 
-test_suite_aes.rest.c : suites/test_suite_aes.function suites/test_suite_aes.rest.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_aes.rest$(SRCEXT) : suites/test_suite_aes.function suites/test_suite_aes.rest.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_aes --dataname test_suite_aes.rest
+	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_aes --dataname test_suite_aes.rest $(GEN_CODE_OPTS)
 
-test_suite_cipher.aes.c : suites/test_suite_cipher.function suites/test_suite_cipher.aes.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_cipher.aes$(SRCEXT) : suites/test_suite_cipher.function suites/test_suite_cipher.aes.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_cipher --dataname test_suite_cipher.aes
+	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_cipher --dataname test_suite_cipher.aes $(GEN_CODE_OPTS)
 
-test_suite_cipher.arc4.c : suites/test_suite_cipher.function suites/test_suite_cipher.arc4.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_cipher.arc4$(SRCEXT) : suites/test_suite_cipher.function suites/test_suite_cipher.arc4.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_cipher --dataname test_suite_cipher.arc4
+	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_cipher --dataname test_suite_cipher.arc4 $(GEN_CODE_OPTS)
 
-test_suite_cipher.ccm.c : suites/test_suite_cipher.function suites/test_suite_cipher.ccm.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_cipher.ccm$(SRCEXT) : suites/test_suite_cipher.function suites/test_suite_cipher.ccm.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_cipher --dataname test_suite_cipher.ccm
+	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_cipher --dataname test_suite_cipher.ccm $(GEN_CODE_OPTS)
 
-test_suite_cipher.gcm.c : suites/test_suite_cipher.function suites/test_suite_cipher.gcm.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_cipher.gcm$(SRCEXT) : suites/test_suite_cipher.function suites/test_suite_cipher.gcm.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_cipher --dataname test_suite_cipher.gcm
+	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_cipher --dataname test_suite_cipher.gcm $(GEN_CODE_OPTS)
 
-test_suite_cipher.blowfish.c : suites/test_suite_cipher.function suites/test_suite_cipher.blowfish.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_cipher.blowfish$(SRCEXT) : suites/test_suite_cipher.function suites/test_suite_cipher.blowfish.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_cipher --dataname test_suite_cipher.blowfish
+	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_cipher --dataname test_suite_cipher.blowfish $(GEN_CODE_OPTS)
 
-test_suite_cipher.camellia.c : suites/test_suite_cipher.function suites/test_suite_cipher.camellia.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_cipher.camellia$(SRCEXT) : suites/test_suite_cipher.function suites/test_suite_cipher.camellia.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_cipher --dataname test_suite_cipher.camellia
+	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_cipher --dataname test_suite_cipher.camellia $(GEN_CODE_OPTS)
 
-test_suite_cipher.des.c : suites/test_suite_cipher.function suites/test_suite_cipher.des.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_cipher.des$(SRCEXT) : suites/test_suite_cipher.function suites/test_suite_cipher.des.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_cipher --dataname test_suite_cipher.des
+	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_cipher --dataname test_suite_cipher.des $(GEN_CODE_OPTS)
 
-test_suite_cipher.null.c : suites/test_suite_cipher.function suites/test_suite_cipher.null.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_cipher.null$(SRCEXT) : suites/test_suite_cipher.function suites/test_suite_cipher.null.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_cipher --dataname test_suite_cipher.null
+	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_cipher --dataname test_suite_cipher.null $(GEN_CODE_OPTS)
 
-test_suite_cipher.padding.c : suites/test_suite_cipher.function suites/test_suite_cipher.padding.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_cipher.padding$(SRCEXT) : suites/test_suite_cipher.function suites/test_suite_cipher.padding.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_cipher --dataname test_suite_cipher.padding
+	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_cipher --dataname test_suite_cipher.padding $(GEN_CODE_OPTS)
 
-test_suite_gcm.aes128_de.c : suites/test_suite_gcm.function suites/test_suite_gcm.aes128_de.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_gcm.aes128_de$(SRCEXT) : suites/test_suite_gcm.function suites/test_suite_gcm.aes128_de.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_gcm --dataname test_suite_gcm.aes128_de
+	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_gcm --dataname test_suite_gcm.aes128_de $(GEN_CODE_OPTS)
 
-test_suite_gcm.aes192_de.c : suites/test_suite_gcm.function suites/test_suite_gcm.aes192_de.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_gcm.aes192_de$(SRCEXT) : suites/test_suite_gcm.function suites/test_suite_gcm.aes192_de.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_gcm --dataname test_suite_gcm.aes192_de
+	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_gcm --dataname test_suite_gcm.aes192_de $(GEN_CODE_OPTS)
 
-test_suite_gcm.aes256_de.c : suites/test_suite_gcm.function suites/test_suite_gcm.aes256_de.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_gcm.aes256_de$(SRCEXT) : suites/test_suite_gcm.function suites/test_suite_gcm.aes256_de.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_gcm --dataname test_suite_gcm.aes256_de
+	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_gcm --dataname test_suite_gcm.aes256_de $(GEN_CODE_OPTS)
 
-test_suite_gcm.aes128_en.c : suites/test_suite_gcm.function suites/test_suite_gcm.aes128_en.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_gcm.aes128_en$(SRCEXT) : suites/test_suite_gcm.function suites/test_suite_gcm.aes128_en.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_gcm --dataname test_suite_gcm.aes128_en
+	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_gcm --dataname test_suite_gcm.aes128_en $(GEN_CODE_OPTS)
 
-test_suite_gcm.aes192_en.c : suites/test_suite_gcm.function suites/test_suite_gcm.aes192_en.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_gcm.aes192_en$(SRCEXT) : suites/test_suite_gcm.function suites/test_suite_gcm.aes192_en.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_gcm --dataname test_suite_gcm.aes192_en
+	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_gcm --dataname test_suite_gcm.aes192_en $(GEN_CODE_OPTS)
 
-test_suite_gcm.aes256_en.c : suites/test_suite_gcm.function suites/test_suite_gcm.aes256_en.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_gcm.aes256_en$(SRCEXT) : suites/test_suite_gcm.function suites/test_suite_gcm.aes256_en.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_gcm --dataname test_suite_gcm.aes256_en
+	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_gcm --dataname test_suite_gcm.aes256_en $(GEN_CODE_OPTS)
 
-test_suite_gcm.camellia.c : suites/test_suite_gcm.function suites/test_suite_gcm.camellia.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_gcm.camellia$(SRCEXT) : suites/test_suite_gcm.function suites/test_suite_gcm.camellia.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_gcm --dataname test_suite_gcm.camellia
+	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_gcm --dataname test_suite_gcm.camellia $(GEN_CODE_OPTS)
 
-test_suite_hmac_drbg.misc.c : suites/test_suite_hmac_drbg.function suites/test_suite_hmac_drbg.misc.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_hmac_drbg.misc$(SRCEXT) : suites/test_suite_hmac_drbg.function suites/test_suite_hmac_drbg.misc.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_hmac_drbg --dataname test_suite_hmac_drbg.misc
+	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_hmac_drbg --dataname test_suite_hmac_drbg.misc $(GEN_CODE_OPTS)
 
-test_suite_hmac_drbg.no_reseed.c : suites/test_suite_hmac_drbg.function suites/test_suite_hmac_drbg.no_reseed.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_hmac_drbg.no_reseed$(SRCEXT) : suites/test_suite_hmac_drbg.function suites/test_suite_hmac_drbg.no_reseed.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_hmac_drbg --dataname test_suite_hmac_drbg.no_reseed
+	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_hmac_drbg --dataname test_suite_hmac_drbg.no_reseed $(GEN_CODE_OPTS)
 
-test_suite_hmac_drbg.nopr.c : suites/test_suite_hmac_drbg.function suites/test_suite_hmac_drbg.nopr.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_hmac_drbg.nopr$(SRCEXT) : suites/test_suite_hmac_drbg.function suites/test_suite_hmac_drbg.nopr.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_hmac_drbg --dataname test_suite_hmac_drbg.nopr
+	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_hmac_drbg --dataname test_suite_hmac_drbg.nopr $(GEN_CODE_OPTS)
 
-test_suite_hmac_drbg.pr.c : suites/test_suite_hmac_drbg.function suites/test_suite_hmac_drbg.pr.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_hmac_drbg.pr$(SRCEXT) : suites/test_suite_hmac_drbg.function suites/test_suite_hmac_drbg.pr.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_hmac_drbg --dataname test_suite_hmac_drbg.pr
+	perl scripts/generate_code.pl --suitedir suites --suitename test_suite_hmac_drbg --dataname test_suite_hmac_drbg.pr $(GEN_CODE_OPTS)
 
-%.c : suites/%.function suites/%.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+%$(SRCEXT) : suites/%.function suites/%.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl --suitedir suites --suitename $* --dataname $*
+	perl scripts/generate_code.pl --suitedir suites --suitename $* --dataname $* $(GEN_CODE_OPTS)
 
 test_suite_aes.ecb$(EXEXT): test_suite_aes.ecb.c $(DEP)
 	echo "  CC    $<"
@@ -434,7 +482,7 @@ test_suite_version$(EXEXT): test_suite_version.c $(DEP)
 
 clean:
 ifndef WINDOWS
-	rm -f $(APPS) *.c
+	rm -f $(APPS) *.c *.cpp
 else
 	del /Q /F *.c *.exe
 endif
@@ -443,3 +491,5 @@ check: $(APPS)
 	perl scripts/run-test-suites.pl
 
 test: check
+
+gen_test_code: $(APPS_SRC)

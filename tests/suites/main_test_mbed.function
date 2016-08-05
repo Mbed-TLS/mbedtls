@@ -121,34 +121,37 @@ DISPATCH_FUNCTION
 
 #line !LINE_NO! "main_test.function"
 
-#define USAGE \
-    "Usage: %s [OPTIONS] files...\r\n\r\n" \
-    "   Command line arguments:\r\n" \
-    "     files...          One or more test data file. If no file is specified\r\n" \
-    "                       the followimg default test case is used:\r\n" \
-    "                           %s\r\n\r\n" \
-    "   Options:\r\n" \
-    "     -v | --verbose    Display full information about each test\r\n" \
-    "     -h | --help       Display this information\r\n\r\n", \
-    argv[0], \
-    "TESTCASE_FILENAME"
-
-
-int get_line( FILE *f, char *buf, size_t len )
+int get_line( char** test_data, char *buf, size_t len )
 {
-    char *ret;
+    // this function currently does not handle \r\r\n line terminators, but we
+    // are hard-coding the test data inside the c file, so this should not
+    // cause problems.
 
-    ret = fgets( buf, len, f );
-    if( ret == NULL )
-        return( -1 );
+    size_t i;
 
-    if( strlen( buf ) && buf[strlen(buf) - 1] == '\n' )
-        buf[strlen(buf) - 1] = '\0';
-    if( strlen( buf ) && buf[strlen(buf) - 1] == '\r' )
-        buf[strlen(buf) - 1] = '\0';
+    // if the string is empty fail and the destination remains unchanged
+    if ( **test_data == '\0' )
+         return( -1 );
 
-    return( 0 );
+    // copy character by character until capacity or eof is reached
+    for( i = 0; i < len; i++ )
+    {
+        if( **test_data == '\n' ) {
+            buf[i] = '\0';
+            *test_data += 1;
+            break;
+        } else if( **test_data == '\0' ) {
+            buf[i] = '\0';
+            break;
+        } else {
+            buf[i] = **test_data;
+            *test_data += 1;
+        }
+    }
+
+     return( 0 );
 }
+
 
 int parse_arguments( char *buf, size_t len, char *params[50] )
 {
@@ -241,24 +244,19 @@ static int run_test_snprintf( void )
             test_snprintf( 5, "123",         3 ) != 0 );
 }
 
-int main(int argc, const char *argv[])
+int main()
 {
-    /* Local Configurations and options */
-    const char *default_filename = "TESTCASE_FILENAME";
-    const char *test_filename = NULL;
-    const char **test_files = NULL;
-    int testfile_count = 0;
-    int option_verbose = 0;
+    /* Test suite data */
+    char *test_suite_data = TEST_DATA_CODE;
 
     /* Other Local variables */
-    int arg_index = 1;
-    const char *next_arg;
-    int testfile_index, ret, i, cnt;
+    int ret, i, cnt;
     int total_errors = 0, total_tests = 0, total_skipped = 0;
-    FILE *file;
     char buf[5000];
     char *params[50];
     void *pointer;
+    int unmet_dep_count = 0;
+    char *unmet_dependencies[20];
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) && \
     !defined(TEST_SUITE_MEMORY_BUFFER_ALLOC)
@@ -287,171 +285,117 @@ int main(int argc, const char *argv[])
         return( 0 );
     }
 
-    while( arg_index < argc)
+    /* Now begin to execute the tests */
+    while( *test_suite_data != '\0' )
     {
-        next_arg = argv[ arg_index ];
-
-        if( strcmp(next_arg, "--verbose" ) == 0 ||
-                 strcmp(next_arg, "-v" ) == 0 )
+        if( unmet_dep_count > 0 )
         {
-            option_verbose = 1;
+            mbedtls_printf("FATAL: Dep count larger than zero at start of loop\r\n");
+            mbedtls_exit( MBEDTLS_EXIT_FAILURE );
         }
-        else if( strcmp(next_arg, "--help" ) == 0 ||
-                 strcmp(next_arg, "-h" ) == 0 )
+        unmet_dep_count = 0;
+
+        if( ( ret = get_line( &test_suite_data, buf, sizeof(buf) ) ) != 0 )
+            break;
+        mbedtls_fprintf( stdout, "%s%.66s", test_errors ? "\r\n" : "", buf );
+        mbedtls_fprintf( stdout, " " );
+        for( i = strlen( buf ) + 1; i < 67; i++ )
+            mbedtls_fprintf( stdout, "." );
+        mbedtls_fprintf( stdout, " " );
+        fflush( stdout );
+
+        total_tests++;
+
+        if( ( ret = get_line( &test_suite_data, buf, sizeof(buf) ) ) != 0 )
+            break;
+        cnt = parse_arguments( buf, strlen(buf), params );
+
+        if( strcmp( params[0], "depends_on" ) == 0 )
         {
-            mbedtls_fprintf( stdout, USAGE );
-            mbedtls_exit( EXIT_SUCCESS );
-        }
-        else
-        {
-            /* Not an option, therefore treat all further arguments as the file
-             * list.
-             */
-            test_files = &argv[ arg_index ];
-            testfile_count = argc - arg_index;
-        }
-
-        arg_index++;
-    }
-
-    /* If no files were specified, assume a default */
-    if ( test_files == NULL || testfile_count == 0 )
-    {
-        test_files = &default_filename;
-        testfile_count = 1;
-    }
-
-    /* Now begin to execute the tests in the testfiles */
-    for ( testfile_index = 0;
-          testfile_index < testfile_count;
-          testfile_index++ )
-    {
-        int unmet_dep_count = 0;
-        char *unmet_dependencies[20];
-
-        test_filename = test_files[ testfile_index ];
-
-        file = fopen( test_filename, "r" );
-        if( file == NULL )
-        {
-            mbedtls_fprintf( stderr, "Failed to open test file: %s\r\n",
-                             test_filename );
-            return( 1 );
-        }
-
-        while( !feof( file ) )
-        {
-            if( unmet_dep_count > 0 )
+            for( i = 1; i < cnt; i++ )
             {
-                mbedtls_printf("FATAL: Dep count larger than zero at start of loop\r\n");
-                mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+                if( dep_check( params[i] ) != DEPENDENCY_SUPPORTED )
+                {
+                    if( 0 == option_verbose )
+                    {
+                        /* Only one count is needed if not verbose */
+                        unmet_dep_count++;
+                        break;
+                    }
+
+                    unmet_dependencies[ unmet_dep_count ] = strdup(params[i]);
+                    if(  unmet_dependencies[ unmet_dep_count ] == NULL )
+                    {
+                        mbedtls_printf("FATAL: Out of memory\r\n");
+                        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+                    }
+                    unmet_dep_count++;
+                }
             }
-            unmet_dep_count = 0;
 
-            if( ( ret = get_line( file, buf, sizeof(buf) ) ) != 0 )
-                break;
-            mbedtls_fprintf( stdout, "%s%.66s", test_errors ? "\r\n" : "", buf );
-            mbedtls_fprintf( stdout, " " );
-            for( i = strlen( buf ) + 1; i < 67; i++ )
-                mbedtls_fprintf( stdout, "." );
-            mbedtls_fprintf( stdout, " " );
-            fflush( stdout );
-
-            total_tests++;
-
-            if( ( ret = get_line( file, buf, sizeof(buf) ) ) != 0 )
+            if( ( ret = get_line( &test_suite_data, buf, sizeof(buf) ) ) != 0 )
                 break;
             cnt = parse_arguments( buf, strlen(buf), params );
-
-            if( strcmp( params[0], "depends_on" ) == 0 )
-            {
-                for( i = 1; i < cnt; i++ )
-                {
-                    if( dep_check( params[i] ) != DEPENDENCY_SUPPORTED )
-                    {
-                        if( 0 == option_verbose )
-                        {
-                            /* Only one count is needed if not verbose */
-                            unmet_dep_count++;
-                            break;
-                        }
-
-                        unmet_dependencies[ unmet_dep_count ] = strdup(params[i]);
-                        if(  unmet_dependencies[ unmet_dep_count ] == NULL )
-                        {
-                            mbedtls_printf("FATAL: Out of memory\r\n");
-                            mbedtls_exit( MBEDTLS_EXIT_FAILURE );
-                        }
-                        unmet_dep_count++;
-                    }
-                }
-
-                if( ( ret = get_line( file, buf, sizeof(buf) ) ) != 0 )
-                    break;
-                cnt = parse_arguments( buf, strlen(buf), params );
-            }
- 
-            // If there are no unmet dependencies execute the test
-            if( unmet_dep_count == 0 )
-            {
-                test_errors = 0;
-                ret = dispatch_test( cnt, params );
-            }
-
-            if( unmet_dep_count > 0 || ret == DISPATCH_UNSUPPORTED_SUITE )
-            {
-                total_skipped++;
-                mbedtls_fprintf( stdout, "----\r\n" );
-
-                if( 1 == option_verbose && ret == DISPATCH_UNSUPPORTED_SUITE )
-                {
-                    mbedtls_fprintf( stdout, "   Test Suite not enabled" );
-                }
-
-                if( 1 == option_verbose && unmet_dep_count > 0 )
-                {
-                    mbedtls_fprintf( stdout, "   Unmet dependencies: " );
-                    for( i = 0; i < unmet_dep_count; i++ )
-                    {
-                        mbedtls_fprintf(stdout, "%s  ",
-                                        unmet_dependencies[i]);
-                        free(unmet_dependencies[i]);
-                    }
-                    mbedtls_fprintf( stdout, "\r\n" );
-                }
-                fflush( stdout );
-
-                unmet_dep_count = 0;
-            }
-            else if( ret == DISPATCH_TEST_SUCCESS && test_errors == 0 )
-            {
-                mbedtls_fprintf( stdout, "PASS\r\n" );
-                fflush( stdout );
-            }
-            else if( ret == DISPATCH_INVALID_TEST_DATA )
-            {
-                mbedtls_fprintf( stderr, "FAILED: FATAL PARSE ERROR\r\n" );
-                fclose(file);
-                mbedtls_exit( 2 );
-            }
-            else
-                total_errors++;
-
-            if( ( ret = get_line( file, buf, sizeof(buf) ) ) != 0 )
-                break;
-            if( strlen(buf) != 0 )
-            {
-                mbedtls_fprintf( stderr, "Should be empty %d\r\n",
-                                 (int) strlen(buf) );
-                return( 1 );
-            }
         }
-        fclose(file);
 
-        /* In case we encounter early end of file */
-        for( i = 0; i < unmet_dep_count; i++ )
-            free( unmet_dependencies[i] );
+        // If there are no unmet dependencies execute the test
+        if( unmet_dep_count == 0 )
+        {
+            test_errors = 0;
+            ret = dispatch_test( cnt, params );
+        }
+
+        if( unmet_dep_count > 0 || ret == DISPATCH_UNSUPPORTED_SUITE )
+        {
+            total_skipped++;
+            mbedtls_fprintf( stdout, "----\r\n" );
+
+            if( 1 == option_verbose && ret == DISPATCH_UNSUPPORTED_SUITE )
+            {
+                mbedtls_fprintf( stdout, "   Test Suite not enabled" );
+            }
+
+            if( 1 == option_verbose && unmet_dep_count > 0 )
+            {
+                mbedtls_fprintf( stdout, "   Unmet dependencies: " );
+                for( i = 0; i < unmet_dep_count; i++ )
+                {
+                    mbedtls_fprintf(stdout, "%s  ",
+                                    unmet_dependencies[i]);
+                    free(unmet_dependencies[i]);
+                }
+                mbedtls_fprintf( stdout, "\r\n" );
+            }
+            fflush( stdout );
+
+            unmet_dep_count = 0;
+        }
+        else if( ret == DISPATCH_TEST_SUCCESS && test_errors == 0 )
+        {
+            mbedtls_fprintf( stdout, "PASS\r\n" );
+            fflush( stdout );
+        }
+        else if( ret == DISPATCH_INVALID_TEST_DATA )
+        {
+            mbedtls_fprintf( stderr, "FAILED: FATAL PARSE ERROR\r\n" );
+            mbedtls_exit( 2 );
+        }
+        else
+            total_errors++;
+
+        if( ( ret = get_line( &test_suite_data, buf, sizeof(buf) ) ) != 0 )
+            break;
+        if( strlen(buf) != 0 )
+        {
+            mbedtls_fprintf( stderr, "Should be empty %d\r\n",
+                             (int) strlen(buf) );
+            return( 1 );
+        }
     }
+
+    /* In case we encounter early end of file */
+    for( i = 0; i < unmet_dep_count; i++ )
+        free( unmet_dependencies[i] );
 
     mbedtls_fprintf( stdout, "\r\n----------------------------------------------------------------------------\r\n\r\n");
     if( total_errors == 0 )

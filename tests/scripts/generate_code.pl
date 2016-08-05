@@ -30,6 +30,7 @@
 #           DEP_CHECK_CODE
 #           DISPATCH_FUNCTION
 #           !LINE_NO!
+#           TEST_DATA_CODE
 #
 #   - common helper code file - 'helpers.function'
 #       Common helper functions
@@ -51,11 +52,37 @@
 #
 
 use strict;
+use Getopt::Long;
 
-my $suite_dir = shift or die "Missing suite directory";
-my $suite_name = shift or die "Missing suite name";
-my $data_name = shift or die "Missing data name";
-my $test_main_file = do { my $arg = shift; defined($arg) ? $arg :  $suite_dir."/main_test.function" };
+sub usage {
+    print "Error while parsing command line arguments.\n";
+    print "This script generates test code for mbed TLS.\n";
+    print "USAGE:\n";
+    print "\t--suitedir\t\tSuite directory\n";
+    print "\t--suitename\t\tSuite name\n";
+    print "\t--dataname\t\tName of data file\n";
+    print "\t--mainfile\t\tFile containing the code for main functions\n";
+    print "\t--mbed\t\tWhether this test is for the mbed platform\n";
+    exit 1;
+}
+
+my $suite_dir = "";
+my $suite_name = "";
+my $data_name = "";
+my $test_main_file = "";
+my $is_mbed = 0;
+
+GetOptions("suitedir=s" => \$suite_dir,
+           "suitename=s" => \$suite_name,
+           "dataname=s" => \$data_name,
+           "mainfile=s" => \$test_main_file,
+           "mbed" => \$is_mbed) or usage();
+
+$suite_dir ne "" or die "Missing suite directory";
+$suite_name ne "" or die "Missing suite name";
+$data_name ne "" or die "Missing data name";
+$test_main_file = $suite_dir."/main_test.function" if ($test_main_file eq "");
+
 my $test_file = $data_name.".c";
 my $test_common_helper_file = $suite_dir."/helpers.function";
 my $test_case_file = $suite_dir."/".$suite_name.".function";
@@ -63,7 +90,6 @@ my $test_case_data = $suite_dir."/".$data_name.".data";
 
 my $line_separator = $/;
 undef $/;
-
 
 #
 # Open and read in the input files
@@ -110,8 +136,30 @@ close(TEST_CASES);
 
 open(TEST_DATA, "$test_case_data") or die "Opening test data '$test_case_data': $!";
 my $test_data = <TEST_DATA>;
+if ($is_mbed)
+{
+    my @test_data_lines = split/^/, $test_data;
+    my $test_data_code = "";
+    for my $line (@test_data_lines) {
+        chop($line);
+        # Escape " character
+        $line =~ s/"/\\"/g;
+        # Add " and spaces at beginning and \n" at the end
+        if ($test_data_code eq "")
+        {
+            $line = "\"".$line;
+        }
+        else
+        {
+            $line = "\\n\"\n        \"".$line;
+        }
+        $test_data_code = $test_data_code.$line;
+    }
+    $test_data_code = $test_data_code."\"";
+    # Add the test data source code to the global variables
+    $test_main =~ s/TEST_DATA_CODE/$test_data_code/;
+}
 close(TEST_DATA);
-
 
 #
 # Find the headers, dependencies, and suites in the test cases file
@@ -145,6 +193,9 @@ while (@var_req_arr)
 
 $/ = $line_separator;
 
+# Add mbed header if necessary
+my $mbed_headers = $is_mbed ? "#include \"mbed.h\"" : "";
+
 open(TEST_FILE, ">$test_file") or die "Opening destination file '$test_file': $!";
 print TEST_FILE << "END";
 /*
@@ -164,6 +215,8 @@ print TEST_FILE << "END";
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
+
+$mbed_headers
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include <mbedtls/config.h>

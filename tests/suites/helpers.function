@@ -67,7 +67,7 @@ typedef UINT32 uint32_t;
 
 #define assert(a) if( !( a ) )                                      \
 {                                                                   \
-    mbedtls_fprintf( stderr, "Assertion Failed at %s:%d - %s\n",   \
+    mbedtls_fprintf( stderr, "Assertion Failed at %s:%d - %s\r\n",   \
                              __FILE__, __LINE__, #a );              \
     mbedtls_exit( 1 );                                             \
 }
@@ -100,7 +100,6 @@ typedef UINT32 uint32_t;
 /* Global variables */
 
 static int test_errors = 0;
-
 
 /*----------------------------------------------------------------------------*/
 /* Helper Functions */
@@ -355,7 +354,7 @@ static void test_fail( const char *test, int line_no, const char* filename )
 {
     test_errors++;
     if( test_errors == 1 )
-        mbedtls_printf( "FAILED\n" );
-    mbedtls_printf( "  %s\n  at line %d, %s\n", test, line_no, filename );
+        mbedtls_printf( "FAILED\r\n" );
+    mbedtls_printf( "  %s\r\n  at line %d, %s\r\n", test, line_no, filename );
 }
 

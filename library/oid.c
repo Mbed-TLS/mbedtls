@@ -455,50 +455,72 @@ typedef struct {
 
 static const oid_ecp_grp_t oid_ecp_grp[] =
 {
+#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
     {
         { ADD_LEN( MBEDTLS_OID_EC_GRP_SECP192R1 ), "secp192r1",    "secp192r1" },
         MBEDTLS_ECP_DP_SECP192R1,
     },
+#endif /* MBEDTLS_ECP_DP_SECP192R1_ENABLED */
+#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
     {
         { ADD_LEN( MBEDTLS_OID_EC_GRP_SECP224R1 ), "secp224r1",    "secp224r1" },
         MBEDTLS_ECP_DP_SECP224R1,
     },
+#endif /* MBEDTLS_ECP_DP_SECP224R1_ENABLED */
+#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
     {
         { ADD_LEN( MBEDTLS_OID_EC_GRP_SECP256R1 ), "secp256r1",    "secp256r1" },
         MBEDTLS_ECP_DP_SECP256R1,
     },
+#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
     {
         { ADD_LEN( MBEDTLS_OID_EC_GRP_SECP384R1 ), "secp384r1",    "secp384r1" },
         MBEDTLS_ECP_DP_SECP384R1,
     },
+#endif /* MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
     {
         { ADD_LEN( MBEDTLS_OID_EC_GRP_SECP521R1 ), "secp521r1",    "secp521r1" },
         MBEDTLS_ECP_DP_SECP521R1,
     },
+#endif /* MBEDTLS_ECP_DP_SECP521R1_ENABLED */
+#if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
     {
         { ADD_LEN( MBEDTLS_OID_EC_GRP_SECP192K1 ), "secp192k1",    "secp192k1" },
         MBEDTLS_ECP_DP_SECP192K1,
     },
+#endif /* MBEDTLS_ECP_DP_SECP192K1_ENABLED */
+#if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
     {
         { ADD_LEN( MBEDTLS_OID_EC_GRP_SECP224K1 ), "secp224k1",    "secp224k1" },
         MBEDTLS_ECP_DP_SECP224K1,
     },
+#endif /* MBEDTLS_ECP_DP_SECP224K1_ENABLED */
+#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
     {
         { ADD_LEN( MBEDTLS_OID_EC_GRP_SECP256K1 ), "secp256k1",    "secp256k1" },
         MBEDTLS_ECP_DP_SECP256K1,
     },
+#endif /* MBEDTLS_ECP_DP_SECP256K1_ENABLED */
+#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)
     {
         { ADD_LEN( MBEDTLS_OID_EC_GRP_BP256R1 ),   "brainpoolP256r1","brainpool256r1" },
         MBEDTLS_ECP_DP_BP256R1,
     },
+#endif /* MBEDTLS_ECP_DP_BP256R1_ENABLED */
+#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
     {
         { ADD_LEN( MBEDTLS_OID_EC_GRP_BP384R1 ),   "brainpoolP384r1","brainpool384r1" },
         MBEDTLS_ECP_DP_BP384R1,
     },
+#endif /* MBEDTLS_ECP_DP_BP384R1_ENABLED */
+#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
     {
         { ADD_LEN( MBEDTLS_OID_EC_GRP_BP512R1 ),   "brainpoolP512r1","brainpool512r1" },
         MBEDTLS_ECP_DP_BP512R1,
     },
+#endif /* MBEDTLS_ECP_DP_BP512R1_ENABLED */
     {
         { NULL, 0, NULL, NULL },
         MBEDTLS_ECP_DP_NONE,

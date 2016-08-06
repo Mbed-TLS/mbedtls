@@ -314,22 +314,32 @@ typedef struct {
 
 static const oid_sig_alg_t oid_sig_alg[] =
 {
+#if defined(MBEDTLS_RSA_C)
+#if defined(MBEDTLS_MD2_C)
     {
         { ADD_LEN( MBEDTLS_OID_PKCS1_MD2 ),        "md2WithRSAEncryption",     "RSA with MD2" },
         MBEDTLS_MD_MD2,      MBEDTLS_PK_RSA,
     },
+#endif /* MBEDTLS_MD2_C */
+#if defined(MBEDTLS_MD4_C)
     {
         { ADD_LEN( MBEDTLS_OID_PKCS1_MD4 ),        "md4WithRSAEncryption",     "RSA with MD4" },
         MBEDTLS_MD_MD4,      MBEDTLS_PK_RSA,
     },
+#endif /* MBEDTLS_MD4_C */
+#if defined(MBEDTLS_MD5_C)
     {
         { ADD_LEN( MBEDTLS_OID_PKCS1_MD5 ),        "md5WithRSAEncryption",     "RSA with MD5" },
         MBEDTLS_MD_MD5,      MBEDTLS_PK_RSA,
     },
+#endif /* MBEDTLS_MD5_C */
+#if defined(MBEDTLS_SHA1_C)
     {
         { ADD_LEN( MBEDTLS_OID_PKCS1_SHA1 ),       "sha-1WithRSAEncryption",   "RSA with SHA1" },
         MBEDTLS_MD_SHA1,     MBEDTLS_PK_RSA,
     },
+#endif /* MBEDTLS_SHA1_C */
+#if defined(MBEDTLS_SHA256_C)
     {
         { ADD_LEN( MBEDTLS_OID_PKCS1_SHA224 ),     "sha224WithRSAEncryption",  "RSA with SHA-224" },
         MBEDTLS_MD_SHA224,   MBEDTLS_PK_RSA,
@@ -338,6 +348,8 @@ static const oid_sig_alg_t oid_sig_alg[] =
         { ADD_LEN( MBEDTLS_OID_PKCS1_SHA256 ),     "sha256WithRSAEncryption",  "RSA with SHA-256" },
         MBEDTLS_MD_SHA256,   MBEDTLS_PK_RSA,
     },
+#endif /* MBEDTLS_SHA256_C */
+#if defined(MBEDTLS_SHA512_C)
     {
         { ADD_LEN( MBEDTLS_OID_PKCS1_SHA384 ),     "sha384WithRSAEncryption",  "RSA with SHA-384" },
         MBEDTLS_MD_SHA384,   MBEDTLS_PK_RSA,
@@ -346,14 +358,22 @@ static const oid_sig_alg_t oid_sig_alg[] =
         { ADD_LEN( MBEDTLS_OID_PKCS1_SHA512 ),     "sha512WithRSAEncryption",  "RSA with SHA-512" },
         MBEDTLS_MD_SHA512,   MBEDTLS_PK_RSA,
     },
+#endif /* MBEDTLS_SHA512_C */
+#if defined(MBEDTLS_SHA1_C)
     {
         { ADD_LEN( MBEDTLS_OID_RSA_SHA_OBS ),      "sha-1WithRSAEncryption",   "RSA with SHA1" },
         MBEDTLS_MD_SHA1,     MBEDTLS_PK_RSA,
     },
+#endif /* MBEDTLS_SHA1_C */
+#endif /* MBEDTLS_RSA_C */
+#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_SHA1_C)
     {
         { ADD_LEN( MBEDTLS_OID_ECDSA_SHA1 ),       "ecdsa-with-SHA1",      "ECDSA with SHA1" },
         MBEDTLS_MD_SHA1,     MBEDTLS_PK_ECDSA,
     },
+#endif /* MBEDTLS_SHA1_C */
+#if defined(MBEDTLS_SHA256_C)
     {
         { ADD_LEN( MBEDTLS_OID_ECDSA_SHA224 ),     "ecdsa-with-SHA224",    "ECDSA with SHA224" },
         MBEDTLS_MD_SHA224,   MBEDTLS_PK_ECDSA,
@@ -362,6 +382,8 @@ static const oid_sig_alg_t oid_sig_alg[] =
         { ADD_LEN( MBEDTLS_OID_ECDSA_SHA256 ),     "ecdsa-with-SHA256",    "ECDSA with SHA256" },
         MBEDTLS_MD_SHA256,   MBEDTLS_PK_ECDSA,
     },
+#endif /* MBEDTLS_SHA256_C */
+#if defined(MBEDTLS_SHA512_C)
     {
         { ADD_LEN( MBEDTLS_OID_ECDSA_SHA384 ),     "ecdsa-with-SHA384",    "ECDSA with SHA384" },
         MBEDTLS_MD_SHA384,   MBEDTLS_PK_ECDSA,
@@ -370,10 +392,14 @@ static const oid_sig_alg_t oid_sig_alg[] =
         { ADD_LEN( MBEDTLS_OID_ECDSA_SHA512 ),     "ecdsa-with-SHA512",    "ECDSA with SHA512" },
         MBEDTLS_MD_SHA512,   MBEDTLS_PK_ECDSA,
     },
+#endif /* MBEDTLS_SHA512_C */
+#endif /* MBEDTLS_ECDSA_C */
+#if defined(MBEDTLS_RSA_C)
     {
         { ADD_LEN( MBEDTLS_OID_RSASSA_PSS ),        "RSASSA-PSS",           "RSASSA-PSS" },
         MBEDTLS_MD_NONE,     MBEDTLS_PK_RSASSA_PSS,
     },
+#endif /* MBEDTLS_RSA_C */
     {
         { NULL, 0, NULL, NULL },
         MBEDTLS_MD_NONE, MBEDTLS_PK_NONE,

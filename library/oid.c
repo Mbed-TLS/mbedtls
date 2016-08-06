@@ -524,22 +524,31 @@ typedef struct {
 
 static const oid_md_alg_t oid_md_alg[] =
 {
+#if defined(MBEDTLS_MD2_C)
     {
         { ADD_LEN( MBEDTLS_OID_DIGEST_ALG_MD2 ),       "id-md2",       "MD2" },
         MBEDTLS_MD_MD2,
     },
+#endif /* MBEDTLS_MD2_C */
+#if defined(MBEDTLS_MD4_C)
     {
         { ADD_LEN( MBEDTLS_OID_DIGEST_ALG_MD4 ),       "id-md4",       "MD4" },
         MBEDTLS_MD_MD4,
     },
+#endif /* MBEDTLS_MD4_C */
+#if defined(MBEDTLS_MD5_C)
     {
         { ADD_LEN( MBEDTLS_OID_DIGEST_ALG_MD5 ),       "id-md5",       "MD5" },
         MBEDTLS_MD_MD5,
     },
+#endif /* MBEDTLS_MD5_C */
+#if defined(MBEDTLS_SHA1_C)
     {
         { ADD_LEN( MBEDTLS_OID_DIGEST_ALG_SHA1 ),      "id-sha1",      "SHA-1" },
         MBEDTLS_MD_SHA1,
     },
+#endif /* MBEDTLS_SHA1_C */
+#if defined(MBEDTLS_SHA256_C)
     {
         { ADD_LEN( MBEDTLS_OID_DIGEST_ALG_SHA224 ),    "id-sha224",    "SHA-224" },
         MBEDTLS_MD_SHA224,
@@ -548,6 +557,8 @@ static const oid_md_alg_t oid_md_alg[] =
         { ADD_LEN( MBEDTLS_OID_DIGEST_ALG_SHA256 ),    "id-sha256",    "SHA-256" },
         MBEDTLS_MD_SHA256,
     },
+#endif /* MBEDTLS_SHA256_C */
+#if defined(MBEDTLS_SHA512_C)
     {
         { ADD_LEN( MBEDTLS_OID_DIGEST_ALG_SHA384 ),    "id-sha384",    "SHA-384" },
         MBEDTLS_MD_SHA384,
@@ -556,6 +567,7 @@ static const oid_md_alg_t oid_md_alg[] =
         { ADD_LEN( MBEDTLS_OID_DIGEST_ALG_SHA512 ),    "id-sha512",    "SHA-512" },
         MBEDTLS_MD_SHA512,
     },
+#endif /* MBEDTLS_SHA512_C */
     {
         { NULL, 0, NULL, NULL },
         MBEDTLS_MD_NONE,

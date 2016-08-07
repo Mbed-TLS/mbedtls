@@ -107,7 +107,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
 x509_cert_info:"data_files/server1.ext_ku.crt":"cert. version     \: 3\nserial number     \: 21\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nissued  on        \: 2014-04-01 14\:44\:43\nexpires on        \: 2024-03-29 14\:44\:43\nsigned using      \: RSA with SHA-256\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\nkey usage         \: Digital Signature, Non Repudiation, Key Encipherment\next key usage     \: TLS Web Server Authentication\n"
 
 X509 Certificate information RSA signed by EC
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECDSA_C
 x509_cert_info:"data_files/server4.crt":"cert. version     \: 3\nserial number     \: 08\nissuer name       \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2013-09-24 15\:52\:04\nexpires on        \: 2023-09-22 15\:52\:04\nsigned using      \: ECDSA with SHA256\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
 
 X509 Certificate information EC signed by RSA
@@ -1087,7 +1087,7 @@ depends_on:MBEDTLS_RSA_C:MBEDTLS_MD2_C
 x509parse_crt:"30819f308189a0030201008204deadbeef300d06092a864886f70d010102050030153113301106092a864886f70d0109ab130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff300d06092a864886f70d0101020500030200ff":"cert. version     \: 1\nserial number     \: DE\:AD\:BE\:EF\nissuer name       \: ?\?=Test\nsubject name      \: ?\?=Test\nissued  on        \: 2009-01-01 00\:00\:00\nexpires on        \: 2009-12-31 23\:59\:59\nsigned using      \: RSA with MD2\nRSA key size      \: 128 bits\n":0
 
 X509 Certificate ASN1 (ECDSA signature, RSA key)
-depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
+depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA1_C:MBEDTLS_ECDSA_C
 x509parse_crt:"3081E630819E020103300906072A8648CE3D0401300F310D300B0603550403130454657374301E170D3133303731303039343631385A170D3233303730383039343631385A300F310D300B0603550403130454657374304C300D06092A864886F70D0101010500033B003038023100E8F546061D3B49BC2F6B7524B7EA4D73A8D5293EE8C64D9407B70B5D16BAEBC32B8205591EAB4E1EB57E9241883701250203010001300906072A8648CE3D0401033800303502186E18209AFBED14A0D9A796EFCAD68891E3CCD5F75815C833021900E92B4FD460B1994693243B9FFAD54729DE865381BDA41D25":"cert. version     \: 1\nserial number     \: 03\nissuer name       \: CN=Test\nsubject name      \: CN=Test\nissued  on        \: 2013-07-10 09\:46\:18\nexpires on        \: 2023-07-08 09\:46\:18\nsigned using      \: ECDSA with SHA1\nRSA key size      \: 384 bits\n":0
 
 X509 Certificate ASN1 (ECDSA signature, EC key)

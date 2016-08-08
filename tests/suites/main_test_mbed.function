@@ -244,7 +244,7 @@ static int run_test_snprintf( void )
             test_snprintf( 5, "123",         3 ) != 0 );
 }
 
-int main()
+void test_case()
 {
     /* Test suite data */
     char *test_suite_data = TEST_DATA_CODE;
@@ -275,7 +275,7 @@ int main()
     if( pointer != NULL )
     {
         mbedtls_fprintf( stderr, "all-bits-zero is not a NULL pointer\r\n" );
-        return( 1 );
+        TEST_ASSERT( 1 );
     }
 
     /*
@@ -284,7 +284,7 @@ int main()
     if( run_test_snprintf() != 0 )
     {
         mbedtls_fprintf( stderr, "the snprintf implementation is broken\r\n" );
-        return( 0 );
+        TEST_ASSERT( 0 );
     }
 
     /* Now begin to execute the tests */
@@ -384,7 +384,7 @@ int main()
         {
             mbedtls_fprintf( stderr, "Should be empty %d\r\n",
                              (int) strlen(buf) );
-            return( 1 );
+            TEST_ASSERT( 1 );
         }
     }
 
@@ -409,6 +409,20 @@ int main()
     mbedtls_memory_buffer_alloc_free();
 #endif
 
-    return( total_errors != 0 );
+    TEST_ASSERT( total_errors == 0 );
 }
 
+Case cases[] = {
+    Case("Machine generated testcase for TESTCASE_FILENAME", test_case)
+};
+
+utest::v1::status_t test_setup(const size_t number_of_cases) {
+    GREENTEA_SETUP(40, "default_auto");
+    return verbose_test_setup_handler(number_of_cases);
+}
+
+Specification specification(test_setup, cases);
+
+int main() {
+    return !Harness::run(specification);
+}

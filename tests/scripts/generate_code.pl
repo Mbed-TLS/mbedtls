@@ -31,6 +31,7 @@
 #           DISPATCH_FUNCTION
 #           !LINE_NO!
 #           TEST_DATA_CODE
+#           TEST_ASSERT
 #
 #   - common helper code file - 'helpers.function'
 #       Common helper functions
@@ -99,6 +100,10 @@ undef $/;
 open(TEST_HELPERS, "$test_common_helper_file") or die "Opening test helpers
 '$test_common_helper_file': $!";
 my $test_common_helpers = <TEST_HELPERS>;
+if ($is_mbed)
+{
+    $test_common_helpers =~ s/TEST_ASSERT/MBEDTLS_TEST_ASSERT/;
+}
 close(TEST_HELPERS);
 
 open(TEST_MAIN, "$test_main_file") or die "Opening test main '$test_main_file': $!";
@@ -131,6 +136,10 @@ for my $line (@test_cases_lines) {
 
     $test_cases = $test_cases.$line;
     $index++;
+}
+if ($is_mbed)
+{
+    $test_cases =~ s/TEST_ASSERT/MBEDTLS_TEST_ASSERT/g;
 }
 
 close(TEST_CASES);
@@ -195,7 +204,19 @@ while (@var_req_arr)
 $/ = $line_separator;
 
 # Add mbed header if necessary
-my $mbed_headers = $is_mbed ? "#include \"mbed.h\"" : "";
+my $mbed_headers = "";
+if ($is_mbed)
+{
+    $mbed_headers = << "END";
+#include "mbed.h"
+#include "greentea-client/test_env.h"
+#include "unity.h"
+#include "utest.h"
+#include "rtos.h"
+
+using namespace utest::v1;
+END
+}
 
 open(TEST_FILE, ">$test_file") or die "Opening destination file '$test_file': $!";
 print TEST_FILE << "END";

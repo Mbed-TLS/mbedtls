@@ -12,7 +12,30 @@
 # contain the test suites, and the test suite file names for the test code and
 # test data.
 #
-# Usage: generate_code.pl <suite dir> <code file> <data file> [main code file]
+# It is also possible to generate test code for on target testing in mbed 5.0
+# by passing the --mbed flag as a command line argument to this script. In this
+# case, C++ files will be generated (instead of C files). To use the generated
+# source code, clone the repository at git@github.com:ARMmbed/mbed-os.git.
+# Then copy all the .cpp files into appropriate directories under
+# mbed-os/TESTS. This can be easily achieved using bash commands such as:
+#     mkdir <MBED_OS_ROOT>/TESTS/mbedtls
+#     for suite in test_suite_*.cpp; do
+#         mkdir <MBED_OS_ROOT>/TESTS/mbedtls/${suite%.cpp}
+#         cp $suite <MBED_OS_ROOT>/TESTS/mbedtls/${suite%.cpp}/.
+#     done
+# Then compile the tests using mbed-cli and ensure that there are no errors:
+#     cd <MBED_OS_ROOT>
+#     mbed test --compile -m K64F -t GCC_ARM --test-spec test_spec.json
+# Finally, run the tests using mbedgt:
+#     mbedgt -VS --test-spec test_spec.json
+# Notes:
+#   - To successfully run the mbed 5.0 tests, make sure that you have the
+#     necessary hardware e.g. K64F.
+#   - Ensure that the necessary software tools are available in your
+#     environment: mbed-cli, mbed greeentea (mbedgt), htrun, mbed-ls.
+#   - On Linux systems, you may need to add your user to the dialout Unix
+#     group; otherwise, mbedgt may not be able to connect to the hardware
+#     target using the serial interface. Alternatively, run mbedgt using sudo.
 #
 # Structure of files
 #

@@ -53,85 +53,68 @@ ifdef ZLIB
 LOCAL_LDFLAGS += -lz
 endif
 
-APPS =	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
-	test_suite_aes.cfb$(EXEXT)	test_suite_aes.rest$(EXEXT)	\
-	test_suite_arc4$(EXEXT)		test_suite_asn1write$(EXEXT)	\
-	test_suite_base64$(EXEXT)	test_suite_blowfish$(EXEXT)	\
-	test_suite_camellia$(EXEXT)	test_suite_ccm$(EXEXT)		\
-	test_suite_cipher.aes$(EXEXT)					\
-	test_suite_cipher.arc4$(EXEXT)	test_suite_cipher.ccm$(EXEXT)	\
-	test_suite_cipher.gcm$(EXEXT)					\
-	test_suite_cipher.blowfish$(EXEXT)				\
-	test_suite_cipher.camellia$(EXEXT)				\
-	test_suite_cipher.des$(EXEXT)	test_suite_cipher.null$(EXEXT)	\
-	test_suite_cipher.padding$(EXEXT)				\
-	test_suite_ctr_drbg$(EXEXT)	test_suite_debug$(EXEXT)	\
-	test_suite_des$(EXEXT)		test_suite_dhm$(EXEXT)		\
-	test_suite_ecdh$(EXEXT)		test_suite_ecdsa$(EXEXT)	\
-	test_suite_ecjpake$(EXEXT)	test_suite_ecp$(EXEXT)		\
-	test_suite_error$(EXEXT)	test_suite_entropy$(EXEXT)	\
-	test_suite_gcm.aes128_de$(EXEXT)				\
-	test_suite_gcm.aes192_de$(EXEXT)				\
-	test_suite_gcm.aes256_de$(EXEXT)				\
-	test_suite_gcm.aes128_en$(EXEXT)				\
-	test_suite_gcm.aes192_en$(EXEXT)				\
-	test_suite_gcm.aes256_en$(EXEXT)				\
-	test_suite_gcm.camellia$(EXEXT)					\
-	test_suite_hmac_drbg.misc$(EXEXT)				\
-	test_suite_hmac_drbg.no_reseed$(EXEXT)				\
-	test_suite_hmac_drbg.nopr$(EXEXT)				\
-	test_suite_hmac_drbg.pr$(EXEXT)					\
-	test_suite_md$(EXEXT)		test_suite_mdx$(EXEXT)		\
-	test_suite_memory_buffer_alloc$(EXEXT)				\
-	test_suite_mpi$(EXEXT)						\
-	test_suite_pem$(EXEXT)			test_suite_pkcs1_v15$(EXEXT)	\
-	test_suite_pkcs1_v21$(EXEXT)	test_suite_pkcs5$(EXEXT)	\
-	test_suite_pkparse$(EXEXT)	test_suite_pkwrite$(EXEXT)	\
-	test_suite_pk$(EXEXT)						\
-	test_suite_rsa$(EXEXT)		test_suite_shax$(EXEXT)		\
-	test_suite_ssl$(EXEXT)						\
-	test_suite_x509parse$(EXEXT)	test_suite_x509write$(EXEXT)	\
-	test_suite_xtea$(EXEXT)		test_suite_version$(EXEXT)
+TEST_SUITES = test_suite_aes.ecb \
+	test_suite_aes.cbc\
+	test_suite_aes.cfb \
+	test_suite_aes.rest \
+	test_suite_arc4 \
+	test_suite_asn1write \
+	test_suite_base64 \
+	test_suite_blowfish \
+	test_suite_camellia \
+	test_suite_ccm \
+	test_suite_cipher.aes \
+	test_suite_cipher.arc4 \
+	test_suite_cipher.ccm \
+	test_suite_cipher.gcm \
+	test_suite_cipher.blowfish \
+	test_suite_cipher.camellia \
+	test_suite_cipher.des \
+	test_suite_cipher.null \
+	test_suite_cipher.padding \
+	test_suite_ctr_drbg \
+	test_suite_debug \
+	test_suite_des \
+    test_suite_dhm \
+	test_suite_ecdh \
+	test_suite_ecdsa \
+	test_suite_ecjpake \
+	test_suite_ecp \
+	test_suite_error \
+	test_suite_entropy \
+	test_suite_gcm.aes128_de \
+	test_suite_gcm.aes192_de \
+	test_suite_gcm.aes256_de \
+	test_suite_gcm.aes128_en \
+	test_suite_gcm.aes192_en \
+	test_suite_gcm.aes256_en \
+	test_suite_gcm.camellia \
+	test_suite_hmac_drbg.misc \
+	test_suite_hmac_drbg.no_reseed \
+	test_suite_hmac_drbg.nopr \
+	test_suite_hmac_drbg.pr \
+	test_suite_md \
+	test_suite_mdx \
+	test_suite_memory_buffer_alloc \
+	test_suite_mpi  \
+	test_suite_pem \
+	test_suite_pkcs1_v15 \
+	test_suite_pkcs1_v21 \
+	test_suite_pkcs5 \
+	test_suite_pkparse \
+	test_suite_pkwrite \
+	test_suite_pk \
+	test_suite_rsa \
+	test_suite_shax \
+	test_suite_ssl \
+	test_suite_x509parse \
+	test_suite_x509write \
+	test_suite_xtea \
+	test_suite_version
 
-APPS_SRC =	test_suite_aes.ecb$(SRCEXT)	test_suite_aes.cbc$(SRCEXT)	\
-	test_suite_aes.cfb$(SRCEXT)	test_suite_aes.rest$(SRCEXT)	    \
-	test_suite_arc4$(SRCEXT)		test_suite_asn1write$(SRCEXT)	\
-	test_suite_base64$(SRCEXT)	test_suite_blowfish$(SRCEXT)	    \
-	test_suite_camellia$(SRCEXT)	test_suite_ccm$(SRCEXT)		    \
-	test_suite_cipher.aes$(SRCEXT)					                \
-	test_suite_cipher.arc4$(SRCEXT)	test_suite_cipher.ccm$(SRCEXT)	\
-	test_suite_cipher.gcm$(SRCEXT)					                \
-	test_suite_cipher.blowfish$(SRCEXT)				                \
-	test_suite_cipher.camellia$(SRCEXT)				                \
-	test_suite_cipher.des$(SRCEXT)	test_suite_cipher.null$(SRCEXT)	\
-	test_suite_cipher.padding$(SRCEXT)				                \
-	test_suite_ctr_drbg$(SRCEXT)	test_suite_debug$(SRCEXT)	    \
-	test_suite_des$(SRCEXT)		test_suite_dhm$(SRCEXT)		        \
-	test_suite_ecdh$(SRCEXT)		test_suite_ecdsa$(SRCEXT)	    \
-	test_suite_ecjpake$(SRCEXT)	test_suite_ecp$(SRCEXT)		        \
-	test_suite_error$(SRCEXT)	test_suite_entropy$(SRCEXT)	        \
-	test_suite_gcm.aes128_de$(SRCEXT)				                \
-	test_suite_gcm.aes192_de$(SRCEXT)				                \
-	test_suite_gcm.aes256_de$(SRCEXT)				                \
-	test_suite_gcm.aes128_en$(SRCEXT)				                \
-	test_suite_gcm.aes192_en$(SRCEXT)				                \
-	test_suite_gcm.aes256_en$(SRCEXT)				                \
-	test_suite_gcm.camellia$(SRCEXT)					            \
-	test_suite_hmac_drbg.misc$(SRCEXT)				                \
-	test_suite_hmac_drbg.no_reseed$(SRCEXT)				            \
-	test_suite_hmac_drbg.nopr$(SRCEXT)				                \
-	test_suite_hmac_drbg.pr$(SRCEXT)					            \
-	test_suite_md$(SRCEXT)		test_suite_mdx$(SRCEXT)		        \
-	test_suite_memory_buffer_alloc$(SRCEXT)				            \
-	test_suite_mpi$(SRCEXT)						                    \
-	test_suite_pem$(SRCEXT)			test_suite_pkcs1_v15$(SRCEXT)	\
-	test_suite_pkcs1_v21$(SRCEXT)	test_suite_pkcs5$(SRCEXT)	    \
-	test_suite_pkparse$(SRCEXT)	test_suite_pkwrite$(SRCEXT)	        \
-	test_suite_pk$(SRCEXT)						                    \
-	test_suite_rsa$(SRCEXT)		test_suite_shax$(SRCEXT)		    \
-	test_suite_ssl$(SRCEXT)						                    \
-	test_suite_x509parse$(SRCEXT)	test_suite_x509write$(SRCEXT)	\
-	test_suite_xtea$(SRCEXT)		test_suite_version$(SRCEXT)
+APPS = $(addsuffix $(EXEXT),$(TEST_SUITES))
+
+APPS_SRC = $(addsuffix $(SRCEXT),$(TEST_SUITES))
 
 .SILENT:
 

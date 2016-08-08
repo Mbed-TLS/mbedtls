@@ -152,6 +152,8 @@ if ($is_mbed)
     my $test_data_code = "";
     for my $line (@test_data_lines) {
         chop($line);
+        # Escape any \ in the input data
+        $line =~ s/\\/\\\\/g;
         # Escape " character
         $line =~ s/"/\\"/g;
         # Add " and spaces at beginning and \n" at the end

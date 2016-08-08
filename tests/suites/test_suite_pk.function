@@ -70,11 +70,11 @@ void pk_utils( int type, int size, int len, char *name )
 
     mbedtls_pk_init( &pk );
 
-    TEST_ASSERT( mbedtls_pk_setup( &pk, mbedtls_pk_info_from_type( type ) ) == 0 );
+    TEST_ASSERT( mbedtls_pk_setup( &pk, mbedtls_pk_info_from_type( (mbedtls_pk_type_t) type ) ) == 0 );
     TEST_ASSERT( pk_genkey( &pk ) == 0 );
 
     TEST_ASSERT( (int) mbedtls_pk_get_type( &pk ) == type );
-    TEST_ASSERT( mbedtls_pk_can_do( &pk, type ) );
+    TEST_ASSERT( mbedtls_pk_can_do( &pk, (mbedtls_pk_type_t) type ) );
     TEST_ASSERT( mbedtls_pk_get_bitlen( &pk ) == (unsigned) size );
     TEST_ASSERT( mbedtls_pk_get_len( &pk ) == (unsigned) len );
     TEST_ASSERT( strcmp( mbedtls_pk_get_name( &pk), name ) == 0 );
@@ -141,10 +141,10 @@ void pk_rsa_verify_test_vec( char *message_hex_string, int digest,
     msg_len = unhexify( message_str, message_hex_string );
     unhexify( result_str, result_hex_str );
 
-    if( mbedtls_md_info_from_type( digest ) != NULL )
-        TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( digest ), message_str, msg_len, hash_result ) == 0 );
+    if( mbedtls_md_info_from_type( (mbedtls_md_type_t) digest ) != NULL )
+        TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( (mbedtls_md_type_t) digest ), message_str, msg_len, hash_result ) == 0 );
 
-    TEST_ASSERT( mbedtls_pk_verify( &pk, digest, hash_result, 0,
+    TEST_ASSERT( mbedtls_pk_verify( &pk, (mbedtls_md_type_t) digest, hash_result, 0,
                             result_str, mbedtls_pk_get_len( &pk ) ) == result );
 
 exit:
@@ -187,7 +187,7 @@ void pk_rsa_verify_ext_test_vec( char *message_hex_string, int digest,
 
     if( digest != MBEDTLS_MD_NONE )
     {
-        TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( digest ),
+        TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( (mbedtls_md_type_t) digest ),
                      message_str, msg_len, hash_result ) == 0 );
         hash_len = 0;
     }
@@ -205,12 +205,12 @@ void pk_rsa_verify_ext_test_vec( char *message_hex_string, int digest,
     {
         options = &pss_opts;
 
-        pss_opts.mgf1_hash_id = mgf1_hash_id;
+        pss_opts.mgf1_hash_id = (mbedtls_md_type_t) mgf1_hash_id;
         pss_opts.expected_salt_len = salt_len;
     }
 
-    TEST_ASSERT( mbedtls_pk_verify_ext( pk_type, options, &pk,
-                                digest, hash_result, hash_len,
+    TEST_ASSERT( mbedtls_pk_verify_ext( (mbedtls_pk_type_t) pk_type, options, &pk,
+                                (mbedtls_md_type_t) digest, hash_result, hash_len,
                                 result_str, mbedtls_pk_get_len( &pk ) ) == result );
 
 exit:
@@ -233,12 +233,12 @@ void pk_ec_test_vec( int type, int id, char *key_str,
     memset( sig, 0, sizeof( sig ) );    sig_len = unhexify(sig, sig_str);
     memset( key, 0, sizeof( key ) );    key_len = unhexify(key, key_str);
 
-    TEST_ASSERT( mbedtls_pk_setup( &pk, mbedtls_pk_info_from_type( type ) ) == 0 );
+    TEST_ASSERT( mbedtls_pk_setup( &pk, mbedtls_pk_info_from_type( (mbedtls_pk_type_t) type ) ) == 0 );
 
     TEST_ASSERT( mbedtls_pk_can_do( &pk, MBEDTLS_PK_ECDSA ) );
     eckey = mbedtls_pk_ec( pk );
 
-    TEST_ASSERT( mbedtls_ecp_group_load( &eckey->grp, id ) == 0 );
+    TEST_ASSERT( mbedtls_ecp_group_load( &eckey->grp, (mbedtls_ecp_group_id) id ) == 0 );
     TEST_ASSERT( mbedtls_ecp_point_read_binary( &eckey->grp, &eckey->Q,
                                         key, key_len ) == 0 );
 
@@ -262,7 +262,7 @@ void pk_sign_verify( int type, int sign_ret, int verify_ret )
     memset( hash, 0x2a, sizeof hash );
     memset( sig, 0, sizeof sig );
 
-    TEST_ASSERT( mbedtls_pk_setup( &pk, mbedtls_pk_info_from_type( type ) ) == 0 );
+    TEST_ASSERT( mbedtls_pk_setup( &pk, mbedtls_pk_info_from_type( (mbedtls_pk_type_t) type ) ) == 0 );
     TEST_ASSERT( pk_genkey( &pk ) == 0 );
 
     TEST_ASSERT( mbedtls_pk_sign( &pk, MBEDTLS_MD_SHA256, hash, sizeof hash,
@@ -399,7 +399,7 @@ void pk_ec_nocrypt( int type )
     memset( output,     0, sizeof( output ) );
     memset( input,      0, sizeof( input ) );
 
-    TEST_ASSERT( mbedtls_pk_setup( &pk, mbedtls_pk_info_from_type( type ) ) == 0 );
+    TEST_ASSERT( mbedtls_pk_setup( &pk, mbedtls_pk_info_from_type( (mbedtls_pk_type_t) type ) ) == 0 );
 
     TEST_ASSERT( mbedtls_pk_encrypt( &pk, input, sizeof( input ),
                              output, &olen, sizeof( output ),

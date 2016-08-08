@@ -24,7 +24,7 @@ void ecdsa_prim_random( int id )
 
     /* prepare material for signature */
     TEST_ASSERT( rnd_pseudo_rand( &rnd_info, buf, sizeof( buf ) ) == 0 );
-    TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
+    TEST_ASSERT( mbedtls_ecp_group_load( &grp, (mbedtls_ecp_group_id) id ) == 0 );
     TEST_ASSERT( mbedtls_ecp_gen_keypair( &grp, &d, &Q, &rnd_pseudo_rand, &rnd_info )
                  == 0 );
 
@@ -58,7 +58,7 @@ void ecdsa_prim_test_vectors( int id, char *d_str, char *xQ_str, char *yQ_str,
     memset( hash, 0, sizeof( hash ) );
     memset( rnd_buf, 0, sizeof( rnd_buf ) );
 
-    TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
+    TEST_ASSERT( mbedtls_ecp_group_load( &grp, (mbedtls_ecp_group_id) id ) == 0 );
     TEST_ASSERT( mbedtls_ecp_point_read_string( &Q, 16, xQ_str, yQ_str ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &d, 16, d_str ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &r_check, 16, r_str ) == 0 );
@@ -110,17 +110,17 @@ void ecdsa_det_test_vectors( int id, char *d_str, int md_alg,
     mbedtls_mpi_init( &r_check ); mbedtls_mpi_init( &s_check );
     memset( hash, 0, sizeof( hash ) );
 
-    TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
+    TEST_ASSERT( mbedtls_ecp_group_load( &grp, (mbedtls_ecp_group_id) id ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &d, 16, d_str ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &r_check, 16, r_str ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &s_check, 16, s_str ) == 0 );
 
-    md_info = mbedtls_md_info_from_type( md_alg );
+    md_info = mbedtls_md_info_from_type( (mbedtls_md_type_t) md_alg );
     TEST_ASSERT( md_info != NULL );
     hlen = mbedtls_md_get_size( md_info );
     mbedtls_md( md_info, (const unsigned char *) msg, strlen( msg ), hash );
 
-    TEST_ASSERT( mbedtls_ecdsa_sign_det( &grp, &r, &s, &d, hash, hlen, md_alg ) == 0 );
+    TEST_ASSERT( mbedtls_ecdsa_sign_det( &grp, &r, &s, &d, hash, hlen, (mbedtls_md_type_t) md_alg ) == 0 );
 
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &r, &r_check ) == 0 );
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &s, &s_check ) == 0 );
@@ -150,7 +150,7 @@ void ecdsa_write_read_random( int id )
     TEST_ASSERT( rnd_pseudo_rand( &rnd_info, hash, sizeof( hash ) ) == 0 );
 
     /* generate signing key */
-    TEST_ASSERT( mbedtls_ecdsa_genkey( &ctx, id, &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( mbedtls_ecdsa_genkey( &ctx, (mbedtls_ecp_group_id) id, &rnd_pseudo_rand, &rnd_info ) == 0 );
 
     /* generate and write signature, then read and verify it */
     TEST_ASSERT( mbedtls_ecdsa_write_signature( &ctx, MBEDTLS_MD_SHA256,

@@ -45,7 +45,7 @@ void hmac_drbg_entropy_usage( int md_alg )
     entropy.len = sizeof( buf );
     entropy.p = buf;
 
-    md_info = mbedtls_md_info_from_type( md_alg );
+    md_info = mbedtls_md_info_from_type( (mbedtls_md_type_t) md_alg );
     TEST_ASSERT( md_info != NULL );
 
     /* Init must use entropy */
@@ -143,7 +143,7 @@ void hmac_drbg_buf( int md_alg )
     memset( buf, 0, sizeof( buf ) );
     memset( out, 0, sizeof( out ) );
 
-    md_info = mbedtls_md_info_from_type( md_alg );
+    md_info = mbedtls_md_info_from_type( (mbedtls_md_type_t) md_alg );
     TEST_ASSERT( md_info != NULL );
     TEST_ASSERT( mbedtls_hmac_drbg_seed_buf( &ctx, md_info, buf, sizeof( buf ) ) == 0 );
 
@@ -187,7 +187,7 @@ void hmac_drbg_no_reseed( int md_alg,
     p_entropy.len = unhexify( entropy, entropy_hex );
     p_entropy.p = entropy;
 
-    md_info = mbedtls_md_info_from_type( md_alg );
+    md_info = mbedtls_md_info_from_type( (mbedtls_md_type_t) md_alg );
     TEST_ASSERT( md_info != NULL );
 
     /* Test the simplified buffer-based variant */
@@ -248,7 +248,7 @@ void hmac_drbg_nopr( int md_alg,
     p_entropy.len = unhexify( entropy, entropy_hex );
     p_entropy.p = entropy;
 
-    md_info = mbedtls_md_info_from_type( md_alg );
+    md_info = mbedtls_md_info_from_type( (mbedtls_md_type_t) md_alg );
     TEST_ASSERT( md_info != NULL );
 
     TEST_ASSERT( mbedtls_hmac_drbg_seed( &ctx, md_info, mbedtls_entropy_func, &p_entropy,
@@ -293,7 +293,7 @@ void hmac_drbg_pr( int md_alg,
     p_entropy.len = unhexify( entropy, entropy_hex );
     p_entropy.p = entropy;
 
-    md_info = mbedtls_md_info_from_type( md_alg );
+    md_info = mbedtls_md_info_from_type( (mbedtls_md_type_t) md_alg );
     TEST_ASSERT( md_info != NULL );
 
     TEST_ASSERT( mbedtls_hmac_drbg_seed( &ctx, md_info, mbedtls_entropy_func, &p_entropy,

@@ -27,7 +27,7 @@ void mbedtls_md_process( )
      */
     for( md_type_ptr = mbedtls_md_list(); *md_type_ptr != 0; md_type_ptr++ )
     {
-        info = mbedtls_md_info_from_type( *md_type_ptr );
+        info = mbedtls_md_info_from_type( (mbedtls_md_type_t) *md_type_ptr );
         TEST_ASSERT( info != NULL );
         TEST_ASSERT( mbedtls_md_setup( &ctx, info, 0 ) == 0 );
         TEST_ASSERT( mbedtls_md_process( &ctx, buf ) == 0 );
@@ -43,7 +43,7 @@ exit:
 void md_null_args( )
 {
     mbedtls_md_context_t ctx;
-    const mbedtls_md_info_t *info = mbedtls_md_info_from_type( *( mbedtls_md_list() ) );
+    const mbedtls_md_info_t *info = mbedtls_md_info_from_type( (mbedtls_md_type_t) *( mbedtls_md_list() ) );
     unsigned char buf[1] = { 0 };
 
     mbedtls_md_init( &ctx );
@@ -109,7 +109,7 @@ void md_info( int md_type, char *md_name, int md_size )
     const int *md_type_ptr;
     int found;
 
-    md_info = mbedtls_md_info_from_type( md_type );
+    md_info = mbedtls_md_info_from_type( (mbedtls_md_type_t) md_type );
     TEST_ASSERT( md_info != NULL );
     TEST_ASSERT( md_info == mbedtls_md_info_from_string( md_name ) );
 

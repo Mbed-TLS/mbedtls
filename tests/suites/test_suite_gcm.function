@@ -42,7 +42,7 @@ void gcm_encrypt_and_tag( int cipher_id,
     iv_len = unhexify( iv_str, hex_iv_string );
     add_len = unhexify( add_str, hex_add_string );
 
-    TEST_ASSERT( mbedtls_gcm_setkey( &ctx, cipher_id, key_str, key_len * 8 ) == init_result );
+    TEST_ASSERT( mbedtls_gcm_setkey( &ctx, (mbedtls_cipher_id_t) cipher_id, key_str, key_len * 8 ) == init_result );
     if( init_result == 0 )
     {
         TEST_ASSERT( mbedtls_gcm_crypt_and_tag( &ctx, MBEDTLS_GCM_ENCRYPT, pt_len, iv_str, iv_len, add_str, add_len, src_str, output, tag_len, tag_output ) == 0 );
@@ -93,7 +93,7 @@ void gcm_decrypt_and_verify( int cipher_id,
     add_len = unhexify( add_str, hex_add_string );
     unhexify( tag_str, hex_tag_string );
 
-    TEST_ASSERT( mbedtls_gcm_setkey( &ctx, cipher_id, key_str, key_len * 8 ) == init_result );
+    TEST_ASSERT( mbedtls_gcm_setkey( &ctx, (mbedtls_cipher_id_t) cipher_id, key_str, key_len * 8 ) == init_result );
     if( init_result == 0 )
     {
         ret = mbedtls_gcm_auth_decrypt( &ctx, pt_len, iv_str, iv_len, add_str, add_len, tag_str, tag_len, src_str, output );

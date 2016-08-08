@@ -26,7 +26,7 @@ void mbedtls_ccm_setkey( int cipher_id, int key_size, int result )
     memset( key, 0x2A, sizeof( key ) );
     TEST_ASSERT( (unsigned) key_size <= 8 * sizeof( key ) );
 
-    ret = mbedtls_ccm_setkey( &ctx, cipher_id, key, key_size );
+    ret = mbedtls_ccm_setkey( &ctx, (mbedtls_cipher_id_t) cipher_id, key, key_size );
     TEST_ASSERT( ret == result );
 
 exit:
@@ -103,7 +103,7 @@ void mbedtls_ccm_encrypt_and_tag( int cipher_id,
     result_len = unhexify( result, result_hex );
     tag_len = result_len - msg_len;
 
-    TEST_ASSERT( mbedtls_ccm_setkey( &ctx, cipher_id, key, key_len * 8 ) == 0 );
+    TEST_ASSERT( mbedtls_ccm_setkey( &ctx, (mbedtls_cipher_id_t) cipher_id, key, key_len * 8 ) == 0 );
 
     /* Test with input == output */
     TEST_ASSERT( mbedtls_ccm_encrypt_and_tag( &ctx, msg_len, iv, iv_len, add, add_len,
@@ -162,7 +162,7 @@ void mbedtls_ccm_auth_decrypt( int cipher_id,
         result_len = unhexify( result, result_hex );
     }
 
-    TEST_ASSERT( mbedtls_ccm_setkey( &ctx, cipher_id, key, key_len * 8 ) == 0 );
+    TEST_ASSERT( mbedtls_ccm_setkey( &ctx, (mbedtls_cipher_id_t) cipher_id, key, key_len * 8 ) == 0 );
 
     /* Test with input == output */
     TEST_ASSERT( mbedtls_ccm_auth_decrypt( &ctx, msg_len, iv, iv_len, add, add_len,

@@ -121,7 +121,7 @@ DISPATCH_FUNCTION
 
 #line !LINE_NO! "main_test_mbed.function"
 
-int get_line( char** test_data, char *buf, size_t len )
+int get_line( char **test_data, char *buf, size_t len )
 {
     // this function currently does not handle \r\r\n line terminators, but we
     // are hard-coding the test data inside the c file, so this should not

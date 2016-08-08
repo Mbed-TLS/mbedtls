@@ -9,7 +9,7 @@
  */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_DTLS_ANTI_REPLAY */
-void ssl_dtls_replay( char *prevs, char *new, int ret )
+void ssl_dtls_replay( char *prevs, char *new_num, int ret )
 {
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
@@ -33,7 +33,7 @@ void ssl_dtls_replay( char *prevs, char *new, int ret )
     }
 
     /* Check new number */
-    unhexify( ssl.in_ctr + 2, new );
+    unhexify( ssl.in_ctr + 2, new_num );
     TEST_ASSERT( mbedtls_ssl_dtls_replay_check( &ssl ) == ret );
 
     mbedtls_ssl_free( &ssl );

@@ -21,7 +21,7 @@ void ecdh_primitive_random( int id )
     mbedtls_mpi_init( &zA ); mbedtls_mpi_init( &zB );
     memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
 
-    TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
+    TEST_ASSERT( mbedtls_ecp_group_load( &grp, (mbedtls_ecp_group_id) id ) == 0 );
 
     TEST_ASSERT( mbedtls_ecdh_gen_public( &grp, &dA, &qA, &rnd_pseudo_rand, &rnd_info )
                  == 0 );
@@ -59,7 +59,7 @@ void ecdh_primitive_testvec( int id, char *dA_str, char *xA_str, char *yA_str,
     mbedtls_mpi_init( &dA ); mbedtls_mpi_init( &dB );
     mbedtls_mpi_init( &zA ); mbedtls_mpi_init( &zB ); mbedtls_mpi_init( &check );
 
-    TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
+    TEST_ASSERT( mbedtls_ecp_group_load( &grp, (mbedtls_ecp_group_id) id ) == 0 );
 
     rnd_info_A.buf = rnd_buf_A;
     rnd_info_A.length = unhexify( rnd_buf_A, dA_str );
@@ -136,7 +136,7 @@ void ecdh_exchange( int id )
     mbedtls_ecdh_init( &cli );
     memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
 
-    TEST_ASSERT( mbedtls_ecp_group_load( &srv.grp, id ) == 0 );
+    TEST_ASSERT( mbedtls_ecp_group_load( &srv.grp, (mbedtls_ecp_group_id) id ) == 0 );
 
     memset( buf, 0x00, sizeof( buf ) ); vbuf = buf;
     TEST_ASSERT( mbedtls_ecdh_make_params( &srv, &len, buf, 1000,

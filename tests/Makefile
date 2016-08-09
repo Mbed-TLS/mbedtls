@@ -75,7 +75,7 @@ TEST_SUITES = test_suite_aes.ecb \
 	test_suite_ctr_drbg \
 	test_suite_debug \
 	test_suite_des \
-    test_suite_dhm \
+	test_suite_dhm \
 	test_suite_ecdh \
 	test_suite_ecdsa \
 	test_suite_ecjpake \

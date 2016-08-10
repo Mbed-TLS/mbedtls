@@ -121,7 +121,7 @@ DISPATCH_FUNCTION
 
 #line !LINE_NO! "main_test_mbed.function"
 
-int get_line( char **test_data, char *buf, size_t len )
+int get_line( const char **test_data, char *buf, size_t len )
 {
     // this function currently does not handle \r\r\n line terminators, but we
     // are hard-coding the test data inside the c file, so this should not
@@ -247,7 +247,7 @@ static int run_test_snprintf( void )
 void test_case()
 {
     /* Test suite data */
-    char *test_suite_data = TEST_DATA_CODE;
+    const char *test_suite_data = TEST_DATA_CODE;
 
 #line !LINE_NO! "main_test_mbed.function"
 
@@ -259,12 +259,6 @@ void test_case()
     void *pointer;
     int unmet_dep_count = 0;
     char *unmet_dependencies[20];
-
-#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) && \
-    !defined(TEST_SUITE_MEMORY_BUFFER_ALLOC)
-    unsigned char alloc_buf[1000000];
-    mbedtls_memory_buffer_alloc_init( alloc_buf, sizeof(alloc_buf) );
-#endif
 
     /*
      * The C standard doesn't guarantee that all-bits-0 is the representation
@@ -400,14 +394,6 @@ void test_case()
 
     mbedtls_fprintf( stdout, " (%d / %d tests (%d skipped))\r\n",
              total_tests - total_errors, total_tests, total_skipped );
-
-#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) && \
-    !defined(TEST_SUITE_MEMORY_BUFFER_ALLOC)
-#if defined(MBEDTLS_MEMORY_DEBUG)
-    mbedtls_memory_buffer_alloc_status();
-#endif
-    mbedtls_memory_buffer_alloc_free();
-#endif
 
     TEST_ASSERT( total_errors == 0 );
 }

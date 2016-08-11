@@ -150,9 +150,7 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
     mbedtls_x509_crt cacert;
-    mbedtls_x509_crt clicert;
     mbedtls_x509_crl cacrl;
-    mbedtls_pk_context pkey;
     int i, j;
     uint32_t flags;
     int verify = 0;
@@ -167,7 +165,6 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_config_init( &conf );
     mbedtls_x509_crt_init( &cacert );
-    mbedtls_x509_crt_init( &clicert );
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
     mbedtls_x509_crl_init( &cacrl );
 #else
@@ -175,7 +172,6 @@ int main( int argc, char *argv[] )
        it to the verify function */
     memset( &cacrl, 0, sizeof(mbedtls_x509_crl) );
 #endif
-    mbedtls_pk_init( &pkey );
 
     if( argc == 0 )
     {
@@ -420,12 +416,6 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
         mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
 
-        if( ( ret = mbedtls_ssl_conf_own_cert( &conf, &clicert, &pkey ) ) != 0 )
-        {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_own_cert returned %d\n\n", ret );
-            goto ssl_exit;
-        }
-
         if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned %d\n\n", ret );
@@ -481,11 +471,9 @@ exit:
 
     mbedtls_net_free( &server_fd );
     mbedtls_x509_crt_free( &cacert );
-    mbedtls_x509_crt_free( &clicert );
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
     mbedtls_x509_crl_free( &cacrl );
 #endif
-    mbedtls_pk_free( &pkey );
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
 

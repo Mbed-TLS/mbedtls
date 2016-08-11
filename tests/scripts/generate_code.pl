@@ -78,6 +78,10 @@
 use strict;
 use Getopt::Long;
 
+#
+# Helper functions
+#
+
 sub usage {
     print "Error while parsing command line arguments.\n";
     print "This script generates test code for mbed TLS.\n";
@@ -89,6 +93,20 @@ sub usage {
     print "\t--mbed\t\tWhether this test is for the mbed platform\n";
     exit 1;
 }
+
+sub write_test_suite_src {
+    my $filename = shift;
+    my $src = shift;
+    open(TEST_FILE, ">$filename") or die "Opening destination file '$filename': $!";
+    print TEST_FILE << "END";
+$src
+END
+    close(TEST_FILE);
+}
+
+#
+# Parse command line arguments
+#
 
 my $suite_dir = "";
 my $suite_name = "";
@@ -169,30 +187,82 @@ close(TEST_CASES);
 
 open(TEST_DATA, "$test_case_data") or die "Opening test data '$test_case_data': $!";
 my $test_data = <TEST_DATA>;
+
+# Divide source data in 100KB chunks
+my @test_data_chunks = ();
+# Chunk size in bytes (characters)
+my $max_chunk_size = 102400;
+my $chunk_index = 0;
+
+# Tests that are meant for running on an MCU cannot read files. Therefore,
+# we encode the test suite .data files inside the test suite C++ source code.
+# Nevertheless, some MCU have really tight constraints on FLASH memory, so
+# it is necessary to split the test suite into multiple source files that can
+# be run independently. The code below takes care of correctly formatting and
+# escaping the test suite data, also it splits the data into source code
+# chunks that are roughly $max_chunk_size bytes.
 if ($is_mbed)
 {
     my @test_data_lines = split/^/, $test_data;
-    my $test_data_code = "";
     for my $line (@test_data_lines) {
         chop($line);
         # Escape any \ in the input data
         $line =~ s/\\/\\\\/g;
         # Escape " character
         $line =~ s/"/\\"/g;
-        # Add " and spaces at beginning and \n" at the end
-        if ($test_data_code eq "")
+
+        # If this is the end of a test case, then test whether the maximum
+        # data size for the test has been overflowed and split the test
+        # accordingly
+        if ($line eq "")
         {
-            $line = "\"".$line;
+            # Check if we need to make a new chunk
+            if (length($test_data_chunks[$chunk_index]) >= $max_chunk_size)
+            {
+                # Properly terminate the current test
+                $test_data_chunks[$chunk_index] .= "\"";
+                push(@test_data_chunks, "");
+                $chunk_index++;
+            }
+            else
+            {
+                # There is free space in the current chunk
+                if ($test_data_chunks[$chunk_index] eq "")
+                {
+                    $line = "\"".$line;
+                }
+                else
+                {
+                    $line = "\\n\"\n        \"".$line;
+                }
+                $test_data_chunks[$chunk_index] .= $line;
+            }
         }
         else
         {
-            $line = "\\n\"\n        \"".$line;
+            if ($test_data_chunks[$chunk_index] eq "")
+            {
+                $line = "\"".$line;
+            }
+            else
+            {
+                $line = "\\n\"\n        \"".$line;
+            }
+            $test_data_chunks[$chunk_index] .= $line;
         }
-        $test_data_code = $test_data_code.$line;
     }
-    $test_data_code = $test_data_code."\"";
-    # Add the test data source code to the global variables
-    $test_main =~ s/TEST_DATA_CODE/$test_data_code/;
+    if ($test_data_chunks[$chunk_index] eq "")
+    {
+        # If there is an additional new line at the end of the data file, then
+        # it is possible that we have a trailing empty chunk, remove that.
+        pop(@test_data_chunks);
+    }
+    else
+    {
+        # If there is no trailing empty chunk, then we have not properly closed
+        # the " in the last chunk
+        $test_data_chunks[$chunk_index] .= "\"";
+    }
 }
 close(TEST_DATA);
 
@@ -228,11 +298,11 @@ while (@var_req_arr)
 
 $/ = $line_separator;
 
-# Add mbed header if necessary
-my $mbed_headers = "";
+# Add any other header file inclusions
+my $test_headers = "";
 if ($is_mbed)
 {
-    $mbed_headers = << "END";
+    $test_headers .= << "END";
 #include "mbed.h"
 #include "greentea-client/test_env.h"
 #include "unity.h"
@@ -243,8 +313,7 @@ using namespace utest::v1;
 END
 }
 
-open(TEST_FILE, ">$test_file") or die "Opening destination file '$test_file': $!";
-print TEST_FILE << "END";
+my $test_src = << "END";
 /*
  * *** THIS FILE HAS BEEN MACHINE GENERATED ***
  *
@@ -263,14 +332,7 @@ print TEST_FILE << "END";
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
-$mbed_headers
-
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include <mbedtls/config.h>
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
-
+$test_headers
 
 /*----------------------------------------------------------------------------*/
 /* Common helper code */
@@ -466,8 +528,33 @@ $test_main =~ s/DEP_CHECK_CODE/$dep_check_code/;
 $test_main =~ s/DISPATCH_FUNCTION/$dispatch_code/;
 $test_main =~ s/MAPPING_CODE/$mapping_code/;
 
-print TEST_FILE << "END";
+$test_src .= << "END";
 $test_main
 END
 
-close(TEST_FILE);
+#
+# Write the source code to a file as required by command line arguments
+#
+
+if ($is_mbed)
+{
+    # Split the test suites into multiple files so that it fits into the MCU
+    # FLASH memory.
+    for my $i (0 .. $#test_data_chunks) {
+        # Number each file (except the first) starting from 0
+        my $file_num = ($i == 0) ? "" : ".".$i;
+        my $test_file_i = $data_name.$file_num.".cpp";
+
+        # Add the test data source code to the global variables
+        my $test_src_i = $test_src;
+        $test_src_i =~ s/TEST_DATA_CODE/$test_data_chunks[$i]/;
+
+        # Write the test suite source to a file
+        write_test_suite_src($test_file_i, $test_src_i);
+    }
+}
+else
+{
+    write_test_suite_src($test_file, $test_src);
+}
+

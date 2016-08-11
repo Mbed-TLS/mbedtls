@@ -54,6 +54,7 @@ int main( void )
 #include "mbedtls/net.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/x509.h"
+#include "mbedtls/debug.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -376,6 +377,10 @@ int main( int argc, char *argv[] )
         }
 
         mbedtls_printf( " ok\n" );
+
+#if defined(MBEDTLS_DEBUG_C)
+        mbedtls_debug_set_threshold( opt.debug_level );
+#endif
 
         /*
          * 2. Start the connection

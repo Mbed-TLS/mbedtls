@@ -58,10 +58,10 @@ void mbedtls_rsa_pkcs1_sign( char *message_hex_string, int padding_mode, int dig
 
     msg_len = unhexify( message_str, message_hex_string );
 
-    if( mbedtls_md_info_from_type( digest ) != NULL )
-        TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( digest ), message_str, msg_len, hash_result ) == 0 );
+    if( mbedtls_md_info_from_type( (mbedtls_md_type_t) digest ) != NULL )
+        TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( (mbedtls_md_type_t) digest ), message_str, msg_len, hash_result ) == 0 );
 
-    TEST_ASSERT( mbedtls_rsa_pkcs1_sign( &ctx, &rnd_pseudo_rand, &rnd_info, MBEDTLS_RSA_PRIVATE, digest, 0, hash_result, output ) == result );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_sign( &ctx, &rnd_pseudo_rand, &rnd_info, MBEDTLS_RSA_PRIVATE, (mbedtls_md_type_t) digest, 0, hash_result, output ) == result );
     if( result == 0 )
     {
         hexify( output_str, output, ctx.len );
@@ -100,10 +100,10 @@ void mbedtls_rsa_pkcs1_verify( char *message_hex_string, int padding_mode, int d
     msg_len = unhexify( message_str, message_hex_string );
     unhexify( result_str, result_hex_str );
 
-    if( mbedtls_md_info_from_type( digest ) != NULL )
-        TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( digest ), message_str, msg_len, hash_result ) == 0 );
+    if( mbedtls_md_info_from_type( (mbedtls_md_type_t) digest ) != NULL )
+        TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( (mbedtls_md_type_t) digest ), message_str, msg_len, hash_result ) == 0 );
 
-    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, NULL, NULL, MBEDTLS_RSA_PUBLIC, digest, 0, hash_result, result_str ) == result );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, NULL, NULL, MBEDTLS_RSA_PUBLIC, (mbedtls_md_type_t) digest, 0, hash_result, result_str ) == result );
 
 exit:
     mbedtls_rsa_free( &ctx );

@@ -7,7 +7,7 @@ int verify_string( char **str )
     if( (*str)[0] != '"' ||
         (*str)[strlen( *str ) - 1] != '"' )
     {
-        mbedtls_printf( "Expected string (with \"\") for parameter and got: %s\n", *str );
+        mbedtls_printf( "Expected string (with \"\") for parameter and got: %s\r\n", *str );
         return( -1 );
     }
 
@@ -60,7 +60,7 @@ int verify_int( char *str, int *value )
 
 MAPPING_CODE
 
-    mbedtls_printf( "Expected integer for parameter and got: %s\n", str );
+    mbedtls_printf( "Expected integer for parameter and got: %s\r\n", str );
     return( KEY_VALUE_MAPPING_NOT_FOUND );
 }
 
@@ -104,7 +104,7 @@ DISPATCH_FUNCTION
     {
 #line !LINE_NO! "main_test.function"
         mbedtls_fprintf( stdout,
-                         "FAILED\nSkipping unknown test function '%s'\n",
+                         "FAILED\r\nSkipping unknown test function '%s'\r\n",
                          params[0] );
         fflush( stdout );
         ret = DISPATCH_TEST_FN_NOT_FOUND;
@@ -122,14 +122,14 @@ DISPATCH_FUNCTION
 #line !LINE_NO! "main_test.function"
 
 #define USAGE \
-    "Usage: %s [OPTIONS] files...\n\n" \
-    "   Command line arguments:\n" \
-    "     files...          One or more test data file. If no file is specified\n" \
-    "                       the followimg default test case is used:\n" \
-    "                           %s\n\n" \
-    "   Options:\n" \
-    "     -v | --verbose    Display full information about each test\n" \
-    "     -h | --help       Display this information\n\n", \
+    "Usage: %s [OPTIONS] files...\r\n\r\n" \
+    "   Command line arguments:\r\n" \
+    "     files...          One or more test data file. If no file is specified\r\n" \
+    "                       the followimg default test case is used:\r\n" \
+    "                           %s\r\n\r\n" \
+    "   Options:\r\n" \
+    "     -v | --verbose    Display full information about each test\r\n" \
+    "     -h | --help       Display this information\r\n\r\n", \
     argv[0], \
     "TESTCASE_FILENAME"
 
@@ -274,7 +274,7 @@ int main(int argc, const char *argv[])
     memset( &pointer, 0, sizeof( void * ) );
     if( pointer != NULL )
     {
-        mbedtls_fprintf( stderr, "all-bits-zero is not a NULL pointer\n" );
+        mbedtls_fprintf( stderr, "all-bits-zero is not a NULL pointer\r\n" );
         return( 1 );
     }
 
@@ -283,7 +283,7 @@ int main(int argc, const char *argv[])
      */
     if( run_test_snprintf() != 0 )
     {
-        mbedtls_fprintf( stderr, "the snprintf implementation is broken\n" );
+        mbedtls_fprintf( stderr, "the snprintf implementation is broken\r\n" );
         return( 0 );
     }
 
@@ -334,7 +334,7 @@ int main(int argc, const char *argv[])
         file = fopen( test_filename, "r" );
         if( file == NULL )
         {
-            mbedtls_fprintf( stderr, "Failed to open test file: %s\n",
+            mbedtls_fprintf( stderr, "Failed to open test file: %s\r\n",
                              test_filename );
             return( 1 );
         }
@@ -343,14 +343,14 @@ int main(int argc, const char *argv[])
         {
             if( unmet_dep_count > 0 )
             {
-                mbedtls_printf("FATAL: Dep count larger than zero at start of loop\n");
+                mbedtls_printf("FATAL: Dep count larger than zero at start of loop\r\n");
                 mbedtls_exit( MBEDTLS_EXIT_FAILURE );
             }
             unmet_dep_count = 0;
 
             if( ( ret = get_line( file, buf, sizeof(buf) ) ) != 0 )
                 break;
-            mbedtls_fprintf( stdout, "%s%.66s", test_errors ? "\n" : "", buf );
+            mbedtls_fprintf( stdout, "%s%.66s", test_errors ? "\r\n" : "", buf );
             mbedtls_fprintf( stdout, " " );
             for( i = strlen( buf ) + 1; i < 67; i++ )
                 mbedtls_fprintf( stdout, "." );
@@ -379,7 +379,7 @@ int main(int argc, const char *argv[])
                         unmet_dependencies[ unmet_dep_count ] = strdup(params[i]);
                         if(  unmet_dependencies[ unmet_dep_count ] == NULL )
                         {
-                            mbedtls_printf("FATAL: Out of memory\n");
+                            mbedtls_printf("FATAL: Out of memory\r\n");
                             mbedtls_exit( MBEDTLS_EXIT_FAILURE );
                         }
                         unmet_dep_count++;
@@ -401,7 +401,7 @@ int main(int argc, const char *argv[])
             if( unmet_dep_count > 0 || ret == DISPATCH_UNSUPPORTED_SUITE )
             {
                 total_skipped++;
-                mbedtls_fprintf( stdout, "----\n" );
+                mbedtls_fprintf( stdout, "----\r\n" );
 
                 if( 1 == option_verbose && ret == DISPATCH_UNSUPPORTED_SUITE )
                 {
@@ -417,7 +417,7 @@ int main(int argc, const char *argv[])
                                         unmet_dependencies[i]);
                         free(unmet_dependencies[i]);
                     }
-                    mbedtls_fprintf( stdout, "\n" );
+                    mbedtls_fprintf( stdout, "\r\n" );
                 }
                 fflush( stdout );
 
@@ -425,12 +425,12 @@ int main(int argc, const char *argv[])
             }
             else if( ret == DISPATCH_TEST_SUCCESS && test_errors == 0 )
             {
-                mbedtls_fprintf( stdout, "PASS\n" );
+                mbedtls_fprintf( stdout, "PASS\r\n" );
                 fflush( stdout );
             }
             else if( ret == DISPATCH_INVALID_TEST_DATA )
             {
-                mbedtls_fprintf( stderr, "FAILED: FATAL PARSE ERROR\n" );
+                mbedtls_fprintf( stderr, "FAILED: FATAL PARSE ERROR\r\n" );
                 fclose(file);
                 mbedtls_exit( 2 );
             }
@@ -441,7 +441,7 @@ int main(int argc, const char *argv[])
                 break;
             if( strlen(buf) != 0 )
             {
-                mbedtls_fprintf( stderr, "Should be empty %d\n",
+                mbedtls_fprintf( stderr, "Should be empty %d\r\n",
                                  (int) strlen(buf) );
                 return( 1 );
             }
@@ -453,13 +453,13 @@ int main(int argc, const char *argv[])
             free( unmet_dependencies[i] );
     }
 
-    mbedtls_fprintf( stdout, "\n----------------------------------------------------------------------------\n\n");
+    mbedtls_fprintf( stdout, "\r\n----------------------------------------------------------------------------\r\n\r\n");
     if( total_errors == 0 )
         mbedtls_fprintf( stdout, "PASSED" );
     else
         mbedtls_fprintf( stdout, "FAILED" );
 
-    mbedtls_fprintf( stdout, " (%d / %d tests (%d skipped))\n",
+    mbedtls_fprintf( stdout, " (%d / %d tests (%d skipped))\r\n",
              total_tests - total_errors, total_tests, total_skipped );
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) && \

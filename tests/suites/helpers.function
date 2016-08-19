@@ -2,6 +2,12 @@
 /*----------------------------------------------------------------------------*/
 /* Headers */
 
+#if !defined(MBEDTLS_CONFIG_FILE)
+#include <mbedtls/config.h>
+#else
+#include MBEDTLS_CONFIG_FILE
+#endif
+
 #include <stdlib.h>
 
 #if defined(MBEDTLS_PLATFORM_C)
@@ -67,7 +73,7 @@ typedef UINT32 uint32_t;
 
 #define assert(a) if( !( a ) )                                      \
 {                                                                   \
-    mbedtls_fprintf( stderr, "Assertion Failed at %s:%d - %s\n",   \
+    mbedtls_fprintf( stderr, "Assertion Failed at %s:%d - %s\r\n",   \
                              __FILE__, __LINE__, #a );              \
     mbedtls_exit( 1 );                                             \
 }
@@ -100,7 +106,6 @@ typedef UINT32 uint32_t;
 /* Global variables */
 
 static int test_errors = 0;
-
 
 /*----------------------------------------------------------------------------*/
 /* Helper Functions */
@@ -172,10 +177,10 @@ static void hexify( unsigned char *obuf, const unsigned char *ibuf, int len )
  */
 static unsigned char *zero_alloc( size_t len )
 {
-    void *p;
+    unsigned char *p;
     size_t actual_len = ( len != 0 ) ? len : 1;
 
-    p = mbedtls_calloc( 1, actual_len );
+    p = (unsigned char *) mbedtls_calloc( 1, actual_len );
     assert( p != NULL );
 
     memset( p, 0x00, actual_len );
@@ -202,7 +207,7 @@ static unsigned char *unhexify_alloc( const char *ibuf, size_t *olen )
     if( *olen == 0 )
         return( zero_alloc( *olen ) );
 
-    obuf = mbedtls_calloc( 1, *olen );
+    obuf = (unsigned char *) mbedtls_calloc( 1, *olen );
     assert( obuf != NULL );
 
     (void) unhexify( obuf, ibuf );
@@ -355,7 +360,7 @@ static void test_fail( const char *test, int line_no, const char* filename )
 {
     test_errors++;
     if( test_errors == 1 )
-        mbedtls_printf( "FAILED\n" );
-    mbedtls_printf( "  %s\n  at line %d, %s\n", test, line_no, filename );
+        mbedtls_printf( "FAILED\r\n" );
+    mbedtls_printf( "  %s\r\n  at line %d, %s\r\n", test, line_no, filename );
 }
 

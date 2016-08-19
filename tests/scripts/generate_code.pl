@@ -12,7 +12,30 @@
 # contain the test suites, and the test suite file names for the test code and
 # test data.
 #
-# Usage: generate_code.pl <suite dir> <code file> <data file> [main code file]
+# It is also possible to generate test code for on target testing in mbed 5.0
+# by passing the --mbed flag as a command line argument to this script. In this
+# case, C++ files will be generated (instead of C files). To use the generated
+# source code, clone the repository at git@github.com:ARMmbed/mbed-os.git.
+# Then copy all the .cpp files into appropriate directories under
+# mbed-os/TESTS. This can be easily achieved using bash commands such as:
+#     mkdir <MBED_OS_ROOT>/TESTS/mbedtls
+#     for suite in test_suite_*.cpp; do
+#         mkdir <MBED_OS_ROOT>/TESTS/mbedtls/${suite%.cpp}
+#         cp $suite <MBED_OS_ROOT>/TESTS/mbedtls/${suite%.cpp}/.
+#     done
+# Then compile the tests using mbed-cli and ensure that there are no errors:
+#     cd <MBED_OS_ROOT>
+#     mbed test --compile -m K64F -t GCC_ARM --test-spec test_spec.json
+# Finally, run the tests using mbedgt:
+#     mbedgt -VS --test-spec test_spec.json
+# Notes:
+#   - To successfully run the mbed 5.0 tests, make sure that you have the
+#     necessary hardware e.g. K64F.
+#   - Ensure that the necessary software tools are available in your
+#     environment: mbed-cli, mbed greeentea (mbedgt), htrun, mbed-ls.
+#   - On Linux systems, you may need to add your user to the dialout Unix
+#     group; otherwise, mbedgt may not be able to connect to the hardware
+#     target using the serial interface. Alternatively, run mbedgt using sudo.
 #
 # Structure of files
 #
@@ -30,6 +53,8 @@
 #           DEP_CHECK_CODE
 #           DISPATCH_FUNCTION
 #           !LINE_NO!
+#           TEST_DATA_CODE
+#           TEST_ASSERT
 #
 #   - common helper code file - 'helpers.function'
 #       Common helper functions
@@ -51,19 +76,63 @@
 #
 
 use strict;
+use Getopt::Long;
 
-my $suite_dir = shift or die "Missing suite directory";
-my $suite_name = shift or die "Missing suite name";
-my $data_name = shift or die "Missing data name";
-my $test_main_file = do { my $arg = shift; defined($arg) ? $arg :  $suite_dir."/main_test.function" };
-my $test_file = $data_name.".c";
+#
+# Helper functions
+#
+
+sub usage {
+    print "Error while parsing command line arguments.\n";
+    print "This script generates test code for mbed TLS.\n";
+    print "USAGE:\n";
+    print "\t--suitedir\t\tSuite directory\n";
+    print "\t--suitename\t\tSuite name\n";
+    print "\t--dataname\t\tName of data file\n";
+    print "\t--mainfile\t\tFile containing the code for main functions\n";
+    print "\t--mbed\t\tWhether this test is for the mbed platform\n";
+    exit 1;
+}
+
+sub write_test_suite_src {
+    my $filename = shift;
+    my $src = shift;
+    open(TEST_FILE, ">$filename") or die "Opening destination file '$filename': $!";
+    print TEST_FILE << "END";
+$src
+END
+    close(TEST_FILE);
+}
+
+#
+# Parse command line arguments
+#
+
+my $suite_dir = "";
+my $suite_name = "";
+my $data_name = "";
+my $test_main_file = "";
+my $is_mbed = 0;
+
+GetOptions("suitedir=s" => \$suite_dir,
+           "suitename=s" => \$suite_name,
+           "dataname=s" => \$data_name,
+           "mainfile=s" => \$test_main_file,
+           "mbed" => \$is_mbed) or usage();
+
+$suite_dir ne "" or die "Missing suite directory";
+$suite_name ne "" or die "Missing suite name";
+$data_name ne "" or die "Missing data name";
+$test_main_file = $suite_dir."/main_test.function" if ($test_main_file eq "");
+
+# mbed files can only be c++
+my $test_file = $is_mbed ? $data_name.".cpp" : $data_name.".c";
 my $test_common_helper_file = $suite_dir."/helpers.function";
 my $test_case_file = $suite_dir."/".$suite_name.".function";
 my $test_case_data = $suite_dir."/".$data_name.".data";
 
 my $line_separator = $/;
 undef $/;
-
 
 #
 # Open and read in the input files
@@ -72,6 +141,10 @@ undef $/;
 open(TEST_HELPERS, "$test_common_helper_file") or die "Opening test helpers
 '$test_common_helper_file': $!";
 my $test_common_helpers = <TEST_HELPERS>;
+if ($is_mbed)
+{
+    $test_common_helpers =~ s/TEST_ASSERT/MBEDTLS_TEST_ASSERT/;
+}
 close(TEST_HELPERS);
 
 open(TEST_MAIN, "$test_main_file") or die "Opening test main '$test_main_file': $!";
@@ -105,13 +178,93 @@ for my $line (@test_cases_lines) {
     $test_cases = $test_cases.$line;
     $index++;
 }
+if ($is_mbed)
+{
+    $test_cases =~ s/TEST_ASSERT/MBEDTLS_TEST_ASSERT/g;
+}
 
 close(TEST_CASES);
 
 open(TEST_DATA, "$test_case_data") or die "Opening test data '$test_case_data': $!";
 my $test_data = <TEST_DATA>;
-close(TEST_DATA);
 
+# Divide source data in 100KB chunks
+my @test_data_chunks = ();
+# Chunk size in bytes (characters)
+my $max_chunk_size = 102400;
+my $chunk_index = 0;
+
+# Tests that are meant for running on an MCU cannot read files. Therefore,
+# we encode the test suite .data files inside the test suite C++ source code.
+# Nevertheless, some MCU have really tight constraints on FLASH memory, so
+# it is necessary to split the test suite into multiple source files that can
+# be run independently. The code below takes care of correctly formatting and
+# escaping the test suite data, also it splits the data into source code
+# chunks that are roughly $max_chunk_size bytes.
+if ($is_mbed)
+{
+    my @test_data_lines = split/^/, $test_data;
+    for my $line (@test_data_lines) {
+        chop($line);
+        # Escape any \ in the input data
+        $line =~ s/\\/\\\\/g;
+        # Escape " character
+        $line =~ s/"/\\"/g;
+
+        # If this is the end of a test case, then test whether the maximum
+        # data size for the test has been overflowed and split the test
+        # accordingly
+        if ($line eq "")
+        {
+            # Check if we need to make a new chunk
+            if (length($test_data_chunks[$chunk_index]) >= $max_chunk_size)
+            {
+                # Properly terminate the current test
+                $test_data_chunks[$chunk_index] .= "\"";
+                push(@test_data_chunks, "");
+                $chunk_index++;
+            }
+            else
+            {
+                # There is free space in the current chunk
+                if ($test_data_chunks[$chunk_index] eq "")
+                {
+                    $line = "\"".$line;
+                }
+                else
+                {
+                    $line = "\\n\"\n        \"".$line;
+                }
+                $test_data_chunks[$chunk_index] .= $line;
+            }
+        }
+        else
+        {
+            if ($test_data_chunks[$chunk_index] eq "")
+            {
+                $line = "\"".$line;
+            }
+            else
+            {
+                $line = "\\n\"\n        \"".$line;
+            }
+            $test_data_chunks[$chunk_index] .= $line;
+        }
+    }
+    if ($test_data_chunks[$chunk_index] eq "")
+    {
+        # If there is an additional new line at the end of the data file, then
+        # it is possible that we have a trailing empty chunk, remove that.
+        pop(@test_data_chunks);
+    }
+    else
+    {
+        # If there is no trailing empty chunk, then we have not properly closed
+        # the " in the last chunk
+        $test_data_chunks[$chunk_index] .= "\"";
+    }
+}
+close(TEST_DATA);
 
 #
 # Find the headers, dependencies, and suites in the test cases file
@@ -145,8 +298,22 @@ while (@var_req_arr)
 
 $/ = $line_separator;
 
-open(TEST_FILE, ">$test_file") or die "Opening destination file '$test_file': $!";
-print TEST_FILE << "END";
+# Add any other header file inclusions
+my $test_headers = "";
+if ($is_mbed)
+{
+    $test_headers .= << "END";
+#include "mbed.h"
+#include "greentea-client/test_env.h"
+#include "unity.h"
+#include "utest.h"
+#include "rtos.h"
+
+using namespace utest::v1;
+END
+}
+
+my $test_src = << "END";
 /*
  * *** THIS FILE HAS BEEN MACHINE GENERATED ***
  *
@@ -165,12 +332,7 @@ print TEST_FILE << "END";
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include <mbedtls/config.h>
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
-
+$test_headers
 
 /*----------------------------------------------------------------------------*/
 /* Common helper code */
@@ -366,8 +528,33 @@ $test_main =~ s/DEP_CHECK_CODE/$dep_check_code/;
 $test_main =~ s/DISPATCH_FUNCTION/$dispatch_code/;
 $test_main =~ s/MAPPING_CODE/$mapping_code/;
 
-print TEST_FILE << "END";
+$test_src .= << "END";
 $test_main
 END
 
-close(TEST_FILE);
+#
+# Write the source code to a file as required by command line arguments
+#
+
+if ($is_mbed)
+{
+    # Split the test suites into multiple files so that it fits into the MCU
+    # FLASH memory.
+    for my $i (0 .. $#test_data_chunks) {
+        # Number each file (except the first) starting from 0
+        my $file_num = ($i == 0) ? "" : ".".$i;
+        my $test_file_i = $data_name.$file_num.".cpp";
+
+        # Add the test data source code to the global variables
+        my $test_src_i = $test_src;
+        $test_src_i =~ s/TEST_DATA_CODE/$test_data_chunks[$i]/;
+
+        # Write the test suite source to a file
+        write_test_suite_src($test_file_i, $test_src_i);
+    }
+}
+else
+{
+    write_test_suite_src($test_file, $test_src);
+}
+

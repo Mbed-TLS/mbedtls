@@ -17,7 +17,7 @@ void mbedtls_cipher_list( )
     const int *cipher_type;
 
     for( cipher_type = mbedtls_cipher_list(); *cipher_type != 0; cipher_type++ )
-        TEST_ASSERT( mbedtls_cipher_info_from_type( *cipher_type ) != NULL );
+        TEST_ASSERT( mbedtls_cipher_info_from_type( (mbedtls_cipher_type_t) *cipher_type ) != NULL );
 }
 /* END_CASE */
 
@@ -25,7 +25,7 @@ void mbedtls_cipher_list( )
 void cipher_null_args( )
 {
     mbedtls_cipher_context_t ctx;
-    const mbedtls_cipher_info_t *info = mbedtls_cipher_info_from_type( *( mbedtls_cipher_list() ) );
+    const mbedtls_cipher_info_t *info = mbedtls_cipher_info_from_type( (mbedtls_cipher_type_t) *( mbedtls_cipher_list() ) );
     unsigned char buf[1] = { 0 };
     size_t olen;
 
@@ -117,7 +117,7 @@ void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
     memset( key, 0x2a, sizeof( key ) );
 
     /* Check and get info structures */
-    cipher_info = mbedtls_cipher_info_from_type( cipher_id );
+    cipher_info = mbedtls_cipher_info_from_type( (mbedtls_cipher_type_t) cipher_id );
     TEST_ASSERT( NULL != cipher_info );
     TEST_ASSERT( mbedtls_cipher_info_from_string( cipher_string ) == cipher_info );
 
@@ -131,8 +131,8 @@ void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
 #if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
     if( -1 != pad_mode )
     {
-        TEST_ASSERT( 0 == mbedtls_cipher_set_padding_mode( &ctx_dec, pad_mode ) );
-        TEST_ASSERT( 0 == mbedtls_cipher_set_padding_mode( &ctx_enc, pad_mode ) );
+        TEST_ASSERT( 0 == mbedtls_cipher_set_padding_mode( &ctx_dec, (mbedtls_cipher_padding_t) pad_mode ) );
+        TEST_ASSERT( 0 == mbedtls_cipher_set_padding_mode( &ctx_enc, (mbedtls_cipher_padding_t) pad_mode ) );
     }
 #else
     (void) pad_mode;
@@ -241,14 +241,14 @@ void enc_fail( int cipher_id, int pad_mode, int key_len,
     memset( encbuf, 0, 64 );
 
     /* Check and get info structures */
-    cipher_info = mbedtls_cipher_info_from_type( cipher_id );
+    cipher_info = mbedtls_cipher_info_from_type( (mbedtls_cipher_type_t) cipher_id );
     TEST_ASSERT( NULL != cipher_info );
 
     /* Initialise context */
     TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx, cipher_info ) );
     TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key, key_len, MBEDTLS_ENCRYPT ) );
 #if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
-    TEST_ASSERT( 0 == mbedtls_cipher_set_padding_mode( &ctx, pad_mode ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_set_padding_mode( &ctx, (mbedtls_cipher_padding_t) pad_mode ) );
 #else
     (void) pad_mode;
 #endif /* MBEDTLS_CIPHER_MODE_WITH_PADDING */
@@ -351,7 +351,7 @@ void enc_dec_buf_multipart( int cipher_id, int key_len, int first_length_val,
     memset( decbuf, 0, 64 );
 
     /* Initialise enc and dec contexts */
-    cipher_info = mbedtls_cipher_info_from_type( cipher_id );
+    cipher_info = mbedtls_cipher_info_from_type( (mbedtls_cipher_type_t) cipher_id );
     TEST_ASSERT( NULL != cipher_info);
 
     TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx_dec, cipher_info ) );
@@ -458,11 +458,11 @@ void decrypt_test_vec( int cipher_id, int pad_mode,
 
     /* Prepare context */
     TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx,
-                                       mbedtls_cipher_info_from_type( cipher_id ) ) );
+                                       mbedtls_cipher_info_from_type( (mbedtls_cipher_type_t) cipher_id ) ) );
     TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key, 8 * key_len, MBEDTLS_DECRYPT ) );
 #if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
     if( pad_mode != -1 )
-        TEST_ASSERT( 0 == mbedtls_cipher_set_padding_mode( &ctx, pad_mode ) );
+        TEST_ASSERT( 0 == mbedtls_cipher_set_padding_mode( &ctx, (mbedtls_cipher_padding_t) pad_mode ) );
 #else
     (void) pad_mode;
 #endif /* MBEDTLS_CIPHER_MODE_WITH_PADDING */
@@ -532,7 +532,7 @@ void auth_crypt_tv( int cipher_id, char *hex_key, char *hex_iv,
 
     /* Prepare context */
     TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx,
-                                       mbedtls_cipher_info_from_type( cipher_id ) ) );
+                                       mbedtls_cipher_info_from_type( (mbedtls_cipher_type_t) cipher_id ) ) );
     TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key, 8 * key_len, MBEDTLS_DECRYPT ) );
 
     /* decode buffer and check tag */
@@ -605,7 +605,7 @@ void test_vec_ecb( int cipher_id, int operation, char *hex_key,
 
     /* Prepare context */
     TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx,
-                                       mbedtls_cipher_info_from_type( cipher_id ) ) );
+                                       mbedtls_cipher_info_from_type( (mbedtls_cipher_type_t) cipher_id ) ) );
 
     key_len = unhexify( key, hex_key );
     TEST_ASSERT( unhexify( input, hex_input ) ==
@@ -613,7 +613,7 @@ void test_vec_ecb( int cipher_id, int operation, char *hex_key,
     TEST_ASSERT( unhexify( result, hex_result ) ==
                  (int) mbedtls_cipher_get_block_size( &ctx ) );
 
-    TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key, 8 * key_len, operation ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key, 8 * key_len, (mbedtls_operation_t) operation ) );
 
     TEST_ASSERT( 0 == mbedtls_cipher_update( &ctx, input,
                                      mbedtls_cipher_get_block_size( &ctx ),
@@ -641,11 +641,11 @@ void set_padding( int cipher_id, int pad_mode, int ret )
 
     mbedtls_cipher_init( &ctx );
 
-    cipher_info = mbedtls_cipher_info_from_type( cipher_id );
+    cipher_info = mbedtls_cipher_info_from_type( (mbedtls_cipher_type_t) cipher_id );
     TEST_ASSERT( NULL != cipher_info );
     TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx, cipher_info ) );
 
-    TEST_ASSERT( ret == mbedtls_cipher_set_padding_mode( &ctx, pad_mode ) );
+    TEST_ASSERT( ret == mbedtls_cipher_set_padding_mode( &ctx, (mbedtls_cipher_padding_t) pad_mode ) );
 
 exit:
     mbedtls_cipher_free( &ctx );
@@ -665,7 +665,7 @@ void check_padding( int pad_mode, char *input_str, int ret, int dlen_check )
     cipher_info.mode = MBEDTLS_MODE_CBC;
     ctx.cipher_info = &cipher_info;
 
-    TEST_ASSERT( 0 == mbedtls_cipher_set_padding_mode( &ctx, pad_mode ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_set_padding_mode( &ctx, (mbedtls_cipher_padding_t) pad_mode ) );
 
     ilen = unhexify( input, input_str );
 

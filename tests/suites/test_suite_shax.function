@@ -7,14 +7,17 @@
 /* BEGIN_CASE depends_on:MBEDTLS_SHA1_C */
 void mbedtls_sha1( char *hex_src_string, char *hex_hash_string )
 {
-    unsigned char src_str[10000];
-    unsigned char hash_str[10000];
-    unsigned char output[41];
+    unsigned char *src_str;
+    unsigned char hash_str[20 * 2 + 1];
+    unsigned char output[20];
     int src_len;
 
-    memset(src_str, 0x00, 10000);
-    memset(hash_str, 0x00, 10000);
-    memset(output, 0x00, 41);
+    src_str = (unsigned char *) mbedtls_calloc( strlen( hex_src_string ) / 2, sizeof( unsigned char ) );
+    if( src_str == NULL )
+        TEST_ASSERT( 0 );
+
+    memset(hash_str, 0x00, sizeof( hash_str ) );
+    memset(output, 0x00, sizeof( output ) );
 
     src_len = unhexify( src_str, hex_src_string );
 
@@ -22,20 +25,25 @@ void mbedtls_sha1( char *hex_src_string, char *hex_hash_string )
     hexify( hash_str, output, 20 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
+
+    mbedtls_free( src_str );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
 void sha224(char *hex_src_string, char *hex_hash_string )
 {
-    unsigned char src_str[10000];
-    unsigned char hash_str[10000];
-    unsigned char output[57];
+    unsigned char *src_str;
+    unsigned char hash_str[28 * 2 + 1];
+    unsigned char output[28];
     int src_len;
 
-    memset(src_str, 0x00, 10000);
-    memset(hash_str, 0x00, 10000);
-    memset(output, 0x00, 57);
+    src_str = (unsigned char *) mbedtls_calloc( strlen( hex_src_string ) / 2, sizeof( unsigned char ) );
+    if( src_str == NULL )
+        TEST_ASSERT( 0 );
+
+    memset(hash_str, 0x00, sizeof( hash_str ) );
+    memset(output, 0x00, sizeof( output ) );
 
     src_len = unhexify( src_str, hex_src_string );
 
@@ -43,20 +51,25 @@ void sha224(char *hex_src_string, char *hex_hash_string )
     hexify( hash_str, output, 28 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
+
+    mbedtls_free( src_str );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
 void mbedtls_sha256(char *hex_src_string, char *hex_hash_string )
 {
-    unsigned char src_str[10000];
-    unsigned char hash_str[10000];
-    unsigned char output[65];
+    unsigned char *src_str;
+    unsigned char hash_str[32 * 2 + 1];
+    unsigned char output[32];
     int src_len;
 
-    memset(src_str, 0x00, 10000);
-    memset(hash_str, 0x00, 10000);
-    memset(output, 0x00, 65);
+    src_str = (unsigned char *) mbedtls_calloc( strlen( hex_src_string ) / 2, sizeof( unsigned char ) );
+    if( src_str == NULL )
+        TEST_ASSERT( 0 );
+
+    memset(hash_str, 0x00, sizeof( hash_str ) );
+    memset(output, 0x00, sizeof( output ) );
 
     src_len = unhexify( src_str, hex_src_string );
 
@@ -64,20 +77,25 @@ void mbedtls_sha256(char *hex_src_string, char *hex_hash_string )
     hexify( hash_str, output, 32 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
+
+    mbedtls_free( src_str );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA512_C */
 void sha384(char *hex_src_string, char *hex_hash_string )
 {
-    unsigned char src_str[10000];
-    unsigned char hash_str[10000];
-    unsigned char output[97];
+    unsigned char *src_str;
+    unsigned char hash_str[48 * 2 + 1];
+    unsigned char output[48];
     int src_len;
 
-    memset(src_str, 0x00, 10000);
-    memset(hash_str, 0x00, 10000);
-    memset(output, 0x00, 97);
+    src_str = (unsigned char *) mbedtls_calloc( strlen( hex_src_string ) / 2, sizeof( unsigned char ) );
+    if( src_str == NULL )
+        TEST_ASSERT( 0 );
+
+    memset(hash_str, 0x00, sizeof( hash_str ) );
+    memset(output, 0x00, sizeof( output ) );
 
     src_len = unhexify( src_str, hex_src_string );
 
@@ -85,20 +103,25 @@ void sha384(char *hex_src_string, char *hex_hash_string )
     hexify( hash_str, output, 48 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
+
+    mbedtls_free( src_str );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA512_C */
 void mbedtls_sha512(char *hex_src_string, char *hex_hash_string )
 {
-    unsigned char src_str[10000];
-    unsigned char hash_str[10000];
-    unsigned char output[129];
+    unsigned char *src_str;
+    unsigned char hash_str[64 * 2 + 1];
+    unsigned char output[64];
     int src_len;
 
-    memset(src_str, 0x00, 10000);
-    memset(hash_str, 0x00, 10000);
-    memset(output, 0x00, 129);
+    src_str = (unsigned char *) mbedtls_calloc( strlen( hex_src_string ) / 2, sizeof( unsigned char ) );
+    if( src_str == NULL )
+        TEST_ASSERT( 0 );
+
+    memset(hash_str, 0x00, sizeof( hash_str ) );
+    memset(output, 0x00, sizeof( output ) );
 
     src_len = unhexify( src_str, hex_src_string );
 
@@ -106,6 +129,8 @@ void mbedtls_sha512(char *hex_src_string, char *hex_hash_string )
     hexify( hash_str, output, 64 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
+
+    mbedtls_free( src_str );
 }
 /* END_CASE */
 

@@ -466,6 +466,94 @@ static int entropy_dummy_source( void *data, unsigned char *output,
     return( 0 );
 }
 
+#if !defined(MBEDTLS_TEST_NULL_ENTROPY) && defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
+
+#define MBEDTLS_SELF_TEST_BIAS_PATTERN( buf_len, type )             \
+    {                                                               \
+        size_t i;                                                   \
+        int has_pat = 1;                                            \
+        for( i = 0; i < buf_len; i += sizeof( type ) )              \
+        {                                                           \
+            has_pat &= memcmp( buf, buf + i, sizeof( type ) ) == 0; \
+        }                                                           \
+        if( ( ret = has_pat ) != 0 )                                \
+            goto cleanup;                                           \
+    } while( 0 )                                                    \
+
+/*
+ * A quick test to ensure hat the entropy sources are functioning correctly
+ * and there is no obvious bias. The test performs the following checks:
+ *  - The entropy source is not providing only 0s (all bits unset) or 1s (all
+ *    bits set).
+ *  - The entropy source is not providing values in a pattern. Because the
+ *    hardware could be providing data in an arbitrary length, this check is
+ *    only perform for bytes, words and long words.
+ *  - The error code returned by the entropy source is not an error.
+ */
+int mbedtls_entropy_self_test_bias( int verbose )
+{
+    int ret = 0;
+    unsigned char buf[2 * sizeof( unsigned long long int )];
+    mbedtls_entropy_context ctx;
+    size_t entropy_len;
+    size_t olen;
+    size_t gather_tries;
+
+    if( verbose != 0 )
+        mbedtls_printf( "  ENTROPY_BIAS test: " );
+
+    memset( buf, 0x00, sizeof( buf ) );
+
+    mbedtls_entropy_init( &ctx );
+
+    /* The hardware entropy source could return less than the amount of
+     * bytes we requested, so we poll the source as many times as there are
+     * bytes */
+    gather_tries = sizeof( buf );
+    entropy_len = 0;
+    while( gather_tries > 0 && entropy_len < sizeof( buf ) )
+    {
+        if( ( ret = mbedtls_hardware_poll( &ctx, buf + entropy_len,
+            sizeof( buf ) - entropy_len, &olen ) ) != 0 )
+            goto cleanup;
+
+        entropy_len += olen;
+        gather_tries--;
+    }
+
+    if( entropy_len < sizeof( buf ) )
+    {
+        /* We still do not have enough entropy: fail */
+        ret = 1;
+        goto cleanup;
+    }
+
+    /* Make sure that the entropy source is not returning values in a
+     * pattern */
+    /* Byte */
+    MBEDTLS_SELF_TEST_BIAS_PATTERN( 2 * sizeof( unsigned long long int ), unsigned char );
+    /* Word */
+    MBEDTLS_SELF_TEST_BIAS_PATTERN( 2 * sizeof( unsigned long long int ), unsigned long );
+    /* Long word */
+    MBEDTLS_SELF_TEST_BIAS_PATTERN( 2 * sizeof( unsigned long long int ), unsigned long long int );
+
+cleanup:
+    mbedtls_entropy_free( &ctx );
+
+    if( verbose != 0 )
+    {
+        if( ret != 0 )
+            mbedtls_printf( "failed\n" );
+        else
+            mbedtls_printf( "passed\n" );
+
+        mbedtls_printf( "\n" );
+    }
+
+    return( ret != 0 );
+}
+#endif /* !MBEDTLS_TEST_NULL_ENTROPY && MBEDTLS_ENTROPY_HARDWARE_ALT */
+
 /*
  * The actual entropy quality is hard to test, but we can at least
  * test that the functions don't cause errors and write the correct

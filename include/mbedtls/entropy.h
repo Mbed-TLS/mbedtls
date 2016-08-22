@@ -258,6 +258,15 @@ int mbedtls_entropy_update_seed_file( mbedtls_entropy_context *ctx, const char *
  * \return         0 if successful, or 1 if a test failed
  */
 int mbedtls_entropy_self_test( int verbose );
+
+#if !defined(MBEDTLS_TEST_NULL_ENTROPY) && defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
+/**
+ * \brief          Checkup routine
+ *
+ * \return         0 if successful, or 1 if a test failed
+ */
+int mbedtls_entropy_self_test_bias( int verbose );
+#endif /* !MBEDTLS_TEST_NULL_ENTROPY && MBEDTLS_ENTROPY_HARDWARE_ALT */
 #endif /* MBEDTLS_SELF_TEST */
 
 #ifdef __cplusplus

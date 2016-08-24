@@ -73,7 +73,14 @@ static void ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
 
     hostname_len = strlen( ssl->hostname );
 
-    if( end < p || (size_t)( end - p ) < hostname_len + 9 )
+    if( mbedtls_ssl_parse_dns( (const unsigned char *) ssl->hostname,
+        hostname_len )  != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "client hello, hostname is not a valid DNS"
+            ". Omitting server name extension" ) );
+        return;
+    }
+    else if( end < p || (size_t)( end - p ) < hostname_len + 9 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
         return;

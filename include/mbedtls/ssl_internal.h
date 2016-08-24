@@ -487,6 +487,117 @@ static inline int mbedtls_ssl_safer_memcmp( const void *a, const void *b, size_t
     return( diff );
 }
 
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+#include <ctype.h>
+
+/*
+ * DNS parser state machine.
+ */
+typedef enum
+{
+    DNS_PARSER_STATE_START,
+    DNS_PARSER_STATE_ACCEPT_SPACE,
+    DNS_PARSER_STATE_ACCEPT_NOSPACE,
+    DNS_PARSER_STATE_REJECT,
+    DNS_PARSER_STATE_DASH,
+    DNS_PARSER_STATE_DOT,
+} dns_parser_states;
+
+/*
+ * Parses the string pointed to by buf or size len and returns 0 if it is a
+ * valid Domain Name Space (DNS), otherwise it returns 1. The function encodes
+ * a finate state machine inspired in the syntax grammar defined at RFC-1034
+ * Section 3.5. The regular expression that the code checks against is:
+ *  ( |[a-zA-Z]+([a-zA-Z0-9-]*[a-zA-Z0-9]+)?(.[a-zA-Z]+([a-zA-Z0-9-]*[a-zA-Z0-9]+)?)*)
+ */
+static int mbedtls_ssl_parse_dns( const unsigned char *buf,
+    size_t len ) __attribute__((unused));
+
+static int mbedtls_ssl_parse_dns( const unsigned char *buf, size_t len )
+{
+    size_t i;
+    dns_parser_states state;
+
+    if( len > 255 )
+    {
+        return( 1 );
+    }
+
+    state = DNS_PARSER_STATE_START;
+    i = 0;
+    while( i < len )
+    {
+        switch( state )
+        {
+        case DNS_PARSER_STATE_START:
+            if( buf[i] == ' ' )
+            {
+                state = DNS_PARSER_STATE_ACCEPT_SPACE;
+                i++;
+            }
+            else if( isalpha( buf[i] ) || isdigit( buf[i] ) )
+            {
+                state = DNS_PARSER_STATE_ACCEPT_NOSPACE;
+                i++;
+            }
+            else
+                state = DNS_PARSER_STATE_REJECT;
+            break;
+        case DNS_PARSER_STATE_ACCEPT_SPACE:
+            state = DNS_PARSER_STATE_REJECT;
+            break;
+        case DNS_PARSER_STATE_ACCEPT_NOSPACE:
+            if( isalpha( buf[i] ) || isdigit( buf[i] ) )
+                i++;
+            else if( buf[i] == '-' )
+            {
+                state = DNS_PARSER_STATE_DASH;
+                i++;
+            }
+            else if( buf[i] == '.' )
+            {
+                state = DNS_PARSER_STATE_DOT;
+                i++;
+            }
+            else
+                state = DNS_PARSER_STATE_REJECT;
+            break;
+        case DNS_PARSER_STATE_DOT:
+            if( isalpha( buf[i] ) )
+            {
+                state = DNS_PARSER_STATE_ACCEPT_NOSPACE;
+                i++;
+            }
+            else
+                state = DNS_PARSER_STATE_REJECT;
+            break;
+        case DNS_PARSER_STATE_DASH:
+            if( isalpha( buf[i] ) || isdigit( buf[i] ) )
+            {
+                state = DNS_PARSER_STATE_ACCEPT_NOSPACE;
+                i++;
+            }
+            else
+                state = DNS_PARSER_STATE_REJECT;
+            break;
+        case DNS_PARSER_STATE_REJECT:
+            goto exit;
+        }
+    }
+
+exit:
+    switch( state )
+    {
+    case DNS_PARSER_STATE_ACCEPT_SPACE:
+        return( 0 );
+    case DNS_PARSER_STATE_ACCEPT_NOSPACE:
+        return( 0 );
+    default:
+        return( 1 );
+    }
+}
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
+
 #ifdef __cplusplus
 }
 #endif

@@ -64,9 +64,6 @@ int main( void )
 #include "mbedtls/platform.h"
 #else
 #include <stdlib.h>
-#define mbedtls_time_t       time_t
-#define MBEDTLS_EXIT_SUCCESS EXIT_SUCCESS
-#define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
 #endif
 
 #include <string.h>

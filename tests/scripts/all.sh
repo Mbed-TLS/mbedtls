@@ -338,6 +338,7 @@ scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
 scripts/config.pl unset MBEDTLS_THREADING_C
 scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
 scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
+scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT # depends on MBEDTLS_HAVE_TIME
 CC=armcc AR=armar WARNING_CFLAGS= make lib
 fi # armcc
 

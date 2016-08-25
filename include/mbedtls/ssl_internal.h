@@ -535,7 +535,7 @@ static int mbedtls_ssl_parse_dns( const unsigned char *buf, size_t len )
                 state = DNS_PARSER_STATE_ACCEPT_SPACE;
                 i++;
             }
-            else if( isalpha( buf[i] ) || isdigit( buf[i] ) )
+            else if( isalpha( buf[i] ) )
             {
                 state = DNS_PARSER_STATE_ACCEPT_NOSPACE;
                 i++;

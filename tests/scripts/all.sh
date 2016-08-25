@@ -132,10 +132,16 @@ msg "test/build: declared and exported names" # < 3s
 cleanup
 tests/scripts/check-names.sh
 
-if which doxygen >/dev/null; then
+if hash doxygen >/dev/null 2>&1 && hash dot >/dev/null 2>&1; then
     msg "test: doxygen warnings" # ~ 3s
     cleanup
     tests/scripts/doxygen.sh
+elif ! hash doxygen >/dev/null 2>&1; then
+    echo "Doxygen is not available"
+    exit 1
+elif ! hash dot >/dev/null 2>&1; then
+    echo "Dot is not available. This application is required by Doxygen"
+    exit 1
 fi
 
 msg "build: create and build yotta module" # ~ 30s
@@ -305,6 +311,9 @@ scripts/config.pl unset MBEDTLS_THREADING_C
 scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
 scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
 CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS=-Werror make lib
+else
+echo "arm-none-eabi-gcc is not available"
+exit 1
 fi # arm-gcc
 
 if which armcc >/dev/null && armcc --help >/dev/null 2>&1; then
@@ -328,6 +337,9 @@ scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
 scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
 scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT # depends on MBEDTLS_HAVE_TIME
 CC=armcc AR=armar WARNING_CFLAGS= make lib
+else
+echo "armcc is not available"
+exit 1
 fi # armcc
 
 if which i686-w64-mingw32-gcc >/dev/null; then

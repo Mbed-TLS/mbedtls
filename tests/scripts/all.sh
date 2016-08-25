@@ -31,7 +31,6 @@ CONFIG_H='include/mbedtls/config.h'
 CONFIG_BAK="$CONFIG_H.bak"
 
 MEMORY=0
-SHORT=0
 FORCE=0
 
 usage()
@@ -39,7 +38,6 @@ usage()
     echo "Usage: $0"
     echo -e "  -h|--help\t\tPrint this help."
     echo -e "  -m|--memory\t\tAdditional optional memory tests."
-    echo -e "  -s|--short\t\tSubset of tests."
     echo -e "  -f|--force\t\tForce the tests to overwrite any modified files."
 }
 
@@ -73,9 +71,6 @@ while [ $# -gt 0 ]; do
     case "$1" in
         --memory|-m*)
             MEMORY=${1#-m}
-            ;;
-        --short|-s)
-            SHORT=1
             ;;
         --force|-f)
             FORCE=1
@@ -161,13 +156,6 @@ tests/ssl-opt.sh
 
 msg "test/build: ref-configs (ASan build)" # ~ 6 min 20s
 tests/scripts/test-ref-configs.pl
-
-# Most frequent issues are likely to be caught at this point
-if [ $SHORT -eq 1 ]; then
-    msg "Done, cleaning up"
-    cleanup
-    exit 0
-fi
 
 msg "build: with ASan (rebuild after ref-configs)" # ~ 1 min
 make

@@ -2008,6 +2008,17 @@ run_test    "SNI: CA override with CRL" \
             -S "! The certificate is not correctly signed by the trusted CA" \
             -s "The certificate has been revoked (is on a CRL)"
 
+run_test    "SNI: server name extension is not a valid DNS" \
+            "$P_SRV debug_level=3 \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key \
+             sni=127.0.0.1,data_files/server2.crt,data_files/server2.key,-,-,optional \
+             server_addr=127.0.0.1" \
+            "$P_CLI debug_level=3 server_name=127.0.0.1 \
+             server_addr=127.0.0.1 auth_mode=optional" \
+            0 \
+            -c "client hello, hostname is not a valid DNS. Omitting server name extension" \
+            -S "ServerName is not a valid DNS"
+
 # Tests for non-blocking I/O: exercise a variety of handshake flows
 
 run_test    "Non-blocking I/O: basic handshake" \

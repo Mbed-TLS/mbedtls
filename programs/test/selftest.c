@@ -106,8 +106,8 @@ static int run_test_snprintf( void )
  * self-test. If this fails, we attempt the test anyway, so no error is passed
  * back.
  */
-#if defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_ENTROPY_NV_SEED) && \
-        !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
+#if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_ENTROPY_C) && \
+    defined(MBEDTLS_ENTROPY_NV_SEED) && !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
 static void create_entropy_seed_file( void )
 {
     int result;
@@ -138,7 +138,7 @@ static void create_entropy_seed_file( void )
 int main( int argc, char *argv[] )
 {
     int v, suites_tested = 0, suites_failed = 0;
-#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) && defined(MBEDTLS_SELF_TEST)
     unsigned char buf[1000000];
 #endif
     void *pointer;
@@ -396,10 +396,6 @@ int main( int argc, char *argv[] )
     suites_tested++;
 #endif
 
-#else
-    mbedtls_printf( " MBEDTLS_SELF_TEST not defined.\n" );
-#endif
-
     if( v != 0 )
     {
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) && defined(MBEDTLS_MEMORY_DEBUG)
@@ -414,6 +410,10 @@ int main( int argc, char *argv[] )
         suites_failed++;
     }
     suites_tested++;
+#endif
+
+#else
+    mbedtls_printf( " MBEDTLS_SELF_TEST not defined.\n" );
 #endif
 
     if( v != 0 )

@@ -381,8 +381,5 @@ void entropy_nv_seed( char *read_seed_str )
 void entropy_selftest( )
 {
     TEST_ASSERT( mbedtls_entropy_self_test( 0 ) == 0 );
-#if !defined(MBEDTLS_TEST_NULL_ENTROPY) && defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
-    TEST_ASSERT( mbedtls_entropy_self_test_bias( 0 ) == 0 );
-#endif
 }
 /* END_CASE */

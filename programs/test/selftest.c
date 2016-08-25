@@ -375,12 +375,6 @@ int main( int argc, char *argv[] )
     {
         suites_failed++;
     }
-#if !defined(MBEDTLS_TEST_NULL_ENTROPY) && defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
-    if( mbedtls_entropy_self_test_bias( v ) != 0)
-    {
-        suites_failed++;
-    }
-#endif
     suites_tested++;
 #endif
 

@@ -6,7 +6,8 @@ PREFIX=mbedtls_
 
 .PHONY: all no_test programs lib tests install uninstall clean test check covtest lcov apidoc apidoc_clean
 
-all: programs tests post_build
+all: programs tests
+	$(MAKE) post_build
 
 no_test: programs
 

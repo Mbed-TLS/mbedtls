@@ -32,6 +32,7 @@
 #include "mbedtls/dhm.h"
 #include "mbedtls/gcm.h"
 #include "mbedtls/ccm.h"
+#include "mbedtls/cmac.h"
 #include "mbedtls/md2.h"
 #include "mbedtls/md4.h"
 #include "mbedtls/md5.h"
@@ -275,6 +276,11 @@ int main( int argc, char *argv[] )
         suites_failed++;
     }
     suites_tested++;
+#endif
+
+#if defined(MBEDTLS_CMAC_C) && defined(MBEDTLS_AES_C)
+    if( ( ret = mbedtls_cmac_self_test( v ) ) != 0 )
+        return( ret );
 #endif
 
 #if defined(MBEDTLS_BASE64_C)

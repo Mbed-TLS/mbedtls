@@ -1672,6 +1672,18 @@
 #define MBEDTLS_CIPHER_C
 
 /**
+ * \def MBEDTLS_CMAC_C
+ *
+ * Enable the CMAC mode for 128-bit block cipher.
+ *
+ * Module:  library/cmac.c
+ *
+ * Requires: MBEDTLS_AES_C or MBEDTLS_CAMELLIA_C
+ *
+ */
+#define MBEDTLS_CMAC_C
+
+/**
  * \def MBEDTLS_CTR_DRBG_C
  *
  * Enable the CTR_DRBG AES-256-based random generator.

@@ -231,6 +231,7 @@ void md_text_multi( char *text_md_name, char *text_src_string,
 
 exit:
     mbedtls_md_free( &ctx );
+    mbedtls_md_free( &ctx_copy );
 }
 /* END_CASE */
 
@@ -284,6 +285,7 @@ void md_hex_multi( char *text_md_name, char *hex_src_string,
 
 exit:
     mbedtls_md_free( &ctx );
+    mbedtls_md_free( &ctx_copy );
 }
 /* END_CASE */
 

@@ -495,12 +495,12 @@ static inline int mbedtls_ssl_safer_memcmp( const void *a, const void *b, size_t
  */
 typedef enum
 {
-    DNS_PARSER_STATE_START,
-    DNS_PARSER_STATE_ACCEPT_SPACE,
-    DNS_PARSER_STATE_ACCEPT_NOSPACE,
-    DNS_PARSER_STATE_REJECT,
-    DNS_PARSER_STATE_DASH,
-    DNS_PARSER_STATE_DOT,
+    MBEDTLS_DNS_PARSER_STATE_START,
+    MBEDTLS_DNS_PARSER_STATE_ACCEPT_SPACE,
+    MBEDTLS_DNS_PARSER_STATE_ACCEPT_NOSPACE,
+    MBEDTLS_DNS_PARSER_STATE_REJECT,
+    MBEDTLS_DNS_PARSER_STATE_DASH,
+    MBEDTLS_DNS_PARSER_STATE_DOT,
 } dns_parser_states;
 
 /*
@@ -523,64 +523,64 @@ static int mbedtls_ssl_parse_dns( const unsigned char *buf, size_t len )
         return( 1 );
     }
 
-    state = DNS_PARSER_STATE_START;
+    state = MBEDTLS_DNS_PARSER_STATE_START;
     i = 0;
     while( i < len )
     {
         switch( state )
         {
-        case DNS_PARSER_STATE_START:
+        case MBEDTLS_DNS_PARSER_STATE_START:
             if( buf[i] == ' ' )
             {
-                state = DNS_PARSER_STATE_ACCEPT_SPACE;
+                state = MBEDTLS_DNS_PARSER_STATE_ACCEPT_SPACE;
                 i++;
             }
             else if( isalpha( buf[i] ) )
             {
-                state = DNS_PARSER_STATE_ACCEPT_NOSPACE;
+                state = MBEDTLS_DNS_PARSER_STATE_ACCEPT_NOSPACE;
                 i++;
             }
             else
-                state = DNS_PARSER_STATE_REJECT;
+                state = MBEDTLS_DNS_PARSER_STATE_REJECT;
             break;
-        case DNS_PARSER_STATE_ACCEPT_SPACE:
-            state = DNS_PARSER_STATE_REJECT;
+        case MBEDTLS_DNS_PARSER_STATE_ACCEPT_SPACE:
+            state = MBEDTLS_DNS_PARSER_STATE_REJECT;
             break;
-        case DNS_PARSER_STATE_ACCEPT_NOSPACE:
+        case MBEDTLS_DNS_PARSER_STATE_ACCEPT_NOSPACE:
             if( isalpha( buf[i] ) || isdigit( buf[i] ) )
                 i++;
             else if( buf[i] == '-' )
             {
-                state = DNS_PARSER_STATE_DASH;
+                state = MBEDTLS_DNS_PARSER_STATE_DASH;
                 i++;
             }
             else if( buf[i] == '.' )
             {
-                state = DNS_PARSER_STATE_DOT;
+                state = MBEDTLS_DNS_PARSER_STATE_DOT;
                 i++;
             }
             else
-                state = DNS_PARSER_STATE_REJECT;
+                state = MBEDTLS_DNS_PARSER_STATE_REJECT;
             break;
-        case DNS_PARSER_STATE_DOT:
+        case MBEDTLS_DNS_PARSER_STATE_DOT:
             if( isalpha( buf[i] ) )
             {
-                state = DNS_PARSER_STATE_ACCEPT_NOSPACE;
+                state = MBEDTLS_DNS_PARSER_STATE_ACCEPT_NOSPACE;
                 i++;
             }
             else
-                state = DNS_PARSER_STATE_REJECT;
+                state = MBEDTLS_DNS_PARSER_STATE_REJECT;
             break;
-        case DNS_PARSER_STATE_DASH:
+        case MBEDTLS_DNS_PARSER_STATE_DASH:
             if( isalpha( buf[i] ) || isdigit( buf[i] ) )
             {
-                state = DNS_PARSER_STATE_ACCEPT_NOSPACE;
+                state = MBEDTLS_DNS_PARSER_STATE_ACCEPT_NOSPACE;
                 i++;
             }
             else
-                state = DNS_PARSER_STATE_REJECT;
+                state = MBEDTLS_DNS_PARSER_STATE_REJECT;
             break;
-        case DNS_PARSER_STATE_REJECT:
+        case MBEDTLS_DNS_PARSER_STATE_REJECT:
             goto exit;
         }
     }
@@ -588,9 +588,9 @@ static int mbedtls_ssl_parse_dns( const unsigned char *buf, size_t len )
 exit:
     switch( state )
     {
-    case DNS_PARSER_STATE_ACCEPT_SPACE:
+    case MBEDTLS_DNS_PARSER_STATE_ACCEPT_SPACE:
         return( 0 );
-    case DNS_PARSER_STATE_ACCEPT_NOSPACE:
+    case MBEDTLS_DNS_PARSER_STATE_ACCEPT_NOSPACE:
         return( 0 );
     default:
         return( 1 );

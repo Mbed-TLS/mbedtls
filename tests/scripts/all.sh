@@ -42,7 +42,7 @@ FORCE=0
 : ${GNUTLS_LEGACY_SERV:="$GNUTLS_SERV"}
 : ${OUT_OF_SOURCE_DIR:=./mbedtls_out_of_source_build}
 
-usage()
+sage()
 {
     printf "Usage: $0\n"
     printf "  -h|--help\t\tPrint this help.\n"

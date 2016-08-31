@@ -34,6 +34,8 @@ MEMORY=0
 SHORT=0
 FORCE=0
 
+: ${OUT_OF_SOURCE_DIR:=./mbedtls_out_of_source_build}
+
 usage()
 {
     echo "Usage: $0"
@@ -41,6 +43,7 @@ usage()
     echo -e "  -m|--memory\t\tAdditional optional memory tests."
     echo -e "  -s|--short\t\tSubset of tests."
     echo -e "  -f|--force\t\tForce the tests to overwrite any modified files."
+    echo -e "  --out-of-source-dir\t\tDirectory used for CMake out-of-source build tests."
 }
 
 # remove built files as well as the cmake cache/config
@@ -80,6 +83,10 @@ while [ $# -gt 0 ]; do
         --force|-f)
             FORCE=1
             ;;
+        --out-of-source-dir)
+            shift
+            OUT_OF_SOURCE_DIR="$1"
+            ;;
         --help|-h|*)
             usage()
             exit 1
@@ -89,7 +96,7 @@ while [ $# -gt 0 ]; do
 done
 
 if [ $FORCE -eq 1 ]; then
-    rm -rf yotta/module
+    rm -rf yotta/module "$OUT_OF_SOURCE_DIR"
     git checkout-index -f -q $CONFIG_H
     cleanup
 else
@@ -98,6 +105,13 @@ else
         echo "Warning - there is an existing yotta module in the directory 'yotta/module'" >&2
         echo "You can either delete your work and retry, or force the test to overwrite the"
         echo "test by rerunning the script as: $0 --force"
+        exit 1
+    fi
+
+    if [ -d "$OUT_OF_SOURCE_DIR" ]; then
+        echo "Warning - there is an existing directory at '$OUT_OF_SOURCE_DIR'" >&2
+        echo "You can either delete this directory manually, or force the test by rerunning"
+        echo "the script as: $0 --force --out-of-source-dir $OUT_OF_SOURCE_DIR"
         exit 1
     fi
 
@@ -399,6 +413,19 @@ if [ "$MEMORY" -gt 1 ]; then
 fi
 
 fi # MemSan
+
+msg "build: cmake 'out-of-source' build"
+cleanup
+MBEDTLS_ROOT_DIR="$PWD"
+mkdir "$OUT_OF_SOURCE_DIR"
+cd "$OUT_OF_SOURCE_DIR"
+cmake "$MBEDTLS_ROOT_DIR"
+make
+
+msg "test: cmake 'out-of-source' build"
+make test
+cd "$MBEDTLS_ROOT_DIR"
+rm -rf "$OUT_OF_SOURCE_DIR"
 
 msg "Done, cleaning up"
 cleanup

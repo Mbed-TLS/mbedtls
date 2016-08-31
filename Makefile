@@ -77,7 +77,7 @@ ifndef WINDOWS
 	find . \( -name \*.gcno -o -name \*.gcda -o -name \*.info \) -exec rm {} +
 endif
 
-check: lib
+check: lib tests
 	$(MAKE) -C tests check
 
 test: check

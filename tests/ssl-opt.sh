@@ -166,8 +166,13 @@ only_with_valgrind() {
 }
 
 # multiply the client timeout delay by the given factor for the next test
-needs_more_time() {
+client_needs_more_time() {
     CLI_DELAY_FACTOR=$1
+}
+
+# wait for the given seconds after the client finished in the next test
+server_needs_more_time() {
+    SRV_DELAY_SECONDS=$1
 }
 
 # print_name <name>
@@ -307,6 +312,9 @@ wait_client_done() {
     wait $DOG_PID
 
     echo "EXIT: $CLI_EXIT" >> $CLI_OUT
+
+    sleep $SRV_DELAY_SECONDS
+    SRV_DELAY_SECONDS=0
 }
 
 # check if the given command uses dtls and sets global variable DTLS
@@ -574,6 +582,7 @@ else
     DOG_DELAY=10
 fi
 CLI_DELAY_FACTOR=1
+SRV_DELAY_SECONDS=0
 
 # Pick a "unique" server port in the range 10000-19999, and a proxy port
 PORT_BASE="0000$$"
@@ -2674,6 +2683,7 @@ run_test    "ECJPAKE: working, TLS" \
             -S "None of the common ciphersuites is usable" \
             -S "SSL - Verification of the message MAC failed"
 
+server_needs_more_time 1
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE
 run_test    "ECJPAKE: password mismatch, TLS" \
             "$P_SRV debug_level=3 ecjpake_pw=bla" \
@@ -2701,6 +2711,7 @@ run_test    "ECJPAKE: working, DTLS, no cookie" \
             -C "re-using cached ecjpake parameters" \
             -S "SSL - Verification of the message MAC failed"
 
+server_needs_more_time 1
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE
 run_test    "ECJPAKE: password mismatch, DTLS" \
             "$P_SRV debug_level=3 dtls=1 ecjpake_pw=bla" \
@@ -3369,7 +3380,7 @@ run_test    "DTLS proxy: delay ChangeCipherSpec" \
 
 # Tests for "randomly unreliable connection": try a variety of flows and peers
 
-needs_more_time 2
+client_needs_more_time 2
 run_test    "DTLS proxy: 3d (drop, delay, duplicate), \"short\" PSK handshake" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none \
@@ -3380,7 +3391,7 @@ run_test    "DTLS proxy: 3d (drop, delay, duplicate), \"short\" PSK handshake" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 2
+client_needs_more_time 2
 run_test    "DTLS proxy: 3d, \"short\" RSA handshake" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none" \
@@ -3390,7 +3401,7 @@ run_test    "DTLS proxy: 3d, \"short\" RSA handshake" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 2
+client_needs_more_time 2
 run_test    "DTLS proxy: 3d, \"short\" (no ticket, no cli_auth) FS handshake" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none" \
@@ -3399,7 +3410,7 @@ run_test    "DTLS proxy: 3d, \"short\" (no ticket, no cli_auth) FS handshake" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 2
+client_needs_more_time 2
 run_test    "DTLS proxy: 3d, FS, client auth" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=required" \
@@ -3408,7 +3419,7 @@ run_test    "DTLS proxy: 3d, FS, client auth" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 2
+client_needs_more_time 2
 run_test    "DTLS proxy: 3d, FS, ticket" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=1 auth_mode=none" \
@@ -3417,7 +3428,7 @@ run_test    "DTLS proxy: 3d, FS, ticket" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 2
+client_needs_more_time 2
 run_test    "DTLS proxy: 3d, max handshake (FS, ticket + client auth)" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=1 auth_mode=required" \
@@ -3426,7 +3437,7 @@ run_test    "DTLS proxy: 3d, max handshake (FS, ticket + client auth)" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 2
+client_needs_more_time 2
 run_test    "DTLS proxy: 3d, max handshake, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 nbio=2 tickets=1 \
@@ -3436,7 +3447,7 @@ run_test    "DTLS proxy: 3d, max handshake, nbio" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 4
+client_needs_more_time 4
 run_test    "DTLS proxy: 3d, min handshake, resumption" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none \
@@ -3450,7 +3461,7 @@ run_test    "DTLS proxy: 3d, min handshake, resumption" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 4
+client_needs_more_time 4
 run_test    "DTLS proxy: 3d, min handshake, resumption, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none \
@@ -3464,7 +3475,7 @@ run_test    "DTLS proxy: 3d, min handshake, resumption, nbio" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 4
+client_needs_more_time 4
 run_test    "DTLS proxy: 3d, min handshake, client-initiated renego" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none \
@@ -3478,7 +3489,7 @@ run_test    "DTLS proxy: 3d, min handshake, client-initiated renego" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 4
+client_needs_more_time 4
 run_test    "DTLS proxy: 3d, min handshake, client-initiated renego, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none \
@@ -3492,7 +3503,7 @@ run_test    "DTLS proxy: 3d, min handshake, client-initiated renego, nbio" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 4
+client_needs_more_time 4
 run_test    "DTLS proxy: 3d, min handshake, server-initiated renego" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none \
@@ -3507,7 +3518,7 @@ run_test    "DTLS proxy: 3d, min handshake, server-initiated renego" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 4
+client_needs_more_time 4
 run_test    "DTLS proxy: 3d, min handshake, server-initiated renego, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none \
@@ -3522,7 +3533,7 @@ run_test    "DTLS proxy: 3d, min handshake, server-initiated renego, nbio" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 6
+client_needs_more_time 6
 not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, openssl server" \
             -p "$P_PXY drop=5 delay=5 duplicate=5 protect_hvr=1" \
@@ -3531,7 +3542,7 @@ run_test    "DTLS proxy: 3d, openssl server" \
             0 \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 8
+client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, openssl server, fragmentation" \
             -p "$P_PXY drop=5 delay=5 duplicate=5 protect_hvr=1" \
@@ -3540,7 +3551,7 @@ run_test    "DTLS proxy: 3d, openssl server, fragmentation" \
             0 \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 8
+client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, openssl server, fragmentation, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5 protect_hvr=1" \
@@ -3550,7 +3561,7 @@ run_test    "DTLS proxy: 3d, openssl server, fragmentation, nbio" \
             -c "HTTP/1.0 200 OK"
 
 requires_gnutls
-needs_more_time 6
+client_needs_more_time 6
 not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, gnutls server" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
@@ -3561,7 +3572,7 @@ run_test    "DTLS proxy: 3d, gnutls server" \
             -c "Extra-header:"
 
 requires_gnutls
-needs_more_time 8
+client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, gnutls server, fragmentation" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
@@ -3572,7 +3583,7 @@ run_test    "DTLS proxy: 3d, gnutls server, fragmentation" \
             -c "Extra-header:"
 
 requires_gnutls
-needs_more_time 8
+client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, gnutls server, fragmentation, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \

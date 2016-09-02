@@ -1,5 +1,28 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.3.x branch released 2016-xx-xx
+
+Features
+   * Added hardware entropy selftest to verify that the hardware entropy source
+     is functioning correctly.
+   * Added a script to print build environment info for diagnostic use in test
+     scripts, which is also now called by all.sh.
+
+Bugfix
+   * Fix for platform time abstraction to avoid dependency issues where a build
+     may need time but not the standard C library abstraction, and added
+     configuration consistency checks to check_config.h
+   * Fix dependency issue in Makefile to allow parallel builds.
+
+Changes
+   * Extended test coverage of special cases, and added new timing test suite.
+   * Removed self-tests from the basic-built-test.sh script, and added all
+     missing self-tests to the test suites, to ensure self-tests are only
+     executed once.
+   * Added support for 3 and 4 byte lengths to mbedtls_asn1_write_len().
+   * Added support for a Yotta specific configuration file -
+     through the symbol YOTTA_CFG_MBEDTLS_TARGET_CONFIG_FILE.
+
 = mbed TLS 2.3.0 branch released 2016-06-28
 
 Security

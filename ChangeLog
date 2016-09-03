@@ -4,8 +4,10 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 Bugfix
    * Fix an issue that caused valid certificates being rejected whenever an
-   expired or not yet valid version of the trusted certificate was before the
-   valid version in the trusted certificate list.
+     expired or not yet valid version of the trusted certificate was before the
+     valid version in the trusted certificate list.
+   * Fix incorrect handling of block lengths in crypt_and_hash sample program,
+     when GCM is used. #441
 
 Changes
    * Add compile time option for relaxed X509 time verification to enable

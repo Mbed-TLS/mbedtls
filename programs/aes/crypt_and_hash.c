@@ -2,7 +2,7 @@
  *  \brief  Generic file encryption program using generic wrappers for configured
  *          security.
  *
- *  Copyright (C) 2006-2011, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2006-2016, ARM Limited, All Rights Reserved
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  *
@@ -75,7 +75,7 @@ int main( void )
 int main( int argc, char *argv[] )
 {
     int ret = 1, i, n;
-    int mode, lastn;
+    int mode;
     size_t keylen, ilen, olen;
     FILE *fkey, *fin = NULL, *fout = NULL;
 
@@ -260,7 +260,7 @@ int main( int argc, char *argv[] )
     {
         /*
          * Generate the initialization vector as:
-         * IV = SHA-256( filesize || filename )[0..15]
+         * IV = MD( filesize || filename )[0..15]
          */
         for( i = 0; i < 8; i++ )
             buffer[i] = (unsigned char)( filesize >> ( i << 3 ) );
@@ -273,15 +273,6 @@ int main( int argc, char *argv[] )
         md_finish( &md_ctx, digest );
 
         memcpy( IV, digest, 16 );
-
-        /*
-         * The last four bits in the IV are actually used
-         * to store the file size modulo the AES block size.
-         */
-        lastn = (int)( filesize & 0x0F );
-
-        IV[15] = (unsigned char)
-            ( ( IV[15] & 0xF0 ) | lastn );
 
         /*
          * Append the IV at the beginning of the output.
@@ -389,10 +380,10 @@ int main( int argc, char *argv[] )
          *  The encrypted file must be structured as follows:
          *
          *        00 .. 15              Initialization Vector
-         *        16 .. 31              AES Encrypted Block #1
+         *        16 .. 31              Encrypted Block #1
          *           ..
-         *      N*16 .. (N+1)*16 - 1    AES Encrypted Block #N
-         *  (N+1)*16 .. (N+1)*16 + 32   HMAC-SHA-256(ciphertext)
+         *      N*16 .. (N+1)*16 - 1    Encrypted Block #N
+         *  (N+1)*16 .. (N+1)*16 + n    Hash(ciphertext)
          */
         if( filesize < 16 + md_get_size( md_info ) )
         {
@@ -400,7 +391,11 @@ int main( int argc, char *argv[] )
             goto exit;
         }
 
-        if( ( ( filesize - md_get_size( md_info ) ) %
+        /*
+         * Check the file size.
+         */
+        if( cipher_info->mode != POLARSSL_MODE_GCM &&
+            ( ( filesize - md_get_size( md_info ) ) %
                 cipher_get_block_size( &cipher_ctx ) ) != 0 )
         {
             polarssl_fprintf( stderr, "File content not a multiple of the block size (%d).\n",
@@ -423,7 +418,6 @@ int main( int argc, char *argv[] )
         }
 
         memcpy( IV, buffer, 16 );
-        lastn = IV[15] & 0x0F;
 
         /*
          * Hash the IV and the secret key together 8192 times
@@ -466,20 +460,30 @@ int main( int argc, char *argv[] )
         /*
          * Decrypt and write the plaintext.
          */
-        for( offset = 0; offset < filesize; offset += cipher_get_block_size( &cipher_ctx ) )
+        for( offset = 0;
+             offset < filesize;
+             offset += cipher_get_block_size( &cipher_ctx ) )
         {
-            if( fread( buffer, 1, cipher_get_block_size( &cipher_ctx ), fin ) !=
-                (size_t) cipher_get_block_size( &cipher_ctx ) )
+            if( (unsigned int) filesize - offset >
+                                    cipher_get_block_size( &cipher_ctx ) )
+            {
+                ilen = cipher_get_block_size( &cipher_ctx );
+            }
+            else
+            {
+                ilen = (unsigned int) ( filesize - offset );
+            }
+
+            if( fread( buffer, 1, ilen, fin ) != ilen )
             {
                 polarssl_fprintf( stderr, "fread(%d bytes) failed\n",
                     cipher_get_block_size( &cipher_ctx ) );
                 goto exit;
             }
 
-            md_hmac_update( &md_ctx, buffer, cipher_get_block_size( &cipher_ctx ) );
-            if( cipher_update( &cipher_ctx, buffer,
-                               cipher_get_block_size( &cipher_ctx ),
-                               output, &olen ) != 0 )
+            md_hmac_update( &md_ctx, buffer, ilen );
+            if( cipher_update( &cipher_ctx, buffer, ilen, output,
+                               &olen ) != 0 )
             {
                 polarssl_fprintf( stderr, "cipher_update() returned error\n" );
                 goto exit;

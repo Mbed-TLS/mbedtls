@@ -386,11 +386,11 @@ int main( int argc, char *argv[] )
          */
         if( filesize < 16 + mbedtls_md_get_size( md_info ) )
         {
-            mbedtls_fprintf( stderr, "File too short to be encrypted.\n" );
+            mbedtls_fprintf( stderr, "File too short to be decrypted.\n" );
             goto exit;
         }
 
-       if( mbedtls_cipher_get_block_size( &cipher_ctx ) == 0 )
+        if( mbedtls_cipher_get_block_size( &cipher_ctx ) == 0 )
         {
             mbedtls_fprintf( stderr, "Invalid cipher block size: 0. \n" );
             goto exit;

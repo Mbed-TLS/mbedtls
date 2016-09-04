@@ -24,6 +24,8 @@ Changes
    * Added support for 3 and 4 byte lengths to mbedtls_asn1_write_len().
    * Added support for a Yotta specific configuration file -
      through the symbol YOTTA_CFG_MBEDTLS_TARGET_CONFIG_FILE.
+   * Added optimization for code space for X.509/OID based on configured
+     features. (contributed by Aviv Palivoda)
 
 = mbed TLS 2.3.0 branch released 2016-06-28
 

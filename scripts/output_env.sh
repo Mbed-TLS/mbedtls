@@ -13,8 +13,8 @@
 # This includes:
 #   - architecture of the system
 #   - type and version of the operating system
-#   - version of armcc, gcc-arm and gcc compilers
-#   - version of libc, clang, asan and valgrind
+#   - version of armcc, clang, gcc-arm and gcc compilers
+#   - version of libc, clang, asan and valgrind if installed
 #   - version of gnuTLS and OpenSSL
 
 echo
@@ -22,7 +22,7 @@ echo "1) Operating system and architecture:"
 uname -a
 
 echo
-if `hash armcc` > /dev/null; then
+if `hash armcc 2>/dev/null`; then
     echo "2) armcc:"
     armcc --vsn | head -n 2
 else
@@ -30,17 +30,15 @@ else
 fi
 
 echo
-if `hash arm-none-eabi-gcc` > /dev/null; then
-    echo
+if `hash arm-none-eabi-gcc 2>/dev/null`; then
     echo "3) gcc-arm:"
     arm-none-eabi-gcc --version | head -n 1
 else
-    echo
     echo "3) gcc-arm not found!"
 fi
 
 echo
-if `hash gcc` > /dev/null; then
+if `hash gcc 2>/dev/null`; then
     echo "4) gcc:"
     gcc --version | head -n 1
 else
@@ -48,7 +46,7 @@ else
 fi
 
 echo
-if `hash clang` > /dev/null; then
+if `hash clang 2>/dev/null`; then
     echo "5) clang:"
     clang --version | head -n 2
     clang -v 2>&1 | grep Selected
@@ -57,7 +55,7 @@ else
 fi
 
 echo
-if `hash ldd` > /dev/null; then
+if `hash ldd 2>/dev/null`; then
     echo "6) libc:"
     ldd --version | head -n 1
 else
@@ -65,7 +63,7 @@ else
 fi
 
 echo
-if `hash valgrind` > /dev/null; then
+if `hash valgrind 2>/dev/null`; then
     echo "7) valgrind:"
     valgrind --version
 else
@@ -73,7 +71,7 @@ else
 fi
 
 echo
-if `hash openssl` > /dev/null; then
+if `hash openssl 2>/dev/null`; then
     echo "8) openssl:"
     openssl version
 else
@@ -81,7 +79,7 @@ else
 fi
 
 echo
-if `hash gnutls-cli` > /dev/null; then
+if `hash gnutls-cli 2>/dev/null`; then
     echo "9) gnuTLS client:"
     gnutls-cli --version | head -n 1
 else
@@ -89,7 +87,7 @@ else
 fi
 
 echo
-if `hash gnutls-serv` > /dev/null; then
+if `hash gnutls-serv 2>/dev/null`; then
     echo "10) gnuTLS server:"
     gnutls-serv --version | head -n 1
 else
@@ -97,7 +95,7 @@ else
 fi
 
 echo
-if `hash dpkg` > /dev/null; then
+if `hash dpkg 2>/dev/null`; then
     echo "11) asan:"
     dpkg -s libasan2 2> /dev/null | grep -i version
     dpkg -s libasan1 2> /dev/null | grep -i version
@@ -107,3 +105,4 @@ else
 fi
 
 echo
+

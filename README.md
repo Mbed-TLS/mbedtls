@@ -4,34 +4,34 @@ README for mbed TLS
 Configuration
 -------------
 
-mbed TLS should build out of the box on most systems. Some platform specific options are available in the fully-documented configuration file `include/mbedtls/config.h`, which is also the place where features can be selected. This file can be edited manually, or in a more programmatic way using the Perl script `scripts/config.pl` (use `--help` for usage instructions).
+mbed TLS should build out of the box on most systems. Some platform specific options are available in the fully documented configuration file `include/mbedtls/config.h`, which is also the place where features can be selected. This file can be edited manually, or in a more programmatic way using the Perl script `scripts/config.pl` (use `--help` for usage instructions).
 
-Compiler options can be set using standard variables such as `CC` and `CFLAGS` when using the Make and CMake build system (see below).
+Compiler options can be set using conventional environment variables such as `CC` and `CFLAGS` when using the Make and CMake build system (see below).
 
 Compiling
 ---------
 
-There are currently four active build systems within the mbed TLS releases:
+There are currently four active build systems used within mbed TLS releases:
 
 -   yotta
 -   Make
 -   CMake
 -   Microsoft Visual Studio (Visual Studio 6 and Visual Studio 2010)
 
-The main systems used for development are CMake and yotta. Those systems are always complete and up-to-date. The others should reflect all changes present in the CMake and yotta build system, but some features are not ported there by default.
+The main systems used for development are CMake and Make. Those systems are always complete and up-to-date. The others should reflect all changes present in the CMake and Make build system, although features may not be ported there automatically.
 
-Please note that the yotta option is slightly different from the other build systems:
+Yotta, as a build system, is slightly different from the other build systems:
 
--   a more minimalistic configuration file is used by default
--   depending on the yotta target, features of mbed OS will be used in examples and tests
+-   it provides a minimalistic configuration file by default
+-   depending on the yotta target, features of mbed OS may be used in examples and tests
 
 The Make and CMake build systems create three libraries: libmbedcrypto, libmbedx509, and libmbedtls. Note that libmbedtls depends on libmbedx509 and libmbedcrypto, and libmbedx509 depends on libmbedcrypto. As a result, some linkers will expect flags to be in a specific order, for example the GNU linker wants `-lmbedtls -lmbedx509 -lmbedcrypto`. Also, when loading shared libraries using dlopen(), you'll need to load libmbedcrypto first, then libmbedx509, before you can load libmbedtls.
 
 ### Yotta
 
-[yotta](http://yottabuild.org) is a package manager and build system developed by mbed; it is the build system of mbed OS. To install it on your platform, please follow the yotta [installation instructions](http://docs.yottabuild.org/#installing).
+[yotta](http://yottabuild.org) is a package manager and build system developed by mbed, and is the build system of mbed OS 16.03. To install it on your platform, please follow the yotta [installation instructions](http://docs.yottabuild.org/#installing).
 
-Once yotta is installed, you can use it to download the latest version of mbed TLS form the yotta registry with:
+Once yotta is installed, you can use it to download the latest version of mbed TLS from the yotta registry with:
 
     yotta install mbedtls
 
@@ -39,24 +39,24 @@ and build it with:
 
     yotta build
 
-If, on the other hand, you already have a copy of mbed TLS from a source other than the yotta registry, for example from cloning our GitHub repository, or from downloading a tarball of the standalone edition, then you'll need first need to generate the yotta module by running:
+If, on the other hand, you already have a copy of mbed TLS from a source other than the yotta registry, for example from cloning our GitHub repository, or from downloading a tarball of the standalone edition, then you'll first need to generate the yotta module by running:
 
     yotta/create-module.sh
 
-from the mbed TLS root directory. This will create the yotta module in the `yotta/module` directory. You can then change to that directory and build as usual:
+This should be executed from the root mbed TLS project directory. This will create the yotta module in the `yotta/module` directory within it. You can then change to that directory and build as usual:
 
     cd yotta/module
     yotta build
 
-In any case, you'll probably want to set the yotta target before building unless it's already set globally; for more information on using yotta, please consult the [yotta documentation](http://docs.yottabuild.org/).
+In any case, you'll probably want to set the yotta target before building unless it has already been set globally. For more information on using yotta, please consult the [yotta documentation](http://docs.yottabuild.org/).
 
 For more details on the yotta/mbed OS edition of mbed TLS, including example programs, please consult the [Readme at the root of the yotta module](https://github.com/ARMmbed/mbedtls/blob/development/yotta/data/README.md).
 
 ### Make
 
-We intentionally only use the absolute minimum of `Make` functionality, as a lot of `Make` features are not supported on all different implementations of Make on different platforms. As such, the Makefiles sometimes require some handwork or export statements in order to work for your platform.
+We intentionally only use the minimum of `Make` functionality, as a lot of `Make` features are not supported on all different implementations of Make or on different platforms. As such, the Makefiles sometimes require some manual changes or export statements in order to work for your platform.
 
-In order to build the source using Make, just enter at the command line:
+In order to build from the source code using Make, just enter at the command line:
 
     make
 
@@ -78,7 +78,7 @@ Setting the variable `SHARED` in your environment will build shared libraries in
 
 Depending on your platform, you might run into some issues. Please check the Makefiles in `library/`, `programs/` and `tests/` for options to manually add or remove for specific platforms. You can also check [the mbed TLS Knowledge Base](https://tls.mbed.org/kb) for articles on your platform or issue.
 
-In case you find that you need to do something else as well, please let us know what, so we can add it to the KB.
+In case you find that you need to do something else as well, please let us know what, so we can add it to the [mbed TLS knowledge base](https://tls.mbed.org/kb).
 
 ### CMake
 
@@ -161,13 +161,16 @@ Contributing
 
 We gratefully accept bug reports and contributions from the community. There are some requirements we need to fulfill in order to be able to integrate contributions:
 
--   Simple bug fixes to existing code do not contain copyright themselves and we can integrate without issue. The same is true of trivial contributions.
--   For larger contributions, such as a new feature, the code can possibly fall under copyright law. We then need your consent to share in the ownership of the copyright. We have a form for this, which we will send to you in case you submit a contribution or pull request that we deem this necessary for.
+-   All contributions, whether large or small require a Contributor's License Agreement (CLA) to be accepted. This is because source code can possibly fall under copyright law and we need your consent to share in the ownership of the copyright.
+-   We would ask that contributions conform to [our coding standards](https://tls.mbed.org/kb/development/mbedtls-coding-standards), and that contributions should be fully tested before submission.
+-   As with any open source project, contributions will be reviewed by the project team and community and may need some modifications to be accepted.
 
-### Process
+To accept the Contributor’s Licence Agreement (CLA), individual contributors can do this by creating an mbed account and [accepting the online agreement here with a click through](https://developer.mbed.org/contributor_agreement/). Alternatively, for contributions from corporations, or those that do not wish to create an mbed account, a slightly different agreeement can be found [here](https://www.mbed.com/en/about-mbed/contributor-license-agreements/). This agreement should be signed and returned to ARM as described in the instructions given.
+
+### Making a Contribution
 
 1.  [Check for open issues](https://github.com/ARMmbed/mbedtls/issues) or [start a discussion](https://tls.mbed.org/discussions) around a feature idea or a bug.
 2.  Fork the [mbed TLS repository on GitHub](https://github.com/ARMmbed/mbedtls) to start making your changes. As a general rule, you should use the "development" branch as a basis.
 3.  Write a test which shows that the bug was fixed or that the feature works as expected.
-4.  Send a pull request and bug us until it gets merged and published. We will include your name in the ChangeLog :)
+4.  Send a pull request and bug us until it gets merged and published. Contributions may need some modifications, so work with us to get your change accepted. We will include your name in the ChangeLog :)
 

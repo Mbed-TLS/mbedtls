@@ -15,6 +15,8 @@ Bugfix
    * Fix dependency issue in Makefile to allow parallel builds.
    * Fix incorrect handling of block lengths in crypt_and_hash sample program,
      when GCM is used. #441
+   * Fix for key exchanges based on ECDH-RSA or ECDH-ECDSA which weren't
+     enabled unless others were also present. Found by David Fernandez. #428
 
 Changes
    * Extended test coverage of special cases, and added new timing test suite.

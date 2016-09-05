@@ -10,6 +10,10 @@ Bugfix
      when GCM is used. #441
    * Fix for key exchanges based on ECDH-RSA or ECDH-ECDSA which weren't
      enabled unless others were also present. Found by David Fernandez. #428
+   * Fix missing return code check after call to mbedtls_md_setup() that could
+     result in usage of invalid md_ctx in mbedtls_rsa_rsaes_oaep_encrypt(),
+     mbedtls_rsa_rsaes_oaep_decrypt(), mbedtls_rsa_rsassa_pss_sign() and
+     mbedtls_rsa_rsassa_pss_verify_ext(). Fixed by Brian J. Murray.
 
 = mbed TLS 2.1.5 branch released 2016-06-28
 

@@ -553,7 +553,11 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
     memcpy( p, input, ilen );
 
     mbedtls_md_init( &md_ctx );
-    mbedtls_md_setup( &md_ctx, md_info, 0 );
+    if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 0 ) ) != 0 )
+    {
+        mbedtls_md_free( &md_ctx );
+        return( ret );
+    }
 
     // maskedDB: Apply dbMask to DB
     //
@@ -728,7 +732,12 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
      * Unmask data and generate lHash
      */
     mbedtls_md_init( &md_ctx );
-    mbedtls_md_setup( &md_ctx, md_info, 0 );
+    if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 0 ) ) != 0 )
+    {
+        mbedtls_md_free( &md_ctx );
+        return( ret );
+    }
+
 
     /* Generate lHash */
     mbedtls_md( md_info, label, label_len, lhash );
@@ -974,7 +983,11 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
     p += slen;
 
     mbedtls_md_init( &md_ctx );
-    mbedtls_md_setup( &md_ctx, md_info, 0 );
+    if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 0 ) ) != 0 )
+    {
+        mbedtls_md_free( &md_ctx );
+        return( ret );
+    }
 
     // Generate H = Hash( M' )
     //
@@ -1247,7 +1260,11 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
     mbedtls_md_init( &md_ctx );
-    mbedtls_md_setup( &md_ctx, md_info, 0 );
+    if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 0 ) ) != 0 )
+    {
+        mbedtls_md_free( &md_ctx );
+        return( ret );
+    }
 
     mgf_mask( p, siglen - hlen - 1, p + siglen - hlen - 1, hlen, &md_ctx );
 

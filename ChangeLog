@@ -46,6 +46,8 @@ Bugfix
      valid version in the trusted certificate list.
    * Fix incorrect handling of block lengths in crypt_and_hash sample program,
      when GCM is used. #441
+   * Fix for key exchanges based on ECDH-RSA or ECDH-ECDSA which weren't
+     enabled unless others were also present. Found by David Fernandez. #428
 
 = mbed TLS 1.3.17 branch 2016-06-28
 

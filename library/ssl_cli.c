@@ -2204,7 +2204,9 @@ exit:
 
 #if !defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED)       && \
     !defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED)   && \
+    !defined(POLARSSL_KEY_EXCHANGE_ECDH_RSA_ENABLED)  && \
     !defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) && \
+    !defined(POLARSSL_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)&& \
     !defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
 static int ssl_parse_certificate_request( ssl_context *ssl )
 {
@@ -2373,7 +2375,9 @@ exit:
 }
 #endif /* !POLARSSL_KEY_EXCHANGE_RSA_ENABLED &&
           !POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED &&
+          !POLARSSL_KEY_EXCHANGE_ECDH_RSA_ENABLE &&
           !POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED &&
+          !POLARSSL_KEY_EXCHANGE_ECDH_ECDSA_ENABLED &&
           !POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
 
 static int ssl_parse_server_hello_done( ssl_context *ssl )
@@ -2643,7 +2647,9 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
 
 #if !defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED)       && \
     !defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED)   && \
+    !defined(POLARSSL_KEY_EXCHANGE_ECDH_RSA_ENABLED)  && \
     !defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) && \
+    !defined(POLARSSL_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)  && \
     !defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
 static int ssl_write_certificate_verify( ssl_context *ssl )
 {
@@ -2821,7 +2827,10 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
 }
 #endif /* !POLARSSL_KEY_EXCHANGE_RSA_ENABLED &&
           !POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED &&
-          !POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED */
+          !POLARSSL_KEY_EXCHANGE_ECDH_RSA_ENABLED &&
+          !POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED &&
+          !POLARSSL_KEY_EXCHANGE_ECDH_ECDSA_ENABLED &&
+          !POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
 static int ssl_parse_new_session_ticket( ssl_context *ssl )

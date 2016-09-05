@@ -17,91 +17,169 @@
 #   - version of libc, clang, asan and valgrind if installed
 #   - version of gnuTLS and OpenSSL
 
-echo
-echo "1) Operating system and architecture:"
-uname -a
+COUNT=1
 
 echo
-if `hash armcc 2>/dev/null`; then
-    echo "2) armcc:"
+echo "$COUNT) Operating system and architecture:"
+uname -a
+COUNT=$((COUNT+1))
+
+echo
+if `hash armcc > /dev/null 2>&1`; then
+    echo "$COUNT) armcc:"
     armcc --vsn | head -n 2
 else
-    echo "2) armcc not found!"
+    echo "$COUNT) armcc not found!"
 fi
+COUNT=$((COUNT+1))
 
 echo
-if `hash arm-none-eabi-gcc 2>/dev/null`; then
-    echo "3) gcc-arm:"
+if `hash arm-none-eabi-gcc > /dev/null 2>&1`; then
+    echo "$COUNT) gcc-arm:"
     arm-none-eabi-gcc --version | head -n 1
 else
-    echo "3) gcc-arm not found!"
+    echo "$COUNT) gcc-arm not found!"
 fi
+COUNT=$((COUNT+1))
 
 echo
-if `hash gcc 2>/dev/null`; then
-    echo "4) gcc:"
+if `hash gcc > /dev/null 2>&1`; then
+    echo "$COUNT) gcc:"
     gcc --version | head -n 1
 else
-    echo "4) gcc not found!"
+    echo "$COUNT) gcc not found!"
 fi
+COUNT=$((COUNT+1))
 
 echo
-if `hash clang 2>/dev/null`; then
-    echo "5) clang:"
+if `hash clang > /dev/null 2>&1`; then
+    echo "$COUNT) clang:"
     clang --version | head -n 2
     clang -v 2>&1 | grep Selected
 else
-    echo "5) clang not found!"
+    echo "$COUNT) clang not found!"
 fi
+COUNT=$((COUNT+1))
 
 echo
-if `hash ldd 2>/dev/null`; then
-    echo "6) libc:"
+if `hash ldd > /dev/null 2>&1`; then
+    echo "$COUNT) libc:"
     ldd --version | head -n 1
 else
-    echo "6) No ldd present: can't determine libc version!"
+    echo "$COUNT) No ldd present: can't determine libc version!"
 fi
+COUNT=$((COUNT+1))
 
 echo
-if `hash valgrind 2>/dev/null`; then
-    echo "7) valgrind:"
+if `hash valgrind > /dev/null 2>&1`; then
+    echo "$COUNT) valgrind:"
     valgrind --version
 else
-    echo "7) valgrind not found!"
+    echo "$COUNT) valgrind not found!"
 fi
+COUNT=$((COUNT+1))
 
 echo
-if `hash openssl 2>/dev/null`; then
-    echo "8) openssl:"
+if `hash openssl > /dev/null 2>&1`; then
+    echo "$COUNT) openssl:"
     openssl version
 else
-    echo "8) openssl not found!"
+    echo "$COUNT) openssl not found!"
+fi
+COUNT=$((COUNT+1))
+
+if [ -n "${OPENSSL+set}" ]; then
+    echo
+    if `hash "$OPENSSL" > /dev/null 2>&1`; then
+        echo "$COUNT) $OPENSSL at environment variable 'OPENSSL':"
+        $OPENSSL version
+    else
+        echo "$COUNT) $OPENSSL at environment variable 'OPENSSL' not found!"
+    fi
+    COUNT=$((COUNT+1))
+fi
+
+if [ -n "${OPENSSL_LEGACY+set}" ]; then
+    echo
+    if `hash "$OPENSSL_LEGACY" > /dev/null 2>&1`; then
+        echo "$COUNT) $OPENSSL_LEGACY at environment variable 'OPENSSL_LEGACY':"
+        $OPENSSL_LEGACY version
+    else
+        echo "$COUNT) $OPENSSL_LEGACY at environment variable 'OPENSSL_LEGACY' not found!"
+    fi
+    COUNT=$((COUNT+1))
 fi
 
 echo
-if `hash gnutls-cli 2>/dev/null`; then
-    echo "9) gnuTLS client:"
+if `hash gnutls-cli > /dev/null 2>&1`; then
+    echo "$COUNT) gnuTLS client:"
     gnutls-cli --version | head -n 1
 else
-    echo "9) gnuTLS client not found!"
+    echo "$COUNT) gnuTLS client not found!"
 fi
+COUNT=$((COUNT+1))
 
 echo
-if `hash gnutls-serv 2>/dev/null`; then
-    echo "10) gnuTLS server:"
+if `hash gnutls-serv > /dev/null 2>&1`; then
+    echo "$COUNT) gnuTLS server:"
     gnutls-serv --version | head -n 1
 else
-    echo "10) gnuTLS server not found!"
+    echo "$COUNT) gnuTLS server not found!"
+fi
+COUNT=$((COUNT+1))
+
+if [ -n "${GNUTLS_CLI+set}" ]; then
+    echo
+    if `hash "$GNUTLS_CLI" > /dev/null 2>&1`; then
+        echo "$COUNT) $GNUTLS_CLI at environment variable 'GNUTLS_CLI':"
+        $GNUTLS_CLI --version | head -n 1
+    else
+        echo "$COUNT) $GNUTLS_CLI at environment variable 'GNUTLS_CLI' not found!"
+    fi
+    COUNT=$((COUNT+1))
+fi
+
+if [ -n "${GNUTLS_SERV+set}" ]; then
+    echo
+    if `hash "$GNUTLS_SERV" > /dev/null 2>&1`; then
+        echo "$COUNT) $GNUTLS_SERV at environment variable 'GNUTLS_SERV':"
+        $GNUTLS_SERV --version | head -n 1
+    else
+        echo "$COUNT) $GNUTLS_SERV at environment variable 'GNUTLS_SERV' not found!"
+    fi
+    COUNT=$((COUNT+1))
+fi
+
+if [ -n "${GNUTLS_LEGACY_CLI+set}" ]; then
+    echo
+    if `hash "$GNUTLS_LEGACY_CLI" > /dev/null 2>&1`; then
+        echo "$COUNT) $GNUTLS_LEGACY_CLI at environment variable 'GNUTLS_LEGACY_CLI':"
+        $GNUTLS_LEGACY_CLI --version | head -n 1
+    else
+        echo "$COUNT) $GNUTLS_LEGACY_CLI at environment variable 'GNUTLS_LEGACY_CLI' not found!"
+    fi
+    COUNT=$((COUNT+1))
+fi
+
+if [ -n "${GNUTLS_LEGACY_SERV+set}" ]; then
+    echo
+    if `hash "$GNUTLS_LEGACY_SERV" > /dev/null 2>&1`; then
+        echo "$COUNT) $GNUTLS_LEGACY_SERV at environment variable 'GNUTLS_LEGACY_SERV':"
+        $GNUTLS_LEGACY_SERV --version | head -n 1
+    else
+        echo "$COUNT) $GNUTLS_LEGACY_SERV at environment variable 'GNUTLS_LEGACY_SERV' not found!"
+    fi
+    COUNT=$((COUNT+1))
 fi
 
 echo
-if `hash dpkg 2>/dev/null`; then
-    echo "11) asan:"
+if `hash dpkg > /dev/null 2>&1`; then
+    echo "$COUNT) asan:"
     dpkg -s libasan2 2> /dev/null | grep -i version
     dpkg -s libasan1 2> /dev/null | grep -i version
     dpkg -s libasan0 2> /dev/null | grep -i version
 else
-    echo "11) No dpkg present: can't determine asan version!"
+    echo "$COUNT) No dpkg present: can't determine asan version!"
 fi
 
 echo

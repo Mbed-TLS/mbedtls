@@ -31,7 +31,6 @@ CONFIG_H='include/mbedtls/config.h'
 CONFIG_BAK="$CONFIG_H.bak"
 
 MEMORY=0
-SHORT=0
 FORCE=0
 
 usage()
@@ -39,7 +38,6 @@ usage()
     echo "Usage: $0"
     echo -e "  -h|--help\t\tPrint this help."
     echo -e "  -m|--memory\t\tAdditional optional memory tests."
-    echo -e "  -s|--short\t\tSubset of tests."
     echo -e "  -f|--force\t\tForce the tests to overwrite any modified files."
 }
 
@@ -73,9 +71,6 @@ while [ $# -gt 0 ]; do
     case "$1" in
         --memory|-m*)
             MEMORY=${1#-m}
-            ;;
-        --short|-s)
-            SHORT=1
             ;;
         --force|-f)
             FORCE=1
@@ -137,10 +132,16 @@ msg "test/build: declared and exported names" # < 3s
 cleanup
 tests/scripts/check-names.sh
 
-if which doxygen >/dev/null; then
+if hash doxygen >/dev/null 2>&1 && hash dot >/dev/null 2>&1; then
     msg "test: doxygen warnings" # ~ 3s
     cleanup
     tests/scripts/doxygen.sh
+elif ! hash doxygen >/dev/null 2>&1; then
+    echo "Doxygen is not available"
+    exit 1
+elif ! hash dot >/dev/null 2>&1; then
+    echo "Dot is not available. This application is required by Doxygen"
+    exit 1
 fi
 
 msg "build: create and build yotta module" # ~ 30s
@@ -161,13 +162,6 @@ tests/ssl-opt.sh
 
 msg "test/build: ref-configs (ASan build)" # ~ 6 min 20s
 tests/scripts/test-ref-configs.pl
-
-# Most frequent issues are likely to be caught at this point
-if [ $SHORT -eq 1 ]; then
-    msg "Done, cleaning up"
-    cleanup
-    exit 0
-fi
 
 msg "build: with ASan (rebuild after ref-configs)" # ~ 1 min
 make
@@ -317,6 +311,9 @@ scripts/config.pl unset MBEDTLS_THREADING_C
 scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
 scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
 CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS=-Werror make lib
+else
+echo "arm-none-eabi-gcc is not available"
+exit 1
 fi # arm-gcc
 
 if which armcc >/dev/null && armcc --help >/dev/null 2>&1; then
@@ -340,6 +337,9 @@ scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
 scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
 scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT # depends on MBEDTLS_HAVE_TIME
 CC=armcc AR=armar WARNING_CFLAGS= make lib
+else
+echo "armcc is not available"
+exit 1
 fi # armcc
 
 if which i686-w64-mingw32-gcc >/dev/null; then

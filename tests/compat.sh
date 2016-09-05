@@ -12,10 +12,6 @@
 #
 # Check each common ciphersuite, with each version, both ways (client/server),
 # with and without client authentication.
-#
-# Peer version requirements:
-# - OpenSSL 1.0.1e 11 Feb 2013 (probably NOT since 1.0.1, tested with 1.0.1e)
-# - GnuTLS 3.2.15 (probably works since 3.2.12 but tested only with 3.2.15)
 
 set -u
 

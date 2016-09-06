@@ -42,13 +42,13 @@ FORCE=0
 : ${GNUTLS_LEGACY_SERV:="$GNUTLS_SERV"}
 : ${OUT_OF_SOURCE_DIR:=./mbedtls_out_of_source_build}
 
-sage()
+usage()
 {
     printf "Usage: $0\n"
     printf "  -h|--help\t\tPrint this help.\n"
     printf "  -m|--memory\t\tAdditional optional memory tests.\n"
     printf "  -f|--force\t\tForce the tests to overwrite any modified files.\n"
-    printf "     --out-of-source-dir\t\tDirectory used for CMake out-of-source build tests."
+    printf "     --out-of-source-dir=<path>\t\tDirectory used for CMake out-of-source build tests."
     printf "     --openssl=<OpenSSL_path>\t\tPath to OpenSSL executable to use for most tests.\n"
     printf "     --openssl-legacy=<OpenSSL_path>\t\tPath to OpenSSL executable to use for legacy tests e.g. SSLv3.\n"
     printf "     --gnutls-cli=<GnuTLS_cli_path>\t\tPath to GnuTLS client executable to use for most tests.\n"

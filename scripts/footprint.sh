@@ -69,8 +69,9 @@ doit()
         scripts/config.pl --force set MBEDTLS_NO_PLATFORM_ENTROPY || true
     } >/dev/null 2>&1
 
+    make clean >/dev/null
     CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld \
-        CFLAGS="$ARMGCC_FLAGS" make clean lib >/dev/null
+        CFLAGS="$ARMGCC_FLAGS" make lib >/dev/null
 
     OUT="size-${NAME}.txt"
     arm-none-eabi-size -t library/libmbed*.a > "$OUT"

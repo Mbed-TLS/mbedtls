@@ -17,6 +17,8 @@ Bugfix
      when GCM is used. #441
    * Fix for key exchanges based on ECDH-RSA or ECDH-ECDSA which weren't
      enabled unless others were also present. Found by David Fernandez. #428
+   * Fix for out-of-tree builds using CMake. Found by jwurzer, and fix based on
+     a contribution from Tobias Tangemann. #541
 
 Changes
    * Extended test coverage of special cases, and added new timing test suite.

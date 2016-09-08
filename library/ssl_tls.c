@@ -1217,17 +1217,6 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         /*
          * Generate IV
          */
-#if defined(POLARSSL_SSL_AEAD_RANDOM_IV)
-        ret = ssl->f_rng( ssl->p_rng,
-                ssl->transform_out->iv_enc + ssl->transform_out->fixed_ivlen,
-                ssl->transform_out->ivlen - ssl->transform_out->fixed_ivlen );
-        if( ret != 0 )
-            return( ret );
-
-        memcpy( ssl->out_iv,
-                ssl->transform_out->iv_enc + ssl->transform_out->fixed_ivlen,
-                ssl->transform_out->ivlen - ssl->transform_out->fixed_ivlen );
-#else
         if( ssl->transform_out->ivlen - ssl->transform_out->fixed_ivlen != 8 )
         {
             /* Reminder if we ever add an AEAD mode with a different size */
@@ -1238,7 +1227,6 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         memcpy( ssl->transform_out->iv_enc + ssl->transform_out->fixed_ivlen,
                              ssl->out_ctr, 8 );
         memcpy( ssl->out_iv, ssl->out_ctr, 8 );
-#endif
 
         SSL_DEBUG_BUF( 4, "IV used", ssl->out_iv,
                 ssl->transform_out->ivlen - ssl->transform_out->fixed_ivlen );

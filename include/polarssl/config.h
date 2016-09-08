@@ -839,18 +839,6 @@
 #define POLARSSL_SELF_TEST
 
 /**
- * \def POLARSSL_SSL_AEAD_RANDOM_IV
- *
- * Generate a random IV rather than using the record sequence number as a
- * nonce for ciphersuites using and AEAD algorithm (GCM or CCM).
- *
- * Using the sequence number is generally recommended.
- *
- * Uncomment this macro to always use random IVs with AEAD ciphersuites.
- */
-//#define POLARSSL_SSL_AEAD_RANDOM_IV
-
-/**
  * \def POLARSSL_SSL_ALL_ALERT_MESSAGES
  *
  * Enable sending of alert messages in case of encountered errors as per RFC.

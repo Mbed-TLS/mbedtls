@@ -3,6 +3,10 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS 2.1.x branch released 2016-xx-xx
 
 Security
+   * Remove MBEDTLS_SSL_AEAD_RANDOM_IV option, because it was not compliant
+     with RFC5116 and could lead to session key recovery in very long TLS
+     sessions. (H. Bock, A. Zauner, S. Devlin, J. Somorovsky, P. Jovanovic -
+     "Nonce-Disrespecting Adversaries Practical Forgery Attacks on GCM in TLS")
    * Fix potential stack corruption in mbedtls_x509write_crt_der() and
      mbedtls_x509write_csr_der() when the signature is copied to the buffer
      without checking whether there is enough space in the destination. The

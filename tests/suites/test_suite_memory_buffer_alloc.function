@@ -25,7 +25,7 @@ static int check_pointer( void *p )
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void mbedtls_memory_buffer_alloc_self_test( )
 {
-    TEST_ASSERT( mbedtls_memory_buffer_alloc_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_memory_buffer_alloc_self_test( 1 ) == 0 );
 }
 /* END_CASE */
 

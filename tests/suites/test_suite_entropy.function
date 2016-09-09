@@ -380,6 +380,6 @@ void entropy_nv_seed( char *read_seed_str )
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void entropy_selftest( int result )
 {
-    TEST_ASSERT( mbedtls_entropy_self_test( 0 ) == result );
+    TEST_ASSERT( mbedtls_entropy_self_test( 1 ) == result );
 }
 /* END_CASE */

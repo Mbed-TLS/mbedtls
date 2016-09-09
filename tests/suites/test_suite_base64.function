@@ -119,6 +119,6 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void base64_selftest()
 {
-    TEST_ASSERT( mbedtls_base64_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_base64_self_test( 1 ) == 0 );
 }
 /* END_CASE */

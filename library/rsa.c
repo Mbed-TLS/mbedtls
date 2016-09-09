@@ -122,7 +122,14 @@ int rsa_gen_key( rsa_context *ctx,
                                 f_rng, p_rng ) );
         }
 
-        if( mpi_cmp_mpi( &ctx->P, &ctx->Q ) == 0 )
+        /*
+         * This code seems redundant since it only guarantees that P > Q. This
+         * is not required by the PKCS, but is a convention.
+         */
+        if( mbedtls_mpi_cmp_mpi( &ctx->P, &ctx->Q ) < 0 )
+            mbedtls_mpi_swap( &ctx->P, &ctx->Q );
+
+        if( mbedtls_mpi_cmp_mpi( &ctx->P, &ctx->Q ) == 0 )
             continue;
 
         MPI_CHK( mpi_mul_mpi( &ctx->N, &ctx->P, &ctx->Q ) );

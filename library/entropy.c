@@ -575,7 +575,7 @@ cleanup:
  */
 int mbedtls_entropy_self_test( int verbose )
 {
-    int ret = 0;
+    int ret = 1;
     mbedtls_entropy_context ctx;
     unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE] = { 0 };
     unsigned char acc[MBEDTLS_ENTROPY_BLOCK_SIZE] = { 0 };
@@ -584,6 +584,7 @@ int mbedtls_entropy_self_test( int verbose )
     if( verbose != 0 )
         mbedtls_printf( "  ENTROPY test: " );
 
+#if !defined(MBEDTLS_TEST_NULL_ENTROPY)
     mbedtls_entropy_init( &ctx );
 
     /* First do a gather to make sure we have default sources */
@@ -631,6 +632,7 @@ int mbedtls_entropy_self_test( int verbose )
 
 cleanup:
     mbedtls_entropy_free( &ctx );
+#endif /* !MBEDTLS_TEST_NULL_ENTROPY */
 
     if( verbose != 0 )
     {

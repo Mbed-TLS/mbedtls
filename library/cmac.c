@@ -1,7 +1,8 @@
 /*
- *  NIST SP800-38B compliant CMAC implementation
+ * \file cmac.c
+ * \brief NIST SP800-38B compliant CMAC implementation
  *
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2006-2016, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -20,9 +21,10 @@
  */
 
 /*
- * Definition of CMAC:
- * http://csrc.nist.gov/publications/nistpubs/800-38B/SP_800-38B.pdf
- * RFC 4493 "The AES-CMAC Algorithm"
+ * References:
+ * - CMAC:  NIST SP 800-38B
+ * - CMAC PRF: RFC 4493
+ * - Additional test vectors: ISO/IEC 9797-1
  */
 
 #if !defined(MBEDTLS_CONFIG_FILE)
@@ -72,7 +74,7 @@ void mbedtls_cmac_init( mbedtls_cmac_context *ctx )
  */
 static int cmac_multiply_by_u( unsigned char *output,
                                const unsigned char *input,
-							   size_t blocksize )
+                               size_t blocksize )
 {
     const unsigned char R_128 = 0x87;
     const unsigned char R_64 = 0x1B;
@@ -151,7 +153,7 @@ static int cmac_generate_subkeys( mbedtls_cmac_context *ctx )
     exit:
         if( L != NULL )
             mbedtls_zeroize( L, sizeof( L ) );
-		mbedtls_free( L );
+        mbedtls_free( L );
         return( ret );
 }
 
@@ -200,9 +202,8 @@ int mbedtls_cmac_setkey( mbedtls_cmac_context *ctx,
  */
 void mbedtls_cmac_free( mbedtls_cmac_context *ctx )
 {
-	int block_size;
-	block_size = ctx->cipher_ctx.cipher_info->block_size;
-
+    int block_size;
+    block_size = ctx->cipher_ctx.cipher_info->block_size;
     mbedtls_cipher_free( &ctx->cipher_ctx );
 
     if(  ctx->K1 != NULL )
@@ -220,7 +221,7 @@ void mbedtls_cmac_free( mbedtls_cmac_context *ctx )
  * CBC and we use ECB mode, and anyway we need to XOR K1 or K2 in addition.
  */
 static void cmac_pad( unsigned char padded_block[16],
-		              size_t padded_block_len,
+                      size_t padded_block_len,
                       const unsigned char *last_block,
                       size_t last_block_len )
 {
@@ -418,7 +419,7 @@ int mbedtls_aes_cmac_prf_128( const unsigned char *key, size_t key_length,
     exit:
         mbedtls_zeroize( int_key, sizeof( int_key ) );
         mbedtls_cmac_free( &ctx );
-	    return( ret );
+        return( ret );
 }
 #endif /* MBEDTLS_AES_C */
 

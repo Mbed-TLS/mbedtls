@@ -120,7 +120,7 @@ int mbedtls_cmac_verify( mbedtls_cmac_context *ctx,
  * \param key_len   PRF key length
  * \param input     buffer holding the input data
  * \param in_len    length of the input data in bytes
- * \param tag       buffer holding the generated pseudorandom output
+ * \param tag       buffer holding the generated pseudorandom output (16 bytes)
  *
  * \return          0 if successful
  */

@@ -39,14 +39,19 @@
 
 #include <string.h>
 
-#if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
+
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
+#include <stdlib.h>
+#define mbedtls_calloc     calloc
+#define mbedtls_free       free
+#if defined(MBEDTLS_SELF_TEST) && ( defined(MBEDTLS_AES_C) || defined(MBEDTLS_DES_C) )
 #include <stdio.h>
-#define mbedtls_printf printf
+#define mbedtls_printf     printf
+#endif /* defined(MBEDTLS_SELF_TEST) && ( defined(MBEDTLS_AES_C) || defined(MBEDTLS_DES_C) )*/
 #endif /* MBEDTLS_PLATFORM_C */
-#endif /* MBEDTLS_SELF_TEST && MBEDTLS_AES_C */
+
 
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {

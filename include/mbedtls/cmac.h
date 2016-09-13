@@ -57,7 +57,8 @@ void mbedtls_cmac_init( mbedtls_cmac_context *ctx );
  * \brief           Initialize the CMAC context
  *
  * \param ctx       CMAC context to be initialized
- * \param cipher    cipher to use
+ * \param cipher    cipher to use.  
+                    Cipher block size must be 8 bytes or 16 bytes.
  * \param key       encryption key
  * \param keybits   encryption key size in bits (must be acceptable by the cipher)
  *
@@ -84,8 +85,8 @@ void mbedtls_cmac_free( mbedtls_cmac_context *ctx );
  * \param in_len    length of the input data in bytes
  * \param tag       buffer for holding the generated tag
  * \param tag_len   length of the tag to generate in bytes
- *                  Must be 2, 4, 6, 8 if cipher block size is 64
- *                  Must be 2, 4, 6, 8, 10, 12, 14 or 16 if cipher block size is 128
+ *                  Must be 2, 4, 6, 8 if cipher block size is 8
+ *                  Must be 2, 4, 6, 8, 10, 12, 14 or 16 if cipher block size is 16
  *
  * \return          0 if successful
  */
@@ -101,8 +102,8 @@ int mbedtls_cmac_generate( mbedtls_cmac_context *ctx,
  * \param in_len    length of the input data in bytes
  * \param tag       buffer holding the tag to verify
  * \param tag_len   length of the tag to verify in bytes
- *                  Must be 2, 4, 6, 8 if cipher block size is 64
- *                  Must be 2, 4, 6, 8, 10, 12, 14 or 16 if cipher block size is 128
+ *                  Must be 2, 4, 6, 8 if cipher block size is 8
+ *                  Must be 2, 4, 6, 8, 10, 12, 14 or 16 if cipher block size is 16
  * \return          0 if successful and authenticated
  *                  MBEDTLS_ERR_CMAC_VERIFY_FAILED if tag does not match
  */
@@ -119,7 +120,7 @@ int mbedtls_cmac_verify( mbedtls_cmac_context *ctx,
  * \param key_len   PRF key length
  * \param input     buffer holding the input data
  * \param in_len    length of the input data in bytes
- * \param tag       buffer holding the tag to verify (16 bytes)
+ * \param tag       buffer holding the generated pseudorandom output
  *
  * \return          0 if successful
  */

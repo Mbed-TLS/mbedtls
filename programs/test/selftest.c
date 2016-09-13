@@ -201,9 +201,12 @@ int main( int argc, char *argv[] )
         return( ret );
 #endif
 
-#if defined(MBEDTLS_CMAC_C) && defined(MBEDTLS_AES_C)
-    if( ( ret = mbedtls_cmac_self_test( v ) ) != 0 )
-        return( ret );
+#if defined(MBEDTLS_CMAC_C) && ( defined(MBEDTLS_AES_C) || defined(MBEDTLS_DES_C) )
+    if( ( mbedtls_cmac_self_test( v ) ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
 #endif
 
 #if defined(MBEDTLS_BASE64_C)

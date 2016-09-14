@@ -90,6 +90,9 @@ while (my $line = <GREP>)
     $include_name =~ tr/A-Z/a-z/;
     $include_name = "" if ($include_name eq "asn1");
 
+    # Fix faulty ones
+    $include_name = "net_sockets" if ($module_name eq "NET");
+
     my $found_ll = grep $_ eq $module_name, @low_level_modules;
     my $found_hl = grep $_ eq $module_name, @high_level_modules;
     if (!$found_ll && !$found_hl)

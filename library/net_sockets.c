@@ -38,7 +38,7 @@
 #include <stdlib.h>
 #endif
 
-#include "mbedtls/net.h"
+#include "mbedtls/net_sockets.h"
 
 #include <string.h>
 

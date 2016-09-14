@@ -35,6 +35,10 @@ Changes
      through the symbol YOTTA_CFG_MBEDTLS_TARGET_CONFIG_FILE.
    * Added optimization for code space for X.509/OID based on configured
      features. (contributed by Aviv Palivoda)
+   * Renamed source file library/net.c to library/net_sockets.c to avoid
+     naming collision in projects which also have files with the common name
+     net.c. For consistency, the corresponding header file, net.h, is marked as
+     deprecated, and its contents moved to net_sockets.h.
 
 = mbed TLS 2.3.0 branch released 2016-06-28
 

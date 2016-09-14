@@ -68,9 +68,10 @@ OBJS_X509=	certs.o		pkcs11.o	x509.o		\
 		x509_create.o	x509_crl.o	x509_crt.o	\
 		x509_csr.o	x509write_crt.o	x509write_csr.o
 
-OBJS_TLS=	debug.o		net.o		ssl_cache.o	\
-		ssl_ciphersuites.o		ssl_cli.o	\
-		ssl_cookie.o	ssl_srv.o	ssl_ticket.o	\
+OBJS_TLS=	debug.o		net_sockets.o		\
+		ssl_cache.o	ssl_ciphersuites.o	\
+		ssl_cli.o	ssl_cookie.o		\
+		ssl_srv.o	ssl_ticket.o		\
 		ssl_tls.o
 
 .SILENT:

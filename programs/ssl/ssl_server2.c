@@ -2452,7 +2452,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
-    if( strlen( opt.psk ) != 0 && strlen( opt.psk_identity ) != 0 )
+    if( strlen( opt.psk ) != 0 )
     {
         ret = mbedtls_ssl_conf_psk( &conf, psk, psk_len,
                            (const unsigned char *) opt.psk_identity,

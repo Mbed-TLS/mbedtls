@@ -869,7 +869,7 @@ static int ssl_ciphersuite_match( mbedtls_ssl_context *ssl, int suite_id,
     if( mbedtls_ssl_ciphersuite_uses_psk( suite_info ) &&
         ssl->conf->f_psk == NULL &&
         ( ssl->conf->psk == NULL || ssl->conf->psk_identity == NULL ||
-          ssl->conf->psk_identity_len == 0 || ssl->conf->psk_len == 0 ) )
+          ssl->conf->psk_len == 0 ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: no pre-shared key" ) );
         return( 0 );
@@ -3650,7 +3650,7 @@ static int ssl_parse_client_psk_identity( mbedtls_ssl_context *ssl, unsigned cha
 
     if( ssl->conf->f_psk == NULL &&
         ( ssl->conf->psk == NULL || ssl->conf->psk_identity == NULL ||
-          ssl->conf->psk_identity_len == 0 || ssl->conf->psk_len == 0 ) )
+          ssl->conf->psk_len == 0 ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no pre-shared key" ) );
         return( MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED );
@@ -3668,7 +3668,7 @@ static int ssl_parse_client_psk_identity( mbedtls_ssl_context *ssl, unsigned cha
     n = ( (*p)[0] << 8 ) | (*p)[1];
     *p += 2;
 
-    if( n < 1 || n > 65535 || n > (size_t) ( end - *p ) )
+    if( n > 65535 || n > (size_t) ( end - *p ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
         return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );

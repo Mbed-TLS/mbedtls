@@ -278,7 +278,7 @@ scripts/config.pl full
 scripts/config.pl unset MBEDTLS_SSL_CLI_C
 CC=gcc CFLAGS='-Werror -O0' make
 
-msg "build: full config except net.c, make, gcc -std=c99 -pedantic" # ~ 30s
+msg "build: full config except net_sockets.c, make, gcc -std=c99 -pedantic" # ~ 30s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full

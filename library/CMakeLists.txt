@@ -71,7 +71,7 @@ set(src_x509
 
 set(src_tls
     debug.c
-    net.c
+    net_sockets.c
     ssl_cache.c
     ssl_ciphersuites.c
     ssl_cli.c

@@ -179,7 +179,7 @@
     <ClInclude Include="..\..\include\mbedtls\md5.h" />
     <ClInclude Include="..\..\include\mbedtls\md_internal.h" />
     <ClInclude Include="..\..\include\mbedtls\memory_buffer_alloc.h" />
-    <ClInclude Include="..\..\include\mbedtls\net.h" />
+    <ClInclude Include="..\..\include\mbedtls\net_sockets.h" />
     <ClInclude Include="..\..\include\mbedtls\oid.h" />
     <ClInclude Include="..\..\include\mbedtls\padlock.h" />
     <ClInclude Include="..\..\include\mbedtls\pem.h" />
@@ -244,7 +244,7 @@
     <ClCompile Include="..\..\library\md5.c" />
     <ClCompile Include="..\..\library\md_wrap.c" />
     <ClCompile Include="..\..\library\memory_buffer_alloc.c" />
-    <ClCompile Include="..\..\library\net.c" />
+    <ClCompile Include="..\..\library\net_sockets.c" />
     <ClCompile Include="..\..\library\oid.c" />
     <ClCompile Include="..\..\library\padlock.c" />
     <ClCompile Include="..\..\library\pem.c" />

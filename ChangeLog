@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Bugfix
+   * Allow empty psk_identity in both ssl_server2 and ssl_srv code. Found by
+     jerhon. #614
+
 = mbed TLS 2.13.1 branch released 2018-09-06
 
 API Changes

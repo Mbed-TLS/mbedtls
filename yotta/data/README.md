@@ -72,7 +72,7 @@ While the two editions share the same code base, there are still a number of dif
 
 * The mbed OS edition has a smaller set of features enabled by default in `config.h`, in order to reduce footprint. While the default configuration of the standalone edition puts more emphasize on maintaining interoperability with old peers, the mbed OS edition only enables the most modern ciphers and the latest version of (D)TLS.
 
-* The following components of mbed TLS are disabled in the mbed OS edition: `net.c` and `timing.c`. This is because mbed OS includes their equivalents.
+* The following components of mbed TLS are disabled in the mbed OS edition: `net_sockets.c` and `timing.c`. This is because mbed OS include their equivalents.
 
 * The mbed OS edition comes with a fully integrated API for (D)TLS connections in a companion module: [mbed-tls-sockets](https://github.com/ARMmbed/mbed-tls-sockets). See "Performing TLS and DTLS connections" above.
 

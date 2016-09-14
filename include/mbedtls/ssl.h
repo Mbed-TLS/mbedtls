@@ -1105,9 +1105,10 @@ void mbedtls_ssl_conf_dbg( mbedtls_ssl_config *conf,
  *                 \c mbedtls_ssl_recv_t and \c mbedtls_ssl_recv_timeout_t for
  *                 the conventions those callbacks must follow.
  *
- * \note           On some platforms, net.c provides \c mbedtls_net_send(),
- *                 \c mbedtls_net_recv() and \c mbedtls_net_recv_timeout()
- *                 that are suitable to be used here.
+ * \note           On some platforms, net_sockets.c provides
+ *                 \c mbedtls_net_send(), \c mbedtls_net_recv() and
+ *                 \c mbedtls_net_recv_timeout() that are suitable to be used
+ *                 here.
  */
 void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
                           void *p_bio,

@@ -1960,7 +1960,7 @@
  * environment:
  * https://tls.mbed.org/kb/how-to/how-do-i-port-mbed-tls-to-a-new-environment-OS
  *
- * Module:  library/net.c
+ * Module:  library/net_sockets.c
  *
  * This module provides networking routines.
  */

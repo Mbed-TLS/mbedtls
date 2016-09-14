@@ -102,7 +102,7 @@
 #endif
 
 #if defined(MBEDTLS_NET_C)
-#include "mbedtls/net.h"
+#include "mbedtls/net_sockets.h"
 #endif
 
 #if defined(MBEDTLS_OID_C)

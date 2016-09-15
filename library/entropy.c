@@ -456,6 +456,7 @@ int mbedtls_entropy_update_seed_file( mbedtls_entropy_context *ctx, const char *
 #endif /* MBEDTLS_FS_IO */
 
 #if defined(MBEDTLS_SELF_TEST)
+#if !defined(MBEDTLS_TEST_NULL_ENTROPY)
 /*
  * Dummy source function
  */
@@ -469,6 +470,7 @@ static int entropy_dummy_source( void *data, unsigned char *output,
 
     return( 0 );
 }
+#endif /* !MBEDTLS_TEST_NULL_ENTROPY */
 
 #if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
 
@@ -576,10 +578,12 @@ cleanup:
 int mbedtls_entropy_self_test( int verbose )
 {
     int ret = 1;
+#if !defined(MBEDTLS_TEST_NULL_ENTROPY)
     mbedtls_entropy_context ctx;
     unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE] = { 0 };
     unsigned char acc[MBEDTLS_ENTROPY_BLOCK_SIZE] = { 0 };
     size_t i, j;
+#endif /* !MBEDTLS_TEST_NULL_ENTROPY */
 
     if( verbose != 0 )
         mbedtls_printf( "  ENTROPY test: " );

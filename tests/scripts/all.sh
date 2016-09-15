@@ -166,9 +166,8 @@ cleanup
 CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
 make
 
-msg "test: main suites and selftest (ASan build)" # ~ 50s
+msg "test: main suites (inc. selftests) (ASan build)" # ~ 50s
 make test
-programs/test/selftest
 
 msg "test: ssl-opt.sh (ASan build)" # ~ 1 min
 tests/ssl-opt.sh
@@ -196,9 +195,8 @@ scripts/config.pl set MBEDTLS_SSL_PROTO_SSL3
 CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
 make
 
-msg "test: SSLv3 - main suites and selftest (ASan build)" # ~ 50s
+msg "test: SSLv3 - main suites (inc. selftests) (ASan build)" # ~ 50s
 make test
-programs/test/selftest
 
 msg "build: SSLv3 - compat.sh (ASan build)" # ~ 6 min
 tests/compat.sh -m 'ssl3 tls1 tls1_1 tls1_2 dtls1 dtls1_2'
@@ -298,9 +296,8 @@ scripts/config.pl unset MBEDTLS_HAVEGE_C
 CC=gcc cmake  -D UNSAFE_BUILD=ON -D CMAKE_C_FLAGS:String="-fsanitize=address -fno-common -O3" .
 make
 
-msg "test: MBEDTLS_TEST_NULL_ENTROPY - main suites and selftest (ASan build)"
+msg "test: MBEDTLS_TEST_NULL_ENTROPY - main suites (inc. selftests) (ASan build)"
 make test
-programs/test/selftest
 
 if uname -a | grep -F Linux >/dev/null; then
 msg "build/test: make shared" # ~ 40s

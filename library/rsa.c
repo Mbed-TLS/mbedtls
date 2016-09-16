@@ -127,6 +127,13 @@ int mbedtls_rsa_gen_key( mbedtls_rsa_context *ctx,
                                 f_rng, p_rng ) );
         }
 
+        /*
+         * This code seems redundant since it only guarantees that P > Q. This
+         * is not required by the PKCS, but is a convention.
+         */
+        if( mbedtls_mpi_cmp_mpi( &ctx->P, &ctx->Q ) < 0 )
+            mbedtls_mpi_swap( &ctx->P, &ctx->Q );
+
         if( mbedtls_mpi_cmp_mpi( &ctx->P, &ctx->Q ) == 0 )
             continue;
 

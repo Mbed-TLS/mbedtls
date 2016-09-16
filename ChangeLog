@@ -22,6 +22,8 @@ Bugfix
      enabled unless others were also present. Found by David Fernandez. #428
    * Fix for out-of-tree builds using CMake. Found by jwurzer, and fix based on
      a contribution from Tobias Tangemann. #541
+   * Fix mbedtls_rsa_gen_key() to ensure that P > Q. Even though this is not
+     required by the PKCS, it is a common pattern. Found by inestlerode.
 
 Changes
    * Extended test coverage of special cases, and added new timing test suite.

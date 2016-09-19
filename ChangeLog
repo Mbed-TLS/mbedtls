@@ -1,5 +1,12 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 1.3.x
+
+Changes
+   * Add compile time option for relaxed X509 time verification to enable
+     accepting certificates with non-standard time format (that is without
+     seconds or with a time zone). Patch provided by OpenVPN.
+
 = mbed TLS 1.3.17 branch 2016-06-28
 
 Security

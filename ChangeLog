@@ -22,6 +22,9 @@ Bugfix
    * Fix documentation and implementation missmatch for function arguments of
      mbedtls_gcm_finish(). Found by cmiatpaar. #602
    * Guarantee that P>Q at RSA key generation. Found by inestlerode. #558
+   * Fix mbedtls_x509_get_sig() to update the ASN1 type in the mbedtls_x509_buf
+     data structure until after error checks are successful. Found by
+     subramanyam-c.
 
 = mbed TLS 2.1.5 branch released 2016-06-28
 

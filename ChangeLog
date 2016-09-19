@@ -22,6 +22,9 @@ Bugfix
      enabled unless others were also present. Found by David Fernandez. #428
    * Fix for out-of-tree builds using CMake. Found by jwurzer, and fix based on
      a contribution from Tobias Tangemann. #541
+   * Fix mbedtls_x509_get_sig() to update the ASN1 type in the mbedtls_x509_buf
+     data structure until after error checks are successful. Found by
+     subramanyam-c.
 
 Changes
    * Extended test coverage of special cases, and added new timing test suite.

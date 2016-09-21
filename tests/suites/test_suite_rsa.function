@@ -668,14 +668,17 @@ void rsa_gen_key( int nrbits, int exponent, int result)
 
     entropy_init( &entropy );
     TEST_ASSERT( ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
-                                (const unsigned char *) pers, strlen( pers ) ) == 0 );
+                                (const unsigned char *) pers,
+                                strlen( pers ) ) == 0 );
 
     rsa_init( &ctx, 0, 0 );
 
-    TEST_ASSERT( rsa_gen_key( &ctx, ctr_drbg_random, &ctr_drbg, nrbits, exponent ) == result );
+    TEST_ASSERT( rsa_gen_key( &ctx, ctr_drbg_random, &ctr_drbg, nrbits,
+                 exponent ) == result );
     if( result == 0 )
     {
         TEST_ASSERT( rsa_check_privkey( &ctx ) == 0 );
+        TEST_ASSERT( mpi_cmp_mpi( &ctx.P, &ctx.Q ) > 0 );
     }
 
 exit:

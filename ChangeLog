@@ -25,6 +25,7 @@ Bugfix
      by inestlerode. #559.
    * Fix documentation and implementation missmatch for function arguments of
      mbedtls_gcm_finish(). Found by cmiatpaar. #602
+   * Guarantee that P>Q at RSA key generation. #558
 
 Changes
    * Add compile time option for relaxed X509 time verification to enable

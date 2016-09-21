@@ -97,6 +97,9 @@ int rsa_gen_key( rsa_context *ctx,
     if( f_rng == NULL || nbits < 128 || exponent < 3 )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
+    if( nbits % 2 )
+        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+
     mpi_init( &P1 ); mpi_init( &Q1 );
     mpi_init( &H ); mpi_init( &G );
 
@@ -111,16 +114,8 @@ int rsa_gen_key( rsa_context *ctx,
        MPI_CHK( mpi_gen_prime( &ctx->P, nbits >> 1, 0,
                                 f_rng, p_rng ) );
 
-        if( nbits % 2 )
-        {
-            MPI_CHK( mpi_gen_prime( &ctx->Q, ( nbits >> 1 ) + 1, 0,
+        MPI_CHK( mpi_gen_prime( &ctx->Q, nbits >> 1, 0,
                                 f_rng, p_rng ) );
-        }
-        else
-        {
-            MPI_CHK( mpi_gen_prime( &ctx->Q, nbits >> 1, 0,
-                                f_rng, p_rng ) );
-        }
 
         if( mpi_cmp_mpi( &ctx->P, &ctx->Q ) == 0 )
             continue;
@@ -128,6 +123,9 @@ int rsa_gen_key( rsa_context *ctx,
         MPI_CHK( mpi_mul_mpi( &ctx->N, &ctx->P, &ctx->Q ) );
         if( mpi_msb( &ctx->N ) != nbits )
             continue;
+
+        if( mpi_cmp_mpi( &ctx->P, &ctx->Q ) < 0 )
+                         mpi_swap( &ctx->P, &ctx->Q );
 
         MPI_CHK( mpi_sub_int( &P1, &ctx->P, 1 ) );
         MPI_CHK( mpi_sub_int( &Q1, &ctx->Q, 1 ) );

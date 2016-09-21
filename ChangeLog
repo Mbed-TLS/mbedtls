@@ -19,6 +19,7 @@ Bugfix
      enabled unless others were also present. Found by David Fernandez. #428
    * Fix for out-of-tree builds using CMake. Found by jwurzer, and fix based on
      a contribution from Tobias Tangemann. #541
+   * Guarantee that P>Q at RSA key generation. #558
 
 Changes
    * Extended test coverage of special cases, and added new timing test suite.

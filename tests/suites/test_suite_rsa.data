@@ -361,7 +361,7 @@ RSA Generate Key - 2048 bit key
 mbedtls_rsa_gen_key:2048:3:0
 
 RSA Generate Key - 1025 bit key
-mbedtls_rsa_gen_key:1025:3:0
+mbedtls_rsa_gen_key:1025:3:MBEDTLS_ERR_RSA_BAD_INPUT_DATA
 
 RSA PKCS1 Encrypt Bad RNG
 depends_on:MBEDTLS_PKCS1_V15

@@ -47,6 +47,7 @@ Bugfix
      subramanyam-c.
    * Fix documentation and implementation missmatch for function arguments of
      mbedtls_gcm_finish(). Found by cmiatpaar. #602
+   * Guarantee that P>Q at RSA key generation. #558
 
 Changes
    * Extended test coverage of special cases, and added new timing test suite.

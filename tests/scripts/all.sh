@@ -181,6 +181,12 @@ echo "GNUTLS_SERV: $GNUTLS_SERV"
 echo "GNUTLS_LEGACY_CLI: $GNUTLS_LEGACY_CLI"
 echo "GNUTLS_LEGACY_SERV: $GNUTLS_LEGACY_SERV"
 
+# To avoid setting OpenSSL and GnuTLS for each call to compat.sh and ssl-opt.sh
+# we just export the variables they require
+export OPENSSL_CMD="$OPENSSL"
+export GNUTLS_CLI="$GNUTLS_CLI"
+export GNUTLS_SERV="$GNUTLS_SERV"
+
 # Make sure the tools we need are available.
 check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$GNUTLS_CLI" "$GNUTLS_SERV" \
     "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV" "doxygen" "dot" \

@@ -36,11 +36,30 @@ if [ -d library -a -d include -a -d tests ]; then :; else
     exit 1
 fi
 
+: ${OPENSSL:="openssl"}
+: ${OPENSSL_LEGACY:="$OPENSSL"}
+: ${GNUTLS_CLI:="gnutls-cli"}
+: ${GNUTLS_SERV:="gnutls-serv"}
+: ${GNUTLS_LEGACY_CLI:="$GNUTLS_CLI"}
+: ${GNUTLS_LEGACY_SERV:="$GNUTLS_SERV"}
+
+# To avoid setting OpenSSL and GnuTLS for each call to compat.sh and ssl-opt.sh
+# we just export the variables they require
+export OPENSSL_CMD="$OPENSSL"
+export GNUTLS_CLI="$GNUTLS_CLI"
+export GNUTLS_SERV="$GNUTLS_SERV"
+
 CONFIG_H='include/mbedtls/config.h'
 CONFIG_BAK="$CONFIG_H.bak"
 
 # Step 0 - print build environment info
-scripts/output_env.sh
+OPENSSL="$OPENSSL"                           \
+    OPENSSL_LEGACY="$OPENSSL_LEGACY"         \
+    GNUTLS_CLI="$GNUTLS_CLI"                 \
+    GNUTLS_SERV="$GNUTLS_SERV"               \
+    GNUTLS_LEGACY_CLI="$GNUTLS_LEGACY_CLI"   \
+    GNUTLS_LEGACY_SERV="$GNUTLS_LEGACY_SERV" \
+    scripts/output_env.sh
 echo
 
 # Step 1 - Make and instrumented build for code coverage
@@ -65,7 +84,15 @@ sh ssl-opt.sh |tee sys-test-$TEST_OUTPUT
 echo
 
 # Step 2c - Compatibility tests
-sh compat.sh |tee compat-test-$TEST_OUTPUT
+sh compat.sh -m 'tls1 tls1_1 tls1_2 dtls1 dtls1_2' | \
+    tee compat-test-$TEST_OUTPUT
+OPENSSL_CMD="$OPENSSL_LEGACY"                               \
+    sh compat.sh -m 'ssl3' |tee -a compat-test-$TEST_OUTPUT
+OPENSSL_CMD="$OPENSSL_LEGACY"                                       \
+    GNUTLS_CLI="$GNUTLS_LEGACY_CLI"                                 \
+    GNUTLS_SERV="$GNUTLS_LEGACY_SERV"                               \
+    sh compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR' | \
+    tee -a compat-test-$TEST_OUTPUT
 echo
 
 # Step 3 - Process the coverage report
@@ -128,9 +155,9 @@ TOTAL_EXED=$(($TOTAL_EXED + $TOTAL_TESTS))
 # Step 4c - System Compatibility tests
 echo "System/Compatibility tests - tests/compat.sh"
 
-PASSED_TESTS=$(tail -n5 compat-test-$TEST_OUTPUT|sed -n -e 's/.* (\([0-9]*\) \/ [0-9]* tests ([0-9]* skipped))$/\1/p')
-SKIPPED_TESTS=$(tail -n5 compat-test-$TEST_OUTPUT|sed -n -e 's/.* ([0-9]* \/ [0-9]* tests (\([0-9]*\) skipped))$/\1/p')
-EXED_TESTS=$(tail -n5 compat-test-$TEST_OUTPUT|sed -n -e 's/.* ([0-9]* \/ \([0-9]*\) tests ([0-9]* skipped))$/\1/p')
+PASSED_TESTS=$(cat compat-test-$TEST_OUTPUT | sed -n -e 's/.* (\([0-9]*\) \/ [0-9]* tests ([0-9]* skipped))$/\1/p' | awk 'BEGIN{ s = 0 } { s += $1 } END{ print s }')
+SKIPPED_TESTS=$(cat compat-test-$TEST_OUTPUT | sed -n -e 's/.* ([0-9]* \/ [0-9]* tests (\([0-9]*\) skipped))$/\1/p' | awk 'BEGIN{ s = 0 } { s += $1 } END{ print s }')
+EXED_TESTS=$(cat compat-test-$TEST_OUTPUT | sed -n -e 's/.* ([0-9]* \/ \([0-9]*\) tests ([0-9]* skipped))$/\1/p' | awk 'BEGIN{ s = 0 } { s += $1 } END{ print s }')
 FAILED_TESTS=$(($EXED_TESTS - $PASSED_TESTS))
 
 echo "Passed             : $PASSED_TESTS"

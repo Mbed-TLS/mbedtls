@@ -27,6 +27,8 @@ Bugfix
    * Guarantee that P>Q at RSA key generation. Found by inestlerode. #558
    * Fix potential byte overread when verifying malformed SERVER_HELLO in
      ssl_parse_hello_verify_request() for DTLS. Found by Guido Vranken.
+   * Fix check for validity of date when parsing in mbedtls_x509_get_time().
+     Found by subramanyam-c.
 
 = mbed TLS 2.1.5 branch released 2016-06-28
 

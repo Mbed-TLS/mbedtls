@@ -12,6 +12,9 @@ Features
      calling mbedtls_x509_crt_parse_path().
    * Added a configuration file config-no-entropy.h that enables a subset of
      library features that do not require an entropy source.
+   * Added the macro MBEDTLS_ENTROPY_MIN_HARDWARE in config.h. This allows users
+     to configure the minimum number of bytes for entropy sources using the
+     mbedtls_hardware_poll() function.
 
 Bugfix
    * Fix for platform time abstraction to avoid dependency issues where a build

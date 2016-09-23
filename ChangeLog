@@ -29,6 +29,8 @@ Bugfix
      a contribution from Tobias Tangemann. #541
    * Fixed cert_app sample program for debug output and for use when no root
      certificates are provided.
+   * Fix check for validity of date when parsing in mbedtls_x509_get_time().
+     Found by subramanyam-c.
 
 Changes
    * Extended test coverage of special cases, and added new timing test suite.

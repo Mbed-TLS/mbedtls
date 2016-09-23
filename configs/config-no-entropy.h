@@ -22,7 +22,8 @@
  * Minimal configuration of features that do not require an entropy source
  * Distinguishing reatures:
  * - no entropy module
- * - no TLS protocol implementation available due missing entropy source
+ * - no TLS protocol implementation available due to absence of an entropy
+ *   source
  *
  * See README.txt for usage instructions.
  */

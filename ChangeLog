@@ -23,6 +23,8 @@ Bugfix
    * Fix documentation and implementation missmatch for function arguments of
      mbedtls_gcm_finish(). Found by cmiatpaar. #602
    * Guarantee that P>Q at RSA key generation. Found by inestlerode. #558
+   * Fix check for validity of date when parsing in mbedtls_x509_get_time().
+     Found by subramanyam-c. #626
 
 = mbed TLS 1.3.17 branch 2016-06-28
 

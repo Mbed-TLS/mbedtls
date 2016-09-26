@@ -22,6 +22,8 @@ Bugfix
      enabled unless others were also present. Found by David Fernandez. #428
    * Fix for out-of-tree builds using CMake. Found by jwurzer, and fix based on
      a contribution from Tobias Tangemann. #541
+   * Fixed cert_app sample program for debug output and for use when no root
+     certificates are provided.
 
 Changes
    * Extended test coverage of special cases, and added new timing test suite.

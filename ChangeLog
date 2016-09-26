@@ -29,6 +29,8 @@ Bugfix
      a contribution from Tobias Tangemann. #541
    * Fixed cert_app sample program for debug output and for use when no root
      certificates are provided.
+   * Fixed default threading implementation to avoid accidental double
+     initialisations and double frees.
    * Fix mbedtls_x509_get_sig() to update the ASN1 type in the mbedtls_x509_buf
      data structure until after error checks are successful. Found by
      subramanyam-c.

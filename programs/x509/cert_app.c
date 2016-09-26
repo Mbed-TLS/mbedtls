@@ -55,6 +55,7 @@ int main( void )
 #include "polarssl/net.h"
 #include "polarssl/ssl.h"
 #include "polarssl/x509.h"
+#include "polarssl/debug.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -374,6 +375,10 @@ int main( int argc, char *argv[] )
         }
 
         polarssl_printf( " ok\n" );
+
+#if defined(POLARSSL_DEBUG_C)
+        debug_set_threshold( opt.debug_level );
+#endif
 
         /*
          * 2. Start the connection

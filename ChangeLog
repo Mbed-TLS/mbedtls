@@ -42,6 +42,8 @@ Bugfix
    * Fixed the sample applications gen_key.c, cert_req.c and cert_write.c for
      builds where the configuration MBEDTLS_PEM_WRITE_C is not defined. Found
      by inestlerode. #559.
+   * Fixed default threading implementation to avoid accidental double
+     initialisations and double frees.
 
 Changes
    * Extended test coverage of special cases, and added new timing test suite.

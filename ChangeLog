@@ -17,6 +17,8 @@ Bugfix
    * Fixed the sample applications gen_key.c, cert_req.c and cert_write.c for
      builds where the configuration POLARSSL_PEM_WRITE_C is not defined. Found
      by inestlerode. #559.
+   * Fix documentation and implementation missmatch for function arguments of
+     mbedtls_gcm_finish(). Found by cmiatpaar.
 
 = mbed TLS 1.3.17 branch 2016-06-28
 

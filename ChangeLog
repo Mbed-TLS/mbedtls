@@ -10,6 +10,7 @@ Bugfix
      when GCM is used. #441
    * Fix for key exchanges based on ECDH-RSA or ECDH-ECDSA which weren't
      enabled unless others were also present. Found by David Fernandez. #428
+   * Fixed configuration of debug output in cert_app sample program.
 
 Changes
    * Add compile time option for relaxed X509 time verification to enable

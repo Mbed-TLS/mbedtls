@@ -25,6 +25,8 @@ Bugfix
    * Fix documentation and implementation missmatch for function arguments of
      mbedtls_gcm_finish(). Found by cmiatpaar. #602
    * Guarantee that P>Q at RSA key generation. Found by inestlerode. #558
+   * Fix potential byte overread when verifying malformed SERVER_HELLO in
+     ssl_parse_hello_verify_request() for DTLS. Found by Guido Vranken.
 
 = mbed TLS 2.1.5 branch released 2016-06-28
 

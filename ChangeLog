@@ -10,6 +10,7 @@ Bugfix
      when GCM is used. #441
    * Fix for key exchanges based on ECDH-RSA or ECDH-ECDSA which weren't
      enabled unless others were also present. Found by David Fernandez. #428
+   * Fixed configuration of debug output in cert_app sample program.
 
 = mbed TLS 1.3.17 branch 2016-06-28
 

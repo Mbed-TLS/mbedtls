@@ -29,6 +29,8 @@ Bugfix
      a contribution from Tobias Tangemann. #541
    * Fixed cert_app sample program for debug output and for use when no root
      certificates are provided.
+   * Fixed default threading implementation to avoid accidental double
+     initialisations and double frees.
 
 Changes
    * Extended test coverage of special cases, and added new timing test suite.

@@ -29,6 +29,8 @@ Bugfix
      a contribution from Tobias Tangemann. #541
    * Fixed cert_app sample program for debug output and for use when no root
      certificates are provided.
+   * Fix potential byte overread when verifying malformed SERVER_HELLO in
+     ssl_parse_hello_verify_request() for DTLS. Found by Guido Vranken.
 
 Changes
    * Extended test coverage of special cases, and added new timing test suite.

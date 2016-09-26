@@ -45,6 +45,8 @@ Bugfix
    * Fix mbedtls_x509_get_sig() to update the ASN1 type in the mbedtls_x509_buf
      data structure until after error checks are successful. Found by
      subramanyam-c.
+   * Fix documentation and implementation missmatch for function arguments of
+     mbedtls_gcm_finish(). Found by cmiatpaar.
 
 Changes
    * Extended test coverage of special cases, and added new timing test suite.

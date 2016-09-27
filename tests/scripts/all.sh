@@ -45,6 +45,8 @@ RELEASE=0
 : ${GNUTLS_LEGACY_CLI:="$GNUTLS_CLI"}
 : ${GNUTLS_LEGACY_SERV:="$GNUTLS_SERV"}
 : ${OUT_OF_SOURCE_DIR:=./mbedtls_out_of_source_build}
+: ${ARMC5_BIN_DIR:=/usr/bin}
+: ${ARMC6_BIN_DIR:=/usr/bin}
 
 # if MAKEFLAGS is not set add the -j option to speed up invocations of make
 if [ -n "${MAKEFLAGS+set}" ]; then
@@ -66,6 +68,8 @@ usage()
     printf "     --gnutls-serv=<GnuTLS_serv_path>\t\tPath to GnuTLS server executable to use for most tests.\n"
     printf "     --gnutls-legacy-cli=<GnuTLS_cli_path>\t\tPath to GnuTLS client executable to use for legacy tests.\n"
     printf "     --gnutls-legacy-serv=<GnuTLS_serv_path>\t\tPath to GnuTLS server executable to use for legacy tests.\n"
+    printf "     --armc5-bin-dir=<ARMC5_bin_dir_path>\t\tPath to the ARM Compiler 5 bin directory.\n"
+    printf "     --armc6-bin-dir=<ARMC6_bin_dir_path>\t\tPath to the ARM Compiler 6 bin directory.\n"
 }
 
 # remove built files as well as the cmake cache/config
@@ -152,6 +156,14 @@ while [ $# -gt 0 ]; do
             shift
             GNUTLS_LEGACY_SERV="$1"
             ;;
+        --armc5-bin-dir)
+            shift
+            ARMC5_BIN_DIR="$1"
+            ;;
+        --armc6-bin-dir)
+            shift
+            ARMC6_BIN_DIR="$1"
+            ;;
         --help|-h|*)
             usage
             exit 1
@@ -204,6 +216,13 @@ echo "GNUTLS_CLI: $GNUTLS_CLI"
 echo "GNUTLS_SERV: $GNUTLS_SERV"
 echo "GNUTLS_LEGACY_CLI: $GNUTLS_LEGACY_CLI"
 echo "GNUTLS_LEGACY_SERV: $GNUTLS_LEGACY_SERV"
+echo "ARMC5_BIN_DIR: $ARMC5_BIN_DIR"
+echo "ARMC6_BIN_DIR: $ARMC6_BIN_DIR"
+
+ARMC5_CC="$ARMC5_BIN_DIR/armcc"
+ARMC5_AR="$ARMC5_BIN_DIR/armar"
+ARMC6_CC="$ARMC6_BIN_DIR/armclang"
+ARMC6_AR="$ARMC6_BIN_DIR/armar"
 
 # To avoid setting OpenSSL and GnuTLS for each call to compat.sh and ssl-opt.sh
 # we just export the variables they require
@@ -217,7 +236,7 @@ export GNUTLS_SERV="$GNUTLS_SERV"
 # Make sure the tools we need are available.
 check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$GNUTLS_CLI" "$GNUTLS_SERV" \
     "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV" "doxygen" "dot" \
-    "arm-none-eabi-gcc" "armcc"
+    "arm-none-eabi-gcc" "$ARMC5_CC" "$ARMC5_AR" "$ARMC6_CC" "$ARMC6_AR"
 
 #
 # Test Suites to be executed
@@ -233,7 +252,8 @@ check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$GNUTLS_CLI" "$GNUTLS_SERV" \
 msg "info: output_env.sh"
 OPENSSL="$OPENSSL" OPENSSL_LEGACY="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_CLI" \
     GNUTLS_SERV="$GNUTLS_SERV" GNUTLS_LEGACY_CLI="$GNUTLS_LEGACY_CLI" \
-    GNUTLS_LEGACY_SERV="$GNUTLS_LEGACY_SERV" scripts/output_env.sh
+    GNUTLS_LEGACY_SERV="$GNUTLS_LEGACY_SERV" ARMC5_CC="$ARMC5_CC" \
+    ARMC6_CC="$ARMC6_CC" scripts/output_env.sh
 
 msg "test: recursion.pl" # < 1s
 tests/scripts/recursion.pl library/*.c
@@ -417,7 +437,7 @@ scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
 scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
 CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS=-Werror make lib
 
-msg "build: armcc, make"
+msg "build: ARM Compiler 5, make"
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
@@ -436,7 +456,19 @@ scripts/config.pl unset MBEDTLS_THREADING_C
 scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
 scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
 scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT # depends on MBEDTLS_HAVE_TIME
-CC=armcc AR=armar WARNING_CFLAGS= make lib
+
+CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS= make lib
+make clean
+
+msg "build: ARM Compiler 6 (arm-arm-none-eabi), make"
+ARM_TOOL_VARIANT="ult" CC="$ARMC6_CC" AR="$ARMC6_AR" \
+    CFLAGS="--target=arm-arm-none-eabi" WARNING_CFLAGS= make lib
+make clean
+
+msg "build: ARM Compiler 6 (aarch64-arm-none-eabi), make"
+ARM_TOOL_VARIANT="ult" CC="$ARMC6_CC" AR="$ARMC6_AR" \
+    CFLAGS="--target=aarch64-arm-none-eabi" WARNING_CFLAGS= make lib
+make clean
 
 if which i686-w64-mingw32-gcc >/dev/null; then
 msg "build: cross-mingw64, make" # ~ 30s

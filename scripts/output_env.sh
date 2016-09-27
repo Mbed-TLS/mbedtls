@@ -22,11 +22,30 @@ echo "* Operating system and architecture:"
 uname -a
 
 echo
-if `hash armcc > /dev/null 2>&1`; then
-    echo "* armcc:"
-    armcc --vsn | head -n 2
+if [ -n "${ARMC5_CC+set}" ]; then
+    if `hash "$ARMC5_CC" > /dev/null 2>&1`; then
+        echo "* $ARMC5_CC at environment variable 'ARMC5_CC':"
+        $ARMC5_CC --vsn | head -n 2
+    else
+        echo "* $ARMC5_CC at environment variable 'ARMC5_CC' not found!"
+    fi
 else
-    echo "* armcc not found!"
+    if `hash armcc > /dev/null 2>&1`; then
+        echo "* armcc:"
+        armcc --vsn | head -n 2
+    else
+        echo "* armcc not found!"
+    fi
+fi
+
+if [ -n "${ARMC6_CC+set}" ]; then
+    echo
+    if `hash "$ARMC6_CC" > /dev/null 2>&1`; then
+        echo "* $ARMC6_CC at environment variable 'ARMC6_CC':"
+        $ARMC6_CC --vsn | head -n 2
+    else
+        echo "* $ARMC6_CC at environment variable 'ARMC6_CC' not found!"
+    fi
 fi
 
 echo

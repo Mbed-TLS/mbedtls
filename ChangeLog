@@ -29,6 +29,8 @@ Bugfix
      a contribution from Tobias Tangemann. #541
    * Fixed cert_app sample program for debug output and for use when no root
      certificates are provided.
+   * Fix documentation and implementation missmatch for function arguments of
+     mbedtls_gcm_finish(). Found by cmiatpaar.
 
 Changes
    * Extended test coverage of special cases, and added new timing test suite.

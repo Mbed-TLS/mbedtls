@@ -34,7 +34,7 @@
 
 #include <stddef.h>
 
-#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C)
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C) || defined(MBEDTLS_AEAD_CHACHA20_POLY1305_C)
 #define MBEDTLS_CIPHER_MODE_AEAD
 #endif
 
@@ -75,6 +75,7 @@ typedef enum {
     MBEDTLS_CIPHER_ID_CAMELLIA,
     MBEDTLS_CIPHER_ID_BLOWFISH,
     MBEDTLS_CIPHER_ID_ARC4,
+    MBEDTLS_CIPHER_ID_CHACHA20
 } mbedtls_cipher_id_t;
 
 typedef enum {
@@ -127,6 +128,8 @@ typedef enum {
     MBEDTLS_CIPHER_CAMELLIA_128_CCM,
     MBEDTLS_CIPHER_CAMELLIA_192_CCM,
     MBEDTLS_CIPHER_CAMELLIA_256_CCM,
+    MBEDTLS_CIPHER_CHACHA20,
+    MBEDTLS_CIPHER_CHACHA20_POLY1305
 } mbedtls_cipher_type_t;
 
 typedef enum {
@@ -169,7 +172,7 @@ enum {
 /** Maximum length of any IV, in bytes */
 #define MBEDTLS_MAX_IV_LENGTH      16
 /** Maximum block size of any cipher, in bytes */
-#define MBEDTLS_MAX_BLOCK_LENGTH   16
+#define MBEDTLS_MAX_BLOCK_LENGTH   64
 
 /**
  * Base cipher information (opaque struct).
@@ -497,10 +500,10 @@ int mbedtls_cipher_set_iv( mbedtls_cipher_context_t *ctx,
  */
 int mbedtls_cipher_reset( mbedtls_cipher_context_t *ctx );
 
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_AEAD_CHACHA20_POLY1305_C)
 /**
  * \brief               Add additional data (for AEAD ciphers).
- *                      Currently only supported with GCM.
+ *                      Currently supported with GCM and ChaCha20+Poly1305.
  *                      Must be called exactly once, after mbedtls_cipher_reset().
  *
  * \param ctx           generic cipher context
@@ -511,7 +514,7 @@ int mbedtls_cipher_reset( mbedtls_cipher_context_t *ctx );
  */
 int mbedtls_cipher_update_ad( mbedtls_cipher_context_t *ctx,
                       const unsigned char *ad, size_t ad_len );
-#endif /* MBEDTLS_GCM_C */
+#endif /* MBEDTLS_GCM_C || MBEDTLS_AEAD_CHACHA20_POLY1305_C */
 
 /**
  * \brief               Generic cipher update function. Encrypts/decrypts
@@ -565,10 +568,10 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
 int mbedtls_cipher_finish( mbedtls_cipher_context_t *ctx,
                    unsigned char *output, size_t *olen );
 
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_AEAD_CHACHA20_POLY1305_C)
 /**
  * \brief               Write tag for AEAD ciphers.
- *                      Currently only supported with GCM.
+ *                      Currently supported with GCM and ChaCha20+Poly1305.
  *                      Must be called after mbedtls_cipher_finish().
  *
  * \param ctx           Generic cipher context
@@ -582,7 +585,7 @@ int mbedtls_cipher_write_tag( mbedtls_cipher_context_t *ctx,
 
 /**
  * \brief               Check tag for AEAD ciphers.
- *                      Currently only supported with GCM.
+ *                      Currently supported with GCM and ChaCha20+Poly1305.
  *                      Must be called after mbedtls_cipher_finish().
  *
  * \param ctx           Generic cipher context
@@ -593,7 +596,7 @@ int mbedtls_cipher_write_tag( mbedtls_cipher_context_t *ctx,
  */
 int mbedtls_cipher_check_tag( mbedtls_cipher_context_t *ctx,
                       const unsigned char *tag, size_t tag_len );
-#endif /* MBEDTLS_GCM_C */
+#endif /* MBEDTLS_GCM_C || MBEDTLS_AEAD_CHACHA20_POLY1305_C */
 
 /**
  * \brief               Generic all-in-one encryption/decryption

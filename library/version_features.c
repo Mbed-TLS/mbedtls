@@ -90,6 +90,15 @@ static const char *features[] = {
 #if defined(MBEDTLS_CAMELLIA_ALT)
     "MBEDTLS_CAMELLIA_ALT",
 #endif /* MBEDTLS_CAMELLIA_ALT */
+#if defined(MBEDTLS_CHACHA20_ALT)
+    "MBEDTLS_CHACHA20_ALT",
+#endif /* MBEDTLS_CHACHA20_ALT */
+#if defined(MBEDTLS_POLY1305_ALT)
+    "MBEDTLS_POLY1305_ALT",
+#endif /* MBEDTLS_POLY1305_ALT */
+#if defined(MBEDTLS_AEAD_CHACHA20_POLY1305_ALT)
+    "MBEDTLS_AEAD_CHACHA20_POLY1305_ALT",
+#endif /* MBEDTLS_AEAD_CHACHA20_POLY1305_ALT */
 #if defined(MBEDTLS_DES_ALT)
     "MBEDTLS_DES_ALT",
 #endif /* MBEDTLS_DES_ALT */
@@ -435,6 +444,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_AES_C)
     "MBEDTLS_AES_C",
 #endif /* MBEDTLS_AES_C */
+#if defined(MBEDTLS_AEAD_CHACHA20_POLY1305_C)
+    "MBEDTLS_AEAD_CHACHA20_POLY1305_C",
+#endif /* MBEDTLS_AEAD_CHACHA20_POLY1305_C */
 #if defined(MBEDTLS_ARC4_C)
     "MBEDTLS_ARC4_C",
 #endif /* MBEDTLS_ARC4_C */
@@ -456,6 +468,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_CAMELLIA_C)
     "MBEDTLS_CAMELLIA_C",
 #endif /* MBEDTLS_CAMELLIA_C */
+#if defined(MBEDTLS_CHACHA20_C)
+    "MBEDTLS_CHACHA20_C",
+#endif /* MBEDTLS_CHACHA20_C */
 #if defined(MBEDTLS_CCM_C)
     "MBEDTLS_CCM_C",
 #endif /* MBEDTLS_CCM_C */
@@ -555,6 +570,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_PLATFORM_C)
     "MBEDTLS_PLATFORM_C",
 #endif /* MBEDTLS_PLATFORM_C */
+#if defined(MBEDTLS_POLY1305_C)
+    "MBEDTLS_POLY1305_C",
+#endif /* MBEDTLS_POLY1305_C */
 #if defined(MBEDTLS_RIPEMD160_C)
     "MBEDTLS_RIPEMD160_C",
 #endif /* MBEDTLS_RIPEMD160_C */

@@ -29,8 +29,9 @@ if( @ARGV ) {
 
 my $error_format_file = $data_dir.'/error.fmt';
 
-my @low_level_modules = ( "AES", "ASN1", "BLOWFISH", "CAMELLIA", "BIGNUM",
-                          "BASE64", "XTEA", "PBKDF2", "OID",
+my @low_level_modules = ( "AEAD_CHACHA20_POLY1305", 
+                          "AES", "ASN1", "BLOWFISH", "CAMELLIA", "CHACHA20", "BIGNUM",
+                          "BASE64", "XTEA", "PBKDF2", "OID", "POLY1305",
                           "PADLOCK", "DES", "NET", "CTR_DRBG", "ENTROPY",
                           "HMAC_DRBG", "MD2", "MD4", "MD5", "RIPEMD160",
                           "SHA1", "SHA256", "SHA512", "GCM", "THREADING", "CCM" );
@@ -79,6 +80,7 @@ while (my $line = <GREP>)
     $module_name = "BIGNUM" if ($module_name eq "MPI");
     $module_name = "CTR_DRBG" if ($module_name eq "CTR");
     $module_name = "HMAC_DRBG" if ($module_name eq "HMAC");
+    $module_name = "AEAD_CHACHA20_POLY1305" if ($module_name eq "AEAD");
 
     my $define_name = $module_name;
     $define_name = "X509_USE,X509_CREATE" if ($define_name eq "X509");

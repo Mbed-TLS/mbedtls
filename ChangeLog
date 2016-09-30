@@ -12,6 +12,8 @@ Bugfix
      enabled unless others were also present. Found by David Fernandez. #428
    * Fixed cert_app sample program for debug output and for use when no root
      certificates are provided.
+   * Fixed default threading implementation to avoid accidental double
+     initialisations and double frees.
 
 = mbed TLS 2.1.5 branch released 2016-06-28
 

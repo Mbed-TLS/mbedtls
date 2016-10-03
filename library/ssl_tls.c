@@ -3727,8 +3727,6 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
 
 static void ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl );
 
-static int ssl_handle_message_type( mbedtls_ssl_context *ssl );
-
 /*
  * Read a record.
  *
@@ -3747,12 +3745,15 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl )
         if( ( ret = mbedtls_ssl_read_record_layer( ssl ) ) != 0 )
             return( ret );
 
-        ret = ssl_handle_message_type( ssl );
+        ret = mbedtls_ssl_handle_message_type( ssl );
 
     } while( MBEDTLS_ERR_SSL_IGNORE_NON_FATAL == ret );
 
     if( 0 != ret )
         return( ret );
+
+    if( ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE )
+        mbedtls_ssl_update_handshake_status( ssl );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= read record" ) );
 
@@ -3941,7 +3942,7 @@ read_record_header:
     return( 0 );
 }
 
-static int ssl_handle_message_type( mbedtls_ssl_context *ssl )
+int mbedtls_ssl_handle_message_type( mbedtls_ssl_context *ssl )
 {
     int ret;
 
@@ -3954,8 +3955,6 @@ static int ssl_handle_message_type( mbedtls_ssl_context *ssl )
         {
             return( ret );
         }
-
-        mbedtls_ssl_update_handshake_status( ssl );
     }
 
     if( ssl->in_msgtype == MBEDTLS_SSL_MSG_ALERT )

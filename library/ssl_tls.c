@@ -3723,8 +3723,6 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
 
 static void ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl );
 
-static int ssl_read_record_layer( mbedtls_ssl_context *ssl );
-
 static int ssl_handle_message_type( mbedtls_ssl_context *ssl );
 
 /*
@@ -3740,28 +3738,9 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> read record" ) );
 
-    if( ssl->in_hslen != 0 && ssl->in_hslen < ssl->in_msglen )
-    {
-        /*
-         * Get next Handshake message in the current record
-         */
-        ssl->in_msglen -= ssl->in_hslen;
-
-        memmove( ssl->in_msg, ssl->in_msg + ssl->in_hslen,
-                 ssl->in_msglen );
-
-        MBEDTLS_SSL_DEBUG_BUF( 4, "remaining content in record",
-                           ssl->in_msg, ssl->in_msglen );
-
-        if( ( ret = ssl_prepare_handshake_record( ssl ) ) != 0 )
-            return( ret );
-
-        return( 0 );
-    }
-
 read_new_record:
 
-    if( ( ret = ssl_read_record_layer( ssl ) ) != 0 )
+    if( ( ret = mbedtls_ssl_read_record_layer( ssl ) ) != 0 )
         return( ret );
 
     ret = ssl_handle_message_type( ssl );
@@ -3777,9 +3756,25 @@ read_new_record:
     return( 0 );
 }
 
-static int ssl_read_record_layer( mbedtls_ssl_context *ssl )
+int mbedtls_ssl_read_record_layer( mbedtls_ssl_context *ssl )
 {
     int ret;
+
+    if( ssl->in_hslen != 0 && ssl->in_hslen < ssl->in_msglen )
+    {
+        /*
+         * Get next Handshake message in the current record
+         */
+        ssl->in_msglen -= ssl->in_hslen;
+
+        memmove( ssl->in_msg, ssl->in_msg + ssl->in_hslen,
+                 ssl->in_msglen );
+
+        MBEDTLS_SSL_DEBUG_BUF( 4, "remaining content in record",
+                           ssl->in_msg, ssl->in_msglen );
+
+        return( 0 );
+    }
 
     ssl->in_hslen = 0;
 

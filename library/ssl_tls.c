@@ -3165,6 +3165,12 @@ static int ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
     }
 
+    return( 0 );
+}
+
+static void ssl_update_handshake_status( mbedtls_ssl_context *ssl )
+{
+
     if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER &&
         ssl->handshake != NULL )
     {
@@ -3179,8 +3185,6 @@ static int ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
         ssl->handshake->in_msg_seq++;
     }
 #endif
-
-    return( 0 );
 }
 
 /*
@@ -3948,7 +3952,11 @@ static int ssl_handle_message_type( mbedtls_ssl_context *ssl )
     if( ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE )
     {
         if( ( ret = ssl_prepare_handshake_record( ssl ) ) != 0 )
+        {
             return( ret );
+        }
+
+        ssl_update_handshake_status( ssl );
     }
 
     if( ssl->in_msgtype == MBEDTLS_SSL_MSG_ALERT )

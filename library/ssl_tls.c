@@ -3083,7 +3083,7 @@ static int ssl_reassemble_dtls_handshake( mbedtls_ssl_context *ssl )
 }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-static int ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
+int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
 {
     if( ssl->in_msglen < mbedtls_ssl_hs_hdr_len( ssl ) )
     {
@@ -3168,7 +3168,7 @@ static int ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
-static void ssl_update_handshake_status( mbedtls_ssl_context *ssl )
+void mbedtls_ssl_update_handshake_status( mbedtls_ssl_context *ssl )
 {
 
     if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER &&
@@ -3951,12 +3951,12 @@ static int ssl_handle_message_type( mbedtls_ssl_context *ssl )
      */
     if( ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE )
     {
-        if( ( ret = ssl_prepare_handshake_record( ssl ) ) != 0 )
+        if( ( ret = mbedtls_ssl_prepare_handshake_record( ssl ) ) != 0 )
         {
             return( ret );
         }
 
-        ssl_update_handshake_status( ssl );
+        mbedtls_ssl_update_handshake_status( ssl );
     }
 
     if( ssl->in_msgtype == MBEDTLS_SSL_MSG_ALERT )

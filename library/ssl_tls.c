@@ -3723,6 +3723,10 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
 
 static void ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl );
 
+static int ssl_read_record_layer( mbedtls_ssl_context *ssl );
+
+static int ssl_handle_message_type( mbedtls_ssl_context *ssl );
+
 /*
  * Read a record.
  *
@@ -3754,6 +3758,28 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl )
 
         return( 0 );
     }
+
+read_new_record:
+
+    if( ( ret = ssl_read_record_layer( ssl ) ) != 0 )
+        return( ret );
+
+    ret = ssl_handle_message_type( ssl );
+
+    if( MBEDTLS_ERR_SSL_IGNORE_NON_FATAL == ret )
+        goto read_new_record;
+
+    if( 0 != ret )
+        return( ret );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= read record" ) );
+
+    return( 0 );
+}
+
+static int ssl_read_record_layer( mbedtls_ssl_context *ssl )
+{
+    int ret;
 
     ssl->in_hslen = 0;
 
@@ -3914,6 +3940,13 @@ read_record_header:
     }
 #endif
 
+    return( 0 );
+}
+
+static int ssl_handle_message_type( mbedtls_ssl_context *ssl )
+{
+    int ret;
+
     /*
      * Handle particular types of records
      */
@@ -3968,10 +4001,8 @@ read_record_header:
 #endif /* MBEDTLS_SSL_PROTO_SSL3 && MBEDTLS_SSL_SRV_C */
 
         /* Silently ignore: fetch new message */
-        goto read_record_header;
+        return MBEDTLS_ERR_SSL_IGNORE_NON_FATAL;
     }
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= read record" ) );
 
     return( 0 );
 }

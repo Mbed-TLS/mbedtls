@@ -3742,15 +3742,14 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> read record" ) );
 
-read_new_record:
+    do {
 
-    if( ( ret = mbedtls_ssl_read_record_layer( ssl ) ) != 0 )
-        return( ret );
+        if( ( ret = mbedtls_ssl_read_record_layer( ssl ) ) != 0 )
+            return( ret );
 
-    ret = ssl_handle_message_type( ssl );
+        ret = ssl_handle_message_type( ssl );
 
-    if( MBEDTLS_ERR_SSL_IGNORE_NON_FATAL == ret )
-        goto read_new_record;
+    } while( MBEDTLS_ERR_SSL_IGNORE_NON_FATAL == ret );
 
     if( 0 != ret )
         return( ret );

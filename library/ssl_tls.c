@@ -3793,7 +3793,10 @@ int mbedtls_ssl_read_record_layer( mbedtls_ssl_context *ssl )
     /*
      * Read the record header and parse it
      */
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
 read_record_header:
+#endif
+
     if( ( ret = mbedtls_ssl_fetch_input( ssl, mbedtls_ssl_hdr_len( ssl ) ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_fetch_input", ret );

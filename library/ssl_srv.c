@@ -1043,7 +1043,6 @@ have_ciphersuite_v2:
 
     ssl->session_negotiate->ciphersuite = ciphersuites[i];
     ssl->transform_negotiate->ciphersuite_info = ciphersuite_info;
-    mbedtls_ssl_optimize_checksum( ssl, ssl->transform_negotiate->ciphersuite_info );
 
     /*
      * SSLv2 Client Hello relevant renegotiation security checks
@@ -1840,7 +1839,6 @@ have_ciphersuite:
 
     ssl->session_negotiate->ciphersuite = ciphersuites[i];
     ssl->transform_negotiate->ciphersuite_info = ciphersuite_info;
-    mbedtls_ssl_optimize_checksum( ssl, ssl->transform_negotiate->ciphersuite_info );
 
     ssl->state++;
 
@@ -3590,9 +3588,6 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         return( 0 );
     }
 
-    /* Needs to be done before read_record() to exclude current message */
-    ssl->handshake->calc_verify( ssl, hash );
-
     /* Read the message without adding it to the checksum */
     do {
 
@@ -3663,12 +3658,15 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
          */
         md_alg = mbedtls_ssl_md_alg_from_hash( ssl->in_msg[i] );
 
-        if( md_alg == MBEDTLS_MD_NONE )
+        if( md_alg == MBEDTLS_MD_NONE || mbedtls_ssl_set_calc_verify_md( ssl, ssl->in_msg[i] ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "peer not adhering to requested sig_alg"
                                 " for verify message" ) );
             return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
         }
+
+        if( MBEDTLS_MD_SHA1 == md_alg )
+            hash_start += 16;
 
         /* Info from md_alg will be used instead */
         hashlen = 0;
@@ -3718,6 +3716,9 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
         return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
     }
+
+    /* Calculate hash and verify signature */
+    ssl->handshake->calc_verify( ssl, hash );
 
     if( ( ret = mbedtls_pk_verify( &ssl->session_negotiate->peer_cert->pk,
                            md_alg, hash_start, hashlen,

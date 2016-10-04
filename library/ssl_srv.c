@@ -2555,17 +2555,6 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
     if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
         const int *cur;
-        /*
-         * Only use current running hash algorithm that is already required
-         * for requested ciphersuite.
-         */
-        ssl->handshake->verify_sig_alg = MBEDTLS_SSL_HASH_SHA256;
-
-        if( ssl->transform_negotiate->ciphersuite_info->mac ==
-            MBEDTLS_MD_SHA384 )
-        {
-            ssl->handshake->verify_sig_alg = MBEDTLS_SSL_HASH_SHA384;
-        }
 
         /*
          * Supported signature algorithms

@@ -2481,7 +2481,6 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
     const unsigned char * const end = ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN;
     const mbedtls_x509_crt *crt;
     int authmode;
-    const int *cur;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate request" ) );
 
@@ -2555,6 +2554,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
      */
     if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
+        const int *cur;
         /*
          * Only use current running hash algorithm that is already required
          * for requested ciphersuite.

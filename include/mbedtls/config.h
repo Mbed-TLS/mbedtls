@@ -1674,7 +1674,8 @@
 /**
  * \def MBEDTLS_CMAC_C
  *
- * Enable the CMAC mode for block ciphers.
+ * Enable the CMAC (Cipher-based Message Authentication Code) mode for block
+ * ciphers.
  *
  * Module:  library/cmac.c
  *

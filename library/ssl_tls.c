@@ -3750,7 +3750,7 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl )
 
         ret = mbedtls_ssl_handle_message_type( ssl );
 
-    } while( MBEDTLS_ERR_SSL_IGNORE_NON_FATAL == ret );
+    } while( MBEDTLS_ERR_SSL_NON_FATAL == ret );
 
     if( 0 != ret )
     {
@@ -4013,7 +4013,7 @@ int mbedtls_ssl_handle_message_type( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_PROTO_SSL3 && MBEDTLS_SSL_SRV_C */
 
         /* Silently ignore: fetch new message */
-        return MBEDTLS_ERR_SSL_IGNORE_NON_FATAL;
+        return MBEDTLS_ERR_SSL_NON_FATAL;
     }
 
     return( 0 );

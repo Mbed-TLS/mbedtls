@@ -3588,7 +3588,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 
         ret = mbedtls_ssl_handle_message_type( ssl );
 
-    } while( MBEDTLS_ERR_SSL_IGNORE_NON_FATAL == ret );
+    } while( MBEDTLS_ERR_SSL_NON_FATAL == ret );
 
     if( 0 != ret )
     {

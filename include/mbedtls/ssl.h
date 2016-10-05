@@ -107,7 +107,7 @@
 #define MBEDTLS_ERR_SSL_TIMEOUT                           -0x6800  /**< The operation timed out. */
 #define MBEDTLS_ERR_SSL_CLIENT_RECONNECT                  -0x6780  /**< The client initiated a reconnect from the same port. */
 #define MBEDTLS_ERR_SSL_UNEXPECTED_RECORD                 -0x6700  /**< Record header looks valid but is not expected. */
-#define MBEDTLS_ERR_SSL_IGNORE_NON_FATAL                  -0x6680  /**< The message is a non-fatal error. */
+#define MBEDTLS_ERR_SSL_NON_FATAL                         -0x6680  /**< The message is a non-fatal error. */
 
 /*
  * Various constants

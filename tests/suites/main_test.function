@@ -79,12 +79,6 @@ SUITE_POST_DEP
 /*----------------------------------------------------------------------------*/
 /* Test dispatch code */
 
-#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
-#include <unistd.h>
-#endif
-#include <stdio.h>
-
-
 int dep_check( char *str )
 {
     if( str == NULL )
@@ -257,7 +251,6 @@ int main(int argc, const char *argv[])
     const char **test_files = NULL;
     int testfile_count = 0;
     int option_verbose = 0;
-    int tests_stdout;
 
     /* Other Local variables */
     int arg_index = 1;
@@ -268,6 +261,7 @@ int main(int argc, const char *argv[])
     char buf[5000];
     char *params[50];
     void *pointer;
+    int stdout_fd = 0;
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) && \
     !defined(TEST_SUITE_MEMORY_BUFFER_ALLOC)
@@ -353,7 +347,7 @@ int main(int argc, const char *argv[])
             if( unmet_dep_count > 0 )
             {
                 mbedtls_fprintf( stderr,
-                    "FATAL: Dep count larger than zero at start of loop\n");
+                    "FATAL: Dep count larger than zero at start of loop\n" );
                 mbedtls_exit( MBEDTLS_EXIT_FAILURE );
             }
             unmet_dep_count = 0;
@@ -389,7 +383,7 @@ int main(int argc, const char *argv[])
                         unmet_dependencies[ unmet_dep_count ] = strdup(params[i]);
                         if(  unmet_dependencies[ unmet_dep_count ] == NULL )
                         {
-                            mbedtls_fprintf( stderr, "FATAL: Out of memory\n");
+                            mbedtls_fprintf( stderr, "FATAL: Out of memory\n" );
                             mbedtls_exit( MBEDTLS_EXIT_FAILURE );
                         }
                         unmet_dep_count++;
@@ -412,21 +406,11 @@ int main(int argc, const char *argv[])
                  */
                 if( !option_verbose )
                 {
-                    /* Redirect all stdout output to /dev/null */
-                    tests_stdout = dup( fileno(stdout) );
-                    if( tests_stdout == -1 )
+                    stdout_fd = redirect_output( &stdout, "/dev/null" );
+                    if( stdout_fd == -1 )
                     {
                         /* Redirection has failed with no stdout so exit */
-                        exit(1);
-                    }
-
-                    fflush( stdout );
-                    fclose( stdout );
-                    stdout = fopen("/dev/null", "w" );
-                    if( stdout == NULL )
-                    {
-                        /* Redirection has failed with no stdout so exit */
-                        exit(1);
+                        exit( 1 );
                     }
                 }
 #endif /* __unix__ || __APPLE__ __MACH__ */
@@ -434,18 +418,10 @@ int main(int argc, const char *argv[])
                 ret = dispatch_test( cnt, params );
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
-                if( !option_verbose )
+                if( !option_verbose && restore_output( &stdout, stdout_fd ) )
                 {
-                    /* Restore stdout */
-                    fflush( stdout );
-                    fclose( stdout );
-
-                    stdout = fdopen ( tests_stdout, "w");
-                    if( stdout == NULL )
-                    {
                         /* Redirection has failed with no stdout so exit */
-                        exit(1);
-                    }
+                        exit( 1 );
                 }
 #endif /* __unix__ || __APPLE__ __MACH__ */
 

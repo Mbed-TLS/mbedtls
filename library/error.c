@@ -69,10 +69,6 @@
 #include "mbedtls/cipher.h"
 #endif
 
-#if defined(MBEDTLS_CMAC_C)
-#include "mbedtls/cmac.h"
-#endif
-
 #if defined(MBEDTLS_CTR_DRBG_C)
 #include "mbedtls/ctr_drbg.h"
 #endif

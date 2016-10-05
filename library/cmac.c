@@ -201,7 +201,7 @@ static void cmac_pad( unsigned char padded_block[16],
 }
 
 int mbedtls_cipher_cmac_starts( mbedtls_cipher_context_t *ctx,
-                                const unsigned char *key, size_t keylen )
+                                const unsigned char *key, size_t keybits )
 {
     mbedtls_cipher_type_t type;
     mbedtls_cmac_context_t *cmac_ctx;
@@ -211,7 +211,7 @@ int mbedtls_cipher_cmac_starts( mbedtls_cipher_context_t *ctx,
     if( ctx == NULL || ctx->cipher_info == NULL || key == NULL )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-    if( ( retval = mbedtls_cipher_setkey( ctx, key, keylen,
+    if( ( retval = mbedtls_cipher_setkey( ctx, key, keybits,
                                           MBEDTLS_ENCRYPT ) ) != 0 )
         return( retval );
 

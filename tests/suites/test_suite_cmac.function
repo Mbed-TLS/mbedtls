@@ -1,0 +1,37 @@
+/* BEGIN_HEADER */
+#include "mbedtls/cipher.h"
+#include "mbedtls/cmac.h"
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_CMAC_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
+void mbedtls_cmac_self_test( )
+{
+    TEST_ASSERT( mbedtls_cmac_self_test( 1 ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mbedtls_cmac_setkey( int cipher_type, int key_size,
+                          int result )
+{
+    const mbedtls_cipher_info_t *cipher_info;
+    unsigned char key[32];
+    unsigned char buf[16];
+    unsigned char tmp[16];
+
+    memset( key, 0x2A, sizeof( key ) );
+    TEST_ASSERT( (unsigned) key_size <= 8 * sizeof( key ) );
+
+    TEST_ASSERT( ( cipher_info = mbedtls_cipher_info_from_type( cipher_type ) )
+                    != NULL );
+
+    TEST_ASSERT( result == mbedtls_cipher_cmac( cipher_info, key, key_size,
+                                                buf, 16, tmp ) != 0 );
+}
+/* END_CASE */
+

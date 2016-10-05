@@ -1,0 +1,27 @@
+CMAC self test
+mbedtls_cmac_self_test:
+
+CMAC init #1 AES-128: OK
+depends_on:MBEDTLS_AES_C
+mbedtls_cmac_setkey:MBEDTLS_CIPHER_AES_128_ECB:128:0
+
+CMAC init #2 AES-192: OK
+depends_on:MBEDTLS_AES_C
+mbedtls_cmac_setkey:MBEDTLS_CIPHER_AES_192_ECB:192:0
+
+CMAC init #3 AES-256: OK
+depends_on:MBEDTLS_AES_C
+mbedtls_cmac_setkey:MBEDTLS_CIPHER_AES_256_ECB:256:0
+
+CMAC init #4 3DES : OK
+depends_on:MBEDTLS_DES_C
+mbedtls_cmac_setkey:MBEDTLS_CIPHER_DES_EDE3_ECB:192:0
+
+CMAC init #5 AES-224: bad key size
+depends_on:MBEDTLS_AES_C
+mbedtls_cmac_setkey:MBEDTLS_CIPHER_ID_AES:224:MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
+
+CMAC init #6 Camellia: wrong cipher
+depends_on:MBEDTLS_CAMELLIA_C
+mbedtls_cmac_setkey:MBEDTLS_CIPHER_ID_CAMELLIA:128:MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
+

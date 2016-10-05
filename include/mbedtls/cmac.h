@@ -37,9 +37,10 @@ extern "C" {
 #endif
 
 /**
- * \brief          CMAC context structure
+ * CMAC context structure - Contains internal state information only
  */
-typedef struct mbedtls_cmac_context_t {
+struct mbedtls_cmac_context_t
+{
 
     /** Internal state of the CMAC algorithm  */
     unsigned char       state[MBEDTLS_CIPHER_BLKSIZE_MAX_SIZE];
@@ -53,8 +54,7 @@ typedef struct mbedtls_cmac_context_t {
 
     /** Flag to indicate if the last block needs padding */
     int                 padding_flag;
-}
-mbedtls_cmac_context_t;
+};
 
 /**
  * \brief               Set the CMAC key and prepare to authenticate the input

@@ -3,6 +3,8 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS 2.3.x branch released 2016-xx-xx
 
 Features
+   * Added support for CMAC for AES and 3DES and AES-CMAC-PRF-128, as defined by
+     NIST SP 800-38B, RFC-4493 and RFC-4615.
    * Added hardware entropy selftest to verify that the hardware entropy source
      is functioning correctly.
    * Added a script to print build environment info for diagnostic use in test

@@ -69,7 +69,7 @@ struct mbedtls_cmac_context_t
  * \return              0 if successful, or a cipher specific error code
  */
 int mbedtls_cipher_cmac_starts( mbedtls_cipher_context_t *ctx,
-                                const unsigned char *key, size_t keylen );
+                                const unsigned char *key, size_t keybits );
 
 /**
  * \brief               Generic CMAC process buffer.

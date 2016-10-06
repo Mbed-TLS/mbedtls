@@ -245,7 +245,7 @@ int mbedtls_cipher_cmac_update( mbedtls_cipher_context_t *ctx,
 {
     mbedtls_cmac_context_t* cmac_ctx;
     unsigned char *state;
-    int     n, j, ret = 0;
+    int n, j, ret = 0;
     size_t olen, block_size;
 
     if( ctx == NULL || ctx->cipher_info == NULL || input == NULL ||
@@ -259,7 +259,7 @@ int mbedtls_cipher_cmac_update( mbedtls_cipher_context_t *ctx,
     /* Is their data still to process from the last call, that's equal to
      * or greater than a block? */
     if( cmac_ctx->unprocessed_len > 0 &&
-        ilen + cmac_ctx->unprocessed_len > block_size )
+        ilen > block_size - cmac_ctx->unprocessed_len )
     {
         memcpy( &cmac_ctx->unprocessed_block[cmac_ctx->unprocessed_len],
                 input,
@@ -387,7 +387,7 @@ int mbedtls_cipher_cmac_reset( mbedtls_cipher_context_t *ctx )
     /* Reset the internal state */
     cmac_ctx->unprocessed_len = 0;
     mbedtls_zeroize( cmac_ctx->unprocessed_block,
-                     sizeof( cmac_ctx->unprocessed_block ));
+                     sizeof( cmac_ctx->unprocessed_block ) );
     mbedtls_zeroize( cmac_ctx->state,
                      sizeof( cmac_ctx->state ) );
     cmac_ctx->padding_flag = 1;
@@ -822,7 +822,7 @@ static int cmac_test_wth_cipher( int verbose,
     for( i = 0; i < num_tests; i++ )
     {
         if( verbose != 0 )
-            mbedtls_printf( "  %s CMAC #%u: ", testname, i +1 );
+            mbedtls_printf( "  %s CMAC #%u: ", testname, i + 1 );
 
         if( ( ret = mbedtls_cipher_cmac( cipher_info, key, keybits, messages,
                                          message_lengths[i], output ) ) != 0 )

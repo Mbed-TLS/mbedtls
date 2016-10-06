@@ -30,10 +30,13 @@
 extern "C" {
 #endif
 
+#define MBEDTLS_AES_BLOCK_SIZE          16
+#define MBEDTLS_DES3_BLOCK_SIZE         8
+
 #if defined(MBEDTLS_AES_C)
-#define MBEDTLS_CIPHER_BLKSIZE_MAX_SIZE     16  /* longest known is AES */
+#define MBEDTLS_CIPHER_BLKSIZE_MAX      16  /* longest used by CMAC is AES */
 #else
-#define MBEDTLS_CIPHER_BLKSIZE_MAX_SIZE     8   /* longest known is 3DES */
+#define MBEDTLS_CIPHER_BLKSIZE_MAX      8   /* longest used by CMAC is 3DES */
 #endif
 
 /**
@@ -43,11 +46,11 @@ struct mbedtls_cmac_context_t
 {
 
     /** Internal state of the CMAC algorithm  */
-    unsigned char       state[MBEDTLS_CIPHER_BLKSIZE_MAX_SIZE];
+    unsigned char       state[MBEDTLS_CIPHER_BLKSIZE_MAX];
 
     /** Unprocessed data - either data that was not block aligned and is still 
      *  pending to be processed, or the final block */
-    unsigned char       unprocessed_block[MBEDTLS_CIPHER_BLKSIZE_MAX_SIZE];
+    unsigned char       unprocessed_block[MBEDTLS_CIPHER_BLKSIZE_MAX];
 
     /** Length of data pending to be processed */
     size_t              unprocessed_len;
@@ -133,7 +136,7 @@ int mbedtls_cipher_cmac( const mbedtls_cipher_info_t *cipher_info,
                          const unsigned char *input, size_t ilen,
                          unsigned char *output );
 
-#ifdef MBEDTLS_AES_C
+#if defined(MBEDTLS_AES_C)
 /**
  * \brief           AES-CMAC-128-PRF
  *                  Implementation of (AES-CMAC-PRF-128), as defined in RFC 4615

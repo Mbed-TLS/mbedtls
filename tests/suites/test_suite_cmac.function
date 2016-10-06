@@ -31,7 +31,7 @@ void mbedtls_cmac_setkey( int cipher_type, int key_size,
                     != NULL );
 
     TEST_ASSERT( result == mbedtls_cipher_cmac( cipher_info, key, key_size,
-                                                buf, 16, tmp ) != 0 );
+                                                buf, 16, tmp ) );
 }
 /* END_CASE */
 

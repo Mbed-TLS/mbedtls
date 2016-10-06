@@ -1679,7 +1679,7 @@
  *
  * Module:  library/cmac.c
  *
- * Requires: MBEDTLS_AES_C or MBEDTLS_CAMELLIA_C or MBEDTLS_DES_C
+ * Requires: MBEDTLS_AES_C or MBEDTLS_DES_C
  *
  */
 //#define MBEDTLS_CMAC_C

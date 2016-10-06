@@ -494,8 +494,8 @@ int main( int argc, char *argv[] )
             cipher_info = mbedtls_cipher_info_from_type( cipher_type );
 
             TIME_AND_TSC( title,
-                             mbedtls_cipher_cmac( cipher_info, tmp, keysize,
-                                                  buf, BUFSIZE, output ) );
+                          mbedtls_cipher_cmac( cipher_info, tmp, keysize,
+                                               buf, BUFSIZE, output ) );
         }
 
         memset( buf, 0, sizeof( buf ) );

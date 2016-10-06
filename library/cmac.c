@@ -1,7 +1,7 @@
 /*
  * \file cmac.c
  *
- * \brief NIST SP800-38B compliant CMAC implementation
+ * \brief NIST SP800-38B compliant CMAC implementation for AES and 3DES
  *
  *  Copyright (C) 2006-2016, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
@@ -63,8 +63,7 @@
         defined(MBEDTLS_DES_C) )
 #include <stdio.h>
 #define mbedtls_printf     printf
-#endif /* defined(MBEDTLS_SELF_TEST) && ( defined(MBEDTLS_AES_C) ||
-        * defined(MBEDTLS_DES_C) )*/
+#endif /* MBEDTLS_SELF_TEST && MBEDTLS_AES_C || MBEDTLS_DES_C */
 #endif /* MBEDTLS_PLATFORM_C */
 
 /* Implementation that should never be optimized out by the compiler */
@@ -82,7 +81,7 @@ static void mbedtls_zeroize( void *v, size_t n ) {
  *   with R_64 = 0x1B and  R_128 = 0x87
  *
  * Input and output MUST NOT point to the same buffer
- * Block size must be 8 byes or 16 bytes.
+ * Block size must be 8 byes or 16 bytes - the block sizes for DES and AES.
  */
 static int cmac_multiply_by_u( unsigned char *output,
                                const unsigned char *input,
@@ -94,11 +93,11 @@ static int cmac_multiply_by_u( unsigned char *output,
     unsigned char overflow = 0x00;
     int i;
 
-    if( blocksize == 16 )
+    if( blocksize == MBEDTLS_AES_BLOCK_SIZE )
     {
         R_n = R_128;
     }
-    else if( blocksize == 8 )
+    else if( blocksize == MBEDTLS_DES3_BLOCK_SIZE )
     {
         R_n = R_64;
     }
@@ -141,7 +140,7 @@ static int cmac_generate_subkeys( mbedtls_cipher_context_t *ctx,
                                   unsigned char* K1, unsigned char* K2 )
 {
     int ret;
-    unsigned char L[MBEDTLS_CIPHER_BLKSIZE_MAX_SIZE];
+    unsigned char L[MBEDTLS_CIPHER_BLKSIZE_MAX];
     size_t olen, block_size;
 
     mbedtls_zeroize( L, sizeof( L ) );
@@ -167,8 +166,9 @@ exit:
     return( ret );
 }
 
-static void cmac_xor_block(unsigned char *output, const unsigned char *input1,
-                    const unsigned char *input2, const size_t block_size )
+static void cmac_xor_block( unsigned char *output, const unsigned char *input1,
+                            const unsigned char *input2,
+                            const size_t block_size )
 {
     size_t index;
 
@@ -182,7 +182,7 @@ static void cmac_xor_block(unsigned char *output, const unsigned char *input1,
  * We can't use the padding option from the cipher layer, as it only works for
  * CBC and we use ECB mode, and anyway we need to XOR K1 or K2 in addition.
  */
-static void cmac_pad( unsigned char padded_block[16],
+static void cmac_pad( unsigned char padded_block[MBEDTLS_CIPHER_BLKSIZE_MAX],
                       size_t padded_block_len,
                       const unsigned char *last_block,
                       size_t last_block_len )
@@ -205,7 +205,6 @@ int mbedtls_cipher_cmac_starts( mbedtls_cipher_context_t *ctx,
 {
     mbedtls_cipher_type_t type;
     mbedtls_cmac_context_t *cmac_ctx;
-    unsigned int block_size;
     int retval;
 
     if( ctx == NULL || ctx->cipher_info == NULL || key == NULL )
@@ -215,7 +214,6 @@ int mbedtls_cipher_cmac_starts( mbedtls_cipher_context_t *ctx,
                                           MBEDTLS_ENCRYPT ) ) != 0 )
         return( retval );
 
-    block_size = ctx->cipher_info->block_size;
     type = ctx->cipher_info->type;
 
     switch( type )
@@ -288,7 +286,6 @@ int mbedtls_cipher_cmac_update( mbedtls_cipher_context_t *ctx,
    /* Iterate across the input data in block sized chunks */
     for( j = 0; j < n - 1; j++ )
     {
-        //char *ptr =  input + block_size * j ;
         cmac_xor_block( state, input, state, block_size );
 
         if( ( ret = mbedtls_cipher_update( ctx, state, block_size, state,
@@ -321,10 +318,10 @@ int mbedtls_cipher_cmac_finish( mbedtls_cipher_context_t *ctx,
                                 unsigned char *output )
 {
     mbedtls_cmac_context_t* cmac_ctx;
-    unsigned char *state;
-    unsigned char K1[MBEDTLS_CIPHER_BLKSIZE_MAX_SIZE];
-    unsigned char K2[MBEDTLS_CIPHER_BLKSIZE_MAX_SIZE];
-    unsigned char M_last[MBEDTLS_CIPHER_BLKSIZE_MAX_SIZE];
+    unsigned char *state, *last_block;
+    unsigned char K1[MBEDTLS_CIPHER_BLKSIZE_MAX];
+    unsigned char K2[MBEDTLS_CIPHER_BLKSIZE_MAX];
+    unsigned char M_last[MBEDTLS_CIPHER_BLKSIZE_MAX];
     int ret;
     size_t olen, block_size;
 
@@ -336,16 +333,11 @@ int mbedtls_cipher_cmac_finish( mbedtls_cipher_context_t *ctx,
     block_size = ctx->cipher_info->block_size;
     state = cmac_ctx->state;
 
-    mbedtls_zeroize( K1, sizeof(K1) );
-    mbedtls_zeroize( K2, sizeof(K2) );
+    mbedtls_zeroize( K1, sizeof( K1 ) );
+    mbedtls_zeroize( K2, sizeof( K2 ) );
     cmac_generate_subkeys( ctx, K1, K2 );
 
-//    mbedtls_zeroize( M_last, sizeof(M_last) );
-//    if( cmac_ctx->unprocessed_len > 0 )
-//        needs_padding = 1;
-
-    unsigned char *last_block = cmac_ctx->unprocessed_block;
-    //unsigned char *M_last = cmac_ctx->unprocessed_block;
+    last_block = cmac_ctx->unprocessed_block;
 
     /* Calculate last block */
     if( cmac_ctx->padding_flag )
@@ -367,21 +359,20 @@ int mbedtls_cipher_cmac_finish( mbedtls_cipher_context_t *ctx,
         goto exit;
     }
 
-
-
     memcpy( output, state, block_size );
 
 exit:
     /* Wipe the generated keys on the stack, and any other transients to avoid
      * side channel leakage */
-    mbedtls_zeroize( K1, sizeof(K1) );
-    mbedtls_zeroize( K2, sizeof(K2) );
+    mbedtls_zeroize( K1, sizeof( K1 ) );
+    mbedtls_zeroize( K2, sizeof( K2 ) );
 
+    cmac_ctx->padding_flag = 1;
     cmac_ctx->unprocessed_len = 0;
     mbedtls_zeroize( cmac_ctx->unprocessed_block,
-                     sizeof( cmac_ctx->unprocessed_len ) );
+                     sizeof( cmac_ctx->unprocessed_block ) );
 
-    mbedtls_zeroize( state, MBEDTLS_CIPHER_BLKSIZE_MAX_SIZE );
+    mbedtls_zeroize( state, MBEDTLS_CIPHER_BLKSIZE_MAX );
     return( ret );
 }
 
@@ -398,7 +389,7 @@ int mbedtls_cipher_cmac_reset( mbedtls_cipher_context_t *ctx )
     cmac_ctx->unprocessed_len = 0;
     mbedtls_zeroize( cmac_ctx->unprocessed_block,
                      sizeof( cmac_ctx->unprocessed_len ) );
-
+    mbedtls_zeroize( cmac_ctx->state, MBEDTLS_CIPHER_BLKSIZE_MAX );
     cmac_ctx->padding_flag = 1;
 
     return( 0 );
@@ -421,28 +412,24 @@ int mbedtls_cipher_cmac( const mbedtls_cipher_info_t *cipher_info,
         goto exit;
 
     ret = mbedtls_cipher_cmac_starts( &ctx, key, keylen );
-
     if( ret != 0 )
         goto exit;
-        // Are we leaking here? Should we reset or free?
 
     ret = mbedtls_cipher_cmac_update( &ctx, input, ilen );
     if( ret != 0 )
         goto exit;
 
-    mbedtls_cipher_cmac_finish( &ctx, output );
-    if( ret != 0 )
-        goto exit;
+    ret = mbedtls_cipher_cmac_finish( &ctx, output );
 
 exit:
+    mbedtls_cipher_free( &ctx );
+
     return( ret );
 }
-#ifdef MBEDTLS_AES_C
 
+#if defined(MBEDTLS_AES_C)
 /*
-// TODO - clean up comments
- * PRF based on CMAC with AES-128
- * See RFC 4615
+ * Implementation of AES-CMAC-PRF-128 defined in RFC 4615
  */
 int mbedtls_aes_cmac_prf_128( const unsigned char *key, size_t key_length,
                               const unsigned char *input, size_t in_len,
@@ -450,8 +437,11 @@ int mbedtls_aes_cmac_prf_128( const unsigned char *key, size_t key_length,
 {
     int ret;
     const mbedtls_cipher_info_t *cipher_info;
-    unsigned char zero_key[16];
-    unsigned char int_key[16];
+    unsigned char zero_key[MBEDTLS_AES_BLOCK_SIZE];
+    unsigned char int_key[MBEDTLS_AES_BLOCK_SIZE];
+
+    if( key == NULL || input == NULL || output == NULL )
+        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
     cipher_info = mbedtls_cipher_info_from_type( MBEDTLS_CIPHER_AES_128_ECB );
     if( cipher_info == NULL )
@@ -461,14 +451,14 @@ int mbedtls_aes_cmac_prf_128( const unsigned char *key, size_t key_length,
         goto exit;
     }
 
-    if( key_length == 16 )
+    if( key_length == MBEDTLS_AES_BLOCK_SIZE )
     {
         /* Use key as is */
-        memcpy( int_key, key, 16 );
+        memcpy( int_key, key, MBEDTLS_AES_BLOCK_SIZE );
     }
     else
     {
-        memset( zero_key, 0, 16 );
+        memset( zero_key, 0, MBEDTLS_AES_BLOCK_SIZE );
 
         ret = mbedtls_cipher_cmac( cipher_info, zero_key, 128, key,
                                    key_length, int_key );
@@ -486,7 +476,7 @@ exit:
 }
 #endif /* MBEDTLS_AES_C */
 
-#ifdef MBEDTLS_SELF_TEST
+#if defined(MBEDTLS_SELF_TEST)
 /*
  * CMAC test data from SP800-38B Appendix D.1 (corrected)
  * http://csrc.nist.gov/publications/nistpubs/800-38B/Updated_CMAC_Examples.pdf
@@ -497,10 +487,6 @@ exit:
 
 #define NB_CMAC_TESTS_PER_KEY 4
 #define NB_PRF_TESTS 3
-
-// TODO - should use a value somewhere else
-#define AES_BLOCK_SIZE 16
-#define DES3_BLOCK_SIZE 8
 
 #if defined(MBEDTLS_AES_C) || defined(MBEDTLS_DES_C)
 /* All CMAC test inputs are truncated from the same 64 byte buffer. */
@@ -514,11 +500,9 @@ static const unsigned char test_message[] = {
     0xf6, 0x9f, 0x24, 0x45, 0xdf, 0x4f, 0x9b, 0x17,
     0xad, 0x2b, 0x41, 0x7b, 0xe6, 0x6c, 0x37, 0x10
 };
+#endif /* MBEDTLS_AES_C || MBEDTLS_DES_C */
 
-
-#endif /* defined(MBEDTLS_AES_C) || defined(MBEDTLS_DES_C) */
-
-#ifdef MBEDTLS_AES_C
+#if defined(MBEDTLS_AES_C)
 /* Truncation point of message for AES CMAC tests  */
 static const  unsigned int  aes_message_lengths[NB_CMAC_TESTS_PER_KEY] = {
     0,
@@ -532,7 +516,7 @@ static const unsigned char aes_128_key[16] = {
     0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6,
     0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c
 };
-static const unsigned char aes_128_subkeys[2][AES_BLOCK_SIZE] = {
+static const unsigned char aes_128_subkeys[2][MBEDTLS_AES_BLOCK_SIZE] = {
     {
         0xfb, 0xee, 0xd6, 0x18, 0x35, 0x71, 0x33, 0x66,
         0x7c, 0x85, 0xe0, 0x8f, 0x72, 0x36, 0xa8, 0xde
@@ -542,7 +526,7 @@ static const unsigned char aes_128_subkeys[2][AES_BLOCK_SIZE] = {
         0xf9, 0x0b, 0xc1, 0x1e, 0xe4, 0x6d, 0x51, 0x3b
     }
 };
-static const unsigned char aes_128_expected_result[NB_CMAC_TESTS_PER_KEY][AES_BLOCK_SIZE] = {
+static const unsigned char aes_128_expected_result[NB_CMAC_TESTS_PER_KEY][MBEDTLS_AES_BLOCK_SIZE] = {
     {
         0xbb, 0x1d, 0x69, 0x29, 0xe9, 0x59, 0x37, 0x28,
         0x7f, 0xa3, 0x7d, 0x12, 0x9b, 0x75, 0x67, 0x46
@@ -567,7 +551,7 @@ static const unsigned char aes_192_key[24] = {
     0xc8, 0x10, 0xf3, 0x2b, 0x80, 0x90, 0x79, 0xe5,
     0x62, 0xf8, 0xea, 0xd2, 0x52, 0x2c, 0x6b, 0x7b
 };
-static const unsigned char aes_192_subkeys[2][AES_BLOCK_SIZE] = {
+static const unsigned char aes_192_subkeys[2][MBEDTLS_AES_BLOCK_SIZE] = {
     {
         0x44, 0x8a, 0x5b, 0x1c, 0x93, 0x51, 0x4b, 0x27,
         0x3e, 0xe6, 0x43, 0x9d, 0xd4, 0xda, 0xa2, 0x96
@@ -577,7 +561,7 @@ static const unsigned char aes_192_subkeys[2][AES_BLOCK_SIZE] = {
         0x7d, 0xcc, 0x87, 0x3b, 0xa9, 0xb5, 0x45, 0x2c
     }
 };
-static const unsigned char aes_192_expected_result[NB_CMAC_TESTS_PER_KEY][AES_BLOCK_SIZE] = {
+static const unsigned char aes_192_expected_result[NB_CMAC_TESTS_PER_KEY][MBEDTLS_AES_BLOCK_SIZE] = {
     {
         0xd1, 0x7d, 0xdf, 0x46, 0xad, 0xaa, 0xcd, 0xe5,
         0x31, 0xca, 0xc4, 0x83, 0xde, 0x7a, 0x93, 0x67
@@ -603,7 +587,7 @@ static const unsigned char aes_256_key[32] = {
     0x1f, 0x35, 0x2c, 0x07, 0x3b, 0x61, 0x08, 0xd7,
     0x2d, 0x98, 0x10, 0xa3, 0x09, 0x14, 0xdf, 0xf4
 };
-static const unsigned char aes_256_subkeys[2][AES_BLOCK_SIZE] = {
+static const unsigned char aes_256_subkeys[2][MBEDTLS_AES_BLOCK_SIZE] = {
     {
         0xca, 0xd1, 0xed, 0x03, 0x29, 0x9e, 0xed, 0xac,
         0x2e, 0x9a, 0x99, 0x80, 0x86, 0x21, 0x50, 0x2f
@@ -613,7 +597,7 @@ static const unsigned char aes_256_subkeys[2][AES_BLOCK_SIZE] = {
         0x5d, 0x35, 0x33, 0x01, 0x0c, 0x42, 0xa0, 0xd9
     }
 };
-static const unsigned char aes_256_expected_result[NB_CMAC_TESTS_PER_KEY][AES_BLOCK_SIZE] = {
+static const unsigned char aes_256_expected_result[NB_CMAC_TESTS_PER_KEY][MBEDTLS_AES_BLOCK_SIZE] = {
     {
         0x02, 0x89, 0x62, 0xf6, 0x1b, 0x7b, 0xf8, 0x9e,
         0xfc, 0x6b, 0x55, 0x1f, 0x46, 0x67, 0xd9, 0x83
@@ -633,7 +617,7 @@ static const unsigned char aes_256_expected_result[NB_CMAC_TESTS_PER_KEY][AES_BL
 };
 #endif /* MBEDTLS_AES_C */
 
-#ifdef MBEDTLS_DES_C
+#if defined(MBEDTLS_DES_C)
 /* Truncation point of message for 3DES CMAC tests  */
 static const unsigned int des3_message_lengths[NB_CMAC_TESTS_PER_KEY] = {
     0,
@@ -656,7 +640,7 @@ static const unsigned char des3_2key_subkeys[2][8] = {
         0x1d, 0x9e, 0x6e, 0x7d, 0xae, 0x35, 0xf5, 0xc5
     }
 };
-static const unsigned char des3_2key_expected_result[NB_CMAC_TESTS_PER_KEY][DES3_BLOCK_SIZE] = {
+static const unsigned char des3_2key_expected_result[NB_CMAC_TESTS_PER_KEY][MBEDTLS_DES3_BLOCK_SIZE] = {
     {
         0xbd, 0x2e, 0xbf, 0x9a, 0x3b, 0xa0, 0x03, 0x61
     },
@@ -685,7 +669,7 @@ static const unsigned char des3_3key_subkeys[2][8] = {
         0x23, 0x31, 0xd3, 0xa6, 0x29, 0xcc, 0xa6, 0xa5
     }
 };
-static const unsigned char des3_3key_expected_result[NB_CMAC_TESTS_PER_KEY][DES3_BLOCK_SIZE] = {
+static const unsigned char des3_3key_expected_result[NB_CMAC_TESTS_PER_KEY][MBEDTLS_DES3_BLOCK_SIZE] = {
     {
         0xb7, 0xa6, 0x88, 0xe1, 0x22, 0xff, 0xaf, 0x95
     },
@@ -702,7 +686,7 @@ static const unsigned char des3_3key_expected_result[NB_CMAC_TESTS_PER_KEY][DES3
 
 #endif /* MBEDTLS_DES_C */
 
-#ifdef MBEDTLS_AES_C
+#if defined(MBEDTLS_AES_C)
 /* AES AES-CMAC-PRF-128 Test Data */
 static const unsigned char PRFK[] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
@@ -752,23 +736,22 @@ static int cmac_test_subkeys( int verbose,
     int i, ret;
     mbedtls_cipher_context_t ctx;
     const mbedtls_cipher_info_t *cipher_info;
-    unsigned char K1[MBEDTLS_CIPHER_BLKSIZE_MAX_SIZE];
-    unsigned char K2[MBEDTLS_CIPHER_BLKSIZE_MAX_SIZE];
+    unsigned char K1[MBEDTLS_CIPHER_BLKSIZE_MAX];
+    unsigned char K2[MBEDTLS_CIPHER_BLKSIZE_MAX];
 
     cipher_info = mbedtls_cipher_info_from_type( cipher_type );
     if( cipher_info == NULL )
     {
         /* Failing at this point must be due to a build issue */
-        ret = MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
-        goto exit;
+        return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
     }
+
+    mbedtls_cipher_init( &ctx );
 
     for( i = 0; i < num_tests; i++ )
     {
         if( verbose != 0 )
-            mbedtls_printf( "  %s CMAC subkey #%u: ", testname, i +1 );
-
-        mbedtls_cipher_init( &ctx );
+            mbedtls_printf( "  %s CMAC subkey #%u: ", testname, i + 1 );
 
         if( ( ret = mbedtls_cipher_setup( &ctx, cipher_info ) ) != 0 )
         {
@@ -808,30 +791,25 @@ static int cmac_test_subkeys( int verbose,
     }
 
 exit:
+    mbedtls_cipher_free( &ctx );
+
     return( ret );
 }
 
-static inline int cmac_test_wth_cipher( int verbose,
-                          const char* testname,
-                          const unsigned char* key,
-                          int keybits,
-                          const unsigned char* messages,
-                          const unsigned int message_lengths[4],
-                          const unsigned char* expected_result,
-                          mbedtls_cipher_type_t cipher_type,
-                          int block_size,
-                          int num_tests )
+static int cmac_test_wth_cipher( int verbose,
+                                 const char* testname,
+                                 const unsigned char* key,
+                                 int keybits,
+                                 const unsigned char* messages,
+                                 const unsigned int message_lengths[4],
+                                 const unsigned char* expected_result,
+                                 mbedtls_cipher_type_t cipher_type,
+                                 int block_size,
+                                 int num_tests )
 {
     const mbedtls_cipher_info_t *cipher_info;
     int i, ret;
-    unsigned char* output;
-
-    output = mbedtls_calloc( block_size, sizeof( unsigned char ) );
-    if( output == NULL )
-    {
-        ret = MBEDTLS_ERR_CIPHER_ALLOC_FAILED;
-        goto exit;
-    }
+    unsigned char output[MBEDTLS_CIPHER_BLKSIZE_MAX];
 
     cipher_info = mbedtls_cipher_info_from_type( cipher_type );
     if( cipher_info == NULL )
@@ -864,32 +842,32 @@ static inline int cmac_test_wth_cipher( int verbose,
         if( verbose != 0 )
             mbedtls_printf( "passed\n" );
     }
-exit:
-    mbedtls_free( output );
 
+exit:
     return( ret );
 }
 
-#ifdef MBEDTLS_AES_C
-static inline int test_aes128_cmac_prf( int verbose )
+#if defined(MBEDTLS_AES_C)
+static int test_aes128_cmac_prf( int verbose )
 {
     int i;
     int ret;
-    unsigned char output[16];
+    unsigned char output[MBEDTLS_AES_BLOCK_SIZE];
 
     for( i = 0; i < NB_PRF_TESTS; i++ )
     {
         mbedtls_printf( "  AES CMAC 128 PRF #%u: ", i );
         ret = mbedtls_aes_cmac_prf_128( PRFK, PRFKlen[i], PRFM, 20, output );
         if( ret != 0 ||
-            memcmp( output, PRFT[i], 16 ) != 0 )
+            memcmp( output, PRFT[i], MBEDTLS_AES_BLOCK_SIZE ) != 0 )
         {
 
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
 
             return( ret );
-        } else if( verbose != 0 )
+        }
+        else if( verbose != 0 )
         {
             mbedtls_printf( "passed\n" );
         }
@@ -902,17 +880,16 @@ int mbedtls_cmac_self_test( int verbose )
 {
     int ret;
 
-#ifdef MBEDTLS_AES_C
-
+#if defined(MBEDTLS_AES_C)
     /* AES-128 */
     if( ( ret = cmac_test_subkeys( verbose,
-                                      "AES 128",
-                                      aes_128_key,
-                                      128,
-                                      (const unsigned char*) aes_128_subkeys,
-                                      MBEDTLS_CIPHER_AES_128_ECB,
-                                      AES_BLOCK_SIZE,
-                                      NB_CMAC_TESTS_PER_KEY ) !=0 ) )
+                                   "AES 128",
+                                   aes_128_key,
+                                   128,
+                                   (const unsigned char*)aes_128_subkeys,
+                                   MBEDTLS_CIPHER_AES_128_ECB,
+                                   MBEDTLS_AES_BLOCK_SIZE,
+                                   NB_CMAC_TESTS_PER_KEY ) != 0 ) )
     {
         return( ret );
     }
@@ -923,23 +900,23 @@ int mbedtls_cmac_self_test( int verbose )
                                       128,
                                       test_message,
                                       aes_message_lengths,
-                                      (const unsigned char*) aes_128_expected_result,
+                                      (const unsigned char*)aes_128_expected_result,
                                       MBEDTLS_CIPHER_AES_128_ECB,
-                                      AES_BLOCK_SIZE,
-                                      NB_CMAC_TESTS_PER_KEY ) !=0 ) )
+                                      MBEDTLS_AES_BLOCK_SIZE,
+                                      NB_CMAC_TESTS_PER_KEY ) != 0 ) )
     {
         return( ret );
     }
 
     /* AES-192 */
     if( ( ret = cmac_test_subkeys( verbose,
-                                      "AES 192",
-                                      aes_192_key,
-                                      192,
-                                      (const unsigned char*) aes_192_subkeys,
-                                      MBEDTLS_CIPHER_AES_192_ECB,
-                                      AES_BLOCK_SIZE,
-                                      NB_CMAC_TESTS_PER_KEY ) !=0 ) )
+                                   "AES 192",
+                                   aes_192_key,
+                                   192,
+                                   (const unsigned char*)aes_192_subkeys,
+                                   MBEDTLS_CIPHER_AES_192_ECB,
+                                   MBEDTLS_AES_BLOCK_SIZE,
+                                   NB_CMAC_TESTS_PER_KEY ) != 0 ) )
     {
         return( ret );
     }
@@ -950,58 +927,55 @@ int mbedtls_cmac_self_test( int verbose )
                                       192,
                                       test_message,
                                       aes_message_lengths,
-                                      (const unsigned char*) aes_192_expected_result,
+                                      (const unsigned char*)aes_192_expected_result,
                                       MBEDTLS_CIPHER_AES_192_ECB,
-                                      AES_BLOCK_SIZE,
-                                      NB_CMAC_TESTS_PER_KEY ) !=0 ) )
+                                      MBEDTLS_AES_BLOCK_SIZE,
+                                      NB_CMAC_TESTS_PER_KEY ) != 0 ) )
     {
-mbedtls_printf("ret = %x\n", ret);
         return( ret );
     }
 
     /* AES-256 */
     if( ( ret = cmac_test_subkeys( verbose,
-                                      "AES 256",
-                                      aes_256_key,
-                                      256,
-                                      (const unsigned char*) aes_256_subkeys,
-                                      MBEDTLS_CIPHER_AES_256_ECB,
-                                      AES_BLOCK_SIZE,
-                                      NB_CMAC_TESTS_PER_KEY ) !=0 ) )
+                                   "AES 256",
+                                   aes_256_key,
+                                   256,
+                                   (const unsigned char*)aes_256_subkeys,
+                                   MBEDTLS_CIPHER_AES_256_ECB,
+                                   MBEDTLS_AES_BLOCK_SIZE,
+                                   NB_CMAC_TESTS_PER_KEY ) != 0 ) )
     {
         return( ret );
     }
 
-   if( ( ret = cmac_test_wth_cipher ( verbose,
+    if( ( ret = cmac_test_wth_cipher ( verbose,
                                        "AES 256",
                                        aes_256_key,
                                        256,
                                        test_message,
                                        aes_message_lengths,
-                                       (const unsigned char*) aes_256_expected_result,
+                                       (const unsigned char*)aes_256_expected_result,
                                        MBEDTLS_CIPHER_AES_256_ECB,
-                                       AES_BLOCK_SIZE,
-                                       NB_CMAC_TESTS_PER_KEY ) !=0 ) )
+                                       MBEDTLS_AES_BLOCK_SIZE,
+                                       NB_CMAC_TESTS_PER_KEY ) != 0 ) )
     {
         return( ret );
     }
 #endif /* MBEDTLS_AES_C */
 
-#ifdef MBEDTLS_DES_C
+#if defined(MBEDTLS_DES_C)
     /* 3DES 2 key */
     if( ( ret = cmac_test_subkeys( verbose,
-                                       "3DES 2 key",
-                                      des3_2key_key,
-                                      192,
-                                      (const unsigned char*) des3_2key_subkeys,
-                                      MBEDTLS_CIPHER_DES_EDE3_ECB,
-                                      DES3_BLOCK_SIZE,
-                                      NB_CMAC_TESTS_PER_KEY ) !=0 ) )
+                                   "3DES 2 key",
+                                   des3_2key_key,
+                                   192,
+                                   (const unsigned char*)des3_2key_subkeys,
+                                   MBEDTLS_CIPHER_DES_EDE3_ECB,
+                                   MBEDTLS_DES3_BLOCK_SIZE,
+                                   NB_CMAC_TESTS_PER_KEY ) != 0 ) )
     {
         return( ret );
     }
-
-
 
     if( ( ret = cmac_test_wth_cipher( verbose,
                                       "3DES 2 key",
@@ -1009,27 +983,26 @@ mbedtls_printf("ret = %x\n", ret);
                                       192,
                                       test_message,
                                       des3_message_lengths,
-                                      (const unsigned char*) des3_2key_expected_result,
+                                      (const unsigned char*)des3_2key_expected_result,
                                       MBEDTLS_CIPHER_DES_EDE3_ECB,
-                                      DES3_BLOCK_SIZE,
-                                      NB_CMAC_TESTS_PER_KEY ) !=0 ) )
+                                      MBEDTLS_DES3_BLOCK_SIZE,
+                                      NB_CMAC_TESTS_PER_KEY ) != 0 ) )
     {
         return( ret );
     }
 
     /* 3DES 3 key */
     if( ( ret = cmac_test_subkeys( verbose,
-                                       "3DES 3 key",
-                                      des3_3key_key,
-                                      192,
-                                      (const unsigned char*) des3_3key_subkeys,
-                                      MBEDTLS_CIPHER_DES_EDE3_ECB,
-                                      DES3_BLOCK_SIZE,
-                                      NB_CMAC_TESTS_PER_KEY ) !=0 ) )
+                                   "3DES 3 key",
+                                   des3_3key_key,
+                                   192,
+                                   (const unsigned char*)des3_3key_subkeys,
+                                   MBEDTLS_CIPHER_DES_EDE3_ECB,
+                                   MBEDTLS_DES3_BLOCK_SIZE,
+                                   NB_CMAC_TESTS_PER_KEY ) != 0 ) )
     {
         return( ret );
     }
-
 
     if( ( ret = cmac_test_wth_cipher( verbose,
                                       "3DES 3 key",
@@ -1037,16 +1010,16 @@ mbedtls_printf("ret = %x\n", ret);
                                       192,
                                       test_message,
                                       des3_message_lengths,
-                                      (const unsigned char*) des3_3key_expected_result,
+                                      (const unsigned char*)des3_3key_expected_result,
                                       MBEDTLS_CIPHER_DES_EDE3_ECB,
-                                      DES3_BLOCK_SIZE,
-                                      NB_CMAC_TESTS_PER_KEY ) !=0 ) )
+                                      MBEDTLS_DES3_BLOCK_SIZE,
+                                      NB_CMAC_TESTS_PER_KEY ) != 0 ) )
     {
         return( ret );
     }
 #endif /* MBEDTLS_DES_C */
 
-#ifdef MBEDTLS_AES_C
+#if defined(MBEDTLS_AES_C)
     if( ( ret = test_aes128_cmac_prf( verbose ) != 0 ) )
         return( ret );
 #endif /* MBEDTLS_AES_C */

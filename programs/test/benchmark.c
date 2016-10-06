@@ -93,14 +93,14 @@ int main( void )
 
 #define OPTIONS                                                         \
     "md4, md5, ripemd160, sha1, sha256, sha512,\n"                      \
-    "arc4, des3, des, camellia, blowfish,\n"                             \
+    "arc4, des3, des, camellia, blowfish,\n"                            \
     "aes_cbc, aes_gcm, aes_ccm, aes_cmac, des3_cmac,\n"                 \
     "havege, ctr_drbg, hmac_drbg\n"                                     \
     "rsa, dhm, ecdsa, ecdh.\n"
 
 #if defined(MBEDTLS_ERROR_C)
 #define PRINT_ERROR                                                     \
-        mbedtls_strerror( ret, ( char * )tmp, sizeof( tmp ) );         \
+        mbedtls_strerror( ret, ( char * )tmp, sizeof( tmp ) );          \
         mbedtls_printf( "FAILED: %s\n", tmp );
 #else
 #define PRINT_ERROR                                                     \
@@ -401,8 +401,8 @@ int main( int argc, char *argv[] )
         cipher_info = mbedtls_cipher_info_from_type( MBEDTLS_CIPHER_DES_EDE3_ECB );
 
         TIME_AND_TSC( "3DES-CMAC",
-                        mbedtls_cipher_cmac( cipher_info, tmp, 192, buf,
-                        BUFSIZE, output ) );
+                      mbedtls_cipher_cmac( cipher_info, tmp, 192, buf,
+                      BUFSIZE, output ) );
     }
 #endif /* MBEDTLS_CMAC_C */
 #endif /* MBEDTLS_DES_C */
@@ -501,7 +501,8 @@ int main( int argc, char *argv[] )
         memset( buf, 0, sizeof( buf ) );
         memset( tmp, 0, sizeof( tmp ) );
         TIME_AND_TSC( "AES-CMAC-PRF-128",
-                    mbedtls_aes_cmac_prf_128( tmp, 16, buf, BUFSIZE, output ) );
+                      mbedtls_aes_cmac_prf_128( tmp, 16, buf, BUFSIZE,
+                                                output ) );
     }
 #endif /* MBEDTLS_CMAC_C */
 #endif /* MBEDTLS_AES_C */

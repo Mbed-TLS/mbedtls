@@ -59,8 +59,7 @@
 #include <stdlib.h>
 #define mbedtls_calloc     calloc
 #define mbedtls_free       free
-#if defined(MBEDTLS_SELF_TEST) && ( defined(MBEDTLS_AES_C) || \
-        defined(MBEDTLS_DES_C) )
+#if defined(MBEDTLS_SELF_TEST)
 #include <stdio.h>
 #define mbedtls_printf     printf
 #endif /* MBEDTLS_SELF_TEST && MBEDTLS_AES_C || MBEDTLS_DES_C */
@@ -388,8 +387,9 @@ int mbedtls_cipher_cmac_reset( mbedtls_cipher_context_t *ctx )
     /* Reset the internal state */
     cmac_ctx->unprocessed_len = 0;
     mbedtls_zeroize( cmac_ctx->unprocessed_block,
-                     sizeof( cmac_ctx->unprocessed_len ) );
-    mbedtls_zeroize( cmac_ctx->state, MBEDTLS_CIPHER_BLKSIZE_MAX );
+                     sizeof( cmac_ctx->unprocessed_block ));
+    mbedtls_zeroize( cmac_ctx->state,
+                     sizeof( cmac_ctx->state ) );
     cmac_ctx->padding_flag = 1;
 
     return( 0 );

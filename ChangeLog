@@ -31,6 +31,9 @@ Bugfix
      a contribution from Tobias Tangemann. #541
    * Fixed cert_app sample program for debug output and for use when no root
      certificates are provided.
+   * Fix compatibility issue with Internet Explorer client authentication,
+     where the limited hash choices prevented the client from sending its
+     certificate. Found by teumas. #513
 
 Changes
    * Extended test coverage of special cases, and added new timing test suite.

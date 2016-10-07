@@ -31,6 +31,9 @@ Bugfix
      a contribution from Tobias Tangemann. #541
    * Fixed cert_app sample program for debug output and for use when no root
      certificates are provided.
+   * Fixed sample application 'programs/pkey/gen_key.c' for builds where the
+     configuration MBEDTLS_PEM_WRITE_C is not defined. Found by inestlerode.
+     #559.
 
 Changes
    * Extended test coverage of special cases, and added new timing test suite.

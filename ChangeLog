@@ -12,6 +12,9 @@ Bugfix
      enabled unless others were also present. Found by David Fernandez. #428
    * Fixed cert_app sample program for debug output and for use when no root
      certificates are provided.
+   * Fixed sample application 'programs/pkey/gen_key.c' for builds where the
+     configuration MBEDTLS_PEM_WRITE_C is not defined. Found by inestlerode.
+     #559.
 
 = mbed TLS 2.1.5 branch released 2016-06-28
 

@@ -32,6 +32,7 @@ CONFIG_BAK="$CONFIG_H.bak"
 
 MEMORY=0
 FORCE=0
+RELEASE=0
 
 # Default commands, can be overriden by the environment
 : ${OPENSSL:="openssl"}
@@ -48,6 +49,8 @@ usage()
     printf "  -h|--help\t\tPrint this help.\n"
     printf "  -m|--memory\t\tAdditional optional memory tests.\n"
     printf "  -f|--force\t\tForce the tests to overwrite any modified files.\n"
+    printf "  -s|--seed\t\tInteger seed value to use for this test run.\n"
+    printf "  -r|--release-test\t\tRun this script in release mode. This fixes the seed value to 1.\n"
     printf "     --out-of-source-dir=<path>\t\tDirectory used for CMake out-of-source build tests."
     printf "     --openssl=<OpenSSL_path>\t\tPath to OpenSSL executable to use for most tests.\n"
     printf "     --openssl-legacy=<OpenSSL_path>\t\tPath to OpenSSL executable to use for legacy tests e.g. SSLv3.\n"
@@ -105,6 +108,13 @@ while [ $# -gt 0 ]; do
             ;;
         --force|-f)
             FORCE=1
+            ;;
+        --seed|-s)
+            shift
+            SEED="$1"
+            ;;
+        --release-test|-r)
+            RELEASE=1
             ;;
         --out-of-source-dir)
             shift
@@ -171,9 +181,15 @@ else
     fi
 fi
 
+if [ $RELEASE -eq 1 ]; then
+    # Fix the seed value to 1 to ensure that the tests are deterministic.
+    SEED=1
+fi
+
 msg "info: $0 configuration"
 echo "MEMORY: $MEMORY"
 echo "FORCE: $FORCE"
+echo "SEED: ${SEED-"UNSET"}"
 echo "OPENSSL: $OPENSSL"
 echo "OPENSSL_LEGACY: $OPENSSL_LEGACY"
 echo "GNUTLS_CLI: $GNUTLS_CLI"
@@ -186,6 +202,9 @@ echo "GNUTLS_LEGACY_SERV: $GNUTLS_LEGACY_SERV"
 export OPENSSL_CMD="$OPENSSL"
 export GNUTLS_CLI="$GNUTLS_CLI"
 export GNUTLS_SERV="$GNUTLS_SERV"
+
+# Avoid passing --seed flag in every call to ssl-opt.sh
+[ ! -z ${SEED+set} ] && export SEED
 
 # Make sure the tools we need are available.
 check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$GNUTLS_CLI" "$GNUTLS_SERV" \

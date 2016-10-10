@@ -58,6 +58,7 @@ print_usage() {
     printf "  -n|--number\tExecute only numbered test (comma-separated, e.g. '245,256')\n"
     printf "  -s|--show-numbers\tShow test numbers in front of test names\n"
     printf "  -p|--preserve-logs\tPreserve logs of successful tests as well\n"
+    printf "     --seed\tInteger seed value to use for this test run\n"
 }
 
 get_options() {
@@ -80,6 +81,9 @@ get_options() {
                 ;;
             -p|--preserve-logs)
                 PRESERVE_LOGS=1
+                ;;
+            --seed)
+                shift; SEED="$1"
                 ;;
             -h|--help)
                 print_usage
@@ -595,7 +599,7 @@ unset PORT_BASE
 # +SRV_PORT will be replaced by either $SRV_PORT or $PXY_PORT later
 P_SRV="$P_SRV server_addr=127.0.0.1 server_port=$SRV_PORT"
 P_CLI="$P_CLI server_addr=127.0.0.1 server_port=+SRV_PORT"
-P_PXY="$P_PXY server_addr=127.0.0.1 server_port=$SRV_PORT listen_addr=127.0.0.1 listen_port=$PXY_PORT"
+P_PXY="$P_PXY server_addr=127.0.0.1 server_port=$SRV_PORT listen_addr=127.0.0.1 listen_port=$PXY_PORT ${SEED:+"seed=$SEED"}"
 O_SRV="$O_SRV -accept $SRV_PORT -dhparam data_files/dhparams.pem"
 O_CLI="$O_CLI -connect localhost:+SRV_PORT"
 G_SRV="$G_SRV -p $SRV_PORT"

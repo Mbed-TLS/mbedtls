@@ -17,6 +17,9 @@ Bugfix
    * Fix for key exchanges based on ECDH-RSA or ECDH-ECDSA which weren't
      enabled unless others were also present. Found by David Fernandez. #428
    * Fixed configuration of debug output in cert_app sample program.
+   * Fixed the sample applications gen_key.c, cert_req.c and cert_write.c for
+     builds where the configuration POLARSSL_PEM_WRITE_C is not defined. Found
+     by inestlerode. #559.
 
 Changes
    * Add compile time option for relaxed X509 time verification to enable

@@ -36,13 +36,16 @@
 #if !defined(POLARSSL_X509_CRT_WRITE_C) ||                                  \
     !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_FS_IO) ||      \
     !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C) ||        \
-    !defined(POLARSSL_ERROR_C) || !defined(POLARSSL_SHA256_C)
+    !defined(POLARSSL_ERROR_C) || !defined(POLARSSL_SHA256_C) || \
+    !defined(POLARSSL_PEM_WRITE_C)
 int main( void )
 {
-    polarssl_printf( "POLARSSL_X509_CRT_WRITE_C and/or POLARSSL_X509_CRT_PARSE_C and/or "
-            "POLARSSL_FS_IO and/or POLARSSL_SHA256_C and_or "
-            "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C and/or "
-            "POLARSSL_ERROR_C not defined.\n");
+    polarssl_printf( "POLARSSL_X509_CRT_WRITE_C and/or "
+                     "POLARSSL_X509_CRT_PARSE_C and/or "
+                     "POLARSSL_FS_IO and/or POLARSSL_SHA256_C and_or "
+                     "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C and/or "
+                     "POLARSSL_PEM_WRITE_C and/or "
+                     "POLARSSL_ERROR_C not defined.\n");
     return( 0 );
 }
 #else
@@ -665,4 +668,4 @@ exit:
 }
 #endif /* POLARSSL_X509_CRT_WRITE_C && POLARSSL_X509_CRT_PARSE_C &&
           POLARSSL_FS_IO && POLARSSL_ENTROPY_C && POLARSSL_CTR_DRBG_C &&
-          POLARSSL_ERROR_C */
+          POLARSSL_ERROR_C && MBEDTLS_PEM_WRITE_C */

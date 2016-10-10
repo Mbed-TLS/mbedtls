@@ -256,8 +256,8 @@ int mbedtls_cipher_cmac_update( mbedtls_cipher_context_t *ctx,
     block_size = ctx->cipher_info->block_size;
     state = ctx->cmac_ctx->state;
 
-    /* Is their data still to process from the last call, that's equal to
-     * or greater than a block? */
+    /* Is there data still to process from the last call, that's greater in
+     * size than a block? */
     if( cmac_ctx->unprocessed_len > 0 &&
         ilen > block_size - cmac_ctx->unprocessed_len )
     {
@@ -273,9 +273,8 @@ int mbedtls_cipher_cmac_update( mbedtls_cipher_context_t *ctx,
            goto exit;
         }
 
-        ilen -= block_size;
-        input += cmac_ctx->unprocessed_len;
-
+        input += block_size - cmac_ctx->unprocessed_len;
+        ilen -= block_size - cmac_ctx->unprocessed_len;
         cmac_ctx->unprocessed_len = 0;
     }
 
@@ -300,8 +299,10 @@ int mbedtls_cipher_cmac_update( mbedtls_cipher_context_t *ctx,
     /* If there is data left over that wasn't aligned to a block */
     if( ilen > 0 )
     {
-        memcpy( &cmac_ctx->unprocessed_block, input, ilen );
-        cmac_ctx->unprocessed_len = ilen;
+        memcpy( &cmac_ctx->unprocessed_block[cmac_ctx->unprocessed_len],
+                input,
+                ilen );
+        cmac_ctx->unprocessed_len += ilen;
 
         if( ilen % block_size > 0 )
             cmac_ctx->padding_flag = 1;
@@ -339,7 +340,7 @@ int mbedtls_cipher_cmac_finish( mbedtls_cipher_context_t *ctx,
     last_block = cmac_ctx->unprocessed_block;
 
     /* Calculate last block */
-    if( cmac_ctx->padding_flag )
+    if( cmac_ctx->padding_flag && cmac_ctx->unprocessed_len < block_size )
     {
         cmac_pad( M_last, block_size, last_block, cmac_ctx->unprocessed_len );
         cmac_xor_block( M_last, M_last, K2, block_size );

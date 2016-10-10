@@ -33,8 +33,9 @@
 #define polarssl_printf     printf
 #endif
 
-#if defined(POLARSSL_PK_WRITE_C) && defined(POLARSSL_FS_IO) && \
-    defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_CTR_DRBG_C)
+#if defined(POLARSSL_PK_WRITE_C) && defined(POLARSSL_PEM_WRITE_C) && \
+    defined(POLARSSL_FS_IO) && defined(POLARSSL_ENTROPY_C) && \
+    defined(POLARSSL_CTR_DRBG_C)
 #include "polarssl/error.h"
 #include "polarssl/pk.h"
 #include "polarssl/ecdsa.h"
@@ -121,12 +122,14 @@ int dev_random_entropy_poll( void *data, unsigned char *output,
     USAGE_DEV_RANDOM                                    \
     "\n"
 
-#if !defined(POLARSSL_PK_WRITE_C) || !defined(POLARSSL_FS_IO) ||    \
-    !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C)
+#if !defined(POLARSSL_PK_WRITE_C) || !defined(POLARSSL_PEM_WRITE_C) || \
+    !defined(POLARSSL_FS_IO) || !defined(POLARSSL_ENTROPY_C) || \
+    !defined(POLARSSL_CTR_DRBG_C)
 int main( void )
 {
     polarssl_printf( "POLARSSL_PK_WRITE_C and/or POLARSSL_FS_IO and/or "
-            "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C "
+            "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C and/or "
+            "POLARSSL_PEM_WRITE_C "
             "not defined.\n" );
     return( 0 );
 }
@@ -417,4 +420,5 @@ exit:
 
     return( ret );
 }
-#endif /* POLARSSL_PK_WRITE_C && POLARSSL_FS_IO */
+#endif /* POLARSSL_PK_WRITE_C && POLARSSL_PEM_WRITE_C && POLARSSL_FS_IO &&
+        * POLARSSL_ENTROPY_C && POLARSSL_CTR_DRBG_C */

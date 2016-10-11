@@ -482,6 +482,13 @@ make test
 cd "$MBEDTLS_ROOT_DIR"
 rm -rf "$OUT_OF_SOURCE_DIR"
 
+msg "build: threading"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_THREADING_C
+scripts/config.pl set MBEDTLS_THREADING_PTHREAD
+PTHREAD=1 make
+
 msg "Done, cleaning up"
 cleanup
 

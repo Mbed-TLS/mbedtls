@@ -79,9 +79,9 @@ void mbedtls_cmac_null_args( )
                                             MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
     TEST_ASSERT( mbedtls_aes_cmac_prf_128( NULL, 16,
-                                             test_data, 16,
-                                             test_output ) ==
-                                              MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+                                           test_data, 16,
+                                           test_output ) ==
+                                           MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
     TEST_ASSERT( mbedtls_aes_cmac_prf_128( test_key, 16,
                                            NULL, 16,
@@ -188,6 +188,7 @@ void mbedtls_cmac_multiple_blocks( int cipher_type,
 
     TEST_ASSERT( memcmp( output, expected_result, block_size )  == 0 );
 
+exit:
     mbedtls_cipher_free( &ctx );
 }
 /* END_CASE */
@@ -255,7 +256,7 @@ void mbedtls_cmac_multiple_operations_same_key( int cipher_type,
 
     /* Multiple partial and complete blocks. A negative length means skip the
      * update operation */
-    if( block_a1_len >= 0)
+    if( block_a1_len >= 0 )
         TEST_ASSERT( mbedtls_cipher_cmac_update( &ctx,
                                                  (unsigned char*)block_a1,
                                                  block_a1_len ) == 0);
@@ -299,7 +300,7 @@ void mbedtls_cmac_multiple_operations_same_key( int cipher_type,
 
     TEST_ASSERT( memcmp( output, expected_result_b, block_size )  == 0 );
 
-
+exit:
     mbedtls_cipher_free( &ctx );
 }
 /* END_CASE */

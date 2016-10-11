@@ -31,11 +31,11 @@ Bugfix
      a contribution from Tobias Tangemann. #541
    * Fixed cert_app sample program for debug output and for use when no root
      certificates are provided.
+   * Fixed pthread implementation to avoid unintended double initialisations
+     and double frees. (found by Niklas Amnebratt)
    * Fixed the sample applications gen_key.c, cert_req.c and cert_write.c for
      builds where the configuration MBEDTLS_PEM_WRITE_C is not defined. Found
      by inestlerode. #559.
-   * Fixed pthread implementation to avoid unintended double initialisations
-     and double frees. (found by Niklas Amnebratt)
 
 Changes
    * Extended test coverage of special cases, and added new timing test suite.

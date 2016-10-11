@@ -238,7 +238,7 @@ int mbedtls_net_bind( mbedtls_net_context *ctx, const char *bind_ip, const char 
             }
         }
 
-        /* I we ever get there, it's a success */
+        /* Bind was sucsessfull  */
         ret = 0;
         break;
     }

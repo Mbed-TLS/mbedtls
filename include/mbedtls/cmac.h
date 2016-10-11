@@ -44,7 +44,6 @@ extern "C" {
  */
 struct mbedtls_cmac_context_t
 {
-
     /** Internal state of the CMAC algorithm  */
     unsigned char       state[MBEDTLS_CIPHER_BLKSIZE_MAX];
 
@@ -54,9 +53,6 @@ struct mbedtls_cmac_context_t
 
     /** Length of data pending to be processed */
     size_t              unprocessed_len;
-
-    /** Flag to indicate if the last block needs padding */
-    int                 padding_flag;
 };
 
 /**

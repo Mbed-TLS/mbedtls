@@ -235,7 +235,6 @@ int mbedtls_cipher_cmac_starts( mbedtls_cipher_context_t *ctx,
     ctx->cmac_ctx = cmac_ctx;
 
     mbedtls_zeroize( cmac_ctx->state, sizeof( cmac_ctx->state ) );
-    cmac_ctx->padding_flag = 1;
 
     return 0;
 }
@@ -292,8 +291,6 @@ int mbedtls_cipher_cmac_update( mbedtls_cipher_context_t *ctx,
 
         ilen -= block_size;
         input += block_size;
-
-        cmac_ctx->padding_flag = 0;
     }
 
     /* If there is data left over that wasn't aligned to a block */
@@ -303,11 +300,6 @@ int mbedtls_cipher_cmac_update( mbedtls_cipher_context_t *ctx,
                 input,
                 ilen );
         cmac_ctx->unprocessed_len += ilen;
-
-        if( ilen % block_size > 0 )
-            cmac_ctx->padding_flag = 1;
-        else
-            cmac_ctx->padding_flag = 0;
     }
 
 exit:
@@ -340,7 +332,7 @@ int mbedtls_cipher_cmac_finish( mbedtls_cipher_context_t *ctx,
     last_block = cmac_ctx->unprocessed_block;
 
     /* Calculate last block */
-    if( cmac_ctx->padding_flag && cmac_ctx->unprocessed_len < block_size )
+    if( cmac_ctx->unprocessed_len < block_size )
     {
         cmac_pad( M_last, block_size, last_block, cmac_ctx->unprocessed_len );
         cmac_xor_block( M_last, M_last, K2, block_size );
@@ -367,7 +359,6 @@ exit:
     mbedtls_zeroize( K1, sizeof( K1 ) );
     mbedtls_zeroize( K2, sizeof( K2 ) );
 
-    cmac_ctx->padding_flag = 1;
     cmac_ctx->unprocessed_len = 0;
     mbedtls_zeroize( cmac_ctx->unprocessed_block,
                      sizeof( cmac_ctx->unprocessed_block ) );
@@ -391,7 +382,6 @@ int mbedtls_cipher_cmac_reset( mbedtls_cipher_context_t *ctx )
                      sizeof( cmac_ctx->unprocessed_block ) );
     mbedtls_zeroize( cmac_ctx->state,
                      sizeof( cmac_ctx->state ) );
-    cmac_ctx->padding_flag = 1;
 
     return( 0 );
 }

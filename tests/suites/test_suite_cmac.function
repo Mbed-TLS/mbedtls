@@ -93,6 +93,9 @@ void mbedtls_cmac_null_args( )
                                            NULL ) ==
                                               MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
+
+exit:
+    mbedtls_cipher_free( &ctx );
 }
 /* END_CASE */
 
@@ -144,6 +147,8 @@ void mbedtls_cmac_multiple_blocks( int cipher_type,
     unhexify( block4, block4_string );
     unhexify( expected_result, expected_result_string );
 
+    mbedtls_cipher_init( &ctx );
+
     /* Validate the test inputs */
     TEST_ASSERT( block1_len <= 100 );
     TEST_ASSERT( block2_len <= 100 );
@@ -153,8 +158,6 @@ void mbedtls_cmac_multiple_blocks( int cipher_type,
     /* Set up */
     TEST_ASSERT( ( cipher_info = mbedtls_cipher_info_from_type( cipher_type ) )
                     != NULL );
-
-    mbedtls_cipher_init( &ctx );
 
     TEST_ASSERT( mbedtls_cipher_setup( &ctx, cipher_info ) == 0 );
 
@@ -231,6 +234,8 @@ void mbedtls_cmac_multiple_operations_same_key( int cipher_type,
     unhexify( expected_result_a, expected_result_a_string );
     unhexify( expected_result_b, expected_result_b_string );
 
+    mbedtls_cipher_init( &ctx );
+
     /* Validate the test inputs */
     TEST_ASSERT( block_a1_len <= 100 );
     TEST_ASSERT( block_a2_len <= 100 );
@@ -243,8 +248,6 @@ void mbedtls_cmac_multiple_operations_same_key( int cipher_type,
     /* Set up */
     TEST_ASSERT( ( cipher_info = mbedtls_cipher_info_from_type( cipher_type ) )
                     != NULL );
-
-    mbedtls_cipher_init( &ctx );
 
     TEST_ASSERT( mbedtls_cipher_setup( &ctx, cipher_info ) == 0 );
 

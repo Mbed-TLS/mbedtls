@@ -8,16 +8,13 @@
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define mbedtls_printf     printf
 #define mbedtls_fprintf    fprintf
-#define mbedtls_calloc    calloc
+#define mbedtls_snprintf   snprintf
+#define mbedtls_calloc     calloc
 #define mbedtls_free       free
 #define mbedtls_exit       exit
 #define mbedtls_time       time
 #define mbedtls_time_t     time_t
-#define mbedtls_fprintf    fprintf
-#define mbedtls_printf     printf
-#define mbedtls_snprintf   snprintf
 #define MBEDTLS_EXIT_SUCCESS EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
 #endif
@@ -355,7 +352,8 @@ static void test_fail( const char *test, int line_no, const char* filename )
 {
     test_errors++;
     if( test_errors == 1 )
-        mbedtls_printf( "FAILED\n" );
-    mbedtls_printf( "  %s\n  at line %d, %s\n", test, line_no, filename );
+        mbedtls_fprintf( stdout, "FAILED\n" );
+    mbedtls_fprintf( stdout, "  %s\n  at line %d, %s\n", test, line_no,
+                        filename );
 }
 

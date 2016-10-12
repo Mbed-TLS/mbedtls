@@ -737,19 +737,19 @@ static int cmac_test_subkeys( int verbose,
         return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
     }
 
-    mbedtls_cipher_init( &ctx );
-
     for( i = 0; i < num_tests; i++ )
     {
         if( verbose != 0 )
             mbedtls_printf( "  %s CMAC subkey #%u: ", testname, i + 1 );
+
+        mbedtls_cipher_init( &ctx );
 
         if( ( ret = mbedtls_cipher_setup( &ctx, cipher_info ) ) != 0 )
         {
             if( verbose != 0 )
                 mbedtls_printf( "test execution failed\n" );
 
-            goto exit;
+            goto cleanup;
         }
 
         if( ( ret = mbedtls_cipher_setkey( &ctx, key, keybits,
@@ -758,7 +758,7 @@ static int cmac_test_subkeys( int verbose,
             if( verbose != 0 )
                 mbedtls_printf( "test execution failed\n" );
 
-            goto exit;
+            goto cleanup;
         }
 
         ret = cmac_generate_subkeys( &ctx, K1, K2 );
@@ -766,7 +766,8 @@ static int cmac_test_subkeys( int verbose,
         {
            if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
-            goto exit;
+
+            goto cleanup;
         }
 
         if( ( ret = memcmp( K1, subkeys, block_size ) ) != 0  ||
@@ -774,16 +775,22 @@ static int cmac_test_subkeys( int verbose,
         {
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
-            goto exit;
+
+            goto cleanup;
         }
 
         if( verbose != 0 )
             mbedtls_printf( "passed\n" );
+
+        mbedtls_cipher_free( &ctx );
     }
 
-exit:
+    goto exit;
+
+cleanup:
     mbedtls_cipher_free( &ctx );
 
+exit:
     return( ret );
 }
 

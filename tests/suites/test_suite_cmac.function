@@ -93,7 +93,6 @@ void mbedtls_cmac_null_args( )
                                            NULL ) ==
                                               MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-
 exit:
     mbedtls_cipher_free( &ctx );
 }
@@ -114,6 +113,7 @@ void mbedtls_cmac_setkey( int cipher_type, int key_size,
     TEST_ASSERT( ( cipher_info = mbedtls_cipher_info_from_type( cipher_type ) )
                     != NULL );
 
+    memset( buf, 0x2A, sizeof( buf ) );
     TEST_ASSERT( ( result == mbedtls_cipher_cmac( cipher_info, key, key_size,
                                                 buf, 16, tmp ) ) != 0 );
 }

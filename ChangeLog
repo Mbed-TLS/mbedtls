@@ -21,7 +21,7 @@ Bugfix
      by inestlerode. #559.
    * Fix documentation and implementation missmatch for function arguments of
      mbedtls_gcm_finish(). Found by cmiatpaar. #602
-   * Guarantee that P>Q at RSA key generation. #558
+   * Guarantee that P>Q at RSA key generation. Found by inestlerode. #558
 
 = mbed TLS 2.1.5 branch released 2016-06-28
 

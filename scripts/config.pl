@@ -70,7 +70,7 @@ Options
                               used:
                                 $config_file
     -o | --force            - If the symbol isn't present in the configuration
-                              file when setting it's value, a #define is
+                              file when setting its value, a #define is
                               appended to the end of the file.
 
 EOU

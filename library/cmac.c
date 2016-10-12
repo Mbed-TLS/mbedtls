@@ -80,7 +80,7 @@ static void mbedtls_zeroize( void *v, size_t n ) {
  *   with R_64 = 0x1B and  R_128 = 0x87
  *
  * Input and output MUST NOT point to the same buffer
- * Block size must be 8 byes or 16 bytes - the block sizes for DES and AES.
+ * Block size must be 8 bytes or 16 bytes - the block sizes for DES and AES.
  */
 static int cmac_multiply_by_u( unsigned char *output,
                                const unsigned char *input,

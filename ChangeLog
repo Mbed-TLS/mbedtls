@@ -39,7 +39,7 @@ Bugfix
      builds where the configuration MBEDTLS_PEM_WRITE_C is not defined. Found
      by inestlerode. #559.
    * Fix documentation and implementation missmatch for function arguments of
-     mbedtls_gcm_finish(). Found by cmiatpaar.
+     mbedtls_gcm_finish(). Found by cmiatpaar. #602
 
 Changes
    * Extended test coverage of special cases, and added new timing test suite.

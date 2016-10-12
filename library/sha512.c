@@ -51,6 +51,14 @@
 #endif /* MBEDTLS_PLATFORM_C */
 #endif /* MBEDTLS_SELF_TEST */
 
+#if defined(MBEDTLS_PLATFORM_C)
+#include "mbedtls/platform.h"
+#else
+#include <stdlib.h>
+#define mbedtls_calloc    calloc
+#define mbedtls_free       free
+#endif
+
 #if !defined(MBEDTLS_SHA512_ALT)
 
 /* Implementation that should never be optimized out by the compiler */
@@ -445,9 +453,15 @@ static const unsigned char sha512_test_sum[6][64] =
 int mbedtls_sha512_self_test( int verbose )
 {
     int i, j, k, buflen, ret = 0;
-    unsigned char buf[1024];
+    unsigned char *buf;
     unsigned char sha512sum[64];
     mbedtls_sha512_context ctx;
+
+    buf = mbedtls_calloc(1024, sizeof(unsigned char));
+    if (0 == buf)
+    {
+        return 1;
+    }
 
     mbedtls_sha512_init( &ctx );
 
@@ -492,6 +506,7 @@ int mbedtls_sha512_self_test( int verbose )
 
 exit:
     mbedtls_sha512_free( &ctx );
+    mbedtls_free( buf );
 
     return( ret );
 }

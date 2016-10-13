@@ -204,8 +204,10 @@ wait_client_done() {
 # Usage: run_test name srv_cmd cli_cmd cli_exit [option [...]]
 # Options:  -s pattern  pattern that must be present in server output
 #           -c pattern  pattern that must be present in client output
+#           -u pattern  lines after pattern must be unique in client output
 #           -S pattern  pattern that must be absent in server output
 #           -C pattern  pattern that must be absent in client output
+#           -U pattern  lines after pattern must be unique in server output
 run_test() {
     NAME="$1"
     SRV_CMD="$2"
@@ -291,29 +293,50 @@ run_test() {
     do
         case $1 in
             "-s")
-                if grep -v '^==' $SRV_OUT | grep "$2" >/dev/null; then :; else
-                    fail "-s $2"
+                if grep -v '^==' $SRV_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then :; else
+                    fail "pattern '$2' MUST be present in the Server output"
                     return
                 fi
                 ;;
 
             "-c")
-                if grep -v '^==' $CLI_OUT | grep "$2" >/dev/null; then :; else
-                    fail "-c $2"
+                if grep -v '^==' $CLI_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then :; else
+                    fail "pattern '$2' MUST be present in the Client output"
                     return
                 fi
                 ;;
 
             "-S")
-                if grep -v '^==' $SRV_OUT | grep "$2" >/dev/null; then
-                    fail "-S $2"
+                if grep -v '^==' $SRV_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then
+                    fail "pattern '$2' MUST NOT be present in the Server output"
                     return
                 fi
                 ;;
 
             "-C")
-                if grep -v '^==' $CLI_OUT | grep "$2" >/dev/null; then
-                    fail "-C $2"
+                if grep -v '^==' $CLI_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then
+                    fail "pattern '$2' MUST NOT be present in the Client output"
+                    return
+                fi
+                ;;
+
+                # The filtering in the following two options (-u and -U) do the following
+                #   - ignore valgrind output
+                #   - filter out everything but lines right after the pattern occurances
+                #   - keep one of each non-unique line
+                #   - count how many lines remain
+                # A line with '--' will remain in the result from previous outputs, so the number of lines in the result will be 1
+                # if there were no duplicates.
+            "-U")
+                if [ $(grep -v '^==' $SRV_OUT | grep -v 'Serious error when reading debug info' | grep -A1 "$2" | grep -v "$2" | sort | uniq -d | wc -l) -gt 1 ]; then
+                    fail "lines following pattern '$2' must be unique in Server output"
+                    return
+                fi
+                ;;
+
+            "-u")
+                if [ $(grep -v '^==' $CLI_OUT | grep -v 'Serious error when reading debug info' | grep -A1 "$2" | grep -v "$2" | sort | uniq -d | wc -l) -gt 1 ]; then
+                    fail "lines following pattern '$2' must be unique in Client output"
                     return
                 fi
                 ;;
@@ -423,6 +446,14 @@ run_test    "Default" \
             -s "ECDHE curve: secp521r1" \
             -S "error" \
             -C "error"
+
+# Test for uniqueness of IVs in AEAD ciphersuites
+run_test    "Unique IV in GCM" \
+            "$P_SRV exchanges=20 debug_level=4" \
+            "$P_CLI exchanges=20 debug_level=4 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384" \
+            0 \
+            -u "IV used" \
+            -U "IV used"
 
 # Tests for rc4 option
 

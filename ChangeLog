@@ -61,6 +61,8 @@ Changes
      naming collision in projects which also have files with the common name
      net.c. For consistency, the corresponding header file, net.h, is marked as
      deprecated, and its contents moved to net_sockets.h.
+   * Changed the strategy for X.509 certificate parsing and validation, to no
+     longer disregard certificates with unrecognised fields.
 
 = mbed TLS 2.3.0 branch released 2016-06-28
 

@@ -141,9 +141,9 @@ static int restore_output( FILE** out_stream, int old_fd )
     return 0;
 }
 
-static void close_output( FILE* stdout )
+static void close_output( FILE* out_stream )
 {
-    fclose( stdout );
+    fclose( out_stream );
 }
 #endif /* __unix__ || __APPLE__ __MACH__ */
 

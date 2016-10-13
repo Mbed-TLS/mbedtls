@@ -19,12 +19,12 @@ Bugfix
    * Fixed the sample applications gen_key.c, cert_req.c and cert_write.c for
      builds where the configuration MBEDTLS_PEM_WRITE_C is not defined. Found
      by inestlerode. #559.
+   * Fix mbedtls_x509_get_sig() to update the ASN1 type in the mbedtls_x509_buf
+     data structure until after error checks are successful. Found by
+     subramanyam-c. #622
    * Fix documentation and implementation missmatch for function arguments of
      mbedtls_gcm_finish(). Found by cmiatpaar. #602
    * Guarantee that P>Q at RSA key generation. Found by inestlerode. #558
-   * Fix mbedtls_x509_get_sig() to update the ASN1 type in the mbedtls_x509_buf
-     data structure until after error checks are successful. Found by
-     subramanyam-c.
 
 = mbed TLS 2.1.5 branch released 2016-06-28
 

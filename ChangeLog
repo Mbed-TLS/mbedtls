@@ -47,7 +47,7 @@ Bugfix
    * Fix potential byte overread when verifying malformed SERVER_HELLO in
      ssl_parse_hello_verify_request() for DTLS. Found by Guido Vranken.
    * Fix check for validity of date when parsing in mbedtls_x509_get_time().
-     Found by subramanyam-c.
+     Found by subramanyam-c. #626
 
 Changes
    * Extended test coverage of special cases, and added new timing test suite.

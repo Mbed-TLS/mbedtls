@@ -1725,6 +1725,24 @@ run_test    "Authentication: server badcert, client none" \
             -C "! mbedtls_ssl_handshake returned" \
             -C "X509 - Certificate verification failed"
 
+run_test    "Authentication: client SHA256, server required" \
+            "$P_SRV auth_mode=required" \
+            "$P_CLI debug_level=3 crt_file=data_files/server6.crt \
+             key_file=data_files/server6.key \
+             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384" \
+            0 \
+            -c "Supported Signature Algorithm found: 4," \
+            -c "Supported Signature Algorithm found: 5,"
+
+run_test    "Authentication: client SHA384, server required" \
+            "$P_SRV auth_mode=required" \
+            "$P_CLI debug_level=3 crt_file=data_files/server6.crt \
+             key_file=data_files/server6.key \
+             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256" \
+            0 \
+            -c "Supported Signature Algorithm found: 4," \
+            -c "Supported Signature Algorithm found: 5,"
+
 run_test    "Authentication: client badcert, server required" \
             "$P_SRV debug_level=3 auth_mode=required" \
             "$P_CLI debug_level=3 crt_file=data_files/server5-badsign.crt \

@@ -1043,7 +1043,6 @@ have_ciphersuite_v2:
 
     ssl->session_negotiate->ciphersuite = ciphersuites[i];
     ssl->transform_negotiate->ciphersuite_info = ciphersuite_info;
-    mbedtls_ssl_optimize_checksum( ssl, ssl->transform_negotiate->ciphersuite_info );
 
     /*
      * SSLv2 Client Hello relevant renegotiation security checks
@@ -1840,7 +1839,6 @@ have_ciphersuite:
 
     ssl->session_negotiate->ciphersuite = ciphersuites[i];
     ssl->transform_negotiate->ciphersuite_info = ciphersuite_info;
-    mbedtls_ssl_optimize_checksum( ssl, ssl->transform_negotiate->ciphersuite_info );
 
     ssl->state++;
 
@@ -2556,29 +2554,27 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
      */
     if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
-        /*
-         * Only use current running hash algorithm that is already required
-         * for requested ciphersuite.
-         */
-        ssl->handshake->verify_sig_alg = MBEDTLS_SSL_HASH_SHA256;
-
-        if( ssl->transform_negotiate->ciphersuite_info->mac ==
-            MBEDTLS_MD_SHA384 )
-        {
-            ssl->handshake->verify_sig_alg = MBEDTLS_SSL_HASH_SHA384;
-        }
+        const int *cur;
 
         /*
          * Supported signature algorithms
          */
+        for( cur = ssl->conf->sig_hashes; *cur != MBEDTLS_MD_NONE; cur++ )
+        {
+            unsigned char hash = mbedtls_ssl_hash_from_md_alg( *cur );
+
+            if( MBEDTLS_SSL_HASH_NONE == hash || mbedtls_ssl_set_calc_verify_md( ssl, hash ) )
+                continue;
+
 #if defined(MBEDTLS_RSA_C)
-        p[2 + sa_len++] = ssl->handshake->verify_sig_alg;
-        p[2 + sa_len++] = MBEDTLS_SSL_SIG_RSA;
+            p[2 + sa_len++] = hash;
+            p[2 + sa_len++] = MBEDTLS_SSL_SIG_RSA;
 #endif
 #if defined(MBEDTLS_ECDSA_C)
-        p[2 + sa_len++] = ssl->handshake->verify_sig_alg;
-        p[2 + sa_len++] = MBEDTLS_SSL_SIG_ECDSA;
+            p[2 + sa_len++] = hash;
+            p[2 + sa_len++] = MBEDTLS_SSL_SIG_ECDSA;
 #endif
+        }
 
         p[0] = (unsigned char)( sa_len >> 8 );
         p[1] = (unsigned char)( sa_len      );
@@ -3581,17 +3577,28 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         return( 0 );
     }
 
-    /* Needs to be done before read_record() to exclude current message */
-    ssl->handshake->calc_verify( ssl, hash );
+    /* Read the message without adding it to the checksum */
+    do {
 
-    if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
+        if( ( ret = mbedtls_ssl_read_record_layer( ssl ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ssl_read_record_layer" ), ret );
+            return( ret );
+        }
+
+        ret = mbedtls_ssl_handle_message_type( ssl );
+
+    } while( MBEDTLS_ERR_SSL_NON_FATAL == ret );
+
+    if( 0 != ret )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ssl_handle_message_type" ), ret );
         return( ret );
     }
 
     ssl->state++;
 
+    /* Process the message contents */
     if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE ||
         ssl->in_msg[0] != MBEDTLS_SSL_HS_CERTIFICATE_VERIFY )
     {
@@ -3638,14 +3645,19 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         /*
          * Hash
          */
-        if( ssl->in_msg[i] != ssl->handshake->verify_sig_alg )
+        md_alg = mbedtls_ssl_md_alg_from_hash( ssl->in_msg[i] );
+
+        if( md_alg == MBEDTLS_MD_NONE || mbedtls_ssl_set_calc_verify_md( ssl, ssl->in_msg[i] ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "peer not adhering to requested sig_alg"
                                 " for verify message" ) );
             return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
         }
 
-        md_alg = mbedtls_ssl_md_alg_from_hash( ssl->handshake->verify_sig_alg );
+#if !defined(MBEDTLS_MD_SHA1)
+        if( MBEDTLS_MD_SHA1 == md_alg )
+            hash_start += 16;
+#endif
 
         /* Info from md_alg will be used instead */
         hashlen = 0;
@@ -3696,6 +3708,9 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
     }
 
+    /* Calculate hash and verify signature */
+    ssl->handshake->calc_verify( ssl, hash );
+
     if( ( ret = mbedtls_pk_verify( &ssl->session_negotiate->peer_cert->pk,
                            md_alg, hash_start, hashlen,
                            ssl->in_msg + i, sig_len ) ) != 0 )
@@ -3703,6 +3718,8 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_verify", ret );
         return( ret );
     }
+
+    mbedtls_ssl_update_handshake_status( ssl );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate verify" ) );
 

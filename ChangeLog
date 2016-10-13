@@ -48,6 +48,9 @@ Bugfix
      ssl_parse_hello_verify_request() for DTLS. Found by Guido Vranken.
    * Fix check for validity of date when parsing in mbedtls_x509_get_time().
      Found by subramanyam-c. #626
+   * Fix compatibility issue with Internet Explorer client authentication,
+     where the limited hash choices prevented the client from sending its
+     certificate. Found by teumas. #513
 
 Changes
    * Extended test coverage of special cases, and added new timing test suite.

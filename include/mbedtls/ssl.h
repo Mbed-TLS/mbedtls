@@ -2511,7 +2511,6 @@ void mbedtls_ssl_config_init( mbedtls_ssl_config *conf );
  * \param transport MBEDTLS_SSL_TRANSPORT_STREAM for TLS, or
  *                  MBEDTLS_SSL_TRANSPORT_DATAGRAM for DTLS
  * \param preset   a MBEDTLS_SSL_PRESET_XXX value
- *                 (currently unused).
  *
  * \note           See \c mbedtls_ssl_conf_transport() for notes on DTLS.
  *

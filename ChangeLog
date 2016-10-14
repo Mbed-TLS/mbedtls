@@ -61,6 +61,7 @@ Bugfix
    * Fix compatibility issue with Internet Explorer client authentication,
      where the limited hash choices prevented the client from sending its
      certificate. Found by teumas. #513
+   * Fix compilation without MBEDTLS_SELF_TEST enabled.
 
 Changes
    * Extended test coverage of special cases, and added new timing test suite.

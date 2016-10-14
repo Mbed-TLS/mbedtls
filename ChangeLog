@@ -7,7 +7,7 @@ Security
      with RFC5116 and could lead to session key recovery in very long TLS
      sessions. (H. Bock, A. Zauner, S. Devlin, J. Somorovsky, P. Jovanovic -
      "Nonce-Disrespecting Adversaries Practical Forgery Attacks on GCM in TLS")
-  * Fix potential stack corruption in mbedtls_x509write_crt_der() and
+   * Fix potential stack corruption in mbedtls_x509write_crt_der() and
      mbedtls_x509write_csr_der() when the signature is copied to the buffer
      without checking whether there is enough space in the destination. The
      issue cannot be triggered remotely. (found by Jethro Beekman)
@@ -30,6 +30,10 @@ Bugfix
    * Fix documentation and implementation missmatch for function arguments of
      mbedtls_gcm_finish(). Found by cmiatpaar. #602
    * Guarantee that P>Q at RSA key generation. Found by inestlerode. #558
+   * Fix missing return code check after call to md_init_ctx() that could
+     result in usage of invalid md_ctx in rsa_rsaes_oaep_encrypt(),
+     rsa_rsaes_oaep_decrypt(), rsa_rsassa_pss_sign() and
+     rsa_rsassa_pss_verify_ext(). Fixed by Brian J. Murray. #502
 
 Changes
    * Add compile time option for relaxed X509 time verification to enable

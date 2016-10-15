@@ -83,6 +83,7 @@ static unsigned int mfl_code_to_length[SSL_MAX_FRAG_LEN_INVALID] =
 };
 #endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
 
+#if defined(POLARSSL_SSL_CLI_C)
 static int ssl_session_copy( ssl_session *dst, const ssl_session *src )
 {
     ssl_session_free( dst );
@@ -122,6 +123,7 @@ static int ssl_session_copy( ssl_session *dst, const ssl_session *src )
 
     return( 0 );
 }
+#endif /* POLARSSL_SSL_CLI_C */
 
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
 int (*ssl_hw_record_init)( ssl_context *ssl,
@@ -2637,7 +2639,7 @@ int ssl_write_certificate( ssl_context *ssl )
     ssl->out_msgtype = SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = SSL_HS_CERTIFICATE;
 
-#if defined(POLARSSL_SSL_PROTO_SSL3)
+#if defined(POLARSSL_SSL_PROTO_SSL3) && defined(POLARSSL_SSL_CLI_C)
 write_msg:
 #endif
 

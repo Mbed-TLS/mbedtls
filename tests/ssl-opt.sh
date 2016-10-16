@@ -333,8 +333,10 @@ detect_dtls() {
 # Usage: run_test name [-p proxy_cmd] srv_cmd cli_cmd cli_exit [option [...]]
 # Options:  -s pattern  pattern that must be present in server output
 #           -c pattern  pattern that must be present in client output
+#           -u pattern  lines after pattern must be unique in client output
 #           -S pattern  pattern that must be absent in server output
 #           -C pattern  pattern that must be absent in client output
+#           -U pattern  lines after pattern must be unique in server output
 run_test() {
     NAME="$1"
     shift 1
@@ -475,28 +477,49 @@ run_test() {
         case $1 in
             "-s")
                 if grep -v '^==' $SRV_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then :; else
-                    fail "-s $2"
+                    fail "pattern '$2' MUST be present in the Server output"
                     return
                 fi
                 ;;
 
             "-c")
                 if grep -v '^==' $CLI_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then :; else
-                    fail "-c $2"
+                    fail "pattern '$2' MUST be present in the Client output"
                     return
                 fi
                 ;;
 
             "-S")
                 if grep -v '^==' $SRV_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then
-                    fail "-S $2"
+                    fail "pattern '$2' MUST NOT be present in the Server output"
                     return
                 fi
                 ;;
 
             "-C")
                 if grep -v '^==' $CLI_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then
-                    fail "-C $2"
+                    fail "pattern '$2' MUST NOT be present in the Client output"
+                    return
+                fi
+                ;;
+
+                # The filtering in the following two options (-u and -U) do the following
+                #   - ignore valgrind output
+                #   - filter out everything but lines right after the pattern occurances
+                #   - keep one of each non-unique line
+                #   - count how many lines remain
+                # A line with '--' will remain in the result from previous outputs, so the number of lines in the result will be 1
+                # if there were no duplicates.
+            "-U")
+                if [ $(grep -v '^==' $SRV_OUT | grep -v 'Serious error when reading debug info' | grep -A1 "$2" | grep -v "$2" | sort | uniq -d | wc -l) -gt 1 ]; then
+                    fail "lines following pattern '$2' must be unique in Server output"
+                    return
+                fi
+                ;;
+
+            "-u")
+                if [ $(grep -v '^==' $CLI_OUT | grep -v 'Serious error when reading debug info' | grep -A1 "$2" | grep -v "$2" | sort | uniq -d | wc -l) -gt 1 ]; then
+                    fail "lines following pattern '$2' must be unique in Client output"
                     return
                 fi
                 ;;
@@ -638,6 +661,14 @@ run_test    "Default, DTLS" \
             0 \
             -s "Protocol is DTLSv1.2" \
             -s "Ciphersuite is TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384"
+
+# Test for uniqueness of IVs in AEAD ciphersuites
+run_test    "Unique IV in GCM" \
+            "$P_SRV exchanges=20 debug_level=4" \
+            "$P_CLI exchanges=20 debug_level=4 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384" \
+            0 \
+            -u "IV used" \
+            -U "IV used"
 
 # Tests for rc4 option
 
@@ -1724,6 +1755,24 @@ run_test    "Authentication: server badcert, client none" \
             -C "! The certificate is not correctly signed by the trusted CA" \
             -C "! mbedtls_ssl_handshake returned" \
             -C "X509 - Certificate verification failed"
+
+run_test    "Authentication: client SHA256, server required" \
+            "$P_SRV auth_mode=required" \
+            "$P_CLI debug_level=3 crt_file=data_files/server6.crt \
+             key_file=data_files/server6.key \
+             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384" \
+            0 \
+            -c "Supported Signature Algorithm found: 4," \
+            -c "Supported Signature Algorithm found: 5,"
+
+run_test    "Authentication: client SHA384, server required" \
+            "$P_SRV auth_mode=required" \
+            "$P_CLI debug_level=3 crt_file=data_files/server6.crt \
+             key_file=data_files/server6.key \
+             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256" \
+            0 \
+            -c "Supported Signature Algorithm found: 4," \
+            -c "Supported Signature Algorithm found: 5,"
 
 run_test    "Authentication: client badcert, server required" \
             "$P_SRV debug_level=3 auth_mode=required" \

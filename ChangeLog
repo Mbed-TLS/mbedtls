@@ -1,12 +1,17 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.3.x branch released 2016-xx-xx
+= mbed TLS 2.4.0 branch released 2016-10-17
 
 Security
-   * Fix potential stack corruption in mbedtls_x509write_crt_der() and
+   * Removed the MBEDTLS_SSL_AEAD_RANDOM_IV option, because it was not compliant
+     with RFC-5116 and could lead to session key recovery in very long TLS
+     sessions. "Nonce-Disrespecting Adversaries Practical Forgery Attacks on GCM in
+     TLS" - H. Bock, A. Zauner, S. Devlin, J. Somorovsky, P. Jovanovic.
+     https://eprint.iacr.org/2016/475.pdf
+   * Fixed potential stack corruption in mbedtls_x509write_crt_der() and
      mbedtls_x509write_csr_der() when the signature is copied to the buffer
      without checking whether there is enough space in the destination. The
-     issue cannot be triggered remotely. (found by Jethro Beekman)
+     issue cannot be triggered remotely. Found by Jethro Beekman.
 
 Features
    * Added support for CMAC for AES and 3DES and AES-CMAC-PRF-128, as defined by
@@ -18,7 +23,7 @@ Features
    * Added the macro MBEDTLS_X509_MAX_FILE_PATH_LEN that enables the user to
      configure the maximum length of a file path that can be buffered when
      calling mbedtls_x509_crt_parse_path().
-   * Added a configuration file config-no-entropy.h that enables a subset of
+   * Added a configuration file config-no-entropy.h that configures the subset of
      library features that do not require an entropy source.
    * Added the macro MBEDTLS_ENTROPY_MIN_HARDWARE in config.h. This allows users
      to configure the minimum number of bytes for entropy sources using the
@@ -29,24 +34,35 @@ Bugfix
      may need time but not the standard C library abstraction, and added
      configuration consistency checks to check_config.h
    * Fix dependency issue in Makefile to allow parallel builds.
-   * Fix incorrect handling of block lengths in crypt_and_hash sample program,
-     when GCM is used. #441
+   * Fix incorrect handling of block lengths in crypt_and_hash.c sample program,
+     when GCM is used. Found by udf2457. #441
    * Fix for key exchanges based on ECDH-RSA or ECDH-ECDSA which weren't
      enabled unless others were also present. Found by David Fernandez. #428
    * Fix for out-of-tree builds using CMake. Found by jwurzer, and fix based on
      a contribution from Tobias Tangemann. #541
-   * Fixed cert_app sample program for debug output and for use when no root
+   * Fixed cert_app.c sample program for debug output and for use when no root
      certificates are provided.
    * Fix conditional statement that would cause a 1 byte overread in
      mbedtls_asn1_get_int(). Found and fixed by Guido Vranken. #599
    * Fixed pthread implementation to avoid unintended double initialisations
-     and double frees. (found by Niklas Amnebratt)
+     and double frees. Found by Niklas Amnebratt.
    * Fixed the sample applications gen_key.c, cert_req.c and cert_write.c for
      builds where the configuration MBEDTLS_PEM_WRITE_C is not defined. Found
      by inestlerode. #559.
+   * Fix mbedtls_x509_get_sig() to update the ASN1 type in the mbedtls_x509_buf
+     data structure until after error checks are successful. Found by
+     subramanyam-c. #622
    * Fix documentation and implementation missmatch for function arguments of
      mbedtls_gcm_finish(). Found by cmiatpaar. #602
    * Guarantee that P>Q at RSA key generation. Found by inestlerode. #558
+   * Fix potential byte overread when verifying malformed SERVER_HELLO in
+     ssl_parse_hello_verify_request() for DTLS. Found by Guido Vranken.
+   * Fix check for validity of date when parsing in mbedtls_x509_get_time().
+     Found by subramanyam-c. #626
+   * Fix compatibility issue with Internet Explorer client authentication,
+     where the limited hash choices prevented the client from sending its
+     certificate. Found by teumas. #513
+   * Fix compilation without MBEDTLS_SELF_TEST enabled.
 
 Changes
    * Extended test coverage of special cases, and added new timing test suite.
@@ -57,11 +73,13 @@ Changes
    * Added support for a Yotta specific configuration file -
      through the symbol YOTTA_CFG_MBEDTLS_TARGET_CONFIG_FILE.
    * Added optimization for code space for X.509/OID based on configured
-     features. (contributed by Aviv Palivoda)
+     features. Contributed by Aviv Palivoda.
    * Renamed source file library/net.c to library/net_sockets.c to avoid
      naming collision in projects which also have files with the common name
      net.c. For consistency, the corresponding header file, net.h, is marked as
      deprecated, and its contents moved to net_sockets.h.
+   * Changed the strategy for X.509 certificate parsing and validation, to no
+     longer disregard certificates with unrecognised fields.
 
 = mbed TLS 2.3.0 branch released 2016-06-28
 

@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.3.x branch released 2016-xx-xx
+= mbed TLS 2.4.0 branch released 2016-10-17
 
 Security
    * Removed the MBEDTLS_SSL_AEAD_RANDOM_IV option, because it was not compliant

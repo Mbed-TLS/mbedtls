@@ -621,21 +621,27 @@ int x509_get_time( unsigned char **p, const unsigned char *end,
     {
         (*p)++;
         ret = asn1_get_len( p, end, &len );
-
         if( ret != 0 )
             return( POLARSSL_ERR_X509_INVALID_DATE + ret );
 
-        return x509_parse_time( p, len, 2, time );
+        CHECK( x509_parse_time( p, len, 2, time ) );
+
+        CHECK( x509_date_is_valid( time ) );
+
+        return( 0 );
     }
     else if( tag == ASN1_GENERALIZED_TIME )
     {
         (*p)++;
         ret = asn1_get_len( p, end, &len );
-
         if( ret != 0 )
             return( POLARSSL_ERR_X509_INVALID_DATE + ret );
 
-        return x509_parse_time( p, len, 4, time );
+        CHECK( x509_parse_time( p, len, 4, time ) );
+
+        CHECK( x509_date_is_valid( time ) );
+
+        return( 0 );
     }
     else
         return( POLARSSL_ERR_X509_INVALID_DATE +

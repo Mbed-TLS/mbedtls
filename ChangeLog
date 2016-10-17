@@ -30,9 +30,16 @@ Bugfix
    * Fixed the sample applications gen_key.c, cert_req.c and cert_write.c for
      builds where the configuration MBEDTLS_PEM_WRITE_C is not defined. Found
      by inestlerode. #559.
+   * Fix mbedtls_x509_get_sig() to update the ASN1 type in the mbedtls_x509_buf
+     data structure until after error checks are successful. Found by
+     subramanyam-c. #622
    * Fix documentation and implementation missmatch for function arguments of
      mbedtls_gcm_finish(). Found by cmiatpaar. #602
    * Guarantee that P>Q at RSA key generation. Found by inestlerode. #558
+   * Fix potential byte overread when verifying malformed SERVER_HELLO in
+     ssl_parse_hello_verify_request() for DTLS. Found by Guido Vranken.
+   * Fix check for validity of date when parsing in mbedtls_x509_get_time().
+     Found by subramanyam-c. #626
    * Fix missing return code check after call to mbedtls_md_setup() that could
      result in usage of invalid md_ctx in mbedtls_rsa_rsaes_oaep_encrypt(),
      mbedtls_rsa_rsaes_oaep_decrypt(), mbedtls_rsa_rsassa_pss_sign() and

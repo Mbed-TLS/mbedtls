@@ -1,6 +1,16 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.1.x
+= mbed TLS 2.1.x branch released 2016-xx-xx
+
+Security
+   * Remove MBEDTLS_SSL_AEAD_RANDOM_IV option, because it was not compliant
+     with RFC5116 and could lead to session key recovery in very long TLS
+     sessions. (H. Bock, A. Zauner, S. Devlin, J. Somorovsky, P. Jovanovic -
+     "Nonce-Disrespecting Adversaries Practical Forgery Attacks on GCM in TLS")
+   * Fix potential stack corruption in mbedtls_x509write_crt_der() and
+     mbedtls_x509write_csr_der() when the signature is copied to the buffer
+     without checking whether there is enough space in the destination. The
+     issue cannot be triggered remotely. (found by Jethro Beekman)
 
 Bugfix
    * Fix an issue that caused valid certificates being rejected whenever an
@@ -29,6 +39,10 @@ Bugfix
      ssl_parse_hello_verify_request() for DTLS. Found by Guido Vranken.
    * Fix check for validity of date when parsing in mbedtls_x509_get_time().
      Found by subramanyam-c. #626
+   * Fix missing return code check after call to mbedtls_md_setup() that could
+     result in usage of invalid md_ctx in mbedtls_rsa_rsaes_oaep_encrypt(),
+     mbedtls_rsa_rsaes_oaep_decrypt(), mbedtls_rsa_rsassa_pss_sign() and
+     mbedtls_rsa_rsassa_pss_verify_ext(). Fixed by Brian J. Murray. #502
 
 = mbed TLS 2.1.5 branch released 2016-06-28
 

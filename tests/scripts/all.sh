@@ -98,6 +98,16 @@ msg()
     echo "******************************************************************"
 }
 
+armc6_build_test()
+{
+    FLAGS="$1"
+
+    msg "build: ARM Compiler 6 ($FLAGS), make"
+    ARM_TOOL_VARIANT="ult" CC="$ARMC6_CC" AR="$ARMC6_AR" CFLAGS="$FLAGS" \
+        WARNING_CFLAGS= make lib
+    make clean
+}
+
 err_msg()
 {
     echo "$1" >&2
@@ -466,15 +476,11 @@ scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT # depends on MBEDTLS_HAVE_TIME
 CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--strict --c99'  make lib
 make clean
 
-msg "build: ARM Compiler 6 (arm-arm-none-eabi), make"
-ARM_TOOL_VARIANT="ult" CC="$ARMC6_CC" AR="$ARMC6_AR" \
-    CFLAGS="--target=arm-arm-none-eabi" WARNING_CFLAGS= make lib
-make clean
-
-msg "build: ARM Compiler 6 (aarch64-arm-none-eabi), make"
-ARM_TOOL_VARIANT="ult" CC="$ARMC6_CC" AR="$ARMC6_AR" \
-    CFLAGS="--target=aarch64-arm-none-eabi" WARNING_CFLAGS= make lib
-make clean
+armc6_build_test "--target=arm-arm-none-eabi -march=armv7-a"
+armc6_build_test "--target=arm-arm-none-eabi -march=armv7-m"
+armc6_build_test "--target=arm-arm-none-eabi -march=armv8.2-a"
+armc6_build_test "--target=arm-arm-none-eabi -march=armv8-m.main"
+armc6_build_test "--target=aarch64-arm-none-eabi"
 
 msg "build: Windows cross build - mingw64, make (Link Library)" # ~ 30s
 cleanup

@@ -76,6 +76,7 @@
 #endif
 
 #define CHECK(code) if( ( ret = code ) != 0 ){ return( ret ); }
+#define CHECK_RANGE(min, max, val) if( val < min || val > max ){ return( ret ); }
 
 /*
  *  CertificateSerialNumber  ::=  INTEGER
@@ -489,6 +490,33 @@ static int x509_parse_int(unsigned char **p, unsigned n, int *res){
     return 0;
 }
 
+static int x509_date_is_valid(const x509_time *time)
+{
+    int ret = POLARSSL_ERR_X509_INVALID_DATE;
+
+    CHECK_RANGE( 0, 9999, time->year );
+    CHECK_RANGE( 0, 23,   time->hour );
+    CHECK_RANGE( 0, 59,   time->min  );
+    CHECK_RANGE( 0, 59,   time->sec  );
+
+    switch( time->mon )
+    {
+        case 1: case 3: case 5: case 7: case 8: case 10: case 12:
+            CHECK_RANGE( 1, 31, time->day );
+            break;
+        case 4: case 6: case 9: case 11:
+            CHECK_RANGE( 1, 30, time->day );
+            break;
+        case 2:
+            CHECK_RANGE( 1, 28 + (time->year % 4 == 0), time->day );
+            break;
+        default:
+            return( ret );
+    }
+
+    return( 0 );
+}
+
 /*
  * Parse an ASN1_UTC_TIME (yearlen=2) or ASN1_GENERALIZED_TIME (yearlen=4) field.
  */
@@ -618,16 +646,18 @@ int x509_get_sig( unsigned char **p, const unsigned char *end, x509_buf *sig )
 {
     int ret;
     size_t len;
+    int tag_type;
 
     if( ( end - *p ) < 1 )
         return( POLARSSL_ERR_X509_INVALID_SIGNATURE +
                 POLARSSL_ERR_ASN1_OUT_OF_DATA );
 
-    sig->tag = **p;
+    tag_type = **p;
 
     if( ( ret = asn1_get_bitstring_null( p, end, &len ) ) != 0 )
         return( POLARSSL_ERR_X509_INVALID_SIGNATURE + ret );
 
+    sig->tag = tag_type;
     sig->len = len;
     sig->p = *p;
 

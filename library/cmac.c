@@ -62,7 +62,7 @@
 #if defined(MBEDTLS_SELF_TEST)
 #include <stdio.h>
 #define mbedtls_printf     printf
-#endif /* MBEDTLS_SELF_TEST && MBEDTLS_AES_C || MBEDTLS_DES_C */
+#endif /* MBEDTLS_SELF_TEST */
 #endif /* MBEDTLS_PLATFORM_C */
 
 /* Implementation that should never be optimized out by the compiler */

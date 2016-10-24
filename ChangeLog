@@ -19,7 +19,7 @@ Bugfix
      renegotiation routines at unexpected times when the protocol is DTLS. Found
      by wariua. #687
    * Fixed multiple buffer overreads in mbedtls_pem_read_buffer() when parsing
-     the input string in pem format to extract the different components. Found
+     the input string in PEM format to extract the different components. Found
      by Eyal Itkin.
 
 = mbed TLS 2.4.1 branch released 2016-12-13

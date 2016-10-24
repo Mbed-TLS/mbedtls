@@ -4,7 +4,7 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 Bugfix
    * Fixed multiple buffer overreads in mbedtls_pem_read_buffer() when parsing
-     the input string in pem format to extract the different components. Found
+     the input string in PEM format to extract the different components. Found
      by Eyal Itkin.
 
 = mbed TLS 2.4.0 branch released 2016-10-17

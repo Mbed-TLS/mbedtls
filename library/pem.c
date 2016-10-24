@@ -249,7 +249,7 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
 
     enc = 0;
 
-    if( memcmp( s1, "Proc-Type: 4,ENCRYPTED", 22 ) == 0 )
+    if( s2 - s1 >= 22 && memcmp( s1, "Proc-Type: 4,ENCRYPTED", 22 ) == 0 )
     {
 #if defined(MBEDTLS_MD5_C) && defined(MBEDTLS_CIPHER_MODE_CBC) &&         \
     ( defined(MBEDTLS_DES_C) || defined(MBEDTLS_AES_C) )
@@ -262,22 +262,22 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
 
 
 #if defined(MBEDTLS_DES_C)
-        if( memcmp( s1, "DEK-Info: DES-EDE3-CBC,", 23 ) == 0 )
+        if( s2 - s1 >= 23 && memcmp( s1, "DEK-Info: DES-EDE3-CBC,", 23 ) == 0 )
         {
             enc_alg = MBEDTLS_CIPHER_DES_EDE3_CBC;
 
             s1 += 23;
-            if( pem_get_iv( s1, pem_iv, 8 ) != 0 )
+            if( s2 - s1 < 16 || pem_get_iv( s1, pem_iv, 8 ) != 0 )
                 return( MBEDTLS_ERR_PEM_INVALID_ENC_IV );
 
             s1 += 16;
         }
-        else if( memcmp( s1, "DEK-Info: DES-CBC,", 18 ) == 0 )
+        else if( s2 - s1 >= 18 && memcmp( s1, "DEK-Info: DES-CBC,", 18 ) == 0 )
         {
             enc_alg = MBEDTLS_CIPHER_DES_CBC;
 
             s1 += 18;
-            if( pem_get_iv( s1, pem_iv, 8) != 0 )
+            if( s2 - s1 < 16 || pem_get_iv( s1, pem_iv, 8) != 0 )
                 return( MBEDTLS_ERR_PEM_INVALID_ENC_IV );
 
             s1 += 16;
@@ -285,9 +285,11 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
 #endif /* MBEDTLS_DES_C */
 
 #if defined(MBEDTLS_AES_C)
-        if( memcmp( s1, "DEK-Info: AES-", 14 ) == 0 )
+        if( s2 - s1 >= 14 && memcmp( s1, "DEK-Info: AES-", 14 ) == 0 )
         {
-            if( memcmp( s1, "DEK-Info: AES-128-CBC,", 22 ) == 0 )
+            if( s2 - s1 < 22 )
+                return( MBEDTLS_ERR_PEM_UNKNOWN_ENC_ALG );
+            else if( memcmp( s1, "DEK-Info: AES-128-CBC,", 22 ) == 0 )
                 enc_alg = MBEDTLS_CIPHER_AES_128_CBC;
             else if( memcmp( s1, "DEK-Info: AES-192-CBC,", 22 ) == 0 )
                 enc_alg = MBEDTLS_CIPHER_AES_192_CBC;
@@ -297,7 +299,7 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
                 return( MBEDTLS_ERR_PEM_UNKNOWN_ENC_ALG );
 
             s1 += 22;
-            if( pem_get_iv( s1, pem_iv, 16 ) != 0 )
+            if( s2 - s1 < 32 || pem_get_iv( s1, pem_iv, 16 ) != 0 )
                 return( MBEDTLS_ERR_PEM_INVALID_ENC_IV );
 
             s1 += 32;
@@ -316,7 +318,7 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
           ( MBEDTLS_AES_C || MBEDTLS_DES_C ) */
     }
 
-    if( s1 == s2 )
+    if( s1 >= s2 )
         return( MBEDTLS_ERR_PEM_INVALID_DATA );
 
     ret = mbedtls_base64_decode( NULL, 0, &len, s1, s2 - s1 );

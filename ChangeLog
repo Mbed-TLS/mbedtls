@@ -1,5 +1,12 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 1.3.x branch released xxxx-xx-xx
+
+Bugfix
+   * Fixed multiple buffer overreads in mbedtls_pem_read_buffer() when parsing
+     the input string in pem format to extract the different components. Found
+     by Eyal Itkin.
+
 = mbed TLS 1.3.18 branch 2016-10-17
 
 Security

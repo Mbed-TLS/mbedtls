@@ -24,3 +24,4 @@ mbedtls_pem_read_buffer:"^":"$":"^\nProc-Type\: 4,ENCRYPTED\nDEK-Info\: DES-CBC,
 
 PEM read (unknown encryption algorithm)
 mbedtls_pem_read_buffer:"^":"$":"^\nProc-Type\: 4,ENCRYPTED\nDEK-Info\: AES-,00$":MBEDTLS_ERR_PEM_UNKNOWN_ENC_ALG
+

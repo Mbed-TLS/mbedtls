@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.4.x branch released 2016-xx-xx
+
+Security
+   * Removed MD5 from the allowed hash algorithms for CertificateRequest and
+     CertificateVerify messages, to prevent SLOTH attacks against TLS 1.2.
+
 = mbed TLS 2.4.0 branch released 2016-10-17
 
 Security

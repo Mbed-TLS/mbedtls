@@ -757,7 +757,7 @@ static int ecp_normalize_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *p
     {
         return ecp_normalize_jac_alt( grp, pt );
     }
-#endif /* #if defined(MBEDTLS_ECP_NORMALIZE_JAC_ALT) */
+#endif /* MBEDTLS_ECP_NORMALIZE_JAC_ALT */
     mbedtls_mpi_init( &Zi ); mbedtls_mpi_init( &ZZi );
 
     /*
@@ -934,7 +934,7 @@ static int ecp_double_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     {
         return ecp_double_jac_alt( grp, R, P );
     }
-#endif /* #if defined(MBEDTLS_ECP_DOUBLE_JAC_ALT) */
+#endif /* MBEDTLS_ECP_DOUBLE_JAC_ALT */
 
     mbedtls_mpi_init( &M ); mbedtls_mpi_init( &S ); mbedtls_mpi_init( &T ); mbedtls_mpi_init( &U );
 
@@ -1032,7 +1032,7 @@ static int ecp_add_mixed( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     {
         return ecp_add_mixed_alt( grp, R, P, Q );
     }
-#endif /* #if defined(MBEDTLS_ECP_ADD_MIXED_ALT) */
+#endif /* MBEDTLS_ECP_ADD_MIXED_ALT */
 
     /*
      * Trivial cases: P == 0 or Q == 0 (case 1)
@@ -1119,7 +1119,7 @@ static int ecp_randomize_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *p
     {
         return ecp_randomize_jac_alt( grp, pt, f_rng, p_rng );
     }
-#endif /* #if defined(MBEDTLS_ECP_RANDOMIZE_JAC_ALT) */
+#endif /* MBEDTLS_ECP_RANDOMIZE_JAC_ALT */
 
     p_size = ( grp->pbits + 7 ) / 8;
     mbedtls_mpi_init( &l ); mbedtls_mpi_init( &ll );
@@ -1487,7 +1487,7 @@ static int ecp_normalize_mxz( const mbedtls_ecp_group *grp, mbedtls_ecp_point *P
     {
         return ecp_normalize_mxz_alt( grp, P );
     }
-#endif /* #if defined(MBEDTLS_ECP_NORMALIZE_MXZ_ALT) */
+#endif /* MBEDTLS_ECP_NORMALIZE_MXZ_ALT */
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( &P->Z, &P->Z, &grp->P ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &P->X, &P->X, &P->Z ) ); MOD_MUL( P->X );
@@ -1518,7 +1518,7 @@ static int ecp_randomize_mxz( const mbedtls_ecp_group *grp, mbedtls_ecp_point *P
     {
         return ecp_randomize_mxz_alt( grp, P, f_rng, p_rng );
     }
-#endif /* #if defined(MBEDTLS_ECP_RANDOMIZE_MXZ_ALT) */
+#endif /* MBEDTLS_ECP_RANDOMIZE_MXZ_ALT */
 
     p_size = ( grp->pbits + 7 ) / 8;
     mbedtls_mpi_init( &l );
@@ -1573,7 +1573,7 @@ static int ecp_double_add_mxz( const mbedtls_ecp_group *grp,
     {
         return ecp_double_add_mxz_alt( grp, R, S, P, Q, d );
     }
-#endif /* #if defined(MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT) */
+#endif /* MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT */
 
     mbedtls_mpi_init( &A ); mbedtls_mpi_init( &AA ); mbedtls_mpi_init( &B );
     mbedtls_mpi_init( &BB ); mbedtls_mpi_init( &E ); mbedtls_mpi_init( &C );

@@ -1,9 +1,10 @@
 /**
- * \file alt_func_internal.h
+ * \file ecp_function_alt.h
  *
- * \brief Function declarations for alternate implementation.
+ * \brief Function declarations for alternative implementation of elliptic curve
+ * point arithmetic.
  *
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2016, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -38,22 +39,23 @@ void ecp_alt_deinit( const mbedtls_ecp_group *grp );
 
 #if defined(MBEDTLS_ECP_RANDOMIZE_JAC_ALT)
 int ecp_randomize_jac_alt( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt,
-                        int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
+                           int (*f_rng)(void *, unsigned char *, size_t),
+                           void *p_rng );
 #endif
 
 #if defined(MBEDTLS_ECP_ADD_MIXED_ALT)
 int ecp_add_mixed_alt( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
-                        const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q );
+                       const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q );
 #endif
 
 #if defined(MBEDTLS_ECP_DOUBLE_JAC_ALT)
 int ecp_double_jac_alt( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
-                         const mbedtls_ecp_point *P );
+                        const mbedtls_ecp_point *P );
 #endif
 
 #if defined(MBEDTLS_ECP_NORMALIZE_JAC_MANY_ALT)
 int ecp_normalize_jac_many_alt( const mbedtls_ecp_group *grp,
-                                           mbedtls_ecp_point *T[], size_t t_len );
+                                mbedtls_ecp_point *T[], size_t t_len );
 #endif
 
 #if defined(MBEDTLS_ECP_NORMALIZE_JAC_ALT)
@@ -62,21 +64,22 @@ int ecp_normalize_jac_alt( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt )
 
 #if defined(MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT)
 int ecp_double_add_mxz_alt( const mbedtls_ecp_group *grp,
-                         mbedtls_ecp_point *R, mbedtls_ecp_point *S,
-                         const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q,
-                         const mbedtls_mpi *d );
+                            mbedtls_ecp_point *R, mbedtls_ecp_point *S,
+                            const mbedtls_ecp_point *P,
+                            const mbedtls_ecp_point *Q, const mbedtls_mpi *d );
 #endif
 
 #if defined(MBEDTLS_ECP_RANDOMIZE_MXZ_ALT)
 int ecp_randomize_mxz_alt( const mbedtls_ecp_group *grp, mbedtls_ecp_point *P,
-                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
+                           int (*f_rng)(void *, unsigned char *, size_t), 
+                           void *p_rng );
 #endif
 
 #if defined(MBEDTLS_ECP_NORMALIZE_MXZ_ALT)
 int ecp_normalize_mxz_alt( const mbedtls_ecp_group *grp, mbedtls_ecp_point *P );
 #endif
 
-#endif // MBEDTLS_ECP_FUNCTION_ALT
+#endif /* MBEDTLS_ECP_FUNCTION_ALT */
 
 #endif /* ecp_function_alt.h */
 

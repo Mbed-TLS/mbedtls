@@ -297,24 +297,24 @@
  * \def MBEDTLS_ECP_FUNCTION_ALT
  *
  * MBEDTLS_ECP__FUNCTION_NAME__ALT: Uncomment a macro to let mbed TLS use your
- * alternate core implementation of elliptic curve arithmetic. Keep in mind that
- * function prototypes should remain the same.
+ * alternative core implementation of elliptic curve arithmetic. Keep in mind
+ * that function prototypes should remain the same.
  *
  * This partially replaces one function. The header file from mbed TLS is still
  * used, in contrast to the MBEDTLS_ECP_ALT flag. The original implementation
  * is still present and it is used for group structures not supported by the
  * alternative.
  *
- * Any of these options become available by turning MBEDTLS_ECP_FUNCTION_ALT and
- * implementing the following function:
+ * Any of these options become available by defining MBEDTLS_ECP_FUNCTION_ALT
+ * and implementing the following function:
  * unsigned char ecp_alt_grp_capable( const mbedtls_ecp_group *grp )
  * This should return 1 if the replacement functions implement arithmetic for
  * the given group and 0 otherwise.
  *
- * The functions
- * int  ecp_alt_init( const mbedtls_ecp_group *grp )
- * void ecp_alt_deinit( const mbedtls_ecp_group *grp )
- * can be turned on by MBEDTLS_ECP_ALT_INIT and MBEDTLS_ECP_ALT_DEINIT.
+ * The functions:
+ *      int  ecp_alt_init( const mbedtls_ecp_group *grp )
+ *      void ecp_alt_deinit( const mbedtls_ecp_group *grp )
+ * can be enabled by MBEDTLS_ECP_ALT_INIT and MBEDTLS_ECP_ALT_DEINIT.
  * They are called before and after each point operation and provide an
  * opportunity to implement optimized set up and tear down instructions.
  *

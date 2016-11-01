@@ -97,6 +97,9 @@ extern int (*mbedtls_mutex_unlock)( mbedtls_threading_mutex_t *mutex );
  */
 extern mbedtls_threading_mutex_t mbedtls_threading_readdir_mutex;
 extern mbedtls_threading_mutex_t mbedtls_threading_gmtime_mutex;
+#if defined(MBEDTLS_ECP_FUNCTION_ALT)
+extern mbedtls_threading_mutex_t mbedtls_threading_cryptohw_asym_mutex;
+#endif
 #endif /* MBEDTLS_THREADING_C */
 
 #ifdef __cplusplus

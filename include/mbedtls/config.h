@@ -314,12 +314,12 @@
  * The functions:
  *      int  ecp_alt_init( const mbedtls_ecp_group *grp )
  *      void ecp_alt_deinit( const mbedtls_ecp_group *grp )
- * can be enabled by MBEDTLS_ECP_ALT_INIT and MBEDTLS_ECP_ALT_DEINIT.
+ * can be enabled by MBEDTLS_ECP_INIT_ALT and MBEDTLS_ECP_DEINIT_ALT.
  * They are called before and after each point operation and provide an
  * opportunity to implement optimized set up and tear down instructions.
  *
  * Example: In case you uncomment MBEDTLS_ECP_FUNCTION_ALT and
- * MBEDTLS_ECP_DOUBLE_JAC, mbed TLS will still provide the ecp_double_jac
+ * MBEDTLS_ECP_DOUBLE_JAC_ALT, mbed TLS will still provide the ecp_double_jac
  * function, but will use your ecp_double_jac_alt if the group is supported
  * (your ecp_alt_grp_capable function returns 1 when receives it as an
  * argument). If the group is not supported then the original implementation is
@@ -334,8 +334,8 @@
 /* Required for all the functions in this section */
 //#define MBEDTLS_ECP_FUNCTION_ALT
 /* Utility functions for setup and cleanup */
-//#define MBEDTLS_ECP_ALT_INIT
-//#define MBEDTLS_ECP_ALT_DEINIT
+//#define MBEDTLS_ECP_INIT_ALT
+//#define MBEDTLS_ECP_DEINIT_ALT
 /* Support for Weierstrass curves with Jacobi representation */
 //#define MBEDTLS_ECP_RANDOMIZE_JAC_ALT
 //#define MBEDTLS_ECP_ADD_MIXED_ALT

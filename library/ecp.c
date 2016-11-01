@@ -753,9 +753,9 @@ static int ecp_normalize_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *p
         return( 0 );
 
 #if defined(MBEDTLS_ECP_NORMALIZE_JAC_ALT)
-    if ( ecp_alt_grp_capable( grp ) )
+    if ( mbedtls_ecp_alt_grp_capable( grp ) )
     {
-        return ecp_normalize_jac_alt( grp, pt );
+        return mbedtls_ecp_normalize_jac_alt( grp, pt );
     }
 #endif /* MBEDTLS_ECP_NORMALIZE_JAC_ALT */
     mbedtls_mpi_init( &Zi ); mbedtls_mpi_init( &ZZi );
@@ -807,9 +807,9 @@ static int ecp_normalize_jac_many( const mbedtls_ecp_group *grp,
         return( ecp_normalize_jac( grp, *T ) );
 
 #if defined(MBEDTLS_ECP_NORMALIZE_JAC_MANY_ALT)
-    if ( ecp_alt_grp_capable( grp ) )
+    if ( mbedtls_ecp_alt_grp_capable( grp ) )
     {
-        return ecp_normalize_jac_many_alt(grp, T, t_len);
+        return mbedtls_ecp_normalize_jac_many_alt(grp, T, t_len);
     }
 #endif
 
@@ -930,9 +930,9 @@ static int ecp_double_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 #endif
 
 #if defined(MBEDTLS_ECP_DOUBLE_JAC_ALT)
-    if ( ecp_alt_grp_capable( grp ) )
+    if ( mbedtls_ecp_alt_grp_capable( grp ) )
     {
-        return ecp_double_jac_alt( grp, R, P );
+        return mbedtls_ecp_double_jac_alt( grp, R, P );
     }
 #endif /* MBEDTLS_ECP_DOUBLE_JAC_ALT */
 
@@ -1028,9 +1028,9 @@ static int ecp_add_mixed( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 #endif
 
 #if defined(MBEDTLS_ECP_ADD_MIXED_ALT)
-    if ( ecp_alt_grp_capable( grp ) )
+    if ( mbedtls_ecp_alt_grp_capable( grp ) )
     {
-        return ecp_add_mixed_alt( grp, R, P, Q );
+        return mbedtls_ecp_add_mixed_alt( grp, R, P, Q );
     }
 #endif /* MBEDTLS_ECP_ADD_MIXED_ALT */
 
@@ -1115,9 +1115,9 @@ static int ecp_randomize_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *p
     int count = 0;
 
 #if defined(MBEDTLS_ECP_RANDOMIZE_JAC_ALT)
-    if ( ecp_alt_grp_capable( grp ) )
+    if ( mbedtls_ecp_alt_grp_capable( grp ) )
     {
-        return ecp_randomize_jac_alt( grp, pt, f_rng, p_rng );
+        return mbedtls_ecp_randomize_jac_alt( grp, pt, f_rng, p_rng );
     }
 #endif /* MBEDTLS_ECP_RANDOMIZE_JAC_ALT */
 
@@ -1483,9 +1483,9 @@ static int ecp_normalize_mxz( const mbedtls_ecp_group *grp, mbedtls_ecp_point *P
     int ret;
 
 #if defined(MBEDTLS_ECP_NORMALIZE_MXZ_ALT)
-    if ( ecp_alt_grp_capable( grp ) )
+    if ( mbedtls_ecp_alt_grp_capable( grp ) )
     {
-        return ecp_normalize_mxz_alt( grp, P );
+        return mbedtls_ecp_normalize_mxz_alt( grp, P );
     }
 #endif /* MBEDTLS_ECP_NORMALIZE_MXZ_ALT */
 
@@ -1514,9 +1514,9 @@ static int ecp_randomize_mxz( const mbedtls_ecp_group *grp, mbedtls_ecp_point *P
     int count = 0;
 
 #if defined(MBEDTLS_ECP_RANDOMIZE_MXZ_ALT)
-    if ( ecp_alt_grp_capable( grp ) )
+    if ( mbedtls_ecp_alt_grp_capable( grp ) )
     {
-        return ecp_randomize_mxz_alt( grp, P, f_rng, p_rng );
+        return mbedtls_ecp_randomize_mxz_alt( grp, P, f_rng, p_rng );
     }
 #endif /* MBEDTLS_ECP_RANDOMIZE_MXZ_ALT */
 
@@ -1569,9 +1569,9 @@ static int ecp_double_add_mxz( const mbedtls_ecp_group *grp,
     mbedtls_mpi A, AA, B, BB, E, C, D, DA, CB;
 
 #if defined(MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT)
-    if ( ecp_alt_grp_capable( grp ) )
+    if ( mbedtls_ecp_alt_grp_capable( grp ) )
     {
-        return ecp_double_add_mxz_alt( grp, R, S, P, Q, d );
+        return mbedtls_ecp_double_add_mxz_alt( grp, R, S, P, Q, d );
     }
 #endif /* MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT */
 
@@ -1686,9 +1686,9 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         return( ret );
 
 #if defined(MBEDTLS_ECP_INIT_ALT)
-    if ( ecp_alt_grp_capable( grp )  )
+    if ( mbedtls_ecp_alt_grp_capable( grp )  )
     {
-        MBEDTLS_MPI_CHK( ecp_alt_init( grp ) );
+        MBEDTLS_MPI_CHK( mbedtls_ecp_alt_init( grp ) );
     }
 #endif
 
@@ -1707,9 +1707,9 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 #endif
 
 #if defined(MBEDTLS_ECP_DEINIT_ALT)
-    if ( ecp_alt_grp_capable( grp ) )
+    if ( mbedtls_ecp_alt_grp_capable( grp ) )
     {
-        ecp_alt_deinit( grp );
+        mbedtls_ecp_alt_deinit( grp );
     }
 #endif
 
@@ -1816,9 +1816,9 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul_shortcuts( grp, R,   n, Q ) );
 
 #if defined(MBEDTLS_ECP_INIT_ALT)
-    if ( ecp_alt_grp_capable( grp )  )
+    if ( mbedtls_ecp_alt_grp_capable( grp )  )
     {
-        MBEDTLS_MPI_CHK( ecp_alt_init( grp ) );
+        MBEDTLS_MPI_CHK( mbedtls_ecp_alt_init( grp ) );
     }
 #endif
     MBEDTLS_MPI_CHK( ecp_add_mixed( grp, R, &mP, R ) );
@@ -1827,9 +1827,9 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 cleanup:
 
 #if defined(MBEDTLS_ECP_DEINIT_ALT)
-    if ( ecp_alt_grp_capable( grp ) )
+    if ( mbedtls_ecp_alt_grp_capable( grp ) )
     {
-        ecp_alt_deinit( grp );
+        mbedtls_ecp_alt_deinit( grp );
     }
 #endif
 

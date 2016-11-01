@@ -27,56 +27,56 @@
 
 #if defined(MBEDTLS_ECP_FUNCTION_ALT)
 
-unsigned char ecp_alt_grp_capable( const mbedtls_ecp_group *grp );
+unsigned char mbedtls_ecp_alt_grp_capable( const mbedtls_ecp_group *grp );
 
 #if defined(MBEDTLS_ECP_INIT_ALT)
-int  ecp_alt_init( const mbedtls_ecp_group *grp );
+int  mbedtls_ecp_alt_init( const mbedtls_ecp_group *grp );
 #endif
 
 #if defined(MBEDTLS_ECP_DEINIT_ALT)
-void ecp_alt_deinit( const mbedtls_ecp_group *grp );
+void mbedtls_ecp_alt_deinit( const mbedtls_ecp_group *grp );
 #endif
 
 #if defined(MBEDTLS_ECP_RANDOMIZE_JAC_ALT)
-int ecp_randomize_jac_alt( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt,
+int mbedtls_ecp_randomize_jac_alt( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt,
                            int (*f_rng)(void *, unsigned char *, size_t),
                            void *p_rng );
 #endif
 
 #if defined(MBEDTLS_ECP_ADD_MIXED_ALT)
-int ecp_add_mixed_alt( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+int mbedtls_ecp_add_mixed_alt( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                        const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q );
 #endif
 
 #if defined(MBEDTLS_ECP_DOUBLE_JAC_ALT)
-int ecp_double_jac_alt( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+int mbedtls_ecp_double_jac_alt( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                         const mbedtls_ecp_point *P );
 #endif
 
 #if defined(MBEDTLS_ECP_NORMALIZE_JAC_MANY_ALT)
-int ecp_normalize_jac_many_alt( const mbedtls_ecp_group *grp,
+int mbedtls_ecp_normalize_jac_many_alt( const mbedtls_ecp_group *grp,
                                 mbedtls_ecp_point *T[], size_t t_len );
 #endif
 
 #if defined(MBEDTLS_ECP_NORMALIZE_JAC_ALT)
-int ecp_normalize_jac_alt( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt );
+int mbedtls_ecp_normalize_jac_alt( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt );
 #endif
 
 #if defined(MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT)
-int ecp_double_add_mxz_alt( const mbedtls_ecp_group *grp,
+int mbedtls_ecp_double_add_mxz_alt( const mbedtls_ecp_group *grp,
                             mbedtls_ecp_point *R, mbedtls_ecp_point *S,
                             const mbedtls_ecp_point *P,
                             const mbedtls_ecp_point *Q, const mbedtls_mpi *d );
 #endif
 
 #if defined(MBEDTLS_ECP_RANDOMIZE_MXZ_ALT)
-int ecp_randomize_mxz_alt( const mbedtls_ecp_group *grp, mbedtls_ecp_point *P,
+int mbedtls_ecp_randomize_mxz_alt( const mbedtls_ecp_group *grp, mbedtls_ecp_point *P,
                            int (*f_rng)(void *, unsigned char *, size_t), 
                            void *p_rng );
 #endif
 
 #if defined(MBEDTLS_ECP_NORMALIZE_MXZ_ALT)
-int ecp_normalize_mxz_alt( const mbedtls_ecp_group *grp, mbedtls_ecp_point *P );
+int mbedtls_ecp_normalize_mxz_alt( const mbedtls_ecp_group *grp, mbedtls_ecp_point *P );
 #endif
 
 #endif /* MBEDTLS_ECP_FUNCTION_ALT */

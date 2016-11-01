@@ -64,7 +64,7 @@
 #define mbedtls_free       free
 #endif
 
-#include "mbedtls/alt_internal/ecp_function_alt.h"
+#include "mbedtls/ecp_internal.h"
 
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)

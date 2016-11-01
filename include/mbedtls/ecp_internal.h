@@ -1,5 +1,5 @@
 /**
- * \file ecp_function_alt.h
+ * \file ecp_internal.h
  *
  * \brief Function declarations for alternative implementation of elliptic curve
  * point arithmetic.
@@ -35,7 +35,6 @@ int  ecp_alt_init( const mbedtls_ecp_group *grp );
 
 #if defined(MBEDTLS_ECP_ALT_DEINIT)
 void ecp_alt_deinit( const mbedtls_ecp_group *grp );
-#endif
 
 #if defined(MBEDTLS_ECP_RANDOMIZE_JAC_ALT)
 int ecp_randomize_jac_alt( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt,

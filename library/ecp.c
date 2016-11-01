@@ -1685,7 +1685,7 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         ( ret = mbedtls_ecp_check_pubkey( grp, P ) ) != 0 )
         return( ret );
 
-#if defined(MBEDTLS_ECP_ALT_INIT)
+#if defined(MBEDTLS_ECP_INIT_ALT)
     if ( ecp_alt_grp_capable( grp )  )
     {
         MBEDTLS_MPI_CHK( ecp_alt_init( grp ) );
@@ -1702,11 +1702,11 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         ret = ecp_mul_comb( grp, R, m, P, f_rng, p_rng );
 #endif
 
-#if defined(MBEDTLS_ECP_ALT_INIT)
+#if defined(MBEDTLS_ECP_INIT_ALT)
     cleanup:
 #endif
 
-#if defined(MBEDTLS_ECP_ALT_DEINIT)
+#if defined(MBEDTLS_ECP_DEINIT_ALT)
     if ( ecp_alt_grp_capable( grp ) )
     {
         ecp_alt_deinit( grp );
@@ -1815,7 +1815,7 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul_shortcuts( grp, &mP, m, P ) );
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul_shortcuts( grp, R,   n, Q ) );
 
-#if defined(MBEDTLS_ECP_ALT_INIT)
+#if defined(MBEDTLS_ECP_INIT_ALT)
     if ( ecp_alt_grp_capable( grp )  )
     {
         MBEDTLS_MPI_CHK( ecp_alt_init( grp ) );
@@ -1826,7 +1826,7 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
 cleanup:
 
-#if defined(MBEDTLS_ECP_ALT_DEINIT)
+#if defined(MBEDTLS_ECP_DEINIT_ALT)
     if ( ecp_alt_grp_capable( grp ) )
     {
         ecp_alt_deinit( grp );

@@ -29,12 +29,13 @@
 
 unsigned char ecp_alt_grp_capable( const mbedtls_ecp_group *grp );
 
-#if defined(MBEDTLS_ECP_ALT_INIT)
+#if defined(MBEDTLS_ECP_INIT_ALT)
 int  ecp_alt_init( const mbedtls_ecp_group *grp );
 #endif
 
-#if defined(MBEDTLS_ECP_ALT_DEINIT)
+#if defined(MBEDTLS_ECP_DEINIT_ALT)
 void ecp_alt_deinit( const mbedtls_ecp_group *grp );
+#endif
 
 #if defined(MBEDTLS_ECP_RANDOMIZE_JAC_ALT)
 int ecp_randomize_jac_alt( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt,

@@ -261,7 +261,9 @@ int main(int argc, const char *argv[])
     char buf[5000];
     char *params[50];
     void *pointer;
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
     int stdout_fd = -1;
+#endif /* __unix__ || __APPLE__ __MACH__ */
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) && \
     !defined(TEST_SUITE_MEMORY_BUFFER_ALLOC)

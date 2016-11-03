@@ -49,6 +49,7 @@
 #if defined(MBEDTLS_ECP_C)
 
 #include "mbedtls/ecp.h"
+#include "mbedtls/threading.h"
 
 #include <string.h>
 
@@ -1685,34 +1686,44 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         ( ret = mbedtls_ecp_check_pubkey( grp, P ) ) != 0 )
         return( ret );
 
+#if defined(MBEDTLS_ECP_FUNCTION_ALT) && defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_threading_cryptohw_asym_mutex ) != 0 )
+        return ( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+
+#endif
 #if defined(MBEDTLS_ECP_INIT_ALT)
     if ( mbedtls_ecp_alt_grp_capable( grp )  )
     {
         MBEDTLS_MPI_CHK( mbedtls_ecp_alt_init( grp ) );
     }
-#endif
 
+#endif
 #if defined(ECP_MONTGOMERY)
     if( ecp_get_type( grp ) == ECP_TYPE_MONTGOMERY )
         ret = ecp_mul_mxz( grp, R, m, P, f_rng, p_rng );
-#endif
 
+#endif
 #if defined(ECP_SHORTWEIERSTRASS)
     if( ecp_get_type( grp ) == ECP_TYPE_SHORT_WEIERSTRASS )
         ret = ecp_mul_comb( grp, R, m, P, f_rng, p_rng );
-#endif
 
+#endif
 #if defined(MBEDTLS_ECP_INIT_ALT)
     cleanup:
-#endif
 
+#endif
 #if defined(MBEDTLS_ECP_DEINIT_ALT)
     if ( mbedtls_ecp_alt_grp_capable( grp ) )
     {
         mbedtls_ecp_alt_deinit( grp );
     }
-#endif
 
+#endif
+#if defined(MBEDTLS_ECP_FUNCTION_ALT) && defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_threading_cryptohw_asym_mutex ) != 0 )
+        return ( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+
+#endif
     return( ret );
 }
 
@@ -1815,11 +1826,17 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul_shortcuts( grp, &mP, m, P ) );
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul_shortcuts( grp, R,   n, Q ) );
 
+#if defined(MBEDTLS_ECP_FUNCTION_ALT) && defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_threading_cryptohw_asym_mutex ) != 0 )
+        return ( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+
+#endif
 #if defined(MBEDTLS_ECP_INIT_ALT)
     if ( mbedtls_ecp_alt_grp_capable( grp )  )
     {
         MBEDTLS_MPI_CHK( mbedtls_ecp_alt_init( grp ) );
     }
+
 #endif
     MBEDTLS_MPI_CHK( ecp_add_mixed( grp, R, &mP, R ) );
     MBEDTLS_MPI_CHK( ecp_normalize_jac( grp, R ) );
@@ -1831,8 +1848,13 @@ cleanup:
     {
         mbedtls_ecp_alt_deinit( grp );
     }
-#endif
 
+#endif
+#if defined(MBEDTLS_ECP_FUNCTION_ALT) && defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_threading_cryptohw_asym_mutex ) != 0 )
+        return ( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+
+#endif
     mbedtls_ecp_point_free( &mP );
 
     return( ret );

@@ -38,11 +38,13 @@
 #if defined(MBEDTLS_PKCS5_C)
 
 #include "mbedtls/pkcs5.h"
+#include <string.h>
+
+#if defined(MBEDTLS_ASN1_PARSE_C)
 #include "mbedtls/asn1.h"
 #include "mbedtls/cipher.h"
 #include "mbedtls/oid.h"
-
-#include <string.h>
+#endif
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -51,6 +53,22 @@
 #define mbedtls_printf printf
 #endif
 
+#if !defined(MBEDTLS_ASN1_PARSE_C)
+int mbedtls_pkcs5_pbes2( const mbedtls_asn1_buf *pbe_params, int mode,
+                 const unsigned char *pwd,  size_t pwdlen,
+                 const unsigned char *data, size_t datalen,
+                 unsigned char *output )
+{
+    ((void) pbe_params);
+    ((void) mode);
+    ((void) pwd);
+    ((void) pwdlen);
+    ((void) data);
+    ((void) datalen);
+    ((void) output);
+    return( MBEDTLS_ERR_PKCS5_FEATURE_UNAVAILABLE );
+}
+#else
 static int pkcs5_parse_pbkdf2_params( const mbedtls_asn1_buf *params,
                                       mbedtls_asn1_buf *salt, int *iterations,
                                       int *keylen, mbedtls_md_type_t *md_type )
@@ -211,6 +229,7 @@ exit:
 
     return( ret );
 }
+#endif /* MBEDTLS_ASN1_PARSE_C */
 
 int mbedtls_pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx, const unsigned char *password,
                        size_t plen, const unsigned char *salt, size_t slen,

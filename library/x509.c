@@ -656,7 +656,7 @@ int mbedtls_x509_get_sig_alg( const mbedtls_x509_buf *sig_oid, const mbedtls_x50
 
 /*
  * X.509 Extensions (No parsing of extensions, pointer should
- * be either manually updated or extensions should be parsed!
+ * be either manually updated or extensions should be parsed!)
  */
 int mbedtls_x509_get_ext( unsigned char **p, const unsigned char *end,
                   mbedtls_x509_buf *ext, int tag )

@@ -6,8 +6,26 @@ use warnings;
 use strict;
 
 my $usage = <<EOU;
-$0 [-f <file>] unset <name>
-$0 [-f <file>] set <name> [<value>]
+$0 [-f <file>] [set <symbol> <value> | unset <symbol> | full | realfull]
+
+Commands
+    set <symbol> [<value>]  - Uncomments or adds a #define for the <symbol> to
+                              the configuration file, and optionally making it
+                              of <value>.
+                              If the symbol isn't present in the file an error
+                              is returned.
+    unset <symbol>          - Comments out the #define for the given symbol if
+                              present in the configuration file.
+    full                    - Uncomments all #define's in the configuration file
+                              excluding some reserved symbols, until the
+                              'Module configuration options' section
+    realfull                - Uncomments all #define's with no exclusions
+
+Options
+    -f <filename>           - The file or file path for the configuration file
+                              to edit. When omitted, the following default is
+                              used:
+                                $config_file
 EOU
 # for our eyes only:
 # $0 [-f <file>] full|realfull

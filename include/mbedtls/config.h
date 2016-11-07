@@ -226,8 +226,8 @@
  * functions, use one of the MBEDTLS__FUNCTION_NAME__ALT flags.
  *
  * Example: In case you uncomment MBEDTLS_AES_ALT, mbed TLS will no longer
- * provide the "struct mbedtls_aes_context" definition and omit the base function
- * declarations and implementations. "aes_alt.h" will be included from
+ * provide the "struct mbedtls_aes_context" definition and omit the base
+ * function declarations and implementations. "aes_alt.h" will be included from
  * "aes.h" to include the new function definitions.
  *
  * Uncomment a macro to enable alternate implementation of the corresponding
@@ -251,7 +251,9 @@
  * implemented with two .c files:
  *      - ecp.c
  *      - ecp_curves.c
- * Please make sure that you provide functionality for both of them.
+ * You can replace them very much like all the other MBEDTLS__MODULE_NAME__ALT
+ * macros as described above. The only difference is that you have to make sure
+ * that you provide functionality for both .c files.
  */
 //#define MBEDTLS_ECP_ALT
 
@@ -307,26 +309,26 @@
  *
  * Any of these options become available by defining MBEDTLS_ECP_FUNCTION_ALT
  * and implementing the following function:
- * unsigned char ecp_alt_grp_capable( const mbedtls_ecp_group *grp )
+ * unsigned char mbedtls_ecp_alt_grp_capable( const mbedtls_ecp_group *grp )
  * This should return 1 if the replacement functions implement arithmetic for
  * the given group and 0 otherwise.
  *
  * The functions:
- *      int  ecp_alt_init( const mbedtls_ecp_group *grp )
- *      void ecp_alt_deinit( const mbedtls_ecp_group *grp )
+ *      int  mbedtls_ecp_alt_init( const mbedtls_ecp_group *grp )
+ *      void mbedtls_ecp_alt_deinit( const mbedtls_ecp_group *grp )
  * can be enabled by MBEDTLS_ECP_INIT_ALT and MBEDTLS_ECP_DEINIT_ALT.
  * They are called before and after each point operation and provide an
  * opportunity to implement optimized set up and tear down instructions.
  *
  * Example: In case you uncomment MBEDTLS_ECP_FUNCTION_ALT and
  * MBEDTLS_ECP_DOUBLE_JAC_ALT, mbed TLS will still provide the ecp_double_jac
- * function, but will use your ecp_double_jac_alt if the group is supported
- * (your ecp_alt_grp_capable function returns 1 when receives it as an
- * argument). If the group is not supported then the original implementation is
- * used. The other functions and the definition of mbedtls_ecp_group and
- * mbedtls_ecp_point will not change, so your implementation of
- * ecp_double_jac_alt and ecp_alt_grp_capable must be compatible with
- * this definition.
+ * function, but will use your mbedtls_ecp_double_jac_alt if the group is
+ * supported (your mbedtls_ecp_alt_grp_capable function returns 1 when receives
+ * it as an argument). If the group is not supported then the original
+ * implementation is used. The other functions and the definition of
+ * mbedtls_ecp_group and mbedtls_ecp_point will not change, so your
+ * implementation of mbedtls_ecp_double_jac_alt and mbedtls_ecp_alt_grp_capable
+ * must be compatible with this definition.
  *
  * Uncomment a macro to enable alternate implementation of the corresponding
  * function.

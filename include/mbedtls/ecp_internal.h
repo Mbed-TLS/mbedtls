@@ -24,7 +24,6 @@
 #ifndef MBEDTLS_ECP_FUNCTION_ALT_H
 #define MBEDTLS_ECP_FUNCTION_ALT_H
 
-
 #if defined(MBEDTLS_ECP_FUNCTION_ALT)
 
 unsigned char mbedtls_ecp_alt_grp_capable( const mbedtls_ecp_group *grp );

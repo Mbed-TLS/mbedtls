@@ -2981,7 +2981,17 @@ static int ssl_parse_encrypted_pms( ssl_context *ssl,
     ssl->handshake->pmslen = 48;
 
     /* mask = diff ? 0xff : 0x00 */
+    /* MSVC has a warning about unary minus on unsigned, but this is
+     * well-defined and precisely what we want to do here */
+#if defined(_MSC_VER)
+#pragma warning( push )
+#pragma warning( disable : 4146 )
+#endif
     mask = - ( diff | - diff ) >> ( sizeof( unsigned int ) * 8 - 1 );
+#if defined(_MSC_VER)
+#pragma warning( pop )
+#endif
+
     for( i = 0; i < ssl->handshake->pmslen; i++ )
         pms[i] = ( mask & fake_pms[i] ) | ( (~mask) & peer_pms[i] );
 

@@ -1484,7 +1484,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         unsigned char add_data[13];
         unsigned char taglen = ssl->transform_in->ciphersuite_info->flags &
                                POLARSSL_CIPHERSUITE_SHORT_TAG ? 8 : 16;
-        unsigned char explicit_iv_len =  ssl->transform_in->ivlen -
+        size_t explicit_iv_len =  ssl->transform_in->ivlen -
                                          ssl->transform_in->fixed_ivlen;
 
         if( ssl->in_msglen < (size_t) explicit_iv_len + taglen )

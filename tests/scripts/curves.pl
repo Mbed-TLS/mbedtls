@@ -49,7 +49,8 @@ for my $curve (@curves) {
     system( "scripts/config.pl unset $curve" )
         and abort "Failed to disable $curve\n";
 
-    system( "make lib" ) and abort "Failed to build lib: $curve\n";
+    system( "CFLAGS='-Werror -Wall -Wextra' make lib" )
+        and abort "Failed to build lib: $curve\n";
     system( "cd tests && make" ) and abort "Failed to build tests: $curve\n";
     system( "make test" ) and abort "Failed test suite: $curve\n";
 

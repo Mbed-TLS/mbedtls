@@ -115,7 +115,7 @@ if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
         if (CMAKE_HOST_UNIX)
             set(command ln -s ${target} ${link})
         else()
-            set(command cmd.exe /c mklink /d ${link} ${target})
+            set(command cmd.exe /c mklink /j ${link} ${target})
         endif()
 
         execute_process(COMMAND ${command}

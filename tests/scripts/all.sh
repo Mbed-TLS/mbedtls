@@ -439,12 +439,14 @@ if which i686-w64-mingw32-gcc >/dev/null; then
     msg "build: Windows cross build - mingw64, make (Link Library)" # ~ 30s
     cleanup
     CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 make lib programs
-    CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror' WINDOWS_BUILD=1 make test
+
+    # note Make tests only builds the tests, but doesn't run them
+    CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror' WINDOWS_BUILD=1 make tests
     WINDOWS_BUILD=1 make clean
 
     msg "build: Windows cross build - mingw64, make (DLL)" # ~ 30s
-    CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS'=-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 make lib programs
-    CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS'=-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 make test
+    CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 make lib programs
+    CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 make tests
     WINDOWS_BUILD=1 make clean
 fi
 

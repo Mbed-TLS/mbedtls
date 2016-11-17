@@ -217,7 +217,7 @@ export GNUTLS_SERV="$GNUTLS_SERV"
 # Make sure the tools we need are available.
 check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$GNUTLS_CLI" "$GNUTLS_SERV" \
     "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV" "doxygen" "dot" \
-    "arm-none-eabi-gcc" "armcc"
+    "arm-none-eabi-gcc" "armcc" "i686-w64-mingw32-gcc"
 
 #
 # Test Suites to be executed
@@ -443,20 +443,18 @@ scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
 scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT # depends on MBEDTLS_HAVE_TIME
 CC=armcc AR=armar WARNING_CFLAGS='--strict --c99' make lib
 
-if which i686-w64-mingw32-gcc >/dev/null; then
-    msg "build: Windows cross build - mingw64, make (Link Library)" # ~ 30s
-    cleanup
-    CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 make lib programs
+msg "build: Windows cross build - mingw64, make (Link Library)" # ~ 30s
+cleanup
+CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 make lib programs
 
-    # note Make tests only builds the tests, but doesn't run them
-    CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror' WINDOWS_BUILD=1 make tests
-    WINDOWS_BUILD=1 make clean
+# note Make tests only builds the tests, but doesn't run them
+CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror' WINDOWS_BUILD=1 make tests
+WINDOWS_BUILD=1 make clean
 
-    msg "build: Windows cross build - mingw64, make (DLL)" # ~ 30s
-    CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 make lib programs
-    CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 make tests
-    WINDOWS_BUILD=1 make clean
-fi
+msg "build: Windows cross build - mingw64, make (DLL)" # ~ 30s
+CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 make lib programs
+CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 make tests
+WINDOWS_BUILD=1 make clean
 
 # MemSan currently only available on Linux 64 bits
 if uname -a | grep 'Linux.*x86_64' >/dev/null; then

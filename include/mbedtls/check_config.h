@@ -150,43 +150,43 @@
 #error "MBEDTLS_GCM_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_ECP_INIT_ALT) && !defined(MBEDTLS_ECP_FUNCTION_ALT)
+#if defined(MBEDTLS_ECP_INIT_ALT) && !defined(MBEDTLS_ECP_INTERNAL_ALT)
 #error "MBEDTLS_ECP_INIT_ALT defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_ECP_DEINIT_ALT) && !defined(MBEDTLS_ECP_FUNCTION_ALT)
+#if defined(MBEDTLS_ECP_DEINIT_ALT) && !defined(MBEDTLS_ECP_INTERNAL_ALT)
 #error "MBEDTLS_ECP_DEINIT_ALT defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_ECP_RANDOMIZE_JAC_ALT) && !defined(MBEDTLS_ECP_FUNCTION_ALT)
+#if defined(MBEDTLS_ECP_RANDOMIZE_JAC_ALT) && !defined(MBEDTLS_ECP_INTERNAL_ALT)
 #error "MBEDTLS_ECP_RANDOMIZE_JAC_ALT defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_ECP_ADD_MIXED_ALT) && !defined(MBEDTLS_ECP_FUNCTION_ALT)
+#if defined(MBEDTLS_ECP_ADD_MIXED_ALT) && !defined(MBEDTLS_ECP_INTERNAL_ALT)
 #error "MBEDTLS_ECP_ADD_MIXED_ALT defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_ECP_DOUBLE_JAC_ALT) && !defined(MBEDTLS_ECP_FUNCTION_ALT)
+#if defined(MBEDTLS_ECP_DOUBLE_JAC_ALT) && !defined(MBEDTLS_ECP_INTERNAL_ALT)
 #error "MBEDTLS_ECP_DOUBLE_JAC_ALT defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_ECP_NORMALIZE_JAC_MANY_ALT) && !defined(MBEDTLS_ECP_FUNCTION_ALT)
+#if defined(MBEDTLS_ECP_NORMALIZE_JAC_MANY_ALT) && !defined(MBEDTLS_ECP_INTERNAL_ALT)
 #error "MBEDTLS_ECP_NORMALIZE_JAC_MANY_ALT defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_ECP_NORMALIZE_JAC_ALT) && !defined(MBEDTLS_ECP_FUNCTION_ALT)
+#if defined(MBEDTLS_ECP_NORMALIZE_JAC_ALT) && !defined(MBEDTLS_ECP_INTERNAL_ALT)
 #error "MBEDTLS_ECP_NORMALIZE_JAC_ALT defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT) && !defined(MBEDTLS_ECP_FUNCTION_ALT)
+#if defined(MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT) && !defined(MBEDTLS_ECP_INTERNAL_ALT)
 #error "MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_ECP_RANDOMIZE_MXZ_ALT) && !defined(MBEDTLS_ECP_FUNCTION_ALT)
+#if defined(MBEDTLS_ECP_RANDOMIZE_MXZ_ALT) && !defined(MBEDTLS_ECP_INTERNAL_ALT)
 #error "MBEDTLS_ECP_RANDOMIZE_MXZ_ALT defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_ECP_NORMALIZE_MXZ_ALT) && !defined(MBEDTLS_ECP_FUNCTION_ALT)
+#if defined(MBEDTLS_ECP_NORMALIZE_MXZ_ALT) && !defined(MBEDTLS_ECP_INTERNAL_ALT)
 #error "MBEDTLS_ECP_NORMALIZE_MXZ_ALT defined, but not all prerequisites"
 #endif
 

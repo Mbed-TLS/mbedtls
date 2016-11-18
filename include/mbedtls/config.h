@@ -296,7 +296,9 @@
 //#define MBEDTLS_AES_DECRYPT_ALT
 
 /**
- * \def MBEDTLS_ECP_FUNCTION_ALT
+ * \def MBEDTLS_ECP_INTERNAL_ALT
+ *
+ * Expose a part of the internal interface of the Elliptic Curve Point module.
  *
  * MBEDTLS_ECP__FUNCTION_NAME__ALT: Uncomment a macro to let mbed TLS use your
  * alternative core implementation of elliptic curve arithmetic. Keep in mind
@@ -307,37 +309,34 @@
  * is still present and it is used for group structures not supported by the
  * alternative.
  *
- * Any of these options become available by defining MBEDTLS_ECP_FUNCTION_ALT
- * and implementing the following function:
- * unsigned char mbedtls_ecp_alt_grp_capable( const mbedtls_ecp_group *grp )
- * This should return 1 if the replacement functions implement arithmetic for
- * the given group and 0 otherwise.
+ * Any of these options become available by defining MBEDTLS_ECP_INTERNAL_ALT
+ * and implementing the following functions:
+ *      unsigned char mbedtls_internal_ecp_grp_capable(
+ *          const mbedtls_ecp_group *grp )
+ *      int  mbedtls_internal_ecp_init( const mbedtls_ecp_group *grp )
+ *      void mbedtls_internal_ecp_deinit( const mbedtls_ecp_group *grp )
+ * The mbedtls_internal_ecp_grp_capable function should return 1 if the
+ * replacement functions implement arithmetic for the given group and 0
+ * otherwise.
+ * The functions mbedtls_internal_ecp_init and mbedtls_internal_ecp_deinit are
+ * called before and after each point operation and provide an opportunity to
+ * implement optimized set up and tear down instructions.
  *
- * The functions:
- *      int  mbedtls_ecp_alt_init( const mbedtls_ecp_group *grp )
- *      void mbedtls_ecp_alt_deinit( const mbedtls_ecp_group *grp )
- * can be enabled by MBEDTLS_ECP_INIT_ALT and MBEDTLS_ECP_DEINIT_ALT.
- * They are called before and after each point operation and provide an
- * opportunity to implement optimized set up and tear down instructions.
- *
- * Example: In case you uncomment MBEDTLS_ECP_FUNCTION_ALT and
+ * Example: In case you uncomment MBEDTLS_ECP_INTERNAL_ALT and
  * MBEDTLS_ECP_DOUBLE_JAC_ALT, mbed TLS will still provide the ecp_double_jac
- * function, but will use your mbedtls_ecp_double_jac_alt if the group is
- * supported (your mbedtls_ecp_alt_grp_capable function returns 1 when receives
- * it as an argument). If the group is not supported then the original
+ * function, but will use your mbedtls_internal_ecp_double_jac if the group is
+ * supported (your mbedtls_internal_ecp_grp_capable function returns 1 when
+ * receives it as an argument). If the group is not supported then the original
  * implementation is used. The other functions and the definition of
  * mbedtls_ecp_group and mbedtls_ecp_point will not change, so your
- * implementation of mbedtls_ecp_double_jac_alt and mbedtls_ecp_alt_grp_capable
- * must be compatible with this definition.
+ * implementation of mbedtls_internal_ecp_double_jac and
+ * mbedtls_internal_ecp_grp_capable must be compatible with this definition.
  *
  * Uncomment a macro to enable alternate implementation of the corresponding
  * function.
  */
 /* Required for all the functions in this section */
-//#define MBEDTLS_ECP_FUNCTION_ALT
-/* Utility functions for setup and cleanup */
-//#define MBEDTLS_ECP_INIT_ALT
-//#define MBEDTLS_ECP_DEINIT_ALT
+//#define MBEDTLS_ECP_INTERNAL_ALT
 /* Support for Weierstrass curves with Jacobi representation */
 //#define MBEDTLS_ECP_RANDOMIZE_JAC_ALT
 //#define MBEDTLS_ECP_ADD_MIXED_ALT

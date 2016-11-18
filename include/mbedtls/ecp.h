@@ -38,11 +38,13 @@
 #define MBEDTLS_ERR_ECP_SIG_LEN_MISMATCH                  -0x4C00  /**< Signature is valid but shorter than the user-supplied length. */
 
 #if !defined(MBEDTLS_ECP_ALT)
-// default mbed TLS elliptic curve arithmetic implementation
-//
-// (in case MBEDTLS_ECP_ALT is defined then the developer has to provide an
-// alternative implementation for the whole module and it will replace this
-// one.)
+/*
+ * default mbed TLS elliptic curve arithmetic implementation
+ *
+ * (in case MBEDTLS_ECP_ALT is defined then the developer has to provide an
+ * alternative implementation for the whole module and it will replace this
+ * one.)
+ */
 
 #ifdef __cplusplus
 extern "C" {

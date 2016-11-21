@@ -1,5 +1,5 @@
 /*
- *  Threading abstraction layer
+ *  Threading abstraction layer - pthreads implementation
  *
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
@@ -69,50 +69,65 @@ static int threading_mutex_unlock_pthread( mbedtls_threading_mutex_t *mutex )
     return( 0 );
 }
 
-void (*mbedtls_mutex_init)( mbedtls_threading_mutex_t * ) = threading_mutex_init_pthread;
-void (*mbedtls_mutex_free)( mbedtls_threading_mutex_t * ) = threading_mutex_free_pthread;
-int (*mbedtls_mutex_lock)( mbedtls_threading_mutex_t * ) = threading_mutex_lock_pthread;
-int (*mbedtls_mutex_unlock)( mbedtls_threading_mutex_t * ) = threading_mutex_unlock_pthread;
+#define MBEDTLS_MUTEX_INIT_MACRO       threading_mutex_init_pthread
+#define MBEDTLS_MUTEX_FREE_MACRO       threading_mutex_free_pthread
+#define MBEDTLS_MUTEX_LOCK_MACRO       threading_mutex_lock_pthread
+#define MBEDTLS_MUTEX_UNLOCK_MACRO     threading_mutex_unlock_pthread
 
 /*
  * With phtreads we can statically initialize mutexes
  */
-#define MUTEX_INIT  = { PTHREAD_MUTEX_INITIALIZER, 1 }
+#define MBEDTLS_MUTEX_INITIALIZER      { PTHREAD_MUTEX_INITIALIZER, 1 }
 
 #endif /* MBEDTLS_THREADING_PTHREAD */
 
 #if defined(MBEDTLS_THREADING_ALT)
+
+#if !defined(MBEDTLS_MUTEX_INIT_MACRO) && \
+    !defined(MBEDTLS_MUTEX_FREE_MACRO) && \
+    !defined(MBEDTLS_MUTEX_LOCK_MACRO) && \
+    !defined(MBEDTLS_UNLOCK_FREE_MACRO)
+
 static int threading_mutex_fail( mbedtls_threading_mutex_t *mutex )
 {
     ((void) mutex );
     return( MBEDTLS_ERR_THREADING_BAD_INPUT_DATA );
 }
+
 static void threading_mutex_dummy( mbedtls_threading_mutex_t *mutex )
 {
     ((void) mutex );
     return;
 }
 
-void (*mbedtls_mutex_init)( mbedtls_threading_mutex_t * ) = threading_mutex_dummy;
-void (*mbedtls_mutex_free)( mbedtls_threading_mutex_t * ) = threading_mutex_dummy;
-int (*mbedtls_mutex_lock)( mbedtls_threading_mutex_t * ) = threading_mutex_fail;
-int (*mbedtls_mutex_unlock)( mbedtls_threading_mutex_t * ) = threading_mutex_fail;
+#define MBEDTLS_MUTEX_INIT_MACRO      threading_mutex_dummy
+#define MBEDTLS_MUTEX_FREE_MACRO      threading_mutex_dummy
+#define MBEDTLS_MUTEX_LOCK_MACRO      threading_mutex_fail
+#define MBEDTLS_UNLOCK_FREE_MACRO     threading_mutex_fail
+
+#endif /* !MBEDTLS_MUTEX_INIT_MACRO && !MBEDTLS_MUTEX_FREE_MACRO &&
+        * !MBEDTLS_MUTEX_LOCK_MACRO && !MBEDTLS_UNLOCK_FREE_MACRO */
 
 /*
  * Set functions pointers and initialize global mutexes
  */
-void mbedtls_threading_set_alt( void (*mutex_init)( mbedtls_threading_mutex_t * ),
-                       void (*mutex_free)( mbedtls_threading_mutex_t * ),
-                       int (*mutex_lock)( mbedtls_threading_mutex_t * ),
-                       int (*mutex_unlock)( mbedtls_threading_mutex_t * ) )
+void mbedtls_threading_set_alt( mbedtls_mutex_init_t* mutex_init,
+                                mbedtls_mutex_free_t* mutex_free,
+                                mbedtls_mutex_lock_t* mutex_lock,
+                                mbedtls_mutex_unlock_t* mutex_unlock )
 {
     mbedtls_mutex_init = mutex_init;
     mbedtls_mutex_free = mutex_free;
     mbedtls_mutex_lock = mutex_lock;
     mbedtls_mutex_unlock = mutex_unlock;
 
+#if defined(MBEDTLS_FS_IO)
     mbedtls_mutex_init( &mbedtls_threading_readdir_mutex );
+#endif /* MBEDTLS_FS_IO */
+
+#if defined(MBEDTLS_HAVE_TIME_DATE)
     mbedtls_mutex_init( &mbedtls_threading_gmtime_mutex );
+#endif /* MBEDTLS_HAVE_TIME_DATE */
 }
 
 /*
@@ -120,18 +135,49 @@ void mbedtls_threading_set_alt( void (*mutex_init)( mbedtls_threading_mutex_t * 
  */
 void mbedtls_threading_free_alt( void )
 {
+#if defined(MBEDTLS_FS_IO)
     mbedtls_mutex_free( &mbedtls_threading_readdir_mutex );
+#endif /* MBEDTLS_FS_IO */
+
+#if defined(MBEDTLS_HAVE_TIME_DATE)
     mbedtls_mutex_free( &mbedtls_threading_gmtime_mutex );
+#endif /* MBEDTLS_HAVE_TIME_DATE */
 }
+
 #endif /* MBEDTLS_THREADING_ALT */
+
+mbedtls_mutex_init_t* mbedtls_mutex_init =
+                            ( mbedtls_mutex_init_t* )MBEDTLS_MUTEX_INIT_MACRO;
+mbedtls_mutex_free_t* mbedtls_mutex_free =
+                            ( mbedtls_mutex_free_t* )MBEDTLS_MUTEX_FREE_MACRO;
+mbedtls_mutex_lock_t* mbedtls_mutex_lock =
+                            ( mbedtls_mutex_lock_t* )MBEDTLS_MUTEX_LOCK_MACRO;
+mbedtls_mutex_unlock_t* mbedtls_mutex_unlock =
+                        ( mbedtls_mutex_unlock_t* )MBEDTLS_MUTEX_UNLOCK_MACRO;
 
 /*
  * Define global mutexes
  */
-#ifndef MUTEX_INIT
-#define MUTEX_INIT
-#endif
-mbedtls_threading_mutex_t mbedtls_threading_readdir_mutex MUTEX_INIT;
-mbedtls_threading_mutex_t mbedtls_threading_gmtime_mutex MUTEX_INIT;
+#ifdef MBEDTLS_MUTEX_INITIALIZER
+
+#if defined(MBEDTLS_FS_IO)
+mbedtls_threading_mutex_t mbedtls_threading_readdir_mutex = MBEDTLS_MUTEX_INITIALIZER;
+#endif /* MBEDTLS_FS_IO */
+
+#if defined(MBEDTLS_HAVE_TIME_DATE)
+mbedtls_threading_mutex_t mbedtls_threading_gmtime_mutex = MBEDTLS_MUTEX_INITIALIZER;
+#endif /* MBEDTLS_HAVE_TIME_DATE */
+
+#else
+
+#if defined(MBEDTLS_FS_IO)
+mbedtls_threading_mutex_t mbedtls_threading_readdir_mutex;
+#endif /* MBEDTLS_FS_IO */
+
+#if defined(MBEDTLS_HAVE_TIME_DATE)
+mbedtls_threading_mutex_t mbedtls_threading_gmtime_mutex;
+#endif /* MBEDTLS_HAVE_TIME_DATE */
+
+#endif /* MBEDTLS_MUTEX_INITIALIZER */
 
 #endif /* MBEDTLS_THREADING_C */

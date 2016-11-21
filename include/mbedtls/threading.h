@@ -39,16 +39,72 @@ extern "C" {
 #define MBEDTLS_ERR_THREADING_BAD_INPUT_DATA              -0x001C  /**< Bad input parameters to function. */
 #define MBEDTLS_ERR_THREADING_MUTEX_ERROR                 -0x001E  /**< Locking / unlocking / free failed with error code. */
 
+/* Forwards declaration of mutex type  */
+typedef struct _mbedtls_threading_mutex_t mbedtls_threading_mutex_t;
+
+/**
+ * \brief          Function type: initialize mutex
+ *
+ * \param mutex    Pointer to mutex to initialize
+ *
+ * \note           The function initializes the passed mutex.
+ *
+ * \note           The implementation may be provided by the user application,
+ *                 if MBEDTLS_THREADING_ALT or MBEDTLS_MUTEX_XXX_MACRO symbols
+ *                 are defined.
+ */
+typedef void (mbedtls_mutex_init_t)( mbedtls_threading_mutex_t* mutex );
+
+/**
+ * \brief          Function type: free mutex
+ *
+ * \param mutex    Pointer to mutex to deallocate
+ *
+ * \note           The function deallocates the passed mutex.
+ *
+ * \note           The implementation may be provided by the user application,
+ *                 if MBEDTLS_THREADING_ALT or MBEDTLS_MUTEX_XXX_MACRO symbols
+ *                 are defined.
+ */
+typedef void (mbedtls_mutex_free_t)( mbedtls_threading_mutex_t* );
+
+/**
+ * \brief          Function type: lock mutex
+ *
+ * \param mutex    Pointer to mutex to lock
+ *
+ * \note           The function locks the passed mutex.
+ *
+ * \note           The implementation may be provided by the user application,
+ *                 if MBEDTLS_THREADING_ALT or MBEDTLS_MUTEX_XXX_MACRO symbols
+ *                 are defined.
+ */
+typedef int (mbedtls_mutex_lock_t)( mbedtls_threading_mutex_t* );
+
+/**
+ * \brief          Function type: unlock mutex
+ *
+ * \param mutex    Pointer to mutex to unlock
+ *
+ * \note           The function unlocks the passed mutex.
+ *
+ * \note           The implementation may be provided by the user application,
+ *                 if MBEDTLS_THREADING_ALT or MBEDTLS_MUTEX_XXX_MACRO symbols
+ *                 are defined.
+ */
+typedef int (mbedtls_mutex_unlock_t)( mbedtls_threading_mutex_t* );
+
 #if defined(MBEDTLS_THREADING_PTHREAD)
+/* pthreads implementation of the threading primitives */
+
 #include <pthread.h>
 typedef struct
 {
     pthread_mutex_t mutex;
     char is_valid;
 } mbedtls_threading_mutex_t;
-#endif
 
-#if defined(MBEDTLS_THREADING_ALT)
+#elif defined(MBEDTLS_THREADING_ALT)
 /* You should define the mbedtls_threading_mutex_t type in your header */
 #include "threading_alt.h"
 
@@ -70,20 +126,27 @@ typedef struct
  * \param mutex_lock    the lock function implementation
  * \param mutex_unlock  the unlock function implementation
  */
-void mbedtls_threading_set_alt( void (*mutex_init)( mbedtls_threading_mutex_t * ),
-                       void (*mutex_free)( mbedtls_threading_mutex_t * ),
-                       int (*mutex_lock)( mbedtls_threading_mutex_t * ),
-                       int (*mutex_unlock)( mbedtls_threading_mutex_t * ) );
+void mbedtls_threading_set_alt( mbedtls_mutex_init_t* mutex_init,
+                                mbedtls_mutex_free_t* mutex_free,
+                                mbedtls_mutex_lock_t* mutex_lock,
+                                mbedtls_mutex_unlock_t* mutex_unlock );
 
 /**
  * \brief               Free global mutexes.
  */
 void mbedtls_threading_free_alt( void );
-#endif /* MBEDTLS_THREADING_ALT */
+
+#else
+/* For no given implementation, define as an opaque pointer */
+typedef struct _mbedtls_threading_mutex_t
+{
+    void* mutex;
+} mbedtls_threading_mutex_t;
+#endif
 
 #if defined(MBEDTLS_THREADING_C)
 /*
- * The function pointers for mutex_init, mutex_free, mutex_ and mutex_unlock
+ * The function pointers for mutex_init, mutex_free, mutex_lock and mutex_unlock
  *
  * All these functions are expected to work or the result will be undefined.
  */

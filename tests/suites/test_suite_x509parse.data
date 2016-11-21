@@ -1499,3 +1499,19 @@ x509_get_time:ASN1_UTC_TIME:"001130236012Z":POLARSSL_ERR_X509_INVALID_DATE:0:0:0
 X509 Get time (UTC invalid sec)
 depends_on:POLARSSL_X509_USE_C
 x509_get_time:ASN1_UTC_TIME:"001130235960Z":POLARSSL_ERR_X509_INVALID_DATE:0:0:0:0:0:0
+
+X509 Get time (Generalized Time invalid leap year multiple of 4 and 100)
+depends_on:POLARSSL_X509_USE_C
+x509_get_time:ASN1_GENERALIZED_TIME:"19000229000000Z":POLARSSL_ERR_X509_INVALID_DATE:0:0:0:0:0:0
+
+X509 Get time (Generalized Time year multiple of 4 and not multiple of 100)
+depends_on:POLARSSL_X509_USE_C
+x509_get_time:ASN1_GENERALIZED_TIME:"19920229000000Z":0:1992:2:29:0:0:0
+
+X509 Get time (Generalized Time year multiple of 400)
+depends_on:POLARSSL_X509_USE_C
+x509_get_time:ASN1_GENERALIZED_TIME:"20000229000000Z":0:2000:2:29:0:0:0
+
+X509 Get time (Generalized Time invalid leap year not multiple of 4, 100 or 400)
+depends_on:POLARSSL_X509_USE_C
+x509_get_time:ASN1_GENERALIZED_TIME:"19910229000000Z":POLARSSL_ERR_X509_INVALID_DATE:0:0:0:0:0:0

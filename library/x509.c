@@ -493,6 +493,7 @@ static int x509_parse_int(unsigned char **p, unsigned n, int *res){
 static int x509_date_is_valid(const x509_time *time)
 {
     int ret = POLARSSL_ERR_X509_INVALID_DATE;
+    int month_len;
 
     CHECK_RANGE( 0, 9999, time->year );
     CHECK_RANGE( 0, 23,   time->hour );
@@ -502,17 +503,22 @@ static int x509_date_is_valid(const x509_time *time)
     switch( time->mon )
     {
         case 1: case 3: case 5: case 7: case 8: case 10: case 12:
-            CHECK_RANGE( 1, 31, time->day );
+            month_len = 31;
             break;
         case 4: case 6: case 9: case 11:
-            CHECK_RANGE( 1, 30, time->day );
+            month_len = 30;
             break;
         case 2:
-            CHECK_RANGE( 1, 28 + (time->year % 4 == 0), time->day );
+            if( ( !( time->year % 4 ) && time->year % 100 ) ||
+                !( time->year % 400 ) )
+                month_len = 29;
+            else
+                month_len = 28;
             break;
         default:
             return( ret );
     }
+    CHECK_RANGE( 1, month_len, time->day );
 
     return( 0 );
 }

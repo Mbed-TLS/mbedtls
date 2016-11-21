@@ -150,14 +150,6 @@
 #error "MBEDTLS_GCM_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_ECP_INIT_ALT) && !defined(MBEDTLS_ECP_INTERNAL_ALT)
-#error "MBEDTLS_ECP_INIT_ALT defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_ECP_DEINIT_ALT) && !defined(MBEDTLS_ECP_INTERNAL_ALT)
-#error "MBEDTLS_ECP_DEINIT_ALT defined, but not all prerequisites"
-#endif
-
 #if defined(MBEDTLS_ECP_RANDOMIZE_JAC_ALT) && !defined(MBEDTLS_ECP_INTERNAL_ALT)
 #error "MBEDTLS_ECP_RANDOMIZE_JAC_ALT defined, but not all prerequisites"
 #endif

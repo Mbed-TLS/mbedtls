@@ -86,6 +86,10 @@ Bugfix
    * Fix unlisted DES configuration dependency in some pkparse test cases. Found
      by inestlerode. #555
 
+Features
+   * Exposed parts of the Elliptic Curve Point internal interface, to provide
+     interface for external hardware acceleration code.
+
 = mbed TLS 2.4.1 branch released 2016-12-13
 
 Changes

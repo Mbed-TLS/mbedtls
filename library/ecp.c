@@ -1712,7 +1712,7 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
 #endif
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
-    cleanup:
+cleanup:
 
     if ( is_grp_capable )
     {

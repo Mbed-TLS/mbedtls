@@ -260,8 +260,8 @@ int x509_csr_parse_der( x509_csr *csr,
  */
 int x509_csr_parse( x509_csr *csr, const unsigned char *buf, size_t buflen )
 {
-    int ret;
 #if defined(POLARSSL_PEM_PARSE_C)
+    int ret;
     size_t use_len;
     pem_context pem;
 #endif

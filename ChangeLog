@@ -5,6 +5,9 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Bugfix
    * Fix redefinition of macro ssl_set_bio to undefined symbol
      mbedtls_ssl_set_bio_timeout in compat-1.3.h. #673
+   * Fix unused variable/function compilation warnings in pem.c, x509_crt.c and
+     x509_csr.c that are reported when building mbed TLS with a config.h that
+     does not define MBEDTLS_PEM_PARSE_C. #562
    * Fixed multiple buffer overreads in mbedtls_pem_read_buffer() when parsing
      the input string in PEM format to extract the different components. Found
      by Eyal Itkin.

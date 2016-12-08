@@ -529,7 +529,7 @@ int mbedtls_x509_crl_parse( mbedtls_x509_crl *chain, const unsigned char *buf, s
 
             mbedtls_pem_free( &pem );
         }
-        else if( ret != MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
+        else if( is_pem )
         {
             mbedtls_pem_free( &pem );
             return( ret );

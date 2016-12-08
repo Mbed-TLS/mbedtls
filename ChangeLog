@@ -1,5 +1,14 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Security
+   * Fixed potential livelock during the parsing of a CRL in PEM format in
+     mbedtls_x509_crl_parse(). A string containing a CRL followed by trailing
+     characters after the footer could result in the execution of an infinite
+     loop. The issue can be triggered remotely. Found by Greg Zaverucha,
+     Microsoft.
+
 = mbed TLS 2.4.1 branch released 2016-12-13
 
 Changes

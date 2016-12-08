@@ -163,6 +163,22 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRL_PARSE_C */
+void mbedtls_x509_crl_parse( char *crl_file, int result )
+{
+    mbedtls_x509_crl   crl;
+    char buf[2000];
+
+    mbedtls_x509_crl_init( &crl );
+    memset( buf, 0, 2000 );
+
+    TEST_ASSERT( mbedtls_x509_crl_parse_file( &crl, crl_file ) == result );
+
+exit:
+    mbedtls_x509_crl_free( &crl );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CSR_PARSE_C */
 void mbedtls_x509_csr_info( char *csr_file, char *result_str )
 {

@@ -25,12 +25,8 @@
 /*
  * References:
  *
- * SEC1 http://www.secg.org/index.php?action=secg,docs_secg
- * GECC = Guide to Elliptic Curve Cryptography - Hankerson, Menezes, Vanstone
- * FIPS 186-3 http://csrc.nist.gov/publications/fips/fips186-3/fips_186-3.pdf
- * RFC 4492 for the related TLS structures and constants
- *
- * [Curve25519] http://cr.yp.to/ecdh/curve25519-20060209.pdf
+ * [1] BERNSTEIN, Daniel J. Curve25519: new Diffie-Hellman speed records.
+ *     <http://cr.yp.to/ecdh/curve25519-20060209.pdf>
  *
  * [2] CORON, Jean-S'ebastien. Resistance against differential power analysis
  *     for elliptic curve cryptosystems. In : Cryptographic Hardware and
@@ -41,6 +37,24 @@
  *     render ECC resistant against Side Channel Attacks. IACR Cryptology
  *     ePrint Archive, 2004, vol. 2004, p. 342.
  *     <http://eprint.iacr.org/2004/342.pdf>
+ *
+ * [4] Certicom Research. SEC 2: Recommended Elliptic Curve Domain Parameters.
+ *     <http://www.secg.org/sec2-v2.pdf>
+ *
+ * [5] HANKERSON, Darrel, MENEZES, Alfred J., VANSTONE, Scott. Guide to Elliptic
+ *     Curve Cryptography.
+ *
+ * [6] Digital Signature Standard (DSS), FIPS 186-4.
+ *     <http://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-4.pdf>
+ *
+ * [7] Elliptic Curve Cryptography (ECC) Cipher Suites for Transport Layer 
+ *     Security (TLS), RFC 4492.
+ *     <https://tools.ietf.org/search/rfc4492>
+ *
+ * [8] <http://www.hyperelliptic.org/EFD/g1p/auto-shortw-jacobian.html>
+ *
+ * [9] COHEN, Henri. A Course in Computational Algebraic Number Theory.
+ *     Springer Science & Business Media, 1 Aug 2000
  */
 
 #ifndef MBEDTLS_ECP_INTERNAL_H
@@ -49,22 +63,27 @@
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
 
 /**
- * \brief           Tell if the cryptographic hardware can handle the group.
+ * \brief           Indicate if the Elliptic Curve Point module extension can
+ *                  handle the group.
  *
- * \param grp       The pointer to the group.
+ * \param grp       The pointer to the elliptic curve group that will be the
+ *                  basis of the cryptographic computations.
  *
  * \return          Non-zero if successful.
  */
 unsigned char mbedtls_internal_ecp_grp_capable( const mbedtls_ecp_group *grp );
 
 /**
- * \brief           Initialise the crypto hardware accelerator.
+ * \brief           Initialise the Elliptic Curve Point module extension.
  *
  *                  If mbedtls_internal_ecp_grp_capable returns true for a
  *                  group, this function has to be able to initialise the
- *                  hardware for it.
+ *                  module for it.
  *
- * \param grp       The pointer to the group the hardware needs to be
+ *                  This module can be a driver to a crypto hardware
+ *                  accelerator, for which this could be an initialise function.
+ *
+ * \param grp       The pointer to the group the module needs to be
  *                  initialised for.
  *
  * \return          0 if successful.
@@ -72,10 +91,10 @@ unsigned char mbedtls_internal_ecp_grp_capable( const mbedtls_ecp_group *grp );
 int mbedtls_internal_ecp_init( const mbedtls_ecp_group *grp );
 
 /**
- * \brief           Reset the crypto hardware accelerator to an uninitialised
- *                  state.
+ * \brief           Frees and deallocates the Elliptic Curve Point module
+ *                  extension.
  *
- * \param grp       The pointer to the group the hardware was initialised for.
+ * \param grp       The pointer to the group the module was initialised for.
  */
 void mbedtls_internal_ecp_free( const mbedtls_ecp_group *grp );
 
@@ -85,9 +104,6 @@ void mbedtls_internal_ecp_free( const mbedtls_ecp_group *grp );
 /**
  * \brief           Randomize jacobian coordinates:
  *                  (X, Y, Z) -> (l^2 X, l^3 Y, l Z) for random l.
- *
- *                  This is sort of the reverse operation of
- *                  ecp_normalize_jac().
  *
  * \param grp       Pointer to the group representing the curve.
  *
@@ -112,6 +128,9 @@ int mbedtls_internal_ecp_randomize_jac( const mbedtls_ecp_group *grp,
  *                  The coordinates of Q must be normalized (= affine),
  *                  but those of P don't need to. R is not normalized.
  *
+ *                  This function is used only as a subrutine of
+ *                  ecp_mul_comb().
+ *
  *                  Special cases: (1) P or Q is zero, (2) R is zero,
  *                      (3) P == Q.
  *                  None of these cases can happen as intermediate step in
@@ -127,7 +146,7 @@ int mbedtls_internal_ecp_randomize_jac( const mbedtls_ecp_group *grp,
  *                  We accept Q->Z being unset (saving memory in tables) as
  *                  meaning 1.
  *
- *                  Cost in field operations if done by GECC 3.22:
+ *                  Cost in field operations if done by [5] 3.22:
  *                      1A := 8M + 3S
  *
  * \param grp       Pointer to the group representing the curve.
@@ -153,11 +172,9 @@ int mbedtls_internal_ecp_add_mixed( const mbedtls_ecp_group *grp,
  *                  Cost:   1D := 3M + 4S    (A ==  0)
  *                          4M + 4S          (A == -3)
  *                          3M + 6S + 1a     otherwise
- *                  when the implementation is based on 
- *                  http://www.hyperelliptic.org/EFD/g1p/
- *                      auto-shortw-jacobian.html#doubling-dbl-1998-cmo-2
- *                  and standard optimizations are applied when curve parameter
- *                  A is one of { 0, -3 }.
+ *                  when the implementation is based on the "dbl-1998-cmo-2"
+ *                  doubling formulas in [8] and standard optimizations are
+ *                  applied when curve parameter A is one of { 0, -3 }.
  *
  * \param grp       Pointer to the group representing the curve.
  *
@@ -180,8 +197,10 @@ int mbedtls_internal_ecp_double_jac( const mbedtls_ecp_group *grp,
  *                  Using Montgomery's trick to perform only one inversion mod P
  *                  the cost is:
  *                      1N(t) := 1I + (6t - 3)M + 1S
- *                  (See for example Cohen's "A Course in Computational
- *                  Algebraic Number Theory", Algorithm 10.3.4.)
+ *                  (See for example Algorithm 10.3.4. in [9])
+ *
+ *                  This function is used only as a subrutine of
+ *                  ecp_mul_comb().
  *
  *                  Warning: fails (returning an error) if one of the points is
  *                  zero!
@@ -204,7 +223,7 @@ int mbedtls_internal_ecp_normalize_jac_many( const mbedtls_ecp_group *grp,
 /**
  * \brief           Normalize jacobian coordinates so that Z == 0 || Z == 1.
  *
- *                  Cost in field operations if done by GECC 3.2.1:
+ *                  Cost in field operations if done by [5] 3.2.1:
  *                      1N := 1I + 3M + 1S
  *
  * \param grp       Pointer to the group representing the curve.
@@ -232,7 +251,6 @@ int mbedtls_internal_ecp_double_add_mxz( const mbedtls_ecp_group *grp,
 /**
  * \brief           Randomize projective x/z coordinates:
  *                      (X, Z) -> (l X, l Z) for random l
- *                  This is sort of the reverse operation of ecp_normalize_mxz().
  *
  * \param grp       pointer to the group representing the curve
  *

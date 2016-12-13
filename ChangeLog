@@ -1,5 +1,12 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.4.x branch released 2016-xx-xx
+
+Changes
+   * Update to CMAC test data, taken from - NIST Special Publication 800-38B -
+     Recommendation for Block Cipher Modes of Operation: The CMAC Mode for
+     Authentication – October  2016
+
 = mbed TLS 2.4.0 branch released 2016-10-17
 
 Security

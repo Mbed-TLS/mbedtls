@@ -1,5 +1,14 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Bugfix
+   * Fix incorrect renegotiation condition in ssl_check_ctr_renegotiate() that
+     would compare 64 bits of the record counter instead of 48 bits as indicated
+     in RFC 6347 Section 4.3.1. This could cause the execution of the
+     renegotiation routines at unexpected times when the protocol is DTLS. Found
+     by wariua. #687
+
 = mbed TLS 2.4.1 branch released 2016-12-13
 
 Changes

@@ -1,3 +1,7 @@
+if(MSVC)
+    set(libs ${libs} bcrypt)
+endif()
+
 set(executables
     gen_entropy
     gen_random_ctr_drbg

@@ -61,6 +61,18 @@
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#if _MSC_VER <= 1600
+/* Visual Studio 2010 and earlier issue a warning when both <stdint.h> and <intsafe.h> are included, as they
+ * redefine a number of <TYPE>_MAX constants. These constants are guaranteed to be the same, though, so
+ * we suppress the warning when including intsafe.h.
+ */
+#pragma warning( push )
+#pragma warning( disable : 4005 )
+#endif
+#include <intsafe.h>
+#if _MSC_VER <= 1600
+#pragma warning( pop )
+#endif
 #else
 #include <time.h>
 #endif
@@ -1541,6 +1553,7 @@ int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const char *path)
     char filename[MAX_PATH];
     char *p;
     size_t len = strlen(path);
+    int lengthAsInt = 0;
 
     WIN32_FIND_DATAW file_data;
     HANDLE hFind;
@@ -1555,6 +1568,9 @@ int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const char *path)
     filename[len++] = '\\';
     p = filename + len;
     filename[len++] = '*';
+
+    if (FAILED (SizeTToInt(len, &lengthAsInt)))
+        return(MBEDTLS_ERR_X509_FILE_IO_ERROR);
 
     w_ret = MultiByteToWideChar(CP_ACP, 0, filename, (int) len, szDir,
                                 MAX_PATH - 3);
@@ -1579,6 +1595,9 @@ int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const char *path)
                                     -1,
                                     p, (int) len,
                                     NULL, NULL);
+        if (FAILED(SizeTToInt(wcslen(file_data.cFileName), &lengthAsInt)))
+            return(MBEDTLS_ERR_X509_FILE_IO_ERROR);
+
         if (w_ret == 0) {
             ret = MBEDTLS_ERR_X509_FILE_IO_ERROR;
             goto cleanup;

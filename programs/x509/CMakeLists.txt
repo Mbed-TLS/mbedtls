@@ -1,6 +1,9 @@
 set(libs
     ${mbedx509_target}
 )
+if(MSVC)
+    set(libs ${libs} bcrypt)
+endif()
 
 set(executables
     cert_app

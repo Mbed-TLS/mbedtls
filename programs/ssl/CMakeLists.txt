@@ -5,6 +5,10 @@ set(libs
     ${mbedtls_target}
 )
 
+if(MSVC)
+    set(libs ${libs} bcrypt)
+endif()
+
 set(executables
     dtls_client
     dtls_server

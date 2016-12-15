@@ -1,3 +1,7 @@
+if(MSVC)
+    set(libs ${libs} bcrypt)
+endif()
+
 set(executables_mbedtls
     dh_client
     dh_server

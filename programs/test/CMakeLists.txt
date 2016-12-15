@@ -2,6 +2,10 @@ set(libs
     ${mbedtls_target}
 )
 
+if(MSVC)
+    set(libs ${libs} bcrypt)
+endif()
+
 set(executables_libs
     query_included_headers
     selftest

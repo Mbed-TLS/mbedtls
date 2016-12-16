@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Bugfix
+   * Add a check if iv_len is zero, and return an error if it is zero. reported
+     by roberto. #716
+
 = mbed TLS 2.4.1 branch released 2016-12-13
 
 Changes

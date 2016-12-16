@@ -548,8 +548,13 @@ int mbedtls_x509_get_time( unsigned char **p, const unsigned char *end,
         CHECK( x509_parse_int( p, 2, &time->day ) );
         CHECK( x509_parse_int( p, 2, &time->hour ) );
         CHECK( x509_parse_int( p, 2, &time->min ) );
-        if( len > 10 )
-            CHECK( x509_parse_int( p, 2, &time->sec ) );
+        if( len > 10 ) {
+            if( *(*p) != 'Z' ) {
+                CHECK( x509_parse_int( p, 2, &time->sec ) );
+            } else {
+                *(*p)++;
+            }
+        }
         if( len > 12 && *(*p)++ != 'Z' )
             return( MBEDTLS_ERR_X509_INVALID_DATE );
 
@@ -573,8 +578,13 @@ int mbedtls_x509_get_time( unsigned char **p, const unsigned char *end,
         CHECK( x509_parse_int( p, 2, &time->day ) );
         CHECK( x509_parse_int( p, 2, &time->hour ) );
         CHECK( x509_parse_int( p, 2, &time->min ) );
-        if( len > 12 )
-            CHECK( x509_parse_int( p, 2, &time->sec ) );
+        if( len > 12 ) {
+            if( *(*p) != 'Z' ) {
+                CHECK( x509_parse_int( p, 2, &time->sec ) );
+            } else {
+                *(*p)++;
+            }
+        }
         if( len > 14 && *(*p)++ != 'Z' )
             return( MBEDTLS_ERR_X509_INVALID_DATE );
 

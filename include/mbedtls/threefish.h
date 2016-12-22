@@ -54,8 +54,8 @@ extern "C" {
 typedef struct
 {
     unsigned int keybits;   /*!< Length of the key in bits */
-    uint64_t key[16 + 1];   /*!< Threefish key */
-    uint64_t tweak[3];      /*!< Threefish 128-bit tweak */
+    uint64_t key[16 + 1];   /*!< Threefish key and parity */
+    uint64_t tweak[2 + 1];  /*!< Threefish 128-bit tweak and parity */
 }
 mbedtls_threefish_context;
 

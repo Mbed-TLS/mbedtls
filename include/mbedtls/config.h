@@ -1572,7 +1572,7 @@
  *
  * Module: library/threefish.c
  */
-#define MBEDTLS_THREEFISH_C
+//#define MBEDTLS_THREEFISH_C
 
 /**
  * \def MBEDTLS_CAMELLIA_C

@@ -1223,7 +1223,12 @@ int mbedtls_threefish_crypt_ctr( mbedtls_threefish_context *ctx,
 #endif /* !MBEDTLS_THREEFISH_ALT */
 
 #if defined(MBEDTLS_SELF_TEST)
-
+/*
+ * The following tests were taken from the Skein files included on the NIST
+ * submission CD for the SHA-3 competition.
+ *
+ * https://www.schneier.com/code/skein.zip
+ */
 static const unsigned char threefish_test_ecb_tweak[] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
     0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F

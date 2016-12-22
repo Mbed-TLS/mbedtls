@@ -263,14 +263,6 @@ int main( int argc, char *argv[] )
     suites_tested++;
 #endif
 
-#if defined(MBEDTLS_THREEFISH_C)
-    if( mbedtls_threefish_self_test( v ) != 0 )
-    {
-        suites_failed++;
-    }
-    suites_tested++;
-#endif
-
 #if defined(MBEDTLS_GCM_C) && defined(MBEDTLS_AES_C)
     if( mbedtls_gcm_self_test( v ) != 0 )
     {
@@ -337,6 +329,14 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_CAMELLIA_C)
     if( mbedtls_camellia_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
+#endif
+
+#if defined(MBEDTLS_THREEFISH_C)
+    if( mbedtls_threefish_self_test( v ) != 0 )
     {
         suites_failed++;
     }

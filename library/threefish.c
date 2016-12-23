@@ -1334,8 +1334,8 @@ int mbedtls_threefish_self_test( int verbose )
 {
     int ret = 0, i, u, v;
     unsigned char buf[128];
-    const unsigned char *cipher;
-    const unsigned char *plaintext;
+    const unsigned char *cipher = NULL;
+    const unsigned char *plaintext = NULL;
 
     mbedtls_threefish_context ctx;
 

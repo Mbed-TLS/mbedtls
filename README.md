@@ -156,6 +156,15 @@ Configurations
 
 We provide some non-standard configurations focused on specific use cases in the `configs/` directory. You can read more about those in `configs/README.txt`
 
+Porting mbed TLS
+----------------
+
+mbed TLS can be ported to many different architectures, OS's and platforms. Before starting a port, you may find the following knowledge base articles useful:
+
+-   [Porting mbed TLS to a new environment or OS](https://tls.mbed.org/kb/how-to/how-do-i-port-mbed-tls-to-a-new-environment-OS)
+-   [What external dependencies does mbed TLS rely on?](https://tls.mbed.org/kb/development/what-external-dependencies-does-mbedtls-rely-on)
+-   [How do I configure mbed TLS](https://tls.mbed.org/kb/compiling-and-building/how-do-i-configure-mbedtls)
+
 Contributing
 ------------
 

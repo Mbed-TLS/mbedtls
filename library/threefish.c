@@ -60,14 +60,14 @@
 #define THREEFISH_RROTATE64(V,R_DIST)                           \
     ( ( (V) >> R_DIST ) | ( (V) << ( 64 - R_DIST ) ) )
 
-#define THREEFISH_MIX_PERM(C,OP1,OP2,R_DIST)                    \
+#define THREEFISH_MIX(C,OP1,OP2,R_DIST)                         \
 {                                                               \
     (C)[OP1] += (C)[OP2];                                       \
     (C)[OP2]  = THREEFISH_LROTATE64( (C)[OP2], R_DIST );        \
     (C)[OP2] ^= (C)[OP1];                                       \
 }
 
-#define THREEFISH_INV_MIX_PERM(C,OP1,OP2,R_DIST)                \
+#define THREEFISH_INV_MIX(C,OP1,OP2,R_DIST)                     \
 {                                                               \
     (C)[OP2] ^= (C)[OP1];                                       \
     (C)[OP2]  = THREEFISH_RROTATE64( (C)[OP2], R_DIST );        \
@@ -178,129 +178,129 @@ static void threefish_enc( mbedtls_threefish_context *ctx,
         case 256:
             THREEFISH256_ADD_SUBKEY( C, K, T, 0 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 14 ); THREEFISH_MIX_PERM( C, 2, 3, 16 );
-            THREEFISH_MIX_PERM( C, 0, 3, 52 ); THREEFISH_MIX_PERM( C, 2, 1, 57 );
-            THREEFISH_MIX_PERM( C, 0, 1, 23 ); THREEFISH_MIX_PERM( C, 2, 3, 40 );
-            THREEFISH_MIX_PERM( C, 0, 3,  5 ); THREEFISH_MIX_PERM( C, 2, 1, 37 );
+            THREEFISH_MIX( C, 0, 1, 14 ); THREEFISH_MIX( C, 2, 3, 16 );
+            THREEFISH_MIX( C, 0, 3, 52 ); THREEFISH_MIX( C, 2, 1, 57 );
+            THREEFISH_MIX( C, 0, 1, 23 ); THREEFISH_MIX( C, 2, 3, 40 );
+            THREEFISH_MIX( C, 0, 3,  5 ); THREEFISH_MIX( C, 2, 1, 37 );
 
             THREEFISH256_ADD_SUBKEY( C, K, T, 1 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 25 ); THREEFISH_MIX_PERM( C, 2, 3, 33 );
-            THREEFISH_MIX_PERM( C, 0, 3, 46 ); THREEFISH_MIX_PERM( C, 2, 1, 12 );
-            THREEFISH_MIX_PERM( C, 0, 1, 58 ); THREEFISH_MIX_PERM( C, 2, 3, 22 );
-            THREEFISH_MIX_PERM( C, 0, 3, 32 ); THREEFISH_MIX_PERM( C, 2, 1, 32 );
+            THREEFISH_MIX( C, 0, 1, 25 ); THREEFISH_MIX( C, 2, 3, 33 );
+            THREEFISH_MIX( C, 0, 3, 46 ); THREEFISH_MIX( C, 2, 1, 12 );
+            THREEFISH_MIX( C, 0, 1, 58 ); THREEFISH_MIX( C, 2, 3, 22 );
+            THREEFISH_MIX( C, 0, 3, 32 ); THREEFISH_MIX( C, 2, 1, 32 );
 
             THREEFISH256_ADD_SUBKEY( C, K, T, 2 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 14 ); THREEFISH_MIX_PERM( C, 2, 3, 16 );
-            THREEFISH_MIX_PERM( C, 0, 3, 52 ); THREEFISH_MIX_PERM( C, 2, 1, 57 );
-            THREEFISH_MIX_PERM( C, 0, 1, 23 ); THREEFISH_MIX_PERM( C, 2, 3, 40 );
-            THREEFISH_MIX_PERM( C, 0, 3,  5 ); THREEFISH_MIX_PERM( C, 2, 1, 37 );
+            THREEFISH_MIX( C, 0, 1, 14 ); THREEFISH_MIX( C, 2, 3, 16 );
+            THREEFISH_MIX( C, 0, 3, 52 ); THREEFISH_MIX( C, 2, 1, 57 );
+            THREEFISH_MIX( C, 0, 1, 23 ); THREEFISH_MIX( C, 2, 3, 40 );
+            THREEFISH_MIX( C, 0, 3,  5 ); THREEFISH_MIX( C, 2, 1, 37 );
 
             THREEFISH256_ADD_SUBKEY( C, K, T, 3 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 25 ); THREEFISH_MIX_PERM( C, 2, 3, 33 );
-            THREEFISH_MIX_PERM( C, 0, 3, 46 ); THREEFISH_MIX_PERM( C, 2, 1, 12 );
-            THREEFISH_MIX_PERM( C, 0, 1, 58 ); THREEFISH_MIX_PERM( C, 2, 3, 22 );
-            THREEFISH_MIX_PERM( C, 0, 3, 32 ); THREEFISH_MIX_PERM( C, 2, 1, 32 );
+            THREEFISH_MIX( C, 0, 1, 25 ); THREEFISH_MIX( C, 2, 3, 33 );
+            THREEFISH_MIX( C, 0, 3, 46 ); THREEFISH_MIX( C, 2, 1, 12 );
+            THREEFISH_MIX( C, 0, 1, 58 ); THREEFISH_MIX( C, 2, 3, 22 );
+            THREEFISH_MIX( C, 0, 3, 32 ); THREEFISH_MIX( C, 2, 1, 32 );
 
             THREEFISH256_ADD_SUBKEY( C, K, T, 4 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 14 ); THREEFISH_MIX_PERM( C, 2, 3, 16 );
-            THREEFISH_MIX_PERM( C, 0, 3, 52 ); THREEFISH_MIX_PERM( C, 2, 1, 57 );
-            THREEFISH_MIX_PERM( C, 0, 1, 23 ); THREEFISH_MIX_PERM( C, 2, 3, 40 );
-            THREEFISH_MIX_PERM( C, 0, 3,  5 ); THREEFISH_MIX_PERM( C, 2, 1, 37 );
+            THREEFISH_MIX( C, 0, 1, 14 ); THREEFISH_MIX( C, 2, 3, 16 );
+            THREEFISH_MIX( C, 0, 3, 52 ); THREEFISH_MIX( C, 2, 1, 57 );
+            THREEFISH_MIX( C, 0, 1, 23 ); THREEFISH_MIX( C, 2, 3, 40 );
+            THREEFISH_MIX( C, 0, 3,  5 ); THREEFISH_MIX( C, 2, 1, 37 );
 
             THREEFISH256_ADD_SUBKEY( C, K, T, 5 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 25 ); THREEFISH_MIX_PERM( C, 2, 3, 33 );
-            THREEFISH_MIX_PERM( C, 0, 3, 46 ); THREEFISH_MIX_PERM( C, 2, 1, 12 );
-            THREEFISH_MIX_PERM( C, 0, 1, 58 ); THREEFISH_MIX_PERM( C, 2, 3, 22 );
-            THREEFISH_MIX_PERM( C, 0, 3, 32 ); THREEFISH_MIX_PERM( C, 2, 1, 32 );
+            THREEFISH_MIX( C, 0, 1, 25 ); THREEFISH_MIX( C, 2, 3, 33 );
+            THREEFISH_MIX( C, 0, 3, 46 ); THREEFISH_MIX( C, 2, 1, 12 );
+            THREEFISH_MIX( C, 0, 1, 58 ); THREEFISH_MIX( C, 2, 3, 22 );
+            THREEFISH_MIX( C, 0, 3, 32 ); THREEFISH_MIX( C, 2, 1, 32 );
 
             THREEFISH256_ADD_SUBKEY( C, K, T, 6 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 14 ); THREEFISH_MIX_PERM( C, 2, 3, 16 );
-            THREEFISH_MIX_PERM( C, 0, 3, 52 ); THREEFISH_MIX_PERM( C, 2, 1, 57 );
-            THREEFISH_MIX_PERM( C, 0, 1, 23 ); THREEFISH_MIX_PERM( C, 2, 3, 40 );
-            THREEFISH_MIX_PERM( C, 0, 3,  5 ); THREEFISH_MIX_PERM( C, 2, 1, 37 );
+            THREEFISH_MIX( C, 0, 1, 14 ); THREEFISH_MIX( C, 2, 3, 16 );
+            THREEFISH_MIX( C, 0, 3, 52 ); THREEFISH_MIX( C, 2, 1, 57 );
+            THREEFISH_MIX( C, 0, 1, 23 ); THREEFISH_MIX( C, 2, 3, 40 );
+            THREEFISH_MIX( C, 0, 3,  5 ); THREEFISH_MIX( C, 2, 1, 37 );
 
             THREEFISH256_ADD_SUBKEY( C, K, T, 7 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 25 ); THREEFISH_MIX_PERM( C, 2, 3, 33 );
-            THREEFISH_MIX_PERM( C, 0, 3, 46 ); THREEFISH_MIX_PERM( C, 2, 1, 12 );
-            THREEFISH_MIX_PERM( C, 0, 1, 58 ); THREEFISH_MIX_PERM( C, 2, 3, 22 );
-            THREEFISH_MIX_PERM( C, 0, 3, 32 ); THREEFISH_MIX_PERM( C, 2, 1, 32 );
+            THREEFISH_MIX( C, 0, 1, 25 ); THREEFISH_MIX( C, 2, 3, 33 );
+            THREEFISH_MIX( C, 0, 3, 46 ); THREEFISH_MIX( C, 2, 1, 12 );
+            THREEFISH_MIX( C, 0, 1, 58 ); THREEFISH_MIX( C, 2, 3, 22 );
+            THREEFISH_MIX( C, 0, 3, 32 ); THREEFISH_MIX( C, 2, 1, 32 );
 
             THREEFISH256_ADD_SUBKEY( C, K, T, 8 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 14 ); THREEFISH_MIX_PERM( C, 2, 3, 16 );
-            THREEFISH_MIX_PERM( C, 0, 3, 52 ); THREEFISH_MIX_PERM( C, 2, 1, 57 );
-            THREEFISH_MIX_PERM( C, 0, 1, 23 ); THREEFISH_MIX_PERM( C, 2, 3, 40 );
-            THREEFISH_MIX_PERM( C, 0, 3,  5 ); THREEFISH_MIX_PERM( C, 2, 1, 37 );
+            THREEFISH_MIX( C, 0, 1, 14 ); THREEFISH_MIX( C, 2, 3, 16 );
+            THREEFISH_MIX( C, 0, 3, 52 ); THREEFISH_MIX( C, 2, 1, 57 );
+            THREEFISH_MIX( C, 0, 1, 23 ); THREEFISH_MIX( C, 2, 3, 40 );
+            THREEFISH_MIX( C, 0, 3,  5 ); THREEFISH_MIX( C, 2, 1, 37 );
 
             THREEFISH256_ADD_SUBKEY( C, K, T, 9 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 25 ); THREEFISH_MIX_PERM( C, 2, 3, 33 );
-            THREEFISH_MIX_PERM( C, 0, 3, 46 ); THREEFISH_MIX_PERM( C, 2, 1, 12 );
-            THREEFISH_MIX_PERM( C, 0, 1, 58 ); THREEFISH_MIX_PERM( C, 2, 3, 22 );
-            THREEFISH_MIX_PERM( C, 0, 3, 32 ); THREEFISH_MIX_PERM( C, 2, 1, 32 );
+            THREEFISH_MIX( C, 0, 1, 25 ); THREEFISH_MIX( C, 2, 3, 33 );
+            THREEFISH_MIX( C, 0, 3, 46 ); THREEFISH_MIX( C, 2, 1, 12 );
+            THREEFISH_MIX( C, 0, 1, 58 ); THREEFISH_MIX( C, 2, 3, 22 );
+            THREEFISH_MIX( C, 0, 3, 32 ); THREEFISH_MIX( C, 2, 1, 32 );
 
             THREEFISH256_ADD_SUBKEY( C, K, T, 10 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 14 ); THREEFISH_MIX_PERM( C, 2, 3, 16 );
-            THREEFISH_MIX_PERM( C, 0, 3, 52 ); THREEFISH_MIX_PERM( C, 2, 1, 57 );
-            THREEFISH_MIX_PERM( C, 0, 1, 23 ); THREEFISH_MIX_PERM( C, 2, 3, 40 );
-            THREEFISH_MIX_PERM( C, 0, 3,  5 ); THREEFISH_MIX_PERM( C, 2, 1, 37 );
+            THREEFISH_MIX( C, 0, 1, 14 ); THREEFISH_MIX( C, 2, 3, 16 );
+            THREEFISH_MIX( C, 0, 3, 52 ); THREEFISH_MIX( C, 2, 1, 57 );
+            THREEFISH_MIX( C, 0, 1, 23 ); THREEFISH_MIX( C, 2, 3, 40 );
+            THREEFISH_MIX( C, 0, 3,  5 ); THREEFISH_MIX( C, 2, 1, 37 );
 
             THREEFISH256_ADD_SUBKEY( C, K, T, 11 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 25 ); THREEFISH_MIX_PERM( C, 2, 3, 33 );
-            THREEFISH_MIX_PERM( C, 0, 3, 46 ); THREEFISH_MIX_PERM( C, 2, 1, 12 );
-            THREEFISH_MIX_PERM( C, 0, 1, 58 ); THREEFISH_MIX_PERM( C, 2, 3, 22 );
-            THREEFISH_MIX_PERM( C, 0, 3, 32 ); THREEFISH_MIX_PERM( C, 2, 1, 32 );
+            THREEFISH_MIX( C, 0, 1, 25 ); THREEFISH_MIX( C, 2, 3, 33 );
+            THREEFISH_MIX( C, 0, 3, 46 ); THREEFISH_MIX( C, 2, 1, 12 );
+            THREEFISH_MIX( C, 0, 1, 58 ); THREEFISH_MIX( C, 2, 3, 22 );
+            THREEFISH_MIX( C, 0, 3, 32 ); THREEFISH_MIX( C, 2, 1, 32 );
 
             THREEFISH256_ADD_SUBKEY( C, K, T, 12 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 14 ); THREEFISH_MIX_PERM( C, 2, 3, 16 );
-            THREEFISH_MIX_PERM( C, 0, 3, 52 ); THREEFISH_MIX_PERM( C, 2, 1, 57 );
-            THREEFISH_MIX_PERM( C, 0, 1, 23 ); THREEFISH_MIX_PERM( C, 2, 3, 40 );
-            THREEFISH_MIX_PERM( C, 0, 3,  5 ); THREEFISH_MIX_PERM( C, 2, 1, 37 );
+            THREEFISH_MIX( C, 0, 1, 14 ); THREEFISH_MIX( C, 2, 3, 16 );
+            THREEFISH_MIX( C, 0, 3, 52 ); THREEFISH_MIX( C, 2, 1, 57 );
+            THREEFISH_MIX( C, 0, 1, 23 ); THREEFISH_MIX( C, 2, 3, 40 );
+            THREEFISH_MIX( C, 0, 3,  5 ); THREEFISH_MIX( C, 2, 1, 37 );
 
             THREEFISH256_ADD_SUBKEY( C, K, T, 13 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 25 ); THREEFISH_MIX_PERM( C, 2, 3, 33 );
-            THREEFISH_MIX_PERM( C, 0, 3, 46 ); THREEFISH_MIX_PERM( C, 2, 1, 12 );
-            THREEFISH_MIX_PERM( C, 0, 1, 58 ); THREEFISH_MIX_PERM( C, 2, 3, 22 );
-            THREEFISH_MIX_PERM( C, 0, 3, 32 ); THREEFISH_MIX_PERM( C, 2, 1, 32 );
+            THREEFISH_MIX( C, 0, 1, 25 ); THREEFISH_MIX( C, 2, 3, 33 );
+            THREEFISH_MIX( C, 0, 3, 46 ); THREEFISH_MIX( C, 2, 1, 12 );
+            THREEFISH_MIX( C, 0, 1, 58 ); THREEFISH_MIX( C, 2, 3, 22 );
+            THREEFISH_MIX( C, 0, 3, 32 ); THREEFISH_MIX( C, 2, 1, 32 );
 
             THREEFISH256_ADD_SUBKEY( C, K, T, 14 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 14 ); THREEFISH_MIX_PERM( C, 2, 3, 16 );
-            THREEFISH_MIX_PERM( C, 0, 3, 52 ); THREEFISH_MIX_PERM( C, 2, 1, 57 );
-            THREEFISH_MIX_PERM( C, 0, 1, 23 ); THREEFISH_MIX_PERM( C, 2, 3, 40 );
-            THREEFISH_MIX_PERM( C, 0, 3,  5 ); THREEFISH_MIX_PERM( C, 2, 1, 37 );
+            THREEFISH_MIX( C, 0, 1, 14 ); THREEFISH_MIX( C, 2, 3, 16 );
+            THREEFISH_MIX( C, 0, 3, 52 ); THREEFISH_MIX( C, 2, 1, 57 );
+            THREEFISH_MIX( C, 0, 1, 23 ); THREEFISH_MIX( C, 2, 3, 40 );
+            THREEFISH_MIX( C, 0, 3,  5 ); THREEFISH_MIX( C, 2, 1, 37 );
 
             THREEFISH256_ADD_SUBKEY( C, K, T, 15 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 25 ); THREEFISH_MIX_PERM( C, 2, 3, 33 );
-            THREEFISH_MIX_PERM( C, 0, 3, 46 ); THREEFISH_MIX_PERM( C, 2, 1, 12 );
-            THREEFISH_MIX_PERM( C, 0, 1, 58 ); THREEFISH_MIX_PERM( C, 2, 3, 22 );
-            THREEFISH_MIX_PERM( C, 0, 3, 32 ); THREEFISH_MIX_PERM( C, 2, 1, 32 );
+            THREEFISH_MIX( C, 0, 1, 25 ); THREEFISH_MIX( C, 2, 3, 33 );
+            THREEFISH_MIX( C, 0, 3, 46 ); THREEFISH_MIX( C, 2, 1, 12 );
+            THREEFISH_MIX( C, 0, 1, 58 ); THREEFISH_MIX( C, 2, 3, 22 );
+            THREEFISH_MIX( C, 0, 3, 32 ); THREEFISH_MIX( C, 2, 1, 32 );
 
             THREEFISH256_ADD_SUBKEY( C, K, T, 16 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 14 ); THREEFISH_MIX_PERM( C, 2, 3, 16 );
-            THREEFISH_MIX_PERM( C, 0, 3, 52 ); THREEFISH_MIX_PERM( C, 2, 1, 57 );
-            THREEFISH_MIX_PERM( C, 0, 1, 23 ); THREEFISH_MIX_PERM( C, 2, 3, 40 );
-            THREEFISH_MIX_PERM( C, 0, 3,  5 ); THREEFISH_MIX_PERM( C, 2, 1, 37 );
+            THREEFISH_MIX( C, 0, 1, 14 ); THREEFISH_MIX( C, 2, 3, 16 );
+            THREEFISH_MIX( C, 0, 3, 52 ); THREEFISH_MIX( C, 2, 1, 57 );
+            THREEFISH_MIX( C, 0, 1, 23 ); THREEFISH_MIX( C, 2, 3, 40 );
+            THREEFISH_MIX( C, 0, 3,  5 ); THREEFISH_MIX( C, 2, 1, 37 );
 
             THREEFISH256_ADD_SUBKEY( C, K, T, 17 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 25 ); THREEFISH_MIX_PERM( C, 2, 3, 33 );
-            THREEFISH_MIX_PERM( C, 0, 3, 46 ); THREEFISH_MIX_PERM( C, 2, 1, 12 );
-            THREEFISH_MIX_PERM( C, 0, 1, 58 ); THREEFISH_MIX_PERM( C, 2, 3, 22 );
-            THREEFISH_MIX_PERM( C, 0, 3, 32 ); THREEFISH_MIX_PERM( C, 2, 1, 32 );
+            THREEFISH_MIX( C, 0, 1, 25 ); THREEFISH_MIX( C, 2, 3, 33 );
+            THREEFISH_MIX( C, 0, 3, 46 ); THREEFISH_MIX( C, 2, 1, 12 );
+            THREEFISH_MIX( C, 0, 1, 58 ); THREEFISH_MIX( C, 2, 3, 22 );
+            THREEFISH_MIX( C, 0, 3, 32 ); THREEFISH_MIX( C, 2, 1, 32 );
 
             THREEFISH256_ADD_SUBKEY( C, K, T, 18 );
 
@@ -309,129 +309,201 @@ static void threefish_enc( mbedtls_threefish_context *ctx,
         case 512:
             THREEFISH512_ADD_SUBKEY( C, K, T, 0 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 46 ); THREEFISH_MIX_PERM( C, 2, 3, 36 ); THREEFISH_MIX_PERM( C, 4, 5, 19 ); THREEFISH_MIX_PERM( C, 6, 7, 37 );
-            THREEFISH_MIX_PERM( C, 2, 1, 33 ); THREEFISH_MIX_PERM( C, 4, 7, 27 ); THREEFISH_MIX_PERM( C, 6, 5, 14 ); THREEFISH_MIX_PERM( C, 0, 3, 42 );
-            THREEFISH_MIX_PERM( C, 4, 1, 17 ); THREEFISH_MIX_PERM( C, 6, 3, 49 ); THREEFISH_MIX_PERM( C, 0, 5, 36 ); THREEFISH_MIX_PERM( C, 2, 7, 39 );
-            THREEFISH_MIX_PERM( C, 6, 1, 44 ); THREEFISH_MIX_PERM( C, 0, 7,  9 ); THREEFISH_MIX_PERM( C, 2, 5, 54 ); THREEFISH_MIX_PERM( C, 4, 3, 56 );
+            THREEFISH_MIX( C, 0, 1, 46 ); THREEFISH_MIX( C, 2, 3, 36 );
+                THREEFISH_MIX( C, 4, 5, 19 ); THREEFISH_MIX( C, 6, 7, 37 );
+            THREEFISH_MIX( C, 2, 1, 33 ); THREEFISH_MIX( C, 4, 7, 27 );
+                THREEFISH_MIX( C, 6, 5, 14 ); THREEFISH_MIX( C, 0, 3, 42 );
+            THREEFISH_MIX( C, 4, 1, 17 ); THREEFISH_MIX( C, 6, 3, 49 );
+                THREEFISH_MIX( C, 0, 5, 36 ); THREEFISH_MIX( C, 2, 7, 39 );
+            THREEFISH_MIX( C, 6, 1, 44 ); THREEFISH_MIX( C, 0, 7,  9 );
+                THREEFISH_MIX( C, 2, 5, 54 ); THREEFISH_MIX( C, 4, 3, 56 );
 
             THREEFISH512_ADD_SUBKEY( C, K, T, 1 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 39 ); THREEFISH_MIX_PERM( C, 2, 3, 30 ); THREEFISH_MIX_PERM( C, 4, 5, 34 ); THREEFISH_MIX_PERM( C, 6, 7, 24 );
-            THREEFISH_MIX_PERM( C, 2, 1, 13 ); THREEFISH_MIX_PERM( C, 4, 7, 50 ); THREEFISH_MIX_PERM( C, 6, 5, 10 ); THREEFISH_MIX_PERM( C, 0, 3, 17 );
-            THREEFISH_MIX_PERM( C, 4, 1, 25 ); THREEFISH_MIX_PERM( C, 6, 3, 29 ); THREEFISH_MIX_PERM( C, 0, 5, 39 ); THREEFISH_MIX_PERM( C, 2, 7, 43 );
-            THREEFISH_MIX_PERM( C, 6, 1,  8 ); THREEFISH_MIX_PERM( C, 0, 7, 35 ); THREEFISH_MIX_PERM( C, 2, 5, 56 ); THREEFISH_MIX_PERM( C, 4, 3, 22 );
+            THREEFISH_MIX( C, 0, 1, 39 ); THREEFISH_MIX( C, 2, 3, 30 );
+                THREEFISH_MIX( C, 4, 5, 34 ); THREEFISH_MIX( C, 6, 7, 24 );
+            THREEFISH_MIX( C, 2, 1, 13 ); THREEFISH_MIX( C, 4, 7, 50 );
+                THREEFISH_MIX( C, 6, 5, 10 ); THREEFISH_MIX( C, 0, 3, 17 );
+            THREEFISH_MIX( C, 4, 1, 25 ); THREEFISH_MIX( C, 6, 3, 29 );
+                THREEFISH_MIX( C, 0, 5, 39 ); THREEFISH_MIX( C, 2, 7, 43 );
+            THREEFISH_MIX( C, 6, 1,  8 ); THREEFISH_MIX( C, 0, 7, 35 );
+                THREEFISH_MIX( C, 2, 5, 56 ); THREEFISH_MIX( C, 4, 3, 22 );
 
             THREEFISH512_ADD_SUBKEY( C, K, T, 2 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 46 ); THREEFISH_MIX_PERM( C, 2, 3, 36 ); THREEFISH_MIX_PERM( C, 4, 5, 19 ); THREEFISH_MIX_PERM( C, 6, 7, 37 );
-            THREEFISH_MIX_PERM( C, 2, 1, 33 ); THREEFISH_MIX_PERM( C, 4, 7, 27 ); THREEFISH_MIX_PERM( C, 6, 5, 14 ); THREEFISH_MIX_PERM( C, 0, 3, 42 );
-            THREEFISH_MIX_PERM( C, 4, 1, 17 ); THREEFISH_MIX_PERM( C, 6, 3, 49 ); THREEFISH_MIX_PERM( C, 0, 5, 36 ); THREEFISH_MIX_PERM( C, 2, 7, 39 );
-            THREEFISH_MIX_PERM( C, 6, 1, 44 ); THREEFISH_MIX_PERM( C, 0, 7,  9 ); THREEFISH_MIX_PERM( C, 2, 5, 54 ); THREEFISH_MIX_PERM( C, 4, 3, 56 );
+            THREEFISH_MIX( C, 0, 1, 46 ); THREEFISH_MIX( C, 2, 3, 36 );
+                THREEFISH_MIX( C, 4, 5, 19 ); THREEFISH_MIX( C, 6, 7, 37 );
+            THREEFISH_MIX( C, 2, 1, 33 ); THREEFISH_MIX( C, 4, 7, 27 );
+                THREEFISH_MIX( C, 6, 5, 14 ); THREEFISH_MIX( C, 0, 3, 42 );
+            THREEFISH_MIX( C, 4, 1, 17 ); THREEFISH_MIX( C, 6, 3, 49 );
+                THREEFISH_MIX( C, 0, 5, 36 ); THREEFISH_MIX( C, 2, 7, 39 );
+            THREEFISH_MIX( C, 6, 1, 44 ); THREEFISH_MIX( C, 0, 7,  9 );
+                THREEFISH_MIX( C, 2, 5, 54 ); THREEFISH_MIX( C, 4, 3, 56 );
 
             THREEFISH512_ADD_SUBKEY( C, K, T, 3 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 39 ); THREEFISH_MIX_PERM( C, 2, 3, 30 ); THREEFISH_MIX_PERM( C, 4, 5, 34 ); THREEFISH_MIX_PERM( C, 6, 7, 24 );
-            THREEFISH_MIX_PERM( C, 2, 1, 13 ); THREEFISH_MIX_PERM( C, 4, 7, 50 ); THREEFISH_MIX_PERM( C, 6, 5, 10 ); THREEFISH_MIX_PERM( C, 0, 3, 17 );
-            THREEFISH_MIX_PERM( C, 4, 1, 25 ); THREEFISH_MIX_PERM( C, 6, 3, 29 ); THREEFISH_MIX_PERM( C, 0, 5, 39 ); THREEFISH_MIX_PERM( C, 2, 7, 43 );
-            THREEFISH_MIX_PERM( C, 6, 1,  8 ); THREEFISH_MIX_PERM( C, 0, 7, 35 ); THREEFISH_MIX_PERM( C, 2, 5, 56 ); THREEFISH_MIX_PERM( C, 4, 3, 22 );
+            THREEFISH_MIX( C, 0, 1, 39 ); THREEFISH_MIX( C, 2, 3, 30 );
+                THREEFISH_MIX( C, 4, 5, 34 ); THREEFISH_MIX( C, 6, 7, 24 );
+            THREEFISH_MIX( C, 2, 1, 13 ); THREEFISH_MIX( C, 4, 7, 50 );
+                THREEFISH_MIX( C, 6, 5, 10 ); THREEFISH_MIX( C, 0, 3, 17 );
+            THREEFISH_MIX( C, 4, 1, 25 ); THREEFISH_MIX( C, 6, 3, 29 );
+                THREEFISH_MIX( C, 0, 5, 39 ); THREEFISH_MIX( C, 2, 7, 43 );
+            THREEFISH_MIX( C, 6, 1,  8 ); THREEFISH_MIX( C, 0, 7, 35 );
+                THREEFISH_MIX( C, 2, 5, 56 ); THREEFISH_MIX( C, 4, 3, 22 );
 
             THREEFISH512_ADD_SUBKEY( C, K, T, 4 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 46 ); THREEFISH_MIX_PERM( C, 2, 3, 36 ); THREEFISH_MIX_PERM( C, 4, 5, 19 ); THREEFISH_MIX_PERM( C, 6, 7, 37 );
-            THREEFISH_MIX_PERM( C, 2, 1, 33 ); THREEFISH_MIX_PERM( C, 4, 7, 27 ); THREEFISH_MIX_PERM( C, 6, 5, 14 ); THREEFISH_MIX_PERM( C, 0, 3, 42 );
-            THREEFISH_MIX_PERM( C, 4, 1, 17 ); THREEFISH_MIX_PERM( C, 6, 3, 49 ); THREEFISH_MIX_PERM( C, 0, 5, 36 ); THREEFISH_MIX_PERM( C, 2, 7, 39 );
-            THREEFISH_MIX_PERM( C, 6, 1, 44 ); THREEFISH_MIX_PERM( C, 0, 7,  9 ); THREEFISH_MIX_PERM( C, 2, 5, 54 ); THREEFISH_MIX_PERM( C, 4, 3, 56 );
+            THREEFISH_MIX( C, 0, 1, 46 ); THREEFISH_MIX( C, 2, 3, 36 );
+                THREEFISH_MIX( C, 4, 5, 19 ); THREEFISH_MIX( C, 6, 7, 37 );
+            THREEFISH_MIX( C, 2, 1, 33 ); THREEFISH_MIX( C, 4, 7, 27 );
+                THREEFISH_MIX( C, 6, 5, 14 ); THREEFISH_MIX( C, 0, 3, 42 );
+            THREEFISH_MIX( C, 4, 1, 17 ); THREEFISH_MIX( C, 6, 3, 49 );
+                THREEFISH_MIX( C, 0, 5, 36 ); THREEFISH_MIX( C, 2, 7, 39 );
+            THREEFISH_MIX( C, 6, 1, 44 ); THREEFISH_MIX( C, 0, 7,  9 );
+                THREEFISH_MIX( C, 2, 5, 54 ); THREEFISH_MIX( C, 4, 3, 56 );
 
             THREEFISH512_ADD_SUBKEY( C, K, T, 5 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 39 ); THREEFISH_MIX_PERM( C, 2, 3, 30 ); THREEFISH_MIX_PERM( C, 4, 5, 34 ); THREEFISH_MIX_PERM( C, 6, 7, 24 );
-            THREEFISH_MIX_PERM( C, 2, 1, 13 ); THREEFISH_MIX_PERM( C, 4, 7, 50 ); THREEFISH_MIX_PERM( C, 6, 5, 10 ); THREEFISH_MIX_PERM( C, 0, 3, 17 );
-            THREEFISH_MIX_PERM( C, 4, 1, 25 ); THREEFISH_MIX_PERM( C, 6, 3, 29 ); THREEFISH_MIX_PERM( C, 0, 5, 39 ); THREEFISH_MIX_PERM( C, 2, 7, 43 );
-            THREEFISH_MIX_PERM( C, 6, 1,  8 ); THREEFISH_MIX_PERM( C, 0, 7, 35 ); THREEFISH_MIX_PERM( C, 2, 5, 56 ); THREEFISH_MIX_PERM( C, 4, 3, 22 );
+            THREEFISH_MIX( C, 0, 1, 39 ); THREEFISH_MIX( C, 2, 3, 30 );
+                THREEFISH_MIX( C, 4, 5, 34 ); THREEFISH_MIX( C, 6, 7, 24 );
+            THREEFISH_MIX( C, 2, 1, 13 ); THREEFISH_MIX( C, 4, 7, 50 );
+                THREEFISH_MIX( C, 6, 5, 10 ); THREEFISH_MIX( C, 0, 3, 17 );
+            THREEFISH_MIX( C, 4, 1, 25 ); THREEFISH_MIX( C, 6, 3, 29 );
+                THREEFISH_MIX( C, 0, 5, 39 ); THREEFISH_MIX( C, 2, 7, 43 );
+            THREEFISH_MIX( C, 6, 1,  8 ); THREEFISH_MIX( C, 0, 7, 35 );
+                THREEFISH_MIX( C, 2, 5, 56 ); THREEFISH_MIX( C, 4, 3, 22 );
 
             THREEFISH512_ADD_SUBKEY( C, K, T, 6 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 46 ); THREEFISH_MIX_PERM( C, 2, 3, 36 ); THREEFISH_MIX_PERM( C, 4, 5, 19 ); THREEFISH_MIX_PERM( C, 6, 7, 37 );
-            THREEFISH_MIX_PERM( C, 2, 1, 33 ); THREEFISH_MIX_PERM( C, 4, 7, 27 ); THREEFISH_MIX_PERM( C, 6, 5, 14 ); THREEFISH_MIX_PERM( C, 0, 3, 42 );
-            THREEFISH_MIX_PERM( C, 4, 1, 17 ); THREEFISH_MIX_PERM( C, 6, 3, 49 ); THREEFISH_MIX_PERM( C, 0, 5, 36 ); THREEFISH_MIX_PERM( C, 2, 7, 39 );
-            THREEFISH_MIX_PERM( C, 6, 1, 44 ); THREEFISH_MIX_PERM( C, 0, 7,  9 ); THREEFISH_MIX_PERM( C, 2, 5, 54 ); THREEFISH_MIX_PERM( C, 4, 3, 56 );
+            THREEFISH_MIX( C, 0, 1, 46 ); THREEFISH_MIX( C, 2, 3, 36 );
+                THREEFISH_MIX( C, 4, 5, 19 ); THREEFISH_MIX( C, 6, 7, 37 );
+            THREEFISH_MIX( C, 2, 1, 33 ); THREEFISH_MIX( C, 4, 7, 27 );
+                THREEFISH_MIX( C, 6, 5, 14 ); THREEFISH_MIX( C, 0, 3, 42 );
+            THREEFISH_MIX( C, 4, 1, 17 ); THREEFISH_MIX( C, 6, 3, 49 );
+                THREEFISH_MIX( C, 0, 5, 36 ); THREEFISH_MIX( C, 2, 7, 39 );
+            THREEFISH_MIX( C, 6, 1, 44 ); THREEFISH_MIX( C, 0, 7,  9 );
+                THREEFISH_MIX( C, 2, 5, 54 ); THREEFISH_MIX( C, 4, 3, 56 );
 
             THREEFISH512_ADD_SUBKEY( C, K, T, 7 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 39 ); THREEFISH_MIX_PERM( C, 2, 3, 30 ); THREEFISH_MIX_PERM( C, 4, 5, 34 ); THREEFISH_MIX_PERM( C, 6, 7, 24 );
-            THREEFISH_MIX_PERM( C, 2, 1, 13 ); THREEFISH_MIX_PERM( C, 4, 7, 50 ); THREEFISH_MIX_PERM( C, 6, 5, 10 ); THREEFISH_MIX_PERM( C, 0, 3, 17 );
-            THREEFISH_MIX_PERM( C, 4, 1, 25 ); THREEFISH_MIX_PERM( C, 6, 3, 29 ); THREEFISH_MIX_PERM( C, 0, 5, 39 ); THREEFISH_MIX_PERM( C, 2, 7, 43 );
-            THREEFISH_MIX_PERM( C, 6, 1,  8 ); THREEFISH_MIX_PERM( C, 0, 7, 35 ); THREEFISH_MIX_PERM( C, 2, 5, 56 ); THREEFISH_MIX_PERM( C, 4, 3, 22 );
+            THREEFISH_MIX( C, 0, 1, 39 ); THREEFISH_MIX( C, 2, 3, 30 );
+                THREEFISH_MIX( C, 4, 5, 34 ); THREEFISH_MIX( C, 6, 7, 24 );
+            THREEFISH_MIX( C, 2, 1, 13 ); THREEFISH_MIX( C, 4, 7, 50 );
+                THREEFISH_MIX( C, 6, 5, 10 ); THREEFISH_MIX( C, 0, 3, 17 );
+            THREEFISH_MIX( C, 4, 1, 25 ); THREEFISH_MIX( C, 6, 3, 29 );
+                THREEFISH_MIX( C, 0, 5, 39 ); THREEFISH_MIX( C, 2, 7, 43 );
+            THREEFISH_MIX( C, 6, 1,  8 ); THREEFISH_MIX( C, 0, 7, 35 );
+                THREEFISH_MIX( C, 2, 5, 56 ); THREEFISH_MIX( C, 4, 3, 22 );
 
             THREEFISH512_ADD_SUBKEY( C, K, T, 8 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 46 ); THREEFISH_MIX_PERM( C, 2, 3, 36 ); THREEFISH_MIX_PERM( C, 4, 5, 19 ); THREEFISH_MIX_PERM( C, 6, 7, 37 );
-            THREEFISH_MIX_PERM( C, 2, 1, 33 ); THREEFISH_MIX_PERM( C, 4, 7, 27 ); THREEFISH_MIX_PERM( C, 6, 5, 14 ); THREEFISH_MIX_PERM( C, 0, 3, 42 );
-            THREEFISH_MIX_PERM( C, 4, 1, 17 ); THREEFISH_MIX_PERM( C, 6, 3, 49 ); THREEFISH_MIX_PERM( C, 0, 5, 36 ); THREEFISH_MIX_PERM( C, 2, 7, 39 );
-            THREEFISH_MIX_PERM( C, 6, 1, 44 ); THREEFISH_MIX_PERM( C, 0, 7,  9 ); THREEFISH_MIX_PERM( C, 2, 5, 54 ); THREEFISH_MIX_PERM( C, 4, 3, 56 );
+            THREEFISH_MIX( C, 0, 1, 46 ); THREEFISH_MIX( C, 2, 3, 36 );
+                THREEFISH_MIX( C, 4, 5, 19 ); THREEFISH_MIX( C, 6, 7, 37 );
+            THREEFISH_MIX( C, 2, 1, 33 ); THREEFISH_MIX( C, 4, 7, 27 );
+                THREEFISH_MIX( C, 6, 5, 14 ); THREEFISH_MIX( C, 0, 3, 42 );
+            THREEFISH_MIX( C, 4, 1, 17 ); THREEFISH_MIX( C, 6, 3, 49 );
+                THREEFISH_MIX( C, 0, 5, 36 ); THREEFISH_MIX( C, 2, 7, 39 );
+            THREEFISH_MIX( C, 6, 1, 44 ); THREEFISH_MIX( C, 0, 7,  9 );
+                THREEFISH_MIX( C, 2, 5, 54 ); THREEFISH_MIX( C, 4, 3, 56 );
 
             THREEFISH512_ADD_SUBKEY( C, K, T, 9 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 39 ); THREEFISH_MIX_PERM( C, 2, 3, 30 ); THREEFISH_MIX_PERM( C, 4, 5, 34 ); THREEFISH_MIX_PERM( C, 6, 7, 24 );
-            THREEFISH_MIX_PERM( C, 2, 1, 13 ); THREEFISH_MIX_PERM( C, 4, 7, 50 ); THREEFISH_MIX_PERM( C, 6, 5, 10 ); THREEFISH_MIX_PERM( C, 0, 3, 17 );
-            THREEFISH_MIX_PERM( C, 4, 1, 25 ); THREEFISH_MIX_PERM( C, 6, 3, 29 ); THREEFISH_MIX_PERM( C, 0, 5, 39 ); THREEFISH_MIX_PERM( C, 2, 7, 43 );
-            THREEFISH_MIX_PERM( C, 6, 1,  8 ); THREEFISH_MIX_PERM( C, 0, 7, 35 ); THREEFISH_MIX_PERM( C, 2, 5, 56 ); THREEFISH_MIX_PERM( C, 4, 3, 22 );
+            THREEFISH_MIX( C, 0, 1, 39 ); THREEFISH_MIX( C, 2, 3, 30 );
+                THREEFISH_MIX( C, 4, 5, 34 ); THREEFISH_MIX( C, 6, 7, 24 );
+            THREEFISH_MIX( C, 2, 1, 13 ); THREEFISH_MIX( C, 4, 7, 50 );
+                THREEFISH_MIX( C, 6, 5, 10 ); THREEFISH_MIX( C, 0, 3, 17 );
+            THREEFISH_MIX( C, 4, 1, 25 ); THREEFISH_MIX( C, 6, 3, 29 );
+                THREEFISH_MIX( C, 0, 5, 39 ); THREEFISH_MIX( C, 2, 7, 43 );
+            THREEFISH_MIX( C, 6, 1,  8 ); THREEFISH_MIX( C, 0, 7, 35 );
+                THREEFISH_MIX( C, 2, 5, 56 ); THREEFISH_MIX( C, 4, 3, 22 );
 
             THREEFISH512_ADD_SUBKEY( C, K, T, 10 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 46 ); THREEFISH_MIX_PERM( C, 2, 3, 36 ); THREEFISH_MIX_PERM( C, 4, 5, 19 ); THREEFISH_MIX_PERM( C, 6, 7, 37 );
-            THREEFISH_MIX_PERM( C, 2, 1, 33 ); THREEFISH_MIX_PERM( C, 4, 7, 27 ); THREEFISH_MIX_PERM( C, 6, 5, 14 ); THREEFISH_MIX_PERM( C, 0, 3, 42 );
-            THREEFISH_MIX_PERM( C, 4, 1, 17 ); THREEFISH_MIX_PERM( C, 6, 3, 49 ); THREEFISH_MIX_PERM( C, 0, 5, 36 ); THREEFISH_MIX_PERM( C, 2, 7, 39 );
-            THREEFISH_MIX_PERM( C, 6, 1, 44 ); THREEFISH_MIX_PERM( C, 0, 7,  9 ); THREEFISH_MIX_PERM( C, 2, 5, 54 ); THREEFISH_MIX_PERM( C, 4, 3, 56 );
+            THREEFISH_MIX( C, 0, 1, 46 ); THREEFISH_MIX( C, 2, 3, 36 );
+                THREEFISH_MIX( C, 4, 5, 19 ); THREEFISH_MIX( C, 6, 7, 37 );
+            THREEFISH_MIX( C, 2, 1, 33 ); THREEFISH_MIX( C, 4, 7, 27 );
+                THREEFISH_MIX( C, 6, 5, 14 ); THREEFISH_MIX( C, 0, 3, 42 );
+            THREEFISH_MIX( C, 4, 1, 17 ); THREEFISH_MIX( C, 6, 3, 49 );
+                THREEFISH_MIX( C, 0, 5, 36 ); THREEFISH_MIX( C, 2, 7, 39 );
+            THREEFISH_MIX( C, 6, 1, 44 ); THREEFISH_MIX( C, 0, 7,  9 );
+                THREEFISH_MIX( C, 2, 5, 54 ); THREEFISH_MIX( C, 4, 3, 56 );
 
             THREEFISH512_ADD_SUBKEY( C, K, T, 11 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 39 ); THREEFISH_MIX_PERM( C, 2, 3, 30 ); THREEFISH_MIX_PERM( C, 4, 5, 34 ); THREEFISH_MIX_PERM( C, 6, 7, 24 );
-            THREEFISH_MIX_PERM( C, 2, 1, 13 ); THREEFISH_MIX_PERM( C, 4, 7, 50 ); THREEFISH_MIX_PERM( C, 6, 5, 10 ); THREEFISH_MIX_PERM( C, 0, 3, 17 );
-            THREEFISH_MIX_PERM( C, 4, 1, 25 ); THREEFISH_MIX_PERM( C, 6, 3, 29 ); THREEFISH_MIX_PERM( C, 0, 5, 39 ); THREEFISH_MIX_PERM( C, 2, 7, 43 );
-            THREEFISH_MIX_PERM( C, 6, 1,  8 ); THREEFISH_MIX_PERM( C, 0, 7, 35 ); THREEFISH_MIX_PERM( C, 2, 5, 56 ); THREEFISH_MIX_PERM( C, 4, 3, 22 );
+            THREEFISH_MIX( C, 0, 1, 39 ); THREEFISH_MIX( C, 2, 3, 30 );
+                THREEFISH_MIX( C, 4, 5, 34 ); THREEFISH_MIX( C, 6, 7, 24 );
+            THREEFISH_MIX( C, 2, 1, 13 ); THREEFISH_MIX( C, 4, 7, 50 );
+                THREEFISH_MIX( C, 6, 5, 10 ); THREEFISH_MIX( C, 0, 3, 17 );
+            THREEFISH_MIX( C, 4, 1, 25 ); THREEFISH_MIX( C, 6, 3, 29 );
+                THREEFISH_MIX( C, 0, 5, 39 ); THREEFISH_MIX( C, 2, 7, 43 );
+            THREEFISH_MIX( C, 6, 1,  8 ); THREEFISH_MIX( C, 0, 7, 35 );
+                THREEFISH_MIX( C, 2, 5, 56 ); THREEFISH_MIX( C, 4, 3, 22 );
 
             THREEFISH512_ADD_SUBKEY( C, K, T, 12 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 46 ); THREEFISH_MIX_PERM( C, 2, 3, 36 ); THREEFISH_MIX_PERM( C, 4, 5, 19 ); THREEFISH_MIX_PERM( C, 6, 7, 37 );
-            THREEFISH_MIX_PERM( C, 2, 1, 33 ); THREEFISH_MIX_PERM( C, 4, 7, 27 ); THREEFISH_MIX_PERM( C, 6, 5, 14 ); THREEFISH_MIX_PERM( C, 0, 3, 42 );
-            THREEFISH_MIX_PERM( C, 4, 1, 17 ); THREEFISH_MIX_PERM( C, 6, 3, 49 ); THREEFISH_MIX_PERM( C, 0, 5, 36 ); THREEFISH_MIX_PERM( C, 2, 7, 39 );
-            THREEFISH_MIX_PERM( C, 6, 1, 44 ); THREEFISH_MIX_PERM( C, 0, 7,  9 ); THREEFISH_MIX_PERM( C, 2, 5, 54 ); THREEFISH_MIX_PERM( C, 4, 3, 56 );
+            THREEFISH_MIX( C, 0, 1, 46 ); THREEFISH_MIX( C, 2, 3, 36 );
+                THREEFISH_MIX( C, 4, 5, 19 ); THREEFISH_MIX( C, 6, 7, 37 );
+            THREEFISH_MIX( C, 2, 1, 33 ); THREEFISH_MIX( C, 4, 7, 27 );
+                THREEFISH_MIX( C, 6, 5, 14 ); THREEFISH_MIX( C, 0, 3, 42 );
+            THREEFISH_MIX( C, 4, 1, 17 ); THREEFISH_MIX( C, 6, 3, 49 );
+                THREEFISH_MIX( C, 0, 5, 36 ); THREEFISH_MIX( C, 2, 7, 39 );
+            THREEFISH_MIX( C, 6, 1, 44 ); THREEFISH_MIX( C, 0, 7,  9 );
+                THREEFISH_MIX( C, 2, 5, 54 ); THREEFISH_MIX( C, 4, 3, 56 );
 
             THREEFISH512_ADD_SUBKEY( C, K, T, 13 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 39 ); THREEFISH_MIX_PERM( C, 2, 3, 30 ); THREEFISH_MIX_PERM( C, 4, 5, 34 ); THREEFISH_MIX_PERM( C, 6, 7, 24 );
-            THREEFISH_MIX_PERM( C, 2, 1, 13 ); THREEFISH_MIX_PERM( C, 4, 7, 50 ); THREEFISH_MIX_PERM( C, 6, 5, 10 ); THREEFISH_MIX_PERM( C, 0, 3, 17 );
-            THREEFISH_MIX_PERM( C, 4, 1, 25 ); THREEFISH_MIX_PERM( C, 6, 3, 29 ); THREEFISH_MIX_PERM( C, 0, 5, 39 ); THREEFISH_MIX_PERM( C, 2, 7, 43 );
-            THREEFISH_MIX_PERM( C, 6, 1,  8 ); THREEFISH_MIX_PERM( C, 0, 7, 35 ); THREEFISH_MIX_PERM( C, 2, 5, 56 ); THREEFISH_MIX_PERM( C, 4, 3, 22 );
+            THREEFISH_MIX( C, 0, 1, 39 ); THREEFISH_MIX( C, 2, 3, 30 );
+                THREEFISH_MIX( C, 4, 5, 34 ); THREEFISH_MIX( C, 6, 7, 24 );
+            THREEFISH_MIX( C, 2, 1, 13 ); THREEFISH_MIX( C, 4, 7, 50 );
+                THREEFISH_MIX( C, 6, 5, 10 ); THREEFISH_MIX( C, 0, 3, 17 );
+            THREEFISH_MIX( C, 4, 1, 25 ); THREEFISH_MIX( C, 6, 3, 29 );
+                THREEFISH_MIX( C, 0, 5, 39 ); THREEFISH_MIX( C, 2, 7, 43 );
+            THREEFISH_MIX( C, 6, 1,  8 ); THREEFISH_MIX( C, 0, 7, 35 );
+                THREEFISH_MIX( C, 2, 5, 56 ); THREEFISH_MIX( C, 4, 3, 22 );
 
             THREEFISH512_ADD_SUBKEY( C, K, T, 14 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 46 ); THREEFISH_MIX_PERM( C, 2, 3, 36 ); THREEFISH_MIX_PERM( C, 4, 5, 19 ); THREEFISH_MIX_PERM( C, 6, 7, 37 );
-            THREEFISH_MIX_PERM( C, 2, 1, 33 ); THREEFISH_MIX_PERM( C, 4, 7, 27 ); THREEFISH_MIX_PERM( C, 6, 5, 14 ); THREEFISH_MIX_PERM( C, 0, 3, 42 );
-            THREEFISH_MIX_PERM( C, 4, 1, 17 ); THREEFISH_MIX_PERM( C, 6, 3, 49 ); THREEFISH_MIX_PERM( C, 0, 5, 36 ); THREEFISH_MIX_PERM( C, 2, 7, 39 );
-            THREEFISH_MIX_PERM( C, 6, 1, 44 ); THREEFISH_MIX_PERM( C, 0, 7,  9 ); THREEFISH_MIX_PERM( C, 2, 5, 54 ); THREEFISH_MIX_PERM( C, 4, 3, 56 );
+            THREEFISH_MIX( C, 0, 1, 46 ); THREEFISH_MIX( C, 2, 3, 36 );
+                THREEFISH_MIX( C, 4, 5, 19 ); THREEFISH_MIX( C, 6, 7, 37 );
+            THREEFISH_MIX( C, 2, 1, 33 ); THREEFISH_MIX( C, 4, 7, 27 );
+                THREEFISH_MIX( C, 6, 5, 14 ); THREEFISH_MIX( C, 0, 3, 42 );
+            THREEFISH_MIX( C, 4, 1, 17 ); THREEFISH_MIX( C, 6, 3, 49 );
+                THREEFISH_MIX( C, 0, 5, 36 ); THREEFISH_MIX( C, 2, 7, 39 );
+            THREEFISH_MIX( C, 6, 1, 44 ); THREEFISH_MIX( C, 0, 7,  9 );
+                THREEFISH_MIX( C, 2, 5, 54 ); THREEFISH_MIX( C, 4, 3, 56 );
 
             THREEFISH512_ADD_SUBKEY( C, K, T, 15 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 39 ); THREEFISH_MIX_PERM( C, 2, 3, 30 ); THREEFISH_MIX_PERM( C, 4, 5, 34 ); THREEFISH_MIX_PERM( C, 6, 7, 24 );
-            THREEFISH_MIX_PERM( C, 2, 1, 13 ); THREEFISH_MIX_PERM( C, 4, 7, 50 ); THREEFISH_MIX_PERM( C, 6, 5, 10 ); THREEFISH_MIX_PERM( C, 0, 3, 17 );
-            THREEFISH_MIX_PERM( C, 4, 1, 25 ); THREEFISH_MIX_PERM( C, 6, 3, 29 ); THREEFISH_MIX_PERM( C, 0, 5, 39 ); THREEFISH_MIX_PERM( C, 2, 7, 43 );
-            THREEFISH_MIX_PERM( C, 6, 1,  8 ); THREEFISH_MIX_PERM( C, 0, 7, 35 ); THREEFISH_MIX_PERM( C, 2, 5, 56 ); THREEFISH_MIX_PERM( C, 4, 3, 22 );
+            THREEFISH_MIX( C, 0, 1, 39 ); THREEFISH_MIX( C, 2, 3, 30 );
+                THREEFISH_MIX( C, 4, 5, 34 ); THREEFISH_MIX( C, 6, 7, 24 );
+            THREEFISH_MIX( C, 2, 1, 13 ); THREEFISH_MIX( C, 4, 7, 50 );
+                THREEFISH_MIX( C, 6, 5, 10 ); THREEFISH_MIX( C, 0, 3, 17 );
+            THREEFISH_MIX( C, 4, 1, 25 ); THREEFISH_MIX( C, 6, 3, 29 );
+                THREEFISH_MIX( C, 0, 5, 39 ); THREEFISH_MIX( C, 2, 7, 43 );
+            THREEFISH_MIX( C, 6, 1,  8 ); THREEFISH_MIX( C, 0, 7, 35 );
+                THREEFISH_MIX( C, 2, 5, 56 ); THREEFISH_MIX( C, 4, 3, 22 );
 
             THREEFISH512_ADD_SUBKEY( C, K, T, 16 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 46 ); THREEFISH_MIX_PERM( C, 2, 3, 36 ); THREEFISH_MIX_PERM( C, 4, 5, 19 ); THREEFISH_MIX_PERM( C, 6, 7, 37 );
-            THREEFISH_MIX_PERM( C, 2, 1, 33 ); THREEFISH_MIX_PERM( C, 4, 7, 27 ); THREEFISH_MIX_PERM( C, 6, 5, 14 ); THREEFISH_MIX_PERM( C, 0, 3, 42 );
-            THREEFISH_MIX_PERM( C, 4, 1, 17 ); THREEFISH_MIX_PERM( C, 6, 3, 49 ); THREEFISH_MIX_PERM( C, 0, 5, 36 ); THREEFISH_MIX_PERM( C, 2, 7, 39 );
-            THREEFISH_MIX_PERM( C, 6, 1, 44 ); THREEFISH_MIX_PERM( C, 0, 7,  9 ); THREEFISH_MIX_PERM( C, 2, 5, 54 ); THREEFISH_MIX_PERM( C, 4, 3, 56 );
+            THREEFISH_MIX( C, 0, 1, 46 ); THREEFISH_MIX( C, 2, 3, 36 );
+                THREEFISH_MIX( C, 4, 5, 19 ); THREEFISH_MIX( C, 6, 7, 37 );
+            THREEFISH_MIX( C, 2, 1, 33 ); THREEFISH_MIX( C, 4, 7, 27 );
+                THREEFISH_MIX( C, 6, 5, 14 ); THREEFISH_MIX( C, 0, 3, 42 );
+            THREEFISH_MIX( C, 4, 1, 17 ); THREEFISH_MIX( C, 6, 3, 49 );
+                THREEFISH_MIX( C, 0, 5, 36 ); THREEFISH_MIX( C, 2, 7, 39 );
+            THREEFISH_MIX( C, 6, 1, 44 ); THREEFISH_MIX( C, 0, 7,  9 );
+                THREEFISH_MIX( C, 2, 5, 54 ); THREEFISH_MIX( C, 4, 3, 56 );
 
             THREEFISH512_ADD_SUBKEY( C, K, T, 17 );
 
-            THREEFISH_MIX_PERM( C, 0, 1, 39 ); THREEFISH_MIX_PERM( C, 2, 3, 30 ); THREEFISH_MIX_PERM( C, 4, 5, 34 ); THREEFISH_MIX_PERM( C, 6, 7, 24 );
-            THREEFISH_MIX_PERM( C, 2, 1, 13 ); THREEFISH_MIX_PERM( C, 4, 7, 50 ); THREEFISH_MIX_PERM( C, 6, 5, 10 ); THREEFISH_MIX_PERM( C, 0, 3, 17 );
-            THREEFISH_MIX_PERM( C, 4, 1, 25 ); THREEFISH_MIX_PERM( C, 6, 3, 29 ); THREEFISH_MIX_PERM( C, 0, 5, 39 ); THREEFISH_MIX_PERM( C, 2, 7, 43 );
-            THREEFISH_MIX_PERM( C, 6, 1,  8 ); THREEFISH_MIX_PERM( C, 0, 7, 35 ); THREEFISH_MIX_PERM( C, 2, 5, 56 ); THREEFISH_MIX_PERM( C, 4, 3, 22 );
+            THREEFISH_MIX( C, 0, 1, 39 ); THREEFISH_MIX( C, 2, 3, 30 );
+                THREEFISH_MIX( C, 4, 5, 34 ); THREEFISH_MIX( C, 6, 7, 24 );
+            THREEFISH_MIX( C, 2, 1, 13 ); THREEFISH_MIX( C, 4, 7, 50 );
+                THREEFISH_MIX( C, 6, 5, 10 ); THREEFISH_MIX( C, 0, 3, 17 );
+            THREEFISH_MIX( C, 4, 1, 25 ); THREEFISH_MIX( C, 6, 3, 29 );
+                THREEFISH_MIX( C, 0, 5, 39 ); THREEFISH_MIX( C, 2, 7, 43 );
+            THREEFISH_MIX( C, 6, 1,  8 ); THREEFISH_MIX( C, 0, 7, 35 );
+                THREEFISH_MIX( C, 2, 5, 56 ); THREEFISH_MIX( C, 4, 3, 22 );
 
             THREEFISH512_ADD_SUBKEY( C, K, T, 18 );
 
@@ -440,143 +512,383 @@ static void threefish_enc( mbedtls_threefish_context *ctx,
         case 1024:
             THREEFISH1024_ADD_SUBKEY( C, K, T, 0 );
 
-            THREEFISH_MIX_PERM( C,  0,  1, 24 ); THREEFISH_MIX_PERM( C,  2,  3, 13 ); THREEFISH_MIX_PERM( C,  4,  5,  8 ); THREEFISH_MIX_PERM( C,  6,  7, 47 ); THREEFISH_MIX_PERM( C,  8,  9,  8 ); THREEFISH_MIX_PERM( C, 10, 11, 17 ); THREEFISH_MIX_PERM( C, 12, 13, 22 ); THREEFISH_MIX_PERM( C, 14, 15, 37 );
-            THREEFISH_MIX_PERM( C,  0,  9, 38 ); THREEFISH_MIX_PERM( C,  2, 13, 19 ); THREEFISH_MIX_PERM( C,  6, 11, 10 ); THREEFISH_MIX_PERM( C,  4, 15, 55 ); THREEFISH_MIX_PERM( C, 10,  7, 49 ); THREEFISH_MIX_PERM( C, 12,  3, 18 ); THREEFISH_MIX_PERM( C, 14,  5, 23 ); THREEFISH_MIX_PERM( C,  8,  1, 52 );
-            THREEFISH_MIX_PERM( C,  0,  7, 33 ); THREEFISH_MIX_PERM( C,  2,  5,  4 ); THREEFISH_MIX_PERM( C,  4,  3, 51 ); THREEFISH_MIX_PERM( C,  6,  1, 13 ); THREEFISH_MIX_PERM( C, 12, 15, 34 ); THREEFISH_MIX_PERM( C, 14, 13, 41 ); THREEFISH_MIX_PERM( C,  8, 11, 59 ); THREEFISH_MIX_PERM( C, 10,  9, 17 );
-            THREEFISH_MIX_PERM( C,  0, 15,  5 ); THREEFISH_MIX_PERM( C,  2, 11, 20 ); THREEFISH_MIX_PERM( C,  6, 13, 48 ); THREEFISH_MIX_PERM( C,  4,  9, 41 ); THREEFISH_MIX_PERM( C, 14,  1, 47 ); THREEFISH_MIX_PERM( C,  8,  5, 28 ); THREEFISH_MIX_PERM( C, 10,  3, 16 ); THREEFISH_MIX_PERM( C, 12,  7, 25 );
+            THREEFISH_MIX( C,  0,  1, 24 ); THREEFISH_MIX( C,  2,  3, 13 );
+                THREEFISH_MIX( C,  4,  5,  8 ); THREEFISH_MIX( C,  6,  7, 47 );
+                THREEFISH_MIX( C,  8,  9,  8 ); THREEFISH_MIX( C, 10, 11, 17 );
+                THREEFISH_MIX( C, 12, 13, 22 ); THREEFISH_MIX( C, 14, 15, 37 );
+            THREEFISH_MIX( C,  0,  9, 38 ); THREEFISH_MIX( C,  2, 13, 19 );
+                THREEFISH_MIX( C,  6, 11, 10 ); THREEFISH_MIX( C,  4, 15, 55 );
+                THREEFISH_MIX( C, 10,  7, 49 ); THREEFISH_MIX( C, 12,  3, 18 );
+                THREEFISH_MIX( C, 14,  5, 23 ); THREEFISH_MIX( C,  8,  1, 52 );
+            THREEFISH_MIX( C,  0,  7, 33 ); THREEFISH_MIX( C,  2,  5,  4 );
+                THREEFISH_MIX( C,  4,  3, 51 ); THREEFISH_MIX( C,  6,  1, 13 );
+                THREEFISH_MIX( C, 12, 15, 34 ); THREEFISH_MIX( C, 14, 13, 41 );
+                THREEFISH_MIX( C,  8, 11, 59 ); THREEFISH_MIX( C, 10,  9, 17 );
+            THREEFISH_MIX( C,  0, 15,  5 ); THREEFISH_MIX( C,  2, 11, 20 );
+                THREEFISH_MIX( C,  6, 13, 48 ); THREEFISH_MIX( C,  4,  9, 41 );
+                THREEFISH_MIX( C, 14,  1, 47 ); THREEFISH_MIX( C,  8,  5, 28 );
+                THREEFISH_MIX( C, 10,  3, 16 ); THREEFISH_MIX( C, 12,  7, 25 );
 
             THREEFISH1024_ADD_SUBKEY( C, K, T, 1 );
 
-            THREEFISH_MIX_PERM( C,  0,  1, 41 ); THREEFISH_MIX_PERM( C,  2,  3,  9 ); THREEFISH_MIX_PERM( C,  4,  5, 37 ); THREEFISH_MIX_PERM( C,  6,  7, 31 ); THREEFISH_MIX_PERM( C,  8,  9, 12 ); THREEFISH_MIX_PERM( C, 10, 11, 47 ); THREEFISH_MIX_PERM( C, 12, 13, 44 ); THREEFISH_MIX_PERM( C, 14, 15, 30 );
-            THREEFISH_MIX_PERM( C,  0,  9, 16 ); THREEFISH_MIX_PERM( C,  2, 13, 34 ); THREEFISH_MIX_PERM( C,  6, 11, 56 ); THREEFISH_MIX_PERM( C,  4, 15, 51 ); THREEFISH_MIX_PERM( C, 10,  7,  4 ); THREEFISH_MIX_PERM( C, 12,  3, 53 ); THREEFISH_MIX_PERM( C, 14,  5, 42 ); THREEFISH_MIX_PERM( C,  8,  1, 41 );
-            THREEFISH_MIX_PERM( C,  0,  7, 31 ); THREEFISH_MIX_PERM( C,  2,  5, 44 ); THREEFISH_MIX_PERM( C,  4,  3, 47 ); THREEFISH_MIX_PERM( C,  6,  1, 46 ); THREEFISH_MIX_PERM( C, 12, 15, 19 ); THREEFISH_MIX_PERM( C, 14, 13, 42 ); THREEFISH_MIX_PERM( C,  8, 11, 44 ); THREEFISH_MIX_PERM( C, 10,  9, 25 );
-            THREEFISH_MIX_PERM( C,  0, 15,  9 ); THREEFISH_MIX_PERM( C,  2, 11, 48 ); THREEFISH_MIX_PERM( C,  6, 13, 35 ); THREEFISH_MIX_PERM( C,  4,  9, 52 ); THREEFISH_MIX_PERM( C, 14,  1, 23 ); THREEFISH_MIX_PERM( C,  8,  5, 31 ); THREEFISH_MIX_PERM( C, 10,  3, 37 ); THREEFISH_MIX_PERM( C, 12,  7, 20 );
+            THREEFISH_MIX( C,  0,  1, 41 ); THREEFISH_MIX( C,  2,  3,  9 );
+                THREEFISH_MIX( C,  4,  5, 37 ); THREEFISH_MIX( C,  6,  7, 31 );
+                THREEFISH_MIX( C,  8,  9, 12 ); THREEFISH_MIX( C, 10, 11, 47 );
+                THREEFISH_MIX( C, 12, 13, 44 ); THREEFISH_MIX( C, 14, 15, 30 );
+            THREEFISH_MIX( C,  0,  9, 16 ); THREEFISH_MIX( C,  2, 13, 34 );
+                THREEFISH_MIX( C,  6, 11, 56 ); THREEFISH_MIX( C,  4, 15, 51 );
+                THREEFISH_MIX( C, 10,  7,  4 ); THREEFISH_MIX( C, 12,  3, 53 );
+                THREEFISH_MIX( C, 14,  5, 42 ); THREEFISH_MIX( C,  8,  1, 41 );
+            THREEFISH_MIX( C,  0,  7, 31 ); THREEFISH_MIX( C,  2,  5, 44 );
+                THREEFISH_MIX( C,  4,  3, 47 ); THREEFISH_MIX( C,  6,  1, 46 );
+                THREEFISH_MIX( C, 12, 15, 19 ); THREEFISH_MIX( C, 14, 13, 42 );
+                THREEFISH_MIX( C,  8, 11, 44 ); THREEFISH_MIX( C, 10,  9, 25 );
+            THREEFISH_MIX( C,  0, 15,  9 ); THREEFISH_MIX( C,  2, 11, 48 );
+                THREEFISH_MIX( C,  6, 13, 35 ); THREEFISH_MIX( C,  4,  9, 52 );
+                THREEFISH_MIX( C, 14,  1, 23 ); THREEFISH_MIX( C,  8,  5, 31 );
+                THREEFISH_MIX( C, 10,  3, 37 ); THREEFISH_MIX( C, 12,  7, 20 );
 
             THREEFISH1024_ADD_SUBKEY( C, K, T, 2 );
 
-            THREEFISH_MIX_PERM( C,  0,  1, 24 ); THREEFISH_MIX_PERM( C,  2,  3, 13 ); THREEFISH_MIX_PERM( C,  4,  5,  8 ); THREEFISH_MIX_PERM( C,  6,  7, 47 ); THREEFISH_MIX_PERM( C,  8,  9,  8 ); THREEFISH_MIX_PERM( C, 10, 11, 17 ); THREEFISH_MIX_PERM( C, 12, 13, 22 ); THREEFISH_MIX_PERM( C, 14, 15, 37 );
-            THREEFISH_MIX_PERM( C,  0,  9, 38 ); THREEFISH_MIX_PERM( C,  2, 13, 19 ); THREEFISH_MIX_PERM( C,  6, 11, 10 ); THREEFISH_MIX_PERM( C,  4, 15, 55 ); THREEFISH_MIX_PERM( C, 10,  7, 49 ); THREEFISH_MIX_PERM( C, 12,  3, 18 ); THREEFISH_MIX_PERM( C, 14,  5, 23 ); THREEFISH_MIX_PERM( C,  8,  1, 52 );
-            THREEFISH_MIX_PERM( C,  0,  7, 33 ); THREEFISH_MIX_PERM( C,  2,  5,  4 ); THREEFISH_MIX_PERM( C,  4,  3, 51 ); THREEFISH_MIX_PERM( C,  6,  1, 13 ); THREEFISH_MIX_PERM( C, 12, 15, 34 ); THREEFISH_MIX_PERM( C, 14, 13, 41 ); THREEFISH_MIX_PERM( C,  8, 11, 59 ); THREEFISH_MIX_PERM( C, 10,  9, 17 );
-            THREEFISH_MIX_PERM( C,  0, 15,  5 ); THREEFISH_MIX_PERM( C,  2, 11, 20 ); THREEFISH_MIX_PERM( C,  6, 13, 48 ); THREEFISH_MIX_PERM( C,  4,  9, 41 ); THREEFISH_MIX_PERM( C, 14,  1, 47 ); THREEFISH_MIX_PERM( C,  8,  5, 28 ); THREEFISH_MIX_PERM( C, 10,  3, 16 ); THREEFISH_MIX_PERM( C, 12,  7, 25 );
+            THREEFISH_MIX( C,  0,  1, 24 ); THREEFISH_MIX( C,  2,  3, 13 );
+                THREEFISH_MIX( C,  4,  5,  8 ); THREEFISH_MIX( C,  6,  7, 47 );
+                THREEFISH_MIX( C,  8,  9,  8 ); THREEFISH_MIX( C, 10, 11, 17 );
+                THREEFISH_MIX( C, 12, 13, 22 ); THREEFISH_MIX( C, 14, 15, 37 );
+            THREEFISH_MIX( C,  0,  9, 38 ); THREEFISH_MIX( C,  2, 13, 19 );
+                THREEFISH_MIX( C,  6, 11, 10 ); THREEFISH_MIX( C,  4, 15, 55 );
+                THREEFISH_MIX( C, 10,  7, 49 ); THREEFISH_MIX( C, 12,  3, 18 );
+                THREEFISH_MIX( C, 14,  5, 23 ); THREEFISH_MIX( C,  8,  1, 52 );
+            THREEFISH_MIX( C,  0,  7, 33 ); THREEFISH_MIX( C,  2,  5,  4 );
+                THREEFISH_MIX( C,  4,  3, 51 ); THREEFISH_MIX( C,  6,  1, 13 );
+                THREEFISH_MIX( C, 12, 15, 34 ); THREEFISH_MIX( C, 14, 13, 41 );
+                THREEFISH_MIX( C,  8, 11, 59 ); THREEFISH_MIX( C, 10,  9, 17 );
+            THREEFISH_MIX( C,  0, 15,  5 ); THREEFISH_MIX( C,  2, 11, 20 );
+                THREEFISH_MIX( C,  6, 13, 48 ); THREEFISH_MIX( C,  4,  9, 41 );
+                THREEFISH_MIX( C, 14,  1, 47 ); THREEFISH_MIX( C,  8,  5, 28 );
+                THREEFISH_MIX( C, 10,  3, 16 ); THREEFISH_MIX( C, 12,  7, 25 );
 
             THREEFISH1024_ADD_SUBKEY( C, K, T, 3 );
 
-            THREEFISH_MIX_PERM( C,  0,  1, 41 ); THREEFISH_MIX_PERM( C,  2,  3,  9 ); THREEFISH_MIX_PERM( C,  4,  5, 37 ); THREEFISH_MIX_PERM( C,  6,  7, 31 ); THREEFISH_MIX_PERM( C,  8,  9, 12 ); THREEFISH_MIX_PERM( C, 10, 11, 47 ); THREEFISH_MIX_PERM( C, 12, 13, 44 ); THREEFISH_MIX_PERM( C, 14, 15, 30 );
-            THREEFISH_MIX_PERM( C,  0,  9, 16 ); THREEFISH_MIX_PERM( C,  2, 13, 34 ); THREEFISH_MIX_PERM( C,  6, 11, 56 ); THREEFISH_MIX_PERM( C,  4, 15, 51 ); THREEFISH_MIX_PERM( C, 10,  7,  4 ); THREEFISH_MIX_PERM( C, 12,  3, 53 ); THREEFISH_MIX_PERM( C, 14,  5, 42 ); THREEFISH_MIX_PERM( C,  8,  1, 41 );
-            THREEFISH_MIX_PERM( C,  0,  7, 31 ); THREEFISH_MIX_PERM( C,  2,  5, 44 ); THREEFISH_MIX_PERM( C,  4,  3, 47 ); THREEFISH_MIX_PERM( C,  6,  1, 46 ); THREEFISH_MIX_PERM( C, 12, 15, 19 ); THREEFISH_MIX_PERM( C, 14, 13, 42 ); THREEFISH_MIX_PERM( C,  8, 11, 44 ); THREEFISH_MIX_PERM( C, 10,  9, 25 );
-            THREEFISH_MIX_PERM( C,  0, 15,  9 ); THREEFISH_MIX_PERM( C,  2, 11, 48 ); THREEFISH_MIX_PERM( C,  6, 13, 35 ); THREEFISH_MIX_PERM( C,  4,  9, 52 ); THREEFISH_MIX_PERM( C, 14,  1, 23 ); THREEFISH_MIX_PERM( C,  8,  5, 31 ); THREEFISH_MIX_PERM( C, 10,  3, 37 ); THREEFISH_MIX_PERM( C, 12,  7, 20 );
+            THREEFISH_MIX( C,  0,  1, 41 ); THREEFISH_MIX( C,  2,  3,  9 );
+                THREEFISH_MIX( C,  4,  5, 37 ); THREEFISH_MIX( C,  6,  7, 31 );
+                THREEFISH_MIX( C,  8,  9, 12 ); THREEFISH_MIX( C, 10, 11, 47 );
+                THREEFISH_MIX( C, 12, 13, 44 ); THREEFISH_MIX( C, 14, 15, 30 );
+            THREEFISH_MIX( C,  0,  9, 16 ); THREEFISH_MIX( C,  2, 13, 34 );
+                THREEFISH_MIX( C,  6, 11, 56 ); THREEFISH_MIX( C,  4, 15, 51 );
+                THREEFISH_MIX( C, 10,  7,  4 ); THREEFISH_MIX( C, 12,  3, 53 );
+                THREEFISH_MIX( C, 14,  5, 42 ); THREEFISH_MIX( C,  8,  1, 41 );
+            THREEFISH_MIX( C,  0,  7, 31 ); THREEFISH_MIX( C,  2,  5, 44 );
+                THREEFISH_MIX( C,  4,  3, 47 ); THREEFISH_MIX( C,  6,  1, 46 );
+                THREEFISH_MIX( C, 12, 15, 19 ); THREEFISH_MIX( C, 14, 13, 42 );
+                THREEFISH_MIX( C,  8, 11, 44 ); THREEFISH_MIX( C, 10,  9, 25 );
+            THREEFISH_MIX( C,  0, 15,  9 ); THREEFISH_MIX( C,  2, 11, 48 );
+                THREEFISH_MIX( C,  6, 13, 35 ); THREEFISH_MIX( C,  4,  9, 52 );
+                THREEFISH_MIX( C, 14,  1, 23 ); THREEFISH_MIX( C,  8,  5, 31 );
+                THREEFISH_MIX( C, 10,  3, 37 ); THREEFISH_MIX( C, 12,  7, 20 );
 
             THREEFISH1024_ADD_SUBKEY( C, K, T, 4 );
 
-            THREEFISH_MIX_PERM( C,  0,  1, 24 ); THREEFISH_MIX_PERM( C,  2,  3, 13 ); THREEFISH_MIX_PERM( C,  4,  5,  8 ); THREEFISH_MIX_PERM( C,  6,  7, 47 ); THREEFISH_MIX_PERM( C,  8,  9,  8 ); THREEFISH_MIX_PERM( C, 10, 11, 17 ); THREEFISH_MIX_PERM( C, 12, 13, 22 ); THREEFISH_MIX_PERM( C, 14, 15, 37 );
-            THREEFISH_MIX_PERM( C,  0,  9, 38 ); THREEFISH_MIX_PERM( C,  2, 13, 19 ); THREEFISH_MIX_PERM( C,  6, 11, 10 ); THREEFISH_MIX_PERM( C,  4, 15, 55 ); THREEFISH_MIX_PERM( C, 10,  7, 49 ); THREEFISH_MIX_PERM( C, 12,  3, 18 ); THREEFISH_MIX_PERM( C, 14,  5, 23 ); THREEFISH_MIX_PERM( C,  8,  1, 52 );
-            THREEFISH_MIX_PERM( C,  0,  7, 33 ); THREEFISH_MIX_PERM( C,  2,  5,  4 ); THREEFISH_MIX_PERM( C,  4,  3, 51 ); THREEFISH_MIX_PERM( C,  6,  1, 13 ); THREEFISH_MIX_PERM( C, 12, 15, 34 ); THREEFISH_MIX_PERM( C, 14, 13, 41 ); THREEFISH_MIX_PERM( C,  8, 11, 59 ); THREEFISH_MIX_PERM( C, 10,  9, 17 );
-            THREEFISH_MIX_PERM( C,  0, 15,  5 ); THREEFISH_MIX_PERM( C,  2, 11, 20 ); THREEFISH_MIX_PERM( C,  6, 13, 48 ); THREEFISH_MIX_PERM( C,  4,  9, 41 ); THREEFISH_MIX_PERM( C, 14,  1, 47 ); THREEFISH_MIX_PERM( C,  8,  5, 28 ); THREEFISH_MIX_PERM( C, 10,  3, 16 ); THREEFISH_MIX_PERM( C, 12,  7, 25 );
+            THREEFISH_MIX( C,  0,  1, 24 ); THREEFISH_MIX( C,  2,  3, 13 );
+                THREEFISH_MIX( C,  4,  5,  8 ); THREEFISH_MIX( C,  6,  7, 47 );
+                THREEFISH_MIX( C,  8,  9,  8 ); THREEFISH_MIX( C, 10, 11, 17 );
+                THREEFISH_MIX( C, 12, 13, 22 ); THREEFISH_MIX( C, 14, 15, 37 );
+            THREEFISH_MIX( C,  0,  9, 38 ); THREEFISH_MIX( C,  2, 13, 19 );
+                THREEFISH_MIX( C,  6, 11, 10 ); THREEFISH_MIX( C,  4, 15, 55 );
+                THREEFISH_MIX( C, 10,  7, 49 ); THREEFISH_MIX( C, 12,  3, 18 );
+                THREEFISH_MIX( C, 14,  5, 23 ); THREEFISH_MIX( C,  8,  1, 52 );
+            THREEFISH_MIX( C,  0,  7, 33 ); THREEFISH_MIX( C,  2,  5,  4 );
+                THREEFISH_MIX( C,  4,  3, 51 ); THREEFISH_MIX( C,  6,  1, 13 );
+                THREEFISH_MIX( C, 12, 15, 34 ); THREEFISH_MIX( C, 14, 13, 41 );
+                THREEFISH_MIX( C,  8, 11, 59 ); THREEFISH_MIX( C, 10,  9, 17 );
+            THREEFISH_MIX( C,  0, 15,  5 ); THREEFISH_MIX( C,  2, 11, 20 );
+                THREEFISH_MIX( C,  6, 13, 48 ); THREEFISH_MIX( C,  4,  9, 41 );
+                THREEFISH_MIX( C, 14,  1, 47 ); THREEFISH_MIX( C,  8,  5, 28 );
+                THREEFISH_MIX( C, 10,  3, 16 ); THREEFISH_MIX( C, 12,  7, 25 );
 
             THREEFISH1024_ADD_SUBKEY( C, K, T, 5 );
 
-            THREEFISH_MIX_PERM( C,  0,  1, 41 ); THREEFISH_MIX_PERM( C,  2,  3,  9 ); THREEFISH_MIX_PERM( C,  4,  5, 37 ); THREEFISH_MIX_PERM( C,  6,  7, 31 ); THREEFISH_MIX_PERM( C,  8,  9, 12 ); THREEFISH_MIX_PERM( C, 10, 11, 47 ); THREEFISH_MIX_PERM( C, 12, 13, 44 ); THREEFISH_MIX_PERM( C, 14, 15, 30 );
-            THREEFISH_MIX_PERM( C,  0,  9, 16 ); THREEFISH_MIX_PERM( C,  2, 13, 34 ); THREEFISH_MIX_PERM( C,  6, 11, 56 ); THREEFISH_MIX_PERM( C,  4, 15, 51 ); THREEFISH_MIX_PERM( C, 10,  7,  4 ); THREEFISH_MIX_PERM( C, 12,  3, 53 ); THREEFISH_MIX_PERM( C, 14,  5, 42 ); THREEFISH_MIX_PERM( C,  8,  1, 41 );
-            THREEFISH_MIX_PERM( C,  0,  7, 31 ); THREEFISH_MIX_PERM( C,  2,  5, 44 ); THREEFISH_MIX_PERM( C,  4,  3, 47 ); THREEFISH_MIX_PERM( C,  6,  1, 46 ); THREEFISH_MIX_PERM( C, 12, 15, 19 ); THREEFISH_MIX_PERM( C, 14, 13, 42 ); THREEFISH_MIX_PERM( C,  8, 11, 44 ); THREEFISH_MIX_PERM( C, 10,  9, 25 );
-            THREEFISH_MIX_PERM( C,  0, 15,  9 ); THREEFISH_MIX_PERM( C,  2, 11, 48 ); THREEFISH_MIX_PERM( C,  6, 13, 35 ); THREEFISH_MIX_PERM( C,  4,  9, 52 ); THREEFISH_MIX_PERM( C, 14,  1, 23 ); THREEFISH_MIX_PERM( C,  8,  5, 31 ); THREEFISH_MIX_PERM( C, 10,  3, 37 ); THREEFISH_MIX_PERM( C, 12,  7, 20 );
+            THREEFISH_MIX( C,  0,  1, 41 ); THREEFISH_MIX( C,  2,  3,  9 );
+                THREEFISH_MIX( C,  4,  5, 37 ); THREEFISH_MIX( C,  6,  7, 31 );
+                THREEFISH_MIX( C,  8,  9, 12 ); THREEFISH_MIX( C, 10, 11, 47 );
+                THREEFISH_MIX( C, 12, 13, 44 ); THREEFISH_MIX( C, 14, 15, 30 );
+            THREEFISH_MIX( C,  0,  9, 16 ); THREEFISH_MIX( C,  2, 13, 34 );
+                THREEFISH_MIX( C,  6, 11, 56 ); THREEFISH_MIX( C,  4, 15, 51 );
+                THREEFISH_MIX( C, 10,  7,  4 ); THREEFISH_MIX( C, 12,  3, 53 );
+                THREEFISH_MIX( C, 14,  5, 42 ); THREEFISH_MIX( C,  8,  1, 41 );
+            THREEFISH_MIX( C,  0,  7, 31 ); THREEFISH_MIX( C,  2,  5, 44 );
+                THREEFISH_MIX( C,  4,  3, 47 ); THREEFISH_MIX( C,  6,  1, 46 );
+                THREEFISH_MIX( C, 12, 15, 19 ); THREEFISH_MIX( C, 14, 13, 42 );
+                THREEFISH_MIX( C,  8, 11, 44 ); THREEFISH_MIX( C, 10,  9, 25 );
+            THREEFISH_MIX( C,  0, 15,  9 ); THREEFISH_MIX( C,  2, 11, 48 );
+                THREEFISH_MIX( C,  6, 13, 35 ); THREEFISH_MIX( C,  4,  9, 52 );
+                THREEFISH_MIX( C, 14,  1, 23 ); THREEFISH_MIX( C,  8,  5, 31 );
+                THREEFISH_MIX( C, 10,  3, 37 ); THREEFISH_MIX( C, 12,  7, 20 );
 
             THREEFISH1024_ADD_SUBKEY( C, K, T, 6 );
 
-            THREEFISH_MIX_PERM( C,  0,  1, 24 ); THREEFISH_MIX_PERM( C,  2,  3, 13 ); THREEFISH_MIX_PERM( C,  4,  5,  8 ); THREEFISH_MIX_PERM( C,  6,  7, 47 ); THREEFISH_MIX_PERM( C,  8,  9,  8 ); THREEFISH_MIX_PERM( C, 10, 11, 17 ); THREEFISH_MIX_PERM( C, 12, 13, 22 ); THREEFISH_MIX_PERM( C, 14, 15, 37 );
-            THREEFISH_MIX_PERM( C,  0,  9, 38 ); THREEFISH_MIX_PERM( C,  2, 13, 19 ); THREEFISH_MIX_PERM( C,  6, 11, 10 ); THREEFISH_MIX_PERM( C,  4, 15, 55 ); THREEFISH_MIX_PERM( C, 10,  7, 49 ); THREEFISH_MIX_PERM( C, 12,  3, 18 ); THREEFISH_MIX_PERM( C, 14,  5, 23 ); THREEFISH_MIX_PERM( C,  8,  1, 52 );
-            THREEFISH_MIX_PERM( C,  0,  7, 33 ); THREEFISH_MIX_PERM( C,  2,  5,  4 ); THREEFISH_MIX_PERM( C,  4,  3, 51 ); THREEFISH_MIX_PERM( C,  6,  1, 13 ); THREEFISH_MIX_PERM( C, 12, 15, 34 ); THREEFISH_MIX_PERM( C, 14, 13, 41 ); THREEFISH_MIX_PERM( C,  8, 11, 59 ); THREEFISH_MIX_PERM( C, 10,  9, 17 );
-            THREEFISH_MIX_PERM( C,  0, 15,  5 ); THREEFISH_MIX_PERM( C,  2, 11, 20 ); THREEFISH_MIX_PERM( C,  6, 13, 48 ); THREEFISH_MIX_PERM( C,  4,  9, 41 ); THREEFISH_MIX_PERM( C, 14,  1, 47 ); THREEFISH_MIX_PERM( C,  8,  5, 28 ); THREEFISH_MIX_PERM( C, 10,  3, 16 ); THREEFISH_MIX_PERM( C, 12,  7, 25 );
+            THREEFISH_MIX( C,  0,  1, 24 ); THREEFISH_MIX( C,  2,  3, 13 );
+                THREEFISH_MIX( C,  4,  5,  8 ); THREEFISH_MIX( C,  6,  7, 47 );
+                THREEFISH_MIX( C,  8,  9,  8 ); THREEFISH_MIX( C, 10, 11, 17 );
+                THREEFISH_MIX( C, 12, 13, 22 ); THREEFISH_MIX( C, 14, 15, 37 );
+            THREEFISH_MIX( C,  0,  9, 38 ); THREEFISH_MIX( C,  2, 13, 19 );
+                THREEFISH_MIX( C,  6, 11, 10 ); THREEFISH_MIX( C,  4, 15, 55 );
+                THREEFISH_MIX( C, 10,  7, 49 ); THREEFISH_MIX( C, 12,  3, 18 );
+                THREEFISH_MIX( C, 14,  5, 23 ); THREEFISH_MIX( C,  8,  1, 52 );
+            THREEFISH_MIX( C,  0,  7, 33 ); THREEFISH_MIX( C,  2,  5,  4 );
+                THREEFISH_MIX( C,  4,  3, 51 ); THREEFISH_MIX( C,  6,  1, 13 );
+                THREEFISH_MIX( C, 12, 15, 34 ); THREEFISH_MIX( C, 14, 13, 41 );
+                THREEFISH_MIX( C,  8, 11, 59 ); THREEFISH_MIX( C, 10,  9, 17 );
+            THREEFISH_MIX( C,  0, 15,  5 ); THREEFISH_MIX( C,  2, 11, 20 );
+                THREEFISH_MIX( C,  6, 13, 48 ); THREEFISH_MIX( C,  4,  9, 41 );
+                THREEFISH_MIX( C, 14,  1, 47 ); THREEFISH_MIX( C,  8,  5, 28 );
+                THREEFISH_MIX( C, 10,  3, 16 ); THREEFISH_MIX( C, 12,  7, 25 );
 
             THREEFISH1024_ADD_SUBKEY( C, K, T, 7 );
 
-            THREEFISH_MIX_PERM( C,  0,  1, 41 ); THREEFISH_MIX_PERM( C,  2,  3,  9 ); THREEFISH_MIX_PERM( C,  4,  5, 37 ); THREEFISH_MIX_PERM( C,  6,  7, 31 ); THREEFISH_MIX_PERM( C,  8,  9, 12 ); THREEFISH_MIX_PERM( C, 10, 11, 47 ); THREEFISH_MIX_PERM( C, 12, 13, 44 ); THREEFISH_MIX_PERM( C, 14, 15, 30 );
-            THREEFISH_MIX_PERM( C,  0,  9, 16 ); THREEFISH_MIX_PERM( C,  2, 13, 34 ); THREEFISH_MIX_PERM( C,  6, 11, 56 ); THREEFISH_MIX_PERM( C,  4, 15, 51 ); THREEFISH_MIX_PERM( C, 10,  7,  4 ); THREEFISH_MIX_PERM( C, 12,  3, 53 ); THREEFISH_MIX_PERM( C, 14,  5, 42 ); THREEFISH_MIX_PERM( C,  8,  1, 41 );
-            THREEFISH_MIX_PERM( C,  0,  7, 31 ); THREEFISH_MIX_PERM( C,  2,  5, 44 ); THREEFISH_MIX_PERM( C,  4,  3, 47 ); THREEFISH_MIX_PERM( C,  6,  1, 46 ); THREEFISH_MIX_PERM( C, 12, 15, 19 ); THREEFISH_MIX_PERM( C, 14, 13, 42 ); THREEFISH_MIX_PERM( C,  8, 11, 44 ); THREEFISH_MIX_PERM( C, 10,  9, 25 );
-            THREEFISH_MIX_PERM( C,  0, 15,  9 ); THREEFISH_MIX_PERM( C,  2, 11, 48 ); THREEFISH_MIX_PERM( C,  6, 13, 35 ); THREEFISH_MIX_PERM( C,  4,  9, 52 ); THREEFISH_MIX_PERM( C, 14,  1, 23 ); THREEFISH_MIX_PERM( C,  8,  5, 31 ); THREEFISH_MIX_PERM( C, 10,  3, 37 ); THREEFISH_MIX_PERM( C, 12,  7, 20 );
+            THREEFISH_MIX( C,  0,  1, 41 ); THREEFISH_MIX( C,  2,  3,  9 );
+                THREEFISH_MIX( C,  4,  5, 37 ); THREEFISH_MIX( C,  6,  7, 31 );
+                THREEFISH_MIX( C,  8,  9, 12 ); THREEFISH_MIX( C, 10, 11, 47 );
+                THREEFISH_MIX( C, 12, 13, 44 ); THREEFISH_MIX( C, 14, 15, 30 );
+            THREEFISH_MIX( C,  0,  9, 16 ); THREEFISH_MIX( C,  2, 13, 34 );
+                THREEFISH_MIX( C,  6, 11, 56 ); THREEFISH_MIX( C,  4, 15, 51 );
+                THREEFISH_MIX( C, 10,  7,  4 ); THREEFISH_MIX( C, 12,  3, 53 );
+                THREEFISH_MIX( C, 14,  5, 42 ); THREEFISH_MIX( C,  8,  1, 41 );
+            THREEFISH_MIX( C,  0,  7, 31 ); THREEFISH_MIX( C,  2,  5, 44 );
+                THREEFISH_MIX( C,  4,  3, 47 ); THREEFISH_MIX( C,  6,  1, 46 );
+                THREEFISH_MIX( C, 12, 15, 19 ); THREEFISH_MIX( C, 14, 13, 42 );
+                THREEFISH_MIX( C,  8, 11, 44 ); THREEFISH_MIX( C, 10,  9, 25 );
+            THREEFISH_MIX( C,  0, 15,  9 ); THREEFISH_MIX( C,  2, 11, 48 );
+                THREEFISH_MIX( C,  6, 13, 35 ); THREEFISH_MIX( C,  4,  9, 52 );
+                THREEFISH_MIX( C, 14,  1, 23 ); THREEFISH_MIX( C,  8,  5, 31 );
+                THREEFISH_MIX( C, 10,  3, 37 ); THREEFISH_MIX( C, 12,  7, 20 );
 
             THREEFISH1024_ADD_SUBKEY( C, K, T, 8 );
 
-            THREEFISH_MIX_PERM( C,  0,  1, 24 ); THREEFISH_MIX_PERM( C,  2,  3, 13 ); THREEFISH_MIX_PERM( C,  4,  5,  8 ); THREEFISH_MIX_PERM( C,  6,  7, 47 ); THREEFISH_MIX_PERM( C,  8,  9,  8 ); THREEFISH_MIX_PERM( C, 10, 11, 17 ); THREEFISH_MIX_PERM( C, 12, 13, 22 ); THREEFISH_MIX_PERM( C, 14, 15, 37 );
-            THREEFISH_MIX_PERM( C,  0,  9, 38 ); THREEFISH_MIX_PERM( C,  2, 13, 19 ); THREEFISH_MIX_PERM( C,  6, 11, 10 ); THREEFISH_MIX_PERM( C,  4, 15, 55 ); THREEFISH_MIX_PERM( C, 10,  7, 49 ); THREEFISH_MIX_PERM( C, 12,  3, 18 ); THREEFISH_MIX_PERM( C, 14,  5, 23 ); THREEFISH_MIX_PERM( C,  8,  1, 52 );
-            THREEFISH_MIX_PERM( C,  0,  7, 33 ); THREEFISH_MIX_PERM( C,  2,  5,  4 ); THREEFISH_MIX_PERM( C,  4,  3, 51 ); THREEFISH_MIX_PERM( C,  6,  1, 13 ); THREEFISH_MIX_PERM( C, 12, 15, 34 ); THREEFISH_MIX_PERM( C, 14, 13, 41 ); THREEFISH_MIX_PERM( C,  8, 11, 59 ); THREEFISH_MIX_PERM( C, 10,  9, 17 );
-            THREEFISH_MIX_PERM( C,  0, 15,  5 ); THREEFISH_MIX_PERM( C,  2, 11, 20 ); THREEFISH_MIX_PERM( C,  6, 13, 48 ); THREEFISH_MIX_PERM( C,  4,  9, 41 ); THREEFISH_MIX_PERM( C, 14,  1, 47 ); THREEFISH_MIX_PERM( C,  8,  5, 28 ); THREEFISH_MIX_PERM( C, 10,  3, 16 ); THREEFISH_MIX_PERM( C, 12,  7, 25 );
+            THREEFISH_MIX( C,  0,  1, 24 ); THREEFISH_MIX( C,  2,  3, 13 );
+                THREEFISH_MIX( C,  4,  5,  8 ); THREEFISH_MIX( C,  6,  7, 47 );
+                THREEFISH_MIX( C,  8,  9,  8 ); THREEFISH_MIX( C, 10, 11, 17 );
+                THREEFISH_MIX( C, 12, 13, 22 ); THREEFISH_MIX( C, 14, 15, 37 );
+            THREEFISH_MIX( C,  0,  9, 38 ); THREEFISH_MIX( C,  2, 13, 19 );
+                THREEFISH_MIX( C,  6, 11, 10 ); THREEFISH_MIX( C,  4, 15, 55 );
+                THREEFISH_MIX( C, 10,  7, 49 ); THREEFISH_MIX( C, 12,  3, 18 );
+                THREEFISH_MIX( C, 14,  5, 23 ); THREEFISH_MIX( C,  8,  1, 52 );
+            THREEFISH_MIX( C,  0,  7, 33 ); THREEFISH_MIX( C,  2,  5,  4 );
+                THREEFISH_MIX( C,  4,  3, 51 ); THREEFISH_MIX( C,  6,  1, 13 );
+                THREEFISH_MIX( C, 12, 15, 34 ); THREEFISH_MIX( C, 14, 13, 41 );
+                THREEFISH_MIX( C,  8, 11, 59 ); THREEFISH_MIX( C, 10,  9, 17 );
+            THREEFISH_MIX( C,  0, 15,  5 ); THREEFISH_MIX( C,  2, 11, 20 );
+                THREEFISH_MIX( C,  6, 13, 48 ); THREEFISH_MIX( C,  4,  9, 41 );
+                THREEFISH_MIX( C, 14,  1, 47 ); THREEFISH_MIX( C,  8,  5, 28 );
+                THREEFISH_MIX( C, 10,  3, 16 ); THREEFISH_MIX( C, 12,  7, 25 );
 
             THREEFISH1024_ADD_SUBKEY( C, K, T, 9 );
 
-            THREEFISH_MIX_PERM( C,  0,  1, 41 ); THREEFISH_MIX_PERM( C,  2,  3,  9 ); THREEFISH_MIX_PERM( C,  4,  5, 37 ); THREEFISH_MIX_PERM( C,  6,  7, 31 ); THREEFISH_MIX_PERM( C,  8,  9, 12 ); THREEFISH_MIX_PERM( C, 10, 11, 47 ); THREEFISH_MIX_PERM( C, 12, 13, 44 ); THREEFISH_MIX_PERM( C, 14, 15, 30 );
-            THREEFISH_MIX_PERM( C,  0,  9, 16 ); THREEFISH_MIX_PERM( C,  2, 13, 34 ); THREEFISH_MIX_PERM( C,  6, 11, 56 ); THREEFISH_MIX_PERM( C,  4, 15, 51 ); THREEFISH_MIX_PERM( C, 10,  7,  4 ); THREEFISH_MIX_PERM( C, 12,  3, 53 ); THREEFISH_MIX_PERM( C, 14,  5, 42 ); THREEFISH_MIX_PERM( C,  8,  1, 41 );
-            THREEFISH_MIX_PERM( C,  0,  7, 31 ); THREEFISH_MIX_PERM( C,  2,  5, 44 ); THREEFISH_MIX_PERM( C,  4,  3, 47 ); THREEFISH_MIX_PERM( C,  6,  1, 46 ); THREEFISH_MIX_PERM( C, 12, 15, 19 ); THREEFISH_MIX_PERM( C, 14, 13, 42 ); THREEFISH_MIX_PERM( C,  8, 11, 44 ); THREEFISH_MIX_PERM( C, 10,  9, 25 );
-            THREEFISH_MIX_PERM( C,  0, 15,  9 ); THREEFISH_MIX_PERM( C,  2, 11, 48 ); THREEFISH_MIX_PERM( C,  6, 13, 35 ); THREEFISH_MIX_PERM( C,  4,  9, 52 ); THREEFISH_MIX_PERM( C, 14,  1, 23 ); THREEFISH_MIX_PERM( C,  8,  5, 31 ); THREEFISH_MIX_PERM( C, 10,  3, 37 ); THREEFISH_MIX_PERM( C, 12,  7, 20 );
+            THREEFISH_MIX( C,  0,  1, 41 ); THREEFISH_MIX( C,  2,  3,  9 );
+                THREEFISH_MIX( C,  4,  5, 37 ); THREEFISH_MIX( C,  6,  7, 31 );
+                THREEFISH_MIX( C,  8,  9, 12 ); THREEFISH_MIX( C, 10, 11, 47 );
+                THREEFISH_MIX( C, 12, 13, 44 ); THREEFISH_MIX( C, 14, 15, 30 );
+            THREEFISH_MIX( C,  0,  9, 16 ); THREEFISH_MIX( C,  2, 13, 34 );
+                THREEFISH_MIX( C,  6, 11, 56 ); THREEFISH_MIX( C,  4, 15, 51 );
+                THREEFISH_MIX( C, 10,  7,  4 ); THREEFISH_MIX( C, 12,  3, 53 );
+                THREEFISH_MIX( C, 14,  5, 42 ); THREEFISH_MIX( C,  8,  1, 41 );
+            THREEFISH_MIX( C,  0,  7, 31 ); THREEFISH_MIX( C,  2,  5, 44 );
+                THREEFISH_MIX( C,  4,  3, 47 ); THREEFISH_MIX( C,  6,  1, 46 );
+                THREEFISH_MIX( C, 12, 15, 19 ); THREEFISH_MIX( C, 14, 13, 42 );
+                THREEFISH_MIX( C,  8, 11, 44 ); THREEFISH_MIX( C, 10,  9, 25 );
+            THREEFISH_MIX( C,  0, 15,  9 ); THREEFISH_MIX( C,  2, 11, 48 );
+                THREEFISH_MIX( C,  6, 13, 35 ); THREEFISH_MIX( C,  4,  9, 52 );
+                THREEFISH_MIX( C, 14,  1, 23 ); THREEFISH_MIX( C,  8,  5, 31 );
+                THREEFISH_MIX( C, 10,  3, 37 ); THREEFISH_MIX( C, 12,  7, 20 );
 
             THREEFISH1024_ADD_SUBKEY( C, K, T, 10 );
 
-            THREEFISH_MIX_PERM( C,  0,  1, 24 ); THREEFISH_MIX_PERM( C,  2,  3, 13 ); THREEFISH_MIX_PERM( C,  4,  5,  8 ); THREEFISH_MIX_PERM( C,  6,  7, 47 ); THREEFISH_MIX_PERM( C,  8,  9,  8 ); THREEFISH_MIX_PERM( C, 10, 11, 17 ); THREEFISH_MIX_PERM( C, 12, 13, 22 ); THREEFISH_MIX_PERM( C, 14, 15, 37 );
-            THREEFISH_MIX_PERM( C,  0,  9, 38 ); THREEFISH_MIX_PERM( C,  2, 13, 19 ); THREEFISH_MIX_PERM( C,  6, 11, 10 ); THREEFISH_MIX_PERM( C,  4, 15, 55 ); THREEFISH_MIX_PERM( C, 10,  7, 49 ); THREEFISH_MIX_PERM( C, 12,  3, 18 ); THREEFISH_MIX_PERM( C, 14,  5, 23 ); THREEFISH_MIX_PERM( C,  8,  1, 52 );
-            THREEFISH_MIX_PERM( C,  0,  7, 33 ); THREEFISH_MIX_PERM( C,  2,  5,  4 ); THREEFISH_MIX_PERM( C,  4,  3, 51 ); THREEFISH_MIX_PERM( C,  6,  1, 13 ); THREEFISH_MIX_PERM( C, 12, 15, 34 ); THREEFISH_MIX_PERM( C, 14, 13, 41 ); THREEFISH_MIX_PERM( C,  8, 11, 59 ); THREEFISH_MIX_PERM( C, 10,  9, 17 );
-            THREEFISH_MIX_PERM( C,  0, 15,  5 ); THREEFISH_MIX_PERM( C,  2, 11, 20 ); THREEFISH_MIX_PERM( C,  6, 13, 48 ); THREEFISH_MIX_PERM( C,  4,  9, 41 ); THREEFISH_MIX_PERM( C, 14,  1, 47 ); THREEFISH_MIX_PERM( C,  8,  5, 28 ); THREEFISH_MIX_PERM( C, 10,  3, 16 ); THREEFISH_MIX_PERM( C, 12,  7, 25 );
+            THREEFISH_MIX( C,  0,  1, 24 ); THREEFISH_MIX( C,  2,  3, 13 );
+                THREEFISH_MIX( C,  4,  5,  8 ); THREEFISH_MIX( C,  6,  7, 47 );
+                THREEFISH_MIX( C,  8,  9,  8 ); THREEFISH_MIX( C, 10, 11, 17 );
+                THREEFISH_MIX( C, 12, 13, 22 ); THREEFISH_MIX( C, 14, 15, 37 );
+            THREEFISH_MIX( C,  0,  9, 38 ); THREEFISH_MIX( C,  2, 13, 19 );
+                THREEFISH_MIX( C,  6, 11, 10 ); THREEFISH_MIX( C,  4, 15, 55 );
+                THREEFISH_MIX( C, 10,  7, 49 ); THREEFISH_MIX( C, 12,  3, 18 );
+                THREEFISH_MIX( C, 14,  5, 23 ); THREEFISH_MIX( C,  8,  1, 52 );
+            THREEFISH_MIX( C,  0,  7, 33 ); THREEFISH_MIX( C,  2,  5,  4 );
+                THREEFISH_MIX( C,  4,  3, 51 ); THREEFISH_MIX( C,  6,  1, 13 );
+                THREEFISH_MIX( C, 12, 15, 34 ); THREEFISH_MIX( C, 14, 13, 41 );
+                THREEFISH_MIX( C,  8, 11, 59 ); THREEFISH_MIX( C, 10,  9, 17 );
+            THREEFISH_MIX( C,  0, 15,  5 ); THREEFISH_MIX( C,  2, 11, 20 );
+                THREEFISH_MIX( C,  6, 13, 48 ); THREEFISH_MIX( C,  4,  9, 41 );
+                THREEFISH_MIX( C, 14,  1, 47 ); THREEFISH_MIX( C,  8,  5, 28 );
+                THREEFISH_MIX( C, 10,  3, 16 ); THREEFISH_MIX( C, 12,  7, 25 );
 
             THREEFISH1024_ADD_SUBKEY( C, K, T, 11 );
 
-            THREEFISH_MIX_PERM( C,  0,  1, 41 ); THREEFISH_MIX_PERM( C,  2,  3,  9 ); THREEFISH_MIX_PERM( C,  4,  5, 37 ); THREEFISH_MIX_PERM( C,  6,  7, 31 ); THREEFISH_MIX_PERM( C,  8,  9, 12 ); THREEFISH_MIX_PERM( C, 10, 11, 47 ); THREEFISH_MIX_PERM( C, 12, 13, 44 ); THREEFISH_MIX_PERM( C, 14, 15, 30 );
-            THREEFISH_MIX_PERM( C,  0,  9, 16 ); THREEFISH_MIX_PERM( C,  2, 13, 34 ); THREEFISH_MIX_PERM( C,  6, 11, 56 ); THREEFISH_MIX_PERM( C,  4, 15, 51 ); THREEFISH_MIX_PERM( C, 10,  7,  4 ); THREEFISH_MIX_PERM( C, 12,  3, 53 ); THREEFISH_MIX_PERM( C, 14,  5, 42 ); THREEFISH_MIX_PERM( C,  8,  1, 41 );
-            THREEFISH_MIX_PERM( C,  0,  7, 31 ); THREEFISH_MIX_PERM( C,  2,  5, 44 ); THREEFISH_MIX_PERM( C,  4,  3, 47 ); THREEFISH_MIX_PERM( C,  6,  1, 46 ); THREEFISH_MIX_PERM( C, 12, 15, 19 ); THREEFISH_MIX_PERM( C, 14, 13, 42 ); THREEFISH_MIX_PERM( C,  8, 11, 44 ); THREEFISH_MIX_PERM( C, 10,  9, 25 );
-            THREEFISH_MIX_PERM( C,  0, 15,  9 ); THREEFISH_MIX_PERM( C,  2, 11, 48 ); THREEFISH_MIX_PERM( C,  6, 13, 35 ); THREEFISH_MIX_PERM( C,  4,  9, 52 ); THREEFISH_MIX_PERM( C, 14,  1, 23 ); THREEFISH_MIX_PERM( C,  8,  5, 31 ); THREEFISH_MIX_PERM( C, 10,  3, 37 ); THREEFISH_MIX_PERM( C, 12,  7, 20 );
+            THREEFISH_MIX( C,  0,  1, 41 ); THREEFISH_MIX( C,  2,  3,  9 );
+                THREEFISH_MIX( C,  4,  5, 37 ); THREEFISH_MIX( C,  6,  7, 31 );
+                THREEFISH_MIX( C,  8,  9, 12 ); THREEFISH_MIX( C, 10, 11, 47 );
+                THREEFISH_MIX( C, 12, 13, 44 ); THREEFISH_MIX( C, 14, 15, 30 );
+            THREEFISH_MIX( C,  0,  9, 16 ); THREEFISH_MIX( C,  2, 13, 34 );
+                THREEFISH_MIX( C,  6, 11, 56 ); THREEFISH_MIX( C,  4, 15, 51 );
+                THREEFISH_MIX( C, 10,  7,  4 ); THREEFISH_MIX( C, 12,  3, 53 );
+                THREEFISH_MIX( C, 14,  5, 42 ); THREEFISH_MIX( C,  8,  1, 41 );
+            THREEFISH_MIX( C,  0,  7, 31 ); THREEFISH_MIX( C,  2,  5, 44 );
+                THREEFISH_MIX( C,  4,  3, 47 ); THREEFISH_MIX( C,  6,  1, 46 );
+                THREEFISH_MIX( C, 12, 15, 19 ); THREEFISH_MIX( C, 14, 13, 42 );
+                THREEFISH_MIX( C,  8, 11, 44 ); THREEFISH_MIX( C, 10,  9, 25 );
+            THREEFISH_MIX( C,  0, 15,  9 ); THREEFISH_MIX( C,  2, 11, 48 );
+                THREEFISH_MIX( C,  6, 13, 35 ); THREEFISH_MIX( C,  4,  9, 52 );
+                THREEFISH_MIX( C, 14,  1, 23 ); THREEFISH_MIX( C,  8,  5, 31 );
+                THREEFISH_MIX( C, 10,  3, 37 ); THREEFISH_MIX( C, 12,  7, 20 );
 
             THREEFISH1024_ADD_SUBKEY( C, K, T, 12 );
 
-            THREEFISH_MIX_PERM( C,  0,  1, 24 ); THREEFISH_MIX_PERM( C,  2,  3, 13 ); THREEFISH_MIX_PERM( C,  4,  5,  8 ); THREEFISH_MIX_PERM( C,  6,  7, 47 ); THREEFISH_MIX_PERM( C,  8,  9,  8 ); THREEFISH_MIX_PERM( C, 10, 11, 17 ); THREEFISH_MIX_PERM( C, 12, 13, 22 ); THREEFISH_MIX_PERM( C, 14, 15, 37 );
-            THREEFISH_MIX_PERM( C,  0,  9, 38 ); THREEFISH_MIX_PERM( C,  2, 13, 19 ); THREEFISH_MIX_PERM( C,  6, 11, 10 ); THREEFISH_MIX_PERM( C,  4, 15, 55 ); THREEFISH_MIX_PERM( C, 10,  7, 49 ); THREEFISH_MIX_PERM( C, 12,  3, 18 ); THREEFISH_MIX_PERM( C, 14,  5, 23 ); THREEFISH_MIX_PERM( C,  8,  1, 52 );
-            THREEFISH_MIX_PERM( C,  0,  7, 33 ); THREEFISH_MIX_PERM( C,  2,  5,  4 ); THREEFISH_MIX_PERM( C,  4,  3, 51 ); THREEFISH_MIX_PERM( C,  6,  1, 13 ); THREEFISH_MIX_PERM( C, 12, 15, 34 ); THREEFISH_MIX_PERM( C, 14, 13, 41 ); THREEFISH_MIX_PERM( C,  8, 11, 59 ); THREEFISH_MIX_PERM( C, 10,  9, 17 );
-            THREEFISH_MIX_PERM( C,  0, 15,  5 ); THREEFISH_MIX_PERM( C,  2, 11, 20 ); THREEFISH_MIX_PERM( C,  6, 13, 48 ); THREEFISH_MIX_PERM( C,  4,  9, 41 ); THREEFISH_MIX_PERM( C, 14,  1, 47 ); THREEFISH_MIX_PERM( C,  8,  5, 28 ); THREEFISH_MIX_PERM( C, 10,  3, 16 ); THREEFISH_MIX_PERM( C, 12,  7, 25 );
+            THREEFISH_MIX( C,  0,  1, 24 ); THREEFISH_MIX( C,  2,  3, 13 );
+                THREEFISH_MIX( C,  4,  5,  8 ); THREEFISH_MIX( C,  6,  7, 47 );
+                THREEFISH_MIX( C,  8,  9,  8 ); THREEFISH_MIX( C, 10, 11, 17 );
+                THREEFISH_MIX( C, 12, 13, 22 ); THREEFISH_MIX( C, 14, 15, 37 );
+            THREEFISH_MIX( C,  0,  9, 38 ); THREEFISH_MIX( C,  2, 13, 19 );
+                THREEFISH_MIX( C,  6, 11, 10 ); THREEFISH_MIX( C,  4, 15, 55 );
+                THREEFISH_MIX( C, 10,  7, 49 ); THREEFISH_MIX( C, 12,  3, 18 );
+                THREEFISH_MIX( C, 14,  5, 23 ); THREEFISH_MIX( C,  8,  1, 52 );
+            THREEFISH_MIX( C,  0,  7, 33 ); THREEFISH_MIX( C,  2,  5,  4 );
+                THREEFISH_MIX( C,  4,  3, 51 ); THREEFISH_MIX( C,  6,  1, 13 );
+                THREEFISH_MIX( C, 12, 15, 34 ); THREEFISH_MIX( C, 14, 13, 41 );
+                THREEFISH_MIX( C,  8, 11, 59 ); THREEFISH_MIX( C, 10,  9, 17 );
+            THREEFISH_MIX( C,  0, 15,  5 ); THREEFISH_MIX( C,  2, 11, 20 );
+                THREEFISH_MIX( C,  6, 13, 48 ); THREEFISH_MIX( C,  4,  9, 41 );
+                THREEFISH_MIX( C, 14,  1, 47 ); THREEFISH_MIX( C,  8,  5, 28 );
+                THREEFISH_MIX( C, 10,  3, 16 ); THREEFISH_MIX( C, 12,  7, 25 );
 
             THREEFISH1024_ADD_SUBKEY( C, K, T, 13 );
 
-            THREEFISH_MIX_PERM( C,  0,  1, 41 ); THREEFISH_MIX_PERM( C,  2,  3,  9 ); THREEFISH_MIX_PERM( C,  4,  5, 37 ); THREEFISH_MIX_PERM( C,  6,  7, 31 ); THREEFISH_MIX_PERM( C,  8,  9, 12 ); THREEFISH_MIX_PERM( C, 10, 11, 47 ); THREEFISH_MIX_PERM( C, 12, 13, 44 ); THREEFISH_MIX_PERM( C, 14, 15, 30 );
-            THREEFISH_MIX_PERM( C,  0,  9, 16 ); THREEFISH_MIX_PERM( C,  2, 13, 34 ); THREEFISH_MIX_PERM( C,  6, 11, 56 ); THREEFISH_MIX_PERM( C,  4, 15, 51 ); THREEFISH_MIX_PERM( C, 10,  7,  4 ); THREEFISH_MIX_PERM( C, 12,  3, 53 ); THREEFISH_MIX_PERM( C, 14,  5, 42 ); THREEFISH_MIX_PERM( C,  8,  1, 41 );
-            THREEFISH_MIX_PERM( C,  0,  7, 31 ); THREEFISH_MIX_PERM( C,  2,  5, 44 ); THREEFISH_MIX_PERM( C,  4,  3, 47 ); THREEFISH_MIX_PERM( C,  6,  1, 46 ); THREEFISH_MIX_PERM( C, 12, 15, 19 ); THREEFISH_MIX_PERM( C, 14, 13, 42 ); THREEFISH_MIX_PERM( C,  8, 11, 44 ); THREEFISH_MIX_PERM( C, 10,  9, 25 );
-            THREEFISH_MIX_PERM( C,  0, 15,  9 ); THREEFISH_MIX_PERM( C,  2, 11, 48 ); THREEFISH_MIX_PERM( C,  6, 13, 35 ); THREEFISH_MIX_PERM( C,  4,  9, 52 ); THREEFISH_MIX_PERM( C, 14,  1, 23 ); THREEFISH_MIX_PERM( C,  8,  5, 31 ); THREEFISH_MIX_PERM( C, 10,  3, 37 ); THREEFISH_MIX_PERM( C, 12,  7, 20 );
+            THREEFISH_MIX( C,  0,  1, 41 ); THREEFISH_MIX( C,  2,  3,  9 );
+                THREEFISH_MIX( C,  4,  5, 37 ); THREEFISH_MIX( C,  6,  7, 31 );
+                THREEFISH_MIX( C,  8,  9, 12 ); THREEFISH_MIX( C, 10, 11, 47 );
+                THREEFISH_MIX( C, 12, 13, 44 ); THREEFISH_MIX( C, 14, 15, 30 );
+            THREEFISH_MIX( C,  0,  9, 16 ); THREEFISH_MIX( C,  2, 13, 34 );
+                THREEFISH_MIX( C,  6, 11, 56 ); THREEFISH_MIX( C,  4, 15, 51 );
+                THREEFISH_MIX( C, 10,  7,  4 ); THREEFISH_MIX( C, 12,  3, 53 );
+                THREEFISH_MIX( C, 14,  5, 42 ); THREEFISH_MIX( C,  8,  1, 41 );
+            THREEFISH_MIX( C,  0,  7, 31 ); THREEFISH_MIX( C,  2,  5, 44 );
+                THREEFISH_MIX( C,  4,  3, 47 ); THREEFISH_MIX( C,  6,  1, 46 );
+                THREEFISH_MIX( C, 12, 15, 19 ); THREEFISH_MIX( C, 14, 13, 42 );
+                THREEFISH_MIX( C,  8, 11, 44 ); THREEFISH_MIX( C, 10,  9, 25 );
+            THREEFISH_MIX( C,  0, 15,  9 ); THREEFISH_MIX( C,  2, 11, 48 );
+                THREEFISH_MIX( C,  6, 13, 35 ); THREEFISH_MIX( C,  4,  9, 52 );
+                THREEFISH_MIX( C, 14,  1, 23 ); THREEFISH_MIX( C,  8,  5, 31 );
+                THREEFISH_MIX( C, 10,  3, 37 ); THREEFISH_MIX( C, 12,  7, 20 );
 
             THREEFISH1024_ADD_SUBKEY( C, K, T, 14 );
 
-            THREEFISH_MIX_PERM( C,  0,  1, 24 ); THREEFISH_MIX_PERM( C,  2,  3, 13 ); THREEFISH_MIX_PERM( C,  4,  5,  8 ); THREEFISH_MIX_PERM( C,  6,  7, 47 ); THREEFISH_MIX_PERM( C,  8,  9,  8 ); THREEFISH_MIX_PERM( C, 10, 11, 17 ); THREEFISH_MIX_PERM( C, 12, 13, 22 ); THREEFISH_MIX_PERM( C, 14, 15, 37 );
-            THREEFISH_MIX_PERM( C,  0,  9, 38 ); THREEFISH_MIX_PERM( C,  2, 13, 19 ); THREEFISH_MIX_PERM( C,  6, 11, 10 ); THREEFISH_MIX_PERM( C,  4, 15, 55 ); THREEFISH_MIX_PERM( C, 10,  7, 49 ); THREEFISH_MIX_PERM( C, 12,  3, 18 ); THREEFISH_MIX_PERM( C, 14,  5, 23 ); THREEFISH_MIX_PERM( C,  8,  1, 52 );
-            THREEFISH_MIX_PERM( C,  0,  7, 33 ); THREEFISH_MIX_PERM( C,  2,  5,  4 ); THREEFISH_MIX_PERM( C,  4,  3, 51 ); THREEFISH_MIX_PERM( C,  6,  1, 13 ); THREEFISH_MIX_PERM( C, 12, 15, 34 ); THREEFISH_MIX_PERM( C, 14, 13, 41 ); THREEFISH_MIX_PERM( C,  8, 11, 59 ); THREEFISH_MIX_PERM( C, 10,  9, 17 );
-            THREEFISH_MIX_PERM( C,  0, 15,  5 ); THREEFISH_MIX_PERM( C,  2, 11, 20 ); THREEFISH_MIX_PERM( C,  6, 13, 48 ); THREEFISH_MIX_PERM( C,  4,  9, 41 ); THREEFISH_MIX_PERM( C, 14,  1, 47 ); THREEFISH_MIX_PERM( C,  8,  5, 28 ); THREEFISH_MIX_PERM( C, 10,  3, 16 ); THREEFISH_MIX_PERM( C, 12,  7, 25 );
+            THREEFISH_MIX( C,  0,  1, 24 ); THREEFISH_MIX( C,  2,  3, 13 );
+                THREEFISH_MIX( C,  4,  5,  8 ); THREEFISH_MIX( C,  6,  7, 47 );
+                THREEFISH_MIX( C,  8,  9,  8 ); THREEFISH_MIX( C, 10, 11, 17 );
+                THREEFISH_MIX( C, 12, 13, 22 ); THREEFISH_MIX( C, 14, 15, 37 );
+            THREEFISH_MIX( C,  0,  9, 38 ); THREEFISH_MIX( C,  2, 13, 19 );
+                THREEFISH_MIX( C,  6, 11, 10 ); THREEFISH_MIX( C,  4, 15, 55 );
+                THREEFISH_MIX( C, 10,  7, 49 ); THREEFISH_MIX( C, 12,  3, 18 );
+                THREEFISH_MIX( C, 14,  5, 23 ); THREEFISH_MIX( C,  8,  1, 52 );
+            THREEFISH_MIX( C,  0,  7, 33 ); THREEFISH_MIX( C,  2,  5,  4 );
+                THREEFISH_MIX( C,  4,  3, 51 ); THREEFISH_MIX( C,  6,  1, 13 );
+                THREEFISH_MIX( C, 12, 15, 34 ); THREEFISH_MIX( C, 14, 13, 41 );
+                THREEFISH_MIX( C,  8, 11, 59 ); THREEFISH_MIX( C, 10,  9, 17 );
+            THREEFISH_MIX( C,  0, 15,  5 ); THREEFISH_MIX( C,  2, 11, 20 );
+                THREEFISH_MIX( C,  6, 13, 48 ); THREEFISH_MIX( C,  4,  9, 41 );
+                THREEFISH_MIX( C, 14,  1, 47 ); THREEFISH_MIX( C,  8,  5, 28 );
+                THREEFISH_MIX( C, 10,  3, 16 ); THREEFISH_MIX( C, 12,  7, 25 );
 
             THREEFISH1024_ADD_SUBKEY( C, K, T, 15 );
 
-            THREEFISH_MIX_PERM( C,  0,  1, 41 ); THREEFISH_MIX_PERM( C,  2,  3,  9 ); THREEFISH_MIX_PERM( C,  4,  5, 37 ); THREEFISH_MIX_PERM( C,  6,  7, 31 ); THREEFISH_MIX_PERM( C,  8,  9, 12 ); THREEFISH_MIX_PERM( C, 10, 11, 47 ); THREEFISH_MIX_PERM( C, 12, 13, 44 ); THREEFISH_MIX_PERM( C, 14, 15, 30 );
-            THREEFISH_MIX_PERM( C,  0,  9, 16 ); THREEFISH_MIX_PERM( C,  2, 13, 34 ); THREEFISH_MIX_PERM( C,  6, 11, 56 ); THREEFISH_MIX_PERM( C,  4, 15, 51 ); THREEFISH_MIX_PERM( C, 10,  7,  4 ); THREEFISH_MIX_PERM( C, 12,  3, 53 ); THREEFISH_MIX_PERM( C, 14,  5, 42 ); THREEFISH_MIX_PERM( C,  8,  1, 41 );
-            THREEFISH_MIX_PERM( C,  0,  7, 31 ); THREEFISH_MIX_PERM( C,  2,  5, 44 ); THREEFISH_MIX_PERM( C,  4,  3, 47 ); THREEFISH_MIX_PERM( C,  6,  1, 46 ); THREEFISH_MIX_PERM( C, 12, 15, 19 ); THREEFISH_MIX_PERM( C, 14, 13, 42 ); THREEFISH_MIX_PERM( C,  8, 11, 44 ); THREEFISH_MIX_PERM( C, 10,  9, 25 );
-            THREEFISH_MIX_PERM( C,  0, 15,  9 ); THREEFISH_MIX_PERM( C,  2, 11, 48 ); THREEFISH_MIX_PERM( C,  6, 13, 35 ); THREEFISH_MIX_PERM( C,  4,  9, 52 ); THREEFISH_MIX_PERM( C, 14,  1, 23 ); THREEFISH_MIX_PERM( C,  8,  5, 31 ); THREEFISH_MIX_PERM( C, 10,  3, 37 ); THREEFISH_MIX_PERM( C, 12,  7, 20 );
+            THREEFISH_MIX( C,  0,  1, 41 ); THREEFISH_MIX( C,  2,  3,  9 );
+                THREEFISH_MIX( C,  4,  5, 37 ); THREEFISH_MIX( C,  6,  7, 31 );
+                THREEFISH_MIX( C,  8,  9, 12 ); THREEFISH_MIX( C, 10, 11, 47 );
+                THREEFISH_MIX( C, 12, 13, 44 ); THREEFISH_MIX( C, 14, 15, 30 );
+            THREEFISH_MIX( C,  0,  9, 16 ); THREEFISH_MIX( C,  2, 13, 34 );
+                THREEFISH_MIX( C,  6, 11, 56 ); THREEFISH_MIX( C,  4, 15, 51 );
+                THREEFISH_MIX( C, 10,  7,  4 ); THREEFISH_MIX( C, 12,  3, 53 );
+                THREEFISH_MIX( C, 14,  5, 42 ); THREEFISH_MIX( C,  8,  1, 41 );
+            THREEFISH_MIX( C,  0,  7, 31 ); THREEFISH_MIX( C,  2,  5, 44 );
+                THREEFISH_MIX( C,  4,  3, 47 ); THREEFISH_MIX( C,  6,  1, 46 );
+                THREEFISH_MIX( C, 12, 15, 19 ); THREEFISH_MIX( C, 14, 13, 42 );
+                THREEFISH_MIX( C,  8, 11, 44 ); THREEFISH_MIX( C, 10,  9, 25 );
+            THREEFISH_MIX( C,  0, 15,  9 ); THREEFISH_MIX( C,  2, 11, 48 );
+                THREEFISH_MIX( C,  6, 13, 35 ); THREEFISH_MIX( C,  4,  9, 52 );
+                THREEFISH_MIX( C, 14,  1, 23 ); THREEFISH_MIX( C,  8,  5, 31 );
+                THREEFISH_MIX( C, 10,  3, 37 ); THREEFISH_MIX( C, 12,  7, 20 );
 
             THREEFISH1024_ADD_SUBKEY( C, K, T, 16 );
 
-            THREEFISH_MIX_PERM( C,  0,  1, 24 ); THREEFISH_MIX_PERM( C,  2,  3, 13 ); THREEFISH_MIX_PERM( C,  4,  5,  8 ); THREEFISH_MIX_PERM( C,  6,  7, 47 ); THREEFISH_MIX_PERM( C,  8,  9,  8 ); THREEFISH_MIX_PERM( C, 10, 11, 17 ); THREEFISH_MIX_PERM( C, 12, 13, 22 ); THREEFISH_MIX_PERM( C, 14, 15, 37 );
-            THREEFISH_MIX_PERM( C,  0,  9, 38 ); THREEFISH_MIX_PERM( C,  2, 13, 19 ); THREEFISH_MIX_PERM( C,  6, 11, 10 ); THREEFISH_MIX_PERM( C,  4, 15, 55 ); THREEFISH_MIX_PERM( C, 10,  7, 49 ); THREEFISH_MIX_PERM( C, 12,  3, 18 ); THREEFISH_MIX_PERM( C, 14,  5, 23 ); THREEFISH_MIX_PERM( C,  8,  1, 52 );
-            THREEFISH_MIX_PERM( C,  0,  7, 33 ); THREEFISH_MIX_PERM( C,  2,  5,  4 ); THREEFISH_MIX_PERM( C,  4,  3, 51 ); THREEFISH_MIX_PERM( C,  6,  1, 13 ); THREEFISH_MIX_PERM( C, 12, 15, 34 ); THREEFISH_MIX_PERM( C, 14, 13, 41 ); THREEFISH_MIX_PERM( C,  8, 11, 59 ); THREEFISH_MIX_PERM( C, 10,  9, 17 );
-            THREEFISH_MIX_PERM( C,  0, 15,  5 ); THREEFISH_MIX_PERM( C,  2, 11, 20 ); THREEFISH_MIX_PERM( C,  6, 13, 48 ); THREEFISH_MIX_PERM( C,  4,  9, 41 ); THREEFISH_MIX_PERM( C, 14,  1, 47 ); THREEFISH_MIX_PERM( C,  8,  5, 28 ); THREEFISH_MIX_PERM( C, 10,  3, 16 ); THREEFISH_MIX_PERM( C, 12,  7, 25 );
+            THREEFISH_MIX( C,  0,  1, 24 ); THREEFISH_MIX( C,  2,  3, 13 );
+                THREEFISH_MIX( C,  4,  5,  8 ); THREEFISH_MIX( C,  6,  7, 47 );
+                THREEFISH_MIX( C,  8,  9,  8 ); THREEFISH_MIX( C, 10, 11, 17 );
+                THREEFISH_MIX( C, 12, 13, 22 ); THREEFISH_MIX( C, 14, 15, 37 );
+            THREEFISH_MIX( C,  0,  9, 38 ); THREEFISH_MIX( C,  2, 13, 19 );
+                THREEFISH_MIX( C,  6, 11, 10 ); THREEFISH_MIX( C,  4, 15, 55 );
+                THREEFISH_MIX( C, 10,  7, 49 ); THREEFISH_MIX( C, 12,  3, 18 );
+                THREEFISH_MIX( C, 14,  5, 23 ); THREEFISH_MIX( C,  8,  1, 52 );
+            THREEFISH_MIX( C,  0,  7, 33 ); THREEFISH_MIX( C,  2,  5,  4 );
+                THREEFISH_MIX( C,  4,  3, 51 ); THREEFISH_MIX( C,  6,  1, 13 );
+                THREEFISH_MIX( C, 12, 15, 34 ); THREEFISH_MIX( C, 14, 13, 41 );
+                THREEFISH_MIX( C,  8, 11, 59 ); THREEFISH_MIX( C, 10,  9, 17 );
+            THREEFISH_MIX( C,  0, 15,  5 ); THREEFISH_MIX( C,  2, 11, 20 );
+                THREEFISH_MIX( C,  6, 13, 48 ); THREEFISH_MIX( C,  4,  9, 41 );
+                THREEFISH_MIX( C, 14,  1, 47 ); THREEFISH_MIX( C,  8,  5, 28 );
+                THREEFISH_MIX( C, 10,  3, 16 ); THREEFISH_MIX( C, 12,  7, 25 );
 
             THREEFISH1024_ADD_SUBKEY( C, K, T, 17 );
 
-            THREEFISH_MIX_PERM( C,  0,  1, 41 ); THREEFISH_MIX_PERM( C,  2,  3,  9 ); THREEFISH_MIX_PERM( C,  4,  5, 37 ); THREEFISH_MIX_PERM( C,  6,  7, 31 ); THREEFISH_MIX_PERM( C,  8,  9, 12 ); THREEFISH_MIX_PERM( C, 10, 11, 47 ); THREEFISH_MIX_PERM( C, 12, 13, 44 ); THREEFISH_MIX_PERM( C, 14, 15, 30 );
-            THREEFISH_MIX_PERM( C,  0,  9, 16 ); THREEFISH_MIX_PERM( C,  2, 13, 34 ); THREEFISH_MIX_PERM( C,  6, 11, 56 ); THREEFISH_MIX_PERM( C,  4, 15, 51 ); THREEFISH_MIX_PERM( C, 10,  7,  4 ); THREEFISH_MIX_PERM( C, 12,  3, 53 ); THREEFISH_MIX_PERM( C, 14,  5, 42 ); THREEFISH_MIX_PERM( C,  8,  1, 41 );
-            THREEFISH_MIX_PERM( C,  0,  7, 31 ); THREEFISH_MIX_PERM( C,  2,  5, 44 ); THREEFISH_MIX_PERM( C,  4,  3, 47 ); THREEFISH_MIX_PERM( C,  6,  1, 46 ); THREEFISH_MIX_PERM( C, 12, 15, 19 ); THREEFISH_MIX_PERM( C, 14, 13, 42 ); THREEFISH_MIX_PERM( C,  8, 11, 44 ); THREEFISH_MIX_PERM( C, 10,  9, 25 );
-            THREEFISH_MIX_PERM( C,  0, 15,  9 ); THREEFISH_MIX_PERM( C,  2, 11, 48 ); THREEFISH_MIX_PERM( C,  6, 13, 35 ); THREEFISH_MIX_PERM( C,  4,  9, 52 ); THREEFISH_MIX_PERM( C, 14,  1, 23 ); THREEFISH_MIX_PERM( C,  8,  5, 31 ); THREEFISH_MIX_PERM( C, 10,  3, 37 ); THREEFISH_MIX_PERM( C, 12,  7, 20 );
+            THREEFISH_MIX( C,  0,  1, 41 ); THREEFISH_MIX( C,  2,  3,  9 );
+                THREEFISH_MIX( C,  4,  5, 37 ); THREEFISH_MIX( C,  6,  7, 31 );
+                THREEFISH_MIX( C,  8,  9, 12 ); THREEFISH_MIX( C, 10, 11, 47 );
+                THREEFISH_MIX( C, 12, 13, 44 ); THREEFISH_MIX( C, 14, 15, 30 );
+            THREEFISH_MIX( C,  0,  9, 16 ); THREEFISH_MIX( C,  2, 13, 34 );
+                THREEFISH_MIX( C,  6, 11, 56 ); THREEFISH_MIX( C,  4, 15, 51 );
+                THREEFISH_MIX( C, 10,  7,  4 ); THREEFISH_MIX( C, 12,  3, 53 );
+                THREEFISH_MIX( C, 14,  5, 42 ); THREEFISH_MIX( C,  8,  1, 41 );
+            THREEFISH_MIX( C,  0,  7, 31 ); THREEFISH_MIX( C,  2,  5, 44 );
+                THREEFISH_MIX( C,  4,  3, 47 ); THREEFISH_MIX( C,  6,  1, 46 );
+                THREEFISH_MIX( C, 12, 15, 19 ); THREEFISH_MIX( C, 14, 13, 42 );
+                THREEFISH_MIX( C,  8, 11, 44 ); THREEFISH_MIX( C, 10,  9, 25 );
+            THREEFISH_MIX( C,  0, 15,  9 ); THREEFISH_MIX( C,  2, 11, 48 );
+                THREEFISH_MIX( C,  6, 13, 35 ); THREEFISH_MIX( C,  4,  9, 52 );
+                THREEFISH_MIX( C, 14,  1, 23 ); THREEFISH_MIX( C,  8,  5, 31 );
+                THREEFISH_MIX( C, 10,  3, 37 ); THREEFISH_MIX( C, 12,  7, 20 );
 
             THREEFISH1024_ADD_SUBKEY( C, K, T, 18 );
 
-            THREEFISH_MIX_PERM( C,  0,  1, 24 ); THREEFISH_MIX_PERM( C,  2,  3, 13 ); THREEFISH_MIX_PERM( C,  4,  5,  8 ); THREEFISH_MIX_PERM( C,  6,  7, 47 ); THREEFISH_MIX_PERM( C,  8,  9,  8 ); THREEFISH_MIX_PERM( C, 10, 11, 17 ); THREEFISH_MIX_PERM( C, 12, 13, 22 ); THREEFISH_MIX_PERM( C, 14, 15, 37 );
-            THREEFISH_MIX_PERM( C,  0,  9, 38 ); THREEFISH_MIX_PERM( C,  2, 13, 19 ); THREEFISH_MIX_PERM( C,  6, 11, 10 ); THREEFISH_MIX_PERM( C,  4, 15, 55 ); THREEFISH_MIX_PERM( C, 10,  7, 49 ); THREEFISH_MIX_PERM( C, 12,  3, 18 ); THREEFISH_MIX_PERM( C, 14,  5, 23 ); THREEFISH_MIX_PERM( C,  8,  1, 52 );
-            THREEFISH_MIX_PERM( C,  0,  7, 33 ); THREEFISH_MIX_PERM( C,  2,  5,  4 ); THREEFISH_MIX_PERM( C,  4,  3, 51 ); THREEFISH_MIX_PERM( C,  6,  1, 13 ); THREEFISH_MIX_PERM( C, 12, 15, 34 ); THREEFISH_MIX_PERM( C, 14, 13, 41 ); THREEFISH_MIX_PERM( C,  8, 11, 59 ); THREEFISH_MIX_PERM( C, 10,  9, 17 );
-            THREEFISH_MIX_PERM( C,  0, 15,  5 ); THREEFISH_MIX_PERM( C,  2, 11, 20 ); THREEFISH_MIX_PERM( C,  6, 13, 48 ); THREEFISH_MIX_PERM( C,  4,  9, 41 ); THREEFISH_MIX_PERM( C, 14,  1, 47 ); THREEFISH_MIX_PERM( C,  8,  5, 28 ); THREEFISH_MIX_PERM( C, 10,  3, 16 ); THREEFISH_MIX_PERM( C, 12,  7, 25 );
+            THREEFISH_MIX( C,  0,  1, 24 ); THREEFISH_MIX( C,  2,  3, 13 );
+                THREEFISH_MIX( C,  4,  5,  8 ); THREEFISH_MIX( C,  6,  7, 47 );
+                THREEFISH_MIX( C,  8,  9,  8 ); THREEFISH_MIX( C, 10, 11, 17 );
+                THREEFISH_MIX( C, 12, 13, 22 ); THREEFISH_MIX( C, 14, 15, 37 );
+            THREEFISH_MIX( C,  0,  9, 38 ); THREEFISH_MIX( C,  2, 13, 19 );
+                THREEFISH_MIX( C,  6, 11, 10 ); THREEFISH_MIX( C,  4, 15, 55 );
+                THREEFISH_MIX( C, 10,  7, 49 ); THREEFISH_MIX( C, 12,  3, 18 );
+                THREEFISH_MIX( C, 14,  5, 23 ); THREEFISH_MIX( C,  8,  1, 52 );
+            THREEFISH_MIX( C,  0,  7, 33 ); THREEFISH_MIX( C,  2,  5,  4 );
+                THREEFISH_MIX( C,  4,  3, 51 ); THREEFISH_MIX( C,  6,  1, 13 );
+                THREEFISH_MIX( C, 12, 15, 34 ); THREEFISH_MIX( C, 14, 13, 41 );
+                THREEFISH_MIX( C,  8, 11, 59 ); THREEFISH_MIX( C, 10,  9, 17 );
+            THREEFISH_MIX( C,  0, 15,  5 ); THREEFISH_MIX( C,  2, 11, 20 );
+                THREEFISH_MIX( C,  6, 13, 48 ); THREEFISH_MIX( C,  4,  9, 41 );
+                THREEFISH_MIX( C, 14,  1, 47 ); THREEFISH_MIX( C,  8,  5, 28 );
+                THREEFISH_MIX( C, 10,  3, 16 ); THREEFISH_MIX( C, 12,  7, 25 );
 
             THREEFISH1024_ADD_SUBKEY( C, K, T, 19 );
 
-            THREEFISH_MIX_PERM( C,  0,  1, 41 ); THREEFISH_MIX_PERM( C,  2,  3,  9 ); THREEFISH_MIX_PERM( C,  4,  5, 37 ); THREEFISH_MIX_PERM( C,  6,  7, 31 ); THREEFISH_MIX_PERM( C,  8,  9, 12 ); THREEFISH_MIX_PERM( C, 10, 11, 47 ); THREEFISH_MIX_PERM( C, 12, 13, 44 ); THREEFISH_MIX_PERM( C, 14, 15, 30 );
-            THREEFISH_MIX_PERM( C,  0,  9, 16 ); THREEFISH_MIX_PERM( C,  2, 13, 34 ); THREEFISH_MIX_PERM( C,  6, 11, 56 ); THREEFISH_MIX_PERM( C,  4, 15, 51 ); THREEFISH_MIX_PERM( C, 10,  7,  4 ); THREEFISH_MIX_PERM( C, 12,  3, 53 ); THREEFISH_MIX_PERM( C, 14,  5, 42 ); THREEFISH_MIX_PERM( C,  8,  1, 41 );
-            THREEFISH_MIX_PERM( C,  0,  7, 31 ); THREEFISH_MIX_PERM( C,  2,  5, 44 ); THREEFISH_MIX_PERM( C,  4,  3, 47 ); THREEFISH_MIX_PERM( C,  6,  1, 46 ); THREEFISH_MIX_PERM( C, 12, 15, 19 ); THREEFISH_MIX_PERM( C, 14, 13, 42 ); THREEFISH_MIX_PERM( C,  8, 11, 44 ); THREEFISH_MIX_PERM( C, 10,  9, 25 );
-            THREEFISH_MIX_PERM( C,  0, 15,  9 ); THREEFISH_MIX_PERM( C,  2, 11, 48 ); THREEFISH_MIX_PERM( C,  6, 13, 35 ); THREEFISH_MIX_PERM( C,  4,  9, 52 ); THREEFISH_MIX_PERM( C, 14,  1, 23 ); THREEFISH_MIX_PERM( C,  8,  5, 31 ); THREEFISH_MIX_PERM( C, 10,  3, 37 ); THREEFISH_MIX_PERM( C, 12,  7, 20 );
+            THREEFISH_MIX( C,  0,  1, 41 ); THREEFISH_MIX( C,  2,  3,  9 );
+                THREEFISH_MIX( C,  4,  5, 37 ); THREEFISH_MIX( C,  6,  7, 31 );
+                THREEFISH_MIX( C,  8,  9, 12 ); THREEFISH_MIX( C, 10, 11, 47 );
+                THREEFISH_MIX( C, 12, 13, 44 ); THREEFISH_MIX( C, 14, 15, 30 );
+            THREEFISH_MIX( C,  0,  9, 16 ); THREEFISH_MIX( C,  2, 13, 34 );
+                THREEFISH_MIX( C,  6, 11, 56 ); THREEFISH_MIX( C,  4, 15, 51 );
+                THREEFISH_MIX( C, 10,  7,  4 ); THREEFISH_MIX( C, 12,  3, 53 );
+                THREEFISH_MIX( C, 14,  5, 42 ); THREEFISH_MIX( C,  8,  1, 41 );
+            THREEFISH_MIX( C,  0,  7, 31 ); THREEFISH_MIX( C,  2,  5, 44 );
+                THREEFISH_MIX( C,  4,  3, 47 ); THREEFISH_MIX( C,  6,  1, 46 );
+                THREEFISH_MIX( C, 12, 15, 19 ); THREEFISH_MIX( C, 14, 13, 42 );
+                THREEFISH_MIX( C,  8, 11, 44 ); THREEFISH_MIX( C, 10,  9, 25 );
+            THREEFISH_MIX( C,  0, 15,  9 ); THREEFISH_MIX( C,  2, 11, 48 );
+                THREEFISH_MIX( C,  6, 13, 35 ); THREEFISH_MIX( C,  4,  9, 52 );
+                THREEFISH_MIX( C, 14,  1, 23 ); THREEFISH_MIX( C,  8,  5, 31 );
+                THREEFISH_MIX( C, 10,  3, 37 ); THREEFISH_MIX( C, 12,  7, 20 );
 
             THREEFISH1024_ADD_SUBKEY( C, K, T, 20 );
 
@@ -603,129 +915,129 @@ static void threefish_dec( mbedtls_threefish_context *ctx,
         case 256:
             THREEFISH256_SUB_SUBKEY( P, K, T, 18 );
 
-            THREEFISH_INV_MIX_PERM( P, 0, 3, 32 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 32 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 58 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 22 );
-            THREEFISH_INV_MIX_PERM( P, 0, 3, 46 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 12 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 25 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 33 );
+            THREEFISH_INV_MIX( P, 0, 3, 32 ); THREEFISH_INV_MIX( P, 2, 1, 32 );
+            THREEFISH_INV_MIX( P, 0, 1, 58 ); THREEFISH_INV_MIX( P, 2, 3, 22 );
+            THREEFISH_INV_MIX( P, 0, 3, 46 ); THREEFISH_INV_MIX( P, 2, 1, 12 );
+            THREEFISH_INV_MIX( P, 0, 1, 25 ); THREEFISH_INV_MIX( P, 2, 3, 33 );
 
             THREEFISH256_SUB_SUBKEY( P, K, T, 17 );
 
-            THREEFISH_INV_MIX_PERM( P, 0, 3,  5 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 37 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 23 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 40 );
-            THREEFISH_INV_MIX_PERM( P, 0, 3, 52 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 57 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 14 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 16 );
+            THREEFISH_INV_MIX( P, 0, 3,  5 ); THREEFISH_INV_MIX( P, 2, 1, 37 );
+            THREEFISH_INV_MIX( P, 0, 1, 23 ); THREEFISH_INV_MIX( P, 2, 3, 40 );
+            THREEFISH_INV_MIX( P, 0, 3, 52 ); THREEFISH_INV_MIX( P, 2, 1, 57 );
+            THREEFISH_INV_MIX( P, 0, 1, 14 ); THREEFISH_INV_MIX( P, 2, 3, 16 );
 
             THREEFISH256_SUB_SUBKEY( P, K, T, 16 );
 
-            THREEFISH_INV_MIX_PERM( P, 0, 3, 32 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 32 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 58 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 22 );
-            THREEFISH_INV_MIX_PERM( P, 0, 3, 46 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 12 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 25 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 33 );
+            THREEFISH_INV_MIX( P, 0, 3, 32 ); THREEFISH_INV_MIX( P, 2, 1, 32 );
+            THREEFISH_INV_MIX( P, 0, 1, 58 ); THREEFISH_INV_MIX( P, 2, 3, 22 );
+            THREEFISH_INV_MIX( P, 0, 3, 46 ); THREEFISH_INV_MIX( P, 2, 1, 12 );
+            THREEFISH_INV_MIX( P, 0, 1, 25 ); THREEFISH_INV_MIX( P, 2, 3, 33 );
 
             THREEFISH256_SUB_SUBKEY( P, K, T, 15 );
 
-            THREEFISH_INV_MIX_PERM( P, 0, 3,  5 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 37 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 23 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 40 );
-            THREEFISH_INV_MIX_PERM( P, 0, 3, 52 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 57 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 14 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 16 );
+            THREEFISH_INV_MIX( P, 0, 3,  5 ); THREEFISH_INV_MIX( P, 2, 1, 37 );
+            THREEFISH_INV_MIX( P, 0, 1, 23 ); THREEFISH_INV_MIX( P, 2, 3, 40 );
+            THREEFISH_INV_MIX( P, 0, 3, 52 ); THREEFISH_INV_MIX( P, 2, 1, 57 );
+            THREEFISH_INV_MIX( P, 0, 1, 14 ); THREEFISH_INV_MIX( P, 2, 3, 16 );
 
             THREEFISH256_SUB_SUBKEY( P, K, T, 14 );
 
-            THREEFISH_INV_MIX_PERM( P, 0, 3, 32 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 32 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 58 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 22 );
-            THREEFISH_INV_MIX_PERM( P, 0, 3, 46 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 12 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 25 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 33 );
+            THREEFISH_INV_MIX( P, 0, 3, 32 ); THREEFISH_INV_MIX( P, 2, 1, 32 );
+            THREEFISH_INV_MIX( P, 0, 1, 58 ); THREEFISH_INV_MIX( P, 2, 3, 22 );
+            THREEFISH_INV_MIX( P, 0, 3, 46 ); THREEFISH_INV_MIX( P, 2, 1, 12 );
+            THREEFISH_INV_MIX( P, 0, 1, 25 ); THREEFISH_INV_MIX( P, 2, 3, 33 );
 
             THREEFISH256_SUB_SUBKEY( P, K, T, 13 );
 
-            THREEFISH_INV_MIX_PERM( P, 0, 3,  5 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 37 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 23 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 40 );
-            THREEFISH_INV_MIX_PERM( P, 0, 3, 52 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 57 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 14 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 16 );
+            THREEFISH_INV_MIX( P, 0, 3,  5 ); THREEFISH_INV_MIX( P, 2, 1, 37 );
+            THREEFISH_INV_MIX( P, 0, 1, 23 ); THREEFISH_INV_MIX( P, 2, 3, 40 );
+            THREEFISH_INV_MIX( P, 0, 3, 52 ); THREEFISH_INV_MIX( P, 2, 1, 57 );
+            THREEFISH_INV_MIX( P, 0, 1, 14 ); THREEFISH_INV_MIX( P, 2, 3, 16 );
 
             THREEFISH256_SUB_SUBKEY( P, K, T, 12 );
 
-            THREEFISH_INV_MIX_PERM( P, 0, 3, 32 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 32 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 58 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 22 );
-            THREEFISH_INV_MIX_PERM( P, 0, 3, 46 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 12 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 25 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 33 );
+            THREEFISH_INV_MIX( P, 0, 3, 32 ); THREEFISH_INV_MIX( P, 2, 1, 32 );
+            THREEFISH_INV_MIX( P, 0, 1, 58 ); THREEFISH_INV_MIX( P, 2, 3, 22 );
+            THREEFISH_INV_MIX( P, 0, 3, 46 ); THREEFISH_INV_MIX( P, 2, 1, 12 );
+            THREEFISH_INV_MIX( P, 0, 1, 25 ); THREEFISH_INV_MIX( P, 2, 3, 33 );
 
             THREEFISH256_SUB_SUBKEY( P, K, T, 11 );
 
-            THREEFISH_INV_MIX_PERM( P, 0, 3,  5 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 37 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 23 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 40 );
-            THREEFISH_INV_MIX_PERM( P, 0, 3, 52 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 57 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 14 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 16 );
+            THREEFISH_INV_MIX( P, 0, 3,  5 ); THREEFISH_INV_MIX( P, 2, 1, 37 );
+            THREEFISH_INV_MIX( P, 0, 1, 23 ); THREEFISH_INV_MIX( P, 2, 3, 40 );
+            THREEFISH_INV_MIX( P, 0, 3, 52 ); THREEFISH_INV_MIX( P, 2, 1, 57 );
+            THREEFISH_INV_MIX( P, 0, 1, 14 ); THREEFISH_INV_MIX( P, 2, 3, 16 );
 
             THREEFISH256_SUB_SUBKEY( P, K, T, 10 );
 
-            THREEFISH_INV_MIX_PERM( P, 0, 3, 32 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 32 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 58 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 22 );
-            THREEFISH_INV_MIX_PERM( P, 0, 3, 46 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 12 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 25 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 33 );
+            THREEFISH_INV_MIX( P, 0, 3, 32 ); THREEFISH_INV_MIX( P, 2, 1, 32 );
+            THREEFISH_INV_MIX( P, 0, 1, 58 ); THREEFISH_INV_MIX( P, 2, 3, 22 );
+            THREEFISH_INV_MIX( P, 0, 3, 46 ); THREEFISH_INV_MIX( P, 2, 1, 12 );
+            THREEFISH_INV_MIX( P, 0, 1, 25 ); THREEFISH_INV_MIX( P, 2, 3, 33 );
 
             THREEFISH256_SUB_SUBKEY( P, K, T, 9 );
 
-            THREEFISH_INV_MIX_PERM( P, 0, 3,  5 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 37 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 23 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 40 );
-            THREEFISH_INV_MIX_PERM( P, 0, 3, 52 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 57 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 14 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 16 );
+            THREEFISH_INV_MIX( P, 0, 3,  5 ); THREEFISH_INV_MIX( P, 2, 1, 37 );
+            THREEFISH_INV_MIX( P, 0, 1, 23 ); THREEFISH_INV_MIX( P, 2, 3, 40 );
+            THREEFISH_INV_MIX( P, 0, 3, 52 ); THREEFISH_INV_MIX( P, 2, 1, 57 );
+            THREEFISH_INV_MIX( P, 0, 1, 14 ); THREEFISH_INV_MIX( P, 2, 3, 16 );
 
             THREEFISH256_SUB_SUBKEY( P, K, T, 8 );
 
-            THREEFISH_INV_MIX_PERM( P, 0, 3, 32 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 32 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 58 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 22 );
-            THREEFISH_INV_MIX_PERM( P, 0, 3, 46 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 12 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 25 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 33 );
+            THREEFISH_INV_MIX( P, 0, 3, 32 ); THREEFISH_INV_MIX( P, 2, 1, 32 );
+            THREEFISH_INV_MIX( P, 0, 1, 58 ); THREEFISH_INV_MIX( P, 2, 3, 22 );
+            THREEFISH_INV_MIX( P, 0, 3, 46 ); THREEFISH_INV_MIX( P, 2, 1, 12 );
+            THREEFISH_INV_MIX( P, 0, 1, 25 ); THREEFISH_INV_MIX( P, 2, 3, 33 );
 
             THREEFISH256_SUB_SUBKEY( P, K, T, 7 );
 
-            THREEFISH_INV_MIX_PERM( P, 0, 3,  5 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 37 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 23 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 40 );
-            THREEFISH_INV_MIX_PERM( P, 0, 3, 52 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 57 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 14 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 16 );
+            THREEFISH_INV_MIX( P, 0, 3,  5 ); THREEFISH_INV_MIX( P, 2, 1, 37 );
+            THREEFISH_INV_MIX( P, 0, 1, 23 ); THREEFISH_INV_MIX( P, 2, 3, 40 );
+            THREEFISH_INV_MIX( P, 0, 3, 52 ); THREEFISH_INV_MIX( P, 2, 1, 57 );
+            THREEFISH_INV_MIX( P, 0, 1, 14 ); THREEFISH_INV_MIX( P, 2, 3, 16 );
 
             THREEFISH256_SUB_SUBKEY( P, K, T, 6 );
 
-            THREEFISH_INV_MIX_PERM( P, 0, 3, 32 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 32 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 58 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 22 );
-            THREEFISH_INV_MIX_PERM( P, 0, 3, 46 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 12 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 25 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 33 );
+            THREEFISH_INV_MIX( P, 0, 3, 32 ); THREEFISH_INV_MIX( P, 2, 1, 32 );
+            THREEFISH_INV_MIX( P, 0, 1, 58 ); THREEFISH_INV_MIX( P, 2, 3, 22 );
+            THREEFISH_INV_MIX( P, 0, 3, 46 ); THREEFISH_INV_MIX( P, 2, 1, 12 );
+            THREEFISH_INV_MIX( P, 0, 1, 25 ); THREEFISH_INV_MIX( P, 2, 3, 33 );
 
             THREEFISH256_SUB_SUBKEY( P, K, T, 5 );
 
-            THREEFISH_INV_MIX_PERM( P, 0, 3,  5 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 37 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 23 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 40 );
-            THREEFISH_INV_MIX_PERM( P, 0, 3, 52 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 57 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 14 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 16 );
+            THREEFISH_INV_MIX( P, 0, 3,  5 ); THREEFISH_INV_MIX( P, 2, 1, 37 );
+            THREEFISH_INV_MIX( P, 0, 1, 23 ); THREEFISH_INV_MIX( P, 2, 3, 40 );
+            THREEFISH_INV_MIX( P, 0, 3, 52 ); THREEFISH_INV_MIX( P, 2, 1, 57 );
+            THREEFISH_INV_MIX( P, 0, 1, 14 ); THREEFISH_INV_MIX( P, 2, 3, 16 );
 
             THREEFISH256_SUB_SUBKEY( P, K, T, 4 );
 
-            THREEFISH_INV_MIX_PERM( P, 0, 3, 32 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 32 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 58 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 22 );
-            THREEFISH_INV_MIX_PERM( P, 0, 3, 46 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 12 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 25 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 33 );
+            THREEFISH_INV_MIX( P, 0, 3, 32 ); THREEFISH_INV_MIX( P, 2, 1, 32 );
+            THREEFISH_INV_MIX( P, 0, 1, 58 ); THREEFISH_INV_MIX( P, 2, 3, 22 );
+            THREEFISH_INV_MIX( P, 0, 3, 46 ); THREEFISH_INV_MIX( P, 2, 1, 12 );
+            THREEFISH_INV_MIX( P, 0, 1, 25 ); THREEFISH_INV_MIX( P, 2, 3, 33 );
 
             THREEFISH256_SUB_SUBKEY( P, K, T, 3 );
 
-            THREEFISH_INV_MIX_PERM( P, 0, 3,  5 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 37 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 23 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 40 );
-            THREEFISH_INV_MIX_PERM( P, 0, 3, 52 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 57 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 14 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 16 );
+            THREEFISH_INV_MIX( P, 0, 3,  5 ); THREEFISH_INV_MIX( P, 2, 1, 37 );
+            THREEFISH_INV_MIX( P, 0, 1, 23 ); THREEFISH_INV_MIX( P, 2, 3, 40 );
+            THREEFISH_INV_MIX( P, 0, 3, 52 ); THREEFISH_INV_MIX( P, 2, 1, 57 );
+            THREEFISH_INV_MIX( P, 0, 1, 14 ); THREEFISH_INV_MIX( P, 2, 3, 16 );
 
             THREEFISH256_SUB_SUBKEY( P, K, T, 2 );
 
-            THREEFISH_INV_MIX_PERM( P, 0, 3, 32 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 32 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 58 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 22 );
-            THREEFISH_INV_MIX_PERM( P, 0, 3, 46 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 12 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 25 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 33 );
+            THREEFISH_INV_MIX( P, 0, 3, 32 ); THREEFISH_INV_MIX( P, 2, 1, 32 );
+            THREEFISH_INV_MIX( P, 0, 1, 58 ); THREEFISH_INV_MIX( P, 2, 3, 22 );
+            THREEFISH_INV_MIX( P, 0, 3, 46 ); THREEFISH_INV_MIX( P, 2, 1, 12 );
+            THREEFISH_INV_MIX( P, 0, 1, 25 ); THREEFISH_INV_MIX( P, 2, 3, 33 );
 
             THREEFISH256_SUB_SUBKEY( P, K, T, 1 );
 
-            THREEFISH_INV_MIX_PERM( P, 0, 3,  5 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 37 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 23 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 40 );
-            THREEFISH_INV_MIX_PERM( P, 0, 3, 52 ); THREEFISH_INV_MIX_PERM( P, 2, 1, 57 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 14 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 16 );
+            THREEFISH_INV_MIX( P, 0, 3,  5 ); THREEFISH_INV_MIX( P, 2, 1, 37 );
+            THREEFISH_INV_MIX( P, 0, 1, 23 ); THREEFISH_INV_MIX( P, 2, 3, 40 );
+            THREEFISH_INV_MIX( P, 0, 3, 52 ); THREEFISH_INV_MIX( P, 2, 1, 57 );
+            THREEFISH_INV_MIX( P, 0, 1, 14 ); THREEFISH_INV_MIX( P, 2, 3, 16 );
 
             THREEFISH256_SUB_SUBKEY( P, K, T, 0 );
 
@@ -734,129 +1046,201 @@ static void threefish_dec( mbedtls_threefish_context *ctx,
         case 512:
             THREEFISH512_SUB_SUBKEY( P, K, T, 18 );
 
-            THREEFISH_INV_MIX_PERM( P, 6, 1,  8 ); THREEFISH_INV_MIX_PERM( P, 0, 7, 35 ); THREEFISH_INV_MIX_PERM( P, 2, 5, 56 ); THREEFISH_INV_MIX_PERM( P, 4, 3, 22 );
-            THREEFISH_INV_MIX_PERM( P, 4, 1, 25 ); THREEFISH_INV_MIX_PERM( P, 6, 3, 29 ); THREEFISH_INV_MIX_PERM( P, 0, 5, 39 ); THREEFISH_INV_MIX_PERM( P, 2, 7, 43 );
-            THREEFISH_INV_MIX_PERM( P, 2, 1, 13 ); THREEFISH_INV_MIX_PERM( P, 4, 7, 50 ); THREEFISH_INV_MIX_PERM( P, 6, 5, 10 ); THREEFISH_INV_MIX_PERM( P, 0, 3, 17 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 39 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 30 ); THREEFISH_INV_MIX_PERM( P, 4, 5, 34 ); THREEFISH_INV_MIX_PERM( P, 6, 7, 24 );
+            THREEFISH_INV_MIX( P, 6, 1,  8 ); THREEFISH_INV_MIX( P, 0, 7, 35 );
+                THREEFISH_INV_MIX( P, 2, 5, 56 ); THREEFISH_INV_MIX( P, 4, 3, 22 );
+            THREEFISH_INV_MIX( P, 4, 1, 25 ); THREEFISH_INV_MIX( P, 6, 3, 29 );
+                THREEFISH_INV_MIX( P, 0, 5, 39 ); THREEFISH_INV_MIX( P, 2, 7, 43 );
+            THREEFISH_INV_MIX( P, 2, 1, 13 ); THREEFISH_INV_MIX( P, 4, 7, 50 );
+                THREEFISH_INV_MIX( P, 6, 5, 10 ); THREEFISH_INV_MIX( P, 0, 3, 17 );
+            THREEFISH_INV_MIX( P, 0, 1, 39 ); THREEFISH_INV_MIX( P, 2, 3, 30 );
+                THREEFISH_INV_MIX( P, 4, 5, 34 ); THREEFISH_INV_MIX( P, 6, 7, 24 );
 
             THREEFISH512_SUB_SUBKEY( P, K, T, 17 );
 
-            THREEFISH_INV_MIX_PERM( P, 6, 1, 44 ); THREEFISH_INV_MIX_PERM( P, 0, 7,  9 ); THREEFISH_INV_MIX_PERM( P, 2, 5, 54 ); THREEFISH_INV_MIX_PERM( P, 4, 3, 56 );
-            THREEFISH_INV_MIX_PERM( P, 4, 1, 17 ); THREEFISH_INV_MIX_PERM( P, 6, 3, 49 ); THREEFISH_INV_MIX_PERM( P, 0, 5, 36 ); THREEFISH_INV_MIX_PERM( P, 2, 7, 39 );
-            THREEFISH_INV_MIX_PERM( P, 2, 1, 33 ); THREEFISH_INV_MIX_PERM( P, 4, 7, 27 ); THREEFISH_INV_MIX_PERM( P, 6, 5, 14 ); THREEFISH_INV_MIX_PERM( P, 0, 3, 42 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 46 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 36 ); THREEFISH_INV_MIX_PERM( P, 4, 5, 19 ); THREEFISH_INV_MIX_PERM( P, 6, 7, 37 );
+            THREEFISH_INV_MIX( P, 6, 1, 44 ); THREEFISH_INV_MIX( P, 0, 7,  9 );
+                THREEFISH_INV_MIX( P, 2, 5, 54 ); THREEFISH_INV_MIX( P, 4, 3, 56 );
+            THREEFISH_INV_MIX( P, 4, 1, 17 ); THREEFISH_INV_MIX( P, 6, 3, 49 );
+                THREEFISH_INV_MIX( P, 0, 5, 36 ); THREEFISH_INV_MIX( P, 2, 7, 39 );
+            THREEFISH_INV_MIX( P, 2, 1, 33 ); THREEFISH_INV_MIX( P, 4, 7, 27 );
+                THREEFISH_INV_MIX( P, 6, 5, 14 ); THREEFISH_INV_MIX( P, 0, 3, 42 );
+            THREEFISH_INV_MIX( P, 0, 1, 46 ); THREEFISH_INV_MIX( P, 2, 3, 36 );
+                THREEFISH_INV_MIX( P, 4, 5, 19 ); THREEFISH_INV_MIX( P, 6, 7, 37 );
 
             THREEFISH512_SUB_SUBKEY( P, K, T, 16 );
 
-            THREEFISH_INV_MIX_PERM( P, 6, 1,  8 ); THREEFISH_INV_MIX_PERM( P, 0, 7, 35 ); THREEFISH_INV_MIX_PERM( P, 2, 5, 56 ); THREEFISH_INV_MIX_PERM( P, 4, 3, 22 );
-            THREEFISH_INV_MIX_PERM( P, 4, 1, 25 ); THREEFISH_INV_MIX_PERM( P, 6, 3, 29 ); THREEFISH_INV_MIX_PERM( P, 0, 5, 39 ); THREEFISH_INV_MIX_PERM( P, 2, 7, 43 );
-            THREEFISH_INV_MIX_PERM( P, 2, 1, 13 ); THREEFISH_INV_MIX_PERM( P, 4, 7, 50 ); THREEFISH_INV_MIX_PERM( P, 6, 5, 10 ); THREEFISH_INV_MIX_PERM( P, 0, 3, 17 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 39 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 30 ); THREEFISH_INV_MIX_PERM( P, 4, 5, 34 ); THREEFISH_INV_MIX_PERM( P, 6, 7, 24 );
+            THREEFISH_INV_MIX( P, 6, 1,  8 ); THREEFISH_INV_MIX( P, 0, 7, 35 );
+                THREEFISH_INV_MIX( P, 2, 5, 56 ); THREEFISH_INV_MIX( P, 4, 3, 22 );
+            THREEFISH_INV_MIX( P, 4, 1, 25 ); THREEFISH_INV_MIX( P, 6, 3, 29 );
+                THREEFISH_INV_MIX( P, 0, 5, 39 ); THREEFISH_INV_MIX( P, 2, 7, 43 );
+            THREEFISH_INV_MIX( P, 2, 1, 13 ); THREEFISH_INV_MIX( P, 4, 7, 50 );
+                THREEFISH_INV_MIX( P, 6, 5, 10 ); THREEFISH_INV_MIX( P, 0, 3, 17 );
+            THREEFISH_INV_MIX( P, 0, 1, 39 ); THREEFISH_INV_MIX( P, 2, 3, 30 );
+                THREEFISH_INV_MIX( P, 4, 5, 34 ); THREEFISH_INV_MIX( P, 6, 7, 24 );
 
             THREEFISH512_SUB_SUBKEY( P, K, T, 15 );
 
-            THREEFISH_INV_MIX_PERM( P, 6, 1, 44 ); THREEFISH_INV_MIX_PERM( P, 0, 7,  9 ); THREEFISH_INV_MIX_PERM( P, 2, 5, 54 ); THREEFISH_INV_MIX_PERM( P, 4, 3, 56 );
-            THREEFISH_INV_MIX_PERM( P, 4, 1, 17 ); THREEFISH_INV_MIX_PERM( P, 6, 3, 49 ); THREEFISH_INV_MIX_PERM( P, 0, 5, 36 ); THREEFISH_INV_MIX_PERM( P, 2, 7, 39 );
-            THREEFISH_INV_MIX_PERM( P, 2, 1, 33 ); THREEFISH_INV_MIX_PERM( P, 4, 7, 27 ); THREEFISH_INV_MIX_PERM( P, 6, 5, 14 ); THREEFISH_INV_MIX_PERM( P, 0, 3, 42 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 46 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 36 ); THREEFISH_INV_MIX_PERM( P, 4, 5, 19 ); THREEFISH_INV_MIX_PERM( P, 6, 7, 37 );
+            THREEFISH_INV_MIX( P, 6, 1, 44 ); THREEFISH_INV_MIX( P, 0, 7,  9 );
+                THREEFISH_INV_MIX( P, 2, 5, 54 ); THREEFISH_INV_MIX( P, 4, 3, 56 );
+            THREEFISH_INV_MIX( P, 4, 1, 17 ); THREEFISH_INV_MIX( P, 6, 3, 49 );
+                THREEFISH_INV_MIX( P, 0, 5, 36 ); THREEFISH_INV_MIX( P, 2, 7, 39 );
+            THREEFISH_INV_MIX( P, 2, 1, 33 ); THREEFISH_INV_MIX( P, 4, 7, 27 );
+                THREEFISH_INV_MIX( P, 6, 5, 14 ); THREEFISH_INV_MIX( P, 0, 3, 42 );
+            THREEFISH_INV_MIX( P, 0, 1, 46 ); THREEFISH_INV_MIX( P, 2, 3, 36 );
+                THREEFISH_INV_MIX( P, 4, 5, 19 ); THREEFISH_INV_MIX( P, 6, 7, 37 );
 
             THREEFISH512_SUB_SUBKEY( P, K, T, 14 );
 
-            THREEFISH_INV_MIX_PERM( P, 6, 1,  8 ); THREEFISH_INV_MIX_PERM( P, 0, 7, 35 ); THREEFISH_INV_MIX_PERM( P, 2, 5, 56 ); THREEFISH_INV_MIX_PERM( P, 4, 3, 22 );
-            THREEFISH_INV_MIX_PERM( P, 4, 1, 25 ); THREEFISH_INV_MIX_PERM( P, 6, 3, 29 ); THREEFISH_INV_MIX_PERM( P, 0, 5, 39 ); THREEFISH_INV_MIX_PERM( P, 2, 7, 43 );
-            THREEFISH_INV_MIX_PERM( P, 2, 1, 13 ); THREEFISH_INV_MIX_PERM( P, 4, 7, 50 ); THREEFISH_INV_MIX_PERM( P, 6, 5, 10 ); THREEFISH_INV_MIX_PERM( P, 0, 3, 17 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 39 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 30 ); THREEFISH_INV_MIX_PERM( P, 4, 5, 34 ); THREEFISH_INV_MIX_PERM( P, 6, 7, 24 );
+            THREEFISH_INV_MIX( P, 6, 1,  8 ); THREEFISH_INV_MIX( P, 0, 7, 35 );
+                THREEFISH_INV_MIX( P, 2, 5, 56 ); THREEFISH_INV_MIX( P, 4, 3, 22 );
+            THREEFISH_INV_MIX( P, 4, 1, 25 ); THREEFISH_INV_MIX( P, 6, 3, 29 );
+                THREEFISH_INV_MIX( P, 0, 5, 39 ); THREEFISH_INV_MIX( P, 2, 7, 43 );
+            THREEFISH_INV_MIX( P, 2, 1, 13 ); THREEFISH_INV_MIX( P, 4, 7, 50 );
+                THREEFISH_INV_MIX( P, 6, 5, 10 ); THREEFISH_INV_MIX( P, 0, 3, 17 );
+            THREEFISH_INV_MIX( P, 0, 1, 39 ); THREEFISH_INV_MIX( P, 2, 3, 30 );
+                THREEFISH_INV_MIX( P, 4, 5, 34 ); THREEFISH_INV_MIX( P, 6, 7, 24 );
 
             THREEFISH512_SUB_SUBKEY( P, K, T, 13 );
 
-            THREEFISH_INV_MIX_PERM( P, 6, 1, 44 ); THREEFISH_INV_MIX_PERM( P, 0, 7,  9 ); THREEFISH_INV_MIX_PERM( P, 2, 5, 54 ); THREEFISH_INV_MIX_PERM( P, 4, 3, 56 );
-            THREEFISH_INV_MIX_PERM( P, 4, 1, 17 ); THREEFISH_INV_MIX_PERM( P, 6, 3, 49 ); THREEFISH_INV_MIX_PERM( P, 0, 5, 36 ); THREEFISH_INV_MIX_PERM( P, 2, 7, 39 );
-            THREEFISH_INV_MIX_PERM( P, 2, 1, 33 ); THREEFISH_INV_MIX_PERM( P, 4, 7, 27 ); THREEFISH_INV_MIX_PERM( P, 6, 5, 14 ); THREEFISH_INV_MIX_PERM( P, 0, 3, 42 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 46 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 36 ); THREEFISH_INV_MIX_PERM( P, 4, 5, 19 ); THREEFISH_INV_MIX_PERM( P, 6, 7, 37 );
+            THREEFISH_INV_MIX( P, 6, 1, 44 ); THREEFISH_INV_MIX( P, 0, 7,  9 );
+                THREEFISH_INV_MIX( P, 2, 5, 54 ); THREEFISH_INV_MIX( P, 4, 3, 56 );
+            THREEFISH_INV_MIX( P, 4, 1, 17 ); THREEFISH_INV_MIX( P, 6, 3, 49 );
+                THREEFISH_INV_MIX( P, 0, 5, 36 ); THREEFISH_INV_MIX( P, 2, 7, 39 );
+            THREEFISH_INV_MIX( P, 2, 1, 33 ); THREEFISH_INV_MIX( P, 4, 7, 27 );
+                THREEFISH_INV_MIX( P, 6, 5, 14 ); THREEFISH_INV_MIX( P, 0, 3, 42 );
+            THREEFISH_INV_MIX( P, 0, 1, 46 ); THREEFISH_INV_MIX( P, 2, 3, 36 );
+                THREEFISH_INV_MIX( P, 4, 5, 19 ); THREEFISH_INV_MIX( P, 6, 7, 37 );
 
             THREEFISH512_SUB_SUBKEY( P, K, T, 12 );
 
-            THREEFISH_INV_MIX_PERM( P, 6, 1,  8 ); THREEFISH_INV_MIX_PERM( P, 0, 7, 35 ); THREEFISH_INV_MIX_PERM( P, 2, 5, 56 ); THREEFISH_INV_MIX_PERM( P, 4, 3, 22 );
-            THREEFISH_INV_MIX_PERM( P, 4, 1, 25 ); THREEFISH_INV_MIX_PERM( P, 6, 3, 29 ); THREEFISH_INV_MIX_PERM( P, 0, 5, 39 ); THREEFISH_INV_MIX_PERM( P, 2, 7, 43 );
-            THREEFISH_INV_MIX_PERM( P, 2, 1, 13 ); THREEFISH_INV_MIX_PERM( P, 4, 7, 50 ); THREEFISH_INV_MIX_PERM( P, 6, 5, 10 ); THREEFISH_INV_MIX_PERM( P, 0, 3, 17 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 39 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 30 ); THREEFISH_INV_MIX_PERM( P, 4, 5, 34 ); THREEFISH_INV_MIX_PERM( P, 6, 7, 24 );
+            THREEFISH_INV_MIX( P, 6, 1,  8 ); THREEFISH_INV_MIX( P, 0, 7, 35 );
+                THREEFISH_INV_MIX( P, 2, 5, 56 ); THREEFISH_INV_MIX( P, 4, 3, 22 );
+            THREEFISH_INV_MIX( P, 4, 1, 25 ); THREEFISH_INV_MIX( P, 6, 3, 29 );
+                THREEFISH_INV_MIX( P, 0, 5, 39 ); THREEFISH_INV_MIX( P, 2, 7, 43 );
+            THREEFISH_INV_MIX( P, 2, 1, 13 ); THREEFISH_INV_MIX( P, 4, 7, 50 );
+                THREEFISH_INV_MIX( P, 6, 5, 10 ); THREEFISH_INV_MIX( P, 0, 3, 17 );
+            THREEFISH_INV_MIX( P, 0, 1, 39 ); THREEFISH_INV_MIX( P, 2, 3, 30 );
+                THREEFISH_INV_MIX( P, 4, 5, 34 ); THREEFISH_INV_MIX( P, 6, 7, 24 );
 
             THREEFISH512_SUB_SUBKEY( P, K, T, 11 );
 
-            THREEFISH_INV_MIX_PERM( P, 6, 1, 44 ); THREEFISH_INV_MIX_PERM( P, 0, 7,  9 ); THREEFISH_INV_MIX_PERM( P, 2, 5, 54 ); THREEFISH_INV_MIX_PERM( P, 4, 3, 56 );
-            THREEFISH_INV_MIX_PERM( P, 4, 1, 17 ); THREEFISH_INV_MIX_PERM( P, 6, 3, 49 ); THREEFISH_INV_MIX_PERM( P, 0, 5, 36 ); THREEFISH_INV_MIX_PERM( P, 2, 7, 39 );
-            THREEFISH_INV_MIX_PERM( P, 2, 1, 33 ); THREEFISH_INV_MIX_PERM( P, 4, 7, 27 ); THREEFISH_INV_MIX_PERM( P, 6, 5, 14 ); THREEFISH_INV_MIX_PERM( P, 0, 3, 42 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 46 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 36 ); THREEFISH_INV_MIX_PERM( P, 4, 5, 19 ); THREEFISH_INV_MIX_PERM( P, 6, 7, 37 );
+            THREEFISH_INV_MIX( P, 6, 1, 44 ); THREEFISH_INV_MIX( P, 0, 7,  9 );
+                THREEFISH_INV_MIX( P, 2, 5, 54 ); THREEFISH_INV_MIX( P, 4, 3, 56 );
+            THREEFISH_INV_MIX( P, 4, 1, 17 ); THREEFISH_INV_MIX( P, 6, 3, 49 );
+                THREEFISH_INV_MIX( P, 0, 5, 36 ); THREEFISH_INV_MIX( P, 2, 7, 39 );
+            THREEFISH_INV_MIX( P, 2, 1, 33 ); THREEFISH_INV_MIX( P, 4, 7, 27 );
+                THREEFISH_INV_MIX( P, 6, 5, 14 ); THREEFISH_INV_MIX( P, 0, 3, 42 );
+            THREEFISH_INV_MIX( P, 0, 1, 46 ); THREEFISH_INV_MIX( P, 2, 3, 36 );
+                THREEFISH_INV_MIX( P, 4, 5, 19 ); THREEFISH_INV_MIX( P, 6, 7, 37 );
 
             THREEFISH512_SUB_SUBKEY( P, K, T, 10 );
 
-            THREEFISH_INV_MIX_PERM( P, 6, 1,  8 ); THREEFISH_INV_MIX_PERM( P, 0, 7, 35 ); THREEFISH_INV_MIX_PERM( P, 2, 5, 56 ); THREEFISH_INV_MIX_PERM( P, 4, 3, 22 );
-            THREEFISH_INV_MIX_PERM( P, 4, 1, 25 ); THREEFISH_INV_MIX_PERM( P, 6, 3, 29 ); THREEFISH_INV_MIX_PERM( P, 0, 5, 39 ); THREEFISH_INV_MIX_PERM( P, 2, 7, 43 );
-            THREEFISH_INV_MIX_PERM( P, 2, 1, 13 ); THREEFISH_INV_MIX_PERM( P, 4, 7, 50 ); THREEFISH_INV_MIX_PERM( P, 6, 5, 10 ); THREEFISH_INV_MIX_PERM( P, 0, 3, 17 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 39 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 30 ); THREEFISH_INV_MIX_PERM( P, 4, 5, 34 ); THREEFISH_INV_MIX_PERM( P, 6, 7, 24 );
+            THREEFISH_INV_MIX( P, 6, 1,  8 ); THREEFISH_INV_MIX( P, 0, 7, 35 );
+                THREEFISH_INV_MIX( P, 2, 5, 56 ); THREEFISH_INV_MIX( P, 4, 3, 22 );
+            THREEFISH_INV_MIX( P, 4, 1, 25 ); THREEFISH_INV_MIX( P, 6, 3, 29 );
+                THREEFISH_INV_MIX( P, 0, 5, 39 ); THREEFISH_INV_MIX( P, 2, 7, 43 );
+            THREEFISH_INV_MIX( P, 2, 1, 13 ); THREEFISH_INV_MIX( P, 4, 7, 50 );
+                THREEFISH_INV_MIX( P, 6, 5, 10 ); THREEFISH_INV_MIX( P, 0, 3, 17 );
+            THREEFISH_INV_MIX( P, 0, 1, 39 ); THREEFISH_INV_MIX( P, 2, 3, 30 );
+                THREEFISH_INV_MIX( P, 4, 5, 34 ); THREEFISH_INV_MIX( P, 6, 7, 24 );
 
             THREEFISH512_SUB_SUBKEY( P, K, T, 9 );
 
-            THREEFISH_INV_MIX_PERM( P, 6, 1, 44 ); THREEFISH_INV_MIX_PERM( P, 0, 7,  9 ); THREEFISH_INV_MIX_PERM( P, 2, 5, 54 ); THREEFISH_INV_MIX_PERM( P, 4, 3, 56 );
-            THREEFISH_INV_MIX_PERM( P, 4, 1, 17 ); THREEFISH_INV_MIX_PERM( P, 6, 3, 49 ); THREEFISH_INV_MIX_PERM( P, 0, 5, 36 ); THREEFISH_INV_MIX_PERM( P, 2, 7, 39 );
-            THREEFISH_INV_MIX_PERM( P, 2, 1, 33 ); THREEFISH_INV_MIX_PERM( P, 4, 7, 27 ); THREEFISH_INV_MIX_PERM( P, 6, 5, 14 ); THREEFISH_INV_MIX_PERM( P, 0, 3, 42 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 46 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 36 ); THREEFISH_INV_MIX_PERM( P, 4, 5, 19 ); THREEFISH_INV_MIX_PERM( P, 6, 7, 37 );
+            THREEFISH_INV_MIX( P, 6, 1, 44 ); THREEFISH_INV_MIX( P, 0, 7,  9 );
+                THREEFISH_INV_MIX( P, 2, 5, 54 ); THREEFISH_INV_MIX( P, 4, 3, 56 );
+            THREEFISH_INV_MIX( P, 4, 1, 17 ); THREEFISH_INV_MIX( P, 6, 3, 49 );
+                THREEFISH_INV_MIX( P, 0, 5, 36 ); THREEFISH_INV_MIX( P, 2, 7, 39 );
+            THREEFISH_INV_MIX( P, 2, 1, 33 ); THREEFISH_INV_MIX( P, 4, 7, 27 );
+                THREEFISH_INV_MIX( P, 6, 5, 14 ); THREEFISH_INV_MIX( P, 0, 3, 42 );
+            THREEFISH_INV_MIX( P, 0, 1, 46 ); THREEFISH_INV_MIX( P, 2, 3, 36 );
+                THREEFISH_INV_MIX( P, 4, 5, 19 ); THREEFISH_INV_MIX( P, 6, 7, 37 );
 
             THREEFISH512_SUB_SUBKEY( P, K, T, 8 );
 
-            THREEFISH_INV_MIX_PERM( P, 6, 1,  8 ); THREEFISH_INV_MIX_PERM( P, 0, 7, 35 ); THREEFISH_INV_MIX_PERM( P, 2, 5, 56 ); THREEFISH_INV_MIX_PERM( P, 4, 3, 22 );
-            THREEFISH_INV_MIX_PERM( P, 4, 1, 25 ); THREEFISH_INV_MIX_PERM( P, 6, 3, 29 ); THREEFISH_INV_MIX_PERM( P, 0, 5, 39 ); THREEFISH_INV_MIX_PERM( P, 2, 7, 43 );
-            THREEFISH_INV_MIX_PERM( P, 2, 1, 13 ); THREEFISH_INV_MIX_PERM( P, 4, 7, 50 ); THREEFISH_INV_MIX_PERM( P, 6, 5, 10 ); THREEFISH_INV_MIX_PERM( P, 0, 3, 17 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 39 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 30 ); THREEFISH_INV_MIX_PERM( P, 4, 5, 34 ); THREEFISH_INV_MIX_PERM( P, 6, 7, 24 );
+            THREEFISH_INV_MIX( P, 6, 1,  8 ); THREEFISH_INV_MIX( P, 0, 7, 35 );
+                THREEFISH_INV_MIX( P, 2, 5, 56 ); THREEFISH_INV_MIX( P, 4, 3, 22 );
+            THREEFISH_INV_MIX( P, 4, 1, 25 ); THREEFISH_INV_MIX( P, 6, 3, 29 );
+                THREEFISH_INV_MIX( P, 0, 5, 39 ); THREEFISH_INV_MIX( P, 2, 7, 43 );
+            THREEFISH_INV_MIX( P, 2, 1, 13 ); THREEFISH_INV_MIX( P, 4, 7, 50 );
+                THREEFISH_INV_MIX( P, 6, 5, 10 ); THREEFISH_INV_MIX( P, 0, 3, 17 );
+            THREEFISH_INV_MIX( P, 0, 1, 39 ); THREEFISH_INV_MIX( P, 2, 3, 30 );
+                THREEFISH_INV_MIX( P, 4, 5, 34 ); THREEFISH_INV_MIX( P, 6, 7, 24 );
 
             THREEFISH512_SUB_SUBKEY( P, K, T, 7 );
 
-            THREEFISH_INV_MIX_PERM( P, 6, 1, 44 ); THREEFISH_INV_MIX_PERM( P, 0, 7,  9 ); THREEFISH_INV_MIX_PERM( P, 2, 5, 54 ); THREEFISH_INV_MIX_PERM( P, 4, 3, 56 );
-            THREEFISH_INV_MIX_PERM( P, 4, 1, 17 ); THREEFISH_INV_MIX_PERM( P, 6, 3, 49 ); THREEFISH_INV_MIX_PERM( P, 0, 5, 36 ); THREEFISH_INV_MIX_PERM( P, 2, 7, 39 );
-            THREEFISH_INV_MIX_PERM( P, 2, 1, 33 ); THREEFISH_INV_MIX_PERM( P, 4, 7, 27 ); THREEFISH_INV_MIX_PERM( P, 6, 5, 14 ); THREEFISH_INV_MIX_PERM( P, 0, 3, 42 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 46 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 36 ); THREEFISH_INV_MIX_PERM( P, 4, 5, 19 ); THREEFISH_INV_MIX_PERM( P, 6, 7, 37 );
+            THREEFISH_INV_MIX( P, 6, 1, 44 ); THREEFISH_INV_MIX( P, 0, 7,  9 );
+                THREEFISH_INV_MIX( P, 2, 5, 54 ); THREEFISH_INV_MIX( P, 4, 3, 56 );
+            THREEFISH_INV_MIX( P, 4, 1, 17 ); THREEFISH_INV_MIX( P, 6, 3, 49 );
+                THREEFISH_INV_MIX( P, 0, 5, 36 ); THREEFISH_INV_MIX( P, 2, 7, 39 );
+            THREEFISH_INV_MIX( P, 2, 1, 33 ); THREEFISH_INV_MIX( P, 4, 7, 27 );
+                THREEFISH_INV_MIX( P, 6, 5, 14 ); THREEFISH_INV_MIX( P, 0, 3, 42 );
+            THREEFISH_INV_MIX( P, 0, 1, 46 ); THREEFISH_INV_MIX( P, 2, 3, 36 );
+                THREEFISH_INV_MIX( P, 4, 5, 19 ); THREEFISH_INV_MIX( P, 6, 7, 37 );
 
             THREEFISH512_SUB_SUBKEY( P, K, T, 6 );
 
-            THREEFISH_INV_MIX_PERM( P, 6, 1,  8 ); THREEFISH_INV_MIX_PERM( P, 0, 7, 35 ); THREEFISH_INV_MIX_PERM( P, 2, 5, 56 ); THREEFISH_INV_MIX_PERM( P, 4, 3, 22 );
-            THREEFISH_INV_MIX_PERM( P, 4, 1, 25 ); THREEFISH_INV_MIX_PERM( P, 6, 3, 29 ); THREEFISH_INV_MIX_PERM( P, 0, 5, 39 ); THREEFISH_INV_MIX_PERM( P, 2, 7, 43 );
-            THREEFISH_INV_MIX_PERM( P, 2, 1, 13 ); THREEFISH_INV_MIX_PERM( P, 4, 7, 50 ); THREEFISH_INV_MIX_PERM( P, 6, 5, 10 ); THREEFISH_INV_MIX_PERM( P, 0, 3, 17 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 39 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 30 ); THREEFISH_INV_MIX_PERM( P, 4, 5, 34 ); THREEFISH_INV_MIX_PERM( P, 6, 7, 24 );
+            THREEFISH_INV_MIX( P, 6, 1,  8 ); THREEFISH_INV_MIX( P, 0, 7, 35 );
+                THREEFISH_INV_MIX( P, 2, 5, 56 ); THREEFISH_INV_MIX( P, 4, 3, 22 );
+            THREEFISH_INV_MIX( P, 4, 1, 25 ); THREEFISH_INV_MIX( P, 6, 3, 29 );
+                THREEFISH_INV_MIX( P, 0, 5, 39 ); THREEFISH_INV_MIX( P, 2, 7, 43 );
+            THREEFISH_INV_MIX( P, 2, 1, 13 ); THREEFISH_INV_MIX( P, 4, 7, 50 );
+                THREEFISH_INV_MIX( P, 6, 5, 10 ); THREEFISH_INV_MIX( P, 0, 3, 17 );
+            THREEFISH_INV_MIX( P, 0, 1, 39 ); THREEFISH_INV_MIX( P, 2, 3, 30 );
+                THREEFISH_INV_MIX( P, 4, 5, 34 ); THREEFISH_INV_MIX( P, 6, 7, 24 );
 
             THREEFISH512_SUB_SUBKEY( P, K, T, 5 );
 
-            THREEFISH_INV_MIX_PERM( P, 6, 1, 44 ); THREEFISH_INV_MIX_PERM( P, 0, 7,  9 ); THREEFISH_INV_MIX_PERM( P, 2, 5, 54 ); THREEFISH_INV_MIX_PERM( P, 4, 3, 56 );
-            THREEFISH_INV_MIX_PERM( P, 4, 1, 17 ); THREEFISH_INV_MIX_PERM( P, 6, 3, 49 ); THREEFISH_INV_MIX_PERM( P, 0, 5, 36 ); THREEFISH_INV_MIX_PERM( P, 2, 7, 39 );
-            THREEFISH_INV_MIX_PERM( P, 2, 1, 33 ); THREEFISH_INV_MIX_PERM( P, 4, 7, 27 ); THREEFISH_INV_MIX_PERM( P, 6, 5, 14 ); THREEFISH_INV_MIX_PERM( P, 0, 3, 42 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 46 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 36 ); THREEFISH_INV_MIX_PERM( P, 4, 5, 19 ); THREEFISH_INV_MIX_PERM( P, 6, 7, 37 );
+            THREEFISH_INV_MIX( P, 6, 1, 44 ); THREEFISH_INV_MIX( P, 0, 7,  9 );
+                THREEFISH_INV_MIX( P, 2, 5, 54 ); THREEFISH_INV_MIX( P, 4, 3, 56 );
+            THREEFISH_INV_MIX( P, 4, 1, 17 ); THREEFISH_INV_MIX( P, 6, 3, 49 );
+                THREEFISH_INV_MIX( P, 0, 5, 36 ); THREEFISH_INV_MIX( P, 2, 7, 39 );
+            THREEFISH_INV_MIX( P, 2, 1, 33 ); THREEFISH_INV_MIX( P, 4, 7, 27 );
+                THREEFISH_INV_MIX( P, 6, 5, 14 ); THREEFISH_INV_MIX( P, 0, 3, 42 );
+            THREEFISH_INV_MIX( P, 0, 1, 46 ); THREEFISH_INV_MIX( P, 2, 3, 36 );
+                THREEFISH_INV_MIX( P, 4, 5, 19 ); THREEFISH_INV_MIX( P, 6, 7, 37 );
 
             THREEFISH512_SUB_SUBKEY( P, K, T, 4 );
 
-            THREEFISH_INV_MIX_PERM( P, 6, 1,  8 ); THREEFISH_INV_MIX_PERM( P, 0, 7, 35 ); THREEFISH_INV_MIX_PERM( P, 2, 5, 56 ); THREEFISH_INV_MIX_PERM( P, 4, 3, 22 );
-            THREEFISH_INV_MIX_PERM( P, 4, 1, 25 ); THREEFISH_INV_MIX_PERM( P, 6, 3, 29 ); THREEFISH_INV_MIX_PERM( P, 0, 5, 39 ); THREEFISH_INV_MIX_PERM( P, 2, 7, 43 );
-            THREEFISH_INV_MIX_PERM( P, 2, 1, 13 ); THREEFISH_INV_MIX_PERM( P, 4, 7, 50 ); THREEFISH_INV_MIX_PERM( P, 6, 5, 10 ); THREEFISH_INV_MIX_PERM( P, 0, 3, 17 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 39 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 30 ); THREEFISH_INV_MIX_PERM( P, 4, 5, 34 ); THREEFISH_INV_MIX_PERM( P, 6, 7, 24 );
+            THREEFISH_INV_MIX( P, 6, 1,  8 ); THREEFISH_INV_MIX( P, 0, 7, 35 );
+                THREEFISH_INV_MIX( P, 2, 5, 56 ); THREEFISH_INV_MIX( P, 4, 3, 22 );
+            THREEFISH_INV_MIX( P, 4, 1, 25 ); THREEFISH_INV_MIX( P, 6, 3, 29 );
+                THREEFISH_INV_MIX( P, 0, 5, 39 ); THREEFISH_INV_MIX( P, 2, 7, 43 );
+            THREEFISH_INV_MIX( P, 2, 1, 13 ); THREEFISH_INV_MIX( P, 4, 7, 50 );
+                THREEFISH_INV_MIX( P, 6, 5, 10 ); THREEFISH_INV_MIX( P, 0, 3, 17 );
+            THREEFISH_INV_MIX( P, 0, 1, 39 ); THREEFISH_INV_MIX( P, 2, 3, 30 );
+                THREEFISH_INV_MIX( P, 4, 5, 34 ); THREEFISH_INV_MIX( P, 6, 7, 24 );
 
             THREEFISH512_SUB_SUBKEY( P, K, T, 3 );
 
-            THREEFISH_INV_MIX_PERM( P, 6, 1, 44 ); THREEFISH_INV_MIX_PERM( P, 0, 7,  9 ); THREEFISH_INV_MIX_PERM( P, 2, 5, 54 ); THREEFISH_INV_MIX_PERM( P, 4, 3, 56 );
-            THREEFISH_INV_MIX_PERM( P, 4, 1, 17 ); THREEFISH_INV_MIX_PERM( P, 6, 3, 49 ); THREEFISH_INV_MIX_PERM( P, 0, 5, 36 ); THREEFISH_INV_MIX_PERM( P, 2, 7, 39 );
-            THREEFISH_INV_MIX_PERM( P, 2, 1, 33 ); THREEFISH_INV_MIX_PERM( P, 4, 7, 27 ); THREEFISH_INV_MIX_PERM( P, 6, 5, 14 ); THREEFISH_INV_MIX_PERM( P, 0, 3, 42 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 46 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 36 ); THREEFISH_INV_MIX_PERM( P, 4, 5, 19 ); THREEFISH_INV_MIX_PERM( P, 6, 7, 37 );
+            THREEFISH_INV_MIX( P, 6, 1, 44 ); THREEFISH_INV_MIX( P, 0, 7,  9 );
+                THREEFISH_INV_MIX( P, 2, 5, 54 ); THREEFISH_INV_MIX( P, 4, 3, 56 );
+            THREEFISH_INV_MIX( P, 4, 1, 17 ); THREEFISH_INV_MIX( P, 6, 3, 49 );
+                THREEFISH_INV_MIX( P, 0, 5, 36 ); THREEFISH_INV_MIX( P, 2, 7, 39 );
+            THREEFISH_INV_MIX( P, 2, 1, 33 ); THREEFISH_INV_MIX( P, 4, 7, 27 );
+                THREEFISH_INV_MIX( P, 6, 5, 14 ); THREEFISH_INV_MIX( P, 0, 3, 42 );
+            THREEFISH_INV_MIX( P, 0, 1, 46 ); THREEFISH_INV_MIX( P, 2, 3, 36 );
+                THREEFISH_INV_MIX( P, 4, 5, 19 ); THREEFISH_INV_MIX( P, 6, 7, 37 );
 
             THREEFISH512_SUB_SUBKEY( P, K, T, 2 );
 
-            THREEFISH_INV_MIX_PERM( P, 6, 1,  8 ); THREEFISH_INV_MIX_PERM( P, 0, 7, 35 ); THREEFISH_INV_MIX_PERM( P, 2, 5, 56 ); THREEFISH_INV_MIX_PERM( P, 4, 3, 22 );
-            THREEFISH_INV_MIX_PERM( P, 4, 1, 25 ); THREEFISH_INV_MIX_PERM( P, 6, 3, 29 ); THREEFISH_INV_MIX_PERM( P, 0, 5, 39 ); THREEFISH_INV_MIX_PERM( P, 2, 7, 43 );
-            THREEFISH_INV_MIX_PERM( P, 2, 1, 13 ); THREEFISH_INV_MIX_PERM( P, 4, 7, 50 ); THREEFISH_INV_MIX_PERM( P, 6, 5, 10 ); THREEFISH_INV_MIX_PERM( P, 0, 3, 17 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 39 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 30 ); THREEFISH_INV_MIX_PERM( P, 4, 5, 34 ); THREEFISH_INV_MIX_PERM( P, 6, 7, 24 );
+            THREEFISH_INV_MIX( P, 6, 1,  8 ); THREEFISH_INV_MIX( P, 0, 7, 35 );
+                THREEFISH_INV_MIX( P, 2, 5, 56 ); THREEFISH_INV_MIX( P, 4, 3, 22 );
+            THREEFISH_INV_MIX( P, 4, 1, 25 ); THREEFISH_INV_MIX( P, 6, 3, 29 );
+                THREEFISH_INV_MIX( P, 0, 5, 39 ); THREEFISH_INV_MIX( P, 2, 7, 43 );
+            THREEFISH_INV_MIX( P, 2, 1, 13 ); THREEFISH_INV_MIX( P, 4, 7, 50 );
+                THREEFISH_INV_MIX( P, 6, 5, 10 ); THREEFISH_INV_MIX( P, 0, 3, 17 );
+            THREEFISH_INV_MIX( P, 0, 1, 39 ); THREEFISH_INV_MIX( P, 2, 3, 30 );
+                THREEFISH_INV_MIX( P, 4, 5, 34 ); THREEFISH_INV_MIX( P, 6, 7, 24 );
 
             THREEFISH512_SUB_SUBKEY( P, K, T, 1 );
 
-            THREEFISH_INV_MIX_PERM( P, 6, 1, 44 ); THREEFISH_INV_MIX_PERM( P, 0, 7,  9 ); THREEFISH_INV_MIX_PERM( P, 2, 5, 54 ); THREEFISH_INV_MIX_PERM( P, 4, 3, 56 );
-            THREEFISH_INV_MIX_PERM( P, 4, 1, 17 ); THREEFISH_INV_MIX_PERM( P, 6, 3, 49 ); THREEFISH_INV_MIX_PERM( P, 0, 5, 36 ); THREEFISH_INV_MIX_PERM( P, 2, 7, 39 );
-            THREEFISH_INV_MIX_PERM( P, 2, 1, 33 ); THREEFISH_INV_MIX_PERM( P, 4, 7, 27 ); THREEFISH_INV_MIX_PERM( P, 6, 5, 14 ); THREEFISH_INV_MIX_PERM( P, 0, 3, 42 );
-            THREEFISH_INV_MIX_PERM( P, 0, 1, 46 ); THREEFISH_INV_MIX_PERM( P, 2, 3, 36 ); THREEFISH_INV_MIX_PERM( P, 4, 5, 19 ); THREEFISH_INV_MIX_PERM( P, 6, 7, 37 );
+            THREEFISH_INV_MIX( P, 6, 1, 44 ); THREEFISH_INV_MIX( P, 0, 7,  9 );
+                THREEFISH_INV_MIX( P, 2, 5, 54 ); THREEFISH_INV_MIX( P, 4, 3, 56 );
+            THREEFISH_INV_MIX( P, 4, 1, 17 ); THREEFISH_INV_MIX( P, 6, 3, 49 );
+                THREEFISH_INV_MIX( P, 0, 5, 36 ); THREEFISH_INV_MIX( P, 2, 7, 39 );
+            THREEFISH_INV_MIX( P, 2, 1, 33 ); THREEFISH_INV_MIX( P, 4, 7, 27 );
+                THREEFISH_INV_MIX( P, 6, 5, 14 ); THREEFISH_INV_MIX( P, 0, 3, 42 );
+            THREEFISH_INV_MIX( P, 0, 1, 46 ); THREEFISH_INV_MIX( P, 2, 3, 36 );
+                THREEFISH_INV_MIX( P, 4, 5, 19 ); THREEFISH_INV_MIX( P, 6, 7, 37 );
 
             THREEFISH512_SUB_SUBKEY( P, K, T, 0 );
 
@@ -865,143 +1249,383 @@ static void threefish_dec( mbedtls_threefish_context *ctx,
         case 1024:
             THREEFISH1024_SUB_SUBKEY( P, K, T, 20 );
 
-            THREEFISH_INV_MIX_PERM( P,  0, 15,  9 ); THREEFISH_INV_MIX_PERM( P,  2, 11, 48 ); THREEFISH_INV_MIX_PERM( P,  6, 13, 35 ); THREEFISH_INV_MIX_PERM( P,  4,  9, 52 ); THREEFISH_INV_MIX_PERM( P, 14,  1, 23 ); THREEFISH_INV_MIX_PERM( P,  8,  5, 31 ); THREEFISH_INV_MIX_PERM( P, 10,  3, 37 ); THREEFISH_INV_MIX_PERM( P, 12,  7, 20 );
-            THREEFISH_INV_MIX_PERM( P,  0,  7, 31 ); THREEFISH_INV_MIX_PERM( P,  2,  5, 44 ); THREEFISH_INV_MIX_PERM( P,  4,  3, 47 ); THREEFISH_INV_MIX_PERM( P,  6,  1, 46 ); THREEFISH_INV_MIX_PERM( P, 12, 15, 19 ); THREEFISH_INV_MIX_PERM( P, 14, 13, 42 ); THREEFISH_INV_MIX_PERM( P,  8, 11, 44 ); THREEFISH_INV_MIX_PERM( P, 10,  9, 25 );
-            THREEFISH_INV_MIX_PERM( P,  0,  9, 16 ); THREEFISH_INV_MIX_PERM( P,  2, 13, 34 ); THREEFISH_INV_MIX_PERM( P,  6, 11, 56 ); THREEFISH_INV_MIX_PERM( P,  4, 15, 51 ); THREEFISH_INV_MIX_PERM( P, 10,  7,  4 ); THREEFISH_INV_MIX_PERM( P, 12,  3, 53 ); THREEFISH_INV_MIX_PERM( P, 14,  5, 42 ); THREEFISH_INV_MIX_PERM( P,  8,  1, 41 );
-            THREEFISH_INV_MIX_PERM( P,  0,  1, 41 ); THREEFISH_INV_MIX_PERM( P,  2,  3,  9 ); THREEFISH_INV_MIX_PERM( P,  4,  5, 37 ); THREEFISH_INV_MIX_PERM( P,  6,  7, 31 ); THREEFISH_INV_MIX_PERM( P,  8,  9, 12 ); THREEFISH_INV_MIX_PERM( P, 10, 11, 47 ); THREEFISH_INV_MIX_PERM( P, 12, 13, 44 ); THREEFISH_INV_MIX_PERM( P, 14, 15, 30 );
+            THREEFISH_INV_MIX( P,  0, 15,  9 ); THREEFISH_INV_MIX( P,  2, 11, 48 );
+                THREEFISH_INV_MIX( P,  6, 13, 35 ); THREEFISH_INV_MIX( P,  4,  9, 52 );
+                THREEFISH_INV_MIX( P, 14,  1, 23 ); THREEFISH_INV_MIX( P,  8,  5, 31 );
+                THREEFISH_INV_MIX( P, 10,  3, 37 ); THREEFISH_INV_MIX( P, 12,  7, 20 );
+            THREEFISH_INV_MIX( P,  0,  7, 31 ); THREEFISH_INV_MIX( P,  2,  5, 44 );
+                THREEFISH_INV_MIX( P,  4,  3, 47 ); THREEFISH_INV_MIX( P,  6,  1, 46 );
+                THREEFISH_INV_MIX( P, 12, 15, 19 ); THREEFISH_INV_MIX( P, 14, 13, 42 );
+                THREEFISH_INV_MIX( P,  8, 11, 44 ); THREEFISH_INV_MIX( P, 10,  9, 25 );
+            THREEFISH_INV_MIX( P,  0,  9, 16 ); THREEFISH_INV_MIX( P,  2, 13, 34 );
+                THREEFISH_INV_MIX( P,  6, 11, 56 ); THREEFISH_INV_MIX( P,  4, 15, 51 );
+                THREEFISH_INV_MIX( P, 10,  7,  4 ); THREEFISH_INV_MIX( P, 12,  3, 53 );
+                THREEFISH_INV_MIX( P, 14,  5, 42 ); THREEFISH_INV_MIX( P,  8,  1, 41 );
+            THREEFISH_INV_MIX( P,  0,  1, 41 ); THREEFISH_INV_MIX( P,  2,  3,  9 );
+                THREEFISH_INV_MIX( P,  4,  5, 37 ); THREEFISH_INV_MIX( P,  6,  7, 31 );
+                THREEFISH_INV_MIX( P,  8,  9, 12 ); THREEFISH_INV_MIX( P, 10, 11, 47 );
+                THREEFISH_INV_MIX( P, 12, 13, 44 ); THREEFISH_INV_MIX( P, 14, 15, 30 );
 
             THREEFISH1024_SUB_SUBKEY( P, K, T, 19 );
 
-            THREEFISH_INV_MIX_PERM( P,  0, 15,  5 ); THREEFISH_INV_MIX_PERM( P,  2, 11, 20 ); THREEFISH_INV_MIX_PERM( P,  6, 13, 48 ); THREEFISH_INV_MIX_PERM( P,  4,  9, 41 ); THREEFISH_INV_MIX_PERM( P, 14,  1, 47 ); THREEFISH_INV_MIX_PERM( P,  8,  5, 28 ); THREEFISH_INV_MIX_PERM( P, 10,  3, 16 ); THREEFISH_INV_MIX_PERM( P, 12,  7, 25 );
-            THREEFISH_INV_MIX_PERM( P,  0,  7, 33 ); THREEFISH_INV_MIX_PERM( P,  2,  5,  4 ); THREEFISH_INV_MIX_PERM( P,  4,  3, 51 ); THREEFISH_INV_MIX_PERM( P,  6,  1, 13 ); THREEFISH_INV_MIX_PERM( P, 12, 15, 34 ); THREEFISH_INV_MIX_PERM( P, 14, 13, 41 ); THREEFISH_INV_MIX_PERM( P,  8, 11, 59 ); THREEFISH_INV_MIX_PERM( P, 10,  9, 17 );
-            THREEFISH_INV_MIX_PERM( P,  0,  9, 38 ); THREEFISH_INV_MIX_PERM( P,  2, 13, 19 ); THREEFISH_INV_MIX_PERM( P,  6, 11, 10 ); THREEFISH_INV_MIX_PERM( P,  4, 15, 55 ); THREEFISH_INV_MIX_PERM( P, 10,  7, 49 ); THREEFISH_INV_MIX_PERM( P, 12,  3, 18 ); THREEFISH_INV_MIX_PERM( P, 14,  5, 23 ); THREEFISH_INV_MIX_PERM( P,  8,  1, 52 );
-            THREEFISH_INV_MIX_PERM( P,  0,  1, 24 ); THREEFISH_INV_MIX_PERM( P,  2,  3, 13 ); THREEFISH_INV_MIX_PERM( P,  4,  5,  8 ); THREEFISH_INV_MIX_PERM( P,  6,  7, 47 ); THREEFISH_INV_MIX_PERM( P,  8,  9,  8 ); THREEFISH_INV_MIX_PERM( P, 10, 11, 17 ); THREEFISH_INV_MIX_PERM( P, 12, 13, 22 ); THREEFISH_INV_MIX_PERM( P, 14, 15, 37 );
+            THREEFISH_INV_MIX( P,  0, 15,  5 ); THREEFISH_INV_MIX( P,  2, 11, 20 );
+                THREEFISH_INV_MIX( P,  6, 13, 48 ); THREEFISH_INV_MIX( P,  4,  9, 41 );
+                THREEFISH_INV_MIX( P, 14,  1, 47 ); THREEFISH_INV_MIX( P,  8,  5, 28 );
+                THREEFISH_INV_MIX( P, 10,  3, 16 ); THREEFISH_INV_MIX( P, 12,  7, 25 );
+            THREEFISH_INV_MIX( P,  0,  7, 33 ); THREEFISH_INV_MIX( P,  2,  5,  4 );
+                THREEFISH_INV_MIX( P,  4,  3, 51 ); THREEFISH_INV_MIX( P,  6,  1, 13 );
+                THREEFISH_INV_MIX( P, 12, 15, 34 ); THREEFISH_INV_MIX( P, 14, 13, 41 );
+                THREEFISH_INV_MIX( P,  8, 11, 59 ); THREEFISH_INV_MIX( P, 10,  9, 17 );
+            THREEFISH_INV_MIX( P,  0,  9, 38 ); THREEFISH_INV_MIX( P,  2, 13, 19 );
+                THREEFISH_INV_MIX( P,  6, 11, 10 ); THREEFISH_INV_MIX( P,  4, 15, 55 );
+                THREEFISH_INV_MIX( P, 10,  7, 49 ); THREEFISH_INV_MIX( P, 12,  3, 18 );
+                THREEFISH_INV_MIX( P, 14,  5, 23 ); THREEFISH_INV_MIX( P,  8,  1, 52 );
+            THREEFISH_INV_MIX( P,  0,  1, 24 ); THREEFISH_INV_MIX( P,  2,  3, 13 );
+                THREEFISH_INV_MIX( P,  4,  5,  8 ); THREEFISH_INV_MIX( P,  6,  7, 47 );
+                THREEFISH_INV_MIX( P,  8,  9,  8 ); THREEFISH_INV_MIX( P, 10, 11, 17 );
+                THREEFISH_INV_MIX( P, 12, 13, 22 ); THREEFISH_INV_MIX( P, 14, 15, 37 );
 
             THREEFISH1024_SUB_SUBKEY( P, K, T, 18 );
 
-            THREEFISH_INV_MIX_PERM( P,  0, 15,  9 ); THREEFISH_INV_MIX_PERM( P,  2, 11, 48 ); THREEFISH_INV_MIX_PERM( P,  6, 13, 35 ); THREEFISH_INV_MIX_PERM( P,  4,  9, 52 ); THREEFISH_INV_MIX_PERM( P, 14,  1, 23 ); THREEFISH_INV_MIX_PERM( P,  8,  5, 31 ); THREEFISH_INV_MIX_PERM( P, 10,  3, 37 ); THREEFISH_INV_MIX_PERM( P, 12,  7, 20 );
-            THREEFISH_INV_MIX_PERM( P,  0,  7, 31 ); THREEFISH_INV_MIX_PERM( P,  2,  5, 44 ); THREEFISH_INV_MIX_PERM( P,  4,  3, 47 ); THREEFISH_INV_MIX_PERM( P,  6,  1, 46 ); THREEFISH_INV_MIX_PERM( P, 12, 15, 19 ); THREEFISH_INV_MIX_PERM( P, 14, 13, 42 ); THREEFISH_INV_MIX_PERM( P,  8, 11, 44 ); THREEFISH_INV_MIX_PERM( P, 10,  9, 25 );
-            THREEFISH_INV_MIX_PERM( P,  0,  9, 16 ); THREEFISH_INV_MIX_PERM( P,  2, 13, 34 ); THREEFISH_INV_MIX_PERM( P,  6, 11, 56 ); THREEFISH_INV_MIX_PERM( P,  4, 15, 51 ); THREEFISH_INV_MIX_PERM( P, 10,  7,  4 ); THREEFISH_INV_MIX_PERM( P, 12,  3, 53 ); THREEFISH_INV_MIX_PERM( P, 14,  5, 42 ); THREEFISH_INV_MIX_PERM( P,  8,  1, 41 );
-            THREEFISH_INV_MIX_PERM( P,  0,  1, 41 ); THREEFISH_INV_MIX_PERM( P,  2,  3,  9 ); THREEFISH_INV_MIX_PERM( P,  4,  5, 37 ); THREEFISH_INV_MIX_PERM( P,  6,  7, 31 ); THREEFISH_INV_MIX_PERM( P,  8,  9, 12 ); THREEFISH_INV_MIX_PERM( P, 10, 11, 47 ); THREEFISH_INV_MIX_PERM( P, 12, 13, 44 ); THREEFISH_INV_MIX_PERM( P, 14, 15, 30 );
+            THREEFISH_INV_MIX( P,  0, 15,  9 ); THREEFISH_INV_MIX( P,  2, 11, 48 );
+                THREEFISH_INV_MIX( P,  6, 13, 35 ); THREEFISH_INV_MIX( P,  4,  9, 52 );
+                THREEFISH_INV_MIX( P, 14,  1, 23 ); THREEFISH_INV_MIX( P,  8,  5, 31 );
+                THREEFISH_INV_MIX( P, 10,  3, 37 ); THREEFISH_INV_MIX( P, 12,  7, 20 );
+            THREEFISH_INV_MIX( P,  0,  7, 31 ); THREEFISH_INV_MIX( P,  2,  5, 44 );
+                THREEFISH_INV_MIX( P,  4,  3, 47 ); THREEFISH_INV_MIX( P,  6,  1, 46 );
+                THREEFISH_INV_MIX( P, 12, 15, 19 ); THREEFISH_INV_MIX( P, 14, 13, 42 );
+                THREEFISH_INV_MIX( P,  8, 11, 44 ); THREEFISH_INV_MIX( P, 10,  9, 25 );
+            THREEFISH_INV_MIX( P,  0,  9, 16 ); THREEFISH_INV_MIX( P,  2, 13, 34 );
+                THREEFISH_INV_MIX( P,  6, 11, 56 ); THREEFISH_INV_MIX( P,  4, 15, 51 );
+                THREEFISH_INV_MIX( P, 10,  7,  4 ); THREEFISH_INV_MIX( P, 12,  3, 53 );
+                THREEFISH_INV_MIX( P, 14,  5, 42 ); THREEFISH_INV_MIX( P,  8,  1, 41 );
+            THREEFISH_INV_MIX( P,  0,  1, 41 ); THREEFISH_INV_MIX( P,  2,  3,  9 );
+                THREEFISH_INV_MIX( P,  4,  5, 37 ); THREEFISH_INV_MIX( P,  6,  7, 31 );
+                THREEFISH_INV_MIX( P,  8,  9, 12 ); THREEFISH_INV_MIX( P, 10, 11, 47 );
+                THREEFISH_INV_MIX( P, 12, 13, 44 ); THREEFISH_INV_MIX( P, 14, 15, 30 );
 
             THREEFISH1024_SUB_SUBKEY( P, K, T, 17 );
 
-            THREEFISH_INV_MIX_PERM( P,  0, 15,  5 ); THREEFISH_INV_MIX_PERM( P,  2, 11, 20 ); THREEFISH_INV_MIX_PERM( P,  6, 13, 48 ); THREEFISH_INV_MIX_PERM( P,  4,  9, 41 ); THREEFISH_INV_MIX_PERM( P, 14,  1, 47 ); THREEFISH_INV_MIX_PERM( P,  8,  5, 28 ); THREEFISH_INV_MIX_PERM( P, 10,  3, 16 ); THREEFISH_INV_MIX_PERM( P, 12,  7, 25 );
-            THREEFISH_INV_MIX_PERM( P,  0,  7, 33 ); THREEFISH_INV_MIX_PERM( P,  2,  5,  4 ); THREEFISH_INV_MIX_PERM( P,  4,  3, 51 ); THREEFISH_INV_MIX_PERM( P,  6,  1, 13 ); THREEFISH_INV_MIX_PERM( P, 12, 15, 34 ); THREEFISH_INV_MIX_PERM( P, 14, 13, 41 ); THREEFISH_INV_MIX_PERM( P,  8, 11, 59 ); THREEFISH_INV_MIX_PERM( P, 10,  9, 17 );
-            THREEFISH_INV_MIX_PERM( P,  0,  9, 38 ); THREEFISH_INV_MIX_PERM( P,  2, 13, 19 ); THREEFISH_INV_MIX_PERM( P,  6, 11, 10 ); THREEFISH_INV_MIX_PERM( P,  4, 15, 55 ); THREEFISH_INV_MIX_PERM( P, 10,  7, 49 ); THREEFISH_INV_MIX_PERM( P, 12,  3, 18 ); THREEFISH_INV_MIX_PERM( P, 14,  5, 23 ); THREEFISH_INV_MIX_PERM( P,  8,  1, 52 );
-            THREEFISH_INV_MIX_PERM( P,  0,  1, 24 ); THREEFISH_INV_MIX_PERM( P,  2,  3, 13 ); THREEFISH_INV_MIX_PERM( P,  4,  5,  8 ); THREEFISH_INV_MIX_PERM( P,  6,  7, 47 ); THREEFISH_INV_MIX_PERM( P,  8,  9,  8 ); THREEFISH_INV_MIX_PERM( P, 10, 11, 17 ); THREEFISH_INV_MIX_PERM( P, 12, 13, 22 ); THREEFISH_INV_MIX_PERM( P, 14, 15, 37 );
+            THREEFISH_INV_MIX( P,  0, 15,  5 ); THREEFISH_INV_MIX( P,  2, 11, 20 );
+                THREEFISH_INV_MIX( P,  6, 13, 48 ); THREEFISH_INV_MIX( P,  4,  9, 41 );
+                THREEFISH_INV_MIX( P, 14,  1, 47 ); THREEFISH_INV_MIX( P,  8,  5, 28 );
+                THREEFISH_INV_MIX( P, 10,  3, 16 ); THREEFISH_INV_MIX( P, 12,  7, 25 );
+            THREEFISH_INV_MIX( P,  0,  7, 33 ); THREEFISH_INV_MIX( P,  2,  5,  4 );
+                THREEFISH_INV_MIX( P,  4,  3, 51 ); THREEFISH_INV_MIX( P,  6,  1, 13 );
+                THREEFISH_INV_MIX( P, 12, 15, 34 ); THREEFISH_INV_MIX( P, 14, 13, 41 );
+                THREEFISH_INV_MIX( P,  8, 11, 59 ); THREEFISH_INV_MIX( P, 10,  9, 17 );
+            THREEFISH_INV_MIX( P,  0,  9, 38 ); THREEFISH_INV_MIX( P,  2, 13, 19 );
+                THREEFISH_INV_MIX( P,  6, 11, 10 ); THREEFISH_INV_MIX( P,  4, 15, 55 );
+                THREEFISH_INV_MIX( P, 10,  7, 49 ); THREEFISH_INV_MIX( P, 12,  3, 18 );
+                THREEFISH_INV_MIX( P, 14,  5, 23 ); THREEFISH_INV_MIX( P,  8,  1, 52 );
+            THREEFISH_INV_MIX( P,  0,  1, 24 ); THREEFISH_INV_MIX( P,  2,  3, 13 );
+                THREEFISH_INV_MIX( P,  4,  5,  8 ); THREEFISH_INV_MIX( P,  6,  7, 47 );
+                THREEFISH_INV_MIX( P,  8,  9,  8 ); THREEFISH_INV_MIX( P, 10, 11, 17 );
+                THREEFISH_INV_MIX( P, 12, 13, 22 ); THREEFISH_INV_MIX( P, 14, 15, 37 );
 
             THREEFISH1024_SUB_SUBKEY( P, K, T, 16 );
 
-            THREEFISH_INV_MIX_PERM( P,  0, 15,  9 ); THREEFISH_INV_MIX_PERM( P,  2, 11, 48 ); THREEFISH_INV_MIX_PERM( P,  6, 13, 35 ); THREEFISH_INV_MIX_PERM( P,  4,  9, 52 ); THREEFISH_INV_MIX_PERM( P, 14,  1, 23 ); THREEFISH_INV_MIX_PERM( P,  8,  5, 31 ); THREEFISH_INV_MIX_PERM( P, 10,  3, 37 ); THREEFISH_INV_MIX_PERM( P, 12,  7, 20 );
-            THREEFISH_INV_MIX_PERM( P,  0,  7, 31 ); THREEFISH_INV_MIX_PERM( P,  2,  5, 44 ); THREEFISH_INV_MIX_PERM( P,  4,  3, 47 ); THREEFISH_INV_MIX_PERM( P,  6,  1, 46 ); THREEFISH_INV_MIX_PERM( P, 12, 15, 19 ); THREEFISH_INV_MIX_PERM( P, 14, 13, 42 ); THREEFISH_INV_MIX_PERM( P,  8, 11, 44 ); THREEFISH_INV_MIX_PERM( P, 10,  9, 25 );
-            THREEFISH_INV_MIX_PERM( P,  0,  9, 16 ); THREEFISH_INV_MIX_PERM( P,  2, 13, 34 ); THREEFISH_INV_MIX_PERM( P,  6, 11, 56 ); THREEFISH_INV_MIX_PERM( P,  4, 15, 51 ); THREEFISH_INV_MIX_PERM( P, 10,  7,  4 ); THREEFISH_INV_MIX_PERM( P, 12,  3, 53 ); THREEFISH_INV_MIX_PERM( P, 14,  5, 42 ); THREEFISH_INV_MIX_PERM( P,  8,  1, 41 );
-            THREEFISH_INV_MIX_PERM( P,  0,  1, 41 ); THREEFISH_INV_MIX_PERM( P,  2,  3,  9 ); THREEFISH_INV_MIX_PERM( P,  4,  5, 37 ); THREEFISH_INV_MIX_PERM( P,  6,  7, 31 ); THREEFISH_INV_MIX_PERM( P,  8,  9, 12 ); THREEFISH_INV_MIX_PERM( P, 10, 11, 47 ); THREEFISH_INV_MIX_PERM( P, 12, 13, 44 ); THREEFISH_INV_MIX_PERM( P, 14, 15, 30 );
+            THREEFISH_INV_MIX( P,  0, 15,  9 ); THREEFISH_INV_MIX( P,  2, 11, 48 );
+                THREEFISH_INV_MIX( P,  6, 13, 35 ); THREEFISH_INV_MIX( P,  4,  9, 52 );
+                THREEFISH_INV_MIX( P, 14,  1, 23 ); THREEFISH_INV_MIX( P,  8,  5, 31 );
+                THREEFISH_INV_MIX( P, 10,  3, 37 ); THREEFISH_INV_MIX( P, 12,  7, 20 );
+            THREEFISH_INV_MIX( P,  0,  7, 31 ); THREEFISH_INV_MIX( P,  2,  5, 44 );
+                THREEFISH_INV_MIX( P,  4,  3, 47 ); THREEFISH_INV_MIX( P,  6,  1, 46 );
+                THREEFISH_INV_MIX( P, 12, 15, 19 ); THREEFISH_INV_MIX( P, 14, 13, 42 );
+                THREEFISH_INV_MIX( P,  8, 11, 44 ); THREEFISH_INV_MIX( P, 10,  9, 25 );
+            THREEFISH_INV_MIX( P,  0,  9, 16 ); THREEFISH_INV_MIX( P,  2, 13, 34 );
+                THREEFISH_INV_MIX( P,  6, 11, 56 ); THREEFISH_INV_MIX( P,  4, 15, 51 );
+                THREEFISH_INV_MIX( P, 10,  7,  4 ); THREEFISH_INV_MIX( P, 12,  3, 53 );
+                THREEFISH_INV_MIX( P, 14,  5, 42 ); THREEFISH_INV_MIX( P,  8,  1, 41 );
+            THREEFISH_INV_MIX( P,  0,  1, 41 ); THREEFISH_INV_MIX( P,  2,  3,  9 );
+                THREEFISH_INV_MIX( P,  4,  5, 37 ); THREEFISH_INV_MIX( P,  6,  7, 31 );
+                THREEFISH_INV_MIX( P,  8,  9, 12 ); THREEFISH_INV_MIX( P, 10, 11, 47 );
+                THREEFISH_INV_MIX( P, 12, 13, 44 ); THREEFISH_INV_MIX( P, 14, 15, 30 );
 
             THREEFISH1024_SUB_SUBKEY( P, K, T, 15 );
 
-            THREEFISH_INV_MIX_PERM( P,  0, 15,  5 ); THREEFISH_INV_MIX_PERM( P,  2, 11, 20 ); THREEFISH_INV_MIX_PERM( P,  6, 13, 48 ); THREEFISH_INV_MIX_PERM( P,  4,  9, 41 ); THREEFISH_INV_MIX_PERM( P, 14,  1, 47 ); THREEFISH_INV_MIX_PERM( P,  8,  5, 28 ); THREEFISH_INV_MIX_PERM( P, 10,  3, 16 ); THREEFISH_INV_MIX_PERM( P, 12,  7, 25 );
-            THREEFISH_INV_MIX_PERM( P,  0,  7, 33 ); THREEFISH_INV_MIX_PERM( P,  2,  5,  4 ); THREEFISH_INV_MIX_PERM( P,  4,  3, 51 ); THREEFISH_INV_MIX_PERM( P,  6,  1, 13 ); THREEFISH_INV_MIX_PERM( P, 12, 15, 34 ); THREEFISH_INV_MIX_PERM( P, 14, 13, 41 ); THREEFISH_INV_MIX_PERM( P,  8, 11, 59 ); THREEFISH_INV_MIX_PERM( P, 10,  9, 17 );
-            THREEFISH_INV_MIX_PERM( P,  0,  9, 38 ); THREEFISH_INV_MIX_PERM( P,  2, 13, 19 ); THREEFISH_INV_MIX_PERM( P,  6, 11, 10 ); THREEFISH_INV_MIX_PERM( P,  4, 15, 55 ); THREEFISH_INV_MIX_PERM( P, 10,  7, 49 ); THREEFISH_INV_MIX_PERM( P, 12,  3, 18 ); THREEFISH_INV_MIX_PERM( P, 14,  5, 23 ); THREEFISH_INV_MIX_PERM( P,  8,  1, 52 );
-            THREEFISH_INV_MIX_PERM( P,  0,  1, 24 ); THREEFISH_INV_MIX_PERM( P,  2,  3, 13 ); THREEFISH_INV_MIX_PERM( P,  4,  5,  8 ); THREEFISH_INV_MIX_PERM( P,  6,  7, 47 ); THREEFISH_INV_MIX_PERM( P,  8,  9,  8 ); THREEFISH_INV_MIX_PERM( P, 10, 11, 17 ); THREEFISH_INV_MIX_PERM( P, 12, 13, 22 ); THREEFISH_INV_MIX_PERM( P, 14, 15, 37 );
+            THREEFISH_INV_MIX( P,  0, 15,  5 ); THREEFISH_INV_MIX( P,  2, 11, 20 );
+                THREEFISH_INV_MIX( P,  6, 13, 48 ); THREEFISH_INV_MIX( P,  4,  9, 41 );
+                THREEFISH_INV_MIX( P, 14,  1, 47 ); THREEFISH_INV_MIX( P,  8,  5, 28 );
+                THREEFISH_INV_MIX( P, 10,  3, 16 ); THREEFISH_INV_MIX( P, 12,  7, 25 );
+            THREEFISH_INV_MIX( P,  0,  7, 33 ); THREEFISH_INV_MIX( P,  2,  5,  4 );
+                THREEFISH_INV_MIX( P,  4,  3, 51 ); THREEFISH_INV_MIX( P,  6,  1, 13 );
+                THREEFISH_INV_MIX( P, 12, 15, 34 ); THREEFISH_INV_MIX( P, 14, 13, 41 );
+                THREEFISH_INV_MIX( P,  8, 11, 59 ); THREEFISH_INV_MIX( P, 10,  9, 17 );
+            THREEFISH_INV_MIX( P,  0,  9, 38 ); THREEFISH_INV_MIX( P,  2, 13, 19 );
+                THREEFISH_INV_MIX( P,  6, 11, 10 ); THREEFISH_INV_MIX( P,  4, 15, 55 );
+                THREEFISH_INV_MIX( P, 10,  7, 49 ); THREEFISH_INV_MIX( P, 12,  3, 18 );
+                THREEFISH_INV_MIX( P, 14,  5, 23 ); THREEFISH_INV_MIX( P,  8,  1, 52 );
+            THREEFISH_INV_MIX( P,  0,  1, 24 ); THREEFISH_INV_MIX( P,  2,  3, 13 );
+                THREEFISH_INV_MIX( P,  4,  5,  8 ); THREEFISH_INV_MIX( P,  6,  7, 47 );
+                THREEFISH_INV_MIX( P,  8,  9,  8 ); THREEFISH_INV_MIX( P, 10, 11, 17 );
+                THREEFISH_INV_MIX( P, 12, 13, 22 ); THREEFISH_INV_MIX( P, 14, 15, 37 );
 
             THREEFISH1024_SUB_SUBKEY( P, K, T, 14 );
 
-            THREEFISH_INV_MIX_PERM( P,  0, 15,  9 ); THREEFISH_INV_MIX_PERM( P,  2, 11, 48 ); THREEFISH_INV_MIX_PERM( P,  6, 13, 35 ); THREEFISH_INV_MIX_PERM( P,  4,  9, 52 ); THREEFISH_INV_MIX_PERM( P, 14,  1, 23 ); THREEFISH_INV_MIX_PERM( P,  8,  5, 31 ); THREEFISH_INV_MIX_PERM( P, 10,  3, 37 ); THREEFISH_INV_MIX_PERM( P, 12,  7, 20 );
-            THREEFISH_INV_MIX_PERM( P,  0,  7, 31 ); THREEFISH_INV_MIX_PERM( P,  2,  5, 44 ); THREEFISH_INV_MIX_PERM( P,  4,  3, 47 ); THREEFISH_INV_MIX_PERM( P,  6,  1, 46 ); THREEFISH_INV_MIX_PERM( P, 12, 15, 19 ); THREEFISH_INV_MIX_PERM( P, 14, 13, 42 ); THREEFISH_INV_MIX_PERM( P,  8, 11, 44 ); THREEFISH_INV_MIX_PERM( P, 10,  9, 25 );
-            THREEFISH_INV_MIX_PERM( P,  0,  9, 16 ); THREEFISH_INV_MIX_PERM( P,  2, 13, 34 ); THREEFISH_INV_MIX_PERM( P,  6, 11, 56 ); THREEFISH_INV_MIX_PERM( P,  4, 15, 51 ); THREEFISH_INV_MIX_PERM( P, 10,  7,  4 ); THREEFISH_INV_MIX_PERM( P, 12,  3, 53 ); THREEFISH_INV_MIX_PERM( P, 14,  5, 42 ); THREEFISH_INV_MIX_PERM( P,  8,  1, 41 );
-            THREEFISH_INV_MIX_PERM( P,  0,  1, 41 ); THREEFISH_INV_MIX_PERM( P,  2,  3,  9 ); THREEFISH_INV_MIX_PERM( P,  4,  5, 37 ); THREEFISH_INV_MIX_PERM( P,  6,  7, 31 ); THREEFISH_INV_MIX_PERM( P,  8,  9, 12 ); THREEFISH_INV_MIX_PERM( P, 10, 11, 47 ); THREEFISH_INV_MIX_PERM( P, 12, 13, 44 ); THREEFISH_INV_MIX_PERM( P, 14, 15, 30 );
+            THREEFISH_INV_MIX( P,  0, 15,  9 ); THREEFISH_INV_MIX( P,  2, 11, 48 );
+                THREEFISH_INV_MIX( P,  6, 13, 35 ); THREEFISH_INV_MIX( P,  4,  9, 52 );
+                THREEFISH_INV_MIX( P, 14,  1, 23 ); THREEFISH_INV_MIX( P,  8,  5, 31 );
+                THREEFISH_INV_MIX( P, 10,  3, 37 ); THREEFISH_INV_MIX( P, 12,  7, 20 );
+            THREEFISH_INV_MIX( P,  0,  7, 31 ); THREEFISH_INV_MIX( P,  2,  5, 44 );
+                THREEFISH_INV_MIX( P,  4,  3, 47 ); THREEFISH_INV_MIX( P,  6,  1, 46 );
+                THREEFISH_INV_MIX( P, 12, 15, 19 ); THREEFISH_INV_MIX( P, 14, 13, 42 );
+                THREEFISH_INV_MIX( P,  8, 11, 44 ); THREEFISH_INV_MIX( P, 10,  9, 25 );
+            THREEFISH_INV_MIX( P,  0,  9, 16 ); THREEFISH_INV_MIX( P,  2, 13, 34 );
+                THREEFISH_INV_MIX( P,  6, 11, 56 ); THREEFISH_INV_MIX( P,  4, 15, 51 );
+                THREEFISH_INV_MIX( P, 10,  7,  4 ); THREEFISH_INV_MIX( P, 12,  3, 53 );
+                THREEFISH_INV_MIX( P, 14,  5, 42 ); THREEFISH_INV_MIX( P,  8,  1, 41 );
+            THREEFISH_INV_MIX( P,  0,  1, 41 ); THREEFISH_INV_MIX( P,  2,  3,  9 );
+                THREEFISH_INV_MIX( P,  4,  5, 37 ); THREEFISH_INV_MIX( P,  6,  7, 31 );
+                THREEFISH_INV_MIX( P,  8,  9, 12 ); THREEFISH_INV_MIX( P, 10, 11, 47 );
+                THREEFISH_INV_MIX( P, 12, 13, 44 ); THREEFISH_INV_MIX( P, 14, 15, 30 );
 
             THREEFISH1024_SUB_SUBKEY( P, K, T, 13 );
 
-            THREEFISH_INV_MIX_PERM( P,  0, 15,  5 ); THREEFISH_INV_MIX_PERM( P,  2, 11, 20 ); THREEFISH_INV_MIX_PERM( P,  6, 13, 48 ); THREEFISH_INV_MIX_PERM( P,  4,  9, 41 ); THREEFISH_INV_MIX_PERM( P, 14,  1, 47 ); THREEFISH_INV_MIX_PERM( P,  8,  5, 28 ); THREEFISH_INV_MIX_PERM( P, 10,  3, 16 ); THREEFISH_INV_MIX_PERM( P, 12,  7, 25 );
-            THREEFISH_INV_MIX_PERM( P,  0,  7, 33 ); THREEFISH_INV_MIX_PERM( P,  2,  5,  4 ); THREEFISH_INV_MIX_PERM( P,  4,  3, 51 ); THREEFISH_INV_MIX_PERM( P,  6,  1, 13 ); THREEFISH_INV_MIX_PERM( P, 12, 15, 34 ); THREEFISH_INV_MIX_PERM( P, 14, 13, 41 ); THREEFISH_INV_MIX_PERM( P,  8, 11, 59 ); THREEFISH_INV_MIX_PERM( P, 10,  9, 17 );
-            THREEFISH_INV_MIX_PERM( P,  0,  9, 38 ); THREEFISH_INV_MIX_PERM( P,  2, 13, 19 ); THREEFISH_INV_MIX_PERM( P,  6, 11, 10 ); THREEFISH_INV_MIX_PERM( P,  4, 15, 55 ); THREEFISH_INV_MIX_PERM( P, 10,  7, 49 ); THREEFISH_INV_MIX_PERM( P, 12,  3, 18 ); THREEFISH_INV_MIX_PERM( P, 14,  5, 23 ); THREEFISH_INV_MIX_PERM( P,  8,  1, 52 );
-            THREEFISH_INV_MIX_PERM( P,  0,  1, 24 ); THREEFISH_INV_MIX_PERM( P,  2,  3, 13 ); THREEFISH_INV_MIX_PERM( P,  4,  5,  8 ); THREEFISH_INV_MIX_PERM( P,  6,  7, 47 ); THREEFISH_INV_MIX_PERM( P,  8,  9,  8 ); THREEFISH_INV_MIX_PERM( P, 10, 11, 17 ); THREEFISH_INV_MIX_PERM( P, 12, 13, 22 ); THREEFISH_INV_MIX_PERM( P, 14, 15, 37 );
+            THREEFISH_INV_MIX( P,  0, 15,  5 ); THREEFISH_INV_MIX( P,  2, 11, 20 );
+                THREEFISH_INV_MIX( P,  6, 13, 48 ); THREEFISH_INV_MIX( P,  4,  9, 41 );
+                THREEFISH_INV_MIX( P, 14,  1, 47 ); THREEFISH_INV_MIX( P,  8,  5, 28 );
+                THREEFISH_INV_MIX( P, 10,  3, 16 ); THREEFISH_INV_MIX( P, 12,  7, 25 );
+            THREEFISH_INV_MIX( P,  0,  7, 33 ); THREEFISH_INV_MIX( P,  2,  5,  4 );
+                THREEFISH_INV_MIX( P,  4,  3, 51 ); THREEFISH_INV_MIX( P,  6,  1, 13 );
+                THREEFISH_INV_MIX( P, 12, 15, 34 ); THREEFISH_INV_MIX( P, 14, 13, 41 );
+                THREEFISH_INV_MIX( P,  8, 11, 59 ); THREEFISH_INV_MIX( P, 10,  9, 17 );
+            THREEFISH_INV_MIX( P,  0,  9, 38 ); THREEFISH_INV_MIX( P,  2, 13, 19 );
+                THREEFISH_INV_MIX( P,  6, 11, 10 ); THREEFISH_INV_MIX( P,  4, 15, 55 );
+                THREEFISH_INV_MIX( P, 10,  7, 49 ); THREEFISH_INV_MIX( P, 12,  3, 18 );
+                THREEFISH_INV_MIX( P, 14,  5, 23 ); THREEFISH_INV_MIX( P,  8,  1, 52 );
+            THREEFISH_INV_MIX( P,  0,  1, 24 ); THREEFISH_INV_MIX( P,  2,  3, 13 );
+                THREEFISH_INV_MIX( P,  4,  5,  8 ); THREEFISH_INV_MIX( P,  6,  7, 47 );
+                THREEFISH_INV_MIX( P,  8,  9,  8 ); THREEFISH_INV_MIX( P, 10, 11, 17 );
+                THREEFISH_INV_MIX( P, 12, 13, 22 ); THREEFISH_INV_MIX( P, 14, 15, 37 );
 
             THREEFISH1024_SUB_SUBKEY( P, K, T, 12 );
 
-            THREEFISH_INV_MIX_PERM( P,  0, 15,  9 ); THREEFISH_INV_MIX_PERM( P,  2, 11, 48 ); THREEFISH_INV_MIX_PERM( P,  6, 13, 35 ); THREEFISH_INV_MIX_PERM( P,  4,  9, 52 ); THREEFISH_INV_MIX_PERM( P, 14,  1, 23 ); THREEFISH_INV_MIX_PERM( P,  8,  5, 31 ); THREEFISH_INV_MIX_PERM( P, 10,  3, 37 ); THREEFISH_INV_MIX_PERM( P, 12,  7, 20 );
-            THREEFISH_INV_MIX_PERM( P,  0,  7, 31 ); THREEFISH_INV_MIX_PERM( P,  2,  5, 44 ); THREEFISH_INV_MIX_PERM( P,  4,  3, 47 ); THREEFISH_INV_MIX_PERM( P,  6,  1, 46 ); THREEFISH_INV_MIX_PERM( P, 12, 15, 19 ); THREEFISH_INV_MIX_PERM( P, 14, 13, 42 ); THREEFISH_INV_MIX_PERM( P,  8, 11, 44 ); THREEFISH_INV_MIX_PERM( P, 10,  9, 25 );
-            THREEFISH_INV_MIX_PERM( P,  0,  9, 16 ); THREEFISH_INV_MIX_PERM( P,  2, 13, 34 ); THREEFISH_INV_MIX_PERM( P,  6, 11, 56 ); THREEFISH_INV_MIX_PERM( P,  4, 15, 51 ); THREEFISH_INV_MIX_PERM( P, 10,  7,  4 ); THREEFISH_INV_MIX_PERM( P, 12,  3, 53 ); THREEFISH_INV_MIX_PERM( P, 14,  5, 42 ); THREEFISH_INV_MIX_PERM( P,  8,  1, 41 );
-            THREEFISH_INV_MIX_PERM( P,  0,  1, 41 ); THREEFISH_INV_MIX_PERM( P,  2,  3,  9 ); THREEFISH_INV_MIX_PERM( P,  4,  5, 37 ); THREEFISH_INV_MIX_PERM( P,  6,  7, 31 ); THREEFISH_INV_MIX_PERM( P,  8,  9, 12 ); THREEFISH_INV_MIX_PERM( P, 10, 11, 47 ); THREEFISH_INV_MIX_PERM( P, 12, 13, 44 ); THREEFISH_INV_MIX_PERM( P, 14, 15, 30 );
+            THREEFISH_INV_MIX( P,  0, 15,  9 ); THREEFISH_INV_MIX( P,  2, 11, 48 );
+                THREEFISH_INV_MIX( P,  6, 13, 35 ); THREEFISH_INV_MIX( P,  4,  9, 52 );
+                THREEFISH_INV_MIX( P, 14,  1, 23 ); THREEFISH_INV_MIX( P,  8,  5, 31 );
+                THREEFISH_INV_MIX( P, 10,  3, 37 ); THREEFISH_INV_MIX( P, 12,  7, 20 );
+            THREEFISH_INV_MIX( P,  0,  7, 31 ); THREEFISH_INV_MIX( P,  2,  5, 44 );
+                THREEFISH_INV_MIX( P,  4,  3, 47 ); THREEFISH_INV_MIX( P,  6,  1, 46 );
+                THREEFISH_INV_MIX( P, 12, 15, 19 ); THREEFISH_INV_MIX( P, 14, 13, 42 );
+                THREEFISH_INV_MIX( P,  8, 11, 44 ); THREEFISH_INV_MIX( P, 10,  9, 25 );
+            THREEFISH_INV_MIX( P,  0,  9, 16 ); THREEFISH_INV_MIX( P,  2, 13, 34 );
+                THREEFISH_INV_MIX( P,  6, 11, 56 ); THREEFISH_INV_MIX( P,  4, 15, 51 );
+                THREEFISH_INV_MIX( P, 10,  7,  4 ); THREEFISH_INV_MIX( P, 12,  3, 53 );
+                THREEFISH_INV_MIX( P, 14,  5, 42 ); THREEFISH_INV_MIX( P,  8,  1, 41 );
+            THREEFISH_INV_MIX( P,  0,  1, 41 ); THREEFISH_INV_MIX( P,  2,  3,  9 );
+                THREEFISH_INV_MIX( P,  4,  5, 37 ); THREEFISH_INV_MIX( P,  6,  7, 31 );
+                THREEFISH_INV_MIX( P,  8,  9, 12 ); THREEFISH_INV_MIX( P, 10, 11, 47 );
+                THREEFISH_INV_MIX( P, 12, 13, 44 ); THREEFISH_INV_MIX( P, 14, 15, 30 );
 
             THREEFISH1024_SUB_SUBKEY( P, K, T, 11 );
 
-            THREEFISH_INV_MIX_PERM( P,  0, 15,  5 ); THREEFISH_INV_MIX_PERM( P,  2, 11, 20 ); THREEFISH_INV_MIX_PERM( P,  6, 13, 48 ); THREEFISH_INV_MIX_PERM( P,  4,  9, 41 ); THREEFISH_INV_MIX_PERM( P, 14,  1, 47 ); THREEFISH_INV_MIX_PERM( P,  8,  5, 28 ); THREEFISH_INV_MIX_PERM( P, 10,  3, 16 ); THREEFISH_INV_MIX_PERM( P, 12,  7, 25 );
-            THREEFISH_INV_MIX_PERM( P,  0,  7, 33 ); THREEFISH_INV_MIX_PERM( P,  2,  5,  4 ); THREEFISH_INV_MIX_PERM( P,  4,  3, 51 ); THREEFISH_INV_MIX_PERM( P,  6,  1, 13 ); THREEFISH_INV_MIX_PERM( P, 12, 15, 34 ); THREEFISH_INV_MIX_PERM( P, 14, 13, 41 ); THREEFISH_INV_MIX_PERM( P,  8, 11, 59 ); THREEFISH_INV_MIX_PERM( P, 10,  9, 17 );
-            THREEFISH_INV_MIX_PERM( P,  0,  9, 38 ); THREEFISH_INV_MIX_PERM( P,  2, 13, 19 ); THREEFISH_INV_MIX_PERM( P,  6, 11, 10 ); THREEFISH_INV_MIX_PERM( P,  4, 15, 55 ); THREEFISH_INV_MIX_PERM( P, 10,  7, 49 ); THREEFISH_INV_MIX_PERM( P, 12,  3, 18 ); THREEFISH_INV_MIX_PERM( P, 14,  5, 23 ); THREEFISH_INV_MIX_PERM( P,  8,  1, 52 );
-            THREEFISH_INV_MIX_PERM( P,  0,  1, 24 ); THREEFISH_INV_MIX_PERM( P,  2,  3, 13 ); THREEFISH_INV_MIX_PERM( P,  4,  5,  8 ); THREEFISH_INV_MIX_PERM( P,  6,  7, 47 ); THREEFISH_INV_MIX_PERM( P,  8,  9,  8 ); THREEFISH_INV_MIX_PERM( P, 10, 11, 17 ); THREEFISH_INV_MIX_PERM( P, 12, 13, 22 ); THREEFISH_INV_MIX_PERM( P, 14, 15, 37 );
+            THREEFISH_INV_MIX( P,  0, 15,  5 ); THREEFISH_INV_MIX( P,  2, 11, 20 );
+                THREEFISH_INV_MIX( P,  6, 13, 48 ); THREEFISH_INV_MIX( P,  4,  9, 41 );
+                THREEFISH_INV_MIX( P, 14,  1, 47 ); THREEFISH_INV_MIX( P,  8,  5, 28 );
+                THREEFISH_INV_MIX( P, 10,  3, 16 ); THREEFISH_INV_MIX( P, 12,  7, 25 );
+            THREEFISH_INV_MIX( P,  0,  7, 33 ); THREEFISH_INV_MIX( P,  2,  5,  4 );
+                THREEFISH_INV_MIX( P,  4,  3, 51 ); THREEFISH_INV_MIX( P,  6,  1, 13 );
+                THREEFISH_INV_MIX( P, 12, 15, 34 ); THREEFISH_INV_MIX( P, 14, 13, 41 );
+                THREEFISH_INV_MIX( P,  8, 11, 59 ); THREEFISH_INV_MIX( P, 10,  9, 17 );
+            THREEFISH_INV_MIX( P,  0,  9, 38 ); THREEFISH_INV_MIX( P,  2, 13, 19 );
+                THREEFISH_INV_MIX( P,  6, 11, 10 ); THREEFISH_INV_MIX( P,  4, 15, 55 );
+                THREEFISH_INV_MIX( P, 10,  7, 49 ); THREEFISH_INV_MIX( P, 12,  3, 18 );
+                THREEFISH_INV_MIX( P, 14,  5, 23 ); THREEFISH_INV_MIX( P,  8,  1, 52 );
+            THREEFISH_INV_MIX( P,  0,  1, 24 ); THREEFISH_INV_MIX( P,  2,  3, 13 );
+                THREEFISH_INV_MIX( P,  4,  5,  8 ); THREEFISH_INV_MIX( P,  6,  7, 47 );
+                THREEFISH_INV_MIX( P,  8,  9,  8 ); THREEFISH_INV_MIX( P, 10, 11, 17 );
+                THREEFISH_INV_MIX( P, 12, 13, 22 ); THREEFISH_INV_MIX( P, 14, 15, 37 );
 
             THREEFISH1024_SUB_SUBKEY( P, K, T, 10 );
 
-            THREEFISH_INV_MIX_PERM( P,  0, 15,  9 ); THREEFISH_INV_MIX_PERM( P,  2, 11, 48 ); THREEFISH_INV_MIX_PERM( P,  6, 13, 35 ); THREEFISH_INV_MIX_PERM( P,  4,  9, 52 ); THREEFISH_INV_MIX_PERM( P, 14,  1, 23 ); THREEFISH_INV_MIX_PERM( P,  8,  5, 31 ); THREEFISH_INV_MIX_PERM( P, 10,  3, 37 ); THREEFISH_INV_MIX_PERM( P, 12,  7, 20 );
-            THREEFISH_INV_MIX_PERM( P,  0,  7, 31 ); THREEFISH_INV_MIX_PERM( P,  2,  5, 44 ); THREEFISH_INV_MIX_PERM( P,  4,  3, 47 ); THREEFISH_INV_MIX_PERM( P,  6,  1, 46 ); THREEFISH_INV_MIX_PERM( P, 12, 15, 19 ); THREEFISH_INV_MIX_PERM( P, 14, 13, 42 ); THREEFISH_INV_MIX_PERM( P,  8, 11, 44 ); THREEFISH_INV_MIX_PERM( P, 10,  9, 25 );
-            THREEFISH_INV_MIX_PERM( P,  0,  9, 16 ); THREEFISH_INV_MIX_PERM( P,  2, 13, 34 ); THREEFISH_INV_MIX_PERM( P,  6, 11, 56 ); THREEFISH_INV_MIX_PERM( P,  4, 15, 51 ); THREEFISH_INV_MIX_PERM( P, 10,  7,  4 ); THREEFISH_INV_MIX_PERM( P, 12,  3, 53 ); THREEFISH_INV_MIX_PERM( P, 14,  5, 42 ); THREEFISH_INV_MIX_PERM( P,  8,  1, 41 );
-            THREEFISH_INV_MIX_PERM( P,  0,  1, 41 ); THREEFISH_INV_MIX_PERM( P,  2,  3,  9 ); THREEFISH_INV_MIX_PERM( P,  4,  5, 37 ); THREEFISH_INV_MIX_PERM( P,  6,  7, 31 ); THREEFISH_INV_MIX_PERM( P,  8,  9, 12 ); THREEFISH_INV_MIX_PERM( P, 10, 11, 47 ); THREEFISH_INV_MIX_PERM( P, 12, 13, 44 ); THREEFISH_INV_MIX_PERM( P, 14, 15, 30 );
+            THREEFISH_INV_MIX( P,  0, 15,  9 ); THREEFISH_INV_MIX( P,  2, 11, 48 );
+                THREEFISH_INV_MIX( P,  6, 13, 35 ); THREEFISH_INV_MIX( P,  4,  9, 52 );
+                THREEFISH_INV_MIX( P, 14,  1, 23 ); THREEFISH_INV_MIX( P,  8,  5, 31 );
+                THREEFISH_INV_MIX( P, 10,  3, 37 ); THREEFISH_INV_MIX( P, 12,  7, 20 );
+            THREEFISH_INV_MIX( P,  0,  7, 31 ); THREEFISH_INV_MIX( P,  2,  5, 44 );
+                THREEFISH_INV_MIX( P,  4,  3, 47 ); THREEFISH_INV_MIX( P,  6,  1, 46 );
+                THREEFISH_INV_MIX( P, 12, 15, 19 ); THREEFISH_INV_MIX( P, 14, 13, 42 );
+                THREEFISH_INV_MIX( P,  8, 11, 44 ); THREEFISH_INV_MIX( P, 10,  9, 25 );
+            THREEFISH_INV_MIX( P,  0,  9, 16 ); THREEFISH_INV_MIX( P,  2, 13, 34 );
+                THREEFISH_INV_MIX( P,  6, 11, 56 ); THREEFISH_INV_MIX( P,  4, 15, 51 );
+                THREEFISH_INV_MIX( P, 10,  7,  4 ); THREEFISH_INV_MIX( P, 12,  3, 53 );
+                THREEFISH_INV_MIX( P, 14,  5, 42 ); THREEFISH_INV_MIX( P,  8,  1, 41 );
+            THREEFISH_INV_MIX( P,  0,  1, 41 ); THREEFISH_INV_MIX( P,  2,  3,  9 );
+                THREEFISH_INV_MIX( P,  4,  5, 37 ); THREEFISH_INV_MIX( P,  6,  7, 31 );
+                THREEFISH_INV_MIX( P,  8,  9, 12 ); THREEFISH_INV_MIX( P, 10, 11, 47 );
+                THREEFISH_INV_MIX( P, 12, 13, 44 ); THREEFISH_INV_MIX( P, 14, 15, 30 );
 
             THREEFISH1024_SUB_SUBKEY( P, K, T, 9 );
 
-            THREEFISH_INV_MIX_PERM( P,  0, 15,  5 ); THREEFISH_INV_MIX_PERM( P,  2, 11, 20 ); THREEFISH_INV_MIX_PERM( P,  6, 13, 48 ); THREEFISH_INV_MIX_PERM( P,  4,  9, 41 ); THREEFISH_INV_MIX_PERM( P, 14,  1, 47 ); THREEFISH_INV_MIX_PERM( P,  8,  5, 28 ); THREEFISH_INV_MIX_PERM( P, 10,  3, 16 ); THREEFISH_INV_MIX_PERM( P, 12,  7, 25 );
-            THREEFISH_INV_MIX_PERM( P,  0,  7, 33 ); THREEFISH_INV_MIX_PERM( P,  2,  5,  4 ); THREEFISH_INV_MIX_PERM( P,  4,  3, 51 ); THREEFISH_INV_MIX_PERM( P,  6,  1, 13 ); THREEFISH_INV_MIX_PERM( P, 12, 15, 34 ); THREEFISH_INV_MIX_PERM( P, 14, 13, 41 ); THREEFISH_INV_MIX_PERM( P,  8, 11, 59 ); THREEFISH_INV_MIX_PERM( P, 10,  9, 17 );
-            THREEFISH_INV_MIX_PERM( P,  0,  9, 38 ); THREEFISH_INV_MIX_PERM( P,  2, 13, 19 ); THREEFISH_INV_MIX_PERM( P,  6, 11, 10 ); THREEFISH_INV_MIX_PERM( P,  4, 15, 55 ); THREEFISH_INV_MIX_PERM( P, 10,  7, 49 ); THREEFISH_INV_MIX_PERM( P, 12,  3, 18 ); THREEFISH_INV_MIX_PERM( P, 14,  5, 23 ); THREEFISH_INV_MIX_PERM( P,  8,  1, 52 );
-            THREEFISH_INV_MIX_PERM( P,  0,  1, 24 ); THREEFISH_INV_MIX_PERM( P,  2,  3, 13 ); THREEFISH_INV_MIX_PERM( P,  4,  5,  8 ); THREEFISH_INV_MIX_PERM( P,  6,  7, 47 ); THREEFISH_INV_MIX_PERM( P,  8,  9,  8 ); THREEFISH_INV_MIX_PERM( P, 10, 11, 17 ); THREEFISH_INV_MIX_PERM( P, 12, 13, 22 ); THREEFISH_INV_MIX_PERM( P, 14, 15, 37 );
+            THREEFISH_INV_MIX( P,  0, 15,  5 ); THREEFISH_INV_MIX( P,  2, 11, 20 );
+                THREEFISH_INV_MIX( P,  6, 13, 48 ); THREEFISH_INV_MIX( P,  4,  9, 41 );
+                THREEFISH_INV_MIX( P, 14,  1, 47 ); THREEFISH_INV_MIX( P,  8,  5, 28 );
+                THREEFISH_INV_MIX( P, 10,  3, 16 ); THREEFISH_INV_MIX( P, 12,  7, 25 );
+            THREEFISH_INV_MIX( P,  0,  7, 33 ); THREEFISH_INV_MIX( P,  2,  5,  4 );
+                THREEFISH_INV_MIX( P,  4,  3, 51 ); THREEFISH_INV_MIX( P,  6,  1, 13 );
+                THREEFISH_INV_MIX( P, 12, 15, 34 ); THREEFISH_INV_MIX( P, 14, 13, 41 );
+                THREEFISH_INV_MIX( P,  8, 11, 59 ); THREEFISH_INV_MIX( P, 10,  9, 17 );
+            THREEFISH_INV_MIX( P,  0,  9, 38 ); THREEFISH_INV_MIX( P,  2, 13, 19 );
+                THREEFISH_INV_MIX( P,  6, 11, 10 ); THREEFISH_INV_MIX( P,  4, 15, 55 );
+                THREEFISH_INV_MIX( P, 10,  7, 49 ); THREEFISH_INV_MIX( P, 12,  3, 18 );
+                THREEFISH_INV_MIX( P, 14,  5, 23 ); THREEFISH_INV_MIX( P,  8,  1, 52 );
+            THREEFISH_INV_MIX( P,  0,  1, 24 ); THREEFISH_INV_MIX( P,  2,  3, 13 );
+                THREEFISH_INV_MIX( P,  4,  5,  8 ); THREEFISH_INV_MIX( P,  6,  7, 47 );
+                THREEFISH_INV_MIX( P,  8,  9,  8 ); THREEFISH_INV_MIX( P, 10, 11, 17 );
+                THREEFISH_INV_MIX( P, 12, 13, 22 ); THREEFISH_INV_MIX( P, 14, 15, 37 );
 
             THREEFISH1024_SUB_SUBKEY( P, K, T, 8 );
 
-            THREEFISH_INV_MIX_PERM( P,  0, 15,  9 ); THREEFISH_INV_MIX_PERM( P,  2, 11, 48 ); THREEFISH_INV_MIX_PERM( P,  6, 13, 35 ); THREEFISH_INV_MIX_PERM( P,  4,  9, 52 ); THREEFISH_INV_MIX_PERM( P, 14,  1, 23 ); THREEFISH_INV_MIX_PERM( P,  8,  5, 31 ); THREEFISH_INV_MIX_PERM( P, 10,  3, 37 ); THREEFISH_INV_MIX_PERM( P, 12,  7, 20 );
-            THREEFISH_INV_MIX_PERM( P,  0,  7, 31 ); THREEFISH_INV_MIX_PERM( P,  2,  5, 44 ); THREEFISH_INV_MIX_PERM( P,  4,  3, 47 ); THREEFISH_INV_MIX_PERM( P,  6,  1, 46 ); THREEFISH_INV_MIX_PERM( P, 12, 15, 19 ); THREEFISH_INV_MIX_PERM( P, 14, 13, 42 ); THREEFISH_INV_MIX_PERM( P,  8, 11, 44 ); THREEFISH_INV_MIX_PERM( P, 10,  9, 25 );
-            THREEFISH_INV_MIX_PERM( P,  0,  9, 16 ); THREEFISH_INV_MIX_PERM( P,  2, 13, 34 ); THREEFISH_INV_MIX_PERM( P,  6, 11, 56 ); THREEFISH_INV_MIX_PERM( P,  4, 15, 51 ); THREEFISH_INV_MIX_PERM( P, 10,  7,  4 ); THREEFISH_INV_MIX_PERM( P, 12,  3, 53 ); THREEFISH_INV_MIX_PERM( P, 14,  5, 42 ); THREEFISH_INV_MIX_PERM( P,  8,  1, 41 );
-            THREEFISH_INV_MIX_PERM( P,  0,  1, 41 ); THREEFISH_INV_MIX_PERM( P,  2,  3,  9 ); THREEFISH_INV_MIX_PERM( P,  4,  5, 37 ); THREEFISH_INV_MIX_PERM( P,  6,  7, 31 ); THREEFISH_INV_MIX_PERM( P,  8,  9, 12 ); THREEFISH_INV_MIX_PERM( P, 10, 11, 47 ); THREEFISH_INV_MIX_PERM( P, 12, 13, 44 ); THREEFISH_INV_MIX_PERM( P, 14, 15, 30 );
+            THREEFISH_INV_MIX( P,  0, 15,  9 ); THREEFISH_INV_MIX( P,  2, 11, 48 );
+                THREEFISH_INV_MIX( P,  6, 13, 35 ); THREEFISH_INV_MIX( P,  4,  9, 52 );
+                THREEFISH_INV_MIX( P, 14,  1, 23 ); THREEFISH_INV_MIX( P,  8,  5, 31 );
+                THREEFISH_INV_MIX( P, 10,  3, 37 ); THREEFISH_INV_MIX( P, 12,  7, 20 );
+            THREEFISH_INV_MIX( P,  0,  7, 31 ); THREEFISH_INV_MIX( P,  2,  5, 44 );
+                THREEFISH_INV_MIX( P,  4,  3, 47 ); THREEFISH_INV_MIX( P,  6,  1, 46 );
+                THREEFISH_INV_MIX( P, 12, 15, 19 ); THREEFISH_INV_MIX( P, 14, 13, 42 );
+                THREEFISH_INV_MIX( P,  8, 11, 44 ); THREEFISH_INV_MIX( P, 10,  9, 25 );
+            THREEFISH_INV_MIX( P,  0,  9, 16 ); THREEFISH_INV_MIX( P,  2, 13, 34 );
+                THREEFISH_INV_MIX( P,  6, 11, 56 ); THREEFISH_INV_MIX( P,  4, 15, 51 );
+                THREEFISH_INV_MIX( P, 10,  7,  4 ); THREEFISH_INV_MIX( P, 12,  3, 53 );
+                THREEFISH_INV_MIX( P, 14,  5, 42 ); THREEFISH_INV_MIX( P,  8,  1, 41 );
+            THREEFISH_INV_MIX( P,  0,  1, 41 ); THREEFISH_INV_MIX( P,  2,  3,  9 );
+                THREEFISH_INV_MIX( P,  4,  5, 37 ); THREEFISH_INV_MIX( P,  6,  7, 31 );
+                THREEFISH_INV_MIX( P,  8,  9, 12 ); THREEFISH_INV_MIX( P, 10, 11, 47 );
+                THREEFISH_INV_MIX( P, 12, 13, 44 ); THREEFISH_INV_MIX( P, 14, 15, 30 );
 
             THREEFISH1024_SUB_SUBKEY( P, K, T, 7 );
 
-            THREEFISH_INV_MIX_PERM( P,  0, 15,  5 ); THREEFISH_INV_MIX_PERM( P,  2, 11, 20 ); THREEFISH_INV_MIX_PERM( P,  6, 13, 48 ); THREEFISH_INV_MIX_PERM( P,  4,  9, 41 ); THREEFISH_INV_MIX_PERM( P, 14,  1, 47 ); THREEFISH_INV_MIX_PERM( P,  8,  5, 28 ); THREEFISH_INV_MIX_PERM( P, 10,  3, 16 ); THREEFISH_INV_MIX_PERM( P, 12,  7, 25 );
-            THREEFISH_INV_MIX_PERM( P,  0,  7, 33 ); THREEFISH_INV_MIX_PERM( P,  2,  5,  4 ); THREEFISH_INV_MIX_PERM( P,  4,  3, 51 ); THREEFISH_INV_MIX_PERM( P,  6,  1, 13 ); THREEFISH_INV_MIX_PERM( P, 12, 15, 34 ); THREEFISH_INV_MIX_PERM( P, 14, 13, 41 ); THREEFISH_INV_MIX_PERM( P,  8, 11, 59 ); THREEFISH_INV_MIX_PERM( P, 10,  9, 17 );
-            THREEFISH_INV_MIX_PERM( P,  0,  9, 38 ); THREEFISH_INV_MIX_PERM( P,  2, 13, 19 ); THREEFISH_INV_MIX_PERM( P,  6, 11, 10 ); THREEFISH_INV_MIX_PERM( P,  4, 15, 55 ); THREEFISH_INV_MIX_PERM( P, 10,  7, 49 ); THREEFISH_INV_MIX_PERM( P, 12,  3, 18 ); THREEFISH_INV_MIX_PERM( P, 14,  5, 23 ); THREEFISH_INV_MIX_PERM( P,  8,  1, 52 );
-            THREEFISH_INV_MIX_PERM( P,  0,  1, 24 ); THREEFISH_INV_MIX_PERM( P,  2,  3, 13 ); THREEFISH_INV_MIX_PERM( P,  4,  5,  8 ); THREEFISH_INV_MIX_PERM( P,  6,  7, 47 ); THREEFISH_INV_MIX_PERM( P,  8,  9,  8 ); THREEFISH_INV_MIX_PERM( P, 10, 11, 17 ); THREEFISH_INV_MIX_PERM( P, 12, 13, 22 ); THREEFISH_INV_MIX_PERM( P, 14, 15, 37 );
+            THREEFISH_INV_MIX( P,  0, 15,  5 ); THREEFISH_INV_MIX( P,  2, 11, 20 );
+                THREEFISH_INV_MIX( P,  6, 13, 48 ); THREEFISH_INV_MIX( P,  4,  9, 41 );
+                THREEFISH_INV_MIX( P, 14,  1, 47 ); THREEFISH_INV_MIX( P,  8,  5, 28 );
+                THREEFISH_INV_MIX( P, 10,  3, 16 ); THREEFISH_INV_MIX( P, 12,  7, 25 );
+            THREEFISH_INV_MIX( P,  0,  7, 33 ); THREEFISH_INV_MIX( P,  2,  5,  4 );
+                THREEFISH_INV_MIX( P,  4,  3, 51 ); THREEFISH_INV_MIX( P,  6,  1, 13 );
+                THREEFISH_INV_MIX( P, 12, 15, 34 ); THREEFISH_INV_MIX( P, 14, 13, 41 );
+                THREEFISH_INV_MIX( P,  8, 11, 59 ); THREEFISH_INV_MIX( P, 10,  9, 17 );
+            THREEFISH_INV_MIX( P,  0,  9, 38 ); THREEFISH_INV_MIX( P,  2, 13, 19 );
+                THREEFISH_INV_MIX( P,  6, 11, 10 ); THREEFISH_INV_MIX( P,  4, 15, 55 );
+                THREEFISH_INV_MIX( P, 10,  7, 49 ); THREEFISH_INV_MIX( P, 12,  3, 18 );
+                THREEFISH_INV_MIX( P, 14,  5, 23 ); THREEFISH_INV_MIX( P,  8,  1, 52 );
+            THREEFISH_INV_MIX( P,  0,  1, 24 ); THREEFISH_INV_MIX( P,  2,  3, 13 );
+                THREEFISH_INV_MIX( P,  4,  5,  8 ); THREEFISH_INV_MIX( P,  6,  7, 47 );
+                THREEFISH_INV_MIX( P,  8,  9,  8 ); THREEFISH_INV_MIX( P, 10, 11, 17 );
+                THREEFISH_INV_MIX( P, 12, 13, 22 ); THREEFISH_INV_MIX( P, 14, 15, 37 );
 
             THREEFISH1024_SUB_SUBKEY( P, K, T, 6 );
 
-            THREEFISH_INV_MIX_PERM( P,  0, 15,  9 ); THREEFISH_INV_MIX_PERM( P,  2, 11, 48 ); THREEFISH_INV_MIX_PERM( P,  6, 13, 35 ); THREEFISH_INV_MIX_PERM( P,  4,  9, 52 ); THREEFISH_INV_MIX_PERM( P, 14,  1, 23 ); THREEFISH_INV_MIX_PERM( P,  8,  5, 31 ); THREEFISH_INV_MIX_PERM( P, 10,  3, 37 ); THREEFISH_INV_MIX_PERM( P, 12,  7, 20 );
-            THREEFISH_INV_MIX_PERM( P,  0,  7, 31 ); THREEFISH_INV_MIX_PERM( P,  2,  5, 44 ); THREEFISH_INV_MIX_PERM( P,  4,  3, 47 ); THREEFISH_INV_MIX_PERM( P,  6,  1, 46 ); THREEFISH_INV_MIX_PERM( P, 12, 15, 19 ); THREEFISH_INV_MIX_PERM( P, 14, 13, 42 ); THREEFISH_INV_MIX_PERM( P,  8, 11, 44 ); THREEFISH_INV_MIX_PERM( P, 10,  9, 25 );
-            THREEFISH_INV_MIX_PERM( P,  0,  9, 16 ); THREEFISH_INV_MIX_PERM( P,  2, 13, 34 ); THREEFISH_INV_MIX_PERM( P,  6, 11, 56 ); THREEFISH_INV_MIX_PERM( P,  4, 15, 51 ); THREEFISH_INV_MIX_PERM( P, 10,  7,  4 ); THREEFISH_INV_MIX_PERM( P, 12,  3, 53 ); THREEFISH_INV_MIX_PERM( P, 14,  5, 42 ); THREEFISH_INV_MIX_PERM( P,  8,  1, 41 );
-            THREEFISH_INV_MIX_PERM( P,  0,  1, 41 ); THREEFISH_INV_MIX_PERM( P,  2,  3,  9 ); THREEFISH_INV_MIX_PERM( P,  4,  5, 37 ); THREEFISH_INV_MIX_PERM( P,  6,  7, 31 ); THREEFISH_INV_MIX_PERM( P,  8,  9, 12 ); THREEFISH_INV_MIX_PERM( P, 10, 11, 47 ); THREEFISH_INV_MIX_PERM( P, 12, 13, 44 ); THREEFISH_INV_MIX_PERM( P, 14, 15, 30 );
+            THREEFISH_INV_MIX( P,  0, 15,  9 ); THREEFISH_INV_MIX( P,  2, 11, 48 );
+                THREEFISH_INV_MIX( P,  6, 13, 35 ); THREEFISH_INV_MIX( P,  4,  9, 52 );
+                THREEFISH_INV_MIX( P, 14,  1, 23 ); THREEFISH_INV_MIX( P,  8,  5, 31 );
+                THREEFISH_INV_MIX( P, 10,  3, 37 ); THREEFISH_INV_MIX( P, 12,  7, 20 );
+            THREEFISH_INV_MIX( P,  0,  7, 31 ); THREEFISH_INV_MIX( P,  2,  5, 44 );
+                THREEFISH_INV_MIX( P,  4,  3, 47 ); THREEFISH_INV_MIX( P,  6,  1, 46 );
+                THREEFISH_INV_MIX( P, 12, 15, 19 ); THREEFISH_INV_MIX( P, 14, 13, 42 );
+                THREEFISH_INV_MIX( P,  8, 11, 44 ); THREEFISH_INV_MIX( P, 10,  9, 25 );
+            THREEFISH_INV_MIX( P,  0,  9, 16 ); THREEFISH_INV_MIX( P,  2, 13, 34 );
+                THREEFISH_INV_MIX( P,  6, 11, 56 ); THREEFISH_INV_MIX( P,  4, 15, 51 );
+                THREEFISH_INV_MIX( P, 10,  7,  4 ); THREEFISH_INV_MIX( P, 12,  3, 53 );
+                THREEFISH_INV_MIX( P, 14,  5, 42 ); THREEFISH_INV_MIX( P,  8,  1, 41 );
+            THREEFISH_INV_MIX( P,  0,  1, 41 ); THREEFISH_INV_MIX( P,  2,  3,  9 );
+                THREEFISH_INV_MIX( P,  4,  5, 37 ); THREEFISH_INV_MIX( P,  6,  7, 31 );
+                THREEFISH_INV_MIX( P,  8,  9, 12 ); THREEFISH_INV_MIX( P, 10, 11, 47 );
+                THREEFISH_INV_MIX( P, 12, 13, 44 ); THREEFISH_INV_MIX( P, 14, 15, 30 );
 
             THREEFISH1024_SUB_SUBKEY( P, K, T, 5 );
 
-            THREEFISH_INV_MIX_PERM( P,  0, 15,  5 ); THREEFISH_INV_MIX_PERM( P,  2, 11, 20 ); THREEFISH_INV_MIX_PERM( P,  6, 13, 48 ); THREEFISH_INV_MIX_PERM( P,  4,  9, 41 ); THREEFISH_INV_MIX_PERM( P, 14,  1, 47 ); THREEFISH_INV_MIX_PERM( P,  8,  5, 28 ); THREEFISH_INV_MIX_PERM( P, 10,  3, 16 ); THREEFISH_INV_MIX_PERM( P, 12,  7, 25 );
-            THREEFISH_INV_MIX_PERM( P,  0,  7, 33 ); THREEFISH_INV_MIX_PERM( P,  2,  5,  4 ); THREEFISH_INV_MIX_PERM( P,  4,  3, 51 ); THREEFISH_INV_MIX_PERM( P,  6,  1, 13 ); THREEFISH_INV_MIX_PERM( P, 12, 15, 34 ); THREEFISH_INV_MIX_PERM( P, 14, 13, 41 ); THREEFISH_INV_MIX_PERM( P,  8, 11, 59 ); THREEFISH_INV_MIX_PERM( P, 10,  9, 17 );
-            THREEFISH_INV_MIX_PERM( P,  0,  9, 38 ); THREEFISH_INV_MIX_PERM( P,  2, 13, 19 ); THREEFISH_INV_MIX_PERM( P,  6, 11, 10 ); THREEFISH_INV_MIX_PERM( P,  4, 15, 55 ); THREEFISH_INV_MIX_PERM( P, 10,  7, 49 ); THREEFISH_INV_MIX_PERM( P, 12,  3, 18 ); THREEFISH_INV_MIX_PERM( P, 14,  5, 23 ); THREEFISH_INV_MIX_PERM( P,  8,  1, 52 );
-            THREEFISH_INV_MIX_PERM( P,  0,  1, 24 ); THREEFISH_INV_MIX_PERM( P,  2,  3, 13 ); THREEFISH_INV_MIX_PERM( P,  4,  5,  8 ); THREEFISH_INV_MIX_PERM( P,  6,  7, 47 ); THREEFISH_INV_MIX_PERM( P,  8,  9,  8 ); THREEFISH_INV_MIX_PERM( P, 10, 11, 17 ); THREEFISH_INV_MIX_PERM( P, 12, 13, 22 ); THREEFISH_INV_MIX_PERM( P, 14, 15, 37 );
+            THREEFISH_INV_MIX( P,  0, 15,  5 ); THREEFISH_INV_MIX( P,  2, 11, 20 );
+                THREEFISH_INV_MIX( P,  6, 13, 48 ); THREEFISH_INV_MIX( P,  4,  9, 41 );
+                THREEFISH_INV_MIX( P, 14,  1, 47 ); THREEFISH_INV_MIX( P,  8,  5, 28 );
+                THREEFISH_INV_MIX( P, 10,  3, 16 ); THREEFISH_INV_MIX( P, 12,  7, 25 );
+            THREEFISH_INV_MIX( P,  0,  7, 33 ); THREEFISH_INV_MIX( P,  2,  5,  4 );
+                THREEFISH_INV_MIX( P,  4,  3, 51 ); THREEFISH_INV_MIX( P,  6,  1, 13 );
+                THREEFISH_INV_MIX( P, 12, 15, 34 ); THREEFISH_INV_MIX( P, 14, 13, 41 );
+                THREEFISH_INV_MIX( P,  8, 11, 59 ); THREEFISH_INV_MIX( P, 10,  9, 17 );
+            THREEFISH_INV_MIX( P,  0,  9, 38 ); THREEFISH_INV_MIX( P,  2, 13, 19 );
+                THREEFISH_INV_MIX( P,  6, 11, 10 ); THREEFISH_INV_MIX( P,  4, 15, 55 );
+                THREEFISH_INV_MIX( P, 10,  7, 49 ); THREEFISH_INV_MIX( P, 12,  3, 18 );
+                THREEFISH_INV_MIX( P, 14,  5, 23 ); THREEFISH_INV_MIX( P,  8,  1, 52 );
+            THREEFISH_INV_MIX( P,  0,  1, 24 ); THREEFISH_INV_MIX( P,  2,  3, 13 );
+                THREEFISH_INV_MIX( P,  4,  5,  8 ); THREEFISH_INV_MIX( P,  6,  7, 47 );
+                THREEFISH_INV_MIX( P,  8,  9,  8 ); THREEFISH_INV_MIX( P, 10, 11, 17 );
+                THREEFISH_INV_MIX( P, 12, 13, 22 ); THREEFISH_INV_MIX( P, 14, 15, 37 );
 
             THREEFISH1024_SUB_SUBKEY( P, K, T, 4 );
 
-            THREEFISH_INV_MIX_PERM( P,  0, 15,  9 ); THREEFISH_INV_MIX_PERM( P,  2, 11, 48 ); THREEFISH_INV_MIX_PERM( P,  6, 13, 35 ); THREEFISH_INV_MIX_PERM( P,  4,  9, 52 ); THREEFISH_INV_MIX_PERM( P, 14,  1, 23 ); THREEFISH_INV_MIX_PERM( P,  8,  5, 31 ); THREEFISH_INV_MIX_PERM( P, 10,  3, 37 ); THREEFISH_INV_MIX_PERM( P, 12,  7, 20 );
-            THREEFISH_INV_MIX_PERM( P,  0,  7, 31 ); THREEFISH_INV_MIX_PERM( P,  2,  5, 44 ); THREEFISH_INV_MIX_PERM( P,  4,  3, 47 ); THREEFISH_INV_MIX_PERM( P,  6,  1, 46 ); THREEFISH_INV_MIX_PERM( P, 12, 15, 19 ); THREEFISH_INV_MIX_PERM( P, 14, 13, 42 ); THREEFISH_INV_MIX_PERM( P,  8, 11, 44 ); THREEFISH_INV_MIX_PERM( P, 10,  9, 25 );
-            THREEFISH_INV_MIX_PERM( P,  0,  9, 16 ); THREEFISH_INV_MIX_PERM( P,  2, 13, 34 ); THREEFISH_INV_MIX_PERM( P,  6, 11, 56 ); THREEFISH_INV_MIX_PERM( P,  4, 15, 51 ); THREEFISH_INV_MIX_PERM( P, 10,  7,  4 ); THREEFISH_INV_MIX_PERM( P, 12,  3, 53 ); THREEFISH_INV_MIX_PERM( P, 14,  5, 42 ); THREEFISH_INV_MIX_PERM( P,  8,  1, 41 );
-            THREEFISH_INV_MIX_PERM( P,  0,  1, 41 ); THREEFISH_INV_MIX_PERM( P,  2,  3,  9 ); THREEFISH_INV_MIX_PERM( P,  4,  5, 37 ); THREEFISH_INV_MIX_PERM( P,  6,  7, 31 ); THREEFISH_INV_MIX_PERM( P,  8,  9, 12 ); THREEFISH_INV_MIX_PERM( P, 10, 11, 47 ); THREEFISH_INV_MIX_PERM( P, 12, 13, 44 ); THREEFISH_INV_MIX_PERM( P, 14, 15, 30 );
+            THREEFISH_INV_MIX( P,  0, 15,  9 ); THREEFISH_INV_MIX( P,  2, 11, 48 );
+                THREEFISH_INV_MIX( P,  6, 13, 35 ); THREEFISH_INV_MIX( P,  4,  9, 52 );
+                THREEFISH_INV_MIX( P, 14,  1, 23 ); THREEFISH_INV_MIX( P,  8,  5, 31 );
+                THREEFISH_INV_MIX( P, 10,  3, 37 ); THREEFISH_INV_MIX( P, 12,  7, 20 );
+            THREEFISH_INV_MIX( P,  0,  7, 31 ); THREEFISH_INV_MIX( P,  2,  5, 44 );
+                THREEFISH_INV_MIX( P,  4,  3, 47 ); THREEFISH_INV_MIX( P,  6,  1, 46 );
+                THREEFISH_INV_MIX( P, 12, 15, 19 ); THREEFISH_INV_MIX( P, 14, 13, 42 );
+                THREEFISH_INV_MIX( P,  8, 11, 44 ); THREEFISH_INV_MIX( P, 10,  9, 25 );
+            THREEFISH_INV_MIX( P,  0,  9, 16 ); THREEFISH_INV_MIX( P,  2, 13, 34 );
+                THREEFISH_INV_MIX( P,  6, 11, 56 ); THREEFISH_INV_MIX( P,  4, 15, 51 );
+                THREEFISH_INV_MIX( P, 10,  7,  4 ); THREEFISH_INV_MIX( P, 12,  3, 53 );
+                THREEFISH_INV_MIX( P, 14,  5, 42 ); THREEFISH_INV_MIX( P,  8,  1, 41 );
+            THREEFISH_INV_MIX( P,  0,  1, 41 ); THREEFISH_INV_MIX( P,  2,  3,  9 );
+                THREEFISH_INV_MIX( P,  4,  5, 37 ); THREEFISH_INV_MIX( P,  6,  7, 31 );
+                THREEFISH_INV_MIX( P,  8,  9, 12 ); THREEFISH_INV_MIX( P, 10, 11, 47 );
+                THREEFISH_INV_MIX( P, 12, 13, 44 ); THREEFISH_INV_MIX( P, 14, 15, 30 );
 
             THREEFISH1024_SUB_SUBKEY( P, K, T, 3 );
 
-            THREEFISH_INV_MIX_PERM( P,  0, 15,  5 ); THREEFISH_INV_MIX_PERM( P,  2, 11, 20 ); THREEFISH_INV_MIX_PERM( P,  6, 13, 48 ); THREEFISH_INV_MIX_PERM( P,  4,  9, 41 ); THREEFISH_INV_MIX_PERM( P, 14,  1, 47 ); THREEFISH_INV_MIX_PERM( P,  8,  5, 28 ); THREEFISH_INV_MIX_PERM( P, 10,  3, 16 ); THREEFISH_INV_MIX_PERM( P, 12,  7, 25 );
-            THREEFISH_INV_MIX_PERM( P,  0,  7, 33 ); THREEFISH_INV_MIX_PERM( P,  2,  5,  4 ); THREEFISH_INV_MIX_PERM( P,  4,  3, 51 ); THREEFISH_INV_MIX_PERM( P,  6,  1, 13 ); THREEFISH_INV_MIX_PERM( P, 12, 15, 34 ); THREEFISH_INV_MIX_PERM( P, 14, 13, 41 ); THREEFISH_INV_MIX_PERM( P,  8, 11, 59 ); THREEFISH_INV_MIX_PERM( P, 10,  9, 17 );
-            THREEFISH_INV_MIX_PERM( P,  0,  9, 38 ); THREEFISH_INV_MIX_PERM( P,  2, 13, 19 ); THREEFISH_INV_MIX_PERM( P,  6, 11, 10 ); THREEFISH_INV_MIX_PERM( P,  4, 15, 55 ); THREEFISH_INV_MIX_PERM( P, 10,  7, 49 ); THREEFISH_INV_MIX_PERM( P, 12,  3, 18 ); THREEFISH_INV_MIX_PERM( P, 14,  5, 23 ); THREEFISH_INV_MIX_PERM( P,  8,  1, 52 );
-            THREEFISH_INV_MIX_PERM( P,  0,  1, 24 ); THREEFISH_INV_MIX_PERM( P,  2,  3, 13 ); THREEFISH_INV_MIX_PERM( P,  4,  5,  8 ); THREEFISH_INV_MIX_PERM( P,  6,  7, 47 ); THREEFISH_INV_MIX_PERM( P,  8,  9,  8 ); THREEFISH_INV_MIX_PERM( P, 10, 11, 17 ); THREEFISH_INV_MIX_PERM( P, 12, 13, 22 ); THREEFISH_INV_MIX_PERM( P, 14, 15, 37 );
+            THREEFISH_INV_MIX( P,  0, 15,  5 ); THREEFISH_INV_MIX( P,  2, 11, 20 );
+                THREEFISH_INV_MIX( P,  6, 13, 48 ); THREEFISH_INV_MIX( P,  4,  9, 41 );
+                THREEFISH_INV_MIX( P, 14,  1, 47 ); THREEFISH_INV_MIX( P,  8,  5, 28 );
+                THREEFISH_INV_MIX( P, 10,  3, 16 ); THREEFISH_INV_MIX( P, 12,  7, 25 );
+            THREEFISH_INV_MIX( P,  0,  7, 33 ); THREEFISH_INV_MIX( P,  2,  5,  4 );
+                THREEFISH_INV_MIX( P,  4,  3, 51 ); THREEFISH_INV_MIX( P,  6,  1, 13 );
+                THREEFISH_INV_MIX( P, 12, 15, 34 ); THREEFISH_INV_MIX( P, 14, 13, 41 );
+                THREEFISH_INV_MIX( P,  8, 11, 59 ); THREEFISH_INV_MIX( P, 10,  9, 17 );
+            THREEFISH_INV_MIX( P,  0,  9, 38 ); THREEFISH_INV_MIX( P,  2, 13, 19 );
+                THREEFISH_INV_MIX( P,  6, 11, 10 ); THREEFISH_INV_MIX( P,  4, 15, 55 );
+                THREEFISH_INV_MIX( P, 10,  7, 49 ); THREEFISH_INV_MIX( P, 12,  3, 18 );
+                THREEFISH_INV_MIX( P, 14,  5, 23 ); THREEFISH_INV_MIX( P,  8,  1, 52 );
+            THREEFISH_INV_MIX( P,  0,  1, 24 ); THREEFISH_INV_MIX( P,  2,  3, 13 );
+                THREEFISH_INV_MIX( P,  4,  5,  8 ); THREEFISH_INV_MIX( P,  6,  7, 47 );
+                THREEFISH_INV_MIX( P,  8,  9,  8 ); THREEFISH_INV_MIX( P, 10, 11, 17 );
+                THREEFISH_INV_MIX( P, 12, 13, 22 ); THREEFISH_INV_MIX( P, 14, 15, 37 );
 
             THREEFISH1024_SUB_SUBKEY( P, K, T, 2 );
 
-            THREEFISH_INV_MIX_PERM( P,  0, 15,  9 ); THREEFISH_INV_MIX_PERM( P,  2, 11, 48 ); THREEFISH_INV_MIX_PERM( P,  6, 13, 35 ); THREEFISH_INV_MIX_PERM( P,  4,  9, 52 ); THREEFISH_INV_MIX_PERM( P, 14,  1, 23 ); THREEFISH_INV_MIX_PERM( P,  8,  5, 31 ); THREEFISH_INV_MIX_PERM( P, 10,  3, 37 ); THREEFISH_INV_MIX_PERM( P, 12,  7, 20 );
-            THREEFISH_INV_MIX_PERM( P,  0,  7, 31 ); THREEFISH_INV_MIX_PERM( P,  2,  5, 44 ); THREEFISH_INV_MIX_PERM( P,  4,  3, 47 ); THREEFISH_INV_MIX_PERM( P,  6,  1, 46 ); THREEFISH_INV_MIX_PERM( P, 12, 15, 19 ); THREEFISH_INV_MIX_PERM( P, 14, 13, 42 ); THREEFISH_INV_MIX_PERM( P,  8, 11, 44 ); THREEFISH_INV_MIX_PERM( P, 10,  9, 25 );
-            THREEFISH_INV_MIX_PERM( P,  0,  9, 16 ); THREEFISH_INV_MIX_PERM( P,  2, 13, 34 ); THREEFISH_INV_MIX_PERM( P,  6, 11, 56 ); THREEFISH_INV_MIX_PERM( P,  4, 15, 51 ); THREEFISH_INV_MIX_PERM( P, 10,  7,  4 ); THREEFISH_INV_MIX_PERM( P, 12,  3, 53 ); THREEFISH_INV_MIX_PERM( P, 14,  5, 42 ); THREEFISH_INV_MIX_PERM( P,  8,  1, 41 );
-            THREEFISH_INV_MIX_PERM( P,  0,  1, 41 ); THREEFISH_INV_MIX_PERM( P,  2,  3,  9 ); THREEFISH_INV_MIX_PERM( P,  4,  5, 37 ); THREEFISH_INV_MIX_PERM( P,  6,  7, 31 ); THREEFISH_INV_MIX_PERM( P,  8,  9, 12 ); THREEFISH_INV_MIX_PERM( P, 10, 11, 47 ); THREEFISH_INV_MIX_PERM( P, 12, 13, 44 ); THREEFISH_INV_MIX_PERM( P, 14, 15, 30 );
+            THREEFISH_INV_MIX( P,  0, 15,  9 ); THREEFISH_INV_MIX( P,  2, 11, 48 );
+                THREEFISH_INV_MIX( P,  6, 13, 35 ); THREEFISH_INV_MIX( P,  4,  9, 52 );
+                THREEFISH_INV_MIX( P, 14,  1, 23 ); THREEFISH_INV_MIX( P,  8,  5, 31 );
+                THREEFISH_INV_MIX( P, 10,  3, 37 ); THREEFISH_INV_MIX( P, 12,  7, 20 );
+            THREEFISH_INV_MIX( P,  0,  7, 31 ); THREEFISH_INV_MIX( P,  2,  5, 44 );
+                THREEFISH_INV_MIX( P,  4,  3, 47 ); THREEFISH_INV_MIX( P,  6,  1, 46 );
+                THREEFISH_INV_MIX( P, 12, 15, 19 ); THREEFISH_INV_MIX( P, 14, 13, 42 );
+                THREEFISH_INV_MIX( P,  8, 11, 44 ); THREEFISH_INV_MIX( P, 10,  9, 25 );
+            THREEFISH_INV_MIX( P,  0,  9, 16 ); THREEFISH_INV_MIX( P,  2, 13, 34 );
+                THREEFISH_INV_MIX( P,  6, 11, 56 ); THREEFISH_INV_MIX( P,  4, 15, 51 );
+                THREEFISH_INV_MIX( P, 10,  7,  4 ); THREEFISH_INV_MIX( P, 12,  3, 53 );
+                THREEFISH_INV_MIX( P, 14,  5, 42 ); THREEFISH_INV_MIX( P,  8,  1, 41 );
+            THREEFISH_INV_MIX( P,  0,  1, 41 ); THREEFISH_INV_MIX( P,  2,  3,  9 );
+                THREEFISH_INV_MIX( P,  4,  5, 37 ); THREEFISH_INV_MIX( P,  6,  7, 31 );
+                THREEFISH_INV_MIX( P,  8,  9, 12 ); THREEFISH_INV_MIX( P, 10, 11, 47 );
+                THREEFISH_INV_MIX( P, 12, 13, 44 ); THREEFISH_INV_MIX( P, 14, 15, 30 );
 
             THREEFISH1024_SUB_SUBKEY( P, K, T, 1 );
 
-            THREEFISH_INV_MIX_PERM( P,  0, 15,  5 ); THREEFISH_INV_MIX_PERM( P,  2, 11, 20 ); THREEFISH_INV_MIX_PERM( P,  6, 13, 48 ); THREEFISH_INV_MIX_PERM( P,  4,  9, 41 ); THREEFISH_INV_MIX_PERM( P, 14,  1, 47 ); THREEFISH_INV_MIX_PERM( P,  8,  5, 28 ); THREEFISH_INV_MIX_PERM( P, 10,  3, 16 ); THREEFISH_INV_MIX_PERM( P, 12,  7, 25 );
-            THREEFISH_INV_MIX_PERM( P,  0,  7, 33 ); THREEFISH_INV_MIX_PERM( P,  2,  5,  4 ); THREEFISH_INV_MIX_PERM( P,  4,  3, 51 ); THREEFISH_INV_MIX_PERM( P,  6,  1, 13 ); THREEFISH_INV_MIX_PERM( P, 12, 15, 34 ); THREEFISH_INV_MIX_PERM( P, 14, 13, 41 ); THREEFISH_INV_MIX_PERM( P,  8, 11, 59 ); THREEFISH_INV_MIX_PERM( P, 10,  9, 17 );
-            THREEFISH_INV_MIX_PERM( P,  0,  9, 38 ); THREEFISH_INV_MIX_PERM( P,  2, 13, 19 ); THREEFISH_INV_MIX_PERM( P,  6, 11, 10 ); THREEFISH_INV_MIX_PERM( P,  4, 15, 55 ); THREEFISH_INV_MIX_PERM( P, 10,  7, 49 ); THREEFISH_INV_MIX_PERM( P, 12,  3, 18 ); THREEFISH_INV_MIX_PERM( P, 14,  5, 23 ); THREEFISH_INV_MIX_PERM( P,  8,  1, 52 );
-            THREEFISH_INV_MIX_PERM( P,  0,  1, 24 ); THREEFISH_INV_MIX_PERM( P,  2,  3, 13 ); THREEFISH_INV_MIX_PERM( P,  4,  5,  8 ); THREEFISH_INV_MIX_PERM( P,  6,  7, 47 ); THREEFISH_INV_MIX_PERM( P,  8,  9,  8 ); THREEFISH_INV_MIX_PERM( P, 10, 11, 17 ); THREEFISH_INV_MIX_PERM( P, 12, 13, 22 ); THREEFISH_INV_MIX_PERM( P, 14, 15, 37 );
+            THREEFISH_INV_MIX( P,  0, 15,  5 ); THREEFISH_INV_MIX( P,  2, 11, 20 );
+                THREEFISH_INV_MIX( P,  6, 13, 48 ); THREEFISH_INV_MIX( P,  4,  9, 41 );
+                THREEFISH_INV_MIX( P, 14,  1, 47 ); THREEFISH_INV_MIX( P,  8,  5, 28 );
+                THREEFISH_INV_MIX( P, 10,  3, 16 ); THREEFISH_INV_MIX( P, 12,  7, 25 );
+            THREEFISH_INV_MIX( P,  0,  7, 33 ); THREEFISH_INV_MIX( P,  2,  5,  4 );
+                THREEFISH_INV_MIX( P,  4,  3, 51 ); THREEFISH_INV_MIX( P,  6,  1, 13 );
+                THREEFISH_INV_MIX( P, 12, 15, 34 ); THREEFISH_INV_MIX( P, 14, 13, 41 );
+                THREEFISH_INV_MIX( P,  8, 11, 59 ); THREEFISH_INV_MIX( P, 10,  9, 17 );
+            THREEFISH_INV_MIX( P,  0,  9, 38 ); THREEFISH_INV_MIX( P,  2, 13, 19 );
+                THREEFISH_INV_MIX( P,  6, 11, 10 ); THREEFISH_INV_MIX( P,  4, 15, 55 );
+                THREEFISH_INV_MIX( P, 10,  7, 49 ); THREEFISH_INV_MIX( P, 12,  3, 18 );
+                THREEFISH_INV_MIX( P, 14,  5, 23 ); THREEFISH_INV_MIX( P,  8,  1, 52 );
+            THREEFISH_INV_MIX( P,  0,  1, 24 ); THREEFISH_INV_MIX( P,  2,  3, 13 );
+                THREEFISH_INV_MIX( P,  4,  5,  8 ); THREEFISH_INV_MIX( P,  6,  7, 47 );
+                THREEFISH_INV_MIX( P,  8,  9,  8 ); THREEFISH_INV_MIX( P, 10, 11, 17 );
+                THREEFISH_INV_MIX( P, 12, 13, 22 ); THREEFISH_INV_MIX( P, 14, 15, 37 );
 
             THREEFISH1024_SUB_SUBKEY( P, K, T, 0 );
 

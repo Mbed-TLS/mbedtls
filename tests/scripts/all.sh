@@ -299,7 +299,7 @@ cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
 CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check .
-make
+CFLAGS='-Werror -std=c99 -pedantic' make
 
 msg "test: main suites (full config)" # ~ 5s
 make test
@@ -322,7 +322,7 @@ tests/scripts/key-exchanges.pl
 
 msg "build: Unix make, -Os (gcc)" # ~ 30s
 cleanup
-CC=gcc CFLAGS='-Werror -Os' make
+CC=gcc CFLAGS='-Werror -std=c99 -pedantic -Os' make
 
 # this is meant to cath missing #define mbedtls_printf etc
 # disable fsio to catch some more missing #include <stdio.h>

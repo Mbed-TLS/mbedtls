@@ -49,7 +49,11 @@
 /* armcc5 --gnu defines __GNUC__ but doesn't support GNU's extended asm */
 #if defined(__GNUC__) && \
     ( !defined(__ARMCC_VERSION) || __ARMCC_VERSION >= 6000000 )
-#if defined(__i386__)
+/*
+ * The i386 assembly is reported to be broken.
+ * Disable it for now, until we're able to fix it.
+ */
+#if 0 &&  defined(__i386__)
 
 #define MULADDC_INIT                        \
     asm(                                    \

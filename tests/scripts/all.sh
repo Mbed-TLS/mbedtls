@@ -283,6 +283,8 @@ msg "test: doxygen warnings" # ~ 3s
 cleanup
 tests/scripts/doxygen.sh
 
+# Note - use of yotta is deprecated, and yotta also requires armcc to be on the
+# path, and uses whatever version of armcc it finds there.
 msg "build: create and build yotta module" # ~ 30s
 cleanup
 tests/scripts/yotta-build.sh

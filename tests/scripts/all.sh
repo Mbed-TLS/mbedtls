@@ -104,7 +104,7 @@ armc6_build_test()
 
     msg "build: ARM Compiler 6 ($FLAGS), make"
     ARM_TOOL_VARIANT="ult" CC="$ARMC6_CC" AR="$ARMC6_AR" CFLAGS="$FLAGS" \
-        WARNING_CFLAGS= make lib
+        WARNING_CFLAGS='--strict --c99' make lib
     make clean
 }
 
@@ -246,7 +246,8 @@ export GNUTLS_SERV="$GNUTLS_SERV"
 # Make sure the tools we need are available.
 check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$GNUTLS_CLI" "$GNUTLS_SERV" \
     "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV" "doxygen" "dot" \
-    "arm-none-eabi-gcc" "$ARMC5_CC" "$ARMC5_AR" "$ARMC6_CC" "$ARMC6_AR"
+    "arm-none-eabi-gcc" "$ARMC5_CC" "$ARMC5_AR" "$ARMC6_CC" "$ARMC6_AR" \
+    "i686-w64-mingw32-gcc"
 
 #
 # Test Suites to be executed
@@ -325,16 +326,16 @@ OPENSSL_CMD="$OPENSSL_LEGACY" tests/compat.sh -m 'ssl3'
 msg "build: SSLv3 - ssl-opt.sh (ASan build)" # ~ 6 min
 tests/ssl-opt.sh
 
-msg "build: cmake, full config, clang" # ~ 50s
+msg "build: cmake, full config, clang, C99" # ~ 50s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
-CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check .
-make
+CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check -D ENABLE_TESTING=On .
+CFLAGS='-Werror -Wall -Wextra -std=c99 -pedantic' make
 
 msg "test: main suites (full config)" # ~ 5s
-make test
+CFLAGS='-Werror -Wall -Wextra' make test
 
 msg "test: ssl-opt.sh default (full config)" # ~ 1s
 tests/ssl-opt.sh -f Default
@@ -354,15 +355,17 @@ tests/scripts/key-exchanges.pl
 
 msg "build: Unix make, -Os (gcc)" # ~ 30s
 cleanup
-CC=gcc CFLAGS='-Werror -Os' make
+CC=gcc CFLAGS='-Werror -Wall -Wextra -Os' make
 
-# this is meant to cath missing #define mbedtls_printf etc
-# disable fsio to catch some more missing #include <stdio.h>
-msg "build: full config except platform/fsio, make, gcc" # ~ 30s
+# Full configuration build, without platform support, file IO and net sockets.
+# This should catch missing mbedtls_printf definitions, and by disabling file
+# IO, it should catch missing '#include <stdio.h>'
+msg "build: full config except platform/fsio/net, make, gcc, C99" # ~ 30s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl unset MBEDTLS_PLATFORM_C
+scripts/config.pl unset MBEDTLS_NET_C
 scripts/config.pl unset MBEDTLS_PLATFORM_MEMORY
 scripts/config.pl unset MBEDTLS_PLATFORM_PRINTF_ALT
 scripts/config.pl unset MBEDTLS_PLATFORM_FPRINTF_ALT
@@ -372,7 +375,8 @@ scripts/config.pl unset MBEDTLS_PLATFORM_EXIT_ALT
 scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
 scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
 scripts/config.pl unset MBEDTLS_FS_IO
-CC=gcc CFLAGS='-Werror -O0' make
+CC=gcc CFLAGS='-Werror -Wall -Wextra -std=c99 -pedantic -O0' make lib programs 
+CC=gcc CFLAGS='-Werror -Wall -Wextra -O0' make test
 
 # catch compile bugs in _uninit functions
 msg "build: full config with NO_STD_FUNCTION, make, gcc" # ~ 30s
@@ -381,29 +385,31 @@ cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl set MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
 scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
-CC=gcc CFLAGS='-Werror -O0' make
+CC=gcc CFLAGS='-Werror -Wall -Wextra -O0' make
 
 msg "build: full config except ssl_srv.c, make, gcc" # ~ 30s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl unset MBEDTLS_SSL_SRV_C
-CC=gcc CFLAGS='-Werror -O0' make
+CC=gcc CFLAGS='-Werror -Wall -Wextra -O0' make
 
 msg "build: full config except ssl_cli.c, make, gcc" # ~ 30s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl unset MBEDTLS_SSL_CLI_C
-CC=gcc CFLAGS='-Werror -O0' make
+CC=gcc CFLAGS='-Werror -Wall -Werror -O0' make
 
+# Note, C99 compliance can also be tested with the sockets support disabled,
+# as that requires a POSIX platform (which isn't the same as C99).
 msg "build: full config except net_sockets.c, make, gcc -std=c99 -pedantic" # ~ 30s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl unset MBEDTLS_NET_C # getaddrinfo() undeclared, etc.
 scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY # uses syscall() on GNU/Linux
-CC=gcc CFLAGS='-Werror -O0 -std=c99 -pedantic' make lib
+CC=gcc CFLAGS='-Werror -Wall -Wextra -O0 -std=c99 -pedantic' make lib
 
 msg "build: default config with  MBEDTLS_TEST_NULL_ENTROPY (ASan build)"
 cleanup
@@ -429,7 +435,7 @@ fi
 if uname -a | grep -F x86_64 >/dev/null; then
 msg "build: i386, make, gcc" # ~ 30s
 cleanup
-CC=gcc CFLAGS='-Werror -m32' make
+CC=gcc CFLAGS='-Werror -Wall -Wextra -m32' make
 fi # x86_64
 
 msg "build: arm-none-eabi-gcc, make" # ~ 10s
@@ -447,7 +453,7 @@ scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
 scripts/config.pl unset MBEDTLS_THREADING_C
 scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
 scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
-CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS=-Werror make lib
+CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -Wall -Wextra' make lib
 
 msg "build: ARM Compiler 5, make"
 cleanup
@@ -469,7 +475,7 @@ scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
 scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
 scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT # depends on MBEDTLS_HAVE_TIME
 
-CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS= make lib
+CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--strict --c99' make lib
 make clean
 
 armc6_build_test "--target=arm-arm-none-eabi -march=armv7-a"
@@ -478,14 +484,18 @@ armc6_build_test "--target=arm-arm-none-eabi -march=armv8.2-a"
 armc6_build_test "--target=arm-arm-none-eabi -march=armv8-m.main"
 armc6_build_test "--target=aarch64-arm-none-eabi"
 
-if which i686-w64-mingw32-gcc >/dev/null; then
-msg "build: cross-mingw64, make" # ~ 30s
+msg "build: Windows cross build - mingw64, make (Link Library)" # ~ 30s
 cleanup
-CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS=-Werror WINDOWS_BUILD=1 make
+CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 make lib programs
+
+# note Make tests only builds the tests, but doesn't run them
+CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror' WINDOWS_BUILD=1 make tests
 WINDOWS_BUILD=1 make clean
-CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS=-Werror WINDOWS_BUILD=1 SHARED=1 make
+
+msg "build: Windows cross build - mingw64, make (DLL)" # ~ 30s
+CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 make lib programs
+CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 make tests
 WINDOWS_BUILD=1 make clean
-fi
 
 # MemSan currently only available on Linux 64 bits
 if uname -a | grep 'Linux.*x86_64' >/dev/null; then

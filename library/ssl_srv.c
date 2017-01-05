@@ -2596,6 +2596,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
         crt = ssl->conf->ca_chain;
 
     total_dn_size = 0;
+#if !defined(MBEDTLS_OMIT_CA_LIST)
     while( crt != NULL && crt->version != 0 )
     {
         dn_size = crt->subject_raw.len;
@@ -2618,7 +2619,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
         total_dn_size += 2 + dn_size;
         crt = crt->next;
     }
-
+#endif 
     ssl->out_msglen  = p - buf;
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = MBEDTLS_SSL_HS_CERTIFICATE_REQUEST;

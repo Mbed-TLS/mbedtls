@@ -2784,7 +2784,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
             crt = crt->next;
         }
     }
-
+#endif 
     ssl->out_msglen  = p - buf;
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = MBEDTLS_SSL_HS_CERTIFICATE_REQUEST;

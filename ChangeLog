@@ -61,6 +61,9 @@ Bugfix
      generated in Visual Studio 2015. Reported by Steve Valliere. #742
    * Fix a resource leak in ssl_cookie, when using MBEDTLS_THREADING_C.
      Raised and fix suggested by Alan Gillingham in the mbed TLS forum. #771
+   * Fix 1 byte buffer overflow in mbedtls_mpi_write_string() when the MPI
+     number to write in hexadecimal is negative and requires an odd number of
+     digits. Found and fixed by Guido Vranken.
 
 = mbed TLS 2.4.1 branch released 2016-12-13
 

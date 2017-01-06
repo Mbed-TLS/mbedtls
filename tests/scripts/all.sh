@@ -104,7 +104,7 @@ armc6_build_test()
 
     msg "build: ARM Compiler 6 ($FLAGS), make"
     ARM_TOOL_VARIANT="ult" CC="$ARMC6_CC" AR="$ARMC6_AR" CFLAGS="$FLAGS" \
-        WARNING_CFLAGS='--strict --c99' make lib
+        WARNING_CFLAGS='-xc -std=c99' make lib
     make clean
 }
 
@@ -375,7 +375,9 @@ scripts/config.pl unset MBEDTLS_PLATFORM_EXIT_ALT
 scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
 scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
 scripts/config.pl unset MBEDTLS_FS_IO
-CC=gcc CFLAGS='-Werror -Wall -Wextra -std=c99 -pedantic -O0' make lib programs 
+# Note, _DEFAULT_SOURCE needs to be defined for platforms using glibc version >2.19,
+# to re-enable platform integration features otherwise disabled in C99 builds
+CC=gcc CFLAGS='-Werror -Wall -Wextra -std=c99 -pedantic -O0 -D_DEFAULT_SOURCE' make lib programs
 CC=gcc CFLAGS='-Werror -Wall -Wextra -O0' make test
 
 # catch compile bugs in _uninit functions

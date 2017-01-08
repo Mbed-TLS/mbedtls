@@ -391,7 +391,7 @@ fi
 check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$OPENSSL_NEXT" \
             "$GNUTLS_CLI" "$GNUTLS_SERV" \
             "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV" "doxygen" "dot" \
-            "arm-none-eabi-gcc" "i686-w64-mingw32-gcc" "gdb"
+            "arm-none-eabi-gcc" "i686-w64-mingw32-gcc" "gdb" "mbed"
 if [ $RUN_ARMCC -ne 0 ]; then
     check_tools "$ARMC5_CC" "$ARMC5_AR" "$ARMC6_CC" "$ARMC6_AR"
 fi
@@ -401,6 +401,7 @@ fi
 ################################################################
 #### Basic checks
 ################################################################
+
 
 #
 # Test Suites to be executed
@@ -881,6 +882,7 @@ make
 
 msg "test: cmake 'out-of-source' build"
 make test
+
 # Test an SSL option that requires an auxiliary script in test/scripts/.
 # Also ensure that there are no error messages such as
 # "No such file or directory", which would indicate that some required
@@ -892,6 +894,12 @@ if [ -s ssl-opt.err ]; then
   record_status [ ! -s ssl-opt.err ]
   rm ssl-opt.err
 fi
+
+#mbed-build.sh uses armcc and expects it to be in the PATH env. variable
+msg "build: create and build mbed OS examples" # ~ 2h 17 min
+mkdir -p mbed-cli
+$MBEDTLS_ROOT_DIR/tests/scripts/mbed-build.sh mbed-cli
+
 cd "$MBEDTLS_ROOT_DIR"
 rm -rf "$OUT_OF_SOURCE_DIR"
 unset MBEDTLS_ROOT_DIR

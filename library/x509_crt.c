@@ -1014,7 +1014,10 @@ int x509_crt_parse_path( x509_crt *chain, const char *path )
                                      p, (int) len - 1,
                                      NULL, NULL );
         if( w_ret == 0 )
-            return( POLARSSL_ERR_X509_FILE_IO_ERROR );
+        {
+            ret = POLARSSL_ERR_X509_FILE_IO_ERROR;
+            goto cleanup;
+        }
 
         w_ret = x509_crt_parse_file( chain, filename );
         if( w_ret < 0 )
@@ -1027,6 +1030,7 @@ int x509_crt_parse_path( x509_crt *chain, const char *path )
     if( GetLastError() != ERROR_NO_MORE_FILES )
         ret = POLARSSL_ERR_X509_FILE_IO_ERROR;
 
+cleanup:
     FindClose( hFind );
 #else /* _WIN32 */
     int t_ret;

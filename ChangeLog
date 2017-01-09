@@ -1,5 +1,12 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Bugfix
+   * Fix resource leak on windows platform, in mbedtls_x509_crt_parse_path.
+     In case of failure, when an error occures, goto cleanup.
+     Found by redplait #590
+
 = mbed TLS 2.1.0 released 2015-09-04
 
 Features

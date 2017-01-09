@@ -5,6 +5,9 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Bugfix
    * Add a check if iv_len is zero, and return an error if it is zero. reported
      by roberto. #716
+   * Replace preproccessor condition from #if defined(MBEDTLS_THREADING_PTHREAD)
+     to #if defined(MBEDTLS_THREADING_C) as the library cannot assume they will
+     always be implemented by pthread support. Fix for #696
 
 = mbed TLS 1.3.20 branch released 2017-06-21
 

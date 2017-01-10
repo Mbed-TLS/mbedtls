@@ -91,7 +91,7 @@ if(CMAKE_COMPILER_IS_CLANG)
 endif(CMAKE_COMPILER_IS_CLANG)
 
 if(WIN32)
-    set(libs ${libs} ws2_32)
+    set(libs ${libs} ws2_32 advapi32)
 endif(WIN32)
 
 if(USE_PKCS11_HELPER_LIBRARY)

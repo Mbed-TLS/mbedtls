@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual C++ Express 2010
+# Visual Studio 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mbedTLS", "mbedTLS.vcxproj", "{46CF2D25-6A36-4189-B59C-E4815388E554}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "aescrypt2", "aescrypt2.vcxproj", "{7A851DBD-7D57-E8F4-85E5-CCA72AEA7DF8}"
@@ -34,11 +34,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dh_genprime", "dh_genprime.
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dh_server", "dh_server.vcxproj", "{8D91B804-E2CE-142D-8E06-FBB037ED1F65}"
-	ProjectSection(ProjectDependencies) = postProject
-		{46CF2D25-6A36-4189-B59C-E4815388E554} = {46CF2D25-6A36-4189-B59C-E4815388E554}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ecdh_curve25519", "ecdh_curve25519.vcxproj", "{82EE497E-12CC-7C5B-A072-665678ACB43E}"
 	ProjectSection(ProjectDependencies) = postProject
 		{46CF2D25-6A36-4189-B59C-E4815388E554} = {46CF2D25-6A36-4189-B59C-E4815388E554}
 	EndProjectSection
@@ -238,6 +233,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "req_app", "req_app.vcxproj"
 		{46CF2D25-6A36-4189-B59C-E4815388E554} = {46CF2D25-6A36-4189-B59C-E4815388E554}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ecdh_curve25519", "ecdh_curve25519.vcxproj", "{6EF392D8-358A-4CDE-ADB5-E190C46BF51B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -310,14 +307,6 @@ Global
 		{8D91B804-E2CE-142D-8E06-FBB037ED1F65}.Release|Win32.Build.0 = Release|Win32
 		{8D91B804-E2CE-142D-8E06-FBB037ED1F65}.Release|x64.ActiveCfg = Release|x64
 		{8D91B804-E2CE-142D-8E06-FBB037ED1F65}.Release|x64.Build.0 = Release|x64
-		{82EE497E-12CC-7C5B-A072-665678ACB43E}.Debug|Win32.ActiveCfg = Debug|Win32
-		{82EE497E-12CC-7C5B-A072-665678ACB43E}.Debug|Win32.Build.0 = Debug|Win32
-		{82EE497E-12CC-7C5B-A072-665678ACB43E}.Debug|x64.ActiveCfg = Debug|x64
-		{82EE497E-12CC-7C5B-A072-665678ACB43E}.Debug|x64.Build.0 = Debug|x64
-		{82EE497E-12CC-7C5B-A072-665678ACB43E}.Release|Win32.ActiveCfg = Release|Win32
-		{82EE497E-12CC-7C5B-A072-665678ACB43E}.Release|Win32.Build.0 = Release|Win32
-		{82EE497E-12CC-7C5B-A072-665678ACB43E}.Release|x64.ActiveCfg = Release|x64
-		{82EE497E-12CC-7C5B-A072-665678ACB43E}.Release|x64.Build.0 = Release|x64
 		{F58142CC-0CC7-0B18-5A0F-53642CFBA18E}.Debug|Win32.ActiveCfg = Debug|Win32
 		{F58142CC-0CC7-0B18-5A0F-53642CFBA18E}.Debug|Win32.Build.0 = Debug|Win32
 		{F58142CC-0CC7-0B18-5A0F-53642CFBA18E}.Debug|x64.ActiveCfg = Debug|x64
@@ -630,6 +619,12 @@ Global
 		{486B1375-5CFA-C2D2-DD89-C9F497BADCB3}.Release|Win32.Build.0 = Release|Win32
 		{486B1375-5CFA-C2D2-DD89-C9F497BADCB3}.Release|x64.ActiveCfg = Release|x64
 		{486B1375-5CFA-C2D2-DD89-C9F497BADCB3}.Release|x64.Build.0 = Release|x64
+		{6EF392D8-358A-4CDE-ADB5-E190C46BF51B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6EF392D8-358A-4CDE-ADB5-E190C46BF51B}.Debug|Win32.Build.0 = Debug|Win32
+		{6EF392D8-358A-4CDE-ADB5-E190C46BF51B}.Debug|x64.ActiveCfg = Debug|Win32
+		{6EF392D8-358A-4CDE-ADB5-E190C46BF51B}.Release|Win32.ActiveCfg = Release|Win32
+		{6EF392D8-358A-4CDE-ADB5-E190C46BF51B}.Release|Win32.Build.0 = Release|Win32
+		{6EF392D8-358A-4CDE-ADB5-E190C46BF51B}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

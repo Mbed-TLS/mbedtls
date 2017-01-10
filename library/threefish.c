@@ -1,7 +1,7 @@
 /*
  *  Threefish implementation
  *
- *  Copyright (C) 2016, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2017, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -50,7 +50,7 @@
 #endif /* MBEDTLS_PLATFORM_C */
 #endif /* MBEDTLS_SELF_TEST */
 
-#if !defined(MBEDTLS_BLOWFISH_ALT)
+#if !defined(MBEDTLS_THREEFISH_ALT)
 
 #define THREEFISH_KEY_SCHED_CONST           0x1BD11BDAA9FC1A22L
 

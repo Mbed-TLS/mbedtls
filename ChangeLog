@@ -1,5 +1,9 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+   * Add MPI_CHK to check for error value of mpi_fill_random.
+     Backported from a report and fix suggestion by guidovranken in #740
+
 = mbed TLS 1.3.18 branch 2016-10-17
 
 Security

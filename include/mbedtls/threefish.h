@@ -35,8 +35,8 @@
 #define MBEDTLS_THREEFISH_ENCRYPT       1
 #define MBEDTLS_THREEFISH_DECRYPT       0
 
-#define MBEDTLS_ERR_THREEFISH_INVALID_KEY_LENGTH        -0x0016  /**< Invalid key length. */
-#define MBEDTLS_ERR_THREEFISH_INVALID_INPUT_LENGTH      -0x0018  /**< Invalid input length. */
+#define MBEDTLS_ERR_THREEFISH_INVALID_KEY_LENGTH        -0x0080  /**< Invalid key length. */
+#define MBEDTLS_ERR_THREEFISH_INVALID_INPUT_LENGTH      -0x0082  /**< Invalid input length. */
 
 #if defined(MBEDTLS_THREEFISH_C)
 

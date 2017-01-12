@@ -13,6 +13,8 @@ Bugfix
      Found by redplait #590
    * Add MBEDTLS_MPI_CHK to check for error value of mbedtls_mpi_fill_random.
      Reported and fix suggested by guidovranken in #740
+   * Fix compilation warnings with IAR toolchain, on 32 bit platform.
+     Reported by rahmanih in #683
 
 Features
    * Add the functions mbedtls_platform_setup() and mbedtls_platform_teardown()

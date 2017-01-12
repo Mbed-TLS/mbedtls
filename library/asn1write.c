@@ -28,6 +28,7 @@
 #if defined(MBEDTLS_ASN1_WRITE_C)
 
 #include "mbedtls/asn1write.h"
+#include "mbedtls/bignum.h"
 
 #include <string.h>
 
@@ -82,8 +83,13 @@ int mbedtls_asn1_write_len( unsigned char **p, unsigned char *start, size_t len 
         *--(*p) = 0x83;
         return( 4 );
     }
-
+/*
+ * Relevant only for 64 bit platforms.
+ * On 32 bit platforms, size_t should always be 32 bits
+ */
+#if defined(MBEDTLS_HAVE_INT64)
     if( len <= 0xFFFFFFFF )
+#endif
     {
         if( *p - start < 5 )
             return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
@@ -95,8 +101,13 @@ int mbedtls_asn1_write_len( unsigned char **p, unsigned char *start, size_t len 
         *--(*p) = 0x84;
         return( 5 );
     }
-
+/*
+ * Relevant only for 64 bit platforms.
+ * On 32 bit platforms, this return statement will not be reached
+ */
+#if defined(MBEDTLS_HAVE_INT64)
     return( MBEDTLS_ERR_ASN1_INVALID_LENGTH );
+#endif
 }
 
 int mbedtls_asn1_write_tag( unsigned char **p, unsigned char *start, unsigned char tag )

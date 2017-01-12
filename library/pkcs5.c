@@ -41,6 +41,7 @@
 #include "mbedtls/asn1.h"
 #include "mbedtls/cipher.h"
 #include "mbedtls/oid.h"
+#include "mbedtls/bignum.h"
 
 #include <string.h>
 
@@ -230,9 +231,14 @@ int mbedtls_pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx, const unsigned char *p
 
     memset( counter, 0, 4 );
     counter[3] = 1;
-
+/*
+ * Relevant only for 64 bit platforms.
+ * On 32 bit platforms, unsigned int cannot exceed 32 bits
+ */
+#if defined(MBEDTLS_HAVE_INT64)
     if( iteration_count > 0xFFFFFFFF )
         return( MBEDTLS_ERR_PKCS5_BAD_INPUT_DATA );
+#endif
 
     while( key_length )
     {

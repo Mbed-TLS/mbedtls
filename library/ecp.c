@@ -1072,7 +1072,7 @@ static int ecp_randomize_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *p
     /* Generate l such that 1 < l < p */
     do
     {
-        mbedtls_mpi_fill_random( &l, p_size, f_rng, p_rng );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &l, p_size, f_rng, p_rng ) );
 
         while( mbedtls_mpi_cmp_mpi( &l, &grp->P ) >= 0 )
             MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &l, 1 ) );
@@ -1454,7 +1454,7 @@ static int ecp_randomize_mxz( const mbedtls_ecp_group *grp, mbedtls_ecp_point *P
     /* Generate l such that 1 < l < p */
     do
     {
-        mbedtls_mpi_fill_random( &l, p_size, f_rng, p_rng );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &l, p_size, f_rng, p_rng ) );
 
         while( mbedtls_mpi_cmp_mpi( &l, &grp->P ) >= 0 )
             MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &l, 1 ) );

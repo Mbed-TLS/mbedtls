@@ -11,6 +11,8 @@ Bugfix
    * Fix resource leak on windows platform, in mbedtls_x509_crt_parse_path.
      In case of failure, when an error occures, goto cleanup.
      Found by redplait #590
+   * Add MBEDTLS_MPI_CHK to check for error value of mbedtls_mpi_fill_random.
+     Reported and fix suggested by guidovranken in #740
 
 Security
    * Fix authentication bypass in SSL/TLS: when auth_mode is set to optional,

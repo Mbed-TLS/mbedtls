@@ -1151,7 +1151,7 @@ static int ecp_randomize_jac( const ecp_group *grp, ecp_point *pt,
     /* Generate l such that 1 < l < p */
     do
     {
-        mpi_fill_random( &l, p_size, f_rng, p_rng );
+        MPI_CHK( mpi_fill_random( &l, p_size, f_rng, p_rng ) );
 
         while( mpi_cmp_mpi( &l, &grp->P ) >= 0 )
             MPI_CHK( mpi_shift_r( &l, 1 ) );
@@ -1536,7 +1536,7 @@ static int ecp_randomize_mxz( const ecp_group *grp, ecp_point *P,
     /* Generate l such that 1 < l < p */
     do
     {
-        mpi_fill_random( &l, p_size, f_rng, p_rng );
+        MPI_CHK( mpi_fill_random( &l, p_size, f_rng, p_rng ) );
 
         while( mpi_cmp_mpi( &l, &grp->P ) >= 0 )
             MPI_CHK( mpi_shift_r( &l, 1 ) );

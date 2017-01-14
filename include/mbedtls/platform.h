@@ -56,6 +56,9 @@ extern "C" {
 #define MBEDTLS_PLATFORM_STD_SNPRINTF   snprintf /**< Default snprintf to use  */
 #endif
 #endif
+#if !defined(MBEDTLS_PLATFORM_STD_VSNPRINTF)
+#define MBEDTLS_PLATFORM_STD_PRINTF   vsnprintf /**< Default vsnprintf to use  */
+#endif
 #if !defined(MBEDTLS_PLATFORM_STD_PRINTF)
 #define MBEDTLS_PLATFORM_STD_PRINTF   printf /**< Default printf to use  */
 #endif
@@ -210,6 +213,41 @@ int mbedtls_platform_set_snprintf( int (*snprintf_func)( char * s, size_t n,
 #define mbedtls_snprintf   snprintf
 #endif /* MBEDTLS_PLATFORM_SNPRINTF_MACRO */
 #endif /* MBEDTLS_PLATFORM_SNPRINTF_ALT */
+
+/*
+ * The function pointers for vsnprintf
+ *
+ * The vsnprintf implementation should conform to C99:
+ * - it *must* always correctly zero-terminate the buffer
+ *   (except when n == 0, then it must leave the buffer untouched)
+ * - however it is acceptable to return -1 instead of the required length when
+ *   the destination buffer is too short.
+ */
+#if defined(_WIN32)
+/* For Windows (inc. MSYS2), we provide our own fixed implementation */
+int mbedtls_platform_win32_vsnprintf( char *s, size_t n, const char *fmt, va_list arg );
+#endif
+
+#if defined(MBEDTLS_PLATFORM_VSNPRINTF_ALT)
+#include <stdarg.h>
+extern int (*mbedtls_vsnprintf)( char * s, size_t n, const char * format, va_list arg );
+
+/**
+ * \brief   Set your own snprintf function pointer
+ *
+ * \param snprintf_func   the snprintf function implementation
+ *
+ * \return              0
+ */
+int mbedtls_platform_set_vsnprintf( int (*vsnprintf_func)( char * s, size_t n,
+                                                 const char * format, va_list arg ) );
+#else /* MBEDTLS_PLATFORM_VSNPRINTF_ALT */
+#if defined(MBEDTLS_PLATFORM_VSNPRINTF_MACRO)
+#define mbedtls_vsnprintf   MBEDTLS_PLATFORM_VSNPRINTF_MACRO
+#else
+#define mbedtls_vsnprintf   vsnprintf
+#endif /* MBEDTLS_PLATFORM_VSNPRINTF_MACRO */
+#endif /* MBEDTLS_PLATFORM_VSNPRINTF_ALT */
 
 /*
  * The function pointers for exit

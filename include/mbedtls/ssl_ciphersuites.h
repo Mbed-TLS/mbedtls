@@ -230,7 +230,7 @@ extern "C" {
 #define MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8      0xC0AF  /**< TLS 1.2 */
 
 /* Reminder: update mbedtls_ssl_premaster_secret when adding a new key exchange.
- * Reminder: update MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED below.
+ * Reminder: update MBEDTLS_KEY_EXCHANGE__xxx below
  */
 typedef enum {
     MBEDTLS_KEY_EXCHANGE_NONE = 0,
@@ -246,15 +246,30 @@ typedef enum {
     MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA,
 } mbedtls_key_exchange_type_t;
 
-#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)          || \
-    defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)      || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)    || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)  || \
-    defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)      || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)    || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)     || \
+/* Key exchanges using a certificate */
+#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)           || \
+    defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)       || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)     || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)   || \
+    defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)       || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)      || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
 #define MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED
+#endif
+
+/* Key exchanges using a PSK */
+#if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)           || \
+    defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)       || \
+    defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED)       || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+#define MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED
+#endif
+
+/* Key exchanges using a ECDHE */
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)     || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)   || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+#define MBEDTLS_KEY_EXCHANGE__SOME__ECDHE_ENABLED
 #endif
 
 typedef struct mbedtls_ssl_ciphersuite_t mbedtls_ssl_ciphersuite_t;

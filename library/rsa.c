@@ -51,6 +51,8 @@
 #else
 #include <stdio.h>
 #define mbedtls_printf printf
+#define mbedtls_calloc calloc
+#define mbedtls_free   free
 #endif
 
 /*
@@ -94,7 +96,11 @@ int mbedtls_rsa_gen_key( mbedtls_rsa_context *ctx,
     if( f_rng == NULL || nbits < 128 || exponent < 3 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
-    mbedtls_mpi_init( &P1 ); mbedtls_mpi_init( &Q1 ); mbedtls_mpi_init( &H ); mbedtls_mpi_init( &G );
+    if( nbits % 2 )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    mbedtls_mpi_init( &P1 ); mbedtls_mpi_init( &Q1 );
+    mbedtls_mpi_init( &H ); mbedtls_mpi_init( &G );
 
     /*
      * find primes P and Q with Q < P so that:
@@ -104,14 +110,11 @@ int mbedtls_rsa_gen_key( mbedtls_rsa_context *ctx,
 
     do
     {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_gen_prime( &ctx->P, ( nbits + 1 ) >> 1, 0,
+        MBEDTLS_MPI_CHK( mbedtls_mpi_gen_prime( &ctx->P, nbits >> 1, 0,
                                 f_rng, p_rng ) );
 
-        MBEDTLS_MPI_CHK( mbedtls_mpi_gen_prime( &ctx->Q, ( nbits + 1 ) >> 1, 0,
+        MBEDTLS_MPI_CHK( mbedtls_mpi_gen_prime( &ctx->Q, nbits >> 1, 0,
                                 f_rng, p_rng ) );
-
-        if( mbedtls_mpi_cmp_mpi( &ctx->P, &ctx->Q ) < 0 )
-            mbedtls_mpi_swap( &ctx->P, &ctx->Q );
 
         if( mbedtls_mpi_cmp_mpi( &ctx->P, &ctx->Q ) == 0 )
             continue;
@@ -119,6 +122,9 @@ int mbedtls_rsa_gen_key( mbedtls_rsa_context *ctx,
         MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &ctx->N, &ctx->P, &ctx->Q ) );
         if( mbedtls_mpi_bitlen( &ctx->N ) != nbits )
             continue;
+
+        if( mbedtls_mpi_cmp_mpi( &ctx->P, &ctx->Q ) < 0 )
+                                mbedtls_mpi_swap( &ctx->P, &ctx->Q );
 
         MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &P1, &ctx->P, 1 ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &Q1, &ctx->Q, 1 ) );
@@ -357,6 +363,10 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
     size_t olen;
     mbedtls_mpi T, T1, T2;
 
+    /* Make sure we have private key info, prevent possible misuse */
+    if( ctx->P.p == NULL || ctx->Q.p == NULL || ctx->D.p == NULL )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
     mbedtls_mpi_init( &T ); mbedtls_mpi_init( &T1 ); mbedtls_mpi_init( &T2 );
 
 #if defined(MBEDTLS_THREADING_C)
@@ -517,7 +527,8 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
     olen = ctx->len;
     hlen = mbedtls_md_get_size( md_info );
 
-    if( olen < ilen + 2 * hlen + 2 )
+    // first comparison checks for overflow
+    if( ilen + 2 * hlen + 2 < ilen || olen < ilen + 2 * hlen + 2 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
     memset( output, 0, olen );
@@ -540,7 +551,11 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
     memcpy( p, input, ilen );
 
     mbedtls_md_init( &md_ctx );
-    mbedtls_md_setup( &md_ctx, md_info, 0 );
+    if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 0 ) ) != 0 )
+    {
+        mbedtls_md_free( &md_ctx );
+        return( ret );
+    }
 
     // maskedDB: Apply dbMask to DB
     //
@@ -578,12 +593,14 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
     if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V15 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
-    if( f_rng == NULL )
+    // We don't check p_rng because it won't be dereferenced here
+    if( f_rng == NULL || input == NULL || output == NULL )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
     olen = ctx->len;
-
-    if( olen < ilen + 11 )
+    
+    // first comparison checks for overflow
+    if( ilen + 11 < ilen || olen < ilen + 11 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
     nb_pad = olen - 3 - ilen;
@@ -693,6 +710,12 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
     if( md_info == NULL )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
+    hlen = mbedtls_md_get_size( md_info );
+
+    // checking for integer underflow
+    if( 2 * hlen + 2 > ilen )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
     /*
      * RSA operation
      */
@@ -706,10 +729,13 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
     /*
      * Unmask data and generate lHash
      */
-    hlen = mbedtls_md_get_size( md_info );
-
     mbedtls_md_init( &md_ctx );
-    mbedtls_md_setup( &md_ctx, md_info, 0 );
+    if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 0 ) ) != 0 )
+    {
+        mbedtls_md_free( &md_ctx );
+        return( ret );
+    }
+
 
     /* Generate lHash */
     mbedtls_md( md_info, label, label_len, lhash );
@@ -842,6 +868,8 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
         bad |= *p++; /* Must be zero */
     }
 
+    bad |= ( pad_count < 8 );
+
     if( bad )
         return( MBEDTLS_ERR_RSA_INVALID_PADDING );
 
@@ -953,7 +981,11 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
     p += slen;
 
     mbedtls_md_init( &md_ctx );
-    mbedtls_md_setup( &md_ctx, md_info, 0 );
+    if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 0 ) ) != 0 )
+    {
+        mbedtls_md_free( &md_ctx );
+        return( ret );
+    }
 
     // Generate H = Hash( M' )
     //
@@ -1005,6 +1037,11 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
     size_t nb_pad, olen, oid_size = 0;
     unsigned char *p = sig;
     const char *oid = NULL;
+    unsigned char *sig_try = NULL, *verif = NULL;
+    size_t i;
+    unsigned char diff;
+    volatile unsigned char diff_no_optimize;
+    int ret;
 
     if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V15 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
@@ -1067,9 +1104,45 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
         memcpy( p, hash, hashlen );
     }
 
-    return( ( mode == MBEDTLS_RSA_PUBLIC )
-            ? mbedtls_rsa_public(  ctx, sig, sig )
-            : mbedtls_rsa_private( ctx, f_rng, p_rng, sig, sig ) );
+    if( mode == MBEDTLS_RSA_PUBLIC )
+        return( mbedtls_rsa_public(  ctx, sig, sig ) );
+
+    /*
+     * In order to prevent Lenstra's attack, make the signature in a
+     * temporary buffer and check it before returning it.
+     */
+    sig_try = mbedtls_calloc( 1, ctx->len );
+    if( sig_try == NULL )
+        return( MBEDTLS_ERR_MPI_ALLOC_FAILED );
+
+    verif   = mbedtls_calloc( 1, ctx->len );
+    if( verif == NULL )
+    {
+        mbedtls_free( sig_try );
+        return( MBEDTLS_ERR_MPI_ALLOC_FAILED );
+    }
+
+    MBEDTLS_MPI_CHK( mbedtls_rsa_private( ctx, f_rng, p_rng, sig, sig_try ) );
+    MBEDTLS_MPI_CHK( mbedtls_rsa_public( ctx, sig_try, verif ) );
+
+    /* Compare in constant time just in case */
+    for( diff = 0, i = 0; i < ctx->len; i++ )
+        diff |= verif[i] ^ sig[i];
+    diff_no_optimize = diff;
+
+    if( diff_no_optimize != 0 )
+    {
+        ret = MBEDTLS_ERR_RSA_PRIVATE_FAILED;
+        goto cleanup;
+    }
+
+    memcpy( sig, sig_try, ctx->len );
+
+cleanup:
+    mbedtls_free( sig_try );
+    mbedtls_free( verif );
+
+    return( ret );
 }
 #endif /* MBEDTLS_PKCS1_V15 */
 
@@ -1185,7 +1258,11 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
     mbedtls_md_init( &md_ctx );
-    mbedtls_md_setup( &md_ctx, md_info, 0 );
+    if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 0 ) ) != 0 )
+    {
+        mbedtls_md_free( &md_ctx );
+        return( ret );
+    }
 
     mgf_mask( p, siglen - hlen - 1, p + siglen - hlen - 1, hlen, &md_ctx );
 

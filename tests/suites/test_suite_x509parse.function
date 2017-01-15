@@ -1,10 +1,24 @@
 /* BEGIN_HEADER */
+#include "mbedtls/x509.h"
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/x509_crl.h"
 #include "mbedtls/x509_csr.h"
 #include "mbedtls/pem.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/base64.h"
+
+const mbedtls_x509_crt_profile compat_profile =
+{
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA1 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_RIPEMD160 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA224 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA256 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA384 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA512 ),
+    0xFFFFFFF, /* Any PK alg    */
+    0xFFFFFFF, /* Any curve     */
+    1024,
+};
 
 int verify_none( void *data, mbedtls_x509_crt *crt, int certificate_depth, uint32_t *flags )
 {
@@ -24,6 +38,36 @@ int verify_all( void *data, mbedtls_x509_crt *crt, int certificate_depth, uint32
     *flags = 0;
 
     return 0;
+}
+
+/* strsep() not available on Windows */
+char *mystrsep(char **stringp, const char *delim)
+{
+    const char *p;
+    char *ret = *stringp;
+
+    if( *stringp == NULL )
+        return( NULL );
+
+    for( ; ; (*stringp)++ )
+    {
+        if( **stringp == '\0' )
+        {
+            *stringp = NULL;
+            goto done;
+        }
+
+        for( p = delim; *p != '\0'; p++ )
+            if( **stringp == *p )
+            {
+                **stringp = '\0';
+                (*stringp)++;
+                goto done;
+            }
+    }
+
+done:
+    return( ret );
 }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -191,7 +235,7 @@ void x509_verify( char *crt_file, char *ca_file, char *crl_file,
     TEST_ASSERT( mbedtls_x509_crt_parse_file( &ca, ca_file ) == 0 );
     TEST_ASSERT( mbedtls_x509_crl_parse_file( &crl, crl_file ) == 0 );
 
-    res = mbedtls_x509_crt_verify( &crt, &ca, &crl, cn_name, &flags, f_vrfy, NULL );
+    res = mbedtls_x509_crt_verify_with_profile( &crt, &ca, &crl, &compat_profile, cn_name, &flags, f_vrfy, NULL );
 
     TEST_ASSERT( res == ( result ) );
     TEST_ASSERT( flags == (uint32_t)( flags_result ) );
@@ -427,6 +471,34 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
+void mbedtls_x509_crt_verify_chain(  char *chain_paths, char *trusted_ca, int flags_result )
+{
+    char* act;
+    uint32_t flags;
+    int result, res;
+    mbedtls_x509_crt trusted, chain;
+
+    result= flags_result?MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:0;
+
+    mbedtls_x509_crt_init( &chain );
+    mbedtls_x509_crt_init( &trusted );
+
+    while( ( act = mystrsep( &chain_paths, " " ) ) != NULL )
+        TEST_ASSERT( mbedtls_x509_crt_parse_file( &chain, act ) == 0 );
+    TEST_ASSERT( mbedtls_x509_crt_parse_file( &trusted, trusted_ca ) == 0 );
+
+    res = mbedtls_x509_crt_verify( &chain, &trusted, NULL, NULL, &flags, NULL, NULL );
+
+    TEST_ASSERT( res == ( result ) );
+    TEST_ASSERT( flags == (uint32_t)( flags_result ) );
+
+exit:
+    mbedtls_x509_crt_free( &trusted );
+    mbedtls_x509_crt_free( &chain );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_X509_USE_C */
 void x509_oid_desc( char *oid_str, char *ref_desc )
 {
@@ -516,6 +588,39 @@ void x509_check_extended_key_usage( char *crt_file, char *usage_hex, int ret )
 
 exit:
     mbedtls_x509_crt_free( &crt );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_X509_USE_C */
+void x509_get_time( int tag,  char *time_str, int ret,
+                    int year, int mon, int day,
+                    int hour, int min, int sec )
+{
+    mbedtls_x509_time time;
+    unsigned char buf[17];
+    unsigned char* start = buf;
+    unsigned char* end = buf;
+
+    memset( &time, 0x00, sizeof( time ) );
+    *end = (unsigned char)tag; end++;
+    if( tag == MBEDTLS_ASN1_UTC_TIME )
+        *end = 13;
+    else
+        *end = 15;
+    end++;
+    memcpy( end, time_str, (size_t)*(end - 1) );
+    end += *(end - 1);
+
+    TEST_ASSERT( mbedtls_x509_get_time( &start, end, &time ) == ret );
+    if( ret == 0 )
+    {
+        TEST_ASSERT( year == time.year );
+        TEST_ASSERT( mon  == time.mon  );
+        TEST_ASSERT( day  == time.day  );
+        TEST_ASSERT( hour == time.hour );
+        TEST_ASSERT( min  == time.min  );
+        TEST_ASSERT( sec  == time.sec  );
+    }
 }
 /* END_CASE */
 

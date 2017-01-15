@@ -54,7 +54,9 @@ if(CMAKE_COMPILER_IS_CLANG)
 endif(CMAKE_COMPILER_IS_CLANG)
 
 if(MSVC)
-    set(CMAKE_C_FLAGS_CHECK       "/WX")
+    # Strictest warnings, and treat as errors
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
 endif(MSVC)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
@@ -85,9 +87,20 @@ if(ENABLE_PROGRAMS)
     add_subdirectory(programs)
 endif()
 
-ADD_CUSTOM_TARGET(apidoc
-    COMMAND doxygen doxygen/mbedtls.doxyfile
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+# targets for doxygen only work on Unix
+if(UNIX)
+    ADD_CUSTOM_TARGET(apidoc
+        COMMAND mkdir -p apidoc
+        COMMAND cp include/mbedtls/config.h include/mbedtls/config.h.bak
+        COMMAND scripts/config.pl realfull
+        COMMAND doxygen doxygen/mbedtls.doxyfile
+        COMMAND mv include/mbedtls/config.h.bak include/mbedtls/config.h
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+    ADD_CUSTOM_TARGET(apidoc_clean
+        COMMAND rm -rf apidoc
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+endif(UNIX)
 
 if(ENABLE_TESTING)
     enable_testing()
@@ -100,7 +113,7 @@ if(ENABLE_TESTING)
         ADD_CUSTOM_TARGET(covtest
             COMMAND make test
             COMMAND programs/test/selftest
-            COMMAND tests/compat.sh
+            COMMAND tests/compat.sh -m 'tls1 tls1_1 tls1_2 dtls1 dtls1_2'
             COMMAND tests/ssl-opt.sh
         )
 

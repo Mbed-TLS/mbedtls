@@ -41,7 +41,8 @@
 #include "sha512.h"
 #endif
 
-#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && !defined(inline)
+#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
+    !defined(inline) && !defined(__cplusplus)
 #define inline __inline
 #endif
 
@@ -376,7 +377,7 @@ unsigned char mbedtls_ssl_hash_from_md_alg( int md );
 int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id );
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
 int mbedtls_ssl_check_sig_hash( const mbedtls_ssl_context *ssl,
                                 mbedtls_md_type_t md );
 #endif

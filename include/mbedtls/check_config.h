@@ -421,6 +421,11 @@
 #error "MBEDTLS_SSL_DTLS_HELLO_VERIFY  defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE) && \
+    !defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
+#error "MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE  defined, but not all prerequisites"
+#endif
+
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY) &&                              \
     ( !defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_PROTO_DTLS) )
 #error "MBEDTLS_SSL_DTLS_ANTI_REPLAY  defined, but not all prerequisites"

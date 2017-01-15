@@ -55,26 +55,6 @@
 #include <time.h>
 #endif
 
-/* For convenience below and in programs */
-#if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED) ||                           \
-    defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED) ||                       \
-    defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
-#define MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED
-#endif
-
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
-#define MBEDTLS_KEY_EXCHANGE__SOME__ECDHE_ENABLED
-#endif
-
-#if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
-#define MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED
-#endif
-
 /*
  * SSL Error codes
  */
@@ -125,6 +105,8 @@
 #define MBEDTLS_ERR_SSL_WANT_READ                         -0x6900  /**< Connection requires a read call. */
 #define MBEDTLS_ERR_SSL_WANT_WRITE                        -0x6880  /**< Connection requires a write call. */
 #define MBEDTLS_ERR_SSL_TIMEOUT                           -0x6800  /**< The operation timed out. */
+#define MBEDTLS_ERR_SSL_CLIENT_RECONNECT                  -0x6780  /**< The client initiated a reconnect from the same port. */
+#define MBEDTLS_ERR_SSL_UNEXPECTED_RECORD                 -0x6700  /**< Record header looks valid but is not expected. */
 
 /*
  * Various constants
@@ -137,6 +119,8 @@
 
 #define MBEDTLS_SSL_TRANSPORT_STREAM            0   /*!< TLS      */
 #define MBEDTLS_SSL_TRANSPORT_DATAGRAM          1   /*!< DTLS     */
+
+#define MBEDTLS_SSL_MAX_HOST_NAME_LEN           255 /*!< Maximum host name defined in RFC 1035 */
 
 /* RFC 6066 section 4, see also mfl_code_to_length in ssl_tls.c
  * NONE must be zero so that memset()ing structure to zero works */
@@ -546,7 +530,7 @@ struct mbedtls_ssl_config
     mbedtls_x509_crl *ca_crl;       /*!< trusted CAs CRLs                   */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
     const int *sig_hashes;          /*!< allowed signature hashes           */
 #endif
 
@@ -839,7 +823,7 @@ int mbedtls_ssl_get_ciphersuite_id( const char *ciphersuite_name );
 
 /**
  * \brief          Initialize an SSL context
- *                 Just makes the context ready for mbetls_ssl_setup() or
+ *                 Just makes the context ready for mbedtls_ssl_setup() or
  *                 mbedtls_ssl_free()
  *
  * \param ssl      SSL context
@@ -870,7 +854,7 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
  *                 pointers and data.
  *
  * \param ssl      SSL context
- * \return         0 if successful, or POLASSL_ERR_SSL_MALLOC_FAILED,
+ * \return         0 if successful, or MBEDTLS_ERR_SSL_ALLOC_FAILED,
                    MBEDTLS_ERR_SSL_HW_ACCEL_FAILED or
  *                 MBEDTLS_ERR_SSL_COMPRESSION_FAILED
  */
@@ -1169,6 +1153,11 @@ typedef int mbedtls_ssl_cookie_check_t( void *ctx,
  *                  the MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED that is expected
  *                  on the first handshake attempt when this is enabled.
  *
+ * \note            This is also necessary to handle client reconnection from
+ *                  the same port as described in RFC 6347 section 4.2.8 (only
+ *                  the variant with cookies is supported currently). See
+ *                  comments on \c mbedtls_ssl_read() for details.
+ *
  * \param conf              SSL configuration
  * \param f_cookie_write    Cookie write callback
  * \param f_cookie_check    Cookie check callback
@@ -1377,11 +1366,15 @@ void mbedtls_ssl_conf_ciphersuites_for_version( mbedtls_ssl_config *conf,
 /**
  * \brief          Set the X.509 security profile used for verification
  *
+ * \note           The restrictions are enforced for all certificates in the
+ *                 chain. However, signatures in the handshake are not covered
+ *                 by this setting but by \b mbedtls_ssl_conf_sig_hashes().
+ *
  * \param conf     SSL configuration
  * \param profile  Profile to use
  */
 void mbedtls_ssl_conf_cert_profile( mbedtls_ssl_config *conf,
-                                    mbedtls_x509_crt_profile *profile );
+                                    const mbedtls_x509_crt_profile *profile );
 
 /**
  * \brief          Set the data required to verify peer certificate
@@ -1538,16 +1531,14 @@ void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
  *                 On client: this affects the list of curves offered for any
  *                 use. The server can override our preference order.
  *
- *                 Both sides: limits the set of curves used by peer to the
- *                 listed curves for any use ECDHE and the end-entity
- *                 certificate.
+ *                 Both sides: limits the set of curves accepted for use in
+ *                 ECDHE and in the peer's end-entity certificate.
  *
- * \note           This has no influence on which curve are allowed inside the
+ * \note           This has no influence on which curves are allowed inside the
  *                 certificate chains, see \c mbedtls_ssl_conf_cert_profile()
- *                 for that. For example, if the peer's certificate chain is
- *                 EE -> CA_int -> CA_root, then the allowed curves for EE are
- *                 controlled by \c mbedtls_ssl_conf_curves() but for CA_int
- *                 and CA_root it's \c mbedtls_ssl_conf_cert_profile().
+ *                 for that. For the end-entity certificate however, the key
+ *                 will be accepted only if it is allowed both by this list
+ *                 and by the cert profile.
  *
  * \note           This list should be ordered by decreasing preference
  *                 (preferred curve first).
@@ -1560,10 +1551,10 @@ void mbedtls_ssl_conf_curves( mbedtls_ssl_config *conf,
                               const mbedtls_ecp_group_id *curves );
 #endif /* MBEDTLS_ECP_C */
 
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
 /**
  * \brief          Set the allowed hashes for signatures during the handshake.
- *                 (Default: all available hashes.)
+ *                 (Default: all available hashes except MD5.)
  *
  * \note           This only affects which hashes are offered and can be used
  *                 for signatures during the handshake. Hashes for message
@@ -1581,7 +1572,7 @@ void mbedtls_ssl_conf_curves( mbedtls_ssl_config *conf,
  */
 void mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
                                   const int *hashes );
-#endif /* MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**
@@ -2089,29 +2080,42 @@ int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl, mbedtls_ssl_session
  *
  * \param ssl      SSL context
  *
- * \return         0 if successful, MBEDTLS_ERR_SSL_WANT_READ,
- *                 MBEDTLS_ERR_SSL_WANT_WRITE, or a specific SSL error code.
+ * \return         0 if successful, or
+ *                 MBEDTLS_ERR_SSL_WANT_READ or MBEDTLS_ERR_SSL_WANT_WRITE, or
+ *                 MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED (see below), or
+ *                 a specific SSL error code.
  *
- * \note           If this function returns non-zero, then the ssl context
+ * \note           If this function returns something other than 0 or
+ *                 MBEDTLS_ERR_SSL_WANT_READ/WRITE, then the ssl context
  *                 becomes unusable, and you should either free it or call
- *                 \c mbedtls_ssl_session_reset() on it before re-using it.
- *                 If DTLS is in use, then you may choose to handle
+ *                 \c mbedtls_ssl_session_reset() on it before re-using it for
+ *                 a new connection; the current connection must be closed.
+ *
+ * \note           If DTLS is in use, then you may choose to handle
  *                 MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED specially for logging
- *                 purposes, but you still need to reset/free the context.
+ *                 purposes, as it is an expected return value rather than an
+ *                 actual error, but you still need to reset/free the context.
  */
 int mbedtls_ssl_handshake( mbedtls_ssl_context *ssl );
 
 /**
  * \brief          Perform a single step of the SSL handshake
  *
- *                 Note: the state of the context (ssl->state) will be at
+ * \note           The state of the context (ssl->state) will be at
  *                 the following state after execution of this function.
  *                 Do not call this function if state is MBEDTLS_SSL_HANDSHAKE_OVER.
  *
+ * \note           If this function returns something other than 0 or
+ *                 MBEDTLS_ERR_SSL_WANT_READ/WRITE, then the ssl context
+ *                 becomes unusable, and you should either free it or call
+ *                 \c mbedtls_ssl_session_reset() on it before re-using it for
+ *                 a new connection; the current connection must be closed.
+ *
  * \param ssl      SSL context
  *
- * \return         0 if successful, MBEDTLS_ERR_SSL_WANT_READ,
- *                 MBEDTLS_ERR_SSL_WANT_WRITE, or a specific SSL error code.
+ * \return         0 if successful, or
+ *                 MBEDTLS_ERR_SSL_WANT_READ or MBEDTLS_ERR_SSL_WANT_WRITE, or
+ *                 a specific SSL error code.
  */
 int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl );
 
@@ -2125,6 +2129,12 @@ int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl );
  * \param ssl      SSL context
  *
  * \return         0 if successful, or any mbedtls_ssl_handshake() return value.
+ *
+ * \note           If this function returns something other than 0 or
+ *                 MBEDTLS_ERR_SSL_WANT_READ/WRITE, then the ssl context
+ *                 becomes unusable, and you should either free it or call
+ *                 \c mbedtls_ssl_session_reset() on it before re-using it for
+ *                 a new connection; the current connection must be closed.
  */
 int mbedtls_ssl_renegotiate( mbedtls_ssl_context *ssl );
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
@@ -2138,7 +2148,30 @@ int mbedtls_ssl_renegotiate( mbedtls_ssl_context *ssl );
  *
  * \return         the number of bytes read, or
  *                 0 for EOF, or
- *                 a negative error code.
+ *                 MBEDTLS_ERR_SSL_WANT_READ or MBEDTLS_ERR_SSL_WANT_WRITE, or
+ *                 MBEDTLS_ERR_SSL_CLIENT_RECONNECT (see below), or
+ *                 another negative error code.
+ *
+ * \note           If this function returns something other than a positive
+ *                 value or MBEDTLS_ERR_SSL_WANT_READ/WRITE or
+ *                 MBEDTLS_ERR_SSL_CLIENT_RECONNECT, then the ssl context
+ *                 becomes unusable, and you should either free it or call
+ *                 \c mbedtls_ssl_session_reset() on it before re-using it for
+ *                 a new connection; the current connection must be closed.
+ *
+ * \note           When this function return MBEDTLS_ERR_SSL_CLIENT_RECONNECT
+ *                 (which can only happen server-side), it means that a client
+ *                 is initiating a new connection using the same source port.
+ *                 You can either treat that as a connection close and wait
+ *                 for the client to resend a ClientHello, or directly
+ *                 continue with \c mbedtls_ssl_handshake() with the same
+ *                 context (as it has beeen reset internally). Either way, you
+ *                 should make sure this is seen by the application as a new
+ *                 connection: application state, if any, should be reset, and
+ *                 most importantly the identity of the client must be checked
+ *                 again. WARNING: not validating the identity of the client
+ *                 again, or not transmitting the new identity to the
+ *                 application layer, would allow authentication bypass!
  */
 int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len );
 
@@ -2158,6 +2191,12 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
  * \return         the number of bytes actually written (may be less than len),
  *                 or MBEDTLS_ERR_SSL_WANT_WRITE of MBEDTLS_ERR_SSL_WANT_READ,
  *                 or another negative error code.
+ *
+ * \note           If this function returns something other than a positive
+ *                 value or MBEDTLS_ERR_SSL_WANT_READ/WRITE, the ssl context
+ *                 becomes unusable, and you should either free it or call
+ *                 \c mbedtls_ssl_session_reset() on it before re-using it for
+ *                 a new connection; the current connection must be closed.
  *
  * \note           When this function returns MBEDTLS_ERR_SSL_WANT_WRITE/READ,
  *                 it must be called later with the *same* arguments,
@@ -2182,6 +2221,12 @@ int mbedtls_ssl_write( mbedtls_ssl_context *ssl, const unsigned char *buf, size_
  * \param message   The alert message (SSL_ALERT_MSG_*)
  *
  * \return          0 if successful, or a specific SSL error code.
+ *
+ * \note           If this function returns something other than 0 or
+ *                 MBEDTLS_ERR_SSL_WANT_READ/WRITE, then the ssl context
+ *                 becomes unusable, and you should either free it or call
+ *                 \c mbedtls_ssl_session_reset() on it before re-using it for
+ *                 a new connection; the current connection must be closed.
  */
 int mbedtls_ssl_send_alert_message( mbedtls_ssl_context *ssl,
                             unsigned char level,
@@ -2190,6 +2235,14 @@ int mbedtls_ssl_send_alert_message( mbedtls_ssl_context *ssl,
  * \brief          Notify the peer that the connection is being closed
  *
  * \param ssl      SSL context
+ *
+ * \return          0 if successful, or a specific SSL error code.
+ *
+ * \note           If this function returns something other than 0 or
+ *                 MBEDTLS_ERR_SSL_WANT_READ/WRITE, then the ssl context
+ *                 becomes unusable, and you should either free it or call
+ *                 \c mbedtls_ssl_session_reset() on it before re-using it for
+ *                 a new connection; the current connection must be closed.
  */
 int mbedtls_ssl_close_notify( mbedtls_ssl_context *ssl );
 

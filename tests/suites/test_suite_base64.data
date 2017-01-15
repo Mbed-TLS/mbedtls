@@ -1,23 +1,41 @@
-Test case mbedtls_base64_encode #1
-mbedtls_base64_encode:"":"":1000:0
+Test case mbedtls_base64_encode #1 buffer just right
+mbedtls_base64_encode:"":"":0:0
 
-Test case mbedtls_base64_encode #2
-mbedtls_base64_encode:"f":"Zg==":1000:0
+Test case mbedtls_base64_encode #2 buffer just right
+mbedtls_base64_encode:"f":"Zg==":5:0
 
-Test case mbedtls_base64_encode #3
-mbedtls_base64_encode:"fo":"Zm8=":1000:0
+Test case mbedtls_base64_encode #2 buffer too small
+mbedtls_base64_encode:"f":"Zg==":4:MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL
 
-Test case mbedtls_base64_encode #4
-mbedtls_base64_encode:"foo":"Zm9v":1000:0
+Test case mbedtls_base64_encode #3 buffer just right
+mbedtls_base64_encode:"fo":"Zm8=":5:0
 
-Test case mbedtls_base64_encode #5
-mbedtls_base64_encode:"foob":"Zm9vYg==":1000:0
+Test case mbedtls_base64_encode #3 buffer too small
+mbedtls_base64_encode:"fo":"Zm8=":4:MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL
 
-Test case mbedtls_base64_encode #6
-mbedtls_base64_encode:"fooba":"Zm9vYmE=":1000:0
+Test case mbedtls_base64_encode #4 buffer just right
+mbedtls_base64_encode:"foo":"Zm9v":5:0
 
-Test case mbedtls_base64_encode #7
-mbedtls_base64_encode:"foobar":"Zm9vYmFy":1000:0
+Test case mbedtls_base64_encode #4 buffer too small
+mbedtls_base64_encode:"foo":"Zm9v":4:MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL
+
+Test case mbedtls_base64_encode #5 buffer just right
+mbedtls_base64_encode:"foob":"Zm9vYg==":9:0
+
+Test case mbedtls_base64_encode #5 buffer too small
+mbedtls_base64_encode:"foob":"Zm9vYg==":8:MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL
+
+Test case mbedtls_base64_encode #6 buffer just right
+mbedtls_base64_encode:"fooba":"Zm9vYmE=":9:0
+
+Test case mbedtls_base64_encode #6 buffer too small
+mbedtls_base64_encode:"fooba":"Zm9vYmE=":8:MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL
+
+Test case mbedtls_base64_encode #7 buffer just right
+mbedtls_base64_encode:"foobar":"Zm9vYmFy":9:0
+
+Test case mbedtls_base64_encode #7 buffer too small
+mbedtls_base64_encode:"foobar":"Zm9vYmFy":8:MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL
 
 Test case mbedtls_base64_decode #1
 mbedtls_base64_decode:"":"":0
@@ -39,12 +57,6 @@ mbedtls_base64_decode:"Zm9vYmE=":"fooba":0
 
 Test case mbedtls_base64_decode #7
 mbedtls_base64_decode:"Zm9vYmFy":"foobar":0
-
-Base64 encode (buffer size just right)
-mbedtls_base64_encode:"foobar":"Zm9vYmFy":9:0
-
-Base64 encode (buffer size too small)
-mbedtls_base64_encode:"foobar":"":8:MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL
 
 Base64 decode (Illegal character)
 mbedtls_base64_decode:"zm#=":"":MBEDTLS_ERR_BASE64_INVALID_CHARACTER

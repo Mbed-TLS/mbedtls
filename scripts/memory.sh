@@ -52,6 +52,8 @@ do_config()
         scripts/config.pl unset $FLAG
     done
 
+    grep -F SSL_MAX_CONTENT_LEN $CONFIG_H || echo 'SSL_MAX_CONTENT_LEN=16384'
+
     printf "    Executable size... "
 
     make clean

@@ -130,6 +130,13 @@ not_with_valgrind() {
     fi
 }
 
+# skip the next test if valgrind is NOT in use
+only_with_valgrind() {
+    if [ "$MEMCHECK" -eq 0 ]; then
+        SKIP_NEXT="YES"
+    fi
+}
+
 # multiply the client timeout delay by the given factor for the next test
 needs_more_time() {
     CLI_DELAY_FACTOR=$1
@@ -279,8 +286,10 @@ detect_dtls() {
 # Usage: run_test name [-p proxy_cmd] srv_cmd cli_cmd cli_exit [option [...]]
 # Options:  -s pattern  pattern that must be present in server output
 #           -c pattern  pattern that must be present in client output
+#           -u pattern  lines after pattern must be unique in client output
 #           -S pattern  pattern that must be absent in server output
 #           -C pattern  pattern that must be absent in client output
+#           -U pattern  lines after pattern must be unique in server output
 run_test() {
     NAME="$1"
     shift 1
@@ -412,29 +421,50 @@ run_test() {
     do
         case $1 in
             "-s")
-                if grep -v '^==' $SRV_OUT | grep "$2" >/dev/null; then :; else
-                    fail "-s $2"
+                if grep -v '^==' $SRV_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then :; else
+                    fail "pattern '$2' MUST be present in the Server output"
                     return
                 fi
                 ;;
 
             "-c")
-                if grep -v '^==' $CLI_OUT | grep "$2" >/dev/null; then :; else
-                    fail "-c $2"
+                if grep -v '^==' $CLI_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then :; else
+                    fail "pattern '$2' MUST be present in the Client output"
                     return
                 fi
                 ;;
 
             "-S")
-                if grep -v '^==' $SRV_OUT | grep "$2" >/dev/null; then
-                    fail "-S $2"
+                if grep -v '^==' $SRV_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then
+                    fail "pattern '$2' MUST NOT be present in the Server output"
                     return
                 fi
                 ;;
 
             "-C")
-                if grep -v '^==' $CLI_OUT | grep "$2" >/dev/null; then
-                    fail "-C $2"
+                if grep -v '^==' $CLI_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then
+                    fail "pattern '$2' MUST NOT be present in the Client output"
+                    return
+                fi
+                ;;
+
+                # The filtering in the following two options (-u and -U) do the following
+                #   - ignore valgrind output
+                #   - filter out everything but lines right after the pattern occurances
+                #   - keep one of each non-unique line
+                #   - count how many lines remain
+                # A line with '--' will remain in the result from previous outputs, so the number of lines in the result will be 1
+                # if there were no duplicates.
+            "-U")
+                if [ $(grep -v '^==' $SRV_OUT | grep -v 'Serious error when reading debug info' | grep -A1 "$2" | grep -v "$2" | sort | uniq -d | wc -l) -gt 1 ]; then
+                    fail "lines following pattern '$2' must be unique in Server output"
+                    return
+                fi
+                ;;
+
+            "-u")
+                if [ $(grep -v '^==' $CLI_OUT | grep -v 'Serious error when reading debug info' | grep -A1 "$2" | grep -v "$2" | sort | uniq -d | wc -l) -gt 1 ]; then
+                    fail "lines following pattern '$2' must be unique in Client output"
                     return
                 fi
                 ;;
@@ -565,14 +595,24 @@ run_test    "Default, DTLS" \
             -s "Protocol is DTLSv1.2" \
             -s "Ciphersuite is TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384"
 
+# Test for uniqueness of IVs in AEAD ciphersuites
+run_test    "Unique IV in GCM" \
+            "$P_SRV exchanges=20 debug_level=4" \
+            "$P_CLI exchanges=20 debug_level=4 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384" \
+            0 \
+            -u "IV used" \
+            -U "IV used"
+
 # Tests for rc4 option
 
+requires_config_enabled MBEDTLS_REMOVE_ARC4_CIPHERSUITES
 run_test    "RC4: server disabled, client enabled" \
             "$P_SRV" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             1 \
             -s "SSL - The server has no ciphersuites in common"
 
+requires_config_enabled MBEDTLS_REMOVE_ARC4_CIPHERSUITES
 run_test    "RC4: server half, client enabled" \
             "$P_SRV arc4=1" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
@@ -695,6 +735,7 @@ run_test    "Encrypt then MAC: client disabled, server enabled" \
             -C "using encrypt then mac" \
             -S "using encrypt then mac"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Encrypt then MAC: client SSLv3, server enabled" \
             "$P_SRV debug_level=3 min_version=ssl3 \
              force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
@@ -707,13 +748,14 @@ run_test    "Encrypt then MAC: client SSLv3, server enabled" \
             -C "using encrypt then mac" \
             -S "using encrypt then mac"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Encrypt then MAC: client enabled, server SSLv3" \
             "$P_SRV debug_level=3 force_version=ssl3 \
              force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
             "$P_CLI debug_level=3 min_version=ssl3" \
             0 \
             -c "client hello, adding encrypt_then_mac extension" \
-            -s "found encrypt then mac extension" \
+            -S "found encrypt then mac extension" \
             -S "server hello, adding encrypt then mac extension" \
             -C "found encrypt_then_mac extension" \
             -C "using encrypt then mac" \
@@ -754,6 +796,7 @@ run_test    "Extended Master Secret: client disabled, server enabled" \
             -C "using extended master secret" \
             -S "using extended master secret"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Extended Master Secret: client SSLv3, server enabled" \
             "$P_SRV debug_level=3 min_version=ssl3" \
             "$P_CLI debug_level=3 force_version=ssl3" \
@@ -765,12 +808,13 @@ run_test    "Extended Master Secret: client SSLv3, server enabled" \
             -C "using extended master secret" \
             -S "using extended master secret"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Extended Master Secret: client enabled, server SSLv3" \
             "$P_SRV debug_level=3 force_version=ssl3" \
             "$P_CLI debug_level=3 min_version=ssl3" \
             0 \
             -c "client hello, adding extended_master_secret extension" \
-            -s "found extended master secret extension" \
+            -S "found extended master secret extension" \
             -S "server hello, adding extended master secret extension" \
             -C "found extended_master_secret extension" \
             -C "using extended master secret" \
@@ -883,6 +927,7 @@ run_test    "CBC Record splitting: TLS 1.0, splitting" \
             -s "Read from client: 1 bytes read" \
             -s "122 bytes read"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "CBC Record splitting: SSLv3, splitting" \
             "$P_SRV min_version=ssl3" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
@@ -1554,6 +1599,64 @@ run_test    "Renego ext: gnutls client unsafe, server break legacy" \
             -S "received TLS_EMPTY_RENEGOTIATION_INFO\|found renegotiation extension" \
             -S "server hello, secure renegotiation extension"
 
+# Tests for silently dropping trailing extra bytes in .der certificates
+
+requires_gnutls
+run_test    "DER format: no trailing bytes" \
+            "$P_SRV crt_file=data_files/server5-der0.crt \
+             key_file=data_files/server5.key" \
+            "$G_CLI " \
+            0 \
+            -c "Handshake was completed" \
+
+requires_gnutls
+run_test    "DER format: with a trailing zero byte" \
+            "$P_SRV crt_file=data_files/server5-der1a.crt \
+             key_file=data_files/server5.key" \
+            "$G_CLI " \
+            0 \
+            -c "Handshake was completed" \
+
+requires_gnutls
+run_test    "DER format: with a trailing random byte" \
+            "$P_SRV crt_file=data_files/server5-der1b.crt \
+             key_file=data_files/server5.key" \
+            "$G_CLI " \
+            0 \
+            -c "Handshake was completed" \
+
+requires_gnutls
+run_test    "DER format: with 2 trailing random bytes" \
+            "$P_SRV crt_file=data_files/server5-der2.crt \
+             key_file=data_files/server5.key" \
+            "$G_CLI " \
+            0 \
+            -c "Handshake was completed" \
+
+requires_gnutls
+run_test    "DER format: with 4 trailing random bytes" \
+            "$P_SRV crt_file=data_files/server5-der4.crt \
+             key_file=data_files/server5.key" \
+            "$G_CLI " \
+            0 \
+            -c "Handshake was completed" \
+
+requires_gnutls
+run_test    "DER format: with 8 trailing random bytes" \
+            "$P_SRV crt_file=data_files/server5-der8.crt \
+             key_file=data_files/server5.key" \
+            "$G_CLI " \
+            0 \
+            -c "Handshake was completed" \
+
+requires_gnutls
+run_test    "DER format: with 9 trailing random bytes" \
+            "$P_SRV crt_file=data_files/server5-der9.crt \
+             key_file=data_files/server5.key" \
+            "$G_CLI " \
+            0 \
+            -c "Handshake was completed" \
+
 # Tests for auth_mode
 
 run_test    "Authentication: server badcert, client required" \
@@ -1674,6 +1777,7 @@ run_test    "Authentication: client no cert, openssl server optional" \
             -c "skip write certificate verify" \
             -C "! mbedtls_ssl_handshake returned"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Authentication: client no cert, ssl3" \
             "$P_SRV debug_level=3 auth_mode=optional force_version=ssl3" \
             "$P_CLI debug_level=3 crt_file=none key_file=none min_version=ssl3" \
@@ -2501,6 +2605,7 @@ run_test    "PSK callback: wrong key" \
 
 # Tests for ciphersuites per version
 
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Per-version suites: SSL3" \
             "$P_SRV min_version=ssl3 version_suites=TLS-RSA-WITH-3DES-EDE-CBC-SHA,TLS-RSA-WITH-AES-256-CBC-SHA,TLS-RSA-WITH-AES-128-CBC-SHA,TLS-RSA-WITH-AES-128-GCM-SHA256" \
             "$P_CLI force_version=ssl3" \
@@ -2550,6 +2655,7 @@ run_test    "mbedtls_ssl_get_bytes_avail: extra data" \
 
 # Tests for small packets
 
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Small packet SSLv3 BlockCipher" \
             "$P_SRV min_version=ssl3" \
             "$P_CLI request_size=1 force_version=ssl3 \
@@ -2557,6 +2663,7 @@ run_test    "Small packet SSLv3 BlockCipher" \
             0 \
             -s "Read from client: 1 bytes read"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Small packet SSLv3 StreamCipher" \
             "$P_SRV min_version=ssl3 arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=1 force_version=ssl3 \
@@ -2689,8 +2796,19 @@ run_test    "Small packet TLS 1.2 AEAD shorter tag" \
             0 \
             -s "Read from client: 1 bytes read"
 
+# A test for extensions in SSLv3
+
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
+run_test    "SSLv3 with extensions, server side" \
+            "$P_SRV min_version=ssl3 debug_level=3" \
+            "$P_CLI force_version=ssl3 tickets=1 max_frag_len=4096 alpn=abc,1234" \
+            0 \
+            -S "dumping 'client hello extensions'" \
+            -S "server hello, total extension length:"
+
 # Test for large packets
 
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Large packet SSLv3 BlockCipher" \
             "$P_SRV min_version=ssl3" \
             "$P_CLI request_size=16384 force_version=ssl3 recsplit=0 \
@@ -2698,6 +2816,7 @@ run_test    "Large packet SSLv3 BlockCipher" \
             0 \
             -s "Read from client: 16384 bytes read"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Large packet SSLv3 StreamCipher" \
             "$P_SRV min_version=ssl3 arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=ssl3 \
@@ -2866,6 +2985,49 @@ run_test    "DTLS cookie: enabled, nbio" \
             -c "received hello verify request" \
             -s "hello verification requested" \
             -S "SSL - The requested feature is not available"
+
+# Tests for client reconnecting from the same port with DTLS
+
+not_with_valgrind # spurious resend
+run_test    "DTLS client reconnect from same port: reference" \
+            "$P_SRV dtls=1 exchanges=2 read_timeout=1000" \
+            "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-1000" \
+            0 \
+            -C "resend" \
+            -S "The operation timed out" \
+            -S "Client initiated reconnection from same port"
+
+not_with_valgrind # spurious resend
+run_test    "DTLS client reconnect from same port: reconnect" \
+            "$P_SRV dtls=1 exchanges=2 read_timeout=1000" \
+            "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-1000 reconnect_hard=1" \
+            0 \
+            -C "resend" \
+            -S "The operation timed out" \
+            -s "Client initiated reconnection from same port"
+
+not_with_valgrind # server/client too slow to respond in time (next test has higher timeouts)
+run_test    "DTLS client reconnect from same port: reconnect, nbio, no valgrind" \
+            "$P_SRV dtls=1 exchanges=2 read_timeout=1000 nbio=2" \
+            "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-1000 reconnect_hard=1" \
+            0 \
+            -S "The operation timed out" \
+            -s "Client initiated reconnection from same port"
+
+only_with_valgrind # Only with valgrind, do previous test but with higher read_timeout and hs_timeout
+run_test    "DTLS client reconnect from same port: reconnect, nbio, valgrind" \
+            "$P_SRV dtls=1 exchanges=2 read_timeout=2000 nbio=2 hs_timeout=1500-6000" \
+            "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=1500-3000 reconnect_hard=1" \
+            0 \
+            -S "The operation timed out" \
+            -s "Client initiated reconnection from same port"
+
+run_test    "DTLS client reconnect from same port: no cookies" \
+            "$P_SRV dtls=1 exchanges=2 read_timeout=1000 cookies=0" \
+            "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-8000 reconnect_hard=1" \
+            0 \
+            -s "The operation timed out" \
+            -S "Client initiated reconnection from same port"
 
 # Tests for various cases of client authentication with DTLS
 # (focused on handshake flows and message parsing)

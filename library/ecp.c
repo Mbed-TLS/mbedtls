@@ -62,7 +62,8 @@
 #define mbedtls_free       free
 #endif
 
-#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && !defined(inline)
+#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
+    !defined(inline) && !defined(__cplusplus)
 #define inline __inline
 #endif
 
@@ -1667,7 +1668,38 @@ cleanup:
 #endif /* ECP_SHORTWEIERSTRASS */
 
 /*
+ * R = m * P with shortcuts for m == 1 and m == -1
+ * NOT constant-time - ONLY for short Weierstrass!
+ */
+static int mbedtls_ecp_mul_shortcuts( mbedtls_ecp_group *grp,
+                                      mbedtls_ecp_point *R,
+                                      const mbedtls_mpi *m,
+                                      const mbedtls_ecp_point *P )
+{
+    int ret;
+
+    if( mbedtls_mpi_cmp_int( m, 1 ) == 0 )
+    {
+        MBEDTLS_MPI_CHK( mbedtls_ecp_copy( R, P ) );
+    }
+    else if( mbedtls_mpi_cmp_int( m, -1 ) == 0 )
+    {
+        MBEDTLS_MPI_CHK( mbedtls_ecp_copy( R, P ) );
+        if( mbedtls_mpi_cmp_int( &R->Y, 0 ) != 0 )
+            MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &R->Y, &grp->P, &R->Y ) );
+    }
+    else
+    {
+        MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, R, m, P, NULL, NULL ) );
+    }
+
+cleanup:
+    return( ret );
+}
+
+/*
  * Linear combination
+ * NOT constant-time
  */
 int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              const mbedtls_mpi *m, const mbedtls_ecp_point *P,
@@ -1681,8 +1713,9 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
     mbedtls_ecp_point_init( &mP );
 
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &mP, m, P, NULL, NULL ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, R,   n, Q, NULL, NULL ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul_shortcuts( grp, &mP, m, P ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul_shortcuts( grp, R,   n, Q ) );
+
     MBEDTLS_MPI_CHK( ecp_add_mixed( grp, R, &mP, R ) );
     MBEDTLS_MPI_CHK( ecp_normalize_jac( grp, R ) );
 

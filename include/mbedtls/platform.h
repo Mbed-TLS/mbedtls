@@ -64,7 +64,7 @@ extern "C" {
 #define MBEDTLS_PLATFORM_STD_FREE       free /**< Default free to use */
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_EXIT)
-#define MBEDTLS_PLATFORM_STD_EXIT      exit /**< Default free to use */
+#define MBEDTLS_PLATFORM_STD_EXIT      exit /**< Default exit to use */
 #endif
 #else /* MBEDTLS_PLATFORM_NO_STD_FUNCTIONS */
 #if defined(MBEDTLS_PLATFORM_STD_MEM_HDR)

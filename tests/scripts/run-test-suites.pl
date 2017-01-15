@@ -21,12 +21,12 @@ for my $suite (@suites)
     my $result = `$prefix$suite`;
     if( $result =~ /PASSED/ ) {
         print "PASS\n";
+        my ($tests, $skipped) = $result =~ /([0-9]*) tests.*?([0-9]*) skipped/;
+        $total_tests_run += $tests - $skipped;
     } else {
         $failed_suites++;
         print "FAIL\n";
     }
-    my ($tests, $skipped) = $result =~ /([0-9]*) tests.*?([0-9]*) skipped/;
-    $total_tests_run += $tests - $skipped;
 }
 
 print "-" x 72, "\n";

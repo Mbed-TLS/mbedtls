@@ -29,7 +29,7 @@ The Make and CMake build systems create three libraries: libmbedcrypto, libmbedx
 
 ### Yotta
 
-[yotta](http://yottabuild.org) is a package manager and build system developped by mbed; it is the build system of mbed OS. To install it on your platform, please follow the yotta [installation instructions](http://docs.yottabuild.org/#installing).
+[yotta](http://yottabuild.org) is a package manager and build system developed by mbed; it is the build system of mbed OS. To install it on your platform, please follow the yotta [installation instructions](http://docs.yottabuild.org/#installing).
 
 Once yotta is installed, you can use it to download the latest version of mbed TLS form the yotta registry with:
 
@@ -64,7 +64,7 @@ In order to run the tests, enter:
 
     make check
 
-The tests need Perl to be built and run. If you don't have Perl installed, you can skip buiding the tests with:
+The tests need Perl to be built and run. If you don't have Perl installed, you can skip building the tests with:
 
     make no_test
 
@@ -122,7 +122,7 @@ To list other available CMake options, use:
 
     cmake -LH
 
-Note that, with CMake, if you want to change the compiler or its options after you already ran CMake, you need to clear its cache first, eg (using GNU find):
+Note that, with CMake, if you want to change the compiler or its options after you already ran CMake, you need to clear its cache first, e.g. (using GNU find):
 
     find . -iname '*cmake*' -not -name CMakeLists.txt -exec rm -rf {} +
     CC=gcc CFLAGS='-fstack-protector-strong -Wa,--noexecstack' cmake .
@@ -148,6 +148,7 @@ For machines with a Unix shell and OpenSSL (and optionally GnuTLS) installed, ad
 -   `tests/ssl-opt.sh` runs integration tests for various TLS options (renegotiation, resumption, etc.) and tests interoperability of these options with other implementations.
 -   `tests/compat.sh` tests interoperability of every ciphersuite with other implementations.
 -   `tests/scripts/test-ref-configs.pl` test builds in various reduced configurations.
+-   `tests/scripts/key-exchanges.pl` test builds in configurations with a single key exchange enabled
 -   `tests/scripts/all.sh` runs a combination of the above tests, plus some more, with various build options (such as ASan, full `config.h`, etc).
 
 Configurations

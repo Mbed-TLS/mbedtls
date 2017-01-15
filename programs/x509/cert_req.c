@@ -34,7 +34,8 @@
 
 #if !defined(MBEDTLS_X509_CSR_WRITE_C) || !defined(MBEDTLS_FS_IO) ||  \
     !defined(MBEDTLS_PK_PARSE_C) || !defined(MBEDTLS_SHA256_C) || \
-    !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C)
+    !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C) || \
+    !defined(MBEDTLS_PEM_WRITE_C)
 int main( void )
 {
     mbedtls_printf( "MBEDTLS_X509_CSR_WRITE_C and/or MBEDTLS_FS_IO and/or "
@@ -75,7 +76,7 @@ int main( void )
     "                          key_encipherment\n"      \
     "                          data_encipherment\n"     \
     "                          key_agreement\n"         \
-    "                          key_certificate_sign\n"  \
+    "                          key_cert_sign\n"  \
     "                          crl_sign\n"              \
     "    ns_cert_type=%%s     default: (empty)\n"       \
     "                        Comma-separated-list of values:\n"     \
@@ -341,4 +342,4 @@ exit:
     return( ret );
 }
 #endif /* MBEDTLS_X509_CSR_WRITE_C && MBEDTLS_PK_PARSE_C && MBEDTLS_FS_IO &&
-          MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C */
+          MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C && MBEDTLS_PEM_WRITE_C */

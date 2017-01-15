@@ -32,10 +32,11 @@
 #define mbedtls_printf     printf
 #endif
 
-#if !defined(MBEDTLS_X509_CRT_WRITE_C) ||                                  \
-    !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_FS_IO) ||      \
-    !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C) ||        \
-    !defined(MBEDTLS_ERROR_C) || !defined(MBEDTLS_SHA256_C)
+#if !defined(MBEDTLS_X509_CRT_WRITE_C) || \
+    !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_FS_IO) || \
+    !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C) || \
+    !defined(MBEDTLS_ERROR_C) || !defined(MBEDTLS_SHA256_C) || \
+    !defined(MBEDTLS_PEM_WRITE_C)
 int main( void )
 {
     mbedtls_printf( "MBEDTLS_X509_CRT_WRITE_C and/or MBEDTLS_X509_CRT_PARSE_C and/or "
@@ -115,7 +116,7 @@ int main( void )
     "                          key_encipherment\n"      \
     "                          data_encipherment\n"     \
     "                          key_agreement\n"         \
-    "                          key_certificate_sign\n"  \
+    "                          key_cert_sign\n"  \
     "                          crl_sign\n"              \
     "    ns_cert_type=%%s     default: (empty)\n"       \
     "                        Comma-separated-list of values:\n"     \
@@ -189,11 +190,11 @@ int main( int argc, char *argv[] )
     mbedtls_pk_context *issuer_key = &loaded_issuer_key,
                 *subject_key = &loaded_subject_key;
     char buf[1024];
-    char issuer_name[128];
+    char issuer_name[256];
     int i;
     char *p, *q, *r;
 #if defined(MBEDTLS_X509_CSR_PARSE_C)
-    char subject_name[128];
+    char subject_name[256];
     mbedtls_x509_csr csr;
 #endif
     mbedtls_x509write_cert crt;
@@ -664,4 +665,4 @@ exit:
 }
 #endif /* MBEDTLS_X509_CRT_WRITE_C && MBEDTLS_X509_CRT_PARSE_C &&
           MBEDTLS_FS_IO && MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C &&
-          MBEDTLS_ERROR_C */
+          MBEDTLS_ERROR_C && MBEDTLS_PEM_WRITE_C */

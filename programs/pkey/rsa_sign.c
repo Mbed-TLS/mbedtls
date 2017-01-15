@@ -40,7 +40,7 @@
 int main( void )
 {
     mbedtls_printf("MBEDTLS_BIGNUM_C and/or MBEDTLS_RSA_C and/or "
-            "MBEDLTS_MD_C and/or "
+            "MBEDTLS_MD_C and/or "
             "MBEDTLS_SHA256_C and/or MBEDTLS_FS_IO not defined.\n");
     return( 0 );
 }
@@ -62,6 +62,7 @@ int main( int argc, char *argv[] )
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
     char filename[512];
 
+    mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
     ret = 1;
 
     if( argc != 2 )
@@ -85,8 +86,6 @@ int main( int argc, char *argv[] )
                 "  ! Please run rsa_genkey first\n\n" );
         goto exit;
     }
-
-    mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
 
     if( ( ret = mbedtls_mpi_read_file( &rsa.N , 16, f ) ) != 0 ||
         ( ret = mbedtls_mpi_read_file( &rsa.E , 16, f ) ) != 0 ||
@@ -156,6 +155,8 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "\n  . Done (created \"%s\")\n\n", filename );
 
 exit:
+
+    mbedtls_rsa_free( &rsa );
 
 #if defined(_WIN32)
     mbedtls_printf( "  + Press Enter to exit this program.\n" );

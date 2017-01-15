@@ -186,8 +186,10 @@ static int x509_profile_check_key( const mbedtls_x509_crt_profile *profile,
     }
 #endif
 
-#if defined(MBEDTLS_ECDSA_C)
-    if( pk_alg == MBEDTLS_PK_ECDSA )
+#if defined(MBEDTLS_ECP_C)
+    if( pk_alg == MBEDTLS_PK_ECDSA ||
+        pk_alg == MBEDTLS_PK_ECKEY ||
+        pk_alg == MBEDTLS_PK_ECKEY_DH )
     {
         mbedtls_ecp_group_id gid = mbedtls_pk_ec( *pk )->grp.id;
 
@@ -678,14 +680,9 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt, const unsigned char *
     if( crt == NULL || buf == NULL )
         return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
 
-    p = mbedtls_calloc( 1, len = buflen );
-    if( p == NULL )
-        return( MBEDTLS_ERR_X509_ALLOC_FAILED );
-
-    memcpy( p, buf, buflen );
-
-    crt->raw.p = p;
-    crt->raw.len = len;
+    // Use the original buffer until we figure out actual length
+    p = (unsigned char*) buf;
+    len = buflen;
     end = p + len;
 
     /*
@@ -708,6 +705,18 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt, const unsigned char *
                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
     }
     crt_end = p + len;
+
+    // Create and populate a new buffer for the raw field
+    crt->raw.len = crt_end - buf;
+    crt->raw.p = p = mbedtls_calloc( 1, crt->raw.len );
+    if( p == NULL )
+        return( MBEDTLS_ERR_X509_ALLOC_FAILED );
+
+    memcpy( p, buf, crt->raw.len );
+
+    // Direct pointers to the new buffer 
+    p += crt->raw.len - len;
+    end = crt_end = p + len;
 
     /*
      * TBSCertificate  ::=  SEQUENCE  {
@@ -1097,7 +1106,7 @@ int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path )
     WCHAR szDir[MAX_PATH];
     char filename[MAX_PATH];
     char *p;
-    int len = (int) strlen( path );
+    size_t len = strlen( path );
 
     WIN32_FIND_DATAW file_data;
     HANDLE hFind;
@@ -1112,7 +1121,7 @@ int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path )
     p = filename + len;
     filename[len++] = '*';
 
-    w_ret = MultiByteToWideChar( CP_ACP, 0, filename, len, szDir,
+    w_ret = MultiByteToWideChar( CP_ACP, 0, filename, (int)len, szDir,
                                  MAX_PATH - 3 );
     if( w_ret == 0 )
         return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
@@ -1131,7 +1140,7 @@ int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path )
 
         w_ret = WideCharToMultiByte( CP_ACP, 0, file_data.cFileName,
                                      lstrlenW( file_data.cFileName ),
-                                     p, len - 1,
+                                     p, (int) len - 1,
                                      NULL, NULL );
         if( w_ret == 0 )
         {
@@ -1879,7 +1888,7 @@ static int x509_crt_verify_top(
                 mbedtls_x509_crt *child, mbedtls_x509_crt *trust_ca,
                 mbedtls_x509_crl *ca_crl,
                 const mbedtls_x509_crt_profile *profile,
-                int path_cnt, uint32_t *flags,
+                int path_cnt, int self_cnt, uint32_t *flags,
                 int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                 void *p_vrfy )
 {
@@ -1935,8 +1944,19 @@ static int x509_crt_verify_top(
             check_path_cnt--;
         }
 
+        /* Self signed certificates do not count towards the limit */
         if( trust_ca->max_pathlen > 0 &&
-            trust_ca->max_pathlen < check_path_cnt )
+            trust_ca->max_pathlen < check_path_cnt - self_cnt )
+        {
+            continue;
+        }
+
+        if( mbedtls_x509_time_is_past( &trust_ca->valid_to ) )
+        {
+            continue;
+        }
+
+        if( mbedtls_x509_time_is_future( &trust_ca->valid_from ) )
         {
             continue;
         }
@@ -1976,12 +1996,6 @@ static int x509_crt_verify_top(
         ((void) ca_crl);
 #endif
 
-        if( mbedtls_x509_time_is_past( &trust_ca->valid_to ) )
-            ca_flags |= MBEDTLS_X509_BADCERT_EXPIRED;
-
-        if( mbedtls_x509_time_is_future( &trust_ca->valid_from ) )
-            ca_flags |= MBEDTLS_X509_BADCERT_FUTURE;
-
         if( NULL != f_vrfy )
         {
             if( ( ret = f_vrfy( p_vrfy, trust_ca, path_cnt + 1,
@@ -2008,7 +2022,7 @@ static int x509_crt_verify_child(
                 mbedtls_x509_crt *child, mbedtls_x509_crt *parent,
                 mbedtls_x509_crt *trust_ca, mbedtls_x509_crl *ca_crl,
                 const mbedtls_x509_crt_profile *profile,
-                int path_cnt, uint32_t *flags,
+                int path_cnt, int self_cnt, uint32_t *flags,
                 int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                 void *p_vrfy )
 {
@@ -2017,6 +2031,10 @@ static int x509_crt_verify_child(
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
     mbedtls_x509_crt *grandparent;
     const mbedtls_md_info_t *md_info;
+
+    /* Counting intermediate self signed certificates */
+    if( ( path_cnt != 0 ) && x509_name_cmp( &child->issuer, &child->subject ) == 0 )
+        self_cnt++;
 
     /* path_cnt is 0 for the first intermediate CA */
     if( 1 + path_cnt > MBEDTLS_X509_MAX_INTERMEDIATE_CA )
@@ -2078,7 +2096,7 @@ static int x509_crt_verify_child(
     if( grandparent != NULL )
     {
         ret = x509_crt_verify_top( parent, grandparent, ca_crl, profile,
-                                path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
+                                path_cnt + 1, self_cnt, &parent_flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }
@@ -2089,6 +2107,15 @@ static int x509_crt_verify_child(
              grandparent != NULL;
              grandparent = grandparent->next )
         {
+            /* +2 because the current step is not yet accounted for
+             * and because max_pathlen is one higher than it should be.
+             * Also self signed certificates do not count to the limit. */
+            if( grandparent->max_pathlen > 0 &&
+                grandparent->max_pathlen < 2 + path_cnt - self_cnt )
+            {
+                continue;
+            }
+
             if( x509_crt_check_parent( parent, grandparent,
                                        0, path_cnt == 0 ) == 0 )
                 break;
@@ -2098,7 +2125,7 @@ static int x509_crt_verify_child(
         if( grandparent != NULL )
         {
             ret = x509_crt_verify_child( parent, grandparent, trust_ca, ca_crl,
-                                         profile, path_cnt + 1, &parent_flags,
+                                         profile, path_cnt + 1, self_cnt, &parent_flags,
                                          f_vrfy, p_vrfy );
             if( ret != 0 )
                 return( ret );
@@ -2106,7 +2133,7 @@ static int x509_crt_verify_child(
         else
         {
             ret = x509_crt_verify_top( parent, trust_ca, ca_crl, profile,
-                                       path_cnt + 1, &parent_flags,
+                                       path_cnt + 1, self_cnt, &parent_flags,
                                        f_vrfy, p_vrfy );
             if( ret != 0 )
                 return( ret );
@@ -2151,10 +2178,11 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
 {
     size_t cn_len;
     int ret;
-    int pathlen = 0;
+    int pathlen = 0, selfsigned = 0;
     mbedtls_x509_crt *parent;
     mbedtls_x509_name *name;
     mbedtls_x509_sequence *cur = NULL;
+    mbedtls_pk_type_t pk_type;
 
     if( profile == NULL )
         return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
@@ -2213,6 +2241,15 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
         }
     }
 
+    /* Check the type and size of the key */
+    pk_type = mbedtls_pk_get_type( &crt->pk );
+
+    if( x509_profile_check_pk_alg( profile, pk_type ) != 0 )
+        *flags |= MBEDTLS_X509_BADCERT_BAD_PK;
+
+    if( x509_profile_check_key( profile, pk_type, &crt->pk ) != 0 )
+        *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
+
     /* Look for a parent in trusted CAs */
     for( parent = trust_ca; parent != NULL; parent = parent->next )
     {
@@ -2223,7 +2260,7 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
     if( parent != NULL )
     {
         ret = x509_crt_verify_top( crt, parent, ca_crl, profile,
-                                   pathlen, flags, f_vrfy, p_vrfy );
+                                   pathlen, selfsigned, flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }
@@ -2231,23 +2268,21 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
     {
         /* Look for a parent upwards the chain */
         for( parent = crt->next; parent != NULL; parent = parent->next )
-        {
             if( x509_crt_check_parent( crt, parent, 0, pathlen == 0 ) == 0 )
                 break;
-        }
 
         /* Are we part of the chain or at the top? */
         if( parent != NULL )
         {
             ret = x509_crt_verify_child( crt, parent, trust_ca, ca_crl, profile,
-                                         pathlen, flags, f_vrfy, p_vrfy );
+                                         pathlen, selfsigned, flags, f_vrfy, p_vrfy );
             if( ret != 0 )
                 return( ret );
         }
         else
         {
             ret = x509_crt_verify_top( crt, trust_ca, ca_crl, profile,
-                                       pathlen, flags, f_vrfy, p_vrfy );
+                                       pathlen, selfsigned, flags, f_vrfy, p_vrfy );
             if( ret != 0 )
                 return( ret );
         }

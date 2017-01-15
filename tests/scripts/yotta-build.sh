@@ -6,14 +6,17 @@ set -eu
 
 yotta/create-module.sh
 cd yotta/module
-# yt update # needs network
+yt update || true # needs network
 
 yotta_build()
 {
     TARGET=$1
-    echo; echo "*** $TARGET ***"
-    yt target $TARGET
-    yt build
+
+    echo; echo "*** $TARGET (release) ***"
+    yt -t $TARGET build
+
+    echo; echo "*** $TARGET (debug) ***"
+    yt -t $TARGET build -d
 }
 
 if uname -a | grep 'Linux.*x86' >/dev/null; then

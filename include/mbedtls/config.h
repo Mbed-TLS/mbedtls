@@ -3,6 +3,10 @@
  *
  * \brief Configuration options (set of defines)
  *
+ *  This set of compile-time options may be used to enable
+ *  or disable features selectively, and reduce the global
+ *  memory footprint.
+ *
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -21,11 +25,6 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
-/*
- * This set of compile-time options may be used to enable
- * or disable features selectively, and reduce the global
- * memory footprint.
- */
 #ifndef MBEDTLS_CONFIG_H
 #define MBEDTLS_CONFIG_H
 
@@ -132,10 +131,10 @@
 //#define MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
 
 /**
- * \def MBEDTLS_PLATFORM_XXX_ALT
+ * \def MBEDTLS_PLATFORM_EXIT_ALT
  *
- * Uncomment a macro to let mbed TLS support the function in the platform
- * abstraction layer.
+ * MBEDTLS_PLATFORM_XXX_ALT: Uncomment a macro to let mbed TLS support the
+ * function in the platform abstraction layer.
  *
  * Example: In case you uncomment MBEDTLS_PLATFORM_PRINTF_ALT, mbed TLS will
  * provide a function "mbedtls_platform_set_printf()" that allows you to set an
@@ -208,12 +207,12 @@
 //#define MBEDTLS_TIMING_ALT
 
 /**
- * \def MBEDTLS__MODULE_NAME__ALT
+ * \def MBEDTLS_AES_ALT
  *
- * Uncomment a macro to let mbed TLS use your alternate core implementation of
- * a symmetric crypto or hash module (e.g. platform specific assembly
- * optimized implementations). Keep in mind that the function prototypes
- * should remain the same.
+ * MBEDTLS__MODULE_NAME__ALT: Uncomment a macro to let mbed TLS use your
+ * alternate core implementation of a symmetric crypto or hash module (e.g.
+ * platform specific assembly optimized implementations). Keep in mind that
+ * the function prototypes should remain the same.
  *
  * This replaces the whole module. If you only want to replace one of the
  * functions, use one of the MBEDTLS__FUNCTION_NAME__ALT flags.
@@ -241,11 +240,11 @@
 //#define MBEDTLS_SHA512_ALT
 
 /**
- * \def MBEDTLS__FUNCTION_NAME__ALT
+ * \def MBEDTLS_MD2_PROCESS_ALT
  *
- * Uncomment a macro to let mbed TLS use you alternate core implementation of
- * symmetric crypto or hash function. Keep in mind that function prototypes
- * should remain the same.
+ * MBEDTLS__FUNCTION_NAME__ALT: Uncomment a macro to let mbed TLS use you
+ * alternate core implementation of symmetric crypto or hash function. Keep in
+ * mind that function prototypes should remain the same.
  *
  * This replaces only one function. The header file from mbed TLS is still
  * used, in contrast to the MBEDTLS__MODULE_NAME__ALT flags.
@@ -364,10 +363,11 @@
 //#define MBEDTLS_CIPHER_NULL_CIPHER
 
 /**
- * \def MBEDTLS_CIPHER_PADDING_XXX
+ * \def MBEDTLS_CIPHER_PADDING_PKCS7
  *
- * Uncomment or comment macros to add support for specific padding modes
- * in the cipher layer with cipher modes that support padding (e.g. CBC)
+ * MBEDTLS_CIPHER_PADDING_XXX: Uncomment or comment macros to add support for
+ * specific padding modes in the cipher layer with cipher modes that support
+ * padding (e.g. CBC)
  *
  * If you disable all padding modes, only full blocks can be used with CBC.
  *
@@ -407,10 +407,10 @@
 #define MBEDTLS_REMOVE_ARC4_CIPHERSUITES
 
 /**
- * \def MBEDTLS_ECP_XXXX_ENABLED
+ * \def MBEDTLS_ECP_DP_SECP192R1_ENABLED
  *
- * Enables specific curves within the Elliptic Curve module.
- * By default all supported curves are enabled.
+ * MBEDTLS_ECP_XXXX_ENABLED: Enables specific curves within the Elliptic Curve
+ * module.  By default all supported curves are enabled.
  *
  * Comment macros to disable the curve and functions for it
  */
@@ -869,18 +869,6 @@
 //#define MBEDTLS_SHA256_SMALLER
 
 /**
- * \def MBEDTLS_SSL_AEAD_RANDOM_IV
- *
- * Generate a random IV rather than using the record sequence number as a
- * nonce for ciphersuites using and AEAD algorithm (GCM or CCM).
- *
- * Using the sequence number is generally recommended.
- *
- * Uncomment this macro to always use random IVs with AEAD ciphersuites.
- */
-//#define MBEDTLS_SSL_AEAD_RANDOM_IV
-
-/**
  * \def MBEDTLS_SSL_ALL_ALERT_MESSAGES
  *
  * Enable sending of alert messages in case of encountered errors as per RFC.
@@ -1039,7 +1027,7 @@
  *
  * Comment this macro to disable support for SSL 3.0
  */
-#define MBEDTLS_SSL_PROTO_SSL3
+//#define MBEDTLS_SSL_PROTO_SSL3
 
 /**
  * \def MBEDTLS_SSL_PROTO_TLS1
@@ -1133,6 +1121,22 @@
  * Comment this to disable support for HelloVerifyRequest.
  */
 #define MBEDTLS_SSL_DTLS_HELLO_VERIFY
+
+/**
+ * \def MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE
+ *
+ * Enable server-side support for clients that reconnect from the same port.
+ *
+ * Some clients unexpectedly close the connection and try to reconnect using the
+ * same source port. This needs special support from the server to handle the
+ * new connection securely, as described in section 4.2.8 of RFC 6347. This
+ * flag enables that support.
+ *
+ * Requires: MBEDTLS_SSL_DTLS_HELLO_VERIFY
+ *
+ * Comment this to disable support for clients reusing the source port.
+ */
+#define MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE
 
 /**
  * \def MBEDTLS_SSL_DTLS_BADMAC_LIMIT
@@ -1229,6 +1233,8 @@
  *
  * If set, the X509 parser will not break-off when parsing an X509 certificate
  * and encountering an unknown critical extension.
+ *
+ * \warning Depending on your PKI use, enabling this can be a security risk!
  *
  * Uncomment to prevent an error.
  */
@@ -1437,7 +1443,7 @@
  *          library/pkwrite.c
  *          library/x509_create.c
  *          library/x509write_crt.c
- *          library/mbedtls_x509write_csr.c
+ *          library/x509write_csr.c
  */
 #define MBEDTLS_ASN1_WRITE_C
 
@@ -1765,7 +1771,7 @@
  *
  * Enable the generic message digest layer.
  *
- * Module:  library/mbedtls_md.c
+ * Module:  library/md.c
  * Caller:
  *
  * Uncomment to enable generic message digest wrappers.
@@ -1777,7 +1783,7 @@
  *
  * Enable the MD2 hash algorithm.
  *
- * Module:  library/mbedtls_md2.c
+ * Module:  library/md2.c
  * Caller:
  *
  * Uncomment to enable support for (rare) MD2-signed X.509 certs.
@@ -1789,7 +1795,7 @@
  *
  * Enable the MD4 hash algorithm.
  *
- * Module:  library/mbedtls_md4.c
+ * Module:  library/md4.c
  * Caller:
  *
  * Uncomment to enable support for (rare) MD4-signed X.509 certs.
@@ -1801,8 +1807,8 @@
  *
  * Enable the MD5 hash algorithm.
  *
- * Module:  library/mbedtls_md5.c
- * Caller:  library/mbedtls_md.c
+ * Module:  library/md5.c
+ * Caller:  library/md.c
  *          library/pem.c
  *          library/ssl_tls.c
  *
@@ -1851,11 +1857,11 @@
  *          library/rsa.c
  *          library/x509.c
  *          library/x509_create.c
- *          library/mbedtls_x509_crl.c
- *          library/mbedtls_x509_crt.c
- *          library/mbedtls_x509_csr.c
+ *          library/x509_crl.c
+ *          library/x509_crt.c
+ *          library/x509_csr.c
  *          library/x509write_crt.c
- *          library/mbedtls_x509write_csr.c
+ *          library/x509write_csr.c
  *
  * This modules translates between OIDs and internal values.
  */
@@ -1883,9 +1889,9 @@
  * Module:  library/pem.c
  * Caller:  library/dhm.c
  *          library/pkparse.c
- *          library/mbedtls_x509_crl.c
- *          library/mbedtls_x509_crt.c
- *          library/mbedtls_x509_csr.c
+ *          library/x509_crl.c
+ *          library/x509_crt.c
+ *          library/x509_csr.c
  *
  * Requires: MBEDTLS_BASE64_C
  *
@@ -1901,7 +1907,7 @@
  * Module:  library/pem.c
  * Caller:  library/pkwrite.c
  *          library/x509write_crt.c
- *          library/mbedtls_x509write_csr.c
+ *          library/x509write_csr.c
  *
  * Requires: MBEDTLS_BASE64_C
  *
@@ -1931,8 +1937,8 @@
  * Enable the generic public (asymetric) key parser.
  *
  * Module:  library/pkparse.c
- * Caller:  library/mbedtls_x509_crt.c
- *          library/mbedtls_x509_csr.c
+ * Caller:  library/x509_crt.c
+ *          library/x509_csr.c
  *
  * Requires: MBEDTLS_PK_C
  *
@@ -2023,8 +2029,8 @@
  *
  * Enable the RIPEMD-160 hash algorithm.
  *
- * Module:  library/mbedtls_ripemd160.c
- * Caller:  library/mbedtls_md.c
+ * Module:  library/ripemd160.c
+ * Caller:  library/md.c
  *
  */
 #define MBEDTLS_RIPEMD160_C
@@ -2052,8 +2058,8 @@
  *
  * Enable the SHA1 cryptographic hash algorithm.
  *
- * Module:  library/mbedtls_sha1.c
- * Caller:  library/mbedtls_md.c
+ * Module:  library/sha1.c
+ * Caller:  library/md.c
  *          library/ssl_cli.c
  *          library/ssl_srv.c
  *          library/ssl_tls.c
@@ -2068,9 +2074,9 @@
  *
  * Enable the SHA-224 and SHA-256 cryptographic hash algorithms.
  *
- * Module:  library/mbedtls_sha256.c
+ * Module:  library/sha256.c
  * Caller:  library/entropy.c
- *          library/mbedtls_md.c
+ *          library/md.c
  *          library/ssl_cli.c
  *          library/ssl_srv.c
  *          library/ssl_tls.c
@@ -2085,9 +2091,9 @@
  *
  * Enable the SHA-384 and SHA-512 cryptographic hash algorithms.
  *
- * Module:  library/mbedtls_sha512.c
+ * Module:  library/sha512.c
  * Caller:  library/entropy.c
- *          library/mbedtls_md.c
+ *          library/md.c
  *          library/ssl_cli.c
  *          library/ssl_srv.c
  *
@@ -2223,9 +2229,9 @@
  * Enable X.509 core for using certificates.
  *
  * Module:  library/x509.c
- * Caller:  library/mbedtls_x509_crl.c
- *          library/mbedtls_x509_crt.c
- *          library/mbedtls_x509_csr.c
+ * Caller:  library/x509_crl.c
+ *          library/x509_crt.c
+ *          library/x509_csr.c
  *
  * Requires: MBEDTLS_ASN1_PARSE_C, MBEDTLS_BIGNUM_C, MBEDTLS_OID_C,
  *           MBEDTLS_PK_PARSE_C
@@ -2239,7 +2245,7 @@
  *
  * Enable X.509 certificate parsing.
  *
- * Module:  library/mbedtls_x509_crt.c
+ * Module:  library/x509_crt.c
  * Caller:  library/ssl_cli.c
  *          library/ssl_srv.c
  *          library/ssl_tls.c
@@ -2255,8 +2261,8 @@
  *
  * Enable X.509 CRL parsing.
  *
- * Module:  library/mbedtls_x509_crl.c
- * Caller:  library/mbedtls_x509_crt.c
+ * Module:  library/x509_crl.c
+ * Caller:  library/x509_crt.c
  *
  * Requires: MBEDTLS_X509_USE_C
  *
@@ -2269,7 +2275,7 @@
  *
  * Enable X.509 Certificate Signing Request (CSR) parsing.
  *
- * Module:  library/mbedtls_x509_csr.c
+ * Module:  library/x509_csr.c
  * Caller:  library/x509_crt_write.c
  *
  * Requires: MBEDTLS_X509_USE_C

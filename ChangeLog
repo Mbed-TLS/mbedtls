@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.x.x branch released xxxx-xx-xx
 
 Bugfix
    * Fix the redefinition of macro ssl_set_bio to an undefined symbol
@@ -14,6 +14,12 @@ Bugfix
      in RFC 6347 Section 4.3.1. This could cause the execution of the
      renegotiation routines at unexpected times when the protocol is DTLS. Found
      by wariua. #687
+   * Fixed potential arithmetic overflow in mbedtls_ctr_drbg_reseed() that could
+     cause buffer bound checks to be bypassed. Found by Eyal Itkin.
+   * Fixed potential arithmetic overflows in mbedtls_cipher_update() that could
+     cause buffer bound checks to be bypassed. Found by Eyal Itkin.
+   * Fixed potential arithmetic overflow in mbedtls_md2_update() that could
+     cause buffer bound checks to be bypassed. Found by Eyal Itkin.
 
 = mbed TLS 2.4.1 branch released 2016-12-13
 

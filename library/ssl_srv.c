@@ -2639,8 +2639,11 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
     size_t dn_size, total_dn_size; /* excluding length bytes */
     size_t ct_len, sa_len; /* including length bytes */
     unsigned char *buf, *p;
+#if !defined(MBEDTLS_OMIT_CA_LIST)
     const unsigned char * const end = ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN;
     const mbedtls_x509_crt *crt;
+    size_t dn_size; 
+#endif
     int authmode;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate request" ) );
@@ -2784,6 +2787,8 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
             crt = crt->next;
         }
     }
+#else 
+        MBEDTLS_SSL_DEBUG_MSG( 3, ("skipping DN list"));
 #endif 
     ssl->out_msglen  = p - buf;
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;

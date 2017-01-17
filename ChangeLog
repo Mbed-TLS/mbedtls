@@ -1,5 +1,15 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.x.x branch released xxxx-xx-xx
+
+Bugfix
+   * Fixed potential arithmetic overflow in mbedtls_ctr_drbg_reseed() that could
+     cause buffer bound checks to be bypassed. Found by Eyal Itkin.
+   * Fixed potential arithmetic overflows in mbedtls_cipher_update() that could
+     cause buffer bound checks to be bypassed. Found by Eyal Itkin.
+   * Fixed potential arithmetic overflow in mbedtls_md2_update() that could
+     cause buffer bound checks to be bypassed. Found by Eyal Itkin.
+
 = mbed TLS 2.1.6 branch released 2016-10-17
 
 Security

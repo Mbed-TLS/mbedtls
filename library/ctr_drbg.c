@@ -277,7 +277,8 @@ int ctr_drbg_reseed( ctr_drbg_context *ctx,
     unsigned char seed[CTR_DRBG_MAX_SEED_INPUT];
     size_t seedlen = 0;
 
-    if( ctx->entropy_len + len > CTR_DRBG_MAX_SEED_INPUT )
+    if( ctx->entropy_len > CTR_DRBG_MAX_SEED_INPUT ||
+        len > CTR_DRBG_MAX_SEED_INPUT - ctx->entropy_len )
         return( POLARSSL_ERR_CTR_DRBG_INPUT_TOO_BIG );
 
     memset( seed, 0, CTR_DRBG_MAX_SEED_INPUT );

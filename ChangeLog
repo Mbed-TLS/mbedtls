@@ -22,6 +22,8 @@ Bugfix
      cause buffer bound checks to be bypassed. Found by Eyal Itkin.
    * Fixed potential arithmetic overflow in mbedtls_md2_update() that could
      cause buffer bound checks to be bypassed. Found by Eyal Itkin.
+   * Fixed potential arithmetic overflow in mbedtls_base64_decode() that could
+     cause buffer bound checks to be bypassed. Found by Eyal Itkin.
 
 = mbed TLS 1.3.18 branch 2016-10-17
 

@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 1.x.x branch released xxxx-xx-xx
+
+Bugfix
+   * Fixed potential arithmetic overflow in mbedtls_base64_decode() that could
+     cause buffer bound checks to be bypassed. Found by Eyal Itkin.
+
 = mbed TLS 1.3.18 branch 2016-10-17
 
 Security

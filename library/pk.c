@@ -30,6 +30,8 @@
 #include "polarssl/pk.h"
 #include "polarssl/pk_wrap.h"
 
+#include "polarssl/bignum.h"
+
 #if defined(POLARSSL_RSA_C)
 #include "polarssl/rsa.h"
 #endif
@@ -39,6 +41,8 @@
 #if defined(POLARSSL_ECDSA_C)
 #include "polarssl/ecdsa.h"
 #endif
+
+#include <limits.h>
 
 /* Implementation that should never be optimized out by the compiler */
 static void polarssl_zeroize( void *v, size_t n ) {
@@ -208,6 +212,11 @@ int pk_verify_ext( pk_type_t type, const void *options,
         int ret;
         const pk_rsassa_pss_options *pss_opts;
 
+#if defined(POLARSSL_HAVE_INT64)
+        if( md_alg == POLARSSL_MD_NONE && UINT_MAX < hash_len )
+            return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
+#endif /* POLARSSL_HAVE_INT64 */
+
         if( options == NULL )
             return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
 
@@ -231,7 +240,7 @@ int pk_verify_ext( pk_type_t type, const void *options,
         return( 0 );
 #else
         return( POLARSSL_ERR_PK_FEATURE_UNAVAILABLE );
-#endif
+#endif /* POLARSSL_RSA_C && POLARSSL_PKCS1_V21 */
     }
 
     /* General case: no options */

@@ -711,6 +711,14 @@ X509 Certificate verification #85 (Not yet valid CA and valid CA)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP384R1_ENABLED
 x509_verify:"data_files/server5.crt":"data_files/test-ca2_cat-past-present.crt":"data_files/crl-ec-sha1.pem":"NULL":0:0:"NULL"
 
+X509 Certificate verification #86 (Not yet valid CA and invalid CA)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP384R1_ENABLED:POLARSSL_SHA1_C:POLARSSL_SHA256_C
+x509_verify:"data_files/server5.crt":"data_files/test-ca2_cat-future-invalid.crt":"data_files/crl-ec-sha1.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_FUTURE:"NULL"
+
+X509 Certificate verification #87 (Expired CA and invalid CA)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP384R1_ENABLED:POLARSSL_SHA1_C:POLARSSL_SHA256_C
+x509_verify:"data_files/server5.crt":"data_files/test-ca2_cat-past-invalid.crt":"data_files/crl-ec-sha1.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_EXPIRED:"NULL"
+
 X509 Certificate verification callback: trusted EE cert
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_SHA256_C:POLARSSL_ECP_DP_SECP256R1_ENABLED
 x509_verify_callback:"data_files/server5-selfsigned.crt":"data_files/server5-selfsigned.crt":0:"depth 0 - serial 53\:A2\:CB\:4B\:12\:4E\:AD\:83\:7D\:A8\:94\:B2 - subject CN=selfsigned, OU=testing, O=PolarSSL, C=NL\n"

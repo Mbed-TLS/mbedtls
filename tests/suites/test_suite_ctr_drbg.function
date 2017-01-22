@@ -39,6 +39,11 @@ void ctr_drbg_special_behaviours( )
     TEST_ASSERT( mbedtls_ctr_drbg_reseed( &ctx, additional,
                         MBEDTLS_CTR_DRBG_MAX_SEED_INPUT + 1 ) ==
                         MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG );
+
+    mbedtls_ctr_drbg_set_entropy_len( &ctx, ~0 );
+    TEST_ASSERT( mbedtls_ctr_drbg_reseed( &ctx, additional,
+                        MBEDTLS_CTR_DRBG_MAX_SEED_INPUT ) ==
+                        MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG );
 exit:
     mbedtls_ctr_drbg_free( &ctx );
 }

@@ -3608,6 +3608,24 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
                                         "expected %d, received %d",
                                         ssl->in_epoch, rec_epoch ) );
 
+#if defined(MBEDTLS_SSL_SRV_C)
+            /*
+             * Check for an epoch 0 Change Cipher Spec retransmission.
+             */
+            if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
+                ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER &&
+                rec_epoch == 0 &&
+                ssl->in_epoch == 1 &&
+                ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE &&
+                ssl->in_left > 13 &&
+                ssl->in_buf[13] == MBEDTLS_SSL_HS_CLIENT_KEY_EXCHANGE )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "possible Client Key Exchange "
+                                            "retransmission" ) );
+                return( mbedtls_ssl_resend( ssl ) );
+            }
+#endif
+
 #if defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE) && defined(MBEDTLS_SSL_SRV_C)
             /*
              * Check for an epoch 0 ClientHello. We can't use in_msg here to
@@ -3737,7 +3755,8 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl )
 
         ret = mbedtls_ssl_handle_message_type( ssl );
 
-    } while( MBEDTLS_ERR_SSL_NON_FATAL == ret );
+    } while( MBEDTLS_ERR_SSL_NON_FATAL == ret ||
+             ( MBEDTLS_ERR_SSL_WANT_READ == ret && ssl->in_msglen ) );
 
     if( 0 != ret )
     {

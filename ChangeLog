@@ -13,6 +13,12 @@ Security
      characters after the footer could result in the execution of an infinite
      loop. The issue can be triggered remotely. Found by Greg Zaverucha,
      Microsoft.
+   * Fixed a bug that caused freeing a buffer that was allocated on the stack,
+     when verifying the validity of a key on secp224k1. This could be
+     triggered remotely for example with a maliciously constructed certificate
+     and might have led to remote code execution on some exotic embedded
+     platforms. Reported independently by rongsaws and Regina Wilson.
+     CVE-2017-2784
 
 Bugfix
    * Fix output certificate verification flags set by x509_crt_verify_top() when

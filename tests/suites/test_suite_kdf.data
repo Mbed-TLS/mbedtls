@@ -1,0 +1,61 @@
+KDF list
+kdf_list:
+
+KDF NULL/uninitialised arguments
+kdf_null_args:
+
+Information on KDF1
+depends_on:POLARSSL_KDF1_C
+kdf_info:POLARSSL_KDF_KDF1:"KDF1"
+
+Information on KDF2
+depends_on:POLARSSL_KDF2_C
+kdf_info:POLARSSL_KDF_KDF2:"KDF2"
+
+generic KDF1 Test vector #1
+depends_on:POLARSSL_KDF1_C:POLARSSL_MD5_C
+kdf_text:"kdf1":"md5":"":32:"f1d3ff8443297732862df21dc4e57262f1450306517624a57eafbbf8ed995985"
+
+generic KDF1 Test vector #2
+depends_on:POLARSSL_KDF1_C:POLARSSL_MD5_C
+kdf_text:"kdf1":"md5":"":40:"f1d3ff8443297732862df21dc4e57262f1450306517624a57eafbbf8ed995985f11177d2ec63d995"
+
+generic KDF1 Test vector #3
+depends_on:POLARSSL_KDF1_C:POLARSSL_MD5_C
+kdf_text:"kdf1":"md5":"test":32:"706092f5372167d10ab2119156edb1f451867397efc20b6b912490a8449722c1"
+
+generic KDF1 Test vector #4
+depends_on:POLARSSL_KDF1_C:POLARSSL_MD5_C
+kdf_text:"kdf1":"md5":"test":40:"706092f5372167d10ab2119156edb1f451867397efc20b6b912490a8449722c1c604b1a6cb1882d1"
+
+generic KDF1 Test vector #5
+depends_on:POLARSSL_KDF1_C:POLARSSL_MD5_C
+kdf_hex:"kdf1":"md5":"74657374":40:"706092f5372167d10ab2119156edb1f451867397efc20b6b912490a8449722c1c604b1a6cb1882d1"
+
+generic KDF2 Test vector #1
+depends_on:POLARSSL_KDF2_C:POLARSSL_MD5_C
+kdf_text:"kdf2":"md5":"":32:"f1450306517624a57eafbbf8ed995985f11177d2ec63d995fb4ac628e0d782df"
+
+generic KDF2 Test vector #2
+depends_on:POLARSSL_KDF2_C:POLARSSL_MD5_C
+kdf_text:"kdf2":"md5":"":40:"f1450306517624a57eafbbf8ed995985f11177d2ec63d995fb4ac628e0d782df584a15a90f2f959d"
+
+generic KDF2 Test vector #3
+depends_on:POLARSSL_KDF2_C:POLARSSL_MD5_C
+kdf_text:"kdf2":"md5":"test":32:"51867397efc20b6b912490a8449722c1c604b1a6cb1882d13da8f68c83a7cfc9"
+
+generic KDF2 Test vector #4
+depends_on:POLARSSL_KDF2_C:POLARSSL_MD5_C
+kdf_text:"kdf2":"md5":"test":40:"51867397efc20b6b912490a8449722c1c604b1a6cb1882d13da8f68c83a7cfc91818a8fd9f09bc11"
+
+generic KDF2 Test vector #5
+depends_on:POLARSSL_KDF2_C:POLARSSL_MD5_C
+kdf_hex:"kdf2":"md5":"74657374":40:"51867397efc20b6b912490a8449722c1c604b1a6cb1882d13da8f68c83a7cfc91818a8fd9f09bc11"
+
+oid KDF1 Test vector #1
+depends_on:POLARSSL_KDF1_C:POLARSSL_OID_C
+kdf_oid:"kdf1":"28818c71020501":"1.0.18033.2.5.1"
+
+oid KDF2 Test vector #1
+depends_on:POLARSSL_KDF2_C:POLARSSL_OID_C
+kdf_oid:"kdf2":"28818c71020502":"1.0.18033.2.5.2"

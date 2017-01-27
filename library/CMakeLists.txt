@@ -71,6 +71,12 @@ set(src
      x509write_crt.c
      x509write_csr.c
      xtea.c
+     kdf_wrap.c
+     kdf.c
+     kdf1.c
+     kdf2.c
+     ecies.c
+     ecies_envelope.c
 )
 
 if(WIN32)

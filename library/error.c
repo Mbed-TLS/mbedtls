@@ -181,6 +181,22 @@
 #include "polarssl/xtea.h"
 #endif
 
+#if defined(POLARSSL_KDF_C)
+#include "polarssl/kdf.h"
+#endif
+
+#if defined(POLARSSL_KDF1_C)
+#include "polarssl/kdf1.h"
+#endif
+
+#if defined(POLARSSL_KDF2_C)
+#include "polarssl/kdf2.h"
+#endif
+
+#if defined(POLARSSL_ECIES_C)
+#include "polarssl/ecies.h"
+#endif
+
 #if defined(_MSC_VER) && !defined  snprintf && !defined(EFIX64) && \
     !defined(EFI32)
 #define  snprintf  _snprintf
@@ -499,6 +515,23 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
 #endif /* POLARSSL_X509_USE,X509_CREATE_C */
         // END generated code
 
+        // START custom added code
+#if defined(POLARSSL_KDF_C)
+        if( use_ret == -(POLARSSL_ERR_KDF_BAD_INPUT_DATA) )
+            polarssl_snprintf( buf, buflen, "KDF - Bad input parameters to function" );
+#endif /* POLARSSL_KDF_C */
+#if defined(POLARSSL_ECIES_C)
+        if( use_ret == -(POLARSSL_ERR_ECIES_BAD_INPUT_DATA) )
+            polarssl_snprintf( buf, buflen, "ECIES - Bad input parameters to function" );
+        if( use_ret == -(POLARSSL_ERR_ECIES_OUTPUT_TOO_SMALL) )
+            polarssl_snprintf( buf, buflen, "ECIES - Buffer is too small to write to" );
+        if( use_ret == -(POLARSSL_ERR_ECIES_MALFORMED_DATA) )
+            polarssl_snprintf( buf, buflen, "ECIES - Encrypted data is malformed" );
+        if( use_ret == -(POLARSSL_ERR_ECIES_MALLOC_FAILED) )
+            polarssl_snprintf( buf, buflen, "ECIES - Allocation of memory failed" );
+#endif /* POLARSSL_ECIES_C */
+        // END custom added code
+
         if( strlen( buf ) == 0 )
             polarssl_snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
     }
@@ -734,6 +767,18 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
         polarssl_snprintf( buf, buflen, "XTEA - The data input has an invalid length" );
 #endif /* POLARSSL_XTEA_C */
     // END generated code
+
+    // START custom added code
+#if defined(POLARSSL_KDF1_C)
+    if( use_ret == -(POLARSSL_ERR_KDF1_BAD_INPUT_DATA) )
+        polarssl_snprintf( buf, buflen, "KDF1 - Bad input parameters to function" );
+#endif /* POLARSSL_KDF1_C */
+
+#if defined(POLARSSL_KDF2_C)
+    if( use_ret == -(POLARSSL_ERR_KDF2_BAD_INPUT_DATA) )
+        polarssl_snprintf( buf, buflen, "KDF2 - Bad input parameters to function" );
+#endif /* POLARSSL_KDF2_C */
+    // END custom added code
 
     if( strlen( buf ) != 0 )
         return;

@@ -55,6 +55,12 @@
 #define polarssl_free       free
 #endif
 
+#if defined(POLARSSL_PK_WRITE_ENCRYPTED_KEY)
+#include "polarssl/entropy.h"
+#include "polarssl/ctr_drbg.h"
+#include "polarssl/pkcs12.h"
+#endif /* POLARSSL_PK_WRITE_ENCRYPTED_KEY */
+
 #if defined(POLARSSL_RSA_C)
 /*
  *  RSAPublicKey ::= SEQUENCE {
@@ -128,6 +134,58 @@ static int pk_write_ec_param( unsigned char **p, unsigned char *start,
 }
 #endif /* POLARSSL_ECP_C */
 
+#if defined(POLARSSL_PK_WRITE_ENCRYPTED_KEY)
+static int asn1_get_params( unsigned char **p, const unsigned char *end,
+                            asn1_buf *params )
+{
+    int ret = 0;
+
+    if( *p == end )
+    {
+        memset( params, 0, sizeof(asn1_buf) );
+        return( 0 );
+    }
+
+    params->tag = **p;
+    (*p)++;
+
+    if( ( ret = asn1_get_len( p, end, &params->len ) ) != 0 )
+        return( ret );
+
+    params->p = *p;
+    *p += params->len;
+
+    if( *p != end )
+        return( POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
+    return( ret );
+}
+
+/*
+ *  pkcs-12PbeParams ::= SEQUENCE {
+ *    salt          OCTET STRING,
+ *    iterations    INTEGER
+ *  }
+ *
+ */
+static int pk_write_pkcs12_param( unsigned char **p, unsigned char * start,
+                                  size_t iterations,
+                                  const unsigned char *salt, size_t salt_len )
+{
+    int ret = 0;
+    size_t len = 0;
+
+    ASN1_CHK_ADD( len, asn1_write_int( p, start, (int)iterations ) );
+    ASN1_CHK_ADD( len, asn1_write_octet_string( p, start, salt, salt_len ) );
+    ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED |
+                                                 ASN1_SEQUENCE ) );
+
+    return( (int) len );
+}
+
+#endif /* POLARSSL_PK_WRITE_ENCRYPTED_KEY */
+
 int pk_write_pubkey( unsigned char **p, unsigned char *start,
                      const pk_context *key )
 {
@@ -198,7 +256,16 @@ int pk_write_pubkey_der( pk_context *key, unsigned char *buf, size_t size )
 }
 
 int pk_write_key_der( pk_context *key, unsigned char *buf, size_t size )
+#if defined(POLARSSL_PK_WRITE_ENCRYPTED_KEY)
 {
+    return pk_write_key_der_ext( key, buf, size, NULL, 0 );
+}
+
+int pk_write_key_der_ext( pk_context *key, unsigned char *buf, size_t size,
+                          const unsigned char *pwd, size_t pwdlen )
+#endif /* POLARSSL_PK_WRITE_ENCRYPTED_KEY */
+{
+
     int ret;
     unsigned char *c = buf + size;
     size_t len = 0;
@@ -258,12 +325,24 @@ int pk_write_key_der( pk_context *key, unsigned char *buf, size_t size )
         len += pub_len;
 
         /* parameters */
+#if defined(POLARSSL_PK_WRITE_ENCRYPTED_KEY)
+        if( pwd == NULL || pwdlen == 0 )
+        {
+        /* added only if password is not specified,
+         *     when password is specified it will be added
+         *     as part of PKCS#8 structure
+         */
+#endif /* POLARSSL_PK_WRITE_ENCRYPTED_KEY */
+
         ASN1_CHK_ADD( par_len, pk_write_ec_param( &c, buf, ec ) );
 
         ASN1_CHK_ADD( par_len, asn1_write_len( &c, buf, par_len ) );
         ASN1_CHK_ADD( par_len, asn1_write_tag( &c, buf,
                             ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 0 ) );
         len += par_len;
+#if defined(POLARSSL_PK_WRITE_ENCRYPTED_KEY)
+        }
+#endif /* POLARSSL_PK_WRITE_ENCRYPTED_KEY */
 
         /* privateKey: write as MPI then fix tag */
         ASN1_CHK_ADD( len, asn1_write_mpi( &c, buf, &ec->d ) );
@@ -280,6 +359,182 @@ int pk_write_key_der( pk_context *key, unsigned char *buf, size_t size )
 #endif /* POLARSSL_ECP_C */
         return( POLARSSL_ERR_PK_FEATURE_UNAVAILABLE );
 
+#if defined(POLARSSL_PK_WRITE_ENCRYPTED_KEY)
+
+    if( pwd != NULL && pwdlen > 0 && len > 0)
+    {
+        size_t oid_len = 0;
+        const char *oid;
+        size_t par_len = 0;
+
+        /* Cipher parameters */
+        const cipher_type_t cipher_alg = POLARSSL_CIPHER_DES_EDE3_CBC;
+        const md_type_t md_alg = POLARSSL_MD_SHA1;
+
+        /* PBKDF2 parameters */
+        ctr_drbg_context ctr_drbg;
+        entropy_context entropy;
+        const char *drbg_personal_info = "random_salt";
+        unsigned char pbe_salt[32] = { 0x0 };
+        const size_t pbe_salt_len = sizeof( pbe_salt );
+        const size_t pbe_iterations = 8192;
+
+        /* PBE parameters */
+        asn1_buf pbe_params = {0x0, 0x0, 0x0};
+        unsigned char pbe_params_buf[128] = {0x0};
+        unsigned char *pbe_params_buf_c = NULL;
+        size_t pbe_params_len = 0;
+        unsigned char *pbe_buf = NULL;
+        size_t pbe_len = 0;
+        unsigned char *pbe_params_buf_parse_c = NULL;
+
+        /*
+         * Write private key to the PrivatKeyInfo object (PKCS#8 v1.2)
+         *
+         *    PrivateKeyInfo ::= SEQUENCE {
+         *      version                   Version,
+         *      privateKeyAlgorithm       PrivateKeyAlgorithmIdentifier,
+         *      privateKey                PrivateKey,
+         *      attributes           [0]  IMPLICIT Attributes OPTIONAL }
+         *
+         *    Version ::= INTEGER
+         *    PrivateKeyAlgorithmIdentifier ::= AlgorithmIdentifier
+         *    PrivateKey ::= OCTET STRING
+         */
+
+        /* privateKey: mark as octet string */
+        ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
+        ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_OCTET_STRING ) );
+
+        /* privateKeyAlgorithm */
+        if( ( ret = oid_get_oid_by_pk_alg( pk_get_type( key ),
+                                           &oid, &oid_len ) ) != 0 )
+        {
+            return( ret );
+        }
+
+#if defined(POLARSSL_ECP_C)
+        if( pk_get_type( key ) == POLARSSL_PK_ECKEY )
+        {
+            ASN1_CHK_ADD( par_len, pk_write_ec_param( &c, buf,
+                                                      pk_ec( *key ) ) );
+        }
+#endif
+
+        ASN1_CHK_ADD( len, asn1_write_algorithm_identifier( &c, buf,
+                                                            oid, oid_len,
+                                                            par_len ) );
+
+        /* version */
+        ASN1_CHK_ADD( len, asn1_write_int( &c, buf, 0 ) );
+
+        ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
+        ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED |
+                                                    ASN1_SEQUENCE ) );
+
+        /*
+         * Encrypt private key and write it to the
+         *     EncryptedPrivatKeyInfo object (PKCS#8)
+         *
+         *  EncryptedPrivateKeyInfo ::= SEQUENCE {
+         *    encryptionAlgorithm  EncryptionAlgorithmIdentifier,
+         *    encryptedData        EncryptedData
+         *  }
+         *
+         *  EncryptionAlgorithmIdentifier ::= AlgorithmIdentifier
+         *
+         *  EncryptedData ::= OCTET STRING
+         *
+         *  The EncryptedData OCTET STRING is a PKCS#8 PrivateKeyInfo
+         */
+
+        /*
+         * Encrypt data with appropriate PBE
+         */
+        /* Generate salt */
+        entropy_init( &entropy );
+        if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
+                                  (const unsigned char *)drbg_personal_info,
+                                  strlen( drbg_personal_info ) ) ) != 0 )
+        {
+            entropy_free( &entropy );
+            return ( ret );
+        }
+
+        if( (ret = ctr_drbg_random( &ctr_drbg, pbe_salt,
+                                    sizeof(pbe_salt) ) ) != 0 )
+        {
+            ctr_drbg_free( &ctr_drbg );
+            entropy_free( &entropy );
+            return ( ret );
+        }
+
+        ctr_drbg_free( &ctr_drbg );
+        entropy_free( &entropy );
+
+        /* get pbe */
+        pbe_params_buf_c = pbe_params_buf + sizeof(pbe_params_buf);
+        ASN1_CHK_ADD( pbe_params_len, pk_write_pkcs12_param( &pbe_params_buf_c,
+                                                             pbe_params_buf,
+                                                             pbe_iterations,
+                                                             pbe_salt,
+                                                             pbe_salt_len) );
+
+        pbe_params_buf_parse_c = pbe_params_buf_c;
+        if( ( ret = asn1_get_params( &pbe_params_buf_parse_c,
+                                     pbe_params_buf_parse_c + pbe_params_len,
+                                     &pbe_params ) ) )
+        {
+            return ( ret );
+        }
+        if( ( ret = oid_get_oid_by_pkcs12_pbe_alg( cipher_alg, md_alg,
+                                                   &oid, &oid_len ) ) != 0 )
+        {
+            return ( ret );
+        }
+        pbe_buf = polarssl_malloc(len + POLARSSL_MAX_BLOCK_LENGTH);
+        if (pbe_buf == NULL)
+        {
+            return POLARSSL_ERR_PK_MALLOC_FAILED;
+        }
+        if( ( ret = pkcs12_pbe_ext( &pbe_params, PKCS12_PBE_ENCRYPT,
+                                    cipher_alg, md_alg, pwd, pwdlen,
+                                    c, len, pbe_buf, &pbe_len ) ) != 0 )
+        {
+            polarssl_free( pbe_buf );
+            return( ret );
+        }
+
+        /* copy encrypted data to the target buffer */
+        memset( buf, 0, size );
+        c = buf + size - pbe_len;
+        memcpy( c, pbe_buf, pbe_len );
+        len = pbe_len;
+        polarssl_free( pbe_buf );
+        pbe_buf = NULL;
+
+        /* encryptedData: mark as octet string */
+        ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
+        ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_OCTET_STRING ) );
+
+        /* pbe params */
+        ASN1_CHK_ADD( len, asn1_write_raw_buffer( &c, buf, pbe_params_buf_c,
+                                                  pbe_params_len ) );
+
+        /* fix len */
+        len -= pbe_params_len;
+
+        /* encryptionAlgorithm */
+        ASN1_CHK_ADD( len, asn1_write_algorithm_identifier( &c, buf,
+                                                            oid, oid_len,
+                                                            pbe_params_len ) );
+
+        ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
+        ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED |
+                                                    ASN1_SEQUENCE ) );
+    }
+#endif /* POLARSSL_PK_WRITE_ENCRYPTED_KEY */
+
     return( (int) len );
 }
 
@@ -292,6 +547,8 @@ int pk_write_key_der( pk_context *key, unsigned char *buf, size_t size )
 #define PEM_END_PRIVATE_KEY_RSA     "-----END RSA PRIVATE KEY-----\n"
 #define PEM_BEGIN_PRIVATE_KEY_EC    "-----BEGIN EC PRIVATE KEY-----\n"
 #define PEM_END_PRIVATE_KEY_EC      "-----END EC PRIVATE KEY-----\n"
+#define PEM_BEGIN_PRIVATE_KEY_ENC   "-----BEGIN ENCRYPTED PRIVATE KEY-----\n"
+#define PEM_END_PRIVATE_KEY_ENC     "-----END ENCRYPTED PRIVATE KEY-----\n"
 
 /*
  * Max sizes of key per types. Shown as tag + len (+ content).
@@ -371,10 +628,50 @@ int pk_write_key_der( pk_context *key, unsigned char *buf, size_t size )
 
 #endif /* POLARSSL_ECP_C */
 
-#define PUB_DER_MAX_BYTES   RSA_PUB_DER_MAX_BYTES > ECP_PUB_DER_MAX_BYTES ? \
-                            RSA_PUB_DER_MAX_BYTES : ECP_PUB_DER_MAX_BYTES
-#define PRV_DER_MAX_BYTES   RSA_PRV_DER_MAX_BYTES > ECP_PRV_DER_MAX_BYTES ? \
-                            RSA_PRV_DER_MAX_BYTES : ECP_PRV_DER_MAX_BYTES
+#if defined(POLARSSL_PK_WRITE_ENCRYPTED_KEY)
+
+/*
+ * PKCS#8 v1.2 with RSA private key:
+ * PrivateKeyInfo ::= SEQUENCE {                           1 + 2
+ *   version             Version,                          1 + 1 + 1
+ *   privateKeyAlgorithm PrivateKeyAlgorithmIdentifier,    1 + 1 (sequence)
+ *                                                       + 1 + 1 + 9 (rsa oid)
+ *                                                       + 1 + 1 (params null)
+ *   privateKey          PrivateKey,                       0 (appended below)
+ *   attributes          [0]  IMPLICIT Attributes OPTIONAL 0 (not supported)
+ * }
+ */
+#define PKCS8_RSA_PRV_DER_MAX_BYTES 21
+
+/*
+ * PKCS#8 v1.2 with EC private key:
+ * PrivateKeyInfo ::= SEQUENCE {                           1 + 2
+ *   version             Version,                          1 + 1 + 1
+ *   privateKeyAlgorithm PrivateKeyAlgorithmIdentifier,    1 + 1 (sequence)
+ *                                                       + 1 + 1 + 7 (ec oid)
+ *                                                       + 1 + 1 + 9 (namedCurve oid)
+ *   privateKey          PrivateKey,                       0 (appended below)
+ *   attributes          [0]  IMPLICIT Attributes OPTIONAL 0 (not supported)
+ * }
+ */
+#define PKCS8_EC_PRV_DER_MAX_BYTES 28
+
+#define PKCS8_PRV_DER_MAX_BYTES \
+        PKCS8_RSA_PRV_DER_MAX_BYTES > PKCS8_EC_PRV_DER_MAX_BYTES ? \
+        PKCS8_RSA_PRV_DER_MAX_BYTES : PKCS8_EC_PRV_DER_MAX_BYTES
+
+#else /* POLARSSL_PK_WRITE_ENCRYPTED_KEY */
+
+#define PKCS8_PRV_DER_MAX_BYTES 0
+
+#endif /* POLARSSL_PK_WRITE_ENCRYPTED_KEY */
+
+
+#define PUB_DER_MAX_BYTES RSA_PUB_DER_MAX_BYTES > ECP_PUB_DER_MAX_BYTES ? \
+                          RSA_PUB_DER_MAX_BYTES : ECP_PUB_DER_MAX_BYTES
+#define PRV_DER_MAX_BYTES RSA_PRV_DER_MAX_BYTES > ECP_PRV_DER_MAX_BYTES ? \
+        (RSA_PRV_DER_MAX_BYTES + (PKCS8_PRV_DER_MAX_BYTES)) : \
+        (ECP_PRV_DER_MAX_BYTES + (PKCS8_PRV_DER_MAX_BYTES))
 
 int pk_write_pubkey_pem( pk_context *key, unsigned char *buf, size_t size )
 {
@@ -399,15 +696,37 @@ int pk_write_pubkey_pem( pk_context *key, unsigned char *buf, size_t size )
 }
 
 int pk_write_key_pem( pk_context *key, unsigned char *buf, size_t size )
+#if defined(POLARSSL_PK_WRITE_ENCRYPTED_KEY)
+{
+    return pk_write_key_pem_ext( key, buf, size, NULL, 0 );
+}
+
+int pk_write_key_pem_ext( pk_context *key, unsigned char *buf, size_t size,
+                          const unsigned char *pwd, size_t pwdlen )
+#endif /* POLARSSL_PK_WRITE_ENCRYPTED_KEY */
 {
     int ret;
     unsigned char output_buf[PRV_DER_MAX_BYTES];
     const char *begin, *end;
     size_t olen = 0;
 
+#if defined(POLARSSL_PK_WRITE_ENCRYPTED_KEY)
+    if( ( ret = pk_write_key_der_ext( key, output_buf, sizeof(output_buf),
+                                      pwd, pwdlen ) ) < 0 )
+        return( ret );
+#else
     if( ( ret = pk_write_key_der( key, output_buf, sizeof(output_buf) ) ) < 0 )
         return( ret );
+#endif /* POLARSSL_PK_WRITE_ENCRYPTED_KEY */
 
+#if defined(POLARSSL_PK_WRITE_ENCRYPTED_KEY)
+    if (pwd != NULL && pwdlen > 0)
+    {
+        begin = PEM_BEGIN_PRIVATE_KEY_ENC;
+        end = PEM_END_PRIVATE_KEY_ENC;
+    }
+    else
+#endif /* POLARSSL_PK_WRITE_ENCRYPTED_KEY */
 #if defined(POLARSSL_RSA_C)
     if( pk_get_type( key ) == POLARSSL_PK_RSA )
     {

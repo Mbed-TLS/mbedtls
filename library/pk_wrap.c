@@ -42,6 +42,10 @@
 #include "polarssl/ecdsa.h"
 #endif
 
+#if defined(POLARSSL_ECIES_C)
+#include "polarssl/ecies.h"
+#endif
+
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
@@ -240,6 +244,29 @@ static int eckey_sign_wrap( void *ctx, md_type_t md_alg,
 
 #endif /* POLARSSL_ECDSA_C */
 
+#if defined(POLARSSL_ECIES_C)
+
+static int ecies_encrypt_wrap(void *ctx,
+                    const unsigned char *input, size_t ilen,
+                    unsigned char *output, size_t *olen, size_t osize,
+                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
+{
+    return ecies_encrypt( (ecp_keypair *)ctx, input, ilen, output, olen, osize,
+                          f_rng, p_rng );
+}
+
+static int ecies_decrypt_wrap(void *ctx,
+                    const unsigned char *input, size_t ilen,
+                    unsigned char *output, size_t *olen, size_t osize,
+                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
+{
+    return ecies_decrypt( (ecp_keypair *)ctx, input, ilen, output, olen, osize,
+                          f_rng, p_rng );
+}
+
+#endif /* POLARSSL_ECIES_C */
+
+
 static int eckey_check_pair( const void *pub, const void *prv )
 {
     return( ecp_check_pub_priv( (const ecp_keypair *) pub,
@@ -281,8 +308,13 @@ const pk_info_t eckey_info = {
     NULL,
     NULL,
 #endif
-    NULL,
-    NULL,
+#if defined(POLARSSL_ECIES_C)
+    ecies_decrypt_wrap,
+    ecies_encrypt_wrap,
+#else
+     NULL,
+     NULL,
+#endif
     eckey_check_pair,
     eckey_alloc_wrap,
     eckey_free_wrap,

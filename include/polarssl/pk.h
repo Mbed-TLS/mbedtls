@@ -561,6 +561,28 @@ int pk_parse_public_keyfile( pk_context *ctx, const char *path );
  */
 int pk_write_key_der( pk_context *ctx, unsigned char *buf, size_t size );
 
+#if defined(POLARSSL_PK_WRITE_ENCRYPTED_KEY)
+/**
+ * \brief           Write a private key to a PKCS#1 or SEC1 DER structure
+ *                  Note: data is written at the end of the buffer! Use the
+ *                        return value to determine where you should start
+ *                        using the buffer
+ *
+ * \param ctx       private to write away
+ * \param buf       buffer to write to
+ * \param size      size of the buffer
+ * \param pwd       password for encryption (optional)
+ *                  Note: if password specified, private key is written to
+ *                  PKCS#8 structure
+ * \param pwdlen    size of the password
+ *
+ * \return          length of data written if successful, or a specific
+ *                  error code
+ */
+int pk_write_key_der_ext( pk_context *ctx, unsigned char *buf, size_t size,
+                          const unsigned char *pwd, size_t pwdlen );
+#endif /* POLARSSL_PK_WRITE_ENCRYPTED_KEY */
+
 /**
  * \brief           Write a public key to a SubjectPublicKeyInfo DER structure
  *                  Note: data is written at the end of the buffer! Use the
@@ -598,6 +620,25 @@ int pk_write_pubkey_pem( pk_context *ctx, unsigned char *buf, size_t size );
  * \return          0 successful, or a specific error code
  */
 int pk_write_key_pem( pk_context *ctx, unsigned char *buf, size_t size );
+
+#if defined(POLARSSL_PK_WRITE_ENCRYPTED_KEY)
+/**
+ * \brief           Write a private key to a PKCS#1 or SEC1 PEM string
+ *
+ * \param ctx       private to write away
+ * \param buf       buffer to write to
+ * \param size      size of the buffer
+ * \param pwd       password for encryption (optional)
+ *                  Note: if password specified, private key is written to
+ *                  PKCS#8 structure
+ * \param pwdlen    size of the password
+ *
+ * \return          0 successful, or a specific error code
+ */
+int pk_write_key_pem_ext( pk_context *ctx, unsigned char *buf, size_t size,
+                          const unsigned char *pwd, size_t pwdlen );
+#endif /* POLARSSL_PK_WRITE_ENCRYPTED_KEY */
+
 #endif /* POLARSSL_PEM_WRITE_C */
 #endif /* POLARSSL_PK_WRITE_C */
 

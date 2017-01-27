@@ -75,6 +75,8 @@
  * RIPEMD160 1  0x007E-0x007E
  * HMAC_DRBG 4  0x0003-0x0009
  * CCM       2                  0x000D-0x000F
+ * KDF1      1                  0x0030-0x0030
+ * KDF2      1                  0x0032-0x0032
  *
  * High-level module nr (3 bits - 0x0...-0x7...)
  * Name      ID  Nr of Errors
@@ -87,9 +89,11 @@
  * RSA       4   9
  * ECP       4   8 (Started from top)
  * MD        5   4
+ * KDF       5   1 (Started from top)
  * CIPHER    6   6
  * SSL       6   11 (Started from top)
  * SSL       7   31
+ * ECIES     7   3 (Started from top)
  *
  * Module dependent error code (5 bits 0x.00.-0x.F8.)
  */

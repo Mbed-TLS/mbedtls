@@ -1,0 +1,182 @@
+/* BEGIN_HEADER */
+#include "polarssl/kdf.h"
+#include "polarssl/md.h"
+#include "polarssl/oid.h"
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:POLARSSL_KDF_C:POLARSSL_MD_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void kdf_list( )
+{
+    const int *kdf_type_ptr;
+    const kdf_info_t *info;
+
+    for( kdf_type_ptr = kdf_list(); *kdf_type_ptr != 0; kdf_type_ptr++ )
+    {
+        info = kdf_info_from_type( *kdf_type_ptr );
+        TEST_ASSERT( info != NULL );
+    }
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void kdf_null_args( )
+{
+    const kdf_info_t *kdf_info = kdf_info_from_type( *( kdf_list() ) );
+    const md_info_t *md_info = md_info_from_type( *( md_list() ) );
+    unsigned char buf[1] = { 0 };
+
+    TEST_ASSERT( kdf_get_type( NULL ) == POLARSSL_KDF_NONE );
+
+    TEST_ASSERT( kdf_info_from_string( NULL ) == NULL );
+
+    TEST_ASSERT( ( kdf( kdf_info, NULL, buf, 1, buf, 1 ) &
+            POLARSSL_ERR_KDF_BAD_INPUT_DATA ) != 0 );
+    TEST_ASSERT( ( kdf( NULL, md_info, buf, 1, buf, 1 ) &
+            POLARSSL_ERR_KDF_BAD_INPUT_DATA ) != 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void kdf_info( int kdf_type, char *kdf_name )
+{
+    const kdf_info_t *kdf_info;
+    const int *kdf_type_ptr;
+    int found;
+
+    kdf_info = kdf_info_from_type( kdf_type );
+    TEST_ASSERT( kdf_info != NULL );
+    TEST_ASSERT( kdf_info == kdf_info_from_string( kdf_name ) );
+
+    TEST_ASSERT( kdf_get_type( kdf_info ) == (kdf_type_t) kdf_type );
+
+    found = 0;
+    for( kdf_type_ptr = kdf_list(); *kdf_type_ptr != 0; kdf_type_ptr++ )
+        if( *kdf_type_ptr == kdf_type )
+            found = 1;
+    TEST_ASSERT( found == 1 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void kdf_text( char *text_kdf_name, char *text_md_name, char *text_src_string,
+        int olen, char *hex_kdf_string )
+{
+    char kdf_name[100];
+    char md_name[100];
+    unsigned char src_str[1000];
+    unsigned char kdf_str[1024];
+    unsigned char output[1024];
+    const kdf_info_t *kdf_info = NULL;
+    const md_info_t *md_info = NULL;
+
+    memset(kdf_name, 0x00, sizeof(kdf_name));
+    memset(md_name, 0x00, sizeof(md_name));
+    memset(src_str, 0x00, sizeof(src_str));
+    memset(kdf_str, 0x00, sizeof(kdf_str));
+    memset(output, 0x00, sizeof(output));
+
+    strncpy( (char *) kdf_name, text_kdf_name, sizeof(kdf_name) - 1 );
+    strncpy( (char *) md_name, text_md_name, sizeof(md_name) - 1 );
+    strncpy( (char *) src_str, text_src_string, sizeof(src_str) - 1 );
+
+    kdf_info = kdf_info_from_string(kdf_name);
+    TEST_ASSERT( kdf_info != NULL );
+
+    md_info = md_info_from_string(md_name);
+    TEST_ASSERT( md_info != NULL );
+
+    TEST_ASSERT( olen <= (int)sizeof(output) );
+    TEST_ASSERT( 0 == kdf( kdf_info, md_info, src_str,
+            strlen( (char *) src_str ), output, olen ) );
+    hexify( kdf_str, output, olen );
+
+    TEST_ASSERT( strcmp( (char *) kdf_str, hex_kdf_string ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void kdf_hex( char *text_kdf_name, char *text_md_name, char *hex_src_string,
+        int olen, char *hex_kdf_string )
+{
+    char kdf_name[100];
+    char md_name[100];
+    unsigned char src_str[1000];
+    unsigned char kdf_str[1024];
+    unsigned char output[1024];
+    const kdf_info_t *kdf_info = NULL;
+    const md_info_t *md_info = NULL;
+    int src_len;
+
+    memset(kdf_name, 0x00, sizeof(kdf_name));
+    memset(md_name, 0x00, sizeof(md_name));
+    memset(src_str, 0x00, sizeof(src_str));
+    memset(kdf_str, 0x00, sizeof(kdf_str));
+    memset(output, 0x00, sizeof(output));
+
+    strncpy( (char *) kdf_name, text_kdf_name, sizeof(kdf_name) - 1 );
+    strncpy( (char *) md_name, text_md_name, sizeof(md_name) - 1 );
+
+    kdf_info = kdf_info_from_string(kdf_name);
+    TEST_ASSERT( kdf_info != NULL );
+
+    md_info = md_info_from_string(md_name);
+    TEST_ASSERT( md_info != NULL );
+
+    src_len = unhexify( src_str, hex_src_string );
+
+    TEST_ASSERT( 0 ==
+            kdf( kdf_info, md_info, src_str, src_len, output, olen ) );
+
+    hexify( kdf_str, output, olen );
+
+    TEST_ASSERT( strcmp( (char *) kdf_str, hex_kdf_string ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:POLARSSL_OID_C */
+void kdf_oid( char *text_kdf_name, char *hex_oid_string, char *text_oid_string )
+{
+    char kdf_name[100];
+    char oid_str[100];
+    int oid_str_len = 0;
+    kdf_type_t kdf_type;
+    kdf_type_t kdf_type_restored;
+    unsigned char hex_oid_str[100];
+    const kdf_info_t *kdf_info = NULL;
+    asn1_buf oid_buf = {0x00, 0, NULL};
+
+    memset(kdf_name, 0x00, sizeof(kdf_name));
+    memset(oid_str, 0x00, sizeof(oid_str));
+    memset(hex_oid_str, 0x00, sizeof(hex_oid_str));
+    strncpy( (char *) kdf_name, text_kdf_name, sizeof(kdf_name) - 1 );
+
+    kdf_info = kdf_info_from_string(kdf_name);
+    TEST_ASSERT( kdf_info != NULL );
+
+    kdf_type = kdf_get_type(kdf_info);
+    TEST_ASSERT( kdf_type != POLARSSL_KDF_NONE );
+
+    TEST_ASSERT( 0 == oid_get_oid_by_kdf_alg( kdf_type,
+            (const char **)&oid_buf.p, &oid_buf.len ) );
+    TEST_ASSERT( oid_buf.p != NULL );
+    TEST_ASSERT( oid_buf.len != 0 );
+
+    TEST_ASSERT( 0 == oid_get_kdf_alg(&oid_buf, &kdf_type_restored ) );
+    TEST_ASSERT( kdf_type == kdf_type_restored );
+
+    hexify( hex_oid_str, oid_buf.p, oid_buf.len );
+    TEST_ASSERT( 0 ==
+            strncmp( (char *)hex_oid_str, hex_oid_string, oid_buf.len ) );
+
+    oid_str_len =
+            oid_get_numeric_string( oid_str, sizeof(oid_str) - 1, &oid_buf );
+    TEST_ASSERT( oid_str_len > 0 );
+    TEST_ASSERT( strncmp( oid_str, text_oid_string, oid_str_len ) == 0 );
+
+}
+/* END_CASE */

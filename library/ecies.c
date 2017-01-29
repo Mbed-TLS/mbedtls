@@ -1,3 +1,4 @@
+
 /**
  * Copyright (C) 2014 Virgil Security Inc.
  *
@@ -83,9 +84,19 @@ do { \
 #define ECIES_CIPHER_PADDING POLARSSL_PADDING_PKCS7
 
 #define ECIES_CIPHER_TYPE POLARSSL_CIPHER_AES_256_CBC
-#define ECIES_MD_TYPE POLARSSL_MD_SHA384
-#define ECIES_HMAC_TYPE POLARSSL_MD_SHA384
-#define ECIES_KDF_TYPE POLARSSL_KDF_KDF1
+#define ECIES_MD_TYPE POLARSSL_MD_SHA256
+#define ECIES_HMAC_TYPE POLARSSL_MD_SHA256
+#define ECIES_KDF_TYPE POLARSSL_KDF_KDF2
+
+static const char * mpi_to_string(const mpi *X) {
+
+  char *result =  malloc (300);
+  size_t slen = 200;
+
+  mpi_write_string(X, 16, result, &slen);
+  return result;
+
+}
 
 static int ecies_ka(ecp_keypair *public, const ecp_keypair *private,
         mpi *shared, int(*f_rng)(void *, unsigned char *, size_t), void *p_rng)
@@ -141,6 +152,15 @@ int ecies_encrypt(ecp_keypair *key, const unsigned char *input, size_t ilen,
     size_t cipher_enc_data_len = 0;
     size_t cipher_enc_header_len = 0;
     unsigned char *cipher_enc_data = NULL; // pointer inside data: output
+    unsigned char *ephem_key_X_binary = NULL; // MUST be released
+    size_t ephem_key_X_binary_len = 32;
+    unsigned char *ephem_key_Y_binary = NULL; // MUST be released
+    size_t ephem_key_Y_binary_len = 32;
+    size_t kdf_input_len = 0;
+    unsigned char *kdf_input;
+    unsigned char *hmac_input = NULL;  // pointer inside data: output
+    size_t hmac_input_len = 0;
+    int hmac_extra = 8;
 
     if (key == NULL || input == NULL || output == NULL || olen == NULL) {
         return POLARSSL_ERR_ECIES_BAD_INPUT_DATA;
@@ -192,11 +212,42 @@ int ecies_encrypt(ecp_keypair *key, const unsigned char *input, size_t ilen,
     INVOKE_AND_CHECK(result,
         mpi_write_binary(&shared_key, shared_key_binary, shared_key_binary_len)
     );
-    // 3. Derive keys (encryption key and hmac key).
+
+
+    // 2.2 Convert the ephemeral key to binary, and append to shared_key_binary
+    ephem_key_X_binary = polarssl_malloc(ephem_key_X_binary_len);
+    ephem_key_Y_binary = polarssl_malloc(ephem_key_Y_binary_len);
+    memset(ephem_key_X_binary, 0, ephem_key_X_binary_len);
+    memset(ephem_key_Y_binary, 0, ephem_key_Y_binary_len);
+   
     INVOKE_AND_CHECK(result,
-        kdf(kdf_info, md_info, shared_key_binary, shared_key_binary_len,
-                kdf_value, kdf_len)
+        mpi_write_binary(&ephemeral_key.Q.X, ephem_key_X_binary, ephem_key_X_binary_len)
     );
+    INVOKE_AND_CHECK(result,
+        mpi_write_binary(&ephemeral_key.Q.Y, ephem_key_Y_binary, ephem_key_Y_binary_len)
+    );
+
+    // 2.4 Concatenate the pubkey, and shared_key
+
+    kdf_input_len = 1 + ephem_key_X_binary_len + ephem_key_Y_binary_len + shared_key_binary_len;
+    kdf_input = polarssl_malloc(kdf_input_len);
+    memset(kdf_input, 0x04, 1);
+    memcpy(kdf_input + 1 , ephem_key_X_binary, ephem_key_X_binary_len);
+    memcpy(kdf_input +1 + ephem_key_X_binary_len, ephem_key_Y_binary, ephem_key_Y_binary_len);
+    memcpy(kdf_input + 1 + ephem_key_X_binary_len + ephem_key_Y_binary_len, shared_key_binary, shared_key_binary_len);
+   
+    // 3. Derive keys (encryption key and hmac key).
+    /* INVOKE_AND_CHECK(result, */
+    /*     kdf(kdf_info, md_info, shared_key_binary, shared_key_binary_len, */
+    /*             kdf_value, kdf_len) */
+    /* ); */
+
+    INVOKE_AND_CHECK(result,
+		     kdf(kdf_info, md_info, kdf_input, kdf_input_len,
+			 kdf_value, kdf_len)
+    );
+
+    
     // 4. Encrypt given message.
     cipher_iv = polarssl_malloc(cipher_iv_len);
     if (cipher_iv == NULL) {
@@ -233,24 +284,46 @@ int ecies_encrypt(ecp_keypair *key, const unsigned char *input, size_t ilen,
         INVOKE_AND_CHECK(result, POLARSSL_ERR_ECIES_MALLOC_FAILED)
     }
     memset(hmac, 0, hmac_len);
+
+    hmac_input_len = cipher_enc_data_len + hmac_extra;
+    hmac_input = polarssl_malloc(hmac_input_len);
+    memcpy(hmac_input, cipher_enc_data, cipher_enc_data_len);
+    memset(hmac_input + cipher_enc_data_len, 0, hmac_extra);
+    
+    /* INVOKE_AND_CHECK(result, */
+    /*     md_hmac(hmac_info, hmac_key, hmac_key_len, */
+    /*             cipher_enc_data, cipher_enc_data_len, hmac) */
+    /* ); */
+
     INVOKE_AND_CHECK(result,
         md_hmac(hmac_info, hmac_key, hmac_key_len,
-                cipher_enc_data, cipher_enc_data_len, hmac)
+                hmac_input, hmac_input_len, hmac)
     );
+
     // 6. Write envelope.
     cipher_enc_header_len = 0;
     ACCUMULATE_AND_CHECK(result, cipher_enc_header_len,
         ecies_write_content_info(&cipher_enc_data, output, ECIES_CIPHER_TYPE,
                 cipher_iv, cipher_iv_len, cipher_enc_data_len)
     );
+
     ACCUMULATE_AND_CHECK(result, cipher_enc_header_len,
         ecies_write_hmac(&cipher_enc_data, output, md_get_type(hmac_info),
                 hmac, hmac_len)
     );
+
     ACCUMULATE_AND_CHECK(result, cipher_enc_header_len,
         ecies_write_kdf(&cipher_enc_data, output, kdf_get_type(kdf_info),
                 md_get_type(md_info))
     );
+
+    printf("Here is your ephemeral key:\n\n");
+    printf("%s\n", mpi_to_string(&(ephemeral_key.Q.X)));
+    printf("%s\n\n", mpi_to_string(&(ephemeral_key.Q.Y)));
+
+    printf("Here is your shared key:\n\n");
+    printf("%s\n\n", mpi_to_string(&(shared_key)));
+
     ACCUMULATE_AND_CHECK(result, cipher_enc_header_len,
         ecies_write_originator(&cipher_enc_data, output, &ephemeral_key)
     );
@@ -278,6 +351,15 @@ exit:
     }
     if (hmac != NULL) {
         polarssl_free(hmac);
+    }
+    if (ephem_key_X_binary != NULL) {
+      polarssl_free(ephem_key_X_binary);
+    }
+    if (ephem_key_Y_binary != NULL) {
+      polarssl_free(ephem_key_Y_binary);
+    }
+    if (hmac_input != NULL) {
+      polarssl_free(hmac_input);
     }
     return result;
 }
@@ -314,6 +396,15 @@ int ecies_decrypt(ecp_keypair *key, const unsigned char *input, size_t ilen,
     size_t cipher_enc_header_len = 0;
     unsigned char *cipher_enc_data = NULL; // pointer inside data: input
     unsigned char *cipher_enc_header = NULL; // pointer inside data: input
+    unsigned char *ephem_key_X_binary = NULL; // MUST be released
+    size_t ephem_key_X_binary_len = 32;
+    unsigned char *ephem_key_Y_binary = NULL; // MUST be released
+    size_t ephem_key_Y_binary_len = 32;
+    size_t kdf_input_len = 0;
+    unsigned char *kdf_input;
+    unsigned char *hmac_input = NULL;  // pointer inside data: output
+    size_t hmac_input_len = 0;
+    int hmac_extra = 8;
 
     if (key == NULL || input == NULL || output == NULL || olen == NULL) {
         return POLARSSL_ERR_ECIES_BAD_INPUT_DATA;
@@ -384,16 +475,65 @@ int ecies_decrypt(ecp_keypair *key, const unsigned char *input, size_t ilen,
     INVOKE_AND_CHECK(result,
         mpi_write_binary(&shared_key, shared_key_binary, shared_key_binary_len)
     );
+
+
+    // 1.2 Convert the ephemeral key to binary, and append to shared_key_binary
+    ephem_key_X_binary = polarssl_malloc(ephem_key_X_binary_len);
+    ephem_key_Y_binary = polarssl_malloc(ephem_key_Y_binary_len);
+    memset(ephem_key_X_binary, 0, ephem_key_X_binary_len);
+    memset(ephem_key_Y_binary, 0, ephem_key_Y_binary_len);
+   
+    INVOKE_AND_CHECK(result,
+		     mpi_write_binary((&ephemeral_key->Q.X), ephem_key_X_binary, ephem_key_X_binary_len)
+    );
+    INVOKE_AND_CHECK(result,
+		     mpi_write_binary((&ephemeral_key->Q.Y), ephem_key_Y_binary, ephem_key_Y_binary_len)
+    );
+
+    // 1.4 Concatenate the pubkey, and shared_key
+
+    kdf_input_len = 1 + ephem_key_X_binary_len + ephem_key_Y_binary_len + shared_key_binary_len;
+    kdf_input = polarssl_malloc(kdf_input_len);
+    memset(kdf_input, 0x04, 1);
+    memcpy(kdf_input + 1 , ephem_key_X_binary, ephem_key_X_binary_len);
+    memcpy(kdf_input +1 + ephem_key_X_binary_len, ephem_key_Y_binary, ephem_key_Y_binary_len);
+    memcpy(kdf_input + 1 + ephem_key_X_binary_len + ephem_key_Y_binary_len, shared_key_binary, shared_key_binary_len);
+
+    
     // 2. Derive keys (encryption key and hmac key).
+    /* INVOKE_AND_CHECK(result, */
+    /* 		     kdf(kdf_info_from_type(kdf_type), md_info_from_type(md_type), */
+    /* 			 shared_key_binary, shared_key_binary_len, kdf_value, kdf_len) */
+    /* 		     ); */
+
     INVOKE_AND_CHECK(result,
-        kdf(kdf_info_from_type(kdf_type), md_info_from_type(md_type),
-                shared_key_binary, shared_key_binary_len, kdf_value, kdf_len)
-    );
+		     kdf(kdf_info_from_type(kdf_type), md_info_from_type(md_type), kdf_input, kdf_input_len,
+			 kdf_value, kdf_len)
+		     );
+
+
+
     // 3. Get HMAC for encrypted message and compare it.
-    INVOKE_AND_CHECK(result,
-        md_hmac(md_info_from_type(hmac_type), hmac_key, hmac_key_len,
-                cipher_enc_data, cipher_enc_data_len, hmac)
+
+    memset(hmac, 0, hmac_len);
+
+    hmac_input_len = cipher_enc_data_len + hmac_extra;
+    hmac_input = polarssl_malloc(hmac_input_len);
+    memcpy(hmac_input, cipher_enc_data, cipher_enc_data_len);
+    memset(hmac_input + cipher_enc_data_len, 0, hmac_extra);
+    
+    /* INVOKE_AND_CHECK(result, */
+    /*     md_hmac(md_info_from_type(hmac_type), hmac_key, hmac_key_len, */
+    /*             cipher_enc_data, cipher_enc_data_len, hmac) */
+    /* ); */
+
+        INVOKE_AND_CHECK(result,
+			 md_hmac(md_info_from_type(hmac_type), hmac_key, hmac_key_len,
+                hmac_input, hmac_input_len, hmac)
     );
+
+    
+
     if (hmac_base_len != hmac_len || memcmp(hmac_base, hmac, hmac_len) != 0) {
         result = POLARSSL_ERR_ECIES_MALFORMED_DATA;
         goto exit;
@@ -429,6 +569,15 @@ exit:
     }
     if (hmac != NULL) {
         polarssl_free(hmac);
+    }
+        if (ephem_key_X_binary != NULL) {
+      polarssl_free(ephem_key_X_binary);
+    }
+    if (ephem_key_Y_binary != NULL) {
+      polarssl_free(ephem_key_Y_binary);
+    }
+    if (hmac_input != NULL) {
+      polarssl_free(hmac_input);
     }
     return result;
 }

@@ -1,16 +1,16 @@
 
 # Also see "include/polarssl/config.h"
 
-CFLAGS	?= -O2
+CFLAGS	?= -O0
 WARNING_CFLAGS ?=  -Wall -W -Wdeclaration-after-statement
 LDFLAGS ?=
 
 LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../include -D_FILE_OFFSET_BITS=64
 LOCAL_LDFLAGS =
 
-ifdef DEBUG
+#ifdef DEBUG
 LOCAL_CFLAGS += -g3
-endif
+#endif
 
 # MicroBlaze specific options:
 # CFLAGS += -mno-xl-soft-mul -mxl-barrel-shift

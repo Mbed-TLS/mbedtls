@@ -2,7 +2,7 @@
 # To compile on SunOS: add "-lsocket -lnsl" to LDFLAGS
 # To compile with PKCS11: add "-lpkcs11-helper" to LDFLAGS
 
-CFLAGS	?= -O2
+CFLAGS	?= -O0
 WARNING_CFLAGS ?= -Wall -W -Wdeclaration-after-statement -Wno-unused-function -Wno-unused-value
 LDFLAGS ?=
 
@@ -18,9 +18,9 @@ DEP=../library/libmbedtls.$(DLEXT)
 CHECK_PRELOAD= LD_PRELOAD=../library/libmbedtls.$(DLEXT)
 endif
 
-ifdef DEBUG
+# ifdef DEBUG
 LOCAL_CFLAGS += -g3
-endif
+# endif
 
 #
 # if we running on Windows build
@@ -82,7 +82,7 @@ APPS =	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
 	test_suite_rsa$(EXEXT)		test_suite_shax$(EXEXT)		\
 	test_suite_x509parse$(EXEXT)	test_suite_x509write$(EXEXT)	\
 	test_suite_xtea$(EXEXT)		test_suite_version$(EXEXT)	\
-	test_suite_kdf$(EXEXT)
+#	test_suite_kdf$(EXEXT)		test_suite_ecies$(EXEXT)
 
 .SILENT:
 
@@ -423,6 +423,11 @@ test_suite_version$(EXEXT): test_suite_version.c $(DEP)
 test_suite_kdf$(EXEXT): test_suite_kdf.c $(DEP)
 	echo   "  CC    	$<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+test_suite_ecies$(EXEXT): test_suite_ecies.c $(DEP)
+	echo   "  CC    	$<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
 
 clean:
 ifndef WINDOWS

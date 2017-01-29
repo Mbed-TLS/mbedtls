@@ -3,6 +3,7 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
 Bugfix
+<<<<<<< HEAD
    * Fix the redefinition of macro ssl_set_bio to an undefined symbol
      mbedtls_ssl_set_bio_timeout in compat-1.3.h, by removing it.
      Found by omlib-lin. #673
@@ -17,6 +18,8 @@ Bugfix
   * Fixed the templates used to generate project and solution files for Visual
      Studio 2015 as well as the files themselves, to remove a build warning
      generated in Visual Studio 2015. Reported by Steve Valliere. #742
+   * Fix a resource leak in ssl_cookie, when using MBEDTLS_THREADING_C.
+     Raised and fix suggested by Alan Gillingham in the mbed TLS forum. #771
 
 = mbed TLS 2.4.1 branch released 2016-12-13
 

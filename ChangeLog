@@ -56,6 +56,8 @@ Bugfix
    * Fixed the templates used to generate project and solution files for Visual
      Studio 2015 as well as the files themselves, to remove a build warning
      generated in Visual Studio 2015. Reported by Steve Valliere. #742
+   * Fix a resource leak in ssl_cookie, when using MBEDTLS_THREADING_C.
+     Raised and fix suggested by Alan Gillingham in the mbed TLS forum. #771
 
 = mbed TLS 2.1.6 branch released 2016-10-17
 

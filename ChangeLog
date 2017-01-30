@@ -104,6 +104,8 @@ Bugfix
    * Fix error message in programs/pkey/gen_key.c. Found and fixed by Chris Xue.
    * Fix programs/pkey/dh_server.c so that it actually works with dh_client.c.
      Found and fixed by Martijn de Milliano.
+   * Fix memory allocation corner cases in memory_buffer_alloc.c module. Found
+     by Guido Vranken. #639
 
 Changes
    * Extend cert_write example program by options to set the CRT version

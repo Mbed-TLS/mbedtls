@@ -259,7 +259,7 @@ int x509_crl_parse_der( x509_crl *chain,
 {
     int ret;
     size_t len;
-    unsigned char *p, *end;
+    unsigned char *p = NULL, *end;
     x509_buf sig_params1, sig_params2;
     x509_crl *crl = chain;
 
@@ -295,7 +295,7 @@ int x509_crl_parse_der( x509_crl *chain,
     /*
      * Copy raw DER-encoded CRL
      */
-    if( ( p = polarssl_malloc( buflen ) ) == NULL )
+    if( buflen != 0 && ( p = polarssl_malloc( buflen ) ) == NULL )
         return( POLARSSL_ERR_X509_MALLOC_FAILED );
 
     memcpy( p, buf, buflen );

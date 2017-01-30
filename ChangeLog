@@ -48,6 +48,8 @@ Bugfix
    * Fix issue in RSA key generation program programs/x509/rsa_genkey
      where the failure of CTR DRBG initialization lead to freeing an
      RSA context without proper initialization beforehand.
+   * Fix memory allocation corner cases in memory_buffer_alloc.c module. Found
+     by Guido Vranken. #639
 
 Changes
    * Extend cert_write example program by options to set the CRT version

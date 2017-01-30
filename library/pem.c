@@ -422,7 +422,7 @@ int pem_write_buffer( const char *header, const char *footer,
                       unsigned char *buf, size_t buf_len, size_t *olen )
 {
     int ret;
-    unsigned char *encode_buf, *c, *p = buf;
+    unsigned char *encode_buf = NULL, *c, *p = buf;
     size_t len = 0, use_len = 0, add_len = 0;
 
     base64_encode( NULL, &use_len, der_data, der_len );
@@ -434,7 +434,7 @@ int pem_write_buffer( const char *header, const char *footer,
         return( POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL );
     }
 
-    if( ( encode_buf = polarssl_malloc( use_len ) ) == NULL )
+    if( use_len != 0 && ( encode_buf = polarssl_malloc( use_len ) ) == NULL )
         return( POLARSSL_ERR_PEM_MALLOC_FAILED );
 
     if( ( ret = base64_encode( encode_buf, &use_len, der_data,

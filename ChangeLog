@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Bugfix
+    * Fix a resource leak in ssl_cookie, when using MBEDTLS_THREADING_C.
+      Raised and fix suggested by Alan Gillingham in the mbed TLS forum. #771
+
 = mbed TLS 2.1.6 branch released 2016-10-17
 
 Security

@@ -315,9 +315,9 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input,
          * If there is not enough data for a full block, cache it.
          */
         if( ( ctx->operation == POLARSSL_DECRYPT &&
-                ilen + ctx->unprocessed_len <= cipher_get_block_size( ctx ) ) ||
+                ilen <= cipher_get_block_size( ctx ) - ctx->unprocessed_len ) ||
              ( ctx->operation == POLARSSL_ENCRYPT &&
-                ilen + ctx->unprocessed_len < cipher_get_block_size( ctx ) ) )
+                ilen < cipher_get_block_size( ctx ) - ctx->unprocessed_len ) )
         {
             memcpy( &( ctx->unprocessed_data[ctx->unprocessed_len] ), input,
                     ilen );

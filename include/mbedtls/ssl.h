@@ -1146,7 +1146,7 @@ void mbedtls_ssl_conf_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout )
  *
  * \note           See the documentation of \c mbedtls_ssl_set_timer_t and
  *                 \c mbedtls_ssl_get_timer_t for the conventions this pair of
- *                 callbacks must fallow.
+ *                 callbacks must follow.
  *
  * \note           On some platforms, timing.c provides
  *                 \c mbedtls_timing_set_delay() and

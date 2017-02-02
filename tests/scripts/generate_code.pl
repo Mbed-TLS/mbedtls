@@ -139,7 +139,7 @@ while($test_cases =~ /\/\* BEGIN_CASE *([\w:]*) \*\/\n(.*?)\n\/\* END_CASE \*\//
             $param_defs .= "    char *param$i = params[$i];\n";
             $param_checks .= "    if( verify_string( &param$i ) != 0 ) return( 2 );\n";
             push @dispatch_params, "param$i";
-            $mapping_regex .= ":[^:\n]+";
+            $mapping_regex .= ":(?:\\\\.|[^:\n])+";
         }
         else
         {

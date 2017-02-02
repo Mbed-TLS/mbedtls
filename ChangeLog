@@ -8,7 +8,7 @@ Bugfix
      Found by omlib-lin. #673
    * Fix unused variable/function compilation warnings in pem.c and x509_csr.c
      that are reported when building mbed TLS with a config.h that does not
-     define MBEDTLS_PEM_PARSE_C. #562
+     define MBEDTLS_PEM_PARSE_C. Found by omnium21. #562
    * Fix incorrect renegotiation condition in ssl_check_ctr_renegotiate() that
      would compare 64 bits of the record counter instead of 48 bits as indicated
      in RFC 6347 Section 4.3.1. This could cause the execution of the

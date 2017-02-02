@@ -198,6 +198,10 @@ int base64_decode( unsigned char *dst, size_t *dlen,
         return( 0 );
     }
 
+    /* The following expression is to calculate the following formula without
+     * risk of integer overflow in n:
+     *     n = ( ( n * 6 ) + 7 ) >> 3;
+     */
     n = ( 6 * ( n >> 3 ) ) + ( ( 6 * ( n & 0x7 ) + 7 ) >> 3 );
     n -= j;
 

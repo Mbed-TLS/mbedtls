@@ -5,6 +5,7 @@
 use warnings;
 use strict;
 
+my $config_file = "include/mbedtls/config.h";
 my $usage = <<EOU;
 $0 [-f <file>] [set <symbol> <value> | unset <symbol> | full | realfull]
 
@@ -57,8 +58,6 @@ _ALT\s*$
 my @non_excluded = qw(
 PLATFORM_[A-Z0-9]+_ALT
 );
-
-my $config_file = "include/mbedtls/config.h";
 
 # get -f option
 if (@ARGV >= 2 && $ARGV[0] eq "-f") {

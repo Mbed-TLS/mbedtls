@@ -163,7 +163,7 @@ int dhm_make_params( dhm_context *ctx, int x_size,
      */
     do
     {
-        mpi_fill_random( &ctx->X, x_size, f_rng, p_rng );
+        MPI_CHK( mpi_fill_random( &ctx->X, x_size, f_rng, p_rng ) );
 
         while( mpi_cmp_mpi( &ctx->X, &ctx->P ) >= 0 )
             MPI_CHK( mpi_shift_r( &ctx->X, 1 ) );
@@ -249,7 +249,7 @@ int dhm_make_public( dhm_context *ctx, int x_size,
      */
     do
     {
-        mpi_fill_random( &ctx->X, x_size, f_rng, p_rng );
+        MPI_CHK( mpi_fill_random( &ctx->X, x_size, f_rng, p_rng ) );
 
         while( mpi_cmp_mpi( &ctx->X, &ctx->P ) >= 0 )
             MPI_CHK( mpi_shift_r( &ctx->X, 1 ) );
@@ -322,7 +322,7 @@ static int dhm_update_blinding( dhm_context *ctx,
     count = 0;
     do
     {
-        mpi_fill_random( &ctx->Vi, mpi_size( &ctx->P ), f_rng, p_rng );
+        MPI_CHK( mpi_fill_random( &ctx->Vi, mpi_size( &ctx->P ), f_rng, p_rng ) );
 
         while( mpi_cmp_mpi( &ctx->Vi, &ctx->P ) >= 0 )
             MPI_CHK( mpi_shift_r( &ctx->Vi, 1 ) );

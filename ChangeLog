@@ -8,7 +8,7 @@ Bugfix
      Found by omlib-lin. #673
    * Fix unused variable/function compilation warnings in pem.c, x509_crt.c and
      x509_csr.c that are reported when building mbed TLS with a config.h that
-     does not define MBEDTLS_PEM_PARSE_C. #562
+     does not define MBEDTLS_PEM_PARSE_C. Found by omnium21. #562
 
 = mbed TLS 2.4.1 branch released 2016-12-13
 

@@ -45,12 +45,12 @@
 #define polarssl_free       free
 #endif
 
+#if defined(POLARSSL_PEM_PARSE_C)
 /* Implementation that should never be optimized out by the compiler */
 static void polarssl_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
-#if defined(POLARSSL_PEM_PARSE_C)
 void pem_init( pem_context *ctx )
 {
     memset( ctx, 0, sizeof( pem_context ) );

@@ -3,8 +3,9 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
 Bugfix
-   * Fix redefinition of macro ssl_set_bio to undefined symbol
-     mbedtls_ssl_set_bio_timeout in compat-1.3.h. #673
+   * Fix the redefinition of macro ssl_set_bio to an undefined symbol
+     mbedtls_ssl_set_bio_timeout in compat-1.3.h, by removing it.
+     Found by omlib-lin. #673
 
 = mbed TLS 2.4.1 branch released 2016-12-13
 

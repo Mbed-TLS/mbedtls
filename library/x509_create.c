@@ -95,6 +95,7 @@ int mbedtls_x509_string_to_names( mbedtls_asn1_named_data **head, const char *na
     int in_tag = 1;
     char data[MBEDTLS_X509_MAX_DN_NAME_SIZE];
     char *d = data;
+    int in_quot = 0;
 
     /* Clear existing chain if present */
     mbedtls_asn1_free_named_data_list( head );
@@ -116,16 +117,21 @@ int mbedtls_x509_string_to_names( mbedtls_asn1_named_data **head, const char *na
 
         if( !in_tag && *c == '\\' && c != end )
         {
-            c++;
-
             /* Check for valid escaped characters */
-            if( c == end || *c != ',' )
+            if( ( c + 1 ) == end || *( c + 1 ) != ',' )
             {
                 ret = MBEDTLS_ERR_X509_INVALID_NAME;
                 goto exit;
             }
+            *(d++) = *c;
+            if( d - data == MBEDTLS_X509_MAX_DN_NAME_SIZE )
+            {
+                ret = MBEDTLS_ERR_X509_INVALID_NAME;
+                goto exit;
+            }
+            c++;
         }
-        else if( !in_tag && ( *c == ',' || c == end ) )
+        else if( !in_tag && !in_quot && ( *c == ',' || c == end ) )
         {
             if( mbedtls_asn1_store_named_data( head, oid, strlen( oid ),
                                        (unsigned char *) data,
@@ -143,6 +149,9 @@ int mbedtls_x509_string_to_names( mbedtls_asn1_named_data **head, const char *na
 
         if( !in_tag && s != c + 1 )
         {
+            if( *c == '\"' )
+                in_quot = !in_quot;
+
             *(d++) = *c;
 
             if( d - data == MBEDTLS_X509_MAX_DN_NAME_SIZE )

@@ -136,8 +136,16 @@ endif(USE_SHARED_MBEDTLS_LIBRARY)
 
 if(UNIX)
     add_custom_target(polarssl
-        DEPENDS mbedtls # TODO: and mbedtls_static is shared is defined
+        DEPENDS mbedtls
         COMMAND ${CMAKE_SOURCE_DIR}/scripts/polarssl_symlinks.sh ${CMAKE_BINARY_DIR}/library
+        )
+
+    add_custom_target(lib
+        DEPENDS polarssl
+        )
+
+    set_directory_properties(PROPERTIES
+        ADDITIONAL_MAKE_CLEAN_FILES "${CMAKE_BINARY_DIR}/library/libpolarssl.a"
         )
 
     if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)

@@ -1946,7 +1946,7 @@ void mbedtls_ssl_conf_renegotiation_enforced( mbedtls_ssl_config *conf, int max_
 
 /**
  * \brief          Set record counter threshold for periodic renegotiation.
- *                 (Default: 2^64 - 256.)
+ *                 (Default: 2^48 - 1)
  *
  *                 Renegotiation is automatically triggered when a record
  *                 counter (outgoing or ingoing) crosses the defined
@@ -1957,9 +1957,11 @@ void mbedtls_ssl_conf_renegotiation_enforced( mbedtls_ssl_config *conf, int max_
  *                 Lower values can be used to enforce policies such as "keys
  *                 must be refreshed every N packets with cipher X".
  *
+ * \note           When the transport is set to MBEDTLS_SSL_TRANSPORT_DATAGRAM,
+ *                 the maximum renegotiation period is 2^48 - 1.
+ *
  * \param conf     SSL configuration
  * \param period   The threshold value: a big-endian 64-bit number.
- *                 Set to 2^64 - 1 to disable periodic renegotiation
  */
 void mbedtls_ssl_conf_renegotiation_period( mbedtls_ssl_config *conf,
                                    const unsigned char period[8] );

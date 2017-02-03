@@ -9,6 +9,11 @@ Bugfix
    * Fix unused variable/function compilation warnings in pem.c and x509_csr.c
      that are reported when building mbed TLS with a config.h that does not
      define MBEDTLS_PEM_PARSE_C. Found by omnium21. #562
+   * Fix incorrect renegotiation condition in ssl_check_ctr_renegotiate() that
+     would compare 64 bits of the record counter instead of 48 bits as indicated
+     in RFC 6347 Section 4.3.1. This could cause the execution of the
+     renegotiation routines at unexpected times when the protocol is DTLS. Found
+     by wariua. #687
 
 = mbed TLS 2.1.6 branch released 2016-10-17
 

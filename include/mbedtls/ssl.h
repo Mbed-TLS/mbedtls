@@ -2194,8 +2194,14 @@ void mbedtls_ssl_conf_renegotiation_enforced( mbedtls_ssl_config *conf, int max_
  *                 Lower values can be used to enforce policies such as "keys
  *                 must be refreshed every N packets with cipher X".
  *
- * \note           When the transport is set to MBEDTLS_SSL_TRANSPORT_DATAGRAM,
- *                 the maximum renegotiation period is 2^48 - 1.
+ *                 The renegotiation period can be disabled by setting
+ *                 conf->disable_renegotiation to
+ *                 MBEDTLS_SSL_RENEGOTIATION_DISABLED.
+ *
+ * \note           When the configured transport is
+ *                 MBEDTLS_SSL_TRANSPORT_DATAGRAM the maximum renegotiation
+ *                 period is 2^48 - 1, and for MBEDTLS_SSL_TRANSPORT_STREAM,
+ *                 the maximum renegotiation period is 2^64 - 1.
  *
  * \param conf     SSL configuration
  * \param period   The threshold value: a big-endian 64-bit number.

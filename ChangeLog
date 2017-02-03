@@ -45,6 +45,8 @@ Bugfix
      cause buffer bound checks to be bypassed. Found by Eyal Itkin.
    * Fixed potential arithmetic overflow in mbedtls_base64_decode() that could
      cause buffer bound checks to be bypassed. Found by Eyal Itkin.
+   * Fixed heap overreads in mbedtls_x509_get_time(). Found by Peng
+     Li/Yueh-Hsun Lin, KNOX Security, Samsung Research America.
 
 = mbed TLS 2.4.1 branch released 2016-12-13
 

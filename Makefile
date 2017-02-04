@@ -3,10 +3,6 @@ DESTDIR=/usr/local
 PREFIX=mbedtls_
 OLDPREFIX=polarssl_
 
-#export DEBUG=true
-#export CFLAGS='--coverage'
-#export OFLAGS='-g3 -O0'
-
 .SILENT:
 
 all:	programs tests

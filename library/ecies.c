@@ -317,13 +317,6 @@ int ecies_encrypt(ecp_keypair *key, const unsigned char *input, size_t ilen,
                 md_get_type(md_info))
     );
 
-    printf("Here is your ephemeral key:\n\n");
-    printf("%s\n", mpi_to_string(&(ephemeral_key.Q.X)));
-    printf("%s\n\n", mpi_to_string(&(ephemeral_key.Q.Y)));
-
-    printf("Here is your shared key:\n\n");
-    printf("%s\n\n", mpi_to_string(&(shared_key)));
-
     ACCUMULATE_AND_CHECK(result, cipher_enc_header_len,
         ecies_write_originator(&cipher_enc_data, output, &ephemeral_key)
     );

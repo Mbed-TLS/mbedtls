@@ -82,7 +82,7 @@ APPS =	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
 	test_suite_rsa$(EXEXT)		test_suite_shax$(EXEXT)		\
 	test_suite_x509parse$(EXEXT)	test_suite_x509write$(EXEXT)	\
 	test_suite_xtea$(EXEXT)		test_suite_version$(EXEXT)	\
-#	test_suite_kdf$(EXEXT)		test_suite_ecies$(EXEXT)
+	test_suite_kdf$(EXEXT)		#test_suite_ecies$(EXEXT)
 
 .SILENT:
 

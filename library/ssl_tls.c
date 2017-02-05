@@ -7645,8 +7645,7 @@ int mbedtls_ssl_set_calc_verify_md( mbedtls_ssl_context *ssl, int md )
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
 #if defined(MBEDTLS_MD5_C)
         case MBEDTLS_SSL_HASH_MD5:
-            ssl->handshake->calc_verify = ssl_calc_verify_tls;
-            break;
+            return MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH;
 #endif
 #if defined(MBEDTLS_SHA1_C)
         case MBEDTLS_SSL_HASH_SHA1:

@@ -5,6 +5,7 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Security
    * Removed MD5 from the allowed hash algorithms for CertificateRequest and
      CertificateVerify messages, to prevent SLOTH attacks against TLS 1.2.
+     Introduced by interoperability fix for #513.
 
 Bugfix
    * Fix the redefinition of macro ssl_set_bio to an undefined symbol

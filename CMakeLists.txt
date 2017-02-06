@@ -115,6 +115,7 @@ if(ENABLE_ZLIB_SUPPORT)
 
     if(ZLIB_FOUND)
         include_directories(${ZLIB_INCLUDE_DIR})
+        execute_process(COMMAND ${PERL_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/config.pl -f ${CMAKE_SOURCE_DIR}/include/mbedtls/config.h set MBEDTLS_ZLIB_SUPPORT)
     endif(ZLIB_FOUND)
 endif(ENABLE_ZLIB_SUPPORT)
 

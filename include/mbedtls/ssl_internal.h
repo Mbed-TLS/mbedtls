@@ -480,7 +480,7 @@ void mbedtls_ssl_dtls_replay_update( mbedtls_ssl_context *ssl );
 #endif
 
 /* constant-time buffer comparison */
-static inline int mbedtls_ssl_safer_memcmp( const void *a, const void *b, size_t n )
+static inline int mbedtls_ssl_safe_byte_cmp( const void *a, const void *b, size_t n )
 {
     size_t i;
     const unsigned char *A = (const unsigned char *) a;

@@ -2307,7 +2307,7 @@
 #define rsa_self_test mbedtls_rsa_self_test
 #define rsa_set_padding mbedtls_rsa_set_padding
 #define rsa_sign_func mbedtls_rsa_sign_func
-#define safer_memcmp mbedtls_ssl_safer_memcmp
+#define safer_memcmp mbedtls_ssl_safe_byte_cmp
 #define set_alarm mbedtls_set_alarm
 #define sha1 mbedtls_sha1
 #define sha1_context mbedtls_sha1_context

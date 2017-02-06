@@ -1757,7 +1757,7 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
             MBEDTLS_SSL_DEBUG_BUF( 4, "computed mac", computed_mac,
                                               ssl->transform_in->maclen );
 
-            if( mbedtls_ssl_safer_memcmp( ssl->in_iv + ssl->in_msglen, computed_mac,
+            if( mbedtls_ssl_safe_byte_cmp( ssl->in_iv + ssl->in_msglen, computed_mac,
                               ssl->transform_in->maclen ) != 0 )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "message mac does not match" ) );
@@ -1985,7 +1985,7 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_BUF( 4, "computed mac", ssl->in_msg + ssl->in_msglen,
                        ssl->transform_in->maclen );
 
-        if( mbedtls_ssl_safer_memcmp( tmp, ssl->in_msg + ssl->in_msglen,
+        if( mbedtls_ssl_safe_byte_cmp( tmp, ssl->in_msg + ssl->in_msglen,
                          ssl->transform_in->maclen ) != 0 )
         {
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
@@ -5185,7 +5185,7 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_BAD_HS_FINISHED );
     }
 
-    if( mbedtls_ssl_safer_memcmp( ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl ),
+    if( mbedtls_ssl_safe_byte_cmp( ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl ),
                       buf, hash_len ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );

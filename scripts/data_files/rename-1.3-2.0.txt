@@ -1850,7 +1850,7 @@ rsa_rsassa_pss_verify_ext mbedtls_rsa_rsassa_pss_verify_ext
 rsa_self_test mbedtls_rsa_self_test
 rsa_set_padding mbedtls_rsa_set_padding
 rsa_sign_func mbedtls_rsa_sign_func
-safer_memcmp mbedtls_ssl_safer_memcmp
+safer_memcmp mbedtls_ssl_safe_byte_cmp
 set_alarm mbedtls_set_alarm
 sha1 mbedtls_sha1
 sha1_context mbedtls_sha1_context

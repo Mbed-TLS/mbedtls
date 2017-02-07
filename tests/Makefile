@@ -82,7 +82,7 @@ APPS =	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
 	test_suite_rsa$(EXEXT)		test_suite_shax$(EXEXT)		\
 	test_suite_x509parse$(EXEXT)	test_suite_x509write$(EXEXT)	\
 	test_suite_xtea$(EXEXT)		test_suite_version$(EXEXT)	\
-	test_suite_kdf$(EXEXT)		#test_suite_ecies$(EXEXT)
+	test_suite_kdf$(EXEXT)		test_suite_ecies$(EXEXT)
 
 .SILENT:
 
@@ -183,6 +183,11 @@ test_suite_hmac_drbg.nopr.c : suites/test_suite_hmac_drbg.function suites/test_s
 test_suite_hmac_drbg.pr.c : suites/test_suite_hmac_drbg.function suites/test_suite_hmac_drbg.pr.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites test_suite_hmac_drbg test_suite_hmac_drbg.pr
+
+test_suite_ecies.c : suites/test_suite_ecies.function suites/test_suite_ecies.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+	echo   "  Generate	$@"
+	scripts/generate_code.pl suites test_suite_ecies test_suite_ecies
+
 
 %.c : suites/%.function suites/%.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"

@@ -88,16 +88,6 @@ do { \
 #define ECIES_HMAC_TYPE POLARSSL_MD_SHA256
 #define ECIES_KDF_TYPE POLARSSL_KDF_KDF2
 
-static const char * mpi_to_string(const mpi *X) {
-
-  char *result =  malloc (300);
-  size_t slen = 200;
-
-  mpi_write_string(X, 16, result, &slen);
-  return result;
-
-}
-
 static int ecies_ka(ecp_keypair *public, const ecp_keypair *private,
         mpi *shared, int(*f_rng)(void *, unsigned char *, size_t), void *p_rng)
 {

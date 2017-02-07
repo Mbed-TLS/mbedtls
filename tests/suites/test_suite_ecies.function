@@ -1,0 +1,69 @@
+/* BEGIN_HEADER */
+#include <polarssl/config.h> 
+#include "polarssl/platform.h"
+
+#include "polarssl/ecies.h"
+#include "polarssl/ecies_envelope.h"
+
+#include "polarssl/pk.h"
+#include "polarssl/cipher.h"
+#include "polarssl/ecdh.h"
+#include "polarssl/md.h"
+#include "polarssl/kdf.h"
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:POLARSSL_ECDSA_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void encrypt_decrypt(char *hex_pubkey_x_string, char *hex_pubkey_y_string, char *hex_privkey_string, char *hex_src_string)
+{
+  int id; // Elliptic Curve id for NIST-P256
+  ecp_keypair keypair;
+  size_t pt_len;
+
+  //  char *hex_pubkey_x_string = "c5f875c70b5202f41d76d681e7f112fc81194e9894080825e0ac265d8a9f12f4";
+  //  char *hex_pubkey_y_string = "6b273f302117f01122f30cfe34390f62f9e8d2f7b78f0970dda8c11f566b71b9";
+  //  char *hex_privkey_string = "0656b51aa5546f37e1cac90a073be28ae49c20c005f4eb8b7de95584653c2936";
+  //  char *hex_src_string = "7bd3ea956f4b938ebe83ef9a75ddbda16717e924dd4e45202560bf5f0cffbffcdd23be3ae08ff30503d698ed08568ff6b3f6b9fdc9ea79c8e53a838cc8566a8b52ce7c21b2b067e778925a066c970a6c37b8a6cfc53145f24bf698c352078a7f0409b53196e00c619237454c190b970842bb6629c0def7f166d19565127cbce0"; // the message;
+  int src_str_len = strlen(hex_src_string)/2;
+  unsigned char src_str[src_str_len];
+  int encrypted_out_length = 241 + 115;
+  unsigned char crypt_output[encrypted_out_length];
+  unsigned char encrypted_string[encrypted_out_length*2];
+
+  unsigned char decrypt_output[encrypted_out_length];
+  size_t encrypted_olen; // decrypted message length. Should be plaintext length + macsize.
+
+  size_t decrypted_olen; // Decrypted output should be the same as src_string.
+
+  unsigned char decrypted_string[src_str_len];
+  rnd_pseudo_info rnd_info_en;
+  rnd_pseudo_info rnd_info_de;
+
+  id = POLARSSL_ECP_DP_SECP256R1;
+
+  memset(src_str, 0x00, 32);
+  pt_len = unhexify( src_str, hex_src_string );  
+  memset( &rnd_info_en, 0x00, sizeof( rnd_pseudo_info ) );
+  memset( &rnd_info_de, 0x00, sizeof( rnd_pseudo_info ) );
+  // Initialize the keypair
+
+  ecp_keypair_init(&keypair);
+  ecp_use_known_dp(&keypair.grp, id);
+  ecp_point_read_string(&keypair.Q, 16, hex_pubkey_x_string, hex_pubkey_y_string);
+  mpi_read_string(&keypair.d, 16, hex_privkey_string);
+
+TEST_ASSERT(ecies_encrypt(&keypair, src_str, src_str_len,  crypt_output, &encrypted_olen, sizeof(crypt_output), &rnd_pseudo_rand,  &rnd_info_en) == 0);
+
+hexify(encrypted_string, crypt_output, pt_len);
+
+TEST_ASSERT(ecies_decrypt(&keypair, crypt_output, sizeof(crypt_output), decrypt_output, &decrypted_olen, sizeof(decrypt_output),&rnd_pseudo_rand, &rnd_info_de) == 0);
+hexify(decrypted_string, decrypt_output, pt_len);
+TEST_ASSERT(strncmp((char *) decrypted_string , hex_src_string, src_str_len) == 0);
+
+ 
+}
+/* END_CASE */

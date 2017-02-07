@@ -1,0 +1,15 @@
+image: ubuntu:xenial
+
+variables:
+
+before_script:
+  - apt-get --quiet update --yes
+  - apt-get --quiet install --yes build-essential make
+
+build:
+  script:
+    - make
+    - make check
+  artifacts:
+    paths:
+    - library/libmbedtls.a

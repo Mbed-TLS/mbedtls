@@ -61,7 +61,10 @@ int main( void )
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+
+#if !defined(_MSC_VER)
 #include <inttypes.h>
+#endif
 
 #if !defined(_WIN32)
 #include <signal.h>
@@ -1040,8 +1043,13 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "renego_period" ) == 0 )
         {
-            if( sscanf( q, "%" SCNu64, &opt.renego_period ) != 1 ||
-                opt.renego_period < 2 )
+#if defined(_MSC_VER)
+            opt.renego_period = _strtoui64( q, NULL, 10 );
+#else
+            if( sscanf( q, "%" SCNu64, &opt.renego_period ) != 1 )
+                goto usage;
+#endif /* _MSC_VER */
+            if( opt.renego_period < 2 )
                 goto usage;
         }
         else if( strcmp( p, "exchanges" ) == 0 )

@@ -2437,7 +2437,6 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
         default:
             *olen = 0;
             return;
-            break;
     }
 
     buf[8] = 0x00; /* unsupported srtp_mki variable length vector set to 0 */

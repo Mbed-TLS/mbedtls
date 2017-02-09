@@ -658,7 +658,7 @@ static int ssl_parse_alpn_ext( mbedtls_ssl_context *ssl,
 static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
                                const unsigned char *buf, size_t len )
 {
-    enum mbedtls_DTLS_SRTP_protection_profiles client_protection = MBEDTLS_SRTP_UNSET_PROFILE;
+    mbedtls_dtls_srtp_protection_profiles client_protection = MBEDTLS_SRTP_UNSET_PROFILE;
     size_t i,j;
     uint16_t profile_length;
 

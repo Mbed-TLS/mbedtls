@@ -6377,7 +6377,7 @@ const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_ALPN */
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
-int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf, const enum mbedtls_DTLS_SRTP_protection_profiles *profiles, size_t profiles_number)
+int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf, const mbedtls_dtls_srtp_protection_profiles *profiles, size_t profiles_number)
 {
     size_t i;
     /* check in put validity : must be a list of profiles from enumeration */
@@ -6387,7 +6387,7 @@ int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf, co
     }
 
     mbedtls_free(conf->dtls_srtp_profiles_list);
-    conf->dtls_srtp_profiles_list = (enum mbedtls_DTLS_SRTP_protection_profiles *)mbedtls_calloc(1, profiles_number*sizeof(enum mbedtls_DTLS_SRTP_protection_profiles));
+    conf->dtls_srtp_profiles_list = (mbedtls_dtls_srtp_protection_profiles *)mbedtls_calloc(1, profiles_number*sizeof(mbedtls_dtls_srtp_protection_profiles));
 
     for (i=0; i<profiles_number; i++) {
         switch (profiles[i]) {
@@ -6411,7 +6411,7 @@ int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf, co
     return( 0 );
 }
 
-enum mbedtls_DTLS_SRTP_protection_profiles mbedtls_ssl_get_dtls_srtp_protection_profile( const mbedtls_ssl_context *ssl)
+mbedtls_dtls_srtp_protection_profiles mbedtls_ssl_get_dtls_srtp_protection_profile( const mbedtls_ssl_context *ssl)
 {
     return( ssl->chosen_dtls_srtp_profile);
 }

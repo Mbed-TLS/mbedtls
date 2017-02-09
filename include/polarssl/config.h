@@ -2063,6 +2063,31 @@
 #define POLARSSL_SHA512_C
 
 /**
+ * \def MINIMAL_SUPPORTED_MD_ALG
+ *
+ * minimal supported md algorithm.
+ * The value should be one of the enumerations in
+ * md_type_t defined in md.h
+ * typedef enum {
+ *      POLARSSL_MD_NONE=0,
+ *      POLARSSL_MD_MD2,
+ *      POLARSSL_MD_MD4,
+ *      POLARSSL_MD_MD5,
+ *      POLARSSL_MD_SHA1,
+ *      POLARSSL_MD_SHA224,
+ *      POLARSSL_MD_SHA256,
+ *      POLARSSL_MD_SHA384,
+ *      POLARSSL_MD_SHA512,
+ *      POLARSSL_MD_RIPEMD160,
+ *  } md_type_t;
+ *
+ * Module:  library/x509_crt.c
+ * Caller:
+ *
+ */
+#define POLARSSL_MINIMAL_SUPPORTED_MD_ALG  POLARSSL_MD_SHA1
+
+/**
  * \def POLARSSL_SSL_CACHE_C
  *
  * Enable simple SSL cache implementation.

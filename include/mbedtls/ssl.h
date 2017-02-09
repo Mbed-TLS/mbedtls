@@ -941,8 +941,8 @@ struct mbedtls_ssl_context
      * use_srtp extension
      */
     enum mbedtls_DTLS_SRTP_protection_profiles chosen_dtls_srtp_profile; /*!< negotiated SRTP profile */
-    unsigned char *dtls_srtp_keys; /*<! master keys and master salt for SRTP generated during handshake */
-    size_t dtls_srtp_keys_len; /*<! length in bytes of master keys and master salt for SRTP generated during handshake */
+    unsigned char *dtls_srtp_keys; /*!< master keys and master salt for SRTP generated during handshake */
+    size_t dtls_srtp_keys_len; /*!< length in bytes of master keys and master salt for SRTP generated during handshake */
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 
     /*
@@ -2041,8 +2041,8 @@ const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl );
 /**
  * \brief                   Set the supported DTLS-SRTP protection profiles.
  *
- * \param ssl               SSL configuration
- * \param protos            List of supported protection profiles,
+ * \param conf              SSL configuration
+ * \param profiles          List of supported protection profiles,
  *                          in decreasing preference order.
  * \param profiles_number   Number of supported profiles.
  *

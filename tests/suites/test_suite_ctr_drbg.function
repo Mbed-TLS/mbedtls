@@ -17,6 +17,34 @@ int mbedtls_entropy_func( void *data, unsigned char *buf, size_t len )
  */
 
 /* BEGIN_CASE */
+void ctr_drbg_special_behaviours( )
+{
+    mbedtls_ctr_drbg_context ctx;
+    unsigned char output[512];
+    unsigned char additional[512];
+
+    mbedtls_ctr_drbg_init( &ctx );
+    memset( output, 0, sizeof( output ) );
+    memset( additional, 0, sizeof( additional ) );
+
+    TEST_ASSERT( mbedtls_ctr_drbg_random_with_add( &ctx,
+                        output, MBEDTLS_CTR_DRBG_MAX_REQUEST + 1,
+                        additional, 16 ) ==
+                        MBEDTLS_ERR_CTR_DRBG_REQUEST_TOO_BIG );
+    TEST_ASSERT( mbedtls_ctr_drbg_random_with_add( &ctx,
+                        output, 16,
+                        additional, MBEDTLS_CTR_DRBG_MAX_INPUT + 1 ) ==
+                        MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG );
+
+    TEST_ASSERT( mbedtls_ctr_drbg_reseed( &ctx, additional,
+                        MBEDTLS_CTR_DRBG_MAX_SEED_INPUT + 1 ) ==
+                        MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG );
+exit:
+    mbedtls_ctr_drbg_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void ctr_drbg_validate_pr( char *add_init_string, char *entropy_string,
                            char *add1_string, char *add2_string,
                            char *result_str )
@@ -188,6 +216,6 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void ctr_drbg_selftest( )
 {
-    TEST_ASSERT( mbedtls_ctr_drbg_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_ctr_drbg_self_test( 1 ) == 0 );
 }
 /* END_CASE */

@@ -1,4 +1,5 @@
 /* BEGIN_HEADER */
+#include "mbedtls/x509.h"
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/x509_crl.h"
 #include "mbedtls/x509_csr.h"
@@ -590,6 +591,39 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_X509_USE_C */
+void x509_get_time( int tag,  char *time_str, int ret,
+                    int year, int mon, int day,
+                    int hour, int min, int sec )
+{
+    mbedtls_x509_time time;
+    unsigned char buf[17];
+    unsigned char* start = buf;
+    unsigned char* end = buf;
+
+    memset( &time, 0x00, sizeof( time ) );
+    *end = (unsigned char)tag; end++;
+    if( tag == MBEDTLS_ASN1_UTC_TIME )
+        *end = 13;
+    else
+        *end = 15;
+    end++;
+    memcpy( end, time_str, (size_t)*(end - 1) );
+    end += *(end - 1);
+
+    TEST_ASSERT( mbedtls_x509_get_time( &start, end, &time ) == ret );
+    if( ret == 0 )
+    {
+        TEST_ASSERT( year == time.year );
+        TEST_ASSERT( mon  == time.mon  );
+        TEST_ASSERT( day  == time.day  );
+        TEST_ASSERT( hour == time.hour );
+        TEST_ASSERT( min  == time.min  );
+        TEST_ASSERT( sec  == time.sec  );
+    }
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT */
 void x509_parse_rsassa_pss_params( char *hex_params, int params_tag,
                                    int ref_msg_md, int ref_mgf_md,
@@ -623,6 +657,6 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_SELF_TEST */
 void x509_selftest()
 {
-    TEST_ASSERT( mbedtls_x509_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_x509_self_test( 1 ) == 0 );
 }
 /* END_CASE */

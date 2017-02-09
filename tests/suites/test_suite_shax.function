@@ -112,20 +112,20 @@ void mbedtls_sha512(char *hex_src_string, char *hex_hash_string )
 /* BEGIN_CASE depends_on:MBEDTLS_SHA1_C:MBEDTLS_SELF_TEST */
 void sha1_selftest()
 {
-    TEST_ASSERT( mbedtls_sha1_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_sha1_self_test( 1 ) == 0 );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA256_C:MBEDTLS_SELF_TEST */
 void sha256_selftest()
 {
-    TEST_ASSERT( mbedtls_sha256_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_sha256_self_test( 1 ) == 0 );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA512_C:MBEDTLS_SELF_TEST */
 void sha512_selftest()
 {
-    TEST_ASSERT( mbedtls_sha512_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_sha512_self_test( 1 ) == 0 );
 }
 /* END_CASE */

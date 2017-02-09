@@ -727,6 +727,9 @@ ctr_drbg_seed_file:"data_files/ctr_drbg_seed":0
 CTR_DRBG write/update seed file
 ctr_drbg_seed_file:"no_such_dir/file":MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR
 
+CTR_DRBG Special Behaviours
+ctr_drbg_special_behaviours:
+
 CTR_DRBG self test
 ctr_drbg_selftest:
 

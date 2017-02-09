@@ -14,6 +14,10 @@ conf() {
     $SCRIPT -f $FILE $@
 }
 
+
+# Set the target specific header
+conf set YOTTA_CFG_MBEDTLS_TARGET_CONFIG_FILE \"mbedtls/target_config.h\"
+
 # not supported on mbed OS, nor used by mbed Client
 conf unset MBEDTLS_NET_C
 conf unset MBEDTLS_TIMING_C
@@ -68,7 +72,6 @@ conf unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
 conf unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
 conf unset MBEDTLS_SSL_FALLBACK_SCSV
 conf unset MBEDTLS_SSL_CBC_RECORD_SPLITTING
-conf unset MBEDTLS_SSL_PROTO_SSL3
 conf unset MBEDTLS_SSL_PROTO_TLS1
 conf unset MBEDTLS_SSL_PROTO_TLS1_1
 conf unset MBEDTLS_SSL_TRUNCATED_HMAC

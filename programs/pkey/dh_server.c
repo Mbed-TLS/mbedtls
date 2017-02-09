@@ -30,13 +30,15 @@
 #else
 #include <stdio.h>
 #define mbedtls_printf     printf
+#define mbedtls_time_t     time_t
 #endif
 
 #if defined(MBEDTLS_AES_C) && defined(MBEDTLS_DHM_C) && \
     defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_NET_C) && \
     defined(MBEDTLS_RSA_C) && defined(MBEDTLS_SHA256_C) && \
-    defined(MBEDTLS_FS_IO) && defined(MBEDTLS_CTR_DRBG_C)
-#include "mbedtls/net.h"
+    defined(MBEDTLS_FS_IO) && defined(MBEDTLS_CTR_DRBG_C) && \
+    defined(MBEDTLS_SHA1_C)
+#include "mbedtls/net_sockets.h"
 #include "mbedtls/aes.h"
 #include "mbedtls/dhm.h"
 #include "mbedtls/rsa.h"
@@ -54,7 +56,8 @@
 #if !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_DHM_C) ||     \
     !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_NET_C) ||  \
     !defined(MBEDTLS_RSA_C) || !defined(MBEDTLS_SHA256_C) ||    \
-    !defined(MBEDTLS_FS_IO) || !defined(MBEDTLS_CTR_DRBG_C)
+    !defined(MBEDTLS_FS_IO) || !defined(MBEDTLS_CTR_DRBG_C) || \
+    !defined(MBEDTLS_SHA1_C)
 int main( void )
 {
     mbedtls_printf("MBEDTLS_AES_C and/or MBEDTLS_DHM_C and/or MBEDTLS_ENTROPY_C "
@@ -131,6 +134,7 @@ int main( void )
         ( ret = mbedtls_mpi_read_file( &rsa.QP, 16, f ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_mpi_read_file returned %d\n\n", ret );
+        fclose( f );
         goto exit;
     }
 
@@ -156,6 +160,7 @@ int main( void )
         mbedtls_mpi_read_file( &dhm.G, 16, f ) != 0 )
     {
         mbedtls_printf( " failed\n  ! Invalid DH parameter file\n\n" );
+        fclose( f );
         goto exit;
     }
 

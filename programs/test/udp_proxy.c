@@ -34,11 +34,15 @@
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#define mbedtls_time       time
+#define mbedtls_time_t     time_t
 #define mbedtls_printf     printf
 #endif
 
 #if !defined(MBEDTLS_NET_C)
-#include <stdio.h>
 int main( void )
 {
     mbedtls_printf( "MBEDTLS_NET_C not defined.\n" );
@@ -46,14 +50,11 @@ int main( void )
 }
 #else
 
-#include "mbedtls/net.h"
+#include "mbedtls/net_sockets.h"
 #include "mbedtls/error.h"
 #include "mbedtls/ssl.h"
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
 /* For select() */
 #if (defined(_WIN32) || defined(_WIN32_WCE)) && !defined(EFIX64) && \

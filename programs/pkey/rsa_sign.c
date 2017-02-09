@@ -62,6 +62,7 @@ int main( int argc, char *argv[] )
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
     char filename[512];
 
+    mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
     ret = 1;
 
     if( argc != 2 )
@@ -86,8 +87,6 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
-
     if( ( ret = mbedtls_mpi_read_file( &rsa.N , 16, f ) ) != 0 ||
         ( ret = mbedtls_mpi_read_file( &rsa.E , 16, f ) ) != 0 ||
         ( ret = mbedtls_mpi_read_file( &rsa.D , 16, f ) ) != 0 ||
@@ -98,6 +97,7 @@ int main( int argc, char *argv[] )
         ( ret = mbedtls_mpi_read_file( &rsa.QP, 16, f ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_mpi_read_file returned %d\n\n", ret );
+        fclose( f );
         goto exit;
     }
 
@@ -156,6 +156,8 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "\n  . Done (created \"%s\")\n\n", filename );
 
 exit:
+
+    mbedtls_rsa_free( &rsa );
 
 #if defined(_WIN32)
     mbedtls_printf( "  + Press Enter to exit this program.\n" );

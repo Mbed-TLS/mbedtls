@@ -29,7 +29,10 @@
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
+#include <stdlib.h>
 #define mbedtls_free       free
+#define mbedtls_time       time
+#define mbedtls_time_t     time_t
 #define mbedtls_calloc    calloc
 #define mbedtls_fprintf    fprintf
 #define mbedtls_printf     printf
@@ -47,7 +50,7 @@ int main( void )
 }
 #else
 
-#include "mbedtls/net.h"
+#include "mbedtls/net_sockets.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
@@ -60,6 +63,8 @@ int main( void )
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
+#include <inttypes.h>
 
 #if !defined(_WIN32)
 #include <signal.h>
@@ -110,7 +115,7 @@ int main( void )
 #define DFL_ALLOW_LEGACY        -2
 #define DFL_RENEGOTIATE         0
 #define DFL_RENEGO_DELAY        -2
-#define DFL_RENEGO_PERIOD       -1
+#define DFL_RENEGO_PERIOD       ( (uint64_t)-1 )
 #define DFL_EXCHANGES           1
 #define DFL_MIN_VERSION         -1
 #define DFL_MAX_VERSION         -1
@@ -289,7 +294,7 @@ int main( void )
     "    renegotiation=%%d    default: 0 (disabled)\n"      \
     "    renegotiate=%%d      default: 0 (disabled)\n"      \
     "    renego_delay=%%d     default: -2 (library default)\n" \
-    "    renego_period=%%d    default: (library default)\n"
+    "    renego_period=%%d    default: (2^64 - 1 for TLS, 2^48 - 1 for DTLS)\n"
 #else
 #define USAGE_RENEGO ""
 #endif
@@ -348,6 +353,19 @@ int main( void )
     "    force_ciphersuite=<name>    default: all enabled\n"            \
     " acceptable ciphersuite names:\n"
 
+
+#define PUT_UINT64_BE(out_be,in_le,i)                                   \
+{                                                                       \
+    (out_be)[(i) + 0] = (unsigned char)( ( (in_le) >> 56 ) & 0xFF );    \
+    (out_be)[(i) + 1] = (unsigned char)( ( (in_le) >> 48 ) & 0xFF );    \
+    (out_be)[(i) + 2] = (unsigned char)( ( (in_le) >> 40 ) & 0xFF );    \
+    (out_be)[(i) + 3] = (unsigned char)( ( (in_le) >> 32 ) & 0xFF );    \
+    (out_be)[(i) + 4] = (unsigned char)( ( (in_le) >> 24 ) & 0xFF );    \
+    (out_be)[(i) + 5] = (unsigned char)( ( (in_le) >> 16 ) & 0xFF );    \
+    (out_be)[(i) + 6] = (unsigned char)( ( (in_le) >> 8  ) & 0xFF );    \
+    (out_be)[(i) + 7] = (unsigned char)( ( (in_le) >> 0  ) & 0xFF );    \
+}
+
 /*
  * global options
  */
@@ -374,7 +392,7 @@ struct options
     int allow_legacy;           /* allow legacy renegotiation               */
     int renegotiate;            /* attempt renegotiation?                   */
     int renego_delay;           /* delay before enforcing renegotiation     */
-    int renego_period;          /* period for automatic renegotiation       */
+    uint64_t renego_period;     /* period for automatic renegotiation       */
     int exchanges;              /* number of data exchanges                 */
     int min_version;            /* minimum protocol version accepted        */
     int max_version;            /* maximum protocol version accepted        */
@@ -1038,8 +1056,8 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "renego_period" ) == 0 )
         {
-            opt.renego_period = atoi( q );
-            if( opt.renego_period < 2 || opt.renego_period > 255 )
+            if( sscanf( q, "%" SCNu64, &opt.renego_period ) != 1 ||
+                opt.renego_period < 2 )
                 goto usage;
         }
         else if( strcmp( p, "exchanges" ) == 0 )
@@ -1754,7 +1772,7 @@ int main( int argc, char *argv[] )
 
     if( opt.renego_period != DFL_RENEGO_PERIOD )
     {
-        renego_period[7] = opt.renego_period;
+        PUT_UINT64_BE( renego_period, opt.renego_period, 0 );
         mbedtls_ssl_conf_renegotiation_period( &conf, renego_period );
     }
 #endif

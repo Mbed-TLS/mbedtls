@@ -1,27 +1,69 @@
+#line 1 "helpers.function"
+/*----------------------------------------------------------------------------*/
+/* Headers */
+
+#include <stdlib.h>
+
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define mbedtls_printf     printf
 #define mbedtls_fprintf    fprintf
-#define mbedtls_calloc    calloc
+#define mbedtls_snprintf   snprintf
+#define mbedtls_calloc     calloc
 #define mbedtls_free       free
 #define mbedtls_exit       exit
-#define mbedtls_fprintf    fprintf
-#define mbedtls_printf     printf
-#define mbedtls_snprintf   snprintf
+#define mbedtls_time       time
+#define mbedtls_time_t     time_t
+#define MBEDTLS_EXIT_SUCCESS EXIT_SUCCESS
+#define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
+#endif
+
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
+#include "mbedtls/memory_buffer_alloc.h"
 #endif
 
 #ifdef _MSC_VER
 #include <basetsd.h>
 typedef UINT32 uint32_t;
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
 #else
 #include <stdint.h>
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
+#include <unistd.h>
+#endif
+
+/*----------------------------------------------------------------------------*/
+/* Constants */
+
+#define DEPENDENCY_SUPPORTED        0
+#define DEPENDENCY_NOT_SUPPORTED    1
+
+#define KEY_VALUE_MAPPING_FOUND     0
+#define KEY_VALUE_MAPPING_NOT_FOUND -1
+
+#define DISPATCH_TEST_SUCCESS       0
+#define DISPATCH_TEST_FN_NOT_FOUND  1
+#define DISPATCH_INVALID_TEST_DATA  2
+#define DISPATCH_UNSUPPORTED_SUITE  3
+
+
+/*----------------------------------------------------------------------------*/
+/* Macros */
+
+#define TEST_ASSERT( TEST )                         \
+    do {                                            \
+        if( ! (TEST) )                              \
+        {                                           \
+            test_fail( #TEST, __LINE__, __FILE__ ); \
+            goto exit;                              \
+        }                                           \
+    } while( 0 )
 
 #define assert(a) if( !( a ) )                                      \
 {                                                                   \
@@ -53,11 +95,63 @@ typedef UINT32 uint32_t;
 }
 #endif
 
+
+/*----------------------------------------------------------------------------*/
+/* Global variables */
+
+static int test_errors = 0;
+
+
+/*----------------------------------------------------------------------------*/
+/* Helper Functions */
+
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
+static int redirect_output( FILE** out_stream, const char* path )
+{
+    int stdout_fd = dup( fileno( *out_stream ) );
+
+    if( stdout_fd == -1 )
+    {
+        return -1;
+    }
+
+    fflush( *out_stream );
+    fclose( *out_stream );
+    *out_stream = fopen( path, "w" );
+
+    if( *out_stream == NULL )
+    {
+        return -1;
+    }
+
+    return stdout_fd;
+}
+
+static int restore_output( FILE** out_stream, int old_fd )
+{
+    fflush( *out_stream );
+    fclose( *out_stream );
+
+    *out_stream = fdopen( old_fd, "w" );
+    if( *out_stream == NULL )
+    {
+        return -1;
+    }
+
+    return 0;
+}
+
+static void close_output( FILE* out_stream )
+{
+    fclose( out_stream );
+}
+#endif /* __unix__ || __APPLE__ __MACH__ */
+
 static int unhexify( unsigned char *obuf, const char *ibuf )
 {
     unsigned char c, c2;
     int len = strlen( ibuf ) / 2;
-    assert( strlen( ibuf ) % 2 == 0 ); // must be even number of bytes
+    assert( strlen( ibuf ) % 2 == 0 ); /* must be even number of bytes */
 
     while( *ibuf != 0 )
     {
@@ -298,3 +392,13 @@ static int rnd_pseudo_rand( void *rng_state, unsigned char *output, size_t len )
 
     return( 0 );
 }
+
+static void test_fail( const char *test, int line_no, const char* filename )
+{
+    test_errors++;
+    if( test_errors == 1 )
+        mbedtls_fprintf( stdout, "FAILED\n" );
+    mbedtls_fprintf( stdout, "  %s\n  at line %d, %s\n", test, line_no,
+                        filename );
+}
+

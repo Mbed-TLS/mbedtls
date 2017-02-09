@@ -9,6 +9,7 @@ script:
 - tests/scripts/check-generated-files.sh
 - tests/scripts/check-doxy-blocks.pl
 - tests/scripts/check-names.sh
+- tests/scripts/doxygen.sh
 - cmake -D CMAKE_BUILD_TYPE:String="Check" .
 - make
 - make test
@@ -18,11 +19,17 @@ script:
 - tests/scripts/test-ref-configs.pl
 - tests/scripts/curves.pl
 - tests/scripts/key-exchanges.pl
+after_failure:
+- tests/scripts/travis-log-failure.sh
 env:
   global:
     secure: "barHldniAfXyoWOD/vcO+E6/Xm4fmcaUoC9BeKW+LwsHqlDMLvugaJnmLXkSpkbYhVL61Hzf3bo0KPJn88AFc5Rkf8oYHPjH4adMnVXkf3B9ghHCgznqHsAH3choo6tnPxaFgOwOYmLGb382nQxfE5lUdvnM/W/psQjWt66A1+k="
 
 addons:
+  apt:
+    packages:
+    - doxygen
+    - graphviz
   coverity_scan:
     project:
       name: "ARMmbed/mbedtls"

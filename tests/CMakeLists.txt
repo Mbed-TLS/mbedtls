@@ -10,6 +10,11 @@ if(ENABLE_ZLIB_SUPPORT)
     set(libs ${libs} ${ZLIB_LIBRARIES})
 endif(ENABLE_ZLIB_SUPPORT)
 
+find_package(Perl)
+if(NOT PERL_FOUND)
+    message(FATAL_ERROR "Cannot build test suites without Perl")
+endif()
+
 function(add_test_suite suite_name)
     if(ARGV1)
         set(data_name ${ARGV1})
@@ -19,7 +24,7 @@ function(add_test_suite suite_name)
 
     add_custom_command(
         OUTPUT test_suite_${data_name}.c
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_code.pl ${CMAKE_CURRENT_SOURCE_DIR}/suites test_suite_${suite_name} test_suite_${data_name}
+        COMMAND ${PERL_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_code.pl ${CMAKE_CURRENT_SOURCE_DIR}/suites test_suite_${suite_name} test_suite_${data_name}
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_code.pl mbedtls suites/helpers.function suites/main_test.function suites/test_suite_${suite_name}.function suites/test_suite_${data_name}.data
     )
 
@@ -34,7 +39,9 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANG)
 endif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANG)
 
 if(MSVC)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /w") # no warnings here
+    # If a warning level has been defined, suppress all warnings for test code
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W0")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX-")
 endif(MSVC)
 
 add_test_suite(aes aes.ecb)
@@ -56,6 +63,7 @@ add_test_suite(cipher cipher.des)
 add_test_suite(cipher cipher.gcm)
 add_test_suite(cipher cipher.null)
 add_test_suite(cipher cipher.padding)
+add_test_suite(cmac)
 add_test_suite(ctr_drbg)
 add_test_suite(debug)
 add_test_suite(des)
@@ -82,6 +90,7 @@ add_test_suite(mdx)
 add_test_suite(memory_buffer_alloc)
 add_test_suite(mpi)
 add_test_suite(pem)
+add_test_suite(pkcs1_v15)
 add_test_suite(pkcs1_v21)
 add_test_suite(pkcs5)
 add_test_suite(pk)
@@ -89,6 +98,7 @@ add_test_suite(pkparse)
 add_test_suite(pkwrite)
 add_test_suite(shax)
 add_test_suite(ssl)
+add_test_suite(timing)
 add_test_suite(rsa)
 add_test_suite(version)
 add_test_suite(xtea)
@@ -105,7 +115,7 @@ if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
         if (CMAKE_HOST_UNIX)
             set(command ln -s ${target} ${link})
         else()
-            set(command cmd.exe /c mklink /d ${link} ${target})
+            set(command cmd.exe /c mklink /j ${link} ${target})
         endif()
 
         execute_process(COMMAND ${command}

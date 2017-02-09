@@ -1,5 +1,5 @@
 /*
- *  Temporary "entropy" collector for Cortex-M4
+ *  Hardware entropy collector for the K64F, using Freescale's RNGA
  *
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
@@ -20,46 +20,69 @@
  */
 
 /*
- * WARNING: this is a temporary hack!
- * 1. Currently does not provide strong entropy, should be replaced to use the
- * on-board hardware RNG (see IOTSSL-303)
- * 2. This should be in a separete yotta module which would be a target
+ * WARNING: this is temporary!
+ * This should be in a separate yotta module which would be a target
  * dependency of mbedtls (see IOTSSL-313)
  */
 
-#if defined(TARGET_LIKE_CORTEX_M4)
+#if defined(TARGET_LIKE_K64F)
 
-#include "MK64F12.h"
-#include "core_cm4.h"
-#include <string.h>
+/*
+ * Reference: "K64 Sub-Family Reference Manual, Rev. 2", chapter 34
+ */
 
-unsigned long hardclock( void )
+#include "fsl_clock_manager.h"
+
+/*
+ * Get one byte of entropy from the RNG, assuming it is up and running.
+ * As recommended (34.1.1), get only one bit of each output.
+ */
+static void rng_get_byte( unsigned char *byte )
 {
-    static int dwt_started = 0;
+    size_t bit;
 
-    if( dwt_started == 0 )
+    /* 34.5 Steps 3-4-5: poll SR and read from OR when ready */
+    for( bit = 0; bit < 8; bit++ )
     {
-        CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
-        DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+        while( ( RNG->SR & RNG_SR_OREG_LVL_MASK ) == 0 );
+        *byte |= ( RNG->OR & 1 ) << bit;
     }
-
-    return( DWT->CYCCNT );
 }
 
+/*
+ * Get len bytes of entropy from the hardware RNG.
+ */
 int mbedtls_hardware_poll( void *data,
                     unsigned char *output, size_t len, size_t *olen )
 {
-    unsigned long timer = hardclock();
+    size_t i;
+    int ret;
     ((void) data);
-    *olen = 0;
 
-    if( len < sizeof(unsigned long) )
-        return( 0 );
+    CLOCK_SYS_EnableRngaClock( 0 );
 
-    memcpy( output, &timer, sizeof(unsigned long) );
-    *olen = sizeof(unsigned long);
+    /* Set "Interrupt Mask", "High Assurance" and "Go",
+     * unset "Clear interrupt" and "Sleep" */
+    RNG->CR = RNG_CR_INTM_MASK | RNG_CR_HA_MASK | RNG_CR_GO_MASK;
 
-    return( 0 );
+    for( i = 0; i < len; i++ )
+        rng_get_byte( output + i );
+
+    /* Just be extra sure that we didn't do it wrong */
+    if( ( RNG->SR & RNG_SR_SECV_MASK ) != 0 )
+    {
+        ret = -1;
+        goto cleanup;
+    }
+
+    *olen = len;
+    ret = 0;
+
+cleanup:
+    /* Disable clock to save power - assume we're the only users of RNG */
+    CLOCK_SYS_DisableRngaClock( 0 );
+
+    return( ret );
 }
 
 #endif

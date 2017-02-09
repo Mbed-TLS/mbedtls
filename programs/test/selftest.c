@@ -26,11 +26,13 @@
 #endif
 
 #include "mbedtls/entropy.h"
+#include "mbedtls/entropy_poll.h"
 #include "mbedtls/hmac_drbg.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/dhm.h"
 #include "mbedtls/gcm.h"
 #include "mbedtls/ccm.h"
+#include "mbedtls/cmac.h"
 #include "mbedtls/md2.h"
 #include "mbedtls/md4.h"
 #include "mbedtls/md5.h"
@@ -52,15 +54,18 @@
 #include "mbedtls/ecjpake.h"
 #include "mbedtls/timing.h"
 
-#include <stdio.h>
 #include <string.h>
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
+#include <stdlib.h>
 #define mbedtls_printf     printf
 #define mbedtls_snprintf   snprintf
+#define mbedtls_exit       exit
+#define MBEDTLS_EXIT_SUCCESS EXIT_SUCCESS
+#define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
 #endif
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
@@ -97,10 +102,44 @@ static int run_test_snprintf( void )
             test_snprintf( 5, "123",         3 ) != 0 );
 }
 
+/*
+ * Check if a seed file is present, and if not create one for the entropy
+ * self-test. If this fails, we attempt the test anyway, so no error is passed
+ * back.
+ */
+#if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_ENTROPY_C) && \
+    defined(MBEDTLS_ENTROPY_NV_SEED) && !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
+static void create_entropy_seed_file( void )
+{
+    int result;
+    size_t output_len = 0;
+    unsigned char seed_value[MBEDTLS_ENTROPY_BLOCK_SIZE];
+
+    /* Attempt to read the entropy seed file. If this fails - attempt to write
+     * to the file to ensure one is present. */
+    result = mbedtls_platform_std_nv_seed_read( seed_value,
+                                                    MBEDTLS_ENTROPY_BLOCK_SIZE );
+    if( 0 == result )
+        return;
+
+    result = mbedtls_platform_entropy_poll( NULL,
+                                            seed_value,
+                                            MBEDTLS_ENTROPY_BLOCK_SIZE,
+                                            &output_len );
+    if( 0 != result )
+        return;
+
+    if( MBEDTLS_ENTROPY_BLOCK_SIZE != output_len )
+        return;
+
+    mbedtls_platform_std_nv_seed_write( seed_value, MBEDTLS_ENTROPY_BLOCK_SIZE );
+}
+#endif
+
 int main( int argc, char *argv[] )
 {
-    int ret = 0, v;
-#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
+    int v, suites_tested = 0, suites_failed = 0;
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) && defined(MBEDTLS_SELF_TEST)
     unsigned char buf[1000000];
 #endif
     void *pointer;
@@ -114,7 +153,7 @@ int main( int argc, char *argv[] )
     if( pointer != NULL )
     {
         mbedtls_printf( "all-bits-zero is not a NULL pointer\n" );
-        return( 1 );
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 
     /*
@@ -123,11 +162,14 @@ int main( int argc, char *argv[] )
     if( run_test_snprintf() != 0 )
     {
         mbedtls_printf( "the snprintf implementation is broken\n" );
-        return( 0 );
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 
-    if( argc == 2 && strcmp( argv[1], "-quiet" ) == 0 )
+    if( argc == 2 && ( strcmp( argv[1], "--quiet" ) == 0  ||
+        strcmp( argv[1], "-q" ) == 0 ) )
+    {
         v = 0;
+    }
     else
     {
         v = 1;
@@ -141,139 +183,226 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_MD2_C)
-    if( ( ret = mbedtls_md2_self_test( v ) ) != 0 )
-        return( ret );
+    if( mbedtls_md2_self_test( v )  != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
 #endif
 
 #if defined(MBEDTLS_MD4_C)
-    if( ( ret = mbedtls_md4_self_test( v ) ) != 0 )
-        return( ret );
+    if( mbedtls_md4_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
 #endif
 
 #if defined(MBEDTLS_MD5_C)
-    if( ( ret = mbedtls_md5_self_test( v ) ) != 0 )
-        return( ret );
+    if( mbedtls_md5_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
 #endif
 
 #if defined(MBEDTLS_RIPEMD160_C)
-    if( ( ret = mbedtls_ripemd160_self_test( v ) ) != 0 )
-        return( ret );
+    if( mbedtls_ripemd160_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
 #endif
 
 #if defined(MBEDTLS_SHA1_C)
-    if( ( ret = mbedtls_sha1_self_test( v ) ) != 0 )
-        return( ret );
+    if( mbedtls_sha1_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
 #endif
 
 #if defined(MBEDTLS_SHA256_C)
-    if( ( ret = mbedtls_sha256_self_test( v ) ) != 0 )
-        return( ret );
+    if( mbedtls_sha256_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
 #endif
 
 #if defined(MBEDTLS_SHA512_C)
-    if( ( ret = mbedtls_sha512_self_test( v ) ) != 0 )
-        return( ret );
+    if( mbedtls_sha512_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
 #endif
 
 #if defined(MBEDTLS_ARC4_C)
-    if( ( ret = mbedtls_arc4_self_test( v ) ) != 0 )
-        return( ret );
+    if( mbedtls_arc4_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
 #endif
 
 #if defined(MBEDTLS_DES_C)
-    if( ( ret = mbedtls_des_self_test( v ) ) != 0 )
-        return( ret );
+    if( mbedtls_des_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
 #endif
 
 #if defined(MBEDTLS_AES_C)
-    if( ( ret = mbedtls_aes_self_test( v ) ) != 0 )
-        return( ret );
+    if( mbedtls_aes_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
 #endif
 
 #if defined(MBEDTLS_GCM_C) && defined(MBEDTLS_AES_C)
-    if( ( ret = mbedtls_gcm_self_test( v ) ) != 0 )
-        return( ret );
+    if( mbedtls_gcm_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
 #endif
 
 #if defined(MBEDTLS_CCM_C) && defined(MBEDTLS_AES_C)
-    if( ( ret = mbedtls_ccm_self_test( v ) ) != 0 )
-        return( ret );
+    if( mbedtls_ccm_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
+#endif
+
+#if defined(MBEDTLS_CMAC_C)
+    if( ( mbedtls_cmac_self_test( v ) ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
 #endif
 
 #if defined(MBEDTLS_BASE64_C)
-    if( ( ret = mbedtls_base64_self_test( v ) ) != 0 )
-        return( ret );
+    if( mbedtls_base64_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
 #endif
 
 #if defined(MBEDTLS_BIGNUM_C)
-    if( ( ret = mbedtls_mpi_self_test( v ) ) != 0 )
-        return( ret );
+    if( mbedtls_mpi_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
 #endif
 
 #if defined(MBEDTLS_RSA_C)
-    if( ( ret = mbedtls_rsa_self_test( v ) ) != 0 )
-        return( ret );
+    if( mbedtls_rsa_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
 #endif
 
 #if defined(MBEDTLS_X509_USE_C)
-    if( ( ret = mbedtls_x509_self_test( v ) ) != 0 )
-        return( ret );
+    if( mbedtls_x509_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
 #endif
 
 #if defined(MBEDTLS_XTEA_C)
-    if( ( ret = mbedtls_xtea_self_test( v ) ) != 0 )
-        return( ret );
+    if( mbedtls_xtea_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
 #endif
 
 #if defined(MBEDTLS_CAMELLIA_C)
-    if( ( ret = mbedtls_camellia_self_test( v ) ) != 0 )
-        return( ret );
+    if( mbedtls_camellia_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
 #endif
 
 #if defined(MBEDTLS_CTR_DRBG_C)
-    if( ( ret = mbedtls_ctr_drbg_self_test( v ) ) != 0 )
-        return( ret );
+    if( mbedtls_ctr_drbg_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
 #endif
 
 #if defined(MBEDTLS_HMAC_DRBG_C)
-    if( ( ret = mbedtls_hmac_drbg_self_test( v ) ) != 0 )
-        return( ret );
+    if( mbedtls_hmac_drbg_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
 #endif
 
 #if defined(MBEDTLS_ECP_C)
-    if( ( ret = mbedtls_ecp_self_test( v ) ) != 0 )
-        return( ret );
+    if( mbedtls_ecp_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
 #endif
 
 #if defined(MBEDTLS_ECJPAKE_C)
-    if( ( ret = mbedtls_ecjpake_self_test( v ) ) != 0 )
-        return( ret );
+    if( mbedtls_ecjpake_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
 #endif
 
 #if defined(MBEDTLS_DHM_C)
-    if( ( ret = mbedtls_dhm_self_test( v ) ) != 0 )
-        return( ret );
+    if( mbedtls_dhm_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
 #endif
 
 #if defined(MBEDTLS_ENTROPY_C)
-    if( ( ret = mbedtls_entropy_self_test( v ) ) != 0 )
-        return( ret );
+
+#if defined(MBEDTLS_ENTROPY_NV_SEED) && !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
+    create_entropy_seed_file();
+#endif
+
+    if( mbedtls_entropy_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
 #endif
 
 #if defined(MBEDTLS_PKCS5_C)
-    if( ( ret = mbedtls_pkcs5_self_test( v ) ) != 0 )
-        return( ret );
+    if( mbedtls_pkcs5_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
 #endif
 
 /* Slow tests last */
 
 #if defined(MBEDTLS_TIMING_C)
-    if( ( ret = mbedtls_timing_self_test( v ) ) != 0 )
-        return( ret );
-#endif
-
-#else
-    mbedtls_printf( " MBEDTLS_SELF_TEST not defined.\n" );
+    if( mbedtls_timing_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
 #endif
 
     if( v != 0 )
@@ -285,19 +414,39 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     mbedtls_memory_buffer_alloc_free();
+    if( mbedtls_memory_buffer_alloc_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
+#endif
 
-    if( ( ret = mbedtls_memory_buffer_alloc_self_test( v ) ) != 0 )
-        return( ret );
+#else
+    mbedtls_printf( " MBEDTLS_SELF_TEST not defined.\n" );
 #endif
 
     if( v != 0 )
     {
-        mbedtls_printf( "  [ All tests passed ]\n\n" );
+        mbedtls_printf( "  Executed %d test suites\n\n", suites_tested );
+
+        if( suites_failed > 0)
+        {
+            mbedtls_printf( "  [ %d tests FAIL ]\n\n", suites_failed );
+        }
+        else
+        {
+            mbedtls_printf( "  [ All tests PASS ]\n\n" );
+        }
 #if defined(_WIN32)
         mbedtls_printf( "  Press Enter to exit this program.\n" );
         fflush( stdout ); getchar();
 #endif
     }
 
-    return( ret );
+    if( suites_failed > 0)
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+
+    /* return() is here to prevent compiler warnings */
+    return( MBEDTLS_EXIT_SUCCESS );
 }
+

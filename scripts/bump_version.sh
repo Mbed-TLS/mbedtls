@@ -1,4 +1,17 @@
 #!/bin/bash
+#
+# This file is part of mbed TLS (https://tls.mbed.org)
+#
+# Copyright (c) 2012-2016, ARM Limited, All Rights Reserved
+#
+# Purpose
+#
+# Sets the version numbers in the source code to those given.
+#
+# Usage: bump_version.sh [ --version <version> ] [ --so-crypto <version>]
+#                           [ --so-x509 <version> ] [ --so-tls <version> ]
+#                           [ -v | --verbose ] [ -h | --help ]
+#
 
 VERSION=""
 SOVERSION=""
@@ -109,10 +122,6 @@ mv tmp include/mbedtls/version.h
 sed -e "s/version:\".\{1,\}/version:\"$VERSION\"/g" < tests/suites/test_suite_version.data > tmp
 mv tmp tests/suites/test_suite_version.data
 
-[ $VERBOSE ] && echo "Bumping version in yotta/data/module.json"
-sed -e "s/\"version\": \".\{1,\}\"/\"version\": \"$VERSION\"/g" < yotta/data/module.json > tmp
-mv tmp yotta/data/module.json
-
 [ $VERBOSE ] && echo "Bumping PROJECT_NAME in doxygen/mbedtls.doxyfile and doxygen/input/doc_mainpage.h"
 for i in doxygen/mbedtls.doxyfile doxygen/input/doc_mainpage.h;
 do
@@ -128,3 +137,4 @@ scripts/generate_features.pl
 
 [ $VERBOSE ] && echo "Re-generating visualc files"
 scripts/generate_visualc_files.pl
+

@@ -1,12 +1,23 @@
 #!/bin/sh
 
-# Test various options that are not covered by compat.sh
+# ssl-opt.sh
 #
-# Here the goal is not to cover every ciphersuite/version, but
-# rather specific options (max fragment length, truncated hmac, etc)
-# or procedures (session resumption from cache or ticket, renego, etc).
+# This file is part of mbed TLS (https://tls.mbed.org)
 #
-# Assumes a build with default options.
+# Copyright (c) 2016, ARM Limited, All Rights Reserved
+#
+# Purpose
+#
+# Executes tests to prove various TLS/SSL options and extensions.
+#
+# The goal is not to cover every ciphersuite/version, but instead to cover
+# specific options (max fragment length, truncated hmac, etc) or procedures
+# (session resumption from cache or ticket, renego, etc).
+#
+# The tests assume a build with default options, with exceptions expressed
+# with a dependency.  The tests focus on functionality and do not consider
+# performance.
+#
 
 set -u
 
@@ -33,12 +44,21 @@ MEMCHECK=0
 FILTER='.*'
 EXCLUDE='^$'
 
+SHOW_TEST_NUMBER=0
+RUN_TEST_NUMBER=''
+
+PRESERVE_LOGS=0
+
 print_usage() {
     echo "Usage: $0 [options]"
     printf "  -h|--help\tPrint this help.\n"
     printf "  -m|--memcheck\tCheck memory leaks and errors.\n"
     printf "  -f|--filter\tOnly matching tests are executed (default: '$FILTER')\n"
     printf "  -e|--exclude\tMatching tests are excluded (default: '$EXCLUDE')\n"
+    printf "  -n|--number\tExecute only numbered test (comma-separated, e.g. '245,256')\n"
+    printf "  -s|--show-numbers\tShow test numbers in front of test names\n"
+    printf "  -p|--preserve-logs\tPreserve logs of successful tests as well\n"
+    printf "     --seed\tInteger seed value to use for this test run\n"
 }
 
 get_options() {
@@ -52,6 +72,18 @@ get_options() {
                 ;;
             -m|--memcheck)
                 MEMCHECK=1
+                ;;
+            -n|--number)
+                shift; RUN_TEST_NUMBER=$1
+                ;;
+            -s|--show-numbers)
+                SHOW_TEST_NUMBER=1
+                ;;
+            -p|--preserve-logs)
+                PRESERVE_LOGS=1
+                ;;
+            --seed)
+                shift; SEED="$1"
                 ;;
             -h|--help)
                 print_usage
@@ -130,19 +162,38 @@ not_with_valgrind() {
     fi
 }
 
+# skip the next test if valgrind is NOT in use
+only_with_valgrind() {
+    if [ "$MEMCHECK" -eq 0 ]; then
+        SKIP_NEXT="YES"
+    fi
+}
+
 # multiply the client timeout delay by the given factor for the next test
-needs_more_time() {
+client_needs_more_time() {
     CLI_DELAY_FACTOR=$1
+}
+
+# wait for the given seconds after the client finished in the next test
+server_needs_more_time() {
+    SRV_DELAY_SECONDS=$1
 }
 
 # print_name <name>
 print_name() {
-    printf "$1 "
-    LEN=$(( 72 - `echo "$1" | wc -c` ))
+    TESTS=$(( $TESTS + 1 ))
+    LINE=""
+
+    if [ "$SHOW_TEST_NUMBER" -gt 0 ]; then
+        LINE="$TESTS "
+    fi
+
+    LINE="$LINE$1"
+    printf "$LINE "
+    LEN=$(( 72 - `echo "$LINE" | wc -c` ))
     for i in `seq 1 $LEN`; do printf '.'; done
     printf ' '
 
-    TESTS=$(( $TESTS + 1 ))
 }
 
 # fail <message>
@@ -265,6 +316,9 @@ wait_client_done() {
     wait $DOG_PID
 
     echo "EXIT: $CLI_EXIT" >> $CLI_OUT
+
+    sleep $SRV_DELAY_SECONDS
+    SRV_DELAY_SECONDS=0
 }
 
 # check if the given command uses dtls and sets global variable DTLS
@@ -279,8 +333,10 @@ detect_dtls() {
 # Usage: run_test name [-p proxy_cmd] srv_cmd cli_cmd cli_exit [option [...]]
 # Options:  -s pattern  pattern that must be present in server output
 #           -c pattern  pattern that must be present in client output
+#           -u pattern  lines after pattern must be unique in client output
 #           -S pattern  pattern that must be absent in server output
 #           -C pattern  pattern that must be absent in client output
+#           -U pattern  lines after pattern must be unique in server output
 run_test() {
     NAME="$1"
     shift 1
@@ -292,6 +348,13 @@ run_test() {
     fi
 
     print_name "$NAME"
+
+    # Do we only run numbered tests?
+    if [ "X$RUN_TEST_NUMBER" = "X" ]; then :
+    elif echo ",$RUN_TEST_NUMBER," | grep ",$TESTS," >/dev/null; then :
+    else
+        SKIP_NEXT="YES"
+    fi
 
     # should we skip?
     if [ "X$SKIP_NEXT" = "XYES" ]; then
@@ -408,33 +471,55 @@ run_test() {
 
     # check other assertions
     # lines beginning with == are added by valgrind, ignore them
+    # lines with 'Serious error when reading debug info', are valgrind issues as well
     while [ $# -gt 0 ]
     do
         case $1 in
             "-s")
-                if grep -v '^==' $SRV_OUT | grep "$2" >/dev/null; then :; else
-                    fail "-s $2"
+                if grep -v '^==' $SRV_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then :; else
+                    fail "pattern '$2' MUST be present in the Server output"
                     return
                 fi
                 ;;
 
             "-c")
-                if grep -v '^==' $CLI_OUT | grep "$2" >/dev/null; then :; else
-                    fail "-c $2"
+                if grep -v '^==' $CLI_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then :; else
+                    fail "pattern '$2' MUST be present in the Client output"
                     return
                 fi
                 ;;
 
             "-S")
-                if grep -v '^==' $SRV_OUT | grep "$2" >/dev/null; then
-                    fail "-S $2"
+                if grep -v '^==' $SRV_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then
+                    fail "pattern '$2' MUST NOT be present in the Server output"
                     return
                 fi
                 ;;
 
             "-C")
-                if grep -v '^==' $CLI_OUT | grep "$2" >/dev/null; then
-                    fail "-C $2"
+                if grep -v '^==' $CLI_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then
+                    fail "pattern '$2' MUST NOT be present in the Client output"
+                    return
+                fi
+                ;;
+
+                # The filtering in the following two options (-u and -U) do the following
+                #   - ignore valgrind output
+                #   - filter out everything but lines right after the pattern occurances
+                #   - keep one of each non-unique line
+                #   - count how many lines remain
+                # A line with '--' will remain in the result from previous outputs, so the number of lines in the result will be 1
+                # if there were no duplicates.
+            "-U")
+                if [ $(grep -v '^==' $SRV_OUT | grep -v 'Serious error when reading debug info' | grep -A1 "$2" | grep -v "$2" | sort | uniq -d | wc -l) -gt 1 ]; then
+                    fail "lines following pattern '$2' must be unique in Server output"
+                    return
+                fi
+                ;;
+
+            "-u")
+                if [ $(grep -v '^==' $CLI_OUT | grep -v 'Serious error when reading debug info' | grep -A1 "$2" | grep -v "$2" | sort | uniq -d | wc -l) -gt 1 ]; then
+                    fail "lines following pattern '$2' must be unique in Client output"
                     return
                 fi
                 ;;
@@ -460,6 +545,11 @@ run_test() {
 
     # if we're here, everything is ok
     echo "PASS"
+    if [ "$PRESERVE_LOGS" -gt 0 ]; then
+        mv $SRV_OUT o-srv-${TESTS}.log
+        mv $CLI_OUT o-cli-${TESTS}.log
+    fi
+
     rm -f $SRV_OUT $CLI_OUT $PXY_OUT
 }
 
@@ -496,6 +586,12 @@ if [ ! -x "$P_PXY" ]; then
     echo "Command '$P_PXY' is not an executable file"
     exit 1
 fi
+if [ "$MEMCHECK" -gt 0 ]; then
+    if which valgrind >/dev/null 2>&1; then :; else
+        echo "Memcheck not possible. Valgrind not found"
+        exit 1
+    fi
+fi
 if which $OPENSSL_CMD >/dev/null 2>&1; then :; else
     echo "Command '$OPENSSL_CMD' not found"
     exit 1
@@ -513,6 +609,7 @@ else
     DOG_DELAY=10
 fi
 CLI_DELAY_FACTOR=1
+SRV_DELAY_SECONDS=0
 
 # Pick a "unique" server port in the range 10000-19999, and a proxy port
 PORT_BASE="0000$$"
@@ -525,7 +622,7 @@ unset PORT_BASE
 # +SRV_PORT will be replaced by either $SRV_PORT or $PXY_PORT later
 P_SRV="$P_SRV server_addr=127.0.0.1 server_port=$SRV_PORT"
 P_CLI="$P_CLI server_addr=127.0.0.1 server_port=+SRV_PORT"
-P_PXY="$P_PXY server_addr=127.0.0.1 server_port=$SRV_PORT listen_addr=127.0.0.1 listen_port=$PXY_PORT"
+P_PXY="$P_PXY server_addr=127.0.0.1 server_port=$SRV_PORT listen_addr=127.0.0.1 listen_port=$PXY_PORT ${SEED:+"seed=$SEED"}"
 O_SRV="$O_SRV -accept $SRV_PORT -dhparam data_files/dhparams.pem"
 O_CLI="$O_CLI -connect localhost:+SRV_PORT"
 G_SRV="$G_SRV -p $SRV_PORT"
@@ -565,14 +662,24 @@ run_test    "Default, DTLS" \
             -s "Protocol is DTLSv1.2" \
             -s "Ciphersuite is TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384"
 
+# Test for uniqueness of IVs in AEAD ciphersuites
+run_test    "Unique IV in GCM" \
+            "$P_SRV exchanges=20 debug_level=4" \
+            "$P_CLI exchanges=20 debug_level=4 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384" \
+            0 \
+            -u "IV used" \
+            -U "IV used"
+
 # Tests for rc4 option
 
+requires_config_enabled MBEDTLS_REMOVE_ARC4_CIPHERSUITES
 run_test    "RC4: server disabled, client enabled" \
             "$P_SRV" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             1 \
             -s "SSL - The server has no ciphersuites in common"
 
+requires_config_enabled MBEDTLS_REMOVE_ARC4_CIPHERSUITES
 run_test    "RC4: server half, client enabled" \
             "$P_SRV arc4=1" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
@@ -695,6 +802,7 @@ run_test    "Encrypt then MAC: client disabled, server enabled" \
             -C "using encrypt then mac" \
             -S "using encrypt then mac"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Encrypt then MAC: client SSLv3, server enabled" \
             "$P_SRV debug_level=3 min_version=ssl3 \
              force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
@@ -707,13 +815,14 @@ run_test    "Encrypt then MAC: client SSLv3, server enabled" \
             -C "using encrypt then mac" \
             -S "using encrypt then mac"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Encrypt then MAC: client enabled, server SSLv3" \
             "$P_SRV debug_level=3 force_version=ssl3 \
              force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
             "$P_CLI debug_level=3 min_version=ssl3" \
             0 \
             -c "client hello, adding encrypt_then_mac extension" \
-            -s "found encrypt then mac extension" \
+            -S "found encrypt then mac extension" \
             -S "server hello, adding encrypt then mac extension" \
             -C "found encrypt_then_mac extension" \
             -C "using encrypt then mac" \
@@ -754,6 +863,7 @@ run_test    "Extended Master Secret: client disabled, server enabled" \
             -C "using extended master secret" \
             -S "using extended master secret"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Extended Master Secret: client SSLv3, server enabled" \
             "$P_SRV debug_level=3 min_version=ssl3" \
             "$P_CLI debug_level=3 force_version=ssl3" \
@@ -765,12 +875,13 @@ run_test    "Extended Master Secret: client SSLv3, server enabled" \
             -C "using extended master secret" \
             -S "using extended master secret"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Extended Master Secret: client enabled, server SSLv3" \
             "$P_SRV debug_level=3 force_version=ssl3" \
             "$P_CLI debug_level=3 min_version=ssl3" \
             0 \
             -c "client hello, adding extended_master_secret extension" \
-            -s "found extended master secret extension" \
+            -S "found extended master secret extension" \
             -S "server hello, adding extended master secret extension" \
             -C "found extended_master_secret extension" \
             -C "using extended master secret" \
@@ -883,6 +994,7 @@ run_test    "CBC Record splitting: TLS 1.0, splitting" \
             -s "Read from client: 1 bytes read" \
             -s "122 bytes read"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "CBC Record splitting: SSLv3, splitting" \
             "$P_SRV min_version=ssl3" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
@@ -1489,6 +1601,19 @@ run_test    "Renegotiation: DTLS, server-initiated" \
             -s "=> renegotiate" \
             -s "write hello request"
 
+run_test    "Renegotiation: DTLS, renego_period overflow" \
+            "$P_SRV debug_level=3 dtls=1 exchanges=4 renegotiation=1 renego_period=18446462598732840962 auth_mode=optional" \
+            "$P_CLI debug_level=3 dtls=1 exchanges=4 renegotiation=1" \
+            0 \
+            -c "client hello, adding renegotiation extension" \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -s "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -s "record counter limit reached: renegotiate" \
+            -c "=> renegotiate" \
+            -s "=> renegotiate" \
+            -s "write hello request" \
+
 requires_gnutls
 run_test    "Renegotiation: DTLS, gnutls server, client-initiated" \
             "$G_SRV -u --mtu 4096" \
@@ -1554,6 +1679,64 @@ run_test    "Renego ext: gnutls client unsafe, server break legacy" \
             -S "received TLS_EMPTY_RENEGOTIATION_INFO\|found renegotiation extension" \
             -S "server hello, secure renegotiation extension"
 
+# Tests for silently dropping trailing extra bytes in .der certificates
+
+requires_gnutls
+run_test    "DER format: no trailing bytes" \
+            "$P_SRV crt_file=data_files/server5-der0.crt \
+             key_file=data_files/server5.key" \
+            "$G_CLI " \
+            0 \
+            -c "Handshake was completed" \
+
+requires_gnutls
+run_test    "DER format: with a trailing zero byte" \
+            "$P_SRV crt_file=data_files/server5-der1a.crt \
+             key_file=data_files/server5.key" \
+            "$G_CLI " \
+            0 \
+            -c "Handshake was completed" \
+
+requires_gnutls
+run_test    "DER format: with a trailing random byte" \
+            "$P_SRV crt_file=data_files/server5-der1b.crt \
+             key_file=data_files/server5.key" \
+            "$G_CLI " \
+            0 \
+            -c "Handshake was completed" \
+
+requires_gnutls
+run_test    "DER format: with 2 trailing random bytes" \
+            "$P_SRV crt_file=data_files/server5-der2.crt \
+             key_file=data_files/server5.key" \
+            "$G_CLI " \
+            0 \
+            -c "Handshake was completed" \
+
+requires_gnutls
+run_test    "DER format: with 4 trailing random bytes" \
+            "$P_SRV crt_file=data_files/server5-der4.crt \
+             key_file=data_files/server5.key" \
+            "$G_CLI " \
+            0 \
+            -c "Handshake was completed" \
+
+requires_gnutls
+run_test    "DER format: with 8 trailing random bytes" \
+            "$P_SRV crt_file=data_files/server5-der8.crt \
+             key_file=data_files/server5.key" \
+            "$G_CLI " \
+            0 \
+            -c "Handshake was completed" \
+
+requires_gnutls
+run_test    "DER format: with 9 trailing random bytes" \
+            "$P_SRV crt_file=data_files/server5-der9.crt \
+             key_file=data_files/server5.key" \
+            "$G_CLI " \
+            0 \
+            -c "Handshake was completed" \
+
 # Tests for auth_mode
 
 run_test    "Authentication: server badcert, client required" \
@@ -1585,6 +1768,24 @@ run_test    "Authentication: server badcert, client none" \
             -C "! The certificate is not correctly signed by the trusted CA" \
             -C "! mbedtls_ssl_handshake returned" \
             -C "X509 - Certificate verification failed"
+
+run_test    "Authentication: client SHA256, server required" \
+            "$P_SRV auth_mode=required" \
+            "$P_CLI debug_level=3 crt_file=data_files/server6.crt \
+             key_file=data_files/server6.key \
+             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384" \
+            0 \
+            -c "Supported Signature Algorithm found: 4," \
+            -c "Supported Signature Algorithm found: 5,"
+
+run_test    "Authentication: client SHA384, server required" \
+            "$P_SRV auth_mode=required" \
+            "$P_CLI debug_level=3 crt_file=data_files/server6.crt \
+             key_file=data_files/server6.key \
+             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256" \
+            0 \
+            -c "Supported Signature Algorithm found: 4," \
+            -c "Supported Signature Algorithm found: 5,"
 
 run_test    "Authentication: client badcert, server required" \
             "$P_SRV debug_level=3 auth_mode=required" \
@@ -1674,6 +1875,7 @@ run_test    "Authentication: client no cert, openssl server optional" \
             -c "skip write certificate verify" \
             -C "! mbedtls_ssl_handshake returned"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Authentication: client no cert, ssl3" \
             "$P_SRV debug_level=3 auth_mode=optional force_version=ssl3" \
             "$P_CLI debug_level=3 crt_file=none key_file=none min_version=ssl3" \
@@ -2547,6 +2749,7 @@ run_test    "ECJPAKE: working, TLS" \
             -S "None of the common ciphersuites is usable" \
             -S "SSL - Verification of the message MAC failed"
 
+server_needs_more_time 1
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE
 run_test    "ECJPAKE: password mismatch, TLS" \
             "$P_SRV debug_level=3 ecjpake_pw=bla" \
@@ -2574,6 +2777,7 @@ run_test    "ECJPAKE: working, DTLS, no cookie" \
             -C "re-using cached ecjpake parameters" \
             -S "SSL - Verification of the message MAC failed"
 
+server_needs_more_time 1
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE
 run_test    "ECJPAKE: password mismatch, DTLS" \
             "$P_SRV debug_level=3 dtls=1 ecjpake_pw=bla" \
@@ -2593,6 +2797,7 @@ run_test    "ECJPAKE: working, DTLS, nolog" \
 
 # Tests for ciphersuites per version
 
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Per-version suites: SSL3" \
             "$P_SRV min_version=ssl3 version_suites=TLS-RSA-WITH-3DES-EDE-CBC-SHA,TLS-RSA-WITH-AES-256-CBC-SHA,TLS-RSA-WITH-AES-128-CBC-SHA,TLS-RSA-WITH-AES-128-GCM-SHA256" \
             "$P_CLI force_version=ssl3" \
@@ -2642,6 +2847,7 @@ run_test    "mbedtls_ssl_get_bytes_avail: extra data" \
 
 # Tests for small packets
 
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Small packet SSLv3 BlockCipher" \
             "$P_SRV min_version=ssl3" \
             "$P_CLI request_size=1 force_version=ssl3 \
@@ -2649,6 +2855,7 @@ run_test    "Small packet SSLv3 BlockCipher" \
             0 \
             -s "Read from client: 1 bytes read"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Small packet SSLv3 StreamCipher" \
             "$P_SRV min_version=ssl3 arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=1 force_version=ssl3 \
@@ -2781,8 +2988,19 @@ run_test    "Small packet TLS 1.2 AEAD shorter tag" \
             0 \
             -s "Read from client: 1 bytes read"
 
+# A test for extensions in SSLv3
+
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
+run_test    "SSLv3 with extensions, server side" \
+            "$P_SRV min_version=ssl3 debug_level=3" \
+            "$P_CLI force_version=ssl3 tickets=1 max_frag_len=4096 alpn=abc,1234" \
+            0 \
+            -S "dumping 'client hello extensions'" \
+            -S "server hello, total extension length:"
+
 # Test for large packets
 
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Large packet SSLv3 BlockCipher" \
             "$P_SRV min_version=ssl3" \
             "$P_CLI request_size=16384 force_version=ssl3 recsplit=0 \
@@ -2790,6 +3008,7 @@ run_test    "Large packet SSLv3 BlockCipher" \
             0 \
             -s "Read from client: 16384 bytes read"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Large packet SSLv3 StreamCipher" \
             "$P_SRV min_version=ssl3 arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=ssl3 \
@@ -2979,9 +3198,18 @@ run_test    "DTLS client reconnect from same port: reconnect" \
             -S "The operation timed out" \
             -s "Client initiated reconnection from same port"
 
-run_test    "DTLS client reconnect from same port: reconnect, nbio" \
+not_with_valgrind # server/client too slow to respond in time (next test has higher timeouts)
+run_test    "DTLS client reconnect from same port: reconnect, nbio, no valgrind" \
             "$P_SRV dtls=1 exchanges=2 read_timeout=1000 nbio=2" \
             "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-1000 reconnect_hard=1" \
+            0 \
+            -S "The operation timed out" \
+            -s "Client initiated reconnection from same port"
+
+only_with_valgrind # Only with valgrind, do previous test but with higher read_timeout and hs_timeout
+run_test    "DTLS client reconnect from same port: reconnect, nbio, valgrind" \
+            "$P_SRV dtls=1 exchanges=2 read_timeout=2000 nbio=2 hs_timeout=1500-6000" \
+            "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=1500-3000 reconnect_hard=1" \
             0 \
             -S "The operation timed out" \
             -s "Client initiated reconnection from same port"
@@ -3218,7 +3446,7 @@ run_test    "DTLS proxy: delay ChangeCipherSpec" \
 
 # Tests for "randomly unreliable connection": try a variety of flows and peers
 
-needs_more_time 2
+client_needs_more_time 2
 run_test    "DTLS proxy: 3d (drop, delay, duplicate), \"short\" PSK handshake" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none \
@@ -3229,7 +3457,7 @@ run_test    "DTLS proxy: 3d (drop, delay, duplicate), \"short\" PSK handshake" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 2
+client_needs_more_time 2
 run_test    "DTLS proxy: 3d, \"short\" RSA handshake" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none" \
@@ -3239,7 +3467,7 @@ run_test    "DTLS proxy: 3d, \"short\" RSA handshake" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 2
+client_needs_more_time 2
 run_test    "DTLS proxy: 3d, \"short\" (no ticket, no cli_auth) FS handshake" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none" \
@@ -3248,7 +3476,7 @@ run_test    "DTLS proxy: 3d, \"short\" (no ticket, no cli_auth) FS handshake" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 2
+client_needs_more_time 2
 run_test    "DTLS proxy: 3d, FS, client auth" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=required" \
@@ -3257,7 +3485,7 @@ run_test    "DTLS proxy: 3d, FS, client auth" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 2
+client_needs_more_time 2
 run_test    "DTLS proxy: 3d, FS, ticket" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=1 auth_mode=none" \
@@ -3266,7 +3494,7 @@ run_test    "DTLS proxy: 3d, FS, ticket" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 2
+client_needs_more_time 2
 run_test    "DTLS proxy: 3d, max handshake (FS, ticket + client auth)" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=1 auth_mode=required" \
@@ -3275,7 +3503,7 @@ run_test    "DTLS proxy: 3d, max handshake (FS, ticket + client auth)" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 2
+client_needs_more_time 2
 run_test    "DTLS proxy: 3d, max handshake, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 nbio=2 tickets=1 \
@@ -3285,7 +3513,7 @@ run_test    "DTLS proxy: 3d, max handshake, nbio" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 4
+client_needs_more_time 4
 run_test    "DTLS proxy: 3d, min handshake, resumption" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none \
@@ -3299,7 +3527,7 @@ run_test    "DTLS proxy: 3d, min handshake, resumption" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 4
+client_needs_more_time 4
 run_test    "DTLS proxy: 3d, min handshake, resumption, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none \
@@ -3313,7 +3541,7 @@ run_test    "DTLS proxy: 3d, min handshake, resumption, nbio" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 4
+client_needs_more_time 4
 run_test    "DTLS proxy: 3d, min handshake, client-initiated renego" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none \
@@ -3327,7 +3555,7 @@ run_test    "DTLS proxy: 3d, min handshake, client-initiated renego" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 4
+client_needs_more_time 4
 run_test    "DTLS proxy: 3d, min handshake, client-initiated renego, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none \
@@ -3341,7 +3569,7 @@ run_test    "DTLS proxy: 3d, min handshake, client-initiated renego, nbio" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 4
+client_needs_more_time 4
 run_test    "DTLS proxy: 3d, min handshake, server-initiated renego" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none \
@@ -3356,7 +3584,7 @@ run_test    "DTLS proxy: 3d, min handshake, server-initiated renego" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 4
+client_needs_more_time 4
 run_test    "DTLS proxy: 3d, min handshake, server-initiated renego, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none \
@@ -3371,7 +3599,7 @@ run_test    "DTLS proxy: 3d, min handshake, server-initiated renego, nbio" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 6
+client_needs_more_time 6
 not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, openssl server" \
             -p "$P_PXY drop=5 delay=5 duplicate=5 protect_hvr=1" \
@@ -3380,7 +3608,7 @@ run_test    "DTLS proxy: 3d, openssl server" \
             0 \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 8
+client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, openssl server, fragmentation" \
             -p "$P_PXY drop=5 delay=5 duplicate=5 protect_hvr=1" \
@@ -3389,7 +3617,7 @@ run_test    "DTLS proxy: 3d, openssl server, fragmentation" \
             0 \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 8
+client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, openssl server, fragmentation, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5 protect_hvr=1" \
@@ -3399,7 +3627,7 @@ run_test    "DTLS proxy: 3d, openssl server, fragmentation, nbio" \
             -c "HTTP/1.0 200 OK"
 
 requires_gnutls
-needs_more_time 6
+client_needs_more_time 6
 not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, gnutls server" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
@@ -3410,7 +3638,7 @@ run_test    "DTLS proxy: 3d, gnutls server" \
             -c "Extra-header:"
 
 requires_gnutls
-needs_more_time 8
+client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, gnutls server, fragmentation" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
@@ -3421,7 +3649,7 @@ run_test    "DTLS proxy: 3d, gnutls server, fragmentation" \
             -c "Extra-header:"
 
 requires_gnutls
-needs_more_time 8
+client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, gnutls server, fragmentation, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \

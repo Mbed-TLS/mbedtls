@@ -157,6 +157,7 @@
     <ClInclude Include="..\..\include\mbedtls\check_config.h" />
     <ClInclude Include="..\..\include\mbedtls\cipher.h" />
     <ClInclude Include="..\..\include\mbedtls\cipher_internal.h" />
+    <ClInclude Include="..\..\include\mbedtls\cmac.h" />
     <ClInclude Include="..\..\include\mbedtls\compat-1.3.h" />
     <ClInclude Include="..\..\include\mbedtls\config.h" />
     <ClInclude Include="..\..\include\mbedtls\ctr_drbg.h" />
@@ -180,6 +181,7 @@
     <ClInclude Include="..\..\include\mbedtls\md_internal.h" />
     <ClInclude Include="..\..\include\mbedtls\memory_buffer_alloc.h" />
     <ClInclude Include="..\..\include\mbedtls\net.h" />
+    <ClInclude Include="..\..\include\mbedtls\net_sockets.h" />
     <ClInclude Include="..\..\include\mbedtls\oid.h" />
     <ClInclude Include="..\..\include\mbedtls\padlock.h" />
     <ClInclude Include="..\..\include\mbedtls\pem.h" />
@@ -189,6 +191,7 @@
     <ClInclude Include="..\..\include\mbedtls\pkcs12.h" />
     <ClInclude Include="..\..\include\mbedtls\pkcs5.h" />
     <ClInclude Include="..\..\include\mbedtls\platform.h" />
+    <ClInclude Include="..\..\include\mbedtls\platform_time.h" />
     <ClInclude Include="..\..\include\mbedtls\ripemd160.h" />
     <ClInclude Include="..\..\include\mbedtls\rsa.h" />
     <ClInclude Include="..\..\include\mbedtls\sha1.h" />
@@ -223,6 +226,7 @@
     <ClCompile Include="..\..\library\certs.c" />
     <ClCompile Include="..\..\library\cipher.c" />
     <ClCompile Include="..\..\library\cipher_wrap.c" />
+    <ClCompile Include="..\..\library\cmac.c" />
     <ClCompile Include="..\..\library\ctr_drbg.c" />
     <ClCompile Include="..\..\library\debug.c" />
     <ClCompile Include="..\..\library\des.c" />
@@ -244,7 +248,7 @@
     <ClCompile Include="..\..\library\md5.c" />
     <ClCompile Include="..\..\library\md_wrap.c" />
     <ClCompile Include="..\..\library\memory_buffer_alloc.c" />
-    <ClCompile Include="..\..\library\net.c" />
+    <ClCompile Include="..\..\library\net_sockets.c" />
     <ClCompile Include="..\..\library\oid.c" />
     <ClCompile Include="..\..\library\padlock.c" />
     <ClCompile Include="..\..\library\pem.c" />

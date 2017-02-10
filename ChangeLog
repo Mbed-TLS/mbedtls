@@ -13,6 +13,10 @@ Bugfix
      Found by redplait #590
    * Add MBEDTLS_MPI_CHK to check for error value of mbedtls_mpi_fill_random.
      Reported and fix suggested by guidovranken in #740
+   * Fix a potential integer overflow in the version verification for DER
+     encoded X509 CRLs. The overflow would enable maliciously constructed CRLs
+     to bypass the version verification check. Found by Peng Li/Yueh-Hsun Lin,
+     KNOX Security, Samsung Research America
 
 = mbed TLS 2.1.8 branch released 2017-06-21
 

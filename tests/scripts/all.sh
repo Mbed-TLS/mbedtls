@@ -477,7 +477,7 @@ scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
 scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
 scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT # depends on MBEDTLS_HAVE_TIME
 
-CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--strict --c99'  make lib
+CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--strict --c99' make lib
 make clean
 
 armc6_build_test "--target=arm-arm-none-eabi -march=armv7-a"

@@ -46,6 +46,10 @@ Bugfix
      Reported and fix suggested by guidovranken in #740
    * Fix conditional preprocessor directives in bignum.h to enable 64-bit
      compilation when using ARM Compiler 6.
+   * Fix potential integer overflow in the version verification for DER
+     encoded X509 CSRs. The overflow would enable maliciously constructed CSRs
+     to bypass the version verification check. Found by Peng Li/Yueh-Hsun Lin,
+     KNOX Security, Samsung Research America
 
 Changes
    * Added config.h option MBEDTLS_NO_UDBL_DIVISION, to prevent the use of

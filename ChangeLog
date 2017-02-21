@@ -14,6 +14,9 @@ Bugfix
      in RFC 6347 Section 4.3.1. This could cause the execution of the
      renegotiation routines at unexpected times when the protocol is DTLS. Found
      by wariua. #687
+   * Fix TLS server checks for MBEDTLS_SSL_FALLBACK_SCSV_VALUE to ensure that it
+     is the last cipher suite in the list sent in the ClientHello as recommended
+     (SHOULD) in RFC7507 Section 4. Found by Hugo Leisink. #810
 
 = mbed TLS 2.4.1 branch released 2016-12-13
 

@@ -3,6 +3,12 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS 2.1.x branch released xxxx-xx-xx
 
 Bugfix
+   * Fix unchecked return codes from AES, DES and 3DES functions in
+     pem_aes_decrypt(), pem_des_decrypt() and pem_des3_decrypt() respectively.
+     If a call to one of the functions of the cryptographic primitive modules
+     failed, the error may not be noticed by the function
+     mbedtls_pem_read_buffer() causing it to return invalid values. Found by
+     Guido Vranken. #756
    * Remove macros from compat-1.3.h that correspond to deleted items from most
      recent versions of the library. Found by Kyle Keen.
    * Fixed issue in mutexes to failing to initialise. #667

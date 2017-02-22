@@ -14,6 +14,12 @@ Bugfix
      in RFC 6347 Section 4.3.1. This could cause the execution of the
      renegotiation routines at unexpected times when the protocol is DTLS. Found
      by wariua. #687
+   * Fix unchecked return codes from AES, DES and 3DES functions in
+     pem_aes_decrypt(), pem_des_decrypt() and pem_des3_decrypt() respectively.
+     If a call to one of the functions of the cryptographic primitive modules
+     failed, the error may not be noticed by the function
+     mbedtls_pem_read_buffer() causing it to return invalid values. Found by
+     Guido Vranken. #756
 
 = mbed TLS 2.4.1 branch released 2016-12-13
 

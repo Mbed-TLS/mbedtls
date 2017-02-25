@@ -3,6 +3,11 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS 2.x.x branch released xxxx-xx-xx
 
 Security
+    * Add checks to prevent signature forgeries for very large messages while
+      using RSA through the PK module in 64-bit systems. The issue was caused by
+      some data loss when casting a size_t to an unsigned int value in the
+      functions rsa_verify_wrap(), rsa_sign_wrap(), rsa_alt_sign_wrap() and
+      mbedtls_pk_sign(). Found by Jean-Philippe Aumasson.
    * Removed MD5 from the allowed hash algorithms for CertificateRequest and
      CertificateVerify messages, to prevent SLOTH attacks against TLS 1.2.
      Introduced by interoperability fix for #513.

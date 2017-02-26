@@ -167,6 +167,22 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_CRL_PARSE_C */
+void x509_crl_parse( char *crl_file, int result )
+{
+    x509_crl crl;
+    char buf[2000];
+
+    x509_crl_init( &crl );
+    memset( buf, 0, 2000 );
+
+    TEST_ASSERT( x509_crl_parse_file( &crl, crl_file ) == result );
+
+exit:
+    x509_crl_free( &crl );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_CSR_PARSE_C */
 void x509_csr_info( char *csr_file, char *result_str )
 {

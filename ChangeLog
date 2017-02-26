@@ -3,6 +3,11 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS 2.x.x branch released xxxx-xx-xx
 
 Security
+   * Fixed potential livelock during the parsing of a CRL in PEM format in
+     mbedtls_x509_crl_parse(). A string containing a CRL followed by trailing
+     characters after the footer could result in the execution of an infinite
+     loop. The issue can be triggered remotely. Found by Greg Zaverucha,
+     Microsoft.
    * Removed MD5 from the allowed hash algorithms for CertificateRequest and
      CertificateVerify messages, to prevent SLOTH attacks against TLS 1.2.
      Introduced by interoperability fix for #513.

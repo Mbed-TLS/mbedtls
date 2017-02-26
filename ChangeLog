@@ -8,6 +8,11 @@ Security
       some data loss when casting a size_t to an unsigned int value in the
       functions rsa_verify_wrap(), rsa_sign_wrap(), rsa_alt_sign_wrap() and
       mbedtls_pk_sign(). Found by Jean-Philippe Aumasson.
+   * Fixed potential livelock during the parsing of a CRL in PEM format in
+     mbedtls_x509_crl_parse(). A string containing a CRL followed by trailing
+     characters after the footer could result in the execution of an infinite
+     loop. The issue can be triggered remotely. Found by Greg Zaverucha,
+     Microsoft.
 
 Bugfix
    * Fix the redefinition of macro ssl_set_bio to an undefined symbol

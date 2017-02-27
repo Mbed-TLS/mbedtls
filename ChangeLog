@@ -13,6 +13,11 @@ Security
      Introduced by interoperability fix for #513.
 
 Bugfix
+   * Fix output certificate verification flags set by x509_crt_verify_top() when
+     traversing a chain of trusted CA. The issue would cause both flags,
+     MBEDTLS_X509_BADCERT_NOT_TRUSTED and MBEDTLS_X509_BADCERT_EXPIRED, to be
+     set when the verification conditions are not met regardless of the cause.
+     Found by Harm Verhagen and inestlerode. #665 #561
    * Fix the redefinition of macro ssl_set_bio to an undefined symbol
      mbedtls_ssl_set_bio_timeout in compat-1.3.h, by removing it.
      Found by omlib-lin. #673

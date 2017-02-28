@@ -39,7 +39,8 @@ Bugfix
      cause buffer bound checks to be bypassed. Found by Eyal Itkin.
    * Fix potential memory leak in x509_crl_parse(). The leak was caused by
      missing calls to pem_free() in cases when a
-     POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT error was encountered.
+     POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT error was encountered. Found and
+     fix proposed by Guido Vranken. #722
 
 = mbed TLS 1.3.18 branch 2016-10-17
 

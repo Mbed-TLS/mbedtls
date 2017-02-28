@@ -46,7 +46,8 @@ Bugfix
      Li/Yueh-Hsun Lin, KNOX Security, Samsung Research America.
    * Fix potential memory leak in mbedtls_x509_crl_parse(). The leak was caused
      by missing calls to mbedtls_pem_free() in cases when a
-     MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT error was encountered.
+     MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT error was encountered. Found and
+     fix proposed by Guido Vranken. #722
 
 = mbed TLS 2.1.6 branch released 2016-10-17
 

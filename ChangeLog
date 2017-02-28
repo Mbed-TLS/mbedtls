@@ -16,14 +16,11 @@ Security
    * Removed MD5 from the allowed hash algorithms for CertificateRequest and
      CertificateVerify messages, to prevent SLOTH attacks against TLS 1.2.
      Introduced by interoperability fix for #513.
-
-Security
    * Fixed a bug that caused freeing a buffer that was allocated on the stack,
      when verifying the validity of a key on secp224k1. This could be
      triggered remotely for example with a maliciously constructed certificate
-     and might have led to remote code execution on some exotic embedded
-     platforms. Reported independently by rongsaws and Regina Wilson.
-     CVE-2017-2784
+     and potentially could lead to remote code execution on some platforms.
+     Reported independently by rongsaws and Regina Wilson. #569 CVE-2017-2784
 
 Bugfix
    * Fix output certificate verification flags set by x509_crt_verify_top() when

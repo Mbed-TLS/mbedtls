@@ -1,6 +1,8 @@
 /* BEGIN_HEADER */
 #include "mbedtls/base64.h"
 #include "mbedtls/pem.h"
+#include "mbedtls/des.h"
+#include "mbedtls/aes.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -36,5 +38,26 @@ void mbedtls_pem_write_buffer( char *start, char *end, char *buf_str, char *resu
 
 exit:
     mbedtls_free( check_buf );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mbedtls_pem_read_buffer( char *header, char *footer, char *data, char *pwd,
+            int res )
+{
+    mbedtls_pem_context ctx;
+    int ret;
+    size_t use_len = 0;
+    size_t pwd_len = strlen( pwd );
+
+    mbedtls_pem_init( &ctx );
+
+    ret = mbedtls_pem_read_buffer( &ctx, header, footer, (unsigned char *)data,
+                (unsigned char *)pwd, pwd_len, &use_len );
+    TEST_ASSERT( ret == res );
+
+exit:
+    mbedtls_pem_free( &ctx );
+
 }
 /* END_CASE */

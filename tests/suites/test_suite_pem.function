@@ -1,6 +1,8 @@
 /* BEGIN_HEADER */
 #include "mbedtls/base64.h"
 #include "mbedtls/pem.h"
+#include "mbedtls/des.h"
+#include "mbedtls/aes.h"
 /* END_HEADER */
 
 /* BEGIN_CASE depends_on:MBEDTLS_PEM_WRITE_C */
@@ -35,16 +37,19 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_AES_C:MBEDTLS_DES_C:MBEDTLS_MD5_C:MBEDTLS_CIPHER_MODE_CBC */
-void mbedtls_pem_read_buffer( char *header, char *footer, char *data, int ret )
+void mbedtls_pem_read_buffer( char *header, char *footer, char *data,
+                              char *pwd, int res )
 {
     mbedtls_pem_context ctx;
+    int ret;
     size_t use_len = 0;
+    size_t pwd_len = strlen( pwd );
 
     mbedtls_pem_init( &ctx );
 
-    TEST_ASSERT( mbedtls_pem_read_buffer( &ctx, header, footer,
-                                          (const unsigned char *)data, NULL, 0,
-                                          &use_len ) == ret );
+    ret = mbedtls_pem_read_buffer( &ctx, header, footer, (unsigned char *)data,
+                (unsigned char *)pwd, pwd_len, &use_len );
+    TEST_ASSERT( ret == res );
 
 exit:
     mbedtls_pem_free( &ctx );

@@ -538,7 +538,12 @@ int mpi_write_string( const mpi *X, int radix, char *s, size_t *slen )
     n = mpi_msb( X );
     if( radix >=  4 ) n >>= 1;
     if( radix >= 16 ) n >>= 1;
-    n += 3;
+    /*
+     * Round up the buffer length to an even value to ensure that there is
+     * enough room for hexadecimal values that can be represented in an odd
+     * number of digits.
+     */
+    n += 3 + ( ( n + 1 ) & 1 );
 
     if( *slen < n )
     {

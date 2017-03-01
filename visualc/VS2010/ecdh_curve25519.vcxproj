@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\programs\random\gen_entropy.c" />
+    <ClCompile Include="..\..\programs\pkey\ecdh_curve25519.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="mbedTLS.vcxproj">
@@ -27,9 +27,9 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{DE695064-13C3-18B0-378D-8B22672BF3F4}</ProjectGuid>
+    <ProjectGuid>{82EE497E-12CC-7C5B-A072-665678ACB43E}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>gen_entropy</RootNamespace>
+    <RootNamespace>ecdh_curve25519</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

@@ -1,13 +1,13 @@
 Parse RSA Key #1 (No password when required)
-depends_on:MBEDTLS_MD5_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_CIPHER_MODE_CBC
+depends_on:MBEDTLS_MD5_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_DES_C
 pk_parse_keyfile_rsa:"data_files/test-ca.key":"NULL":MBEDTLS_ERR_PK_PASSWORD_REQUIRED
 
 Parse RSA Key #2 (Correct password)
-depends_on:MBEDTLS_MD5_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_CIPHER_MODE_CBC
+depends_on:MBEDTLS_MD5_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_DES_C
 pk_parse_keyfile_rsa:"data_files/test-ca.key":"PolarSSLTest":0
 
 Parse RSA Key #3 (Wrong password)
-depends_on:MBEDTLS_MD5_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_CIPHER_MODE_CBC
+depends_on:MBEDTLS_MD5_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_DES_C
 pk_parse_keyfile_rsa:"data_files/test-ca.key":"PolarSSLWRONG":MBEDTLS_ERR_PK_PASSWORD_MISMATCH
 
 Parse RSA Key #4 (DES Encrypted)

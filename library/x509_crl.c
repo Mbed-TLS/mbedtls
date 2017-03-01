@@ -353,13 +353,13 @@ int x509_crl_parse_der( x509_crl *chain,
         return( ret );
     }
 
-    crl->version++;
-
-    if( crl->version > 2 )
+    if( crl->version < 0 || crl->version > 1 )
     {
         x509_crl_free( crl );
         return( POLARSSL_ERR_X509_UNKNOWN_VERSION );
     }
+
+    crl->version++;
 
     if( ( ret = x509_get_sig_alg( &crl->sig_oid1, &sig_params1,
                                   &crl->sig_md, &crl->sig_pk,

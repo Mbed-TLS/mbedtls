@@ -169,13 +169,13 @@ int x509_csr_parse_der( x509_csr *csr,
         return( ret );
     }
 
-    csr->version++;
-
-    if( csr->version != 1 )
+    if( csr->version != 0 )
     {
         x509_csr_free( csr );
         return( POLARSSL_ERR_X509_UNKNOWN_VERSION );
     }
+
+    csr->version++;
 
     /*
      *  subject               Name

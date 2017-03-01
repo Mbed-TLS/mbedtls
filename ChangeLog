@@ -20,6 +20,10 @@ Bugfix
    * Fix a potential integer overflow in the version verification for DER
      encoded X509 certificates. The overflow would enable maliciously
      constructed certificates to bypass the certificate verification check.
+   * Fix potential integer overflow in the version verification for DER
+     encoded X509 CSRs. The overflow would enable maliciously constructed CSRs
+     to bypass the version verification check. Found by Peng Li/Yueh-Hsun Lin,
+     KNOX Security, Samsung Research America
 
 = mbed TLS 1.3.20 branch released 2017-06-21
 

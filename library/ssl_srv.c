@@ -982,7 +982,12 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "received FALLBACK_SCSV" ) );
 
-            if( ssl->minor_ver < ssl->conf->max_minor_ver )
+            /*
+             * Check if the server supports a higher protocol version than the
+             * one indicated in the ClientHello. Also, check that FALLBACK_SCSV
+             * is after all cipher suites.
+             */
+            if( ssl->minor_ver < ssl->conf->max_minor_ver || i + 3 != ciph_len )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "inapropriate fallback" ) );
 
@@ -1700,14 +1705,20 @@ read_record_header:
 #endif
 
 #if defined(MBEDTLS_SSL_FALLBACK_SCSV)
-    for( i = 0, p = buf + 41 + sess_len; i < ciph_len; i += 2, p += 2 )
+    for( i = 0, p = buf + ciph_offset + 2; i < ciph_len; i += 2, p += 2 )
     {
         if( p[0] == (unsigned char)( ( MBEDTLS_SSL_FALLBACK_SCSV_VALUE >> 8 ) & 0xff ) &&
             p[1] == (unsigned char)( ( MBEDTLS_SSL_FALLBACK_SCSV_VALUE      ) & 0xff ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "received FALLBACK_SCSV" ) );
 
-            if( ssl->minor_ver < ssl->conf->max_minor_ver )
+            /*
+             * Check if the server supports a higher protocol version than the
+             * one indicated in the ClientHello. Also, check that
+             * TLS_FALLBACK_SCSV is after all cipher suites. Refer to RFC7507
+             * Sections 3 and 4.
+             */
+            if( ssl->minor_ver < ssl->conf->max_minor_ver || i + 2 != ciph_len )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "inapropriate fallback" ) );
 
@@ -1740,7 +1751,7 @@ read_record_header:
 
                 return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
             }
-#endif
+#endif /* MBEDTLS_SSL_RENEGOTIATION */
             ssl->secure_renegotiation = MBEDTLS_SSL_SECURE_RENEGOTIATION;
             break;
         }

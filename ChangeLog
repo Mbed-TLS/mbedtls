@@ -51,6 +51,9 @@ Bugfix
      by missing calls to mbedtls_pem_free() in cases when a
      MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT error was encountered. Found and
      fix proposed by Guido Vranken. #722
+   * Fixed the templates used to generate project and solution files for Visual
+     Studio 2015 as well as the files themselves, to remove a build warning
+     generated in Visual Studio 2015. Reported by Steve Valliere. #742
 
 = mbed TLS 2.4.1 branch released 2016-12-13
 

@@ -14,6 +14,9 @@ Bugfix
      in RFC 6347 Section 4.3.1. This could cause the execution of the
      renegotiation routines at unexpected times when the protocol is DTLS. Found
      by wariua. #687
+  * Fixed the templates used to generate project and solution files for Visual
+     Studio 2015 as well as the files themselves, to remove a build warning
+     generated in Visual Studio 2015. Reported by Steve Valliere. #742
 
 = mbed TLS 2.4.1 branch released 2016-12-13
 

@@ -31,9 +31,6 @@ Bugfix
    * Fix unused variable/function compilation warnings in pem.c and x509_csr.c
      that are reported when building mbed TLS with a config.h that does not
      define POLARSSL_PEM_PARSE_C. Found by omnium21. #562
-   * Fixed multiple buffer overreads in mbedtls_pem_read_buffer() when parsing
-     the input string in PEM format to extract the different components. Found
-     by Eyal Itkin.
    * Fixed potential arithmetic overflow in mbedtls_ctr_drbg_reseed() that could
      cause buffer bound checks to be bypassed. Found by Eyal Itkin.
    * Fixed potential arithmetic overflows in mbedtls_cipher_update() that could

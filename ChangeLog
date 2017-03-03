@@ -19,6 +19,14 @@ Features
      suppressing the CA list in Certificate Request messages. The default
      behaviour has not changed, namely every configured CAs name is included.
 
+API Changes
+   * The following functions in the AES module have been deprecated and replaced
+     by the functions shown below. The new functions change the return type from
+     void to int to allow returning error codes when using MBEDTLS_AES_ALT,
+     MBEDTLS_AES_DECRYPT_ALT or MBEDTLS_AES_ENCRYPT_ALT.
+     mbedtls_aes_decrypt() -> mbedtls_internal_aes_decrypt()
+     mbedtls_aes_encrypt() -> mbedtls_internal_aes_encrypt()
+
 Bugfix
    * Remove macros from compat-1.3.h that correspond to deleted items from most
      recent versions of the library. Found by Kyle Keen.

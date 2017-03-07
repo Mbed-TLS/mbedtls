@@ -60,6 +60,8 @@ Bugfix
    * Fix 1 byte buffer overflow in mbedtls_mpi_write_string() when the MPI
      number to write in hexadecimal is negative and requires an odd number of
      digits. Found and fixed by Guido Vranken.
+   * Fix unlisted DES configuration dependency in some pkparse test cases. Found
+     by inestlerode. #555
 
 = mbed TLS 2.4.1 branch released 2016-12-13
 

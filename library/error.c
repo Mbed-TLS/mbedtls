@@ -225,6 +225,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
             mbedtls_snprintf( buf, buflen, "ECP - Invalid private or public key" );
         if( use_ret == -(MBEDTLS_ERR_ECP_SIG_LEN_MISMATCH) )
             mbedtls_snprintf( buf, buflen, "ECP - Signature is valid but shorter than the user-supplied length" );
+        if( use_ret == -(MBEDTLS_ERR_ECP_IN_PROGRESS) )
+            mbedtls_snprintf( buf, buflen, "ECP - Operation in progress, try again with the same parameters" );
 #endif /* MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_MD_C)

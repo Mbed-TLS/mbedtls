@@ -76,7 +76,7 @@
  * DHM       3   9
  * PK        3   14 (Started from top)
  * RSA       4   9
- * ECP       4   8 (Started from top)
+ * ECP       4   9 (Started from top)
  * MD        5   4
  * CIPHER    6   6
  * SSL       6   17 (Started from top)

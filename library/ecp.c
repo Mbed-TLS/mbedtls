@@ -1363,7 +1363,7 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     mbedtls_mpi_init( &M );
     mbedtls_mpi_init( &mm );
 
-    /* we need N to be odd to trnaform m in an odd number, check now */
+    /* we need N to be odd to transform m in an odd number, check now */
     if( mbedtls_mpi_get_bit( &grp->N, 0 ) != 1 )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 

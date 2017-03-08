@@ -99,6 +99,22 @@ void mbedtls_ecp_set_max_ops( unsigned max_ops )
 {
     ecp_max_ops = max_ops;
 }
+
+/*
+ * Saved context type for restarting operations.
+ *
+ * XXX: this is a temporary place for the definition
+ */
+typedef struct {
+    unsigned char fake_it;  /* for tests: should we fake early return? */
+} ecp_restart_context;
+
+/*
+ * Saved context fro restarting operations.
+ *
+ * XXX: temporary place for the allocation
+ */
+static ecp_restart_context ecp_restart;
 #endif /* MBEDTLS_ECP_EARLY_RETURN */
 
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) ||   \
@@ -1375,6 +1391,11 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     unsigned char k[COMB_MAX_D + 1];
     mbedtls_ecp_point *T;
     mbedtls_mpi M, mm;
+
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+    if( ecp_restart.fake_it++ != 0 && ecp_max_ops != 0 )
+        return( MBEDTLS_ERR_ECP_IN_PROGRESS );
+#endif
 
     mbedtls_mpi_init( &M );
     mbedtls_mpi_init( &mm );

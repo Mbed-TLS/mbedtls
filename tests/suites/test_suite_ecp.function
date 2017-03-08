@@ -51,6 +51,107 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_EARLY_RETURN */
+void ecp_test_vect_restart( int id,
+                            char *dA_str, char *xA_str, char *yA_str,
+                            char *dB_str,  char *xZ_str, char *yZ_str,
+                            int max_ops, int min_restarts, int max_restarts )
+{
+    /*
+     * Test for early restart. Based on test vectors like ecp_test_vect(),
+     * but for the sake of simplicity only does half of each side. It's
+     * important to test both base point and random point, though, as memory
+     * management is different in each case.
+     *
+     * Don't try using too precise bounds for restarts as the exact number
+     * will depend on settings such as MBEDTLS_ECP_FIXED_POINT_OPTIM and
+     * MBEDTLS_ECP_WINDOW_SIZE, as well as implementation details that may
+     * change in the future. A factor 2 is a minimum safety margin.
+     *
+     * For reference, with mbed TLS 2.4 and default settings, for P-256:
+     * - Random point mult:     ~3600M
+     * - Cold base point mult:  ~3600M
+     * - Hot base point mult:   ~1200M
+     * With MBEDTLS_ECP_WINDOW_SIZE set to 2 (minimum):
+     * - Random point mult:     ~4200M
+     */
+    mbedtls_ecp_group grp;
+    mbedtls_ecp_point R;
+    mbedtls_mpi dA, xA, yA, dB, xZ, yZ;
+    int cnt_restarts;
+    int ret;
+
+    mbedtls_ecp_group_init( &grp ); mbedtls_ecp_point_init( &R );
+    mbedtls_mpi_init( &dA ); mbedtls_mpi_init( &xA ); mbedtls_mpi_init( &yA );
+    mbedtls_mpi_init( &dB ); mbedtls_mpi_init( &xZ ); mbedtls_mpi_init( &yZ );
+
+    TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_read_string( &dA, 16, dA_str ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &xA, 16, xA_str ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &yA, 16, yA_str ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_read_string( &dB, 16, dB_str ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &xZ, 16, xZ_str ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &yZ, 16, yZ_str ) == 0 );
+
+    mbedtls_ecp_set_max_ops( (unsigned) max_ops );
+
+    /* Base point case */
+    cnt_restarts = 0;
+    do {
+        ret = mbedtls_ecp_mul( &grp, &R, &dA, &grp.G, NULL, NULL );
+        TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+
+        if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
+            cnt_restarts++;
+    }
+    while( ret != 0 );
+
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R.X, &xA ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R.Y, &yA ) == 0 );
+
+    TEST_ASSERT( cnt_restarts >= min_restarts );
+    TEST_ASSERT( cnt_restarts <= max_restarts );
+
+    /* Do we leak memory when doing it twice in a row? */
+    do {
+        ret = mbedtls_ecp_mul( &grp, &R, &dA, &grp.G, NULL, NULL );
+        TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+    }
+    while( ret != 0 );
+
+    /* Non-base point case */
+    cnt_restarts = 0;
+    do {
+        ret = mbedtls_ecp_mul( &grp, &R, &dB, &R, NULL, NULL );
+        TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+
+        if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
+            cnt_restarts++;
+    }
+    while( ret != 0 );
+
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R.X, &xZ ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R.Y, &yZ ) == 0 );
+
+    TEST_ASSERT( cnt_restarts >= min_restarts );
+    TEST_ASSERT( cnt_restarts <= max_restarts );
+
+    /* Do we leak memory when doing it twice in a row? */
+    do {
+        ret = mbedtls_ecp_mul( &grp, &R, &dB, &R, NULL, NULL );
+        TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+    }
+    while( ret != 0 );
+
+exit:
+    mbedtls_ecp_group_free( &grp ); mbedtls_ecp_point_free( &R );
+    mbedtls_mpi_free( &dA ); mbedtls_mpi_free( &xA ); mbedtls_mpi_free( &yA );
+    mbedtls_mpi_free( &dB ); mbedtls_mpi_free( &xZ ); mbedtls_mpi_free( &yZ );
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void ecp_test_vect( int id, char *dA_str, char *xA_str, char *yA_str,
                     char *dB_str, char *xB_str, char *yB_str, char *xZ_str,

@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.x.x branch released xxxx-xx-xx
+= mbed TLS 2.4.2 branch released 2017-03-08
 
 Security
    * Add checks to prevent signature forgeries for very large messages while

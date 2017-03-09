@@ -751,13 +751,13 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt, const unsigned char *
         return( ret );
     }
 
-    crt->version++;
-
-    if( crt->version > 3 )
+    if( crt->version < 0 || crt->version > 2 )
     {
         mbedtls_x509_crt_free( crt );
         return( MBEDTLS_ERR_X509_UNKNOWN_VERSION );
     }
+
+    crt->version++;
 
     if( ( ret = mbedtls_x509_get_sig_alg( &crt->sig_oid, &sig_params1,
                                   &crt->sig_md, &crt->sig_pk,

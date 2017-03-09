@@ -1389,7 +1389,7 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     unsigned char w, m_is_odd, p_eq_g, pre_len, i;
     size_t d;
     unsigned char k[COMB_MAX_D + 1];
-    mbedtls_ecp_point *T;
+    mbedtls_ecp_point *T = NULL;
     mbedtls_mpi M, mm;
 
 #if defined(MBEDTLS_ECP_EARLY_RETURN)
@@ -1403,6 +1403,15 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     /* we need N to be odd to transform m in an odd number, check now */
     if( mbedtls_mpi_get_bit( &grp->N, 0 ) != 1 )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+    /*
+     * Make sure M is odd (M = m or M = N - m, since N is odd)
+     * using the fact that m * P = - (N - m) * P
+     */
+    m_is_odd = ( mbedtls_mpi_get_bit( m, 0 ) == 1 );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &M, m ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &mm, &grp->N, m ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_assign( &M, &mm, ! m_is_odd ) );
 
     /*
      * Minimize the number of multiplications, that is minimize
@@ -1461,15 +1470,6 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
             grp->T_size = pre_len;
         }
     }
-
-    /*
-     * Make sure M is odd (M = m or M = N - m, since N is odd)
-     * using the fact that m * P = - (N - m) * P
-     */
-    m_is_odd = ( mbedtls_mpi_get_bit( m, 0 ) == 1 );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &M, m ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &mm, &grp->N, m ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_assign( &M, &mm, ! m_is_odd ) );
 
     /*
      * Go for comb multiplication, R = M * P

@@ -17,6 +17,9 @@ Bugfix
      encoded X509 CRLs. The overflow would enable maliciously constructed CRLs
      to bypass the version verification check. Found by Peng Li/Yueh-Hsun Lin,
      KNOX Security, Samsung Research America
+   * Fix a potential integer overflow in the version verification for DER
+     encoded X509 certificates. The overflow would enable maliciously
+     constructed certificates to bypass the certificate verification check.
 
 = mbed TLS 1.3.20 branch released 2017-06-21
 

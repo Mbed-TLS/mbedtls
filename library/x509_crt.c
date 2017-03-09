@@ -619,13 +619,13 @@ static int x509_crt_parse_der_core( x509_crt *crt, const unsigned char *buf,
         return( ret );
     }
 
-    crt->version++;
-
-    if( crt->version > 3 )
+    if( crt->version < 0 || crt->version > 2 )
     {
         x509_crt_free( crt );
         return( POLARSSL_ERR_X509_UNKNOWN_VERSION );
     }
+
+    crt->version++;
 
     if( ( ret = x509_get_sig_alg( &crt->sig_oid1, &sig_params1,
                                   &crt->sig_md, &crt->sig_pk,

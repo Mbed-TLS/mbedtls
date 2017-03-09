@@ -1377,6 +1377,37 @@ cleanup:
 }
 
 /*
+ * Set M to either m or -m, depending on which one is odd
+ */
+static int ecp_make_scalar_odd( const mbedtls_ecp_group *grp,
+                                mbedtls_mpi *M,
+                                const mbedtls_mpi *m,
+                                const unsigned char m_is_odd )
+{
+    int ret;
+    mbedtls_mpi mm;
+
+    mbedtls_mpi_init( &mm );
+
+    /* we need N to be odd to transform m in an odd number, check now */
+    if( mbedtls_mpi_get_bit( &grp->N, 0 ) != 1 )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+    /*
+     * Make sure M is odd (M = m or M = N - m, since N is odd)
+     * using the fact that m * P = - (N - m) * P
+     */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_copy( M, m ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &mm, &grp->N, m ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_assign( M, &mm, ! m_is_odd ) );
+
+cleanup:
+    mbedtls_mpi_free( &mm );
+
+    return( ret );
+}
+
+/*
  * Multiplication using the comb method,
  * for curves in short Weierstrass form
  */
@@ -1390,7 +1421,7 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     size_t d;
     unsigned char k[COMB_MAX_D + 1];
     mbedtls_ecp_point *T = NULL;
-    mbedtls_mpi M, mm;
+    mbedtls_mpi M;
 
 #if defined(MBEDTLS_ECP_EARLY_RETURN)
     if( ecp_restart.fake_it++ != 0 && ecp_max_ops != 0 )
@@ -1398,20 +1429,13 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 #endif
 
     mbedtls_mpi_init( &M );
-    mbedtls_mpi_init( &mm );
-
-    /* we need N to be odd to transform m in an odd number, check now */
-    if( mbedtls_mpi_get_bit( &grp->N, 0 ) != 1 )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     /*
-     * Make sure M is odd (M = m or M = N - m, since N is odd)
-     * using the fact that m * P = - (N - m) * P
+     * We need an odd scalar for recoding. Ensure that by replacing it with
+     * its opposite, then negating the result to compensate if needed.
      */
     m_is_odd = ( mbedtls_mpi_get_bit( m, 0 ) == 1 );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &M, m ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &mm, &grp->N, m ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_assign( &M, &mm, ! m_is_odd ) );
+    MBEDTLS_MPI_CHK( ecp_make_scalar_odd( grp, &M, m, m_is_odd ) );
 
     /*
      * Minimize the number of multiplications, that is minimize
@@ -1493,7 +1517,6 @@ cleanup:
     }
 
     mbedtls_mpi_free( &M );
-    mbedtls_mpi_free( &mm );
 
     if( ret != 0 )
         mbedtls_ecp_point_free( R );

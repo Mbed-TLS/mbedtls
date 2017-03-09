@@ -1437,6 +1437,14 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     m_is_odd = ( mbedtls_mpi_get_bit( m, 0 ) == 1 );
     MBEDTLS_MPI_CHK( ecp_make_scalar_odd( grp, &M, m, m_is_odd ) );
 
+    /* Is P the base point ? */
+#if MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
+    p_eq_g = ( mbedtls_mpi_cmp_mpi( &P->Y, &grp->G.Y ) == 0 &&
+               mbedtls_mpi_cmp_mpi( &P->X, &grp->G.X ) == 0 );
+#else
+    p_eq_g = 0;
+#endif
+
     /*
      * Minimize the number of multiplications, that is minimize
      * 10 * d * w + 18 * 2^(w-1) + 11 * d + 7 * w, with d = ceil( nbits / w )
@@ -1449,14 +1457,8 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
      * Just adding one avoids upping the cost of the first mul too much,
      * and the memory cost too.
      */
-#if MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
-    p_eq_g = ( mbedtls_mpi_cmp_mpi( &P->Y, &grp->G.Y ) == 0 &&
-               mbedtls_mpi_cmp_mpi( &P->X, &grp->G.X ) == 0 );
     if( p_eq_g )
         w++;
-#else
-    p_eq_g = 0;
-#endif
 
     /*
      * Make sure w is within bounds.

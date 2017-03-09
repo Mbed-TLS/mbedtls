@@ -212,6 +212,9 @@ Bugfix
      digits. Found and fixed by Guido Vranken.
    * Fix unlisted DES configuration dependency in some pkparse test cases. Found
      by inestlerode. #555
+   * Fix a potential integer overflow in the version verification for DER
+     encoded X509 certificates. The overflow would enable maliciously
+     constructed certificates to bypass the certificate verification check.
 
 = mbed TLS 2.4.1 branch released 2016-12-13
 

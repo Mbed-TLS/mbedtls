@@ -1408,6 +1408,41 @@ cleanup:
 }
 
 /*
+ * Pick window size based on curve size and whether we optimize for base point
+ */
+static unsigned char ecp_pick_window_size( const mbedtls_ecp_group *grp,
+                                           unsigned char p_eq_g )
+{
+    unsigned char w;
+
+    /*
+     * Minimize the number of multiplications, that is minimize
+     * 10 * d * w + 18 * 2^(w-1) + 11 * d + 7 * w, with d = ceil( nbits / w )
+     * (see costs of the various parts, with 1S = 1M)
+     */
+    w = grp->nbits >= 384 ? 5 : 4;
+
+    /*
+     * If P == G, pre-compute a bit more, since this may be re-used later.
+     * Just adding one avoids upping the cost of the first mul too much,
+     * and the memory cost too.
+     */
+    if( p_eq_g )
+        w++;
+
+    /*
+     * Make sure w is within bounds.
+     * (The last test is useful only for very small curves in the test suite.)
+     */
+    if( w > MBEDTLS_ECP_WINDOW_SIZE )
+        w = MBEDTLS_ECP_WINDOW_SIZE;
+    if( w >= grp->nbits )
+        w = 2;
+
+    return( w );
+}
+
+/*
  * Multiplication using the comb method,
  * for curves in short Weierstrass form
  */
@@ -1445,31 +1480,8 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     p_eq_g = 0;
 #endif
 
-    /*
-     * Minimize the number of multiplications, that is minimize
-     * 10 * d * w + 18 * 2^(w-1) + 11 * d + 7 * w, with d = ceil( nbits / w )
-     * (see costs of the various parts, with 1S = 1M)
-     */
-    w = grp->nbits >= 384 ? 5 : 4;
-
-    /*
-     * If P == G, pre-compute a bit more, since this may be re-used later.
-     * Just adding one avoids upping the cost of the first mul too much,
-     * and the memory cost too.
-     */
-    if( p_eq_g )
-        w++;
-
-    /*
-     * Make sure w is within bounds.
-     * (The last test is useful only for very small curves in the test suite.)
-     */
-    if( w > MBEDTLS_ECP_WINDOW_SIZE )
-        w = MBEDTLS_ECP_WINDOW_SIZE;
-    if( w >= grp->nbits )
-        w = 2;
-
-    /* Other sizes that depend on w */
+    /* Window size and others that depend on it */
+    w = ecp_pick_window_size( grp, p_eq_g );
     pre_len = 1U << ( w - 1 );
     d = ( grp->nbits + w - 1 ) / w;
 

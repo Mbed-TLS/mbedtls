@@ -1775,6 +1775,7 @@ static int x509_crt_verify_top(
     int ca_flags = 0, check_path_cnt;
     unsigned char hash[POLARSSL_MD_MAX_SIZE];
     const md_info_t *md_info;
+    x509_crt *future_past_ca = NULL;
 
     if( x509_time_expired( &child->valid_to ) )
         *flags |= BADCERT_EXPIRED;
@@ -1823,16 +1824,6 @@ static int x509_crt_verify_top(
             continue;
         }
 
-        if( x509_time_expired( &trust_ca->valid_to ) )
-        {
-            continue;
-        }
-
-        if( x509_time_future( &trust_ca->valid_from ) )
-        {
-            continue;
-        }
-
         if( pk_verify_ext( child->sig_pk, child->sig_opts, &trust_ca->pk,
                            child->sig_md, hash, md_info->size,
                            child->sig.p, child->sig.len ) != 0 )
@@ -1840,11 +1831,23 @@ static int x509_crt_verify_top(
             continue;
         }
 
+        if( x509_time_expired( &trust_ca->valid_to ) ||
+            x509_time_future( &trust_ca->valid_from ) )
+        {
+            if( future_past_ca == NULL )
+                future_past_ca = trust_ca;
+            continue;
+        }
+
+        break;
+    }
+
+    if( trust_ca != NULL || ( trust_ca = future_past_ca ) != NULL )
+    {
         /*
          * Top of chain is signed by a trusted CA
          */
         *flags &= ~BADCERT_NOT_TRUSTED;
-        break;
     }
 
     /*
@@ -1863,6 +1866,12 @@ static int x509_crt_verify_top(
 #else
         ((void) ca_crl);
 #endif
+
+        if( x509_time_expired( &trust_ca->valid_to ) )
+            ca_flags |= BADCERT_EXPIRED;
+
+        if( x509_time_future( &trust_ca->valid_from ) )
+            ca_flags |= BADCERT_FUTURE;
 
         if( NULL != f_vrfy )
         {

@@ -31,6 +31,7 @@
 
 /* Even if RSA not activated, for the sake of RSA-alt */
 #include "polarssl/rsa.h"
+#include "polarssl/bignum.h"
 
 #include <string.h>
 
@@ -49,6 +50,8 @@
 #define polarssl_malloc     malloc
 #define polarssl_free       free
 #endif
+
+#include <limits.h>
 
 /* Implementation that should never be optimized out by the compiler */
 static void polarssl_zeroize( void *v, size_t n ) {
@@ -73,6 +76,11 @@ static int rsa_verify_wrap( void *ctx, md_type_t md_alg,
 {
     int ret;
 
+#if defined(POLARSSL_HAVE_INT64)
+    if( md_alg == POLARSSL_MD_NONE && UINT_MAX < hash_len )
+        return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
+#endif /* POLARSSL_HAVE_INT64 */
+
     if( sig_len < ((rsa_context *) ctx)->len )
         return( POLARSSL_ERR_RSA_VERIFY_FAILED );
 
@@ -92,6 +100,11 @@ static int rsa_sign_wrap( void *ctx, md_type_t md_alg,
                    unsigned char *sig, size_t *sig_len,
                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
+#if defined(POLARSSL_HAVE_INT64)
+    if( md_alg == POLARSSL_MD_NONE && UINT_MAX < hash_len )
+        return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
+#endif /* POLARSSL_HAVE_INT64 */
+
     *sig_len = ((rsa_context *) ctx)->len;
 
     return( rsa_pkcs1_sign( (rsa_context *) ctx, f_rng, p_rng, RSA_PRIVATE,
@@ -410,6 +423,11 @@ static int rsa_alt_sign_wrap( void *ctx, md_type_t md_alg,
                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     rsa_alt_context *rsa_alt = (rsa_alt_context *) ctx;
+
+#if defined(POLARSSL_HAVE_INT64)
+    if( UINT_MAX < hash_len )
+        return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
+#endif /* POLARSSL_HAVE_INT64 */
 
     *sig_len = rsa_alt->key_len_func( rsa_alt->key );
 

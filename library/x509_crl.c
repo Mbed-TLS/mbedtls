@@ -520,16 +520,17 @@ int x509_crl_parse( x509_crl *chain, const unsigned char *buf, size_t buflen )
             if( ( ret = x509_crl_parse_der( chain,
                                             pem.buf, pem.buflen ) ) != 0 )
             {
+                pem_free( &pem );
                 return( ret );
             }
-
-            pem_free( &pem );
         }
-        else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
+        else if( is_pem )
         {
             pem_free( &pem );
             return( ret );
         }
+
+        pem_free( &pem );
     }
     while( is_pem && buflen > 0 );
 

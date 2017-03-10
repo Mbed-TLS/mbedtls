@@ -194,6 +194,10 @@ X509 CRL Information EC, SHA512 Digest
 depends_on:POLARSSL_PEM_PARSE_C
 x509_crl_info:"data_files/crl-ec-sha512.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-09-24 16\:31\:08\nnext update   \: 2023-09-22 16\:31\:08\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nsigned using  \: ECDSA with SHA512\n"
 
+X509 CRL Malformed Input (trailing spaces at end of file)
+depends_on:POLARSSL_PEM_PARSE_C
+x509_crl_parse:"data_files/crl-malformed-trailing-spaces.pem":POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT
+
 X509 CSR Information RSA with MD4
 depends_on:POLARSSL_PEM_PARSE_C
 x509_csr_info:"data_files/server1.req.md4":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with MD4\nRSA key size  \: 2048 bits\n"
@@ -710,6 +714,14 @@ x509_verify:"data_files/server5.crt":"data_files/test-ca2_cat-present-past.crt":
 X509 Certificate verification #85 (Not yet valid CA and valid CA)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP384R1_ENABLED
 x509_verify:"data_files/server5.crt":"data_files/test-ca2_cat-past-present.crt":"data_files/crl-ec-sha1.pem":"NULL":0:0:"NULL"
+
+X509 Certificate verification #86 (Not yet valid CA and invalid CA)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP384R1_ENABLED:POLARSSL_SHA1_C:POLARSSL_SHA256_C
+x509_verify:"data_files/server5.crt":"data_files/test-ca2_cat-future-invalid.crt":"data_files/crl-ec-sha1.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_FUTURE:"NULL"
+
+X509 Certificate verification #87 (Expired CA and invalid CA)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP384R1_ENABLED:POLARSSL_SHA1_C:POLARSSL_SHA256_C
+x509_verify:"data_files/server5.crt":"data_files/test-ca2_cat-past-invalid.crt":"data_files/crl-ec-sha1.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_EXPIRED:"NULL"
 
 X509 Certificate verification callback: trusted EE cert
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_SHA256_C:POLARSSL_ECP_DP_SECP256R1_ENABLED

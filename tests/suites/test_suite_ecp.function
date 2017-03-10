@@ -196,7 +196,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void ecp_check_pub_mx( int grp_id, char *key_hex, int ret )
+void ecp_check_pub( int grp_id, char *x_hex, char *y_hex, char *z_hex, int ret )
 {
     ecp_group grp;
     ecp_point P;
@@ -206,8 +206,9 @@ void ecp_check_pub_mx( int grp_id, char *key_hex, int ret )
 
     TEST_ASSERT( ecp_use_known_dp( &grp, grp_id ) == 0 );
 
-    TEST_ASSERT( mpi_read_string( &P.X, 16, key_hex ) == 0 );
-    TEST_ASSERT( mpi_lset( &P.Z, 1 ) == 0 );
+    TEST_ASSERT( mpi_read_string( &P.X, 16, x_hex ) == 0 );
+    TEST_ASSERT( mpi_read_string( &P.Y, 16, y_hex ) == 0 );
+    TEST_ASSERT( mpi_read_string( &P.Z, 16, z_hex ) == 0 );
 
     TEST_ASSERT( ecp_check_pubkey( &grp, &P ) == ret );
 

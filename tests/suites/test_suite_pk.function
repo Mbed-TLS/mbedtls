@@ -5,6 +5,9 @@
 #include "polarssl/ecp.h"
 #include "polarssl/rsa.h"
 
+/* For detecting 64-bit compilation */
+#include "polarssl/bignum.h"
+
 static int rnd_std_rand( void *rng_state, unsigned char *output, size_t len );
 
 #define RSA_KEY_SIZE 512
@@ -414,6 +417,33 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:POLARSSL_RSA_C:POLARSSL_HAVE_INT64 */
+void pk_rsa_overflow( )
+{
+    pk_context pk;
+    size_t hash_len = (size_t)-1;
+
+    pk_init( &pk );
+
+    TEST_ASSERT( pk_init_ctx( &pk, pk_info_from_type( POLARSSL_PK_RSA ) ) == 0 );
+
+#if defined(POLARSSL_PKCS1_V21)
+    TEST_ASSERT( pk_verify_ext( POLARSSL_PK_RSASSA_PSS, NULL, &pk,
+                    POLARSSL_MD_NONE, NULL, hash_len, NULL, 0 ) ==
+                 POLARSSL_ERR_PK_BAD_INPUT_DATA );
+#endif /* POLARSSL_PKCS1_V21 */
+
+    TEST_ASSERT( pk_verify( &pk, POLARSSL_MD_NONE, NULL, hash_len,
+                    NULL, 0 ) == POLARSSL_ERR_PK_BAD_INPUT_DATA );
+
+    TEST_ASSERT( pk_sign( &pk, POLARSSL_MD_NONE, NULL, hash_len, NULL, 0,
+                    rnd_std_rand, NULL ) == POLARSSL_ERR_PK_BAD_INPUT_DATA );
+
+exit:
+    pk_free( &pk );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:POLARSSL_RSA_C */
 void pk_rsa_alt( )
 {
@@ -461,6 +491,11 @@ void pk_rsa_alt( )
     /* Test signature */
     TEST_ASSERT( pk_sign( &alt, POLARSSL_MD_NONE, hash, sizeof hash,
                           sig, &sig_len, rnd_std_rand, NULL ) == 0 );
+#if defined(POLARSSL_HAVE_INT64)
+    TEST_ASSERT( pk_sign( &alt, POLARSSL_MD_NONE, hash, (size_t)-1,
+                          NULL, NULL, rnd_std_rand, NULL ) ==
+                 POLARSSL_ERR_PK_BAD_INPUT_DATA );
+#endif /* POLARSSL_HAVE_INT64 */
     TEST_ASSERT( sig_len == RSA_KEY_LEN );
     TEST_ASSERT( pk_verify( &rsa, POLARSSL_MD_NONE,
                             hash, sizeof hash, sig, sig_len ) == 0 );

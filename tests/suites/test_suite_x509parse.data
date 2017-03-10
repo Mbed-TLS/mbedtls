@@ -198,6 +198,10 @@ X509 CRL Information EC, SHA512 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA512_C
 mbedtls_x509_crl_info:"data_files/crl-ec-sha512.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-09-24 16\:31\:08\nnext update   \: 2023-09-22 16\:31\:08\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nsigned using  \: ECDSA with SHA512\n"
 
+X509 CRL Malformed Input (trailing spaces at end of file)
+depends_on:MBEDTLS_PEM_PARSE_C
+mbedtls_x509_crl_parse:"data_files/crl-malformed-trailing-spaces.pem":MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT
+
 X509 CSR Information RSA with MD4
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD4_C
 mbedtls_x509_csr_info:"data_files/server1.req.md4":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with MD4\nRSA key size  \: 2048 bits\n"
@@ -714,6 +718,14 @@ x509_verify:"data_files/server5.crt":"data_files/test-ca2_cat-present-past.crt":
 X509 Certificate verification #85 (Not yet valid CA and valid CA)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SHA1_C:MBEDTLS_SHA256_C
 x509_verify:"data_files/server5.crt":"data_files/test-ca2_cat-past-present.crt":"data_files/crl-ec-sha1.pem":"NULL":0:0:"NULL"
+
+X509 Certificate verification #86 (Not yet valid CA and invalid CA)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SHA1_C:MBEDTLS_SHA256_C
+x509_verify:"data_files/server5.crt":"data_files/test-ca2_cat-future-invalid.crt":"data_files/crl-ec-sha1.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_FUTURE:"NULL"
+
+X509 Certificate verification #87 (Expired CA and invalid CA)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SHA1_C:MBEDTLS_SHA256_C
+x509_verify:"data_files/server5.crt":"data_files/test-ca2_cat-past-invalid.crt":"data_files/crl-ec-sha1.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_EXPIRED:"NULL"
 
 X509 Certificate verification callback: trusted EE cert
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
@@ -1562,3 +1574,64 @@ x509_get_time:MBEDTLS_ASN1_UTC_TIME:"001130236012Z":MBEDTLS_ERR_X509_INVALID_DAT
 X509 Get time (UTC invalid sec)
 depends_on:MBEDTLS_X509_USE_C
 x509_get_time:MBEDTLS_ASN1_UTC_TIME:"001130235960Z":MBEDTLS_ERR_X509_INVALID_DATE:0:0:0:0:0:0
+
+X509 Get time (UTC without time zone)
+depends_on:MBEDTLS_X509_USE_C
+x509_get_time:MBEDTLS_ASN1_UTC_TIME:"000229121212":0:2000:2:29:12:12:12
+
+X509 Get time (UTC with invalid time zone #1)
+depends_on:MBEDTLS_X509_USE_C
+x509_get_time:MBEDTLS_ASN1_UTC_TIME:"000229121212J":MBEDTLS_ERR_X509_INVALID_DATE:0:0:0:0:0:0
+
+X509 Get time (UTC with invalid time zone #2)
+depends_on:MBEDTLS_X509_USE_C
+x509_get_time:MBEDTLS_ASN1_UTC_TIME:"000229121212+0300":MBEDTLS_ERR_X509_INVALID_DATE:0:0:0:0:0:0
+
+X509 Get time (Date with invalid tag)
+depends_on:MBEDTLS_X509_USE_C
+x509_get_time:MBEDTLS_ASN1_CONTEXT_SPECIFIC:"000229121212":MBEDTLS_ERR_X509_INVALID_DATE+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG:0:0:0:0:0:0
+
+X509 Get time (UTC, truncated)
+depends_on:MBEDTLS_X509_USE_C
+x509_get_time:MBEDTLS_ASN1_UTC_TIME:"000229121":MBEDTLS_ERR_X509_INVALID_DATE:0:0:0:0:0:0
+
+X509 Get time (Generalized Time, truncated)
+depends_on:MBEDTLS_X509_USE_C
+x509_get_time:MBEDTLS_ASN1_GENERALIZED_TIME:"20000229121":MBEDTLS_ERR_X509_INVALID_DATE:0:0:0:0:0:0
+
+X509 Get time (UTC without seconds)
+depends_on:MBEDTLS_X509_USE_C
+x509_get_time:MBEDTLS_ASN1_UTC_TIME:"0002291212":MBEDTLS_ERR_X509_INVALID_DATE:2000:2:29:12:12:0
+
+X509 Get time (UTC without seconds and with invalid time zone #1)
+depends_on:MBEDTLS_X509_USE_C
+x509_get_time:MBEDTLS_ASN1_UTC_TIME:"0002291212J":MBEDTLS_ERR_X509_INVALID_DATE:0:0:0:0:0:0
+
+X509 Get time (UTC without second and with invalid time zone #2)
+depends_on:MBEDTLS_X509_USE_C
+x509_get_time:MBEDTLS_ASN1_UTC_TIME:"0002291212+0300":MBEDTLS_ERR_X509_INVALID_DATE:0:0:0:0:0:0
+
+X509 Get time (UTC invalid character in year)
+depends_on:MBEDTLS_X509_USE_C
+x509_get_time:MBEDTLS_ASN1_UTC_TIME:"0\1130231212Z":MBEDTLS_ERR_X509_INVALID_DATE:0:0:0:0:0:0
+
+X509 Get time (UTC invalid character in month)
+depends_on:MBEDTLS_X509_USE_C
+x509_get_time:MBEDTLS_ASN1_UTC_TIME:"001%30231212Z":MBEDTLS_ERR_X509_INVALID_DATE:0:0:0:0:0:0
+
+X509 Get time (UTC invalid character in day)
+depends_on:MBEDTLS_X509_USE_C
+x509_get_time:MBEDTLS_ASN1_UTC_TIME:"0011`0231212Z":MBEDTLS_ERR_X509_INVALID_DATE:0:0:0:0:0:0
+
+X509 Get time (UTC invalid character in hour)
+depends_on:MBEDTLS_X509_USE_C
+x509_get_time:MBEDTLS_ASN1_UTC_TIME:"0011302h1212Z":MBEDTLS_ERR_X509_INVALID_DATE:0:0:0:0:0:0
+
+X509 Get time (UTC invalid character in min)
+depends_on:MBEDTLS_X509_USE_C
+x509_get_time:MBEDTLS_ASN1_UTC_TIME:"00113023u012Z":MBEDTLS_ERR_X509_INVALID_DATE:0:0:0:0:0:0
+
+X509 Get time (UTC invalid character in sec)
+depends_on:MBEDTLS_X509_USE_C
+x509_get_time:MBEDTLS_ASN1_UTC_TIME:"0011302359n0Z":MBEDTLS_ERR_X509_INVALID_DATE:0:0:0:0:0:0
+

@@ -110,11 +110,31 @@ endif()
 
 include_directories(include/)
 
+set(THREADS_PREFER_PTHREAD_FLAG ON) # cmake >=3.1 compatibility
+find_package(Threads)
+if(CMAKE_THREAD_LIBS_INIT OR Threads_FOUND)
+    message(STATUS "Threads support enabled")
+    if(THREADS_HAVE_PTHREAD_ARG)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread")
+    endif()
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
+    set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
+    execute_process(COMMAND ${PERL_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/config.pl -f ${CMAKE_SOURCE_DIR}/include/mbedtls/config.h set MBEDTLS_THREADING_C)
+    execute_process(COMMAND ${PERL_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/config.pl -f ${CMAKE_SOURCE_DIR}/include/mbedtls/config.h set MBEDTLS_THREADING_PTHREAD)
+else()
+    message(STATUS "Threads support disabled")
+    if(LINK_WITH_PTHREAD)
+        message(FATAL_ERROR "Cannot find pthread librairies")
+    endif()
+endif()
+
 if(ENABLE_ZLIB_SUPPORT)
     find_package(ZLIB)
 
     if(ZLIB_FOUND)
         include_directories(${ZLIB_INCLUDE_DIR})
+        execute_process(COMMAND ${PERL_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/config.pl -f ${CMAKE_SOURCE_DIR}/include/mbedtls/config.h set MBEDTLS_ZLIB_SUPPORT)
     endif(ZLIB_FOUND)
 endif(ENABLE_ZLIB_SUPPORT)
 

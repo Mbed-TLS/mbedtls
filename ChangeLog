@@ -31,14 +31,14 @@ Bugfix
    * Fix unused variable/function compilation warnings in pem.c and x509_csr.c
      that are reported when building mbed TLS with a config.h that does not
      define POLARSSL_PEM_PARSE_C. Found by omnium21. #562
-   * Fixed potential arithmetic overflow in mbedtls_ctr_drbg_reseed() that could
-     cause buffer bound checks to be bypassed. Found by Eyal Itkin.
-   * Fixed potential arithmetic overflows in mbedtls_cipher_update() that could
-     cause buffer bound checks to be bypassed. Found by Eyal Itkin.
-   * Fixed potential arithmetic overflow in mbedtls_md2_update() that could
-     cause buffer bound checks to be bypassed. Found by Eyal Itkin.
-   * Fixed potential arithmetic overflow in mbedtls_base64_decode() that could
-     cause buffer bound checks to be bypassed. Found by Eyal Itkin.
+   * Fixed potential arithmetic overflow in ctr_drbg_reseed() that could cause
+     buffer bound checks to be bypassed. Found by Eyal Itkin.
+   * Fixed potential arithmetic overflows in cipher_update() that could cause
+     buffer bound checks to be bypassed. Found by Eyal Itkin.
+   * Fixed potential arithmetic overflow in md2_update() that could cause buffer
+     bound checks to be bypassed. Found by Eyal Itkin.
+   * Fixed potential arithmetic overflow in base64_decode() that could cause
+     buffer bound checks to be bypassed. Found by Eyal Itkin.
    * Fix potential memory leak in x509_crl_parse(). The leak was caused by
      missing calls to pem_free() in cases when a
      POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT error was encountered. Found and

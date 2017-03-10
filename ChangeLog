@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+Changes
+   * Clarify ECDSA documentation and improve the sample code to avoid
+     misunderstandings and potentially dangerous use of the API. Pointed out
+     by Jean-Philippe Aumasson.
+
+
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
 Bugfix

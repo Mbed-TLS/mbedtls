@@ -163,6 +163,22 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRL_PARSE_C */
+void mbedtls_x509_crl_parse( char *crl_file, int result )
+{
+    mbedtls_x509_crl   crl;
+    char buf[2000];
+
+    mbedtls_x509_crl_init( &crl );
+    memset( buf, 0, 2000 );
+
+    TEST_ASSERT( mbedtls_x509_crl_parse_file( &crl, crl_file ) == result );
+
+exit:
+    mbedtls_x509_crl_free( &crl );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CSR_PARSE_C */
 void mbedtls_x509_csr_info( char *csr_file, char *result_str )
 {
@@ -597,16 +613,14 @@ void x509_get_time( int tag,  char *time_str, int ret,
                     int hour, int min, int sec )
 {
     mbedtls_x509_time time;
-    unsigned char buf[17];
+    unsigned char buf[21];
     unsigned char* start = buf;
     unsigned char* end = buf;
 
     memset( &time, 0x00, sizeof( time ) );
     *end = (unsigned char)tag; end++;
-    if( tag == MBEDTLS_ASN1_UTC_TIME )
-        *end = 13;
-    else
-        *end = 15;
+    *end = strlen( time_str );
+    TEST_ASSERT( *end < 20 );
     end++;
     memcpy( end, time_str, (size_t)*(end - 1) );
     end += *(end - 1);

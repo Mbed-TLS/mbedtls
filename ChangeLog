@@ -24,6 +24,11 @@ Bugfix
    * Fix insufficient support for signature-hash-algorithm extension,
      resulting in compatibility problems with Chrome. Found by hfloyrd. #823
 
+Changes
+   * Clarify ECDSA documentation and improve the sample code to avoid
+     misunderstandings and potentially dangerous use of the API. Pointed out
+     by Jean-Philippe Aumasson.
+
 = mbed TLS 2.1.7 branch released 2017-03-08
 
 Security

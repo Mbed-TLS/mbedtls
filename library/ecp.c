@@ -1465,13 +1465,6 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
     mbedtls_mpi_init( &M );
 
-    /*
-     * We need an odd scalar for recoding. Ensure that by replacing it with
-     * its opposite, then negating the result to compensate if needed.
-     */
-    m_is_odd = ( mbedtls_mpi_get_bit( m, 0 ) == 1 );
-    MBEDTLS_MPI_CHK( ecp_make_scalar_odd( grp, &M, m, m_is_odd ) );
-
     /* Is P the base point ? */
 #if MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
     p_eq_g = ( mbedtls_mpi_cmp_mpi( &P->Y, &grp->G.Y ) == 0 &&
@@ -1508,6 +1501,13 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
             grp->T_size = pre_len;
         }
     }
+
+    /*
+     * We need an odd scalar for recoding. Ensure that by replacing it with
+     * its opposite, then negating the result to compensate if needed.
+     */
+    m_is_odd = ( mbedtls_mpi_get_bit( m, 0 ) == 1 );
+    MBEDTLS_MPI_CHK( ecp_make_scalar_odd( grp, &M, m, m_is_odd ) );
 
     /*
      * Go for comb multiplication, R = M * P

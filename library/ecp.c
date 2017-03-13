@@ -1408,6 +1408,53 @@ cleanup:
 }
 
 /*
+ * Perform comb multiplication (for short Weierstrass curves)
+ * once the auxiliary table has been pre-computed.
+ */
+static int ecp_mul_comb_after_precomp( const mbedtls_ecp_group *grp,
+                                mbedtls_ecp_point *R,
+                                const mbedtls_mpi *m,
+                                const mbedtls_ecp_point *T,
+                                unsigned char pre_len,
+                                unsigned char w,
+                                size_t d,
+                                int (*f_rng)(void *, unsigned char *, size_t),
+                                void *p_rng )
+{
+    int ret;
+    unsigned char m_is_odd;
+    unsigned char k[COMB_MAX_D + 1];
+    mbedtls_mpi M;
+
+    mbedtls_mpi_init( &M );
+
+    /*
+     * We need an odd scalar for recoding. Ensure that by replacing it with
+     * its opposite, then negating the result to compensate if needed.
+     */
+    m_is_odd = ( mbedtls_mpi_get_bit( m, 0 ) == 1 );
+    MBEDTLS_MPI_CHK( ecp_make_scalar_odd( grp, &M, m, m_is_odd ) );
+    ecp_comb_fixed( k, d, w, &M );
+
+    /*
+     * Go for comb multiplication, R = M * P
+     */
+    MBEDTLS_MPI_CHK( ecp_mul_comb_core( grp, R, T, pre_len, k, d, f_rng, p_rng ) );
+
+    /*
+     * Now get m * P from M * P and normalize it
+     */
+    MBEDTLS_MPI_CHK( ecp_safe_invert_jac( grp, R, ! m_is_odd ) );
+    MBEDTLS_MPI_CHK( ecp_normalize_jac( grp, R ) );
+
+cleanup:
+    mbedtls_mpi_free( &M );
+
+    return( ret );
+}
+
+
+/*
  * Pick window size based on curve size and whether we optimize for base point
  */
 static unsigned char ecp_pick_window_size( const mbedtls_ecp_group *grp,
@@ -1452,18 +1499,14 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                          void *p_rng )
 {
     int ret;
-    unsigned char w, m_is_odd, p_eq_g, pre_len, i;
+    unsigned char w, p_eq_g, pre_len, i;
     size_t d;
-    unsigned char k[COMB_MAX_D + 1];
     mbedtls_ecp_point *T = NULL;
-    mbedtls_mpi M;
 
 #if defined(MBEDTLS_ECP_EARLY_RETURN)
     if( ecp_restart.fake_it++ != 0 && ecp_max_ops != 0 )
         return( MBEDTLS_ERR_ECP_IN_PROGRESS );
 #endif
-
-    mbedtls_mpi_init( &M );
 
     /* Is P the base point ? */
 #if MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
@@ -1473,7 +1516,7 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     p_eq_g = 0;
 #endif
 
-    /* Window size and others that depend on it */
+    /* Pick window size and deduce related sizes */
     w = ecp_pick_window_size( grp, p_eq_g );
     pre_len = 1U << ( w - 1 );
     d = ( grp->nbits + w - 1 ) / w;
@@ -1502,24 +1545,10 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         }
     }
 
-    /*
-     * We need an odd scalar for recoding. Ensure that by replacing it with
-     * its opposite, then negating the result to compensate if needed.
-     */
-    m_is_odd = ( mbedtls_mpi_get_bit( m, 0 ) == 1 );
-    MBEDTLS_MPI_CHK( ecp_make_scalar_odd( grp, &M, m, m_is_odd ) );
-
-    /*
-     * Go for comb multiplication, R = M * P
-     */
-    ecp_comb_fixed( k, d, w, &M );
-    MBEDTLS_MPI_CHK( ecp_mul_comb_core( grp, R, T, pre_len, k, d, f_rng, p_rng ) );
-
-    /*
-     * Now get m * P from M * P and normalize it
-     */
-    MBEDTLS_MPI_CHK( ecp_safe_invert_jac( grp, R, ! m_is_odd ) );
-    MBEDTLS_MPI_CHK( ecp_normalize_jac( grp, R ) );
+    /* Actual comb multiplication using precomputed points */
+    MBEDTLS_MPI_CHK( ecp_mul_comb_after_precomp( grp, R, m,
+                                                 T, pre_len, w, d,
+                                                 f_rng, p_rng ) );
 
 cleanup:
 
@@ -1529,8 +1558,6 @@ cleanup:
             mbedtls_ecp_point_free( &T[i] );
         mbedtls_free( T );
     }
-
-    mbedtls_mpi_free( &M );
 
     if( ret != 0 )
         mbedtls_ecp_point_free( R );

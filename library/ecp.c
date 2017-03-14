@@ -1220,8 +1220,8 @@ cleanup:
  * - m is the MPI, expected to be odd and such that bitlength(m) <= w * d
  *   (the result will be incorrect if these assumptions are not satisfied)
  */
-static void ecp_comb_fixed( unsigned char x[], size_t d,
-                            unsigned char w, const mbedtls_mpi *m )
+static void ecp_comb_recode_core( unsigned char x[], size_t d,
+                                  unsigned char w, const mbedtls_mpi *m )
 {
     size_t i, j;
     unsigned char c, cc, adjust;
@@ -1377,32 +1377,43 @@ cleanup:
 }
 
 /*
- * Set M to either m or -m, depending on which one is odd
+ * Recode the scalar to get constant-time comb multiplication
+ *
+ * As the actual scalar recoding needs an odd scalar as a starting point,
+ * this wrapper ensures that by replacing m by N - m if necessary, and
+ * informs the caller that the result of multiplication will be negated.
  */
-static int ecp_make_scalar_odd( const mbedtls_ecp_group *grp,
-                                mbedtls_mpi *M,
-                                const mbedtls_mpi *m,
-                                const unsigned char m_is_odd )
+static int ecp_comb_recode_scalar( const mbedtls_ecp_group *grp,
+                                   const mbedtls_mpi *m,
+                                   unsigned char k[COMB_MAX_D + 1],
+                                   size_t d,
+                                   unsigned char w,
+                                   unsigned char *parity_trick )
 {
     int ret;
-    mbedtls_mpi mm;
+    mbedtls_mpi M, mm;
 
+    mbedtls_mpi_init( &M );
     mbedtls_mpi_init( &mm );
 
-    /* we need N to be odd to transform m in an odd number, check now */
+    /* N is odd with all real-world curves, just make extra sure */
     if( mbedtls_mpi_get_bit( &grp->N, 0 ) != 1 )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-    /*
-     * Make sure M is odd (M = m or M = N - m, since N is odd)
-     * using the fact that m * P = - (N - m) * P
-     */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_copy( M, m ) );
+    /* do we need the parity trick? */
+    *parity_trick = ( mbedtls_mpi_get_bit( m, 0 ) == 0 );
+
+    /* execute parity fix in constant time */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &M, m ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &mm, &grp->N, m ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_assign( M, &mm, ! m_is_odd ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_assign( &M, &mm, *parity_trick ) );
+
+    /* actual scalar recoding */
+    ecp_comb_recode_core( k, d, w, &M );
 
 cleanup:
     mbedtls_mpi_free( &mm );
+    mbedtls_mpi_free( &M );
 
     return( ret );
 }
@@ -1410,6 +1421,9 @@ cleanup:
 /*
  * Perform comb multiplication (for short Weierstrass curves)
  * once the auxiliary table has been pre-computed.
+ *
+ * Scalar recoding may use a parity trick that makes us compute -m * P,
+ * if that is the case we'll need to recover m * P at the end.
  */
 static int ecp_mul_comb_after_precomp( const mbedtls_ecp_group *grp,
                                 mbedtls_ecp_point *R,
@@ -1422,34 +1436,18 @@ static int ecp_mul_comb_after_precomp( const mbedtls_ecp_group *grp,
                                 void *p_rng )
 {
     int ret;
-    unsigned char m_is_odd;
+    unsigned char parity_trick;
     unsigned char k[COMB_MAX_D + 1];
-    mbedtls_mpi M;
 
-    mbedtls_mpi_init( &M );
+    MBEDTLS_MPI_CHK( ecp_comb_recode_scalar( grp, m, k, d, w, &parity_trick ) );
 
-    /*
-     * We need an odd scalar for recoding. Ensure that by replacing it with
-     * its opposite, then negating the result to compensate if needed.
-     */
-    m_is_odd = ( mbedtls_mpi_get_bit( m, 0 ) == 1 );
-    MBEDTLS_MPI_CHK( ecp_make_scalar_odd( grp, &M, m, m_is_odd ) );
-    ecp_comb_fixed( k, d, w, &M );
-
-    /*
-     * Go for comb multiplication, R = M * P
-     */
     MBEDTLS_MPI_CHK( ecp_mul_comb_core( grp, R, T, pre_len, k, d, f_rng, p_rng ) );
 
-    /*
-     * Now get m * P from M * P and normalize it
-     */
-    MBEDTLS_MPI_CHK( ecp_safe_invert_jac( grp, R, ! m_is_odd ) );
+    MBEDTLS_MPI_CHK( ecp_safe_invert_jac( grp, R, parity_trick ) );
+
     MBEDTLS_MPI_CHK( ecp_normalize_jac( grp, R ) );
 
 cleanup:
-    mbedtls_mpi_free( &M );
-
     return( ret );
 }
 

@@ -90,7 +90,7 @@ static int cmac_multiply_by_u( unsigned char *output,
     const unsigned char R_64 = 0x1B;
     unsigned char R_n, mask;
     unsigned char overflow = 0x00;
-    int i;
+    size_t i;
 
     if( blocksize == MBEDTLS_AES_BLOCK_SIZE )
     {
@@ -105,7 +105,7 @@ static int cmac_multiply_by_u( unsigned char *output,
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
     }
 
-    for( i = (int)blocksize - 1; i >= 0; i-- )
+    for( i = blocksize - 1; i >= 0; i-- )
     {
         output[i] = input[i] << 1 | overflow;
         overflow = input[i] >> 7;

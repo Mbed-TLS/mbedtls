@@ -1949,6 +1949,16 @@
 //#define MBEDTLS_MEMORY_BUFFER_ALLOC_C
 
 /**
+ * \def MBEDTLS_HAVE_WINSOCK2
+ *
+ * Windows builds using winsock2.h will need this macro to correctly resognize
+ * the type used for sockets.
+ *
+ * Uncomment if your system has winsock2.h.
+ */
+//#define MBEDTLS_HAVE_WINSOCK2
+
+/**
  * \def MBEDTLS_NET_C
  *
  * Enable the TCP and UDP over IPv6/IPv4 networking routines.

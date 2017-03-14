@@ -104,10 +104,14 @@ void mbedtls_ecp_set_max_ops( unsigned max_ops )
  * Restart context type for interrupted operations
  */
 struct mbedtls_ecp_restart {
-    unsigned char fake_it;  /* for tests: should we fake early return? */
+    unsigned ops_done;      /* number of operations done this time          */
     mbedtls_mpi m;          /* saved argument: scalar                       */
     mbedtls_ecp_point P;    /* saved argument: point                        */
     mbedtls_ecp_point R;    /* current intermediate result                  */
+    enum {
+        ecp_rs_init = 0,
+        ecp_rs_final_norm,
+    } state;
 };
 
 /*
@@ -129,7 +133,37 @@ static void ecp_restart_free( mbedtls_ecp_restart_ctx *ctx )
     mbedtls_mpi_free( &ctx->m );
     mbedtls_ecp_point_free( &ctx->P );
     mbedtls_ecp_point_free( &ctx->R );
+
+    memset( ctx, 0, sizeof( mbedtls_ecp_restart_ctx ) );
 }
+
+/*
+ * Operation counts
+ */
+#define ECP_OPS_DBL     8   /* see ecp_double_jac() */
+#define ECP_OPS_ADD    11   /* see ecp_add_mixed()  */
+#define ECP_OPS_INV   120   /* empirical equivalent */
+
+/*
+ * Check if we can do the next step
+ */
+static int ecp_check_budget( const mbedtls_ecp_group *grp, unsigned ops )
+{
+    if( grp->rs != NULL )
+    {
+        /* avoid infinite loops: always allow first step */
+        if( grp->rs->ops_done != 0 && grp->rs->ops_done + ops > ecp_max_ops )
+            return( MBEDTLS_ERR_ECP_IN_PROGRESS );
+
+        grp->rs->ops_done += ops;
+    }
+
+    return( 0 );
+}
+
+#define ECP_BUDGET( ops )   MBEDTLS_MPI_CHK( ecp_check_budget( grp, ops ) );
+#else
+#define ECP_BUDGET( ops )
 #endif /* MBEDTLS_ECP_EARLY_RETURN */
 
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) ||   \
@@ -1465,12 +1499,26 @@ static int ecp_mul_comb_after_precomp( const mbedtls_ecp_group *grp,
         RR = &grp->rs->R;
 #endif
 
-    MBEDTLS_MPI_CHK( ecp_comb_recode_scalar( grp, m, k, d, w, &parity_trick ) );
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+    if( grp->rs == NULL || grp->rs->state < ecp_rs_final_norm )
+#endif
+    {
+        MBEDTLS_MPI_CHK( ecp_comb_recode_scalar( grp, m, k, d, w,
+                                                &parity_trick ) );
+        MBEDTLS_MPI_CHK( ecp_mul_comb_core( grp, RR, T, pre_len, k, d,
+                                            f_rng, p_rng ) );
+        MBEDTLS_MPI_CHK( ecp_safe_invert_jac( grp, RR, parity_trick ) );
 
-    MBEDTLS_MPI_CHK( ecp_mul_comb_core( grp, RR, T, pre_len, k, d, f_rng, p_rng ) );
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+        if( grp->rs != NULL )
+            grp->rs->state++;
+#endif
 
-    MBEDTLS_MPI_CHK( ecp_safe_invert_jac( grp, RR, parity_trick ) );
+        /* XXX: temporary: should have counted some ops */
+        ECP_BUDGET( 42 );
+    }
 
+    ECP_BUDGET( ECP_OPS_INV );
     MBEDTLS_MPI_CHK( ecp_normalize_jac( grp, RR ) );
 
 #if defined(MBEDTLS_ECP_EARLY_RETURN)
@@ -1555,12 +1603,10 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &grp->rs->m, m ) );
         MBEDTLS_MPI_CHK( mbedtls_ecp_copy( &grp->rs->P, P ) );
     }
-#endif
 
-    /* XXX: temporary */
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
-    if( grp->rs && ++grp->rs->fake_it != 0 )
-        return( MBEDTLS_ERR_ECP_IN_PROGRESS );
+    /* new start for ops counts */
+    if( grp->rs != NULL )
+        grp->rs->ops_done = 0;
 #endif
 
     /* Is P the base point ? */
@@ -1614,6 +1660,10 @@ cleanup:
         mbedtls_free( T );
     }
 
+    /* don't free R while in progress in case R == P */
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+    if( ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
+#endif
     if( ret != 0 )
         mbedtls_ecp_point_free( R );
 

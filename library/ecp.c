@@ -101,20 +101,28 @@ void mbedtls_ecp_set_max_ops( unsigned max_ops )
 }
 
 /*
- * Saved context type for restarting operations.
- *
- * XXX: this is a temporary place for the definition
+ * Restart context type for interrupted operations
  */
-typedef struct {
+struct mbedtls_ecp_restart {
     unsigned char fake_it;  /* for tests: should we fake early return? */
-} ecp_restart_context;
+};
 
 /*
- * Saved context fro restarting operations.
- *
- * XXX: temporary place for the allocation
+ * Init restart context
  */
-static ecp_restart_context ecp_restart;
+static void ecp_restart_init( mbedtls_ecp_restart_ctx *ctx )
+{
+    memset( ctx, 0, sizeof( mbedtls_ecp_restart_ctx ) );
+}
+
+/*
+ * Free the components of a restart context
+ */
+static void ecp_restart_free( mbedtls_ecp_restart_ctx *ctx )
+{
+    if( ctx == NULL )
+        return;
+}
 #endif /* MBEDTLS_ECP_EARLY_RETURN */
 
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) ||   \
@@ -377,6 +385,11 @@ void mbedtls_ecp_group_free( mbedtls_ecp_group *grp )
             mbedtls_ecp_point_free( &grp->T[i] );
         mbedtls_free( grp->T );
     }
+
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+    ecp_restart_free( grp->rs );
+    mbedtls_free( grp->rs );
+#endif
 
     mbedtls_zeroize( grp, sizeof( mbedtls_ecp_group ) );
 }
@@ -1501,8 +1514,22 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     size_t d;
     mbedtls_ecp_point *T = NULL;
 
+    /* set up restart context if needed */
 #if defined(MBEDTLS_ECP_EARLY_RETURN)
-    if( ecp_restart.fake_it++ != 0 && ecp_max_ops != 0 )
+    if( ecp_max_ops != 0 && grp->rs == NULL )
+    {
+        grp->rs = mbedtls_calloc( 1, sizeof( mbedtls_ecp_restart_ctx ) );
+        if( grp->rs == NULL )
+            return( MBEDTLS_ERR_ECP_ALLOC_FAILED );
+        ecp_restart_init( grp->rs );
+
+        grp->rs->fake_it = 1;
+    }
+#endif
+
+    /* XXX: temporary */
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+    if( grp->rs && grp->rs->fake_it++ != 0 )
         return( MBEDTLS_ERR_ECP_IN_PROGRESS );
 #endif
 
@@ -1559,6 +1586,14 @@ cleanup:
 
     if( ret != 0 )
         mbedtls_ecp_point_free( R );
+
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+    if( grp->rs != NULL && ret != MBEDTLS_ERR_ECP_IN_PROGRESS ) {
+        ecp_restart_free( grp->rs );
+        mbedtls_free( grp->rs );
+        grp->rs = NULL;
+    }
+#endif
 
     return( ret );
 }

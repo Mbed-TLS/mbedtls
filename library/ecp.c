@@ -107,6 +107,7 @@ struct mbedtls_ecp_restart {
     unsigned char fake_it;  /* for tests: should we fake early return? */
     mbedtls_mpi m;          /* saved argument: scalar                       */
     mbedtls_ecp_point P;    /* saved argument: point                        */
+    mbedtls_ecp_point R;    /* current intermediate result                  */
 };
 
 /*
@@ -127,6 +128,7 @@ static void ecp_restart_free( mbedtls_ecp_restart_ctx *ctx )
 
     mbedtls_mpi_free( &ctx->m );
     mbedtls_ecp_point_free( &ctx->P );
+    mbedtls_ecp_point_free( &ctx->R );
 }
 #endif /* MBEDTLS_ECP_EARLY_RETURN */
 
@@ -1456,14 +1458,24 @@ static int ecp_mul_comb_after_precomp( const mbedtls_ecp_group *grp,
     int ret;
     unsigned char parity_trick;
     unsigned char k[COMB_MAX_D + 1];
+    mbedtls_ecp_point *RR = R;
+
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+    if( grp->rs != NULL )
+        RR = &grp->rs->R;
+#endif
 
     MBEDTLS_MPI_CHK( ecp_comb_recode_scalar( grp, m, k, d, w, &parity_trick ) );
 
-    MBEDTLS_MPI_CHK( ecp_mul_comb_core( grp, R, T, pre_len, k, d, f_rng, p_rng ) );
+    MBEDTLS_MPI_CHK( ecp_mul_comb_core( grp, RR, T, pre_len, k, d, f_rng, p_rng ) );
 
-    MBEDTLS_MPI_CHK( ecp_safe_invert_jac( grp, R, parity_trick ) );
+    MBEDTLS_MPI_CHK( ecp_safe_invert_jac( grp, RR, parity_trick ) );
 
-    MBEDTLS_MPI_CHK( ecp_normalize_jac( grp, R ) );
+    MBEDTLS_MPI_CHK( ecp_normalize_jac( grp, RR ) );
+
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+    MBEDTLS_MPI_CHK( mbedtls_ecp_copy( R, RR ) );
+#endif
 
 cleanup:
     return( ret );

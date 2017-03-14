@@ -121,6 +121,13 @@ void ecp_test_vect_restart( int id,
     }
     while( ret != 0 );
 
+    /* Ok, now start an operation with some arguments, and drop it.
+     * We'll see if the result of the next operation, with different args,
+     * are correct regardless (do we discard old context on new args?).
+     * This also tests that we don't write to R prematurely */
+    ret = mbedtls_ecp_mul( &grp, &R, &dA, &grp.G, NULL, NULL );
+    TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+
     /* Non-base point case */
     cnt_restarts = 0;
     do {

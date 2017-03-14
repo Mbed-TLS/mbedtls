@@ -105,6 +105,8 @@ void mbedtls_ecp_set_max_ops( unsigned max_ops )
  */
 struct mbedtls_ecp_restart {
     unsigned char fake_it;  /* for tests: should we fake early return? */
+    mbedtls_mpi m;          /* saved argument: scalar                       */
+    mbedtls_ecp_point P;    /* saved argument: point                        */
 };
 
 /*
@@ -122,6 +124,9 @@ static void ecp_restart_free( mbedtls_ecp_restart_ctx *ctx )
 {
     if( ctx == NULL )
         return;
+
+    mbedtls_mpi_free( &ctx->m );
+    mbedtls_ecp_point_free( &ctx->P );
 }
 #endif /* MBEDTLS_ECP_EARLY_RETURN */
 
@@ -1514,22 +1519,35 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     size_t d;
     mbedtls_ecp_point *T = NULL;
 
-    /* set up restart context if needed */
 #if defined(MBEDTLS_ECP_EARLY_RETURN)
+    /* check for restart with new arguments */
+    if( grp->rs != NULL &&
+        ( mbedtls_mpi_cmp_mpi( m, &grp->rs->m ) != 0 ||
+          mbedtls_mpi_cmp_mpi( &P->X, &grp->rs->P.X ) != 0 ||
+          mbedtls_mpi_cmp_mpi( &P->Y, &grp->rs->P.Y ) != 0 ) )
+    {
+        ecp_restart_free( grp->rs );
+        mbedtls_free( grp->rs );
+        grp->rs = NULL;
+    }
+
+    /* set up restart context if needed */
     if( ecp_max_ops != 0 && grp->rs == NULL )
     {
         grp->rs = mbedtls_calloc( 1, sizeof( mbedtls_ecp_restart_ctx ) );
         if( grp->rs == NULL )
             return( MBEDTLS_ERR_ECP_ALLOC_FAILED );
+
         ecp_restart_init( grp->rs );
 
-        grp->rs->fake_it = 1;
+        MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &grp->rs->m, m ) );
+        MBEDTLS_MPI_CHK( mbedtls_ecp_copy( &grp->rs->P, P ) );
     }
 #endif
 
     /* XXX: temporary */
 #if defined(MBEDTLS_ECP_EARLY_RETURN)
-    if( grp->rs && grp->rs->fake_it++ != 0 )
+    if( grp->rs && ++grp->rs->fake_it != 0 )
         return( MBEDTLS_ERR_ECP_IN_PROGRESS );
 #endif
 

@@ -108,6 +108,7 @@ struct mbedtls_ecp_restart {
     mbedtls_mpi m;          /* saved argument: scalar                       */
     mbedtls_ecp_point P;    /* saved argument: point                        */
     mbedtls_ecp_point R;    /* current intermediate result                  */
+    size_t i;               /* current index in various loops, 0 outside    */
     enum {
         ecp_rs_init = 0,
         ecp_rs_final_norm,
@@ -1409,15 +1410,26 @@ static int ecp_mul_comb_core( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R
 
     mbedtls_ecp_point_init( &Txi );
 
-    /* Start with a non-zero point and randomize its coordinates */
-    i = d;
-    MBEDTLS_MPI_CHK( ecp_select_comb( grp, R, T, t_len, x[i] ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &R->Z, 1 ) );
-    if( f_rng != 0 )
-        MBEDTLS_MPI_CHK( ecp_randomize_jac( grp, R, f_rng, p_rng ) );
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+    if( grp->rs != NULL && grp->rs->i != 0 )
+    {
+        /* restore current index (R already pointing to grp->rs->R) */
+        i = grp->rs->i;
+    }
+    else
+#endif
+    {
+        /* Start with a non-zero point and randomize its coordinates */
+        i = d;
+        MBEDTLS_MPI_CHK( ecp_select_comb( grp, R, T, t_len, x[i] ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &R->Z, 1 ) );
+        if( f_rng != 0 )
+            MBEDTLS_MPI_CHK( ecp_randomize_jac( grp, R, f_rng, p_rng ) );
+    }
 
     while( i-- != 0 )
     {
+        ECP_BUDGET( ECP_OPS_DBL + ECP_OPS_ADD );
         MBEDTLS_MPI_CHK( ecp_double_jac( grp, R, R ) );
         MBEDTLS_MPI_CHK( ecp_select_comb( grp, &Txi, T, t_len, x[i] ) );
         MBEDTLS_MPI_CHK( ecp_add_mixed( grp, R, R, &Txi ) );
@@ -1426,6 +1438,23 @@ static int ecp_mul_comb_core( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R
 cleanup:
 
     mbedtls_ecp_point_free( &Txi );
+
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+    if( grp->rs != NULL )
+    {
+        if( ret == 0 )
+        {
+            grp->rs->state++;
+            grp->rs->i = 0;
+        }
+        else if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
+        {
+            /* was decreased before actually doing it */
+            grp->rs->i = i + 1;
+            /* no need to save R, already pointing to grp->rs->R */
+        }
+    }
+#endif
 
     return( ret );
 }
@@ -1513,9 +1542,6 @@ static int ecp_mul_comb_after_precomp( const mbedtls_ecp_group *grp,
         if( grp->rs != NULL )
             grp->rs->state++;
 #endif
-
-        /* XXX: temporary: should have counted some ops */
-        ECP_BUDGET( 42 );
     }
 
     ECP_BUDGET( ECP_OPS_INV );

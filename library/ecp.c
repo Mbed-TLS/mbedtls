@@ -113,6 +113,8 @@ struct mbedtls_ecp_restart {
     unsigned char T_size;   /* number of points in table T                  */
     enum {                  /* what's the next step ?                       */
         ecp_rs_init = 0,        /* just getting started                     */
+        ecp_rs_tmp_dummy,       /* temporary for incremental testing        */
+        ecp_rs_T_done,          /* call ecp_mul_comb_after_precomp()        */
         ecp_rs_final_norm,      /* do the final normalization               */
     } state;
 };
@@ -1334,6 +1336,15 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
     size_t j;
     mbedtls_ecp_point *cur, *TT[COMB_MAX_PRE - 1];
 
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+    /* XXX: dummy "in_progress" return for testing caller */
+    if( grp->rs != NULL && grp->rs->state == ecp_rs_init )
+    {
+        grp->rs->state++;
+        return( MBEDTLS_ERR_ECP_IN_PROGRESS );
+    }
+#endif
+
     /*
      * Set T[0] = P and
      * T[2^{l-1}] = 2^{dl} P for l = 1 .. w-1 (this is not the final value)
@@ -1369,6 +1380,11 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
     }
 
     MBEDTLS_MPI_CHK( ecp_normalize_jac_many( grp, TT, k ) );
+
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+    if( grp->rs != NULL )
+        grp->rs->state++;
+#endif
 
 cleanup:
 
@@ -1613,7 +1629,7 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     int ret;
     unsigned char w, p_eq_g = 0, i;
     size_t d;
-    unsigned char pre_len = 0;
+    unsigned char pre_len = 0, T_ok = 0;
     mbedtls_ecp_point *T = NULL;
 
 #if defined(MBEDTLS_ECP_EARLY_RETURN)
@@ -1657,22 +1673,28 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     pre_len = 1U << ( w - 1 );
     d = ( grp->nbits + w - 1 ) / w;
 
-    /*
-     * Prepare precomputed points: if P == G we want to
-     * use grp->T if already initialized, or initialize it.
-     */
-    T = p_eq_g ? grp->T : NULL;
+    /* Pre-computed table: do we have it already for the base point? */
+    if( p_eq_g && grp->T != NULL )
+    {
+        T = grp->T;
+        T_ok = 1;
+    }
 
 #if defined(MBEDTLS_ECP_EARLY_RETURN)
+    /* Pre-computed table: do we have one in progress? complete? */
     if( grp->rs != NULL && grp->rs->T != NULL && T == NULL )
     {
         /* transfer "ownership" of T from rs to local function */
         T = grp->rs->T;
         grp->rs->T = NULL;
         grp->rs->T_size = 0;
+
+        if( grp->rs->state >= ecp_rs_T_done )
+            T_ok = 1;
     }
 #endif
 
+    /* Allocate table if we didn't have any */
     if( T == NULL )
     {
         T = mbedtls_calloc( pre_len, sizeof( mbedtls_ecp_point ) );
@@ -1681,7 +1703,11 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
             ret = MBEDTLS_ERR_ECP_ALLOC_FAILED;
             goto cleanup;
         }
+    }
 
+    /* Compute table (or finish computing it) if not done already */
+    if( !T_ok )
+    {
         MBEDTLS_MPI_CHK( ecp_precompute_comb( grp, T, P, w, d ) );
 
         if( p_eq_g )

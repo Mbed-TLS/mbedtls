@@ -1618,8 +1618,17 @@ static unsigned char ecp_pick_window_size( const mbedtls_ecp_group *grp,
 }
 
 /*
- * Multiplication using the comb method,
- * for curves in short Weierstrass form
+ * Multiplication using the comb method - for curves in short Weierstrass form
+ *
+ * This function is mainly responsible for administrative work:
+ * - managing the restart context if enabled
+ * - managing the table of precomputed points (passed between the above two
+ *   functions): allocation, computation, ownership tranfer, freeing.
+ *
+ * It delegates the actual arithmetic work to:
+ *      ecp_precompute_comb() and ecp_mul_comb_with_precomp()
+ *
+ * See comments on ecp_comb_recode_core() regarding the computation strategy.
  */
 static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                          const mbedtls_mpi *m, const mbedtls_ecp_point *P,
@@ -1657,7 +1666,7 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         MBEDTLS_MPI_CHK( mbedtls_ecp_copy( &grp->rs->P, P ) );
     }
 
-    /* new start for ops counts */
+    /* reset ops count for this call */
     if( grp->rs != NULL )
         grp->rs->ops_done = 0;
 #endif
@@ -1676,6 +1685,8 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     /* Pre-computed table: do we have it already for the base point? */
     if( p_eq_g && grp->T != NULL )
     {
+        /* second pointer to the same table
+         * no ownership transfer as other threads might be using T too */
         T = grp->T;
         T_ok = 1;
     }
@@ -1684,7 +1695,7 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     /* Pre-computed table: do we have one in progress? complete? */
     if( grp->rs != NULL && grp->rs->T != NULL && T == NULL )
     {
-        /* transfer "ownership" of T from rs to local function */
+        /* transfer ownership of T from rs to local function */
         T = grp->rs->T;
         grp->rs->T = NULL;
         grp->rs->T_size = 0;
@@ -1714,6 +1725,7 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         {
             grp->T = T;
             grp->T_size = pre_len;
+            /* now have two pointers to the same table */
         }
     }
 
@@ -1724,17 +1736,23 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
 cleanup:
 
+    /* does T belong to the group? */
+    if( T == grp->T )
+        T = NULL;
+
+    /* does T belong to the restart context? */
 #if defined(MBEDTLS_ECP_EARLY_RETURN)
-    if( grp->rs != NULL && ret == MBEDTLS_ERR_ECP_IN_PROGRESS && T != grp->T )
+    if( grp->rs != NULL && ret == MBEDTLS_ERR_ECP_IN_PROGRESS && T != NULL )
     {
-        /* transfer "ownership" of T from local function to rs */
+        /* transfer ownership of T from local function to rs */
         grp->rs->T_size = pre_len;
         grp->rs->T = T;
         T = NULL;
     }
 #endif
 
-    if( T != NULL && ! p_eq_g )
+    /* did T belong to us? then let's destroy it! */
+    if( T != NULL )
     {
         for( i = 0; i < pre_len; i++ )
             mbedtls_ecp_point_free( &T[i] );
@@ -1745,9 +1763,11 @@ cleanup:
 #if defined(MBEDTLS_ECP_EARLY_RETURN)
     if( ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
 #endif
+    /* prevent caller from using invalid value */
     if( ret != 0 )
         mbedtls_ecp_point_free( R );
 
+    /* clear restart context when not in progress (done or error) */
 #if defined(MBEDTLS_ECP_EARLY_RETURN)
     if( grp->rs != NULL && ret != MBEDTLS_ERR_ECP_IN_PROGRESS ) {
         ecp_restart_free( grp->rs );

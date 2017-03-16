@@ -109,9 +109,11 @@ struct mbedtls_ecp_restart {
     mbedtls_ecp_point P;    /* saved argument: point                        */
     mbedtls_ecp_point R;    /* current intermediate result                  */
     size_t i;               /* current index in various loops, 0 outside    */
-    enum {
-        ecp_rs_init = 0,
-        ecp_rs_final_norm,
+    mbedtls_ecp_point *T;   /* table for precomputed points                 */
+    unsigned char T_size;   /* number of points in table T                  */
+    enum {                  /* what's the next step ?                       */
+        ecp_rs_init = 0,        /* just getting started                     */
+        ecp_rs_final_norm,      /* do the final normalization               */
     } state;
 };
 
@@ -128,12 +130,20 @@ static void ecp_restart_init( mbedtls_ecp_restart_ctx *ctx )
  */
 static void ecp_restart_free( mbedtls_ecp_restart_ctx *ctx )
 {
+    unsigned char i;
+
     if( ctx == NULL )
         return;
 
     mbedtls_mpi_free( &ctx->m );
     mbedtls_ecp_point_free( &ctx->P );
     mbedtls_ecp_point_free( &ctx->R );
+
+    if( ctx->T != NULL ) {
+        for( i = 0; i < ctx->T_size; i++ )
+            mbedtls_ecp_point_free( ctx->T + i );
+        mbedtls_free( ctx->T );
+    }
 
     memset( ctx, 0, sizeof( mbedtls_ecp_restart_ctx ) );
 }
@@ -1601,8 +1611,9 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                          void *p_rng )
 {
     int ret;
-    unsigned char w, p_eq_g, pre_len, i;
+    unsigned char w, p_eq_g = 0, i;
     size_t d;
+    unsigned char pre_len = 0;
     mbedtls_ecp_point *T = NULL;
 
 #if defined(MBEDTLS_ECP_EARLY_RETURN)
@@ -1639,8 +1650,6 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 #if MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
     p_eq_g = ( mbedtls_mpi_cmp_mpi( &P->Y, &grp->G.Y ) == 0 &&
                mbedtls_mpi_cmp_mpi( &P->X, &grp->G.X ) == 0 );
-#else
-    p_eq_g = 0;
 #endif
 
     /* Pick window size and deduce related sizes */
@@ -1653,6 +1662,16 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
      * use grp->T if already initialized, or initialize it.
      */
     T = p_eq_g ? grp->T : NULL;
+
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+    if( grp->rs != NULL && grp->rs->T != NULL && T == NULL )
+    {
+        /* transfer "ownership" of T from rs to local function */
+        T = grp->rs->T;
+        grp->rs->T = NULL;
+        grp->rs->T_size = 0;
+    }
+#endif
 
     if( T == NULL )
     {
@@ -1678,6 +1697,16 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                                                  f_rng, p_rng ) );
 
 cleanup:
+
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+    if( grp->rs != NULL && ret == MBEDTLS_ERR_ECP_IN_PROGRESS && T != grp->T )
+    {
+        /* transfer "ownership" of T from local function to rs */
+        grp->rs->T_size = pre_len;
+        grp->rs->T = T;
+        T = NULL;
+    }
+#endif
 
     if( T != NULL && ! p_eq_g )
     {

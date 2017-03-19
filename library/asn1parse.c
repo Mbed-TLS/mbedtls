@@ -275,6 +275,8 @@ int mbedtls_asn1_get_sequence_of( unsigned char **p,
             if( cur->next == NULL )
                 return( MBEDTLS_ERR_ASN1_ALLOC_FAILED );
 
+            memset( cur->next, 0, sizeof( asn1_sequence ) );
+
             cur = cur->next;
         }
     }

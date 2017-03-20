@@ -113,7 +113,9 @@ struct mbedtls_ecp_restart {
     unsigned char T_size;   /* number of points in table T                  */
     enum {                  /* what's the next step ?                       */
         ecp_rs_init = 0,        /* just getting started                     */
-        ecp_rs_tmp_dummy,       /* temporary for incremental testing        */
+        ecp_rs_pre_norm_dbl,    /* normalize precomputed 2^n multiples      */
+        ecp_rs_pre_add,         /* precompute remaining points by adding    */
+        ecp_rs_pre_norm_add,    /* normalize all precomputed points         */
         ecp_rs_T_done,          /* call ecp_mul_comb_after_precomp()        */
         ecp_rs_final_norm,      /* do the final normalization               */
     } state;
@@ -1338,11 +1340,14 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
     mbedtls_ecp_point *cur, *TT[COMB_MAX_PRE - 1];
 
 #if defined(MBEDTLS_ECP_EARLY_RETURN)
-    /* XXX: dummy "in_progress" return for testing caller */
-    if( grp->rs != NULL && grp->rs->state == ecp_rs_init )
+    if( grp->rs != NULL )
     {
-        grp->rs->state++;
-        return( MBEDTLS_ERR_ECP_IN_PROGRESS );
+        if( grp->rs->state == ecp_rs_pre_norm_add )
+            goto norm_add;
+        if( grp->rs->state == ecp_rs_pre_add )
+            goto add;
+        if( grp->rs->state == ecp_rs_pre_norm_dbl )
+            goto norm_dbl;
     }
 #endif
 
@@ -1350,6 +1355,8 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
      * Set T[0] = P and
      * T[2^{l-1}] = 2^{dl} P for l = 1 .. w-1 (this is not the final value)
      */
+    ECP_BUDGET( ( w - 1 ) * d * ECP_OPS_DBL ); // XXX: split loop
+
     MBEDTLS_MPI_CHK( mbedtls_ecp_copy( &T[0], P ) );
 
     for( i = 1; i < T_len; i <<= 1 )
@@ -1360,20 +1367,42 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
             MBEDTLS_MPI_CHK( ecp_double_jac( grp, cur, cur ) );
     }
 
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+    if( grp->rs != NULL )
+        grp->rs->state++;
+#endif
+
     /*
      * Normalize current elements in T. As T has holes,
      * use an auxiliary array of pointers to elements in T.
      */
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+norm_dbl:
+#endif
+
     j = 0;
     for( i = 1; i < T_len; i <<= 1 )
         TT[j++] = T + i;
 
+    ECP_BUDGET( ECP_OPS_INV + 6 * j - 2 ); // XXX: split next function?
+
     MBEDTLS_MPI_CHK( ecp_normalize_jac_many( grp, TT, j ) );
+
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+    if( grp->rs != NULL )
+        grp->rs->state++;
+#endif
 
     /*
      * Compute the remaining ones using the minimal number of additions
      * Be careful to update T[2^l] only after using it!
      */
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+add:
+#endif
+
+    ECP_BUDGET( ( T_len - 1 ) * ECP_OPS_ADD ); // XXX: split loop?
+
     for( i = 1; i < T_len; i <<= 1 )
     {
         j = i;
@@ -1381,13 +1410,24 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
             MBEDTLS_MPI_CHK( ecp_add_mixed( grp, &T[i + j], &T[j], &T[i] ) );
     }
 
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+    if( grp->rs != NULL )
+        grp->rs->state++;
+#endif
+
     /*
      * Normalize final elements in T. Even though there are no holes now,
      * we still need the auxiliary array for homogeneity with last time.
      * Also, skip T[0] which is already normalised, being a copy of P.
      */
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+norm_add:
+#endif
+
     for( j = 0; j + 1 < T_len; j++ )
         TT[j] = T + j + 1;
+
+    ECP_BUDGET( ECP_OPS_INV + 6 * j - 2 ); // XXX: split next function?
 
     MBEDTLS_MPI_CHK( ecp_normalize_jac_many( grp, TT, j ) );
 

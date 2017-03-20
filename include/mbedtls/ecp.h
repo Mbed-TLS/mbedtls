@@ -268,20 +268,22 @@ mbedtls_ecp_keypair;
  *                  Lower (non-zero) values mean ECC functions will block for
  *                  a lesser maximum amount of time.
  *
- * \note            A "basic operation" is roughly multiplication in GF(p),
- *                  or whatever takes a roughly equivalent amount of time.
- *                  As an indication, a scalar multiplication on P-256 is
- *                  of the order of 3300 "basic operations" with default
- *                  settings.
+ * \note            A "basic operation" is defined as a rough equivalent of a
+ *                  multiplication in GF(p) for the NIST P-256 curve.
+ *                  As an indication, with default settings, a scalar
+ *                  multiplication (full run of \c mbedtls_ecp_mul()) is:
+ *                  - about 3300 basic operations for P-256
+ *                  - about 9400 basic operations for P-384
  *
  * \warning         Very low values are not always respected: sometimes
  *                  functions need to block for a minimum number of
  *                  operations, and will do so even if max_ops is set to a
  *                  lower value.  That minimum depends on the curve size, and
  *                  can be made lower by decreasing the value of
- *                  \c MBEDTLS_ECP_WINDOW_SIZE.  As an indication, the minimum
- *                  is around 160 for P-256 with \c MBEDTLS_ECP_WINDOW_SIZE
- *                  set to 4.
+ *                  \c MBEDTLS_ECP_WINDOW_SIZE.  As an indication, with that
+ *                  parameter set to 4, the minimum amount of blocking is:
+ *                  - around 165 basic operations for P-256
+ *                  - around 330 basic operations for P-384
  */
 void mbedtls_ecp_set_max_ops( unsigned max_ops );
 #endif /* MBEDTLS_ECP_EARLY_RETURN */

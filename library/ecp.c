@@ -166,10 +166,18 @@ static int ecp_check_budget( const mbedtls_ecp_group *grp, unsigned ops )
 {
     if( grp->rs != NULL )
     {
+        /* scale depending on curve size: the chosen reference is 256-bit,
+         * and multiplication is quadratic. Round to the closest integer. */
+        if( grp->pbits >= 512 )
+            ops *= 4;
+        else if( grp->pbits >= 384 )
+            ops *= 2;
+
         /* avoid infinite loops: always allow first step */
         if( grp->rs->ops_done != 0 && grp->rs->ops_done + ops > ecp_max_ops )
             return( MBEDTLS_ERR_ECP_IN_PROGRESS );
 
+        /* update running count */
         grp->rs->ops_done += ops;
     }
 

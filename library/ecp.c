@@ -1332,7 +1332,7 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
                                 unsigned char w, size_t d )
 {
     int ret;
-    unsigned char i, k;
+    unsigned char i;
     size_t j;
     mbedtls_ecp_point *cur, *TT[COMB_MAX_PRE - 1];
 
@@ -1351,35 +1351,44 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
      */
     MBEDTLS_MPI_CHK( mbedtls_ecp_copy( &T[0], P ) );
 
-    k = 0;
     for( i = 1; i < ( 1U << ( w - 1 ) ); i <<= 1 )
     {
         cur = T + i;
         MBEDTLS_MPI_CHK( mbedtls_ecp_copy( cur, T + ( i >> 1 ) ) );
         for( j = 0; j < d; j++ )
             MBEDTLS_MPI_CHK( ecp_double_jac( grp, cur, cur ) );
-
-        TT[k++] = cur;
     }
 
-    MBEDTLS_MPI_CHK( ecp_normalize_jac_many( grp, TT, k ) );
+    /*
+     * Normalize current elements in T. As T has holes,
+     * use an auxiliary array of pointers to elements in T.
+     */
+    j = 0;
+    for( i = 1; i < ( 1U << ( w - 1 ) ); i <<= 1 )
+        TT[j++] = T + i;
+
+    MBEDTLS_MPI_CHK( ecp_normalize_jac_many( grp, TT, j ) );
 
     /*
      * Compute the remaining ones using the minimal number of additions
      * Be careful to update T[2^l] only after using it!
      */
-    k = 0;
     for( i = 1; i < ( 1U << ( w - 1 ) ); i <<= 1 )
     {
         j = i;
         while( j-- )
-        {
             MBEDTLS_MPI_CHK( ecp_add_mixed( grp, &T[i + j], &T[j], &T[i] ) );
-            TT[k++] = &T[i + j];
-        }
     }
 
-    MBEDTLS_MPI_CHK( ecp_normalize_jac_many( grp, TT, k ) );
+    /*
+     * Normalize final elements in T. Even though there are no holes now,
+     * we still need the auxiliary array for homogeneity with last time.
+     * Also skip T[0] which is already normalised, being a copy of P.
+     */
+    for( j = 0; j + 1 < ( 1U << ( w - 1 ) ); j++ )
+        TT[j] = T + j + 1;
+
+    MBEDTLS_MPI_CHK( ecp_normalize_jac_many( grp, TT, j ) );
 
 #if defined(MBEDTLS_ECP_EARLY_RETURN)
     if( grp->rs != NULL )

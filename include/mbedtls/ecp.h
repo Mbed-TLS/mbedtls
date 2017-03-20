@@ -271,7 +271,7 @@ mbedtls_ecp_keypair;
  * \note            A "basic operation" is roughly multiplication in GF(p),
  *                  or whatever takes a roughly equivalent amount of time.
  *                  As an indication, a scalar multiplication on P-256 is
- *                  of the order of 3600 "basic operations" with default
+ *                  of the order of 3300 "basic operations" with default
  *                  settings.
  *
  * \warning         Very low values are not always respected: sometimes

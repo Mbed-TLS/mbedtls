@@ -1335,7 +1335,7 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
 {
     int ret;
     unsigned char i;
-    size_t j;
+    size_t j = 0;
     const unsigned char T_len = 1U << ( w - 1 );
     mbedtls_ecp_point *cur, *TT[COMB_MAX_PRE - 1];
 
@@ -1355,12 +1355,19 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
      * Set T[0] = P and
      * T[2^{l-1}] = 2^{dl} P for l = 1 .. w-1 (this is not the final value)
      */
-    ECP_BUDGET( ( w - 1 ) * d * ECP_OPS_DBL ); // XXX: split loop
-
     MBEDTLS_MPI_CHK( mbedtls_ecp_copy( &T[0], P ) );
 
-    for( j = 0; j < d * ( w - 1 ); j++ )
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+    if( grp->rs != NULL && grp->rs->i != 0 )
+        j = grp->rs->i;
+    else
+#endif
+        j = 0;
+
+    for( ; j < d * ( w - 1 ); j++ )
     {
+        ECP_BUDGET( ECP_OPS_DBL );
+
         i = 1U << ( j / d );
         cur = T + i;
 
@@ -1372,7 +1379,10 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
 
 #if defined(MBEDTLS_ECP_EARLY_RETURN)
     if( grp->rs != NULL )
+    {
+        grp->rs->i = 0;
         grp->rs->state++;
+    }
 #endif
 
     /*
@@ -1440,6 +1450,13 @@ norm_add:
 #endif
 
 cleanup:
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+    if( grp->rs != NULL && ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
+    {
+        if( grp->rs->state == ecp_rs_init )
+            grp->rs->i = j;
+    }
+#endif
 
     return( ret );
 }

@@ -1397,7 +1397,7 @@ norm_dbl:
     for( i = 1; i < T_len; i <<= 1 )
         TT[j++] = T + i;
 
-    ECP_BUDGET( ECP_OPS_INV + 6 * j - 2 ); // XXX: split next function?
+    ECP_BUDGET( ECP_OPS_INV + 6 * j - 2 );
 
     MBEDTLS_MPI_CHK( ecp_normalize_jac_many( grp, TT, j ) );
 
@@ -1414,7 +1414,7 @@ norm_dbl:
 add:
 #endif
 
-    ECP_BUDGET( ( T_len - 1 ) * ECP_OPS_ADD ); // XXX: split loop?
+    ECP_BUDGET( ( T_len - 1 ) * ECP_OPS_ADD );
 
     for( i = 1; i < T_len; i <<= 1 )
     {
@@ -1440,7 +1440,7 @@ norm_add:
     for( j = 0; j + 1 < T_len; j++ )
         TT[j] = T + j + 1;
 
-    ECP_BUDGET( ECP_OPS_INV + 6 * j - 2 ); // XXX: split next function?
+    ECP_BUDGET( ECP_OPS_INV + 6 * j - 2 );
 
     MBEDTLS_MPI_CHK( ecp_normalize_jac_many( grp, TT, j ) );
 

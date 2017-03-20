@@ -274,8 +274,14 @@ mbedtls_ecp_keypair;
  *                  of the order of 3600 "basic operations" with default
  *                  settings.
  *
- * \warning         Values lower than 120 are currently not well-supported, in
- *                  that sometimes functions will have to block for longer.
+ * \warning         Very low values are not always respected: sometimes
+ *                  functions need to block for a minimum number of
+ *                  operations, and will do so even if max_ops is set to a
+ *                  lower value.  That minimum depends on the curve size, and
+ *                  can be made lower by decreasing the value of
+ *                  \c MBEDTLS_ECP_WINDOW_SIZE.  As an indication, the minimum
+ *                  is around 160 for P-256 with \c MBEDTLS_ECP_WINDOW_SIZE
+ *                  set to 4.
  */
 void mbedtls_ecp_set_max_ops( unsigned max_ops );
 #endif /* MBEDTLS_ECP_EARLY_RETURN */

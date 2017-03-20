@@ -275,7 +275,7 @@ mbedtls_ecp_keypair;
  *                  - about 3300 basic operations for P-256
  *                  - about 9400 basic operations for P-384
  *
- * \warning         Very low values are not always respected: sometimes
+ * \note            Very low values are not always respected: sometimes
  *                  functions need to block for a minimum number of
  *                  operations, and will do so even if max_ops is set to a
  *                  lower value.  That minimum depends on the curve size, and
@@ -284,6 +284,21 @@ mbedtls_ecp_keypair;
  *                  parameter set to 4, the minimum amount of blocking is:
  *                  - around 165 basic operations for P-256
  *                  - around 330 basic operations for P-384
+ *
+ * \note            This setting is currently ignored by Curve25519
+ *
+ * \warning         The ECJPAKE module is currently not compatible with this
+ *                  feature. \c max_ops must always be 0 while using ECJPAKE.
+ *
+ * \warning         NOT thread-safe: when \c max_ops is not zero, sharing a
+ *                  \c mbedtls_ecp_group structure, or a
+ *                  \c mbedtls_pk_context structure wrapping an ECC key,
+ *                  between concurrent threads of execution is NOT supported.
+ *                  For (D)TLS, that means it's not safe to concurrently run
+ *                  two handshakes that use the same private EC key for
+ *                  authenticating ourselves; it is however safe to maintain
+ *                  multiple simultaneous connections as long as the
+ *                  handshakes are not concurrent or don't use the same key.
  */
 void mbedtls_ecp_set_max_ops( unsigned max_ops );
 #endif /* MBEDTLS_ECP_EARLY_RETURN */

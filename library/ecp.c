@@ -1359,12 +1359,15 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
 
     MBEDTLS_MPI_CHK( mbedtls_ecp_copy( &T[0], P ) );
 
-    for( i = 1; i < T_len; i <<= 1 )
+    for( j = 0; j < d * ( w - 1 ); j++ )
     {
+        i = 1U << ( j / d );
         cur = T + i;
-        MBEDTLS_MPI_CHK( mbedtls_ecp_copy( cur, T + ( i >> 1 ) ) );
-        for( j = 0; j < d; j++ )
-            MBEDTLS_MPI_CHK( ecp_double_jac( grp, cur, cur ) );
+
+        if( j % d == 0 )
+            MBEDTLS_MPI_CHK( mbedtls_ecp_copy( cur, T + ( i >> 1 ) ) );
+
+        MBEDTLS_MPI_CHK( ecp_double_jac( grp, cur, cur ) );
     }
 
 #if defined(MBEDTLS_ECP_EARLY_RETURN)

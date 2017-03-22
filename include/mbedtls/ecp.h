@@ -114,12 +114,12 @@ mbedtls_ecp_point;
 
 #if defined(MBEDTLS_ECP_EARLY_RETURN)
 /**
- * \brief           ECP context for resuming operations after returning
+ * \brief           ECP context for resuming multiplication after returning
  *                  \c MBEDTLS_ERR_ECP_IN_PROGRESS
  *
  * \note            Opaque struct
  */
-typedef struct mbedtls_ecp_restart mbedtls_ecp_restart_ctx;
+typedef struct mbedtls_ecp_restart_mul mbedtls_ecp_restart_mul_ctx;
 #endif
 
 /**
@@ -164,7 +164,7 @@ typedef struct
     mbedtls_ecp_point *T;       /*!<  pre-computed points for ecp_mul_comb()        */
     size_t T_size;      /*!<  number for pre-computed points                */
 #if defined(MBEDTLS_ECP_EARLY_RETURN)
-    mbedtls_ecp_restart_ctx *rs;        /*!<  context for resuming operation */
+    mbedtls_ecp_restart_mul_ctx *rsm;       /*!<  restart context for ecp_mul()     */
 #endif
 }
 mbedtls_ecp_group;

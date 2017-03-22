@@ -388,19 +388,31 @@ int rsa_private( rsa_context *ctx,
     int ret;
     size_t olen;
     mpi T, T1, T2;
+    mpi P1, Q1, R;
 #if defined(POLARSSL_RSA_NO_CRT)
-    mpi P1, Q1;
-    mpi D_blind, R;
+    mpi D_blind;
     mpi *D = &ctx->D;
+#else
+    mpi DP_blind, DQ_blind;
+    mpi *DP = &ctx->DP;
+    mpi *DQ = &ctx->DQ;
 #endif
 
     mpi_init( &T ); mpi_init( &T1 ); mpi_init( &T2 );
 
     mpi_init( &T ); mpi_init( &T1 ); mpi_init( &T2 );
+    mpi_init( &P1 ); mpi_init( &Q1 ); mpi_init( &R );
+
+
+    if( f_rng != NULL )
+    {
 #if defined(POLARSSL_RSA_NO_CRT)
-    mpi_init( &P1 ); mpi_init( &Q1 );
-    mpi_init( &R ); mpi_init( &D_blind );
+        mpi_init( &D_blind );
+#else
+        mpi_init( &DP_blind );
+        mpi_init( &DQ_blind );
 #endif
+    }
 
 
 #if defined(POLARSSL_THREADING_C)
@@ -425,13 +437,13 @@ int rsa_private( rsa_context *ctx,
         MPI_CHK( mpi_mul_mpi( &T, &T, &ctx->Vi ) );
         MPI_CHK( mpi_mod_mpi( &T, &T, &ctx->N ) );
 
-#if defined(POLARSSL_RSA_NO_CRT)
         /*
          * Exponent blinding
          */
         MPI_CHK( mpi_sub_int( &P1, &ctx->P, 1 ) );
         MPI_CHK( mpi_sub_int( &Q1, &ctx->Q, 1 ) );
 
+#if defined(POLARSSL_RSA_NO_CRT)
         /*
          * D_blind = ( P - 1 ) * ( Q - 1 ) * R + D
          */
@@ -442,6 +454,28 @@ int rsa_private( rsa_context *ctx,
         MPI_CHK( mpi_add_mpi( &D_blind, &D_blind, &ctx->D ) );
 
         D = &D_blind;
+#else
+        /*
+         * DP_blind = ( P - 1 ) * R + DP
+         */
+        MPI_CHK( mpi_fill_random( &R, RSA_EXPONENT_BLINDING,
+                         f_rng, p_rng ) );
+        MPI_CHK( mpi_mul_mpi( &DP_blind, &P1, &R ) );
+        MPI_CHK( mpi_add_mpi( &DP_blind, &DP_blind,
+                    &ctx->DP ) );
+
+        DP = &DP_blind;
+
+        /*
+         * DQ_blind = ( Q - 1 ) * R + DQ
+         */
+        MPI_CHK( mpi_fill_random( &R, RSA_EXPONENT_BLINDING,
+                         f_rng, p_rng ) );
+        MPI_CHK( mpi_mul_mpi( &DQ_blind, &Q1, &R ) );
+        MPI_CHK( mpi_add_mpi( &DQ_blind, &DQ_blind,
+                    &ctx->DQ ) );
+
+        DQ = &DQ_blind;
 #endif /* POLARSSL_RSA_NO_CRT */
     }
 
@@ -454,8 +488,8 @@ int rsa_private( rsa_context *ctx,
      * T1 = input ^ dP mod P
      * T2 = input ^ dQ mod Q
      */
-    MPI_CHK( mpi_exp_mod( &T1, &T, &ctx->DP, &ctx->P, &ctx->RP ) );
-    MPI_CHK( mpi_exp_mod( &T2, &T, &ctx->DQ, &ctx->Q, &ctx->RQ ) );
+    MPI_CHK( mpi_exp_mod( &T1, &T, DP, &ctx->P, &ctx->RP ) );
+    MPI_CHK( mpi_exp_mod( &T2, &T, DQ, &ctx->Q, &ctx->RQ ) );
 
     /*
      * T = (T1 - T2) * (Q^-1 mod P) mod P
@@ -491,10 +525,17 @@ cleanup:
 #endif
 
     mpi_free( &T ); mpi_free( &T1 ); mpi_free( &T2 );
+    mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &R );
+
+    if( f_rng != NULL )
+    {
 #if defined(POLARSSL_RSA_NO_CRT)
-    mpi_free( &P1 ); mpi_free( &Q1 );
-    mpi_free( &R ); mpi_free( &D_blind );
+        mpi_free( &D_blind );
+#else
+        mpi_free( &DP_blind );
+        mpi_free( &DQ_blind );
 #endif
+    }
 
     if( ret != 0 )
         return( POLARSSL_ERR_RSA_PRIVATE_FAILED + ret );

@@ -562,6 +562,21 @@
 #define MBEDTLS_ECP_NIST_OPTIM
 
 /**
+ * \def MBEDTLS_ECP_EARLY_RETURN
+ *
+ * Enable "non-blocking" ECC operations that can return early and be resumed.
+ *
+ * This enables \c mbedtls_ecp_set_max_ops() and allows various ECC functions
+ * to return \c MBEDTLS_ERR_ECP_IN_PROGRESS when needed.
+ *
+ * TODO: depending on other choices, this might need to be disabled by default
+ * in order to avoid changing the ABI. Revisit that later.
+ *
+ * Comment this macro to disable non-blocking ECC computations.
+ */
+#define MBEDTLS_ECP_EARLY_RETURN
+
+/**
  * \def MBEDTLS_ECDSA_DETERMINISTIC
  *
  * Enable deterministic ECDSA (RFC 6979).

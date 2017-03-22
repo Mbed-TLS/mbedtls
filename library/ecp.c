@@ -85,6 +85,22 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 static unsigned long add_count, dbl_count, mul_count;
 #endif
 
+
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+/*
+ * Maximum number of "basic operations" to be done in a row.
+ */
+static unsigned ecp_max_ops = 0;
+
+/*
+ * Set ecp_max_ops
+ */
+void mbedtls_ecp_set_max_ops( unsigned max_ops )
+{
+    ecp_max_ops = max_ops;
+}
+#endif /* MBEDTLS_ECP_EARLY_RETURN */
+
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) ||   \
     defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) ||   \
     defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) ||   \

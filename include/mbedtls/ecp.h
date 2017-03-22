@@ -240,6 +240,33 @@ mbedtls_ecp_keypair;
  */
 #define MBEDTLS_ECP_TLS_NAMED_CURVE    3   /**< ECCurveType's named_curve */
 
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+/**
+ * \brief           Set the maximum number of basic operations done in a row.
+ *
+ *                  If more operations are needed to complete a computation,
+ *                  MBEDTLS_ERR_ECP_IN_PROGRESS will be returned by the
+ *                  function performing the computation. That function will
+ *                  then need to be called again with the same arguments until
+ *                  it returns 0 or an other error code.
+ *
+ * \param max_ops   Maximum number of basic operations done in a row.
+ *                  Default: 0 (unlimited).
+ *                  Lower (non-zero) values mean ECC functions will block for
+ *                  a lesser maximum amount of time.
+ *
+ * \note            A "basic operation" is roughly multiplication in GF(p),
+ *                  or whatever takes a roughly equivalent amount of time.
+ *                  As an indication, a scalar multiplication on P-256 is
+ *                  of the order of 3600 "basic operations" with default
+ *                  settings.
+ *
+ * \warning         Values lower than 120 are currently not well-supported, in
+ *                  that sometimes functions will have to block for longer.
+ */
+void mbedtls_ecp_set_max_ops( unsigned max_ops );
+#endif /* MBEDTLS_ECP_EARLY_RETURN */
+
 /**
  * \brief           Get the list of supported curves in order of preferrence
  *                  (full information)
@@ -525,7 +552,12 @@ int mbedtls_ecp_tls_write_group( const mbedtls_ecp_group *grp, size_t *olen,
  * \return          0 if successful,
  *                  MBEDTLS_ERR_ECP_INVALID_KEY if m is not a valid privkey
  *                  or P is not a valid pubkey,
- *                  MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed
+ *                  MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed,
+ *                  MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
+ *                  operations was reached (see \c mbedtls_ecp_set_max_ops()),
+ *                  indicating the function should be called again with the
+ *                  exact same arguments.
+ *
  */
 int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              const mbedtls_mpi *m, const mbedtls_ecp_point *P,

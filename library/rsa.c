@@ -56,6 +56,11 @@
 #define polarssl_free   free
 #endif
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = (unsigned char*)v; while( n-- ) *p++ = 0;
+}
+
 /*
  * Initialize an RSA context
  */
@@ -720,7 +725,7 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
           : rsa_private( ctx, f_rng, p_rng, input, buf );
 
     if( ret != 0 )
-        return( ret );
+        goto cleanup;
 
     /*
      * Unmask data and generate lHash
@@ -785,15 +790,26 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
      * the different error conditions.
      */
     if( bad != 0 )
-        return( POLARSSL_ERR_RSA_INVALID_PADDING );
+    {
+        ret = POLARSSL_ERR_RSA_INVALID_PADDING;
+        goto cleanup;
+    }
 
     if( ilen - ( p - buf ) > output_max_len )
-        return( POLARSSL_ERR_RSA_OUTPUT_TOO_LARGE );
+    {
+        ret = POLARSSL_ERR_RSA_OUTPUT_TOO_LARGE;
+        goto cleanup;
+    }
 
     *olen = ilen - (p - buf);
     memcpy( output, p, *olen );
+    ret = 0;
 
-    return( 0 );
+cleanup:
+    polarssl_zeroize( buf, sizeof( buf ) );
+    polarssl_zeroize( lhash, sizeof( lhash ) );
+
+    return( ret );
 }
 #endif /* POLARSSL_PKCS1_V21 */
 
@@ -827,7 +843,7 @@ int rsa_rsaes_pkcs1_v15_decrypt( rsa_context *ctx,
           : rsa_private( ctx, f_rng, p_rng, input, buf );
 
     if( ret != 0 )
-        return( ret );
+        goto cleanup;
 
     p = buf;
     bad = 0;
@@ -872,15 +888,25 @@ int rsa_rsaes_pkcs1_v15_decrypt( rsa_context *ctx,
     bad |= ( pad_count < 8 );
 
     if( bad )
-        return( POLARSSL_ERR_RSA_INVALID_PADDING );
+    {
+        ret = POLARSSL_ERR_RSA_INVALID_PADDING;
+        goto cleanup;
+    }
 
     if( ilen - ( p - buf ) > output_max_len )
-        return( POLARSSL_ERR_RSA_OUTPUT_TOO_LARGE );
+    {
+        ret = POLARSSL_ERR_RSA_OUTPUT_TOO_LARGE;
+        goto cleanup;
+    }
 
     *olen = ilen - (p - buf);
     memcpy( output, p, *olen );
+    ret = 0;
 
-    return( 0 );
+cleanup:
+    polarssl_zeroize( buf, sizeof( buf ) );
+
+    return( ret );
 }
 #endif /* POLARSSL_PKCS1_V15 */
 

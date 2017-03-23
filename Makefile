@@ -6,7 +6,8 @@ PREFIX=mbedtls_
 
 .PHONY: all no_test programs lib tests install uninstall clean test check covtest lcov apidoc apidoc_clean
 
-all: programs tests post_build
+all: programs tests
+	$(MAKE) post_build
 
 no_test: programs
 
@@ -73,10 +74,10 @@ clean:
 	$(MAKE) -C programs clean
 	$(MAKE) -C tests clean
 ifndef WINDOWS
-	find . \( -name \*.gcno -o -name \*.gcda -o -name *.info \) -exec rm {} +
+	find . \( -name \*.gcno -o -name \*.gcda -o -name \*.info \) -exec rm {} +
 endif
 
-check: lib
+check: lib tests
 	$(MAKE) -C tests check
 
 test: check

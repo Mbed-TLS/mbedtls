@@ -134,18 +134,18 @@ void md_text( char *text_md_name, char *text_src_string, char *hex_hash_string )
     unsigned char output[100];
     const mbedtls_md_info_t *md_info = NULL;
 
-    memset(md_name, 0x00, 100);
-    memset(src_str, 0x00, 1000);
-    memset(hash_str, 0x00, 1000);
-    memset(output, 0x00, 100);
+    memset( md_name, 0x00, 100 );
+    memset( src_str, 0x00, 1000 );
+    memset( hash_str, 0x00, 1000 );
+    memset( output, 0x00, 100 );
 
-    strncpy( (char *) src_str, text_src_string, sizeof(src_str) - 1 );
-    strncpy( (char *) md_name, text_md_name, sizeof(md_name) - 1 );
+    strncpy( (char *) src_str, text_src_string, sizeof( src_str ) - 1 );
+    strncpy( (char *) md_name, text_md_name, sizeof( md_name ) - 1 );
     md_info = mbedtls_md_info_from_string(md_name);
     TEST_ASSERT( md_info != NULL );
 
     TEST_ASSERT ( 0 == mbedtls_md( md_info, src_str, strlen( (char *) src_str ), output ) );
-    hexify( hash_str, output, mbedtls_md_get_size(md_info) );
+    hexify( hash_str, output, mbedtls_md_get_size( md_info ) );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
@@ -161,19 +161,19 @@ void md_hex( char *text_md_name, char *hex_src_string, char *hex_hash_string )
     int src_len;
     const mbedtls_md_info_t *md_info = NULL;
 
-    memset(md_name, 0x00, 100);
-    memset(src_str, 0x00, 10000);
-    memset(hash_str, 0x00, 10000);
-    memset(output, 0x00, 100);
+    memset( md_name, 0x00, 100 );
+    memset( src_str, 0x00, 10000 );
+    memset( hash_str, 0x00, 10000 );
+    memset( output, 0x00, 100 );
 
-    strncpy( (char *) md_name, text_md_name, sizeof(md_name) - 1 );
-    md_info = mbedtls_md_info_from_string(md_name);
+    strncpy( (char *) md_name, text_md_name, sizeof( md_name ) - 1 );
+    md_info = mbedtls_md_info_from_string( md_name );
     TEST_ASSERT( md_info != NULL );
 
     src_len = unhexify( src_str, hex_src_string );
     TEST_ASSERT ( 0 == mbedtls_md( md_info, src_str, src_len, output ) );
 
-    hexify( hash_str, output, mbedtls_md_get_size(md_info) );
+    hexify( hash_str, output, mbedtls_md_get_size( md_info ) );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
@@ -187,34 +187,51 @@ void md_text_multi( char *text_md_name, char *text_src_string,
     unsigned char src_str[1000];
     unsigned char hash_str[1000];
     unsigned char output[100];
+    int halfway, len;
 
     const mbedtls_md_info_t *md_info = NULL;
-    mbedtls_md_context_t ctx;
+    mbedtls_md_context_t ctx, ctx_copy;
 
     mbedtls_md_init( &ctx );
+    mbedtls_md_init( &ctx_copy );
 
-    memset(md_name, 0x00, 100);
-    memset(src_str, 0x00, 1000);
-    memset(hash_str, 0x00, 1000);
-    memset(output, 0x00, 100);
+    memset( md_name, 0x00, 100 );
+    memset( src_str, 0x00, 1000 );
+    memset( hash_str, 0x00, 1000 );
+    memset( output, 0x00, 100 );
 
     strncpy( (char *) src_str, text_src_string, sizeof(src_str) - 1 );
     strncpy( (char *) md_name, text_md_name, sizeof(md_name) - 1 );
+    len = strlen( (char *) src_str );
+    halfway = len / 2;
+
     md_info = mbedtls_md_info_from_string(md_name);
     TEST_ASSERT( md_info != NULL );
     TEST_ASSERT ( 0 == mbedtls_md_setup( &ctx, md_info, 0 ) );
+    TEST_ASSERT ( 0 == mbedtls_md_setup( &ctx_copy, md_info, 0 ) );
 
     TEST_ASSERT ( 0 == mbedtls_md_starts( &ctx ) );
     TEST_ASSERT ( ctx.md_ctx != NULL );
-    TEST_ASSERT ( 0 == mbedtls_md_update( &ctx, src_str, strlen( (char *) src_str ) ) );
+    TEST_ASSERT ( 0 == mbedtls_md_update( &ctx, src_str, halfway ) );
+    TEST_ASSERT ( 0 == mbedtls_md_clone( &ctx_copy, &ctx ) );
+
+    TEST_ASSERT ( 0 == mbedtls_md_update( &ctx, src_str + halfway, len - halfway ) );
     TEST_ASSERT ( 0 == mbedtls_md_finish( &ctx, output ) );
+    hexify( hash_str, output, mbedtls_md_get_size( md_info ) );
+    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 
-    hexify( hash_str, output, mbedtls_md_get_size(md_info) );
+    /* Test clone */
+    memset( hash_str, 0x00, 1000 );
+    memset( output, 0x00, 100 );
 
+    TEST_ASSERT ( 0 == mbedtls_md_update( &ctx_copy, src_str + halfway, len - halfway ) );
+    TEST_ASSERT ( 0 == mbedtls_md_finish( &ctx_copy, output ) );
+    hexify( hash_str, output, mbedtls_md_get_size( md_info ) );
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 
 exit:
     mbedtls_md_free( &ctx );
+    mbedtls_md_free( &ctx_copy );
 }
 /* END_CASE */
 
@@ -226,35 +243,49 @@ void md_hex_multi( char *text_md_name, char *hex_src_string,
     unsigned char src_str[10000];
     unsigned char hash_str[10000];
     unsigned char output[100];
-    int src_len;
+    int src_len, halfway;
     const mbedtls_md_info_t *md_info = NULL;
-    mbedtls_md_context_t ctx;
+    mbedtls_md_context_t ctx, ctx_copy;
 
     mbedtls_md_init( &ctx );
+    mbedtls_md_init( &ctx_copy );
 
-    memset(md_name, 0x00, 100);
-    memset(src_str, 0x00, 10000);
-    memset(hash_str, 0x00, 10000);
-    memset(output, 0x00, 100);
+    memset( md_name, 0x00, 100 );
+    memset( src_str, 0x00, 10000 );
+    memset( hash_str, 0x00, 10000 );
+    memset( output, 0x00, 100 );
 
-    strncpy( (char *) md_name, text_md_name, sizeof(md_name) - 1 );
+    strncpy( (char *) md_name, text_md_name, sizeof( md_name ) - 1 );
     md_info = mbedtls_md_info_from_string(md_name);
     TEST_ASSERT( md_info != NULL );
     TEST_ASSERT ( 0 == mbedtls_md_setup( &ctx, md_info, 0 ) );
+    TEST_ASSERT ( 0 == mbedtls_md_setup( &ctx_copy, md_info, 0 ) );
 
     src_len = unhexify( src_str, hex_src_string );
+    halfway = src_len / 2;
 
     TEST_ASSERT ( 0 == mbedtls_md_starts( &ctx ) );
     TEST_ASSERT ( ctx.md_ctx != NULL );
-    TEST_ASSERT ( 0 == mbedtls_md_update( &ctx, src_str, src_len ) );
+    TEST_ASSERT ( 0 == mbedtls_md_update( &ctx, src_str, halfway ) );
+    TEST_ASSERT ( 0 == mbedtls_md_clone( &ctx_copy, &ctx ) );
+
+    TEST_ASSERT ( 0 == mbedtls_md_update( &ctx, src_str + halfway, src_len - halfway) );
     TEST_ASSERT ( 0 == mbedtls_md_finish( &ctx, output ) );
+    hexify( hash_str, output, mbedtls_md_get_size( md_info ) );
+    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 
-    hexify( hash_str, output, mbedtls_md_get_size(md_info) );
+    /* Test clone */
+    memset( hash_str, 0x00, 10000 );
+    memset( output, 0x00, 100 );
 
+    TEST_ASSERT ( 0 == mbedtls_md_update( &ctx_copy, src_str + halfway, src_len - halfway ) );
+    TEST_ASSERT ( 0 == mbedtls_md_finish( &ctx_copy, output ) );
+    hexify( hash_str, output, mbedtls_md_get_size( md_info ) );
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 
 exit:
     mbedtls_md_free( &ctx );
+    mbedtls_md_free( &ctx_copy );
 }
 /* END_CASE */
 
@@ -270,13 +301,13 @@ void mbedtls_md_hmac( char *text_md_name, int trunc_size, char *hex_key_string,
     int key_len, src_len;
     const mbedtls_md_info_t *md_info = NULL;
 
-    memset(md_name, 0x00, 100);
-    memset(src_str, 0x00, 10000);
-    memset(key_str, 0x00, 10000);
-    memset(hash_str, 0x00, 10000);
-    memset(output, 0x00, 100);
+    memset( md_name, 0x00, 100 );
+    memset( src_str, 0x00, 10000 );
+    memset( key_str, 0x00, 10000 );
+    memset( hash_str, 0x00, 10000 );
+    memset( output, 0x00, 100 );
 
-    strncpy( (char *) md_name, text_md_name, sizeof(md_name) - 1 );
+    strncpy( (char *) md_name, text_md_name, sizeof( md_name ) - 1 );
     md_info = mbedtls_md_info_from_string( md_name );
     TEST_ASSERT( md_info != NULL );
 
@@ -284,7 +315,7 @@ void mbedtls_md_hmac( char *text_md_name, int trunc_size, char *hex_key_string,
     src_len = unhexify( src_str, hex_src_string );
 
     TEST_ASSERT ( mbedtls_md_hmac( md_info, key_str, key_len, src_str, src_len, output ) == 0 );
-    hexify( hash_str, output, mbedtls_md_get_size(md_info) );
+    hexify( hash_str, output, mbedtls_md_get_size( md_info ) );
 
     TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
 }
@@ -299,43 +330,46 @@ void md_hmac_multi( char *text_md_name, int trunc_size, char *hex_key_string,
     unsigned char key_str[10000];
     unsigned char hash_str[10000];
     unsigned char output[100];
-    int key_len, src_len;
+    int key_len, src_len, halfway;
     const mbedtls_md_info_t *md_info = NULL;
     mbedtls_md_context_t ctx;
 
     mbedtls_md_init( &ctx );
 
-    memset(md_name, 0x00, 100);
-    memset(src_str, 0x00, 10000);
-    memset(key_str, 0x00, 10000);
-    memset(hash_str, 0x00, 10000);
-    memset(output, 0x00, 100);
+    memset( md_name, 0x00, 100 );
+    memset( src_str, 0x00, 10000 );
+    memset( key_str, 0x00, 10000 );
+    memset( hash_str, 0x00, 10000 );
+    memset( output, 0x00, 100 );
 
-    strncpy( (char *) md_name, text_md_name, sizeof(md_name) - 1 );
+    strncpy( (char *) md_name, text_md_name, sizeof( md_name ) - 1 );
     md_info = mbedtls_md_info_from_string( md_name );
     TEST_ASSERT( md_info != NULL );
     TEST_ASSERT ( 0 == mbedtls_md_setup( &ctx, md_info, 1 ) );
 
     key_len = unhexify( key_str, hex_key_string );
     src_len = unhexify( src_str, hex_src_string );
+    halfway = src_len / 2;
 
     TEST_ASSERT ( 0 == mbedtls_md_hmac_starts( &ctx, key_str, key_len ) );
     TEST_ASSERT ( ctx.md_ctx != NULL );
-    TEST_ASSERT ( 0 == mbedtls_md_hmac_update( &ctx, src_str, src_len ) );
+    TEST_ASSERT ( 0 == mbedtls_md_hmac_update( &ctx, src_str, halfway ) );
+    TEST_ASSERT ( 0 == mbedtls_md_hmac_update( &ctx, src_str + halfway, src_len - halfway ) );
     TEST_ASSERT ( 0 == mbedtls_md_hmac_finish( &ctx, output ) );
 
-    hexify( hash_str, output, mbedtls_md_get_size(md_info) );
+    hexify( hash_str, output, mbedtls_md_get_size( md_info ) );
     TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
 
     /* Test again, for reset() */
-    memset(hash_str, 0x00, 10000);
-    memset(output, 0x00, 100);
+    memset( hash_str, 0x00, 10000 );
+    memset( output, 0x00, 100 );
 
     TEST_ASSERT ( 0 == mbedtls_md_hmac_reset( &ctx ) );
-    TEST_ASSERT ( 0 == mbedtls_md_hmac_update( &ctx, src_str, src_len ) );
+    TEST_ASSERT ( 0 == mbedtls_md_hmac_update( &ctx, src_str, halfway ) );
+    TEST_ASSERT ( 0 == mbedtls_md_hmac_update( &ctx, src_str + halfway, src_len - halfway ) );
     TEST_ASSERT ( 0 == mbedtls_md_hmac_finish( &ctx, output ) );
 
-    hexify( hash_str, output, mbedtls_md_get_size(md_info) );
+    hexify( hash_str, output, mbedtls_md_get_size( md_info ) );
     TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
 
 exit:
@@ -351,16 +385,16 @@ void mbedtls_md_file( char *text_md_name, char *filename, char *hex_hash_string 
     unsigned char output[100];
     const mbedtls_md_info_t *md_info = NULL;
 
-    memset(md_name, 0x00, 100);
-    memset(hash_str, 0x00, 1000);
-    memset(output, 0x00, 100);
+    memset( md_name, 0x00, 100 );
+    memset( hash_str, 0x00, 1000 );
+    memset( output, 0x00, 100 );
 
-    strncpy( (char *) md_name, text_md_name, sizeof(md_name) - 1 );
+    strncpy( (char *) md_name, text_md_name, sizeof( md_name ) - 1 );
     md_info = mbedtls_md_info_from_string( md_name );
     TEST_ASSERT( md_info != NULL );
 
     TEST_ASSERT( mbedtls_md_file( md_info, filename, output ) == 0 );
-    hexify( hash_str, output, mbedtls_md_get_size(md_info) );
+    hexify( hash_str, output, mbedtls_md_get_size( md_info ) );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }

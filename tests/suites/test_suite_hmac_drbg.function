@@ -314,6 +314,6 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void hmac_drbg_selftest( )
 {
-    TEST_ASSERT( mbedtls_hmac_drbg_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_hmac_drbg_self_test( 1 ) == 0 );
 }
 /* END_CASE */

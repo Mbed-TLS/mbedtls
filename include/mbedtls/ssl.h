@@ -107,6 +107,8 @@
 #define MBEDTLS_ERR_SSL_TIMEOUT                           -0x6800  /**< The operation timed out. */
 #define MBEDTLS_ERR_SSL_CLIENT_RECONNECT                  -0x6780  /**< The client initiated a reconnect from the same port. */
 #define MBEDTLS_ERR_SSL_UNEXPECTED_RECORD                 -0x6700  /**< Record header looks valid but is not expected. */
+#define MBEDTLS_ERR_SSL_NON_FATAL                         -0x6680  /**< The alert message received indicates a non-fatal error. */
+#define MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH               -0x6600  /**< Couldn't set the hash for verifying CertificateVerify */
 
 /*
  * Various constants
@@ -1105,9 +1107,10 @@ void mbedtls_ssl_conf_dbg( mbedtls_ssl_config *conf,
  *                 \c mbedtls_ssl_recv_t and \c mbedtls_ssl_recv_timeout_t for
  *                 the conventions those callbacks must follow.
  *
- * \note           On some platforms, net.c provides \c mbedtls_net_send(),
- *                 \c mbedtls_net_recv() and \c mbedtls_net_recv_timeout()
- *                 that are suitable to be used here.
+ * \note           On some platforms, net_sockets.c provides
+ *                 \c mbedtls_net_send(), \c mbedtls_net_recv() and
+ *                 \c mbedtls_net_recv_timeout() that are suitable to be used
+ *                 here.
  */
 void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
                           void *p_bio,
@@ -1143,7 +1146,7 @@ void mbedtls_ssl_conf_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout )
  *
  * \note           See the documentation of \c mbedtls_ssl_set_timer_t and
  *                 \c mbedtls_ssl_get_timer_t for the conventions this pair of
- *                 callbacks must fallow.
+ *                 callbacks must follow.
  *
  * \note           On some platforms, timing.c provides
  *                 \c mbedtls_timing_set_delay() and
@@ -2180,7 +2183,7 @@ void mbedtls_ssl_conf_renegotiation_enforced( mbedtls_ssl_config *conf, int max_
 
 /**
  * \brief          Set record counter threshold for periodic renegotiation.
- *                 (Default: 2^64 - 256.)
+ *                 (Default: 2^48 - 1)
  *
  *                 Renegotiation is automatically triggered when a record
  *                 counter (outgoing or ingoing) crosses the defined
@@ -2191,9 +2194,17 @@ void mbedtls_ssl_conf_renegotiation_enforced( mbedtls_ssl_config *conf, int max_
  *                 Lower values can be used to enforce policies such as "keys
  *                 must be refreshed every N packets with cipher X".
  *
+ *                 The renegotiation period can be disabled by setting
+ *                 conf->disable_renegotiation to
+ *                 MBEDTLS_SSL_RENEGOTIATION_DISABLED.
+ *
+ * \note           When the configured transport is
+ *                 MBEDTLS_SSL_TRANSPORT_DATAGRAM the maximum renegotiation
+ *                 period is 2^48 - 1, and for MBEDTLS_SSL_TRANSPORT_STREAM,
+ *                 the maximum renegotiation period is 2^64 - 1.
+ *
  * \param conf     SSL configuration
  * \param period   The threshold value: a big-endian 64-bit number.
- *                 Set to 2^64 - 1 to disable periodic renegotiation
  */
 void mbedtls_ssl_conf_renegotiation_period( mbedtls_ssl_config *conf,
                                    const unsigned char period[8] );
@@ -2425,7 +2436,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
  * \param len      how many bytes must be written
  *
  * \return         the number of bytes actually written (may be less than len),
- *                 or MBEDTLS_ERR_SSL_WANT_WRITE of MBEDTLS_ERR_SSL_WANT_READ,
+ *                 or MBEDTLS_ERR_SSL_WANT_WRITE or MBEDTLS_ERR_SSL_WANT_READ,
  *                 or another negative error code.
  *
  * \note           If this function returns something other than a positive
@@ -2510,7 +2521,6 @@ void mbedtls_ssl_config_init( mbedtls_ssl_config *conf );
  * \param transport MBEDTLS_SSL_TRANSPORT_STREAM for TLS, or
  *                  MBEDTLS_SSL_TRANSPORT_DATAGRAM for DTLS
  * \param preset   a MBEDTLS_SSL_PRESET_XXX value
- *                 (currently unused).
  *
  * \note           See \c mbedtls_ssl_conf_transport() for notes on DTLS.
  *

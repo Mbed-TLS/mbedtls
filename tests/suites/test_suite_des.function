@@ -362,6 +362,6 @@ void des_key_parity_run()
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void des_selftest()
 {
-    TEST_ASSERT( mbedtls_des_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_des_self_test( 1 ) == 0 );
 }
 /* END_CASE */

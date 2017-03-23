@@ -678,6 +678,7 @@ void mbedtls_rsa_gen_key( int nrbits, int exponent, int result)
     if( result == 0 )
     {
         TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
+        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &ctx.P, &ctx.Q ) > 0 );
     }
 
 exit:
@@ -690,6 +691,6 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void rsa_selftest()
 {
-    TEST_ASSERT( mbedtls_rsa_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_rsa_self_test( 1 ) == 0 );
 }
 /* END_CASE */

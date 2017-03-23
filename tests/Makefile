@@ -50,6 +50,7 @@ APPS =	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
 	test_suite_arc4$(EXEXT)		test_suite_asn1write$(EXEXT)	\
 	test_suite_base64$(EXEXT)	test_suite_blowfish$(EXEXT)	\
 	test_suite_camellia$(EXEXT)	test_suite_ccm$(EXEXT)		\
+	test_suite_cmac$(EXEXT)						\
 	test_suite_cipher.aes$(EXEXT)					\
 	test_suite_cipher.arc4$(EXEXT)	test_suite_cipher.ccm$(EXEXT)	\
 	test_suite_cipher.gcm$(EXEXT)					\
@@ -81,7 +82,7 @@ APPS =	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
 	test_suite_pkparse$(EXEXT)	test_suite_pkwrite$(EXEXT)	\
 	test_suite_pk$(EXEXT)						\
 	test_suite_rsa$(EXEXT)		test_suite_shax$(EXEXT)		\
-	test_suite_ssl$(EXEXT)						\
+	test_suite_ssl$(EXEXT)		test_suite_timing$(EXEXT)			\
 	test_suite_x509parse$(EXEXT)	test_suite_x509write$(EXEXT)	\
 	test_suite_xtea$(EXEXT)		test_suite_version$(EXEXT)
 
@@ -236,6 +237,10 @@ test_suite_ccm$(EXEXT): test_suite_ccm.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
+test_suite_cmac$(EXEXT): test_suite_cmac.c $(DEP)
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
 test_suite_cipher.aes$(EXEXT): test_suite_cipher.aes.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
@@ -368,10 +373,6 @@ test_suite_mpi$(EXEXT): test_suite_mpi.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-test_suite_pbkdf2$(EXEXT): test_suite_pbkdf2.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
 test_suite_pem$(EXEXT): test_suite_pem.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
@@ -409,6 +410,10 @@ test_suite_shax$(EXEXT): test_suite_shax.c $(DEP)
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_ssl$(EXEXT): test_suite_ssl.c $(DEP)
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+test_suite_timing$(EXEXT): test_suite_timing.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 

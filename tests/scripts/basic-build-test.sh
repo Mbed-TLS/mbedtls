@@ -12,8 +12,8 @@
 # test report and code coverage report.
 #
 # The tests include:
-#   * Self-tests                - executed using program/test/selftest
 #   * Unit tests                - executed using tests/scripts/run-test-suite.pl
+#   * Self-tests                - executed using the test suites above
 #   * System tests              - executed using tests/ssl-opt.sh
 #   * Interoperability tests    - executed using tests/compat.sh
 #
@@ -21,7 +21,7 @@
 #
 # Note the tests self-adapt due to configurations in include/mbedtls/config.h
 # which can lead to some tests being skipped, and can cause the number of
-# available self-tests to fluctuate.
+# available tests to fluctuate.
 #
 # This script has been written to be generic and should work on any shell.
 #
@@ -36,8 +36,31 @@ if [ -d library -a -d include -a -d tests ]; then :; else
     exit 1
 fi
 
+: ${OPENSSL:="openssl"}
+: ${OPENSSL_LEGACY:="$OPENSSL"}
+: ${GNUTLS_CLI:="gnutls-cli"}
+: ${GNUTLS_SERV:="gnutls-serv"}
+: ${GNUTLS_LEGACY_CLI:="$GNUTLS_CLI"}
+: ${GNUTLS_LEGACY_SERV:="$GNUTLS_SERV"}
+
+# To avoid setting OpenSSL and GnuTLS for each call to compat.sh and ssl-opt.sh
+# we just export the variables they require
+export OPENSSL_CMD="$OPENSSL"
+export GNUTLS_CLI="$GNUTLS_CLI"
+export GNUTLS_SERV="$GNUTLS_SERV"
+
 CONFIG_H='include/mbedtls/config.h'
 CONFIG_BAK="$CONFIG_H.bak"
+
+# Step 0 - print build environment info
+OPENSSL="$OPENSSL"                           \
+    OPENSSL_LEGACY="$OPENSSL_LEGACY"         \
+    GNUTLS_CLI="$GNUTLS_CLI"                 \
+    GNUTLS_SERV="$GNUTLS_SERV"               \
+    GNUTLS_LEGACY_CLI="$GNUTLS_LEGACY_CLI"   \
+    GNUTLS_LEGACY_SERV="$GNUTLS_LEGACY_SERV" \
+    scripts/output_env.sh
+echo
 
 # Step 1 - Make and instrumented build for code coverage
 export CFLAGS=' --coverage -g3 -O0 '
@@ -52,20 +75,24 @@ make -j
 TEST_OUTPUT=out_${PPID}
 cd tests
 
-# Step 2a - Self-tests
-../programs/test/selftest |tee self-test-$TEST_OUTPUT
-echo
-
-# Step 2b - Unit Tests
+# Step 2a - Unit Tests
 perl scripts/run-test-suites.pl -v |tee unit-test-$TEST_OUTPUT
 echo
 
-# Step 2c - System Tests
+# Step 2b - System Tests
 sh ssl-opt.sh |tee sys-test-$TEST_OUTPUT
 echo
 
-# Step 2d - Compatibility tests
-sh compat.sh |tee compat-test-$TEST_OUTPUT
+# Step 2c - Compatibility tests
+sh compat.sh -m 'tls1 tls1_1 tls1_2 dtls1 dtls1_2' | \
+    tee compat-test-$TEST_OUTPUT
+OPENSSL_CMD="$OPENSSL_LEGACY"                               \
+    sh compat.sh -m 'ssl3' |tee -a compat-test-$TEST_OUTPUT
+OPENSSL_CMD="$OPENSSL_LEGACY"                                       \
+    GNUTLS_CLI="$GNUTLS_LEGACY_CLI"                                 \
+    GNUTLS_SERV="$GNUTLS_LEGACY_SERV"                               \
+    sh compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR' | \
+    tee -a compat-test-$TEST_OUTPUT
 echo
 
 # Step 3 - Process the coverage report
@@ -81,28 +108,7 @@ echo
 
 cd tests
 
-# Step 4a - Self-tests
-echo "Self tests - ./programs/test/selftest"
-
-PASSED_TESTS=$(grep 'passed' self-test-$TEST_OUTPUT |wc -l)
-FAILED_TESTS=$(grep 'failed' self-test-$TEST_OUTPUT |wc -l)
-AVAIL_TESTS=$(($PASSED_TESTS + $FAILED_TESTS))
-EXED_TESTS=$(($PASSED_TESTS + $FAILED_TESTS))
-
-echo "Passed             : $PASSED_TESTS"
-echo "Failed             : $FAILED_TESTS"
-echo "Skipped            : n/a"
-echo "Total tests        : $AVAIL_TESTS"
-echo
-
-TOTAL_PASS=$PASSED_TESTS
-TOTAL_FAIL=$FAILED_TESTS
-TOTAL_SKIP=0
-TOTAL_AVAIL=$(($PASSED_TESTS + $FAILED_TESTS))
-TOTAL_EXED=$(($PASSED_TESTS + $FAILED_TESTS))
-
-
-# Step 4b - Unit tests
+# Step 4a - Unit tests
 echo "Unit tests - tests/scripts/run-test-suites.pl"
 
 PASSED_TESTS=$(tail -n6 unit-test-$TEST_OUTPUT|sed -n -e 's/test cases passed :[\t]*\([0-9]*\)/\1/p'| tr -d ' ')
@@ -118,14 +124,13 @@ echo "Total exec'd tests : $(($PASSED_TESTS + $FAILED_TESTS))"
 echo "Total avail tests  : $(($PASSED_TESTS + $FAILED_TESTS + $SKIPPED_TESTS))"
 echo
 
-TOTAL_PASS=$(($TOTAL_PASS+$PASSED_TESTS))
-TOTAL_FAIL=$(($TOTAL_FAIL+$FAILED_TESTS))
-TOTAL_SKIP=$(($TOTAL_SKIP+$SKIPPED_TESTS))
-TOTAL_AVAIL=$(($TOTAL_AVAIL + $PASSED_TESTS + $FAILED_TESTS + $SKIPPED_TESTS))
-TOTAL_EXED=$(($TOTAL_EXED + $PASSED_TESTS + $FAILED_TESTS))
+TOTAL_PASS=$PASSED_TESTS
+TOTAL_FAIL=$FAILED_TESTS
+TOTAL_SKIP=$SKIPPED_TESTS
+TOTAL_AVAIL=$(($PASSED_TESTS + $FAILED_TESTS + $SKIPPED_TESTS))
+TOTAL_EXED=$(($PASSED_TESTS + $FAILED_TESTS))
 
-
-# Step 4c - TLS Options tests
+# Step 4b - TLS Options tests
 echo "TLS Options tests - tests/ssl-opt.sh"
 
 PASSED_TESTS=$(tail -n5 sys-test-$TEST_OUTPUT|sed -n -e 's/.* (\([0-9]*\) \/ [0-9]* tests ([0-9]* skipped))$/\1/p')
@@ -147,12 +152,12 @@ TOTAL_AVAIL=$(($TOTAL_AVAIL + $TOTAL_TESTS + $SKIPPED_TESTS))
 TOTAL_EXED=$(($TOTAL_EXED + $TOTAL_TESTS))
 
 
-# Step 4d - System Compatibility tests
+# Step 4c - System Compatibility tests
 echo "System/Compatibility tests - tests/compat.sh"
 
-PASSED_TESTS=$(tail -n5 compat-test-$TEST_OUTPUT|sed -n -e 's/.* (\([0-9]*\) \/ [0-9]* tests ([0-9]* skipped))$/\1/p')
-SKIPPED_TESTS=$(tail -n5 compat-test-$TEST_OUTPUT|sed -n -e 's/.* ([0-9]* \/ [0-9]* tests (\([0-9]*\) skipped))$/\1/p')
-EXED_TESTS=$(tail -n5 compat-test-$TEST_OUTPUT|sed -n -e 's/.* ([0-9]* \/ \([0-9]*\) tests ([0-9]* skipped))$/\1/p')
+PASSED_TESTS=$(cat compat-test-$TEST_OUTPUT | sed -n -e 's/.* (\([0-9]*\) \/ [0-9]* tests ([0-9]* skipped))$/\1/p' | awk 'BEGIN{ s = 0 } { s += $1 } END{ print s }')
+SKIPPED_TESTS=$(cat compat-test-$TEST_OUTPUT | sed -n -e 's/.* ([0-9]* \/ [0-9]* tests (\([0-9]*\) skipped))$/\1/p' | awk 'BEGIN{ s = 0 } { s += $1 } END{ print s }')
+EXED_TESTS=$(cat compat-test-$TEST_OUTPUT | sed -n -e 's/.* ([0-9]* \/ \([0-9]*\) tests ([0-9]* skipped))$/\1/p' | awk 'BEGIN{ s = 0 } { s += $1 } END{ print s }')
 FAILED_TESTS=$(($EXED_TESTS - $PASSED_TESTS))
 
 echo "Passed             : $PASSED_TESTS"
@@ -169,7 +174,7 @@ TOTAL_AVAIL=$(($TOTAL_AVAIL + $EXED_TESTS + $SKIPPED_TESTS))
 TOTAL_EXED=$(($TOTAL_EXED + $EXED_TESTS))
 
 
-# Step 4e - Grand totals
+# Step 4d - Grand totals
 echo "-------------------------------------------------------------------------"
 echo "Total tests"
 
@@ -181,7 +186,7 @@ echo "Total avail tests  : $TOTAL_AVAIL"
 echo
 
 
-# Step 4f - Coverage
+# Step 4e - Coverage
 echo "Coverage"
 
 LINES_TESTED=$(tail -n3 cov-$TEST_OUTPUT|sed -n -e 's/  lines......: [0-9]*.[0-9]% (\([0-9]*\) of [0-9]* lines)/\1/p')
@@ -200,7 +205,6 @@ echo "Functions Tested   : $FUNCS_TESTED of $FUNCS_TOTAL $FUNCS_PERCENT%"
 echo
 
 
-rm self-test-$TEST_OUTPUT
 rm unit-test-$TEST_OUTPUT
 rm sys-test-$TEST_OUTPUT
 rm compat-test-$TEST_OUTPUT

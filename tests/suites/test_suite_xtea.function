@@ -124,6 +124,6 @@ void xtea_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void xtea_selftest()
 {
-    TEST_ASSERT( mbedtls_xtea_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_xtea_self_test( 1 ) == 0 );
 }
 /* END_CASE */

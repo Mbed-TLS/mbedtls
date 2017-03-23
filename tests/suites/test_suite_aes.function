@@ -292,6 +292,6 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void aes_selftest()
 {
-    TEST_ASSERT( mbedtls_aes_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_aes_self_test( 1 ) == 0 );
 }
 /* END_CASE */

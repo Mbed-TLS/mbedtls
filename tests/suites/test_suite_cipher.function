@@ -91,6 +91,44 @@ void cipher_null_args( )
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_AES_C */
+void cipher_special_behaviours( )
+{
+    const mbedtls_cipher_info_t *cipher_info;
+    mbedtls_cipher_context_t ctx;
+    unsigned char input[32];
+    unsigned char output[32];
+    unsigned char iv[32];
+    size_t olen = 0;
+
+    mbedtls_cipher_init( &ctx );
+    memset( input, 0, sizeof( input ) );
+    memset( output, 0, sizeof( output ) );
+    memset( iv, 0, sizeof( iv ) );
+
+    /* Check and get info structures */
+    cipher_info = mbedtls_cipher_info_from_type( MBEDTLS_CIPHER_AES_128_ECB );
+    TEST_ASSERT( NULL != cipher_info );
+
+    TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx, cipher_info ) );
+
+    /* IV too big */
+    TEST_ASSERT( mbedtls_cipher_set_iv( &ctx, iv, MBEDTLS_MAX_IV_LENGTH + 1 )
+                 == MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+
+    /* IV too small */
+    TEST_ASSERT( mbedtls_cipher_set_iv( &ctx, iv, 0 )
+                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+
+    /* Update ECB with partial block */
+    TEST_ASSERT( mbedtls_cipher_update( &ctx, input, 1, output, &olen )
+                 == MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED );
+
+exit:
+    mbedtls_cipher_free( &ctx );
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
                   int length_val, int pad_mode )

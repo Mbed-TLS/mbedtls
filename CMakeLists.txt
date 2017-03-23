@@ -31,7 +31,7 @@ find_package(Perl)
 if(PERL_FOUND)
 
     # If NULL Entropy is configured, display an appropriate warning
-    execute_process(COMMAND ${PERL_EXECUTABLE} scripts/config.pl get MBEDTLS_TEST_NULL_ENTROPY
+    execute_process(COMMAND ${PERL_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/config.pl -f ${CMAKE_SOURCE_DIR}/include/mbedtls/config.h get MBEDTLS_TEST_NULL_ENTROPY
                         RESULT_VARIABLE result)
     if(${result} EQUAL 0)
         message(WARNING ${NULL_ENTROPY_WARNING})
@@ -92,7 +92,9 @@ if(CMAKE_COMPILER_IS_CLANG)
 endif(CMAKE_COMPILER_IS_CLANG)
 
 if(MSVC)
-    set(CMAKE_C_FLAGS_CHECK       "/WX")
+    # Strictest warnings, and treat as errors
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
 endif(MSVC)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Coverage")

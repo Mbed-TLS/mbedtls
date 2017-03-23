@@ -78,3 +78,10 @@ exit:
     mbedtls_free( my_out );
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
+void pkcs5_selftest( )
+{
+    TEST_ASSERT( mbedtls_pkcs5_self_test( 1 ) == 0 );
+}
+/* END_CASE */

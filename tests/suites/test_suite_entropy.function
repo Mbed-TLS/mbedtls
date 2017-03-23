@@ -123,7 +123,7 @@ static int read_nv_seed( unsigned char *buf, size_t buf_len )
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:MBEDTLS_FS_IO */
+/* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_NV_SEED:MBEDTLS_FS_IO */
 void entropy_seed_file( char *path, int ret )
 {
     mbedtls_entropy_context ctx;
@@ -210,7 +210,7 @@ void entropy_source_fail( char *path )
                  == MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
     TEST_ASSERT( mbedtls_entropy_gather( &ctx )
                  == MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
-#if defined(MBEDTLS_FS_IO)
+#if defined(MBEDTLS_FS_IO) && defined(MBEDTLS_ENTROPY_NV_SEED)
     TEST_ASSERT( mbedtls_entropy_write_seed_file( &ctx, path )
                  == MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
     TEST_ASSERT( mbedtls_entropy_update_seed_file( &ctx, path )
@@ -378,8 +378,8 @@ void entropy_nv_seed( char *read_seed_str )
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
-void entropy_selftest( )
+void entropy_selftest( int result )
 {
-    TEST_ASSERT( mbedtls_entropy_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_entropy_self_test( 1 ) == result );
 }
 /* END_CASE */

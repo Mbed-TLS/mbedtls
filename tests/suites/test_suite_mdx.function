@@ -88,27 +88,27 @@ void ripemd160_text( char *text_src_string, char *hex_hash_string )
 /* BEGIN_CASE depends_on:MBEDTLS_MD2_C:MBEDTLS_SELF_TEST */
 void md2_selftest()
 {
-    TEST_ASSERT( mbedtls_md2_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_md2_self_test( 1 ) == 0 );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_MD4_C:MBEDTLS_SELF_TEST */
 void md4_selftest()
 {
-    TEST_ASSERT( mbedtls_md4_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_md4_self_test( 1 ) == 0 );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_MD5_C:MBEDTLS_SELF_TEST */
 void md5_selftest()
 {
-    TEST_ASSERT( mbedtls_md5_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_md5_self_test( 1 ) == 0 );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_RIPEMD160_C:MBEDTLS_SELF_TEST */
 void ripemd160_selftest()
 {
-    TEST_ASSERT( mbedtls_ripemd160_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_ripemd160_self_test( 1 ) == 0 );
 }
 /* END_CASE */

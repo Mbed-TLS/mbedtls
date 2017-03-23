@@ -3,6 +3,9 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS 2.x.x branch released xxxx-xx-xx
 
 Security
+   * Wipe stack buffers in RSA private key operations
+     (rsa_rsaes_pkcs1_v15_decrypt(), rsa_rsaes_oaep_decrypt).
+     Found by Laurent Simon.
    * Add exponent blinding to RSA private operations as a countermeasure
      against side-channel attacks like the cache attack described in
      https://arxiv.org/abs/1702.08719v2.

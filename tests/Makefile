@@ -99,9 +99,6 @@ C_FILES := $(addsuffix .c,$(APPS))
 
 $(C_FILES): %.c: 
 	@suite=`echo $*|cut -d. -f1`; \
-	if [ -z $$suite ]; then \
-		suite=$*; \
-	fi; \
 	echo "  Gen   $@"; \
 	perl scripts/generate_code.pl suites $$suite $*
 

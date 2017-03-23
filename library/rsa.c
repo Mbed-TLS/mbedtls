@@ -66,6 +66,11 @@
 #define mbedtls_free   free
 #endif
 
+/* Implementation that should never be optimized out by the compiler */
+static void mbedtls_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = (unsigned char*)v; while( n-- ) *p++ = 0;
+}
+
 /*
  * Initialize an RSA context
  */
@@ -824,7 +829,7 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
           : mbedtls_rsa_private( ctx, f_rng, p_rng, input, buf );
 
     if( ret != 0 )
-        return( ret );
+        goto cleanup;
 
     /*
      * Unmask data and generate lHash
@@ -833,7 +838,7 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
     if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 0 ) ) != 0 )
     {
         mbedtls_md_free( &md_ctx );
-        return( ret );
+        goto cleanup;
     }
 
 
@@ -884,15 +889,26 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
      * the different error conditions.
      */
     if( bad != 0 )
-        return( MBEDTLS_ERR_RSA_INVALID_PADDING );
+    {
+        ret = MBEDTLS_ERR_RSA_INVALID_PADDING;
+        goto cleanup;
+    }
 
     if( ilen - ( p - buf ) > output_max_len )
-        return( MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE );
+    {
+        ret = MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE;
+        goto cleanup;
+    }
 
     *olen = ilen - (p - buf);
     memcpy( output, p, *olen );
+    ret = 0;
 
-    return( 0 );
+cleanup:
+    mbedtls_zeroize( buf, sizeof( buf ) );
+    mbedtls_zeroize( lhash, sizeof( lhash ) );
+
+    return( ret );
 }
 #endif /* MBEDTLS_PKCS1_V21 */
 
@@ -926,7 +942,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
           : mbedtls_rsa_private( ctx, f_rng, p_rng, input, buf );
 
     if( ret != 0 )
-        return( ret );
+        goto cleanup;
 
     p = buf;
     bad = 0;
@@ -971,15 +987,25 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
     bad |= ( pad_count < 8 );
 
     if( bad )
-        return( MBEDTLS_ERR_RSA_INVALID_PADDING );
+    {
+        ret = MBEDTLS_ERR_RSA_INVALID_PADDING;
+        goto cleanup;
+    }
 
     if( ilen - ( p - buf ) > output_max_len )
-        return( MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE );
+    {
+        ret = MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE;
+        goto cleanup;
+    }
 
     *olen = ilen - (p - buf);
     memcpy( output, p, *olen );
+    ret = 0;
 
-    return( 0 );
+cleanup:
+    mbedtls_zeroize( buf, sizeof( buf ) );
+
+    return( ret );
 }
 #endif /* MBEDTLS_PKCS1_V15 */
 

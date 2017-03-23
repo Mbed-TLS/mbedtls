@@ -88,6 +88,7 @@ int main( int argc, char *argv[] )
     unsigned char buf[1024];
     const char *pers = "dtls_client";
     int retry_left = MAX_RETRY;
+    const char *server_addr = SERVER_ADDR;
 
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
@@ -96,8 +97,8 @@ int main( int argc, char *argv[] )
     mbedtls_x509_crt cacert;
     mbedtls_timing_delay_context timer;
 
-    ((void) argc);
-    ((void) argv);
+    if (argc > 1)
+        server_addr = argv[1];
 
 #if defined(MBEDTLS_DEBUG_C)
     mbedtls_debug_set_threshold( DEBUG_LEVEL );
@@ -148,7 +149,7 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "  . Connecting to udp/%s/%s...", SERVER_NAME, SERVER_PORT );
     fflush( stdout );
 
-    if( ( ret = mbedtls_net_connect( &server_fd, SERVER_ADDR,
+    if( ( ret = mbedtls_net_connect( &server_fd, server_addr,
                                          SERVER_PORT, MBEDTLS_NET_PROTO_UDP ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_net_connect returned %d\n\n", ret );
@@ -239,64 +240,77 @@ int main( int argc, char *argv[] )
     else
         mbedtls_printf( " ok\n" );
 
-    /*
-     * 6. Write the echo request
-     */
-send_request:
-    mbedtls_printf( "  > Write to server:" );
-    fflush( stdout );
-
-    len = sizeof( MESSAGE ) - 1;
-
-    do ret = mbedtls_ssl_write( &ssl, (unsigned char *) MESSAGE, len );
-    while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
-           ret == MBEDTLS_ERR_SSL_WANT_WRITE );
-
-    if( ret < 0 )
+    for (;;)
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_write returned %d\n\n", ret );
-        goto exit;
-    }
+        mbedtls_printf("> Press 'x' to close, or any other key to write to server\n");
 
-    len = ret;
-    mbedtls_printf( " %d bytes written\n\n%s\n\n", len, MESSAGE );
-
-    /*
-     * 7. Read the echo response
-     */
-    mbedtls_printf( "  < Read from server:" );
-    fflush( stdout );
-
-    len = sizeof( buf ) - 1;
-    memset( buf, 0, sizeof( buf ) );
-
-    do ret = mbedtls_ssl_read( &ssl, buf, len );
-    while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
-           ret == MBEDTLS_ERR_SSL_WANT_WRITE );
-
-    if( ret <= 0 )
-    {
-        switch( ret )
+        switch (getchar())
         {
-            case MBEDTLS_ERR_SSL_TIMEOUT:
-                mbedtls_printf( " timeout\n\n" );
-                if( retry_left-- > 0 )
-                    goto send_request;
-                goto exit;
-
-            case MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY:
-                mbedtls_printf( " connection was closed gracefully\n" );
-                ret = 0;
+            case 'x':
                 goto close_notify;
-
             default:
-                mbedtls_printf( " mbedtls_ssl_read returned -0x%x\n\n", -ret );
-                goto exit;
+                break;
         }
-    }
 
-    len = ret;
-    mbedtls_printf( " %d bytes read\n\n%s\n\n", len, buf );
+        /*
+         * 6. Write the echo request
+         */
+    send_request:
+        mbedtls_printf( "  > Write to server:" );
+        fflush( stdout );
+
+        len = sizeof( MESSAGE ) - 1;
+
+        do ret = mbedtls_ssl_write( &ssl, (unsigned char *) MESSAGE, len );
+        while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
+               ret == MBEDTLS_ERR_SSL_WANT_WRITE );
+
+        if( ret < 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_write returned %d\n\n", ret );
+            goto exit;
+        }
+
+        len = ret;
+        mbedtls_printf( " %d bytes written\n\n%s\n\n", len, MESSAGE );
+
+        /*
+         * 7. Read the echo response
+         */
+        mbedtls_printf( "  < Read from server:" );
+        fflush( stdout );
+
+        len = sizeof( buf ) - 1;
+        memset( buf, 0, sizeof( buf ) );
+
+        do ret = mbedtls_ssl_read( &ssl, buf, len );
+        while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
+               ret == MBEDTLS_ERR_SSL_WANT_WRITE );
+
+        if( ret <= 0 )
+        {
+            switch( ret )
+            {
+                case MBEDTLS_ERR_SSL_TIMEOUT:
+                    mbedtls_printf( " timeout\n\n" );
+                    if( retry_left-- > 0 )
+                        goto send_request;
+                    goto exit;
+
+                case MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY:
+                    mbedtls_printf( " connection was closed gracefully\n" );
+                    ret = 0;
+                    goto close_notify;
+
+                default:
+                    mbedtls_printf( " mbedtls_ssl_read returned -0x%x\n\n", -ret );
+                    goto exit;
+            }
+        }
+
+        len = ret;
+        mbedtls_printf( " %d bytes read\n\n%s\n\n", len, buf );
+    }
 
     /*
      * 8. Done, cleanly close the connection

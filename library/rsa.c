@@ -1097,7 +1097,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
         *p++ = MBEDTLS_ASN1_NULL;
         *p++ = 0x00;
         *p++ = MBEDTLS_ASN1_OCTET_STRING;
-        *p++ = (unsigned char)hashlen;
+        *p++ = (unsigned char) hashlen;
         memcpy( p, hash, hashlen );
     }
 

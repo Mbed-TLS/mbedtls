@@ -225,7 +225,7 @@ static int ssl_parse_signature_algorithms_ext( mbedtls_ssl_context *ssl,
 
 have_sig_alg:
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello v3, signature_algorithm ext: %u",
-                   (unsigned int)ssl->handshake->sig_alg ) );
+                   (unsigned int) ssl->handshake->sig_alg ) );
 
     return( 0 );
 }

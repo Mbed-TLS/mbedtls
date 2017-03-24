@@ -519,6 +519,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     "MBEDTLS_MEMORY_BUFFER_ALLOC_C",
 #endif /* MBEDTLS_MEMORY_BUFFER_ALLOC_C */
+#if defined(MBEDTLS_HAVE_WINSOCK2)
+    "MBEDTLS_HAVE_WINSOCK2",
+#endif /* MBEDTLS_HAVE_WINSOCK2 */
 #if defined(MBEDTLS_NET_C)
     "MBEDTLS_NET_C",
 #endif /* MBEDTLS_NET_C */

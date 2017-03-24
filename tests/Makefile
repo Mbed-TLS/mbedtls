@@ -98,9 +98,8 @@ $(DEP):
 C_FILES := $(addsuffix .c,$(APPS))
 
 $(C_FILES): %.c: 
-	@suite=`echo $*|cut -d. -f1`; \
-	echo "  Gen   $@"; \
-	perl scripts/generate_code.pl suites $$suite $*
+	echo "  Gen   $@"
+	perl scripts/generate_code.pl suites $(shell perl -e "(my $$out=\"$@\")=~s/\..*//;print $$out") $*
 
 
 BINARIES := $(addsuffix $(EXEXT),$(APPS))

@@ -2346,14 +2346,12 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA ||
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA )
     {
-#if !defined(MBEDTLS_KEY_EXCHANGE_ECDH_ANON_ENABLED)
         size_t sig_len, hashlen;
         unsigned char hash[64];
-        unsigned char *params = ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl );
-        size_t params_len = p - params;
-#endif
         mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
         mbedtls_pk_type_t pk_alg = MBEDTLS_PK_NONE;
+        unsigned char *params = ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl );
+        size_t params_len = p - params;
 
         /*
          * Handle the digitally-signed structure

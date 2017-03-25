@@ -45,6 +45,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_HAVE_TIME_DATE)
     "MBEDTLS_HAVE_TIME_DATE",
 #endif /* MBEDTLS_HAVE_TIME_DATE */
+#if defined(MBEDTLS_HAVE_WINSOCK2)
+    "MBEDTLS_HAVE_WINSOCK2",
+#endif /* MBEDTLS_HAVE_WINSOCK2 */
 #if defined(MBEDTLS_PLATFORM_MEMORY)
     "MBEDTLS_PLATFORM_MEMORY",
 #endif /* MBEDTLS_PLATFORM_MEMORY */
@@ -519,9 +522,6 @@ static const char *features[] = {
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     "MBEDTLS_MEMORY_BUFFER_ALLOC_C",
 #endif /* MBEDTLS_MEMORY_BUFFER_ALLOC_C */
-#if defined(MBEDTLS_HAVE_WINSOCK2)
-    "MBEDTLS_HAVE_WINSOCK2",
-#endif /* MBEDTLS_HAVE_WINSOCK2 */
 #if defined(MBEDTLS_NET_C)
     "MBEDTLS_NET_C",
 #endif /* MBEDTLS_NET_C */

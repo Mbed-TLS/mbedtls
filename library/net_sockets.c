@@ -81,6 +81,7 @@ static int wsa_init_done = 0;
 #include <fcntl.h>
 #include <netdb.h>
 #include <errno.h>
+#include <assert.h>
 
 #endif /* ( _WIN32 || _WIN32_WCE ) && !EFIX64 && !EFI32 */
 
@@ -250,6 +251,36 @@ int mbedtls_net_bind( mbedtls_net_context *ctx, const char *bind_ip, const char 
 
 }
 
+enum {
+    MBEDTLS_RECVD_CRAP = 0,
+    MBEDTLS_RECVD_HANDSHAKE,
+    MBEDTLS_RECVD_DATA
+};
+
+static int mbedtls_net_msg_sniff(unsigned char *b, int b_sz)
+{
+    assert(b != NULL);
+
+    if (b_sz <= 0)
+        return MBEDTLS_RECVD_CRAP;
+
+    switch (b[0])
+    {
+        case MBEDTLS_SSL_MSG_APPLICATION_DATA:
+        case MBEDTLS_SSL_MSG_ALERT:
+            printf("SNIFF: got application data or alert on a new socket\n");
+            return MBEDTLS_RECVD_DATA;
+        case MBEDTLS_SSL_MSG_HANDSHAKE:
+            printf("SNIFF: got handshake a new socket\n");
+            return MBEDTLS_RECVD_HANDSHAKE;
+        default:
+            printf("SNIFF: unknown crap on a new socket\n");
+            break;
+    }
+
+    return MBEDTLS_RECVD_CRAP;
+}
+
 #if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
     !defined(EFI32)
 /*
@@ -290,12 +321,22 @@ static int net_would_block( const mbedtls_net_context *ctx )
 }
 #endif /* ( _WIN32 || _WIN32_WCE ) && !EFIX64 && !EFI32 */
 
-/*
- * Accept a connection from a remote client
- */
 int mbedtls_net_accept( mbedtls_net_context *bind_ctx,
                         mbedtls_net_context *client_ctx,
                         void *client_ip, size_t buf_size, size_t *ip_len )
+{
+    int handle_cid = 0;
+    return mbedtls_net_accept_ex(bind_ctx, client_ctx, client_ip, buf_size,
+                                 ip_len, handle_cid, NULL);
+}
+
+/*
+ * Accept a connection from a remote client
+ */
+int mbedtls_net_accept_ex( mbedtls_net_context *bind_ctx,
+                           mbedtls_net_context *client_ctx,
+                           void *client_ip, size_t buf_size, size_t *ip_len,
+                           int handle_cid, unsigned int *pcid )
 {
     int ret;
     int type;
@@ -328,11 +369,30 @@ int mbedtls_net_accept( mbedtls_net_context *bind_ctx,
     else
     {
         /* UDP: wait for a message, but keep it in the queue */
-        char buf[1] = { 0 };
+
+        /* We need to lookahead enough to parse the record header, i.e. at
+         * least (but not much more than)17 bytes */
+        unsigned char buf[32] = { 0 };
 
         ret = (int) recvfrom( bind_ctx->fd, buf, sizeof( buf ), MSG_PEEK,
                         (struct sockaddr *) &client_addr, &n );
 
+        /* TODO add the CID guard around this block */
+        if (ret >= 0 && handle_cid)
+        {
+            switch (mbedtls_net_msg_sniff(buf, ret))
+            {
+                case MBEDTLS_RECVD_DATA:
+                    /* Inform the caller it should try and rebind */
+                    return MBEDTLS_ERR_NET_LIKELY_REBIND;
+                case MBEDTLS_RECVD_HANDSHAKE:
+                    /* Normal case: proceed with handshake */
+                default:
+                    /* We got some crap but let's not fail here -- it'd be a layering
+                     * violation. */
+                    break;
+            }
+        }
 #if defined(_WIN32)
         if( ret == SOCKET_ERROR &&
             WSAGetLastError() == WSAEMSGSIZE )
@@ -353,7 +413,7 @@ int mbedtls_net_accept( mbedtls_net_context *bind_ctx,
 
     /* UDP: hijack the listening socket to communicate with the client,
      * then bind a new socket to accept new connections */
-    if( type != SOCK_STREAM )
+    if( type == SOCK_DGRAM )
     {
         struct sockaddr_storage local_addr;
         int one = 1;

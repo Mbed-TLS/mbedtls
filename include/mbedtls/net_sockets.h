@@ -45,6 +45,7 @@
 #define MBEDTLS_ERR_NET_UNKNOWN_HOST                      -0x0052  /**< Failed to get an IP address for the given hostname. */
 #define MBEDTLS_ERR_NET_BUFFER_TOO_SMALL                  -0x0043  /**< Buffer is too small to hold the data. */
 #define MBEDTLS_ERR_NET_INVALID_CONTEXT                   -0x0045  /**< The context is invalid, eg because it was free()ed. */
+#define MBEDTLS_ERR_NET_LIKELY_REBIND                     -0x0047  /**< Got non-handshake on a new socket, might need to handle NAT rebinding */
 
 #define MBEDTLS_NET_LISTEN_BACKLOG         10 /**< The backlog that listen() should use. */
 
@@ -120,13 +121,24 @@ int mbedtls_net_bind( mbedtls_net_context *ctx, const char *bind_ip, const char 
  * \param client_ip Will contain the client IP address
  * \param buf_size  Size of the client_ip buffer
  * \param ip_len    Will receive the size of the client IP written
+ * \param handle_cid if true, TODO
+ * \param pcid       if caller passes a non-null pointer and the function returns
+ *                   MBEDTLS_ERR_NET_LIKELY_REBIND, \p pcid points to the CID
+ *                   to look up among the active contextes
  *
  * \return          0 if successful, or
  *                  MBEDTLS_ERR_NET_ACCEPT_FAILED, or
  *                  MBEDTLS_ERR_NET_BUFFER_TOO_SMALL if buf_size is too small,
  *                  MBEDTLS_ERR_SSL_WANT_READ if bind_fd was set to
  *                  non-blocking and accept() would block.
+ *                  TODO other error codes
  */
+int mbedtls_net_accept_ex( mbedtls_net_context *bind_ctx,
+                           mbedtls_net_context *client_ctx,
+                           void *client_ip, size_t buf_size, size_t *ip_len,
+                           int handle_cid, unsigned int *pcid );
+
+/* Identical to mbedtls_net_accept_ex except it does not handle CID */
 int mbedtls_net_accept( mbedtls_net_context *bind_ctx,
                         mbedtls_net_context *client_ctx,
                         void *client_ip, size_t buf_size, size_t *ip_len );

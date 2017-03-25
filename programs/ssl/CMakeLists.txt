@@ -51,6 +51,9 @@ target_link_libraries(ssl_mail_client ${libs})
 add_executable(mini_client mini_client.c)
 target_link_libraries(mini_client ${libs})
 
+add_executable(cid_poc cid_poc.c)
+target_link_libraries(cid_poc ${libs})
+
 if(THREADS_FOUND)
     add_executable(ssl_pthread_server ssl_pthread_server.c)
     target_link_libraries(ssl_pthread_server ${libs} ${CMAKE_THREAD_LIBS_INIT})

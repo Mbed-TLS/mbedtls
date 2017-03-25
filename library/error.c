@@ -661,6 +661,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "NET - Buffer is too small to hold the data" );
     if( use_ret == -(MBEDTLS_ERR_NET_INVALID_CONTEXT) )
         mbedtls_snprintf( buf, buflen, "NET - The context is invalid, eg because it was free()ed" );
+    if( use_ret == -(MBEDTLS_ERR_NET_LIKELY_REBIND) )
+        mbedtls_snprintf( buf, buflen, "NET - Got non-handshake message on a new socket - likely need to handle a NAT rebind" );
 #endif /* MBEDTLS_NET_C */
 
 #if defined(MBEDTLS_OID_C)

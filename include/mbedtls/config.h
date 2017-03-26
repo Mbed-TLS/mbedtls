@@ -2361,6 +2361,18 @@
 #define MBEDTLS_TIMING_C
 
 /**
+ * \def MBEDTLS_CID
+ *
+ * The connection ID concept enhances DTLS to provide an
+ * alternative multiplexing mechanism.
+ *
+ * Requires: MBEDTLS_SSL_PROTO_DTLS
+ *
+ * Comment if you do not need the connection ID mechanism.
+ */
+#define MBEDTLS_CID
+
+/**
  * \def MBEDTLS_VERSION_C
  *
  * Enable run-time version information.

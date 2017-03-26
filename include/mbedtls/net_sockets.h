@@ -136,7 +136,7 @@ int mbedtls_net_bind( mbedtls_net_context *ctx, const char *bind_ip, const char 
 int mbedtls_net_accept_ex( mbedtls_net_context *bind_ctx,
                            mbedtls_net_context *client_ctx,
                            void *client_ip, size_t buf_size, size_t *ip_len,
-                           int handle_cid, unsigned int *pcid );
+                           int handle_cid, uint32_t *pcid );
 
 /* Identical to mbedtls_net_accept_ex except it does not handle CID */
 int mbedtls_net_accept( mbedtls_net_context *bind_ctx,

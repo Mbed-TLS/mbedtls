@@ -251,34 +251,47 @@ int mbedtls_net_bind( mbedtls_net_context *ctx, const char *bind_ip, const char 
 
 }
 
+/* Here we assume that the supplied buffer is the start of a new record */
+static int mbedtls_net_get_cid(unsigned char *b, int b_sz, uint32_t *pcid)
+{
+    if (pcid == NULL || b == NULL || b_sz < 15)
+        return 1;
+
+    /* CID starts at offset 11 and extends for 4 bytes */
+    *pcid = ((uint32_t)b[11] << 24) | ((uint32_t)b[12] << 16) |
+            ((uint32_t)b[13] << 8) | ((uint32_t)b[14]);
+
+    return 0;
+}
+
+/* Return codes for bedtls_net_msg_sniff() */
 enum {
-    MBEDTLS_RECVD_CRAP = 0,
-    MBEDTLS_RECVD_HANDSHAKE,
-    MBEDTLS_RECVD_DATA
+    MBEDTLS_RECVD_CRAP = 0,     /* neither handshake, nor alert, nor app data */
+    MBEDTLS_RECVD_HANDSHAKE,    /* some kind of handshake message */
+    MBEDTLS_RECVD_DATA          /* application data or alert */
 };
 
 static int mbedtls_net_msg_sniff(unsigned char *b, int b_sz)
 {
-    assert(b != NULL);
-
-    if (b_sz <= 0)
+    if (b == NULL || b_sz <= 0)
         return MBEDTLS_RECVD_CRAP;
 
+    /* Inspect ContentType */
     switch (b[0])
     {
         case MBEDTLS_SSL_MSG_APPLICATION_DATA:
         case MBEDTLS_SSL_MSG_ALERT:
+            /* TODO(tho) remove the printfs */
             printf("SNIFF: got application data or alert on a new socket\n");
             return MBEDTLS_RECVD_DATA;
         case MBEDTLS_SSL_MSG_HANDSHAKE:
-            printf("SNIFF: got handshake a new socket\n");
+            printf("SNIFF: got handshake on a new socket\n");
             return MBEDTLS_RECVD_HANDSHAKE;
         default:
-            printf("SNIFF: unknown crap on a new socket\n");
-            break;
+            printf("SNIFF: unknown crap on a brand new socket\n");
+            return MBEDTLS_RECVD_CRAP;
     }
 
-    return MBEDTLS_RECVD_CRAP;
 }
 
 #if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
@@ -336,7 +349,7 @@ int mbedtls_net_accept( mbedtls_net_context *bind_ctx,
 int mbedtls_net_accept_ex( mbedtls_net_context *bind_ctx,
                            mbedtls_net_context *client_ctx,
                            void *client_ip, size_t buf_size, size_t *ip_len,
-                           int handle_cid, unsigned int *pcid )
+                           int handle_cid, uint32_t *pcid )
 {
     int ret;
     int type;
@@ -383,8 +396,13 @@ int mbedtls_net_accept_ex( mbedtls_net_context *bind_ctx,
             switch (mbedtls_net_msg_sniff(buf, ret))
             {
                 case MBEDTLS_RECVD_DATA:
-                    /* Inform the caller it should try and rebind */
-                    return MBEDTLS_ERR_NET_LIKELY_REBIND;
+                    /* If we can grab a CID, Inform the caller it should try
+                     * and rebind */
+                    if (mbedtls_net_get_cid(buf, ret, pcid) == 0)
+                    {
+                        return MBEDTLS_ERR_NET_LIKELY_REBIND;
+                    }
+                    break;
                 case MBEDTLS_RECVD_HANDSHAKE:
                     /* Normal case: proceed with handshake */
                 default:

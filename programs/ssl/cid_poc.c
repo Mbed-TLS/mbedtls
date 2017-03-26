@@ -232,18 +232,20 @@ reset:
   mbedtls_ssl_session_reset(&ssl);
 
 for (;;) {
+  int handle_cid = 1;
+  uint32_t cid = 0;
+
   /*
    * 3. Wait until a client connects
    */
   printf("  . Waiting for a remote connection ...");
   fflush(stdout);
 
-  int handle_cid = 1;
-  unsigned int cid = 0;
   if ((ret = mbedtls_net_accept_ex(&listen_fd, &client_fd, client_ip,
                                    sizeof(client_ip), &cliip_len, handle_cid,
                                    &cid)) != 0) {
     printf(" failed\n  ! mbedtls_net_accept returned %d\n\n", ret);
+    printf(" CID <- %u\n", cid);
     goto exit;
   }
 

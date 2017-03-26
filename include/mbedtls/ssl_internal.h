@@ -400,6 +400,11 @@ int mbedtls_ssl_check_sig_hash( const mbedtls_ssl_context *ssl,
                                 mbedtls_md_type_t md );
 #endif
 
+#if defined(MBEDTLS_CID)
+int ssl_parse_cid_ext(mbedtls_ssl_context *ssl, const unsigned char *buf, size_t len); 
+void ssl_write_cid_ext(mbedtls_ssl_context *ssl, unsigned char *buf, size_t *olen); 
+#endif 
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 static inline mbedtls_pk_context *mbedtls_ssl_own_key( mbedtls_ssl_context *ssl )
 {

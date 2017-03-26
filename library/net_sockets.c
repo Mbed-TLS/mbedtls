@@ -393,17 +393,13 @@ int mbedtls_net_accept_ex( mbedtls_net_context *bind_ctx,
         /* TODO add the CID guard around this block */
         if (ret >= 0 && handle_cid)
         {
-            uint32_t cid;
-
             switch (mbedtls_net_msg_sniff(buf, ret))
             {
                 case MBEDTLS_RECVD_DATA:
                     /* If we can grab a CID, Inform the caller it should try
                      * and rebind */
-                    if (mbedtls_net_get_cid(buf, ret, &cid) == 0)
+                    if (mbedtls_net_get_cid(buf, ret, pcid) == 0)
                     {
-                        if (pcid)
-                            *pcid = cid;
                         return MBEDTLS_ERR_NET_LIKELY_REBIND;
                     }
                     break;

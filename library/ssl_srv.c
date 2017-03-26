@@ -86,6 +86,7 @@ void mbedtls_ssl_conf_dtls_cookies( mbedtls_ssl_config *conf,
 }
 #endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY */
 
+
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
 static int ssl_parse_servername_ext( mbedtls_ssl_context *ssl,
                                      const unsigned char *buf,
@@ -1563,6 +1564,17 @@ read_record_header:
                 break;
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
+#if defined(MBEDTLS_CID)
+			case MBEDTLS_TLS_EXT_CID:
+				MBEDTLS_SSL_DEBUG_MSG(3, ("found CID extension"));
+				if (ssl->conf->cid == MBEDTLS_CID_DISABLE)
+					break;
+
+				ret = ssl_parse_cid_ext(ssl, ext + 4, ext_size);
+				if (ret != 0)
+					return(ret);
+				break;
+#endif /* MBEDTLS_CID */
             case MBEDTLS_TLS_EXT_RENEGOTIATION_INFO:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found renegotiation extension" ) );
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
@@ -2397,6 +2409,11 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
     ssl_write_extended_ms_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
+#endif
+
+#if defined(MBEDTLS_CID)
+	ssl_write_cid_ext(ssl, p + 2 + ext_len, &olen);
+	ext_len += olen;
 #endif
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)

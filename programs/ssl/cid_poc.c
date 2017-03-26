@@ -246,6 +246,8 @@ for (;;) {
                                    &cid)) != 0) {
     printf(" failed\n  ! mbedtls_net_accept returned %d\n\n", ret);
     printf(" CID <- %u\n", cid);
+    /* TODO lookup cid among existing sessions */
+    
     goto exit;
   }
 

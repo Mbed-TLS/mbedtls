@@ -453,8 +453,14 @@ void mbedtls_ssl_read_version( int *major, int *minor, int transport,
 static inline size_t mbedtls_ssl_hdr_len( const mbedtls_ssl_context *ssl )
 {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-        return( 13 );
+	if (ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
+#if defined(MBEDTLS_CID)
+		if (ssl->handshake == NULL && ssl->out_msgtype == MBEDTLS_SSL_MSG_APPLICATION_DATA)	return(17);
+		else return (13); 
+#else 
+		return(13);
+#endif /* MBEDTLS_CID */
+	}
 #else
     ((void) ssl);
 #endif

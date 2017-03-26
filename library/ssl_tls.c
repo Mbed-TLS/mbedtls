@@ -2959,6 +2959,14 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl )
         mbedtls_ssl_write_version( ssl->major_ver, ssl->minor_ver,
                            ssl->conf->transport, ssl->out_hdr + 1 );
 
+#if defined(MBEDTLS_CID)
+		// Adding a CID to the outgoing packet for application payloads
+		if (ssl->handshake == NULL && ssl->out_msgtype == MBEDTLS_SSL_MSG_APPLICATION_DATA) {
+			memcpy(ssl->out_ctr + 8, ssl->out_cid, 4);
+			MBEDTLS_SSL_DEBUG_BUF(5, "CID (outgoing)", ssl->out_cid, 4);
+		}
+#endif 
+
         ssl->out_len[0] = (unsigned char)( len >> 8 );
         ssl->out_len[1] = (unsigned char)( len      );
 
@@ -3785,6 +3793,11 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_UNEXPECTED_RECORD );
         }
 #endif
+
+#if defined(MBEDTLS_CID)
+		// HERE we would read the CID of the incoming datagram
+		// It is at ssl->in_ctr + ( 2 + 6 ) 
+#endif 
     }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 

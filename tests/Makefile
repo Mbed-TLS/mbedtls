@@ -2,7 +2,7 @@
 # To compile on SunOS: add "-lsocket -lnsl" to LDFLAGS
 # To compile with PKCS11: add "-lpkcs11-helper" to LDFLAGS
 
-CFLAGS	?= -O2
+CFLAGS	?= -g3 #-O2
 WARNING_CFLAGS ?= -Wall -W -Wdeclaration-after-statement -Wno-unused-function -Wno-unused-value
 LDFLAGS ?=
 
@@ -157,9 +157,16 @@ $(DEP):
 C_FILES := $(addsuffix .c,$(APPS))
 
 .SECONDEXPANSION:
-$(C_FILES): %.c: suites/$$(func.$$*).function suites/%.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+$(C_FILES): %.c: suites/$$(func.$$*).function suites/%.data scripts/gen_mbed_code.py suites/helpers.function suites/mbed_test.function suites/desktop_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites $(func.$*) $*
+#	perl scripts/generate_code.pl suites $(func.$*) $*
+	python scripts/gen_mbed_code.py -f suites/$(func.$*).function \
+		-d suites/$*.data \
+		-t suites/mbed_test.function \
+		-p suites/desktop_test.function \
+		-s suites  \
+		--help-file suites/helpers.function \
+		-o .
 
 
 $(BINARIES): %$(EXEXT): %.c $(DEP)
@@ -172,9 +179,9 @@ all: $(BINARIES)
 
 clean:
 ifndef WINDOWS
-	rm -rf $(APPS) *.c TESTS
+	rm -rf $(APPS) *.c *.data TESTS
 else
-	del /Q /F *.c *.exe
+	del /Q /F *.c *.exe *.data
 	rmdir /Q /S TESTS
 endif
 
@@ -194,14 +201,15 @@ MBED_APPS := $(addprefix mbed_,$(APPS))
 # name is used as the test group dir.
 
 .SECONDEXPANSION:
-$(MBED_APPS): mbed_%: suites/$$(func.$$*).function suites/%.data scripts/gen_mbed_code.py suites/helpers.function suites/main_test.function
-	echo "  Gen  ./TESTS/mbedtls/$*/main.c"
+$(MBED_APPS): mbed_%: suites/$$(func.$$*).function suites/%.data scripts/gen_mbed_code.py suites/helpers.function suites/mbed_test.function suites/embedded_test.function
+	echo "  Gen  ./TESTS/mbedtls/$*/$*.c"
 	python scripts/gen_mbed_code.py -f suites/$(func.$*).function \
 		-d suites/$*.data \
 		-t suites/mbed_test.function \
+		-p suites/embedded_test.function \
 		-s suites  \
 		--help-file suites/helpers.function \
-		-o ./TESTS
+		-o ./TESTS/mbedtls/$*
 
 gen-mbed-test: $(MBED_APPS)
 

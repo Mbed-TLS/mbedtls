@@ -1,0 +1,24 @@
+{
+    "name": "mbedtls",
+    "title": "Mbedtls",
+    "description": "Mbedtls SSL",
+    "version": "2.1.0",
+    "license": "Apache",
+    "keywords": [
+        "mbedtls",
+        "ssl",
+        "tls"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/ARMmbed/mbedtls.git"
+    },
+    "files": [
+        "dist/"
+    ],
+    "pak": {
+        "import": true,
+        "origin": "ARMmbed/mbedtls"
+    }
+}
+

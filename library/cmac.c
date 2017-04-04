@@ -65,6 +65,8 @@
 #endif /* MBEDTLS_SELF_TEST */
 #endif /* MBEDTLS_PLATFORM_C */
 
+#if !defined(MBEDTLS_CMAC_ALT)
+
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = (unsigned char*)v; while( n-- ) *p++ = 0;
@@ -467,6 +469,8 @@ exit:
     return( ret );
 }
 #endif /* MBEDTLS_AES_C */
+
+#endif /* !MBEDTLS_CMAC_ALT */
 
 #if defined(MBEDTLS_SELF_TEST)
 /*

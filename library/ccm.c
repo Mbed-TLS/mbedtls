@@ -49,6 +49,7 @@
 #endif /* MBEDTLS_PLATFORM_C */
 #endif /* MBEDTLS_SELF_TEST && MBEDTLS_AES_C */
 
+
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = (unsigned char*)v; while( n-- ) *p++ = 0;
@@ -57,21 +58,23 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 #define CCM_ENCRYPT 0
 #define CCM_DECRYPT 1
 
+
 /*
  * Initialize context
  */
-void mbedtls_ccm_init( mbedtls_ccm_context *ctx )
+void mbedtls_ccm_init_default( mbedtls_ccm_context_default *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_ccm_context ) );
+    memset( ctx, 0, sizeof( mbedtls_ccm_context_default ) );
 }
 
-int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
+int mbedtls_ccm_setkey_default( mbedtls_ccm_context_default *ctx,
                         mbedtls_cipher_id_t cipher,
                         const unsigned char *key,
                         unsigned int keybits )
 {
-    int ret;
-    const mbedtls_cipher_info_t *cipher_info;
+
+    int ret = 0;
+    const mbedtls_cipher_info_t *cipher_info = 0;
 
     cipher_info = mbedtls_cipher_info_from_values( cipher, keybits, MBEDTLS_MODE_ECB );
     if( cipher_info == NULL )
@@ -97,11 +100,12 @@ int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
 /*
  * Free context
  */
-void mbedtls_ccm_free( mbedtls_ccm_context *ctx )
+void mbedtls_ccm_free_default( mbedtls_ccm_context_default *ctx )
 {
     mbedtls_cipher_free( &ctx->cipher_ctx );
-    mbedtls_zeroize( ctx, sizeof( mbedtls_ccm_context ) );
+    mbedtls_zeroize( ctx, sizeof( mbedtls_ccm_context_default ) );
 }
+
 
 /*
  * Macros for common operations.
@@ -134,7 +138,7 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx )
 /*
  * Authenticated encryption or decryption
  */
-static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
+static int ccm_auth_crypt_default( mbedtls_ccm_context_default *ctx, int mode, size_t length,
                            const unsigned char *iv, size_t iv_len,
                            const unsigned char *add, size_t add_len,
                            const unsigned char *input, unsigned char *output,
@@ -217,7 +221,6 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
         src += use_len;
 
         UPDATE_CBC_MAC;
-
         while( len_left > 0 )
         {
             use_len = len_left > 16 ? 16 : len_left;
@@ -304,20 +307,20 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
 /*
  * Authenticated encryption
  */
-int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
+int mbedtls_ccm_encrypt_and_tag_default( mbedtls_ccm_context_default *ctx, size_t length,
                          const unsigned char *iv, size_t iv_len,
                          const unsigned char *add, size_t add_len,
                          const unsigned char *input, unsigned char *output,
                          unsigned char *tag, size_t tag_len )
 {
-    return( ccm_auth_crypt( ctx, CCM_ENCRYPT, length, iv, iv_len,
-                            add, add_len, input, output, tag, tag_len ) );
+    return( ccm_auth_crypt_default( ctx, CCM_ENCRYPT, length, iv, iv_len,
+                                    add, add_len, input, output, tag, tag_len ) );
 }
 
 /*
  * Authenticated decryption
  */
-int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
+int mbedtls_ccm_auth_decrypt_default( mbedtls_ccm_context_default *ctx, size_t length,
                       const unsigned char *iv, size_t iv_len,
                       const unsigned char *add, size_t add_len,
                       const unsigned char *input, unsigned char *output,
@@ -328,9 +331,9 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
     unsigned char i;
     int diff;
 
-    if( ( ret = ccm_auth_crypt( ctx, CCM_DECRYPT, length,
-                                iv, iv_len, add, add_len,
-                                input, output, check_tag, tag_len ) ) != 0 )
+    if( ( ret = ccm_auth_crypt_default( ctx, CCM_DECRYPT, length,
+                                        iv, iv_len, add, add_len,
+                                        input, output, check_tag, tag_len ) ) != 0 )
     {
         return( ret );
     }
@@ -348,6 +351,51 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
     return( 0 );
 }
 
+#if !defined(MBEDTLS_CCM_ALT)
+void mbedtls_ccm_init( mbedtls_ccm_context *ctx )
+{
+    return mbedtls_ccm_init_default( ctx );
+}
+
+int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
+                        mbedtls_cipher_id_t cipher,
+                        const unsigned char *key,
+                        unsigned int keybits )
+{
+    return mbedtls_ccm_setkey_default( ctx, cipher, key, keybits );
+}
+
+void mbedtls_ccm_free( mbedtls_ccm_context *ctx )
+{
+    return mbedtls_ccm_free_default( ctx );
+}
+
+int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
+                         const unsigned char *iv, size_t iv_len,
+                         const unsigned char *add, size_t add_len,
+                         const unsigned char *input, unsigned char *output,
+                         unsigned char *tag, size_t tag_len )
+{
+
+    return( mbedtls_ccm_encrypt_and_tag_default( ctx, length, iv, iv_len,
+                            add, add_len, input, output, tag, tag_len ) );
+
+}
+
+/*
+ * Authenticated decryption
+ */
+int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
+                      const unsigned char *iv, size_t iv_len,
+                      const unsigned char *add, size_t add_len,
+                      const unsigned char *input, unsigned char *output,
+                      const unsigned char *tag, size_t tag_len )
+{
+
+    return( mbedtls_ccm_auth_decrypt_default( ctx, length, iv, iv_len,
+                         add, add_len, input, output, tag, tag_len ) );
+}
+#endif /* MBEDTLS_CCM_ALT */
 
 #if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
 /*

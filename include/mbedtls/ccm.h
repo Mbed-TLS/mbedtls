@@ -23,7 +23,7 @@
 #ifndef MBEDTLS_CCM_H
 #define MBEDTLS_CCM_H
 
-#include "cipher.h"
+#include "ccm_default.h"
 
 #define MBEDTLS_ERR_CCM_BAD_INPUT      -0x000D /**< Bad input parameters to function. */
 #define MBEDTLS_ERR_CCM_AUTH_FAILED    -0x000F /**< Authenticated decryption failed. */
@@ -32,13 +32,11 @@
 extern "C" {
 #endif
 
-/**
- * \brief          CCM context structure
- */
-typedef struct {
-    mbedtls_cipher_context_t cipher_ctx;    /*!< cipher context used */
-}
-mbedtls_ccm_context;
+#if defined (MBEDTLS_CCM_ALT)
+#include "ccm_alt.h"
+#else
+typedef mbedtls_ccm_context_default mbedtls_ccm_context;
+#endif
 
 /**
  * \brief           Initialize CCM context (just makes references valid)
@@ -117,7 +115,11 @@ int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
  * \param tag_len   length of the tag
  *
  * \return         0 if successful and authenticated,
- *                 MBEDTLS_ERR_CCM_AUTH_FAILED if tag does not match
+ *                 MBEDTLS_ERR_CCM_AUTH_FAILED if tag does not match,
+ *                 or any other error code for a fatal internal error.
+ *
+ * \note           The error code MBEDTLS_ERR_CCM_AUTH_FAILED is for tag mismatches only
+ *                 and MUST NOT be used for fatal internal errors.
  */
 int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
                       const unsigned char *iv, size_t iv_len,

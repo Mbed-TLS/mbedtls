@@ -63,6 +63,9 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 void mbedtls_ccm_init( mbedtls_ccm_context *ctx )
 {
     memset( ctx, 0, sizeof( mbedtls_ccm_context ) );
+#if defined(MBEDTLS_CCM_ALT)
+    mbedtls_ccm_init_alt(ctx);
+#endif
 }
 
 int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
@@ -70,8 +73,24 @@ int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
                         const unsigned char *key,
                         unsigned int keybits )
 {
-    int ret;
-    const mbedtls_cipher_info_t *cipher_info;
+
+    int ret = 0;
+    const mbedtls_cipher_info_t *cipher_info = 0;
+    mbedtls_cipher_context_t*    cipher_ctx = 0;
+#if defined(MBEDTLS_CCM_ALT)
+/* if the alternative implementation supports the selected cipher and key size,
+ * set the alternative callbacks
+ */
+    if ( !mbedtls_ccm_setkey_alt( ctx, cipher, key, keybits ) )
+    {
+        ctx->is_alternative = 1;
+        return 0;
+    }
+    ctx->is_alternative = 0;
+    cipher_ctx = &ctx->u_ctx.cipher_ctx;
+#else
+    cipher_ctx = &ctx->cipher_ctx;
+#endif
 
     cipher_info = mbedtls_cipher_info_from_values( cipher, keybits, MBEDTLS_MODE_ECB );
     if( cipher_info == NULL )
@@ -80,12 +99,12 @@ int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
     if( cipher_info->block_size != 16 )
         return( MBEDTLS_ERR_CCM_BAD_INPUT );
 
-    mbedtls_cipher_free( &ctx->cipher_ctx );
+    mbedtls_cipher_free(cipher_ctx );
 
-    if( ( ret = mbedtls_cipher_setup( &ctx->cipher_ctx, cipher_info ) ) != 0 )
+    if( ( ret = mbedtls_cipher_setup( cipher_ctx, cipher_info ) ) != 0 )
         return( ret );
 
-    if( ( ret = mbedtls_cipher_setkey( &ctx->cipher_ctx, key, keybits,
+    if( ( ret = mbedtls_cipher_setkey( cipher_ctx, key, keybits,
                                MBEDTLS_ENCRYPT ) ) != 0 )
     {
         return( ret );
@@ -99,9 +118,17 @@ int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
  */
 void mbedtls_ccm_free( mbedtls_ccm_context *ctx )
 {
+#if defined(MBEDTLS_CCM_ALT)
+    mbedtls_ccm_free_alt(ctx);
+    if ( ctx->is_alternative == 0 )
+        mbedtls_cipher_free( &ctx->u_ctx.cipher_ctx );
+#else
     mbedtls_cipher_free( &ctx->cipher_ctx );
+#endif
+
     mbedtls_zeroize( ctx, sizeof( mbedtls_ccm_context ) );
 }
+
 
 /*
  * Macros for common operations.
@@ -116,7 +143,7 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx )
     for( i = 0; i < 16; i++ )                                               \
         y[i] ^= b[i];                                                       \
                                                                             \
-    if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx, y, 16, y, &olen ) ) != 0 ) \
+    if( ( ret = mbedtls_cipher_update( cipher_ctx, y, 16, y, &olen ) ) != 0 ) \
         return( ret );
 
 /*
@@ -125,7 +152,7 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx )
  * This avoids allocating one more 16 bytes buffer while allowing src == dst.
  */
 #define CTR_CRYPT( dst, src, len  )                                            \
-    if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx, ctr, 16, b, &olen ) ) != 0 )  \
+    if( ( ret = mbedtls_cipher_update( cipher_ctx, ctr, 16, b, &olen ) ) != 0 )  \
         return( ret );                                                         \
                                                                                \
     for( i = 0; i < len; i++ )                                                 \
@@ -149,6 +176,11 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     unsigned char ctr[16];
     const unsigned char *src;
     unsigned char *dst;
+#if defined(MBEDTLS_CCM_ALT)
+    mbedtls_cipher_context_t*    cipher_ctx = &ctx->u_ctx.cipher_ctx;
+#else
+    mbedtls_cipher_context_t*    cipher_ctx = &ctx->cipher_ctx;
+#endif
 
     /*
      * Check length requirements: SP800-38C A.1
@@ -304,7 +336,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
 /*
  * Authenticated encryption
  */
-int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
+static int mbedtls_ccm_encrypt_and_tag_default( mbedtls_ccm_context *ctx, size_t length,
                          const unsigned char *iv, size_t iv_len,
                          const unsigned char *add, size_t add_len,
                          const unsigned char *input, unsigned char *output,
@@ -317,7 +349,7 @@ int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
 /*
  * Authenticated decryption
  */
-int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
+static int mbedtls_ccm_auth_decrypt_default( mbedtls_ccm_context *ctx, size_t length,
                       const unsigned char *iv, size_t iv_len,
                       const unsigned char *add, size_t add_len,
                       const unsigned char *input, unsigned char *output,
@@ -346,6 +378,42 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
     }
 
     return( 0 );
+}
+
+
+int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
+                         const unsigned char *iv, size_t iv_len,
+                         const unsigned char *add, size_t add_len,
+                         const unsigned char *input, unsigned char *output,
+                         unsigned char *tag, size_t tag_len )
+{
+
+#if defined(MBEDTLS_CCM_ALT)
+    if ( ctx->is_alternative )
+        return( mbedtls_ccm_encrypt_and_tag_alt( ctx, length, iv, iv_len,
+                             add, add_len, input, output, tag, tag_len ) );
+#endif
+    return( mbedtls_ccm_encrypt_and_tag_default( ctx, length, iv, iv_len,
+                            add, add_len, input, output, tag, tag_len ) );
+
+}
+
+/*
+ * Authenticated decryption
+ */
+int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
+                      const unsigned char *iv, size_t iv_len,
+                      const unsigned char *add, size_t add_len,
+                      const unsigned char *input, unsigned char *output,
+                      const unsigned char *tag, size_t tag_len )
+{
+#if defined(MBEDTLS_CCM_ALT)
+    if ( ctx->is_alternative )
+        return( mbedtls_ccm_auth_decrypt_alt( ctx, length, iv, iv_len,
+                         add, add_len, input, output, tag, tag_len ) );
+#endif
+    return( mbedtls_ccm_auth_decrypt_default( ctx, length, iv, iv_len,
+                         add, add_len, input, output, tag, tag_len ) );
 }
 
 

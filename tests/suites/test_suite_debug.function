@@ -1,5 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/debug.h"
+#include "string.h"
 
 struct buffer_data
 {

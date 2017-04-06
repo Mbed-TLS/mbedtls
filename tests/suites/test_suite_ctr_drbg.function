@@ -1,5 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/ctr_drbg.h"
+#include "string.h"
 
 int test_offset_idx;
 int mbedtls_entropy_func( void *data, unsigned char *buf, size_t len )

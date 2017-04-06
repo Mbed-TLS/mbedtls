@@ -1,5 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/entropy.h"
+#include "string.h"
 
 /*
  * Number of calls made to entropy_dummy_source()

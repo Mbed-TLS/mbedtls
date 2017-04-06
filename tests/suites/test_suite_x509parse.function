@@ -6,6 +6,7 @@
 #include "mbedtls/pem.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/base64.h"
+#include "string.h"
 
 #if MBEDTLS_X509_MAX_INTERMEDIATE_CA > 19
 #error "The value of MBEDTLS_X509_MAX_INTERMEDIATE_C is larger \

@@ -1,5 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/hmac_drbg.h"
+#include "string.h"
 
 typedef struct
 {

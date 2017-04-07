@@ -6159,7 +6159,7 @@ void mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
 {
     conf->sig_hashes = hashes;
 }
-#endif
+#endif /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
 
 #if defined(MBEDTLS_ECP_C)
 /*
@@ -6170,32 +6170,51 @@ void mbedtls_ssl_conf_curves( mbedtls_ssl_config *conf,
 {
     conf->curve_list = curve_list;
 }
-#endif
+#endif /* MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 int mbedtls_ssl_set_hostname( mbedtls_ssl_context *ssl, const char *hostname )
 {
-    size_t hostname_len;
+    /* Initialize to suppress unnecessary compiler warning */
+    size_t hostname_len = 0;
+
+    /* Check if new hostname is valid before
+     * making any change to current one */
+
+    if( hostname != NULL )
+    {
+        hostname_len = strlen( hostname );
+
+        if( hostname_len > MBEDTLS_SSL_MAX_HOST_NAME_LEN )
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    /* Now it's clear that we will overwrite the old hostname,
+     * so we can free it safely */
+
+    if( ssl->hostname != NULL )
+    {
+        mbedtls_zeroize( ssl->hostname, strlen( ssl->hostname ) );
+        mbedtls_free( ssl->hostname );
+    }
+
+    /* Passing NULL as hostname shall clear the old one */
 
     if( hostname == NULL )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    {
+        ssl->hostname = NULL;
+    }
+    else
+    {
+        ssl->hostname = mbedtls_calloc( 1, hostname_len + 1 );
 
-    hostname_len = strlen( hostname );
+        if( ssl->hostname == NULL )
+            return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
 
-    if( hostname_len + 1 == 0 )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+        memcpy( ssl->hostname, hostname, hostname_len );
 
-    if( hostname_len > MBEDTLS_SSL_MAX_HOST_NAME_LEN )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-
-    ssl->hostname = mbedtls_calloc( 1, hostname_len + 1 );
-
-    if( ssl->hostname == NULL )
-        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
-
-    memcpy( ssl->hostname, hostname, hostname_len );
-
-    ssl->hostname[hostname_len] = '\0';
+        ssl->hostname[hostname_len] = '\0';
+    }
 
     return( 0 );
 }

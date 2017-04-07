@@ -1804,13 +1804,12 @@ void mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
  * \note           Maximum hostname length MBEDTLS_SSL_MAX_HOST_NAME_LEN.
  *
  * \return         0 if successful, MBEDTLS_ERR_SSL_ALLOC_FAILED on 
- *                 allocation failure, MBEDTLS_ERR_BAD_INPUT_DATA on 
+ *                 allocation failure, MBEDTLS_ERR_SSL_BAD_INPUT_DATA on 
  *                 too long input hostname.
  *
- * \post           Hostname set to the one provided on success (cleared
+ *                 Hostname set to the one provided on success (cleared
  *                 when NULL). On allocation failure hostname is cleared. 
  *                 On too long input failure, old hostname is unchanged.
- *
  */
 int mbedtls_ssl_set_hostname( mbedtls_ssl_context *ssl, const char *hostname );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */

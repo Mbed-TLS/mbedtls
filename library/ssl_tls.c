@@ -5913,7 +5913,7 @@ int mbedtls_ssl_set_hostname( mbedtls_ssl_context *ssl, const char *hostname )
 
     return( 0 );
 }
-#endif
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
 void mbedtls_ssl_conf_sni( mbedtls_ssl_config *conf,

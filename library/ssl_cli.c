@@ -80,6 +80,13 @@ static void ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
     }
 
     /*
+     * Sect. 3, RFC 6066 (TLS Extensions Definitions)
+     *
+     * In order to provide any of the server names, clients MAY include an
+     * extension of type "server_name" in the (extended) client hello. The
+     * "extension_data" field of this extension SHALL contain
+     * "ServerNameList" where:
+     *
      * struct {
      *     NameType name_type;
      *     select (name_type) {
@@ -96,6 +103,7 @@ static void ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
      * struct {
      *     ServerName server_name_list<1..2^16-1>
      * } ServerNameList;
+     *
      */
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SERVERNAME >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SERVERNAME      ) & 0xFF );

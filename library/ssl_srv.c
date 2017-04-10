@@ -2588,35 +2588,40 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
      * opaque DistinguishedName<1..2^16-1>;
      */
     p += 2;
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-    if( ssl->handshake->sni_ca_chain != NULL )
-        crt = ssl->handshake->sni_ca_chain;
-    else
-#endif
-        crt = ssl->conf->ca_chain;
 
     total_dn_size = 0;
-    while( crt != NULL && crt->version != 0 )
+
+    if( ssl->conf->cert_req_ca_list ==  MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED )
     {
-        dn_size = crt->subject_raw.len;
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+        if( ssl->handshake->sni_ca_chain != NULL )
+            crt = ssl->handshake->sni_ca_chain;
+        else
+#endif
+            crt = ssl->conf->ca_chain;
 
-        if( end < p ||
-            (size_t)( end - p ) < dn_size ||
-            (size_t)( end - p ) < 2 + dn_size )
+        while( crt != NULL && crt->version != 0 )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "skipping CAs: buffer too short" ) );
-            break;
+            dn_size = crt->subject_raw.len;
+
+            if( end < p ||
+                (size_t)( end - p ) < dn_size ||
+                (size_t)( end - p ) < 2 + dn_size )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "skipping CAs: buffer too short" ) );
+                break;
+            }
+
+            *p++ = (unsigned char)( dn_size >> 8 );
+            *p++ = (unsigned char)( dn_size      );
+            memcpy( p, crt->subject_raw.p, dn_size );
+            p += dn_size;
+
+            MBEDTLS_SSL_DEBUG_BUF( 3, "requested DN", p - dn_size, dn_size );
+
+            total_dn_size += 2 + dn_size;
+            crt = crt->next;
         }
-
-        *p++ = (unsigned char)( dn_size >> 8 );
-        *p++ = (unsigned char)( dn_size      );
-        memcpy( p, crt->subject_raw.p, dn_size );
-        p += dn_size;
-
-        MBEDTLS_SSL_DEBUG_BUF( 3, "requested DN", p - dn_size, dn_size );
-
-        total_dn_size += 2 + dn_size;
-        crt = crt->next;
     }
 
     ssl->out_msglen  = p - buf;

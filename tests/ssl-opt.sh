@@ -1804,6 +1804,23 @@ run_test    "Authentication: client badcert, server required" \
             -c "! mbedtls_ssl_handshake returned" \
             -s "X509 - Certificate verification failed"
 
+run_test    "Authentication: client cert not trusted, server required" \
+            "$P_SRV debug_level=3 auth_mode=required" \
+            "$P_CLI debug_level=3 crt_file=data_files/server5-selfsigned.crt \
+             key_file=data_files/server5.key" \
+            1 \
+            -S "skip write certificate request" \
+            -C "skip parse certificate request" \
+            -c "got a certificate request" \
+            -C "skip write certificate" \
+            -C "skip write certificate verify" \
+            -S "skip parse certificate verify" \
+            -s "x509_verify_cert() returned" \
+            -s "! The certificate is not correctly signed by the trusted CA" \
+            -s "! mbedtls_ssl_handshake returned" \
+            -c "! mbedtls_ssl_handshake returned" \
+            -s "X509 - Certificate verification failed"
+
 run_test    "Authentication: client badcert, server optional" \
             "$P_SRV debug_level=3 auth_mode=optional" \
             "$P_CLI debug_level=3 crt_file=data_files/server5-badsign.crt \
@@ -1892,6 +1909,34 @@ run_test    "Authentication: client no cert, ssl3" \
             -S "! mbedtls_ssl_handshake returned" \
             -C "! mbedtls_ssl_handshake returned" \
             -S "X509 - Certificate verification failed"
+
+# Tests for CA list in CertificateRequest messages
+
+run_test    "Authentication: send CA list in CertificateRequest  (default)" \
+            "$P_SRV debug_level=3 auth_mode=required" \
+            "$P_CLI crt_file=data_files/server6.crt \
+             key_file=data_files/server6.key" \
+            0 \
+            -s "requested DN"
+
+run_test    "Authentication: do not send CA list in CertificateRequest" \
+            "$P_SRV debug_level=3 auth_mode=required cert_req_ca_list=0" \
+            "$P_CLI crt_file=data_files/server6.crt \
+             key_file=data_files/server6.key" \
+            0 \
+            -S "requested DN"
+
+run_test    "Authentication: send CA list in CertificateRequest, client self signed" \
+            "$P_SRV debug_level=3 auth_mode=required cert_req_ca_list=0" \
+            "$P_CLI debug_level=3 crt_file=data_files/server5-selfsigned.crt \
+             key_file=data_files/server5.key" \
+            1 \
+            -S "requested DN" \
+            -s "x509_verify_cert() returned" \
+            -s "! The certificate is not correctly signed by the trusted CA" \
+            -s "! mbedtls_ssl_handshake returned" \
+            -c "! mbedtls_ssl_handshake returned" \
+            -s "X509 - Certificate verification failed"
 
 # Tests for certificate selection based on SHA verson
 

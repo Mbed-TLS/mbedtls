@@ -185,6 +185,9 @@
 #define MBEDTLS_SSL_PRESET_DEFAULT              0
 #define MBEDTLS_SSL_PRESET_SUITEB               2
 
+#define MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED       1
+#define MBEDTLS_SSL_CERT_REQ_CA_LIST_DISABLED      0
+
 /*
  * Default range for DTLS retransmission timer value, in milliseconds.
  * RFC 6347 4.2.4.1 says from 1 second to 60 seconds.
@@ -748,6 +751,10 @@ struct mbedtls_ssl_config
 #endif
 #if defined(MBEDTLS_SSL_FALLBACK_SCSV) && defined(MBEDTLS_SSL_CLI_C)
     unsigned int fallback : 1;      /*!< is this a fallback?                */
+#endif
+#if defined(MBEDTLS_SSL_SRV_C)
+    unsigned int cert_req_ca_list : 1;  /*!< enable sending CA list in
+                                          Certificate Request messages?     */
 #endif
 };
 
@@ -2030,6 +2037,20 @@ void mbedtls_ssl_conf_extended_master_secret( mbedtls_ssl_config *conf, char ems
  */
 void mbedtls_ssl_conf_arc4_support( mbedtls_ssl_config *conf, char arc4 );
 #endif /* MBEDTLS_ARC4_C */
+
+#if defined(MBEDTLS_SSL_SRV_C)
+/**
+ * \brief          Whether to send a list of acceptable CAs in
+ *                 CertificateRequest messages.
+ *                 (Default: do send)
+ *
+ * \param conf     SSL configuration
+ * \param cert_req_ca_list   MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED or
+ *                          MBEDTLS_SSL_CERT_REQ_CA_LIST_DISABLED
+ */
+void mbedtls_ssl_conf_cert_req_ca_list( mbedtls_ssl_config *conf,
+                                          char cert_req_ca_list );
+#endif /* MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 /**

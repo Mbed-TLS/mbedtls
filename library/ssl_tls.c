@@ -6050,6 +6050,14 @@ void mbedtls_ssl_conf_fallback( mbedtls_ssl_config *conf, char fallback )
 }
 #endif
 
+#if defined(MBEDTLS_SSL_SRV_C)
+void mbedtls_ssl_conf_cert_req_ca_list( mbedtls_ssl_config *conf,
+                                          char cert_req_ca_list )
+{
+    conf->cert_req_ca_list = cert_req_ca_list;
+}
+#endif
+
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
 void mbedtls_ssl_conf_encrypt_then_mac( mbedtls_ssl_config *conf, char etm )
 {
@@ -7230,6 +7238,10 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
     conf->anti_replay = MBEDTLS_SSL_ANTI_REPLAY_ENABLED;
+#endif
+
+#if defined(MBEDTLS_SSL_SRV_C)
+    conf->cert_req_ca_list = MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED;
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

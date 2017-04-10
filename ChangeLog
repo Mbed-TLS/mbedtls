@@ -24,6 +24,11 @@ Bugfix
      recent versions of the library. Found by Kyle Keen.
    * Fixed issue in mutexes to failing to initialise. #667
 
+Feature
+   * Add a new configuration option to 'mbedtls_ssl_config' to enable
+     suppressing the CA list in Certificate Request messages. The default
+     behaviour has not changed, namely every configured CAs name is included.
+
 Bugfix
    * Remove macros from compat-1.3.h that correspond to deleted items from most
      recent versions of the library. Found by Kyle Keen.

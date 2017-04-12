@@ -187,6 +187,9 @@ static int ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG( 3,
         ( "client hello, adding signature_algorithms extension" ) );
 
+    if( ssl->conf->sig_hashes == NULL )
+        return( MBEDTLS_ERR_SSL_BAD_CONFIG );
+
     for( md = ssl->conf->sig_hashes; *md != MBEDTLS_MD_NONE; md++ )
     {
 #if defined(MBEDTLS_ECDSA_C)
@@ -195,7 +198,17 @@ static int ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_RSA_C)
         sig_alg_len += 2;
 #endif
+        if( sig_alg_len > MBEDTLS_SSL_MAX_SIG_HASH_ALG_LIST_LEN )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 3,
+                ( "length in bytes of sig-hash-alg extension too big" ) );
+            return( MBEDTLS_ERR_SSL_BAD_CONFIG );
+        }
     }
+
+    /* Empty signature algorithms list, this is a configuration error. */
+    if( sig_alg_len == 0 )
+        return( MBEDTLS_ERR_SSL_BAD_CONFIG );
 
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, sig_alg_len + 6 );
 
@@ -267,6 +280,9 @@ static int ssl_write_supported_elliptic_curves_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG( 3,
         ( "client hello, adding supported_elliptic_curves extension" ) );
 
+    if( ssl->conf->curve_list == NULL )
+        return( MBEDTLS_ERR_SSL_BAD_CONFIG );
+
     for( grp_id = ssl->conf->curve_list;
          *grp_id != MBEDTLS_ECP_DP_NONE;
          grp_id++ )
@@ -276,13 +292,21 @@ static int ssl_write_supported_elliptic_curves_ext( mbedtls_ssl_context *ssl,
         {
             MBEDTLS_SSL_DEBUG_MSG( 1,
                 ( "invalid curve in ssl configuration" ) );
-            return( 0 );
+            return( MBEDTLS_ERR_SSL_BAD_CONFIG );
         }
         elliptic_curve_len += 2;
+
+        if( elliptic_curve_len > MBEDTLS_SSL_MAX_CURVE_LIST_LEN )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 3,
+                ( "malformed supported_elliptic_curves extension in config" ) );
+            return( MBEDTLS_ERR_SSL_BAD_CONFIG );
+        }
     }
 
+    /* Empty elliptic curve list, this is a configuration error. */
     if( elliptic_curve_len == 0 )
-        return( 0 );
+        return( MBEDTLS_ERR_SSL_BAD_CONFIG );
 
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 6 + elliptic_curve_len );
 
@@ -606,7 +630,7 @@ static int ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding alpn extension" ) );
 
     for( cur = ssl->conf->alpn_list; *cur != NULL; cur++ )
-        alpnlen += (unsigned char)( strlen( *cur ) & 0xFF ) + 1;
+        alpnlen += strlen( *cur ) + 1;
 
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 6 + alpnlen );
 
@@ -626,7 +650,11 @@ static int ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
 
     for( cur = ssl->conf->alpn_list; *cur != NULL; cur++ )
     {
-        *p = (unsigned char)( strlen( *cur ) & 0xFF );
+        /*
+         * mbedtls_ssl_conf_set_alpn_protocols() checked that the length of
+         * protocol names is less than 255.
+         */
+        *p = (unsigned char)strlen( *cur );
         memcpy( p + 1, *cur, *p );
         p += 1 + *p;
     }

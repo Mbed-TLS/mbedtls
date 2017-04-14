@@ -49,15 +49,23 @@ RUN_TEST_NUMBER=''
 
 PRESERVE_LOGS=0
 
+# Pick a "unique" server port in the range 10000-19999, and a proxy
+# port which is this plus 10000. Each port number may be independently
+# overridden by a command line option.
+SRV_PORT=$(($$ % 10000 + 10000))
+PXY_PORT=$((SRV_PORT + 10000))
+
 print_usage() {
     echo "Usage: $0 [options]"
     printf "  -h|--help\tPrint this help.\n"
     printf "  -m|--memcheck\tCheck memory leaks and errors.\n"
-    printf "  -f|--filter\tOnly matching tests are executed (default: '$FILTER')\n"
-    printf "  -e|--exclude\tMatching tests are excluded (default: '$EXCLUDE')\n"
+    printf "  -f|--filter\tOnly matching tests are executed (BRE; default: '$FILTER')\n"
+    printf "  -e|--exclude\tMatching tests are excluded (BRE; default: '$EXCLUDE')\n"
     printf "  -n|--number\tExecute only numbered test (comma-separated, e.g. '245,256')\n"
     printf "  -s|--show-numbers\tShow test numbers in front of test names\n"
     printf "  -p|--preserve-logs\tPreserve logs of successful tests as well\n"
+    printf "     --port\tTCP/UDP port (default: randomish 1xxxx)\n"
+    printf "     --proxy-port\tTCP/UDP proxy port (default: randomish 2xxxx)\n"
     printf "     --seed\tInteger seed value to use for this test run\n"
 }
 
@@ -81,6 +89,12 @@ get_options() {
                 ;;
             -p|--preserve-logs)
                 PRESERVE_LOGS=1
+                ;;
+            --port)
+                shift; SRV_PORT=$1
+                ;;
+            --proxy-port)
+                shift; PXY_PORT=$1
                 ;;
             --seed)
                 shift; SEED="$1"
@@ -610,13 +624,6 @@ else
 fi
 CLI_DELAY_FACTOR=1
 SRV_DELAY_SECONDS=0
-
-# Pick a "unique" server port in the range 10000-19999, and a proxy port
-PORT_BASE="0000$$"
-PORT_BASE="$( printf $PORT_BASE | tail -c 4 )"
-SRV_PORT="1$PORT_BASE"
-PXY_PORT="2$PORT_BASE"
-unset PORT_BASE
 
 # fix commands to use this port, force IPv4 while at it
 # +SRV_PORT will be replaced by either $SRV_PORT or $PXY_PORT later

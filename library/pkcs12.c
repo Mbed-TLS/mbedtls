@@ -180,18 +180,30 @@ int pkcs12_pbe( asn1_buf *pbe_params, int mode,
                 const unsigned char *data, size_t len,
                 unsigned char *output )
 {
+    size_t olen = 0;
+    return pkcs12_pbe_ext( pbe_params, mode, cipher_type, md_type, pwd, pwdlen,
+            data, len, output, &olen );
+}
+
+int pkcs12_pbe_ext( asn1_buf *pbe_params, int mode,
+                cipher_type_t cipher_type, md_type_t md_type,
+                const unsigned char *pwd,  size_t pwdlen,
+                const unsigned char *data, size_t datalen,
+                unsigned char *output, size_t *olen )
+{
     int ret, keylen = 0;
     unsigned char key[32];
     unsigned char iv[16];
     const cipher_info_t *cipher_info;
     cipher_context_t cipher_ctx;
-    size_t olen = 0;
+    size_t len = 0;
 
     cipher_info = cipher_info_from_type( cipher_type );
     if( cipher_info == NULL )
         return( POLARSSL_ERR_PKCS12_FEATURE_UNAVAILABLE );
 
     keylen = cipher_info->key_length / 8;
+    *olen = 0;
 
     if( ( ret = pkcs12_pbe_derive_key_iv( pbe_params, md_type, pwd, pwdlen,
                                           key, keylen,
@@ -214,15 +226,15 @@ int pkcs12_pbe( asn1_buf *pbe_params, int mode,
     if( ( ret = cipher_reset( &cipher_ctx ) ) != 0 )
         goto exit;
 
-    if( ( ret = cipher_update( &cipher_ctx, data, len,
-                                output, &olen ) ) != 0 )
+    if( ( ret = cipher_update( &cipher_ctx, data, datalen,
+                                output, &len ) ) != 0 )
     {
         goto exit;
     }
-
-    if( ( ret = cipher_finish( &cipher_ctx, output + olen, &olen ) ) != 0 )
+    *olen += len;
+    if( ( ret = cipher_finish( &cipher_ctx, output + len, &len ) ) != 0 )
         ret = POLARSSL_ERR_PKCS12_PASSWORD_MISMATCH;
-
+    *olen += len;
 exit:
     polarssl_zeroize( key, sizeof( key ) );
     polarssl_zeroize( iv,  sizeof( iv  ) );

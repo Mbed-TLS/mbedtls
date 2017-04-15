@@ -4,6 +4,7 @@
 /* For error codes */
 #include "polarssl/ecp.h"
 #include "polarssl/rsa.h"
+#include "polarssl/ecies.h"
 
 /* For detecting 64-bit compilation */
 #include "polarssl/bignum.h"
@@ -382,6 +383,74 @@ void pk_rsa_decrypt_test_vec( char *cipher_hex, int mod,
 
 exit:
     mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &H ); mpi_free( &G );
+    pk_free( &pk );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void pk_encrypt_decrypt( int type, char *msg_string,
+        int enc_len, int dec_len, int err )
+{
+    int ret = 0;
+    pk_context pk;
+
+    unsigned char msg[1000];
+    unsigned char enc_msg[4000];
+    unsigned char dec_msg[1000];
+    size_t msg_len = strlen( msg_string );
+    size_t enc_msg_len = 0;
+    size_t dec_msg_len = 0;
+    size_t enc_buf_len = (size_t)enc_len;
+    size_t dec_buf_len = (size_t)dec_len;
+
+    TEST_ASSERT( enc_buf_len <= sizeof( enc_msg ) );
+    TEST_ASSERT( dec_buf_len <= sizeof( dec_msg ) );
+
+    memset( msg,      0, sizeof( msg ) );
+    memset( enc_msg,  0, sizeof( enc_msg ) );
+    memset( dec_msg,  0, sizeof( dec_msg ) );
+
+    memcpy( msg, msg_string, msg_len );
+
+    pk_init( &pk );
+    TEST_ASSERT( pk_init_ctx( &pk, pk_info_from_type( type ) ) == 0 );
+    TEST_ASSERT( pk_genkey( &pk ) == 0 );
+
+    ret = pk_encrypt( &pk, msg, msg_len,
+                      enc_msg, &enc_msg_len, enc_buf_len,
+                      rnd_std_rand, NULL );
+
+    if ( err != 0 && ret != 0 )
+    {
+        TEST_ASSERT( ( ret & err ) == err );
+        goto exit;
+    }
+    else
+    {
+        TEST_ASSERT( ret == 0 && "pk_encrypt failed" );
+    }
+
+    TEST_ASSERT( enc_msg_len > msg_len );
+
+    ret = pk_decrypt( &pk, enc_msg, enc_msg_len,
+                      dec_msg, &dec_msg_len, dec_buf_len,
+                      rnd_std_rand, NULL );
+
+    if ( err != 0 && ret != 0 )
+    {
+        TEST_ASSERT( ( ret & err ) == err );
+        goto exit;
+    }
+    else
+    {
+        TEST_ASSERT( ret == 0 && "pk_decrypt failed" );
+    }
+
+    TEST_ASSERT( dec_msg_len == msg_len );
+    TEST_ASSERT( memcmp( msg, dec_msg, msg_len ) == 0 );
+
+    TEST_ASSERT( ( err ^ ret ) == 0 );
+exit:
     pk_free( &pk );
 }
 /* END_CASE */

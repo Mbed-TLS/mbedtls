@@ -32,6 +32,8 @@
 
 #if defined(POLARSSL_CIPHER_C)
 
+#include <string.h>
+
 #include "polarssl/cipher_wrap.h"
 
 #if defined(POLARSSL_AES_C)
@@ -78,7 +80,14 @@
 /* shared by all GCM ciphers */
 static void *gcm_ctx_alloc( void )
 {
-    return polarssl_malloc( sizeof( gcm_context ) );
+    gcm_context *gcm = polarssl_malloc( sizeof( gcm_context ) );
+
+    if( gcm == NULL )
+        return( NULL );
+
+    memset( gcm, 0, sizeof( gcm_context ) );
+
+    return( gcm );
 }
 
 static void gcm_ctx_free( void *ctx )
@@ -92,7 +101,14 @@ static void gcm_ctx_free( void *ctx )
 /* shared by all CCM ciphers */
 static void *ccm_ctx_alloc( void )
 {
-    return polarssl_malloc( sizeof( ccm_context ) );
+    ccm_context *ccm = polarssl_malloc( sizeof( ccm_context ) );
+
+    if( ccm == NULL )
+        return( NULL );
+
+    memset( ccm, 0, sizeof( ccm_context ) );
+
+    return( ccm );
 }
 
 static void ccm_ctx_free( void *ctx )

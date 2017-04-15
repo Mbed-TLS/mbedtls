@@ -537,4 +537,30 @@
 #error "POLARSSL_X509_CSR_WRITE_C defined, but not all prerequisites"
 #endif
 
+#if defined(POLARSSL_KDF_C) && \
+    ( !defined(POLARSSL_KDF1_C) && !defined(POLARSSL_KDF2_C) )
+#error "POLARSSL_KDF_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PK_WRITE_ENCRYPTED_KEY) &&    \
+    ( !defined(POLARSSL_DES_C) ||                  \
+      !defined(POLARSSL_PKCS12_C) ||               \
+      !defined(POLARSSL_SHA1_C) )
+#error "POLARSSL_PK_WRITE_ENCRYPTED_KEY defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PK_WRITE_ENCRYPTED_KEY) && !defined(POLARSSL_PK_WRITE_C)
+#warning "POLARSSL_PK_WRITE_ENCRYPTED_KEY defined, but will be ignored"
+#endif
+
+#if defined(POLARSSL_ECIES_C) &&        \
+    ( !defined(POLARSSL_PK_C)     ||    \
+      !defined(POLARSSL_ECDH_C)   ||    \
+      !defined(POLARSSL_CIPHER_C) ||    \
+      !defined(POLARSSL_MD_C)     ||    \
+      !defined(POLARSSL_OID_C)    ||    \
+      !defined(POLARSSL_KDF_C) )
+#error "POLARSSL_ECIES_C defined, but not all prerequisites"
+#endif
+
 #endif /* POLARSSL_CHECK_CONFIG_H */

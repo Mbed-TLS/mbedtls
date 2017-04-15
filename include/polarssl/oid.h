@@ -47,12 +47,17 @@
 #include "x509.h"
 #endif
 
+#if defined(POLARSSL_KDF_C)
+#include "kdf.h"
+#endif
+
 #define POLARSSL_ERR_OID_NOT_FOUND                         -0x002E  /**< OID is not found. */
 #define POLARSSL_ERR_OID_BUF_TOO_SMALL                     -0x000B  /**< output buffer is too small */
 
 /*
  * Top level OID tuples
  */
+#define OID_ISO_STANDARD                "\x28"          /* {iso(1) member-body(0)} */
 #define OID_ISO_MEMBER_BODIES           "\x2a"          /* {iso(1) member-body(2)} */
 #define OID_ISO_IDENTIFIED_ORG          "\x2b"          /* {iso(1) identified-organization(3)} */
 #define OID_ISO_CCITT_DS                "\x55"          /* {joint-iso-ccitt(2) ds(5)} */
@@ -233,6 +238,12 @@
  */
 #define OID_DES_CBC                     OID_ISO_IDENTIFIED_ORG OID_OIW_SECSIG_ALG "\x07" /**< desCBC OBJECT IDENTIFIER ::= { iso(1) identified-organization(3) oiw(14) secsig(3) algorithms(2) 7 } */
 #define OID_DES_EDE3_CBC                OID_RSA_COMPANY "\x03\x07" /**< des-ede3-cbc OBJECT IDENTIFIER ::= { iso(1) member-body(2) -- us(840) rsadsi(113549) encryptionAlgorithm(3) 7 } */
+#define OID_AES_128_CBC                 OID_GOV "\x03\x04\x01\x02" /**< aes128-CBC OBJECT IDENTIFIER ::= { joint-iso-itu-t(2) country(16) us(840) organization(1) gov(101) csor(3) nistAlgorithm(4) aes(1) aes128-CBC(2) } */
+#define OID_AES_192_CBC                 OID_GOV "\x03\x04\x01\x16" /**< aes192-CBC OBJECT IDENTIFIER ::= { joint-iso-itu-t(2) country(16) us(840) organization(1) gov(101) csor(3) nistAlgorithm(4) aes(1) aes192-CBC(22) } */
+#define OID_AES_256_CBC                 OID_GOV "\x03\x04\x01\x2A" /**< aes256-CBC OBJECT IDENTIFIER ::= { joint-iso-itu-t(2) country(16) us(840) organization(1) gov(101) csor(3) nistAlgorithm(4) aes(1) aes256-CBC(42) } */
+#define OID_AES_128_GCM                 OID_GOV "\x03\x04\x01\x06" /**< aes128-GCM OBJECT IDENTIFIER ::= { joint-iso-itu-t(2) country(16) us(840) organization(1) gov(101) csor(3) nistAlgorithm(4) aes(1) aes128-GCM(6) } */
+#define OID_AES_192_GCM                 OID_GOV "\x03\x04\x01\x1A" /**< aes192-GCM OBJECT IDENTIFIER ::= { joint-iso-itu-t(2) country(16) us(840) organization(1) gov(101) csor(3) nistAlgorithm(4) aes(1) aes192-GCM(26) } */
+#define OID_AES_256_GCM                 OID_GOV "\x03\x04\x01\x2E" /**< aes256-GCM OBJECT IDENTIFIER ::= { joint-iso-itu-t(2) country(16) us(840) organization(1) gov(101) csor(3) nistAlgorithm(4) aes(1) aes256-GCM(46) } */
 
 /*
  * PKCS#5 OIDs
@@ -267,6 +278,18 @@
 #define OID_PKCS12_PBE_SHA1_DES2_EDE_CBC    OID_PKCS12_PBE "\x04" /**< pbeWithSHAAnd2-KeyTripleDES-CBC OBJECT IDENTIFIER ::= {pkcs-12PbeIds 4} */
 #define OID_PKCS12_PBE_SHA1_RC2_128_CBC     OID_PKCS12_PBE "\x05" /**< pbeWithSHAAnd128BitRC2-CBC OBJECT IDENTIFIER ::= {pkcs-12PbeIds 5} */
 #define OID_PKCS12_PBE_SHA1_RC2_40_CBC      OID_PKCS12_PBE "\x06" /**< pbeWithSHAAnd40BitRC2-CBC OBJECT IDENTIFIER ::= {pkcs-12PbeIds 6} */
+
+/*
+ * ISO/IEC 18033-2 OIDs.
+ */
+#define OID_ISO_18033_2 OID_ISO_STANDARD "\x81\x8C\x71\x02" /**< is18033-2 OBJECT IDENTIFIER ::= {iso(1) standard(0) encryption-algorithms(18033) part(2)} */
+
+/*
+ * ISO/IEC 18033-2 KDF OIDs.
+ */
+#define OID_ISO_KDF OID_ISO_18033_2 "\x05" /**< id-kdf OBJECT IDENTIFIER ::= {is18033-2 key-derivation-function(5)} */
+#define OID_ISO_KDF1 OID_ISO_KDF "\x01" /**< id-kdf-kdf1 OBJECT IDENTIFIER ::= {id-kdf kdf1(1)} */
+#define OID_ISO_KDF2 OID_ISO_KDF "\x02" /**< id-kdf-kdf2 OBJECT IDENTIFIER ::= {id-kdf kdf2(2)} */
 
 /*
  * EC key algorithms from RFC 5480
@@ -547,6 +570,18 @@ int oid_get_oid_by_md( md_type_t md_alg, const char **oid, size_t *olen );
  * \return         0 if successful, or POLARSSL_ERR_OID_NOT_FOUND
  */
 int oid_get_cipher_alg( const asn1_buf *oid, cipher_type_t *cipher_alg );
+
+/**
+ * \brief          Translate cipher_type into encryption algorithm OID
+ *
+ * \param cipher_alg   cipher algorithm
+ * \param oid          place to store ASN.1 OID string pointer
+ * \param olen         length of the OID
+ *
+ * \return         0 if successful, or POLARSSL_ERR_OID_NOT_FOUND
+ */
+int oid_get_oid_by_cipher_alg( cipher_type_t cipher_alg,
+                            const char **oid, size_t *olen );
 #endif /* POLARSSL_CIPHER_C */
 
 #if defined(POLARSSL_PKCS12_C)
@@ -562,7 +597,46 @@ int oid_get_cipher_alg( const asn1_buf *oid, cipher_type_t *cipher_alg );
  */
 int oid_get_pkcs12_pbe_alg( const asn1_buf *oid, md_type_t *md_alg,
                             cipher_type_t *cipher_alg );
+
+/**
+ * \brief          Translate md_type and cipher_type into
+ *                 PKCS#12 PBE algorithm OID
+ *
+ * \param cipher_alg  cipher algorithm
+ * \param md_alg      message digest algorithm
+ * \param oid         place to store ASN.1 OID string pointer
+ * \param olen        length of the OID
+ *
+ * \return         0 if successful, or POLARSSL_ERR_OID_NOT_FOUND
+ */
+int oid_get_oid_by_pkcs12_pbe_alg( cipher_type_t cipher_alg, md_type_t md_alg,
+                                   const char **oid, size_t *olen );
 #endif /* POLARSSL_PKCS12_C */
+
+#if defined(POLARSSL_KDF_C)
+/**
+ * \brief          Translate KDF algorithm OID into kdf_type
+ *
+ * \param oid           OID to use
+ * \param kdf_alg       place to store key derivation function algorithm
+ *
+ * \return         0 if successful, or POLARSSL_ERR_OID_NOT_FOUND
+ */
+int oid_get_kdf_alg( const asn1_buf *oid, kdf_type_t *kdf_alg );
+
+/**
+ * \brief          Translate kdf_type into
+ *                 key derivation function algorithm OID
+ *
+ * \param kdf_alg  key derivation function algorithm
+ * \param oid      place to store ASN.1 OID string pointer
+ * \param olen     length of the OID
+ *
+ * \return         0 if successful, or POLARSSL_ERR_OID_NOT_FOUND
+ */
+int oid_get_oid_by_kdf_alg( kdf_type_t kdf_alg,
+                            const char **oid, size_t *olen );
+#endif /* POLARSSL_KDF_C */
 
 #ifdef __cplusplus
 }

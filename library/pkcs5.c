@@ -114,13 +114,22 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
                  const unsigned char *data, size_t datalen,
                  unsigned char *output )
 {
+    size_t olen = 0;
+    return pkcs5_pbes2_ext( pbe_params, mode, pwd, pwdlen, data, datalen,
+            output, &olen );
+}
+
+int pkcs5_pbes2_ext( asn1_buf *pbe_params, int mode,
+                 const unsigned char *pwd,  size_t pwdlen,
+                 const unsigned char *data, size_t datalen,
+                 unsigned char *output, size_t *olen )
+{
     int ret, iterations = 0, keylen = 0;
     unsigned char *p, *end;
     asn1_buf kdf_alg_oid, enc_scheme_oid, kdf_alg_params, enc_scheme_params;
     asn1_buf salt;
     md_type_t md_type = POLARSSL_MD_SHA1;
     unsigned char key[32], iv[32];
-    size_t olen = 0;
     const md_info_t *md_info;
     const cipher_info_t *cipher_info;
     md_context_t md_ctx;
@@ -129,6 +138,7 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
 
     p = pbe_params->p;
     end = p + pbe_params->len;
+    *olen = 0;
 
     /*
      *  PBES2-params ::= SEQUENCE {
@@ -205,7 +215,7 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
         goto exit;
 
     if( ( ret = cipher_crypt( &cipher_ctx, iv, enc_scheme_params.len,
-                              data, datalen, output, &olen ) ) != 0 )
+                              data, datalen, output, olen ) ) != 0 )
         ret = POLARSSL_ERR_PKCS5_PASSWORD_MISMATCH;
 
 exit:

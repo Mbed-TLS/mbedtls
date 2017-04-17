@@ -40,7 +40,6 @@
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/oid.h"
 
-#include <stdio.h>
 #include <string.h>
 
 #if defined(MBEDTLS_PEM_PARSE_C)
@@ -50,6 +49,7 @@
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
+#include <stdio.h>
 #include <stdlib.h>
 #define mbedtls_free       free
 #define mbedtls_calloc    calloc
@@ -63,7 +63,9 @@
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
 #include <windows.h>
 #else
+#if defined(MBEDTLS_HAVE_TIME_DATE)
 #include <time.h>
+#endif
 #endif
 
 #if defined(MBEDTLS_FS_IO)

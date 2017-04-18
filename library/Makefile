@@ -1,8 +1,8 @@
 
 # Also see "include/mbedtls/config.h"
 
-CFLAGS	?= -O2
-WARNING_CFLAGS ?=  -Wall -W -Wdeclaration-after-statement
+CFLAGS	?= -O2 -c
+WARNING_CFLAGS ?= -Wall -W -Wdeclaration-after-statement
 LDFLAGS ?=
 
 LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../include -D_FILE_OFFSET_BITS=64
@@ -35,6 +35,8 @@ SOEXT_TLS=so.10
 SOEXT_X509=so.0
 SOEXT_CRYPTO=so.0
 
+SLEXT ?= a
+
 DLEXT=so
 # OSX shared library extension:
 # DLEXT=dylib
@@ -43,6 +45,8 @@ DLEXT=so
 ifdef WINDOWS_BUILD
 DLEXT=dll
 endif
+
+OBJ_EXT?=.o
 
 OBJS_CRYPTO=	aes.o		aesni.o		arc4.o		\
 		asn1parse.o	asn1write.o	base64.o	\
@@ -84,16 +88,20 @@ else
 all: shared static
 endif
 
-static: libmbedcrypto.a libmbedx509.a libmbedtls.a
+static: libmbedcrypto.$(SLEXT) libmbedx509.$(SLEXT) libmbedtls.$(SLEXT)
 
 shared: libmbedcrypto.$(DLEXT) libmbedx509.$(DLEXT) libmbedtls.$(DLEXT)
 
 # tls
-libmbedtls.a: $(OBJS_TLS)
+libmbedtls.$(SLEXT): $(OBJS_TLS)
 	echo "  AR    $@"
-	$(AR) -rc $@ $(OBJS_TLS)
+ifneq (,$(findstring xar,$(AR)))
+	$(AR) $@ $(OBJS_TLS:%.o=%$(OBJ_EXT))
+else
+	$(AR) -rc $@ $(OBJS_TLS:%.o=%$(OBJ_EXT))
 	echo "  RL    $@"
 	$(AR) -s $@
+endif
 
 libmbedtls.$(SOEXT_TLS): $(OBJS_TLS) libmbedx509.so
 	echo "  LD    $@"
@@ -112,11 +120,15 @@ libmbedtls.dll: $(OBJS_TLS) libmbedx509.dll
 	$(CC) -shared -Wl,-soname,$@ -Wl,--out-implib,$@.a -o $@ $(OBJS_TLS) -lws2_32 -lwinmm -lgdi32 -L. -lmbedcrypto -lmbedx509 -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
 
 # x509
-libmbedx509.a: $(OBJS_X509)
+libmbedx509.$(SLEXT): $(OBJS_X509)
 	echo "  AR    $@"
-	$(AR) -rc $@ $(OBJS_X509)
+ifneq (,$(findstring xar,$(AR)))
+	$(AR) $@ $(OBJS_X509:%.o=%$(OBJ_EXT))
+else
+	$(AR) -rc $@ $(OBJS_X509:%.o=%$(OBJ_EXT))
 	echo "  RL    $@"
 	$(AR) -s $@
+endif
 
 libmbedx509.$(SOEXT_X509): $(OBJS_X509) libmbedcrypto.so
 	echo "  LD    $@"
@@ -135,11 +147,15 @@ libmbedx509.dll: $(OBJS_X509) libmbedcrypto.dll
 	$(CC) -shared -Wl,-soname,$@ -Wl,--out-implib,$@.a -o $@ $(OBJS_X509) -lws2_32 -lwinmm -lgdi32 -L. -lmbedcrypto -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
 
 # crypto
-libmbedcrypto.a: $(OBJS_CRYPTO)
+libmbedcrypto.$(SLEXT): $(OBJS_CRYPTO)
 	echo "  AR    $@"
-	$(AR) -rc $@ $(OBJS_CRYPTO)
+ifneq (,$(findstring xar,$(AR)))
+	$(AR) $@ $(OBJS_CRYPTO:%.o=%$(OBJ_EXT))
+else
+	$(AR) -rc $@ $(OBJS_CRYPTO:%.o=%$(OBJ_EXT))
 	echo "  RL    $@"
 	$(AR) -s $@
+endif
 
 libmbedcrypto.$(SOEXT_CRYPTO): $(OBJS_CRYPTO)
 	echo "  LD    $@"
@@ -157,9 +173,10 @@ libmbedcrypto.dll: $(OBJS_CRYPTO)
 	echo "  LD    $@"
 	$(CC) -shared -Wl,-soname,$@ -Wl,--out-implib,$@.a -o $@ $(OBJS_CRYPTO) -lws2_32 -lwinmm -lgdi32 -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
 
+
 .c.o:
 	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -c $<
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<
 
 clean:
 ifndef WINDOWS

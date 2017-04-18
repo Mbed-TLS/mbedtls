@@ -550,6 +550,9 @@ mbedtls_mpi_inv_mod:10:"3":10:"-11":10:"4":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 Base test mbedtls_mpi_inv_mod #4
 mbedtls_mpi_inv_mod:10:"2":10:"4":10:"0":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
 
+Base test mbedtls_mpi_inv_mod #5
+mbedtls_mpi_inv_mod:10:"3":10:"1":10:"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
 Test mbedtls_mpi_inv_mod #1
 mbedtls_mpi_inv_mod:16:"aa4df5cb14b4c31237f98bd1faf527c283c2d0f3eec89718664ba33f9762907c":16:"fffbbd660b94412ae61ead9c2906a344116e316a256fd387874c6c675b1d587d":16:"8d6a5c1d7adeae3e94b9bcd2c47e0d46e778bc8804a2cc25c02d775dc3d05b0c":0
 

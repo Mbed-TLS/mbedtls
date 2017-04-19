@@ -164,7 +164,7 @@ typedef struct
     mbedtls_ecp_point *T;       /*!<  pre-computed points for ecp_mul_comb()        */
     size_t T_size;      /*!<  number for pre-computed points                */
 #if defined(MBEDTLS_ECP_EARLY_RETURN)
-    mbedtls_ecp_restart_mul_ctx *rsm;       /*!<  restart context for ecp_mul()     */
+    mbedtls_ecp_restart_mul_ctx *rsm;       /*!<  temporary */
 #endif
 }
 mbedtls_ecp_group;
@@ -183,6 +183,16 @@ typedef struct
     mbedtls_ecp_point Q;        /*!<  our public value                  */
 }
 mbedtls_ecp_keypair;
+
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+/**
+ * \brief           General context for resuming ECC operations
+ */
+typedef struct
+{
+    mbedtls_ecp_restart_mul_ctx *rsm;       /*!<  restart context for ecp_mul()     */
+} mbedtls_ecp_restart_ctx;
+#endif /* MBEDTLS_ECP_EARLY_RETURN */
 
 /**
  * \name SECTION: Module settings
@@ -376,6 +386,18 @@ void mbedtls_ecp_group_free( mbedtls_ecp_group *grp );
  * \brief           Free the components of a key pair
  */
 void mbedtls_ecp_keypair_free( mbedtls_ecp_keypair *key );
+
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+/**
+ * \brief           Initialize a restart context
+ */
+void mbedtls_ecp_restart_init( mbedtls_ecp_restart_ctx *ctx );
+
+/**
+ * \brief           Free the components of a restart context
+ */
+void mbedtls_ecp_restart_free( mbedtls_ecp_restart_ctx *ctx );
+#endif /* MBEDTLS_ECP_EARLY_RETURN */
 
 /**
  * \brief           Copy the contents of point Q into P
@@ -588,16 +610,40 @@ int mbedtls_ecp_tls_write_group( const mbedtls_ecp_group *grp, size_t *olen,
  * \return          0 if successful,
  *                  MBEDTLS_ERR_ECP_INVALID_KEY if m is not a valid privkey
  *                  or P is not a valid pubkey,
- *                  MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed,
+ *                  MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed.
+ */
+int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+             const mbedtls_mpi *m, const mbedtls_ecp_point *P,
+             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
+
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+/**
+ * \brief           Restartable version of \c mbedtls_ecp_mul()
+ *
+ * \note            Performs the same job as \c mbedtls_ecp_mul(), but can
+ *                  return early and restart according to the limit set with
+ *                  \c mbedtls_ecp_set_max_ops() to reduce blocking.
+ *
+ * \param grp       ECP group
+ * \param R         Destination point
+ * \param m         Integer by which to multiply
+ * \param P         Point to multiply
+ * \param f_rng     RNG function (see notes)
+ * \param p_rng     RNG parameter
+ * \param rs_ctx    Restart context - must be non-NULL to enable early-return
+ *
+ * \return          See \c mbedtls_ecp_mul(), or
  *                  MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
  *                  operations was reached (see \c mbedtls_ecp_set_max_ops()),
  *                  indicating the function should be called again with the
  *                  exact same arguments.
  *
  */
-int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              const mbedtls_mpi *m, const mbedtls_ecp_point *P,
-             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
+             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+             mbedtls_ecp_restart_ctx *rs_ctx );
+#endif /* MBEDTLS_ECP_EARLY_RETURN */
 
 /**
  * \brief           Multiplication and addition of two points by integers:

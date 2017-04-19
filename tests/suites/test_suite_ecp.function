@@ -75,12 +75,14 @@ void ecp_test_vect_restart( int id,
      * With MBEDTLS_ECP_WINDOW_SIZE set to 2 (minimum):
      * - Random point mult:     ~3850M
      */
+    mbedtls_ecp_restart_ctx ctx;
     mbedtls_ecp_group grp;
     mbedtls_ecp_point R;
     mbedtls_mpi dA, xA, yA, dB, xZ, yZ;
     int cnt_restarts;
     int ret;
 
+    mbedtls_ecp_restart_init( &ctx );
     mbedtls_ecp_group_init( &grp ); mbedtls_ecp_point_init( &R );
     mbedtls_mpi_init( &dA ); mbedtls_mpi_init( &xA ); mbedtls_mpi_init( &yA );
     mbedtls_mpi_init( &dB ); mbedtls_mpi_init( &xZ ); mbedtls_mpi_init( &yZ );
@@ -100,7 +102,7 @@ void ecp_test_vect_restart( int id,
     /* Base point case */
     cnt_restarts = 0;
     do {
-        ret = mbedtls_ecp_mul( &grp, &R, &dA, &grp.G, NULL, NULL );
+        ret = mbedtls_ecp_mul_restartable( &grp, &R, &dA, &grp.G, NULL, NULL, &ctx );
         TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
 
         if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
@@ -114,24 +116,13 @@ void ecp_test_vect_restart( int id,
     TEST_ASSERT( cnt_restarts >= min_restarts );
     TEST_ASSERT( cnt_restarts <= max_restarts );
 
-    /* Do we leak memory when doing it twice in a row? */
-    do {
-        ret = mbedtls_ecp_mul( &grp, &R, &dA, &grp.G, NULL, NULL );
-        TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
-    }
-    while( ret != 0 );
-
-    /* Ok, now start an operation with some arguments, and drop it.
-     * We'll see if the result of the next operation, with different args,
-     * are correct regardless (do we discard old context on new args?).
-     * This also tests that we don't write to R prematurely */
-    ret = mbedtls_ecp_mul( &grp, &R, &dA, &grp.G, NULL, NULL );
-    TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+    /* Prepare context for new operation */
+    mbedtls_ecp_restart_free( &ctx );
 
     /* Non-base point case */
     cnt_restarts = 0;
     do {
-        ret = mbedtls_ecp_mul( &grp, &R, &dB, &R, NULL, NULL );
+        ret = mbedtls_ecp_mul_restartable( &grp, &R, &dB, &R, NULL, NULL, &ctx );
         TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
 
         if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
@@ -145,18 +136,12 @@ void ecp_test_vect_restart( int id,
     TEST_ASSERT( cnt_restarts >= min_restarts );
     TEST_ASSERT( cnt_restarts <= max_restarts );
 
-    /* Do we leak memory when doing it twice in a row? */
-    do {
-        ret = mbedtls_ecp_mul( &grp, &R, &dB, &R, NULL, NULL );
-        TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
-    }
-    while( ret != 0 );
-
     /* Do we leak memory when not finishing an operation? */
-    ret = mbedtls_ecp_mul( &grp, &R, &dB, &R, NULL, NULL );
+    ret = mbedtls_ecp_mul_restartable( &grp, &R, &dB, &R, NULL, NULL, &ctx );
     TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
 
 exit:
+    mbedtls_ecp_restart_free( &ctx );
     mbedtls_ecp_group_free( &grp ); mbedtls_ecp_point_free( &R );
     mbedtls_mpi_free( &dA ); mbedtls_mpi_free( &xA ); mbedtls_mpi_free( &yA );
     mbedtls_mpi_free( &dB ); mbedtls_mpi_free( &xZ ); mbedtls_mpi_free( &yZ );

@@ -153,6 +153,27 @@ static void ecp_restart_mul_free( mbedtls_ecp_restart_mul_ctx *ctx )
 }
 
 /*
+ * Initialize a restart context
+ */
+void mbedtls_ecp_restart_init( mbedtls_ecp_restart_ctx *ctx )
+{
+    memset( ctx, 0, sizeof( *ctx ) );
+}
+
+/*
+ * Free the components of a restart context
+ */
+void mbedtls_ecp_restart_free( mbedtls_ecp_restart_ctx *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    ecp_restart_mul_free( ctx->rsm );
+    mbedtls_free( ctx->rsm );
+    ctx->rsm = NULL;
+}
+
+/*
  * Operation counts
  */
 #define ECP_OPS_DBL     8   /* see ecp_double_jac() */
@@ -2110,6 +2131,20 @@ cleanup:
 #endif /* MBEDTLS_ECP_INTERNAL_ALT */
     return( ret );
 }
+
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+/*
+ * Restartable multiplication R = m * P
+ */
+int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+             const mbedtls_mpi *m, const mbedtls_ecp_point *P,
+             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+             mbedtls_ecp_restart_ctx *rs_ctx )
+{
+    (void) rs_ctx; /* cheating for now */
+    return( mbedtls_ecp_mul( grp, R, m, P, f_rng, p_rng ) );
+}
+#endif
 
 #if defined(ECP_SHORTWEIERSTRASS)
 /*

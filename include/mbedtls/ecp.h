@@ -273,6 +273,10 @@ typedef struct
  *                  then need to be called again with the same arguments until
  *                  it returns 0 or an other error code.
  *
+ *                  This only affects functions that accept a pointer to a
+ *                  \c mbedtls_ecp_restart_ctx as an argument, and only works
+ *                  if that pointer valid (in particular, not NULL).
+ *
  * \param max_ops   Maximum number of basic operations done in a row.
  *                  Default: 0 (unlimited).
  *                  Lower (non-zero) values mean ECC functions will block for
@@ -296,19 +300,6 @@ typedef struct
  *                  - around 330 basic operations for P-384
  *
  * \note            This setting is currently ignored by Curve25519
- *
- * \warning         The ECJPAKE module is currently not compatible with this
- *                  feature. \c max_ops must always be 0 while using ECJPAKE.
- *
- * \warning         NOT thread-safe: when \c max_ops is not zero, sharing a
- *                  \c mbedtls_ecp_group structure, or a
- *                  \c mbedtls_pk_context structure wrapping an ECC key,
- *                  between concurrent threads of execution is NOT supported.
- *                  For (D)TLS, that means it's not safe to concurrently run
- *                  two handshakes that use the same private EC key for
- *                  authenticating ourselves; it is however safe to maintain
- *                  multiple simultaneous connections as long as the
- *                  handshakes are not concurrent or don't use the same key.
  */
 void mbedtls_ecp_set_max_ops( unsigned max_ops );
 #endif /* MBEDTLS_ECP_EARLY_RETURN */

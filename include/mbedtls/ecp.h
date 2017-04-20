@@ -112,16 +112,6 @@ typedef struct
 }
 mbedtls_ecp_point;
 
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
-/**
- * \brief           ECP context for resuming multiplication after returning
- *                  \c MBEDTLS_ERR_ECP_IN_PROGRESS
- *
- * \note            Opaque struct
- */
-typedef struct mbedtls_ecp_restart_mul mbedtls_ecp_restart_mul_ctx;
-#endif
-
 /**
  * \brief           ECP group structure
  *
@@ -163,9 +153,6 @@ typedef struct
     void *t_data;                       /*!< unused                         */
     mbedtls_ecp_point *T;       /*!<  pre-computed points for ecp_mul_comb()        */
     size_t T_size;      /*!<  number for pre-computed points                */
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
-    mbedtls_ecp_restart_mul_ctx *rsm;       /*!<  temporary */
-#endif
 }
 mbedtls_ecp_group;
 
@@ -185,6 +172,13 @@ typedef struct
 mbedtls_ecp_keypair;
 
 #if defined(MBEDTLS_ECP_EARLY_RETURN)
+/**
+ * \brief           Internal restart context for multiplication
+ *
+ * \note            Opaque struct
+ */
+typedef struct mbedtls_ecp_restart_mul mbedtls_ecp_restart_mul_ctx;
+
 /**
  * \brief           General context for resuming ECC operations
  */

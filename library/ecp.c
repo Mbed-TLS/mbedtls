@@ -2089,11 +2089,15 @@ cleanup:
 #endif /* ECP_MONTGOMERY */
 
 /*
- * Multiplication R = m * P
+ * Restartable multiplication R = m * P
  */
-int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+#if !defined(MBEDTLS_ECP_EARLY_RETURN)
+static
+#endif
+int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              const mbedtls_mpi *m, const mbedtls_ecp_point *P,
-             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+             mbedtls_ecp_restart_ctx *rs_ctx )
 {
     int ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
@@ -2122,7 +2126,7 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 #endif
 #if defined(ECP_SHORTWEIERSTRASS)
     if( ecp_get_type( grp ) == ECP_TYPE_SHORT_WEIERSTRASS )
-        ret = ecp_mul_comb( grp, R, m, P, f_rng, p_rng, NULL );
+        ret = ecp_mul_comb( grp, R, m, P, f_rng, p_rng, rs_ctx );
 
 #endif
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
@@ -2137,37 +2141,15 @@ cleanup:
     return( ret );
 }
 
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
 /*
- * Restartable multiplication R = m * P
+ * Multiplication R = m * P
  */
-int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              const mbedtls_mpi *m, const mbedtls_ecp_point *P,
-             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
-             mbedtls_ecp_restart_ctx *rs_ctx )
+             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
-    /* temporary code duplication with non-restartable version */
-    int ret;
-
-    /* Common sanity checks */
-    if( mbedtls_mpi_cmp_int( &P->Z, 1 ) != 0 )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-
-    if( ( ret = mbedtls_ecp_check_privkey( grp, m ) ) != 0 ||
-        ( ret = mbedtls_ecp_check_pubkey( grp, P ) ) != 0 )
-        return( ret );
-
-#if defined(ECP_MONTGOMERY)
-    if( ecp_get_type( grp ) == ECP_TYPE_MONTGOMERY )
-        return( ecp_mul_mxz( grp, R, m, P, f_rng, p_rng ) );
-#endif
-#if defined(ECP_SHORTWEIERSTRASS)
-    if( ecp_get_type( grp ) == ECP_TYPE_SHORT_WEIERSTRASS )
-        return( ecp_mul_comb( grp, R, m, P, f_rng, p_rng, rs_ctx ) );
-#endif
-    return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+    return( mbedtls_ecp_mul_restartable( grp, R, m, P, f_rng, p_rng, NULL ) );
 }
-#endif
 
 #if defined(ECP_SHORTWEIERSTRASS)
 /*

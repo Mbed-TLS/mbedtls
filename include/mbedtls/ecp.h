@@ -198,7 +198,34 @@ typedef struct
     mbedtls_ecp_restart_muladd_ctx *ma; /*!<  ecp_muladd() sub-context      */
 } mbedtls_ecp_restart_ctx;
 
+/*
+ * Operation counts for restartable functions
+ */
+#define MBEDTLS_ECP_OPS_DBL   8 /*!< basic ops count for ecp_double_jac()    */
+#define MBEDTLS_ECP_OPS_ADD  11 /*!< basic ops count for see ecp_add_mixed() */
+#define MBEDTLS_ECP_OPS_INV 120 /*!< empirical equivalent for mpi_mod_inv()  */
+
+/**
+ * \brief           Internal; for restartable functions in other modules.
+ *                  Check and update basic ops budget.
+ *
+ * \param grp       Group structure
+ * \param rs_ctx    Restart context
+ * \param ops       Number of basic ops to do
+ *
+ * \return          0 is doing 'ops' basic ops is still allowed,
+ *                  MBEDTLS_ERR_ECP_IN_PROGRESS otherwise.
+ */
+int mbedtls_ecp_check_budget( const mbedtls_ecp_group *grp,
+                              mbedtls_ecp_restart_ctx *rs_ctx,
+                              unsigned ops );
+
+/* Utility macro for checking and updating ops budget */
+#define MBEDTLS_ECP_BUDGET( ops )   MBEDTLS_MPI_CHK( mbedtls_ecp_check_budget( grp, rs_ctx, ops ) );
+
 #else /* MBEDTLS_ECP_RESTARTABLE */
+
+#define MBEDTLS_ECP_BUDGET( ops )   /* no-op; for compatibility */
 
 /* We want to declare restartable versions of existing functions anyway */
 typedef void mbedtls_ecp_restart_ctx;

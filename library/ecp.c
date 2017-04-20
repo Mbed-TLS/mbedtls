@@ -214,18 +214,11 @@ void mbedtls_ecp_restart_free( mbedtls_ecp_restart_ctx *ctx )
 }
 
 /*
- * Operation counts
- */
-#define ECP_OPS_DBL     8   /* see ecp_double_jac() */
-#define ECP_OPS_ADD    11   /* see ecp_add_mixed()  */
-#define ECP_OPS_INV   120   /* empirical equivalent */
-
-/*
  * Check if we can do the next step
  */
-static int ecp_check_budget( const mbedtls_ecp_group *grp,
-                             mbedtls_ecp_restart_ctx *rs_ctx,
-                             unsigned ops )
+int mbedtls_ecp_check_budget( const mbedtls_ecp_group *grp,
+                              mbedtls_ecp_restart_ctx *rs_ctx,
+                              unsigned ops )
 {
     if( rs_ctx != NULL && ecp_max_ops != 0 )
     {
@@ -247,9 +240,6 @@ static int ecp_check_budget( const mbedtls_ecp_group *grp,
     return( 0 );
 }
 
-#define ECP_BUDGET( ops )   MBEDTLS_MPI_CHK( ecp_check_budget( grp, rs_ctx, ops ) );
-#else
-#define ECP_BUDGET( ops )   /* no-op */
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) ||   \
@@ -1437,7 +1427,7 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
 
     for( ; j < d * ( w - 1 ); j++ )
     {
-        ECP_BUDGET( ECP_OPS_DBL );
+        MBEDTLS_ECP_BUDGET( MBEDTLS_ECP_OPS_DBL );
 
         i = 1U << ( j / d );
         cur = T + i;
@@ -1468,7 +1458,7 @@ norm_dbl:
     for( i = 1; i < T_len; i <<= 1 )
         TT[j++] = T + i;
 
-    ECP_BUDGET( ECP_OPS_INV + 6 * j - 2 );
+    MBEDTLS_ECP_BUDGET( MBEDTLS_ECP_OPS_INV + 6 * j - 2 );
 
     MBEDTLS_MPI_CHK( ecp_normalize_jac_many( grp, TT, j ) );
 
@@ -1485,7 +1475,7 @@ norm_dbl:
 add:
 #endif
 
-    ECP_BUDGET( ( T_len - 1 ) * ECP_OPS_ADD );
+    MBEDTLS_ECP_BUDGET( ( T_len - 1 ) * MBEDTLS_ECP_OPS_ADD );
 
     for( i = 1; i < T_len; i <<= 1 )
     {
@@ -1511,7 +1501,7 @@ norm_add:
     for( j = 0; j + 1 < T_len; j++ )
         TT[j] = T + j + 1;
 
-    ECP_BUDGET( ECP_OPS_INV + 6 * j - 2 );
+    MBEDTLS_ECP_BUDGET( MBEDTLS_ECP_OPS_INV + 6 * j - 2 );
 
     MBEDTLS_MPI_CHK( ecp_normalize_jac_many( grp, TT, j ) );
 
@@ -1602,7 +1592,7 @@ static int ecp_mul_comb_core( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R
 
     while( i-- != 0 )
     {
-        ECP_BUDGET( ECP_OPS_DBL + ECP_OPS_ADD );
+        MBEDTLS_ECP_BUDGET( MBEDTLS_ECP_OPS_DBL + MBEDTLS_ECP_OPS_ADD );
         MBEDTLS_MPI_CHK( ecp_double_jac( grp, R, R ) );
         MBEDTLS_MPI_CHK( ecp_select_comb( grp, &Txi, T, t_len, x[i] ) );
         MBEDTLS_MPI_CHK( ecp_add_mixed( grp, R, R, &Txi ) );
@@ -1723,7 +1713,7 @@ static int ecp_mul_comb_after_precomp( const mbedtls_ecp_group *grp,
 #endif
     }
 
-    ECP_BUDGET( ECP_OPS_INV );
+    MBEDTLS_ECP_BUDGET( MBEDTLS_ECP_OPS_INV );
     MBEDTLS_MPI_CHK( ecp_normalize_jac( grp, RR ) );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
@@ -2162,7 +2152,7 @@ int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         MBEDTLS_MPI_CHK( mbedtls_ecp_check_pubkey( grp, P ) );
 
         /* check_privkey is 0M and check_pubkey is 3M */
-        ECP_BUDGET( 3 );
+        MBEDTLS_ECP_BUDGET( 3 );
     }
 
     ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
@@ -2365,7 +2355,7 @@ mul2:
 
 add:
 #endif
-    ECP_BUDGET( ECP_OPS_ADD );
+    MBEDTLS_ECP_BUDGET( MBEDTLS_ECP_OPS_ADD );
     MBEDTLS_MPI_CHK( ecp_add_mixed( grp, pR, pmP, pR ) );
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->ma != NULL )
@@ -2373,7 +2363,7 @@ add:
 
 norm:
 #endif
-    ECP_BUDGET( ECP_OPS_INV );
+    MBEDTLS_ECP_BUDGET( MBEDTLS_ECP_OPS_INV );
     MBEDTLS_MPI_CHK( ecp_normalize_jac( grp, pR ) );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)

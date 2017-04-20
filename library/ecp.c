@@ -153,7 +153,14 @@ static void ecp_restart_mul_free( mbedtls_ecp_restart_mul_ctx *ctx )
  */
 struct mbedtls_ecp_restart_muladd
 {
-    int state;              /* dummy for now */
+    mbedtls_ecp_point mP;       /* mP value                             */
+    mbedtls_ecp_point R;        /* R intermediate result                */
+    enum {                      /* what should we do next?              */
+        ecp_rsma_mul1 = 0,      /* first multiplication                 */
+        ecp_rsma_mul2,          /* second multiplication                */
+        ecp_rsma_add,           /* addition                             */
+        ecp_rsma_norm,          /* normalization                        */
+    } state;
 };
 
 /*
@@ -171,6 +178,9 @@ static void ecp_restart_muladd_free( mbedtls_ecp_restart_muladd_ctx *ctx )
 {
     if( ctx == NULL )
         return;
+
+    mbedtls_ecp_point_free( &ctx->mP );
+    mbedtls_ecp_point_free( &ctx->R );
 
     memset( ctx, 0, sizeof( *ctx ) );
 }
@@ -197,6 +207,10 @@ void mbedtls_ecp_restart_free( mbedtls_ecp_restart_ctx *ctx )
     ecp_restart_mul_free( ctx->rsm );
     mbedtls_free( ctx->rsm );
     ctx->rsm = NULL;
+
+    ecp_restart_muladd_free( ctx->ma );
+    mbedtls_free( ctx->ma );
+    ctx->ma = NULL;
 }
 
 /*
@@ -2252,7 +2266,8 @@ cleanup:
 static int mbedtls_ecp_mul_shortcuts( mbedtls_ecp_group *grp,
                                       mbedtls_ecp_point *R,
                                       const mbedtls_mpi *m,
-                                      const mbedtls_ecp_point *P )
+                                      const mbedtls_ecp_point *P,
+                                      mbedtls_ecp_restart_ctx *rs_ctx )
 {
     int ret;
 
@@ -2268,7 +2283,8 @@ static int mbedtls_ecp_mul_shortcuts( mbedtls_ecp_group *grp,
     }
     else
     {
-        MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, R, m, P, NULL, NULL ) );
+        MBEDTLS_MPI_CHK( mbedtls_ecp_mul_restartable( grp, R, m, P,
+                                                      NULL, NULL, rs_ctx ) );
     }
 
 cleanup:
@@ -2290,6 +2306,8 @@ int mbedtls_ecp_muladd_restartable(
 {
     int ret;
     mbedtls_ecp_point mP;
+    mbedtls_ecp_point *pmP = &mP;
+    mbedtls_ecp_point *pR = R;
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
     char is_grp_capable = 0;
 #endif
@@ -2300,6 +2318,16 @@ int mbedtls_ecp_muladd_restartable(
 
     if( ecp_get_type( grp ) != ECP_TYPE_SHORT_WEIERSTRASS )
         return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
+
+    mbedtls_ecp_point_init( &mP );
+
+#if defined(MBEDTLS_ECP_INTERNAL_ALT)
+    if (  is_grp_capable = mbedtls_internal_ecp_grp_capable( grp )  )
+    {
+        MBEDTLS_MPI_CHK( mbedtls_internal_ecp_init( grp ) );
+    }
+
+#endif /* MBEDTLS_ECP_INTERNAL_ALT */
 
 #if defined(MBEDTLS_ECP_EARLY_RETURN)
     /* reset ops count for this call if top-level */
@@ -2315,25 +2343,54 @@ int mbedtls_ecp_muladd_restartable(
 
         ecp_restart_muladd_init( rs_ctx->ma );
     }
+
+    if( rs_ctx != NULL && rs_ctx->ma != NULL )
+    {
+        /* redirect intermediate results to restart context */
+        pmP = &rs_ctx->ma->mP;
+        pR  = &rs_ctx->ma->R;
+
+        /* jump to next operation */
+        if( rs_ctx->ma->state == ecp_rsma_mul2 )
+            goto mul2;
+        if( rs_ctx->ma->state == ecp_rsma_add )
+            goto add;
+        if( rs_ctx->ma->state == ecp_rsma_norm )
+            goto norm;
+    }
 #endif /* MBEDTLS_ECP_EARLY_RETURN */
 
-    mbedtls_ecp_point_init( &mP );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul_shortcuts( grp, pmP, m, P, rs_ctx ) );
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+    if( rs_ctx != NULL && rs_ctx->ma != NULL )
+        rs_ctx->ma->state++;
 
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul_shortcuts( grp, &mP, m, P ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul_shortcuts( grp, R,   n, Q ) );
+mul2:
+#endif
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul_shortcuts( grp, pR,  n, Q, rs_ctx ) );
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+    if( rs_ctx != NULL && rs_ctx->ma != NULL )
+        rs_ctx->ma->state++;
 
-#if defined(MBEDTLS_ECP_INTERNAL_ALT)
-    if (  is_grp_capable = mbedtls_internal_ecp_grp_capable( grp )  )
-    {
-        MBEDTLS_MPI_CHK( mbedtls_internal_ecp_init( grp ) );
-    }
+add:
+#endif
+    ECP_BUDGET( ECP_OPS_ADD );
+    MBEDTLS_MPI_CHK( ecp_add_mixed( grp, pR, pmP, pR ) );
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+    if( rs_ctx != NULL && rs_ctx->ma != NULL )
+        rs_ctx->ma->state++;
 
-#endif /* MBEDTLS_ECP_INTERNAL_ALT */
-    MBEDTLS_MPI_CHK( ecp_add_mixed( grp, R, &mP, R ) );
-    MBEDTLS_MPI_CHK( ecp_normalize_jac( grp, R ) );
+norm:
+#endif
+    ECP_BUDGET( ECP_OPS_INV );
+    MBEDTLS_MPI_CHK( ecp_normalize_jac( grp, pR ) );
+
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+    if( rs_ctx != NULL && rs_ctx->ma != NULL )
+        MBEDTLS_MPI_CHK( mbedtls_ecp_copy( R, pR ) );
+#endif
 
 cleanup:
-
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
     if ( is_grp_capable )
     {
@@ -2341,6 +2398,7 @@ cleanup:
     }
 
 #endif /* MBEDTLS_ECP_INTERNAL_ALT */
+
     mbedtls_ecp_point_free( &mP );
 
 #if defined(MBEDTLS_ECP_EARLY_RETURN)
@@ -2350,7 +2408,6 @@ cleanup:
         mbedtls_free( rs_ctx->ma );
         rs_ctx->ma = NULL;
     }
-
 
     if( rs_ctx != NULL )
         rs_ctx->depth--;

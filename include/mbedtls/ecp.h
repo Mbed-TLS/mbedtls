@@ -185,6 +185,7 @@ typedef struct mbedtls_ecp_restart_mul mbedtls_ecp_restart_mul_ctx;
 typedef struct
 {
     unsigned ops_done;                  /*!<  current ops count             */
+    unsigned depth;                     /*!<  call depth (0 = top-level)    */
     mbedtls_ecp_restart_mul_ctx *rsm;   /*!<  ecp_mul_comb() sub-context    */
 } mbedtls_ecp_restart_ctx;
 #endif /* MBEDTLS_ECP_EARLY_RETURN */

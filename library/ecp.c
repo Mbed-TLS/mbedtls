@@ -164,6 +164,7 @@ void mbedtls_ecp_restart_free( mbedtls_ecp_restart_ctx *ctx )
         return;
 
     ctx->ops_done = 0;
+    ctx->depth = 0;
 
     ecp_restart_mul_free( ctx->rsm );
     mbedtls_free( ctx->rsm );
@@ -1769,10 +1770,6 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
         ecp_restart_mul_init( rs_ctx->rsm );
     }
-
-    /* reset ops count for this call */
-    if( rs_ctx != NULL )
-        rs_ctx->ops_done = 0;
 #endif
 
     /* Is P the base point ? */
@@ -2104,10 +2101,11 @@ int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     char is_grp_capable = 0;
 #endif
 
-    /* Common sanity checks */
-    if( ( ret = mbedtls_ecp_check_privkey( grp, m ) ) != 0 ||
-        ( ret = mbedtls_ecp_check_pubkey( grp, P ) ) != 0 )
-        return( ret );
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+    /* reset ops count for this call if top-level */
+    if( rs_ctx != NULL && rs_ctx->depth++ == 0 )
+        rs_ctx->ops_done = 0;
+#endif
 
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
     if ( is_grp_capable = mbedtls_internal_ecp_grp_capable( grp )  )
@@ -2116,25 +2114,36 @@ int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     }
 
 #endif /* MBEDTLS_ECP_INTERNAL_ALT */
+
+    /* Common sanity checks */
+    MBEDTLS_MPI_CHK( mbedtls_ecp_check_privkey( grp, m ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_check_pubkey( grp, P ) );
+
+    ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
 #if defined(ECP_MONTGOMERY)
     if( ecp_get_type( grp ) == ECP_TYPE_MONTGOMERY )
-        ret = ecp_mul_mxz( grp, R, m, P, f_rng, p_rng );
-
+        MBEDTLS_MPI_CHK( ecp_mul_mxz( grp, R, m, P, f_rng, p_rng ) );
 #endif
 #if defined(ECP_SHORTWEIERSTRASS)
     if( ecp_get_type( grp ) == ECP_TYPE_SHORT_WEIERSTRASS )
-        ret = ecp_mul_comb( grp, R, m, P, f_rng, p_rng, rs_ctx );
-
+        MBEDTLS_MPI_CHK( ecp_mul_comb( grp, R, m, P, f_rng, p_rng, rs_ctx ) );
 #endif
-#if defined(MBEDTLS_ECP_INTERNAL_ALT)
+
 cleanup:
 
+#if defined(MBEDTLS_ECP_INTERNAL_ALT)
     if ( is_grp_capable )
     {
         mbedtls_internal_ecp_free( grp );
     }
 
 #endif /* MBEDTLS_ECP_INTERNAL_ALT */
+
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+    if( rs_ctx != NULL )
+        rs_ctx->depth--;
+#endif
+
     return( ret );
 }
 

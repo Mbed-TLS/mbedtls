@@ -172,6 +172,7 @@ typedef struct
 mbedtls_ecp_keypair;
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
+
 /**
  * \brief           Internal restart context for multiplication
  *
@@ -196,6 +197,12 @@ typedef struct
     mbedtls_ecp_restart_mul_ctx *rsm;   /*!<  ecp_mul_comb() sub-context    */
     mbedtls_ecp_restart_muladd_ctx *ma; /*!<  ecp_muladd() sub-context      */
 } mbedtls_ecp_restart_ctx;
+
+#else /* MBEDTLS_ECP_RESTARTABLE */
+
+/* We want to declare restartable versions of existing functions anyway */
+typedef void mbedtls_ecp_restart_ctx;
+
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
 /**
@@ -612,7 +619,6 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              const mbedtls_mpi *m, const mbedtls_ecp_point *P,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
-#if defined(MBEDTLS_ECP_RESTARTABLE)
 /**
  * \brief           Restartable version of \c mbedtls_ecp_mul()
  *
@@ -636,7 +642,6 @@ int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              const mbedtls_mpi *m, const mbedtls_ecp_point *P,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
              mbedtls_ecp_restart_ctx *rs_ctx );
-#endif /* MBEDTLS_ECP_RESTARTABLE */
 
 /**
  * \brief           Multiplication and addition of two points by integers:
@@ -662,7 +667,6 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              const mbedtls_mpi *m, const mbedtls_ecp_point *P,
              const mbedtls_mpi *n, const mbedtls_ecp_point *Q );
 
-#if defined(MBEDTLS_ECP_RESTARTABLE)
 /**
  * \brief           Restartable version of \c mbedtls_ecp_muladd()
  *
@@ -687,7 +691,6 @@ int mbedtls_ecp_muladd_restartable(
              const mbedtls_mpi *m, const mbedtls_ecp_point *P,
              const mbedtls_mpi *n, const mbedtls_ecp_point *Q,
              mbedtls_ecp_restart_ctx *rs_ctx );
-#endif
 
 /**
  * \brief           Check that a point is a valid public key on this curve

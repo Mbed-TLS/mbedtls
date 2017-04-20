@@ -104,7 +104,6 @@ void mbedtls_ecp_set_max_ops( unsigned max_ops )
  * Restart context type for interrupted operations
  */
 struct mbedtls_ecp_restart_mul {
-    unsigned ops_done;      /* number of operations done this time          */
     mbedtls_ecp_point R;    /* current intermediate result                  */
     size_t i;               /* current index in various loops, 0 outside    */
     mbedtls_ecp_point *T;   /* table for precomputed points                 */
@@ -164,6 +163,8 @@ void mbedtls_ecp_restart_free( mbedtls_ecp_restart_ctx *ctx )
     if( ctx == NULL )
         return;
 
+    ctx->ops_done = 0;
+
     ecp_restart_mul_free( ctx->rsm );
     mbedtls_free( ctx->rsm );
     ctx->rsm = NULL;
@@ -183,7 +184,7 @@ static int ecp_check_budget( const mbedtls_ecp_group *grp,
                              mbedtls_ecp_restart_ctx *rs_ctx,
                              unsigned ops )
 {
-    if( rs_ctx != NULL && rs_ctx->rsm != NULL )
+    if( rs_ctx != NULL && ecp_max_ops != 0 )
     {
         /* scale depending on curve size: the chosen reference is 256-bit,
          * and multiplication is quadratic. Round to the closest integer. */
@@ -193,11 +194,11 @@ static int ecp_check_budget( const mbedtls_ecp_group *grp,
             ops *= 2;
 
         /* avoid infinite loops: always allow first step */
-        if( rs_ctx->rsm->ops_done != 0 && rs_ctx->rsm->ops_done + ops > ecp_max_ops )
+        if( rs_ctx->ops_done != 0 && rs_ctx->ops_done + ops > ecp_max_ops )
             return( MBEDTLS_ERR_ECP_IN_PROGRESS );
 
         /* update running count */
-        rs_ctx->rsm->ops_done += ops;
+        rs_ctx->ops_done += ops;
     }
 
     return( 0 );
@@ -1759,7 +1760,7 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 #endif
 
 #if defined(MBEDTLS_ECP_EARLY_RETURN)
-    /* set up restart context if needed */
+    /* set up our own sub-context if needed */
     if( ecp_max_ops != 0 && rs_ctx != NULL && rs_ctx->rsm == NULL )
     {
         rs_ctx->rsm = mbedtls_calloc( 1, sizeof( mbedtls_ecp_restart_mul_ctx ) );
@@ -1770,8 +1771,8 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     }
 
     /* reset ops count for this call */
-    if( rs_ctx != NULL && rs_ctx->rsm != NULL )
-        rs_ctx->rsm->ops_done = 0;
+    if( rs_ctx != NULL )
+        rs_ctx->ops_done = 0;
 #endif
 
     /* Is P the base point ? */

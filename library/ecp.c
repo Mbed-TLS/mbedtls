@@ -2105,9 +2105,6 @@ int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 #endif
 
     /* Common sanity checks */
-    if( mbedtls_mpi_cmp_int( &P->Z, 1 ) != 0 )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-
     if( ( ret = mbedtls_ecp_check_privkey( grp, m ) ) != 0 ||
         ( ret = mbedtls_ecp_check_pubkey( grp, P ) ) != 0 )
         return( ret );

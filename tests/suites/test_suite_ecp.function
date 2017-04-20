@@ -116,9 +116,6 @@ void ecp_test_vect_restart( int id,
     TEST_ASSERT( cnt_restarts >= min_restarts );
     TEST_ASSERT( cnt_restarts <= max_restarts );
 
-    /* Prepare context for new operation */
-    mbedtls_ecp_restart_free( &ctx );
-
     /* Non-base point case */
     cnt_restarts = 0;
     do {

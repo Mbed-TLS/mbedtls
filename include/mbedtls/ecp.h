@@ -263,9 +263,10 @@ typedef struct
  *
  *                  If more operations are needed to complete a computation,
  *                  MBEDTLS_ERR_ECP_IN_PROGRESS will be returned by the
- *                  function performing the computation. That function will
- *                  then need to be called again with the same arguments until
- *                  it returns 0 or an other error code.
+ *                  function performing the computation. It is then the
+ *                  caller's responsibility to either call again with the same
+ *                  arguments until it returns 0 or an error code; or to free
+ *                  the restart context if the operation is to be aborted.
  *
  *                  This only affects functions that accept a pointer to a
  *                  \c mbedtls_ecp_restart_ctx as an argument, and only works
@@ -615,14 +616,11 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  * \param P         Point to multiply
  * \param f_rng     RNG function (see notes)
  * \param p_rng     RNG parameter
- * \param rs_ctx    Restart context - must be non-NULL to enable early-return
+ * \param rs_ctx    Restart context
  *
  * \return          See \c mbedtls_ecp_mul(), or
  *                  MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
- *                  operations was reached (see \c mbedtls_ecp_set_max_ops()),
- *                  indicating the function should be called again with the
- *                  exact same arguments.
- *
+ *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
  */
 int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              const mbedtls_mpi *m, const mbedtls_ecp_point *P,

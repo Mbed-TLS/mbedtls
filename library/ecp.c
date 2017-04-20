@@ -105,8 +105,6 @@ void mbedtls_ecp_set_max_ops( unsigned max_ops )
  */
 struct mbedtls_ecp_restart_mul {
     unsigned ops_done;      /* number of operations done this time          */
-    mbedtls_mpi m;          /* saved argument: scalar                       */
-    mbedtls_ecp_point P;    /* saved argument: point                        */
     mbedtls_ecp_point R;    /* current intermediate result                  */
     size_t i;               /* current index in various loops, 0 outside    */
     mbedtls_ecp_point *T;   /* table for precomputed points                 */
@@ -139,8 +137,6 @@ static void ecp_restart_mul_free( mbedtls_ecp_restart_mul_ctx *ctx )
     if( ctx == NULL )
         return;
 
-    mbedtls_mpi_free( &ctx->m );
-    mbedtls_ecp_point_free( &ctx->P );
     mbedtls_ecp_point_free( &ctx->R );
 
     if( ctx->T != NULL ) {
@@ -1763,17 +1759,6 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 #endif
 
 #if defined(MBEDTLS_ECP_EARLY_RETURN)
-    /* check for restart with new arguments */
-    if( rs_ctx != NULL && rs_ctx->rsm != NULL && rs_ctx->rsm != NULL &&
-        ( mbedtls_mpi_cmp_mpi( m, &rs_ctx->rsm->m ) != 0 ||
-          mbedtls_mpi_cmp_mpi( &P->X, &rs_ctx->rsm->P.X ) != 0 ||
-          mbedtls_mpi_cmp_mpi( &P->Y, &rs_ctx->rsm->P.Y ) != 0 ) )
-    {
-        ecp_restart_mul_free( rs_ctx->rsm );
-        mbedtls_free( rs_ctx->rsm );
-        rs_ctx->rsm = NULL;
-    }
-
     /* set up restart context if needed */
     if( ecp_max_ops != 0 && rs_ctx != NULL && rs_ctx->rsm == NULL )
     {
@@ -1782,9 +1767,6 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
             return( MBEDTLS_ERR_ECP_ALLOC_FAILED );
 
         ecp_restart_mul_init( rs_ctx->rsm );
-
-        MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &rs_ctx->rsm->m, m ) );
-        MBEDTLS_MPI_CHK( mbedtls_ecp_copy( &rs_ctx->rsm->P, P ) );
     }
 
     /* reset ops count for this call */

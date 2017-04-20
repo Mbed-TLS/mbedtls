@@ -86,7 +86,7 @@ static unsigned long add_count, dbl_count, mul_count;
 #endif
 
 
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
 /*
  * Maximum number of "basic operations" to be done in a row.
  */
@@ -253,7 +253,7 @@ static int ecp_check_budget( const mbedtls_ecp_group *grp,
 
 /* We also need that type to make our life simpler for internal functions */
 typedef void mbedtls_ecp_restart_ctx;
-#endif /* MBEDTLS_ECP_EARLY_RETURN */
+#endif /* MBEDTLS_ECP_RESTARTABLE */
 
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) ||   \
     defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) ||   \
@@ -1409,11 +1409,11 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
     const unsigned char T_len = 1U << ( w - 1 );
     mbedtls_ecp_point *cur, *TT[COMB_MAX_PRE - 1];
 
-#if !defined(MBEDTLS_ECP_EARLY_RETURN)
+#if !defined(MBEDTLS_ECP_RESTARTABLE)
     (void) rs_ctx;
 #endif
 
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->rsm != NULL )
     {
         if( rs_ctx->rsm->state == ecp_rsm_pre_norm_add )
@@ -1431,7 +1431,7 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
      */
     MBEDTLS_MPI_CHK( mbedtls_ecp_copy( &T[0], P ) );
 
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->rsm != NULL && rs_ctx->rsm->i != 0 )
         j = rs_ctx->rsm->i;
     else
@@ -1451,7 +1451,7 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
         MBEDTLS_MPI_CHK( ecp_double_jac( grp, cur, cur ) );
     }
 
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->rsm != NULL )
     {
         rs_ctx->rsm->i = 0;
@@ -1463,7 +1463,7 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
      * Normalize current elements in T. As T has holes,
      * use an auxiliary array of pointers to elements in T.
      */
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
 norm_dbl:
 #endif
 
@@ -1475,7 +1475,7 @@ norm_dbl:
 
     MBEDTLS_MPI_CHK( ecp_normalize_jac_many( grp, TT, j ) );
 
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->rsm != NULL )
         rs_ctx->rsm->state++;
 #endif
@@ -1484,7 +1484,7 @@ norm_dbl:
      * Compute the remaining ones using the minimal number of additions
      * Be careful to update T[2^l] only after using it!
      */
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
 add:
 #endif
 
@@ -1497,7 +1497,7 @@ add:
             MBEDTLS_MPI_CHK( ecp_add_mixed( grp, &T[i + j], &T[j], &T[i] ) );
     }
 
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->rsm != NULL )
         rs_ctx->rsm->state++;
 #endif
@@ -1507,7 +1507,7 @@ add:
      * we still need the auxiliary array for homogeneity with last time.
      * Also, skip T[0] which is already normalised, being a copy of P.
      */
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
 norm_add:
 #endif
 
@@ -1518,13 +1518,13 @@ norm_add:
 
     MBEDTLS_MPI_CHK( ecp_normalize_jac_many( grp, TT, j ) );
 
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->rsm != NULL )
         rs_ctx->rsm->state++;
 #endif
 
 cleanup:
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->rsm != NULL &&
         ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
     {
@@ -1582,11 +1582,11 @@ static int ecp_mul_comb_core( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R
 
     mbedtls_ecp_point_init( &Txi );
 
-#if !defined(MBEDTLS_ECP_EARLY_RETURN)
+#if !defined(MBEDTLS_ECP_RESTARTABLE)
     (void) rs_ctx;
 #endif
 
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->rsm != NULL && rs_ctx->rsm->i != 0 )
     {
         /* restore current index (R already pointing to rs_ctx->rsm->R) */
@@ -1615,7 +1615,7 @@ cleanup:
 
     mbedtls_ecp_point_free( &Txi );
 
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->rsm != NULL )
     {
         if( ret == 0 )
@@ -1700,16 +1700,16 @@ static int ecp_mul_comb_after_precomp( const mbedtls_ecp_group *grp,
     unsigned char k[COMB_MAX_D + 1];
     mbedtls_ecp_point *RR = R;
 
-#if !defined(MBEDTLS_ECP_EARLY_RETURN)
+#if !defined(MBEDTLS_ECP_RESTARTABLE)
     (void) rs_ctx;
 #endif
 
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->rsm != NULL )
         RR = &rs_ctx->rsm->R;
 #endif
 
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx == NULL || rs_ctx->rsm == NULL ||
         rs_ctx->rsm->state < ecp_rsm_final_norm )
 #endif
@@ -1720,7 +1720,7 @@ static int ecp_mul_comb_after_precomp( const mbedtls_ecp_group *grp,
                                             f_rng, p_rng, rs_ctx ) );
         MBEDTLS_MPI_CHK( ecp_safe_invert_jac( grp, RR, parity_trick ) );
 
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
         if( rs_ctx != NULL && rs_ctx->rsm != NULL )
             rs_ctx->rsm->state++;
 #endif
@@ -1729,7 +1729,7 @@ static int ecp_mul_comb_after_precomp( const mbedtls_ecp_group *grp,
     ECP_BUDGET( ECP_OPS_INV );
     MBEDTLS_MPI_CHK( ecp_normalize_jac( grp, RR ) );
 
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     MBEDTLS_MPI_CHK( mbedtls_ecp_copy( R, RR ) );
 #endif
 
@@ -1798,11 +1798,11 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     unsigned char pre_len = 0, T_ok = 0;
     mbedtls_ecp_point *T = NULL;
 
-#if !defined(MBEDTLS_ECP_EARLY_RETURN)
+#if !defined(MBEDTLS_ECP_RESTARTABLE)
     (void) rs_ctx;
 #endif
 
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     /* set up our own sub-context if needed */
     if( ecp_max_ops != 0 && rs_ctx != NULL && rs_ctx->rsm == NULL )
     {
@@ -1834,7 +1834,7 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         T_ok = 1;
     }
 
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     /* Pre-computed table: do we have one in progress? complete? */
     if( rs_ctx != NULL && rs_ctx->rsm != NULL && rs_ctx->rsm->T != NULL && T == NULL )
     {
@@ -1884,7 +1884,7 @@ cleanup:
         T = NULL;
 
     /* does T belong to the restart context? */
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->rsm != NULL && ret == MBEDTLS_ERR_ECP_IN_PROGRESS && T != NULL )
     {
         /* transfer ownership of T from local function to rsm */
@@ -1903,7 +1903,7 @@ cleanup:
     }
 
     /* don't free R while in progress in case R == P */
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     if( ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
 #endif
     /* prevent caller from using invalid value */
@@ -1911,7 +1911,7 @@ cleanup:
         mbedtls_ecp_point_free( R );
 
     /* clear our sub-context when not in progress (done or error) */
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && ret != MBEDTLS_ERR_ECP_IN_PROGRESS ) {
         ecp_restart_mul_free( rs_ctx->rsm );
         mbedtls_free( rs_ctx->rsm );
@@ -2130,7 +2130,7 @@ cleanup:
 /*
  * Restartable multiplication R = m * P
  */
-#if !defined(MBEDTLS_ECP_EARLY_RETURN)
+#if !defined(MBEDTLS_ECP_RESTARTABLE)
 static
 #endif
 int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
@@ -2143,7 +2143,7 @@ int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     char is_grp_capable = 0;
 #endif
 
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     /* reset ops count for this call if top-level */
     if( rs_ctx != NULL && rs_ctx->depth++ == 0 )
         rs_ctx->ops_done = 0;
@@ -2157,7 +2157,7 @@ int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
 #endif /* MBEDTLS_ECP_INTERNAL_ALT */
 
-#if defined(MBEDTLS_ECP_EARLY_RETURN) && defined(ECP_SHORTWEIERSTRASS)
+#if defined(MBEDTLS_ECP_RESTARTABLE) && defined(ECP_SHORTWEIERSTRASS)
     /* skip argument check when restarting */
     if( ecp_get_type( grp ) != ECP_TYPE_SHORT_WEIERSTRASS ||
         rs_ctx == NULL || rs_ctx->rsm == NULL )
@@ -2191,7 +2191,7 @@ cleanup:
 
 #endif /* MBEDTLS_ECP_INTERNAL_ALT */
 
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL )
         rs_ctx->depth--;
 #endif
@@ -2295,7 +2295,7 @@ cleanup:
  * Restartable linear combination
  * NOT constant-time
  */
-#if !defined(MBEDTLS_ECP_EARLY_RETURN)
+#if !defined(MBEDTLS_ECP_RESTARTABLE)
 static
 #endif
 int mbedtls_ecp_muladd_restartable(
@@ -2312,7 +2312,7 @@ int mbedtls_ecp_muladd_restartable(
     char is_grp_capable = 0;
 #endif
 
-#if !defined(MBEDTLS_ECP_EARLY_RETURN)
+#if !defined(MBEDTLS_ECP_RESTARTABLE)
     (void) rs_ctx;
 #endif
 
@@ -2329,7 +2329,7 @@ int mbedtls_ecp_muladd_restartable(
 
 #endif /* MBEDTLS_ECP_INTERNAL_ALT */
 
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     /* reset ops count for this call if top-level */
     if( rs_ctx != NULL && rs_ctx->depth++ == 0 )
         rs_ctx->ops_done = 0;
@@ -2358,17 +2358,17 @@ int mbedtls_ecp_muladd_restartable(
         if( rs_ctx->ma->state == ecp_rsma_norm )
             goto norm;
     }
-#endif /* MBEDTLS_ECP_EARLY_RETURN */
+#endif /* MBEDTLS_ECP_RESTARTABLE */
 
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul_shortcuts( grp, pmP, m, P, rs_ctx ) );
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->ma != NULL )
         rs_ctx->ma->state++;
 
 mul2:
 #endif
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul_shortcuts( grp, pR,  n, Q, rs_ctx ) );
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->ma != NULL )
         rs_ctx->ma->state++;
 
@@ -2376,7 +2376,7 @@ add:
 #endif
     ECP_BUDGET( ECP_OPS_ADD );
     MBEDTLS_MPI_CHK( ecp_add_mixed( grp, pR, pmP, pR ) );
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->ma != NULL )
         rs_ctx->ma->state++;
 
@@ -2385,7 +2385,7 @@ norm:
     ECP_BUDGET( ECP_OPS_INV );
     MBEDTLS_MPI_CHK( ecp_normalize_jac( grp, pR ) );
 
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->ma != NULL )
         MBEDTLS_MPI_CHK( mbedtls_ecp_copy( R, pR ) );
 #endif
@@ -2401,7 +2401,7 @@ cleanup:
 
     mbedtls_ecp_point_free( &mP );
 
-#if defined(MBEDTLS_ECP_EARLY_RETURN)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     /* clear our sub-context when not in progress (done or error) */
     if( rs_ctx != NULL && ret != MBEDTLS_ERR_ECP_IN_PROGRESS ) {
         ecp_restart_muladd_free( rs_ctx->ma );
@@ -2411,7 +2411,7 @@ cleanup:
 
     if( rs_ctx != NULL )
         rs_ctx->depth--;
-#endif /* MBEDTLS_ECP_EARLY_RETURN */
+#endif /* MBEDTLS_ECP_RESTARTABLE */
 
     return( ret );
 }

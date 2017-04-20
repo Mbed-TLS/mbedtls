@@ -51,7 +51,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECP_EARLY_RETURN */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
 void ecp_test_vect_restart( int id,
                             char *dA_str, char *xA_str, char *yA_str,
                             char *dB_str,  char *xZ_str, char *yZ_str,
@@ -145,7 +145,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECP_EARLY_RETURN */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
 void ecp_muladd_restart( int id, char *xR_str, char *yR_str,
                          char *u1_str, char *u2_str,
                          char *xQ_str, char *yQ_str,

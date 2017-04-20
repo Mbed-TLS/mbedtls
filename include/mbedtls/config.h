@@ -562,7 +562,7 @@
 #define MBEDTLS_ECP_NIST_OPTIM
 
 /**
- * \def MBEDTLS_ECP_EARLY_RETURN
+ * \def MBEDTLS_ECP_RESTARTABLE
  *
  * Enable "non-blocking" ECC operations that can return early and be resumed.
  *
@@ -574,7 +574,7 @@
  *
  * Comment this macro to disable non-blocking ECC computations.
  */
-#define MBEDTLS_ECP_EARLY_RETURN
+#define MBEDTLS_ECP_RESTARTABLE
 
 /**
  * \def MBEDTLS_ECDSA_DETERMINISTIC

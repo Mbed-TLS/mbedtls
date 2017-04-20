@@ -180,6 +180,13 @@ mbedtls_ecp_keypair;
 typedef struct mbedtls_ecp_restart_mul mbedtls_ecp_restart_mul_ctx;
 
 /**
+ * \brief           Internal restart context for ecp_muladd()
+ *
+ * \note            Opaque struct
+ */
+typedef struct mbedtls_ecp_restart_muladd mbedtls_ecp_restart_muladd_ctx;
+
+/**
  * \brief           General context for resuming ECC operations
  */
 typedef struct
@@ -187,6 +194,7 @@ typedef struct
     unsigned ops_done;                  /*!<  current ops count             */
     unsigned depth;                     /*!<  call depth (0 = top-level)    */
     mbedtls_ecp_restart_mul_ctx *rsm;   /*!<  ecp_mul_comb() sub-context    */
+    mbedtls_ecp_restart_muladd_ctx *ma; /*!<  ecp_muladd() sub-context      */
 } mbedtls_ecp_restart_ctx;
 #endif /* MBEDTLS_ECP_EARLY_RETURN */
 
@@ -653,6 +661,33 @@ int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              const mbedtls_mpi *m, const mbedtls_ecp_point *P,
              const mbedtls_mpi *n, const mbedtls_ecp_point *Q );
+
+#if defined(MBEDTLS_ECP_EARLY_RETURN)
+/**
+ * \brief           Restartable version of \c mbedtls_ecp_muladd()
+ *
+ * \note            Performs the same job as \c mbedtls_ecp_muladd(), but can
+ *                  return early and restart according to the limit set with
+ *                  \c mbedtls_ecp_set_max_ops() to reduce blocking.
+ *
+ * \param grp       ECP group
+ * \param R         Destination point
+ * \param m         Integer by which to multiply P
+ * \param P         Point to multiply by m
+ * \param n         Integer by which to multiply Q
+ * \param Q         Point to be multiplied by n
+ * \param rs_ctx    Restart context
+ *
+ * \return          See \c mbedtls_ecp_muladd(), or
+ *                  MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
+ *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
+ */
+int mbedtls_ecp_muladd_restartable(
+             mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+             const mbedtls_mpi *m, const mbedtls_ecp_point *P,
+             const mbedtls_mpi *n, const mbedtls_ecp_point *Q,
+             mbedtls_ecp_restart_ctx *rs_ctx );
+#endif
 
 /**
  * \brief           Check that a point is a valid public key on this curve

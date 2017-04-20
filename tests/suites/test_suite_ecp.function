@@ -145,6 +145,77 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_EARLY_RETURN */
+void ecp_muladd_restart( int id, char *xR_str, char *yR_str,
+                         char *u1_str, char *u2_str,
+                         char *xQ_str, char *yQ_str,
+                         int max_ops, int min_restarts, int max_restarts )
+{
+    /*
+     * Compute R = u1 * G + u2 * Q
+     * (test vectors mostly taken from ECDSA intermediate results)
+     *
+     * See comments at the top of ecp_test_vect_restart()
+     */
+    mbedtls_ecp_restart_ctx ctx;
+    mbedtls_ecp_group grp;
+    mbedtls_ecp_point R, Q;
+    mbedtls_mpi u1, u2, xR, yR;
+    int cnt_restarts;
+    int ret;
+
+    mbedtls_ecp_restart_init( &ctx );
+    mbedtls_ecp_group_init( &grp );
+    mbedtls_ecp_point_init( &R );
+    mbedtls_ecp_point_init( &Q );
+    mbedtls_mpi_init( &u1 ); mbedtls_mpi_init( &u2 );
+    mbedtls_mpi_init( &xR ); mbedtls_mpi_init( &yR );
+
+    TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_read_string( &u1, 16, u1_str ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &u2, 16, u2_str ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &xR, 16, xR_str ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &yR, 16, yR_str ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_read_string( &Q.X, 16, xQ_str ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &Q.Y, 16, yQ_str ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &Q.Z, 1 ) == 0 );
+
+    mbedtls_ecp_set_max_ops( (unsigned) max_ops );
+
+    cnt_restarts = 0;
+    do {
+        ret = mbedtls_ecp_muladd_restartable( &grp, &R,
+                                              &u1, &grp.G, &u2, &Q, &ctx );
+        TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+
+        if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
+            cnt_restarts++;
+    }
+    while( ret != 0 );
+
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R.X, &xR ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R.Y, &yR ) == 0 );
+
+    TEST_ASSERT( cnt_restarts >= min_restarts );
+    TEST_ASSERT( cnt_restarts <= max_restarts );
+
+    /* Do we leak memory when aborting? */
+    ret = mbedtls_ecp_muladd_restartable( &grp, &R,
+                                          &u1, &grp.G, &u2, &Q, &ctx );
+    TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+
+exit:
+    mbedtls_ecp_restart_free( &ctx );
+    mbedtls_ecp_group_free( &grp );
+    mbedtls_ecp_point_free( &R );
+    mbedtls_ecp_point_free( &Q );
+    mbedtls_mpi_free( &u1 ); mbedtls_mpi_free( &u2 );
+    mbedtls_mpi_free( &xR ); mbedtls_mpi_free( &yR );
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void ecp_test_vect( int id, char *dA_str, char *xA_str, char *yA_str,
                     char *dB_str, char *xB_str, char *yB_str, char *xZ_str,

@@ -127,13 +127,17 @@ cleanup:
  * Compute ECDSA signature of a hashed message (SEC1 4.1.3)
  * Obviously, compared to SEC1 4.1.3, we skip step 4 (hash message)
  */
-int mbedtls_ecdsa_sign( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
+static int ecdsa_sign_restartable( mbedtls_ecp_group *grp,
+                mbedtls_mpi *r, mbedtls_mpi *s,
                 const mbedtls_mpi *d, const unsigned char *buf, size_t blen,
-                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+                mbedtls_ecdsa_restart_ctx *rs_ctx )
 {
     int ret, key_tries, sign_tries, blind_tries;
     mbedtls_ecp_point R;
     mbedtls_mpi k, e, t;
+
+    (void) rs_ctx; // temporary
 
     /* Fail cleanly on curves such as Curve25519 that can't be used for ECDSA */
     if( grp->N.p == NULL )
@@ -212,13 +216,26 @@ cleanup:
     return( ret );
 }
 
+/*
+ * Compute ECDSA signature of a hashed message
+ */
+int mbedtls_ecdsa_sign( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
+                const mbedtls_mpi *d, const unsigned char *buf, size_t blen,
+                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    return( ecdsa_sign_restartable( grp, r, s, d, buf, blen,
+                                    f_rng, p_rng, NULL ) );
+}
+
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
 /*
  * Deterministic signature wrapper
  */
-int mbedtls_ecdsa_sign_det( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
+static int ecdsa_sign_det_restartable( mbedtls_ecp_group *grp,
+                    mbedtls_mpi *r, mbedtls_mpi *s,
                     const mbedtls_mpi *d, const unsigned char *buf, size_t blen,
-                    mbedtls_md_type_t md_alg )
+                    mbedtls_md_type_t md_alg,
+                    mbedtls_ecdsa_restart_ctx *rs_ctx )
 {
     int ret;
     mbedtls_hmac_drbg_context rng_ctx;
@@ -226,6 +243,8 @@ int mbedtls_ecdsa_sign_det( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi 
     size_t grp_len = ( grp->nbits + 7 ) / 8;
     const mbedtls_md_info_t *md_info;
     mbedtls_mpi h;
+
+    (void) rs_ctx; // temporary
 
     if( ( md_info = mbedtls_md_info_from_type( md_alg ) ) == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
@@ -247,6 +266,16 @@ cleanup:
     mbedtls_mpi_free( &h );
 
     return( ret );
+}
+
+/*
+ * Deterministic signature wrapper
+ */
+int mbedtls_ecdsa_sign_det( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
+                    const mbedtls_mpi *d, const unsigned char *buf, size_t blen,
+                    mbedtls_md_type_t md_alg )
+{
+    return( ecdsa_sign_det_restartable( grp, r, s, d, buf, blen, md_alg, NULL ) );
 }
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
@@ -427,11 +456,13 @@ static int ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
 /*
  * Compute and write signature
  */
-int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t md_alg,
+int mbedtls_ecdsa_write_signature_restartable( mbedtls_ecdsa_context *ctx,
+                           mbedtls_md_type_t md_alg,
                            const unsigned char *hash, size_t hlen,
                            unsigned char *sig, size_t *slen,
                            int (*f_rng)(void *, unsigned char *, size_t),
-                           void *p_rng )
+                           void *p_rng,
+                           mbedtls_ecdsa_restart_ctx *rs_ctx )
 {
     int ret;
     mbedtls_mpi r, s;
@@ -443,13 +474,13 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t
     (void) f_rng;
     (void) p_rng;
 
-    MBEDTLS_MPI_CHK( mbedtls_ecdsa_sign_det( &ctx->grp, &r, &s, &ctx->d,
-                             hash, hlen, md_alg ) );
+    MBEDTLS_MPI_CHK( ecdsa_sign_det_restartable( &ctx->grp, &r, &s, &ctx->d,
+                             hash, hlen, md_alg, rs_ctx ) );
 #else
     (void) md_alg;
 
-    MBEDTLS_MPI_CHK( mbedtls_ecdsa_sign( &ctx->grp, &r, &s, &ctx->d,
-                         hash, hlen, f_rng, p_rng ) );
+    MBEDTLS_MPI_CHK( ecdsa_sign_restartable( &ctx->grp, &r, &s, &ctx->d,
+                         hash, hlen, f_rng, p_rng, rs_ctx ) );
 #endif
 
     MBEDTLS_MPI_CHK( ecdsa_signature_to_asn1( &r, &s, sig, slen ) );
@@ -459,6 +490,19 @@ cleanup:
     mbedtls_mpi_free( &s );
 
     return( ret );
+}
+
+/*
+ * Compute and write signature
+ */
+int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t md_alg,
+                           const unsigned char *hash, size_t hlen,
+                           unsigned char *sig, size_t *slen,
+                           int (*f_rng)(void *, unsigned char *, size_t),
+                           void *p_rng )
+{
+    return( mbedtls_ecdsa_write_signature_restartable(
+                ctx, md_alg, hash, hlen, sig, slen, f_rng, p_rng, NULL ) );
 }
 
 #if ! defined(MBEDTLS_DEPRECATED_REMOVED) && \

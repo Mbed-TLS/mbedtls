@@ -187,6 +187,35 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t
                            int (*f_rng)(void *, unsigned char *, size_t),
                            void *p_rng );
 
+/**
+ * \brief           Restartable version of \c mbedtls_ecdsa_write_signature()
+ *
+ * \note            Performs the same job as \c mbedtls_ecdsa_write_signature()
+ *                  but can return early and restart according to the limit
+ *                  set with \c mbedtls_ecp_set_max_ops() to reduce blocking.
+ *
+ * \param ctx       ECDSA context
+ * \param md_alg    Algorithm that was used to hash the message
+ * \param hash      Message hash
+ * \param hlen      Length of hash
+ * \param sig       Buffer that will hold the signature
+ * \param slen      Length of the signature written
+ * \param f_rng     RNG function
+ * \param p_rng     RNG parameter
+ * \param rs_ctx    Restart context
+ *
+ * \return          See \c mbedtls_ecdsa_write_signature(), or
+ *                  MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
+ *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
+ */
+int mbedtls_ecdsa_write_signature_restartable( mbedtls_ecdsa_context *ctx,
+                           mbedtls_md_type_t md_alg,
+                           const unsigned char *hash, size_t hlen,
+                           unsigned char *sig, size_t *slen,
+                           int (*f_rng)(void *, unsigned char *, size_t),
+                           void *p_rng,
+                           mbedtls_ecdsa_restart_ctx *rs_ctx );
+
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
 #if ! defined(MBEDTLS_DEPRECATED_REMOVED)
 #if defined(MBEDTLS_DEPRECATED_WARNING)

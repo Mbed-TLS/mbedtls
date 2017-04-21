@@ -46,14 +46,31 @@
 /** Maximum size of an ECDSA signature in bytes */
 #define MBEDTLS_ECDSA_MAX_LEN  ( 3 + 2 * ( 3 + MBEDTLS_ECP_MAX_BYTES ) )
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief           ECDSA context structure
  */
 typedef mbedtls_ecp_keypair mbedtls_ecdsa_context;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+
+/**
+ * \brief           General context for resuming ECDSA operations
+ */
+typedef struct
+{
+    mbedtls_ecp_restart_ctx rs_ecp;     /*!<  base context (admin+ecp info) */
+} mbedtls_ecdsa_restart_ctx;
+
+#else /* MBEDTLS_ECP_RESTARTABLE */
+
+/* Now we can declare functions that take a pointer to that */
+typedef void mbedtls_ecdsa_restart_ctx;
+
+#endif /* MBEDTLS_ECP_RESTARTABLE */
 
 /**
  * \brief           Compute ECDSA signature of a previously hashed message
@@ -228,6 +245,29 @@ int mbedtls_ecdsa_read_signature( mbedtls_ecdsa_context *ctx,
                           const unsigned char *sig, size_t slen );
 
 /**
+ * \brief           Restartable version of \c mbedtls_ecdsa_read_signature()
+ *
+ * \note            Performs the same job as \c mbedtls_ecdsa_read_signature()
+ *                  but can return early and restart according to the limit
+ *                  set with \c mbedtls_ecp_set_max_ops() to reduce blocking.
+ *
+ * \param ctx       ECDSA context
+ * \param hash      Message hash
+ * \param hlen      Size of hash
+ * \param sig       Signature to read and verify
+ * \param slen      Size of sig
+ * \param rs_ctx    Restart context
+ *
+ * \return          See \c mbedtls_ecdsa_read_signature(), or
+ *                  MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
+ *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
+ */
+int mbedtls_ecdsa_read_signature_restartable( mbedtls_ecdsa_context *ctx,
+                          const unsigned char *hash, size_t hlen,
+                          const unsigned char *sig, size_t slen,
+                          mbedtls_ecdsa_restart_ctx *rs_ctx );
+
+/**
  * \brief           Generate an ECDSA keypair on the given curve
  *
  * \param ctx       ECDSA context in which the keypair should be stored
@@ -264,6 +304,18 @@ void mbedtls_ecdsa_init( mbedtls_ecdsa_context *ctx );
  * \param ctx       Context to free
  */
 void mbedtls_ecdsa_free( mbedtls_ecdsa_context *ctx );
+
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+/**
+ * \brief           Initialize a restart context
+ */
+void mbedtls_ecdsa_restart_init( mbedtls_ecdsa_restart_ctx *ctx );
+
+/**
+ * \brief           Free the components of a restart context
+ */
+void mbedtls_ecdsa_restart_free( mbedtls_ecdsa_restart_ctx *ctx );
+#endif /* MBEDTLS_ECP_RESTARTABLE */
 
 #ifdef __cplusplus
 }

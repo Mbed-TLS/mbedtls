@@ -196,13 +196,17 @@ cleanup:
  * Verify ECDSA signature of hashed message (SEC1 4.1.4)
  * Obviously, compared to SEC1 4.1.3, we skip step 2 (hash message)
  */
-int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
-                  const unsigned char *buf, size_t blen,
-                  const mbedtls_ecp_point *Q, const mbedtls_mpi *r, const mbedtls_mpi *s)
+static int ecdsa_verify_restartable( mbedtls_ecp_group *grp,
+                                     const unsigned char *buf, size_t blen,
+                                     const mbedtls_ecp_point *Q,
+                                     const mbedtls_mpi *r, const mbedtls_mpi *s,
+                                     mbedtls_ecdsa_restart_ctx *rs_ctx )
 {
     int ret;
     mbedtls_mpi e, s_inv, u1, u2;
     mbedtls_ecp_point R;
+
+    (void) rs_ctx; // temporary
 
     mbedtls_ecp_point_init( &R );
     mbedtls_mpi_init( &e ); mbedtls_mpi_init( &s_inv );
@@ -275,6 +279,16 @@ cleanup:
     mbedtls_mpi_free( &u1 ); mbedtls_mpi_free( &u2 );
 
     return( ret );
+}
+
+/*
+ * Verify ECDSA signature of hashed message
+ */
+int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
+                  const unsigned char *buf, size_t blen,
+                  const mbedtls_ecp_point *Q, const mbedtls_mpi *r, const mbedtls_mpi *s)
+{
+    return( ecdsa_verify_restartable( grp, buf, blen, Q, r, s, NULL ) );
 }
 
 /*
@@ -357,6 +371,18 @@ int mbedtls_ecdsa_read_signature( mbedtls_ecdsa_context *ctx,
                           const unsigned char *hash, size_t hlen,
                           const unsigned char *sig, size_t slen )
 {
+    return( mbedtls_ecdsa_read_signature_restartable(
+                ctx, hash, hlen, sig, slen, NULL ) );
+}
+
+/*
+ * Restartable read and check signature
+ */
+int mbedtls_ecdsa_read_signature_restartable( mbedtls_ecdsa_context *ctx,
+                          const unsigned char *hash, size_t hlen,
+                          const unsigned char *sig, size_t slen,
+                          mbedtls_ecdsa_restart_ctx *rs_ctx )
+{
     int ret;
     unsigned char *p = (unsigned char *) sig;
     const unsigned char *end = sig + slen;
@@ -387,8 +413,8 @@ int mbedtls_ecdsa_read_signature( mbedtls_ecdsa_context *ctx,
         goto cleanup;
     }
 
-    if( ( ret = mbedtls_ecdsa_verify( &ctx->grp, hash, hlen,
-                              &ctx->Q, &r, &s ) ) != 0 )
+    if( ( ret = ecdsa_verify_restartable( &ctx->grp, hash, hlen,
+                              &ctx->Q, &r, &s, rs_ctx ) ) != 0 )
         goto cleanup;
 
     if( p != end )
@@ -443,5 +469,23 @@ void mbedtls_ecdsa_free( mbedtls_ecdsa_context *ctx )
 {
     mbedtls_ecp_keypair_free( ctx );
 }
+
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+/*
+ * Initialize a restart context
+ */
+void mbedtls_ecdsa_restart_init( mbedtls_ecdsa_restart_ctx *ctx )
+{
+    mbedtls_ecp_restart_init( &ctx->rs_ecp );
+}
+
+/*
+ * Free the components of a restart context
+ */
+void mbedtls_ecdsa_restart_free( mbedtls_ecdsa_restart_ctx *ctx )
+{
+    mbedtls_ecp_restart_free( &ctx->rs_ecp );
+}
+#endif /* MBEDTLS_ECP_RESTARTABLE */
 
 #endif /* MBEDTLS_ECDSA_C */

@@ -2531,24 +2531,23 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
          * - keep the leftmost nbits bits of the generated octet string;
          * - try until result is in the desired range.
          * This also avoids any biais, which is especially important for ECDSA.
+         *
+         * Each try has at worst a probability 1/2 of failing (the msb has
+         * a probability 1/2 of being 0, and then the result will be < N),
+         * so after 30 tries failure probability is a most 2**(-30).
+         *
+         * For most curves, 1 try is enough with overwhelming probability,
+         * since N starts with a lot of 1s in binary, but some curves
+         * such as secp224k1 are actually very close to the worst case.
          */
         do
         {
+            if( ++count > 30 )
+                return( MBEDTLS_ERR_ECP_RANDOM_FAILED );
+
             MBEDTLS_MPI_CHK( f_rng( p_rng, rnd, n_size ) );
             MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( d, rnd, n_size ) );
             MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( d, 8 * n_size - grp->nbits ) );
-
-            /*
-             * Each try has at worst a probability 1/2 of failing (the msb has
-             * a probability 1/2 of being 0, and then the result will be < N),
-             * so after 30 tries failure probability is a most 2**(-30).
-             *
-             * For most curves, 1 try is enough with overwhelming probability,
-             * since N starts with a lot of 1s in binary, but some curves
-             * such as secp224k1 are actually very close to the worst case.
-             */
-            if( ++count > 30 )
-                return( MBEDTLS_ERR_ECP_RANDOM_FAILED );
         }
         while( mbedtls_mpi_cmp_int( d, 1 ) < 0 ||
                mbedtls_mpi_cmp_mpi( d, &grp->N ) >= 0 );

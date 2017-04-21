@@ -252,6 +252,12 @@ static int ecdsa_sign_restartable( mbedtls_ecp_group *grp,
     sign_tries = 0;
     do
     {
+        if( sign_tries++ > 10 )
+        {
+            ret = MBEDTLS_ERR_ECP_RANDOM_FAILED;
+            goto cleanup;
+        }
+
         /*
          * Steps 1-3: generate a suitable ephemeral keypair
          * and set r = xR mod n
@@ -259,14 +265,14 @@ static int ecdsa_sign_restartable( mbedtls_ecp_group *grp,
         key_tries = 0;
         do
         {
-            MBEDTLS_MPI_CHK( mbedtls_ecp_gen_keypair( grp, &k, &R, f_rng, p_rng ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( r, &R.X, &grp->N ) );
-
             if( key_tries++ > 10 )
             {
                 ret = MBEDTLS_ERR_ECP_RANDOM_FAILED;
                 goto cleanup;
             }
+
+            MBEDTLS_MPI_CHK( mbedtls_ecp_gen_keypair( grp, &k, &R, f_rng, p_rng ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( r, &R.X, &grp->N ) );
         }
         while( mbedtls_mpi_cmp_int( r, 0 ) == 0 );
 
@@ -303,12 +309,6 @@ static int ecdsa_sign_restartable( mbedtls_ecp_group *grp,
         MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( s, &k, &grp->N ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( s, s, &e ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( s, s, &grp->N ) );
-
-        if( sign_tries++ > 10 )
-        {
-            ret = MBEDTLS_ERR_ECP_RANDOM_FAILED;
-            goto cleanup;
-        }
     }
     while( mbedtls_mpi_cmp_int( s, 0 ) == 0 );
 

@@ -51,12 +51,17 @@
 #endif
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
+
 /*
  * Sub-contect for ecdsa_verify()
  */
 struct mbedtls_ecdsa_restart_ver
 {
-    int state;  /* dummy */
+    mbedtls_mpi u1, u2;     /* intermediate values  */
+    enum {                  /* what to do next?     */
+        ecdsa_ver_init = 0, /* getting started      */
+        ecdsa_ver_muladd,   /* muladd step          */
+    } state;
 };
 
 /*
@@ -75,14 +80,23 @@ static void ecdsa_restart_ver_free( mbedtls_ecdsa_restart_ver_ctx *ctx )
     if( ctx == NULL )
         return;
 
+    mbedtls_mpi_free( &ctx->u1 );
+    mbedtls_mpi_free( &ctx->u2 );
+
     memset( ctx, 0, sizeof( *ctx ) );
 }
 
 #define ECDSA_RS_ECP    &rs_ctx->ecp
 
+/* Utility macro for checking and updating ops budget */
+#define ECDSA_BUDGET( ops )   \
+    MBEDTLS_MPI_CHK( mbedtls_ecp_check_budget( grp, &rs_ctx->ecp, ops ) );
+
 #else /* MBEDTLS_ECP_RESTARTABLE */
 
 #define ECDSA_RS_ECP    NULL
+
+#define ECDSA_BUDGET( ops )   /* no-op; for compatibility */
 
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
@@ -249,6 +263,7 @@ static int ecdsa_verify_restartable( mbedtls_ecp_group *grp,
     int ret;
     mbedtls_mpi e, s_inv, u1, u2;
     mbedtls_ecp_point R;
+    mbedtls_mpi *pu1 = &u1, *pu2 = &u2;
 
 #if !defined(MBEDTLS_ECP_RESTARTABLE)
     (void) rs_ctx;
@@ -276,6 +291,17 @@ static int ecdsa_verify_restartable( mbedtls_ecp_group *grp,
 
         ecdsa_restart_ver_init( rs_ctx->ver );
     }
+
+    if( rs_ctx != NULL && rs_ctx->ver != NULL )
+    {
+        /* redirect to our context */
+        pu1 = &rs_ctx->ver->u1;
+        pu2 = &rs_ctx->ver->u2;
+
+        /* jump to current step */
+        if( rs_ctx->ver->state == ecdsa_ver_muladd )
+            goto muladd;
+    }
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
     /*
@@ -290,7 +316,9 @@ static int ecdsa_verify_restartable( mbedtls_ecp_group *grp,
 
     /*
      * Additional precaution: make sure Q is valid
+     * For ops count, group that together with step 4
      */
+    ECDSA_BUDGET( MBEDTLS_ECP_OPS_CHK + MBEDTLS_ECP_OPS_INV + 2 );
     MBEDTLS_MPI_CHK( mbedtls_ecp_check_pubkey( grp, Q ) );
 
     /*
@@ -303,17 +331,23 @@ static int ecdsa_verify_restartable( mbedtls_ecp_group *grp,
      */
     MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( &s_inv, s, &grp->N ) );
 
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &u1, &e, &s_inv ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &u1, &u1, &grp->N ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( pu1, &e, &s_inv ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( pu1, pu1, &grp->N ) );
 
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &u2, r, &s_inv ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &u2, &u2, &grp->N ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( pu2, r, &s_inv ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( pu2, pu2, &grp->N ) );
 
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    if( rs_ctx != NULL && rs_ctx->ver != NULL )
+        rs_ctx->ver->state++;
+
+muladd:
+#endif
     /*
      * Step 5: R = u1 G + u2 Q
      */
     MBEDTLS_MPI_CHK( mbedtls_ecp_muladd_restartable( grp,
-                     &R, &u1, &grp->G, &u2, Q, ECDSA_RS_ECP ) );
+                     &R, pu1, &grp->G, pu2, Q, ECDSA_RS_ECP ) );
 
     if( mbedtls_ecp_is_zero( &R ) )
     {

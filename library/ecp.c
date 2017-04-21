@@ -2155,12 +2155,12 @@ int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         rs_ctx == NULL || rs_ctx->rsm == NULL )
 #endif
     {
+        /* check_privkey is free */
+        MBEDTLS_ECP_BUDGET( MBEDTLS_ECP_OPS_CHK );
+
         /* Common sanity checks */
         MBEDTLS_MPI_CHK( mbedtls_ecp_check_privkey( grp, m ) );
         MBEDTLS_MPI_CHK( mbedtls_ecp_check_pubkey( grp, P ) );
-
-        /* check_privkey is 0M and check_pubkey is 3M */
-        MBEDTLS_ECP_BUDGET( 3 );
     }
 
     ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;

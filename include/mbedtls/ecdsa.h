@@ -120,7 +120,7 @@ int mbedtls_ecdsa_sign_det( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi 
  *                  prescribed by SEC1 4.1.4 step 3.
  *
  * \return          0 if successful,
- *                  MBEDTLS_ERR_ECP_BAD_INPUT_DATA if signature is invalid
+ *                  MBEDTLS_ERR_ECP_VERIFY_FAILED if signature is invalid
  *                  or a MBEDTLS_ERR_ECP_XXX or MBEDTLS_MPI_XXX error code
  */
 int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,

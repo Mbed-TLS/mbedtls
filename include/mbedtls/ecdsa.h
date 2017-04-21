@@ -62,7 +62,7 @@ typedef mbedtls_ecp_keypair mbedtls_ecdsa_context;
  */
 typedef struct
 {
-    mbedtls_ecp_restart_ctx rs_ecp;     /*!<  base context (admin+ecp info) */
+    mbedtls_ecp_restart_ctx ecp;        /*!<  base context (admin+ecp info) */
 } mbedtls_ecdsa_restart_ctx;
 
 #else /* MBEDTLS_ECP_RESTARTABLE */

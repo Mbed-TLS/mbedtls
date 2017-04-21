@@ -476,7 +476,7 @@ void mbedtls_ecdsa_free( mbedtls_ecdsa_context *ctx )
  */
 void mbedtls_ecdsa_restart_init( mbedtls_ecdsa_restart_ctx *ctx )
 {
-    mbedtls_ecp_restart_init( &ctx->rs_ecp );
+    mbedtls_ecp_restart_init( &ctx->ecp );
 }
 
 /*
@@ -484,7 +484,7 @@ void mbedtls_ecdsa_restart_init( mbedtls_ecdsa_restart_ctx *ctx )
  */
 void mbedtls_ecdsa_restart_free( mbedtls_ecdsa_restart_ctx *ctx )
 {
-    mbedtls_ecp_restart_free( &ctx->rs_ecp );
+    mbedtls_ecp_restart_free( &ctx->ecp );
 }
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 

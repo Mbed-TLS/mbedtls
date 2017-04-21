@@ -101,6 +101,14 @@ void mbedtls_ecp_set_max_ops( unsigned max_ops )
 }
 
 /*
+ * Check if restart is enabled
+ */
+int mbedtls_ecp_restart_enabled( void )
+{
+    return( ecp_max_ops != 0 );
+}
+
+/*
  * Restart sub-context for ecp_mul_comb()
  */
 struct mbedtls_ecp_restart_mul

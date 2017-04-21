@@ -341,6 +341,14 @@ typedef void mbedtls_ecp_restart_ctx;
  * \note            This setting is currently ignored by Curve25519
  */
 void mbedtls_ecp_set_max_ops( unsigned max_ops );
+
+/**
+ * \brief           Check if restart is enabled (max_ops != 0)
+ *
+ * \return          0 if max_ops == 0 (restart disabled)
+ *                  1 otherwise (restart enabled)
+ */
+int mbedtls_ecp_restart_enabled( void );
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
 /**

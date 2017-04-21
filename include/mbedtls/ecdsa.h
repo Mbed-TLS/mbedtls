@@ -58,11 +58,19 @@ typedef mbedtls_ecp_keypair mbedtls_ecdsa_context;
 #if defined(MBEDTLS_ECP_RESTARTABLE)
 
 /**
+ * \brief           Internal restart context for ecdsa_verify()
+ *
+ * \note            Opaque struct
+ */
+typedef struct mbedtls_ecdsa_restart_ver mbedtls_ecdsa_restart_ver_ctx;
+
+/**
  * \brief           General context for resuming ECDSA operations
  */
 typedef struct
 {
     mbedtls_ecp_restart_ctx ecp;        /*!<  base context (admin+ecp info) */
+    mbedtls_ecdsa_restart_ver_ctx *ver; /*!<  ecdsa_verify() sub-context    */
 } mbedtls_ecdsa_restart_ctx;
 
 #else /* MBEDTLS_ECP_RESTARTABLE */

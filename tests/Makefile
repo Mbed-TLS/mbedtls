@@ -152,27 +152,25 @@ func.test_suite_version.c := test_suite_version
 
 .PHONY: all check test clean
 
+BINARIES := $(addsuffix $(EXEXT),$(APPS))
+
+all: $(BINARIES)
+
 $(DEP):
 	$(MAKE) -C ../library
 
 # invoke perl explicitly for the sake of mingw32-make
 
-C_FILES := $(addsuffix .c,$(APPS))
-
 .SECONDEXPANSION:
-$(C_FILES): %.c: suites/$$(func.$$*.c).function suites/%.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+%.c: suites/$$(func.$$*.c).function suites/%.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
 	perl scripts/generate_code.pl suites $(func.$@) $*
 
 
-BINARIES := $(addsuffix $(EXEXT),$(APPS))
-
-$(BINARIES): %$(EXEXT): %.c $(DEP)
+%$(EXEXT): %.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-
-all: $(BINARIES)
 
 clean:
 ifndef WINDOWS

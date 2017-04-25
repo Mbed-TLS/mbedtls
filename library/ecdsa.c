@@ -91,8 +91,14 @@ static void ecdsa_restart_ver_free( mbedtls_ecdsa_restart_ver_ctx *ctx )
  */
 struct mbedtls_ecdsa_restart_sig
 {
+    int sign_tries;
+    int key_tries;
+    mbedtls_mpi k;          /* per-signature random */
+    mbedtls_mpi r;          /* r value              */
     enum {                  /* what to do next?     */
         ecdsa_sig_init = 0, /* getting started      */
+        ecdsa_sig_mul,      /* doing ecp_mul()      */
+        ecdsa_sig_modn,     /* mod N computations   */
     } state;
 };
 
@@ -102,6 +108,9 @@ struct mbedtls_ecdsa_restart_sig
 static void ecdsa_restart_sig_init( mbedtls_ecdsa_restart_sig_ctx *ctx )
 {
     memset( ctx, 0, sizeof( *ctx ) );
+
+    mbedtls_mpi_init( &ctx->k );
+    mbedtls_mpi_init( &ctx->r );
 }
 
 /*
@@ -112,6 +121,9 @@ static void ecdsa_restart_sig_free( mbedtls_ecdsa_restart_sig_ctx *ctx )
     if( ctx == NULL )
         return;
 
+    mbedtls_mpi_free( &ctx->k );
+    mbedtls_mpi_free( &ctx->r );
+
     memset( ctx, 0, sizeof( *ctx ) );
 }
 
@@ -121,8 +133,10 @@ static void ecdsa_restart_sig_free( mbedtls_ecdsa_restart_sig_ctx *ctx )
  */
 struct mbedtls_ecdsa_restart_det
 {
+    mbedtls_hmac_drbg_context rng_ctx;  /* DRBG state   */
     enum {                      /* what to do next?     */
-        ecdsa_det_init = 0,    /* getting started      */
+        ecdsa_det_init = 0,     /* getting started      */
+        ecdsa_det_sign,         /* make signature       */
     } state;
 };
 
@@ -132,6 +146,8 @@ struct mbedtls_ecdsa_restart_det
 static void ecdsa_restart_det_init( mbedtls_ecdsa_restart_det_ctx *ctx )
 {
     memset( ctx, 0, sizeof( *ctx ) );
+
+    mbedtls_hmac_drbg_init( &ctx->rng_ctx );
 }
 
 /*
@@ -141,6 +157,8 @@ static void ecdsa_restart_det_free( mbedtls_ecdsa_restart_det_ctx *ctx )
 {
     if( ctx == NULL )
         return;
+
+    mbedtls_hmac_drbg_free( &ctx->rng_ctx );
 
     memset( ctx, 0, sizeof( *ctx ) );
 }
@@ -226,8 +244,10 @@ static int ecdsa_sign_restartable( mbedtls_ecp_group *grp,
                 mbedtls_ecdsa_restart_ctx *rs_ctx )
 {
     int ret, key_tries, sign_tries;
+    int *p_sign_tries = &sign_tries, *p_key_tries = &key_tries;
     mbedtls_ecp_point R;
     mbedtls_mpi k, e, t;
+    mbedtls_mpi *pk = &k, *pr = r;
 
     /* Fail cleanly on curves such as Curve25519 that can't be used for ECDSA */
     if( grp->N.p == NULL )
@@ -242,17 +262,24 @@ static int ecdsa_sign_restartable( mbedtls_ecp_group *grp,
     if( rs_ctx != NULL && rs_ctx->sig != NULL )
     {
         /* redirect to our context */
-        // TODO
+        p_sign_tries = &rs_ctx->sig->sign_tries;
+        p_key_tries = &rs_ctx->sig->key_tries;
+        pk = &rs_ctx->sig->k;
+        pr = &rs_ctx->sig->r;
+
 
         /* jump to current step */
-        // TODO
+        if( rs_ctx->sig->state == ecdsa_sig_mul )
+            goto mul;
+        if( rs_ctx->sig->state == ecdsa_sig_modn )
+            goto modn;
     }
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
-    sign_tries = 0;
+    *p_sign_tries = 0;
     do
     {
-        if( sign_tries++ > 10 )
+        if( *p_sign_tries++ > 10 )
         {
             ret = MBEDTLS_ERR_ECP_RANDOM_FAILED;
             goto cleanup;
@@ -262,22 +289,43 @@ static int ecdsa_sign_restartable( mbedtls_ecp_group *grp,
          * Steps 1-3: generate a suitable ephemeral keypair
          * and set r = xR mod n
          */
-        key_tries = 0;
+        *p_key_tries = 0;
         do
         {
-            if( key_tries++ > 10 )
+            if( *p_key_tries++ > 10 )
             {
                 ret = MBEDTLS_ERR_ECP_RANDOM_FAILED;
                 goto cleanup;
             }
 
-            MBEDTLS_MPI_CHK( mbedtls_ecp_gen_privkey( grp, &k, f_rng, p_rng ) );
+            MBEDTLS_MPI_CHK( mbedtls_ecp_gen_privkey( grp, pk, f_rng, p_rng ) );
 
-            MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &R, &k, &grp->G,
-                                              f_rng, p_rng ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( r, &R.X, &grp->N ) );
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+            if( rs_ctx != NULL && rs_ctx->sig != NULL )
+            {
+                rs_ctx->sig->state++;
+            }
+
+mul:
+#endif
+            MBEDTLS_MPI_CHK( mbedtls_ecp_mul_restartable( grp, &R, pk, &grp->G,
+                                                  f_rng, p_rng, ECDSA_RS_ECP ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( pr, &R.X, &grp->N ) );
         }
-        while( mbedtls_mpi_cmp_int( r, 0 ) == 0 );
+        while( mbedtls_mpi_cmp_int( pr, 0 ) == 0 );
+
+
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+        if( rs_ctx != NULL && rs_ctx->sig != NULL )
+            rs_ctx->sig->state++;
+
+modn:
+#endif
+        /*
+         * Accounting for everything up to the end of the loop
+         * (step 6, but checking now avoids saving e and t)
+         */
+        ECDSA_BUDGET( MBEDTLS_ECP_OPS_INV + 4 );
 
         /*
          * Step 5: derive MPI from hashed message
@@ -293,15 +341,19 @@ static int ecdsa_sign_restartable( mbedtls_ecp_group *grp,
         /*
          * Step 6: compute s = (e + r * d) / k = t (e + rd) / (kt) mod n
          */
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( s, r, d ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( s, pr, d ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &e, &e, s ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &e, &e, &t ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &k, &k, &t ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( s, &k, &grp->N ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( pk, pk, &t ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( s, pk, &grp->N ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( s, s, &e ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( s, s, &grp->N ) );
     }
     while( mbedtls_mpi_cmp_int( s, 0 ) == 0 );
+
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    mbedtls_mpi_copy( r, pr );
+#endif
 
 cleanup:
     mbedtls_ecp_point_free( &R );
@@ -335,6 +387,7 @@ static int ecdsa_sign_det_restartable( mbedtls_ecp_group *grp,
 {
     int ret;
     mbedtls_hmac_drbg_context rng_ctx;
+    mbedtls_hmac_drbg_context *p_rng = &rng_ctx;
     unsigned char data[2 * MBEDTLS_ECP_MAX_BYTES];
     size_t grp_len = ( grp->nbits + 7 ) / 8;
     const mbedtls_md_info_t *md_info;
@@ -352,10 +405,11 @@ static int ecdsa_sign_det_restartable( mbedtls_ecp_group *grp,
     if( rs_ctx != NULL && rs_ctx->det != NULL )
     {
         /* redirect to our context */
-        // TODO
+        p_rng = &rs_ctx->det->rng_ctx;
 
         /* jump to current step */
-        // TODO
+        if( rs_ctx->det->state == ecdsa_det_sign )
+            goto sign;
     }
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
@@ -363,10 +417,16 @@ static int ecdsa_sign_det_restartable( mbedtls_ecp_group *grp,
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( d, data, grp_len ) );
     MBEDTLS_MPI_CHK( derive_mpi( grp, &h, buf, blen ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &h, data + grp_len, grp_len ) );
-    mbedtls_hmac_drbg_seed_buf( &rng_ctx, md_info, data, 2 * grp_len );
+    mbedtls_hmac_drbg_seed_buf( p_rng, md_info, data, 2 * grp_len );
 
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    if( rs_ctx != NULL && rs_ctx->det != NULL )
+        rs_ctx->det->state++;
+
+sign:
+#endif
     ret = ecdsa_sign_restartable( grp, r, s, d, buf, blen,
-                      mbedtls_hmac_drbg_random, &rng_ctx, rs_ctx );
+                      mbedtls_hmac_drbg_random, p_rng, rs_ctx );
 
 cleanup:
     mbedtls_hmac_drbg_free( &rng_ctx );

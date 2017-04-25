@@ -225,7 +225,7 @@ static int ecdsa_sign_restartable( mbedtls_ecp_group *grp,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
                 mbedtls_ecdsa_restart_ctx *rs_ctx )
 {
-    int ret, key_tries, sign_tries, blind_tries;
+    int ret, key_tries, sign_tries;
     mbedtls_ecp_point R;
     mbedtls_mpi k, e, t;
 
@@ -271,7 +271,10 @@ static int ecdsa_sign_restartable( mbedtls_ecp_group *grp,
                 goto cleanup;
             }
 
-            MBEDTLS_MPI_CHK( mbedtls_ecp_gen_keypair( grp, &k, &R, f_rng, p_rng ) );
+            MBEDTLS_MPI_CHK( mbedtls_ecp_gen_privkey( grp, &k, f_rng, p_rng ) );
+
+            MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &R, &k, &grp->G,
+                                              f_rng, p_rng ) );
             MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( r, &R.X, &grp->N ) );
         }
         while( mbedtls_mpi_cmp_int( r, 0 ) == 0 );
@@ -285,19 +288,7 @@ static int ecdsa_sign_restartable( mbedtls_ecp_group *grp,
          * Generate a random value to blind inv_mod in next step,
          * avoiding a potential timing leak.
          */
-        blind_tries = 0;
-        do
-        {
-            size_t n_size = ( grp->nbits + 7 ) / 8;
-            MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &t, n_size, f_rng, p_rng ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &t, 8 * n_size - grp->nbits ) );
-
-            /* See mbedtls_ecp_gen_keypair() */
-            if( ++blind_tries > 30 )
-                return( MBEDTLS_ERR_ECP_RANDOM_FAILED );
-        }
-        while( mbedtls_mpi_cmp_int( &t, 1 ) < 0 ||
-               mbedtls_mpi_cmp_mpi( &t, &grp->N ) >= 0 );
+        MBEDTLS_MPI_CHK( mbedtls_ecp_gen_privkey( grp, &t, f_rng, p_rng ) );
 
         /*
          * Step 6: compute s = (e + r * d) / k = t (e + rd) / (kt) mod n

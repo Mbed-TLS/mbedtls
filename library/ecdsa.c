@@ -86,17 +86,109 @@ static void ecdsa_restart_ver_free( mbedtls_ecdsa_restart_ver_ctx *ctx )
     memset( ctx, 0, sizeof( *ctx ) );
 }
 
+/*
+ * Sub-contect for ecdsa_sign()
+ */
+struct mbedtls_ecdsa_restart_sig
+{
+    enum {                  /* what to do next?     */
+        ecdsa_sig_init = 0, /* getting started      */
+    } state;
+};
+
+/*
+ * Init verify sign sub-context
+ */
+static void ecdsa_restart_sig_init( mbedtls_ecdsa_restart_sig_ctx *ctx )
+{
+    memset( ctx, 0, sizeof( *ctx ) );
+}
+
+/*
+ * Free the components of a sign restart sub-context
+ */
+static void ecdsa_restart_sig_free( mbedtls_ecdsa_restart_sig_ctx *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    memset( ctx, 0, sizeof( *ctx ) );
+}
+
+#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
+/*
+ * Sub-contect for ecdsa_sign_det()
+ */
+struct mbedtls_ecdsa_restart_det
+{
+    enum {                      /* what to do next?     */
+        ecdsa_det_init = 0,    /* getting started      */
+    } state;
+};
+
+/*
+ * Init verify sign_det sub-context
+ */
+static void ecdsa_restart_det_init( mbedtls_ecdsa_restart_det_ctx *ctx )
+{
+    memset( ctx, 0, sizeof( *ctx ) );
+}
+
+/*
+ * Free the components of a sign_det restart sub-context
+ */
+static void ecdsa_restart_det_free( mbedtls_ecdsa_restart_det_ctx *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    memset( ctx, 0, sizeof( *ctx ) );
+}
+#endif /* MBEDTLS_ECDSA_DETERMINISTIC */
+
 #define ECDSA_RS_ECP    &rs_ctx->ecp
 
 /* Utility macro for checking and updating ops budget */
 #define ECDSA_BUDGET( ops )   \
     MBEDTLS_MPI_CHK( mbedtls_ecp_check_budget( grp, &rs_ctx->ecp, ops ) );
 
+#define ECDSA_RS_ENTER( SUB )   do {                                 \
+    /* reset ops count for this call if top-level */                 \
+    if( rs_ctx != NULL && rs_ctx->ecp.depth++ == 0 )                 \
+        rs_ctx->ecp.ops_done = 0;                                    \
+                                                                     \
+    /* set up our own sub-context if needed */                       \
+    if( mbedtls_ecp_restart_enabled() &&                             \
+        rs_ctx != NULL && rs_ctx->SUB == NULL )                      \
+    {                                                                \
+        rs_ctx->SUB = mbedtls_calloc( 1, sizeof( *rs_ctx->SUB ) );   \
+        if( rs_ctx->SUB == NULL )                                    \
+            return( MBEDTLS_ERR_ECP_ALLOC_FAILED );                  \
+                                                                     \
+        ecdsa_restart_## SUB ##_init( rs_ctx->SUB );                 \
+    }                                                                \
+} while( 0 )
+
+#define ECDSA_RS_LEAVE( SUB )   do {                                 \
+    /* clear our sub-context when not in progress (done or error) */ \
+    if( rs_ctx != NULL && ret != MBEDTLS_ERR_ECP_IN_PROGRESS ) {     \
+        ecdsa_restart_## SUB ##_free( rs_ctx->SUB );                 \
+        mbedtls_free( rs_ctx->SUB );                                 \
+        rs_ctx->SUB = NULL;                                          \
+    }                                                                \
+                                                                     \
+    if( rs_ctx != NULL )                                             \
+        rs_ctx->ecp.depth--;                                         \
+} while( 0 )
+
 #else /* MBEDTLS_ECP_RESTARTABLE */
 
 #define ECDSA_RS_ECP    NULL
 
 #define ECDSA_BUDGET( ops )   /* no-op; for compatibility */
+
+#define ECDSA_RS_ENTER( SUB )   (void) rs_ctx
+#define ECDSA_RS_LEAVE( SUB )   (void) rs_ctx
 
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
@@ -137,14 +229,25 @@ static int ecdsa_sign_restartable( mbedtls_ecp_group *grp,
     mbedtls_ecp_point R;
     mbedtls_mpi k, e, t;
 
-    (void) rs_ctx; // temporary
-
     /* Fail cleanly on curves such as Curve25519 that can't be used for ECDSA */
     if( grp->N.p == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     mbedtls_ecp_point_init( &R );
     mbedtls_mpi_init( &k ); mbedtls_mpi_init( &e ); mbedtls_mpi_init( &t );
+
+    ECDSA_RS_ENTER( sig );
+
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    if( rs_ctx != NULL && rs_ctx->sig != NULL )
+    {
+        /* redirect to our context */
+        // TODO
+
+        /* jump to current step */
+        // TODO
+    }
+#endif /* MBEDTLS_ECP_RESTARTABLE */
 
     sign_tries = 0;
     do
@@ -213,6 +316,8 @@ cleanup:
     mbedtls_ecp_point_free( &R );
     mbedtls_mpi_free( &k ); mbedtls_mpi_free( &e ); mbedtls_mpi_free( &t );
 
+    ECDSA_RS_LEAVE( sig );
+
     return( ret );
 }
 
@@ -244,13 +349,24 @@ static int ecdsa_sign_det_restartable( mbedtls_ecp_group *grp,
     const mbedtls_md_info_t *md_info;
     mbedtls_mpi h;
 
-    (void) rs_ctx; // temporary
-
     if( ( md_info = mbedtls_md_info_from_type( md_alg ) ) == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     mbedtls_mpi_init( &h );
     mbedtls_hmac_drbg_init( &rng_ctx );
+
+    ECDSA_RS_ENTER( det );
+
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    if( rs_ctx != NULL && rs_ctx->det != NULL )
+    {
+        /* redirect to our context */
+        // TODO
+
+        /* jump to current step */
+        // TODO
+    }
+#endif /* MBEDTLS_ECP_RESTARTABLE */
 
     /* Use private key and message hash (reduced) to initialize HMAC_DRBG */
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( d, data, grp_len ) );
@@ -258,12 +374,14 @@ static int ecdsa_sign_det_restartable( mbedtls_ecp_group *grp,
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &h, data + grp_len, grp_len ) );
     mbedtls_hmac_drbg_seed_buf( &rng_ctx, md_info, data, 2 * grp_len );
 
-    ret = mbedtls_ecdsa_sign( grp, r, s, d, buf, blen,
-                      mbedtls_hmac_drbg_random, &rng_ctx );
+    ret = ecdsa_sign_restartable( grp, r, s, d, buf, blen,
+                      mbedtls_hmac_drbg_random, &rng_ctx, rs_ctx );
 
 cleanup:
     mbedtls_hmac_drbg_free( &rng_ctx );
     mbedtls_mpi_free( &h );
+
+    ECDSA_RS_LEAVE( det );
 
     return( ret );
 }
@@ -294,10 +412,6 @@ static int ecdsa_verify_restartable( mbedtls_ecp_group *grp,
     mbedtls_ecp_point R;
     mbedtls_mpi *pu1 = &u1, *pu2 = &u2;
 
-#if !defined(MBEDTLS_ECP_RESTARTABLE)
-    (void) rs_ctx;
-#endif
-
     mbedtls_ecp_point_init( &R );
     mbedtls_mpi_init( &e ); mbedtls_mpi_init( &s_inv );
     mbedtls_mpi_init( &u1 ); mbedtls_mpi_init( &u2 );
@@ -306,21 +420,9 @@ static int ecdsa_verify_restartable( mbedtls_ecp_group *grp,
     if( grp->N.p == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
+    ECDSA_RS_ENTER( ver );
+
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-    /* reset ops count for this call if top-level */
-    if( rs_ctx != NULL && rs_ctx->ecp.depth++ == 0 )
-        rs_ctx->ecp.ops_done = 0;
-
-    /* set up our own sub-context if needed */
-    if( mbedtls_ecp_restart_enabled() && rs_ctx != NULL && rs_ctx->ver == NULL )
-    {
-        rs_ctx->ver = mbedtls_calloc( 1, sizeof( mbedtls_ecdsa_restart_ver_ctx ) );
-        if( rs_ctx->ver == NULL )
-            return( MBEDTLS_ERR_ECP_ALLOC_FAILED );
-
-        ecdsa_restart_ver_init( rs_ctx->ver );
-    }
-
     if( rs_ctx != NULL && rs_ctx->ver != NULL )
     {
         /* redirect to our context */
@@ -404,17 +506,7 @@ cleanup:
     mbedtls_mpi_free( &e ); mbedtls_mpi_free( &s_inv );
     mbedtls_mpi_free( &u1 ); mbedtls_mpi_free( &u2 );
 
-#if defined(MBEDTLS_ECP_RESTARTABLE)
-    /* clear our sub-context when not in progress (done or error) */
-    if( rs_ctx != NULL && ret != MBEDTLS_ERR_ECP_IN_PROGRESS ) {
-        ecdsa_restart_ver_free( rs_ctx->ver );
-        mbedtls_free( rs_ctx->ver );
-        rs_ctx->ver = NULL;
-    }
-
-    if( rs_ctx != NULL )
-        rs_ctx->ecp.depth--;
-#endif /* MBEDTLS_ECP_RESTARTABLE */
+    ECDSA_RS_LEAVE( ver );
 
     return( ret );
 }
@@ -632,6 +724,10 @@ void mbedtls_ecdsa_restart_init( mbedtls_ecdsa_restart_ctx *ctx )
     mbedtls_ecp_restart_init( &ctx->ecp );
 
     ctx->ver = NULL;
+    ctx->sig = NULL;
+#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
+    ctx->det = NULL;
+#endif
 }
 
 /*
@@ -644,6 +740,16 @@ void mbedtls_ecdsa_restart_free( mbedtls_ecdsa_restart_ctx *ctx )
     ecdsa_restart_ver_free( ctx->ver );
     mbedtls_free( ctx->ver );
     ctx->ver = NULL;
+
+    ecdsa_restart_sig_free( ctx->sig );
+    mbedtls_free( ctx->sig );
+    ctx->sig = NULL;
+
+#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
+    ecdsa_restart_det_free( ctx->det );
+    mbedtls_free( ctx->det );
+    ctx->det = NULL;
+#endif
 }
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 

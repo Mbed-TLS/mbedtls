@@ -65,12 +65,32 @@ typedef mbedtls_ecp_keypair mbedtls_ecdsa_context;
 typedef struct mbedtls_ecdsa_restart_ver mbedtls_ecdsa_restart_ver_ctx;
 
 /**
+ * \brief           Internal restart context for ecdsa_sign()
+ *
+ * \note            Opaque struct, defined in ecdsa.c
+ */
+typedef struct mbedtls_ecdsa_restart_sig mbedtls_ecdsa_restart_sig_ctx;
+
+#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
+/**
+ * \brief           Internal restart context for ecdsa_sign_det()
+ *
+ * \note            Opaque struct, defined in ecdsa.c
+ */
+typedef struct mbedtls_ecdsa_restart_det mbedtls_ecdsa_restart_det_ctx;
+#endif
+
+/**
  * \brief           General context for resuming ECDSA operations
  */
 typedef struct
 {
     mbedtls_ecp_restart_ctx ecp;        /*!<  base context (admin+ecp info) */
     mbedtls_ecdsa_restart_ver_ctx *ver; /*!<  ecdsa_verify() sub-context    */
+    mbedtls_ecdsa_restart_sig_ctx *sig; /*!<  ecdsa_sign() sub-context      */
+#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
+    mbedtls_ecdsa_restart_det_ctx *det; /*!<  ecdsa_sign_det() sub-context  */
+#endif
 } mbedtls_ecdsa_restart_ctx;
 
 #else /* MBEDTLS_ECP_RESTARTABLE */

@@ -271,23 +271,23 @@ int x509_oid_get_numeric_string( char *buf, size_t size, x509_buf *oid ) DEPRECA
  * \brief          Check a given x509_time against the system time and check
  *                 if it is not expired.
  *
- * \param time     x509_time to check
+ * \param tm       x509_time to check
  *
  * \return         0 if the x509_time is still valid,
  *                 1 otherwise.
  */
-int x509_time_expired( const x509_time *time );
+int x509_time_expired( const x509_time *tm );
 
 /**
  * \brief          Check a given x509_time against the system time and check
  *                 if it is not from the future.
  *
- * \param time     x509_time to check
+ * \param tm       x509_time to check
  *
  * \return         0 if the x509_time is already valid,
  *                 1 otherwise.
  */
-int x509_time_future( const x509_time *time );
+int x509_time_future( const x509_time *tm );
 
 /**
  * \brief          Checkup routine
@@ -316,7 +316,7 @@ int x509_get_sig_alg( const x509_buf *sig_oid, const x509_buf *sig_params,
                       md_type_t *md_alg, pk_type_t *pk_alg,
                       void **sig_opts );
 int x509_get_time( unsigned char **p, const unsigned char *end,
-                   x509_time *time );
+                   x509_time *t );
 int x509_get_serial( unsigned char **p, const unsigned char *end,
                      x509_buf *serial );
 int x509_get_ext( unsigned char **p, const unsigned char *end,

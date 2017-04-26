@@ -490,25 +490,25 @@ static int x509_parse_int(unsigned char **p, unsigned n, int *res){
     return 0;
 }
 
-static int x509_date_is_valid(const x509_time *time)
+static int x509_date_is_valid(const x509_time *t)
 {
     int ret = POLARSSL_ERR_X509_INVALID_DATE;
 
-    CHECK_RANGE( 0, 9999, time->year );
-    CHECK_RANGE( 0, 23,   time->hour );
-    CHECK_RANGE( 0, 59,   time->min  );
-    CHECK_RANGE( 0, 59,   time->sec  );
+    CHECK_RANGE( 0, 9999, t->year );
+    CHECK_RANGE( 0, 23,   t->hour );
+    CHECK_RANGE( 0, 59,   t->min  );
+    CHECK_RANGE( 0, 59,   t->sec  );
 
-    switch( time->mon )
+    switch( t->mon )
     {
         case 1: case 3: case 5: case 7: case 8: case 10: case 12:
-            CHECK_RANGE( 1, 31, time->day );
+            CHECK_RANGE( 1, 31, t->day );
             break;
         case 4: case 6: case 9: case 11:
-            CHECK_RANGE( 1, 30, time->day );
+            CHECK_RANGE( 1, 30, t->day );
             break;
         case 2:
-            CHECK_RANGE( 1, 28 + (time->year % 4 == 0), time->day );
+            CHECK_RANGE( 1, 28 + (t->year % 4 == 0), t->day );
             break;
         default:
             return( ret );
@@ -520,7 +520,8 @@ static int x509_date_is_valid(const x509_time *time)
 /*
  * Parse an ASN1_UTC_TIME (yearlen=2) or ASN1_GENERALIZED_TIME (yearlen=4) field.
  */
-static int x509_parse_time( unsigned char **p, size_t len, unsigned int yearlen, x509_time *time )
+static int x509_parse_time( unsigned char **p, size_t len, size_t yearlen,
+                            x509_time *tm )
 {
     int ret;
 
@@ -534,26 +535,26 @@ static int x509_parse_time( unsigned char **p, size_t len, unsigned int yearlen,
     /*
      * parse year, month, day, hour, minute
      */
-    CHECK( x509_parse_int( p, yearlen, &time->year ) );
+    CHECK( x509_parse_int( p, yearlen, &tm->year ) );
     if ( 2 == yearlen )
     {
-        if ( time->year < 50 )
-            time->year += 100;
+        if ( tm->year < 50 )
+            tm->year += 100;
 
-        time->year += 1900;
+        tm->year += 1900;
     }
 
-    CHECK( x509_parse_int( p, 2, &time->mon ) );
-    CHECK( x509_parse_int( p, 2, &time->day ) );
-    CHECK( x509_parse_int( p, 2, &time->hour ) );
-    CHECK( x509_parse_int( p, 2, &time->min ) );
+    CHECK( x509_parse_int( p, 2, &tm->mon ) );
+    CHECK( x509_parse_int( p, 2, &tm->day ) );
+    CHECK( x509_parse_int( p, 2, &tm->hour ) );
+    CHECK( x509_parse_int( p, 2, &tm->min ) );
 
     /*
-     * parse seconds if present 
+     * parse seconds if present
      */
     if ( len >= 2 && **p >= '0' && **p <= '9' )
     {
-        CHECK( x509_parse_int( p, 2, &time->sec ) );
+        CHECK( x509_parse_int( p, 2, &tm->sec ) );
         len -= 2;
     }
     else
@@ -562,7 +563,7 @@ static int x509_parse_time( unsigned char **p, size_t len, unsigned int yearlen,
         /*
          * if relaxed mode, allow seconds to be absent
          */
-        time->sec = 0;
+        tm->sec = 0;
 #else
         return POLARSSL_ERR_X509_INVALID_DATE;
 #endif
@@ -605,7 +606,7 @@ static int x509_parse_time( unsigned char **p, size_t len, unsigned int yearlen,
  *       generalTime    GeneralizedTime }
  */
 int x509_get_time( unsigned char **p, const unsigned char *end,
-                   x509_time *time )
+                   x509_time *tm )
 {
     int ret;
     size_t len;
@@ -624,9 +625,9 @@ int x509_get_time( unsigned char **p, const unsigned char *end,
         if( ret != 0 )
             return( POLARSSL_ERR_X509_INVALID_DATE + ret );
 
-        CHECK( x509_parse_time( p, len, 2, time ) );
+        CHECK( x509_parse_time( p, len, 2, tm ) );
 
-        CHECK( x509_date_is_valid( time ) );
+        CHECK( x509_date_is_valid( tm ) );
 
         return( 0 );
     }
@@ -637,9 +638,9 @@ int x509_get_time( unsigned char **p, const unsigned char *end,
         if( ret != 0 )
             return( POLARSSL_ERR_X509_INVALID_DATE + ret );
 
-        CHECK( x509_parse_time( p, len, 4, time ) );
+        CHECK( x509_parse_time( p, len, 4, tm ) );
 
-        CHECK( x509_date_is_valid( time ) );
+        CHECK( x509_date_is_valid( tm ) );
 
         return( 0 );
     }

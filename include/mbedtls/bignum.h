@@ -340,7 +340,7 @@ int mbedtls_mpi_write_string( const mbedtls_mpi *X, int radix,
 
 #if defined(MBEDTLS_FS_IO)
 /**
- * \brief          Read X from an opened file
+ * \brief          Read MPI from a line in an opened file
  *
  * \param X        Destination MPI
  * \param radix    Input numeric base
@@ -349,6 +349,15 @@ int mbedtls_mpi_write_string( const mbedtls_mpi *X, int radix,
  * \return         0 if successful, MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if
  *                 the file read buffer is too small or a
  *                 MBEDTLS_ERR_MPI_XXX error code
+ *
+ * \note           On success, this function advances the file stream
+ *                 to the end of the current line or to EOF.
+ *
+ *                 The function returns 0 on an empty line.
+ *
+ *                 Leading whitespaces are ignored, as is a
+ *                 '0x' prefix for radix 16.
+ *
  */
 int mbedtls_mpi_read_file( mbedtls_mpi *X, int radix, FILE *fin );
 

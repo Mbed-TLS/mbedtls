@@ -1,5 +1,12 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Bugfix
+   * Fix potential stack underflow in mpi_read_file.
+     Found by Guido Vranken.
+
+
 = mbed TLS 2.4.2 branch released 2017-03-08
 
 Security

@@ -67,6 +67,8 @@ mbedtls_ecdh_context;
  *
  * \return          0 if successful,
  *                  or a MBEDTLS_ERR_ECP_XXX or MBEDTLS_MPI_XXX error code
+ *                  MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
+ *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
  */
 int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp_point *Q,
                      int (*f_rng)(void *, unsigned char *, size_t),
@@ -85,6 +87,8 @@ int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp
  *
  * \return          0 if successful,
  *                  or a MBEDTLS_ERR_ECP_XXX or MBEDTLS_MPI_XXX error code
+ *                  MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
+ *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
  *
  * \note            If f_rng is not NULL, it is used to implement
  *                  countermeasures against potential elaborate timing
@@ -124,6 +128,8 @@ void mbedtls_ecdh_free( mbedtls_ecdh_context *ctx );
  *                  properly set (for example using mbedtls_ecp_group_load).
  *
  * \return          0 if successful, or an MBEDTLS_ERR_ECP_XXX error code
+ *                  MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
+ *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
  */
 int mbedtls_ecdh_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
                       unsigned char *buf, size_t blen,
@@ -170,6 +176,8 @@ int mbedtls_ecdh_get_params( mbedtls_ecdh_context *ctx, const mbedtls_ecp_keypai
  * \param p_rng     RNG parameter
  *
  * \return          0 if successful, or an MBEDTLS_ERR_ECP_XXX error code
+ *                  MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
+ *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
  */
 int mbedtls_ecdh_make_public( mbedtls_ecdh_context *ctx, size_t *olen,
                       unsigned char *buf, size_t blen,
@@ -201,6 +209,8 @@ int mbedtls_ecdh_read_public( mbedtls_ecdh_context *ctx,
  * \param p_rng     RNG parameter
  *
  * \return          0 if successful, or an MBEDTLS_ERR_ECP_XXX error code
+ *                  MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
+ *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
  */
 int mbedtls_ecdh_calc_secret( mbedtls_ecdh_context *ctx, size_t *olen,
                       unsigned char *buf, size_t blen,

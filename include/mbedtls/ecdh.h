@@ -52,6 +52,9 @@ typedef struct
     mbedtls_ecp_point Vi;       /*!<  blinding value (for later)                    */
     mbedtls_ecp_point Vf;       /*!<  un-blinding value (for later)                 */
     mbedtls_mpi _d;             /*!<  previous d (for later)                        */
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    mbedtls_ecp_restart_ctx rs; /*!<  restart context for EC computations   */
+#endif
 }
 mbedtls_ecdh_context;
 

@@ -39,22 +39,48 @@
 #include <string.h>
 
 /*
- * Generate public key: simple wrapper around mbedtls_ecp_gen_keypair
+ * Generate public key (restartable version)
+ */
+static int ecdh_gen_public_restartable( mbedtls_ecp_group *grp,
+                    mbedtls_mpi *d, mbedtls_ecp_point *Q,
+                    int (*f_rng)(void *, unsigned char *, size_t),
+                    void *p_rng,
+                    mbedtls_ecp_restart_ctx *rs_ctx )
+{
+    int ret;
+
+    /* If multiplication is in progress, we already generated a privkey */
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    if( rs_ctx == NULL || rs_ctx->rsm == NULL )
+#endif
+        MBEDTLS_MPI_CHK( mbedtls_ecp_gen_privkey( grp, d, f_rng, p_rng ) );
+
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul_restartable( grp, Q, d, &grp->G,
+                                                  f_rng, p_rng, rs_ctx ) );
+
+cleanup:
+    return( ret );
+}
+
+/*
+ * Generate public key
  */
 int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp_point *Q,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng )
 {
-    return mbedtls_ecp_gen_keypair( grp, d, Q, f_rng, p_rng );
+    return( ecdh_gen_public_restartable( grp, d, Q, f_rng, p_rng, NULL ) );
 }
 
 /*
  * Compute shared secret (SEC1 3.3.1)
  */
-int mbedtls_ecdh_compute_shared( mbedtls_ecp_group *grp, mbedtls_mpi *z,
+static int ecdh_compute_shared_restartable( mbedtls_ecp_group *grp,
+                         mbedtls_mpi *z,
                          const mbedtls_ecp_point *Q, const mbedtls_mpi *d,
                          int (*f_rng)(void *, unsigned char *, size_t),
-                         void *p_rng )
+                         void *p_rng,
+                         mbedtls_ecp_restart_ctx *rs_ctx )
 {
     int ret;
     mbedtls_ecp_point P;
@@ -66,7 +92,8 @@ int mbedtls_ecdh_compute_shared( mbedtls_ecp_group *grp, mbedtls_mpi *z,
      */
     MBEDTLS_MPI_CHK( mbedtls_ecp_check_pubkey( grp, Q ) );
 
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &P, d, Q, f_rng, p_rng ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul_restartable( grp, &P, d, Q,
+                                                  f_rng, p_rng, rs_ctx ) );
 
     if( mbedtls_ecp_is_zero( &P ) )
     {
@@ -83,11 +110,27 @@ cleanup:
 }
 
 /*
+ * Compute shared secret (SEC1 3.3.1)
+ */
+int mbedtls_ecdh_compute_shared( mbedtls_ecp_group *grp, mbedtls_mpi *z,
+                         const mbedtls_ecp_point *Q, const mbedtls_mpi *d,
+                         int (*f_rng)(void *, unsigned char *, size_t),
+                         void *p_rng )
+{
+    return( ecdh_compute_shared_restartable( grp, z, Q, d,
+                                             f_rng, p_rng, NULL ) );
+}
+
+/*
  * Initialize context
  */
 void mbedtls_ecdh_init( mbedtls_ecdh_context *ctx )
 {
     memset( ctx, 0, sizeof( mbedtls_ecdh_context ) );
+
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    mbedtls_ecp_restart_init( &ctx->rs );
+#endif
 }
 
 /*
@@ -106,6 +149,10 @@ void mbedtls_ecdh_free( mbedtls_ecdh_context *ctx )
     mbedtls_mpi_free( &ctx->d  );
     mbedtls_mpi_free( &ctx->z  );
     mbedtls_mpi_free( &ctx->_d );
+
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    mbedtls_ecp_restart_free( &ctx->rs );
+#endif
 }
 
 /*
@@ -122,12 +169,17 @@ int mbedtls_ecdh_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
 {
     int ret;
     size_t grp_len, pt_len;
+    mbedtls_ecp_restart_ctx *rs_ctx = NULL;
 
     if( ctx == NULL || ctx->grp.pbits == 0 )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-    if( ( ret = mbedtls_ecdh_gen_public( &ctx->grp, &ctx->d, &ctx->Q, f_rng, p_rng ) )
-                != 0 )
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    rs_ctx = &ctx->rs;
+#endif
+
+    if( ( ret = ecdh_gen_public_restartable( &ctx->grp, &ctx->d, &ctx->Q,
+                    f_rng, p_rng, rs_ctx ) ) != 0 )
         return( ret );
 
     if( ( ret = mbedtls_ecp_tls_write_group( &ctx->grp, &grp_len, buf, blen ) )
@@ -202,12 +254,17 @@ int mbedtls_ecdh_make_public( mbedtls_ecdh_context *ctx, size_t *olen,
                       void *p_rng )
 {
     int ret;
+    mbedtls_ecp_restart_ctx *rs_ctx = NULL;
 
     if( ctx == NULL || ctx->grp.pbits == 0 )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-    if( ( ret = mbedtls_ecdh_gen_public( &ctx->grp, &ctx->d, &ctx->Q, f_rng, p_rng ) )
-                != 0 )
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    rs_ctx = &ctx->rs;
+#endif
+
+    if( ( ret = ecdh_gen_public_restartable( &ctx->grp, &ctx->d, &ctx->Q,
+                    f_rng, p_rng, rs_ctx ) ) != 0 )
         return( ret );
 
     return mbedtls_ecp_tls_write_point( &ctx->grp, &ctx->Q, ctx->point_format,
@@ -244,12 +301,17 @@ int mbedtls_ecdh_calc_secret( mbedtls_ecdh_context *ctx, size_t *olen,
                       void *p_rng )
 {
     int ret;
+    mbedtls_ecp_restart_ctx *rs_ctx = NULL;
 
-    if( ctx == NULL )
+    if( ctx == NULL || ctx->grp.pbits == 0 )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-    if( ( ret = mbedtls_ecdh_compute_shared( &ctx->grp, &ctx->z, &ctx->Qp, &ctx->d,
-                                     f_rng, p_rng ) ) != 0 )
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    rs_ctx = &ctx->rs;
+#endif
+
+    if( ( ret = ecdh_compute_shared_restartable( &ctx->grp,
+                    &ctx->z, &ctx->Qp, &ctx->d, f_rng, p_rng, rs_ctx ) ) != 0 )
     {
         return( ret );
     }

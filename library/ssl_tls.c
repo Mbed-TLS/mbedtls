@@ -4409,7 +4409,8 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
             const mbedtls_pk_context *pk = &ssl->session_negotiate->peer_cert->pk;
 
             /* If certificate uses an EC key, make sure the curve is OK */
-            if( mbedtls_pk_can_do( pk, MBEDTLS_PK_ECKEY ) &&
+            if( mbedtls_pk_type_check_convertible( MBEDTLS_PK_ECKEY,
+                                                   mbedtls_pk_get_type( pk ) ) == 0 &&
                 mbedtls_ssl_check_curve( ssl, mbedtls_pk_ec( *pk )->grp.id ) != 0 )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate (EC key curve)" ) );
@@ -7261,6 +7262,19 @@ unsigned char mbedtls_ssl_sig_from_pk( mbedtls_pk_context *pk )
         return( MBEDTLS_SSL_SIG_ECDSA );
 #endif
     return( MBEDTLS_SSL_SIG_ANON );
+}
+
+unsigned char mbedtls_ssl_sig_from_pk_alg( mbedtls_pk_type_t type )
+{
+    switch( type ) {
+        case MBEDTLS_PK_RSA:
+            return( MBEDTLS_SSL_SIG_RSA );
+        case MBEDTLS_PK_ECDSA:
+        case MBEDTLS_PK_ECKEY:
+            return( MBEDTLS_SSL_SIG_ECDSA );
+        default:
+            return( MBEDTLS_SSL_SIG_ANON );
+    }
 }
 
 mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig( unsigned char sig )

@@ -2014,7 +2014,7 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
     }
 
     if( ! mbedtls_pk_can_do( &ssl->session_negotiate->peer_cert->pk,
-                     MBEDTLS_PK_ECKEY ) )
+                     MBEDTLS_PK_ECKEY_DH ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "server key not ECDH capable" ) );
         return( MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH );

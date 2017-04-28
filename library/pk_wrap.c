@@ -308,8 +308,7 @@ const mbedtls_pk_info_t mbedtls_eckey_info = {
  */
 static int eckeydh_can_do( mbedtls_pk_type_t type )
 {
-    return( type == MBEDTLS_PK_ECKEY ||
-            type == MBEDTLS_PK_ECKEY_DH );
+    return( type == MBEDTLS_PK_ECKEY_DH );
 }
 
 const mbedtls_pk_info_t mbedtls_eckeydh_info = {

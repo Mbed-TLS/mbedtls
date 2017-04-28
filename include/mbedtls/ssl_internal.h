@@ -366,10 +366,13 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
 #endif
 
 #if defined(MBEDTLS_PK_C)
+/* Get TLS-encoding of the signature algorithm supported by a pubkey (if any). */
 unsigned char mbedtls_ssl_sig_from_pk( mbedtls_pk_context *pk );
+unsigned char mbedtls_ssl_sig_from_pk_alg( mbedtls_pk_type_t type );
+/* Get the weakest (wrt. to \c mbedtls_pk_can_do) PK type 
+ * with a given underlying signature algorithm. */
 mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig( unsigned char sig );
 #endif
-
 mbedtls_md_type_t mbedtls_ssl_md_alg_from_hash( unsigned char hash );
 unsigned char mbedtls_ssl_hash_from_md_alg( int md );
 

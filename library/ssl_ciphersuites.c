@@ -1791,8 +1791,25 @@ mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_pk_alg( const mbedtls_ssl_ciph
 
         case MBEDTLS_KEY_EXCHANGE_ECDH_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA:
-            return( MBEDTLS_PK_ECKEY );
+            return( MBEDTLS_PK_ECKEY_DH );
 
+        default:
+            return( MBEDTLS_PK_NONE );
+    }
+}
+
+mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_alg( const mbedtls_ssl_ciphersuite_t *info )
+{
+    switch( info->key_exchange )
+    {
+        case MBEDTLS_KEY_EXCHANGE_RSA:
+        case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
+        case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
+            return( MBEDTLS_PK_RSA );
+
+        case MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA:
+            return( MBEDTLS_PK_ECDSA );
+            
         default:
             return( MBEDTLS_PK_NONE );
     }

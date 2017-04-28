@@ -308,7 +308,19 @@ const mbedtls_ssl_ciphersuite_t *mbedtls_ssl_ciphersuite_from_string( const char
 const mbedtls_ssl_ciphersuite_t *mbedtls_ssl_ciphersuite_from_id( int ciphersuite_id );
 
 #if defined(MBEDTLS_PK_C)
+/**
+ * Get the weakest (wrt. \c mbedtls_pk_can_do) type of public key
+ * required in the server's certificate for a given cipher suite.
+ * E.g., an ECDH ciphersuite maps to MBEDTLS_PK_ECKEY_DH.
+ */
 mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_pk_alg( const mbedtls_ssl_ciphersuite_t *info );
+/**
+ * Get the weakest (wrt. \c mbedtls_pk_can_do) type of public key
+ * supporting the server signing operation needed for the given
+ * cipher suite (if any).
+ * E.g., ECDHE_ECDSA gives MBEDTLS_PK_ECDSA, while ECDH_XXX gives MBEDTLS_PK_NONE.
+ */
+mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_alg( const mbedtls_ssl_ciphersuite_t *info );
 #endif
 
 int mbedtls_ssl_ciphersuite_uses_ec( const mbedtls_ssl_ciphersuite_t *info );

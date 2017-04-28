@@ -70,6 +70,12 @@ extern "C" {
 
 /**
  * \brief          Public key types
+ *
+ *                 Represents a pair of
+ *                 - an underlying mathematical concept like RSA or EC
+ *                 - a set of operations the key might be used for
+ *                   (encryption, signatures, key exchanges)
+ *
  */
 typedef enum {
     MBEDTLS_PK_NONE=0,
@@ -170,6 +176,31 @@ typedef size_t (*mbedtls_pk_rsa_alt_key_len_func)( void *ctx );
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
 
 /**
+ * \brief           Check whether instances of one PK-type are convertible
+ *                  to those of another.
+ *
+ * \param from      PK-type to convert from
+ * \param to        PK-type to convert to
+ *
+ * \note            Convertibility is currently restricted to the following two cases:
+ *                  (1) The target PK-type has the same underlying
+ *                      mathematical entity but is restricted in its
+ *                      functionality. For example, the type PK_ECKEY
+ *                      of unrestricted EC keys converts to PK_ECDSA
+ *                      of EC keys to use for ECDSA signing only, but
+ *                      not conversely.
+ *                  (2) The target PK-type has the same underlying
+ *                      mathematical entity but uses it differently
+ *                      for some of its functionality. For example,
+ *                      PK_RSA converts to PK_RSASSA_PSS which uses
+ *                      a different padding scheme for signatures.
+ *
+ * \return          0 if \c from is convertible to \c to, nonzero otherwise.
+ *
+ */
+int mbedtls_pk_type_check_convertible( mbedtls_pk_type_t from, mbedtls_pk_type_t to );
+
+/**
  * \brief           Return information associated with the given PK type
  *
  * \param pk_type   PK type to search for.
@@ -250,6 +281,12 @@ static inline size_t mbedtls_pk_get_len( const mbedtls_pk_context *ctx )
  *
  * \param ctx       Context to test
  * \param type      Target type
+ *
+ * \note            The return value of this function only depends on the
+ *                  underlying public key type of the given context and gives
+ *                  the same result as the function
+ *                  \c mbedtls_pk_type_check_convertible.
+ *                  For more information, see the documentation of the latter.
  *
  * \return          0 if context can't do the operations,
  *                  1 otherwise.

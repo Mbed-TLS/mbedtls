@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+mbed TLS 2.x.x branch released xxxx-xx-xx
+
+Bugfix
+   * Fix insufficient support for signature-hash-algorithm extension,
+     resulting in compatibility problems with Chrome. Found by hfloyrd. #823
+
 = mbed TLS 2.1.7 branch released 2017-03-08
 
 Security

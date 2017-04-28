@@ -32,6 +32,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
+    !defined(inline) && !defined(__cplusplus)
+#define inline __inline
+#endif
+
 #if !defined(MBEDTLS_SHA1_ALT)
 // Regular implementation
 //
@@ -78,8 +83,10 @@ void mbedtls_sha1_clone( mbedtls_sha1_context *dst,
  * \brief          SHA-1 context setup
  *
  * \param ctx      context to be initialized
+ *
+ * \return         0 if successful
  */
-void mbedtls_sha1_starts( mbedtls_sha1_context *ctx );
+int mbedtls_sha1_starts_ext( mbedtls_sha1_context *ctx );
 
 /**
  * \brief          SHA-1 process buffer
@@ -87,19 +94,103 @@ void mbedtls_sha1_starts( mbedtls_sha1_context *ctx );
  * \param ctx      SHA-1 context
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
+ *
+ * \return         0 if successful
  */
-void mbedtls_sha1_update( mbedtls_sha1_context *ctx, const unsigned char *input, size_t ilen );
+int mbedtls_sha1_update_ext( mbedtls_sha1_context *ctx,
+                             const unsigned char *input,
+                             size_t ilen );
 
 /**
  * \brief          SHA-1 final digest
  *
  * \param ctx      SHA-1 context
  * \param output   SHA-1 checksum result
+ *
+ * \return         0 if successful
  */
-void mbedtls_sha1_finish( mbedtls_sha1_context *ctx, unsigned char output[20] );
+int mbedtls_sha1_finish_ext( mbedtls_sha1_context *ctx,
+                             unsigned char output[20] );
 
-/* Internal use */
-void mbedtls_sha1_process( mbedtls_sha1_context *ctx, const unsigned char data[64] );
+/**
+ * \brief          SHA-1 process data block (internal use only)
+ *
+ * \param ctx      SHA-1 context
+ * \param data     buffer holding one block of data
+ *
+ * \return         0 if successful
+ */
+int mbedtls_sha1_process_ext( mbedtls_sha1_context *ctx,
+                              const unsigned char data[64] );
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+/**
+ * \brief          SHA-1 context setup
+ *
+ * \deprecated     Superseded by mbedtls_sha1_starts_ext() in 2.5.0
+ *
+ * \param ctx      context to be initialized
+ */
+MBEDTLS_DEPRECATED static inline void mbedtls_sha1_starts(
+                                                mbedtls_sha1_context *ctx )
+{
+    mbedtls_sha1_starts_ext( ctx );
+}
+
+/**
+ * \brief          SHA-1 process buffer
+ *
+ * \deprecated     Superseded by mbedtls_sha1_update_ext() in 2.5.0
+ *
+ * \param ctx      SHA-1 context
+ * \param input    buffer holding the  data
+ * \param ilen     length of the input data
+ */
+MBEDTLS_DEPRECATED static inline void mbedtls_sha1_update(
+                                                mbedtls_sha1_context *ctx,
+                                                const unsigned char *input,
+                                                size_t ilen )
+{
+    mbedtls_sha1_update_ext( ctx, input, ilen );
+}
+
+/**
+ * \brief          SHA-1 final digest
+ *
+ * \deprecated     Superseded by mbedtls_sha1_finish_ext() in 2.5.0
+ *
+ * \param ctx      SHA-1 context
+ * \param output   SHA-1 checksum result
+ */
+MBEDTLS_DEPRECATED static inline void mbedtls_sha1_finish(
+                                                mbedtls_sha1_context *ctx,
+                                                unsigned char output[20] )
+{
+    mbedtls_sha1_finish_ext( ctx, output );
+}
+
+/**
+ * \brief          SHA-1 process data block (internal use only)
+ *
+ * \deprecated     Superseded by mbedtls_sha1_process_ext() in 2.5.0
+ *
+ * \param ctx      SHA-1 context
+ * \param data     buffer holding one block of data
+ */
+MBEDTLS_DEPRECATED static inline void mbedtls_sha1_process(
+                                                mbedtls_sha1_context *ctx,
+                                                const unsigned char data[64] )
+{
+    mbedtls_sha1_process_ext( ctx, data );
+}
+
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 #ifdef __cplusplus
 }
@@ -119,8 +210,37 @@ extern "C" {
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  * \param output   SHA-1 checksum result
+ *
+ * \return         0 if successful
  */
-void mbedtls_sha1( const unsigned char *input, size_t ilen, unsigned char output[20] );
+int mbedtls_sha1_ext( const unsigned char *input,
+                      size_t ilen,
+                      unsigned char output[20] );
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+/**
+ * \brief          Output = SHA-1( input buffer )
+ *
+ * \deprecated     Superseded by mbedtls_sha1_ext() in 2.5.0
+ *
+ * \param input    buffer holding the  data
+ * \param ilen     length of the input data
+ * \param output   SHA-1 checksum result
+ */
+MBEDTLS_DEPRECATED static inline void mbedtls_sha1( const unsigned char *input,
+                                                    size_t ilen,
+                                                    unsigned char output[20] )
+{
+    mbedtls_sha1_ext( input, ilen, output );
+}
+
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 /**
  * \brief          Checkup routine

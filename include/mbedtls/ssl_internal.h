@@ -179,7 +179,7 @@ struct mbedtls_ssl_handshake_params
     unsigned char *ecjpake_cache;               /*!< Cache for ClientHello ext */
     size_t ecjpake_cache_len;                   /*!< Length of cached data */
 #endif
-#endif
+#endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     const mbedtls_ecp_curve_info **curves;      /*!<  Supported elliptic curves */
@@ -195,7 +195,7 @@ struct mbedtls_ssl_handshake_params
     mbedtls_ssl_key_cert *sni_key_cert; /*!< key/cert list from SNI         */
     mbedtls_x509_crt *sni_ca_chain;     /*!< trusted CAs from SNI callback  */
     mbedtls_x509_crl *sni_ca_crl;       /*!< trusted CAs CRLs from SNI      */
-#endif
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     unsigned int out_msg_seq;           /*!<  Outgoing handshake sequence number */
@@ -218,7 +218,7 @@ struct mbedtls_ssl_handshake_params
                                               resending messages             */
     unsigned char alt_out_ctr[8];       /*!<  Alternative record epoch/counter
                                               for resending messages         */
-#endif
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
     /*
      * Checksum contexts

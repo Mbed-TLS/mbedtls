@@ -2681,16 +2681,24 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME_PFS__ENABLED)
     unsigned char *p = ssl->out_msg + 4;
+    size_t len;
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
     unsigned char *dig_signed = p;
-    size_t dig_signed_len = 0, len;
-    ((void) dig_signed);
-    ((void) dig_signed_len);
-    ((void) len);
-#endif /* MBEDTLS_KEY_EXCHANGE__SOME_PFS__ENABLED) */
+    size_t dig_signed_len = 0;
+#endif /* MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE__SOME_PFS__ENABLED */
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write server key exchange" ) );
 
-    /* For key exchanges involving ECDH, extract DH parameters from certificate here. */
+    /*
+     *
+     * Part 1: Extract static ECDH parameters and abort
+     *         if ServerKeyExchange not needed.
+     *
+     */
+
+    /* For suites involving ECDH, extract DH parameters
+     * from certificate at this point. */
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__ECDH_ENABLED)
     if( mbedtls_ssl_ciphersuite_uses_ecdh( ciphersuite_info ) )
     {
@@ -2728,7 +2736,7 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
           MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
 
     /*
-     * For DHE key exchanges, add the DH parameters here.
+     * - DHE key exchanges
      */
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__DHE_ENABLED)
     if( mbedtls_ssl_ciphersuite_uses_dhe( ciphersuite_info ) )
@@ -2763,8 +2771,10 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
             return( ret );
         }
 
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)        
         dig_signed = p;
         dig_signed_len = len;
+#endif
 
         p += len;
         n += len;
@@ -2777,7 +2787,7 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__DHE_ENABLED */
 
     /*
-     * For ECDHE key exchanges, add the ECDH parameters here.
+     * - ECDHE key exchanges
      */
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__ECDHE_ENABLED)
     if( mbedtls_ssl_ciphersuite_uses_ecdhe( ciphersuite_info ) )
@@ -2822,9 +2832,11 @@ curve_matching_done:
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_make_params", ret );
             return( ret );
         }
-
+        
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
         dig_signed     = p;
         dig_signed_len = len;
+#endif
 
         p += len;
         n += len;
@@ -2834,8 +2846,10 @@ curve_matching_done:
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__ECDHE_ENABLED */
 
     /*
-     * For key exchanges involving the server signing the (EC)DH parameters,
-     * compute and add the signature here.
+     *
+     * Part 3: For key exchanges involving the server signing the
+     *         exchange parameters, compute and add the signature here.
+     *
      */
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
     if( mbedtls_ssl_ciphersuite_uses_server_signature( ciphersuite_info ) )
@@ -2860,16 +2874,15 @@ curve_matching_done:
             mbedtls_ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
         if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
         {
-            /* For TLS 1.2, obey signature-hash-algorithm extension
-             * (RFC 5246, Sec. 7.4.1.4.1). */
-
+            /* A: For TLS 1.2, obey signature-hash-algorithm extension
+             *    (RFC 5246, Sec. 7.4.1.4.1). */
             if( sig_alg == MBEDTLS_PK_NONE ||
                 ( md_alg = mbedtls_ssl_sig_hash_set_find( &ssl->handshake->hash_algs,
                                                           sig_alg ) ) == MBEDTLS_MD_NONE )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-                /* (... because we choose a cipher suite
-                 * only if there is a matching hash.) */
+                /* (... because we choose a cipher suite 
+                 *      only if there is a matching hash.) */
                 return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
             }
         }
@@ -2877,22 +2890,23 @@ curve_matching_done:
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
-        if( ciphersuite_info->key_exchange ==
-                  MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA )
+        if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA )
         {
+            /* B: Default hash SHA1 */
             md_alg = MBEDTLS_MD_SHA1;
         }
         else
 #endif /* MBEDTLS_SSL_PROTO_SSL3 || MBEDTLS_SSL_PROTO_TLS1 || \
           MBEDTLS_SSL_PROTO_TLS1_1 */
         {
+            /* C: MD5 + SHA1 */
             md_alg = MBEDTLS_MD_NONE;
         }
 
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "pick hash algorithm %d for signing", md_alg ) );                    
         
         /*
-         * Compute the hash to be signed
+         * 3.2: Compute the hash to be signed
          */
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
@@ -2917,6 +2931,7 @@ curve_matching_done:
              *     SHA(ClientHello.random + ServerHello.random
              *                            + ServerParams);
              */
+            
             mbedtls_md5_starts( &mbedtls_md5 );
             mbedtls_md5_update( &mbedtls_md5, ssl->handshake->randbytes,  64 );
             mbedtls_md5_update( &mbedtls_md5, dig_signed, dig_signed_len );
@@ -2978,7 +2993,7 @@ curve_matching_done:
             (unsigned int) ( mbedtls_md_get_size( mbedtls_md_info_from_type( md_alg ) ) ) );
 
         /*
-         * Compute and add the signature
+         * 3.3: Compute and add the signature
          */
         if( mbedtls_ssl_own_key( ssl ) == NULL )
         {
@@ -2989,7 +3004,8 @@ curve_matching_done:
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
         if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
         {
-            /* For TLS 1.2, we need to specify signature and hash algorithm
+            /*
+             * For TLS 1.2, we need to specify signature and hash algorithm
              * explicitly through a prefix to the signature.
              *
              * struct {
@@ -3027,6 +3043,8 @@ curve_matching_done:
         n += signature_len;
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED */
+
+    /* Done with actual work; add header and send. */
 
     ssl->out_msglen  = 4 + n;
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;

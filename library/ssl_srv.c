@@ -1002,11 +1002,9 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
     ciphersuite_info = NULL;
 #if defined(MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
     for( j = 0, p = buf + 6; j < ciph_len; j += 3, p += 3 )
-    {
         for( i = 0; ciphersuites[i] != 0; i++ )
 #else
     for( i = 0; ciphersuites[i] != 0; i++ )
-    {
         for( j = 0, p = buf + 6; j < ciph_len; j += 3, p += 3 )
 #endif
         {
@@ -1024,7 +1022,6 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
             if( ciphersuite_info != NULL )
                 goto have_ciphersuite_v2;
         }
-    }
 
     if( got_common_suite )
     {
@@ -1113,7 +1110,7 @@ read_record_header:
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_STREAM )
 #endif
         if( ( buf[0] & 0x80 ) != 0 )
-            return ssl_parse_client_hello_v2( ssl );
+            return( ssl_parse_client_hello_v2( ssl ) );
 #endif
 
     MBEDTLS_SSL_DEBUG_BUF( 4, "record header", buf, mbedtls_ssl_hdr_len( ssl ) );
@@ -1797,11 +1794,9 @@ read_record_header:
     ciphersuite_info = NULL;
 #if defined(MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
     for( j = 0, p = buf + ciph_offset + 2; j < ciph_len; j += 2, p += 2 )
-    {
         for( i = 0; ciphersuites[i] != 0; i++ )
 #else
     for( i = 0; ciphersuites[i] != 0; i++ )
-    {
         for( j = 0, p = buf + ciph_offset + 2; j < ciph_len; j += 2, p += 2 )
 #endif
         {
@@ -1818,7 +1813,6 @@ read_record_header:
             if( ciphersuite_info != NULL )
                 goto have_ciphersuite;
         }
-    }
 
     if( got_common_suite )
     {

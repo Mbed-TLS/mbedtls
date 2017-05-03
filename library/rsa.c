@@ -398,24 +398,68 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
 {
     int ret;
     size_t olen;
-    mbedtls_mpi T, T1, T2;
+
+    /* Temporary holding the result */
+    mbedtls_mpi T;
+
+    /* Temporaries holding P-1, Q-1 and the
+     * exponent blinding factor, respectively. */
     mbedtls_mpi P1, Q1, R;
-#if defined(MBEDTLS_RSA_NO_CRT)
-    mbedtls_mpi D_blind;
-    mbedtls_mpi *D = &ctx->D;
-#else
+
+#if !defined(MBEDTLS_RSA_NO_CRT)
+    /* Temporaries holding the results mod p resp. mod q. */
+    mbedtls_mpi TP, TQ;
+
+    /* Temporaries holding the blinded exponents for
+     * the mod p resp. mod q computation (if used). */
     mbedtls_mpi DP_blind, DQ_blind;
+
+    /* Pointers to actual exponents to be used - either the unblinded
+     * or the blinded ones, depending on the presence of a PRNG. */
     mbedtls_mpi *DP = &ctx->DP;
     mbedtls_mpi *DQ = &ctx->DQ;
+#else
+    /* Temporary holding the blinded exponent (if used). */
+    mbedtls_mpi D_blind;
+
+    /* Pointer to actual exponent to be used - either the unblinded
+     * or the blinded one, depending on the presence of a PRNG. */
+    mbedtls_mpi *D = &ctx->D;
+#endif
+
+#if defined(MBEDTLS_RSA_REQUIRE_VERIFICATION)
+     /* Temporaries holding input mod p resp. mod q. */
+    mbedtls_mpi IP, IQ;
+
+    /* Temporaries holding double check results mod p resp. mod q;
+     * should in the end have the same values as IP and IQ. */
+    mbedtls_mpi CP, CQ;
+
+    /* Comparison results */
+    int check = 0;
+#endif
+
+#if defined(MBEDTLS_RSA_FORCE_BLINDING)
+    if( f_rng == NULL )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 #endif
 
     /* Make sure we have private key info, prevent possible misuse */
     if( ctx->P.p == NULL || ctx->Q.p == NULL || ctx->D.p == NULL )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
-    mbedtls_mpi_init( &T ); mbedtls_mpi_init( &T1 ); mbedtls_mpi_init( &T2 );
-    mbedtls_mpi_init( &P1 ); mbedtls_mpi_init( &Q1 ); mbedtls_mpi_init( &R );
+#if defined(MBEDTLS_THREADING_C)
+    if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
+        return( ret );
+#endif
 
+    /* MPI Initialization */
+
+    mbedtls_mpi_init( &T );
+
+    mbedtls_mpi_init( &P1 );
+    mbedtls_mpi_init( &Q1 );
+    mbedtls_mpi_init( &R );
 
     if( f_rng != NULL )
     {
@@ -427,11 +471,16 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
 #endif
     }
 
-
-#if defined(MBEDTLS_THREADING_C)
-    if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
-        return( ret );
+#if !defined(MBEDTLS_RSA_NO_CRT)
+    mbedtls_mpi_init( &TP ); mbedtls_mpi_init( &TQ );
 #endif
+
+#if defined(MBEDTLS_RSA_REQUIRE_VERIFICATION)
+    mbedtls_mpi_init( &IP ); mbedtls_mpi_init( &IQ );
+    mbedtls_mpi_init( &CP ); mbedtls_mpi_init( &CQ );
+#endif
+
+    /* End of MPI initialization */
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &T, input, ctx->len ) );
     if( mbedtls_mpi_cmp_mpi( &T, &ctx->N ) >= 0 )
@@ -439,6 +488,11 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
         ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
         goto cleanup;
     }
+
+#if defined(MBEDTLS_RSA_REQUIRE_VERIFICATION)
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &IP, &T, &ctx->P ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &IQ, &T, &ctx->Q ) );
+#endif
 
     if( f_rng != NULL )
     {
@@ -498,24 +552,25 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
     /*
      * Faster decryption using the CRT
      *
-     * T1 = input ^ dP mod P
-     * T2 = input ^ dQ mod Q
+     * TP = input ^ dP mod P
+     * TQ = input ^ dQ mod Q
      */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &T1, &T, DP, &ctx->P, &ctx->RP ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &T2, &T, DQ, &ctx->Q, &ctx->RQ ) );
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &TP, &T, DP, &ctx->P, &ctx->RP ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &TQ, &T, DQ, &ctx->Q, &ctx->RQ ) );
 
     /*
-     * T = (T1 - T2) * (Q^-1 mod P) mod P
+     * T = (TP - TQ) * (Q^-1 mod P) mod P
      */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &T, &T1, &T2 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &T1, &T, &ctx->QP ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &T, &T1, &ctx->P ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &T, &TP, &TQ ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &TP, &T, &ctx->QP ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &T, &TP, &ctx->P ) );
 
     /*
-     * T = T2 + T * Q
+     * T = TQ + T * Q
      */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &T1, &T, &ctx->Q ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &T, &T2, &T1 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &TP, &T, &ctx->Q ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &T, &TQ, &TP ) );
 #endif /* MBEDTLS_RSA_NO_CRT */
 
     if( f_rng != NULL )
@@ -528,6 +583,23 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
         MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &T, &T, &ctx->N ) );
     }
 
+    /* If requested by the config, verify the result to prevent glitching attacks.
+     * For that, check the two prime moduli separately. */
+#if defined(MBEDTLS_RSA_REQUIRE_VERIFICATION)
+    MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &CP, &T, &ctx->E, &ctx->P, &ctx->RP ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &CQ, &T, &ctx->E, &ctx->Q, &ctx->RQ ) );
+
+    check |= mbedtls_mpi_cmp_mpi( &CP, &IP );
+    check |= mbedtls_mpi_cmp_mpi( &CQ, &IQ );
+
+    if( check != 0 )
+    {
+        /* Verification failed */
+        ret = MBEDTLS_ERR_RSA_VERIFY_FAILED;
+        goto cleanup;
+    }
+#endif /* MBEDTLS_RSA_REQUIRE_VERIFICATION */
+
     olen = ctx->len;
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &T, output, olen ) );
 
@@ -537,8 +609,9 @@ cleanup:
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 #endif
 
-    mbedtls_mpi_free( &T ); mbedtls_mpi_free( &T1 ); mbedtls_mpi_free( &T2 );
-    mbedtls_mpi_free( &P1 ); mbedtls_mpi_free( &Q1 ); mbedtls_mpi_free( &R );
+    mbedtls_mpi_free( &P1 );
+    mbedtls_mpi_free( &Q1 );
+    mbedtls_mpi_free( &R );
 
     if( f_rng != NULL )
     {
@@ -549,6 +622,17 @@ cleanup:
         mbedtls_mpi_free( &DQ_blind );
 #endif
     }
+
+    mbedtls_mpi_free( &T );
+
+#if !defined(MBEDTLS_RSA_NO_CRT)
+    mbedtls_mpi_free( &TP ); mbedtls_mpi_free( &TQ );
+#endif
+
+#if defined(MBEDTLS_RSA_REQUIRE_VERIFICATION)
+    mbedtls_mpi_free( &IP ); mbedtls_mpi_free( &IQ );
+    mbedtls_mpi_free( &CP ); mbedtls_mpi_free( &CQ );
+#endif
 
     if( ret != 0 )
         return( MBEDTLS_ERR_RSA_PRIVATE_FAILED + ret );

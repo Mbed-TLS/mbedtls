@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.x.x branch released xxxx-xx-xx
+
+Security
+   * Tighten ASN.1 parsing of RSA PKCS#1 v1.5 signatures, to avoid a
+     potential Bleichenbacher-style attack.
+
 = mbed TLS 2.4.2 branch released 2017-03-08
 
 Security

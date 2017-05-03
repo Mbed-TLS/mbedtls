@@ -1840,8 +1840,12 @@ run_test    "Authentication: client badcert, server required" \
             -s "x509_verify_cert() returned" \
             -s "! The certificate is not correctly signed by the trusted CA" \
             -s "! mbedtls_ssl_handshake returned" \
+            -s "send alert level=2 message=48" \
             -c "! mbedtls_ssl_handshake returned" \
             -s "X509 - Certificate verification failed"
+# We don't check that the client receives the alert because it might
+# detect that its write end of the connection is closed and abort
+# before reading the alert message.
 
 run_test    "Authentication: client badcert, server optional" \
             "$P_SRV debug_level=3 auth_mode=optional" \

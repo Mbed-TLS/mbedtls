@@ -1343,7 +1343,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
 {
     int ret;
     size_t len, siglen, asn1_len;
-    unsigned char *p, *end;
+    unsigned char *p, *p0, *end;
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
     mbedtls_md_type_t msg_md_alg;
     const mbedtls_md_info_t *md_info;
@@ -1396,21 +1396,25 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
 
     // Parse the ASN.1 structure inside the PKCS#1 v1.5 structure
     //
+    p0 = p;
     if( ( ret = mbedtls_asn1_get_tag( &p, end, &asn1_len,
             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
         return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
 
-    if( asn1_len + 2 != len )
+    if( p != p0 + 2 || asn1_len + 2 != len )
         return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
 
     if( ( ret = mbedtls_asn1_get_tag( &p, end, &asn1_len,
             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
         return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
 
-    if( asn1_len + 6 + hashlen != len )
+    if( p != p0 + 4 || asn1_len + 6 + hashlen != len )
         return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
 
     if( ( ret = mbedtls_asn1_get_tag( &p, end, &oid.len, MBEDTLS_ASN1_OID ) ) != 0 )
+        return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
+
+    if( p != p0 + 6 )
         return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
 
     oid.p = p;
@@ -1428,10 +1432,11 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
     if( ( ret = mbedtls_asn1_get_tag( &p, end, &asn1_len, MBEDTLS_ASN1_NULL ) ) != 0 )
         return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
 
+    p0 = p;
     if( ( ret = mbedtls_asn1_get_tag( &p, end, &asn1_len, MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
         return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
 
-    if( asn1_len != hashlen )
+    if( p != p0 + 2 || asn1_len != hashlen )
         return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
 
     if( memcmp( p, hash, hashlen ) != 0 )

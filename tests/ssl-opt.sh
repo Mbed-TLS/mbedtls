@@ -1794,6 +1794,38 @@ run_test    "Authentication: client SHA384, server required" \
             -c "Supported Signature Algorithm found: 4," \
             -c "Supported Signature Algorithm found: 5,"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
+run_test    "Authentication: client has no cert, server required (SSLv3)" \
+            "$P_SRV debug_level=3 min_version=ssl3 auth_mode=required" \
+            "$P_CLI debug_level=3 force_version=ssl3 crt_file=none \
+             key_file=data_files/server5.key" \
+            1 \
+            -S "skip write certificate request" \
+            -C "skip parse certificate request" \
+            -c "got a certificate request" \
+            -c "got no certificate to send" \
+            -S "x509_verify_cert() returned" \
+            -s "client has no certificate" \
+            -s "! mbedtls_ssl_handshake returned" \
+            -c "! mbedtls_ssl_handshake returned" \
+            -s "No client certification received from the client, but required by the authentication mode"
+
+run_test    "Authentication: client has no cert, server required (TLS)" \
+            "$P_SRV debug_level=3 auth_mode=required" \
+            "$P_CLI debug_level=3 crt_file=none \
+             key_file=data_files/server5.key" \
+            1 \
+            -S "skip write certificate request" \
+            -C "skip parse certificate request" \
+            -c "got a certificate request" \
+            -c "= write certificate$" \
+            -C "skip write certificate$" \
+            -S "x509_verify_cert() returned" \
+            -s "client has no certificate" \
+            -s "! mbedtls_ssl_handshake returned" \
+            -c "! mbedtls_ssl_handshake returned" \
+            -s "No client certification received from the client, but required by the authentication mode"
+
 run_test    "Authentication: client badcert, server required" \
             "$P_SRV debug_level=3 auth_mode=required" \
             "$P_CLI debug_level=3 crt_file=data_files/server5-badsign.crt \
@@ -1881,6 +1913,16 @@ run_test    "Authentication: client no cert, openssl server optional" \
             -C "skip write certificate$" \
             -c "skip write certificate verify" \
             -C "! mbedtls_ssl_handshake returned"
+
+run_test    "Authentication: client no cert, openssl server required" \
+            "$O_SRV -Verify 10" \
+            "$P_CLI debug_level=3 crt_file=none key_file=none" \
+            1 \
+            -C "skip parse certificate request" \
+            -c "got a certificate request" \
+            -C "skip write certificate$" \
+            -c "skip write certificate verify" \
+            -c "! mbedtls_ssl_handshake returned"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Authentication: client no cert, ssl3" \

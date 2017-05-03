@@ -285,6 +285,33 @@ int mbedtls_pk_verify( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
                const unsigned char *sig, size_t sig_len );
 
 /**
+ * \brief           Restartable version of \c mbedtls_pk_verify()
+ *
+ * \note            Performs the same job as \c mbedtls_pk_verify(), but can
+ *                  return early and restart according to the limit set with
+ *                  \c mbedtls_ecp_set_max_ops() to reduce blocking for ECC
+ *                  operations. For RSA, same as \c mbedtls_pk_verify().
+ *
+ * \param ctx       PK context to use
+ * \param md_alg    Hash algorithm used (see notes)
+ * \param hash      Hash of the message to sign
+ * \param hash_len  Hash length or 0 (see notes)
+ * \param sig       Signature to verify
+ * \param sig_len   Signature length
+ * \param rs_ctx    Restart context: for ECC, must be NULL (no restart) or a
+ *                  pointer to a \c mbedtls_ecdsa_restart_ctx. Ignored for RSA.
+ *
+ * \return          See \c mbedtls_pk_verify(), or
+ *                  MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
+ *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
+ */
+int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
+               mbedtls_md_type_t md_alg,
+               const unsigned char *hash, size_t hash_len,
+               const unsigned char *sig, size_t sig_len,
+               void *rs_ctx );
+
+/**
  * \brief           Verify signature, with options.
  *                  (Includes verification of the padding depending on type.)
  *
@@ -346,6 +373,36 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
              const unsigned char *hash, size_t hash_len,
              unsigned char *sig, size_t *sig_len,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
+
+/**
+ * \brief           Restartable version of \c mbedtls_pk_sign()
+ *
+ * \note            Performs the same job as \c mbedtls_pk_sign(), but can
+ *                  return early and restart according to the limit set with
+ *                  \c mbedtls_ecp_set_max_ops() to reduce blocking for ECC
+ *                  operations. For RSA, same as \c mbedtls_pk_sign().
+ *
+ * \param ctx       PK context to use - must hold a private key
+ * \param md_alg    Hash algorithm used (see notes)
+ * \param hash      Hash of the message to sign
+ * \param hash_len  Hash length or 0 (see notes)
+ * \param sig       Place to write the signature
+ * \param sig_len   Number of bytes written
+ * \param f_rng     RNG function
+ * \param p_rng     RNG parameter
+ * \param rs_ctx    Restart context: for ECC, must be NULL (no restart) or a
+ *                  pointer to a \c mbedtls_ecdsa_restart_ctx. Ignored for RSA.
+ *
+ * \return          See \c mbedtls_pk_sign(), or
+ *                  MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
+ *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
+ */
+int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,
+             mbedtls_md_type_t md_alg,
+             const unsigned char *hash, size_t hash_len,
+             unsigned char *sig, size_t *sig_len,
+             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+             void *rs_ctx );
 
 /**
  * \brief           Decrypt message (including padding if relevant).

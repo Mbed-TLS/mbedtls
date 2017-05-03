@@ -176,12 +176,16 @@ static inline int pk_hashlen_helper( mbedtls_md_type_t md_alg, size_t *hash_len 
 }
 
 /*
- * Verify a signature
+ * Verify a signature (restartable)
  */
-int mbedtls_pk_verify( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
+int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
+               mbedtls_md_type_t md_alg,
                const unsigned char *hash, size_t hash_len,
-               const unsigned char *sig, size_t sig_len )
+               const unsigned char *sig, size_t sig_len,
+               void *rs_ctx )
 {
+    (void) rs_ctx; // XXX temporary
+
     if( ctx == NULL || ctx->pk_info == NULL ||
         pk_hashlen_helper( md_alg, &hash_len ) != 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
@@ -191,6 +195,17 @@ int mbedtls_pk_verify( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
 
     return( ctx->pk_info->verify_func( ctx->pk_ctx, md_alg, hash, hash_len,
                                        sig, sig_len ) );
+}
+
+/*
+ * Verify a signature
+ */
+int mbedtls_pk_verify( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
+               const unsigned char *hash, size_t hash_len,
+               const unsigned char *sig, size_t sig_len )
+{
+    return( mbedtls_pk_verify_restartable( ctx, md_alg, hash, hash_len,
+                                           sig, sig_len, NULL ) );
 }
 
 /*
@@ -252,13 +267,17 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
 }
 
 /*
- * Make a signature
+ * Make a signature (restartable)
  */
-int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
+int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,
+             mbedtls_md_type_t md_alg,
              const unsigned char *hash, size_t hash_len,
              unsigned char *sig, size_t *sig_len,
-             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+             void *rs_ctx )
 {
+    (void) rs_ctx; // XXX temporary
+
     if( ctx == NULL || ctx->pk_info == NULL ||
         pk_hashlen_helper( md_alg, &hash_len ) != 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
@@ -268,6 +287,18 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
 
     return( ctx->pk_info->sign_func( ctx->pk_ctx, md_alg, hash, hash_len,
                                      sig, sig_len, f_rng, p_rng ) );
+}
+
+/*
+ * Make a signature
+ */
+int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
+             const unsigned char *hash, size_t hash_len,
+             unsigned char *sig, size_t *sig_len,
+             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    return( mbedtls_pk_sign_restartable( ctx, md_alg, hash, hash_len,
+                                         sig, sig_len, f_rng, p_rng, NULL ) );
 }
 
 /*

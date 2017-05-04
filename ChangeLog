@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x released xxxx-xx-xx
+
+Bugfix
+   * Fix conditional preprocessor directives in bignum.h to enable 64-bit
+     compilation when using ARM Compiler 6.
+
 = mbed TLS 2.5.1 released 2017-06-21
 
 Security

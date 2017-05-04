@@ -75,6 +75,7 @@ Changes
      config-no-entropy.h to reduce the RAM footprint.
    * Added a test script that can be hooked into git that verifies commits
      before they are pushed.
+   * Improve documentation of PKCS1 decryption functions.
 
 = mbed TLS 2.5.1 released 2017-06-21
 

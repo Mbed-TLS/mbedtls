@@ -1395,27 +1395,29 @@ int rsa_rsassa_pkcs1_v15_verify( rsa_context *ctx,
 
     end = p + len;
 
-    // Parse the ASN.1 structure inside the PKCS#1 v1.5 structure
-    //
+    /*
+     * Parse the ASN.1 structure inside the PKCS#1 v1.5 structure.
+     * Insist on 2-byte length tags, to protect against variants of
+     * Bleichenbacher's forgery attack against lax PKCS#1v1.5 verification.
+     */
     p0 = p;
     if( ( ret = asn1_get_tag( &p, end, &asn1_len,
             ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
         return( POLARSSL_ERR_RSA_VERIFY_FAILED );
-
     if( p != p0 + 2 || asn1_len + 2 != len )
         return( POLARSSL_ERR_RSA_VERIFY_FAILED );
 
+    p0 = p;
     if( ( ret = asn1_get_tag( &p, end, &asn1_len,
             ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
         return( POLARSSL_ERR_RSA_VERIFY_FAILED );
-
-    if( p != p0 + 4 || asn1_len + 6 + hashlen != len )
+    if( p != p0 + 2 || asn1_len + 6 + hashlen != len )
         return( POLARSSL_ERR_RSA_VERIFY_FAILED );
 
+    p0 = p;
     if( ( ret = asn1_get_tag( &p, end, &oid.len, ASN1_OID ) ) != 0 )
         return( POLARSSL_ERR_RSA_VERIFY_FAILED );
-
-    if( p != p0 + 6 )
+    if( p != p0 + 2 )
         return( POLARSSL_ERR_RSA_VERIFY_FAILED );
 
     oid.p = p;
@@ -1430,13 +1432,15 @@ int rsa_rsassa_pkcs1_v15_verify( rsa_context *ctx,
     /*
      * assume the algorithm parameters must be NULL
      */
+    p0 = p;
     if( ( ret = asn1_get_tag( &p, end, &asn1_len, ASN1_NULL ) ) != 0 )
+        return( POLARSSL_ERR_RSA_VERIFY_FAILED );
+    if( p != p0 + 2 )
         return( POLARSSL_ERR_RSA_VERIFY_FAILED );
 
     p0 = p;
     if( ( ret = asn1_get_tag( &p, end, &asn1_len, ASN1_OCTET_STRING ) ) != 0 )
         return( POLARSSL_ERR_RSA_VERIFY_FAILED );
-
     if( p != p0 + 2 || asn1_len != hashlen )
         return( POLARSSL_ERR_RSA_VERIFY_FAILED );
 

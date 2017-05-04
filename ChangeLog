@@ -11,6 +11,12 @@ Security
    * Wipe stack buffers in RSA private key operations
      (rsa_rsaes_pkcs1_v15_decrypt(), rsa_rsaes_oaep_decrypt).
      Found by Laurent Simon.
+   * SHA-1 deprecation: remove it from the default allowed hash
+     algorithms for certificate verification and TLS 1.2 handshake
+     signatures. It can be turned back on at compile time with
+     MBEDTLS_TLS_DEFAULT_ALLOW_SHA1 or explicitly with ssl_conf functions.
+   * Removed RIPEMD-160 from the default hash algorithms for
+     certificate verification.
 
 Bugfix
    * Remove macros from compat-1.3.h that correspond to deleted items from most

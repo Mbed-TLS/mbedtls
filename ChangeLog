@@ -27,6 +27,8 @@ Bugfix
      Found by redplait #590
    * Add MBEDTLS_MPI_CHK to check for error value of mbedtls_mpi_fill_random.
      Reported and fix suggested by guidovranken in #740
+   * Fix conditional preprocessor directives in bignum.h to enable 64-bit
+     compilation when using ARM Compiler 6.
 
 Security
    * Fix authentication bypass in SSL/TLS: when auth_mode is set to optional,

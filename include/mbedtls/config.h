@@ -2188,7 +2188,8 @@
  *          library/ssl_tls.c
  *          library/x509write_crt.c
  *
- * This module is required for SSL/TLS and SHA1-signed certificates.
+ * This module is required for SSL/TLS up to version 1.1, for TLS 1.2
+ * depending on the handshake parameters, and for SHA1-signed certificates.
  */
 #define MBEDTLS_SHA1_C
 
@@ -2572,6 +2573,15 @@
 /* X509 options */
 //#define MBEDTLS_X509_MAX_INTERMEDIATE_CA   8   /**< Maximum number of intermediate CAs in a verification chain. */
 //#define MBEDTLS_X509_MAX_FILE_PATH_LEN     512 /**< Maximum length of a path/filename string in bytes including the null terminator character ('\0'). */
+
+/**
+ * Allow SHA-1 in the default TLS configuration for certificate signing and
+ * TLS 1.2 handshake signature. Without this build-time option, SHA-1
+ * support must be activated explicitly through mbedtls_ssl_conf_cert_profile
+ * and mbedtls_ssl_conf_sig_hashes. The use of SHA-1 in TLS <= 1.1 and in
+ * HMAC-SHA-1 for XXX_SHA ciphersuites is always allowed by default.
+ */
+// #define MBEDTLS_TLS_DEFAULT_ALLOW_SHA1
 
 /* \} name SECTION: Customisation configuration options */
 

@@ -601,6 +601,8 @@ static void mgf_mask( unsigned char *dst, size_t dlen, unsigned char *src,
 
         dlen -= use_len;
     }
+
+    mbedtls_zeroize( mask, sizeof( mask ) );
 }
 #endif /* MBEDTLS_PKCS1_V21 */
 
@@ -1107,6 +1109,7 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
     if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 0 ) ) != 0 )
     {
         mbedtls_md_free( &md_ctx );
+        /* No need to zeroize salt: we didn't use it. */
         return( ret );
     }
 
@@ -1116,6 +1119,7 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
     mbedtls_md_update( &md_ctx, hash, hashlen );
     mbedtls_md_update( &md_ctx, salt, slen );
     mbedtls_md_finish( &md_ctx, p );
+    mbedtls_zeroize( salt, sizeof( salt ) );
 
     /* Compensate for boundary condition when applying mask */
     if( msb % 8 == 0 )

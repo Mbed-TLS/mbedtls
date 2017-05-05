@@ -1,5 +1,9 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+Bugfix
+   * Fix memory leak in ssl_set_hostname() when called multiple times.
+     Found by jethrogb, #836.
+
 = mbed TLS 1.3.19 branch released 2017-03-08
 
 Security

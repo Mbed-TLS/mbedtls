@@ -816,6 +816,9 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_cookie_ctx cookie_ctx;
 #endif
 
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    mbedtls_x509_crt_profile crt_profile_for_test = mbedtls_x509_crt_profile_default;
+#endif
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     mbedtls_ssl_context ssl;
@@ -1641,6 +1644,14 @@ int main( int argc, char *argv[] )
         mbedtls_printf( " failed\n  ! mbedtls_ssl_config_defaults returned -0x%x\n\n", -ret );
         goto exit;
     }
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    /* The default algorithms profile disables SHA-1, but our tests still
+       rely on it heavily. Hence we allow it here. A real-world server
+       should use the default profile unless there is a good reason not to. */
+    crt_profile_for_test.allowed_mds |= MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA1 );
+    mbedtls_ssl_conf_cert_profile( &conf, &crt_profile_for_test );
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     if( opt.auth_mode != DFL_AUTH_MODE )
         mbedtls_ssl_conf_authmode( &conf, opt.auth_mode );

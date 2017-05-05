@@ -411,6 +411,9 @@ int main( int argc, char *argv[] )
 #endif
     const char *pers = "ssl_client2";
 
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    mbedtls_x509_crt_profile crt_profile_for_test = mbedtls_x509_crt_profile_default;
+#endif
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     mbedtls_ssl_context ssl;
@@ -1089,9 +1092,14 @@ int main( int argc, char *argv[] )
     }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+    /* The default algorithms profile disables SHA-1, but our tests still
+       rely on it heavily. */
+    crt_profile_for_test.allowed_mds |= MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA1 );
+    mbedtls_ssl_conf_cert_profile( &conf, &crt_profile_for_test );
+
     if( opt.debug_level > 0 )
         mbedtls_ssl_conf_verify( &conf, my_verify, NULL );
-#endif
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     if( opt.auth_mode != DFL_AUTH_MODE )
         mbedtls_ssl_conf_authmode( &conf, opt.auth_mode );

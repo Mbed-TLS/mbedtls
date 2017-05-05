@@ -54,3 +54,6 @@ ssl_dtls_replay:"abcd12340000,abcd12340100":"abcd12340101":0
 
 SSL DTLS replay: big jump then just delayed
 ssl_dtls_replay:"abcd12340000,abcd12340100":"abcd123400ff":0
+
+SSL SET_HOSTNAME memory leak: call ssl_set_hostname twice
+ssl_set_hostname_twice:"server0":"server1"

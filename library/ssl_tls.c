@@ -4167,26 +4167,51 @@ void ssl_set_curves( ssl_context *ssl, const ecp_group_id *curve_list )
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
 int ssl_set_hostname( ssl_context *ssl, const char *hostname )
 {
+    size_t hostname_len = 0;
+
+    /* Check if new hostname is valid before
+     * making any change to current one */
+
+    if( hostname != NULL )
+    {
+        hostname_len = strlen( hostname );
+
+        if( hostname_len > SSL_MAX_HOST_NAME_LEN )
+            return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    /* Now it's clear that we will overwrite the old hostname,
+     * so we can free it safely */
+
+    if( ssl->hostname != NULL )
+    {
+        polarssl_zeroize( ssl->hostname, ssl->hostname_len );
+        polarssl_free( ssl->hostname );
+    }
+
+    /* Passing NULL as hostname shall clear the old one */
+
     if( hostname == NULL )
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+    {
+        ssl->hostname     = NULL;
+        ssl->hostname_len = 0;
+    }
+    else
+    {
+        ssl->hostname = polarssl_malloc( hostname_len + 1 );
 
-    ssl->hostname_len = strlen( hostname );
+        if( ssl->hostname == NULL )
+        {
+            ssl->hostname_len = 0;
+            return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+        }
 
-    if( ssl->hostname_len + 1 == 0 )
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+        memcpy( ssl->hostname, (const unsigned char*) hostname,
+                hostname_len );
 
-    if( ssl->hostname_len > SSL_MAX_HOST_NAME_LEN )
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
-
-    ssl->hostname = polarssl_malloc( ssl->hostname_len + 1 );
-
-    if( ssl->hostname == NULL )
-        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
-
-    memcpy( ssl->hostname, (const unsigned char *) hostname,
-            ssl->hostname_len );
-
-    ssl->hostname[ssl->hostname_len] = '\0';
+        ssl->hostname[hostname_len] = '\0';
+        ssl->hostname_len = hostname_len;
+    }
 
     return( 0 );
 }

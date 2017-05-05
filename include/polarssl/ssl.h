@@ -1374,15 +1374,22 @@ void ssl_set_curves( ssl_context *ssl, const ecp_group_id *curves );
 
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
 /**
- * \brief          Set hostname for ServerName TLS extension
- *                 (client-side only)
- *
+ * \brief          Set or reset the hostname to check against the received
+ *                 server certificate. It sets the ServerName TLS extension,
  *
  * \param ssl      SSL context
- * \param hostname the server hostname
+ * \param hostname the server hostname, may be NULL to clear hostname
  *
- * \return         0 if successful or POLARSSL_ERR_SSL_MALLOC_FAILED
- */
+ * \note           Maximum hostname length SSL_MAX_HOST_NAME_LEN.
+ *
+ * \return         0 if successful, POLARSSL_ERR_SSL_MALLOC_FAILED on
+ *                 allocation failure, POLARSSL_ERR_BAD_INPUT_DATA on
+ *                 too long input hostname.
+ *
+ * \note           Hostname set to the one provided on success (cleared
+ *                 when NULL). On allocation failure hostname is cleared.
+ *                 On too long input failure, old hostname is unchanged.
+*/
 int ssl_set_hostname( ssl_context *ssl, const char *hostname );
 
 /**

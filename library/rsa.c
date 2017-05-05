@@ -492,6 +492,8 @@ static void mgf_mask( unsigned char *dst, size_t dlen, unsigned char *src,
 
         dlen -= use_len;
     }
+
+    polarssl_zeroize( mask, sizeof( mask ) );
 }
 #endif /* POLARSSL_PKCS1_V21 */
 
@@ -1011,6 +1013,7 @@ int rsa_rsassa_pss_sign( rsa_context *ctx,
     if( ( ret = md_init_ctx( &md_ctx, md_info ) ) != 0 )
     {
         md_free( &md_ctx );
+        /* No need to zeroize salt: we didn't use it. */
         return( ret );
     }
 
@@ -1021,6 +1024,7 @@ int rsa_rsassa_pss_sign( rsa_context *ctx,
     md_update( &md_ctx, hash, hashlen );
     md_update( &md_ctx, salt, slen );
     md_finish( &md_ctx, p );
+    polarssl_zeroize( salt, sizeof( salt ) );
 
     // Compensate for boundary condition when applying mask
     //

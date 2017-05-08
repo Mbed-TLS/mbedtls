@@ -17,6 +17,13 @@ Bugfix
      that triggered the alert.
    * In SSLv3, if refusing a renegotiation attempt, don't process any further
      data.
+   * Accept empty trusted CA chain in authentication mode
+     MBEDTLS_SSL_VERIFY_OPTIONAL.
+     Fixes #864. Found by jethrogb.
+   * Fix implementation of mbedtls_ssl_parse_certificate
+     to not annihilate fatal errors in authentication mode
+     MBEDTLS_SSL_VERIFY_OPTIONAL and to reflect bad EC curves
+     within verification result.
 
 Changes
    * Send fatal alerts in many more cases instead of dropping the connection.

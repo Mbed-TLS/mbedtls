@@ -653,6 +653,16 @@ if uname -a | grep -F x86_64 >/dev/null; then
     cleanup
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -m32'
 
+    msg "test: i386, make, gcc"
+    make test
+
+    msg "build: 64-bit ILP32, make, gcc" # ~ 30s
+    cleanup
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -mx32'
+
+    msg "test: 64-bit ILP32, make, gcc"
+    make test
+
     msg "build: gcc, force 32-bit compilation"
     cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"

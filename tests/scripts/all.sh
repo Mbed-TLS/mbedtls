@@ -565,6 +565,16 @@ if uname -a | grep -F x86_64 >/dev/null; then
     msg "build: i386, make, gcc" # ~ 30s
     cleanup
     make CC=gcc CFLAGS='-Werror -m32'
+
+    msg "test: i386, make, gcc"
+    make test
+
+    msg "build: 64-bit ILP32, make, gcc" # ~ 30s
+    cleanup
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -mx32'
+
+    msg "test: 64-bit ILP32, make, gcc"
+    make test
 fi # x86_64
 
 msg "build: arm-none-eabi-gcc, make" # ~ 10s

@@ -2575,8 +2575,6 @@
 //#define MBEDTLS_X509_MAX_FILE_PATH_LEN     512 /**< Maximum length of a path/filename string in bytes including the null terminator character ('\0'). */
 
 /**
- * \def MBEDTLS_TLS_DEFAULT_ALLOW_SHA1
- *
  * Allow SHA-1 in the default TLS configuration for certificate signing and
  * TLS 1.2 handshake signature. Without this build-time option, SHA-1
  * support must be activated explicitly through mbedtls_ssl_conf_cert_profile

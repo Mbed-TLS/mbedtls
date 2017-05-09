@@ -184,11 +184,19 @@ int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
                const unsigned char *sig, size_t sig_len,
                void *rs_ctx )
 {
-    (void) rs_ctx; // XXX temporary
-
     if( ctx == NULL || ctx->pk_info == NULL ||
         pk_hashlen_helper( md_alg, &hash_len ) != 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    if( ctx->pk_info->verify_rs_func != NULL )
+    {
+        return( ctx->pk_info->verify_rs_func( ctx->pk_ctx,
+                    md_alg, hash, hash_len, sig, sig_len, rs_ctx ) );
+    }
+#else
+    (void) rs_ctx;
+#endif /* MBEDTLS_ECP_RESTARTABLE */
 
     if( ctx->pk_info->verify_func == NULL )
         return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
@@ -276,11 +284,19 @@ int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
              void *rs_ctx )
 {
-    (void) rs_ctx; // XXX temporary
-
     if( ctx == NULL || ctx->pk_info == NULL ||
         pk_hashlen_helper( md_alg, &hash_len ) != 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    if( ctx->pk_info->sign_rs_func != NULL )
+    {
+        return( ctx->pk_info->sign_rs_func( ctx->pk_ctx, md_alg,
+                    hash, hash_len, sig, sig_len, f_rng, p_rng, rs_ctx ) );
+    }
+#else
+    (void) rs_ctx;
+#endif /* MBEDTLS_ECP_RESTARTABLE */
 
     if( ctx->pk_info->sign_func == NULL )
         return( MBEDTLS_ERR_PK_TYPE_MISMATCH );

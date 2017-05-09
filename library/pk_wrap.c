@@ -180,6 +180,10 @@ const mbedtls_pk_info_t mbedtls_rsa_info = {
     rsa_can_do,
     rsa_verify_wrap,
     rsa_sign_wrap,
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    NULL,
+    NULL,
+#endif
     rsa_decrypt_wrap,
     rsa_encrypt_wrap,
     rsa_check_pair_wrap,
@@ -252,6 +256,118 @@ static int eckey_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
     return( ret );
 }
 
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+/* Forward declarations */
+static int ecdsa_verify_rs_wrap( void *ctx, mbedtls_md_type_t md_alg,
+                       const unsigned char *hash, size_t hash_len,
+                       const unsigned char *sig, size_t sig_len,
+                       void *rs_ctx );
+
+static int ecdsa_sign_rs_wrap( void *ctx, mbedtls_md_type_t md_alg,
+                   const unsigned char *hash, size_t hash_len,
+                   unsigned char *sig, size_t *sig_len,
+                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+                   void *rs_ctx );
+
+static int eckey_verify_rs_wrap( void *ctx, mbedtls_md_type_t md_alg,
+                       const unsigned char *hash, size_t hash_len,
+                       const unsigned char *sig, size_t sig_len,
+                       void *p_rs_ctx )
+{
+    int ret;
+    mbedtls_ecdsa_context ecdsa, *p_ecdsa = &ecdsa;
+    mbedtls_ecdsa_restart_ctx *rs_ctx = p_rs_ctx;
+
+    mbedtls_ecdsa_init( &ecdsa );
+
+    /* set up our own sub-context if needed */
+    if( mbedtls_ecp_restart_enabled() &&
+        rs_ctx != NULL && rs_ctx->ecdsa == NULL )
+    {
+        rs_ctx->ecdsa = mbedtls_calloc( 1, sizeof( *rs_ctx->ecdsa ) );
+        if( rs_ctx->ecdsa == NULL )
+            return( MBEDTLS_ERR_PK_ALLOC_FAILED );
+
+        mbedtls_ecdsa_init( rs_ctx->ecdsa );
+        MBEDTLS_MPI_CHK( mbedtls_ecdsa_from_keypair( rs_ctx->ecdsa, ctx ) );
+    }
+
+    if( rs_ctx != NULL && rs_ctx->ecdsa != NULL )
+    {
+        /* redirect to our context */
+        p_ecdsa = rs_ctx->ecdsa;
+    }
+    else
+    {
+        MBEDTLS_MPI_CHK( mbedtls_ecdsa_from_keypair( p_ecdsa, ctx ) );
+    }
+
+    MBEDTLS_MPI_CHK( ecdsa_verify_rs_wrap( p_ecdsa, md_alg, hash, hash_len,
+                                           sig, sig_len, rs_ctx ) );
+
+cleanup:
+    /* clear our sub-context when not in progress (done or error) */
+    if( rs_ctx != NULL && ret != MBEDTLS_ERR_ECP_IN_PROGRESS ) {
+        mbedtls_ecdsa_free( rs_ctx->ecdsa );
+        mbedtls_free( rs_ctx->ecdsa );
+        rs_ctx->ecdsa = NULL;
+    }
+
+    mbedtls_ecdsa_free( &ecdsa );
+
+    return( ret );
+}
+
+static int eckey_sign_rs_wrap( void *ctx, mbedtls_md_type_t md_alg,
+                   const unsigned char *hash, size_t hash_len,
+                   unsigned char *sig, size_t *sig_len,
+                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+                   void *p_rs_ctx )
+{
+    int ret;
+    mbedtls_ecdsa_context ecdsa, *p_ecdsa = &ecdsa;
+    mbedtls_ecdsa_restart_ctx *rs_ctx = p_rs_ctx;
+
+    mbedtls_ecdsa_init( &ecdsa );
+
+    /* set up our own sub-context if needed */
+    if( mbedtls_ecp_restart_enabled() &&
+        rs_ctx != NULL && rs_ctx->ecdsa == NULL )
+    {
+        rs_ctx->ecdsa = mbedtls_calloc( 1, sizeof( *rs_ctx->ecdsa ) );
+        if( rs_ctx->ecdsa == NULL )
+            return( MBEDTLS_ERR_PK_ALLOC_FAILED );
+
+        mbedtls_ecdsa_init( rs_ctx->ecdsa );
+        MBEDTLS_MPI_CHK( mbedtls_ecdsa_from_keypair( rs_ctx->ecdsa, ctx ) );
+    }
+
+    if( rs_ctx != NULL && rs_ctx->ecdsa != NULL )
+    {
+        /* redirect to our context */
+        p_ecdsa = rs_ctx->ecdsa;
+    }
+    else
+    {
+        MBEDTLS_MPI_CHK( mbedtls_ecdsa_from_keypair( p_ecdsa, ctx ) );
+    }
+
+    MBEDTLS_MPI_CHK( ecdsa_sign_rs_wrap( p_ecdsa, md_alg, hash, hash_len,
+                                         sig, sig_len, f_rng, p_rng, rs_ctx ) );
+
+cleanup:
+    /* clear our sub-context when not in progress (done or error) */
+    if( rs_ctx != NULL && ret != MBEDTLS_ERR_ECP_IN_PROGRESS ) {
+        mbedtls_ecdsa_free( rs_ctx->ecdsa );
+        mbedtls_free( rs_ctx->ecdsa );
+        rs_ctx->ecdsa = NULL;
+    }
+
+    mbedtls_ecdsa_free( &ecdsa );
+
+    return( ret );
+}
+#endif /* MBEDTLS_ECP_RESTARTABLE */
 #endif /* MBEDTLS_ECDSA_C */
 
 static int eckey_check_pair( const void *pub, const void *prv )
@@ -291,10 +407,18 @@ const mbedtls_pk_info_t mbedtls_eckey_info = {
 #if defined(MBEDTLS_ECDSA_C)
     eckey_verify_wrap,
     eckey_sign_wrap,
-#else
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    eckey_verify_rs_wrap,
+    eckey_sign_rs_wrap,
+#endif
+#else /* MBEDTLS_ECDSA_C */
+    NULL,
+    NULL,
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     NULL,
     NULL,
 #endif
+#endif /* MBEDTLS_ECDSA_C */
     NULL,
     NULL,
     eckey_check_pair,
@@ -319,6 +443,10 @@ const mbedtls_pk_info_t mbedtls_eckeydh_info = {
     eckeydh_can_do,
     NULL,
     NULL,
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    NULL,
+    NULL,
+#endif
     NULL,
     NULL,
     eckey_check_pair,
@@ -359,6 +487,40 @@ static int ecdsa_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
                 md_alg, hash, hash_len, sig, sig_len, f_rng, p_rng ) );
 }
 
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+static int ecdsa_verify_rs_wrap( void *ctx, mbedtls_md_type_t md_alg,
+                       const unsigned char *hash, size_t hash_len,
+                       const unsigned char *sig, size_t sig_len,
+                       void *rs_ctx )
+{
+    int ret;
+    ((void) md_alg);
+
+    ret = mbedtls_ecdsa_read_signature_restartable(
+            (mbedtls_ecdsa_context *) ctx,
+            hash, hash_len, sig, sig_len,
+            (mbedtls_ecdsa_restart_ctx *) rs_ctx );
+
+    if( ret == MBEDTLS_ERR_ECP_SIG_LEN_MISMATCH )
+        return( MBEDTLS_ERR_PK_SIG_LEN_MISMATCH );
+
+    return( ret );
+}
+
+static int ecdsa_sign_rs_wrap( void *ctx, mbedtls_md_type_t md_alg,
+                   const unsigned char *hash, size_t hash_len,
+                   unsigned char *sig, size_t *sig_len,
+                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+                   void *rs_ctx )
+{
+    return( mbedtls_ecdsa_write_signature_restartable(
+                (mbedtls_ecdsa_context *) ctx,
+                md_alg, hash, hash_len, sig, sig_len, f_rng, p_rng,
+                (mbedtls_ecdsa_restart_ctx *) rs_ctx ) );
+
+}
+#endif /* MBEDTLS_ECP_RESTARTABLE */
+
 static void *ecdsa_alloc_wrap( void )
 {
     void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_ecdsa_context ) );
@@ -382,6 +544,10 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
     ecdsa_can_do,
     ecdsa_verify_wrap,
     ecdsa_sign_wrap,
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    ecdsa_verify_rs_wrap,
+    ecdsa_sign_rs_wrap,
+#endif
     NULL,
     NULL,
     eckey_check_pair,   /* Compatible key structures */
@@ -496,6 +662,10 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
     rsa_alt_can_do,
     NULL,
     rsa_alt_sign_wrap,
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    NULL,
+    NULL,
+#endif
     rsa_alt_decrypt_wrap,
     NULL,
 #if defined(MBEDTLS_RSA_C)

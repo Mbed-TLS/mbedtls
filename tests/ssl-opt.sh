@@ -632,6 +632,40 @@ run_test    "RC4: both enabled" \
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - The server has no ciphersuites in common"
 
+# Tests for SHA-1 support
+
+run_test    "SHA-1 forbidden by default in server certificate" \
+            "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2.crt" \
+            "$P_CLI debug_level=2 allow_sha1=0" \
+            1 \
+            -c "The certificate is signed with an unacceptable hash"
+
+run_test    "SHA-1 explicitly allowed in server certificate" \
+            "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2.crt" \
+            "$P_CLI allow_sha1=1" \
+            0
+
+run_test    "SHA-256 allowed by default in server certificate" \
+            "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2-sha256.crt" \
+            "$P_CLI allow_sha1=0" \
+            0
+
+run_test    "SHA-1 forbidden by default in client certificate" \
+            "$P_SRV auth_mode=required allow_sha1=0" \
+            "$P_CLI key_file=data_files/cli-rsa.key crt_file=data_files/cli-rsa-sha1.crt" \
+            1 \
+            -s "The certificate is signed with an unacceptable hash"
+
+run_test    "SHA-1 explicitly allowed in client certificate" \
+            "$P_SRV auth_mode=required allow_sha1=1" \
+            "$P_CLI key_file=data_files/cli-rsa.key crt_file=data_files/cli-rsa-sha1.crt" \
+            0
+
+run_test    "SHA-256 allowed by default in client certificate" \
+            "$P_SRV auth_mode=required allow_sha1=0" \
+            "$P_CLI key_file=data_files/cli-rsa.key crt_file=data_files/cli-rsa-sha256.crt" \
+            0
+
 # Tests for Truncated HMAC extension
 
 run_test    "Truncated HMAC: client default, server default" \

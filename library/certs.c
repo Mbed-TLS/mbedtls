@@ -140,7 +140,6 @@ const size_t mbedtls_test_cli_key_ec_len = sizeof( mbedtls_test_cli_key_ec );
 "7Z2mCGDNMhjQc+BYcdnl0lPXjdDK6V0qCg1dVewhUBcW5gZKzV7e9+DpVA==\r\n"      \
 "-----END CERTIFICATE-----\r\n"
 static const char mbedtls_test_ca_crt_rsa_sha1[] = TEST_CA_CRT_RSA_SHA1;
-static const size_t mbedtls_test_ca_crt_rsa_sha1_len = sizeof( mbedtls_test_ca_crt_rsa_sha1 );
 #endif
 
 #if defined(MBEDTLS_SHA256_C)
@@ -167,7 +166,6 @@ static const size_t mbedtls_test_ca_crt_rsa_sha1_len = sizeof( mbedtls_test_ca_c
 "n20NRVA1Vjs6GAROr4NqW4k/+LofY9y0LLDE+p0oIEKXIsIvhPr39swxSA==\r\n"      \
 "-----END CERTIFICATE-----\r\n"
 static const char mbedtls_test_ca_crt_rsa_sha256[] = TEST_CA_CRT_RSA_SHA256;
-static const size_t mbedtls_test_ca_crt_rsa_sha256_len = sizeof( mbedtls_test_ca_crt_rsa_sha256 );
 #endif
 
 const char mbedtls_test_ca_key_rsa[] =
@@ -259,29 +257,6 @@ const char mbedtls_test_srv_key_rsa[] =
 "-----END RSA PRIVATE KEY-----\r\n";
 const size_t mbedtls_test_srv_key_rsa_len = sizeof( mbedtls_test_srv_key_rsa );
 
-static const char mbedtls_test_cli_crt_rsa_sha1[] =
-"-----BEGIN CERTIFICATE-----\r\n"
-"MIIDPzCCAiegAwIBAgIBBDANBgkqhkiG9w0BAQUFADA7MQswCQYDVQQGEwJOTDER\r\n"
-"MA8GA1UEChMIUG9sYXJTU0wxGTAXBgNVBAMTEFBvbGFyU1NMIFRlc3QgQ0EwHhcN\r\n"
-"MTEwMjEyMTQ0NDA3WhcNMjEwMjEyMTQ0NDA3WjA8MQswCQYDVQQGEwJOTDERMA8G\r\n"
-"A1UEChMIUG9sYXJTU0wxGjAYBgNVBAMTEVBvbGFyU1NMIENsaWVudCAyMIIBIjAN\r\n"
-"BgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyHTEzLn5tXnpRdkUYLB9u5Pyax6f\r\n"
-"M60Nj4o8VmXl3ETZzGaFB9X4J7BKNdBjngpuG7fa8H6r7gwQk4ZJGDTzqCrSV/Uu\r\n"
-"1C93KYRhTYJQj6eVSHD1bk2y1RPD0hrt5kPqQhTrdOrA7R/UV06p86jt0uDBMHEw\r\n"
-"MjDV0/YI0FZPRo7yX/k9Z5GIMC5Cst99++UMd//sMcB4j7/Cf8qtbCHWjdmLao5v\r\n"
-"4Jv4EFbMs44TFeY0BGbH7vk2DmqV9gmaBmf0ZXH4yqSxJeD+PIs1BGe64E92hfx/\r\n"
-"/DZrtenNLQNiTrM9AM+vdqBpVoNq0qjU51Bx5rU2BXcFbXvI5MT9TNUhXwIDAQAB\r\n"
-"o00wSzAJBgNVHRMEAjAAMB0GA1UdDgQWBBRxoQBzckAvVHZeM/xSj7zx3WtGITAf\r\n"
-"BgNVHSMEGDAWgBS0WuSls97SUva51aaVD+s+vMf9/zANBgkqhkiG9w0BAQUFAAOC\r\n"
-"AQEAAn86isAM8X+mVwJqeItt6E9slhEQbAofyk+diH1Lh8Y9iLlWQSKbw/UXYjx5\r\n"
-"LLPZcniovxIcARC/BjyZR9g3UwTHNGNm+rwrqa15viuNOFBchykX/Orsk02EH7NR\r\n"
-"Alw5WLPorYjED6cdVQgBl9ot93HdJogRiXCxErM7NC8/eP511mjq+uLDjLKH8ZPQ\r\n"
-"8I4ekHJnroLsDkIwXKGIsvIBHQy2ac/NwHLCQOK6mfum1pRx52V4Utu5dLLjD5bM\r\n"
-"xOBC7KU4xZKuMXXZM6/93Yb51K/J4ahf1TxJlTWXtnzDr9saEYdNy2SKY/6ZiDNH\r\n"
-"D+stpAKiQLAWaAusIWKYEyw9MQ==\r\n"
-"-----END CERTIFICATE-----\r\n";
-static const size_t mbedtls_test_cli_crt_rsa_sha1_len = sizeof( mbedtls_test_cli_crt_rsa_sha1 );
-
 static const char mbedtls_test_cli_crt_rsa_sha256[] =
 "-----BEGIN CERTIFICATE-----\r\n"
 "MIIDhTCCAm2gAwIBAgIBBDANBgkqhkiG9w0BAQsFADA7MQswCQYDVQQGEwJOTDER\r\n"
@@ -304,7 +279,6 @@ static const char mbedtls_test_cli_crt_rsa_sha256[] =
 "ofGZpiM2NqRPePgYy+Vc75Zk28xkRQq1ncprgQb3S4vTsZdScpM9hLf+eMlrgqlj\r\n"
 "c5PLSkXBeLE5+fedkyfTaLxxQlgCpuoOhKBm04/R1pWNzUHyqagjO9Q=\r\n"
 "-----END CERTIFICATE-----\r\n";
-static const size_t mbedtls_test_cli_crt_rsa_sha256_len = sizeof( mbedtls_test_cli_crt_rsa_sha256 );
 
 const char mbedtls_test_cli_key_rsa[] =
 "-----BEGIN RSA PRIVATE KEY-----\r\n"

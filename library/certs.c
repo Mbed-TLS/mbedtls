@@ -139,9 +139,9 @@ const size_t mbedtls_test_cli_key_ec_len = sizeof( mbedtls_test_cli_key_ec );
 "m/UTSLBNFNHesiTZeH31NcxYGdHSme9Nc/gfidRa0FLOCfWxRlFqAI47zG9jAQCZ\r\n"  \
 "7Z2mCGDNMhjQc+BYcdnl0lPXjdDK6V0qCg1dVewhUBcW5gZKzV7e9+DpVA==\r\n"      \
 "-----END CERTIFICATE-----\r\n"
-#endif
 const char mbedtls_test_ca_crt_rsa_sha1[] = TEST_CA_CRT_RSA_SHA1;
 const size_t mbedtls_test_ca_crt_rsa_sha1_len = sizeof( mbedtls_test_ca_crt_rsa_sha1 );
+#endif
 
 #if defined(MBEDTLS_SHA256_C)
 #define TEST_CA_CRT_RSA_SHA256                                          \

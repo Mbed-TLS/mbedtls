@@ -2,6 +2,12 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.x.x branch released xxxx-xx-xx
 
+Bugfix
+   * If sending a fatal alert fails, make sure not to hide the error
+     that triggered the alert.
+   * In SSLv3, if refusing a renegotiation attempt, don't process any further
+     data.
+
 Changes
    * Send fatal alerts in many more cases instead of dropping the connection.
 

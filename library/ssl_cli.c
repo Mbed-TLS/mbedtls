@@ -1231,7 +1231,7 @@ static int ssl_parse_supported_point_formats_ext( mbedtls_ssl_context *ssl,
         {
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C)
             ssl->handshake->ecdh_ctx.point_format = p[0];
-#endif            
+#endif
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
             ssl->handshake->ecjpake_ctx.point_format = p[0];
 #endif
@@ -1244,7 +1244,7 @@ static int ssl_parse_supported_point_formats_ext( mbedtls_ssl_context *ssl,
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "no point format in common" ) );
-        mbedtls_ssl_send_fatal_handshake_failure( ssl );
+    mbedtls_ssl_send_fatal_handshake_failure( ssl );
     return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
 }
 #endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C || 

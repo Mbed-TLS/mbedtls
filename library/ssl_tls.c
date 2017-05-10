@@ -4223,6 +4223,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     size_t i, n;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
     int authmode = ssl->conf->authmode;
+    uint8_t alert;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
 
@@ -4403,8 +4404,6 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
                                   ssl->in_msg + i, n );
         switch( ret )
         {
-        uint8_t alert;
-
         case 0: /*ok*/
         case MBEDTLS_ERR_X509_UNKNOWN_SIG_ALG + MBEDTLS_ERR_OID_NOT_FOUND:
             /* Ignore certificate with an unknown algorithm: maybe a

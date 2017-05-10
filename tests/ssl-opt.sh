@@ -628,6 +628,10 @@ O_CLI="$O_CLI -connect localhost:+SRV_PORT"
 G_SRV="$G_SRV -p $SRV_PORT"
 G_CLI="$G_CLI -p +SRV_PORT localhost"
 
+# Allow SHA-1, because many of our test certificates use it
+P_SRV="$P_SRV allow_sha1=1"
+P_CLI="$P_CLI allow_sha1=1"
+
 # Also pick a unique name for intermediate files
 SRV_OUT="srv_out.$$"
 CLI_OUT="cli_out.$$"

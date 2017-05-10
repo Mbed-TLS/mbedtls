@@ -4540,7 +4540,6 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
             /* The certificate may have been rejected for several reasons.
                Pick one and send the corresponding alert. Which alert to send
                may be a subject of debate in some cases. */
-            uint8_t alert = MBEDTLS_SSL_ALERT_MSG_CERT_UNKNOWN;
             if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_OTHER )
                 alert = MBEDTLS_SSL_ALERT_MSG_ACCESS_DENIED;
             else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_CN_MISMATCH )
@@ -4561,6 +4560,8 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
                 alert = MBEDTLS_SSL_ALERT_MSG_CERT_REVOKED;
             else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_NOT_TRUSTED )
                 alert = MBEDTLS_SSL_ALERT_MSG_UNKNOWN_CA;
+            else
+                alert = MBEDTLS_SSL_ALERT_MSG_CERT_UNKNOWN;
             mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                             alert );
         }

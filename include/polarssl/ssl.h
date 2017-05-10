@@ -539,6 +539,7 @@ typedef struct _ssl_session ssl_session;
 typedef struct _ssl_context ssl_context;
 typedef struct _ssl_transform ssl_transform;
 typedef struct _ssl_handshake_params ssl_handshake_params;
+typedef struct _ssl_sig_hash_set_t ssl_sig_hash_set_t;
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
 typedef struct _ssl_ticket_keys ssl_ticket_keys;
 #endif
@@ -625,6 +626,24 @@ struct _ssl_transform
 #endif
 };
 
+#if defined(POLARSSL_SSL_PROTO_TLS1_2) && \
+    defined(POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED)
+/*
+ * Abstraction for a grid of allowed signature-hash-algorithm pairs.
+ */
+struct _ssl_sig_hash_set_t
+{
+    /* At the moment, we only need to remember a single suitable
+     * hash algorithm per signature algorithm. As long as that's
+     * the case - and we don't need a general lookup function -
+     * we can implement the sig-hash-set as a map from signatures
+     * to hash algorithms. */
+    md_type_t rsa;
+    md_type_t ecdsa;
+};
+#endif /* POLARSSL_SSL_PROTO_TLS1_2) &&
+          POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED */
+
 /*
  * This structure contains the parameters only needed during handshake.
  */
@@ -633,7 +652,10 @@ struct _ssl_handshake_params
     /*
      * Handshake specific crypto variables
      */
-    int sig_alg;                        /*!<  Hash algorithm for signature   */
+#if defined(POLARSSL_SSL_PROTO_TLS1_2) && \
+    defined(POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED)
+    ssl_sig_hash_set_t hash_algs;       /*!< Set of suitable sig-hash pairs  */
+#endif
     int cert_type;                      /*!<  Requested cert type            */
     int verify_sig_alg;                 /*!<  Signature algorithm for verify */
 #if defined(POLARSSL_DHM_C)
@@ -1957,14 +1979,39 @@ int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex );
 
 #if defined(POLARSSL_PK_C)
 unsigned char ssl_sig_from_pk( pk_context *pk );
+unsigned char ssl_sig_from_pk_alg( pk_type_t type );
 pk_type_t ssl_pk_alg_from_sig( unsigned char sig );
 #endif
 
 md_type_t ssl_md_alg_from_hash( unsigned char hash );
+unsigned char ssl_hash_from_md_alg( md_type_t md );
 
 #if defined(POLARSSL_SSL_SET_CURVES)
 int ssl_curve_is_acceptable( const ssl_context *ssl, ecp_group_id grp_id );
 #endif
+
+#if defined(POLARSSL_SSL_PROTO_TLS1_2) && \
+    defined(POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED)
+
+/* Find an entry in a signature-hash set matching a given hash algorithm. */
+md_type_t ssl_sig_hash_set_find( ssl_sig_hash_set_t *set,
+                                 pk_type_t sig_alg );
+/* Add a signature-hash-pair to a signature-hash set */
+void ssl_sig_hash_set_add( ssl_sig_hash_set_t *set,
+                           pk_type_t sig_alg,
+                           md_type_t md_alg );
+/* Allow exactly one hash algorithm for each signature. */
+void ssl_sig_hash_set_const_hash( ssl_sig_hash_set_t *set,
+                                  md_type_t md_alg );
+
+/* Setup an empty signature-hash set */
+static inline void ssl_sig_hash_set_init( ssl_sig_hash_set_t *set )
+{
+    ssl_sig_hash_set_const_hash( set, POLARSSL_MD_NONE );
+}
+
+#endif /* POLARSSL_SSL_PROTO_TLS1_2) &&
+          POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED */
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
 static inline pk_context *ssl_own_key( ssl_context *ssl )
@@ -1978,6 +2025,12 @@ static inline x509_crt *ssl_own_cert( ssl_context *ssl )
     return( ssl->handshake->key_cert == NULL ? NULL
             : ssl->handshake->key_cert->cert );
 }
+
+/*
+ * Check if a hash proposed by the peer is in our list.
+ * Return 0 if we're willing to use it, -1 otherwise.
+ */
+int ssl_check_sig_hash( md_type_t md );
 
 /*
  * Check usage of a certificate wrt extensions:

@@ -204,7 +204,7 @@ int main( void )
     mbedtls_printf( "  . Bind on https://localhost:4433/ ..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_net_bind( &listen_fd, NULL, "4433", MBEDTLS_NET_PROTO_TCP ) ) != 0 )
+    if( ( ret = mbedtls_net_bind( &listen_fd, NULL, "4433", MBEDTLS_NET_PROTO_TCP, MBEDTLS_NET_ADDR_FAMILY_ANY ) ) != 0 )
     {
         mbedtls_printf( " failed!  mbedtls_net_bind returned %d\n\n", ret );
         goto exit;

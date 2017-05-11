@@ -378,6 +378,7 @@ int rsa_pkcs1_decrypt( rsa_context *ctx,
  *
  * \note           The input buffer must be as large as the size
  *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
+ *
  */
 int rsa_rsaes_pkcs1_v15_decrypt( rsa_context *ctx,
                                  int (*f_rng)(void *, unsigned char *, size_t),
@@ -411,8 +412,9 @@ int rsa_rsaes_pkcs1_v15_decrypt( rsa_context *ctx,
  *                 the decryption of the particular ciphertext provided,
  *                 the function will return POLARSSL_ERR_RSA_OUTPUT_TOO_LARGE.
  *
- * \note           The input buffer must be as large as the size 
+ * \note           The input buffer must be as large as the size
  *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
+ *
  */
 int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
                             int (*f_rng)(void *, unsigned char *, size_t),

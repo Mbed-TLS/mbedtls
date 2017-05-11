@@ -1891,7 +1891,7 @@ int mpi_inv_mod( mpi *X, const mpi *A, const mpi *N )
     int ret;
     mpi G, TA, TU, U1, U2, TB, TV, V1, V2;
 
-    if( mpi_cmp_int( N, 0 ) <= 0 )
+    if( mpi_cmp_int( N, 1 ) <= 0 )
         return( POLARSSL_ERR_MPI_BAD_INPUT_DATA );
 
     mpi_init( &TA ); mpi_init( &TU ); mpi_init( &U1 ); mpi_init( &U2 );

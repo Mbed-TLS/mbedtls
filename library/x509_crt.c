@@ -1403,6 +1403,7 @@ static const struct x509_crt_verify_string x509_crt_verify_strings[] = {
     { BADCERT_KEY_USAGE,     "Usage does not match the keyUsage extension" },
     { BADCERT_EXT_KEY_USAGE, "Usage does not match the extendedKeyUsage extension" },
     { BADCERT_NS_CERT_TYPE,  "Usage does not match the nsCertType extension" },
+    { BADCERT_BAD_KEY,       "The certificate uses an invalid key (e.g. unsupported elliptic curve)" },
     { 0, NULL }
 };
 

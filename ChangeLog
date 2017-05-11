@@ -9,6 +9,9 @@ Security
      Found and fix proposed by Michael Schwarz, Samuel Weiser, Daniel Gruss,
      Clémentine Maurice and Stefan Mangard.
 
+Changes
+   * Improve documentation of PKCS1 decryption functions.
+
 Bugfix
    * Fix insufficient support for signature-hash-algorithm extension,
      resulting in compatibility problems with Chrome. Found by hfloyrd. #823

@@ -199,7 +199,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA512_C
 mbedtls_x509_crl_info:"data_files/crl-ec-sha512.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-09-24 16\:31\:08\nnext update   \: 2023-09-22 16\:31\:08\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nsigned using  \: ECDSA with SHA512\n"
 
 X509 CRL Malformed Input (trailing spaces at end of file)
-depends_on:MBEDTLS_PEM_PARSE_C
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C
 mbedtls_x509_crl_parse:"data_files/crl-malformed-trailing-spaces.pem":MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT
 
 X509 CSR Information RSA with MD4

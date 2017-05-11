@@ -1,9 +1,18 @@
 #!/usr/bin/env perl
-# Usage:
-#   print_c mbedtls_test_foo <file.pem
-#   print_c TEST_FOO mbedtls_test_foo <file.pem
 use strict;
 use warnings;
+
+if (!@ARGV || $ARGV[0] == '--help') {
+    print <<EOF;
+Usage: $0 mbedtls_test_foo <file.pem
+       $0 TEST_FOO mbedtls_test_foo <file.pem
+Print out a PEM file as C code defining a string constant.
+
+Used to include some of the test data in /library/certs.c for
+self-tests and sample programs.
+EOF
+    exit;
+}
 
 my $pp_name = @ARGV > 1 ? shift @ARGV : undef;
 my $name = shift @ARGV;

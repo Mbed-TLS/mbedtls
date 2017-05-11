@@ -399,10 +399,7 @@ int rsa_private( rsa_context *ctx,
 #endif
 
     mpi_init( &T ); mpi_init( &T1 ); mpi_init( &T2 );
-
-    mpi_init( &T ); mpi_init( &T1 ); mpi_init( &T2 );
     mpi_init( &P1 ); mpi_init( &Q1 ); mpi_init( &R );
-
 
     if( f_rng != NULL )
     {
@@ -414,9 +411,8 @@ int rsa_private( rsa_context *ctx,
 #endif
     }
 
-
 #if defined(POLARSSL_THREADING_C)
-    if( ( ret = mutex_lock( &ctx->mutex ) ) != 0 )
+    if( ( ret = polarssl_mutex_lock( &ctx->mutex ) ) != 0 )
         return( ret );
 #endif
 

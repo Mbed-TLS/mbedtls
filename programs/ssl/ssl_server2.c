@@ -785,6 +785,24 @@ void term_handler( int sig )
 }
 #endif
 
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+static int ssl_sig_hashes_for_test[] = {
+#if defined(MBEDTLS_SHA512_C)
+    MBEDTLS_MD_SHA512,
+    MBEDTLS_MD_SHA384,
+#endif
+#if defined(MBEDTLS_SHA256_C)
+    MBEDTLS_MD_SHA256,
+    MBEDTLS_MD_SHA224,
+#endif
+#if defined(MBEDTLS_SHA1_C)
+    /* Allow SHA-1 as we use it extensively in tests. */
+    MBEDTLS_MD_SHA1,
+#endif
+    MBEDTLS_MD_NONE
+};
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+
 int main( int argc, char *argv[] )
 {
     int ret = 0, len, written, frags, exchanges_left;
@@ -1639,6 +1657,7 @@ int main( int argc, char *argv[] )
     {
         crt_profile_for_test.allowed_mds |= MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA1 );
         mbedtls_ssl_conf_cert_profile( &conf, &crt_profile_for_test );
+        mbedtls_ssl_conf_sig_hashes( &conf, ssl_sig_hashes_for_test );
     }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 

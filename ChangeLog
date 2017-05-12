@@ -1,5 +1,12 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.x.x branch released xxxx-xx-xx
+
+Feature
+   * Add a new configuration option to 'mbedtls_ssl_config' to enable
+     suppressing the CA list in Certificate Request messages. The default
+     behaviour has not changed, namely every configured CAs name is included.
+
 = mbed TLS 2.4.2 branch released 2017-03-08
 
 Security

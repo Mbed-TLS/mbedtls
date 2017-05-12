@@ -124,6 +124,7 @@ int main( void )
 #define DFL_MAX_VERSION         -1
 #define DFL_ARC4                -1
 #define DFL_AUTH_MODE           -1
+#define DFL_CERT_REQ_CA_LIST    MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED
 #define DFL_MFL_CODE            MBEDTLS_SSL_MAX_FRAG_LEN_NONE
 #define DFL_TRUNC_HMAC          -1
 #define DFL_TICKETS             MBEDTLS_SSL_SESSION_TICKETS_ENABLED
@@ -326,6 +327,8 @@ int main( void )
     "\n"                                                    \
     "    auth_mode=%%s        default: (library default: none)\n"      \
     "                        options: none, optional, required\n" \
+    "    cert_req_ca_list=%%d default: 1 (send ca list)\n"  \
+    "                        options: 1 (send ca list), 0 (don't send)\n" \
     USAGE_IO                                                \
     USAGE_SNI                                               \
     "\n"                                                    \
@@ -401,6 +404,7 @@ struct options
     int max_version;            /* maximum protocol version accepted        */
     int arc4;                   /* flag for arc4 suites support             */
     int auth_mode;              /* verify mode for connection               */
+    int cert_req_ca_list;       /* should we send the CA list?              */
     unsigned char mfl_code;     /* code for maximum fragment length         */
     int trunc_hmac;             /* accept truncated hmac?                   */
     int tickets;                /* enable / disable session tickets         */
@@ -944,6 +948,7 @@ int main( int argc, char *argv[] )
     opt.max_version         = DFL_MAX_VERSION;
     opt.arc4                = DFL_ARC4;
     opt.auth_mode           = DFL_AUTH_MODE;
+    opt.cert_req_ca_list    = DFL_CERT_REQ_CA_LIST;
     opt.mfl_code            = DFL_MFL_CODE;
     opt.trunc_hmac          = DFL_TRUNC_HMAC;
     opt.tickets             = DFL_TICKETS;
@@ -1153,6 +1158,12 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "auth_mode" ) == 0 )
         {
             if( ( opt.auth_mode = get_auth_mode( q ) ) < 0 )
+                goto usage;
+        }
+        else if( strcmp( p, "cert_req_ca_list" ) == 0 )
+        {
+            opt.cert_req_ca_list = atoi( q );
+            if( opt.cert_req_ca_list < 0 || opt.cert_req_ca_list > 1 )
                 goto usage;
         }
         else if( strcmp( p, "max_frag_len" ) == 0 )
@@ -1633,6 +1644,9 @@ int main( int argc, char *argv[] )
 
     if( opt.auth_mode != DFL_AUTH_MODE )
         mbedtls_ssl_conf_authmode( &conf, opt.auth_mode );
+
+    if( opt.cert_req_ca_list != DFL_CERT_REQ_CA_LIST )
+        mbedtls_ssl_conf_cert_req_ca_list( &conf, opt.cert_req_ca_list );
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( opt.hs_to_min != DFL_HS_TO_MIN || opt.hs_to_max != DFL_HS_TO_MAX )

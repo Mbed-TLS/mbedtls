@@ -106,6 +106,9 @@ int mbedtls_net_connect( mbedtls_net_context *ctx, const char *host, const char 
  * \param bind_ip  IP to bind to, can be NULL
  * \param port     Port number to use
  * \param proto    Protocol: MBEDTLS_NET_PROTO_TCP or MBEDTLS_NET_PROTO_UDP
+ * \param addr_family The address family to use. MBEDTLS_NET_ADDR_FAMILY_4 for IPv4,
+ *                    MBEDTLS_NET_ADDR_FAMILY_6 for IPv6, or
+ *                    MBEDTLS_NET_ADDR_FAMILY_ANY for either.
  *
  * \return         0 if successful, or one of:
  *                      MBEDTLS_ERR_NET_SOCKET_FAILED,

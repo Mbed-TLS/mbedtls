@@ -4,12 +4,9 @@ mbed TLS 2.x.x branch released xxxx-xx-xx
 
 Security
 
-   * SHA-1 deprecation: remove it from the default allowed hash
-     algorithms for certificate verification and TLS 1.2 handshake
-     signatures. It can be turned back on at compile time with
-     MBEDTLS_TLS_DEFAULT_ALLOW_SHA1 or explicitly with ssl_conf functions.
-   * Removed RIPEMD-160 from the default hash algorithms for
-     certificate verification.
+   * Removed SHA-1 and RIPEMD-160 from the default hash algorithms for
+     certificate verification. SHA-1 can be turned back on with a compile-time
+     option if needed.
 
 Bugfix
    * Fix insufficient support for signature-hash-algorithm extension,

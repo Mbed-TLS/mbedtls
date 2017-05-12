@@ -403,6 +403,15 @@ scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
 scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
 CC=armcc AR=armar WARNING_CFLAGS= make lib
 
+msg "build: allow SHA1 in certificates by default"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
+CFLAGS='-Werror -Wall -Wextra' make
+msg "test: allow SHA1 in certificates by default"
+make test
+tests/ssl-opt.sh -f SHA-1
+
 if which i686-w64-mingw32-gcc >/dev/null; then
 msg "build: cross-mingw64, make" # ~ 30s
 cleanup

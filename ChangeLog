@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Bugfix
+   * Fix net_would_block to avoid modification by errno through fcntl call.
+     Found by nkolban. Fixes #845.
+
 = mbed TLS 1.3.19 branch released 2017-03-08
 
 Security

@@ -396,13 +396,18 @@ static int net_would_block( int fd )
  */
 static int net_would_block( int fd )
 {
+    int err = errno;
+
     /*
      * Never return 'WOULD BLOCK' on a non-blocking socket
      */
     if( ( fcntl( fd, F_GETFL ) & O_NONBLOCK ) != O_NONBLOCK )
+    {
+        errno = err;
         return( 0 );
+    }
 
-    switch( errno )
+    switch( errno = err )
     {
 #if defined EAGAIN
         case EAGAIN:

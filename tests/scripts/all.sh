@@ -438,6 +438,17 @@ if uname -a | grep -F x86_64 >/dev/null; then
 msg "build: i386, make, gcc" # ~ 30s
 cleanup
 CC=gcc CFLAGS='-Werror -Wall -Wextra -m32' make
+
+msg "build: gcc, force 32-bit compilation"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl unset MBEDTLS_HAVE_ASM
+scripts/config.pl unset MBEDTLS_AESNI_C
+scripts/config.pl unset MBEDTLS_PADLOCK_C
+CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT32' make
+
+msg "test: gcc, force 32-bit compilation"
+make test
 fi # x86_64
 
 msg "build: arm-none-eabi-gcc, make" # ~ 10s

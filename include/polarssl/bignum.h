@@ -377,7 +377,7 @@ int mpi_write_string( const mpi *X, int radix, char *s, size_t *slen );
 
 #if defined(POLARSSL_FS_IO)
 /**
- * \brief          Read X from an opened file
+ * \brief          Read MPI from a line in an opened file
  *
  * \param X        Destination MPI
  * \param radix    Input numeric base
@@ -386,6 +386,14 @@ int mpi_write_string( const mpi *X, int radix, char *s, size_t *slen );
  * \return         0 if successful, POLARSSL_ERR_MPI_BUFFER_TOO_SMALL if
  *                 the file read buffer is too small or a
  *                 POLARSSL_ERR_MPI_XXX error code
+ *
+ * \note           On success, this function advances the file stream
+ *                 to the end of the current line or to EOF.
+ *
+ *                 The function returns 0 on an empty line.
+ *
+ *                 Leading whitespaces are ignored, as is a
+ *                 '0x' prefix for radix 16.
  */
 int mpi_read_file( mpi *X, int radix, FILE *fin );
 

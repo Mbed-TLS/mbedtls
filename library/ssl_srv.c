@@ -2475,11 +2475,14 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
-    size_t dn_size, total_dn_size; /* excluding length bytes */
+    size_t total_dn_size; /* excluding length bytes */
     size_t ct_len, sa_len; /* including length bytes */
     unsigned char *buf, *p;
+#if !defined(MBEDTLS_OMIT_CA_LIST)
     const unsigned char * const end = ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN;
     const mbedtls_x509_crt *crt;
+    size_t dn_size; 
+#endif
     int authmode;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate request" ) );
@@ -2588,14 +2591,18 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
      * opaque DistinguishedName<1..2^16-1>;
      */
     p += 2;
+
+#if !defined(MBEDTLS_OMIT_CA_LIST)
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     if( ssl->handshake->sni_ca_chain != NULL )
         crt = ssl->handshake->sni_ca_chain;
     else
 #endif
         crt = ssl->conf->ca_chain;
+#endif
 
     total_dn_size = 0;
+#if !defined(MBEDTLS_OMIT_CA_LIST)
     while( crt != NULL && crt->version != 0 )
     {
         dn_size = crt->subject_raw.len;
@@ -2618,7 +2625,9 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
         total_dn_size += 2 + dn_size;
         crt = crt->next;
     }
-
+#else 
+        MBEDTLS_SSL_DEBUG_MSG( 3, ("skipping DN list"));
+#endif 
     ssl->out_msglen  = p - buf;
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = MBEDTLS_SSL_HS_CERTIFICATE_REQUEST;

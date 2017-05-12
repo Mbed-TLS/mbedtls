@@ -6,6 +6,8 @@ Certification authorities
 There are two main CAs for use as trusted roots:
 - test-ca.crt aka "C=NL, O=PolarSSL, CN=PolarSSL Test CA"
   uses a RSA-2048 key
+  test-ca-sha1.crt and test-ca-sha256.crt use the same key, signed with
+  different hashes.
 - test-ca2*.crt aka "C=NL, O=PolarSSL, CN=Polarssl Test EC CA"
   uses an EC key with NIST P-384 (aka secp384r1)
   variants used to test the keyUsage extension
@@ -53,6 +55,8 @@ List of certificates:
 - cert_md*.crt, cert_sha*.crt: 1 R: signature hash
 - cert_v1_with_ext.crt: 1 R: v1 with extensions (illegal)
 - cli2.crt: 2 E: basic
+- cli-rsa.key, cli-rsa-*.crt: RSA key used for test clients, signed by
+  the RSA test CA.
 - enco-cert-utf8str.pem: see enco-ca-prstr.pem above
 - server1*.crt: 1* R C* P1*: misc *(server1-v1 see test-ca-v1.crt above)
     *CRL for: .cert_type.crt, .crt, .key_usage.crt, .v1.crt
@@ -91,3 +95,13 @@ Signing CA in parentheses (same meaning as certificates).
 
 Note: crl_future would revoke server9 and cert_sha384.crt if signed by CA 1
       crl-rsa-pss* would revoke server6.crt if signed by CA 2
+
+Generation
+----------
+
+Newer test files have been generated through commands in the Makefile. The
+resulting files are committed to the repository so that the tests can
+run without having to re-do the generation and so that the output is the
+same for everyone (the generation process is randomized).
+
+The origin of older certificates has not been recorded.

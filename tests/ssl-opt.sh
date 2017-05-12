@@ -628,6 +628,10 @@ O_CLI="$O_CLI -connect localhost:+SRV_PORT"
 G_SRV="$G_SRV -p $SRV_PORT"
 G_CLI="$G_CLI -p +SRV_PORT localhost"
 
+# Allow SHA-1, because many of our test certificates use it
+P_SRV="$P_SRV allow_sha1=1"
+P_CLI="$P_CLI allow_sha1=1"
+
 # Also pick a unique name for intermediate files
 SRV_OUT="srv_out.$$"
 CLI_OUT="cli_out.$$"
@@ -698,6 +702,40 @@ run_test    "RC4: both enabled" \
             0 \
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - The server has no ciphersuites in common"
+
+# Tests for SHA-1 support
+
+run_test    "SHA-1 forbidden by default in server certificate" \
+            "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2.crt" \
+            "$P_CLI debug_level=2 allow_sha1=0" \
+            1 \
+            -c "The certificate is signed with an unacceptable hash"
+
+run_test    "SHA-1 explicitly allowed in server certificate" \
+            "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2.crt" \
+            "$P_CLI allow_sha1=1" \
+            0
+
+run_test    "SHA-256 allowed by default in server certificate" \
+            "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2-sha256.crt" \
+            "$P_CLI allow_sha1=0" \
+            0
+
+run_test    "SHA-1 forbidden by default in client certificate" \
+            "$P_SRV auth_mode=required allow_sha1=0" \
+            "$P_CLI key_file=data_files/cli-rsa.key crt_file=data_files/cli-rsa-sha1.crt" \
+            1 \
+            -s "The certificate is signed with an unacceptable hash"
+
+run_test    "SHA-1 explicitly allowed in client certificate" \
+            "$P_SRV auth_mode=required allow_sha1=1" \
+            "$P_CLI key_file=data_files/cli-rsa.key crt_file=data_files/cli-rsa-sha1.crt" \
+            0
+
+run_test    "SHA-256 allowed by default in client certificate" \
+            "$P_SRV auth_mode=required allow_sha1=0" \
+            "$P_CLI key_file=data_files/cli-rsa.key crt_file=data_files/cli-rsa-sha256.crt" \
+            0
 
 # Tests for Truncated HMAC extension
 

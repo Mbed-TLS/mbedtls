@@ -486,6 +486,15 @@ armc6_build_test "--target=arm-arm-none-eabi -march=armv8.2-a"
 armc6_build_test "--target=arm-arm-none-eabi -march=armv8-m.main"
 armc6_build_test "--target=aarch64-arm-none-eabi"
 
+msg "build: allow SHA1 in certificates by default"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
+CFLAGS='-Werror -Wall -Wextra' make
+msg "test: allow SHA1 in certificates by default"
+make test
+tests/ssl-opt.sh -f SHA-1
+
 msg "build: Windows cross build - mingw64, make (Link Library)" # ~ 30s
 cleanup
 CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 make lib programs

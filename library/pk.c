@@ -49,6 +49,25 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 }
 
 /*
+ * Check whether instances of one PK-type are convertible to that of another.
+ * This is in accordance with mbedtls_pk_can_do.
+ */
+int mbedtls_pk_type_check_convertible( mbedtls_pk_type_t from, mbedtls_pk_type_t to )
+{
+    switch( from ) {
+        case MBEDTLS_PK_RSA:
+            return ! ( to == MBEDTLS_PK_RSASSA_PSS ||
+                       to == MBEDTLS_PK_RSA );
+        case MBEDTLS_PK_ECKEY:
+            return ! ( to == MBEDTLS_PK_ECKEY    ||
+                       to == MBEDTLS_PK_ECKEY_DH ||
+                       to == MBEDTLS_PK_ECDSA );
+        default:
+            return ! ( to == from );
+    }
+}
+
+/*
  * Initialise a mbedtls_pk_context
  */
 void mbedtls_pk_init( mbedtls_pk_context *ctx )

@@ -32,6 +32,8 @@
 extern "C" {
 #endif
 
+
+#if !defined(MBEDTLS_CCM_ALT)
 /**
  * \brief          CCM context structure
  */
@@ -39,6 +41,106 @@ typedef struct {
     mbedtls_cipher_context_t cipher_ctx;    /*!< cipher context used */
 }
 mbedtls_ccm_context;
+
+#else /* MBEDTLS_CCM_ALT */
+#include "ccm_alt.h"
+
+typedef struct {
+    union
+    {
+        mbedtls_ccm_alt_context_t ccm_alt_ctx;    /*!< opaque context structure to be defined in ccm_alt.h */
+        mbedtls_cipher_context_t cipher_ctx;
+    }u_ctx;
+    unsigned int    is_alternative;
+}
+mbedtls_ccm_context;
+
+/**
+ * \brief           Initialize alternative CCM context (just makes references valid)
+ *                  Makes the context ready for mbedtls_ccm_setkey() or
+ *                  mbedtls_ccm_free().
+ *
+ * \param ctx       CCM context to initialize
+ */
+void mbedtls_ccm_init_alt( mbedtls_ccm_context *ctx );
+
+/**
+ * \brief           CCM initialization (encryption and decryption)
+ *
+ * \param ctx       CCM context to be initialized
+ * \param cipher    cipher to use (a 128-bit block cipher)
+ * \param key       encryption key
+ * \param keybits   key size in bits (must be acceptable by the cipher)
+ *
+ * \return          0 if successful, or a cipher specific error code
+ */
+int mbedtls_ccm_setkey_alt( mbedtls_ccm_context *ctx,
+                        mbedtls_cipher_id_t cipher,
+                        const unsigned char *key,
+                        unsigned int keybits );
+
+/**
+ * \brief           Free a CCM context and underlying cipher sub-context
+ *
+ * \param ctx       CCM context to free
+ */
+void mbedtls_ccm_free_alt( mbedtls_ccm_context *ctx );
+
+/**
+ * \brief           CCM buffer alternative encryption
+ *
+ * \param ctx       CCM context
+ * \param length    length of the input data in bytes
+ * \param iv        nonce (initialization vector)
+ * \param iv_len    length of IV in bytes
+ *                  must be 2, 3, 4, 5, 6, 7 or 8
+ * \param add       additional data
+ * \param add_len   length of additional data in bytes
+ *                  must be less than 2^16 - 2^8
+ * \param input     buffer holding the input data
+ * \param output    buffer for holding the output data
+ *                  must be at least 'length' bytes wide
+ * \param tag       buffer for holding the tag
+ * \param tag_len   length of the tag to generate in bytes
+ *                  must be 4, 6, 8, 10, 14 or 16
+ *
+ * \note            The tag is written to a separate buffer. To get the tag
+ *                  concatenated with the output as in the CCM spec, use
+ *                  tag = output + length and make sure the output buffer is
+ *                  at least length + tag_len wide.
+ *
+ * \return          0 if successful
+ */
+int mbedtls_ccm_encrypt_and_tag_alt( mbedtls_ccm_context *ctx, size_t length,
+                         const unsigned char *iv, size_t iv_len,
+                         const unsigned char *add, size_t add_len,
+                         const unsigned char *input, unsigned char *output,
+                         unsigned char *tag, size_t tag_len );
+
+/**
+ * \brief           CCM buffer authenticated alternative decryption
+ *
+ * \param ctx       CCM context
+ * \param length    length of the input data
+ * \param iv        initialization vector
+ * \param iv_len    length of IV
+ * \param add       additional data
+ * \param add_len   length of additional data
+ * \param input     buffer holding the input data
+ * \param output    buffer for holding the output data
+ * \param tag       buffer holding the tag
+ * \param tag_len   length of the tag
+ *
+ * \return         0 if successful and authenticated,
+ *                 MBEDTLS_ERR_CCM_AUTH_FAILED if tag does not match
+ */
+int mbedtls_ccm_auth_decrypt_alt( mbedtls_ccm_context *ctx, size_t length,
+                      const unsigned char *iv, size_t iv_len,
+                      const unsigned char *add, size_t add_len,
+                      const unsigned char *input, unsigned char *output,
+                      const unsigned char *tag, size_t tag_len );
+
+#endif
 
 /**
  * \brief           Initialize CCM context (just makes references valid)

@@ -33,7 +33,8 @@ my @low_level_modules = ( "AES", "ASN1", "BLOWFISH", "CAMELLIA", "BIGNUM",
                           "BASE64", "XTEA", "PBKDF2", "OID",
                           "PADLOCK", "DES", "NET", "CTR_DRBG", "ENTROPY",
                           "HMAC_DRBG", "MD2", "MD4", "MD5", "RIPEMD160",
-                          "SHA1", "SHA256", "SHA512", "GCM", "THREADING", "CCM" );
+                          "SHA1", "SHA256", "SHA512", "GCM", "THREADING", "CCM",
+                          "HKDF" );
 my @high_level_modules = ( "PEM", "X509", "DHM", "RSA", "ECP", "MD", "CIPHER", "SSL",
                            "PK", "PKCS12", "PKCS5" );
 

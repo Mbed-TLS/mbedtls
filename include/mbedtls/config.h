@@ -2288,6 +2288,19 @@
 #define MBEDTLS_SHA512_C
 
 /**
+ * \def MBEDTLS_HKDF_C
+ *
+ * Enable HKDF algorithm.
+ *
+ * Module:  library/hkdf.c
+ * Caller:
+ *
+ * This module adds support for the Hashed Message Authentication Code
+ * (HMAC)-based key derivation function (HKDF).
+ */
+#define MBEDTLS_HKDF_C
+
+/**
  * \def MBEDTLS_SSL_CACHE_C
  *
  * Enable simple SSL cache implementation.
@@ -2409,6 +2422,18 @@
  * This module is used by the HAVEGE random number generator.
  */
 #define MBEDTLS_TIMING_C
+
+/**
+ * \def MBEDTLS_CID
+ *
+ * The connection ID concept enhances DTLS to provide an
+ * alternative multiplexing mechanism.
+ *
+ * Requires: MBEDTLS_SSL_PROTO_DTLS
+ *
+ * Comment if you do not need the connection ID mechanism.
+ */
+#define MBEDTLS_CID
 
 /**
  * \def MBEDTLS_VERSION_C

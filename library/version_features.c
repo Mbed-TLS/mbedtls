@@ -600,6 +600,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_SHA512_C)
     "MBEDTLS_SHA512_C",
 #endif /* MBEDTLS_SHA512_C */
+#if defined(MBEDTLS_HKDF_C)
+    "MBEDTLS_HKDF_C",
+#endif /* MBEDTLS_HKDF_C */
 #if defined(MBEDTLS_SSL_CACHE_C)
     "MBEDTLS_SSL_CACHE_C",
 #endif /* MBEDTLS_SSL_CACHE_C */

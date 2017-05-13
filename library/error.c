@@ -93,6 +93,10 @@
 #include "mbedtls/gcm.h"
 #endif
 
+#if defined(MBEDTLS_HKDF_C)
+#include "mbedtls/hkdf.h"
+#endif
+
 #if defined(MBEDTLS_HMAC_DRBG_C)
 #include "mbedtls/hmac_drbg.h"
 #endif
@@ -618,6 +622,11 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "GCM - Bad input parameters to function" );
 #endif /* MBEDTLS_GCM_C */
 
+#if defined(MBEDTLS_HKDF_C)
+    if( use_ret == -(MBEDTLS_ERR_HKDF_BAD_PARAM) )
+        mbedtls_snprintf( buf, buflen, "HKDF - Bad parameter" );
+#endif /* MBEDTLS_HKDF_C */
+
 #if defined(MBEDTLS_HMAC_DRBG_C)
     if( use_ret == -(MBEDTLS_ERR_HMAC_DRBG_REQUEST_TOO_BIG) )
         mbedtls_snprintf( buf, buflen, "HMAC_DRBG - Too many random requested in single call" );
@@ -652,6 +661,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "NET - Buffer is too small to hold the data" );
     if( use_ret == -(MBEDTLS_ERR_NET_INVALID_CONTEXT) )
         mbedtls_snprintf( buf, buflen, "NET - The context is invalid, eg because it was free()ed" );
+    if( use_ret == -(MBEDTLS_ERR_NET_LIKELY_REBIND) )
+        mbedtls_snprintf( buf, buflen, "NET - Got non-handshake message on a new socket - likely need to handle a NAT rebind" );
 #endif /* MBEDTLS_NET_C */
 
 #if defined(MBEDTLS_OID_C)

@@ -100,6 +100,151 @@ static int ssl_check_timer( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
+#if defined(MBEDTLS_CID)
+int ssl_parse_cid_ext(mbedtls_ssl_context *ssl,
+	const unsigned char *buf,
+	size_t len)
+{
+	const unsigned char *p = buf;
+	char negotiated;
+
+	// default value for CID is diabled
+	ssl->session_negotiate->cid = MBEDTLS_CID_DISABLE;
+
+#if defined(MBEDTLS_SSL_SRV_C)
+	if ((ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT) &&
+		(ssl->conf->cid == MBEDTLS_CID_DISABLE)) {
+		MBEDTLS_SSL_DEBUG_MSG(3, ("skip CID extension parsing"));
+		return(0);
+	}
+#endif 	/* MBEDTLS_SSL_SRV_C */
+
+	if (len != 5) {
+		MBEDTLS_SSL_DEBUG_MSG(1, ("Incorrect message length"));
+
+#if defined(MBEDTLS_SSL_CLI_C)
+		if (ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT)
+			return(MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO);
+#endif /* MBEDTLS_SSL_CLI_C */
+
+#if defined(MBEDTLS_SSL_SRV_C)
+		if (ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT)
+			return(MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO);
+#endif 	/* MBEDTLS_SSL_SRV_C */
+	}
+
+	MBEDTLS_SSL_DEBUG_BUF(5, "CID Type", p, 1);
+
+	// read CID value and compare it with our configuration settings
+	if ((*p == MBEDTLS_CID_BOTH) && (ssl->conf->cid != MBEDTLS_CID_BOTH)) {
+		// client supports both modes but server doesn't 
+		ssl->session_negotiate->cid = (char)ssl->conf->cid;
+	}
+	else if ((*p != MBEDTLS_CID_BOTH) && (ssl->conf->cid == MBEDTLS_CID_BOTH)) {
+		// server supports both modes but client doesn't 
+		ssl->session_negotiate->cid = *p;
+	}
+	else if ((*p == MBEDTLS_CID_BOTH) && (ssl->conf->cid == MBEDTLS_CID_BOTH)) {
+		// client and server support both modes
+		ssl->session_negotiate->cid = MBEDTLS_CID_DYNAMIC;
+	}
+	else if ((*p == (char)ssl->conf->cid)) {
+		// client and server are both configured to support the same mode 
+		// (but not with MBEDTLS_CID_BOTH)
+		ssl->session_negotiate->cid = *p;
+	} 
+	// For all other cases there is a problem but we have already set the 
+	// cid value to the default MBEDTLS_CID_DISABLE 
+	if (ssl->session_negotiate->cid == MBEDTLS_CID_DISABLE) {
+		// Client and server do not have a common implementation of the SID modes 
+		MBEDTLS_SSL_DEBUG_MSG(1, ("Incompabile SID mode between client and server"));
+
+#if defined(MBEDTLS_SSL_CLI_C)
+		if (ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT)
+			return(MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO);
+#endif /* MBEDTLS_SSL_CLI_C */
+
+#if defined(MBEDTLS_SSL_SRV_C)
+		// In this case we just ignore the extension and continue. 
+		if (ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER)
+			return(0);
+#endif 	/* MBEDTLS_SSL_SRV_C */
+	}
+	p++;
+
+	MBEDTLS_SSL_DEBUG_BUF(5, "Out_CID", p, 4);
+
+	// The other end provided us with the CID value it 
+	// would like us to use for packet sent to it. 
+	memcpy(ssl->out_cid, p, 4);
+
+	return(0);
+}
+
+void ssl_write_cid_ext(mbedtls_ssl_context *ssl,
+	unsigned char *buf,
+	size_t *olen)
+{
+	unsigned char *p = buf;
+	const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN;
+
+	*olen = 0;
+
+	if (ssl->conf->cid == MBEDTLS_CID_DISABLE) {
+		MBEDTLS_SSL_DEBUG_MSG(3, ("Skip CID extension - not configured"));
+		return;
+	}
+
+#if defined(MBEDTLS_SSL_SRV_C)
+	// did we receive a CID extension from the client?  
+	if ((ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER) && (ssl->session_negotiate->cid == MBEDTLS_CID_DISABLE)) {
+		MBEDTLS_SSL_DEBUG_MSG(3, ("Skip CID extension - nothing provided by the client"));
+		return;
+	}
+#endif 
+
+	MBEDTLS_SSL_DEBUG_MSG(3, ("adding cid extension"));
+
+	if (end < p || (size_t)(end - p) < 9)
+	{
+		MBEDTLS_SSL_DEBUG_MSG(1, ("buffer too small"));
+		return;
+	}
+
+	*p++ = (unsigned char)((MBEDTLS_TLS_EXT_CID >> 8) & 0xFF);
+	*p++ = (unsigned char)((MBEDTLS_TLS_EXT_CID) & 0xFF);
+
+	*p++ = (unsigned char)((5 >> 8) & 0xFF);
+	*p++ = (unsigned char)(5 & 0xFF);
+
+	// cid method 
+#if defined(MBEDTLS_SSL_CLI_C)
+	if (ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT) {
+		*p = (char)ssl->conf->cid;
+	}
+#endif 
+
+#if defined(MBEDTLS_SSL_SRV_C)
+	if (ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER) {
+		*p = (char)ssl->session_negotiate->cid;
+	}
+#endif 
+
+	MBEDTLS_SSL_DEBUG_BUF(5, "CID Type", p, 1);
+	p++; 
+
+	// allocate CID value 
+	// TBD: Replace statically allocated value with dynamic values 
+	ssl->in_cid[0] = 3;
+	memcpy(p, ssl->in_cid, 4);
+
+	MBEDTLS_SSL_DEBUG_BUF(5, "In_CID", p, 4);
+
+	*olen = 9;
+}
+#endif /* MBEDTLS_CID */ 
+
+
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 /*
  * Double the retransmit timeout value, within the allowed range,
@@ -2814,6 +2959,14 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl )
         mbedtls_ssl_write_version( ssl->major_ver, ssl->minor_ver,
                            ssl->conf->transport, ssl->out_hdr + 1 );
 
+#if defined(MBEDTLS_CID)
+		// Adding a CID to the outgoing packet for application payloads
+		if (ssl->handshake == NULL && ssl->out_msgtype == MBEDTLS_SSL_MSG_APPLICATION_DATA) {
+			memcpy(ssl->out_ctr + 8, ssl->out_cid, 4);
+			MBEDTLS_SSL_DEBUG_BUF(5, "CID (outgoing)", ssl->out_cid, 4);
+		}
+#endif 
+
         ssl->out_len[0] = (unsigned char)( len >> 8 );
         ssl->out_len[1] = (unsigned char)( len      );
 
@@ -3428,7 +3581,7 @@ static int ssl_handle_possible_reconnect( mbedtls_ssl_context *ssl )
 
     if( ret == MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED )
     {
-        /* Don't check write errors as we can't do anything here.
+        /* Dont check write errors as we can't do anything here.
          * If the error is permanent we'll catch it later,
          * if it's not, then hopefully it'll work next time. */
         (void) ssl->f_send( ssl->p_bio, ssl->out_buf, len );
@@ -3640,6 +3793,11 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_UNEXPECTED_RECORD );
         }
 #endif
+
+#if defined(MBEDTLS_CID)
+		// HERE we would read the CID of the incoming datagram
+		// It is at ssl->in_ctr + ( 2 + 6 ) 
+#endif 
     }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
@@ -5582,6 +5740,14 @@ void mbedtls_ssl_conf_dtls_anti_replay( mbedtls_ssl_config *conf, char mode )
 }
 #endif
 
+#if defined(MBEDTLS_CID)
+void mbedtls_ssl_conf_cid(mbedtls_ssl_config *conf, unsigned int cid)
+{
+	if (cid == MBEDTLS_CID_STATIC || cid == MBEDTLS_CID_DYNAMIC || cid == MBEDTLS_CID_BOTH)
+   	   conf->cid = cid;
+}
+#endif 
+
 #if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
 void mbedtls_ssl_conf_dtls_badmac_limit( mbedtls_ssl_config *conf, unsigned limit )
 {
@@ -6006,9 +6172,8 @@ int mbedtls_ssl_conf_alpn_protocols( mbedtls_ssl_config *conf, const char **prot
     const char **p;
 
     /*
-     * RFC 7301 3.1: "Empty strings MUST NOT be included and byte strings
-     * MUST NOT be truncated."
-     * We check lengths now rather than later.
+     * "Empty strings MUST NOT be included and byte strings MUST NOT be
+     * truncated". Check lengths now rather than later.
      */
     tot_len = 0;
     for( p = protos; *p != NULL; p++ )
@@ -6482,10 +6647,6 @@ int mbedtls_ssl_renegotiate( mbedtls_ssl_context *ssl )
  */
 static int ssl_check_ctr_renegotiate( mbedtls_ssl_context *ssl )
 {
-    size_t ep_len = ssl_ep_len( ssl );
-    int in_ctr_cmp;
-    int out_ctr_cmp;
-
     if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER ||
         ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_PENDING ||
         ssl->conf->disable_renegotiation == MBEDTLS_SSL_RENEGOTIATION_DISABLED )
@@ -6493,12 +6654,8 @@ static int ssl_check_ctr_renegotiate( mbedtls_ssl_context *ssl )
         return( 0 );
     }
 
-    in_ctr_cmp = memcmp( ssl->in_ctr + ep_len,
-                        ssl->conf->renego_period + ep_len, 8 - ep_len );
-    out_ctr_cmp = memcmp( ssl->out_ctr + ep_len,
-                          ssl->conf->renego_period + ep_len, 8 - ep_len );
-
-    if( in_ctr_cmp <= 0 && out_ctr_cmp <= 0 )
+    if( memcmp( ssl->in_ctr,  ssl->conf->renego_period, 8 ) <= 0 &&
+        memcmp( ssl->out_ctr, ssl->conf->renego_period, 8 ) <= 0 )
     {
         return( 0 );
     }
@@ -7239,8 +7396,8 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     conf->renego_max_records = MBEDTLS_SSL_RENEGO_MAX_RECORDS_DEFAULT;
-    memset( conf->renego_period,     0x00, 2 );
-    memset( conf->renego_period + 2, 0xFF, 6 );
+    memset( conf->renego_period, 0xFF, 7 );
+    conf->renego_period[7] = 0x00;
 #endif
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
@@ -7594,7 +7751,7 @@ int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
  * and, for DTLS, to/from TLS equivalent.
  *
  * For TLS this is the identity.
- * For DTLS, use 1's complement (v -> 255 - v, and then map as follows:
+ * For DTLS, use one complement (v -> 255 - v, and then map as follows:
  * 1.0 <-> 3.2      (DTLS 1.0 is based on TLS 1.1)
  * 1.x <-> 3.x+1    for x != 0 (DTLS 1.2 based on TLS 1.2)
  */
@@ -7653,7 +7810,8 @@ int mbedtls_ssl_set_calc_verify_md( mbedtls_ssl_context *ssl, int md )
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
 #if defined(MBEDTLS_MD5_C)
         case MBEDTLS_SSL_HASH_MD5:
-            return MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH;
+            ssl->handshake->calc_verify = ssl_calc_verify_tls;
+            break;
 #endif
 #if defined(MBEDTLS_SHA1_C)
         case MBEDTLS_SSL_HASH_SHA1:

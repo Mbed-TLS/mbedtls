@@ -400,6 +400,11 @@ int mbedtls_ssl_check_sig_hash( const mbedtls_ssl_context *ssl,
                                 mbedtls_md_type_t md );
 #endif
 
+#if defined(MBEDTLS_CID)
+int ssl_parse_cid_ext(mbedtls_ssl_context *ssl, const unsigned char *buf, size_t len); 
+void ssl_write_cid_ext(mbedtls_ssl_context *ssl, unsigned char *buf, size_t *olen); 
+#endif 
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 static inline mbedtls_pk_context *mbedtls_ssl_own_key( mbedtls_ssl_context *ssl )
 {
@@ -448,8 +453,14 @@ void mbedtls_ssl_read_version( int *major, int *minor, int transport,
 static inline size_t mbedtls_ssl_hdr_len( const mbedtls_ssl_context *ssl )
 {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-        return( 13 );
+	if (ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
+#if defined(MBEDTLS_CID)
+		if (ssl->handshake == NULL && ssl->out_msgtype == MBEDTLS_SSL_MSG_APPLICATION_DATA)	return(17);
+		else return (13); 
+#else 
+		return(13);
+#endif /* MBEDTLS_CID */
+	}
 #else
     ((void) ssl);
 #endif

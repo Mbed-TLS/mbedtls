@@ -29,6 +29,7 @@ set(src_crypto
     error.c
     gcm.c
     havege.c
+    hkdf.c
     hmac_drbg.c
     md.c
     md2.c

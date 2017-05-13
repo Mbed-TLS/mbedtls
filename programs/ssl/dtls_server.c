@@ -311,59 +311,62 @@ reset:
 
     printf( " ok\n" );
 
-    /*
-     * 6. Read the echo Request
-     */
-    printf( "  < Read from client:" );
-    fflush( stdout );
-
-    len = sizeof( buf ) - 1;
-    memset( buf, 0, sizeof( buf ) );
-
-    do ret = mbedtls_ssl_read( &ssl, buf, len );
-    while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
-           ret == MBEDTLS_ERR_SSL_WANT_WRITE );
-
-    if( ret <= 0 )
+    for (;;)    /* Until we get a close notify */
     {
-        switch( ret )
+        /*
+         * 6. Read the echo Request
+         */
+        printf( "  < Read from client:" );
+        fflush( stdout );
+
+        len = sizeof( buf ) - 1;
+        memset( buf, 0, sizeof( buf ) );
+
+        do ret = mbedtls_ssl_read( &ssl, buf, len );
+        while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
+               ret == MBEDTLS_ERR_SSL_WANT_WRITE );
+
+        if( ret <= 0 )
         {
-            case MBEDTLS_ERR_SSL_TIMEOUT:
-                printf( " timeout\n\n" );
-                goto reset;
+            switch( ret )
+            {
+                case MBEDTLS_ERR_SSL_TIMEOUT:
+                    printf( " timeout\n\n" );
+                    goto reset;
 
-            case MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY:
-                printf( " connection was closed gracefully\n" );
-                ret = 0;
-                goto close_notify;
+                case MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY:
+                    printf( " connection was closed gracefully\n" );
+                    ret = 0;
+                    goto close_notify;
 
-            default:
-                printf( " mbedtls_ssl_read returned -0x%x\n\n", -ret );
-                goto reset;
+                default:
+                    printf( " mbedtls_ssl_read returned -0x%x\n\n", -ret );
+                    goto reset;
+            }
         }
+
+        len = ret;
+        printf( " %d bytes read\n\n%s\n\n", len, buf );
+
+        /*
+         * 7. Write the 200 Response
+         */
+        printf( "  > Write to client:" );
+        fflush( stdout );
+
+        do ret = mbedtls_ssl_write( &ssl, buf, len );
+        while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
+               ret == MBEDTLS_ERR_SSL_WANT_WRITE );
+
+        if( ret < 0 )
+        {
+            printf( " failed\n  ! mbedtls_ssl_write returned %d\n\n", ret );
+            goto exit;
+        }
+
+        len = ret;
+        printf( " %d bytes written\n\n%s\n\n", len, buf );
     }
-
-    len = ret;
-    printf( " %d bytes read\n\n%s\n\n", len, buf );
-
-    /*
-     * 7. Write the 200 Response
-     */
-    printf( "  > Write to client:" );
-    fflush( stdout );
-
-    do ret = mbedtls_ssl_write( &ssl, buf, len );
-    while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
-           ret == MBEDTLS_ERR_SSL_WANT_WRITE );
-
-    if( ret < 0 )
-    {
-        printf( " failed\n  ! mbedtls_ssl_write returned %d\n\n", ret );
-        goto exit;
-    }
-
-    len = ret;
-    printf( " %d bytes written\n\n%s\n\n", len, buf );
 
     /*
      * 8. Done, cleanly close the connection

@@ -961,6 +961,11 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     ext_len += olen;
 #endif
 
+#if defined(MBEDTLS_CID)
+	ssl_write_cid_ext(ssl, p + 2 + ext_len, &olen);
+	ext_len += olen;
+#endif 
+
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     ssl_write_renegotiation_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
@@ -1696,6 +1701,18 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
                 return( ret );
 
             break;
+
+#if defined(MBEDTLS_CID)
+		case MBEDTLS_TLS_EXT_CID:
+			MBEDTLS_SSL_DEBUG_MSG(3, ("found CID extension"));
+			if (ssl->conf->cid == MBEDTLS_CID_DISABLE)
+				break;
+
+			ret = ssl_parse_cid_ext(ssl, ext + 4, ext_size);
+			if (ret != 0)
+				return(ret);
+			break;
+#endif /* MBEDTLS_CID */
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
         case MBEDTLS_TLS_EXT_MAX_FRAGMENT_LENGTH:

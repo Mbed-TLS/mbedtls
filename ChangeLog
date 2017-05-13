@@ -7,6 +7,9 @@ Security
      (rsa_rsaes_pkcs1_v15_decrypt(), rsa_rsaes_oaep_decrypt).
      Found by Laurent Simon.
 
+Bugfix
+   * Fixed issue in mutexes to failing to initialise. #667
+
 = mbed TLS 2.1.7 branch released 2017-03-08
 
 Security

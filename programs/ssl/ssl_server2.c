@@ -119,6 +119,7 @@ int main( void )
 #define DFL_MIN_VERSION         -1
 #define DFL_MAX_VERSION         -1
 #define DFL_ARC4                -1
+#define DFL_SHA1                -1
 #define DFL_AUTH_MODE           -1
 #define DFL_MFL_CODE            MBEDTLS_SSL_MAX_FRAG_LEN_NONE
 #define DFL_TRUNC_HMAC          -1
@@ -333,6 +334,7 @@ int main( void )
     USAGE_ETM                                               \
     "\n"                                                    \
     "    arc4=%%d             default: (library default: 0)\n" \
+    "    allow_sha1=%%d       default: 0\n"                             \
     "    min_version=%%s      default: (library default: tls1)\n"       \
     "    max_version=%%s      default: (library default: tls1_2)\n"     \
     "    force_version=%%s    default: \"\" (none)\n"       \
@@ -387,6 +389,7 @@ struct options
     int min_version;            /* minimum protocol version accepted        */
     int max_version;            /* maximum protocol version accepted        */
     int arc4;                   /* flag for arc4 suites support             */
+    int allow_sha1;             /* flag for SHA-1 support                   */
     int auth_mode;              /* verify mode for connection               */
     unsigned char mfl_code;     /* code for maximum fragment length         */
     int trunc_hmac;             /* accept truncated hmac?                   */
@@ -799,6 +802,9 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_cookie_ctx cookie_ctx;
 #endif
 
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    mbedtls_x509_crt_profile crt_profile_for_test = mbedtls_x509_crt_profile_default;
+#endif
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     mbedtls_ssl_context ssl;
@@ -929,6 +935,7 @@ int main( int argc, char *argv[] )
     opt.min_version         = DFL_MIN_VERSION;
     opt.max_version         = DFL_MAX_VERSION;
     opt.arc4                = DFL_ARC4;
+    opt.allow_sha1          = DFL_SHA1;
     opt.auth_mode           = DFL_AUTH_MODE;
     opt.mfl_code            = DFL_MFL_CODE;
     opt.trunc_hmac          = DFL_TRUNC_HMAC;
@@ -1094,6 +1101,15 @@ int main( int argc, char *argv[] )
             {
                 case 0:     opt.arc4 = MBEDTLS_SSL_ARC4_DISABLED;   break;
                 case 1:     opt.arc4 = MBEDTLS_SSL_ARC4_ENABLED;    break;
+                default:    goto usage;
+            }
+        }
+        else if( strcmp( p, "allow_sha1" ) == 0 )
+        {
+            switch( atoi( q ) )
+            {
+                case 0:     opt.allow_sha1 = 0;   break;
+                case 1:     opt.allow_sha1 = 1;    break;
                 default:    goto usage;
             }
         }
@@ -1614,6 +1630,17 @@ int main( int argc, char *argv[] )
         mbedtls_printf( " failed\n  ! mbedtls_ssl_config_defaults returned -0x%x\n\n", -ret );
         goto exit;
     }
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    /* The default algorithms profile disables SHA-1, but our tests still
+       rely on it heavily. Hence we allow it here. A real-world server
+       should use the default profile unless there is a good reason not to. */
+    if( opt.allow_sha1 > 0 )
+    {
+        crt_profile_for_test.allowed_mds |= MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA1 );
+        mbedtls_ssl_conf_cert_profile( &conf, &crt_profile_for_test );
+    }
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     if( opt.auth_mode != DFL_AUTH_MODE )
         mbedtls_ssl_conf_authmode( &conf, opt.auth_mode );

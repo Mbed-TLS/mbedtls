@@ -9,7 +9,9 @@ Security
      Found and fix proposed by Michael Schwarz, Samuel Weiser, Daniel Gruss,
      Clémentine Maurice and Stefan Mangard.
 
-Feature
+Features
+   * Exposed parts of the Elliptic Curve Point internal interface, to provide
+     interface for external hardware acceleration code.
    * Add a new configuration option to 'mbedtls_ssl_config' to enable
      suppressing the CA list in Certificate Request messages. The default
      behaviour has not changed, namely every configured CAs name is included.
@@ -85,10 +87,6 @@ Bugfix
      digits. Found and fixed by Guido Vranken.
    * Fix unlisted DES configuration dependency in some pkparse test cases. Found
      by inestlerode. #555
-
-Features
-   * Exposed parts of the Elliptic Curve Point internal interface, to provide
-     interface for external hardware acceleration code.
 
 = mbed TLS 2.4.1 branch released 2016-12-13
 

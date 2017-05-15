@@ -1,5 +1,12 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.y.0 released YYYY-MM-DD
+
+Features
+   * Add support for restartable ECC operations, controlled by
+     MBEDTLS_ECP_RESTARTABLE (disabled by default), using new xxx_restartable
+     functions in ECP, ECDSA, PK, and using existing functions in ECDH.
+
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
 Security

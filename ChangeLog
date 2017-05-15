@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.x.x branch released xxxx-xx-xx
+= mbed TLS 2.5.0 branch released 2017-05-17
 
 Security
    * Wipe stack buffers in RSA private key operations

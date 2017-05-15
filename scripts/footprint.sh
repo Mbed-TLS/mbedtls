@@ -11,7 +11,6 @@
 #
 # Configurations included:
 #   default    include/mbedtls/config.h
-#   yotta      yotta/module/mbedtls/config.h
 #   thread     configs/config-thread.h
 #   suite-b    configs/config-suite-b.h
 #   psk        configs/config-ccm-psk-tls1_2.h
@@ -102,11 +101,7 @@ log "mbed TLS $MBEDTLS_VERSION$GIT_VERSION"
 log "$( arm-none-eabi-gcc --version | head -n1 )"
 log "CFLAGS=$ARMGCC_FLAGS"
 
-# creates the yotta config
-yotta/create-module.sh >/dev/null
-
 doit default    include/mbedtls/config.h
-doit yotta      yotta/module/mbedtls/config.h
 doit thread     configs/config-thread.h
 doit suite-b    configs/config-suite-b.h
 doit psk        configs/config-ccm-psk-tls1_2.h

@@ -98,6 +98,7 @@ int main( void )
 #define DFL_RECONNECT_HARD      0
 #define DFL_TICKETS             MBEDTLS_SSL_SESSION_TICKETS_ENABLED
 #define DFL_ALPN_STRING         NULL
+#define DFL_CURVES              NULL
 #define DFL_TRANSPORT           MBEDTLS_SSL_TRANSPORT_STREAM
 #define DFL_HS_TO_MIN           0
 #define DFL_HS_TO_MAX           0
@@ -177,6 +178,17 @@ int main( void )
 #else
 #define USAGE_ALPN ""
 #endif /* MBEDTLS_SSL_ALPN */
+
+#if defined(MBEDTLS_ECP_C)
+#define USAGE_CURVES \
+    "    curves=a,b,c,d      default: \"default\" (library default)\n"  \
+    "                        example: \"secp521r1,brainpoolP512r1\"\n"  \
+    "                        - use \"none\" for empty list\n"           \
+    "                        - see mbedtls_ecp_curve_list()\n"          \
+    "                          for acceptable curve names\n"
+#else
+#define USAGE_CURVES ""
+#endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 #define USAGE_DTLS \
@@ -260,6 +272,7 @@ int main( void )
     USAGE_FALLBACK                                          \
     USAGE_EMS                                               \
     USAGE_ETM                                               \
+    USAGE_CURVES                                            \
     USAGE_RECSPLIT                                          \
     USAGE_DHMLEN                                            \
     "\n"                                                    \
@@ -313,6 +326,7 @@ struct options
     int reco_delay;             /* delay in seconds before resuming session */
     int reconnect_hard;         /* unexpectedly reconnect from the same port */
     int tickets;                /* enable / disable session tickets         */
+    const char *curves;         /* list of supported elliptic curves        */
     const char *alpn_string;    /* ALPN supported protocols                 */
     int transport;              /* TLS or DTLS?                             */
     uint32_t hs_to_min;         /* Initial value of DTLS handshake timer    */
@@ -428,6 +442,11 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_ALPN)
     const char *alpn_list[10];
 #endif
+#if defined(MBEDTLS_ECP_C)
+    mbedtls_ecp_group_id curve_list[20];
+    const mbedtls_ecp_curve_info *curve_cur;
+#endif
+
     const char *pers = "ssl_client2";
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -524,6 +543,7 @@ int main( int argc, char *argv[] )
     opt.reconnect_hard      = DFL_RECONNECT_HARD;
     opt.tickets             = DFL_TICKETS;
     opt.alpn_string         = DFL_ALPN_STRING;
+    opt.curves              = DFL_CURVES;
     opt.transport           = DFL_TRANSPORT;
     opt.hs_to_min           = DFL_HS_TO_MIN;
     opt.hs_to_max           = DFL_HS_TO_MAX;
@@ -680,6 +700,8 @@ int main( int argc, char *argv[] )
                 default: goto usage;
             }
         }
+        else if( strcmp( p, "curves" ) == 0 )
+            opt.curves = q;
         else if( strcmp( p, "etm" ) == 0 )
         {
             switch( atoi( q ) )
@@ -936,6 +958,64 @@ int main( int argc, char *argv[] )
         }
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
+
+#if defined(MBEDTLS_ECP_C)
+    if( opt.curves != NULL )
+    {
+        p = (char *) opt.curves;
+        i = 0;
+
+        if( strcmp( p, "none" ) == 0 )
+        {
+            curve_list[0] = MBEDTLS_ECP_DP_NONE;
+        }
+        else if( strcmp( p, "default" ) != 0 )
+        {
+            /* Leave room for a final NULL in curve list */
+            while( i < (int) ( sizeof( curve_list ) / sizeof( *curve_list ) ) - 1
+                   && *p != '\0' )
+            {
+                q = p;
+
+                /* Terminate the current string */
+                while( *p != ',' && *p != '\0' )
+                    p++;
+                if( *p == ',' )
+                    *p++ = '\0';
+
+                if( ( curve_cur = mbedtls_ecp_curve_info_from_name( q ) ) != NULL )
+                {
+                    curve_list[i++] = curve_cur->grp_id;
+                }
+                else
+                {
+                    mbedtls_printf( "unknown curve %s\n", q );
+                    mbedtls_printf( "supported curves: " );
+                    for( curve_cur = mbedtls_ecp_curve_list();
+                         curve_cur->grp_id != MBEDTLS_ECP_DP_NONE;
+                         curve_cur++ )
+                    {
+                        mbedtls_printf( "%s ", curve_cur->name );
+                    }
+                    mbedtls_printf( "\n" );
+                    goto exit;
+                }
+            }
+
+            mbedtls_printf("Number of curves: %d\n", i );
+
+            if( i == (int) ( sizeof( curve_list ) / sizeof( *curve_list ) ) - 1
+                && *p != '\0' )
+            {
+                mbedtls_printf( "curves list too long, maximum %zu",
+                                (size_t) ( sizeof( curve_list ) / sizeof( *curve_list ) - 1 ) );
+                goto exit;
+            }
+
+            curve_list[i] = MBEDTLS_ECP_DP_NONE;
+        }
+    }
+#endif /* MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_SSL_ALPN)
     if( opt.alpn_string != NULL )
@@ -1223,6 +1303,14 @@ int main( int argc, char *argv[] )
             mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_own_cert returned %d\n\n", ret );
             goto exit;
         }
+    }
+#endif
+
+#if defined(MBEDTLS_ECP_C)
+    if( opt.curves != NULL &&
+        strcmp( opt.curves, "default" ) != 0 )
+    {
+        mbedtls_ssl_conf_curves( &conf, curve_list );
     }
 #endif
 

@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.x.x branch released xxxx-xx-xx
+
+Security
+   * Fixed offset in FALLBACK_SCSV parsing that caused TLS server to fail to
+     detect it sometimes. Reported by Hugo Leisink. #810
+
 = mbed TLS 2.4.2 branch released 2017-03-08
 
 Security

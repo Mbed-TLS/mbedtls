@@ -2861,6 +2861,11 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
          */
         i = 4;
 
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+        if( ssl->handshake->ecrs_state == ssl_ecrs_ecdh_public_done )
+            goto ecdh_calc_secret;
+#endif
+
         ret = mbedtls_ecdh_make_public( &ssl->handshake->ecdh_ctx,
                                 &n,
                                 &ssl->out_msg[i], 1000,
@@ -2873,6 +2878,13 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
 
         MBEDTLS_SSL_DEBUG_ECP( 3, "ECDH: Q", &ssl->handshake->ecdh_ctx.Q );
 
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+        ssl->handshake->ecrs_n = n;
+        ssl->handshake->ecrs_state++;
+
+ecdh_calc_secret:
+        n = ssl->handshake->ecrs_n;
+#endif
         if( ( ret = mbedtls_ecdh_calc_secret( &ssl->handshake->ecdh_ctx,
                                       &ssl->handshake->pmslen,
                                        ssl->handshake->premaster,
@@ -2884,6 +2896,10 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         }
 
         MBEDTLS_SSL_DEBUG_MPI( 3, "ECDH: z", &ssl->handshake->ecdh_ctx.z );
+
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+        ssl->handshake->ecrs_state++;
+#endif
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||

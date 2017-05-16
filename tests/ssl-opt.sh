@@ -3441,6 +3441,48 @@ run_test    "Large packet TLS 1.2 AEAD shorter tag" \
             0 \
             -s "Read from client: 16384 bytes read"
 
+# Tests for restartable ECC
+
+requires_config_enabled MBEDTLS_ECP_RESTARTABLE
+run_test    "EC restart: TLS, default" \
+            "$P_SRV" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
+             debug_level=1" \
+            0 \
+            -C "mbedtls_ecdh_make_public.*4b80"
+
+requires_config_enabled MBEDTLS_ECP_RESTARTABLE
+run_test    "EC restart: TLS, max_ops=0" \
+            "$P_SRV" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
+             debug_level=1 ec_max_ops=0" \
+            0 \
+            -C "mbedtls_ecdh_make_public.*4b80"
+
+requires_config_enabled MBEDTLS_ECP_RESTARTABLE
+run_test    "EC restart: TLS, max_ops=65535" \
+            "$P_SRV" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
+             debug_level=1 ec_max_ops=65535" \
+            0 \
+            -C "mbedtls_ecdh_make_public.*4b80"
+
+requires_config_enabled MBEDTLS_ECP_RESTARTABLE
+run_test    "EC restart: TLS, max_ops=1000" \
+            "$P_SRV" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
+             debug_level=1 ec_max_ops=1000" \
+            0 \
+            -c "mbedtls_ecdh_make_public.*4b80"
+
+requires_config_enabled MBEDTLS_ECP_RESTARTABLE
+run_test    "EC restart: DTLS, max_ops=1000" \
+            "$P_SRV dtls=1" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
+             dtls=1 debug_level=1 ec_max_ops=1000" \
+            0 \
+            -c "mbedtls_ecdh_make_public.*4b80"
+
 # Tests for DTLS HelloVerifyRequest
 
 run_test    "DTLS cookie: enabled" \

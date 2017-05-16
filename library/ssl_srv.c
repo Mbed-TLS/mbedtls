@@ -1643,7 +1643,7 @@ read_record_header:
 #endif
 
 #if defined(MBEDTLS_SSL_FALLBACK_SCSV)
-    for( i = 0, p = buf + 41 + sess_len; i < ciph_len; i += 2, p += 2 )
+    for( i = 0, p = buf + ciph_offset + 2; i < ciph_len; i += 2, p += 2 )
     {
         if( p[0] == (unsigned char)( ( MBEDTLS_SSL_FALLBACK_SCSV_VALUE >> 8 ) & 0xff ) &&
             p[1] == (unsigned char)( ( MBEDTLS_SSL_FALLBACK_SCSV_VALUE      ) & 0xff ) )

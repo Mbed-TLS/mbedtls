@@ -307,7 +307,8 @@ static int eckey_verify_rs_wrap( void *ctx, mbedtls_md_type_t md_alg,
 
 cleanup:
     /* clear our sub-context when not in progress (done or error) */
-    if( rs_ctx != NULL && ret != MBEDTLS_ERR_ECP_IN_PROGRESS ) {
+    if( rs_ctx != NULL && ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
+    {
         mbedtls_ecdsa_free( rs_ctx->ecdsa );
         mbedtls_free( rs_ctx->ecdsa );
         rs_ctx->ecdsa = NULL;
@@ -357,7 +358,8 @@ static int eckey_sign_rs_wrap( void *ctx, mbedtls_md_type_t md_alg,
 
 cleanup:
     /* clear our sub-context when not in progress (done or error) */
-    if( rs_ctx != NULL && ret != MBEDTLS_ERR_ECP_IN_PROGRESS ) {
+    if( rs_ctx != NULL && ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
+    {
         mbedtls_ecdsa_free( rs_ctx->ecdsa );
         mbedtls_free( rs_ctx->ecdsa );
         rs_ctx->ecdsa = NULL;

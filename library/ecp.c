@@ -147,7 +147,8 @@ static void ecp_restart_mul_free( mbedtls_ecp_restart_mul_ctx *ctx )
 
     mbedtls_ecp_point_free( &ctx->R );
 
-    if( ctx->T != NULL ) {
+    if( ctx->T != NULL )
+    {
         for( i = 0; i < ctx->T_size; i++ )
             mbedtls_ecp_point_free( ctx->T + i );
         mbedtls_free( ctx->T );
@@ -1907,7 +1908,8 @@ cleanup:
 
     /* clear our sub-context when not in progress (done or error) */
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-    if( rs_ctx != NULL && ret != MBEDTLS_ERR_ECP_IN_PROGRESS ) {
+    if( rs_ctx != NULL && ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
+    {
         ecp_restart_mul_free( rs_ctx->rsm );
         mbedtls_free( rs_ctx->rsm );
         rs_ctx->rsm = NULL;
@@ -2392,7 +2394,8 @@ cleanup:
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     /* clear our sub-context when not in progress (done or error) */
-    if( rs_ctx != NULL && ret != MBEDTLS_ERR_ECP_IN_PROGRESS ) {
+    if( rs_ctx != NULL && ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
+    {
         ecp_restart_muladd_free( rs_ctx->ma );
         mbedtls_free( rs_ctx->ma );
         rs_ctx->ma = NULL;

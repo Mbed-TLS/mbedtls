@@ -189,7 +189,8 @@ static void ecdsa_restart_det_free( mbedtls_ecdsa_restart_det_ctx *ctx )
 
 #define ECDSA_RS_LEAVE( SUB )   do {                                 \
     /* clear our sub-context when not in progress (done or error) */ \
-    if( rs_ctx != NULL && ret != MBEDTLS_ERR_ECP_IN_PROGRESS ) {     \
+    if( rs_ctx != NULL && ret != MBEDTLS_ERR_ECP_IN_PROGRESS )       \
+    {                                                                \
         ecdsa_restart_## SUB ##_free( rs_ctx->SUB );                 \
         mbedtls_free( rs_ctx->SUB );                                 \
         rs_ctx->SUB = NULL;                                          \

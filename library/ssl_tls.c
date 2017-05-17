@@ -5472,6 +5472,10 @@ static void ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )
 #endif
 #endif
 
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+    mbedtls_ecdsa_restart_init( &handshake->rs_ctx );
+#endif
+
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     handshake->sni_authmode = MBEDTLS_SSL_VERIFY_UNSET;
 #endif
@@ -7303,6 +7307,10 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_handshake_params *handshake )
         }
     }
 #endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_SSL_SERVER_NAME_INDICATION */
+
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+    mbedtls_ecdsa_restart_free( &handshake->rs_ctx );
+#endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     mbedtls_free( handshake->verify_cookie );

@@ -1715,6 +1715,14 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
         }
     }
 
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+    if( suite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA &&
+        ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+    {
+        ssl->handshake->ec_restart_enabled = 1;
+    }
+#endif
+
     if( comp != MBEDTLS_SSL_COMPRESS_NULL
 #if defined(MBEDTLS_ZLIB_SUPPORT)
         && comp != MBEDTLS_SSL_COMPRESS_DEFLATE
@@ -3114,8 +3122,14 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
     unsigned char *hash_start = hash;
     mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
     unsigned int hashlen;
+    void *rs_ctx = NULL;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate verify" ) );
+
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+    if( ssl->handshake->ecrs_state == ssl_ecrs_keys_derived )
+        goto keys_derived;
+#endif
 
     if( ( ret = mbedtls_ssl_derive_keys( ssl ) ) != 0 )
     {
@@ -3123,6 +3137,11 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
         return( ret );
     }
 
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+    ssl->handshake->ecrs_state++;
+
+keys_derived:
+#endif
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ||
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK ||
@@ -3226,13 +3245,23 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-    if( ( ret = mbedtls_pk_sign( mbedtls_ssl_own_key( ssl ), md_alg, hash_start, hashlen,
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+    if( ssl->handshake->ec_restart_enabled )
+        rs_ctx = &ssl->handshake->rs_ctx;
+#endif
+
+    if( ( ret = mbedtls_pk_sign_restartable( mbedtls_ssl_own_key( ssl ),
+                         md_alg, hash_start, hashlen,
                          ssl->out_msg + 6 + offset, &n,
-                         ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+                         ssl->conf->f_rng, ssl->conf->p_rng, rs_ctx ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_sign", ret );
         return( ret );
     }
+
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+    ssl->handshake->ecrs_state++;
+#endif
 
     ssl->out_msg[4 + offset] = (unsigned char)( n >> 8 );
     ssl->out_msg[5 + offset] = (unsigned char)( n      );
@@ -3242,7 +3271,6 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
     ssl->out_msg[0]  = MBEDTLS_SSL_HS_CERTIFICATE_VERIFY;
 
     ssl->state++;
-
     if( ( ret = mbedtls_ssl_write_record( ssl ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );

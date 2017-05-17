@@ -1,5 +1,12 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Bugfix
+   * Remove wrong documentation for `mbedtls_ssl_get_session`.
+     This API has deep copy of the session, and the peer
+     certificate is not lost. #926
+
 = mbed TLS 2.1.13 branch released 2018-06-18
 
 Bugfix

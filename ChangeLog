@@ -18,6 +18,9 @@ Bugfix
      return value. Found by @davidwu2000. #839
    * Fix a memory leak in mbedtls_x509_csr_parse(), found by catenacyber,
      Philippe Antoine. Fixes #1623.
+   * Remove wrong documentation for `mbedtls_ssl_get_session`.
+     This API has deep copy of the session, and the peer
+     certificate is not lost. #926
 
 Changes
    * Change the shebang line in Perl scripts to look up perl in the PATH.

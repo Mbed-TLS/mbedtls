@@ -39,13 +39,13 @@
 
 #define MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED                  -0x0035  /**< SHA-1 hardware accelerator failed */
 
-#if !defined(MBEDTLS_SHA1_ALT)
-// Regular implementation
-//
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#if !defined(MBEDTLS_SHA1_ALT)
+// Regular implementation
+//
 
 /**
  * \brief          The SHA-1 context structure.
@@ -62,6 +62,10 @@ typedef struct
     unsigned char buffer[64];   /*!< The data block being processed. */
 }
 mbedtls_sha1_context;
+
+#else  /* MBEDTLS_SHA1_ALT */
+#include "sha1_alt.h"
+#endif /* MBEDTLS_SHA1_ALT */
 
 /**
  * \brief          This function initializes a SHA-1 context.
@@ -239,18 +243,6 @@ MBEDTLS_DEPRECATED void mbedtls_sha1_process( mbedtls_sha1_context *ctx,
 
 #undef MBEDTLS_DEPRECATED
 #endif /* !MBEDTLS_DEPRECATED_REMOVED */
-
-#ifdef __cplusplus
-}
-#endif
-
-#else  /* MBEDTLS_SHA1_ALT */
-#include "sha1_alt.h"
-#endif /* MBEDTLS_SHA1_ALT */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          This function calculates the SHA-1 checksum of a buffer.

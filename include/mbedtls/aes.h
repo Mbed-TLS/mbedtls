@@ -59,13 +59,13 @@
 #define inline __inline
 #endif
 
-#if !defined(MBEDTLS_AES_ALT)
-// Regular implementation
-//
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#if !defined(MBEDTLS_AES_ALT)
+// Regular implementation
+//
 
 /**
  * \brief The AES context-type definition.
@@ -84,6 +84,10 @@ typedef struct
                                          </li></ul> */
 }
 mbedtls_aes_context;
+
+#else  /* MBEDTLS_AES_ALT */
+#include "aes_alt.h"
+#endif /* MBEDTLS_AES_ALT */
 
 /**
  * \brief          This function initializes the specified AES context.
@@ -390,18 +394,6 @@ MBEDTLS_DEPRECATED void mbedtls_aes_decrypt( mbedtls_aes_context *ctx,
 
 #undef MBEDTLS_DEPRECATED
 #endif /* !MBEDTLS_DEPRECATED_REMOVED */
-
-#ifdef __cplusplus
-}
-#endif
-
-#else  /* MBEDTLS_AES_ALT */
-#include "aes_alt.h"
-#endif /* MBEDTLS_AES_ALT */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          Checkup routine.

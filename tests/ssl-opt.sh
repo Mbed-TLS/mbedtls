@@ -3498,6 +3498,26 @@ run_test    "EC restart: DTLS, max_ops=1000" \
             -c "mbedtls_ecdh_make_public.*4b80" \
             -c "mbedtls_pk_sign.*4b80"
 
+requires_config_enabled MBEDTLS_ECP_RESTARTABLE
+run_test    "EC restart: TLS, max_ops=1000 no client auth" \
+            "$P_SRV" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
+             debug_level=1 ec_max_ops=1000" \
+            0 \
+            -c "mbedtls_pk_verify.*4b80" \
+            -c "mbedtls_ecdh_make_public.*4b80" \
+            -C "mbedtls_pk_sign.*4b80"
+
+requires_config_enabled MBEDTLS_ECP_RESTARTABLE
+run_test    "EC restart: TLS, max_ops=1000, ECDHE-PSK" \
+            "$P_SRV psk=abc123" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA256 \
+             psk=abc123 debug_level=1 ec_max_ops=1000" \
+            0 \
+            -C "mbedtls_pk_verify.*4b80" \
+            -C "mbedtls_ecdh_make_public.*4b80" \
+            -C "mbedtls_pk_sign.*4b80"
+
 # Tests for DTLS HelloVerifyRequest
 
 run_test    "DTLS cookie: enabled" \

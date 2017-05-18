@@ -161,7 +161,7 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
 void ecdh_restart( int id, char *dA_str, char *dB_str, char *z_str,
-                   int max_ops, int min_restart, int max_restart )
+                   int enable, int max_ops, int min_restart, int max_restart )
 {
     int ret;
     mbedtls_ecdh_context srv, cli;
@@ -192,7 +192,14 @@ void ecdh_restart( int id, char *dA_str, char *dB_str, char *z_str,
      * as in ecdh_primitive_test_vec */
     TEST_ASSERT( srv.grp.nbits % 8 == 0 );
 
+    /* set up restart parameters */
     mbedtls_ecp_set_max_ops( max_ops );
+
+    if( enable)
+    {
+        mbedtls_ecdh_enable_restart( &srv );
+        mbedtls_ecdh_enable_restart( &cli );
+    }
 
     /* server writes its paramaters */
     memset( buf, 0x00, sizeof( buf ) );

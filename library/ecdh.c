@@ -155,6 +155,16 @@ void mbedtls_ecdh_free( mbedtls_ecdh_context *ctx )
 #endif
 }
 
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+/*
+ * Enable restartable operations for context
+ */
+void mbedtls_ecdh_enable_restart( mbedtls_ecdh_context *ctx )
+{
+    ctx->restart_enabled = 1;
+}
+#endif
+
 /*
  * Setup and write the ServerKeyExhange parameters (RFC 4492)
  *      struct {
@@ -175,7 +185,8 @@ int mbedtls_ecdh_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-    rs_ctx = &ctx->rs;
+    if( ctx->restart_enabled )
+        rs_ctx = &ctx->rs;
 #endif
 
     if( ( ret = ecdh_gen_public_restartable( &ctx->grp, &ctx->d, &ctx->Q,
@@ -260,7 +271,8 @@ int mbedtls_ecdh_make_public( mbedtls_ecdh_context *ctx, size_t *olen,
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-    rs_ctx = &ctx->rs;
+    if( ctx->restart_enabled )
+        rs_ctx = &ctx->rs;
 #endif
 
     if( ( ret = ecdh_gen_public_restartable( &ctx->grp, &ctx->d, &ctx->Q,
@@ -307,7 +319,8 @@ int mbedtls_ecdh_calc_secret( mbedtls_ecdh_context *ctx, size_t *olen,
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-    rs_ctx = &ctx->rs;
+    if( ctx->restart_enabled )
+        rs_ctx = &ctx->rs;
 #endif
 
     if( ( ret = ecdh_compute_shared_restartable( &ctx->grp,

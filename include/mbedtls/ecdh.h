@@ -53,6 +53,7 @@ typedef struct
     mbedtls_ecp_point Vf;       /*!<  un-blinding value (for later)         */
     mbedtls_mpi _d;             /*!<  previous d (for later)                */
 #if defined(MBEDTLS_ECP_RESTARTABLE)
+    int restart_enabled;        /*!<  enable restartalbe EC computations?   */
     mbedtls_ecp_restart_ctx rs; /*!<  restart context for EC computations   */
 #endif
 }
@@ -219,6 +220,22 @@ int mbedtls_ecdh_calc_secret( mbedtls_ecdh_context *ctx, size_t *olen,
                       unsigned char *buf, size_t blen,
                       int (*f_rng)(void *, unsigned char *, size_t),
                       void *p_rng );
+
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+/**
+ * \brief           Enable restartable EC computations for this context.
+ *                  (Default: disabled.)
+ *
+ * \sa              \c mbedtls_ecp_set_max_ops()
+ *
+ * \note            It is not possible to safely disable restartable
+ *                  computations once enabled, except by free-ing the context,
+ *                  which cancels possible in-progress operations.
+ *
+ * \param ctx       ECDH context
+ */
+void mbedtls_ecdh_enable_restart( mbedtls_ecdh_context *ctx );
+#endif /* MBEDTLS_ECP_RESTARTABLE */
 
 #ifdef __cplusplus
 }

@@ -3450,6 +3450,7 @@ run_test    "EC restart: TLS, default" \
              key_file=data_files/server5.key crt_file=data_files/server5.crt  \
              debug_level=1" \
             0 \
+            -C "mbedtls_pk_verify.*4b80" \
             -C "mbedtls_ecdh_make_public.*4b80" \
             -C "mbedtls_pk_sign.*4b80"
 
@@ -3460,6 +3461,7 @@ run_test    "EC restart: TLS, max_ops=0" \
              key_file=data_files/server5.key crt_file=data_files/server5.crt  \
              debug_level=1 ec_max_ops=0" \
             0 \
+            -C "mbedtls_pk_verify.*4b80" \
             -C "mbedtls_ecdh_make_public.*4b80" \
             -C "mbedtls_pk_sign.*4b80"
 
@@ -3470,6 +3472,7 @@ run_test    "EC restart: TLS, max_ops=65535" \
              key_file=data_files/server5.key crt_file=data_files/server5.crt  \
              debug_level=1 ec_max_ops=65535" \
             0 \
+            -C "mbedtls_pk_verify.*4b80" \
             -C "mbedtls_ecdh_make_public.*4b80" \
             -C "mbedtls_pk_sign.*4b80"
 
@@ -3480,6 +3483,7 @@ run_test    "EC restart: TLS, max_ops=1000" \
              key_file=data_files/server5.key crt_file=data_files/server5.crt  \
              debug_level=1 ec_max_ops=1000" \
             0 \
+            -c "mbedtls_pk_verify.*4b80" \
             -c "mbedtls_ecdh_make_public.*4b80" \
             -c "mbedtls_pk_sign.*4b80"
 
@@ -3490,6 +3494,7 @@ run_test    "EC restart: DTLS, max_ops=1000" \
              key_file=data_files/server5.key crt_file=data_files/server5.crt  \
              dtls=1 debug_level=1 ec_max_ops=1000" \
             0 \
+            -c "mbedtls_pk_verify.*4b80" \
             -c "mbedtls_ecdh_make_public.*4b80" \
             -c "mbedtls_pk_sign.*4b80"
 

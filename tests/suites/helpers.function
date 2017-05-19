@@ -42,16 +42,15 @@ typedef UINT32 uint32_t;
 /*----------------------------------------------------------------------------*/
 /* Constants */
 
-#define DEPENDENCY_SUPPORTED        0
-#define DEPENDENCY_NOT_SUPPORTED    1
+#define DEPENDENCY_SUPPORTED            0
+#define KEY_VALUE_MAPPING_FOUND         0
+#define DISPATCH_TEST_SUCCESS           0
 
-#define KEY_VALUE_MAPPING_FOUND     0
-#define KEY_VALUE_MAPPING_NOT_FOUND -1
-
-#define DISPATCH_TEST_SUCCESS       0
-#define DISPATCH_TEST_FN_NOT_FOUND  1
-#define DISPATCH_INVALID_TEST_DATA  2
-#define DISPATCH_UNSUPPORTED_SUITE  3
+#define KEY_VALUE_MAPPING_NOT_FOUND     -1
+#define DEPENDENCY_NOT_SUPPORTED        -2
+#define DISPATCH_TEST_FN_NOT_FOUND      -3
+#define DISPATCH_INVALID_TEST_DATA      -4
+#define DISPATCH_UNSUPPORTED_SUITE      -5
 
 
 /*----------------------------------------------------------------------------*/

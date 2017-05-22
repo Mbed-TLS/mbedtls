@@ -642,9 +642,4 @@ int mbedtls_x509write_crt_pem( mbedtls_x509write_cert *ctx, unsigned char *buf, 
 }
 #endif
 
-#ifndef MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
-/* The test infrastructure requires a positive define */
-#define MBEDTLS_X509__DEFAULT_FORBID_SHA1
-#endif
-
 #endif /* mbedtls_x509_crt.h */

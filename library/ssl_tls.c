@@ -2294,7 +2294,10 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
          * that will end up being dropped.
          */
         if( ssl_check_timer( ssl ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "timer has expired" ) );
             ret = MBEDTLS_ERR_SSL_TIMEOUT;
+        }
         else
         {
             len = MBEDTLS_SSL_BUFFER_LEN - ( ssl->in_hdr - ssl->in_buf );
@@ -3921,7 +3924,13 @@ read_record_header:
     /* Done reading this record, get ready for the next one */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    {
         ssl->next_record_offset = ssl->in_msglen + mbedtls_ssl_hdr_len( ssl );
+        if( ssl->next_record_offset < ssl->in_left )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "more than one record within datagram" ) );
+        }
+    }
     else
 #endif
         ssl->in_left = 0;

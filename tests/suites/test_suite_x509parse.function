@@ -550,14 +550,15 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
-void mbedtls_x509_crt_verify_chain(  char *chain_paths, char *trusted_ca, int flags_result )
+void mbedtls_x509_crt_verify_chain(  char *chain_paths, char *trusted_ca,
+                                     int flags_result, int result,
+                                     char *profile_name )
 {
     char* act;
     uint32_t flags;
-    int result, res;
+    int res;
     mbedtls_x509_crt trusted, chain;
-
-    result= flags_result?MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:0;
+    const mbedtls_x509_crt_profile *profile = NULL;
 
     mbedtls_x509_crt_init( &chain );
     mbedtls_x509_crt_init( &trusted );
@@ -566,7 +567,15 @@ void mbedtls_x509_crt_verify_chain(  char *chain_paths, char *trusted_ca, int fl
         TEST_ASSERT( mbedtls_x509_crt_parse_file( &chain, act ) == 0 );
     TEST_ASSERT( mbedtls_x509_crt_parse_file( &trusted, trusted_ca ) == 0 );
 
-    res = mbedtls_x509_crt_verify( &chain, &trusted, NULL, NULL, &flags, NULL, NULL );
+    if( strcmp(profile_name, "") == 0 )
+        profile = &mbedtls_x509_crt_profile_default;
+    else if( strcmp(profile_name, "next") == 0 )
+        profile = &mbedtls_x509_crt_profile_next;
+    else if( strcmp(profile_name, "suiteb") == 0 )
+        profile = &mbedtls_x509_crt_profile_suiteb;
+
+    res = mbedtls_x509_crt_verify_with_profile( &chain, &trusted, NULL, profile,
+            NULL, &flags, NULL, NULL );
 
     TEST_ASSERT( res == ( result ) );
     TEST_ASSERT( flags == (uint32_t)( flags_result ) );

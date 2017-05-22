@@ -654,6 +654,10 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "NET - Buffer is too small to hold the data" );
     if( use_ret == -(MBEDTLS_ERR_NET_INVALID_CONTEXT) )
         mbedtls_snprintf( buf, buflen, "NET - The context is invalid, eg because it was free()ed" );
+    if( use_ret == -(MBEDTLS_ERR_NET_POLL_FAILED) )
+        mbedtls_snprintf( buf, buflen, "NET - Polling the net context failed" );
+    if( use_ret == -(MBEDTLS_ERR_NET_BAD_INPUT_DATA) )
+        mbedtls_snprintf( buf, buflen, "NET - Input invalid" );
 #endif /* MBEDTLS_NET_C */
 
 #if defined(MBEDTLS_OID_C)

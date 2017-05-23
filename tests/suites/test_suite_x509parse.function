@@ -66,6 +66,23 @@ int verify_all( void *data, mbedtls_x509_crt *crt, int certificate_depth, uint32
     return 0;
 }
 
+int verify_fatal( void *data, mbedtls_x509_crt *crt, int certificate_depth, uint32_t *flags )
+{
+    int *levels = (int *) data;
+
+    ((void) crt);
+    ((void) certificate_depth);
+
+    /* Simulate a fatal error in the callback */
+    if( *levels & ( 1 << certificate_depth ) )
+    {
+        *flags |= ( 1 << certificate_depth );
+        return( -1 );
+    }
+
+    return( 0 );
+}
+
 /* strsep() not available on Windows */
 char *mystrsep(char **stringp, const char *delim)
 {
@@ -570,7 +587,7 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
 void mbedtls_x509_crt_verify_chain(  char *chain_paths, char *trusted_ca,
                                      int flags_result, int result,
-                                     char *profile_name )
+                                     char *profile_name, int vrfy_fatal_lvls )
 {
     char* act;
     uint32_t flags;
@@ -597,7 +614,7 @@ void mbedtls_x509_crt_verify_chain(  char *chain_paths, char *trusted_ca,
         profile = &profile_sha512;
 
     res = mbedtls_x509_crt_verify_with_profile( &chain, &trusted, NULL, profile,
-            NULL, &flags, NULL, NULL );
+            NULL, &flags, verify_fatal, &vrfy_fatal_lvls );
 
     TEST_ASSERT( res == ( result ) );
     TEST_ASSERT( flags == (uint32_t)( flags_result ) );

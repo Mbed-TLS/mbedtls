@@ -1248,6 +1248,10 @@ X509 CRT verify chain #10 (zero pathlen root, valid)
 depends_on:MBEDTLS_SHA256_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
 mbedtls_x509_crt_verify_chain:"data_files/dir4/cert92.crt":"data_files/dir4/cert91.crt":0:0:""
 
+X509 CRT verify chain #11 (valid chain, missing profile)
+depends_on:MBEDTLS_SHA256_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+mbedtls_x509_crt_verify_chain:"data_files/dir4/cert92.crt":"data_files/dir4/cert91.crt":-1:MBEDTLS_ERR_X509_BAD_INPUT_DATA:"nonesuch"
+
 X509 OID description #1
 x509_oid_desc:"2B06010505070301":"TLS Web Server Authentication"
 

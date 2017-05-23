@@ -1306,6 +1306,38 @@ X509 CRT verify chain #17 (SHA-512 profile)
 depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
 mbedtls_x509_crt_verify_chain:"data_files/server7.crt data_files/test-int-ca.crt":"data_files/test-ca2.crt":MBEDTLS_X509_BADCERT_BAD_MD:MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:"sha512":0
 
+X509 CRT verify chain #18 (len=1, vrfy fatal on depth 1)
+depends_on:MBEDTLS_SHA256_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SHA512_C
+mbedtls_x509_crt_verify_chain:"data_files/server5.crt":"data_files/test-ca2.crt":-1:-2:"":2
+
+X509 CRT verify chain #19 (len=0, vrfy fatal on depth 0)
+depends_on:MBEDTLS_SHA256_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SHA512_C
+mbedtls_x509_crt_verify_chain:"data_files/server5.crt":"data_files/test-ca2.crt":-1:-1:"":1
+
+X509 CRT verify chain #20 (len=1, vrfy fatal on depth 0)
+depends_on:MBEDTLS_SHA256_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SHA512_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C
+mbedtls_x509_crt_verify_chain:"data_files/server5.crt":"data_files/test-ca.crt":-1:-1:"":1
+
+X509 CRT verify chain #21 (len=3, vrfy fatal on depth 3)
+depends_on:MBEDTLS_SHA256_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_SHA1_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED
+mbedtls_x509_crt_verify_chain:"data_files/server10_int3_int-ca2_ca.crt":"data_files/test-ca.crt":-1:-4:"":8
+
+X509 CRT verify chain #22 (len=3, vrfy fatal on depth 2)
+depends_on:MBEDTLS_SHA256_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C:MBEDTLS_SHA1_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED
+mbedtls_x509_crt_verify_chain:"data_files/server10_int3_int-ca2_ca.crt":"data_files/test-ca.crt":-1:-3:"":4
+
+X509 CRT verify chain #23 (len=3, vrfy fatal on depth 1)
+depends_on:MBEDTLS_SHA256_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C:MBEDTLS_SHA1_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED
+mbedtls_x509_crt_verify_chain:"data_files/server10_int3_int-ca2_ca.crt":"data_files/test-ca.crt":-1:-2:"":2
+
+X509 CRT verify chain #24 (len=3, vrfy fatal on depth 0)
+depends_on:MBEDTLS_SHA256_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C:MBEDTLS_SHA1_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED
+mbedtls_x509_crt_verify_chain:"data_files/server10_int3_int-ca2_ca.crt":"data_files/test-ca.crt":-1:-1:"":1
+
+X509 CRT verify chain #25 (len=3, vrfy fatal on depth 3, untrusted)
+depends_on:MBEDTLS_SHA256_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C:MBEDTLS_SHA1_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED
+mbedtls_x509_crt_verify_chain:"data_files/server10_int3_int-ca2_ca.crt":"data_files/test-ca2.crt":-1:-4:"":8
+
 X509 OID description #1
 x509_oid_desc:"2B06010505070301":"TLS Web Server Authentication"
 

@@ -254,7 +254,7 @@ void send_key_integer( char * key, int value )
 {
     char str[50];
     snprintf( str, sizeof( str ), "%d", value );
-    greentea_send_kv_c( key, str );
+    greentea_send_kv( key, str );
 }
 
 /**
@@ -300,8 +300,8 @@ int execute_tests( int args, const char ** argv )
     void ** params = NULL;
     uint8_t * data = NULL, * p = NULL;
 
-    GREENTEA_SETUP_C( 180, "mbedtls_test" );
-    greentea_send_kv_c( "GO", " " );
+    GREENTEA_SETUP( 180, "mbedtls_test" );
+    greentea_send_kv( "GO", " " );
 
     while ( 1 )
     {

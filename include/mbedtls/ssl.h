@@ -845,7 +845,9 @@ struct mbedtls_ssl_context
     size_t in_hslen;            /*!< current handshake message length,
                                      including the handshake header   */
     int nb_zero;                /*!< # of 0-length encrypted messages */
-    int record_read;            /*!< record is already present        */
+
+    int keep_current_message;   /*!< drop or reuse current message
+                                     on next call to record layer? */
 
     /*
      * Record layer (outgoing data)

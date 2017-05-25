@@ -373,6 +373,7 @@ static int x509_get_key_usage( unsigned char **p,
 {
     int ret;
     size_t i;
+    unsigned char byte;
     mbedtls_x509_bitstring bs = { 0, 0, NULL };
 
     if( ( ret = mbedtls_asn1_get_bitstring( p, end, &bs ) ) != 0 )
@@ -386,7 +387,10 @@ static int x509_get_key_usage( unsigned char **p,
     *key_usage = 0;
     for( i = 0; i < bs.len && i < sizeof( unsigned int ); i++ )
     {
-        *key_usage |= (unsigned int) bs.p[i] << (8*i);
+        byte = bs.p[i];
+        if( i == bs.len - 1 )
+            byte &= 0xffu << bs.unused_bits;
+        *key_usage |= (unsigned int) byte << (8*i);
     }
 
     return( 0 );

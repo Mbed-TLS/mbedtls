@@ -443,6 +443,8 @@ run_test() {
         eval "$CLI_CMD" >> $CLI_OUT 2>&1 &
         wait_client_done
 
+        sleep 0.05
+
         # terminate the server (and the proxy)
         kill $SRV_PID
         wait $SRV_PID

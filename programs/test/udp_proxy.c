@@ -418,9 +418,17 @@ int send_packet( const packet *p, const char *why )
     {
         unsigned char buf[MAX_MSG_SIZE];
         memcpy( buf, p->buf, p->len );
-        ++buf[p->len - 1];
 
-        print_packet( p, "corrupted" );
+        if( p->len <= 13 )
+        {
+            mbedtls_printf( "  ! can't corrupt empty AD record" );
+        }
+        else
+        {
+            ++buf[13];
+            print_packet( p, "corrupted" );
+        }
+
         if( ( ret = dispatch_data( dst, buf, p->len ) ) <= 0 )
         {
             mbedtls_printf( "  ! dispatch returned %d\n", ret );

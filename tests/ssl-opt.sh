@@ -5126,8 +5126,8 @@ run_test    "DTLS proxy: duplicate every packet" \
             0 \
             -c "replayed record" \
             -s "replayed record" \
-            -c "discarding invalid record" \
-            -s "discarding invalid record" \
+            -c "record from another epoch" \
+            -s "record from another epoch" \
             -S "resend" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
@@ -5139,8 +5139,8 @@ run_test    "DTLS proxy: duplicate every packet, server anti-replay off" \
             0 \
             -c "replayed record" \
             -S "replayed record" \
-            -c "discarding invalid record" \
-            -s "discarding invalid record" \
+            -c "record from another epoch" \
+            -s "record from another epoch" \
             -c "resend" \
             -s "resend" \
             -s "Extra-header:" \
@@ -5201,8 +5201,6 @@ run_test    "DTLS proxy: delay ChangeCipherSpec" \
             0 \
             -c "record from another epoch" \
             -s "record from another epoch" \
-            -c "discarding invalid record" \
-            -s "discarding invalid record" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 

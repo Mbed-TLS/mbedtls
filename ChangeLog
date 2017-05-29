@@ -1,5 +1,10 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.x.x branch released 2017-xx-xx
+
+Changes
+   * Clarify the documentation of mbedtls_ssl_setup.
+
 = mbed TLS 2.4.2 branch released 2017-03-08
 
 Security

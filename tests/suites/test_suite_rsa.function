@@ -519,8 +519,7 @@ void mbedtls_rsa_private( char *message_hex_string, int mod, int radix_P, char *
         {
             hexify( output_str, output, ctx.len );
 
-            TEST_ASSERT( strcasecmp( (char *) output_str,
-                                              result_hex_str ) == 0 );
+            TEST_ASSERT( strcasecmp( (char *) output_str, result_hex_str ) == 0 );
         }
     }
 
@@ -539,8 +538,7 @@ void mbedtls_rsa_private( char *message_hex_string, int mod, int radix_P, char *
     {
         hexify( output_str, output, ctx2.len );
 
-        TEST_ASSERT( strcasecmp( (char *) output_str,
-                                          result_hex_str ) == 0 );
+        TEST_ASSERT( strcasecmp( (char *) output_str, result_hex_str ) == 0 );
     }
 
 exit:

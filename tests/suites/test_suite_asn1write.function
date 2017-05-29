@@ -18,7 +18,9 @@ void mbedtls_asn1_write_octet_string( char *hex_str, char *hex_asn1,
     unsigned char buf[150];
     unsigned char str[150] = { 0 };
     unsigned char asn1[150] = { 0 };
-    size_t str_len, asn1_len, i;
+    size_t str_len;
+    size_t asn1_len;
+    size_t i;
     unsigned char *p;
 
     memset( buf, GUARD_VAL, sizeof( buf ) );
@@ -54,7 +56,9 @@ void mbedtls_asn1_write_ia5_string( char *str, char *hex_asn1,
     int ret;
     unsigned char buf[150];
     unsigned char asn1[150] = { 0 };
-    size_t str_len, asn1_len, i;
+    size_t str_len;
+    size_t asn1_len;
+    size_t i;
     unsigned char *p;
 
     memset( buf, GUARD_VAL, sizeof( buf ) );

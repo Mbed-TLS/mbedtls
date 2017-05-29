@@ -447,10 +447,19 @@ run_test() {
 
         # terminate the server (and the proxy)
         kill $SRV_PID
-        wait $SRV_PID
+        sleep 0.01
+        if kill -0 $SRV_PID >/dev/null 2>&1; then
+            kill -KILL $SRV_PID
+            wait $SRV_PID
+        fi
+
         if [ -n "$PXY_CMD" ]; then
             kill $PXY_PID >/dev/null 2>&1
-            wait $PXY_PID
+            sleep 0.01
+            if kill -0 $PXY_PID >/dev/null 2>&1; then
+                kill -KILL $pXY_PID
+                wait $PXY_PID
+            fi
         fi
 
         # retry only on timeouts

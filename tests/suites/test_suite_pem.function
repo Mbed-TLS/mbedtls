@@ -1,6 +1,8 @@
 /* BEGIN_HEADER */
 #include "polarssl/base64.h"
 #include "polarssl/pem.h"
+#include "polarssl/des.h"
+#include "polarssl/aes.h"
 /* END_HEADER */
 
 /* BEGIN_CASE depends_on:POLARSSL_PEM_WRITE_C */
@@ -35,16 +37,19 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_AES_C:POLARSSL_DES_C:POLARSSL_MD5_C:POLARSSL_CIPHER_MODE_CBC */
-void pem_read_buffer( char *header, char *footer, char *data, int ret )
+void pem_read_buffer( char *header, char *footer, char *data, char *pwd,
+                      int res )
 {
     pem_context ctx;
+    int ret;
     size_t use_len = 0;
+    size_t pwd_len = strlen( pwd );
 
     pem_init( &ctx );
 
-    TEST_ASSERT( pem_read_buffer( &ctx, header, footer,
-                                  (const unsigned char *)data, NULL, 0,
-                                  &use_len ) == ret );
+    ret = pem_read_buffer( &ctx, header, footer, (const unsigned char *)data,
+                           (unsigned char *)pwd, pwd_len, &use_len );
+    TEST_ASSERT( ret == res );
 
 exit:
     pem_free( &ctx );

@@ -9,14 +9,14 @@
  */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
-void mbedtls_cmac_self_test( )
+void mbedtls_cmac_self_test(  )
 {
     TEST_ASSERT( mbedtls_cmac_self_test( 1 ) == 0 );
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_cmac_null_args( )
+void mbedtls_cmac_null_args(  )
 {
     mbedtls_cipher_context_t ctx;
     const mbedtls_cipher_info_t *cipher_info;
@@ -99,8 +99,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_cmac_setkey( int cipher_type, int key_size,
-                          int result )
+void mbedtls_cmac_setkey( int cipher_type, int key_size, int result )
 {
     const mbedtls_cipher_info_t *cipher_info;
     unsigned char key[32];
@@ -120,32 +119,22 @@ void mbedtls_cmac_setkey( int cipher_type, int key_size,
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_cmac_multiple_blocks( int cipher_type,
-                                   char *key_string, int keybits,
-                                   int block_size,
-                                   char *block1_string, int block1_len,
-                                   char *block2_string, int block2_len,
-                                   char *block3_string, int block3_len,
-                                   char *block4_string, int block4_len,
-                                   char *expected_result_string )
+void mbedtls_cmac_multiple_blocks( int cipher_type, uint8_t * key,
+                                   uint32_t key_len, int keybits,
+                                   int block_size, uint8_t * block1,
+                                   uint32_t block1_len, int block1_len,
+                                   uint8_t * block2, uint32_t block2_len,
+                                   int block2_len, uint8_t * block3,
+                                   uint32_t block3_len, int block3_len,
+                                   uint8_t * block4, uint32_t block4_len,
+                                   int block4_len, uint8_t * expected_result,
+                                   uint32_t expected_result_len )
 {
-    unsigned char key[100];
-    unsigned char block1[100];
-    unsigned char block2[100];
-    unsigned char block3[100];
-    unsigned char block4[100];
-    unsigned char expected_result[100];
     const mbedtls_cipher_info_t *cipher_info;
     mbedtls_cipher_context_t ctx;
     unsigned char output[MBEDTLS_CIPHER_BLKSIZE_MAX];
 
     /* Convert the test parameters to binary data */
-    unhexify( key, key_string );
-    unhexify( block1, block1_string );
-    unhexify( block2, block2_string );
-    unhexify( block3, block3_string );
-    unhexify( block4, block4_string );
-    unhexify( expected_result, expected_result_string );
 
     mbedtls_cipher_init( &ctx );
 
@@ -198,41 +187,40 @@ exit:
 
 /* BEGIN_CASE */
 void mbedtls_cmac_multiple_operations_same_key( int cipher_type,
-                                   char *key_string, int keybits,
-                                   int block_size,
-                                   char *block_a1_string, int block_a1_len,
-                                   char *block_a2_string, int block_a2_len,
-                                   char *block_a3_string, int block_a3_len,
-                                   char *expected_result_a_string,
-                                   char *block_b1_string, int block_b1_len,
-                                   char *block_b2_string, int block_b2_len,
-                                   char *block_b3_string, int block_b3_len,
-                                   char *expected_result_b_string )
+                                                uint8_t * key,
+                                                uint32_t key_len, int keybits,
+                                                int block_size,
+                                                uint8_t * block_a1,
+                                                uint32_t block_a1_len,
+                                                int block_a1_len,
+                                                uint8_t * block_a2,
+                                                uint32_t block_a2_len,
+                                                int block_a2_len,
+                                                uint8_t * block_a3,
+                                                uint32_t block_a3_len,
+                                                int block_a3_len,
+                                                uint8_t * expected_result_a,
+                                                uint32_t expected_result_a_len,
+                                                uint8_t * block_b1,
+                                                uint32_t block_b1_len,
+                                                int block_b1_len,
+                                                uint8_t * block_b2,
+                                                uint32_t block_b2_len,
+                                                int block_b2_len,
+                                                uint8_t * block_b3,
+                                                uint32_t block_b3_len,
+                                                int block_b3_len,
+                                                uint8_t * expected_result_b,
+                                                uint32_t expected_result_b_len
+                                                )
 {
-    unsigned char key[100];
-    unsigned char block_a1[100];
-    unsigned char block_a2[100];
-    unsigned char block_a3[100];
-    unsigned char block_b1[100];
-    unsigned char block_b2[100];
-    unsigned char block_b3[100];
-    unsigned char expected_result_a[100], expected_result_b[100];
     const mbedtls_cipher_info_t *cipher_info;
     mbedtls_cipher_context_t ctx;
     unsigned char output[MBEDTLS_CIPHER_BLKSIZE_MAX];
 
     /* Convert the test parameters to binary data */
-    unhexify( key, key_string );
-    unhexify( block_a1, block_a1_string );
-    unhexify( block_a2, block_a2_string );
-    unhexify( block_a3, block_a3_string );
 
-    unhexify( block_b1, block_b1_string );
-    unhexify( block_b2, block_b2_string );
-    unhexify( block_b3, block_b3_string );
 
-    unhexify( expected_result_a, expected_result_a_string );
-    unhexify( expected_result_b, expected_result_b_string );
 
     mbedtls_cipher_init( &ctx );
 

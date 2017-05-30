@@ -40,32 +40,29 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void ecdsa_prim_test_vectors( int id, char *d_str, char *xQ_str, char *yQ_str,
-                              char *k_str, char *hash_str, char *r_str,
-                              char *s_str, int result )
+void ecdsa_prim_test_vectors( int id, char * d_str, char * xQ_str,
+                              char * yQ_str, uint8_t * rnd_buf,
+                              uint32_t rnd_buf_len, uint8_t * hash,
+                              uint32_t hlen, char * r_str, char * s_str,
+                              int result )
 {
     mbedtls_ecp_group grp;
     mbedtls_ecp_point Q;
     mbedtls_mpi d, r, s, r_check, s_check;
-    unsigned char hash[66], rnd_buf[66];
-    size_t hlen;
     rnd_buf_info rnd_info;
 
     mbedtls_ecp_group_init( &grp );
     mbedtls_ecp_point_init( &Q );
     mbedtls_mpi_init( &d ); mbedtls_mpi_init( &r ); mbedtls_mpi_init( &s );
     mbedtls_mpi_init( &r_check ); mbedtls_mpi_init( &s_check );
-    memset( hash, 0, sizeof( hash ) );
-    memset( rnd_buf, 0, sizeof( rnd_buf ) );
 
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
     TEST_ASSERT( mbedtls_ecp_point_read_string( &Q, 16, xQ_str, yQ_str ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &d, 16, d_str ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &r_check, 16, r_str ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &s_check, 16, s_str ) == 0 );
-    hlen = unhexify(hash, hash_str);
     rnd_info.buf = rnd_buf;
-    rnd_info.length = unhexify( rnd_buf, k_str );
+    rnd_info.length = rnd_buf_len;
 
     /* Fix rnd_buf by shifting it left if necessary */
     if( grp.nbits % 8 != 0 )
@@ -99,8 +96,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ECDSA_DETERMINISTIC */
-void ecdsa_det_test_vectors( int id, char *d_str, int md_alg,
-                             char *msg, char *r_str, char *s_str )
+void ecdsa_det_test_vectors( int id, char * d_str, int md_alg, char * msg,
+                             char * r_str, char * s_str )
 {
     mbedtls_ecp_group grp;
     mbedtls_mpi d, r, s, r_check, s_check;

@@ -53,6 +53,7 @@ static int timers_are_badly_broken = 0;
  * END_DEPENDENCIES
  */
 
+<<<<<<< HEAD
 /* BEGIN_CASE */
 void timing_timer_simple( )
 {

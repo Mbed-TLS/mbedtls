@@ -99,14 +99,14 @@ cleanup:
  */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
-void ecjpake_selftest()
+void ecjpake_selftest(  )
 {
     TEST_ASSERT( mbedtls_ecjpake_self_test( 1 ) == 0 );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C */
-void read_round_one( int role, char *data, int ref_ret )
+void read_round_one( int role, char * data, int ref_ret )
 {
     mbedtls_ecjpake_context ctx;
 
@@ -133,7 +133,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C */
-void read_round_two_cli( char *data, int ref_ret )
+void read_round_two_cli( char * data, int ref_ret )
 {
     mbedtls_ecjpake_context ctx;
 
@@ -166,7 +166,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C */
-void read_round_two_srv( char *data, int ref_ret )
+void read_round_two_srv( char * data, int ref_ret )
 {
     mbedtls_ecjpake_context ctx;
 

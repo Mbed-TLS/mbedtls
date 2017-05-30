@@ -5,126 +5,96 @@
 /* END_HEADER */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA1_C */
-void mbedtls_sha1( char *hex_src_string, char *hex_hash_string )
+void mbedtls_sha1( uint8_t * src_str, uint32_t src_len,
+                   uint8_t * hex_hash_string, uint32_t hex_hash_string_len )
 {
-    unsigned char src_str[10000];
-    unsigned char hash_str[10000];
     unsigned char output[41];
-    int src_len;
 
-    memset(src_str, 0x00, 10000);
-    memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 41);
 
-    src_len = unhexify( src_str, hex_src_string );
 
     TEST_ASSERT( mbedtls_sha1_ret( src_str, src_len, output ) == 0 );
-    hexify( hash_str, output, 20 );
 
-    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
+    TEST_ASSERT( hexcmp( output, hex_hash_string, 20, hex_hash_string_len ) == 0 );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
-void sha224(char *hex_src_string, char *hex_hash_string )
+void sha224( uint8_t * src_str, uint32_t src_len, uint8_t * hex_hash_string,
+             uint32_t hex_hash_string_len )
 {
-    unsigned char src_str[10000];
-    unsigned char hash_str[10000];
     unsigned char output[57];
-    int src_len;
 
-    memset(src_str, 0x00, 10000);
-    memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 57);
 
-    src_len = unhexify( src_str, hex_src_string );
 
     TEST_ASSERT( mbedtls_sha256_ret( src_str, src_len, output, 1 ) == 0 );
-    hexify( hash_str, output, 28 );
 
-    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
+    TEST_ASSERT( hexcmp( output, hex_hash_string, 28, hex_hash_string_len ) == 0 );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
-void mbedtls_sha256(char *hex_src_string, char *hex_hash_string )
+void mbedtls_sha256( uint8_t * src_str, uint32_t src_len,
+                     uint8_t * hex_hash_string, uint32_t hex_hash_string_len )
 {
-    unsigned char src_str[10000];
-    unsigned char hash_str[10000];
     unsigned char output[65];
-    int src_len;
 
-    memset(src_str, 0x00, 10000);
-    memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 65);
 
-    src_len = unhexify( src_str, hex_src_string );
 
     TEST_ASSERT( mbedtls_sha256_ret( src_str, src_len, output, 0 ) == 0 );
-    hexify( hash_str, output, 32 );
 
-    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
+    TEST_ASSERT( hexcmp( output, hex_hash_string, 32, hex_hash_string_len ) == 0 );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA512_C */
-void sha384(char *hex_src_string, char *hex_hash_string )
+void sha384( uint8_t * src_str, uint32_t src_len, uint8_t * hex_hash_string,
+             uint32_t hex_hash_string_len )
 {
-    unsigned char src_str[10000];
-    unsigned char hash_str[10000];
     unsigned char output[97];
-    int src_len;
 
-    memset(src_str, 0x00, 10000);
-    memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 97);
 
-    src_len = unhexify( src_str, hex_src_string );
 
     TEST_ASSERT( mbedtls_sha512_ret( src_str, src_len, output, 1 ) == 0 );
-    hexify( hash_str, output, 48 );
 
-    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
+    TEST_ASSERT( hexcmp( output, hex_hash_string, 48, hex_hash_string_len ) == 0 );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA512_C */
-void mbedtls_sha512(char *hex_src_string, char *hex_hash_string )
+void mbedtls_sha512( uint8_t * src_str, uint32_t src_len,
+                     uint8_t * hex_hash_string, uint32_t hex_hash_string_len )
 {
-    unsigned char src_str[10000];
-    unsigned char hash_str[10000];
     unsigned char output[129];
-    int src_len;
 
-    memset(src_str, 0x00, 10000);
-    memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 129);
 
-    src_len = unhexify( src_str, hex_src_string );
 
     TEST_ASSERT( mbedtls_sha512_ret( src_str, src_len, output, 0 ) == 0 );
-    hexify( hash_str, output, 64 );
 
-    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
+    TEST_ASSERT( hexcmp( output, hex_hash_string, 64, hex_hash_string_len ) == 0 );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA1_C:MBEDTLS_SELF_TEST */
-void sha1_selftest()
+void sha1_selftest(  )
 {
     TEST_ASSERT( mbedtls_sha1_self_test( 1 ) == 0 );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA256_C:MBEDTLS_SELF_TEST */
-void sha256_selftest()
+void sha256_selftest(  )
 {
     TEST_ASSERT( mbedtls_sha256_self_test( 1 ) == 0 );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA512_C:MBEDTLS_SELF_TEST */
-void sha512_selftest()
+void sha512_selftest(  )
 {
     TEST_ASSERT( mbedtls_sha512_self_test( 1 ) == 0 );
 }

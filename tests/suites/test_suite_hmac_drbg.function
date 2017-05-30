@@ -110,7 +110,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO */
-void hmac_drbg_seed_file( int md_alg, char *path, int ret )
+void hmac_drbg_seed_file( int md_alg, char * path, int ret )
 {
     const mbedtls_md_info_t *md_info;
     mbedtls_hmac_drbg_context ctx;
@@ -161,32 +161,23 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void hmac_drbg_no_reseed( int md_alg,
-                          char *entropy_hex, char *custom_hex,
-                          char *add1_hex, char *add2_hex,
-                          char *output_hex )
+void hmac_drbg_no_reseed( int md_alg, uint8_t * entropy,
+                          uint32_t entropy_len, uint8_t * custom,
+                          uint32_t custom_len, uint8_t * add1,
+                          uint32_t add1_len, uint8_t * add2,
+                          uint32_t add2_len, uint8_t * output,
+                          uint32_t out_len )
 {
     unsigned char data[1024];
-    unsigned char entropy[512];
-    unsigned char custom[512];
-    unsigned char add1[512];
-    unsigned char add2[512];
-    unsigned char output[512];
     unsigned char my_output[512];
-    size_t custom_len, add1_len, add2_len, out_len;
     entropy_ctx p_entropy;
     const mbedtls_md_info_t *md_info;
     mbedtls_hmac_drbg_context ctx;
 
     mbedtls_hmac_drbg_init( &ctx );
-    memset( my_output, 0, sizeof my_output );
 
-    custom_len = unhexify( custom, custom_hex );
-    add1_len = unhexify( add1, add1_hex );
-    add2_len = unhexify( add2, add2_hex );
-    out_len = unhexify( output, output_hex );
-    p_entropy.len = unhexify( entropy, entropy_hex );
     p_entropy.p = entropy;
+    p_entropy.len = entropy_len;
 
     md_info = mbedtls_md_info_from_type( md_alg );
     TEST_ASSERT( md_info != NULL );
@@ -221,33 +212,21 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void hmac_drbg_nopr( int md_alg,
-                     char *entropy_hex, char *custom_hex,
-                     char *add1_hex, char *add2_hex, char *add3_hex,
-                     char *output_hex )
+void hmac_drbg_nopr( int md_alg, uint8_t * entropy, uint32_t entropy_len,
+                     uint8_t * custom, uint32_t custom_len, uint8_t * add1,
+                     uint32_t add1_len, uint8_t * add2, uint32_t add2_len,
+                     uint8_t * add3, uint32_t add3_len, uint8_t * output,
+                     uint32_t out_len )
 {
-    unsigned char entropy[512];
-    unsigned char custom[512];
-    unsigned char add1[512];
-    unsigned char add2[512];
-    unsigned char add3[512];
-    unsigned char output[512];
     unsigned char my_output[512];
-    size_t custom_len, add1_len, add2_len, add3_len, out_len;
     entropy_ctx p_entropy;
     const mbedtls_md_info_t *md_info;
     mbedtls_hmac_drbg_context ctx;
 
     mbedtls_hmac_drbg_init( &ctx );
-    memset( my_output, 0, sizeof my_output );
 
-    custom_len = unhexify( custom, custom_hex );
-    add1_len = unhexify( add1, add1_hex );
-    add2_len = unhexify( add2, add2_hex );
-    add3_len = unhexify( add3, add3_hex );
-    out_len = unhexify( output, output_hex );
-    p_entropy.len = unhexify( entropy, entropy_hex );
     p_entropy.p = entropy;
+    p_entropy.len = entropy_len;
 
     md_info = mbedtls_md_info_from_type( md_alg );
     TEST_ASSERT( md_info != NULL );
@@ -268,31 +247,20 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void hmac_drbg_pr( int md_alg,
-                   char *entropy_hex, char *custom_hex,
-                   char *add1_hex, char *add2_hex,
-                   char *output_hex )
+void hmac_drbg_pr( int md_alg, uint8_t * entropy, uint32_t entropy_len,
+                   uint8_t * custom, uint32_t custom_len, uint8_t * add1,
+                   uint32_t add1_len, uint8_t * add2, uint32_t add2_len,
+                   uint8_t * output, uint32_t out_len )
 {
-    unsigned char entropy[512];
-    unsigned char custom[512];
-    unsigned char add1[512];
-    unsigned char add2[512];
-    unsigned char output[512];
     unsigned char my_output[512];
-    size_t custom_len, add1_len, add2_len, out_len;
     entropy_ctx p_entropy;
     const mbedtls_md_info_t *md_info;
     mbedtls_hmac_drbg_context ctx;
 
     mbedtls_hmac_drbg_init( &ctx );
-    memset( my_output, 0, sizeof my_output );
 
-    custom_len = unhexify( custom, custom_hex );
-    add1_len = unhexify( add1, add1_hex );
-    add2_len = unhexify( add2, add2_hex );
-    out_len = unhexify( output, output_hex );
-    p_entropy.len = unhexify( entropy, entropy_hex );
     p_entropy.p = entropy;
+    p_entropy.len = entropy_len;
 
     md_info = mbedtls_md_info_from_type( md_alg );
     TEST_ASSERT( md_info != NULL );
@@ -313,7 +281,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
-void hmac_drbg_selftest( )
+void hmac_drbg_selftest(  )
 {
     TEST_ASSERT( mbedtls_hmac_drbg_self_test( 0 ) == 0 );
 }

@@ -8,7 +8,7 @@
  */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST:MBEDTLS_AES_C */
-void mbedtls_ccm_self_test( )
+void mbedtls_ccm_self_test(  )
 {
     TEST_ASSERT( mbedtls_ccm_self_test( 0 ) == 0 );
 }
@@ -75,32 +75,19 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_ccm_encrypt_and_tag( int cipher_id,
-                          char *key_hex, char *msg_hex,
-                          char *iv_hex, char *add_hex,
-                          char *result_hex )
+void mbedtls_ccm_encrypt_and_tag( int cipher_id, uint8_t * key,
+                                  uint32_t key_len, uint8_t * msg,
+                                  uint32_t msg_len, uint8_t * iv,
+                                  uint32_t iv_len, uint8_t * add,
+                                  uint32_t add_len, uint8_t * result,
+                                  uint32_t result_len )
 {
-    unsigned char key[32];
-    unsigned char msg[50];
-    unsigned char iv[13];
-    unsigned char add[32];
-    unsigned char result[50];
     mbedtls_ccm_context ctx;
-    size_t key_len, msg_len, iv_len, add_len, tag_len, result_len;
+    size_t tag_len;
 
     mbedtls_ccm_init( &ctx );
 
-    memset( key, 0x00, sizeof( key ) );
-    memset( msg, 0x00, sizeof( msg ) );
-    memset( iv, 0x00, sizeof( iv ) );
-    memset( add, 0x00, sizeof( add ) );
-    memset( result, 0x00, sizeof( result ) );
 
-    key_len = unhexify( key, key_hex );
-    msg_len = unhexify( msg, msg_hex );
-    iv_len = unhexify( iv, iv_hex );
-    add_len = unhexify( add, add_hex );
-    result_len = unhexify( result, result_hex );
     tag_len = result_len - msg_len;
 
     TEST_ASSERT( mbedtls_ccm_setkey( &ctx, cipher_id, key, key_len * 8 ) == 0 );
@@ -120,38 +107,24 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_ccm_auth_decrypt( int cipher_id,
-                       char *key_hex, char *msg_hex,
-                       char *iv_hex, char *add_hex,
-                       int tag_len, char *result_hex )
+void mbedtls_ccm_auth_decrypt( int cipher_id, uint8_t * key, uint32_t key_len,
+                               uint8_t * msg, uint32_t msg_len, uint8_t * iv,
+                               uint32_t iv_len, uint8_t * add,
+                               uint32_t add_len, int tag_len,
+                               uint8_t * result, uint32_t result_len )
 {
-    unsigned char key[32];
-    unsigned char msg[50];
-    unsigned char iv[13];
-    unsigned char add[32];
     unsigned char tag[16];
-    unsigned char result[50];
     mbedtls_ccm_context ctx;
-    size_t key_len, msg_len, iv_len, add_len, result_len;
     int ret;
 
     mbedtls_ccm_init( &ctx );
 
-    memset( key, 0x00, sizeof( key ) );
-    memset( msg, 0x00, sizeof( msg ) );
-    memset( iv, 0x00, sizeof( iv ) );
-    memset( add, 0x00, sizeof( add ) );
     memset( tag, 0x00, sizeof( tag ) );
-    memset( result, 0x00, sizeof( result ) );
 
-    key_len = unhexify( key, key_hex );
-    msg_len = unhexify( msg, msg_hex );
-    iv_len = unhexify( iv, iv_hex );
-    add_len = unhexify( add, add_hex );
     msg_len -= tag_len;
     memcpy( tag, msg + msg_len, tag_len );
 
-    if( strcmp( "FAIL", result_hex ) == 0 )
+    if( strcmp( "FAIL", (char *)result ) == 0 )
     {
         ret = MBEDTLS_ERR_CCM_AUTH_FAILED;
         result_len = -1;
@@ -159,7 +132,6 @@ void mbedtls_ccm_auth_decrypt( int cipher_id,
     else
     {
         ret = 0;
-        result_len = unhexify( result, result_hex );
     }
 
     TEST_ASSERT( mbedtls_ccm_setkey( &ctx, cipher_id, key, key_len * 8 ) == 0 );

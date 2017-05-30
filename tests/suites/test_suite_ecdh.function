@@ -43,15 +43,15 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void ecdh_primitive_testvec( int id, char *dA_str, char *xA_str, char *yA_str,
-                             char *dB_str, char *xB_str, char *yB_str,
-                             char *z_str )
+void ecdh_primitive_testvec( int id, uint8_t * rnd_buf_A,
+                             uint32_t rnd_buf_A_len, char * xA_str,
+                             char * yA_str, uint8_t * rnd_buf_B,
+                             uint32_t rnd_buf_B_len, char * xB_str,
+                             char * yB_str, char * z_str )
 {
     mbedtls_ecp_group grp;
     mbedtls_ecp_point qA, qB;
     mbedtls_mpi dA, dB, zA, zB, check;
-    unsigned char rnd_buf_A[MBEDTLS_ECP_MAX_BYTES];
-    unsigned char rnd_buf_B[MBEDTLS_ECP_MAX_BYTES];
     rnd_buf_info rnd_info_A, rnd_info_B;
 
     mbedtls_ecp_group_init( &grp );
@@ -62,7 +62,7 @@ void ecdh_primitive_testvec( int id, char *dA_str, char *xA_str, char *yA_str,
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
 
     rnd_info_A.buf = rnd_buf_A;
-    rnd_info_A.length = unhexify( rnd_buf_A, dA_str );
+    rnd_info_A.length = rnd_buf_A_len;
 
     /* Fix rnd_buf_A by shifting it left if necessary */
     if( grp.nbits % 8 != 0 )
@@ -78,7 +78,7 @@ void ecdh_primitive_testvec( int id, char *dA_str, char *xA_str, char *yA_str,
     }
 
     rnd_info_B.buf = rnd_buf_B;
-    rnd_info_B.length = unhexify( rnd_buf_B, dB_str );
+    rnd_info_B.length = rnd_buf_B_len;
 
     /* Fix rnd_buf_B by shifting it left if necessary */
     if( grp.nbits % 8 != 0 )

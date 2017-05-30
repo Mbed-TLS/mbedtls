@@ -8,29 +8,17 @@
  */
 
 /* BEGIN_CASE */
-void pbkdf2_hmac( int hash, char *hex_password_string,
-                  char *hex_salt_string, int it_cnt, int key_len,
-                  char *result_key_string )
+void pbkdf2_hmac( int hash, uint8_t * pw_str, uint32_t pw_len,
+                  uint8_t * salt_str, uint32_t salt_len, int it_cnt,
+                  int key_len, uint8_t * result_key_string,
+                  uint32_t result_key_string_len )
 {
-    unsigned char pw_str[100];
-    unsigned char salt_str[100];
-    unsigned char dst_str[200];
-
     mbedtls_md_context_t ctx;
     const mbedtls_md_info_t *info;
 
-    int pw_len, salt_len;
     unsigned char key[100];
 
     mbedtls_md_init( &ctx );
-
-    memset(pw_str, 0x00, sizeof(pw_str));
-    memset(salt_str, 0x00, sizeof(salt_str));
-    memset(dst_str, 0x00, sizeof(dst_str));
-
-    pw_len = unhexify( pw_str, hex_password_string );
-    salt_len = unhexify( salt_str, hex_salt_string );
-
 
     info = mbedtls_md_info_from_type( hash );
     TEST_ASSERT( info != NULL );
@@ -38,8 +26,7 @@ void pbkdf2_hmac( int hash, char *hex_password_string,
     TEST_ASSERT( mbedtls_pkcs5_pbkdf2_hmac( &ctx, pw_str, pw_len, salt_str, salt_len,
                                      it_cnt, key_len, key ) == 0 );
 
-    hexify( dst_str, key, key_len );
-    TEST_ASSERT( strcmp( (char *) dst_str, result_key_string ) == 0 );
+    TEST_ASSERT( hexcmp( key, result_key_string, key_len, result_key_string_len ) == 0 );
 
 exit:
     mbedtls_md_free( &ctx );

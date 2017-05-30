@@ -42,7 +42,7 @@ static int entropy_dummy_source( void *data, unsigned char *output,
  */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:ENTROPY_HAVE_STRONG */
-void entropy_seed_file( char *path, int ret )
+void entropy_seed_file( char * path, int ret )
 {
     mbedtls_entropy_context ctx;
 
@@ -57,7 +57,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void entropy_too_many_sources( )
+void entropy_too_many_sources(  )
 {
     mbedtls_entropy_context ctx;
     size_t i;
@@ -111,7 +111,7 @@ void entropy_func_len( int len, int ret )
 /* END_CASE */
 
 /* BEGIN_CASE */
-void entropy_source_fail( char *path )
+void entropy_source_fail( char * path )
 {
     mbedtls_entropy_context ctx;
     int fail = -1;

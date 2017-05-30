@@ -8,7 +8,7 @@
  */
 
 /* BEGIN_CASE */
-void mpi_null( )
+void mpi_null(  )
 {
     mbedtls_mpi X, Y, Z;
 
@@ -27,8 +27,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mpi_read_write_string( int radix_X, char *input_X, int radix_A,
-                            char *input_A, int output_size, int result_read,
+void mpi_read_write_string( int radix_X, char * input_X, int radix_A,
+                            char * input_A, int output_size, int result_read,
                             int result_write )
 {
     mbedtls_mpi X;
@@ -53,17 +53,15 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_read_binary( char *input_X, int radix_A, char *input_A )
+void mbedtls_mpi_read_binary( uint8_t * buf, uint32_t input_len, int radix_A,
+                              char * input_A )
 {
     mbedtls_mpi X;
     unsigned char str[1000];
-    unsigned char buf[1000];
     size_t len;
-    size_t input_len;
 
     mbedtls_mpi_init( &X );
 
-    input_len = unhexify( buf, input_X );
 
     TEST_ASSERT( mbedtls_mpi_read_binary( &X, buf, input_len ) == 0 );
     TEST_ASSERT( mbedtls_mpi_write_string( &X, radix_A, (char *) str, sizeof( str ), &len ) == 0 );
@@ -75,16 +73,15 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_write_binary( int radix_X, char *input_X, char *input_A,
-                       int output_size, int result )
+void mbedtls_mpi_write_binary( int radix_X, char * input_X, uint8_t * input_A,
+                               uint32_t input_A_len, int output_size,
+                               int result )
 {
     mbedtls_mpi X;
-    unsigned char str[1000];
     unsigned char buf[1000];
     size_t buflen;
 
     memset( buf, 0x00, 1000 );
-    memset( str, 0x00, 1000 );
 
     mbedtls_mpi_init( &X );
 
@@ -97,9 +94,8 @@ void mbedtls_mpi_write_binary( int radix_X, char *input_X, char *input_A,
     TEST_ASSERT( mbedtls_mpi_write_binary( &X, buf, buflen ) == result );
     if( result == 0)
     {
-        hexify( str, buf, buflen );
 
-        TEST_ASSERT( strcasecmp( (char *) str, input_A ) == 0 );
+        TEST_ASSERT( hexcmp( buf, input_A, buflen, input_A_len ) == 0 );
     }
 
 exit:
@@ -108,18 +104,16 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO */
-void mbedtls_mpi_read_file( int radix_X, char *input_file, char *input_A,
-                    int result )
+void mbedtls_mpi_read_file( int radix_X, char * input_file, uint8_t * input_A,
+                            uint32_t input_A_len, int result )
 {
     mbedtls_mpi X;
-    unsigned char str[1000];
     unsigned char buf[1000];
     size_t buflen;
     FILE *file;
     int ret;
 
     memset( buf, 0x00, 1000 );
-    memset( str, 0x00, 1000 );
 
     mbedtls_mpi_init( &X );
 
@@ -134,9 +128,8 @@ void mbedtls_mpi_read_file( int radix_X, char *input_file, char *input_A,
         buflen = mbedtls_mpi_size( &X );
         TEST_ASSERT( mbedtls_mpi_write_binary( &X, buf, buflen ) == 0 );
 
-        hexify( str, buf, buflen );
 
-        TEST_ASSERT( strcasecmp( (char *) str, input_A ) == 0 );
+        TEST_ASSERT( hexcmp( buf, input_A, buflen, input_A_len ) == 0 );
     }
 
 exit:
@@ -145,8 +138,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO */
-void mbedtls_mpi_write_file( int radix_X, char *input_X, int output_radix,
-                     char *output_file )
+void mbedtls_mpi_write_file( int radix_X, char * input_X, int output_radix,
+                             char * output_file )
 {
     mbedtls_mpi X, Y;
     FILE *file_out, *file_in;
@@ -176,7 +169,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_get_bit( int radix_X, char *input_X, int pos, int val )
+void mbedtls_mpi_get_bit( int radix_X, char * input_X, int pos, int val )
 {
     mbedtls_mpi X;
     mbedtls_mpi_init( &X );
@@ -189,8 +182,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_set_bit( int radix_X, char *input_X, int pos, int val, int radix_Y,
-                  char *output_Y )
+void mbedtls_mpi_set_bit( int radix_X, char * input_X, int pos, int val,
+                          int radix_Y, char * output_Y )
 {
     mbedtls_mpi X, Y;
     mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y );
@@ -206,7 +199,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_lsb( int radix_X, char *input_X, int nr_bits )
+void mbedtls_mpi_lsb( int radix_X, char * input_X, int nr_bits )
 {
     mbedtls_mpi X;
     mbedtls_mpi_init( &X );
@@ -220,7 +213,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_bitlen( int radix_X, char *input_X, int nr_bits )
+void mbedtls_mpi_bitlen( int radix_X, char * input_X, int nr_bits )
 {
     mbedtls_mpi X;
     mbedtls_mpi_init( &X );
@@ -234,8 +227,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_gcd( int radix_X, char *input_X, int radix_Y, char *input_Y,
-              int radix_A, char *input_A )
+void mbedtls_mpi_gcd( int radix_X, char * input_X, int radix_Y,
+                      char * input_Y, int radix_A, char * input_A )
 {
     mbedtls_mpi A, X, Y, Z;
     mbedtls_mpi_init( &A ); mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y ); mbedtls_mpi_init( &Z );
@@ -266,8 +259,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_cmp_mpi( int radix_X, char *input_X, int radix_Y, char *input_Y,
-                  int input_A )
+void mbedtls_mpi_cmp_mpi( int radix_X, char * input_X, int radix_Y,
+                          char * input_Y, int input_A )
 {
     mbedtls_mpi X, Y;
     mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y );
@@ -282,8 +275,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_cmp_abs( int radix_X, char *input_X, int radix_Y, char *input_Y,
-                  int input_A )
+void mbedtls_mpi_cmp_abs( int radix_X, char * input_X, int radix_Y,
+                          char * input_Y, int input_A )
 {
     mbedtls_mpi X, Y;
     mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y );
@@ -350,8 +343,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_safe_cond_assign( int x_sign, char *x_str,
-                           int y_sign, char *y_str )
+void mbedtls_mpi_safe_cond_assign( int x_sign, char * x_str, int y_sign,
+                                   char * y_str )
 {
     mbedtls_mpi X, Y, XX;
     mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y ); mbedtls_mpi_init( &XX );
@@ -374,8 +367,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_safe_cond_swap( int x_sign, char *x_str,
-                         int y_sign, char *y_str )
+void mbedtls_mpi_safe_cond_swap( int x_sign, char * x_str, int y_sign,
+                                 char * y_str )
 {
     mbedtls_mpi X, Y, XX, YY;
 
@@ -405,7 +398,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_swap( int input_X,  int input_Y )
+void mbedtls_mpi_swap( int input_X, int input_Y )
 {
     mbedtls_mpi X, Y, A;
     mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y ); mbedtls_mpi_init( &A );
@@ -425,8 +418,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_add_mpi( int radix_X, char *input_X, int radix_Y, char *input_Y,
-                  int radix_A, char *input_A )
+void mbedtls_mpi_add_mpi( int radix_X, char * input_X, int radix_Y,
+                          char * input_Y, int radix_A, char * input_A )
 {
     mbedtls_mpi X, Y, Z, A;
     mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y ); mbedtls_mpi_init( &Z ); mbedtls_mpi_init( &A );
@@ -443,7 +436,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_add_mpi_inplace( int radix_X, char *input_X, int radix_A, char *input_A )
+void mbedtls_mpi_add_mpi_inplace( int radix_X, char * input_X, int radix_A,
+                                  char * input_A )
 {
     mbedtls_mpi X, A;
     mbedtls_mpi_init( &X ); mbedtls_mpi_init( &A );
@@ -469,8 +463,8 @@ exit:
 
 
 /* BEGIN_CASE */
-void mbedtls_mpi_add_abs( int radix_X, char *input_X, int radix_Y, char *input_Y,
-                  int radix_A, char *input_A )
+void mbedtls_mpi_add_abs( int radix_X, char * input_X, int radix_Y,
+                          char * input_Y, int radix_A, char * input_A )
 {
     mbedtls_mpi X, Y, Z, A;
     mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y ); mbedtls_mpi_init( &Z ); mbedtls_mpi_init( &A );
@@ -487,8 +481,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mpi_add_abs_add_first( int radix_X, char *input_X, int radix_Y,
-                            char *input_Y, int radix_A, char *input_A )
+void mpi_add_abs_add_first( int radix_X, char * input_X, int radix_Y,
+                            char * input_Y, int radix_A, char * input_A )
 {
     mbedtls_mpi X, Y, A;
     mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y ); mbedtls_mpi_init( &A );
@@ -505,8 +499,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mpi_add_abs_add_second( int radix_X, char *input_X, int radix_Y,
-                             char *input_Y, int radix_A, char *input_A )
+void mpi_add_abs_add_second( int radix_X, char * input_X, int radix_Y,
+                             char * input_Y, int radix_A, char * input_A )
 {
     mbedtls_mpi X, Y, A;
     mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y ); mbedtls_mpi_init( &A );
@@ -523,8 +517,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_add_int( int radix_X, char *input_X, int input_Y, int radix_A,
-                  char *input_A )
+void mbedtls_mpi_add_int( int radix_X, char * input_X, int input_Y,
+                          int radix_A, char * input_A )
 {
     mbedtls_mpi X, Z, A;
     mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Z ); mbedtls_mpi_init( &A );
@@ -540,8 +534,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_sub_mpi( int radix_X, char *input_X, int radix_Y, char *input_Y,
-                  int radix_A, char *input_A )
+void mbedtls_mpi_sub_mpi( int radix_X, char * input_X, int radix_Y,
+                          char * input_Y, int radix_A, char * input_A )
 {
     mbedtls_mpi X, Y, Z, A;
     mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y ); mbedtls_mpi_init( &Z ); mbedtls_mpi_init( &A );
@@ -558,8 +552,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_sub_abs( int radix_X, char *input_X, int radix_Y, char *input_Y,
-                  int radix_A, char *input_A, int sub_result )
+void mbedtls_mpi_sub_abs( int radix_X, char * input_X, int radix_Y,
+                          char * input_Y, int radix_A, char * input_A,
+                          int sub_result )
 {
     mbedtls_mpi X, Y, Z, A;
     int res;
@@ -580,8 +575,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_sub_int( int radix_X, char *input_X, int input_Y, int radix_A,
-                  char *input_A )
+void mbedtls_mpi_sub_int( int radix_X, char * input_X, int input_Y,
+                          int radix_A, char * input_A )
 {
     mbedtls_mpi X, Z, A;
     mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Z ); mbedtls_mpi_init( &A );
@@ -597,8 +592,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_mul_mpi( int radix_X, char *input_X, int radix_Y, char *input_Y,
-                  int radix_A, char *input_A )
+void mbedtls_mpi_mul_mpi( int radix_X, char * input_X, int radix_Y,
+                          char * input_Y, int radix_A, char * input_A )
 {
     mbedtls_mpi X, Y, Z, A;
     mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y ); mbedtls_mpi_init( &Z ); mbedtls_mpi_init( &A );
@@ -615,8 +610,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_mul_int( int radix_X, char *input_X, int input_Y, int radix_A,
-                  char *input_A, char *result_comparison )
+void mbedtls_mpi_mul_int( int radix_X, char * input_X, int input_Y,
+                          int radix_A, char * input_A,
+                          char * result_comparison )
 {
     mbedtls_mpi X, Z, A;
     mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Z ); mbedtls_mpi_init( &A );
@@ -637,9 +633,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_div_mpi( int radix_X, char *input_X, int radix_Y, char *input_Y,
-                  int radix_A, char *input_A, int radix_B, char *input_B,
-                  int div_result )
+void mbedtls_mpi_div_mpi( int radix_X, char * input_X, int radix_Y,
+                          char * input_Y, int radix_A, char * input_A,
+                          int radix_B, char * input_B, int div_result )
 {
     mbedtls_mpi X, Y, Q, R, A, B;
     int res;
@@ -665,8 +661,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_div_int( int radix_X, char *input_X, int input_Y, int radix_A,
-                  char *input_A, int radix_B, char *input_B, int div_result )
+void mbedtls_mpi_div_int( int radix_X, char * input_X, int input_Y,
+                          int radix_A, char * input_A, int radix_B,
+                          char * input_B, int div_result )
 {
     mbedtls_mpi X, Q, R, A, B;
     int res;
@@ -691,8 +688,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_mod_mpi( int radix_X, char *input_X, int radix_Y, char *input_Y,
-                  int radix_A, char *input_A, int div_result )
+void mbedtls_mpi_mod_mpi( int radix_X, char * input_X, int radix_Y,
+                          char * input_Y, int radix_A, char * input_A,
+                          int div_result )
 {
     mbedtls_mpi X, Y, A;
     int res;
@@ -714,8 +712,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_mod_int( int radix_X, char *input_X, int input_Y, int input_A,
-                  int div_result )
+void mbedtls_mpi_mod_int( int radix_X, char * input_X, int input_Y,
+                          int input_A, int div_result )
 {
     mbedtls_mpi X;
     int res;
@@ -736,9 +734,10 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_exp_mod( int radix_A, char *input_A, int radix_E, char *input_E,
-                  int radix_N, char *input_N, int radix_RR, char *input_RR,
-                  int radix_X, char *input_X, int div_result )
+void mbedtls_mpi_exp_mod( int radix_A, char * input_A, int radix_E,
+                          char * input_E, int radix_N, char * input_N,
+                          int radix_RR, char * input_RR, int radix_X,
+                          char * input_X, int div_result )
 {
     mbedtls_mpi A, E, N, RR, Z, X;
     int res;
@@ -767,8 +766,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_inv_mod( int radix_X, char *input_X, int radix_Y, char *input_Y,
-                  int radix_A, char *input_A, int div_result )
+void mbedtls_mpi_inv_mod( int radix_X, char * input_X, int radix_Y,
+                          char * input_Y, int radix_A, char * input_A,
+                          int div_result )
 {
     mbedtls_mpi X, Y, Z, A;
     int res;
@@ -790,7 +790,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_GENPRIME */
-void mbedtls_mpi_is_prime( int radix_X, char *input_X, int div_result )
+void mbedtls_mpi_is_prime( int radix_X, char * input_X, int div_result )
 {
     mbedtls_mpi X;
     int res;
@@ -838,8 +838,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_shift_l( int radix_X, char *input_X, int shift_X, int radix_A,
-                  char *input_A)
+void mbedtls_mpi_shift_l( int radix_X, char * input_X, int shift_X,
+                          int radix_A, char * input_A )
 {
     mbedtls_mpi X, A;
     mbedtls_mpi_init( &X ); mbedtls_mpi_init( &A );
@@ -855,8 +855,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_shift_r( int radix_X, char *input_X, int shift_X, int radix_A,
-                  char *input_A )
+void mbedtls_mpi_shift_r( int radix_X, char * input_X, int shift_X,
+                          int radix_A, char * input_A )
 {
     mbedtls_mpi X, A;
     mbedtls_mpi_init( &X ); mbedtls_mpi_init( &A );
@@ -872,7 +872,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
-void mpi_selftest()
+void mpi_selftest(  )
 {
     TEST_ASSERT( mbedtls_mpi_self_test( 0 ) == 0 );
 }

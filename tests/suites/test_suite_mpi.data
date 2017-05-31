@@ -59,7 +59,7 @@ Test mbedtls_mpi_write_binary #1 (Buffer just fits)
 mbedtls_mpi_write_binary:16:"123123123123123123123123123":"0123123123123123123123123123":14:0
 
 Test mbedtls_mpi_write_binary #2 (Buffer too small)
-mbedtls_mpi_write_binary:16:"123123123123123123123123123":"123123123123123123123123123":13:MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL
+mbedtls_mpi_write_binary:16:"123123123123123123123123123":"23123123123123123123123123":13:MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL
 
 Base test mbedtls_mpi_read_file #1
 mbedtls_mpi_read_file:10:"data_files/mpi_10":"01f55332c3a48b910f9942f6c914e58bef37a47ee45cb164a5b6b8d1006bf59a059c21449939ebebfdf517d2e1dbac88010d7b1f141e997bd6801ddaec9d05910f4f2de2b2c4d714e2c14a72fc7f17aa428d59c531627f09":0

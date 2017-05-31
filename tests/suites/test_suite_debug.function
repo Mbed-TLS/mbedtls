@@ -122,6 +122,7 @@ void mbedtls_debug_print_buf( char * file, int line, char * text,
 
     mbedtls_ssl_conf_dbg( &conf, string_debug, &buffer);
 
+    mbedtls_debug_print_buf( &ssl, 0, file, line, text, data, data_len );
 
     TEST_ASSERT( strcmp( buffer.buf, result_str ) == 0 );
 

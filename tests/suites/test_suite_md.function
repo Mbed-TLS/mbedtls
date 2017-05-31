@@ -258,7 +258,7 @@ void mbedtls_md_hmac( char * text_md_name, int trunc_size, uint8_t * key_str,
 
     TEST_ASSERT ( mbedtls_md_hmac( md_info, key_str, key_len, src_str, src_len, output ) == 0 );
 
-    TEST_ASSERT( hexcmp( output, hex_hash_string, trunc_size * 2, hex_hash_string_len ) == 0 );
+    TEST_ASSERT( hexcmp( output, hex_hash_string, trunc_size, hex_hash_string_len ) == 0 );
 }
 /* END_CASE */
 
@@ -288,7 +288,7 @@ void md_hmac_multi( char * text_md_name, int trunc_size, uint8_t * key_str,
     TEST_ASSERT ( 0 == mbedtls_md_hmac_update( &ctx, src_str, src_len ) );
     TEST_ASSERT ( 0 == mbedtls_md_hmac_finish( &ctx, output ) );
 
-    TEST_ASSERT( hexcmp( output, hex_hash_string, trunc_size * 2, hex_hash_string_len ) == 0 );
+    TEST_ASSERT( hexcmp( output, hex_hash_string, trunc_size, hex_hash_string_len ) == 0 );
 
     /* Test again, for reset() */
     memset( output, 0x00, 100 );
@@ -297,7 +297,7 @@ void md_hmac_multi( char * text_md_name, int trunc_size, uint8_t * key_str,
     TEST_ASSERT ( 0 == mbedtls_md_hmac_update( &ctx, src_str, src_len ) );
     TEST_ASSERT ( 0 == mbedtls_md_hmac_finish( &ctx, output ) );
 
-    TEST_ASSERT( hexcmp( output, hex_hash_string, trunc_size * 2, hex_hash_string_len ) == 0 );
+    TEST_ASSERT( hexcmp( output, hex_hash_string, trunc_size, hex_hash_string_len ) == 0 );
 
 exit:
     mbedtls_md_free( &ctx );

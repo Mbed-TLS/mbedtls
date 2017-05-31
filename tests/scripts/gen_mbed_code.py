@@ -211,6 +211,7 @@ def parse_function_signature(line):
     name = m.group(1)
     line = line[len(m.group(0)):]
     arg_idx = 0
+    last_was_hex = False
     for arg in line[:line.find(')')].split(','):
         arg = arg.strip()
         if arg == '':
@@ -221,6 +222,13 @@ def parse_function_signature(line):
         elif re.search('char\s*\*\s*.*', arg.strip()):
             args.append('char*')
             args_dispatch.append('(char *) params[%d]' % arg_idx)
+        elif re.search('uint8_t\s*\*\s*.*', arg.strip()):
+            args.append('hex')
+            args_dispatch.append('(uint8_t *) params[%d]' % arg_idx)
+            last_was_hex = True
+        elif re.search('uint32_t\s+.*', arg.strip()) and last_was_hex:
+            last_was_hex = False
+            args_dispatch.append('*( (uint32_t *) params[%d] )' % arg_idx)
         else:
             raise ValueError("Test function arguments can only be 'int' or 'char *'\n%s" % line)
         arg_idx += 1

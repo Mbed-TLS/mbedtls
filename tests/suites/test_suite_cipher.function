@@ -534,8 +534,8 @@ exit:
 void auth_crypt_tv( int cipher_id, uint8_t * key, uint32_t key_len,
                     uint8_t * iv, uint32_t iv_len, uint8_t * ad,
                     uint32_t ad_len, uint8_t * cipher, uint32_t cipher_len,
-                    uint8_t * tag, uint32_t tag_len, uint8_t * clear,
-                    uint32_t clear_len )
+                    uint8_t * tag, uint32_t tag_len, char * result,
+                    uint8_t * clear, uint32_t clear_len )
 {
     int ret;
     unsigned char my_tag[20];
@@ -546,6 +546,7 @@ void auth_crypt_tv( int cipher_id, uint8_t * key, uint32_t key_len,
     mbedtls_cipher_init( &ctx );
 
     memset( output, 0xFF, sizeof( output ) );
+    memset( my_tag, 0xFF, sizeof( my_tag ) );
 
 
     /* Prepare context */
@@ -563,7 +564,7 @@ void auth_crypt_tv( int cipher_id, uint8_t * key, uint32_t key_len,
     TEST_ASSERT( output[outlen + 1] == 0xFF );
 
     /* make sure the message is rejected if it should be */
-    if( strcmp( clear, "FAIL" ) == 0 )
+    if( strcmp( result, "FAIL" ) == 0 )
     {
         TEST_ASSERT( ret == MBEDTLS_ERR_CIPHER_AUTH_FAILED );
         goto exit;

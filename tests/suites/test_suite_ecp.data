@@ -135,21 +135,21 @@ depends_on:MBEDTLS_ECP_DP_SECP521R1_ENABLED
 ecp_tls_write_read_point:MBEDTLS_ECP_DP_SECP521R1
 
 ECP tls read group #1 (record too short)
-mbedtls_ecp_tls_read_group:"0313":MBEDTLS_ERR_ECP_BAD_INPUT_DATA:0
+mbedtls_ecp_tls_read_group:"0313":MBEDTLS_ERR_ECP_BAD_INPUT_DATA:0:0
 
 ECP tls read group #2 (bad curve_type)
-mbedtls_ecp_tls_read_group:"010013":MBEDTLS_ERR_ECP_BAD_INPUT_DATA:0
+mbedtls_ecp_tls_read_group:"010013":MBEDTLS_ERR_ECP_BAD_INPUT_DATA:0:0
 
 ECP tls read group #3 (unknown curve)
-mbedtls_ecp_tls_read_group:"030010":MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE:0
+mbedtls_ecp_tls_read_group:"030010":MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE:0:0
 
 ECP tls read group #4 (OK, buffer just fits)
 depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED
-mbedtls_ecp_tls_read_group:"030017":0:256
+mbedtls_ecp_tls_read_group:"030017":0:256:3
 
 ECP tls read group #5 (OK, buffer continues)
 depends_on:MBEDTLS_ECP_DP_SECP384R1_ENABLED
-mbedtls_ecp_tls_read_group:"0300180000":0:384
+mbedtls_ecp_tls_read_group:"0300180000":0:384:3
 
 ECP tls write-read group #1
 depends_on:MBEDTLS_ECP_DP_SECP192R1_ENABLED

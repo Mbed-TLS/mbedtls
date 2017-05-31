@@ -84,9 +84,12 @@ void mbedtls_ccm_encrypt_and_tag( int cipher_id, uint8_t * key,
 {
     mbedtls_ccm_context ctx;
     size_t tag_len;
+    uint8_t * msg_n_tag = (uint8_t *)malloc( result_len + 2 );
 
     mbedtls_ccm_init( &ctx );
 
+    memset( msg_n_tag, 0, result_len + 2 );
+    memcpy( msg_n_tag, msg, msg_len );
 
     tag_len = result_len - msg_len;
 
@@ -94,15 +97,16 @@ void mbedtls_ccm_encrypt_and_tag( int cipher_id, uint8_t * key,
 
     /* Test with input == output */
     TEST_ASSERT( mbedtls_ccm_encrypt_and_tag( &ctx, msg_len, iv, iv_len, add, add_len,
-                 msg, msg, msg + msg_len, tag_len ) == 0 );
+                 msg_n_tag, msg_n_tag, msg_n_tag + msg_len, tag_len ) == 0 );
 
-    TEST_ASSERT( memcmp( msg, result, result_len ) == 0 );
+    TEST_ASSERT( memcmp( msg_n_tag, result, result_len ) == 0 );
 
     /* Check we didn't write past the end */
-    TEST_ASSERT( msg[result_len] == 0 && msg[result_len + 1] == 0 );
+    TEST_ASSERT( msg_n_tag[result_len] == 0 && msg_n_tag[result_len + 1] == 0 );
 
 exit:
     mbedtls_ccm_free( &ctx );
+    free( msg_n_tag );
 }
 /* END_CASE */
 
@@ -111,7 +115,8 @@ void mbedtls_ccm_auth_decrypt( int cipher_id, uint8_t * key, uint32_t key_len,
                                uint8_t * msg, uint32_t msg_len, uint8_t * iv,
                                uint32_t iv_len, uint8_t * add,
                                uint32_t add_len, int tag_len,
-                               uint8_t * result, uint32_t result_len )
+                               char * result, uint8_t * hex_msg,
+                               uint32_t hex_msg_len )
 {
     unsigned char tag[16];
     mbedtls_ccm_context ctx;
@@ -124,10 +129,9 @@ void mbedtls_ccm_auth_decrypt( int cipher_id, uint8_t * key, uint32_t key_len,
     msg_len -= tag_len;
     memcpy( tag, msg + msg_len, tag_len );
 
-    if( strcmp( "FAIL", (char *)result ) == 0 )
+    if( strcmp( "FAIL", result ) == 0 )
     {
         ret = MBEDTLS_ERR_CCM_AUTH_FAILED;
-        result_len = -1;
     }
     else
     {
@@ -142,7 +146,7 @@ void mbedtls_ccm_auth_decrypt( int cipher_id, uint8_t * key, uint32_t key_len,
 
     if( ret == 0 )
     {
-        TEST_ASSERT( memcmp( msg, result, result_len ) == 0 );
+        TEST_ASSERT( memcmp( msg, hex_msg, hex_msg_len ) == 0 );
     }
     else
     {

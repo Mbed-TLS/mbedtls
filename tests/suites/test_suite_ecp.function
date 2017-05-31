@@ -241,7 +241,7 @@ void ecp_read_binary( int id, uint8_t * buf, uint32_t ilen, char * x,
     TEST_ASSERT( mbedtls_mpi_read_string( &Y, 16, y ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &Z, 16, z ) == 0 );
 
-
+    TEST_ASSERT( mbedtls_ecp_point_read_binary( &grp, &P, buf, ilen ) == ret );
 
     if( ret == 0 )
     {
@@ -275,14 +275,14 @@ void mbedtls_ecp_tls_read_point( int id, uint8_t * buf, uint32_t ilen,
     TEST_ASSERT( mbedtls_mpi_read_string( &Y, 16, y ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &Z, 16, z ) == 0 );
 
-
+    TEST_ASSERT( mbedtls_ecp_tls_read_point( &grp, &P, &vbuf, ilen ) == ret );
 
     if( ret == 0 )
     {
         TEST_ASSERT( mbedtls_mpi_cmp_mpi( &P.X, &X ) == 0 );
         TEST_ASSERT( mbedtls_mpi_cmp_mpi( &P.Y, &Y ) == 0 );
         TEST_ASSERT( mbedtls_mpi_cmp_mpi( &P.Z, &Z ) == 0 );
-        TEST_ASSERT( *vbuf == 0x00 );
+        TEST_ASSERT( vbuf - buf == ilen );
     }
 
 exit:
@@ -345,7 +345,7 @@ exit:
 
 /* BEGIN_CASE */
 void mbedtls_ecp_tls_read_group( uint8_t * buf, uint32_t len, int result,
-                                 int bits )
+                                 int bits, int record_len )
 {
     mbedtls_ecp_group grp;
     const unsigned char *vbuf = buf;
@@ -353,14 +353,13 @@ void mbedtls_ecp_tls_read_group( uint8_t * buf, uint32_t len, int result,
 
     mbedtls_ecp_group_init( &grp );
 
-
     ret = mbedtls_ecp_tls_read_group( &grp, &vbuf, len );
 
     TEST_ASSERT( ret == result );
     if( ret == 0)
     {
         TEST_ASSERT( mbedtls_mpi_bitlen( &grp.P ) == (size_t) bits );
-        TEST_ASSERT( *vbuf == 0x00 );
+        TEST_ASSERT( vbuf - buf ==  record_len);
     }
 
 exit:

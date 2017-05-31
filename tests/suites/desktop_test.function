@@ -274,9 +274,22 @@ static int convert_params( size_t cnt , char ** params , int * int_params_store 
         }
         else if ( strcmp( type, "hex" ) == 0 )
         {
-            *int_params_store = unhexify( (unsigned char *) val, val );
-            *out++ = (char *)int_params_store++;
-            *out++ = val;
+            if ( verify_string( &val ) == 0 )
+            {
+                int j;
+                *int_params_store = unhexify( (unsigned char *) val, val );
+                printf ("\n");
+                for (j = 0; j < *int_params_store; j++)
+                    printf ("%02x ", (uint8_t)val[j]);
+                printf ("\n len %d\n", *int_params_store);
+                *out++ = val;
+                *out++ = (char *)(int_params_store++);
+            }
+            else
+            {
+                ret = ( -4 );
+                break;
+            }
         }
         else if ( strcmp( type, "exp" ) == 0 )
         {

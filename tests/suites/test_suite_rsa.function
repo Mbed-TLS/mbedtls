@@ -316,7 +316,7 @@ void rsa_pkcs1_encrypt_bad_rng( uint8_t * message_str, uint32_t msg_len,
     if( result == 0 )
     {
 
-        TEST_ASSERT( hexcmp( output, result_hex_str, ctx.len, result_hex_str_len ) == 0 );
+        TEST_ASSERT( hexcmp( output, result_hex_str, output_len, result_hex_str_len ) == 0 );
     }
 
 exit:
@@ -469,7 +469,7 @@ void mbedtls_rsa_private( uint8_t * message_str, uint32_t message_str_len,
         if( result == 0 )
         {
 
-            TEST_ASSERT( hexcmp( output, result_hex_str, ctx2.len, result_hex_str_len ) == 0 );
+            TEST_ASSERT( hexcmp( output, result_hex_str, ctx.len, result_hex_str_len ) == 0 );
         }
     }
 

@@ -92,8 +92,8 @@ void gcm_decrypt_and_verify( int cipher_id, uint8_t * key_str,
                              uint32_t iv_len, uint8_t * add_str,
                              uint32_t add_len, int tag_len_bits,
                              uint8_t * tag_str, uint32_t tag_str_len,
-                             uint8_t * pt_result, uint32_t pt_result_len,
-                             int init_result )
+                             char * result, uint8_t * pt_result,
+                             uint32_t pt_result_len, int init_result )
 {
     unsigned char output[128];
     mbedtls_gcm_context ctx;
@@ -110,7 +110,7 @@ void gcm_decrypt_and_verify( int cipher_id, uint8_t * key_str,
     {
         ret = mbedtls_gcm_auth_decrypt( &ctx, pt_len, iv_str, iv_len, add_str, add_len, tag_str, tag_len, src_str, output );
 
-        if( strcmp( "FAIL", pt_result ) == 0 )
+        if( strcmp( "FAIL", result ) == 0 )
         {
             TEST_ASSERT( ret == MBEDTLS_ERR_GCM_AUTH_FAILED );
         }

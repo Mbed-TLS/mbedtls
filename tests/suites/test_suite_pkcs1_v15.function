@@ -85,7 +85,7 @@ void pkcs1_rsaes_v15_decrypt( int mod, int radix_P, char * input_P,
     if( result == 0 )
     {
 
-        TEST_ASSERT( hexcmp( output, result_hex_str, ctx.len, result_hex_str_len) == 0 );
+        TEST_ASSERT( hexcmp( output, result_hex_str, output_len, result_hex_str_len) == 0 );
     }
 
 exit:

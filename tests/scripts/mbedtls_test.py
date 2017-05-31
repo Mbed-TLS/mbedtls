@@ -218,6 +218,7 @@ class MbedTlsTest(BaseHostTest):
         """
         int_val = self.get_result(value)
         name, function, deps, args = self.tests[self.test_index]
+        self.log('{{__testcase_start;%s}}' % name)
         self.log('{{__testcase_finish;%s;%d;%d}}' % (name, int_val == 0,
                                                      int_val != 0))
         self.run_next_test()

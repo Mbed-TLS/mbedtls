@@ -156,6 +156,47 @@ uint8_t * receive_data( uint32_t * data_len )
 }
 
 /**
+ * \brief       Parses received byte array and finds number of hex parameters.
+ *
+ * \param count     Parameter count
+ * \param data      Received Byte array
+ * \param data_len  Byte array length
+ *
+ * \return      count of hex params
+ */
+uint32_t find_hex_count( uint8_t count, uint8_t * data, uint32_t data_len )
+{
+    uint32_t i = 0, sz = 0;
+    char c;
+    uint8_t * p = NULL;
+    uint32_t hex_count = 0;
+
+    p = data;
+
+    for( i = 0; i < count; i++ )
+    {
+        c = (char)*p;
+        INCR_ASSERT( p, data, data_len, 1 );
+
+        /* Align p to 4 bytes for int, expression, string len or hex length */
+        ALIGN_32BIT( p, data, data_len );
+
+        /* Network to host conversion */
+        sz = (int32_t)parse_uint32( p );
+
+        INCR_ASSERT( p, data, data_len, sizeof( int32_t ) );
+
+        if ( c == 'H' || c == 'S' )
+        {
+            INCR_ASSERT( p, data, data_len, sz );
+            hex_count += ( c == 'H' )?1:0;
+        }
+    }
+
+    return( hex_count );
+}
+
+/**
  * \brief       Parses received byte array for test parameters.
  *
  * \param count     Parameter count
@@ -170,15 +211,16 @@ uint8_t * receive_data( uint32_t * data_len )
 void ** parse_parameters( uint8_t count, uint8_t * data, uint32_t data_len,
                             int * error )
 {
-    uint32_t i = 0;
+    uint32_t i = 0, hex_count = 0;
     char c;
     void ** params = NULL;
     void ** cur = NULL;
     uint8_t * p = NULL;
 
-    params = (void **)malloc( sizeof( void *) * ( count + 1 ) );
+    hex_count = find_hex_count(count, data, data_len);
+
+    params = (void **)malloc( sizeof( void *) * ( count + hex_count ) );
     assert( params != NULL );
-    params[count] = NULL;
     cur = params;
 
     p = data;
@@ -211,16 +253,15 @@ void ** parse_parameters( uint8_t count, uint8_t * data, uint32_t data_len,
                     INCR_ASSERT( p, data, data_len, sizeof( int32_t ) );
                 }
                 break;
-            case 'H':
-                {
-                    *cur++ = (void *)p;
-                } /* Intentional fall through */
+            case 'H': /* Intentional fall through */
             case 'S':
                 {
-                    uint32_t sz = *( (int32_t *)p );
+                    uint32_t * sz = (uint32_t *)p;
                     INCR_ASSERT( p, data, data_len, sizeof( int32_t ) );
                     *cur++ = (void *)p;
-                    INCR_ASSERT( p, data, data_len, sz );
+                    if ( c == 'H' )
+                        *cur++ = (void *)sz;
+                    INCR_ASSERT( p, data, data_len, ( *sz ) );
                 }
                 break;
             default:
@@ -324,7 +365,8 @@ int execute_tests( int args, const char ** argv )
             if ( ret != 0 )
                 break;
 
-            INCR_ASSERT( p, data, data_len, count );
+            if ( count )
+                INCR_ASSERT( p, data, data_len, count );
 
             /* Read function id */
             function_id = *p;
@@ -334,9 +376,13 @@ int execute_tests( int args, const char ** argv )
             count = *p;
             INCR_ASSERT( p, data, data_len, sizeof( uint8_t ) );
 
-            params = parse_parameters( count, p, data_len - (p - data), &ret );
-            if ( ret )
-                break;
+            /* Parse parameters if present */
+            if ( count )
+            {
+                params = parse_parameters( count, p, data_len - ( p - data ), &ret );
+                if ( ret )
+                    break;
+            }
 
             ret = dispatch_test( function_id, params );
         }

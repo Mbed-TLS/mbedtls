@@ -160,6 +160,28 @@ class MbedTlsTest(BaseHostTest):
         """
         b += bytearray((4 - (len(b))) % 4)
 
+    @staticmethod
+    def hex_str_bytes(hex_str):
+        """
+        Converts Hex string representation to byte array
+
+        :param hex_str:
+        :return:
+        """
+        assert hex_str[0] == '"' and hex_str[len(hex_str) - 1] == '"', \
+            "HEX test parameter missing '\"': %s" % hex_str
+        hex_str = hex_str.strip('"')
+        assert len(hex_str) % 2 == 0, "HEX parameter len should be mod of 2: %s" % hex_str
+        b = bytearray()
+
+        for i in xrange(len(hex_str) / 2):
+            h = hex_str[i * 2] + hex_str[(i * 2) + 1]
+            try:
+                b += bytearray([int(h, 16)])
+            except ValueError:
+                raise ValueError("Invalid HEX value: %s" % hex_str)
+        return b
+
     def parameters_to_bytes(self, b, parameters):
         for typ, param in parameters:
             if typ == 'int' or typ == 'exp':
@@ -175,6 +197,13 @@ class MbedTlsTest(BaseHostTest):
                 b += bytearray([((i >> x) & 0xff) for x in [24, 16, 8, 0]])
                 b += bytearray(list(param))
                 b += '\0'   # Null terminate
+            elif typ == 'hex':
+                hb = self.hex_str_bytes(param)
+                b += 'H'
+                self.align_32bit(b)
+                i = len(hb)
+                b += bytearray([((i >> x) & 0xff) for x in [24, 16, 8, 0]])
+                b += hb
         return b
 
     def run_next_test(self):

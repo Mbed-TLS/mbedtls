@@ -141,7 +141,8 @@ int dispatch_test( int func_idx, void ** params )
             fp( params );
         else
             ret = ( -5 );
-    }} else
+    }}
+    else
     {{
         ret = ( -3 );
     }}

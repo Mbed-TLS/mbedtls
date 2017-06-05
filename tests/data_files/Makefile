@@ -12,6 +12,7 @@
 
 ## Tools
 OPENSSL ?= openssl
+FAKETIME ?= faketime
 MBEDTLS_CERT_WRITE ?= $(PWD)/../../programs/x509/cert_write
 
 ## Build the generated test data. Note that since the final outputs
@@ -65,6 +66,18 @@ all_intermediate += server2-rsa.csr
 server2-sha256.crt: server2-rsa.csr
 	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -CA test-ca-sha256.crt -CAkey $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" -set_serial 4 -days 3653 -sha256 -in server2-rsa.csr -out $@
 all_final += server2-sha256.crt
+
+test_ca_int_rsa1 = test-int-ca.crt
+
+server7.csr: server7.key
+	$(OPENSSL) req -new -key server7.key -subj "/C=NL/O=PolarSSL/CN=localhost" -out $@
+all_intermediate += server7.csr
+server7-expired.crt: server7.csr $(test_ca_int_rsa1)
+	$(FAKETIME) -f -3653d $(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -CA $(test_ca_int_rsa1) -CAkey test-int-ca.key -set_serial 16 -days 3653 -sha256 -in server7.csr | cat - $(test_ca_int_rsa1) > $@
+all_final += server7-expired.crt
+server7-future.crt: server7.csr $(test_ca_int_rsa1)
+	$(FAKETIME) -f +3653d $(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -CA $(test_ca_int_rsa1) -CAkey test-int-ca.key -set_serial 16 -days 3653 -sha256 -in server7.csr | cat - $(test_ca_int_rsa1) > $@
+all_final += server7-future.crt
 
 
 

@@ -1,6 +1,6 @@
 #line 2 "embedded_test.function"
 
-#include "greentea-client/test_env_c.h"
+#include "greentea-client/test_env.h"
 
 /**
  * \brief       Increments pointer and asserts that it does not overflow.

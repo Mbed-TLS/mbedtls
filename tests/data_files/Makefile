@@ -78,8 +78,9 @@ all_final += server7-expired.crt
 server7-future.crt: server7.csr $(test_ca_int_rsa1)
 	$(FAKETIME) -f +3653d $(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -CA $(test_ca_int_rsa1) -CAkey test-int-ca.key -set_serial 16 -days 3653 -sha256 -in server7.csr | cat - $(test_ca_int_rsa1) > $@
 all_final += server7-future.crt
-
-
+server7-badsign.crt: server7.crt $(test_ca_int_rsa1)
+	{ head -n-2 server7.crt; tail -n-2 server7.crt | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; cat test-int-ca.crt; } > server7-badsign.crt
+all_final += server7-badsign.crt
 
 ################################################################
 #### Generate various RSA keys

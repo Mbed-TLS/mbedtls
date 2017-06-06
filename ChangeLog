@@ -2,6 +2,13 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.1.x branch released xxxx-xx-xx
 
+Security
+   * Add exponent blinding to RSA private operations as a countermeasure
+     against side-channel attacks like the cache attack described in
+     https://arxiv.org/abs/1702.08719v2.
+     Found and fix proposed by Michael Schwarz, Samuel Weiser, Daniel Gruss,
+     Clémentine Maurice and Stefan Mangard.
+
 Bugfix
    * Remove macros from compat-1.3.h that correspond to deleted items from most
      recent versions of the library. Found by Kyle Keen.

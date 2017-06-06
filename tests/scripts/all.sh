@@ -549,8 +549,7 @@ if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_
 
 msg "test/build: curves.pl (gcc)" # ~ 4 min
 cleanup
-cmake -D CMAKE_BUILD_TYPE:String=Debug .
-if_build_succeeded tests/scripts/curves.pl
+tests/scripts/curves.pl
 
 msg "test/build: depends-hashes.pl (gcc)" # ~ 2 min
 cleanup
@@ -558,8 +557,7 @@ tests/scripts/depends-hashes.pl
 
 msg "test/build: key-exchanges (gcc)" # ~ 1 min
 cleanup
-cmake -D CMAKE_BUILD_TYPE:String=Check .
-if_build_succeeded tests/scripts/key-exchanges.pl
+tests/scripts/key-exchanges.pl
 
 msg "build: Unix make, -Os (gcc)" # ~ 30s
 cleanup

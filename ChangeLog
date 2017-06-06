@@ -2,6 +2,12 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 mbed TLS 2.x.x branch released xxxx-xx-xx
 
+Security
+
+   * Removed SHA-1 and RIPEMD-160 from the default hash algorithms for
+     certificate verification. SHA-1 can be turned back on with a compile-time
+     option if needed.
+
 Bugfix
    * Remove invalid use of size zero arrays in ECJPAKE test suite.
    * Fix insufficient support for signature-hash-algorithm extension,

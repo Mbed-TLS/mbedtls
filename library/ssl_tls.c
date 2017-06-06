@@ -7162,7 +7162,7 @@ static int ssl_preset_default_hashes[] = {
     MBEDTLS_MD_SHA256,
     MBEDTLS_MD_SHA224,
 #endif
-#if defined(MBEDTLS_SHA1_C)
+#if defined(MBEDTLS_SHA1_C) && defined(MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE)
     MBEDTLS_MD_SHA1,
 #endif
     MBEDTLS_MD_NONE

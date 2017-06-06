@@ -345,7 +345,6 @@ OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUT
 
 msg "test/build: curves.pl (gcc)" # ~ 4 min
 cleanup
-cmake -D CMAKE_BUILD_TYPE:String=Debug .
 tests/scripts/curves.pl
 
 msg "test/build: depends-hashes.pl (gcc)" # ~ 2 min
@@ -354,7 +353,6 @@ tests/scripts/depends-hashes.pl
 
 msg "test/build: key-exchanges (gcc)" # ~ 1 min
 cleanup
-cmake -D CMAKE_BUILD_TYPE:String=Check .
 tests/scripts/key-exchanges.pl
 
 msg "build: Unix make, -Os (gcc)" # ~ 30s

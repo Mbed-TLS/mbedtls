@@ -20,6 +20,9 @@
 # Usage: tests/scripts/depends-hashes.pl
 #
 # This script should be executed from the root of the project directory.
+#
+# For best effect, run either with cmake disabled, or cmake enabled in a mode
+# that includes -Werror.
 
 use warnings;
 use strict;

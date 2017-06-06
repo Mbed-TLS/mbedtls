@@ -348,6 +348,10 @@ cleanup
 cmake -D CMAKE_BUILD_TYPE:String=Debug .
 tests/scripts/curves.pl
 
+msg "test/build: depends-hashes.pl (gcc)" # ~ 2 min
+cleanup
+tests/scripts/depends-hashes.pl
+
 msg "test/build: key-exchanges (gcc)" # ~ 1 min
 cleanup
 cmake -D CMAKE_BUILD_TYPE:String=Check .

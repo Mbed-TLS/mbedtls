@@ -3526,7 +3526,11 @@ static void ssl_handshake_params_init( ssl_handshake_params *handshake )
 #endif /* POLARSSL_SSL_PROTO_TLS1_2 */
 
     handshake->update_checksum = ssl_update_checksum_start;
-    handshake->sig_alg = SSL_HASH_SHA1;
+
+#if defined(POLARSSL_SSL_PROTO_TLS1_2) && \
+    defined(POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED)
+    ssl_sig_hash_set_init( &handshake->hash_algs );
+#endif
 
 #if defined(POLARSSL_DHM_C)
     dhm_init( &handshake->dhm_ctx );
@@ -5166,6 +5170,19 @@ unsigned char ssl_sig_from_pk( pk_context *pk )
     return( SSL_SIG_ANON );
 }
 
+unsigned char ssl_sig_from_pk_alg( pk_type_t type )
+{
+    switch( type ) {
+        case POLARSSL_PK_RSA:
+            return( SSL_SIG_RSA );
+        case POLARSSL_PK_ECDSA:
+        case POLARSSL_PK_ECKEY:
+            return( SSL_SIG_ECDSA );
+        default:
+            return( SSL_SIG_ANON );
+    }
+}
+
 pk_type_t ssl_pk_alg_from_sig( unsigned char sig )
 {
     switch( sig )
@@ -5183,6 +5200,57 @@ pk_type_t ssl_pk_alg_from_sig( unsigned char sig )
     }
 }
 #endif /* POLARSSL_PK_C */
+
+#if defined(POLARSSL_SSL_PROTO_TLS1_2) && \
+    defined(POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED)
+
+/* Find an entry in a signature-hash set matching a given hash algorithm. */
+md_type_t ssl_sig_hash_set_find( ssl_sig_hash_set_t *set,
+                                 pk_type_t sig_alg )
+{
+    switch( sig_alg )
+    {
+        case POLARSSL_PK_RSA:
+            return( set->rsa );
+        case POLARSSL_PK_ECDSA:
+            return( set->ecdsa );
+        default:
+            return( POLARSSL_MD_NONE );
+    }
+}
+
+/* Add a signature-hash-pair to a signature-hash set */
+void ssl_sig_hash_set_add( ssl_sig_hash_set_t *set,
+                           pk_type_t sig_alg,
+                           md_type_t md_alg )
+{
+    switch( sig_alg )
+    {
+        case POLARSSL_PK_RSA:
+            if( set->rsa == POLARSSL_MD_NONE )
+                set->rsa = md_alg;
+            break;
+
+        case POLARSSL_PK_ECDSA:
+            if( set->ecdsa == POLARSSL_MD_NONE )
+                set->ecdsa = md_alg;
+            break;
+
+        default:
+            break;
+    }
+}
+
+/* Allow exactly one hash algorithm for each signature. */
+void ssl_sig_hash_set_const_hash( ssl_sig_hash_set_t *set,
+                                   md_type_t md_alg )
+{
+    set->rsa   = md_alg;
+    set->ecdsa = md_alg;
+}
+
+#endif /* POLARSSL_SSL_PROTO_TLS1_2) &&
+          POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED */
 
 /*
  * Convert between SSL_HASH_XXX and POLARSSL_MD_XXX
@@ -5216,6 +5284,38 @@ md_type_t ssl_md_alg_from_hash( unsigned char hash )
     }
 }
 
+/*
+ * Convert from POLARSSL_MD_XXX to SSL_HASH_XXX
+ */
+unsigned char ssl_hash_from_md_alg( md_type_t md )
+{
+    switch( md )
+    {
+#if defined(POLARSSL_MD5_C)
+        case POLARSSL_MD_MD5:
+            return( SSL_HASH_MD5 );
+#endif
+#if defined(POLARSSL_SHA1_C)
+        case POLARSSL_MD_SHA1:
+            return( SSL_HASH_SHA1 );
+#endif
+#if defined(POLARSSL_SHA256_C)
+        case POLARSSL_MD_SHA224:
+            return( SSL_HASH_SHA224 );
+        case POLARSSL_MD_SHA256:
+            return( SSL_HASH_SHA256 );
+#endif
+#if defined(POLARSSL_SHA512_C)
+        case POLARSSL_MD_SHA384:
+            return( SSL_HASH_SHA384 );
+        case POLARSSL_MD_SHA512:
+            return( SSL_HASH_SHA512 );
+#endif
+        default:
+            return( SSL_HASH_NONE );
+    }
+}
+
 #if defined(POLARSSL_SSL_SET_CURVES)
 /*
  * Check is a curve proposed by the peer is in our list.
@@ -5232,6 +5332,30 @@ int ssl_curve_is_acceptable( const ssl_context *ssl, ecp_group_id grp_id )
     return( 0 );
 }
 #endif /* POLARSSL_SSL_SET_CURVES */
+
+#if defined(POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED)
+/*
+ * Check if a hash proposed by the peer is in our list.
+ * Return 0 if we're willing to use it, -1 otherwise.
+ */
+int ssl_check_sig_hash( md_type_t md )
+{
+    const int *cur;
+
+    for( cur = md_list(); *cur != POLARSSL_MD_NONE; cur++ )
+    {
+#if !defined(POLARSSL_SSL_ENABLE_MD5_SIGNATURES)
+        /* Skip MD5 */
+        if( *cur == POLARSSL_MD_MD5 )
+            continue;
+#endif
+        if( *cur == (int) md )
+            return( 0 );
+    }
+
+    return( -1 );
+}
+#endif /* POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED */
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
 int ssl_check_cert_usage( const x509_crt *cert,

@@ -467,6 +467,18 @@ static int ssl_parse_renegotiation_info( ssl_context *ssl,
 
 #if defined(POLARSSL_SSL_PROTO_TLS1_2) && \
     defined(POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED)
+/*
+ * Status of the implementation of signature-algorithms extension:
+ *
+ * Currently, we are only considering the signature-algorithm extension
+ * to pick a ciphersuite which allows us to send the ServerKeyExchange
+ * message with a signature-hash combination that the user allows.
+ *
+ * We do *not* check whether all certificates in our certificate
+ * chain are signed with an allowed signature-hash pair.
+ * This needs to be done at a later stage.
+ *
+ */
 static int ssl_parse_signature_algorithms_ext( ssl_context *ssl,
                                                const unsigned char *buf,
                                                size_t len )
@@ -474,8 +486,9 @@ static int ssl_parse_signature_algorithms_ext( ssl_context *ssl,
     size_t sig_alg_list_size;
     const unsigned char *p;
     const unsigned char *end = buf + len;
-    const int *md_cur;
 
+    md_type_t md_cur;
+    pk_type_t sig_cur;
 
     sig_alg_list_size = ( ( buf[0] << 8 ) | ( buf[1] ) );
     if( sig_alg_list_size + 2 != len ||
@@ -485,34 +498,47 @@ static int ssl_parse_signature_algorithms_ext( ssl_context *ssl,
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
 
-    /*
-     * For now, ignore the SignatureAlgorithm part and rely on offered
-     * ciphersuites only for that part. To be fixed later.
+    /* Currently we only guarantee signing the ServerKeyExchange message according
+     * to the constraints specified in this extension (see above), so it suffices
+     * to remember only one suitable hash for each possible signature algorithm.
      *
-     * So, just look at the HashAlgorithm part.
+     * This will change when we also consider certificate signatures,
+     * in which case we will need to remember the whole signature-hash
+     * pair list from the extension.
      */
-    for( md_cur = md_list(); *md_cur != POLARSSL_MD_NONE; md_cur++ ) {
-#if !defined(POLARSSL_SSL_ENABLE_MD5_SIGNATURES)
-        /* Skip MD5 */
-        if( *md_cur == POLARSSL_MD_MD5 )
-            continue;
-#endif
 
-        for( p = buf + 2; p < end; p += 2 ) {
-            if( *md_cur == (int) ssl_md_alg_from_hash( p[0] ) ) {
-                ssl->handshake->sig_alg = p[0];
-                goto have_sig_alg;
-            }
+    for( p = buf + 2; p < end; p += 2 ) {
+
+        /* Silently ignore unknown signature or hash algorithms. */
+
+        if( (sig_cur = ssl_pk_alg_from_sig( p[1] ) ) == POLARSSL_PK_NONE )
+        {
+            SSL_DEBUG_MSG( 3, ( "client hello v3, signature_algorithm ext: unknown sig alg encoding %d",
+                                p[1] ) );
+            continue;
+        }
+
+        /* Check if we support the hash the user proposes */
+        md_cur = ssl_md_alg_from_hash( p[0] );
+        if( md_cur == POLARSSL_MD_NONE )
+        {
+            SSL_DEBUG_MSG( 3, ( "client hello v3, signature_algorithm ext: "
+                                "unknown hash alg encoding %d", p[0] ) );
+            continue;
+        }
+
+        if( ssl_check_sig_hash( md_cur ) == 0 )
+        {
+            ssl_sig_hash_set_add( &ssl->handshake->hash_algs, sig_cur, md_cur );
+            SSL_DEBUG_MSG( 3, ( "client hello v3, signature_algorithm ext: match sig %d and hash %d",
+                                        sig_cur, md_cur ) );
+        }
+        else
+        {
+            SSL_DEBUG_MSG( 3, ( "client hello v3, signature_algorithm ext: hash alg %d not supported",
+                                md_cur ) );
         }
     }
-
-    /* Some key echanges do not need signatures at all */
-    SSL_DEBUG_MSG( 3, ( "no signature_algorithm in common" ) );
-    return( 0 );
-
-have_sig_alg:
-    SSL_DEBUG_MSG( 3, ( "client hello v3, signature_algorithm ext: %d",
-                   ssl->handshake->sig_alg ) );
 
     return( 0 );
 }
@@ -932,6 +958,11 @@ static int ssl_ciphersuite_match( ssl_context *ssl, int suite_id,
 {
     const ssl_ciphersuite_t *suite_info;
 
+#if defined(POLARSSL_SSL_PROTO_TLS1_2) && \
+    defined(POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED)
+    pk_type_t sig_type;
+#endif
+
     suite_info = ssl_ciphersuite_from_id( suite_id );
     if( suite_info == NULL )
     {
@@ -978,6 +1009,26 @@ static int ssl_ciphersuite_match( ssl_context *ssl, int suite_id,
         return( 0 );
     }
 #endif
+
+#if defined(POLARSSL_SSL_PROTO_TLS1_2) && \
+    defined(POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED)
+    /* If the ciphersuite requires signing, check whether
+     * a suitable hash algorithm is present. */
+    if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
+    {
+        sig_type = ssl_get_ciphersuite_sig_alg( suite_info );
+        if( sig_type != POLARSSL_PK_NONE &&
+            ssl_sig_hash_set_find( &ssl->handshake->hash_algs, sig_type ) == POLARSSL_MD_NONE )
+        {
+            SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: no suitable hash algorithm "
+                                "for signature algorithm %d", sig_type ) );
+            return( 0 );
+        }
+    }
+
+#endif /* POLARSSL_SSL_PROTO_TLS1_2 &&
+          POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED */
+
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
     /*
@@ -1286,6 +1337,15 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     int handshake_failure = 0;
     const int *ciphersuites;
     const ssl_ciphersuite_t *ciphersuite_info;
+
+    /* If there is no signature-algorithm extension present,
+     * we need to fall back to the default values for allowed
+     * signature-hash pairs. */
+#if defined(POLARSSL_SSL_PROTO_TLS1_2) && \
+    defined(POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED)
+    int sig_hash_alg_ext_present = 0;
+#endif /* POLARSSL_SSL_PROTO_TLS1_2 &&
+          POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED */
 
     SSL_DEBUG_MSG( 2, ( "=> parse client hello" ) );
 
@@ -1621,6 +1681,8 @@ static int ssl_parse_client_hello( ssl_context *ssl )
                 ret = ssl_parse_signature_algorithms_ext( ssl, ext + 4, ext_size );
                 if( ret != 0 )
                     return( ret );
+
+                sig_hash_alg_ext_present = 1;
                 break;
     #endif /* POLARSSL_SSL_PROTO_TLS1_2 &&
               POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED */
@@ -1764,6 +1826,27 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
 
+
+#if defined(POLARSSL_SSL_PROTO_TLS1_2) && \
+    defined(POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED)
+
+    /*
+     * Try to fall back to default hash SHA1 if the client
+     * hasn't provided any preferred signature-hash combinations.
+     */
+    if( sig_hash_alg_ext_present == 0 )
+    {
+        md_type_t md_default = POLARSSL_MD_SHA1;
+
+        if( ssl_check_sig_hash( md_default ) != 0 )
+            md_default = POLARSSL_MD_NONE;
+
+        ssl_sig_hash_set_const_hash( &ssl->handshake->hash_algs, md_default );
+    }
+
+#endif /* POLARSSL_SSL_PROTO_TLS1_2 &&
+          POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED */
+
     /*
      * Search for a matching ciphersuite
      * (At the end because we need information from the EC-based extensions
@@ -1820,6 +1903,28 @@ have_ciphersuite:
 
     ssl->in_left = 0;
     ssl->state++;
+
+    /* Debugging-only output for testsuite */
+#if defined(POLARSSL_DEBUG_C)                         && \
+    defined(POLARSSL_SSL_PROTO_TLS1_2)                && \
+    defined(POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED)
+    if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
+    {
+        pk_type_t sig_alg = ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
+        if( sig_alg != POLARSSL_PK_NONE )
+        {
+            md_type_t md_alg = ssl_sig_hash_set_find( &ssl->handshake->hash_algs,
+                                                      sig_alg );
+            SSL_DEBUG_MSG( 3, ( "client hello v3, signature_algorithm ext: %d",
+                                ssl_hash_from_md_alg( md_alg ) ) );
+        }
+        else
+        {
+            SSL_DEBUG_MSG( 3, ( "no hash algorithm for signature algorithm %d - should not happen",
+                                sig_alg ) );
+        }
+    }
+#endif
 
     SSL_DEBUG_MSG( 2, ( "<= parse client hello" ) );
 
@@ -2665,17 +2770,25 @@ curve_matching_done:
         size_t signature_len = 0;
         unsigned int hashlen = 0;
         unsigned char hash[64];
-        md_type_t md_alg = POLARSSL_MD_NONE;
 
         /*
-         * Choose hash algorithm. NONE means MD5 + SHA1 here.
+         * Choose hash algorithm:
+         * - For TLS 1.2, obey signature-hash-algorithm extension to choose appropriate hash.
+         * - For SSL3, TLS1.0, TLS1.1 and ECDHE_ECDSA, use SHA1 (RFC 4492, Sec. 5.4)
+         * - Otherwise, use MD5 + SHA1 (RFC 4346, Sec. 7.4.3)
          */
+
+        md_type_t md_alg;
+
 #if defined(POLARSSL_SSL_PROTO_TLS1_2)
+        pk_type_t sig_alg = ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
         if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
         {
-            md_alg = ssl_md_alg_from_hash( ssl->handshake->sig_alg );
+            /* For TLS 1.2, obey signature-hash-algorithm extension
+             * (RFC 5246, Sec. 7.4.1.4.1). */
 
-            if( md_alg == POLARSSL_MD_NONE )
+            if( sig_alg == POLARSSL_PK_NONE ||
+                ( md_alg = ssl_sig_hash_set_find( &ssl->handshake->hash_algs, sig_alg ) ) == POLARSSL_MD_NONE )
             {
                 SSL_DEBUG_MSG( 1, ( "should never happen" ) );
                 return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
@@ -2695,6 +2808,8 @@ curve_matching_done:
         {
             md_alg = POLARSSL_MD_NONE;
         }
+
+        SSL_DEBUG_MSG( 3, ( "pick hash algorithm %d for signing", md_alg ) );
 
         /*
          * Compute the hash to be signed
@@ -2794,8 +2909,8 @@ curve_matching_done:
 #if defined(POLARSSL_SSL_PROTO_TLS1_2)
         if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
         {
-            *(p++) = ssl->handshake->sig_alg;
-            *(p++) = ssl_sig_from_pk( ssl_own_key( ssl ) );
+            *(p++) = ssl_hash_from_md_alg( md_alg );
+            *(p++) = ssl_sig_from_pk_alg( sig_alg );
 
             n += 2;
         }

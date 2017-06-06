@@ -1803,6 +1803,24 @@ pk_type_t ssl_get_ciphersuite_sig_pk_alg( const ssl_ciphersuite_t *info )
             return( POLARSSL_PK_NONE );
     }
 }
+
+pk_type_t ssl_get_ciphersuite_sig_alg( const ssl_ciphersuite_t *info )
+{
+    switch( info->key_exchange )
+    {
+        case POLARSSL_KEY_EXCHANGE_RSA:
+        case POLARSSL_KEY_EXCHANGE_DHE_RSA:
+        case POLARSSL_KEY_EXCHANGE_ECDHE_RSA:
+            return( POLARSSL_PK_RSA );
+
+        case POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA:
+            return( POLARSSL_PK_ECDSA );
+
+        default:
+            return( POLARSSL_PK_NONE );
+    }
+}
+
 #endif /* POLARSSL_PK_C */
 
 #if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)

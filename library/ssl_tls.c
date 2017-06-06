@@ -3097,9 +3097,11 @@ int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
         int ret;
         unsigned int recv_msg_seq = ( ssl->in_msg[4] << 8 ) | ssl->in_msg[5];
 
-        /* ssl->handshake is NULL when receiving ClientHello for renego */
         if( ssl->handshake != NULL &&
-            recv_msg_seq != ssl->handshake->in_msg_seq )
+            ( ( ssl->state   != MBEDTLS_SSL_HANDSHAKE_OVER &&
+                recv_msg_seq != ssl->handshake->in_msg_seq ) ||
+              ( ssl->state  == MBEDTLS_SSL_HANDSHAKE_OVER &&
+                ssl->in_msg[0] != MBEDTLS_SSL_HS_CLIENT_HELLO ) ) )
         {
             /* Retransmit only on last message from previous flight, to avoid
              * too many retransmissions.
@@ -4003,46 +4005,6 @@ int mbedtls_ssl_read_record_layer( mbedtls_ssl_context *ssl )
         }
     }
 
-    /*
-     * When we sent the last flight of the handshake, we MUST respond to a
-     * retransmit of the peer's previous flight with a retransmit. (In
-     * practice, only the Finished message will make it, other messages
-     * including CCS use the old transform so they're dropped as invalid.)
-     *
-     * If the record we received is not a handshake message, however, it
-     * means the peer received our last flight so we can clean up
-     * handshake info.
-     *
-     * This check needs to be done before prepare_handshake() due to an edge
-     * case: if the client immediately requests renegotiation, this
-     * finishes the current handshake first, avoiding the new ClientHello
-     * being mistaken for an ancient message in the current handshake.
-     */
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
-        ssl->handshake != NULL &&
-        ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER )
-    {
-        if( ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE &&
-                ssl->in_msg[0] == MBEDTLS_SSL_HS_FINISHED )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 2, ( "received retransmit of last flight" ) );
-
-            if( ( ret = mbedtls_ssl_resend( ssl ) ) != 0 )
-            {
-                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_resend", ret );
-                return( ret );
-            }
-
-            return( MBEDTLS_ERR_SSL_WANT_READ );
-        }
-        else
-        {
-            ssl_handshake_wrapup_free_hs_transform( ssl );
-        }
-    }
-#endif
-
     return( 0 );
 }
 
@@ -4108,6 +4070,15 @@ int mbedtls_ssl_handle_message_type( mbedtls_ssl_context *ssl )
         /* Silently ignore: fetch new message */
         return MBEDTLS_ERR_SSL_NON_FATAL;
     }
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+        ssl->handshake != NULL &&
+        ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER  )
+    {
+        ssl_handshake_wrapup_free_hs_transform( ssl );
+    }
+#endif
 
     return( 0 );
 }

@@ -33,7 +33,10 @@ if ( defined($switch) && ( $switch eq "-v" || $switch eq "--verbose" ) ) {
     $verbose = TRUE;
 }
 
-my @suites = grep { ! /\.(?:c|gcno|gcda|dSYM)$/ } glob 'test_suite_*';
+# All test suites = executable files, excluding source files, debug
+# and profiling information, etc. We can't just grep {! /\./} because
+#some of our test cases' base names contain a dot.
+my @suites = grep { -x $_ || /\.exe$/ } glob 'test_suite_*';
 die "$0: no test suite found\n" unless @suites;
 
 # in case test suites are linked dynamically

@@ -14,6 +14,8 @@ Security
    * Removed SHA-1 and RIPEMD-160 from the default hash algorithms for
      certificate verification. SHA-1 can be turned back on with a compile-time
      option if needed.
+   * Fixed offset in FALLBACK_SCSV parsing that caused TLS server to fail to
+     detect it sometimes. Reported by Hugo Leisink. #810
 
 Bugfix
    * Remove macros from compat-1.3.h that correspond to deleted items from most

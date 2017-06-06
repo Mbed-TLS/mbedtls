@@ -17,11 +17,13 @@ set -u
 : ${OPENSSL_CMD:=openssl} # OPENSSL would conflict with the build system
 : ${GNUTLS_CLI:=gnutls-cli}
 : ${GNUTLS_SERV:=gnutls-serv}
+: ${PERL:=perl}
 
 O_SRV="$OPENSSL_CMD s_server -www -cert data_files/server5.crt -key data_files/server5.key"
 O_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_CMD s_client"
 G_SRV="$GNUTLS_SERV --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key"
 G_CLI="echo 'GET / HTTP/1.0' | $GNUTLS_CLI --x509cafile data_files/test-ca_cat12.crt"
+TCP_CLIENT="$PERL scripts/tcp_client.pl"
 
 TESTS=0
 FAILS=0
@@ -934,6 +936,37 @@ run_test    "Fallback SCSV: enabled, max version, openssl client" \
             "$O_CLI -fallback_scsv" \
             0 \
             -s "received FALLBACK_SCSV" \
+            -S "inapropriate fallback"
+
+## ClientHello generated with
+## "openssl s_client -CAfile tests/data_files/test-ca.crt -tls1_1 -connect localhost:4433 -cipher ..."
+## then manually twiddling the ciphersuite list.
+## The ClientHello content is spelled out below as a hex string as
+## "prefix ciphersuite1 ciphersuite2 ciphersuite3 ciphersuite4 suffix".
+## The expected response is an inappropriate_fallback alert.
+requires_openssl_with_fallback_scsv
+run_test    "Fallback SCSV: beginning of list" \
+            "$P_SRV debug_level=2" \
+            "$TCP_CLIENT localhost $SRV_PORT '160301003e0100003a03022aafb94308dc22ca1086c65acc00e414384d76b61ecab37df1633b1ae1034dbe000008 5600 0031 0032 0033 0100000900230000000f000101' '15030200020256'" \
+            0 \
+            -s "received FALLBACK_SCSV" \
+            -s "inapropriate fallback"
+
+requires_openssl_with_fallback_scsv
+run_test    "Fallback SCSV: end of list" \
+            "$P_SRV debug_level=2" \
+            "$TCP_CLIENT localhost $SRV_PORT '160301003e0100003a03022aafb94308dc22ca1086c65acc00e414384d76b61ecab37df1633b1ae1034dbe000008 0031 0032 0033 5600 0100000900230000000f000101' '15030200020256'" \
+            0 \
+            -s "received FALLBACK_SCSV" \
+            -s "inapropriate fallback"
+
+## Here the expected response is a valid ServerHello prefix, up to the random.
+requires_openssl_with_fallback_scsv
+run_test    "Fallback SCSV: not in list" \
+            "$P_SRV debug_level=2" \
+            "$TCP_CLIENT localhost $SRV_PORT '160301003e0100003a03022aafb94308dc22ca1086c65acc00e414384d76b61ecab37df1633b1ae1034dbe000008 0056 0031 0032 0033 0100000900230000000f000101' '16030200300200002c0302'" \
+            0 \
+            -S "received FALLBACK_SCSV" \
             -S "inapropriate fallback"
 
 # Tests for CBC 1/n-1 record splitting

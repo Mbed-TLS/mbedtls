@@ -74,10 +74,12 @@ List of certificates:
 - server7*.crt: I1 E L P1*: EC signed by RSA signed by EC
     *P1 except 7.crt, P2 _int-ca_ca2.crt
     *_space: with PEM error(s)
+    _spurious: has spurious cert in its chain (S7 + I2 + I1)
 - server8*.crt: I2 R L: RSA signed by EC signed by RSA (P1 for _int-ca2)
 - server9*.crt: 1 R C* L P1*: signed using RSASSA-PSS
     *CRL for: 9.crt, -badsign, -with-ca (P1)
 - server10*.crt: I3 E L P2/P3
+    _spurious: S10 + I3 + I1(spurious) + I2
 
 Certificate revocation lists
 ----------------------------

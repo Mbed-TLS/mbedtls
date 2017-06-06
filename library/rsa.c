@@ -61,6 +61,11 @@
 #define polarssl_free   free
 #endif
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = (unsigned char*)v; while( n-- ) *p++ = 0;
+}
+
 /*
  * Initialize an RSA context
  */
@@ -585,6 +590,8 @@ static void mgf_mask( unsigned char *dst, size_t dlen, unsigned char *src,
 
         dlen -= use_len;
     }
+
+    polarssl_zeroize( mask, sizeof( mask ) );
 }
 #endif /* POLARSSL_PKCS1_V21 */
 
@@ -818,7 +825,7 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
           : rsa_private( ctx, f_rng, p_rng, input, buf );
 
     if( ret != 0 )
-        return( ret );
+        goto cleanup;
 
     /*
      * Unmask data and generate lHash
@@ -883,15 +890,26 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
      * the different error conditions.
      */
     if( bad != 0 )
-        return( POLARSSL_ERR_RSA_INVALID_PADDING );
+    {
+        ret = POLARSSL_ERR_RSA_INVALID_PADDING;
+        goto cleanup;
+    }
 
     if( ilen - ( p - buf ) > output_max_len )
-        return( POLARSSL_ERR_RSA_OUTPUT_TOO_LARGE );
+    {
+        ret = POLARSSL_ERR_RSA_OUTPUT_TOO_LARGE;
+        goto cleanup;
+    }
 
     *olen = ilen - (p - buf);
     memcpy( output, p, *olen );
+    ret = 0;
 
-    return( 0 );
+cleanup:
+    polarssl_zeroize( buf, sizeof( buf ) );
+    polarssl_zeroize( lhash, sizeof( lhash ) );
+
+    return( ret );
 }
 #endif /* POLARSSL_PKCS1_V21 */
 
@@ -925,7 +943,7 @@ int rsa_rsaes_pkcs1_v15_decrypt( rsa_context *ctx,
           : rsa_private( ctx, f_rng, p_rng, input, buf );
 
     if( ret != 0 )
-        return( ret );
+        goto cleanup;
 
     p = buf;
     bad = 0;
@@ -970,15 +988,25 @@ int rsa_rsaes_pkcs1_v15_decrypt( rsa_context *ctx,
     bad |= ( pad_count < 8 );
 
     if( bad )
-        return( POLARSSL_ERR_RSA_INVALID_PADDING );
+    {
+        ret = POLARSSL_ERR_RSA_INVALID_PADDING;
+        goto cleanup;
+    }
 
     if( ilen - ( p - buf ) > output_max_len )
-        return( POLARSSL_ERR_RSA_OUTPUT_TOO_LARGE );
+    {
+        ret = POLARSSL_ERR_RSA_OUTPUT_TOO_LARGE;
+        goto cleanup;
+    }
 
     *olen = ilen - (p - buf);
     memcpy( output, p, *olen );
+    ret = 0;
 
-    return( 0 );
+cleanup:
+    polarssl_zeroize( buf, sizeof( buf ) );
+
+    return( ret );
 }
 #endif /* POLARSSL_PKCS1_V15 */
 
@@ -1083,6 +1111,7 @@ int rsa_rsassa_pss_sign( rsa_context *ctx,
     if( ( ret = md_init_ctx( &md_ctx, md_info ) ) != 0 )
     {
         md_free( &md_ctx );
+        /* No need to zeroize salt: we didn't use it. */
         return( ret );
     }
 
@@ -1093,6 +1122,7 @@ int rsa_rsassa_pss_sign( rsa_context *ctx,
     md_update( &md_ctx, hash, hashlen );
     md_update( &md_ctx, salt, slen );
     md_finish( &md_ctx, p );
+    polarssl_zeroize( salt, sizeof( salt ) );
 
     // Compensate for boundary condition when applying mask
     //

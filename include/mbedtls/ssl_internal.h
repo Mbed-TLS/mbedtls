@@ -152,6 +152,24 @@
 extern "C" {
 #endif
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) &&                \
+    defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+/*
+ * Abstraction for a grid of allowed signature-hash-algorithm pairs.
+ */
+struct mbedtls_ssl_sig_hash_set_t
+{
+    /* At the moment, we only need to remember a single suitable
+     * hash algorithm per signature algorithm. As long as that's
+     * the case - and we don't need a general lookup function -
+     * we can implement the sig-hash-set as a map from signatures
+     * to hash algorithms. */
+    mbedtls_md_type_t rsa;
+    mbedtls_md_type_t ecdsa;
+};
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 &&
+          MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
+
 /*
  * This structure contains the parameters only needed during handshake.
  */
@@ -160,9 +178,14 @@ struct mbedtls_ssl_handshake_params
     /*
      * Handshake specific crypto variables
      */
-    int sig_alg;                        /*!<  Hash algorithm for signature   */
     int cert_type;                      /*!<  Requested cert type            */
     int verify_sig_alg;                 /*!<  Signature algorithm for verify */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
+    defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+    mbedtls_ssl_sig_hash_set_t hash_algs;             /*!<  Set of suitable sig-hash pairs */
+#endif
+
 #if defined(MBEDTLS_DHM_C)
     mbedtls_dhm_context dhm_ctx;                /*!<  DHM key exchange        */
 #endif
@@ -183,7 +206,7 @@ struct mbedtls_ssl_handshake_params
     mbedtls_ssl_key_cert *sni_key_cert; /*!< key/cert list from SNI         */
     mbedtls_x509_crt *sni_ca_chain;     /*!< trusted CAs from SNI callback  */
     mbedtls_x509_crl *sni_ca_crl;       /*!< trusted CAs CRLs from SNI      */
-#endif
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     unsigned int out_msg_seq;           /*!<  Outgoing handshake sequence number */
@@ -206,7 +229,7 @@ struct mbedtls_ssl_handshake_params
                                               resending messages             */
     unsigned char alt_out_ctr[8];       /*!<  Alternative record epoch/counter
                                               for resending messages         */
-#endif
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
     /*
      * Checksum contexts
@@ -317,6 +340,27 @@ struct mbedtls_ssl_flight_item
 };
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
+    defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+
+/* Find an entry in a signature-hash set matching a given hash algorithm. */
+mbedtls_md_type_t mbedtls_ssl_sig_hash_set_find( mbedtls_ssl_sig_hash_set_t *set,
+                                                 mbedtls_pk_type_t sig_alg );
+/* Add a signature-hash-pair to a signature-hash set */
+void mbedtls_ssl_sig_hash_set_add( mbedtls_ssl_sig_hash_set_t *set,
+                                   mbedtls_pk_type_t sig_alg,
+                                   mbedtls_md_type_t md_alg );
+/* Allow exactly one hash algorithm for each signature. */
+void mbedtls_ssl_sig_hash_set_const_hash( mbedtls_ssl_sig_hash_set_t *set,
+                                          mbedtls_md_type_t md_alg );
+/* Setup an empty signature-hash set */
+static inline void mbedtls_ssl_sig_hash_set_init( mbedtls_ssl_sig_hash_set_t *set )
+{
+    mbedtls_ssl_sig_hash_set_const_hash( set, MBEDTLS_MD_NONE );
+}
+
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 &&
+          MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
 
 /**
  * \brief           Free referenced items in an SSL transform context and clear
@@ -368,6 +412,7 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
 #if defined(MBEDTLS_PK_C)
 unsigned char mbedtls_ssl_sig_from_pk( mbedtls_pk_context *pk );
 mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig( unsigned char sig );
+unsigned char mbedtls_ssl_sig_from_pk_alg( mbedtls_pk_type_t type );
 #endif
 
 mbedtls_md_type_t mbedtls_ssl_md_alg_from_hash( unsigned char hash );

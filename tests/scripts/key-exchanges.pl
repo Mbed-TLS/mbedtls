@@ -1,8 +1,25 @@
 #!/usr/bin/perl
 
-# test that all configs with only a single key exchange enabled build
+# key-exchanges.pl
+#
+# Copyright (c) 2015-2017, ARM Limited, All Rights Reserved
+#
+# Purpose
+#
+# To test the code dependencies on individual key exchanges in the SSL module.
+# is a verification step to ensure we don't ship SSL code that do not work
+# for some build options.
+#
+# The process is:
+#       for each possible key exchange
+#           build the library with all but that key exchange disabled
 #
 # Usage: tests/scripts/key-exchanges.pl
+#
+# This script should be executed from the root of the project directory.
+#
+# For best effect, run either with cmake disabled, or cmake enabled in a mode
+# that includes -Werror.
 
 use warnings;
 use strict;

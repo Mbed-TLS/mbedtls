@@ -818,8 +818,8 @@ setup_arguments()
 
             # Allow SHA-1. It's disabled by default for security reasons but
             # our tests still use certificates signed with it.
-            M_SERVER_ARGS="$M_SERVER_ARGS allow_sha1=1"
-            M_CLIENT_ARGS="$M_CLIENT_ARGS allow_sha1=1"
+            P_SERVER_ARGS="$P_SERVER_ARGS allow_sha1=1"
+            P_CLIENT_ARGS="$P_CLIENT_ARGS allow_sha1=1"
             ;;
 
         "PSK")
@@ -835,8 +835,8 @@ setup_arguments()
 
             # Allow SHA-1. It's disabled by default for security reasons but
             # our tests still use certificates signed with it.
-            M_SERVER_ARGS="$M_SERVER_ARGS allow_sha1=1"
-            M_CLIENT_ARGS="$M_CLIENT_ARGS allow_sha1=1"
+            P_SERVER_ARGS="$P_SERVER_ARGS allow_sha1=1"
+            P_CLIENT_ARGS="$P_CLIENT_ARGS allow_sha1=1"
             ;;
     esac
 }

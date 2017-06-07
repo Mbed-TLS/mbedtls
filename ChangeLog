@@ -18,6 +18,11 @@ Bugfix
    * In SSLv3, if refusing a renegotiation attempt, don't process any further
      data.
 
+Features
+   * Add option MBEDTLS_AES_FEWER_TABLES to dynamically compute 3/4 of the AES tables
+     during runtime, thereby reducing the RAM/ROM footprint by 6144 bytes. Suggested
+     and contributed by jkivilin in #394.
+
 Changes
    * Send fatal alerts in many more cases instead of dropping the connection.
 

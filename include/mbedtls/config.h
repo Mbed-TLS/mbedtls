@@ -56,6 +56,22 @@
 #define MBEDTLS_HAVE_ASM
 
 /**
+ * \def MBEDTLS_NO_INT64_DIVISION
+ *
+ * The platform lacks support for 64-bit division.
+ *
+ * Used in:
+ *      include/mbedtls/bignum.h
+ *      library/bignum.c
+ *
+ * Uncomment to prevent the use of 64-bit division, even if a 64-bit type
+ * is available. This allows building for a platform that lacks a hardware
+ * 64-bit division, if linking with a software implementation of division
+ * is not desired. Note that 32-bit division is required.
+ */
+//#define MBEDTLS_NO_INT64_DIVISION
+
+/**
  * \def MBEDTLS_HAVE_SSE2
  *
  * CPU supports SSE2 instruction set.

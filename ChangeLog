@@ -30,6 +30,8 @@ Changes
    * Clarify ECDSA documentation and improve the sample code to avoid
      misunderstandings and potentially dangerous use of the API. Pointed out
      by Jean-Philippe Aumasson.
+   * Added config.h option MBEDTLS_NO_INT64_DIVISION, to prevent the use of
+     64-bit division.
 
 = mbed TLS 2.5.0 branch released 2017-05-17
 

@@ -107,32 +107,36 @@
  * by defining MBEDTLS_HAVE_INT32 and undefining MBEDTLS_HAVE_ASM
  */
 #if ( ! defined(MBEDTLS_HAVE_INT32) && \
-        defined(_MSC_VER) && defined(_M_AMD64) )
+      defined(_MSC_VER) && defined(_M_AMD64) )
   #define MBEDTLS_HAVE_INT64
   typedef  int64_t mbedtls_mpi_sint;
   typedef uint64_t mbedtls_mpi_uint;
-#else
-  #if ( ! defined(MBEDTLS_HAVE_INT32) &&               \
+#elif ( ! defined(MBEDTLS_HAVE_INT32) &&               \
         defined(__GNUC__) && (                          \
         defined(__amd64__) || defined(__x86_64__)    || \
         defined(__ppc64__) || defined(__powerpc64__) || \
         defined(__ia64__)  || defined(__alpha__)     || \
         (defined(__sparc__) && defined(__arch64__))  || \
         defined(__s390x__) || defined(__mips64) ) )
-     #define MBEDTLS_HAVE_INT64
-     typedef  int64_t mbedtls_mpi_sint;
-     typedef uint64_t mbedtls_mpi_uint;
-     /* mbedtls_t_udbl defined as 128-bit unsigned int */
-     typedef unsigned int mbedtls_t_udbl __attribute__((mode(TI)));
-     #define MBEDTLS_HAVE_UDBL
-  #else
-     #define MBEDTLS_HAVE_INT32
-     typedef  int32_t mbedtls_mpi_sint;
-     typedef uint32_t mbedtls_mpi_uint;
-     typedef uint64_t mbedtls_t_udbl;
-     #define MBEDTLS_HAVE_UDBL
-  #endif /* !MBEDTLS_HAVE_INT32 && __GNUC__ && 64-bit platform */
-#endif /* !MBEDTLS_HAVE_INT32 && _MSC_VER && _M_AMD64 */
+  #define MBEDTLS_HAVE_INT64
+  typedef  int64_t mbedtls_mpi_sint;
+  typedef uint64_t mbedtls_mpi_uint;
+  /* mbedtls_t_udbl defined as 128-bit unsigned int */
+  typedef unsigned int mbedtls_t_udbl __attribute__((mode(TI)));
+  #define MBEDTLS_HAVE_UDBL
+#else /* defined(MBEDTLS_HAVE_INT32) || platform_lacks_int64 */
+  #if ! defined(MBEDTLS_HAVE_INT32)
+    #define MBEDTLS_HAVE_INT32
+  #endif
+  typedef  int32_t mbedtls_mpi_sint;
+  typedef uint32_t mbedtls_mpi_uint;
+  #if defined(MBEDTLS_NO_INT64_DIVISION)
+    #undef MBEDTLS_HAVE_UDBL
+  #else /* !defined(MBEDTLS_NO_INT64_DIVISION) */
+    typedef uint64_t mbedtls_t_udbl;
+    #define MBEDTLS_HAVE_UDBL
+  #endif /* !defined(MBEDTLS_NO_INT64_DIVISION) */
+#endif /* 128-bit and 64-bit type availability analysis */
 
 #ifdef __cplusplus
 extern "C" {

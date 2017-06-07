@@ -201,7 +201,7 @@ static const unsigned char FSb[256] =
 static const uint32_t FT0[256] = { FT };
 #undef V
 
-#ifndef MBEDTLS_AES_SMALL_TABLES
+#ifndef MBEDTLS_AES_FEWER_TABLES
 
 #define V(a,b,c,d) 0x##b##c##d##a
 static const uint32_t FT1[256] = { FT };
@@ -215,7 +215,7 @@ static const uint32_t FT2[256] = { FT };
 static const uint32_t FT3[256] = { FT };
 #undef V
 
-#endif /* !MBEDTLS_AES_SMALL_TABLES */
+#endif /* !MBEDTLS_AES_FEWER_TABLES */
 
 #undef FT
 
@@ -332,7 +332,7 @@ static const unsigned char RSb[256] =
 static const uint32_t RT0[256] = { RT };
 #undef V
 
-#ifndef MBEDTLS_AES_SMALL_TABLES
+#ifndef MBEDTLS_AES_FEWER_TABLES
 
 #define V(a,b,c,d) 0x##b##c##d##a
 static const uint32_t RT1[256] = { RT };
@@ -346,7 +346,7 @@ static const uint32_t RT2[256] = { RT };
 static const uint32_t RT3[256] = { RT };
 #undef V
 
-#endif /* !MBEDTLS_AES_SMALL_TABLES */
+#endif /* !MBEDTLS_AES_FEWER_TABLES */
 
 #undef RT
 
@@ -367,22 +367,22 @@ static const uint32_t RCON[10] =
  */
 static unsigned char FSb[256];
 static uint32_t FT0[256];
-#ifndef MBEDTLS_AES_SMALL_TABLES
+#ifndef MBEDTLS_AES_FEWER_TABLES
 static uint32_t FT1[256];
 static uint32_t FT2[256];
 static uint32_t FT3[256];
-#endif /* !MBEDTLS_AES_SMALL_TABLES */
+#endif /* !MBEDTLS_AES_FEWER_TABLES */
 
 /*
  * Reverse S-box & tables
  */
 static unsigned char RSb[256];
 static uint32_t RT0[256];
-#ifndef MBEDTLS_AES_SMALL_TABLES
+#ifndef MBEDTLS_AES_FEWER_TABLES
 static uint32_t RT1[256];
 static uint32_t RT2[256];
 static uint32_t RT3[256];
-#endif /* !MBEDTLS_AES_SMALL_TABLES */
+#endif /* !MBEDTLS_AES_FEWER_TABLES */
 
 /*
  * Round constants
@@ -457,11 +457,11 @@ static void aes_gen_tables( void )
                  ( (uint32_t) x << 16 ) ^
                  ( (uint32_t) z << 24 );
 
-#ifndef MBEDTLS_AES_SMALL_TABLES
+#ifndef MBEDTLS_AES_FEWER_TABLES
         FT1[i] = ROTL8( FT0[i] );
         FT2[i] = ROTL8( FT1[i] );
         FT3[i] = ROTL8( FT2[i] );
-#endif /* !MBEDTLS_AES_SMALL_TABLES */
+#endif /* !MBEDTLS_AES_FEWER_TABLES */
 
         x = RSb[i];
 
@@ -470,11 +470,11 @@ static void aes_gen_tables( void )
                  ( (uint32_t) MUL( 0x0D, x ) << 16 ) ^
                  ( (uint32_t) MUL( 0x0B, x ) << 24 );
 
-#ifndef MBEDTLS_AES_SMALL_TABLES
+#ifndef MBEDTLS_AES_FEWER_TABLES
         RT1[i] = ROTL8( RT0[i] );
         RT2[i] = ROTL8( RT1[i] );
         RT3[i] = ROTL8( RT2[i] );
-#endif /* !MBEDTLS_AES_SMALL_TABLES */
+#endif /* !MBEDTLS_AES_FEWER_TABLES */
     }
 }
 
@@ -482,7 +482,7 @@ static void aes_gen_tables( void )
 
 #endif /* MBEDTLS_AES_ROM_TABLES */
 
-#ifdef MBEDTLS_AES_SMALL_TABLES
+#ifdef MBEDTLS_AES_FEWER_TABLES
 
 #define ROTL8(x)  ( (uint32_t)( ( x ) <<  8 ) + (uint32_t)( ( x ) >> 24 ) )
 #define ROTL16(x) ( (uint32_t)( ( x ) << 16 ) + (uint32_t)( ( x ) >> 16 ) )
@@ -498,7 +498,7 @@ static void aes_gen_tables( void )
 #define AES_FT2(idx) ROTL16( FT0[idx] )
 #define AES_FT3(idx) ROTL24( FT0[idx] )
 
-#else /* MBEDTLS_AES_SMALL_TABLES */
+#else /* MBEDTLS_AES_FEWER_TABLES */
 
 #define AES_RT0(idx) RT0[idx]
 #define AES_RT1(idx) RT1[idx]
@@ -510,7 +510,7 @@ static void aes_gen_tables( void )
 #define AES_FT2(idx) FT2[idx]
 #define AES_FT3(idx) FT3[idx]
 
-#endif /* MBEDTLS_AES_SMALL_TABLES */
+#endif /* MBEDTLS_AES_FEWER_TABLES */
 
 void mbedtls_aes_init( mbedtls_aes_context *ctx )
 {

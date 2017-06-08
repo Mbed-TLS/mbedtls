@@ -56,20 +56,29 @@
 #define MBEDTLS_HAVE_ASM
 
 /**
- * \def MBEDTLS_NO_INT64_DIVISION
+ * \def MBEDTLS_NO_UDBL_DIVISION
  *
- * The platform lacks support for 64-bit division.
+ * The platform lacks support for double-width integer division (64-bit
+ * division on a 32-bit platform, 128-bit division on a 64-bit platform).
  *
  * Used in:
  *      include/mbedtls/bignum.h
  *      library/bignum.c
  *
- * Uncomment to prevent the use of 64-bit division, even if a 64-bit type
- * is available. This allows building for a platform that lacks a hardware
- * 64-bit division, if linking with a software implementation of division
- * is not desired. Note that 32-bit division is required.
+ * The bignum code uses double-width division to speed up some operations.
+ * Double-width division is often implemented in software that needs to
+ * be linked with the program. The presence of a double-width integer
+ * type is usually detected automatically through preprocessor macros,
+ * but the automatic detection cannot know whether the code needs to
+ * and can be linked with an implementation of division for that type.
+ * By default division is assumed to be usable if the type is present.
+ * Uncomment this option to prevent the use of double-width division.
+ *
+ * Note that division for the native integer type is always required.
+ * Furthermore, a 64-bit type is always required even on a 32-bit
+ * platform, but it need not support multiplication or division.
  */
-//#define MBEDTLS_NO_INT64_DIVISION
+//#define MBEDTLS_NO_UDBL_DIVISION
 
 /**
  * \def MBEDTLS_HAVE_SSE2

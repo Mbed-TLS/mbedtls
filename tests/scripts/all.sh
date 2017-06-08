@@ -457,9 +457,9 @@ scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
 scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
 CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -Wall -Wextra' make lib
 
-msg "build: arm-none-eabi-gcc -DMBEDTLS_NO_INT64_DIVISION, make" # ~ 10s
+msg "build: arm-none-eabi-gcc -DMBEDTLS_NO_UDBL_DIVISION, make" # ~ 10s
 cleanup
-scripts/config.pl set MBEDTLS_NO_INT64_DIVISION
+scripts/config.pl set MBEDTLS_NO_UDBL_DIVISION
 CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -Wall -Wextra' make lib
 echo "Checking that software 64-bit division is not required"
 ! grep __aeabi_uldiv library/*.o

@@ -121,18 +121,18 @@
   #define MBEDTLS_HAVE_INT64
   typedef  int64_t mbedtls_mpi_sint;
   typedef uint64_t mbedtls_mpi_uint;
-  /* mbedtls_t_udbl defined as 128-bit unsigned int */
-  typedef unsigned int mbedtls_t_udbl __attribute__((mode(TI)));
-  #define MBEDTLS_HAVE_UDBL
+  #if ! defined(MBEDTLS_NO_UDBL_DIVISION)
+    /* mbedtls_t_udbl defined as 128-bit unsigned int */
+    typedef unsigned int mbedtls_t_udbl __attribute__((mode(TI)));
+    #define MBEDTLS_HAVE_UDBL
+  #endif
 #else /* defined(MBEDTLS_HAVE_INT32) || platform_lacks_int64 */
   #if ! defined(MBEDTLS_HAVE_INT32)
     #define MBEDTLS_HAVE_INT32
   #endif
   typedef  int32_t mbedtls_mpi_sint;
   typedef uint32_t mbedtls_mpi_uint;
-  #if defined(MBEDTLS_NO_INT64_DIVISION)
-    #undef MBEDTLS_HAVE_UDBL
-  #else /* !defined(MBEDTLS_NO_INT64_DIVISION) */
+  #if ! defined(MBEDTLS_NO_UDBL_DIVISION)
     typedef uint64_t mbedtls_t_udbl;
     #define MBEDTLS_HAVE_UDBL
   #endif /* !defined(MBEDTLS_NO_INT64_DIVISION) */

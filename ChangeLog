@@ -30,6 +30,10 @@ Bugfix
      to not annihilate fatal errors in authentication mode
      MBEDTLS_SSL_VERIFY_OPTIONAL and to reflect bad EC curves
      within verification result.
+   * Fix modular inversion function on invalid modulus 1.
+     Found by blaufish. Fixes #641.
+   * Fix incorrect sign computation in modular exponentiation
+     when dealing with negative MPI. Found by Guido Vranken.
 
 Changes
    * Clarify ECDSA documentation and improve the sample code to avoid

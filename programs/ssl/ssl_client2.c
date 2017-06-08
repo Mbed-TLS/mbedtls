@@ -92,6 +92,7 @@
 #define DFL_RECO_DELAY          0
 #define DFL_TICKETS             SSL_SESSION_TICKETS_ENABLED
 #define DFL_ALPN_STRING         NULL
+#define DFL_CURVES              NULL
 #define DFL_FALLBACK            -1
 #define DFL_EXTENDED_MS         -1
 #define DFL_ETM                 -1
@@ -169,6 +170,17 @@
 #define USAGE_ALPN ""
 #endif /* POLARSSL_SSL_ALPN */
 
+#if defined(POLARSSL_SSL_SET_CURVES)
+#define USAGE_CURVES \
+    "    curves=a,b,c,d      default: \"default\" (library default)\n"  \
+    "                        example: \"secp521r1,brainpoolP512r1\"\n"  \
+    "                        - use \"none\" for empty list\n"           \
+    "                        - see ecp_curve_list()\n"                  \
+    "                          for acceptable curve names\n"
+#else
+#define USAGE_CURVES ""
+#endif /* POLARSSL_SSL_SET_CURVES */
+
 #if defined(POLARSSL_SSL_FALLBACK_SCSV)
 #define USAGE_FALLBACK \
     "    fallback=0/1        default: (library default: off)\n"
@@ -226,6 +238,7 @@
     USAGE_MAX_FRAG_LEN                                      \
     USAGE_TRUNC_HMAC                                        \
     USAGE_ALPN                                              \
+    USAGE_CURVES                                            \
     USAGE_FALLBACK                                          \
     USAGE_EMS                                               \
     USAGE_ETM                                               \
@@ -285,6 +298,7 @@ struct options
     int reconnect;              /* attempt to resume session                */
     int reco_delay;             /* delay in seconds before resuming session */
     int tickets;                /* enable / disable session tickets         */
+    const char *curves;         /* list of supported elliptic curves        */
     const char *alpn_string;    /* ALPN supported protocols                 */
     int fallback;               /* is this a fallback connection?           */
     int extended_ms;            /* negotiate extended master secret?        */
@@ -373,6 +387,11 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_SSL_ALPN)
     const char *alpn_list[10];
 #endif
+#if defined(POLARSSL_SSL_SET_CURVES)
+    ecp_group_id curve_list[20];
+    const ecp_curve_info *curve_cur;
+#endif
+
     const char *pers = "ssl_client2";
 
     entropy_context entropy;
@@ -453,6 +472,7 @@ int main( int argc, char *argv[] )
     opt.reco_delay          = DFL_RECO_DELAY;
     opt.tickets             = DFL_TICKETS;
     opt.alpn_string         = DFL_ALPN_STRING;
+    opt.curves              = DFL_CURVES;
     opt.fallback            = DFL_FALLBACK;
     opt.extended_ms         = DFL_EXTENDED_MS;
     opt.etm                 = DFL_ETM;
@@ -584,6 +604,8 @@ int main( int argc, char *argv[] )
                 default: goto usage;
             }
         }
+        else if( strcmp( p, "curves" ) == 0 )
+            opt.curves = q;
         else if( strcmp( p, "etm" ) == 0 )
         {
             switch( atoi( q ) )
@@ -774,6 +796,64 @@ int main( int argc, char *argv[] )
         }
     }
 #endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */
+
+#if defined(POLARSSL_SSL_SET_CURVES)
+    if( opt.curves != NULL )
+    {
+        p = (char *) opt.curves;
+        i = 0;
+
+        if( strcmp( p, "none" ) == 0 )
+        {
+            curve_list[0] = POLARSSL_ECP_DP_NONE;
+        }
+        else if( strcmp( p, "default" ) != 0 )
+        {
+            /* Leave room for a final NULL in curve list */
+            while( i < (int) ( sizeof( curve_list ) / sizeof( *curve_list ) ) - 1
+                   && *p != '\0' )
+            {
+                q = p;
+
+                /* Terminate the current string */
+                while( *p != ',' && *p != '\0' )
+                    p++;
+                if( *p == ',' )
+                    *p++ = '\0';
+
+                if( ( curve_cur = ecp_curve_info_from_name( q ) ) != NULL )
+                {
+                    curve_list[i++] = curve_cur->grp_id;
+                }
+                else
+                {
+                    polarssl_printf( "unknown curve %s\n", q );
+                    polarssl_printf( "supported curves: " );
+                    for( curve_cur = ecp_curve_list();
+                         curve_cur->grp_id != POLARSSL_ECP_DP_NONE;
+                         curve_cur++ )
+                    {
+                        polarssl_printf( "%s ", curve_cur->name );
+                    }
+                    polarssl_printf( "\n" );
+                    goto exit;
+                }
+            }
+
+            polarssl_printf( "Number of curves: %d\n", i );
+
+            if( i == (int) ( sizeof( curve_list ) / sizeof( *curve_list ) ) - 1
+                && *p != '\0' )
+            {
+                polarssl_printf( "curves list too long, maximum %zu",
+                                 (size_t) ( sizeof( curve_list ) / sizeof( *curve_list ) - 1 ) );
+                goto exit;
+            }
+
+            curve_list[i] = POLARSSL_ECP_DP_NONE;
+        }
+    }
+#endif /* POLARSSL_SSL_SET_CURVES */
 
 #if defined(POLARSSL_SSL_ALPN)
     if( opt.alpn_string != NULL )
@@ -994,6 +1074,14 @@ int main( int argc, char *argv[] )
             polarssl_printf( " failed\n  ! ssl_set_alpn_protocols returned %d\n\n", ret );
             goto exit;
         }
+#endif
+
+#if defined(POLARSSL_SSL_SET_CURVES)
+    if( opt.curves != NULL &&
+        strcmp( opt.curves, "default" ) != 0 )
+    {
+        ssl_set_curves( &ssl, curve_list );
+    }
 #endif
 
     ssl_set_rng( &ssl, ctr_drbg_random, &ctr_drbg );

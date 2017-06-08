@@ -2841,12 +2841,6 @@ int ssl_parse_certificate( ssl_context *ssl )
 
     if( ssl->authmode != SSL_VERIFY_NONE )
     {
-        if( ssl->ca_chain == NULL )
-        {
-            SSL_DEBUG_MSG( 1, ( "got no CA chain" ) );
-            return( POLARSSL_ERR_SSL_CA_CHAIN_REQUIRED );
-        }
-
         /*
          * Main check: verify certificate
          */
@@ -2872,6 +2866,8 @@ int ssl_parse_certificate( ssl_context *ssl )
             if( pk_can_do( pk, POLARSSL_PK_ECKEY ) &&
                 ! ssl_curve_is_acceptable( ssl, pk_ec( *pk )->grp.id ) )
             {
+                ssl->session_negotiate->verify_result |= BADCERT_BAD_KEY;
+
                 SSL_DEBUG_MSG( 1, ( "bad certificate (EC key curve)" ) );
                 if( ret == 0 )
                     ret = POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE;
@@ -2889,8 +2885,36 @@ int ssl_parse_certificate( ssl_context *ssl )
                 ret = POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE;
         }
 
-        if( ssl->authmode != SSL_VERIFY_REQUIRED )
+        /* x509_crt_verify_with_profile is supposed to report a
+         * verification failure through POLARSSL_ERR_X509_CERT_VERIFY_FAILED,
+         * with details encoded in the verification flags. All other kinds
+         * of error codes, including those from the user provided f_vrfy
+         * functions, are treated as fatal and lead to a failure of
+         * ssl_parse_certificate even if verification was optional. */
+        if( ssl->authmode == SSL_VERIFY_OPTIONAL &&
+            ( ret == POLARSSL_ERR_X509_CERT_VERIFY_FAILED ||
+              ret == POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE ) )
+        {
             ret = 0;
+        }
+
+        if( ssl->ca_chain == NULL && ssl->authmode == SSL_VERIFY_REQUIRED )
+        {
+            SSL_DEBUG_MSG( 1, ( "got no CA chain" ) );
+            ret = POLARSSL_ERR_SSL_CA_CHAIN_REQUIRED;
+        }
+
+#if defined(POLARSSL_DEBUG_C)
+        if( ssl->session_negotiate->verify_result != 0 )
+        {
+            SSL_DEBUG_MSG( 3, ( "! Certificate verification flags %x",
+                                ssl->session_negotiate->verify_result ) );
+        }
+        else
+        {
+            SSL_DEBUG_MSG( 3, ( "Certificate verification flags clear" ) );
+        }
+#endif /* POLARSSL_DEBUG_C */
     }
 
     SSL_DEBUG_MSG( 2, ( "<= parse certificate" ) );

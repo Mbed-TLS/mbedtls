@@ -97,6 +97,8 @@
 #define BADCERT_KEY_USAGE         0x0800  /**< Usage does not match the keyUsage extension. */
 #define BADCERT_EXT_KEY_USAGE     0x1000  /**< Usage does not match the extendedKeyUsage extension. */
 #define BADCERT_NS_CERT_TYPE      0x2000  /**< Usage does not match the nsCertType extension. */
+#define BADCERT_BAD_KEY          0x10000  /**< Bad key (e.g. unsupported elliptic curve in use) */
+
 /* \} name */
 /* \} addtogroup x509_module */
 

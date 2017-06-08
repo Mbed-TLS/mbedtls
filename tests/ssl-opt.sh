@@ -1432,6 +1432,54 @@ run_test    "Authentication: server badcert, client optional" \
             -C "! ssl_handshake returned" \
             -C "X509 - Certificate verification failed"
 
+run_test    "Authentication: server goodcert, client optional, no trusted CA" \
+            "$P_SRV" \
+            "$P_CLI debug_level=3 auth_mode=optional ca_file=none ca_path=none" \
+            0 \
+            -c "x509_verify_cert() returned" \
+            -c "! The certificate is not correctly signed by the trusted CA" \
+            -c "! Certificate verification flags"\
+            -C "! ssl_handshake returned" \
+            -C "X509 - Certificate verification failed" \
+            -C "SSL - No CA Chain is set, but required to operate"
+
+run_test    "Authentication: server goodcert, client required, no trusted CA" \
+            "$P_SRV" \
+            "$P_CLI debug_level=3 auth_mode=required ca_file=none ca_path=none" \
+            1 \
+            -c "x509_verify_cert() returned" \
+            -c "! The certificate is not correctly signed by the trusted CA" \
+            -c "! Certificate verification flags"\
+            -c "! ssl_handshake returned" \
+            -c "SSL - No CA Chain is set, but required to operate"
+
+# The purpose of the next two tests is to test the client's behaviour when receiving a server
+# certificate with an unsupported elliptic curve. This should usually not happen because
+# the client informs the server about the supported curves - it does, though, in the
+# corner case of a static ECDH suite, because the server doesn't check the curve on that
+# occasion (to be fixed). If that bug's fixed, the test needs to be altered to use a
+# different means to have the server ignoring the client's supported curve list.
+
+requires_config_enabled POLARSSL_SSL_SET_CURVES
+run_test    "Authentication: server ECDH p256v1, client required, p256v1 unsupported" \
+            "$P_SRV debug_level=1 key_file=data_files/server5.key \
+             crt_file=data_files/server5.ku-ka.crt" \
+            "$P_CLI debug_level=3 auth_mode=required curves=secp521r1" \
+            1 \
+            -c "bad certificate (EC key curve)"\
+            -c "! Certificate verification flags"\
+            -C "bad server certificate (ECDH curve)" # Expect failure at earlier verification stage
+
+requires_config_enabled POLARSSL_SSL_SET_CURVES
+run_test    "Authentication: server ECDH p256v1, client optional, p256v1 unsupported" \
+            "$P_SRV debug_level=1 key_file=data_files/server5.key \
+             crt_file=data_files/server5.ku-ka.crt" \
+            "$P_CLI debug_level=3 auth_mode=optional curves=secp521r1" \
+            1 \
+            -c "bad certificate (EC key curve)"\
+            -c "! Certificate verification flags"\
+            -c "bad server certificate (ECDH curve)" # Expect failure only at ECDH params check
+
 run_test    "Authentication: server badcert, client none" \
             "$P_SRV crt_file=data_files/server5-badsign.crt \
              key_file=data_files/server5.key" \
@@ -2420,7 +2468,7 @@ run_test    "Small packet TLS 1.2 AEAD shorter tag" \
 
 # A test for extensions in SSLv3
 
-requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
+requires_config_enabled POLARSSL_SSL_PROTO_SSL3
 run_test    "SSLv3 with extensions, server side" \
             "$P_SRV min_version=ssl3 debug_level=3" \
             "$P_CLI force_version=ssl3 tickets=1 max_frag_len=4096 alpn=abc,1234" \

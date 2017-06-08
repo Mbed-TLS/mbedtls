@@ -1943,7 +1943,9 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
         if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
             ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK )
         {
-            ssl->record_read = 1;
+            /* Current message is probably either
+             * CertificateRequest or ServerHelloDone */
+            ssl->keep_current_message = 1;
             goto exit;
         }
 
@@ -2260,36 +2262,31 @@ static int ssl_parse_certificate_request( ssl_context *ssl )
      *    n+4 .. ...  Distinguished Name #1
      *    ... .. ...  length of DN 2, etc.
      */
-    if( ssl->record_read == 0 )
+
+    if( ( ret = ssl_read_record( ssl ) ) != 0 )
     {
-        if( ( ret = ssl_read_record( ssl ) ) != 0 )
-        {
-            SSL_DEBUG_RET( 1, "ssl_read_record", ret );
-            return( ret );
-        }
-
-        if( ssl->in_msgtype != SSL_MSG_HANDSHAKE )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
-            return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
-        }
-
-        ssl->record_read = 1;
+        SSL_DEBUG_RET( 1, "ssl_read_record", ret );
+        return( ret );
     }
 
-    ssl->client_auth = 0;
-    ssl->state++;
+    if( ssl->in_msgtype != SSL_MSG_HANDSHAKE )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
+        return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
+    }
 
-    if( ssl->in_msg[0] == SSL_HS_CERTIFICATE_REQUEST )
-        ssl->client_auth++;
+    ssl->state++;
+    ssl->client_auth = ( ssl->in_msg[0] == SSL_HS_CERTIFICATE_REQUEST );
 
     SSL_DEBUG_MSG( 3, ( "got %s certificate request",
                         ssl->client_auth ? "a" : "no" ) );
 
     if( ssl->client_auth == 0 )
+    {
+        /* Current message is probably the ServerHelloDone */
+        ssl->keep_current_message = 1;
         goto exit;
-
-    ssl->record_read = 0;
+    }
 
     // TODO: handshake_failure alert for an anonymous server to request
     // client authentication
@@ -2386,21 +2383,17 @@ static int ssl_parse_server_hello_done( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> parse server hello done" ) );
 
-    if( ssl->record_read == 0 )
+    if( ( ret = ssl_read_record( ssl ) ) != 0 )
     {
-        if( ( ret = ssl_read_record( ssl ) ) != 0 )
-        {
-            SSL_DEBUG_RET( 1, "ssl_read_record", ret );
-            return( ret );
-        }
-
-        if( ssl->in_msgtype != SSL_MSG_HANDSHAKE )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad server hello done message" ) );
-            return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
-        }
+        SSL_DEBUG_RET( 1, "ssl_read_record", ret );
+        return( ret );
     }
-    ssl->record_read = 0;
+
+    if( ssl->in_msgtype != SSL_MSG_HANDSHAKE )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad server hello done message" ) );
+        return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
+    }
 
     if( ssl->in_hslen  != 4 ||
         ssl->in_msg[0] != SSL_HS_SERVER_HELLO_DONE )

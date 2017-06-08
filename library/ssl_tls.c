@@ -2169,6 +2169,15 @@ int ssl_read_record( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> read record" ) );
 
+    if( ssl->keep_current_message == 1 )
+    {
+        SSL_DEBUG_MSG( 2, ( "reuse previously read message" ) );
+        SSL_DEBUG_MSG( 2, ( "<= read record" ) );
+        ssl->keep_current_message = 0;
+
+        return( 0 );
+    }
+
     if( ssl->in_hslen != 0 &&
         ssl->in_hslen < ssl->in_msglen )
     {
@@ -3750,7 +3759,7 @@ int ssl_session_reset( ssl_context *ssl )
 
     ssl->in_hslen = 0;
     ssl->nb_zero = 0;
-    ssl->record_read = 0;
+    ssl->keep_current_message = 0;
 
     ssl->out_msg = ssl->out_ctr + 13;
     ssl->out_msgtype = 0;

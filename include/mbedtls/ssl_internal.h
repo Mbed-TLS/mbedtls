@@ -387,6 +387,80 @@ int mbedtls_ssl_send_fatal_handshake_failure( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_reset_checksum( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl );
 
+/**
+ * \brief       Update record layer
+ *
+ *              This function roughly separates the implementation
+ *              of the logic of (D)TLS from the implementation
+ *              of the secure transport.
+ *
+ * \param  ssl  SSL context to use
+ *
+ * \return      0 or non-zero error code.
+ *
+ * \note        A clarification on what is called 'record layer' here
+ *              is in order, as many sensible definitions are possible:
+ *
+ *              The record layer takes as input an untrusted underlying
+ *              transport (stream or datagram) and transforms it into
+ *              a serially multiplexed, secure transport, which
+ *              conceptually provides the following:
+ *
+ *              (1) Three datagram based, content-agnostic transports
+ *                  for handshake, alert and CCS messages.
+ *              (2) One stream- or datagram-based transport
+ *                  for application data.
+ *              (3) Functionality for changing the underlying transform
+ *                  securing the contents.
+ *
+ *              The interface to this functionality is given as follows:
+ *
+ *              a Updating
+ *                [Currently implemented by mbedtls_ssl_read_record]
+ *
+ *                Check if and on which of the four 'ports' data is pending:
+ *                Nothing, a controlling datagram of type (1), or application
+ *                data (2). In any case data is present, internal buffers
+ *                provide access to the data for the user to process it.
+ *                Consumption of type (1) datagrams is done automatically
+ *                on the next update, invalidating that the internal buffers
+ *                for previous datagrams, while consumption of application
+ *                data (2) is user-controlled.
+ *
+ *              b Reading of application data
+ *                [Currently manual adaption of ssl->in_offt pointer]
+ *
+ *                As mentioned in the last paragraph, consumption of data
+ *                is different from the automatic consumption of control
+ *                datagrams (1) because application data is treated as a stream.
+ *
+ *              c Tracking availability of application data
+ *                [Currently manually through decreasing ssl->in_msglen]
+ *
+ *                For efficiency and to retain datagram semantics for
+ *                application data in case of DTLS, the record layer
+ *                provides functionality for checking how much application
+ *                data is still available in the internal buffer.
+ *
+ *              d Changing the transformation securing the communication.
+ *
+ *              Given an opaque implementation of the record layer in the
+ *              above sense, it should be possible to implement the logic
+ *              of (D)TLS on top of it without the need to know anything
+ *              about the record layer's internals. This is done e.g.
+ *              in all the handshake handling functions, and in the
+ *              application data reading function mbedtls_ssl_read.
+ *
+ * \note        The above tries to give a conceptual picture of the
+ *              record layer, but the current implementation deviates
+ *              from it in some places. For example, our implementation of
+ *              the update functionality through mbedtls_ssl_read_record
+ *              discards datagrams depending on the current state, which
+ *              wouldn't fall under the record layer's responsibility
+ *              following the above definition.
+ *
+ */
+
 int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want );
 

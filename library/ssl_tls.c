@@ -3777,6 +3777,7 @@ int mbedtls_ssl_read_record_layer( mbedtls_ssl_context *ssl )
      *     NOTE: This needs to be fixed, since like for
      *     handshake messages it is allowed to have
      *     multiple alerts witin a single record.
+     *     Internal reference IOTSSL-1321.
      *
      * (3) Change cipher spec:
      *     Consume whole record content, in_msglen = 0.
@@ -3791,6 +3792,15 @@ int mbedtls_ssl_read_record_layer( mbedtls_ssl_context *ssl )
     /* Case (1): Handshake messages */
     if( ssl->in_hslen != 0 )
     {
+        /* Hard assertion to be sure that no application data
+         * is in flight, as corrupting ssl->in_msglen during
+         * ssl->in_offt != NULL is fatal. */
+        if( ssl->in_offt != NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+
         /*
          * Get next Handshake message in the current record
          */
@@ -3808,6 +3818,9 @@ int mbedtls_ssl_read_record_layer( mbedtls_ssl_context *ssl )
          *     Again, it's wrong for DTLS handshake fragmentation.
          *     The following check is therefore mandatory, and
          *     should not be treated as a silently corrected assertion.
+         *     Additionally, ssl->in_hslen might be arbitrarily out of
+         *     bounds after handling a DTLS message with an unexpected
+         *     sequence number, see mbedtls_ssl_prepare_handshake_record.
          */
         if( ssl->in_hslen < ssl->in_msglen )
         {

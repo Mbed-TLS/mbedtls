@@ -18,6 +18,8 @@ Security
      detect it sometimes. Reported by Hugo Leisink. #810
    * Tighten ASN.1 parsing of RSA PKCS#1 v1.5 signatures, to avoid a
      potential Bleichenbacher-style attack.
+   * Tighten parsing of RSA PKCS#1 v1.5 signatures, to avoid a
+     potential Bleichenbacher/BERserk-style attack.
 
 Bugfix
    * Remove macros from compat-1.3.h that correspond to deleted items from most

@@ -691,6 +691,8 @@ int mpi_fill_random( mpi *X, size_t size,
  *
  * \return         0 if successful,
  *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ *                 POLARSSL_ERR_MPI_BAD_INPUT_DATA if N is <= 1,
+ *                 POLARSSL_ERR_MPI_NOT_ACCEPTABLE if A has no inverse mod N.
  */
 int mpi_gcd( mpi *G, const mpi *A, const mpi *B );
 

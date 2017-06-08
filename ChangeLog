@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 1.3.x branch released xxxx-xx-xx
+= mbed TLS 1.3.20 released xxxx-xx-xx
 
 Security
    * Add exponent blinding to RSA private operations as a countermeasure

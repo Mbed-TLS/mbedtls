@@ -1504,7 +1504,11 @@ int rsa_rsassa_pkcs1_v15_verify( rsa_context *ctx,
             return( POLARSSL_ERR_RSA_INVALID_PADDING );
         p++;
     }
-    p++;
+    p++; /* skip 00 byte */
+
+    /* We've read: 00 01 PS 00 where PS must be at least 8 bytes */
+    if( p - buf < 11 )
+        return( POLARSSL_ERR_RSA_INVALID_PADDING );
 
     len = siglen - ( p - buf );
 

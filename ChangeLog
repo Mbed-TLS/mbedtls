@@ -8,6 +8,9 @@ Security
      https://arxiv.org/abs/1702.08719v2.
      Found and fix proposed by Michael Schwarz, Samuel Weiser, Daniel Gruss,
      Clémentine Maurice and Stefan Mangard.
+   * Wipe stack buffers in RSA private key operations
+     (rsa_rsaes_pkcs1_v15_decrypt(), rsa_rsaes_oaep_decrypt).
+     Found by Laurent Simon.
    * Tighten ASN.1 parsing of RSA PKCS#1 v1.5 signatures, to avoid a
      potential Bleichenbacher-style attack.
    * Tighten parsing of RSA PKCS#1 v1.5 signatures, to avoid a
@@ -16,9 +19,6 @@ Security
 Bugfix
    * Fix insufficient support for signature-hash-algorithm extension,
      resulting in compatibility problems with Chrome. Found by hfloyrd. #823
-   * Wipe stack buffers in RSA private key operations
-     (rsa_rsaes_pkcs1_v15_decrypt(), rsa_rsaes_oaep_decrypt).
-     Found by Laurent Simon.
    * Accept empty trusted CA chain in authentication mode
      SSL_VERIFY_OPTIONAL. Fixes #864. Found by jethrogb.
    * Fix implementation of ssl_parse_certificate

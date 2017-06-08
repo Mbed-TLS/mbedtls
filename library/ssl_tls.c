@@ -2180,6 +2180,12 @@ int ssl_read_record( ssl_context *ssl )
 
     if( ssl->in_hslen != 0 )
     {
+        if( ssl->in_offt != NULL )
+        {
+            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+        }
+
         /*
          * Get next Handshake message in the current record
          */

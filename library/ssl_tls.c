@@ -3716,6 +3716,15 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> read record" ) );
 
+    if( ssl->keep_current_message == 1 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "reuse previously read message" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= read record" ) );
+        ssl->keep_current_message = 0;
+
+        return( 0 );
+    }
+
     if( ssl->in_hslen != 0 && ssl->in_hslen < ssl->in_msglen )
     {
         /*
@@ -5452,7 +5461,7 @@ static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
 
     ssl->in_hslen = 0;
     ssl->nb_zero = 0;
-    ssl->record_read = 0;
+    ssl->keep_current_message = 0;
 
     ssl->out_msg = ssl->out_buf + 13;
     ssl->out_msgtype = 0;

@@ -3742,6 +3742,7 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl )
      *     NOTE: This needs to be fixed, since like for
      *     handshake messages it is allowed to have
      *     multiple alerts witin a single record.
+     *     Internal reference IOTSSL-1321.
      *
      * (3) Change cipher spec:
      *     Consume whole record content, in_msglen = 0.
@@ -3757,6 +3758,12 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl )
 
     if( ssl->in_hslen != 0 )
     {
+        if( ssl->in_offt != NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+
         /*
          * Get next Handshake message in the current record
          */

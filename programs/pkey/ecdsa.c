@@ -38,6 +38,7 @@
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
 #include "polarssl/ecdsa.h"
+#include "polarssl/sha256.h"
 
 #include <string.h>
 #endif
@@ -102,16 +103,20 @@ int main( int argc, char *argv[] )
     ecdsa_context ctx_sign, ctx_verify;
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
-    unsigned char hash[] = "This should be the hash of a message.";
-    unsigned char sig[512];
+    sha256_context sha256_ctx;
+    unsigned char message[100];
+    unsigned char hash[32];
+    unsigned char sig[POLARSSL_ECDSA_MAX_LEN];
     size_t sig_len;
     const char *pers = "ecdsa";
     ((void) argv);
 
     ecdsa_init( &ctx_sign );
     ecdsa_init( &ctx_verify );
+    sha256_init( &sha256_ctx );
 
-    memset(sig, 0, sizeof( sig ) );
+    memset( sig, 0, sizeof( sig ) );
+    memset( message, 0x25, sizeof( message ) );
     ret = 1;
 
     if( argc != 1 )
@@ -155,9 +160,24 @@ int main( int argc, char *argv[] )
     dump_pubkey( "  + Public key: ", &ctx_sign );
 
     /*
-     * Sign some message hash
+     * Compute message hash
      */
     polarssl_printf( "  . Signing message..." );
+    polarssl_printf( "  . Computing message hash..." );
+    fflush( stdout );
+
+    sha256_starts( &sha256_ctx, 0 );
+    sha256_update( &sha256_ctx, message, sizeof( message ) );
+    sha256_finish( &sha256_ctx, hash );
+
+    polarssl_printf( " ok\n" );
+
+    dump_buf( "  + Hash: ", hash, sizeof( hash ) );
+
+    /*
+     * Sign message hash
+     */
+    polarssl_printf( "  . Signing message hash..." );
     fflush( stdout );
 
     if( ( ret = ecdsa_write_signature( &ctx_sign,
@@ -170,7 +190,6 @@ int main( int argc, char *argv[] )
     }
     polarssl_printf( " ok (signature length = %u)\n", (unsigned int) sig_len );
 
-    dump_buf( "  + Hash: ", hash, sizeof hash );
     dump_buf( "  + Signature: ", sig, sig_len );
 
     /*
@@ -233,6 +252,7 @@ exit:
     ecdsa_free( &ctx_sign );
     ctr_drbg_free( &ctr_drbg );
     entropy_free( &entropy );
+    sha256_free( &sha256_ctx );
 
     return( ret );
 }

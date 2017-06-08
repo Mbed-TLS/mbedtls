@@ -1195,6 +1195,8 @@ static int ssl_parse_server_hello( ssl_context *ssl )
             }
 
             SSL_DEBUG_MSG( 1, ( "non-handshake message during renego" ) );
+
+            ssl->keep_current_message = 1;
             return( POLARSSL_ERR_SSL_WAITING_SERVER_HELLO_RENEGO );
         }
 #endif /* POLARSSL_SSL_RENEGOTIATION */

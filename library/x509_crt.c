@@ -76,6 +76,10 @@
 #endif /* !_WIN32 || EFIX64 || EFI32 */
 #endif
 
+#if !defined(POLARSSL_X509_MIN_VERIFY_MD_ALG)
+#define POLARSSL_X509_MIN_VERIFY_MD_ALG  POLARSSL_MD_SHA1
+#endif
+
 /* Implementation that should never be optimized out by the compiler */
 static void polarssl_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
@@ -1440,7 +1444,7 @@ int x509_crt_verify_info( char *buf, size_t size, const char *prefix,
  */
 static int x509_check_md_alg( md_type_t md_alg )
 {
-    if( md_alg >= POLARSSL_MINIMAL_SUPPORTED_MD_ALG )
+    if( md_alg >= POLARSSL_X509_MIN_VERIFY_MD_ALG )
         return( 0 );
 
     return( -1 );

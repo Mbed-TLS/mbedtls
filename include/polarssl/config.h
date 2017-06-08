@@ -2063,31 +2063,6 @@
 #define POLARSSL_SHA512_C
 
 /**
- * \def MINIMAL_SUPPORTED_MD_ALG
- *
- * minimal supported md algorithm.
- * The value should be one of the enumerations in
- * md_type_t defined in md.h
- * typedef enum {
- *      POLARSSL_MD_NONE=0,
- *      POLARSSL_MD_MD2,
- *      POLARSSL_MD_MD4,
- *      POLARSSL_MD_MD5,
- *      POLARSSL_MD_SHA1,
- *      POLARSSL_MD_SHA224,
- *      POLARSSL_MD_SHA256,
- *      POLARSSL_MD_SHA384,
- *      POLARSSL_MD_SHA512,
- *      POLARSSL_MD_RIPEMD160,
- *  } md_type_t;
- *
- * Module:  library/x509_crt.c
- * Caller:
- *
- */
-#define POLARSSL_MINIMAL_SUPPORTED_MD_ALG  POLARSSL_MD_SHA1
-
-/**
  * \def POLARSSL_SSL_CACHE_C
  *
  * Enable simple SSL cache implementation.
@@ -2390,6 +2365,29 @@
 
 /* X509 options */
 //#define POLARSSL_X509_MAX_INTERMEDIATE_CA   8   /**< Maximum number of intermediate CAs in a verification chain. */
+
+/**
+ * \def POLARSSL_X509_MIN_VERIFY_MD_ALG
+ *
+ * Minimal hash algorithm accepted in X.509 chain verification.
+ *
+ * The value should be one of the enumerations in md_type_t defined in md.h
+ * Only algorithms with a value equal or higher are accepted.
+ *
+ * typedef enum {
+ *      POLARSSL_MD_NONE=0,
+ *      POLARSSL_MD_MD2,
+ *      POLARSSL_MD_MD4,
+ *      POLARSSL_MD_MD5,
+ *      POLARSSL_MD_SHA1,
+ *      POLARSSL_MD_SHA224,
+ *      POLARSSL_MD_SHA256,
+ *      POLARSSL_MD_SHA384,
+ *      POLARSSL_MD_SHA512,
+ *      POLARSSL_MD_RIPEMD160,
+ *  } md_type_t;
+ */
+//#define POLARSSL_X509_MIN_VERIFY_MD_ALG  POLARSSL_MD_SHA1
 
 /* \} name SECTION: Module configuration options */
 

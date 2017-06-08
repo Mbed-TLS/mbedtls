@@ -34,6 +34,8 @@ Bugfix
      Found by blaufish. Fixes #641.
    * Fix incorrect sign computation in modular exponentiation
      when dealing with negative MPI. Found by Guido Vranken.
+   * Fix potential stack underflow in mpi_read_file.
+     Found by Guido Vranken.
 
 Changes
    * Clarify ECDSA documentation and improve the sample code to avoid

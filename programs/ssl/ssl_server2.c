@@ -129,6 +129,7 @@ int main( void )
 #define DFL_CACHE_TIMEOUT       -1
 #define DFL_SNI                 NULL
 #define DFL_ALPN_STRING         NULL
+#define DFL_CURVES              NULL
 #define DFL_DHM_FILE            NULL
 #define DFL_TRANSPORT           MBEDTLS_SSL_TRANSPORT_STREAM
 #define DFL_COOKIES             1
@@ -299,6 +300,17 @@ int main( void )
 #define USAGE_RENEGO ""
 #endif
 
+#if defined(MBEDTLS_ECP_C)
+#define USAGE_CURVES \
+    "    curves=a,b,c,d      default: \"default\" (library default)\n"  \
+    "                        example: \"secp521r1,brainpoolP512r1\"\n"  \
+    "                        - use \"none\" for empty list\n"           \
+    "                        - see mbedtls_ecp_curve_list()\n"          \
+    "                          for acceptable curve names\n"
+#else
+#define USAGE_CURVES ""
+#endif
+
 #define USAGE \
     "\n usage: ssl_server2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -332,6 +344,7 @@ int main( void )
     USAGE_ALPN                                              \
     USAGE_EMS                                               \
     USAGE_ETM                                               \
+    USAGE_CURVES                                            \
     "\n"                                                    \
     "    arc4=%%d             default: (library default: 0)\n" \
     "    allow_sha1=%%d       default: 0\n"                             \
@@ -398,6 +411,7 @@ struct options
     int cache_max;              /* max number of session cache entries      */
     int cache_timeout;          /* expiration delay of session cache entries */
     char *sni;                  /* string describing sni information        */
+    const char *curves;         /* list of supported elliptic curves        */
     const char *alpn_string;    /* ALPN supported protocols                 */
     const char *dhm_file;       /* the file with the DH parameters          */
     int extended_ms;            /* allow negotiation of extended MS?        */
@@ -854,6 +868,10 @@ int main( int argc, char *argv[] )
 #if defined(SNI_OPTION)
     sni_entry *sni_info = NULL;
 #endif
+#if defined(MBEDTLS_ECP_C)
+    mbedtls_ecp_group_id     curve_list[20];
+    const mbedtls_ecp_curve_info * curve_cur;
+#endif
 #if defined(MBEDTLS_SSL_ALPN)
     const char *alpn_list[10];
 #endif
@@ -963,6 +981,7 @@ int main( int argc, char *argv[] )
     opt.cache_timeout       = DFL_CACHE_TIMEOUT;
     opt.sni                 = DFL_SNI;
     opt.alpn_string         = DFL_ALPN_STRING;
+    opt.curves              = DFL_CURVES;
     opt.dhm_file            = DFL_DHM_FILE;
     opt.transport           = DFL_TRANSPORT;
     opt.cookies             = DFL_COOKIES;
@@ -1039,6 +1058,8 @@ int main( int argc, char *argv[] )
             }
             opt.force_ciphersuite[1] = 0;
         }
+        else if( strcmp( p, "curves" ) == 0 )
+            opt.curves = q;
         else if( strcmp( p, "version_suites" ) == 0 )
             opt.version_suites = q;
         else if( strcmp( p, "renegotiation" ) == 0 )
@@ -1391,6 +1412,64 @@ int main( int argc, char *argv[] )
         }
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
+
+#if defined(MBEDTLS_ECP_C)
+    if( opt.curves != NULL )
+    {
+        p = (char *) opt.curves;
+        i = 0;
+
+        if( strcmp( p, "none" ) == 0 )
+        {
+            curve_list[0] = MBEDTLS_ECP_DP_NONE;
+        }
+        else if( strcmp( p, "default" ) != 0 )
+        {
+            /* Leave room for a final NULL in curve list */
+            while( i < (int) ( sizeof( curve_list ) / sizeof( *curve_list ) ) - 1
+                   && *p != '\0' )
+            {
+                q = p;
+
+                /* Terminate the current string */
+                while( *p != ',' && *p != '\0' )
+                    p++;
+                if( *p == ',' )
+                    *p++ = '\0';
+
+                if( ( curve_cur = mbedtls_ecp_curve_info_from_name( q ) ) != NULL )
+                {
+                    curve_list[i++] = curve_cur->grp_id;
+                }
+                else
+                {
+                    mbedtls_printf( "unknown curve %s\n", q );
+                    mbedtls_printf( "supported curves: " );
+                    for( curve_cur = mbedtls_ecp_curve_list();
+                         curve_cur->grp_id != MBEDTLS_ECP_DP_NONE;
+                         curve_cur++ )
+                    {
+                        mbedtls_printf( "%s ", curve_cur->name );
+                    }
+                    mbedtls_printf( "\n" );
+                    goto exit;
+                }
+            }
+
+            mbedtls_printf("Number of curves: %d\n", i );
+
+            if( i == (int) ( sizeof( curve_list ) / sizeof( *curve_list ) ) - 1
+                && *p != '\0' )
+            {
+                mbedtls_printf( "curves list too long, maximum %zu",
+                                (size_t) ( sizeof( curve_list ) / sizeof( *curve_list ) - 1 ) );
+                goto exit;
+            }
+
+            curve_list[i] = MBEDTLS_ECP_DP_NONE;
+        }
+    }
+#endif /* MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_SSL_ALPN)
     if( opt.alpn_string != NULL )
@@ -1838,6 +1917,14 @@ int main( int argc, char *argv[] )
 #if defined(SNI_OPTION)
     if( opt.sni != NULL )
         mbedtls_ssl_conf_sni( &conf, sni_callback, sni_info );
+#endif
+
+#if defined(MBEDTLS_ECP_C)
+    if( opt.curves != NULL &&
+        strcmp( opt.curves, "default" ) != 0 )
+    {
+        mbedtls_ssl_conf_curves( &conf, curve_list );
+    }
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)

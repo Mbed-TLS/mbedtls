@@ -122,6 +122,13 @@ requires_config_enabled() {
     fi
 }
 
+# skip next test if the flag is enabled in config.h
+requires_config_disabled() {
+    if grep "^#define $1" $CONFIG_H > /dev/null; then
+        SKIP_NEXT="YES"
+    fi
+}
+
 # skip next test if OpenSSL doesn't support FALLBACK_SCSV
 requires_openssl_with_fallback_scsv() {
     if [ -z "${OPENSSL_HAS_FBSCSV:-}" ]; then
@@ -714,11 +721,18 @@ run_test    "RC4: both enabled" \
 
 # Tests for SHA-1 support
 
+requires_config_disabled MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
 run_test    "SHA-1 forbidden by default in server certificate" \
             "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2.crt" \
             "$P_CLI debug_level=2 allow_sha1=0" \
             1 \
             -c "The certificate is signed with an unacceptable hash"
+
+requires_config_enabled MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
+run_test    "SHA-1 forbidden by default in server certificate" \
+            "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2.crt" \
+            "$P_CLI debug_level=2 allow_sha1=0" \
+            0
 
 run_test    "SHA-1 explicitly allowed in server certificate" \
             "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2.crt" \
@@ -730,11 +744,18 @@ run_test    "SHA-256 allowed by default in server certificate" \
             "$P_CLI allow_sha1=0" \
             0
 
+requires_config_disabled MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
 run_test    "SHA-1 forbidden by default in client certificate" \
             "$P_SRV auth_mode=required allow_sha1=0" \
             "$P_CLI key_file=data_files/cli-rsa.key crt_file=data_files/cli-rsa-sha1.crt" \
             1 \
             -s "The certificate is signed with an unacceptable hash"
+
+requires_config_enabled MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
+run_test    "SHA-1 forbidden by default in client certificate" \
+            "$P_SRV auth_mode=required allow_sha1=0" \
+            "$P_CLI key_file=data_files/cli-rsa.key crt_file=data_files/cli-rsa-sha1.crt" \
+            0
 
 run_test    "SHA-1 explicitly allowed in client certificate" \
             "$P_SRV auth_mode=required allow_sha1=1" \

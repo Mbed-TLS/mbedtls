@@ -31,6 +31,11 @@ Bugfix
      MBEDTLS_SSL_VERIFY_OPTIONAL and to reflect bad EC curves
      within verification result.
 
+Changes
+   * Clarify ECDSA documentation and improve the sample code to avoid
+     misunderstandings and potentially dangerous use of the API. Pointed out
+     by Jean-Philippe Aumasson.
+
 = mbed TLS 2.1.7 branch released 2017-03-08
 
 Security

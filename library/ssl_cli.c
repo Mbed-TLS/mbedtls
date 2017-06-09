@@ -1304,6 +1304,8 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
             }
 
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "non-handshake message during renego" ) );
+
+            ssl->keep_current_message = 1;
             return( MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO );
         }
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
@@ -2102,11 +2104,14 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
         if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
             ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
         {
-            ssl->record_read = 1;
+            /* Current message is probably either
+             * CertificateRequest or ServerHelloDone */
+            ssl->keep_current_message = 1;
             goto exit;
         }
 
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "server key exchange message must "
+                                    "not be skipped" ) );
         return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
     }
 
@@ -2389,36 +2394,30 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
         return( 0 );
     }
 
-    if( ssl->record_read == 0 )
+    if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
     {
-        if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
-            return( ret );
-        }
-
-        if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
-            return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
-        }
-
-        ssl->record_read = 1;
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
+        return( ret );
     }
 
-    ssl->client_auth = 0;
-    ssl->state++;
+    if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
+        return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
+    }
 
-    if( ssl->in_msg[0] == MBEDTLS_SSL_HS_CERTIFICATE_REQUEST )
-        ssl->client_auth++;
+    ssl->state++;
+    ssl->client_auth = ( ssl->in_msg[0] == MBEDTLS_SSL_HS_CERTIFICATE_REQUEST );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "got %s certificate request",
                         ssl->client_auth ? "a" : "no" ) );
 
     if( ssl->client_auth == 0 )
+    {
+        /* Current message is probably the ServerHelloDone */
+        ssl->keep_current_message = 1;
         goto exit;
-
-    ssl->record_read = 0;
+    }
 
     // TODO: handshake_failure alert for an anonymous server to request
     // client authentication
@@ -2517,21 +2516,17 @@ static int ssl_parse_server_hello_done( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse server hello done" ) );
 
-    if( ssl->record_read == 0 )
+    if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
     {
-        if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
-            return( ret );
-        }
-
-        if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello done message" ) );
-            return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
-        }
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
+        return( ret );
     }
-    ssl->record_read = 0;
+
+    if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello done message" ) );
+        return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
+    }
 
     if( ssl->in_hslen  != mbedtls_ssl_hs_hdr_len( ssl ) ||
         ssl->in_msg[0] != MBEDTLS_SSL_HS_SERVER_HELLO_DONE )

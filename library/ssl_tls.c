@@ -3716,31 +3716,123 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> read record" ) );
 
-    if( ssl->in_hslen != 0 && ssl->in_hslen < ssl->in_msglen )
+    if( ssl->keep_current_message == 1 )
     {
-        /*
-         * Get next Handshake message in the current record
-         */
-        ssl->in_msglen -= ssl->in_hslen;
-
-        memmove( ssl->in_msg, ssl->in_msg + ssl->in_hslen,
-                 ssl->in_msglen );
-
-        MBEDTLS_SSL_DEBUG_BUF( 4, "remaining content in record",
-                           ssl->in_msg, ssl->in_msglen );
-
-        if( ( ret = ssl_prepare_handshake_record( ssl ) ) != 0 )
-            return( ret );
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "reuse previously read message" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= read record" ) );
+        ssl->keep_current_message = 0;
 
         return( 0 );
     }
 
-    ssl->in_hslen = 0;
+    /*
+     * Step A
+     *
+     * Consume last content-layer message and potentially
+     * update in_msglen which keeps track of the contents'
+     * consumption state.
+     *
+     * (1) Handshake messages:
+     *     Remove last handshake message, move content
+     *     and adapt in_msglen.
+     *
+     * (2) Alert messages:
+     *     Consume whole record content, in_msglen = 0.
+     *
+     *     NOTE: This needs to be fixed, since like for
+     *     handshake messages it is allowed to have
+     *     multiple alerts witin a single record.
+     *     Internal reference IOTSSL-1321.
+     *
+     * (3) Change cipher spec:
+     *     Consume whole record content, in_msglen = 0.
+     *
+     * (4) Application data:
+     *     Don't do anything - the record layer provides
+     *     the application data as a stream transport
+     *     and consumes through mbedtls_ssl_read only.
+     *
+     */
+
+    /* Case (1): Handshake messages */
+
+    if( ssl->in_hslen != 0 )
+    {
+        if( ssl->in_offt != NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+
+        /*
+         * Get next Handshake message in the current record
+         */
+
+        /* Notes:
+         * (1) in_hslen is *NOT* necessarily the size of the
+         *     current handshake content: If DTLS handshake
+         *     fragmentation is used, that's the fragment
+         *     size instead. Using the total handshake message
+         *     size here is FAULTY and should be changed at
+         *     some point. Internal reference IOTSSL-1414.
+         * (2) While it doesn't seem to cause problems, one
+         *     has to be very careful not to assume that in_hslen
+         *     is always <= in_msglen in a sensible communication.
+         *     Again, it's wrong for DTLS handshake fragmentation.
+         *     The following check is therefore mandatory, and
+         *     should not be treated as a silently corrected assertion.
+         */
+        if( ssl->in_hslen < ssl->in_msglen )
+        {
+            ssl->in_msglen -= ssl->in_hslen;
+            memmove( ssl->in_msg, ssl->in_msg + ssl->in_hslen,
+                     ssl->in_msglen );
+
+            MBEDTLS_SSL_DEBUG_BUF( 4, "remaining content in record",
+                                   ssl->in_msg, ssl->in_msglen );
+
+            if( ( ret = ssl_prepare_handshake_record( ssl ) ) != 0 )
+                return( ret );
+
+            return( 0 );
+        }
+        else
+        {
+            ssl->in_msglen = 0;
+        }
+
+        ssl->in_hslen = 0;
+    }
+    /* Case (4): Application data */
+    else if( ssl->in_offt != NULL )
+    {
+        return( 0 );
+    }
+    /* Everything else (CCS & Alerts) */
+    else
+    {
+        ssl->in_msglen = 0;
+    }
 
     /*
-     * Read the record header and parse it
+     * Step B
+     *
+     * Fetch and decode new record if current one is fully consumed.
+     *
      */
+
+    if( ssl->in_msglen > 0 )
+    {
+        /* There's something left to be processed in the current record. */
+        return( 0 );
+    }
+
+    /* Need to fetch a new record */
+
 read_record_header:
+
+    /* Current record either fully processed or to be discarded. */
+
     if( ( ret = mbedtls_ssl_fetch_input( ssl, mbedtls_ssl_hdr_len( ssl ) ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_fetch_input", ret );
@@ -3831,6 +3923,12 @@ read_record_header:
                     return( MBEDTLS_ERR_SSL_INVALID_MAC );
                 }
 #endif
+
+                /* As above, invalid records cause
+                 * dismissal of the whole datagram. */
+
+                ssl->next_record_offset = 0;
+                ssl->in_left = 0;
 
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "discarding invalid record (mac)" ) );
                 goto read_record_header;
@@ -5452,7 +5550,7 @@ static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
 
     ssl->in_hslen = 0;
     ssl->nb_zero = 0;
-    ssl->record_read = 0;
+    ssl->keep_current_message = 0;
 
     ssl->out_msg = ssl->out_buf + 13;
     ssl->out_msgtype = 0;
@@ -6439,7 +6537,7 @@ static int ssl_check_ctr_renegotiate( mbedtls_ssl_context *ssl )
  */
 int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
 {
-    int ret, record_read = 0;
+    int ret;
     size_t n;
 
     if( ssl == NULL || ssl->conf == NULL )
@@ -6462,8 +6560,22 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
     }
 #endif
 
+    /*
+     * Check if renegotiation is necessary and/or handshake is
+     * in process. If yes, perform/continue, and fall through
+     * if an unexpected packet is received while the client
+     * is waiting for the ServerHello.
+     *
+     * (There is no equivalent to the last condition on
+     *  the server-side as it is not treated as within
+     *  a handshake while waiting for the ClientHello
+     *  after a renegotiation request.)
+     */
+
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if( ( ret = ssl_check_ctr_renegotiate( ssl ) ) != 0 )
+    ret = ssl_check_ctr_renegotiate( ssl );
+    if( ret != MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO &&
+        ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "ssl_check_ctr_renegotiate", ret );
         return( ret );
@@ -6473,11 +6585,8 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
     if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
     {
         ret = mbedtls_ssl_handshake( ssl );
-        if( ret == MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO )
-        {
-            record_read = 1;
-        }
-        else if( ret != 0 )
+        if( ret != MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO &&
+            ret != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_handshake", ret );
             return( ret );
@@ -6493,16 +6602,13 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
             ssl_set_timer( ssl, ssl->conf->read_timeout );
         }
 
-        if( ! record_read )
+        if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
         {
-            if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
-            {
-                if( ret == MBEDTLS_ERR_SSL_CONN_EOF )
-                    return( 0 );
+            if( ret == MBEDTLS_ERR_SSL_CONN_EOF )
+                return( 0 );
 
-                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
-                return( ret );
-            }
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
+            return( ret );
         }
 
         if( ssl->in_msglen  == 0 &&
@@ -6540,7 +6646,9 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
 #endif
                 return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
             }
+#endif /* MBEDTLS_SSL_CLI_C */
 
+#if defined(MBEDTLS_SSL_SRV_C)
             if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
                 ssl->in_msg[0] != MBEDTLS_SSL_HS_CLIENT_HELLO )
             {
@@ -6603,25 +6711,18 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
                 }
 #endif
                 ret = ssl_start_renegotiation( ssl );
-                if( ret == MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO )
-                {
-                    record_read = 1;
-                }
-                else if( ret != 0 )
+                if( ret != MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO &&
+                    ret != 0 )
                 {
                     MBEDTLS_SSL_DEBUG_RET( 1, "ssl_start_renegotiation", ret );
                     return( ret );
                 }
             }
 
-            /* If a non-handshake record was read during renego, fallthrough,
-             * else tell the user they should call mbedtls_ssl_read() again */
-            if( ! record_read )
-                return( MBEDTLS_ERR_SSL_WANT_READ );
+            return( MBEDTLS_ERR_SSL_WANT_READ );
         }
         else if( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_PENDING )
         {
-
             if( ssl->conf->renego_max_records >= 0 )
             {
                 if( ++ssl->renego_records_seen > ssl->conf->renego_max_records )
@@ -6679,8 +6780,11 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
     ssl->in_msglen -= n;
 
     if( ssl->in_msglen == 0 )
+    {
         /* all bytes consumed  */
         ssl->in_offt = NULL;
+        ssl->keep_current_message = 0;
+    }
     else
         /* more data available */
         ssl->in_offt += n;

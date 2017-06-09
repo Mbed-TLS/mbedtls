@@ -316,12 +316,23 @@ static int convert_params( size_t cnt , char ** params , int * int_params_store 
 /**
  * \brief       Tests snprintf implementation with test input.
  *
+ * \note
+ * At high optimization levels (e.g. gcc -O3), this function may be
+ * inlined in run_test_snprintf. This can trigger a spurious warning about
+ * potential misuse of snprintf from gcc -Wformat-truncation (observed with
+ * gcc 7.2). This warning makes tests in run_test_snprintf redundant on gcc
+ * only. They are still valid for other compilers. Avoid this warning by
+ * forbidding inlining of this function by gcc.
+ *
  * \param n         Buffer test length.
  * \param ref_buf   Expected buffer.
  * \param ref_ret   Expected snprintf return value.
  *
  * \return      0 for success else 1
  */
+#if defined(__GNUC__)
+__attribute__((__noinline__))
+#endif
 static int test_snprintf( size_t n, const char ref_buf[10], int ref_ret )
 {
     int ret;
@@ -417,7 +428,7 @@ int execute_tests( int argc , const char ** argv )
     if( run_test_snprintf() != 0 )
     {
         mbedtls_fprintf( stderr, "the snprintf implementation is broken\n" );
-        return( 0 );
+        return( 1 );
     }
 
     while( arg_index < argc )

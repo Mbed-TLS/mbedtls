@@ -274,6 +274,9 @@ int main( void )
     "    force_ciphersuite=<name>    default: all enabled\n"\
     " acceptable ciphersuite names:\n"
 
+#define ALPN_LIST_SIZE  10
+#define CURVE_LIST_SIZE 20
+
 /*
  * global options
  */
@@ -427,10 +430,10 @@ int main( int argc, char *argv[] )
     size_t psk_len = 0;
 #endif
 #if defined(MBEDTLS_SSL_ALPN)
-    const char *alpn_list[10];
+    const char *alpn_list[ALPN_LIST_SIZE];
 #endif
 #if defined(MBEDTLS_ECP_C)
-    mbedtls_ecp_group_id curve_list[20];
+    mbedtls_ecp_group_id curve_list[CURVE_LIST_SIZE];
     const mbedtls_ecp_curve_info *curve_cur;
 #endif
 
@@ -956,8 +959,7 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "default" ) != 0 )
         {
             /* Leave room for a final NULL in curve list */
-            while( i < (int) ( sizeof( curve_list ) / sizeof( *curve_list ) ) - 1
-                   && *p != '\0' )
+            while( i < CURVE_LIST_SIZE - 1 && *p != '\0' )
             {
                 q = p;
 
@@ -988,11 +990,10 @@ int main( int argc, char *argv[] )
 
             mbedtls_printf("Number of curves: %d\n", i );
 
-            if( i == (int) ( sizeof( curve_list ) / sizeof( *curve_list ) ) - 1
-                && *p != '\0' )
+            if( i == CURVE_LIST_SIZE - 1 && *p != '\0' )
             {
-                mbedtls_printf( "curves list too long, maximum %zu",
-                                (size_t) ( sizeof( curve_list ) / sizeof( *curve_list ) - 1 ) );
+                mbedtls_printf( "curves list too long, maximum %d",
+                                CURVE_LIST_SIZE - 1 );
                 goto exit;
             }
 
@@ -1008,7 +1009,7 @@ int main( int argc, char *argv[] )
         i = 0;
 
         /* Leave room for a final NULL in alpn_list */
-        while( i < (int) sizeof alpn_list - 1 && *p != '\0' )
+        while( i < ALPN_LIST_SIZE - 1 && *p != '\0' )
         {
             alpn_list[i++] = p;
 

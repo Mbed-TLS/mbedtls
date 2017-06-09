@@ -76,6 +76,10 @@
 #endif /* !_WIN32 || EFIX64 || EFI32 */
 #endif
 
+#if !defined(POLARSSL_X509_MIN_VERIFY_MD_ALG)
+#define POLARSSL_X509_MIN_VERIFY_MD_ALG  POLARSSL_MD_SHA1
+#endif
+
 /* Implementation that should never be optimized out by the compiler */
 static void polarssl_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
@@ -1435,6 +1439,18 @@ int x509_crt_verify_info( char *buf, size_t size, const char *prefix,
     return( (int) ( size - n ) );
 }
 
+/*
+ * Check md_alg against profile
+ * Return 0 if md_alg acceptable for this profile, -1 otherwise
+ */
+static int x509_check_md_alg( md_type_t md_alg )
+{
+    if( md_alg >= POLARSSL_X509_MIN_VERIFY_MD_ALG )
+        return( 0 );
+
+    return( -1 );
+}
+
 #if defined(POLARSSL_X509_CHECK_KEY_USAGE)
 int x509_crt_check_key_usage( const x509_crt *crt, int usage )
 {
@@ -1541,6 +1557,15 @@ static int x509_crt_verifycrl( x509_crt *crt, x509_crt *ca,
             break;
         }
 #endif
+
+        /*
+         * Check if CRL is signed with a valid MD
+         */
+        if( x509_check_md_alg( crl_list->sig_md ) != 0 )
+        {
+            flags |= BADCRL_NOT_TRUSTED;
+            break;
+        }
 
         /*
          * Check if CRL is correctly signed by the trusted CA
@@ -1789,6 +1814,18 @@ static int x509_crt_verify_top(
      */
     *flags |= BADCERT_NOT_TRUSTED;
 
+    /*
+     * Check if certificate is signed with a valid MD
+     */
+    if( x509_check_md_alg( child->sig_md ) != 0 )
+    {
+        *flags |= BADCERT_NOT_TRUSTED;
+        /*
+         * not signed with a valid MD, no need to check trust_ca
+         */
+        trust_ca = NULL;
+    }
+
     md_info = md_info_from_type( child->sig_md );
     if( md_info == NULL )
     {
@@ -1925,6 +1962,12 @@ static int x509_crt_verify_child(
 
     if( x509_time_future( &child->valid_from ) )
         *flags |= BADCERT_FUTURE;
+
+    /*
+     * Check if certificate is signed with a valid MD
+     */
+    if( x509_check_md_alg( child->sig_md ) != 0 )
+        *flags |= BADCERT_NOT_TRUSTED;
 
     md_info = md_info_from_type( child->sig_md );
     if( md_info == NULL )

@@ -417,11 +417,11 @@ x509_verify:"data_files/server2.crt":"data_files/server1.crt":"data_files/crl_ex
 
 X509 Certificate verification #12 (Valid Cert MD4 Digest)
 depends_on:POLARSSL_MD4_C:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
-x509_verify:"data_files/cert_md4.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
+x509_verify:"data_files/cert_md4.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
 
 X509 Certificate verification #13 (Valid Cert MD5 Digest)
 depends_on:POLARSSL_MD5_C:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
-x509_verify:"data_files/cert_md5.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
+x509_verify:"data_files/cert_md5.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
 
 X509 Certificate verification #14 (Valid Cert SHA1 Digest)
 depends_on:POLARSSL_SHA1_C:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
@@ -722,6 +722,14 @@ x509_verify:"data_files/server5.crt":"data_files/test-ca2_cat-future-invalid.crt
 X509 Certificate verification #87 (Expired CA and invalid CA)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP384R1_ENABLED:POLARSSL_SHA1_C:POLARSSL_SHA256_C
 x509_verify:"data_files/server5.crt":"data_files/test-ca2_cat-past-invalid.crt":"data_files/crl-ec-sha1.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_EXPIRED:"NULL"
+
+X509 Certificate verification #88 (MD4 CRL)
+depends_on:POLARSSL_SHA256_C:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+x509_verify:"data_files/cert_sha256.crt":"data_files/test-ca.crt":"data_files/crl_md4.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCRL_NOT_TRUSTED:"NULL"
+
+X509 Certificate verification #89 (MD5 CRL)
+depends_on:POLARSSL_SHA256_C:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+x509_verify:"data_files/cert_sha256.crt":"data_files/test-ca.crt":"data_files/crl_md5.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCRL_NOT_TRUSTED:"NULL"
 
 X509 Certificate verification callback: trusted EE cert
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_SHA256_C:POLARSSL_ECP_DP_SECP256R1_ENABLED

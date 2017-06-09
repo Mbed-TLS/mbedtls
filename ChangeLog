@@ -13,6 +13,8 @@ Security
      Found by Laurent Simon.
     Tighten parsing of RSA PKCS#1 v1.5 signatures, to avoid a
      potential Bleichenbacher/BERserk-style attack.
+   * Remove support for X509 certificates signed with MD5.
+     Issue raised by Harm Verhagen
 
 Bugfix
    * Fix insufficient support for signature-hash-algorithm extension,

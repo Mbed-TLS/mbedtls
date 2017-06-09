@@ -11,9 +11,7 @@ Security
    * Wipe stack buffers in RSA private key operations
      (rsa_rsaes_pkcs1_v15_decrypt(), rsa_rsaes_oaep_decrypt).
      Found by Laurent Simon.
-   * Tighten ASN.1 parsing of RSA PKCS#1 v1.5 signatures, to avoid a
-     potential Bleichenbacher-style attack.
-   * Tighten parsing of RSA PKCS#1 v1.5 signatures, to avoid a
+    Tighten parsing of RSA PKCS#1 v1.5 signatures, to avoid a
      potential Bleichenbacher/BERserk-style attack.
 
 Bugfix

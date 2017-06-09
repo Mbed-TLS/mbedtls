@@ -2169,47 +2169,82 @@ int ssl_read_record( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> read record" ) );
 
-    if( ssl->in_hslen != 0 &&
-        ssl->in_hslen < ssl->in_msglen )
+    if( ssl->keep_current_message == 1 )
     {
-        /*
-         * Get next Handshake message in the current record
-         */
-        ssl->in_msglen -= ssl->in_hslen;
-
-        memmove( ssl->in_msg, ssl->in_msg + ssl->in_hslen,
-                 ssl->in_msglen );
-
-        ssl->in_hslen  = 4;
-        ssl->in_hslen += ( ssl->in_msg[2] << 8 ) | ssl->in_msg[3];
-
-        SSL_DEBUG_MSG( 3, ( "handshake message: msglen ="
-                            " %d, type = %d, hslen = %d",
-                       ssl->in_msglen, ssl->in_msg[0], ssl->in_hslen ) );
-
-        if( ssl->in_msglen < 4 || ssl->in_msg[1] != 0 )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad handshake length" ) );
-            return( POLARSSL_ERR_SSL_INVALID_RECORD );
-        }
-
-        if( ssl->in_msglen < ssl->in_hslen )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad handshake length" ) );
-            return( POLARSSL_ERR_SSL_INVALID_RECORD );
-        }
-
-        if( ssl->state != SSL_HANDSHAKE_OVER )
-            ssl->handshake->update_checksum( ssl, ssl->in_msg, ssl->in_hslen );
+        SSL_DEBUG_MSG( 2, ( "reuse previously read message" ) );
+        SSL_DEBUG_MSG( 2, ( "<= read record" ) );
+        ssl->keep_current_message = 0;
 
         return( 0 );
     }
 
-    ssl->in_hslen = 0;
+    if( ssl->in_hslen != 0 )
+    {
+        if( ssl->in_offt != NULL )
+        {
+            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+        }
+
+        /*
+         * Get next Handshake message in the current record
+         */
+
+        if( ssl->in_hslen < ssl->in_msglen )
+        {
+            ssl->in_msglen -= ssl->in_hslen;
+            memmove( ssl->in_msg, ssl->in_msg + ssl->in_hslen,
+                     ssl->in_msglen );
+
+            ssl->in_hslen  = 4;
+            ssl->in_hslen += ( ssl->in_msg[2] << 8 ) | ssl->in_msg[3];
+
+            SSL_DEBUG_MSG( 3, ( "handshake message: msglen ="
+                                " %d, type = %d, hslen = %d",
+                                ssl->in_msglen, ssl->in_msg[0], ssl->in_hslen ) );
+
+            if( ssl->in_msglen < 4 || ssl->in_msg[1] != 0 )
+            {
+                SSL_DEBUG_MSG( 1, ( "bad handshake length" ) );
+                return( POLARSSL_ERR_SSL_INVALID_RECORD );
+            }
+
+            if( ssl->in_msglen < ssl->in_hslen )
+            {
+                SSL_DEBUG_MSG( 1, ( "bad handshake length" ) );
+                return( POLARSSL_ERR_SSL_INVALID_RECORD );
+            }
+
+            if( ssl->state != SSL_HANDSHAKE_OVER )
+                ssl->handshake->update_checksum( ssl, ssl->in_msg, ssl->in_hslen );
+
+            return( 0 );
+        }
+
+        ssl->in_msglen = 0;
+        ssl->in_hslen = 0;
+    }
+    else if( ssl->in_offt != NULL )
+    {
+        return( 0 );
+    }
+    else
+    {
+        ssl->in_msglen = 0;
+    }
 
     /*
-     * Read the record header and validate it
+     * Fetch and decode new record if current one is fully consumed.
      */
+
+    if( ssl->in_msglen > 0 )
+    {
+        /* There's something left to be processed in the current record. */
+        return( 0 );
+    }
+
+    /* Need to fetch a new record */
+
 read_record_header:
     if( ( ret = ssl_fetch_input( ssl, 5 ) ) != 0 )
     {
@@ -3750,7 +3785,7 @@ int ssl_session_reset( ssl_context *ssl )
 
     ssl->in_hslen = 0;
     ssl->nb_zero = 0;
-    ssl->record_read = 0;
+    ssl->keep_current_message = 0;
 
     ssl->out_msg = ssl->out_ctr + 13;
     ssl->out_msgtype = 0;
@@ -4642,13 +4677,15 @@ static int ssl_check_ctr_renegotiate( ssl_context *ssl )
  */
 int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
 {
-    int ret, record_read = 0;
+    int ret;
     size_t n;
 
     SSL_DEBUG_MSG( 2, ( "=> read" ) );
 
 #if defined(POLARSSL_SSL_RENEGOTIATION)
-    if( ( ret = ssl_check_ctr_renegotiate( ssl ) ) != 0 )
+    ret = ssl_check_ctr_renegotiate( ssl );
+    if( ret != POLARSSL_ERR_SSL_WAITING_SERVER_HELLO_RENEGO &&
+        ret != 0 )
     {
         SSL_DEBUG_RET( 1, "ssl_check_ctr_renegotiate", ret );
         return( ret );
@@ -4658,11 +4695,8 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
     if( ssl->state != SSL_HANDSHAKE_OVER )
     {
         ret = ssl_handshake( ssl );
-        if( ret == POLARSSL_ERR_SSL_WAITING_SERVER_HELLO_RENEGO )
-        {
-            record_read = 1;
-        }
-        else if( ret != 0 )
+        if( ret != POLARSSL_ERR_SSL_WAITING_SERVER_HELLO_RENEGO &&
+            ret != 0 )
         {
             SSL_DEBUG_RET( 1, "ssl_handshake", ret );
             return( ret );
@@ -4671,16 +4705,13 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
 
     if( ssl->in_offt == NULL )
     {
-        if( ! record_read )
+        if( ( ret = ssl_read_record( ssl ) ) != 0 )
         {
-            if( ( ret = ssl_read_record( ssl ) ) != 0 )
-            {
-                if( ret == POLARSSL_ERR_SSL_CONN_EOF )
-                    return( 0 );
+            if( ret == POLARSSL_ERR_SSL_CONN_EOF )
+                return( 0 );
 
-                SSL_DEBUG_RET( 1, "ssl_read_record", ret );
-                return( ret );
-            }
+            SSL_DEBUG_RET( 1, "ssl_read_record", ret );
+            return( ret );
         }
 
         if( ssl->in_msglen  == 0 &&
@@ -4754,21 +4785,15 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
             else
             {
                 ret = ssl_start_renegotiation( ssl );
-                if( ret == POLARSSL_ERR_SSL_WAITING_SERVER_HELLO_RENEGO )
-                {
-                    record_read = 1;
-                }
-                else if( ret != 0 )
+                if( ret != POLARSSL_ERR_SSL_WAITING_SERVER_HELLO_RENEGO &&
+                    ret != 0 )
                 {
                     SSL_DEBUG_RET( 1, "ssl_start_renegotiation", ret );
                     return( ret );
                 }
             }
 
-            /* If a non-handshake record was read during renego, fallthrough,
-             * else tell the user they should call ssl_read() again */
-            if( ! record_read )
-                return( POLARSSL_ERR_NET_WANT_READ );
+            return( POLARSSL_ERR_NET_WANT_READ );
         }
         else if( ssl->renegotiation == SSL_RENEGOTIATION_PENDING )
         {
@@ -4807,8 +4832,11 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
     ssl->in_msglen -= n;
 
     if( ssl->in_msglen == 0 )
+    {
         /* all bytes consumed  */
         ssl->in_offt = NULL;
+        ssl->keep_current_message = 0;
+    }
     else
         /* more data available */
         ssl->in_offt += n;

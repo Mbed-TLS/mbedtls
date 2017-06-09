@@ -18,11 +18,9 @@ int mbedtls_entropy_func( void *data, unsigned char *buf, size_t len )
  */
 
 /* BEGIN_CASE */
-void ctr_drbg_validate_pr( uint8_t * add_init, uint32_t add_init_len,
-                           uint8_t * entropy, uint32_t entropy_len,
-                           uint8_t * add1, uint32_t add1_len, uint8_t * add2,
-                           uint32_t add2_len, uint8_t * result_str,
-                           uint32_t result_str_len )
+void ctr_drbg_validate_pr( HexParam_t * add_init, HexParam_t * entropy,
+                           HexParam_t * add1, HexParam_t * add2,
+                           HexParam_t * result_str )
 {
     mbedtls_ctr_drbg_context ctx;
     unsigned char buf[512];
@@ -31,12 +29,12 @@ void ctr_drbg_validate_pr( uint8_t * add_init, uint32_t add_init_len,
 
 
     test_offset_idx = 0;
-    TEST_ASSERT( mbedtls_ctr_drbg_seed_entropy_len( &ctx, mbedtls_entropy_func, entropy, add_init, add_init_len, 32 ) == 0 );
+    TEST_ASSERT( mbedtls_ctr_drbg_seed_entropy_len( &ctx, mbedtls_entropy_func, entropy->x, add_init->x, add_init->len, 32 ) == 0 );
     mbedtls_ctr_drbg_set_prediction_resistance( &ctx, MBEDTLS_CTR_DRBG_PR_ON );
 
-    TEST_ASSERT( mbedtls_ctr_drbg_random_with_add( &ctx, buf, 16, add1, add1_len ) == 0 );
-    TEST_ASSERT( mbedtls_ctr_drbg_random_with_add( &ctx, buf, 16, add2, add2_len ) == 0 );
-    TEST_ASSERT( hexcmp( buf, result_str, 16, result_str_len ) == 0 );
+    TEST_ASSERT( mbedtls_ctr_drbg_random_with_add( &ctx, buf, 16, add1->x, add1->len ) == 0 );
+    TEST_ASSERT( mbedtls_ctr_drbg_random_with_add( &ctx, buf, 16, add2->x, add2->len ) == 0 );
+    TEST_ASSERT( hexcmp( buf, result_str->x, 16, result_str->len ) == 0 );
 
 exit:
     mbedtls_ctr_drbg_free( &ctx );
@@ -44,12 +42,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void ctr_drbg_validate_nopr( uint8_t * add_init, uint32_t add_init_len,
-                             uint8_t * entropy, uint32_t entropy_len,
-                             uint8_t * add1, uint32_t add1_len,
-                             uint8_t * add_reseed, uint32_t add_reseed_len,
-                             uint8_t * add2, uint32_t add2_len,
-                             uint8_t * result_str, uint32_t result_str_len )
+void ctr_drbg_validate_nopr( HexParam_t * add_init, HexParam_t * entropy,
+                             HexParam_t * add1, HexParam_t * add_reseed,
+                             HexParam_t * add2, HexParam_t * result_str )
 {
     mbedtls_ctr_drbg_context ctx;
     unsigned char buf[512];
@@ -58,12 +53,12 @@ void ctr_drbg_validate_nopr( uint8_t * add_init, uint32_t add_init_len,
 
 
     test_offset_idx = 0;
-    TEST_ASSERT( mbedtls_ctr_drbg_seed_entropy_len( &ctx, mbedtls_entropy_func, entropy, add_init, add_init_len, 32 ) == 0 );
+    TEST_ASSERT( mbedtls_ctr_drbg_seed_entropy_len( &ctx, mbedtls_entropy_func, entropy->x, add_init->x, add_init->len, 32 ) == 0 );
 
-    TEST_ASSERT( mbedtls_ctr_drbg_random_with_add( &ctx, buf, 16, add1, add1_len ) == 0 );
-    TEST_ASSERT( mbedtls_ctr_drbg_reseed( &ctx, add_reseed, add_reseed_len ) == 0 );
-    TEST_ASSERT( mbedtls_ctr_drbg_random_with_add( &ctx, buf, 16, add2, add2_len ) == 0 );
-    TEST_ASSERT( hexcmp( buf, result_str, 16, result_str_len ) == 0 );
+    TEST_ASSERT( mbedtls_ctr_drbg_random_with_add( &ctx, buf, 16, add1->x, add1->len ) == 0 );
+    TEST_ASSERT( mbedtls_ctr_drbg_reseed( &ctx, add_reseed->x, add_reseed->len ) == 0 );
+    TEST_ASSERT( mbedtls_ctr_drbg_random_with_add( &ctx, buf, 16, add2->x, add2->len ) == 0 );
+    TEST_ASSERT( hexcmp( buf, result_str->x, 16, result_str->len ) == 0 );
 
 exit:
     mbedtls_ctr_drbg_free( &ctx );

@@ -8,16 +8,15 @@
  */
 
 /* BEGIN_CASE */
-void des_check_weak( uint8_t * key, uint32_t key_len, int ret )
+void des_check_weak( HexParam_t * key, int ret )
 {
-    TEST_ASSERT( mbedtls_des_key_check_weak( key ) == ret );
+    TEST_ASSERT( mbedtls_des_key_check_weak( key->x ) == ret );
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
-void des_encrypt_ecb( uint8_t * key_str, uint32_t key_str_len,
-                      uint8_t * src_str, uint32_t src_str_len,
-                      uint8_t * hex_dst_string, uint32_t hex_dst_string_len )
+void des_encrypt_ecb( HexParam_t * key_str, HexParam_t * src_str,
+                      HexParam_t * hex_dst_string )
 {
     unsigned char output[100];
     mbedtls_des_context ctx;
@@ -26,10 +25,10 @@ void des_encrypt_ecb( uint8_t * key_str, uint32_t key_str_len,
     mbedtls_des_init( &ctx );
 
 
-    mbedtls_des_setkey_enc( &ctx, key_str );
-    TEST_ASSERT( mbedtls_des_crypt_ecb( &ctx, src_str, output ) == 0 );
+    mbedtls_des_setkey_enc( &ctx, key_str->x );
+    TEST_ASSERT( mbedtls_des_crypt_ecb( &ctx, src_str->x, output ) == 0 );
 
-    TEST_ASSERT( hexcmp( output, hex_dst_string, 8, hex_dst_string_len ) == 0 );
+    TEST_ASSERT( hexcmp( output, hex_dst_string->x, 8, hex_dst_string->len ) == 0 );
 
 exit:
     mbedtls_des_free( &ctx );
@@ -37,9 +36,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void des_decrypt_ecb( uint8_t * key_str, uint32_t key_str_len,
-                      uint8_t * src_str, uint32_t src_str_len,
-                      uint8_t * hex_dst_string, uint32_t hex_dst_string_len )
+void des_decrypt_ecb( HexParam_t * key_str, HexParam_t * src_str,
+                      HexParam_t * hex_dst_string )
 {
     unsigned char output[100];
     mbedtls_des_context ctx;
@@ -48,10 +46,10 @@ void des_decrypt_ecb( uint8_t * key_str, uint32_t key_str_len,
     mbedtls_des_init( &ctx );
 
 
-    mbedtls_des_setkey_dec( &ctx, key_str );
-    TEST_ASSERT( mbedtls_des_crypt_ecb( &ctx, src_str, output ) == 0 );
+    mbedtls_des_setkey_dec( &ctx, key_str->x );
+    TEST_ASSERT( mbedtls_des_crypt_ecb( &ctx, src_str->x, output ) == 0 );
 
-    TEST_ASSERT( hexcmp( output, hex_dst_string, 8, hex_dst_string_len ) == 0 );
+    TEST_ASSERT( hexcmp( output, hex_dst_string->x, 8, hex_dst_string->len ) == 0 );
 
 exit:
     mbedtls_des_free( &ctx );
@@ -59,10 +57,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CBC */
-void des_encrypt_cbc( uint8_t * key_str, uint32_t key_str_len,
-                      uint8_t * iv_str, uint32_t iv_str_len,
-                      uint8_t * src_str, uint32_t src_len,
-                      uint8_t * hex_dst_string, uint32_t hex_dst_string_len,
+void des_encrypt_cbc( HexParam_t * key_str, HexParam_t * iv_str,
+                      HexParam_t * src_str, HexParam_t * hex_dst_string,
                       int cbc_result )
 {
     unsigned char output[100];
@@ -72,12 +68,12 @@ void des_encrypt_cbc( uint8_t * key_str, uint32_t key_str_len,
     mbedtls_des_init( &ctx );
 
 
-    mbedtls_des_setkey_enc( &ctx, key_str );
-    TEST_ASSERT( mbedtls_des_crypt_cbc( &ctx, MBEDTLS_DES_ENCRYPT, src_len, iv_str, src_str, output ) == cbc_result );
+    mbedtls_des_setkey_enc( &ctx, key_str->x );
+    TEST_ASSERT( mbedtls_des_crypt_cbc( &ctx, MBEDTLS_DES_ENCRYPT, src_str->len, iv_str->x, src_str->x, output ) == cbc_result );
     if( cbc_result == 0 )
     {
 
-        TEST_ASSERT( hexcmp( output, hex_dst_string, src_len, hex_dst_string_len ) == 0 );
+        TEST_ASSERT( hexcmp( output, hex_dst_string->x, src_str->len, hex_dst_string->len ) == 0 );
     }
 
 exit:
@@ -86,10 +82,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CBC */
-void des_decrypt_cbc( uint8_t * key_str, uint32_t key_str_len,
-                      uint8_t * iv_str, uint32_t iv_str_len,
-                      uint8_t * src_str, uint32_t src_len,
-                      uint8_t * hex_dst_string, uint32_t hex_dst_string_len,
+void des_decrypt_cbc( HexParam_t * key_str, HexParam_t * iv_str,
+                      HexParam_t * src_str, HexParam_t * hex_dst_string,
                       int cbc_result )
 {
     unsigned char output[100];
@@ -99,12 +93,12 @@ void des_decrypt_cbc( uint8_t * key_str, uint32_t key_str_len,
     mbedtls_des_init( &ctx );
 
 
-    mbedtls_des_setkey_dec( &ctx, key_str );
-    TEST_ASSERT( mbedtls_des_crypt_cbc( &ctx, MBEDTLS_DES_DECRYPT, src_len, iv_str, src_str, output ) == cbc_result );
+    mbedtls_des_setkey_dec( &ctx, key_str->x );
+    TEST_ASSERT( mbedtls_des_crypt_cbc( &ctx, MBEDTLS_DES_DECRYPT, src_str->len, iv_str->x, src_str->x, output ) == cbc_result );
     if( cbc_result == 0 )
     {
 
-        TEST_ASSERT( hexcmp( output, hex_dst_string, src_len, hex_dst_string_len ) == 0 );
+        TEST_ASSERT( hexcmp( output, hex_dst_string->x, src_str->len, hex_dst_string->len ) == 0 );
     }
 
 exit:
@@ -113,9 +107,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void des3_encrypt_ecb( int key_count, uint8_t * key_str, uint32_t key_str_len,
-                       uint8_t * src_str, uint32_t src_str_len,
-                       uint8_t * hex_dst_string, uint32_t hex_dst_string_len )
+void des3_encrypt_ecb( int key_count, HexParam_t * key_str,
+                       HexParam_t * src_str, HexParam_t * hex_dst_string )
 {
     unsigned char output[100];
     mbedtls_des3_context ctx;
@@ -125,15 +118,15 @@ void des3_encrypt_ecb( int key_count, uint8_t * key_str, uint32_t key_str_len,
 
 
     if( key_count == 2 )
-        mbedtls_des3_set2key_enc( &ctx, key_str );
+        mbedtls_des3_set2key_enc( &ctx, key_str->x );
     else if( key_count == 3 )
-        mbedtls_des3_set3key_enc( &ctx, key_str );
+        mbedtls_des3_set3key_enc( &ctx, key_str->x );
     else
         TEST_ASSERT( 0 );
 
-    TEST_ASSERT( mbedtls_des3_crypt_ecb( &ctx, src_str, output ) == 0 );
+    TEST_ASSERT( mbedtls_des3_crypt_ecb( &ctx, src_str->x, output ) == 0 );
 
-    TEST_ASSERT( hexcmp( output, hex_dst_string, 8, hex_dst_string_len ) == 0 );
+    TEST_ASSERT( hexcmp( output, hex_dst_string->x, 8, hex_dst_string->len ) == 0 );
 
 exit:
     mbedtls_des3_free( &ctx );
@@ -141,9 +134,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void des3_decrypt_ecb( int key_count, uint8_t * key_str, uint32_t key_str_len,
-                       uint8_t * src_str, uint32_t src_str_len,
-                       uint8_t * hex_dst_string, uint32_t hex_dst_string_len )
+void des3_decrypt_ecb( int key_count, HexParam_t * key_str,
+                       HexParam_t * src_str, HexParam_t * hex_dst_string )
 {
     unsigned char output[100];
     mbedtls_des3_context ctx;
@@ -153,15 +145,15 @@ void des3_decrypt_ecb( int key_count, uint8_t * key_str, uint32_t key_str_len,
 
 
     if( key_count == 2 )
-        mbedtls_des3_set2key_dec( &ctx, key_str );
+        mbedtls_des3_set2key_dec( &ctx, key_str->x );
     else if( key_count == 3 )
-        mbedtls_des3_set3key_dec( &ctx, key_str );
+        mbedtls_des3_set3key_dec( &ctx, key_str->x );
     else
         TEST_ASSERT( 0 );
 
-    TEST_ASSERT( mbedtls_des3_crypt_ecb( &ctx, src_str, output ) == 0 );
+    TEST_ASSERT( mbedtls_des3_crypt_ecb( &ctx, src_str->x, output ) == 0 );
 
-    TEST_ASSERT( hexcmp( output, hex_dst_string, 8, hex_dst_string_len ) == 0 );
+    TEST_ASSERT( hexcmp( output, hex_dst_string->x, 8, hex_dst_string->len ) == 0 );
 
 exit:
     mbedtls_des3_free( &ctx );
@@ -169,11 +161,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CBC */
-void des3_encrypt_cbc( int key_count, uint8_t * key_str, uint32_t key_str_len,
-                       uint8_t * iv_str, uint32_t iv_str_len,
-                       uint8_t * src_str, uint32_t src_len,
-                       uint8_t * hex_dst_string, uint32_t hex_dst_string_len,
-                       int cbc_result )
+void des3_encrypt_cbc( int key_count, HexParam_t * key_str,
+                       HexParam_t * iv_str, HexParam_t * src_str,
+                       HexParam_t * hex_dst_string, int cbc_result )
 {
     unsigned char output[100];
     mbedtls_des3_context ctx;
@@ -183,18 +173,18 @@ void des3_encrypt_cbc( int key_count, uint8_t * key_str, uint32_t key_str_len,
 
 
     if( key_count == 2 )
-        mbedtls_des3_set2key_enc( &ctx, key_str );
+        mbedtls_des3_set2key_enc( &ctx, key_str->x );
     else if( key_count == 3 )
-        mbedtls_des3_set3key_enc( &ctx, key_str );
+        mbedtls_des3_set3key_enc( &ctx, key_str->x );
     else
         TEST_ASSERT( 0 );
 
-    TEST_ASSERT( mbedtls_des3_crypt_cbc( &ctx, MBEDTLS_DES_ENCRYPT, src_len, iv_str, src_str, output ) == cbc_result );
+    TEST_ASSERT( mbedtls_des3_crypt_cbc( &ctx, MBEDTLS_DES_ENCRYPT, src_str->len, iv_str->x, src_str->x, output ) == cbc_result );
 
     if( cbc_result == 0 )
     {
 
-        TEST_ASSERT( hexcmp( output, hex_dst_string, src_len, hex_dst_string_len ) == 0 );
+        TEST_ASSERT( hexcmp( output, hex_dst_string->x, src_str->len, hex_dst_string->len ) == 0 );
     }
 
 exit:
@@ -203,11 +193,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CBC */
-void des3_decrypt_cbc( int key_count, uint8_t * key_str, uint32_t key_str_len,
-                       uint8_t * iv_str, uint32_t iv_str_len,
-                       uint8_t * src_str, uint32_t src_len,
-                       uint8_t * hex_dst_string, uint32_t hex_dst_string_len,
-                       int cbc_result )
+void des3_decrypt_cbc( int key_count, HexParam_t * key_str,
+                       HexParam_t * iv_str, HexParam_t * src_str,
+                       HexParam_t * hex_dst_string, int cbc_result )
 {
     unsigned char output[100];
     mbedtls_des3_context ctx;
@@ -217,18 +205,18 @@ void des3_decrypt_cbc( int key_count, uint8_t * key_str, uint32_t key_str_len,
 
 
     if( key_count == 2 )
-        mbedtls_des3_set2key_dec( &ctx, key_str );
+        mbedtls_des3_set2key_dec( &ctx, key_str->x );
     else if( key_count == 3 )
-        mbedtls_des3_set3key_dec( &ctx, key_str );
+        mbedtls_des3_set3key_dec( &ctx, key_str->x );
     else
         TEST_ASSERT( 0 );
 
-    TEST_ASSERT( mbedtls_des3_crypt_cbc( &ctx, MBEDTLS_DES_DECRYPT, src_len, iv_str, src_str, output ) == cbc_result );
+    TEST_ASSERT( mbedtls_des3_crypt_cbc( &ctx, MBEDTLS_DES_DECRYPT, src_str->len, iv_str->x, src_str->x, output ) == cbc_result );
 
     if( cbc_result == 0 )
     {
 
-        TEST_ASSERT( hexcmp( output, hex_dst_string, src_len, hex_dst_string_len ) == 0 );
+        TEST_ASSERT( hexcmp( output, hex_dst_string->x, src_str->len, hex_dst_string->len ) == 0 );
     }
 
 exit:

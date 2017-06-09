@@ -11,8 +11,7 @@
  */
 
 /* BEGIN_CASE */
-void mbedtls_asn1_write_octet_string( uint8_t * str, uint32_t str_len,
-                                      uint8_t * asn1, uint32_t asn1_len,
+void mbedtls_asn1_write_octet_string( HexParam_t * str, HexParam_t * asn1,
                                       int buf_len, int result )
 {
     int ret;
@@ -25,7 +24,7 @@ void mbedtls_asn1_write_octet_string( uint8_t * str, uint32_t str_len,
 
     p = buf + GUARD_LEN + buf_len;
 
-    ret = mbedtls_asn1_write_octet_string( &p, buf + GUARD_LEN, str, str_len );
+    ret = mbedtls_asn1_write_octet_string( &p, buf + GUARD_LEN, str->x, str->len );
 
     /* Check for buffer overwrite on both sides */
     for( i = 0; i < GUARD_LEN; i++ )
@@ -36,17 +35,17 @@ void mbedtls_asn1_write_octet_string( uint8_t * str, uint32_t str_len,
 
     if( result >= 0 )
     {
-        TEST_ASSERT( p + asn1_len == buf + GUARD_LEN + buf_len );
+        TEST_ASSERT( (size_t) ret == asn1->len );
+        TEST_ASSERT( p + asn1->len == buf + GUARD_LEN + buf_len );
 
-        TEST_ASSERT( memcmp( p, asn1, asn1_len ) == 0 );
+        TEST_ASSERT( memcmp( p, asn1->x, asn1->len ) == 0 );
     }
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_asn1_write_ia5_string( char * str, uint8_t * asn1,
-                                    uint32_t asn1_len, int buf_len, int result
-                                    )
+void mbedtls_asn1_write_ia5_string( char * str, HexParam_t * asn1,
+                                    int buf_len, int result )
 {
     int ret;
     unsigned char buf[150];
@@ -71,9 +70,10 @@ void mbedtls_asn1_write_ia5_string( char * str, uint8_t * asn1,
 
     if( result >= 0 )
     {
-        TEST_ASSERT( p + asn1_len == buf + GUARD_LEN + buf_len );
+        TEST_ASSERT( (size_t) ret == asn1->len );
+        TEST_ASSERT( p + asn1->len == buf + GUARD_LEN + buf_len );
 
-        TEST_ASSERT( memcmp( p, asn1, asn1_len ) == 0 );
+        TEST_ASSERT( memcmp( p, asn1->x, asn1->len ) == 0 );
     }
 }
 /* END_CASE */

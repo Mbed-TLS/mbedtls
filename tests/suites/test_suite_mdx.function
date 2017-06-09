@@ -6,8 +6,7 @@
 /* END_HEADER */
 
 /* BEGIN_CASE depends_on:MBEDTLS_MD2_C */
-void md2_text( char * text_src_string, uint8_t * hex_hash_string,
-               uint32_t hex_hash_string_len )
+void md2_text( char * text_src_string, HexParam_t * hex_hash_string )
 {
     unsigned char src_str[100];
     unsigned char output[16];
@@ -19,13 +18,12 @@ void md2_text( char * text_src_string, uint8_t * hex_hash_string,
 
     mbedtls_md2( src_str, strlen( (char *) src_str ), output );
 
-    TEST_ASSERT( hexcmp( output, hex_hash_string, sizeof  output, hex_hash_string_len ) == 0 );
+    TEST_ASSERT( hexcmp( output, hex_hash_string->x, sizeof  output, hex_hash_string->len ) == 0 );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_MD4_C */
-void md4_text( char * text_src_string, uint8_t * hex_hash_string,
-               uint32_t hex_hash_string_len )
+void md4_text( char * text_src_string, HexParam_t * hex_hash_string )
 {
     unsigned char src_str[100];
     unsigned char output[16];
@@ -37,13 +35,12 @@ void md4_text( char * text_src_string, uint8_t * hex_hash_string,
 
     mbedtls_md4( src_str, strlen( (char *) src_str ), output );
 
-    TEST_ASSERT( hexcmp( output, hex_hash_string, sizeof  output, hex_hash_string_len ) == 0 );
+    TEST_ASSERT( hexcmp( output, hex_hash_string->x, sizeof  output, hex_hash_string->len ) == 0 );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_MD5_C */
-void md5_text( char * text_src_string, uint8_t * hex_hash_string,
-               uint32_t hex_hash_string_len )
+void md5_text( char * text_src_string, HexParam_t * hex_hash_string )
 {
     unsigned char src_str[100];
     unsigned char output[16];
@@ -55,13 +52,12 @@ void md5_text( char * text_src_string, uint8_t * hex_hash_string,
 
     mbedtls_md5( src_str, strlen( (char *) src_str ), output );
 
-    TEST_ASSERT( hexcmp( output, hex_hash_string, sizeof  output, hex_hash_string_len ) == 0 );
+    TEST_ASSERT( hexcmp( output, hex_hash_string->x, sizeof  output, hex_hash_string->len ) == 0 );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_RIPEMD160_C */
-void ripemd160_text( char * text_src_string, uint8_t * hex_hash_string,
-                     uint32_t hex_hash_string_len )
+void ripemd160_text( char * text_src_string, HexParam_t * hex_hash_string )
 {
     unsigned char src_str[100];
     unsigned char output[20];
@@ -73,7 +69,7 @@ void ripemd160_text( char * text_src_string, uint8_t * hex_hash_string,
 
     mbedtls_ripemd160( src_str, strlen( (char *) src_str ), output );
 
-    TEST_ASSERT( hexcmp( output, hex_hash_string, sizeof output, hex_hash_string_len ) == 0 );
+    TEST_ASSERT( hexcmp( output, hex_hash_string->x, sizeof output, hex_hash_string->len ) == 0 );
 }
 /* END_CASE */
 

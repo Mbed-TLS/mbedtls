@@ -51,14 +51,11 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void gcm_encrypt_and_tag( int cipher_id, uint8_t * key_str, uint32_t key_len,
-                          uint8_t * src_str, uint32_t pt_len,
-                          uint8_t * iv_str, uint32_t iv_len,
-                          uint8_t * add_str, uint32_t add_len,
-                          uint8_t * hex_dst_string,
-                          uint32_t hex_dst_string_len, int tag_len_bits,
-                          uint8_t * hex_tag_string,
-                          uint32_t hex_tag_string_len, int init_result )
+void gcm_encrypt_and_tag( int cipher_id, HexParam_t * key_str,
+                          HexParam_t * src_str, HexParam_t * iv_str,
+                          HexParam_t * add_str, HexParam_t * hex_dst_string,
+                          int tag_len_bits, HexParam_t * hex_tag_string,
+                          int init_result )
 {
     unsigned char output[128];
     unsigned char tag_output[16];
@@ -71,13 +68,13 @@ void gcm_encrypt_and_tag( int cipher_id, uint8_t * key_str, uint32_t key_len,
     memset(tag_output, 0x00, 16);
 
 
-    TEST_ASSERT( mbedtls_gcm_setkey( &ctx, cipher_id, key_str, key_len * 8 ) == init_result );
+    TEST_ASSERT( mbedtls_gcm_setkey( &ctx, cipher_id, key_str->x, key_str->len * 8 ) == init_result );
     if( init_result == 0 )
     {
-        TEST_ASSERT( mbedtls_gcm_crypt_and_tag( &ctx, MBEDTLS_GCM_ENCRYPT, pt_len, iv_str, iv_len, add_str, add_len, src_str, output, tag_len, tag_output ) == 0 );
+        TEST_ASSERT( mbedtls_gcm_crypt_and_tag( &ctx, MBEDTLS_GCM_ENCRYPT, src_str->len, iv_str->x, iv_str->len, add_str->x, add_str->len, src_str->x, output, tag_len, tag_output ) == 0 );
 
-        TEST_ASSERT( hexcmp( output, hex_dst_string, pt_len, hex_dst_string_len ) == 0 );
-        TEST_ASSERT( hexcmp( tag_output, hex_tag_string, tag_len, hex_tag_string_len ) == 0 );
+        TEST_ASSERT( hexcmp( output, hex_dst_string->x, src_str->len, hex_dst_string->len ) == 0 );
+        TEST_ASSERT( hexcmp( tag_output, hex_tag_string->x, tag_len, hex_tag_string->len ) == 0 );
     }
 
 exit:
@@ -86,14 +83,11 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void gcm_decrypt_and_verify( int cipher_id, uint8_t * key_str,
-                             uint32_t key_len, uint8_t * src_str,
-                             uint32_t pt_len, uint8_t * iv_str,
-                             uint32_t iv_len, uint8_t * add_str,
-                             uint32_t add_len, int tag_len_bits,
-                             uint8_t * tag_str, uint32_t tag_str_len,
-                             char * result, uint8_t * pt_result,
-                             uint32_t pt_result_len, int init_result )
+void gcm_decrypt_and_verify( int cipher_id, HexParam_t * key_str,
+                             HexParam_t * src_str, HexParam_t * iv_str,
+                             HexParam_t * add_str, int tag_len_bits,
+                             HexParam_t * tag_str, char * result,
+                             HexParam_t * pt_result, int init_result )
 {
     unsigned char output[128];
     mbedtls_gcm_context ctx;
@@ -105,10 +99,10 @@ void gcm_decrypt_and_verify( int cipher_id, uint8_t * key_str,
     memset(output, 0x00, 128);
 
 
-    TEST_ASSERT( mbedtls_gcm_setkey( &ctx, cipher_id, key_str, key_len * 8 ) == init_result );
+    TEST_ASSERT( mbedtls_gcm_setkey( &ctx, cipher_id, key_str->x, key_str->len * 8 ) == init_result );
     if( init_result == 0 )
     {
-        ret = mbedtls_gcm_auth_decrypt( &ctx, pt_len, iv_str, iv_len, add_str, add_len, tag_str, tag_len, src_str, output );
+        ret = mbedtls_gcm_auth_decrypt( &ctx, src_str->len, iv_str->x, iv_str->len, add_str->x, add_str->len, tag_str->x, tag_len, src_str->x, output );
 
         if( strcmp( "FAIL", result ) == 0 )
         {
@@ -118,7 +112,7 @@ void gcm_decrypt_and_verify( int cipher_id, uint8_t * key_str,
         {
             TEST_ASSERT( ret == 0 );
 
-            TEST_ASSERT( hexcmp( output, pt_result, pt_len, pt_result_len ) == 0 );
+            TEST_ASSERT( hexcmp( output, pt_result->x, src_str->len, pt_result->len ) == 0 );
         }
     }
 

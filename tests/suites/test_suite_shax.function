@@ -5,77 +5,72 @@
 /* END_HEADER */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA1_C */
-void mbedtls_sha1( uint8_t * src_str, uint32_t src_len,
-                   uint8_t * hex_hash_string, uint32_t hex_hash_string_len )
+void mbedtls_sha1( HexParam_t * src_str, HexParam_t * hex_hash_string )
 {
     unsigned char output[41];
 
     memset(output, 0x00, 41);
 
 
-    mbedtls_sha1( src_str, src_len, output );
+    mbedtls_sha1( src_str->x, src_str->len, output );
 
-    TEST_ASSERT( hexcmp( output, hex_hash_string, 20, hex_hash_string_len ) == 0 );
+    TEST_ASSERT( hexcmp( output, hex_hash_string->x, 20, hex_hash_string->len ) == 0 );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
-void sha224( uint8_t * src_str, uint32_t src_len, uint8_t * hex_hash_string,
-             uint32_t hex_hash_string_len )
+void sha224( HexParam_t * src_str, HexParam_t * hex_hash_string )
 {
     unsigned char output[57];
 
     memset(output, 0x00, 57);
 
 
-    mbedtls_sha256( src_str, src_len, output, 1 );
+    mbedtls_sha256( src_str->x, src_str->len, output, 1 );
 
-    TEST_ASSERT( hexcmp( output, hex_hash_string, 28, hex_hash_string_len ) == 0 );
+    TEST_ASSERT( hexcmp( output, hex_hash_string->x, 28, hex_hash_string->len ) == 0 );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
-void mbedtls_sha256( uint8_t * src_str, uint32_t src_len,
-                     uint8_t * hex_hash_string, uint32_t hex_hash_string_len )
+void mbedtls_sha256( HexParam_t * src_str, HexParam_t * hex_hash_string )
 {
     unsigned char output[65];
 
     memset(output, 0x00, 65);
 
 
-    mbedtls_sha256( src_str, src_len, output, 0 );
+    mbedtls_sha256( src_str->x, src_str->len, output, 0 );
 
-    TEST_ASSERT( hexcmp( output, hex_hash_string, 32, hex_hash_string_len ) == 0 );
+    TEST_ASSERT( hexcmp( output, hex_hash_string->x, 32, hex_hash_string->len ) == 0 );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA512_C */
-void sha384( uint8_t * src_str, uint32_t src_len, uint8_t * hex_hash_string,
-             uint32_t hex_hash_string_len )
+void sha384( HexParam_t * src_str, HexParam_t * hex_hash_string )
 {
     unsigned char output[97];
 
     memset(output, 0x00, 97);
 
 
-    mbedtls_sha512( src_str, src_len, output, 1 );
+    mbedtls_sha512( src_str->x, src_str->len, output, 1 );
 
-    TEST_ASSERT( hexcmp( output, hex_hash_string, 48, hex_hash_string_len ) == 0 );
+    TEST_ASSERT( hexcmp( output, hex_hash_string->x, 48, hex_hash_string->len ) == 0 );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA512_C */
-void mbedtls_sha512( uint8_t * src_str, uint32_t src_len,
-                     uint8_t * hex_hash_string, uint32_t hex_hash_string_len )
+void mbedtls_sha512( HexParam_t * src_str, HexParam_t * hex_hash_string )
 {
     unsigned char output[129];
 
     memset(output, 0x00, 129);
 
 
-    mbedtls_sha512( src_str, src_len, output, 0);
+    mbedtls_sha512( src_str->x, src_str->len, output, 0);
 
-    TEST_ASSERT( hexcmp( output, hex_hash_string, 64, hex_hash_string_len ) == 0 );
+    TEST_ASSERT( hexcmp( output, hex_hash_string->x, 64, hex_hash_string->len ) == 0 );
 }
 /* END_CASE */
 

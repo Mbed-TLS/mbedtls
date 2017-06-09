@@ -53,8 +53,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_read_binary( uint8_t * buf, uint32_t input_len, int radix_A,
-                              char * input_A )
+void mbedtls_mpi_read_binary( HexParam_t * buf, int radix_A, char * input_A )
 {
     mbedtls_mpi X;
     unsigned char str[1000];
@@ -63,7 +62,7 @@ void mbedtls_mpi_read_binary( uint8_t * buf, uint32_t input_len, int radix_A,
     mbedtls_mpi_init( &X );
 
 
-    TEST_ASSERT( mbedtls_mpi_read_binary( &X, buf, input_len ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_binary( &X, buf->x, buf->len ) == 0 );
     TEST_ASSERT( mbedtls_mpi_write_string( &X, radix_A, (char *) str, sizeof( str ), &len ) == 0 );
     TEST_ASSERT( strcmp( (char *) str, input_A ) == 0 );
 
@@ -73,8 +72,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_write_binary( int radix_X, char * input_X, uint8_t * input_A,
-                               uint32_t input_A_len, int output_size,
+void mbedtls_mpi_write_binary( int radix_X, char * input_X,
+                               HexParam_t * input_A, int output_size,
                                int result )
 {
     mbedtls_mpi X;
@@ -95,7 +94,7 @@ void mbedtls_mpi_write_binary( int radix_X, char * input_X, uint8_t * input_A,
     if( result == 0)
     {
 
-        TEST_ASSERT( hexcmp( buf, input_A, buflen, input_A_len ) == 0 );
+        TEST_ASSERT( hexcmp( buf, input_A->x, buflen, input_A->len ) == 0 );
     }
 
 exit:
@@ -104,8 +103,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO */
-void mbedtls_mpi_read_file( int radix_X, char * input_file, uint8_t * input_A,
-                            uint32_t input_A_len, int result )
+void mbedtls_mpi_read_file( int radix_X, char * input_file,
+                            HexParam_t * input_A, int result )
 {
     mbedtls_mpi X;
     unsigned char buf[1000];
@@ -129,7 +128,7 @@ void mbedtls_mpi_read_file( int radix_X, char * input_file, uint8_t * input_A,
         TEST_ASSERT( mbedtls_mpi_write_binary( &X, buf, buflen ) == 0 );
 
 
-        TEST_ASSERT( hexcmp( buf, input_A, buflen, input_A_len ) == 0 );
+        TEST_ASSERT( hexcmp( buf, input_A->x, buflen, input_A->len ) == 0 );
     }
 
 exit:

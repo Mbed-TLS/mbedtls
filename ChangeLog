@@ -10,6 +10,8 @@ Security
      Clémentine Maurice and Stefan Mangard.
 
 Bugfix
+   * Disable use of extensions for SSLv3, previously causing the
+     "SSLv3 with extensions" test from ssl-opt.sh to fail.
    * Fix insufficient support for signature-hash-algorithm extension,
      resulting in compatibility problems with Chrome. Found by hfloyrd. #823
    * Wipe stack buffers in RSA private key operations

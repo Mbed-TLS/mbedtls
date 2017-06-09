@@ -6780,8 +6780,11 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
     ssl->in_msglen -= n;
 
     if( ssl->in_msglen == 0 )
+    {
         /* all bytes consumed  */
         ssl->in_offt = NULL;
+        ssl->keep_current_message = 0;
+    }
     else
         /* more data available */
         ssl->in_offt += n;

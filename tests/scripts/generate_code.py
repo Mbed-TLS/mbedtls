@@ -27,14 +27,14 @@ Generates code in following structure.
 <output dir>/
 |-- host_tests/
 |   |-- mbedtls_test.py
-|   |-- suites/
-|   |   |-- *.data files
 |   |-- mbedtls/
 |   |   |-- <test suite #1>/
 |   |   |    |-- main.c
+|   |   |    |-- *.data files
 |   |   ...
 |   |   |-- <test suite #n>/
 |   |   |    |-- main.c
+|   |   |    |-- *.data files
 |   |   |
 """
 
@@ -504,7 +504,7 @@ def gen_from_test_data(data_f, out_data_f, func_info):
     return dep_check_code, expression_code
 
 
-def gen_mbed_code(funcs_file, data_file, template_file, platform_file, help_file, suites_dir, c_file, out_data_file):
+def generate_code(funcs_file, data_file, template_file, platform_file, help_file, suites_dir, c_file, out_data_file):
     """
     Generate mbed-os test code.
 
@@ -627,7 +627,7 @@ def check_cmd():
         if not os.path.exists(d):
             os.makedirs(d)
 
-    gen_mbed_code(args.funcs_file, args.data_file, args.template_file, args.platform_file,
+    generate_code(args.funcs_file, args.data_file, args.template_file, args.platform_file,
                   args.help_file, args.suites_dir, out_c_file, out_data_file)
 
 

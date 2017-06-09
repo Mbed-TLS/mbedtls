@@ -471,12 +471,10 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void decrypt_test_vec( int cipher_id, int pad_mode, uint8_t * key,
-                       uint32_t key_len, uint8_t * iv, uint32_t iv_len,
-                       uint8_t * cipher, uint32_t cipher_len, uint8_t * clear,
-                       uint32_t clear_len, uint8_t * ad, uint32_t ad_len,
-                       uint8_t * tag, uint32_t tag_len, int finish_result,
-                       int tag_result )
+void decrypt_test_vec( int cipher_id, int pad_mode, HexParam_t * key,
+                       HexParam_t * iv, HexParam_t * cipher,
+                       HexParam_t * clear, HexParam_t * ad, HexParam_t * tag,
+                       int finish_result, int tag_result )
 {
     mbedtls_cipher_context_t ctx;
     unsigned char output[200];
@@ -494,35 +492,35 @@ void decrypt_test_vec( int cipher_id, int pad_mode, uint8_t * key,
     /* Prepare context */
     TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx,
                                        mbedtls_cipher_info_from_type( cipher_id ) ) );
-    TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key, 8 * key_len, MBEDTLS_DECRYPT ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key->x, 8 * key->len, MBEDTLS_DECRYPT ) );
 #if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
     if( pad_mode != -1 )
         TEST_ASSERT( 0 == mbedtls_cipher_set_padding_mode( &ctx, pad_mode ) );
 #else
     (void) pad_mode;
 #endif /* MBEDTLS_CIPHER_MODE_WITH_PADDING */
-    TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx, iv, iv_len ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx, iv->x, iv->len ) );
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx ) );
 #if defined(MBEDTLS_GCM_C)
-    TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx, ad, ad_len ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx, ad->x, ad->len ) );
 #endif
 
-    /* decode buffer and check tag */
+    /* decode buffer and check tag->x */
     total_len = 0;
-    TEST_ASSERT( 0 == mbedtls_cipher_update( &ctx, cipher, cipher_len, output, &outlen ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_update( &ctx, cipher->x, cipher->len, output, &outlen ) );
     total_len += outlen;
     TEST_ASSERT( finish_result == mbedtls_cipher_finish( &ctx, output + outlen,
                                                  &outlen ) );
     total_len += outlen;
 #if defined(MBEDTLS_GCM_C)
-    TEST_ASSERT( tag_result == mbedtls_cipher_check_tag( &ctx, tag, tag_len ) );
+    TEST_ASSERT( tag_result == mbedtls_cipher_check_tag( &ctx, tag->x, tag->len ) );
 #endif
 
     /* check plaintext only if everything went fine */
     if( 0 == finish_result && 0 == tag_result )
     {
-        TEST_ASSERT( total_len == clear_len );
-        TEST_ASSERT( 0 == memcmp( output, clear, clear_len ) );
+        TEST_ASSERT( total_len == clear->len );
+        TEST_ASSERT( 0 == memcmp( output, clear->x, clear->len ) );
     }
 
 exit:
@@ -531,11 +529,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_AEAD */
-void auth_crypt_tv( int cipher_id, uint8_t * key, uint32_t key_len,
-                    uint8_t * iv, uint32_t iv_len, uint8_t * ad,
-                    uint32_t ad_len, uint8_t * cipher, uint32_t cipher_len,
-                    uint8_t * tag, uint32_t tag_len, char * result,
-                    uint8_t * clear, uint32_t clear_len )
+void auth_crypt_tv( int cipher_id, HexParam_t * key, HexParam_t * iv,
+                    HexParam_t * ad, HexParam_t * cipher, HexParam_t * tag,
+                    char * result, HexParam_t * clear )
 {
     int ret;
     unsigned char my_tag[20];
@@ -552,12 +548,12 @@ void auth_crypt_tv( int cipher_id, uint8_t * key, uint32_t key_len,
     /* Prepare context */
     TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx,
                                        mbedtls_cipher_info_from_type( cipher_id ) ) );
-    TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key, 8 * key_len, MBEDTLS_DECRYPT ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key->x, 8 * key->len, MBEDTLS_DECRYPT ) );
 
-    /* decode buffer and check tag */
-    ret = mbedtls_cipher_auth_decrypt( &ctx, iv, iv_len, ad, ad_len,
-                               cipher, cipher_len, output, &outlen,
-                               tag, tag_len );
+    /* decode buffer and check tag->x */
+    ret = mbedtls_cipher_auth_decrypt( &ctx, iv->x, iv->len, ad->x, ad->len,
+                               cipher->x, cipher->len, output, &outlen,
+                               tag->x, tag->len );
 
     /* make sure we didn't overwrite */
     TEST_ASSERT( output[outlen + 0] == 0xFF );
@@ -573,27 +569,27 @@ void auth_crypt_tv( int cipher_id, uint8_t * key, uint32_t key_len,
     /* otherwise, make sure it was decrypted properly */
     TEST_ASSERT( ret == 0 );
 
-    TEST_ASSERT( outlen == clear_len );
-    TEST_ASSERT( memcmp( output, clear, clear_len ) == 0 );
+    TEST_ASSERT( outlen == clear->len );
+    TEST_ASSERT( memcmp( output, clear->x, clear->len ) == 0 );
 
-    /* then encrypt the clear and make sure we get the same ciphertext and tag */
+    /* then encrypt the clear->x and make sure we get the same ciphertext and tag->x */
     memset( output, 0xFF, sizeof( output ) );
     outlen = 0;
 
-    ret = mbedtls_cipher_auth_encrypt( &ctx, iv, iv_len, ad, ad_len,
-                               clear, clear_len, output, &outlen,
-                               my_tag, tag_len );
+    ret = mbedtls_cipher_auth_encrypt( &ctx, iv->x, iv->len, ad->x, ad->len,
+                               clear->x, clear->len, output, &outlen,
+                               my_tag, tag->len );
     TEST_ASSERT( ret == 0 );
 
-    TEST_ASSERT( outlen == clear_len );
-    TEST_ASSERT( memcmp( output, cipher, clear_len ) == 0 );
-    TEST_ASSERT( memcmp( my_tag, tag, tag_len ) == 0 );
+    TEST_ASSERT( outlen == clear->len );
+    TEST_ASSERT( memcmp( output, cipher->x, clear->len ) == 0 );
+    TEST_ASSERT( memcmp( my_tag, tag->x, tag->len ) == 0 );
 
     /* make sure we didn't overwrite */
     TEST_ASSERT( output[outlen + 0] == 0xFF );
     TEST_ASSERT( output[outlen + 1] == 0xFF );
-    TEST_ASSERT( my_tag[tag_len + 0] == 0xFF );
-    TEST_ASSERT( my_tag[tag_len + 1] == 0xFF );
+    TEST_ASSERT( my_tag[tag->len + 0] == 0xFF );
+    TEST_ASSERT( my_tag[tag->len + 1] == 0xFF );
 
 
 exit:
@@ -602,9 +598,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void test_vec_ecb( int cipher_id, int operation, uint8_t * key,
-                   uint32_t key_len, uint8_t * input, uint32_t input_len,
-                   uint8_t * result, uint32_t result_len, int finish_result )
+void test_vec_ecb( int cipher_id, int operation, HexParam_t * key,
+                   HexParam_t * input, HexParam_t * result, int finish_result
+                   )
 {
     mbedtls_cipher_context_t ctx;
     unsigned char output[32];
@@ -619,9 +615,9 @@ void test_vec_ecb( int cipher_id, int operation, uint8_t * key,
                                        mbedtls_cipher_info_from_type( cipher_id ) ) );
 
 
-    TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key, 8 * key_len, operation ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key->x, 8 * key->len, operation ) );
 
-    TEST_ASSERT( 0 == mbedtls_cipher_update( &ctx, input,
+    TEST_ASSERT( 0 == mbedtls_cipher_update( &ctx, input->x,
                                      mbedtls_cipher_get_block_size( &ctx ),
                                      output, &outlen ) );
     TEST_ASSERT( outlen == mbedtls_cipher_get_block_size( &ctx ) );
@@ -631,7 +627,7 @@ void test_vec_ecb( int cipher_id, int operation, uint8_t * key,
 
     /* check plaintext only if everything went fine */
     if( 0 == finish_result )
-        TEST_ASSERT( 0 == memcmp( output, result,
+        TEST_ASSERT( 0 == memcmp( output, result->x,
                                   mbedtls_cipher_get_block_size( &ctx ) ) );
 
 exit:
@@ -659,8 +655,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CBC */
-void check_padding( int pad_mode, uint8_t * input, uint32_t ilen, int ret,
-                    int dlen_check )
+void check_padding( int pad_mode, HexParam_t * input, int ret, int dlen_check
+                    )
 {
     mbedtls_cipher_info_t cipher_info;
     mbedtls_cipher_context_t ctx;
@@ -674,7 +670,7 @@ void check_padding( int pad_mode, uint8_t * input, uint32_t ilen, int ret,
     TEST_ASSERT( 0 == mbedtls_cipher_set_padding_mode( &ctx, pad_mode ) );
 
 
-    TEST_ASSERT( ret == ctx.get_padding( input, ilen, &dlen ) );
+    TEST_ASSERT( ret == ctx.get_padding( input->x, input->len, &dlen ) );
     if( 0 == ret )
         TEST_ASSERT( dlen == (size_t) dlen_check );
 }

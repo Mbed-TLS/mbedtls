@@ -18,13 +18,11 @@
  */
 
 /* BEGIN_CASE */
-void mbedtls_rsa_pkcs1_sign( uint8_t * message_str, uint32_t msg_len,
-                             int padding_mode, int digest, int mod,
-                             int radix_P, char * input_P, int radix_Q,
-                             char * input_Q, int radix_N, char * input_N,
-                             int radix_E, char * input_E,
-                             uint8_t * result_hex_str,
-                             uint32_t result_hex_str_len, int result )
+void mbedtls_rsa_pkcs1_sign( HexParam_t * message_str, int padding_mode,
+                             int digest, int mod, int radix_P, char * input_P,
+                             int radix_Q, char * input_Q, int radix_N,
+                             char * input_N, int radix_E, char * input_E,
+                             HexParam_t * result_hex_str, int result )
 {
     unsigned char hash_result[1000];
     unsigned char output[1000];
@@ -52,8 +50,7 @@ void mbedtls_rsa_pkcs1_sign( uint8_t * message_str, uint32_t msg_len,
 
 
     if( mbedtls_md_info_from_type( digest ) != NULL )
-        TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( digest ),
-                                 message_str, msg_len, hash_result ) == 0 );
+        TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( digest ), message_str->x, message_str->len, hash_result ) == 0 );
 
     TEST_ASSERT( mbedtls_rsa_pkcs1_sign( &ctx, &rnd_pseudo_rand, &rnd_info,
                                          MBEDTLS_RSA_PRIVATE, digest, 0,
@@ -61,7 +58,7 @@ void mbedtls_rsa_pkcs1_sign( uint8_t * message_str, uint32_t msg_len,
     if( result == 0 )
     {
 
-        TEST_ASSERT( hexcmp( output, result_hex_str, ctx.len, result_hex_str_len ) == 0 );
+        TEST_ASSERT( hexcmp( output, result_hex_str->x, ctx.len, result_hex_str->len ) == 0 );
     }
 
 exit:
@@ -72,11 +69,10 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_rsa_pkcs1_verify( uint8_t * message_str, uint32_t msg_len,
-                               int padding_mode, int digest, int mod,
-                               int radix_N, char * input_N, int radix_E,
-                               char * input_E, uint8_t * result_str,
-                               uint32_t result_str_len, int result )
+void mbedtls_rsa_pkcs1_verify( HexParam_t * message_str, int padding_mode,
+                               int digest, int mod, int radix_N,
+                               char * input_N, int radix_E, char * input_E,
+                               HexParam_t * result_str, int result )
 {
     unsigned char hash_result[1000];
     mbedtls_rsa_context ctx;
@@ -95,9 +91,9 @@ void mbedtls_rsa_pkcs1_verify( uint8_t * message_str, uint32_t msg_len,
 
 
     if( mbedtls_md_info_from_type( digest ) != NULL )
-        TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( digest ), message_str, msg_len, hash_result ) == 0 );
+        TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( digest ), message_str->x, message_str->len, hash_result ) == 0 );
 
-    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, NULL, NULL, MBEDTLS_RSA_PUBLIC, digest, 0, hash_result, result_str ) == result );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, NULL, NULL, MBEDTLS_RSA_PUBLIC, digest, 0, hash_result, result_str->x ) == result );
 
 exit:
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &E );
@@ -107,13 +103,11 @@ exit:
 
 
 /* BEGIN_CASE */
-void rsa_pkcs1_sign_raw( uint8_t * message_str, uint32_t message_str_len,
-                         uint8_t * hash_result, uint32_t hash_len,
+void rsa_pkcs1_sign_raw( HexParam_t * hash_result,
                          int padding_mode, int mod, int radix_P,
                          char * input_P, int radix_Q, char * input_Q,
                          int radix_N, char * input_N, int radix_E,
-                         char * input_E, uint8_t * result_hex_str,
-                         uint32_t result_hex_str_len )
+                         char * input_E, HexParam_t * result_hex_str )
 {
     unsigned char output[1000];
     mbedtls_rsa_context ctx;
@@ -140,10 +134,11 @@ void rsa_pkcs1_sign_raw( uint8_t * message_str, uint32_t message_str_len,
 
     TEST_ASSERT( mbedtls_rsa_pkcs1_sign( &ctx, &rnd_pseudo_rand, &rnd_info,
                                          MBEDTLS_RSA_PRIVATE, MBEDTLS_MD_NONE,
-                                         hash_len, hash_result, output ) == 0 );
+                                         hash_result->len, hash_result->x,
+                                         output ) == 0 );
 
 
-    TEST_ASSERT( hexcmp( output, result_hex_str, ctx.len, result_hex_str_len ) == 0 );
+    TEST_ASSERT( hexcmp( output, result_hex_str->x, ctx.len, result_hex_str->len ) == 0 );
 
 #if defined(MBEDTLS_PKCS1_V15)
     /* For PKCS#1 v1.5, there is an alternative way to generate signatures */
@@ -154,7 +149,7 @@ void rsa_pkcs1_sign_raw( uint8_t * message_str, uint32_t message_str_len,
 
         res = mbedtls_rsa_rsaes_pkcs1_v15_encrypt( &ctx,
                     &rnd_pseudo_rand, &rnd_info, MBEDTLS_RSA_PRIVATE,
-                    hash_len, hash_result, output );
+                    hash_result->len, hash_result->x, output );
 
 #if !defined(MBEDTLS_RSA_ALT)
         TEST_ASSERT( res == 0 );
@@ -165,7 +160,7 @@ void rsa_pkcs1_sign_raw( uint8_t * message_str, uint32_t message_str_len,
 
         if( res == 0 )
         {
-            TEST_ASSERT( hexcmp( output, result_hex_str, ctx.len, result_hex_str_len ) == 0 );
+            TEST_ASSERT( hexcmp( output, result_hex_str->x, ctx.len, result_hex_str->len ) == 0 );
         }
     }
 #endif /* MBEDTLS_PKCS1_V15 */
@@ -179,12 +174,10 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void rsa_pkcs1_verify_raw( uint8_t * message_str, uint32_t message_str_len,
-                           uint8_t * hash_result, uint32_t hash_len,
+void rsa_pkcs1_verify_raw( HexParam_t * hash_result,
                            int padding_mode, int mod, int radix_N,
                            char * input_N, int radix_E, char * input_E,
-                           uint8_t * result_str, uint32_t result_str_len,
-                           int correct )
+                           HexParam_t * result_str, int correct )
 {
     unsigned char output[1000];
     mbedtls_rsa_context ctx;
@@ -203,10 +196,7 @@ void rsa_pkcs1_verify_raw( uint8_t * message_str, uint32_t message_str_len,
     TEST_ASSERT( mbedtls_rsa_check_pubkey( &ctx ) == 0 );
 
 
-    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, NULL, NULL,
-                              MBEDTLS_RSA_PUBLIC, MBEDTLS_MD_NONE,
-                              hash_len, hash_result,
-                              result_str ) == correct );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, NULL, NULL, MBEDTLS_RSA_PUBLIC, MBEDTLS_MD_NONE, hash_result->len, hash_result->x, result_str->x ) == correct );
 
 #if defined(MBEDTLS_PKCS1_V15)
     /* For PKCS#1 v1.5, there is an alternative way to verify signatures */
@@ -218,7 +208,7 @@ void rsa_pkcs1_verify_raw( uint8_t * message_str, uint32_t message_str_len,
 
         res = mbedtls_rsa_rsaes_pkcs1_v15_decrypt( &ctx,
                     NULL, NULL, MBEDTLS_RSA_PUBLIC,
-                    &olen, result_str, output, sizeof( output ) );
+                    &olen, result_str->x, output, sizeof( output ) );
 
 #if !defined(MBEDTLS_RSA_ALT)
         TEST_ASSERT( res == 0 );
@@ -229,7 +219,7 @@ void rsa_pkcs1_verify_raw( uint8_t * message_str, uint32_t message_str_len,
 
         if( res == 0 )
         {
-            ok = olen == hash_len && memcmp( output, hash_result, olen ) == 0;
+            ok = olen == hash_result->len && memcmp( output, hash_result->x, olen ) == 0;
             if( correct == 0 )
                 TEST_ASSERT( ok == 1 );
             else
@@ -245,11 +235,10 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_rsa_pkcs1_encrypt( uint8_t * message_str, uint32_t msg_len,
-                                int padding_mode, int mod, int radix_N,
-                                char * input_N, int radix_E, char * input_E,
-                                uint8_t * result_hex_str,
-                                uint32_t result_hex_str_len, int result )
+void mbedtls_rsa_pkcs1_encrypt( HexParam_t * message_str, int padding_mode,
+                                int mod, int radix_N, char * input_N,
+                                int radix_E, char * input_E,
+                                HexParam_t * result_hex_str, int result )
 {
     unsigned char output[1000];
     mbedtls_rsa_context ctx;
@@ -272,12 +261,12 @@ void mbedtls_rsa_pkcs1_encrypt( uint8_t * message_str, uint32_t msg_len,
 
 
     TEST_ASSERT( mbedtls_rsa_pkcs1_encrypt( &ctx, &rnd_pseudo_rand, &rnd_info,
-                                            MBEDTLS_RSA_PUBLIC, msg_len,
-                                            message_str, output ) == result );
+                                            MBEDTLS_RSA_PUBLIC, message_str->len,
+                                            message_str->x, output ) == result );
     if( result == 0 )
     {
 
-        TEST_ASSERT( hexcmp( output, result_hex_str, ctx.len, result_hex_str_len ) == 0 );
+        TEST_ASSERT( hexcmp( output, result_hex_str->x, ctx.len, result_hex_str->len ) == 0 );
     }
 
 exit:
@@ -287,11 +276,10 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void rsa_pkcs1_encrypt_bad_rng( uint8_t * message_str, uint32_t msg_len,
-                                int padding_mode, int mod, int radix_N,
-                                char * input_N, int radix_E, char * input_E,
-                                uint8_t * result_hex_str,
-                                uint32_t result_hex_str_len, int result )
+void rsa_pkcs1_encrypt_bad_rng( HexParam_t * message_str, int padding_mode,
+                                int mod, int radix_N, char * input_N,
+                                int radix_E, char * input_E,
+                                HexParam_t * result_hex_str, int result )
 {
     unsigned char output[1000];
     mbedtls_rsa_context ctx;
@@ -311,12 +299,12 @@ void rsa_pkcs1_encrypt_bad_rng( uint8_t * message_str, uint32_t msg_len,
 
 
     TEST_ASSERT( mbedtls_rsa_pkcs1_encrypt( &ctx, &rnd_zero_rand, NULL,
-                                            MBEDTLS_RSA_PUBLIC, msg_len,
-                                            message_str, output ) == result );
+                                            MBEDTLS_RSA_PUBLIC, message_str->len,
+                                            message_str->x, output ) == result );
     if( result == 0 )
     {
 
-        TEST_ASSERT( hexcmp( output, result_hex_str, output_len, result_hex_str_len ) == 0 );
+        TEST_ASSERT( hexcmp( output, result_hex_str->x, ctx.len, result_hex_str->len ) == 0 );
     }
 
 exit:
@@ -326,13 +314,12 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_rsa_pkcs1_decrypt( uint8_t * message_str,
-                                uint32_t message_str_len, int padding_mode,
+void mbedtls_rsa_pkcs1_decrypt( HexParam_t * message_str, int padding_mode,
                                 int mod, int radix_P, char * input_P,
                                 int radix_Q, char * input_Q, int radix_N,
                                 char * input_N, int radix_E, char * input_E,
-                                int max_output, uint8_t * result_hex_str,
-                                uint32_t result_hex_str_len, int result )
+                                int max_output, HexParam_t * result_hex_str,
+                                int result )
 {
     unsigned char output[1000];
     mbedtls_rsa_context ctx;
@@ -361,11 +348,11 @@ void mbedtls_rsa_pkcs1_decrypt( uint8_t * message_str,
 
     output_len = 0;
 
-    TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx, rnd_pseudo_rand, &rnd_info, MBEDTLS_RSA_PRIVATE, &output_len, message_str, output, max_output ) == result );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx, rnd_pseudo_rand, &rnd_info, MBEDTLS_RSA_PRIVATE, &output_len, message_str->x, output, max_output ) == result );
     if( result == 0 )
     {
 
-        TEST_ASSERT( hexcmp( output, result_hex_str, ctx.len, result_hex_str_len ) == 0 );
+        TEST_ASSERT( hexcmp( output, result_hex_str->x, output_len, result_hex_str->len ) == 0 );
     }
 
 exit:
@@ -376,10 +363,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_rsa_public( uint8_t * message_str, uint32_t message_str_len,
-                         int mod, int radix_N, char * input_N, int radix_E,
-                         char * input_E, uint8_t * result_hex_str,
-                         uint32_t result_hex_str_len, int result )
+void mbedtls_rsa_public( HexParam_t * message_str, int mod, int radix_N,
+                         char * input_N, int radix_E, char * input_E,
+                         HexParam_t * result_hex_str, int result )
 {
     unsigned char output[1000];
     mbedtls_rsa_context ctx, ctx2; /* Also test mbedtls_rsa_copy() while at it */
@@ -399,11 +385,11 @@ void mbedtls_rsa_public( uint8_t * message_str, uint32_t message_str_len,
     TEST_ASSERT( mbedtls_rsa_check_pubkey( &ctx ) == 0 );
 
 
-    TEST_ASSERT( mbedtls_rsa_public( &ctx, message_str, output ) == result );
+    TEST_ASSERT( mbedtls_rsa_public( &ctx, message_str->x, output ) == result );
     if( result == 0 )
     {
 
-        TEST_ASSERT( hexcmp( output, result_hex_str, ctx.len, result_hex_str_len ) == 0 );
+        TEST_ASSERT( hexcmp( output, result_hex_str->x, ctx.len, result_hex_str->len ) == 0 );
     }
 
     /* And now with the copy */
@@ -414,11 +400,11 @@ void mbedtls_rsa_public( uint8_t * message_str, uint32_t message_str_len,
     TEST_ASSERT( mbedtls_rsa_check_pubkey( &ctx2 ) == 0 );
 
     memset( output, 0x00, 1000 );
-    TEST_ASSERT( mbedtls_rsa_public( &ctx2, message_str, output ) == result );
+    TEST_ASSERT( mbedtls_rsa_public( &ctx2, message_str->x, output ) == result );
     if( result == 0 )
     {
 
-        TEST_ASSERT( hexcmp( output, result_hex_str, ctx.len, result_hex_str_len ) == 0 );
+        TEST_ASSERT( hexcmp( output, result_hex_str->x, ctx.len, result_hex_str->len ) == 0 );
     }
 
 exit:
@@ -429,12 +415,11 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_rsa_private( uint8_t * message_str, uint32_t message_str_len,
-                          int mod, int radix_P, char * input_P, int radix_Q,
-                          char * input_Q, int radix_N, char * input_N,
-                          int radix_E, char * input_E,
-                          uint8_t * result_hex_str,
-                          uint32_t result_hex_str_len, int result )
+void mbedtls_rsa_private( HexParam_t * message_str, int mod, int radix_P,
+                          char * input_P, int radix_Q, char * input_Q,
+                          int radix_N, char * input_N, int radix_E,
+                          char * input_E, HexParam_t * result_hex_str,
+                          int result )
 {
     unsigned char output[1000];
     mbedtls_rsa_context ctx, ctx2; /* Also test mbedtls_rsa_copy() while at it */
@@ -465,11 +450,11 @@ void mbedtls_rsa_private( uint8_t * message_str, uint32_t message_str_len,
     {
         memset( output, 0x00, 1000 );
         TEST_ASSERT( mbedtls_rsa_private( &ctx, rnd_pseudo_rand, &rnd_info,
-                                  message_str, output ) == result );
+                                  message_str->x, output ) == result );
         if( result == 0 )
         {
 
-            TEST_ASSERT( hexcmp( output, result_hex_str, ctx.len, result_hex_str_len ) == 0 );
+            TEST_ASSERT( hexcmp( output, result_hex_str->x, ctx.len, result_hex_str->len ) == 0 );
         }
     }
 
@@ -482,11 +467,11 @@ void mbedtls_rsa_private( uint8_t * message_str, uint32_t message_str_len,
 
     memset( output, 0x00, 1000 );
     TEST_ASSERT( mbedtls_rsa_private( &ctx2, rnd_pseudo_rand, &rnd_info,
-                              message_str, output ) == result );
+                              message_str->x, output ) == result );
     if( result == 0 )
     {
 
-        TEST_ASSERT( hexcmp( output, result_hex_str, ctx2.len, result_hex_str_len ) == 0 );
+        TEST_ASSERT( hexcmp( output, result_hex_str->x, ctx2.len, result_hex_str->len ) == 0 );
     }
 
 exit:
@@ -1138,64 +1123,29 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_CTR_DRBG_C:MBEDTLS_ENTROPY_C */
-void mbedtls_rsa_export_raw( char *input_N, char *input_P,
-                             char *input_Q, char *input_D,
-                             char *input_E, int is_priv,
+void mbedtls_rsa_export_raw( HexParam_t *input_N, HexParam_t *input_P,
+                             HexParam_t *input_Q, HexParam_t *input_D,
+                             HexParam_t *input_E, int is_priv,
                              int successive )
 {
-    /* Original raw buffers with which we set up the RSA context */
-    unsigned char bufN[1000];
-    unsigned char bufP[1000];
-    unsigned char bufQ[1000];
-    unsigned char bufD[1000];
-    unsigned char bufE[1000];
-
-    size_t lenN = 0;
-    size_t lenP = 0;
-    size_t lenQ = 0;
-    size_t lenD = 0;
-    size_t lenE = 0;
-
     /* Exported buffers */
-    unsigned char bufNe[ sizeof( bufN ) ];
-    unsigned char bufPe[ sizeof( bufP ) ];
-    unsigned char bufQe[ sizeof( bufQ ) ];
-    unsigned char bufDe[ sizeof( bufD ) ];
-    unsigned char bufEe[ sizeof( bufE ) ];
-
-    const int have_N = ( strlen( input_N ) > 0 );
-    const int have_P = ( strlen( input_P ) > 0 );
-    const int have_Q = ( strlen( input_Q ) > 0 );
-    const int have_D = ( strlen( input_D ) > 0 );
-    const int have_E = ( strlen( input_E ) > 0 );
+    unsigned char bufNe[1000];
+    unsigned char bufPe[1000];
+    unsigned char bufQe[1000];
+    unsigned char bufDe[1000];
+    unsigned char bufEe[1000];
 
     mbedtls_rsa_context ctx;
 
     mbedtls_rsa_init( &ctx, 0, 0 );
 
     /* Setup RSA context */
-
-    if( have_N )
-        lenN = unhexify( bufN, input_N );
-
-    if( have_P )
-        lenP = unhexify( bufP, input_P );
-
-    if( have_Q )
-        lenQ = unhexify( bufQ, input_Q );
-
-    if( have_D )
-        lenD = unhexify( bufD, input_D );
-
-    if( have_E )
-        lenE = unhexify( bufE, input_E );
-
     TEST_ASSERT( mbedtls_rsa_import_raw( &ctx,
-                               have_N ? bufN : NULL, lenN,
-                               have_P ? bufP : NULL, lenP,
-                               have_Q ? bufQ : NULL, lenQ,
-                               have_D ? bufD : NULL, lenD,
-                               have_E ? bufE : NULL, lenE ) == 0 );
+                               input_N->len ? input_N->x : NULL, input_N->len,
+                               input_P->len ? input_P->x : NULL, input_P->len,
+                               input_Q->len ? input_Q->x : NULL, input_Q->len,
+                               input_D->len ? input_D->x : NULL, input_D->len,
+                               input_E->len ? input_E->x : NULL, input_E->len ) == 0 );
 
     TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == 0 );
 
@@ -1206,21 +1156,21 @@ void mbedtls_rsa_export_raw( char *input_N, char *input_P,
     /* N and E must always be present. */
     if( !successive )
     {
-        TEST_ASSERT( mbedtls_rsa_export_raw( &ctx, bufNe, lenN,
+        TEST_ASSERT( mbedtls_rsa_export_raw( &ctx, bufNe, input_N->len,
                                              NULL, 0, NULL, 0, NULL, 0,
-                                             bufEe, lenE ) == 0 );
+                                             bufEe, input_E->len ) == 0 );
     }
     else
     {
-        TEST_ASSERT( mbedtls_rsa_export_raw( &ctx, bufNe, lenN,
+        TEST_ASSERT( mbedtls_rsa_export_raw( &ctx, bufNe, input_N->len,
                                              NULL, 0, NULL, 0, NULL, 0,
                                              NULL, 0 ) == 0 );
         TEST_ASSERT( mbedtls_rsa_export_raw( &ctx, NULL, 0,
                                              NULL, 0, NULL, 0, NULL, 0,
-                                             bufEe, lenE ) == 0 );
+                                             bufEe, input_E->len ) == 0 );
     }
-    TEST_ASSERT( memcmp( bufN, bufNe, lenN ) == 0 );
-    TEST_ASSERT( memcmp( bufE, bufEe, lenE ) == 0 );
+    TEST_ASSERT( memcmp( input_N->x, bufNe, input_N->len ) == 0 );
+    TEST_ASSERT( memcmp( input_E->x, bufEe, input_E->len ) == 0 );
 
     /* If we were providing enough information to setup a complete private context,
      * we expect to be able to export all core parameters. */
@@ -1230,35 +1180,35 @@ void mbedtls_rsa_export_raw( char *input_N, char *input_P,
         if( !successive )
         {
             TEST_ASSERT( mbedtls_rsa_export_raw( &ctx, NULL, 0,
-                                         bufPe, lenP ? lenP : sizeof( bufPe ),
-                                         bufQe, lenQ ? lenQ : sizeof( bufQe ),
-                                         bufDe, lenD ? lenD : sizeof( bufDe ),
+                                         bufPe, input_P->len ? input_P->len : sizeof( bufPe ),
+                                         bufQe, input_Q->len ? input_Q->len : sizeof( bufQe ),
+                                         bufDe, input_D->len ? input_D->len : sizeof( bufDe ),
                                          NULL, 0 ) == 0 );
         }
         else
         {
             TEST_ASSERT( mbedtls_rsa_export_raw( &ctx, NULL, 0,
-                                         bufPe, lenP ? lenP : sizeof( bufPe ),
+                                         bufPe, input_P->len ? input_P->len : sizeof( bufPe ),
                                          NULL, 0, NULL, 0,
                                          NULL, 0 ) == 0 );
 
             TEST_ASSERT( mbedtls_rsa_export_raw( &ctx, NULL, 0, NULL, 0,
-                                         bufQe, lenQ ? lenQ : sizeof( bufQe ),
+                                         bufQe, input_Q->len ? input_Q->len : sizeof( bufQe ),
                                          NULL, 0, NULL, 0 ) == 0 );
 
-            TEST_ASSERT( mbedtls_rsa_export_raw( &ctx, NULL, 0, NULL, 0,
-                                         NULL, 0, bufDe, lenD ? lenD : sizeof( bufDe ),
+            TEST_ASSERT( mbedtls_rsa_export_raw( &ctx, NULL, 0, NULL, 0, NULL, 0,
+                                         bufDe, input_D->len ? input_D->len : sizeof( bufDe ),
                                          NULL, 0 ) == 0 );
         }
 
-        if( have_P )
-            TEST_ASSERT( memcmp( bufP, bufPe, lenP ) == 0 );
+        if( input_P->len )
+            TEST_ASSERT( memcmp( input_P->x, bufPe, input_P->len ) == 0 );
 
-        if( have_Q )
-            TEST_ASSERT( memcmp( bufQ, bufQe, lenQ ) == 0 );
+        if( input_Q->len )
+            TEST_ASSERT( memcmp( input_Q->x, bufQe, input_Q->len ) == 0 );
 
-        if( have_D )
-            TEST_ASSERT( memcmp( bufD, bufDe, lenD ) == 0 );
+        if( input_D->len )
+            TEST_ASSERT( memcmp( input_D->x, bufDe, input_D->len ) == 0 );
 
     }
 
@@ -1268,30 +1218,18 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_CTR_DRBG_C:MBEDTLS_ENTROPY_C:ENTROPY_HAVE_STRONG */
-void mbedtls_rsa_import_raw( char *input_N,
-                             char *input_P, char *input_Q,
-                             char *input_D, char *input_E,
+void mbedtls_rsa_import_raw( HexParam_t *input_N,
+                             HexParam_t *input_P, HexParam_t *input_Q,
+                             HexParam_t *input_D, HexParam_t *input_E,
                              int successive,
                              int is_priv,
                              int res_check,
                              int res_complete )
 {
-    unsigned char bufN[1000];
-    unsigned char bufP[1000];
-    unsigned char bufQ[1000];
-    unsigned char bufD[1000];
-    unsigned char bufE[1000];
-
     /* Buffers used for encryption-decryption test */
     unsigned char *buf_orig = NULL;
     unsigned char *buf_enc  = NULL;
     unsigned char *buf_dec  = NULL;
-
-    size_t lenN = 0;
-    size_t lenP = 0;
-    size_t lenQ = 0;
-    size_t lenD = 0;
-    size_t lenE = 0;
 
     mbedtls_rsa_context ctx;
     mbedtls_entropy_context entropy;
@@ -1307,29 +1245,14 @@ void mbedtls_rsa_import_raw( char *input_N,
                                         &entropy, (const unsigned char *) pers,
                                         strlen( pers ) ) == 0 );
 
-    if( strlen( input_N ) )
-        lenN = unhexify( bufN, input_N );
-
-    if( strlen( input_P ) )
-        lenP = unhexify( bufP, input_P );
-
-    if( strlen( input_Q ) )
-        lenQ = unhexify( bufQ, input_Q );
-
-    if( strlen( input_D ) )
-        lenD = unhexify( bufD, input_D );
-
-    if( strlen( input_E ) )
-        lenE = unhexify( bufE, input_E );
-
     if( !successive )
     {
         TEST_ASSERT( mbedtls_rsa_import_raw( &ctx,
-                               ( lenN > 0 ) ? bufN : NULL, lenN,
-                               ( lenP > 0 ) ? bufP : NULL, lenP,
-                               ( lenQ > 0 ) ? bufQ : NULL, lenQ,
-                               ( lenD > 0 ) ? bufD : NULL, lenD,
-                               ( lenE > 0 ) ? bufE : NULL, lenE ) == 0 );
+                               ( input_N->len > 0 ) ? input_N->x : NULL, input_N->len,
+                               ( input_P->len > 0 ) ? input_P->x : NULL, input_P->len,
+                               ( input_Q->len > 0 ) ? input_Q->x : NULL, input_Q->len,
+                               ( input_D->len > 0 ) ? input_D->x : NULL, input_D->len,
+                               ( input_E->len > 0 ) ? input_E->x : NULL, input_E->len ) == 0 );
     }
     else
     {
@@ -1337,27 +1260,27 @@ void mbedtls_rsa_import_raw( char *input_N,
          * This should make no functional difference. */
 
         TEST_ASSERT( mbedtls_rsa_import_raw( &ctx,
-                               ( lenN > 0 ) ? bufN : NULL, lenN,
+                               ( input_N->len > 0 ) ? input_N->x : NULL, input_N->len,
                                NULL, 0, NULL, 0, NULL, 0, NULL, 0 ) == 0 );
 
         TEST_ASSERT( mbedtls_rsa_import_raw( &ctx,
                                NULL, 0,
-                               ( lenP > 0 ) ? bufP : NULL, lenP,
+                               ( input_P->len > 0 ) ? input_P->x : NULL, input_P->len,
                                NULL, 0, NULL, 0, NULL, 0 ) == 0 );
 
         TEST_ASSERT( mbedtls_rsa_import_raw( &ctx,
                                NULL, 0, NULL, 0,
-                               ( lenQ > 0 ) ? bufQ : NULL, lenQ,
+                               ( input_Q->len > 0 ) ? input_Q->x : NULL, input_Q->len,
                                NULL, 0, NULL, 0 ) == 0 );
 
         TEST_ASSERT( mbedtls_rsa_import_raw( &ctx,
                                NULL, 0, NULL, 0, NULL, 0,
-                               ( lenD > 0 ) ? bufD : NULL, lenD,
+                               ( input_D->len > 0 ) ? input_D->x : NULL, input_D->len,
                                NULL, 0 ) == 0 );
 
         TEST_ASSERT( mbedtls_rsa_import_raw( &ctx,
                                NULL, 0, NULL, 0, NULL, 0, NULL, 0,
-                               ( lenE > 0 ) ? bufE : NULL, lenE ) == 0 );
+                               ( input_E->len > 0 ) ? input_E->x : NULL, input_E->len ) == 0 );
     }
 
     TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == res_complete );

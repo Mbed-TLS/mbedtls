@@ -105,8 +105,7 @@ exit:
 
 /* BEGIN_CASE */
 void mbedtls_debug_print_buf( char * file, int line, char * text,
-                              uint8_t * data, uint32_t data_len,
-                              char * result_str )
+                              HexParam_t * data, char * result_str )
 {
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
@@ -122,7 +121,7 @@ void mbedtls_debug_print_buf( char * file, int line, char * text,
 
     mbedtls_ssl_conf_dbg( &conf, string_debug, &buffer);
 
-    mbedtls_debug_print_buf( &ssl, 0, file, line, text, data, data_len );
+    mbedtls_debug_print_buf( &ssl, 0, file, line, text, data->x, data->len );
 
     TEST_ASSERT( strcmp( buffer.buf, result_str ) == 0 );
 

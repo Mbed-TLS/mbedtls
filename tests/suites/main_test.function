@@ -1,4 +1,4 @@
-#line 2 "suites/mbed_test.function"
+#line 2 "suites/main_test.function"
 /*
  * *** THIS FILE HAS BEEN MACHINE GENERATED ***
  *
@@ -31,7 +31,7 @@
 
 {test_common_helpers}
 
-#line {line_no} "suites/mbed_test.function"
+#line {line_no} "suites/main_test.function"
 
 
 /*----------------------------------------------------------------------------*/
@@ -44,7 +44,7 @@
 
 {functions_code}
 
-#line {line_no} "suites/mbed_test.function"
+#line {line_no} "suites/main_test.function"
 
 
 /*----------------------------------------------------------------------------*/
@@ -66,7 +66,7 @@
 int get_expression( int32_t exp_id, int32_t * out_value )
 {{
 {expression_code}
-#line {line_no} "suites/mbed_test.function"
+#line {line_no} "suites/main_test.function"
     {{
         return( -1 );
     }}
@@ -88,7 +88,7 @@ int get_expression( int32_t exp_id, int32_t * out_value )
 int dep_check( int dep_id )
 {{
 {dep_check_code}
-#line {line_no} "suites/mbed_test.function"
+#line {line_no} "suites/main_test.function"
     {{
          return( -2 );
     }}
@@ -115,8 +115,8 @@ typedef void (*TestWrapper_t)( void ** );
  */
 TestWrapper_t test_funcs[] =
 {{
-{dispatch_code}
-#line {line_no} "suites/mbed_test.function"
+{dispatch_code} 
+#line {line_no} "suites/main_test.function"
 }};
 
 
@@ -153,7 +153,7 @@ int dispatch_test( int func_idx, void ** params )
 
 {platform_code}
 
-#line {line_no} "suites/mbed_test.function"
+#line {line_no} "suites/main_test.function"
 
 /*----------------------------------------------------------------------------*/
 /* Main Test code */

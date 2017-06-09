@@ -149,6 +149,8 @@ func.test_suite_version := test_suite_version
 
 .PHONY: all check test clean
 
+all: $(BINARIES)
+
 $(DEP):
 	$(MAKE) -C ../library
 
@@ -157,12 +159,11 @@ $(DEP):
 C_FILES := $(addsuffix .c,$(APPS))
 
 .SECONDEXPANSION:
-$(C_FILES): %.c: suites/$$(func.$$*).function suites/%.data scripts/gen_mbed_code.py suites/helpers.function suites/mbed_test.function suites/desktop_test.function
+$(C_FILES): %.c: suites/$$(func.$$*).function suites/%.data scripts/generate_code.py suites/helpers.function suites/main_test.function suites/desktop_test.function
 	echo "  Gen   $@"
-#	perl scripts/generate_code.pl suites $(func.$*) $*
-	python scripts/gen_mbed_code.py -f suites/$(func.$*).function \
+	python scripts/generate_code.py -f suites/$(func.$*).function \
 		-d suites/$*.data \
-		-t suites/mbed_test.function \
+		-t suites/main_test.function \
 		-p suites/desktop_test.function \
 		-s suites  \
 		--help-file suites/helpers.function \
@@ -172,9 +173,6 @@ $(C_FILES): %.c: suites/$$(func.$$*).function suites/%.data scripts/gen_mbed_cod
 $(BINARIES): %$(EXEXT): %.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-
-all: $(BINARIES)
 
 
 clean:
@@ -190,8 +188,8 @@ check: $(BINARIES)
 
 test: check
 
-# Create separate targets for generating mbed-os tests.
-MBED_APPS := $(addprefix mbed_,$(APPS))
+# Create separate targets for generating embedded tests.
+EMBEDDED_TESTS := $(addprefix embedded_,$(APPS))
 
 # FIXME: description needs change
 # Each test suite name is stripped off of prefix test_suite_. mbed-os test dir
@@ -201,15 +199,15 @@ MBED_APPS := $(addprefix mbed_,$(APPS))
 # name is used as the test group dir.
 
 .SECONDEXPANSION:
-$(MBED_APPS): mbed_%: suites/$$(func.$$*).function suites/%.data scripts/gen_mbed_code.py suites/helpers.function suites/mbed_test.function suites/embedded_test.function
+$(EMBEDDED_TESTS): embedded_%: suites/$$(func.$$*).function suites/%.data scripts/generate_code.py suites/helpers.function suites/main_test.function suites/embedded_test.function
 	echo "  Gen  ./TESTS/mbedtls/$*/$*.c"
-	python scripts/gen_mbed_code.py -f suites/$(func.$*).function \
+	python scripts/generate_code.py -f suites/$(func.$*).function \
 		-d suites/$*.data \
-		-t suites/mbed_test.function \
+		-t suites/main_test.function \
 		-p suites/embedded_test.function \
 		-s suites  \
 		--help-file suites/helpers.function \
 		-o ./TESTS/mbedtls/$*
 
-gen-mbed-test: $(MBED_APPS)
+gen-embedded-test: $(EMBEDDED_TESTS)
 

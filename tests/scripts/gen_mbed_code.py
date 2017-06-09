@@ -107,9 +107,12 @@ def gen_function_wrapper(name, args_dispatch):
 void {name}_wrapper( void ** params )
 {{
     {unused_params}
+{locals}
     {name}( {args} );
 }}
-'''.format(name=name, unused_params='(void)params;' if len(args_dispatch) == 0 else '', args=', '.join(args_dispatch))
+'''.format(name=name, unused_params='(void)params;' if len(args_dispatch[1]) == 0 else '',
+           args=', '.join(args_dispatch[1]),
+           locals=args_dispatch[0])
     return wrapper
 
 
@@ -204,6 +207,7 @@ def parse_function_signature(line):
     :return: 
     """
     args = []
+    locals = ''
     args_dispatch = []
     m = re.search('\s*void\s+(\w+)\s*\(', line, re.I)
     if not m:
@@ -211,7 +215,6 @@ def parse_function_signature(line):
     name = m.group(1)
     line = line[len(m.group(0)):]
     arg_idx = 0
-    last_was_hex = False
     for arg in line[:line.find(')')].split(','):
         arg = arg.strip()
         if arg == '':
@@ -222,18 +225,19 @@ def parse_function_signature(line):
         elif re.search('char\s*\*\s*.*', arg.strip()):
             args.append('char*')
             args_dispatch.append('(char *) params[%d]' % arg_idx)
-        elif re.search('uint8_t\s*\*\s*.*', arg.strip()):
+        elif re.search('HexParam_t\s*\*\s*.*', arg.strip()):
             args.append('hex')
-            args_dispatch.append('(uint8_t *) params[%d]' % arg_idx)
-            last_was_hex = True
-        elif re.search('uint32_t\s+.*', arg.strip()) and last_was_hex:
-            last_was_hex = False
-            args_dispatch.append('*( (uint32_t *) params[%d] )' % arg_idx)
+            # create a structure
+            locals += """    HexParam_t hex%d = {%s, %s};
+""" % (arg_idx, '(uint8_t *) params[%d]' % arg_idx, '*( (uint32_t *) params[%d] )' % (arg_idx + 1))
+
+            args_dispatch.append('&hex%d' % arg_idx)
+            arg_idx += 1
         else:
             raise ValueError("Test function arguments can only be 'int' or 'char *'\n%s" % line)
         arg_idx += 1
 
-    return name, args, args_dispatch
+    return name, args, (locals, args_dispatch)
 
 
 def parse_function_code(line_no, funcs_f, deps, suite_deps):

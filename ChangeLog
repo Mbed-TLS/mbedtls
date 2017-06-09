@@ -17,6 +17,8 @@ Security
      Issue raised by Harm Verhagen
 
 Bugfix
+   * Disable use of extensions for SSLv3, previously causing the
+     "SSLv3 with extensions" test from ssl-opt.sh to fail.
    * Fix insufficient support for signature-hash-algorithm extension,
      resulting in compatibility problems with Chrome. Found by hfloyrd. #823
    * Accept empty trusted CA chain in authentication mode

@@ -1632,6 +1632,8 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 
         ext = buf + 44 + sess_len + ciph_len + comp_len;
 
+        SSL_DEBUG_BUF( 3, "client hello extensions", ext, ext_len );
+
         while( ext_len )
         {
             unsigned int ext_id   = ( ( ext[0] <<  8 )
@@ -2328,6 +2330,12 @@ static int ssl_write_server_hello( ssl_context *ssl )
     SSL_DEBUG_MSG( 3, ( "server hello, compress alg.: 0x%02X",
                    ssl->session_negotiate->compression ) );
 
+    /* Do not write the extensions if the protocol is SSLv3 */
+#if defined(POLARSSL_SSL_PROTO_SSL3)
+    if( ( ssl->major_ver != 3 ) || ( ssl->minor_ver != 0 ) )
+    {
+#endif
+
     /*
      *  First write extensions, then the total length
      */
@@ -2377,6 +2385,10 @@ static int ssl_write_server_hello( ssl_context *ssl )
         *p++ = (unsigned char)( ( ext_len      ) & 0xFF );
         p += ext_len;
     }
+
+#if defined(POLARSSL_SSL_PROTO_SSL3)
+    }
+#endif
 
     ssl->out_msglen  = p - buf;
     ssl->out_msgtype = SSL_MSG_HANDSHAKE;

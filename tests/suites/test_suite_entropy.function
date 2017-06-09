@@ -302,7 +302,7 @@ void entropy_nv_seed_std_io(  )
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_NV_SEED:MBEDTLS_PLATFORM_NV_SEED_ALT:MBEDTLS_ENTROPY_SHA512_ACCUMULATOR */
-void entropy_nv_seed( uint8_t * read_seed, uint32_t read_seed_len )
+void entropy_nv_seed( HexParam_t * read_seed )
 {
     mbedtls_sha512_context accumulator;
     mbedtls_entropy_context ctx;
@@ -311,7 +311,7 @@ void entropy_nv_seed( uint8_t * read_seed, uint32_t read_seed_len )
     unsigned char entropy[MBEDTLS_ENTROPY_BLOCK_SIZE];
     unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE];
     unsigned char empty[MBEDTLS_ENTROPY_BLOCK_SIZE];
-    unsigned char read_seed[MBEDTLS_ENTROPY_BLOCK_SIZE];
+    unsigned char read_seed->x[MBEDTLS_ENTROPY_BLOCK_SIZE];
     unsigned char check_seed[MBEDTLS_ENTROPY_BLOCK_SIZE];
     unsigned char check_entropy[MBEDTLS_ENTROPY_BLOCK_SIZE];
 
@@ -323,7 +323,7 @@ void entropy_nv_seed( uint8_t * read_seed, uint32_t read_seed_len )
     memset( check_entropy, 3, MBEDTLS_ENTROPY_BLOCK_SIZE );
 
     // Set the initial NV seed to read
-    memcpy( buffer_seed, read_seed, MBEDTLS_ENTROPY_BLOCK_SIZE );
+    memcpy( buffer_seed, read_seed->x, MBEDTLS_ENTROPY_BLOCK_SIZE );
 
     // Make sure we read/write NV seed from our buffers
     mbedtls_platform_set_nv_seed( buffer_nv_seed_read, buffer_nv_seed_write );
@@ -348,7 +348,7 @@ void entropy_nv_seed( uint8_t * read_seed, uint32_t read_seed_len )
     // First run for updating write_seed
     header[0] = 0;
     mbedtls_sha512_update( &accumulator, header, 2 );
-    mbedtls_sha512_update( &accumulator, read_seed, MBEDTLS_ENTROPY_BLOCK_SIZE );
+    mbedtls_sha512_update( &accumulator, read_seed->x, MBEDTLS_ENTROPY_BLOCK_SIZE );
     mbedtls_sha512_finish( &accumulator, buf );
 
     memset( &accumulator, 0, sizeof( mbedtls_sha512_context ) );

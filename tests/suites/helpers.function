@@ -39,6 +39,13 @@ typedef UINT32 uint32_t;
 #include <strings.h>
 #endif
 
+/* Type for Hex parameters */
+typedef struct HexParam_tag
+{
+    uint8_t *   x;
+    uint32_t    len;
+} HexParam_t;
+
 /*----------------------------------------------------------------------------*/
 /* Constants */
 

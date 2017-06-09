@@ -3,6 +3,11 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS 2.5.1 released xxxx-xx-xx
 
 Security
+   * Fixed unlimited overread of heap-based buffer in mbedtls_ssl_read().
+     The issue could only happen client-side with renegotiation enabled.
+     Could result in DoS (application crash) or information leak
+     (if the application layer sent data read from mbedtls_ssl_read()
+     back to the server or to a third party). Can be triggered remotely.
    * Removed SHA-1 and RIPEMD-160 from the default hash algorithms for
      certificate verification. SHA-1 can be turned back on with a compile-time
      option if needed.

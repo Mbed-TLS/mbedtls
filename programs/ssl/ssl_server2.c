@@ -303,6 +303,10 @@ int main( void )
     return( 0 );
 }
 #else
+
+#define ALPN_LIST_SIZE  10
+#define CURVE_LIST_SIZE 20
+
 /*
  * global options
  */
@@ -697,10 +701,10 @@ int main( int argc, char *argv[] )
     sni_entry *sni_info = NULL;
 #endif
 #if defined(POLARSSL_SSL_ALPN)
-    const char *alpn_list[10];
+    const char *alpn_list[ALPN_LIST_SIZE];
 #endif
 #if defined(POLARSSL_SSL_SET_CURVES)
-    ecp_group_id curve_list[20];
+    ecp_group_id curve_list[CURVE_LIST_SIZE];
     const ecp_curve_info *curve_cur;
 #endif
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
@@ -1152,8 +1156,7 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "default" ) != 0 )
         {
             /* Leave room for a final NULL in curve list */
-            while( i < (int) ( sizeof( curve_list ) / sizeof( *curve_list ) ) - 1
-                   && *p != '\0' )
+            while( i < CURVE_LIST_SIZE - 1 && *p != '\0' )
             {
                 q = p;
 
@@ -1184,11 +1187,10 @@ int main( int argc, char *argv[] )
 
             polarssl_printf( "Number of curves: %d\n", i );
 
-            if( i == (int) ( sizeof( curve_list ) / sizeof( *curve_list ) ) - 1
-                && *p != '\0' )
+            if( i == CURVE_LIST_SIZE - 1 && *p != '\0' )
             {
-                polarssl_printf( "curves list too long, maximum %zu",
-                                 (size_t) ( sizeof( curve_list ) / sizeof( *curve_list ) - 1 ) );
+                polarssl_printf( "curves list too long, maximum %d",
+                                 CURVE_LIST_SIZE - 1 );
                 goto exit;
             }
 
@@ -1204,7 +1206,7 @@ int main( int argc, char *argv[] )
         i = 0;
 
         /* Leave room for a final NULL in alpn_list */
-        while( i < (int) sizeof alpn_list - 1 && *p != '\0' )
+        while( i < ALPN_LIST_SIZE - 1 && *p != '\0' )
         {
             alpn_list[i++] = p;
 

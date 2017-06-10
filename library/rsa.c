@@ -1465,13 +1465,16 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
                                  const unsigned char *hash,
                                  const unsigned char *sig )
 {
-    int ret;
-    size_t len, siglen, asn1_len;
+    volatile int ret;
+    size_t len, siglen, asn1_len, olen;
     unsigned char *p, *end;
+    volatile unsigned char *vp;
+    const char *poid;
     mbedtls_md_type_t msg_md_alg;
     const mbedtls_md_info_t *md_info;
     mbedtls_asn1_buf oid;
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
+    unsigned int pad_count = 0;
 
     if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V15 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
@@ -1497,6 +1500,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
     {
         if( p >= buf + siglen - 1 || *p != 0xFF )
             return( MBEDTLS_ERR_RSA_INVALID_PADDING );
+        pad_count++;
         p++;
     }
     p++;
@@ -1515,6 +1519,15 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
     if( md_info == NULL )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     hashlen = mbedtls_md_get_size( md_info );
+
+    /* Get expected hash algorithm OID length in bytes */
+    ret = mbedtls_oid_get_oid_by_md( md_alg, &poid, &olen );
+    if( ret != 0 )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    /* Verify total 0xFF padding byte count */
+    if( pad_count != siglen - 3 - 6 - olen - 4 - hashlen )
+        return( MBEDTLS_ERR_RSA_INVALID_PADDING );
 
     end = p + len;
 
@@ -1559,15 +1572,27 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
     if( asn1_len != hashlen )
         return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
 
-    if( memcmp( p, hash, hashlen ) != 0 )
-        return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
+    ret = MBEDTLS_ERR_RSA_VERIFY_FAILED;
+    ret = memcmp( p, hash, hashlen );
 
-    p += hashlen;
+    if( ret == 0 )
+    {
+        if( ret != 0)
+            return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
 
-    if( p != end )
-        return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
+        p += hashlen;
+        vp = p;
 
-    return( 0 );
+        if( vp == end )
+        {
+            if( vp != end )
+                return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
+            else
+                return( 0 );
+        }
+    }
+
+    return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
 }
 #endif /* MBEDTLS_PKCS1_V15 */
 

@@ -987,9 +987,12 @@
  *             of Diffie-Hellman, RSA, DSS, and Other Systems]
  *
  * \note      Disabling this does not mean that blinding
- *            will never be used, but instead makes private
- *            key operations fail if, perhaps unintentionally,
- *            the user failed to call them with a PRNG.
+ *            will never be used: if a PRNG is provided,
+ *            blinding will be in place. Instead, disabling this
+ *            option may result in private key operations being
+ *            performed in a way potentially leaking sensitive
+ *            information through side-channels when no PRNG
+ *            is supplied by the user.
  *
  * \note      For more on the use of blinding in RSA
  *            private key operations, see the documentation

@@ -1,4 +1,5 @@
 /* BEGIN_HEADER */
+#include "mbedtls/bignum.h"
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/x509_csr.h"
 #include "mbedtls/pem.h"

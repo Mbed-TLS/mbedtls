@@ -38,6 +38,7 @@
 
 #define MBEDTLS_ERR_AES_INVALID_KEY_LENGTH                -0x0020  /**< Invalid key length. */
 #define MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH              -0x0022  /**< Invalid data input length. */
+#define MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE               -0x006E  /**< Feature not available, e.g. unsupported AES key size. */
 
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)

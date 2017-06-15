@@ -36,6 +36,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_HAVE_ASM)
     "MBEDTLS_HAVE_ASM",
 #endif /* MBEDTLS_HAVE_ASM */
+#if defined(MBEDTLS_NO_UDBL_DIVISION)
+    "MBEDTLS_NO_UDBL_DIVISION",
+#endif /* MBEDTLS_NO_UDBL_DIVISION */
 #if defined(MBEDTLS_HAVE_SSE2)
     "MBEDTLS_HAVE_SSE2",
 #endif /* MBEDTLS_HAVE_SSE2 */

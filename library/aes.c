@@ -1271,6 +1271,11 @@ int mbedtls_aes_self_test( int verbose )
             aes_tests = aes_test_ecb_enc[u];
         }
 
+        /*
+         * AES-192 is an optional feature that may be unavailable when
+         * there is an alternative underlying implementation i.e. when
+         * MBEDTLS_AES_ALT is defined.
+         */
         if( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE && keybits == 192 )
         {
             mbedtls_printf( "skipped\n" );
@@ -1330,6 +1335,11 @@ int mbedtls_aes_self_test( int verbose )
             aes_tests = aes_test_cbc_enc[u];
         }
 
+        /*
+         * AES-192 is an optional feature that may be unavailable when
+         * there is an alternative underlying implementation i.e. when
+         * MBEDTLS_AES_ALT is defined.
+         */
         if( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE && keybits == 192 )
         {
             mbedtls_printf( "skipped\n" );
@@ -1390,6 +1400,11 @@ int mbedtls_aes_self_test( int verbose )
 
         offset = 0;
         ret = mbedtls_aes_setkey_enc( &ctx, key, keybits );
+        /*
+         * AES-192 is an optional feature that may be unavailable when
+         * there is an alternative underlying implementation i.e. when
+         * MBEDTLS_AES_ALT is defined.
+         */
         if( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE && keybits == 192 )
         {
             mbedtls_printf( "skipped\n" );

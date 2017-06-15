@@ -757,6 +757,11 @@ int mbedtls_gcm_self_test( int verbose )
 
             ret = mbedtls_gcm_setkey( &ctx, cipher, key[key_index[i]],
                                       key_len );
+            /*
+             * AES-192 is an optional feature that may be unavailable when
+             * there is an alternative underlying implementation i.e. when
+             * MBEDTLS_AES_ALT is defined.
+             */
             if( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE && key_len == 192 )
             {
                 mbedtls_printf( "skipped\n" );

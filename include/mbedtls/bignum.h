@@ -135,7 +135,7 @@
   #if ! defined(MBEDTLS_NO_UDBL_DIVISION)
     typedef uint64_t mbedtls_t_udbl;
     #define MBEDTLS_HAVE_UDBL
-  #endif /* !defined(MBEDTLS_NO_INT64_DIVISION) */
+  #endif /* !defined(MBEDTLS_NO_UDBL_DIVISION) */
 #endif /* 128-bit and 64-bit type availability analysis */
 
 #ifdef __cplusplus

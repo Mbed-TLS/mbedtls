@@ -40,8 +40,6 @@
 
 #define TEST_SUITE_ACTIVE
 
-{function_headers}
-
 {functions_code}
 
 #line {line_no} "suites/main_test.function"
@@ -140,6 +138,35 @@ int dispatch_test( int func_idx, void ** params )
         if ( fp )
             fp( params );
         else
+            ret = ( -5 );
+    }}
+    else
+    {{
+        ret = ( -3 );
+    }}
+
+    return( ret );
+}}
+
+
+/**
+ * \brief       Checks if test function is supported
+ *
+ * \param exp_id    Test function index.
+ *
+ * \return       0 if found
+ *               -3 if not found
+ *               -5 if not compile time enabled.
+ */
+int check_test( int func_idx )
+{{
+    int ret = 0;
+    TestWrapper_t fp = NULL;
+
+    if ( func_idx < (int)( sizeof(test_funcs)/sizeof( TestWrapper_t ) ) )
+    {{
+        fp = test_funcs[func_idx];
+        if ( fp == NULL )
             ret = ( -5 );
     }}
     else

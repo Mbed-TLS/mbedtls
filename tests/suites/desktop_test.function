@@ -388,6 +388,7 @@ int execute_tests( int argc , const char ** argv )
     const char *test_filename = NULL;
     const char **test_files = NULL;
     int testfile_count = 0;
+    int function_id = 0;
 
     /* Other Local variables */
     int arg_index = 1;
@@ -523,11 +524,14 @@ int execute_tests( int argc , const char ** argv )
             {
                 test_errors = 0;
 
-                ret = convert_params( cnt - 1, params + 1, int_params );
-                if ( 0 == ret )
+                function_id = strtol( params[0], NULL, 10 );
+                if ( (ret = check_test( function_id )) == 0 )
                 {
-                    int function_id = strtol( params[0], NULL, 10 );
-                    ret = dispatch_test( function_id, (void **)( params + 1 ) );
+                    ret = convert_params( cnt - 1, params + 1, int_params );
+                    if ( 0 == ret )
+                    {
+                        ret = dispatch_test( function_id, (void **)( params + 1 ) );
+                    }
                 }
             }
 

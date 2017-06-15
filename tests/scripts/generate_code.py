@@ -328,8 +328,8 @@ def parse_functions(funcs_f):
             function_idx += 1
 
     ifdef, endif = gen_deps(suite_deps)
-    func_code = ifdef + suite_functions + endif
-    return dispatch_code, suite_headers, func_code, func_info
+    func_code = ifdef + suite_headers + suite_functions + endif
+    return suite_deps, dispatch_code, func_code, func_info
 
 
 def escaped_split(str, ch):
@@ -443,13 +443,14 @@ else
     return exp_code
 
 
-def gen_from_test_data(data_f, out_data_f, func_info):
+def gen_from_test_data(data_f, out_data_f, func_info, suite_deps):
     """
     Generates dependency checks, expression code and intermediate data file from test data file.
     
     :param data_f: 
     :param out_data_f:
     :param func_info: 
+    :param suite_deps:
     :return: 
     """
     unique_deps = []
@@ -500,7 +501,23 @@ def gen_from_test_data(data_f, out_data_f, func_info):
     if len(expression_code) == 0:
         expression_code = '(void) exp_id;\n'
         expression_code += '(void) out_value;\n'
-
+    ifdef = gen_deps_one_line(suite_deps)
+    if len(suite_deps):
+        dep_check_code = '''
+{ifdef}
+{code}
+#else
+(void) dep_id;
+#endif
+'''.format(ifdef=ifdef, code=dep_check_code)
+        expression_code = '''
+{ifdef}
+{code}
+#else
+(void) exp_id;
+(void) out_value;
+#endif
+'''.format(ifdef=ifdef, code=expression_code)
     return dep_check_code, expression_code
 
 
@@ -539,11 +556,10 @@ def generate_code(funcs_file, data_file, template_file, platform_file, help_file
 
     # Function code
     with open(funcs_file, 'r') as funcs_f, open(data_file, 'r') as data_f, open(out_data_file, 'w') as out_data_f:
-        dispatch_code, func_headers, func_code, func_info = parse_functions(funcs_f)
-        snippets['function_headers'] = func_headers
+        suite_deps, dispatch_code, func_code, func_info = parse_functions(funcs_f)
         snippets['functions_code'] = func_code
         snippets['dispatch_code'] = dispatch_code
-        dep_check_code, expression_code = gen_from_test_data(data_f, out_data_f, func_info)
+        dep_check_code, expression_code = gen_from_test_data(data_f, out_data_f, func_info, suite_deps)
         snippets['dep_check_code'] = dep_check_code
         snippets['expression_code'] = expression_code
 

@@ -40,8 +40,6 @@
 
 #define TEST_SUITE_ACTIVE
 
-{function_headers}
-
 {functions_code}
 
 #line {line_no} "suites/main_test.function"
@@ -140,6 +138,35 @@ int dispatch_test( int func_idx, void ** params )
         if ( fp )
             fp( params );
         else
+            ret = ( DISPATCH_UNSUPPORTED_SUITE );
+    }}
+    else
+    {{
+        ret = ( DISPATCH_TEST_FN_NOT_FOUND );
+    }}
+
+    return( ret );
+}}
+
+
+/**
+ * \brief       Checks if test function is supported
+ *
+ * \param exp_id    Test function index.
+ *
+ * \return       DISPATCH_TEST_SUCCESS if found
+ *               DISPATCH_TEST_FN_NOT_FOUND if not found
+ *               DISPATCH_UNSUPPORTED_SUITE if not compile time enabled.
+ */
+int check_test( int func_idx )
+{{
+    int ret = DISPATCH_TEST_SUCCESS;
+    TestWrapper_t fp = NULL;
+
+    if ( func_idx < (int)( sizeof(test_funcs)/sizeof( TestWrapper_t ) ) )
+    {{
+        fp = test_funcs[func_idx];
+        if ( fp == NULL )
             ret = ( DISPATCH_UNSUPPORTED_SUITE );
     }}
     else

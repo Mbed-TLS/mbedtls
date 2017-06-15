@@ -389,6 +389,7 @@ int execute_tests( int argc , const char ** argv )
     const char **test_files = NULL;
     int testfile_count = 0;
     int option_verbose = 0;
+    int function_id = 0;
 
     /* Other Local variables */
     int arg_index = 1;
@@ -562,11 +563,14 @@ int execute_tests( int argc , const char ** argv )
                 }
 #endif /* __unix__ || __APPLE__ __MACH__ */
 
-                ret = convert_params( cnt - 1, params + 1, int_params );
-                if ( DISPATCH_TEST_SUCCESS == ret )
+                function_id = strtol( params[0], NULL, 10 );
+                if ( (ret = check_test( function_id )) == DISPATCH_TEST_SUCCESS )
                 {
-                    int function_id = strtol( params[0], NULL, 10 );
-                    ret = dispatch_test( function_id, (void **)( params + 1 ) );
+                    ret = convert_params( cnt - 1, params + 1, int_params );
+                    if ( DISPATCH_TEST_SUCCESS == ret )
+                    {
+                        ret = dispatch_test( function_id, (void **)( params + 1 ) );
+                    }
                 }
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))

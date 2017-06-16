@@ -14,8 +14,8 @@ Security
      Found and fix proposed by Michael Schwarz, Samuel Weiser, Daniel Gruss,
      Clémentine Maurice and Stefan Mangard.
    * Wipe stack buffers in RSA private key operations
-     (rsa_rsaes_pkcs1_v15_decrypt(), rsa_rsaes_oaep_decrypt).
-     Found by Laurent Simon.
+     (rsa_rsaes_pkcs1_v15_decrypt(), rsa_rsaes_oaep_decrypt). Found by Laurent
+     Simon.
    * Tighten parsing of RSA PKCS#1 v1.5 signatures, to avoid a
      potential Bleichenbacher/BERserk-style attack.
    * Remove support for X509 certificates signed with MD5.
@@ -27,21 +27,21 @@ Bugfix
    * Fix insufficient support for signature-hash-algorithm extension,
      resulting in compatibility problems with Chrome. Found by hfloyrd. #823
    * Accept empty trusted CA chain in authentication mode
-     SSL_VERIFY_OPTIONAL. Fixes #864. Found by jethrogb.
-   * Fix implementation of ssl_parse_certificate
-     to not annihilate fatal errors in authentication mode
-     SSL_VERIFY_OPTIONAL and to reflect bad EC curves
-     within verification result.
-   * Fix modular inversion function on invalid modulus 1.
-     Found by blaufish. Fixes #641.
-   * Fix incorrect sign computation in modular exponentiation
-     when dealing with negative MPI. Found by Guido Vranken.
-   * Fix potential stack underflow in mpi_read_file.
-     Found by Guido Vranken.
+     SSL_VERIFY_OPTIONAL. Found by jethrogb. #864.
+   * Fix implementation of mbedtls_ssl_parse_certificate() to not annihilate
+     fatal errors in authentication mode MBEDTLS_SSL_VERIFY_OPTIONAL and to
+     reflect bad EC curves within verification result.
+   * Fix bug that caused the modular inversion function to accept the invalid
+     modulus 1 and therefore to hang. Found by blaufish. #641.
+   * Fix incorrect sign computation in modular exponentiation when the base is
+     a negative MPI. Previously the result was always negative. Found by Guido
+     Vranken.
+   * Fix a numerical underflow leading to stack overflow in mpi_read_file()
+     that was triggered uppon reading an empty line. Found by Guido Vranken.
 
 Changes
    * Clarify ECDSA documentation and improve the sample code to avoid
-     misunderstandings and potentially dangerous use of the API. Pointed out
+     misunderstanding and potentially dangerous use of the API. Pointed out
      by Jean-Philippe Aumasson.
    * Add new config.h flag POLARSSL_X509_MIN_VERIFY_MD_ALG to set the minimum
      hash accepted when verifying certificate chains. Defaults to SHA1, which

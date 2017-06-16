@@ -14,11 +14,11 @@ Compiling
 There are currently four active build systems used within mbed TLS releases:
 
 -   yotta
--   Make
+-   GNU Make
 -   CMake
 -   Microsoft Visual Studio (Visual Studio 6 and Visual Studio 2010)
 
-The main systems used for development are CMake and Make. Those systems are always complete and up-to-date. The others should reflect all changes present in the CMake and Make build system, although features may not be ported there automatically.
+The main systems used for development are CMake and GNU Make. Those systems are always complete and up-to-date. The others should reflect all changes present in the CMake and Make build system, although features may not be ported there automatically.
 
 Yotta, as a build system, is slightly different from the other build systems:
 
@@ -54,9 +54,9 @@ For more details on the yotta/mbed OS edition of mbed TLS, including example pro
 
 ### Make
 
-We intentionally only use the minimum of `Make` functionality, as a lot of `Make` features are not supported on all different implementations of Make or on different platforms. As such, the Makefiles sometimes require some manual changes or export statements in order to work for your platform.
+We require GNU Make. To build the library and the sample programs, GNU Make and a C compiler are sufficient. Some of the more advanced build targets require some Unix/Linux tools.
 
-In order to build from the source code using Make, just enter at the command line:
+In order to build from the source code using GNU Make, just enter at the command line:
 
     make
 

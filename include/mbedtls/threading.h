@@ -40,13 +40,33 @@ extern "C" {
 #define MBEDTLS_ERR_THREADING_MUTEX_ERROR                 -0x001E  /**< Locking / unlocking / free failed with error code. */
 
 #if defined(MBEDTLS_THREADING_PTHREAD)
+
+#if !defined(_WIN32)
+
 #include <pthread.h>
 typedef struct
 {
     pthread_mutex_t mutex;
     char is_valid;
 } mbedtls_threading_mutex_t;
+
+#else
+
+#if !defined(_WIN32_WINNT)
+#define _WIN32_WINNT 0x0403
 #endif
+
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+typedef struct
+{
+    CRITICAL_SECTION cs;
+    char is_valid;
+} mbedtls_threading_mutex_t;
+
+#endif /* _WIN32 */
+
+#endif /* MBEDTLS_THREADING_PTHREAD */
 
 #if defined(MBEDTLS_THREADING_ALT)
 /* You should define the mbedtls_threading_mutex_t type in your header */

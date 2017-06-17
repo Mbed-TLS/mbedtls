@@ -30,6 +30,9 @@
 #include "mbedtls/threading.h"
 
 #if defined(MBEDTLS_THREADING_PTHREAD)
+
+#if !defined(_WIN32)
+
 static void threading_mutex_init_pthread( mbedtls_threading_mutex_t *mutex )
 {
     if( mutex == NULL )
@@ -78,6 +81,50 @@ int (*mbedtls_mutex_unlock)( mbedtls_threading_mutex_t * ) = threading_mutex_unl
  * With phtreads we can statically initialize mutexes
  */
 #define MUTEX_INIT  = { PTHREAD_MUTEX_INITIALIZER, 1 }
+
+#else
+
+static void threading_mutex_init_windows( mbedtls_threading_mutex_t *mutex )
+{
+    if( mutex == NULL || mutex->is_valid )
+        return;
+
+    mutex->is_valid = InitializeCriticalSectionAndSpinCount( &mutex->cs, 1024 ) != FALSE;
+}
+
+static void threading_mutex_free_windows( mbedtls_threading_mutex_t *mutex )
+{
+    if( mutex == NULL || !mutex->is_valid )
+        return;
+
+    (void) DeleteCriticalSection( &mutex->cs );
+    mutex->is_valid = 0;
+}
+
+static int threading_mutex_lock_windows( mbedtls_threading_mutex_t *mutex )
+{
+    if( mutex == NULL || !mutex->is_valid )
+        return( MBEDTLS_ERR_THREADING_BAD_INPUT_DATA );
+
+    (void) EnterCriticalSection( &mutex->cs );
+    return( 0 );
+}
+
+static int threading_mutex_unlock_windows( mbedtls_threading_mutex_t *mutex )
+{
+    if( mutex == NULL || !mutex->is_valid )
+        return( MBEDTLS_ERR_THREADING_BAD_INPUT_DATA );
+
+    (void) LeaveCriticalSection( &mutex->cs );
+    return( 0 );
+}
+
+void (*mbedtls_mutex_init)( mbedtls_threading_mutex_t * ) = threading_mutex_init_windows;
+void (*mbedtls_mutex_free)( mbedtls_threading_mutex_t * ) = threading_mutex_free_windows;
+int (*mbedtls_mutex_lock)( mbedtls_threading_mutex_t * ) = threading_mutex_lock_windows;
+int (*mbedtls_mutex_unlock)( mbedtls_threading_mutex_t * ) = threading_mutex_unlock_windows;
+
+#endif /* _WIN32 */
 
 #endif /* MBEDTLS_THREADING_PTHREAD */
 

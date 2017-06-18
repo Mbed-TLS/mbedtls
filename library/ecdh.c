@@ -38,6 +38,7 @@
 
 #include <string.h>
 
+#if !defined(MBEDTLS_ECDH_ALT)
 /*
  * Generate public key: simple wrapper around mbedtls_ecp_gen_keypair
  */
@@ -81,7 +82,7 @@ cleanup:
 
     return( ret );
 }
-
+#endif /* MBEDTLS_ECDH_ALT */
 /*
  * Initialize context
  */

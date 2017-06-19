@@ -20,7 +20,7 @@ Bugfix
 
 Features
    * Add option MBEDTLS_AES_FEWER_TABLES to dynamically compute 3/4 of the AES tables
-     during runtime, thereby reducing the RAM/ROM footprint by 6144 bytes. Suggested
+     during runtime, thereby reducing the RAM/ROM footprint by ~6kb. Suggested
      and contributed by jkivilin in #394.
 
 Changes

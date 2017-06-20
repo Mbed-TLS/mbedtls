@@ -2125,7 +2125,7 @@ handshake:
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     /*
-     * 5. Verify the server certificate
+     * 5. Verify the client certificate
      */
     mbedtls_printf( "  . Verifying peer X.509 certificate..." );
 

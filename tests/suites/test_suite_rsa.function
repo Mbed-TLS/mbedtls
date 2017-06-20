@@ -162,6 +162,7 @@ void rsa_pkcs1_sign_raw( char *message_hex_string, char *hash_result_string,
 
     TEST_ASSERT( strcasecmp( (char *) output_str, result_hex_str ) == 0 );
 
+#if defined(MBEDTLS_PKCS1_V15)
     /* For PKCS#1 v1.5, there is an alternative way to generate signatures */
     if( padding_mode == MBEDTLS_RSA_PKCS_V15 )
     {
@@ -176,6 +177,7 @@ void rsa_pkcs1_sign_raw( char *message_hex_string, char *hash_result_string,
 
         TEST_ASSERT( strcasecmp( (char *) output_str, result_hex_str ) == 0 );
     }
+#endif /* MBEDTLS_PKCS1_V15 */
 
 exit:
     mbedtls_mpi_free( &P1 ); mbedtls_mpi_free( &Q1 ); mbedtls_mpi_free( &H ); mbedtls_mpi_free( &G );
@@ -194,7 +196,7 @@ void rsa_pkcs1_verify_raw( char *message_hex_string, char *hash_result_string,
     unsigned char result_str[1000];
     unsigned char output[1000];
     mbedtls_rsa_context ctx;
-    size_t hash_len, olen;
+    size_t hash_len;
 
     mbedtls_rsa_init( &ctx, padding_mode, 0 );
     memset( message_str, 0x00, 1000 );
@@ -214,10 +216,12 @@ void rsa_pkcs1_verify_raw( char *message_hex_string, char *hash_result_string,
 
     TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, NULL, NULL, MBEDTLS_RSA_PUBLIC, MBEDTLS_MD_NONE, hash_len, hash_result, result_str ) == correct );
 
+#if defined(MBEDTLS_PKCS1_V15)
     /* For PKCS#1 v1.5, there is an alternative way to verify signatures */
     if( padding_mode == MBEDTLS_RSA_PKCS_V15 )
     {
         int ok;
+        size_t olen;
 
         TEST_ASSERT( mbedtls_rsa_rsaes_pkcs1_v15_decrypt( &ctx,
                     NULL, NULL, MBEDTLS_RSA_PUBLIC,
@@ -229,6 +233,7 @@ void rsa_pkcs1_verify_raw( char *message_hex_string, char *hash_result_string,
         else
             TEST_ASSERT( ok == 0 );
     }
+#endif /* MBEDTLS_PKCS1_V15 */
 
 exit:
     mbedtls_rsa_free( &ctx );

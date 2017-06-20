@@ -503,6 +503,10 @@ msg "test/build: depends-hashes.pl (gcc)" # ~ 2 min
 cleanup
 tests/scripts/depends-hashes.pl
 
+msg "test/build: depends-pkalgs.pl (gcc)" # ~ 2 min
+cleanup
+tests/scripts/depends-pkalgs.pl
+
 msg "test/build: key-exchanges (gcc)" # ~ 1 min
 cleanup
 tests/scripts/key-exchanges.pl

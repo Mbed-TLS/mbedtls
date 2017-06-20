@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.5.1 released xxxx-xx-xx
+= mbed TLS 2.5.1 released 2017-06-21
 
 Security
    * Fixed unlimited overread of heap-based buffer in mbedtls_ssl_read().

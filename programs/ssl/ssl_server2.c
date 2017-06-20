@@ -1709,7 +1709,7 @@ reset:
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
     /*
-     * 5. Verify the server certificate
+     * 5. Verify the client certificate
      */
     polarssl_printf( "  . Verifying peer X.509 certificate..." );
 

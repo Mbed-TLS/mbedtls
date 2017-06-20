@@ -204,7 +204,7 @@ int main( int argc, char *argv[] )
     mbedtls_printf( " ok\n" );
 
     /*
-     * Verification: are the computed secret equal?
+     * Verification: are the computed secrets equal?
      */
     mbedtls_printf( "  . Checking if both computed secrets are equal..." );
     fflush( stdout );

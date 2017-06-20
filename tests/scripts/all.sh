@@ -326,16 +326,16 @@ OPENSSL_CMD="$OPENSSL_LEGACY" tests/compat.sh -m 'ssl3'
 msg "build: SSLv3 - ssl-opt.sh (ASan build)" # ~ 6 min
 tests/ssl-opt.sh
 
-msg "build: cmake, full config, clang, C99" # ~ 50s
+msg "build: cmake, full config, clang" # ~ 50s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
 CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check -D ENABLE_TESTING=On .
-CFLAGS='-Werror -Wall -Wextra -std=c99 -pedantic' make
+make
 
 msg "test: main suites (full config)" # ~ 5s
-CFLAGS='-Werror -Wall -Wextra' make test
+make test
 
 msg "test: ssl-opt.sh default (full config)" # ~ 1s
 tests/ssl-opt.sh -f Default

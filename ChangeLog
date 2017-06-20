@@ -13,6 +13,10 @@ API Changes
      Therefore, mbedtls_platform_zeroize() is moved to the platform module to
      facilitate testing and maintenance.
 
+Bugfix
+   * Add `MBEDTLS_SELF_TEST` for the mbedtls_self_test functions
+     in the header files, which missed the precompilation check. #971
+
 = mbed TLS 2.9.0 branch released 2018-04-30
 
 Security

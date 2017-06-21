@@ -277,9 +277,21 @@ int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
  * \note           Same as \c mbedtls_x509_crt_verify_with_profile() with the
  *                 default security profile.
  *
- * \param crt      a certificate to be verified
- * \param trust_ca the trusted CA chain
- * \param ca_crl   the CRL chain for trusted CA's
+ * \note           It is your responsibility to provide up-to-date CRLs for
+ *                 all trusted CAs. If no CRL is provided for the CA that was
+ *                 used to sign the certificate, CRL verification is skipped
+ *                 silently, that is *without* setting any flag.
+ *
+ * \note           The \c trust_ca list can contain two type of certificates:
+ *                 (1) those of trusted root CAs, so that certificates
+ *                 chaining up to those CAs will be trusted, and (2)
+ *                 self-signed end-entity certificates to be trusted (for
+ *                 specific peers you know) - in that case, the self-signed
+ *                 certificate doens't need to have the CA bit set.
+ *
+ * \param crt      a certificate (chain) to be verified
+ * \param trust_ca the list of trusted CAs (see note above)
+ * \param ca_crl   the list of CRLs for trusted CAs (see note above)
  * \param cn       expected Common Name (can be set to
  *                 NULL if the CN must not be verified)
  * \param flags    result of the verification

@@ -21,6 +21,9 @@ Security
    * Remove support for X509 certificates signed with MD5.
      Issue raised by Harm Verhagen
 
+Changes
+   * Improve documentation of PKCS1 decryption functions.
+
 Bugfix
    * Disable use of extensions for SSLv3, previously causing the
      "SSLv3 with extensions" test from ssl-opt.sh to fail.

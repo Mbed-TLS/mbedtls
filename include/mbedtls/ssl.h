@@ -1587,6 +1587,10 @@ void mbedtls_ssl_conf_cert_profile( mbedtls_ssl_config *conf,
 /**
  * \brief          Set the data required to verify peer certificate
  *
+ * \note           See \c mbedtls_x509_verify() for notes regarding the
+ *                 parameters ca_chain (maps to trust_ca for that function)
+ *                 and ca_crl.
+ *
  * \param conf     SSL configuration
  * \param ca_chain trusted CA chain (meaning all fully trusted top-level CAs)
  * \param ca_crl   trusted CA CRLs

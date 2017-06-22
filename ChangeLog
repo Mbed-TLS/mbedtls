@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.x.x released xxxx-xx-xx
 
 Features
    * Add the functions mbedtls_platform_setup() and mbedtls_platform_teardown()

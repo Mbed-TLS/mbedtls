@@ -1690,11 +1690,6 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         return( ret );
 
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
-#if defined(MBEDTLS_THREADING_C)
-    if( mbedtls_mutex_lock( &mbedtls_threading_ecp_mutex ) != 0 )
-        return ( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-
-#endif
     if ( is_grp_capable = mbedtls_internal_ecp_grp_capable( grp )  )
     {
         MBEDTLS_MPI_CHK( mbedtls_internal_ecp_init( grp ) );
@@ -1719,11 +1714,6 @@ cleanup:
         mbedtls_internal_ecp_free( grp );
     }
 
-#if defined(MBEDTLS_THREADING_C)
-    if( mbedtls_mutex_unlock( &mbedtls_threading_ecp_mutex ) != 0 )
-        return ( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-
-#endif
 #endif /* MBEDTLS_ECP_INTERNAL_ALT */
     return( ret );
 }
@@ -1831,11 +1821,6 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul_shortcuts( grp, R,   n, Q ) );
 
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
-#if defined(MBEDTLS_THREADING_C)
-    if( mbedtls_mutex_lock( &mbedtls_threading_ecp_mutex ) != 0 )
-        return ( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-
-#endif
     if (  is_grp_capable = mbedtls_internal_ecp_grp_capable( grp )  )
     {
         MBEDTLS_MPI_CHK( mbedtls_internal_ecp_init( grp ) );
@@ -1853,11 +1838,6 @@ cleanup:
         mbedtls_internal_ecp_free( grp );
     }
 
-#if defined(MBEDTLS_THREADING_C)
-    if( mbedtls_mutex_unlock( &mbedtls_threading_ecp_mutex ) != 0 )
-        return ( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-
-#endif
 #endif /* MBEDTLS_ECP_INTERNAL_ALT */
     mbedtls_ecp_point_free( &mP );
 

@@ -1,5 +1,12 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.y.z released YYYY-MM-DD
+
+Changes
+   * Certificate verification functions now set flags to -1 in case the full
+     chain was not verified due to an internal error (including in the verify
+     callback) or chain length limitations.
+
 = mbed TLS 2.5.1 released 2017-06-21
 
 Security

@@ -2202,10 +2202,13 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
     mbedtls_x509_sequence *cur = NULL;
     mbedtls_pk_type_t pk_type;
 
-    if( profile == NULL )
-        return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
-
     *flags = 0;
+
+    if( profile == NULL )
+    {
+        ret = MBEDTLS_ERR_X509_BAD_INPUT_DATA;
+        goto exit;
+    }
 
     if( cn != NULL )
     {
@@ -2280,7 +2283,7 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
         ret = x509_crt_verify_top( crt, parent, ca_crl, profile,
                                    pathlen, selfsigned, flags, f_vrfy, p_vrfy );
         if( ret != 0 )
-            return( ret );
+            goto exit;
     }
     else
     {
@@ -2295,15 +2298,22 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
             ret = x509_crt_verify_child( crt, parent, trust_ca, ca_crl, profile,
                                          pathlen, selfsigned, flags, f_vrfy, p_vrfy );
             if( ret != 0 )
-                return( ret );
+                goto exit;
         }
         else
         {
             ret = x509_crt_verify_top( crt, trust_ca, ca_crl, profile,
                                        pathlen, selfsigned, flags, f_vrfy, p_vrfy );
             if( ret != 0 )
-                return( ret );
+                goto exit;
         }
+    }
+
+exit:
+    if( ret != 0 )
+    {
+        *flags = (uint32_t) -1;
+        return( ret );
     }
 
     if( *flags != 0 )

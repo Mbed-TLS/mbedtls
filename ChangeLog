@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.y.z released YYYY-MM-DD
+= mbed TLS 2.x.x released xxxx-xx-xx
 
 Security
    * Fix authentication bypass in SSL/TLS: when auth_mode is set to optional,
@@ -17,6 +17,11 @@ API changes
    * With authmode set to optional, handshake is now aborted if the
      verification of the peer's certificate failed due to an overlong chain or
      a fatal error in the vrfy callback.
+
+Changes
+   * Removed mutexes from ECP hardware accelerator code. Now all hardware
+     accelerator code in the library leaves concurrency handling to the
+     platform. Reported by Steven Cooreman. #863
 
 = mbed TLS 2.5.1 released 2017-06-21
 

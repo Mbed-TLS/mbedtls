@@ -1,5 +1,12 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.x.x released xxxx-xx-xx
+
+Changes
+   * Removed mutexes from ECP hardware accelerator code. Now all hardware
+     accelerator code in the library leaves concurrency handling to the
+     platform. Reported by Steven Cooreman. #863
+
 = mbed TLS 2.5.1 released xxxx-xx-xx
 
 Security

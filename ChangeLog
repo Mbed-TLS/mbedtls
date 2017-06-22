@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.x.x released xxxx-xx-xx
 
 Security
    * Fix authentication bypass in SSL/TLS: when auth_mode is set to optional,

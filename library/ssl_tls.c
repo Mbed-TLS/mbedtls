@@ -5872,6 +5872,7 @@ int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
 
     if( conf->psk != NULL || conf->psk_identity != NULL )
     {
+        mbedtls_zeroize( conf->psk, conf->psk_len );
         mbedtls_free( conf->psk );
         mbedtls_free( conf->psk_identity );
         conf->psk = NULL;
@@ -5907,7 +5908,10 @@ int mbedtls_ssl_set_hs_psk( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     if( ssl->handshake->psk != NULL )
+    {
+        mbedtls_zeroize( ssl->handshake->psk, ssl->handshake->psk_len );
         mbedtls_free( ssl->handshake->psk );
+    }
 
     if( ( ssl->handshake->psk = mbedtls_calloc( 1, psk_len ) ) == NULL )
         return( MBEDTLS_ERR_SSL_ALLOC_FAILED );

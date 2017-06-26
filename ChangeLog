@@ -2,6 +2,14 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.y.z released YYYY-MM-DD
 
+Security
+   * Fix authentication bypass in SSL/TLS: when auth_mode is set to optional,
+   mbedtls_ssl_get_verify_result() would incorrectly return 0 when the peer's
+   X.509 certificate chain had more than MBEDTLS_X509_MAX_INTERMEDIATE_CA
+   (default: 8) intermediates, even when it was not trusted. Could be
+   trigerred remotely on both sides. (With auth_mode set to required
+   (default), the handshake was correctly aborted.)
+
 Changes
    * Certificate verification functions now set flags to -1 in case the full
      chain was not verified due to an internal error (including in the verify

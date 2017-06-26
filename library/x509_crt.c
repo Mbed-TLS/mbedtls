@@ -1676,16 +1676,12 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
             flags |= MBEDTLS_X509_BADCRL_BAD_PK;
 
         md_info = mbedtls_md_info_from_type( crl_list->sig_md );
-        if( md_info == NULL )
+        if( mbedtls_md( md_info, crl_list->tbs.p, crl_list->tbs.len, hash ) != 0 )
         {
-            /*
-             * Cannot check 'unknown' hash
-             */
+            /* Note: this can't happen except after an internal error */
             flags |= MBEDTLS_X509_BADCRL_NOT_TRUSTED;
             break;
         }
-
-        mbedtls_md( md_info, crl_list->tbs.p, crl_list->tbs.len, hash );
 
         if( x509_profile_check_key( profile, crl_list->sig_pk, &ca->pk ) != 0 )
             flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
@@ -1931,15 +1927,12 @@ static int x509_crt_verify_top(
     *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
 
     md_info = mbedtls_md_info_from_type( child->sig_md );
-    if( md_info == NULL )
+    if( mbedtls_md( md_info, child->tbs.p, child->tbs.len, hash ) != 0 )
     {
-        /*
-         * Cannot check 'unknown', no need to try any CA
-         */
+        /* Note: this can't happen except after an internal error */
+        /* Cannot check signature, no need to try any CA */
         trust_ca = NULL;
     }
-    else
-        mbedtls_md( md_info, child->tbs.p, child->tbs.len, hash );
 
     for( /* trust_ca */ ; trust_ca != NULL; trust_ca = trust_ca->next )
     {

@@ -295,13 +295,9 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
  * \param input     Plaintext block
  * \param output    Output (ciphertext) block
  */
-MBEDTLS_DEPRECATED static inline void mbedtls_aes_encrypt(
-                                                mbedtls_aes_context *ctx,
-                                                const unsigned char input[16],
-                                                unsigned char output[16] )
-{
-    mbedtls_internal_aes_encrypt( ctx, input, output );
-}
+MBEDTLS_DEPRECATED void mbedtls_aes_encrypt( mbedtls_aes_context *ctx,
+                                             const unsigned char input[16],
+                                             unsigned char output[16] );
 
 /**
  * \brief           Old AES block decryption function without return value.
@@ -312,13 +308,9 @@ MBEDTLS_DEPRECATED static inline void mbedtls_aes_encrypt(
  * \param input     Ciphertext block
  * \param output    Output (plaintext) block
  */
-MBEDTLS_DEPRECATED static inline void mbedtls_aes_decrypt(
-                                                mbedtls_aes_context *ctx,
-                                                const unsigned char input[16],
-                                                unsigned char output[16] )
-{
-    mbedtls_internal_aes_decrypt( ctx, input, output );
-}
+MBEDTLS_DEPRECATED void mbedtls_aes_decrypt( mbedtls_aes_context *ctx,
+                                             const unsigned char input[16],
+                                             unsigned char output[16] );
 
 #undef MBEDTLS_DEPRECATED
 #endif /* !MBEDTLS_DEPRECATED_REMOVED */

@@ -6,6 +6,9 @@ Changes
    * Certificate verification functions now set flags to -1 in case the full
      chain was not verified due to an internal error (including in the verify
      callback) or chain length limitations.
+   * With authmode set to optional, handshake is now aborted if the
+     verification of the peer's certificate failed due to an overlong chain or
+     a fatal error in the vrfy callback.
 
 = mbed TLS 2.5.1 released 2017-06-21
 

@@ -3493,8 +3493,13 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
         ssl->in_msgtype != MBEDTLS_SSL_MSG_APPLICATION_DATA )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "unknown record type" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE );
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+        if( ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+            mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                    MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE );
+
         return( MBEDTLS_ERR_SSL_INVALID_RECORD );
     }
 

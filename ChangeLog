@@ -1,5 +1,12 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x released xxxx-xx-xx
+
+Bugfix
+   * Fix ssl_parse_record_header() to not send a fatal alert message upon
+     receiving an invalid record when running DTLS as this is not compliant
+     behaviour.
+
 = mbed TLS 2.6.0 branch released 2017-08-10
 
 Security

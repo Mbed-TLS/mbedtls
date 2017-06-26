@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x released xxxx-xx-xx
+
+Changes
+   * Define the macro MBEDTLS_AES_ROM_TABLES in the configuration file
+     config-no-entropy.h to reduce the RAM footprint.
+
 = mbed TLS 2.5.1 released xxxx-xx-xx
 
 Security

@@ -1948,6 +1948,64 @@ run_test    "Authentication: client no cert, ssl3" \
             -C "! mbedtls_ssl_handshake returned" \
             -S "X509 - Certificate verification failed"
 
+run_test    "Authentication: server max_int chain, client default" \
+            "$P_SRV crt_file=data_files/dir-maxpath/c09.pem \
+                    key_file=data_files/dir-maxpath/09.key" \
+            "$P_CLI server_name=CA09 ca_file=data_files/dir-maxpath/00.crt" \
+            0 \
+            -C "X509 - A fatal error occured"
+
+run_test    "Authentication: server max_int+1 chain, client default" \
+            "$P_SRV crt_file=data_files/dir-maxpath/c10.pem \
+                    key_file=data_files/dir-maxpath/10.key" \
+            "$P_CLI server_name=CA10 ca_file=data_files/dir-maxpath/00.crt" \
+            1 \
+            -c "X509 - A fatal error occured"
+
+run_test    "Authentication: server max_int+1 chain, client optional" \
+            "$P_SRV crt_file=data_files/dir-maxpath/c10.pem \
+                    key_file=data_files/dir-maxpath/10.key" \
+            "$P_CLI server_name=CA10 ca_file=data_files/dir-maxpath/00.crt \
+                    auth_mode=optional" \
+            1 \
+            -c "X509 - A fatal error occured"
+
+run_test    "Authentication: server max_int+1 chain, client none" \
+            "$P_SRV crt_file=data_files/dir-maxpath/c10.pem \
+                    key_file=data_files/dir-maxpath/10.key" \
+            "$P_CLI server_name=CA10 ca_file=data_files/dir-maxpath/00.crt \
+                    auth_mode=none" \
+            0 \
+            -C "X509 - A fatal error occured"
+
+run_test    "Authentication: client max_int+1 chain, server default" \
+            "$P_SRV ca_file=data_files/dir-maxpath/00.crt" \
+            "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
+                    key_file=data_files/dir-maxpath/10.key" \
+            0 \
+            -S "X509 - A fatal error occured"
+
+run_test    "Authentication: client max_int+1 chain, server optional" \
+            "$P_SRV ca_file=data_files/dir-maxpath/00.crt auth_mode=optional" \
+            "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
+                    key_file=data_files/dir-maxpath/10.key" \
+            1 \
+            -s "X509 - A fatal error occured"
+
+run_test    "Authentication: client max_int+1 chain, server required" \
+            "$P_SRV ca_file=data_files/dir-maxpath/00.crt auth_mode=required" \
+            "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
+                    key_file=data_files/dir-maxpath/10.key" \
+            1 \
+            -s "X509 - A fatal error occured"
+
+run_test    "Authentication: client max_int chain, server required" \
+            "$P_SRV ca_file=data_files/dir-maxpath/00.crt auth_mode=required" \
+            "$P_CLI crt_file=data_files/dir-maxpath/c09.pem \
+                    key_file=data_files/dir-maxpath/09.key" \
+            0 \
+            -S "X509 - A fatal error occured"
+
 # Tests for certificate selection based on SHA verson
 
 run_test    "Certificate hash: client TLS 1.2 -> SHA-2" \

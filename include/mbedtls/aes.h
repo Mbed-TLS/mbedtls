@@ -287,9 +287,7 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
 #define MBEDTLS_DEPRECATED
 #endif
 /**
- * \brief           Internal AES block encryption function
- *                  (Only exposed to allow overriding it,
- *                  see MBEDTLS_AES_ENCRYPT_ALT)
+ * \brief           Old AES block encryption function without return value.
  *
  * \deprecated      Superseded by mbedtls_aes_encrypt_ext() in 2.5.0
  *
@@ -306,9 +304,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_aes_encrypt(
 }
 
 /**
- * \brief           Internal AES block decryption function
- *                  (Only exposed to allow overriding it,
- *                  see MBEDTLS_AES_DECRYPT_ALT)
+ * \brief           Old AES block decryption function without return value.
  *
  * \deprecated      Superseded by mbedtls_aes_decrypt_ext() in 2.5.0
  *

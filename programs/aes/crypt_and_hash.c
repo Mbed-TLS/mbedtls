@@ -187,7 +187,7 @@ int main( int argc, char *argv[] )
     mbedtls_md_setup( &md_ctx, md_info, 1 );
 
     /*
-     * Read the secret key and clean the command line.
+     * Read the secret key from file or command line
      */
     if( ( fkey = fopen( argv[6], "rb" ) ) != NULL )
     {

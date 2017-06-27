@@ -220,8 +220,6 @@ int main( int argc, char *argv[] )
         }
     }
 
-    memset( argv[6], 0, strlen( argv[6] ) );
-
 #if defined(_WIN32_WCE)
     filesize = fseek( fin, 0L, SEEK_END );
 #else
@@ -298,8 +296,6 @@ int main( int argc, char *argv[] )
             md_finish( &md_ctx, digest );
 
         }
-
-        memset( key, 0, sizeof( key ) );
 
         if( cipher_setkey( &cipher_ctx, digest, cipher_info->key_length,
                            POLARSSL_ENCRYPT ) != 0 )
@@ -434,8 +430,6 @@ int main( int argc, char *argv[] )
             md_finish( &md_ctx, digest );
         }
 
-        memset( key, 0, sizeof( key ) );
-
         if( cipher_setkey( &cipher_ctx, digest, cipher_info->key_length,
                            POLARSSL_DECRYPT ) != 0 )
         {
@@ -539,7 +533,16 @@ exit:
     if( fout )
         fclose( fout );
 
+    /* Zeroize all command line arguments to also cover
+       the case when the user has missed or reordered some,
+       in which case the key might not be in argv[6]. */
+    for( i = 0; i < argc; i++ )
+        memset( argv[i], 0, strlen( argv[i] ) );
+
+    memset( IV,     0, sizeof( IV ) );
+    memset( key,    0, sizeof( key ) );
     memset( buffer, 0, sizeof( buffer ) );
+    memset( output, 0, sizeof( output ) );
     memset( digest, 0, sizeof( digest ) );
 
     cipher_free( &cipher_ctx );

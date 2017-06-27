@@ -434,9 +434,9 @@ int mbedtls_ctr_drbg_write_seed_file( mbedtls_ctr_drbg_context *ctx, const char 
     else
         ret = 0;
 
+exit:
     mbedtls_zeroize( buf, sizeof( buf ) );
 
-exit:
     fclose( f );
     return( ret );
 }
@@ -456,8 +456,12 @@ int mbedtls_ctr_drbg_update_seed_file( mbedtls_ctr_drbg_context *ctx, const char
     fseek( f, 0, SEEK_SET );
 
     if( n > MBEDTLS_CTR_DRBG_MAX_INPUT )
-        ret = MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG;
-    else if( fread( buf, 1, n, f ) != n )
+    {
+        fclose( f );
+        return( MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG );
+    }
+
+    if( fread( buf, 1, n, f ) != n )
         ret = MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR;
     else
         mbedtls_ctr_drbg_update( ctx, buf, n );

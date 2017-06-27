@@ -1334,6 +1334,10 @@ X509 CRT verify chain #13 (RSA only profile, EC root)
 depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED
 mbedtls_x509_crt_verify_chain:"data_files/server4.crt":"data_files/test-ca2.crt":MBEDTLS_X509_BADCERT_BAD_PK|MBEDTLS_X509_BADCERT_BAD_KEY:MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:"rsa3072":0
 
+X509 CRT verify chain #13 (RSA only profile, EC trusted EE)
+depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+mbedtls_x509_crt_verify_chain:"data_files/server5-selfsigned.crt":"data_files/server5-selfsigned.crt":MBEDTLS_X509_BADCERT_BAD_PK|MBEDTLS_X509_BADCERT_BAD_KEY:MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:"rsa3072":0
+
 X509 CRT verify chain #14 (RSA-3072 profile, root key too small)
 depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_SHA1_C
 mbedtls_x509_crt_verify_chain:"data_files/server1.crt":"data_files/test-ca.crt":MBEDTLS_X509_BADCERT_BAD_MD|MBEDTLS_X509_BADCERT_BAD_KEY:MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:"rsa3072":0

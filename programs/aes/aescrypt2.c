@@ -149,7 +149,7 @@ int main( int argc, char *argv[] )
     }
 
     /*
-     * Read the secret key and clean the command line.
+     * Read the secret key from file or command line
      */
     if( ( fkey = fopen( argv[4], "rb" ) ) != NULL )
     {

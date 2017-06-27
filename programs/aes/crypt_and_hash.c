@@ -188,7 +188,7 @@ int main( int argc, char *argv[] )
     md_init_ctx( &md_ctx, md_info);
 
     /*
-     * Read the secret key and clean the command line.
+     * Read the secret key from file or command line
      */
     if( ( fkey = fopen( argv[6], "rb" ) ) != NULL )
     {

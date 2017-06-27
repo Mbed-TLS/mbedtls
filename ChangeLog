@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x released xxxx-xx-xx
+
+Bugfix
+   * Fix variable used before assignment compilation warnings with IAR
+     toolchain. Found by gkerrien38.
+
 = mbed TLS 2.5.1 released xxxx-xx-xx
 
 Security

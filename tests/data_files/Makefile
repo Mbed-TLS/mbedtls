@@ -47,6 +47,16 @@ test-ca-sha256.crt: $(test_ca_key_file_rsa) $(test_ca_config_file) test-ca.csr
 	$(OPENSSL) req -x509 -config $(test_ca_config_file) -key $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" -set_serial 0 -days 3653 -sha256 -in test-ca.csr -out $@
 all_final += test-ca-sha256.crt
 
+test_ca_crt_file_ec = test-ca2.crt
+test_ca_key_file_ec = test-ca2.key
+
+test-int-ca.csr: test-int-ca.key $(test_ca_config_file)
+	$(OPENSSL) req -new -config $(test_ca_config_file) -key test-int-ca.key -subj "/C=NL/O=PolarSSL/CN=PolarSSL Test Intermediate CA" -out $@
+all_intermediate += test-int-ca.csr
+test-int-ca-exp.crt: $(test_ca_key_file_ec) $(test_ca_config_file) test-int-ca.csr
+	$(FAKETIME) -f -3653d $(OPENSSL) x509 -req -extfile $(test_ca_config_file) -extensions v3_ca -CA $(test_ca_crt_file_ec) -CAkey $(test_ca_key_file_ec) -set_serial 14 -days 3653 -sha256 -in test-int-ca.csr -out $@
+all_final += test-int-ca-exp.crt
+
 cli_crt_key_file_rsa = cli-rsa.key
 cli_crt_extensions_file = cli.opensslconf
 
@@ -81,6 +91,14 @@ all_final += server7-future.crt
 server7-badsign.crt: server7.crt $(test_ca_int_rsa1)
 	{ head -n-2 server7.crt; tail -n-2 server7.crt | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; cat test-int-ca.crt; } > server7-badsign.crt
 all_final += server7-badsign.crt
+server7_int-ca-exp.crt: server7.crt test-int-ca-exp.crt
+	cat server7.crt test-int-ca-exp.crt > $@
+all_final += server7_int-ca-exp.crt
+
+server5-ss-expired.crt: server5.key
+	$(FAKETIME) -f -3653d $(OPENSSL) req -x509 -new -subj "/C=UK/O=mbed TLS/OU=testsuite/CN=localhost" -days 3653 -sha256 -key $< -out $@
+all_final += server5-ss-expired.crt
+
 
 ################################################################
 #### Generate various RSA keys

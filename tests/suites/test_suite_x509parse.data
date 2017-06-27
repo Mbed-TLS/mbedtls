@@ -779,9 +779,21 @@ X509 Certificate verification callback: trusted EE cert
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
 x509_verify_callback:"data_files/server5-selfsigned.crt":"data_files/server5-selfsigned.crt":0:"depth 0 - serial 53\:A2\:CB\:4B\:12\:4E\:AD\:83\:7D\:A8\:94\:B2 - subject CN=selfsigned, OU=testing, O=PolarSSL, C=NL - flags 0x0000\n"
 
+X509 Certificate verification callback: trusted EE cert, expired
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+x509_verify_callback:"data_files/server5-ss-expired.crt":"data_files/server5-ss-expired.crt":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:"depth 0 - serial D8\:64\:61\:05\:E3\:A3\:CD\:78 - subject C=UK, O=mbed TLS, OU=testsuite, CN=localhost - flags 0x0001\n"
+
 X509 Certificate verification callback: simple
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_verify_callback:"data_files/server1.crt":"data_files/test-ca.crt":0:"depth 1 - serial 00 - subject C=NL, O=PolarSSL, CN=PolarSSL Test CA - flags 0x0000\ndepth 0 - serial 01 - subject C=NL, O=PolarSSL, CN=PolarSSL Server 1 - flags 0x0000\n"
+
+X509 Certificate verification callback: simple, EE expired
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA256_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SHA1_C
+x509_verify_callback:"data_files/server5-expired.crt":"data_files/test-ca2.crt":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:"depth 1 - serial C1\:43\:E2\:7E\:62\:43\:CC\:E8 - subject C=NL, O=PolarSSL, CN=Polarssl Test EC CA - flags 0x0000\ndepth 0 - serial 1E - subject C=NL, O=PolarSSL, CN=localhost - flags 0x0001\n"
+
+X509 Certificate verification callback: simple, root expired
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA256_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SHA1_C
+x509_verify_callback:"data_files/server5.crt":"data_files/test-ca2-expired.crt":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:"depth 1 - serial 01 - subject C=NL, O=PolarSSL, CN=Polarssl Test EC CA - flags 0x0001\ndepth 0 - serial 09 - subject C=NL, O=PolarSSL, CN=localhost - flags 0x0000\n"
 
 X509 Certificate verification callback: two trusted roots
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SHA256_C
@@ -806,6 +818,18 @@ x509_verify_callback:"data_files/server7_int-ca_ca2.crt":"data_files/test-ca_cat
 X509 Certificate verification callback: intermediate ca trusted
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_SHA256_C
 x509_verify_callback:"data_files/server7_int-ca_ca2.crt":"data_files/test-int-ca.crt":0:"depth 1 - serial 0E - subject C=NL, O=PolarSSL, CN=PolarSSL Test Intermediate CA - flags 0x0000\ndepth 0 - serial 10 - subject C=NL, O=PolarSSL, CN=localhost - flags 0x0000\n"
+
+X509 Certificate verification callback: intermediate ca, EE expired
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_SHA256_C:MBEDTLS_SHA1_C
+x509_verify_callback:"data_files/server7-expired.crt":"data_files/test-ca2.crt":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:"depth 2 - serial C1\:43\:E2\:7E\:62\:43\:CC\:E8 - subject C=NL, O=PolarSSL, CN=Polarssl Test EC CA - flags 0x0000\ndepth 1 - serial 0E - subject C=NL, O=PolarSSL, CN=PolarSSL Test Intermediate CA - flags 0x0000\ndepth 0 - serial 10 - subject C=NL, O=PolarSSL, CN=localhost - flags 0x0001\n"
+
+X509 Certificate verification callback: intermediate ca, int expired
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_SHA256_C:MBEDTLS_SHA1_C
+x509_verify_callback:"data_files/server7_int-ca-exp.crt":"data_files/test-ca2.crt":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:"depth 2 - serial C1\:43\:E2\:7E\:62\:43\:CC\:E8 - subject C=NL, O=PolarSSL, CN=Polarssl Test EC CA - flags 0x0000\ndepth 1 - serial 0E - subject C=NL, O=PolarSSL, CN=PolarSSL Test Intermediate CA - flags 0x0001\ndepth 0 - serial 10 - subject C=NL, O=PolarSSL, CN=localhost - flags 0x0000\n"
+
+X509 Certificate verification callback: intermediate ca, root expired
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_SHA256_C:MBEDTLS_SHA1_C
+x509_verify_callback:"data_files/server7_int-ca.crt":"data_files/test-ca2-expired.crt":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:"depth 2 - serial 01 - subject C=NL, O=PolarSSL, CN=Polarssl Test EC CA - flags 0x0001\ndepth 1 - serial 0E - subject C=NL, O=PolarSSL, CN=PolarSSL Test Intermediate CA - flags 0x0000\ndepth 0 - serial 10 - subject C=NL, O=PolarSSL, CN=localhost - flags 0x0000\n"
 
 X509 Certificate verification callback: two intermediates
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_SHA256_C:MBEDTLS_SHA1_C

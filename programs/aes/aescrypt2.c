@@ -82,6 +82,7 @@ int main( int argc, char *argv[] )
 
     char *p;
     unsigned char IV[16];
+    unsigned char tmp[16];
     unsigned char key[512];
     unsigned char digest[32];
     unsigned char buffer[1024];
@@ -118,10 +119,10 @@ int main( int argc, char *argv[] )
     }
 
     mode = atoi( argv[1] );
-    memset(IV, 0, sizeof(IV));
-    memset(key, 0, sizeof(key));
-    memset(digest, 0, sizeof(digest));
-    memset(buffer, 0, sizeof(buffer));
+    memset( IV,     0, sizeof( IV ) );
+    memset( key,    0, sizeof( key ) );
+    memset( digest, 0, sizeof( digest ) );
+    memset( buffer, 0, sizeof( buffer ) );
 
     if( mode != MODE_ENCRYPT && mode != MODE_DECRYPT )
     {
@@ -179,8 +180,6 @@ int main( int argc, char *argv[] )
             memcpy( key, argv[4], keylen );
         }
     }
-
-    memset( argv[4], 0, strlen( argv[4] ) );
 
 #if defined(_WIN32_WCE)
     filesize = fseek( fin, 0L, SEEK_END );
@@ -267,7 +266,6 @@ int main( int argc, char *argv[] )
             sha256_finish( &sha_ctx, digest );
         }
 
-        memset( key, 0, sizeof( key ) );
         aes_setkey_enc( &aes_ctx, digest, 256 );
         sha256_hmac_starts( &sha_ctx, digest, 32, 0 );
 
@@ -314,8 +312,6 @@ int main( int argc, char *argv[] )
 
     if( mode == MODE_DECRYPT )
     {
-        unsigned char tmp[16];
-
         /*
          *  The encrypted file must be structured as follows:
          *
@@ -369,7 +365,6 @@ int main( int argc, char *argv[] )
             sha256_finish( &sha_ctx, digest );
         }
 
-        memset( key, 0, sizeof( key ) );
         aes_setkey_dec( &aes_ctx, digest, 256 );
         sha256_hmac_starts( &sha_ctx, digest, 32, 0 );
 
@@ -436,6 +431,15 @@ exit:
     if( fout )
         fclose( fout );
 
+    /* Zeroize all command line arguments to also cover
+       the case when the user has missed or reordered some,
+       in which case the key might not be in argv[4]. */
+    for( i = 0; i < argc; i++ )
+        memset( argv[i], 0, strlen( argv[i] ) );
+
+    memset( IV,     0, sizeof( IV ) );
+    memset( key,    0, sizeof( key ) );
+    memset( tmp,    0, sizeof( tmp ) );
     memset( buffer, 0, sizeof( buffer ) );
     memset( digest, 0, sizeof( digest ) );
 

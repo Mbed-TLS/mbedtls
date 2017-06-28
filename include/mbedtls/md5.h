@@ -115,8 +115,8 @@ int mbedtls_md5_finish_ext( mbedtls_md5_context *ctx,
  *
  * \return         0 if successful
  */
-int mbedtls_md5_process_ext( mbedtls_md5_context *ctx,
-                             const unsigned char data[64] );
+int mbedtls_internal_md5_process( mbedtls_md5_context *ctx,
+                                  const unsigned char data[64] );
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 #if defined(MBEDTLS_DEPRECATED_WARNING)
@@ -172,7 +172,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_md5_finish(
 /**
  * \brief          MD5 process data block (internal use only)
  *
- * \deprecated     Superseded by mbedtls_md5_process_ext() in 2.5.0
+ * \deprecated     Superseded by mbedtls_internal_md5_process() in 2.5.0
  *
  * \param ctx      MD5 context
  * \param data     buffer holding one block of data
@@ -181,7 +181,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_md5_process(
                                                 mbedtls_md5_context *ctx,
                                                 const unsigned char data[64] )
 {
-    mbedtls_md5_process_ext( ctx, data );
+    mbedtls_internal_md5_process( ctx, data );
 }
 
 #undef MBEDTLS_DEPRECATED

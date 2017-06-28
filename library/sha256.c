@@ -181,7 +181,7 @@ static const uint32_t K[] =
     d += temp1; h = temp1 + temp2;              \
 }
 
-int mbedtls_sha256_process_ext( mbedtls_sha256_context *ctx,
+int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
                                 const unsigned char data[64] )
 {
     uint32_t temp1, temp2, W[64];
@@ -267,7 +267,7 @@ int mbedtls_sha256_update_ext( mbedtls_sha256_context *ctx,
     {
         memcpy( (void *) (ctx->buffer + left), input, fill );
 
-        if( ( ret = mbedtls_sha256_process_ext( ctx, ctx->buffer ) ) != 0 )
+        if( ( ret = mbedtls_internal_sha256_process( ctx, ctx->buffer ) ) != 0 )
             return( ret );
 
         input += fill;
@@ -277,7 +277,7 @@ int mbedtls_sha256_update_ext( mbedtls_sha256_context *ctx,
 
     while( ilen >= 64 )
     {
-        if( ( ret = mbedtls_sha256_process_ext( ctx, input ) ) != 0 )
+        if( ( ret = mbedtls_internal_sha256_process( ctx, input ) ) != 0 )
             return( ret );
 
         input += 64;

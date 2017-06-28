@@ -112,8 +112,8 @@ int mbedtls_md4_starts_ext( mbedtls_md4_context *ctx )
 }
 
 #if !defined(MBEDTLS_MD4_PROCESS_ALT)
-int mbedtls_md4_process_ext( mbedtls_md4_context *ctx,
-                             const unsigned char data[64] )
+int mbedtls_internal_md4_process( mbedtls_md4_context *ctx,
+                                  const unsigned char data[64] )
 {
     uint32_t X[16], A, B, C, D;
 
@@ -247,7 +247,7 @@ int mbedtls_md4_update_ext( mbedtls_md4_context *ctx,
         memcpy( (void *) (ctx->buffer + left),
                 (void *) input, fill );
 
-        if( ( ret = mbedtls_md4_process_ext( ctx, ctx->buffer ) ) != 0 )
+        if( ( ret = mbedtls_internal_md4_process( ctx, ctx->buffer ) ) != 0 )
             return( ret );
 
         input += fill;
@@ -257,7 +257,7 @@ int mbedtls_md4_update_ext( mbedtls_md4_context *ctx,
 
     while( ilen >= 64 )
     {
-        if( ( ret = mbedtls_md4_process_ext( ctx, input ) ) != 0 )
+        if( ( ret = mbedtls_internal_md4_process( ctx, input ) ) != 0 )
             return( ret );
 
         input += 64;

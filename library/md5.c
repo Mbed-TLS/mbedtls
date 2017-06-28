@@ -111,8 +111,8 @@ int mbedtls_md5_starts_ext( mbedtls_md5_context *ctx )
 }
 
 #if !defined(MBEDTLS_MD5_PROCESS_ALT)
-int mbedtls_md5_process_ext( mbedtls_md5_context *ctx,
-                             const unsigned char data[64] )
+int mbedtls_internal_md5_process( mbedtls_md5_context *ctx,
+                                  const unsigned char data[64] )
 {
     uint32_t X[16], A, B, C, D;
 
@@ -264,7 +264,7 @@ int mbedtls_md5_update_ext( mbedtls_md5_context *ctx,
     if( left && ilen >= fill )
     {
         memcpy( (void *) (ctx->buffer + left), input, fill );
-        if( ( ret = mbedtls_md5_process_ext( ctx, ctx->buffer ) ) != 0 )
+        if( ( ret = mbedtls_internal_md5_process( ctx, ctx->buffer ) ) != 0 )
             return( ret );
 
         input += fill;
@@ -274,7 +274,7 @@ int mbedtls_md5_update_ext( mbedtls_md5_context *ctx,
 
     while( ilen >= 64 )
     {
-        if( ( ret = mbedtls_md5_process_ext( ctx, input ) ) != 0 )
+        if( ( ret = mbedtls_internal_md5_process( ctx, input ) ) != 0 )
             return( ret );
 
         input += 64;

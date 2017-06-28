@@ -114,8 +114,8 @@ int mbedtls_ripemd160_starts_ext( mbedtls_ripemd160_context *ctx )
 /*
  * Process one block
  */
-int mbedtls_ripemd160_process_ext( mbedtls_ripemd160_context *ctx,
-                                   const unsigned char data[64] )
+int mbedtls_internal_ripemd160_process( mbedtls_ripemd160_context *ctx,
+                                        const unsigned char data[64] )
 {
     uint32_t A, B, C, D, E, Ap, Bp, Cp, Dp, Ep, X[16];
 
@@ -322,7 +322,7 @@ int mbedtls_ripemd160_update_ext( mbedtls_ripemd160_context *ctx,
     {
         memcpy( (void *) (ctx->buffer + left), input, fill );
 
-        if( ( ret = mbedtls_ripemd160_process_ext( ctx, ctx->buffer ) ) != 0 )
+        if( ( ret = mbedtls_internal_ripemd160_process( ctx, ctx->buffer ) ) != 0 )
             return( ret );
 
         input += fill;
@@ -332,7 +332,7 @@ int mbedtls_ripemd160_update_ext( mbedtls_ripemd160_context *ctx,
 
     while( ilen >= 64 )
     {
-        if( ( ret = mbedtls_ripemd160_process_ext( ctx, input ) ) != 0 )
+        if( ( ret = mbedtls_internal_ripemd160_process( ctx, input ) ) != 0 )
             return( ret );
 
         input += 64;

@@ -120,8 +120,8 @@ int mbedtls_ripemd160_finish_ext( mbedtls_ripemd160_context *ctx,
  *
  * \return         0 if successful
  */
-int mbedtls_ripemd160_process_ext( mbedtls_ripemd160_context *ctx,
-                                   const unsigned char data[64] );
+int mbedtls_internal_ripemd160_process( mbedtls_ripemd160_context *ctx,
+                                        const unsigned char data[64] );
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 #if defined(MBEDTLS_DEPRECATED_WARNING)
@@ -177,7 +177,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_ripemd160_finish(
 /**
  * \brief          RIPEMD-160 process data block (internal use only)
  *
- * \deprecated     Superseded by mbedtls_ripemd160_process_ext() in 2.5.0
+ * \deprecated     Superseded by mbedtls_internal_ripemd160_process() in 2.5.0
  *
  * \param ctx      RIPEMD-160 context
  * \param data     buffer holding one block of data
@@ -186,7 +186,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_ripemd160_process(
                                             mbedtls_ripemd160_context *ctx,
                                             const unsigned char data[64] )
 {
-    mbedtls_ripemd160_process_ext( ctx, data );
+    mbedtls_internal_ripemd160_process( ctx, data );
 }
 
 #undef MBEDTLS_DEPRECATED

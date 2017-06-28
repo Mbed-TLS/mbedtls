@@ -116,7 +116,7 @@ int mbedtls_md2_starts_ext( mbedtls_md2_context *ctx )
 }
 
 #if !defined(MBEDTLS_MD2_PROCESS_ALT)
-int mbedtls_md2_process_ext( mbedtls_md2_context *ctx )
+int mbedtls_internal_md2_process( mbedtls_md2_context *ctx )
 {
     int i, j;
     unsigned char t = 0;
@@ -179,7 +179,7 @@ int mbedtls_md2_update_ext( mbedtls_md2_context *ctx,
         if( ctx->left == 16 )
         {
             ctx->left = 0;
-            if( ( ret = mbedtls_md2_process_ext( ctx ) ) != 0 )
+            if( ( ret = mbedtls_internal_md2_process( ctx ) ) != 0 )
                 return( ret );
         }
     }
@@ -202,11 +202,11 @@ int mbedtls_md2_finish_ext( mbedtls_md2_context *ctx,
     for( i = ctx->left; i < 16; i++ )
         ctx->buffer[i] = x;
 
-    if( ( ret = mbedtls_md2_process_ext( ctx ) ) != 0 )
+    if( ( ret = mbedtls_internal_md2_process( ctx ) ) != 0 )
         return( ret );
 
     memcpy( ctx->buffer, ctx->cksum, 16 );
-    if( ( ret = mbedtls_md2_process_ext( ctx ) ) != 0 )
+    if( ( ret = mbedtls_internal_md2_process( ctx ) ) != 0 )
         return( ret );
 
     memcpy( output, ctx->state, 16 );

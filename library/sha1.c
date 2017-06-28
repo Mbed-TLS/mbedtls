@@ -112,8 +112,8 @@ int mbedtls_sha1_starts_ext( mbedtls_sha1_context *ctx )
 }
 
 #if !defined(MBEDTLS_SHA1_PROCESS_ALT)
-int mbedtls_sha1_process_ext( mbedtls_sha1_context *ctx,
-                              const unsigned char data[64] )
+int mbedtls_internal_sha1_process( mbedtls_sha1_context *ctx,
+                                   const unsigned char data[64] )
 {
     uint32_t temp, W[16], A, B, C, D, E;
 
@@ -299,7 +299,7 @@ int mbedtls_sha1_update_ext( mbedtls_sha1_context *ctx,
     {
         memcpy( (void *) (ctx->buffer + left), input, fill );
 
-        if( ( ret = mbedtls_sha1_process_ext( ctx, ctx->buffer ) ) != 0 )
+        if( ( ret = mbedtls_internal_sha1_process( ctx, ctx->buffer ) ) != 0 )
             return( ret );
 
         input += fill;
@@ -309,7 +309,7 @@ int mbedtls_sha1_update_ext( mbedtls_sha1_context *ctx,
 
     while( ilen >= 64 )
     {
-        if( ( ret = mbedtls_sha1_process_ext( ctx, input ) ) != 0 )
+        if( ( ret = mbedtls_internal_sha1_process( ctx, input ) ) != 0 )
             return( ret );
 
         input += 64;

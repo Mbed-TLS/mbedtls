@@ -120,8 +120,8 @@ int mbedtls_md4_finish_ext( mbedtls_md4_context *ctx,
  *
  * \return         0 if successful
  */
-int mbedtls_md4_process_ext( mbedtls_md4_context *ctx,
-                             const unsigned char data[64] );
+int mbedtls_internal_md4_process( mbedtls_md4_context *ctx,
+                                  const unsigned char data[64] );
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 #if defined(MBEDTLS_DEPRECATED_WARNING)
@@ -177,7 +177,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_md4_finish(
 /**
  * \brief          MD4 process data block (internal use only)
  *
- * \deprecated     Superseded by mbedtls_md4_process_ext() in 2.5.0
+ * \deprecated     Superseded by mbedtls_internal_md4_process() in 2.5.0
  *
  * \param ctx      MD4 context
  * \param data     buffer holding one block of data
@@ -186,7 +186,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_md4_process(
                                                 mbedtls_md4_context *ctx,
                                                 const unsigned char data[64] )
 {
-    mbedtls_md4_process_ext( ctx, data );
+    mbedtls_internal_md4_process( ctx, data );
 }
 
 #undef MBEDTLS_DEPRECATED

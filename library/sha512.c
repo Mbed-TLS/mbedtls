@@ -198,8 +198,8 @@ static const uint64_t K[80] =
     UL64(0x5FCB6FAB3AD6FAEC),  UL64(0x6C44198C4A475817)
 };
 
-int mbedtls_sha512_process_ext( mbedtls_sha512_context *ctx,
-                                const unsigned char data[128] )
+int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
+                                     const unsigned char data[128] )
 {
     int i;
     uint64_t temp1, temp2, W[80];
@@ -297,7 +297,7 @@ int mbedtls_sha512_update_ext( mbedtls_sha512_context *ctx,
     {
         memcpy( (void *) (ctx->buffer + left), input, fill );
 
-        if( ( ret = mbedtls_sha512_process_ext( ctx, ctx->buffer ) ) != 0 )
+        if( ( ret = mbedtls_internal_sha512_process( ctx, ctx->buffer ) ) != 0 )
             return( ret );
 
         input += fill;
@@ -307,7 +307,7 @@ int mbedtls_sha512_update_ext( mbedtls_sha512_context *ctx,
 
     while( ilen >= 128 )
     {
-        if( ( ret = mbedtls_sha512_process_ext( ctx, input ) ) != 0 )
+        if( ( ret = mbedtls_internal_sha512_process( ctx, input ) ) != 0 )
             return( ret );
 
         input += 128;

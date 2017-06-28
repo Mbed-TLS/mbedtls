@@ -119,7 +119,7 @@ int mbedtls_md2_finish_ext( mbedtls_md2_context *ctx,
  *
  * \return         0 if successful
  */
-int mbedtls_md2_process_ext( mbedtls_md2_context *ctx );
+int mbedtls_internal_md2_process( mbedtls_md2_context *ctx );
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 #if defined(MBEDTLS_DEPRECATED_WARNING)
@@ -175,14 +175,14 @@ MBEDTLS_DEPRECATED static inline void mbedtls_md2_finish(
 /**
  * \brief          MD2 process data block (internal use only)
  *
- * \deprecated     Superseded by mbedtls_md2_process_ext() in 2.5.0
+ * \deprecated     Superseded by mbedtls_internal_md2_process() in 2.5.0
  *
  * \param ctx      MD2 context
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_md2_process(
                                                     mbedtls_md2_context *ctx )
 {
-    mbedtls_md2_process_ext( ctx );
+    mbedtls_internal_md2_process( ctx );
 }
 
 #undef MBEDTLS_DEPRECATED

@@ -58,17 +58,17 @@ struct mbedtls_md_info_t
     int block_size;
 
     /** Digest initialisation function */
-    void (*starts_func)( void *ctx );
+    int (*starts_func)( void *ctx );
 
     /** Digest update function */
-    void (*update_func)( void *ctx, const unsigned char *input, size_t ilen );
+    int (*update_func)( void *ctx, const unsigned char *input, size_t ilen );
 
     /** Digest finalisation function */
-    void (*finish_func)( void *ctx, unsigned char *output );
+    int (*finish_func)( void *ctx, unsigned char *output );
 
     /** Generic digest function */
-    void (*digest_func)( const unsigned char *input, size_t ilen,
-                         unsigned char *output );
+    int (*digest_func)( const unsigned char *input, size_t ilen,
+                        unsigned char *output );
 
     /** Allocate a new context */
     void * (*ctx_alloc_func)( void );
@@ -80,7 +80,7 @@ struct mbedtls_md_info_t
     void (*clone_func)( void *dst, const void *src );
 
     /** Internal use only */
-    void (*process_func)( void *ctx, const unsigned char *input );
+    int (*process_func)( void *ctx, const unsigned char *input );
 };
 
 #if defined(MBEDTLS_MD2_C)

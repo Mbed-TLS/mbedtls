@@ -75,12 +75,11 @@ void mbedtls_entropy_init( mbedtls_entropy_context *ctx )
     mbedtls_mutex_init( &ctx->mutex );
 #endif
 
+    ctx->accumulator_started = 0;
 #if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
     mbedtls_sha512_init( &ctx->accumulator );
-    mbedtls_sha512_starts_ext( &ctx->accumulator, 0 );
 #else
     mbedtls_sha256_init( &ctx->accumulator );
-    mbedtls_sha256_starts_ext( &ctx->accumulator, 0 );
 #endif
 #if defined(MBEDTLS_HAVEGE_C)
     mbedtls_havege_init( &ctx->havege_data );
@@ -139,6 +138,7 @@ void mbedtls_entropy_free( mbedtls_entropy_context *ctx )
 #endif
     ctx->source_count = 0;
     mbedtls_zeroize( ctx->source, sizeof( ctx->source ) );
+    ctx->accumulator_started = 0;
 }
 
 int mbedtls_entropy_add_source( mbedtls_entropy_context *ctx,
@@ -203,11 +203,26 @@ static int entropy_update( mbedtls_entropy_context *ctx, unsigned char source_id
     header[0] = source_id;
     header[1] = use_len & 0xFF;
 
+    /*
+     * Start the accumulator if this has not already happened. Note that
+     * it is sufficient to start the accumulator here only because all calls to
+     * gather entropy eventually execute this code.
+     */
 #if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
+    if( ctx->accumulator_started == 0 &&
+        ( ret = mbedtls_sha512_starts_ext( &ctx->accumulator, 0 ) ) != 0 )
+        return( ret );
+    else
+        ctx->accumulator_started = 1;
     if( ( ret = mbedtls_sha512_update_ext( &ctx->accumulator, header, 2 ) ) != 0 )
         return( ret );
     return( mbedtls_sha512_update_ext( &ctx->accumulator, p, use_len ) );
 #else
+    if( ctx->accumulator_started == 0 &&
+        ( ret = mbedtls_sha256_starts_ext( &ctx->accumulator, 0 ) ) != 0 )
+        return( ret );
+    else
+        ctx->accumulator_started = 1;
     if( ( ret = mbedtls_sha256_update_ext( &ctx->accumulator, header, 2 ) ) != 0 )
         return( ret );
     return( mbedtls_sha256_update_ext( &ctx->accumulator, p, use_len ) );
@@ -266,7 +281,9 @@ static int entropy_gather_internal( mbedtls_entropy_context *ctx )
          */
         if( olen > 0 )
         {
-            entropy_update( ctx, (unsigned char) i, buf, olen );
+            if( ( ret = entropy_update( ctx, (unsigned char) i,
+                                        buf, olen ) ) != 0 )
+                return( ret );
             ctx->source[i].size += olen;
         }
     }

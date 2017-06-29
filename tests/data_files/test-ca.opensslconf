@@ -11,3 +11,6 @@ commonName = PolarSSL Test CA
 subjectKeyIdentifier=hash
 authorityKeyIdentifier=keyid:always,issuer:always
 basicConstraints = CA:true
+
+[noext_ca]
+basicConstraints = CA:true

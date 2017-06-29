@@ -1894,7 +1894,23 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
 }
 
 /*
- * Find a suitable parent for child in candidates
+ * Find a suitable parent for child in candidates, or return NULL.
+ *
+ * Here suitable is defined as:
+ *  - subject name matches child's issuer
+ *  - if necessary, the CA bit is set and key usage allows signing certs
+ *  - pathlen constraints are satisfied
+ *
+ * Stop at the first suitable candidate, except if it's not time-valid (not
+ * expired nor future) *and* there is a later suitable candidate that is
+ * time-valid.
+ *
+ * The rationale for this rule is that someone could have a list of trusted
+ * roots with two versions on the same root with different validity periods.
+ * (At least one user reported having such a list and wanted it to just work.)
+ * The reason we don't just require time-validity is that generally there is
+ * only one version, and if it's expired we want the flags to state that
+ * rather than NOT_TRUSTED, as would be the case if we required it here.
  */
 static mbedtls_x509_crt *x509_crt_find_parent( mbedtls_x509_crt *child,
                                                mbedtls_x509_crt *candidates,
@@ -1902,7 +1918,7 @@ static mbedtls_x509_crt *x509_crt_find_parent( mbedtls_x509_crt *child,
                                                int path_cnt,
                                                int self_cnt )
 {
-    mbedtls_x509_crt *parent;
+    mbedtls_x509_crt *parent, *badtime_parent = NULL;
 
     for( parent = candidates; parent != NULL; parent = parent->next )
     {
@@ -1916,8 +1932,20 @@ static mbedtls_x509_crt *x509_crt_find_parent( mbedtls_x509_crt *child,
             continue;
         }
 
+        if( mbedtls_x509_time_is_past( &parent->valid_to ) ||
+            mbedtls_x509_time_is_future( &parent->valid_from ) )
+        {
+            if( badtime_parent == NULL )
+                badtime_parent = parent;
+
+            continue;
+        }
+
         break;
     }
+
+    if( parent == NULL )
+        parent = badtime_parent;
 
     return parent;
 }

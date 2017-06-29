@@ -1924,7 +1924,6 @@ static int x509_crt_verify_top(
 {
     int ret;
     uint32_t ca_flags = 0;
-    int check_path_cnt;
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
     const mbedtls_md_info_t *md_info;
     mbedtls_x509_crt *future_past_ca = NULL;
@@ -1950,6 +1949,14 @@ static int x509_crt_verify_top(
     if( trust_ca == NULL )
         goto callback;
 
+    /* Special case #2: child == trust_ca: trust and that's it */
+    if( child->raw.len == trust_ca->raw.len &&
+        memcmp( child->raw.p, trust_ca->raw.p, child->raw.len ) == 0 )
+    {
+        *flags &= ~MBEDTLS_X509_BADCERT_NOT_TRUSTED;
+        goto callback;
+    }
+
     md_info = mbedtls_md_info_from_type( child->sig_md );
     if( mbedtls_md( md_info, child->tbs.p, child->tbs.len, hash ) != 0 )
     {
@@ -1963,22 +1970,9 @@ static int x509_crt_verify_top(
         if( x509_crt_check_parent( child, trust_ca, 1, path_cnt == 0 ) != 0 )
             continue;
 
-        check_path_cnt = path_cnt + 1;
-
-        /*
-         * Reduce check_path_cnt to check against if top of the chain is
-         * the same as the trusted CA
-         */
-        if( child->subject_raw.len == trust_ca->subject_raw.len &&
-            memcmp( child->subject_raw.p, trust_ca->subject_raw.p,
-                            child->issuer_raw.len ) == 0 )
-        {
-            check_path_cnt--;
-        }
-
         /* Self signed certificates do not count towards the limit */
         if( trust_ca->max_pathlen > 0 &&
-            trust_ca->max_pathlen < check_path_cnt - self_cnt )
+            trust_ca->max_pathlen < 1 + path_cnt - self_cnt )
         {
             continue;
         }
@@ -2018,10 +2012,7 @@ static int x509_crt_verify_top(
      * to the callback for any issues with validity and CRL presence for the
      * trusted CA certificate.
      */
-    if( trust_ca != NULL &&
-        ( child->subject_raw.len != trust_ca->subject_raw.len ||
-          memcmp( child->subject_raw.p, trust_ca->subject_raw.p,
-                            child->issuer_raw.len ) != 0 ) )
+    if( trust_ca != NULL )
     {
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
         /* Check trusted CA's CRL for the chain's top crt */

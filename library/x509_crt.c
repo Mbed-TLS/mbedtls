@@ -1906,13 +1906,13 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
  *      - this happens in cases 1, 2 and 3 of the comment on verify()
  *      - case 1 is special as child and trust_ca point to copies of the same
  *      certificate then
- *  - child was found to have no parent either in the chain or in trusted CAs
+ *  - child was found to have no parent either in the chain or in trusted CAs,
+ *    in which case we're called with trust_ca set to NULL
  *      - this is cases 4 and 5 of the comment on verify()
  *
  * For historical reasons, the function currently does not assume that
- * trust_ca points directly to the right root in the first case, and it
- * doesn't know in which case it starts, so it always starts by searching for
- * a parent in trust_ca.
+ * trust_ca points directly to the right root in the first case, so it always
+ * starts by searching for a parent in trust_ca.
  */
 static int x509_crt_verify_top(
                 mbedtls_x509_crt *child, mbedtls_x509_crt *trust_ca,
@@ -1945,6 +1945,10 @@ static int x509_crt_verify_top(
      * Child is the top of the chain. Check against the trust_ca list.
      */
     *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
+
+    /* Special case #1: no root, stop here */
+    if( trust_ca == NULL )
+        goto callback;
 
     md_info = mbedtls_md_info_from_type( child->sig_md );
     if( mbedtls_md( md_info, child->tbs.p, child->tbs.len, hash ) != 0 )
@@ -2042,6 +2046,7 @@ static int x509_crt_verify_top(
         }
     }
 
+callback:
     /* Call callback on top cert */
     if( NULL != f_vrfy )
     {
@@ -2173,7 +2178,7 @@ static int x509_crt_verify_child(
         }
         else
         {
-            ret = x509_crt_verify_top( parent, trust_ca, ca_crl, profile,
+            ret = x509_crt_verify_top( parent, NULL, ca_crl, profile,
                                        path_cnt + 1, self_cnt, &parent_flags,
                                        f_vrfy, p_vrfy );
             if( ret != 0 )
@@ -2349,7 +2354,7 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
         }
         else
         {
-            ret = x509_crt_verify_top( crt, trust_ca, ca_crl, profile,
+            ret = x509_crt_verify_top( crt, NULL, ca_crl, profile,
                                        pathlen, selfsigned, flags, f_vrfy, p_vrfy );
             if( ret != 0 )
                 goto exit;

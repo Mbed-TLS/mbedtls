@@ -99,6 +99,13 @@ server5-ss-expired.crt: server5.key
 	$(FAKETIME) -f -3653d $(OPENSSL) req -x509 -new -subj "/C=UK/O=mbed TLS/OU=testsuite/CN=localhost" -days 3653 -sha256 -key $< -out $@
 all_final += server5-ss-expired.crt
 
+# try to forge a copy of test-int-ca3 with different key
+server5-ss-forgeca.crt: server5.key
+	$(FAKETIME) '2015-09-01 14:08:43' $(OPENSSL) req -x509 -new -subj "/C=UK/O=mbed TLS/CN=mbed TLS Test intermediate CA 3" -set_serial 77 -config $(test_ca_config_file) -extensions noext_ca -days 3650 -sha256 -key $< -out $@
+all_final += server5-ss-forgeca.crt
+
+
+
 
 ################################################################
 #### Generate various RSA keys

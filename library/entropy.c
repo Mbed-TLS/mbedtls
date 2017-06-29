@@ -75,9 +75,9 @@ void mbedtls_entropy_init( mbedtls_entropy_context *ctx )
 #endif
 
 #if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
-    mbedtls_sha512_starts( &ctx->accumulator, 0 );
+    mbedtls_sha512_starts_ext( &ctx->accumulator, 0 );
 #else
-    mbedtls_sha256_starts( &ctx->accumulator, 0 );
+    mbedtls_sha256_starts_ext( &ctx->accumulator, 0 );
 #endif
 #if defined(MBEDTLS_HAVEGE_C)
     mbedtls_havege_init( &ctx->havege_data );
@@ -172,13 +172,16 @@ static int entropy_update( mbedtls_entropy_context *ctx, unsigned char source_id
     unsigned char tmp[MBEDTLS_ENTROPY_BLOCK_SIZE];
     size_t use_len = len;
     const unsigned char *p = data;
+    int ret;
 
     if( use_len > MBEDTLS_ENTROPY_BLOCK_SIZE )
     {
 #if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
-        mbedtls_sha512( data, len, tmp, 0 );
+        if( ( ret = mbedtls_sha512_ext( data, len, tmp, 0 ) ) != 0 )
+            return( ret );
 #else
-        mbedtls_sha256( data, len, tmp, 0 );
+        if( ( ret = mbedtls_sha256_ext( data, len, tmp, 0 ) ) != 0 )
+            return( ret );
 #endif
         p = tmp;
         use_len = MBEDTLS_ENTROPY_BLOCK_SIZE;
@@ -188,14 +191,14 @@ static int entropy_update( mbedtls_entropy_context *ctx, unsigned char source_id
     header[1] = use_len & 0xFF;
 
 #if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
-    mbedtls_sha512_update( &ctx->accumulator, header, 2 );
-    mbedtls_sha512_update( &ctx->accumulator, p, use_len );
+    if( ( ret = mbedtls_sha512_update_ext( &ctx->accumulator, header, 2 ) ) != 0 )
+        return( ret );
+    return( mbedtls_sha512_update_ext( &ctx->accumulator, p, use_len ) );
 #else
-    mbedtls_sha256_update( &ctx->accumulator, header, 2 );
-    mbedtls_sha256_update( &ctx->accumulator, p, use_len );
+    if( ( ret = mbedtls_sha256_update_ext( &ctx->accumulator, header, 2 ) ) != 0 )
+        return( ret );
+    return( mbedtls_sha256_update_ext( &ctx->accumulator, p, use_len ) );
 #endif
-
-    return( 0 );
 }
 
 int mbedtls_entropy_update_manual( mbedtls_entropy_context *ctx,
@@ -333,33 +336,45 @@ int mbedtls_entropy_func( void *data, unsigned char *output, size_t len )
     memset( buf, 0, MBEDTLS_ENTROPY_BLOCK_SIZE );
 
 #if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
-    mbedtls_sha512_finish( &ctx->accumulator, buf );
+    if( ( ret = mbedtls_sha512_finish_ext( &ctx->accumulator, buf ) ) != 0 )
+        goto exit;
 
     /*
      * Reset accumulator and counters and recycle existing entropy
      */
     memset( &ctx->accumulator, 0, sizeof( mbedtls_sha512_context ) );
-    mbedtls_sha512_starts( &ctx->accumulator, 0 );
-    mbedtls_sha512_update( &ctx->accumulator, buf, MBEDTLS_ENTROPY_BLOCK_SIZE );
+    if( ( ret = mbedtls_sha512_starts_ext( &ctx->accumulator, 0 ) ) != 0 )
+        goto exit;
+    if( ( ret = mbedtls_sha512_update_ext( &ctx->accumulator, buf,
+                                           MBEDTLS_ENTROPY_BLOCK_SIZE ) ) != 0 )
+        goto exit;
 
     /*
      * Perform second SHA-512 on entropy
      */
-    mbedtls_sha512( buf, MBEDTLS_ENTROPY_BLOCK_SIZE, buf, 0 );
+    if( ( ret = mbedtls_sha512_ext( buf, MBEDTLS_ENTROPY_BLOCK_SIZE,
+                                    buf, 0 ) ) != 0 )
+        goto exit;
 #else /* MBEDTLS_ENTROPY_SHA512_ACCUMULATOR */
-    mbedtls_sha256_finish( &ctx->accumulator, buf );
+    if( ( ret = mbedtls_sha256_finish_ext( &ctx->accumulator, buf ) ) != 0 )
+        goto exit;
 
     /*
      * Reset accumulator and counters and recycle existing entropy
      */
     memset( &ctx->accumulator, 0, sizeof( mbedtls_sha256_context ) );
-    mbedtls_sha256_starts( &ctx->accumulator, 0 );
-    mbedtls_sha256_update( &ctx->accumulator, buf, MBEDTLS_ENTROPY_BLOCK_SIZE );
+    if( ( ret = mbedtls_sha256_starts_ext( &ctx->accumulator, 0 ) ) != 0 )
+        goto exit;
+    if( ( ret = mbedtls_sha256_update_ext( &ctx->accumulator, buf,
+                                           MBEDTLS_ENTROPY_BLOCK_SIZE ) ) != 0 )
+        goto exit;
 
     /*
      * Perform second SHA-256 on entropy
      */
-    mbedtls_sha256( buf, MBEDTLS_ENTROPY_BLOCK_SIZE, buf, 0 );
+    if( ( ret = mbedtls_sha256_ext( buf, MBEDTLS_ENTROPY_BLOCK_SIZE,
+                                    buf, 0 ) ) != 0 )
+        goto exit;
 #endif /* MBEDTLS_ENTROPY_SHA512_ACCUMULATOR */
 
     for( i = 0; i < ctx->source_count; i++ )

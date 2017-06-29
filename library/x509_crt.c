@@ -1883,6 +1883,27 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
     return( 0 );
 }
 
+/*
+ * Verify a certificate no parent inside the chain
+ * (either the parent is a trusted root, or there is no parent)
+ *
+ * See comments for mbedtls_x509_crt_verify_with_profile()
+ * (also for notation used belowe)
+ *
+ * This function is called in two cases:
+ *  - child was found to have a parent in trusted roots, in which case we're
+ *    called with trust_ca pointing directly to that parent (not the full list)
+ *      - this happens in cases 1, 2 and 3 of the comment on verify()
+ *      - case 1 is special as child and trust_ca point to copies of the same
+ *      certificate then
+ *  - child was found to have no parent either in the chain or in trusted CAs
+ *      - this is cases 4 and 5 of the comment on verify()
+ *
+ * For historical reasons, the function currently does not assume that
+ * trust_ca points directly to the right root in the first case, and it
+ * doesn't know in which case it starts, so it always starts by searching for
+ * a parent in trust_ca.
+ */
 static int x509_crt_verify_top(
                 mbedtls_x509_crt *child, mbedtls_x509_crt *trust_ca,
                 mbedtls_x509_crl *ca_crl,
@@ -2023,6 +2044,11 @@ static int x509_crt_verify_top(
     return( 0 );
 }
 
+/*
+ * Verify a certificate with a parent inside the chain
+ *
+ * See comments for mbedtls_x509_crt_verify_with_profile()
+ */
 static int x509_crt_verify_child(
                 mbedtls_x509_crt *child, mbedtls_x509_crt *parent,
                 mbedtls_x509_crt *trust_ca, mbedtls_x509_crl *ca_crl,
@@ -2172,6 +2198,30 @@ int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
 
 /*
  * Verify the certificate validity, with profile
+ *
+ * The chain building/verification is spread accross 4 functions:
+ *  - this one
+ *  - x509_crt_verify_child()
+ *  - x509_crt_verify_top()
+ *  - x509_crt_check_parent()
+ *
+ * There are five main cases to consider. Let's introduce some notation:
+ *  - E means the end-entity certificate
+ *  - I and intermediate CA
+ *  - R the trusted root CA this chain anchors to
+ *  - T the list of trusted roots (R and possible some others)
+ *
+ * The main cases with the calling sequence of the crt_verify_xxx() are:
+ *  1. E = R (explicitly trusted EE cert)
+ *      verify(E, T) -> verify_top(E, R)
+ *  2. E -> R (EE signed by trusted root)
+ *      verify(E, T) -> verify_top(E, R)
+ *  3. E -> I -> R (EE signed by intermediate signed by trusted root)
+ *      verify(E, T) -> verify_child(E, I, T) -> verify_top(I, R)
+ *  4. E -> I (EE signed by intermediate that's not trusted)
+ *      verify(E, T) -> verify_child(E, I, T) -> verify_top(I, T)
+ *  5. E (EE not trusted)
+ *      verify(E, T) -> verify_top(E, T)
  */
 int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
                      mbedtls_x509_crt *trust_ca,

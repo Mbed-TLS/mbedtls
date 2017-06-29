@@ -1904,12 +1904,17 @@ static mbedtls_x509_crt *x509_crt_find_parent( mbedtls_x509_crt *child,
 {
     mbedtls_x509_crt *parent;
 
-    (void) self_cnt;
-
     for( parent = candidates; parent != NULL; parent = parent->next )
     {
         if( x509_crt_check_parent( child, parent, top, path_cnt == 0 ) != 0 )
             continue;
+
+        /* +1 because stored max_pathlen is 1 higher that the actual value */
+        if( parent->max_pathlen > 0 &&
+            parent->max_pathlen < 1 + path_cnt - self_cnt )
+        {
+            continue;
+        }
 
         break;
     }
@@ -2158,23 +2163,9 @@ static int x509_crt_verify_child(
     else
     {
         /* Look for a grandparent upwards the chain */
-        for( grandparent = parent->next;
-             grandparent != NULL;
-             grandparent = grandparent->next )
-        {
-            /* +2 because the current step is not yet accounted for
-             * and because max_pathlen is one higher than it should be.
-             * Also self signed certificates do not count to the limit. */
-            if( grandparent->max_pathlen > 0 &&
-                grandparent->max_pathlen < 2 + path_cnt - self_cnt )
-            {
-                continue;
-            }
-
-            if( x509_crt_check_parent( parent, grandparent,
-                                       0, path_cnt == 0 ) == 0 )
-                break;
-        }
+        /* path_cnt +1 because current step is not yet accounted for */
+        grandparent = x509_crt_find_parent( parent, parent->next, 0,
+                                            path_cnt + 1, self_cnt );
 
         /* Is our parent part of the chain or at the top? */
         if( grandparent != NULL )

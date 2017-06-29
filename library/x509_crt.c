@@ -1894,6 +1894,30 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
 }
 
 /*
+ * Find a suitable parent for child in candidates
+ */
+static mbedtls_x509_crt *x509_crt_find_parent( mbedtls_x509_crt *child,
+                                               mbedtls_x509_crt *candidates,
+                                               int top,
+                                               int path_cnt,
+                                               int self_cnt )
+{
+    mbedtls_x509_crt *parent;
+
+    (void) self_cnt;
+
+    for( parent = candidates; parent != NULL; parent = parent->next )
+    {
+        if( x509_crt_check_parent( child, parent, top, path_cnt == 0 ) != 0 )
+            continue;
+
+        break;
+    }
+
+    return parent;
+}
+
+/*
  * Verify a certificate no parent inside the chain
  * (either the parent is a trusted root, or there is no parent)
  *
@@ -2121,14 +2145,8 @@ static int x509_crt_verify_child(
 #endif
 
     /* Look for a grandparent in trusted CAs */
-    for( grandparent = trust_ca;
-         grandparent != NULL;
-         grandparent = grandparent->next )
-    {
-        if( x509_crt_check_parent( parent, grandparent,
-                                   1, path_cnt == 0 ) == 0 )
-            break;
-    }
+    /* path_cnt +1 because current step is not yet accounted for */
+    grandparent = x509_crt_find_parent( parent, trust_ca, 1, path_cnt + 1, self_cnt );
 
     if( grandparent != NULL )
     {
@@ -2315,11 +2333,7 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
         *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
 
     /* Look for a parent in trusted CAs */
-    for( parent = trust_ca; parent != NULL; parent = parent->next )
-    {
-        if( x509_crt_check_parent( crt, parent, 1, pathlen == 0 ) == 0 )
-            break;
-    }
+    parent = x509_crt_find_parent( crt, trust_ca, 1, pathlen, 0 );
 
     if( parent != NULL )
     {
@@ -2331,9 +2345,7 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
     else
     {
         /* Look for a parent upwards the chain */
-        for( parent = crt->next; parent != NULL; parent = parent->next )
-            if( x509_crt_check_parent( crt, parent, 0, pathlen == 0 ) == 0 )
-                break;
+        parent = x509_crt_find_parent( crt, crt->next, 0, pathlen, 0 );
 
         /* Are we part of the chain or at the top? */
         if( parent != NULL )

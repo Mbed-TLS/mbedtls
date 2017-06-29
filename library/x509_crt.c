@@ -2130,7 +2130,7 @@ static int x509_crt_verify_child(
          grandparent = grandparent->next )
     {
         if( x509_crt_check_parent( parent, grandparent,
-                                   0, path_cnt == 0 ) == 0 )
+                                   1, path_cnt == 0 ) == 0 )
             break;
     }
 
@@ -2321,7 +2321,7 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
     /* Look for a parent in trusted CAs */
     for( parent = trust_ca; parent != NULL; parent = parent->next )
     {
-        if( x509_crt_check_parent( crt, parent, 0, pathlen == 0 ) == 0 )
+        if( x509_crt_check_parent( crt, parent, 1, pathlen == 0 ) == 0 )
             break;
     }
 

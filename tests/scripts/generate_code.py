@@ -1,6 +1,6 @@
 """
-mbed SDK
-Copyright (c) 2017-2018 ARM Limited
+mbed TLS
+Copyright (c) 2017 ARM Limited
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,17 +25,15 @@ import shutil
 Generates code in following structure.
 
 <output dir>/
-|-- host_tests/
-|   |-- mbedtls_test.py
-|   |-- mbedtls/
-|   |   |-- <test suite #1>/
-|   |   |    |-- main.c
-|   |   |    |-- *.data files
-|   |   ...
-|   |   |-- <test suite #n>/
-|   |   |    |-- main.c
-|   |   |    |-- *.data files
-|   |   |
+ |-- mbedtls/
+ |   |-- <test suite #1>/
+ |   |    |-- main.c
+ |   |    |-- *.data files
+ |   ...
+ |   |-- <test suite #n>/
+ |   |    |-- main.c
+ |   |    |-- *.data files
+ |   |
 """
 
 
@@ -56,6 +54,44 @@ class InvalidFileFormat(Exception):
     pass
 
 
+class FileWrapper(file):
+    """
+    File wrapper class. Provides reading with line no. tracking. 
+    """
+
+    def __init__(self, file_name):
+        """
+        Init file handle.
+        
+        :param file_name: 
+        """
+        super(FileWrapper, self).__init__(file_name, 'r')
+        self.line_no = 0
+
+    def next(self):
+        """
+        Iterator return impl.
+        :return: 
+        """
+        line = super(FileWrapper, self).next()
+        if line:
+            self.line_no += 1
+        return line
+
+    def readline(self, limit=0):
+        """
+        Wrap the base class readline.
+        
+        :param limit: 
+        :return: 
+        """
+        return self.next()
+
+
+def split_dep(dep):
+    return ('!', dep[1:]) if dep[0] == '!' else ('', dep)
+
+
 def gen_deps(deps):
     """
     Generates dependency i.e. if def and endif code
@@ -63,16 +99,9 @@ def gen_deps(deps):
     :param deps:
     :return:
     """
-    dep_start = ''
-    dep_end = ''
-    for dep in deps:
-        if dep[0] == '!':
-            noT = '!'
-            dep = dep[1:]
-        else:
-            noT = ''
-        dep_start += '#if %sdefined(%s)\n' % (noT, dep)
-        dep_end = '#endif /* %s%s */\n' % (noT, dep) + dep_end
+    dep_start = ''.join(['#if %sdefined(%s)\n' % split_dep(x) for x in deps])
+    dep_end = ''.join(['#endif /* %s */\n' % x for x in reversed(deps)])
+
     return dep_start, dep_end
 
 
@@ -83,22 +112,16 @@ def gen_deps_one_line(deps):
     :param deps:
     :return:
     """
-    defines = []
-    for dep in deps:
-        if dep[0] == '!':
-            noT = '!'
-            dep = dep[1:]
-        else:
-            noT = ''
-        defines.append('%sdefined(%s)' % (noT, dep))
-    return '#if ' + ' && '.join(defines)
+    defines = ('#if ' if len(deps) else '') + ' && '.join(['%sdefined(%s)' % split_dep(x) for x in deps])
+    return defines
 
 
-def gen_function_wrapper(name, args_dispatch):
+def gen_function_wrapper(name, locals, args_dispatch):
     """
     Creates test function code
 
     :param name:
+    :param locals:
     :param args_dispatch:
     :return:
     """
@@ -110,9 +133,9 @@ void {name}_wrapper( void ** params )
 {locals}
     {name}( {args} );
 }}
-'''.format(name=name, unused_params='(void)params;' if len(args_dispatch[1]) == 0 else '',
-           args=', '.join(args_dispatch[1]),
-           locals=args_dispatch[0])
+'''.format(name=name, unused_params='(void)params;' if len(args_dispatch) == 0 else '',
+           args=', '.join(args_dispatch),
+           locals=locals)
     return wrapper
 
 
@@ -141,37 +164,33 @@ def gen_dispatch(name, deps):
     return dispatch_code
 
 
-def parse_suite_headers(line_no, funcs_f):
+def parse_suite_headers(funcs_f):
     """
     Parses function headers.
     
-    :param line_no:
     :param funcs_f: 
     :return: 
     """
-    headers = '#line %d "%s"\n' % (line_no + 1, funcs_f.name)
+    headers = '#line %d "%s"\n' % (funcs_f.line_no + 1, funcs_f.name)
     for line in funcs_f:
-        line_no += 1
         if re.search(END_HEADER_REGEX, line):
             break
         headers += line
     else:
         raise InvalidFileFormat("file: %s - end header pattern [%s] not found!" % (funcs_f.name, END_HEADER_REGEX))
 
-    return line_no, headers
+    return headers
 
 
-def parse_suite_deps(line_no, funcs_f):
+def parse_suite_deps(funcs_f):
     """
     Parses function dependencies.
     
-    :param line_no:
     :param funcs_f: 
     :return: 
     """
     deps = []
     for line in funcs_f:
-        line_no += 1
         m = re.search('depends_on\:(.*)', line.strip())
         if m:
             deps += [x.strip() for x in m.group(1).split(':')]
@@ -180,7 +199,7 @@ def parse_suite_deps(line_no, funcs_f):
     else:
         raise InvalidFileFormat("file: %s - end dependency pattern [%s] not found!" % (funcs_f.name, END_DEP_REGEX))
 
-    return line_no, deps
+    return deps
 
 
 def parse_function_deps(line):
@@ -195,7 +214,7 @@ def parse_function_deps(line):
     if len(dep_str):
         m = re.search('depends_on:(.*)', dep_str)
         if m:
-            deps = m.group(1).strip().split(':')
+            deps = [x.strip() for x in m.group(1).strip().split(':')]
     return deps
 
 
@@ -234,13 +253,13 @@ def parse_function_signature(line):
             args_dispatch.append('&hex%d' % arg_idx)
             arg_idx += 1
         else:
-            raise ValueError("Test function arguments can only be 'int' or 'char *'\n%s" % line)
+            raise ValueError("Test function arguments can only be 'int', 'char *' or 'HexParam_t'\n%s" % line)
         arg_idx += 1
 
-    return name, args, (locals, args_dispatch)
+    return name, args, locals, args_dispatch
 
 
-def parse_function_code(line_no, funcs_f, deps, suite_deps):
+def parse_function_code(funcs_f, deps, suite_deps):
     """
     
     :param line_no: 
@@ -249,9 +268,8 @@ def parse_function_code(line_no, funcs_f, deps, suite_deps):
     :param suite_deps:
     :return: 
     """
-    code = '#line %d "%s"\n' % (line_no + 1, funcs_f.name)
+    code = '#line %d "%s"\n' % (funcs_f.line_no + 1, funcs_f.name)
     for line in funcs_f:
-        line_no += 1
         # Check function signature
         m = re.match('.*?\s+(\w+)\s*\(', line, re.I)
         if m:
@@ -259,10 +277,9 @@ def parse_function_code(line_no, funcs_f, deps, suite_deps):
             if not re.match('.*\)', line):
                 for lin in funcs_f:
                     line += lin
-                    line_no += 1
                     if re.search('.*?\)', line):
                         break
-            name, args, args_dispatch = parse_function_signature(line)
+            name, args, locals, args_dispatch = parse_function_signature(line)
             code += line.replace(name, 'test_' + name)
             name = 'test_' + name
             break
@@ -270,7 +287,6 @@ def parse_function_code(line_no, funcs_f, deps, suite_deps):
         raise InvalidFileFormat("file: %s - Test functions not found!" % funcs_f.name)
 
     for line in funcs_f:
-        line_no += 1
         if re.search(END_CASE_REGEX, line):
             break
         code += line
@@ -281,16 +297,14 @@ def parse_function_code(line_no, funcs_f, deps, suite_deps):
     if code.find('exit:') == -1:
         s = code.rsplit('}', 1)
         if len(s) == 2:
-            code = """
-exit:
+            code = """exit:
     ;;
-}
-""".join(s)
+}""".join(s)
 
-    code += gen_function_wrapper(name, args_dispatch)
+    code += gen_function_wrapper(name, locals, args_dispatch)
     ifdef, endif = gen_deps(deps)
     dispatch_code = gen_dispatch(name, suite_deps + deps)
-    return line_no, name, args, ifdef + code + endif, dispatch_code
+    return name, args, ifdef + code + endif, dispatch_code
 
 
 def parse_functions(funcs_f):
@@ -300,7 +314,6 @@ def parse_functions(funcs_f):
     :param funcs_f: 
     :return:
     """
-    line_no = 0
     suite_headers = ''
     suite_deps = []
     suite_functions = ''
@@ -308,20 +321,19 @@ def parse_functions(funcs_f):
     function_idx = 0
     dispatch_code = ''
     for line in funcs_f:
-        line_no += 1
         if re.search(BEGIN_HEADER_REGEX, line):
-            line_no, headers = parse_suite_headers(line_no, funcs_f)
+            headers = parse_suite_headers(funcs_f)
             suite_headers += headers
         elif re.search(BEGIN_DEP_REGEX, line):
-            line_no, deps = parse_suite_deps(line_no, funcs_f)
+            deps = parse_suite_deps(funcs_f)
             suite_deps += deps
         elif re.search(BEGIN_CASE_REGEX, line):
             deps = parse_function_deps(line)
-            line_no, func_name, args, func_code, func_dispatch = parse_function_code(line_no, funcs_f, deps, suite_deps)
+            func_name, args, func_code, func_dispatch = parse_function_code(funcs_f, deps, suite_deps)
             suite_functions += func_code
             # Generate dispatch code and enumeration info
             assert func_name not in func_info, "file: %s - function %s re-declared at line %d" % \
-                                               (funcs_f.name, func_name, line_no)
+                                               (funcs_f.name, func_name, funcs_f.line_no)
             func_info[func_name] = (function_idx, args)
             dispatch_code += '/* Function Id: %d */\n' % function_idx
             dispatch_code += func_dispatch

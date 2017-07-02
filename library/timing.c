@@ -305,6 +305,27 @@ unsigned long mbedtls_timing_get_timer( struct mbedtls_timing_hr_time *val, int 
     }
 }
 
+unsigned long long mbedtls_timing_get_timer_us( struct mbedtls_timing_hr_time *val, int reset )
+{
+    unsigned long long delta;
+    struct timeval offset;
+    struct _hr_time *t = (struct _hr_time *) val;
+
+    gettimeofday( &offset, NULL );
+
+    if( reset )
+    {
+        t->start.tv_sec  = offset.tv_sec;
+        t->start.tv_usec = offset.tv_usec;
+        return( 0 );
+    }
+
+    delta = ( offset.tv_sec  - t->start.tv_sec  ) * 1000 * 1000
+          + ( offset.tv_usec - t->start.tv_usec ) ;
+
+    return( delta );
+}
+
 static void sighandler( int signum )
 {
     mbedtls_timing_alarmed = 1;

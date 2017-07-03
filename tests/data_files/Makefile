@@ -47,6 +47,23 @@ test-ca-sha256.crt: $(test_ca_key_file_rsa) $(test_ca_config_file) test-ca.csr
 	$(OPENSSL) req -x509 -config $(test_ca_config_file) -key $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" -set_serial 0 -days 3653 -sha256 -in test-ca.csr -out $@
 all_final += test-ca-sha256.crt
 
+test_ca_key_file_rsa_alt = test-ca-alt.key
+
+$(test_ca_key_file_rsa_alt):
+	$(OPENSSL) genrsa -out $@ 2048
+test-ca-alt.csr: $(test_ca_key_file_rsa_alt) $(test_ca_config_file)
+	$(OPENSSL) req -new -config $(test_ca_config_file) -key $(test_ca_key_file_rsa_alt) -subj "/C=NL/O=PolarSSL/CN=PolarSSL Test CA" -out $@
+all_intermediate += test-ca-alt.csr
+test-ca-alt.crt: $(test_ca_key_file_rsa_alt) $(test_ca_config_file) test-ca-alt.csr
+	$(OPENSSL) req -x509 -config $(test_ca_config_file) -key $(test_ca_key_file_rsa_alt) -set_serial 0 -days 3653 -sha256 -in test-ca-alt.csr -out $@
+all_final += test-ca-alt.crt
+test-ca-alt-good.crt: test-ca-alt.crt test-ca-sha256.crt
+	cat test-ca-alt.crt test-ca-sha256.crt > $@
+all_final += test-ca-alt-good.crt
+test-ca-good-alt.crt: test-ca-alt.crt test-ca-sha256.crt
+	cat test-ca-sha256.crt test-ca-alt.crt > $@
+all_final += test-ca-good-alt.crt
+
 test_ca_crt_file_ec = test-ca2.crt
 test_ca_key_file_ec = test-ca2.key
 

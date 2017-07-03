@@ -2027,18 +2027,6 @@ static int x509_crt_verify_top(
 
     (void) self_cnt;
 
-    if( mbedtls_x509_time_is_past( &child->valid_to ) )
-        *flags |= MBEDTLS_X509_BADCERT_EXPIRED;
-
-    if( mbedtls_x509_time_is_future( &child->valid_from ) )
-        *flags |= MBEDTLS_X509_BADCERT_FUTURE;
-
-    if( x509_profile_check_md_alg( profile, child->sig_md ) != 0 )
-        *flags |= MBEDTLS_X509_BADCERT_BAD_MD;
-
-    if( x509_profile_check_pk_alg( profile, child->sig_pk ) != 0 )
-        *flags |= MBEDTLS_X509_BADCERT_BAD_PK;
-
     /* Special case #1: no root, stop here */
     if( trust_ca == NULL )
     {
@@ -2114,6 +2102,18 @@ static int x509_crt_verify_child(
     mbedtls_x509_crt *parent;
     uint32_t parent_flags = 0;
 
+    if( mbedtls_x509_time_is_past( &child->valid_to ) )
+        *flags |= MBEDTLS_X509_BADCERT_EXPIRED;
+
+    if( mbedtls_x509_time_is_future( &child->valid_from ) )
+        *flags |= MBEDTLS_X509_BADCERT_FUTURE;
+
+    if( x509_profile_check_md_alg( profile, child->sig_md ) != 0 )
+        *flags |= MBEDTLS_X509_BADCERT_BAD_MD;
+
+    if( x509_profile_check_pk_alg( profile, child->sig_pk ) != 0 )
+        *flags |= MBEDTLS_X509_BADCERT_BAD_PK;
+
     /* Look for a parent in trusted CAs */
     parent = x509_crt_find_parent( child, trust_ca, 1, path_cnt, self_cnt );
 
@@ -2145,18 +2145,6 @@ static int x509_crt_verify_child(
         /* return immediately as the goal is to avoid unbounded recursion */
         return( MBEDTLS_ERR_X509_FATAL_ERROR );
     }
-
-    if( mbedtls_x509_time_is_past( &child->valid_to ) )
-        *flags |= MBEDTLS_X509_BADCERT_EXPIRED;
-
-    if( mbedtls_x509_time_is_future( &child->valid_from ) )
-        *flags |= MBEDTLS_X509_BADCERT_FUTURE;
-
-    if( x509_profile_check_md_alg( profile, child->sig_md ) != 0 )
-        *flags |= MBEDTLS_X509_BADCERT_BAD_MD;
-
-    if( x509_profile_check_pk_alg( profile, child->sig_pk ) != 0 )
-        *flags |= MBEDTLS_X509_BADCERT_BAD_PK;
 
     if( x509_crt_check_signature( child, parent ) != 0 )
         *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;

@@ -27,6 +27,8 @@
  *
  *  http://www.itu.int/ITU-T/studygroups/com17/languages/X.680-0207.pdf
  *  http://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf
+ *
+ *  [SIRO] https://cabforum.org/wp-content/uploads/Chunghwatelecom201503cabforumV4.pdf
  */
 
 #if !defined(MBEDTLS_CONFIG_FILE)
@@ -1897,9 +1899,10 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
  * Find a suitable parent for child in candidates, or return NULL.
  *
  * Here suitable is defined as:
- *  - subject name matches child's issuer
- *  - if necessary, the CA bit is set and key usage allows signing certs
- *  - pathlen constraints are satisfied
+ *  1. subject name matches child's issuer
+ *  2. if necessary, the CA bit is set and key usage allows signing certs
+ *  3. for trusted roots, the signature is correct
+ *  4. pathlen constraints are satisfied
  *
  * Stop at the first suitable candidate, except if it's not time-valid (not
  * expired nor future) *and* there is a later suitable candidate that is
@@ -1911,6 +1914,12 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
  * The reason we don't just require time-validity is that generally there is
  * only one version, and if it's expired we want the flags to state that
  * rather than NOT_TRUSTED, as would be the case if we required it here.
+ *
+ * The rationale for rule 3 (signature for trusted roots) is that users might
+ * have two versions of the same CA with different keys in their list, and the
+ * way we select the correct one is by checking the signature. (This is one
+ * way users might choose to handle key rollover, the other one relies on
+ * self-issued certs, see [SIRO].)
  */
 static mbedtls_x509_crt *x509_crt_find_parent( mbedtls_x509_crt *child,
                                                mbedtls_x509_crt *candidates,
@@ -1919,9 +1928,12 @@ static mbedtls_x509_crt *x509_crt_find_parent( mbedtls_x509_crt *child,
                                                int self_cnt )
 {
     mbedtls_x509_crt *parent, *badtime_parent = NULL;
+    const mbedtls_md_info_t *md_info;
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
 
     for( parent = candidates; parent != NULL; parent = parent->next )
     {
+        /* basic parenting skills (name, CA bit, key usage) */
         if( x509_crt_check_parent( child, parent, top, path_cnt == 0 ) != 0 )
             continue;
 
@@ -1932,6 +1944,25 @@ static mbedtls_x509_crt *x509_crt_find_parent( mbedtls_x509_crt *child,
             continue;
         }
 
+        /* Signature */
+        if( top )
+        {
+            md_info = mbedtls_md_info_from_type( child->sig_md );
+            if( mbedtls_md( md_info, child->tbs.p, child->tbs.len, hash ) != 0 )
+            {
+                /* Note: this can't happen except after an internal error */
+                continue;
+            }
+
+            if( mbedtls_pk_verify_ext( child->sig_pk, child->sig_opts, &parent->pk,
+                           child->sig_md, hash, mbedtls_md_get_size( md_info ),
+                           child->sig.p, child->sig.len ) != 0 )
+            {
+                continue;
+            }
+        }
+
+        /* optionnal time check */
         if( mbedtls_x509_time_is_past( &parent->valid_to ) ||
             mbedtls_x509_time_is_future( &parent->valid_from ) )
         {
@@ -2126,7 +2157,8 @@ static int x509_crt_verify_child(
     mbedtls_x509_crt *grandparent;
     const mbedtls_md_info_t *md_info;
 
-    /* Counting intermediate self signed certificates */
+    /* Counting intermediate self-issued (not necessarily self-signed) certs
+     * These can occur with some strategies for key rollover, see [SIRO] */
     if( ( path_cnt != 0 ) && x509_name_cmp( &child->issuer, &child->subject ) == 0 )
         self_cnt++;
 

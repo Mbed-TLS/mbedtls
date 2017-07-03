@@ -1994,22 +1994,14 @@ static mbedtls_x509_crt *x509_crt_find_parent( mbedtls_x509_crt *child,
 }
 
 /*
- * Verify a certificate no parent inside the chain
- * (either the parent is a trusted root, or there is no parent)
+ * Verify a certificate whose parent is a trusted root
  *
  * See comments for mbedtls_x509_crt_verify_with_profile()
- * (also for notation used belowe)
+ * (also for notation used below)
  *
- * This function is called in one circumstance with two sub-cases:
- *  - child was found to have a parent in trusted roots, in which case we're
- *    called with trust_ca pointing directly to that parent (not the full list)
- *      - this happens in cases 1, 2 and 3 of the comment on verify()
- *      - case 1 is special as child and trust_ca point to copies of the same
- *      certificate then
- *
- * For historical reasons, the function currently does not assume that
- * trust_ca points directly to the right root in the first case, so it always
- * starts by searching for a parent in trust_ca.
+ * This function is called when child was found to have a parent in trusted roots,
+ * and trust_ca pointing directly to that parent (not the full list).
+ *      - this happens in cases 2 and 3 of the comment on verify()
  */
 static int x509_crt_verify_top(
                 mbedtls_x509_crt *child, mbedtls_x509_crt *trust_ca,
@@ -2023,17 +2015,6 @@ static int x509_crt_verify_top(
     uint32_t ca_flags = 0;
 
     (void) self_cnt;
-
-    /* Special case: child == trust_ca: trust and that's it */
-    if( child->raw.len == trust_ca->raw.len &&
-        memcmp( child->raw.p, trust_ca->raw.p, child->raw.len ) == 0 )
-    {
-        goto callback;
-    }
-
-    /*
-     * General case: we have a trusted root, distinct from child
-     */
 
     /* this wasn't checked by find_parent() */
     if( x509_profile_check_key( profile, child->sig_pk, &trust_ca->pk ) != 0 )
@@ -2062,7 +2043,6 @@ static int x509_crt_verify_top(
         }
     }
 
-callback:
     /* Call callback on child */
     if( NULL != f_vrfy )
     {
@@ -2110,6 +2090,13 @@ static int x509_crt_verify_child(
     /* Found one? Let verify_top() handle that case */
     if( parent != NULL )
     {
+        /* Special case: child == trust_ca: trust and that's it */
+        if( child->raw.len == trust_ca->raw.len &&
+            memcmp( child->raw.p, trust_ca->raw.p, child->raw.len ) == 0 )
+        {
+            goto callback;
+        }
+
         return( x509_crt_verify_top( child, parent, ca_crl, profile,
                                      path_cnt, self_cnt, flags, f_vrfy, p_vrfy ) );
     }

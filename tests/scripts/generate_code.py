@@ -362,14 +362,15 @@ def escaped_split(str, ch):
             out.append(part)
             part = ''
         else:
-            part += str[i]
             escape = not escape and str[i] == '\\'
+            if not escape:
+                part += str[i]
     if len(part):
         out.append(part)
     return out
 
 
-def parse_test_data(data_f):
+def parse_test_data(data_f, debug=False):
     """
     Parses .data file
     
@@ -380,14 +381,16 @@ def parse_test_data(data_f):
     STATE_READ_ARGS = 1
     state = STATE_READ_NAME
     deps = []
-
+    name = ''
     for line in data_f:
         line = line.strip()
         if len(line) and line[0] == '#': # Skip comments
             continue
 
-        # skip blank lines
+        # Blank line indicates end of test
         if len(line) == 0:
+            assert state != STATE_READ_ARGS, "Newline before arguments. " \
+                                                 "Test function and arguments missing for %s" % name
             continue
 
         if state == STATE_READ_NAME:
@@ -398,7 +401,7 @@ def parse_test_data(data_f):
             # Check dependencies
             m = re.search('depends_on\:(.*)', line)
             if m:
-                deps = m.group(1).split(':')
+                deps = [x.strip() for x in m.group(1).split(':') if len(x.strip())]
             else:
                 # Read test vectors
                 parts = escaped_split(line, ':')
@@ -407,6 +410,8 @@ def parse_test_data(data_f):
                 yield name, function, deps, args
                 deps = []
                 state = STATE_READ_NAME
+    assert state != STATE_READ_ARGS, "Newline before arguments. " \
+                                     "Test function and arguments missing for %s" % name
 
 
 def gen_dep_check(dep_id, dep):
@@ -417,11 +422,9 @@ def gen_dep_check(dep_id, dep):
     :param dep: 
     :return: 
     """
-    if dep[0] == '!':
-        noT = '!'
-        dep = dep[1:]
-    else:
-        noT = ''
+    assert dep_id > -1, "Dependency Id should be a positive integer."
+    noT, dep = ('!', dep[1:]) if dep[0] == '!' else ('', dep)
+    assert len(dep) > 0, "Dependency should not be an empty string."
     dep_check = '''
 if ( dep_id == {id} )
 {{
@@ -433,7 +436,6 @@ if ( dep_id == {id} )
 }}
 else
 '''.format(noT=noT, macro=dep, id=dep_id)
-
     return dep_check
 
 
@@ -445,6 +447,8 @@ def gen_expression_check(exp_id, exp):
     :param exp: 
     :return: 
     """
+    assert exp_id > -1, "Expression Id should be a positive integer."
+    assert len(exp) > 0, "Expression should not be an empty string."
     exp_code = '''
 if ( exp_id == {exp_id} )
 {{
@@ -453,6 +457,17 @@ if ( exp_id == {exp_id} )
 else
 '''.format(exp_id=exp_id, expression=exp)
     return exp_code
+
+
+def find_unique_id(val, vals):
+    """
+    Check if val already in vals. Gives a unique Identifier for the val.
+    :param val: 
+    :param vals: 
+    :return: 
+    """
+    if val not in vals:
+        vals.append(val)
 
 
 def gen_from_test_data(data_f, out_data_f, func_info, suite_deps):

@@ -2154,6 +2154,67 @@ callback:
 }
 
 /*
+ * Verify the requested CN - only call this if cn is not NULL!
+ */
+static void x509_crt_verify_name( mbedtls_x509_crt *crt,
+                                  const char *cn,
+                                  uint32_t *flags )
+{
+    mbedtls_x509_name *name;
+    mbedtls_x509_sequence *cur = NULL;
+    size_t cn_len;
+
+    name = &crt->subject;
+    cn_len = strlen( cn );
+
+    if( crt->ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME )
+    {
+        cur = &crt->subject_alt_names;
+
+        while( cur != NULL )
+        {
+            if( cur->buf.len == cn_len &&
+                x509_memcasecmp( cn, cur->buf.p, cn_len ) == 0 )
+                break;
+
+            if( cur->buf.len > 2 &&
+                memcmp( cur->buf.p, "*.", 2 ) == 0 &&
+                x509_check_wildcard( cn, &cur->buf ) == 0 )
+            {
+                break;
+            }
+
+            cur = cur->next;
+        }
+
+        if( cur == NULL )
+            *flags |= MBEDTLS_X509_BADCERT_CN_MISMATCH;
+    }
+    else
+    {
+        while( name != NULL )
+        {
+            if( MBEDTLS_OID_CMP( MBEDTLS_OID_AT_CN, &name->oid ) == 0 )
+            {
+                if( name->val.len == cn_len &&
+                    x509_memcasecmp( name->val.p, cn, cn_len ) == 0 )
+                    break;
+
+                if( name->val.len > 2 &&
+                    memcmp( name->val.p, "*.", 2 ) == 0 &&
+                    x509_check_wildcard( cn, &name->val ) == 0 )
+                    break;
+            }
+
+            name = name->next;
+        }
+
+        if( name == NULL )
+            *flags |= MBEDTLS_X509_BADCERT_CN_MISMATCH;
+    }
+}
+
+/*
  * Verify the certificate validity
  */
 int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
@@ -2166,7 +2227,6 @@ int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
     return( mbedtls_x509_crt_verify_with_profile( crt, trust_ca, ca_crl,
                 &mbedtls_x509_crt_profile_default, cn, flags, f_vrfy, p_vrfy ) );
 }
-
 
 /*
  * Verify the certificate validity, with profile
@@ -2184,10 +2244,7 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy )
 {
-    size_t cn_len;
     int ret;
-    mbedtls_x509_name *name;
-    mbedtls_x509_sequence *cur = NULL;
     mbedtls_pk_type_t pk_type;
 
     *flags = 0;
@@ -2198,57 +2255,9 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
         goto exit;
     }
 
+    /* check name if requested */
     if( cn != NULL )
-    {
-        name = &crt->subject;
-        cn_len = strlen( cn );
-
-        if( crt->ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME )
-        {
-            cur = &crt->subject_alt_names;
-
-            while( cur != NULL )
-            {
-                if( cur->buf.len == cn_len &&
-                    x509_memcasecmp( cn, cur->buf.p, cn_len ) == 0 )
-                    break;
-
-                if( cur->buf.len > 2 &&
-                    memcmp( cur->buf.p, "*.", 2 ) == 0 &&
-                    x509_check_wildcard( cn, &cur->buf ) == 0 )
-                {
-                    break;
-                }
-
-                cur = cur->next;
-            }
-
-            if( cur == NULL )
-                *flags |= MBEDTLS_X509_BADCERT_CN_MISMATCH;
-        }
-        else
-        {
-            while( name != NULL )
-            {
-                if( MBEDTLS_OID_CMP( MBEDTLS_OID_AT_CN, &name->oid ) == 0 )
-                {
-                    if( name->val.len == cn_len &&
-                        x509_memcasecmp( name->val.p, cn, cn_len ) == 0 )
-                        break;
-
-                    if( name->val.len > 2 &&
-                        memcmp( name->val.p, "*.", 2 ) == 0 &&
-                        x509_check_wildcard( cn, &name->val ) == 0 )
-                        break;
-                }
-
-                name = name->next;
-            }
-
-            if( name == NULL )
-                *flags |= MBEDTLS_X509_BADCERT_CN_MISMATCH;
-        }
-    }
+        x509_crt_verify_name( crt, cn, flags );
 
     /* Check the type and size of the key */
     pk_type = mbedtls_pk_get_type( &crt->pk );

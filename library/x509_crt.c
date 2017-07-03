@@ -1939,11 +1939,11 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
  * rely on key identifier extensions). (This is one way users might choose to
  * handle key rollover, another relies on self-issued certs, see [SIRO].)
  */
-static mbedtls_x509_crt *x509_crt_find_parent( mbedtls_x509_crt *child,
-                                               mbedtls_x509_crt *candidates,
-                                               int top,
-                                               int path_cnt,
-                                               int self_cnt )
+static mbedtls_x509_crt *x509_crt_find_parent_in( mbedtls_x509_crt *child,
+                                                  mbedtls_x509_crt *candidates,
+                                                  int top,
+                                                  int path_cnt,
+                                                  int self_cnt )
 {
     mbedtls_x509_crt *parent, *badtime_parent = NULL;
 
@@ -1983,6 +1983,32 @@ static mbedtls_x509_crt *x509_crt_find_parent( mbedtls_x509_crt *child,
         parent = badtime_parent;
 
     return parent;
+}
+
+/*
+ * Find a parent in trusted CAs or the provided chain, or return NULL.
+ *
+ * Searches in trusted CAs first, and return the first suitable parent found
+ * (see find_parent_in() for definition of suitable).
+ */
+static mbedtls_x509_crt *x509_crt_find_parent( mbedtls_x509_crt *child,
+                                               mbedtls_x509_crt *trust_ca,
+                                               int *parent_is_trusted,
+                                               int path_cnt,
+                                               int self_cnt )
+{
+    mbedtls_x509_crt *parent;
+
+    /* Look for a parent in trusted CAs */
+    *parent_is_trusted = 1;
+    parent = x509_crt_find_parent_in( child, trust_ca, 1, path_cnt, self_cnt );
+
+    if( parent != NULL )
+        return parent;
+
+    /* Look for a parent upwards the chain */
+    *parent_is_trusted = 0;
+    return( x509_crt_find_parent_in( child, child->next, 0, path_cnt, self_cnt ) );
 }
 
 /*
@@ -2072,25 +2098,15 @@ static int x509_crt_verify_chain(
         goto callback;
     }
 
-    /* Look for a parent in trusted CAs */
-    parent = x509_crt_find_parent( child, trust_ca, 1, path_cnt, self_cnt );
+    /* Look for a parent in trusted CAs or up the chain */
+    parent = x509_crt_find_parent( child, trust_ca, &parent_is_trusted,
+                                   path_cnt, self_cnt );
 
-    /* Found one? Let verify_top() handle that case */
-    if( parent != NULL )
+    /* No parent? We're done here */
+    if( parent == NULL )
     {
-        parent_is_trusted = 1;
-    }
-    else
-    {
-        /* Look for a parent upwards the chain */
-        parent = x509_crt_find_parent( child, child->next, 0, path_cnt, 0 );
-
-        /* No parent at all? We're done here */
-        if( parent == NULL )
-        {
-            *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
-            goto callback;
-        }
+        *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
+        goto callback;
     }
 
     /* Counting intermediate self-issued (not necessarily self-signed) certs

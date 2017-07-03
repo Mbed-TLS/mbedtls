@@ -2000,15 +2000,12 @@ static mbedtls_x509_crt *x509_crt_find_parent( mbedtls_x509_crt *child,
  * See comments for mbedtls_x509_crt_verify_with_profile()
  * (also for notation used belowe)
  *
- * This function is called in two cases:
+ * This function is called in one circumstance with two sub-cases:
  *  - child was found to have a parent in trusted roots, in which case we're
  *    called with trust_ca pointing directly to that parent (not the full list)
  *      - this happens in cases 1, 2 and 3 of the comment on verify()
  *      - case 1 is special as child and trust_ca point to copies of the same
  *      certificate then
- *  - child was found to have no parent either in the chain or in trusted CAs,
- *    in which case we're called with trust_ca set to NULL
- *      - this is cases 4 and 5 of the comment on verify()
  *
  * For historical reasons, the function currently does not assume that
  * trust_ca points directly to the right root in the first case, so it always
@@ -2027,14 +2024,7 @@ static int x509_crt_verify_top(
 
     (void) self_cnt;
 
-    /* Special case #1: no root, stop here */
-    if( trust_ca == NULL )
-    {
-        *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
-        goto callback;
-    }
-
-    /* Special case #2: child == trust_ca: trust and that's it */
+    /* Special case: child == trust_ca: trust and that's it */
     if( child->raw.len == trust_ca->raw.len &&
         memcmp( child->raw.p, trust_ca->raw.p, child->raw.len ) == 0 )
     {
@@ -2127,11 +2117,11 @@ static int x509_crt_verify_child(
     /* Look for a parent upwards the chain */
     parent = x509_crt_find_parent( child, child->next, 0, path_cnt, 0 );
 
-    /* No parent at all? Let verify_top() handle that case */
+    /* No parent at all? We're done here */
     if( parent == NULL )
     {
-        return( x509_crt_verify_top( child, NULL, ca_crl, profile,
-                                     path_cnt, self_cnt, flags, f_vrfy, p_vrfy ) );
+        *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
+        goto callback;
     }
 
     /* Counting intermediate self-issued (not necessarily self-signed) certs
@@ -2164,7 +2154,8 @@ static int x509_crt_verify_child(
     if( ret != 0 )
         return( ret );
 
-    /* child is verified to be a child of the parent, call verify callback */
+callback:
+    /* chain upwards of child done, call callback on child */
     if( NULL != f_vrfy )
         if( ( ret = f_vrfy( p_vrfy, child, path_cnt, flags ) ) != 0 )
             return( ret );

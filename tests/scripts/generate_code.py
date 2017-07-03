@@ -362,9 +362,8 @@ def escaped_split(str, ch):
             out.append(part)
             part = ''
         else:
+            part += str[i]
             escape = not escape and str[i] == '\\'
-            if not escape:
-                part += str[i]
     if len(part):
         out.append(part)
     return out
@@ -582,7 +581,7 @@ def generate_code(funcs_file, data_file, template_file, platform_file, help_file
                                                               out_data_file.replace('\\', '\\\\')) # escape '\'
 
     # Function code
-    with open(funcs_file, 'r') as funcs_f, open(data_file, 'r') as data_f, open(out_data_file, 'w') as out_data_f:
+    with FileWrapper(funcs_file) as funcs_f, open(data_file, 'r') as data_f, open(out_data_file, 'w') as out_data_f:
         suite_deps, dispatch_code, func_code, func_info = parse_functions(funcs_f)
         snippets['functions_code'] = func_code
         snippets['dispatch_code'] = dispatch_code

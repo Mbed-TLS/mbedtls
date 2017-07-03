@@ -2112,7 +2112,29 @@ static int x509_crt_verify_child(
 {
     int ret;
     uint32_t parent_flags = 0;
-    mbedtls_x509_crt *grandparent;
+    mbedtls_x509_crt *grandparent = NULL;
+
+    (void) parent;
+
+    /* Look for a parent in trusted CAs */
+    parent = x509_crt_find_parent( child, trust_ca, 1, path_cnt, self_cnt );
+
+    /* Found one? Let verify_top() handle that case */
+    if( parent != NULL )
+    {
+        return( x509_crt_verify_top( child, parent, ca_crl, profile,
+                                     path_cnt, self_cnt, flags, f_vrfy, p_vrfy ) );
+    }
+
+    /* Look for a parent upwards the chain */
+    parent = x509_crt_find_parent( child, child->next, 0, path_cnt, 0 );
+
+    /* No parent at all? Let verify_top() handle that case */
+    if( parent == NULL )
+    {
+        return( x509_crt_verify_top( child, NULL, ca_crl, profile,
+                                     path_cnt, self_cnt, flags, f_vrfy, p_vrfy ) );
+    }
 
     /* Counting intermediate self-issued (not necessarily self-signed) certs
      * These can occur with some strategies for key rollover, see [SIRO] */
@@ -2149,42 +2171,12 @@ static int x509_crt_verify_child(
     *flags |= x509_crt_verifycrl(child, parent, ca_crl, profile );
 #endif
 
-    /* Look for a grandparent in trusted CAs */
-    /* path_cnt +1 because current step is not yet accounted for */
-    grandparent = x509_crt_find_parent( parent, trust_ca, 1, path_cnt + 1, self_cnt );
-
-    if( grandparent != NULL )
-    {
-        ret = x509_crt_verify_top( parent, grandparent, ca_crl, profile,
-                                path_cnt + 1, self_cnt, &parent_flags, f_vrfy, p_vrfy );
-        if( ret != 0 )
-            return( ret );
-    }
-    else
-    {
-        /* Look for a grandparent upwards the chain */
-        /* path_cnt +1 because current step is not yet accounted for */
-        grandparent = x509_crt_find_parent( parent, parent->next, 0,
-                                            path_cnt + 1, self_cnt );
-
-        /* Is our parent part of the chain or at the top? */
-        if( grandparent != NULL )
-        {
-            ret = x509_crt_verify_child( parent, grandparent, trust_ca, ca_crl,
-                                         profile, path_cnt + 1, self_cnt, &parent_flags,
-                                         f_vrfy, p_vrfy );
-            if( ret != 0 )
-                return( ret );
-        }
-        else
-        {
-            ret = x509_crt_verify_top( parent, NULL, ca_crl, profile,
-                                       path_cnt + 1, self_cnt, &parent_flags,
-                                       f_vrfy, p_vrfy );
-            if( ret != 0 )
-                return( ret );
-        }
-    }
+    /* verify the rest of the chain starting from parent */
+    ret = x509_crt_verify_child( parent, grandparent, trust_ca, ca_crl,
+                                 profile, path_cnt + 1, self_cnt, &parent_flags,
+                                 f_vrfy, p_vrfy );
+    if( ret != 0 )
+        return( ret );
 
     /* child is verified to be a child of the parent, call verify callback */
     if( NULL != f_vrfy )
@@ -2323,37 +2315,8 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
     if( x509_profile_check_key( profile, pk_type, &crt->pk ) != 0 )
         *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
 
-    /* Look for a parent in trusted CAs */
-    parent = x509_crt_find_parent( crt, trust_ca, 1, pathlen, 0 );
-
-    if( parent != NULL )
-    {
-        ret = x509_crt_verify_top( crt, parent, ca_crl, profile,
-                                   pathlen, selfsigned, flags, f_vrfy, p_vrfy );
-        if( ret != 0 )
-            goto exit;
-    }
-    else
-    {
-        /* Look for a parent upwards the chain */
-        parent = x509_crt_find_parent( crt, crt->next, 0, pathlen, 0 );
-
-        /* Are we part of the chain or at the top? */
-        if( parent != NULL )
-        {
-            ret = x509_crt_verify_child( crt, parent, trust_ca, ca_crl, profile,
-                                         pathlen, selfsigned, flags, f_vrfy, p_vrfy );
-            if( ret != 0 )
-                goto exit;
-        }
-        else
-        {
-            ret = x509_crt_verify_top( crt, NULL, ca_crl, profile,
-                                       pathlen, selfsigned, flags, f_vrfy, p_vrfy );
-            if( ret != 0 )
-                goto exit;
-        }
-    }
+    ret = x509_crt_verify_child( crt, parent, trust_ca, ca_crl, profile,
+                                 pathlen, selfsigned, flags, f_vrfy, p_vrfy );
 
 exit:
     /* prevent misuse of the vrfy callback - VERIFY_FAILED would be ignored by

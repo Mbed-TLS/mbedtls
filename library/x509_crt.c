@@ -2017,6 +2017,7 @@ static int x509_crt_verify_top(
     (void) self_cnt;
     ((void) ca_crl);
     (void) profile;
+    (void) child;
 
     /* Check time-validity of the parent */
     if( mbedtls_x509_time_is_past( &trust_ca->valid_to ) )
@@ -2032,13 +2033,6 @@ static int x509_crt_verify_top(
         {
             return( ret );
         }
-    }
-
-    /* Call callback on child */
-    if( NULL != f_vrfy )
-    {
-        if( ( ret = f_vrfy( p_vrfy, child, path_cnt, flags ) ) != 0 )
-            return( ret );
     }
 
     *flags |= ca_flags;
@@ -2132,14 +2126,16 @@ static int x509_crt_verify_child(
 
     if( parent_is_trusted )
     {
-        return( x509_crt_verify_top( child, parent, ca_crl, profile,
-                                     path_cnt, self_cnt, flags, f_vrfy, p_vrfy ) );
+        ret = x509_crt_verify_top( child, parent, ca_crl, profile,
+                                     path_cnt, self_cnt, &parent_flags, f_vrfy, p_vrfy );
     }
-
-    /* verify the rest of the chain starting from parent */
-    ret = x509_crt_verify_child( parent, trust_ca, ca_crl,
-                                 profile, path_cnt + 1, self_cnt, &parent_flags,
-                                 f_vrfy, p_vrfy );
+    else
+    {
+        /* verify the rest of the chain starting from parent */
+        ret = x509_crt_verify_child( parent, trust_ca, ca_crl,
+                                     profile, path_cnt + 1, self_cnt, &parent_flags,
+                                     f_vrfy, p_vrfy );
+    }
     if( ret != 0 )
         return( ret );
 

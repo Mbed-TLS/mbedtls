@@ -838,5 +838,277 @@ void func()
         self.assertRaises(AssertionError, parse_functions, s)
 
 
+class ExcapedSplit(TestCase):
+    """
+    Test suite for testing escaped_split()
+    """
+
+    def test_invalid_input(self):
+        """
+        Test when input split character is not a character.
+        :return: 
+        """
+        self.assertRaises(ValueError, escaped_split, '', 'string')
+
+    def test_empty_string(self):
+        """
+        Test empty strig input.
+        :return: 
+        """
+        splits = escaped_split('', ':')
+        self.assertEqual(splits, [])
+
+    def test_no_escape(self):
+        """
+        Test with no escape character. The behaviour should be same as str.split()
+        :return: 
+        """
+        s = 'yahoo:google'
+        splits = escaped_split(s, ':')
+        self.assertEqual(splits, s.split(':'))
+
+    def test_escaped_input(self):
+        """
+        Test imput that has escaped delimiter.
+        :return: 
+        """
+        s = 'yahoo\:google:facebook'
+        splits = escaped_split(s, ':')
+        self.assertEqual(splits, ['yahoo:google', 'facebook'])
+
+    def test_escaped_escape(self):
+        """
+        Test imput that has escaped delimiter.
+        :return: 
+        """
+        s = 'yahoo\\\:google:facebook'
+        splits = escaped_split(s, ':')
+        self.assertEqual(splits, ['yahoo\\', 'google', 'facebook'])
+
+    def test_all_at_once(self):
+        """
+        Test imput that has escaped delimiter.
+        :return: 
+        """
+        s = 'yahoo\\\:google:facebook\:instagram\\\:bbc\\\\:wikipedia'
+        splits = escaped_split(s, ':')
+        self.assertEqual(splits, ['yahoo\\', 'google', 'facebook:instagram\\', 'bbc\\', 'wikipedia'])
+
+class ParseTestData(TestCase):
+    """
+    Test suite for parse test data.
+    """
+
+    def test_parser(self):
+        """
+        Test that tests are parsed correctly from data file.
+        :return: 
+        """
+        data = """
+Diffie-Hellman full exchange #1
+dhm_do_dhm:10:"23":10:"5"
+
+Diffie-Hellman full exchange #2
+dhm_do_dhm:10:"93450983094850938450983409623":10:"9345098304850938450983409622"
+
+Diffie-Hellman full exchange #3
+dhm_do_dhm:10:"9345098382739712938719287391879381271":10:"9345098792137312973297123912791271"
+
+Diffie-Hellman selftest
+dhm_selftest:
+"""
+        s = StringIOWrapper('test_suite_ut.function', data)
+        tests = [(name, function, deps, args) for name, function, deps, args in parse_test_data(s)]
+        t1, t2, t3, t4 = tests
+        self.assertEqual(t1[0], 'Diffie-Hellman full exchange #1')
+        self.assertEqual(t1[1], 'dhm_do_dhm')
+        self.assertEqual(t1[2], [])
+        self.assertEqual(t1[3], ['10', '"23"', '10', '"5"'])
+
+        self.assertEqual(t2[0], 'Diffie-Hellman full exchange #2')
+        self.assertEqual(t2[1], 'dhm_do_dhm')
+        self.assertEqual(t2[2], [])
+        self.assertEqual(t2[3], ['10', '"93450983094850938450983409623"', '10', '"9345098304850938450983409622"'])
+
+        self.assertEqual(t3[0], 'Diffie-Hellman full exchange #3')
+        self.assertEqual(t3[1], 'dhm_do_dhm')
+        self.assertEqual(t3[2], [])
+        self.assertEqual(t3[3], ['10', '"9345098382739712938719287391879381271"', '10', '"9345098792137312973297123912791271"'])
+
+        self.assertEqual(t4[0], 'Diffie-Hellman selftest')
+        self.assertEqual(t4[1], 'dhm_selftest')
+        self.assertEqual(t4[2], [])
+        self.assertEqual(t4[3], [])
+
+    def test_with_dependencies(self):
+        """
+        Test that tests with dependencies are parsed.
+        :return: 
+        """
+        data = """
+Diffie-Hellman full exchange #1
+depends_on:YAHOO
+dhm_do_dhm:10:"23":10:"5"
+
+Diffie-Hellman full exchange #2
+dhm_do_dhm:10:"93450983094850938450983409623":10:"9345098304850938450983409622"
+
+"""
+        s = StringIOWrapper('test_suite_ut.function', data)
+        tests = [(name, function, deps, args) for name, function, deps, args in parse_test_data(s)]
+        t1, t2 = tests
+        self.assertEqual(t1[0], 'Diffie-Hellman full exchange #1')
+        self.assertEqual(t1[1], 'dhm_do_dhm')
+        self.assertEqual(t1[2], ['YAHOO'])
+        self.assertEqual(t1[3], ['10', '"23"', '10', '"5"'])
+
+        self.assertEqual(t2[0], 'Diffie-Hellman full exchange #2')
+        self.assertEqual(t2[1], 'dhm_do_dhm')
+        self.assertEqual(t2[2], [])
+        self.assertEqual(t2[3], ['10', '"93450983094850938450983409623"', '10', '"9345098304850938450983409622"'])
+
+    def test_no_args(self):
+        """
+        Test AssertionError is raised when test function name and args line is missing.
+        :return: 
+        """
+        data = """
+Diffie-Hellman full exchange #1
+depends_on:YAHOO
+
+
+Diffie-Hellman full exchange #2
+dhm_do_dhm:10:"93450983094850938450983409623":10:"9345098304850938450983409622"
+
+"""
+        s = StringIOWrapper('test_suite_ut.function', data)
+        e = None
+        try:
+            for x, y, z, a in parse_test_data(s):
+                pass
+        except AssertionError, e:
+            pass
+        self.assertEqual(type(e), AssertionError)
+
+    def test_incomplete_data(self):
+        """
+        Test AssertionError is raised when test function name and args line is missing.
+        :return: 
+        """
+        data = """
+Diffie-Hellman full exchange #1
+depends_on:YAHOO
+"""
+        s = StringIOWrapper('test_suite_ut.function', data)
+        e = None
+        try:
+            for x, y, z, a in parse_test_data(s):
+                pass
+        except AssertionError, e:
+            pass
+        self.assertEqual(type(e), AssertionError)
+
+
+class GenDepCheck(TestCase):
+    """
+    Test suite for gen_dep_check(). It is assumed this function is called with valid inputs. 
+    """
+
+    def test_gen_dep_check(self):
+        """
+        Test that dependency check code generated correctly.
+        :return: 
+        """
+        expected = """
+if ( dep_id == 5 )
+{
+#if defined(YAHOO)
+    return( 0 );
+#else
+    return( -2 );
+#endif
+}
+else
+"""
+        out = gen_dep_check(5, 'YAHOO')
+        self.assertEqual(out, expected)
+
+    def test_noT(self):
+        """
+        Test dependency with !.
+        :return: 
+        """
+        expected = """
+if ( dep_id == 5 )
+{
+#if !defined(YAHOO)
+    return( 0 );
+#else
+    return( -2 );
+#endif
+}
+else
+"""
+        out = gen_dep_check(5, '!YAHOO')
+        self.assertEqual(out, expected)
+
+    def test_empty_dependency(self):
+        """
+        Test invalid dependency input.
+        :return: 
+        """
+        self.assertRaises(AssertionError, gen_dep_check, 5, '!')
+
+    def test_negative_dep_id(self):
+        """
+        Test invalid dependency input.
+        :return: 
+        """
+        self.assertRaises(AssertionError, gen_dep_check, -1, 'YAHOO')
+
+
+class GenExpCheck(TestCase):
+    """
+    Test suite for gen_expression_check(). It is assumed this function is called with valid inputs. 
+    """
+
+    def test_gen_exp_check(self):
+        """
+        Test that expression check code generated correctly.
+        :return: 
+        """
+        expected = """
+if ( exp_id == 5 )
+{
+    *out_value = YAHOO;
+}
+else
+"""
+        out = gen_expression_check(5, 'YAHOO')
+        self.assertEqual(out, expected)
+
+    def test_invalid_expression(self):
+        """
+        Test invalid expression input.
+        :return: 
+        """
+        self.assertRaises(AssertionError, gen_expression_check, 5, '')
+
+    def test_negative_exp_id(self):
+        """
+        Test invalid expression id.
+        :return: 
+        """
+        self.assertRaises(AssertionError, gen_expression_check, -1, 'YAHOO')
+
+
+class GenFromTestData(TestCase):
+    """
+    Test suite for gen_from_test_data()
+    """
+
+    pass
+
+
 if __name__=='__main__':
     unittest_main()

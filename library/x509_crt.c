@@ -1752,7 +1752,7 @@ static int x509_memcasecmp( const void *s1, const void *s2, size_t len )
 /*
  * Return 0 if name matches wildcard, -1 otherwise
  */
-static int x509_check_wildcard( const char *cn, mbedtls_x509_buf *name )
+static int x509_check_wildcard( const char *cn, const mbedtls_x509_buf *name )
 {
     size_t i;
     size_t cn_idx = 0, cn_len = strlen( cn );
@@ -2154,37 +2154,46 @@ callback:
 }
 
 /*
+ * Check for CN match
+ */
+static int x509_crt_check_cn( const mbedtls_x509_buf *name,
+                              const char *cn, size_t cn_len )
+{
+    /* try exact match */
+    if( name->len == cn_len &&
+        x509_memcasecmp( cn, name->p, cn_len ) == 0 )
+    {
+        return( 0 );
+    }
+
+    /* try wildcard match */
+    if( name->len > 2 &&
+        memcmp( name->p, "*.", 2 ) == 0 &&
+        x509_check_wildcard( cn, name ) == 0 )
+    {
+        return( 0 );
+    }
+
+    return( -1 );
+}
+
+/*
  * Verify the requested CN - only call this if cn is not NULL!
  */
-static void x509_crt_verify_name( mbedtls_x509_crt *crt,
+static void x509_crt_verify_name( const mbedtls_x509_crt *crt,
                                   const char *cn,
                                   uint32_t *flags )
 {
-    mbedtls_x509_name *name;
-    mbedtls_x509_sequence *cur = NULL;
-    size_t cn_len;
-
-    name = &crt->subject;
-    cn_len = strlen( cn );
+    const mbedtls_x509_name *name;
+    const mbedtls_x509_sequence *cur;
+    size_t cn_len = strlen( cn );
 
     if( crt->ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME )
     {
-        cur = &crt->subject_alt_names;
-
-        while( cur != NULL )
+        for( cur = &crt->subject_alt_names; cur != NULL; cur = cur->next )
         {
-            if( cur->buf.len == cn_len &&
-                x509_memcasecmp( cn, cur->buf.p, cn_len ) == 0 )
+            if( x509_crt_check_cn( &cur->buf, cn, cn_len ) == 0 )
                 break;
-
-            if( cur->buf.len > 2 &&
-                memcmp( cur->buf.p, "*.", 2 ) == 0 &&
-                x509_check_wildcard( cn, &cur->buf ) == 0 )
-            {
-                break;
-            }
-
-            cur = cur->next;
         }
 
         if( cur == NULL )
@@ -2192,21 +2201,13 @@ static void x509_crt_verify_name( mbedtls_x509_crt *crt,
     }
     else
     {
-        while( name != NULL )
+        for( name = &crt->subject; name != NULL;  name = name->next )
         {
-            if( MBEDTLS_OID_CMP( MBEDTLS_OID_AT_CN, &name->oid ) == 0 )
+            if( MBEDTLS_OID_CMP( MBEDTLS_OID_AT_CN, &name->oid ) == 0 &&
+                x509_crt_check_cn( &name->val, cn, cn_len ) == 0 )
             {
-                if( name->val.len == cn_len &&
-                    x509_memcasecmp( name->val.p, cn, cn_len ) == 0 )
-                    break;
-
-                if( name->val.len > 2 &&
-                    memcmp( name->val.p, "*.", 2 ) == 0 &&
-                    x509_check_wildcard( cn, &name->val ) == 0 )
-                    break;
+                break;
             }
-
-            name = name->next;
         }
 
         if( name == NULL )

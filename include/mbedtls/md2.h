@@ -225,8 +225,6 @@ int mbedtls_md2_ext( const unsigned char *input,
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  * \param output   MD2 checksum result
- *
- * \return         0 if successful
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_md2( const unsigned char *input,
                                                    size_t ilen,

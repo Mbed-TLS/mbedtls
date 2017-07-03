@@ -2016,6 +2016,8 @@ static int x509_crt_verify_top(
     const mbedtls_md_info_t *md_info;
     mbedtls_x509_crt *future_past_ca = NULL;
 
+    (void) self_cnt;
+
     if( mbedtls_x509_time_is_past( &child->valid_to ) )
         *flags |= MBEDTLS_X509_BADCERT_EXPIRED;
 
@@ -2043,45 +2045,6 @@ static int x509_crt_verify_top(
     {
         *flags &= ~MBEDTLS_X509_BADCERT_NOT_TRUSTED;
         goto callback;
-    }
-
-    md_info = mbedtls_md_info_from_type( child->sig_md );
-    if( mbedtls_md( md_info, child->tbs.p, child->tbs.len, hash ) != 0 )
-    {
-        /* Note: this can't happen except after an internal error */
-        /* Cannot check signature, no need to try any CA */
-        trust_ca = NULL;
-    }
-
-    for( /* trust_ca */ ; trust_ca != NULL; trust_ca = trust_ca->next )
-    {
-        if( x509_crt_check_parent( child, trust_ca, 1, path_cnt == 0 ) != 0 )
-            continue;
-
-        /* Self signed certificates do not count towards the limit */
-        if( trust_ca->max_pathlen > 0 &&
-            trust_ca->max_pathlen < 1 + path_cnt - self_cnt )
-        {
-            continue;
-        }
-
-        if( mbedtls_pk_verify_ext( child->sig_pk, child->sig_opts, &trust_ca->pk,
-                           child->sig_md, hash, mbedtls_md_get_size( md_info ),
-                           child->sig.p, child->sig.len ) != 0 )
-        {
-            continue;
-        }
-
-        if( mbedtls_x509_time_is_past( &trust_ca->valid_to ) ||
-            mbedtls_x509_time_is_future( &trust_ca->valid_from ) )
-        {
-            if ( future_past_ca == NULL )
-                future_past_ca = trust_ca;
-
-            continue;
-        }
-
-        break;
     }
 
     if( trust_ca != NULL || ( trust_ca = future_past_ca ) != NULL )

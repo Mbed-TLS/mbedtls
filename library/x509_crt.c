@@ -1994,53 +1994,6 @@ static mbedtls_x509_crt *x509_crt_find_parent( mbedtls_x509_crt *child,
 }
 
 /*
- * Verify a certificate whose parent is a trusted root
- *
- * See comments for mbedtls_x509_crt_verify_with_profile()
- * (also for notation used below)
- *
- * This function is called when child was found to have a parent in trusted roots,
- * and trust_ca pointing directly to that parent (not the full list).
- *      - this happens in cases 2 and 3 of the comment on verify()
- */
-static int x509_crt_verify_top(
-                mbedtls_x509_crt *child, mbedtls_x509_crt *trust_ca,
-                mbedtls_x509_crl *ca_crl,
-                const mbedtls_x509_crt_profile *profile,
-                int path_cnt, int self_cnt, uint32_t *flags,
-                int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
-                void *p_vrfy )
-{
-    int ret;
-    uint32_t ca_flags = 0;
-
-    (void) self_cnt;
-    ((void) ca_crl);
-    (void) profile;
-    (void) child;
-
-    /* Check time-validity of the parent */
-    if( mbedtls_x509_time_is_past( &trust_ca->valid_to ) )
-        ca_flags |= MBEDTLS_X509_BADCERT_EXPIRED;
-
-    if( mbedtls_x509_time_is_future( &trust_ca->valid_from ) )
-        ca_flags |= MBEDTLS_X509_BADCERT_FUTURE;
-
-    /* Call callback on trusted root */
-    if( NULL != f_vrfy )
-    {
-        if( ( ret = f_vrfy( p_vrfy, trust_ca, path_cnt + 1, &ca_flags ) ) != 0 )
-        {
-            return( ret );
-        }
-    }
-
-    *flags |= ca_flags;
-
-    return( 0 );
-}
-
-/*
  * Verify a certificate with a parent inside the chain
  *
  * See comments for mbedtls_x509_crt_verify_with_profile()
@@ -2049,7 +2002,7 @@ static int x509_crt_verify_child(
                 mbedtls_x509_crt *child,
                 mbedtls_x509_crt *trust_ca, mbedtls_x509_crl *ca_crl,
                 const mbedtls_x509_crt_profile *profile,
-                int path_cnt, int self_cnt, uint32_t *flags,
+                int top, int path_cnt, int self_cnt, uint32_t *flags,
                 int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                 void *p_vrfy )
 {
@@ -2063,6 +2016,9 @@ static int x509_crt_verify_child(
 
     if( mbedtls_x509_time_is_future( &child->valid_from ) )
         *flags |= MBEDTLS_X509_BADCERT_FUTURE;
+
+    if( top )
+        goto callback;
 
     if( x509_profile_check_md_alg( profile, child->sig_md ) != 0 )
         *flags |= MBEDTLS_X509_BADCERT_BAD_MD;
@@ -2124,18 +2080,10 @@ static int x509_crt_verify_child(
     *flags |= x509_crt_verifycrl(child, parent, ca_crl, profile );
 #endif
 
-    if( parent_is_trusted )
-    {
-        ret = x509_crt_verify_top( child, parent, ca_crl, profile,
-                                     path_cnt, self_cnt, &parent_flags, f_vrfy, p_vrfy );
-    }
-    else
-    {
-        /* verify the rest of the chain starting from parent */
-        ret = x509_crt_verify_child( parent, trust_ca, ca_crl,
-                                     profile, path_cnt + 1, self_cnt, &parent_flags,
-                                     f_vrfy, p_vrfy );
-    }
+    /* verify the rest of the chain starting from parent */
+    ret = x509_crt_verify_child( parent, trust_ca, ca_crl, profile,
+                                 parent_is_trusted, path_cnt + 1, self_cnt,
+                                 &parent_flags, f_vrfy, p_vrfy );
     if( ret != 0 )
         return( ret );
 
@@ -2276,7 +2224,7 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
         *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
 
     ret = x509_crt_verify_child( crt, trust_ca, ca_crl, profile,
-                                 0, 0, flags, f_vrfy, p_vrfy );
+                                 0, 0, 0, flags, f_vrfy, p_vrfy );
 
 exit:
     /* prevent misuse of the vrfy callback - VERIFY_FAILED would be ignored by

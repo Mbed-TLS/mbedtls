@@ -1943,9 +1943,9 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
  *
  * The rationale for rule 3 (signature for trusted roots) is that users might
  * have two versions of the same CA with different keys in their list, and the
- * way we select the correct one is by checking the signature. (This is one
- * way users might choose to handle key rollover, the other one relies on
- * self-issued certs, see [SIRO].)
+ * way we select the correct one is by checking the signature (as we don't
+ * rely on key identifier extensions). (This is one way users might choose to
+ * handle key rollover, another relies on self-issued certs, see [SIRO].)
  */
 static mbedtls_x509_crt *x509_crt_find_parent( mbedtls_x509_crt *child,
                                                mbedtls_x509_crt *candidates,
@@ -1994,11 +1994,28 @@ static mbedtls_x509_crt *x509_crt_find_parent( mbedtls_x509_crt *child,
 }
 
 /*
- * Verify a certificate with a parent inside the chain
+ * Verify a certificate chain
  *
- * See comments for mbedtls_x509_crt_verify_with_profile()
+ * There are three main cases to consider. Let's introduce some notation:
+ *  - E means the end-entity certificate
+ *  - I an intermediate CA
+ *  - R the trusted root CA this chain anchors to
+ *
+ * The main cases are:
+ *  1. E = R: explicitly trusted EE cert
+ *  2. E (-> I)* -> R: EE (signed by intermediate) signed by trusted root
+ *  3. E (-> I)*: EE (signed by intermediate) not trusted
+ *
+ * Arguments:
+ *  - child: the current bottom of the chain to verify
+ *  - trust_ca, ca_crl, profile: as in verify_with_profile()
+ *  - top: 1 if child is known to be locally trusted
+ *  - path_cnt: current depth as passed to f_vrfy() (EE = 0, etc)
+ *  - self_cnt: number of self-issued certs seen so far in the chain
+ *  - flags: output: flags for the current certificate
+ *  - f_vrfy, p_vrfy: as in verify_with_profile()
  */
-static int x509_crt_verify_child(
+static int x509_crt_verify_chain(
                 mbedtls_x509_crt *child,
                 mbedtls_x509_crt *trust_ca, mbedtls_x509_crl *ca_crl,
                 const mbedtls_x509_crt_profile *profile,
@@ -2081,7 +2098,7 @@ static int x509_crt_verify_child(
 #endif
 
     /* verify the rest of the chain starting from parent */
-    ret = x509_crt_verify_child( parent, trust_ca, ca_crl, profile,
+    ret = x509_crt_verify_chain( parent, trust_ca, ca_crl, profile,
                                  parent_is_trusted, path_cnt + 1, self_cnt,
                                  &parent_flags, f_vrfy, p_vrfy );
     if( ret != 0 )
@@ -2116,29 +2133,10 @@ int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
 /*
  * Verify the certificate validity, with profile
  *
- * The chain building/verification is spread accross 4 functions:
- *  - this one
- *  - x509_crt_verify_child()
- *  - x509_crt_verify_top()
- *  - x509_crt_check_parent()
- *
- * There are five main cases to consider. Let's introduce some notation:
- *  - E means the end-entity certificate
- *  - I and intermediate CA
- *  - R the trusted root CA this chain anchors to
- *  - T the list of trusted roots (R and possible some others)
- *
- * The main cases with the calling sequence of the crt_verify_xxx() are:
- *  1. E = R (explicitly trusted EE cert)
- *      verify(E, T) -> verify_top(E, R)
- *  2. E -> R (EE signed by trusted root)
- *      verify(E, T) -> verify_top(E, R)
- *  3. E -> I -> R (EE signed by intermediate signed by trusted root)
- *      verify(E, T) -> verify_child(E, I, T) -> verify_top(I, R)
- *  4. E -> I (EE signed by intermediate that's not trusted)
- *      verify(E, T) -> verify_child(E, I, T) -> verify_top(I, T)
- *  5. E (EE not trusted)
- *      verify(E, T) -> verify_top(E, T)
+ * This function only checks the requested CN (if any) and then delegates
+ * chain building/verification to verify_chain(). Before that, it checks the
+ * key size of the EE certificate, as verify_chain() will only verify that of
+ * parent certificates.
  */
 int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
                      mbedtls_x509_crt *trust_ca,
@@ -2223,7 +2221,8 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
     if( x509_profile_check_key( profile, pk_type, &crt->pk ) != 0 )
         *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
 
-    ret = x509_crt_verify_child( crt, trust_ca, ca_crl, profile,
+    /* Check the chain */
+    ret = x509_crt_verify_chain( crt, trust_ca, ca_crl, profile,
                                  0, 0, 0, flags, f_vrfy, p_vrfy );
 
 exit:

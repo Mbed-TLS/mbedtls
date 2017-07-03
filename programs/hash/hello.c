@@ -28,6 +28,7 @@
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
+#include <stdlib.h>
 #include <stdio.h>
 #define mbedtls_printf       printf
 #define MBEDTLS_EXIT_SUCCESS EXIT_SUCCESS

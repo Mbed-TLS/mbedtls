@@ -2012,9 +2012,6 @@ static int x509_crt_verify_top(
 {
     int ret;
     uint32_t ca_flags = 0;
-    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
-    const mbedtls_md_info_t *md_info;
-    mbedtls_x509_crt *future_past_ca = NULL;
 
     (void) self_cnt;
 
@@ -2030,66 +2027,53 @@ static int x509_crt_verify_top(
     if( x509_profile_check_pk_alg( profile, child->sig_pk ) != 0 )
         *flags |= MBEDTLS_X509_BADCERT_BAD_PK;
 
-    /*
-     * Child is the top of the chain. Check against the trust_ca list.
-     */
-    *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
-
     /* Special case #1: no root, stop here */
     if( trust_ca == NULL )
+    {
+        *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
         goto callback;
+    }
 
     /* Special case #2: child == trust_ca: trust and that's it */
     if( child->raw.len == trust_ca->raw.len &&
         memcmp( child->raw.p, trust_ca->raw.p, child->raw.len ) == 0 )
     {
-        *flags &= ~MBEDTLS_X509_BADCERT_NOT_TRUSTED;
         goto callback;
     }
 
-    if( trust_ca != NULL || ( trust_ca = future_past_ca ) != NULL )
-    {
-        /*
-         * Top of chain is signed by a trusted CA
-         */
-        *flags &= ~MBEDTLS_X509_BADCERT_NOT_TRUSTED;
-
-        if( x509_profile_check_key( profile, child->sig_pk, &trust_ca->pk ) != 0 )
-            *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
-    }
-
     /*
-     * If top of chain is not the same as the trusted CA send a verify request
-     * to the callback for any issues with validity and CRL presence for the
-     * trusted CA certificate.
+     * General case: we have a trusted root, distinct from child
      */
-    if( trust_ca != NULL )
-    {
+
+    /* this wasn't checked by find_parent() */
+    if( x509_profile_check_key( profile, child->sig_pk, &trust_ca->pk ) != 0 )
+        *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
+
+    /* Check trusted CA's CRL for the chain's top crt */
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
-        /* Check trusted CA's CRL for the chain's top crt */
-        *flags |= x509_crt_verifycrl( child, trust_ca, ca_crl, profile );
+    *flags |= x509_crt_verifycrl( child, trust_ca, ca_crl, profile );
 #else
-        ((void) ca_crl);
+    ((void) ca_crl);
 #endif
 
-        if( mbedtls_x509_time_is_past( &trust_ca->valid_to ) )
-            ca_flags |= MBEDTLS_X509_BADCERT_EXPIRED;
+    /* Check time-validity of the parent */
+    if( mbedtls_x509_time_is_past( &trust_ca->valid_to ) )
+        ca_flags |= MBEDTLS_X509_BADCERT_EXPIRED;
 
-        if( mbedtls_x509_time_is_future( &trust_ca->valid_from ) )
-            ca_flags |= MBEDTLS_X509_BADCERT_FUTURE;
+    if( mbedtls_x509_time_is_future( &trust_ca->valid_from ) )
+        ca_flags |= MBEDTLS_X509_BADCERT_FUTURE;
 
-        if( NULL != f_vrfy )
+    /* Call callback on trusted root */
+    if( NULL != f_vrfy )
+    {
+        if( ( ret = f_vrfy( p_vrfy, trust_ca, path_cnt + 1, &ca_flags ) ) != 0 )
         {
-            if( ( ret = f_vrfy( p_vrfy, trust_ca, path_cnt + 1,
-                                &ca_flags ) ) != 0 )
-            {
-                return( ret );
-            }
+            return( ret );
         }
     }
 
 callback:
-    /* Call callback on top cert */
+    /* Call callback on child */
     if( NULL != f_vrfy )
     {
         if( ( ret = f_vrfy( p_vrfy, child, path_cnt, flags ) ) != 0 )

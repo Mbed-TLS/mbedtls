@@ -2103,7 +2103,7 @@ callback:
  * See comments for mbedtls_x509_crt_verify_with_profile()
  */
 static int x509_crt_verify_child(
-                mbedtls_x509_crt *child, mbedtls_x509_crt *parent,
+                mbedtls_x509_crt *child,
                 mbedtls_x509_crt *trust_ca, mbedtls_x509_crl *ca_crl,
                 const mbedtls_x509_crt_profile *profile,
                 int path_cnt, int self_cnt, uint32_t *flags,
@@ -2111,10 +2111,8 @@ static int x509_crt_verify_child(
                 void *p_vrfy )
 {
     int ret;
+    mbedtls_x509_crt *parent;
     uint32_t parent_flags = 0;
-    mbedtls_x509_crt *grandparent = NULL;
-
-    (void) parent;
 
     /* Look for a parent in trusted CAs */
     parent = x509_crt_find_parent( child, trust_ca, 1, path_cnt, self_cnt );
@@ -2172,7 +2170,7 @@ static int x509_crt_verify_child(
 #endif
 
     /* verify the rest of the chain starting from parent */
-    ret = x509_crt_verify_child( parent, grandparent, trust_ca, ca_crl,
+    ret = x509_crt_verify_child( parent, trust_ca, ca_crl,
                                  profile, path_cnt + 1, self_cnt, &parent_flags,
                                  f_vrfy, p_vrfy );
     if( ret != 0 )
@@ -2240,8 +2238,6 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
 {
     size_t cn_len;
     int ret;
-    int pathlen = 0, selfsigned = 0;
-    mbedtls_x509_crt *parent;
     mbedtls_x509_name *name;
     mbedtls_x509_sequence *cur = NULL;
     mbedtls_pk_type_t pk_type;
@@ -2315,8 +2311,8 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
     if( x509_profile_check_key( profile, pk_type, &crt->pk ) != 0 )
         *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
 
-    ret = x509_crt_verify_child( crt, parent, trust_ca, ca_crl, profile,
-                                 pathlen, selfsigned, flags, f_vrfy, p_vrfy );
+    ret = x509_crt_verify_child( crt, trust_ca, ca_crl, profile,
+                                 0, 0, flags, f_vrfy, p_vrfy );
 
 exit:
     /* prevent misuse of the vrfy callback - VERIFY_FAILED would be ignored by

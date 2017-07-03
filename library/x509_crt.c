@@ -1884,7 +1884,7 @@ static int x509_crt_check_signature( const mbedtls_x509_crt *child,
  */
 static int x509_crt_check_parent( const mbedtls_x509_crt *child,
                                   const mbedtls_x509_crt *parent,
-                                  int top, int bottom )
+                                  int top )
 {
     int need_ca_bit;
 
@@ -1898,14 +1898,6 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
     /* Exception: v1/v2 certificates that are locally trusted. */
     if( top && parent->version < 3 )
         need_ca_bit = 0;
-
-    /* Exception: self-signed end-entity certs that are locally trusted. */
-    if( top && bottom &&
-        child->raw.len == parent->raw.len &&
-        memcmp( child->raw.p, parent->raw.p, child->raw.len ) == 0 )
-    {
-        need_ca_bit = 0;
-    }
 
     if( need_ca_bit && ! parent->ca_istrue )
         return( -1 );
@@ -1958,7 +1950,7 @@ static mbedtls_x509_crt *x509_crt_find_parent( mbedtls_x509_crt *child,
     for( parent = candidates; parent != NULL; parent = parent->next )
     {
         /* basic parenting skills (name, CA bit, key usage) */
-        if( x509_crt_check_parent( child, parent, top, path_cnt == 0 ) != 0 )
+        if( x509_crt_check_parent( child, parent, top ) != 0 )
             continue;
 
         /* +1 because stored max_pathlen is 1 higher that the actual value */
@@ -1991,6 +1983,36 @@ static mbedtls_x509_crt *x509_crt_find_parent( mbedtls_x509_crt *child,
         parent = badtime_parent;
 
     return parent;
+}
+
+/*
+ * Check if an end-entity certificate is locally trusted
+ *
+ * Currently we require such certificates to be self-signed (actually only
+ * check for self-issued as self-signatures are not checked)
+ */
+static int x509_crt_check_ee_locally_trusted(
+                    mbedtls_x509_crt *crt,
+                    mbedtls_x509_crt *trust_ca )
+{
+    mbedtls_x509_crt *cur;
+
+    /* must be self-issued */
+    if( x509_name_cmp( &crt->issuer, &crt->subject ) != 0 )
+        return( -1 );
+
+    /* look for an exact match with trusted cert */
+    for( cur = trust_ca; cur != NULL; cur = cur->next )
+    {
+        if( crt->raw.len == cur->raw.len &&
+            memcmp( crt->raw.p, cur->raw.p, crt->raw.len ) == 0 )
+        {
+            return( 0 );
+        }
+    }
+
+    /* too bad */
+    return( -1 );
 }
 
 /*
@@ -2043,19 +2065,19 @@ static int x509_crt_verify_chain(
     if( x509_profile_check_pk_alg( profile, child->sig_pk ) != 0 )
         *flags |= MBEDTLS_X509_BADCERT_BAD_PK;
 
+    /* Special case: EE certs that are locally trusted */
+    if( path_cnt == 0 &&
+        x509_crt_check_ee_locally_trusted( child, trust_ca ) == 0 )
+    {
+        goto callback;
+    }
+
     /* Look for a parent in trusted CAs */
     parent = x509_crt_find_parent( child, trust_ca, 1, path_cnt, self_cnt );
 
     /* Found one? Let verify_top() handle that case */
     if( parent != NULL )
     {
-        /* Special case: child == trust_ca: trust and that's it */
-        if( child->raw.len == trust_ca->raw.len &&
-            memcmp( child->raw.p, trust_ca->raw.p, child->raw.len ) == 0 )
-        {
-            goto callback;
-        }
-
         parent_is_trusted = 1;
     }
     else

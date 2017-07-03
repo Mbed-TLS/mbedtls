@@ -1850,6 +1850,32 @@ static int x509_name_cmp( const mbedtls_x509_name *a, const mbedtls_x509_name *b
 }
 
 /*
+ * Check the signature of a certificate by its parent
+ */
+static int x509_crt_check_signature( const mbedtls_x509_crt *child,
+                                     mbedtls_x509_crt *parent )
+{
+    const mbedtls_md_info_t *md_info;
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
+
+    md_info = mbedtls_md_info_from_type( child->sig_md );
+    if( mbedtls_md( md_info, child->tbs.p, child->tbs.len, hash ) != 0 )
+    {
+        /* Note: this can't happen except after an internal error */
+        return( -1 );
+    }
+
+    if( mbedtls_pk_verify_ext( child->sig_pk, child->sig_opts, &parent->pk,
+                child->sig_md, hash, mbedtls_md_get_size( md_info ),
+                child->sig.p, child->sig.len ) != 0 )
+    {
+        return( -1 );
+    }
+
+    return( 0 );
+}
+
+/*
  * Check if 'parent' is a suitable parent (signing CA) for 'child'.
  * Return 0 if yes, -1 if not.
  *
@@ -1928,8 +1954,6 @@ static mbedtls_x509_crt *x509_crt_find_parent( mbedtls_x509_crt *child,
                                                int self_cnt )
 {
     mbedtls_x509_crt *parent, *badtime_parent = NULL;
-    const mbedtls_md_info_t *md_info;
-    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
 
     for( parent = candidates; parent != NULL; parent = parent->next )
     {
@@ -1945,21 +1969,9 @@ static mbedtls_x509_crt *x509_crt_find_parent( mbedtls_x509_crt *child,
         }
 
         /* Signature */
-        if( top )
+        if( top && x509_crt_check_signature( child, parent ) != 0 )
         {
-            md_info = mbedtls_md_info_from_type( child->sig_md );
-            if( mbedtls_md( md_info, child->tbs.p, child->tbs.len, hash ) != 0 )
-            {
-                /* Note: this can't happen except after an internal error */
-                continue;
-            }
-
-            if( mbedtls_pk_verify_ext( child->sig_pk, child->sig_opts, &parent->pk,
-                           child->sig_md, hash, mbedtls_md_get_size( md_info ),
-                           child->sig.p, child->sig.len ) != 0 )
-            {
-                continue;
-            }
+            continue;
         }
 
         /* optionnal time check */
@@ -2100,9 +2112,7 @@ static int x509_crt_verify_child(
 {
     int ret;
     uint32_t parent_flags = 0;
-    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
     mbedtls_x509_crt *grandparent;
-    const mbedtls_md_info_t *md_info;
 
     /* Counting intermediate self-issued (not necessarily self-signed) certs
      * These can occur with some strategies for key rollover, see [SIRO] */
@@ -2128,28 +2138,11 @@ static int x509_crt_verify_child(
     if( x509_profile_check_pk_alg( profile, child->sig_pk ) != 0 )
         *flags |= MBEDTLS_X509_BADCERT_BAD_PK;
 
-    md_info = mbedtls_md_info_from_type( child->sig_md );
-    if( md_info == NULL )
-    {
-        /*
-         * Cannot check 'unknown' hash
-         */
+    if( x509_crt_check_signature( child, parent ) != 0 )
         *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
-    }
-    else
-    {
-        mbedtls_md( md_info, child->tbs.p, child->tbs.len, hash );
 
-        if( x509_profile_check_key( profile, child->sig_pk, &parent->pk ) != 0 )
-            *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
-
-        if( mbedtls_pk_verify_ext( child->sig_pk, child->sig_opts, &parent->pk,
-                           child->sig_md, hash, mbedtls_md_get_size( md_info ),
-                           child->sig.p, child->sig.len ) != 0 )
-        {
-            *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
-        }
-    }
+    if( x509_profile_check_key( profile, child->sig_pk, &parent->pk ) != 0 )
+        *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
 
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
     /* Check trusted CA's CRL for the given crt */

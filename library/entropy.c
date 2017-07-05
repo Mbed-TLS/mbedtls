@@ -195,6 +195,8 @@ static int entropy_update( mbedtls_entropy_context *ctx, unsigned char source_id
     mbedtls_sha256_update( &ctx->accumulator, p, use_len );
 #endif
 
+    mbedtls_zeroize( tmp, sizeof( tmp ) );
+
     return( 0 );
 }
 

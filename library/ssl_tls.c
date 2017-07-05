@@ -6049,13 +6049,19 @@ int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
-    if( conf->psk != NULL || conf->psk_identity != NULL )
+    if( conf->psk != NULL )
     {
         mbedtls_zeroize( conf->psk, conf->psk_len );
+
         mbedtls_free( conf->psk );
-        mbedtls_free( conf->psk_identity );
         conf->psk = NULL;
+        conf->psk_len = 0;
+    }
+    if( conf->psk_identity != NULL )
+    {
+        mbedtls_free( conf->psk_identity );
         conf->psk_identity = NULL;
+        conf->psk_identity_len = 0;
     }
 
     if( ( conf->psk = mbedtls_calloc( 1, psk_len ) ) == NULL ||
@@ -6090,6 +6096,7 @@ int mbedtls_ssl_set_hs_psk( mbedtls_ssl_context *ssl,
     {
         mbedtls_zeroize( ssl->handshake->psk, ssl->handshake->psk_len );
         mbedtls_free( ssl->handshake->psk );
+        ssl->handshake->psk_len = 0;
     }
 
     if( ( ssl->handshake->psk = mbedtls_calloc( 1, psk_len ) ) == NULL )

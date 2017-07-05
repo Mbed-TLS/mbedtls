@@ -77,6 +77,19 @@
 #endif /* !_WIN32 || EFIX64 || EFI32 */
 #endif
 
+/*
+ * Item in a verification chain: cert and flags for it
+ */
+typedef struct {
+    mbedtls_x509_crt *crt;
+    uint32_t flags;
+} x509_crt_verify_chain_item;
+
+/*
+ * Max size of verification chain: end-entity + intermediates + trusted root
+ */
+#define X509_MAX_VERIFY_CHAIN_SIZE    ( MBEDTLS_X509_MAX_INTERMEDIATE_CA + 2 )
+
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
@@ -2069,7 +2082,8 @@ static int x509_crt_verify_chain(
                 const mbedtls_x509_crt_profile *profile,
                 int top, int path_cnt, int self_cnt, uint32_t *flags,
                 int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
-                void *p_vrfy )
+                void *p_vrfy,
+                x509_crt_verify_chain_item ver_chain[X509_MAX_VERIFY_CHAIN_SIZE] )
 {
     int ret;
     mbedtls_x509_crt *parent;
@@ -2138,17 +2152,14 @@ static int x509_crt_verify_chain(
     /* verify the rest of the chain starting from parent */
     ret = x509_crt_verify_chain( parent, trust_ca, ca_crl, profile,
                                  parent_is_trusted, path_cnt + 1, self_cnt,
-                                 &parent_flags, f_vrfy, p_vrfy );
+                                 &parent_flags, f_vrfy, p_vrfy, ver_chain );
     if( ret != 0 )
         return( ret );
 
 callback:
-    /* chain upwards of child done, call callback on child */
-    if( NULL != f_vrfy )
-        if( ( ret = f_vrfy( p_vrfy, child, path_cnt, flags ) ) != 0 )
-            return( ret );
-
-    *flags |= parent_flags;
+    /* chain upwards of child done, add to callback stack */
+    ver_chain[path_cnt].crt = child;
+    ver_chain[path_cnt].flags = *flags;
 
     return( 0 );
 }
@@ -2247,8 +2258,13 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
 {
     int ret;
     mbedtls_pk_type_t pk_type;
+    x509_crt_verify_chain_item ver_chain[X509_MAX_VERIFY_CHAIN_SIZE];
+    size_t i;
+    uint32_t cur_flags;
+    uint32_t *ee_flags = &ver_chain[0].flags;
 
     *flags = 0;
+    memset( ver_chain, 0, sizeof( ver_chain ) );
 
     if( profile == NULL )
     {
@@ -2258,20 +2274,38 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
 
     /* check name if requested */
     if( cn != NULL )
-        x509_crt_verify_name( crt, cn, flags );
+        x509_crt_verify_name( crt, cn, ee_flags );
 
     /* Check the type and size of the key */
     pk_type = mbedtls_pk_get_type( &crt->pk );
 
     if( x509_profile_check_pk_alg( profile, pk_type ) != 0 )
-        *flags |= MBEDTLS_X509_BADCERT_BAD_PK;
+        *ee_flags |= MBEDTLS_X509_BADCERT_BAD_PK;
 
     if( x509_profile_check_key( profile, pk_type, &crt->pk ) != 0 )
-        *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
+        *ee_flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
 
     /* Check the chain */
     ret = x509_crt_verify_chain( crt, trust_ca, ca_crl, profile,
-                                 0, 0, 0, flags, f_vrfy, p_vrfy );
+                                 0, 0, 0, &ver_chain[0].flags,
+                                 f_vrfy, p_vrfy, ver_chain );
+    if( ret != 0 )
+        goto exit;
+
+    /* Build final flags, calling calback on the way if any */
+    for( i = X509_MAX_VERIFY_CHAIN_SIZE; i != 0; --i )
+    {
+        if( ver_chain[i-1].crt == NULL )
+            continue;
+
+        cur_flags = ver_chain[i-1].flags;
+
+        if( NULL != f_vrfy )
+            if( ( ret = f_vrfy( p_vrfy, ver_chain[i-1].crt, i-1, &cur_flags ) ) != 0 )
+                goto exit;
+
+        *flags |= cur_flags;
+    }
 
 exit:
     /* prevent misuse of the vrfy callback - VERIFY_FAILED would be ignored by

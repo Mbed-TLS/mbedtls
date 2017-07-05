@@ -387,7 +387,7 @@ exit:
 int mbedtls_entropy_update_nv_seed( mbedtls_entropy_context *ctx )
 {
     int ret = MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR;
-    unsigned char buf[ MBEDTLS_ENTROPY_MAX_SEED_SIZE ];
+    unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE];
 
     /* Read new seed  and write it to NV */
     if( ( ret = mbedtls_entropy_func( ctx, buf, MBEDTLS_ENTROPY_BLOCK_SIZE ) ) != 0 )

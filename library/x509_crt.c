@@ -2240,6 +2240,36 @@ static void x509_crt_verify_name( const mbedtls_x509_crt *crt,
 }
 
 /*
+ * Merge the flags for all certs in the chain, after calling callback
+ */
+static int x509_crt_merge_flags_with_cb(
+           uint32_t *flags,
+           x509_crt_verify_chain_item ver_chain[X509_MAX_VERIFY_CHAIN_SIZE],
+           int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
+           void *p_vrfy )
+{
+    int ret;
+    size_t i, j;
+    uint32_t cur_flags;
+
+    for( i = X509_MAX_VERIFY_CHAIN_SIZE; i != 0; --i )
+    {
+        if( ver_chain[i-1].crt == NULL )
+            continue;
+
+        cur_flags = ver_chain[i-1].flags;
+
+        if( NULL != f_vrfy )
+            if( ( ret = f_vrfy( p_vrfy, ver_chain[i-1].crt, i-1, &cur_flags ) ) != 0 )
+                return( ret );
+
+        *flags |= cur_flags;
+    }
+
+    return( 0 );
+}
+
+/*
  * Verify the certificate validity
  */
 int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
@@ -2272,8 +2302,6 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
     int ret;
     mbedtls_pk_type_t pk_type;
     x509_crt_verify_chain_item ver_chain[X509_MAX_VERIFY_CHAIN_SIZE];
-    size_t i;
-    uint32_t cur_flags;
     uint32_t *ee_flags = &ver_chain[0].flags;
 
     *flags = 0;
@@ -2303,20 +2331,8 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
     if( ret != 0 )
         goto exit;
 
-    /* Build final flags, calling calback on the way if any */
-    for( i = X509_MAX_VERIFY_CHAIN_SIZE; i != 0; --i )
-    {
-        if( ver_chain[i-1].crt == NULL )
-            continue;
-
-        cur_flags = ver_chain[i-1].flags;
-
-        if( NULL != f_vrfy )
-            if( ( ret = f_vrfy( p_vrfy, ver_chain[i-1].crt, i-1, &cur_flags ) ) != 0 )
-                goto exit;
-
-        *flags |= cur_flags;
-    }
+    /* Build final flags, calling callback on the way if any */
+    ret = x509_crt_merge_flags_with_cb( flags, ver_chain, f_vrfy, p_vrfy );
 
 exit:
     /* prevent misuse of the vrfy callback - VERIFY_FAILED would be ignored by

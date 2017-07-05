@@ -2086,22 +2086,25 @@ static int x509_crt_verify_chain(
                 mbedtls_x509_crt *trust_ca,
                 mbedtls_x509_crl *ca_crl,
                 const mbedtls_x509_crt_profile *profile,
-                x509_crt_verify_chain_item ver_chain[X509_MAX_VERIFY_CHAIN_SIZE] )
+                x509_crt_verify_chain_item ver_chain[X509_MAX_VERIFY_CHAIN_SIZE],
+                size_t *chain_len )
 {
     uint32_t *flags;
     mbedtls_x509_crt *child;
     mbedtls_x509_crt *parent;
     int parent_is_trusted = 0;
     int child_is_trusted = 0;
-    int path_cnt = 0;
+    int path_cnt = 0; /* like chain_len but not updated at the same time */
     int self_cnt = 0;
 
     child = crt;
+    *chain_len = 0;
 
     while( 1 ) {
         /* Add certificate to the verification chain */
         ver_chain[path_cnt].crt = child;
         flags = &ver_chain[path_cnt].flags;
+        ++*chain_len;
 
         /* Check time-validity (all certificates) */
         if( mbedtls_x509_time_is_past( &child->valid_to ) )
@@ -2245,18 +2248,16 @@ static void x509_crt_verify_name( const mbedtls_x509_crt *crt,
 static int x509_crt_merge_flags_with_cb(
            uint32_t *flags,
            x509_crt_verify_chain_item ver_chain[X509_MAX_VERIFY_CHAIN_SIZE],
+           size_t chain_len,
            int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
            void *p_vrfy )
 {
     int ret;
-    size_t i, j;
+    size_t i;
     uint32_t cur_flags;
 
-    for( i = X509_MAX_VERIFY_CHAIN_SIZE; i != 0; --i )
+    for( i = chain_len; i != 0; --i )
     {
-        if( ver_chain[i-1].crt == NULL )
-            continue;
-
         cur_flags = ver_chain[i-1].flags;
 
         if( NULL != f_vrfy )
@@ -2302,10 +2303,12 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
     int ret;
     mbedtls_pk_type_t pk_type;
     x509_crt_verify_chain_item ver_chain[X509_MAX_VERIFY_CHAIN_SIZE];
+    size_t chain_len;
     uint32_t *ee_flags = &ver_chain[0].flags;
 
     *flags = 0;
     memset( ver_chain, 0, sizeof( ver_chain ) );
+    chain_len = 0;
 
     if( profile == NULL )
     {
@@ -2327,12 +2330,14 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
         *ee_flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
 
     /* Check the chain */
-    ret = x509_crt_verify_chain( crt, trust_ca, ca_crl, profile, ver_chain );
+    ret = x509_crt_verify_chain( crt, trust_ca, ca_crl, profile,
+                                 ver_chain, &chain_len );
     if( ret != 0 )
         goto exit;
 
     /* Build final flags, calling callback on the way if any */
-    ret = x509_crt_merge_flags_with_cb( flags, ver_chain, f_vrfy, p_vrfy );
+    ret = x509_crt_merge_flags_with_cb( flags,
+                                        ver_chain, chain_len, f_vrfy, p_vrfy );
 
 exit:
     /* prevent misuse of the vrfy callback - VERIFY_FAILED would be ignored by

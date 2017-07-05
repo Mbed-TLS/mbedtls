@@ -1,5 +1,12 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x released xxxx-xx-xx
+
+Security
+   * Ensure that buffers are cleared after use if they contain sensitive data.
+     Changes were introduced in multiple places in the library. Cannot be
+     triggered remotely.
+
 = mbed TLS 2.5.1 released xxxx-xx-xx
 
 Security

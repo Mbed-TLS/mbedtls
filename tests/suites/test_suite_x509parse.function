@@ -320,7 +320,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
-void x509_verify_callback( char *crt_file, char *ca_file,
+void x509_verify_callback( char *crt_file, char *ca_file, char *name,
                            int exp_ret, char *exp_vrfy_out )
 {
     int ret;
@@ -336,9 +336,12 @@ void x509_verify_callback( char *crt_file, char *ca_file,
     TEST_ASSERT( mbedtls_x509_crt_parse_file( &crt, crt_file ) == 0 );
     TEST_ASSERT( mbedtls_x509_crt_parse_file( &ca, ca_file ) == 0 );
 
+    if( strcmp( name, "NULL" ) == 0 )
+        name = NULL;
+
     ret = mbedtls_x509_crt_verify_with_profile( &crt, &ca, NULL,
                                                 &compat_profile,
-                                                NULL, &flags,
+                                                name, &flags,
                                                 verify_print, &vrfy_ctx );
 
     TEST_ASSERT( ret == exp_ret );

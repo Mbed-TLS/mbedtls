@@ -185,7 +185,7 @@ static int verify_chain()
 {
     memory_header *prv = heap.first, *cur;
 
-    if( heap.first == NULL || verify_header( heap.first ) != 0 )
+    if( prv == NULL || verify_header( prv ) != 0 )
     {
 #if defined(POLARSSL_MEMORY_DEBUG)
         polarssl_fprintf( stderr, "FATAL: verification of first header "

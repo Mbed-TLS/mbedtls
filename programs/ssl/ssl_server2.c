@@ -1791,7 +1791,7 @@ data_exchange:
             unsigned char *larger_buf;
 
             ori_len = ret;
-            extra_len = ssl_get_bytes_avail( &ssl );
+            extra_len = (int) ssl_get_bytes_avail( &ssl );
 
             larger_buf = polarssl_malloc( ori_len + extra_len + 1 );
             if( larger_buf == NULL )

@@ -347,6 +347,8 @@ def parse_functions(funcs_f):
 def escaped_split(str, ch):
     """
     Split str on character ch but ignore escaped \{ch}
+    Since return value is used to write back to the intermediate data file. 
+    Any escape characters in the input are retained in the output.
 
     :param str:
     :param ch:
@@ -458,15 +460,98 @@ else
     return exp_code
 
 
-def find_unique_id(val, vals):
+def write_deps(out_data_f, test_deps, unique_deps):
     """
-    Check if val already in vals. Gives a unique Identifier for the val.
-    :param val: 
-    :param vals: 
+    Write dependencies to intermediate test data file.
+    It also returns dependency check code.
+      
+    :param out_data_f:
+    :param dep: 
+    :param unique_deps: 
     :return: 
     """
-    if val not in vals:
-        vals.append(val)
+    dep_check_code = ''
+    if len(test_deps):
+        out_data_f.write('depends_on')
+        for dep in test_deps:
+            if dep not in unique_deps:
+                unique_deps.append(dep)
+                dep_id = unique_deps.index(dep)
+                dep_check_code += gen_dep_check(dep_id, dep)
+            else:
+                dep_id = unique_deps.index(dep)
+            out_data_f.write(':' + str(dep_id))
+        out_data_f.write('\n')
+    return dep_check_code
+
+
+def write_parameters(out_data_f, test_args, func_args, unique_expressions):
+    """
+    Writes test parameters to the intermediate data file.
+    Also generates expression code.
+     
+    :param out_data_f: 
+    :param test_args: 
+    :param func_args:
+    :param unique_expressions: 
+    :return: 
+    """
+    expression_code = ''
+    for i in xrange(len(test_args)):
+        typ = func_args[i]
+        val = test_args[i]
+
+        # check if val is a non literal int val
+        if typ == 'int' and not re.match('(\d+$)|((0x)?[0-9a-fA-F]+$)', val):  # its an expression
+            typ = 'exp'
+            if val not in unique_expressions:
+                unique_expressions.append(val)
+                # exp_id can be derived from len(). But for readability and consistency with case of existing let's
+                # use index().
+                exp_id = unique_expressions.index(val)
+                expression_code += gen_expression_check(exp_id, val)
+                val = exp_id
+            else:
+                val = unique_expressions.index(val)
+        out_data_f.write(':' + typ + ':' + str(val))
+    out_data_f.write('\n')
+    return expression_code
+
+
+def gen_suite_deps_checks(suite_deps, dep_check_code, expression_code):
+    """
+    Adds preprocessor checks for test suite dependencies.
+    
+    :param suite_deps: 
+    :param dep_check_code: 
+    :param expression_code: 
+    :return: 
+    """
+    # void unused params
+    if len(dep_check_code) == 0:
+        dep_check_code = '(void) dep_id;\n'
+    if len(expression_code) == 0:
+        expression_code = '(void) exp_id;\n'
+        expression_code += '(void) out_value;\n'
+
+    if len(suite_deps):
+        ifdef = gen_deps_one_line(suite_deps)
+        dep_check_code = '''
+{ifdef}
+{code}
+#else
+(void) dep_id;
+#endif
+'''.format(ifdef=ifdef, code=dep_check_code)
+        expression_code = '''
+{ifdef}
+{code}
+#else
+(void) exp_id;
+(void) out_value;
+#endif
+'''.format(ifdef=ifdef, code=expression_code)
+    return dep_check_code, expression_code
 
 
 def gen_from_test_data(data_f, out_data_f, func_info, suite_deps):
@@ -486,64 +571,24 @@ def gen_from_test_data(data_f, out_data_f, func_info, suite_deps):
     for test_name, function_name, test_deps, test_args in parse_test_data(data_f):
         out_data_f.write(test_name + '\n')
 
-        func_id, func_args = func_info['test_' + function_name]
-        if len(test_deps):
-            out_data_f.write('depends_on')
-            for dep in test_deps:
-                if dep not in unique_deps:
-                    unique_deps.append(dep)
-                    dep_id = unique_deps.index(dep)
-                    dep_check_code += gen_dep_check(dep_id, dep)
-                else:
-                    dep_id = unique_deps.index(dep)
-                out_data_f.write(':' + str(dep_id))
-            out_data_f.write('\n')
+        # Write deps
+        dep_check_code += write_deps(out_data_f, test_deps, unique_deps)
 
+        # Write test function name
+        test_function_name = 'test_' + function_name
+        assert test_function_name in func_info, "Function %s not found!" % test_function_name
+        func_id, func_args = func_info[test_function_name]
+        out_data_f.write(str(func_id))
+
+        # Write parameters
         assert len(test_args) == len(func_args), \
             "Invalid number of arguments in test %s. See function %s signature." % (test_name, function_name)
-        out_data_f.write(str(func_id))
-        for i in xrange(len(test_args)):
-            typ = func_args[i]
-            val = test_args[i]
+        expression_code += write_parameters(out_data_f, test_args, func_args, unique_expressions)
 
-            # check if val is a non literal int val
-            if typ == 'int' and not re.match('\d+', val):  # its an expression # FIXME: Handle hex format. Tip: instead try converting int(str, 10) and int(str, 16)
-                typ = 'exp'
-                if val not in unique_expressions:
-                    unique_expressions.append(val)
-                    # exp_id can be derived from len(). But for readability and consistency with case of existing let's
-                    # use index().
-                    exp_id = unique_expressions.index(val)
-                    expression_code += gen_expression_check(exp_id, val)
-                    val = exp_id
-                else:
-                    val = unique_expressions.index(val)
-            out_data_f.write(':' + typ + ':' + str(val))
-        out_data_f.write('\n\n')
+        # Write a newline as test case separator
+        out_data_f.write('\n')
 
-    # void unused params
-    if len(dep_check_code) == 0:
-        dep_check_code = '(void) dep_id;\n'
-    if len(expression_code) == 0:
-        expression_code = '(void) exp_id;\n'
-        expression_code += '(void) out_value;\n'
-    ifdef = gen_deps_one_line(suite_deps)
-    if len(suite_deps):
-        dep_check_code = '''
-{ifdef}
-{code}
-#else
-(void) dep_id;
-#endif
-'''.format(ifdef=ifdef, code=dep_check_code)
-        expression_code = '''
-{ifdef}
-{code}
-#else
-(void) exp_id;
-(void) out_value;
-#endif
-'''.format(ifdef=ifdef, code=expression_code)
+    dep_check_code, expression_code = gen_suite_deps_checks(suite_deps, dep_check_code, expression_code)
     return dep_check_code, expression_code
 
 

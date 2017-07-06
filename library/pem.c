@@ -435,7 +435,8 @@ int mbedtls_pem_write_buffer( const char *header, const char *footer,
         return( MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL );
     }
 
-    if( use_len != 0 && ( encode_buf = mbedtls_calloc( 1, use_len ) ) == NULL )
+    if( use_len != 0 &&
+        ( ( encode_buf = mbedtls_calloc( 1, use_len ) ) == NULL ) )
         return( MBEDTLS_ERR_PEM_ALLOC_FAILED );
 
     if( ( ret = mbedtls_base64_encode( encode_buf, use_len, &use_len, der_data,

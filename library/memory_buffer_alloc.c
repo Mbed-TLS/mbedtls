@@ -184,7 +184,7 @@ static int verify_chain()
 {
     memory_header *prv = heap.first, *cur;
 
-    if( heap.first == NULL || verify_header( heap.first ) != 0 )
+    if( prv == NULL || verify_header( prv ) != 0 )
     {
 #if defined(MBEDTLS_MEMORY_DEBUG)
         mbedtls_fprintf( stderr, "FATAL: verification of first header "

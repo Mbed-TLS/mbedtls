@@ -4,8 +4,7 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 Security
    * Ensure that buffers are cleared after use if they contain sensitive data.
-     Changes were introduced in multiple places in the library. Cannot be
-     triggered remotely.
+     Changes were introduced in multiple places in the library.
 
 = mbed TLS 2.1.8 released 2017-06-21
 

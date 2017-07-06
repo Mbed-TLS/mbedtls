@@ -16,7 +16,8 @@ $OPENSSL req -new -x509 -subj "/C=UK/O=mbed TLS/CN=CA00" $OPT \
 cp 00.crt c00.pem
 
 # generate long chain
-for i in $(seq 1 $NB); do
+i=1
+while [ $i -le $NB ]; do
     UP=$( printf "%02d" $((i-1)) )
     ME=$( printf "%02d" $i )
 
@@ -30,4 +31,5 @@ for i in $(seq 1 $NB); do
     cat ${ME}.crt c${UP}.pem > c${ME}.pem
 
     rm ${ME}.csr
+    i=$((i+1))
 done

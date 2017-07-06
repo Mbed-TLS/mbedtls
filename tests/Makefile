@@ -10,6 +10,8 @@ LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../include -D_FILE_OFFSET_BITS=64
 LOCAL_LDFLAGS = -L../library -lmbedtls$(SHARED_SUFFIX)
 DLEXT=so
 
+PERL ?= perl
+
 ifndef SHARED
 DEP=../library/libmbedtls.a
 CHECK_PRELOAD=
@@ -89,103 +91,103 @@ all: $(APPS)
 
 test_suite_aes.ecb.c : suites/test_suite_aes.function suites/test_suite_aes.ecb.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_aes test_suite_aes.ecb
+	$(PERL) scripts/generate_code.pl suites test_suite_aes test_suite_aes.ecb
 
 test_suite_aes.cbc.c : suites/test_suite_aes.function suites/test_suite_aes.cbc.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_aes test_suite_aes.cbc
+	$(PERL) scripts/generate_code.pl suites test_suite_aes test_suite_aes.cbc
 
 test_suite_aes.cfb.c : suites/test_suite_aes.function suites/test_suite_aes.cfb.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_aes test_suite_aes.cfb
+	$(PERL) scripts/generate_code.pl suites test_suite_aes test_suite_aes.cfb
 
 test_suite_aes.rest.c : suites/test_suite_aes.function suites/test_suite_aes.rest.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_aes test_suite_aes.rest
+	$(PERL) scripts/generate_code.pl suites test_suite_aes test_suite_aes.rest
 
 test_suite_cipher.aes.c : suites/test_suite_cipher.function suites/test_suite_cipher.aes.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.aes
+	$(PERL) scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.aes
 
 test_suite_cipher.arc4.c : suites/test_suite_cipher.function suites/test_suite_cipher.arc4.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.arc4
+	$(PERL) scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.arc4
 
 test_suite_cipher.ccm.c : suites/test_suite_cipher.function suites/test_suite_cipher.ccm.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.ccm
+	$(PERL) scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.ccm
 
 test_suite_cipher.gcm.c : suites/test_suite_cipher.function suites/test_suite_cipher.gcm.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.gcm
+	$(PERL) scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.gcm
 
 test_suite_cipher.blowfish.c : suites/test_suite_cipher.function suites/test_suite_cipher.blowfish.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.blowfish
+	$(PERL) scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.blowfish
 
 test_suite_cipher.camellia.c : suites/test_suite_cipher.function suites/test_suite_cipher.camellia.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.camellia
+	$(PERL) scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.camellia
 
 test_suite_cipher.des.c : suites/test_suite_cipher.function suites/test_suite_cipher.des.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.des
+	$(PERL) scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.des
 
 test_suite_cipher.null.c : suites/test_suite_cipher.function suites/test_suite_cipher.null.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.null
+	$(PERL) scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.null
 
 test_suite_cipher.padding.c : suites/test_suite_cipher.function suites/test_suite_cipher.padding.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.padding
+	$(PERL) scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.padding
 
 test_suite_gcm.aes128_de.c : suites/test_suite_gcm.function suites/test_suite_gcm.aes128_de.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.aes128_de
+	$(PERL) scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.aes128_de
 
 test_suite_gcm.aes192_de.c : suites/test_suite_gcm.function suites/test_suite_gcm.aes192_de.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.aes192_de
+	$(PERL) scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.aes192_de
 
 test_suite_gcm.aes256_de.c : suites/test_suite_gcm.function suites/test_suite_gcm.aes256_de.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.aes256_de
+	$(PERL) scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.aes256_de
 
 test_suite_gcm.aes128_en.c : suites/test_suite_gcm.function suites/test_suite_gcm.aes128_en.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.aes128_en
+	$(PERL) scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.aes128_en
 
 test_suite_gcm.aes192_en.c : suites/test_suite_gcm.function suites/test_suite_gcm.aes192_en.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.aes192_en
+	$(PERL) scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.aes192_en
 
 test_suite_gcm.aes256_en.c : suites/test_suite_gcm.function suites/test_suite_gcm.aes256_en.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.aes256_en
+	$(PERL) scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.aes256_en
 
 test_suite_gcm.camellia.c : suites/test_suite_gcm.function suites/test_suite_gcm.camellia.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.camellia
+	$(PERL) scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.camellia
 
 test_suite_hmac_drbg.misc.c : suites/test_suite_hmac_drbg.function suites/test_suite_hmac_drbg.misc.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_hmac_drbg test_suite_hmac_drbg.misc
+	$(PERL) scripts/generate_code.pl suites test_suite_hmac_drbg test_suite_hmac_drbg.misc
 
 test_suite_hmac_drbg.no_reseed.c : suites/test_suite_hmac_drbg.function suites/test_suite_hmac_drbg.no_reseed.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_hmac_drbg test_suite_hmac_drbg.no_reseed
+	$(PERL) scripts/generate_code.pl suites test_suite_hmac_drbg test_suite_hmac_drbg.no_reseed
 
 test_suite_hmac_drbg.nopr.c : suites/test_suite_hmac_drbg.function suites/test_suite_hmac_drbg.nopr.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_hmac_drbg test_suite_hmac_drbg.nopr
+	$(PERL) scripts/generate_code.pl suites test_suite_hmac_drbg test_suite_hmac_drbg.nopr
 
 test_suite_hmac_drbg.pr.c : suites/test_suite_hmac_drbg.function suites/test_suite_hmac_drbg.pr.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_hmac_drbg test_suite_hmac_drbg.pr
+	$(PERL) scripts/generate_code.pl suites test_suite_hmac_drbg test_suite_hmac_drbg.pr
 
 %.c : suites/%.function suites/%.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites $* $*
+	$(PERL) scripts/generate_code.pl suites $* $*
 
 test_suite_aes.ecb$(EXEXT): test_suite_aes.ecb.c $(DEP)
 	echo   "  CC    	$<"

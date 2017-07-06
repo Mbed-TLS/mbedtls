@@ -840,7 +840,9 @@ void func()
 
 class ExcapedSplit(TestCase):
     """
-    Test suite for testing escaped_split()
+    Test suite for testing escaped_split().
+    Note: Since escaped_split() output is used to write back to the intermediate data file. Any escape characters
+     in the input are retained in the output.
     """
 
     def test_invalid_input(self):
@@ -874,7 +876,7 @@ class ExcapedSplit(TestCase):
         """
         s = 'yahoo\:google:facebook'
         splits = escaped_split(s, ':')
-        self.assertEqual(splits, ['yahoo:google', 'facebook'])
+        self.assertEqual(splits, ['yahoo\:google', 'facebook'])
 
     def test_escaped_escape(self):
         """
@@ -883,7 +885,7 @@ class ExcapedSplit(TestCase):
         """
         s = 'yahoo\\\:google:facebook'
         splits = escaped_split(s, ':')
-        self.assertEqual(splits, ['yahoo\\', 'google', 'facebook'])
+        self.assertEqual(splits, ['yahoo\\\\', 'google', 'facebook'])
 
     def test_all_at_once(self):
         """
@@ -892,7 +894,8 @@ class ExcapedSplit(TestCase):
         """
         s = 'yahoo\\\:google:facebook\:instagram\\\:bbc\\\\:wikipedia'
         splits = escaped_split(s, ':')
-        self.assertEqual(splits, ['yahoo\\', 'google', 'facebook:instagram\\', 'bbc\\', 'wikipedia'])
+        self.assertEqual(splits, ['yahoo\\\\', 'google', 'facebook\:instagram\\\\', 'bbc\\\\', 'wikipedia'])
+
 
 class ParseTestData(TestCase):
     """
@@ -1102,12 +1105,420 @@ else
         self.assertRaises(AssertionError, gen_expression_check, -1, 'YAHOO')
 
 
+class WriteDeps(TestCase):
+    """
+    Test suite for testing write_deps.
+    """
+
+    def test_no_test_deps(self):
+        """
+        Test when test_deps is empty.
+        :return: 
+        """
+        s = StringIOWrapper('test_suite_ut.data', '')
+        unique_deps = []
+        dep_check_code = write_deps(s, [], unique_deps)
+        self.assertEqual(dep_check_code, '')
+        self.assertEqual(len(unique_deps), 0)
+        self.assertEqual(s.getvalue(), '')
+
+    def test_unique_dep_ids(self):
+        """
+        
+        :return: 
+        """
+        s = StringIOWrapper('test_suite_ut.data', '')
+        unique_deps = []
+        dep_check_code = write_deps(s, ['DEP3', 'DEP2', 'DEP1'], unique_deps)
+        expect_dep_check_code = '''
+if ( dep_id == 0 )
+{
+#if defined(DEP3)
+    return( DEPENDENCY_SUPPORTED );
+#else
+    return( DEPENDENCY_NOT_SUPPORTED );
+#endif
+}
+else
+
+if ( dep_id == 1 )
+{
+#if defined(DEP2)
+    return( DEPENDENCY_SUPPORTED );
+#else
+    return( DEPENDENCY_NOT_SUPPORTED );
+#endif
+}
+else
+
+if ( dep_id == 2 )
+{
+#if defined(DEP1)
+    return( DEPENDENCY_SUPPORTED );
+#else
+    return( DEPENDENCY_NOT_SUPPORTED );
+#endif
+}
+else
+'''
+        self.assertEqual(dep_check_code, expect_dep_check_code)
+        self.assertEqual(len(unique_deps), 3)
+        self.assertEqual(s.getvalue(), 'depends_on:0:1:2\n')
+
+    def test_dep_id_repeat(self):
+        """
+        
+        :return: 
+        """
+        s = StringIOWrapper('test_suite_ut.data', '')
+        unique_deps = []
+        dep_check_code = ''
+        dep_check_code += write_deps(s, ['DEP3', 'DEP2'], unique_deps)
+        dep_check_code += write_deps(s, ['DEP2', 'DEP1'], unique_deps)
+        dep_check_code += write_deps(s, ['DEP1', 'DEP3'], unique_deps)
+        expect_dep_check_code = '''
+if ( dep_id == 0 )
+{
+#if defined(DEP3)
+    return( DEPENDENCY_SUPPORTED );
+#else
+    return( DEPENDENCY_NOT_SUPPORTED );
+#endif
+}
+else
+
+if ( dep_id == 1 )
+{
+#if defined(DEP2)
+    return( DEPENDENCY_SUPPORTED );
+#else
+    return( DEPENDENCY_NOT_SUPPORTED );
+#endif
+}
+else
+
+if ( dep_id == 2 )
+{
+#if defined(DEP1)
+    return( DEPENDENCY_SUPPORTED );
+#else
+    return( DEPENDENCY_NOT_SUPPORTED );
+#endif
+}
+else
+'''
+        self.assertEqual(dep_check_code, expect_dep_check_code)
+        self.assertEqual(len(unique_deps), 3)
+        self.assertEqual(s.getvalue(), 'depends_on:0:1\ndepends_on:1:2\ndepends_on:2:0\n')
+
+
+class WriteParams(TestCase):
+    """
+    Test Suite for testing write_parameters().
+    """
+
+    def test_no_params(self):
+        """
+        Test with empty test_args
+        :return: 
+        """
+        s = StringIOWrapper('test_suite_ut.data', '')
+        unique_expressions = []
+        expression_code = write_parameters(s, [], [], unique_expressions)
+        self.assertEqual(len(unique_expressions), 0)
+        self.assertEqual(expression_code, '')
+        self.assertEqual(s.getvalue(), '\n')
+
+    def test_no_exp_param(self):
+        """
+        Test when there is no macro or expression in the params.
+        :return: 
+        """
+        s = StringIOWrapper('test_suite_ut.data', '')
+        unique_expressions = []
+        expression_code = write_parameters(s, ['"Yahoo"', '"abcdef00"', '0'], ['char*', 'hex', 'int'],
+                                           unique_expressions)
+        self.assertEqual(len(unique_expressions), 0)
+        self.assertEqual(expression_code, '')
+        self.assertEqual(s.getvalue(), ':char*:"Yahoo":hex:"abcdef00":int:0\n')
+
+    def test_hex_format_int_param(self):
+        """
+        Test int parameter in hex format.
+        :return: 
+        """
+        s = StringIOWrapper('test_suite_ut.data', '')
+        unique_expressions = []
+        expression_code = write_parameters(s, ['"Yahoo"', '"abcdef00"', '0xAA'], ['char*', 'hex', 'int'],
+                                           unique_expressions)
+        self.assertEqual(len(unique_expressions), 0)
+        self.assertEqual(expression_code, '')
+        self.assertEqual(s.getvalue(), ':char*:"Yahoo":hex:"abcdef00":int:0xAA\n')
+
+    def test_with_exp_param(self):
+        """
+        Test when there is macro or expression in the params.
+        :return: 
+        """
+        s = StringIOWrapper('test_suite_ut.data', '')
+        unique_expressions = []
+        expression_code = write_parameters(s, ['"Yahoo"', '"abcdef00"', '0', 'MACRO1', 'MACRO2', 'MACRO3'],
+                                           ['char*', 'hex', 'int', 'int', 'int', 'int'],
+                                           unique_expressions)
+        self.assertEqual(len(unique_expressions), 3)
+        self.assertEqual(unique_expressions, ['MACRO1', 'MACRO2', 'MACRO3'])
+        expected_expression_code = '''
+if ( exp_id == 0 )
+{
+    *out_value = MACRO1;
+}
+else
+
+if ( exp_id == 1 )
+{
+    *out_value = MACRO2;
+}
+else
+
+if ( exp_id == 2 )
+{
+    *out_value = MACRO3;
+}
+else
+'''
+        self.assertEqual(expression_code, expected_expression_code)
+        self.assertEqual(s.getvalue(), ':char*:"Yahoo":hex:"abcdef00":int:0:exp:0:exp:1:exp:2\n')
+
+    def test_with_repeate_calls(self):
+        """
+        Test when write_parameter() is called with same macro or expression.
+        :return: 
+        """
+        s = StringIOWrapper('test_suite_ut.data', '')
+        unique_expressions = []
+        expression_code = ''
+        expression_code += write_parameters(s, ['"Yahoo"', 'MACRO1', 'MACRO2'], ['char*', 'int', 'int'],
+                                            unique_expressions)
+        expression_code += write_parameters(s, ['"abcdef00"', 'MACRO2', 'MACRO3'], ['hex', 'int', 'int'],
+                                            unique_expressions)
+        expression_code += write_parameters(s, ['0', 'MACRO3', 'MACRO1'], ['int', 'int', 'int'],
+                                            unique_expressions)
+        self.assertEqual(len(unique_expressions), 3)
+        self.assertEqual(unique_expressions, ['MACRO1', 'MACRO2', 'MACRO3'])
+        expected_expression_code = '''
+if ( exp_id == 0 )
+{
+    *out_value = MACRO1;
+}
+else
+
+if ( exp_id == 1 )
+{
+    *out_value = MACRO2;
+}
+else
+
+if ( exp_id == 2 )
+{
+    *out_value = MACRO3;
+}
+else
+'''
+        self.assertEqual(expression_code, expected_expression_code)
+        expected_data_file = ''':char*:"Yahoo":exp:0:exp:1
+:hex:"abcdef00":exp:1:exp:2
+:int:0:exp:2:exp:0
+'''
+        self.assertEqual(s.getvalue(), expected_data_file)
+
+
+class GenTestSuiteDepsChecks(TestCase):
+    """
+    
+    """
+    def test_empty_suite_deps(self):
+        """
+        Test with empty suite_deps list.
+        
+        :return: 
+        """
+        dep_check_code, expression_code = gen_suite_deps_checks([], 'DEP_CHECK_CODE', 'EXPRESSION_CODE')
+        self.assertEqual(dep_check_code, 'DEP_CHECK_CODE')
+        self.assertEqual(expression_code, 'EXPRESSION_CODE')
+
+    def test_suite_deps(self):
+        """
+        Test with suite_deps list.
+        
+        :return: 
+        """
+        dep_check_code, expression_code = gen_suite_deps_checks(['SUITE_DEP'], 'DEP_CHECK_CODE', 'EXPRESSION_CODE')
+        exprectd_dep_check_code = '''
+#if defined(SUITE_DEP)
+DEP_CHECK_CODE
+#else
+(void) dep_id;
+#endif
+'''
+        expected_expression_code = '''
+#if defined(SUITE_DEP)
+EXPRESSION_CODE
+#else
+(void) exp_id;
+(void) out_value;
+#endif
+'''
+        self.assertEqual(dep_check_code, exprectd_dep_check_code)
+        self.assertEqual(expression_code, expected_expression_code)
+
+    def test_no_dep_no_exp(self):
+        """
+        Test when there are no dependency and expression code. 
+        :return: 
+        """
+        dep_check_code, expression_code = gen_suite_deps_checks([], '', '')
+        self.assertEqual(dep_check_code, '(void) dep_id;\n')
+        self.assertEqual(expression_code, '(void) exp_id;\n(void) out_value;\n')
+
+
 class GenFromTestData(TestCase):
     """
     Test suite for gen_from_test_data()
     """
 
-    pass
+    @patch("generate_code.write_deps")
+    @patch("generate_code.write_parameters")
+    @patch("generate_code.gen_suite_deps_checks")
+    def test_intermediate_data_file(self, gen_suite_deps_checks_mock, write_parameters_mock, write_deps_mock):
+        """
+        Test that intermediate data file is written with expected data.
+        :return: 
+        """
+        data = '''
+My test
+depends_on:DEP1
+func1:0
+'''
+        data_f = StringIOWrapper('test_suite_ut.data', data)
+        out_data_f = StringIOWrapper('test_suite_ut.datax', '')
+        func_info = {'test_func1': (1, ('int',))}
+        suite_deps = []
+        write_parameters_mock.side_effect = write_parameters
+        write_deps_mock.side_effect = write_deps
+        gen_suite_deps_checks_mock.side_effect = gen_suite_deps_checks
+        gen_from_test_data(data_f, out_data_f, func_info, suite_deps)
+        write_deps_mock.assert_called_with(out_data_f, ['DEP1'], ['DEP1'])
+        write_parameters_mock.assert_called_with(out_data_f, ['0'], ('int',), [])
+        expected_dep_check_code = '''
+if ( dep_id == 0 )
+{
+#if defined(DEP1)
+    return( DEPENDENCY_SUPPORTED );
+#else
+    return( DEPENDENCY_NOT_SUPPORTED );
+#endif
+}
+else
+'''
+        gen_suite_deps_checks_mock.assert_called_with(suite_deps, expected_dep_check_code, '')
+
+    def test_function_not_found(self):
+        """
+        Test that AssertError is raised when function info in not found.
+        :return: 
+        """
+        data = '''
+My test
+depends_on:DEP1
+func1:0
+'''
+        data_f = StringIOWrapper('test_suite_ut.data', data)
+        out_data_f = StringIOWrapper('test_suite_ut.datax', '')
+        func_info = {'test_func2': (1, ('int',))}
+        suite_deps = []
+        self.assertRaises(AssertionError, gen_from_test_data, data_f, out_data_f, func_info, suite_deps)
+
+    def test_different_func_args(self):
+        """
+        Test that AssertError is raised when no. of parameters and function args differ.
+        :return: 
+        """
+        data = '''
+My test
+depends_on:DEP1
+func1:0
+'''
+        data_f = StringIOWrapper('test_suite_ut.data', data)
+        out_data_f = StringIOWrapper('test_suite_ut.datax', '')
+        func_info = {'test_func2': (1, ('int','hex'))}
+        suite_deps = []
+        self.assertRaises(AssertionError, gen_from_test_data, data_f, out_data_f, func_info, suite_deps)
+
+    def test_output(self):
+        """
+        Test that intermediate data file is written with expected data.
+        :return: 
+        """
+        data = '''
+My test 1
+depends_on:DEP1
+func1:0:0xfa:MACRO1:MACRO2
+
+My test 2
+depends_on:DEP1:DEP2
+func2:"yahoo":88:MACRO1
+'''
+        data_f = StringIOWrapper('test_suite_ut.data', data)
+        out_data_f = StringIOWrapper('test_suite_ut.datax', '')
+        func_info = {'test_func1': (0, ('int', 'int', 'int', 'int')), 'test_func2': (1, ('char*', 'int', 'int'))}
+        suite_deps = []
+        dep_check_code, expression_code = gen_from_test_data(data_f, out_data_f, func_info, suite_deps)
+        expected_dep_check_code = '''
+if ( dep_id == 0 )
+{
+#if defined(DEP1)
+    return( DEPENDENCY_SUPPORTED );
+#else
+    return( DEPENDENCY_NOT_SUPPORTED );
+#endif
+}
+else
+
+if ( dep_id == 1 )
+{
+#if defined(DEP2)
+    return( DEPENDENCY_SUPPORTED );
+#else
+    return( DEPENDENCY_NOT_SUPPORTED );
+#endif
+}
+else
+'''
+        expecrted_data = '''My test 1
+depends_on:0
+0:int:0:int:0xfa:exp:0:exp:1
+
+My test 2
+depends_on:0:1
+1:char*:"yahoo":int:88:exp:0
+
+'''
+        expected_expression_code = '''
+if ( exp_id == 0 )
+{
+    *out_value = MACRO1;
+}
+else
+
+if ( exp_id == 1 )
+{
+    *out_value = MACRO2;
+}
+else
+'''
+        self.assertEqual(dep_check_code, expected_dep_check_code)
+        self.assertEqual(out_data_f.getvalue(), expecrted_data)
+        self.assertEqual(expression_code, expected_expression_code)
 
 
 if __name__=='__main__':

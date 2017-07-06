@@ -92,6 +92,14 @@ static int wsa_init_done = 0;
 
 #endif /* ( _WIN32 || _WIN32_WCE ) && !EFIX64 && !EFI32 */
 
+/* Some MS functions want int and MSVC warns if we pass size_t,
+ * but the standard fucntions use socklen_t, so cast only for MSVC */
+#if defined(_MSC_VER)
+#define MSVC_INT_CAST   (int)
+#else
+#define MSVC_INT_CAST
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -202,7 +210,7 @@ int net_connect( int *fd, const char *host, int port )
             continue;
         }
 
-        if( connect( *fd, cur->ai_addr, cur->ai_addrlen ) == 0 )
+        if( connect( *fd, cur->ai_addr, MSVC_INT_CAST cur->ai_addrlen ) == 0 )
         {
             ret = 0;
             break;
@@ -299,7 +307,7 @@ int net_bind( int *fd, const char *bind_ip, int port )
             continue;
         }
 
-        if( bind( *fd, cur->ai_addr, cur->ai_addrlen ) != 0 )
+        if( bind( *fd, cur->ai_addr, MSVC_INT_CAST cur->ai_addrlen ) != 0 )
         {
             close( *fd );
             ret = POLARSSL_ERR_NET_BIND_FAILED;

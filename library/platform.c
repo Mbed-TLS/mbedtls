@@ -304,4 +304,34 @@ int mbedtls_platform_set_nv_seed(
 #endif /* MBEDTLS_PLATFORM_NV_SEED_ALT */
 #endif /* MBEDTLS_ENTROPY_NV_SEED */
 
+int mbedtls_platform_setup( mbedtls_platform_context *ctx )
+{
+    return( mbedtls_internal_platform_setup( ctx ) );
+}
+
+void mbedtls_platform_teardown( mbedtls_platform_context *ctx )
+{
+    mbedtls_internal_platform_teardown( ctx );
+}
+
+#if !defined(MBEDTLS_PLATFORM_SETUP_ALT)
+/*
+ * Placeholder internal platform setup that does nothing by default
+ */
+int mbedtls_internal_platform_setup( mbedtls_platform_context *ctx )
+{
+    (void)ctx;
+
+    return( 0 );
+}
+
+/*
+ * Placeholder internal platform teardown that does nothing by default
+ */
+void mbedtls_internal_platform_teardown( mbedtls_platform_context *ctx )
+{
+    (void)ctx;
+}
+#endif /* MBEDTLS_PLATFORM_SETUP_ALT */
+
 #endif /* MBEDTLS_PLATFORM_C */

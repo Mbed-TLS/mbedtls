@@ -13,12 +13,12 @@
  */
 #define INCR_ASSERT(p, start, len, step) do                     \
 {                                                               \
-    assert( p >= start );                                       \
-    assert( sizeof( *p ) == sizeof( *start ) );                 \
+    assert( ( p ) >= ( start ) );                               \
+    assert( sizeof( *( p ) ) == sizeof( *( start ) ) );         \
     /* <= is checked to support use inside a loop where         \
        pointer is incremented after reading data.       */      \
-    assert( (uint32_t)( (p - start) + step ) <= len );          \
-    p += step;                                                  \
+    assert( (uint32_t)( ( ( p ) - ( start ) ) + step ) <= len );\
+    ( p ) += step;                                              \
 }                                                               \
 while( 0 )
 
@@ -33,7 +33,7 @@ while( 0 )
  */
 #define ALIGN_32BIT(p, start, len) do           \
 {                                               \
-    uint32_t align = ( - (uintptr_t)p ) % 4;    \
+    uint32_t align = ( - (uintptr_t)( p ) ) % 4;\
     INCR_ASSERT(p, start, len, align);          \
 }                                               \
 while( 0 )

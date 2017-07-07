@@ -63,12 +63,22 @@
  */
 int get_expression( int32_t exp_id, int32_t * out_value )
 {{
+    int ret = 0;
+
+    (void) exp_id;
+    (void) out_value;
+
+    switch( exp_id )
+    {{
 {expression_code}
 #line {line_no} "suites/main_test.function"
-    {{
-        return( -1 );
+        default:
+           {{
+                ret = -1;
+           }}
+           break;
     }}
-    return( 0 );
+    return( ret );
 }}
 
 
@@ -85,11 +95,18 @@ int get_expression( int32_t exp_id, int32_t * out_value )
  */
 int dep_check( int dep_id )
 {{
+    int ret = -2;
+
+    (void) dep_id;
+
+    switch( dep_id )
+    {{
 {dep_check_code}
 #line {line_no} "suites/main_test.function"
-    {{
-         return( -2 );
+        default:
+            break;
     }}
+    return( ret );
 }}
 
 

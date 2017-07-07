@@ -427,16 +427,15 @@ def gen_dep_check(dep_id, dep):
     noT, dep = ('!', dep[1:]) if dep[0] == '!' else ('', dep)
     assert len(dep) > 0, "Dependency should not be an empty string."
     dep_check = '''
-if ( dep_id == {id} )
-{{
-#if {noT}defined({macro})
-    return( 0 );
-#else
-    return( -2 );
-#endif
-}}
-else
-'''.format(noT=noT, macro=dep, id=dep_id)
+        case {id}:
+            {{
+            #if {noT}defined({macro})
+                ret = 0;
+            #else
+                ret = -2;
+            #endif
+            }}
+            break;'''.format(noT=noT, macro=dep, id=dep_id)
     return dep_check
 
 
@@ -451,12 +450,11 @@ def gen_expression_check(exp_id, exp):
     assert exp_id > -1, "Expression Id should be a positive integer."
     assert len(exp) > 0, "Expression should not be an empty string."
     exp_code = '''
-if ( exp_id == {exp_id} )
-{{
-    *out_value = {expression};
-}}
-else
-'''.format(exp_id=exp_id, expression=exp)
+        case {exp_id}:
+            {{
+                *out_value = {expression};
+            }}
+            break;'''.format(exp_id=exp_id, expression=exp)
     return exp_code
 
 
@@ -527,28 +525,16 @@ def gen_suite_deps_checks(suite_deps, dep_check_code, expression_code):
     :param expression_code: 
     :return: 
     """
-    # void unused params
-    if len(dep_check_code) == 0:
-        dep_check_code = '(void) dep_id;\n'
-    if len(expression_code) == 0:
-        expression_code = '(void) exp_id;\n'
-        expression_code += '(void) out_value;\n'
-
     if len(suite_deps):
         ifdef = gen_deps_one_line(suite_deps)
         dep_check_code = '''
 {ifdef}
 {code}
-#else
-(void) dep_id;
 #endif
 '''.format(ifdef=ifdef, code=dep_check_code)
         expression_code = '''
 {ifdef}
 {code}
-#else
-(void) exp_id;
-(void) out_value;
 #endif
 '''.format(ifdef=ifdef, code=expression_code)
     return dep_check_code, expression_code

@@ -428,6 +428,40 @@ make
 msg "test: MBEDTLS_TEST_NULL_ENTROPY - main suites (inc. selftests) (ASan build)"
 make test
 
+msg "build: default config with AES_FEWER_TABLES enabled"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_AES_FEWER_TABLES
+CC=gcc CFLAGS='-Werror -Wall -Wextra' make
+
+msg "test: AES_FEWER_TABLES"
+make test
+
+msg "build: default config with AES_ROM_TABLES enabled"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_AES_ROM_TABLES
+CC=gcc CFLAGS='-Werror -Wall -Wextra' make
+
+msg "test: AES_ROM_TABLES"
+make test
+
+msg "build: default config with AES_ROM_TABLES and AES_FEWER_TABLES enabled"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_AES_FEWER_TABLES
+scripts/config.pl set MBEDTLS_AES_ROM_TABLES
+CC=gcc CFLAGS='-Werror -Wall -Wextra' make
+
+msg "test: AES_FEWER_TABLES + AES_ROM_TABLES"
+make test
+
+if uname -a | grep -F Linux >/dev/null; then
+msg "build/test: make shared" # ~ 40s
+cleanup
+make SHARED=1 all check
+fi
+
 if uname -a | grep -F Linux >/dev/null; then
 msg "build/test: make shared" # ~ 40s
 cleanup
@@ -572,4 +606,3 @@ rm -rf "$OUT_OF_SOURCE_DIR"
 
 msg "Done, cleaning up"
 cleanup
-

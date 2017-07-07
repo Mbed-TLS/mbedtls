@@ -1,5 +1,17 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x released xxxx-xx-xx
+
+Features
+   * Add the functions mbedtls_platform_setup() and mbedtls_platform_teardown()
+     to perform platform-specific setup and teardown operations. Furthermore,
+     the internal functions mbedtls_internal_platform_setup() and
+     mbedtls_internal_platform_teardown() to allow platform-specific hooks to
+     be plugged into the library. Finally, the macro MBEDTLS_PLATFORM_SETUP_ALT
+     allows the internal functions to be overridden. This new APIs are
+     specially useful in some embedded environments that have hardware
+     acceleration support.
+
 = mbed TLS 2.5.1 released xxxx-xx-xx
 
 Security

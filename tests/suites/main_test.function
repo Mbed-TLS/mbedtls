@@ -63,12 +63,22 @@
  */
 int get_expression( int32_t exp_id, int32_t * out_value )
 {{
+    int ret = KEY_VALUE_MAPPING_FOUND;
+
+    (void) exp_id;
+    (void) out_value;
+
+    switch( exp_id )
+    {{
 {expression_code}
 #line {line_no} "suites/main_test.function"
-    {{
-        return( KEY_VALUE_MAPPING_NOT_FOUND );
+        default:
+           {{
+                ret = KEY_VALUE_MAPPING_NOT_FOUND;
+           }}
+           break;
     }}
-    return( KEY_VALUE_MAPPING_FOUND );
+    return( ret );
 }}
 
 
@@ -85,11 +95,18 @@ int get_expression( int32_t exp_id, int32_t * out_value )
  */
 int dep_check( int dep_id )
 {{
+    int ret = DEPENDENCY_NOT_SUPPORTED;
+
+    (void) dep_id;
+
+    switch( dep_id )
+    {{
 {dep_check_code}
 #line {line_no} "suites/main_test.function"
-    {{
-         return( DEPENDENCY_NOT_SUPPORTED );
+        default:
+            break;
     }}
+    return( ret );
 }}
 
 

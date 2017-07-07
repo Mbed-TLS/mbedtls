@@ -1,6 +1,6 @@
 """
 mbed SDK
-Copyright (c) 2011-2013 ARM Limited
+Copyright (c) 2017 ARM Limited
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ limitations under the License.
 
 import re
 import os
-import time
+import binascii
 from mbed_host_tests import BaseHostTest, event_callback
 
 
@@ -62,25 +62,23 @@ class TestDataParser(object):
     def __parse(self, file):
         """
         """
-        line = file.readline().strip()
-        while line:
+        for line in file:
             line = line.strip()
             if len(line) == 0:
-                line = file.readline()
                 continue
             # Read test name
             name = line
 
             # Check dependencies
             deps = []
-            line = file.readline().strip()
+            line = file.next().strip()
             m = re.search('depends_on\:(.*)', line)
             if m:
                 deps = [int(x) for x in m.group(1).split(':')]
-                line = file.readline().strip()
+                line = file.next().strip()
 
             # Read test vectors
-            line = line.replace('\\n', '\n#')
+            line = line.replace('\\n', '\n')
             parts = self.__escaped_split(line, ':')
             function = int(parts[0])
             x = parts[1:]
@@ -88,7 +86,6 @@ class TestDataParser(object):
             assert l % 2 == 0, "Number of test arguments should be even: %s" % line
             args = [(x[i * 2], x[(i * 2) + 1]) for i in range(len(x)/2)]
             self.tests.append((name, function, deps, args))
-            line = file.readline()
 
     def get_test_data(self):
         """
@@ -98,7 +95,8 @@ class TestDataParser(object):
 
 class MbedTlsTest(BaseHostTest):
     """
-    Host test for mbed-tls target tests.
+    Event handler for mbedtls unit tests. This script is loaded at run time
+    by htrun while executing mbedtls unit tests.
     """
     # From suites/helpers.function
     DEPENDENCY_SUPPORTED = 0
@@ -172,29 +170,46 @@ class MbedTlsTest(BaseHostTest):
             "HEX test parameter missing '\"': %s" % hex_str
         hex_str = hex_str.strip('"')
         assert len(hex_str) % 2 == 0, "HEX parameter len should be mod of 2: %s" % hex_str
-        b = bytearray()
 
-        for i in xrange(len(hex_str) / 2):
-            h = hex_str[i * 2] + hex_str[(i * 2) + 1]
-            try:
-                b += bytearray([int(h, 16)])
-            except ValueError:
-                raise ValueError("Invalid HEX value: %s" % hex_str)
+        b = binascii.unhexlify(hex_str)
         return b
 
-    def parameters_to_bytes(self, b, parameters):
+    @staticmethod
+    def int32_to_bigendian_bytes(i):
+        """
+        Coverts i to bytearray in big endian format.
+
+        :param i:
+        :return:
+        """
+        b = bytearray([((i >> x) & 0xff) for x in [24, 16, 8, 0]])
+        return b
+
+    def test_vector_to_bytes(self, function_id, deps, parameters):
+        """
+        Converts test vector into a byte array that can be sent to the target.
+
+        :param function_id:
+        :param deps:
+        :param parameters:
+        :return:
+        """
+        b = bytearray([len(deps)])
+        if len(deps):
+            b += bytearray(deps)
+        b += bytearray([function_id, len(parameters)])
         for typ, param in parameters:
             if typ == 'int' or typ == 'exp':
                 i = int(param)
                 b += 'I' if typ == 'int' else 'E'
                 self.align_32bit(b)
-                b += bytearray([((i >> x) & 0xff) for x in [24, 16, 8, 0]])
+                b += self.int32_to_bigendian_bytes(i)
             elif typ == 'char*':
                 param = param.strip('"')
                 i = len(param) + 1  # + 1 for null termination
                 b += 'S'
                 self.align_32bit(b)
-                b += bytearray([((i >> x) & 0xff) for x in [24, 16, 8, 0]])
+                b += self.int32_to_bigendian_bytes(i)
                 b += bytearray(list(param))
                 b += '\0'   # Null terminate
             elif typ == 'hex':
@@ -202,9 +217,10 @@ class MbedTlsTest(BaseHostTest):
                 b += 'H'
                 self.align_32bit(b)
                 i = len(hb)
-                b += bytearray([((i >> x) & 0xff) for x in [24, 16, 8, 0]])
+                b += self.int32_to_bigendian_bytes(i)
                 b += hb
-        return b
+        length = self.int32_to_bigendian_bytes(len(b))
+        return b, length
 
     def run_next_test(self):
         """
@@ -214,18 +230,25 @@ class MbedTlsTest(BaseHostTest):
         self.test_index += 1
         self.dep_index = 0
         if self.test_index < len(self.tests):
-            name, function, deps, args = self.tests[self.test_index]
-            self.log("Running: %s" % name)
-            bytes = bytearray([len(deps)])
-            if len(deps):
-                bytes += bytearray(deps)
-            bytes += bytearray([function, len(args)])
-            self.parameters_to_bytes(bytes, args)
-            key = bytearray([((len(bytes) >> x) & 0xff) for x in [24, 16, 8, 0]])
-            #self.log("Bytes: " + " ".join(["%x '%c'" % (x, x) for x in bytes]))
-            self.send_kv(key, bytes)
+            name, function_id, deps, args = self.tests[self.test_index]
+            self.run_test(name, function_id, deps, args)
         else:
             self.notify_complete(True)
+
+    def run_test(self, name, function_id, deps, args):
+        """
+        Runs the test.
+
+        :param name:
+        :param function_id:
+        :param deps:
+        :param args:
+        :return:
+        """
+        self.log("Running: %s" % name)
+
+        bytes, length = self.test_vector_to_bytes(function_id, deps, args)
+        self.send_kv(length, bytes)
 
     @staticmethod
     def get_result(value):

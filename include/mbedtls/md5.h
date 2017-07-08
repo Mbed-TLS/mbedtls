@@ -116,7 +116,7 @@ extern "C" {
 /**
  * \brief          Output = MD5( input buffer )
  *
- * \param input    buffer holding the  data
+ * \param input    buffer holding the data
  * \param ilen     length of the input data
  * \param output   MD5 checksum result
  */

@@ -25,6 +25,14 @@ Bugfix
      to bypass the version verification check. Found by Peng Li/Yueh-Hsun Lin,
      KNOX Security, Samsung Research America
 
+Security
+   * Fix authentication bypass in SSL/TLS: when auth_mode is set to optional,
+   ssl_get_verify_result() would incorrectly return 0 when the peer's
+   X.509 certificate chain had more than POLARSSL_X509_MAX_INTERMEDIATE_CA
+   (default: 8) intermediates, even when it was not trusted. Could be
+   trigerred remotely on both sides. (With auth_mode set to required
+   (default), the handshake was correctly aborted.)
+
 Changes
    * Certificate verification functions now set flags to -1 in case the full
      chain was not verified due to an internal error (including in the verify

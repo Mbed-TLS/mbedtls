@@ -94,7 +94,7 @@ while (my $line = <GREP>)
     my $found_hl = grep $_ eq $module_name, @high_level_modules;
     if (!$found_ll && !$found_hl)
     {
-        polarssl_printf("Error: Do not know how to handle: $module_name\n");
+        printf("Error: Do not know how to handle: $module_name\n");
         exit 1;
     }
 

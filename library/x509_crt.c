@@ -1957,8 +1957,8 @@ static int x509_crt_verify_child(
     /* path_cnt is 0 for the first intermediate CA */
     if( 1 + path_cnt > POLARSSL_X509_MAX_INTERMEDIATE_CA )
     {
-        *flags |= BADCERT_NOT_TRUSTED;
-        return( POLARSSL_ERR_X509_CERT_VERIFY_FAILED );
+        /* return immediately as the goal is to avoid unbounded recursion */
+        return( POLARSSL_ERR_X509_FATAL_ERROR );
     }
 
     if( x509_time_expired( &child->valid_to ) )
@@ -2174,6 +2174,10 @@ int x509_crt_verify( x509_crt *crt,
     }
 
 exit:
+    /* prevent misuse of the vrfy callback */
+    if( ret == POLARSSL_ERR_X509_CERT_VERIFY_FAILED )
+        ret = POLARSSL_ERR_X509_FATAL_ERROR;
+
     if( ret != 0 )
     {
         *flags = (uint32_t) -1;

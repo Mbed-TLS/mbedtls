@@ -232,7 +232,13 @@ int x509_crt_verify_info( char *buf, size_t size, const char *prefix,
  *
  *                 All flags left after returning from the callback
  *                 are also returned to the application. The function should
- *                 return 0 for anything but a fatal error.
+ *                 return 0 for anything (including invalid certificates)
+ *                 other than fatal error, as a non-zero return code
+ *                 immediately aborts the verification process. For fatal
+ *                 errors, a specific error code should be used (different
+ *                 from POLARSSL_ERR_X509_CERT_VERIFY_FAILED which should not
+ *                 be returned at this point), or POLARSSL_ERR_X509_FATAL_ERROR
+ *                 can be used if no better code is available.
  *
  * \note           In case verification failed, the results can be displayed
  *                 using \c x509_crt_verify_info()

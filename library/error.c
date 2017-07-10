@@ -496,6 +496,8 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             polarssl_snprintf( buf, buflen, "X509 - Allocation of memory failed" );
         if( use_ret == -(POLARSSL_ERR_X509_FILE_IO_ERROR) )
             polarssl_snprintf( buf, buflen, "X509 - Read/write of file failed" );
+        if( use_ret == -(POLARSSL_ERR_X509_FATAL_ERROR) )
+            polarssl_snprintf( buf, buflen, "X509 - A fatal error occured, eg the chain is too long or the vrfy callback failed" );
 #endif /* POLARSSL_X509_USE,X509_CREATE_C */
         // END generated code
 

@@ -76,6 +76,7 @@
 #define POLARSSL_ERR_X509_BAD_INPUT_DATA                   -0x2800  /**< Input invalid. */
 #define POLARSSL_ERR_X509_MALLOC_FAILED                    -0x2880  /**< Allocation of memory failed. */
 #define POLARSSL_ERR_X509_FILE_IO_ERROR                    -0x2900  /**< Read/write of file failed. */
+#define POLARSSL_ERR_X509_FATAL_ERROR                      -0x3000  /**< A fatal error occured, eg the chain is too long or the vrfy callback failed. */
 /* \} name */
 
 /**

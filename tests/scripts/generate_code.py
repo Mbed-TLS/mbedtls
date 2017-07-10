@@ -429,11 +429,11 @@ def gen_dep_check(dep_id, dep):
     dep_check = '''
         case {id}:
             {{
-            #if {noT}defined({macro})
+#if {noT}defined({macro})
                 ret = 0;
-            #else
+#else
                 ret = -2;
-            #endif
+#endif
             }}
             break;'''.format(noT=noT, macro=dep, id=dep_id)
     return dep_check

@@ -219,6 +219,7 @@ run_test() {
 
     if echo "$NAME" | grep "$FILTER" | grep -v "$EXCLUDE" >/dev/null; then :
     else
+        SKIP_NEXT="NO"
         return
     fi
 

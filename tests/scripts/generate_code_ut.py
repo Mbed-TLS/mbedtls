@@ -1023,16 +1023,15 @@ class GenDepCheck(TestCase):
         :return: 
         """
         expected = """
-if ( dep_id == 5 )
-{
+        case 5:
+            {
 #if defined(YAHOO)
-    return( DEPENDENCY_SUPPORTED );
+                ret = DEPENDENCY_SUPPORTED;
 #else
-    return( DEPENDENCY_NOT_SUPPORTED );
+                ret = DEPENDENCY_NOT_SUPPORTED;
 #endif
-}
-else
-"""
+            }
+            break;"""
         out = gen_dep_check(5, 'YAHOO')
         self.assertEqual(out, expected)
 
@@ -1042,16 +1041,15 @@ else
         :return: 
         """
         expected = """
-if ( dep_id == 5 )
-{
+        case 5:
+            {
 #if !defined(YAHOO)
-    return( DEPENDENCY_SUPPORTED );
+                ret = DEPENDENCY_SUPPORTED;
 #else
-    return( DEPENDENCY_NOT_SUPPORTED );
+                ret = DEPENDENCY_NOT_SUPPORTED;
 #endif
-}
-else
-"""
+            }
+            break;"""
         out = gen_dep_check(5, '!YAHOO')
         self.assertEqual(out, expected)
 
@@ -1081,12 +1079,11 @@ class GenExpCheck(TestCase):
         :return: 
         """
         expected = """
-if ( exp_id == 5 )
-{
-    *out_value = YAHOO;
-}
-else
-"""
+        case 5:
+            {
+                *out_value = YAHOO;
+            }
+            break;"""
         out = gen_expression_check(5, 'YAHOO')
         self.assertEqual(out, expected)
 
@@ -1131,36 +1128,33 @@ class WriteDeps(TestCase):
         unique_deps = []
         dep_check_code = write_deps(s, ['DEP3', 'DEP2', 'DEP1'], unique_deps)
         expect_dep_check_code = '''
-if ( dep_id == 0 )
-{
+        case 0:
+            {
 #if defined(DEP3)
-    return( DEPENDENCY_SUPPORTED );
+                ret = DEPENDENCY_SUPPORTED;
 #else
-    return( DEPENDENCY_NOT_SUPPORTED );
+                ret = DEPENDENCY_NOT_SUPPORTED;
 #endif
-}
-else
-
-if ( dep_id == 1 )
-{
+            }
+            break;
+        case 1:
+            {
 #if defined(DEP2)
-    return( DEPENDENCY_SUPPORTED );
+                ret = DEPENDENCY_SUPPORTED;
 #else
-    return( DEPENDENCY_NOT_SUPPORTED );
+                ret = DEPENDENCY_NOT_SUPPORTED;
 #endif
-}
-else
-
-if ( dep_id == 2 )
-{
+            }
+            break;
+        case 2:
+            {
 #if defined(DEP1)
-    return( DEPENDENCY_SUPPORTED );
+                ret = DEPENDENCY_SUPPORTED;
 #else
-    return( DEPENDENCY_NOT_SUPPORTED );
+                ret = DEPENDENCY_NOT_SUPPORTED;
 #endif
-}
-else
-'''
+            }
+            break;'''
         self.assertEqual(dep_check_code, expect_dep_check_code)
         self.assertEqual(len(unique_deps), 3)
         self.assertEqual(s.getvalue(), 'depends_on:0:1:2\n')
@@ -1177,36 +1171,33 @@ else
         dep_check_code += write_deps(s, ['DEP2', 'DEP1'], unique_deps)
         dep_check_code += write_deps(s, ['DEP1', 'DEP3'], unique_deps)
         expect_dep_check_code = '''
-if ( dep_id == 0 )
-{
+        case 0:
+            {
 #if defined(DEP3)
-    return( DEPENDENCY_SUPPORTED );
+                ret = DEPENDENCY_SUPPORTED;
 #else
-    return( DEPENDENCY_NOT_SUPPORTED );
+                ret = DEPENDENCY_NOT_SUPPORTED;
 #endif
-}
-else
-
-if ( dep_id == 1 )
-{
+            }
+            break;
+        case 1:
+            {
 #if defined(DEP2)
-    return( DEPENDENCY_SUPPORTED );
+                ret = DEPENDENCY_SUPPORTED;
 #else
-    return( DEPENDENCY_NOT_SUPPORTED );
+                ret = DEPENDENCY_NOT_SUPPORTED;
 #endif
-}
-else
-
-if ( dep_id == 2 )
-{
+            }
+            break;
+        case 2:
+            {
 #if defined(DEP1)
-    return( DEPENDENCY_SUPPORTED );
+                ret = DEPENDENCY_SUPPORTED;
 #else
-    return( DEPENDENCY_NOT_SUPPORTED );
+                ret = DEPENDENCY_NOT_SUPPORTED;
 #endif
-}
-else
-'''
+            }
+            break;'''
         self.assertEqual(dep_check_code, expect_dep_check_code)
         self.assertEqual(len(unique_deps), 3)
         self.assertEqual(s.getvalue(), 'depends_on:0:1\ndepends_on:1:2\ndepends_on:2:0\n')
@@ -1268,24 +1259,21 @@ class WriteParams(TestCase):
         self.assertEqual(len(unique_expressions), 3)
         self.assertEqual(unique_expressions, ['MACRO1', 'MACRO2', 'MACRO3'])
         expected_expression_code = '''
-if ( exp_id == 0 )
-{
-    *out_value = MACRO1;
-}
-else
-
-if ( exp_id == 1 )
-{
-    *out_value = MACRO2;
-}
-else
-
-if ( exp_id == 2 )
-{
-    *out_value = MACRO3;
-}
-else
-'''
+        case 0:
+            {
+                *out_value = MACRO1;
+            }
+            break;
+        case 1:
+            {
+                *out_value = MACRO2;
+            }
+            break;
+        case 2:
+            {
+                *out_value = MACRO3;
+            }
+            break;'''
         self.assertEqual(expression_code, expected_expression_code)
         self.assertEqual(s.getvalue(), ':char*:"Yahoo":hex:"abcdef00":int:0:exp:0:exp:1:exp:2\n')
 
@@ -1306,24 +1294,21 @@ else
         self.assertEqual(len(unique_expressions), 3)
         self.assertEqual(unique_expressions, ['MACRO1', 'MACRO2', 'MACRO3'])
         expected_expression_code = '''
-if ( exp_id == 0 )
-{
-    *out_value = MACRO1;
-}
-else
-
-if ( exp_id == 1 )
-{
-    *out_value = MACRO2;
-}
-else
-
-if ( exp_id == 2 )
-{
-    *out_value = MACRO3;
-}
-else
-'''
+        case 0:
+            {
+                *out_value = MACRO1;
+            }
+            break;
+        case 1:
+            {
+                *out_value = MACRO2;
+            }
+            break;
+        case 2:
+            {
+                *out_value = MACRO3;
+            }
+            break;'''
         self.assertEqual(expression_code, expected_expression_code)
         expected_data_file = ''':char*:"Yahoo":exp:0:exp:1
 :hex:"abcdef00":exp:1:exp:2
@@ -1356,16 +1341,11 @@ class GenTestSuiteDepsChecks(TestCase):
         exprectd_dep_check_code = '''
 #if defined(SUITE_DEP)
 DEP_CHECK_CODE
-#else
-(void) dep_id;
 #endif
 '''
         expected_expression_code = '''
 #if defined(SUITE_DEP)
 EXPRESSION_CODE
-#else
-(void) exp_id;
-(void) out_value;
 #endif
 '''
         self.assertEqual(dep_check_code, exprectd_dep_check_code)
@@ -1377,8 +1357,8 @@ EXPRESSION_CODE
         :return: 
         """
         dep_check_code, expression_code = gen_suite_deps_checks([], '', '')
-        self.assertEqual(dep_check_code, '(void) dep_id;\n')
-        self.assertEqual(expression_code, '(void) exp_id;\n(void) out_value;\n')
+        self.assertEqual(dep_check_code, '')
+        self.assertEqual(expression_code, '')
 
 
 class GenFromTestData(TestCase):
@@ -1410,16 +1390,15 @@ func1:0
         write_deps_mock.assert_called_with(out_data_f, ['DEP1'], ['DEP1'])
         write_parameters_mock.assert_called_with(out_data_f, ['0'], ('int',), [])
         expected_dep_check_code = '''
-if ( dep_id == 0 )
-{
+        case 0:
+            {
 #if defined(DEP1)
-    return( DEPENDENCY_SUPPORTED );
+                ret = DEPENDENCY_SUPPORTED;
 #else
-    return( DEPENDENCY_NOT_SUPPORTED );
+                ret = DEPENDENCY_NOT_SUPPORTED;
 #endif
-}
-else
-'''
+            }
+            break;'''
         gen_suite_deps_checks_mock.assert_called_with(suite_deps, expected_dep_check_code, '')
 
     def test_function_not_found(self):
@@ -1474,26 +1453,24 @@ func2:"yahoo":88:MACRO1
         suite_deps = []
         dep_check_code, expression_code = gen_from_test_data(data_f, out_data_f, func_info, suite_deps)
         expected_dep_check_code = '''
-if ( dep_id == 0 )
-{
+        case 0:
+            {
 #if defined(DEP1)
-    return( DEPENDENCY_SUPPORTED );
+                ret = DEPENDENCY_SUPPORTED;
 #else
-    return( DEPENDENCY_NOT_SUPPORTED );
+                ret = DEPENDENCY_NOT_SUPPORTED;
 #endif
-}
-else
-
-if ( dep_id == 1 )
-{
+            }
+            break;
+        case 1:
+            {
 #if defined(DEP2)
-    return( DEPENDENCY_SUPPORTED );
+                ret = DEPENDENCY_SUPPORTED;
 #else
-    return( DEPENDENCY_NOT_SUPPORTED );
+                ret = DEPENDENCY_NOT_SUPPORTED;
 #endif
-}
-else
-'''
+            }
+            break;'''
         expecrted_data = '''My test 1
 depends_on:0
 0:int:0:int:0xfa:exp:0:exp:1
@@ -1504,18 +1481,16 @@ depends_on:0:1
 
 '''
         expected_expression_code = '''
-if ( exp_id == 0 )
-{
-    *out_value = MACRO1;
-}
-else
-
-if ( exp_id == 1 )
-{
-    *out_value = MACRO2;
-}
-else
-'''
+        case 0:
+            {
+                *out_value = MACRO1;
+            }
+            break;
+        case 1:
+            {
+                *out_value = MACRO2;
+            }
+            break;'''
         self.assertEqual(dep_check_code, expected_dep_check_code)
         self.assertEqual(out_data_f.getvalue(), expecrted_data)
         self.assertEqual(expression_code, expected_expression_code)

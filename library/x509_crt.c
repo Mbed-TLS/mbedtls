@@ -2174,7 +2174,9 @@ int x509_crt_verify( x509_crt *crt,
     }
 
 exit:
-    /* prevent misuse of the vrfy callback */
+    /* prevent misuse of the vrfy callback - VERIFY_FAILED would be ignored by
+     * the SSL module for authmode optional, but non-zero return from the
+     * callback means a fatal error so it shouldn't be ignored */
     if( ret == POLARSSL_ERR_X509_CERT_VERIFY_FAILED )
         ret = POLARSSL_ERR_X509_FATAL_ERROR;
 

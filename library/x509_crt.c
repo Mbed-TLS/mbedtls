@@ -2147,7 +2147,7 @@ int x509_crt_verify( x509_crt *crt,
         ret = x509_crt_verify_top( crt, parent, ca_crl,
                                    pathlen, selfsigned, flags, f_vrfy, p_vrfy );
         if( ret != 0 )
-            return( ret );
+            goto exit;
     }
     else
     {
@@ -2162,15 +2162,22 @@ int x509_crt_verify( x509_crt *crt,
             ret = x509_crt_verify_child( crt, parent, trust_ca, ca_crl,
                                          pathlen, selfsigned, flags, f_vrfy, p_vrfy );
             if( ret != 0 )
-                return( ret );
+                goto exit;
         }
         else
         {
             ret = x509_crt_verify_top( crt, trust_ca, ca_crl,
                                        pathlen, selfsigned, flags, f_vrfy, p_vrfy );
             if( ret != 0 )
-                return( ret );
+                goto exit;
         }
+    }
+
+exit:
+    if( ret != 0 )
+    {
+        *flags = (uint32_t) -1;
+        return( ret );
     }
 
     if( *flags != 0 )

@@ -497,7 +497,7 @@ void x509_crt_verify_max( char *ca_file, char *chain_dir, int nb_int,
 {
     char file_buf[128];
     int ret;
-    uint32_t flags;
+    int flags;
     x509_crt trusted, chain;
 
     /*
@@ -522,7 +522,7 @@ void x509_crt_verify_max( char *ca_file, char *chain_dir, int nb_int,
     ret = x509_crt_verify( &chain, &trusted, NULL, NULL, &flags,
                                    NULL, NULL );
     TEST_ASSERT( ret == ret_chk );
-    TEST_ASSERT( flags == (uint32_t) flags_chk );
+    TEST_ASSERT( flags == flags_chk );
 
 exit:
     x509_crt_free( &chain );

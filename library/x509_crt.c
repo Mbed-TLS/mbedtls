@@ -2271,7 +2271,7 @@ static int x509_crt_merge_flags_with_cb(
 }
 
 /*
- * Verify the certificate validity
+ * Verify the certificate validity (default profile, not restartable)
  */
 int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
                      mbedtls_x509_crt *trust_ca,
@@ -2280,19 +2280,13 @@ int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy )
 {
-    return( mbedtls_x509_crt_verify_with_profile( crt, trust_ca, ca_crl,
-                &mbedtls_x509_crt_profile_default, cn, flags, f_vrfy, p_vrfy ) );
+    return( mbedtls_x509_crt_verify_restartable( crt, trust_ca, ca_crl,
+                &mbedtls_x509_crt_profile_default, cn, flags,
+                f_vrfy, p_vrfy, NULL ) );
 }
 
 /*
- * Verify the certificate validity, with profile
- *
- * This function:
- *  - checks the requested CN (if any)
- *  - checks the type and size of the EE cert's key,
- *    as that isn't done as part of chain building/verification currently
- *  - builds and verifies the chain
- *  - then calls the callback and merges the flags
+ * Verify the certificate validity (user-chosen profile, not restartable)
  */
 int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
                      mbedtls_x509_crt *trust_ca,
@@ -2302,11 +2296,36 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy )
 {
+    return( mbedtls_x509_crt_verify_restartable( crt, trust_ca, ca_crl,
+                profile, cn, flags, f_vrfy, p_vrfy, NULL ) );
+}
+
+/*
+ * Verify the certificate validity, with profile, restartable version
+ *
+ * This function:
+ *  - checks the requested CN (if any)
+ *  - checks the type and size of the EE cert's key,
+ *    as that isn't done as part of chain building/verification currently
+ *  - builds and verifies the chain
+ *  - then calls the callback and merges the flags
+ */
+int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
+                     mbedtls_x509_crt *trust_ca,
+                     mbedtls_x509_crl *ca_crl,
+                     const mbedtls_x509_crt_profile *profile,
+                     const char *cn, uint32_t *flags,
+                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
+                     void *p_vrfy,
+                     mbedtls_x509_crt_restart_ctx *rs_ctx )
+{
     int ret;
     mbedtls_pk_type_t pk_type;
     x509_crt_verify_chain_item ver_chain[X509_MAX_VERIFY_CHAIN_SIZE];
     size_t chain_len;
     uint32_t *ee_flags = &ver_chain[0].flags;
+
+    (void) rs_ctx;
 
     *flags = 0;
     memset( ver_chain, 0, sizeof( ver_chain ) );
@@ -2449,5 +2468,26 @@ void mbedtls_x509_crt_free( mbedtls_x509_crt *crt )
     }
     while( cert_cur != NULL );
 }
+
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+/*
+ * Initialize a restart context
+ */
+void mbedtls_x509_crt_restart_init( mbedtls_x509_crt_restart_ctx *ctx )
+{
+    mbedtls_ecdsa_restart_init( &ctx->ecdsa );
+}
+
+/*
+ * Free the components of a restart context
+ */
+void mbedtls_x509_crt_restart_free( mbedtls_x509_crt_restart_ctx *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    mbedtls_ecdsa_restart_free( &ctx->ecdsa );
+}
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
 #endif /* MBEDTLS_X509_CRT_PARSE_C */

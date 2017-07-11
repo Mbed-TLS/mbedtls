@@ -142,6 +142,23 @@ typedef struct mbedtls_x509write_cert
 }
 mbedtls_x509write_cert;
 
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+
+/**
+ * \brief       Context for resuming X.509 verify operations
+ */
+typedef struct
+{
+    mbedtls_ecdsa_restart_ctx   ecdsa;      /*!< ecdsa restart context      */
+} mbedtls_x509_crt_restart_ctx;
+
+#else /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
+
+/* Now we can declare functions that take a pointer to that */
+typedef void mbedtls_x509_crt_restart_ctx;
+
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**
  * Default security profile. Should provide a good balance between security
@@ -352,6 +369,37 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy );
 
+/**
+ * \brief          Restartable version of \c mbedtls_crt_verify_with_profile()
+ *
+ * \note           Performs the same job as \c mbedtls_crt_verify_with_profile()
+ *                 but can return early and restart according to the limit
+ *                 set with \c mbedtls_ecp_set_max_ops() to reduce blocking.
+ *
+ * \param crt      a certificate (chain) to be verified
+ * \param trust_ca the list of trusted CAs
+ * \param ca_crl   the list of CRLs for trusted CAs
+ * \param profile  security profile for verification
+ * \param cn       expected Common Name (can be set to
+ *                 NULL if the CN must not be verified)
+ * \param flags    result of the verification
+ * \param f_vrfy   verification function
+ * \param p_vrfy   verification parameter
+ * \param rs_ctx   resart context
+ *
+ * \return         See \c mbedtls_crt_verify_with_profile(), or
+ *                 MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
+ *                 operations was reached: see \c mbedtls_ecp_set_max_ops().
+ */
+int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
+                     mbedtls_x509_crt *trust_ca,
+                     mbedtls_x509_crl *ca_crl,
+                     const mbedtls_x509_crt_profile *profile,
+                     const char *cn, uint32_t *flags,
+                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
+                     void *p_vrfy,
+                     mbedtls_x509_crt_restart_ctx *rs_ctx );
+
 #if defined(MBEDTLS_X509_CHECK_KEY_USAGE)
 /**
  * \brief          Check usage of certificate against keyUsage extension.
@@ -422,6 +470,18 @@ void mbedtls_x509_crt_init( mbedtls_x509_crt *crt );
  * \param crt      Certificate chain to free
  */
 void mbedtls_x509_crt_free( mbedtls_x509_crt *crt );
+
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+/**
+ * \brief           Initialize a restart context
+ */
+void mbedtls_x509_crt_restart_init( mbedtls_x509_crt_restart_ctx *ctx );
+
+/**
+ * \brief           Free the components of a restart context
+ */
+void mbedtls_x509_crt_restart_free( mbedtls_x509_crt_restart_ctx *ctx );
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 /* \} name */

@@ -52,8 +52,8 @@
 #endif
 #endif /* _MSC_VER */
 
-#define read(fd,buf,len)        recv(fd,(char*)buf,(int) len,0)
-#define write(fd,buf,len)       send(fd,(char*)buf,(int) len,0)
+#define read(fd,buf,len)        recv( fd, (char*)( buf ), (int)( len ), 0 )
+#define write(fd,buf,len)       send( fd, (char*)( buf ), (int)( len ), 0 )
 #define close(fd)               closesocket(fd)
 
 static int wsa_init_done = 0;
@@ -74,7 +74,7 @@ static int wsa_init_done = 0;
 #endif /* ( _WIN32 || _WIN32_WCE ) && !EFIX64 && !EFI32 */
 
 /* Some MS functions want int and MSVC warns if we pass size_t,
- * but the standard fucntions use socklen_t, so cast only for MSVC */
+ * but the standard functions use socklen_t, so cast only for MSVC */
 #if defined(_MSC_VER)
 #define MSVC_INT_CAST   (int)
 #else

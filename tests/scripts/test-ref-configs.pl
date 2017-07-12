@@ -55,7 +55,8 @@ my $config_h = 'include/mbedtls/config.h';
 system( "cp $config_h $config_h.bak" ) and die;
 sub abort {
     system( "mv $config_h.bak $config_h" ) and warn "$config_h not restored\n";
-    die $_[0];
+    warn $_[0];
+    exit 1;
 }
 
 while( my ($conf, $data) = each %configs ) {

@@ -166,6 +166,8 @@ static int entropy_update( entropy_context *ctx, unsigned char source_id,
     sha256_update( &ctx->accumulator, p, use_len );
 #endif
 
+    polarssl_zeroize( tmp, sizeof( tmp ) );
+
     return( 0 );
 }
 

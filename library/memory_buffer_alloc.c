@@ -574,7 +574,7 @@ int memory_buffer_alloc_init( unsigned char *buf, size_t len )
 #endif
 
     if( len < sizeof( memory_header ) + POLARSSL_MEMORY_ALIGN_MULTIPLE )
-        return;
+        return( -1 );
     else if( (size_t) buf % POLARSSL_MEMORY_ALIGN_MULTIPLE )
     {
         /* Adjust len first since buf is used in the computation */

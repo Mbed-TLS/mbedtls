@@ -289,6 +289,10 @@ int mbedtls_platform_set_nv_seed(
 #endif /* MBEDTLS_ENTROPY_NV_SEED */
 
 #if !defined(MBEDTLS_PLATFORM_SETUP_ALT)
+struct mbedtls_platform_context {
+    char dummy; /**< Placeholder member as empty structs are not portable */
+};
+
 typedef struct mbedtls_platform_context mbedtls_platform_context;
 #else
 #include "platform_alt.h"
@@ -315,23 +319,6 @@ int mbedtls_platform_setup( mbedtls_platform_context *ctx );
  *          correctly freed using the appropriate free function.
  */
 void mbedtls_platform_teardown( mbedtls_platform_context *ctx );
-
-/**
- * \brief   Internal function to perform any platform initialisation operations
- *          Only exposed to allow overriding it, see MBEDTLS_PLATFORM_SETUP_ALT
- *
- * \param   ctx     mbed TLS context
- *
- * \return  0 if successful
- */
-int mbedtls_internal_platform_setup( mbedtls_platform_context *ctx );
-/**
- * \brief   Internal function to perform any platform teardown operations
- *          Only exposed to allow overriding it, see MBEDTLS_PLATFORM_SETUP_ALT
- *
- * \param   ctx     mbed TLS context
- */
-void mbedtls_internal_platform_teardown( mbedtls_platform_context *ctx );
 
 #ifdef __cplusplus
 }

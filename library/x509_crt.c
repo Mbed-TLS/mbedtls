@@ -2287,10 +2287,12 @@ int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
 /*
  * Verify the certificate validity, with profile
  *
- * This function only checks the requested CN (if any) and then delegates
- * chain building/verification to verify_chain(). Before that, it checks the
- * key size of the EE certificate, as verify_chain() will only verify that of
- * parent certificates.
+ * This function:
+ *  - checks the requested CN (if any)
+ *  - checks the type and size of the EE cert's key,
+ *    as that isn't done as part of chain building/verification currently
+ *  - builds and verifies the chain
+ *  - then calls the callback and merges the flags
  */
 int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
                      mbedtls_x509_crt *trust_ca,

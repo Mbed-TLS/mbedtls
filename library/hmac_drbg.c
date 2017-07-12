@@ -342,11 +342,14 @@ int hmac_drbg_write_seed_file( hmac_drbg_context *ctx, const char *path )
 
 exit:
     fclose( f );
+    polarssl_zeroize( buf, sizeof( buf ) );
+
     return( ret );
 }
 
 int hmac_drbg_update_seed_file( hmac_drbg_context *ctx, const char *path )
 {
+    int ret = 0;
     FILE *f;
     size_t n;
     unsigned char buf[ POLARSSL_HMAC_DRBG_MAX_INPUT ];
@@ -365,14 +368,16 @@ int hmac_drbg_update_seed_file( hmac_drbg_context *ctx, const char *path )
     }
 
     if( fread( buf, 1, n, f ) != n )
-    {
-        fclose( f );
-        return( POLARSSL_ERR_HMAC_DRBG_FILE_IO_ERROR );
-    }
+        ret = POLARSSL_ERR_HMAC_DRBG_FILE_IO_ERROR;
+    else
+        hmac_drbg_update( ctx, buf, n );
 
     fclose( f );
 
-    hmac_drbg_update( ctx, buf, n );
+    polarssl_zeroize( buf, sizeof( buf ) );
+
+    if( ret != 0 )
+        return( ret );
 
     return( hmac_drbg_write_seed_file( ctx, path ) );
 }

@@ -15,7 +15,7 @@ void memory_buffer_alloc_self_test( )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_MEMORY_DEBUG */
+/* BEGIN_CASE depends_on:POLARSSL_MEMORY_DEBUG */
 void memory_buffer_small_buffer( )
 {
     unsigned char buf[1];
@@ -25,7 +25,7 @@ void memory_buffer_small_buffer( )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_MEMORY_DEBUG */
+/* BEGIN_CASE depends_on:POLARSSL_MEMORY_DEBUG */
 void memory_buffer_underalloc( )
 {
     unsigned char buf[100];
@@ -34,7 +34,7 @@ void memory_buffer_underalloc( )
     memory_buffer_alloc_init( buf, sizeof( buf ) );
     for( i = 1; i < POLARSSL_MEMORY_ALIGN_MULTIPLE; i++ )
     {
-        TEST_ASSERT( polarssl_malloc( 1,
+        TEST_ASSERT( polarssl_malloc(
                      (size_t)-( POLARSSL_MEMORY_ALIGN_MULTIPLE - i ) ) == NULL );
         TEST_ASSERT( memory_buffer_alloc_verify() == 0 );
     }

@@ -98,7 +98,10 @@ int pk_load_file( const char *path, unsigned char **buf, size_t *n )
     if( fread( *buf, 1, *n, f ) != *n )
     {
         fclose( f );
+
+        polarssl_zeroize( *buf, *n );
         polarssl_free( *buf );
+
         return( POLARSSL_ERR_PK_FILE_IO_ERROR );
     }
 

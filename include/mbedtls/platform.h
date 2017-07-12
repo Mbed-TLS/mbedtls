@@ -289,11 +289,18 @@ int mbedtls_platform_set_nv_seed(
 #endif /* MBEDTLS_ENTROPY_NV_SEED */
 
 #if !defined(MBEDTLS_PLATFORM_SETUP_ALT)
-struct mbedtls_platform_context {
-    char dummy; /**< Placeholder member as empty structs are not portable */
-};
 
-typedef struct mbedtls_platform_context mbedtls_platform_context;
+/**
+ * \brief   Platform context structure
+ *
+ * \note    This structure may be used to assist platform-specific
+ *          setup/teardown operations.
+ */
+typedef struct {
+    char dummy; /**< Placeholder member as empty structs are not portable */
+}
+mbedtls_platform_context;
+
 #else
 #include "platform_alt.h"
 #endif /* !MBEDTLS_PLATFORM_SETUP_ALT */

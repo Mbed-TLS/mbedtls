@@ -333,6 +333,7 @@ int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
 
     if( ( ret = base64_decode( buf, &len, s1, s2 - s1 ) ) != 0 )
     {
+        polarssl_zeroize( buf, len );
         polarssl_free( buf );
         return( POLARSSL_ERR_PEM_INVALID_DATA + ret );
     }

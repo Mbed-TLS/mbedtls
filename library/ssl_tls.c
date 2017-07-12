@@ -4140,12 +4140,19 @@ int ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
     }
 
-    if( ssl->psk != NULL || ssl->psk_identity != NULL )
+    if( ssl->psk != NULL )
     {
+        polarssl_zeroize( ssl->psk, ssl->psk_len );
+
         polarssl_free( ssl->psk );
-        polarssl_free( ssl->psk_identity );
         ssl->psk = NULL;
+        ssl->psk_len = 0;
+    }
+    if( ssl->psk_identity != NULL )
+    {
+        polarssl_free( ssl->psk_identity );
         ssl->psk_identity = NULL;
+        ssl->psk_identity_len = 0;
     }
 
     if( ( ssl->psk = polarssl_malloc( psk_len ) ) == NULL ||

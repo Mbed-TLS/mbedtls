@@ -2069,6 +2069,16 @@ static int x509_crt_check_ee_locally_trusted(
  * - EE, Ci1, ..., Ciq cannot be continued with a trusted root
  *   -> return that chain with NOT_TRUSTED set on Ciq
  *
+ * Tests for (aspects of) this function should include at least:
+ * - trusted EE
+ * - EE -> trusted root
+ * - EE -> intermedate CA -> trusted root
+ * - if relevant: EE untrusted
+ * - if relevant: EE -> intermediate, untrusted
+ * with the aspect under test checked at each relevant level (EE, int, root).
+ * For some aspects longer chains are required, but usually length 2 is
+ * enough (but length 1 is not in general).
+ *
  * Arguments:
  *  - [in] crt: the cert list EE, C1, ..., Cn
  *  - [in] trust_ca: the trusted list R1, ..., Rp

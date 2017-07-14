@@ -1806,3 +1806,26 @@ X509 Get time (UTC invalid character in sec)
 depends_on:MBEDTLS_X509_USE_C
 x509_get_time:MBEDTLS_ASN1_UTC_TIME:"0011302359n0Z":MBEDTLS_ERR_X509_INVALID_DATE:0:0:0:0:0:0
 
+X509 cert verify restart: trusted EE, max_ops=0
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+x509_verify_restart:"data_files/server5-selfsigned.crt":"data_files/server5-selfsigned.crt":0:0:0:0:0
+
+X509 cert verify restart: no intermediate, max_ops=0
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED
+x509_verify_restart:"data_files/server5.crt":"data_files/test-ca2.crt":0:0:0:0:0
+
+X509 cert verify restart: no intermediate, badsign, max_ops=0
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED
+x509_verify_restart:"data_files/server5-badsign.crt":"data_files/test-ca2.crt":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_NOT_TRUSTED:0:0:0
+
+X509 cert verify restart: one intermediate, max_ops=0
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_RSA_C
+x509_verify_restart:"data_files/server10_int3_int-ca2.crt":"data_files/test-int-ca2.crt":0:0:0:0:0
+
+X509 cert verify restart: one intermediate, EE badsign, max_ops=0
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_RSA_C
+x509_verify_restart:"data_files/server10-bs_int3.pem":"data_files/test-int-ca2.crt":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_NOT_TRUSTED:0:0:0
+
+X509 cert verify restart: one intermediate, int badsign, max_ops=0
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_RSA_C
+x509_verify_restart:"data_files/server10_int3-bs.pem":"data_files/test-int-ca2.crt":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_NOT_TRUSTED:0:0:0

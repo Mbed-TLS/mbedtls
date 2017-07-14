@@ -21,6 +21,7 @@ Two intermediate CAs are signed by them:
 
 A third intermediate CA is signed by test-int-ca2.crt:
 - test-int-ca3.crt "C=UK, O=mbed TLS, CN=mbed TLS Test intermediate CA 3"
+  uses an EC key with NIST P-256, signed by test-int-ca2
 
 Finally, other CAs for specific purposes:
 - enco-ca-prstr.pem: has its CN encoded as a printable string, but child cert

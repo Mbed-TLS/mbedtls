@@ -1932,6 +1932,7 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
  *  1. subject name matches child's issuer
  *  2. if necessary, the CA bit is set and key usage allows signing certs
  *  3. for trusted roots, the signature is correct
+ *     (for intermediates, the signature is checked and the result reported)
  *  4. pathlen constraints are satisfied
  *
  * If there's a suitable candidate which is also time-valid, return the first
@@ -1953,11 +1954,15 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
  */
 static mbedtls_x509_crt *x509_crt_find_parent_in( mbedtls_x509_crt *child,
                                                   mbedtls_x509_crt *candidates,
+                                                  int *signature_is_good,
                                                   int top,
                                                   int path_cnt,
                                                   int self_cnt )
 {
-    mbedtls_x509_crt *parent, *badtime_parent = NULL;
+    mbedtls_x509_crt *parent, *fallback_parent = NULL;
+    int fallback_sign_good = 0;
+
+    *signature_is_good = 0;
 
     for( parent = candidates; parent != NULL; parent = parent->next )
     {
@@ -1973,17 +1978,19 @@ static mbedtls_x509_crt *x509_crt_find_parent_in( mbedtls_x509_crt *child,
         }
 
         /* Signature */
-        if( top && x509_crt_check_signature( child, parent ) != 0 )
-        {
+        *signature_is_good = x509_crt_check_signature( child, parent ) == 0;
+        if( top && ! *signature_is_good )
             continue;
-        }
 
         /* optional time check */
         if( mbedtls_x509_time_is_past( &parent->valid_to ) ||
             mbedtls_x509_time_is_future( &parent->valid_from ) )
         {
-            if( badtime_parent == NULL )
-                badtime_parent = parent;
+            if( fallback_parent == NULL )
+            {
+                fallback_parent = parent;
+                fallback_sign_good = *signature_is_good;
+            }
 
             continue;
         }
@@ -1992,7 +1999,10 @@ static mbedtls_x509_crt *x509_crt_find_parent_in( mbedtls_x509_crt *child,
     }
 
     if( parent == NULL )
-        parent = badtime_parent;
+    {
+        parent = fallback_parent;
+        *signature_is_good = fallback_sign_good;
+    }
 
     return parent;
 }
@@ -2006,6 +2016,7 @@ static mbedtls_x509_crt *x509_crt_find_parent_in( mbedtls_x509_crt *child,
 static mbedtls_x509_crt *x509_crt_find_parent( mbedtls_x509_crt *child,
                                                mbedtls_x509_crt *trust_ca,
                                                int *parent_is_trusted,
+                                               int *signature_is_good,
                                                int path_cnt,
                                                int self_cnt )
 {
@@ -2013,14 +2024,16 @@ static mbedtls_x509_crt *x509_crt_find_parent( mbedtls_x509_crt *child,
 
     /* Look for a parent in trusted CAs */
     *parent_is_trusted = 1;
-    parent = x509_crt_find_parent_in( child, trust_ca, 1, path_cnt, self_cnt );
+    parent = x509_crt_find_parent_in( child, trust_ca, signature_is_good,
+                                      1, path_cnt, self_cnt );
 
     if( parent != NULL )
         return parent;
 
     /* Look for a parent upwards the chain */
     *parent_is_trusted = 0;
-    return( x509_crt_find_parent_in( child, child->next, 0, path_cnt, self_cnt ) );
+    return( x509_crt_find_parent_in( child, child->next, signature_is_good,
+                                     0, path_cnt, self_cnt ) );
 }
 
 /*
@@ -2103,6 +2116,7 @@ static int x509_crt_verify_chain(
     mbedtls_x509_crt *parent;
     int parent_is_trusted = 0;
     int child_is_trusted = 0;
+    int signature_is_good = 0;
     int self_cnt = 0;
 
     child = crt;
@@ -2140,7 +2154,8 @@ static int x509_crt_verify_chain(
         }
 
         /* Look for a parent in trusted CAs or up the chain */
-        parent = x509_crt_find_parent( child, trust_ca, &parent_is_trusted,
+        parent = x509_crt_find_parent( child, trust_ca,
+                                       &parent_is_trusted, &signature_is_good,
                                        *chain_len - 1, self_cnt );
 
         /* No parent? We're done here */
@@ -2168,8 +2183,8 @@ static int x509_crt_verify_chain(
             return( MBEDTLS_ERR_X509_FATAL_ERROR );
         }
 
-        /* if parent is trusted, the signature was checked by find_parent() */
-        if( ! parent_is_trusted && x509_crt_check_signature( child, parent ) != 0 )
+        /* signature was check while searching parent */
+        if( ! signature_is_good )
             *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
 
         /* check size of signing key */
@@ -2187,6 +2202,7 @@ static int x509_crt_verify_chain(
         child = parent;
         parent = NULL;
         child_is_trusted = parent_is_trusted;
+        signature_is_good = 0;
     }
 }
 

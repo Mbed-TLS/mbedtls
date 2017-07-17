@@ -1866,7 +1866,8 @@ static int x509_name_cmp( const mbedtls_x509_name *a, const mbedtls_x509_name *b
  * Check the signature of a certificate by its parent
  */
 static int x509_crt_check_signature( const mbedtls_x509_crt *child,
-                                     mbedtls_x509_crt *parent )
+                                     mbedtls_x509_crt *parent,
+                                     mbedtls_x509_crt_restart_ctx *rs_ctx )
 {
     const mbedtls_md_info_t *md_info;
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
@@ -1878,14 +1879,24 @@ static int x509_crt_check_signature( const mbedtls_x509_crt *child,
         return( -1 );
     }
 
-    if( mbedtls_pk_verify_ext( child->sig_pk, child->sig_opts, &parent->pk,
-                child->sig_md, hash, mbedtls_md_get_size( md_info ),
-                child->sig.p, child->sig.len ) != 0 )
-    {
+    /* Skip expensive computation on obvious mismatch */
+    if( ! mbedtls_pk_can_do( &parent->pk, child->sig_pk ) )
         return( -1 );
-    }
 
-    return( 0 );
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    if( rs_ctx != NULL && child->sig_pk == MBEDTLS_PK_ECDSA )
+    {
+        return( mbedtls_pk_verify_restartable( &parent->pk,
+                    child->sig_md, hash, mbedtls_md_get_size( md_info ),
+                    child->sig.p, child->sig.len, &rs_ctx->ecdsa ) );
+    }
+#else
+    (void) rs_ctx;
+#endif
+
+    return( mbedtls_pk_verify_ext( child->sig_pk, child->sig_opts, &parent->pk,
+                child->sig_md, hash, mbedtls_md_get_size( md_info ),
+                child->sig.p, child->sig.len ) );
 }
 
 /*
@@ -1952,17 +1963,19 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
  * rely on key identifier extensions). (This is one way users might choose to
  * handle key rollover, another relies on self-issued certs, see [SIRO].)
  */
-static mbedtls_x509_crt *x509_crt_find_parent_in( mbedtls_x509_crt *child,
-                                                  mbedtls_x509_crt *candidates,
-                                                  int *signature_is_good,
-                                                  int top,
-                                                  int path_cnt,
-                                                  int self_cnt )
+static int x509_crt_find_parent_in(
+                        mbedtls_x509_crt *child,
+                        mbedtls_x509_crt *candidates,
+                        mbedtls_x509_crt **r_parent,
+                        int *r_signature_is_good,
+                        int top,
+                        int path_cnt,
+                        int self_cnt,
+                        mbedtls_x509_crt_restart_ctx *rs_ctx )
 {
+    int ret;
     mbedtls_x509_crt *parent, *fallback_parent = NULL;
-    int fallback_sign_good = 0;
-
-    *signature_is_good = 0;
+    int signature_is_good = 0, fallback_sign_good = 0;
 
     for( parent = candidates; parent != NULL; parent = parent->next )
     {
@@ -1978,8 +1991,17 @@ static mbedtls_x509_crt *x509_crt_find_parent_in( mbedtls_x509_crt *child,
         }
 
         /* Signature */
-        *signature_is_good = x509_crt_check_signature( child, parent ) == 0;
-        if( top && ! *signature_is_good )
+        ret = x509_crt_check_signature( child, parent, rs_ctx );
+
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+        if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS ) {
+            // TODO: stave state
+            return( ret );
+        }
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
+
+        signature_is_good = ret == 0;
+        if( top && ! signature_is_good )
             continue;
 
         /* optional time check */
@@ -1989,7 +2011,7 @@ static mbedtls_x509_crt *x509_crt_find_parent_in( mbedtls_x509_crt *child,
             if( fallback_parent == NULL )
             {
                 fallback_parent = parent;
-                fallback_sign_good = *signature_is_good;
+                fallback_sign_good = signature_is_good;
             }
 
             continue;
@@ -1998,13 +2020,18 @@ static mbedtls_x509_crt *x509_crt_find_parent_in( mbedtls_x509_crt *child,
         break;
     }
 
-    if( parent == NULL )
+    if( parent != NULL )
     {
-        parent = fallback_parent;
-        *signature_is_good = fallback_sign_good;
+        *r_parent = parent;
+        *r_signature_is_good = signature_is_good;
+    }
+    else
+    {
+        *r_parent = fallback_parent;
+        *r_signature_is_good = fallback_sign_good;
     }
 
-    return parent;
+    return( 0 );
 }
 
 /*
@@ -2013,27 +2040,48 @@ static mbedtls_x509_crt *x509_crt_find_parent_in( mbedtls_x509_crt *child,
  * Searches in trusted CAs first, and return the first suitable parent found
  * (see find_parent_in() for definition of suitable).
  */
-static mbedtls_x509_crt *x509_crt_find_parent( mbedtls_x509_crt *child,
-                                               mbedtls_x509_crt *trust_ca,
-                                               int *parent_is_trusted,
-                                               int *signature_is_good,
-                                               int path_cnt,
-                                               int self_cnt )
+static int x509_crt_find_parent(
+                        mbedtls_x509_crt *child,
+                        mbedtls_x509_crt *trust_ca,
+                        mbedtls_x509_crt **parent,
+                        int *parent_is_trusted,
+                        int *signature_is_good,
+                        int path_cnt,
+                        int self_cnt,
+                        mbedtls_x509_crt_restart_ctx *rs_ctx )
 {
-    mbedtls_x509_crt *parent;
+    int ret;
 
     /* Look for a parent in trusted CAs */
     *parent_is_trusted = 1;
-    parent = x509_crt_find_parent_in( child, trust_ca, signature_is_good,
-                                      1, path_cnt, self_cnt );
+    ret = x509_crt_find_parent_in( child, trust_ca,
+                                   parent, signature_is_good,
+                                   1, path_cnt, self_cnt, rs_ctx );
 
-    if( parent != NULL )
-        return parent;
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+    if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS ) {
+        // TODO: stave state
+        return( ret );
+    }
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
+
+    if( *parent != NULL )
+        return( 0 );
 
     /* Look for a parent upwards the chain */
     *parent_is_trusted = 0;
-    return( x509_crt_find_parent_in( child, child->next, signature_is_good,
-                                     0, path_cnt, self_cnt ) );
+    ret = x509_crt_find_parent_in( child, child->next,
+                                   parent, signature_is_good,
+                                   0, path_cnt, self_cnt, rs_ctx );
+
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+    if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS ) {
+        // TODO: stave state
+        return( ret );
+    }
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
+
+    return( 0 );
 }
 
 /*
@@ -2109,8 +2157,10 @@ static int x509_crt_verify_chain(
                 mbedtls_x509_crl *ca_crl,
                 const mbedtls_x509_crt_profile *profile,
                 x509_crt_verify_chain_item ver_chain[X509_MAX_VERIFY_CHAIN_SIZE],
-                size_t *chain_len )
+                size_t *chain_len,
+                mbedtls_x509_crt_restart_ctx *rs_ctx )
 {
+    int ret;
     uint32_t *flags;
     mbedtls_x509_crt *child;
     mbedtls_x509_crt *parent;
@@ -2154,9 +2204,16 @@ static int x509_crt_verify_chain(
         }
 
         /* Look for a parent in trusted CAs or up the chain */
-        parent = x509_crt_find_parent( child, trust_ca,
+        ret = x509_crt_find_parent( child, trust_ca, &parent,
                                        &parent_is_trusted, &signature_is_good,
-                                       *chain_len - 1, self_cnt );
+                                       *chain_len - 1, self_cnt, rs_ctx );
+
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+        if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS ) {
+            // TODO: stave state
+            return( ret );
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
+        }
 
         /* No parent? We're done here */
         if( parent == NULL )
@@ -2351,8 +2408,6 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
     size_t chain_len;
     uint32_t *ee_flags = &ver_chain[0].flags;
 
-    (void) rs_ctx;
-
     *flags = 0;
     memset( ver_chain, 0, sizeof( ver_chain ) );
     chain_len = 0;
@@ -2378,7 +2433,15 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
 
     /* Check the chain */
     ret = x509_crt_verify_chain( crt, trust_ca, ca_crl, profile,
-                                 ver_chain, &chain_len );
+                                 ver_chain, &chain_len, rs_ctx );
+
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+    if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS ) {
+        // TODO: stave state
+        return( ret );
+    }
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
+
     if( ret != 0 )
         goto exit;
 

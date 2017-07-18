@@ -288,7 +288,7 @@ int mbedtls_platform_set_nv_seed(
 #endif /* MBEDTLS_PLATFORM_NV_SEED_ALT */
 #endif /* MBEDTLS_ENTROPY_NV_SEED */
 
-#if !defined(MBEDTLS_PLATFORM_SETUP_ALT)
+#if !defined(MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT)
 
 /**
  * \brief   Platform context structure
@@ -303,7 +303,7 @@ mbedtls_platform_context;
 
 #else
 #include "platform_alt.h"
-#endif /* !MBEDTLS_PLATFORM_SETUP_ALT */
+#endif /* !MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT */
 
 /**
  * \brief   Perform any platform initialisation operations

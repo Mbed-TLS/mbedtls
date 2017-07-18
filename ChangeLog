@@ -6,8 +6,8 @@ Features
    * Add the functions mbedtls_platform_setup() and mbedtls_platform_teardown()
      and the context struct mbedtls_platform_context to perform
      platform-specific setup and teardown operations. The macro
-     MBEDTLS_PLATFORM_SETUP_ALT allows the functions to be overridden by the
-     user in a platform_alt.h file. This new APIs are specially useful in some
+     MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT allows the functions to be overridden
+     by the user in a platform_alt.h file. This new APIs are required in some
      embedded environments that have hardware acceleration support.
 
 = mbed TLS 2.5.1 released xxxx-xx-xx

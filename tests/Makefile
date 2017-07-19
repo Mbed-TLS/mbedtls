@@ -381,7 +381,6 @@ test_suite_pem$(EXEXT): test_suite_pem.c $(DEP)
 
 test_suite_pkcs1_v15$(EXEXT): test_suite_pkcs1_v15.c $(DEP)
 	echo "  CC    $<"
-	echo $(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_pkcs1_v21$(EXEXT): test_suite_pkcs1_v21.c $(DEP)

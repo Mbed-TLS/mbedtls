@@ -8,6 +8,49 @@
  */
 
 /* BEGIN_CASE */
+void gcm_bad_parameters( int cipher_id, int direction,
+                         char *hex_key_string, char *hex_src_string,
+                         char *hex_iv_string, char *hex_add_string,
+                         int tag_len_bits, int gcm_result )
+{
+    unsigned char key_str[128];
+    unsigned char src_str[128];
+    unsigned char dst_str[257];
+    unsigned char iv_str[128];
+    unsigned char add_str[128];
+    unsigned char tag_str[128];
+    unsigned char output[128];
+    unsigned char tag_output[16];
+    mbedtls_gcm_context ctx;
+    unsigned int key_len;
+    size_t pt_len, iv_len, add_len, tag_len = tag_len_bits / 8;
+
+    mbedtls_gcm_init( &ctx );
+
+    memset( key_str, 0x00, sizeof( key_str ) );
+    memset( src_str, 0x00, sizeof( src_str ) );
+    memset( dst_str, 0x00, sizeof( dst_str ) );
+    memset( iv_str, 0x00, sizeof( iv_str ) );
+    memset( add_str, 0x00, sizeof( add_str ) );
+    memset( tag_str, 0x00, sizeof( tag_str ) );
+    memset( output, 0x00, sizeof( output ) );
+    memset( tag_output, 0x00, sizeof( tag_output ) );
+    
+    key_len = unhexify( key_str, hex_key_string );
+    pt_len = unhexify( src_str, hex_src_string );
+    iv_len = unhexify( iv_str, hex_iv_string );
+    add_len = unhexify( add_str, hex_add_string );
+
+    TEST_ASSERT( mbedtls_gcm_setkey( &ctx, cipher_id, key_str, key_len * 8 ) == 0 );
+    TEST_ASSERT( mbedtls_gcm_crypt_and_tag( &ctx, direction, pt_len, iv_str, iv_len,
+                 add_str, add_len, src_str, output, tag_len, tag_output ) == gcm_result );
+
+exit:
+    mbedtls_gcm_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void gcm_encrypt_and_tag( int cipher_id,
                           char *hex_key_string, char *hex_src_string,
                           char *hex_iv_string, char *hex_add_string,

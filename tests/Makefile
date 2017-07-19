@@ -2,7 +2,7 @@
 # To compile on SunOS: add "-lsocket -lnsl" to LDFLAGS
 # To compile with PKCS11: add "-lpkcs11-helper" to LDFLAGS
 
-CFLAGS	?= -g3 #-O2
+CFLAGS	?= -O2
 WARNING_CFLAGS ?= -Wall -W -Wdeclaration-after-statement -Wno-unused-function -Wno-unused-value
 LDFLAGS ?=
 
@@ -164,12 +164,12 @@ $(DEP):
 C_FILES := $(addsuffix .c,$(APPS))
 
 .SECONDEXPANSION:
-$(C_FILES): %.c: suites/$$(func.$$*).function suites/%.data scripts/generate_code.py suites/helpers.function suites/main_test.function suites/desktop_test.function
+$(C_FILES): %.c: suites/$$(func.$$*).function suites/%.data scripts/generate_code.py suites/helpers.function suites/main_test.function suites/host_test.function
 	echo "  Gen   $@"
 	python scripts/generate_code.py -f suites/$(func.$*).function \
 		-d suites/$*.data \
 		-t suites/main_test.function \
-		-p suites/desktop_test.function \
+		-p suites/host_test.function \
 		-s suites  \
 		--help-file suites/helpers.function \
 		-o .
@@ -196,20 +196,15 @@ test: check
 # Create separate targets for generating embedded tests.
 EMBEDDED_TESTS := $(addprefix embedded_,$(APPS))
 
-# FIXME: description needs change
-# Each test suite name is stripped off of prefix test_suite_. mbed-os test dir
-# structure requires format TESTS/<testgroup>[/<sub testgroups..>]/<test case>
-# Test app names are split on "." and end part is used as the test dir name.
-# Prevous parts are used as the test group dirs. For tests without "." same
-# name is used as the test group dir.
+# Generate test code for target.
 
 .SECONDEXPANSION:
-$(EMBEDDED_TESTS): embedded_%: suites/$$(func.$$*).function suites/%.data scripts/generate_code.py suites/helpers.function suites/main_test.function suites/embedded_test.function
+$(EMBEDDED_TESTS): embedded_%: suites/$$(func.$$*).function suites/%.data scripts/generate_code.py suites/helpers.function suites/main_test.function suites/target_test.function
 	echo "  Gen  ./TESTS/mbedtls/$*/$*.c"
 	python scripts/generate_code.py -f suites/$(func.$*).function \
 		-d suites/$*.data \
 		-t suites/main_test.function \
-		-p suites/embedded_test.function \
+		-p suites/target_test.function \
 		-s suites  \
 		--help-file suites/helpers.function \
 		-o ./TESTS/mbedtls/$*

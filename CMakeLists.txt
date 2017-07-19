@@ -32,6 +32,7 @@ set(NULL_ENTROPY_WARNING "${WARNING_BORDER}"
                          "${NULL_ENTROPY_WARN_L3}"
                          "${WARNING_BORDER}")
 
+find_package(PythonInterp)
 find_package(Perl)
 if(PERL_FOUND)
 

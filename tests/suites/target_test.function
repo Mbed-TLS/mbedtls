@@ -1,4 +1,4 @@
-#line 2 "embedded_test.function"
+#line 2 "suites/target_test.function"
 
 #include "greentea-client/test_env.h"
 

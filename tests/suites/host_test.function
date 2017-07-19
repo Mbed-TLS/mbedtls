@@ -1,4 +1,4 @@
-#line 2 "suites/desktop_test.function"
+#line 2 "suites/host_test.function"
 
 /**
  * \brief       Varifies that string is in string parameter format i.e. "<str>"

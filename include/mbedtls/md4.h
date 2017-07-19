@@ -32,6 +32,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
+    !defined(inline) && !defined(__cplusplus)
+#define inline __inline
+#endif
+
 #if !defined(MBEDTLS_MD4_ALT)
 // Regular implementation
 //
@@ -78,8 +83,10 @@ void mbedtls_md4_clone( mbedtls_md4_context *dst,
  * \brief          MD4 context setup
  *
  * \param ctx      context to be initialized
+ *
+ * \return         0 if successful
  */
-void mbedtls_md4_starts( mbedtls_md4_context *ctx );
+int mbedtls_md4_starts_ext( mbedtls_md4_context *ctx );
 
 /**
  * \brief          MD4 process buffer
@@ -87,16 +94,103 @@ void mbedtls_md4_starts( mbedtls_md4_context *ctx );
  * \param ctx      MD4 context
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
+ *
+ * \return         0 if successful
  */
-void mbedtls_md4_update( mbedtls_md4_context *ctx, const unsigned char *input, size_t ilen );
+int mbedtls_md4_update_ext( mbedtls_md4_context *ctx,
+                            const unsigned char *input,
+                            size_t ilen );
 
 /**
  * \brief          MD4 final digest
  *
  * \param ctx      MD4 context
  * \param output   MD4 checksum result
+ *
+ * \return         0 if successful
  */
-void mbedtls_md4_finish( mbedtls_md4_context *ctx, unsigned char output[16] );
+int mbedtls_md4_finish_ext( mbedtls_md4_context *ctx,
+                            unsigned char output[16] );
+
+/**
+ * \brief          MD4 process data block (internal use only)
+ *
+ * \param ctx      MD4 context
+ * \param data     buffer holding one block of data
+ *
+ * \return         0 if successful
+ */
+int mbedtls_internal_md4_process( mbedtls_md4_context *ctx,
+                                  const unsigned char data[64] );
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+/**
+ * \brief          MD4 context setup
+ *
+ * \deprecated     Superseded by mbedtls_md4_starts_ext() in 2.5.0
+ *
+ * \param ctx      context to be initialized
+ */
+MBEDTLS_DEPRECATED static inline void mbedtls_md4_starts(
+                                                    mbedtls_md4_context *ctx )
+{
+    mbedtls_md4_starts_ext( ctx );
+}
+
+/**
+ * \brief          MD4 process buffer
+ *
+ * \deprecated     Superseded by mbedtls_md4_update_ext() in 2.5.0
+ *
+ * \param ctx      MD4 context
+ * \param input    buffer holding the  data
+ * \param ilen     length of the input data
+ */
+MBEDTLS_DEPRECATED static inline void mbedtls_md4_update(
+                                                    mbedtls_md4_context *ctx,
+                                                    const unsigned char *input,
+                                                    size_t ilen )
+{
+    mbedtls_md4_update_ext( ctx, input, ilen );
+}
+
+/**
+ * \brief          MD4 final digest
+ *
+ * \deprecated     Superseded by mbedtls_md4_finish_ext() in 2.5.0
+ *
+ * \param ctx      MD4 context
+ * \param output   MD4 checksum result
+ */
+MBEDTLS_DEPRECATED static inline void mbedtls_md4_finish(
+                                                    mbedtls_md4_context *ctx,
+                                                    unsigned char output[16] )
+{
+    mbedtls_md4_finish_ext( ctx, output );
+}
+
+/**
+ * \brief          MD4 process data block (internal use only)
+ *
+ * \deprecated     Superseded by mbedtls_internal_md4_process() in 2.5.0
+ *
+ * \param ctx      MD4 context
+ * \param data     buffer holding one block of data
+ */
+MBEDTLS_DEPRECATED static inline void mbedtls_md4_process(
+                                                mbedtls_md4_context *ctx,
+                                                const unsigned char data[64] )
+{
+    mbedtls_internal_md4_process( ctx, data );
+}
+
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 #ifdef __cplusplus
 }
@@ -116,8 +210,37 @@ extern "C" {
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  * \param output   MD4 checksum result
+ *
+ * \return         0 if successful
  */
-void mbedtls_md4( const unsigned char *input, size_t ilen, unsigned char output[16] );
+int mbedtls_md4_ext( const unsigned char *input,
+                     size_t ilen,
+                     unsigned char output[16] );
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+/**
+ * \brief          Output = MD4( input buffer )
+ *
+ * \deprecated     Superseded by mbedtls_md4_ext() in 2.5.0
+ *
+ * \param input    buffer holding the  data
+ * \param ilen     length of the input data
+ * \param output   MD4 checksum result
+ */
+MBEDTLS_DEPRECATED static inline void mbedtls_md4( const unsigned char *input,
+                                                   size_t ilen,
+                                                   unsigned char output[16] )
+{
+    mbedtls_md4_ext( input, ilen, output );
+}
+
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 /**
  * \brief          Checkup routine
@@ -125,9 +248,6 @@ void mbedtls_md4( const unsigned char *input, size_t ilen, unsigned char output[
  * \return         0 if successful, or 1 if the test failed
  */
 int mbedtls_md4_self_test( int verbose );
-
-/* Internal use */
-void mbedtls_md4_process( mbedtls_md4_context *ctx, const unsigned char data[64] );
 
 #ifdef __cplusplus
 }

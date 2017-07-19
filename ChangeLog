@@ -1,5 +1,27 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x released xxxx-xx-xx
+
+Bugfix
+   * Fix the entropy.c module to not call mbedtls_sha256_starts() or
+     mbedtls_sha512_starts() in the mbedtls_entropy_init() function.
+   * Fix the entropy.c module to ensure that mbedtls_sha256_init() or
+     mbedtls_sha512_init() is called before operating on the relevant context
+     structure. Also, ensure that message digest contexts are freed when
+     calling mbedtls_entropy_free().
+
+API Changes
+   * The following functions in the MD2, MD4, MD5, SHA1, SHA256 and SHA512
+     modules have been deprecated and replaced as shown below. The new
+     functions change the return type from void to int to allow returning error
+     codes when using MBEDTLS_<MODULE>_ALT.
+     mbedtls_<MODULE>_starts() -> mbedtls_<MODULE>_starts_ext()
+     mbedtls_<MODULE>_update() -> mbedtls_<MODULE>_update_ext()
+     mbedtls_<MODULE>_finish() -> mbedtls_<MODULE>_finish_ext()
+     mbedtls_<MODULE>_process() -> mbedtls_internal_<MODULE>_process()
+     The type of the function pointers in the mbedtls_md_info_t struct have
+     also been modified taking into account the functions return code.
+
 = mbed TLS 2.5.1 released 2017-06-21
 
 Security

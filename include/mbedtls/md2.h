@@ -31,6 +31,11 @@
 
 #include <stddef.h>
 
+#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
+    !defined(inline) && !defined(__cplusplus)
+#define inline __inline
+#endif
+
 #if !defined(MBEDTLS_MD2_ALT)
 // Regular implementation
 //
@@ -78,8 +83,10 @@ void mbedtls_md2_clone( mbedtls_md2_context *dst,
  * \brief          MD2 context setup
  *
  * \param ctx      context to be initialized
+ *
+ * \return         0 if successful
  */
-void mbedtls_md2_starts( mbedtls_md2_context *ctx );
+int mbedtls_md2_starts_ext( mbedtls_md2_context *ctx );
 
 /**
  * \brief          MD2 process buffer
@@ -87,16 +94,99 @@ void mbedtls_md2_starts( mbedtls_md2_context *ctx );
  * \param ctx      MD2 context
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
+ *
+ * \return         0 if successful
  */
-void mbedtls_md2_update( mbedtls_md2_context *ctx, const unsigned char *input, size_t ilen );
+int mbedtls_md2_update_ext( mbedtls_md2_context *ctx,
+                            const unsigned char *input,
+                            size_t ilen );
 
 /**
  * \brief          MD2 final digest
  *
  * \param ctx      MD2 context
  * \param output   MD2 checksum result
+ *
+ * \return         0 if successful
  */
-void mbedtls_md2_finish( mbedtls_md2_context *ctx, unsigned char output[16] );
+int mbedtls_md2_finish_ext( mbedtls_md2_context *ctx,
+                            unsigned char output[16] );
+
+/**
+ * \brief          MD2 process data block (internal use only)
+ *
+ * \param ctx      MD2 context
+ *
+ * \return         0 if successful
+ */
+int mbedtls_internal_md2_process( mbedtls_md2_context *ctx );
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+/**
+ * \brief          MD2 context setup
+ *
+ * \deprecated     Superseded by mbedtls_md2_starts_ext() in 2.5.0
+ *
+ * \param ctx      context to be initialized
+ */
+MBEDTLS_DEPRECATED static inline void mbedtls_md2_starts(
+                                                    mbedtls_md2_context *ctx )
+{
+    mbedtls_md2_starts_ext( ctx );
+}
+
+/**
+ * \brief          MD2 process buffer
+ *
+ * \deprecated     Superseded by mbedtls_md2_update_ext() in 2.5.0
+ *
+ * \param ctx      MD2 context
+ * \param input    buffer holding the  data
+ * \param ilen     length of the input data
+ */
+MBEDTLS_DEPRECATED static inline void mbedtls_md2_update(
+                                                mbedtls_md2_context *ctx,
+                                                const unsigned char *input,
+                                                size_t ilen )
+{
+    mbedtls_md2_update_ext( ctx, input, ilen );
+}
+
+/**
+ * \brief          MD2 final digest
+ *
+ * \deprecated     Superseded by mbedtls_md2_finish_ext() in 2.5.0
+ *
+ * \param ctx      MD2 context
+ * \param output   MD2 checksum result
+ */
+MBEDTLS_DEPRECATED static inline void mbedtls_md2_finish(
+                                                    mbedtls_md2_context *ctx,
+                                                    unsigned char output[16] )
+{
+    mbedtls_md2_finish_ext( ctx, output );
+}
+
+/**
+ * \brief          MD2 process data block (internal use only)
+ *
+ * \deprecated     Superseded by mbedtls_internal_md2_process() in 2.5.0
+ *
+ * \param ctx      MD2 context
+ */
+MBEDTLS_DEPRECATED static inline void mbedtls_md2_process(
+                                                    mbedtls_md2_context *ctx )
+{
+    mbedtls_internal_md2_process( ctx );
+}
+
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 #ifdef __cplusplus
 }
@@ -117,7 +207,34 @@ extern "C" {
  * \param ilen     length of the input data
  * \param output   MD2 checksum result
  */
-void mbedtls_md2( const unsigned char *input, size_t ilen, unsigned char output[16] );
+int mbedtls_md2_ext( const unsigned char *input,
+                     size_t ilen,
+                     unsigned char output[16] );
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+/**
+ * \brief          Output = MD2( input buffer )
+ *
+ * \deprecated     Superseded by mbedtls_md2() in 2.5.0
+ *
+ * \param input    buffer holding the  data
+ * \param ilen     length of the input data
+ * \param output   MD2 checksum result
+ */
+MBEDTLS_DEPRECATED static inline void mbedtls_md2( const unsigned char *input,
+                                                   size_t ilen,
+                                                   unsigned char output[16] )
+{
+    mbedtls_md2_ext( input, ilen, output );
+}
+
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 /**
  * \brief          Checkup routine
@@ -125,9 +242,6 @@ void mbedtls_md2( const unsigned char *input, size_t ilen, unsigned char output[
  * \return         0 if successful, or 1 if the test failed
  */
 int mbedtls_md2_self_test( int verbose );
-
-/* Internal use */
-void mbedtls_md2_process( mbedtls_md2_context *ctx );
 
 #ifdef __cplusplus
 }

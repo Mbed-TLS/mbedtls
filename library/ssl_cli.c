@@ -2493,8 +2493,7 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
             mbedtls_md5_context mbedtls_md5;
             mbedtls_sha1_context mbedtls_sha1;
 
-            mbedtls_md5_init(  &mbedtls_md5  );
-            mbedtls_sha1_init( &mbedtls_sha1 );
+            mbedtls_md5_init( &mbedtls_md5 );
 
             hashlen = 36;
 
@@ -2511,17 +2510,39 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
              *     SHA(ClientHello.random + ServerHello.random
              *                            + ServerParams);
              */
-            mbedtls_md5_starts( &mbedtls_md5 );
-            mbedtls_md5_update( &mbedtls_md5, ssl->handshake->randbytes, 64 );
-            mbedtls_md5_update( &mbedtls_md5, params, params_len );
-            mbedtls_md5_finish( &mbedtls_md5, hash );
+            if( ( ret = mbedtls_md5_starts_ext( &mbedtls_md5 ) ) != 0      ||
+                ( ret = mbedtls_md5_update_ext( &mbedtls_md5,
+                                    ssl->handshake->randbytes, 64 ) ) != 0 ||
+                ( ret = mbedtls_md5_update_ext( &mbedtls_md5, params,
+                                                params_len ) ) != 0        ||
+                ( ret = mbedtls_md5_finish_ext( &mbedtls_md5, hash ) ) != 0 )
+            {
+                mbedtls_md5_free( &mbedtls_md5 );
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_md5_*", ret );
+                mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                                MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
+                return( ret );
+            }
 
-            mbedtls_sha1_starts( &mbedtls_sha1 );
-            mbedtls_sha1_update( &mbedtls_sha1, ssl->handshake->randbytes, 64 );
-            mbedtls_sha1_update( &mbedtls_sha1, params, params_len );
-            mbedtls_sha1_finish( &mbedtls_sha1, hash + 16 );
+            mbedtls_md5_free( &mbedtls_md5 );
 
-            mbedtls_md5_free(  &mbedtls_md5  );
+            mbedtls_sha1_init( &mbedtls_sha1 );
+
+            if( ( ret = mbedtls_sha1_starts_ext( &mbedtls_sha1 ) ) != 0    ||
+                ( ret = mbedtls_sha1_update_ext( &mbedtls_sha1,
+                                    ssl->handshake->randbytes, 64 ) ) != 0 ||
+                ( ret = mbedtls_sha1_update_ext( &mbedtls_sha1, params,
+                                                 params_len ) ) != 0       ||
+                ( ret = mbedtls_sha1_finish_ext( &mbedtls_sha1,
+                                                 hash + 16 ) ) != 0 )
+            {
+                mbedtls_sha1_free( &mbedtls_sha1 );
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_sha1_*", ret );
+                mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                                MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
+                return( ret );
+            }
+
             mbedtls_sha1_free( &mbedtls_sha1 );
         }
         else
@@ -2532,6 +2553,7 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
         if( md_alg != MBEDTLS_MD_NONE )
         {
             mbedtls_md_context_t ctx;
+            const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( md_alg );
 
             mbedtls_md_init( &ctx );
 
@@ -2545,19 +2567,20 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
              *     ServerDHParams params;
              * };
              */
-            if( ( ret = mbedtls_md_setup( &ctx,
-                                     mbedtls_md_info_from_type( md_alg ), 0 ) ) != 0 )
+            if( ( ret = mbedtls_md_setup( &ctx, md_info, 0 ) ) != 0          ||
+                ( ret = mbedtls_md_starts( &ctx ) ) != 0                     ||
+                ( ret = mbedtls_md_update( &ctx,
+                                    ssl->handshake->randbytes, 64 ) ) != 0   ||
+                ( ret = mbedtls_md_update( &ctx, params, params_len ) ) != 0 ||
+                ( ret = mbedtls_md_finish( &ctx, hash ) ) != 0 )
             {
-                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_md_setup", ret );
+                mbedtls_md_free( &ctx );
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_md_*", ret );
                 mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                                 MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
                 return( ret );
             }
 
-            mbedtls_md_starts( &ctx );
-            mbedtls_md_update( &ctx, ssl->handshake->randbytes, 64 );
-            mbedtls_md_update( &ctx, params, params_len );
-            mbedtls_md_finish( &ctx, hash );
             mbedtls_md_free( &ctx );
         }
         else

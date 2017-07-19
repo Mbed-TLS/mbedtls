@@ -61,7 +61,7 @@ int main( void )
 #else
 int main( int argc, char *argv[] )
 {
-    FILE *f;
+    mbedtls_file_t *f;
     int ret = 1;
     int exit_code = MBEDTLS_EXIT_FAILURE;
     size_t i, olen = 0;
@@ -134,7 +134,7 @@ int main( int argc, char *argv[] )
     /*
      * Write the signature into result-enc.txt
      */
-    if( ( f = fopen( "result-enc.txt", "wb+" ) ) == NULL )
+    if( ( f = mbedtls_fopen( "result-enc.txt", "wb+" ) ) == NULL )
     {
         mbedtls_printf( " failed\n  ! Could not create %s\n\n",
                         "result-enc.txt" );
@@ -148,7 +148,7 @@ int main( int argc, char *argv[] )
                  ( i + 1 ) % 16 == 0 ? "\r\n" : " " );
     }
 
-    fclose( f );
+    mbedtls_fclose( f );
 
     mbedtls_printf( "\n  . Done (created \"%s\")\n\n", "result-enc.txt" );
 

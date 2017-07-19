@@ -1,0 +1,175 @@
+/* BEGIN_HEADER */
+
+#include "mbedtls/fsio.h"
+#include "mbedtls/serialize.h"
+
+#define TEST_DATA "Hello World"
+#define TEST_DATA_SZ ( strlen( TEST_DATA ) + 1 )
+
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_FS_IO:MBEDTLS_SERIALIZE_C:MBEDTLS_SERIALIZE_FORK_FRONTEND_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void file_open( )
+{
+    int ret;
+    char buf[100];
+    mbedtls_file_t * file = NULL;
+    FILE * ffile = fopen( "tmp.txt", "w" );
+
+    ret = fwrite( TEST_DATA, 1, TEST_DATA_SZ, ffile );
+    fclose( ffile );
+    TEST_ASSERT( ret > 0 );
+
+    file = mbedtls_fopen( "tmp.txt", "r" );
+
+    ret = mbedtls_fread( buf, 1, sizeof( buf ), file );
+    TEST_ASSERT( ret > 0 );
+    TEST_ASSERT( strcmp( TEST_DATA, buf ) == 0 );
+exit:
+    mbedtls_fclose( file );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void file_write( )
+{
+    int ret;
+    char buf[100];
+    mbedtls_file_t * file = NULL;
+    FILE * ffile = NULL;
+
+    file = mbedtls_fopen( "tmp.txt", "w" );
+    ret = mbedtls_fwrite( TEST_DATA, 1, TEST_DATA_SZ, file );
+    mbedtls_fclose( file );
+    TEST_ASSERT( ret > 0 );
+
+    ffile = fopen( "tmp.txt", "r" );
+    ret = fread( buf, 1, sizeof( buf ), ffile );
+    TEST_ASSERT( ret > 0 );
+    TEST_ASSERT( strcmp( TEST_DATA, buf ) == 0 );
+exit:
+    fclose(ffile);
+}
+/* END_CASE */
+
+
+/* BEGIN_CASE */
+void file_size( )
+{
+    int ret;
+    mbedtls_file_t * file = NULL;
+
+    file = mbedtls_fopen( "tmp.txt", "w" );
+    ret = mbedtls_fwrite( TEST_DATA, 1, TEST_DATA_SZ, file );
+    mbedtls_fclose( file );
+    TEST_ASSERT( ret > 0 );
+
+    file = mbedtls_fopen( "tmp.txt", "r" );
+    mbedtls_fseek( file, 0, MBEDTLS_SERIALIZE_FSEEK_SET );
+    mbedtls_fseek( file, 0, MBEDTLS_SERIALIZE_FSEEK_END );
+    ret = mbedtls_ftell( file );
+    TEST_ASSERT( ret == TEST_DATA_SZ );
+exit:
+    mbedtls_fclose( file );
+}
+/* END_CASE */
+
+
+/* BEGIN_CASE */
+void file_gets()
+{
+    size_t i;
+    mbedtls_file_t * file = NULL;
+    char buf[100];
+    static char * lines[] = {
+        "Line one\n",
+        "Line two\n",
+        "Line three\n",
+        "Line four\n",
+        "Line five\n",
+        "Line six\n",
+        "Line seven\n",
+        "Line eight\n",
+        "Line nine\n",
+        "Line ten\n"
+    };
+
+    file = mbedtls_fopen( "tmp.txt", "w" );
+
+    for ( i = 0; i < sizeof( lines ) / sizeof( char * ); i++ )
+    {
+        mbedtls_fwrite( lines[i], 1, strlen( lines[i] ), file );
+    }
+    mbedtls_fclose( file );
+
+    file = mbedtls_fopen( "tmp.txt", "r" );
+
+    for ( i = 0; i < sizeof( lines ) / sizeof( char * ); i++ )
+    {
+        char * s = mbedtls_fgets( buf, sizeof( buf ), file );
+        TEST_ASSERT( s != NULL );
+        TEST_ASSERT( strcmp( s, lines[i] ) == 0 );
+    }
+exit:
+    mbedtls_fclose( file );
+}
+/* END_CASE */
+
+
+/* BEGIN_CASE */
+void file_empty_file( )
+{
+    int ret;
+    char buf[100];
+    mbedtls_file_t * file = NULL;
+    FILE * ffile = fopen( "tmp.txt", "w" );
+
+    fclose( ffile );
+
+    file = mbedtls_fopen( "tmp.txt", "r" );
+
+    ret = mbedtls_fread( buf, 1, sizeof( buf ), file );
+    TEST_ASSERT( ret == 0 );
+exit:
+    mbedtls_fclose( file );
+}
+/* END_CASE */
+
+
+/* BEGIN_CASE */
+void file_open_error( )
+{
+    mbedtls_file_t * file = NULL;
+
+    file = mbedtls_fopen( "do not exist.txt", "r" );
+
+    TEST_ASSERT( file == NULL );
+}
+/* END_CASE */
+
+
+/* BEGIN_CASE */
+void file_error( )
+{
+    int ret, error;
+    mbedtls_file_t * file = NULL;
+    FILE * ffile = fopen( "tmp.txt", "w" );
+
+    fclose( ffile );
+
+    file = mbedtls_fopen( "tmp.txt", "r" );
+
+    ret = mbedtls_fwrite( TEST_DATA, 1, TEST_DATA_SZ, file );
+    error = mbedtls_ferror( file );
+    TEST_ASSERT( ret == 0 );
+    TEST_ASSERT( error != 0 );
+exit:
+    mbedtls_fclose( file );
+}
+/* END_CASE */
+

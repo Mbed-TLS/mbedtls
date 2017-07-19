@@ -53,6 +53,7 @@ ifdef ZLIB
 LOCAL_LDFLAGS += -lz
 endif
 
+<<<<<<< HEAD
 # A test application is built for each suites/test_suite_*.data file.
 # Application name is same as .data file's base name and can be
 # constructed by stripping path 'suites/' and extension .data.
@@ -60,6 +61,57 @@ APPS = $(basename $(subst suites/,,$(wildcard suites/test_suite_*.data)))
 
 # Construct executable name by adding OS specific suffix $(EXEXT).
 BINARIES := $(addsuffix $(EXEXT),$(APPS))
+=======
+APPS =	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
+	test_suite_aes.cfb$(EXEXT)	test_suite_aes.ofb$(EXEXT)	\
+	test_suite_aes.xts$(EXEXT)					\
+	test_suite_aes.rest$(EXEXT)	test_suite_arc4$(EXEXT)		\
+	test_suite_aria$(EXEXT)		test_suite_asn1write$(EXEXT)	\
+	test_suite_base64$(EXEXT)	test_suite_blowfish$(EXEXT)	\
+	test_suite_camellia$(EXEXT)	test_suite_ccm$(EXEXT)		\
+	test_suite_chacha20$(EXEXT)	test_suite_chachapoly$(EXEXT)	\
+	test_suite_cmac$(EXEXT)						\
+	test_suite_cipher.chachapoly$(EXEXT)				\
+	test_suite_cipher.aes$(EXEXT)					\
+	test_suite_cipher.arc4$(EXEXT)	test_suite_cipher.ccm$(EXEXT)	\
+	test_suite_cipher.chacha20$(EXEXT)				\
+	test_suite_cipher.gcm$(EXEXT)					\
+	test_suite_cipher.blowfish$(EXEXT)				\
+	test_suite_cipher.camellia$(EXEXT)				\
+	test_suite_cipher.des$(EXEXT)	test_suite_cipher.null$(EXEXT)	\
+	test_suite_cipher.padding$(EXEXT)				\
+	test_suite_ctr_drbg$(EXEXT)	test_suite_debug$(EXEXT)	\
+	test_suite_des$(EXEXT)		test_suite_dhm$(EXEXT)		\
+	test_suite_ecdh$(EXEXT)		test_suite_ecdsa$(EXEXT)	\
+	test_suite_ecjpake$(EXEXT)	test_suite_ecp$(EXEXT)		\
+	test_suite_error$(EXEXT)	test_suite_entropy$(EXEXT)	\
+	test_suite_gcm.aes128_de$(EXEXT)				\
+	test_suite_gcm.aes192_de$(EXEXT)				\
+	test_suite_gcm.aes256_de$(EXEXT)				\
+	test_suite_gcm.aes128_en$(EXEXT)				\
+	test_suite_gcm.aes192_en$(EXEXT)				\
+	test_suite_gcm.aes256_en$(EXEXT)				\
+	test_suite_gcm.camellia$(EXEXT)					\
+	test_suite_hkdf$(EXEXT)						\
+	test_suite_hmac_drbg.misc$(EXEXT)				\
+	test_suite_hmac_drbg.no_reseed$(EXEXT)				\
+	test_suite_hmac_drbg.nopr$(EXEXT)				\
+	test_suite_hmac_drbg.pr$(EXEXT)					\
+	test_suite_md$(EXEXT)		test_suite_mdx$(EXEXT)		\
+	test_suite_memory_buffer_alloc$(EXEXT)				\
+	test_suite_mpi$(EXEXT)						\
+	test_suite_nist_kw$(EXEXT)						\
+	test_suite_pem$(EXEXT)			test_suite_pkcs1_v15$(EXEXT)	\
+	test_suite_pkcs1_v21$(EXEXT)	test_suite_pkcs5$(EXEXT)	\
+	test_suite_pkparse$(EXEXT)	test_suite_pkwrite$(EXEXT)	\
+	test_suite_pk$(EXEXT)						\
+	test_suite_poly1305$(EXEXT)					\
+	test_suite_rsa$(EXEXT)		test_suite_shax$(EXEXT)		\
+	test_suite_ssl$(EXEXT)		test_suite_timing$(EXEXT)			\
+	test_suite_x509parse$(EXEXT)	test_suite_x509write$(EXEXT)	\
+	test_suite_xtea$(EXEXT)		test_suite_version$(EXEXT)	\
+    test_suite_fs_abstraction$(EXEXT)
+>>>>>>> FS abstraction
 
 .SILENT:
 

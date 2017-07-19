@@ -57,24 +57,24 @@
 int dev_random_entropy_poll( void *data, unsigned char *output,
                              size_t len, size_t *olen )
 {
-    FILE *file;
+    mbedtls_file_t *file;
     size_t ret, left = len;
     unsigned char *p = output;
     ((void) data);
 
     *olen = 0;
 
-    file = fopen( "/dev/random", "rb" );
+    file = mbedtls_fopen( "/dev/random", "rb" );
     if( file == NULL )
         return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
 
     while( left > 0 )
     {
         /* /dev/random can return much less than requested. If so, try again */
-        ret = fread( p, 1, left, file );
-        if( ret == 0 && ferror( file ) )
+        ret = mbedtls_fread( p, 1, left, file );
+        if( ret == 0 && mbedtls_ferror( file ) )
         {
-            fclose( file );
+            mbedtls_fclose( file );
             return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
         }
 
@@ -82,7 +82,7 @@ int dev_random_entropy_poll( void *data, unsigned char *output,
         left -= ret;
         sleep( 1 );
     }
-    fclose( file );
+    mbedtls_fclose( file );
     *olen = len;
 
     return( 0 );
@@ -151,7 +151,7 @@ struct options
 static int write_private_key( mbedtls_pk_context *key, const char *output_file )
 {
     int ret;
-    FILE *f;
+    mbedtls_file_t *f;
     unsigned char output_buf[16000];
     unsigned char *c = output_buf;
     size_t len = 0;
@@ -173,16 +173,16 @@ static int write_private_key( mbedtls_pk_context *key, const char *output_file )
         c = output_buf + sizeof(output_buf) - len;
     }
 
-    if( ( f = fopen( output_file, "wb" ) ) == NULL )
+    if( ( f = mbedtls_fopen( output_file, "wb" ) ) == NULL )
         return( -1 );
 
-    if( fwrite( c, 1, len, f ) != len )
+    if( mbedtls_fwrite( c, 1, len, f ) != len )
     {
-        fclose( f );
+        mbedtls_fclose( f );
         return( -1 );
     }
 
-    fclose( f );
+    mbedtls_fclose( f );
 
     return( 0 );
 }

@@ -605,7 +605,7 @@ cleanup:
 /*
  * Read X from an opened file
  */
-int mbedtls_mpi_read_file( mbedtls_mpi *X, int radix, FILE *fin )
+int mbedtls_mpi_read_file( mbedtls_mpi *X, int radix, mbedtls_file_t *fin )
 {
     mbedtls_mpi_uint d;
     size_t slen;
@@ -617,7 +617,7 @@ int mbedtls_mpi_read_file( mbedtls_mpi *X, int radix, FILE *fin )
     char s[ MBEDTLS_MPI_RW_BUFFER_SIZE ];
 
     memset( s, 0, sizeof( s ) );
-    if( fgets( s, sizeof( s ) - 1, fin ) == NULL )
+    if( mbedtls_fgets( s, sizeof( s ) - 1, fin ) == NULL )
         return( MBEDTLS_ERR_MPI_FILE_IO_ERROR );
 
     slen = strlen( s );
@@ -638,7 +638,7 @@ int mbedtls_mpi_read_file( mbedtls_mpi *X, int radix, FILE *fin )
 /*
  * Write X into an opened file (or stdout if fout == NULL)
  */
-int mbedtls_mpi_write_file( const char *p, const mbedtls_mpi *X, int radix, FILE *fout )
+int mbedtls_mpi_write_file( const char *p, const mbedtls_mpi *X, int radix, mbedtls_file_t *fout )
 {
     int ret;
     size_t n, slen, plen;
@@ -661,8 +661,8 @@ int mbedtls_mpi_write_file( const char *p, const mbedtls_mpi *X, int radix, FILE
 
     if( fout != NULL )
     {
-        if( fwrite( p, 1, plen, fout ) != plen ||
-            fwrite( s, 1, slen, fout ) != slen )
+        if( mbedtls_fwrite( p, 1, plen, fout ) != plen ||
+            mbedtls_fwrite( s, 1, slen, fout ) != slen )
             return( MBEDTLS_ERR_MPI_FILE_IO_ERROR );
     }
     else

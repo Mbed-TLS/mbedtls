@@ -153,21 +153,21 @@ int main( int argc, char *argv[] )
 
         if( strlen( opt.password_file ) )
         {
-            FILE *f;
+            mbedtls_file_t *f;
 
             mbedtls_printf( "\n  . Loading the password file ..." );
-            if( ( f = fopen( opt.password_file, "rb" ) ) == NULL )
+            if( ( f = mbedtls_fopen( opt.password_file, "rb" ) ) == NULL )
             {
-                mbedtls_printf( " failed\n  !  fopen returned NULL\n" );
+                mbedtls_printf( " failed\n  !  mbedtls_fopen returned NULL\n" );
                 goto cleanup;
             }
-            if( fgets( buf, sizeof(buf), f ) == NULL )
+            if( mbedtls_fgets( buf, sizeof(buf), f ) == NULL )
             {
-                fclose( f );
-                mbedtls_printf( "Error: fgets() failed to retrieve password\n" );
+                mbedtls_fclose( f );
+                mbedtls_printf( "Error: mbedtls_fgets() failed to retrieve password\n" );
                 goto cleanup;
             }
-            fclose( f );
+            mbedtls_fclose( f );
 
             i = (int) strlen( buf );
             if( buf[i - 1] == '\n' ) buf[i - 1] = '\0';

@@ -49,6 +49,7 @@ endif
 
 APPS =	aes/aescrypt2$(EXEXT)		aes/crypt_and_hash$(EXEXT)	\
 	hash/hello$(EXEXT)		hash/generic_sum$(EXEXT)	\
+	host/frontend$(EXEXT)                                           \
 					pkey/dh_client$(EXEXT)		\
 	pkey/dh_genprime$(EXEXT)	pkey/dh_server$(EXEXT)		\
 	pkey/ecdh_curve25519$(EXEXT)					\
@@ -107,6 +108,12 @@ hash/hello$(EXEXT): hash/hello.c $(DEP)
 hash/generic_sum$(EXEXT): hash/generic_sum.c $(DEP)
 	echo "  CC    hash/generic_sum.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) hash/generic_sum.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+# Unlike other programs, this one runs on the host even if cross-compiling,
+# and it does not link with mbed TLS libraries.
+host/frontend$(EXEXT): host/frontend.c $(DEP) ../include/mbedtls/config.h ../include/mbedtls/serialize.h
+	echo '  CC -DMBEDTLS_CONFIG_FILE="host/config.h" host/frontend.c ../library/net_sockets.c'
+	$(CC) -I. $(LOCAL_CFLAGS) $(CFLAGS) -DMBEDTLS_CONFIG_FILE=\"host/config.h\" host/frontend.c ../library/net_sockets.c $(LDFLAGS) -o $@
 
 pkey/dh_client$(EXEXT): pkey/dh_client.c $(DEP)
 	echo "  CC    pkey/dh_client.c"

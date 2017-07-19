@@ -43,9 +43,9 @@
 #if defined(MBEDTLS_HAVEGE_C)
 #include "mbedtls/havege.h"
 #endif
-#if defined(MBEDTLS_ENTROPY_NV_SEED)
+//#if defined(MBEDTLS_ENTROPY_NV_SEED)
 #include "mbedtls/platform.h"
-#endif
+//#endif
 
 #if !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
 
@@ -157,7 +157,7 @@ static int has_getrandom = -1;
 int mbedtls_platform_entropy_poll( void *data,
                            unsigned char *output, size_t len, size_t *olen )
 {
-    FILE *file;
+    mbedtls_file_t *file;
     size_t read_len;
     ((void) data);
 
@@ -179,18 +179,18 @@ int mbedtls_platform_entropy_poll( void *data,
 
     *olen = 0;
 
-    file = fopen( "/dev/urandom", "rb" );
+    file = mbedtls_fopen( "/dev/urandom", "rb" );
     if( file == NULL )
         return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
 
-    read_len = fread( output, 1, len, file );
+    read_len = mbedtls_fread( output, 1, len, file );
     if( read_len != len )
     {
-        fclose( file );
+        mbedtls_fclose( file );
         return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
     }
 
-    fclose( file );
+    mbedtls_fclose( file );
     *olen = len;
 
     return( 0 );

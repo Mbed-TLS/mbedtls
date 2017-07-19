@@ -42,7 +42,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_RSA_C)
+#if defined(MBEDTLS_RSA_C) && !defined (MBEDTLS_RSA_ALT)
 
 #include "mbedtls/rsa.h"
 #include "mbedtls/oid.h"
@@ -1869,4 +1869,4 @@ cleanup:
 
 #endif /* MBEDTLS_SELF_TEST */
 
-#endif /* MBEDTLS_RSA_C */
+#endif /*  defined(MBEDTLS_RSA_C) && !defined (MBEDTLS_RSA_ALT) */

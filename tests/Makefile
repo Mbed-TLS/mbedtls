@@ -7,11 +7,13 @@ WARNING_CFLAGS ?= -Wall -W -Wdeclaration-after-statement -Wno-unused-function -W
 LDFLAGS ?=
 
 LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../include -D_FILE_OFFSET_BITS=64
-LOCAL_LDFLAGS = -L../library 			\
+LOCAL_LDFLAGS += -L../../host/lib \
+		-lcc_312$(SHARED_SUFFIX)
+
+LOCAL_LDFLAGS += -L../library 			\
 		-lmbedtls$(SHARED_SUFFIX)	\
 		-lmbedx509$(SHARED_SUFFIX)	\
 		-lmbedcrypto$(SHARED_SUFFIX)
-
 ifndef SHARED
 DEP=../library/libmbedcrypto.a ../library/libmbedx509.a ../library/libmbedtls.a
 else
@@ -379,6 +381,7 @@ test_suite_pem$(EXEXT): test_suite_pem.c $(DEP)
 
 test_suite_pkcs1_v15$(EXEXT): test_suite_pkcs1_v15.c $(DEP)
 	echo "  CC    $<"
+	echo $(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_pkcs1_v21$(EXEXT): test_suite_pkcs1_v21.c $(DEP)

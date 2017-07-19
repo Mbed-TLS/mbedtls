@@ -657,6 +657,15 @@ static const char *features[] = {
 #if defined(MBEDTLS_XTEA_C)
     "MBEDTLS_XTEA_C",
 #endif /* MBEDTLS_XTEA_C */
+<<<<<<< HEAD
+=======
+#if defined(MBEDTLS_CCM_ALT)
+    "MBEDTLS_CCM_ALT",
+#endif /* MBEDTLS_CCM_ALT */
+#if defined(MBEDTLS_RSA_ALT)
+    "MBEDTLS_RSA_ALT",
+#endif /* MBEDTLS_RSA_ALT */
+>>>>>>> 7dcd1fa... - Changes to support MBEDTLS_RSA_ALT
 #endif /* MBEDTLS_VERSION_FEATURES */
     NULL
 };

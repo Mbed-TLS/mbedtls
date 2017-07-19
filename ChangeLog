@@ -2,6 +2,22 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.1.9 branch released xxxx-xx-xx
 
+Security
+   * Fix authentication bypass in SSL/TLS: when auth_mode is set to optional,
+     mbedtls_ssl_get_verify_result() would incorrectly return 0 when the peer's
+     X.509 certificate chain had more than MBEDTLS_X509_MAX_INTERMEDIATE_CA
+     (default: 8) intermediates, even when it was not trusted. Could be
+     triggered remotely on both sides. (With auth_mode set to required
+     (default), the handshake was correctly aborted.)
+
+API Changes
+   * Certificate verification functions now set flags to -1 in case the full
+     chain was not verified due to an internal error (including in the verify
+     callback) or chain length limitations.
+   * With authmode set to optional, handshake is now aborted if the
+     verification of the peer's certificate failed due to an overlong chain or
+     a fatal error in the vrfy callback.
+
 Bugfix
    * Add a check if iv_len is zero, and return an error if it is zero. reported
      by roberto. #716
@@ -24,22 +40,8 @@ Bugfix
      encoded X509 CSRs. The overflow would enable maliciously constructed CSRs
      to bypass the version verification check. Found by Peng Li/Yueh-Hsun Lin,
      KNOX Security, Samsung Research America
-
-Security
-   * Fix authentication bypass in SSL/TLS: when auth_mode is set to optional,
-     mbedtls_ssl_get_verify_result() would incorrectly return 0 when the peer's
-     X.509 certificate chain had more than MBEDTLS_X509_MAX_INTERMEDIATE_CA
-     (default: 8) intermediates, even when it was not trusted. Could be
-     triggered remotely on both sides. (With auth_mode set to required
-     (default), the handshake was correctly aborted.)
-
-API Changes
-   * Certificate verification functions now set flags to -1 in case the full
-     chain was not verified due to an internal error (including in the verify
-     callback) or chain length limitations.
-   * With authmode set to optional, handshake is now aborted if the
-     verification of the peer's certificate failed due to an overlong chain or
-     a fatal error in the vrfy callback.
+   * Add a check if iv_len is zero, and return an error if it is zero. reported
+     by roberto. #716
 
 = mbed TLS 2.1.8 branch released 2017-06-21
 

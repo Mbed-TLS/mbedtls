@@ -439,7 +439,7 @@ int mbedtls_sha1_self_test( int verbose )
         if( verbose != 0 )
             mbedtls_printf( "  SHA-1 test #%d: ", i + 1 );
 
-        if( mbedtls_sha1_starts_ext( &ctx ) != 0 )
+        if( ( ret = mbedtls_sha1_starts_ext( &ctx ) ) != 0 )
             goto fail;
 
         if( i == 2 )
@@ -448,21 +448,27 @@ int mbedtls_sha1_self_test( int verbose )
 
             for( j = 0; j < 1000; j++ )
             {
-                if( mbedtls_sha1_update_ext( &ctx, buf, buflen ) != 0 )
+                ret = mbedtls_sha1_update_ext( &ctx, buf, buflen );
+                if( ret != 0 )
                     goto fail;
             }
         }
         else
         {
-            if( mbedtls_sha1_update_ext( &ctx, sha1_test_buf[i],
-                                         sha1_test_buflen[i] ) != 0 )
+            ret = mbedtls_sha1_update_ext( &ctx, sha1_test_buf[i],
+                                           sha1_test_buflen[i] );
+            if( ret != 0 )
                 goto fail;
         }
 
-        mbedtls_sha1_finish_ext( &ctx, sha1sum );
+        if( ( ret = mbedtls_sha1_finish_ext( &ctx, sha1sum ) ) != 0 )
+            goto fail;
 
         if( memcmp( sha1sum, sha1_test_sum[i], 20 ) != 0 )
-            goto exit;
+        {
+            ret = 1;
+            goto fail;
+        }
 
         if( verbose != 0 )
             mbedtls_printf( "passed\n" );
@@ -476,8 +482,6 @@ int mbedtls_sha1_self_test( int verbose )
 fail:
     if( verbose != 0 )
         mbedtls_printf( "failed\n" );
-
-    ret = 1;
 
 exit:
     mbedtls_sha1_free( &ctx );

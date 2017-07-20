@@ -464,7 +464,7 @@ static const unsigned char ripemd160_test_md[TESTS][20] =
  */
 int mbedtls_ripemd160_self_test( int verbose )
 {
-    int i, ret;
+    int i, ret = 0;
     unsigned char output[20];
 
     memset( output, 0, sizeof output );
@@ -481,7 +481,10 @@ int mbedtls_ripemd160_self_test( int verbose )
             goto fail;
 
         if( memcmp( output, ripemd160_test_md[i], 20 ) != 0 )
+        {
+            ret = 1;
             goto fail;
+        }
 
         if( verbose != 0 )
             mbedtls_printf( "passed\n" );
@@ -496,7 +499,7 @@ fail:
     if( verbose != 0 )
         mbedtls_printf( "failed\n" );
 
-    return( 1 );
+    return( ret );
 }
 
 #endif /* MBEDTLS_SELF_TEST */

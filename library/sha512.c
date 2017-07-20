@@ -504,7 +504,7 @@ int mbedtls_sha512_self_test( int verbose )
         if( verbose != 0 )
             mbedtls_printf( "  SHA-%d test #%d: ", 512 - k * 128, j + 1 );
 
-        if( mbedtls_sha512_starts_ext( &ctx, k ) != 0 )
+        if( ( ret = mbedtls_sha512_starts_ext( &ctx, k ) ) != 0 )
             goto fail;
 
         if( j == 2 )
@@ -512,21 +512,28 @@ int mbedtls_sha512_self_test( int verbose )
             memset( buf, 'a', buflen = 1000 );
 
             for( j = 0; j < 1000; j++ )
-                if( mbedtls_sha512_update_ext( &ctx, buf, buflen ) != 0 )
+            {
+                ret = mbedtls_sha512_update_ext( &ctx, buf, buflen );
+                if( ret != 0 )
                     goto fail;
+            }
         }
         else
         {
-            if( mbedtls_sha512_update_ext( &ctx, sha512_test_buf[j],
-                                           sha512_test_buflen[j] ) != 0 )
+            ret = mbedtls_sha512_update_ext( &ctx, sha512_test_buf[j],
+                                             sha512_test_buflen[j] );
+            if( ret != 0 )
                 goto fail;
         }
 
-        if( mbedtls_sha512_finish_ext( &ctx, sha512sum ) != 0 )
+        if( ( ret = mbedtls_sha512_finish_ext( &ctx, sha512sum ) ) != 0 )
             goto fail;
 
         if( memcmp( sha512sum, sha512_test_sum[i], 64 - k * 16 ) != 0 )
+        {
+            ret = 1;
             goto fail;
+        }
 
         if( verbose != 0 )
             mbedtls_printf( "passed\n" );
@@ -540,8 +547,6 @@ int mbedtls_sha512_self_test( int verbose )
 fail:
     if( verbose != 0 )
         mbedtls_printf( "failed\n" );
-
-    ret = 1;
 
 exit:
     mbedtls_sha512_free( &ctx );

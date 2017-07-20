@@ -20,7 +20,10 @@ API Changes
      mbedtls_<MODULE>_finish() -> mbedtls_<MODULE>_finish_ext()
      mbedtls_<MODULE>_process() -> mbedtls_internal_<MODULE>_process()
      The type of the function pointers in the mbedtls_md_info_t struct have
-     also been modified taking into account the functions return code.
+     also been modified taking into account the functions return code. Every
+     usage of the deprecated functions was updated. Furthermore, the MD return
+     codes are checked for error after every usage, except in the ssl_tls.c
+     module.
 
 = mbed TLS 2.5.1 released 2017-06-21
 

@@ -109,15 +109,6 @@
  *
  * Double-width integers (e.g. 128-bit in 64-bit architectures) can be
  * disabled by defining MBEDTLS_NO_UDBL_DIVISION.
- *
- * The double-width integer types can be configured by defining
- * MBEDTLS_TYPE_UDBL when the type cannot be automatically deduced by the
- * library (e.g. the compiler is unknown). The definition of MBEDTLS_TYPE_UDBL
- * must be a complete statement of the form:
- *      typedef <UDBL_TYPE> mbedtls_t_udbl <OTHER_DIRECTIVES>
- * for example:
- *      #define MBEDTLS_TYPE_UDBL       \
- *          typedef unsigned int mbedtls_t_udbl __attribute__((mode(TI)))
  */
 #if !defined(MBEDTLS_HAVE_INT32)
     #if defined(_MSC_VER) && defined(_M_AMD64)
@@ -162,10 +153,6 @@
         /* Force 64-bit integers with unknown compiler */
         typedef  int64_t mbedtls_mpi_sint;
         typedef uint64_t mbedtls_mpi_uint;
-        #if !defined(MBEDTLS_NO_UDBL_DIVISION) && defined(MBEDTLS_TYPE_UDBL)
-            MBEDTLS_TYPE_UDBL;
-            #define MBEDTLS_HAVE_UDBL
-        #endif /* !MBEDTLS_NO_UDBL_DIVISION && MBEDTLS_TYPE_UDBL */
     #endif
 #endif /* !MBEDTLS_HAVE_INT32 */
 
@@ -178,6 +165,7 @@
     typedef uint32_t mbedtls_mpi_uint;
     #if !defined(MBEDTLS_NO_UDBL_DIVISION)
         typedef uint64_t mbedtls_t_udbl;
+        #define MBEDTLS_HAVE_UDBL
     #endif /* !MBEDTLS_NO_UDBL_DIVISION */
 #endif /* !MBEDTLS_HAVE_INT64 */
 

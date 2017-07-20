@@ -447,9 +447,30 @@ scripts/config.pl unset MBEDTLS_AESNI_C
 scripts/config.pl unset MBEDTLS_PADLOCK_C
 CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT32' make
 
-msg "test: gcc, force 32-bit compilation"
+msg "build: gcc, force 64-bit compilation"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl unset MBEDTLS_HAVE_ASM
+scripts/config.pl unset MBEDTLS_AESNI_C
+scripts/config.pl unset MBEDTLS_PADLOCK_C
+CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT64' make
+
+msg "test: gcc, force 64-bit compilation"
 make test
+
+msg "build: gcc, force 64-bit compilation, attempt to set MBEDTLS_TYPE_UDBL"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl unset MBEDTLS_HAVE_ASM
+scripts/config.pl unset MBEDTLS_AESNI_C
+scripts/config.pl unset MBEDTLS_PADLOCK_C
+CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT64 -DMBEDTLS_TYPE_UDBL="typedef XXXXXX"' make
 fi # x86_64
+
+msg "build: gcc, attempt to set MBEDTLS_TYPE_UDBL for known compiler"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_TYPE_UDBL="typedef XXXXXX"' make
 
 msg "build: arm-none-eabi-gcc, make" # ~ 10s
 cleanup

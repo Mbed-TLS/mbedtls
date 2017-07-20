@@ -107,10 +107,10 @@
  * architecture by defining MBEDTLS_HAVE_INT32 or MBEDTLS_HAVE_INT64
  * respectively and undefining MBEDTLS_HAVE_ASM.
  *
- * Double length integers (e.g. 128-bit in 64-bit architectures) can be
+ * Double-width integers (e.g. 128-bit in 64-bit architectures) can be
  * disabled by defining MBEDTLS_NO_UDBL_DIVISION.
  *
- * The double length integer types can be configured by defining
+ * The double-width integer types can be configured by defining
  * MBEDTLS_TYPE_UDBL when the type cannot be automatically deduced by the
  * library (e.g. the compiler is unknown). The definition of MBEDTLS_TYPE_UDBL
  * must be a complete statement of the form:

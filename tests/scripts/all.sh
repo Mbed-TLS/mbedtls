@@ -491,6 +491,18 @@ CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -Wa
 
 msg "build: arm-none-eabi-gcc -DMBEDTLS_NO_UDBL_DIVISION, make" # ~ 10s
 cleanup
+scripts/config.pl full
+scripts/config.pl unset MBEDTLS_NET_C
+scripts/config.pl unset MBEDTLS_TIMING_C
+scripts/config.pl unset MBEDTLS_FS_IO
+scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
+# following things are not in the default config
+scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
+scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
+scripts/config.pl unset MBEDTLS_THREADING_C
+scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
+scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
 scripts/config.pl set MBEDTLS_NO_UDBL_DIVISION
 CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -Wall -Wextra' make lib
 echo "Checking that software 64-bit division is not required"

@@ -3,8 +3,8 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
 Features
-   * Add support for alternative implementation for CCM, controlled by new configuration
-     flag MBEDTLS_CCM_ALT in config.h
+   * Add support for alternative implementation for CCM, controlled by new
+     configuration flag MBEDTLS_CCM_ALT in config.h
 
 = mbed TLS 2.4.2 branch released 2017-03-08
 

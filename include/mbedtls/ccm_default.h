@@ -127,7 +127,7 @@ int mbedtls_ccm_auth_decrypt_default( mbedtls_ccm_context_default *ctx, size_t l
                                       const unsigned char *input, unsigned char *output,
                                       const unsigned char *tag, size_t tag_len );
 
-#endif /* MBEDTLS_CCM_ALT) */
+#endif /* MBEDTLS_CCM_ALT */
 #ifdef __cplusplus
 }
 #endif

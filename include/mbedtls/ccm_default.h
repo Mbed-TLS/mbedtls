@@ -5,7 +5,8 @@
  *
  * \note These functions are meant for the alternative implementors,
  *       in case a need for a fallback to the default implementation
- *       is required
+ *       is required. Application developers should call the
+ *       base function instead (without the _default suffix).
  *
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0

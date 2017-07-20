@@ -277,7 +277,7 @@
  *       currently named mbedtls_aes_internal_encrypt and mbedtls_aes_internal_decrypt,
  *       respectively. When setting up alternative implementations, these functions should
  *       be overriden, but the wrapper functions mbedtls_aes_decrypt and mbedtls_aes_encrypt
- *       have to stay untouched.
+ *       must stay untouched.
  *
  * \note If you use the AES_xxx_ALT macros, then is is recommended to also set
  *       MBEDTLS_AES_ROM_TABLES in order to help the linker garbage-collect the AES

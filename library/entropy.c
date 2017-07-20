@@ -366,6 +366,11 @@ int mbedtls_entropy_func( void *data, unsigned char *output, size_t len )
     memset( buf, 0, MBEDTLS_ENTROPY_BLOCK_SIZE );
 
 #if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
+    /*
+     * Note that at this stage it is assumed that the accumulator was started
+     * in a previous call to entropy_update(). If this is not guaranteed, the
+     * code below will fail.
+     */
     if( ( ret = mbedtls_sha512_finish_ext( &ctx->accumulator, buf ) ) != 0 )
         goto exit;
 

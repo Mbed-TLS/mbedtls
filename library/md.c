@@ -358,8 +358,9 @@ int mbedtls_md_hmac_starts( mbedtls_md_context_t *ctx, const unsigned char *key,
 
     if( ( ret = ctx->md_info->starts_func( ctx->md_ctx ) ) != 0 )
         goto cleanup;
-    ret = ctx->md_info->update_func( ctx->md_ctx, ipad,
-                                     ctx->md_info->block_size );
+    if( ( ret = ctx->md_info->update_func( ctx->md_ctx, ipad,
+                                           ctx->md_info->block_size ) ) != 0 )
+        goto cleanup;
 
 cleanup:
     mbedtls_zeroize( sum, sizeof( sum ) );

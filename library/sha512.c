@@ -391,17 +391,18 @@ int mbedtls_sha512_ext( const unsigned char *input,
     mbedtls_sha512_init( &ctx );
 
     if( ( ret = mbedtls_sha512_starts_ext( &ctx, is384 ) ) != 0 )
-            return( ret );
+        goto exit;
 
     if( ( ret = mbedtls_sha512_update_ext( &ctx, input, ilen ) ) != 0 )
-            return( ret );
+        goto exit;
 
     if( ( ret = mbedtls_sha512_finish_ext( &ctx, output ) ) != 0 )
-            return( ret );
+        goto exit;
 
+exit:
     mbedtls_sha512_free( &ctx );
 
-    return( 0 );
+    return( ret );
 }
 
 #if defined(MBEDTLS_SELF_TEST)

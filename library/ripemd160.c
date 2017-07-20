@@ -406,17 +406,18 @@ int mbedtls_ripemd160_ext( const unsigned char *input,
     mbedtls_ripemd160_init( &ctx );
 
     if( ( ret = mbedtls_ripemd160_starts_ext( &ctx ) ) != 0 )
-            return( ret );
+        goto exit;
 
     if( ( ret = mbedtls_ripemd160_update_ext( &ctx, input, ilen ) ) != 0 )
-            return( ret );
+        goto exit;
 
     if( ( ret = mbedtls_ripemd160_finish_ext( &ctx, output ) ) != 0 )
-            return( ret );
+        goto exit;
 
+exit:
     mbedtls_ripemd160_free( &ctx );
 
-    return( 0 );
+    return( ret );
 }
 
 #if defined(MBEDTLS_SELF_TEST)

@@ -229,18 +229,18 @@ int mbedtls_md2_ext( const unsigned char *input,
     mbedtls_md2_init( &ctx );
 
     if( ( ret = mbedtls_md2_starts_ext( &ctx ) ) != 0 )
-        return( ret );
+        goto exit;
 
     if( ( ret = mbedtls_md2_update_ext( &ctx, input, ilen ) ) != 0 )
-        return( ret );
+        goto exit;
 
     if( ( ret = mbedtls_md2_finish_ext( &ctx, output ) ) != 0 )
-        return( ret );
+        goto exit;
 
-
+exit:
     mbedtls_md2_free( &ctx );
 
-    return( 0 );
+    return( ret );
 }
 
 #if defined(MBEDTLS_SELF_TEST)

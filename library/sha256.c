@@ -355,17 +355,18 @@ int mbedtls_sha256_ext( const unsigned char *input,
     mbedtls_sha256_init( &ctx );
 
     if( ( ret = mbedtls_sha256_starts_ext( &ctx, is224 ) ) != 0 )
-            return( ret );
+        goto exit;
 
     if( ( ret = mbedtls_sha256_update_ext( &ctx, input, ilen ) ) != 0 )
-            return( ret );
+        goto exit;
 
     if( ( ret = mbedtls_sha256_finish_ext( &ctx, output ) ) != 0 )
-            return( ret );
+        goto exit;
 
+exit:
     mbedtls_sha256_free( &ctx );
 
-    return( 0 );
+    return( ret );
 }
 
 #if defined(MBEDTLS_SELF_TEST)

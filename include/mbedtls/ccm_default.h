@@ -1,7 +1,7 @@
 /**
  * \file ccm_default.h
  *
- * \brief default function definitions for ccm
+ * \brief Default function definitions for CCM
  *
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
@@ -20,8 +20,8 @@
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
-#ifndef MBEDTLS_CCM_INTERNAL_H
-#define MBEDTLS_CCM_INTERNAL_H
+#ifndef MBEDTLS_CCM_DEFAULT_H
+#define MBEDTLS_CCM_DEFAULT_H
 #include "cipher.h"
 
 #ifdef __cplusplus
@@ -35,6 +35,8 @@ extern "C" {
 typedef struct {
     mbedtls_cipher_context_t cipher_ctx;    /*!< cipher context used */
 } mbedtls_ccm_context_default;
+
+#if defined(MBEDTLS_CCM_ALT)
 
 /**
 * \brief           Initialize default CCM context (just makes references valid)
@@ -125,8 +127,9 @@ int mbedtls_ccm_auth_decrypt_default( mbedtls_ccm_context_default *ctx, size_t l
                                       const unsigned char *input, unsigned char *output,
                                       const unsigned char *tag, size_t tag_len );
 
+#endif /* MBEDTLS_CCM_ALT) */
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* MBEDTLS_CCM_INTERNAL_H */
+#endif /* MBEDTLS_CCM_DEFAULT_H */

@@ -49,6 +49,12 @@
 #endif /* MBEDTLS_PLATFORM_C */
 #endif /* MBEDTLS_SELF_TEST && MBEDTLS_AES_C */
 
+#if defined(MBEDTLS_CCM_ALT)
+#define CCM_DEFAULT_INLINE
+#else
+#define CCM_DEFAULT_INLINE static inline
+#endif
+
 
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
@@ -62,19 +68,19 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 /*
  * Initialize context
  */
-void mbedtls_ccm_init_default( mbedtls_ccm_context_default *ctx )
+CCM_DEFAULT_INLINE void mbedtls_ccm_init_default( mbedtls_ccm_context_default *ctx )
 {
     memset( ctx, 0, sizeof( mbedtls_ccm_context_default ) );
 }
 
-int mbedtls_ccm_setkey_default( mbedtls_ccm_context_default *ctx,
+CCM_DEFAULT_INLINE int mbedtls_ccm_setkey_default( mbedtls_ccm_context_default *ctx,
                         mbedtls_cipher_id_t cipher,
                         const unsigned char *key,
                         unsigned int keybits )
 {
 
     int ret = 0;
-    const mbedtls_cipher_info_t *cipher_info = 0;
+    const mbedtls_cipher_info_t *cipher_info = NULL;
 
     cipher_info = mbedtls_cipher_info_from_values( cipher, keybits, MBEDTLS_MODE_ECB );
     if( cipher_info == NULL )
@@ -100,7 +106,7 @@ int mbedtls_ccm_setkey_default( mbedtls_ccm_context_default *ctx,
 /*
  * Free context
  */
-void mbedtls_ccm_free_default( mbedtls_ccm_context_default *ctx )
+CCM_DEFAULT_INLINE void mbedtls_ccm_free_default( mbedtls_ccm_context_default *ctx )
 {
     mbedtls_cipher_free( &ctx->cipher_ctx );
     mbedtls_zeroize( ctx, sizeof( mbedtls_ccm_context_default ) );
@@ -307,7 +313,7 @@ static int ccm_auth_crypt_default( mbedtls_ccm_context_default *ctx, int mode, s
 /*
  * Authenticated encryption
  */
-int mbedtls_ccm_encrypt_and_tag_default( mbedtls_ccm_context_default *ctx, size_t length,
+CCM_DEFAULT_INLINE int mbedtls_ccm_encrypt_and_tag_default( mbedtls_ccm_context_default *ctx, size_t length,
                          const unsigned char *iv, size_t iv_len,
                          const unsigned char *add, size_t add_len,
                          const unsigned char *input, unsigned char *output,
@@ -320,7 +326,7 @@ int mbedtls_ccm_encrypt_and_tag_default( mbedtls_ccm_context_default *ctx, size_
 /*
  * Authenticated decryption
  */
-int mbedtls_ccm_auth_decrypt_default( mbedtls_ccm_context_default *ctx, size_t length,
+CCM_DEFAULT_INLINE int mbedtls_ccm_auth_decrypt_default( mbedtls_ccm_context_default *ctx, size_t length,
                       const unsigned char *iv, size_t iv_len,
                       const unsigned char *add, size_t add_len,
                       const unsigned char *input, unsigned char *output,

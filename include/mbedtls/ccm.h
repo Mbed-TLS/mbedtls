@@ -32,7 +32,7 @@
 extern "C" {
 #endif
 
-#if defined (MBEDTLS_CCM_ALT)
+#if defined(MBEDTLS_CCM_ALT)
 #include "ccm_alt.h"
 #else
 typedef mbedtls_ccm_context_default mbedtls_ccm_context;

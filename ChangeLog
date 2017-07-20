@@ -5,9 +5,6 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Changes
    * Added config.h option MBEDTLS_NO_UDBL_DIVISION, to prevent the use of
      64-bit division.
-   * Added config.h option MBEDTLS_TYPE_UDBL to allow configuring the
-     double-width integer type used in the bignum module when the compiler is
-     unknown.
 
 Bugfix
    * Fix conditional preprocessor directives in bignum.h to enable 64-bit

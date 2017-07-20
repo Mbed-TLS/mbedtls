@@ -42,7 +42,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_RSA_C) && !defined (MBEDTLS_RSA_ALT)
+#if defined(MBEDTLS_RSA_C)
 
 #include "mbedtls/rsa.h"
 #include "mbedtls/oid.h"
@@ -66,6 +66,7 @@
 #define mbedtls_free   free
 #endif
 
+#if !defined (MBEDTLS_RSA_ALT)
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = (unsigned char*)v; while( n-- ) *p++ = 0;
@@ -1667,6 +1668,8 @@ void mbedtls_rsa_free( mbedtls_rsa_context *ctx )
 #endif
 }
 
+#endif /* MBEDTLS_RSA_ALT */
+
 #if defined(MBEDTLS_SELF_TEST)
 
 #include "mbedtls/sha1.h"
@@ -1869,4 +1872,4 @@ cleanup:
 
 #endif /* MBEDTLS_SELF_TEST */
 
-#endif /*  defined(MBEDTLS_RSA_C) && !defined (MBEDTLS_RSA_ALT) */
+#endif /*  defined(MBEDTLS_RSA_C)  */

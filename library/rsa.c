@@ -1446,8 +1446,11 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
     if( ( ret = mbedtls_md_finish( &md_ctx, result ) ) != 0 )
         goto exit;
 
-    if( ( ret = memcmp( p + slen, result, hlen ) ) != 0 )
+    if( memcmp( p + slen, result, hlen ) != 0 )
+    {
         ret = MBEDTLS_ERR_RSA_VERIFY_FAILED;
+        goto exit;
+    }
 
 exit:
     mbedtls_md_free( &md_ctx );

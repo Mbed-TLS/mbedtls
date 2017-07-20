@@ -574,7 +574,7 @@ static int mgf_mask( unsigned char *dst, size_t dlen, unsigned char *src,
     unsigned char *p;
     unsigned int hlen;
     size_t i, use_len;
-    int ret;
+    int ret = 0;
 
     memset( mask, 0, MBEDTLS_MD_MAX_SIZE );
     memset( counter, 0, 4 );

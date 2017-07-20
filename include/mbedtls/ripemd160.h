@@ -92,7 +92,7 @@ int mbedtls_ripemd160_starts_ext( mbedtls_ripemd160_context *ctx );
  * \brief          RIPEMD-160 process buffer
  *
  * \param ctx      RIPEMD-160 context
- * \param input    buffer holding the  data
+ * \param input    buffer holding the data
  * \param ilen     length of the input data
  *
  * \return         0 if successful
@@ -148,7 +148,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_ripemd160_starts(
  * \deprecated     Superseded by mbedtls_ripemd160_update_ext() in 2.5.0
  *
  * \param ctx      RIPEMD-160 context
- * \param input    buffer holding the  data
+ * \param input    buffer holding the data
  * \param ilen     length of the input data
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_ripemd160_update(
@@ -207,7 +207,7 @@ extern "C" {
 /**
  * \brief          Output = RIPEMD-160( input buffer )
  *
- * \param input    buffer holding the  data
+ * \param input    buffer holding the data
  * \param ilen     length of the input data
  * \param output   RIPEMD-160 checksum result
  *
@@ -228,7 +228,7 @@ int mbedtls_ripemd160_ext( const unsigned char *input,
  *
  * \deprecated     Superseded by mbedtls_ripemd160_ext() in 2.5.0
  *
- * \param input    buffer holding the  data
+ * \param input    buffer holding the data
  * \param ilen     length of the input data
  * \param output   RIPEMD-160 checksum result
  */

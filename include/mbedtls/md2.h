@@ -92,7 +92,7 @@ int mbedtls_md2_starts_ext( mbedtls_md2_context *ctx );
  * \brief          MD2 process buffer
  *
  * \param ctx      MD2 context
- * \param input    buffer holding the  data
+ * \param input    buffer holding the data
  * \param ilen     length of the input data
  *
  * \return         0 if successful
@@ -146,7 +146,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_md2_starts(
  * \deprecated     Superseded by mbedtls_md2_update_ext() in 2.5.0
  *
  * \param ctx      MD2 context
- * \param input    buffer holding the  data
+ * \param input    buffer holding the data
  * \param ilen     length of the input data
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_md2_update(
@@ -203,7 +203,7 @@ extern "C" {
 /**
  * \brief          Output = MD2( input buffer )
  *
- * \param input    buffer holding the  data
+ * \param input    buffer holding the data
  * \param ilen     length of the input data
  * \param output   MD2 checksum result
  */
@@ -222,7 +222,7 @@ int mbedtls_md2_ext( const unsigned char *input,
  *
  * \deprecated     Superseded by mbedtls_md2() in 2.5.0
  *
- * \param input    buffer holding the  data
+ * \param input    buffer holding the data
  * \param ilen     length of the input data
  * \param output   MD2 checksum result
  */

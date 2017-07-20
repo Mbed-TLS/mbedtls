@@ -92,7 +92,7 @@ int mbedtls_md4_starts_ext( mbedtls_md4_context *ctx );
  * \brief          MD4 process buffer
  *
  * \param ctx      MD4 context
- * \param input    buffer holding the  data
+ * \param input    buffer holding the data
  * \param ilen     length of the input data
  *
  * \return         0 if successful
@@ -148,7 +148,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_md4_starts(
  * \deprecated     Superseded by mbedtls_md4_update_ext() in 2.5.0
  *
  * \param ctx      MD4 context
- * \param input    buffer holding the  data
+ * \param input    buffer holding the data
  * \param ilen     length of the input data
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_md4_update(
@@ -207,7 +207,7 @@ extern "C" {
 /**
  * \brief          Output = MD4( input buffer )
  *
- * \param input    buffer holding the  data
+ * \param input    buffer holding the data
  * \param ilen     length of the input data
  * \param output   MD4 checksum result
  *
@@ -228,7 +228,7 @@ int mbedtls_md4_ext( const unsigned char *input,
  *
  * \deprecated     Superseded by mbedtls_md4_ext() in 2.5.0
  *
- * \param input    buffer holding the  data
+ * \param input    buffer holding the data
  * \param ilen     length of the input data
  * \param output   MD4 checksum result
  */

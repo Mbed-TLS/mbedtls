@@ -92,7 +92,7 @@ int mbedtls_sha1_starts_ext( mbedtls_sha1_context *ctx );
  * \brief          SHA-1 process buffer
  *
  * \param ctx      SHA-1 context
- * \param input    buffer holding the  data
+ * \param input    buffer holding the data
  * \param ilen     length of the input data
  *
  * \return         0 if successful
@@ -148,7 +148,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_sha1_starts(
  * \deprecated     Superseded by mbedtls_sha1_update_ext() in 2.5.0
  *
  * \param ctx      SHA-1 context
- * \param input    buffer holding the  data
+ * \param input    buffer holding the data
  * \param ilen     length of the input data
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_sha1_update(
@@ -207,7 +207,7 @@ extern "C" {
 /**
  * \brief          Output = SHA-1( input buffer )
  *
- * \param input    buffer holding the  data
+ * \param input    buffer holding the data
  * \param ilen     length of the input data
  * \param output   SHA-1 checksum result
  *
@@ -228,7 +228,7 @@ int mbedtls_sha1_ext( const unsigned char *input,
  *
  * \deprecated     Superseded by mbedtls_sha1_ext() in 2.5.0
  *
- * \param input    buffer holding the  data
+ * \param input    buffer holding the data
  * \param ilen     length of the input data
  * \param output   SHA-1 checksum result
  */

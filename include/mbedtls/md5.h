@@ -87,7 +87,7 @@ int mbedtls_md5_starts_ext( mbedtls_md5_context *ctx );
  * \brief          MD5 process buffer
  *
  * \param ctx      MD5 context
- * \param input    buffer holding the  data
+ * \param input    buffer holding the data
  * \param ilen     length of the input data
  *
  * \return         0 if successful
@@ -143,7 +143,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_md5_starts(
  * \deprecated     Superseded by mbedtls_md5_update_ext() in 2.5.0
  *
  * \param ctx      MD5 context
- * \param input    buffer holding the  data
+ * \param input    buffer holding the data
  * \param ilen     length of the input data
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_md5_update(
@@ -202,7 +202,7 @@ extern "C" {
 /**
  * \brief          Output = MD5( input buffer )
  *
- * \param input    buffer holding the  data
+ * \param input    buffer holding the data
  * \param ilen     length of the input data
  * \param output   MD5 checksum result
  *
@@ -223,7 +223,7 @@ int mbedtls_md5_ext( const unsigned char *input,
  *
  * \deprecated     Superseded by mbedtls_md5_ext() in 2.5.0
  *
- * \param input    buffer holding the  data
+ * \param input    buffer holding the data
  * \param ilen     length of the input data
  * \param output   MD5 checksum result
  */

@@ -94,7 +94,7 @@ int mbedtls_sha256_starts_ext( mbedtls_sha256_context *ctx, int is224 );
  * \brief          SHA-256 process buffer
  *
  * \param ctx      SHA-256 context
- * \param input    buffer holding the  data
+ * \param input    buffer holding the data
  * \param ilen     length of the input data
  *
  * \return         0 if successful
@@ -152,7 +152,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_sha256_starts(
  * \deprecated     Superseded by mbedtls_sha256_update_ext() in 2.5.0
  *
  * \param ctx      SHA-256 context
- * \param input    buffer holding the  data
+ * \param input    buffer holding the data
  * \param ilen     length of the input data
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_sha256_update(
@@ -211,7 +211,7 @@ extern "C" {
 /**
  * \brief          Output = SHA-256( input buffer )
  *
- * \param input    buffer holding the  data
+ * \param input    buffer holding the data
  * \param ilen     length of the input data
  * \param output   SHA-224/256 checksum result
  * \param is224    0 = use SHA256, 1 = use SHA224
@@ -234,7 +234,7 @@ int mbedtls_sha256_ext( const unsigned char *input,
  *
  * \deprecated     Superseded by mbedtls_sha256_ext() in 2.5.0
  *
- * \param input    buffer holding the  data
+ * \param input    buffer holding the data
  * \param ilen     length of the input data
  * \param output   SHA-224/256 checksum result
  * \param is224    0 = use SHA256, 1 = use SHA224

@@ -12,6 +12,14 @@ ifdef DEBUG
 LOCAL_CFLAGS += -g3
 endif
 
+ifdef MARCH
+LOCAL_CFLAGS += -march=$(MARCH)
+endif
+
+ifdef MTUNE
+CFLAGS += -mtune=$(MTUNE)
+endif
+
 # MicroBlaze specific options:
 # CFLAGS += -mno-xl-soft-mul -mxl-barrel-shift
 
@@ -44,7 +52,8 @@ ifdef WINDOWS_BUILD
 DLEXT=dll
 endif
 
-OBJS_CRYPTO=	aes.o		aesni.o		arc4.o		\
+OBJS_CRYPTO=	aes.o		aesni.o		aes_armv8a_ce.o \
+		arc4.o		armv8a_ce.o \
 		asn1parse.o	asn1write.o	base64.o	\
 		bignum.o	blowfish.o	camellia.o	\
 		ccm.o		cipher.o	cipher_wrap.o	\
@@ -60,7 +69,8 @@ OBJS_CRYPTO=	aes.o		aesni.o		arc4.o		\
 		pk_wrap.o	pkcs12.o	pkcs5.o		\
 		pkparse.o	pkwrite.o	platform.o	\
 		ripemd160.o	rsa.o		sha1.o		\
-		sha256.o	sha512.o	threading.o	\
+		sha1_armv8a_ce.o	sha256.o	sha256_armv8a_ce.o	\
+		sha512.o	threading.o	\
 		timing.o	version.o			\
 		version_features.o		xtea.o
 

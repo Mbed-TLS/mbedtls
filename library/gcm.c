@@ -45,6 +45,10 @@
 #include "mbedtls/aesni.h"
 #endif
 
+#if defined(MBEDTLS_ARMV8A_CE_C)
+#include "mbedtls/aes_armv8a_ce.h"
+#endif
+
 #if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -126,6 +130,12 @@ static int gcm_gen_table( mbedtls_gcm_context *ctx )
 #if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
     /* With CLMUL support, we need only h, not the rest of the table */
     if( mbedtls_aesni_has_support( MBEDTLS_AESNI_CLMUL ) )
+        return( 0 );
+#endif
+
+#if defined(MBEDTLS_ARMV8A_CE_C) && defined(MBEDTLS_HAVE_ARMV8A_CE)
+    /* With CLMUL support, we need only h, not the rest of the table */
+    if( mbedtls_armv8a_ce_has_support( MBEDTLS_ARMV8A_CE_PMULL ) )
         return( 0 );
 #endif
 
@@ -227,6 +237,20 @@ static void gcm_mult( mbedtls_gcm_context *ctx, const unsigned char x[16],
         return;
     }
 #endif /* MBEDTLS_AESNI_C && MBEDTLS_HAVE_X86_64 */
+
+#if defined(MBEDTLS_ARMV8A_CE_C) && defined(MBEDTLS_HAVE_ARMV8A_CE)
+    if( mbedtls_armv8a_ce_has_support( MBEDTLS_ARMV8A_CE_PMULL ) )
+    {
+        unsigned char h[16];
+
+        PUT_UINT32_BE( ctx->HH[8] >> 32, h,  0 );
+        PUT_UINT32_BE( ctx->HH[8],       h,  4 );
+        PUT_UINT32_BE( ctx->HL[8] >> 32, h,  8 );
+        PUT_UINT32_BE( ctx->HL[8],       h, 12 );
+        mbedtls_armv8a_ce_gcm_mult( output, x, h );
+        return;
+    }
+#endif
 
     lo = x[15] & 0xf;
 

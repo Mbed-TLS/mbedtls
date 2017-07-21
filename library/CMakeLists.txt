@@ -5,7 +5,9 @@ option(LINK_WITH_PTHREAD "Explicitly link mbed TLS library to pthread." OFF)
 set(src_crypto
     aes.c
     aesni.c
+    aes_armv8a_ce.c
     arc4.c
+    armv8a_ce.c
     asn1parse.c
     asn1write.c
     base64.c
@@ -48,8 +50,10 @@ set(src_crypto
     platform.c
     ripemd160.c
     rsa.c
+    sha1_armv8a_ce.c
     sha1.c
     sha256.c
+    sha256_armv8a_ce.c
     sha512.c
     threading.c
     timing.c
@@ -89,6 +93,14 @@ endif(CMAKE_COMPILER_IS_GNUCC)
 if(CMAKE_COMPILER_IS_CLANG)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmissing-declarations -Wmissing-prototypes -Wdocumentation -Wno-documentation-deprecated-sync -Wunreachable-code")
 endif(CMAKE_COMPILER_IS_CLANG)
+
+if(MARCH)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=${MARCH}")
+endif(MARCH)
+
+if(MTUNE)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mtune=${MTUNE}")
+endif(MTUNE)
 
 if(WIN32)
     set(libs ${libs} ws2_32)

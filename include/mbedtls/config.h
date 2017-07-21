@@ -1474,6 +1474,25 @@
 #define MBEDTLS_AESNI_C
 
 /**
+ * \def MBEDTLS_ARMV8A_CE_C
+ *
+ * Enable ARMv8-A Cryptography Extensions support on AArch64.
+ *
+ * Module:  library/armv8a_ce.c
+ *          library/aes_armv8a_ce.c
+ * 			library/sha1_armv8a_ce.c
+ * 			library/sha256_armv8a_ce.c
+ * Caller:  library/aes.c
+ * 			library/sha1.c
+ * 			library/sha256.c
+ *
+ * Requires: MBEDTLS_HAVE_ARMV8A_CE
+ *
+ * This flag enables multiple modules making use of ARMv8-A instruction set extensions.
+ */
+#define MBEDTLS_ARMV8A_CE_C
+
+/**
  * \def MBEDTLS_AES_C
  *
  * Enable the AES block cipher.
@@ -2262,6 +2281,7 @@
  * depending on the handshake parameters, and for SHA1-signed certificates.
  */
 #define MBEDTLS_SHA1_C
+
 
 /**
  * \def MBEDTLS_SHA256_C

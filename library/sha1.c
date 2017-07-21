@@ -36,6 +36,10 @@
 
 #include <string.h>
 
+#if defined(MBEDTLS_ARMV8A_CE_C)
+#include "mbedtls/sha1_armv8a_ce.h"
+#endif
+
 #if defined(MBEDTLS_SELF_TEST)
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -113,6 +117,11 @@ void mbedtls_sha1_starts( mbedtls_sha1_context *ctx )
 void mbedtls_sha1_process( mbedtls_sha1_context *ctx, const unsigned char data[64] )
 {
     uint32_t temp, W[16], A, B, C, D, E;
+
+#if defined(MBEDTLS_ARMV8A_CE_C) && defined(MBEDTLS_HAVE_ARMV8A_CE)
+    if( mbedtls_armv8a_ce_has_support( MBEDTLS_ARMV8A_CE_SHA1 ) )
+        return( mbedtls_armv8a_ce_sha1_process( ctx, data ) );
+#endif
 
     GET_UINT32_BE( W[ 0], data,  0 );
     GET_UINT32_BE( W[ 1], data,  4 );

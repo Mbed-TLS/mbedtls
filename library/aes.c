@@ -43,6 +43,10 @@
 #include "mbedtls/aesni.h"
 #endif
 
+#if defined(MBEDTLS_ARMV8A_CE_C)
+#include "mbedtls/aes_armv8a_ce.h"
+#endif
+
 #if defined(MBEDTLS_SELF_TEST)
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -519,6 +523,7 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
         return( mbedtls_aesni_setkey_enc( (unsigned char *) ctx->rk, key, keybits ) );
 #endif
 
+
     for( i = 0; i < ( keybits >> 5 ); i++ )
     {
         GET_UINT32_LE( RK[i], key, i << 2 );
@@ -851,6 +856,11 @@ int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
         return( mbedtls_aesni_crypt_ecb( ctx, mode, input, output ) );
 #endif
 
+#if  defined(MBEDTLS_ARMV8A_CE_C) && defined(MBEDTLS_HAVE_ARMV8A_CE)
+    if( mbedtls_armv8a_ce_has_support( MBEDTLS_ARMV8A_CE_AES ) )
+		return (mbedtls_armv8a_ce_aes_crypt_ecb( ctx, mode, input, output ));
+#endif
+
 #if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)
     if( aes_padlock_ace )
     {
@@ -882,6 +892,13 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
 {
     int i;
     unsigned char temp[16];
+    static int (* ecb_func)( mbedtls_aes_context*, int, const unsigned char*, unsigned char* )
+    		= mbedtls_aes_crypt_ecb;
+
+#if defined(MBEDTLS_ARMV8A_CE_C) && defined(MBEDTLS_HAVE_ARMV8A_CE)
+	if( mbedtls_armv8a_ce_has_support( MBEDTLS_ARMV8A_CE_AES ) )
+		ecb_func = mbedtls_armv8a_ce_aes_crypt_ecb;
+#endif
 
     if( length % 16 )
         return( MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH );
@@ -903,7 +920,7 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
         while( length > 0 )
         {
             memcpy( temp, input, 16 );
-            mbedtls_aes_crypt_ecb( ctx, mode, input, output );
+            (*ecb_func)( ctx, mode, input, output );
 
             for( i = 0; i < 16; i++ )
                 output[i] = (unsigned char)( output[i] ^ iv[i] );
@@ -922,7 +939,7 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
             for( i = 0; i < 16; i++ )
                 output[i] = (unsigned char)( input[i] ^ iv[i] );
 
-            mbedtls_aes_crypt_ecb( ctx, mode, output, output );
+            (*ecb_func)( ctx, mode, output, output );
             memcpy( iv, output, 16 );
 
             input  += 16;
@@ -949,13 +966,20 @@ int mbedtls_aes_crypt_cfb128( mbedtls_aes_context *ctx,
 {
     int c;
     size_t n = *iv_off;
+    static int (* ecb_func)( mbedtls_aes_context*, int, const unsigned char*, unsigned char* )
+    		= mbedtls_aes_crypt_ecb;
+
+#if defined(MBEDTLS_ARMV8A_CE_C) && defined(MBEDTLS_HAVE_ARMV8A_CE)
+	if( mbedtls_armv8a_ce_has_support( MBEDTLS_ARMV8A_CE_AES ) )
+		ecb_func = mbedtls_armv8a_ce_aes_crypt_ecb;
+#endif
 
     if( mode == MBEDTLS_AES_DECRYPT )
     {
         while( length-- )
         {
             if( n == 0 )
-                mbedtls_aes_crypt_ecb( ctx, MBEDTLS_AES_ENCRYPT, iv, iv );
+            	(*ecb_func)( ctx, MBEDTLS_AES_ENCRYPT, iv, iv );
 
             c = *input++;
             *output++ = (unsigned char)( c ^ iv[n] );
@@ -969,7 +993,7 @@ int mbedtls_aes_crypt_cfb128( mbedtls_aes_context *ctx,
         while( length-- )
         {
             if( n == 0 )
-                mbedtls_aes_crypt_ecb( ctx, MBEDTLS_AES_ENCRYPT, iv, iv );
+            	(*ecb_func)( ctx, MBEDTLS_AES_ENCRYPT, iv, iv );
 
             iv[n] = *output++ = (unsigned char)( iv[n] ^ *input++ );
 
@@ -994,11 +1018,18 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
 {
     unsigned char c;
     unsigned char ov[17];
+    static int (* ecb_func)( mbedtls_aes_context*, int, const unsigned char*, unsigned char* )
+    		= mbedtls_aes_crypt_ecb;
+
+#if defined(MBEDTLS_ARMV8A_CE_C) && defined(MBEDTLS_HAVE_ARMV8A_CE)
+	if( mbedtls_armv8a_ce_has_support( MBEDTLS_ARMV8A_CE_AES ) )
+		ecb_func = mbedtls_armv8a_ce_aes_crypt_ecb;
+#endif
 
     while( length-- )
     {
         memcpy( ov, iv, 16 );
-        mbedtls_aes_crypt_ecb( ctx, MBEDTLS_AES_ENCRYPT, iv, iv );
+        (*ecb_func)( ctx, MBEDTLS_AES_ENCRYPT, iv, iv );
 
         if( mode == MBEDTLS_AES_DECRYPT )
             ov[16] = *input;
@@ -1029,11 +1060,19 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
 {
     int c, i;
     size_t n = *nc_off;
+    static int (* ecb_func)( mbedtls_aes_context*, int, const unsigned char*, unsigned char* )
+    		= mbedtls_aes_crypt_ecb;
+
+#if defined(MBEDTLS_ARMV8A_CE_C) && defined(MBEDTLS_HAVE_ARMV8A_CE)
+	if( mbedtls_armv8a_ce_has_support( MBEDTLS_ARMV8A_CE_AES ) )
+		ecb_func = mbedtls_armv8a_ce_aes_crypt_ecb;
+#endif
+
 
     while( length-- )
     {
         if( n == 0 ) {
-            mbedtls_aes_crypt_ecb( ctx, MBEDTLS_AES_ENCRYPT, nonce_counter, stream_block );
+        	(*ecb_func)( ctx, MBEDTLS_AES_ENCRYPT, nonce_counter, stream_block );
 
             for( i = 16; i > 0; i-- )
                 if( ++nonce_counter[i - 1] != 0 )

@@ -76,6 +76,8 @@ In order to build for a Windows platform, you should use `WINDOWS_BUILD=1` if th
 
 Setting the variable `SHARED` in your environment will build shared libraries in addition to the static libraries. Setting `DEBUG` gives you a debug build. You can override `CFLAGS` and `LDFLAGS` by setting them in your environment or on the make command line; if you do so, essential parts such as `-I` will still be preserved. Warning options may be overridden separately using `WARNING_CFLAGS`.
 
+To build for a 64-bit ARMv8-A target that has cryptography extensions, add `MARCH=armv8-a+crypto` to the `make` command line.
+
 Depending on your platform, you might run into some issues. Please check the Makefiles in `library/`, `programs/` and `tests/` for options to manually add or remove for specific platforms. You can also check [the mbed TLS Knowledge Base](https://tls.mbed.org/kb) for articles on your platform or issue.
 
 In case you find that you need to do something else as well, please let us know what, so we can add it to the [mbed TLS knowledge base](https://tls.mbed.org/kb).
@@ -102,6 +104,8 @@ If you disabled the test suites, but kept the programs enabled, you can still ru
 To configure CMake for building shared libraries, use:
 
     cmake -DUSE_SHARED_MBEDTLS_LIBRARY=On .
+
+To configure CMake to build for a 64-bit ARMv8-A target that has cryptography extensions, add `MARCH=armv8-a+crypto` to the `cmake` command line.
 
 There are many different build modes available within the CMake buildsystem. Most of them are available for gcc and clang, though some are compiler-specific:
 

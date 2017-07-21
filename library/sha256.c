@@ -36,6 +36,10 @@
 
 #include <string.h>
 
+#if defined(MBEDTLS_ARMV8A_CE_C)
+#include "mbedtls/sha256_armv8a_ce.h"
+#endif
+
 #if defined(MBEDTLS_SELF_TEST)
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -184,6 +188,11 @@ void mbedtls_sha256_process( mbedtls_sha256_context *ctx, const unsigned char da
     uint32_t temp1, temp2, W[64];
     uint32_t A[8];
     unsigned int i;
+
+#if defined(MBEDTLS_ARMV8A_CE_C) && defined(MBEDTLS_HAVE_ARMV8A_CE)
+    if( mbedtls_armv8a_ce_has_support( MBEDTLS_ARMV8A_CE_SHA2 ) )
+        return( mbedtls_armv8a_ce_sha256_process( ctx, data ) );
+#endif
 
     for( i = 0; i < 8; i++ )
         A[i] = ctx->state[i];

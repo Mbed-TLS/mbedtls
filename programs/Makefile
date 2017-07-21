@@ -22,6 +22,10 @@ ifdef DEBUG
 LOCAL_CFLAGS += -g3
 endif
 
+ifdef MARCH
+LOCAL_CFLAGS += -march=$(MARCH)
+endif
+
 # if we're running on Windows, build for Windows
 ifdef WINDOWS
 WINDOWS_BUILD=1

@@ -378,11 +378,11 @@ int mbedtls_ripemd160_finish_ext( mbedtls_ripemd160_context *ctx,
 
     ret = mbedtls_ripemd160_update_ext( ctx, ripemd160_padding, padn );
     if( ret != 0 )
-            return( ret );
+        return( ret );
 
     ret = mbedtls_ripemd160_update_ext( ctx, msglen, 8 );
     if( ret != 0 )
-            return( ret );
+        return( ret );
 
     PUT_UINT32_LE( ctx->state[0], output,  0 );
     PUT_UINT32_LE( ctx->state[1], output,  4 );

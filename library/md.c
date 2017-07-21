@@ -436,7 +436,8 @@ int mbedtls_md_hmac( const mbedtls_md_info_t *md_info,
         goto cleanup;
     if( ( ret = mbedtls_md_hmac_update( &ctx, input, ilen ) ) != 0 )
         goto cleanup;
-    ret = mbedtls_md_hmac_finish( &ctx, output );
+    if( ( ret = mbedtls_md_hmac_finish( &ctx, output ) ) != 0 )
+        goto cleanup;
 
 cleanup:
     mbedtls_md_free( &ctx );

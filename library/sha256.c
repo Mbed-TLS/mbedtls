@@ -320,10 +320,10 @@ int mbedtls_sha256_finish_ext( mbedtls_sha256_context *ctx,
     padn = ( last < 56 ) ? ( 56 - last ) : ( 120 - last );
 
     if( ( ret = mbedtls_sha256_update_ext( ctx, sha256_padding, padn ) ) != 0 )
-            return( ret );
+        return( ret );
 
     if( ( ret = mbedtls_sha256_update_ext( ctx, msglen, 8 ) ) != 0 )
-            return( ret );
+        return( ret );
 
     PUT_UINT32_BE( ctx->state[0], output,  0 );
     PUT_UINT32_BE( ctx->state[1], output,  4 );

@@ -1,4 +1,4 @@
-These certificates from a very long chain, used to test the
+These certificates form a very long chain, used to test the
 POLARSSL_X509_MAX_INT_CA limit.
 
 NN.key is the private key of certificate NN.crt.

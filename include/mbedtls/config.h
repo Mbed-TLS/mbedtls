@@ -76,7 +76,10 @@
  *
  * Note that division for the native integer type is always required.
  * Furthermore, a 64-bit type is always required even on a 32-bit
- * platform, but it need not support multiplication or division.
+ * platform, but it need not support multiplication or division. In some
+ * cases it is also desirable to disable some double-width operations. For
+ * example, if double-width division is implemented in software, disabling
+ * it can reduce code size in some embedded targets.
  */
 //#define MBEDTLS_NO_UDBL_DIVISION
 

@@ -248,7 +248,7 @@ exit:
 /*
  * RFC 1319 test vectors
  */
-static const char md2_test_str[7][81] =
+static const unsigned char md2_test_str[7][81] =
 {
     { "" },
     { "a" },
@@ -256,8 +256,13 @@ static const char md2_test_str[7][81] =
     { "message digest" },
     { "abcdefghijklmnopqrstuvwxyz" },
     { "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" },
-    { "12345678901234567890123456789012345678901234567890123456789012" \
+    { "12345678901234567890123456789012345678901234567890123456789012"
       "345678901234567890" }
+};
+
+static const size_t md2_test_strlen[7] =
+{
+    0, 1, 3, 14, 26, 62, 80
 };
 
 static const unsigned char md2_test_sum[7][16] =
@@ -283,7 +288,7 @@ static const unsigned char md2_test_sum[7][16] =
  */
 int mbedtls_md2_self_test( int verbose )
 {
-    int i;
+    int i, ret = 0;
     unsigned char md2sum[16];
 
     for( i = 0; i < 7; i++ )
@@ -291,12 +296,15 @@ int mbedtls_md2_self_test( int verbose )
         if( verbose != 0 )
             mbedtls_printf( "  MD2 test #%d: ", i + 1 );
 
-        if( mbedtls_md2_ext( (unsigned char *)md2_test_str[i],
-                             strlen( md2_test_str[i] ), md2sum ) != 0 )
+        ret = mbedtls_md2_ext( md2_test_str[i], md2_test_strlen[i], md2sum );
+        if( ret != 0 )
             goto fail;
 
         if( memcmp( md2sum, md2_test_sum[i], 16 ) != 0 )
+        {
+            ret = 1;
             goto fail;
+        }
 
         if( verbose != 0 )
             mbedtls_printf( "passed\n" );
@@ -311,7 +319,7 @@ fail:
     if( verbose != 0 )
         mbedtls_printf( "failed\n" );
 
-    return( 1 );
+    return( ret );
 }
 
 #endif /* MBEDTLS_SELF_TEST */

@@ -373,11 +373,11 @@ static const unsigned char md5_test_buf[7][81] =
     { "message digest" },
     { "abcdefghijklmnopqrstuvwxyz" },
     { "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" },
-    { "12345678901234567890123456789012345678901234567890123456789012" \
+    { "12345678901234567890123456789012345678901234567890123456789012"
       "345678901234567890" }
 };
 
-static const int md5_test_buflen[7] =
+static const size_t md5_test_buflen[7] =
 {
     0, 1, 3, 14, 26, 62, 80
 };
@@ -405,7 +405,7 @@ static const unsigned char md5_test_sum[7][16] =
  */
 int mbedtls_md5_self_test( int verbose )
 {
-    int i;
+    int i, ret = 0;
     unsigned char md5sum[16];
 
     for( i = 0; i < 7; i++ )
@@ -413,12 +413,15 @@ int mbedtls_md5_self_test( int verbose )
         if( verbose != 0 )
             mbedtls_printf( "  MD5 test #%d: ", i + 1 );
 
-        if( mbedtls_md5_ext( md5_test_buf[i],
-                             md5_test_buflen[i], md5sum ) != 0 )
+        ret = mbedtls_md5_ext( md5_test_buf[i], md5_test_buflen[i], md5sum );
+        if( ret != 0 )
             goto fail;
 
         if( memcmp( md5sum, md5_test_sum[i], 16 ) != 0 )
+        {
+            ret = 1;
             goto fail;
+        }
 
         if( verbose != 0 )
             mbedtls_printf( "passed\n" );
@@ -433,7 +436,7 @@ fail:
     if( verbose != 0 )
         mbedtls_printf( "failed\n" );
 
-    return( 1 );
+    return( ret );
 }
 
 #endif /* MBEDTLS_SELF_TEST */

@@ -380,7 +380,7 @@ static const unsigned char sha256_test_buf[3][57] =
     { "" }
 };
 
-static const int sha256_test_buflen[3] =
+static const size_t sha256_test_buflen[3] =
 {
     3, 56, 1000
 };

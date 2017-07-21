@@ -352,7 +352,7 @@ exit:
 /*
  * RFC 1320 test vectors
  */
-static const char md4_test_str[7][81] =
+static const unsigned char md4_test_str[7][81] =
 {
     { "" },
     { "a" },
@@ -360,8 +360,13 @@ static const char md4_test_str[7][81] =
     { "message digest" },
     { "abcdefghijklmnopqrstuvwxyz" },
     { "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" },
-    { "12345678901234567890123456789012345678901234567890123456789012" \
+    { "12345678901234567890123456789012345678901234567890123456789012"
       "345678901234567890" }
+};
+
+static const size_t md4_test_strlen[7] =
+{
+    0, 1, 3, 14, 26, 62, 80
 };
 
 static const unsigned char md4_test_sum[7][16] =
@@ -387,7 +392,7 @@ static const unsigned char md4_test_sum[7][16] =
  */
 int mbedtls_md4_self_test( int verbose )
 {
-    int i;
+    int i, ret = 0;
     unsigned char md4sum[16];
 
     for( i = 0; i < 7; i++ )
@@ -395,12 +400,15 @@ int mbedtls_md4_self_test( int verbose )
         if( verbose != 0 )
             mbedtls_printf( "  MD4 test #%d: ", i + 1 );
 
-        if( mbedtls_md4_ext( (unsigned char *) md4_test_str[i],
-                             strlen( md4_test_str[i] ), md4sum ) != 0 )
+        ret = mbedtls_md4_ext( md4_test_str[i], md4_test_strlen[i], md4sum );
+        if( ret != 0 )
             goto fail;
 
         if( memcmp( md4sum, md4_test_sum[i], 16 ) != 0 )
+        {
+            ret = 1;
             goto fail;
+        }
 
         if( verbose != 0 )
             mbedtls_printf( "passed\n" );
@@ -415,7 +423,7 @@ fail:
     if( verbose != 0 )
         mbedtls_printf( "failed\n" );
 
-    return( 1 );
+    return( ret );
 }
 
 #endif /* MBEDTLS_SELF_TEST */

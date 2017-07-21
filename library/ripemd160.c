@@ -426,18 +426,22 @@ exit:
  * http://homes.esat.kuleuven.be/~bosselae/mbedtls_ripemd160.html#HMAC
  */
 #define TESTS   8
-#define KEYS    2
-static const char *ripemd160_test_input[TESTS] =
+static const unsigned char ripemd160_test_str[TESTS][81] =
 {
-    "",
-    "a",
-    "abc",
-    "message digest",
-    "abcdefghijklmnopqrstuvwxyz",
-    "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
-    "1234567890123456789012345678901234567890"
-        "1234567890123456789012345678901234567890",
+    { "" },
+    { "a" },
+    { "abc" },
+    { "message digest" },
+    { "abcdefghijklmnopqrstuvwxyz" },
+    { "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq" },
+    { "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" },
+    { "12345678901234567890123456789012345678901234567890123456789012"
+      "345678901234567890" },
+};
+
+static const size_t ripemd160_test_strlen[TESTS] =
+{
+    0, 1, 3, 14, 26, 56, 62, 80
 };
 
 static const unsigned char ripemd160_test_md[TESTS][20] =
@@ -475,9 +479,8 @@ int mbedtls_ripemd160_self_test( int verbose )
         if( verbose != 0 )
             mbedtls_printf( "  RIPEMD-160 test #%d: ", i + 1 );
 
-        ret = mbedtls_ripemd160_ext(
-                                (const unsigned char *)ripemd160_test_input[i],
-                                strlen( ripemd160_test_input[i] ), output );
+        ret = mbedtls_ripemd160_ext( ripemd160_test_str[i],
+                                     ripemd160_test_strlen[i], output );
         if( ret != 0 )
             goto fail;
 

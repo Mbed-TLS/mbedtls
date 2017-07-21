@@ -418,7 +418,7 @@ static const unsigned char sha512_test_buf[3][113] =
     { "" }
 };
 
-static const int sha512_test_buflen[3] =
+static const size_t sha512_test_buflen[3] =
 {
     3, 112, 1000
 };

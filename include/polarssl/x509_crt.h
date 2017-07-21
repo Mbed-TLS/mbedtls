@@ -256,7 +256,7 @@ int x509_crt_verify_info( char *buf, size_t size, const char *prefix,
  *                 POLARSSL_ERR_X509_CERT_VERIFY_FAILED if the chain was verified
  *                 but found to be invalid, in which case *flags will have one
  *                 or more BADCERT_XXX or POLARSSL_X509_BADCRL_XXX
- *                 flags set, or another error (and flags set to 0xffffffff)
+ *                 flags set, or another error (and flags set to -1)
  *                 in case of a fatal error encountered during the
  *                 verification process.
  */

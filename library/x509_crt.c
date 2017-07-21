@@ -2182,7 +2182,7 @@ exit:
 
     if( ret != 0 )
     {
-        *flags = (uint32_t) -1;
+        *flags = -1;
         return( ret );
     }
 

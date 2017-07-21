@@ -312,7 +312,13 @@ mbedtls_platform_context;
  *
  * \return  0 if successful
  *
- * \note    This function should be called before any other library function
+ * \note    This function is intended to allow platform specific initialisation,
+ *          and should be called before any other library functions. Its
+ *          implementation is platform specific, and by default, unless platform
+ *          specific code is provided, it does nothing.
+ *
+ *          Its use and whether its necessary to be called is dependent on the
+ *          platform.
  */
 int mbedtls_platform_setup( mbedtls_platform_context *ctx );
 /**
@@ -322,8 +328,13 @@ int mbedtls_platform_setup( mbedtls_platform_context *ctx );
  *
  * \return  0 if successful
  *
- * \note    This function should be after every other mbed TLS module has been
- *          correctly freed using the appropriate free function.
+ * \note    This function should be called after every other mbed TLS module has
+ *          been correctly freed using the appropriate free function.
+ *          Its implementation is platform specific, and by default, unless
+ *          platform specific code is provided, it does nothing.
+ *
+ *          Its use and whether its necessary to be called is dependent on the
+ *          platform.
  */
 void mbedtls_platform_teardown( mbedtls_platform_context *ctx );
 

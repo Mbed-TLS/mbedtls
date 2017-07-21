@@ -326,8 +326,6 @@ int mbedtls_platform_setup( mbedtls_platform_context *ctx );
  *
  * \param   ctx     mbed TLS context
  *
- * \return  0 if successful
- *
  * \note    This function should be called after every other mbed TLS module has
  *          been correctly freed using the appropriate free function.
  *          Its implementation is platform specific, and by default, unless

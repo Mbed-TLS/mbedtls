@@ -7054,7 +7054,9 @@ static int ssl_write_real( mbedtls_ssl_context *ssl,
     int ret;
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     size_t max_len = mbedtls_ssl_get_max_frag_len( ssl );
-
+#else
+    size_t max_len = MBEDTLS_SSL_MAX_CONTENT_LEN;
+#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
     if( len > max_len )
     {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -7069,7 +7071,6 @@ static int ssl_write_real( mbedtls_ssl_context *ssl,
 #endif
             len = max_len;
     }
-#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
     if( ssl->out_left != 0 )
     {

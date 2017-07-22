@@ -26,7 +26,8 @@ API Changes
    * Reverted API/ABI breaking changes introduced in mbed TLS 2.5.1, to make the
      API consistent with mbed TLS 2.5.0. Specifically removed the inline
      qualifier from the functions mbedtls_aes_decrypt, mbedtls_aes_encrypt,
-     mbedtls_ssl_ciphersuite_uses_ec and mbedtls_ssl_ciphersuite_uses_psk.
+     mbedtls_ssl_ciphersuite_uses_ec and mbedtls_ssl_ciphersuite_uses_psk. #978
+     Found by James Cowgill.
 
 Bugfix
    * Add a check if iv_len is zero, and return an error if it is zero. reported
@@ -44,7 +45,7 @@ Bugfix
 
 Changes
    * Added config.h option MBEDTLS_NO_UDBL_DIVISION, to prevent the use of
-     64-bit division.
+     64-bit division. #708
    * Removed mutexes from ECP hardware accelerator code. Now all hardware
      accelerator code in the library leaves concurrency handling to the
      platform. Reported by Steven Cooreman. #863

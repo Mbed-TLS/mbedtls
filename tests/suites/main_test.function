@@ -432,24 +432,24 @@ int main(int argc, const char *argv[])
             if( unmet_dep_count > 0 || ret == DISPATCH_UNSUPPORTED_SUITE )
             {
                 total_skipped++;
-                mbedtls_fprintf( stdout, "----\n" );
+                mbedtls_fprintf( stdout, "----" );
 
                 if( 1 == option_verbose && ret == DISPATCH_UNSUPPORTED_SUITE )
                 {
-                    mbedtls_fprintf( stdout, "   Test Suite not enabled" );
+                    mbedtls_fprintf( stdout, "\n   Test Suite not enabled" );
                 }
 
                 if( 1 == option_verbose && unmet_dep_count > 0 )
                 {
-                    mbedtls_fprintf( stdout, "   Unmet dependencies: " );
+                    mbedtls_fprintf( stdout, "\n   Unmet dependencies: " );
                     for( i = 0; i < unmet_dep_count; i++ )
                     {
                         mbedtls_fprintf(stdout, "%s  ",
                                         unmet_dependencies[i]);
                         free(unmet_dependencies[i]);
                     }
-                    mbedtls_fprintf( stdout, "\n" );
                 }
+                mbedtls_fprintf( stdout, "\n" );
                 fflush( stdout );
 
                 unmet_dep_count = 0;

@@ -486,6 +486,7 @@ CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -Wa
 
 msg "build: arm-none-eabi-gcc -DMBEDTLS_NO_UDBL_DIVISION, make" # ~ 10s
 cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl unset MBEDTLS_NET_C
 scripts/config.pl unset MBEDTLS_TIMING_C
@@ -526,11 +527,20 @@ scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT # depends on MBEDTLS_HAVE_TIME
 CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--strict --c99' make lib
 make clean
 
+# ARM Compiler 6 - Target ARMv7-A
 armc6_build_test "--target=arm-arm-none-eabi -march=armv7-a"
+
+# ARM Compiler 6 - Target ARMv7-M
 armc6_build_test "--target=arm-arm-none-eabi -march=armv7-m"
+
+# ARM Compiler 6 - Target ARMv8-A - AArch32
 armc6_build_test "--target=arm-arm-none-eabi -march=armv8.2-a"
+
+# ARM Compiler 6 - Target ARMv8-M
 armc6_build_test "--target=arm-arm-none-eabi -march=armv8-m.main"
-armc6_build_test "--target=aarch64-arm-none-eabi"
+
+# ARM Compiler 6 - Target ARMv8-A - AArch64
+armc6_build_test "--target=aarch64-arm-none-eabi -march=armv8.2-a"
 
 msg "build: allow SHA1 in certificates by default"
 cleanup

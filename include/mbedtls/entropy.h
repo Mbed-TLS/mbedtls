@@ -55,6 +55,16 @@
 #define MBEDTLS_ERR_ENTROPY_NO_STRONG_SOURCE              -0x003D  /**< No strong sources have been added to poll. */
 #define MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR                 -0x003F  /**< Read/write error in file. */
 
+/* Indicates whether at least one standard strong entropy source is enabled. */
+#if defined(MBEDTLS_TEST_NULL_ENTROPY) ||             \
+    ( !defined(MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES) && \
+      ( !defined(MBEDTLS_NO_PLATFORM_ENTROPY)  ||     \
+         defined(MBEDTLS_HAVEGE_C)             ||     \
+         defined(MBEDTLS_ENTROPY_HARDWARE_ALT) ||     \
+         defined(ENTROPY_NV_SEED) ) )
+#define MBEDTLS_ENTROPY_HAVE_STRONG
+#endif
+
 /**
  * \name SECTION: Module settings
  *

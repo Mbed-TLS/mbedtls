@@ -396,7 +396,7 @@ int main(int argc, const char *argv[])
                     break;
                 cnt = parse_arguments( buf, strlen(buf), params );
             }
- 
+
             // If there are no unmet dependencies execute the test
             if( unmet_dep_count == 0 )
             {
@@ -462,22 +462,22 @@ int main(int argc, const char *argv[])
             else if( ret == DISPATCH_INVALID_TEST_DATA )
             {
                 mbedtls_fprintf( stderr, "FAILED: FATAL PARSE ERROR\n" );
-                fclose(file);
+                fclose( file );
                 mbedtls_exit( 2 );
             }
             else
                 total_errors++;
 
-            if( ( ret = get_line( file, buf, sizeof(buf) ) ) != 0 )
+            if( ( ret = get_line( file, buf, sizeof( buf ) ) ) != 0 )
                 break;
-            if( strlen(buf) != 0 )
+            if( strlen( buf ) != 0 )
             {
                 mbedtls_fprintf( stderr, "Should be empty %d\n",
-                                 (int) strlen(buf) );
+                                 (int) strlen( buf ) );
                 return( 1 );
             }
         }
-        fclose(file);
+        fclose( file );
 
         /* In case we encounter early end of file */
         for( i = 0; i < unmet_dep_count; i++ )
@@ -508,4 +508,3 @@ int main(int argc, const char *argv[])
 
     return( total_errors != 0 );
 }
-

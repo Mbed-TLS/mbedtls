@@ -17,9 +17,9 @@ Configuration: please attach config.h file where possible
 Compiler and options (if you used a pre-built binary, please indicate how you obtained it):  
 Additional environment information:  
 
-**peer device TLS stack and version**  
-openSSL|GnuTls|Chrome|NSS(Firefox)|SEcureChannel (IIS/Internet Explorer/Edge)|Other  
-version:  
+**Peer device TLS stack and version**  
+OpenSSL|GnuTls|Chrome|NSS(Firefox)|SecureChannel (IIS/Internet Explorer/Edge)|Other  
+Version:  
 
 **Expected behavior**   
 

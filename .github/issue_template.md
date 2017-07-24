@@ -8,16 +8,17 @@ Note: This is just a template, so feel free to use/remove the unnecessary things
 ## Bug
 
 **OS**  
-linux|windows|??
+mbed-OS|linux|windows|
 
 **mbed TLS build:**  
 Version: x.x.x or git commit id  
-Configuration: please attach config.h file  
+OS version: x.x.x  
+Configuration: please attach config.h file where possible  
 Compiler and options (if you used a pre-built binary, please indicate how you obtained it):  
 Additional environment information:  
 
 **peer device TLS stack and version**  
-openSSL | GnuTls | other  
+openSSL|GnuTls|Chrome|NSS(Firefox)|SEcureChannel (IIS/Internet Explorer/Edge)|Other  
 version:  
 
 **Expected behavior**   
@@ -29,7 +30,7 @@ version:
 ----------------------------------------------------------------
 ## Enhancement\Feature Request
 
-**Incentive for change**  
+**Justification - why does the library need this feature?**  
 
 **Suggested enhancement**  
 

@@ -12,8 +12,8 @@ A few sentences describing the overall goals of the pull request's commits.
 **READY/IN DEVELOPMENT/HOLD**
 
 ## Requires Backporting
-When there is a bug fix, it should be backported to legacy supported branches.
-legacy supported branches will not be backported if:
+When there is a bug fix, it should be backported to all maintained and supported branches.
+Changes do not have to be backported if:
 - This PR is a new feature\enhancement
 - This PR contains changes in the API. If this is true, and there is a need for the fix to be backported, the fix should be handled differently in the legacy branch
 

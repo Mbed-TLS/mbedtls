@@ -103,6 +103,21 @@ static int test_errors = 0;
 
 
 /*----------------------------------------------------------------------------*/
+/* Helper flags for complex dependencies */
+
+/* Indicates whether we expect mbedtls_entropy_init
+ * to initialize some strong entropy source. */
+#if defined(MBEDTLS_TEST_NULL_ENTROPY) ||             \
+    ( !defined(MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES) && \
+      ( !defined(MBEDTLS_NO_PLATFORM_ENTROPY)  ||     \
+         defined(MBEDTLS_HAVEGE_C)             ||     \
+         defined(MBEDTLS_ENTROPY_HARDWARE_ALT) ||     \
+         defined(ENTROPY_NV_SEED) ) )
+#define MBEDTLS_ENTROPY_HAVE_STRONG
+#endif
+
+
+/*----------------------------------------------------------------------------*/
 /* Helper Functions */
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
@@ -401,4 +416,3 @@ static void test_fail( const char *test, int line_no, const char* filename )
     mbedtls_fprintf( stdout, "  %s\n  at line %d, %s\n", test, line_no,
                         filename );
 }
-

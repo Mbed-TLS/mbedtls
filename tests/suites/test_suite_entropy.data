@@ -52,13 +52,9 @@ entropy_nv_seed:"000000000000000000000000000000000000000000000000000000000000000
 Check NV seed manually #3
 entropy_nv_seed:"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
 
-Entropy self test (with strong entropy)
-depends_on:!MBEDTLS_TEST_NULL_ENTROPY:MBEDTLS_ENTROPY_HAVE_STRONG
+Entropy self test
+depends_on:!MBEDTLS_TEST_NULL_ENTROPY
 entropy_selftest:0
-
-Entropy self test (without strong entropy)
-depends_on:!MBEDTLS_TEST_NULL_ENTROPY:!MBEDTLS_ENTROPY_HAVE_STRONG
-entropy_selftest:1
 
 Entropy self test (MBEDTLS_TEST_NULL_ENTROPY)
 depends_on:MBEDTLS_TEST_NULL_ENTROPY

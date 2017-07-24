@@ -157,7 +157,7 @@ static int has_getrandom = -1;
 int mbedtls_platform_entropy_poll( void *data,
                            unsigned char *output, size_t len, size_t *olen )
 {
-    mbedtls_file_t *file;
+    FILE *file;
     size_t read_len;
     ((void) data);
 
@@ -179,18 +179,18 @@ int mbedtls_platform_entropy_poll( void *data,
 
     *olen = 0;
 
-    file = mbedtls_fopen( "/dev/urandom", "rb" );
+    file = fopen( "/dev/urandom", "rb" );
     if( file == NULL )
         return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
 
-    read_len = mbedtls_fread( output, 1, len, file );
+    read_len = fread( output, 1, len, file );
     if( read_len != len )
     {
-        mbedtls_fclose( file );
+        fclose( file );
         return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
     }
 
-    mbedtls_fclose( file );
+    fclose( file );
     *olen = len;
 
     return( 0 );

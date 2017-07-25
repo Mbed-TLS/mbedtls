@@ -49,11 +49,13 @@ void file_write( )
     TEST_ASSERT( ret > 0 );
 
     ffile = fopen( "tmp.txt", "r" );
+    TEST_ASSERT( ffile != NULL );
     ret = fread( buf, 1, sizeof( buf ), ffile );
     TEST_ASSERT( ret > 0 );
     TEST_ASSERT( strcmp( TEST_DATA, buf ) == 0 );
 exit:
-    fclose(ffile);
+    if ( ffile )
+        fclose(ffile);
 }
 /* END_CASE */
 

@@ -35,6 +35,7 @@
 #endif
 
 #include <stdint.h>
+#include <errno.h>
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -153,7 +154,7 @@ static int mbedtls_serialize_write( mbedtls_serialize_context_t *ctx,
         result = write( ctx->write_fd, buffer, length );
         if( result < 0 )
         {
-            perror( "Serialization write error" );
+            DBG( "Error writing: %s", strerror( errno ) );
             return( MBEDTLS_ERR_SERIALIZE_SEND );
         }
         length -= result;
@@ -235,22 +236,39 @@ int32_t alloc_file_context()
         if ( !files[i].inUse )
         {
             files[i].inUse = 1;
-            file_id = i;
+            file_id = i + 1; // file Id can not be 0 i.e. same as NULL
             break;
         }
     }
     return file_id;
 }
 
-void free_file_context( int32_t file_id )
+int free_file_context( int32_t file_id )
 {
+    int ret = -1;
+    file_id--;
     if ( file_id < MBEDTLS_SERIALIZE_MAX_FILES )
     {
-        if ( files[file_id].file )
-            fclose( files[file_id].file );
         files[file_id].inUse = 0;
-        files[file_id].file = NULL;
+        if ( files[file_id].file )
+        {
+            fclose( files[file_id].file );
+            files[file_id].file = NULL;
+            ret = 0;
+        }
     }
+    return ret;
+}
+
+FILE * get_file_from_id( int32_t file_id )
+{
+    file_id--;
+    if ( file_id < MBEDTLS_SERIALIZE_MAX_FILES && files[file_id].inUse )
+    {
+        return files[file_id].file;
+    }
+    DBG( "Failed to find file for Index %d", file_id );
+    return NULL;
 }
 
 /** Execute an offloaded function.
@@ -464,18 +482,22 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx,
             path = item_buffer( inputs[1] );
             DBG( "open file [%s] mode [%s]", path, mode);
             file_id = alloc_file_context();
-            DBG( "allocated file if [%d]", file_id);
+            DBG( "allocated file id [%d]", file_id);
             if ( file_id != -1 )
             {
-                files[file_id].file = fopen( path, mode );
-                if ( files[file_id].file != NULL )
+                FILE * file = fopen( path, mode );
+                if ( file != NULL )
                 {
+                    files[file_id - 1].file = file;
                     ALLOC_OUTPUT( 0, sizeof (int32_t) );
                     set_item_int32( outputs[0], file_id );
                     ret = 0;
                 }
                 else
+                {
+                    DBG( "fopen: error = %s", strerror( errno ) );
                     free_file_context( file_id );
+                }
             }
         }
         break;
@@ -487,19 +509,15 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx,
             ret = MBEDTLS_ERR_SERIALIZE_BAD_OUTPUT;
             size = item_int32( inputs[0] );
             file_id = item_int32( inputs[1] );
-            if ( file_id < MBEDTLS_SERIALIZE_MAX_FILES )
+            file = get_file_from_id( file_id );
+            if ( file )
             {
-                file = files[file_id].file;
-
-                if ( file )
+                ALLOC_OUTPUT( 0, size );
+                ret = fread( item_buffer( outputs[0] ), 1, size, file );
+                if ( ret >= 0 )
                 {
-                    ALLOC_OUTPUT( 0, size );
-                    ret = fread( item_buffer( outputs[0] ), 1, size, file );
-                    if ( ret >= 0 )
-                    {
-                        outputs[0]->size = ret;
-                        ret = 0;
-                    }
+                    outputs[0]->size = ret;
+                    ret = 0;
                 }
             }
         }
@@ -512,21 +530,16 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx,
             ret = MBEDTLS_ERR_SERIALIZE_BAD_OUTPUT;
             size = item_int32( inputs[0] );
             file_id = item_int32( inputs[1] );
-            /* Allow only 1 byte item size */
-            if ( file_id < MBEDTLS_SERIALIZE_MAX_FILES )
+            file = get_file_from_id( file_id );
+            if ( file )
             {
-                file = files[file_id].file;
-
-                if ( file )
+                char * s = NULL;
+                ALLOC_OUTPUT( 0, size );
+                s = fgets( item_buffer( outputs[0] ), size, file );
+                if ( s != NULL )
                 {
-                    char * s = NULL;
-                    ALLOC_OUTPUT( 0, size );
-                    s = fgets( item_buffer( outputs[0] ), size, file );
-                    if ( s != NULL )
-                    {
-                        outputs[0]->size = strlen( s ) + 1;
-                        ret = 0;
-                    }
+                    outputs[0]->size = strlen( s ) + 1;
+                    ret = 0;
                 }
             }
         }
@@ -538,19 +551,15 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx,
 
             ret = MBEDTLS_ERR_SERIALIZE_BAD_OUTPUT;
             file_id = item_int32( inputs[1] );
-            if ( file_id < MBEDTLS_SERIALIZE_MAX_FILES )
+            file = get_file_from_id( file_id );
+            if ( file )
             {
-                file = files[file_id].file;
-
-                if ( file )
+                ret = fwrite( item_buffer( inputs[0] ), 1, inputs[0]->size, file );
+                if ( ret >= 0 )
                 {
-                    ret = fwrite( item_buffer( inputs[0] ), 1, inputs[0]->size, file );
-                    if ( ret >= 0 )
-                    {
-                        ALLOC_OUTPUT( 0, sizeof( int32_t ) );
-                        set_item_int32( outputs[0], ret );
-                        ret = 0;
-                    }
+                    ALLOC_OUTPUT( 0, sizeof( int32_t ) );
+                    set_item_int32( outputs[0], ret );
+                    ret = 0;
                 }
             }
         }
@@ -561,11 +570,7 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx,
 
             ret = MBEDTLS_ERR_SERIALIZE_BAD_OUTPUT;
             file_id = item_int32( inputs[0] );
-            if ( file_id < MBEDTLS_SERIALIZE_MAX_FILES )
-            {
-                ret = 0;
-                free_file_context( file_id );
-            }
+            ret = free_file_context( file_id );
         }
         break;
     case MBEDTLS_SERIALIZE_FUNCTION_FSEEK:
@@ -579,35 +584,31 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx,
             offset = item_int32( inputs[0] );
             whence = item_int32( inputs[1] );
             file_id = item_int32( inputs[2] );
+            file = get_file_from_id( file_id );
 
-            if ( file_id < MBEDTLS_SERIALIZE_MAX_FILES )
+            if ( file )
             {
-                file = files[file_id].file;
+                ret = 0;
 
-                if ( file )
+                /* map whence with std lib */
+                switch ( whence )
                 {
-                    ret = 0;
-
-                    /* map whence with std lib */
-                    switch ( whence )
-                    {
-                        case MBEDTLS_SERIALIZE_FSEEK_SET:
-                            whence = SEEK_SET;
-                            break;
-                        case MBEDTLS_SERIALIZE_FSEEK_CUR:
-                            whence = SEEK_CUR;
-                            break;
-                        case MBEDTLS_SERIALIZE_FSEEK_END:
-                            whence = SEEK_END;
-                            break;
-                        default:
-                            ret = MBEDTLS_ERR_SERIALIZE_BAD_OUTPUT;
-                            break;
-                    }
-
-                    if ( ret == 0 )
-                        ret = fseek( file, offset, whence );
+                    case MBEDTLS_SERIALIZE_FSEEK_SET:
+                        whence = SEEK_SET;
+                        break;
+                    case MBEDTLS_SERIALIZE_FSEEK_CUR:
+                        whence = SEEK_CUR;
+                        break;
+                    case MBEDTLS_SERIALIZE_FSEEK_END:
+                        whence = SEEK_END;
+                        break;
+                    default:
+                        ret = MBEDTLS_ERR_SERIALIZE_BAD_OUTPUT;
+                        break;
                 }
+
+                if ( ret == 0 )
+                    ret = fseek( file, offset, whence );
             }
         }
         break;
@@ -618,21 +619,17 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx,
 
             ret = MBEDTLS_ERR_SERIALIZE_BAD_OUTPUT;
             file_id = item_int32( inputs[0] );
+            file = get_file_from_id( file_id );
 
-            if ( file_id < MBEDTLS_SERIALIZE_MAX_FILES )
+            if ( file )
             {
-                file = files[file_id].file;
+                ret = ftell( file );
 
-                if ( file )
+                if ( ret >= 0 )
                 {
-                    ret = ftell( file );
-
-                    if ( ret >= 0 )
-                    {
-                        ALLOC_OUTPUT( 0, sizeof( int32_t ) );
-                        set_item_int32( outputs[0], ret );
-                        ret = 0;
-                    }
+                    ALLOC_OUTPUT( 0, sizeof( int32_t ) );
+                    set_item_int32( outputs[0], ret );
+                    ret = 0;
                 }
             }
         }
@@ -644,15 +641,11 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx,
 
             ret = MBEDTLS_ERR_SERIALIZE_BAD_OUTPUT;
             file_id = item_int32( inputs[0] );
+            file = get_file_from_id( file_id );
 
-            if ( file_id < MBEDTLS_SERIALIZE_MAX_FILES )
+            if ( file )
             {
-                file = files[file_id].file;
-
-                if ( file )
-                {
-                    ret = ferror( file );
-                }
+                ret = ferror( file );
             }
         }
         break;

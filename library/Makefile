@@ -1,7 +1,7 @@
 
 # Also see "include/mbedtls/config.h"
 
-CFLAGS	?= -O2
+CFLAGS	?=
 WARNING_CFLAGS ?=  -Wall -W -Wdeclaration-after-statement
 LDFLAGS ?=
 
@@ -10,6 +10,8 @@ LOCAL_LDFLAGS =
 
 ifdef DEBUG
 LOCAL_CFLAGS += -g3
+else
+CFLAGS += -O2
 endif
 
 # MicroBlaze specific options:

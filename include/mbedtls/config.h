@@ -1011,7 +1011,7 @@
  *
  * Module:  library/fsio.c
  */
-#define MBEDTLS_FS_IO_ALT
+//#define MBEDTLS_FS_IO_ALT
 
 /**
  * \def MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
@@ -2903,7 +2903,7 @@
  * Module:  library/serialize.c
  * Caller:  library/net_sockets/serialize.c
  */
-#define MBEDTLS_SERIALIZE_C
+//#define MBEDTLS_SERIALIZE_C
 
 /**
  * \def MBEDTLS_SERIALIZE_FORK_FRONTEND_C
@@ -2914,7 +2914,7 @@
  * Caller:  library/net_sockets/serialize.c
  *          library/fsio.c
  */
-#define MBEDTLS_SERIALIZE_FORK_FRONTEND_C
+//#define MBEDTLS_SERIALIZE_FORK_FRONTEND_C
 
 /* \} name SECTION: mbed TLS modules */
 

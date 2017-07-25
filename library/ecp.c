@@ -786,6 +786,7 @@ cleanup:
     return( ret );
 }
 
+#if !defined (MBEDTLS_ECC_ALT)
 /*
  * Normalize jacobian coordinates of an array of (pointers to) points,
  * using Montgomery's trick to perform only one inversion mod P.
@@ -906,6 +907,7 @@ cleanup:
     return( ret );
 }
 
+#endif /* !defined (MBEDTLS_ECC_ALT)*/
 /*
  * Point doubling R = 2 P, Jacobian coordinates
  *
@@ -1099,6 +1101,8 @@ cleanup:
 
     return( ret );
 }
+
+#if !defined (MBEDTLS_ECC_ALT)
 
 /*
  * Randomize jacobian coordinates:
@@ -1464,8 +1468,11 @@ cleanup:
     return( ret );
 }
 
+#endif /* !defined (MBEDTLS_ECC_ALT)*/
+
 #endif /* ECP_SHORTWEIERSTRASS */
 
+#if !defined (MBEDTLS_ECC_ALT)
 #if defined(ECP_MONTGOMERY)
 /*
  * For Montgomery curves, we do all the internal arithmetic in projective
@@ -1717,6 +1724,8 @@ cleanup:
 #endif /* MBEDTLS_ECP_INTERNAL_ALT */
     return( ret );
 }
+
+#endif /* ! (MBEDTLS_ECC_ALT)*/
 
 #if defined(ECP_SHORTWEIERSTRASS)
 /*

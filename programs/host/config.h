@@ -1,5 +1,5 @@
 /**
- * \file config.h
+ * Config for host frontend application.
  *
  * \brief Configuration options when compiling the host frontend
  *

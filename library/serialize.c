@@ -73,7 +73,6 @@
 #include <stdint.h>
 #include <string.h>
 #include <signal.h>
-#include <unistd.h>
 #include "mbedtls/serialize.h"
 
 #if defined(MBEDTLS_SERIALIZE_C)
@@ -82,6 +81,7 @@ static int serialize_write_fd = -1;
 static int serialize_read_fd = -1;
 
 #if defined(MBEDTLS_SERIALIZE_FORK_FRONTEND_C)
+#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/types.h>

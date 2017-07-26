@@ -39,7 +39,7 @@
 #if defined(MBEDTLS_MD_C) && defined(MBEDTLS_FS_IO)
 #include "mbedtls/md.h"
 
-#include <stdio.h>
+#include "mbedtls/fsio.h"
 #include <string.h>
 #endif
 

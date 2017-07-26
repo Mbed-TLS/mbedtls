@@ -38,7 +38,7 @@
 #include <string.h>
 
 #if defined(MBEDTLS_FS_IO)
-#include <stdio.h>
+#include "mbedtls/fsio.h"
 #endif
 
 #if defined(MBEDTLS_SELF_TEST)

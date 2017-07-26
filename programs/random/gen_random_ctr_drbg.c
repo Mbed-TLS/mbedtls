@@ -41,7 +41,7 @@
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
 
-#include <stdio.h>
+#include "mbedtls/fsio.h"
 #endif
 
 #if !defined(MBEDTLS_CTR_DRBG_C) || !defined(MBEDTLS_ENTROPY_C) || \

@@ -393,6 +393,8 @@ int mbedtls_ecp_group_copy( mbedtls_ecp_group *dst, const mbedtls_ecp_group *src
     /* Validate input parameters*/
     if ( dst == NULL || src == NULL )
         return ( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+    if ( dst == src )
+        return ( 0 );
     return mbedtls_ecp_group_load(dst, src->id);
 }
 
@@ -437,6 +439,9 @@ int mbedtls_ecp_point_cmp( const mbedtls_ecp_point *P,
     if ( P == NULL || Q == NULL )
         return ( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
+    if ( P == Q )
+        return ( 0 );
+    
     if( mbedtls_mpi_cmp_mpi( &P->X, &Q->X ) == 0 &&
         mbedtls_mpi_cmp_mpi( &P->Y, &Q->Y ) == 0 &&
         mbedtls_mpi_cmp_mpi( &P->Z, &Q->Z ) == 0 )
@@ -456,9 +461,9 @@ int mbedtls_ecp_point_read_string( mbedtls_ecp_point *P, int radix,
     int ret;
 
     /* Validate input parameters */
-    if ( P == NULL || x == NULL  || y == NULL )
+    if ( P == NULL || x == NULL  || y == NULL || radix < 0 )
         return ( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-
+    
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &P->X, radix, x ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &P->Y, radix, y ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &P->Z, 1 ) );
@@ -478,9 +483,9 @@ int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp, const mbedtls_
     size_t plen;
 
     /* Validate input parameters */
-    if ( P == NULL || grp == NULL || olen == 0 || buf == 0 )
+    if ( P == NULL || grp == NULL || olen == NULL || buf == NULL )
         return ( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-
+    
     if( format != MBEDTLS_ECP_PF_UNCOMPRESSED &&
         format != MBEDTLS_ECP_PF_COMPRESSED )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
@@ -580,7 +585,7 @@ int mbedtls_ecp_tls_read_point( const mbedtls_ecp_group *grp, mbedtls_ecp_point 
     const unsigned char *buf_start;
 
     /* Validate input parameters */
-    if ( pt == NULL || buf == NULL  || grp == NULL )
+    if ( pt == NULL || buf == NULL  || grp == NULL || *buf == NULL )
         return ( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     /*
@@ -646,7 +651,7 @@ int mbedtls_ecp_tls_read_group( mbedtls_ecp_group *grp, const unsigned char **bu
     const mbedtls_ecp_curve_info *curve_info;
 
     /* Validate input parameters */
-    if ( grp == NULL || buf == NULL )
+    if ( grp == NULL || buf == NULL || *buf == NULL)
         return ( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     /*

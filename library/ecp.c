@@ -245,6 +245,10 @@ const mbedtls_ecp_curve_info *mbedtls_ecp_curve_info_from_name( const char *name
 {
     const mbedtls_ecp_curve_info *curve_info;
 
+    /* Validate input parameter */
+    if ( name == NULL )
+        return ( NULL );
+    
     for( curve_info = mbedtls_ecp_curve_list();
          curve_info->grp_id != MBEDTLS_ECP_DP_NONE;
          curve_info++ )
@@ -369,6 +373,10 @@ int mbedtls_ecp_copy( mbedtls_ecp_point *P, const mbedtls_ecp_point *Q )
 {
     int ret;
 
+    /* Validate input parameters */
+    if ( P == NULL || Q == NULL )
+        return ( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+    
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &P->X, &Q->X ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &P->Y, &Q->Y ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &P->Z, &Q->Z ) );
@@ -382,7 +390,10 @@ cleanup:
  */
 int mbedtls_ecp_group_copy( mbedtls_ecp_group *dst, const mbedtls_ecp_group *src )
 {
-    return mbedtls_ecp_group_load( dst, src->id );
+    /* Validate input parameters*/
+    if ( dst == NULL || src == NULL )
+        return ( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+    return mbedtls_ecp_group_load(dst, src->id);
 }
 
 /*
@@ -391,6 +402,10 @@ int mbedtls_ecp_group_copy( mbedtls_ecp_group *dst, const mbedtls_ecp_group *src
 int mbedtls_ecp_set_zero( mbedtls_ecp_point *pt )
 {
     int ret;
+
+    /* Validate input parameters */
+    if ( pt == NULL )
+        return ( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->X , 1 ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->Y , 1 ) );
@@ -405,6 +420,10 @@ cleanup:
  */
 int mbedtls_ecp_is_zero( mbedtls_ecp_point *pt )
 {
+    /* Validate input parameters */
+    if ( pt == NULL )
+        return ( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
     return( mbedtls_mpi_cmp_int( &pt->Z, 0 ) == 0 );
 }
 
@@ -414,6 +433,10 @@ int mbedtls_ecp_is_zero( mbedtls_ecp_point *pt )
 int mbedtls_ecp_point_cmp( const mbedtls_ecp_point *P,
                            const mbedtls_ecp_point *Q )
 {
+    /* Validate input parameters */
+    if ( P == NULL || Q == NULL )
+        return ( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
     if( mbedtls_mpi_cmp_mpi( &P->X, &Q->X ) == 0 &&
         mbedtls_mpi_cmp_mpi( &P->Y, &Q->Y ) == 0 &&
         mbedtls_mpi_cmp_mpi( &P->Z, &Q->Z ) == 0 )
@@ -432,6 +455,10 @@ int mbedtls_ecp_point_read_string( mbedtls_ecp_point *P, int radix,
 {
     int ret;
 
+    /* Validate input parameters */
+    if ( P == NULL || x == NULL  || y == NULL )
+        return ( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &P->X, radix, x ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &P->Y, radix, y ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &P->Z, 1 ) );
@@ -449,6 +476,10 @@ int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp, const mbedtls_
 {
     int ret = 0;
     size_t plen;
+
+    /* Validate input parameters */
+    if ( P == NULL || grp == NULL || olen == 0 || buf == 0 )
+        return ( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     if( format != MBEDTLS_ECP_PF_UNCOMPRESSED &&
         format != MBEDTLS_ECP_PF_COMPRESSED )
@@ -505,6 +536,10 @@ int mbedtls_ecp_point_read_binary( const mbedtls_ecp_group *grp, mbedtls_ecp_poi
     int ret;
     size_t plen;
 
+    /* Validate input parameters */
+    if ( grp == NULL || pt == NULL || buf == NULL )
+        return ( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
     if( ilen < 1 )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
@@ -544,6 +579,10 @@ int mbedtls_ecp_tls_read_point( const mbedtls_ecp_group *grp, mbedtls_ecp_point 
     unsigned char data_len;
     const unsigned char *buf_start;
 
+    /* Validate input parameters */
+    if ( pt == NULL || buf == NULL  || grp == NULL )
+        return ( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
     /*
      * We must have at least two bytes (1 for length, at least one for data)
      */
@@ -575,6 +614,10 @@ int mbedtls_ecp_tls_write_point( const mbedtls_ecp_group *grp, const mbedtls_ecp
 {
     int ret;
 
+    /* Validate input parameters */
+    if ( grp == NULL || pt == NULL || olen == NULL || buf == NULL )
+        return ( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
     /*
      * buffer length must be at least one, for our length byte
      */
@@ -601,6 +644,10 @@ int mbedtls_ecp_tls_read_group( mbedtls_ecp_group *grp, const unsigned char **bu
 {
     uint16_t tls_id;
     const mbedtls_ecp_curve_info *curve_info;
+
+    /* Validate input parameters */
+    if ( grp == NULL || buf == NULL )
+        return ( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     /*
      * We expect at least three bytes (see below)
@@ -634,6 +681,10 @@ int mbedtls_ecp_tls_write_group( const mbedtls_ecp_group *grp, size_t *olen,
                          unsigned char *buf, size_t blen )
 {
     const mbedtls_ecp_curve_info *curve_info;
+
+    /* Validate input parameters */
+    if ( grp == NULL || olen == NULL || buf == NULL )
+        return ( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     if( ( curve_info = mbedtls_ecp_curve_info_from_grp_id( grp->id ) ) == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
@@ -1873,6 +1924,10 @@ static int ecp_check_pubkey_mx( const mbedtls_ecp_group *grp, const mbedtls_ecp_
  */
 int mbedtls_ecp_check_pubkey( const mbedtls_ecp_group *grp, const mbedtls_ecp_point *pt )
 {
+    /* Validate input parameters*/
+    if ( grp == NULL  || pt == NULL )
+        return ( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+    
     /* Must use affine coordinates */
     if( mbedtls_mpi_cmp_int( &pt->Z, 1 ) != 0 )
         return( MBEDTLS_ERR_ECP_INVALID_KEY );
@@ -1893,6 +1948,10 @@ int mbedtls_ecp_check_pubkey( const mbedtls_ecp_group *grp, const mbedtls_ecp_po
  */
 int mbedtls_ecp_check_privkey( const mbedtls_ecp_group *grp, const mbedtls_mpi *d )
 {
+    /* Validate input parameters */
+    if ( grp == NULL || d == NULL)
+        return ( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
 #if defined(ECP_MONTGOMERY)
     if( ecp_get_type( grp ) == ECP_TYPE_MONTGOMERY )
     {
@@ -2037,6 +2096,10 @@ int mbedtls_ecp_check_pub_priv( const mbedtls_ecp_keypair *pub, const mbedtls_ec
     mbedtls_ecp_point Q;
     mbedtls_ecp_group grp;
 
+    /* validate input parameters */
+    if ( pub == NULL || prv == NULL )
+        return ( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+        
     if( pub->grp.id == MBEDTLS_ECP_DP_NONE ||
         pub->grp.id != prv->grp.id ||
         mbedtls_mpi_cmp_mpi( &pub->Q.X, &prv->Q.X ) ||
@@ -2050,7 +2113,7 @@ int mbedtls_ecp_check_pub_priv( const mbedtls_ecp_keypair *pub, const mbedtls_ec
     mbedtls_ecp_group_init( &grp );
 
     /* mbedtls_ecp_mul() needs a non-const group... */
-    mbedtls_ecp_group_copy( &grp, &prv->grp );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_group_copy( &grp, &prv->grp ) );
 
     /* Also checks d is valid */
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &grp, &Q, &prv->d, &prv->grp.G, NULL, NULL ) );

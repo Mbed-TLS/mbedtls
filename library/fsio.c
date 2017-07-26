@@ -25,10 +25,38 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_FS_IO) && defined(MBEDTLS_FS_IO_ALT) && defined(MBEDTLS_SERIALIZE_C)
-#include <string.h>
+#if defined(MBEDTLS_FS_IO)
 
 #include "mbedtls/fsio.h"
+
+#if !defined(MBEDTLS_FS_IO_ALT)
+
+/**
+ * \brief          Open file and disable buffering.
+ *
+ * \param path     File path
+ * \param mode     Open mode
+ *
+ * \return         Pointer to mbedtls_file_t on success or NULL on failure.
+ */
+mbedtls_file_t * mbedtls_fopen( const char *path, const char *mode )
+{
+    mbedtls_file_t * f = fopen( path, mode );
+
+    if( f && ( setvbuf( f, NULL, _IONBF, 0 ) != 0 ) )
+    {
+        fclose( f );
+        f = NULL;
+    }
+
+    return( f );
+}
+
+#else /* !MBEDTLS_FS_IO_ALT */
+
+#if defined(MBEDTLS_SERIALIZE_C)
+#include <string.h>
+
 #include "mbedtls/serialize.h"
 
 
@@ -241,4 +269,6 @@ int mbedtls_ferror( mbedtls_file_t *stream )
     return( ret );
 }
 
-#endif /* MBEDTLS_FS_IO && MBEDTLS_FS_IO_ALT && MBEDTLS_SERIALIZE_C */
+#endif /* MBEDTLS_SERIALIZE_C */
+#endif /* else !MBEDTLS_FS_IO_ALT */
+#endif /* MBEDTLS_FS_IO */

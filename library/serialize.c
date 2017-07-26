@@ -111,7 +111,7 @@ static void relay_signal( int signum )
             goto cleanup;                       \
         }                                       \
     } while( 0 );
-int mbedtls_serialize_prepare( void )
+static int mbedtls_serialize_prepare( void )
 {
     int ret;
     int null = -1;
@@ -229,11 +229,6 @@ int mbedtls_serialize_read( uint8_t *buffer, size_t length )
     } while( length > 0 );
     return( 0 );
 }
-
-void mbedtls_serialize_push_start() {}
-void mbedtls_serialize_push_end() {}
-void mbedtls_serialize_pop_start() {}
-void mbedtls_serialize_pop_end() {}
 
 #endif /* MBEDTLS_SERIALIZE_FORK_FRONTEND_C */
 

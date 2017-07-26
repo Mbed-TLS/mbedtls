@@ -44,7 +44,6 @@ extern "C" {
 #include <stdio.h>
 
 #define mbedtls_file_t      FILE
-#define mbedtls_fopen       fopen
 #define mbedtls_fread       fread
 #define mbedtls_fgets       fgets
 #define mbedtls_fwrite      fwrite
@@ -55,6 +54,16 @@ extern "C" {
 #define MBEDTLS_SEEK_SET    SEEK_SET
 #define MBEDTLS_SEEK_CUR    SEEK_CUR
 #define MBEDTLS_SEEK_END    SEEK_END
+
+/**
+ * \brief          Open file. Follows standard C fopen interface.
+ *
+ * \param path     File path
+ * \param mode     Open mode
+ *
+ * \return         Pointer to mbedtls_file_t on success or NULL on failure.
+ */
+mbedtls_file_t * mbedtls_fopen( const char *path, const char *mode );
 
 #else /* !MBEDTLS_FS_IO_ALT */
 

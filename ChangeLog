@@ -49,6 +49,9 @@ Security
    * Tighten parsing of RSA PKCS#1 v1.5 signatures, to avoid a
      potential Bleichenbacher/BERserk-style attack.
 
+Changes
+   * Improve documentation of PKCS1 decryption functions.
+
 Bugfix
    * Remove macros from compat-1.3.h that correspond to deleted items from most
      recent versions of the library. Found by Kyle Keen.

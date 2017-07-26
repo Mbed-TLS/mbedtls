@@ -47,7 +47,7 @@
 #include "mbedtls/cipher.h"
 #include "mbedtls/md.h"
 
-#include <stdio.h>
+#include "mbedtls/fsio.h"
 #include <stdlib.h>
 #include <string.h>
 #endif

@@ -44,7 +44,7 @@
 #include "mbedtls/aes.h"
 #include "mbedtls/md.h"
 
-#include <stdio.h>
+#include "mbedtls/fsio.h"
 #include <stdlib.h>
 #include <string.h>
 

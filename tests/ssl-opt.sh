@@ -1950,6 +1950,21 @@ run_test    "Authentication: client no cert, ssl3" \
 
 # The "max_int chain" tests assume that MAX_INTERMEDIATE_CA is set to its
 # default value (8)
+
+MAX_IM_CA=8
+MAX_IM_CA_REGEX="#define[[:blank:]]\+MBEDTLS_X509_MAX_INTERMEDIATE_CA"
+MAX_IM_CA_REGEX="${MAX_IM_CA_REGEX}[[:blank:]]\+${MAX_IM_CA}[[:blank:]]*$"
+
+if grep "${MAX_IM_CA_REGEX}" ../include/mbedtls/x509.h > /dev/null;
+then :;
+else
+    echo "$(echo 'The tests for long intermediate chains assume the value'  \
+                  ${MAX_IM_CA} 'for MBEDTLS_X509_MAX_INTERMEDIATE_CA.'      \
+                 'To test other values, please manually adapt the max_int'  \
+                 'tests in ssl-opt.sh.')"
+    return
+fi
+
 run_test    "Authentication: server max_int chain, client default" \
             "$P_SRV crt_file=data_files/dir-maxpath/c09.pem \
                     key_file=data_files/dir-maxpath/09.key" \

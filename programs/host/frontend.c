@@ -28,11 +28,7 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "frontend-config.h"
 
 #include <stdint.h>
 #include <errno.h>
@@ -280,7 +276,7 @@ FILE * get_file_from_id( int32_t file_id )
  *                  be filled with output parameters allocated with alloc_item.
  * @return status (0 for ok, MBEDTLS_ERR_xxx on error)
  */
-static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx,
+static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
                                            uint32_t function,
                                            mbedtls_serialize_item_t **outputs )
 {
@@ -289,7 +285,7 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx,
     size_t arity;
     int ret = 0;
 
-    for( arity = 0, item = ctx->stack;
+    for( arity = 0, item = ctx_p->stack;
          arity < ( ( function & 0x0000f0 ) >> 4 ) && item != NULL;
          arity++, item = item->next )
     {
@@ -301,7 +297,7 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx,
     {
     case MBEDTLS_SERIALIZE_FUNCTION_EXIT:
         ret = 0;
-        ctx->status = MBEDTLS_SERIALIZE_STATUS_EXITED;
+        ctx_p->status = MBEDTLS_SERIALIZE_STATUS_EXITED;
         break;
 
     case MBEDTLS_SERIALIZE_FUNCTION_ECHO:
@@ -666,7 +662,7 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx,
         }
     }
 
-    mbedtls_serialize_discard_stack( ctx );
+    mbedtls_serialize_discard_stack( ctx_p );
     return( ret );
 }
 

@@ -190,14 +190,12 @@ cleanup:
 }
 #undef CHECK
 
-int mbedtls_serialize_write( const uint8_t *buffer, size_t length )
+static int mbedtls_serialize_write( const uint8_t *buffer, size_t length )
 {
     ssize_t result;
-#if defined(MBEDTLS_SERIALIZE_FORK_FRONTEND_C)
     if( serialize_write_fd == -1 )
         if( mbedtls_serialize_prepare( ) != 0 )
             return( MBEDTLS_ERR_SERIALIZE_SEND );
-#endif
     do {
         result = write( serialize_write_fd, buffer, length );
         /* This channel should never reach EOF under the current simplistic
@@ -212,7 +210,7 @@ int mbedtls_serialize_write( const uint8_t *buffer, size_t length )
     return( 0 );
 }
 
-int mbedtls_serialize_read( uint8_t *buffer, size_t length )
+static int mbedtls_serialize_read( uint8_t *buffer, size_t length )
 {
     ssize_t result;
     do {

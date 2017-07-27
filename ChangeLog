@@ -25,6 +25,11 @@ Bugfix
      to bypass the version verification check. Found by Peng Li/Yueh-Hsun Lin,
      KNOX Security, Samsung Research America
 
+Changes
+   * Avoid shadowing of time and index functions through mbed TLS function
+     arguments. Found by inestlerode. Fixes #557.
+
+
 = mbed TLS 1.3.20 branch released 2017-06-21
 
 Security
@@ -174,9 +179,9 @@ Changes
 = mbed TLS 1.3.17 branch 2016-06-28
 
 Security
-   * Fix missing padding length check in mbedtls_rsa_rsaes_pkcs1_v15_decrypt 
+   * Fix missing padding length check in mbedtls_rsa_rsaes_pkcs1_v15_decrypt
      required by PKCS1 v2.2
-   * Fix a potential integer underflow to buffer overread in 
+   * Fix a potential integer underflow to buffer overread in
      mbedtls_rsa_rsaes_oaep_decrypt. It is not triggerable remotely in
      SSL/TLS.
    * Fix potential integer overflow to buffer overflow in
@@ -1207,7 +1212,7 @@ Security
 Changes
    * Allow enabling of dummy error_strerror() to support some use-cases
    * Debug messages about padding errors during SSL message decryption are
-     disabled by default and can be enabled with POLARSSL_SSL_DEBUG_ALL 
+     disabled by default and can be enabled with POLARSSL_SSL_DEBUG_ALL
    * Sending of security-relevant alert messages that do not break
      interoperability can be switched on/off with the flag
      POLARSSL_SSL_ALL_ALERT_MESSAGES
@@ -1236,7 +1241,7 @@ Bugfix
 Changes
    * Added p_hw_data to ssl_context for context specific hardware acceleration
      data
-   * During verify trust-CA is only checked for expiration and CRL presence  
+   * During verify trust-CA is only checked for expiration and CRL presence
 
 Bugfixes
    * Fixed client authentication compatibility
@@ -1534,9 +1539,9 @@ Features
      with random data (Fixed ticket #10)
 
 Changes
-   * Debug print of MPI now removes leading zero octets and 
+   * Debug print of MPI now removes leading zero octets and
      displays actual bit size of the value.
-   * x509parse_key() (and as a consequence x509parse_keyfile()) 
+   * x509parse_key() (and as a consequence x509parse_keyfile())
      does not zeroize memory in advance anymore. Use rsa_init()
      before parsing a key or keyfile!
 
@@ -1558,7 +1563,7 @@ Features
      printing of X509 CRLs from file
 
 Changes
-   * Parsing of PEM files moved to separate module (Fixes 
+   * Parsing of PEM files moved to separate module (Fixes
      ticket #13). Also possible to remove PEM support for
      systems only using DER encoding
 
@@ -1701,7 +1706,7 @@ Bug fixes
    * Fixed HMAC-MD2 by modifying md2_starts(), so that the
      required HMAC ipad and opad variables are not cleared.
      (found by code coverage tests)
-   * Prevented use of long long in bignum if 
+   * Prevented use of long long in bignum if
      POLARSSL_HAVE_LONGLONG not defined (found by Giles
      Bathgate).
    * Fixed incorrect handling of negative strings in
@@ -1742,7 +1747,7 @@ Bug fixes
    * Made definition of net_htons() endian-clean for big endian
      systems (Found by Gernot).
    * Undefining POLARSSL_HAVE_ASM now also handles prevents asm in
-     padlock and timing code. 
+     padlock and timing code.
    * Fixed an off-by-one buffer allocation in ssl_set_hostname()
      responsible for crashes and unwanted behaviour.
    * Added support for Certificate Revocation List (CRL) parsing.
@@ -1916,4 +1921,3 @@ XySSL ChangeLog
     who maintains the Debian package :-)
 
 = Version 0.1 released on 2006-11-01
-

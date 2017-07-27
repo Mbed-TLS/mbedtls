@@ -460,7 +460,7 @@ int ecp_group_read_string( ecp_group *grp, int radix,
  * \brief           Set a group using well-known domain parameters
  *
  * \param grp       Destination group
- * \param index     Index in the list of well-known domain parameters
+ * \param id        Index in the list of well-known domain parameters
  *
  * \return          0 if successful,
  *                  POLARSSL_ERR_MPI_XXX if initialization failed
@@ -469,7 +469,7 @@ int ecp_group_read_string( ecp_group *grp, int radix,
  * \note            Index should be a value of RFC 4492's enum NamdeCurve,
  *                  possibly in the form of a POLARSSL_ECP_DP_XXX macro.
  */
-int ecp_use_known_dp( ecp_group *grp, ecp_group_id index );
+int ecp_use_known_dp( ecp_group *grp, ecp_group_id id );
 
 /**
  * \brief           Set a group from a TLS ECParameters record

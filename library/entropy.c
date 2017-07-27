@@ -104,23 +104,23 @@ int entropy_add_source( entropy_context *ctx,
                         f_source_ptr f_source, void *p_source,
                         size_t threshold )
 {
-    int index, ret = 0;
+    int idx, ret = 0;
 
 #if defined(POLARSSL_THREADING_C)
     if( ( ret = polarssl_mutex_lock( &ctx->mutex ) ) != 0 )
         return( ret );
 #endif
 
-    index = ctx->source_count;
-    if( index >= ENTROPY_MAX_SOURCES )
+    idx = ctx->source_count;
+    if( idx >= ENTROPY_MAX_SOURCES )
     {
         ret = POLARSSL_ERR_ENTROPY_MAX_SOURCES;
         goto exit;
     }
 
-    ctx->source[index].f_source = f_source;
-    ctx->source[index].p_source = p_source;
-    ctx->source[index].threshold = threshold;
+    ctx->source[idx].f_source  = f_source;
+    ctx->source[idx].p_source  = p_source;
+    ctx->source[idx].threshold = threshold;
 
     ctx->source_count++;
 

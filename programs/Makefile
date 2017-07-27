@@ -49,7 +49,6 @@ endif
 
 APPS =	aes/aescrypt2$(EXEXT)		aes/crypt_and_hash$(EXEXT)	\
 	hash/hello$(EXEXT)		hash/generic_sum$(EXEXT)	\
-	host/frontend$(EXEXT)                                           \
 					pkey/dh_client$(EXEXT)		\
 	pkey/dh_genprime$(EXEXT)	pkey/dh_server$(EXEXT)		\
 	pkey/ecdh_curve25519$(EXEXT)					\
@@ -75,6 +74,10 @@ APPS =	aes/aescrypt2$(EXEXT)		aes/crypt_and_hash$(EXEXT)	\
 	x509/cert_app$(EXEXT)		x509/crl_app$(EXEXT)		\
 	x509/cert_req$(EXEXT)		x509/cert_write$(EXEXT)		\
 	x509/req_app$(EXEXT)
+
+ifdef BUILD_SERIALISE_FRONTEND
+APPS += host/frontend$(EXEXT)
+endif
 
 ifdef PTHREAD
 APPS +=	ssl/ssl_pthread_server$(EXEXT)
@@ -112,7 +115,7 @@ hash/generic_sum$(EXEXT): hash/generic_sum.c $(DEP)
 # Unlike other programs, this one runs on the host even if cross-compiling,
 # and it does not link with mbed TLS libraries.
 host/frontend$(EXEXT): host/frontend.c $(DEP) host/frontend-config.h ../include/mbedtls/serialize.h
-	echo '  CC host/frontend.c ../library/net_sockets.c'
+	echo '  CC    host/frontend.c ../library/net_sockets.c'
 	$(CC) -I. $(LOCAL_CFLAGS) $(CFLAGS) host/frontend.c ../library/net_sockets.c $(LDFLAGS) -o $@
 
 pkey/dh_client$(EXEXT): pkey/dh_client.c $(DEP)

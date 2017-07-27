@@ -822,7 +822,7 @@ void mbedtls_serialize_frontend( mbedtls_serialize_context_t *ctx )
 
 int main( )
 {
-    mbedtls_serialize_context_t ctx = {0};
+    mbedtls_serialize_context_t ctx = {0, 0, NULL, NULL};
     ctx.read_fd = 3;
     ctx.write_fd = 4;
     ctx.status = MBEDTLS_SERIALIZE_STATUS_OK;

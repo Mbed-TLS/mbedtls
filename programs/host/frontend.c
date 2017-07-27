@@ -822,10 +822,9 @@ void mbedtls_serialize_frontend( mbedtls_serialize_context_t *ctx )
 
 int main( )
 {
-    mbedtls_serialize_context_t ctx = {0, 0, NULL, NULL};
-    ctx.read_fd = 3;
-    ctx.write_fd = 4;
-    ctx.status = MBEDTLS_SERIALIZE_STATUS_OK;
+    mbedtls_serialize_context_t ctx = { .read_fd = 3, .write_fd = 4,
+                                        .stack = NULL,
+                                        .status = MBEDTLS_SERIALIZE_STATUS_OK};
     fdbg = fopen("frontend.log", "w");
     DBG("main");
     if( getenv( "FRONTEND_DEBUG" ) )

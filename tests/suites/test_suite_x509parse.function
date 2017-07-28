@@ -7,7 +7,7 @@
 #include "polarssl/oid.h"
 #include "polarssl/base64.h"
 
-#if POLARSSL_X509_MAX_INTERMEDIATE_CA >= 19
+#if POLARSSL_X509_MAX_INTERMEDIATE_CA > 19
 #error "The value of POLARSSL_X509_MAX_INTERMEDIATE_C is larger \
 than the current threshold 19. To test larger values, please \
 adapt the script tests/data_files/dir-max/long.sh."

@@ -58,6 +58,8 @@ Bugfix
    * Fix a potential integer overflow in the version verification for DER
      encoded X509 certificates. The overflow would enable maliciously
      constructed certificates to bypass the certificate verification check.
+   * Fix a call to the libc function time() to call the platform abstraction
+     function mbedtls_time() instead. Found by wairua. Fix for #666
 
 Changes
    * Added config.h option MBEDTLS_NO_UDBL_DIVISION, to prevent the use of

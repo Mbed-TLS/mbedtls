@@ -205,7 +205,7 @@ for my $line (@config_lines) {
             $done = 1;
         }
     } elsif (!$done && $action eq "get") {
-        if ($line =~ /^\s*#define\s*$name\s*(.*)\s*\b/) {
+        if ($line =~ /^\s*#define\s*$name\s*([^\s]+)\s*\b/) {
             $value = $1;
             $done = 1;
         }

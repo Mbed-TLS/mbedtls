@@ -2106,18 +2106,24 @@ run_test    "Authentication: client no cert, ssl3" \
 # The "max_int chain" tests assume that MAX_INTERMEDIATE_CA is set to its
 # default value (8)
 
-MAX_IM_CA=8
-MAX_IM_CA_REGEX="#define[[:blank:]]\+MBEDTLS_X509_MAX_INTERMEDIATE_CA"
-MAX_IM_CA_REGEX="${MAX_IM_CA_REGEX}[[:blank:]]\+${MAX_IM_CA}[[:blank:]]*$"
+: ${MAX_IM_CA:='20'}
+MAX_IM_CA_CONFIG=$( ../scripts/config.pl get MBEDTLS_X509_MAX_INTERMEDIATE_CA)
 
-if grep "${MAX_IM_CA_REGEX}" ../include/mbedtls/x509.h > /dev/null;
-then :;
-else
-    echo "$(echo 'The tests for long intermediate chains assume the value'  \
-                  ${MAX_IM_CA} 'for MBEDTLS_X509_MAX_INTERMEDIATE_CA.'      \
-                 'To test other values, please manually adapt the max_int'  \
-                 'tests in ssl-opt.sh.')"
-    return
+if [ -n "$MAX_IM_CA_CONFIG" ] && [ "$MAX_IM_CA_CONFIG" -gt "$MAX_IM_CA" ]; then
+    printf "The ${CONFIG_H} file contains a value for the configuration of\n"
+    printf "MBEDTLS_X509_MAX_INTERMEDIATE_CA that is greater than the script’s\n"
+    printf "test value of ${MAX_IM_CA}. \n"
+    printf "\n"
+    printf "By default, this value cannot be higher as there are insufficient\n"
+    printf "test certificate files available to test with.\n"
+    printf "\n"
+    printf "To generate additional test certificates use the script:\n"
+    printf "   tests/data_files/dir-maxpath/long.sh\n"
+    printf "\n"
+    printf "To test using an alternative value, please set the environment variable\n"
+    printf "MAX_IM_CA or change the default value in the script tests/ssl-opt.sh.\n"
+
+    exit 1
 fi
 
 run_test    "Authentication: server max_int chain, client default" \

@@ -2,22 +2,6 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
-Bugfix
-   * Add a check if iv_len is zero, and return an error if it is zero. reported
-     by roberto. #716
-   * Replace preproccessor condition from #if defined(MBEDTLS_THREADING_PTHREAD)
-     to #if defined(MBEDTLS_THREADING_C) as the library cannot assume they will
-     always be implemented by pthread support. Fix for #696
-   * Fix resource leak on windows platform, in mbedtls_x509_crt_parse_path.
-     In case of failure, when an error occures, goto cleanup.
-     Found by redplait #590
-   * Add MBEDTLS_MPI_CHK to check for error value of mbedtls_mpi_fill_random.
-     Reported and fix suggested by guidovranken in #740
-   * Fix a potential integer overflow in the version verification for DER
-     encoded X509 CRLs. The overflow would enable maliciously constructed CRLs
-     to bypass the version verification check. Found by Peng Li/Yueh-Hsun Lin,
-     KNOX Security, Samsung Research America
-
 Security
    * Fix authentication bypass in SSL/TLS: when auth_mode is set to optional,
      mbedtls_ssl_get_verify_result() would incorrectly return 0 when the peer's
@@ -25,7 +9,7 @@ Security
      (default: 8) intermediates, even when it was not trusted. Could be
      triggered remotely on both sides. (With auth_mode set to required
      (default), the handshake was correctly aborted.)
-   * Realiably zeroize sensitive data after use in AES example applications
+   * Reliably zeroize sensitive data after use in AES example applications
      programs/aes/aescrypt2 and programs/aes/crypt_and_hash.
      Found by Laurent Simon.
 

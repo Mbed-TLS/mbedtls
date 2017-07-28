@@ -2106,7 +2106,7 @@ run_test    "Authentication: client no cert, ssl3" \
 # The "max_int chain" tests assume that MAX_INTERMEDIATE_CA is set to its
 # default value (8)
 
-: ${MAX_IM_CA:='20'}
+: ${MAX_IM_CA:='19'}
 MAX_IM_CA_CONFIG=$( ../scripts/config.pl get MBEDTLS_X509_MAX_INTERMEDIATE_CA)
 
 if [ -n "$MAX_IM_CA_CONFIG" ] && [ "$MAX_IM_CA_CONFIG" -gt "$MAX_IM_CA" ]; then

@@ -135,15 +135,6 @@ do {                                                                    \
                      ( hardclock() - tsc ) / ( jj * BUFSIZE ) );        \
 } while( 0 )
 
-#if defined(POLARSSL_ERROR_C)
-#define PRINT_ERROR                                                     \
-        polarssl_strerror( ret, ( char * )tmp, sizeof( tmp ) );         \
-        polarssl_printf( "FAILED: %s\n", tmp );
-#else
-#define PRINT_ERROR                                                     \
-        polarssl_printf( "FAILED: -0x%04x\n", -ret );
-#endif
-
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C) && defined(POLARSSL_MEMORY_DEBUG)
 
 #define MEMORY_MEASURE_INIT                                             \

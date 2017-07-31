@@ -57,8 +57,10 @@
 #include <unistd.h>
 #else
 #include <io.h>
-#define read _read
-#define write _write
+#define read(fd, buf, len)                                      \
+    _read( fd, (void *)( buf ), (unsigned int)( len ) )
+#define write(fd, buf, len)                                     \
+    _write( fd, (const void *)( buf ), (unsigned int)( len ) )
 #endif
 
 #if defined(_WIN32) || defined(_WIN32_WCE)

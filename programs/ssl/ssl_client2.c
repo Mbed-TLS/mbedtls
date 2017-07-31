@@ -1267,7 +1267,7 @@ send_request:
 
     len = polarssl_snprintf( (char *) buf, sizeof(buf) - 1, GET_REQUEST,
                     opt.request_page );
-    tail_len = strlen( GET_REQUEST_END );
+    tail_len = (int) strlen( GET_REQUEST_END );
 
     /* Add padding to GET request to reach opt.request_size in length */
     if( opt.request_size != DFL_REQUEST_SIZE &&

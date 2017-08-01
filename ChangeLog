@@ -7,9 +7,9 @@ Security
      mbedtls_ssl_get_verify_result() would incorrectly return 0 when the peer's
      X.509 certificate chain had more than MBEDTLS_X509_MAX_INTERMEDIATE_CA
      (default: 8) intermediates, even when it was not trusted. Could be
-     triggered remotely on both sides. (With auth_mode set to required
-     (default), the handshake was correctly aborted.)
-   * Reliably zeroize sensitive data after use in AES example applications
+     triggered remotely on both sides. (With auth_mode set to 'required'
+     (the default), the handshake was correctly aborted).
+   * Reliably wipe sensitive data after use in the AES example applications
      programs/aes/aescrypt2 and programs/aes/crypt_and_hash.
      Found by Laurent Simon.
 
@@ -18,15 +18,16 @@ Features
      and the context struct mbedtls_platform_context to perform
      platform-specific setup and teardown operations. The macro
      MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT allows the functions to be overridden
-     by the user in a platform_alt.h file. This new APIs are required in some
-     embedded environments that have hardware acceleration support.
+     by the user in a platform_alt.h file. These new functions are required in
+     some embedded environments to provide a means to initialise underlying
+     hardware acceleration.
 
 API Changes
    * Reverted API/ABI breaking changes introduced in mbed TLS 2.5.1, to make the
      API consistent with mbed TLS 2.5.0. Specifically removed the inline
      qualifier from the functions mbedtls_aes_decrypt, mbedtls_aes_encrypt,
-     mbedtls_ssl_ciphersuite_uses_ec and mbedtls_ssl_ciphersuite_uses_psk. #978
-     Found by James Cowgill.
+     mbedtls_ssl_ciphersuite_uses_ec and mbedtls_ssl_ciphersuite_uses_psk. Found
+     by James Cowgill. #978
    * Certificate verification functions now set flags to -1 in case the full
      chain was not verified due to an internal error (including in the verify
      callback) or chain length limitations.
@@ -35,40 +36,45 @@ API Changes
      a fatal error in the vrfy callback.
 
 Bugfix
-   * Add a check if iv_len is zero, and return an error if it is zero. reported
+   * Add a check if iv_len is zero, and return an error if it is zero. Reported
      by roberto. #716
    * Replace preproccessor condition from #if defined(MBEDTLS_THREADING_PTHREAD)
      to #if defined(MBEDTLS_THREADING_C) as the library cannot assume they will
-     always be implemented by pthread support. Fix for #696
+     always be implemented by pthread support. #696
    * Fix resource leak on windows platform, in mbedtls_x509_crt_parse_path.
      In case of failure, when an error occures, goto cleanup.
-     Found by redplait #590
+     Found by redplait. #590
    * Add MBEDTLS_MPI_CHK to check for error value of mbedtls_mpi_fill_random.
-     Reported and fix suggested by guidovranken in #740
+     Reported and fix suggested by guidovranken. #740
    * Fix conditional preprocessor directives in bignum.h to enable 64-bit
      compilation when using ARM Compiler 6.
    * Fix a potential integer overflow in the version verification for DER
-     encoded X509 CRLs. The overflow would enable maliciously constructed CRLs
+     encoded X.509 CRLs. The overflow could enable maliciously constructed CRLs
      to bypass the version verification check. Found by Peng Li/Yueh-Hsun Lin,
      KNOX Security, Samsung Research America
    * Fix potential integer overflow in the version verification for DER
-     encoded X509 CSRs. The overflow would enable maliciously constructed CSRs
+     encoded X.509 CSRs. The overflow could enable maliciously constructed CSRs
      to bypass the version verification check. Found by Peng Li/Yueh-Hsun Lin,
      KNOX Security, Samsung Research America
    * Fix a potential integer overflow in the version verification for DER
-     encoded X509 certificates. The overflow would enable maliciously
+     encoded X.509 certificates. The overflow could enable maliciously
      constructed certificates to bypass the certificate verification check.
    * Fix a call to the libc function time() to call the platform abstraction
-     function mbedtls_time() instead. Found by wairua. Fix for #666
+     function mbedtls_time() instead. Found by wairua. #666
+   * Avoid shadowing of time and index functions through mbed TLS function
+     arguments. Found by inestlerode. #557.
 
 Changes
    * Added config.h option MBEDTLS_NO_UDBL_DIVISION, to prevent the use of
-     64-bit division. #708
+     64-bit division. This is useful on embedded platforms where 64-bit division
+     created a dependency on external libraries. #708
    * Removed mutexes from ECP hardware accelerator code. Now all hardware
      accelerator code in the library leaves concurrency handling to the
      platform. Reported by Steven Cooreman. #863
    * Define the macro MBEDTLS_AES_ROM_TABLES in the configuration file
      config-no-entropy.h to reduce the RAM footprint.
+   * Added a test script that can be hooked into git that verifies commits
+     before they are pushed.
 
 = mbed TLS 2.5.1 released 2017-06-21
 
@@ -158,8 +164,6 @@ Bugfix
      The PK and RSA modules use different types for passing hash length and
      without these checks the type cast could lead to data loss. Found by Guido
      Vranken.
-   * Avoid shadowing of time and index functions through mbed TLS function
-     arguments. Found by inestlerode. Fixes #557.
 
 = mbed TLS 2.4.2 branch released 2017-03-08
 
@@ -228,9 +232,6 @@ Bugfix
      digits. Found and fixed by Guido Vranken.
    * Fix unlisted DES configuration dependency in some pkparse test cases. Found
      by inestlerode. #555
-   * Fix a potential integer overflow in the version verification for DER
-     encoded X509 certificates. The overflow would enable maliciously
-     constructed certificates to bypass the certificate verification check.
 
 = mbed TLS 2.4.1 branch released 2016-12-13
 

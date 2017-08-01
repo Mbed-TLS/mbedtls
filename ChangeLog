@@ -47,6 +47,7 @@ Bugfix
 Changes
    * Avoid shadowing of time and index functions through mbed TLS function
      arguments. Found by inestlerode. Fixes #557.
+   * Improve documentation of PKCS1 decryption functions.
 
 = mbed TLS 2.1.8 branch released 2017-06-21
 

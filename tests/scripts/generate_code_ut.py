@@ -1,19 +1,22 @@
-"""
-mbed TLS
-Copyright (c) 2017 ARM Limited
+# Unit test for generate_code.py
+#
+# Copyright (C) 2006-2017, ARM Limited, All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# This file is part of mbed TLS (https://tls.mbed.org)
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
 from StringIO import StringIO
 from unittest import TestCase, main as unittest_main
 from mock import patch
@@ -425,7 +428,7 @@ class ParseFuncSignature(TestCase):
 
     def test_int_and_char_params(self):
         """
-        
+        Test int and char parameters parsing
         :return: 
         """
         line = 'void entropy_threshold( char * a, int b, int result )'
@@ -437,7 +440,7 @@ class ParseFuncSignature(TestCase):
 
     def test_hex_params(self):
         """
-        
+        Test hex parameters parsing
         :return: 
         """
         line = 'void entropy_threshold( char * a, HexParam_t * h, int result )'
@@ -449,7 +452,7 @@ class ParseFuncSignature(TestCase):
 
     def test_non_void_function(self):
         """
-        
+        Test invalid signature (non void).
         :return: 
         """
         line = 'int entropy_threshold( char * a, HexParam_t * h, int result )'
@@ -457,7 +460,7 @@ class ParseFuncSignature(TestCase):
 
     def test_unsupported_arg(self):
         """
-        
+        Test unsupported arguments (not among int, char * and HexParam_t)
         :return: 
         """
         line = 'int entropy_threshold( char * a, HexParam_t * h, int * result )'
@@ -465,7 +468,7 @@ class ParseFuncSignature(TestCase):
 
     def test_no_params(self):
         """
-        
+        Test no parameters.
         :return: 
         """
         line = 'void entropy_threshold()'
@@ -483,7 +486,7 @@ class ParseFunctionCode(TestCase):
 
     def test_no_function(self):
         """
-        
+        Test no test function found.
         :return: 
         """
         data = '''
@@ -496,7 +499,7 @@ function
 
     def test_no_end_case_comment(self):
         """
-        
+        Test missing end case.
         :return: 
         """
         data = '''
@@ -510,7 +513,7 @@ void test_func()
     @patch("generate_code.parse_function_signature")
     def test_parse_function_signature_called(self, parse_function_signature_mock):
         """
-        
+        Test parse_function_code()
         :return: 
         """
         parse_function_signature_mock.return_value = ('test_func', [], '', [])
@@ -533,7 +536,7 @@ void test_func()
                                              gen_deps_mock,
                                              gen_dispatch_mock):
         """
-        
+        Test generated code.
         :return: 
         """
         parse_function_signature_mock.return_value = ('func', [], '', [])
@@ -578,7 +581,7 @@ exit:
                            gen_deps_mock,
                            gen_dispatch_mock):
         """
-        
+        Test when exit label is present.
         :return: 
         """
         parse_function_signature_mock.return_value = ('func', [], '', [])

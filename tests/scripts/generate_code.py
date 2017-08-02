@@ -1,44 +1,42 @@
+# Test suites code generator.
+#
+# Copyright (C) 2006-2017, ARM Limited, All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# This file is part of mbed TLS (https://tls.mbed.org)
+
 """
-  Test suites code generator.
+Test Suite code generator.
 
-  Copyright (C) 2006-2017, ARM Limited, All Rights Reserved
-  SPDX-License-Identifier: Apache-2.0
+Generates a test source file using following input files:
 
-  Licensed under the Apache License, Version 2.0 (the "License"); you may
-  not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-
-  http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
-
-  This file is part of mbed TLS (https://tls.mbed.org)
+test_suite_xyz.function - Read test functions from test suite functions file.
+test_suite_xyz.data - Read test functions and their dependencies to generate
+                      dispatch and dependency check code.
+main template - Substitute generated test function dispatch code, dependency
+                checking code.
+platform .function - Read host or target platform implementation for
+                     dispatching test cases from .data file.
+helper .function - Read common reusable functions.
 """
+
 
 import os
 import re
 import argparse
 import shutil
-
-
-"""
-Generates code in following structure.
-
-<output dir>/
- |-- mbedtls/
- |   |-- <test suite #1>/
- |   |    |-- main.c
- |   |    |-- *.data files
- |   ...
- |   |-- <test suite #n>/
- |   |    |-- main.c
- |   |    |-- *.data files
- |   |
-"""
 
 
 BEGIN_HEADER_REGEX = '/\*\s*BEGIN_HEADER\s*\*/'
@@ -67,7 +65,7 @@ class FileWrapper(file):
         """
         Init file handle.
         
-        :param file_name: 
+        :param file_name: File path to open.
         """
         super(FileWrapper, self).__init__(file_name, 'r')
         self.line_no = 0
@@ -75,7 +73,7 @@ class FileWrapper(file):
     def next(self):
         """
         Iterator return impl.
-        :return: 
+        :return: Line read from file.
         """
         line = super(FileWrapper, self).next()
         if line:
@@ -86,13 +84,19 @@ class FileWrapper(file):
         """
         Wrap the base class readline.
         
-        :param limit: 
-        :return: 
+        :param limit: limit to match file.readline([limit])
+        :return: Line read from file.
         """
         return self.next()
 
 
 def split_dep(dep):
+    """
+    Split NOT character '!' from dependency. Used by gen_deps()
+
+    :param dep: Dependency list
+    :return: list of tuples where index 0 has '!' if there was a '!' before the dependency string
+    """
     return ('!', dep[1:]) if dep[0] == '!' else ('', dep)
 
 
@@ -100,8 +104,8 @@ def gen_deps(deps):
     """
     Generates dependency i.e. if def and endif code
 
-    :param deps:
-    :return:
+    :param deps: List of dependencies.
+    :return: if defined and endif code with macro annotations for readability.
     """
     dep_start = ''.join(['#if %sdefined(%s)\n' % split_dep(x) for x in deps])
     dep_end = ''.join(['#endif /* %s */\n' % x for x in reversed(deps)])
@@ -113,8 +117,8 @@ def gen_deps_one_line(deps):
     """
     Generates dependency checks in one line. Useful for writing code in #else case.
 
-    :param deps:
-    :return:
+    :param deps: List of dependencies.
+    :return: ifdef code
     """
     defines = ('#if ' if len(deps) else '') + ' && '.join(['%sdefined(%s)' % split_dep(x) for x in deps])
     return defines
@@ -122,12 +126,12 @@ def gen_deps_one_line(deps):
 
 def gen_function_wrapper(name, locals, args_dispatch):
     """
-    Creates test function code
+    Creates test function wrapper code. A wrapper has the code to unpack parameters from parameters[] array.
 
-    :param name:
-    :param locals:
-    :param args_dispatch:
-    :return:
+    :param name: Test function name
+    :param locals: Local variables declaration code
+    :param args_dispatch: List of dispatch arguments. Ex: ['(char *)params[0]', '*((int *)params[1])']
+    :return: Test function wrapper.
     """
     # Then create the wrapper
     wrapper = '''
@@ -145,11 +149,11 @@ void {name}_wrapper( void ** params )
 
 def gen_dispatch(name, deps):
     """
-    Generates dispatch condition for the functions.
+    Generates dispatch code for the test function table.
 
-    :param name:
-    :param deps:
-    :return:
+    :param name: Test function name
+    :param deps: List of dependencies
+    :return: Dispatch code.
     """
     if len(deps):
         ifdef = gen_deps_one_line(deps)
@@ -172,8 +176,8 @@ def parse_suite_headers(funcs_f):
     """
     Parses function headers.
     
-    :param funcs_f: 
-    :return: 
+    :param funcs_f: file object for .functions file
+    :return: Test suite headers code
     """
     headers = '#line %d "%s"\n' % (funcs_f.line_no + 1, funcs_f.name)
     for line in funcs_f:
@@ -188,10 +192,10 @@ def parse_suite_headers(funcs_f):
 
 def parse_suite_deps(funcs_f):
     """
-    Parses function dependencies.
+    Parses test suite dependencies.
     
-    :param funcs_f: 
-    :return: 
+    :param funcs_f: file object for .functions file
+    :return: List of test suite dependencies.
     """
     deps = []
     for line in funcs_f:
@@ -208,9 +212,10 @@ def parse_suite_deps(funcs_f):
 
 def parse_function_deps(line):
     """
+    Parses function dependencies.
     
-    :param line: 
-    :return: 
+    :param line: Line from .functions file that has dependencies.
+    :return: List of dependencies.
     """
     deps = []
     m = re.search(BEGIN_CASE_REGEX, line)
@@ -226,8 +231,8 @@ def parse_function_signature(line):
     """
     Parsing function signature
     
-    :param line: 
-    :return: 
+    :param line: Line from .functions file that has a function signature.
+    :return: function name, argument list, local variables for wrapper function and argument dispatch code.
     """
     args = []
     locals = ''
@@ -265,12 +270,12 @@ def parse_function_signature(line):
 
 def parse_function_code(funcs_f, deps, suite_deps):
     """
+    Parses out a function from function file object and generates function and dispatch code.
     
-    :param line_no: 
-    :param funcs_f: 
-    :param deps:
-    :param suite_deps:
-    :return: 
+    :param funcs_f: file object of the functions file.
+    :param deps: List of dependencies
+    :param suite_deps: List of test suite dependencies
+    :return: Function name, arguments, function code and dispatch code.
     """
     code = '#line %d "%s"\n' % (funcs_f.line_no + 1, funcs_f.name)
     for line in funcs_f:
@@ -315,8 +320,9 @@ def parse_functions(funcs_f):
     """
     Returns functions code pieces
     
-    :param funcs_f: 
-    :return:
+    :param funcs_f: file object of the functions file.
+    :return: List of test suite dependencies, test function dispatch code, function code and
+             a dict with function identifiers and arguments info.
     """
     suite_headers = ''
     suite_deps = []
@@ -354,9 +360,9 @@ def escaped_split(str, ch):
     Since return value is used to write back to the intermediate data file. 
     Any escape characters in the input are retained in the output.
 
-    :param str:
-    :param ch:
-    :return:
+    :param str: String to split
+    :param ch: split character
+    :return: List of splits
     """
     if len(ch) > 1:
         raise ValueError('Expected split character. Found string!')
@@ -379,8 +385,8 @@ def parse_test_data(data_f, debug=False):
     """
     Parses .data file
     
-    :param data_f: 
-    :return: 
+    :param data_f: file object of the data file.
+    :return: Generator that yields test name, function name, dependency list and function argument list.
     """
     STATE_READ_NAME = 0
     STATE_READ_ARGS = 1
@@ -423,9 +429,9 @@ def gen_dep_check(dep_id, dep):
     """
     Generate code for the dependency.
     
-    :param dep_id: 
-    :param dep: 
-    :return: 
+    :param dep_id: Dependency identifier
+    :param dep: Dependency macro
+    :return: Dependency check code
     """
     assert dep_id > -1, "Dependency Id should be a positive integer."
     noT, dep = ('!', dep[1:]) if dep[0] == '!' else ('', dep)
@@ -447,9 +453,9 @@ def gen_expression_check(exp_id, exp):
     """
     Generates code for expression check
     
-    :param exp_id: 
-    :param exp: 
-    :return: 
+    :param exp_id: Expression Identifier
+    :param exp: Expression/Macro
+    :return: Expression check code
     """
     assert exp_id > -1, "Expression Id should be a positive integer."
     assert len(exp) > 0, "Expression should not be an empty string."
@@ -467,10 +473,10 @@ def write_deps(out_data_f, test_deps, unique_deps):
     Write dependencies to intermediate test data file.
     It also returns dependency check code.
       
-    :param out_data_f:
-    :param dep: 
-    :param unique_deps: 
-    :return: 
+    :param out_data_f: Output intermediate data file
+    :param test_deps: Dependencies
+    :param unique_deps: Mutable list to track unique dependencies that are global to this re-entrant function.
+    :return: returns dependency check code.
     """
     dep_check_code = ''
     if len(test_deps):
@@ -492,11 +498,11 @@ def write_parameters(out_data_f, test_args, func_args, unique_expressions):
     Writes test parameters to the intermediate data file.
     Also generates expression code.
      
-    :param out_data_f: 
-    :param test_args: 
-    :param func_args:
-    :param unique_expressions: 
-    :return: 
+    :param out_data_f: Output intermediate data file
+    :param test_args: Test parameters
+    :param func_args: Function arguments
+    :param unique_expressions: Mutable list to track unique expressions that are global to this re-entrant function.
+    :return: Returns expression check code.
     """
     expression_code = ''
     for i in xrange(len(test_args)):
@@ -524,10 +530,10 @@ def gen_suite_deps_checks(suite_deps, dep_check_code, expression_code):
     """
     Adds preprocessor checks for test suite dependencies.
     
-    :param suite_deps: 
-    :param dep_check_code: 
-    :param expression_code: 
-    :return: 
+    :param suite_deps: Test suite dependencies read from the .functions file.
+    :param dep_check_code: Dependency check code
+    :param expression_code: Expression check code
+    :return: Dependency and expression code guarded by test suite dependencies.
     """
     if len(suite_deps):
         ifdef = gen_deps_one_line(suite_deps)
@@ -548,11 +554,11 @@ def gen_from_test_data(data_f, out_data_f, func_info, suite_deps):
     """
     Generates dependency checks, expression code and intermediate data file from test data file.
     
-    :param data_f: 
-    :param out_data_f:
-    :param func_info: 
-    :param suite_deps:
-    :return: 
+    :param data_f: Data file object
+    :param out_data_f:Output intermediate data file
+    :param func_info: Dict keyed by function and with function id and arguments info
+    :param suite_deps: Test suite deps
+    :return: Returns dependency and expression check code
     """
     unique_deps = []
     unique_expressions = []
@@ -586,14 +592,14 @@ def generate_code(funcs_file, data_file, template_file, platform_file, help_file
     """
     Generate mbed-os test code.
 
-    :param funcs_file:
-    :param dat  a_file:
-    :param template_file:
-    :param platform_file:
-    :param help_file:
-    :param suites_dir:
-    :param c_file:
-    :param out_data_file:
+    :param funcs_file: Functions file object
+    :param data_file: Data file object
+    :param template_file: Template file object
+    :param platform_file: Platform file object
+    :param help_file: Helper functions file object
+    :param suites_dir: Test suites dir
+    :param c_file: Output C file object
+    :param out_data_file: Output intermediate data file object
     :return:
     """
     for name, path in [('Functions file', funcs_file),

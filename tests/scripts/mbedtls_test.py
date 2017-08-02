@@ -1,23 +1,32 @@
+# Greentea host test script for on-target tests.
+#
+# Copyright (C) 2006-2017, ARM Limited, All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# This file is part of mbed TLS (https://tls.mbed.org)
+
+
 """
-  Greentea host test script for on-target tests.
+Greentea host test script for on-target tests.
 
-  Copyright (C) 2006-2017, ARM Limited, All Rights Reserved
-  SPDX-License-Identifier: Apache-2.0
-
-  Licensed under the Apache License, Version 2.0 (the "License"); you may
-  not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-
-  http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
-
-  This file is part of mbed TLS (https://tls.mbed.org)
+Host test script for testing mbed TLS test suites on target. Implements
+BaseHostTest to handle key,value pairs (events) coming from mbed TLS
+tests. Reads data file corresponding to the executing binary and dispatches
+test cases.
 """
+
 
 import re
 import os
@@ -38,7 +47,9 @@ class TestDataParser(object):
 
     def parse(self, data_file):
         """
+        Data file parser.
 
+        :param data_file: Data file path
         """
         with open(data_file, 'r') as f:
             self.__parse(f)
@@ -46,6 +57,11 @@ class TestDataParser(object):
     @staticmethod
     def __escaped_split(str, ch):
         """
+        Splits str on ch except when escaped.
+
+        :param str: String to split
+        :param ch: Split character
+        :return: List of splits
         """
         if len(ch) > 1:
             raise ValueError('Expected split character. Found string!')
@@ -65,6 +81,10 @@ class TestDataParser(object):
 
     def __parse(self, file):
         """
+        Parses data file using supplied file object.
+
+        :param file: Data file object
+        :return:
         """
         for line in file:
             line = line.strip()
@@ -93,6 +113,7 @@ class TestDataParser(object):
 
     def get_test_data(self):
         """
+        Returns test data.
         """
         return self.tests
 
@@ -115,6 +136,7 @@ class MbedTlsTest(BaseHostTest):
 
     def __init__(self):
         """
+        Constructor initialises test index to 0.
         """
         super(MbedTlsTest, self).__init__()
         self.tests = []
@@ -130,6 +152,7 @@ class MbedTlsTest(BaseHostTest):
 
     def setup(self):
         """
+        Setup hook implementation. Reads test suite data file and parses out tests.
         """
         binary_path = self.get_config_item('image_path')
         script_dir = os.path.split(os.path.abspath(__file__))[0]
@@ -148,6 +171,7 @@ class MbedTlsTest(BaseHostTest):
 
     def print_test_info(self):
         """
+        Prints test summary read by Greentea to detect test cases.
         """
         self.log('{{__testcase_count;%d}}' % len(self.tests))
         for name, _, _, _ in self.tests:
@@ -156,7 +180,7 @@ class MbedTlsTest(BaseHostTest):
     @staticmethod
     def align_32bit(b):
         """
-        4 byte aligns byte array.
+        4 byte aligns input byte array.
 
         :return:
         """
@@ -167,8 +191,8 @@ class MbedTlsTest(BaseHostTest):
         """
         Converts Hex string representation to byte array
 
-        :param hex_str:
-        :return:
+        :param hex_str: Hex in string format.
+        :return: Output Byte array
         """
         assert hex_str[0] == '"' and hex_str[len(hex_str) - 1] == '"', \
             "HEX test parameter missing '\"': %s" % hex_str
@@ -183,8 +207,8 @@ class MbedTlsTest(BaseHostTest):
         """
         Coverts i to bytearray in big endian format.
 
-        :param i:
-        :return:
+        :param i: Input integer
+        :return: Output bytes array in big endian or network order
         """
         b = bytearray([((i >> x) & 0xff) for x in [24, 16, 8, 0]])
         return b
@@ -193,10 +217,10 @@ class MbedTlsTest(BaseHostTest):
         """
         Converts test vector into a byte array that can be sent to the target.
 
-        :param function_id:
-        :param deps:
-        :param parameters:
-        :return:
+        :param function_id: Test Function Identifier
+        :param deps: Dependency list
+        :param parameters: Test function input parameters
+        :return: Byte array and its length
         """
         b = bytearray([len(deps)])
         if len(deps):
@@ -243,10 +267,10 @@ class MbedTlsTest(BaseHostTest):
         """
         Runs the test.
 
-        :param name:
-        :param function_id:
-        :param deps:
-        :param args:
+        :param name: Test name
+        :param function_id: function identifier
+        :param deps: Dependencies list
+        :param args: test parameters
         :return:
         """
         self.log("Running: %s" % name)
@@ -256,6 +280,11 @@ class MbedTlsTest(BaseHostTest):
 
     @staticmethod
     def get_result(value):
+        """
+        Converts result from string type to integer
+        :param value: Result code in string
+        :return: Integer result code
+        """
         try:
             return int(value)
         except ValueError:
@@ -264,13 +293,25 @@ class MbedTlsTest(BaseHostTest):
 
     @event_callback('GO')
     def on_go(self, key, value, timestamp):
+        """
+        Called on key "GO". Kicks off test execution.
+
+        :param key: Event key
+        :param value: Value. ignored
+        :param timestamp: Timestamp ignored.
+        :return:
+        """
         self.run_next_test()
 
     @event_callback("R")
     def on_result(self, key, value, timestamp):
         """
-        Handle result.
+        Handle result. Prints test start, finish prints required by Greentea to detect test execution.
 
+        :param key: Event key
+        :param value: Value. ignored
+        :param timestamp: Timestamp ignored.
+        :return:
         """
         int_val = self.get_result(value)
         name, function, deps, args = self.tests[self.test_index]
@@ -282,11 +323,12 @@ class MbedTlsTest(BaseHostTest):
     @event_callback("F")
     def on_failure(self, key, value, timestamp):
         """
-        Handles test execution failure. Hence marking test as skipped.
+        Handles test execution failure. That means dependency not supported or
+        Test function not supported. Hence marking test as skipped.
 
-        :param key:
-        :param value:
-        :param timestamp:
+        :param key: Event key
+        :param value: Value. ignored
+        :param timestamp: Timestamp ignored.
         :return:
         """
         int_val = self.get_result(value)

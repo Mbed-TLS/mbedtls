@@ -1182,11 +1182,19 @@ cleanup:
     FindClose( hFind );
 #else /* _WIN32 */
     int t_ret;
-    int snp_ret;
-    struct stat sb;
-    struct dirent *entry;
+    int entry_offset, dt;
     char entry_name[MBEDTLS_X509_MAX_FILE_PATH_LEN];
-    DIR *dir = opendir( path );
+    mbedtls_dir_t *dir = opendir( path );
+
+    if( dir == NULL )
+        return( MBEDTLS_ERR_X509_FILE_IO_ERROR );
+
+    entry_offset = mbedtls_snprintf( entry_name, sizeof( entry_name ),
+            "%s/", path );
+    if( entry_offset < 0 || (size_t)entry_offset >= sizeof( entry_name ) )
+        return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
+
+    dir = opendir( path );
 
     if( dir == NULL )
         return( MBEDTLS_ERR_X509_FILE_IO_ERROR );
@@ -1199,23 +1207,10 @@ cleanup:
     }
 #endif /* MBEDTLS_THREADING_C */
 
-    while( ( entry = readdir( dir ) ) != NULL )
+    while( mbedtls_readdir( dir, entry_name + entry_offset,
+           MBEDTLS_X509_MAX_FILE_PATH_LEN - entry_offset, &dt ) == 0 )
     {
-        snp_ret = mbedtls_snprintf( entry_name, sizeof entry_name,
-                                    "%s/%s", path, entry->d_name );
-
-        if( snp_ret < 0 || (size_t)snp_ret >= sizeof entry_name )
-        {
-            ret = MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
-            goto cleanup;
-        }
-        else if( stat( entry_name, &sb ) == -1 )
-        {
-            ret = MBEDTLS_ERR_X509_FILE_IO_ERROR;
-            goto cleanup;
-        }
-
-        if( !S_ISREG( sb.st_mode ) )
+        if( dt != MBEDTLS_FSIO_DT_REG )
             continue;
 
         // Ignore parse errors
@@ -1227,7 +1222,6 @@ cleanup:
             ret += t_ret;
     }
 
-cleanup:
     closedir( dir );
 
 #if defined(MBEDTLS_THREADING_C)

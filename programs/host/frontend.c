@@ -43,6 +43,7 @@
 #define mbedtls_free      free
 #define mbedtls_fprintf   fprintf
 #include <unistd.h>
+#include <dirent.h>
 #endif
 
 FILE * fdbg = NULL;
@@ -220,7 +221,7 @@ typedef struct {
     int8_t      inUse;
 } mbedtls_serialize_file_context_t;
 
-#define MBEDTLS_SERIALIZE_MAX_FILES     10
+#define MBEDTLS_SERIALIZE_MAX_FILES     100
 static mbedtls_serialize_file_context_t files[MBEDTLS_SERIALIZE_MAX_FILES];
 
 int32_t alloc_file_context()
@@ -642,6 +643,92 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
             if ( file )
             {
                 ret = ferror( file );
+            }
+        }
+        break;
+    case MBEDTLS_SERIALIZE_FUNCTION_DOPEN:
+        {
+            char * path = NULL;
+            char * mode = NULL;
+            int32_t file_id;
+
+            ret = MBEDTLS_ERR_SERIALIZE_BAD_OUTPUT;
+            path = item_buffer( inputs[1] );
+            DBG( "open dir [%s]", path, mode);
+            file_id = alloc_file_context();
+            DBG( "allocated dir id [%d]", file_id);
+            if ( file_id != -1 )
+            {
+                DIR * dir = opendir( path );
+                if ( dir != NULL )
+                {
+                    files[file_id - 1].file = dir;
+                    ALLOC_OUTPUT( 0, sizeof (int32_t) );
+                    set_item_int32( outputs[0], file_id );
+                    ret = 0;
+                }
+                else
+                {
+                    DBG( "opendir: error = %s", strerror( errno ) );
+                    free_file_context( file_id );
+                }
+            }
+        }
+        break;
+    case MBEDTLS_SERIALIZE_FUNCTION_FREAD:
+        {
+            int32_t file_id, size;
+            DIR * dir = NULL;
+
+            ret = MBEDTLS_ERR_SERIALIZE_BAD_OUTPUT;
+            size = item_int32( inputs[0] );
+            file_id = item_int32( inputs[1] );
+            dir = get_file_from_id( file_id );
+            if ( dir )
+            {
+                struct dirent * entry = readdir( dir );
+                if ( entry )
+                {
+                    int file_size = strlen( entry->d_name );
+
+                    /* Check buffer size */
+                    if ( file_size < size )
+                    {
+                        /* map entry type to serialize type */
+                        switch ( entry->d_type )
+                        {
+                            case DT_BLK:
+                                type = MBEDTLS_SERIALIZE_DT_BLK;
+                                break;
+                            case DT_CHR:
+                                type = MBEDTLS_SERIALIZE_DT_CHR;
+                                break;
+                            case DT_DIR:
+                                type = MBEDTLS_SERIALIZE_DT_DIR;
+                                break;
+                            case DT_FIFO:
+                                type = MBEDTLS_SERIALIZE_DT_FIFO;
+                                break;
+                            case DT_LNK:
+                                type = MBEDTLS_SERIALIZE_DT_LNK;
+                                break;
+                            case DT_REG:
+                                type = MBEDTLS_SERIALIZE_DT_REG;
+                                break;
+                            case DT_SOCK:
+                                type = MBEDTLS_SERIALIZE_DT_SOCK;
+                                break;
+                            case DT_UNKNOWN:
+                            default:
+                                type = MBEDTLS_SERIALIZE_DT_UNKNOWN;
+                                break;
+                        }
+                        ALLOC_OUTPUT( 0, file_size + 1 );
+                        strncpy( outputs[0], entry->d_name, file_size + 1 );
+                        outputs[0]->size = file_size + 1;
+                        ret = 0;
+                    }
+                }
             }
         }
         break;

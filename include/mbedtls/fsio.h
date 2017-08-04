@@ -42,6 +42,7 @@ extern "C" {
 
 #if !defined(MBEDTLS_FS_IO_ALT)
 #include <stdio.h>
+#include <dirent.h>
 
 #define mbedtls_file_t      FILE
 #define mbedtls_fread       fread
@@ -55,6 +56,16 @@ extern "C" {
 #define MBEDTLS_SEEK_CUR    SEEK_CUR
 #define MBEDTLS_SEEK_END    SEEK_END
 
+#define mbedtls_dir_t           DIR
+#define MBEDTLS_FSIO_DT_BLK     DT_BLK
+#define MBEDTLS_FSIO_DT_CHR     DT_CHR
+#define MBEDTLS_FSIO_DT_DIR     DT_DIR
+#define MBEDTLS_FSIO_DT_FIFO    DT_FIFO
+#define MBEDTLS_FSIO_DT_LNK     DT_LNK
+#define MBEDTLS_FSIO_DT_REG     DT_REG
+#define MBEDTLS_FSIO_DT_SOCK    DT_SOCK
+#define MBEDTLS_FSIO_DT_UNKNOWN DT_UNKNOWN
+
 /**
  * \brief          Open file. Follows standard C fopen interface.
  *
@@ -64,6 +75,7 @@ extern "C" {
  * \return         Pointer to mbedtls_file_t on success or NULL on failure.
  */
 mbedtls_file_t * mbedtls_fopen( const char *path, const char *mode );
+int mbedtls_readdir( mbedtls_dir_t * dir, char * file_name, int size,  int * type );
 
 #else /* !MBEDTLS_FS_IO_ALT */
 
@@ -74,11 +86,29 @@ mbedtls_file_t * mbedtls_fopen( const char *path, const char *mode );
 typedef void mbedtls_file_t;
 
 /**
+ * dir context.
+ *
+ */
+typedef void mbedtls_dir_t;
+
+/**
  * Definition of whence required by mbedtls_fseek().
  */
 #define MBEDTLS_SEEK_SET    0
 #define MBEDTLS_SEEK_CUR    1
 #define MBEDTLS_SEEK_END    2
+
+/**
+ * Definition of dir entry types required by mbedtls_readdir().
+ */
+#define MBEDTLS_FSIO_DT_BLK     0
+#define MBEDTLS_FSIO_DT_CHR     1
+#define MBEDTLS_FSIO_DT_DIR     2
+#define MBEDTLS_FSIO_DT_FIFO    3
+#define MBEDTLS_FSIO_DT_LNK     4
+#define MBEDTLS_FSIO_DT_REG     5
+#define MBEDTLS_FSIO_DT_SOCK    6
+#define MBEDTLS_FSIO_DT_UNKNOWN 7
 
 /**
  * \brief          Open file. Follows standard C fopen interface.

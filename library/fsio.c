@@ -27,10 +27,12 @@
 
 #if defined(MBEDTLS_FS_IO)
 
+#include <string.h>
 #include "mbedtls/fsio.h"
 
 #if !defined(MBEDTLS_FS_IO_ALT)
 
+#if !defined(MBEDTLS_PLATFORM_NO_STD_FUNCTIONS)
 /**
  * \brief          Open file and disable buffering.
  *
@@ -52,17 +54,60 @@ mbedtls_file_t * mbedtls_fopen( const char *path, const char *mode )
     return( f );
 }
 
+/**
+ * \brief           Rework of readdir to adapt to abstraction. This does not
+ *                  return struct dirent pointer. Hence no need to worry
+ *                  pointer ownership and cleanup.
+ *
+ * \param dir       Pointer to directory handle.
+ * \param file_name Out buffer for directory entry name.
+ *                  Upto 255 character long name can be returned.
+ * \param size      Out buffer length.
+ * \param type      Entry type.
+ *
+ * \return          0 for success. Non zero for failure.
+ */
+int mbedtls_readdir( mbedtls_dir_t * dir, char * file_name, int size,  int * type )
+{
+    int status = -1;
+    struct dirent * entry;
+
+    if ( ( entry = readdir( dir ) ) != NULL )
+    {
+        strncpy( file_name, entry->d_name, size );
+        if ( file_name[size - 1] == '\0' ) /* Check if buffer was enough */
+        {
+            *type = entry->d_type;
+            status = 0;
+            printf ("successfully read file name [%s] size (%d)\n", file_name, size);
+        }
+        else
+        {
+            file_name[size - 1] = 0;
+            printf ("failed to read file %s\n", file_name);
+        }
+    }
+    else
+        printf ("Failed to read dir\n");
+
+    printf ("mbedtls_readdir status %d\n", status);
+    return( status );
+}
+
+#endif /* !MBEDTLS_PLATFORM_NO_STD_FUNCTIONS */
+
 #else /* !MBEDTLS_FS_IO_ALT */
 
 #if defined(MBEDTLS_SERIALIZE_C)
-#include <string.h>
 
 #include "mbedtls/serialize.h"
 
 
 
 #define INT_TO_FILE_PTR( x ) ( (mbedtls_file_t *)(uintptr_t)x )
+#define INT_TO_DIR_PTR( x ) ( (mbedtls_dir_t *)(uintptr_t)x )
 #define FILE_PTR_TO_INT( x ) ( (int32_t)(uintptr_t)x )
+#define DIR_PTR_TO_INT( x ) ( (int32_t)(uintptr_t)x )
 
 /**
  * \brief          Open file. Follows standard C fopen interface.
@@ -84,6 +129,7 @@ mbedtls_file_t * mbedtls_fopen( const char *path, const char *mode )
     if ( status == 0 )
     {
         mbedtls_serialize_pop_int32( &file_id ); /* Id */
+        assert( file_id != 0 );
         file = INT_TO_FILE_PTR( file_id );
     }
     return( file );
@@ -268,6 +314,88 @@ int mbedtls_ferror( mbedtls_file_t *stream )
         ret = 0;
     return( ret );
 }
+
+/**
+ * \brief           Open dir. Follows POSIX opendir interface.
+ *
+ * \param path      Directory path string
+ *
+ * \return          Pointer to mbedtls_dir_t if success. Else NULL.
+ */
+mbedtls_dir_t * mbedtls_opendir( const char * path )
+{
+    int status;
+    uint32_t dir_id;
+    mbedtls_dir_t * dir = NULL;
+    mbedtls_serialize_push_buffer( path, strlen( path ) + 1 );
+    status = mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_DOPEN );
+
+    if ( status == 0 )
+    {
+        mbedtls_serialize_pop_int32( &dir_id ); /* Id */
+        assert( dir_id != 0 );
+        dir = INT_TO_DIR_PTR( dir_id );
+    }
+    return( dir );
+}
+
+/**
+ * \brief           Read dir entry (file, dir etc.).
+ *
+ * \param dir       Pointer to directory handle.
+ * \param dirent    Out buffer for directory entry name.
+ *                  Upto 255 character long name can be returned.
+ * \param size      Out buffer length.
+ * \param type      Entry type.
+ *
+ * \return          0 for success. Non zero for failure.
+ */
+int mbedtls_readdir( mbedtls_dir_t * dir, char * dirent, int size,  int * type )
+{
+    int status;
+    size_t len = 0;
+
+    mbedtls_serialize_push_int32( DIR_PTR_TO_INT( dir ) );
+    mbedtls_serialize_push_int32( size ); /* Send entry size for validation */
+    status = mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_DREAD );
+    if ( status == 0 )
+    {
+        mbedtls_serialize_pop_buffer( dirent, size, &len );
+        mbedtls_serialize_pop_int32( &type );
+
+        /* Map serialize dir entry type to fsio abstraction type */
+        switch ( type )
+        {
+            case MBEDTLS_SERIALIZE_DT_BLK:
+                type = MBEDTLS_FSIO_DT_BLK;
+                break;
+            case MBEDTLS_SERIALIZE_DT_CHR:
+                type = MBEDTLS_FSIO_DT_CHR;
+                break;
+            case MBEDTLS_SERIALIZE_DT_DIR:
+                type = MBEDTLS_FSIO_DT_DIR;
+                break;
+            case MBEDTLS_SERIALIZE_DT_FIFO:
+                type = MBEDTLS_FSIO_DT_FIFO;
+                break;
+            case MBEDTLS_SERIALIZE_DT_LNK:
+                type = MBEDTLS_FSIO_DT_LNK;
+                break;
+            case MBEDTLS_SERIALIZE_DT_REG:
+                type = MBEDTLS_FSIO_DT_REG;
+                break;
+            case MBEDTLS_SERIALIZE_DT_SOCK:
+                type = MBEDTLS_FSIO_DT_SOCK;
+                break;
+            case MBEDTLS_SERIALIZE_DT_UNKNOWN:
+            default:
+                type = MBEDTLS_FSIO_DT_UNKNOWN;
+                break;
+        }
+    }
+    return( s );
+}
+
 
 #endif /* MBEDTLS_SERIALIZE_C */
 #endif /* else !MBEDTLS_FS_IO_ALT */

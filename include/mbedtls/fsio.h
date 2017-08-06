@@ -214,19 +214,22 @@ mbedtls_dir_t * mbedtls_opendir( const char *path );
 mbedtls_file_t * mbedtls_fopen( const char *path, const char *mode );
 
 /**
- * \brief          Open file. Follows standard C fopen interface.
+ * \brief           Read dir entry (file, dir etc.).
  *
- * \param path     File path
- * \param mode     Open mode
+ * \param dir       Pointer to directory handle.
+ * \param direntry  Out buffer for directory entry name.
+ *                  Upto 255 character long name can be returned.
+ * \param size      Out buffer length.
+ * \param type      Entry type.
  *
- * \return         Pointer to mbedtls_file_t on success or NULL on failure.
+ * \return          0 for success. Non zero for failure.
  */
-int mbedtls_readdir( mbedtls_dir_t * dir, char * file_name, uint32_t size,  uint32_t * type );
+int mbedtls_readdir( mbedtls_dir_t * dir, char * direntry, uint32_t size,  uint32_t * type );
 
 /**
  * \brief          Close dir. Follows posix closedir interface.
  *
- * \param stream   Pointer to mbedtls_dir_t.
+ * \param dir      Pointer to mbedtls_dir_t.
  *
  * \return
  */

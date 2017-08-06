@@ -80,18 +80,13 @@ int mbedtls_readdir( mbedtls_dir_t * dir, char * file_name, uint32_t size,  uint
         {
             *type = entry->d_type;
             status = 0;
-            printf ("successfully read file name [%s] size (%d)\n", file_name, size);
         }
         else
         {
             file_name[size - 1] = 0;
-            printf ("failed to read file %s\n", file_name);
         }
     }
-    else
-        printf ("Failed to read dir\n");
 
-    printf ("mbedtls_readdir status %d\n", status);
     return( status );
 }
 
@@ -366,7 +361,6 @@ int mbedtls_readdir( mbedtls_dir_t * dir, char * dirent, uint32_t size,  uint32_
         mbedtls_serialize_pop_buffer( dirent, size, &len );
 
         /* Map serialize dir entry type to fsio abstraction type */
-        printf ("Read entry %s, type %d\n", dirent, *type);
         switch ( *type )
         {
             case MBEDTLS_SERIALIZE_DT_BLK:
@@ -395,7 +389,6 @@ int mbedtls_readdir( mbedtls_dir_t * dir, char * dirent, uint32_t size,  uint32_
                 *type = MBEDTLS_FSIO_DT_UNKNOWN;
                 break;
         }
-        printf ("Read entry %s, type %d\n", dirent, *type);
     }
     return( status );
 }

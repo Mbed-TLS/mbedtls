@@ -40,6 +40,7 @@ extern "C" {
 /* If MBEDTLS_FS_IO is enabled then file IO functions should be made available
  * via standard library or platform specific implementation. */
 
+/* Default and alternate implementation specific interfaces. */
 #if !defined(MBEDTLS_FS_IO_ALT)
 #include <stdio.h>
 #include <dirent.h>
@@ -57,6 +58,8 @@ extern "C" {
 #define MBEDTLS_SEEK_END    SEEK_END
 
 #define mbedtls_dir_t           DIR
+#define mbedtls_opendir         opendir
+#define mbedtls_closedir        closedir
 #define MBEDTLS_FSIO_DT_BLK     DT_BLK
 #define MBEDTLS_FSIO_DT_CHR     DT_CHR
 #define MBEDTLS_FSIO_DT_DIR     DT_DIR
@@ -65,17 +68,6 @@ extern "C" {
 #define MBEDTLS_FSIO_DT_REG     DT_REG
 #define MBEDTLS_FSIO_DT_SOCK    DT_SOCK
 #define MBEDTLS_FSIO_DT_UNKNOWN DT_UNKNOWN
-
-/**
- * \brief          Open file. Follows standard C fopen interface.
- *
- * \param path     File path
- * \param mode     Open mode
- *
- * \return         Pointer to mbedtls_file_t on success or NULL on failure.
- */
-mbedtls_file_t * mbedtls_fopen( const char *path, const char *mode );
-int mbedtls_readdir( mbedtls_dir_t * dir, char * file_name, int size,  int * type );
 
 #else /* !MBEDTLS_FS_IO_ALT */
 
@@ -198,8 +190,48 @@ int mbedtls_fclose( mbedtls_file_t *stream );
  */
 int mbedtls_ferror( mbedtls_file_t *stream );
 
+/**
+ * \brief          Open dir. Follows posix opendir interface.
+ *
+ * \param path     File path
+ *
+ * \return         Pointer to mbedtls_dir_t on success or NULL on failure.
+ */
+mbedtls_dir_t * mbedtls_opendir( const char *path );
 
 #endif /* !MBEDTLS_FS_IO_ALT */
+
+/* Common Interface prototypes */
+
+/**
+ * \brief          Open file. Follows standard C fopen interface.
+ *
+ * \param path     File path
+ * \param mode     Open mode
+ *
+ * \return         Pointer to mbedtls_file_t on success or NULL on failure.
+ */
+mbedtls_file_t * mbedtls_fopen( const char *path, const char *mode );
+
+/**
+ * \brief          Open file. Follows standard C fopen interface.
+ *
+ * \param path     File path
+ * \param mode     Open mode
+ *
+ * \return         Pointer to mbedtls_file_t on success or NULL on failure.
+ */
+int mbedtls_readdir( mbedtls_dir_t * dir, char * file_name, uint32_t size,  uint32_t * type );
+
+/**
+ * \brief          Close dir. Follows posix closedir interface.
+ *
+ * \param stream   Pointer to mbedtls_dir_t.
+ *
+ * \return
+ */
+int mbedtls_closedir( mbedtls_dir_t * dir );
+
 #endif /* MBEDTLS_FS_IO */
 
 #ifdef __cplusplus

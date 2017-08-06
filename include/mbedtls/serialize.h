@@ -106,11 +106,18 @@ extern "C" {
 #define MBEDTLS_SERIALIZE_FUNCTION_FERROR       0x020810
     /* in: int32 file id
     */
-#define MBEDTLS_SERIALIZE_FUNCTION_DOPEN        0x020910
-    /* in: int32 file id
+#define MBEDTLS_SERIALIZE_FUNCTION_DOPEN        0x020911
+    /* in: int8_t * dir path
+       out: int32 dir Id
     */
-#define MBEDTLS_SERIALIZE_FUNCTION_DREAD        0x020A10
+#define MBEDTLS_SERIALIZE_FUNCTION_DREAD        0x020A22
     /* in: int32 file id
+       in: uint32 read buffer size
+       out: int8_t * read buffer
+       out: uint32 dir entry type
+    */
+#define MBEDTLS_SERIALIZE_FUNCTION_DCLOSE       0x020B10
+    /* in: int32 dir id
     */
 
 /** whence for fseek function */

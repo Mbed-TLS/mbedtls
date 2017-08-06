@@ -1182,19 +1182,17 @@ cleanup:
     FindClose( hFind );
 #else /* _WIN32 */
     int t_ret;
-    int entry_offset, dt;
+    int entry_offset;
+    uint32_t dt;
     char entry_name[MBEDTLS_X509_MAX_FILE_PATH_LEN];
-    mbedtls_dir_t *dir = opendir( path );
-
-    if( dir == NULL )
-        return( MBEDTLS_ERR_X509_FILE_IO_ERROR );
+    mbedtls_dir_t * dir = NULL;
 
     entry_offset = mbedtls_snprintf( entry_name, sizeof( entry_name ),
             "%s/", path );
     if( entry_offset < 0 || (size_t)entry_offset >= sizeof( entry_name ) )
         return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
 
-    dir = opendir( path );
+    dir = mbedtls_opendir( path );
 
     if( dir == NULL )
         return( MBEDTLS_ERR_X509_FILE_IO_ERROR );
@@ -1202,7 +1200,7 @@ cleanup:
 #if defined(MBEDTLS_THREADING_C)
     if( ( ret = mbedtls_mutex_lock( &mbedtls_threading_readdir_mutex ) ) != 0 )
     {
-        closedir( dir );
+        mbedtls_closedir( dir );
         return( ret );
     }
 #endif /* MBEDTLS_THREADING_C */
@@ -1222,7 +1220,7 @@ cleanup:
             ret += t_ret;
     }
 
-    closedir( dir );
+    mbedtls_closedir( dir );
 
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_unlock( &mbedtls_threading_readdir_mutex ) != 0 )

@@ -605,15 +605,15 @@ void mbedtls_x509_crt_verify_chain(  char *chain_paths, char *trusted_ca,
         TEST_ASSERT( mbedtls_x509_crt_parse_file( &chain, act ) == 0 );
     TEST_ASSERT( mbedtls_x509_crt_parse_file( &trusted, trusted_ca ) == 0 );
 
-    if( strcmp(profile_name, "") == 0 )
+    if( strcmp( profile_name, "" ) == 0 )
         profile = &mbedtls_x509_crt_profile_default;
-    else if( strcmp(profile_name, "next") == 0 )
+    else if( strcmp( profile_name, "next" ) == 0 )
         profile = &mbedtls_x509_crt_profile_next;
-    else if( strcmp(profile_name, "suiteb") == 0 )
+    else if( strcmp( profile_name, "suiteb" ) == 0 )
         profile = &mbedtls_x509_crt_profile_suiteb;
-    else if( strcmp(profile_name, "rsa3072") == 0 )
+    else if( strcmp( profile_name, "rsa3072" ) == 0 )
         profile = &profile_rsa3072;
-    else if( strcmp(profile_name, "sha512") == 0 )
+    else if( strcmp( profile_name, "sha512" ) == 0 )
         profile = &profile_sha512;
 
     res = mbedtls_x509_crt_verify_with_profile( &chain, &trusted, NULL, profile,

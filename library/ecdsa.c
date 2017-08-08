@@ -173,7 +173,7 @@ int mbedtls_ecdsa_sign_det( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi 
     const mbedtls_md_info_t *md_info;
     mbedtls_mpi h;
 
-    if ( grp == NULL  || d == NULL)
+    if ( grp == NULL  || d == NULL || buf == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     if (blen == 0)
@@ -326,7 +326,7 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t
     int ret;
     mbedtls_mpi r, s;
 
-    if ( ctx == NULL || sig == NULL || sig == NULL || slen == NULL )
+    if ( ctx == NULL || sig == NULL || slen == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     mbedtls_mpi_init(&r);

@@ -1893,7 +1893,6 @@ static int x509_crt_check_signature( const mbedtls_x509_crt *child,
  * Return 0 if yes, -1 if not.
  *
  * top means parent is a locally-trusted certificate
- * bottom means child is the end entity cert
  */
 static int x509_crt_check_parent( const mbedtls_x509_crt *child,
                                   const mbedtls_x509_crt *parent,
@@ -1935,9 +1934,9 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
  *  3. for trusted roots, the signature is correct
  *  4. pathlen constraints are satisfied
  *
- * Stop at the first suitable candidate, except if it's not time-valid (not
- * expired nor future) *and* there is a later suitable candidate that is
- * time-valid.
+ * If there's a suitable candidate which is also time-valid, return the first
+ * such. Otherwise, return the first suitable candidate (or NULL if there is
+ * none).
  *
  * The rationale for this rule is that someone could have a list of trusted
  * roots with two versions on the same root with different validity periods.
@@ -1979,7 +1978,7 @@ static mbedtls_x509_crt *x509_crt_find_parent_in( mbedtls_x509_crt *child,
             continue;
         }
 
-        /* optionnal time check */
+        /* optional time check */
         if( mbedtls_x509_time_is_past( &parent->valid_to ) ||
             mbedtls_x509_time_is_future( &parent->valid_from ) )
         {
@@ -2059,7 +2058,7 @@ static int x509_crt_check_ee_locally_trusted(
  *
  * Given a peer-provided list of certificates EE, C1, ..., Cn and
  * a list of trusted certs R1, ... Rp, try to build and verify a chain
- *      EE, Ci1, ... Ciq, Rj
+ *      EE, Ci1, ... Ciq [, Rj]
  * such that every cert in the chain is a child of the next one,
  * jumping to a trusted root as early as possible.
  *
@@ -2074,7 +2073,7 @@ static int x509_crt_check_ee_locally_trusted(
  *  - [in] crt: the cert list EE, C1, ..., Cn
  *  - [in] trust_ca: the trusted list R1, ..., Rp
  *  - [in] ca_crl, profile: as in verify_with_profile()
- *  - [out] ver_chain: the built and verified chain
+ *  - [out] ver_chain, chain_len: the built and verified chain
  *
  * Return value:
  *  - non-zero if the chain could not be fully built and examined
@@ -2167,7 +2166,7 @@ static int x509_crt_verify_chain(
 
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
         /* Check trusted CA's CRL for the given crt */
-        *flags |= x509_crt_verifycrl(child, parent, ca_crl, profile );
+        *flags |= x509_crt_verifycrl( child, parent, ca_crl, profile );
 #else
         (void) ca_crl;
 #endif

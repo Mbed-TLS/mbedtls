@@ -89,6 +89,10 @@ struct mbedtls_cipher_base_t
 
     /** Free the given context */
     void (*ctx_free_func)( void *ctx );
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))
+    /** Set IV for stream mode if required */
+    void (*set_iv_func)( void *ctx, unsigned char *iv);
+#endif
 
 };
 

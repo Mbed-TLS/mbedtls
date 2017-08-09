@@ -41,6 +41,7 @@
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
 #include "mbedtls/arc4.h"
+#include "mbedtls/chacha8.h"
 #include "mbedtls/des.h"
 #include "mbedtls/aes.h"
 #include "mbedtls/camellia.h"
@@ -53,6 +54,7 @@
 #include "mbedtls/ecp.h"
 #include "mbedtls/ecjpake.h"
 #include "mbedtls/timing.h"
+#include "mbedtls/salsa20.h"
 
 #include <string.h>
 
@@ -240,6 +242,22 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_ARC4_C)
     if( mbedtls_arc4_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
+#endif
+
+#if defined(MBEDTLS_SALSA20_C)
+    if( mbedtls_salsa20_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
+#endif
+
+#if defined(MBEDTLS_CHACHA8_C)
+    if( mbedtls_chacha8_self_test( v ) != 0 )
     {
         suites_failed++;
     }

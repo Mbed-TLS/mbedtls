@@ -47,6 +47,10 @@
 #include "ecdh.h"
 #endif
 
+#if defined(MBEDTLS_NEWHOPE_C)
+#include "newhope.h"
+#endif
+
 #if defined(MBEDTLS_ZLIB_SUPPORT)
 #include "zlib.h"
 #endif

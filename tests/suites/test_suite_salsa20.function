@@ -1,0 +1,50 @@
+/* BEGIN_HEADER */
+#include "mbedtls/salsa20.h"
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_SALSA20_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void mbedtls_salsa20_crypt( char *hex_src_string, char *hex_key_string,
+                 char *hex_dst_string, char *hex_iv_string )
+{
+    unsigned char src_str[1000];
+    unsigned char key_str[1000];
+    unsigned char dst_str[1000];
+    unsigned char iv_str[1000];
+    unsigned char dst_hexstr[2000];
+    int src_len, key_len;
+    mbedtls_salsa20_context ctx;
+
+    memset(src_str, 0x00, 1000);
+    memset(key_str, 0x00, 1000);
+    memset(dst_str, 0x00, 1000);
+    memset(iv_str, 0x00, 1000);
+    memset(dst_hexstr, 0x00, 2000);
+    mbedtls_salsa20_init( &ctx );
+
+    src_len = unhexify( src_str, hex_src_string );
+    key_len = unhexify( key_str, hex_key_string );
+    unhexify( iv_str, hex_iv_string );
+
+    mbedtls_salsa20_setup(&ctx, key_str, key_len * 8);
+    mbedtls_salsa20_set_iv(&ctx, iv_str);
+    TEST_ASSERT( mbedtls_salsa20_crypt(&ctx, src_len, src_str, dst_str ) == 0 );
+    hexify( dst_hexstr, dst_str, src_len );
+
+    TEST_ASSERT( strcmp( (char *) dst_hexstr, hex_dst_string ) == 0 );
+
+exit:
+    mbedtls_salsa20_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
+void salsa20_selftest()
+{
+    TEST_ASSERT( mbedtls_salsa20_self_test( 1 ) == 0 );
+}
+/* END_CASE */

@@ -717,8 +717,15 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
         transform->ivlen = cipher_info->iv_size;
 
         /* Minimum length */
-        if( cipher_info->mode == MBEDTLS_MODE_STREAM )
+        if( cipher_info->mode == MBEDTLS_MODE_STREAM || cipher_info->mode == MBEDTLS_MODE_STREAM_IV )
+        {
             transform->minlen = transform->maclen;
+            if( MBEDTLS_MODE_STREAM_IV == cipher_info->mode )
+            {
+                /* Use an 8-byte fixed IV for this (experimental) case */
+                transform->fixed_ivlen = 8;
+            }
+        }
         else
         {
             /*
@@ -1272,7 +1279,7 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
      * Add MAC before if needed
      */
 #if defined(SSL_SOME_MODES_USE_MAC)
-    if( mode == MBEDTLS_MODE_STREAM ||
+    if( mode == MBEDTLS_MODE_STREAM || mode == MBEDTLS_MODE_STREAM_IV ||
         ( mode == MBEDTLS_MODE_CBC
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
           && ssl->session_out->encrypt_then_mac == MBEDTLS_SSL_ETM_DISABLED
@@ -1349,6 +1356,37 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
     }
     else
 #endif /* MBEDTLS_ARC4_C || MBEDTLS_CIPHER_NULL_CIPHER */
+
+#if defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C)
+    if( mode == MBEDTLS_MODE_STREAM  || mode == MBEDTLS_MODE_STREAM_IV )
+    {
+        int ret;
+        size_t olen = 0;
+
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "before encrypt: msglen = %d, "
+                "including %d bytes of padding",
+                ssl->out_msglen, 0 ) );
+
+        if( ( ret = mbedtls_cipher_crypt( &ssl->transform_out->cipher_ctx_enc,
+                                          ssl->transform_out->iv_enc,
+                                          ssl->transform_out->ivlen,
+                                          ssl->out_msg, ssl->out_msglen,
+                                          ssl->out_msg, &olen ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_crypt", ret );
+            return( ret );
+        }
+
+
+        if( ssl->out_msglen != olen )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+    }
+    else
+#endif /* MBEDTLS_SALSA20_C || MBEDTLS_CIPHER_NULL_CIPHER */
+
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C)
     if( mode == MBEDTLS_MODE_GCM ||
         mode == MBEDTLS_MODE_CCM )
@@ -1616,6 +1654,35 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
     }
     else
 #endif /* MBEDTLS_ARC4_C || MBEDTLS_CIPHER_NULL_CIPHER */
+
+#if defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C)
+    if( mode == MBEDTLS_MODE_STREAM || mode == MBEDTLS_MODE_STREAM_IV )
+    {
+        int ret;
+        size_t olen = 0;
+
+        padlen = 0;
+
+        if( ( ret = mbedtls_cipher_crypt( &ssl->transform_in->cipher_ctx_dec,
+                                          ssl->transform_in->iv_dec,
+                                          ssl->transform_in->ivlen,
+                                          ssl->in_msg, ssl->in_msglen,
+                                          ssl->in_msg, &olen ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_crypt", ret );
+            return( ret );
+        }
+
+        if( ssl->in_msglen != olen )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+    }
+    else
+#endif /* MBEDTLS_SALSA20_C || MBEDTLS_CIPHER_NULL_CIPHER */
+
+
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C)
     if( mode == MBEDTLS_MODE_GCM ||
         mode == MBEDTLS_MODE_CCM )
@@ -4777,8 +4844,7 @@ int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
      */
     if( ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
     {
-        ssl->in_msg = ssl->in_iv + ssl->transform_negotiate->ivlen -
-                      ssl->transform_negotiate->fixed_ivlen;
+        ssl->in_msg = ssl->in_iv + ssl->transform_negotiate->ivlen - ssl->transform_negotiate->fixed_ivlen;
     }
     else
         ssl->in_msg = ssl->in_iv;
@@ -6458,6 +6524,7 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
         case MBEDTLS_MODE_GCM:
         case MBEDTLS_MODE_CCM:
         case MBEDTLS_MODE_STREAM:
+        case MBEDTLS_MODE_STREAM_IV:
             transform_expansion = transform->minlen;
             break;
 
@@ -7887,6 +7954,7 @@ int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
 
             case MBEDTLS_KEY_EXCHANGE_ECDH_RSA:
             case MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA:
+            case MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA:              /* Experimental - NewHope */
                 usage = MBEDTLS_X509_KU_KEY_AGREEMENT;
                 break;
 

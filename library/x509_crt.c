@@ -2093,7 +2093,6 @@ static int x509_crt_verify_chain(
     mbedtls_x509_crt *parent;
     int parent_is_trusted = 0;
     int child_is_trusted = 0;
-    int path_cnt = 0; /* like chain_len but not updated at the same time */
     int self_cnt = 0;
 
     child = crt;
@@ -2101,8 +2100,8 @@ static int x509_crt_verify_chain(
 
     while( 1 ) {
         /* Add certificate to the verification chain */
-        ver_chain[path_cnt].crt = child;
-        flags = &ver_chain[path_cnt].flags;
+        ver_chain[*chain_len].crt = child;
+        flags = &ver_chain[*chain_len].flags;
         ++*chain_len;
 
         /* Check time-validity (all certificates) */
@@ -2124,7 +2123,7 @@ static int x509_crt_verify_chain(
             *flags |= MBEDTLS_X509_BADCERT_BAD_PK;
 
         /* Special case: EE certs that are locally trusted */
-        if( path_cnt == 0 &&
+        if( *chain_len == 1 &&
             x509_crt_check_ee_locally_trusted( child, trust_ca ) == 0 )
         {
             return( 0 );
@@ -2132,7 +2131,7 @@ static int x509_crt_verify_chain(
 
         /* Look for a parent in trusted CAs or up the chain */
         parent = x509_crt_find_parent( child, trust_ca, &parent_is_trusted,
-                                       path_cnt, self_cnt );
+                                       *chain_len - 1, self_cnt );
 
         /* No parent? We're done here */
         if( parent == NULL )
@@ -2144,13 +2143,16 @@ static int x509_crt_verify_chain(
         /* Count intermediate self-issued (not necessarily self-signed) certs.
          * These can occur with some strategies for key rollover, see [SIRO],
          * and should be excluded from max_pathlen checks. */
-        if( ( path_cnt != 0 ) && x509_name_cmp( &child->issuer, &child->subject ) == 0 )
+        if( *chain_len != 1 &&
+            x509_name_cmp( &child->issuer, &child->subject ) == 0 )
+        {
             self_cnt++;
+        }
 
         /* path_cnt is 0 for the first intermediate CA,
          * and if parent is trusted it's not an intermediate CA */
         if( ! parent_is_trusted &&
-            1 + path_cnt > MBEDTLS_X509_MAX_INTERMEDIATE_CA )
+            *chain_len > MBEDTLS_X509_MAX_INTERMEDIATE_CA )
         {
             /* return immediately to avoid overflow the chain array */
             return( MBEDTLS_ERR_X509_FATAL_ERROR );
@@ -2175,7 +2177,6 @@ static int x509_crt_verify_chain(
         child = parent;
         parent = NULL;
         child_is_trusted = parent_is_trusted;
-        ++path_cnt;
     }
 }
 

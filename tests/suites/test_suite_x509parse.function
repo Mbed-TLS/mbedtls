@@ -283,7 +283,7 @@ void x509_verify( char *crt_file, char *ca_file, char *crl_file,
     if( strcmp( cn_name_str, "NULL" ) != 0 )
         cn_name = cn_name_str;
 
-    if( strcmp( profile_str, "default" ) == 0 )
+    if( strcmp( profile_str, "" ) == 0 )
         profile = &mbedtls_x509_crt_profile_default;
     else if( strcmp( profile_str, "next" ) == 0 )
         profile = &mbedtls_x509_crt_profile_next;

@@ -3,13 +3,13 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS 2.1.9 branch released xxxx-xx-xx
 
 Security
-   * Fix authentication bypass in SSL/TLS: when auth_mode is set to optional,
+   * Fix authentication bypass in SSL/TLS: when authmode is set to optional,
      mbedtls_ssl_get_verify_result() would incorrectly return 0 when the peer's
      X.509 certificate chain had more than MBEDTLS_X509_MAX_INTERMEDIATE_CA
-     (default: 8) intermediates, even when it was not trusted. Could be
-     triggered remotely on both sides. (With auth_mode set to required
-     (default), the handshake was correctly aborted.)
-   * Realiably zeroize sensitive data after use in AES example applications
+     (default: 8) intermediates, even when it was not trusted. This could be
+     triggered remotely from either side. (With authmode set to 'required'
+     (the default), the handshake was correctly aborted).
+   * Reliably zeroize sensitive data after use in AES example applications
      programs/aes/aescrypt2 and programs/aes/crypt_and_hash.
      Found by Laurent Simon.
 
@@ -17,19 +17,18 @@ API Changes
    * Certificate verification functions now set flags to -1 in case the full
      chain was not verified due to an internal error (including in the verify
      callback) or chain length limitations.
-   * With authmode set to optional, handshake is now aborted if the
+   * With authmode set to optional, the TLS handshake is now aborted if the
      verification of the peer's certificate failed due to an overlong chain or
-     a fatal error in the vrfy callback.
+     a fatal error in the verify callback.
 
 Bugfix
-   * Add a check if iv_len is zero, and return an error if it is zero. reported
-     by roberto. #716
-   * Replace preproccessor condition from #if defined(MBEDTLS_THREADING_PTHREAD)
+   * Add a check if iv_len is zero in GCM, and return an error if it is zero.
+     Reported by roberto. #716
+   * Replace preprocessor condition from #if defined(MBEDTLS_THREADING_PTHREAD)
      to #if defined(MBEDTLS_THREADING_C) as the library cannot assume they will
      always be implemented by pthread support. Fix for #696
-   * Fix resource leak on windows platform, in mbedtls_x509_crt_parse_path.
-     In case of failure, when an error occures, goto cleanup.
-     Found by redplait #590
+   * Fix a resource leak on Windows platforms in mbedtls_x509_crt_parse_path(),
+     in the case of an error. Found by redplait. #590
    * Add MBEDTLS_MPI_CHK to check for error value of mbedtls_mpi_fill_random.
      Reported and fix suggested by guidovranken in #740
    * Fix a potential integer overflow in the version verification for DER

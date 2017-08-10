@@ -29,9 +29,6 @@ Bugfix
      always be implemented by pthread support. Fix for #696
    * Fix a resource leak on Windows platforms in mbedtls_x509_crt_parse_path(),
      in the case of an error. Found by redplait. #590
-   * Fix resource leak on windows platform, in mbedtls_x509_crt_parse_path.
-     In case of failure, when an error occures, goto cleanup.
-     Found by redplait #590
    * Add MPI_CHK to check for error value of mpi_fill_random.
      Backported from a report and fix suggestion by guidovranken in #740
    * Fix a potential integer overflow in the version verification for DER

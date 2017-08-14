@@ -215,6 +215,8 @@ void rsa_pkcs1_verify_raw( char *message_hex_string, char *hash_result_string,
 
     TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, NULL, NULL, MBEDTLS_RSA_PUBLIC, MBEDTLS_MD_NONE, hash_len, hash_result, result_str ) == correct );
 
+    /* Cryptocell does not support decrypt with public key */
+#if !(defined (USE_MBEDTLS_CRYPTOCELL) && defined (MBEDTLS_RSA_ALT))
     /* For PKCS#1 v1.5, there is an alternative way to verify signatures */
     if( padding_mode == MBEDTLS_RSA_PKCS_V15 )
     {
@@ -230,6 +232,7 @@ void rsa_pkcs1_verify_raw( char *message_hex_string, char *hash_result_string,
         else
             TEST_ASSERT( ok == 0 );
     }
+#endif
 
 exit:
     mbedtls_rsa_free( &ctx );

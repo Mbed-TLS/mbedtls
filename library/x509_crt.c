@@ -2051,35 +2051,39 @@ static int x509_crt_find_parent(
                         mbedtls_x509_crt_restart_ctx *rs_ctx )
 {
     int ret;
+    mbedtls_x509_crt *search_list;
 
-    /* Look for a parent in trusted CAs */
     *parent_is_trusted = 1;
-    ret = x509_crt_find_parent_in( child, trust_ca,
-                                   parent, signature_is_good,
-                                   1, path_cnt, self_cnt, rs_ctx );
+
+    while( 1 ) {
+        search_list = *parent_is_trusted ? trust_ca : child->next;
+
+        ret = x509_crt_find_parent_in( child, search_list,
+                                       parent, signature_is_good,
+                                       *parent_is_trusted,
+                                       path_cnt, self_cnt, rs_ctx );
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS ) {
-        // TODO: stave state
-        return( ret );
-    }
+        if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS ) {
+            // TODO: stave state
+            return( ret );
+        }
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
-    if( *parent != NULL )
-        return( 0 );
+        /* stop here if found or already in second iteration */
+        if( *parent != NULL || *parent_is_trusted == 0 )
+            break;
 
-    /* Look for a parent upwards the chain */
-    *parent_is_trusted = 0;
-    ret = x509_crt_find_parent_in( child, child->next,
-                                   parent, signature_is_good,
-                                   0, path_cnt, self_cnt, rs_ctx );
-
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS ) {
-        // TODO: stave state
-        return( ret );
+        /* prepare second iteration */
+        *parent_is_trusted = 0;
     }
-#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
+
+    /* extra precaution against mistakes in the caller */
+    if( parent == NULL )
+    {
+        parent_is_trusted = 0;
+        signature_is_good = 0;
+    }
 
     return( 0 );
 }

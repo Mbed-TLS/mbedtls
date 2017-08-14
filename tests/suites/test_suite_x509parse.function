@@ -272,6 +272,16 @@ void x509_verify_restart( char *crt_file, char *ca_file,
     mbedtls_x509_crt ca;
     uint32_t flags = 0;
 
+    /*
+     * See comments on ecp_test_vect_restart() for op count precision.
+     *
+     * For reference, with mbed TLS 2.6 and default settings:
+     * - ecdsa_verify() for P-256:  ~  6700
+     * - ecdsa_verify() for P-384:  ~ 18800
+     * - x509_verify() for server5 -> test-ca2:             ~ 18800
+     * - x509_verify() for server10 -> int-ca3 -> int-ca2:  ~ 25500
+     */
+
     mbedtls_x509_crt_restart_init( &rs_ctx );
     mbedtls_x509_crt_init( &crt );
     mbedtls_x509_crt_init( &ca );

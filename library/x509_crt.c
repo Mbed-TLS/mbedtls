@@ -1870,7 +1870,7 @@ static int x509_crt_check_signature( const mbedtls_x509_crt *child,
     if( ! mbedtls_pk_can_do( &parent->pk, child->sig_pk ) )
         return( -1 );
 
-#if defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && child->sig_pk == MBEDTLS_PK_ECDSA )
     {
         return( mbedtls_pk_verify_restartable( &parent->pk,
@@ -1961,8 +1961,23 @@ static int x509_crt_find_parent_in(
                         mbedtls_x509_crt_restart_ctx *rs_ctx )
 {
     int ret;
-    mbedtls_x509_crt *parent, *fallback_parent = NULL;
-    int signature_is_good = 0, fallback_sign_good = 0;
+    mbedtls_x509_crt *parent, *fallback_parent;
+    int signature_is_good, fallback_sign_good;
+
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+    /* restore state if we have some stored */
+    if( rs_ctx != NULL && rs_ctx->parent != NULL )
+    {
+        parent = rs_ctx->parent;
+        fallback_parent = rs_ctx->fallback_parent;
+        fallback_sign_good = rs_ctx->fallback_sign_good;
+
+        goto check_signature;
+    }
+#endif
+
+    fallback_parent = NULL;
+    fallback_sign_good = 0;
 
     for( parent = candidates; parent != NULL; parent = parent->next )
     {
@@ -1978,14 +1993,24 @@ static int x509_crt_find_parent_in(
         }
 
         /* Signature */
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+check_signature:
+#endif
         ret = x509_crt_check_signature( child, parent, rs_ctx );
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-        if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS ) {
-            // TODO: stave state
+        if( rs_ctx != NULL && ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
+        {
+            /* save state */
+            rs_ctx->parent = parent;
+            rs_ctx->fallback_parent = fallback_parent;
+            rs_ctx->fallback_sign_good = fallback_sign_good;
+
             return( ret );
         }
-#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
+#else
+        (void) ret;
+#endif
 
         signature_is_good = ret == 0;
         if( top && ! signature_is_good )
@@ -2018,6 +2043,16 @@ static int x509_crt_find_parent_in(
         *r_signature_is_good = fallback_sign_good;
     }
 
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+    if( rs_ctx != NULL )
+    {
+        /* reset state */
+        rs_ctx->parent = NULL;
+        rs_ctx->fallback_parent = NULL;
+        rs_ctx->fallback_sign_good = 0;
+    }
+#endif
+
     return( 0 );
 }
 
@@ -2042,6 +2077,12 @@ static int x509_crt_find_parent(
 
     *parent_is_trusted = 1;
 
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+    /* restore state if we have some stored */
+    if( rs_ctx != NULL && rs_ctx->parent_is_trusted != -1)
+        *parent_is_trusted = rs_ctx->parent_is_trusted;
+#endif
+
     while( 1 ) {
         search_list = *parent_is_trusted ? trust_ca : child->next;
 
@@ -2051,11 +2092,15 @@ static int x509_crt_find_parent(
                                        path_cnt, self_cnt, rs_ctx );
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-        if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS ) {
-            // TODO: stave state
+        if( rs_ctx != NULL && ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
+        {
+            /* save state */
+            rs_ctx->parent_is_trusted = *parent_is_trusted;
             return( ret );
         }
-#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
+#else
+        (void) ret;
+#endif
 
         /* stop here if found or already in second iteration */
         if( *parent != NULL || *parent_is_trusted == 0 )
@@ -2071,6 +2116,12 @@ static int x509_crt_find_parent(
         parent_is_trusted = 0;
         signature_is_good = 0;
     }
+
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+    /* reset state */
+    if( rs_ctx != NULL )
+        rs_ctx->parent_is_trusted = -1;
+#endif
 
     return( 0 );
 }
@@ -2155,12 +2206,31 @@ static int x509_crt_verify_chain(
     mbedtls_x509_crt_verify_chain_item *cur;
     mbedtls_x509_crt *child;
     mbedtls_x509_crt *parent;
-    int parent_is_trusted = 0;
-    int child_is_trusted = 0;
-    int signature_is_good = 0;
-    int self_cnt = 0;
+    int parent_is_trusted;
+    int child_is_trusted;
+    int signature_is_good;
+    int self_cnt;
+
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+    /* resume if we had an operation in progress */
+    if( rs_ctx != NULL && rs_ctx->child != NULL )
+    {
+        /* save state */
+        child = rs_ctx->child;
+        self_cnt = rs_ctx->self_cnt;
+        *ver_chain = rs_ctx->ver_chain;
+
+        cur = &ver_chain->items[ver_chain->len - 1];
+        flags = &cur->flags;
+
+        goto find_parent;
+    }
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
     child = crt;
+    self_cnt = 0;
+    parent_is_trusted = 0;
+    child_is_trusted = 0;
 
     while( 1 ) {
         /* Add certificate to the verification chain */
@@ -2194,17 +2264,27 @@ static int x509_crt_verify_chain(
             return( 0 );
         }
 
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+find_parent:
+#endif
         /* Look for a parent in trusted CAs or up the chain */
         ret = x509_crt_find_parent( child, trust_ca, &parent,
                                        &parent_is_trusted, &signature_is_good,
                                        ver_chain->len - 1, self_cnt, rs_ctx );
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-        if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS ) {
-            // TODO: stave state
+        if( rs_ctx != NULL && ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
+        {
+            /* save state */
+            rs_ctx->child = child;
+            rs_ctx->self_cnt = self_cnt;
+            rs_ctx-> ver_chain = *ver_chain;
+
             return( ret );
-#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
         }
+#else
+        (void) ret;
+#endif
 
         /* No parent? We're done here */
         if( parent == NULL )
@@ -2425,13 +2505,6 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
     ret = x509_crt_verify_chain( crt, trust_ca, ca_crl, profile,
                                  &ver_chain, rs_ctx );
 
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS ) {
-        // TODO: stave state
-        return( ret );
-    }
-#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
-
     if( ret != 0 )
         goto exit;
 
@@ -2439,6 +2512,11 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
     ret = x509_crt_merge_flags_with_cb( flags, &ver_chain, f_vrfy, p_vrfy );
 
 exit:
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+    if( rs_ctx != NULL && ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
+        mbedtls_x509_crt_restart_free( rs_ctx );
+#endif
+
     /* prevent misuse of the vrfy callback - VERIFY_FAILED would be ignored by
      * the SSL module for authmode optional, but non-zero return from the
      * callback means a fatal error so it shouldn't be ignored */
@@ -2554,6 +2632,17 @@ void mbedtls_x509_crt_free( mbedtls_x509_crt *crt )
 void mbedtls_x509_crt_restart_init( mbedtls_x509_crt_restart_ctx *ctx )
 {
     mbedtls_ecdsa_restart_init( &ctx->ecdsa );
+
+    ctx->parent = NULL;
+    ctx->fallback_parent = NULL;
+    ctx->fallback_sign_good = 0;
+
+    ctx->parent_is_trusted = -1;
+
+    ctx->child = NULL;
+    ctx->self_cnt = 0;
+    memset( ctx->ver_chain.items, 0, sizeof( ctx->ver_chain.items ) );
+    ctx->ver_chain.len = 0;
 }
 
 /*
@@ -2565,6 +2654,8 @@ void mbedtls_x509_crt_restart_free( mbedtls_x509_crt_restart_ctx *ctx )
         return;
 
     mbedtls_ecdsa_restart_free( &ctx->ecdsa );
+
+    mbedtls_x509_crt_restart_init( ctx );
 }
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 

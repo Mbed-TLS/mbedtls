@@ -17,7 +17,7 @@ Two intermediate CAs are signed by them:
 - test-int-ca.crt "C=NL, O=PolarSSL, CN=PolarSSL Test Intermediate CA"
   uses RSA-4096, signed by test-ca2
 - test-int-ca2.crt "C=NL, O=PolarSSL, CN=PolarSSL Test Intermediate EC CA"
-  uses an EC key with NIST P-256, signed by test-ca
+  uses an EC key with NIST P-384, signed by test-ca
 
 A third intermediate CA is signed by test-int-ca2.crt:
 - test-int-ca3.crt "C=UK, O=mbed TLS, CN=mbed TLS Test intermediate CA 3"

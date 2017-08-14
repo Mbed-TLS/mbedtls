@@ -171,7 +171,22 @@ typedef struct
  */
 typedef struct
 {
-    mbedtls_ecdsa_restart_ctx   ecdsa;      /*!< ecdsa restart context      */
+    /* for check_signature() */
+    mbedtls_ecdsa_restart_ctx   ecdsa;
+
+    /* for find_parent_in() */
+    mbedtls_x509_crt *parent; /* non-null iff parent_in in progress */
+    mbedtls_x509_crt *fallback_parent;
+    int fallback_sign_good;
+
+    /* for find_parent() */
+    int parent_is_trusted; /* -1 if find_parent is not in progress */
+
+    /* for verify_chain() */
+    mbedtls_x509_crt *child; /* non-null iff in progress */
+    int self_cnt;
+    mbedtls_x509_crt_verify_chain ver_chain;
+
 } mbedtls_x509_crt_restart_ctx;
 
 #else /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */

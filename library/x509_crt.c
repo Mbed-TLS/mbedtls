@@ -77,19 +77,6 @@
 #endif /* !_WIN32 || EFIX64 || EFI32 */
 #endif
 
-/*
- * Item in a verification chain: cert and flags for it
- */
-typedef struct {
-    mbedtls_x509_crt *crt;
-    uint32_t flags;
-} x509_crt_verify_chain_item;
-
-/*
- * Max size of verification chain: end-entity + intermediates + trusted root
- */
-#define X509_MAX_VERIFY_CHAIN_SIZE    ( MBEDTLS_X509_MAX_INTERMEDIATE_CA + 2 )
-
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
@@ -2148,7 +2135,7 @@ static int x509_crt_check_ee_locally_trusted(
  *  - [in] crt: the cert list EE, C1, ..., Cn
  *  - [in] trust_ca: the trusted list R1, ..., Rp
  *  - [in] ca_crl, profile: as in verify_with_profile()
- *  - [out] ver_chain, chain_len: the built and verified chain
+ *  - [out] ver_chain: the built and verified chain
  *
  * Return value:
  *  - non-zero if the chain could not be fully built and examined
@@ -2160,12 +2147,12 @@ static int x509_crt_verify_chain(
                 mbedtls_x509_crt *trust_ca,
                 mbedtls_x509_crl *ca_crl,
                 const mbedtls_x509_crt_profile *profile,
-                x509_crt_verify_chain_item ver_chain[X509_MAX_VERIFY_CHAIN_SIZE],
-                size_t *chain_len,
+                mbedtls_x509_crt_verify_chain *ver_chain,
                 mbedtls_x509_crt_restart_ctx *rs_ctx )
 {
     int ret;
     uint32_t *flags;
+    mbedtls_x509_crt_verify_chain_item *cur;
     mbedtls_x509_crt *child;
     mbedtls_x509_crt *parent;
     int parent_is_trusted = 0;
@@ -2174,13 +2161,13 @@ static int x509_crt_verify_chain(
     int self_cnt = 0;
 
     child = crt;
-    *chain_len = 0;
 
     while( 1 ) {
         /* Add certificate to the verification chain */
-        ver_chain[*chain_len].crt = child;
-        flags = &ver_chain[*chain_len].flags;
-        ++*chain_len;
+        cur = &ver_chain->items[ver_chain->len];
+        cur->crt = child;
+        flags = &cur->flags;
+        ver_chain->len++;
 
         /* Check time-validity (all certificates) */
         if( mbedtls_x509_time_is_past( &child->valid_to ) )
@@ -2201,7 +2188,7 @@ static int x509_crt_verify_chain(
             *flags |= MBEDTLS_X509_BADCERT_BAD_PK;
 
         /* Special case: EE certs that are locally trusted */
-        if( *chain_len == 1 &&
+        if( ver_chain->len == 1 &&
             x509_crt_check_ee_locally_trusted( child, trust_ca ) == 0 )
         {
             return( 0 );
@@ -2210,7 +2197,7 @@ static int x509_crt_verify_chain(
         /* Look for a parent in trusted CAs or up the chain */
         ret = x509_crt_find_parent( child, trust_ca, &parent,
                                        &parent_is_trusted, &signature_is_good,
-                                       *chain_len - 1, self_cnt, rs_ctx );
+                                       ver_chain->len - 1, self_cnt, rs_ctx );
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
         if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS ) {
@@ -2229,7 +2216,7 @@ static int x509_crt_verify_chain(
         /* Count intermediate self-issued (not necessarily self-signed) certs.
          * These can occur with some strategies for key rollover, see [SIRO],
          * and should be excluded from max_pathlen checks. */
-        if( *chain_len != 1 &&
+        if( ver_chain->len != 1 &&
             x509_name_cmp( &child->issuer, &child->subject ) == 0 )
         {
             self_cnt++;
@@ -2238,7 +2225,7 @@ static int x509_crt_verify_chain(
         /* path_cnt is 0 for the first intermediate CA,
          * and if parent is trusted it's not an intermediate CA */
         if( ! parent_is_trusted &&
-            *chain_len > MBEDTLS_X509_MAX_INTERMEDIATE_CA )
+            ver_chain->len > MBEDTLS_X509_MAX_INTERMEDIATE_CA )
         {
             /* return immediately to avoid overflow the chain array */
             return( MBEDTLS_ERR_X509_FATAL_ERROR );
@@ -2334,21 +2321,22 @@ static void x509_crt_verify_name( const mbedtls_x509_crt *crt,
  */
 static int x509_crt_merge_flags_with_cb(
            uint32_t *flags,
-           x509_crt_verify_chain_item ver_chain[X509_MAX_VERIFY_CHAIN_SIZE],
-           size_t chain_len,
+           const mbedtls_x509_crt_verify_chain *ver_chain,
            int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
            void *p_vrfy )
 {
     int ret;
     size_t i;
     uint32_t cur_flags;
+    const mbedtls_x509_crt_verify_chain_item *cur;
 
-    for( i = chain_len; i != 0; --i )
+    for( i = ver_chain->len; i != 0; --i )
     {
-        cur_flags = ver_chain[i-1].flags;
+        cur = &ver_chain->items[i-1];
+        cur_flags = cur->flags;
 
         if( NULL != f_vrfy )
-            if( ( ret = f_vrfy( p_vrfy, ver_chain[i-1].crt, i-1, &cur_flags ) ) != 0 )
+            if( ( ret = f_vrfy( p_vrfy, cur->crt, i-1, &cur_flags ) ) != 0 )
                 return( ret );
 
         *flags |= cur_flags;
@@ -2408,13 +2396,11 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
 {
     int ret;
     mbedtls_pk_type_t pk_type;
-    x509_crt_verify_chain_item ver_chain[X509_MAX_VERIFY_CHAIN_SIZE];
-    size_t chain_len;
-    uint32_t *ee_flags = &ver_chain[0].flags;
+    mbedtls_x509_crt_verify_chain ver_chain;
+    uint32_t *ee_flags = &ver_chain.items[0].flags;
 
     *flags = 0;
-    memset( ver_chain, 0, sizeof( ver_chain ) );
-    chain_len = 0;
+    memset( &ver_chain, 0, sizeof( ver_chain ) );
 
     if( profile == NULL )
     {
@@ -2437,7 +2423,7 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
 
     /* Check the chain */
     ret = x509_crt_verify_chain( crt, trust_ca, ca_crl, profile,
-                                 ver_chain, &chain_len, rs_ctx );
+                                 &ver_chain, rs_ctx );
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS ) {
@@ -2450,8 +2436,7 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
         goto exit;
 
     /* Build final flags, calling callback on the way if any */
-    ret = x509_crt_merge_flags_with_cb( flags,
-                                        ver_chain, chain_len, f_vrfy, p_vrfy );
+    ret = x509_crt_merge_flags_with_cb( flags, &ver_chain, f_vrfy, p_vrfy );
 
 exit:
     /* prevent misuse of the vrfy callback - VERIFY_FAILED would be ignored by

@@ -33,9 +33,11 @@
 
 #include "mbedtls/cipher.h"
 #include "mbedtls/cipher_internal.h"
+#include "mbedtls/salsa20.h"
+#include "mbedtls/chacha8.h"
 
-#include <stdlib.h>
 #include <string.h>
+#include <mbedtls/cipher.h>
 
 #if defined(MBEDTLS_GCM_C)
 #include "mbedtls/gcm.h"
@@ -237,6 +239,11 @@ int mbedtls_cipher_set_iv( mbedtls_cipher_context_t *ctx,
     memcpy( ctx->iv, iv, actual_iv_size );
     ctx->iv_size = actual_iv_size;
 
+    if( ctx->cipher_info->mode == MBEDTLS_MODE_STREAM_IV )
+    {
+        ctx->cipher_info->base->set_iv_func( ctx->cipher_ctx, ctx->iv );
+    }
+
     return( 0 );
 }
 
@@ -246,6 +253,15 @@ int mbedtls_cipher_reset( mbedtls_cipher_context_t *ctx )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
     ctx->unprocessed_len = 0;
+
+    if( ctx->cipher_info->type == MBEDTLS_CIPHER_SALSA20_128 ||
+            ctx->cipher_info->type == MBEDTLS_CIPHER_SALSA20_256 ) {
+        mbedtls_salsa20_reset_keystream_state( (mbedtls_salsa20_context *) ctx->cipher_ctx );
+    }
+    if( ctx->cipher_info->type == MBEDTLS_CIPHER_CHACHA8_128 ||
+        ctx->cipher_info->type == MBEDTLS_CIPHER_CHACHA8_256 ) {
+        mbedtls_chacha8_reset_keystream_state( (mbedtls_chacha8_context *) ctx->cipher_ctx );
+    }
 
     return( 0 );
 }
@@ -434,7 +450,7 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
 #if defined(MBEDTLS_CIPHER_MODE_STREAM)
-    if( ctx->cipher_info->mode == MBEDTLS_MODE_STREAM )
+    if( ctx->cipher_info->mode == MBEDTLS_MODE_STREAM || ctx->cipher_info->mode == MBEDTLS_MODE_STREAM_IV )
     {
         if( 0 != ( ret = ctx->cipher_info->base->stream_func( ctx->cipher_ctx,
                                                     ilen, input, output ) ) )
@@ -634,7 +650,8 @@ int mbedtls_cipher_finish( mbedtls_cipher_context_t *ctx,
     if( MBEDTLS_MODE_CFB == ctx->cipher_info->mode ||
         MBEDTLS_MODE_CTR == ctx->cipher_info->mode ||
         MBEDTLS_MODE_GCM == ctx->cipher_info->mode ||
-        MBEDTLS_MODE_STREAM == ctx->cipher_info->mode )
+        MBEDTLS_MODE_STREAM == ctx->cipher_info->mode ||
+        MBEDTLS_MODE_STREAM_IV == ctx->cipher_info->mode )
     {
         return( 0 );
     }

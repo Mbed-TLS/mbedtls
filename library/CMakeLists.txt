@@ -13,6 +13,7 @@ set(src_crypto
     blowfish.c
     camellia.c
     ccm.c
+    chacha8.c
     cipher.c
     cipher_wrap.c
     cmac.c
@@ -36,6 +37,7 @@ set(src_crypto
     md5.c
     md_wrap.c
     memory_buffer_alloc.c
+    newhope.c
     oid.c
     padlock.c
     pem.c
@@ -48,6 +50,7 @@ set(src_crypto
     platform.c
     ripemd160.c
     rsa.c
+    salsa20.c
     sha1.c
     sha256.c
     sha512.c
@@ -56,7 +59,7 @@ set(src_crypto
     version.c
     version_features.c
     xtea.c
-)
+    rlwe.c ../include/mbedtls/rlwe.h)
 
 set(src_x509
     certs.c

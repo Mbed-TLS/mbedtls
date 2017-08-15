@@ -566,15 +566,17 @@
  *
  * Enable "non-blocking" ECC operations that can return early and be resumed.
  *
- * This enables \c mbedtls_ecp_set_max_ops() and allows various ECC functions
- * to return \c MBEDTLS_ERR_ECP_IN_PROGRESS when needed.
+ * This enables \c mbedtls_ecp_set_max_ops() and allows various functions
+ * to return \c MBEDTLS_ERR_ECP_IN_PROGRESS when needed, and then be called
+ * again later with the same arguments in order to further progress and
+ * eventually complete the operation, see \c mbedtls_ecp_set_max_ops().
  *
- * TODO: depending on other choices, this might need to be disabled by default
- * in order to avoid changing the ABI. Revisit that later.
+ * This is usefull in non-threaded environments if you want to avoid blocking
+ * for too long on ECC (hence, X509 or SSL/TLS) operations.
  *
- * Comment this macro to disable non-blocking ECC computations.
+ * Uncomment this macro to enable restartable ECC computations.
  */
-#define MBEDTLS_ECP_RESTARTABLE
+//#define MBEDTLS_ECP_RESTARTABLE
 
 /**
  * \def MBEDTLS_ECDSA_DETERMINISTIC

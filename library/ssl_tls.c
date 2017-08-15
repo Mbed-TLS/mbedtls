@@ -5473,7 +5473,7 @@ static void ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )
 #endif
 
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
-    mbedtls_ecdsa_restart_init( &handshake->rs_ctx );
+    mbedtls_ecdsa_restart_init( &handshake->ecrs_ctx );
 #endif
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
@@ -7309,7 +7309,7 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_handshake_params *handshake )
 #endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
-    mbedtls_ecdsa_restart_free( &handshake->rs_ctx );
+    mbedtls_ecdsa_restart_free( &handshake->ecrs_ctx );
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

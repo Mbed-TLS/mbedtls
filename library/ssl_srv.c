@@ -2967,6 +2967,25 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__DHE_ENABLED */
 
+#if defined(MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA_ENABLED)
+    if( MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA == ciphersuite_info->key_exchange)
+    {
+        /* Generate b-vector and seed */
+        if( ( ret = mbedtls_newhope_make_params_server( &ssl->handshake->newhope_ctx, &len,
+                                              &p, MBEDTLS_SSL_MAX_CONTENT_LEN - n ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_newhope_make_params", ret );
+            return( ret );
+        }
+
+        dig_signed = p;
+        dig_signed_len = len;
+        p += len;
+
+        n += len;
+    }
+#endif
+
     /*
      * - ECDHE key exchanges
      */
@@ -3482,27 +3501,28 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 {
     int ret;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
-    unsigned char *p, *end;
+    unsigned char *lMsgParsingPointer, *lEndOfMessagePointer;
 
     ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse client key exchange" ) );
 
-    if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
+    /* Read in the record from the client */
+    if(0 != ( ret = mbedtls_ssl_read_record( ssl ) ))
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
         return( ret );
     }
 
-    p = ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl );
-    end = ssl->in_msg + ssl->in_hslen;
+    lMsgParsingPointer = ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl );
+    lEndOfMessagePointer = ssl->in_msg + ssl->in_hslen;
 
+    /* Verify that we've indeed received a handshake message and that the first byte indicates it's a client key exchange message */
     if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
         return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
     }
-
     if( ssl->in_msg[0] != MBEDTLS_SSL_HS_CLIENT_KEY_EXCHANGE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
@@ -3512,13 +3532,13 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_RSA )
     {
-        if( ( ret = ssl_parse_client_dh_public( ssl, &p, end ) ) != 0 )
+        if( ( ret = ssl_parse_client_dh_public( ssl, &lMsgParsingPointer, lEndOfMessagePointer ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_client_dh_public" ), ret );
             return( ret );
         }
 
-        if( p != end )
+        if( lMsgParsingPointer != lEndOfMessagePointer )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange" ) );
             return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
@@ -3548,7 +3568,7 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA )
     {
         if( ( ret = mbedtls_ecdh_read_public( &ssl->handshake->ecdh_ctx,
-                                      p, end - p) ) != 0 )
+                                      lMsgParsingPointer, lEndOfMessagePointer - lMsgParsingPointer) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_read_public", ret );
             return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP );
@@ -3576,13 +3596,13 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK )
     {
-        if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
+        if( ( ret = ssl_parse_client_psk_identity( ssl, &lMsgParsingPointer, lEndOfMessagePointer ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_client_psk_identity" ), ret );
             return( ret );
         }
 
-        if( p != end )
+        if( lMsgParsingPointer != lEndOfMessagePointer )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange" ) );
             return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
@@ -3600,13 +3620,13 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
     {
-        if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
+        if( ( ret = ssl_parse_client_psk_identity( ssl, &lMsgParsingPointer, lEndOfMessagePointer ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_client_psk_identity" ), ret );
             return( ret );
         }
 
-        if( ( ret = ssl_parse_encrypted_pms( ssl, p, end, 2 ) ) != 0 )
+        if( ( ret = ssl_parse_encrypted_pms( ssl, lMsgParsingPointer, lEndOfMessagePointer, 2 ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_encrypted_pms" ), ret );
             return( ret );
@@ -3624,18 +3644,18 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED)
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK )
     {
-        if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
+        if( ( ret = ssl_parse_client_psk_identity( ssl, &lMsgParsingPointer, lEndOfMessagePointer ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_client_psk_identity" ), ret );
             return( ret );
         }
-        if( ( ret = ssl_parse_client_dh_public( ssl, &p, end ) ) != 0 )
+        if( ( ret = ssl_parse_client_dh_public( ssl, &lMsgParsingPointer, lEndOfMessagePointer ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_client_dh_public" ), ret );
             return( ret );
         }
 
-        if( p != end )
+        if( lMsgParsingPointer != lEndOfMessagePointer )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange" ) );
             return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
@@ -3653,14 +3673,14 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK )
     {
-        if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
+        if( ( ret = ssl_parse_client_psk_identity( ssl, &lMsgParsingPointer, lEndOfMessagePointer ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_client_psk_identity" ), ret );
             return( ret );
         }
 
         if( ( ret = mbedtls_ecdh_read_public( &ssl->handshake->ecdh_ctx,
-                                       p, end - p ) ) != 0 )
+                                       lMsgParsingPointer, lEndOfMessagePointer - lMsgParsingPointer ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_read_public", ret );
             return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP );
@@ -3680,7 +3700,7 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA )
     {
-        if( ( ret = ssl_parse_encrypted_pms( ssl, p, end, 0 ) ) != 0 )
+        if( ( ret = ssl_parse_encrypted_pms( ssl, lMsgParsingPointer, lEndOfMessagePointer, 0 ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_parse_encrypted_pms_secret" ), ret );
             return( ret );
@@ -3688,11 +3708,35 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED */
+
+/* Read the public parameters from the new-hope client */
+#if defined(MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA_ENABLED)
+    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA )
+    {
+        /* Read the values (u, r) returned by the client */
+        if( ( ret = mbedtls_newhope_read_public_from_client(&ssl->handshake->newhope_ctx,
+                                                            lMsgParsingPointer,
+                                                            lEndOfMessagePointer - lMsgParsingPointer,
+                                                            ssl->handshake->premaster,
+                                                            &ssl->handshake->pmslen) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_read_public", ret );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP );
+        }
+
+        /* Copy the shared secret input to randbytes. Copy twice */
+        memcpy(ssl->handshake->randbytes, ssl->handshake->newhope_ctx.m_SharedKeyInput, 32);
+        memcpy(ssl->handshake->randbytes + 32, ssl->handshake->newhope_ctx.m_SharedKeyInput, 32);
+
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA_ENABLED */
+
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
     {
         ret = mbedtls_ecjpake_read_round_two( &ssl->handshake->ecjpake_ctx,
-                                              p, end - p );
+                                              lMsgParsingPointer, lEndOfMessagePointer - lMsgParsingPointer );
         if( ret != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecjpake_read_round_two", ret );

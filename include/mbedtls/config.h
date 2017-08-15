@@ -275,6 +275,8 @@
 //#define MBEDTLS_SHA1_ALT
 //#define MBEDTLS_SHA256_ALT
 //#define MBEDTLS_SHA512_ALT
+//#define MBEDTLS_SALSA20_ALT
+//#define MBEDTLS_CHACHA8_ALT
 /*
  * When replacing the elliptic curve module, pleace consider, that it is
  * implemented with two .c files:
@@ -835,6 +837,44 @@
  *      MBEDTLS_TLS_ECJPAKE_WITH_AES_128_CCM_8
  */
 //#define MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
+
+/**
+ * \def MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA_ENABLED
+ *
+ * Enable the Newhope based ciphersuite modes in SSL / TLS.
+ *
+ * Requires: MBEDTLS_NEWHOPE_C, MBEDTLS_ECDSA_C,
+ *           MBEDTLS_X509_CRT_PARSE_C
+ *
+ * This enables the following ciphersuites (if other requisites are
+ * enabled as well):
+ *      MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_AES_256_GCM_SHA384
+ *      MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_AES_256_CBC_SHA384
+ *      MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_AES_256_CBC_SHA
+ *      MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_CAMELLIA_256_GCM_SHA384
+ *      MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_CAMELLIA_256_CBC_SHA384
+ *      MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_AES_128_GCM_SHA256
+ *      MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_AES_128_CBC_SHA256
+ *      MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_AES_128_CBC_SHA
+ *      MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_CAMELLIA_128_GCM_SHA256
+ *      MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_CAMELLIA_128_CBC_SHA256
+ *      MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_3DES_EDE_CBC_SHA
+ *      MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_RC4_128_SHA
+ *      MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_SALSA20_256_SHA,
+ *      MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_CHACHA8_256_SHA,
+ *
+ */
+#define MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA_ENABLED
+
+/**
+ * \def MBEDTLS_NEWHOPE_DP_12289_1024_16_ENABLED
+ *
+ * Enable New Hope parameter set from reference implementation.
+ * Until additional parameter sets are supported, this must be
+ * enabled if MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA_ENABLED is set.
+ */
+#define MBEDTLS_NEWHOPE_DP_12289_1024_16_ENABLED
+
 
 /**
  * \def MBEDTLS_PK_PARSE_EC_EXTENDED
@@ -1855,6 +1895,21 @@
 #define MBEDTLS_ECDH_C
 
 /**
+ * \def MBEDTLS_NEWHOPE_C
+ *
+ * Enable the NewHope library.
+ *
+ * Module:  library/newhope.c
+ * Caller:  library/ssl_cli.c
+ *          library/ssl_srv.c
+ *
+ * This module is used by the following key exchanges:
+ *      NEWHOPE-ECDSA
+ *
+ */
+#define MBEDTLS_NEWHOPE_C
+
+/**
  * \def MBEDTLS_ECDSA_C
  *
  * Enable the elliptic curve DSA library.
@@ -2566,6 +2621,26 @@
  * Caller:
  */
 #define MBEDTLS_XTEA_C
+
+/**
+ * \def MBEDTLS_SALSA20_C
+ *
+ * Enable the SALSA20 stream cipher.
+ *
+ * Module:  library/salsa20.c
+ * Caller:  library/ssl_tls.c
+ */
+#define MBEDTLS_SALSA20_C
+
+/**
+ * \def MBEDTLS_CHACHA8_C
+ *
+ * Enable the CHACHA8 stream cipher.
+ *
+ * Module:  library/chacha8.c
+ * Caller:
+ */
+#define MBEDTLS_CHACHA8_C
 
 /* \} name SECTION: mbed TLS modules */
 

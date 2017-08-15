@@ -3450,6 +3450,7 @@ run_test    "EC restart: TLS, default" \
              key_file=data_files/server5.key crt_file=data_files/server5.crt  \
              debug_level=1" \
             0 \
+            -C "x509_verify_cert.*4b80" \
             -C "mbedtls_pk_verify.*4b80" \
             -C "mbedtls_ecdh_make_public.*4b80" \
             -C "mbedtls_pk_sign.*4b80"
@@ -3461,6 +3462,7 @@ run_test    "EC restart: TLS, max_ops=0" \
              key_file=data_files/server5.key crt_file=data_files/server5.crt  \
              debug_level=1 ec_max_ops=0" \
             0 \
+            -C "x509_verify_cert.*4b80" \
             -C "mbedtls_pk_verify.*4b80" \
             -C "mbedtls_ecdh_make_public.*4b80" \
             -C "mbedtls_pk_sign.*4b80"
@@ -3472,6 +3474,7 @@ run_test    "EC restart: TLS, max_ops=65535" \
              key_file=data_files/server5.key crt_file=data_files/server5.crt  \
              debug_level=1 ec_max_ops=65535" \
             0 \
+            -C "x509_verify_cert.*4b80" \
             -C "mbedtls_pk_verify.*4b80" \
             -C "mbedtls_ecdh_make_public.*4b80" \
             -C "mbedtls_pk_sign.*4b80"
@@ -3483,9 +3486,61 @@ run_test    "EC restart: TLS, max_ops=1000" \
              key_file=data_files/server5.key crt_file=data_files/server5.crt  \
              debug_level=1 ec_max_ops=1000" \
             0 \
+            -c "x509_verify_cert.*4b80" \
             -c "mbedtls_pk_verify.*4b80" \
             -c "mbedtls_ecdh_make_public.*4b80" \
             -c "mbedtls_pk_sign.*4b80"
+
+requires_config_enabled MBEDTLS_ECP_RESTARTABLE
+run_test    "EC restart: TLS, max_ops=1000, badsign" \
+            "$P_SRV auth_mode=required \
+             crt_file=data_files/server5-badsign.crt \
+             key_file=data_files/server5.key" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
+             key_file=data_files/server5.key crt_file=data_files/server5.crt  \
+             debug_level=1 ec_max_ops=1000" \
+            1 \
+            -c "x509_verify_cert.*4b80" \
+            -C "mbedtls_pk_verify.*4b80" \
+            -C "mbedtls_ecdh_make_public.*4b80" \
+            -C "mbedtls_pk_sign.*4b80" \
+            -c "! The certificate is not correctly signed by the trusted CA" \
+            -c "! mbedtls_ssl_handshake returned" \
+            -c "X509 - Certificate verification failed"
+
+requires_config_enabled MBEDTLS_ECP_RESTARTABLE
+run_test    "EC restart: TLS, max_ops=1000, auth_mode=optional badsign" \
+            "$P_SRV auth_mode=required \
+             crt_file=data_files/server5-badsign.crt \
+             key_file=data_files/server5.key" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
+             key_file=data_files/server5.key crt_file=data_files/server5.crt  \
+             debug_level=1 ec_max_ops=1000 auth_mode=optional" \
+            0 \
+            -c "x509_verify_cert.*4b80" \
+            -c "mbedtls_pk_verify.*4b80" \
+            -c "mbedtls_ecdh_make_public.*4b80" \
+            -c "mbedtls_pk_sign.*4b80" \
+            -c "! The certificate is not correctly signed by the trusted CA" \
+            -C "! mbedtls_ssl_handshake returned" \
+            -C "X509 - Certificate verification failed"
+
+requires_config_enabled MBEDTLS_ECP_RESTARTABLE
+run_test    "EC restart: TLS, max_ops=1000, auth_mode=none badsign" \
+            "$P_SRV auth_mode=required \
+             crt_file=data_files/server5-badsign.crt \
+             key_file=data_files/server5.key" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
+             key_file=data_files/server5.key crt_file=data_files/server5.crt  \
+             debug_level=1 ec_max_ops=1000 auth_mode=none" \
+            0 \
+            -C "x509_verify_cert.*4b80" \
+            -c "mbedtls_pk_verify.*4b80" \
+            -c "mbedtls_ecdh_make_public.*4b80" \
+            -c "mbedtls_pk_sign.*4b80" \
+            -C "! The certificate is not correctly signed by the trusted CA" \
+            -C "! mbedtls_ssl_handshake returned" \
+            -C "X509 - Certificate verification failed"
 
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 run_test    "EC restart: DTLS, max_ops=1000" \
@@ -3494,6 +3549,7 @@ run_test    "EC restart: DTLS, max_ops=1000" \
              key_file=data_files/server5.key crt_file=data_files/server5.crt  \
              dtls=1 debug_level=1 ec_max_ops=1000" \
             0 \
+            -c "x509_verify_cert.*4b80" \
             -c "mbedtls_pk_verify.*4b80" \
             -c "mbedtls_ecdh_make_public.*4b80" \
             -c "mbedtls_pk_sign.*4b80"
@@ -3504,6 +3560,7 @@ run_test    "EC restart: TLS, max_ops=1000 no client auth" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
              debug_level=1 ec_max_ops=1000" \
             0 \
+            -c "x509_verify_cert.*4b80" \
             -c "mbedtls_pk_verify.*4b80" \
             -c "mbedtls_ecdh_make_public.*4b80" \
             -C "mbedtls_pk_sign.*4b80"
@@ -3514,6 +3571,7 @@ run_test    "EC restart: TLS, max_ops=1000, ECDHE-PSK" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA256 \
              psk=abc123 debug_level=1 ec_max_ops=1000" \
             0 \
+            -C "x509_verify_cert.*4b80" \
             -C "mbedtls_pk_verify.*4b80" \
             -C "mbedtls_ecdh_make_public.*4b80" \
             -C "mbedtls_pk_sign.*4b80"

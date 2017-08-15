@@ -231,6 +231,8 @@ struct mbedtls_ssl_handshake_params
     mbedtls_x509_crt_restart_ctx ecrs_ctx;  /*!< restart context            */
     enum {
         ssl_ecrs_init = 0,              /*!< just getting started           */
+        ssl_ecrs_crt_parsed,            /*!< server certificate was parsed  */
+        ssl_ecrs_crt_verified,          /*!< server certificate was verified*/
         ssl_ecrs_ske_read,              /*!< ServerKeyExchange was read     */
         ssl_ecrs_ske_verified,          /*!< ServerKeyExchange was verified */
         ssl_ecrs_ecdh_public_done,      /*!< wrote ECDHE public share       */

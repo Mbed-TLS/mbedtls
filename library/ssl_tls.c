@@ -4518,6 +4518,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 #else
     const int authmode = ssl->conf->authmode;
 #endif
+    void *rs_ctx = NULL;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
 
@@ -4545,8 +4546,17 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     {
         ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_SKIP_VERIFY;
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
+
         ssl->state++;
         return( 0 );
+    }
+#endif
+
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+    if( ssl->handshake->ecrs_enabled &&
+        ssl->handshake->ecrs_state == ssl_ecrs_crt_parsed )
+    {
+        goto crt_verify;
     }
 #endif
 
@@ -4572,6 +4582,15 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         return( ret );
     }
 
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+    if( ssl->handshake->ecrs_enabled)
+        ssl->handshake->ecrs_state++;
+
+crt_verify:
+    if( ssl->handshake->ecrs_enabled)
+        rs_ctx = &ssl->handshake->ecrs_ctx;
+#endif
+
     if( authmode != MBEDTLS_SSL_VERIFY_NONE )
     {
         mbedtls_x509_crt *ca_chain;
@@ -4593,18 +4612,23 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         /*
          * Main check: verify certificate
          */
-        ret = mbedtls_x509_crt_verify_with_profile(
+        ret = mbedtls_x509_crt_verify_restartable(
                                 ssl->session_negotiate->peer_cert,
                                 ca_chain, ca_crl,
                                 ssl->conf->cert_profile,
                                 ssl->hostname,
                                &ssl->session_negotiate->verify_result,
-                                ssl->conf->f_vrfy, ssl->conf->p_vrfy );
+                                ssl->conf->f_vrfy, ssl->conf->p_vrfy, rs_ctx );
 
         if( ret != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "x509_verify_cert", ret );
         }
+
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+        if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
+            return( ret );
+#endif
 
         /*
          * Secondary checks: always done, but change 'ret' only if it was 0
@@ -4701,6 +4725,11 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         }
 #endif /* MBEDTLS_DEBUG_C */
     }
+
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+    if( ssl->handshake->ecrs_enabled)
+        ssl->handshake->ecrs_state++;
+#endif
 
     ssl->state++;
 

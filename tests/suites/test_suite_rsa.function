@@ -195,7 +195,10 @@ void rsa_pkcs1_verify_raw( char *message_hex_string, char *hash_result_string,
     unsigned char result_str[1000];
     unsigned char output[1000];
     mbedtls_rsa_context ctx;
-    size_t hash_len, olen;
+    size_t hash_len;
+#if !(defined (USE_MBEDTLS_CRYPTOCELL) && defined (MBEDTLS_RSA_ALT))
+    size_t olen;
+#endif
 
     mbedtls_rsa_init( &ctx, padding_mode, 0 );
     memset( message_str, 0x00, 1000 );

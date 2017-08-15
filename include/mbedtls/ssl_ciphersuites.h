@@ -229,6 +229,22 @@ extern "C" {
 #define MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8      0xC0AE  /**< TLS 1.2 */
 #define MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8      0xC0AF  /**< TLS 1.2 */
 
+#define MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_RC4_128_SHA               0xC0B0  /**< Experimental */
+#define MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_AES_128_CBC_SHA           0xC0B1  /**< Experimental */
+#define MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_AES_256_CBC_SHA           0xC0B2  /**< Experimental */
+#define MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_AES_128_CBC_SHA256        0xC0B3  /**< Experimental */
+#define MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_AES_128_GCM_SHA256        0xC0B4  /**< Experimental */
+#define MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_AES_256_CBC_SHA384        0xC0B5  /**< Experimental */
+#define MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_AES_256_GCM_SHA384        0xC0B6  /**< Experimental */
+#define MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_CAMELLIA_128_CBC_SHA256   0xC0B7  /**< Experimental */
+#define MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_CAMELLIA_256_CBC_SHA384   0xC0B8  /**< Experimental */
+#define MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_CAMELLIA_128_GCM_SHA256   0xC0B9  /**< Experimental */
+#define MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_CAMELLIA_256_GCM_SHA384   0xC0BA  /**< Experimental */
+#define MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_3DES_EDE_CBC_SHA          0xC0BB  /**< Experimental */
+#define MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_SALSA20_256_SHA           0xC0BC  /**< Experimental */
+#define MBEDTLS_TLS_NEWHOPE_ECDSA_WITH_CHACHA8_256_SHA           0xC0BD  /**< Experimental */
+
+
 #define MBEDTLS_TLS_ECJPAKE_WITH_AES_128_CCM_8          0xC0FF  /**< experimental */
 
 /* Reminder: update mbedtls_ssl_premaster_secret when adding a new key exchange.
@@ -247,6 +263,7 @@ typedef enum {
     MBEDTLS_KEY_EXCHANGE_ECDH_RSA,
     MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA,
     MBEDTLS_KEY_EXCHANGE_ECJPAKE,
+    MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA
 } mbedtls_key_exchange_type_t;
 
 /* Key exchanges using a certificate */
@@ -256,7 +273,8 @@ typedef enum {
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)   || \
     defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)       || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)      || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
+    defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)    || \
+    defined(MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA_ENABLED)
 #define MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED
 #endif
 
@@ -266,14 +284,16 @@ typedef enum {
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)      ||       \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)     ||       \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)    ||       \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) 
+    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)   ||       \
+    defined(MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA_ENABLED)
 #define MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED
 #endif
 
 /* Key exchanges involving server signature in ServerKeyExchange */
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)       || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)     || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
+    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)   || \
+    defined(MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA_ENABLED)
 #define MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED
 #endif
 
@@ -297,7 +317,8 @@ typedef enum {
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)     || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)     || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)   || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)       || \
+    defined(MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA_ENABLED)
 #define MBEDTLS_KEY_EXCHANGE__SOME_PFS__ENABLED
 #endif
 
@@ -470,6 +491,7 @@ static inline int mbedtls_ssl_ciphersuite_uses_server_signature( const mbedtls_s
         case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA:
+        case MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA:
             return( 1 );
 
         default:

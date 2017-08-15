@@ -149,6 +149,9 @@
 #include "mbedtls/xtea.h"
 #endif
 
+#if defined(MBEDTLS_NEWHOPE_C)
+#include "mbedtls/newhope.h"
+#endif
 
 void mbedtls_strerror( int ret, char *buf, size_t buflen )
 {
@@ -440,6 +443,19 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH) )
             mbedtls_snprintf( buf, buflen, "SSL - Couldn't set the hash for verifying CertificateVerify" );
 #endif /* MBEDTLS_SSL_TLS_C */
+
+#if defined(MBEDTLS_NEWHOPE_C)
+        if( use_ret == -(MBEDTLS_ERR_NEWHOPE_BAD_INPUT_DATA) )
+            mbedtls_snprintf( buf, buflen, "NEWHOPE - Bad input data" );
+        if( use_ret == -(MBEDTLS_ERR_NEWHOPE_FEATURE_UNAVAILABLE) )
+            mbedtls_snprintf( buf, buflen, "NEWHOPE - Feature unavailable" );
+        if( use_ret == -(MBEDTLS_ERR_NEWHOPE_FAILED_TO_GENERATE_RANDOM) )
+            mbedtls_snprintf( buf, buflen, "NEWHOPE - Failed to generate random" );
+        if( use_ret == -(MBEDTLS_ERR_NEWHOPE_NOISE_INCORRECT) )
+            mbedtls_snprintf( buf, buflen, "NEWHOPE - Incorrect noise" );
+        if( use_ret == -(MBEDTLS_ERR_NEWHOPE_BUFFER_TOO_SMALL) )
+            mbedtls_snprintf( buf, buflen, "NEWHOPE - Buffer too small" );
+#endif /* MBEDTLS_NEWHOPE_C */
 
 #if defined(MBEDTLS_X509_USE_C) || defined(MBEDTLS_X509_CREATE_C)
         if( use_ret == -(MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE) )

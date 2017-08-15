@@ -50,14 +50,17 @@ APPS =	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
 	test_suite_arc4$(EXEXT)		test_suite_asn1write$(EXEXT)	\
 	test_suite_base64$(EXEXT)	test_suite_blowfish$(EXEXT)	\
 	test_suite_camellia$(EXEXT)	test_suite_ccm$(EXEXT)		\
+	test_suite_chacha8$(EXEXT) \
 	test_suite_cmac$(EXEXT)						\
 	test_suite_cipher.aes$(EXEXT)					\
 	test_suite_cipher.arc4$(EXEXT)	test_suite_cipher.ccm$(EXEXT)	\
+	test_suite_cipher.chacha8$(EXEXT) \
 	test_suite_cipher.gcm$(EXEXT)					\
 	test_suite_cipher.blowfish$(EXEXT)				\
 	test_suite_cipher.camellia$(EXEXT)				\
 	test_suite_cipher.des$(EXEXT)	test_suite_cipher.null$(EXEXT)	\
 	test_suite_cipher.padding$(EXEXT)				\
+	test_suite_cipher.salsa20$(EXEXT) \
 	test_suite_ctr_drbg$(EXEXT)	test_suite_debug$(EXEXT)	\
 	test_suite_des$(EXEXT)		test_suite_dhm$(EXEXT)		\
 	test_suite_ecdh$(EXEXT)		test_suite_ecdsa$(EXEXT)	\
@@ -81,7 +84,8 @@ APPS =	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
 	test_suite_pkcs1_v21$(EXEXT)	test_suite_pkcs5$(EXEXT)	\
 	test_suite_pkparse$(EXEXT)	test_suite_pkwrite$(EXEXT)	\
 	test_suite_pk$(EXEXT)						\
-	test_suite_rsa$(EXEXT)		test_suite_shax$(EXEXT)		\
+	test_suite_rsa$(EXEXT)		test_suite_salsa20$(EXEXT) \
+	test_suite_shax$(EXEXT)		\
 	test_suite_ssl$(EXEXT)		test_suite_timing$(EXEXT)			\
 	test_suite_x509parse$(EXEXT)	test_suite_x509write$(EXEXT)	\
 	test_suite_xtea$(EXEXT)		test_suite_version$(EXEXT)
@@ -125,6 +129,10 @@ test_suite_cipher.ccm.c : suites/test_suite_cipher.function suites/test_suite_ci
 	echo "  Gen   $@"
 	perl scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.ccm
 
+test_suite_cipher.chacha8.c : suites/test_suite_cipher.function suites/test_suite_cipher.chacha8.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+	echo "  Gen   $@"
+	perl scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.chacha8
+
 test_suite_cipher.gcm.c : suites/test_suite_cipher.function suites/test_suite_cipher.gcm.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
 	perl scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.gcm
@@ -148,6 +156,10 @@ test_suite_cipher.null.c : suites/test_suite_cipher.function suites/test_suite_c
 test_suite_cipher.padding.c : suites/test_suite_cipher.function suites/test_suite_cipher.padding.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
 	perl scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.padding
+
+test_suite_cipher.salsa20.c : suites/test_suite_cipher.function suites/test_suite_cipher.salsa20.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+	echo "  Gen   $@"
+	perl scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.salsa20
 
 test_suite_gcm.aes128_de.c : suites/test_suite_gcm.function suites/test_suite_gcm.aes128_de.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
@@ -237,6 +249,10 @@ test_suite_ccm$(EXEXT): test_suite_ccm.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
+test_suite_chacha8$(EXEXT): test_suite_chacha8.c $(DEP)
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
 test_suite_cmac$(EXEXT): test_suite_cmac.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
@@ -250,6 +266,10 @@ test_suite_cipher.arc4$(EXEXT): test_suite_cipher.arc4.c $(DEP)
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_cipher.ccm$(EXEXT): test_suite_cipher.ccm.c $(DEP)
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+test_suite_cipher.chacha8$(EXEXT): test_suite_cipher.chacha8.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
@@ -274,6 +294,14 @@ test_suite_cipher.null$(EXEXT): test_suite_cipher.null.c $(DEP)
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_cipher.padding$(EXEXT): test_suite_cipher.padding.c $(DEP)
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+test_suite_cipher.salsa20$(EXEXT): test_suite_cipher.salsa20.c $(DEP)
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+test_suite_salsa20$(EXEXT): test_suite_salsa20.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 

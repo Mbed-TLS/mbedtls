@@ -1,0 +1,70 @@
+/* BEGIN_HEADER */
+#include "mbedtls/newhope.h"
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_NEWHOPE_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void newhope_exchange( int id )
+{
+    mbedtls_newhope_context l_server_context, l_client_context;
+
+    unsigned char buf[10000];
+
+    size_t len;
+    size_t l_server_pms_buffer_size;
+    size_t l_client_pms_buffer_size;
+
+    unsigned char l_client_pms_buffer[64];
+    unsigned char l_server_pms_buffer[64];
+
+    rnd_pseudo_info rnd_info;
+    unsigned char * l_buf_moving = buf;
+
+    memset( buf, 0x00, 10000 );
+
+    mbedtls_newhope_init( &l_server_context );
+    mbedtls_newhope_init( &l_client_context );
+
+    memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
+
+    TEST_ASSERT( 0 == mbedtls_newhope_load_parameters_from_parameter_set_id( &l_server_context.parameter_set, id ) );
+
+    TEST_ASSERT( 0 == mbedtls_newhope_make_params_server( &l_server_context, &len, &l_buf_moving, sizeof( buf )));
+
+    l_buf_moving = buf;
+    TEST_ASSERT( 0 == mbedtls_newhope_parse_public_value_from_server( &l_client_context, &l_buf_moving, l_buf_moving + 1824 ));
+
+    // Now the client generates their public value
+    l_buf_moving = buf;
+    TEST_ASSERT( 0 == mbedtls_newhope_make_params_client( &l_client_context, &len, l_buf_moving, sizeof( buf )));
+
+
+    // Calculate the shared secret on the client side
+    TEST_ASSERT( 0 == mbedtls_newhope_calc_secret( &l_client_context,
+                                                   &l_client_context.m_V_vector,
+                                                   &l_client_context.m_R_vector,
+                                                   l_client_pms_buffer,
+                                                   &l_client_pms_buffer_size));
+
+    l_buf_moving = buf;
+
+
+    // And calculate the secret on the server side
+    TEST_ASSERT( 0 == mbedtls_newhope_read_public_from_client( &l_server_context,
+                                                               l_buf_moving,
+                                                               sizeof(buf),
+                                                               l_server_pms_buffer,
+                                                               &l_server_pms_buffer_size));
+
+    // Compare the shared secrets
+    TEST_ASSERT( 0 == memcmp(l_server_context.m_SharedKeyInput, l_client_context.m_SharedKeyInput, sizeof( l_server_context.m_SharedKeyInput ) ) );
+
+    TEST_ASSERT( 0 == memcmp(l_server_pms_buffer, l_client_pms_buffer, l_server_pms_buffer_size));
+
+    TEST_ASSERT( 32 == l_server_pms_buffer_size );
+}
+/* END_CASE */

@@ -4313,8 +4313,15 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     size_t i, n;
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
-    int authmode = ssl->conf->authmode;
+    const mbedtls_ssl_ciphersuite_t * const ciphersuite_info =
+          ssl->transform_negotiate->ciphersuite_info;
+#if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    const int authmode = ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET
+                       ? ssl->handshake->sni_authmode
+                       : ssl->conf->authmode;
+#else
+    const int authmode = ssl->conf->authmode;
+#endif
     uint8_t alert;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
@@ -4337,11 +4344,6 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         ssl->state++;
         return( 0 );
     }
-
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-    if( ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET )
-        authmode = ssl->handshake->sni_authmode;
-#endif
 
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
         authmode == MBEDTLS_SSL_VERIFY_NONE )

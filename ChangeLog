@@ -6,13 +6,9 @@ Features
    * Add support for restartable ECC operations, enabled by
      MBEDTLS_ECP_RESTARTABLE (disabled by default) at compile time and
      mbedtls_ecp_set_max_ops() at runtime, using new xxx_restartable functions
-     in ECP, ECDSA, PK, and using existing functions in ECDH and SSL
-     (currently only implemented client-side, for ECDHE-ECDSA ciphersuites
-     with TLS 1.2, including client authentication).
-     TEMPORARY NOTE: server authentication currently not supported (WIP).
-     For now, MUST be disabled by calling
-     mbedtls_ssl_conf_authmode( MBEDTLS_SSL_VERIFY_NONE )
-     (or blocking ECC operations will happen)
+     in ECP, ECDSA, PK and X509 (CRL not supported yet), and using existing
+     functions in ECDH and SSL (currently only implemented client-side, for
+     ECDHE-ECDSA ciphersuites with TLS 1.2, including client authentication).
 
 = mbed TLS x.x.x branch released xxxx-xx-xx
 

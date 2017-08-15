@@ -259,24 +259,28 @@ typedef struct {
 static const oid_x509_ext_t oid_x509_ext[] =
 {
     {
-        { ADD_LEN( MBEDTLS_OID_BASIC_CONSTRAINTS ),    "id-ce-basicConstraints",   "Basic Constraints" },
+        { ADD_LEN( MBEDTLS_OID_BASIC_CONSTRAINTS ),    "id-ce-basicConstraints",     "Basic Constraints" },
         MBEDTLS_X509_EXT_BASIC_CONSTRAINTS,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_KEY_USAGE ),            "id-ce-keyUsage",           "Key Usage" },
+        { ADD_LEN( MBEDTLS_OID_KEY_USAGE ),            "id-ce-keyUsage",             "Key Usage" },
         MBEDTLS_X509_EXT_KEY_USAGE,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_EXTENDED_KEY_USAGE ),   "id-ce-extKeyUsage",        "Extended Key Usage" },
+        { ADD_LEN( MBEDTLS_OID_EXTENDED_KEY_USAGE ),   "id-ce-extKeyUsage",          "Extended Key Usage" },
         MBEDTLS_X509_EXT_EXTENDED_KEY_USAGE,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_SUBJECT_ALT_NAME ),     "id-ce-subjectAltName",     "Subject Alt Name" },
+        { ADD_LEN( MBEDTLS_OID_SUBJECT_ALT_NAME ),     "id-ce-subjectAltName",       "Subject Alt Name" },
         MBEDTLS_X509_EXT_SUBJECT_ALT_NAME,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_NS_CERT_TYPE ),         "id-netscape-certtype",     "Netscape Certificate Type" },
+        { ADD_LEN( MBEDTLS_OID_NS_CERT_TYPE ),         "id-netscape-certtype",       "Netscape Certificate Type" },
         MBEDTLS_X509_EXT_NS_CERT_TYPE,
+    },
+    {
+        { ADD_LEN( MBEDTLS_OID_AUTHORITY_INFO_ACCESS ), "id-pe-authorityInfoAccess", "Authority Information Access" },
+        MBEDTLS_X509_EXT_AUTHORITY_INFO_ACCESS,
     },
     {
         { NULL, 0, NULL, NULL },
@@ -300,6 +304,16 @@ static const mbedtls_oid_descriptor_t oid_ext_key_usage[] =
 
 FN_OID_TYPED_FROM_ASN1(mbedtls_oid_descriptor_t, ext_key_usage, oid_ext_key_usage)
 FN_OID_GET_ATTR1(mbedtls_oid_get_extended_key_usage, mbedtls_oid_descriptor_t, ext_key_usage, const char *, description)
+
+static const mbedtls_oid_descriptor_t oid_authority_info_access[] =
+{
+    /* TODO: Add more access descriptors */
+    { ADD_LEN( MBEDTLS_OID_OCSP ), "id-ad-ocsp", "OCSP" },
+    { NULL, 0, NULL, NULL },
+};
+
+FN_OID_TYPED_FROM_ASN1(mbedtls_oid_descriptor_t, authority_info_access, oid_authority_info_access)
+FN_OID_GET_ATTR1(mbedtls_oid_get_authority_info_access, mbedtls_oid_descriptor_t, authority_info_access, const char *, description)
 #endif /* MBEDTLS_X509_USE_C || MBEDTLS_X509_CREATE_C */
 
 #if defined(MBEDTLS_MD_C)

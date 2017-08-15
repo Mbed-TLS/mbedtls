@@ -172,6 +172,9 @@
  */
 #define MBEDTLS_OID_ANY_EXTENDED_KEY_USAGE      MBEDTLS_OID_EXTENDED_KEY_USAGE "\x00" /**< anyExtendedKeyUsage OBJECT IDENTIFIER ::= { id-ce-extKeyUsage 0 } */
 
+#define MBEDTLS_OID_PE                          MBEDTLS_OID_PKIX "\x01" /**< id-pe OBJECT IDENTIFIER ::= { id-pkix 1 } */
+#define MBEDTLS_OID_AUTHORITY_INFO_ACCESS       MBEDTLS_OID_PE "\x01" /**< id-pe-authorityInfoAccess OBJECT IDENTIFIER ::= { id-pe 1 } */
+
 #define MBEDTLS_OID_KP                          MBEDTLS_OID_PKIX "\x03" /**< id-kp OBJECT IDENTIFIER ::= { id-pkix 3 } */
 #define MBEDTLS_OID_SERVER_AUTH                 MBEDTLS_OID_KP "\x01" /**< id-kp-serverAuth OBJECT IDENTIFIER ::= { id-kp 1 } */
 #define MBEDTLS_OID_CLIENT_AUTH                 MBEDTLS_OID_KP "\x02" /**< id-kp-clientAuth OBJECT IDENTIFIER ::= { id-kp 2 } */
@@ -524,6 +527,8 @@ int mbedtls_oid_get_md_alg( const mbedtls_asn1_buf *oid, mbedtls_md_type_t *md_a
  * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
  */
 int mbedtls_oid_get_extended_key_usage( const mbedtls_asn1_buf *oid, const char **desc );
+
+int mbedtls_oid_get_authority_info_access( const mbedtls_asn1_buf *oid, const char **desc );
 
 /**
  * \brief          Translate md_type into hash algorithm OID

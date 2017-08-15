@@ -350,6 +350,90 @@ static int x509_get_basic_constraints( unsigned char **p,
     return( 0 );
 }
 
+/*
+ * AuthorityInfoAccessSyntax ::=
+ *          SEQUENCE SIZE (1..MAX) OF AccessDescription
+ *
+ * AccessDescription ::= SEQUENCE {
+ *          accessMethod        OBJECT IDENTIFIER,
+ *          accessLocation      GeneralName }
+ */
+static int x509_get_authority_info_access( unsigned char **p,
+                                           const unsigned char *end,
+                                           int is_critical,
+                                           mbedtls_x509_sequence *descs )
+{
+    int ret;
+    size_t len;
+    unsigned char seq_tag = MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE;
+    mbedtls_asn1_buf *buf;
+    mbedtls_asn1_sequence *cur = descs;
+
+    /*
+     * RFC 5280 Section 4.2.2.1: Conforming CAs MUST mark this extension as
+     * non-critical.
+     */
+    if( is_critical != 0 )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS );
+
+    /* Get main sequence tag */
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len, seq_tag ) ) != 0 )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+
+    /* TODO: Check whether this would overflow */
+    if( *p + len != end )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+    while( *p < end )
+    {
+        if( ( end - *p ) < 1 )
+            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                    MBEDTLS_ERR_ASN1_OUT_OF_DATA );
+
+        /* Get AccessDescriptor sequence tag and len */
+        if( ( ret = mbedtls_asn1_get_tag( p, end, &len, seq_tag ) ) != 0 )
+            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+
+        /*
+         * TODO: We should check whether the accessMethod and accessLocation
+         * are acceptable values.
+         * TODO: Check that the accessMethod and accessLocation are well
+         * formed. For example, it is currently possible to have:
+         * accessLocation.len + accessMethod.len == len, but
+         * len(accessLocation) != accessLocation.len
+         */
+
+        if( cur->buf.p != NULL )
+        {
+            if( cur->next != NULL )
+                return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS );
+
+            cur->next = mbedtls_calloc( 1, sizeof( mbedtls_asn1_sequence ) );
+
+            if( cur->next == NULL )
+                return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                        MBEDTLS_ERR_ASN1_ALLOC_FAILED );
+
+            cur = cur->next;
+        }
+
+        buf = &( cur->buf );
+        buf->tag = seq_tag;
+        buf->p = *p;
+        buf->len = len;
+        *p += buf->len;
+    }
+
+    cur->next = NULL;
+
+    if( *p != end )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+    return( 0 );
+}
+
 static int x509_get_ns_cert_type( unsigned char **p,
                                        const unsigned char *end,
                                        unsigned char *ns_cert_type)
@@ -643,6 +727,13 @@ static int x509_get_crt_ext( unsigned char **p,
             /* Parse netscape certificate type */
             if( ( ret = x509_get_ns_cert_type( p, end_ext_octet,
                     &crt->ns_cert_type ) ) != 0 )
+                return( ret );
+            break;
+
+        case MBEDTLS_X509_EXT_AUTHORITY_INFO_ACCESS:
+            /* Parse Authority Information Access */
+            if( ( ret = x509_get_authority_info_access( p, end_ext_octet,
+                    is_critical, &crt->auth_access_descs ) ) != 0 )
                 return( ret );
             break;
 
@@ -1354,6 +1445,70 @@ static int x509_info_ext_key_usage( char **buf, size_t *size,
     return( 0 );
 }
 
+
+static int x509_info_authority_info_access( char **buf, size_t *size,
+                                            const mbedtls_x509_sequence *descs )
+{
+    int ret;
+    size_t n = *size;
+    char *p = *buf;
+    const char *access_method;
+    char access_location[128];
+    const mbedtls_x509_sequence *cur = descs;
+    mbedtls_x509_buf x509_buf;
+    const char *sep = "";
+    unsigned char *pos, *end;
+    size_t len;
+
+    /*
+     * TODO: Some of the checks below are redundant if the certificate is
+     * checked while parsing in x509_get_authority_info_access()
+     */
+    while( cur != NULL )
+    {
+        pos = cur->buf.p;
+        end = pos + cur->buf.len;
+
+        /* Get accessMethod */
+        if( ( ret = mbedtls_asn1_get_tag( &pos, end, &len, MBEDTLS_ASN1_OID ) ) != 0 )
+            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+
+        x509_buf.tag = MBEDTLS_ASN1_OID;
+        x509_buf.p = pos;
+        x509_buf.len = len;
+
+        if( mbedtls_oid_get_authority_info_access( &x509_buf, &access_method ) != 0 )
+            access_method = "???";
+
+        pos += len;
+
+        /* Get accessLocation */
+        if( ( ret = mbedtls_asn1_get_tag( &pos, end, &len, MBEDTLS_ASN1_CONTEXT_SPECIFIC | 6 ) ) != 0 )
+            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+
+        if( sizeof( access_location ) > len )
+        {
+            memcpy( access_location, pos, len );
+            access_location[len] = '\0';
+            ret = mbedtls_snprintf( p, n, "%s[%s;%s]", sep, access_method,
+                                    access_location );
+        }
+        else
+            ret = mbedtls_snprintf( p, n, "%s[%s;%s]", sep, access_method,
+                                    "...too long..." );
+        MBEDTLS_X509_SAFE_SNPRINTF;
+
+        sep = ", ";
+
+        cur = cur->next;
+    }
+
+    *size = n;
+    *buf = p;
+
+    return( 0 );
+}
+
 /*
  * Return an informational string about the certificate.
  */
@@ -1378,41 +1533,44 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
         return( (int) ( size - n ) );
     }
 
-    ret = mbedtls_snprintf( p, n, "%scert. version     : %d\n",
-                               prefix, crt->version );
+    ret = mbedtls_snprintf( p, n, "%s%-" BC "s: %d\n",
+                            prefix, "cert. version", crt->version );
     MBEDTLS_X509_SAFE_SNPRINTF;
-    ret = mbedtls_snprintf( p, n, "%sserial number     : ",
-                               prefix );
+    ret = mbedtls_snprintf( p, n, "%s%-" BC "s: ",
+                            prefix, "serial number" );
     MBEDTLS_X509_SAFE_SNPRINTF;
 
     ret = mbedtls_x509_serial_gets( p, n, &crt->serial );
     MBEDTLS_X509_SAFE_SNPRINTF;
 
-    ret = mbedtls_snprintf( p, n, "\n%sissuer name       : ", prefix );
+    ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: ",
+                            prefix, "issuer name" );
     MBEDTLS_X509_SAFE_SNPRINTF;
     ret = mbedtls_x509_dn_gets( p, n, &crt->issuer  );
     MBEDTLS_X509_SAFE_SNPRINTF;
 
-    ret = mbedtls_snprintf( p, n, "\n%ssubject name      : ", prefix );
+    ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: ",
+                            prefix, "subject name" );
     MBEDTLS_X509_SAFE_SNPRINTF;
     ret = mbedtls_x509_dn_gets( p, n, &crt->subject );
     MBEDTLS_X509_SAFE_SNPRINTF;
 
-    ret = mbedtls_snprintf( p, n, "\n%sissued  on        : " \
-                   "%04d-%02d-%02d %02d:%02d:%02d", prefix,
+    ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: " \
+                   "%04d-%02d-%02d %02d:%02d:%02d", prefix, "issued  on",
                    crt->valid_from.year, crt->valid_from.mon,
                    crt->valid_from.day,  crt->valid_from.hour,
                    crt->valid_from.min,  crt->valid_from.sec );
     MBEDTLS_X509_SAFE_SNPRINTF;
 
-    ret = mbedtls_snprintf( p, n, "\n%sexpires on        : " \
-                   "%04d-%02d-%02d %02d:%02d:%02d", prefix,
+    ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: " \
+                   "%04d-%02d-%02d %02d:%02d:%02d", prefix, "expires on",
                    crt->valid_to.year, crt->valid_to.mon,
                    crt->valid_to.day,  crt->valid_to.hour,
                    crt->valid_to.min,  crt->valid_to.sec );
     MBEDTLS_X509_SAFE_SNPRINTF;
 
-    ret = mbedtls_snprintf( p, n, "\n%ssigned using      : ", prefix );
+    ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: ",
+                            prefix, "signed using" );
     MBEDTLS_X509_SAFE_SNPRINTF;
 
     ret = mbedtls_x509_sig_alg_gets( p, n, &crt->sig_oid, crt->sig_pk,
@@ -1426,8 +1584,9 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
         return( ret );
     }
 
-    ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: %d bits", prefix, key_size_str,
-                          (int) mbedtls_pk_get_bitlen( &crt->pk ) );
+    ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: %d bits",
+                            prefix, key_size_str,
+                            (int) mbedtls_pk_get_bitlen( &crt->pk ) );
     MBEDTLS_X509_SAFE_SNPRINTF;
 
     /*
@@ -1436,8 +1595,9 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
 
     if( crt->ext_types & MBEDTLS_X509_EXT_BASIC_CONSTRAINTS )
     {
-        ret = mbedtls_snprintf( p, n, "\n%sbasic constraints : CA=%s", prefix,
-                        crt->ca_istrue ? "true" : "false" );
+        ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: CA=%s",
+                                prefix, "basic constraints",
+                                crt->ca_istrue ? "true" : "false" );
         MBEDTLS_X509_SAFE_SNPRINTF;
 
         if( crt->max_pathlen > 0 )
@@ -1449,7 +1609,8 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
 
     if( crt->ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME )
     {
-        ret = mbedtls_snprintf( p, n, "\n%ssubject alt name  : ", prefix );
+        ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: ",
+                                prefix, "subject alt name" );
         MBEDTLS_X509_SAFE_SNPRINTF;
 
         if( ( ret = x509_info_subject_alt_name( &p, &n,
@@ -1459,7 +1620,8 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
 
     if( crt->ext_types & MBEDTLS_X509_EXT_NS_CERT_TYPE )
     {
-        ret = mbedtls_snprintf( p, n, "\n%scert. type        : ", prefix );
+        ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: ",
+                                prefix, "cert. type" );
         MBEDTLS_X509_SAFE_SNPRINTF;
 
         if( ( ret = x509_info_cert_type( &p, &n, crt->ns_cert_type ) ) != 0 )
@@ -1468,7 +1630,8 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
 
     if( crt->ext_types & MBEDTLS_X509_EXT_KEY_USAGE )
     {
-        ret = mbedtls_snprintf( p, n, "\n%skey usage         : ", prefix );
+        ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: ",
+                                prefix, "key usage" );
         MBEDTLS_X509_SAFE_SNPRINTF;
 
         if( ( ret = x509_info_key_usage( &p, &n, crt->key_usage ) ) != 0 )
@@ -1477,11 +1640,23 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
 
     if( crt->ext_types & MBEDTLS_X509_EXT_EXTENDED_KEY_USAGE )
     {
-        ret = mbedtls_snprintf( p, n, "\n%sext key usage     : ", prefix );
+        ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: ",
+                                prefix, "ext key usage" );
         MBEDTLS_X509_SAFE_SNPRINTF;
 
         if( ( ret = x509_info_ext_key_usage( &p, &n,
                                              &crt->ext_key_usage ) ) != 0 )
+            return( ret );
+    }
+
+    if( crt->ext_types & MBEDTLS_X509_EXT_AUTHORITY_INFO_ACCESS )
+    {
+        ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: ",
+                                prefix, "authority info access" );
+        MBEDTLS_X509_SAFE_SNPRINTF;
+
+        if( ( ret = x509_info_authority_info_access( &p, &n,
+                                            &crt->auth_access_descs ) ) != 0 )
             return( ret );
     }
 

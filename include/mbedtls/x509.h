@@ -160,6 +160,8 @@
 
 #define MBEDTLS_X509_EXT_NS_CERT_TYPE                (1 << 16)
 
+#define MBEDTLS_X509_EXT_AUTHORITY_INFO_ACCESS       (1 << 17)
+
 /*
  * Storage format identifiers
  * Recognized formats: PEM and DER

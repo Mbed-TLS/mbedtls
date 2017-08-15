@@ -2533,86 +2533,70 @@ void mbedtls_x509_crt_init( mbedtls_x509_crt *crt )
     memset( crt, 0, sizeof(mbedtls_x509_crt) );
 }
 
+static void x509_crt_free_name( mbedtls_x509_name *name )
+{
+    mbedtls_x509_name *cur = name->next;
+    mbedtls_x509_name *prv;
+
+    while( cur != NULL )
+    {
+        prv = cur;
+        cur = cur->next;
+        mbedtls_zeroize( prv, sizeof( mbedtls_x509_name ) );
+        mbedtls_free( prv );
+    }
+}
+
+static void x509_crt_free_sequence( mbedtls_x509_sequence *seq )
+{
+    mbedtls_x509_sequence *cur = seq->next;
+    mbedtls_x509_sequence *prv;
+
+    while( cur != NULL )
+    {
+        prv = cur;
+        cur = cur->next;
+        mbedtls_zeroize( prv, sizeof( mbedtls_x509_sequence ) );
+        mbedtls_free( prv );
+    }
+}
+
 /*
  * Unallocate all certificate data
  */
 void mbedtls_x509_crt_free( mbedtls_x509_crt *crt )
 {
-    mbedtls_x509_crt *cert_cur = crt;
-    mbedtls_x509_crt *cert_prv;
-    mbedtls_x509_name *name_cur;
-    mbedtls_x509_name *name_prv;
-    mbedtls_x509_sequence *seq_cur;
-    mbedtls_x509_sequence *seq_prv;
+    mbedtls_x509_crt *cur = crt;
+    mbedtls_x509_crt *prv;
 
-    if( crt == NULL )
-        return;
-
-    do
+    while( cur != NULL )
     {
-        mbedtls_pk_free( &cert_cur->pk );
+        prv = cur;
+        cur = cur->next;
+
+        mbedtls_pk_free( &prv->pk );
 
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
-        mbedtls_free( cert_cur->sig_opts );
+        mbedtls_free( prv->sig_opts );
 #endif
 
-        name_cur = cert_cur->issuer.next;
-        while( name_cur != NULL )
+        x509_crt_free_name( &prv->issuer );
+        x509_crt_free_name( &prv->subject );
+
+        x509_crt_free_sequence( &prv->ext_key_usage );
+        x509_crt_free_sequence( &prv->subject_alt_names );
+        x509_crt_free_sequence( &prv->auth_access_descs );
+
+        if( prv->raw.p != NULL )
         {
-            name_prv = name_cur;
-            name_cur = name_cur->next;
-            mbedtls_zeroize( name_prv, sizeof( mbedtls_x509_name ) );
-            mbedtls_free( name_prv );
+            mbedtls_zeroize( prv->raw.p, prv->raw.len );
+            mbedtls_free( prv->raw.p );
         }
 
-        name_cur = cert_cur->subject.next;
-        while( name_cur != NULL )
-        {
-            name_prv = name_cur;
-            name_cur = name_cur->next;
-            mbedtls_zeroize( name_prv, sizeof( mbedtls_x509_name ) );
-            mbedtls_free( name_prv );
-        }
-
-        seq_cur = cert_cur->ext_key_usage.next;
-        while( seq_cur != NULL )
-        {
-            seq_prv = seq_cur;
-            seq_cur = seq_cur->next;
-            mbedtls_zeroize( seq_prv, sizeof( mbedtls_x509_sequence ) );
-            mbedtls_free( seq_prv );
-        }
-
-        seq_cur = cert_cur->subject_alt_names.next;
-        while( seq_cur != NULL )
-        {
-            seq_prv = seq_cur;
-            seq_cur = seq_cur->next;
-            mbedtls_zeroize( seq_prv, sizeof( mbedtls_x509_sequence ) );
-            mbedtls_free( seq_prv );
-        }
-
-        if( cert_cur->raw.p != NULL )
-        {
-            mbedtls_zeroize( cert_cur->raw.p, cert_cur->raw.len );
-            mbedtls_free( cert_cur->raw.p );
-        }
-
-        cert_cur = cert_cur->next;
+        mbedtls_zeroize( prv, sizeof( mbedtls_x509_crt ) );
+        if( prv != crt )
+            mbedtls_free( prv );
     }
-    while( cert_cur != NULL );
-
-    cert_cur = crt;
-    do
-    {
-        cert_prv = cert_cur;
-        cert_cur = cert_cur->next;
-
-        mbedtls_zeroize( cert_prv, sizeof( mbedtls_x509_crt ) );
-        if( cert_prv != crt )
-            mbedtls_free( cert_prv );
-    }
-    while( cert_cur != NULL );
 }
 
 #endif /* MBEDTLS_X509_CRT_PARSE_C */

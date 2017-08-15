@@ -183,6 +183,11 @@
 #define MBEDTLS_OID_TIME_STAMPING               MBEDTLS_OID_KP "\x08" /**< id-kp-timeStamping OBJECT IDENTIFIER ::= { id-kp 8 } */
 #define MBEDTLS_OID_OCSP_SIGNING                MBEDTLS_OID_KP "\x09" /**< id-kp-OCSPSigning OBJECT IDENTIFIER ::= { id-kp 9 } */
 
+#define MBEDTLS_OID_AD                          MBEDTLS_OID_PKIX "\x30" /**< id-ad OBJECT IDENTIFIER ::= { id-pkix 48 } */
+#define MBEDTLS_OID_OCSP                        MBEDTLS_OID_AD "\x01" /**< id-ad-ocsp OBJECT IDENTIFIER ::= { id-ad 1 } */
+
+#define MBEDTLS_OID_OCSP_NOCHECK                MBEDTLS_OID_OCSP "\x05" /**< id-pkix-ocsp-nocheck OBJECT IDENTIFIER ::= { id-pkix-ocsp 5 } */
+
 /*
  * PKCS definition OIDs
  */

@@ -283,6 +283,10 @@ static const oid_x509_ext_t oid_x509_ext[] =
         MBEDTLS_X509_EXT_AUTHORITY_INFO_ACCESS,
     },
     {
+        { ADD_LEN( MBEDTLS_OID_OCSP_NOCHECK ), "id-pkix-ocsp-nocheck", "OCSP NoCheck" },
+        MBEDTLS_X509_EXT_OCSP_NOCHECK,
+    },
+    {
         { NULL, 0, NULL, NULL },
         0,
     },

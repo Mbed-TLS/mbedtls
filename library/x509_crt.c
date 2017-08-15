@@ -730,6 +730,17 @@ static int x509_get_crt_ext( unsigned char **p,
                 return( ret );
             break;
 
+        case MBEDTLS_X509_EXT_OCSP_NOCHECK:
+            /*
+             * Parse OCSP NoCheck
+             *
+             * TODO: It might be good to check that this extension is persent
+             * only when the Extended Key Usage is either ANY or OCSP Signing
+             */
+            if( *p != end_ext_octet )
+                return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS );
+            break;
+
         case MBEDTLS_X509_EXT_AUTHORITY_INFO_ACCESS:
             /* Parse Authority Information Access */
             if( ( ret = x509_get_authority_info_access( p, end_ext_octet,
@@ -1647,6 +1658,13 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
         if( ( ret = x509_info_ext_key_usage( &p, &n,
                                              &crt->ext_key_usage ) ) != 0 )
             return( ret );
+    }
+
+    if( crt->ext_types & MBEDTLS_X509_EXT_OCSP_NOCHECK )
+    {
+        ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: NULL",
+                                prefix, "OCSP nocheck" );
+        MBEDTLS_X509_SAFE_SNPRINTF;
     }
 
     if( crt->ext_types & MBEDTLS_X509_EXT_AUTHORITY_INFO_ACCESS )

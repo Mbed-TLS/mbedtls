@@ -19,6 +19,8 @@ We gratefully accept bug reports and contributions from the community. There are
 2. Fork the [mbed TLS repository on GitHub](https://github.com/ARMmbed/mbedtls) to start making your changes. As a general rule, you should use the "development" branch as a basis.
 3. Write a test which shows that the bug was fixed or that the feature works as expected.
 4. Send a pull request (PR) and work with us until it gets merged and published. Contributions may need some modifications, so  a few rounds of review and fixing may be necessary. We will include your name in the ChangeLog :)
+5. For quick merging, the contribution should be short, and concentrated on a single feature or topic. The larger the contribution is, the longer it would take to review it and merge it.
+6. mbed TLS is release with Apache license, and as such, all the added files should include the Apache license header.
 
 ### Backports
 
@@ -45,6 +47,7 @@ Sample applications, if needed, should be modified as well.
 ### Continuous Integration Tests
 
 Once a PR has been made, the Continuous Integration (CI) tests are triggered and run. You should follow the result of the CI tests, and fix failures. 
+It is advised to enable the [githooks scripts](https://github.com/ARMmbed/mbedtls/tree/development/tests/git-scripts) prior to pushing your changes, for catching some of the issues as early as possible.
 
 ### Documentation
 

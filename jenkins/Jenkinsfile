@@ -1,5 +1,5 @@
 
 if ( "${env.JOB_NAME}" == 'mbedtls-job-dev' ) {
     echo 'Dispatching release job!'
-    load release.groovy
+    load 'release.groovy'
 }

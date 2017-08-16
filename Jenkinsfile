@@ -1,3 +1,0 @@
-node {
-    echo "Hello Jenkins!"
-}

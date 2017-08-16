@@ -1,5 +1,9 @@
 
-if ( "${env.JOB_NAME}" == 'mbedtls-job-dev' ) {
-    echo 'Dispatching release job!'
-    load 'release.groovy'
+node {
+    if ( "${env.JOB_NAME}" == 'mbedtls-job-dev' ) {
+        echo 'Dispatching release job!'
+        load 'release.groovy'
+    }
+    dispatch_job()
 }
+

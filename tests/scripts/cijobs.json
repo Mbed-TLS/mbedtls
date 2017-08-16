@@ -1,0 +1,116 @@
+{
+   "mbedtls-commit-tests": {
+       "make-gcc": {
+           "build": "make",
+           "environment": {"MAKE": "make", "CC": "gcc"},
+           "tests": ["basic"],
+           "platforms": ["debian-i386", "debian-x64"]
+
+       },
+       "cmake": {
+           "build": "cmake",
+           "environment": {"MAKE": "make", "CC": "gcc"},
+           "tests": ["basic"],
+           "platforms": ["debian-i386", "debian-x64"]
+       },
+       "cmake-full":  {
+           "build": "cmake",
+           "environment": {"MAKE": "make", "CC": "gcc"},
+           "tests": ["full"],
+           "platforms": ["debian-i386", "debian-x64"]
+       },
+       "cmake-asan": {
+           "build": "cmake-asan",
+           "environment": {"MAKE": "make", "CC": "clang"},
+           "tests": ["full"],
+           "platforms": ["debian-i386", "debian-x64"]
+       },
+       "gmake-clang": {
+           "build": "make",
+           "environment": {"MAKE": "gmake", "CC": "clang"},
+           "tests": ["basic"],
+           "platforms": ["freebsd"]
+       },
+       "cmake-clang": {
+           "build": "cmake",
+           "environment": {"MAKE": "make", "CC": "clang"},
+           "tests": ["basic"],
+           "platforms": ["freebsd"]
+       },
+       "mingw-make": {
+           "build": "mingw-make",
+           "tests": ["basic"],
+           "platforms": ["windows-tls"]
+       },
+       "msvc12-32": {
+           "build": "msvc12-32",
+           "platforms": ["windows-tls"]
+       },
+       "msvc12-64": {
+           "build": "msvc12-64",
+           "platforms": ["windows-tls"]
+       }
+   },
+   "release_tests": {
+       "all.sh": {
+           "build": "all.sh",
+           "platforms": ["ubuntu-16.04-x64"]
+       }
+   },
+   "nightly": {
+       "make-gcc": {
+           "build": "make",
+           "environment": {"MAKE": "make", "CC": "gcc"},
+           "tests": ["basic"],
+           "platforms": ["debian-i386", "debian-x64"]
+       },
+       "cmake": {
+           "build": "cmake",
+           "environment": {"MAKE": "make", "CC": "gcc"},
+           "tests": ["basic"],
+           "platforms": ["debian-i386", "debian-x64"]
+       },
+       "cmake-full":  {
+           "build": "cmake",
+           "environment": {"MAKE": "make", "CC": "gcc"},
+           "tests": ["full"],
+           "platforms": ["debian-i386", "debian-x64"]
+       },
+       "cmake-asan": {
+           "build": "cmake-asan",
+           "environment": {"MAKE": "make", "CC": "clang"},
+           "tests": ["full"],
+           "platforms": ["debian-i386", "debian-x64"]
+       },
+       "gmake-clang": {
+           "build": "make",
+           "environment": {"MAKE": "gmake", "CC": "clang"},
+           "tests": ["basic"],
+           "platforms": ["freebsd"]
+       },
+       "cmake-clang": {
+           "build": "cmake",
+           "environment": {"MAKE": "make", "CC": "clang"},
+           "tests": ["basic"],
+           "platforms": ["freebsd"]
+       },
+       "mingw-make": {
+           "build": "mingw-make",
+           "tests": ["basic"],
+           "platforms": ["windows-tls"]
+       },
+       "msvc12-32": {
+           "build": "msvc12-32",
+           "platforms": ["windows-tls"]
+       },
+       "msvc12-64": {
+           "build": "msvc12-64",
+           "platforms": ["windows-tls"]
+       },
+       "all.sh": {
+           "build": "all.sh",
+           "platforms": ["ubuntu-16.04-x64"]
+       }
+    }
+}
+

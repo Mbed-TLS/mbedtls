@@ -1949,6 +1949,16 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
  * way we select the correct one is by checking the signature (as we don't
  * rely on key identifier extensions). (This is one way users might choose to
  * handle key rollover, another relies on self-issued certs, see [SIRO].)
+ *
+ * Arguments:
+ * [in] child: certificate for which we want a parent
+ * [in] candidates: list of possible parents
+ * [out] r_parent: parent found (or NULL)
+ * [out] r_signature_is_good: 1 if child signature by parent is valid, or 0
+ * [in] top: 1 if candidates are locally trusted, or 0
+ * [in] path_cnt: number of links in the chain so far (EE -> ... -> child)
+ * [in] self_cnt: number of self-signed certs in the chain so far
+ * [in-out] rs_ctx: context for restarting operations
  */
 static int x509_crt_find_parent_in(
                         mbedtls_x509_crt *child,
@@ -2061,6 +2071,17 @@ check_signature:
  *
  * Searches in trusted CAs first, and return the first suitable parent found
  * (see find_parent_in() for definition of suitable).
+ *
+ * Arguments:
+ * [in] child: certificate for which we want a parent,
+ *             possibly followed by a list of ancestors
+ * [in] trust_ca: list of locally trusted certificates
+ * [out] parent: parent found (or NULL)
+ * [out] parent_is_trusted: 1 if returned `parent` is trusted, or 0
+ * [out] signature_is_good: 1 if child signature by parent is valid, or 0
+ * [in] path_cnt: number of links in the chain so far (EE -> ... -> child)
+ * [in] self_cnt: number of self-signed certs in the chain so far
+ * [in-out] rs_ctx: context for restarting operations
  */
 static int x509_crt_find_parent(
                         mbedtls_x509_crt *child,
@@ -2187,6 +2208,7 @@ static int x509_crt_check_ee_locally_trusted(
  *  - [in] trust_ca: the trusted list R1, ..., Rp
  *  - [in] ca_crl, profile: as in verify_with_profile()
  *  - [out] ver_chain: the built and verified chain
+ *  - [in-out] rs_ctx: context for restarting operations
  *
  * Return value:
  *  - non-zero if the chain could not be fully built and examined
@@ -2311,7 +2333,7 @@ find_parent:
             return( MBEDTLS_ERR_X509_FATAL_ERROR );
         }
 
-        /* signature was check while searching parent */
+        /* signature was checked while searching parent */
         if( ! signature_is_good )
             *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
 

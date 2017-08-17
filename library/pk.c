@@ -73,6 +73,27 @@ void mbedtls_pk_free( mbedtls_pk_context *ctx )
     mbedtls_zeroize( ctx, sizeof( mbedtls_pk_context ) );
 }
 
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+/*
+ * Initialize a restart context
+ */
+void mbedtls_pk_restart_init( mbedtls_pk_restart_ctx *ctx )
+{
+    mbedtls_ecdsa_restart_init( &ctx->ecdsa );
+}
+
+/*
+ * Free the components of a restart context
+ */
+void mbedtls_pk_restart_free( mbedtls_pk_restart_ctx *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    mbedtls_ecdsa_restart_free( &ctx->ecdsa );
+}
+#endif /* MBEDTLS_ECP_RESTARTABLE */
+
 /*
  * Get pk_info structure from type
  */
@@ -182,7 +203,7 @@ int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
                mbedtls_md_type_t md_alg,
                const unsigned char *hash, size_t hash_len,
                const unsigned char *sig, size_t sig_len,
-               void *rs_ctx )
+               mbedtls_pk_restart_ctx *rs_ctx )
 {
     if( ctx == NULL || ctx->pk_info == NULL ||
         pk_hashlen_helper( md_alg, &hash_len ) != 0 )
@@ -282,7 +303,7 @@ int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,
              const unsigned char *hash, size_t hash_len,
              unsigned char *sig, size_t *sig_len,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
-             void *rs_ctx )
+             mbedtls_pk_restart_ctx *rs_ctx )
 {
     if( ctx == NULL || ctx->pk_info == NULL ||
         pk_hashlen_helper( md_alg, &hash_len ) != 0 )

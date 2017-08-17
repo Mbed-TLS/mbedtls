@@ -1875,7 +1875,7 @@ static int x509_crt_check_signature( const mbedtls_x509_crt *child,
     {
         return( mbedtls_pk_verify_restartable( &parent->pk,
                     child->sig_md, hash, mbedtls_md_get_size( md_info ),
-                    child->sig.p, child->sig.len, &rs_ctx->ecdsa ) );
+                    child->sig.p, child->sig.len, &rs_ctx->pk ) );
     }
 #else
     (void) rs_ctx;
@@ -2653,7 +2653,7 @@ void mbedtls_x509_crt_free( mbedtls_x509_crt *crt )
  */
 void mbedtls_x509_crt_restart_init( mbedtls_x509_crt_restart_ctx *ctx )
 {
-    mbedtls_ecdsa_restart_init( &ctx->ecdsa );
+    mbedtls_pk_restart_init( &ctx->pk );
 
     ctx->parent = NULL;
     ctx->fallback_parent = NULL;
@@ -2675,7 +2675,7 @@ void mbedtls_x509_crt_restart_free( mbedtls_x509_crt_restart_ctx *ctx )
     if( ctx == NULL )
         return;
 
-    mbedtls_ecdsa_restart_free( &ctx->ecdsa );
+    mbedtls_pk_restart_free( &ctx->pk );
 
     mbedtls_x509_crt_restart_init( ctx );
 }

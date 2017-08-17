@@ -2615,7 +2615,7 @@ ske_process:
 
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
         if( ssl->handshake->ecrs_enabled )
-            rs_ctx = &ssl->handshake->ecrs_ctx.ecdsa;
+            rs_ctx = &ssl->handshake->ecrs_ctx.pk;
 #endif
 
         if( ( ret = mbedtls_pk_verify_restartable(
@@ -3290,7 +3290,7 @@ keys_derived:
 
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
     if( ssl->handshake->ecrs_enabled )
-        rs_ctx = &ssl->handshake->ecrs_ctx.ecdsa;
+        rs_ctx = &ssl->handshake->ecrs_ctx.pk;
 #endif
 
     if( ( ret = mbedtls_pk_sign_restartable( mbedtls_ssl_own_key( ssl ),

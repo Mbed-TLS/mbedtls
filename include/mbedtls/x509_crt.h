@@ -172,7 +172,7 @@ typedef struct
 typedef struct
 {
     /* for check_signature() */
-    mbedtls_ecdsa_restart_ctx   ecdsa;
+    mbedtls_pk_restart_ctx pk;
 
     /* for find_parent_in() */
     mbedtls_x509_crt *parent; /* non-null iff parent_in in progress */

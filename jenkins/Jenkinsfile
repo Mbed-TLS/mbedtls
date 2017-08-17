@@ -1,6 +1,8 @@
 
 node {
+    /* Load script based on jenkins job name */
     if ( "${env.JOB_NAME}" == 'mbedtls-job-dev' ) {
+        /* Sparse Checkout required script file */
         checkout([$class: 'GitSCM', branches: [[name: 'refs/heads/jenkinsfile']],
             doGenerateSubmoduleConfigurations: false,
             extensions: [[$class: 'CloneOption', honorRefspec: true,

@@ -11,7 +11,7 @@ def get_code_coverage_job(){
 
 /* Jenkinsfile interface to this script. */
 def dispatch_job() {
-    parallel_jobs = []
+    parallel_jobs = [:]
     parallel_jobs['code_coverage'] = get_code_coverage_job();
     parallel parallel_jobs
 }

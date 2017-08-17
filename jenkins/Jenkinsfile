@@ -1,8 +1,8 @@
 
 node {
     if ( "${env.JOB_NAME}" == 'mbedtls-job-dev' ) {
+        checkout([$class: 'GitSCM', branches: [[name: 'refs/heads/jenkinsfile']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'CloneOption', honorRefspec: true, noTags: true, reference: '', shallow: true], [$class: 'SparseCheckoutPaths', sparseCheckoutPaths: [[path: 'jenkins/release.groovy']]]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '0c890674-8153-4b3e-af1c-d61a6b4ef1d5', url: 'git@github.com:mazimkhan/mbedtls.git']]])
         echo 'Dispatching release job!'
-        checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SparseCheckoutPaths', sparseCheckoutPaths: [[path: 'jenkins/release.groovy']]]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '0c890674-8153-4b3e-af1c-d61a6b4ef1d5', url: 'git@github.com:mazimkhan/mbedtls.git']]])
         load 'jenkins/release.groovy'
     }
     dispatch_job()

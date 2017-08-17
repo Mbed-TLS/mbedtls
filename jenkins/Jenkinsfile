@@ -5,6 +5,5 @@ node {
         echo 'Dispatching release job!'
         load 'jenkins/release.groovy'
     }
-    dispatch_job()
-}
+}.dispatch_job()
 

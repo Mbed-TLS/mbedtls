@@ -241,7 +241,10 @@ int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    if( rs_ctx != NULL && ctx->pk_info->verify_rs_func != NULL )
+    /* optimization: use non-restartable version if restart disabled */
+    if( rs_ctx != NULL &&
+        mbedtls_ecp_restart_enabled() &&
+        ctx->pk_info->verify_rs_func != NULL )
     {
         int ret;
 
@@ -351,7 +354,10 @@ int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    if( rs_ctx != NULL && ctx->pk_info->sign_rs_func != NULL )
+    /* optimization: use non-restartable version if restart disabled */
+    if( rs_ctx != NULL &&
+        mbedtls_ecp_restart_enabled() &&
+        ctx->pk_info->sign_rs_func != NULL )
     {
         int ret;
 

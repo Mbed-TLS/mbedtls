@@ -12,12 +12,6 @@ def get_code_coverage_job(){
 /* Jenkinsfile interface to this script. */
 def dispatch_job() {
     parallel_jobs = [:]
-    parallel_jobs['scm'] = {
-        node{
-            checkout scm
-            stash includes: '*', name: 'src'
-        }
-    }
     parallel_jobs['code_coverage'] = get_code_coverage_job();
     parallel parallel_jobs
 }

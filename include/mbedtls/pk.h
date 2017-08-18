@@ -129,7 +129,7 @@ typedef struct
     void *                      pk_ctx;  /**< Underlying public key context  */
 } mbedtls_pk_context;
 
-#if defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
 /**
  * \brief           Context for resuming operations
  */
@@ -138,10 +138,10 @@ typedef struct
     const mbedtls_pk_info_t *   pk_info; /**< Public key informations        */
     void *                      rs_ctx;  /**< Underlying restart context     */
 } mbedtls_pk_restart_ctx;
-#else
+#else /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 /* Now we can declare functions that take a pointer to that */
 typedef void mbedtls_pk_restart_ctx;
-#endif
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
 #if defined(MBEDTLS_RSA_C)
 /**
@@ -202,7 +202,7 @@ void mbedtls_pk_init( mbedtls_pk_context *ctx );
  */
 void mbedtls_pk_free( mbedtls_pk_context *ctx );
 
-#if defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
 /**
  * \brief           Initialize a restart context
  */
@@ -212,7 +212,7 @@ void mbedtls_pk_restart_init( mbedtls_pk_restart_ctx *ctx );
  * \brief           Free the components of a restart context
  */
 void mbedtls_pk_restart_free( mbedtls_pk_restart_ctx *ctx );
-#endif /* MBEDTLS_ECP_RESTARTABLE */
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
 /**
  * \brief           Initialize a PK context with the information given

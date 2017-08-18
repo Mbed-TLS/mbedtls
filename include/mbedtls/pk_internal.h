@@ -58,7 +58,7 @@ struct mbedtls_pk_info_t
                       int (*f_rng)(void *, unsigned char *, size_t),
                       void *p_rng );
 
-#if defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     /** Verify signature (restartable) */
     int (*verify_rs_func)( void *ctx, mbedtls_md_type_t md_alg,
                            const unsigned char *hash, size_t hash_len,
@@ -71,7 +71,7 @@ struct mbedtls_pk_info_t
                          unsigned char *sig, size_t *sig_len,
                          int (*f_rng)(void *, unsigned char *, size_t),
                          void *p_rng, void *rs_ctx );
-#endif /* MBEDTLS_ECP_RESTARTABLE */
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
     /** Decrypt message */
     int (*decrypt_func)( void *ctx, const unsigned char *input, size_t ilen,
@@ -94,13 +94,13 @@ struct mbedtls_pk_info_t
     /** Free the given context */
     void (*ctx_free_func)( void *ctx );
 
-#if defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     /** Allocate the restart context */
     void * (*rs_alloc_func)( void );
 
     /** Free the restart context */
     void (*rs_free_func)( void *rs_ctx );
-#endif /* MBEDTLS_ECP_RESTARTABLE */
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
     /** Interface with the debug module */
     void (*debug_func)( const void *ctx, mbedtls_pk_debug_item *items );

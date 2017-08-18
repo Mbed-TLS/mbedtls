@@ -180,7 +180,7 @@ const mbedtls_pk_info_t mbedtls_rsa_info = {
     rsa_can_do,
     rsa_verify_wrap,
     rsa_sign_wrap,
-#if defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     NULL,
     NULL,
 #endif
@@ -189,7 +189,7 @@ const mbedtls_pk_info_t mbedtls_rsa_info = {
     rsa_check_pair_wrap,
     rsa_alloc_wrap,
     rsa_free_wrap,
-#if defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     NULL,
     NULL,
 #endif
@@ -410,17 +410,13 @@ const mbedtls_pk_info_t mbedtls_eckey_info = {
 #else /* MBEDTLS_ECDSA_C */
     NULL,
     NULL,
-#if defined(MBEDTLS_ECP_RESTARTABLE)
-    NULL,
-    NULL,
-#endif
 #endif /* MBEDTLS_ECDSA_C */
     NULL,
     NULL,
     eckey_check_pair,
     eckey_alloc_wrap,
     eckey_free_wrap,
-#if defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     eckey_rs_alloc,
     eckey_rs_free,
 #endif
@@ -443,7 +439,7 @@ const mbedtls_pk_info_t mbedtls_eckeydh_info = {
     eckeydh_can_do,
     NULL,
     NULL,
-#if defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     NULL,
     NULL,
 #endif
@@ -452,7 +448,7 @@ const mbedtls_pk_info_t mbedtls_eckeydh_info = {
     eckey_check_pair,
     eckey_alloc_wrap,       /* Same underlying key structure */
     eckey_free_wrap,        /* Same underlying key structure */
-#if defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     NULL,
     NULL,
 #endif
@@ -688,7 +684,7 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
     rsa_alt_can_do,
     NULL,
     rsa_alt_sign_wrap,
-#if defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     NULL,
     NULL,
 #endif
@@ -701,7 +697,7 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
 #endif
     rsa_alt_alloc_wrap,
     rsa_alt_free_wrap,
-#if defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     NULL,
     NULL,
 #endif

@@ -91,9 +91,6 @@ typedef struct
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
     mbedtls_ecdsa_restart_det_ctx *det; /*!<  ecdsa_sign_det() sub-context  */
 #endif
-#if defined(MBEDTLS_PK_C)
-    mbedtls_ecdsa_context *ecdsa;       /*!<  used by the PK layer          */
-#endif
 } mbedtls_ecdsa_restart_ctx;
 
 #else /* MBEDTLS_ECP_RESTARTABLE */

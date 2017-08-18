@@ -780,9 +780,6 @@ void mbedtls_ecdsa_restart_init( mbedtls_ecdsa_restart_ctx *ctx )
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
     ctx->det = NULL;
 #endif
-#if defined(MBEDTLS_PK_C)
-    ctx->ecdsa = NULL;
-#endif
 }
 
 /*
@@ -804,12 +801,6 @@ void mbedtls_ecdsa_restart_free( mbedtls_ecdsa_restart_ctx *ctx )
     ecdsa_restart_det_free( ctx->det );
     mbedtls_free( ctx->det );
     ctx->det = NULL;
-#endif
-
-#if defined(MBEDTLS_PK_C)
-    mbedtls_ecdsa_free( ctx->ecdsa );
-    mbedtls_free( ctx->ecdsa );
-    ctx->ecdsa = NULL;
 #endif
 }
 #endif /* MBEDTLS_ECP_RESTARTABLE */

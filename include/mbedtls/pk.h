@@ -135,7 +135,8 @@ typedef struct
  */
 typedef struct
 {
-    mbedtls_ecdsa_restart_ctx ecdsa;    /* temporary */
+    const mbedtls_pk_info_t *   pk_info; /**< Public key informations        */
+    void *                      rs_ctx;  /**< Underlying restart context     */
 } mbedtls_pk_restart_ctx;
 #else
 /* Now we can declare functions that take a pointer to that */

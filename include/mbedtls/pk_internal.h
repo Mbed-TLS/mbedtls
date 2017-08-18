@@ -94,6 +94,14 @@ struct mbedtls_pk_info_t
     /** Free the given context */
     void (*ctx_free_func)( void *ctx );
 
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    /** Allocate the restart context */
+    void * (*rs_alloc_func)( void );
+
+    /** Free the restart context */
+    void (*rs_free_func)( void *rs_ctx );
+#endif /* MBEDTLS_ECP_RESTARTABLE */
+
     /** Interface with the debug module */
     void (*debug_func)( const void *ctx, mbedtls_pk_debug_item *items );
 

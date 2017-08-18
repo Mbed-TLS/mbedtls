@@ -79,7 +79,8 @@ void mbedtls_pk_free( mbedtls_pk_context *ctx )
  */
 void mbedtls_pk_restart_init( mbedtls_pk_restart_ctx *ctx )
 {
-    mbedtls_ecdsa_restart_init( &ctx->ecdsa );
+    ctx->pk_info = NULL;
+    ctx->rs_ctx = NULL;
 }
 
 /*
@@ -87,10 +88,16 @@ void mbedtls_pk_restart_init( mbedtls_pk_restart_ctx *ctx )
  */
 void mbedtls_pk_restart_free( mbedtls_pk_restart_ctx *ctx )
 {
-    if( ctx == NULL )
+    if( ctx == NULL || ctx->pk_info == NULL ||
+        ctx->pk_info->rs_free_func == NULL )
+    {
         return;
+    }
 
-    mbedtls_ecdsa_restart_free( &ctx->ecdsa );
+    ctx->pk_info->rs_free_func( ctx->rs_ctx );
+
+    ctx->pk_info = NULL;
+    ctx->rs_ctx = NULL;
 }
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
@@ -196,6 +203,30 @@ static inline int pk_hashlen_helper( mbedtls_md_type_t md_alg, size_t *hash_len 
     return( 0 );
 }
 
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+/*
+ * Helper to set up a restart context if needed
+ */
+static int pk_restart_setup( mbedtls_pk_restart_ctx *ctx,
+                               const mbedtls_pk_info_t *info )
+{
+    /* Don't do anything it already set up */
+    if( ctx->pk_info != NULL )
+        return( 0 );
+
+    /* Should never happen when we're called */
+    if( info->rs_alloc_func == NULL || info->rs_free_func == NULL )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    if( ( ctx->rs_ctx = info->rs_alloc_func() ) == NULL )
+        return( MBEDTLS_ERR_PK_ALLOC_FAILED );
+
+    ctx->pk_info = info;
+
+    return( 0 );
+}
+#endif /* MBEDTLS_ECP_RESTARTABLE */
+
 /*
  * Verify a signature (restartable)
  */
@@ -210,10 +241,20 @@ int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-    if( ctx->pk_info->verify_rs_func != NULL )
+    if( rs_ctx != NULL && ctx->pk_info->verify_rs_func != NULL )
     {
-        return( ctx->pk_info->verify_rs_func( ctx->pk_ctx,
-                    md_alg, hash, hash_len, sig, sig_len, rs_ctx ) );
+        int ret;
+
+        if( ( ret = pk_restart_setup( rs_ctx, ctx->pk_info ) ) != 0 )
+            return( ret );
+
+        ret = ctx->pk_info->verify_rs_func( ctx->pk_ctx,
+                   md_alg, hash, hash_len, sig, sig_len, rs_ctx->rs_ctx );
+
+        if( ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
+            mbedtls_pk_restart_free( rs_ctx );
+
+        return( ret );
     }
 #else
     (void) rs_ctx;
@@ -310,10 +351,20 @@ int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-    if( ctx->pk_info->sign_rs_func != NULL )
+    if( rs_ctx != NULL && ctx->pk_info->sign_rs_func != NULL )
     {
-        return( ctx->pk_info->sign_rs_func( ctx->pk_ctx, md_alg,
-                    hash, hash_len, sig, sig_len, f_rng, p_rng, rs_ctx ) );
+        int ret;
+
+        if( ( ret = pk_restart_setup( rs_ctx, ctx->pk_info ) ) != 0 )
+            return( ret );
+
+        ret = ctx->pk_info->sign_rs_func( ctx->pk_ctx, md_alg,
+                hash, hash_len, sig, sig_len, f_rng, p_rng, rs_ctx->rs_ctx );
+
+        if( ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
+            mbedtls_pk_restart_free( rs_ctx );
+
+        return( ret );
     }
 #else
     (void) rs_ctx;

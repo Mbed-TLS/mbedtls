@@ -189,6 +189,10 @@ const mbedtls_pk_info_t mbedtls_rsa_info = {
     rsa_check_pair_wrap,
     rsa_alloc_wrap,
     rsa_free_wrap,
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    NULL,
+    NULL,
+#endif
     rsa_debug,
 };
 #endif /* MBEDTLS_RSA_C */
@@ -401,6 +405,24 @@ static void eckey_debug( const void *ctx, mbedtls_pk_debug_item *items )
     items->value = &( ((mbedtls_ecp_keypair *) ctx)->Q );
 }
 
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+static void *eckey_rs_alloc( void )
+{
+    void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_ecdsa_restart_ctx ) );
+
+    if( ctx != NULL )
+        mbedtls_ecdsa_restart_init( ctx );
+
+    return( ctx );
+}
+
+static void eckey_rs_free( void *ctx )
+{
+    mbedtls_ecdsa_restart_free( ctx );
+    mbedtls_free( ctx );
+}
+#endif /* MBEDTLS_ECP_RESTARTABLE */
+
 const mbedtls_pk_info_t mbedtls_eckey_info = {
     MBEDTLS_PK_ECKEY,
     "EC",
@@ -426,6 +448,10 @@ const mbedtls_pk_info_t mbedtls_eckey_info = {
     eckey_check_pair,
     eckey_alloc_wrap,
     eckey_free_wrap,
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    eckey_rs_alloc,
+    eckey_rs_free,
+#endif
     eckey_debug,
 };
 
@@ -454,6 +480,10 @@ const mbedtls_pk_info_t mbedtls_eckeydh_info = {
     eckey_check_pair,
     eckey_alloc_wrap,       /* Same underlying key structure */
     eckey_free_wrap,        /* Same underlying key structure */
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    NULL,
+    NULL,
+#endif
     eckey_debug,            /* Same underlying key structure */
 };
 #endif /* MBEDTLS_ECP_C */
@@ -555,6 +585,10 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
     eckey_check_pair,   /* Compatible key structures */
     ecdsa_alloc_wrap,
     ecdsa_free_wrap,
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    eckey_rs_alloc,
+    eckey_rs_free,
+#endif
     eckey_debug,        /* Compatible key structures */
 };
 #endif /* MBEDTLS_ECDSA_C */
@@ -677,6 +711,10 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
 #endif
     rsa_alt_alloc_wrap,
     rsa_alt_free_wrap,
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    NULL,
+    NULL,
+#endif
     NULL,
 };
 

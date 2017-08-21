@@ -1487,13 +1487,13 @@ static int x509_info_authority_info_access( char **buf, size_t *size,
     char *p = *buf;
     const char *access_method;
     char access_location[128];
-    const mbedtls_x509_sequence *cur = descs;
+    const mbedtls_x509_sequence *cur;
     mbedtls_x509_buf x509_buf;
     const char *sep = "";
     unsigned char *pos, *end;
     size_t len;
 
-    while( cur != NULL )
+    for( cur = descs; cur != NULL; cur = cur->next, sep = ", " )
     {
         pos = cur->buf.p;
         end = pos + cur->buf.len;
@@ -1512,7 +1512,10 @@ static int x509_info_authority_info_access( char **buf, size_t *size,
         if( mbedtls_oid_get_authority_info_access( &x509_buf,
                                                    &access_method ) != 0 )
         {
-            access_method = "???";
+            /* Unknown accessMethod */
+            ret = mbedtls_snprintf( p, n, "%s[???]", sep );
+            MBEDTLS_X509_SAFE_SNPRINTF;
+            continue;
         }
 
         pos += len;
@@ -1529,13 +1532,10 @@ static int x509_info_authority_info_access( char **buf, size_t *size,
                     sizeof( access_location ) - 1 : len;
         memcpy( access_location, pos, len );
         access_location[len] = '\0';
+
         ret = mbedtls_snprintf( p, n, "%s[%s;%s]", sep, access_method,
                                 access_location );
         MBEDTLS_X509_SAFE_SNPRINTF;
-
-        sep = ", ";
-
-        cur = cur->next;
     }
 
     *size = n;

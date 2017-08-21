@@ -735,6 +735,10 @@ static int x509_get_crt_ext( unsigned char **p,
              *
              * TODO: It might be good to check that this extension is persent
              * only when the Extended Key Usage is either ANY or OCSP Signing
+             *
+             * RFC 6960 Section 4.2.2.2.1:
+             *  - This SHOULD be a non-critical extension.
+             *  - The value of the extension SHALL be NULL.
              */
             if( *p != end_ext_octet )
                 return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS );

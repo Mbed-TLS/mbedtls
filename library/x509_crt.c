@@ -380,7 +380,6 @@ static int x509_get_authority_info_access( unsigned char **p,
     if( ( ret = mbedtls_asn1_get_tag( p, end, &len, seq_tag ) ) != 0 )
         return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
 
-    /* TODO: Check whether this would overflow */
     if( *p + len != end )
         return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
@@ -1471,10 +1470,6 @@ static int x509_info_authority_info_access( char **buf, size_t *size,
     unsigned char *pos, *end;
     size_t len;
 
-    /*
-     * TODO: Some of the checks below are redundant if the certificate is
-     * checked while parsing in x509_get_authority_info_access()
-     */
     while( cur != NULL )
     {
         pos = cur->buf.p;

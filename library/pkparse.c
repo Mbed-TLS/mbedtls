@@ -181,6 +181,9 @@ static int pk_get_ecparams( unsigned char **p, const unsigned char *end,
 {
     int ret;
 
+    if ( end - *p < 1 )
+        return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
+
     /* Tag may be either OID or SEQUENCE */
     params->tag = **p;
     if( params->tag != MBEDTLS_ASN1_OID

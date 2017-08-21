@@ -1500,9 +1500,14 @@ static int x509_info_authority_info_access( char **buf, size_t *size,
         {
             return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
         }
-        else
-            ret = mbedtls_snprintf( p, n, "%s[%s;%s]", sep, access_method,
-                                    "...too long..." );
+
+        /* Print informative string with up to 127 characters of the URI */
+        len = len > sizeof( access_location ) - 1 ?
+                    sizeof( access_location ) - 1 : len;
+        memcpy( access_location, pos, len );
+        access_location[len] = '\0';
+        ret = mbedtls_snprintf( p, n, "%s[%s;%s]", sep, access_method,
+                                access_location );
         MBEDTLS_X509_SAFE_SNPRINTF;
 
         sep = ", ";

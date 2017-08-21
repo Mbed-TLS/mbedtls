@@ -2,3 +2,20 @@
 subjectKeyIdentifier=hash
 authorityKeyIdentifier=keyid:always,issuer:always
 basicConstraints = CA:false
+authorityInfoAccess = @ocsp_info
+
+[ocsp_info]
+caIssuers;URI.0 = http://test.com/ca.cert
+OCSP;URI.0 = http://localhost
+
+[ocsp]
+# Extension for OCSP signing certificates ('man ocsp').
+basicConstraints = CA:FALSE
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer
+keyUsage = critical, digitalSignature
+extendedKeyUsage = critical, OCSPSigning
+noCheck = yes
+
+[ocsp-nocheck]
+noCheck = yes

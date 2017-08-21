@@ -60,10 +60,23 @@ all_final += cli-rsa-sha256.crt
 server2-rsa.csr: server2.key
 	$(OPENSSL) req -new -key server2.key -passin "pass:$(test_ca_pwd_rsa)" -subj "/C=NL/O=PolarSSL/CN=localhost" -out $@
 all_intermediate += server2-rsa.csr
-server2-sha256.crt: server2-rsa.csr
+server2-sha256.crt: server2-rsa.csr $(cli_crt_extensions_file)
 	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -CA test-ca-sha256.crt -CAkey $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" -set_serial 4 -days 3653 -sha256 -in server2-rsa.csr -out $@
 all_final += server2-sha256.crt
 
+server2-ocsp.csr: server2.key
+	$(OPENSSL) req -new -sha256 -key $< -passin "pass:$(test_ca_pwd_rsa)" -subj "/C=NL/O=PolarSSL/CN=localhost" -out $@
+all_intermediate += server2-ocsp.csr
+server2-ocsp.crt: server2-ocsp.csr $(cli_crt_extensions_file)
+	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions ocsp -CA test-ca-sha256.crt -CAkey $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" -set_serial 4 -days 3653 -sha256 -in $< -out $@
+all_final += server2-ocsp.crt
+
+server2-ocsp-nocheck.csr: server2.key
+	$(OPENSSL) req -new -sha256 -key $< -passin "pass:$(test_ca_pwd_rsa)" -subj "/C=NL/O=PolarSSL/CN=localhost" -out $@
+all_intermediate += server2-ocsp-nocheck.csr
+server2-ocsp-nocheck.crt: server2-ocsp-nocheck.csr $(cli_crt_extensions_file)
+	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions ocsp-nocheck -CA test-ca-sha256.crt -CAkey $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" -set_serial 4 -days 3653 -sha256 -in $< -out $@
+all_final += server2-ocsp-nocheck.crt
 
 
 ################################################################

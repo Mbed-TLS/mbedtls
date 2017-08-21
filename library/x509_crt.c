@@ -351,6 +351,29 @@ static int x509_get_basic_constraints( unsigned char **p,
 }
 
 /*
+ * RFC 6960 Section 4.2.2.2.1:
+ *  - This SHOULD be a non-critical extension.
+ *  - The value of the extension SHALL be NULL.
+ */
+static int x509_get_ocsp_nocheck( unsigned char **p,
+                                  const unsigned char *end )
+{
+    int ret;
+    size_t len;
+
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                                      MBEDTLS_ASN1_NULL ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+    }
+    else if( len != 0 )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+    return( 0 );
+}
+
+/*
  * AuthorityInfoAccessSyntax ::=
  *          SEQUENCE SIZE (1..MAX) OF AccessDescription
  *
@@ -735,13 +758,9 @@ static int x509_get_crt_ext( unsigned char **p,
              *
              * TODO: It might be good to check that this extension is persent
              * only when the Extended Key Usage is either ANY or OCSP Signing
-             *
-             * RFC 6960 Section 4.2.2.2.1:
-             *  - This SHOULD be a non-critical extension.
-             *  - The value of the extension SHALL be NULL.
              */
-            if( *p != end_ext_octet )
-                return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS );
+            if( ( ret = x509_get_ocsp_nocheck( p, end_ext_octet ) ) != 0 )
+                return( ret );
             break;
 
         case MBEDTLS_X509_EXT_AUTHORITY_INFO_ACCESS:

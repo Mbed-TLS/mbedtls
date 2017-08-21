@@ -37,6 +37,7 @@ my $config_h = 'include/mbedtls/config.h';
 my $ssl_sed_cmd = 's/^#define \(MBEDTLS_SSL.*\)/\1/p';
 my @ssl = split( /\s+/, `sed -n -e '$ssl_sed_cmd' $config_h` );
 
+# for md we want to catch MD5_C but not MD_C, hence the extra dot
 my $mdx_sed_cmd = 's/^#define \(MBEDTLS_MD..*_C\)/\1/p';
 my $sha_sed_cmd = 's/^#define \(MBEDTLS_SHA.*_C\)/\1/p';
 my @hashes = split( /\s+/,

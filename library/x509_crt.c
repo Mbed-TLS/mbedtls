@@ -1476,28 +1476,29 @@ static int x509_info_authority_info_access( char **buf, size_t *size,
         end = pos + cur->buf.len;
 
         /* Get accessMethod */
-        if( ( ret = mbedtls_asn1_get_tag( &pos, end, &len, MBEDTLS_ASN1_OID ) ) != 0 )
+        if( ( ret = mbedtls_asn1_get_tag( &pos, end, &len,
+                                          MBEDTLS_ASN1_OID ) ) != 0 )
+        {
             return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+        }
 
         x509_buf.tag = MBEDTLS_ASN1_OID;
         x509_buf.p = pos;
         x509_buf.len = len;
 
-        if( mbedtls_oid_get_authority_info_access( &x509_buf, &access_method ) != 0 )
+        if( mbedtls_oid_get_authority_info_access( &x509_buf,
+                                                   &access_method ) != 0 )
+        {
             access_method = "???";
+        }
 
         pos += len;
 
         /* Get accessLocation */
-        if( ( ret = mbedtls_asn1_get_tag( &pos, end, &len, MBEDTLS_ASN1_CONTEXT_SPECIFIC | 6 ) ) != 0 )
-            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
-
-        if( sizeof( access_location ) > len )
+        if( ( ret = mbedtls_asn1_get_tag( &pos, end, &len,
+                                MBEDTLS_ASN1_CONTEXT_SPECIFIC | 6 ) ) != 0 )
         {
-            memcpy( access_location, pos, len );
-            access_location[len] = '\0';
-            ret = mbedtls_snprintf( p, n, "%s[%s;%s]", sep, access_method,
-                                    access_location );
+            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
         }
         else
             ret = mbedtls_snprintf( p, n, "%s[%s;%s]", sep, access_method,

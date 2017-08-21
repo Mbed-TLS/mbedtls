@@ -533,7 +533,17 @@ int mbedtls_oid_get_md_alg( const mbedtls_asn1_buf *oid, mbedtls_md_type_t *md_a
  */
 int mbedtls_oid_get_extended_key_usage( const mbedtls_asn1_buf *oid, const char **desc );
 
-int mbedtls_oid_get_authority_info_access( const mbedtls_asn1_buf *oid, const char **desc );
+/**
+ * \brief           Translate Authority Information Access (accessLocation) OID
+ *                  into description
+ *
+ * \param oid       OID to use
+ * \param desc      place to store string pointer
+ *
+ * \return          0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
+ */
+int mbedtls_oid_get_authority_info_access( const mbedtls_asn1_buf *oid,
+                                           const char **desc );
 
 /**
  * \brief          Translate md_type into hash algorithm OID

@@ -21,6 +21,7 @@ def get_all_sh_job(){
 def find_examples (){
     examples = []
     File[] files = new File(pwd()).listFiles();
+    echo 'find_examples'
     for (File file: files){
         echo file.getName()
         if (file.isDirectory()) {

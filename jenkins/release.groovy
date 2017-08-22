@@ -36,38 +36,36 @@ def find_examples (){
 
 
 def checkout_mbed_os_examples(){
-    node {
-        unstash 'src'
+    dir('examples'){
+        git 'git@github.com:ARMmbed/mbed-os-example-tls.git'
         def examples = find_examples()
-        dir('examples'){
-            git 'git@github.com:ARMmbed/mbed-os-example-tls.git'
-            stash 'examples_src'
-            /* checkout mbed-os */
-            echo examples.join(", ")
-            def oneexample = examples[0]
-            echo oneexample
-            if ( oneexample != null ) {
-                dir( oneexample ){
-                    git 'git@github.com:ARMmbed/mbed-os.git'
-                    sh '''
+        stash 'examples_src'
+        /* checkout mbed-os */
+        echo examples.join(", ")
+        def oneexample = examples[0]
+        echo oneexample
+        if ( oneexample != null ) {
+            dir( oneexample ){
+                git 'git@github.com:ARMmbed/mbed-os.git'
+                sh '''
 sha=`cut -d "#" -f 2 ../mbed-os.lib`
 git reset --hard $sha
 '''
-                    dir('mbed-os'){
-                        /* Deploy mbedtls src into mbed-os */
-                        dir('features/mbedtls/importer') {
-                            dir('TARGET_IGNORE/mbedtls'){
-                                unstash('src')
-                            }
-                        sh 'make all'
+                dir('mbed-os'){
+                    /* Deploy mbedtls src into mbed-os */
+                    dir('features/mbedtls/importer') {
+                        dir('TARGET_IGNORE/mbedtls'){
+                            unstash('src')
                         }
-                        stash 'mbed-os_src'
+                        sh 'make all'
                     }
+                    stash 'mbed-os_src'
                 }
             }
+            return examples;
         }
     }
-    return examples
+    return []
 }
 
 def gen_mbed_os_example_job( example, compiler, platform ){

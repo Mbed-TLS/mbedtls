@@ -26,6 +26,7 @@ def find_examples (){
             File[] subfiles = file.listFiles();
             for (File subfile: subfiles){
                 if (subfile.getName().equals("mbed-os.lib")) {
+                    echo file.getName()
                     examples << file.getName()
                 }
             }
@@ -38,6 +39,7 @@ def find_examples (){
 def checkout_mbed_os_examples(){
     dir('examples'){
         git 'git@github.com:ARMmbed/mbed-os-example-tls.git'
+        sh 'ls -ltr'
         def examples = find_examples()
         stash 'examples_src'
         /* checkout mbed-os */

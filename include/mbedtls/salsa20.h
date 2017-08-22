@@ -86,14 +86,15 @@ void mbedtls_salsa20_free( mbedtls_salsa20_context *ctx );
 void mbedtls_salsa20_reset_keystream_state( mbedtls_salsa20_context *ctx );
 
 /**
- * \brief          SALSA20 key schedule
+ * \brief               SALSA20 key schedule
  *
- * \param ctx      SALSA20 context to be setup
- * \param key      the secret key
- * \param keylen   length of the key, in bytes
+ * \param ctx           SALSA20 context to be setup
+ * \param key           the secret key
+ * \param keylen_bits   length of the key
  */
 void mbedtls_salsa20_setup( mbedtls_salsa20_context *ctx, const unsigned char *key,
-                 unsigned int keylen);
+                 const uint32_t keylen_bits );
+
 /**
  * \brief          SALSA20 set IV
  *

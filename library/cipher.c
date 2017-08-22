@@ -49,6 +49,7 @@
 
 #if defined(MBEDTLS_CMAC_C)
 #include "mbedtls/cmac.h"
+#include <stdlib.h>
 #endif
 
 #if defined(MBEDTLS_PLATFORM_C)
@@ -239,11 +240,13 @@ int mbedtls_cipher_set_iv( mbedtls_cipher_context_t *ctx,
     memcpy( ctx->iv, iv, actual_iv_size );
     ctx->iv_size = actual_iv_size;
 
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))    
     if( ctx->cipher_info->mode == MBEDTLS_MODE_STREAM_IV )
     {
         ctx->cipher_info->base->set_iv_func( ctx->cipher_ctx, ctx->iv );
     }
-
+#endif
+    
     return( 0 );
 }
 
@@ -254,14 +257,19 @@ int mbedtls_cipher_reset( mbedtls_cipher_context_t *ctx )
 
     ctx->unprocessed_len = 0;
 
+#ifdef MBEDTLS_SALSA20_C
     if( ctx->cipher_info->type == MBEDTLS_CIPHER_SALSA20_128 ||
             ctx->cipher_info->type == MBEDTLS_CIPHER_SALSA20_256 ) {
         mbedtls_salsa20_reset_keystream_state( (mbedtls_salsa20_context *) ctx->cipher_ctx );
     }
+#endif
+
+#ifdef MBEDTLS_CHACHA8_C
     if( ctx->cipher_info->type == MBEDTLS_CIPHER_CHACHA8_128 ||
         ctx->cipher_info->type == MBEDTLS_CIPHER_CHACHA8_256 ) {
         mbedtls_chacha8_reset_keystream_state( (mbedtls_chacha8_context *) ctx->cipher_ctx );
     }
+#endif
 
     return( 0 );
 }

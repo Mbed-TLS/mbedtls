@@ -445,6 +445,7 @@ static inline int mbedtls_ssl_ciphersuite_cert_req_allowed( const mbedtls_ssl_ci
         case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA:
         case MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA:
+        case MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA:
             return( 1 );
 
         default:

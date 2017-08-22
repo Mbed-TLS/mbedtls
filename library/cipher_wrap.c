@@ -204,8 +204,10 @@ static const mbedtls_cipher_base_t aes_info = {
     aes_setkey_enc_wrap,
     aes_setkey_dec_wrap,
     aes_ctx_alloc,
-    aes_ctx_free,
-    NULL
+    aes_ctx_free
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))
+    , NULL
+#endif
 };
 
 static const mbedtls_cipher_info_t aes_128_ecb_info = {
@@ -372,8 +374,10 @@ static const mbedtls_cipher_base_t gcm_aes_info = {
     gcm_aes_setkey_wrap,
     gcm_aes_setkey_wrap,
     gcm_ctx_alloc,
-    gcm_ctx_free,
-    NULL
+    gcm_ctx_free
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))
+    , NULL
+#endif
 };
 
 static const mbedtls_cipher_info_t aes_128_gcm_info = {
@@ -436,8 +440,10 @@ static const mbedtls_cipher_base_t ccm_aes_info = {
     ccm_aes_setkey_wrap,
     ccm_aes_setkey_wrap,
     ccm_ctx_alloc,
-    ccm_ctx_free,
-    NULL
+    ccm_ctx_free
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))
+    , NULL
+#endif
 };
 
 static const mbedtls_cipher_info_t aes_128_ccm_info = {
@@ -564,8 +570,10 @@ static const mbedtls_cipher_base_t camellia_info = {
     camellia_setkey_enc_wrap,
     camellia_setkey_dec_wrap,
     camellia_ctx_alloc,
-    camellia_ctx_free,
-    NULL
+    camellia_ctx_free
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))
+    , NULL
+#endif
 };
 
 static const mbedtls_cipher_info_t camellia_128_ecb_info = {
@@ -732,8 +740,10 @@ static const mbedtls_cipher_base_t gcm_camellia_info = {
     gcm_camellia_setkey_wrap,
     gcm_camellia_setkey_wrap,
     gcm_ctx_alloc,
-    gcm_ctx_free,
-    NULL
+    gcm_ctx_free
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))
+    , NULL
+#endif
 };
 
 static const mbedtls_cipher_info_t camellia_128_gcm_info = {
@@ -796,8 +806,10 @@ static const mbedtls_cipher_base_t ccm_camellia_info = {
     ccm_camellia_setkey_wrap,
     ccm_camellia_setkey_wrap,
     ccm_ctx_alloc,
-    ccm_ctx_free,
-    NULL
+    ccm_ctx_free
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))
+    , NULL
+#endif
 };
 
 static const mbedtls_cipher_info_t camellia_128_ccm_info = {
@@ -973,8 +985,10 @@ static const mbedtls_cipher_base_t des_info = {
     des_setkey_enc_wrap,
     des_setkey_dec_wrap,
     des_ctx_alloc,
-    des_ctx_free,
-    NULL
+    des_ctx_free
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))
+	, NULL
+#endif
 };
 
 static const mbedtls_cipher_info_t des_ecb_info = {
@@ -1019,8 +1033,10 @@ static const mbedtls_cipher_base_t des_ede_info = {
     des3_set2key_enc_wrap,
     des3_set2key_dec_wrap,
     des3_ctx_alloc,
-    des3_ctx_free,
-    NULL
+    des3_ctx_free
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))
+    , NULL
+#endif
 };
 
 static const mbedtls_cipher_info_t des_ede_ecb_info = {
@@ -1065,8 +1081,10 @@ static const mbedtls_cipher_base_t des_ede3_info = {
     des3_set3key_enc_wrap,
     des3_set3key_dec_wrap,
     des3_ctx_alloc,
-    des3_ctx_free,
-    NULL
+    des3_ctx_free
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))
+    , NULL
+#endif
 };
 
 static const mbedtls_cipher_info_t des_ede3_ecb_info = {
@@ -1175,8 +1193,10 @@ static const mbedtls_cipher_base_t blowfish_info = {
     blowfish_setkey_wrap,
     blowfish_setkey_wrap,
     blowfish_ctx_alloc,
-    blowfish_ctx_free,
-    NULL
+    blowfish_ctx_free
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))
+    , NULL
+#endif
 };
 
 static const mbedtls_cipher_info_t blowfish_ecb_info = {
@@ -1286,8 +1306,10 @@ static const mbedtls_cipher_base_t arc4_base_info = {
     arc4_setkey_wrap,
     arc4_setkey_wrap,
     arc4_ctx_alloc,
-    arc4_ctx_free,
-    NULL
+    arc4_ctx_free
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))
+    , NULL
+#endif
 };
 
 static const mbedtls_cipher_info_t arc4_128_info = {
@@ -1358,8 +1380,10 @@ static const mbedtls_cipher_base_t salsa20_base_info = {
         salsa20_setkey_wrap,
         salsa20_setkey_wrap,
         salsa20_ctx_alloc,
-        salsa20_ctx_free,
-        salsa20_set_iv
+        salsa20_ctx_free
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))
+        , salsa20_set_iv
+#endif
 };
 
 static const mbedtls_cipher_info_t salsa20_128_info = {
@@ -1443,8 +1467,10 @@ static const mbedtls_cipher_base_t chacha8_base_info = {
         chacha8_setkey_wrap,
         chacha8_setkey_wrap,
         chacha8_ctx_alloc,
-        chacha8_ctx_free,
-        chacha8_set_iv
+        chacha8_ctx_free
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))
+        , chacha8_set_iv
+#endif
 };
 
 static const mbedtls_cipher_info_t chacha8_128_info = {

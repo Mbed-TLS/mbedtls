@@ -43,9 +43,9 @@
 
 #if !defined(MBEDTLS_SALSA20_ALT)
 
-#define MBEDTLS_SALSA20_U8TO32_LITTLE(p) (((uint32_t)((p)[0])) | ((uint32_t)((p)[1]) <<  8) | \
+#define SALSA20_U8TO32_LITTLE(p) (((uint32_t)((p)[0])) | ((uint32_t)((p)[1]) <<  8) | \
                          ((uint32_t)((p)[2]) << 16) | ((uint32_t)((p)[3]) << 24))
-#define MBEDTLS_SALSA20_U32TO8_LITTLE(p, v) \
+#define SALSA20_U32TO8_LITTLE(p, v) \
     do \
     { \
         (p)[0] = v; \
@@ -53,10 +53,10 @@
         (p)[2] = v >> 16; \
         (p)[3] = v >> 24; \
     } while (0)
-#define MBEDTLS_SALSA20_ROTL32(v, n) (uint32_t)(((v) << (n)) | ((v) >> (32 - (n))))
+#define SALSA20_ROTL32(v, n) (uint32_t)(((v) << (n)) | ((v) >> (32 - (n))))
 
-#define MBEDTLS_SALSA20_SIGMA "expand 32-byte k"
-#define MBEDTLS_SALSA20_TAU "expand 16-byte k"
+#define SALSA20_SIGMA "expand 32-byte k"
+#define SALSA20_TAU "expand 16-byte k"
 
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n )
@@ -91,28 +91,28 @@ void mbedtls_salsa20_setup( mbedtls_salsa20_context *ctx, const unsigned char *k
 {
     const char *constants;
 
-    ctx->internal_state[1] = MBEDTLS_SALSA20_U8TO32_LITTLE(key + 0);
-    ctx->internal_state[2] = MBEDTLS_SALSA20_U8TO32_LITTLE(key + 4);
-    ctx->internal_state[3] = MBEDTLS_SALSA20_U8TO32_LITTLE(key + 8);
-    ctx->internal_state[4] = MBEDTLS_SALSA20_U8TO32_LITTLE(key + 12);
+    ctx->internal_state[1] = SALSA20_U8TO32_LITTLE(key + 0);
+    ctx->internal_state[2] = SALSA20_U8TO32_LITTLE(key + 4);
+    ctx->internal_state[3] = SALSA20_U8TO32_LITTLE(key + 8);
+    ctx->internal_state[4] = SALSA20_U8TO32_LITTLE(key + 12);
 
     if (256 == keylen_bits)
     {
         key += 16;
-        constants = MBEDTLS_SALSA20_SIGMA;
+        constants = SALSA20_SIGMA;
     }
     else
     {
-        constants = MBEDTLS_SALSA20_TAU;
+        constants = SALSA20_TAU;
     }
-    ctx->internal_state[11] = MBEDTLS_SALSA20_U8TO32_LITTLE(key + 0);
-    ctx->internal_state[12] = MBEDTLS_SALSA20_U8TO32_LITTLE(key + 4);
-    ctx->internal_state[13] = MBEDTLS_SALSA20_U8TO32_LITTLE(key + 8);
-    ctx->internal_state[14] = MBEDTLS_SALSA20_U8TO32_LITTLE(key + 12);
-    ctx->internal_state[0] = MBEDTLS_SALSA20_U8TO32_LITTLE(constants + 0);
-    ctx->internal_state[5] = MBEDTLS_SALSA20_U8TO32_LITTLE(constants + 4);
-    ctx->internal_state[10] = MBEDTLS_SALSA20_U8TO32_LITTLE(constants + 8);
-    ctx->internal_state[15] = MBEDTLS_SALSA20_U8TO32_LITTLE(constants + 12);
+    ctx->internal_state[11] = SALSA20_U8TO32_LITTLE(key + 0);
+    ctx->internal_state[12] = SALSA20_U8TO32_LITTLE(key + 4);
+    ctx->internal_state[13] = SALSA20_U8TO32_LITTLE(key + 8);
+    ctx->internal_state[14] = SALSA20_U8TO32_LITTLE(key + 12);
+    ctx->internal_state[0] = SALSA20_U8TO32_LITTLE(constants + 0);
+    ctx->internal_state[5] = SALSA20_U8TO32_LITTLE(constants + 4);
+    ctx->internal_state[10] = SALSA20_U8TO32_LITTLE(constants + 8);
+    ctx->internal_state[15] = SALSA20_U8TO32_LITTLE(constants + 12);
 
     mbedtls_salsa20_reset_keystream_state( ctx );
 }
@@ -122,8 +122,8 @@ void mbedtls_salsa20_setup( mbedtls_salsa20_context *ctx, const unsigned char *k
  */
 void mbedtls_salsa20_set_iv( mbedtls_salsa20_context *ctx, const unsigned char *iv )
 {
-    ctx->internal_state[6] = MBEDTLS_SALSA20_U8TO32_LITTLE(iv + 0);
-    ctx->internal_state[7] = MBEDTLS_SALSA20_U8TO32_LITTLE(iv + 4);
+    ctx->internal_state[6] = SALSA20_U8TO32_LITTLE(iv + 0);
+    ctx->internal_state[7] = SALSA20_U8TO32_LITTLE(iv + 4);
     ctx->internal_state[8] = 0;
     ctx->internal_state[9] = 0;
 }
@@ -131,25 +131,26 @@ void mbedtls_salsa20_set_iv( mbedtls_salsa20_context *ctx, const unsigned char *
 /*
  * SALSA20 cipher function
  */
-#define MBEDTLS_SALSA20_KEYSTREAM_SEGMENT_SIZE 64
+#define SALSA20_KEYSTREAM_SEGMENT_SIZE 64
 int mbedtls_salsa20_crypt( mbedtls_salsa20_context *ctx, size_t length, const unsigned char *input,
                 unsigned char *output)
 {
-    unsigned char keystream_segment[MBEDTLS_SALSA20_KEYSTREAM_SEGMENT_SIZE];
+    unsigned char keystream_segment[SALSA20_KEYSTREAM_SEGMENT_SIZE];
 
     uint32_t number_bytes_crypted = 0;
     uint32_t segment_start_offset = 0;
     uint32_t number_of_bytes_this_run = 0;
+    uint32_t lByte;
 
     while(number_bytes_crypted < length)
     {
-        memset(keystream_segment, 0x00, MBEDTLS_SALSA20_KEYSTREAM_SEGMENT_SIZE);
+        memset(keystream_segment, 0x00, SALSA20_KEYSTREAM_SEGMENT_SIZE);
 
-        number_of_bytes_this_run = (length - number_bytes_crypted) < MBEDTLS_SALSA20_KEYSTREAM_SEGMENT_SIZE ? length - number_bytes_crypted : MBEDTLS_SALSA20_KEYSTREAM_SEGMENT_SIZE;
+        number_of_bytes_this_run = (length - number_bytes_crypted) < SALSA20_KEYSTREAM_SEGMENT_SIZE ? length - number_bytes_crypted : SALSA20_KEYSTREAM_SEGMENT_SIZE;
 
         mbedtls_salsa20_get_keystream_slice(ctx, keystream_segment, number_of_bytes_this_run);
 
-        for (uint32_t lByte = 0; lByte < number_of_bytes_this_run; ++lByte)
+        for ( lByte = 0; lByte < number_of_bytes_this_run; ++lByte )
         {
             output[segment_start_offset + lByte] = input[segment_start_offset + lByte] ^ keystream_segment[lByte];
         }
@@ -169,7 +170,7 @@ int mbedtls_salsa20_get_keystream_slice( mbedtls_salsa20_context *ctx, unsigned 
         return -1;
     }
 
-    memset(keystream_segment, 0x00, MBEDTLS_SALSA20_KEYSTREAM_SEGMENT_SIZE);
+    memset(keystream_segment, 0x00, SALSA20_KEYSTREAM_SEGMENT_SIZE);
 
     if(ctx->unused_keystream_number_bytes > 0)
     {
@@ -194,7 +195,7 @@ int mbedtls_salsa20_get_keystream_slice( mbedtls_salsa20_context *ctx, unsigned 
 
         /* And copy the required number as above */
         memcpy(keystream_segment, ctx->current_keystream_buffer, number_of_bytes_yet_to_fill);
-        ctx->unused_keystream_number_bytes = MBEDTLS_SALSA20_KEYSTREAM_SEGMENT_SIZE - number_of_bytes_yet_to_fill;
+        ctx->unused_keystream_number_bytes = SALSA20_KEYSTREAM_SEGMENT_SIZE - number_of_bytes_yet_to_fill;
         if(ctx->unused_keystream_number_bytes > 0)
         {
             ctx->keystream_buffer_offset = number_of_bytes_yet_to_fill;
@@ -204,10 +205,10 @@ int mbedtls_salsa20_get_keystream_slice( mbedtls_salsa20_context *ctx, unsigned 
     return 0;
 }
 
-#define MBEDTLS_SALSA20_ROTATE(v,c) (MBEDTLS_SALSA20_ROTL32(v,c))
-#define MBEDTLS_SALSA20_XOR(v,w) ((v) ^ (w))
-#define MBEDTLS_SALSA20_PLUS(v,w) ((uint32_t)((v) + (w)))
-#define MBEDTLS_SALSA20_PLUSONE(v) (MBEDTLS_SALSA20_PLUS((v),1))
+#define SALSA20_ROTATE(v,c) (SALSA20_ROTL32(v,c))
+#define SALSA20_XOR(v,w) ((v) ^ (w))
+#define SALSA20_PLUS(v,w) ((uint32_t)((v) + (w)))
+#define SALSA20_PLUSONE(v) (SALSA20_PLUS((v),1))
 
 static void salsa20_wordtobyte(unsigned char output[64],const uint32_t input[16])
 {
@@ -220,68 +221,68 @@ static void salsa20_wordtobyte(unsigned char output[64],const uint32_t input[16]
     }
     for (i = 20;i > 0;i -= 2)
     {
-        x[ 4] = MBEDTLS_SALSA20_XOR(x[ 4],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[ 0],x[12]), 7));
-        x[ 8] = MBEDTLS_SALSA20_XOR(x[ 8],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[ 4],x[ 0]), 9));
-        x[12] = MBEDTLS_SALSA20_XOR(x[12],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[ 8],x[ 4]),13));
-        x[ 0] = MBEDTLS_SALSA20_XOR(x[ 0],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[12],x[ 8]),18));
-        x[ 9] = MBEDTLS_SALSA20_XOR(x[ 9],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[ 5],x[ 1]), 7));
-        x[13] = MBEDTLS_SALSA20_XOR(x[13],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[ 9],x[ 5]), 9));
-        x[ 1] = MBEDTLS_SALSA20_XOR(x[ 1],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[13],x[ 9]),13));
-        x[ 5] = MBEDTLS_SALSA20_XOR(x[ 5],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[ 1],x[13]),18));
-        x[14] = MBEDTLS_SALSA20_XOR(x[14],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[10],x[ 6]), 7));
-        x[ 2] = MBEDTLS_SALSA20_XOR(x[ 2],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[14],x[10]), 9));
-        x[ 6] = MBEDTLS_SALSA20_XOR(x[ 6],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[ 2],x[14]),13));
-        x[10] = MBEDTLS_SALSA20_XOR(x[10],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[ 6],x[ 2]),18));
-        x[ 3] = MBEDTLS_SALSA20_XOR(x[ 3],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[15],x[11]), 7));
-        x[ 7] = MBEDTLS_SALSA20_XOR(x[ 7],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[ 3],x[15]), 9));
-        x[11] = MBEDTLS_SALSA20_XOR(x[11],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[ 7],x[ 3]),13));
-        x[15] = MBEDTLS_SALSA20_XOR(x[15],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[11],x[ 7]),18));
-        x[ 1] = MBEDTLS_SALSA20_XOR(x[ 1],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[ 0],x[ 3]), 7));
-        x[ 2] = MBEDTLS_SALSA20_XOR(x[ 2],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[ 1],x[ 0]), 9));
-        x[ 3] = MBEDTLS_SALSA20_XOR(x[ 3],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[ 2],x[ 1]),13));
-        x[ 0] = MBEDTLS_SALSA20_XOR(x[ 0],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[ 3],x[ 2]),18));
-        x[ 6] = MBEDTLS_SALSA20_XOR(x[ 6],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[ 5],x[ 4]), 7));
-        x[ 7] = MBEDTLS_SALSA20_XOR(x[ 7],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[ 6],x[ 5]), 9));
-        x[ 4] = MBEDTLS_SALSA20_XOR(x[ 4],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[ 7],x[ 6]),13));
-        x[ 5] = MBEDTLS_SALSA20_XOR(x[ 5],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[ 4],x[ 7]),18));
-        x[11] = MBEDTLS_SALSA20_XOR(x[11],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[10],x[ 9]), 7));
-        x[ 8] = MBEDTLS_SALSA20_XOR(x[ 8],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[11],x[10]), 9));
-        x[ 9] = MBEDTLS_SALSA20_XOR(x[ 9],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[ 8],x[11]),13));
-        x[10] = MBEDTLS_SALSA20_XOR(x[10],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[ 9],x[ 8]),18));
-        x[12] = MBEDTLS_SALSA20_XOR(x[12],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[15],x[14]), 7));
-        x[13] = MBEDTLS_SALSA20_XOR(x[13],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[12],x[15]), 9));
-        x[14] = MBEDTLS_SALSA20_XOR(x[14],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[13],x[12]),13));
-        x[15] = MBEDTLS_SALSA20_XOR(x[15],MBEDTLS_SALSA20_ROTATE(MBEDTLS_SALSA20_PLUS(x[14],x[13]),18));
+        x[ 4] = SALSA20_XOR(x[ 4],SALSA20_ROTATE(SALSA20_PLUS(x[ 0],x[12]), 7));
+        x[ 8] = SALSA20_XOR(x[ 8],SALSA20_ROTATE(SALSA20_PLUS(x[ 4],x[ 0]), 9));
+        x[12] = SALSA20_XOR(x[12],SALSA20_ROTATE(SALSA20_PLUS(x[ 8],x[ 4]),13));
+        x[ 0] = SALSA20_XOR(x[ 0],SALSA20_ROTATE(SALSA20_PLUS(x[12],x[ 8]),18));
+        x[ 9] = SALSA20_XOR(x[ 9],SALSA20_ROTATE(SALSA20_PLUS(x[ 5],x[ 1]), 7));
+        x[13] = SALSA20_XOR(x[13],SALSA20_ROTATE(SALSA20_PLUS(x[ 9],x[ 5]), 9));
+        x[ 1] = SALSA20_XOR(x[ 1],SALSA20_ROTATE(SALSA20_PLUS(x[13],x[ 9]),13));
+        x[ 5] = SALSA20_XOR(x[ 5],SALSA20_ROTATE(SALSA20_PLUS(x[ 1],x[13]),18));
+        x[14] = SALSA20_XOR(x[14],SALSA20_ROTATE(SALSA20_PLUS(x[10],x[ 6]), 7));
+        x[ 2] = SALSA20_XOR(x[ 2],SALSA20_ROTATE(SALSA20_PLUS(x[14],x[10]), 9));
+        x[ 6] = SALSA20_XOR(x[ 6],SALSA20_ROTATE(SALSA20_PLUS(x[ 2],x[14]),13));
+        x[10] = SALSA20_XOR(x[10],SALSA20_ROTATE(SALSA20_PLUS(x[ 6],x[ 2]),18));
+        x[ 3] = SALSA20_XOR(x[ 3],SALSA20_ROTATE(SALSA20_PLUS(x[15],x[11]), 7));
+        x[ 7] = SALSA20_XOR(x[ 7],SALSA20_ROTATE(SALSA20_PLUS(x[ 3],x[15]), 9));
+        x[11] = SALSA20_XOR(x[11],SALSA20_ROTATE(SALSA20_PLUS(x[ 7],x[ 3]),13));
+        x[15] = SALSA20_XOR(x[15],SALSA20_ROTATE(SALSA20_PLUS(x[11],x[ 7]),18));
+        x[ 1] = SALSA20_XOR(x[ 1],SALSA20_ROTATE(SALSA20_PLUS(x[ 0],x[ 3]), 7));
+        x[ 2] = SALSA20_XOR(x[ 2],SALSA20_ROTATE(SALSA20_PLUS(x[ 1],x[ 0]), 9));
+        x[ 3] = SALSA20_XOR(x[ 3],SALSA20_ROTATE(SALSA20_PLUS(x[ 2],x[ 1]),13));
+        x[ 0] = SALSA20_XOR(x[ 0],SALSA20_ROTATE(SALSA20_PLUS(x[ 3],x[ 2]),18));
+        x[ 6] = SALSA20_XOR(x[ 6],SALSA20_ROTATE(SALSA20_PLUS(x[ 5],x[ 4]), 7));
+        x[ 7] = SALSA20_XOR(x[ 7],SALSA20_ROTATE(SALSA20_PLUS(x[ 6],x[ 5]), 9));
+        x[ 4] = SALSA20_XOR(x[ 4],SALSA20_ROTATE(SALSA20_PLUS(x[ 7],x[ 6]),13));
+        x[ 5] = SALSA20_XOR(x[ 5],SALSA20_ROTATE(SALSA20_PLUS(x[ 4],x[ 7]),18));
+        x[11] = SALSA20_XOR(x[11],SALSA20_ROTATE(SALSA20_PLUS(x[10],x[ 9]), 7));
+        x[ 8] = SALSA20_XOR(x[ 8],SALSA20_ROTATE(SALSA20_PLUS(x[11],x[10]), 9));
+        x[ 9] = SALSA20_XOR(x[ 9],SALSA20_ROTATE(SALSA20_PLUS(x[ 8],x[11]),13));
+        x[10] = SALSA20_XOR(x[10],SALSA20_ROTATE(SALSA20_PLUS(x[ 9],x[ 8]),18));
+        x[12] = SALSA20_XOR(x[12],SALSA20_ROTATE(SALSA20_PLUS(x[15],x[14]), 7));
+        x[13] = SALSA20_XOR(x[13],SALSA20_ROTATE(SALSA20_PLUS(x[12],x[15]), 9));
+        x[14] = SALSA20_XOR(x[14],SALSA20_ROTATE(SALSA20_PLUS(x[13],x[12]),13));
+        x[15] = SALSA20_XOR(x[15],SALSA20_ROTATE(SALSA20_PLUS(x[14],x[13]),18));
     }
     for (i = 0;i < 16;++i)
     {
-        x[i] = MBEDTLS_SALSA20_PLUS(x[i],input[i]);
+        x[i] = SALSA20_PLUS(x[i],input[i]);
     }
     for (i = 0;i < 16;++i)
     {
-        MBEDTLS_SALSA20_U32TO8_LITTLE(output + 4 * i,x[i]);
+        SALSA20_U32TO8_LITTLE(output + 4 * i,x[i]);
     }
 }
 
 
 void mbedtls_salsa20_generate_keystream_block( mbedtls_salsa20_context *ctx )
 {
-    unsigned char output[MBEDTLS_SALSA20_KEYSTREAM_SEGMENT_SIZE];
+    unsigned char output[SALSA20_KEYSTREAM_SEGMENT_SIZE];
     int i;
 
     for (;;)
     {
         salsa20_wordtobyte(output,ctx->internal_state);
-        ctx->internal_state[8] = MBEDTLS_SALSA20_PLUSONE(ctx->internal_state[8]);
+        ctx->internal_state[8] = SALSA20_PLUSONE(ctx->internal_state[8]);
         if (!ctx->internal_state[8])
         {
-            ctx->internal_state[9] = MBEDTLS_SALSA20_PLUSONE(ctx->internal_state[9]);
+            ctx->internal_state[9] = SALSA20_PLUSONE(ctx->internal_state[9]);
         }
-            for (i = 0;i < MBEDTLS_SALSA20_KEYSTREAM_SEGMENT_SIZE;++i)
+            for (i = 0;i < SALSA20_KEYSTREAM_SEGMENT_SIZE;++i)
             {
                 ctx->current_keystream_buffer[i] = output[i];
             }
-            ctx->unused_keystream_number_bytes = MBEDTLS_SALSA20_KEYSTREAM_SEGMENT_SIZE;
+            ctx->unused_keystream_number_bytes = SALSA20_KEYSTREAM_SEGMENT_SIZE;
             return;
     }
 }

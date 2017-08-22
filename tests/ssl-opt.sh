@@ -669,9 +669,8 @@ run_test    "Default" \
             "$P_CLI" \
             0 \
             -s "Protocol is TLSv1.2" \
-            -s "Ciphersuite is TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384" \
+            -s "Ciphersuite is TLS-NEWHOPE-ECDSA-WITH-SALSA20-256-SHA" \
             -s "client hello v3, signature_algorithm ext: 6" \
-            -s "ECDHE curve: secp521r1" \
             -S "error" \
             -C "error"
 
@@ -2647,12 +2646,12 @@ run_test    "keyUsage srv: ECDSA, digitalSignature -> ECDHE-ECDSA" \
             -c "Ciphersuite is TLS-ECDHE-ECDSA-WITH-"
 
 
-run_test    "keyUsage srv: ECDSA, keyAgreement -> ECDH-" \
+run_test    "keyUsage srv: ECDSA, keyAgreement -> NEWHOPE-" \
             "$P_SRV key_file=data_files/server5.key \
              crt_file=data_files/server5.ku-ka.crt" \
             "$P_CLI" \
             0 \
-            -c "Ciphersuite is TLS-ECDH-"
+            -c "Ciphersuite is TLS-NEWHOPE-ECDSA-"
 
 run_test    "keyUsage srv: ECDSA, keyEncipherment -> fail" \
             "$P_SRV key_file=data_files/server5.key \

@@ -111,19 +111,17 @@ int mbedtls_chacha8_crypt( mbedtls_chacha8_context *ctx, size_t length, const un
  *
  * \param ctx      CHACHA8 context
  *
- * \return         0 if successful
  */
 void mbedtls_chacha8_generate_keystream_block( mbedtls_chacha8_context *ctx );
 
 /**
- * \brief          CHACHA8 cipher function
+ * \brief                            CHACHA8 cipher function
  *
- * \param ctx      CHACHA8 context
- * \param length   length of the input data
- * \param input    buffer holding the input data
- * \param output   buffer for the output data
+ * \param ctx                        CHACHA8 context
+ * \param keystream_segment          stream segment
+ * \param number_of_bytes_this_run   number of bytes needed
  *
- * \return         0 if successful
+ * \return                           0 if successful
  */
 int mbedtls_chacha8_get_keystream_slice( mbedtls_chacha8_context *ctx, unsigned char *keystream_segment, const uint32_t number_of_bytes_this_run);
 

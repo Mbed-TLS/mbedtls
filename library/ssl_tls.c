@@ -4844,7 +4844,8 @@ int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
      */
     if( ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
     {
-        ssl->in_msg = ssl->in_iv + ssl->transform_negotiate->ivlen - ssl->transform_negotiate->fixed_ivlen;
+        ssl->in_msg = ssl->in_iv + ssl->transform_negotiate->ivlen -
+                      ssl->transform_negotiate->fixed_ivlen;
     }
     else
         ssl->in_msg = ssl->in_iv;

@@ -105,6 +105,10 @@
 #include "mbedtls/net_sockets.h"
 #endif
 
+#if defined(MBEDTLS_NEWHOPE_C)
+#include "mbedtls/newhope.h"
+#endif
+
 #if defined(MBEDTLS_OID_C)
 #include "mbedtls/oid.h"
 #endif
@@ -117,16 +121,20 @@
 #include "mbedtls/pem.h"
 #endif
 
-#if defined(MBEDTLS_PK_C)
-#include "mbedtls/pk.h"
-#endif
-
 #if defined(MBEDTLS_PKCS12_C)
 #include "mbedtls/pkcs12.h"
 #endif
 
 #if defined(MBEDTLS_PKCS5_C)
 #include "mbedtls/pkcs5.h"
+#endif
+
+#if defined(MBEDTLS_PK_C)
+#include "mbedtls/pk.h"
+#endif
+
+#if defined(MBEDTLS_RLWE_C)
+#include "mbedtls/rlwe.h"
 #endif
 
 #if defined(MBEDTLS_RSA_C)
@@ -149,9 +157,6 @@
 #include "mbedtls/xtea.h"
 #endif
 
-#if defined(MBEDTLS_NEWHOPE_C)
-#include "mbedtls/newhope.h"
-#endif
 
 void mbedtls_strerror( int ret, char *buf, size_t buflen )
 {
@@ -262,6 +267,28 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
             mbedtls_snprintf( buf, buflen, "PEM - Bad input parameters to function" );
 #endif /* MBEDTLS_PEM_PARSE_C || MBEDTLS_PEM_WRITE_C */
 
+#if defined(MBEDTLS_PKCS12_C)
+        if( use_ret == -(MBEDTLS_ERR_PKCS12_BAD_INPUT_DATA) )
+            mbedtls_snprintf( buf, buflen, "PKCS12 - Bad input parameters to function" );
+        if( use_ret == -(MBEDTLS_ERR_PKCS12_FEATURE_UNAVAILABLE) )
+            mbedtls_snprintf( buf, buflen, "PKCS12 - Feature not available, e.g. unsupported encryption scheme" );
+        if( use_ret == -(MBEDTLS_ERR_PKCS12_PBE_INVALID_FORMAT) )
+            mbedtls_snprintf( buf, buflen, "PKCS12 - PBE ASN.1 data not as expected" );
+        if( use_ret == -(MBEDTLS_ERR_PKCS12_PASSWORD_MISMATCH) )
+            mbedtls_snprintf( buf, buflen, "PKCS12 - Given private key password does not allow for correct decryption" );
+#endif /* MBEDTLS_PKCS12_C */
+
+#if defined(MBEDTLS_PKCS5_C)
+        if( use_ret == -(MBEDTLS_ERR_PKCS5_BAD_INPUT_DATA) )
+            mbedtls_snprintf( buf, buflen, "PKCS5 - Bad input parameters to function" );
+        if( use_ret == -(MBEDTLS_ERR_PKCS5_INVALID_FORMAT) )
+            mbedtls_snprintf( buf, buflen, "PKCS5 - Unexpected ASN.1 data" );
+        if( use_ret == -(MBEDTLS_ERR_PKCS5_FEATURE_UNAVAILABLE) )
+            mbedtls_snprintf( buf, buflen, "PKCS5 - Requested encryption or digest alg not available" );
+        if( use_ret == -(MBEDTLS_ERR_PKCS5_PASSWORD_MISMATCH) )
+            mbedtls_snprintf( buf, buflen, "PKCS5 - Given private key password does not allow for correct decryption" );
+#endif /* MBEDTLS_PKCS5_C */
+
 #if defined(MBEDTLS_PK_C)
         if( use_ret == -(MBEDTLS_ERR_PK_ALLOC_FAILED) )
             mbedtls_snprintf( buf, buflen, "PK - Memory allocation failed" );
@@ -292,28 +319,6 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(MBEDTLS_ERR_PK_SIG_LEN_MISMATCH) )
             mbedtls_snprintf( buf, buflen, "PK - The signature is valid but its length is less than expected" );
 #endif /* MBEDTLS_PK_C */
-
-#if defined(MBEDTLS_PKCS12_C)
-        if( use_ret == -(MBEDTLS_ERR_PKCS12_BAD_INPUT_DATA) )
-            mbedtls_snprintf( buf, buflen, "PKCS12 - Bad input parameters to function" );
-        if( use_ret == -(MBEDTLS_ERR_PKCS12_FEATURE_UNAVAILABLE) )
-            mbedtls_snprintf( buf, buflen, "PKCS12 - Feature not available, e.g. unsupported encryption scheme" );
-        if( use_ret == -(MBEDTLS_ERR_PKCS12_PBE_INVALID_FORMAT) )
-            mbedtls_snprintf( buf, buflen, "PKCS12 - PBE ASN.1 data not as expected" );
-        if( use_ret == -(MBEDTLS_ERR_PKCS12_PASSWORD_MISMATCH) )
-            mbedtls_snprintf( buf, buflen, "PKCS12 - Given private key password does not allow for correct decryption" );
-#endif /* MBEDTLS_PKCS12_C */
-
-#if defined(MBEDTLS_PKCS5_C)
-        if( use_ret == -(MBEDTLS_ERR_PKCS5_BAD_INPUT_DATA) )
-            mbedtls_snprintf( buf, buflen, "PKCS5 - Bad input parameters to function" );
-        if( use_ret == -(MBEDTLS_ERR_PKCS5_INVALID_FORMAT) )
-            mbedtls_snprintf( buf, buflen, "PKCS5 - Unexpected ASN.1 data" );
-        if( use_ret == -(MBEDTLS_ERR_PKCS5_FEATURE_UNAVAILABLE) )
-            mbedtls_snprintf( buf, buflen, "PKCS5 - Requested encryption or digest alg not available" );
-        if( use_ret == -(MBEDTLS_ERR_PKCS5_PASSWORD_MISMATCH) )
-            mbedtls_snprintf( buf, buflen, "PKCS5 - Given private key password does not allow for correct decryption" );
-#endif /* MBEDTLS_PKCS5_C */
 
 #if defined(MBEDTLS_RSA_C)
         if( use_ret == -(MBEDTLS_ERR_RSA_BAD_INPUT_DATA) )
@@ -443,19 +448,6 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH) )
             mbedtls_snprintf( buf, buflen, "SSL - Couldn't set the hash for verifying CertificateVerify" );
 #endif /* MBEDTLS_SSL_TLS_C */
-
-#if defined(MBEDTLS_NEWHOPE_C)
-        if( use_ret == -(MBEDTLS_ERR_NEWHOPE_BAD_INPUT_DATA) )
-            mbedtls_snprintf( buf, buflen, "NEWHOPE - Bad input data" );
-        if( use_ret == -(MBEDTLS_ERR_NEWHOPE_FEATURE_UNAVAILABLE) )
-            mbedtls_snprintf( buf, buflen, "NEWHOPE - Feature unavailable" );
-        if( use_ret == -(MBEDTLS_ERR_NEWHOPE_FAILED_TO_GENERATE_RANDOM) )
-            mbedtls_snprintf( buf, buflen, "NEWHOPE - Failed to generate random" );
-        if( use_ret == -(MBEDTLS_ERR_NEWHOPE_NOISE_INCORRECT) )
-            mbedtls_snprintf( buf, buflen, "NEWHOPE - Incorrect noise" );
-        if( use_ret == -(MBEDTLS_ERR_NEWHOPE_BUFFER_TOO_SMALL) )
-            mbedtls_snprintf( buf, buflen, "NEWHOPE - Buffer too small" );
-#endif /* MBEDTLS_NEWHOPE_C */
 
 #if defined(MBEDTLS_X509_USE_C) || defined(MBEDTLS_X509_CREATE_C)
         if( use_ret == -(MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE) )
@@ -672,6 +664,17 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "NET - The context is invalid, eg because it was free()ed" );
 #endif /* MBEDTLS_NET_C */
 
+#if defined(MBEDTLS_NEWHOPE_C)
+    if( use_ret == -(MBEDTLS_ERR_NEWHOPE_BAD_INPUT_DATA) )
+        mbedtls_snprintf( buf, buflen, "NEWHOPE - Bad input parameters to function" );
+    if( use_ret == -(MBEDTLS_ERR_NEWHOPE_FEATURE_UNAVAILABLE) )
+        mbedtls_snprintf( buf, buflen, "NEWHOPE - New Hope key exchange is not available" );
+    if( use_ret == -(MBEDTLS_ERR_NEWHOPE_FAILED_TO_GENERATE_RANDOM) )
+        mbedtls_snprintf( buf, buflen, "NEWHOPE - Unable to generate sufficient random bytes" );
+    if( use_ret == -(MBEDTLS_ERR_NEWHOPE_BUFFER_TOO_SMALL) )
+        mbedtls_snprintf( buf, buflen, "NEWHOPE - The buffer is too small to write to" );
+#endif /* MBEDTLS_NEWHOPE_C */
+
 #if defined(MBEDTLS_OID_C)
     if( use_ret == -(MBEDTLS_ERR_OID_NOT_FOUND) )
         mbedtls_snprintf( buf, buflen, "OID - OID is not found" );
@@ -683,6 +686,11 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_PADLOCK_DATA_MISALIGNED) )
         mbedtls_snprintf( buf, buflen, "PADLOCK - Input data should be aligned" );
 #endif /* MBEDTLS_PADLOCK_C */
+
+#if defined(MBEDTLS_RLWE_C)
+    if( use_ret == -(MBEDTLS_ERR_RLWE_NOISE_INCORRECT) )
+        mbedtls_snprintf( buf, buflen, "RLWE - Noise parameter has bad value" );
+#endif /* MBEDTLS_RLWE_C */
 
 #if defined(MBEDTLS_THREADING_C)
     if( use_ret == -(MBEDTLS_ERR_THREADING_FEATURE_UNAVAILABLE) )

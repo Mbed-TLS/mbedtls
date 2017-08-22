@@ -2819,7 +2819,7 @@ static int ssl_parse_server_hello_done( mbedtls_ssl_context *ssl )
 static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
 {
     int ret;
-    size_t lBufferPosition, lBytesWrittenToBuffer;
+    size_t i, n;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
         ssl->transform_negotiate->ciphersuite_info;
 
@@ -2831,15 +2831,15 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         /*
          * DHM key exchange -- send G^X mod P
          */
-        lBytesWrittenToBuffer = ssl->handshake->dhm_ctx.len;
+        n = ssl->handshake->dhm_ctx.len;
 
-        ssl->out_msg[4] = (unsigned char)( lBytesWrittenToBuffer >> 8 );
-        ssl->out_msg[5] = (unsigned char)( lBytesWrittenToBuffer      );
-        lBufferPosition = 6;
+        ssl->out_msg[4] = (unsigned char)( n >> 8 );
+        ssl->out_msg[5] = (unsigned char)( n      );
+        i = 6;
 
         ret = mbedtls_dhm_make_public( &ssl->handshake->dhm_ctx,
                                 (int) mbedtls_mpi_size( &ssl->handshake->dhm_ctx.P ),
-                               &ssl->out_msg[lBufferPosition], lBytesWrittenToBuffer,
+                               &ssl->out_msg[i], n,
                                 ssl->conf->f_rng, ssl->conf->p_rng );
         if( ret != 0 )
         {
@@ -2876,11 +2876,11 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         /*
          * ECDH key exchange -- send client public value
          */
-        lBufferPosition = 4;
+        i = 4;
 
         ret = mbedtls_ecdh_make_public( &ssl->handshake->ecdh_ctx,
-                                &lBytesWrittenToBuffer,
-                                &ssl->out_msg[lBufferPosition], 1000,
+                                &n,
+                                &ssl->out_msg[i], 1000,
                                 ssl->conf->f_rng, ssl->conf->p_rng );
         if( ret != 0 )
         {
@@ -2919,33 +2919,33 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED );
         }
 
-        lBufferPosition = 4;
-        lBytesWrittenToBuffer = ssl->conf->psk_identity_len;
+        i = 4;
+        n = ssl->conf->psk_identity_len;
 
-        if( lBufferPosition + 2 + lBytesWrittenToBuffer > MBEDTLS_SSL_MAX_CONTENT_LEN )
+        if( i + 2 + n > MBEDTLS_SSL_MAX_CONTENT_LEN )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "psk identity too long or "
                                         "SSL buffer too short" ) );
             return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
         }
 
-        ssl->out_msg[lBufferPosition++] = (unsigned char)( lBytesWrittenToBuffer >> 8 );
-        ssl->out_msg[lBufferPosition++] = (unsigned char)( lBytesWrittenToBuffer      );
+        ssl->out_msg[i++] = (unsigned char)( n >> 8 );
+        ssl->out_msg[i++] = (unsigned char)( n      );
 
-        memcpy( ssl->out_msg + lBufferPosition, ssl->conf->psk_identity, ssl->conf->psk_identity_len );
-        lBufferPosition += ssl->conf->psk_identity_len;
+        memcpy( ssl->out_msg + i, ssl->conf->psk_identity, ssl->conf->psk_identity_len );
+        i += ssl->conf->psk_identity_len;
 
 #if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
         if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK )
         {
-            lBytesWrittenToBuffer = 0;
+            n = 0;
         }
         else
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
         if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
         {
-            if( ( ret = ssl_write_encrypted_pms( ssl, lBufferPosition, &lBytesWrittenToBuffer, 2 ) ) != 0 )
+            if( ( ret = ssl_write_encrypted_pms( ssl, i, &n, 2 ) ) != 0 )
                 return( ret );
         }
         else
@@ -2956,21 +2956,21 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
             /*
              * ClientDiffieHellmanPublic public (DHM send G^X mod P)
              */
-            lBytesWrittenToBuffer = ssl->handshake->dhm_ctx.len;
+            n = ssl->handshake->dhm_ctx.len;
 
-            if( lBufferPosition + 2 + lBytesWrittenToBuffer > MBEDTLS_SSL_MAX_CONTENT_LEN )
+            if( i + 2 + n > MBEDTLS_SSL_MAX_CONTENT_LEN )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "psk identity or DHM size too long"
                                             " or SSL buffer too short" ) );
                 return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
             }
 
-            ssl->out_msg[lBufferPosition++] = (unsigned char)( lBytesWrittenToBuffer >> 8 );
-            ssl->out_msg[lBufferPosition++] = (unsigned char)( lBytesWrittenToBuffer      );
+            ssl->out_msg[i++] = (unsigned char)( n >> 8 );
+            ssl->out_msg[i++] = (unsigned char)( n      );
 
             ret = mbedtls_dhm_make_public( &ssl->handshake->dhm_ctx,
                     (int) mbedtls_mpi_size( &ssl->handshake->dhm_ctx.P ),
-                    &ssl->out_msg[lBufferPosition], lBytesWrittenToBuffer,
+                    &ssl->out_msg[i], n,
                     ssl->conf->f_rng, ssl->conf->p_rng );
             if( ret != 0 )
             {
@@ -2986,8 +2986,8 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
             /*
              * ClientECDiffieHellmanPublic public;
              */
-            ret = mbedtls_ecdh_make_public( &ssl->handshake->ecdh_ctx, &lBytesWrittenToBuffer,
-                    &ssl->out_msg[lBufferPosition], MBEDTLS_SSL_MAX_CONTENT_LEN - lBufferPosition,
+            ret = mbedtls_ecdh_make_public( &ssl->handshake->ecdh_ctx, &n,
+                    &ssl->out_msg[i], MBEDTLS_SSL_MAX_CONTENT_LEN - i,
                     ssl->conf->f_rng, ssl->conf->p_rng );
             if( ret != 0 )
             {
@@ -3016,8 +3016,8 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA )
     {
-        lBufferPosition = 4;
-        if( ( ret = ssl_write_encrypted_pms( ssl, lBufferPosition, &lBytesWrittenToBuffer, 0 ) ) != 0 )
+        i = 4;
+        if( ( ret = ssl_write_encrypted_pms( ssl, i, &n, 0 ) ) != 0 )
             return( ret );
     }
     else
@@ -3029,12 +3029,12 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         /*
          * Newhope key exchange -- send client public value
          */
-        lBufferPosition = 4;
+        i = 4;
 
         /* Create and write the public value - relies on the server key-exchange message */
         /* Generate b-vector and seed */
-        if( ( ret = mbedtls_newhope_make_params_client( &ssl->handshake->newhope_ctx, &lBytesWrittenToBuffer,
-                                                        &ssl->out_msg[lBufferPosition], MBEDTLS_SSL_MAX_CONTENT_LEN - lBufferPosition ) ) != 0 )
+        if( ( ret = mbedtls_newhope_make_params_client( &ssl->handshake->newhope_ctx, &n,
+                                                        &ssl->out_msg[i], MBEDTLS_SSL_MAX_CONTENT_LEN - i ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_newhope_make_params", ret );
             return( ret );
@@ -3062,10 +3062,10 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
     {
-        lBufferPosition = 4;
+        i = 4;
 
         ret = mbedtls_ecjpake_write_round_two( &ssl->handshake->ecjpake_ctx,
-                ssl->out_msg + lBufferPosition, MBEDTLS_SSL_MAX_CONTENT_LEN - lBufferPosition, &lBytesWrittenToBuffer,
+                ssl->out_msg + i, MBEDTLS_SSL_MAX_CONTENT_LEN - i, &n,
                 ssl->conf->f_rng, ssl->conf->p_rng );
         if( ret != 0 )
         {
@@ -3090,7 +3090,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-    ssl->out_msglen  = lBufferPosition + lBytesWrittenToBuffer;
+    ssl->out_msglen  = i + n;
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = MBEDTLS_SSL_HS_CLIENT_KEY_EXCHANGE;
 

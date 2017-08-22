@@ -2495,17 +2495,23 @@ int mbedtls_rsa_self_test( int verbose )
     unsigned char sha1sum[20];
 #endif
 
+    mbedtls_mpi K;
+
+    mbedtls_mpi_init( &K );
     mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
 
-    rsa.len = KEY_LEN;
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &rsa.N , 16, RSA_N  ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &rsa.E , 16, RSA_E  ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &rsa.D , 16, RSA_D  ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &rsa.P , 16, RSA_P  ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &rsa.Q , 16, RSA_Q  ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &rsa.DP, 16, RSA_DP ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &rsa.DQ, 16, RSA_DQ ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &rsa.QP, 16, RSA_QP ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &K, 16, RSA_N  ) );
+    MBEDTLS_MPI_CHK( mbedtls_rsa_import( &rsa, &K, NULL, NULL, NULL, NULL ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &K, 16, RSA_P  ) );
+    MBEDTLS_MPI_CHK( mbedtls_rsa_import( &rsa, NULL, &K, NULL, NULL, NULL ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &K, 16, RSA_Q  ) );
+    MBEDTLS_MPI_CHK( mbedtls_rsa_import( &rsa, NULL, NULL, &K, NULL, NULL ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &K, 16, RSA_D  ) );
+    MBEDTLS_MPI_CHK( mbedtls_rsa_import( &rsa, NULL, NULL, NULL, &K, NULL ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &K, 16, RSA_E  ) );
+    MBEDTLS_MPI_CHK( mbedtls_rsa_import( &rsa, NULL, NULL, NULL, NULL, &K ) );
+
+    MBEDTLS_MPI_CHK( mbedtls_rsa_complete( &rsa, NULL, NULL ) );
 
     if( verbose != 0 )
         mbedtls_printf( "  RSA key validation: " );
@@ -2518,6 +2524,15 @@ int mbedtls_rsa_self_test( int verbose )
 
         return( 1 );
     }
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &K, 16, RSA_DP  ) );
+    MBEDTLS_MPI_CHK( mbedtls_rsa_check_crt( &rsa, &K, NULL, NULL ) );
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &K, 16, RSA_DQ  ) );
+    MBEDTLS_MPI_CHK( mbedtls_rsa_check_crt( &rsa, NULL, &K, NULL ) );
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &K, 16, RSA_QP  ) );
+    MBEDTLS_MPI_CHK( mbedtls_rsa_check_crt( &rsa, NULL, NULL, &K ) );
 
     if( verbose != 0 )
         mbedtls_printf( "passed\n  PKCS#1 encryption : " );
@@ -2592,6 +2607,7 @@ int mbedtls_rsa_self_test( int verbose )
         mbedtls_printf( "\n" );
 
 cleanup:
+    mbedtls_mpi_free( &K );
     mbedtls_rsa_free( &rsa );
 #else /* MBEDTLS_PKCS1_V15 */
     ((void) verbose);

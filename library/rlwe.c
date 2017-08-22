@@ -45,9 +45,11 @@ static const uint16_t mbedtls_rlwe_bitrev_table_N1024[1024] =
 31,543,287,799,159,671,415,927,95,607,351,863,223,735,479,991,63,575,319,831,191,703,447,959,127,639,383,895,255,767,511,1023
 };
 
-void mbedtls_rlwe_polynomial_add_N1024(SRLWE_Polynomial_1024 *r, const SRLWE_Polynomial_1024 *a, const SRLWE_Polynomial_1024 *b, const uint16_t aModulus)
+void mbedtls_rlwe_polynomial_add_n1024(mbedtls_rlwe_polynomial_1024 *r, const mbedtls_rlwe_polynomial_1024 *a, const mbedtls_rlwe_polynomial_1024 *b, const uint16_t aModulus)
 {
-    for( int i=0; i<1024; i++ )
+    int i;
+
+    for( i=0; i<1024; i++ )
     {
         r->coeffs[i] = mbedtls_rlwe_barrett_reduce(a->coeffs[i] + b->coeffs[i], aModulus);
     }
@@ -63,22 +65,24 @@ uint16_t mbedtls_rlwe_barrett_reduce(uint16_t a, const uint16_t aModulus)
     return a;
 }
 
-void mbedtls_rlwe_forward_number_theoretic_transform_with_premultiply_N1024(SRLWE_Polynomial_1024 *r, const uint16_t aModulus)
+void mbedtls_rlwe_forward_number_theoretic_transform_with_premultiply_n1024(mbedtls_rlwe_polynomial_1024 *r, const uint16_t aModulus)
 {
-    mbedtls_rlwe_multiply_coefficients_N1024(r->coeffs, mbedtls_rlwe_psis_bitrev_montgomery_N1024, aModulus);
-    mbedtls_rlwe_forward_number_theoretic_transform_N1024((uint16_t *) r->coeffs, mbedtls_rlwe_omegas_montgomery_N1024, aModulus);
+    mbedtls_rlwe_multiply_coefficients_n1024(r->coeffs, mbedtls_rlwe_psis_bitrev_montgomery_N1024, aModulus);
+    mbedtls_rlwe_forward_number_theoretic_transform_n1024((uint16_t *) r->coeffs, mbedtls_rlwe_omegas_montgomery_N1024, aModulus);
 }
 
-void mbedtls_rlwe_poly_inverse_number_theoretic_transform_N1024(SRLWE_Polynomial_1024 *r, const uint16_t aModulus)
+void mbedtls_rlwe_poly_inverse_number_theoretic_transform_n1024(mbedtls_rlwe_polynomial_1024 *r, const uint16_t aModulus)
 {
-    mbedtls_rlwe_bitrev_vector_N1024(r->coeffs);
-    mbedtls_rlwe_forward_number_theoretic_transform_N1024((uint16_t *) r->coeffs, mbedtls_rlwe_omegas_inv_montgomery_N1024, aModulus);
-    mbedtls_rlwe_multiply_coefficients_N1024(r->coeffs, mbedtls_rlwe_psis_inv_montgomery_N1024, aModulus);
+    mbedtls_rlwe_bitrev_vector_n1024(r->coeffs);
+    mbedtls_rlwe_forward_number_theoretic_transform_n1024((uint16_t *) r->coeffs, mbedtls_rlwe_omegas_inv_montgomery_N1024, aModulus);
+    mbedtls_rlwe_multiply_coefficients_n1024(r->coeffs, mbedtls_rlwe_psis_inv_montgomery_N1024, aModulus);
 }
 
-void mbedtls_rlwe_bitrev_vector_N1024(uint16_t* aInPolynomialCoefficients)
+void mbedtls_rlwe_bitrev_vector_n1024(uint16_t* aInPolynomialCoefficients)
 {
-    for(int i = 0; i < 1024; i++)
+    int i;
+
+    for( i = 0; i < 1024; i++ )
     {
         int r = mbedtls_rlwe_bitrev_table_N1024[i];
         if (i < r)
@@ -90,24 +94,28 @@ void mbedtls_rlwe_bitrev_vector_N1024(uint16_t* aInPolynomialCoefficients)
     }
 }
 
-void mbedtls_rlwe_multiply_coefficients_N1024(uint16_t *aPoly, const uint16_t *factors, const uint16_t aModulus)
+void mbedtls_rlwe_multiply_coefficients_n1024(uint16_t *aPoly, const uint16_t *factors, const uint16_t aModulus)
 {
-    for(uint32_t i = 0; i < 1024; i++)
+    int i;
+
+    for( i = 0; i < 1024; i++ )
     {
         aPoly[i] = mbedtls_rlwe_montgomery_reduce((aPoly[i] * factors[i]), aModulus);
     }
 }
 
-void mbedtls_rlwe_forward_number_theoretic_transform_N1024(uint16_t *a, const uint16_t *omega, const uint16_t aModulus)
+void mbedtls_rlwe_forward_number_theoretic_transform_n1024(uint16_t *a, const uint16_t *omega, const uint16_t aModulus)
 {
-    for(int i = 0; i < 10; i += 2)
+    int i, start, j;
+
+    for( i = 0; i < 10; i += 2 )
     {
         // Even level
         int distance = ( 1 << i );
-        for( int start = 0; start < distance; start++ )
+        for( start = 0; start < distance; start++ )
         {
             int jTwiddle = 0;
-            for( int j = start; j < 1024 - 1; j += 2 * distance )
+            for( j = start; j < 1024 - 1; j += 2 * distance )
             {
                 uint16_t W = omega[jTwiddle++];
                 uint16_t temp = a[j];
@@ -119,10 +127,10 @@ void mbedtls_rlwe_forward_number_theoretic_transform_N1024(uint16_t *a, const ui
 
         // Odd level
         distance <<= 1;
-        for( int start = 0; start < distance; start++ )
+        for( start = 0; start < distance; start++ )
         {
             int jTwiddle = 0;
-            for( int j = start; j < 1024 - 1; j += 2 * distance )
+            for( j = start; j < 1024 - 1; j += 2 * distance )
             {
                 uint16_t W = omega[jTwiddle++];
                 uint16_t temp = a[j];
@@ -144,10 +152,12 @@ uint16_t mbedtls_rlwe_montgomery_reduce(uint32_t a, const uint16_t aModulus)
     return a >> 18;
 }
 
-void mbedtls_rlwe_polynomial_pointwise_multiplication_N1024(SRLWE_Polynomial_1024 *r, const SRLWE_Polynomial_1024 *a,
-                                                               const SRLWE_Polynomial_1024 *b, const uint16_t aModulus)
+void mbedtls_rlwe_polynomial_pointwise_multiplication_n1024(mbedtls_rlwe_polynomial_1024 *r, const mbedtls_rlwe_polynomial_1024 *a,
+                                                               const mbedtls_rlwe_polynomial_1024 *b, const uint16_t aModulus)
 {
-    for(int i = 0; i < 1024; i++ )
+    int i;
+
+    for( i = 0; i < 1024; i++ )
     {
         uint16_t t = mbedtls_rlwe_montgomery_reduce(3186 * b->coeffs[i], aModulus); /* t is now in Montgomery domain */
         r->coeffs[i] = mbedtls_rlwe_montgomery_reduce(a->coeffs[i] * t, aModulus); /* r->coeffs[i] is back in normal domain */
@@ -155,11 +165,12 @@ void mbedtls_rlwe_polynomial_pointwise_multiplication_N1024(SRLWE_Polynomial_102
 }
 
 
-int mbedtls_rlwe_generate_noise_ring_polynomial_N1024(SRLWE_Polynomial_1024 *r,
+int mbedtls_rlwe_generate_noise_ring_polynomial_n1024(mbedtls_rlwe_polynomial_1024 *r,
                                                          const uint16_t aModulus,
                                                          const uint16_t aK)
 {
 
+    int i, j;
     uint32_t buf[1024];
     uint32_t t,d, a, b;
 
@@ -174,11 +185,11 @@ int mbedtls_rlwe_generate_noise_ring_polynomial_N1024(SRLWE_Polynomial_1024 *r,
     mbedtls_newhope_randombytes((unsigned char *) buf, 4 * 1024);
 
 
-    for( int i = 0; i < 1024; i++ )
+    for( i = 0; i < 1024; i++ )
     {
         t = buf[i];
         d = 0;
-        for( int j = 0; j < 8; j++ )
+        for( j = 0; j < 8; j++ )
         {
             d += (t >> j) & 0x01010101;
         }

@@ -123,6 +123,12 @@ static const char *features[] = {
 #if defined(MBEDTLS_SHA512_ALT)
     "MBEDTLS_SHA512_ALT",
 #endif /* MBEDTLS_SHA512_ALT */
+#if defined(MBEDTLS_SALSA20_ALT)
+    "MBEDTLS_SALSA20_ALT",
+#endif /* MBEDTLS_SALSA20_ALT */
+#if defined(MBEDTLS_CHACHA8_ALT)
+    "MBEDTLS_CHACHA8_ALT",
+#endif /* MBEDTLS_CHACHA8_ALT */
 #if defined(MBEDTLS_ECP_ALT)
     "MBEDTLS_ECP_ALT",
 #endif /* MBEDTLS_ECP_ALT */
@@ -312,6 +318,12 @@ static const char *features[] = {
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     "MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED",
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
+#if defined(MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA_ENABLED)
+    "MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA_ENABLED",
+#endif /* MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA_ENABLED */
+#if defined(MBEDTLS_NEWHOPE_DP_12289_1024_16_ENABLED)
+    "MBEDTLS_NEWHOPE_DP_12289_1024_16_ENABLED",
+#endif /* MBEDTLS_NEWHOPE_DP_12289_1024_16_ENABLED */
 #if defined(MBEDTLS_PK_PARSE_EC_EXTENDED)
     "MBEDTLS_PK_PARSE_EC_EXTENDED",
 #endif /* MBEDTLS_PK_PARSE_EC_EXTENDED */
@@ -516,6 +528,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_ECDH_C)
     "MBEDTLS_ECDH_C",
 #endif /* MBEDTLS_ECDH_C */
+#if defined(MBEDTLS_NEWHOPE_C)
+    "MBEDTLS_NEWHOPE_C",
+#endif /* MBEDTLS_NEWHOPE_C */
 #if defined(MBEDTLS_ECDSA_C)
     "MBEDTLS_ECDSA_C",
 #endif /* MBEDTLS_ECDSA_C */
@@ -657,6 +672,15 @@ static const char *features[] = {
 #if defined(MBEDTLS_XTEA_C)
     "MBEDTLS_XTEA_C",
 #endif /* MBEDTLS_XTEA_C */
+#if defined(MBEDTLS_SALSA20_C)
+    "MBEDTLS_SALSA20_C",
+#endif /* MBEDTLS_SALSA20_C */
+#if defined(MBEDTLS_CHACHA8_C)
+    "MBEDTLS_CHACHA8_C",
+#endif /* MBEDTLS_CHACHA8_C */
+#if defined(MBEDTLS_RLWE_C)
+    "MBEDTLS_RLWE_C",
+#endif /* MBEDTLS_RLWE_C */
 #endif /* MBEDTLS_VERSION_FEATURES */
     NULL
 };

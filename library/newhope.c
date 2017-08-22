@@ -103,25 +103,25 @@ int mbedtls_newhope_make_params_client( mbedtls_newhope_context *ctx, size_t *ol
     return( 0 );
 }
 
-int mbedtls_newhope_create_server_shared_value_N1024(mbedtls_newhope_context *ctx,
+int mbedtls_newhope_create_server_shared_value_n1024(mbedtls_newhope_context *ctx,
                                                      const unsigned char * const buf,
                                                      const size_t aBufferLength,
                                                      unsigned char *aPmsBuffer,
                                                      size_t *aPmsBufferLength)
 {
 
-    SRLWE_Polynomial_1024 lTempUVector;
-    SRLWE_Polynomial_1024 lTempRVector;
+    mbedtls_rlwe_polynomial_1024 lTempUVector;
+    mbedtls_rlwe_polynomial_1024 lTempRVector;
 
     if(aBufferLength < (MBEDTLS_NEWHOPE_POLY_BYTES + 1024 / 4))
     {
         return(MBEDTLS_ERR_NEWHOPE_BUFFER_TOO_SMALL);
     }
 
-    mbedtls_newhope_decode_b_N1024(&lTempUVector, &lTempRVector, buf);
+    mbedtls_newhope_decode_b_n1024(&lTempUVector, &lTempRVector, buf);
 
-    mbedtls_rlwe_polynomial_pointwise_multiplication_N1024(&ctx->m_V_vector, &ctx->m_SecretVector, &lTempUVector, ctx->parameter_set.m_Modulus);
-    mbedtls_rlwe_poly_inverse_number_theoretic_transform_N1024(&ctx->m_V_vector, ctx->parameter_set.m_Modulus);
+    mbedtls_rlwe_polynomial_pointwise_multiplication_n1024(&ctx->m_V_vector, &ctx->m_SecretVector, &lTempUVector, ctx->parameter_set.m_Modulus);
+    mbedtls_rlwe_poly_inverse_number_theoretic_transform_n1024(&ctx->m_V_vector, ctx->parameter_set.m_Modulus);
 
     mbedtls_newhope_calc_secret(ctx, &ctx->m_V_vector, &lTempRVector, aPmsBuffer, aPmsBufferLength);
 
@@ -132,7 +132,7 @@ int mbedtls_newhope_create_server_shared_value_N1024(mbedtls_newhope_context *ct
 
 void mbedtls_newhope_keygen_server(mbedtls_newhope_context *ctx, unsigned char *send)
 {
-    SRLWE_Polynomial_1024 lA_vector, lE_vector, lTemporary_Inner_Product, lPublicValue_b;
+    mbedtls_rlwe_polynomial_1024 lA_vector, lE_vector, lTemporary_Inner_Product, lPublicValue_b;
 
     unsigned char seed[MBEDTLS_NEWHOPE_SEEDBYTES];
     unsigned char noiseseed[MBEDTLS_NEWHOPE_SEEDBYTES];
@@ -140,23 +140,23 @@ void mbedtls_newhope_keygen_server(mbedtls_newhope_context *ctx, unsigned char *
     mbedtls_newhope_randombytes(seed, MBEDTLS_NEWHOPE_SEEDBYTES);
 
     /* Generate lA_vector random ring polynomial from the seed */
-    mbedtls_newhope_generate_random_ring_polynomial_N1024(&lA_vector, seed, ctx->parameter_set.m_Modulus);
+    mbedtls_newhope_generate_random_ring_polynomial_n1024(&lA_vector, seed, ctx->parameter_set.m_Modulus);
 
     mbedtls_newhope_randombytes(noiseseed, MBEDTLS_NEWHOPE_SEEDBYTES);
 
-    mbedtls_rlwe_generate_noise_ring_polynomial_N1024(&ctx->m_SecretVector, ctx->parameter_set.m_Modulus, ctx->parameter_set.m_NoiseParameter);
-    mbedtls_rlwe_generate_noise_ring_polynomial_N1024(&lE_vector, ctx->parameter_set.m_Modulus, ctx->parameter_set.m_NoiseParameter);
+    mbedtls_rlwe_generate_noise_ring_polynomial_n1024(&ctx->m_SecretVector, ctx->parameter_set.m_Modulus, ctx->parameter_set.m_NoiseParameter);
+    mbedtls_rlwe_generate_noise_ring_polynomial_n1024(&lE_vector, ctx->parameter_set.m_Modulus, ctx->parameter_set.m_NoiseParameter);
 
     /* Putting s and lE_vector into spectral form */
-    mbedtls_rlwe_forward_number_theoretic_transform_with_premultiply_N1024(&ctx->m_SecretVector, ctx->parameter_set.m_Modulus);
-    mbedtls_rlwe_forward_number_theoretic_transform_with_premultiply_N1024(&lE_vector, ctx->parameter_set.m_Modulus);
+    mbedtls_rlwe_forward_number_theoretic_transform_with_premultiply_n1024(&ctx->m_SecretVector, ctx->parameter_set.m_Modulus);
+    mbedtls_rlwe_forward_number_theoretic_transform_with_premultiply_n1024(&lE_vector, ctx->parameter_set.m_Modulus);
     /* m_SecretVector and lE_vector are now in spectral mbedtls_newhope_NTT form */
 
     /* Multiplying lA_vector and s, pointwise */
-    mbedtls_rlwe_polynomial_pointwise_multiplication_N1024(&lTemporary_Inner_Product, &ctx->m_SecretVector, &lA_vector, ctx->parameter_set.m_Modulus);
+    mbedtls_rlwe_polynomial_pointwise_multiplication_n1024(&lTemporary_Inner_Product, &ctx->m_SecretVector, &lA_vector, ctx->parameter_set.m_Modulus);
 
     /* add together lTemporary_Inner_Product (=as) and lE_vector */
-    mbedtls_rlwe_polynomial_add_N1024(&lPublicValue_b, &lE_vector, &lTemporary_Inner_Product, ctx->parameter_set.m_Modulus);
+    mbedtls_rlwe_polynomial_add_n1024(&lPublicValue_b, &lE_vector, &lTemporary_Inner_Product, ctx->parameter_set.m_Modulus);
 
     /* Encode the public value with the seed, into the send value */
     mbedtls_newhope_encode_a(send, &lPublicValue_b, seed, ctx->parameter_set.m_Modulus);
@@ -166,9 +166,9 @@ int mbedtls_newhope_gen_public_client(mbedtls_newhope_context *ctx, size_t *olen
                                       size_t aBufferCapacity)
 {
 
-    int ret;
+    int ret, i;
 
-    SRLWE_Polynomial_1024 lS_prime, lE_prime, lA_vector, lE_prime_prime, lU_vector;
+    mbedtls_rlwe_polynomial_1024 lS_prime, lE_prime, lA_vector, lE_prime_prime, lU_vector;
     unsigned char noiseseed[32];
 
     if(MBEDTLS_NEWHOPE_SENDBBYTES > aBufferCapacity)
@@ -181,37 +181,37 @@ int mbedtls_newhope_gen_public_client(mbedtls_newhope_context *ctx, size_t *olen
         return( MBEDTLS_ERR_NEWHOPE_FAILED_TO_GENERATE_RANDOM );
     }
 
-    mbedtls_newhope_generate_random_ring_polynomial_N1024(&lA_vector, ctx->m_PublicSeedFromServer, ctx->parameter_set.m_Modulus);
+    mbedtls_newhope_generate_random_ring_polynomial_n1024(&lA_vector, ctx->m_PublicSeedFromServer, ctx->parameter_set.m_Modulus);
 
     // Generate the three noise polynomials
-    mbedtls_rlwe_generate_noise_ring_polynomial_N1024(&lS_prime, ctx->parameter_set.m_Modulus, ctx->parameter_set.m_NoiseParameter);
-    mbedtls_rlwe_generate_noise_ring_polynomial_N1024(&lE_prime, ctx->parameter_set.m_Modulus, ctx->parameter_set.m_NoiseParameter);
-    mbedtls_rlwe_generate_noise_ring_polynomial_N1024(&lE_prime_prime, ctx->parameter_set.m_Modulus, ctx->parameter_set.m_NoiseParameter);
+    mbedtls_rlwe_generate_noise_ring_polynomial_n1024(&lS_prime, ctx->parameter_set.m_Modulus, ctx->parameter_set.m_NoiseParameter);
+    mbedtls_rlwe_generate_noise_ring_polynomial_n1024(&lE_prime, ctx->parameter_set.m_Modulus, ctx->parameter_set.m_NoiseParameter);
+    mbedtls_rlwe_generate_noise_ring_polynomial_n1024(&lE_prime_prime, ctx->parameter_set.m_Modulus, ctx->parameter_set.m_NoiseParameter);
 
     // Put s' and e' into spectral form
-    mbedtls_rlwe_forward_number_theoretic_transform_with_premultiply_N1024(&lS_prime, ctx->parameter_set.m_Modulus);
-    mbedtls_rlwe_forward_number_theoretic_transform_with_premultiply_N1024(&lE_prime, ctx->parameter_set.m_Modulus);
+    mbedtls_rlwe_forward_number_theoretic_transform_with_premultiply_n1024(&lS_prime, ctx->parameter_set.m_Modulus);
+    mbedtls_rlwe_forward_number_theoretic_transform_with_premultiply_n1024(&lE_prime, ctx->parameter_set.m_Modulus);
 
     // Compute as
-    mbedtls_rlwe_polynomial_pointwise_multiplication_N1024(&lU_vector, &lA_vector, &lS_prime, ctx->parameter_set.m_Modulus);
+    mbedtls_rlwe_polynomial_pointwise_multiplication_n1024(&lU_vector, &lA_vector, &lS_prime, ctx->parameter_set.m_Modulus);
 
-    mbedtls_rlwe_polynomial_add_N1024(&lU_vector, &lU_vector, &lE_prime, ctx->parameter_set.m_Modulus);
+    mbedtls_rlwe_polynomial_add_n1024(&lU_vector, &lU_vector, &lE_prime, ctx->parameter_set.m_Modulus);
 
-    mbedtls_rlwe_polynomial_pointwise_multiplication_N1024(&ctx->m_V_vector, &ctx->m_PublicPolynomialFromServer, &lS_prime, ctx->parameter_set.m_Modulus);
-    mbedtls_rlwe_poly_inverse_number_theoretic_transform_N1024(&ctx->m_V_vector, ctx->parameter_set.m_Modulus);
+    mbedtls_rlwe_polynomial_pointwise_multiplication_n1024(&ctx->m_V_vector, &ctx->m_PublicPolynomialFromServer, &lS_prime, ctx->parameter_set.m_Modulus);
+    mbedtls_rlwe_poly_inverse_number_theoretic_transform_n1024(&ctx->m_V_vector, ctx->parameter_set.m_Modulus);
 
-    mbedtls_rlwe_polynomial_add_N1024(&ctx->m_V_vector, &ctx->m_V_vector, &lE_prime_prime, ctx->parameter_set.m_Modulus);
+    mbedtls_rlwe_polynomial_add_n1024(&ctx->m_V_vector, &ctx->m_V_vector, &lE_prime_prime, ctx->parameter_set.m_Modulus);
 
     mbedtls_newhope_generate_recovery_hint_polynomial(&ctx->m_R_vector, &ctx->m_V_vector, ctx->parameter_set.m_Modulus);
 
 
     // Send u and r back to the server
-    mbedtls_newhope_encode_b_N1024(ctx->m_PublicValueFromClient, &lU_vector, &ctx->m_R_vector, ctx->parameter_set.m_Modulus);
+    mbedtls_newhope_encode_b_n1024(ctx->m_PublicValueFromClient, &lU_vector, &ctx->m_R_vector, ctx->parameter_set.m_Modulus);
 
     // Need to write senda to the buffer now
     memset(*buf, 0x00, MBEDTLS_NEWHOPE_SENDBBYTES);
 
-    for(int i = 0; i < MBEDTLS_NEWHOPE_SENDBBYTES; ++i)
+    for(i = 0; i < MBEDTLS_NEWHOPE_SENDBBYTES; ++i)
     {
         (*buf)[i] = ctx->m_PublicValueFromClient[i];
     }
@@ -227,7 +227,7 @@ int mbedtls_newhope_gen_public_server(mbedtls_newhope_context * ctx, unsigned ch
 {
 
     unsigned char senda[MBEDTLS_NEWHOPE_SENDABYTES];
-
+    int i;
 
     if(MBEDTLS_NEWHOPE_SENDABYTES > aBufferCapacity)
     {
@@ -240,7 +240,7 @@ int mbedtls_newhope_gen_public_server(mbedtls_newhope_context * ctx, unsigned ch
 
     memset(*buf, 0x00, MBEDTLS_NEWHOPE_SENDABYTES);
 
-    for(int i = 0; i < MBEDTLS_NEWHOPE_SENDABYTES; ++i)
+    for(i = 0; i < MBEDTLS_NEWHOPE_SENDABYTES; ++i)
     {
         (*buf)[i] = senda[i];
     }
@@ -257,6 +257,7 @@ int mbedtls_newhope_read_parameters_and_public_value_from_server(mbedtls_newhope
 
     // Each coefficient has 14 bits reserved, so we need to read off and un-bitpack them
     unsigned char lTemporaryUnpackingStore[MBEDTLS_NEWHOPE_POLY_BYTES + MBEDTLS_NEWHOPE_SEEDBYTES];
+    int i;
 
     // Check the buffer window
     if((end - *buf) < (MBEDTLS_NEWHOPE_POLY_BYTES + MBEDTLS_NEWHOPE_SEEDBYTES))
@@ -270,8 +271,7 @@ int mbedtls_newhope_read_parameters_and_public_value_from_server(mbedtls_newhope
 
     memset(lTemporaryUnpackingStore, 0, MBEDTLS_NEWHOPE_POLY_BYTES + MBEDTLS_NEWHOPE_SEEDBYTES);
 
-
-    for(int i = 0; i < (MBEDTLS_NEWHOPE_POLY_BYTES + MBEDTLS_NEWHOPE_SEEDBYTES); ++i)
+    for(i = 0; i < (MBEDTLS_NEWHOPE_POLY_BYTES + MBEDTLS_NEWHOPE_SEEDBYTES); ++i)
     {
         lTemporaryUnpackingStore[i] = (*buf)[i];
     }
@@ -327,7 +327,7 @@ int mbedtls_newhope_read_public_from_client(mbedtls_newhope_context *ctx,
 {
     int ret = 0;
 
-    mbedtls_newhope_create_server_shared_value_N1024(ctx, buf, blen, aPmsBuffer, aPmsBufferLength);
+    mbedtls_newhope_create_server_shared_value_n1024(ctx, buf, blen, aPmsBuffer, aPmsBufferLength);
 
     return( ret );
 }
@@ -337,8 +337,8 @@ int mbedtls_newhope_read_public_from_client(mbedtls_newhope_context *ctx,
  * Derive and export the shared secret
  */
 int mbedtls_newhope_calc_secret( mbedtls_newhope_context *aContext,
-                                 const SRLWE_Polynomial_1024 * aFirstPoly,
-                                 const SRLWE_Polynomial_1024 * aSecondPoly,
+                                 const mbedtls_rlwe_polynomial_1024 * aFirstPoly,
+                                 const mbedtls_rlwe_polynomial_1024 * aSecondPoly,
                                  unsigned char * aBuf,
                                  size_t *aPmsLen)
 {
@@ -383,7 +383,7 @@ int mbedtls_newhope_randombytes(unsigned char *x, unsigned long long xlen)
     return (0);
 }
 
-void mbedtls_newhope_generate_random_ring_polynomial_N1024(SRLWE_Polynomial_1024 *aPolynomialToFill, const unsigned char *seed, const uint16_t aModulus)
+void mbedtls_newhope_generate_random_ring_polynomial_n1024(mbedtls_rlwe_polynomial_1024 *aPolynomialToFill, const unsigned char *seed, const uint16_t aModulus)
 {
     /* Reference implementation uses Keccak. We use Salsa20 */
     unsigned int pos = 0, lCoefficientIndex = 0;
@@ -424,31 +424,34 @@ void mbedtls_newhope_generate_random_ring_polynomial_N1024(SRLWE_Polynomial_1024
     }
 }
 
-void mbedtls_newhope_encode_a(unsigned char *r, const SRLWE_Polynomial_1024 *pk, const unsigned char *seed, const uint16_t aModulus)
+void mbedtls_newhope_encode_a(unsigned char *r, const mbedtls_rlwe_polynomial_1024 *pk, const unsigned char *seed, const uint16_t aModulus)
 {
+    int i;
+  
+    mbedtls_newhope_poly_to_bytes_n1024(r, pk, aModulus);
 
-    mbedtls_newhope_poly_to_bytes_N1024(r, pk, aModulus);
-
-    for( int i=0 ; i< MBEDTLS_NEWHOPE_SEEDBYTES ; i++)
+    for( i=0 ; i< MBEDTLS_NEWHOPE_SEEDBYTES ; i++)
     {
         r[MBEDTLS_NEWHOPE_POLY_BYTES + i] = seed[i];
     }
 }
 
-void mbedtls_newhope_encode_b_N1024(unsigned char *r, const SRLWE_Polynomial_1024 *b, const SRLWE_Polynomial_1024 *c, const uint16_t aModulus)
+void mbedtls_newhope_encode_b_n1024(unsigned char *r, const mbedtls_rlwe_polynomial_1024 *b, const mbedtls_rlwe_polynomial_1024 *c, const uint16_t aModulus)
 {
-    mbedtls_newhope_poly_to_bytes_N1024(r, b, aModulus);
-    for( int i = 0; i < 1024 / 4; i++ )
+    int i;
+
+    mbedtls_newhope_poly_to_bytes_n1024(r, b, aModulus);
+    for( i = 0; i < 1024 / 4; i++ )
     {
         r[MBEDTLS_NEWHOPE_POLY_BYTES + i] =
         c->coeffs[4 * i] | (c->coeffs[4 * i + 1] << 2) | (c->coeffs[4 * i + 2] << 4) | (c->coeffs[4 * i + 3] << 6);
     }
 }
 
-void mbedtls_newhope_poly_to_bytes_N1024(unsigned char *r, const SRLWE_Polynomial_1024 *p, const uint16_t aModulus)
+void mbedtls_newhope_poly_to_bytes_n1024(unsigned char *r, const mbedtls_rlwe_polynomial_1024 *p, const uint16_t aModulus)
 {
 
-
+    int i;
     uint16_t lT0;
     uint16_t lT1;
     uint16_t lT2;
@@ -457,7 +460,7 @@ void mbedtls_newhope_poly_to_bytes_N1024(unsigned char *r, const SRLWE_Polynomia
 
     int16_t c;
 
-    for(int i=0;i<1024/4;i++)
+    for( i=0; i<1024/4; i++ )
     {
         lT0 = mbedtls_rlwe_barrett_reduce(p->coeffs[4 * i + 0], aModulus); //Make sure that coefficients have only 14 bits
         lT1 = mbedtls_rlwe_barrett_reduce(p->coeffs[4 * i + 1], aModulus);
@@ -499,18 +502,20 @@ void mbedtls_newhope_init( mbedtls_newhope_context *ctx )
     memset( ctx, 0, sizeof( mbedtls_newhope_context ) );
 }
 
-void mbedtls_newhope_decode_a(SRLWE_Polynomial_1024 *pk, unsigned char *seed, const unsigned char *r)
+void mbedtls_newhope_decode_a(mbedtls_rlwe_polynomial_1024 *pk, unsigned char *seed, const unsigned char *r)
 {
-    mbedtls_newhope_poly_frombytes_N1024(pk, r);
-    for(int i=0;i<MBEDTLS_NEWHOPE_SEEDBYTES;i++)
+    int i;
+    mbedtls_newhope_poly_frombytes_n1024(pk, r);
+    for( i=0; i < MBEDTLS_NEWHOPE_SEEDBYTES; i++ )
     {
         seed[i] = r[MBEDTLS_NEWHOPE_POLY_BYTES + i];
     }
 }
 
-void mbedtls_newhope_poly_frombytes_N1024(SRLWE_Polynomial_1024 *r, const unsigned char *a)
+void mbedtls_newhope_poly_frombytes_n1024(mbedtls_rlwe_polynomial_1024 *r, const unsigned char *a)
 {
-    for( int i = 0; i < 1024 / 4; i++ )
+    int i;
+    for( i = 0; i < 1024 / 4; i++ )
     {
         r->coeffs[4*i+0] =                               a[7*i+0]        | (((uint16_t)a[7*i+1] & 0x3f) << 8);
         r->coeffs[4*i+1] = (a[7*i+1] >> 6) | (((uint16_t)a[7*i+2]) << 2) | (((uint16_t)a[7*i+3] & 0x0f) << 10);
@@ -523,15 +528,16 @@ void mbedtls_newhope_poly_frombytes_N1024(SRLWE_Polynomial_1024 *r, const unsign
 
 
 
-void mbedtls_newhope_generate_recovery_hint_polynomial(SRLWE_Polynomial_1024 *c, const SRLWE_Polynomial_1024 *v,
+void mbedtls_newhope_generate_recovery_hint_polynomial(mbedtls_rlwe_polynomial_1024 *c, const mbedtls_rlwe_polynomial_1024 *v,
                                                        const uint16_t aModulus)
 {
+    int i;
     int32_t v0[4], v1[4], v_tmp[4];
     unsigned char rand[32];
 
     mbedtls_newhope_randombytes(rand, MBEDTLS_NEWHOPE_SEEDBYTES);
 
-    for( int i = 0; i < 256; i++ )
+    for( i = 0; i < 256; i++ )
     {
         unsigned char rbit = (rand[i>>3] >> (i&7)) & 1;
 
@@ -562,6 +568,7 @@ int32_t mbedtls_newhope_helprec_helper_function_f(int32_t *v0, int32_t *v1, cons
     int32_t xit, r;
     int32_t b = x * 2730;
     int32_t t = b >> 25;
+    int32_t signedModulus, signedX;
     b = x - t * 12289;
     b = 12288 - b;
     b >>= 31;
@@ -575,7 +582,10 @@ int32_t mbedtls_newhope_helprec_helper_function_f(int32_t *v0, int32_t *v1, cons
     r = t & 1;
     *v1 = ( t >> 1 ) + r;
 
-    return abs( x - (( *v0 ) * 2 * aModulus ));
+    signedModulus = (int32_t) aModulus;
+    signedX = (int32_t) x;
+    
+    return abs( signedX - (( *v0 ) * 2 * signedModulus ));
 }
 
 int32_t mbedtls_newhope_helprec_helper_function_g(int32_t x, const uint16_t aModulus)
@@ -597,24 +607,25 @@ int32_t mbedtls_newhope_helprec_helper_function_g(int32_t x, const uint16_t aMod
     return abs(t - x);
 }
 
-void mbedtls_newhope_recover_shared_value(unsigned char *key, const SRLWE_Polynomial_1024 *v, const SRLWE_Polynomial_1024 *c, const uint16_t aModulus)
+void mbedtls_newhope_recover_shared_value(unsigned char *key, const mbedtls_rlwe_polynomial_1024 *v, const mbedtls_rlwe_polynomial_1024 *c, const uint16_t aModulus)
 {
+    int i;
     int32_t tmp[4];
 
     memset(key, 0x00, 32);
 
-    for( int i = 0; i < 256; i++ )
+    for( i = 0; i < 256; i++ )
     {
         tmp[0] = 16*aModulus + 8*(int32_t)v->coeffs[  0+i] - aModulus * (2*c->coeffs[  0+i]+c->coeffs[768+i]);
         tmp[1] = 16*aModulus + 8*(int32_t)v->coeffs[256+i] - aModulus * (2*c->coeffs[256+i]+c->coeffs[768+i]);
         tmp[2] = 16*aModulus + 8*(int32_t)v->coeffs[512+i] - aModulus * (2*c->coeffs[512+i]+c->coeffs[768+i]);
         tmp[3] = 16*aModulus + 8*(int32_t)v->coeffs[768+i] - aModulus * (c->coeffs[768+i]);
 
-        key[i>>3] |= mbedtls_newhope_LDDecode(tmp[0], tmp[1], tmp[2], tmp[3], aModulus) << (i & 7);
+        key[i>>3] |= mbedtls_newhope_ldd_encode(tmp[0], tmp[1], tmp[2], tmp[3], aModulus) << (i & 7);
     }
 }
 
-int16_t mbedtls_newhope_LDDecode(int32_t xi0, int32_t xi1, int32_t xi2, int32_t xi3, const uint16_t aModulus)
+int16_t mbedtls_newhope_ldd_encode(int32_t xi0, int32_t xi1, int32_t xi2, int32_t xi3, const uint16_t aModulus)
 {
 
     int32_t t  = mbedtls_newhope_helprec_helper_function_g(xi0, aModulus);
@@ -627,10 +638,12 @@ int16_t mbedtls_newhope_LDDecode(int32_t xi0, int32_t xi1, int32_t xi2, int32_t 
     return t&1;
 }
 
-void mbedtls_newhope_decode_b_N1024(SRLWE_Polynomial_1024 *b, SRLWE_Polynomial_1024 *c, const unsigned char *r)
+void mbedtls_newhope_decode_b_n1024(mbedtls_rlwe_polynomial_1024 *b, mbedtls_rlwe_polynomial_1024 *c, const unsigned char *r)
 {
-    mbedtls_newhope_poly_frombytes_N1024(b, r);
-    for( int i = 0; i < 1024/4; i++ )
+    int i;
+    
+    mbedtls_newhope_poly_frombytes_n1024(b, r);
+    for( i = 0; i < 1024/4; i++ )
     {
         c->coeffs[4*i+0] =  r[MBEDTLS_NEWHOPE_POLY_BYTES+i]       & 0x03;
         c->coeffs[4*i+1] = (r[MBEDTLS_NEWHOPE_POLY_BYTES+i] >> 2) & 0x03;

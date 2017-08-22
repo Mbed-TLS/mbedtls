@@ -18,10 +18,9 @@ extern "C" {
 /*
  * NEWHOPE error codes
  */
-#define MBEDTLS_ERR_NEWHOPE_BAD_INPUT_DATA                    -0x5080  /**< Bad input parameters to function. */
-#define MBEDTLS_ERR_NEWHOPE_FEATURE_UNAVAILABLE               -0x5081
-#define MBEDTLS_ERR_NEWHOPE_FAILED_TO_GENERATE_RANDOM         -0x5082
-#define MBEDTLS_ERR_NEWHOPE_NOISE_INCORRECT                   -0x5083
+#define MBEDTLS_ERR_NEWHOPE_BAD_INPUT_DATA                    -0x5081  /**< Bad input parameters to function. */
+#define MBEDTLS_ERR_NEWHOPE_FEATURE_UNAVAILABLE               -0x5082  /**< New Hope key exchange is not available. */
+#define MBEDTLS_ERR_NEWHOPE_FAILED_TO_GENERATE_RANDOM         -0x5083  /**< Unable to generate sufficient random bytes. */
 #define MBEDTLS_ERR_NEWHOPE_BUFFER_TOO_SMALL                  -0x5000  /**< The buffer is too small to write to. */
 
 #define MBEDTLS_NEWHOPE_POLY_BYTES 1792
@@ -54,11 +53,11 @@ typedef struct
 typedef struct
 {
     mbedtls_newhope_info parameter_set;
-    SRLWE_Polynomial_1024 m_PublicPolynomialFromServer;
+    mbedtls_rlwe_polynomial_1024 m_PublicPolynomialFromServer;
     unsigned char m_PublicValueFromClient[MBEDTLS_NEWHOPE_SENDBBYTES];
-    SRLWE_Polynomial_1024 m_V_vector;
-    SRLWE_Polynomial_1024 m_SecretVector;
-    SRLWE_Polynomial_1024 m_R_vector;
+    mbedtls_rlwe_polynomial_1024 m_V_vector;
+    mbedtls_rlwe_polynomial_1024 m_SecretVector;
+    mbedtls_rlwe_polynomial_1024 m_R_vector;
     unsigned char m_PublicSeedFromServer[MBEDTLS_NEWHOPE_SEEDBYTES];
     unsigned char m_SharedKeyInput[32];
 }
@@ -112,15 +111,15 @@ int mbedtls_newhope_read_parameters_and_public_value_from_server(mbedtls_newhope
                                                                  const unsigned char *end);
 
 /**
- * \brief           Parse a public value from a newhope client
+ * \brief                   Parse a public value from a newhope client
  *
- * \param ctx       newhope context
- * \param buf       start of input buffer
- * \param blen      length of input buffer
- * \param aPmsBuffer
- * \param aPmsBufferLength
+ * \param ctx               newhope context
+ * \param buf               start of input buffer
+ * \param blen              length of input buffer
+ * \param aPmsBuffer        output buffer
+ * \param aPmsBufferLength  number of bytes written to output
  *
- * \return          0 if successful, or an MBEDTLS_ERR_NEWHOPE_XXX error code
+ * \return                  0 if successful, or an MBEDTLS_ERR_NEWHOPE_XXX error code
  */
 int mbedtls_newhope_read_public_from_client(mbedtls_newhope_context *ctx,
                                             const unsigned char *buf,
@@ -135,14 +134,14 @@ int mbedtls_newhope_read_public_from_client(mbedtls_newhope_context *ctx,
  * \param aContext       newhope context
  * \param aFirstPoly      First polynomial for computation
  * \param aSecondPoly     Second polynomial for computation
- * \param aBuf
- * \param aPmsLen
+ * \param aBuf            output buffer
+ * \param aPmsLen         number of bytes written to output
  *
  * \return          0 if successful, or an MBEDTLS_ERR_NEWHOPE_XXX error code
  */
 int mbedtls_newhope_calc_secret( mbedtls_newhope_context *aContext,
-                                 const SRLWE_Polynomial_1024 * aFirstPoly,
-                                 const SRLWE_Polynomial_1024 * aSecondPoly,
+                                 const mbedtls_rlwe_polynomial_1024 * aFirstPoly,
+                                 const mbedtls_rlwe_polynomial_1024 * aSecondPoly,
                                  unsigned char * aBuf,
                                  size_t * aPmsLen);
 
@@ -185,8 +184,6 @@ int mbedtls_newhope_parse_public_value_from_server(mbedtls_newhope_context *aCon
  *
  * \param ctx       newhope context
  * \param send      output pointer for public value
- *
- * \return          void
  */
 void mbedtls_newhope_keygen_server(mbedtls_newhope_context *ctx, unsigned char *send);
 
@@ -196,12 +193,12 @@ void mbedtls_newhope_keygen_server(mbedtls_newhope_context *ctx, unsigned char *
  * \param ctx       newhope context
  * \param buf       input buffer from cient
  * \param aBufferLength       length of input buffer from cient
- * \param aPmsBuffer
- * \param aPmsBufferLength
+ * \param aPmsBuffer          output buffer
+ * \param aPmsBufferLength    number of bytes written to output
  *
  * \return          0 if successful, or an MBEDTLS_ERR_NEWHOPE_XXX error code
  */
-int mbedtls_newhope_create_server_shared_value_N1024(mbedtls_newhope_context *ctx,
+int mbedtls_newhope_create_server_shared_value_n1024(mbedtls_newhope_context *ctx,
                                                      const unsigned char * const buf,
                                                      const size_t aBufferLength,
                                                      unsigned char *aPmsBuffer,
@@ -222,10 +219,8 @@ int mbedtls_newhope_randombytes(unsigned char *x, unsigned long long xlen);
  * \param a         Polynomial to generate
  * \param seed      Seed for generation
  * \param aModulus  Ring integer modulus
- *
- * \return          void
  */
-void mbedtls_newhope_generate_random_ring_polynomial_N1024(SRLWE_Polynomial_1024 *a, const unsigned char *seed, const uint16_t aModulus);
+void mbedtls_newhope_generate_random_ring_polynomial_n1024(mbedtls_rlwe_polynomial_1024 *a, const unsigned char *seed, const uint16_t aModulus);
 
 /**
  * \brief           Encode a rlwe polynomial and seed into a buffer
@@ -234,10 +229,8 @@ void mbedtls_newhope_generate_random_ring_polynomial_N1024(SRLWE_Polynomial_1024
  * \param pk        RLWE polynomial
  * \param seed      Seed to append to buffer
  * \param aModulus  Ring integer modulus
- *
- * \return          void
  */
-void mbedtls_newhope_encode_a(unsigned char *r, const SRLWE_Polynomial_1024 *pk, const unsigned char *seed, const uint16_t aModulus);
+void mbedtls_newhope_encode_a(unsigned char *r, const mbedtls_rlwe_polynomial_1024 *pk, const unsigned char *seed, const uint16_t aModulus);
 
 /**
  * \brief           Decode public a value into polynomial and seed
@@ -245,10 +238,8 @@ void mbedtls_newhope_encode_a(unsigned char *r, const SRLWE_Polynomial_1024 *pk,
  * \param pk        Polynomial to populate
  * \param seed      Seed to populate
  * \param r         Buffer to extract from
- *
- * \return          void
  */
-void mbedtls_newhope_decode_a(SRLWE_Polynomial_1024 *pk, unsigned char *seed, const unsigned char *r);
+void mbedtls_newhope_decode_a(mbedtls_rlwe_polynomial_1024 *pk, unsigned char *seed, const unsigned char *r);
 
 /**
  * \brief           Convert a RWLE polynomial to byte representation (14 packed bits per coefficient)
@@ -256,20 +247,16 @@ void mbedtls_newhope_decode_a(SRLWE_Polynomial_1024 *pk, unsigned char *seed, co
  * \param r         Byte buffer to populate
  * \param p         Input polynomial
  * \param aModulus  Ring integer modulus
- *
- * \return          void
  */
-void mbedtls_newhope_poly_to_bytes_N1024(unsigned char *r, const SRLWE_Polynomial_1024 *p, const uint16_t aModulus);
+void mbedtls_newhope_poly_to_bytes_n1024(unsigned char *r, const mbedtls_rlwe_polynomial_1024 *p, const uint16_t aModulus);
 
 /**
  * \brief           Convert a byte buffer into RLWE polynomial (14 packed bits per coefficient)
  *
  * \param r         polynomial to populate
  * \param a         Input byte buffer
- *
- * \return          void
  */
-void mbedtls_newhope_poly_frombytes_N1024(SRLWE_Polynomial_1024 *r, const unsigned char *a);
+void mbedtls_newhope_poly_frombytes_n1024(mbedtls_rlwe_polynomial_1024 *r, const unsigned char *a);
 
 /**
  * \brief           Encode the client public value
@@ -278,33 +265,27 @@ void mbedtls_newhope_poly_frombytes_N1024(SRLWE_Polynomial_1024 *r, const unsign
  * \param b         Input polynomial 0
  * \param c         Input polynomial 1
  * \param aModulus  Ring integer modulus
- *
- * \return          void
  */
-void mbedtls_newhope_encode_b_N1024(unsigned char *r, const SRLWE_Polynomial_1024 *b, const SRLWE_Polynomial_1024 *c, const uint16_t aModulus);
+void mbedtls_newhope_encode_b_n1024(unsigned char *r, const mbedtls_rlwe_polynomial_1024 *b, const mbedtls_rlwe_polynomial_1024 *c, const uint16_t aModulus);
 
 /**
  * \brief           Generate a recovery hint to allow server to recover shared value
  *
  * \param c         Polynomial to be populated as hint to server
  * \param v         Input polynomial
- * \param seed  seed
- * \param nonce nonce
  * \param aModulus Ring integer modulus
- *
- * \return          void
  */
-void mbedtls_newhope_generate_recovery_hint_polynomial(SRLWE_Polynomial_1024 *c, const SRLWE_Polynomial_1024 *v,
+void mbedtls_newhope_generate_recovery_hint_polynomial(mbedtls_rlwe_polynomial_1024 *c, const mbedtls_rlwe_polynomial_1024 *v,
                                                        const uint16_t aModulus);
 
 
 /**
  * \brief           Recovery helper function f
  *
- * \param v0
- * \param v1
- * \param x
- * \param aModulus
+ * \param v0        Pointer to temporary int32_t for holding round(x/(2*modulus))
+ * \param v1        Pointer to temporary int32_t for holding ((x/modulus - 1) mod 2) + ((x/modulus - 1) >> 1)
+ * \param x         Random-modified coefficient
+ * \param aModulus  RLWE modulus
  *
  * \return          int32_t
  */
@@ -313,8 +294,8 @@ int32_t mbedtls_newhope_helprec_helper_function_f(int32_t *v0, int32_t *v1, cons
 /**
  * \brief           Recovery helper function g
  *
- * \param x
- * \param aModulus
+ * \param x         Extracted value (from polynomial)
+ * \param aModulus  RLWE modulus
  *
  * \return          int32_t
  */
@@ -323,15 +304,15 @@ int32_t mbedtls_newhope_helprec_helper_function_g(int32_t x, const uint16_t aMod
 /**
  * \brief           Recovery LD decode function
  *
- * \param xi0
- * \param xi1
- * \param xi2
- * \param xi3
- * \param aModulus
+ * \param xi0       Extracted value 1 (for recovery of single bit from 4 transmitted coefficients)
+ * \param xi1       Extracted value 2 (for recovery of single bit from 4 transmitted coefficients)
+ * \param xi2       Extracted value 3 (for recovery of single bit from 4 transmitted coefficients)
+ * \param xi3       Extracted value 4 (for recovery of single bit from 4 transmitted coefficients)
+ * \param aModulus  RLWE modulus
  *
  * \return          int16_t
  */
-int16_t mbedtls_newhope_LDDecode(int32_t xi0, int32_t xi1, int32_t xi2, int32_t xi3, const uint16_t aModulus);
+int16_t mbedtls_newhope_ldd_encode(int32_t xi0, int32_t xi1, int32_t xi2, int32_t xi3, const uint16_t aModulus);
 
 
 /**
@@ -341,12 +322,10 @@ int16_t mbedtls_newhope_LDDecode(int32_t xi0, int32_t xi1, int32_t xi2, int32_t 
  * \param v         Input polynomial 0
  * \param c         Input polynomial 1
  * \param aModulus Ring integer modulus
- *
- * \return          void
  */
 void mbedtls_newhope_recover_shared_value(unsigned char *key,
-                                          const SRLWE_Polynomial_1024 *v,
-                                          const SRLWE_Polynomial_1024 *c,
+                                          const mbedtls_rlwe_polynomial_1024 *v,
+                                          const mbedtls_rlwe_polynomial_1024 *c,
                                           const uint16_t aModulus);
 
 
@@ -357,10 +336,8 @@ void mbedtls_newhope_recover_shared_value(unsigned char *key,
  * \param b         Output polynomial 0
  * \param c         Output polynomial 1
  * \param r         Input byte buffer from client
- *
- * \return          void
  */
-void mbedtls_newhope_decode_b_N1024(SRLWE_Polynomial_1024 *b, SRLWE_Polynomial_1024 *c, const unsigned char *r);
+void mbedtls_newhope_decode_b_n1024(mbedtls_rlwe_polynomial_1024 *b, mbedtls_rlwe_polynomial_1024 *c, const unsigned char *r);
 
 /**
  * \brief           Load parameters from a parameter set ID

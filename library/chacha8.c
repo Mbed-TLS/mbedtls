@@ -44,21 +44,21 @@
 
 #if !defined(MBEDTLS_CHACHA8_ALT)
 
-#define MBEDTLS_CHACHA8_ROTATE(v, n) (((v) << (n)) | ((v) >> (32 - (n))))
-#define MBEDTLS_CHACHA8_PLUS(v,w) ((uint32_t)((v) + (w)))
-#define MBEDTLS_CHACHA8_PLUSONE(v) (MBEDTLS_CHACHA8_PLUS((v),1))
+#define CHACHA8_ROTATE(v, n) (((v) << (n)) | ((v) >> (32 - (n))))
+#define CHACHA8_PLUS(v,w) ((uint32_t)((v) + (w)))
+#define CHACHA8_PLUSONE(v) (CHACHA8_PLUS((v),1))
 
-#define MBEDTLS_CHACHA8_QUARTERROUND(a, b, c, d)                \
-  x[a] += x[b]; x[d] = MBEDTLS_CHACHA8_ROTATE(x[d] ^ x[a], 16); \
-  x[c] += x[d]; x[b] = MBEDTLS_CHACHA8_ROTATE(x[b] ^ x[c], 12); \
-  x[a] += x[b]; x[d] = MBEDTLS_CHACHA8_ROTATE(x[d] ^ x[a],  8); \
-  x[c] += x[d]; x[b] = MBEDTLS_CHACHA8_ROTATE(x[b] ^ x[c],  7);
+#define CHACHA8_QUARTERROUND(a, b, c, d)                        \
+  x[a] += x[b]; x[d] = CHACHA8_ROTATE(x[d] ^ x[a], 16); \
+  x[c] += x[d]; x[b] = CHACHA8_ROTATE(x[b] ^ x[c], 12); \
+  x[a] += x[b]; x[d] = CHACHA8_ROTATE(x[d] ^ x[a],  8); \
+  x[c] += x[d]; x[b] = CHACHA8_ROTATE(x[b] ^ x[c],  7);
 
-#define MBEDTLS_CHACHA8_U8TO32_LITTLE(p)                              \
+#define CHACHA8_U8TO32_LITTLE(p)                              \
   (((uint32_t)((p)[0])) | ((uint32_t)((p)[1]) << 8) | \
    ((uint32_t)((p)[2]) << 16) | ((uint32_t)((p)[3]) << 24))
 
-#define MBEDTLS_CHACHA8_U32TO8_LITTLE(p, v)\
+#define CHACHA8_U32TO8_LITTLE(p, v)\
 {                          \
 (p)[0] = (v >> 0) & 0xff;  \
 (p)[1] = (v >> 8) & 0xff;  \
@@ -68,7 +68,7 @@
 
 
 
-#define MBEDTLS_CHACHA8_KEYSTREAM_SEGMENT_SIZE 64
+#define CHACHA8_KEYSTREAM_SEGMENT_SIZE 64
 
 static void chacha8_wordtobyte(uint8_t output[64], const uint32_t input[16])
 {
@@ -81,14 +81,14 @@ static void chacha8_wordtobyte(uint8_t output[64], const uint32_t input[16])
 
     for (i = 8;i > 0;i -= 2)
     {
-        MBEDTLS_CHACHA8_QUARTERROUND( 0, 4, 8,12)
-        MBEDTLS_CHACHA8_QUARTERROUND( 1, 5, 9,13)
-        MBEDTLS_CHACHA8_QUARTERROUND( 2, 6,10,14)
-        MBEDTLS_CHACHA8_QUARTERROUND( 3, 7,11,15)
-        MBEDTLS_CHACHA8_QUARTERROUND( 0, 5,10,15)
-        MBEDTLS_CHACHA8_QUARTERROUND( 1, 6,11,12)
-        MBEDTLS_CHACHA8_QUARTERROUND( 2, 7, 8,13)
-        MBEDTLS_CHACHA8_QUARTERROUND( 3, 4, 9,14)
+        CHACHA8_QUARTERROUND( 0, 4, 8,12)
+        CHACHA8_QUARTERROUND( 1, 5, 9,13)
+        CHACHA8_QUARTERROUND( 2, 6,10,14)
+        CHACHA8_QUARTERROUND( 3, 7,11,15)
+        CHACHA8_QUARTERROUND( 0, 5,10,15)
+        CHACHA8_QUARTERROUND( 1, 6,11,12)
+        CHACHA8_QUARTERROUND( 2, 7, 8,13)
+        CHACHA8_QUARTERROUND( 3, 4, 9,14)
     }
 
     for (i = 0; i < 16; ++i)
@@ -97,7 +97,7 @@ static void chacha8_wordtobyte(uint8_t output[64], const uint32_t input[16])
     }
     for (i = 0; i < 16; ++i)
     {
-        MBEDTLS_CHACHA8_U32TO8_LITTLE(output + 4 * i, x[i]);
+        CHACHA8_U32TO8_LITTLE(output + 4 * i, x[i]);
     }
 }
 
@@ -140,8 +140,8 @@ void mbedtls_chacha8_set_iv( mbedtls_chacha8_context *ctx, const unsigned char *
     // this is typicaly required to be random or pseudorandom
     ctx->internal_state[12] = 0;
     ctx->internal_state[13] = 0;
-    ctx->internal_state[14] = MBEDTLS_CHACHA8_U8TO32_LITTLE(iv + 0);
-    ctx->internal_state[15] = MBEDTLS_CHACHA8_U8TO32_LITTLE(iv + 4);
+    ctx->internal_state[14] = CHACHA8_U8TO32_LITTLE(iv + 0);
+    ctx->internal_state[15] = CHACHA8_U8TO32_LITTLE(iv + 4);
 }
 
 /*
@@ -152,10 +152,10 @@ void mbedtls_chacha8_setup( mbedtls_chacha8_context *ctx, const unsigned char *k
 {
     const char *constants;
 
-    ctx->internal_state[4] = MBEDTLS_CHACHA8_U8TO32_LITTLE(key + 0);
-    ctx->internal_state[5] = MBEDTLS_CHACHA8_U8TO32_LITTLE(key + 4);
-    ctx->internal_state[6] = MBEDTLS_CHACHA8_U8TO32_LITTLE(key + 8);
-    ctx->internal_state[7] = MBEDTLS_CHACHA8_U8TO32_LITTLE(key + 12);
+    ctx->internal_state[4] = CHACHA8_U8TO32_LITTLE(key + 0);
+    ctx->internal_state[5] = CHACHA8_U8TO32_LITTLE(key + 4);
+    ctx->internal_state[6] = CHACHA8_U8TO32_LITTLE(key + 8);
+    ctx->internal_state[7] = CHACHA8_U8TO32_LITTLE(key + 12);
 
     if (keylen == 256) { /* recommended */
         key += 16;
@@ -164,14 +164,14 @@ void mbedtls_chacha8_setup( mbedtls_chacha8_context *ctx, const unsigned char *k
         constants = mbedtls_chacha8_tau;
     }
 
-    ctx->internal_state[8] = MBEDTLS_CHACHA8_U8TO32_LITTLE(key + 0);
-    ctx->internal_state[9] = MBEDTLS_CHACHA8_U8TO32_LITTLE(key + 4);
-    ctx->internal_state[10] = MBEDTLS_CHACHA8_U8TO32_LITTLE(key + 8);
-    ctx->internal_state[11] = MBEDTLS_CHACHA8_U8TO32_LITTLE(key + 12);
-    ctx->internal_state[0] = MBEDTLS_CHACHA8_U8TO32_LITTLE(constants + 0);
-    ctx->internal_state[1] = MBEDTLS_CHACHA8_U8TO32_LITTLE(constants + 4);
-    ctx->internal_state[2] = MBEDTLS_CHACHA8_U8TO32_LITTLE(constants + 8);
-    ctx->internal_state[3] = MBEDTLS_CHACHA8_U8TO32_LITTLE(constants + 12);
+    ctx->internal_state[8] = CHACHA8_U8TO32_LITTLE(key + 0);
+    ctx->internal_state[9] = CHACHA8_U8TO32_LITTLE(key + 4);
+    ctx->internal_state[10] = CHACHA8_U8TO32_LITTLE(key + 8);
+    ctx->internal_state[11] = CHACHA8_U8TO32_LITTLE(key + 12);
+    ctx->internal_state[0] = CHACHA8_U8TO32_LITTLE(constants + 0);
+    ctx->internal_state[1] = CHACHA8_U8TO32_LITTLE(constants + 4);
+    ctx->internal_state[2] = CHACHA8_U8TO32_LITTLE(constants + 8);
+    ctx->internal_state[3] = CHACHA8_U8TO32_LITTLE(constants + 12);
 
     ctx->unused_keystream_number_bytes = 0;
     ctx->keystream_buffer_offset = 0;
@@ -186,7 +186,7 @@ int mbedtls_chacha8_crypt( mbedtls_chacha8_context *ctx, size_t length, const un
 {
     uint32_t lByte;
 
-    unsigned char keystream_segment[MBEDTLS_CHACHA8_KEYSTREAM_SEGMENT_SIZE];
+    unsigned char keystream_segment[CHACHA8_KEYSTREAM_SEGMENT_SIZE];
 
     uint32_t number_bytes_crypted = 0;
     uint32_t segment_start_offset = 0;
@@ -194,10 +194,10 @@ int mbedtls_chacha8_crypt( mbedtls_chacha8_context *ctx, size_t length, const un
 
     while (number_bytes_crypted < length)
     {
-        memset(keystream_segment, 0x00, MBEDTLS_CHACHA8_KEYSTREAM_SEGMENT_SIZE);
-        number_of_bytes_this_run = (length - number_bytes_crypted) < MBEDTLS_CHACHA8_KEYSTREAM_SEGMENT_SIZE ?
+        memset(keystream_segment, 0x00, CHACHA8_KEYSTREAM_SEGMENT_SIZE);
+        number_of_bytes_this_run = (length - number_bytes_crypted) < CHACHA8_KEYSTREAM_SEGMENT_SIZE ?
                                             length - number_bytes_crypted :
-                                   MBEDTLS_CHACHA8_KEYSTREAM_SEGMENT_SIZE;
+                                   CHACHA8_KEYSTREAM_SEGMENT_SIZE;
 
         mbedtls_chacha8_get_keystream_slice(ctx, keystream_segment, number_of_bytes_this_run);
 
@@ -216,18 +216,18 @@ int mbedtls_chacha8_crypt( mbedtls_chacha8_context *ctx, size_t length, const un
 void mbedtls_chacha8_generate_keystream_block( mbedtls_chacha8_context *ctx )
 {
 
-    unsigned char output[MBEDTLS_CHACHA8_KEYSTREAM_SEGMENT_SIZE];
+    unsigned char output[CHACHA8_KEYSTREAM_SEGMENT_SIZE];
     int i;
 
     for (;;)
     {
         chacha8_wordtobyte(output, ctx->internal_state);
-        ctx->internal_state[12] = MBEDTLS_CHACHA8_PLUSONE(ctx->internal_state[12]);
-        for (i = 0; i < MBEDTLS_CHACHA8_KEYSTREAM_SEGMENT_SIZE; ++i)
+        ctx->internal_state[12] = CHACHA8_PLUSONE(ctx->internal_state[12]);
+        for (i = 0; i < CHACHA8_KEYSTREAM_SEGMENT_SIZE; ++i)
         {
             ctx->current_keystream_buffer[i] = output[i];
         }
-        ctx->unused_keystream_number_bytes = MBEDTLS_CHACHA8_KEYSTREAM_SEGMENT_SIZE;
+        ctx->unused_keystream_number_bytes = CHACHA8_KEYSTREAM_SEGMENT_SIZE;
         return;
     }
 }
@@ -241,7 +241,7 @@ int mbedtls_chacha8_get_keystream_slice( mbedtls_chacha8_context *ctx, unsigned 
         return -1;
     }
 
-    memset(keystream_segment, 0x00, MBEDTLS_CHACHA8_KEYSTREAM_SEGMENT_SIZE);
+    memset(keystream_segment, 0x00, CHACHA8_KEYSTREAM_SEGMENT_SIZE);
     number_of_bytes_yet_to_fill = number_of_bytes_this_run;
 
     if (ctx->unused_keystream_number_bytes > 0)
@@ -267,7 +267,7 @@ int mbedtls_chacha8_get_keystream_slice( mbedtls_chacha8_context *ctx, unsigned 
 
         /* And copy the required number as above */
         memcpy(keystream_segment, ctx->current_keystream_buffer, number_of_bytes_yet_to_fill);
-        ctx->unused_keystream_number_bytes = MBEDTLS_CHACHA8_KEYSTREAM_SEGMENT_SIZE - number_of_bytes_yet_to_fill;
+        ctx->unused_keystream_number_bytes = CHACHA8_KEYSTREAM_SEGMENT_SIZE - number_of_bytes_yet_to_fill;
         if (ctx->unused_keystream_number_bytes > 0)
         {
             ctx->keystream_buffer_offset = number_of_bytes_yet_to_fill;

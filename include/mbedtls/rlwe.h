@@ -1,17 +1,17 @@
-#ifndef MBED_TLS_RLWE_H
-#define MBED_TLS_RLWE_H
+#ifndef MBEDTLS_RLWE_H
+#define MBEDTLS_RLWE_H
 
 #include <stdint.h>
 
 /*
  * RLWE error codes
  */
-#define MBEDTLS_ERR_RLWE_NOISE_INCORRECT                    -0x4F80
+#define MBEDTLS_ERR_RLWE_NOISE_INCORRECT                    -0x4F81  /**< Noise parameter has bad value. */
 
 typedef struct
 {
     uint16_t coeffs[1024];
-} SRLWE_Polynomial_1024 __attribute__ ((aligned (32)));
+} mbedtls_rlwe_polynomial_1024;
 
 /**
  * \brief           Add two dimension-1024 RWLE polynomials, coefficient-wise
@@ -20,13 +20,10 @@ typedef struct
  * \param a         Operand 0
  * \param b         Operand 1
  * \param aModulus  Ring integer modulus
-
- *
- * \return          void
  */
-void mbedtls_rlwe_polynomial_add_N1024(SRLWE_Polynomial_1024 *r,
-                                       const SRLWE_Polynomial_1024 *a,
-                                       const SRLWE_Polynomial_1024 *b,
+void mbedtls_rlwe_polynomial_add_n1024(mbedtls_rlwe_polynomial_1024 *r,
+                                       const mbedtls_rlwe_polynomial_1024 *a,
+                                       const mbedtls_rlwe_polynomial_1024 *b,
                                        const uint16_t aModulus);
 
 /**
@@ -47,11 +44,8 @@ uint16_t mbedtls_rlwe_barrett_reduce(uint16_t a, const uint16_t aModulus);
  * \param poly      Vector to transform
  * \param omegas    Internal pre-computed table
  * \param aModulus    Ring integer modulus
-
- *
- * \return          void
  */
-void mbedtls_rlwe_forward_number_theoretic_transform_N1024(uint16_t *poly,
+void mbedtls_rlwe_forward_number_theoretic_transform_n1024(uint16_t *poly,
                                                            const uint16_t *omegas,
                                                            const uint16_t aModulus);
 /**
@@ -70,11 +64,8 @@ uint16_t mbedtls_rlwe_montgomery_reduce(uint32_t a,
  *
  * \param r         Polynomial to transform
  * \param aModulus  Ring integer modulus
-
- *
- * \return          void
  */
-void mbedtls_rlwe_forward_number_theoretic_transform_with_premultiply_N1024(SRLWE_Polynomial_1024 *r,
+void mbedtls_rlwe_forward_number_theoretic_transform_with_premultiply_n1024(mbedtls_rlwe_polynomial_1024 *r,
                                                                             const uint16_t aModulus);
 
 /**
@@ -82,11 +73,8 @@ void mbedtls_rlwe_forward_number_theoretic_transform_with_premultiply_N1024(SRLW
  *
  * \param r         Polynomial to transform
  * \param aModulus  Ring integer modulus
-
- *
- * \return          void
  */
-void mbedtls_rlwe_poly_inverse_number_theoretic_transform_N1024(SRLWE_Polynomial_1024 *r,
+void mbedtls_rlwe_poly_inverse_number_theoretic_transform_n1024(mbedtls_rlwe_polynomial_1024 *r,
                                                                 const uint16_t aModulus);
 
 /**
@@ -95,21 +83,16 @@ void mbedtls_rlwe_poly_inverse_number_theoretic_transform_N1024(SRLWE_Polynomial
  * \param poly      Polynomial coefficients to multiply
  * \param factors   Factor vector
  * \param aModulus  Ring integer modulus
-
- *
- * \return          void
  */
-void mbedtls_rlwe_multiply_coefficients_N1024(uint16_t *poly, const uint16_t *factors,
+void mbedtls_rlwe_multiply_coefficients_n1024(uint16_t *poly, const uint16_t *factors,
                                               const uint16_t aModulus);
 
 /**
  * \brief           Bit-reverse (in-place) a polynomial coefficient vector
  *
  * \param aInPolynomialCoefficients      Polynomial coefficients to bit-reverse
- *
- * \return          void
  */
-void mbedtls_rlwe_bitrev_vector_N1024(uint16_t* aInPolynomialCoefficients);
+void mbedtls_rlwe_bitrev_vector_n1024(uint16_t* aInPolynomialCoefficients);
 
 /**
  * \brief           Carry out pointwise multiplication of two RLWE polynomials
@@ -118,26 +101,22 @@ void mbedtls_rlwe_bitrev_vector_N1024(uint16_t* aInPolynomialCoefficients);
  * \param a         Operand 0
  * \param b         Operand 1
  * \param aModulus  Ring integer modulus
- *
- * \return          void
  */
-void mbedtls_rlwe_polynomial_pointwise_multiplication_N1024(SRLWE_Polynomial_1024 *r,
-                                                            const SRLWE_Polynomial_1024 *a,
-                                                            const SRLWE_Polynomial_1024 *b,
+void mbedtls_rlwe_polynomial_pointwise_multiplication_n1024(mbedtls_rlwe_polynomial_1024 *r,
+                                                            const mbedtls_rlwe_polynomial_1024 *a,
+                                                            const mbedtls_rlwe_polynomial_1024 *b,
                                                             const uint16_t aModulus);
 
 /**
  * \brief           Generate a RLWE polynomial with coefficients from the noise distribution determined by aK
  *
  * \param r         Polynomial to generate
- * \param seed      Seed for PRNG
- * \param nonce     nonce
  * \param aModulus  Ring integer modulus
  * \param aK        Noise parameter for sampling
  *
  * \return          0 if successful, or an MBEDTLS_ERR_RLWE_XXX error code
  */
-int mbedtls_rlwe_generate_noise_ring_polynomial_N1024(SRLWE_Polynomial_1024 *r,
+int mbedtls_rlwe_generate_noise_ring_polynomial_n1024(mbedtls_rlwe_polynomial_1024 *r,
                                                       const uint16_t aModulus,
                                                       const uint16_t aK);
 

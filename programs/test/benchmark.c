@@ -314,11 +314,11 @@ int main( int argc, char *argv[] )
                 todo.ecdsa = 1;
             else if( strcmp( argv[i], "ecdh" ) == 0 )
                 todo.ecdh = 1;
-            else if( 0 == strcmp( argv[i], "newhope" ))
+            else if( strcmp( argv[i], "newhope" ) == 0 )
                 todo.newhope = 1;
-            else if( 0 == strcmp( argv[i], "salsa20" ))
+            else if( strcmp( argv[i], "salsa20" ) == 0 )
                 todo.salsa20 = 1;
-            else if( 0 == strcmp( argv[i], "chacha8" ))
+            else if( strcmp( argv[i], "chacha8" ) == 0 )
                 todo.chacha8 = 1;
             else
             {

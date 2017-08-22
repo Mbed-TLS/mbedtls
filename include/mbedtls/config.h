@@ -2642,6 +2642,16 @@
  */
 #define MBEDTLS_CHACHA8_C
 
+/**
+ * \def MBEDTLS_RLWE_C
+ *
+ * Enables ring learning with errors.
+ *
+ * Module:  library/rlwe.c
+ * Caller:  library/newhope.c
+ */
+#define MBEDTLS_RLWE_C
+
 /* \} name SECTION: mbed TLS modules */
 
 /**

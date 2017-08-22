@@ -41,7 +41,7 @@ def checkout_mbed_os_examples(){
         git 'git@github.com:ARMmbed/mbed-os-example-tls.git'
         stash 'examples_src'
         /* checkout mbed-os */
-        echo examples
+        echo examples.join(", ")
         def oneexample = examples[0]
         echo oneexample
         if ( oneexample != null ) {

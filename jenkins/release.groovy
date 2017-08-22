@@ -22,9 +22,12 @@ def find_examples (){
     examples = []
     File[] files = new File(pwd()).listFiles();
     for (File file: files){
+        echo file.getName()
         if (file.isDirectory()) {
+            echo 'Is dir'
             File[] subfiles = file.listFiles();
             for (File subfile: subfiles){
+                echo subfile.getName()
                 if (subfile.getName().equals("mbed-os.lib")) {
                     echo file.getName()
                     examples << file.getName()

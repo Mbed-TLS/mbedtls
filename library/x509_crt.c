@@ -1992,13 +1992,20 @@ static int x509_crt_find_parent_in(
     int signature_is_good, fallback_sign_good;
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    /* restore state if we have some stored */
+    /* did we have something in progress? */
     if( rs_ctx != NULL && rs_ctx->parent != NULL )
     {
+        /* restore saved state */
         parent = rs_ctx->parent;
         fallback_parent = rs_ctx->fallback_parent;
         fallback_sign_good = rs_ctx->fallback_sign_good;
 
+        /* clear saved state */
+        rs_ctx->parent = NULL;
+        rs_ctx->fallback_parent = NULL;
+        rs_ctx->fallback_sign_good = 0;
+
+        /* resume where we left */
         goto check_signature;
     }
 #endif
@@ -2070,16 +2077,6 @@ check_signature:
         *r_signature_is_good = fallback_sign_good;
     }
 
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    if( rs_ctx != NULL )
-    {
-        /* reset state */
-        rs_ctx->parent = NULL;
-        rs_ctx->fallback_parent = NULL;
-        rs_ctx->fallback_sign_good = 0;
-    }
-#endif
-
     return( 0 );
 }
 
@@ -2116,9 +2113,12 @@ static int x509_crt_find_parent(
     *parent_is_trusted = 1;
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    /* restore state if we have some stored */
-    if( rs_ctx != NULL && rs_ctx->parent_is_trusted != -1)
+    /* restore then clear saved state if we have some stored */
+    if( rs_ctx != NULL && rs_ctx->parent_is_trusted != -1 )
+    {
         *parent_is_trusted = rs_ctx->parent_is_trusted;
+        rs_ctx->parent_is_trusted = -1;
+    }
 #endif
 
     while( 1 ) {
@@ -2154,12 +2154,6 @@ static int x509_crt_find_parent(
         parent_is_trusted = 0;
         signature_is_good = 0;
     }
-
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    /* reset state */
-    if( rs_ctx != NULL )
-        rs_ctx->parent_is_trusted = -1;
-#endif
 
     return( 0 );
 }
@@ -2254,7 +2248,7 @@ static int x509_crt_verify_chain(
     /* resume if we had an operation in progress */
     if( rs_ctx != NULL && rs_ctx->child != NULL )
     {
-        /* save state */
+        /* restore saved state */
         child = rs_ctx->child;
         self_cnt = rs_ctx->self_cnt;
         *ver_chain = rs_ctx->ver_chain;

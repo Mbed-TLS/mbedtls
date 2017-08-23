@@ -51,12 +51,12 @@ def checkout_mbed_os_examples(){
         echo oneexample
         if ( oneexample != null ) {
             dir( oneexample ){
-                git 'git@github.com:ARMmbed/mbed-os.git'
-                sh '''
+                dir('mbed-os'){
+                    git 'git@github.com:ARMmbed/mbed-os.git'
+                    sh '''
 sha=`cut -d "#" -f 2 ../mbed-os.lib`
 git reset --hard $sha
 '''
-                dir('mbed-os'){
                     /* Deploy mbedtls src into mbed-os */
                     dir('features/mbedtls/importer') {
                         dir('TARGET_IGNORE/mbedtls'){

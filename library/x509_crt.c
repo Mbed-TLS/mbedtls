@@ -2219,6 +2219,8 @@ static int x509_crt_check_ee_locally_trusted(
  *  - [in] trust_ca: the trusted list R1, ..., Rp
  *  - [in] ca_crl, profile: as in verify_with_profile()
  *  - [out] ver_chain: the built and verified chain
+ *      Only valid when return value is 0, may contain garbage otherwise!
+ *      Restart note: need not be the same when calling again to resume.
  *  - [in-out] rs_ctx: context for restarting operations
  *
  * Return value:
@@ -2234,6 +2236,8 @@ static int x509_crt_verify_chain(
                 mbedtls_x509_crt_verify_chain *ver_chain,
                 mbedtls_x509_crt_restart_ctx *rs_ctx )
 {
+    /* Don't initialize any of those variables here, so that the compiler can
+     * catch potential issues with jumping ahead when restarting */
     int ret;
     uint32_t *flags;
     mbedtls_x509_crt_verify_chain_item *cur;
@@ -2251,7 +2255,7 @@ static int x509_crt_verify_chain(
         /* restore saved state */
         child = rs_ctx->child;
         self_cnt = rs_ctx->self_cnt;
-        *ver_chain = rs_ctx->ver_chain;
+        *ver_chain = rs_ctx->ver_chain; /* struct copy */
 
         cur = &ver_chain->items[ver_chain->len - 1];
         flags = &cur->flags;
@@ -2312,7 +2316,7 @@ find_parent:
             /* save state */
             rs_ctx->child = child;
             rs_ctx->self_cnt = self_cnt;
-            rs_ctx-> ver_chain = *ver_chain;
+            rs_ctx->ver_chain = *ver_chain; /* struct copy */
 
             return( ret );
         }

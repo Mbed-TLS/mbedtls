@@ -74,6 +74,142 @@ extern "C" {
 #endif
 
 /**
+ * Helper functions for RSA-related operations on MPI's.
+ */
+
+/**
+ * \brief          Compute RSA prime moduli P, Q from public modulus N=PQ
+&                  and a pair of private and public key.
+ *
+ * \note           This is a 'static' helper function not operating on
+ *                 an RSA context. Alternative implementations need not
+ *                 overwrite it.
+ *
+ * \param N        RSA modulus N = PQ, with P, Q to be found
+ * \param D        RSA private exponent
+ * \param E        RSA public exponent
+ * \param f_rng    PRNG to be used for randomization, or NULL
+ * \param p_rng    PRNG context for f_rng, or NULL
+ * \param P        Pointer to MPI holding first prime factor of N on success
+ * \param Q        Pointer to MPI holding second prime factor of N on success
+ *
+ * \return         - 0 if successful. In this case, P and Q constitute a
+ *                   factorization of N, and it is guaranteed that D and E
+ *                   are indeed modular inverses modulo P-1 and modulo Q-1.
+ *                   The values of N, D and E are unchanged. It is checked
+ *                   that P, Q are prime if a PRNG is provided.
+ *                 - A non-zero error code otherwise. In this case, the values
+ *                   of N, D, E are undefined.
+ *
+ * \note           The input MPI's are deliberately not declared as constant
+ *                 and may therefore be used for in-place calculations by
+ *                 the implementation. In particular, their values can be
+ *                 corrupted when the function fails. If the user cannot
+ *                 tolerate this, he has to make copies of the MPI's prior
+ *                 to calling this function. See \c mbedtls_mpi_copy for this.
+ */
+int mbedtls_rsa_deduce_moduli( mbedtls_mpi *N, mbedtls_mpi *D, mbedtls_mpi *E,
+                     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+                     mbedtls_mpi *P, mbedtls_mpi *Q );
+
+/**
+ * \brief          Compute RSA private exponent from
+ *                 prime moduli and public key.
+ *
+ * \note           This is a 'static' helper function not operating on
+ *                 an RSA context. Alternative implementations need not
+ *                 overwrite it.
+ *
+ * \param P        First prime factor of RSA modulus
+ * \param Q        Second prime factor of RSA modulus
+ * \param E        RSA public exponent
+ * \param D        Pointer to MPI holding the private exponent on success.
+ *
+ * \note           This function does not check whether P and Q are primes.
+ *
+ * \return         - 0 if successful. In this case, D is set to a simultaneous
+ *                   modular inverse of E modulo both P-1 and Q-1.
+ *                 - A non-zero error code otherwise. In this case, the values
+ *                   of P, Q, E are undefined.
+ *
+ * \note           The input MPI's are deliberately not declared as constant
+ *                 and may therefore be used for in-place calculations by
+ *                 the implementation. In particular, their values can be
+ *                 corrupted when the function fails. If the user cannot
+ *                 tolerate this, he has to make copies of the MPI's prior
+ *                 to calling this function. See \c mbedtls_mpi_copy for this.
+ */
+int mbedtls_rsa_deduce_private( mbedtls_mpi *P, mbedtls_mpi *Q, mbedtls_mpi *E,
+                                mbedtls_mpi *D );
+
+
+/**
+ * \brief          Generate RSA-CRT parameters
+ *
+ * \note           This is a 'static' helper function not operating on
+ *                 an RSA context. Alternative implementations need not
+ *                 overwrite it.
+ *
+ * \param P        First prime factor of N
+ * \param Q        Second prime factor of N
+ * \param D        RSA private exponent
+ * \param DP       Output variable for D modulo P-1
+ * \param DQ       Output variable for D modulo Q-1
+ * \param QP       Output variable for the modular inverse of Q modulo P.
+ *
+ * \return         0 on success, non-zero error code otherwise.
+ *
+ */
+int mbedtls_rsa_deduce_crt( const mbedtls_mpi *P, const mbedtls_mpi *Q,
+                            const mbedtls_mpi *D, mbedtls_mpi *DP,
+                            mbedtls_mpi *DQ, mbedtls_mpi *QP );
+
+
+/**
+ * \brief          Check validity of core RSA parameters
+ *
+ * \note           This is a 'static' helper function not operating on
+ *                 an RSA context. Alternative implementations need not
+ *                 overwrite it.
+ *
+ * \param N        RSA modulus N = PQ
+ * \param P        First prime factor of N
+ * \param Q        Second prime factor of N
+ * \param D        RSA private exponent
+ * \param E        RSA public exponent
+ * \param f_rng    PRNG to be used for randomization, or NULL
+ * \param p_rng    PRNG context for f_rng, or NULL
+ *
+ * \return         - 0 if the following conditions are satisfied:
+ *                   - N = PQ if N,P,Q != NULL
+ *                   - D and E are modular inverses modulo P-1 and Q-1
+ *                     if D,E,P,Q != NULL
+ *                   - P prime if f_rng, P != NULL
+ *                   - Q prime if f_rng, Q != NULL
+ *                 - A non-zero error code otherwise. In this case, the values
+ *                   of N, P, Q, D, E are undefined.
+ *
+ * \note           The function can be used with a restricted set of arguments
+ *                 to perform specific checks only. E.g., calling it with
+ *                 (-,P,-,-,-) and a PRNG amounts to a primality check for P.
+ *
+ * \note           The input MPI's are deliberately not declared as constant
+ *                 and may therefore be used for in-place calculations by
+ *                 the implementation. In particular, their values can be
+ *                 corrupted when the function fails. If the user cannot
+ *                 tolerate this, he has to make copies of the MPI's prior
+ *                 to calling this function. See \c mbedtls_mpi_copy for this.
+ */
+int mbedtls_rsa_check_params( mbedtls_mpi *N, mbedtls_mpi *P, mbedtls_mpi *Q,
+                              mbedtls_mpi *D, mbedtls_mpi *E,
+                              int (*f_rng)(void *, unsigned char *, size_t),
+                              void *p_rng );
+
+/**
+ * Implementation of RSA interface
+ */
+
+/**
  * \brief          RSA context structure
  */
 typedef struct

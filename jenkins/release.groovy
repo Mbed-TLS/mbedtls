@@ -23,6 +23,7 @@ def find_examples (){
     examples = []
     File[] files = new File(pwd()).listFiles();
     echo pwd()
+    sh 'pwd;ls -ltr'
     echo 'find_examples'
     echo files.length
     for (File file: files){

@@ -89,6 +89,13 @@ static unsigned long add_count, dbl_count, mul_count;
 #if defined(MBEDTLS_ECP_RESTARTABLE)
 /*
  * Maximum number of "basic operations" to be done in a row.
+ *
+ * Default value 0 means that ECC operations will not yield.
+ * Note that regardless of the value of ecp_max_ops, always at
+ * least one step is performed before yielding.
+ *
+ * Setting ecp_max_ops=1 can be suitable for testing purposes
+ * as it will interrupt computation at all possible points.
  */
 static unsigned ecp_max_ops = 0;
 
@@ -1341,11 +1348,38 @@ cleanup:
  * modified version that provides resistance to SPA by avoiding zero
  * digits in the representation as in [3]. We modify the method further by
  * requiring that all K_i be odd, which has the small cost that our
- * representation uses one more K_i, due to carries.
+ * representation uses one more K_i, due to carries, but saves on the size of
+ * the precomputed table.
  *
- * Also, for the sake of compactness, only the seven low-order bits of x[i]
- * are used to represent K_i, and the msb of x[i] encodes the the sign (s_i in
- * the paper): it is set if and only if if s_i == -1;
+ * Summary of the comb method and its modifications:
+ *
+ * - The goal is to compute m*P for some w*d-bit integer m.
+ *
+ * - The basic comb method splits m into the w-bit integers
+ *   x[0] .. x[d-1] where x[i] consists of the bits in m whose
+ *   index has residue i modulo d, and computes m * P as
+ *   S[x[0]] + 2 * S[x[1]] + .. + 2^(d-1) S[x[d-1]], where
+ *   S[i_{w-1} .. i_0] := i_{w-1} 2^{(w-1)d} P + ... + i_1 2^d P + i_0 P.
+ *
+ * - If it happens that, say, x[i+1]=0 (=> S[x[i+1]]=0), one can replace the sum by
+ *    .. + 2^{i-1} S[x[i-1]] - 2^i S[x[i]] + 2^{i+1} S[x[i]] + 2^{i+2} S[x[i+2]] ..,
+ *   thereby successively converting it into a form where all summands
+ *   are nonzero, at the cost of negative summands. This is the basic idea of [3].
+ *
+ * - More generally, even if x[i+1] != 0, we can first transform the sum as
+ *   .. - 2^i S[x[i]] + 2^{i+1} ( S[x[i]] + S[x[i+1]] ) + 2^{i+2} S[x[i+2]] ..,
+ *   and then replace S[x[i]] + S[x[i+1]] = S[x[i] ^ x[i+1]] + 2 S[x[i] & x[i+1]].
+ *   Performing and iterating this procedure for those x[i] that are even
+ *   (keeping track of carry), we can transform the original sum into one of the form
+ *   S[x'[0]] +- 2 S[x'[1]] +- .. +- 2^{d-1} S[x'[d-1]] + 2^d S[x'[d]]
+ *   with all x'[i] odd. It is therefore only necessary to know S at odd indices,
+ *   which is why we are only computing half of it in the first place in
+ *   ecp_precompute_comb and accessing it with index abs(i) / 2 in ecp_select_comb.
+ *
+ * - For the sake of compactness, only the seven low-order bits of x[i]
+ *   are used to represent its absolute value (K_i in the paper), and the msb
+ *   of x[i] encodes the the sign (s_i in the paper): it is set if and only if
+ *   if s_i == -1;
  *
  * Calling conventions:
  * - x is an array of size d + 1
@@ -1385,14 +1419,41 @@ static void ecp_comb_recode_core( unsigned char x[], size_t d,
 }
 
 /*
- * Precompute points for the comb method
+ * Precompute points for the adapted comb method
  *
- * If i = i_{w-1} ... i_1 is the binary representation of i, then
- * T[i] = i_{w-1} 2^{(w-1)d} P + ... + i_1 2^d P + P
+ * Assumption: T must be able to hold 2^{w - 1} elements.
  *
- * T must be able to hold 2^{w - 1} elements
+ * Operation: If i = i_{w-1} ... i_1 is the binary representation of i,
+ *            sets T[i] = i_{w-1} 2^{(w-1)d} P + ... + i_1 2^d P + P.
  *
  * Cost: d(w-1) D + (2^{w-1} - 1) A + 1 N(w-1) + 1 N(2^{w-1} - 1)
+ *
+ * Note: Even comb values (those where P would be omitted from the
+ *       sum defining T[i] above) are not needed in our adaption
+ *       the the comb method. See ecp_comb_recode_core().
+ *
+ * This function currently works in four steps:
+ * (1) Computation of intermediate T[i] for 2-powers values of i
+ *     (restart state is ecp_rsm_init).
+ * (2) Normalization of coordinates of these T[i]
+ *     (restart state is ecp_rsm_pre_norm_dbl).
+ * (3) Computation of all T[i] (restart state is ecp_rsm_pre_add).
+ * (4) Normalization of all T[i] (restart state is ecp_rsm_pre_norm_add)
+ * The final restart state is ecp_rsm_T_done.
+ *
+ * Step 1 can be interrupted but not the others; together with the final
+ * coordinate normalization they are the largest steps done at once, depending
+ * on the window size. Here are operation counts for P-256:
+ *
+ * step     (2)     (3)     (4)
+ * w = 5    142     165     208
+ * w = 4    136      77     160
+ * w = 3    130      33     136
+ * w = 2    124      11     124
+ *
+ * So if ECC operations are blocking for too long even with a low max_ops
+ * value, it's useful to set MBEDTLS_ECP_WINDOW_SIZE to a lower value in order
+ * to minimize maximum blocking time.
  */
 static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
                                 mbedtls_ecp_point T[], const mbedtls_ecp_point *P,
@@ -1534,6 +1595,8 @@ cleanup:
 
 /*
  * Select precomputed point: R = sign(i) * T[ abs(i) / 2 ]
+ *
+ * See ecp_comb_recode_core() for background
  */
 static int ecp_select_comb( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                             const mbedtls_ecp_point T[], unsigned char t_len,
@@ -1637,6 +1700,8 @@ cleanup:
  * As the actual scalar recoding needs an odd scalar as a starting point,
  * this wrapper ensures that by replacing m by N - m if necessary, and
  * informs the caller that the result of multiplication will be negated.
+ *
+ * See ecp_comb_recode_core() for background.
  */
 static int ecp_comb_recode_scalar( const mbedtls_ecp_group *grp,
                                    const mbedtls_mpi *m,
@@ -1824,8 +1889,7 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     /* Pre-computed table: do we have it already for the base point? */
     if( p_eq_g && grp->T != NULL )
     {
-        /* second pointer to the same table
-         * no ownership transfer as other threads might be using T too */
+        /* second pointer to the same table, will be deleted on exit */
         T = grp->T;
         T_ok = 1;
     }
@@ -1862,9 +1926,10 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
         if( p_eq_g )
         {
+            /* almost transfer ownership of T to the group, but keep a copy of
+             * the pointer to use for caling the next function more easily */
             grp->T = T;
             grp->T_size = pre_len;
-            /* now have two pointers to the same table */
         }
     }
 

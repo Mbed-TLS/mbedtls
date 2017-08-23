@@ -310,8 +310,14 @@ typedef void mbedtls_ecp_restart_ctx;
  *                  MBEDTLS_ERR_ECP_IN_PROGRESS will be returned by the
  *                  function performing the computation. It is then the
  *                  caller's responsibility to either call again with the same
- *                  arguments until it returns 0 or an error code; or to free
+ *                  parameters until it returns 0 or an error code; or to free
  *                  the restart context if the operation is to be aborted.
+ *
+ *                  It is strictly required that all input parameters and the
+ *                  restart context be the same on successive calls for the
+ *                  same operation, but output parameters need not be the
+ *                  same; they must not be used until the function finally
+ *                  returns 0.
  *
  *                  This only affects functions that accept a pointer to a
  *                  \c mbedtls_ecp_restart_ctx as an argument, and only works
@@ -334,10 +340,13 @@ typedef void mbedtls_ecp_restart_ctx;
  *                  operations, and will do so even if max_ops is set to a
  *                  lower value.  That minimum depends on the curve size, and
  *                  can be made lower by decreasing the value of
- *                  \c MBEDTLS_ECP_WINDOW_SIZE.  As an indication, with that
- *                  parameter set to 4, the minimum amount of blocking is:
- *                  - around 165 basic operations for P-256
- *                  - around 330 basic operations for P-384
+ *                  \c MBEDTLS_ECP_WINDOW_SIZE.  As an indication, here is the
+ *                  lowest effective value for various curves and values of
+ *                  that parameter (w for short):
+ *                          w=6     w=5     w=4     w=3     w=2
+ *                  P-256   208     208     160     136     124
+ *                  P-384   682     416     320     272     248
+ *                  P-521  1364     832     640     544     496
  *
  * \note            This setting is currently ignored by Curve25519
  */

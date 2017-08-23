@@ -571,7 +571,7 @@
  * again later with the same arguments in order to further progress and
  * eventually complete the operation, see \c mbedtls_ecp_set_max_ops().
  *
- * This is usefull in non-threaded environments if you want to avoid blocking
+ * This is useful in non-threaded environments if you want to avoid blocking
  * for too long on ECC (hence, X509 or SSL/TLS) operations.
  *
  * Uncomment this macro to enable restartable ECC computations.

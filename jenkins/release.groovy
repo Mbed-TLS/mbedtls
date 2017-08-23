@@ -1,3 +1,4 @@
+import groovy.io.FileType
 
 /* Create code coverage job */
 def get_code_coverage_job(){

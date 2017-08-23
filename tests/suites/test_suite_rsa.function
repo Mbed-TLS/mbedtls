@@ -1030,6 +1030,70 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void mbedtls_rsa_check_params( int radix_N, char *input_N,
+                               int radix_P, char *input_P,
+                               int radix_Q, char *input_Q,
+                               int radix_D, char *input_D,
+                               int radix_E, char *input_E,
+                               int prng, int result )
+{
+    /* Original MPI's with which we set up the RSA context */
+    mbedtls_mpi N, P, Q, D, E;
+
+    const int have_N = ( strlen( input_N ) > 0 );
+    const int have_P = ( strlen( input_P ) > 0 );
+    const int have_Q = ( strlen( input_Q ) > 0 );
+    const int have_D = ( strlen( input_D ) > 0 );
+    const int have_E = ( strlen( input_E ) > 0 );
+
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
+    const char *pers = "test_suite_rsa";
+
+    mbedtls_mpi_init( &N );
+    mbedtls_mpi_init( &P ); mbedtls_mpi_init( &Q );
+    mbedtls_mpi_init( &D ); mbedtls_mpi_init( &E );
+
+    mbedtls_ctr_drbg_init( &ctr_drbg );
+    mbedtls_entropy_init( &entropy );
+    TEST_ASSERT( mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func,
+                                        &entropy, (const unsigned char *) pers,
+                                        strlen( pers ) ) == 0 );
+
+    if( have_N )
+        TEST_ASSERT( mbedtls_mpi_read_string( &N, radix_N, input_N ) == 0 );
+
+    if( have_P )
+        TEST_ASSERT( mbedtls_mpi_read_string( &P, radix_P, input_P ) == 0 );
+
+    if( have_Q )
+        TEST_ASSERT( mbedtls_mpi_read_string( &Q, radix_Q, input_Q ) == 0 );
+
+    if( have_D )
+        TEST_ASSERT( mbedtls_mpi_read_string( &D, radix_D, input_D ) == 0 );
+
+    if( have_E )
+        TEST_ASSERT( mbedtls_mpi_read_string( &E, radix_E, input_E ) == 0 );
+
+    TEST_ASSERT( mbedtls_rsa_check_params( have_N ? &N : NULL,
+                                           have_P ? &P : NULL,
+                                           have_Q ? &Q : NULL,
+                                           have_D ? &D : NULL,
+                                           have_E ? &E : NULL,
+                                           prng ? mbedtls_ctr_drbg_random : NULL,
+                                           prng ? &ctr_drbg : NULL ) == result );
+exit:
+
+    mbedtls_ctr_drbg_free( &ctr_drbg );
+    mbedtls_entropy_free( &entropy );
+
+    mbedtls_mpi_free( &N );
+    mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
+    mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_CTR_DRBG_C:MBEDTLS_ENTROPY_C */
 void mbedtls_rsa_export_raw( char *input_N, char *input_P,
                              char *input_Q, char *input_D,

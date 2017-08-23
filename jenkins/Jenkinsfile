@@ -13,7 +13,7 @@ node {
                 url: 'git@github.com:mazimkhan/mbedtls.git']]])
         stash 'src'
         echo 'Dispatching release job!'
-        def job = load 'src/jenkins/release.groovy'
+        def job = load 'jenkins/release.groovy'
         job.dispatch_job()
     }
 }

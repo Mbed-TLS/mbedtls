@@ -40,7 +40,7 @@ def find_examples (){
             }
         }
     }
-    return examples;
+    return ['authcrypt', 'benchmark', 'hashing', 'tls-client'];
 }
 
 

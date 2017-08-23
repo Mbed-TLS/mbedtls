@@ -183,7 +183,10 @@ typedef struct
     int parent_is_trusted; /* -1 if find_parent is not in progress */
 
     /* for verify_chain() */
-    mbedtls_x509_crt *child; /* non-null iff in progress */
+    enum {
+        x509_crt_rs_none,
+        x509_crt_rs_find_parent,
+    } in_progress;  /* none if no operation is in progress */
     int self_cnt;
     mbedtls_x509_crt_verify_chain ver_chain;
 

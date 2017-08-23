@@ -2250,14 +2250,15 @@ static int x509_crt_verify_chain(
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     /* resume if we had an operation in progress */
-    if( rs_ctx != NULL && rs_ctx->child != NULL )
+    if( rs_ctx != NULL && rs_ctx->in_progress == x509_crt_rs_find_parent )
     {
         /* restore saved state */
-        child = rs_ctx->child;
-        self_cnt = rs_ctx->self_cnt;
         *ver_chain = rs_ctx->ver_chain; /* struct copy */
+        self_cnt = rs_ctx->self_cnt;
 
+        /* restore derived state */
         cur = &ver_chain->items[ver_chain->len - 1];
+        child = cur->crt;
         flags = &cur->flags;
 
         goto find_parent;
@@ -2314,7 +2315,7 @@ find_parent:
         if( rs_ctx != NULL && ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
         {
             /* save state */
-            rs_ctx->child = child;
+            rs_ctx->in_progress = x509_crt_rs_find_parent;
             rs_ctx->self_cnt = self_cnt;
             rs_ctx->ver_chain = *ver_chain; /* struct copy */
 
@@ -2681,7 +2682,7 @@ void mbedtls_x509_crt_restart_init( mbedtls_x509_crt_restart_ctx *ctx )
 
     ctx->parent_is_trusted = -1;
 
-    ctx->child = NULL;
+    ctx->in_progress = x509_crt_rs_none;
     ctx->self_cnt = 0;
     x509_crt_verify_chain_reset( &ctx->ver_chain );
 }

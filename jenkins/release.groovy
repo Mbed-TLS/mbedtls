@@ -43,9 +43,10 @@ def find_examples (){
 
 
 def checkout_mbed_os_examples(){
+    def examples = []
     dir('examples'){
         git 'git@github.com:ARMmbed/mbed-os-example-tls.git'
-        def examples = find_examples()
+        examples = find_examples()
         stash 'examples_src'
         /* checkout mbed-os */
         echo examples.join(", ")
@@ -71,10 +72,9 @@ git reset --hard $sha
                     stash 'mbed-os_src'
                 }
             }
-            return examples;
         }
     }
-    return []
+    return examples
 }
 
 def gen_mbed_os_example_job( example, compiler, platform ){
@@ -96,7 +96,8 @@ mbed compile -m ${platform} -t ${toolchain}
    }
 }
 
-compilers = ['ARM', 'GCC_ARM', 'IAR']
+//compilers = ['ARM', 'GCC_ARM', 'IAR']
+compilers = ['GCC_ARM']
 platforms = ['K64F']
 
 /* Jenkinsfile interface to this script. */
@@ -104,7 +105,7 @@ def dispatch_job() {
     /* Checkout mbed-os-example-tls */
     parallel_jobs = [:]
     parallel_jobs['code_coverage'] = get_code_coverage_job();
-    example = checkout_mbed_os_examples()
+    examples = checkout_mbed_os_examples()
     for( example in examples ) {
         for( compiler in compilers ) {
             for( platform in platforms ) {

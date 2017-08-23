@@ -1031,6 +1031,137 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_CTR_DRBG_C:MBEDTLS_ENTROPY_C */
+void mbedtls_rsa_export_raw( char *input_N, char *input_P,
+                             char *input_Q, char *input_D,
+                             char *input_E, int successive )
+{
+    /* Original raw buffers with which we set up the RSA context */
+    unsigned char bufN[1000];
+    unsigned char bufP[1000];
+    unsigned char bufQ[1000];
+    unsigned char bufD[1000];
+    unsigned char bufE[1000];
+
+    size_t lenN = 0;
+    size_t lenP = 0;
+    size_t lenQ = 0;
+    size_t lenD = 0;
+    size_t lenE = 0;
+
+    /* Exported buffers */
+    unsigned char bufNe[ sizeof( bufN ) ];
+    unsigned char bufPe[ sizeof( bufP ) ];
+    unsigned char bufQe[ sizeof( bufQ ) ];
+    unsigned char bufDe[ sizeof( bufD ) ];
+    unsigned char bufEe[ sizeof( bufE ) ];
+
+    const int have_N = ( strlen( input_N ) > 0 );
+    const int have_P = ( strlen( input_P ) > 0 );
+    const int have_Q = ( strlen( input_Q ) > 0 );
+    const int have_D = ( strlen( input_D ) > 0 );
+    const int have_E = ( strlen( input_E ) > 0 );
+
+    const int is_priv = have_P || have_Q || have_D;
+
+    mbedtls_rsa_context ctx;
+
+    mbedtls_rsa_init( &ctx, 0, 0 );
+
+    /* Setup RSA context */
+
+    if( have_N )
+        lenN = unhexify( bufN, input_N );
+
+    if( have_P )
+        lenP = unhexify( bufP, input_P );
+
+    if( have_Q )
+        lenQ = unhexify( bufQ, input_Q );
+
+    if( have_D )
+        lenD = unhexify( bufD, input_D );
+
+    if( have_E )
+        lenE = unhexify( bufE, input_E );
+
+    TEST_ASSERT( mbedtls_rsa_import_raw( &ctx,
+                               have_N ? bufN : NULL, lenN,
+                               have_P ? bufP : NULL, lenP,
+                               have_Q ? bufQ : NULL, lenQ,
+                               have_D ? bufD : NULL, lenD,
+                               have_E ? bufE : NULL, lenE ) == 0 );
+
+    TEST_ASSERT( mbedtls_rsa_complete( &ctx, NULL, NULL ) == 0 );
+
+    /*
+     * Export parameters and compare to original ones.
+     */
+
+    /* N and E must always be present. */
+    if( !successive )
+    {
+        TEST_ASSERT( mbedtls_rsa_export_raw( &ctx, bufNe, lenN,
+                                             NULL, 0, NULL, 0, NULL, 0,
+                                             bufEe, lenE ) == 0 );
+    }
+    else
+    {
+        TEST_ASSERT( mbedtls_rsa_export_raw( &ctx, bufNe, lenN,
+                                             NULL, 0, NULL, 0, NULL, 0,
+                                             NULL, 0 ) == 0 );
+        TEST_ASSERT( mbedtls_rsa_export_raw( &ctx, NULL, 0,
+                                             NULL, 0, NULL, 0, NULL, 0,
+                                             bufEe, lenE ) == 0 );
+    }
+    TEST_ASSERT( memcmp( bufN, bufNe, lenN ) == 0 );
+    TEST_ASSERT( memcmp( bufE, bufEe, lenE ) == 0 );
+
+    /* If we were providing enough information to setup a complete private context,
+     * we expect to be able to export all core parameters. */
+
+    if( is_priv )
+    {
+        if( !successive )
+        {
+            TEST_ASSERT( mbedtls_rsa_export_raw( &ctx, NULL, 0,
+                                         bufPe, lenP ? lenP : sizeof( bufPe ),
+                                         bufQe, lenQ ? lenQ : sizeof( bufQe ),
+                                         bufDe, lenD ? lenD : sizeof( bufDe ),
+                                         NULL, 0 ) == 0 );
+        }
+        else
+        {
+            TEST_ASSERT( mbedtls_rsa_export_raw( &ctx, NULL, 0,
+                                         bufPe, lenP ? lenP : sizeof( bufPe ),
+                                         NULL, 0, NULL, 0,
+                                         NULL, 0 ) == 0 );
+
+            TEST_ASSERT( mbedtls_rsa_export_raw( &ctx, NULL, 0, NULL, 0,
+                                         bufQe, lenQ ? lenQ : sizeof( bufQe ),
+                                         NULL, 0, NULL, 0 ) == 0 );
+
+            TEST_ASSERT( mbedtls_rsa_export_raw( &ctx, NULL, 0, NULL, 0,
+                                         NULL, 0, bufDe, lenD ? lenD : sizeof( bufDe ),
+                                         NULL, 0 ) == 0 );
+        }
+
+        if( have_P )
+            TEST_ASSERT( memcmp( bufP, bufPe, lenP ) == 0 );
+
+        if( have_Q )
+            TEST_ASSERT( memcmp( bufQ, bufQe, lenQ ) == 0 );
+
+        if( have_D )
+            TEST_ASSERT( memcmp( bufD, bufDe, lenD ) == 0 );
+
+    }
+
+exit:
+    mbedtls_rsa_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_CTR_DRBG_C:MBEDTLS_ENTROPY_C */
 void mbedtls_rsa_import_raw( char *input_N,
                              char *input_P, char *input_Q,
                              char *input_D, char *input_E,

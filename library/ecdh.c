@@ -126,9 +126,18 @@ int mbedtls_ecdh_compute_shared( mbedtls_ecp_group *grp, mbedtls_mpi *z,
  */
 void mbedtls_ecdh_init( mbedtls_ecdh_context *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_ecdh_context ) );
+    mbedtls_ecp_group_init( &ctx->grp );
+    mbedtls_mpi_init( &ctx->d  );
+    mbedtls_ecp_point_init( &ctx->Q   );
+    mbedtls_ecp_point_init( &ctx->Qp  );
+    mbedtls_mpi_init( &ctx->z  );
+    ctx->point_format = MBEDTLS_ECP_PF_UNCOMPRESSED;
+    mbedtls_ecp_point_init( &ctx->Vi  );
+    mbedtls_ecp_point_init( &ctx->Vf  );
+    mbedtls_mpi_init( &ctx->_d );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
+    ctx->restart_enabled = 0;
     mbedtls_ecp_restart_init( &ctx->rs );
 #endif
 }
@@ -142,17 +151,19 @@ void mbedtls_ecdh_free( mbedtls_ecdh_context *ctx )
         return;
 
     mbedtls_ecp_group_free( &ctx->grp );
+    mbedtls_mpi_free( &ctx->d  );
     mbedtls_ecp_point_free( &ctx->Q   );
     mbedtls_ecp_point_free( &ctx->Qp  );
+    mbedtls_mpi_free( &ctx->z  );
     mbedtls_ecp_point_free( &ctx->Vi  );
     mbedtls_ecp_point_free( &ctx->Vf  );
-    mbedtls_mpi_free( &ctx->d  );
-    mbedtls_mpi_free( &ctx->z  );
     mbedtls_mpi_free( &ctx->_d );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     mbedtls_ecp_restart_free( &ctx->rs );
 #endif
+
+    mbedtls_ecdh_init( ctx );
 }
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)

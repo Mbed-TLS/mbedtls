@@ -138,7 +138,11 @@ struct mbedtls_ecp_restart_mul
  */
 static void ecp_restart_mul_init( mbedtls_ecp_restart_mul_ctx *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_ecp_restart_mul_ctx ) );
+    mbedtls_ecp_point_init( &ctx->R );
+    ctx->i = 0;
+    ctx->T = NULL;
+    ctx->T_size = 0;
+    ctx->state = ecp_rsm_init;
 }
 
 /*
@@ -160,7 +164,7 @@ static void ecp_restart_mul_free( mbedtls_ecp_restart_mul_ctx *ctx )
         mbedtls_free( ctx->T );
     }
 
-    memset( ctx, 0, sizeof( mbedtls_ecp_restart_mul_ctx ) );
+    ecp_restart_mul_init( ctx );
 }
 
 /*
@@ -183,7 +187,9 @@ struct mbedtls_ecp_restart_muladd
  */
 static void ecp_restart_muladd_init( mbedtls_ecp_restart_muladd_ctx *ctx )
 {
-    memset( ctx, 0, sizeof( *ctx ) );
+    mbedtls_ecp_point_init( &ctx->mP );
+    mbedtls_ecp_point_init( &ctx->R );
+    ctx->state = ecp_rsma_mul1;
 }
 
 /*
@@ -197,7 +203,7 @@ static void ecp_restart_muladd_free( mbedtls_ecp_restart_muladd_ctx *ctx )
     mbedtls_ecp_point_free( &ctx->mP );
     mbedtls_ecp_point_free( &ctx->R );
 
-    memset( ctx, 0, sizeof( *ctx ) );
+    ecp_restart_muladd_init( ctx );
 }
 
 /*
@@ -205,7 +211,10 @@ static void ecp_restart_muladd_free( mbedtls_ecp_restart_muladd_ctx *ctx )
  */
 void mbedtls_ecp_restart_init( mbedtls_ecp_restart_ctx *ctx )
 {
-    memset( ctx, 0, sizeof( *ctx ) );
+    ctx->ops_done = 0;
+    ctx->depth = 0;
+    ctx->rsm = NULL;
+    ctx->ma = NULL;
 }
 
 /*
@@ -216,16 +225,13 @@ void mbedtls_ecp_restart_free( mbedtls_ecp_restart_ctx *ctx )
     if( ctx == NULL )
         return;
 
-    ctx->ops_done = 0;
-    ctx->depth = 0;
-
     ecp_restart_mul_free( ctx->rsm );
     mbedtls_free( ctx->rsm );
-    ctx->rsm = NULL;
 
     ecp_restart_muladd_free( ctx->ma );
     mbedtls_free( ctx->ma );
-    ctx->ma = NULL;
+
+    mbedtls_ecp_restart_init( ctx );
 }
 
 /*
@@ -463,7 +469,21 @@ void mbedtls_ecp_group_init( mbedtls_ecp_group *grp )
     if( grp == NULL )
         return;
 
-    memset( grp, 0, sizeof( mbedtls_ecp_group ) );
+    grp->id = 0;
+    mbedtls_mpi_init( &grp->P );
+    mbedtls_mpi_init( &grp->A );
+    mbedtls_mpi_init( &grp->B );
+    mbedtls_ecp_point_init( &grp->G );
+    mbedtls_mpi_init( &grp->N );
+    grp->pbits = 0;
+    grp->nbits = 0;
+    grp->h = 0;
+    grp->modp = NULL;
+    grp->t_pre = NULL;
+    grp->t_post = NULL;
+    grp->t_data = NULL;
+    grp->T = NULL;
+    grp->T_size = 0;
 }
 
 /*
@@ -985,6 +1005,9 @@ static int ecp_normalize_jac_many( const mbedtls_ecp_group *grp,
 
     if( ( c = mbedtls_calloc( T_size, sizeof( mbedtls_mpi ) ) ) == NULL )
         return( MBEDTLS_ERR_ECP_ALLOC_FAILED );
+
+    for( i = 0; i < T_size; i++ )
+        mbedtls_mpi_init( &c[i] );
 
     mbedtls_mpi_init( &u ); mbedtls_mpi_init( &Zi ); mbedtls_mpi_init( &ZZi );
 
@@ -1906,6 +1929,9 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
             ret = MBEDTLS_ERR_ECP_ALLOC_FAILED;
             goto cleanup;
         }
+
+        for( i = 0; i < T_size; i++ )
+            mbedtls_ecp_point_init( &T[i] );
     }
 
     /* Compute table (or finish computing it) if not done already */

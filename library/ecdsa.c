@@ -69,7 +69,9 @@ struct mbedtls_ecdsa_restart_ver
  */
 static void ecdsa_restart_ver_init( mbedtls_ecdsa_restart_ver_ctx *ctx )
 {
-    memset( ctx, 0, sizeof( *ctx ) );
+    mbedtls_mpi_init( &ctx->u1 );
+    mbedtls_mpi_init( &ctx->u2 );
+    ctx->state = ecdsa_ver_init;
 }
 
 /*
@@ -83,7 +85,7 @@ static void ecdsa_restart_ver_free( mbedtls_ecdsa_restart_ver_ctx *ctx )
     mbedtls_mpi_free( &ctx->u1 );
     mbedtls_mpi_free( &ctx->u2 );
 
-    memset( ctx, 0, sizeof( *ctx ) );
+    ecdsa_restart_ver_init( ctx );
 }
 
 /*
@@ -107,10 +109,11 @@ struct mbedtls_ecdsa_restart_sig
  */
 static void ecdsa_restart_sig_init( mbedtls_ecdsa_restart_sig_ctx *ctx )
 {
-    memset( ctx, 0, sizeof( *ctx ) );
-
+    ctx->sign_tries = 0;
+    ctx->key_tries = 0;
     mbedtls_mpi_init( &ctx->k );
     mbedtls_mpi_init( &ctx->r );
+    ctx->state = ecdsa_sig_init;
 }
 
 /*
@@ -124,7 +127,7 @@ static void ecdsa_restart_sig_free( mbedtls_ecdsa_restart_sig_ctx *ctx )
     mbedtls_mpi_free( &ctx->k );
     mbedtls_mpi_free( &ctx->r );
 
-    memset( ctx, 0, sizeof( *ctx ) );
+    ecdsa_restart_sig_init( ctx );
 }
 
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
@@ -145,9 +148,8 @@ struct mbedtls_ecdsa_restart_det
  */
 static void ecdsa_restart_det_init( mbedtls_ecdsa_restart_det_ctx *ctx )
 {
-    memset( ctx, 0, sizeof( *ctx ) );
-
     mbedtls_hmac_drbg_init( &ctx->rng_ctx );
+    ctx->state = ecdsa_det_init;
 }
 
 /*
@@ -160,7 +162,7 @@ static void ecdsa_restart_det_free( mbedtls_ecdsa_restart_det_ctx *ctx )
 
     mbedtls_hmac_drbg_free( &ctx->rng_ctx );
 
-    memset( ctx, 0, sizeof( *ctx ) );
+    ecdsa_restart_det_init( ctx );
 }
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 

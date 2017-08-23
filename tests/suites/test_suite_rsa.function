@@ -590,6 +590,7 @@ void mbedtls_rsa_check_privkey( int mod, int radix_P, char *input_P, int radix_Q
     {
         TEST_ASSERT( mbedtls_mpi_read_string( &ctx.D, radix_D, input_D ) == 0 );
     }
+#if !defined(MBEDTLS_RSA_NO_CRT)
     if( strlen( input_DP ) )
     {
         TEST_ASSERT( mbedtls_mpi_read_string( &ctx.DP, radix_DP, input_DP ) == 0 );
@@ -602,6 +603,11 @@ void mbedtls_rsa_check_privkey( int mod, int radix_P, char *input_P, int radix_Q
     {
         TEST_ASSERT( mbedtls_mpi_read_string( &ctx.QP, radix_QP, input_QP ) == 0 );
     }
+#else
+    ((void) radix_DP); ((void) input_DP);
+    ((void) radix_DQ); ((void) input_DQ);
+    ((void) radix_QP); ((void) input_QP);
+#endif
 
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == result );
 
@@ -657,6 +663,7 @@ void rsa_check_pubpriv( int mod, int radix_Npub, char *input_Npub,
     {
         TEST_ASSERT( mbedtls_mpi_read_string( &prv.D, radix_D, input_D ) == 0 );
     }
+#if !defined(MBEDTLS_RSA_NO_CRT)
     if( strlen( input_DP ) )
     {
         TEST_ASSERT( mbedtls_mpi_read_string( &prv.DP, radix_DP, input_DP ) == 0 );
@@ -669,6 +676,11 @@ void rsa_check_pubpriv( int mod, int radix_Npub, char *input_Npub,
     {
         TEST_ASSERT( mbedtls_mpi_read_string( &prv.QP, radix_QP, input_QP ) == 0 );
     }
+#else
+    ((void) radix_DP); ((void) input_DP);
+    ((void) radix_DQ); ((void) input_DQ);
+    ((void) radix_QP); ((void) input_QP);
+#endif
 
     TEST_ASSERT( mbedtls_rsa_check_pub_priv( &pub, &prv ) == result );
 

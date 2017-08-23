@@ -136,7 +136,7 @@ struct mbedtls_ecp_restart_mul
 /*
  * Init restart_mul sub-context
  */
-static void ecp_restart_mul_init( mbedtls_ecp_restart_mul_ctx *ctx )
+static void ecp_restart_rsm_init( mbedtls_ecp_restart_mul_ctx *ctx )
 {
     mbedtls_ecp_point_init( &ctx->R );
     ctx->i = 0;
@@ -148,7 +148,7 @@ static void ecp_restart_mul_init( mbedtls_ecp_restart_mul_ctx *ctx )
 /*
  * Free the components of a restart_mul sub-context
  */
-static void ecp_restart_mul_free( mbedtls_ecp_restart_mul_ctx *ctx )
+static void ecp_restart_rsm_free( mbedtls_ecp_restart_mul_ctx *ctx )
 {
     unsigned char i;
 
@@ -164,7 +164,7 @@ static void ecp_restart_mul_free( mbedtls_ecp_restart_mul_ctx *ctx )
         mbedtls_free( ctx->T );
     }
 
-    ecp_restart_mul_init( ctx );
+    ecp_restart_rsm_init( ctx );
 }
 
 /*
@@ -185,7 +185,7 @@ struct mbedtls_ecp_restart_muladd
 /*
  * Init restart_muladd sub-context
  */
-static void ecp_restart_muladd_init( mbedtls_ecp_restart_muladd_ctx *ctx )
+static void ecp_restart_ma_init( mbedtls_ecp_restart_muladd_ctx *ctx )
 {
     mbedtls_ecp_point_init( &ctx->mP );
     mbedtls_ecp_point_init( &ctx->R );
@@ -195,7 +195,7 @@ static void ecp_restart_muladd_init( mbedtls_ecp_restart_muladd_ctx *ctx )
 /*
  * Free the components of a restart_muladd sub-context
  */
-static void ecp_restart_muladd_free( mbedtls_ecp_restart_muladd_ctx *ctx )
+static void ecp_restart_ma_free( mbedtls_ecp_restart_muladd_ctx *ctx )
 {
     if( ctx == NULL )
         return;
@@ -203,7 +203,7 @@ static void ecp_restart_muladd_free( mbedtls_ecp_restart_muladd_ctx *ctx )
     mbedtls_ecp_point_free( &ctx->mP );
     mbedtls_ecp_point_free( &ctx->R );
 
-    ecp_restart_muladd_init( ctx );
+    ecp_restart_ma_init( ctx );
 }
 
 /*
@@ -225,10 +225,10 @@ void mbedtls_ecp_restart_free( mbedtls_ecp_restart_ctx *ctx )
     if( ctx == NULL )
         return;
 
-    ecp_restart_mul_free( ctx->rsm );
+    ecp_restart_rsm_free( ctx->rsm );
     mbedtls_free( ctx->rsm );
 
-    ecp_restart_muladd_free( ctx->ma );
+    ecp_restart_ma_free( ctx->ma );
     mbedtls_free( ctx->ma );
 
     mbedtls_ecp_restart_init( ctx );
@@ -260,6 +260,44 @@ int mbedtls_ecp_check_budget( const mbedtls_ecp_group *grp,
 
     return( 0 );
 }
+
+/* Call this when entering a function that needs its own sub-context */
+#define ECP_RS_ENTER( SUB )   do {                                 \
+    /* reset ops count for this call if top-level */                 \
+    if( rs_ctx != NULL && rs_ctx->depth++ == 0 )                 \
+        rs_ctx->ops_done = 0;                                    \
+                                                                     \
+    /* set up our own sub-context if needed */                       \
+    if( mbedtls_ecp_restart_enabled() &&                             \
+        rs_ctx != NULL && rs_ctx->SUB == NULL )                      \
+    {                                                                \
+        rs_ctx->SUB = mbedtls_calloc( 1, sizeof( *rs_ctx->SUB ) );   \
+        if( rs_ctx->SUB == NULL )                                    \
+            return( MBEDTLS_ERR_ECP_ALLOC_FAILED );                  \
+                                                                     \
+        ecp_restart_## SUB ##_init( rs_ctx->SUB );                 \
+    }                                                                \
+} while( 0 )
+
+/* Call this when leaving a function that needs its own sub-context */
+#define ECP_RS_LEAVE( SUB )   do {                                 \
+    /* clear our sub-context when not in progress (done or error) */ \
+    if( rs_ctx != NULL && rs_ctx->SUB != NULL &&                     \
+        ret != MBEDTLS_ERR_ECP_IN_PROGRESS )                         \
+    {                                                                \
+        ecp_restart_## SUB ##_free( rs_ctx->SUB );                 \
+        mbedtls_free( rs_ctx->SUB );                                 \
+        rs_ctx->SUB = NULL;                                          \
+    }                                                                \
+                                                                     \
+    if( rs_ctx != NULL )                                             \
+        rs_ctx->depth--;                                         \
+} while( 0 )
+
+#else /* MBEDTLS_ECP_RESTARTABLE */
+
+#define ECP_RS_ENTER( sub )     (void) rs_ctx;
+#define ECP_RS_LEAVE( sub )     (void) rs_ctx;
 
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
@@ -1872,21 +1910,7 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     unsigned char T_size = 0, T_ok = 0;
     mbedtls_ecp_point *T = NULL;
 
-#if !defined(MBEDTLS_ECP_RESTARTABLE)
-    (void) rs_ctx;
-#endif
-
-#if defined(MBEDTLS_ECP_RESTARTABLE)
-    /* set up our own sub-context if needed */
-    if( ecp_max_ops != 0 && rs_ctx != NULL && rs_ctx->rsm == NULL )
-    {
-        rs_ctx->rsm = mbedtls_calloc( 1, sizeof( mbedtls_ecp_restart_mul_ctx ) );
-        if( rs_ctx->rsm == NULL )
-            return( MBEDTLS_ERR_ECP_ALLOC_FAILED );
-
-        ecp_restart_mul_init( rs_ctx->rsm );
-    }
-#endif
+    ECP_RS_ENTER( rsm );
 
     /* Is P the base point ? */
 #if MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
@@ -1987,16 +2011,7 @@ cleanup:
     if( ret != 0 )
         mbedtls_ecp_point_free( R );
 
-    /* clear our sub-context when not in progress (done or error) */
-#if defined(MBEDTLS_ECP_RESTARTABLE)
-    if( rs_ctx != NULL && rs_ctx->rsm != NULL &&
-        ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
-    {
-        ecp_restart_mul_free( rs_ctx->rsm );
-        mbedtls_free( rs_ctx->rsm );
-        rs_ctx->rsm = NULL;
-    }
-#endif
+    ECP_RS_LEAVE( rsm );
 
     return( ret );
 }
@@ -2373,10 +2388,6 @@ int mbedtls_ecp_muladd_restartable(
     char is_grp_capable = 0;
 #endif
 
-#if !defined(MBEDTLS_ECP_RESTARTABLE)
-    (void) rs_ctx;
-#endif
-
     if( ecp_get_type( grp ) != ECP_TYPE_SHORT_WEIERSTRASS )
         return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
 
@@ -2387,21 +2398,9 @@ int mbedtls_ecp_muladd_restartable(
         MBEDTLS_MPI_CHK( mbedtls_internal_ecp_init( grp ) );
 #endif /* MBEDTLS_ECP_INTERNAL_ALT */
 
+    ECP_RS_ENTER( ma );
+
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-    /* reset ops count for this call if top-level */
-    if( rs_ctx != NULL && rs_ctx->depth++ == 0 )
-        rs_ctx->ops_done = 0;
-
-    /* set up our own sub-context if needed */
-    if( ecp_max_ops != 0 && rs_ctx != NULL && rs_ctx->ma == NULL )
-    {
-        rs_ctx->ma = mbedtls_calloc( 1, sizeof( mbedtls_ecp_restart_muladd_ctx ) );
-        if( rs_ctx->ma == NULL )
-            return( MBEDTLS_ERR_ECP_ALLOC_FAILED );
-
-        ecp_restart_muladd_init( rs_ctx->ma );
-    }
-
     if( rs_ctx != NULL && rs_ctx->ma != NULL )
     {
         /* redirect intermediate results to restart context */
@@ -2456,19 +2455,7 @@ cleanup:
 
     mbedtls_ecp_point_free( &mP );
 
-#if defined(MBEDTLS_ECP_RESTARTABLE)
-    /* clear our sub-context when not in progress (done or error) */
-    if( rs_ctx != NULL && rs_ctx->ma != NULL &&
-        ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
-    {
-        ecp_restart_muladd_free( rs_ctx->ma );
-        mbedtls_free( rs_ctx->ma );
-        rs_ctx->ma = NULL;
-    }
-
-    if( rs_ctx != NULL )
-        rs_ctx->depth--;
-#endif /* MBEDTLS_ECP_RESTARTABLE */
+    ECP_RS_LEAVE( ma );
 
     return( ret );
 }

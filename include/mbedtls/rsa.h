@@ -274,6 +274,190 @@ void mbedtls_rsa_init( mbedtls_rsa_context *ctx,
                int padding,
                int hash_id);
 
+
+/**
+ * \brief          Import a set of core parameters into an RSA context
+ *
+ * \param ctx      Initialized RSA context to store parameters
+ * \param N        RSA modulus, or NULL
+ * \param P        First prime factor of N, or NULL
+ * \param Q        Second prime factor of N, or NULL
+ * \param D        Private exponent, or NULL
+ * \param E        Public exponent, or NULL
+ *
+ * \note           This function can be called multiple times for successive
+ *                 imports if the parameters are not simultaneously present.
+ *                 Any sequence of calls to this function should be followed
+ *                 by a call to \c mbedtls_rsa_complete which will check
+ *                 and complete the provided information to a ready-for-use
+ *                 public or private RSA key.
+ *
+ * \return         0 if successful, non-zero error code on failure.
+ */
+int mbedtls_rsa_import( mbedtls_rsa_context *ctx,
+                        const mbedtls_mpi *N,
+                        const mbedtls_mpi *P, const mbedtls_mpi *Q,
+                        const mbedtls_mpi *D, const mbedtls_mpi *E );
+
+/**
+ * \brief          Import core RSA parameters in raw big-endian
+ *                 binary format into an RSA context
+ *
+ * \param ctx      Initialized RSA context to store parameters
+ * \param N        RSA modulus, or NULL
+ * \param N_len    Byte length of N, ignored if N == NULL
+ * \param P        First prime factor of N, or NULL
+ * \param P_len    Byte length of P, ignored if P == NULL
+ * \param Q        Second prime factor of N, or NULL
+ * \param Q_len    Byte length of Q, ignored if Q == NULL
+ * \param D        Private exponent, or NULL
+ * \param D_len    Byte length of D, ignored if D == NULL
+ * \param E        Public exponent, or NULL
+ * \param E_len    Byte length of E, ignored if E == NULL
+ *
+ * \note           This function can be called multiple times for successive
+ *                 imports if the parameters are not simultaneously present.
+ *                 Any sequence of calls to this function should be followed
+ *                 by a call to \c mbedtls_rsa_complete which will check
+ *                 and complete the provided information to a ready-for-use
+ *                 public or private RSA key.
+ *
+ * \return         0 if successful, non-zero error code on failure.
+ */
+
+int mbedtls_rsa_import_raw( mbedtls_rsa_context *ctx,
+                            unsigned char *N, size_t N_len,
+                            unsigned char *P, size_t P_len,
+                            unsigned char *Q, size_t Q_len,
+                            unsigned char *D, size_t D_len,
+                            unsigned char *E, size_t E_len );
+
+/**
+ * \brief          Attempt to complete an RSA context from
+ *                 a set of imported core parameters.
+ *
+ * \param ctx      Initialized RSA context to store parameters
+ * \param f_rng    RNG function,
+ * \param p_rng    RNG parameter
+ *
+ *                 To setup an RSA public key, precisely N and E
+ *                 must have been imported.
+ *
+ *                 To setup an RSA private key, enough information must be
+ *                 present for the other parameters to be efficiently derivable.
+ *
+ *                 The default implementation supports the following:
+ *                 (a) Derive P, Q from N, D, E
+ *                 (b) Derive N, D from P, Q, E.
+ *
+ *                 Alternative implementations need not support these
+ *                 and may return MBEDTLS_ERR_RSA_BAD_INPUT_DATA instead.
+ *
+ * \note           The PRNG is used for probabilistic algorithms
+ *                 like the derivation of P, Q from N, D, E, as
+ *                 well as primality checks.
+ *
+ * \return         - 0 if successful. In this case, all core parameters
+ *                   as well as other internally needed parameters have
+ *                   been generated, and it is guaranteed that they are
+ *                   sane in the sense of \c mbedtls_rsa_check_params
+ *                   (with primality of P, Q checked if a PRNG is given).
+ *                 - MBEDTLS_ERR_RSA_BAD_INPUT_DATA if the attempted
+ *                   derivations failed.
+ */
+int mbedtls_rsa_complete( mbedtls_rsa_context *ctx,
+                          int (*f_rng)(void *, unsigned char *, size_t),
+                          void *p_rng );
+
+/**
+ * \brief          Check if CRT-parameters match core parameters
+ *
+ * \param ctx      Complete RSA private key context
+ * \param DP       Private exponent modulo P-1, or NULL
+ * \param DQ       Private exponent modulo Q-1, or NULL
+ * \param QP       Modular inverse of Q modulo P, or NULL
+ *
+ * \return         0 if successful, testifying that the non-NULL optional
+ *                 parameters provided are in accordance with the core
+ *                 RSA parameters. Non-zero error code otherwise.
+ *
+ * \note           This function performs in-place computations on the
+ *                 parameters DP, DQ and QP. If modification cannot be
+ *                 tolerated, you should make copies with mbedtls_mpi_copy
+ *                 before calling this function.
+ *
+ */
+int mbedtls_rsa_check_crt( mbedtls_rsa_context *ctx,
+                           mbedtls_mpi *DP,
+                           mbedtls_mpi *DQ,
+                           mbedtls_mpi *QP );
+
+/**
+ * \brief          Export core parameters of an RSA key
+ *
+ * \param ctx      Initialized RSA context
+ * \param N        MPI to hold the RSA modulus, or NULL
+ * \param P        MPI to hold the first prime factor of N, or NULL
+ * \param Q        MPI to hold the second prime factor of N, or NULL
+ * \param D        MPI to hold the private exponent, or NULL
+ * \param E        MPI to hold the public exponent, or NULL
+ *
+ * \return         0 if successful, non-zero error code otherwise.
+ *
+ */
+int mbedtls_rsa_export( const mbedtls_rsa_context *ctx,
+                        mbedtls_mpi *N, mbedtls_mpi *P, mbedtls_mpi *Q,
+                        mbedtls_mpi *D, mbedtls_mpi *E );
+
+/**
+ * \brief          Export core parameters of an RSA key
+ *                 in raw big-endian binary format
+ *
+ * \param ctx      Initialized RSA context
+ * \param N        Byte array to store the RSA modulus, or NULL
+ * \param N_len    Size of buffer for modulus
+ * \param P        Byte array to hold the first prime factor of N, or NULL
+ * \param P_len    Size of buffer for first prime factor
+ * \param Q        Byte array to hold the second prime factor of N, or NULL
+ * \param Q_len    Size of buffer for second prime factor
+ * \param D        Byte array to hold the private exponent, or NULL
+ * \param D_len    Size of buffer for private exponent
+ * \param E        Byte array to hold the public exponent, or NULL
+ * \param E_len    Size of buffer for public exponent
+ *
+ * \note           The length fields are ignored if the corresponding
+ *                 buffer pointers are NULL.
+ *
+ * \return         0 if successful. In this case, the non-NULL buffers
+ *                 pointed to by N, P, Q, D, E are fully written, with
+ *                 additional unused space filled leading by 0-bytes.
+ *
+ */
+int mbedtls_rsa_export_raw( const mbedtls_rsa_context *ctx,
+                            unsigned char *N, size_t N_len,
+                            unsigned char *P, size_t P_len,
+                            unsigned char *Q, size_t Q_len,
+                            unsigned char *D, size_t D_len,
+                            unsigned char *E, size_t E_len );
+
+/**
+ * \brief          Export CRT parameters of a private RSA key
+ *
+ * \param ctx      Initialized RSA context
+ * \param DP       MPI to hold D modulo P-1, or NULL
+ * \param DQ       MPI to hold D modulo Q-1, or NULL
+ * \param QP       MPI to hold modular inverse of Q modulo P, or NULL
+ *
+ * \return         0 if successful, non-zero error code otherwise.
+ *
+ * \note           Alternative RSA implementations not using CRT-parameters
+ *                 internally can implement this function using based on
+ *                 \c mbedtls_rsa_deduce_opt.
+ *
+ */
+int mbedtls_rsa_export_crt( const mbedtls_rsa_context *ctx,
+                            mbedtls_mpi *DP, mbedtls_mpi *DQ, mbedtls_mpi *QP );
+
 /**
  * \brief          Set padding for an already initialized RSA context
  *                 See \c mbedtls_rsa_init() for details.
@@ -283,6 +467,16 @@ void mbedtls_rsa_init( mbedtls_rsa_context *ctx,
  * \param hash_id  MBEDTLS_RSA_PKCS_V21 hash identifier
  */
 void mbedtls_rsa_set_padding( mbedtls_rsa_context *ctx, int padding, int hash_id);
+
+/**
+ * \brief          Get length of RSA modulus in bytes
+ *
+ * \param ctx      Initialized RSA context
+ *
+ * \return         Length of RSA modulus, in bytes.
+ *
+ */
+size_t mbedtls_rsa_get_len( const mbedtls_rsa_context *ctx );
 
 /**
  * \brief          Generate an RSA keypair
@@ -469,7 +663,7 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
  *                 as large as the size ctx->len of ctx->N (eg. 128 bytes
  *                 if RSA-1024 is used) to be able to hold an arbitrary
  *                 decrypted message. If it is not large enough to hold
- *                 the decryption of the particular ciphertext provided, 
+ *                 the decryption of the particular ciphertext provided,
  *                 the function will return MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE.
  *
  * \note           The input buffer must be as large as the size
@@ -501,7 +695,7 @@ int mbedtls_rsa_pkcs1_decrypt( mbedtls_rsa_context *ctx,
  *                 as large as the size ctx->len of ctx->N (eg. 128 bytes
  *                 if RSA-1024 is used) to be able to hold an arbitrary
  *                 decrypted message. If it is not large enough to hold
- *                 the decryption of the particular ciphertext provided, 
+ *                 the decryption of the particular ciphertext provided,
  *                 the function will return MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE.
  *
  * \note           The input buffer must be as large as the size

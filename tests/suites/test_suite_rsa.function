@@ -807,6 +807,205 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_CTR_DRBG_C:MBEDTLS_ENTROPY_C */
+void mbedtls_rsa_import( int radix_N, char *input_N,
+                         int radix_P, char *input_P,
+                         int radix_Q, char *input_Q,
+                         int radix_D, char *input_D,
+                         int radix_E, char *input_E,
+                         int successive,
+                         int result )
+{
+    mbedtls_mpi N, P, Q, D, E;
+    mbedtls_rsa_context ctx;
+
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
+    const char *pers = "test_suite_rsa";
+
+    mbedtls_ctr_drbg_init( &ctr_drbg );
+
+    mbedtls_entropy_init( &entropy );
+    TEST_ASSERT( mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
+                                (const unsigned char *) pers, strlen( pers ) ) == 0 );
+
+    mbedtls_rsa_init( &ctx, 0, 0 );
+
+    mbedtls_mpi_init( &N );
+    mbedtls_mpi_init( &P ); mbedtls_mpi_init( &Q );
+    mbedtls_mpi_init( &D ); mbedtls_mpi_init( &E );
+
+    if( strlen( input_N ) )
+        TEST_ASSERT( mbedtls_mpi_read_string( &N, radix_N, input_N ) == 0 );
+
+    if( strlen( input_P ) )
+        TEST_ASSERT( mbedtls_mpi_read_string( &P, radix_P, input_P ) == 0 );
+
+    if( strlen( input_Q ) )
+        TEST_ASSERT( mbedtls_mpi_read_string( &Q, radix_Q, input_Q ) == 0 );
+
+    if( strlen( input_D ) )
+        TEST_ASSERT( mbedtls_mpi_read_string( &D, radix_D, input_D ) == 0 );
+
+    if( strlen( input_E ) )
+        TEST_ASSERT( mbedtls_mpi_read_string( &E, radix_E, input_E ) == 0 );
+
+    if( !successive )
+    {
+        TEST_ASSERT( mbedtls_rsa_import( &ctx,
+                             strlen( input_N ) ? &N : NULL,
+                             strlen( input_P ) ? &P : NULL,
+                             strlen( input_Q ) ? &Q : NULL,
+                             strlen( input_D ) ? &D : NULL,
+                             strlen( input_E ) ? &E : NULL ) == 0 );
+    }
+    else
+    {
+        /* Import N, P, Q, D, E separately.
+         * This should make no functional difference. */
+
+        TEST_ASSERT( mbedtls_rsa_import( &ctx,
+                               strlen( input_N ) ? &N : NULL,
+                               NULL, NULL, NULL, NULL ) == 0 );
+
+        TEST_ASSERT( mbedtls_rsa_import( &ctx,
+                               NULL,
+                               strlen( input_P ) ? &P : NULL,
+                               NULL, NULL, NULL ) == 0 );
+
+        TEST_ASSERT( mbedtls_rsa_import( &ctx,
+                               NULL, NULL,
+                               strlen( input_Q ) ? &Q : NULL,
+                               NULL, NULL ) == 0 );
+
+        TEST_ASSERT( mbedtls_rsa_import( &ctx,
+                               NULL, NULL, NULL,
+                               strlen( input_D ) ? &D : NULL,
+                               NULL ) == 0 );
+
+        TEST_ASSERT( mbedtls_rsa_import( &ctx,
+                               NULL, NULL, NULL, NULL,
+                               strlen( input_E ) ? &E : NULL ) == 0 );
+    }
+
+    TEST_ASSERT( mbedtls_rsa_complete( &ctx,
+                                       mbedtls_ctr_drbg_random,
+                                       &ctr_drbg ) == result );
+
+exit:
+
+    mbedtls_rsa_free( &ctx );
+
+    mbedtls_ctr_drbg_free( &ctr_drbg );
+    mbedtls_entropy_free( &entropy );
+
+    mbedtls_mpi_free( &N );
+    mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
+    mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_CTR_DRBG_C:MBEDTLS_ENTROPY_C */
+void mbedtls_rsa_import_raw( char *input_N,
+                             char *input_P, char *input_Q,
+                             char *input_D, char *input_E,
+                             int successive,
+                             int result )
+{
+    unsigned char bufN[1000];
+    unsigned char bufP[1000];
+    unsigned char bufQ[1000];
+    unsigned char bufD[1000];
+    unsigned char bufE[1000];
+
+    size_t lenN = 0;
+    size_t lenP = 0;
+    size_t lenQ = 0;
+    size_t lenD = 0;
+    size_t lenE = 0;
+
+    mbedtls_rsa_context ctx;
+
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
+    const char *pers = "test_suite_rsa";
+
+    mbedtls_ctr_drbg_init( &ctr_drbg );
+
+    mbedtls_entropy_init( &entropy );
+    TEST_ASSERT( mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func,
+                                        &entropy, (const unsigned char *) pers,
+                                        strlen( pers ) ) == 0 );
+
+    mbedtls_rsa_init( &ctx, 0, 0 );
+
+    if( strlen( input_N ) )
+        lenN = unhexify( bufN, input_N );
+
+    if( strlen( input_P ) )
+        lenP = unhexify( bufP, input_P );
+
+    if( strlen( input_Q ) )
+        lenQ = unhexify( bufQ, input_Q );
+
+    if( strlen( input_D ) )
+        lenD = unhexify( bufD, input_D );
+
+    if( strlen( input_E ) )
+        lenE = unhexify( bufE, input_E );
+
+    if( !successive )
+    {
+        TEST_ASSERT( mbedtls_rsa_import_raw( &ctx,
+                               ( lenN > 0 ) ? bufN : NULL, lenN,
+                               ( lenP > 0 ) ? bufP : NULL, lenP,
+                               ( lenQ > 0 ) ? bufQ : NULL, lenQ,
+                               ( lenD > 0 ) ? bufD : NULL, lenD,
+                               ( lenE > 0 ) ? bufE : NULL, lenE ) == 0 );
+    }
+    else
+    {
+        /* Import N, P, Q, D, E separately.
+         * This should make no functional difference. */
+
+        TEST_ASSERT( mbedtls_rsa_import_raw( &ctx,
+                               ( lenN > 0 ) ? bufN : NULL, lenN,
+                               NULL, 0, NULL, 0, NULL, 0, NULL, 0 ) == 0 );
+
+        TEST_ASSERT( mbedtls_rsa_import_raw( &ctx,
+                               NULL, 0,
+                               ( lenP > 0 ) ? bufP : NULL, lenP,
+                               NULL, 0, NULL, 0, NULL, 0 ) == 0 );
+
+        TEST_ASSERT( mbedtls_rsa_import_raw( &ctx,
+                               NULL, 0, NULL, 0,
+                               ( lenQ > 0 ) ? bufQ : NULL, lenQ,
+                               NULL, 0, NULL, 0 ) == 0 );
+
+        TEST_ASSERT( mbedtls_rsa_import_raw( &ctx,
+                               NULL, 0, NULL, 0, NULL, 0,
+                               ( lenD > 0 ) ? bufD : NULL, lenD,
+                               NULL, 0 ) == 0 );
+
+        TEST_ASSERT( mbedtls_rsa_import_raw( &ctx,
+                               NULL, 0, NULL, 0, NULL, 0, NULL, 0,
+                               ( lenE > 0 ) ? bufE : NULL, lenE ) == 0 );
+    }
+
+    TEST_ASSERT( mbedtls_rsa_complete( &ctx,
+                                       mbedtls_ctr_drbg_random,
+                                       &ctr_drbg ) == result );
+
+exit:
+
+    mbedtls_rsa_free( &ctx );
+
+    mbedtls_ctr_drbg_free( &ctr_drbg );
+    mbedtls_entropy_free( &entropy );
+
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void rsa_selftest()
 {

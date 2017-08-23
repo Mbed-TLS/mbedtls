@@ -72,6 +72,407 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 }
 
 /*
+ * Context-independent RSA helper functions.
+ *
+ * The following three functions
+ * - mbedtls_rsa_deduce_moduli
+ * - mbedtls_rsa_deduce_private
+ * - mbedtls_rsa_check_params
+ * are helper functions operating on the core RSA parameters
+ * (represented as MPI's). They do not use the RSA context structure
+ * and therefore need not be replaced when providing an alternative
+ * RSA implementation.
+ *
+ * Their purpose is to provide common MPI operations in the context
+ * of RSA that can be easily shared across multiple implementations.
+ */
+
+/*
+ * mbedtls_rsa_deduce_moduli
+ *
+ * Given the modulus N=PQ and a pair of public and private
+ * exponents E and D, respectively, factor N.
+ *
+ * Setting F := lcm(P-1,Q-1), the idea is as follows:
+ *
+ * (a) For any 1 <= X < N with gcd(X,N)=1, we have X^F = 1 modulo N, so X^(F/2)
+ *     is a square root of 1 in Z/NZ. Since Z/NZ ~= Z/PZ x Z/QZ by CRT and the
+ *     square roots of 1 in Z/PZ and Z/QZ are +1 and -1, this leaves the four
+ *     possibilities X^(F/2) = (+-1, +-1). If it happens that X^(F/2) = (-1,+1)
+ *     or (+1,-1), then gcd(X^(F/2) + 1, N) will be equal to one of the prime
+ *     factors of N.
+ *
+ * (b) If we don't know F/2 but (F/2) * K for some odd (!) K, then the same
+ *     construction still applies since (-)^K is the identity on the set of
+ *     roots of 1 in Z/NZ.
+ *
+ * The public and private key primitives (-)^E and (-)^D are mutually inverse
+ * bijections on Z/NZ if and only if (-)^(DE) is the identity on Z/NZ, i.e.
+ * if and only if DE - 1 is a multiple of F, say DE - 1 = F * L.
+ * Splitting L = 2^t * K with K odd, we have
+ *
+ *   DE - 1 = FL = (F/2) * (2^(t+1)) * K,
+ *
+ * so (F / 2) * K is among the numbers
+ *
+ *   (DE - 1) >> 1, (DE - 1) >> 2, ..., (DE - 1) >> ord
+ *
+ * where ord is the order of 2 in (DE - 1).
+ * We can therefore iterate through these numbers apply the construction
+ * of (a) and (b) above to attempt to factor N.
+ *
+ */
+int mbedtls_rsa_deduce_moduli( mbedtls_mpi *N, mbedtls_mpi *D, mbedtls_mpi *E,
+                     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+                     mbedtls_mpi *P, mbedtls_mpi *Q )
+{
+    /* Implementation note:
+     *
+     * Space-efficiency is given preference over time-efficiency here:
+     * several calculations are done in place and temporarily change
+     * the values of D and E.
+     *
+     * Specifically, D is replaced the largest odd divisor of DE - 1
+     * throughout the calculations.
+     */
+
+    int ret = 0;
+
+    uint16_t attempt;  /* Number of current attempt  */
+    uint16_t iter;     /* Number of squares computed in the current attempt */
+
+    uint16_t bitlen_half; /* Half the bitsize of the modulus N */
+    uint16_t order;       /* Order of 2 in DE - 1 */
+
+    mbedtls_mpi K;  /* Temporary used for two purposes:
+                     * - During factorization attempts, stores a andom integer
+                     *   in the range of [0,..,N]
+                     * - During verification, holding intermediate results.
+                     */
+
+    if( P == NULL || Q == NULL || P->p != NULL || Q->p != NULL )
+        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+
+    if( mbedtls_mpi_cmp_int( N, 0 ) <= 0 ||
+        mbedtls_mpi_cmp_int( D, 1 ) <= 0 ||
+        mbedtls_mpi_cmp_mpi( D, N ) >= 0 ||
+        mbedtls_mpi_cmp_int( E, 1 ) <= 0 ||
+        mbedtls_mpi_cmp_mpi( E, N ) >= 0 )
+    {
+        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+    }
+
+    /*
+     * Initializations and temporary changes
+     */
+
+    mbedtls_mpi_init( &K );
+    mbedtls_mpi_init( P );
+    mbedtls_mpi_init( Q );
+
+    /* Replace D by DE - 1 */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( D, D, E ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( D, D, 1 ) );
+
+    if( ( order = mbedtls_mpi_lsb( D ) ) == 0 )
+    {
+        ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+        goto cleanup;
+    }
+
+    /* After this operation, D holds the largest odd divisor
+     * of DE - 1 for the original values of D and E. */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( D, order ) );
+
+    /* This is used to generate a few numbers around N / 2
+     * if no PRNG is provided. */
+    if( f_rng == NULL )
+        bitlen_half = mbedtls_mpi_bitlen( N ) / 2;
+
+    /*
+     * Actual work
+     */
+
+    for( attempt = 0; attempt < 30; ++attempt )
+    {
+        /* Generate some number in [0,N], either randomly
+         * if a PRNG is given, or try numbers around N/2 */
+        if( f_rng != NULL )
+        {
+            MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &K,
+                                        mbedtls_mpi_size( N ),
+                                        f_rng, p_rng ) );
+        }
+        else
+        {
+            MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &K, 1 ) ) ;
+            MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( &K, bitlen_half ) ) ;
+            MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( &K, &K, attempt + 1 ) );
+        }
+
+        /* Check if gcd(K,N) = 1 */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_gcd( P, &K, N ) );
+        if( mbedtls_mpi_cmp_int( P, 1 ) != 0 )
+            continue;
+
+        /* Go through K^X + 1, K^(2X) + 1, K^(4X) + 1, ...
+         * and check whether they have nontrivial GCD with N. */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &K, &K, D, N,
+                             Q /* temporarily use Q for storing Montgomery
+                                * multiplication helper values */ ) );
+
+        for( iter = 1; iter < order; ++iter )
+        {
+            MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( &K, &K, 1 ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_gcd( P, &K, N ) );
+
+            if( mbedtls_mpi_cmp_int( P, 1 ) ==  1 &&
+                mbedtls_mpi_cmp_mpi( P, N ) == -1 )
+            {
+                /*
+                 * Have found a nontrivial divisor P of N.
+                 * Set Q := N / P and verify D, E.
+                 */
+
+                MBEDTLS_MPI_CHK( mbedtls_mpi_div_mpi( Q, &K, N, P ) );
+
+                /*
+                 * Verify that DE - 1 is indeed a multiple of
+                 * lcm(P-1, Q-1), i.e. that it's a multiple of both
+                 * P-1 and Q-1.
+                 */
+
+                /* Restore DE - 1 and temporarily replace P, Q by P-1, Q-1. */
+                MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( D, order ) );
+                MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( P, P, 1 ) );
+                MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( Q, Q, 1 ) );
+
+                /* Compute DE-1 mod P-1 */
+                MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &K, D, P ) );
+                if( mbedtls_mpi_cmp_int( &K, 0 ) != 0 )
+                {
+                    ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+                    goto cleanup;
+                }
+
+                /* Compute DE-1 mod Q-1 */
+                MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &K, D, Q ) );
+                if( mbedtls_mpi_cmp_int( &K, 0 ) != 0 )
+                {
+                    ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+                    goto cleanup;
+                }
+
+                /*
+                 * All good, restore P, Q and D and return.
+                 */
+
+                MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( P, P, 1 ) );
+                MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( Q, Q, 1 ) );
+                MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( D, D, 1 ) );
+                MBEDTLS_MPI_CHK( mbedtls_mpi_div_mpi( D, NULL, D, E ) );
+
+                goto cleanup;
+            }
+
+            MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &K, &K, 1 ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &K, &K, &K ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &K, &K, N ) );
+        }
+    }
+
+    ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+
+cleanup:
+
+    mbedtls_mpi_free( &K );
+    return( ret );
+}
+
+/*
+ * Given P, Q and the public exponent E, deduce D.
+ * This is essentially a modular inversion.
+ */
+
+int mbedtls_rsa_deduce_private( mbedtls_mpi *P, mbedtls_mpi *Q,
+                                mbedtls_mpi *D, mbedtls_mpi *E )
+{
+    int ret = 0;
+    mbedtls_mpi K;
+
+    if( D == NULL || mbedtls_mpi_cmp_int( D, 0 ) != 0 )
+        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+
+    if( mbedtls_mpi_cmp_int( P, 1 ) <= 0 ||
+        mbedtls_mpi_cmp_int( Q, 1 ) <= 0 ||
+        mbedtls_mpi_cmp_int( E, 0 ) == 0 )
+    {
+        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+    }
+
+    mbedtls_mpi_init( &K );
+
+    /* Temporarily replace P and Q by P-1 and Q-1, respectively. */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( P, P, 1 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( Q, Q, 1 ) );
+
+    /* Temporarily compute the gcd(P-1, Q-1) in D. */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_gcd( D, P, Q ) );
+
+    /* Compute LCM(P-1, Q-1) in K */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &K, P, Q ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_div_mpi( &K, NULL, &K, D ) );
+
+    /* Compute modular inverse of E in LCM(P-1, Q-1) */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( D, E, &K ) );
+
+    /* Restore P and Q. */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( P, P, 1 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( Q, Q, 1 ) );
+
+    /* Double-check result */
+    MBEDTLS_MPI_CHK( mbedtls_rsa_check_params( NULL, P, Q, D, E, NULL, NULL ) );
+
+cleanup:
+
+    mbedtls_mpi_free( &K );
+
+    return( ret );
+}
+
+/*
+ * Check that core RSA parameters are sane.
+ *
+ * Note that the inputs are not declared const and may be
+ * altered on an unsuccessful run.
+ */
+
+int mbedtls_rsa_check_params( mbedtls_mpi *N, mbedtls_mpi *P, mbedtls_mpi *Q,
+                              mbedtls_mpi *D, mbedtls_mpi *E,
+                              int (*f_rng)(void *, unsigned char *, size_t),
+                              void *p_rng )
+{
+    int ret = 0;
+    mbedtls_mpi K;
+
+    mbedtls_mpi_init( &K );
+
+    /*
+     * Step 1: If PRNG provided, check that P and Q are prime
+     */
+
+    if( f_rng != NULL && P != NULL &&
+        ( ret = mbedtls_mpi_is_prime( P, f_rng, p_rng ) ) != 0 )
+    {
+        goto cleanup;
+    }
+
+    if( f_rng != NULL && Q != NULL &&
+        ( ret = mbedtls_mpi_is_prime( Q, f_rng, p_rng ) ) != 0 )
+    {
+        goto cleanup;
+    }
+
+    /*
+     * Step 2: Check that N = PQ
+     */
+
+    if( P != NULL && Q != NULL && N != NULL )
+    {
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &K, P, Q ) );
+        if( mbedtls_mpi_cmp_mpi( &K, N ) != 0 )
+        {
+            ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+            goto cleanup;
+        }
+    }
+
+    /*
+     * Step 3: Check that D, E are inverse modulo P-1 and Q-1
+     */
+
+    if( P != NULL && Q != NULL && D != NULL && E != NULL )
+    {
+        /* Temporarily replace P, Q by P-1, Q-1. */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( P, P, 1 ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( Q, Q, 1 ) );
+
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &K, D, E ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &K, &K, 1 ) );
+
+        /* Compute DE-1 mod P-1 */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &K, &K, P ) );
+        if( mbedtls_mpi_cmp_int( &K, 0 ) != 0 )
+        {
+            ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+            goto cleanup;
+        }
+
+        /* Compute DE-1 mod Q-1 */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &K, &K, Q ) );
+        if( mbedtls_mpi_cmp_int( &K, 0 ) != 0 )
+        {
+            ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+            goto cleanup;
+        }
+
+        /* Restore P, Q. */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( P, P, 1 ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( Q, Q, 1 ) );
+    }
+
+cleanup:
+
+    mbedtls_mpi_free( &K );
+
+    return( ret );
+}
+
+int mbedtls_rsa_deduce_crt( const mbedtls_mpi *P, const mbedtls_mpi *Q,
+                            const mbedtls_mpi *D, mbedtls_mpi *DP,
+                            mbedtls_mpi *DQ, mbedtls_mpi *QP )
+{
+    int ret = 0;
+    mbedtls_mpi K;
+    mbedtls_mpi_init( &K );
+
+    if( DP != NULL )
+    {
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &K, P, 1  ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( DP, D, &K ) );
+    }
+
+    if( DQ != NULL )
+    {
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &K, Q, 1  ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( DQ, D, &K ) );
+    }
+
+    if( QP != NULL )
+    {
+        MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( QP, Q, P ) );
+    }
+
+cleanup:
+    mbedtls_mpi_free( &K );
+
+    return( ret );
+}
+
+{
+    int ret = 0;
+
+
+
+
+
+cleanup:
+
+    return( ret );
+}
+
+
+/*
  * Initialize an RSA context
  */
 void mbedtls_rsa_init( mbedtls_rsa_context *ctx,

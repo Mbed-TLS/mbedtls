@@ -90,10 +90,10 @@ def gen_mbed_os_example_job( example, compiler, platform ){
                     sh """
 mbed config root .
 mbed compile -m ${platform} -t ${toolchain}
-set RAAS_USERNAME=user
-set RAAS_PASSWORD=user
-set RAAS_PYCLIENT_FORCE_REMOTE_ALLOCATION=1
-set RAAS_PYCLIENT_ALLOCATION_QUEUE_TIMEOUT=3600
+export RAAS_USERNAME=user
+export RAAS_PASSWORD=user
+export RAAS_PYCLIENT_FORCE_REMOTE_ALLOCATION=1
+export RAAS_PYCLIENT_ALLOCATION_QUEUE_TIMEOUT=3600
 mbedhtrun -m ${platform} -g raas_client:54.194.213.112:8000 -P 600 -v --compare-log ../tests/${example}.log -f BUILD/${platform}/${compiler}/${example}.bin
 """
                 }
@@ -110,7 +110,7 @@ platforms = ['K64F']
 def dispatch_job() {
     /* Checkout mbed-os-example-tls */
     parallel_jobs = [:]
-    parallel_jobs['code_coverage'] = get_code_coverage_job();
+    //parallel_jobs['code_coverage'] = get_code_coverage_job();
     examples = checkout_mbed_os_examples()
     for( example in examples ) {
         for( compiler in compilers ) {

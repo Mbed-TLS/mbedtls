@@ -223,13 +223,19 @@ typedef struct
     mbedtls_mpi D;                      /*!<  private exponent  */
     mbedtls_mpi P;                      /*!<  1st prime factor  */
     mbedtls_mpi Q;                      /*!<  2nd prime factor  */
+
+#if !defined(MBEDTLS_RSA_NO_CRT)
     mbedtls_mpi DP;                     /*!<  D % (P - 1)       */
     mbedtls_mpi DQ;                     /*!<  D % (Q - 1)       */
     mbedtls_mpi QP;                     /*!<  1 / (Q % P)       */
+#endif /* MBEDTLS_RSA_NO_CRT */
 
     mbedtls_mpi RN;                     /*!<  cached R^2 mod N  */
+
+#if !defined(MBEDTLS_RSA_NO_CRT)
     mbedtls_mpi RP;                     /*!<  cached R^2 mod P  */
     mbedtls_mpi RQ;                     /*!<  cached R^2 mod Q  */
+#endif /* MBEDTLS_RSA_NO_CRT */
 
     mbedtls_mpi Vi;                     /*!<  cached blinding value     */
     mbedtls_mpi Vf;                     /*!<  cached un-blinding value  */

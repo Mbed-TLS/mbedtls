@@ -251,31 +251,36 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
         len += ret;
 
         /* Export Q */
-        if ( ( ret = mbedtls_rsa_export( rsa, NULL, NULL, &T, NULL, NULL ) ) != 0 ||
+        if ( ( ret = mbedtls_rsa_export( rsa, NULL, NULL,
+                                         &T, NULL, NULL ) ) != 0 ||
              ( ret = mbedtls_asn1_write_mpi( &c, buf, &T ) ) < 0 )
             goto end_of_export;
         len += ret;
 
         /* Export P */
-        if ( ( ret = mbedtls_rsa_export( rsa, NULL, &T, NULL, NULL, NULL ) ) != 0 ||
+        if ( ( ret = mbedtls_rsa_export( rsa, NULL, &T,
+                                         NULL, NULL, NULL ) ) != 0 ||
              ( ret = mbedtls_asn1_write_mpi( &c, buf, &T ) ) < 0 )
             goto end_of_export;
         len += ret;
 
         /* Export D */
-        if ( ( ret = mbedtls_rsa_export( rsa, NULL, NULL, NULL, &T, NULL ) ) != 0 ||
+        if ( ( ret = mbedtls_rsa_export( rsa, NULL, NULL,
+                                         NULL, &T, NULL ) ) != 0 ||
              ( ret = mbedtls_asn1_write_mpi( &c, buf, &T ) ) < 0 )
             goto end_of_export;
         len += ret;
 
         /* Export E */
-        if ( ( ret = mbedtls_rsa_export( rsa, NULL, NULL, NULL, NULL, &T ) ) != 0 ||
+        if ( ( ret = mbedtls_rsa_export( rsa, NULL, NULL,
+                                         NULL, NULL, &T ) ) != 0 ||
              ( ret = mbedtls_asn1_write_mpi( &c, buf, &T ) ) < 0 )
             goto end_of_export;
         len += ret;
 
         /* Export N */
-        if ( ( ret = mbedtls_rsa_export( rsa, &T, NULL, NULL, NULL, NULL ) ) != 0 ||
+        if ( ( ret = mbedtls_rsa_export( rsa, &T, NULL,
+                                         NULL, NULL, NULL ) ) != 0 ||
              ( ret = mbedtls_asn1_write_mpi( &c, buf, &T ) ) < 0 )
             goto end_of_export;
         len += ret;
@@ -288,8 +293,9 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
 
         MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_int( &c, buf, 0 ) );
         MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, buf, len ) );
-        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &c, buf, MBEDTLS_ASN1_CONSTRUCTED |
-                                                    MBEDTLS_ASN1_SEQUENCE ) );
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &c,
+                                               buf, MBEDTLS_ASN1_CONSTRUCTED |
+                                               MBEDTLS_ASN1_SEQUENCE ) );
     }
     else
 #endif /* MBEDTLS_RSA_C */

@@ -61,6 +61,8 @@ git reset --hard $sha
                     dir('features/mbedtls/importer') {
                         dir('TARGET_IGNORE/mbedtls'){
                             unstash('src')
+                            echo 'in TARGET_IGNORE/mbedtls'
+                            sh 'ls -ltr'
                         }
                         sh 'make all'
                     }

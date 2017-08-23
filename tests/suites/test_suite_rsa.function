@@ -693,6 +693,62 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_CTR_DRBG_C:MBEDTLS_ENTROPY_C */
+void mbedtls_rsa_deduce_moduli( int radix_N, char *input_N,
+                                int radix_D, char *input_D,
+                                int radix_E, char *input_E,
+                                int radix_P, char *output_P,
+                                int radix_Q, char *output_Q,
+                                int corrupt, int result )
+{
+    mbedtls_mpi N, P, Pp, Q, Qp, D, E;
+
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
+    const char *pers = "test_suite_rsa";
+
+    mbedtls_mpi_init( &N );
+    mbedtls_mpi_init( &P );  mbedtls_mpi_init( &Q  );
+    mbedtls_mpi_init( &Pp ); mbedtls_mpi_init( &Qp );
+    mbedtls_mpi_init( &D ); mbedtls_mpi_init( &E );
+
+    mbedtls_ctr_drbg_init( &ctr_drbg );
+    mbedtls_entropy_init( &entropy );
+    TEST_ASSERT( mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
+                                (const unsigned char *) pers, strlen( pers ) ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_read_string( &N, radix_N, input_N ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &D, radix_D, input_D ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &E, radix_E, input_E ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &Qp, radix_P, output_P ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &Pp, radix_Q, output_Q ) == 0 );
+
+    if( corrupt )
+        TEST_ASSERT( mbedtls_mpi_add_int( &D, &D, 2 ) == 0 );
+
+    /* Try to deduce P, Q from N, D, E only. */
+    TEST_ASSERT( mbedtls_rsa_deduce_moduli( &N, &D, &E, mbedtls_ctr_drbg_random,
+                                            &ctr_drbg, &P, &Q ) == result );
+
+    if( !corrupt )
+    {
+        /* Check if (P,Q) = (Pp, Qp) or (P,Q) = (Qp, Pp) */
+        TEST_ASSERT( ( mbedtls_mpi_cmp_mpi( &P, &Pp ) == 0 && mbedtls_mpi_cmp_mpi( &Q, &Qp ) == 0 ) ||
+                     ( mbedtls_mpi_cmp_mpi( &P, &Qp ) == 0 && mbedtls_mpi_cmp_mpi( &Q, &Pp ) == 0 ) );
+    }
+
+exit:
+
+    mbedtls_mpi_free( &N );
+    mbedtls_mpi_free( &P  ); mbedtls_mpi_free( &Q  );
+    mbedtls_mpi_free( &Pp ); mbedtls_mpi_free( &Qp );
+    mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E );
+
+    mbedtls_ctr_drbg_free( &ctr_drbg );
+    mbedtls_entropy_free( &entropy );
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void mbedtls_rsa_deduce_private( int radix_P, char *input_P,
                                  int radix_Q, char *input_Q,

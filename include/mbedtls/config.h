@@ -267,6 +267,7 @@
 //#define MBEDTLS_BLOWFISH_ALT
 //#define MBEDTLS_CAMELLIA_ALT
 //#define MBEDTLS_DES_ALT
+//#define MBEDTLS_RSA_ALT
 //#define MBEDTLS_XTEA_ALT
 //#define MBEDTLS_MD2_ALT
 //#define MBEDTLS_MD4_ALT

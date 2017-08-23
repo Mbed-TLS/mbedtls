@@ -464,6 +464,7 @@ cleanup:
  * Default RSA interface implementation
  */
 
+#if !defined(MBEDTLS_RSA_ALT)
 
 int mbedtls_rsa_import( mbedtls_rsa_context *ctx,
                         const mbedtls_mpi *N,
@@ -2492,6 +2493,8 @@ void mbedtls_rsa_free( mbedtls_rsa_context *ctx )
     mbedtls_mutex_free( &ctx->mutex );
 #endif
 }
+
+#endif /* !MBEDTLS_RSA_ALT */
 
 #if defined(MBEDTLS_SELF_TEST)
 

@@ -22,10 +22,6 @@ def get_all_sh_job(){
 def find_examples (){
     examples = []
     File[] files = new File(pwd()).listFiles();
-    echo pwd()
-    sh 'pwd;ls -ltr'
-    echo 'find_examples'
-    echo files.length
     for (File file: files){
         echo file.getName()
         if (file.isDirectory()) {
@@ -47,7 +43,6 @@ def find_examples (){
 def checkout_mbed_os_examples(){
     dir('examples'){
         git 'git@github.com:ARMmbed/mbed-os-example-tls.git'
-        sh 'ls -ltr'
         def examples = find_examples()
         stash 'examples_src'
         /* checkout mbed-os */

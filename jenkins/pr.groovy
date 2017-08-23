@@ -85,7 +85,8 @@ def gen_batch_jobs_foreach ( label, platforms, compilers, script ){
     }
 }
 
-def gen_pr_jobs(){
+/* Jenkinsfile interface to this script. */
+def dispatch_job(){
     linux_platforms = [ "debian-wheezy-i386", "debian-wheezy-amd64" ]
     bsd_platforms = [ "freebsd-9-i386" ]
     bsd_compilers = [ "gcc48" ]

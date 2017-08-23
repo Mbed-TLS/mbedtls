@@ -208,6 +208,23 @@ static int x509_profile_check_key( const mbedtls_x509_crt_profile *profile,
 }
 
 /*
+ * Reset (init or clear) a verify_chain
+ */
+static void x509_crt_verify_chain_reset(
+    mbedtls_x509_crt_verify_chain *ver_chain )
+{
+    size_t i;
+
+    for( i = 0; i < MBEDTLS_X509_MAX_VERIFY_CHAIN_SIZE; i++ )
+    {
+        ver_chain->items[i].crt = NULL;
+        ver_chain->items[i].flags = -1;
+    }
+
+    ver_chain->len = 0;
+}
+
+/*
  *  Version  ::=  INTEGER  {  v1(0), v2(1), v3(2)  }
  */
 static int x509_get_version( unsigned char **p,
@@ -2258,8 +2275,9 @@ static int x509_crt_verify_chain(
         /* Add certificate to the verification chain */
         cur = &ver_chain->items[ver_chain->len];
         cur->crt = child;
-        flags = &cur->flags;
+        cur->flags = 0;
         ver_chain->len++;
+        flags = &cur->flags;
 
         /* Check time-validity (all certificates) */
         if( mbedtls_x509_time_is_past( &child->valid_to ) )
@@ -2499,10 +2517,11 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
     int ret;
     mbedtls_pk_type_t pk_type;
     mbedtls_x509_crt_verify_chain ver_chain;
-    uint32_t *ee_flags = &ver_chain.items[0].flags;
+    uint32_t ee_flags;
 
     *flags = 0;
-    memset( &ver_chain, 0, sizeof( ver_chain ) );
+    ee_flags = 0;
+    x509_crt_verify_chain_reset( &ver_chain );
 
     if( profile == NULL )
     {
@@ -2512,16 +2531,16 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
 
     /* check name if requested */
     if( cn != NULL )
-        x509_crt_verify_name( crt, cn, ee_flags );
+        x509_crt_verify_name( crt, cn, &ee_flags );
 
     /* Check the type and size of the key */
     pk_type = mbedtls_pk_get_type( &crt->pk );
 
     if( x509_profile_check_pk_alg( profile, pk_type ) != 0 )
-        *ee_flags |= MBEDTLS_X509_BADCERT_BAD_PK;
+        ee_flags |= MBEDTLS_X509_BADCERT_BAD_PK;
 
     if( x509_profile_check_key( profile, pk_type, &crt->pk ) != 0 )
-        *ee_flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
+        ee_flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
 
     /* Check the chain */
     ret = x509_crt_verify_chain( crt, trust_ca, ca_crl, profile,
@@ -2529,6 +2548,9 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
 
     if( ret != 0 )
         goto exit;
+
+    /* Merge end-entity flags */
+    ver_chain.items[0].flags |= ee_flags;
 
     /* Build final flags, calling callback on the way if any */
     ret = x509_crt_merge_flags_with_cb( flags, &ver_chain, f_vrfy, p_vrfy );
@@ -2663,8 +2685,7 @@ void mbedtls_x509_crt_restart_init( mbedtls_x509_crt_restart_ctx *ctx )
 
     ctx->child = NULL;
     ctx->self_cnt = 0;
-    memset( ctx->ver_chain.items, 0, sizeof( ctx->ver_chain.items ) );
-    ctx->ver_chain.len = 0;
+    x509_crt_verify_chain_reset( &ctx->ver_chain );
 }
 
 /*

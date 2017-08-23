@@ -499,13 +499,6 @@ static int ecdsa_verify_restartable( mbedtls_ecp_group *grp,
     }
 
     /*
-     * Additional precaution: make sure Q is valid
-     * For ops count, group that together with step 4
-     */
-    ECDSA_BUDGET( MBEDTLS_ECP_OPS_CHK + MBEDTLS_ECP_OPS_INV + 2 );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_check_pubkey( grp, Q ) );
-
-    /*
      * Step 3: derive MPI from hashed message
      */
     MBEDTLS_MPI_CHK( derive_mpi( grp, &e, buf, blen ) );
@@ -513,6 +506,8 @@ static int ecdsa_verify_restartable( mbedtls_ecp_group *grp,
     /*
      * Step 4: u1 = e / s mod n, u2 = r / s mod n
      */
+    ECDSA_BUDGET( MBEDTLS_ECP_OPS_CHK + MBEDTLS_ECP_OPS_INV + 2 );
+
     MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( &s_inv, s, &grp->N ) );
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( pu1, &e, &s_inv ) );

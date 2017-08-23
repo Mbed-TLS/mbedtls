@@ -87,11 +87,6 @@ static int ecdh_compute_shared_restartable( mbedtls_ecp_group *grp,
 
     mbedtls_ecp_point_init( &P );
 
-    /*
-     * Make sure Q is a valid pubkey before using it
-     */
-    MBEDTLS_MPI_CHK( mbedtls_ecp_check_pubkey( grp, Q ) );
-
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul_restartable( grp, &P, d, Q,
                                                   f_rng, p_rng, rs_ctx ) );
 

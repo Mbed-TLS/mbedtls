@@ -16,5 +16,19 @@ node {
         def job = load 'jenkins/release.groovy'
         job.dispatch_job()
     }
+    if ( "${env.JOB_NAME}" == 'mbedtls-job-pr-dev' ) {
+        /* Sparse Checkout required script file */
+        checkout([$class: 'GitSCM', branches: [[name: 'refs/heads/jenkinsfile']],
+                doGenerateSubmoduleConfigurations: false,
+                extensions: [[$class: 'CloneOption', honorRefspec: true,
+                noTags: true, reference: '', shallow: true]],
+                submoduleCfg: [],
+                userRemoteConfigs: [[credentialsId: "${env.GIT_CREDENTIALS_ID}",
+                url: "${env.MBEDTLS_REPO}"]]])
+        stash 'src'
+        echo 'Dispatching pr job!'
+        def job = load 'jenkins/pr.groovy'
+        job.dispatch_job()
+    }
 }
 

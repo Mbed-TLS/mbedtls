@@ -106,7 +106,7 @@ def dispatch_job(){
     jobs = jobs + gen_jobs_foreach( 'cmake', bsd_platforms, bsd_compilers, cmake_test_sh )
 
     /* Windows jobs */
-    jobs = jobs + gen_batch_jobs_foreach( 'win32-mingw', windows_platforms, windows_compilers, mingw_cmake_test_sh )
+    jobs = jobs + gen_batch_jobs_foreach( 'win32-mingw', windows_platforms, windows_compilers, mingw_cmake_test_bat )
     jobs = jobs + gen_batch_jobs_foreach( 'win32_msvc12_32', windows_platforms, windows_compilers, win32_msvc12_32_test_bat )
     jobs = jobs + gen_batch_jobs_foreach( 'win32_msvc12_64', windows_platforms, windows_compilers, win32_msvc12_64_test_bat )
 

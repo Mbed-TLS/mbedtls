@@ -4,19 +4,14 @@ node {
     /* Load script based on jenkins job name */
     if ( "${env.JOB_NAME}" == 'mbedtls-job-dev' ) {
         /* Sparse Checkout required script file */
-        dir('src'){
-            checkout([$class: 'GitSCM', branches: [[name: 'refs/heads/jenkinsfile']],
-                    doGenerateSubmoduleConfigurations: false,
-                    extensions: [[$class: 'CloneOption', honorRefspec: true,
-                    noTags: true, reference: '', shallow: true],
-                    [$class: 'SparseCheckoutPaths',
-                    sparseCheckoutPaths: [[path: 'jenkins/release.groovy']]]],
-                    submoduleCfg: [],
-                    userRemoteConfigs: [[credentialsId: '0c890674-8153-4b3e-af1c-d61a6b4ef1d5',
-                    url: 'git@github.com:mazimkhan/mbedtls.git']]])
-            sh 'ls -ltr'
-            stash 'src'
-        }
+        checkout([$class: 'GitSCM', branches: [[name: 'refs/heads/jenkinsfile']],
+                doGenerateSubmoduleConfigurations: false,
+                extensions: [[$class: 'CloneOption', honorRefspec: true,
+                noTags: true, reference: '', shallow: true]],
+                submoduleCfg: [],
+                userRemoteConfigs: [[credentialsId: '0c890674-8153-4b3e-af1c-d61a6b4ef1d5',
+                url: 'git@github.com:mazimkhan/mbedtls.git']]])
+        stash 'src'
         echo 'Dispatching release job!'
         def job = load 'src/jenkins/release.groovy'
         job.dispatch_job()

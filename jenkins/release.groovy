@@ -4,6 +4,7 @@ import groovy.io.FileType
 def get_code_coverage_job(){
     return {
         node('linux') {
+            deleteDir()
             unstash 'src'
             sh "./tests/scripts/basic-build-test.sh"
         }
@@ -13,6 +14,7 @@ def get_code_coverage_job(){
 def get_all_sh_job(){
     return {
         node('linux') {
+            deleteDir()
             unstash 'src'
             sh "./tests/scripts/all.sh"
         }
@@ -78,6 +80,7 @@ git reset --hard $sha
 def gen_mbed_os_example_job( example, compiler, platform ){
     return {
        node( compiler ){
+            deleteDir()
             timestamps {
                 deleteDir()
                 unstash "examples_src"

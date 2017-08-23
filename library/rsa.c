@@ -612,6 +612,7 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx,
      *         to our current RSA implementaiton.
      */
 
+#if !defined(MBEDTLS_RSA_NO_CRT)
     if( is_priv )
     {
         ret = mbedtls_rsa_deduce_crt( &ctx->P,  &ctx->Q,  &ctx->D,
@@ -619,6 +620,7 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx,
         if( ret != 0 )
             return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
     }
+#endif /* MBEDTLS_RSA_NO_CRT */
 
     /*
      * Step 3: Double check
@@ -647,31 +649,89 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx,
 int mbedtls_rsa_check_crt( mbedtls_rsa_context *ctx, mbedtls_mpi *DP,
                            mbedtls_mpi *DQ, mbedtls_mpi *QP )
 {
-    /* Check if key is private or public */
-    const int opt_present =
-        mbedtls_mpi_cmp_int( &ctx->DP, 0 ) != 0 &&
-        mbedtls_mpi_cmp_int( &ctx->DQ, 0 ) != 0 &&
-        mbedtls_mpi_cmp_int( &ctx->QP, 0 ) != 0;
+    int ret = 0;
 
-    if( !opt_present )
+    /* Check if key is private or public */
+    const int is_priv =
+        mbedtls_mpi_cmp_int( &ctx->N, 0 ) != 0 &&
+        mbedtls_mpi_cmp_int( &ctx->P, 0 ) != 0 &&
+        mbedtls_mpi_cmp_int( &ctx->Q, 0 ) != 0 &&
+        mbedtls_mpi_cmp_int( &ctx->D, 0 ) != 0 &&
+        mbedtls_mpi_cmp_int( &ctx->E, 0 ) != 0;
+
+    if( !is_priv )
     {
         /* Checking optional parameters only makes sense for private keys. */
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     }
 
-    /* Alternative implementations not having DP, DQ, QP as part of
-     * the RSA context structure could perform the following checks instead:
-     * (1) Check that DP - P     == 0 mod P - 1
-     * (2) Check that DQ - Q     == 0 mod Q - 1
-     * (3) Check that QP * P - 1 == 0 mod P
-     */
-
+#if !defined(MBEDTLS_RSA_NO_CRT)
     if( ( DP != NULL && mbedtls_mpi_cmp_mpi( DP, &ctx->DP ) != 0 ) ||
         ( DQ != NULL && mbedtls_mpi_cmp_mpi( DQ, &ctx->DQ ) != 0 ) ||
         ( QP != NULL && mbedtls_mpi_cmp_mpi( QP, &ctx->QP ) != 0 ) )
     {
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     }
+#else /* MBEDTLS_RSA_NO_CRT */
+
+    /*
+     * Check that DP, DQ and QP are in accordance with core parameters.
+     * (1) Check that DP - P     == 0 mod P - 1
+     * (2) Check that DQ - Q     == 0 mod Q - 1
+     * (3) Check that QP * P - 1 == 0 mod P
+
+     * Alternative implementation also not using DP, DQ and QP
+     * should be able to reuse this codepath.
+     */
+
+    /* Check (1) */
+    if( DP != NULL )
+    {
+        /* Temporarily replace P by P-1 and compute DP - D mod P-1 */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &ctx->P, &ctx->P, 1 ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( DP, DP, &ctx->D ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( DP, DP, &ctx->P ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( &ctx->P, &ctx->P, 1 ) );
+
+        if( mbedtls_mpi_cmp_int( DP, 0 ) != 0 )
+        {
+            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+        }
+    }
+
+    /* Check (1) */
+    if( DQ != NULL )
+    {
+        /* Temporarily replace Q by Q-1 and compute DQ - D mod Q-1 */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &ctx->Q, &ctx->Q, 1 ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( DQ, DQ, &ctx->D ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( DQ, DQ, &ctx->Q ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( &ctx->Q, &ctx->Q, 1 ) );
+
+        if( mbedtls_mpi_cmp_int( DQ, 0 ) != 0 )
+        {
+            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+        }
+    }
+
+    /* Check (3) */
+    if( QP != NULL )
+    {
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( QP, QP, &ctx->Q ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( QP, QP, 1 ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( QP, QP, &ctx->P ) );
+        if( mbedtls_mpi_cmp_int( QP, 0 ) != 0 )
+        {
+            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+        }
+    }
+
+cleanup:
+
+#endif
+
+    if( ret != 0 )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
 
     return( 0 );
 }

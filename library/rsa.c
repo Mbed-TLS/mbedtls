@@ -2425,13 +2425,16 @@ int mbedtls_rsa_copy( mbedtls_rsa_context *dst, const mbedtls_rsa_context *src )
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &dst->D, &src->D ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &dst->P, &src->P ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &dst->Q, &src->Q ) );
+
+#if !defined(MBEDTLS_RSA_NO_CRT)
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &dst->DP, &src->DP ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &dst->DQ, &src->DQ ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &dst->QP, &src->QP ) );
-
-    MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &dst->RN, &src->RN ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &dst->RP, &src->RP ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &dst->RQ, &src->RQ ) );
+#endif
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &dst->RN, &src->RN ) );
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &dst->Vi, &src->Vi ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &dst->Vf, &src->Vf ) );
@@ -2452,10 +2455,15 @@ cleanup:
 void mbedtls_rsa_free( mbedtls_rsa_context *ctx )
 {
     mbedtls_mpi_free( &ctx->Vi ); mbedtls_mpi_free( &ctx->Vf );
-    mbedtls_mpi_free( &ctx->RQ ); mbedtls_mpi_free( &ctx->RP ); mbedtls_mpi_free( &ctx->RN );
-    mbedtls_mpi_free( &ctx->QP ); mbedtls_mpi_free( &ctx->DQ ); mbedtls_mpi_free( &ctx->DP );
-    mbedtls_mpi_free( &ctx->Q  ); mbedtls_mpi_free( &ctx->P  ); mbedtls_mpi_free( &ctx->D );
+    mbedtls_mpi_free( &ctx->RN ); mbedtls_mpi_free( &ctx->D  );
+    mbedtls_mpi_free( &ctx->Q  ); mbedtls_mpi_free( &ctx->P  );
     mbedtls_mpi_free( &ctx->E  ); mbedtls_mpi_free( &ctx->N  );
+
+#if !defined(MBEDTLS_RSA_NO_CRT)
+    mbedtls_mpi_free( &ctx->RQ ); mbedtls_mpi_free( &ctx->RP );
+    mbedtls_mpi_free( &ctx->QP ); mbedtls_mpi_free( &ctx->DQ );
+    mbedtls_mpi_free( &ctx->DP );
+#endif /* MBEDTLS_RSA_NO_CRT */
 
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_free( &ctx->mutex );

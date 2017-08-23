@@ -905,6 +905,131 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void mbedtls_rsa_export( int radix_N, char *input_N,
+                         int radix_P, char *input_P,
+                         int radix_Q, char *input_Q,
+                         int radix_D, char *input_D,
+                         int radix_E, char *input_E,
+                         int successive )
+{
+    /* Original MPI's with which we set up the RSA context */
+    mbedtls_mpi N, P, Q, D, E;
+
+    /* Exported MPI's */
+    mbedtls_mpi Ne, Pe, Qe, De, Ee;
+
+    const int have_N = ( strlen( input_N ) > 0 );
+    const int have_P = ( strlen( input_P ) > 0 );
+    const int have_Q = ( strlen( input_Q ) > 0 );
+    const int have_D = ( strlen( input_D ) > 0 );
+    const int have_E = ( strlen( input_E ) > 0 );
+
+    const int is_priv = have_P || have_Q || have_D;
+
+    mbedtls_rsa_context ctx;
+
+    mbedtls_rsa_init( &ctx, 0, 0 );
+
+    mbedtls_mpi_init( &N );
+    mbedtls_mpi_init( &P ); mbedtls_mpi_init( &Q );
+    mbedtls_mpi_init( &D ); mbedtls_mpi_init( &E );
+
+    mbedtls_mpi_init( &Ne );
+    mbedtls_mpi_init( &Pe ); mbedtls_mpi_init( &Qe );
+    mbedtls_mpi_init( &De ); mbedtls_mpi_init( &Ee );
+
+    /* Setup RSA context */
+
+    if( have_N )
+        TEST_ASSERT( mbedtls_mpi_read_string( &N, radix_N, input_N ) == 0 );
+
+    if( have_P )
+        TEST_ASSERT( mbedtls_mpi_read_string( &P, radix_P, input_P ) == 0 );
+
+    if( have_Q )
+        TEST_ASSERT( mbedtls_mpi_read_string( &Q, radix_Q, input_Q ) == 0 );
+
+    if( have_D )
+        TEST_ASSERT( mbedtls_mpi_read_string( &D, radix_D, input_D ) == 0 );
+
+    if( have_E )
+        TEST_ASSERT( mbedtls_mpi_read_string( &E, radix_E, input_E ) == 0 );
+
+    TEST_ASSERT( mbedtls_rsa_import( &ctx,
+                                     strlen( input_N ) ? &N : NULL,
+                                     strlen( input_P ) ? &P : NULL,
+                                     strlen( input_Q ) ? &Q : NULL,
+                                     strlen( input_D ) ? &D : NULL,
+                                     strlen( input_E ) ? &E : NULL ) == 0 );
+
+    TEST_ASSERT( mbedtls_rsa_complete( &ctx, NULL, NULL ) == 0 );
+
+    /*
+     * Export parameters and compare to original ones.
+     */
+
+    /* N and E must always be present. */
+    if( !successive )
+    {
+        TEST_ASSERT( mbedtls_rsa_export( &ctx, &Ne, NULL, NULL, NULL, &Ee ) == 0 );
+    }
+    else
+    {
+        TEST_ASSERT( mbedtls_rsa_export( &ctx, &Ne, NULL, NULL, NULL, NULL ) == 0 );
+        TEST_ASSERT( mbedtls_rsa_export( &ctx, NULL, NULL, NULL, NULL, &Ee ) == 0 );
+    }
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &N, &Ne ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &E, &Ee ) == 0 );
+
+    /* If we were providing enough information to setup a complete private context,
+     * we expect to be able to export all core parameters. */
+
+    if( is_priv )
+    {
+        if( !successive )
+        {
+            TEST_ASSERT( mbedtls_rsa_export( &ctx, NULL, &Pe, &Qe,
+                                             &De, NULL ) == 0 );
+        }
+        else
+        {
+            TEST_ASSERT( mbedtls_rsa_export( &ctx, NULL, &Pe, NULL,
+                                             NULL, NULL ) == 0 );
+            TEST_ASSERT( mbedtls_rsa_export( &ctx, NULL, NULL, &Qe,
+                                             NULL, NULL ) == 0 );
+            TEST_ASSERT( mbedtls_rsa_export( &ctx, NULL, NULL, NULL,
+                                             &De, NULL ) == 0 );
+        }
+
+        if( have_P )
+            TEST_ASSERT( mbedtls_mpi_cmp_mpi( &P, &Pe ) == 0 );
+
+        if( have_Q )
+            TEST_ASSERT( mbedtls_mpi_cmp_mpi( &Q, &Qe ) == 0 );
+
+        if( have_D )
+            TEST_ASSERT( mbedtls_mpi_cmp_mpi( &D, &De ) == 0 );
+
+        /* While at it, perform a sanity check */
+        TEST_ASSERT( mbedtls_rsa_check_params( &Ne, &Pe, &Qe, &De, &Ee,
+                                               NULL, NULL ) == 0 );
+    }
+
+exit:
+
+    mbedtls_rsa_free( &ctx );
+
+    mbedtls_mpi_free( &N );
+    mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
+    mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E );
+
+    mbedtls_mpi_free( &Ne );
+    mbedtls_mpi_free( &Pe ); mbedtls_mpi_free( &Qe );
+    mbedtls_mpi_free( &De ); mbedtls_mpi_free( &Ee );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_CTR_DRBG_C:MBEDTLS_ENTROPY_C */
 void mbedtls_rsa_import_raw( char *input_N,
                              char *input_P, char *input_Q,

@@ -12,6 +12,7 @@ node {
             submoduleCfg: [],
             userRemoteConfigs: [[credentialsId: '0c890674-8153-4b3e-af1c-d61a6b4ef1d5',
                                  url: 'git@github.com:mazimkhan/mbedtls.git']]])
+        sh 'ls -ltr'
         stash 'src'
         echo 'Dispatching release job!'
         def job = load 'jenkins/release.groovy'

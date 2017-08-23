@@ -80,15 +80,21 @@ git reset --hard $sha
 def gen_mbed_os_example_job( example, compiler, platform ){
     return {
        node( compiler ){
-            deleteDir()
             timestamps {
                 deleteDir()
                 unstash "examples_src"
                 dir( example ){
-                    unstash "mbed-os_src"
+                    dir('mbed-os'){
+                        unstash "mbed-os_src"
+                    }
                     sh """
 mbed config root .
 mbed compile -m ${platform} -t ${toolchain}
+set RAAS_USERNAME=user
+set RAAS_PASSWORD=user
+set RAAS_PYCLIENT_FORCE_REMOTE_ALLOCATION=1
+set RAAS_PYCLIENT_ALLOCATION_QUEUE_TIMEOUT=3600
+mbedhtrun -m ${platform} -g raas_client:54.194.213.112:8000 -P 600 -v --compare-log ../tests/${example}.log -f BUILD/${platform}/${compiler}/${example}.bin
 """
                 }
             }

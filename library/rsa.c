@@ -894,6 +894,9 @@ int mbedtls_rsa_gen_key( mbedtls_rsa_context *ctx,
 
     ctx->len = ( mbedtls_mpi_bitlen( &ctx->N ) + 7 ) >> 3;
 
+    /* Double-check */
+    MBEDTLS_MPI_CHK( mbedtls_rsa_check_privkey( ctx ) );
+
 cleanup:
 
     mbedtls_mpi_free( &P1 ); mbedtls_mpi_free( &Q1 ); mbedtls_mpi_free( &H ); mbedtls_mpi_free( &G );

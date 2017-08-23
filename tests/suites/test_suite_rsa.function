@@ -693,6 +693,64 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void mbedtls_rsa_deduce_private( int radix_P, char *input_P,
+                                 int radix_Q, char *input_Q,
+                                 int radix_E, char *input_E,
+                                 int radix_D, char *output_D,
+                                 int corrupt, int result )
+{
+    mbedtls_mpi P, Q, D, Dp, E, R, Rp;
+
+    mbedtls_mpi_init( &P ); mbedtls_mpi_init( &Q );
+    mbedtls_mpi_init( &D ); mbedtls_mpi_init( &Dp );
+    mbedtls_mpi_init( &E );
+    mbedtls_mpi_init( &R ); mbedtls_mpi_init( &Rp );
+
+    TEST_ASSERT( mbedtls_mpi_read_string( &P, radix_P, input_P ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &Q, radix_Q, input_Q ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &E, radix_E, input_E ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &Dp, radix_D, output_D ) == 0 );
+
+    if( corrupt )
+    {
+        /* Make E even */
+        TEST_ASSERT( mbedtls_mpi_set_bit( &E, 0, 0 ) == 0 );
+    }
+
+    /* Try to deduce D from N, P, Q, E. */
+    TEST_ASSERT( mbedtls_rsa_deduce_private( &P, &Q, &D, &E ) == result );
+
+    if( !corrupt )
+    {
+        /*
+         * Check that D and Dp agree modulo LCM(P-1, Q-1).
+         */
+
+        /* Replace P,Q by P-1, Q-1 */
+        TEST_ASSERT( mbedtls_mpi_sub_int( &P, &P, 1 ) == 0 );
+        TEST_ASSERT( mbedtls_mpi_sub_int( &Q, &Q, 1 ) == 0 );
+
+        /* Check D == Dp modulo P-1 */
+        TEST_ASSERT( mbedtls_mpi_mod_mpi( &R,  &D,  &P ) == 0 );
+        TEST_ASSERT( mbedtls_mpi_mod_mpi( &Rp, &Dp, &P ) == 0 );
+        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R,  &Rp )     == 0 );
+
+        /* Check D == Dp modulo Q-1 */
+        TEST_ASSERT( mbedtls_mpi_mod_mpi( &R,  &D,  &Q ) == 0 );
+        TEST_ASSERT( mbedtls_mpi_mod_mpi( &Rp, &Dp, &Q ) == 0 );
+        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R,  &Rp )     == 0 );
+    }
+
+exit:
+
+    mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q  );
+    mbedtls_mpi_free( &D ); mbedtls_mpi_free( &Dp );
+    mbedtls_mpi_free( &E );
+    mbedtls_mpi_free( &R ); mbedtls_mpi_free( &Rp );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void rsa_selftest()
 {

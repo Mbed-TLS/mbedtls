@@ -24,6 +24,7 @@ def find_examples (){
     File[] files = new File(pwd()).listFiles();
     echo pwd()
     echo 'find_examples'
+    echo files.length
     for (File file: files){
         echo file.getName()
         if (file.isDirectory()) {

@@ -1804,7 +1804,8 @@ static int ecp_mul_comb_after_precomp( const mbedtls_ecp_group *grp,
     MBEDTLS_MPI_CHK( ecp_normalize_jac( grp, RR ) );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-    MBEDTLS_MPI_CHK( mbedtls_ecp_copy( R, RR ) );
+    if( rs_ctx != NULL && rs_ctx->rsm != NULL )
+        MBEDTLS_MPI_CHK( mbedtls_ecp_copy( R, RR ) );
 #endif
 
 cleanup:

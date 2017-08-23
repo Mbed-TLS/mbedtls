@@ -353,7 +353,8 @@ modn:
     while( mbedtls_mpi_cmp_int( s, 0 ) == 0 );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-    mbedtls_mpi_copy( r, pr );
+    if( rs_ctx != NULL && rs_ctx->sig != NULL )
+        mbedtls_mpi_copy( r, pr );
 #endif
 
 cleanup:

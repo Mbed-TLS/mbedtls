@@ -89,7 +89,7 @@ def gen_mbed_os_example_job( example, compiler, platform ){
                     }
                     sh """
 mbed config root .
-mbed compile -m ${platform} -t ${toolchain}
+mbed compile -m ${platform} -t ${compiler}
 export RAAS_USERNAME=user
 export RAAS_PASSWORD=user
 export RAAS_PYCLIENT_FORCE_REMOTE_ALLOCATION=1

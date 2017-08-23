@@ -841,14 +841,21 @@ int mbedtls_rsa_export_crt( const mbedtls_rsa_context *ctx,
     if( !is_priv )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
+#if !defined(MBEDTLS_RSA_NO_CRT)
     /* Export all requested blinding parameters. */
-
     if( ( DP != NULL && ( ret = mbedtls_mpi_copy( DP, &ctx->DP ) ) != 0 ) ||
         ( DQ != NULL && ( ret = mbedtls_mpi_copy( DQ, &ctx->DQ ) ) != 0 ) ||
         ( QP != NULL && ( ret = mbedtls_mpi_copy( QP, &ctx->QP ) ) != 0 ) )
     {
-        return( ret );
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
     }
+#else
+    if( ( ret = mbedtls_rsa_deduce_crt( &ctx->P, &ctx->Q, &ctx->D,
+                                        DP, DQ, QP ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
+    }
+#endif
 
     return( 0 );
 }

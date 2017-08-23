@@ -172,6 +172,7 @@ static void ecdsa_restart_det_free( mbedtls_ecdsa_restart_det_ctx *ctx )
 #define ECDSA_BUDGET( ops )   \
     MBEDTLS_MPI_CHK( mbedtls_ecp_check_budget( grp, &rs_ctx->ecp, ops ) );
 
+/* Call this when entering a function that needs its own sub-context */
 #define ECDSA_RS_ENTER( SUB )   do {                                 \
     /* reset ops count for this call if top-level */                 \
     if( rs_ctx != NULL && rs_ctx->ecp.depth++ == 0 )                 \
@@ -189,9 +190,11 @@ static void ecdsa_restart_det_free( mbedtls_ecdsa_restart_det_ctx *ctx )
     }                                                                \
 } while( 0 )
 
+/* Call this when leaving a function that needs its own sub-context */
 #define ECDSA_RS_LEAVE( SUB )   do {                                 \
     /* clear our sub-context when not in progress (done or error) */ \
-    if( rs_ctx != NULL && ret != MBEDTLS_ERR_ECP_IN_PROGRESS )       \
+    if( rs_ctx != NULL && rs_ctx->SUB != NULL &&                     \
+        ret != MBEDTLS_ERR_ECP_IN_PROGRESS )                         \
     {                                                                \
         ecdsa_restart_## SUB ##_free( rs_ctx->SUB );                 \
         mbedtls_free( rs_ctx->SUB );                                 \

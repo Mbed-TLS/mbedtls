@@ -1989,7 +1989,8 @@ cleanup:
 
     /* clear our sub-context when not in progress (done or error) */
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-    if( rs_ctx != NULL && ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
+    if( rs_ctx != NULL && rs_ctx->rsm != NULL &&
+        ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
     {
         ecp_restart_mul_free( rs_ctx->rsm );
         mbedtls_free( rs_ctx->rsm );
@@ -2457,7 +2458,8 @@ cleanup:
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     /* clear our sub-context when not in progress (done or error) */
-    if( rs_ctx != NULL && ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
+    if( rs_ctx != NULL && rs_ctx->ma != NULL &&
+        ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
     {
         ecp_restart_muladd_free( rs_ctx->ma );
         mbedtls_free( rs_ctx->ma );

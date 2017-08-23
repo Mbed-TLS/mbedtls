@@ -439,6 +439,15 @@ msg "build: i386, make, gcc" # ~ 30s
 cleanup
 CC=gcc CFLAGS='-Werror -Wall -Wextra -m32' make
 
+msg "build: default config, MBEDTLS_RSA_NO_CRT, make, gcc"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_RSA_NO_CRT
+CC=gcc CFLAGS='-Werror -Wall -Werror -O0' make
+
+msg "test: MBEDTLS_RSA_NO_CRT - main suites (inc. selftests) (ASan build)"
+make test
+
 msg "build: gcc, force 32-bit compilation"
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"

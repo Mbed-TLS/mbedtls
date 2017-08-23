@@ -235,7 +235,7 @@ typedef struct
     mbedtls_mpi Vf;                     /*!<  cached un-blinding value  */
 
     int padding;                /*!<  MBEDTLS_RSA_PKCS_V15 for 1.5 padding and
-                                      MBEDTLS_RSA_PKCS_v21 for OAEP/PSS         */
+                                      MBEDTLS_RSA_PKCS_v21 for OAEP/PSS */
     int hash_id;                /*!<  Hash identifier of mbedtls_md_type_t as
                                       specified in the mbedtls_md.h header file
                                       for the EME-OAEP and EMSA-PSS
@@ -271,8 +271,8 @@ mbedtls_rsa_context;
  *                 MBEDTLS_MD_NONE) for verifying them.
  */
 void mbedtls_rsa_init( mbedtls_rsa_context *ctx,
-               int padding,
-               int hash_id);
+                       int padding,
+                       int hash_id);
 
 
 /**
@@ -466,7 +466,8 @@ int mbedtls_rsa_export_crt( const mbedtls_rsa_context *ctx,
  * \param padding  MBEDTLS_RSA_PKCS_V15 or MBEDTLS_RSA_PKCS_V21
  * \param hash_id  MBEDTLS_RSA_PKCS_V21 hash identifier
  */
-void mbedtls_rsa_set_padding( mbedtls_rsa_context *ctx, int padding, int hash_id);
+void mbedtls_rsa_set_padding( mbedtls_rsa_context *ctx, int padding,
+                              int hash_id);
 
 /**
  * \brief          Get length of RSA modulus in bytes
@@ -493,12 +494,12 @@ size_t mbedtls_rsa_get_len( const mbedtls_rsa_context *ctx );
  * \return         0 if successful, or an MBEDTLS_ERR_RSA_XXX error code
  */
 int mbedtls_rsa_gen_key( mbedtls_rsa_context *ctx,
-                 int (*f_rng)(void *, unsigned char *, size_t),
-                 void *p_rng,
-                 unsigned int nbits, int exponent );
+                         int (*f_rng)(void *, unsigned char *, size_t),
+                         void *p_rng,
+                         unsigned int nbits, int exponent );
 
 /**
- * \brief          Check a public RSA key
+ * \brief          Check if a context contains an RSA public key
  *
  * \param ctx      RSA context to be checked
  *
@@ -507,7 +508,8 @@ int mbedtls_rsa_gen_key( mbedtls_rsa_context *ctx,
 int mbedtls_rsa_check_pubkey( const mbedtls_rsa_context *ctx );
 
 /**
- * \brief          Check a private RSA key
+ * \brief          Check if a context contains a complete
+ *                 and valid RSA private key.
  *
  * \param ctx      RSA context to be checked
  *
@@ -729,10 +731,10 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
  *                 as large as the size ctx->len of ctx->N (eg. 128 bytes
  *                 if RSA-1024 is used) to be able to hold an arbitrary
  *                 decrypted message. If it is not large enough to hold
- *                 the decryption of the particular ciphertext provided, 
+ *                 the decryption of the particular ciphertext provided,
  *                 the function will return MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE.
  *
- * \note           The input buffer must be as large as the size 
+ * \note           The input buffer must be as large as the size
  *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
  */
 int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,

@@ -156,7 +156,9 @@ void rsa_pkcs1_sign_raw( char *message_hex_string, char *hash_result_string,
     unhexify( message_str, message_hex_string );
     hash_len = unhexify( hash_result, hash_result_string );
 
-    TEST_ASSERT( mbedtls_rsa_pkcs1_sign( &ctx, &rnd_pseudo_rand, &rnd_info, MBEDTLS_RSA_PRIVATE, MBEDTLS_MD_NONE, hash_len, hash_result, output ) == 0 );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_sign( &ctx, &rnd_pseudo_rand, &rnd_info,
+                                         MBEDTLS_RSA_PRIVATE, MBEDTLS_MD_NONE,
+                                         hash_len, hash_result, output ) == 0 );
 
     hexify( output_str, output, ctx.len );
 
@@ -212,7 +214,10 @@ void rsa_pkcs1_verify_raw( char *message_hex_string, char *hash_result_string,
     hash_len = unhexify( hash_result, hash_result_string );
     unhexify( result_str, result_hex_str );
 
-    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, NULL, NULL, MBEDTLS_RSA_PUBLIC, MBEDTLS_MD_NONE, hash_len, hash_result, result_str ) == correct );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, NULL, NULL,
+                              MBEDTLS_RSA_PUBLIC, MBEDTLS_MD_NONE,
+                              hash_len, hash_result,
+                              result_str ) == correct );
 
     /* For PKCS#1 v1.5, there is an alternative way to verify signatures */
     if( padding_mode == MBEDTLS_RSA_PKCS_V15 )

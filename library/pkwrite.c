@@ -62,7 +62,7 @@
  *  }
  */
 static int pk_write_rsa_pubkey( unsigned char **p, unsigned char *start,
-                                  mbedtls_rsa_context *rsa )
+                                mbedtls_rsa_context *rsa )
 {
     int ret;
     size_t len = 0;
@@ -83,7 +83,7 @@ static int pk_write_rsa_pubkey( unsigned char **p, unsigned char *start,
  * EC public key is an EC point
  */
 static int pk_write_ec_pubkey( unsigned char **p, unsigned char *start,
-                                 mbedtls_ecp_keypair *ec )
+                               mbedtls_ecp_keypair *ec )
 {
     int ret;
     size_t len = 0;
@@ -111,7 +111,7 @@ static int pk_write_ec_pubkey( unsigned char **p, unsigned char *start,
  * }
  */
 static int pk_write_ec_param( unsigned char **p, unsigned char *start,
-                                mbedtls_ecp_keypair *ec )
+                              mbedtls_ecp_keypair *ec )
 {
     int ret;
     size_t len = 0;
@@ -128,7 +128,7 @@ static int pk_write_ec_param( unsigned char **p, unsigned char *start,
 #endif /* MBEDTLS_ECP_C */
 
 int mbedtls_pk_write_pubkey( unsigned char **p, unsigned char *start,
-                     const mbedtls_pk_context *key )
+                             const mbedtls_pk_context *key )
 {
     int ret;
     size_t len = 0;

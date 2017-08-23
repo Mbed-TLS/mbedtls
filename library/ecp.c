@@ -85,7 +85,6 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 static unsigned long add_count, dbl_count, mul_count;
 #endif
 
-
 #if defined(MBEDTLS_ECP_RESTARTABLE)
 /*
  * Maximum number of "basic operations" to be done in a row.
@@ -927,11 +926,10 @@ static int ecp_normalize_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *p
         return( 0 );
 
 #if defined(MBEDTLS_ECP_NORMALIZE_JAC_ALT)
-    if ( mbedtls_internal_ecp_grp_capable( grp ) )
-    {
-        return mbedtls_internal_ecp_normalize_jac( grp, pt );
-    }
+    if( mbedtls_internal_ecp_grp_capable( grp ) )
+        return( mbedtls_internal_ecp_normalize_jac( grp, pt ) );
 #endif /* MBEDTLS_ECP_NORMALIZE_JAC_ALT */
+
     mbedtls_mpi_init( &Zi ); mbedtls_mpi_init( &ZZi );
 
     /*
@@ -981,10 +979,8 @@ static int ecp_normalize_jac_many( const mbedtls_ecp_group *grp,
         return( ecp_normalize_jac( grp, *T ) );
 
 #if defined(MBEDTLS_ECP_NORMALIZE_JAC_MANY_ALT)
-    if ( mbedtls_internal_ecp_grp_capable( grp ) )
-    {
-        return mbedtls_internal_ecp_normalize_jac_many(grp, T, t_len);
-    }
+    if( mbedtls_internal_ecp_grp_capable( grp ) )
+        return( mbedtls_internal_ecp_normalize_jac_many( grp, T, t_len ) );
 #endif
 
     if( ( c = mbedtls_calloc( t_len, sizeof( mbedtls_mpi ) ) ) == NULL )
@@ -1104,10 +1100,8 @@ static int ecp_double_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 #endif
 
 #if defined(MBEDTLS_ECP_DOUBLE_JAC_ALT)
-    if ( mbedtls_internal_ecp_grp_capable( grp ) )
-    {
-        return mbedtls_internal_ecp_double_jac( grp, R, P );
-    }
+    if( mbedtls_internal_ecp_grp_capable( grp ) )
+        return( mbedtls_internal_ecp_double_jac( grp, R, P ) );
 #endif /* MBEDTLS_ECP_DOUBLE_JAC_ALT */
 
     mbedtls_mpi_init( &M ); mbedtls_mpi_init( &S ); mbedtls_mpi_init( &T ); mbedtls_mpi_init( &U );
@@ -1202,10 +1196,8 @@ static int ecp_add_mixed( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 #endif
 
 #if defined(MBEDTLS_ECP_ADD_MIXED_ALT)
-    if ( mbedtls_internal_ecp_grp_capable( grp ) )
-    {
-        return mbedtls_internal_ecp_add_mixed( grp, R, P, Q );
-    }
+    if( mbedtls_internal_ecp_grp_capable( grp ) )
+        return( mbedtls_internal_ecp_add_mixed( grp, R, P, Q ) );
 #endif /* MBEDTLS_ECP_ADD_MIXED_ALT */
 
     /*
@@ -1289,10 +1281,8 @@ static int ecp_randomize_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *p
     int count = 0;
 
 #if defined(MBEDTLS_ECP_RANDOMIZE_JAC_ALT)
-    if ( mbedtls_internal_ecp_grp_capable( grp ) )
-    {
-        return mbedtls_internal_ecp_randomize_jac( grp, pt, f_rng, p_rng );
-    }
+    if( mbedtls_internal_ecp_grp_capable( grp ) )
+        return( mbedtls_internal_ecp_randomize_jac( grp, pt, f_rng, p_rng ) );
 #endif /* MBEDTLS_ECP_RANDOMIZE_JAC_ALT */
 
     p_size = ( grp->pbits + 7 ) / 8;
@@ -1798,7 +1788,6 @@ cleanup:
     return( ret );
 }
 
-
 /*
  * Pick window size based on curve size and whether we optimize for base point
  */
@@ -2004,10 +1993,8 @@ static int ecp_normalize_mxz( const mbedtls_ecp_group *grp, mbedtls_ecp_point *P
     int ret;
 
 #if defined(MBEDTLS_ECP_NORMALIZE_MXZ_ALT)
-    if ( mbedtls_internal_ecp_grp_capable( grp ) )
-    {
-        return mbedtls_internal_ecp_normalize_mxz( grp, P );
-    }
+    if( mbedtls_internal_ecp_grp_capable( grp ) )
+        return( mbedtls_internal_ecp_normalize_mxz( grp, P ) );
 #endif /* MBEDTLS_ECP_NORMALIZE_MXZ_ALT */
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( &P->Z, &P->Z, &grp->P ) );
@@ -2035,10 +2022,8 @@ static int ecp_randomize_mxz( const mbedtls_ecp_group *grp, mbedtls_ecp_point *P
     int count = 0;
 
 #if defined(MBEDTLS_ECP_RANDOMIZE_MXZ_ALT)
-    if ( mbedtls_internal_ecp_grp_capable( grp ) )
-    {
-        return mbedtls_internal_ecp_randomize_mxz( grp, P, f_rng, p_rng );
-    }
+    if( mbedtls_internal_ecp_grp_capable( grp ) )
+        return( mbedtls_internal_ecp_randomize_mxz( grp, P, f_rng, p_rng );
 #endif /* MBEDTLS_ECP_RANDOMIZE_MXZ_ALT */
 
     p_size = ( grp->pbits + 7 ) / 8;
@@ -2090,10 +2075,8 @@ static int ecp_double_add_mxz( const mbedtls_ecp_group *grp,
     mbedtls_mpi A, AA, B, BB, E, C, D, DA, CB;
 
 #if defined(MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT)
-    if ( mbedtls_internal_ecp_grp_capable( grp ) )
-    {
-        return mbedtls_internal_ecp_double_add_mxz( grp, R, S, P, Q, d );
-    }
+    if( mbedtls_internal_ecp_grp_capable( grp ) )
+        return( mbedtls_internal_ecp_double_add_mxz( grp, R, S, P, Q, d ) );
 #endif /* MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT */
 
     mbedtls_mpi_init( &A ); mbedtls_mpi_init( &AA ); mbedtls_mpi_init( &B );
@@ -2209,11 +2192,8 @@ int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 #endif
 
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
-    if ( is_grp_capable = mbedtls_internal_ecp_grp_capable( grp )  )
-    {
+    if( ( is_grp_capable = mbedtls_internal_ecp_grp_capable( grp ) ) )
         MBEDTLS_MPI_CHK( mbedtls_internal_ecp_init( grp ) );
-    }
-
 #endif /* MBEDTLS_ECP_INTERNAL_ALT */
 
 #if defined(MBEDTLS_ECP_RESTARTABLE) && defined(ECP_SHORTWEIERSTRASS)
@@ -2243,11 +2223,8 @@ int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 cleanup:
 
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
-    if ( is_grp_capable )
-    {
+    if( is_grp_capable )
         mbedtls_internal_ecp_free( grp );
-    }
-
 #endif /* MBEDTLS_ECP_INTERNAL_ALT */
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
@@ -2378,11 +2355,8 @@ int mbedtls_ecp_muladd_restartable(
     mbedtls_ecp_point_init( &mP );
 
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
-    if (  is_grp_capable = mbedtls_internal_ecp_grp_capable( grp )  )
-    {
+    if( ( is_grp_capable = mbedtls_internal_ecp_grp_capable( grp ) ) )
         MBEDTLS_MPI_CHK( mbedtls_internal_ecp_init( grp ) );
-    }
-
 #endif /* MBEDTLS_ECP_INTERNAL_ALT */
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
@@ -2448,11 +2422,8 @@ norm:
 
 cleanup:
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
-    if ( is_grp_capable )
-    {
+    if( is_grp_capable )
         mbedtls_internal_ecp_free( grp );
-    }
-
 #endif /* MBEDTLS_ECP_INTERNAL_ALT */
 
     mbedtls_ecp_point_free( &mP );

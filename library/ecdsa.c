@@ -268,7 +268,6 @@ static int ecdsa_sign_restartable( mbedtls_ecp_group *grp,
         pk = &rs_ctx->sig->k;
         pr = &rs_ctx->sig->r;
 
-
         /* jump to current step */
         if( rs_ctx->sig->state == ecdsa_sig_mul )
             goto mul;
@@ -314,7 +313,6 @@ mul:
             MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( pr, &R.X, &grp->N ) );
         }
         while( mbedtls_mpi_cmp_int( pr, 0 ) == 0 );
-
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
         if( rs_ctx != NULL && rs_ctx->sig != NULL )

@@ -9,8 +9,8 @@ node {
                 extensions: [[$class: 'CloneOption', honorRefspec: true,
                 noTags: true, reference: '', shallow: true]],
                 submoduleCfg: [],
-                userRemoteConfigs: [[credentialsId: '0c890674-8153-4b3e-af1c-d61a6b4ef1d5',
-                url: 'git@github.com:mazimkhan/mbedtls.git']]])
+                userRemoteConfigs: [[credentialsId: "${env.GIT_CREDENTIALS_ID}",
+                url: "${env.MBEDTLS_REPO}"]]])
         stash 'src'
         echo 'Dispatching release job!'
         def job = load 'jenkins/release.groovy'

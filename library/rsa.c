@@ -459,18 +459,339 @@ cleanup:
     return( ret );
 }
 
+
+/*
+ * Default RSA interface implementation
+ */
+
+
+int mbedtls_rsa_import( mbedtls_rsa_context *ctx,
+                        const mbedtls_mpi *N,
+                        const mbedtls_mpi *P, const mbedtls_mpi *Q,
+                        const mbedtls_mpi *D, const mbedtls_mpi *E )
+{
+    int ret;
+
+    if( ( N != NULL && ( ret = mbedtls_mpi_copy( &ctx->N, N ) ) != 0 ) ||
+        ( P != NULL && ( ret = mbedtls_mpi_copy( &ctx->P, P ) ) != 0 ) ||
+        ( Q != NULL && ( ret = mbedtls_mpi_copy( &ctx->Q, Q ) ) != 0 ) ||
+        ( D != NULL && ( ret = mbedtls_mpi_copy( &ctx->D, D ) ) != 0 ) ||
+        ( E != NULL && ( ret = mbedtls_mpi_copy( &ctx->E, E ) ) != 0 ) )
+    {
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
+    }
+
+    if( N != NULL )
+        ctx->len = mbedtls_mpi_size( &ctx->N );
+
+    return( 0 );
+}
+
+int mbedtls_rsa_import_raw( mbedtls_rsa_context *ctx,
+                            unsigned char *N, size_t N_len,
+                            unsigned char *P, size_t P_len,
+                            unsigned char *Q, size_t Q_len,
+                            unsigned char *D, size_t D_len,
+                            unsigned char *E, size_t E_len )
+{
+    int ret;
+
+    if( N != NULL )
+    {
+        MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &ctx->N, N, N_len ) );
+        ctx->len = mbedtls_mpi_size( &ctx->N );
+    }
+
+    if( P != NULL )
+        MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &ctx->P, P, P_len ) );
+
+    if( Q != NULL )
+        MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &ctx->Q, Q, Q_len ) );
+
+    if( D != NULL )
+        MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &ctx->D, D, D_len ) );
+
+    if( E != NULL )
+        MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &ctx->E, E, E_len ) );
+
+cleanup:
+
+    if( ret != 0 )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
+
+    return( 0 );
+}
+
+int mbedtls_rsa_complete( mbedtls_rsa_context *ctx,
+                          int (*f_rng)(void *, unsigned char *, size_t),
+                          void *p_rng )
 {
     int ret = 0;
 
+    const int have_N = ( mbedtls_mpi_cmp_int( &ctx->N, 0 ) != 0 );
+    const int have_P = ( mbedtls_mpi_cmp_int( &ctx->P, 0 ) != 0 );
+    const int have_Q = ( mbedtls_mpi_cmp_int( &ctx->Q, 0 ) != 0 );
+    const int have_D = ( mbedtls_mpi_cmp_int( &ctx->D, 0 ) != 0 );
+    const int have_E = ( mbedtls_mpi_cmp_int( &ctx->E, 0 ) != 0 );
 
+    /*
+     * Check whether provided parameters are enough
+     * to deduce all others. The following incomplete
+     * parameter sets for private keys are supported:
+     *
+     * (1) P, Q missing.
+     * (2) D and potentially N missing.
+     *
+     */
+    const int complete   = have_N &&  have_P &&  have_Q &&  have_D && have_E;
+    const int pq_missing = have_N && !have_P && !have_Q &&  have_D && have_E;
+    const int d_missing  =            have_P &&  have_Q && !have_D && have_E;
+    const int is_pub     = have_N && !have_P && !have_Q && !have_D && have_E;
 
+    const int is_priv = complete || pq_missing || d_missing;
 
+    if( !is_priv && !is_pub )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    /*
+     * Step 1: Deduce and verify all core parameters.
+     */
+
+    if( pq_missing )
+    {
+        /* This includes sanity checking of core parameters,
+         * so no further checks necessary. */
+        ret = mbedtls_rsa_deduce_moduli( &ctx->N, &ctx->D, &ctx->E,
+                                         f_rng, p_rng,
+                                         &ctx->P, &ctx->Q );
+        if( ret != 0 )
+            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
+
+    }
+    else if( d_missing )
+    {
+        /* If a PRNG is provided, check if P, Q are prime. */
+        if( f_rng != NULL  &&
+            ( ( ret = mbedtls_mpi_is_prime( &ctx->P, f_rng, p_rng ) ) != 0 ||
+              ( ret = mbedtls_mpi_is_prime( &ctx->Q, f_rng, p_rng ) ) != 0 ) )
+        {
+            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
+        }
+
+        /* Compute N if missing. */
+        if( !have_N &&
+            ( ret = mbedtls_mpi_mul_mpi( &ctx->N, &ctx->P, &ctx->Q ) ) != 0 )
+        {
+            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
+        }
+
+        /* Deduce private exponent. This includes double-checking of the result,
+         * so together with the primality test above all core parameters are
+         * guaranteed to be sane if this call succeeds. */
+        if( ( ret = mbedtls_rsa_deduce_private( &ctx->P, &ctx->Q,
+                                                &ctx->D, &ctx->E ) ) != 0 )
+        {
+            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
+        }
+    }
+    else if( complete )
+    {
+        /* Check complete set of imported core parameters. */
+        if( ( ret = mbedtls_rsa_check_params( &ctx->N, &ctx->P, &ctx->Q,
+                                              &ctx->D, &ctx->E,
+                                              f_rng, p_rng ) ) != 0 )
+        {
+            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
+        }
+    }
+
+    /* In the remaining case of a public key, there's nothing to check for. */
+
+    /*
+     * Step 2: Deduce all additional parameters specific
+     *         to our current RSA implementaiton.
+     */
+
+    if( is_priv )
+    {
+        ret = mbedtls_rsa_deduce_crt( &ctx->P,  &ctx->Q,  &ctx->D,
+                                      &ctx->DP, &ctx->DQ, &ctx->QP );
+        if( ret != 0 )
+            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
+    }
+
+    /*
+     * Step 3: Double check
+     */
+
+    if( is_priv )
+    {
+        if( ( ret = mbedtls_rsa_check_privkey( ctx ) ) != 0 )
+            return( ret );
+    }
+    else
+    {
+        if( ( ret = mbedtls_rsa_check_pubkey( ctx ) ) != 0 )
+            return( ret );
+    }
+
+    return( 0 );
+}
+
+/*
+ * Check if CRT parameters match RSA context.
+ * This has to be implemented even if CRT is not used,
+ * in order to be able to validate DER encoded RSA keys,
+ * which always contain CRT parameters.
+ */
+int mbedtls_rsa_check_crt( mbedtls_rsa_context *ctx, mbedtls_mpi *DP,
+                           mbedtls_mpi *DQ, mbedtls_mpi *QP )
+{
+    /* Check if key is private or public */
+    const int opt_present =
+        mbedtls_mpi_cmp_int( &ctx->DP, 0 ) != 0 &&
+        mbedtls_mpi_cmp_int( &ctx->DQ, 0 ) != 0 &&
+        mbedtls_mpi_cmp_int( &ctx->QP, 0 ) != 0;
+
+    if( !opt_present )
+    {
+        /* Checking optional parameters only makes sense for private keys. */
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    }
+
+    /* Alternative implementations not having DP, DQ, QP as part of
+     * the RSA context structure could perform the following checks instead:
+     * (1) Check that DP - P     == 0 mod P - 1
+     * (2) Check that DQ - Q     == 0 mod Q - 1
+     * (3) Check that QP * P - 1 == 0 mod P
+     */
+
+    if( ( DP != NULL && mbedtls_mpi_cmp_mpi( DP, &ctx->DP ) != 0 ) ||
+        ( DQ != NULL && mbedtls_mpi_cmp_mpi( DQ, &ctx->DQ ) != 0 ) ||
+        ( QP != NULL && mbedtls_mpi_cmp_mpi( QP, &ctx->QP ) != 0 ) )
+    {
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    }
+
+    return( 0 );
+}
+
+int mbedtls_rsa_export_raw( const mbedtls_rsa_context *ctx,
+                            unsigned char *N, size_t N_len,
+                            unsigned char *P, size_t P_len,
+                            unsigned char *Q, size_t Q_len,
+                            unsigned char *D, size_t D_len,
+                            unsigned char *E, size_t E_len )
+{
+    int ret = 0;
+
+    /* Check if key is private or public */
+    const int is_priv =
+        mbedtls_mpi_cmp_int( &ctx->N, 0 ) != 0 &&
+        mbedtls_mpi_cmp_int( &ctx->P, 0 ) != 0 &&
+        mbedtls_mpi_cmp_int( &ctx->Q, 0 ) != 0 &&
+        mbedtls_mpi_cmp_int( &ctx->D, 0 ) != 0 &&
+        mbedtls_mpi_cmp_int( &ctx->E, 0 ) != 0;
+
+    if( !is_priv )
+    {
+        /* If we're trying to export private parameters for a public key,
+         * something must be wrong. */
+        if( P != NULL || Q != NULL || D != NULL )
+            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    }
+
+    if( N != NULL )
+        MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &ctx->N, N, N_len ) );
+
+    if( P != NULL )
+        MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &ctx->P, P, P_len ) );
+
+    if( Q != NULL )
+        MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &ctx->Q, Q, Q_len ) );
+
+    if( D != NULL )
+        MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &ctx->D, D, D_len ) );
+
+    if( E != NULL )
+        MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &ctx->E, E, E_len ) );
 
 cleanup:
 
     return( ret );
 }
 
+int mbedtls_rsa_export( const mbedtls_rsa_context *ctx,
+                        mbedtls_mpi *N, mbedtls_mpi *P, mbedtls_mpi *Q,
+                        mbedtls_mpi *D, mbedtls_mpi *E )
+{
+    int ret;
+
+    /* Check if key is private or public */
+    int is_priv =
+        mbedtls_mpi_cmp_int( &ctx->N, 0 ) != 0 &&
+        mbedtls_mpi_cmp_int( &ctx->P, 0 ) != 0 &&
+        mbedtls_mpi_cmp_int( &ctx->Q, 0 ) != 0 &&
+        mbedtls_mpi_cmp_int( &ctx->D, 0 ) != 0 &&
+        mbedtls_mpi_cmp_int( &ctx->E, 0 ) != 0;
+
+    if( !is_priv )
+    {
+        /* If we're trying to export private parameters for a public key,
+         * something must be wrong. */
+        if( P != NULL || Q != NULL || D != NULL )
+            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    }
+
+    /* Export all requested core parameters. */
+
+    if( ( N != NULL && ( ret = mbedtls_mpi_copy( N, &ctx->N ) ) != 0 ) ||
+        ( P != NULL && ( ret = mbedtls_mpi_copy( P, &ctx->P ) ) != 0 ) ||
+        ( Q != NULL && ( ret = mbedtls_mpi_copy( Q, &ctx->Q ) ) != 0 ) ||
+        ( D != NULL && ( ret = mbedtls_mpi_copy( D, &ctx->D ) ) != 0 ) ||
+        ( E != NULL && ( ret = mbedtls_mpi_copy( E, &ctx->E ) ) != 0 ) )
+    {
+        return( ret );
+    }
+
+    return( 0 );
+}
+
+/*
+ * Export CRT parameters
+ * This must also be implemented if CRT is not used, for being able to
+ * write DER encoded RSA keys. The helper function mbedtls_rsa_deduce_crt
+ * can be used in this case.
+ */
+int mbedtls_rsa_export_crt( const mbedtls_rsa_context *ctx,
+                            mbedtls_mpi *DP, mbedtls_mpi *DQ, mbedtls_mpi *QP )
+{
+    int ret;
+
+    /* Check if key is private or public */
+    int is_priv =
+        mbedtls_mpi_cmp_int( &ctx->N, 0 ) != 0 &&
+        mbedtls_mpi_cmp_int( &ctx->P, 0 ) != 0 &&
+        mbedtls_mpi_cmp_int( &ctx->Q, 0 ) != 0 &&
+        mbedtls_mpi_cmp_int( &ctx->D, 0 ) != 0 &&
+        mbedtls_mpi_cmp_int( &ctx->E, 0 ) != 0;
+
+    if( !is_priv )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    /* Export all requested blinding parameters. */
+
+    if( ( DP != NULL && ( ret = mbedtls_mpi_copy( DP, &ctx->DP ) ) != 0 ) ||
+        ( DQ != NULL && ( ret = mbedtls_mpi_copy( DQ, &ctx->DQ ) ) != 0 ) ||
+        ( QP != NULL && ( ret = mbedtls_mpi_copy( QP, &ctx->QP ) ) != 0 ) )
+    {
+        return( ret );
+    }
+
+    return( 0 );
+}
 
 /*
  * Initialize an RSA context
@@ -496,6 +817,16 @@ void mbedtls_rsa_set_padding( mbedtls_rsa_context *ctx, int padding, int hash_id
     ctx->padding = padding;
     ctx->hash_id = hash_id;
 }
+
+/*
+ * Get length in bytes of RSA modulus
+ */
+
+size_t mbedtls_rsa_get_len( const mbedtls_rsa_context *ctx )
+{
+    return( mbedtls_mpi_size( &ctx->N ) );
+}
+
 
 #if defined(MBEDTLS_GENPRIME)
 

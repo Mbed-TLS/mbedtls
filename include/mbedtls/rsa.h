@@ -79,7 +79,7 @@ extern "C" {
 
 /**
  * \brief          Compute RSA prime moduli P, Q from public modulus N=PQ
-&                  and a pair of private and public key.
+ *                 and a pair of private and public key.
  *
  * \note           This is a 'static' helper function not operating on
  *                 an RSA context. Alternative implementations need not

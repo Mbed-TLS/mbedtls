@@ -52,6 +52,10 @@ extern "C" {
 
 /**
  * \brief           ECDSA context structure
+ *
+ * \warning         Performing multiple operations concurrently on the same
+ *                  ECDSA context is not supported; objects of this type
+ *                  should not be shared between multiple threads.
  */
 typedef mbedtls_ecp_keypair mbedtls_ecdsa_context;
 

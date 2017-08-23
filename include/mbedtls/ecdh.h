@@ -40,6 +40,10 @@ typedef enum
 
 /**
  * \brief           ECDH context structure
+ *
+ * \warning         Performing multiple operations concurrently on the same
+ *                  ECDSA context is not supported; objects of this type
+ *                  should not be shared between multiple threads.
  */
 typedef struct
 {
@@ -159,7 +163,7 @@ int mbedtls_ecdh_read_params( mbedtls_ecdh_context *ctx,
  *                  ServerKeyEchange for static ECDH: import ECDH parameters
  *                  from a certificate's EC key information.)
  *
- * \param ctx       ECDH constext to set
+ * \param ctx       ECDH context to set
  * \param key       EC key to use
  * \param side      Is it our key (1) or the peer's key (0) ?
  *

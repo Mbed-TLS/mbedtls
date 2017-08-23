@@ -60,8 +60,8 @@ git reset --hard $sha
                     /* Deploy mbedtls src into mbed-os */
                     dir('features/mbedtls/importer') {
                         dir('TARGET_IGNORE/mbedtls'){
+                            echo pwd()
                             unstash('src')
-                            echo 'in TARGET_IGNORE/mbedtls'
                             sh 'ls -ltr'
                         }
                         sh 'make all'

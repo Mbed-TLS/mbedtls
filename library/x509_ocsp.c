@@ -44,6 +44,14 @@
 #include <stdint.h>
 #include <string.h>
 
+void mbedtls_x509_ocsp_response_init( mbedtls_x509_ocsp_response *resp )
+{
+}
+
+void mbedtls_x509_ocsp_response_free( mbedtls_x509_ocsp_response *resp )
+{
+}
+
 static int x509_ocsp_get_response_status( unsigned char **p,
                                           const unsigned char *end,
                                           uint8_t *resp_status )

@@ -36,20 +36,91 @@
 
 #include <stdint.h>
 
+/**
+ * \addtogroup x509_module
+ * \{
+ */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+ * \name Structures and functions for parsing and writing X.509 OCSP responses
+ * \{
+ */
+
+/**
+ * Container for an X.509 OCSP response.
+ */
 typedef struct mbedtls_x509_ocsp_response {
     mbedtls_x509_buf raw;               /**< The raw response data (DER). */
 
     uint8_t resp_status;                /**< The OCSP response status */
 } mbedtls_x509_ocsp_response;
 
+/**
+ * \brief          Initialize an OCSP response container
+ *
+ * \param crt      OCSP response to initialize
+ */
+void mbedtls_x509_ocsp_response_init( mbedtls_x509_ocsp_response *resp );
+
+/**
+ * \brief          Unallocate all OCSP response data
+ *
+ * \param resp     OCSP response to free
+ */
+void mbedtls_x509_ocsp_response_free( mbedtls_x509_ocsp_response *resp );
+
+/**
+ * \brief          Returns an informational string about the OCSP response
+ *
+ * \param buf      Buffer to write to
+ * \param size     Maximum size of buffer
+ * \param prefix   A line prefix
+ * \param crt      The X509 certificate to represent
+ *
+ * \return         The length of the string written (not including the
+ *                 terminated nul byte), or a negative error code.
+ */
 int mbedtls_x509_ocsp_response_info( char *buf, size_t size,
                                      const char *prefix,
                                      const mbedtls_x509_ocsp_response *resp );
 
-int mbedtls_x509_ocsp_parse_response_file( mbedtls_x509_ocsp_response *resp,
-                                           const char *path );
-
+/**
+ * \brief          Parse a single OCSP response
+ *
+ * \param resp     points to the struct that will contain the parsed values
+ * \param buf      buffer holding the OCSP response data in DER format
+ * \param buflen   size of the buffer
+ *
+ * \return         0 if the ocsp response was parsed successfully, otherwise a
+ *                 specific X.509 error
+ */
 int mbedtls_x509_ocsp_parse_response( mbedtls_x509_ocsp_response *resp,
                                       unsigned char *buf, size_t buflen );
+
+#if defined(MBEDTLS_FS_IO)
+/**
+ * \brief          Load and parse a single OCSP response from a file encoded in
+ *                 DER format.
+ *
+ * \param resp     points to the struct that will contained the parsed values
+ * \param path     filename to read the from
+ *
+ * \return         0 if the ocsp response was parsed successfully, otherwise a
+ *                 specific X509 error
+ */
+int mbedtls_x509_ocsp_parse_response_file( mbedtls_x509_ocsp_response *resp,
+                                           const char *path );
+#endif /* MBEDTLS_FS_IO */
+
+/* \} name */
+/* \} addtogroup x509_module */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* !MBEDTLS_X509_OCSP_H */

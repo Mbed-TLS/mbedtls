@@ -88,10 +88,52 @@ static int x509_ocsp_get_response_status( unsigned char **p,
     return( 0 );
 }
 
-static int x509_ocsp_get_response_bytes( unsigned char **p,
-                                         const unsigned char *end,
-                                         mbedtls_x509_buf *resp_type )
+static int x509_ocsp_get_response_type( unsigned char **p,
+                                        const unsigned char *end,
+                                        mbedtls_x509_buf *resp_type )
 {
+    return( 0 );
+}
+
+static int x509_ocsp_get_response( mbedtls_x509_ocsp_response *resp,
+                                   unsigned char **p,
+                                   const unsigned char *end )
+{
+    return( 0 );
+}
+
+static int x509_ocsp_get_response_bytes( mbedtls_x509_ocsp_response *resp,
+                                         unsigned char **p,
+                                         const unsigned char *end )
+{
+    int ret;
+    size_t len;
+
+    /*
+     * ResponseBytes ::= SEQUENCE {
+     *      responseType    OBJECT IDENTIFIER,
+     *      response        OCTET STRING }
+     */
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+    }
+
+    end = *p + len;
+
+    /* Parse the responseType */
+    if( ( ret = x509_ocsp_get_response_type( p, end, &resp->resp_type ) ) != 0 )
+        return( ret );
+
+    /* Parse the response octet string */
+    if( ( ret = x509_ocsp_get_response( resp, p, end ) ) != 0 )
+        return( ret );
+
+    if( *p != end )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
     return( 0 );
 }
 

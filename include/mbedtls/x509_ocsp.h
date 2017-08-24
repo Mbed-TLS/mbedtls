@@ -66,6 +66,8 @@ extern "C" {
 typedef struct mbedtls_x509_ocsp_response {
     mbedtls_x509_buf raw;               /**< The raw response data (DER). */
 
+    mbedtls_x509_buf resp_type;         /**< The type of response e.g. OCSP or BASIC */
+
     uint8_t resp_status;                /**< The OCSP response status */
 } mbedtls_x509_ocsp_response;
 

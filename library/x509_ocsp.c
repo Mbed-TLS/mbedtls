@@ -191,10 +191,80 @@ int mbedtls_x509_ocsp_parse_response( mbedtls_x509_ocsp_response *resp,
     return( 0 );
 }
 
+static int x509_ocsp_info_response_status( char **buf, size_t *size,
+                                           uint8_t resp_status )
+{
+    int ret;
+    const char *desc;
+    size_t n = *size;
+    char *p = *buf;
+
+    switch( resp_status )
+    {
+        case MBEDTLS_X509_OCSP_RESPONSE_STATUS_SUCCESSFUL:
+            desc = "successful";
+            break;
+        case MBEDTLS_X509_OCSP_RESPONSE_STATUS_MALFORMED_REQ:
+            desc = "malformedRequest";
+            break;
+        case MBEDTLS_X509_OCSP_RESPONSE_STATUS_INTERNAL_ERR:
+            desc = "internalError";
+            break;
+        case MBEDTLS_X509_OCSP_RESPONSE_STATUS_TRY_LATER:
+            desc = "tryLater";
+            break;
+        case MBEDTLS_X509_OCSP_RESPONSE_STATUS_SIG_REQUIRED:
+            desc = "sigRequired";
+            break;
+        case MBEDTLS_X509_OCSP_RESPONSE_STATUS_UNAUTHORIZED:
+            desc = "unauthorized";
+            break;
+        default:
+            desc = "???";
+    }
+
+    ret = mbedtls_snprintf( p, n, "%s", desc );
+    MBEDTLS_X509_SAFE_SNPRINTF;
+
+    *size = n;
+    *buf = p;
+
+    return( 0 );
+}
+
+#define BC      "18"
 int mbedtls_x509_ocsp_response_info( char *buf, size_t size,
                                      const char *prefix,
                                      const mbedtls_x509_ocsp_response *resp )
 {
+    int ret;
+    size_t n;
+    char *p;
+
+    p = buf;
+    n = size;
+
+    /*
+     * NOTE: Just like mbedtls_x509_crt_info() this function will print rubbish
+     * if resp has been initialised but nothing has been parsed.
+     */
+    if( resp == NULL )
+    {
+        ret = mbedtls_snprintf( p, n, "\nOCSP Response is uninitialised!\n" );
+        MBEDTLS_X509_SAFE_SNPRINTF;
+
+        return( (int)( size - n ) );
+    }
+
+    /* Print responseStatus */
+    ret = mbedtls_snprintf( p, n, "%s%-" BC "s: ", prefix, "response status" );
+    MBEDTLS_X509_SAFE_SNPRINTF;
+    if( ( ret = x509_ocsp_info_response_status( &p, &n,
+                                                resp->resp_status ) ) != 0 )
+    {
+        return( ret );
+    }
+
     return( 0 );
 }
 

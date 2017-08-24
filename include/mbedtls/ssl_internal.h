@@ -229,18 +229,14 @@ struct mbedtls_ssl_handshake_params
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
     int ecrs_enabled;                   /*!< Handshake supports EC restart? */
     mbedtls_x509_crt_restart_ctx ecrs_ctx;  /*!< restart context            */
-    enum {
-        ssl_ecrs_init = 0,              /*!< just getting started           */
-        ssl_ecrs_crt_parsed,            /*!< server certificate was parsed  */
-        ssl_ecrs_crt_verified,          /*!< server certificate was verified*/
-        ssl_ecrs_ske_read,              /*!< ServerKeyExchange was read     */
-        ssl_ecrs_ske_verified,          /*!< ServerKeyExchange was verified */
-        ssl_ecrs_ecdh_public_done,      /*!< wrote ECDHE public share       */
-        ssl_ecrs_ecdh_completed,        /*!< completed ECDHE key exchange   */
-        ssl_ecrs_keys_derived,          /*!< ssl_derive_keys() done         */
-        ssl_ecrs_pk_sign_done,          /*!< done writing CertificateVerify */
-    } ecrs_state;                       /*!< state for restartable ECC      */
-    size_t ecrs_n;                      /*!< place for seving a length      */
+    enum { /* this complements ssl->state with info on intra-state operations */
+        ssl_ecrs_none = 0,              /*!< nothing going on (yet)         */
+        ssl_ecrs_crt_verify,            /*!< Certificate: crt_verify()      */
+        ssl_ecrs_ske_start_processing,  /*!< ServerKeyExchange: step 1      */
+        ssl_ecrs_ske_ecdh_calc_secret,  /*!< ServerKeyExchange: ECDH step 2 */
+        ssl_ecrs_crt_vrfy_sign,         /*!< CertificateVerify: pk_sign()   */
+    } ecrs_state;                       /*!< current (or last) operation    */
+    size_t ecrs_n;                      /*!< place for saving a length      */
 #endif
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     unsigned int out_msg_seq;           /*!<  Outgoing handshake sequence number */

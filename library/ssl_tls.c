@@ -4554,7 +4554,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
     if( ssl->handshake->ecrs_enabled &&
-        ssl->handshake->ecrs_state == ssl_ecrs_crt_parsed )
+        ssl->handshake->ecrs_state == ssl_ecrs_crt_verify )
     {
         goto crt_verify;
     }
@@ -4584,7 +4584,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
     if( ssl->handshake->ecrs_enabled)
-        ssl->handshake->ecrs_state++;
+        ssl->handshake->ecrs_state = ssl_ecrs_crt_verify;
 
 crt_verify:
     if( ssl->handshake->ecrs_enabled)
@@ -4725,11 +4725,6 @@ crt_verify:
         }
 #endif /* MBEDTLS_DEBUG_C */
     }
-
-#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
-    if( ssl->handshake->ecrs_enabled)
-        ssl->handshake->ecrs_state++;
-#endif
 
     ssl->state++;
 

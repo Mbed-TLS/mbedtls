@@ -2305,9 +2305,9 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
     if( ssl->handshake->ecrs_enabled &&
-        ssl->handshake->ecrs_state == ssl_ecrs_ske_read )
+        ssl->handshake->ecrs_state == ssl_ecrs_ske_start_processing )
     {
-        goto ske_process;
+        goto start_processing;
     }
 #endif
 
@@ -2317,12 +2317,6 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
         return( ret );
     }
 
-#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
-    if( ssl->handshake->ecrs_enabled )
-        ssl->handshake->ecrs_state++;
-
-ske_process:
-#endif
     if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
@@ -2354,6 +2348,12 @@ ske_process:
         return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
     }
 
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+    if( ssl->handshake->ecrs_enabled )
+        ssl->handshake->ecrs_state = ssl_ecrs_ske_start_processing;
+
+start_processing:
+#endif
     p   = ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl );
     end = ssl->in_msg + ssl->in_hslen;
     MBEDTLS_SSL_DEBUG_BUF( 3,   "server key exchange", p, end - p );
@@ -2630,11 +2630,6 @@ ske_process:
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_verify", ret );
             return( ret );
         }
-
-#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
-        if( ssl->handshake->ecrs_enabled )
-            ssl->handshake->ecrs_state++;
-#endif
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED */
 
@@ -2901,7 +2896,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
         if( ssl->handshake->ecrs_enabled )
         {
-            if( ssl->handshake->ecrs_state == ssl_ecrs_ecdh_public_done )
+            if( ssl->handshake->ecrs_state == ssl_ecrs_ske_ecdh_calc_secret )
                 goto ecdh_calc_secret;
 
             mbedtls_ecdh_enable_restart( &ssl->handshake->ecdh_ctx );
@@ -2924,7 +2919,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         if( ssl->handshake->ecrs_enabled )
         {
             ssl->handshake->ecrs_n = n;
-            ssl->handshake->ecrs_state++;
+            ssl->handshake->ecrs_state = ssl_ecrs_ske_ecdh_calc_secret;
         }
 
 ecdh_calc_secret:
@@ -2942,11 +2937,6 @@ ecdh_calc_secret:
         }
 
         MBEDTLS_SSL_DEBUG_MPI( 3, "ECDH: z", &ssl->handshake->ecdh_ctx.z );
-
-#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
-        if( ssl->handshake->ecrs_enabled )
-            ssl->handshake->ecrs_state++;
-#endif
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
@@ -3167,9 +3157,9 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
     if( ssl->handshake->ecrs_enabled &&
-        ssl->handshake->ecrs_state == ssl_ecrs_keys_derived )
+        ssl->handshake->ecrs_state == ssl_ecrs_crt_vrfy_sign )
     {
-        goto keys_derived;
+        goto sign;
     }
 #endif
 
@@ -3179,12 +3169,6 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
         return( ret );
     }
 
-#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
-    if( ssl->handshake->ecrs_enabled )
-        ssl->handshake->ecrs_state++;
-
-keys_derived:
-#endif
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ||
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK ||
@@ -3210,8 +3194,15 @@ keys_derived:
     }
 
     /*
-     * Make an RSA signature of the handshake digests
+     * Make a signature of the handshake digests
      */
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+    if( ssl->handshake->ecrs_enabled )
+        ssl->handshake->ecrs_state = ssl_ecrs_crt_vrfy_sign;
+
+sign:
+#endif
+
     ssl->handshake->calc_verify( ssl, hash );
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
@@ -3301,11 +3292,6 @@ keys_derived:
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_sign", ret );
         return( ret );
     }
-
-#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
-    if( ssl->handshake->ecrs_enabled )
-        ssl->handshake->ecrs_state++;
-#endif
 
     ssl->out_msg[4 + offset] = (unsigned char)( n >> 8 );
     ssl->out_msg[5 + offset] = (unsigned char)( n      );

@@ -361,6 +361,7 @@ int mbedtls_rsa_check_params( mbedtls_mpi *N, mbedtls_mpi *P, mbedtls_mpi *Q,
      * Step 1: If PRNG provided, check that P and Q are prime
      */
 
+#if defined(MBEDTLS_GENPRIME)
     if( f_rng != NULL && P != NULL &&
         ( ret = mbedtls_mpi_is_prime( P, f_rng, p_rng ) ) != 0 )
     {
@@ -372,6 +373,10 @@ int mbedtls_rsa_check_params( mbedtls_mpi *N, mbedtls_mpi *P, mbedtls_mpi *Q,
     {
         goto cleanup;
     }
+#else
+    ((void) f_rng);
+    ((void) p_rng);
+#endif /* MBEDTLS_GENPRIME */
 
     /*
      * Step 2: Check that N = PQ
@@ -571,6 +576,7 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx,
     }
     else if( d_missing )
     {
+#if defined(MBEDTLS_GENPRIME)
         /* If a PRNG is provided, check if P, Q are prime. */
         if( f_rng != NULL  &&
             ( ( ret = mbedtls_mpi_is_prime( &ctx->P, f_rng, p_rng ) ) != 0 ||
@@ -578,6 +584,7 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx,
         {
             return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
         }
+#endif /* MBEDTLS_GENPRIME */
 
         /* Compute N if missing. */
         if( !have_N &&

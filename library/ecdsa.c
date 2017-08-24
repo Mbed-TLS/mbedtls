@@ -307,9 +307,7 @@ static int ecdsa_sign_restartable( mbedtls_ecp_group *grp,
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
             if( rs_ctx != NULL && rs_ctx->sig != NULL )
-            {
-                rs_ctx->sig->state++;
-            }
+                rs_ctx->sig->state = ecdsa_sig_mul;
 
 mul:
 #endif
@@ -321,7 +319,7 @@ mul:
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
         if( rs_ctx != NULL && rs_ctx->sig != NULL )
-            rs_ctx->sig->state++;
+            rs_ctx->sig->state = ecdsa_sig_modn;
 
 modn:
 #endif
@@ -426,7 +424,7 @@ static int ecdsa_sign_det_restartable( mbedtls_ecp_group *grp,
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->det != NULL )
-        rs_ctx->det->state++;
+        rs_ctx->det->state = ecdsa_det_sign;
 
 sign:
 #endif
@@ -521,7 +519,7 @@ static int ecdsa_verify_restartable( mbedtls_ecp_group *grp,
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->ver != NULL )
-        rs_ctx->ver->state++;
+        rs_ctx->ver->state = ecdsa_ver_muladd;
 
 muladd:
 #endif

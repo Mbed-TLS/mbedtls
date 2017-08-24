@@ -37,6 +37,9 @@
 #include <stdint.h>
 
 typedef struct mbedtls_x509_ocsp_response {
+    mbedtls_x509_buf raw;               /**< The raw response data (DER). */
+
+    uint8_t resp_status;                /**< The OCSP response status */
 } mbedtls_x509_ocsp_response;
 
 int mbedtls_x509_ocsp_response_info( char *buf, size_t size,

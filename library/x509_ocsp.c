@@ -44,9 +44,113 @@
 #include <stdint.h>
 #include <string.h>
 
+static int x509_ocsp_get_response_status( unsigned char **p,
+                                          const unsigned char *end,
+                                          uint8_t *resp_status )
+{
+    return( 0 );
+}
+
+static int x509_ocsp_get_response_bytes( unsigned char **p,
+                                         const unsigned char *end,
+                                         mbedtls_x509_buf *resp_type )
+{
+    return( 0 );
+}
+
 int mbedtls_x509_ocsp_parse_response( mbedtls_x509_ocsp_response *resp,
                                       unsigned char *buf, size_t buflen )
 {
+    int ret;
+    size_t len;
+    unsigned char *p, *end;
+
+    if( resp == NULL || buf == NULL )
+        return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
+
+    p = buf;
+    len = buflen;
+    end = p + len;
+
+    /*
+     * OCSPResponse ::= SEQUENCE {
+     *      responseStatus      OCSPResponseStatus,
+     *      responseBytes       [0] EXPLICIT ResponseBytes OPTIONAL }
+     */
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+    }
+
+    /* This check is a small optimisation to ensure the buffer length matches
+     * before we attempt to parse the OCSPResponse. In reality, this check is
+     * not needed
+     */
+    if( p + len != end )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+    /*
+     * We do not need to check that len > end - p as this is done by
+     * mbedtls_asn1_get_tag().
+     */
+
+    /* Populate a new buffer for the raw field */
+    resp->raw.tag = MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE;
+    resp->raw.len = len;
+    resp->raw.p = mbedtls_calloc( 1, resp->raw.len );
+    if( resp->raw.p == NULL )
+        return( MBEDTLS_ERR_X509_ALLOC_FAILED );
+
+    memcpy( resp->raw.p, p, resp->raw.len );
+
+    p = resp->raw.p;
+    end = p + resp->raw.len;
+
+    /*
+     * OCSPResponseStatus ::= ENUMERATED {
+     *      successful          (0),    -- Response has valid confirmations
+     *      malformedRequest    (1),    -- Illegal confirmation request
+     *      internalError       (2),    -- Internal error in issuer
+     *      tryLater            (3),    -- Try again later
+     *                                  -- (4) is not used
+     *      sigRequired         (5),    -- Must sign the request
+     *      unauthorized        (6)     -- Request unauthorized }
+     */
+    if( ( ret = x509_ocsp_get_response_status( &p, end,
+                                               &resp->resp_status ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    /* ResponseBytes is optional, skip if not found */
+    if( p == end )
+        return( 0 );
+
+    /* Get the [0] EXPLICIT tag for the optional ResponseBytes */
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+        MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED | 0 ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+    }
+
+    if( p + len != end )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+    if( ( ret = x509_ocsp_get_response_bytes( resp, &p, end ) ) != 0 )
+        return( ret );
+
+    /* This might seems slightly redundant, but the idea is that each parsing
+     * function checks the begin and end bounds for the section of the
+     * OCSPResponse that it parses. This implies that some checks will be
+     * duplicated, but it makes it easier to reason about.
+     */
+    if( p != end )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
     return( 0 );
 }
 

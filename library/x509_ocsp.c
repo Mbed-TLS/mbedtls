@@ -95,6 +95,28 @@ static int x509_ocsp_get_response_bytes( unsigned char **p,
     return( 0 );
 }
 
+/*
+ * In general, the idea for each parsing function is to parse the current
+ * top-level component and delegate parsing of its members to helper functions.
+ * The process can be summarised as follows:
+ *     1. Parse the top level component(s) for the current ASN.1 object
+ *          - Note that sometimes the top level component contains tagged
+ *            subcomponents
+ *     2. Calls helper parsing functions for individual subcomponents. Note
+ *        that some of the helpers functions are static others are from
+ *        asn1parse.c or x509.c
+ *     3. Perform any required bounds checking
+ *
+ * The code is kept consistent throughout for checking bounds. Each parsing
+ * function must perform the following check:
+ *     1. At the begining, there is enough space in the buffer to parse
+ *        whatever is being processed.
+ *     2. Prior to returning, the length specified in the ASN1 encoding
+ *        matches the number of bytes consumed from the buffer p.
+ *     3. The lengths of any intermediate sub-components (such as EXPLICIT
+ *        tags) parsed matches the number of bytes consumed by its helper
+ *        functions
+ */
 int mbedtls_x509_ocsp_parse_response( mbedtls_x509_ocsp_response *resp,
                                       unsigned char *buf, size_t buflen )
 {

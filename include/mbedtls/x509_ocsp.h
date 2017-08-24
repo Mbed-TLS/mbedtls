@@ -36,6 +36,16 @@
 
 #include <stdint.h>
 
+#define MBEDTLS_ERR_X509_OCSP_INVALID_RESPONSE_STATUS    -0x9010 /**< The OCSP response status is invalid */
+
+/* OCSP response status values as defined in RFC 6960 Section 4.2.1 */
+#define MBEDTLS_X509_OCSP_RESPONSE_STATUS_SUCCESSFUL        0
+#define MBEDTLS_X509_OCSP_RESPONSE_STATUS_MALFORMED_REQ     1
+#define MBEDTLS_X509_OCSP_RESPONSE_STATUS_INTERNAL_ERR      2
+#define MBEDTLS_X509_OCSP_RESPONSE_STATUS_TRY_LATER         3
+#define MBEDTLS_X509_OCSP_RESPONSE_STATUS_SIG_REQUIRED      5
+#define MBEDTLS_X509_OCSP_RESPONSE_STATUS_UNAUTHORIZED      6
+
 /**
  * \addtogroup x509_module
  * \{

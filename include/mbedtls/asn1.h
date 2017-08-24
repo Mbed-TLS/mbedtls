@@ -74,6 +74,7 @@
 #define MBEDTLS_ASN1_OCTET_STRING            0x04
 #define MBEDTLS_ASN1_NULL                    0x05
 #define MBEDTLS_ASN1_OID                     0x06
+#define MBEDTLS_ASN1_ENUMERATED              0x0A
 #define MBEDTLS_ASN1_UTF8_STRING             0x0C
 #define MBEDTLS_ASN1_SEQUENCE                0x10
 #define MBEDTLS_ASN1_SET                     0x11

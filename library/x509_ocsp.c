@@ -56,6 +56,35 @@ static int x509_ocsp_get_response_status( unsigned char **p,
                                           const unsigned char *end,
                                           uint8_t *resp_status )
 {
+    int ret;
+    size_t len;
+
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                                      MBEDTLS_ASN1_ENUMERATED ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+    }
+
+    if( len != 1 )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+    *resp_status = *( *p )++;
+
+    /* Ensure the parsed response status is valid */
+    switch( *resp_status )
+    {
+        case MBEDTLS_X509_OCSP_RESPONSE_STATUS_SUCCESSFUL:
+        case MBEDTLS_X509_OCSP_RESPONSE_STATUS_MALFORMED_REQ:
+        case MBEDTLS_X509_OCSP_RESPONSE_STATUS_INTERNAL_ERR:
+        case MBEDTLS_X509_OCSP_RESPONSE_STATUS_TRY_LATER:
+        case MBEDTLS_X509_OCSP_RESPONSE_STATUS_SIG_REQUIRED:
+        case MBEDTLS_X509_OCSP_RESPONSE_STATUS_UNAUTHORIZED:
+            break;
+        default:
+            return( MBEDTLS_ERR_X509_OCSP_INVALID_RESPONSE_STATUS );
+    }
+
     return( 0 );
 }
 

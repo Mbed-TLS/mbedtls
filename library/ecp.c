@@ -2234,10 +2234,9 @@ int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         MBEDTLS_MPI_CHK( mbedtls_internal_ecp_init( grp ) );
 #endif /* MBEDTLS_ECP_INTERNAL_ALT */
 
-#if defined(MBEDTLS_ECP_RESTARTABLE) && defined(ECP_SHORTWEIERSTRASS)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     /* skip argument check when restarting */
-    if( ecp_get_type( grp ) != ECP_TYPE_SHORT_WEIERSTRASS ||
-        rs_ctx == NULL || rs_ctx->rsm == NULL )
+    if( rs_ctx == NULL || rs_ctx->rsm == NULL )
 #endif
     {
         /* check_privkey is free */

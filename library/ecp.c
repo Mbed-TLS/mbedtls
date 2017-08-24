@@ -1751,6 +1751,9 @@ cleanup:
  * this wrapper ensures that by replacing m by N - m if necessary, and
  * informs the caller that the result of multiplication will be negated.
  *
+ * This works because we only support large prime order for Short Weierstrass
+ * curves, so N is always odd hence either m or N - m is.
+ *
  * See ecp_comb_recode_core() for background.
  */
 static int ecp_comb_recode_scalar( const mbedtls_ecp_group *grp,
@@ -1766,7 +1769,7 @@ static int ecp_comb_recode_scalar( const mbedtls_ecp_group *grp,
     mbedtls_mpi_init( &M );
     mbedtls_mpi_init( &mm );
 
-    /* N is odd with all real-world curves, just make extra sure */
+    /* N is always odd (see above), just make extra sure */
     if( mbedtls_mpi_get_bit( &grp->N, 0 ) != 1 )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 

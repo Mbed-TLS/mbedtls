@@ -119,7 +119,7 @@ mbedtls_ecp_point;
  * 1. Short Weierstrass y^2 = x^3 + A x + B     mod P   (SEC1 + RFC 4492)
  * 2. Montgomery,       y^2 = x^3 + A x^2 + x   mod P   (Curve25519 + draft)
  * In both cases, a generator G for a prime-order subgroup is fixed. In the
- * short weierstrass, this subgroup is actually the whole curve, and its
+ * Short Weierstrass case, this subgroup is actually the whole curve, and its
  * cardinal is denoted by N.
  *
  * In the case of Short Weierstrass curves, our code requires that N is an odd

@@ -36,7 +36,8 @@
 
 #include <stdint.h>
 
-#define MBEDTLS_ERR_X509_OCSP_INVALID_RESPONSE_STATUS    -0x9010 /**< The OCSP response status is invalid */
+#define MBEDTLS_ERR_X509_OCSP_INVALID_RESPONSE_STATUS    -0x2A00 /**< The OCSP response status is invalid */
+#define MBEDTLS_ERR_X509_OCSP_INVALID_RESPONSE_TYPE      -0x2A10 /**< The OCSP response type is invalid */
 
 /* OCSP response status values as defined in RFC 6960 Section 4.2.1 */
 #define MBEDTLS_X509_OCSP_RESPONSE_STATUS_SUCCESSFUL        0

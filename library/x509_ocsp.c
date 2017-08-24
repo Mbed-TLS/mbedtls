@@ -92,6 +92,24 @@ static int x509_ocsp_get_response_type( unsigned char **p,
                                         const unsigned char *end,
                                         mbedtls_x509_buf *resp_type )
 {
+    int ret;
+    size_t len;
+
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len, MBEDTLS_ASN1_OID ) ) != 0 )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+
+    resp_type->tag = MBEDTLS_ASN1_OID;
+    resp_type->len = len;
+    resp_type->p = *p;
+
+    if( MBEDTLS_OID_CMP( MBEDTLS_OID_OCSP, resp_type ) != 0 &&
+        MBEDTLS_OID_CMP( MBEDTLS_OID_OCSP_BASIC, resp_type ) != 0 )
+    {
+        return( MBEDTLS_ERR_X509_OCSP_INVALID_RESPONSE_TYPE );
+    }
+
+    *p = *p + len;
+
     return( 0 );
 }
 

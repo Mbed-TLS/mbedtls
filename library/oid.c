@@ -318,6 +318,17 @@ static const mbedtls_oid_descriptor_t oid_authority_info_access[] =
 
 FN_OID_TYPED_FROM_ASN1(mbedtls_oid_descriptor_t, authority_info_access, oid_authority_info_access)
 FN_OID_GET_ATTR1(mbedtls_oid_get_authority_info_access, mbedtls_oid_descriptor_t, authority_info_access, const char *, description)
+
+static const mbedtls_oid_descriptor_t oid_ocsp_response_type[] =
+{
+    { ADD_LEN( MBEDTLS_OID_OCSP ), "id-pkix-ocsp", "OCSP" },
+    { ADD_LEN( MBEDTLS_OID_OCSP_BASIC ), "id-pkix-ocsp-basic", "OCSP Basic" },
+    { NULL, 0, NULL, NULL },
+};
+
+FN_OID_TYPED_FROM_ASN1(mbedtls_oid_descriptor_t, ocsp_response_type, oid_ocsp_response_type)
+FN_OID_GET_ATTR1(mbedtls_oid_get_ocsp_response_type, mbedtls_oid_descriptor_t, ocsp_response_type, const char *, description)
+
 #endif /* MBEDTLS_X509_USE_C || MBEDTLS_X509_CREATE_C */
 
 #if defined(MBEDTLS_MD_C)

@@ -189,6 +189,11 @@
 #define MBEDTLS_OID_OCSP_NOCHECK                MBEDTLS_OID_OCSP "\x05" /**< id-pkix-ocsp-nocheck OBJECT IDENTIFIER ::= { id-pkix-ocsp 5 } */
 
 /*
+ * OCSP response type OIDs
+ */
+#define MBEDTLS_OID_OCSP_BASIC                  MBEDTLS_OID_OCSP "\x01" /**< id-pkix-ocsp-basic OBJECT IDENTIFIER ::= { id-pkix-ocsp 1 } */
+
+/*
  * PKCS definition OIDs
  */
 
@@ -544,6 +549,17 @@ int mbedtls_oid_get_extended_key_usage( const mbedtls_asn1_buf *oid, const char 
  */
 int mbedtls_oid_get_authority_info_access( const mbedtls_asn1_buf *oid,
                                            const char **desc );
+
+/**
+ * \brief           Translate OCSP ResponseType OID into description
+ *
+ * \param oid       OID to use
+ * \param desc      place to store string pointer
+ *
+ * \return          0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
+ */
+int mbedtls_oid_get_ocsp_response_type( const mbedtls_asn1_buf *oid,
+                                        const char **desc );
 
 /**
  * \brief          Translate md_type into hash algorithm OID

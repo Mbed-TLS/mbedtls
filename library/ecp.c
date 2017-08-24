@@ -1563,7 +1563,7 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
     if( rs_ctx != NULL && rs_ctx->rsm != NULL )
     {
         rs_ctx->rsm->i = 0;
-        rs_ctx->rsm->state++;
+        rs_ctx->rsm->state = ecp_rsm_pre_norm_dbl;
     }
 #endif
 
@@ -1585,7 +1585,7 @@ norm_dbl:
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->rsm != NULL )
-        rs_ctx->rsm->state++;
+        rs_ctx->rsm->state = ecp_rsm_pre_add;
 #endif
 
     /*
@@ -1607,7 +1607,7 @@ add:
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->rsm != NULL )
-        rs_ctx->rsm->state++;
+        rs_ctx->rsm->state = ecp_rsm_pre_norm_add;
 #endif
 
     /*
@@ -1628,7 +1628,7 @@ norm_add:
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->rsm != NULL )
-        rs_ctx->rsm->state++;
+        rs_ctx->rsm->state = ecp_rsm_T_done;
 #endif
 
 cleanup:
@@ -1730,7 +1730,7 @@ cleanup:
     {
         if( ret == 0 )
         {
-            rs_ctx->rsm->state++;
+            rs_ctx->rsm->state = ecp_rsm_final_norm;
             rs_ctx->rsm->i = 0;
         }
         else if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
@@ -1834,7 +1834,7 @@ static int ecp_mul_comb_after_precomp( const mbedtls_ecp_group *grp,
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
         if( rs_ctx != NULL && rs_ctx->rsm != NULL )
-            rs_ctx->rsm->state++;
+            rs_ctx->rsm->state = ecp_rsm_final_norm;
 #endif
     }
 
@@ -2420,14 +2420,14 @@ int mbedtls_ecp_muladd_restartable(
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul_shortcuts( grp, pmP, m, P, rs_ctx ) );
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->ma != NULL )
-        rs_ctx->ma->state++;
+        rs_ctx->ma->state = ecp_rsma_mul2;
 
 mul2:
 #endif
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul_shortcuts( grp, pR,  n, Q, rs_ctx ) );
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->ma != NULL )
-        rs_ctx->ma->state++;
+        rs_ctx->ma->state = ecp_rsma_add;
 
 add:
 #endif
@@ -2435,7 +2435,7 @@ add:
     MBEDTLS_MPI_CHK( ecp_add_mixed( grp, pR, pmP, pR ) );
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->ma != NULL )
-        rs_ctx->ma->state++;
+        rs_ctx->ma->state = ecp_rsma_norm;
 
 norm:
 #endif

@@ -1885,7 +1885,7 @@ static unsigned char ecp_pick_window_size( const mbedtls_ecp_group *grp,
  *
  * This function is mainly responsible for administrative work:
  * - managing the restart context if enabled
- * - managing the table of precomputed points (passed between the above two
+ * - managing the table of precomputed points (passed between the below two
  *   functions): allocation, computation, ownership tranfer, freeing.
  *
  * It delegates the actual arithmetic work to:
@@ -1900,10 +1900,10 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                          mbedtls_ecp_restart_ctx *rs_ctx )
 {
     int ret;
-    unsigned char w, p_eq_g = 0, i;
+    unsigned char w, p_eq_g, i;
     size_t d;
-    unsigned char T_size = 0, T_ok = 0;
-    mbedtls_ecp_point *T = NULL;
+    unsigned char T_size, T_ok;
+    mbedtls_ecp_point *T;
 
     ECP_RS_ENTER( rsm );
 
@@ -1925,23 +1925,21 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         T = grp->T;
         T_ok = 1;
     }
-
+    else
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     /* Pre-computed table: do we have one in progress? complete? */
-    if( rs_ctx != NULL && rs_ctx->rsm != NULL && rs_ctx->rsm->T != NULL && T == NULL )
+    if( rs_ctx != NULL && rs_ctx->rsm != NULL && rs_ctx->rsm->T != NULL )
     {
         /* transfer ownership of T from rsm to local function */
         T = rs_ctx->rsm->T;
         rs_ctx->rsm->T = NULL;
         rs_ctx->rsm->T_size = 0;
 
-        if( rs_ctx->rsm->state >= ecp_rsm_comb_core )
-            T_ok = 1;
+        T_ok = rs_ctx->rsm->state >= ecp_rsm_comb_core;
     }
+    else
 #endif
-
     /* Allocate table if we didn't have any */
-    if( T == NULL )
     {
         T = mbedtls_calloc( T_size, sizeof( mbedtls_ecp_point ) );
         if( T == NULL )
@@ -1952,6 +1950,8 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
         for( i = 0; i < T_size; i++ )
             mbedtls_ecp_point_init( &T[i] );
+
+        T_ok = 0;
     }
 
     /* Compute table (or finish computing it) if not done already */

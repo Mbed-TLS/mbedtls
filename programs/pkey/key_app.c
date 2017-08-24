@@ -105,7 +105,7 @@ int main( int argc, char *argv[] )
     {
     usage:
         mbedtls_printf( USAGE );
-        goto exit;
+        goto cleanup;
     }
 
     opt.mode                = DFL_MODE;
@@ -155,13 +155,13 @@ int main( int argc, char *argv[] )
             if( ( f = fopen( opt.password_file, "rb" ) ) == NULL )
             {
                 mbedtls_printf( " failed\n  !  fopen returned NULL\n" );
-                goto exit;
+                goto cleanup;
             }
             if( fgets( buf, sizeof(buf), f ) == NULL )
             {
                 fclose( f );
                 mbedtls_printf( "Error: fgets() failed to retrieve password\n" );
-                goto exit;
+                goto cleanup;
             }
             fclose( f );
 
@@ -182,7 +182,7 @@ int main( int argc, char *argv[] )
         if( ret != 0 )
         {
             mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile returned -0x%04x\n", -ret );
-            goto exit;
+            goto cleanup;
         }
 
         mbedtls_printf( " ok\n" );
@@ -203,14 +203,14 @@ int main( int argc, char *argv[] )
                 goto exit;
             }
 
-            mbedtls_mpi_write_file( "N:  ",  &N,  16, NULL );
-            mbedtls_mpi_write_file( "E:  ",  &E,  16, NULL );
-            mbedtls_mpi_write_file( "D:  ",  &D,  16, NULL );
-            mbedtls_mpi_write_file( "P:  ",  &P,  16, NULL );
-            mbedtls_mpi_write_file( "Q:  ",  &Q,  16, NULL );
-            mbedtls_mpi_write_file( "DP: ",  &DP, 16, NULL );
-            mbedtls_mpi_write_file( "DQ:  ", &DQ, 16, NULL );
-            mbedtls_mpi_write_file( "QP:  ", &QP, 16, NULL );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "N:  ", &rsa->N, 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "E:  ", &rsa->E, 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "D:  ", &rsa->D, 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "P:  ", &rsa->P, 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q:  ", &rsa->Q, 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "DP: ", &rsa->DP, 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "DQ:  ", &rsa->DQ, 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "QP:  ", &rsa->QP, 16, NULL ) );
         }
         else
 #endif
@@ -218,16 +218,16 @@ int main( int argc, char *argv[] )
         if( mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_ECKEY )
         {
             mbedtls_ecp_keypair *ecp = mbedtls_pk_ec( pk );
-            mbedtls_mpi_write_file( "Q(X): ", &ecp->Q.X, 16, NULL );
-            mbedtls_mpi_write_file( "Q(Y): ", &ecp->Q.Y, 16, NULL );
-            mbedtls_mpi_write_file( "Q(Z): ", &ecp->Q.Z, 16, NULL );
-            mbedtls_mpi_write_file( "D   : ", &ecp->d  , 16, NULL );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q(X): ", &ecp->Q.X, 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q(Y): ", &ecp->Q.Y, 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q(Z): ", &ecp->Q.Z, 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "D   : ", &ecp->d  , 16, NULL ) );
         }
         else
 #endif
         {
             mbedtls_printf("Do not know how to print key information for this type\n" );
-            goto exit;
+            goto cleanup;
         }
     }
     else if( opt.mode == MODE_PUBLIC )
@@ -243,7 +243,7 @@ int main( int argc, char *argv[] )
         if( ret != 0 )
         {
             mbedtls_printf( " failed\n  !  mbedtls_pk_parse_public_keyfile returned -0x%04x\n", -ret );
-            goto exit;
+            goto cleanup;
         }
 
         mbedtls_printf( " ok\n" );
@@ -260,8 +260,8 @@ int main( int argc, char *argv[] )
                 mbedtls_printf( " failed\n  ! could not export RSA parameters\n\n" );
                 goto exit;
             }
-            mbedtls_mpi_write_file( "N: ", &N, 16, NULL );
-            mbedtls_mpi_write_file( "E: ", &E, 16, NULL );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "N:  ", &rsa->N, 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "E:  ", &rsa->E, 16, NULL ) );
         }
         else
 #endif
@@ -269,21 +269,21 @@ int main( int argc, char *argv[] )
         if( mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_ECKEY )
         {
             mbedtls_ecp_keypair *ecp = mbedtls_pk_ec( pk );
-            mbedtls_mpi_write_file( "Q(X): ", &ecp->Q.X, 16, NULL );
-            mbedtls_mpi_write_file( "Q(Y): ", &ecp->Q.Y, 16, NULL );
-            mbedtls_mpi_write_file( "Q(Z): ", &ecp->Q.Z, 16, NULL );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q(X): ", &ecp->Q.X, 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q(Y): ", &ecp->Q.Y, 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q(Z): ", &ecp->Q.Z, 16, NULL ) );
         }
         else
 #endif
         {
             mbedtls_printf("Do not know how to print key information for this type\n" );
-            goto exit;
+            goto cleanup;
         }
     }
     else
         goto usage;
 
-exit:
+cleanup:
 
 #if defined(MBEDTLS_ERROR_C)
     if( ret != 0 )

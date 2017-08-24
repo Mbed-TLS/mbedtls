@@ -123,12 +123,13 @@ struct mbedtls_ecp_restart_mul
     size_t i;               /* current index in various loops, 0 outside    */
     mbedtls_ecp_point *T;   /* table for precomputed points                 */
     unsigned char T_size;   /* number of points in table T                  */
-    enum {                  /* what's the next step ?                       */
-        ecp_rsm_init = 0,       /* just getting started                     */
+    enum {                  /* what were we doing last time we returned?    */
+        ecp_rsm_init = 0,       /* nothing so far, dummy initial state      */
+        ecp_rsm_pre_dbl,        /* precompute 2^n multiples                 */
         ecp_rsm_pre_norm_dbl,   /* normalize precomputed 2^n multiples      */
         ecp_rsm_pre_add,        /* precompute remaining points by adding    */
         ecp_rsm_pre_norm_add,   /* normalize all precomputed points         */
-        ecp_rsm_T_done,         /* call ecp_mul_comb_after_precomp()        */
+        ecp_rsm_comb_core,      /* ecp_mul_comb_core()                      */
         ecp_rsm_final_norm,     /* do the final normalization               */
     } state;
 };
@@ -1484,13 +1485,10 @@ static void ecp_comb_recode_core( unsigned char x[], size_t d,
  *       the the comb method. See ecp_comb_recode_core().
  *
  * This function currently works in four steps:
- * (1) Computation of intermediate T[i] for 2-powers values of i
- *     (restart state is ecp_rsm_init).
- * (2) Normalization of coordinates of these T[i]
- *     (restart state is ecp_rsm_pre_norm_dbl).
- * (3) Computation of all T[i] (restart state is ecp_rsm_pre_add).
- * (4) Normalization of all T[i] (restart state is ecp_rsm_pre_norm_add)
- * The final restart state is ecp_rsm_T_done.
+ * (1) [dbl]      Computation of intermediate T[i] for 2-powers values of i
+ * (2) [norm_dbl] Normalization of coordinates of these T[i]
+ * (3) [add]      Computation of all T[i]
+ * (4) [norm_add] Normalization of all T[i]
  *
  * Step 1 can be interrupted but not the others; together with the final
  * coordinate normalization they are the largest steps done at once, depending
@@ -1524,12 +1522,14 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->rsm != NULL )
     {
-        if( rs_ctx->rsm->state == ecp_rsm_pre_norm_add )
-            goto norm_add;
-        if( rs_ctx->rsm->state == ecp_rsm_pre_add )
-            goto add;
+        if( rs_ctx->rsm->state == ecp_rsm_pre_dbl )
+            goto dbl;
         if( rs_ctx->rsm->state == ecp_rsm_pre_norm_dbl )
             goto norm_dbl;
+        if( rs_ctx->rsm->state == ecp_rsm_pre_add )
+            goto add;
+        if( rs_ctx->rsm->state == ecp_rsm_pre_norm_add )
+            goto norm_add;
     }
 #endif
 
@@ -1537,6 +1537,18 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
      * Set T[0] = P and
      * T[2^{l-1}] = 2^{dl} P for l = 1 .. w-1 (this is not the final value)
      */
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    if( rs_ctx != NULL && rs_ctx->rsm != NULL )
+    {
+        rs_ctx->rsm->state = ecp_rsm_pre_dbl;
+
+        /* initial state for the loop */
+        rs_ctx->rsm->i = 0;
+    }
+
+dbl:
+#endif
+
     MBEDTLS_MPI_CHK( mbedtls_ecp_copy( &T[0], P ) );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
@@ -1559,19 +1571,14 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
         MBEDTLS_MPI_CHK( ecp_double_jac( grp, cur, cur ) );
     }
 
-#if defined(MBEDTLS_ECP_RESTARTABLE)
-    if( rs_ctx != NULL && rs_ctx->rsm != NULL )
-    {
-        rs_ctx->rsm->i = 0;
-        rs_ctx->rsm->state = ecp_rsm_pre_norm_dbl;
-    }
-#endif
-
     /*
      * Normalize current elements in T. As T has holes,
      * use an auxiliary array of pointers to elements in T.
      */
 #if defined(MBEDTLS_ECP_RESTARTABLE)
+    if( rs_ctx != NULL && rs_ctx->rsm != NULL )
+        rs_ctx->rsm->state = ecp_rsm_pre_norm_dbl;
+
 norm_dbl:
 #endif
 
@@ -1583,16 +1590,14 @@ norm_dbl:
 
     MBEDTLS_MPI_CHK( ecp_normalize_jac_many( grp, TT, j ) );
 
-#if defined(MBEDTLS_ECP_RESTARTABLE)
-    if( rs_ctx != NULL && rs_ctx->rsm != NULL )
-        rs_ctx->rsm->state = ecp_rsm_pre_add;
-#endif
-
     /*
      * Compute the remaining ones using the minimal number of additions
      * Be careful to update T[2^l] only after using it!
      */
 #if defined(MBEDTLS_ECP_RESTARTABLE)
+    if( rs_ctx != NULL && rs_ctx->rsm != NULL )
+        rs_ctx->rsm->state = ecp_rsm_pre_add;
+
 add:
 #endif
 
@@ -1605,17 +1610,15 @@ add:
             MBEDTLS_MPI_CHK( ecp_add_mixed( grp, &T[i + j], &T[j], &T[i] ) );
     }
 
-#if defined(MBEDTLS_ECP_RESTARTABLE)
-    if( rs_ctx != NULL && rs_ctx->rsm != NULL )
-        rs_ctx->rsm->state = ecp_rsm_pre_norm_add;
-#endif
-
     /*
      * Normalize final elements in T. Even though there are no holes now,
      * we still need the auxiliary array for homogeneity with last time.
      * Also, skip T[0] which is already normalised, being a copy of P.
      */
 #if defined(MBEDTLS_ECP_RESTARTABLE)
+    if( rs_ctx != NULL && rs_ctx->rsm != NULL )
+        rs_ctx->rsm->state = ecp_rsm_pre_norm_add;
+
 norm_add:
 #endif
 
@@ -1626,17 +1629,12 @@ norm_add:
 
     MBEDTLS_MPI_CHK( ecp_normalize_jac_many( grp, TT, j ) );
 
-#if defined(MBEDTLS_ECP_RESTARTABLE)
-    if( rs_ctx != NULL && rs_ctx->rsm != NULL )
-        rs_ctx->rsm->state = ecp_rsm_T_done;
-#endif
-
 cleanup:
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->rsm != NULL &&
         ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
     {
-        if( rs_ctx->rsm->state == ecp_rsm_init )
+        if( rs_ctx->rsm->state == ecp_rsm_pre_dbl )
             rs_ctx->rsm->i = j;
     }
 #endif
@@ -1697,6 +1695,14 @@ static int ecp_mul_comb_core( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R
 #endif
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
+    if( rs_ctx != NULL && rs_ctx->rsm != NULL &&
+        rs_ctx->rsm->state != ecp_rsm_comb_core )
+    {
+        rs_ctx->rsm->i = 0;
+        rs_ctx->rsm->state = ecp_rsm_comb_core;
+    }
+
+    /* new 'if' instead of nested for the sake of the 'else' branch */
     if( rs_ctx != NULL && rs_ctx->rsm != NULL && rs_ctx->rsm->i != 0 )
     {
         /* restore current index (R already pointing to rs_ctx->rsm->R) */
@@ -1726,19 +1732,12 @@ cleanup:
     mbedtls_ecp_point_free( &Txi );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-    if( rs_ctx != NULL && rs_ctx->rsm != NULL )
+    if( rs_ctx != NULL && rs_ctx->rsm != NULL &&
+        ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
     {
-        if( ret == 0 )
-        {
-            rs_ctx->rsm->state = ecp_rsm_final_norm;
-            rs_ctx->rsm->i = 0;
-        }
-        else if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
-        {
-            /* was decreased before actually doing it */
-            rs_ctx->rsm->i = i + 1;
-            /* no need to save R, already pointing to rs_ctx->rsm->R */
-        }
+        /* was decreased before actually doing it */
+        rs_ctx->rsm->i = i + 1;
+        /* no need to save R, already pointing to rs_ctx->rsm->R */
     }
 #endif
 
@@ -1812,32 +1811,28 @@ static int ecp_mul_comb_after_precomp( const mbedtls_ecp_group *grp,
     unsigned char k[COMB_MAX_D + 1];
     mbedtls_ecp_point *RR = R;
 
-#if !defined(MBEDTLS_ECP_RESTARTABLE)
-    (void) rs_ctx;
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    if( rs_ctx != NULL && rs_ctx->rsm != NULL )
+    {
+        RR = &rs_ctx->rsm->R;
+
+        if( rs_ctx->rsm->state == ecp_rsm_final_norm )
+            goto final_norm;
+    }
 #endif
+
+    MBEDTLS_MPI_CHK( ecp_comb_recode_scalar( grp, m, k, d, w,
+                                            &parity_trick ) );
+    MBEDTLS_MPI_CHK( ecp_mul_comb_core( grp, RR, T, T_size, k, d,
+                                        f_rng, p_rng, rs_ctx ) );
+    MBEDTLS_MPI_CHK( ecp_safe_invert_jac( grp, RR, parity_trick ) );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->rsm != NULL )
-        RR = &rs_ctx->rsm->R;
-#endif
+        rs_ctx->rsm->state = ecp_rsm_final_norm;
 
-#if defined(MBEDTLS_ECP_RESTARTABLE)
-    if( rs_ctx == NULL || rs_ctx->rsm == NULL ||
-        rs_ctx->rsm->state < ecp_rsm_final_norm )
+final_norm:
 #endif
-    {
-        MBEDTLS_MPI_CHK( ecp_comb_recode_scalar( grp, m, k, d, w,
-                                                &parity_trick ) );
-        MBEDTLS_MPI_CHK( ecp_mul_comb_core( grp, RR, T, T_size, k, d,
-                                            f_rng, p_rng, rs_ctx ) );
-        MBEDTLS_MPI_CHK( ecp_safe_invert_jac( grp, RR, parity_trick ) );
-
-#if defined(MBEDTLS_ECP_RESTARTABLE)
-        if( rs_ctx != NULL && rs_ctx->rsm != NULL )
-            rs_ctx->rsm->state = ecp_rsm_final_norm;
-#endif
-    }
-
     MBEDTLS_ECP_BUDGET( MBEDTLS_ECP_OPS_INV );
     MBEDTLS_MPI_CHK( ecp_normalize_jac( grp, RR ) );
 
@@ -1940,7 +1935,7 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         rs_ctx->rsm->T = NULL;
         rs_ctx->rsm->T_size = 0;
 
-        if( rs_ctx->rsm->state >= ecp_rsm_T_done )
+        if( rs_ctx->rsm->state >= ecp_rsm_comb_core )
             T_ok = 1;
     }
 #endif

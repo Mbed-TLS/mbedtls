@@ -55,8 +55,60 @@ void mbedtls_x509_ocsp_response_init( mbedtls_x509_ocsp_response *resp )
     memset( resp, 0, sizeof( mbedtls_x509_ocsp_response ) );
 }
 
+/*
+ * This code is exactly the same as x509_crt_free_name(), we should consider
+ * removing code duplication
+ */
+static void x509_ocsp_free_name( mbedtls_x509_name *name )
+{
+    mbedtls_x509_name *cur = name->next;
+    mbedtls_x509_name *prv;
+
+    while( cur != NULL )
+    {
+        prv = cur;
+        cur = cur->next;
+        mbedtls_zeroize( prv, sizeof( mbedtls_x509_name ) );
+        mbedtls_free( prv );
+    }
+}
+
 void mbedtls_x509_ocsp_response_free( mbedtls_x509_ocsp_response *resp )
 {
+    mbedtls_x509_ocsp_single_response *cur, *next;
+
+    if( resp->resp_type.p == NULL )
+        goto exit;
+
+    /* Free list of certificates */
+    mbedtls_x509_crt_free( &resp->certs );
+
+    /* Free Name from ResponderID if set */
+    if( resp->responder_id.type == MBEDTLS_X509_OCSP_RESPONDER_ID_TYPE_NAME )
+        x509_ocsp_free_name( &resp->responder_id.id.name );
+
+    /* Free list of SingleResponses */
+    for( cur = &resp-> single_resp; cur != NULL; cur = next )
+    {
+        next = cur->next;
+
+        mbedtls_zeroize( cur, sizeof( mbedtls_x509_ocsp_single_response ) );
+
+        if( cur != &resp->single_resp )
+            mbedtls_free( cur );
+    }
+
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
+    /* Free signature options */
+    mbedtls_free( resp->sig_opts );
+#endif
+
+    /* Free internal buffer holding the raw OCSP response */
+    mbedtls_free( resp->raw.p );
+
+exit:
+    /* Clear memory to avoid leaking confidential data */
+    mbedtls_zeroize( resp, sizeof( mbedtls_x509_ocsp_response ) );
 }
 
 static int x509_ocsp_get_response_status( unsigned char **p,

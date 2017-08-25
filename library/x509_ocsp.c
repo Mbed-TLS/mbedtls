@@ -226,6 +226,28 @@ static int x509_ocsp_get_generalized_time( unsigned char **p,
                                            const unsigned char *end,
                                            mbedtls_x509_time *t )
 {
+    int ret;
+    unsigned char tag;
+
+    /*
+     * mbedtls_x509_get_time() can parse both UTCTime and GeneralizedTime
+     * and there is no way to tell from the output which version it parsed.
+     * However, OCSP responses require GeneralizedTime only, so we must check
+     * the tag manually.
+     */
+
+    if( ( end - *p ) < 1 )
+        return( MBEDTLS_ERR_X509_INVALID_DATE +
+                MBEDTLS_ERR_ASN1_OUT_OF_DATA );
+
+    tag = **p;
+
+    if( tag != MBEDTLS_ASN1_GENERALIZED_TIME )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT );
+
+    if( ( ret = mbedtls_x509_get_time( p, end, t ) ) != 0 )
+        return( ret );
+
     return( 0 );
 }
 

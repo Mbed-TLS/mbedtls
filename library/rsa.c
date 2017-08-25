@@ -1038,66 +1038,19 @@ int mbedtls_rsa_check_pubkey( const mbedtls_rsa_context *ctx )
  */
 int mbedtls_rsa_check_privkey( const mbedtls_rsa_context *ctx )
 {
-    int ret;
-    mbedtls_mpi PQ, DE, P1, Q1, H, I, G, G2, L1, L2, DP, DQ, QP;
-
-    if( ( ret = mbedtls_rsa_check_pubkey( ctx ) ) != 0 )
-        return( ret );
-
-    if( !ctx->P.p || !ctx->Q.p || !ctx->D.p )
-        return( MBEDTLS_ERR_RSA_KEY_CHECK_FAILED );
-
-    mbedtls_mpi_init( &PQ ); mbedtls_mpi_init( &DE ); mbedtls_mpi_init( &P1 );
-    mbedtls_mpi_init( &Q1 ); mbedtls_mpi_init( &H  ); mbedtls_mpi_init( &I  );
-    mbedtls_mpi_init( &G  ); mbedtls_mpi_init( &G2 ); mbedtls_mpi_init( &L1 );
-    mbedtls_mpi_init( &L2 ); mbedtls_mpi_init( &DP ); mbedtls_mpi_init( &DQ );
-    mbedtls_mpi_init( &QP );
-
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &PQ, &ctx->P, &ctx->Q ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &DE, &ctx->D, &ctx->E ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &P1, &ctx->P, 1 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &Q1, &ctx->Q, 1 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &H, &P1, &Q1 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_gcd( &G, &ctx->E, &H  ) );
-
-    MBEDTLS_MPI_CHK( mbedtls_mpi_gcd( &G2, &P1, &Q1 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_div_mpi( &L1, &L2, &H, &G2 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &I, &DE, &L1  ) );
-
-#if !defined(MBEDTLS_RSA_NO_CRT)
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &DP, &ctx->D, &P1 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &DQ, &ctx->D, &Q1 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( &QP, &ctx->Q, &ctx->P ) );
-#endif
-
-    /*
-     * Check for a valid PKCS1v2 private key
-     */
-    if( mbedtls_mpi_cmp_mpi( &PQ, &ctx->N ) != 0  ||
-#if !defined(MBEDTLS_RSA_NO_CRT)
-        mbedtls_mpi_cmp_mpi( &DP, &ctx->DP ) != 0 ||
-        mbedtls_mpi_cmp_mpi( &DQ, &ctx->DQ ) != 0 ||
-        mbedtls_mpi_cmp_mpi( &QP, &ctx->QP ) != 0 ||
-#endif
-        mbedtls_mpi_cmp_int( &L2, 0 ) != 0 ||
-        mbedtls_mpi_cmp_int( &I, 1 ) != 0  ||
-        mbedtls_mpi_cmp_int( &G, 1 ) != 0 )
+    if( mbedtls_rsa_check_pubkey( ctx ) != 0 ||
+        mbedtls_rsa_validate_params( &ctx->N, &ctx->P, &ctx->Q,
+                                     &ctx->D, &ctx->E, NULL, NULL ) != 0 )
     {
-        ret = MBEDTLS_ERR_RSA_KEY_CHECK_FAILED;
+        return( MBEDTLS_ERR_RSA_KEY_CHECK_FAILED );
     }
-
-cleanup:
-    mbedtls_mpi_free( &PQ ); mbedtls_mpi_free( &DE ); mbedtls_mpi_free( &P1 );
-    mbedtls_mpi_free( &Q1 ); mbedtls_mpi_free( &H  ); mbedtls_mpi_free( &I  );
-    mbedtls_mpi_free( &G  ); mbedtls_mpi_free( &G2 ); mbedtls_mpi_free( &L1 );
-    mbedtls_mpi_free( &L2 ); mbedtls_mpi_free( &DP ); mbedtls_mpi_free( &DQ );
-    mbedtls_mpi_free( &QP );
-
-    if( ret == MBEDTLS_ERR_RSA_KEY_CHECK_FAILED )
-        return( ret );
-
-    if( ret != 0 )
-        return( MBEDTLS_ERR_RSA_KEY_CHECK_FAILED + ret );
+#if !defined(MBEDTLS_RSA_NO_CRT)
+    else if( mbedtls_rsa_validate_crt( &ctx->P, &ctx->Q, &ctx->D,
+                                       &ctx->DP, &ctx->DQ, &ctx->QP ) != 0 )
+    {
+        return( MBEDTLS_ERR_RSA_KEY_CHECK_FAILED );
+    }
+#endif
 
     return( 0 );
 }

@@ -81,6 +81,23 @@ typedef struct mbedtls_x509_ocsp_responder_id {
  * Container for an X.509 OCSP SingleResponse.
  */
 typedef struct mbedtls_x509_ocsp_single_response {
+    mbedtls_x509_buf md_oid;            /**< Hash algorithm used to generate issuerHashName and issuesKeyHash */
+    mbedtls_md_type_t md_alg;           /**< Internal representation of the MD algorithm of the hash algorithm, e.g. MBEDTLS_MD_SHA256 */
+    mbedtls_x509_buf issuer_name_hash;  /**< Hash of the issues's distinduished name (DN) */
+    mbedtls_x509_buf issues_key_hash;   /**< Hash of issuer's public key */
+    mbedtls_x509_buf serial;            /**< The serial of the certificate that this SingleResponse corresponds to */
+
+    uint8_t cert_status;                /**< The revocation status of the certificate with CertID, e.g. good, revoked, unknown */
+    uint8_t revocation_reason;          /**< Optional value that identifies the reason for the certificate revocation, e.g. keyCompromise, cACompromise, etc */
+    int has_revocation_reason;          /**< Whether the revocationReason value is present in the OCSP resposne */
+    mbedtls_x509_time revocation_time;  /**< The time at which the certificate was revoked or placed on hold */
+
+    mbedtls_x509_time this_update;      /**< The most recent time at which the status is known to the responder to have been correct */
+
+    mbedtls_x509_time next_update;      /**< The time at or before which newer information will be available about the status of the certificate */
+    int has_next_update;                /**< Whether the nextUpdate value is present in the OCSP response */
+
+    struct mbedtls_x509_ocsp_single_response *next; /**< Next SingleResponse in the list */
 } mbedtls_x509_ocsp_single_response;
 
 /**

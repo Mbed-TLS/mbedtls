@@ -251,10 +251,63 @@ static int x509_ocsp_get_generalized_time( unsigned char **p,
     return( 0 );
 }
 
+static int x509_ocsp_get_single_response( unsigned char **p,
+                                          const unsigned char *end,
+                                    mbedtls_x509_ocsp_single_response *cur )
+{
+    return( 0 );
+}
+
 static int x509_ocsp_get_responses( unsigned char **p,
                                     const unsigned char *end,
                             mbedtls_x509_ocsp_single_response *single_resp )
 {
+    int ret;
+    size_t len;
+    mbedtls_x509_ocsp_single_response *cur = single_resp;
+
+    /*
+     * responses               SEQUENCE OF SingleResponse
+     *
+     * Note: the standard allows an OCSPResponse that has no responses
+     */
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+    }
+
+    end = *p + len;
+
+    while( *p < end )
+    {
+        /* Allocate space for the next SingleResponse if necessary */
+        if( cur->md_oid.p != NULL )
+        {
+            /*
+             * This check prevents errors when populating an already used
+             * mbedtls_x509_ocsp_single_response
+             */
+            if( cur->next != NULL )
+                return( MBEDTLS_ERR_X509_INVALID_FORMAT );
+
+            cur->next = mbedtls_calloc( 1,
+                                sizeof( mbedtls_x509_ocsp_single_response ) );
+            if( cur->next == NULL )
+                return( MBEDTLS_ERR_X509_ALLOC_FAILED );
+
+            cur = cur->next;
+        }
+
+        /* Parse SingleResponse and populate cur */
+        if( ( ret = x509_ocsp_get_single_response( p, end, cur ) ) != 0 )
+            return( ret );
+    }
+
+    if( *p != end )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
     return( 0 );
 }
 

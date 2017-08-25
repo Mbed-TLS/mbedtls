@@ -335,10 +335,66 @@ static int x509_ocsp_get_cert_id( unsigned char **p,
     return( 0 );
 }
 
+static int x509_ocsp_get_revoked_info( unsigned char **p,
+                                       const unsigned char *end,
+                            mbedtls_x509_ocsp_single_response *single_resp )
+{
+    return( 0 );
+}
+
 static int x509_ocsp_get_cert_status( unsigned char **p,
                                       const unsigned char *end,
                             mbedtls_x509_ocsp_single_response *single_resp )
 {
+    int ret;
+    size_t len;
+    unsigned char tag;
+    const unsigned char status_good = MBEDTLS_ASN1_CONTEXT_SPECIFIC |
+                                      MBEDTLS_ASN1_PRIMITIVE |
+                                      MBEDTLS_X509_OCSP_CERT_STATUS_GOOD;
+    const unsigned char status_unknown = MBEDTLS_ASN1_CONTEXT_SPECIFIC |
+                                         MBEDTLS_ASN1_PRIMITIVE |
+                                         MBEDTLS_X509_OCSP_CERT_STATUS_UNKNOWN;
+    const unsigned char status_revoked = MBEDTLS_ASN1_CONTEXT_SPECIFIC |
+                                         MBEDTLS_ASN1_CONSTRUCTED |
+                                         MBEDTLS_X509_OCSP_CERT_STATUS_REVOKED;
+
+    /*
+     * CertStatus ::= CHOICE {
+     *  good            [0] IMPLICIT NULL,
+     *  revoked         [1] IMPLICIT RevokedInfo,
+     *  unknown         [2] IMPLICIT UnknownInfo }
+     */
+    if( ( end - *p ) < 1 )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+    tag = **p;
+    ( *p )++;
+
+    if( ( ret = mbedtls_asn1_get_len( p, end, &len ) ) != 0 )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+
+    end = *p + len;
+
+    if( tag == status_good )
+        single_resp->cert_status = MBEDTLS_X509_OCSP_CERT_STATUS_GOOD;
+    else if( tag == status_unknown )
+        single_resp->cert_status = MBEDTLS_X509_OCSP_CERT_STATUS_UNKNOWN;
+    else if( tag == status_revoked )
+    {
+        single_resp->cert_status = MBEDTLS_X509_OCSP_CERT_STATUS_REVOKED;
+
+        if( ( ret = x509_ocsp_get_revoked_info( p, end, single_resp ) ) != 0 )
+            return( ret );
+    }
+    else
+            return( MBEDTLS_ERR_X509_OCSP_INVALID_CERT_STATUS );
+
+    if( *p != end )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
     return( 0 );
 }
 

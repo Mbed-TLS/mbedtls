@@ -614,6 +614,43 @@ static int x509_ocsp_info_response_type( char **buf, size_t *size,
     return( 0 );
 }
 
+static int x509_ocsp_info_responder_id( char **buf, size_t *size,
+                        const mbedtls_x509_ocsp_responder_id *responder_id )
+{
+    int ret;
+    size_t n = *size;
+    size_t i;
+    char *p = *buf;
+
+    switch( responder_id->type )
+    {
+        case MBEDTLS_X509_OCSP_RESPONDER_ID_TYPE_NAME:
+            ret = mbedtls_snprintf( p, n, "[%s] ", "Name" );
+            MBEDTLS_X509_SAFE_SNPRINTF;
+            ret = mbedtls_x509_dn_gets( p, n, &responder_id->id.name );
+            MBEDTLS_X509_SAFE_SNPRINTF;
+            break;
+        case MBEDTLS_X509_OCSP_RESPONDER_ID_TYPE_KEY_HASH:
+            ret = mbedtls_snprintf( p, n, "[%s] ", "KeyHash" );
+            MBEDTLS_X509_SAFE_SNPRINTF;
+            for( i = 0; i < responder_id->id.key.len; i++ )
+            {
+                ret = mbedtls_snprintf( p, n, "%02X",
+                                        responder_id->id.key.p[i] );
+                MBEDTLS_X509_SAFE_SNPRINTF;
+            }
+            break;
+        default:
+            ret = mbedtls_snprintf( p, n, "[???] " );
+            MBEDTLS_X509_SAFE_SNPRINTF;
+    }
+
+    *size = n;
+    *buf = p;
+
+    return( 0 );
+}
+
 #define BC      "18"
 int mbedtls_x509_ocsp_response_info( char *buf, size_t size,
                                      const char *prefix,
@@ -668,6 +705,15 @@ int mbedtls_x509_ocsp_response_info( char *buf, size_t size,
     ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: %d", prefix,
                             "response version", resp->version );
     MBEDTLS_X509_SAFE_SNPRINTF;
+
+    /* Print responderID */
+    ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: ", prefix, "responder ID" );
+    MBEDTLS_X509_SAFE_SNPRINTF;
+    if( ( ret = x509_ocsp_info_responder_id( &p, &n,
+                                             &resp->responder_id ) ) != 0 )
+    {
+        return( ret );
+    }
 
     return( 0 );
 }

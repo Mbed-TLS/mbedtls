@@ -128,6 +128,17 @@ static int x509_ocsp_get_response_version( unsigned char **p,
                                            const unsigned char *end,
                                            int *version )
 {
+    int ret;
+
+    if( ( ret = mbedtls_asn1_get_int( p, end, version ) ) != 0 )
+        return( MBEDTLS_ERR_X509_INVALID_VERSION + ret );
+    else if( *version != MBEDTLS_X509_OCSP_VERSION_1 )
+        return( MBEDTLS_ERR_X509_UNKNOWN_VERSION );
+
+    if( *p != end )
+        return( MBEDTLS_ERR_X509_INVALID_VERSION +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
     return( 0 );
 }
 

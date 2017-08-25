@@ -763,6 +763,22 @@ static int x509_ocsp_get_sig_alg( mbedtls_x509_ocsp_response *resp,
                                   unsigned char **p,
                                   const unsigned char *end )
 {
+    int ret;
+    mbedtls_x509_buf sig_params;
+
+    if( ( ret = mbedtls_x509_get_alg( p, end, &resp->sig_oid,
+                                      &sig_params ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    if( ( ret = mbedtls_x509_get_sig_alg( &resp->sig_oid, &sig_params,
+                                          &resp->sig_md, &resp->sig_pk,
+                                          &resp->sig_opts ) ) != 0 )
+    {
+        return( ret );
+    }
+
     return( 0 );
 }
 

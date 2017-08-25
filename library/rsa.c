@@ -425,7 +425,7 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
     /* Pointer to actual exponent to be used - either the unblinded
      * or the blinded one, depending on the presence of a PRNG. */
     mbedtls_mpi *D = &ctx->D;
-#endif
+#endif /* MBEDTLS_RSA_NO_CRT */
 
 #if defined(MBEDTLS_RSA_REQUIRE_VERIFICATION)
     /* Temporaries holding the initial input and the double
@@ -438,9 +438,24 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 #endif
 
-    /* Make sure we have private key info, prevent possible misuse */
-    if( ctx->P.p == NULL || ctx->Q.p == NULL || ctx->D.p == NULL )
+    /* Sanity-check that all relevant fields are at least set,
+     * but don't perform a full keycheck. */
+    if( mbedtls_mpi_cmp_int( &ctx->N, 0 ) == 0 ||
+        mbedtls_mpi_cmp_int( &ctx->P, 0 ) == 0 ||
+        mbedtls_mpi_cmp_int( &ctx->Q, 0 ) == 0 ||
+        mbedtls_mpi_cmp_int( &ctx->D, 0 ) == 0 ||
+        mbedtls_mpi_cmp_int( &ctx->E, 0 ) == 0 )
+    {
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    }
+#if !defined(MBEDTLS_RSA_NO_CRT)
+    if( mbedtls_mpi_cmp_int( &ctx->DP, 0 ) == 0 ||
+        mbedtls_mpi_cmp_int( &ctx->DQ, 0 ) == 0 ||
+        mbedtls_mpi_cmp_int( &ctx->QP, 0 ) == 0 )
+    {
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    }
+#endif /* MBEDTLS_RSA_NO_CRT */
 
 #if defined(MBEDTLS_THREADING_C)
     if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
@@ -1294,7 +1309,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
     }
 
     if( mode == MBEDTLS_RSA_PUBLIC )
-        return( mbedtls_rsa_public(  ctx, sig, sig ) );
+        return( mbedtls_rsa_public( ctx, sig, sig ) );
 
     /*
      * In order to prevent Lenstra's attack, make the signature in a

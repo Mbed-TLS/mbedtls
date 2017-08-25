@@ -65,6 +65,16 @@ static int x509_ocsp_get_response_status( unsigned char **p,
     int ret;
     size_t len;
 
+    /*
+     * OCSPResponseStatus ::= ENUMERATED {
+     *      successful          (0),    -- Response has valid confirmations
+     *      malformedRequest    (1),    -- Illegal confirmation request
+     *      internalError       (2),    -- Internal error in issuer
+     *      tryLater            (3),    -- Try again later
+     *                                  -- (4) is not used
+     *      sigRequired         (5),    -- Must sign the request
+     *      unauthorized        (6)     -- Request unauthorized }
+     */
     if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
                                       MBEDTLS_ASN1_ENUMERATED ) ) != 0 )
     {
@@ -1020,16 +1030,7 @@ int mbedtls_x509_ocsp_parse_response( mbedtls_x509_ocsp_response *resp,
     p = resp->raw.p;
     end = p + resp->raw.len;
 
-    /*
-     * OCSPResponseStatus ::= ENUMERATED {
-     *      successful          (0),    -- Response has valid confirmations
-     *      malformedRequest    (1),    -- Illegal confirmation request
-     *      internalError       (2),    -- Internal error in issuer
-     *      tryLater            (3),    -- Try again later
-     *                                  -- (4) is not used
-     *      sigRequired         (5),    -- Must sign the request
-     *      unauthorized        (6)     -- Request unauthorized }
-     */
+    /* Parse responseStatus */
     if( ( ret = x509_ocsp_get_response_status( &p, end,
                                                &resp->resp_status ) ) != 0 )
     {
@@ -1051,6 +1052,7 @@ int mbedtls_x509_ocsp_parse_response( mbedtls_x509_ocsp_response *resp,
         return( MBEDTLS_ERR_X509_INVALID_FORMAT +
                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
 
+    /* Parse responseBytes */
     if( ( ret = x509_ocsp_get_response_bytes( resp, &p, end ) ) != 0 )
         return( ret );
 

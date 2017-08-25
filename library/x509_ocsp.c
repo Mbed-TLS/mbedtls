@@ -1080,6 +1080,145 @@ static int x509_ocsp_info_responder_id( char **buf, size_t *size,
 }
 
 #define BC      "18"
+static int x509_ocsp_info_responses( char **buf, size_t *size,
+                        const char *prefix,
+                        const mbedtls_x509_ocsp_single_response *responses )
+{
+    int ret;
+    size_t n = *size;
+    char *p = *buf;
+    const mbedtls_x509_ocsp_single_response *cur = responses;
+    const char *desc;
+
+    /* Nothing to display */
+    if( cur->md_oid.p == NULL )
+    {
+        ret = mbedtls_snprintf( p, n, "\n%s%sThere are no responses",
+                                prefix, prefix );
+        MBEDTLS_X509_SAFE_SNPRINTF;
+        return( 0 );
+    }
+
+    for( ; cur != NULL; cur = cur->next )
+    {
+        /* Print hashAlgorithm */
+        if( ( ret = mbedtls_oid_get_md_alg_desc( &cur->md_oid, &desc ) ) != 0 )
+            desc = "???";
+        ret = mbedtls_snprintf( p, n, "\n%s%s%-" BC "s: %s", prefix, prefix,
+                                "hash alg.", desc );
+        MBEDTLS_X509_SAFE_SNPRINTF;
+
+        /* Print serialNumber */
+        ret = mbedtls_snprintf( p, n, "\n%s%s%-" BC "s: ", prefix, prefix,
+                                "serial number" );
+        MBEDTLS_X509_SAFE_SNPRINTF;
+
+        ret = mbedtls_x509_serial_gets( p, n, &cur->serial );
+        MBEDTLS_X509_SAFE_SNPRINTF;
+
+        /* Print certificate status */
+        switch( cur->cert_status )
+        {
+            case MBEDTLS_X509_OCSP_CERT_STATUS_GOOD:
+                desc = "good";
+                break;
+            case MBEDTLS_X509_OCSP_CERT_STATUS_REVOKED:
+                desc = "revoked";
+                break;
+            case MBEDTLS_X509_OCSP_CERT_STATUS_UNKNOWN:
+                desc = "unknown";
+                break;
+            default:
+                desc = "???";
+        }
+
+        ret = mbedtls_snprintf( p, n, "\n%s%s%-" BC "s: %s", prefix, prefix,
+                                "cert. status", desc );
+        MBEDTLS_X509_SAFE_SNPRINTF;
+
+        /* Print revocation information (if available) */
+        if( cur->cert_status == MBEDTLS_X509_OCSP_CERT_STATUS_REVOKED )
+        {
+            ret = mbedtls_snprintf( p, n, "\n%s%s%-" BC "s: "
+                        "%04d-%02d-%02d %02d:%02d:%02d",
+                        prefix, prefix, "revocation time",
+                        cur->revocation_time.year, cur->revocation_time.mon,
+                        cur->revocation_time.day,  cur->revocation_time.hour,
+                        cur->revocation_time.min,  cur->revocation_time.sec );
+            MBEDTLS_X509_SAFE_SNPRINTF;
+        }
+
+        if( cur->has_revocation_reason )
+        {
+            switch( cur->revocation_reason )
+            {
+                case MBEDTLS_X509_CRL_REASON_UNSPECIFIED:
+                    desc = "unspecified";
+                    break;
+                case MBEDTLS_X509_CRL_REASON_KEY_COMPROMISE:
+                    desc = "keyCompromise";
+                    break;
+                case MBEDTLS_X509_CRL_REASON_CA_COMPROMISE:
+                    desc = "cACompromise";
+                    break;
+                case MBEDTLS_X509_CRL_REASON_AFFILIATION_CHANGED:
+                    desc = "affiliationChanged";
+                    break;
+                case MBEDTLS_X509_CRL_REASON_SUPERSEDED:
+                    desc = "siperseded";
+                    break;
+                case MBEDTLS_X509_CRL_REASON_CESSATION_OF_OPERATION:
+                    desc = "cessationOfOperation";
+                    break;
+                case MBEDTLS_X509_CRL_REASON_CERTIFICATE_HOLD:
+                    desc = "certificateHold";
+                    break;
+                case MBEDTLS_X509_CRL_REASON_REMOVE_FROM_CRL:
+                    desc = "removeFromCRL";
+                    break;
+                case MBEDTLS_X509_CRL_REASON_PRIVILEGE_WITHDRAWN:
+                    desc = "priviledeWithdrawn";
+                    break;
+                case MBEDTLS_X509_CRL_REASON_AA_COMPROMISE:
+                    desc = "aACompromise";
+                    break;
+                default:
+                    desc = "???";
+            }
+
+            ret = mbedtls_snprintf( p, n, "\n%s%s%-" BC "s: %s", prefix,
+                                    prefix, "revocation reason", desc );
+            MBEDTLS_X509_SAFE_SNPRINTF;
+        }
+
+        /* Print thisUpdate */
+        ret = mbedtls_snprintf( p, n, "\n%s%s%-" BC "s: "
+                                "%04d-%02d-%02d %02d:%02d:%02d",
+                                prefix, prefix,"this update",
+                                cur->this_update.year, cur->this_update.mon,
+                                cur->this_update.day,  cur->this_update.hour,
+                                cur->this_update.min,  cur->this_update.sec );
+        MBEDTLS_X509_SAFE_SNPRINTF;
+
+        /* Print nextUpdate (if available) */
+        if( cur->has_next_update != 0 )
+        {
+            ret = mbedtls_snprintf( p, n, "\n%s%s%-" BC "s: "
+                                "%04d-%02d-%02d %02d:%02d:%02d\n",
+                                prefix, prefix, "next update",
+                                cur->next_update.year, cur->next_update.mon,
+                                cur->next_update.day,  cur->next_update.hour,
+                                cur->next_update.min,  cur->next_update.sec );
+            MBEDTLS_X509_SAFE_SNPRINTF;
+        }
+    }
+
+    *size = n;
+    *buf = p;
+
+    return( 0 );
+}
+
 int mbedtls_x509_ocsp_response_info( char *buf, size_t size,
                                      const char *prefix,
                                      const mbedtls_x509_ocsp_response *resp )
@@ -1150,6 +1289,13 @@ int mbedtls_x509_ocsp_response_info( char *buf, size_t size,
                         resp->produced_at.day,  resp->produced_at.hour,
                         resp->produced_at.min,  resp->produced_at.sec );
     MBEDTLS_X509_SAFE_SNPRINTF;
+
+    /* Print list of responses */
+    ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s:", prefix, "responses" );
+    MBEDTLS_X509_SAFE_SNPRINTF;
+    if( ( ret = x509_ocsp_info_responses( &p, &n, prefix,
+                                          &resp->single_resp ) ) != 0 )
+        return( ret );
 
     return( 0 );
 }

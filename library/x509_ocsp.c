@@ -314,6 +314,26 @@ static int x509_ocsp_info_response_status( char **buf, size_t *size,
     return( 0 );
 }
 
+static int x509_ocsp_info_response_type( char **buf, size_t *size,
+                                         const mbedtls_x509_buf *resp_type )
+{
+    int ret;
+    const char *desc;
+    size_t n = *size;
+    char *p = *buf;
+
+    if( mbedtls_oid_get_ocsp_response_type( resp_type, &desc ) != 0 )
+        desc = "???";
+
+    ret = mbedtls_snprintf( p, n, "%s", desc );
+    MBEDTLS_X509_SAFE_SNPRINTF;
+
+    *size = n;
+    *buf = p;
+
+    return( 0 );
+}
+
 #define BC      "18"
 int mbedtls_x509_ocsp_response_info( char *buf, size_t size,
                                      const char *prefix,
@@ -343,6 +363,23 @@ int mbedtls_x509_ocsp_response_info( char *buf, size_t size,
     MBEDTLS_X509_SAFE_SNPRINTF;
     if( ( ret = x509_ocsp_info_response_status( &p, &n,
                                                 resp->resp_status ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    /*
+     * The remaining data from the OCSPResponse is optional. We can find
+     * whether the information is present by checking that the responseType is
+     * set
+     */
+    if( resp->resp_type.p == NULL )
+        return( 0 );
+
+    /* Print responseType */
+    ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: ", prefix, "response type" );
+    MBEDTLS_X509_SAFE_SNPRINTF;
+    if( ( ret = x509_ocsp_info_response_type( &p, &n,
+                                              &resp->resp_type ) ) != 0 )
     {
         return( ret );
     }

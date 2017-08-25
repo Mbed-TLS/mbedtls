@@ -1041,8 +1041,8 @@ void mbedtls_rsa_export( int radix_N, char *input_N,
             TEST_ASSERT( mbedtls_mpi_cmp_mpi( &D, &De ) == 0 );
 
         /* While at it, perform a sanity check */
-        TEST_ASSERT( mbedtls_rsa_check_params( &Ne, &Pe, &Qe, &De, &Ee,
-                                               NULL, NULL ) == 0 );
+        TEST_ASSERT( mbedtls_rsa_validate_params( &Ne, &Pe, &Qe, &De, &Ee,
+                                                       NULL, NULL ) == 0 );
     }
 
 exit:
@@ -1060,12 +1060,12 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_rsa_check_params( int radix_N, char *input_N,
-                               int radix_P, char *input_P,
-                               int radix_Q, char *input_Q,
-                               int radix_D, char *input_D,
-                               int radix_E, char *input_E,
-                               int prng, int result )
+void mbedtls_rsa_validate_params( int radix_N, char *input_N,
+                                  int radix_P, char *input_P,
+                                  int radix_Q, char *input_Q,
+                                  int radix_D, char *input_D,
+                                  int radix_E, char *input_E,
+                                  int prng, int result )
 {
     /* Original MPI's with which we set up the RSA context */
     mbedtls_mpi N, P, Q, D, E;
@@ -1105,13 +1105,13 @@ void mbedtls_rsa_check_params( int radix_N, char *input_N,
     if( have_E )
         TEST_ASSERT( mbedtls_mpi_read_string( &E, radix_E, input_E ) == 0 );
 
-    TEST_ASSERT( mbedtls_rsa_check_params( have_N ? &N : NULL,
-                                           have_P ? &P : NULL,
-                                           have_Q ? &Q : NULL,
-                                           have_D ? &D : NULL,
-                                           have_E ? &E : NULL,
-                                           prng ? mbedtls_ctr_drbg_random : NULL,
-                                           prng ? &ctr_drbg : NULL ) == result );
+    TEST_ASSERT( mbedtls_rsa_validate_params( have_N ? &N : NULL,
+                                        have_P ? &P : NULL,
+                                        have_Q ? &Q : NULL,
+                                        have_D ? &D : NULL,
+                                        have_E ? &E : NULL,
+                                        prng ? mbedtls_ctr_drbg_random : NULL,
+                                        prng ? &ctr_drbg : NULL ) == result );
 exit:
 
     mbedtls_ctr_drbg_free( &ctr_drbg );

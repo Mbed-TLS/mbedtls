@@ -331,7 +331,7 @@ int mbedtls_rsa_deduce_private( mbedtls_mpi *P, mbedtls_mpi *Q,
     MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( Q, Q, 1 ) );
 
     /* Double-check result */
-    MBEDTLS_MPI_CHK( mbedtls_rsa_check_params( NULL, P, Q, D, E, NULL, NULL ) );
+    MBEDTLS_MPI_CHK( mbedtls_rsa_validate_params( NULL, P, Q, D, E, NULL, NULL ) );
 
 cleanup:
 
@@ -342,20 +342,19 @@ cleanup:
 
 /*
  * Check that core RSA parameters are sane.
- *
- * Note that the inputs are not declared const and may be
- * altered on an unsuccessful run.
  */
 
-int mbedtls_rsa_check_params( mbedtls_mpi *N, mbedtls_mpi *P, mbedtls_mpi *Q,
-                              mbedtls_mpi *D, mbedtls_mpi *E,
-                              int (*f_rng)(void *, unsigned char *, size_t),
-                              void *p_rng )
+int mbedtls_rsa_validate_params( const mbedtls_mpi *N, const mbedtls_mpi *P,
+                                 const mbedtls_mpi *Q, const mbedtls_mpi *D,
+                                 const mbedtls_mpi *E,
+                                 int (*f_rng)(void *, unsigned char *, size_t),
+                                 void *p_rng )
 {
     int ret = 0;
-    mbedtls_mpi K;
+    mbedtls_mpi K, L;
 
     mbedtls_mpi_init( &K );
+    mbedtls_mpi_init( &L );
 
     /*
      * Step 1: If PRNG provided, check that P and Q are prime
@@ -365,12 +364,14 @@ int mbedtls_rsa_check_params( mbedtls_mpi *N, mbedtls_mpi *P, mbedtls_mpi *Q,
     if( f_rng != NULL && P != NULL &&
         ( ret = mbedtls_mpi_is_prime( P, f_rng, p_rng ) ) != 0 )
     {
+        ret = MBEDTLS_ERR_RSA_KEY_CHECK_FAILED;
         goto cleanup;
     }
 
     if( f_rng != NULL && Q != NULL &&
         ( ret = mbedtls_mpi_is_prime( Q, f_rng, p_rng ) ) != 0 )
     {
+        ret = MBEDTLS_ERR_RSA_KEY_CHECK_FAILED;
         goto cleanup;
     }
 #else
@@ -385,9 +386,10 @@ int mbedtls_rsa_check_params( mbedtls_mpi *N, mbedtls_mpi *P, mbedtls_mpi *Q,
     if( P != NULL && Q != NULL && N != NULL )
     {
         MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &K, P, Q ) );
-        if( mbedtls_mpi_cmp_mpi( &K, N ) != 0 )
+        if( mbedtls_mpi_cmp_int( N, 1 ) <= 0 ||
+            mbedtls_mpi_cmp_mpi( &K, N ) != 0 )
         {
-            ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+            ret = MBEDTLS_ERR_RSA_KEY_CHECK_FAILED;
             goto cleanup;
         }
     }
@@ -398,37 +400,48 @@ int mbedtls_rsa_check_params( mbedtls_mpi *N, mbedtls_mpi *P, mbedtls_mpi *Q,
 
     if( P != NULL && Q != NULL && D != NULL && E != NULL )
     {
-        /* Temporarily replace P, Q by P-1, Q-1. */
-        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( P, P, 1 ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( Q, Q, 1 ) );
-
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &K, D, E ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &K, &K, 1 ) );
+        if( mbedtls_mpi_cmp_int( P, 1 ) <= 0 ||
+            mbedtls_mpi_cmp_int( Q, 1 ) <= 0 ||
+            mbedtls_mpi_cmp_int( D, 1 ) <= 0 ||
+            mbedtls_mpi_cmp_int( E, 1 ) <= 0 )
+        {
+            ret = MBEDTLS_ERR_RSA_KEY_CHECK_FAILED;
+            goto cleanup;
+        }
 
         /* Compute DE-1 mod P-1 */
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &K, &K, P ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &K, D, E ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &K, &K, 1 ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &L, P, 1 ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &K, &K, &L ) );
         if( mbedtls_mpi_cmp_int( &K, 0 ) != 0 )
         {
-            ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+            ret = MBEDTLS_ERR_RSA_KEY_CHECK_FAILED;
             goto cleanup;
         }
 
         /* Compute DE-1 mod Q-1 */
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &K, &K, Q ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &K, D, E ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &K, &K, 1 ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &L, Q, 1 ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &K, &K, &L ) );
         if( mbedtls_mpi_cmp_int( &K, 0 ) != 0 )
         {
-            ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+            ret = MBEDTLS_ERR_RSA_KEY_CHECK_FAILED;
             goto cleanup;
         }
-
-        /* Restore P, Q. */
-        MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( P, P, 1 ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( Q, Q, 1 ) );
     }
 
 cleanup:
 
     mbedtls_mpi_free( &K );
+    mbedtls_mpi_free( &L );
+
+    /* Wrap MPI error codes by RSA check failure error code */
+    if( ret != 0 && ret != MBEDTLS_ERR_RSA_KEY_CHECK_FAILED )
+    {
+        ret += MBEDTLS_ERR_RSA_KEY_CHECK_FAILED;
+    }
 
     return( ret );
 }
@@ -605,9 +618,9 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx,
     else if( complete )
     {
         /* Check complete set of imported core parameters. */
-        if( ( ret = mbedtls_rsa_check_params( &ctx->N, &ctx->P, &ctx->Q,
-                                              &ctx->D, &ctx->E,
-                                              f_rng, p_rng ) ) != 0 )
+        if( ( ret = mbedtls_rsa_validate_params( &ctx->N, &ctx->P, &ctx->Q,
+                                                 &ctx->D, &ctx->E,
+                                                 f_rng, p_rng ) ) != 0 )
         {
             return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
         }

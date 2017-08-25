@@ -186,24 +186,17 @@ int mbedtls_rsa_deduce_crt( const mbedtls_mpi *P, const mbedtls_mpi *Q,
  *                     if D,E,P,Q != NULL
  *                   - P prime if f_rng, P != NULL
  *                   - Q prime if f_rng, Q != NULL
- *                 - A non-zero error code otherwise. In this case, the values
- *                   of N, P, Q, D, E are undefined.
+ *                 - A non-zero error code otherwise.
  *
  * \note           The function can be used with a restricted set of arguments
  *                 to perform specific checks only. E.g., calling it with
  *                 (-,P,-,-,-) and a PRNG amounts to a primality check for P.
- *
- * \note           The input MPI's are deliberately not declared as constant
- *                 and may therefore be used for in-place calculations by
- *                 the implementation. In particular, their values can be
- *                 corrupted when the function fails. If the user cannot
- *                 tolerate this, he has to make copies of the MPI's prior
- *                 to calling this function. See \c mbedtls_mpi_copy for this.
  */
-int mbedtls_rsa_check_params( mbedtls_mpi *N, mbedtls_mpi *P, mbedtls_mpi *Q,
-                              mbedtls_mpi *D, mbedtls_mpi *E,
-                              int (*f_rng)(void *, unsigned char *, size_t),
-                              void *p_rng );
+int mbedtls_rsa_validate_params( const mbedtls_mpi *N, const mbedtls_mpi *P,
+                                 const mbedtls_mpi *Q, const mbedtls_mpi *D,
+                                 const mbedtls_mpi *E,
+                                 int (*f_rng)(void *, unsigned char *, size_t),
+                                 void *p_rng );
 
 /**
  * Implementation of RSA interface
@@ -374,7 +367,7 @@ int mbedtls_rsa_import_raw( mbedtls_rsa_context *ctx,
  * \return         - 0 if successful. In this case, all core parameters
  *                   as well as other internally needed parameters have
  *                   been generated, and it is guaranteed that they are
- *                   sane in the sense of \c mbedtls_rsa_check_params
+ *                   sane in the sense of \c mbedtls_rsa_validate_params
  *                   (with primality of P, Q checked if a PRNG is given).
  *                 - MBEDTLS_ERR_RSA_BAD_INPUT_DATA if the attempted
  *                   derivations failed.

@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.7.x branch released xxxx-xx-xx
+
+Bugfix
+   * Fix X509 CRT parsing that would potentially accept an invalid tag when
+     parsing the subject alternative names.
+
 = mbed TLS 2.7.1 branch released 2018-02-23
 
 Default behavior changes

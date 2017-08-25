@@ -52,6 +52,7 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 
 void mbedtls_x509_ocsp_response_init( mbedtls_x509_ocsp_response *resp )
 {
+    memset( resp, 0, sizeof( mbedtls_x509_ocsp_response ) );
 }
 
 void mbedtls_x509_ocsp_response_free( mbedtls_x509_ocsp_response *resp )

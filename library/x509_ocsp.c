@@ -785,7 +785,64 @@ static int x509_ocsp_get_sig_alg( mbedtls_x509_ocsp_response *resp,
 static int x509_ocsp_get_certs( unsigned char **p, const unsigned char *end,
                                 mbedtls_x509_crt *certs )
 {
-    return( 0 );
+    int ret;
+    size_t len;
+    unsigned char *cert_p;
+
+    /*
+     * certs            SEQUENCE OF Certificate
+     *
+     * Note: the standard allows an OCSPResponse that has no certs
+     */
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+    }
+
+    end = *p + len;
+
+    while( *p < end )
+    {
+        /*
+         * mbedtls_x509_crt_parse_der() takes a buffer and length instead of
+         * begining and end (such as the asn1 functions). To make this work
+         * we need to parse the SEQUENCE of each Certificate and manually
+         * compute the length
+         */
+        cert_p = *p;
+
+        if( ( ret = mbedtls_asn1_get_tag( &cert_p, end, &len,
+                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+        {
+            return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+        }
+
+        /*
+         * Add the size of the tag and the length octets to the total buffer
+         * length
+         */
+        len += cert_p - *p;
+
+        /*
+         * Parse Certificate and populate cur
+         *
+         * TODO: This is massively innefficient in terms of space because
+         * internally mbedtls_x509_crt_parse_der will allocate a buffer for
+         * the raw certificates, but mbedtls_x509_ocsp_response already has
+         * another buffer.
+         */
+        if( ( ret = mbedtls_x509_crt_parse_der( certs, *p, len ) ) != 0 )
+            return( ret );
+
+        *p = *p + len;
+    }
+
+    if( *p != end )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+    return( ret );
 }
 
 static int x509_ocsp_get_response( mbedtls_x509_ocsp_response *resp,

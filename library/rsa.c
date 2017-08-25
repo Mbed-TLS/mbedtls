@@ -1202,13 +1202,27 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
     mbedtls_mpi *DQ = &ctx->DQ;
 #endif
 
-    /* Make sure we have private key info, prevent possible misuse */
-    if( ctx->P.p == NULL || ctx->Q.p == NULL || ctx->D.p == NULL )
+    /* Sanity-check that all relevant fields are at least set,
+     * but don't perform a full keycheck. */
+    if( mbedtls_mpi_cmp_int( &ctx->N, 0 ) == 0 ||
+        mbedtls_mpi_cmp_int( &ctx->P, 0 ) == 0 ||
+        mbedtls_mpi_cmp_int( &ctx->Q, 0 ) == 0 ||
+        mbedtls_mpi_cmp_int( &ctx->D, 0 ) == 0 ||
+        mbedtls_mpi_cmp_int( &ctx->E, 0 ) == 0 )
+    {
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    }
+#if !defined(MBEDTLS_RSA_NO_CRT)
+    if( mbedtls_mpi_cmp_int( &ctx->DP, 0 ) == 0 ||
+        mbedtls_mpi_cmp_int( &ctx->DQ, 0 ) == 0 ||
+        mbedtls_mpi_cmp_int( &ctx->QP, 0 ) == 0 )
+    {
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    }
+#endif /* MBEDTLS_RSA_NO_CRT */
 
     mbedtls_mpi_init( &T ); mbedtls_mpi_init( &T1 ); mbedtls_mpi_init( &T2 );
     mbedtls_mpi_init( &P1 ); mbedtls_mpi_init( &Q1 ); mbedtls_mpi_init( &R );
-
 
     if( f_rng != NULL )
     {

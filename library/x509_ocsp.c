@@ -354,6 +354,10 @@ static int x509_ocsp_get_cert_id( unsigned char **p,
     return( 0 );
 }
 
+/*
+ * This code is essentially parsing a CRLReason which is a CRL extension. We
+ * should consider moving it to x509_crl
+ */
 static int x509_ocsp_get_crl_reason( unsigned char **p,
                                      const unsigned char *end,
                                      uint8_t *reason )

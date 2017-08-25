@@ -396,11 +396,9 @@ int mbedtls_rsa_import_raw( mbedtls_rsa_context *ctx,
  *                 like the derivation of P, Q from N, D, E, as
  *                 well as primality checks.
  *
- * \return         - 0 if successful. In this case, all core parameters
- *                   as well as other internally needed parameters have
- *                   been generated, and it is guaranteed that they are
- *                   sane in the sense of \c mbedtls_rsa_validate_params
- *                   (with primality of P, Q checked if a PRNG is given).
+ * \return         - 0 if successful. In this case, all imported core
+ *                   parameters are guaranteed to be sane, the RSA context
+ *                   has been fully setup and is ready for use.
  *                 - MBEDTLS_ERR_RSA_BAD_INPUT_DATA if the attempted
  *                   derivations failed.
  */

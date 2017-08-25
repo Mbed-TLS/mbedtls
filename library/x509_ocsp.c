@@ -44,6 +44,11 @@
 #include <stdint.h>
 #include <string.h>
 
+/* Implementation that should never be optimized out by the compiler */
+static void mbedtls_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 void mbedtls_x509_ocsp_response_init( mbedtls_x509_ocsp_response *resp )
 {
 }
@@ -113,9 +118,120 @@ static int x509_ocsp_get_response_type( unsigned char **p,
     return( 0 );
 }
 
+static int x509_ocsp_get_extensions( unsigned char **p,
+                                     const unsigned char *end )
+{
+    return( 0 );
+}
+
+static int x509_ocsp_get_response_version( unsigned char **p,
+                                           const unsigned char *end,
+                                           int *version )
+{
+    return( 0 );
+}
+
+static int x509_ocsp_get_responder_id( unsigned char **p,
+                                       const unsigned char *end,
+                                mbedtls_x509_ocsp_responder_id *responder_id )
+{
+    return( 0 );
+}
+
+static int x509_ocsp_get_generalized_time( unsigned char **p,
+                                           const unsigned char *end,
+                                           mbedtls_x509_time *t )
+{
+    return( 0 );
+}
+
+static int x509_ocsp_get_responses( unsigned char **p,
+                                    const unsigned char *end,
+                            mbedtls_x509_ocsp_single_response *single_resp )
+{
+    return( 0 );
+}
+
 static int x509_ocsp_get_response_data( mbedtls_x509_ocsp_response *resp,
                                 unsigned char **p, const unsigned char *end )
 {
+    int ret;
+    size_t len;
+
+    /*
+     * ResponseData ::= SEQUENCE {
+     *  version                 [0] EXPLICIT Version DEFAULT v1,
+     *  responderID             ResponderID,
+     *  producedAt              GeneralizedTime,
+     *  responses               SEQUENCE OF SingleResponse,
+     *  responseExtensions      [1] EXPLICIT Extensions OPTIONAL }
+     */
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+    }
+
+    end = *p + len;
+
+    /* Get the subcomponent [0] EXPLICIT ... DEFAULT v1 */
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+        MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED | 0 ) ) != 0 )
+    {
+        /*
+         * Note that DEFAULT means that the version might not be present, in
+         * which case the value defaults to v1
+         */
+        if( ret == MBEDTLS_ERR_ASN1_UNEXPECTED_TAG )
+            resp->version = MBEDTLS_X509_OCSP_VERSION_1;
+        else
+            return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+    }
+    /* Parse version */
+    else if( ( ret = x509_ocsp_get_response_version( p, *p + len,
+                                                     &resp->version ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    /* Parse responderID */
+    if( ( ret = x509_ocsp_get_responder_id( p, end,
+                                            &resp->responder_id ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    /* Parse producedAt */
+    if( ( ret = x509_ocsp_get_generalized_time( p, end,
+                                                &resp->produced_at ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    /* Parse responses */
+    if( ( ret = x509_ocsp_get_responses( p, end, &resp->single_resp ) ) != 0 )
+        return( ret );
+
+    /* responseExtensions is optional, so find out if there is more data */
+    if( *p == end )
+        return( 0 );
+
+    /* Get the [1] EXPLICIT tag */
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                                MBEDTLS_ASN1_CONSTRUCTED |
+                                MBEDTLS_ASN1_CONTEXT_SPECIFIC | 1 ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+    }
+
+    /* Parse responseExtensions */
+    if( ( ret = x509_ocsp_get_extensions( p, *p + len ) ) != 0 )
+        return( ret );
+
+    if( *p != end )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
     return( 0 );
 }
 

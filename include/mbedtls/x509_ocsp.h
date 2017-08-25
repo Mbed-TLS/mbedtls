@@ -47,6 +47,8 @@
 #define MBEDTLS_X509_OCSP_RESPONSE_STATUS_SIG_REQUIRED      5
 #define MBEDTLS_X509_OCSP_RESPONSE_STATUS_UNAUTHORIZED      6
 
+#define MBEDTLS_X509_OCSP_VERSION_1                         0
+
 /**
  * \addtogroup x509_module
  * \{
@@ -62,23 +64,40 @@ extern "C" {
  */
 
 /**
+ * Container for an X.509 OCSP ResponderID.
+ */
+typedef struct mbedtls_x509_ocsp_responder_id {
+} mbedtls_x509_ocsp_responder_id;
+
+/**
+ * Container for an X.509 OCSP SingleResponse.
+ */
+typedef struct mbedtls_x509_ocsp_single_response {
+} mbedtls_x509_ocsp_single_response;
+
+/**
  * Container for an X.509 OCSP response.
  */
 typedef struct mbedtls_x509_ocsp_response {
-    mbedtls_x509_buf raw;               /**< The raw response data (DER). */
+    mbedtls_x509_buf raw;                           /**< The raw response data (DER). */
 
-    mbedtls_x509_buf resp_type;         /**< The type of response e.g. OCSP or BASIC */
+    uint8_t resp_status;                            /**< The OCSP response status */
 
-    uint8_t resp_status;                /**< The OCSP response status */
+    mbedtls_x509_buf resp_type;                     /**< The type of response e.g. OCSP or BASIC */
 
-    mbedtls_x509_buf sig;               /**< Signature computed on the hash of the ResponseData */
+    int version;                                    /**< The OCSP response version. (0=v1) */
+    mbedtls_x509_ocsp_responder_id responder_id;    /**< Internal representation of the ResponderID */
+    mbedtls_x509_time produced_at;                  /**< The time at which the OCSP responder signed this response */
+    mbedtls_x509_ocsp_single_response single_resp;  /**< List of SingleResponse containers each containing the revocation status of a certificate */
 
-    mbedtls_x509_buf sig_oid;           /**< Signature algorithm OID, e.g. sha1RSA */
-    mbedtls_md_type_t sig_md;           /**< Internal representation of the MD algorithm of the signature algorithm, e.g. MBEDTLS_MD_SHA256 */
-    mbedtls_pk_type_t sig_pk;           /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. MBEDTLS_PK_RSA */
-    void *sig_opts;                     /**< Signature options passed to mbedtls_pk_verify_ext(), e.g. for RSASSA-PSS */
+    mbedtls_x509_buf sig;                           /**< Signature computed on the hash of the ResponseData */
 
-    mbedtls_x509_crt certs;             /**< List of certificates included in the OCSP response */
+    mbedtls_x509_buf sig_oid;                       /**< Signature algorithm OID, e.g. sha1RSA */
+    mbedtls_md_type_t sig_md;                       /**< Internal representation of the MD algorithm of the signature algorithm, e.g. MBEDTLS_MD_SHA256 */
+    mbedtls_pk_type_t sig_pk;                       /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. MBEDTLS_PK_RSA */
+    void *sig_opts;                                 /**< Signature options passed to mbedtls_pk_verify_ext(), e.g. for RSASSA-PSS */
+
+    mbedtls_x509_crt certs;                         /**< List of certificates included in the OCSP response */
 } mbedtls_x509_ocsp_response;
 
 /**

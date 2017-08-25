@@ -113,10 +113,90 @@ static int x509_ocsp_get_response_type( unsigned char **p,
     return( 0 );
 }
 
+static int x509_ocsp_get_response_data( mbedtls_x509_ocsp_response *resp,
+                                unsigned char **p, const unsigned char *end )
+{
+    return( 0 );
+}
+
+static int x509_ocsp_get_sig_alg( mbedtls_x509_ocsp_response *resp,
+                                  unsigned char **p,
+                                  const unsigned char *end )
+{
+    return( 0 );
+}
+
+static int x509_ocsp_get_certs( unsigned char **p, const unsigned char *end,
+                                mbedtls_x509_crt *certs )
+{
+    return( 0 );
+}
+
 static int x509_ocsp_get_response( mbedtls_x509_ocsp_response *resp,
                                    unsigned char **p,
                                    const unsigned char *end )
 {
+    int ret;
+    size_t len;
+
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                                      MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+    }
+
+    if( *p + len != end )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+    /*
+     * BasicOCSPResponse ::= SEQUENCE {
+     *  tbsResponseData     ResponseData,
+     *  signatureAlgorithm  AlgorithmIdentifier,
+     *  signature           BIT STRING,
+     *  certs               [0] EXPLICIT SEQUENCE OF Certificate OPTIONAL }
+     */
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+
+    end = *p + len;
+
+    /* Parse tbsResponseData */
+    if( ( ret = x509_ocsp_get_response_data( resp, p, end ) ) != 0 )
+        return( ret );
+
+    /* Parse signatureAlgorithm */
+    if( ( ret = x509_ocsp_get_sig_alg( resp, p, end ) ) != 0 )
+        return( ret );
+
+    /* Parse signature */
+    if( ( ret = mbedtls_x509_get_sig( p, end, &resp->sig ) ) != 0 )
+        return( ret );
+
+    /* certs is optional */
+    if( *p == end )
+        return( 0 );
+
+    /* Get the [0] EXPLICIT tag */
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                                MBEDTLS_ASN1_CONSTRUCTED |
+                                MBEDTLS_ASN1_CONTEXT_SPECIFIC | 0 ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+    }
+
+    if( *p + len != end )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+    /* Parse certs */
+    if( ( ret = x509_ocsp_get_certs( p, *p + len, &resp->certs ) ) != 0 )
+        return( ret );
+
+    if( *p != end )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
     return( 0 );
 }
 

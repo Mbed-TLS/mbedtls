@@ -70,6 +70,15 @@ typedef struct mbedtls_x509_ocsp_response {
     mbedtls_x509_buf resp_type;         /**< The type of response e.g. OCSP or BASIC */
 
     uint8_t resp_status;                /**< The OCSP response status */
+
+    mbedtls_x509_buf sig;               /**< Signature computed on the hash of the ResponseData */
+
+    mbedtls_x509_buf sig_oid;           /**< Signature algorithm OID, e.g. sha1RSA */
+    mbedtls_md_type_t sig_md;           /**< Internal representation of the MD algorithm of the signature algorithm, e.g. MBEDTLS_MD_SHA256 */
+    mbedtls_pk_type_t sig_pk;           /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. MBEDTLS_PK_RSA */
+    void *sig_opts;                     /**< Signature options passed to mbedtls_pk_verify_ext(), e.g. for RSASSA-PSS */
+
+    mbedtls_x509_crt certs;             /**< List of certificates included in the OCSP response */
 } mbedtls_x509_ocsp_response;
 
 /**

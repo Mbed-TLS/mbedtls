@@ -737,6 +737,14 @@ int mbedtls_x509_ocsp_response_info( char *buf, size_t size,
         return( ret );
     }
 
+    /* Print producedAt date */
+    ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: "
+                        "%04d-%02d-%02d %02d:%02d:%02d", prefix, "produced at",
+                        resp->produced_at.year, resp->produced_at.mon,
+                        resp->produced_at.day,  resp->produced_at.hour,
+                        resp->produced_at.min,  resp->produced_at.sec );
+    MBEDTLS_X509_SAFE_SNPRINTF;
+
     return( 0 );
 }
 

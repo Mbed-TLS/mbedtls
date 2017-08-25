@@ -146,6 +146,79 @@ static int x509_ocsp_get_responder_id( unsigned char **p,
                                        const unsigned char *end,
                                 mbedtls_x509_ocsp_responder_id *responder_id )
 {
+    int ret;
+    size_t len;
+    unsigned char tag;
+    unsigned char base_tag = MBEDTLS_ASN1_CONTEXT_SPECIFIC |
+                             MBEDTLS_ASN1_CONSTRUCTED;
+
+    /*
+     * RespoderID ::= CHOICE {
+     *  byName          [1] Name,
+     *  byKey           [2] KeyHash }
+     */
+    if( ( end - *p ) < 1 )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT +
+                MBEDTLS_ERR_ASN1_OUT_OF_DATA );
+
+    tag = **p;
+    ( *p )++;
+    if( ( ret = mbedtls_asn1_get_len( p, end, &len ) ) != 0 )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+    end = *p + len;
+
+    if( tag == ( base_tag | MBEDTLS_X509_OCSP_RESPONDER_ID_TYPE_NAME ) )
+    {
+        /*
+         * mbedtls_x509_get_name() cannot handle the following ASN1
+         * constructs at the beginning of the Name, so we must remove it
+         * manually
+         *
+         * RDNSequence ::= SEQUENCE OF RelativeDistinguishedName
+         */
+        if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+        {
+            return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+        }
+
+        if( *p + len != end )
+            return( MBEDTLS_ERR_X509_INVALID_VERSION +
+                    MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+        if( ( ret = mbedtls_x509_get_name( p, end,
+                                           &responder_id->id.name ) ) != 0 )
+        {
+            return( ret );
+        }
+
+        responder_id->type = MBEDTLS_X509_OCSP_RESPONDER_ID_TYPE_NAME;
+    }
+    else if( tag == ( base_tag |
+                      MBEDTLS_X509_OCSP_RESPONDER_ID_TYPE_KEY_HASH ) )
+    {
+        /* KeyHash ::= OCTET STRING */
+        if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                                          MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
+        {
+           return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+        }
+
+        responder_id->type = MBEDTLS_X509_OCSP_RESPONDER_ID_TYPE_KEY_HASH;
+        responder_id->id.key.len = len;
+        responder_id->id.key.p = *p;
+        responder_id->id.key.tag = MBEDTLS_ASN1_OCTET_STRING;
+
+        *p = *p + len;
+    }
+    else
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT +
+                MBEDTLS_ERR_ASN1_UNEXPECTED_TAG );
+
+    if( *p != end )
+        return( MBEDTLS_ERR_X509_INVALID_VERSION +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
     return( 0 );
 }
 

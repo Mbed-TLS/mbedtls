@@ -49,6 +49,9 @@
 
 #define MBEDTLS_X509_OCSP_VERSION_1                         0
 
+#define MBEDTLS_X509_OCSP_RESPONDER_ID_TYPE_NAME            1
+#define MBEDTLS_X509_OCSP_RESPONDER_ID_TYPE_KEY_HASH        2
+
 /**
  * \addtogroup x509_module
  * \{
@@ -67,6 +70,11 @@ extern "C" {
  * Container for an X.509 OCSP ResponderID.
  */
 typedef struct mbedtls_x509_ocsp_responder_id {
+    int type;                   /**< Flag that indicates whether the ID is a X.509 Name or a KeyHash */
+    union {
+        mbedtls_x509_name name; /**< Internal representation of the ResponderID as an X.509 Name */
+        mbedtls_x509_buf key;   /**< The ResponderID as the SHA1 hash of the responder's public key */
+    } id;                       /**< Internal representation of the ResponderID, which is an X.509 CHOICE component */
 } mbedtls_x509_ocsp_responder_id;
 
 /**

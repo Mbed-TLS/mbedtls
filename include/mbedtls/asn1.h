@@ -88,6 +88,22 @@
 #define MBEDTLS_ASN1_PRIMITIVE               0x00
 #define MBEDTLS_ASN1_CONSTRUCTED             0x20
 #define MBEDTLS_ASN1_CONTEXT_SPECIFIC        0x80
+
+/*
+ * Bit masks for each of the components of an ASN.1 tag as specified in
+ * Information technnology - ASN.1 encoding rules: Specification of Basic
+ * Encoding Rules (BER), Canonical Encoding Rules (CER), and Distinguished
+ * encoding rules (DER) Section 8.1.2.2:
+ *
+ * Bit  8     7   6   5          1
+ *     +-------+-----+------------+
+ *     | Class | P/C | Tag number |
+ *     +-------+-----+------------+
+ */
+#define MBEDTLS_ASN1_TAG_CLASS_MASK          ( 0x03 << 6 )
+#define MBEDTLS_ASN1_TAG_PC_MASK             ( 0x01 << 5 )
+#define MBEDTLS_ASN1_TAG_VALUE_MASK          ( 0x1F << 0 )
+
 /* \} name */
 /* \} addtogroup asn1_module */
 

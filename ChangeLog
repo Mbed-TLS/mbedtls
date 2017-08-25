@@ -74,6 +74,8 @@ Bugfix
      Found by nkolban. Fixes #845.
    * Fix handling of handshake messages in mbedtls_ssl_read in case
      MBEDTLS_SSL_RENEGOTIATION is disabled. Found by erja-gp.
+   * Fix X509 CRT parsing that would potentially accept an invalid tag when
+     parsing the subject alternative names.
 
 Changes
    * Extend cert_write example program by options to set the CRT version

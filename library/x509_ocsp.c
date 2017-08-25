@@ -122,6 +122,18 @@ static int x509_ocsp_get_response_type( unsigned char **p,
 static int x509_ocsp_get_extensions( unsigned char **p,
                                      const unsigned char *end )
 {
+    int ret;
+    size_t len;
+
+    /* TODO: Complete the parsing properly */
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+    }
+
+    *p = *p + len;
+
     return( 0 );
 }
 

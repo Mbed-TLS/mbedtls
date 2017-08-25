@@ -936,20 +936,18 @@ static int pk_parse_key_pkcs8_unencrypted_der(
 #if defined(MBEDTLS_PKCS12_C) || defined(MBEDTLS_PKCS5_C)
 static int pk_parse_key_pkcs8_encrypted_der(
                                     mbedtls_pk_context *pk,
-                                    const unsigned char *key, size_t keylen,
+                                    unsigned char *key, size_t keylen,
                                     const unsigned char *pwd, size_t pwdlen )
 {
     int ret, decrypted = 0;
     size_t len;
-    unsigned char buf[2048];
+    unsigned char *buf;
     unsigned char *p, *end;
     mbedtls_asn1_buf pbe_alg_oid, pbe_params;
 #if defined(MBEDTLS_PKCS12_C)
     mbedtls_cipher_type_t cipher_alg;
     mbedtls_md_type_t md_alg;
 #endif
-
-    memset( buf, 0, sizeof( buf ) );
 
     p = (unsigned char *) key;
     end = p + keylen;
@@ -985,8 +983,7 @@ static int pk_parse_key_pkcs8_encrypted_der(
     if( ( ret = mbedtls_asn1_get_tag( &p, end, &len, MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
         return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
 
-    if( len > sizeof( buf ) )
-        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+    buf = p;
 
     /*
      * Decrypt EncryptedData with appropriate PDE
@@ -1087,7 +1084,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
             return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
         }
 
-        if( ( ret = mbedtls_pk_setup( pk, pk_info                    ) ) != 0 ||
+        if( ( ret = mbedtls_pk_setup( pk, pk_info ) ) != 0 ||
             ( ret = pk_parse_key_pkcs1_der( mbedtls_pk_rsa( *pk ),
                                             pem.buf, pem.buflen ) ) != 0 )
         {
@@ -1122,7 +1119,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
             return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
         }
 
-        if( ( ret = mbedtls_pk_setup( pk, pk_info                   ) ) != 0 ||
+        if( ( ret = mbedtls_pk_setup( pk, pk_info ) ) != 0 ||
             ( ret = pk_parse_key_sec1_der( mbedtls_pk_ec( *pk ),
                                            pem.buf, pem.buflen ) ) != 0 )
         {
@@ -1200,11 +1197,23 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
      * error
      */
 #if defined(MBEDTLS_PKCS12_C) || defined(MBEDTLS_PKCS5_C)
-    if( ( ret = pk_parse_key_pkcs8_encrypted_der( pk, key, keylen,
-                                                  pwd, pwdlen ) ) == 0 )
     {
-        return( 0 );
+        unsigned char *key_copy;
+
+        if( ( key_copy = mbedtls_calloc( 1, keylen ) ) == NULL )
+            return( MBEDTLS_ERR_PK_ALLOC_FAILED );
+
+        memcpy( key_copy, key, keylen );
+
+        ret = pk_parse_key_pkcs8_encrypted_der( pk, key_copy, keylen,
+                                                pwd, pwdlen );
+
+        mbedtls_zeroize( key_copy, keylen );
+        mbedtls_free( key_copy );
     }
+
+    if( ret == 0 )
+        return( 0 );
 
     mbedtls_pk_free( pk );
 
@@ -1223,7 +1232,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
     if( ( pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ) == NULL )
         return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
 
-    if( ( ret = mbedtls_pk_setup( pk, pk_info                           ) ) != 0 ||
+    if( ( ret = mbedtls_pk_setup( pk, pk_info ) ) != 0 ||
         ( ret = pk_parse_key_pkcs1_der( mbedtls_pk_rsa( *pk ), key, keylen ) ) == 0 )
     {
         return( 0 );
@@ -1236,7 +1245,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
     if( ( pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_ECKEY ) ) == NULL )
         return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
 
-    if( ( ret = mbedtls_pk_setup( pk, pk_info                         ) ) != 0 ||
+    if( ( ret = mbedtls_pk_setup( pk, pk_info ) ) != 0 ||
         ( ret = pk_parse_key_sec1_der( mbedtls_pk_ec( *pk ), key, keylen ) ) == 0 )
     {
         return( 0 );

@@ -59,7 +59,7 @@
 
 /**
  * \name DER constants
- * These constants comply with DER encoded the ANS1 type tags.
+ * These constants comply with the DER encoded ASN.1 type tags.
  * DER encoding uses hexadecimal representation.
  * An example DER sequence is:\n
  * - 0x02 -- tag indicating INTEGER

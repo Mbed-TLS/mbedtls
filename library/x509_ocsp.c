@@ -591,6 +591,11 @@ int mbedtls_x509_ocsp_response_info( char *buf, size_t size,
         return( ret );
     }
 
+    /* Print version */
+    ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: %d", prefix,
+                            "response version", resp->version );
+    MBEDTLS_X509_SAFE_SNPRINTF;
+
     return( 0 );
 }
 

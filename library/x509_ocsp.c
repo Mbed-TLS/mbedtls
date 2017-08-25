@@ -251,10 +251,125 @@ static int x509_ocsp_get_generalized_time( unsigned char **p,
     return( 0 );
 }
 
+static int x509_ocsp_get_cert_id( unsigned char **p,
+                                  const unsigned char *end,
+                            mbedtls_x509_ocsp_single_response *single_resp )
+{
+    return( 0 );
+}
+
+static int x509_ocsp_get_cert_status( unsigned char **p,
+                                      const unsigned char *end,
+                            mbedtls_x509_ocsp_single_response *single_resp )
+{
+    return( 0 );
+}
+
 static int x509_ocsp_get_single_response( unsigned char **p,
                                           const unsigned char *end,
                                     mbedtls_x509_ocsp_single_response *cur )
 {
+    int ret;
+    size_t len;
+    unsigned char tag;
+
+    /*
+     * SingleResponse ::= SEQUENCE {
+     *  certID              CertID,
+     *  certStatus          CertStatus,
+     *  thisUpdate          GeneralizedTime,
+     *  nextUpdate          [0] GeneralizedTime OPTIONAL,
+     *  singleExtensions    [1] Extensions OPTIONAL }
+     */
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+    }
+
+    end = *p + len;
+
+    /* Parse certID, skip for now */
+    if( ( ret = x509_ocsp_get_cert_id( p, end, cur ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    /*  Parse certStatus */
+    if( ( ret = x509_ocsp_get_cert_status( p, end, cur ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    /* Parse thisUpdate */
+    if( ( ret = x509_ocsp_get_generalized_time( p, end,
+                                            &cur->this_update ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    /*
+     * nextUpdate and singleExtensions are optional, so find out which ones
+     * are available and parse them
+     */
+    if( *p == end )
+        return( 0 );
+
+    /*
+     * Get the EXPLICIT tag and find out what type of data its left to parse.
+     * At this point the tag can only be [0] or [1]
+     */
+    tag = *( *p )++;
+
+    if( ( ret = mbedtls_asn1_get_len( p, end, &len ) ) != 0 )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+
+    switch( tag )
+    {
+        case MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_CONTEXT_SPECIFIC | 0:
+            /* Parse nextUpdate */
+            if( ( ret = x509_ocsp_get_generalized_time( p, *p + len,
+                                                &cur->next_update ) ) != 0 )
+                return( ret );
+
+            cur->has_next_update = 1;
+
+            if( *p == end )
+                return( 0 );
+
+            /* Get the EXPLICIT tag. At this point the tag can only be [1] */
+            if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                                MBEDTLS_ASN1_CONSTRUCTED |
+                                MBEDTLS_ASN1_CONTEXT_SPECIFIC | 1 ) ) != 0 )
+            {
+                return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+            }
+
+            /*
+             * Note that the missing break statement here is omitted on purpose
+             * as we can have nextUpdate followed by extensions
+             */
+
+        case MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_CONTEXT_SPECIFIC | 1:
+            /* Parse singleExtensions */
+            if( ( ret = x509_ocsp_get_extensions( p, *p + len ) ) != 0 )
+                return( ret );
+
+            break;
+
+        default:
+            return( MBEDTLS_ERR_X509_INVALID_FORMAT +
+                    MBEDTLS_ERR_ASN1_UNEXPECTED_TAG );
+    }
+
+    /*
+     * Sanity check to ensure that we really are at the end of the
+     * SingleResponse being parsed
+     */
+    if( *p != end )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
     return( 0 );
 }
 

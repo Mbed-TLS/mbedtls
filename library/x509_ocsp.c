@@ -335,10 +335,67 @@ static int x509_ocsp_get_cert_id( unsigned char **p,
     return( 0 );
 }
 
+static int x509_ocsp_get_crl_reason( unsigned char **p,
+                                     const unsigned char *end,
+                                     uint8_t *reason )
+{
+    return( 0 );
+}
+
 static int x509_ocsp_get_revoked_info( unsigned char **p,
                                        const unsigned char *end,
                             mbedtls_x509_ocsp_single_response *single_resp )
 {
+    int ret;
+    size_t len;
+
+    /*
+     * RevokedInfo :: SEQUENCE {
+     *  revocationTime          GeneralizedTime,
+     *  revocationReason        [0] EXPLICIT CRLReason OPTIONAL }
+     */
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    end = *p + len;
+
+    /* Parse revocationTime */
+    if( ( ret = x509_ocsp_get_generalized_time( p, end,
+                                    &single_resp->revocation_time ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    /* The revocationReason is optional, so return if there is no data */
+    if( *p == end )
+        return( 0 );
+
+    /* Parse revocationReason */
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+        MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_CONTEXT_SPECIFIC | 0 ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+    }
+
+    if( *p + len != end )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+    single_resp->has_revocation_reason = 1;
+
+    if( ( ret = x509_ocsp_get_crl_reason( p, end,
+                                    &single_resp->revocation_reason ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    if( *p != end )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
     return( 0 );
 }
 

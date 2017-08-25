@@ -199,6 +199,38 @@ int mbedtls_rsa_validate_params( const mbedtls_mpi *N, const mbedtls_mpi *P,
                                  void *p_rng );
 
 /**
+ * \brief          Check validity of RSA CRT parameters
+ *
+ * \note           This is a 'static' helper function not operating on
+ *                 an RSA context. Alternative implementations need not
+ *                 overwrite it.
+ *
+ * \param P        First prime factor of RSA modulus
+ * \param Q        Second prime factor of RSA modulus
+ * \param D        RSA private exponent
+ * \param DP       MPI to check for D modulo P-1
+ * \param DQ       MPI to check for D modulo P-1
+ * \param QP       MPI to check for the modular inverse of Q modulo P.
+ *
+ * \return         - 0 if the following conditions are satisfied:
+ *                   - D = DP mod P-1 if P, D, DP != NULL
+ *                   - Q = DQ mod P-1 if P, D, DQ != NULL
+ *                   - QP = Q^-1 mod P if P, Q, QP != NULL
+ *                 - MBEDTLS_ERR_RSA_KEY_CHECK_FAILED if check failed,
+ *                   potentially including MBEDTLS_ERR_MPI_XXX if some
+ *                   MPI calculations failed.
+ *                 - MBEDTLS_ERR_RSA_BAD_INPUT_DATA if insufficient
+ *                   data was provided to check DP, DQ or QP.
+ *
+ * \note           The function can be used with a restricted set of arguments
+ *                 to perform specific checks only. E.g., calling it with the
+ *                 parameters (P, -, D, DP, -, -) will check DP = D mod P-1.
+ */
+int mbedtls_rsa_validate_crt( const mbedtls_mpi *P,  const mbedtls_mpi *Q,
+                              const mbedtls_mpi *D,  const mbedtls_mpi *DP,
+                              const mbedtls_mpi *DQ, const mbedtls_mpi *QP );
+
+/**
  * Implementation of RSA interface
  */
 
@@ -394,7 +426,7 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx,
  *                 before calling this function.
  *
  */
-int mbedtls_rsa_check_crt( mbedtls_rsa_context *ctx,
+int mbedtls_rsa_check_crt( const mbedtls_rsa_context *ctx,
                            mbedtls_mpi *DP,
                            mbedtls_mpi *DQ,
                            mbedtls_mpi *QP );

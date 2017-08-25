@@ -74,16 +74,24 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 /*
  * Context-independent RSA helper functions.
  *
- * The following three functions
- * - mbedtls_rsa_deduce_moduli
- * - mbedtls_rsa_deduce_private
- * - mbedtls_rsa_check_params
- * are helper functions operating on the core RSA parameters
- * (represented as MPI's). They do not use the RSA context structure
- * and therefore need not be replaced when providing an alternative
- * RSA implementation.
+ * There are two classes of helper functions:
+ * (1) Parameter-generating helpers. These are:
+ *     - mbedtls_rsa_deduce_moduli
+ *     - mbedtls_rsa_deduce_private
+ *     - mbedtls_rsa_deduce_crt
+ *      Each of these functions takes a set of core RSA parameters
+ *      and generates some other, or CRT related parameters.
+ * (2) Parameter-checking helpers. These are:
+ *     - mbedtls_rsa_validate_params
+ *     - mbedtls_rsa_validate_crt
+ *     They take a set of core or CRT related RSA parameters
+ *     and check their validity.
  *
- * Their purpose is to provide common MPI operations in the context
+ * The helper functions do not use the RSA context structure
+ * and therefore do not need to be replaced when providing
+ * an alternative RSA implementation.
+ *
+ * Their main purpose is to provide common MPI operations in the context
  * of RSA that can be easily shared across multiple implementations.
  */
 
@@ -504,18 +512,21 @@ int mbedtls_rsa_deduce_crt( const mbedtls_mpi *P, const mbedtls_mpi *Q,
     mbedtls_mpi K;
     mbedtls_mpi_init( &K );
 
+    /* DP = D mod P-1 */
     if( DP != NULL )
     {
         MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &K, P, 1  ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( DP, D, &K ) );
     }
 
+    /* DQ = D mod Q-1 */
     if( DQ != NULL )
     {
         MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &K, Q, 1  ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( DQ, D, &K ) );
     }
 
+    /* QP = Q^{-1} mod P */
     if( QP != NULL )
     {
         MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( QP, Q, P ) );

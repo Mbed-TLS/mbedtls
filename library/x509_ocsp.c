@@ -1304,6 +1304,66 @@ static int x509_ocsp_info_responses( char **buf, size_t *size,
     return( 0 );
 }
 
+#define X509_OCSP_SAFE_SNPRINTF                             \
+    do {                                                    \
+        if( ret < 0 || (size_t) ret >= n )                  \
+        {                                                   \
+            ret = MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;        \
+            goto exit;                                      \
+        }                                                   \
+                                                            \
+        n -= (size_t) ret;                                  \
+        p += (size_t) ret;                                  \
+    } while( 0 )
+static int x509_ocsp_info_certs( char **buf, size_t *size, const char *prefix,
+                                 const mbedtls_x509_crt *certs )
+{
+    int ret;
+    size_t n = *size;
+    char *p = *buf;
+    size_t prefix_len = strlen( prefix );
+    char *double_prefix;
+    const mbedtls_x509_crt *cur;
+
+    if( certs->raw.p == NULL )
+    {
+        ret = mbedtls_snprintf( p, n, "\n%s%sThere are no certs",
+                                prefix, prefix );
+        MBEDTLS_X509_SAFE_SNPRINTF;
+
+        return( 0 );
+    }
+    else if( prefix_len > SIZE_MAX / 2 )
+        return( MBEDTLS_ERR_X509_ALLOC_FAILED );
+
+    /* Allocate a new buffer that will contain the prefix string twice */
+    double_prefix = mbedtls_calloc( 1, prefix_len * 2 );
+    if( double_prefix == NULL )
+        return( MBEDTLS_ERR_X509_ALLOC_FAILED );
+
+    strcpy( double_prefix, prefix );
+    strcat( double_prefix, prefix );
+
+    ret = mbedtls_snprintf( p, n, "\n" );
+    X509_OCSP_SAFE_SNPRINTF;
+
+    for( cur = certs; cur != NULL; cur = cur->next )
+    {
+        ret = mbedtls_x509_crt_info( p, n, double_prefix, cur );
+        X509_OCSP_SAFE_SNPRINTF;
+    }
+
+    *size = n;
+    *buf = p;
+    ret = 0;
+
+exit:
+    mbedtls_free( double_prefix );
+
+    return( ret );
+}
+
+
 int mbedtls_x509_ocsp_response_info( char *buf, size_t size,
                                      const char *prefix,
                                      const mbedtls_x509_ocsp_response *resp )
@@ -1387,6 +1447,14 @@ int mbedtls_x509_ocsp_response_info( char *buf, size_t size,
     MBEDTLS_X509_SAFE_SNPRINTF;
     if( ( ret = x509_ocsp_info_responses( &p, &n, prefix,
                                           &resp->single_resp ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    /* Print list of certificates */
+    ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s:", prefix, "certs" );
+    MBEDTLS_X509_SAFE_SNPRINTF;
+    if( ( ret = x509_ocsp_info_certs( &p, &n, prefix, &resp->certs ) ) != 0 )
         return( ret );
 
     return( 0 );

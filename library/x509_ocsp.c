@@ -251,10 +251,87 @@ static int x509_ocsp_get_generalized_time( unsigned char **p,
     return( 0 );
 }
 
+static int x509_ocsp_get_octet_string( unsigned char **p,
+                                       const unsigned char *end,
+                                       mbedtls_x509_buf *buf )
+{
+    int ret;
+    size_t len;
+
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                                      MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+    }
+
+    buf->len = len;
+    buf->tag = MBEDTLS_ASN1_OCTET_STRING;
+    buf->p = *p;
+
+    *p = *p + len;
+
+    return( 0 );
+}
+
 static int x509_ocsp_get_cert_id( unsigned char **p,
                                   const unsigned char *end,
                             mbedtls_x509_ocsp_single_response *single_resp )
 {
+    int ret;
+    size_t len;
+
+    /*
+     * CertID ::= SEQUENCE {
+     *  hashAlgorithm       AlgorithmIdentifier,
+     *  issuesNameHash      OCTET STRING,
+     *  issuerKeyHash       OCTET STRING,
+     *  serialNumber        CertificateSerialNumber }
+     */
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+    }
+
+    end = *p + len;
+
+    /* Parse hashAlgorithm */
+    if( ( ret = mbedtls_x509_get_alg_null( p, end,
+                                           &single_resp->md_oid ) ) != 0 )
+    {
+        return( ret );
+    }
+    else if( ( ret = mbedtls_oid_get_md_alg( &single_resp->md_oid,
+                                             &single_resp->md_alg ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    /* Parse issuerNameHash */
+    if( ( ret = x509_ocsp_get_octet_string( p, end,
+                                    &single_resp->issuer_name_hash ) ) != 0 )
+    {
+        return( 0 );
+    }
+
+    /* Parse issuerKeyHash */
+    if( ( ret = x509_ocsp_get_octet_string( p, end,
+                                    &single_resp->issues_key_hash ) ) != 0 )
+    {
+        return( 0 );
+    }
+
+    /* Parse serialNumber */
+    if( ( ret = mbedtls_x509_get_serial( p, end,
+                                         &single_resp->serial ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    if( *p != end )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
     return( 0 );
 }
 

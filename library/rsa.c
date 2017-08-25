@@ -88,7 +88,6 @@ static void mbedtls_zeroize( void *v, size_t n ) {
  */
 
 /*
- * mbedtls_rsa_deduce_moduli
  *
  * Given the modulus N=PQ and a pair of public and private
  * exponents E and D, respectively, factor N.
@@ -167,8 +166,6 @@ int mbedtls_rsa_deduce_moduli( mbedtls_mpi *N, mbedtls_mpi *D, mbedtls_mpi *E,
      */
 
     mbedtls_mpi_init( &K );
-    mbedtls_mpi_init( P );
-    mbedtls_mpi_init( Q );
 
     /* Replace D by DE - 1 */
     MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( D, D, E ) );
@@ -231,44 +228,14 @@ int mbedtls_rsa_deduce_moduli( mbedtls_mpi *N, mbedtls_mpi *D, mbedtls_mpi *E,
             {
                 /*
                  * Have found a nontrivial divisor P of N.
-                 * Set Q := N / P and verify D, E.
+                 * Set Q := N / P.
                  */
 
                 MBEDTLS_MPI_CHK( mbedtls_mpi_div_mpi( Q, &K, N, P ) );
 
-                /*
-                 * Verify that DE - 1 is indeed a multiple of
-                 * lcm(P-1, Q-1), i.e. that it's a multiple of both
-                 * P-1 and Q-1.
-                 */
+                /* Restore D */
 
-                /* Restore DE - 1 and temporarily replace P, Q by P-1, Q-1. */
                 MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( D, order ) );
-                MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( P, P, 1 ) );
-                MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( Q, Q, 1 ) );
-
-                /* Compute DE-1 mod P-1 */
-                MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &K, D, P ) );
-                if( mbedtls_mpi_cmp_int( &K, 0 ) != 0 )
-                {
-                    ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
-                    goto cleanup;
-                }
-
-                /* Compute DE-1 mod Q-1 */
-                MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &K, D, Q ) );
-                if( mbedtls_mpi_cmp_int( &K, 0 ) != 0 )
-                {
-                    ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
-                    goto cleanup;
-                }
-
-                /*
-                 * All good, restore P, Q and D and return.
-                 */
-
-                MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( P, P, 1 ) );
-                MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( Q, Q, 1 ) );
                 MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( D, D, 1 ) );
                 MBEDTLS_MPI_CHK( mbedtls_mpi_div_mpi( D, NULL, D, E ) );
 
@@ -329,9 +296,6 @@ int mbedtls_rsa_deduce_private( mbedtls_mpi *P, mbedtls_mpi *Q,
     /* Restore P and Q. */
     MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( P, P, 1 ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( Q, Q, 1 ) );
-
-    /* Double-check result */
-    MBEDTLS_MPI_CHK( mbedtls_rsa_validate_params( NULL, P, Q, D, E, NULL, NULL ) );
 
 cleanup:
 
@@ -611,16 +575,6 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx,
          * guaranteed to be sane if this call succeeds. */
         if( ( ret = mbedtls_rsa_deduce_private( &ctx->P, &ctx->Q,
                                                 &ctx->D, &ctx->E ) ) != 0 )
-        {
-            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
-        }
-    }
-    else if( complete )
-    {
-        /* Check complete set of imported core parameters. */
-        if( ( ret = mbedtls_rsa_validate_params( &ctx->N, &ctx->P, &ctx->Q,
-                                                 &ctx->D, &ctx->E,
-                                                 f_rng, p_rng ) ) != 0 )
         {
             return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
         }

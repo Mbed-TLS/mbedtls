@@ -1318,6 +1318,13 @@ int mbedtls_x509_ocsp_response_info( char *buf, size_t size,
                         resp->produced_at.min,  resp->produced_at.sec );
     MBEDTLS_X509_SAFE_SNPRINTF;
 
+    /* Print signatureAlgorithm */
+    ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: ", prefix, "signed using" );
+    MBEDTLS_X509_SAFE_SNPRINTF;
+    ret = mbedtls_x509_sig_alg_gets( p, n, &resp->sig_oid, resp->sig_pk,
+                                     resp->sig_md, resp->sig_opts );
+    MBEDTLS_X509_SAFE_SNPRINTF;
+
     /* Print list of responses */
     ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s:", prefix, "responses" );
     MBEDTLS_X509_SAFE_SNPRINTF;

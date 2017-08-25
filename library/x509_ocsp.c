@@ -35,6 +35,7 @@
 
 #include "mbedtls/x509.h"
 #include "mbedtls/x509_crt.h"
+#include "mbedtls/x509_crl.h"
 #include "mbedtls/x509_ocsp.h"
 #include "mbedtls/asn1.h"
 #include "mbedtls/md.h"
@@ -339,6 +340,53 @@ static int x509_ocsp_get_crl_reason( unsigned char **p,
                                      const unsigned char *end,
                                      uint8_t *reason )
 {
+    int ret;
+    size_t len;
+
+    /*
+     * CRLReason ::= ENUMERATED {
+     *  unspecified             (0),
+     *  keyCompromise           (1),
+     *  cACompromise            (2),
+     *  affiliationChanged      (3),
+     *  superseded              (4),
+     *  cessationOfOperation    (5),
+     *  certificateHold         (6),
+     *  removeFromCRL           (8),
+     *  privilegeWithdrawn      (9),
+     *  aACompromise            (10) }
+     */
+
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                                      MBEDTLS_ASN1_ENUMERATED ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+    }
+
+    if( len != 1 )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+    *reason = *( *p )++;
+
+    /* Ensure the parsed response status is valid */
+    switch( *reason )
+    {
+        case MBEDTLS_X509_CRL_REASON_UNSPECIFIED:
+        case MBEDTLS_X509_CRL_REASON_KEY_COMPROMISE:
+        case MBEDTLS_X509_CRL_REASON_CA_COMPROMISE:
+        case MBEDTLS_X509_CRL_REASON_AFFILIATION_CHANGED:
+        case MBEDTLS_X509_CRL_REASON_SUPERSEDED:
+        case MBEDTLS_X509_CRL_REASON_CESSATION_OF_OPERATION:
+        case MBEDTLS_X509_CRL_REASON_CERTIFICATE_HOLD:
+        case MBEDTLS_X509_CRL_REASON_REMOVE_FROM_CRL:
+        case MBEDTLS_X509_CRL_REASON_PRIVILEGE_WITHDRAWN:
+        case MBEDTLS_X509_CRL_REASON_AA_COMPROMISE:
+            break;
+        default:
+            return( MBEDTLS_ERR_X509_CRL_INVALID_CRL_REASON );
+    }
+
     return( 0 );
 }
 

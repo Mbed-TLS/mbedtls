@@ -930,12 +930,18 @@ void mbedtls_serialize_frontend( mbedtls_serialize_context_t *ctx )
     close( ctx->write_fd );
 }
 
-int main( )
+int main( int argc, char **argv )
 {
     mbedtls_serialize_context_t ctx = { .read_fd = 3, .write_fd = 4,
                                         .stack = NULL,
                                         .status = MBEDTLS_SERIALIZE_STATUS_OK};
     fdbg = fopen("frontend.log", "w");
+    /* If forked, parent passes rd/wr pipe descriptors via command line */
+    if ( argc == 3 )
+    {
+        ctx.read_fd = atoi(argv[1]);
+        ctx.write_fd = atoi(argv[2]);
+    }
     if( getenv( "FRONTEND_DEBUG" ) )
         debug_verbose = 1;
     mbedtls_serialize_frontend( &ctx );

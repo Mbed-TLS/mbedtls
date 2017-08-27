@@ -114,7 +114,6 @@ static void relay_signal( int signum )
 static int mbedtls_serialize_prepare( void )
 {
     int ret;
-    int null = -1;
     int host_to_target[2] = {-1, -1}, target_to_host[2] = {-1, -1};
     const char *const frontend_path[] = {
         "programs/host/frontend",
@@ -140,11 +139,6 @@ static int mbedtls_serialize_prepare( void )
     }
 
     /* Prepare the plumbing */
-    CHECK( open( "/dev/null", O_RDONLY ), null );
-    CHECK( dup2( null, 3 ), ret );
-    CHECK( dup2( null, 4 ), ret );
-    if( null != 3 && null != 4 )
-        close( null );
     CHECK( pipe( host_to_target ), ret );
     CHECK( pipe( target_to_host ), ret );
     CHECK( signal( SIGTERM, relay_signal ) == SIG_ERR ? -1 : 0 , ret );
@@ -153,11 +147,16 @@ static int mbedtls_serialize_prepare( void )
     if( host_pid == 0 )
     {
         /* Child process (host */
+        char arg1[10], arg2[10];
+        sprintf( arg1, "%d", target_to_host[0] );
+        sprintf( arg2, "%d", host_to_target[1] );
+
+        /* Close peer ends of the pipe */
         close( host_to_target[0] );
         close( target_to_host[1] );
-        dup2( target_to_host[0], 3 );
-        dup2( host_to_target[1], 4 );
-        execl( frontend_exe, frontend_exe, NULL );
+
+        /* Pass pipe rd/wr descriptors to child */
+        execl( frontend_exe, frontend_exe, arg1, arg2, NULL );
         perror( frontend_exe );
         exit( 126 );
     }
@@ -167,17 +166,10 @@ static int mbedtls_serialize_prepare( void )
     close( host_to_target[1] );
     close( target_to_host[0] );
     serialize_write_fd = target_to_host[1];
-    close( null );
     atexit( kill_host_frontend );
 
     return( 0 );
 cleanup:
-    if( null >= 0 )
-    {
-        close( null );
-        close( 3 );
-        close( 4 );
-    }
     if( host_to_target[0] >= 0 )
         close( host_to_target[0] );
     if( host_to_target[1] >= 0 )

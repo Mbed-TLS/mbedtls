@@ -1983,8 +1983,8 @@ static int x509_crt_find_parent_in(
                         mbedtls_x509_crt **r_parent,
                         int *r_signature_is_good,
                         int top,
-                        int path_cnt,
-                        int self_cnt,
+                        unsigned path_cnt,
+                        unsigned self_cnt,
                         mbedtls_x509_crt_restart_ctx *rs_ctx )
 {
     int ret;
@@ -2021,7 +2021,7 @@ static int x509_crt_find_parent_in(
 
         /* +1 because stored max_pathlen is 1 higher that the actual value */
         if( parent->max_pathlen > 0 &&
-            parent->max_pathlen < 1 + path_cnt - self_cnt )
+            (size_t) parent->max_pathlen < 1 + path_cnt - self_cnt )
         {
             continue;
         }
@@ -2103,8 +2103,8 @@ static int x509_crt_find_parent(
                         mbedtls_x509_crt **parent,
                         int *parent_is_trusted,
                         int *signature_is_good,
-                        int path_cnt,
-                        int self_cnt,
+                        unsigned path_cnt,
+                        unsigned self_cnt,
                         mbedtls_x509_crt_restart_ctx *rs_ctx )
 {
     int ret;
@@ -2246,7 +2246,7 @@ static int x509_crt_verify_chain(
     int parent_is_trusted;
     int child_is_trusted;
     int signature_is_good;
-    int self_cnt;
+    unsigned self_cnt;
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     /* resume if we had an operation in progress */
@@ -2445,7 +2445,7 @@ static int x509_crt_merge_flags_with_cb(
            void *p_vrfy )
 {
     int ret;
-    size_t i;
+    unsigned i;
     uint32_t cur_flags;
     const mbedtls_x509_crt_verify_chain_item *cur;
 
@@ -2455,7 +2455,7 @@ static int x509_crt_merge_flags_with_cb(
         cur_flags = cur->flags;
 
         if( NULL != f_vrfy )
-            if( ( ret = f_vrfy( p_vrfy, cur->crt, i-1, &cur_flags ) ) != 0 )
+            if( ( ret = f_vrfy( p_vrfy, cur->crt, (int) i-1, &cur_flags ) ) != 0 )
                 return( ret );
 
         *flags |= cur_flags;

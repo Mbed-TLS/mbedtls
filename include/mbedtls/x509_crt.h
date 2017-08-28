@@ -161,7 +161,7 @@ typedef struct {
 typedef struct
 {
     mbedtls_x509_crt_verify_chain_item items[MBEDTLS_X509_MAX_VERIFY_CHAIN_SIZE];
-    size_t len;
+    unsigned len;
 } mbedtls_x509_crt_verify_chain;
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)

@@ -254,10 +254,14 @@ void ecdsa_read_restart( int id, char *k_str, char *h_str, char *s_str,
     TEST_ASSERT( ret == MBEDTLS_ERR_ECP_VERIFY_FAILED );
     sig[sig_len - 1]--;
 
-    /* do we leak memory when aborting? */
-    ret = mbedtls_ecdsa_read_signature_restartable( &ctx,
-                        hash, hash_len, sig, sig_len, &rs_ctx );
-    TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+    /* Do we leak memory when aborting an operation?
+     * This test only makes sense when we actually restart */
+    if( min_restart > 0 )
+    {
+        ret = mbedtls_ecdsa_read_signature_restartable( &ctx,
+                            hash, hash_len, sig, sig_len, &rs_ctx );
+        TEST_ASSERT( ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+    }
 
 exit:
     mbedtls_ecdsa_free( &ctx );
@@ -311,10 +315,14 @@ void ecdsa_write_restart( int id, char *d_str, int md_alg,
     TEST_ASSERT( cnt_restart >= min_restart );
     TEST_ASSERT( cnt_restart <= max_restart );
 
-    /* do we leak memory when aborting? */
-    ret = mbedtls_ecdsa_write_signature_restartable( &ctx,
-            md_alg, hash, hlen, sig, &slen, NULL, NULL, &rs_ctx );
-    TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+    /* Do we leak memory when aborting an operation?
+     * This test only makes sense when we actually restart */
+    if( min_restart > 0 )
+    {
+        ret = mbedtls_ecdsa_write_signature_restartable( &ctx,
+                md_alg, hash, hlen, sig, &slen, NULL, NULL, &rs_ctx );
+        TEST_ASSERT( ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+    }
 
 exit:
     mbedtls_ecdsa_restart_free( &rs_ctx );

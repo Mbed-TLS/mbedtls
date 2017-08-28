@@ -347,16 +347,20 @@ void pk_sign_verify_restart( int pk_type, int grp_id, char *d_str,
     TEST_ASSERT( ret != 0 );
     sig[0]--;
 
-    /* Do we leak memory when aborting? try verify then sign */
-    ret = mbedtls_pk_verify_restartable( &pub, md_alg,
-                             hash, hlen, sig, slen, &rs_ctx );
-    TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
-    mbedtls_pk_restart_free( &rs_ctx );
+    /* Do we leak memory when aborting? try verify then sign
+     * This test only makes sense when we actually restart */
+    if( min_restart > 0 )
+    {
+        ret = mbedtls_pk_verify_restartable( &pub, md_alg,
+                                 hash, hlen, sig, slen, &rs_ctx );
+        TEST_ASSERT( ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+        mbedtls_pk_restart_free( &rs_ctx );
 
-    slen = sizeof( sig );
-    ret = mbedtls_pk_sign_restartable( &prv, md_alg, hash, hlen,
-                                        sig, &slen, NULL, NULL, &rs_ctx );
-    TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+        slen = sizeof( sig );
+        ret = mbedtls_pk_sign_restartable( &prv, md_alg, hash, hlen,
+                                            sig, &slen, NULL, NULL, &rs_ctx );
+        TEST_ASSERT( ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+    }
 
 exit:
     mbedtls_pk_restart_free( &rs_ctx );

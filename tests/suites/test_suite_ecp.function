@@ -103,13 +103,9 @@ void ecp_test_vect_restart( int id,
     cnt_restarts = 0;
     do {
         ret = mbedtls_ecp_mul_restartable( &grp, &R, &dA, &grp.G, NULL, NULL, &ctx );
-        TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+    } while( ret == MBEDTLS_ERR_ECP_IN_PROGRESS && ++cnt_restarts );
 
-        if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
-            cnt_restarts++;
-    }
-    while( ret != 0 );
-
+    TEST_ASSERT( ret == 0 );
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R.X, &xA ) == 0 );
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R.Y, &yA ) == 0 );
 
@@ -120,22 +116,22 @@ void ecp_test_vect_restart( int id,
     cnt_restarts = 0;
     do {
         ret = mbedtls_ecp_mul_restartable( &grp, &R, &dB, &R, NULL, NULL, &ctx );
-        TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+    } while( ret == MBEDTLS_ERR_ECP_IN_PROGRESS && ++cnt_restarts );
 
-        if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
-            cnt_restarts++;
-    }
-    while( ret != 0 );
-
+    TEST_ASSERT( ret == 0 );
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R.X, &xZ ) == 0 );
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R.Y, &yZ ) == 0 );
 
     TEST_ASSERT( cnt_restarts >= min_restarts );
     TEST_ASSERT( cnt_restarts <= max_restarts );
 
-    /* Do we leak memory when not finishing an operation? */
-    ret = mbedtls_ecp_mul_restartable( &grp, &R, &dB, &R, NULL, NULL, &ctx );
-    TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+    /* Do we leak memory when aborting an operation?
+     * This test only makes sense when we actually restart */
+    if( min_restarts > 0 )
+    {
+        ret = mbedtls_ecp_mul_restartable( &grp, &R, &dB, &R, NULL, NULL, &ctx );
+        TEST_ASSERT( ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+    }
 
 exit:
     mbedtls_ecp_restart_free( &ctx );
@@ -188,23 +184,23 @@ void ecp_muladd_restart( int id, char *xR_str, char *yR_str,
     do {
         ret = mbedtls_ecp_muladd_restartable( &grp, &R,
                                               &u1, &grp.G, &u2, &Q, &ctx );
-        TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+    } while( ret == MBEDTLS_ERR_ECP_IN_PROGRESS && ++cnt_restarts );
 
-        if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
-            cnt_restarts++;
-    }
-    while( ret != 0 );
-
+    TEST_ASSERT( ret == 0 );
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R.X, &xR ) == 0 );
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R.Y, &yR ) == 0 );
 
     TEST_ASSERT( cnt_restarts >= min_restarts );
     TEST_ASSERT( cnt_restarts <= max_restarts );
 
-    /* Do we leak memory when aborting? */
-    ret = mbedtls_ecp_muladd_restartable( &grp, &R,
-                                          &u1, &grp.G, &u2, &Q, &ctx );
-    TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+    /* Do we leak memory when aborting an operation?
+     * This test only makes sense when we actually restart */
+    if( min_restarts > 0 )
+    {
+        ret = mbedtls_ecp_muladd_restartable( &grp, &R,
+                                              &u1, &grp.G, &u2, &Q, &ctx );
+        TEST_ASSERT( ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+    }
 
 exit:
     mbedtls_ecp_restart_free( &ctx );

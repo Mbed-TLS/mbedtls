@@ -1,4 +1,9 @@
-mbed TLS ChangeLog (Sorted per branch, date)
+﻿mbed TLS ChangeLog (Sorted per branch, date)
+
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Bugfix
+   * Log correct number of ciphersuites used in Client Hello message. Fix for #918.
 
 = mbed TLS 2.1.11 branch released xxxx-xx-xx
 

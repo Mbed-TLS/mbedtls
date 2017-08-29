@@ -642,6 +642,11 @@
 #error "MBEDTLS_X509_CSR_PARSE_C defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_X509_OCSP_PARSE_C) && ( !defined(MBEDTLS_X509_USE_C) || \
+    !defined(MBEDTLS_X509_CRT_PARSE_C) )
+#error "MBEDTLS_X509_OCSP_PARSE_C defined, but not all prerequisites"
+#endif
+
 #if defined(MBEDTLS_X509_CRT_WRITE_C) && ( !defined(MBEDTLS_X509_CREATE_C) )
 #error "MBEDTLS_X509_CRT_WRITE_C defined, but not all prerequisites"
 #endif

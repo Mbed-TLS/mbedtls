@@ -24,6 +24,8 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#if defined(MBEDTLS_X509_OCSP_PARSE_C)
+
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
@@ -1528,3 +1530,4 @@ int mbedtls_x509_ocsp_parse_response_file( mbedtls_x509_ocsp_response *resp,
 
     return( ret );
 }
+#endif /* MBEDTLS_X509_OCSP_PARSE_C */

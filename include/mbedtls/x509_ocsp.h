@@ -53,6 +53,7 @@
 #define MBEDTLS_X509_OCSP_CERT_STATUS_REVOKED               1
 #define MBEDTLS_X509_OCSP_CERT_STATUS_UNKNOWN               2
 
+#if defined(MBEDTLS_X509_OCSP_PARSE_C)
 /**
  * \addtogroup x509_module
  * \{
@@ -189,5 +190,7 @@ int mbedtls_x509_ocsp_parse_response_file( mbedtls_x509_ocsp_response *resp,
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* MBEDTLS_X509_OCSP_PARSE_C */
 
 #endif /* !MBEDTLS_X509_OCSP_H */

@@ -2519,6 +2519,19 @@
 #define MBEDTLS_X509_CSR_PARSE_C
 
 /**
+ * \def MBEDTLS_X509_OCSP_PARSE_C
+ *
+ * Enable X.509 Online Certificate Status Protocol (OCSP) parsing.
+ *
+ * Module:  library/x509_ocsp.c
+ *
+ * Requires: MBEDTLS_X509_USE_C, MBEDTLS_X509_CRT_PARSE_C
+ *
+ * This module is used for reading X.509 OCSP responses.
+ */
+#define MBEDTLS_X509_OCSP_PARSE_C
+
+/**
  * \def MBEDTLS_X509_CREATE_C
  *
  * Enable X.509 core for creating certificates.

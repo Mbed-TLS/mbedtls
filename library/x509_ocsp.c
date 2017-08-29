@@ -924,6 +924,7 @@ static int x509_ocsp_get_response( mbedtls_x509_ocsp_response *resp,
      */
     if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
                     MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
 
     end = *p + len;
 

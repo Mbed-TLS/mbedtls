@@ -249,6 +249,8 @@ static int x509_ocsp_get_responder_id( unsigned char **p,
 
     if( tag == ( base_tag | MBEDTLS_X509_OCSP_RESPONDER_ID_TYPE_NAME ) )
     {
+        responder_id->type = MBEDTLS_X509_OCSP_RESPONDER_ID_TYPE_NAME;
+
         /*
          * mbedtls_x509_get_name() cannot handle the following ASN1
          * constructs at the beginning of the Name, so we must remove it
@@ -267,12 +269,12 @@ static int x509_ocsp_get_responder_id( unsigned char **p,
         {
             return( ret );
         }
-
-        responder_id->type = MBEDTLS_X509_OCSP_RESPONDER_ID_TYPE_NAME;
     }
     else if( tag == ( base_tag |
                       MBEDTLS_X509_OCSP_RESPONDER_ID_TYPE_KEY_HASH ) )
     {
+        responder_id->type = MBEDTLS_X509_OCSP_RESPONDER_ID_TYPE_KEY_HASH;
+
         /* KeyHash ::= OCTET STRING */
         if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
                                           MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
@@ -280,7 +282,6 @@ static int x509_ocsp_get_responder_id( unsigned char **p,
            return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
         }
 
-        responder_id->type = MBEDTLS_X509_OCSP_RESPONDER_ID_TYPE_KEY_HASH;
         responder_id->id.key.len = len;
         responder_id->id.key.p = *p;
         responder_id->id.key.tag = MBEDTLS_ASN1_OCTET_STRING;

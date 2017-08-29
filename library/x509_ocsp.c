@@ -79,7 +79,9 @@ void mbedtls_x509_ocsp_response_free( mbedtls_x509_ocsp_response *resp )
 {
     mbedtls_x509_ocsp_single_response *cur, *next;
 
-    if( resp->resp_type.p == NULL )
+    if( resp == NULL )
+        return;
+    else if( resp->raw.p == NULL )
         goto exit;
 
     /* Free list of certificates */

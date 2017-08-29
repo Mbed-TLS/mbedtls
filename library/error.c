@@ -480,6 +480,14 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
             mbedtls_snprintf( buf, buflen, "X509 - Read/write of file failed" );
         if( use_ret == -(MBEDTLS_ERR_X509_BUFFER_TOO_SMALL) )
             mbedtls_snprintf( buf, buflen, "X509 - Destination buffer is too small" );
+        if( use_ret == -(MBEDTLS_ERR_X509_INVALID_RESPONSE_STATUS) )
+            mbedtls_snprintf( buf, buflen, "X509 - The OCSP response status is invalid" );
+        if( use_ret == -(MBEDTLS_ERR_X509_INVALID_RESPONSE_TYPE) )
+            mbedtls_snprintf( buf, buflen, "X509 - The OCSP response type is invalid" );
+        if( use_ret == -(MBEDTLS_ERR_X509_INVALID_CERT_STATUS) )
+            mbedtls_snprintf( buf, buflen, "X509 - A SingleResponse in the OCSP response specifies an invalid certificate status value" );
+        if( use_ret == -(MBEDTLS_ERR_X509_INVALID_CRL_REASON) )
+            mbedtls_snprintf( buf, buflen, "X509 - The CRLReason value is invalid" );
         if( use_ret == -(MBEDTLS_ERR_X509_FATAL_ERROR) )
             mbedtls_snprintf( buf, buflen, "X509 - A fatal error occured, eg the chain is too long or the vrfy callback failed" );
 #endif /* MBEDTLS_X509_USE_C || MBEDTLS_X509_CREATE_C */

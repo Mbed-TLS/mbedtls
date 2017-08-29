@@ -35,8 +35,6 @@
 extern "C" {
 #endif
 
-#define MBEDTLS_ERR_X509_CRL_INVALID_CRL_REASON         -0x2B00
-
 #define MBEDTLS_X509_CRL_REASON_UNSPECIFIED                 0
 #define MBEDTLS_X509_CRL_REASON_KEY_COMPROMISE              1
 #define MBEDTLS_X509_CRL_REASON_CA_COMPROMISE               2

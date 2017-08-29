@@ -151,7 +151,7 @@ static int x509_ocsp_get_response_status( unsigned char **p,
         case MBEDTLS_X509_OCSP_RESPONSE_STATUS_UNAUTHORIZED:
             break;
         default:
-            return( MBEDTLS_ERR_X509_OCSP_INVALID_RESPONSE_STATUS );
+            return( MBEDTLS_ERR_X509_INVALID_RESPONSE_STATUS );
     }
 
     return( 0 );
@@ -174,7 +174,7 @@ static int x509_ocsp_get_response_type( unsigned char **p,
     if( MBEDTLS_OID_CMP( MBEDTLS_OID_OCSP, resp_type ) != 0 &&
         MBEDTLS_OID_CMP( MBEDTLS_OID_OCSP_BASIC, resp_type ) != 0 )
     {
-        return( MBEDTLS_ERR_X509_OCSP_INVALID_RESPONSE_TYPE );
+        return( MBEDTLS_ERR_X509_INVALID_RESPONSE_TYPE );
     }
 
     *p = *p + len;
@@ -459,7 +459,7 @@ static int x509_ocsp_get_crl_reason( unsigned char **p,
         case MBEDTLS_X509_CRL_REASON_AA_COMPROMISE:
             break;
         default:
-            return( MBEDTLS_ERR_X509_CRL_INVALID_CRL_REASON );
+            return( MBEDTLS_ERR_X509_INVALID_CRL_REASON );
     }
 
     return( 0 );
@@ -565,7 +565,7 @@ static int x509_ocsp_get_cert_status( unsigned char **p,
             return( ret );
     }
     else
-            return( MBEDTLS_ERR_X509_OCSP_INVALID_CERT_STATUS );
+            return( MBEDTLS_ERR_X509_INVALID_CERT_STATUS );
 
     if( *p != end )
         return( MBEDTLS_ERR_X509_INVALID_FORMAT +

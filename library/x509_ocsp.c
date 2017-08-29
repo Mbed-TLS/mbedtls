@@ -1393,7 +1393,7 @@ static int x509_ocsp_info_certs( char **buf, size_t *size, const char *prefix,
         return( MBEDTLS_ERR_X509_ALLOC_FAILED );
 
     /* Allocate a new buffer that will contain the prefix string twice */
-    double_prefix = mbedtls_calloc( 1, prefix_len * 2 );
+    double_prefix = mbedtls_calloc( 1, prefix_len * 2 + 1 );
     if( double_prefix == NULL )
         return( MBEDTLS_ERR_X509_ALLOC_FAILED );
 

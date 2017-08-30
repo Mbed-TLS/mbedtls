@@ -1,34 +1,17 @@
 
-std_make_test_sh = """
-make clean
+std_make_test_sh = """ make clean
 make
 make check
 ./programs/test/selftest
 """
 
-gmake_test_sh = """
-gmake clean
+gmake_test_sh = """ gmake clean
 gmake
 gmake check
 ./programs/test/selftest
 """
 
-cmake_test_sh = """
-cmake -D CMAKE_BUILD_TYPE:String=Check .
-make clean
-make
-make test
-./programs/test/selftest
-"""
-
-cmake_full_test_sh = cmake_test_sh + """
-./tests/compat.sh
-./tests/ssl-opt.sh
-./tests/scripts/test-ref-configs.pl
-"""
-
-cmake_test_sh = """
-cmake -D CMAKE_BUILD_TYPE:String=Check .
+cmake_test_sh = """ cmake -D CMAKE_BUILD_TYPE:String=Check .
 make clean
 make
 make test
@@ -44,8 +27,7 @@ find . -name c-srv-1.log|xargs cat
 ./tests/scripts/test-ref-configs.pl
 """
 
-cmake_asan_test_sh = """
-cmake -D CMAKE_BUILD_TYPE:String=Asan .
+cmake_asan_test_sh = """ cmake -D CMAKE_BUILD_TYPE:String=Asan .
 make clean
 make
 make test
@@ -55,21 +37,18 @@ make test
 ./tests/scripts/test-ref-configs.pl
 """
 
-mingw_cmake_test_bat = """
-cmake . -G MinGW Makefiles
+mingw_cmake_test_bat = """ cmake . -G MinGW Makefiles
 mingw32-make clean
 mingw32-make
 mingw32-make test
 programs\\test\\selftest.exe
 """
 
-win32_msvc12_32_test_bat = """
-cmake . -G Visual Studio 12
+win32_msvc12_32_test_bat = """ cmake . -G Visual Studio 12
 MSBuild ALL_BUILD.vcxproj
 """
 
-win32_msvc12_64_test_bat = """
-cmake . -G Visual Studio 12 Win64
+win32_msvc12_64_test_bat = """ cmake . -G Visual Studio 12 Win64
 MSBuild ALL_BUILD.vcxproj
 """
 
@@ -90,11 +69,9 @@ def gen_jobs_foreach ( label, platforms, compilers, script ){
                 node( platform ){
                     timestamps {
                         def compiler_path = compiler_paths[compiler]
-                            unstash 'src'
-                            script =  """
-CC=${compiler_path}
-""" + script
-                            sh script
+                        unstash 'src'
+                        script =  """ CC=${compiler_path} """ + script
+                        sh script
                     }
                 }
             }
@@ -113,6 +90,7 @@ def gen_batch_jobs_foreach ( label, platforms, compilers, script ){
                     timestamps {
                         def compiler_path = compiler_paths[compiler]
                         unstash 'src'
+                        script =  """ CC=${compiler_path} """ + script
                         bat script
                     }
                 }

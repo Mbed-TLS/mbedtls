@@ -167,7 +167,8 @@ int mbedtls_x509_ocsp_response_info( char *buf, size_t size,
  *                 specific X.509 error
  */
 int mbedtls_x509_ocsp_parse_response( mbedtls_x509_ocsp_response *resp,
-                                      unsigned char *buf, size_t buflen );
+                                      const unsigned char *buf,
+                                      size_t buflen );
 
 #if defined(MBEDTLS_FS_IO)
 /**

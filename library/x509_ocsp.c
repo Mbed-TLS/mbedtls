@@ -1036,7 +1036,7 @@ static int x509_ocsp_get_response_bytes( mbedtls_x509_ocsp_response *resp,
  *        functions
  */
 int mbedtls_x509_ocsp_parse_response( mbedtls_x509_ocsp_response *resp,
-                                      unsigned char *buf, size_t buflen )
+                                      const unsigned char *buf, size_t buflen )
 {
     int ret;
     size_t len;
@@ -1045,7 +1045,7 @@ int mbedtls_x509_ocsp_parse_response( mbedtls_x509_ocsp_response *resp,
     if( resp == NULL || buf == NULL )
         return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
 
-    p = buf;
+    p = (unsigned char *)buf;
     len = buflen;
     end = p + len;
 

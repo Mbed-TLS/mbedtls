@@ -130,7 +130,7 @@ typedef struct mbedtls_x509_ocsp_response {
 /**
  * \brief          Initialize an OCSP response container
  *
- * \param crt      OCSP response to initialize
+ * \param resp     OCSP response to initialize
  */
 void mbedtls_x509_ocsp_response_init( mbedtls_x509_ocsp_response *resp );
 
@@ -147,7 +147,7 @@ void mbedtls_x509_ocsp_response_free( mbedtls_x509_ocsp_response *resp );
  * \param buf      Buffer to write to
  * \param size     Maximum size of buffer
  * \param prefix   A line prefix
- * \param crt      The X509 certificate to represent
+ * \param resp     The OCSP response to represent
  *
  * \return         The length of the string written (not including the
  *                 terminated nul byte), or a negative error code.

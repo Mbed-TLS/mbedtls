@@ -85,12 +85,14 @@ def gen_jobs_foreach ( label, platforms, compilers, script ){
             jobs["${label}-${compiler}-${platform}"] = {
                 //label = "${platform} && mbedtls"
                 node( platform ){
-                    def compiler_path = compiler_paths[compiler]
-                    unstash 'src'
-                    script =  """
+                    timestamps {
+                        def compiler_path = compiler_paths[compiler]
+                            unstash 'src'
+                            script =  """
 CC=${compiler_path}
 """ + script
-                    sh script
+                            sh script
+                    }
                 }
             }
         }

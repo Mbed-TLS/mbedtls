@@ -105,6 +105,7 @@ def gen_batch_jobs_foreach ( label, platforms, compilers, script ){
             jobs["${label}-${compiler}-${platform}"] = {
                 node( platform ){
                     def compiler_path = compiler_paths[compiler]
+                    unstash 'src'
                     bat script
                 }
             }
@@ -113,16 +114,25 @@ def gen_batch_jobs_foreach ( label, platforms, compilers, script ){
     return jobs
 }
 
-/* Jenkinsfile interface to this script. */
-def dispatch_job(){
-    linux_platforms = [ "ecs-debian-x32", "ecs-debian-x64" ]
-    bsd_platforms = [ "freebsd" ]
-    bsd_compilers = [ "gcc48" ]
-    windows_platforms = ['windows']
-    windows_compilers = ['cc']
-    all_compilers = ['gcc', 'clang']
-    gcc_compilers = ['gcc']
-    asan_compilers = ['clang']
+/* main job */
+node {
+    def linux_platforms = [ "ecs-debian-x32", "ecs-debian-x64" ]
+    def bsd_platforms = [ "freebsd" ]
+    def bsd_compilers = [ "gcc48" ]
+    def windows_platforms = ['windows']
+    def windows_compilers = ['cc']
+    def all_compilers = ['gcc', 'clang']
+    def gcc_compilers = ['gcc']
+    def asan_compilers = ['clang']
+
+    checkout([$class: 'GitSCM', branches: [[name: 'refs/heads/jenkinsfile']],
+            doGenerateSubmoduleConfigurations: false,
+            extensions: [[$class: 'CloneOption', honorRefspec: true,
+            noTags: true, reference: '', shallow: true]],
+            submoduleCfg: [],
+            userRemoteConfigs: [[credentialsId: "${env.GIT_CREDENTIALS_ID}",
+            url: "${env.MBEDTLS_REPO}"]]])
+    stash 'src'
 
     /* Linux jobs */
     def jobs = gen_jobs_foreach( 'std-make', linux_platforms, all_compilers, std_make_test_sh )
@@ -143,7 +153,4 @@ def dispatch_job(){
 
     parallel jobs
 }
-
-/* Required for load statement in Jenkinsfile */
-return this
 

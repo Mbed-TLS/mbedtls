@@ -111,13 +111,21 @@ node {
     def gcc_compilers = ['gcc']
     def asan_compilers = ['clang']
 
-    checkout([$class: 'GitSCM', branches: [[name: 'refs/heads/jenkinsfile']],
-            doGenerateSubmoduleConfigurations: false,
-            extensions: [[$class: 'CloneOption', honorRefspec: true,
-            noTags: true, reference: '', shallow: true]],
-            submoduleCfg: [],
-            userRemoteConfigs: [[credentialsId: "${env.GIT_CREDENTIALS_ID}",
-            url: "${env.MBEDTLS_REPO}"]]])
+    /* Filter: only PR from mazimkhan:jenkinsfile allowed */
+    if ( "${env.GITHUB_PR_SOURCE_BRANCH}" != "jenkinsfile" ) {
+        echo "Until jenkinsfle is merged in all branched this job only allows testing PR from jenkinsfile branch."
+        return
+    }
+
+    checkout changelog: false, poll: false, scm: [$class: 'GitSCM',
+        branches: [[name: "origin-pull/pull/${GITHUB_PR_NUMBER}/merge"]],
+        doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'CloneOption',
+        noTags: false, shallow: false]],
+        extensions: [[$class: 'CheckoutOption', timeout: 20]], submoduleCfg: [],
+        userRemoteConfigs: [[credentialsId: "${env.GIT_CREDENTIALS_ID}",
+        refspec: "+refs/pull/${GITHUB_PR_NUMBER}/merge:refs/remotes/origin-pull/pull/${GITHUB_PR_NUMBER}/merge",
+        url: "${env.MBEDTLS_REPO}"]]]
+
     stash 'src'
 
     /* Linux jobs */

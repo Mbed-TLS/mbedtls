@@ -107,9 +107,11 @@ def gen_batch_jobs_foreach ( label, platforms, compilers, script ){
         for ( compiler in compilers ){
             jobs["${label}-${compiler}-${platform}"] = {
                 node( platform ){
-                    def compiler_path = compiler_paths[compiler]
-                    unstash 'src'
-                    bat script
+                    timestamps {
+                        def compiler_path = compiler_paths[compiler]
+                        unstash 'src'
+                        bat script
+                    }
                 }
             }
         }

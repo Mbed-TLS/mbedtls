@@ -27,6 +27,31 @@ cmake_full_test_sh = cmake_test_sh + """
 ./tests/scripts/test-ref-configs.pl
 """
 
+cmake_test_sh = """
+cmake -D CMAKE_BUILD_TYPE:String=Check .
+make clean
+make
+make test
+./programs/test/selftest
+"""
+
+cmake_full_test_sh = cmake_test_sh + """
+./tests/compat.sh
+./tests/ssl-opt.sh
+./tests/scripts/test-ref-configs.pl
+"""
+
+cmake_asan_test_sh = """
+cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make clean
+make
+make test
+./programs/test/selftest
+./tests/compat.sh
+./tests/ssl-opt.sh
+./tests/scripts/test-ref-configs.pl
+"""
+
 mingw_cmake_test_bat = """
 cmake . -G MinGW Makefiles
 mingw32-make clean
@@ -58,6 +83,7 @@ def gen_jobs_foreach ( label, platforms, compilers, script ){
     for ( platform in platforms ){
         for ( compiler in compilers ){
             jobs["${label}-${compiler}-${platform}"] = {
+                //label = "${platform} && mbedtls"
                 node( platform ){
                     def compiler_path = compiler_paths[compiler]
                     script =  """
@@ -89,26 +115,31 @@ def gen_batch_jobs_foreach ( label, platforms, compilers, script ){
 
 /* Jenkinsfile interface to this script. */
 def dispatch_job(){
-    linux_platforms = [ "debian-wheezy-i386", "debian-wheezy-amd64" ]
-    bsd_platforms = [ "freebsd-9-i386" ]
+    linux_platforms = [ "ecs-debian-x32", "ecs-debian-x64" ]
+    bsd_platforms = [ "freebsd" ]
     bsd_compilers = [ "gcc48" ]
     windows_platforms = ['windows']
     windows_compilers = ['cc']
     all_compilers = ['gcc', 'clang']
+    gcc_compilers = ['gcc']
+    asan_compilers = ['clang']
 
     /* Linux jobs */
     def jobs = gen_jobs_foreach( 'std-make', linux_platforms, all_compilers, std_make_test_sh )
     jobs = jobs + gen_jobs_foreach( 'cmake', linux_platforms, all_compilers, cmake_test_sh )
-    jobs = jobs + gen_jobs_foreach( 'cmake-full', linux_platforms, all_compilers, cmake_full_test_sh )
+    jobs = jobs + gen_jobs_foreach( 'cmake-full', linux_platforms, gcc_compilers, cmake_full_test_sh )
+    jobs = jobs + gen_jobs_foreach( 'cmake-asan', linux_platforms, asan_compilers, cmake_asan_test_sh )
 
     /* BSD jobs */
     jobs = jobs + gen_jobs_foreach( 'gmake', bsd_platforms, bsd_compilers, gmake_test_sh )
     jobs = jobs + gen_jobs_foreach( 'cmake', bsd_platforms, bsd_compilers, cmake_test_sh )
 
     /* Windows jobs */
+    /* Uncomment once windows slaves are added.
     jobs = jobs + gen_batch_jobs_foreach( 'win32-mingw', windows_platforms, windows_compilers, mingw_cmake_test_bat )
     jobs = jobs + gen_batch_jobs_foreach( 'win32_msvc12_32', windows_platforms, windows_compilers, win32_msvc12_32_test_bat )
     jobs = jobs + gen_batch_jobs_foreach( 'win32_msvc12_64', windows_platforms, windows_compilers, win32_msvc12_64_test_bat )
+    */
 
     parallel jobs
 }

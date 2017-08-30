@@ -36,7 +36,10 @@ make test
 """
 
 cmake_full_test_sh = cmake_test_sh + """
+openssl version
+gnutls-serv -v
 ./tests/compat.sh
+find . -name c-srv-1.log|xargs cat 
 ./tests/ssl-opt.sh
 ./tests/scripts/test-ref-configs.pl
 """

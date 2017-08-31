@@ -16,6 +16,10 @@ def get_all_sh_job(){
         node('ecs-debian-i386') {
             deleteDir()
             unstash 'src'
+            sh """
+ls -ltr
+ls -ltr tests/scripts/
+"""
             sh "./tests/scripts/all.sh"
         }
     }
@@ -30,6 +34,8 @@ def find_examples (){
             for (File subfile: subfiles){
                 if (subfile.getName().equals("mbed-os.lib")) {
                     examples << file.getName()
+                    echo "found example"
+                    echo file.getName()
                 }
             }
         }

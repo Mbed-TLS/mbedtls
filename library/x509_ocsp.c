@@ -175,11 +175,13 @@ static int x509_ocsp_get_response_type( unsigned char **p,
     resp_type->len = len;
     resp_type->p = *p;
 
-    if( MBEDTLS_OID_CMP( MBEDTLS_OID_OCSP, resp_type ) != 0 &&
-        MBEDTLS_OID_CMP( MBEDTLS_OID_OCSP_BASIC, resp_type ) != 0 )
-    {
+    /*
+     * At this stage we only support id-pkix-ocsp-basic. This defines the
+     * ASN.1 syntax of the remaining OCSP response so return a failure if the
+     * response type is not OCSP Basic.
+     */
+    if( MBEDTLS_OID_CMP( MBEDTLS_OID_OCSP_BASIC, resp_type ) != 0 )
         return( MBEDTLS_ERR_X509_INVALID_RESPONSE_TYPE );
-    }
 
     *p = *p + len;
 

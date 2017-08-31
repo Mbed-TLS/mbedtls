@@ -102,7 +102,7 @@ def gen_batch_jobs_foreach ( label, platforms, compilers, script ){
 
 /* main job */
 node {
-    def linux_platforms = [ "ecs-debian-x32", "ecs-debian-x64" ]
+    def linux_platforms = [ "ecs-debian-i386", "ecs-debian-x64" ]
     def bsd_platforms = [ "freebsd" ]
     def bsd_compilers = [ "gcc48" ]
     def windows_platforms = ['windows']

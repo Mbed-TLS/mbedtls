@@ -3,7 +3,7 @@ import groovy.io.FileType
 /* Create code coverage job */
 def get_code_coverage_job(){
     return {
-        node('ecs-debian-x32') {
+        node('ecs-debian-i386') {
             deleteDir()
             unstash 'src'
             sh "./tests/scripts/basic-build-test.sh"
@@ -13,7 +13,7 @@ def get_code_coverage_job(){
 
 def get_all_sh_job(){
     return {
-        node('ecs-debian-x32') {
+        node('ecs-debian-i386') {
             deleteDir()
             unstash 'src'
             sh "./tests/scripts/all.sh"

@@ -3,7 +3,7 @@ import groovy.io.FileType
 /* Create code coverage job */
 def get_code_coverage_job(){
     return {
-        node('linux') {
+        node('ecs-debian-x32') {
             deleteDir()
             unstash 'src'
             sh "./tests/scripts/basic-build-test.sh"
@@ -13,7 +13,7 @@ def get_code_coverage_job(){
 
 def get_all_sh_job(){
     return {
-        node('linux') {
+        node('ecs-debian-x32') {
             deleteDir()
             unstash 'src'
             sh "./tests/scripts/all.sh"
@@ -25,14 +25,10 @@ def find_examples (){
     examples = []
     File[] files = new File(pwd()).listFiles();
     for (File file: files){
-        echo file.getName()
         if (file.isDirectory()) {
-            echo 'Is dir'
             File[] subfiles = file.listFiles();
             for (File subfile: subfiles){
-                echo subfile.getName()
                 if (subfile.getName().equals("mbed-os.lib")) {
-                    echo file.getName()
                     examples << file.getName()
                 }
             }
@@ -51,7 +47,6 @@ def checkout_mbed_os_examples(){
         /* checkout mbed-os */
         echo examples.join(", ")
         def oneexample = examples[0]
-        echo oneexample
         if ( oneexample != null ) {
             dir( oneexample ){
                 dir('mbed-os'){
@@ -63,7 +58,6 @@ git reset --hard $sha
                     /* Deploy mbedtls src into mbed-os */
                     dir('features/mbedtls/importer') {
                         dir('TARGET_IGNORE/mbedtls'){
-                            echo pwd()
                             unstash('src')
                             sh 'ls -ltr'
                         }
@@ -102,15 +96,24 @@ mbedhtrun -m ${platform} -g raas_client:54.194.213.112:8000 -P 600 -v --compare-
    }
 }
 
-//compilers = ['ARM', 'GCC_ARM', 'IAR']
-compilers = ['GCC_ARM']
+compilers = ['ARM', 'GCC_ARM', 'IAR']
 platforms = ['K64F']
 
-/* Jenkinsfile interface to this script. */
-def dispatch_job() {
+/* main job */
+node {
+    checkout([$class: 'GitSCM', branches: [[name: 'refs/heads/jenkinsfile']],
+            doGenerateSubmoduleConfigurations: false,
+            extensions: [[$class: 'CloneOption', honorRefspec: true,
+            noTags: true, reference: '', shallow: true]],
+            submoduleCfg: [],
+            userRemoteConfigs: [[credentialsId: "${env.GIT_CREDENTIALS_ID}",
+            url: "${env.MBEDTLS_REPO}"]]])
+    stash 'src'
+
     /* Checkout mbed-os-example-tls */
     parallel_jobs = [:]
-    //parallel_jobs['code_coverage'] = get_code_coverage_job();
+    parallel_jobs['code_coverage'] = get_code_coverage_job();
+    parallel_jobs['all_sh'] = get_all_sh_job();
     examples = checkout_mbed_os_examples()
     for( example in examples ) {
         for( compiler in compilers ) {
@@ -122,7 +125,4 @@ def dispatch_job() {
     }
     parallel parallel_jobs
 }
-
-/* Required for load statement in Jenkinsfile */
-return this
 

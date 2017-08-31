@@ -118,9 +118,10 @@ node {
 
     /* Checkout mbed-os-example-tls */
     parallel_jobs = [:]
-    parallel_jobs['code_coverage'] = get_code_coverage_job();
+    //parallel_jobs['code_coverage'] = get_code_coverage_job();
     parallel_jobs['all_sh'] = get_all_sh_job();
     examples = checkout_mbed_os_examples()
+    /*
     for( example in examples ) {
         for( compiler in compilers ) {
             for( platform in platforms ) {
@@ -129,6 +130,7 @@ node {
             }
         }
     }
+    */
     parallel parallel_jobs
 }
 

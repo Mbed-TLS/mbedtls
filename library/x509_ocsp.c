@@ -1101,9 +1101,22 @@ int mbedtls_x509_ocsp_parse_response( mbedtls_x509_ocsp_response *resp,
         return( ret );
     }
 
-    /* ResponseBytes is optional, skip if not found */
-    if( p == end )
-        return( 0 );
+    /*
+     * Check if responseBytes should be present in the response
+     *
+     * The responseBytes will only be present when the responseStatus is
+     * success, in all other cases the responseBytes is not set. Refer to:
+     * RFC 6960 Sections 4.4.1, 2.2 and 2.3
+     */
+    if( resp->resp_status != MBEDTLS_X509_OCSP_RESPONSE_STATUS_SUCCESSFUL )
+    {
+        if( p == end )
+            return( 0 );
+        else
+            return( MBEDTLS_ERR_X509_INVALID_FORMAT );
+    }
+    else if( p == end )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT );
 
     /* Get the [0] EXPLICIT tag for the optional ResponseBytes */
     if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,

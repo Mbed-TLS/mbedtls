@@ -76,10 +76,10 @@
 #define MBEDTLS_ERR_X509_ALLOC_FAILED                     -0x2880  /**< Allocation of memory failed. */
 #define MBEDTLS_ERR_X509_FILE_IO_ERROR                    -0x2900  /**< Read/write of file failed. */
 #define MBEDTLS_ERR_X509_BUFFER_TOO_SMALL                 -0x2980  /**< Destination buffer is too small. */
-#define MBEDTLS_ERR_X509_INVALID_RESPONSE_STATUS          -0x2A00 /**< The OCSP response status is invalid */
-#define MBEDTLS_ERR_X509_INVALID_RESPONSE_TYPE            -0x2A10 /**< The OCSP response type is invalid */
-#define MBEDTLS_ERR_X509_INVALID_CERT_STATUS              -0x2A20 /**< A SingleResponse in the OCSP response specifies an invalid certificate status value */
-#define MBEDTLS_ERR_X509_INVALID_CRL_REASON               -0x2B00 /**< The CRLReason value is invalid */
+#define MBEDTLS_ERR_X509_INVALID_RESPONSE_STATUS          -0x2A00  /**< The OCSP response status is invalid */
+#define MBEDTLS_ERR_X509_INVALID_RESPONSE_TYPE            -0x2A10  /**< The OCSP response type is invalid */
+#define MBEDTLS_ERR_X509_INVALID_CERT_STATUS              -0x2A20  /**< A SingleResponse in the OCSP response specifies an invalid certificate status value */
+#define MBEDTLS_ERR_X509_INVALID_CRL_REASON               -0x2B00  /**< The CRLReason value is invalid */
 #define MBEDTLS_ERR_X509_FATAL_ERROR                      -0x3000  /**< A fatal error occured, eg the chain is too long or the vrfy callback failed. */
 /* \} name */
 

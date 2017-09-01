@@ -224,6 +224,38 @@ static int x509_ocsp_get_response_version( unsigned char **p,
     return( 0 );
 }
 
+static int x509_ocsp_get_md( unsigned char **p, const unsigned char *end,
+                             mbedtls_md_type_t md_alg, mbedtls_x509_buf *buf )
+{
+    int ret;
+    size_t len;
+    const mbedtls_md_info_t *md_info;
+    size_t md_len;
+
+    if( ( md_info = mbedtls_md_info_from_type( md_alg ) ) == NULL )
+        return( MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE );
+
+    md_len = mbedtls_md_get_size( md_info );
+
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                                      MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+    }
+
+    buf->len = len;
+    buf->tag = MBEDTLS_ASN1_OCTET_STRING;
+    buf->p = *p;
+
+    /* Check that the length matches the expected length of the md algorithm */
+    if( len != md_len )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT );
+
+    *p = *p + len;
+
+    return( 0 );
+}
+
 static int x509_ocsp_get_responder_id( unsigned char **p,
                                        const unsigned char *end,
                                 mbedtls_x509_ocsp_responder_id *responder_id )
@@ -277,18 +309,15 @@ static int x509_ocsp_get_responder_id( unsigned char **p,
     {
         responder_id->type = MBEDTLS_X509_OCSP_RESPONDER_ID_TYPE_KEY_HASH;
 
-        /* KeyHash ::= OCTET STRING */
-        if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
-                                          MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
+        /*
+         * KeyHash ::= OCTET STRING -- SHA-1 hash of responder's public key
+         * (excluding the tag and length fields)
+         */
+        if( ( ret = x509_ocsp_get_md( p, end, MBEDTLS_MD_SHA1,
+                                            &responder_id->id.key ) ) != 0 )
         {
-           return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+            return( ret );
         }
-
-        responder_id->id.key.len = len;
-        responder_id->id.key.p = *p;
-        responder_id->id.key.tag = MBEDTLS_ASN1_OCTET_STRING;
-
-        *p = *p + len;
     }
     else
         return( MBEDTLS_ERR_X509_INVALID_FORMAT +
@@ -330,28 +359,6 @@ static int x509_ocsp_get_generalized_time( unsigned char **p,
     return( 0 );
 }
 
-static int x509_ocsp_get_octet_string( unsigned char **p,
-                                       const unsigned char *end,
-                                       mbedtls_x509_buf *buf )
-{
-    int ret;
-    size_t len;
-
-    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
-                                      MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
-    {
-        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
-    }
-
-    buf->len = len;
-    buf->tag = MBEDTLS_ASN1_OCTET_STRING;
-    buf->p = *p;
-
-    *p = *p + len;
-
-    return( 0 );
-}
-
 static int x509_ocsp_get_cert_id( unsigned char **p,
                                   const unsigned char *end,
                             mbedtls_x509_ocsp_single_response *single_resp )
@@ -387,17 +394,17 @@ static int x509_ocsp_get_cert_id( unsigned char **p,
     }
 
     /* Parse issuerNameHash */
-    if( ( ret = x509_ocsp_get_octet_string( p, end,
+    if( ( ret = x509_ocsp_get_md( p, end, single_resp->md_alg,
                                     &single_resp->issuer_name_hash ) ) != 0 )
     {
-        return( 0 );
+        return( ret );
     }
 
     /* Parse issuerKeyHash */
-    if( ( ret = x509_ocsp_get_octet_string( p, end,
+    if( ( ret = x509_ocsp_get_md( p, end, single_resp->md_alg,
                                     &single_resp->issues_key_hash ) ) != 0 )
     {
-        return( 0 );
+        return( ret );
     }
 
     /* Parse serialNumber */

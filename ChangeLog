@@ -1,5 +1,10 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Bugfix
+   * Add a test for build configurations without MBEDTLS_ECDSA_C. #1040
+
 = mbed TLS 2.6.0 branch released 2017-08-10
 
 Security

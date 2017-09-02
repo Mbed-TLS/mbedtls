@@ -353,6 +353,10 @@ cleanup
 cmake -D CMAKE_BUILD_TYPE:String=Check .
 tests/scripts/key-exchanges.pl
 
+msg "test/build: no-ecdsa (gcc)" # ~ 30s
+cleanup
+tests/scripts/no-ecdsa.pl
+
 msg "build: Unix make, -Os (gcc)" # ~ 30s
 cleanup
 CC=gcc CFLAGS='-Werror -Wall -Wextra -Os' make

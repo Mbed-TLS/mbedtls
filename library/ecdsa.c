@@ -37,7 +37,6 @@
 #include "mbedtls/asn1write.h"
 
 #include <string.h>
-#include "mbedtls/platform.h"
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
 #include "mbedtls/hmac_drbg.h"
 #endif

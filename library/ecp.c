@@ -1984,7 +1984,7 @@ int mbedtls_ecp_check_privkey( const mbedtls_ecp_group *grp, const mbedtls_mpi *
 
     return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 }
-
+#if ! defined ( MBEDTLS_ECC_ALT )
 /*
  * Generate a keypair with configurable base point
  */
@@ -2067,6 +2067,8 @@ cleanup:
     return( mbedtls_ecp_mul( grp, Q, d, G, f_rng, p_rng ) );
 }
 
+#endif /*! defined ( MBEDTLS_ECC_ALT )*/
+
 /*
  * Generate key pair, wrapper for conventional base point
  */
@@ -2075,7 +2077,11 @@ int mbedtls_ecp_gen_keypair( mbedtls_ecp_group *grp,
                              int (*f_rng)(void *, unsigned char *, size_t),
                              void *p_rng )
 {
-    return( mbedtls_ecp_gen_keypair_base( grp, &grp->G, d, Q, f_rng, p_rng ) );
+    if ( grp == NULL )
+    {
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+    return (mbedtls_ecp_gen_keypair_base(grp, &grp->G, d, Q, f_rng, p_rng));
 }
 
 /*
@@ -2085,6 +2091,11 @@ int mbedtls_ecp_gen_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret;
+
+    if ( key == NULL )
+    {
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
 
     if( ( ret = mbedtls_ecp_group_load( &key->grp, grp_id ) ) != 0 )
         return( ret );

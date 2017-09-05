@@ -859,7 +859,7 @@ static int pk_parse_key_pkcs8_unencrypted_der(
     const mbedtls_pk_info_t *pk_info;
 
     /*
-     * This function parses the PrivatKeyInfo object (PKCS#8 v1.2 = RFC 5208)
+     * This function parses the PrivateKeyInfo object (PKCS#8 v1.2 = RFC 5208)
      *
      *    PrivateKeyInfo ::= SEQUENCE {
      *      version                   Version,

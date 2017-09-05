@@ -158,123 +158,147 @@ Parse RSA Key #28.2 (PKCS#8 encrypted SHA1-2DES, 4096-bit, no PW)
 depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PKCS12_C
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_2des_4096.key":"":MBEDTLS_ERR_PK_PASSWORD_REQUIRED
 
-Parse RSA Key #29 (PKCS#8 encrypted SHA1-RC4-128)
+Parse RSA Key #29 (PKCS#8 encrypted SHA1-2DES DER)
+depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PKCS12_C:MBEDTLS_CIPHER_MODE_CBC
+pk_parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_2des.der":"PolarSSLTest":0
+
+Parse RSA Key #30 (PKCS#8 encrypted SHA1-2DES DER, 2048-bit)
+depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PKCS12_C:MBEDTLS_CIPHER_MODE_CBC
+pk_parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_2des_2048.der":"PolarSSLTest":0
+
+Parse RSA Key #31 (PKCS#8 encrypted SHA1-2DES DER, 4096-bit)
+depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PKCS12_C:MBEDTLS_CIPHER_MODE_CBC
+pk_parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_2des_4096.der":"PolarSSLTest":0
+
+Parse RSA Key #32 (PKCS#8 encrypted SHA1-RC4-128)
 depends_on:MBEDTLS_ARC4_C:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PKCS12_C
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_rc4_128.key":"PolarSSLTest":0
 
-Parse RSA Key #29.1 (PKCS#8 encrypted SHA1-RC4-128, wrong PW)
+Parse RSA Key #32.1 (PKCS#8 encrypted SHA1-RC4-128, wrong PW)
 depends_on:MBEDTLS_ARC4_C:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PKCS12_C
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_rc4_128.key":"PolarSSLTe":MBEDTLS_ERR_PK_PASSWORD_MISMATCH
 
-Parse RSA Key #29.2 (PKCS#8 encrypted SHA1-RC4-128, no PW)
+Parse RSA Key #32.2 (PKCS#8 encrypted SHA1-RC4-128, no PW)
 depends_on:MBEDTLS_ARC4_C:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PKCS12_C
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_rc4_128.key":"":MBEDTLS_ERR_PK_PASSWORD_REQUIRED
 
-Parse RSA Key #30 (PKCS#8 encrypted SHA1-RC4-128, 2048-bit)
+Parse RSA Key #33 (PKCS#8 encrypted SHA1-RC4-128, 2048-bit)
 depends_on:MBEDTLS_ARC4_C:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PKCS12_C
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_rc4_128_2048.key":"PolarSSLTest":0
 
-Parse RSA Key #30.1 (PKCS#8 encrypted SHA1-RC4-128, 2048-bit, wrong PW)
+Parse RSA Key #33.1 (PKCS#8 encrypted SHA1-RC4-128, 2048-bit, wrong PW)
 depends_on:MBEDTLS_ARC4_C:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PKCS12_C
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_rc4_128_2048.key":"PolarSSLTe":MBEDTLS_ERR_PK_PASSWORD_MISMATCH
 
-Parse RSA Key #30.2 (PKCS#8 encrypted SHA1-RC4-128, 2048-bit, no PW)
+Parse RSA Key #33.2 (PKCS#8 encrypted SHA1-RC4-128, 2048-bit, no PW)
 depends_on:MBEDTLS_ARC4_C:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PKCS12_C
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_rc4_128_2048.key":"":MBEDTLS_ERR_PK_PASSWORD_REQUIRED
 
-Parse RSA Key #31 (PKCS#8 encrypted SHA1-RC4-128, 4096-bit)
+Parse RSA Key #34 (PKCS#8 encrypted SHA1-RC4-128, 4096-bit)
 depends_on:MBEDTLS_ARC4_C:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PKCS12_C
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_rc4_128_4096.key":"PolarSSLTest":0
 
-Parse RSA Key #31.1 (PKCS#8 encrypted SHA1-RC4-128, 4096-bit, wrong PW)
+Parse RSA Key #34.1 (PKCS#8 encrypted SHA1-RC4-128, 4096-bit, wrong PW)
 depends_on:MBEDTLS_ARC4_C:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PKCS12_C
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_rc4_128_4096.key":"PolarSSLTe":MBEDTLS_ERR_PK_PASSWORD_MISMATCH
 
-Parse RSA Key #31.2 (PKCS#8 encrypted SHA1-RC4-128, 4096-bit, no PW)
+Parse RSA Key #34.2 (PKCS#8 encrypted SHA1-RC4-128, 4096-bit, no PW)
 depends_on:MBEDTLS_ARC4_C:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PKCS12_C
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_rc4_128_4096.key":"":MBEDTLS_ERR_PK_PASSWORD_REQUIRED
 
-Parse RSA Key #32 (PKCS#8 encrypted v2 PBDFK2 3DES)
+Parse RSA Key #35 (PKCS#8 encrypted SHA1-RC4-128 DER)
+depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PKCS12_C:MBEDTLS_CIPHER_MODE_CBC
+pk_parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_rc4_128.der":"PolarSSLTest":0
+
+Parse RSA Key #36 (PKCS#8 encrypted SHA1-RC4-128 DER, 2048-bit)
+depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PKCS12_C:MBEDTLS_CIPHER_MODE_CBC
+pk_parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_rc4_128_2048.der":"PolarSSLTest":0
+
+Parse RSA Key #37 (PKCS#8 encrypted SHA1-RC4-128 DER, 4096-bit)
+depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PKCS12_C:MBEDTLS_CIPHER_MODE_CBC
+pk_parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_rc4_128_4096.der":"PolarSSLTest":0
+
+Parse RSA Key #38 (PKCS#8 encrypted v2 PBDFK2 3DES)
 depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PKCS5_C:MBEDTLS_CIPHER_MODE_CBC
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des.key":"PolarSSLTest":0
 
-Parse RSA Key #32.1 (PKCS#8 encrypted v2 PBDFK2 3DES, wrong PW)
+Parse RSA Key #38.1 (PKCS#8 encrypted v2 PBDFK2 3DES, wrong PW)
 depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PKCS5_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des.key":"PolarSSLTes":MBEDTLS_ERR_PK_PASSWORD_MISMATCH
 
-Parse RSA Key #32.2 (PKCS#8 encrypted v2 PBDFK2 3DES, no PW)
+Parse RSA Key #38.2 (PKCS#8 encrypted v2 PBDFK2 3DES, no PW)
 depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PKCS5_C
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des.key":"":MBEDTLS_ERR_PK_PASSWORD_REQUIRED
 
-Parse RSA Key #33 (PKCS#8 encrypted v2 PBDFK2 3DES, 2048-bit)
+Parse RSA Key #39 (PKCS#8 encrypted v2 PBDFK2 3DES, 2048-bit)
 depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PKCS5_C:MBEDTLS_CIPHER_MODE_CBC
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des_2048.key":"PolarSSLTest":0
 
-Parse RSA Key #33.1 (PKCS#8 encrypted v2 PBDFK2 3DES, 2048-bit, wrong PW)
+Parse RSA Key #39.1 (PKCS#8 encrypted v2 PBDFK2 3DES, 2048-bit, wrong PW)
 depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PKCS5_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des_2048.key":"PolarSSLTes":MBEDTLS_ERR_PK_PASSWORD_MISMATCH
 
-Parse RSA Key #33.2 (PKCS#8 encrypted v2 PBDFK2 3DES, 2048-bit, no PW)
+Parse RSA Key #39.2 (PKCS#8 encrypted v2 PBDFK2 3DES, 2048-bit, no PW)
 depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PKCS5_C
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des_2048.key":"":MBEDTLS_ERR_PK_PASSWORD_REQUIRED
 
-Parse RSA Key #34 (PKCS#8 encrypted v2 PBDFK2 3DES, 4096-bit)
+Parse RSA Key #40 (PKCS#8 encrypted v2 PBDFK2 3DES, 4096-bit)
 depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PKCS5_C:MBEDTLS_CIPHER_MODE_CBC
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des_4096.key":"PolarSSLTest":0
 
-Parse RSA Key #34.1 (PKCS#8 encrypted v2 PBDFK2 3DES, 4096-bit, wrong PW)
+Parse RSA Key #40.1 (PKCS#8 encrypted v2 PBDFK2 3DES, 4096-bit, wrong PW)
 depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PKCS5_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des_4096.key":"PolarSSLTes":MBEDTLS_ERR_PK_PASSWORD_MISMATCH
 
-Parse RSA Key #34.2 (PKCS#8 encrypted v2 PBDFK2 3DES, 4096-bit, no PW)
+Parse RSA Key #40.2 (PKCS#8 encrypted v2 PBDFK2 3DES, 4096-bit, no PW)
 depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PKCS5_C
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des_4096.key":"":MBEDTLS_ERR_PK_PASSWORD_REQUIRED
 
-Parse RSA Key #35 (PKCS#8 encrypted v2 PBDFK2 3DES DER)
+Parse RSA Key #41 (PKCS#8 encrypted v2 PBDFK2 3DES DER)
 depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PKCS5_C:MBEDTLS_CIPHER_MODE_CBC
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des.der":"PolarSSLTest":0
 
-Parse RSA Key #35.1 (PKCS#8 encrypted v2 PBDFK2 3DES DER, wrong PW)
+Parse RSA Key #41.1 (PKCS#8 encrypted v2 PBDFK2 3DES DER, wrong PW)
 depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PKCS5_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des.der":"PolarSSLTes":MBEDTLS_ERR_PK_PASSWORD_MISMATCH
 
-Parse RSA Key #35.2 (PKCS#8 encrypted v2 PBDFK2 3DES DER, no PW)
+Parse RSA Key #41.2 (PKCS#8 encrypted v2 PBDFK2 3DES DER, no PW)
 depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PKCS5_C
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des.der":"":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
 
-Parse RSA Key #36 (PKCS#8 encrypted v2 PBDFK2 3DES DER, 2048-bit)
+Parse RSA Key #42 (PKCS#8 encrypted v2 PBDFK2 3DES DER, 2048-bit)
 depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PKCS5_C:MBEDTLS_CIPHER_MODE_CBC
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des_2048.der":"PolarSSLTest":0
 
-Parse RSA Key #36.1 (PKCS#8 encrypted v2 PBDFK2 3DES DER, 2048-bit, wrong PW)
+Parse RSA Key #42.1 (PKCS#8 encrypted v2 PBDFK2 3DES DER, 2048-bit, wrong PW)
 depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PKCS5_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des_2048.der":"PolarSSLTes":MBEDTLS_ERR_PK_PASSWORD_MISMATCH
 
-Parse RSA Key #36.2 (PKCS#8 encrypted v2 PBDFK2 3DES DER, 2048-bit, no PW)
+Parse RSA Key #42.2 (PKCS#8 encrypted v2 PBDFK2 3DES DER, 2048-bit, no PW)
 depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PKCS5_C
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des_2048.der":"":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
 
-Parse RSA Key #37 (PKCS#8 encrypted v2 PBDFK2 3DES DER, 4096-bit)
+Parse RSA Key #43 (PKCS#8 encrypted v2 PBDFK2 3DES DER, 4096-bit)
 depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PKCS5_C:MBEDTLS_CIPHER_MODE_CBC
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des_4096.der":"PolarSSLTest":0
 
-Parse RSA Key #37.1 (PKCS#8 encrypted v2 PBDFK2 3DES DER, 4096-bit, wrong PW)
+Parse RSA Key #43.1 (PKCS#8 encrypted v2 PBDFK2 3DES DER, 4096-bit, wrong PW)
 depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PKCS5_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des_4096.der":"PolarSSLTes":MBEDTLS_ERR_PK_PASSWORD_MISMATCH
 
-Parse RSA Key #37.2 (PKCS#8 encrypted v2 PBDFK2 3DES DER, 4096-bit, no PW)
+Parse RSA Key #43.2 (PKCS#8 encrypted v2 PBDFK2 3DES DER, 4096-bit, no PW)
 depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PKCS5_C
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des_4096.der":"":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
 
-Parse RSA Key #38 (PKCS#8 encrypted v2 PBDFK2 DES)
+Parse RSA Key #44 (PKCS#8 encrypted v2 PBDFK2 DES)
 depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PKCS5_C:MBEDTLS_CIPHER_MODE_CBC
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_des.key":"PolarSSLTest":0
 
-Parse RSA Key #39 (PKCS#8 encrypted v2 PBDFK2 DES, 2048-bit)
+Parse RSA Key #45 (PKCS#8 encrypted v2 PBDFK2 DES, 2048-bit)
 depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PKCS5_C:MBEDTLS_CIPHER_MODE_CBC
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_des_2048.key":"PolarSSLTest":0
 
-Parse RSA Key #40 (PKCS#8 encrypted v2 PBDFK2 DES, 4096-bit)
+Parse RSA Key #46 (PKCS#8 encrypted v2 PBDFK2 DES, 4096-bit)
 depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PKCS5_C:MBEDTLS_CIPHER_MODE_CBC
 pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_des_4096.key":"PolarSSLTest":0
 

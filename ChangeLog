@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Security
+   * Set PEM buffer to zero before freeing it, to avoid decoded private keys
+     being leaked to memory after release.
+
 = mbed TLS 2.6.0 branch released 2017-08-10
 
 Security

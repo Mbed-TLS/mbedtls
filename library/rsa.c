@@ -71,6 +71,20 @@ static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = (unsigned char*)v; while( n-- ) *p++ = 0;
 }
 
+/* constant-time buffer comparison */
+static inline int mbedtls_safer_memcmp( const void *a, const void *b, size_t n )
+{
+    size_t i;
+    const unsigned char *A = (const unsigned char *) a;
+    const unsigned char *B = (const unsigned char *) b;
+    unsigned char diff = 0;
+
+    for( i = 0; i < n; i++ )
+        diff |= A[i] ^ B[i];
+
+    return( diff );
+}
+
 /*
  * Initialize an RSA context
  */
@@ -1162,9 +1176,6 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
     unsigned char *p = sig;
     const char *oid = NULL;
     unsigned char *sig_try = NULL, *verif = NULL;
-    size_t i;
-    unsigned char diff;
-    volatile unsigned char diff_no_optimize;
     int ret;
 
     if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V15 )
@@ -1249,12 +1260,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
     MBEDTLS_MPI_CHK( mbedtls_rsa_private( ctx, f_rng, p_rng, sig, sig_try ) );
     MBEDTLS_MPI_CHK( mbedtls_rsa_public( ctx, sig_try, verif ) );
 
-    /* Compare in constant time just in case */
-    for( diff = 0, i = 0; i < ctx->len; i++ )
-        diff |= verif[i] ^ sig[i];
-    diff_no_optimize = diff;
-
-    if( diff_no_optimize != 0 )
+    if( mbedtls_safer_memcmp( verif, sig, ctx->len ) != 0 )
     {
         ret = MBEDTLS_ERR_RSA_PRIVATE_FAILED;
         goto cleanup;

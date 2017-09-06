@@ -1559,121 +1559,64 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
                                  const unsigned char *hash,
                                  const unsigned char *sig )
 {
-    int ret;
-    size_t len, siglen, asn1_len;
-    unsigned char *p, *p0, *end;
-    mbedtls_md_type_t msg_md_alg;
-    const mbedtls_md_info_t *md_info;
-    mbedtls_asn1_buf oid;
-    unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
+    int ret = 0;
+    const size_t sig_len = ctx->len;
+    unsigned char *encoded = NULL, *encoded_expected = NULL;
 
     if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V15 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
-    siglen = ctx->len;
+    /*
+     * Prepare expected PKCS1 v1.5 encoding of hash.
+     */
 
-    if( siglen < 16 || siglen > sizeof( buf ) )
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    if( ( encoded          = mbedtls_calloc( 1, sig_len ) ) == NULL ||
+        ( encoded_expected = mbedtls_calloc( 1, sig_len ) ) == NULL )
+    {
+        ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+        goto cleanup;
+    }
+
+    if( ( ret = rsa_rsassa_pkcs1_v15_encode( md_alg, hashlen, hash, sig_len,
+                                             encoded_expected ) ) != 0 )
+        goto cleanup;
+
+    /*
+     * Apply RSA primitive to get what should be PKCS1 encoded hash.
+     */
 
     ret = ( mode == MBEDTLS_RSA_PUBLIC )
-          ? mbedtls_rsa_public(  ctx, sig, buf )
-          : mbedtls_rsa_private( ctx, f_rng, p_rng, sig, buf );
-
+          ? mbedtls_rsa_public(  ctx, sig, encoded )
+          : mbedtls_rsa_private( ctx, f_rng, p_rng, sig, encoded );
     if( ret != 0 )
-        return( ret );
-
-    p = buf;
-
-    if( *p++ != 0 || *p++ != MBEDTLS_RSA_SIGN )
-        return( MBEDTLS_ERR_RSA_INVALID_PADDING );
-
-    while( *p != 0 )
-    {
-        if( p >= buf + siglen - 1 || *p != 0xFF )
-            return( MBEDTLS_ERR_RSA_INVALID_PADDING );
-        p++;
-    }
-    p++; /* skip 00 byte */
-
-    /* We've read: 00 01 PS 00 where PS must be at least 8 bytes */
-    if( p - buf < 11 )
-        return( MBEDTLS_ERR_RSA_INVALID_PADDING );
-
-    len = siglen - ( p - buf );
-
-    if( len == hashlen && md_alg == MBEDTLS_MD_NONE )
-    {
-        if( memcmp( p, hash, hashlen ) == 0 )
-            return( 0 );
-        else
-            return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
-    }
-
-    md_info = mbedtls_md_info_from_type( md_alg );
-    if( md_info == NULL )
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
-    hashlen = mbedtls_md_get_size( md_info );
-
-    end = p + len;
+        goto cleanup;
 
     /*
-     * Parse the ASN.1 structure inside the PKCS#1 v1.5 structure.
-     * Insist on 2-byte length tags, to protect against variants of
-     * Bleichenbacher's forgery attack against lax PKCS#1v1.5 verification.
+     * Compare
      */
-    p0 = p;
-    if( ( ret = mbedtls_asn1_get_tag( &p, end, &asn1_len,
-            MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
-        return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
-    if( p != p0 + 2 || asn1_len + 2 != len )
-        return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
 
-    p0 = p;
-    if( ( ret = mbedtls_asn1_get_tag( &p, end, &asn1_len,
-            MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
-        return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
-    if( p != p0 + 2 || asn1_len + 6 + hashlen != len )
-        return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
+    if( ( ret = mbedtls_safer_memcmp( encoded, encoded_expected,
+                                      sig_len ) ) != 0 )
+    {
+        ret = MBEDTLS_ERR_RSA_VERIFY_FAILED;
+        goto cleanup;
+    }
 
-    p0 = p;
-    if( ( ret = mbedtls_asn1_get_tag( &p, end, &oid.len, MBEDTLS_ASN1_OID ) ) != 0 )
-        return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
-    if( p != p0 + 2 )
-        return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
+cleanup:
 
-    oid.p = p;
-    p += oid.len;
+    if( encoded != NULL )
+    {
+        mbedtls_zeroize( encoded, sig_len );
+        mbedtls_free( encoded );
+    }
 
-    if( mbedtls_oid_get_md_alg( &oid, &msg_md_alg ) != 0 )
-        return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
+    if( encoded_expected != NULL )
+    {
+        mbedtls_zeroize( encoded_expected, sig_len );
+        mbedtls_free( encoded_expected );
+    }
 
-    if( md_alg != msg_md_alg )
-        return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
-
-    /*
-     * assume the algorithm parameters must be NULL
-     */
-    p0 = p;
-    if( ( ret = mbedtls_asn1_get_tag( &p, end, &asn1_len, MBEDTLS_ASN1_NULL ) ) != 0 )
-        return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
-    if( p != p0 + 2 )
-        return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
-
-    p0 = p;
-    if( ( ret = mbedtls_asn1_get_tag( &p, end, &asn1_len, MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
-        return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
-    if( p != p0 + 2 || asn1_len != hashlen )
-        return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
-
-    if( memcmp( p, hash, hashlen ) != 0 )
-        return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
-
-    p += hashlen;
-
-    if( p != end )
-        return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
-
-    return( 0 );
+    return( ret );
 }
 #endif /* MBEDTLS_PKCS1_V15 */
 

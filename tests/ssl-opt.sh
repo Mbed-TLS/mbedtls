@@ -357,9 +357,11 @@ detect_dtls() {
 # Options:  -s pattern  pattern that must be present in server output
 #           -c pattern  pattern that must be present in client output
 #           -u pattern  lines after pattern must be unique in client output
+#           -f call shell function on client output
 #           -S pattern  pattern that must be absent in server output
 #           -C pattern  pattern that must be absent in client output
 #           -U pattern  lines after pattern must be unique in server output
+#           -F call shell function on server output
 run_test() {
     NAME="$1"
     shift 1
@@ -543,6 +545,18 @@ run_test() {
             "-u")
                 if [ $(grep -v '^==' $CLI_OUT | grep -v 'Serious error when reading debug info' | grep -A1 "$2" | grep -v "$2" | sort | uniq -d | wc -l) -gt 1 ]; then
                     fail "lines following pattern '$2' must be unique in Client output"
+                    return
+                fi
+                ;;
+            "-F")
+                if ! $2 "$SRV_OUT"; then
+                    fail "function call to '$2' failed on Server output"
+                    return
+                fi
+                ;;
+            "-f")
+                if ! $2 "$CLI_OUT"; then
+                    fail "function call to '$2' failed on Client output"
                     return
                 fi
                 ;;

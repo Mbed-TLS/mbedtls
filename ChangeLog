@@ -86,6 +86,8 @@ Bugfix
    * Correct the documentation for `mbedtls_ssl_get_session()`. This API has
      deep copy of the session, and the peer certificate is not lost. Fixes #926.
    * Fix build using -std=c99. Fixed by Nick Wilson.
+   * Fix a memory leak in ecp_mul_comb() if ecp_precompute_comb() fails.
+     Fix contributed by Espressif Systems.
 
 Changes
    * Fail when receiving a TLS alert message with an invalid length, or invalid

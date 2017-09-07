@@ -949,7 +949,7 @@ static int pk_parse_key_pkcs8_encrypted_der(
     mbedtls_md_type_t md_alg;
 #endif
 
-    p = (unsigned char *) key;
+    p = key;
     end = p + keylen;
 
     if( pwdlen == 0 )

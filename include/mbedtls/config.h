@@ -980,6 +980,11 @@
  * Comment this macro to allow RSA private key operations
  * without blinding.
  *
+ * \deprecated Disabling this option is deprecated and only
+ *             disabled by default for backwards compatibility.
+ *             Future versions of Mbed TLS will remove this
+ *             option and enforce blinding unconditionally.
+ *
  * \warning   Disabling this can be a security risk!
  *            Blinding RSA private key operations is a way
  *            to prevent statistical timing attacks as in
@@ -998,7 +1003,7 @@
  *            private key operations, see the documentation
  *            of \c mbedtls_rsa_private.
  */
-#define MBEDTLS_RSA_FORCE_BLINDING
+//#define MBEDTLS_RSA_FORCE_BLINDING
 
 /**
  * \def MBEDTLS_RSA_NO_CRT

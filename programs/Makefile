@@ -75,7 +75,7 @@ APPS =	aes/aescrypt2$(EXEXT)		aes/crypt_and_hash$(EXEXT)	\
 	x509/cert_req$(EXEXT)		x509/cert_write$(EXEXT)		\
 	x509/req_app$(EXEXT)
 
-ifdef BUILD_SERIALISE_FRONTEND
+ifdef BUILD_SERIALIZE_FRONTEND
 APPS += host/frontend$(EXEXT)
 endif
 

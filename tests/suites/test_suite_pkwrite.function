@@ -16,7 +16,7 @@ void pk_write_pubkey_check( char *key_file )
     unsigned char buf[5000];
     unsigned char check_buf[5000];
     int ret;
-    mbedtls_file_t *f;
+    mbedtls_file_t f;
     size_t ilen;
 
     memset( buf, 0, sizeof( buf ) );
@@ -48,7 +48,7 @@ void pk_write_key_check( char *key_file )
     unsigned char buf[5000];
     unsigned char check_buf[5000];
     int ret;
-    mbedtls_file_t *f;
+    mbedtls_file_t f;
     size_t ilen;
 
     memset( buf, 0, sizeof( buf ) );

@@ -77,9 +77,6 @@
 
 #if defined(MBEDTLS_SERIALIZE_C)
 
-static int serialize_write_fd = -1;
-static int serialize_read_fd = -1;
-
 #if defined(MBEDTLS_SERIALIZE_FORK_FRONTEND_C)
 #include <unistd.h>
 #include <stdlib.h>
@@ -88,6 +85,9 @@ static int serialize_read_fd = -1;
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <signal.h>
+
+static int serialize_write_fd = -1;
+static int serialize_read_fd = -1;
 
 static int host_pid;
 
@@ -110,7 +110,7 @@ static void relay_signal( int signum )
             perror( #expr );                    \
             goto cleanup;                       \
         }                                       \
-    } while( 0 );
+    } while( 0 )
 static int mbedtls_serialize_prepare( void )
 {
     int ret;
@@ -230,8 +230,8 @@ int mbedtls_serialize_push_buffer( const void *buffer, size_t length )
         return( MBEDTLS_ERR_SERIALIZE_BAD_INPUT );
 
     header[0] = MBEDTLS_SERIALIZE_TYPE_PUSH;
-    header[1] = length >> 16 & 0xff;
-    header[2] = length >> 8 & 0xff;
+    header[1] = ( length >> 16 ) & 0xff;
+    header[2] = ( length >> 8 ) & 0xff;
     header[3] = length & 0xff;
 
     if( ( ret = mbedtls_serialize_write( header, sizeof( header ) ) ) != 0 )
@@ -244,7 +244,7 @@ int mbedtls_serialize_push_buffer( const void *buffer, size_t length )
 int mbedtls_serialize_push_int16( uint16_t value )
 {
     uint8_t buffer[2];
-    buffer[0] = value >> 8 & 0xff;
+    buffer[0] = ( value >> 8 ) & 0xff;
     buffer[1] = value & 0xff;
     return( mbedtls_serialize_push_buffer( buffer, sizeof( buffer ) ) );
 }
@@ -252,9 +252,9 @@ int mbedtls_serialize_push_int16( uint16_t value )
 int mbedtls_serialize_push_int32( uint32_t value )
 {
     uint8_t buffer[4];
-    buffer[0] = value >> 24 & 0xff;
-    buffer[1] = value >> 16 & 0xff;
-    buffer[2] = value >> 8 & 0xff;
+    buffer[0] = ( value >> 24 ) & 0xff;
+    buffer[1] = ( value >> 16 ) & 0xff;
+    buffer[2] = ( value >> 8 ) & 0xff;
     buffer[3] = value & 0xff;
     return( mbedtls_serialize_push_buffer( buffer, sizeof( buffer ) ) );
 }
@@ -264,8 +264,8 @@ int mbedtls_serialize_execute( uint32_t command )
     int ret;
     uint8_t buffer[4];
     buffer[0] = MBEDTLS_SERIALIZE_TYPE_EXECUTE;
-    buffer[1] = command >> 16 & 0xff;
-    buffer[2] = command >> 8 & 0xff;
+    buffer[1] = ( command >> 16 ) & 0xff;
+    buffer[2] = ( command >> 8 ) & 0xff;
     buffer[3] = command & 0xff;
     if( ( ret = mbedtls_serialize_write( buffer, sizeof( buffer ) ) ) != 0 )
         return( ret );
@@ -317,7 +317,7 @@ int mbedtls_serialize_pop_int32( uint32_t *value )
         return( ret );
     if( length != sizeof( buffer ) )
         return( MBEDTLS_ERR_SERIALIZE_BAD_OUTPUT );
-    *value = buffer[0] << 24 | buffer[1] << 16 | buffer[2] << 8 | buffer[3];
+    *value = ( buffer[0] << 24 ) | ( buffer[1] << 16 ) | ( buffer[2] << 8 ) | buffer[3];
     return( 0 );
 }
 

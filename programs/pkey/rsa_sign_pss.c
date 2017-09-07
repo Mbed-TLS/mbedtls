@@ -62,7 +62,7 @@ int main( void )
 
 int main( int argc, char *argv[] )
 {
-    mbedtls_file_t *f;
+    mbedtls_file_t f;
     int ret = 1;
     int exit_code = MBEDTLS_EXIT_FAILURE;
     mbedtls_pk_context pk;
@@ -145,7 +145,7 @@ int main( int argc, char *argv[] )
      */
     mbedtls_snprintf( filename, 512, "%s.sig", argv[2] );
 
-    if( ( f = mbedtls_fopen( filename, "wb+" ) ) == NULL )
+    if( ( f = mbedtls_fopen( filename, "wb+" ) ) == MBEDTLS_FILE_INVALID )
     {
         mbedtls_printf( " failed\n  ! Could not create %s\n\n", filename );
         goto exit;

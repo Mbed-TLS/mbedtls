@@ -1185,7 +1185,7 @@ cleanup:
     int entry_offset;
     uint32_t dt;
     char entry_name[MBEDTLS_X509_MAX_FILE_PATH_LEN];
-    mbedtls_dir_t * dir = NULL;
+    mbedtls_dir_t  dir = MBEDTLS_DIR_INVALID;
 
     entry_offset = mbedtls_snprintf( entry_name, sizeof( entry_name ),
             "%s/", path );
@@ -1194,7 +1194,7 @@ cleanup:
 
     dir = mbedtls_opendir( path );
 
-    if( dir == NULL )
+    if( dir == MBEDTLS_DIR_INVALID )
         return( MBEDTLS_ERR_X509_FILE_IO_ERROR );
 
 #if defined(MBEDTLS_THREADING_C)
@@ -1206,7 +1206,7 @@ cleanup:
 #endif /* MBEDTLS_THREADING_C */
 
     while( mbedtls_readdir( dir, entry_name + entry_offset,
-           MBEDTLS_X509_MAX_FILE_PATH_LEN - entry_offset, &dt ) == 0 )
+           sizeof( entry_name ) - entry_offset, &dt ) == 0 )
     {
         if( dt != MBEDTLS_FSIO_DT_REG )
             continue;

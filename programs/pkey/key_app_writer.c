@@ -109,7 +109,7 @@ struct options
 static int write_public_key( mbedtls_pk_context *key, const char *output_file )
 {
     int ret;
-    mbedtls_file_t *f;
+    mbedtls_file_t f;
     unsigned char output_buf[16000];
     unsigned char *c = output_buf;
     size_t len = 0;
@@ -134,7 +134,7 @@ static int write_public_key( mbedtls_pk_context *key, const char *output_file )
         c = output_buf + sizeof(output_buf) - len;
     }
 
-    if( ( f = mbedtls_fopen( output_file, "w" ) ) == NULL )
+    if( ( f = mbedtls_fopen( output_file, "w" ) ) == MBEDTLS_FILE_INVALID )
         return( -1 );
 
     if( mbedtls_fwrite( c, 1, len, f ) != len )
@@ -151,7 +151,7 @@ static int write_public_key( mbedtls_pk_context *key, const char *output_file )
 static int write_private_key( mbedtls_pk_context *key, const char *output_file )
 {
     int ret;
-    mbedtls_file_t *f;
+    mbedtls_file_t f;
     unsigned char output_buf[16000];
     unsigned char *c = output_buf;
     size_t len = 0;
@@ -176,7 +176,7 @@ static int write_private_key( mbedtls_pk_context *key, const char *output_file )
         c = output_buf + sizeof(output_buf) - len - 1;
     }
 
-    if( ( f = mbedtls_fopen( output_file, "w" ) ) == NULL )
+    if( ( f = mbedtls_fopen( output_file, "w" ) ) == MBEDTLS_FILE_INVALID )
         return( -1 );
 
     if( mbedtls_fwrite( c, 1, len, f ) != len )

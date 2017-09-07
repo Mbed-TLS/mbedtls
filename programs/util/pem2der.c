@@ -121,10 +121,10 @@ int convert_pem_to_der( const unsigned char *input, size_t ilen,
  */
 static int load_file( const char *path, unsigned char **buf, size_t *n )
 {
-    mbedtls_file_t *f;
+    mbedtls_file_t f;
     long size;
 
-    if( ( f = mbedtls_fopen( path, "rb" ) ) == NULL )
+    if( ( f = mbedtls_fopen( path, "rb" ) ) == MBEDTLS_FILE_INVALID )
         return( -1 );
 
     mbedtls_fseek( f, 0, MBEDTLS_SEEK_END );
@@ -164,9 +164,9 @@ static int load_file( const char *path, unsigned char **buf, size_t *n )
  */
 static int write_file( const char *path, unsigned char *buf, size_t n )
 {
-    mbedtls_file_t *f;
+    mbedtls_file_t f;
 
-    if( ( f = mbedtls_fopen( path, "wb" ) ) == NULL )
+    if( ( f = mbedtls_fopen( path, "wb" ) ) == MBEDTLS_FILE_INVALID )
         return( -1 );
 
     if( mbedtls_fwrite( buf, 1, n, f ) != n )

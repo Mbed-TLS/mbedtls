@@ -57,7 +57,7 @@ int main( void )
 
 int main( int argc, char *argv[] )
 {
-    mbedtls_file_t *f;
+    mbedtls_file_t f;
     int ret;
     int exit_code = MBEDTLS_EXIT_FAILURE;
     size_t i;
@@ -87,7 +87,7 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "\n  . Reading private key from rsa_priv.txt" );
     fflush( stdout );
 
-    if( ( f = mbedtls_fopen( "rsa_priv.txt", "rb" ) ) == NULL )
+    if( ( f = mbedtls_fopen( "rsa_priv.txt", "rb" ) ) == MBEDTLS_FILE_INVALID )
     {
         mbedtls_printf( " failed\n  ! Could not open rsa_priv.txt\n" \
                 "  ! Please run rsa_genkey first\n\n" );
@@ -158,7 +158,7 @@ int main( int argc, char *argv[] )
      */
     mbedtls_snprintf( filename, sizeof(filename), "%s.sig", argv[1] );
 
-    if( ( f = mbedtls_fopen( filename, "wb+" ) ) == NULL )
+    if( ( f = mbedtls_fopen( filename, "wb+" ) ) == MBEDTLS_FILE_INVALID )
     {
         mbedtls_printf( " failed\n  ! Could not create %s\n\n", argv[1] );
         goto exit;

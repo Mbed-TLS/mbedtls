@@ -54,7 +54,7 @@ int main( void )
 #else
 int main( int argc, char *argv[] )
 {
-    mbedtls_file_t *f;
+    mbedtls_file_t f;
     int i, k, ret;
     int exit_code = MBEDTLS_EXIT_FAILURE;
     mbedtls_ctr_drbg_context ctr_drbg;
@@ -69,7 +69,7 @@ int main( int argc, char *argv[] )
         return( exit_code );
     }
 
-    if( ( f = mbedtls_fopen( argv[1], "wb+" ) ) == NULL )
+    if( ( f = mbedtls_fopen( argv[1], "wb+" ) ) == MBEDTLS_FILE_INVALID )
     {
         mbedtls_printf( "failed to open '%s' for writing.\n", argv[1] );
         return( exit_code );

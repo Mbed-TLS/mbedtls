@@ -70,8 +70,8 @@ int main( void )
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     mbedtls_mpi N, P, Q, D, E, DP, DQ, QP;
-    mbedtls_file_t *fpub  = NULL;
-    mbedtls_file_t *fpriv = NULL;
+    mbedtls_file_t fpub  = NULL;
+    mbedtls_file_t fpriv = NULL;
     const char *pers = "rsa_genkey";
 
     mbedtls_ctr_drbg_init( &ctr_drbg );
@@ -112,7 +112,7 @@ int main( void )
         goto exit;
     }
 
-    if( ( fpub = mbedtls_fopen( "rsa_pub.txt", "wb+" ) ) == NULL )
+    if( ( fpub = mbedtls_fopen( "rsa_pub.txt", "wb+" ) ) == MBEDTLS_FILE_INVALID )
     {
         mbedtls_printf( " failed\n  ! could not open rsa_pub.txt for writing\n\n" );
         goto exit;
@@ -128,7 +128,7 @@ int main( void )
     mbedtls_printf( " ok\n  . Exporting the private key in rsa_priv.txt..." );
     fflush( stdout );
 
-    if( ( fpriv = mbedtls_fopen( "rsa_priv.txt", "wb+" ) ) == NULL )
+    if( ( fpriv = mbedtls_fopen( "rsa_priv.txt", "wb+" ) ) == MBEDTLS_FILE_INVALID )
     {
         mbedtls_printf( " failed\n  ! could not open rsa_priv.txt for writing\n" );
         goto exit;

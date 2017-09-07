@@ -66,6 +66,13 @@
 #define mbedtls_free   free
 #endif
 
+#if !defined(MBEDTLS_RSA_FORCE_BLINDING) && \
+     defined(MBEDTLS_DEPRECATED_WARNING)
+#warning Not enforcing blinding checks for RSA private key operations\
+    is deprecated. Please uncomment MBEDTLS_RSA_FORCE_BLINDING\
+    in config.h to enforce blinding checks.
+#endif
+
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = (unsigned char*)v; while( n-- ) *p++ = 0;

@@ -53,7 +53,7 @@
 #if defined(MBEDTLS_ECP_RESTARTABLE)
 
 /*
- * Sub-contect for ecdsa_verify()
+ * Sub-context for ecdsa_verify()
  */
 struct mbedtls_ecdsa_restart_ver
 {
@@ -89,7 +89,7 @@ static void ecdsa_restart_ver_free( mbedtls_ecdsa_restart_ver_ctx *ctx )
 }
 
 /*
- * Sub-contect for ecdsa_sign()
+ * Sub-context for ecdsa_sign()
  */
 struct mbedtls_ecdsa_restart_sig
 {
@@ -132,7 +132,7 @@ static void ecdsa_restart_sig_free( mbedtls_ecdsa_restart_sig_ctx *ctx )
 
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
 /*
- * Sub-contect for ecdsa_sign_det()
+ * Sub-context for ecdsa_sign_det()
  */
 struct mbedtls_ecdsa_restart_det
 {

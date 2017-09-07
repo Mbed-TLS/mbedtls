@@ -81,7 +81,7 @@ static int buffer_nv_seed_write( unsigned char *buf, size_t buf_len )
  */
 static int write_nv_seed( unsigned char *buf, size_t buf_len )
 {
-    mbedtls_file_t *f;
+    mbedtls_file_t f;
 
     if( buf_len != MBEDTLS_ENTROPY_BLOCK_SIZE )
         return( -1 );
@@ -100,7 +100,7 @@ static int write_nv_seed( unsigned char *buf, size_t buf_len )
 
 static int read_nv_seed( unsigned char *buf, size_t buf_len )
 {
-    mbedtls_file_t *f;
+    mbedtls_file_t f;
 
     if( buf_len != MBEDTLS_ENTROPY_BLOCK_SIZE )
         return( -1 );

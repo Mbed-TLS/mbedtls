@@ -153,10 +153,10 @@ int main( int argc, char *argv[] )
 
         if( strlen( opt.password_file ) )
         {
-            mbedtls_file_t *f;
+            mbedtls_file_t f;
 
             mbedtls_printf( "\n  . Loading the password file ..." );
-            if( ( f = mbedtls_fopen( opt.password_file, "rb" ) ) == NULL )
+            if( ( f = mbedtls_fopen( opt.password_file, "rb" ) ) == MBEDTLS_FILE_INVALID )
             {
                 mbedtls_printf( " failed\n  !  mbedtls_fopen returned NULL\n" );
                 goto cleanup;

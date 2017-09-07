@@ -40,38 +40,41 @@
  * \param path     File path
  * \param mode     Open mode
  *
- * \return         Pointer to mbedtls_file_t on success or NULL on failure.
+ * \return         File handle of type mbedtls_file_t.
+ *                 On failure MBEDTLS_FILE_INVALID is returned.
  */
-mbedtls_file_t * mbedtls_fopen( const char *path, const char *mode )
+mbedtls_file_t mbedtls_fopen( const char *path, const char *mode )
 {
-    mbedtls_file_t * f = fopen( path, mode );
+    mbedtls_file_t f = fopen( path, mode );
 
-    if( f && ( setvbuf( f, NULL, _IONBF, 0 ) != 0 ) )
+    if( f != MBEDTLS_FILE_INVALID && ( setvbuf( f, NULL, _IONBF, 0 ) != 0 ) )
     {
         fclose( f );
-        f = NULL;
+        f = MBEDTLS_FILE_INVALID;
     }
 
     return( f );
 }
 
 /**
- * \brief           Rework of readdir to adapt to abstraction. This does not
- *                  return struct dirent pointer. Hence no need to worry
+ * \brief           Read next directory entry.
+ *
+ * \note            This is rework of readdir to adapt to abstraction. This does
+ *                  not return struct dirent pointer. Hence no need to worry
  *                  pointer ownership and cleanup.
  *
- * \param dir       Pointer to directory handle.
+ * \param dir       Dir handle of type mbedtls_dir_t.
  * \param file_name Out buffer for directory entry name.
- *                  Upto 255 character long name can be returned.
+ *                  Up to 255 character long name can be returned.
  * \param size      Out buffer length.
  * \param type      Out pointer entry type.
  *
- * \return          0 for success. Non zero for failure.
+ * \return          0 for success. -1 for failure.
  */
-int mbedtls_readdir( mbedtls_dir_t * dir, char * file_name, uint32_t size,  uint32_t * type )
+int mbedtls_readdir( mbedtls_dir_t dir, char *file_name, uint32_t size,  uint32_t *type )
 {
     int status = -1;
-    struct dirent * entry;
+    struct dirent *entry;
 
     if ( ( entry = readdir( dir ) ) != NULL )
     {
@@ -83,7 +86,7 @@ int mbedtls_readdir( mbedtls_dir_t * dir, char * file_name, uint32_t size,  uint
         }
         else
         {
-            file_name[size - 1] = 0;
+            file_name[0] = 0;
         }
     }
 
@@ -99,24 +102,19 @@ int mbedtls_readdir( mbedtls_dir_t * dir, char * file_name, uint32_t size,  uint
 #include "mbedtls/serialize.h"
 
 
-
-#define INT_TO_FILE_PTR( x ) ( (mbedtls_file_t *)(uintptr_t)x )
-#define INT_TO_DIR_PTR( x ) ( (mbedtls_dir_t *)(uintptr_t)x )
-#define PTR_TO_INT( x ) ( (int32_t)(uintptr_t)x )
-
 /**
  * \brief          Open file. Follows standard C fopen interface.
  *
  * \param path     File path
  * \param mode     Open mode
  *
- * \return         Pointer to mbedtls_file_t on success or NULL on failure.
+ * \return         File handle of type mbedtls_file_t.
+ *                 On failure MBEDTLS_FILE_INVALID is returned.
  */
-mbedtls_file_t * mbedtls_fopen( const char *path, const char *mode )
+mbedtls_file_t mbedtls_fopen( const char *path, const char *mode )
 {
     int status;
-    uint32_t file_id;
-    mbedtls_file_t * file = NULL;
+    mbedtls_file_t file_id = -1;
     mbedtls_serialize_push_buffer( path, strlen( path ) + 1 );
     mbedtls_serialize_push_buffer( mode, strlen( mode ) + 1 );
     status = mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_FOPEN );
@@ -124,10 +122,10 @@ mbedtls_file_t * mbedtls_fopen( const char *path, const char *mode )
     if ( status == 0 )
     {
         mbedtls_serialize_pop_int32( &file_id ); /* Id */
-        assert( file_id != 0 );
-        file = INT_TO_FILE_PTR( file_id );
+        if ( file_id == 0 )
+            file_id = MBEDTLS_FILE_INVALID;
     }
-    return( file );
+    return( file_id );
 }
 
 /**
@@ -136,21 +134,21 @@ mbedtls_file_t * mbedtls_fopen( const char *path, const char *mode )
  * \param ptr      Pointer to output buffer
  * \param size     Size of read items.
  * \param nmemb    Number of read items.
- * \param stream   Pointer to mbedtls_file_t.
+ * \param stream   File handle of type mbedtls_file_t.
  *
  * \return         Number of items read.
  */
 size_t mbedtls_fread( void *ptr, size_t size, size_t nmemb,
-                      mbedtls_file_t *stream )
+                      mbedtls_file_t stream )
 {
     int status;
     size_t ret = -1;
 
     /* Only byte size items allowed */
     if ( size != 1 )
-        return -1;
+        return( -1 );
 
-    mbedtls_serialize_push_int32( PTR_TO_INT( stream ) );
+    mbedtls_serialize_push_int32( stream );
     mbedtls_serialize_push_int32( nmemb );
     status = mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_FREAD );
     if ( status == 0 )
@@ -164,12 +162,12 @@ size_t mbedtls_fread( void *ptr, size_t size, size_t nmemb,
  * \param ptr      Pointer to input buffer
  * \param size     Size of write items.
  * \param nmemb    Number of write items.
- * \param stream   Pointer to mbedtls_file_t.
+ * \param stream   File handle of type mbedtls_file_t.
  *
  * \return         Number of items written.
  */
 size_t mbedtls_fwrite( const void *ptr, size_t size, size_t nmemb,
-                       mbedtls_file_t *stream )
+                       mbedtls_file_t stream )
 {
     int status;
     uint32_t written = 0;
@@ -179,7 +177,7 @@ size_t mbedtls_fwrite( const void *ptr, size_t size, size_t nmemb,
     if ( size != 1 )
         return( -1 );
 
-    mbedtls_serialize_push_int32( PTR_TO_INT( stream ) );
+    mbedtls_serialize_push_int32( stream );
     mbedtls_serialize_push_buffer( ptr, nmemb );
     status = mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_FWRITE );
     if ( status == 0 )
@@ -195,17 +193,17 @@ size_t mbedtls_fwrite( const void *ptr, size_t size, size_t nmemb,
  *
  * \param s        Pointer to output buffer.
  * \param size     Size of buffer.
- * \param stream   Pointer to mbedtls_file_t.
+ * \param stream   File handle of type mbedtls_file_t.
  *
  * \return         returns s on success, and NULL on error or
  *                 when end of file occurs while no characters have been read.
  */
-char * mbedtls_fgets( char *s, int size, mbedtls_file_t *stream )
+char * mbedtls_fgets( char *s, int size, mbedtls_file_t stream )
 {
     int status;
     size_t len = 0;
 
-    mbedtls_serialize_push_int32( PTR_TO_INT( stream ) );
+    mbedtls_serialize_push_int32( stream );
     mbedtls_serialize_push_int32( size );
     status = mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_FGETS );
     if ( status == 0 )
@@ -218,14 +216,14 @@ char * mbedtls_fgets( char *s, int size, mbedtls_file_t *stream )
 /**
  * \brief          Sets file position. Follows standard C fseek interface.
  *
- * \param stream   Pointer to mbedtls_file_t.
+ * \param stream   File handle of type mbedtls_file_t.
  * \param offset   Offset from whence.
  * \param whence   Position from where offset is applied.
  *                 Value is one of MBEDTLS_SEEK_SET, MBEDTLS_SEEK_CUR, or MBEDTLS_SEEK_END.
  *
  * \return         returns 0 on success, and -1 on error
  */
-int mbedtls_fseek( mbedtls_file_t *stream, long offset, int whence )
+int mbedtls_fseek( mbedtls_file_t stream, long offset, int whence )
 {
     int status, ret = -1;
 
@@ -243,7 +241,7 @@ int mbedtls_fseek( mbedtls_file_t *stream, long offset, int whence )
         default:
             return( -1 );
     }
-    mbedtls_serialize_push_int32( PTR_TO_INT( stream ) );
+    mbedtls_serialize_push_int32( stream );
     mbedtls_serialize_push_int32( whence );
     mbedtls_serialize_push_int32( offset );
     status = mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_FSEEK );
@@ -256,17 +254,17 @@ int mbedtls_fseek( mbedtls_file_t *stream, long offset, int whence )
  * \brief          Gives current position of file in bytes.
  *                 Follows standard C ftell interface.
  *
- * \param stream   Pointer to mbedtls_file_t.
+ * \param stream   File handle of type mbedtls_file_t.
  *
  * \return         returns current position on success, and -1 on error
  */
-long mbedtls_ftell( mbedtls_file_t *stream )
+long mbedtls_ftell( mbedtls_file_t stream )
 {
     int status;
     uint32_t pos = 0;
     long ret = -1;
 
-    mbedtls_serialize_push_int32( PTR_TO_INT( stream ) );
+    mbedtls_serialize_push_int32( stream );
     status = mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_FTELL );
     if ( status == 0 )
     {
@@ -279,15 +277,15 @@ long mbedtls_ftell( mbedtls_file_t *stream )
 /**
  * \brief          Close file. Follows standard C fread interface.
  *
- * \param stream   Pointer to mbedtls_file_t.
+ * \param stream   File handle of type mbedtls_file_t.
  *
  * \return         Pointer to mbedtls_file_t on success or NULL on failure.
  */
-int mbedtls_fclose( mbedtls_file_t *stream )
+int mbedtls_fclose( mbedtls_file_t stream )
 {
     int status, ret = -1;
 
-    mbedtls_serialize_push_int32( PTR_TO_INT( stream ) );
+    mbedtls_serialize_push_int32( stream );
     status = mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_FCLOSE );
     if ( status == 0 )
         ret = 0;
@@ -297,15 +295,15 @@ int mbedtls_fclose( mbedtls_file_t *stream )
 /**
  * \brief          Test error indicator. Follows standard C ferror interface.
  *
- * \param stream   Pointer to mbedtls_file_t.
+ * \param stream   File handle of type mbedtls_file_t.
  *
  * \return         Non zero error code if error is set. 0 for no error.
  */
-int mbedtls_ferror( mbedtls_file_t *stream )
+int mbedtls_ferror( mbedtls_file_t stream )
 {
     int status, ret = -1;
 
-    mbedtls_serialize_push_int32( PTR_TO_INT( stream ) );
+    mbedtls_serialize_push_int32( stream );
     status = mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_FERROR );
     if ( status == 0 )
         ret = 0;
@@ -317,29 +315,29 @@ int mbedtls_ferror( mbedtls_file_t *stream )
  *
  * \param path      Directory path string
  *
- * \return          Pointer to mbedtls_dir_t if success. Else NULL.
+ * \return          Dir handle of type mbedtls_dir_t.
+ *                  On failure MBEDTLS_DIR_INVALID is returned.
  */
-mbedtls_dir_t * mbedtls_opendir( const char * path )
+mbedtls_dir_t mbedtls_opendir( const char * path )
 {
     int status;
-    uint32_t dir_id;
-    mbedtls_dir_t * dir = NULL;
+    mbedtls_dir_t dir_id;
     mbedtls_serialize_push_buffer( path, strlen( path ) + 1 );
     status = mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_DOPEN );
 
     if ( status == 0 )
     {
         mbedtls_serialize_pop_int32( &dir_id ); /* Id */
-        assert( dir_id != 0 );
-        dir = INT_TO_DIR_PTR( dir_id );
+        if ( dir_id != 0 );
+            dir_id = MBEDTLS_DIR_INVALID;
     }
-    return( dir );
+    return( dir_id );
 }
 
 /**
  * \brief           Read dir entry (file, dir etc.).
  *
- * \param dir       Pointer to directory handle.
+ * \param dir       Dir handle of type mbedtls_dir_t.
  * \param dirent    Out buffer for directory entry name.
  *                  Upto 255 character long name can be returned.
  * \param size      Out buffer length.
@@ -347,12 +345,12 @@ mbedtls_dir_t * mbedtls_opendir( const char * path )
  *
  * \return          0 for success. Non zero for failure.
  */
-int mbedtls_readdir( mbedtls_dir_t * dir, char * dirent, uint32_t size,  uint32_t * type )
+int mbedtls_readdir( mbedtls_dir_t dir, char * dirent, uint32_t size,  uint32_t * type )
 {
     int status;
     size_t len = 0;
 
-    mbedtls_serialize_push_int32( PTR_TO_INT( dir ) );
+    mbedtls_serialize_push_int32( dir );
     mbedtls_serialize_push_int32( size ); /* Send entry size for validation */
     status = mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_DREAD );
     if ( status == 0 )
@@ -396,15 +394,15 @@ int mbedtls_readdir( mbedtls_dir_t * dir, char * dirent, uint32_t size,  uint32_
 /**
  * \brief          Close dir. Follows posix closedir interface.
  *
- * \param stream   Pointer to mbedtls_dir_t.
+ * \param dir      Dir handle of type mbedtls_dir_t.
  *
- * \return
+ * \return         0 on success, -1 on failure
  */
-int mbedtls_closedir( mbedtls_dir_t * dir )
+int mbedtls_closedir( mbedtls_dir_t dir )
 {
     int status, ret = -1;
 
-    mbedtls_serialize_push_int32( PTR_TO_INT( dir ) );
+    mbedtls_serialize_push_int32( dir );
     status = mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_DCLOSE );
     if ( status == 0 )
         ret = 0;

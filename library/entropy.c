@@ -464,10 +464,10 @@ int mbedtls_entropy_update_nv_seed( mbedtls_entropy_context *ctx )
 int mbedtls_entropy_write_seed_file( mbedtls_entropy_context *ctx, const char *path )
 {
     int ret = MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR;
-    mbedtls_file_t *f;
+    mbedtls_file_t f;
     unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE];
 
-    if( ( f = mbedtls_fopen( path, "wb" ) ) == NULL )
+    if( ( f = mbedtls_fopen( path, "wb" ) ) == MBEDTLS_FILE_INVALID )
         return( MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR );
 
     if( ( ret = mbedtls_entropy_func( ctx, buf, MBEDTLS_ENTROPY_BLOCK_SIZE ) ) != 0 )
@@ -491,11 +491,11 @@ exit:
 int mbedtls_entropy_update_seed_file( mbedtls_entropy_context *ctx, const char *path )
 {
     int ret = 0;
-    mbedtls_file_t *f;
+    mbedtls_file_t f;
     size_t n;
     unsigned char buf[ MBEDTLS_ENTROPY_MAX_SEED_SIZE ];
 
-    if( ( f = mbedtls_fopen( path, "rb" ) ) == NULL )
+    if( ( f = mbedtls_fopen( path, "rb" ) ) == MBEDTLS_FILE_INVALID )
         return( MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR );
 
     mbedtls_fseek( f, 0, MBEDTLS_SEEK_END );

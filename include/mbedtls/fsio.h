@@ -40,12 +40,12 @@ extern "C" {
 /* If MBEDTLS_FS_IO is enabled then file IO functions should be made available
  * via standard library or platform specific implementation. */
 
-/* Default and alternate implementation specific interfaces. */
+/* Default and alternative implementation specific interfaces. */
 #if !defined(MBEDTLS_FS_IO_ALT)
 #include <stdio.h>
 #include <dirent.h>
 
-#define mbedtls_file_t      FILE
+typedef FILE *  mbedtls_file_t;
 #define mbedtls_fread       fread
 #define mbedtls_fgets       fgets
 #define mbedtls_fwrite      fwrite
@@ -56,8 +56,9 @@ extern "C" {
 #define MBEDTLS_SEEK_SET    SEEK_SET
 #define MBEDTLS_SEEK_CUR    SEEK_CUR
 #define MBEDTLS_SEEK_END    SEEK_END
+#define MBEDTLS_FILE_INVALID    NULL
 
-#define mbedtls_dir_t           DIR
+typedef DIR *   mbedtls_dir_t;
 #define mbedtls_opendir         opendir
 #define mbedtls_closedir        closedir
 #define MBEDTLS_FSIO_DT_BLK     DT_BLK
@@ -68,23 +69,26 @@ extern "C" {
 #define MBEDTLS_FSIO_DT_REG     DT_REG
 #define MBEDTLS_FSIO_DT_SOCK    DT_SOCK
 #define MBEDTLS_FSIO_DT_UNKNOWN DT_UNKNOWN
+#define MBEDTLS_DIR_INVALID     NULL
 
 #else /* !MBEDTLS_FS_IO_ALT */
 
 /**
- * file context.
+ * file handle.
  *
  */
-typedef void mbedtls_file_t;
+typedef int32_t mbedtls_file_t;
+#define MBEDTLS_FILE_INVALID    -1
 
 /**
- * dir context.
+ * dir handle.
  *
  */
-typedef void mbedtls_dir_t;
+typedef int32_t mbedtls_dir_t;
+#define MBEDTLS_DIR_INVALID     -1
 
 /**
- * Definition of whence required by mbedtls_fseek().
+ * Definition of reference for seek offset used by mbedtls_fseek().
  */
 #define MBEDTLS_SEEK_SET    0
 #define MBEDTLS_SEEK_CUR    1
@@ -108,9 +112,10 @@ typedef void mbedtls_dir_t;
  * \param path     File path
  * \param mode     Open mode
  *
- * \return         Pointer to mbedtls_file_t on success or NULL on failure.
+ * \return         File handle of type mbedtls_file_t.
+ *                 On failure MBEDTLD_FILE_INVALID is returned.
  */
-mbedtls_file_t * mbedtls_fopen( const char *path, const char *mode );
+mbedtls_file_t mbedtls_fopen( const char *path, const char *mode );
 
 /**
  * \brief          Read file. Follows standard C fread interface.
@@ -118,12 +123,12 @@ mbedtls_file_t * mbedtls_fopen( const char *path, const char *mode );
  * \param ptr      Pointer to output buffer
  * \param size     Size of read items.
  * \param nmemb    Number of read items.
- * \param stream   Pointer to mbedtls_file_t.
+ * \param stream   File handle (mbedtls_file_t).
  *
  * \return         Number of items read.
  */
 size_t mbedtls_fread( void *ptr, size_t size, size_t nmemb,
-                      mbedtls_file_t *stream );
+                      mbedtls_file_t stream );
 
 /**
  * \brief          Write file. Follows standard C fwrite interface.
@@ -131,73 +136,75 @@ size_t mbedtls_fread( void *ptr, size_t size, size_t nmemb,
  * \param ptr      Pointer to input buffer
  * \param size     Size of write items.
  * \param nmemb    Number of write items.
- * \param stream   Pointer to mbedtls_file_t.
+ * \param stream   File handle of type mbedtls_file_t.
  *
  * \return         Number of items written.
  */
 size_t mbedtls_fwrite( const void *ptr, size_t size, size_t nmemb,
-                       mbedtls_file_t *stream );
+                       mbedtls_file_t stream );
 
 /**
  * \brief          Reads a line from file. Follows standard C fgets interface.
  *
  * \param s        Pointer to output buffer.
  * \param size     Size of buffer.
- * \param stream   Pointer to mbedtls_file_t.
+ * \param stream   File handle of type mbedtls_file_t.
  *
  * \return         returns s on success, and NULL on error or
  *                 when end of file occurs while no characters have been read.
  */
-char * mbedtls_fgets( char *s, int size, mbedtls_file_t *stream );
+char * mbedtls_fgets( char *s, int size, mbedtls_file_t stream );
 
 /**
  * \brief          Sets file position. Follows standard C fseek interface.
  *
- * \param stream   Pointer to mbedtls_file_t.
- * \param offset   Offset from whence.
- * \param whence   Position from where offset is applied.
+ * \param stream   File handle of type mbedtls_file_t.
+ * \param offset   Offset from origin.
+ * \param origin   Position from where offset is applied.
  *                 Value is one of MBEDTLS_SEEK_SET, MBEDTLS_SEEK_CUR, or MBEDTLS_SEEK_END.
  *
  * \return         returns 0 on success, and -1 on error
  */
-int mbedtls_fseek( mbedtls_file_t *stream, long offset, int whence );
+int mbedtls_fseek( mbedtls_file_t stream, long offset, int origin );
 
 /**
  * \brief          Gives current position of file in bytes.
  *                 Follows standard C ftell interface.
  *
- * \param stream   Pointer to mbedtls_file_t.
+ * \param stream   File handle of type mbedtls_file_t.
  *
- * \return         returns current position on success, and -1 on error
+ * \return         returns current position in bytes from the beginning of the
+ *                 file. On error returns -1.
  */
-long mbedtls_ftell( mbedtls_file_t *stream );
+long mbedtls_ftell( mbedtls_file_t stream );
 
 /**
  * \brief          Close file. Follows standard C fread interface.
  *
- * \param stream   Pointer to mbedtls_file_t.
+ * \param stream   File handle of type mbedtls_file_t.
  *
  * \return         Pointer to mbedtls_file_t on success or NULL on failure.
  */
-int mbedtls_fclose( mbedtls_file_t *stream );
+int mbedtls_fclose( mbedtls_file_t stream );
 
 /**
  * \brief          Test error indicator. Follows standard C ferror interface.
  *
- * \param stream   Pointer to mbedtls_file_t.
+ * \param stream   File handle of type mbedtls_file_t.
  *
  * \return         Non zero error code if error is set. 0 for no error.
  */
-int mbedtls_ferror( mbedtls_file_t *stream );
+int mbedtls_ferror( mbedtls_file_t stream );
 
 /**
- * \brief          Open dir. Follows posix opendir interface.
+ * \brief          Open dir. Follows POSIX opendir interface.
  *
- * \param path     File path
+ * \param path     Path
  *
- * \return         Pointer to mbedtls_dir_t on success or NULL on failure.
+ * \return         Dir handle of type mbedtls_dir_t.
+ *                 On failure MBEDTLS_DIR_INVALID is returned.
  */
-mbedtls_dir_t * mbedtls_opendir( const char *path );
+mbedtls_dir_t mbedtls_opendir( const char *path );
 
 #endif /* !MBEDTLS_FS_IO_ALT */
 
@@ -209,14 +216,15 @@ mbedtls_dir_t * mbedtls_opendir( const char *path );
  * \param path     File path
  * \param mode     Open mode
  *
- * \return         Pointer to mbedtls_file_t on success or NULL on failure.
+ * \return         File handle of type to mbedtls_file_t.
+ *                 On failure MBEDTLS_FILE_INVALID is returned.
  */
-mbedtls_file_t * mbedtls_fopen( const char *path, const char *mode );
+mbedtls_file_t mbedtls_fopen( const char *path, const char *mode );
 
 /**
  * \brief           Read dir entry (file, dir etc.).
  *
- * \param dir       Pointer to directory handle.
+ * \param dir       File handle of type mbedtls_dir_t.
  * \param direntry  Out buffer for directory entry name.
  *                  Upto 255 character long name can be returned.
  * \param size      Out buffer length.
@@ -224,16 +232,16 @@ mbedtls_file_t * mbedtls_fopen( const char *path, const char *mode );
  *
  * \return          0 for success. Non zero for failure.
  */
-int mbedtls_readdir( mbedtls_dir_t * dir, char * direntry, uint32_t size,  uint32_t * type );
+int mbedtls_readdir( mbedtls_dir_t dir, char *direntry, uint32_t size,  uint32_t *type );
 
 /**
- * \brief          Close dir. Follows posix closedir interface.
+ * \brief          Close dir. Follows POSIX closedir interface.
  *
- * \param dir      Pointer to mbedtls_dir_t.
+ * \param dir      Dir handle of type mbedtls_dir_t.
  *
  * \return
  */
-int mbedtls_closedir( mbedtls_dir_t * dir );
+int mbedtls_closedir( mbedtls_dir_t dir );
 
 #endif /* MBEDTLS_FS_IO */
 

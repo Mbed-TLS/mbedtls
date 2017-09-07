@@ -187,7 +187,7 @@ int write_certificate( mbedtls_x509write_cert *crt, const char *output_file,
                        void *p_rng )
 {
     int ret;
-    mbedtls_file_t *f;
+    mbedtls_file_t f;
     unsigned char output_buf[4096];
     size_t len = 0;
 
@@ -198,7 +198,7 @@ int write_certificate( mbedtls_x509write_cert *crt, const char *output_file,
 
     len = strlen( (char *) output_buf );
 
-    if( ( f = mbedtls_fopen( output_file, "w" ) ) == NULL )
+    if( ( f = mbedtls_fopen( output_file, "w" ) ) == MBEDTLS_FILE_INVALID )
         return( -1 );
 
     if( mbedtls_fwrite( output_buf, 1, len, f ) != len )

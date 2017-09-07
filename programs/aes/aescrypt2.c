@@ -85,7 +85,7 @@ int main( int argc, char *argv[] )
     unsigned int i, n;
     int mode, lastn;
     size_t keylen;
-    mbedtls_file_t *fkey, *fin = NULL, *fout = NULL;
+    mbedtls_file_t fkey, fin = NULL, fout = NULL;
 
     char *p;
 
@@ -151,13 +151,13 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    if( ( fin = mbedtls_fopen( argv[2], "rb" ) ) == NULL )
+    if( ( fin = mbedtls_fopen( argv[2], "rb" ) ) == MBEDTLS_FILE_INVALID )
     {
         mbedtls_fprintf( stderr, "mbedtls_fopen(%s,rb) failed\n", argv[2] );
         goto exit;
     }
 
-    if( ( fout = mbedtls_fopen( argv[3], "wb+" ) ) == NULL )
+    if( ( fout = mbedtls_fopen( argv[3], "wb+" ) ) == MBEDTLS_FILE_INVALID )
     {
         mbedtls_fprintf( stderr, "mbedtls_fopen(%s,wb+) failed\n", argv[3] );
         goto exit;
@@ -166,7 +166,7 @@ int main( int argc, char *argv[] )
     /*
      * Read the secret key from file or command line
      */
-    if( ( fkey = mbedtls_fopen( argv[4], "rb" ) ) != NULL )
+    if( ( fkey = mbedtls_fopen( argv[4], "rb" ) ) != MBEDTLS_FILE_INVALID )
     {
         keylen = mbedtls_fread( key, 1, sizeof( key ), fkey );
         mbedtls_fclose( fkey );

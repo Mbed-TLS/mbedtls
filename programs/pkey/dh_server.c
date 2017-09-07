@@ -72,7 +72,7 @@ int main( void )
 #else
 int main( void )
 {
-    mbedtls_file_t *f;
+    mbedtls_file_t f;
 
     int ret = 1;
     int exit_code = MBEDTLS_EXIT_FAILURE;
@@ -123,7 +123,7 @@ int main( void )
     mbedtls_printf( "\n  . Reading private key from rsa_priv.txt" );
     fflush( stdout );
 
-    if( ( f = mbedtls_fopen( "rsa_priv.txt", "rb" ) ) == NULL )
+    if( ( f = mbedtls_fopen( "rsa_priv.txt", "rb" ) ) == MBEDTLS_FILE_INVALID )
     {
         mbedtls_printf( " failed\n  ! Could not open rsa_priv.txt\n" \
                 "  ! Please run rsa_genkey first\n\n" );
@@ -165,7 +165,7 @@ int main( void )
     mbedtls_printf( "\n  . Reading DH parameters from dh_prime.txt" );
     fflush( stdout );
 
-    if( ( f = mbedtls_fopen( "dh_prime.txt", "rb" ) ) == NULL )
+    if( ( f = mbedtls_fopen( "dh_prime.txt", "rb" ) ) == MBEDTLS_FILE_INVALID )
     {
         mbedtls_printf( " failed\n  ! Could not open dh_prime.txt\n" \
                 "  ! Please run dh_genprime first\n\n" );

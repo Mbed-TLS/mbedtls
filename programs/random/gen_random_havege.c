@@ -52,7 +52,7 @@ int main( void )
 #else
 int main( int argc, char *argv[] )
 {
-    mbedtls_file_t *f;
+    mbedtls_file_t f;
     time_t t;
     int i, k, ret = 1;
     int exit_code = MBEDTLS_EXIT_FAILURE;

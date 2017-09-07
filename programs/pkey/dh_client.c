@@ -72,7 +72,7 @@ int main( void )
 #else
 int main( void )
 {
-    mbedtls_file_t *f;
+    mbedtls_file_t f;
 
     int ret = 1;
     int exit_code = MBEDTLS_EXIT_FAILURE;
@@ -117,7 +117,7 @@ int main( void )
     mbedtls_printf( "\n  . Reading public key from rsa_pub.txt" );
     fflush( stdout );
 
-    if( ( f = mbedtls_fopen( "rsa_pub.txt", "rb" ) ) == NULL )
+    if( ( f = mbedtls_fopen( "rsa_pub.txt", "rb" ) ) == MBEDTLS_FILE_INVALID )
     {
         mbedtls_printf( " failed\n  ! Could not open rsa_pub.txt\n" \
                 "  ! Please run rsa_genkey first\n\n" );

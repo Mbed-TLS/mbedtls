@@ -22,7 +22,7 @@ OPENSSL ?= openssl
 default: all_final
 
 all_intermediate := # temporary files
-all_final := # files used by tests
+all_final := # files or targets used by tests
 
 
 
@@ -270,7 +270,7 @@ all_final += keys_rsa_all
 all_final: $(all_final)
 all: $(all_intermediate) $(all_final)
 
-.PHONY: default all_final all
+.PHONY: default all_final all keys_rsa_unenc keys_rsa_enc_basic keys_rsa_enc_pkcs8_v1 keys_rsa_enc_pkcs8_v2 keys_rsa_all keys_rsa_enc_basic_1024 keys_rsa_enc_basic_2048 keys_rsa_enc_basic_4096 keys_rsa_enc_pkcs8_v1_1024 keys_rsa_enc_pkcs8_v1_2048 keys_rsa_enc_pkcs8_v1_4096 keys_rsa_enc_pkcs8_v2_1024 keys_rsa_enc_pkcs8_v2_2048 keys_rsa_enc_pkcs8_v2_4096
 
 # These files should not be committed to the repository.
 list_intermediate:

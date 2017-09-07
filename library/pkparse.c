@@ -968,6 +968,8 @@ static int pk_parse_key_pkcs8_encrypted_der(
      *  EncryptedData ::= OCTET STRING
      *
      *  The EncryptedData OCTET STRING is a PKCS#8 PrivateKeyInfo
+     *
+     * To save space, the decryption happens in-place on the given key buffer.
      */
     if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
@@ -986,7 +988,7 @@ static int pk_parse_key_pkcs8_encrypted_der(
     buf = p;
 
     /*
-     * Decrypt EncryptedData with appropriate PDE
+     * Decrypt EncryptedData with appropriate PBE
      */
 #if defined(MBEDTLS_PKCS12_C)
     if( mbedtls_oid_get_pkcs12_pbe_alg( &pbe_alg_oid, &md_alg, &cipher_alg ) == 0 )

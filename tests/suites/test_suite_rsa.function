@@ -659,7 +659,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_CTR_DRBG_C:MBEDTLS_ENTROPY_C:MBEDTLS_ENTROPY_HAVE_STRONG */
+/* BEGIN_CASE depends_on:MBEDTLS_CTR_DRBG_C:MBEDTLS_ENTROPY_C:ENTROPY_HAVE_STRONG */
 void mbedtls_rsa_gen_key( int nrbits, int exponent, int result)
 {
     mbedtls_rsa_context ctx;

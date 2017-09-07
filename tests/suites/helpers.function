@@ -113,7 +113,7 @@ static int test_errors = 0;
          defined(MBEDTLS_HAVEGE_C)             ||     \
          defined(MBEDTLS_ENTROPY_HARDWARE_ALT) ||     \
          defined(ENTROPY_NV_SEED) ) )
-#define MBEDTLS_ENTROPY_HAVE_STRONG
+#define ENTROPY_HAVE_STRONG
 #endif
 
 

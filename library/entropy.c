@@ -83,7 +83,7 @@ void mbedtls_entropy_init( mbedtls_entropy_context *ctx )
     mbedtls_havege_init( &ctx->havege_data );
 #endif
 
-    /* Reminder: Update MBEDTLS_ENTROPY_HAVE_STRONG in the test files
+    /* Reminder: Update ENTROPY_HAVE_STRONG in the test files
      *           when adding more strong entropy sources here. */
 
 #if defined(MBEDTLS_TEST_NULL_ENTROPY)

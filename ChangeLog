@@ -3,8 +3,8 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
 Bugfix
-   * Fix a heap-buffer-overflow during private key parsing. Found through
-     fuzzing.
+   * Fix a 1-byte heap buffer overflow (read-only) during private key parsing.
+     Found through fuzz testing.
 
 = mbed TLS 2.7.0 branch released 2018-02-03
 

@@ -76,7 +76,7 @@ keys_rsa_pkcs8_pwd = PolarSSLTest
 
 ### Basic 1024-, 2048- and 4096-bit unencrypted RSA keys from which
 ### all other encrypted RSA keys are derived.
-keyfile:
+keyfile_1024:
 	$(OPENSSL) genrsa -out $@ 1024
 keyfile_2048:
 	$(OPENSSL) genrsa -out $@ 2048
@@ -88,17 +88,17 @@ keyfile_4096:
 ###
 
 ### 1024-bit
-keyfile.des: keyfile
+keyfile_1024.des: keyfile_1024
 	$(OPENSSL) rsa -des -in $< -out $@ -passout "pass:$(keys_rsa_basic_pwd)"
-keyfile.3des: keyfile
+keyfile_1024.3des: keyfile_1024
 	$(OPENSSL) rsa -des3 -in $< -out $@ -passout "pass:$(keys_rsa_basic_pwd)"
-keyfile.aes128: keyfile
+keyfile_1024.aes128: keyfile_1024
 	$(OPENSSL) rsa -aes128 -in $< -out $@ -passout "pass:$(keys_rsa_basic_pwd)"
-keyfile.aes192: keyfile
+keyfile_1024.aes192: keyfile_1024
 	$(OPENSSL) rsa -aes192 -in $< -out $@ -passout "pass:$(keys_rsa_basic_pwd)"
-keyfile.aes256: keyfile
+keyfile_1024.aes256: keyfile_1024
 	$(OPENSSL) rsa -aes256 -in $< -out $@ -passout "pass:$(keys_rsa_basic_pwd)"
-keys_rsa_enc_basic_1024: keyfile.des keyfile.3des keyfile.aes128 keyfile.aes192 keyfile.aes256
+keys_rsa_enc_basic_1024: keyfile_1024.des keyfile_1024.3des keyfile_1024.aes128 keyfile_1024.aes192 keyfile_1024.aes256
 
 # 2048-bit
 keyfile_2048.des: keyfile_2048
@@ -131,23 +131,23 @@ keys_rsa_enc_basic_4096: keyfile_4096.des keyfile_4096.3des keyfile_4096.aes128 
 ###
 
 ### 1024-bit
-pkcs8_pbe_sha1_3des.der: keyfile
+pkcs8_pbe_sha1_3des_1024.der: keyfile_1024
 	$(OPENSSL) pkcs8 -inform PEM -in $< -outform DER -out $@ -passout "pass:$(keys_rsa_pkcs8_pwd)" -topk8 -v1 PBE-SHA1-3DES
-pkcs8_pbe_sha1_3des.key: keyfile
+pkcs8_pbe_sha1_3des_1024.key: keyfile_1024
 	$(OPENSSL) pkcs8 -inform PEM -in $< -outform PEM -out $@ -passout "pass:$(keys_rsa_pkcs8_pwd)" -topk8 -v1 PBE-SHA1-3DES
-keys_rsa_enc_pkcs8_v1_1024_3des: pkcs8_pbe_sha1_3des.key pkcs8_pbe_sha1_3des.der
+keys_rsa_enc_pkcs8_v1_1024_3des: pkcs8_pbe_sha1_3des_1024.key pkcs8_pbe_sha1_3des_1024.der
 
-pkcs8_pbe_sha1_2des.der: keyfile
+pkcs8_pbe_sha1_2des_1024.der: keyfile_1024
 	$(OPENSSL) pkcs8 -inform PEM -in $< -outform DER -out $@ -passout "pass:$(keys_rsa_pkcs8_pwd)" -topk8 -v1 PBE-SHA1-2DES
-pkcs8_pbe_sha1_2des.key: keyfile
+pkcs8_pbe_sha1_2des_1024.key: keyfile_1024
 	$(OPENSSL) pkcs8 -inform PEM -in $< -outform PEM -out $@ -passout "pass:$(keys_rsa_pkcs8_pwd)" -topk8 -v1 PBE-SHA1-2DES
-keys_rsa_enc_pkcs8_v1_1024_2des: pkcs8_pbe_sha1_2des.key pkcs8_pbe_sha1_2des.der
+keys_rsa_enc_pkcs8_v1_1024_2des: pkcs8_pbe_sha1_2des_1024.key pkcs8_pbe_sha1_2des_1024.der
 
-pkcs8_pbe_sha1_rc4_128.der: keyfile
+pkcs8_pbe_sha1_rc4_128_1024.der: keyfile_1024
 	$(OPENSSL) pkcs8 -inform PEM -in $< -outform DER -out $@ -passout "pass:$(keys_rsa_pkcs8_pwd)" -topk8 -v1 PBE-SHA1-RC4-128
-pkcs8_pbe_sha1_rc4_128.key: keyfile
+pkcs8_pbe_sha1_rc4_128_1024.key: keyfile_1024
 	$(OPENSSL) pkcs8 -inform PEM -in $< -outform PEM -out $@ -passout "pass:$(keys_rsa_pkcs8_pwd)" -topk8 -v1 PBE-SHA1-RC4-128
-keys_rsa_enc_pkcs8_v1_1024_rc4_128: pkcs8_pbe_sha1_rc4_128.key pkcs8_pbe_sha1_rc4_128.der
+keys_rsa_enc_pkcs8_v1_1024_rc4_128: pkcs8_pbe_sha1_rc4_128_1024.key pkcs8_pbe_sha1_rc4_128_1024.der
 
 keys_rsa_enc_pkcs8_v1_1024: keys_rsa_enc_pkcs8_v1_1024_3des keys_rsa_enc_pkcs8_v1_1024_2des keys_rsa_enc_pkcs8_v1_1024_rc4_128
 
@@ -198,17 +198,17 @@ keys_rsa_enc_pkcs8_v1_4096: keys_rsa_enc_pkcs8_v1_4096_3des keys_rsa_enc_pkcs8_v
 ###
 
 ### 1024-bit
-pkcs8_pbes2_pbkdf2_3des.der: keyfile
+pkcs8_pbes2_pbkdf2_3des_1024.der: keyfile_1024
 	$(OPENSSL) pkcs8 -topk8 -v2 des3 -inform PEM -in $< -outform DER -out $@ -passout "pass:$(keys_rsa_pkcs8_pwd)"
-pkcs8_pbes2_pbkdf2_3des.key: keyfile
+pkcs8_pbes2_pbkdf2_3des_1024.key: keyfile_1024
 	$(OPENSSL) pkcs8  -topk8 -v2 des3 -inform PEM -in $< -outform PEM -out $@ -passout "pass:$(keys_rsa_pkcs8_pwd)"
-keys_rsa_enc_pkcs8_v2_1024_3des: pkcs8_pbes2_pbkdf2_3des.der pkcs8_pbes2_pbkdf2_3des.key
+keys_rsa_enc_pkcs8_v2_1024_3des: pkcs8_pbes2_pbkdf2_3des_1024.der pkcs8_pbes2_pbkdf2_3des_1024.key
 
-pkcs8_pbes2_pbkdf2_des.der: keyfile
+pkcs8_pbes2_pbkdf2_des_1024.der: keyfile_1024
 	$(OPENSSL) pkcs8 -topk8 -v2 des -inform PEM -in $< -outform DER -out $@ -passout "pass:$(keys_rsa_pkcs8_pwd)"
-pkcs8_pbes2_pbkdf2_des.key: keyfile
+pkcs8_pbes2_pbkdf2_des_1024.key: keyfile_1024
 	$(OPENSSL) pkcs8  -topk8 -v2 des -inform PEM -in $< -outform PEM -out $@ -passout "pass:$(keys_rsa_pkcs8_pwd)"
-keys_rsa_enc_pkcs8_v2_1024_des: pkcs8_pbes2_pbkdf2_des.der pkcs8_pbes2_pbkdf2_des.key
+keys_rsa_enc_pkcs8_v2_1024_des: pkcs8_pbes2_pbkdf2_des_1024.der pkcs8_pbes2_pbkdf2_des_1024.key
 
 keys_rsa_enc_pkcs8_v2_1024: keys_rsa_enc_pkcs8_v2_1024_3des keys_rsa_enc_pkcs8_v2_1024_des
 
@@ -247,7 +247,7 @@ keys_rsa_enc_pkcs8_v2_4096: keys_rsa_enc_pkcs8_v2_4096_3des keys_rsa_enc_pkcs8_v
 ###
 
 ### Generate basic unencrypted RSA keys
-keys_rsa_unenc: keyfile keyfile_2048 keyfile_4096
+keys_rsa_unenc: keyfile_1024 keyfile_2048 keyfile_4096
 
 ### Generate PKCS1-encoded encrypted RSA keys
 keys_rsa_enc_basic: keys_rsa_enc_basic_1024 keys_rsa_enc_basic_2048 keys_rsa_enc_basic_4096

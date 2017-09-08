@@ -17,7 +17,7 @@
     assert( sizeof( *( p ) ) == sizeof( *( start ) ) );         \
     /* <= is checked to support use inside a loop where         \
        pointer is incremented after reading data.       */      \
-    assert( (uint32_t)( ( ( p ) - ( start ) ) + step ) <= len );\
+    assert( (uint32_t)( ( ( p ) - ( start ) ) + ( step ) ) <= ( len ) );\
     ( p ) += step;                                              \
 }                                                               \
 while( 0 )
@@ -156,7 +156,8 @@ uint8_t * receive_data( uint32_t * data_len )
 }
 
 /**
- * \brief       Parses received byte array and finds number of hex parameters.
+ * \brief       Find count of hex arguments(test function arguments) in the
+ *              received binary data.
  *
  * \param count     Parameter count
  * \param data      Received Byte array

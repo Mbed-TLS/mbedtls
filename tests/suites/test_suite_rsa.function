@@ -658,7 +658,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_CTR_DRBG_C:POLARSSL_ENTROPY_C */
+/* BEGIN_CASE depends_on:POLARSSL_CTR_DRBG_C:POLARSSL_ENTROPY_C:ENTROPY_HAVE_DEFAULT */
 void rsa_gen_key( int nrbits, int exponent, int result)
 {
     rsa_context ctx;

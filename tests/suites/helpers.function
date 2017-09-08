@@ -53,6 +53,17 @@ typedef UINT32 uint32_t;
 }
 #endif
 
+/* Helper flags for complex dependencies */
+
+/* Indicates whether we expect mbedtls_entropy_init
+ * to initialize some strong entropy source. */
+#if !defined(POLARSSL_NO_DEFAULT_ENTROPY_SOURCES) &&   \
+      ( !defined(POLARSSL_NO_PLATFORM_ENTROPY)  ||     \
+         defined(POLARSSL_HAVEGE_C)             ||     \
+         defined(POLARSSL_TIMING_C) )
+#define ENTROPY_HAVE_DEFAULT
+#endif
+
 static int unhexify( unsigned char *obuf, const char *ibuf )
 {
     unsigned char c, c2;
@@ -212,7 +223,7 @@ typedef struct
  * This function returns random based on a buffer it receives.
  *
  * rng_state shall be a pointer to a rnd_buf_info structure.
- * 
+ *
  * The number of bytes released from the buffer on each call to
  * the random function is specified by per_call. (Can be between
  * 1 and 4)

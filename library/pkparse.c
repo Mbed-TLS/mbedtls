@@ -1080,12 +1080,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
 
     if( ret == 0 )
     {
-        if( ( pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ) == NULL )
-        {
-            mbedtls_pem_free( &pem );
-            return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
-        }
-
+        pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_RSA );
         if( ( ret = mbedtls_pk_setup( pk, pk_info ) ) != 0 ||
             ( ret = pk_parse_key_pkcs1_der( mbedtls_pk_rsa( *pk ),
                                             pem.buf, pem.buflen ) ) != 0 )
@@ -1115,11 +1110,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
                                key, pwd, pwdlen, &len );
     if( ret == 0 )
     {
-        if( ( pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_ECKEY ) ) == NULL )
-        {
-            mbedtls_pem_free( &pem );
-            return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
-        }
+        pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_ECKEY );
 
         if( ( ret = mbedtls_pk_setup( pk, pk_info ) ) != 0 ||
             ( ret = pk_parse_key_sec1_der( mbedtls_pk_ec( *pk ),

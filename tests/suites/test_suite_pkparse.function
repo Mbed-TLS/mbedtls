@@ -113,7 +113,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PK_PARSE_C */
+/* BEGIN_CASE */
 void pk_parse_key( char *key_data, char *result_str, int result )
 {
     mbedtls_pk_context pk;

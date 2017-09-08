@@ -59,11 +59,10 @@ typedef UINT32 uint32_t;
 
 /* Indicates whether we expect mbedtls_entropy_init
  * to initialize some strong entropy source. */
-#if defined(MBEDTLS_TEST_NULL_ENTROPY) ||             \
-    ( !defined(MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES) && \
-      ( !defined(MBEDTLS_NO_PLATFORM_ENTROPY)  ||     \
-         defined(MBEDTLS_HAVEGE_C)             ||     \
-         defined(MBEDTLS_ENTROPY_HARDWARE_ALT) ) )
+#if !defined(MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES) &&     \
+    ( !defined(MBEDTLS_NO_PLATFORM_ENTROPY)  ||         \
+       defined(MBEDTLS_HAVEGE_C)             ||         \
+       defined(MBEDTLS_ENTROPY_HARDWARE_ALT) )
 #define ENTROPY_HAVE_STRONG
 #endif
 

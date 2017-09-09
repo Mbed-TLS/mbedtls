@@ -311,6 +311,22 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
         return MBEDTLS_ERR_CIPHER_INVALID_CONTEXT;
     }
 
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
+    if( ctx->cipher_info->mode == MBEDTLS_MODE_CTR )
+    {
+        if( 0 != ( ret = ctx->cipher_info->base->ctr_func( ctx->cipher_ctx,
+                ilen, &ctx->unprocessed_len, ctx->iv,
+                ctx->unprocessed_data, input, output ) ) )
+        {
+            return( ret );
+        }
+
+        *olen = ilen;
+
+        return( 0 );
+    }
+#endif /* MBEDTLS_CIPHER_MODE_CTR */
+
     if( input == output &&
        ( ctx->unprocessed_len != 0 || ilen % block_size ) )
     {
@@ -416,22 +432,6 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
         return( 0 );
     }
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
-
-#if defined(MBEDTLS_CIPHER_MODE_CTR)
-    if( ctx->cipher_info->mode == MBEDTLS_MODE_CTR )
-    {
-        if( 0 != ( ret = ctx->cipher_info->base->ctr_func( ctx->cipher_ctx,
-                ilen, &ctx->unprocessed_len, ctx->iv,
-                ctx->unprocessed_data, input, output ) ) )
-        {
-            return( ret );
-        }
-
-        *olen = ilen;
-
-        return( 0 );
-    }
-#endif /* MBEDTLS_CIPHER_MODE_CTR */
 
 #if defined(MBEDTLS_CIPHER_MODE_STREAM)
     if( ctx->cipher_info->mode == MBEDTLS_MODE_STREAM )

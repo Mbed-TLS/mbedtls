@@ -18,7 +18,7 @@
     /* <= is checked to support use inside a loop where         \
        pointer is incremented after reading data.       */      \
     assert( (uint32_t)( ( ( p ) - ( start ) ) + ( step ) ) <= ( len ) );\
-    ( p ) += step;                                              \
+    ( p ) += ( step );                                          \
 }                                                               \
 while( 0 )
 
@@ -34,7 +34,7 @@ while( 0 )
 #define ALIGN_32BIT(p, start, len) do           \
 {                                               \
     uint32_t align = ( - (uintptr_t)( p ) ) % 4;\
-    INCR_ASSERT(p, start, len, align);          \
+    INCR_ASSERT( ( p ), ( start ), ( len ), align);\
 }                                               \
 while( 0 )
 
@@ -156,8 +156,8 @@ uint8_t * receive_data( uint32_t * data_len )
 }
 
 /**
- * \brief       Find count of hex arguments(test function arguments) in the
- *              received binary data.
+ * \brief       Parse the received byte array and count the number of arguments
+ *              to the test function passed as type hex.
  *
  * \param count     Parameter count
  * \param data      Received Byte array

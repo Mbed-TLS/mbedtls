@@ -200,7 +200,16 @@ void ssl_write_record_size_limit_ext(mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_SRV_C)
 		if (ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER)
 		{
-			MBEDTLS_SSL_DEBUG_MSG(3, ("server hello, adding record_size_limit extension"));
+			/* As a server we are not going to add the record size limit extension 
+			* if the client hasn't provided it in the ClientHello. 
+			*/
+			if (ssl->session_negotiate->record_size_limit_send == MBEDTLS_SSL_RECORD_SIZE_LIMIT_NONE)
+			{
+				return; 
+			}
+			else {
+				MBEDTLS_SSL_DEBUG_MSG(3, ("server hello, adding record_size_limit extension"));
+			}
 		}
 		else
 #endif /* MBEDTLS_SSL_SRV_C */

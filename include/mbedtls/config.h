@@ -1201,6 +1201,25 @@
  */
 #define MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 
+ /**
+ * \def MBEDTLS_SSL_RECORD_SIZE_LIMIT
+ *
+ * Enable support for the "record_size_limit" extension defined in
+ * <draft-ietf-tls-record-limit-00>, which aims to replace the
+ * RFC 6066 max_fragment_length extension.
+ *
+ * Note: You can enable the record_size_limit extension and the
+ *       maximum_fragment_length extension. However, for a given
+ *       session it is not possible to use them at the same time.
+ *       Hence, a server receiving support for both extensions
+ *       is encouraged to select the newer record_size_limit
+ *       extension and to decline the use of the
+ *       maximum_fragment_length extension.
+ *
+ * Comment this macro to disable support for the record_size_limit extension
+ */
+#define MBEDTLS_SSL_RECORD_SIZE_LIMIT
+
 /**
  * \def MBEDTLS_SSL_PROTO_SSL3
  *

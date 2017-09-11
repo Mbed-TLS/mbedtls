@@ -993,6 +993,11 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     ext_len += olen;
 #endif
 
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+	ssl_write_record_size_limit_ext(ssl, p + 2 + ext_len, &olen);
+	ext_len += olen;
+#endif
+
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
     ssl_write_truncated_hmac_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
@@ -1773,6 +1778,20 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 
             break;
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+		case MBEDTLS_TLS_EXT_RECORD_SIZE_LIMIT:
+			MBEDTLS_SSL_DEBUG_MSG(3, ("found record_size_limit extension"));
+
+			if ((ret = ssl_parse_record_size_limit_ext(ssl,
+				ext + 4, ext_size)) != 0)
+			{
+				return(ret);
+			}
+
+			break;
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
+
 
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
         case MBEDTLS_TLS_EXT_TRUNCATED_HMAC:

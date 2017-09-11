@@ -512,6 +512,11 @@ int mbedtls_ssl_set_calc_verify_md( mbedtls_ssl_context *ssl, int md );
 int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id );
 #endif
 
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+void ssl_write_record_size_limit_ext(mbedtls_ssl_context *ssl, unsigned char *buf, size_t *olen); 
+int ssl_parse_record_size_limit_ext(mbedtls_ssl_context *ssl, const unsigned char *buf, size_t len); 
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
+
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
 int mbedtls_ssl_check_sig_hash( const mbedtls_ssl_context *ssl,
                                 mbedtls_md_type_t md );

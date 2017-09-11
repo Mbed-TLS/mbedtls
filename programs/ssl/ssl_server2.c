@@ -127,6 +127,7 @@ int main( void )
 #define DFL_AUTH_MODE           -1
 #define DFL_CERT_REQ_CA_LIST    MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED
 #define DFL_MFL_CODE            MBEDTLS_SSL_MAX_FRAG_LEN_NONE
+#define DFL_RSL                 0 
 #define DFL_TRUNC_HMAC          -1
 #define DFL_TICKETS             MBEDTLS_SSL_SESSION_TICKETS_ENABLED
 #define DFL_TICKET_TIMEOUT      86400
@@ -234,6 +235,13 @@ int main( void )
 #else
 #define USAGE_MAX_FRAG_LEN ""
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT )
+#define USAGE_RECORD_SIZE_LIMIT                                      \
+    "    record_size_limit=%%d     default: 16384 (tls default)\n"  
+#else
+#define USAGE_RECORD_SIZE_LIMIT ""
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
 #define USAGE_TRUNC_HMAC \
@@ -355,6 +363,7 @@ int main( void )
     USAGE_TICKETS                                           \
     USAGE_CACHE                                             \
     USAGE_MAX_FRAG_LEN                                      \
+    USAGE_RECORD_SIZE_LIMIT                                 \
     USAGE_TRUNC_HMAC                                        \
     USAGE_ALPN                                              \
     USAGE_EMS                                               \
@@ -425,6 +434,7 @@ struct options
     int auth_mode;              /* verify mode for connection               */
     int cert_req_ca_list;       /* should we send the CA list?              */
     unsigned char mfl_code;     /* code for maximum fragment length         */
+	uint16_t rsl;                /* record size limit                        */
     int trunc_hmac;             /* accept truncated hmac?                   */
     int tickets;                /* enable / disable session tickets         */
     int ticket_timeout;         /* session ticket lifetime                  */
@@ -1218,12 +1228,10 @@ int main( int argc, char *argv[] )
             if( ( opt.auth_mode = get_auth_mode( q ) ) < 0 )
                 goto usage;
         }
-        else if( strcmp( p, "cert_req_ca_list" ) == 0 )
-        {
-            opt.cert_req_ca_list = atoi( q );
-            if( opt.cert_req_ca_list < 0 || opt.cert_req_ca_list > 1 )
-                goto usage;
-        }
+		else if (strcmp(p, "record_size_limit") == 0)
+		{
+			opt.rsl = atoi(q);
+		}
         else if( strcmp( p, "max_frag_len" ) == 0 )
         {
             if( strcmp( q, "512" ) == 0 )
@@ -1787,6 +1795,14 @@ int main( int argc, char *argv[] )
     };
 #endif
 
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT )
+	if ((ret = mbedtls_ssl_conf_record_size_limit(&conf, opt.rsl)) != 0)
+	{
+		mbedtls_printf(" failed\n  ! mbedtls_ssl_conf_record_size_limit returned %d\n\n", ret);
+		goto exit;
+	}
+#endif
+
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
     if( opt.trunc_hmac != DFL_TRUNC_HMAC )
         mbedtls_ssl_conf_truncated_hmac( &conf, opt.trunc_hmac );
@@ -2153,8 +2169,13 @@ handshake:
         mbedtls_printf( "    [ Record expansion is unknown (compression) ]\n" );
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    mbedtls_printf( "    [ Maximum fragment length is %u ]\n",
+    mbedtls_printf( "    [ Maximum fragment length is %u bytes]\n",
                     (unsigned int) mbedtls_ssl_get_max_frag_len( &ssl ) );
+#endif
+
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT )
+	mbedtls_printf("    [ Record Size Limit is %u bytes]\n",
+		(unsigned int)mbedtls_ssl_get_record_size_limit(&ssl));
 #endif
 
 #if defined(MBEDTLS_SSL_ALPN)
@@ -2367,42 +2388,24 @@ data_exchange:
     len = sprintf( (char *) buf, HTTP_RESPONSE,
                    mbedtls_ssl_get_ciphersuite( &ssl ) );
 
-    if( opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM )
+    for( written = 0, frags = 0; written < len; written += ret, frags++ )
     {
-        for( written = 0, frags = 0; written < len; written += ret, frags++ )
+        while( ( ret = mbedtls_ssl_write( &ssl, buf + written, len - written ) )
+                        <= 0 )
         {
-            while( ( ret = mbedtls_ssl_write( &ssl, buf + written, len - written ) )
-                           <= 0 )
+            if( ret == MBEDTLS_ERR_NET_CONN_RESET )
             {
-                if( ret == MBEDTLS_ERR_NET_CONN_RESET )
-                {
-                    mbedtls_printf( " failed\n  ! peer closed the connection\n\n" );
-                    goto reset;
-                }
+                mbedtls_printf( " failed\n  ! peer closed the connection\n\n" );
+                goto reset;
+            }
 
-                if( ret != MBEDTLS_ERR_SSL_WANT_READ &&
-                    ret != MBEDTLS_ERR_SSL_WANT_WRITE )
-                {
-                    mbedtls_printf( " failed\n  ! mbedtls_ssl_write returned %d\n\n", ret );
-                    goto reset;
-                }
+            if( ret != MBEDTLS_ERR_SSL_WANT_READ &&
+                ret != MBEDTLS_ERR_SSL_WANT_WRITE )
+            {
+                mbedtls_printf( " failed\n  ! mbedtls_ssl_write returned %d\n\n", ret );
+                goto reset;
             }
         }
-    }
-    else /* Not stream, so datagram */
-    {
-        do ret = mbedtls_ssl_write( &ssl, buf, len );
-        while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
-               ret == MBEDTLS_ERR_SSL_WANT_WRITE );
-
-        if( ret < 0 )
-        {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_write returned %d\n\n", ret );
-            goto reset;
-        }
-
-        frags = 1;
-        written = ret;
     }
 
     buf[written] = '\0';

@@ -1749,6 +1749,16 @@ read_record_header:
                 break;
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+			case MBEDTLS_TLS_EXT_RECORD_SIZE_LIMIT:
+				MBEDTLS_SSL_DEBUG_MSG(3, ("found record_size_limit extension"));
+
+				ret = ssl_parse_record_size_limit_ext(ssl, ext + 4, ext_size);
+				if (ret != 0)
+					return(ret);
+				break;
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
+
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
             case MBEDTLS_TLS_EXT_TRUNCATED_HMAC:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found truncated hmac extension" ) );
@@ -2538,10 +2548,22 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     ssl_write_renegotiation_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
 
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+	ssl_write_record_size_limit_ext(ssl, p + 2 + ext_len, &olen);
+	ext_len += olen;
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
+
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    ssl_write_max_fragment_length_ext( ssl, p + 2 + ext_len, &olen );
-    ext_len += olen;
-#endif
+	/* We cannot use the record size limit together with the
+	 * maximum fragment length extension. Hence, we writing the
+	 * maximum fragment length extension following a successfully
+	 * written record size limit extension.
+	 */
+	if (ssl->session_negotiate->record_size_limit_send == 0) {
+		ssl_write_max_fragment_length_ext(ssl, p + 2 + ext_len, &olen);
+		ext_len += olen;
+	}
+#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
     ssl_write_truncated_hmac_ext( ssl, p + 2 + ext_len, &olen );

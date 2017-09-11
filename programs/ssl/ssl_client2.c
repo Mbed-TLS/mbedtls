@@ -823,7 +823,7 @@ int main( int argc, char *argv[] )
 		else if ( strcmp( p, "record_size_limit" ) == 0 )
 		{
 			opt.rsl = atoi(q);
-			if (opt.rsl < 0 || opt.rsl> 16384) goto usage; 
+			if (opt.rsl> 16384) goto usage; 
 		} 
         else if( strcmp( p, "max_frag_len" ) == 0 )
         {

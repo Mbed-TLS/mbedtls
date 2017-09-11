@@ -206,7 +206,7 @@ void ssl_write_record_size_limit_ext(mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_SRV_C */
 		{
 			MBEDTLS_SSL_DEBUG_MSG(1, ("should never happen"));
-			return(MBEDTLS_ERR_SSL_INTERNAL_ERROR);
+			return;
 		}
 
 	if (end < p || (size_t)(end - p) < 6)

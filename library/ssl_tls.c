@@ -175,11 +175,39 @@ void ssl_write_record_size_limit_ext(mbedtls_ssl_context *ssl,
 
 	*olen = 0;
 
-	if (ssl->conf->record_size_limit == 0) {
+	if (ssl->conf->record_size_limit == MBEDTLS_SSL_RECORD_SIZE_LIMIT_NONE) {
+
+#if defined(MBEDTLS_SSL_SRV_C)
+		if (ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER)
+		{
+			/* If the server does not send a record size limit extension 
+			 * then we set the session information to 'do not use it'. 
+			 */
+			ssl->session_negotiate->record_size_limit_send = MBEDTLS_SSL_RECORD_SIZE_LIMIT_NONE;
+		}
+#endif /* MBEDTLS_SSL_SRV_C */
 		return;
 	}
 
-	MBEDTLS_SSL_DEBUG_MSG(3, ("client hello, adding record_size_limit extension"));
+#if defined(MBEDTLS_SSL_CLI_C)
+	if (ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT)
+	{
+		MBEDTLS_SSL_DEBUG_MSG(3, ("client hello, adding record_size_limit extension"));
+	}
+	else
+#endif /* MBEDTLS_SSL_CLI_C */
+
+#if defined(MBEDTLS_SSL_SRV_C)
+		if (ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER)
+		{
+			MBEDTLS_SSL_DEBUG_MSG(3, ("server hello, adding record_size_limit extension"));
+		}
+		else
+#endif /* MBEDTLS_SSL_SRV_C */
+		{
+			MBEDTLS_SSL_DEBUG_MSG(1, ("should never happen"));
+			return(MBEDTLS_ERR_SSL_INTERNAL_ERROR);
+		}
 
 	if (end < p || (size_t)(end - p) < 6)
 	{
@@ -212,7 +240,7 @@ int ssl_parse_record_size_limit_ext(mbedtls_ssl_context *ssl,
 	if (ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT)
 	{
 		/* Server should use the extension only if we did */
-		if (ssl->conf->record_size_limit == 0 || len != 2)
+		if (ssl->conf->record_size_limit == MBEDTLS_SSL_RECORD_SIZE_LIMIT_NONE || len != 2)
 		{
 			return(MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO);
 		}

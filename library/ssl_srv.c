@@ -1751,7 +1751,7 @@ read_record_header:
 
 #if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
 			case MBEDTLS_TLS_EXT_RECORD_SIZE_LIMIT:
-				MBEDTLS_SSL_DEBUG_MSG(3, ("found record_size_limit extension"));
+				MBEDTLS_SSL_DEBUG_MSG(3, ("found record size limit extension"));
 
 				ret = ssl_parse_record_size_limit_ext(ssl, ext + 4, ext_size);
 				if (ret != 0)

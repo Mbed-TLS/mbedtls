@@ -133,6 +133,9 @@
 #define MBEDTLS_SSL_MAX_FRAG_LEN_4096           4   /*!< MaxFragmentLength 2^12     */
 #define MBEDTLS_SSL_MAX_FRAG_LEN_INVALID        5   /*!< first invalid value        */
 
+/* Record Size Limit Extension */
+#define MBEDTLS_SSL_RECORD_SIZE_LIMIT_NONE           0   /*!< don't use this extension   */
+
 #define MBEDTLS_SSL_IS_CLIENT                   0
 #define MBEDTLS_SSL_IS_SERVER                   1
 

@@ -90,7 +90,7 @@ int main( void )
 #define DFL_SHA1                -1
 #define DFL_AUTH_MODE           -1
 #define DFL_MFL_CODE            MBEDTLS_SSL_MAX_FRAG_LEN_NONE
-#define DFL_RSL                 0 
+#define DFL_RSL                 MBEDTLS_SSL_RECORD_SIZE_LIMIT_NONE 
 #define DFL_TRUNC_HMAC          -1
 #define DFL_RECSPLIT            -1
 #define DFL_DHMLEN              -1
@@ -160,7 +160,7 @@ int main( void )
 
 #if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT )
 #define USAGE_RECORD_SIZE_LIMIT                                      \
-    "    record_size_limit=%%d     default: 16384 (tls default)\n"  
+    "    record_size_limit=%%d     default: 0 (extension not used)\n"  
 #else
 #define USAGE_RECORD_SIZE_LIMIT ""
 #endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
@@ -822,7 +822,8 @@ int main( int argc, char *argv[] )
         }
 		else if ( strcmp( p, "record_size_limit" ) == 0 )
 		{
-			opt.rsl = atoi(q); 
+			opt.rsl = atoi(q);
+			if (opt.rsl < 0 || opt.rsl> 16384) goto usage; 
 		} 
         else if( strcmp( p, "max_frag_len" ) == 0 )
         {
@@ -1436,8 +1437,13 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT )
-	mbedtls_printf("    [ Record Size Limit is %u bytes ]\n",
-		(unsigned int)mbedtls_ssl_get_record_size_limit(&ssl));
+	if ((unsigned int)mbedtls_ssl_get_record_size_limit(&ssl) == MBEDTLS_SSL_RECORD_SIZE_LIMIT_NONE) {
+		mbedtls_printf("    [ Record Size Limit has not been negotiated ]\n");
+	}
+	else {
+		mbedtls_printf("    [ Record Size Limit is %u bytes ]\n",
+			(unsigned int)mbedtls_ssl_get_record_size_limit(&ssl));
+	}
 #endif
 
 #if defined(MBEDTLS_SSL_ALPN)
@@ -1638,7 +1644,7 @@ send_request:
     }
     while( 1 );
 
-	mbedtls_printf("  < Read from server:  %d bytes read",read);
+	mbedtls_printf("  < Read from server:  %d bytes read\n",read);
 	fflush(stdout);
     /*
      * 7b. Simulate hard reset and reconnect from same port?

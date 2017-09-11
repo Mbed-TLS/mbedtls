@@ -7234,7 +7234,7 @@ static int ssl_write_real( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT )
 	max_len = ssl->session->record_size_limit_send;
 
-	if (len > max_len && max_len > MBEDTLS_SSL_RECORD_SIZE_LIMIT_NONE)
+	if (len > max_len) && (max_len != MBEDTLS_SSL_RECORD_SIZE_LIMIT_NONE))
 	{
 		MBEDTLS_SSL_DEBUG_MSG(3, ("fragment larger than the negotiated record size limit "
 			"record size limit: %d > %d", len, max_len ) );

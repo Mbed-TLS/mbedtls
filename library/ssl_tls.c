@@ -139,13 +139,15 @@ static void ssl_reset_retransmit_timeout( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
 int mbedtls_ssl_conf_record_size_limit(mbedtls_ssl_config *conf, uint16_t rsl)
 {
-	if (rsl <= 64 || rsl > MBEDTLS_SSL_MAX_CONTENT_LEN)
+
+	if (((rsl > 0) && (rsl <= 64)) || (rsl > MBEDTLS_SSL_MAX_CONTENT_LEN))
 	{
+		// disable use of record size limit functionality
+		conf->record_size_limit = 0;
 		return(MBEDTLS_ERR_SSL_BAD_INPUT_DATA);
 	}
 
 	conf->record_size_limit = rsl;
-
 	return(0);
 }
 #endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */

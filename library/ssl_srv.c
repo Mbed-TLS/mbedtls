@@ -2559,7 +2559,11 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 	 * maximum fragment length extension following a successfully
 	 * written record size limit extension.
 	 */
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
 	if (ssl->session_negotiate->record_size_limit_send == 0) {
+#else 
+		{
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 		ssl_write_max_fragment_length_ext(ssl, p + 2 + ext_len, &olen);
 		ext_len += olen;
 	}

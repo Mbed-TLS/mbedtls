@@ -55,20 +55,6 @@
  */
 #define MBEDTLS_HAVE_ASM
 
- /**
- * \def MBEDTLS_OMIT_CA_LIST
- *
- * When enabled, transmits an empty certificate_authorities field
- * in the CertificateRequest message. 
- * 
- * When disable, the certificate_authorities field contains a list 
- * of the distinguished names of acceptable CAs.
- *
- * Used in:
- *      library/ssl_srv.c
- *
- */
-#define MBEDTLS_OMIT_CA_LIST
 /**
  * \def MBEDTLS_NO_UDBL_DIVISION
  *

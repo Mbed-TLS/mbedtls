@@ -1228,6 +1228,12 @@ int main( int argc, char *argv[] )
             if( ( opt.auth_mode = get_auth_mode( q ) ) < 0 )
                 goto usage;
         }
+		else if( strcmp( p, "cert_req_ca_list" ) == 0 )
+		{
+			opt.cert_req_ca_list = atoi(q);
+			if( opt.cert_req_ca_list < 0 || opt.cert_req_ca_list > 1 )
+				goto usage;
+		}
 		else if (strcmp(p, "record_size_limit") == 0)
 		{
 			opt.rsl = atoi(q);

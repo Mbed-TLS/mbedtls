@@ -390,16 +390,21 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx, unsigned char *buf, 
     /*
      *  Version  ::=  INTEGER  {  v1(0), v2(1), v3(2)  }
      */
-    sub_len = 0;
-    MBEDTLS_ASN1_CHK_ADD( sub_len, mbedtls_asn1_write_int( &c, tmp_buf, ctx->version ) );
-    len += sub_len;
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, tmp_buf, sub_len ) );
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &c, tmp_buf, MBEDTLS_ASN1_CONTEXT_SPECIFIC |
-                                                    MBEDTLS_ASN1_CONSTRUCTED | 0 ) );
+
+    /* Can be omitted for v1 */
+    if( ctx->version > 0 )
+    {
+        sub_len = 0;
+        MBEDTLS_ASN1_CHK_ADD( sub_len, mbedtls_asn1_write_int( &c, tmp_buf, ctx->version ) );
+        len += sub_len;
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, tmp_buf, sub_len ) );
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &c, tmp_buf, MBEDTLS_ASN1_CONTEXT_SPECIFIC |
+                                                           MBEDTLS_ASN1_CONSTRUCTED | 0 ) );
+    }
 
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, tmp_buf, len ) );
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &c, tmp_buf, MBEDTLS_ASN1_CONSTRUCTED |
-                                                    MBEDTLS_ASN1_SEQUENCE ) );
+                                                       MBEDTLS_ASN1_SEQUENCE ) );
 
     /*
      * Make signature

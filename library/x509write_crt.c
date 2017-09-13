@@ -313,9 +313,15 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx, unsigned char *buf, 
     c = tmp_buf + sizeof( tmp_buf );
 
     /* Signature algorithm needed in TBS, and later for actual signature */
-    pk_alg = mbedtls_pk_get_type( ctx->issuer_key );
-    if( pk_alg == MBEDTLS_PK_ECKEY )
+
+    /* There's no direct way of extracting a signature algorithm
+     * (represented as an element of mbedtls_pk_type_t) from a PK instance. */
+    if( mbedtls_pk_can_do( ctx->issuer_key, MBEDTLS_PK_RSA ) )
+        pk_alg = MBEDTLS_PK_RSA;
+    else if( mbedtls_pk_can_do( ctx->issuer_key, MBEDTLS_PK_ECDSA ) )
         pk_alg = MBEDTLS_PK_ECDSA;
+    else
+        pk_alg = MBEDTLS_PK_NONE;
 
     if( ( ret = mbedtls_oid_get_oid_by_sig_alg( pk_alg, ctx->md_alg,
                                         &sig_oid, &sig_oid_len ) ) != 0 )

@@ -2927,19 +2927,41 @@ void mbedtls_ssl_send_flight_completed( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
 /*
- * Record layer functions
+ * Handshake layer functions
  */
 
 /*
- * Write current record.
- * Uses ssl->out_msgtype, ssl->out_msglen and bytes at ssl->out_msg.
+ * Write current handshake (including CCS) message.
+ *
+ *  - fill in handshake headers
+ *  - update handshake checksum
+ *  - DTLS: save message for resending
+ *  - then pass to the record layer
+ *
+ * Inputs:
+ *  - ssl->out_msglen: 4 + actual handshake message len
+ *      (4 is the size of handshake headers for TLS)
+ *  - ssl->out_msg[0]: the handshake type (ClientHello, ServerHello, etc)
+ *  - ssl->out_msg + 4: the handshake message body
+ *
+ *  Outputs:
+ *   - ssl->out_msglen: the length of the record contents
+ *      (including handshake headers but excluding record headers)
+ *   - ssl->out_msg: the record contents (handshake headers + content)
  */
-int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl )
+int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
 {
-    int ret, done = 0, out_msg_type;
+    int ret, out_msg_type;
     size_t len = ssl->out_msglen;
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write record" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write handshake message" ) );
+
+    if( ssl->out_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE &&
+        ssl->out_msgtype != MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
@@ -3027,6 +3049,32 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl )
         }
     }
 #endif
+
+    ret = mbedtls_ssl_write_record( ssl );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write handshake message" ) );
+
+    return( ret );
+}
+
+/*
+ * Record layer functions
+ */
+
+/*
+ * Write current record.
+ *
+ * Uses:
+ *  - ssl->out_msgtype: type of the message (AppData, Handshake, Alert, CCS)
+ *  - ssl->out_msglen: length of the record content (excl headers)
+ *  - ssl->out_msg: record content
+ */
+int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl )
+{
+    int ret, done = 0;
+    size_t len = ssl->out_msglen;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write record" ) );
 
 #if defined(MBEDTLS_ZLIB_SUPPORT)
     if( ssl->transform_out != NULL &&
@@ -4542,9 +4590,9 @@ write_msg:
 
     ssl->state++;
 
-    if( ( ret = mbedtls_ssl_write_record( ssl ) ) != 0 )
+    if( ( ret = mbedtls_ssl_write_handshake_msg( ssl ) ) != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_handshake_msg", ret );
         return( ret );
     }
 
@@ -4955,9 +5003,9 @@ int mbedtls_ssl_write_change_cipher_spec( mbedtls_ssl_context *ssl )
 
     ssl->state++;
 
-    if( ( ret = mbedtls_ssl_write_record( ssl ) ) != 0 )
+    if( ( ret = mbedtls_ssl_write_handshake_msg( ssl ) ) != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_handshake_msg", ret );
         return( ret );
     }
 
@@ -5583,9 +5631,9 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
         mbedtls_ssl_send_flight_completed( ssl );
 #endif
 
-    if( ( ret = mbedtls_ssl_write_record( ssl ) ) != 0 )
+    if( ( ret = mbedtls_ssl_write_handshake_msg( ssl ) ) != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_handshake_msg", ret );
         return( ret );
     }
 
@@ -6984,9 +7032,9 @@ static int ssl_write_hello_request( mbedtls_ssl_context *ssl )
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = MBEDTLS_SSL_HS_HELLO_REQUEST;
 
-    if( ( ret = mbedtls_ssl_write_record( ssl ) ) != 0 )
+    if( ( ret = mbedtls_ssl_write_handshake_msg( ssl ) ) != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_handshake_msg", ret );
         return( ret );
     }
 

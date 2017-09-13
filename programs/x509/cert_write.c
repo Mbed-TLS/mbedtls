@@ -60,9 +60,9 @@ int main( void )
 
 #if defined(MBEDTLS_X509_CSR_PARSE_C)
 #define USAGE_CSR                                                           \
-    "    request_file=%%s     default: (empty)\n"                           \
-    "                        If request_file is specified, subject_key,\n"  \
-    "                        subject_pwd and subject_name are ignored!\n"
+    "    request_file=%%s         default: (empty)\n"                           \
+    "                            If request_file is specified, subject_key,\n"  \
+    "                            subject_pwd and subject_name are ignored!\n"
 #else
 #define USAGE_CSR ""
 #endif /* MBEDTLS_X509_CSR_PARSE_C */
@@ -94,60 +94,60 @@ int main( void )
     "\n usage: cert_write param=<>...\n"                \
     "\n acceptable parameters:\n"                       \
     USAGE_CSR                                           \
-    "    subject_key=%%s      default: subject.key\n"   \
-    "    subject_pwd=%%s      default: (empty)\n"       \
-    "    subject_name=%%s     default: CN=Cert,O=mbed TLS,C=UK\n"   \
+    "    subject_key=%%s          default: subject.key\n"   \
+    "    subject_pwd=%%s          default: (empty)\n"       \
+    "    subject_name=%%s         default: CN=Cert,O=mbed TLS,C=UK\n"   \
     "\n"                                                \
-    "    issuer_crt=%%s       default: (empty)\n"       \
-    "                        If issuer_crt is specified, issuer_name is\n"  \
-    "                        ignored!\n"                \
-    "    issuer_name=%%s      default: CN=CA,O=mbed TLS,C=UK\n"     \
+    "    issuer_crt=%%s           default: (empty)\n"       \
+    "                            If issuer_crt is specified, issuer_name is\n"  \
+    "                            ignored!\n"                \
+    "    issuer_name=%%s          default: CN=CA,O=mbed TLS,C=UK\n"     \
     "\n"                                                \
-    "    selfsign=%%d         default: 0 (false)\n"     \
-    "                        If selfsign is enabled, issuer_name and\n" \
-    "                        issuer_key are required (issuer_crt and\n" \
-    "                        subject_* are ignored\n"   \
-    "    issuer_key=%%s       default: ca.key\n"        \
-    "    issuer_pwd=%%s       default: (empty)\n"       \
-    "    output_file=%%s      default: cert.crt\n"      \
-    "    serial=%%s           default: 1\n"             \
-    "    not_before=%%s       default: 20010101000000\n"\
-    "    not_after=%%s        default: 20301231235959\n"\
-    "    is_ca=%%d            default: 0 (disabled)\n"  \
-    "    max_pathlen=%%d      default: -1 (none)\n"     \
-    "    md=%%s               default: SHA256\n"        \
-    "                        Supported values:\n"       \
-    "                        MD5, SHA1, SHA256, SHA512\n"\
-    "    version=%%d           default: 3\n"            \
-    "                        Possible values: 1, 2, 3\n"\
-    "    subject_identifier   default: 1\n"             \
-    "                        Possible values: 0, 1\n"   \
-    "                        (Considered for v3 only)\n"\
-    "    authority_identifier default: 1\n"             \
-    "                        Possible values: 0, 1\n"   \
-    "                        (Considered for v3 only)\n"\
-    "    basic_constraints    default: 1\n"             \
-    "                        Possible values: 0, 1\n"   \
-    "                        (Considered for v3 only)\n"\
-    "    key_usage=%%s        default: (empty)\n"       \
-    "                        Comma-separated-list of values:\n"     \
-    "                          digital_signature\n"     \
-    "                          non_repudiation\n"       \
-    "                          key_encipherment\n"      \
-    "                          data_encipherment\n"     \
-    "                          key_agreement\n"         \
-    "                          key_cert_sign\n"  \
-    "                          crl_sign\n"              \
-    "                        (Considered for v3 only)\n"\
-    "    ns_cert_type=%%s     default: (empty)\n"       \
-    "                        Comma-separated-list of values:\n"     \
-    "                          ssl_client\n"            \
-    "                          ssl_server\n"            \
-    "                          email\n"                 \
-    "                          object_signing\n"        \
-    "                          ssl_ca\n"                \
-    "                          email_ca\n"              \
-    "                          object_signing_ca\n"     \
+    "    selfsign=%%d             default: 0 (false)\n"     \
+    "                            If selfsign is enabled, issuer_name and\n" \
+    "                            issuer_key are required (issuer_crt and\n" \
+    "                            subject_* are ignored\n"   \
+    "    issuer_key=%%s           default: ca.key\n"        \
+    "    issuer_pwd=%%s           default: (empty)\n"       \
+    "    output_file=%%s          default: cert.crt\n"      \
+    "    serial=%%s               default: 1\n"             \
+    "    not_before=%%s           default: 20010101000000\n"\
+    "    not_after=%%s            default: 20301231235959\n"\
+    "    is_ca=%%d                default: 0 (disabled)\n"  \
+    "    max_pathlen=%%d          default: -1 (none)\n"     \
+    "    md=%%s                   default: SHA256\n"        \
+    "                            Supported values:\n"       \
+    "                            MD5, SHA1, SHA256, SHA512\n"\
+    "    version=%%d              default: 3\n"            \
+    "                            Possible values: 1, 2, 3\n"\
+    "    subject_identifier=%%s   default: 1\n"             \
+    "                            Possible values: 0, 1\n"   \
+    "                            (Considered for v3 only)\n"\
+    "    authority_identifier=%%s default: 1\n"             \
+    "                            Possible values: 0, 1\n"   \
+    "                            (Considered for v3 only)\n"\
+    "    basic_constraints=%%d    default: 1\n"             \
+    "                            Possible values: 0, 1\n"   \
+    "                            (Considered for v3 only)\n"\
+    "    key_usage=%%s            default: (empty)\n"       \
+    "                            Comma-separated-list of values:\n"     \
+    "                            digital_signature\n"     \
+    "                            non_repudiation\n"       \
+    "                            key_encipherment\n"      \
+    "                            data_encipherment\n"     \
+    "                            key_agreement\n"         \
+    "                            key_cert_sign\n"  \
+    "                            crl_sign\n"              \
+    "                            (Considered for v3 only)\n"\
+    "    ns_cert_type=%%s         default: (empty)\n"       \
+    "                            Comma-separated-list of values:\n"     \
+    "                            ssl_client\n"            \
+    "                            ssl_server\n"            \
+    "                            email\n"                 \
+    "                            object_signing\n"        \
+    "                            ssl_ca\n"                \
+    "                            email_ca\n"              \
+    "                            object_signing_ca\n"     \
     "\n"
 
 /*
@@ -189,7 +189,8 @@ int write_certificate( mbedtls_x509write_cert *crt, const char *output_file,
     size_t len = 0;
 
     memset( output_buf, 0, 4096 );
-    if( ( ret = mbedtls_x509write_crt_pem( crt, output_buf, 4096, f_rng, p_rng ) ) < 0 )
+    if( ( ret = mbedtls_x509write_crt_pem( crt, output_buf, 4096,
+                                           f_rng, p_rng ) ) < 0 )
         return( ret );
 
     len = strlen( (char *) output_buf );
@@ -452,7 +453,8 @@ int main( int argc, char *argv[] )
                                strlen( pers ) ) ) != 0 )
     {
         mbedtls_strerror( ret, buf, 1024 );
-        mbedtls_printf( " failed\n  !  mbedtls_ctr_drbg_seed returned %d - %s\n", ret, buf );
+        mbedtls_printf( " failed\n  !  mbedtls_ctr_drbg_seed returned %d - %s\n",
+                        ret, buf );
         goto exit;
     }
 
@@ -466,7 +468,8 @@ int main( int argc, char *argv[] )
     if( ( ret = mbedtls_mpi_read_string( &serial, 10, opt.serial ) ) != 0 )
     {
         mbedtls_strerror( ret, buf, 1024 );
-        mbedtls_printf( " failed\n  !  mbedtls_mpi_read_string returned -0x%02x - %s\n\n", -ret, buf );
+        mbedtls_printf( " failed\n  !  mbedtls_mpi_read_string "
+                        "returned -0x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
 
@@ -485,7 +488,8 @@ int main( int argc, char *argv[] )
         if( ( ret = mbedtls_x509_crt_parse_file( &issuer_crt, opt.issuer_crt ) ) != 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
-            mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse_file returned -0x%02x - %s\n\n", -ret, buf );
+            mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse_file "
+                            "returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
 
@@ -494,7 +498,8 @@ int main( int argc, char *argv[] )
         if( ret < 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
-            mbedtls_printf( " failed\n  !  mbedtls_x509_dn_gets returned -0x%02x - %s\n\n", -ret, buf );
+            mbedtls_printf( " failed\n  !  mbedtls_x509_dn_gets "
+                            "returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
 
@@ -517,7 +522,8 @@ int main( int argc, char *argv[] )
         if( ( ret = mbedtls_x509_csr_parse_file( &csr, opt.request_file ) ) != 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
-            mbedtls_printf( " failed\n  !  mbedtls_x509_csr_parse_file returned -0x%02x - %s\n\n", -ret, buf );
+            mbedtls_printf( " failed\n  !  mbedtls_x509_csr_parse_file "
+                            "returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
 
@@ -526,7 +532,8 @@ int main( int argc, char *argv[] )
         if( ret < 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
-            mbedtls_printf( " failed\n  !  mbedtls_x509_dn_gets returned -0x%02x - %s\n\n", -ret, buf );
+            mbedtls_printf( " failed\n  !  mbedtls_x509_dn_gets "
+                            "returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
 
@@ -550,7 +557,8 @@ int main( int argc, char *argv[] )
         if( ret != 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
-            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile returned -0x%02x - %s\n\n", -ret, buf );
+            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile "
+                            "returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
 
@@ -565,7 +573,8 @@ int main( int argc, char *argv[] )
     if( ret != 0 )
     {
         mbedtls_strerror( ret, buf, 1024 );
-        mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile returned -x%02x - %s\n\n", -ret, buf );
+        mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile "
+                        "returned -x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
 
@@ -579,7 +588,8 @@ int main( int argc, char *argv[] )
             mbedtls_mpi_cmp_mpi( &mbedtls_pk_rsa( issuer_crt.pk )->E,
                          &mbedtls_pk_rsa( *issuer_key )->E ) != 0 )
         {
-            mbedtls_printf( " failed\n  !  issuer_key does not match issuer certificate\n\n" );
+            mbedtls_printf( " failed\n  !  issuer_key does not match "
+                            "issuer certificate\n\n" );
             ret = -1;
             goto exit;
         }
@@ -602,14 +612,16 @@ int main( int argc, char *argv[] )
     if( ( ret = mbedtls_x509write_crt_set_subject_name( &crt, opt.subject_name ) ) != 0 )
     {
         mbedtls_strerror( ret, buf, 1024 );
-        mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_subject_name returned -0x%02x - %s\n\n", -ret, buf );
+        mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_subject_name "
+                        "returned -0x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
 
     if( ( ret = mbedtls_x509write_crt_set_issuer_name( &crt, opt.issuer_name ) ) != 0 )
     {
         mbedtls_strerror( ret, buf, 1024 );
-        mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_issuer_name returned -0x%02x - %s\n\n", -ret, buf );
+        mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_issuer_name "
+                        "returned -0x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
 
@@ -623,7 +635,8 @@ int main( int argc, char *argv[] )
     if( ret != 0 )
     {
         mbedtls_strerror( ret, buf, 1024 );
-        mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_serial returned -0x%02x - %s\n\n", -ret, buf );
+        mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_serial "
+                        "returned -0x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
 
@@ -631,7 +644,8 @@ int main( int argc, char *argv[] )
     if( ret != 0 )
     {
         mbedtls_strerror( ret, buf, 1024 );
-        mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_validity returned -0x%02x - %s\n\n", -ret, buf );
+        mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_validity "
+                        "returned -0x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
 
@@ -702,7 +716,8 @@ int main( int argc, char *argv[] )
         if( ret != 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
-            mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_key_usage returned -0x%02x - %s\n\n", -ret, buf );
+            mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_key_usage "
+                            "returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
 
@@ -718,7 +733,8 @@ int main( int argc, char *argv[] )
         if( ret != 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
-            mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_ns_cert_type returned -0x%02x - %s\n\n", -ret, buf );
+            mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_ns_cert_type "
+                            "returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
 
@@ -735,7 +751,8 @@ int main( int argc, char *argv[] )
                                    mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
         mbedtls_strerror( ret, buf, 1024 );
-        mbedtls_printf( " failed\n  !  write_certifcate -0x%02x - %s\n\n", -ret, buf );
+        mbedtls_printf( " failed\n  !  write_certificate -0x%02x - %s\n\n",
+                        -ret, buf );
         goto exit;
     }
 

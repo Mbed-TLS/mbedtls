@@ -114,7 +114,7 @@ server1.v1.der: server1.v1.crt
 all_final += server1.v1.crt server1.v1.der
 
 # OpenSSL-generated certificates for comparison
-# Also provide certificates to DER format to allow
+# Also provide certificates in DER format to allow
 # direct binary comparison using e.g. dumpasn1
 server1.crt.openssl server1.key_usage.crt.openssl server1.cert_type.crt.openssl: server1.key server1.csr $(test_ca_crt) $(test_ca_key_file_rsa) $(test_ca_server1_config_file)
 	echo "01" > $(test_ca_server1_serial)

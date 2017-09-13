@@ -2852,16 +2852,23 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "initialise fligh transmission" ) );
 
         ssl->handshake->cur_msg = ssl->handshake->flight;
+        ssl->handshake->cur_msg_p = ssl->handshake->flight->p + 12;
         ssl_swap_epochs( ssl );
 
         ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_SENDING;
     }
 
+    /*
+     * XXX: this should not be hardcoded.
+     * Currently UDP limit - HS header - Record header
+     * (Should account for encryption overhead (renegotiation, finished)?)
+     */
+#define HS_LIMIT    ( 512 - 12 - 13 )
+
     while( ssl->handshake->cur_msg != NULL )
     {
         int ret;
-        mbedtls_ssl_flight_item *cur = ssl->handshake->cur_msg;
-
+        const mbedtls_ssl_flight_item * const cur = ssl->handshake->cur_msg;
         /* Swap epochs before sending Finished: we can't do it after
          * sending ChangeCipherSpec, in case write returns WANT_READ.
          * Must be done before copying, may change out_msg pointer */
@@ -2871,14 +2878,64 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
             ssl_swap_epochs( ssl );
         }
 
-        memcpy( ssl->out_msg, cur->p, cur->len );
-        ssl->out_msglen = cur->len;
-        ssl->out_msgtype = cur->type;
+        /* CCS is copied as is, while HS messages may need fragmentation */
+        if( cur->type == MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC )
+        {
+            memcpy( ssl->out_msg, cur->p, cur->len );
+            ssl->out_msglen = cur->len;
+            ssl->out_msgtype = cur->type;
 
-        ssl->handshake->cur_msg = cur->next;
+            /* Update position inside current message */
+            ssl->handshake->cur_msg_p += cur->len;
+        }
+        else
+        {
+            const unsigned char * const p = ssl->handshake->cur_msg_p;
+            const size_t hs_len = cur->len - 12;
+            const size_t frag_off = p - ( cur->p + 12 );
+            const size_t rem_len = hs_len - frag_off;
+            const size_t frag_len = rem_len > HS_LIMIT ? HS_LIMIT : rem_len;
 
-        MBEDTLS_SSL_DEBUG_BUF( 3, "handshake header", ssl->out_msg, 12 );
+            /* Messages are stored with handshake headers as if not fragmented,
+             * copy beginning of headers then fill fragmentation fields.
+             * Handshake headers: type(1) len(3) seq(2) f_off(3) f_len(3) */
+            memcpy( ssl->out_msg, cur->p, 6 );
 
+            ssl->out_msg[6] = ( ( frag_off >> 16 ) & 0xff );
+            ssl->out_msg[7] = ( ( frag_off >>  8 ) & 0xff );
+            ssl->out_msg[8] = ( ( frag_off       ) & 0xff );
+
+            ssl->out_msg[ 9] = ( ( frag_len >> 16 ) & 0xff );
+            ssl->out_msg[10] = ( ( frag_len >>  8 ) & 0xff );
+            ssl->out_msg[11] = ( ( frag_len       ) & 0xff );
+
+            MBEDTLS_SSL_DEBUG_BUF( 3, "handshake header", ssl->out_msg, 12 );
+
+            /* Copy the handshame message content and set records fields */
+            memcpy( ssl->out_msg + 12, p, frag_len );
+            ssl->out_msglen = frag_len + 12;
+            ssl->out_msgtype = cur->type;
+
+            /* Update position inside current message */
+            ssl->handshake->cur_msg_p += frag_len;
+        }
+
+        /* If done with the current message move to the next one if any */
+        if( ssl->handshake->cur_msg_p >= cur->p + cur->len )
+        {
+            if( cur->next != NULL )
+            {
+                ssl->handshake->cur_msg = cur->next;
+                ssl->handshake->cur_msg_p = cur->next->p + 12;
+            }
+            else
+            {
+                ssl->handshake->cur_msg = NULL;
+                ssl->handshake->cur_msg_p = NULL;
+            }
+        }
+
+        /* Actually send the message out */
         if( ( ret = mbedtls_ssl_write_record( ssl ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
@@ -2886,6 +2943,7 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
         }
     }
 
+    /* Update state and set timer */
     if( ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER )
         ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_FINISHED;
     else

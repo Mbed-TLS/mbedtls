@@ -51,7 +51,7 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 
 void mbedtls_x509write_crt_init( mbedtls_x509write_cert *ctx )
 {
-    memset( ctx, 0, sizeof(mbedtls_x509write_cert) );
+    memset( ctx, 0, sizeof( mbedtls_x509write_cert ) );
 
     mbedtls_mpi_init( &ctx->serial );
     ctx->version = MBEDTLS_X509_CRT_VERSION_3;
@@ -65,7 +65,7 @@ void mbedtls_x509write_crt_free( mbedtls_x509write_cert *ctx )
     mbedtls_asn1_free_named_data_list( &ctx->issuer );
     mbedtls_asn1_free_named_data_list( &ctx->extensions );
 
-    mbedtls_zeroize( ctx, sizeof(mbedtls_x509write_cert) );
+    mbedtls_zeroize( ctx, sizeof( mbedtls_x509write_cert ) );
 }
 
 void mbedtls_x509write_crt_set_version( mbedtls_x509write_cert *ctx, int version )
@@ -193,14 +193,14 @@ int mbedtls_x509write_crt_set_authority_key_identifier( mbedtls_x509write_cert *
 {
     int ret;
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE * 2 + 20]; /* tag, length + 2xMPI */
-    unsigned char *c = buf + sizeof(buf);
+    unsigned char *c = buf + sizeof( buf );
     size_t len = 0;
 
     memset( buf, 0, sizeof(buf) );
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_pk_write_pubkey( &c, buf, ctx->issuer_key ) );
 
-    mbedtls_sha1( buf + sizeof(buf) - len, len, buf + sizeof(buf) - 20 );
-    c = buf + sizeof(buf) - 20;
+    mbedtls_sha1( buf + sizeof( buf ) - len, len, buf + sizeof( buf ) - 20 );
+    c = buf + sizeof( buf ) - 20;
     len = 20;
 
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, buf, len ) );
@@ -212,7 +212,7 @@ int mbedtls_x509write_crt_set_authority_key_identifier( mbedtls_x509write_cert *
 
     return mbedtls_x509write_crt_set_extension( ctx, MBEDTLS_OID_AUTHORITY_KEY_IDENTIFIER,
                                    MBEDTLS_OID_SIZE( MBEDTLS_OID_AUTHORITY_KEY_IDENTIFIER ),
-                                   0, buf + sizeof(buf) - len, len );
+                                   0, buf + sizeof( buf ) - len, len );
 }
 #endif /* MBEDTLS_SHA1_C */
 
@@ -324,7 +324,7 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx, unsigned char *buf, 
         pk_alg = MBEDTLS_PK_NONE;
 
     if( ( ret = mbedtls_oid_get_oid_by_sig_alg( pk_alg, ctx->md_alg,
-                                        &sig_oid, &sig_oid_len ) ) != 0 )
+                                          &sig_oid, &sig_oid_len ) ) != 0 )
     {
         return( ret );
     }

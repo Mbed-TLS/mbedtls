@@ -50,7 +50,7 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 
 void mbedtls_x509write_csr_init( mbedtls_x509write_csr *ctx )
 {
-    memset( ctx, 0, sizeof(mbedtls_x509write_csr) );
+    memset( ctx, 0, sizeof( mbedtls_x509write_csr ) );
 }
 
 void mbedtls_x509write_csr_free( mbedtls_x509write_csr *ctx )
@@ -58,7 +58,7 @@ void mbedtls_x509write_csr_free( mbedtls_x509write_csr *ctx )
     mbedtls_asn1_free_named_data_list( &ctx->subject );
     mbedtls_asn1_free_named_data_list( &ctx->extensions );
 
-    mbedtls_zeroize( ctx, sizeof(mbedtls_x509write_csr) );
+    mbedtls_zeroize( ctx, sizeof( mbedtls_x509write_csr ) );
 }
 
 void mbedtls_x509write_csr_set_md_alg( mbedtls_x509write_csr *ctx, mbedtls_md_type_t md_alg )

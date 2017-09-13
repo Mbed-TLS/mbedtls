@@ -54,6 +54,7 @@ int main( void )
 #include "polarssl/x509_csr.h"
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
+#include "polarssl/md.h"
 #include "polarssl/error.h"
 
 #include <stdio.h>
@@ -86,6 +87,11 @@ int main( void )
 #define DFL_MAX_PATHLEN         -1
 #define DFL_KEY_USAGE           0
 #define DFL_NS_CERT_TYPE        0
+#define DFL_VERSION             3
+#define DFL_AUTH_IDENT          1
+#define DFL_SUBJ_IDENT          1
+#define DFL_CONSTRAINTS         1
+#define DFL_DIGEST              POLARSSL_MD_SHA256
 
 #define USAGE \
     "\n usage: cert_write param=<>...\n"                \
@@ -112,6 +118,20 @@ int main( void )
     "    not_after=%%s        default: 20301231235959\n"\
     "    is_ca=%%d            default: 0 (disabled)\n"  \
     "    max_pathlen=%%d      default: -1 (none)\n"     \
+    "    md=%%s               default: SHA256\n"        \
+    "                        Supported values:\n"       \
+    "                        MD5, SHA1, SHA256, SHA512\n"\
+    "    version=%%d           default: 3\n"            \
+    "                        Possible values: 1, 2, 3\n"\
+    "    subject_identifier   default: 1\n"             \
+    "                        Possible values: 0, 1\n"   \
+    "                        (Considered for v3 only)\n"\
+    "    authority_identifier default: 1\n"             \
+    "                        Possible values: 0, 1\n"   \
+    "                        (Considered for v3 only)\n"\
+    "    basic_constraints    default: 1\n"             \
+    "                        Possible values: 0, 1\n"   \
+    "                        (Considered for v3 only)\n"\
     "    key_usage=%%s        default: (empty)\n"       \
     "                        Comma-separated-list of values:\n"     \
     "                          digital_signature\n"     \
@@ -121,6 +141,7 @@ int main( void )
     "                          key_agreement\n"         \
     "                          key_certificate_sign\n"  \
     "                          crl_sign\n"              \
+    "                        (Considered for v3 only)\n"\
     "    ns_cert_type=%%s     default: (empty)\n"       \
     "                        Comma-separated-list of values:\n"     \
     "                          ssl_client\n"            \
@@ -152,6 +173,11 @@ struct options
     int selfsign;               /* selfsign the certificate             */
     int is_ca;                  /* is a CA certificate                  */
     int max_pathlen;            /* maximum CA path length               */
+    int authority_identifier;   /* add authority identifier to CRT      */
+    int subject_identifier;     /* add subject identifier to CRT        */
+    int basic_constraints;      /* add basic constraints ext to CRT     */
+    int version;                /* CRT version                          */
+    md_type_t md;               /* Hash used for signing                */
     unsigned char key_usage;    /* key usage flags                      */
     unsigned char ns_cert_type; /* NS cert type                         */
 } opt;
@@ -246,6 +272,11 @@ int main( int argc, char *argv[] )
     opt.max_pathlen         = DFL_MAX_PATHLEN;
     opt.key_usage           = DFL_KEY_USAGE;
     opt.ns_cert_type        = DFL_NS_CERT_TYPE;
+    opt.version             = DFL_VERSION - 1;
+    opt.md                  = DFL_DIGEST;
+    opt.subject_identifier   = DFL_SUBJ_IDENT;
+    opt.authority_identifier = DFL_AUTH_IDENT;
+    opt.basic_constraints    = DFL_CONSTRAINTS;
 
     for( i = 1; i < argc; i++ )
     {
@@ -289,23 +320,88 @@ int main( int argc, char *argv[] )
         {
             opt.serial = q;
         }
+        else if( strcmp( p, "authority_identifier" ) == 0 )
+        {
+            opt.authority_identifier = atoi( q );
+            if( opt.authority_identifier != 0 &&
+                opt.authority_identifier != 1 )
+            {
+                polarssl_printf( "Invalid argument for option %s\n", p );
+                goto usage;
+            }
+        }
+        else if( strcmp( p, "subject_identifier" ) == 0 )
+        {
+            opt.subject_identifier = atoi( q );
+            if( opt.subject_identifier != 0 &&
+                opt.subject_identifier != 1 )
+            {
+                polarssl_printf( "Invalid argument for option %s\n", p );
+                goto usage;
+            }
+        }
+        else if( strcmp( p, "basic_constraints" ) == 0 )
+        {
+            opt.basic_constraints = atoi( q );
+            if( opt.basic_constraints != 0 &&
+                opt.basic_constraints != 1 )
+            {
+                polarssl_printf( "Invalid argument for option %s\n", p );
+                goto usage;
+            }
+        }
+        else if( strcmp( p, "md" ) == 0 )
+        {
+            if( strcmp( q, "SHA1" ) == 0 )
+                opt.md = POLARSSL_MD_SHA1;
+            else if( strcmp( q, "SHA256" ) == 0 )
+                opt.md = POLARSSL_MD_SHA256;
+            else if( strcmp( q, "SHA512" ) == 0 )
+                opt.md = POLARSSL_MD_SHA512;
+            else if( strcmp( q, "MD5" ) == 0 )
+                opt.md = POLARSSL_MD_MD5;
+            else
+            {
+                polarssl_printf( "Invalid argument for option %s\n", p );
+                goto usage;
+            }
+        }
+        else if( strcmp( p, "version" ) == 0 )
+        {
+            opt.version = atoi( q );
+            if( opt.version < 1 || opt.version > 3 )
+            {
+                polarssl_printf( "Invalid argument for option %s\n", p );
+                goto usage;
+            }
+            opt.version--;
+        }
         else if( strcmp( p, "selfsign" ) == 0 )
         {
             opt.selfsign = atoi( q );
             if( opt.selfsign < 0 || opt.selfsign > 1 )
+            {
+                polarssl_printf( "Invalid argument for option %s\n", p );
                 goto usage;
+            }
         }
         else if( strcmp( p, "is_ca" ) == 0 )
         {
             opt.is_ca = atoi( q );
             if( opt.is_ca < 0 || opt.is_ca > 1 )
+            {
+                polarssl_printf( "Invalid argument for option %s\n", p );
                 goto usage;
+            }
         }
         else if( strcmp( p, "max_pathlen" ) == 0 )
         {
             opt.max_pathlen = atoi( q );
             if( opt.max_pathlen < -1 || opt.max_pathlen > 127 )
+            {
+                polarssl_printf( "Invalid argument for option %s\n", p );
                 goto usage;
+            }
         }
         else if( strcmp( p, "key_usage" ) == 0 )
         {
@@ -329,7 +425,10 @@ int main( int argc, char *argv[] )
                 else if( strcmp( q, "crl_sign" ) == 0 )
                     opt.key_usage |= KU_CRL_SIGN;
                 else
+                {
+                    polarssl_printf( "Invalid argument for option %s\n", p );
                     goto usage;
+                }
 
                 q = r;
             }
@@ -356,7 +455,10 @@ int main( int argc, char *argv[] )
                 else if( strcmp( q, "object_signing_ca" ) == 0 )
                     opt.ns_cert_type |= NS_CERT_TYPE_OBJECT_SIGNING_CA;
                 else
+                {
+                    polarssl_printf( "Invalid argument for option %s\n", p );
                     goto usage;
+                }
 
                 q = r;
             }
@@ -379,7 +481,8 @@ int main( int argc, char *argv[] )
                                strlen( pers ) ) ) != 0 )
     {
         polarssl_strerror( ret, buf, 1024 );
-        polarssl_printf( " failed\n  !  ctr_drbg_init returned %d - %s\n", ret, buf );
+        polarssl_printf( " failed\n  !  ctr_drbg_init "
+                         "returned %d - %s\n", ret, buf );
         goto exit;
     }
 
@@ -393,7 +496,8 @@ int main( int argc, char *argv[] )
     if( ( ret = mpi_read_string( &serial, 10, opt.serial ) ) != 0 )
     {
         polarssl_strerror( ret, buf, 1024 );
-        polarssl_printf( " failed\n  !  mpi_read_string returned -0x%02x - %s\n\n", -ret, buf );
+        polarssl_printf( " failed\n  !  mpi_read_string "
+                         "returned -0x%04x - %s\n\n", -ret, buf );
         goto exit;
     }
 
@@ -412,7 +516,8 @@ int main( int argc, char *argv[] )
         if( ( ret = x509_crt_parse_file( &issuer_crt, opt.issuer_crt ) ) != 0 )
         {
             polarssl_strerror( ret, buf, 1024 );
-            polarssl_printf( " failed\n  !  x509_crt_parse_file returned -0x%02x - %s\n\n", -ret, buf );
+            polarssl_printf( " failed\n  !  x509_crt_parse_file returned "
+                             "-0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }
 
@@ -421,7 +526,8 @@ int main( int argc, char *argv[] )
         if( ret < 0 )
         {
             polarssl_strerror( ret, buf, 1024 );
-            polarssl_printf( " failed\n  !  x509_dn_gets returned -0x%02x - %s\n\n", -ret, buf );
+            polarssl_printf( " failed\n  !  x509_dn_gets returned "
+                             "-0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }
 
@@ -444,7 +550,8 @@ int main( int argc, char *argv[] )
         if( ( ret = x509_csr_parse_file( &csr, opt.request_file ) ) != 0 )
         {
             polarssl_strerror( ret, buf, 1024 );
-            polarssl_printf( " failed\n  !  x509_csr_parse_file returned -0x%02x - %s\n\n", -ret, buf );
+            polarssl_printf( " failed\n  !  x509_csr_parse_file returned "
+                             "-0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }
 
@@ -453,7 +560,8 @@ int main( int argc, char *argv[] )
         if( ret < 0 )
         {
             polarssl_strerror( ret, buf, 1024 );
-            polarssl_printf( " failed\n  !  x509_dn_gets returned -0x%02x - %s\n\n", -ret, buf );
+            polarssl_printf( " failed\n  !  x509_dn_gets returned "
+                             "-0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }
 
@@ -477,7 +585,8 @@ int main( int argc, char *argv[] )
         if( ret != 0 )
         {
             polarssl_strerror( ret, buf, 1024 );
-            polarssl_printf( " failed\n  !  pk_parse_keyfile returned -0x%02x - %s\n\n", -ret, buf );
+            polarssl_printf( " failed\n  !  pk_parse_keyfile returned "
+                             "-0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }
 
@@ -492,7 +601,8 @@ int main( int argc, char *argv[] )
     if( ret != 0 )
     {
         polarssl_strerror( ret, buf, 1024 );
-        polarssl_printf( " failed\n  !  pk_parse_keyfile returned -x%02x - %s\n\n", -ret, buf );
+        polarssl_printf( " failed\n  !  pk_parse_keyfile returned "
+                         "-x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
 
@@ -506,7 +616,8 @@ int main( int argc, char *argv[] )
             mpi_cmp_mpi( &pk_rsa( issuer_crt.pk )->E,
                          &pk_rsa( *issuer_key )->E ) != 0 )
         {
-            polarssl_printf( " failed\n  !  issuer_key does not match issuer certificate\n\n" );
+            polarssl_printf( " failed\n  !  issuer_key does not match "
+                             "issuer certificate\n\n" );
             ret = -1;
             goto exit;
         }
@@ -526,28 +637,35 @@ int main( int argc, char *argv[] )
     /*
      * 1.0. Check the names for validity
      */
-    if( ( ret = x509write_crt_set_subject_name( &crt, opt.subject_name ) ) != 0 )
+    if( ( ret = x509write_crt_set_subject_name( &crt,
+                                                opt.subject_name ) ) != 0 )
     {
         polarssl_strerror( ret, buf, 1024 );
-        polarssl_printf( " failed\n  !  x509write_crt_set_subject_name returned -0x%02x - %s\n\n", -ret, buf );
+        polarssl_printf( " failed\n  !  x509write_crt_set_subject_name returned"
+                         " -0x%04x - %s\n\n", -ret, buf );
         goto exit;
     }
 
     if( ( ret = x509write_crt_set_issuer_name( &crt, opt.issuer_name ) ) != 0 )
     {
         polarssl_strerror( ret, buf, 1024 );
-        polarssl_printf( " failed\n  !  x509write_crt_set_issuer_name returned -0x%02x - %s\n\n", -ret, buf );
+        polarssl_printf( " failed\n  !  x509write_crt_set_issuer_name returned "
+                         "-0x%04x - %s\n\n", -ret, buf );
         goto exit;
     }
 
     polarssl_printf( "  . Setting certificate values ..." );
     fflush( stdout );
 
+    x509write_crt_set_version( &crt, opt.version );
+    x509write_crt_set_md_alg( &crt, opt.md );
+
     ret = x509write_crt_set_serial( &crt, &serial );
     if( ret != 0 )
     {
         polarssl_strerror( ret, buf, 1024 );
-        polarssl_printf( " failed\n  !  x509write_crt_set_serial returned -0x%02x - %s\n\n", -ret, buf );
+        polarssl_printf( " failed\n  !  x509write_crt_set_serial returned "
+                         "-0x%04x - %s\n\n", -ret, buf );
         goto exit;
     }
 
@@ -555,55 +673,72 @@ int main( int argc, char *argv[] )
     if( ret != 0 )
     {
         polarssl_strerror( ret, buf, 1024 );
-        polarssl_printf( " failed\n  !  x509write_crt_set_validity returned -0x%02x - %s\n\n", -ret, buf );
+        polarssl_printf( " failed\n  !  x509write_crt_set_validity returned "
+                         "-0x%04x - %s\n\n", -ret, buf );
         goto exit;
     }
 
     polarssl_printf( " ok\n" );
 
-    polarssl_printf( "  . Adding the Basic Constraints extension ..." );
-    fflush( stdout );
-
-    ret = x509write_crt_set_basic_constraints( &crt, opt.is_ca,
-                                               opt.max_pathlen );
-    if( ret != 0 )
+    if( opt.version == 3 && opt.basic_constraints )
     {
-        polarssl_strerror( ret, buf, 1024 );
-        polarssl_printf( " failed\n  !  x509write_crt_set_basic_contraints returned -0x%02x - %s\n\n", -ret, buf );
-        goto exit;
-    }
+        polarssl_printf( "  . Adding the Basic Constraints extension ..." );
+        fflush( stdout );
 
-    polarssl_printf( " ok\n" );
+        ret = x509write_crt_set_basic_constraints( &crt, opt.is_ca,
+                                                           opt.max_pathlen );
+        if( ret != 0 )
+        {
+            polarssl_strerror( ret, buf, 1024 );
+            polarssl_printf( " failed\n  !  x509write_crt_set_basic_contraints "
+                             "returned -0x%04x - %s\n\n", -ret, buf );
+            goto exit;
+        }
+
+        polarssl_printf( " ok\n" );
+    }
 
 #if defined(POLARSSL_SHA1_C)
-    polarssl_printf( "  . Adding the Subject Key Identifier ..." );
-    fflush( stdout );
-
-    ret = x509write_crt_set_subject_key_identifier( &crt );
-    if( ret != 0 )
+    if( opt.version == 3 && opt.subject_identifier )
     {
-        polarssl_strerror( ret, buf, 1024 );
-        polarssl_printf( " failed\n  !  x509write_crt_set_subject_key_identifier returned -0x%02x - %s\n\n", -ret, buf );
-        goto exit;
+        polarssl_printf( "  . Adding the Subject Key Identifier ..." );
+        fflush( stdout );
+
+        ret = x509write_crt_set_subject_key_identifier( &crt );
+        if( ret != 0 )
+        {
+            polarssl_strerror( ret, buf, 1024 );
+            polarssl_printf( " failed\n  !  x509write_crt_set_subject"
+                            "_key_identifier returned -0x%04x - %s\n\n",
+                            -ret, buf );
+            goto exit;
+        }
+
+        polarssl_printf( " ok\n" );
     }
 
-    polarssl_printf( " ok\n" );
-
-    polarssl_printf( "  . Adding the Authority Key Identifier ..." );
-    fflush( stdout );
-
-    ret = x509write_crt_set_authority_key_identifier( &crt );
-    if( ret != 0 )
+    if( opt.version == X509_CRT_VERSION_3 &&
+        opt.authority_identifier != 0 )
     {
-        polarssl_strerror( ret, buf, 1024 );
-        polarssl_printf( " failed\n  !  x509write_crt_set_authority_key_identifier returned -0x%02x - %s\n\n", -ret, buf );
-        goto exit;
-    }
+        polarssl_printf( "  . Adding the Authority Key Identifier ..." );
+        fflush( stdout );
 
-    polarssl_printf( " ok\n" );
+        ret = x509write_crt_set_authority_key_identifier( &crt );
+        if( ret != 0 )
+        {
+            polarssl_strerror( ret, buf, 1024 );
+            polarssl_printf( " failed\n  !  x509write_crt_set_authority_"
+                            "key_identifier returned -0x%04x - %s\n\n",
+                            -ret, buf );
+            goto exit;
+        }
+
+        polarssl_printf( " ok\n" );
+    }
 #endif /* POLARSSL_SHA1_C */
 
-    if( opt.key_usage )
+    if( opt.version == X509_CRT_VERSION_3 &&
+        opt.key_usage != 0 )
     {
         polarssl_printf( "  . Adding the Key Usage extension ..." );
         fflush( stdout );
@@ -612,14 +747,16 @@ int main( int argc, char *argv[] )
         if( ret != 0 )
         {
             polarssl_strerror( ret, buf, 1024 );
-            polarssl_printf( " failed\n  !  x509write_crt_set_key_usage returned -0x%02x - %s\n\n", -ret, buf );
+            polarssl_printf( " failed\n  !  x509write_crt_set_key_usage "
+                             "returned -0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }
 
         polarssl_printf( " ok\n" );
     }
 
-    if( opt.ns_cert_type )
+    if( opt.version == X509_CRT_VERSION_3 &&
+        opt.ns_cert_type != 0 )
     {
         polarssl_printf( "  . Adding the NS Cert Type extension ..." );
         fflush( stdout );
@@ -628,7 +765,8 @@ int main( int argc, char *argv[] )
         if( ret != 0 )
         {
             polarssl_strerror( ret, buf, 1024 );
-            polarssl_printf( " failed\n  !  x509write_crt_set_ns_cert_type returned -0x%02x - %s\n\n", -ret, buf );
+            polarssl_printf( " failed\n  !  x509write_crt_set_ns_cert_type "
+                             "returned -0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }
 
@@ -645,7 +783,8 @@ int main( int argc, char *argv[] )
                                    ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
         polarssl_strerror( ret, buf, 1024 );
-        polarssl_printf( " failed\n  !  write_certifcate -0x%02x - %s\n\n", -ret, buf );
+        polarssl_printf( " failed\n  !  write_certifcate returned "
+                         "-0x%04x - %s\n\n", -ret, buf );
         goto exit;
     }
 

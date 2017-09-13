@@ -2822,18 +2822,34 @@ static void ssl_swap_epochs( mbedtls_ssl_context *ssl )
 
 /*
  * Retransmit the current flight of messages.
+ */
+int mbedtls_ssl_resend( mbedtls_ssl_context *ssl )
+{
+    int ret = 0;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> mbedtls_ssl_resend" ) );
+
+    ret = mbedtls_ssl_flight_transmit( ssl );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= mbedtls_ssl_resend" ) );
+
+    return( ret );
+}
+
+/*
+ * Transmit or retransmit the current flight of messages.
  *
  * Need to remember the current message in case flush_output returns
  * WANT_WRITE, causing us to exit this function and come back later.
  * This function must be called until state is no longer SENDING.
  */
-int mbedtls_ssl_resend( mbedtls_ssl_context *ssl )
+int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
 {
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> mbedtls_ssl_resend" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> mbedtls_ssl_flight_transmit" ) );
 
     if( ssl->handshake->retransmit_state != MBEDTLS_SSL_RETRANS_SENDING )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "initialise resending" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "initialise fligh transmission" ) );
 
         ssl->handshake->cur_msg = ssl->handshake->flight;
         ssl_swap_epochs( ssl );
@@ -2861,7 +2877,7 @@ int mbedtls_ssl_resend( mbedtls_ssl_context *ssl )
 
         ssl->handshake->cur_msg = cur->next;
 
-        MBEDTLS_SSL_DEBUG_BUF( 3, "resent handshake message header", ssl->out_msg, 12 );
+        MBEDTLS_SSL_DEBUG_BUF( 3, "handshake header", ssl->out_msg, 12 );
 
         if( ( ret = mbedtls_ssl_write_record( ssl ) ) != 0 )
         {
@@ -2878,7 +2894,7 @@ int mbedtls_ssl_resend( mbedtls_ssl_context *ssl )
         ssl_set_timer( ssl, ssl->handshake->retransmit_timeout );
     }
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= mbedtls_ssl_resend" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= mbedtls_ssl_flight_transmit" ) );
 
     return( 0 );
 }
@@ -2931,14 +2947,15 @@ void mbedtls_ssl_send_flight_completed( mbedtls_ssl_context *ssl )
  */
 
 /*
- * Write current handshake (including CCS) message.
+ * Write (DTLS: or queue) current handshake (including CCS) message.
  *
  *  - fill in handshake headers
  *  - update handshake checksum
  *  - DTLS: save message for resending
  *  - then pass to the record layer
  *
- * DTLS: only used when first writing the message, not for resending.
+ * DTLS: except for HelloRequest, messages are only queued, and will only be
+ * actually sent when calling flight_transmit() or resend().
  *
  * Inputs:
  *  - ssl->out_msglen: 4 + actual handshake message len
@@ -2946,7 +2963,7 @@ void mbedtls_ssl_send_flight_completed( mbedtls_ssl_context *ssl )
  *  - ssl->out_msg[0]: the handshake type (ClientHello, ServerHello, etc)
  *  - ssl->out_msg + 4: the handshake message body
  *
- *  Outputs:
+ * Ouputs, ie state before passing to flight_append() or write_record():
  *   - ssl->out_msglen: the length of the record contents
  *      (including handshake headers but excluding record headers)
  *   - ssl->out_msg: the record contents (handshake headers + content)
@@ -3044,7 +3061,7 @@ int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
             ssl->handshake->update_checksum( ssl, ssl->out_msg, ssl->out_msglen );
     }
 
-    /* Save for resending */
+    /* Either send now, or just save to be sent (and resent) later */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
         hs_type != MBEDTLS_SSL_HS_HELLO_REQUEST )
@@ -3055,14 +3072,19 @@ int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
             return( ret );
         }
     }
+    else
 #endif
-
-    /* Actually send out */
-    ret = mbedtls_ssl_write_record( ssl );
+    {
+        if( ( ret = mbedtls_ssl_write_record( ssl ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_record", ret );
+            return( ret );
+        }
+    }
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write handshake message" ) );
 
-    return( ret );
+    return( 0 );
 }
 
 /*
@@ -5645,6 +5667,15 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
         return( ret );
     }
 
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+        ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_flight_transmit", ret );
+        return( ret );
+    }
+#endif
+
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write finished" ) );
 
     return( 0 );
@@ -7207,7 +7238,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
         if( ssl->handshake != NULL &&
             ssl->handshake->retransmit_state == MBEDTLS_SSL_RETRANS_SENDING )
         {
-            if( ( ret = mbedtls_ssl_resend( ssl ) ) != 0 )
+            if( ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )
                 return( ret );
         }
     }

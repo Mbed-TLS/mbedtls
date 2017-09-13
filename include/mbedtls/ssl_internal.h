@@ -669,6 +669,7 @@ static inline size_t mbedtls_ssl_hs_hdr_len( const mbedtls_ssl_context *ssl )
 void mbedtls_ssl_send_flight_completed( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_recv_flight_completed( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_resend( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl );
 #endif
 
 /* Visible for testing purposes only */

@@ -1094,6 +1094,15 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
         return( ret );
     }
 
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+        ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_flight_transmit", ret );
+        return( ret );
+    }
+#endif
+
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write client hello" ) );
 
     return( 0 );
@@ -3402,7 +3411,7 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
         ssl->handshake->retransmit_state == MBEDTLS_SSL_RETRANS_SENDING )
     {
-        if( ( ret = mbedtls_ssl_resend( ssl ) ) != 0 )
+        if( ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )
             return( ret );
     }
 #endif

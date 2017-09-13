@@ -2770,6 +2770,8 @@ void mbedtls_ssl_send_flight_completed( mbedtls_ssl_context *ssl )
  *  - DTLS: save message for resending
  *  - then pass to the record layer
  *
+ * DTLS: only used when first writing the message, not for resending.
+ *
  * Inputs:
  *  - ssl->out_msglen: 4 + actual handshake message len
  *      (4 is the size of handshake headers for TLS)
@@ -2783,13 +2785,25 @@ void mbedtls_ssl_send_flight_completed( mbedtls_ssl_context *ssl )
  */
 int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
 {
-    int ret, out_msg_type;
-    size_t len = ssl->out_msglen;
+    int ret;
+    const size_t hs_len = ssl->out_msglen - 4;
+    const unsigned char hs_type = ssl->out_msg[0];
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write handshake message" ) );
 
+    /*
+     * Sanity checks
+     */
     if( ssl->out_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE &&
         ssl->out_msgtype != MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+
+    if( ssl->out_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE &&
+        hs_type != MBEDTLS_SSL_HS_HELLO_REQUEST &&
+        ssl->handshake == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
@@ -2800,24 +2814,19 @@ int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
         ssl->handshake != NULL &&
         ssl->handshake->retransmit_state == MBEDTLS_SSL_RETRANS_SENDING )
     {
-        ; /* Skip special handshake treatment when resending */
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
-    else
 #endif
+
+    /*
+     * Fill handshake headers
+     */
     if( ssl->out_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE )
     {
-        out_msg_type = ssl->out_msg[0];
-
-        if( out_msg_type != MBEDTLS_SSL_HS_HELLO_REQUEST &&
-            ssl->handshake == NULL )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-        }
-
-        ssl->out_msg[1] = (unsigned char)( ( len - 4 ) >> 16 );
-        ssl->out_msg[2] = (unsigned char)( ( len - 4 ) >>  8 );
-        ssl->out_msg[3] = (unsigned char)( ( len - 4 )       );
+        ssl->out_msg[1] = (unsigned char)( hs_len >> 16 );
+        ssl->out_msg[2] = (unsigned char)( hs_len >>  8 );
+        ssl->out_msg[3] = (unsigned char)( hs_len       );
 
         /*
          * DTLS has additional fields in the Handshake layer,
@@ -2839,12 +2848,11 @@ int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
                 return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
             }
 
-            memmove( ssl->out_msg + 12, ssl->out_msg + 4, len - 4 );
+            memmove( ssl->out_msg + 12, ssl->out_msg + 4, hs_len );
             ssl->out_msglen += 8;
-            len += 8;
 
             /* Write message_seq and update it, except for HelloRequest */
-            if( out_msg_type != MBEDTLS_SSL_HS_HELLO_REQUEST )
+            if( hs_type != MBEDTLS_SSL_HS_HELLO_REQUEST )
             {
                 ssl->out_msg[4] = ( ssl->handshake->out_msg_seq >> 8 ) & 0xFF;
                 ssl->out_msg[5] = ( ssl->handshake->out_msg_seq      ) & 0xFF;
@@ -2856,23 +2864,22 @@ int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
                 ssl->out_msg[5] = 0;
             }
 
-            /* We don't fragment, so frag_offset = 0 and frag_len = len */
+            /* Handshake hashes are computed without fragmentation,
+             * so set frag_offset = 0 and frag_len = hs_len for now */
             memset( ssl->out_msg + 6, 0x00, 3 );
             memcpy( ssl->out_msg + 9, ssl->out_msg + 1, 3 );
         }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-        if( out_msg_type != MBEDTLS_SSL_HS_HELLO_REQUEST )
-            ssl->handshake->update_checksum( ssl, ssl->out_msg, len );
+        /* Update running hashes of hanshake messages seen */
+        if( hs_type != MBEDTLS_SSL_HS_HELLO_REQUEST )
+            ssl->handshake->update_checksum( ssl, ssl->out_msg, ssl->out_msglen );
     }
 
-    /* Save handshake and CCS messages for resending */
+    /* Save for resending */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
-        ssl->handshake != NULL &&
-        ssl->handshake->retransmit_state != MBEDTLS_SSL_RETRANS_SENDING &&
-        ( ssl->out_msgtype == MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC ||
-          ssl->out_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE ) )
+        hs_type != MBEDTLS_SSL_HS_HELLO_REQUEST )
     {
         if( ( ret = ssl_flight_append( ssl ) ) != 0 )
         {
@@ -2882,6 +2889,7 @@ int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
     }
 #endif
 
+    /* Actually send out */
     ret = mbedtls_ssl_write_record( ssl );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write handshake message" ) );

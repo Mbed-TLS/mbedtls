@@ -322,7 +322,7 @@ wait_server_start() {
 }
 
 # Given the client or server debug output, parse the unix timestamp that is
-# included in the first 4 bytes of the random bytes and check that its within
+# included in the first 4 bytes of the random bytes and check that it's within
 # acceptable bounds
 check_server_hello_time() {
     # Extract the time from the debug (lvl 3) output of the client
@@ -341,7 +341,7 @@ check_server_hello_time() {
         # The time in ServerHello is at least 5 minutes before now
         return 1
     elif [ $SERVER_HELLO_TIME -gt $(( $CUR_TIME + $THRESHOLD_IN_SECS )) ]; then
-        # The time in ServerHello is at least 5 minues later than now
+        # The time in ServerHello is at least 5 minutes later than now
         return 1
     else
         return 0

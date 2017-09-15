@@ -326,7 +326,7 @@ wait_server_start() {
 # acceptable bounds
 check_server_hello_time() {
     # Extract the time from the debug (lvl 3) output of the client
-    SERVER_HELLO_TIME="$(cat "$1" | sed -n 's/.*server hello, current time: \([0-9]\+\)$/\1/p')"
+    SERVER_HELLO_TIME="$(sed -n 's/.*server hello, current time: //p' < "$1")"
     # Get the Unix timestamp for now
     CUR_TIME=$(date +'%s')
     THRESHOLD_IN_SECS=300

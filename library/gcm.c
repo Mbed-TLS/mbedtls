@@ -356,7 +356,7 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
     size_t i;
     const unsigned char *p;
     unsigned char *out_p = output;
-    size_t use_len, olen = 0;
+    size_t use_len, olen = 0, pre_len = 0;
 
     if( output > input && (size_t) ( output - input ) < length )
         return( MBEDTLS_ERR_GCM_BAD_INPUT );
@@ -369,9 +369,40 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
         return( MBEDTLS_ERR_GCM_BAD_INPUT );
     }
 
-    ctx->len += length;
+    if( ctx->data_remain >= 16 )
+        return( MBEDTLS_ERR_GCM_BAD_INPUT );
 
+    ctx->len += length;
     p = input;
+    if(length != 0)
+    {
+        if( (size_t) ctx->data_remain >= length )
+        {
+            for( i = ( 16 - ctx->data_remain ); 
+                 i <= ( 16 - ctx->data_remain + length ); 
+                 i++ )
+            {
+                out_p[pre_len] = ctx->ectr_remain[i] ^ p[pre_len];
+                pre_len++;
+            }
+            ctx->data_remain -= length;
+
+            return (0);
+        }
+        else
+        {
+            for( i = ( 16 - ctx->data_remain ); i < 16; i++ )
+            {
+                out_p[pre_len] = ctx->ectr_remain[i] ^ p[pre_len];
+                pre_len++;
+            }
+        }
+        ctx->data_remain = 0;
+    }
+    
+    p = input + pre_len;
+    length -= pre_len;
+
     while( length > 0 )
     {
         use_len = ( length < 16 ) ? length : 16;
@@ -386,13 +417,17 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
             return( ret );
         }
 
+        for(i=0; i<16; i++){
+        	ctx->ectr_remain[i]=ectr[i];
+        }
+
         for( i = 0; i < use_len; i++ )
         {
             if( ctx->mode == MBEDTLS_GCM_DECRYPT )
                 ctx->buf[i] ^= p[i];
-            out_p[i] = ectr[i] ^ p[i];
+            out_p[i + pre_len] = ectr[i] ^ p[i];
             if( ctx->mode == MBEDTLS_GCM_ENCRYPT )
-                ctx->buf[i] ^= out_p[i];
+                ctx->buf[i] ^= out_p[i+pre_len];
         }
 
         gcm_mult( ctx, ctx->buf, ctx->buf );
@@ -400,7 +435,11 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
         length -= use_len;
         p += use_len;
         out_p += use_len;
+        ctx->data_remain = 16 - use_len;
     }
+
+    if( ctx->data_remain == 0 )
+        mbedtls_zeroize( ctx->ectr_remain, 16 );
 
     return( 0 );
 }

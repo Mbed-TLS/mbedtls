@@ -24,6 +24,7 @@
 #define MBEDTLS_SSL_INTERNAL_H
 
 #include "ssl.h"
+#include "cipher.h"
 
 #if defined(MBEDTLS_MD5_C)
 #include "md5.h"
@@ -138,12 +139,30 @@
 #define MBEDTLS_SSL_PADDING_ADD              0
 #endif
 
-#define MBEDTLS_SSL_BUFFER_LEN  ( MBEDTLS_SSL_MAX_CONTENT_LEN               \
-                        + MBEDTLS_SSL_COMPRESSION_ADD               \
-                        + 29 /* counter + header + IV */    \
-                        + MBEDTLS_SSL_MAC_ADD                       \
-                        + MBEDTLS_SSL_PADDING_ADD                   \
+#define MBEDTLS_SSL_PAYLOAD_LEN ( MBEDTLS_SSL_MAX_CONTENT_LEN    \
+                        + MBEDTLS_SSL_COMPRESSION_ADD            \
+                        + MBEDTLS_MAX_IV_LENGTH                  \
+                        + MBEDTLS_SSL_MAC_ADD                    \
+                        + MBEDTLS_SSL_PADDING_ADD                \
                         )
+
+/*
+ * Check that we obey the standard's message size bounds
+ */
+
+#if MBEDTLS_SSL_MAX_CONTENT_LEN > 16384
+#error Bad configuration - record content too large.
+#endif
+
+#if MBEDTLS_SSL_PAYLOAD_LEN > 16384 + 2048
+#error Bad configuration - protected record payload too large.
+#endif
+
+#define MBEDTLS_SSL_BUFFER_LEN  ( MBEDTLS_SSL_PAYLOAD_LEN        \
+                        + 5 /* TLS record header      */         \
+                        + 8 /* Additional DTLS fields */         \
+                        )
+
 
 /*
  * TLS extension flags (for extensions with outgoing ServerHello content

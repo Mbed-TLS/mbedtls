@@ -3121,6 +3121,7 @@ run_test    "Large packet SSLv3 BlockCipher" \
             "$P_CLI request_size=16384 force_version=ssl3 recsplit=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
@@ -3129,6 +3130,7 @@ run_test    "Large packet SSLv3 StreamCipher" \
             "$P_CLI request_size=16384 force_version=ssl3 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.0 BlockCipher" \
@@ -3136,6 +3138,7 @@ run_test    "Large packet TLS 1.0 BlockCipher" \
             "$P_CLI request_size=16384 force_version=tls1 recsplit=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.0 BlockCipher truncated MAC" \
@@ -3144,6 +3147,7 @@ run_test    "Large packet TLS 1.0 BlockCipher truncated MAC" \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA \
              trunc_hmac=1" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.0 StreamCipher truncated MAC" \
@@ -3152,6 +3156,7 @@ run_test    "Large packet TLS 1.0 StreamCipher truncated MAC" \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
              trunc_hmac=1" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.1 BlockCipher" \
@@ -3159,6 +3164,7 @@ run_test    "Large packet TLS 1.1 BlockCipher" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.1 StreamCipher" \
@@ -3166,6 +3172,7 @@ run_test    "Large packet TLS 1.1 StreamCipher" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.1 BlockCipher truncated MAC" \
@@ -3174,6 +3181,7 @@ run_test    "Large packet TLS 1.1 BlockCipher truncated MAC" \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA \
              trunc_hmac=1" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.1 StreamCipher truncated MAC" \
@@ -3182,6 +3190,7 @@ run_test    "Large packet TLS 1.1 StreamCipher truncated MAC" \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
              trunc_hmac=1" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.2 BlockCipher" \
@@ -3189,6 +3198,7 @@ run_test    "Large packet TLS 1.2 BlockCipher" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.2 BlockCipher larger MAC" \
@@ -3196,6 +3206,7 @@ run_test    "Large packet TLS 1.2 BlockCipher larger MAC" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA384" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.2 BlockCipher truncated MAC" \
@@ -3204,6 +3215,7 @@ run_test    "Large packet TLS 1.2 BlockCipher truncated MAC" \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA \
              trunc_hmac=1" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.2 StreamCipher" \
@@ -3211,6 +3223,7 @@ run_test    "Large packet TLS 1.2 StreamCipher" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.2 StreamCipher truncated MAC" \
@@ -3219,6 +3232,7 @@ run_test    "Large packet TLS 1.2 StreamCipher truncated MAC" \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
              trunc_hmac=1" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.2 AEAD" \
@@ -3226,6 +3240,7 @@ run_test    "Large packet TLS 1.2 AEAD" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CCM" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.2 AEAD shorter tag" \
@@ -3233,6 +3248,7 @@ run_test    "Large packet TLS 1.2 AEAD shorter tag" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CCM-8" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 # Tests for DTLS HelloVerifyRequest

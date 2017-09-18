@@ -1218,8 +1218,8 @@ run_test    "Session resume using cache: openssl server" \
 
 # Tests for Max Fragment Length extension
 
-run_test    "Max fragment length: not used, reference" \
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+run_test    "Max fragment length: enabled, default" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3" \
             0 \
@@ -1229,6 +1229,54 @@ requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
             -S "found max fragment length extension" \
             -S "server hello, max_fragment_length extension" \
             -C "found max_fragment_length extension"
+
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+run_test    "Max fragment length: enabled, default, larger message" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI debug_level=3 request_size=20000" \
+            0 \
+            -c "Maximum fragment length is 16384" \
+            -s "Maximum fragment length is 16384" \
+            -C "client hello, adding max_fragment_length extension" \
+            -S "found max fragment length extension" \
+            -S "server hello, max_fragment_length extension" \
+            -C "found max_fragment_length extension" \
+            -c "20000 bytes written in 2 fragments" \
+            -s "16384 bytes read" \
+            -s "3616 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+run_test    "Max fragment length, DTLS: enabled, default, larger message" \
+            "$P_SRV debug_level=3 dtls=1" \
+            "$P_CLI debug_level=3 dtls=1 request_size=20000" \
+            1 \
+            -c "Maximum fragment length is 16384" \
+            -s "Maximum fragment length is 16384" \
+            -C "client hello, adding max_fragment_length extension" \
+            -S "found max fragment length extension" \
+            -S "server hello, max_fragment_length extension" \
+            -C "found max_fragment_length extension" \
+            -c "fragment larger than.*maximum "
+
+requires_config_disabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+run_test    "Max fragment length: disabled, larger message" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI debug_level=3 request_size=20000" \
+            0 \
+            -C "Maximum fragment length is 16384" \
+            -S "Maximum fragment length is 16384" \
+            -c "20000 bytes written in 2 fragments" \
+            -s "16384 bytes read" \
+            -s "3616 bytes read"
+
+requires_config_disabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+run_test    "Max fragment length DTLS: disabled, larger message" \
+            "$P_SRV debug_level=3 dtls=1" \
+            "$P_CLI debug_level=3 dtls=1 request_size=20000" \
+            1 \
+            -C "Maximum fragment length is 16384" \
+            -S "Maximum fragment length is 16384" \
+            -c "fragment larger than.*maximum "
 
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 run_test    "Max fragment length: used by client" \

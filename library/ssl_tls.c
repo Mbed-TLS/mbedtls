@@ -2677,11 +2677,22 @@ int mbedtls_ssl_resend( mbedtls_ssl_context *ssl )
  */
 int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
 {
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    const size_t max_record_content_len = mbedtls_ssl_get_max_frag_len( ssl );
+#else
+    const size_t max_record_content_len = MBEDTLS_SSL_MAX_CONTENT_LEN;
+#endif
+    /* DTLS handshake headers are 12 bytes */
+    const size_t max_hs_fragment_len = max_record_content_len - 12;
+
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> mbedtls_ssl_flight_transmit" ) );
 
     if( ssl->handshake->retransmit_state != MBEDTLS_SSL_RETRANS_SENDING )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "initialise fligh transmission" ) );
+
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "max handshake fragment length: %u",
+                                    max_hs_fragment_len ) );
 
         ssl->handshake->cur_msg = ssl->handshake->flight;
         ssl->handshake->cur_msg_p = ssl->handshake->flight->p + 12;
@@ -2689,13 +2700,6 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
 
         ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_SENDING;
     }
-
-    /*
-     * XXX: this should not be hardcoded.
-     * Currently UDP limit - HS header - Record header
-     * (Should account for encryption overhead (renegotiation, finished)?)
-     */
-#define HS_LIMIT    ( 512 - 12 - 13 )
 
     while( ssl->handshake->cur_msg != NULL )
     {
@@ -2726,7 +2730,8 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
             const size_t hs_len = cur->len - 12;
             const size_t frag_off = p - ( cur->p + 12 );
             const size_t rem_len = hs_len - frag_off;
-            const size_t frag_len = rem_len > HS_LIMIT ? HS_LIMIT : rem_len;
+            const size_t frag_len = rem_len > max_hs_fragment_len
+                                  ? max_hs_fragment_len : rem_len;
 
             /* Messages are stored with handshake headers as if not fragmented,
              * copy beginning of headers then fill fragmentation fields.
@@ -6837,18 +6842,21 @@ size_t mbedtls_ssl_get_max_frag_len( const mbedtls_ssl_context *ssl )
 {
     size_t max_len;
 
-    /*
-     * Assume mfl_code is correct since it was checked when set
-     */
-    max_len = ssl_mfl_code_to_length( ssl->conf->mfl_code );
+    /* Assume mfl_code is correct since it was checked when set */
+    max_len = mfl_code_to_length[ssl->conf->mfl_code];
 
-    /*
-     * Check if a smaller max length was negotiated
-     */
+    /* Check if a smaller max length was negotiated */
     if( ssl->session_out != NULL &&
-        ssl_mfl_code_to_length( ssl->session_out->mfl_code ) < max_len )
+        ssl_mfl_code_to_length[ssl->session_out->mfl_code] < max_len )
     {
-        max_len = ssl_mfl_code_to_length( ssl->session_out->mfl_code );
+        max_len = ssl_mfl_code_to_length[ssl->session_out->mfl_code];
+    }
+
+    /* During a handshake, use the value being negotiated */
+    if( ssl->session_negotiate != NULL &&
+        mfl_code_to_length[ssl->session_negotiate->mfl_code] < max_len )
+    {
+        max_len = mfl_code_to_length[ssl->session_negotiate->mfl_code];
     }
 
     return max_len;

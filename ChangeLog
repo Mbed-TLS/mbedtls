@@ -1,6 +1,10 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x released xxxx-xx-xx
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Security
+   * Fix dhm_check_range() failing to detect trivial subgroups and essentially
+     always returning 0. Reported by prashantkspatil.
 
 Bugfix
    * Fix ssl_parse_record_header() to silently discard invalid DTLS records

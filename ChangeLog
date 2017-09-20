@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 1.3.x branch released xxxx-xx-xx
+
+Security
+   * Fix dhm_check_range() failing to detect trivial subgroups and potentially
+     leaking 1 bit of the private key. Reported by prashantkspatil.
+
 = mbed TLS 1.3.21 branch released 2017-08-10
 
 Security

@@ -366,6 +366,7 @@ void sha256( const unsigned char *input, size_t ilen,
  */
 int sha256_file( const char *path, unsigned char output[32], int is224 )
 {
+    int ret = 0;
     FILE *f;
     size_t n;
     sha256_context ctx;
@@ -380,17 +381,16 @@ int sha256_file( const char *path, unsigned char output[32], int is224 )
     while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
         sha256_update( &ctx, buf, n );
 
-    sha256_finish( &ctx, output );
-    sha256_free( &ctx );
-
     if( ferror( f ) != 0 )
-    {
-        fclose( f );
-        return( POLARSSL_ERR_SHA256_FILE_IO_ERROR );
-    }
+        ret = POLARSSL_ERR_SHA256_FILE_IO_ERROR;
+    else
+        sha256_finish( &ctx, output );
 
+    sha256_free( &ctx );
+    polarssl_zeroize( buf, sizeof( buf ) );
     fclose( f );
-    return( 0 );
+
+    return( ret );
 }
 #endif /* POLARSSL_FS_IO */
 

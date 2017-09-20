@@ -9,7 +9,7 @@
 
 /* BEGIN_CASE */
 void dhm_do_dhm( int radix_P, char *input_P,
-                 int radix_G, char *input_G )
+                 int radix_G, char *input_G, int result )
 {
     mbedtls_dhm_context ctx_srv;
     mbedtls_dhm_context ctx_cli;
@@ -44,7 +44,10 @@ void dhm_do_dhm( int radix_P, char *input_P,
     /*
      * First key exchange
      */
-    TEST_ASSERT( mbedtls_dhm_make_params( &ctx_srv, x_size, ske, &ske_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( mbedtls_dhm_make_params( &ctx_srv, x_size, ske, &ske_len, &rnd_pseudo_rand, &rnd_info ) == result );
+    if ( result != 0 )
+        goto exit;
+
     ske[ske_len++] = 0;
     ske[ske_len++] = 0;
     TEST_ASSERT( mbedtls_dhm_read_params( &ctx_cli, &p, ske + ske_len ) == 0 );

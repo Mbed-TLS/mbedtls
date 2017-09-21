@@ -2430,6 +2430,7 @@ void mbedtls_ssl_conf_cert_req_ca_list( mbedtls_ssl_config *conf,
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 /**
  * \brief          Set the Maximum Tranport Unit (MTU).
+ *                 Special value: 0 means unset (no limit).
  *                 This represents the maximum size of a datagram payload
  *                 handled by the transport layer (usually UDP) as determined
  *                 by the network link and stack. In practice, this controls
@@ -2446,7 +2447,8 @@ void mbedtls_ssl_conf_cert_req_ca_list( mbedtls_ssl_config *conf,
  *
  * \note           Values larger than \c MBEDTLS_SSL_OUT_CONTENT_LEN have no
  *                 effect. This can only be used to decrease the maximum size
- *                 of detagrams sent.
+ *                 of datagrams sent. Values lower than record layer expansion
+ *                 are ignored.
  *
  * \param conf     SSL configuration
  * \param mtu      Value of the path MTU in bytes
@@ -2738,6 +2740,9 @@ const char *mbedtls_ssl_get_version( const mbedtls_ssl_context *ssl );
  * \brief          Return the (maximum) number of bytes added by the record
  *                 layer: header + encryption/MAC overhead (inc. padding)
  *
+ * \note           This function is not available (always returns an error)
+ *                 when record compression is enabled.
+ *
  * \param ssl      SSL context
  *
  * \return         Current maximum record expansion in bytes, or
@@ -2752,12 +2757,8 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl );
  *                 This is the value negotiated with peer if any,
  *                 or the locally configured value.
  *
- * \note           With DTLS, \c mbedtls_ssl_write() will return an error if
- *                 called with a larger length value.
- *                 With TLS, \c mbedtls_ssl_write() will fragment the input if
- *                 necessary and return the number of bytes written; it is up
- *                 to the caller to call \c mbedtls_ssl_write() again in
- *                 order to send the remaining bytes if any.
+ * \sa             mbedtls_ssl_conf_max_frag_len()
+ * \sa             mbedtls_ssl_get_max_record_payload()
  *
  * \param ssl      SSL context
  *
@@ -2765,6 +2766,34 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl );
  */
 size_t mbedtls_ssl_get_max_frag_len( const mbedtls_ssl_context *ssl );
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+
+/**
+ * \brief          Return the current maximum outgoing record payload in bytes.
+ *                 This takes into account the config.h setting \c
+ *                 MBEDTLS_SSL_OUT_CONTENT_LEN, the configured and negotiated
+ *                 max fragment length extension if used, and for DTLS the
+ *                 path MTU as configured and current record expansion.
+ *
+ * \note           With DTLS, \c mbedtls_ssl_write() will return an error if
+ *                 called with a larger length value.
+ *                 With TLS, \c mbedtls_ssl_write() will fragment the input if
+ *                 necessary and return the number of bytes written; it is up
+ *                 to the caller to call \c mbedtls_ssl_write() again in
+ *                 order to send the remaining bytes if any.
+ *
+ * \note           This function is not available (always returns an error)
+ *                 when record compression is enabled.
+ *
+ * \sa             mbedtls_ssl_conf_mtu()
+ * \sa             mbedtls_ssl_get_max_frag_len()
+ * \sa             mbedtls_ssl_get_record_expansion()
+ *
+ * \param ssl      SSL context
+ *
+ * \return         Current maximum payload for an outgoing record,
+ *                 or a negative error code.
+ */
+int mbedtls_ssl_get_max_out_record_payload( const mbedtls_ssl_context *ssl );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**

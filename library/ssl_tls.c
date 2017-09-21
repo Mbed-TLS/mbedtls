@@ -2845,15 +2845,19 @@ int mbedtls_ssl_resend( mbedtls_ssl_context *ssl )
  */
 int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
 {
-#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    const size_t max_record_content_len = mbedtls_ssl_get_max_frag_len( ssl );
-#else
-    const size_t max_record_content_len = MBEDTLS_SSL_OUT_CONTENT_LEN;
-#endif
+    const int ret_payload = mbedtls_ssl_get_max_out_record_payload( ssl );
+    const size_t max_record_payload = (size_t) ret_payload;
     /* DTLS handshake headers are 12 bytes */
-    const size_t max_hs_fragment_len = max_record_content_len - 12;
+    const size_t max_hs_fragment_len = max_record_payload - 12;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> mbedtls_ssl_flight_transmit" ) );
+
+    if( ret_payload < 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_get_max_out_record_payload",
+                                  ret_payload );
+        return( ret_payload );
+    }
 
     if( ssl->handshake->retransmit_state != MBEDTLS_SSL_RETRANS_SENDING )
     {
@@ -7008,6 +7012,7 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_ZLIB_SUPPORT)
     if( ssl->session_out->compression != MBEDTLS_SSL_COMPRESS_NULL )
         return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+    }
 #endif
 
     switch( mbedtls_cipher_get_cipher_mode( &transform->cipher_ctx_enc ) )
@@ -7055,9 +7060,44 @@ size_t mbedtls_ssl_get_max_frag_len( const mbedtls_ssl_context *ssl )
         max_len = ssl_mfl_code_to_length( ssl->session_negotiate->mfl_code );
     }
 
-    return max_len;
+    return( max_len );
 }
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+
+int mbedtls_ssl_get_max_out_record_payload( const mbedtls_ssl_context *ssl )
+{
+    size_t max_len = MBEDTLS_SSL_OUT_CONTENT_LEN;
+
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    const size_t mfl = mbedtls_ssl_get_max_frag_len( ssl );
+
+    if( max_len > mfl )
+        max_len = mfl;
+#endif
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->conf->mtu != 0 )
+    {
+        const size_t mtu = ssl->conf->mtu;
+        const int ret = mbedtls_ssl_get_record_expansion( ssl );
+        const size_t overhead = (size_t) ret;
+
+        if( ret < 0 )
+            return( ret );
+
+        if( mtu <= overhead )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "MTU too low for record expansion" ) );
+            return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+        }
+
+        if( max_len > mtu - overhead )
+            max_len = mtu - overhead;
+    }
+#endif
+
+    return( (int) max_len );
+}
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert( const mbedtls_ssl_context *ssl )
@@ -7610,12 +7650,15 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
 static int ssl_write_real( mbedtls_ssl_context *ssl,
                            const unsigned char *buf, size_t len )
 {
-    int ret;
-#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    size_t max_len = mbedtls_ssl_get_max_frag_len( ssl );
-#else
-    size_t max_len = MBEDTLS_SSL_OUT_CONTENT_LEN;
-#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+    int ret = mbedtls_ssl_get_max_out_record_payload( ssl );
+    const size_t max_len = (size_t) ret;
+
+    if( ret < 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_get_max_out_record_payload", ret );
+        return( ret );
+    }
+
     if( len > max_len )
     {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

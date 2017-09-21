@@ -1,7 +1,7 @@
 /**
  * \file pk.h
  *
- * \brief Public Key abstraction layer: wrapper functions
+ * \brief Public Key cryptography abstraction layer: wrapper functions
  *
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
@@ -34,7 +34,7 @@
 
 struct mbedtls_pk_info_t
 {
-    /** Public key type */
+    /** Key pair type with indication of supported algorithms */
     mbedtls_pk_type_t type;
 
     /** Type name */

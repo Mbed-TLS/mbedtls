@@ -379,7 +379,7 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
         if( (size_t) ctx->data_remain >= length )
         {
             for( i = ( 16 - ctx->data_remain ); 
-                 i <= ( 16 - ctx->data_remain + length ); 
+                 i < ( 16 - ctx->data_remain + length ); 
                  i++ )
             {
                 out_p[pre_len] = ctx->ectr_remain[i] ^ p[pre_len];

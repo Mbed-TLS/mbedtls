@@ -94,7 +94,7 @@ static int dhm_read_bignum( mbedtls_mpi *X,
  * Parameter should be: 2 <= public_param <= P - 2
  *
  * This means that we need to return an error if
- *              public_param < 2 or public param > P-2
+ *              public_param < 2 or public_param > P-2
  *
  * For more information on the attack, see:
  *  http://www.cl.cam.ac.uk/~rja14/Papers/psandqs.pdf

@@ -12,7 +12,8 @@ Features
      where the outgoing buffer can be fixed at a smaller size than the incoming
      buffer, which can save some RAM. If buffer lengths are kept equal, there
      is no functional difference. Contributed by Angus Gratton, and also
-     independently contributed again by Paul Sokolovsky.
+   * Add support for fragmentation of outoing DTLS handshake messages.
+     Independently contributed again by Paul Sokolovsky.
 
 Bugfix
    * Fix the key_app_writer example which was writing a leading zero byte which

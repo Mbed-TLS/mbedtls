@@ -2677,13 +2677,9 @@ int mbedtls_ssl_resend( mbedtls_ssl_context *ssl )
  */
 int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
 {
-#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    const size_t max_record_content_len = mbedtls_ssl_get_max_frag_len( ssl );
-#else
-    const size_t max_record_content_len = MBEDTLS_SSL_MAX_CONTENT_LEN;
-#endif
+    const size_t max_record_payload = mbedtls_ssl_get_max_record_payload( ssl );
     /* DTLS handshake headers are 12 bytes */
-    const size_t max_hs_fragment_len = max_record_content_len - 12;
+    const size_t max_hs_fragment_len = max_record_payload - 12;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> mbedtls_ssl_flight_transmit" ) );
 
@@ -6869,9 +6865,34 @@ size_t mbedtls_ssl_get_max_frag_len( const mbedtls_ssl_context *ssl )
         max_len = mfl_code_to_length[ssl->session_negotiate->mfl_code];
     }
 
-    return max_len;
+    return( max_len );
 }
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+
+size_t mbedtls_ssl_get_max_record_payload( const mbedtls_ssl_context *ssl )
+{
+    size_t max_len = MBEDTLS_SSL_MAX_CONTENT_LEN;
+
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    const size_t mfl = mbedtls_ssl_get_max_frag_len( ssl );
+
+    if( max_len > mfl )
+        max_len = mfl;
+#endif
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    {
+        const size_t overhead = mbedtls_ssl_get_record_expansion( ssl );
+        const size_t mtu = ssl->conf->mtu;
+
+        /* If MTU <= overhead, just ignore it, this can't be serious */
+        if( max_len + overhead > mtu && mtu > overhead )
+            max_len = mtu - overhead;
+    }
+#endif
+
+    return( max_len );
+}
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert( const mbedtls_ssl_context *ssl )
@@ -7425,11 +7446,8 @@ static int ssl_write_real( mbedtls_ssl_context *ssl,
                            const unsigned char *buf, size_t len )
 {
     int ret;
-#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    size_t max_len = mbedtls_ssl_get_max_frag_len( ssl );
-#else
-    size_t max_len = MBEDTLS_SSL_OUT_CONTENT_LEN;
-#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+    const size_t max_len = mbedtls_ssl_get_max_record_payload( ssl );
+
     if( len > max_len )
     {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

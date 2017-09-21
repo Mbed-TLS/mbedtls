@@ -2,6 +2,9 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
+INTERNAL NOTE: need to bump soversion of libmbedtls:
+- added new member 'mtu' to public 'mbedtls_ssl_cont' structure
+
 Features
    * Add new crypto primitives from RFC 7539: stream cipher Chacha20, one-time
      authenticator Poly1305 and AEAD construct Chacha20-Poly1305. Contributed by

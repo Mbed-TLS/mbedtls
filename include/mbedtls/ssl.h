@@ -958,6 +958,10 @@ struct mbedtls_ssl_config
     unsigned int dhm_min_bitlen;    /*!< min. bit length of the DHM prime   */
 #endif
 
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    uint16_t mtu;                   /*!< path mtu, used to fragment outoing messages */
+#endif
+
     unsigned char max_major_ver;    /*!< max. major version used            */
     unsigned char max_minor_ver;    /*!< max. minor version used            */
     unsigned char min_major_ver;    /*!< min. major version used            */
@@ -2423,15 +2427,53 @@ void mbedtls_ssl_conf_cert_req_ca_list( mbedtls_ssl_config *conf,
                                           char cert_req_ca_list );
 #endif /* MBEDTLS_SSL_SRV_C */
 
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+/**
+ * \brief          Set the Maximum Tranport Unit (MTU).
+ *                 This represents the maximum size of a datagram payload
+ *                 handle by the transport layer (usually UDP) as determined
+ *                 by the network link and stack. In practice, this controls
+ *                 the maximum size datagram the DTLS layer will pass to the
+ *                 \c f_send() callback set using \c mbedtls_ssl_set_bio().
+ *
+ * \note           This only controls the size of the packet we send.
+ *                 Client-side, you can request the server to use smaller
+ *                 datagrams with \c mbedtls_conf_max_frag_len().
+ *
+ * \note           If both a MTU and a maximum fragment length have been
+ *                 configured (or negotiated with the peer), the lower limit
+ *                 is used.
+ *
+ * \note           Values larger than \c MBEDTLS_SSL_MAX_CONTENT_LEN have no
+ *                 effect. This can only be used to decrease the maximum size
+ *                 of detagrams sent.
+ *
+ * \param conf     SSL configuration
+ * \param mtu      Value of the path MTU in bytes
+ */
+void mbedtls_ssl_conf_mtu( mbedtls_ssl_config *conf, uint16_t mtu );
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 /**
  * \brief          Set the maximum fragment length to emit and/or negotiate
- *                 (Default: the smaller of MBEDTLS_SSL_IN_CONTENT_LEN and
- *                 MBEDTLS_SSL_OUT_CONTENT_LEN, usually 2^14 bytes)
- *                 (Server: set maximum fragment length to emit,
- *                 usually negotiated by the client during handshake
+ *                 (Default: MBEDTLS_SSL_MAX_CONTENT_LEN, usually 2^14 bytes)
+ *                 (Server: set initial maximum fragment length to emit,
+ *                 a lower value can be negotiated by the client)
  *                 (Client: set maximum fragment length to emit *and*
  *                 negotiate with the server during handshake)
+ *
+ * \note           With TLS, this currently only affects ApplicationData (sent
+ *                 with \c mbedtls_ssl_read()), not handshake messages.
+ *                 With DTLS, this affects both ApplicationData and handshake.
+ *
+ * \note           This sets the maximum length for a record's paylaod,
+ *                 excluding record overhead that will be added to it, see
+ *                 \c mbedtls_ssl_get_record_expansion().
+ *
+ * \note           For DTLS, it is also possible to set a limit for the total
+ *                 size of daragrams passed to the transport layer, including
+ *                 record overhead, see \c mbedtls_ssl_conf_mtu().
  *
  * \param conf     SSL configuration
  * \param mfl_code Code for maximum fragment length (allowed values:

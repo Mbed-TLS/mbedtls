@@ -24,6 +24,9 @@ Changes
    * Improve compatibility with some alternative CCM implementations by using
      CCM test vectors from RAM.
 
+INTERNAL NOTE: need to bump soversion of libmbedtls:
+- added new member 'mtu' to public 'mbedtls_ssl_conf' structure
+
 = mbed TLS 2.12.0 branch released 2018-07-25
 
 Security

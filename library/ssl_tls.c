@@ -6750,6 +6750,13 @@ void mbedtls_ssl_conf_arc4_support( mbedtls_ssl_config *conf, char arc4 )
 }
 #endif
 
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+void mbedtls_ssl_conf_mtu( mbedtls_ssl_config *conf, uint16_t mtu )
+{
+    conf->mtu = mtu;
+}
+#endif
+
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 int mbedtls_ssl_conf_max_frag_len( mbedtls_ssl_config *conf, unsigned char mfl_code )
 {

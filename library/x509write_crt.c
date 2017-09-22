@@ -334,7 +334,7 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx, unsigned char *buf, 
      */
 
     /* Only for v3 */
-    if( ctx->version == 2 )
+    if( ctx->version == MBEDTLS_X509_CRT_VERSION_3 )
     {
         MBEDTLS_ASN1_CHK_ADD( len, mbedtls_x509_write_extensions( &c, tmp_buf, ctx->extensions ) );
         MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, tmp_buf, len ) );
@@ -397,7 +397,7 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx, unsigned char *buf, 
      */
 
     /* Can be omitted for v1 */
-    if( ctx->version > 0 )
+    if( ctx->version != MBEDTLS_X509_CRT_VERSION_1 )
     {
         sub_len = 0;
         MBEDTLS_ASN1_CHK_ADD( sub_len, mbedtls_asn1_write_int( &c, tmp_buf, ctx->version ) );

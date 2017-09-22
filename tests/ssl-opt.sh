@@ -1292,6 +1292,21 @@ run_test    "Session resume using cache: openssl server" \
 
 # Tests for Max Fragment Length extension
 
+MAX_CONTENT_LEN_EXPECT='16384'
+MAX_CONTENT_LEN_CONFIG=$( ../scripts/config.pl get MBEDTLS_SSL_MAX_CONTENT_LEN)
+
+if [ -n "$MAX_CONTENT_LEN_CONFIG" ] && [ "$MAX_CONTENT_LEN_CONFIG" -ne "$MAX_CONTENT_LEN_EXPECT" ]; then
+    printf "The ${CONFIG_H} file contains a value for the configuration of\n"
+    printf "MBEDTLS_SSL_MAX_CONTENT_LEN that is different from the script’s\n"
+    printf "test value of ${MAX_CONTENT_LEN_EXPECT}. \n"
+    printf "\n"
+    printf "The tests assume this value and if it changes, the tests in this\n"
+    printf "script should also be adjusted.\n"
+    printf "\n"
+
+    exit 1
+fi
+
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 run_test    "Max fragment length: enabled, default" \
             "$P_SRV debug_level=3" \

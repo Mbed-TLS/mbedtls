@@ -269,7 +269,7 @@ int main( int argc, char *argv[] )
     opt.max_pathlen         = DFL_MAX_PATHLEN;
     opt.key_usage           = DFL_KEY_USAGE;
     opt.ns_cert_type        = DFL_NS_CERT_TYPE;
-    opt.version             = DFL_VERSION;
+    opt.version             = DFL_VERSION - 1;
     opt.md                  = DFL_DIGEST;
     opt.subject_identifier   = DFL_SUBJ_IDENT;
     opt.authority_identifier = DFL_AUTH_IDENT;
@@ -362,6 +362,7 @@ int main( int argc, char *argv[] )
             opt.version = atoi( q );
             if( opt.version < 1 || opt.version > 3 )
                 goto usage;
+            opt.version--;
         }
         else if( strcmp( p, "selfsign" ) == 0 )
         {
@@ -628,7 +629,7 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "  . Setting certificate values ..." );
     fflush( stdout );
 
-    mbedtls_x509write_crt_set_version( &crt, opt.version - 1 );
+    mbedtls_x509write_crt_set_version( &crt, opt.version );
     mbedtls_x509write_crt_set_md_alg( &crt, opt.md );
 
     ret = mbedtls_x509write_crt_set_serial( &crt, &serial );
@@ -651,7 +652,8 @@ int main( int argc, char *argv[] )
 
     mbedtls_printf( " ok\n" );
 
-    if( opt.version == 3 && opt.basic_constraints )
+    if( opt.version == MBEDTLS_X509_CRT_VERSION_3 &&
+        opt.basic_constraints != 0 )
     {
         mbedtls_printf( "  . Adding the Basic Constraints extension ..." );
         fflush( stdout );
@@ -670,7 +672,8 @@ int main( int argc, char *argv[] )
     }
 
 #if defined(MBEDTLS_SHA1_C)
-    if( opt.version == 3 && opt.subject_identifier )
+    if( opt.version == MBEDTLS_X509_CRT_VERSION_3 &&
+        opt.subject_identifier != 0 )
     {
         mbedtls_printf( "  . Adding the Subject Key Identifier ..." );
         fflush( stdout );
@@ -688,7 +691,8 @@ int main( int argc, char *argv[] )
         mbedtls_printf( " ok\n" );
     }
 
-    if( opt.version == 3 && opt.authority_identifier )
+    if( opt.version == MBEDTLS_X509_CRT_VERSION_3 &&
+        opt.authority_identifier != 0 )
     {
         mbedtls_printf( "  . Adding the Authority Key Identifier ..." );
         fflush( stdout );
@@ -707,7 +711,8 @@ int main( int argc, char *argv[] )
     }
 #endif /* MBEDTLS_SHA1_C */
 
-    if( opt.version == 3 && opt.key_usage )
+    if( opt.version == MBEDTLS_X509_CRT_VERSION_3 &&
+        opt.key_usage != 0 )
     {
         mbedtls_printf( "  . Adding the Key Usage extension ..." );
         fflush( stdout );
@@ -724,7 +729,8 @@ int main( int argc, char *argv[] )
         mbedtls_printf( " ok\n" );
     }
 
-    if( opt.version == 3 && opt.ns_cert_type )
+    if( opt.version == MBEDTLS_X509_CRT_VERSION_3 &&
+        opt.ns_cert_type != 0 )
     {
         mbedtls_printf( "  . Adding the NS Cert Type extension ..." );
         fflush( stdout );

@@ -170,8 +170,8 @@ struct options
     int selfsign;               /* selfsign the certificate             */
     int is_ca;                  /* is a CA certificate                  */
     int max_pathlen;            /* maximum CA path length               */
-    int authority_identifier;   /* add authority identifier id to CRT   */
-    int subject_identifier;     /* add subject identifier id to CRT     */
+    int authority_identifier;   /* add authority identifier to CRT      */
+    int subject_identifier;     /* add subject identifier to CRT        */
     int basic_constraints;      /* add basic constraints ext to CRT     */
     int version;                /* CRT version                          */
     mbedtls_md_type_t md;       /* Hash used for signing                */

@@ -52,8 +52,12 @@
 #if defined(MBEDTLS_CCM_ALT)
 #define MBEDTLS_CCM_DEFAULT_INLINE
 #else
-#define MBEDTLS_CCM_DEFAULT_INLINE static inline
+#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
+    !defined(inline) && !defined(__cplusplus)
+#define inline __inline
 #endif
+#define MBEDTLS_CCM_DEFAULT_INLINE static inline
+#endif /* MBEDTLS_CCM_ALT */
 
 
 /* Implementation that should never be optimized out by the compiler */

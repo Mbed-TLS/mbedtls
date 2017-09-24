@@ -38,8 +38,9 @@ Changes
      by Jean-Philippe Aumasson.
    * Add support for alternative implementation for ECDSA, controlled by new
      configuration flag MBEDTLS_ECDSA_ALT in config.h.
-     Alternative Ecdsa is supported for implementation of `mbedtls_ecdsa_sign`
-     and `mbedtls_ecdsa_verify`.
+     The following functions from the ECDSA module can be replaced
+     with an alternative implementation:
+     mbedtls_ecdsa_sign(), mbedtls_ecdsa_verify() and mbedtls_ecdsa_genkey().
 
 = mbed TLS 2.5.0 branch released 2017-05-17
 

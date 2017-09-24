@@ -37,9 +37,11 @@
 #include "mbedtls/asn1write.h"
 
 #include <string.h>
+
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
 #include "mbedtls/hmac_drbg.h"
 #endif
+
 /*
  * Derive a suitable integer for group grp from a buffer of length len
  * SEC1 4.1.3 step 5 aka SEC1 4.1.4 step 3
@@ -314,6 +316,7 @@ static int ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
 
     return( 0 );
 }
+
 /*
  * Compute and write signature
  */

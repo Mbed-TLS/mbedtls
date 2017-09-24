@@ -38,8 +38,9 @@ Changes
      by Jean-Philippe Aumasson.
    * Add support for alternative implementation for ECDH, controlled by new
      configuration flag MBEDTLS_ECDH_ALT in config.h.
-     Alternative Ecdh is supported for implementation of `mbedtls_ecdh_gen_public`
-     and `mbedtls_ecdh_compute_shared`.
+     The following functions from the ECDH module can be replaced
+     with an alternative implementation:
+     mbedtls_ecdh_gen_public() and mbedtls_ecdh_compute_shared().
 
 = mbed TLS 2.5.0 branch released 2017-05-17
 

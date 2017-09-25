@@ -1596,6 +1596,11 @@
  *      MBEDTLS_TLS_RSA_WITH_RC4_128_MD5
  *      MBEDTLS_TLS_RSA_PSK_WITH_RC4_128_SHA
  *      MBEDTLS_TLS_PSK_WITH_RC4_128_SHA
+ *
+ * \warning  ARC4 is considered a weak cipher and its use constitutes
+ *           a security risk. If possible, it is recommended to avoid dependencies
+ *           on it and to use e.g. AES instead.
+ *
  */
 #define MBEDTLS_ARC4_C
 

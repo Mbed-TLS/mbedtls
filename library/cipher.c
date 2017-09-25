@@ -215,10 +215,15 @@ int mbedtls_cipher_set_iv( mbedtls_cipher_context_t *ctx,
                    const unsigned char *iv, size_t iv_len )
 {
     size_t actual_iv_size;
-
-    if( NULL == ctx || NULL == ctx->cipher_info || NULL == iv )
+    if( NULL == ctx || NULL == ctx->cipher_info ||
+        ( NULL == iv && ( ctx->cipher_info->mode != MBEDTLS_MODE_ECB ) ) )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
+    if ( ctx->cipher_info->mode == MBEDTLS_MODE_ECB  )
+    {
+            ctx->iv_size = 0;
+            return ( 0 );
+    }
     /* avoid buffer overflow in ctx->iv */
     if( iv_len > MBEDTLS_MAX_IV_LENGTH )
         return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );

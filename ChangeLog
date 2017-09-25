@@ -1,22 +1,18 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.7.x branch released 2018-xx-xx
-
-Default behavior changes
-   * The truncated HMAC extension now conforms to RFC 6066. This means
-     that when both sides of a TLS connection negotiate the truncated
-     HMAC extension, Mbed TLS can now interoperate with other
-     compliant implementations, but this breaks interoperability with
-     prior versions of Mbed TLS. To restore the old behavior, enable
-     the (deprecated) option MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT in
-     config.h. Found by Andreas Walz (ivESK, Offenburg University of
-     Applied Sciences).
+= mbed TLS x.x.x branch released xxxx-xx-xx
 
 Security
    * Fix implementation of the truncated HMAC extension. The previous
      implementation allowed an offline 2^80 brute force attack on the
      HMAC key of a single, uninterrupted connection (with no
      resumption of the session).
+   * Fix a bug in the X.509 module potentially leading to a buffer overread
+     during CRT verification or to invalid or omitted checks for certificate
+     validity. The former can be triggered remotely, while the latter requires
+     a non DER-compliant certificate correctly signed by a trusted CA, or a
+     trusted CA with a non DER-compliant certificate. Found by luocm on GitHub.
+     Fixes #825.
 
 Features
    * Extend PKCS#8 interface by introducing support for the entire SHA
@@ -43,6 +39,16 @@ Changes
    * Remove support for the library reference configuration for picocoin.
    * MD functions deprecated in 2.7.0 are no longer inline, to provide
      a migration path for those depending on the library's ABI.
+
+Default behavior changes
+   * The truncated HMAC extension now conforms to RFC 6066. This means
+     that when both sides of a TLS connection negotiate the truncated
+     HMAC extension, Mbed TLS can now interoperate with other
+     compliant implementations, but this breaks interoperability with
+     prior versions of Mbed TLS. To restore the old behavior, enable
+     the (deprecated) option MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT in
+     config.h. Found by Andreas Walz (ivESK, Offenburg University of
+     Applied Sciences).
 
 = mbed TLS 2.7.0 branch released 2018-02-03
 

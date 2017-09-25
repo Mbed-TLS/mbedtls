@@ -2040,8 +2040,15 @@
  *          library/pem.c
  *          library/ssl_tls.c
  *
- * This module is required for SSL/TLS and X.509.
- * PEM_PARSE uses MD5 for decrypting encrypted keys.
+ * This module is required for SSL/TLS up to version 1.1, and for TLS 1.2
+ * depending on the handshake parameters. Further, it is used for checking
+ * MD5-signed certificates, and for PBKDF1 when decrypting PEM-encoded
+ * encrypted keys.
+ *
+ * \warning  MD5 is considered a weak message digest and its use
+ *           constitutes a security risk. If possible, it is recommended
+ *           to avoid dependencies on it and to use SHA-256 / SHA-512 instead.
+ *
  */
 #define MBEDTLS_MD5_C
 

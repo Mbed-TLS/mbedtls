@@ -58,7 +58,7 @@ mbedtls_md2_context;
  *
  * \warning        MD2 is considered a weak message digest and its use
  *                 constitutes a security risk. It is recommended
- *                 to use SHA-256 or SHA-512 instead.
+ *                 to use a strong message digest instead.
  *
  */
 void mbedtls_md2_init( mbedtls_md2_context *ctx );
@@ -70,7 +70,7 @@ void mbedtls_md2_init( mbedtls_md2_context *ctx );
  *
  * \warning        MD2 is considered a weak message digest and its use
  *                 constitutes a security risk. It is recommended
- *                 to use SHA-256 or SHA-512 instead.
+ *                 to use a strong message digest instead.
  *
  */
 void mbedtls_md2_free( mbedtls_md2_context *ctx );
@@ -83,7 +83,7 @@ void mbedtls_md2_free( mbedtls_md2_context *ctx );
  *
  * \warning        MD2 is considered a weak message digest and its use
  *                 constitutes a security risk. It is recommended
- *                 to use SHA-256 or SHA-512 instead.
+ *                 to use a strong message digest instead.
  *
  */
 void mbedtls_md2_clone( mbedtls_md2_context *dst,
@@ -96,7 +96,7 @@ void mbedtls_md2_clone( mbedtls_md2_context *dst,
  *
  * \warning        MD2 is considered a weak message digest and its use
  *                 constitutes a security risk. It is recommended
- *                 to use SHA-256 or SHA-512 instead.
+ *                 to use a strong message digest instead.
  *
  */
 void mbedtls_md2_starts( mbedtls_md2_context *ctx );
@@ -110,7 +110,7 @@ void mbedtls_md2_starts( mbedtls_md2_context *ctx );
  *
  * \warning        MD2 is considered a weak message digest and its use
  *                 constitutes a security risk. It is recommended
- *                 to use SHA-256 or SHA-512 instead.
+ *                 to use a strong message digest instead.
  *
  */
 void mbedtls_md2_update( mbedtls_md2_context *ctx, const unsigned char *input, size_t ilen );

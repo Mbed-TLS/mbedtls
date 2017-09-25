@@ -34,10 +34,13 @@ Bugfix
      i386 with SSE2. Found by László Langó. Fixes #1550
    * Fix namespacing in header files. Remove the `mbedtls` namespacing in
      the `#include` in the header files. Resolves #857
+   * Ignore iv in mbedtls_cipher_set_iv() when the cipher mode is MBEDTLS_MODE_ECB
+     Fix for #1091 raised by ezdevelop
 
 Changes
    * Change the shebang line in Perl scripts to look up perl in the PATH.
      Contributed by fbrosson.
+   * Add tests for the mbedtls_cipher_crypt() API
 
 = mbed TLS 2.11.0 branch released 2018-06-18
 

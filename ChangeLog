@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Bugfix
+   * Ignore iv in mbedtls_cipher_set_iv() when the cipher mode is MBEDTLS_MODE_ECB
+     Fix for #1091 raised by ezdevelop
+
 = mbed TLS 2.1.13 branch released 2018-06-18
 
 Bugfix

@@ -55,6 +55,11 @@ mbedtls_md2_context;
  * \brief          Initialize MD2 context
  *
  * \param ctx      MD2 context to be initialized
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use SHA-256 or SHA-512 instead.
+ *
  */
 void mbedtls_md2_init( mbedtls_md2_context *ctx );
 
@@ -62,6 +67,11 @@ void mbedtls_md2_init( mbedtls_md2_context *ctx );
  * \brief          Clear MD2 context
  *
  * \param ctx      MD2 context to be cleared
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use SHA-256 or SHA-512 instead.
+ *
  */
 void mbedtls_md2_free( mbedtls_md2_context *ctx );
 
@@ -70,6 +80,11 @@ void mbedtls_md2_free( mbedtls_md2_context *ctx );
  *
  * \param dst      The destination context
  * \param src      The context to be cloned
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use SHA-256 or SHA-512 instead.
+ *
  */
 void mbedtls_md2_clone( mbedtls_md2_context *dst,
                         const mbedtls_md2_context *src );
@@ -78,6 +93,11 @@ void mbedtls_md2_clone( mbedtls_md2_context *dst,
  * \brief          MD2 context setup
  *
  * \param ctx      context to be initialized
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use SHA-256 or SHA-512 instead.
+ *
  */
 void mbedtls_md2_starts( mbedtls_md2_context *ctx );
 
@@ -87,6 +107,11 @@ void mbedtls_md2_starts( mbedtls_md2_context *ctx );
  * \param ctx      MD2 context
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use SHA-256 or SHA-512 instead.
+ *
  */
 void mbedtls_md2_update( mbedtls_md2_context *ctx, const unsigned char *input, size_t ilen );
 

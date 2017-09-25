@@ -2089,6 +2089,11 @@
  *
  * This module is required for SSL/TLS up to version 1.1, for TLS 1.2
  * depending on the handshake parameters, and for SHA1-signed certificates.
+ *
+ * \warning  SHA1 is considered a weak message digest and its use
+ *           constitutes a security risk. If possible, it is recommended
+ *           to avoid dependencies on it and to use SHA-256 / SHA-512 instead.
+ *
  */
 #define MBEDTLS_SHA1_C
 

@@ -64,7 +64,7 @@ static int derive_mpi( const mbedtls_ecp_group *grp, mbedtls_mpi *x,
 cleanup:
     return( ret );
 }
-
+#if !defined (MBEDTLS_ECC_ALT)
 /*
  * Compute ECDSA signature of a hashed message (SEC1 4.1.3)
  * Obviously, compared to SEC1 4.1.3, we skip step 4 (hash message)
@@ -157,6 +157,7 @@ cleanup:
 
     return( ret );
 }
+#endif /*!defined (MBEDTLS_ECC_ALT)*/
 
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
 /*
@@ -204,6 +205,8 @@ cleanup:
 }
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
+
+#if !defined (MBEDTLS_ECC_ALT)
 /*
  * Verify ECDSA signature of hashed message (SEC1 4.1.4)
  * Obviously, compared to SEC1 4.1.3, we skip step 2 (hash message)
@@ -290,6 +293,7 @@ cleanup:
     return( ret );
 }
 
+#endif /*!defined (MBEDTLS_ECC_ALT)*/
 /*
  * Convert a signature (given by context) to ASN.1
  */

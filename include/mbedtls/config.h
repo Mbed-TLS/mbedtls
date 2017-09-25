@@ -1809,6 +1809,11 @@
  * Caller:
  *
  * Uncomment to enable support for (rare) MD4-signed X.509 certs.
+ *
+ * \warning  MD4 is considered a weak message digest and its use
+ *           constitutes a security risk. If possible, it is recommended
+ *           to avoid dependencies on it and to use SHA-256 or SHA-512 instead.
+ *
  */
 //#define MBEDTLS_MD4_C
 

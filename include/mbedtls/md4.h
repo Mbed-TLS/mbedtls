@@ -55,6 +55,11 @@ mbedtls_md4_context;
  * \brief          Initialize MD4 context
  *
  * \param ctx      MD4 context to be initialized
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use SHA-256 or SHA-512 instead.
+ *
  */
 void mbedtls_md4_init( mbedtls_md4_context *ctx );
 
@@ -62,6 +67,11 @@ void mbedtls_md4_init( mbedtls_md4_context *ctx );
  * \brief          Clear MD4 context
  *
  * \param ctx      MD4 context to be cleared
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use SHA-256 or SHA-512 instead.
+ *
  */
 void mbedtls_md4_free( mbedtls_md4_context *ctx );
 
@@ -70,6 +80,11 @@ void mbedtls_md4_free( mbedtls_md4_context *ctx );
  *
  * \param dst      The destination context
  * \param src      The context to be cloned
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use SHA-256 or SHA-512 instead.
+ *
  */
 void mbedtls_md4_clone( mbedtls_md4_context *dst,
                         const mbedtls_md4_context *src );
@@ -78,6 +93,10 @@ void mbedtls_md4_clone( mbedtls_md4_context *dst,
  * \brief          MD4 context setup
  *
  * \param ctx      context to be initialized
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use SHA-256 or SHA-512 instead.
  */
 void mbedtls_md4_starts( mbedtls_md4_context *ctx );
 
@@ -87,6 +106,11 @@ void mbedtls_md4_starts( mbedtls_md4_context *ctx );
  * \param ctx      MD4 context
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use SHA-256 or SHA-512 instead.
+ *
  */
 void mbedtls_md4_update( mbedtls_md4_context *ctx, const unsigned char *input, size_t ilen );
 
@@ -95,6 +119,11 @@ void mbedtls_md4_update( mbedtls_md4_context *ctx, const unsigned char *input, s
  *
  * \param ctx      MD4 context
  * \param output   MD4 checksum result
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use SHA-256 or SHA-512 instead.
+ *
  */
 void mbedtls_md4_finish( mbedtls_md4_context *ctx, unsigned char output[16] );
 

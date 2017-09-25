@@ -19,6 +19,11 @@
  *  limitations under the License.
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
+ *
+ * \warning        ARC4 is considered a weak cipher and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong cipher instead.
+ *
  */
 #ifndef MBEDTLS_ARC4_H
 #define MBEDTLS_ARC4_H
@@ -41,6 +46,11 @@ extern "C" {
 
 /**
  * \brief          ARC4 context structure
+ *
+ * \warning        ARC4 is considered a weak cipher and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong cipher instead.
+ *
  */
 typedef struct
 {

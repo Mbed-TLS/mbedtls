@@ -19,6 +19,11 @@
  *  limitations under the License.
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
+ *
+ * \warning        SHA-1 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 #ifndef MBEDTLS_SHA1_H
 #define MBEDTLS_SHA1_H
@@ -42,6 +47,11 @@ extern "C" {
 
 /**
  * \brief          SHA-1 context structure
+ *
+ * \warning        SHA-1 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 typedef struct
 {

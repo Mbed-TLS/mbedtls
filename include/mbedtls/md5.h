@@ -2,6 +2,10 @@
  * \file md5.h
  *
  * \brief MD5 message digest algorithm (hash function)
+ *
+ * \warning   MD5 is considered a weak message digest and its use constitutes a
+ *            security risk. We recommend considering stronger message
+ *            digests instead.
  */
 /*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
@@ -50,6 +54,11 @@ extern "C" {
 
 /**
  * \brief          MD5 context structure
+ *
+ * \warning        MD5 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 typedef struct
 {
@@ -63,6 +72,11 @@ mbedtls_md5_context;
  * \brief          Initialize MD5 context
  *
  * \param ctx      MD5 context to be initialized
+ *
+ * \warning        MD5 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void mbedtls_md5_init( mbedtls_md5_context *ctx );
 
@@ -70,6 +84,11 @@ void mbedtls_md5_init( mbedtls_md5_context *ctx );
  * \brief          Clear MD5 context
  *
  * \param ctx      MD5 context to be cleared
+ *
+ * \warning        MD5 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void mbedtls_md5_free( mbedtls_md5_context *ctx );
 
@@ -78,6 +97,11 @@ void mbedtls_md5_free( mbedtls_md5_context *ctx );
  *
  * \param dst      The destination context
  * \param src      The context to be cloned
+ *
+ * \warning        MD5 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void mbedtls_md5_clone( mbedtls_md5_context *dst,
                         const mbedtls_md5_context *src );
@@ -88,6 +112,11 @@ void mbedtls_md5_clone( mbedtls_md5_context *dst,
  * \param ctx      context to be initialized
  *
  * \return         0 if successful
+ *
+ * \warning        MD5 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 int mbedtls_md5_starts_ret( mbedtls_md5_context *ctx );
 
@@ -99,6 +128,11 @@ int mbedtls_md5_starts_ret( mbedtls_md5_context *ctx );
  * \param ilen     length of the input data
  *
  * \return         0 if successful
+ *
+ * \warning        MD5 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 int mbedtls_md5_update_ret( mbedtls_md5_context *ctx,
                             const unsigned char *input,
@@ -111,6 +145,11 @@ int mbedtls_md5_update_ret( mbedtls_md5_context *ctx,
  * \param output   MD5 checksum result
  *
  * \return         0 if successful
+ *
+ * \warning        MD5 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 int mbedtls_md5_finish_ret( mbedtls_md5_context *ctx,
                             unsigned char output[16] );
@@ -122,6 +161,11 @@ int mbedtls_md5_finish_ret( mbedtls_md5_context *ctx,
  * \param data     buffer holding one block of data
  *
  * \return         0 if successful
+ *
+ * \warning        MD5 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 int mbedtls_internal_md5_process( mbedtls_md5_context *ctx,
                                   const unsigned char data[64] );
@@ -138,6 +182,11 @@ int mbedtls_internal_md5_process( mbedtls_md5_context *ctx,
  * \deprecated     Superseded by mbedtls_md5_starts_ret() in 2.7.0
  *
  * \param ctx      context to be initialized
+ *
+ * \warning        MD5 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_md5_starts(
                                                     mbedtls_md5_context *ctx )
@@ -153,6 +202,11 @@ MBEDTLS_DEPRECATED static inline void mbedtls_md5_starts(
  * \param ctx      MD5 context
  * \param input    buffer holding the data
  * \param ilen     length of the input data
+ *
+ * \warning        MD5 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_md5_update(
                                                     mbedtls_md5_context *ctx,
@@ -169,6 +223,11 @@ MBEDTLS_DEPRECATED static inline void mbedtls_md5_update(
  *
  * \param ctx      MD5 context
  * \param output   MD5 checksum result
+ *
+ * \warning        MD5 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_md5_finish(
                                                     mbedtls_md5_context *ctx,
@@ -184,6 +243,11 @@ MBEDTLS_DEPRECATED static inline void mbedtls_md5_finish(
  *
  * \param ctx      MD5 context
  * \param data     buffer holding one block of data
+ *
+ * \warning        MD5 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_md5_process(
                                                 mbedtls_md5_context *ctx,
@@ -215,6 +279,11 @@ extern "C" {
  * \param output   MD5 checksum result
  *
  * \return         0 if successful
+ *
+ * \warning        MD5 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 int mbedtls_md5_ret( const unsigned char *input,
                      size_t ilen,
@@ -234,6 +303,11 @@ int mbedtls_md5_ret( const unsigned char *input,
  * \param input    buffer holding the data
  * \param ilen     length of the input data
  * \param output   MD5 checksum result
+ *
+ * \warning        MD5 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_md5( const unsigned char *input,
                                                    size_t ilen,
@@ -249,6 +323,11 @@ MBEDTLS_DEPRECATED static inline void mbedtls_md5( const unsigned char *input,
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed
+ *
+ * \warning        MD5 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 int mbedtls_md5_self_test( int verbose );
 

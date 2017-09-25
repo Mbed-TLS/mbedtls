@@ -40,7 +40,6 @@ Bugfix
 Changes
    * Change the shebang line in Perl scripts to look up perl in the PATH.
      Contributed by fbrosson.
-   * Add tests for the mbedtls_cipher_crypt() API
 
 = mbed TLS 2.11.0 branch released 2018-06-18
 

@@ -120,8 +120,8 @@ void cipher_special_behaviours( )
     TEST_ASSERT( mbedtls_cipher_set_iv( &ctx, iv, 0 )
                  == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-	mbedtls_cipher_free( &ctx );
-	cipher_info = mbedtls_cipher_info_from_type( MBEDTLS_CIPHER_AES_128_ECB );
+    mbedtls_cipher_free( &ctx );
+    cipher_info = mbedtls_cipher_info_from_type( MBEDTLS_CIPHER_AES_128_ECB );
     TEST_ASSERT( NULL != cipher_info );
 
     TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx, cipher_info ) );
@@ -730,7 +730,7 @@ void test_vec_crypt( int cipher_id, int operation, char *hex_key,
     if( MBEDTLS_MODE_CBC == ctx.cipher_info->mode )
         TEST_ASSERT( 0 == mbedtls_cipher_set_padding_mode( &ctx, MBEDTLS_PADDING_NONE ) );
 
-	iv_len = unhexify( iv, hex_iv );
+    iv_len = unhexify( iv, hex_iv );
 
     TEST_ASSERT( finish_result == mbedtls_cipher_crypt( &ctx, iv_len ? iv : NULL,
                                                         iv_len, input, inputlen,

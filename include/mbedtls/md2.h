@@ -19,6 +19,11 @@
  *  limitations under the License.
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 #ifndef MBEDTLS_MD2_H
 #define MBEDTLS_MD2_H
@@ -41,6 +46,11 @@ extern "C" {
 
 /**
  * \brief          MD2 context structure
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 typedef struct
 {

@@ -19,6 +19,11 @@
  *  limitations under the License.
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
+ *
+ * \warning        MD5 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 #ifndef MBEDTLS_MD5_H
 #define MBEDTLS_MD5_H
@@ -42,6 +47,11 @@ extern "C" {
 
 /**
  * \brief          MD5 context structure
+ *
+ * \warning        MD5 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 typedef struct
 {

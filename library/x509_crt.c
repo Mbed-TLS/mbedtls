@@ -717,7 +717,7 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt, const unsigned char *
 
     memcpy( p, buf, crt->raw.len );
 
-    // Direct pointers to the new buffer 
+    // Direct pointers to the new buffer
     p += crt->raw.len - len;
     end = crt_end = p + len;
 
@@ -1958,7 +1958,7 @@ static int x509_crt_verify_top(
          */
         if( child->subject_raw.len == trust_ca->subject_raw.len &&
             memcmp( child->subject_raw.p, trust_ca->subject_raw.p,
-                            child->issuer_raw.len ) == 0 )
+                    child->subject_raw.len ) == 0 )
         {
             check_path_cnt--;
         }
@@ -2008,7 +2008,7 @@ static int x509_crt_verify_top(
     if( trust_ca != NULL &&
         ( child->subject_raw.len != trust_ca->subject_raw.len ||
           memcmp( child->subject_raw.p, trust_ca->subject_raw.p,
-                            child->issuer_raw.len ) != 0 ) )
+                  child->subject_raw.len ) != 0 ) )
     {
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
         /* Check trusted CA's CRL for the chain's top crt */

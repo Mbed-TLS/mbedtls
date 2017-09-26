@@ -54,7 +54,25 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 
 void mbedtls_x509_ocsp_response_init( mbedtls_x509_ocsp_response *resp )
 {
-    memset( resp, 0, sizeof( mbedtls_x509_ocsp_response ) );
+    memset( &resp->raw, 0, sizeof( mbedtls_x509_buf ) );
+    memset( &resp->resp_type, 0, sizeof( mbedtls_x509_buf ) );
+    memset( &resp->sig, 0, sizeof( mbedtls_x509_buf ) );
+    memset( &resp->response_data, 0, sizeof( mbedtls_x509_buf ) );
+    memset( &resp->sig_oid, 0, sizeof( mbedtls_x509_buf ) );
+
+    memset( &resp->produced_at, 0, sizeof( mbedtls_x509_time ) );
+
+    memset( &resp->responder_id, 0, sizeof( mbedtls_x509_ocsp_responder_id ) );
+    memset( &resp->single_resp, 0,
+            sizeof( mbedtls_x509_ocsp_single_response ) );
+
+    resp->resp_status = 0;
+    resp->version = MBEDTLS_X509_OCSP_VERSION_1;
+    resp->sig_md = MBEDTLS_MD_NONE;
+    resp->sig_pk = MBEDTLS_PK_NONE;
+    resp->sig_opts = NULL;
+
+    mbedtls_x509_crt_init( &resp->certs );
 }
 
 /*

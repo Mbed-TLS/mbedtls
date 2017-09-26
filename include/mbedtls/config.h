@@ -2709,6 +2709,12 @@
  * through mbedtls_ssl_conf_cert_profile. Turning on this option is not
  * recommended because of it is possible to generate SHA-1 collisions, however
  * this may be safe for legacy infrastructure where additional controls apply.
+ *
+ * \warning  SHA-1 is considered a weak message digest and its use
+ *           constitutes a security risk. If possible, it is recommended
+ *           to avoid dependencies on it and to use a strong message
+ *           digest instead.
+ *
  */
 // #define MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
 
@@ -2719,7 +2725,14 @@
  * The use of SHA-1 in TLS <= 1.1 and in HMAC-SHA-1 is always allowed by
  * default. At the time of writing, there is no practical attack on the use
  * of SHA-1 in handshake signatures, hence this option is turned on by default
- * for compatibility with existing peers.
+ * to preserve compatibility with existing peers, but the general
+ * warning applies nonetheless:
+ *
+ * \warning  SHA-1 is considered a weak message digest and its use
+ *           constitutes a security risk. If possible, it is recommended
+ *           to avoid dependencies on it and to use a strong message
+ *           digest instead.
+ *
  */
 #define MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE
 

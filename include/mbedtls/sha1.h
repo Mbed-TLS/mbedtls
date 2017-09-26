@@ -159,6 +159,11 @@ extern "C" {
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  * \param output   SHA-1 checksum result
+ *
+ * \warning        SHA-1 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 void mbedtls_sha1( const unsigned char *input, size_t ilen, unsigned char output[20] );
 
@@ -166,6 +171,11 @@ void mbedtls_sha1( const unsigned char *input, size_t ilen, unsigned char output
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed
+ *
+ * \warning        SHA-1 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 int mbedtls_sha1_self_test( int verbose );
 

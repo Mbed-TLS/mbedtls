@@ -1599,7 +1599,7 @@
  *
  * \warning  ARC4 is considered a weak cipher and its use constitutes
  *           a security risk. If possible, it is recommended to avoid dependencies
- *           on it and to use e.g. AES instead.
+ *           on it and to use a strong cipher instead.
  *
  */
 #define MBEDTLS_ARC4_C
@@ -2008,7 +2008,8 @@
  *
  * \warning  MD2 is considered a weak message digest and its use
  *           constitutes a security risk. If possible, it is recommended
- *           to avoid dependencies on it and to use SHA-256 or SHA-512 instead.
+ *           to avoid dependencies on it and to use a strong message
+ *           digest instead.
  *
  */
 //#define MBEDTLS_MD2_C
@@ -2025,7 +2026,8 @@
  *
  * \warning  MD4 is considered a weak message digest and its use
  *           constitutes a security risk. If possible, it is recommended
- *           to avoid dependencies on it and to use SHA-256 or SHA-512 instead.
+ *           to avoid dependencies on it and to use a strong message
+ *           digest instead.
  *
  */
 //#define MBEDTLS_MD4_C
@@ -2047,7 +2049,8 @@
  *
  * \warning  MD5 is considered a weak message digest and its use
  *           constitutes a security risk. If possible, it is recommended
- *           to avoid dependencies on it and to use SHA-256 / SHA-512 instead.
+ *           to avoid dependencies on it and to use a strong message
+ *           digest instead.
  *
  */
 #define MBEDTLS_MD5_C
@@ -2313,7 +2316,8 @@
  *
  * \warning  SHA-1 is considered a weak message digest and its use
  *           constitutes a security risk. If possible, it is recommended
- *           to avoid dependencies on it and to use SHA-256 / SHA-512 instead.
+ *           to avoid dependencies on it and to use a strong message
+ *           digest instead.
  *
  */
 #define MBEDTLS_SHA1_C

@@ -118,6 +118,7 @@ typedef struct mbedtls_x509_ocsp_response {
     mbedtls_x509_ocsp_single_response single_resp;  /**< List of SingleResponse containers each containing the revocation status of a certificate */
 
     mbedtls_x509_buf sig;                           /**< Signature computed on the hash of the ResponseData */
+    mbedtls_x509_buf response_data;                 /**< The raw ResponseData value used to verify the response's signature */
 
     mbedtls_x509_buf sig_oid;                       /**< Signature algorithm OID, e.g. sha1RSA */
     mbedtls_md_type_t sig_md;                       /**< Internal representation of the MD algorithm of the signature algorithm, e.g. MBEDTLS_MD_SHA256 */

@@ -756,6 +756,12 @@ static int x509_ocsp_get_response_data( mbedtls_x509_ocsp_response *resp,
     size_t len;
 
     /*
+     * Keep track of the ResponseData as we need to ensure its signature is
+     * valid
+     */
+    resp->response_data.p = *p;
+
+    /*
      * ResponseData ::= SEQUENCE {
      *  version                 [0] EXPLICIT Version DEFAULT v1,
      *  responderID             ResponderID,
@@ -770,6 +776,7 @@ static int x509_ocsp_get_response_data( mbedtls_x509_ocsp_response *resp,
     }
 
     end = *p + len;
+    resp->response_data.len = end - resp->response_data.p;
 
     /* Get the subcomponent [0] EXPLICIT ... DEFAULT v1 */
     if( ( ret = mbedtls_asn1_get_tag( p, end, &len,

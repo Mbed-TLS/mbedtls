@@ -130,6 +130,11 @@ void mbedtls_md2_update( mbedtls_md2_context *ctx, const unsigned char *input, s
  *
  * \param ctx      MD2 context
  * \param output   MD2 checksum result
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 void mbedtls_md2_finish( mbedtls_md2_context *ctx, unsigned char output[16] );
 
@@ -151,6 +156,11 @@ extern "C" {
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  * \param output   MD2 checksum result
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 void mbedtls_md2( const unsigned char *input, size_t ilen, unsigned char output[16] );
 
@@ -158,6 +168,11 @@ void mbedtls_md2( const unsigned char *input, size_t ilen, unsigned char output[
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 int mbedtls_md2_self_test( int verbose );
 

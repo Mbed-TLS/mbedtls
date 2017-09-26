@@ -155,6 +155,11 @@ extern "C" {
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  * \param output   MD4 checksum result
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 void mbedtls_md4( const unsigned char *input, size_t ilen, unsigned char output[16] );
 
@@ -162,6 +167,11 @@ void mbedtls_md4( const unsigned char *input, size_t ilen, unsigned char output[
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 int mbedtls_md4_self_test( int verbose );
 

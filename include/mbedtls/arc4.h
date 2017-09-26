@@ -133,6 +133,11 @@ extern "C" {
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed
+ *
+ * \warning        ARC4 is considered a weak cipher and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong cipher instead.
+ *
  */
 int mbedtls_arc4_self_test( int verbose );
 

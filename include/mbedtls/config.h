@@ -2090,7 +2090,7 @@
  * This module is required for SSL/TLS up to version 1.1, for TLS 1.2
  * depending on the handshake parameters, and for SHA1-signed certificates.
  *
- * \warning  SHA1 is considered a weak message digest and its use
+ * \warning  SHA-1 is considered a weak message digest and its use
  *           constitutes a security risk. If possible, it is recommended
  *           to avoid dependencies on it and to use SHA-256 / SHA-512 instead.
  *
@@ -2458,7 +2458,7 @@
  * Allow SHA-1 in the default TLS configuration for certificate signing.
  * Without this build-time option, SHA-1 support must be activated explicitly
  * through mbedtls_ssl_conf_cert_profile. Turning on this option is not
- * recommended because of it is possible to generte SHA-1 collisions, however
+ * recommended because of it is possible to generate SHA-1 collisions, however
  * this may be safe for legacy infrastructure where additional controls apply.
  */
 // #define MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES

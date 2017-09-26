@@ -402,7 +402,7 @@ static int x509_ocsp_get_cert_id( unsigned char **p,
 
     /* Parse issuerKeyHash */
     if( ( ret = x509_ocsp_get_md( p, end, single_resp->md_alg,
-                                    &single_resp->issues_key_hash ) ) != 0 )
+                                    &single_resp->issuer_key_hash ) ) != 0 )
     {
         return( ret );
     }

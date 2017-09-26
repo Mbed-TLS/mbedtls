@@ -86,7 +86,7 @@ typedef struct mbedtls_x509_ocsp_single_response {
     mbedtls_x509_buf md_oid;            /**< Hash algorithm used to generate issuerHashName and issuesKeyHash */
     mbedtls_md_type_t md_alg;           /**< Internal representation of the MD algorithm of the hash algorithm, e.g. MBEDTLS_MD_SHA256 */
     mbedtls_x509_buf issuer_name_hash;  /**< Hash of the issues's distinduished name (DN) */
-    mbedtls_x509_buf issues_key_hash;   /**< Hash of issuer's public key */
+    mbedtls_x509_buf issuer_key_hash;   /**< Hash of issuer's public key */
     mbedtls_x509_buf serial;            /**< The serial of the certificate that this SingleResponse corresponds to */
 
     uint8_t cert_status;                /**< The revocation status of the certificate with CertID, e.g. good, revoked, unknown */

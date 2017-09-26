@@ -98,12 +98,15 @@ void cipher_special_behaviours( )
     mbedtls_cipher_context_t ctx;
     unsigned char input[32];
     unsigned char output[32];
+#if defined (MBEDTLS_CIPHER_MODE_CBC)
     unsigned char iv[32];
+#endif
     size_t olen = 0;
 
     mbedtls_cipher_init( &ctx );
     memset( input, 0, sizeof( input ) );
     memset( output, 0, sizeof( output ) );
+#if defined (MBEDTLS_CIPHER_MODE_CBC)
     memset( iv, 0, sizeof( iv ) );
 
     /* Check and get info structures */
@@ -121,6 +124,7 @@ void cipher_special_behaviours( )
                  == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
     mbedtls_cipher_free( &ctx );
+#endif /* MBEDTLS_CIPHER_MODE_CBC */
     cipher_info = mbedtls_cipher_info_from_type( MBEDTLS_CIPHER_AES_128_ECB );
     TEST_ASSERT( NULL != cipher_info );
 

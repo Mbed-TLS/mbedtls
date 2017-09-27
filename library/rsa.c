@@ -1167,26 +1167,26 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
  *
  * Parameters:
  * - md_alg:  Identifies the hash algorithm used to generate the given hash;
- *            MBEDTLS_MD_NONE if raw data are signed.
+ *            MBEDTLS_MD_NONE if raw data is signed.
  * - hashlen: Length of hash in case hashlen is MBEDTLS_MD_NONE.
- * - hash:    Buffer containing the hashed message.
- * - sig_len: Length of the encoded message.
+ * - hash:    Buffer containing the hashed message or the raw data.
+ * - dst_len: Length of the encoded message.
  * - dst:     Buffer to hold the encoded message.
  *
  * Assumptions:
  * - hash has size hashlen if md_alg == MBEDTLS_MD_NONE.
  * - hash has size corresponding to md_alg if md_alg != MBEDTLS_MD_NONE.
- * - dst points to a buffer of size at least sig_len.
+ * - dst points to a buffer of size at least dst_len.
  *
  */
 static int rsa_rsassa_pkcs1_v15_encode( mbedtls_md_type_t md_alg,
                                         unsigned int hashlen,
                                         const unsigned char *hash,
-                                        size_t sig_len,
+                                        size_t dst_len,
                                         unsigned char *dst )
 {
     size_t oid_size  = 0;
-    size_t nb_pad    = sig_len;
+    size_t nb_pad    = dst_len;
     unsigned char *p = dst;
     const char *oid  = NULL;
 
@@ -1282,9 +1282,9 @@ static int rsa_rsassa_pkcs1_v15_encode( mbedtls_md_type_t md_alg,
 
     /* Just a sanity-check, should be automatic
      * after the initial bounds check. */
-    if( p != dst + sig_len )
+    if( p != dst + dst_len )
     {
-        mbedtls_zeroize( dst, sig_len );
+        mbedtls_zeroize( dst, dst_len );
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     }
 

@@ -1229,15 +1229,14 @@ static int rsa_rsassa_pkcs1_v15_encode( mbedtls_md_type_t md_alg,
         nb_pad -= hashlen;
     }
 
-    /* Signature header and padding delimiter */
-    if( nb_pad < 3 )
+    /* Need space for signature header and padding delimiter (3 bytes),
+     * and 8 bytes for the minimal padding */
+    if( nb_pad < 3 + 8 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     nb_pad -= 3;
 
     /* Now nb_pad is the amount of memory to be filled
-     * with padding; must be at least 8 bytes. */
-    if( nb_pad < 8 )
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+     * with padding, and at least 8 bytes long. */
 
     /* Write signature header and padding */
     *p++ = 0;

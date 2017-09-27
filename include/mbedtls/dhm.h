@@ -47,18 +47,23 @@
 #endif
 
 /**
- * RFC 3526 defines a number of standardized Diffie-Hellman groups
- * for IKE.
- * RFC 5114 defines a number of standardized Diffie-Hellman groups
- * that can be used.
- *
- * Some are included here for convenience.
+ * RFC 3526, RFC 5114 and RFC 7919 standardize a number of
+ * Diffie-Hellman groups, some of which are included here
+ * for use within the SSL/TLS module and the user's convenience
+ * when configuring the Diffie-Hellman parameters by hand
+ * through \c mbedtls_ssl_conf_dh_param.
  *
  * Included are:
+ *  RFC 5114 2.2.  2048-bit MODP Group with 224-bit Prime Order Subgroup
  *  RFC 3526 3.    2048-bit MODP Group
  *  RFC 3526 4.    3072-bit MODP Group
  *  RFC 3526 5.    4096-bit MODP Group
- *  RFC 5114 2.2.  2048-bit MODP Group with 224-bit Prime Order Subgroup
+ *  RFC 7919 A.1   ffdhe2048
+ *  RFC 7919 A.2   ffdhe3072
+ *  RFC 7919 A.3   ffdhe4096
+ *  RFC 7919 A.4   ffdhe6144
+ *  RFC 7919 A.5   ffdhe8192
+ *
  * The constants with suffix "_p" denote the chosen prime moduli, while
  * the constants with suffix "_g" denote the chosen generator
  * of the associated prime field.
@@ -81,6 +86,16 @@ const char *mbedtls_dhm_rfc3526_modp_3072_g;
 const char *mbedtls_dhm_rfc3526_modp_4096_p;
 const char *mbedtls_dhm_rfc3526_modp_4096_g;
 
+const char *mbedtls_dhm_rfc7919_ffdhe2048_p;
+const char *mbedtls_dhm_rfc7919_ffdhe2048_g;
+const char *mbedtls_dhm_rfc7919_ffdhe3072_p;
+const char *mbedtls_dhm_rfc7919_ffdhe3072_g;
+const char *mbedtls_dhm_rfc7919_ffdhe4096_p;
+const char *mbedtls_dhm_rfc7919_ffdhe4096_g;
+const char *mbedtls_dhm_rfc7919_ffdhe6144_p;
+const char *mbedtls_dhm_rfc7919_ffdhe6144_g;
+const char *mbedtls_dhm_rfc7919_ffdhe8192_p;
+const char *mbedtls_dhm_rfc7919_ffdhe8192_g;
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 MBEDTLS_DEPRECATED const char *mbedtls_dhm_rfc5114_modp_2048_p;

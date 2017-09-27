@@ -77,6 +77,22 @@
  * \deprecated The primes from RFC 5114 are superseded by the primes
  *             from RFC 3526 and RFC 7919 and should no longer be used.
  *             They will be removed in the next major revision.
+ *
+ * The primes from RFC 3526 and RFC 7919 have been generating by the following
+ * trust-worthy procedure:
+ * - Fix N in { 2048, 3072, 4096, 6144, 8192 } and consider the N-bit number
+ *   the first and last 64 bits are all 1, and the remaining N - 128 bits of
+ *   which are 0x7ff...ff.
+ * - Add the smallest multiple of the first N - 129 bits of the binary expansion
+ *   of pi (for RFC 5236) or e (for RFC 7919) to this intermediate bit-string
+ *   such that the resulting integer is a safe-prime.
+ * - The result is the respective RFC 3526 / 7919 prime, and the corresponding
+ *   generator is always chosen to be 2 (which is a square for these prime,
+ *   hence the corresponding subgroup has order (p-1)/2 and avoids leaking a
+ *   bit in the private exponent).
+ *
+ * The above description can be validated using the
+ * the program programs/util/rfc_3526_7919_verify.
  */
 
 const char *mbedtls_dhm_rfc3526_modp_2048_p;

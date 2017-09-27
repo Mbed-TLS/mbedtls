@@ -95,27 +95,27 @@
  * the program programs/util/rfc_3526_7919_verify.
  */
 
-const char *mbedtls_dhm_rfc3526_modp_2048_p;
-const char *mbedtls_dhm_rfc3526_modp_2048_g;
-const char *mbedtls_dhm_rfc3526_modp_3072_p;
-const char *mbedtls_dhm_rfc3526_modp_3072_g;
-const char *mbedtls_dhm_rfc3526_modp_4096_p;
-const char *mbedtls_dhm_rfc3526_modp_4096_g;
+const char * const mbedtls_dhm_rfc3526_modp_2048_p;
+const char * const mbedtls_dhm_rfc3526_modp_2048_g;
+const char * const mbedtls_dhm_rfc3526_modp_3072_p;
+const char * const mbedtls_dhm_rfc3526_modp_3072_g;
+const char * const mbedtls_dhm_rfc3526_modp_4096_p;
+const char * const mbedtls_dhm_rfc3526_modp_4096_g;
 
-const char *mbedtls_dhm_rfc7919_ffdhe2048_p;
-const char *mbedtls_dhm_rfc7919_ffdhe2048_g;
-const char *mbedtls_dhm_rfc7919_ffdhe3072_p;
-const char *mbedtls_dhm_rfc7919_ffdhe3072_g;
-const char *mbedtls_dhm_rfc7919_ffdhe4096_p;
-const char *mbedtls_dhm_rfc7919_ffdhe4096_g;
-const char *mbedtls_dhm_rfc7919_ffdhe6144_p;
-const char *mbedtls_dhm_rfc7919_ffdhe6144_g;
-const char *mbedtls_dhm_rfc7919_ffdhe8192_p;
-const char *mbedtls_dhm_rfc7919_ffdhe8192_g;
+const char * const mbedtls_dhm_rfc7919_ffdhe2048_p;
+const char * const mbedtls_dhm_rfc7919_ffdhe2048_g;
+const char * const mbedtls_dhm_rfc7919_ffdhe3072_p;
+const char * const mbedtls_dhm_rfc7919_ffdhe3072_g;
+const char * const mbedtls_dhm_rfc7919_ffdhe4096_p;
+const char * const mbedtls_dhm_rfc7919_ffdhe4096_g;
+const char * const mbedtls_dhm_rfc7919_ffdhe6144_p;
+const char * const mbedtls_dhm_rfc7919_ffdhe6144_g;
+const char * const mbedtls_dhm_rfc7919_ffdhe8192_p;
+const char * const mbedtls_dhm_rfc7919_ffdhe8192_g;
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
-MBEDTLS_DEPRECATED const char *mbedtls_dhm_rfc5114_modp_2048_p;
-MBEDTLS_DEPRECATED const char *mbedtls_dhm_rfc5114_modp_2048_g;
+MBEDTLS_DEPRECATED const char * const mbedtls_dhm_rfc5114_modp_2048_p;
+MBEDTLS_DEPRECATED const char * const mbedtls_dhm_rfc5114_modp_2048_g;
 #endif
 
 /**

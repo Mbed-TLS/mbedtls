@@ -261,6 +261,12 @@
  *
  * Uncomment a macro to enable alternate implementation of the corresponding
  * module.
+ *
+ * \warning  MD2, MD4, MD5, ARC4 and SHA-1 are considered weak and their
+ *           use constitutes a security risk. If possible, it is recommended
+ *           to avoid dependencies on them and to use a strong message
+ *           digests resp. ciphers instead.
+ *
  */
 //#define MBEDTLS_AES_ALT
 //#define MBEDTLS_ARC4_ALT

@@ -227,6 +227,11 @@ void md5_hmac_finish( md5_context *ctx, unsigned char output[16] );
  * \brief          MD5 HMAC context reset
  *
  * \param ctx      HMAC context to be reset
+ *
+ * \warning        MD5 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 void md5_hmac_reset( md5_context *ctx );
 

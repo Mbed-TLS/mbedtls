@@ -101,6 +101,11 @@ void md4_free( md4_context *ctx );
  * \brief          MD4 context setup
  *
  * \param ctx      context to be initialized
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 void md4_starts( md4_context *ctx );
 

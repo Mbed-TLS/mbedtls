@@ -448,15 +448,15 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
     /* Sanity-check that all relevant fields are at least set,
      * but don't perform a full keycheck. */
     if( mbedtls_mpi_cmp_int( &ctx->N, 0 ) == 0 ||
-        mbedtls_mpi_cmp_int( &ctx->P, 0 ) == 0 ||
-        mbedtls_mpi_cmp_int( &ctx->Q, 0 ) == 0 ||
         mbedtls_mpi_cmp_int( &ctx->D, 0 ) == 0 ||
         mbedtls_mpi_cmp_int( &ctx->E, 0 ) == 0 )
     {
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     }
 #if !defined(MBEDTLS_RSA_NO_CRT)
-    if( mbedtls_mpi_cmp_int( &ctx->DP, 0 ) == 0 ||
+    if( mbedtls_mpi_cmp_int( &ctx->P, 0 )  == 0 ||
+        mbedtls_mpi_cmp_int( &ctx->Q, 0 )  == 0 ||
+        mbedtls_mpi_cmp_int( &ctx->DP, 0 ) == 0 ||
         mbedtls_mpi_cmp_int( &ctx->DQ, 0 ) == 0 ||
         mbedtls_mpi_cmp_int( &ctx->QP, 0 ) == 0 )
     {

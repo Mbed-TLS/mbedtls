@@ -1067,12 +1067,7 @@ int pk_parse_key( pk_context *pk,
                            key, pwd, pwdlen, &len );
     if( ret == 0 )
     {
-        if( ( pk_info = pk_info_from_type( POLARSSL_PK_RSA ) ) == NULL )
-        {
-            pem_free( &pem );
-            return( POLARSSL_ERR_PK_UNKNOWN_PK_ALG );
-        }
-
+        pk_info = pk_info_from_type( POLARSSL_PK_RSA );
         if( ( ret = pk_init_ctx( pk, pk_info ) ) != 0 ||
             ( ret = pk_parse_key_pkcs1_der( pk_rsa( *pk ),
                                             pem.buf, pem.buflen ) ) != 0 )
@@ -1098,12 +1093,7 @@ int pk_parse_key( pk_context *pk,
                            key, pwd, pwdlen, &len );
     if( ret == 0 )
     {
-        if( ( pk_info = pk_info_from_type( POLARSSL_PK_ECKEY ) ) == NULL )
-        {
-            pem_free( &pem );
-            return( POLARSSL_ERR_PK_UNKNOWN_PK_ALG );
-        }
-
+        pk_info = pk_info_from_type( POLARSSL_PK_ECKEY );
         if( ( ret = pk_init_ctx( pk, pk_info ) ) != 0 ||
             ( ret = pk_parse_key_sec1_der( pk_ec( *pk ),
                                            pem.buf, pem.buflen ) ) != 0 )

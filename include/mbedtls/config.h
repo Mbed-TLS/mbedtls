@@ -264,7 +264,7 @@
  *
  * \warning  MD2, MD4, MD5, ARC4 and SHA-1 are considered weak and their
  *           use constitutes a security risk. If possible, it is recommended
- *           to avoid dependencies on them and to use a strong message
+ *           to avoid dependencies on them and to use strong message
  *           digests resp. ciphers instead.
  *
  */
@@ -320,6 +320,12 @@
  *
  * Uncomment a macro to enable alternate implementation of the corresponding
  * function.
+ *
+ * \warning  MD2, MD4, MD5 and SHA-1 are considered weak message digests and their
+ *           use constitutes a security risk. If possible, it is recommended
+ *           to avoid dependencies on them and to use a strong message
+ *           digest instead.
+ *
  */
 //#define MBEDTLS_MD2_PROCESS_ALT
 //#define MBEDTLS_MD4_PROCESS_ALT

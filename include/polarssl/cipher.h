@@ -66,6 +66,13 @@
 extern "C" {
 #endif
 
+/*
+ * \brief     Enumeration of supported ciphers
+ *
+ * \warning   ARC4 is considered a weak cipher and its use
+ *            constitutes a security risk. It is recommended
+ *            to use a strong cipher instead.
+ */
 typedef enum {
     POLARSSL_CIPHER_ID_NONE = 0,
     POLARSSL_CIPHER_ID_NULL,

@@ -7137,8 +7137,16 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
 }
 
 /*
- * Send application data to be encrypted by the SSL layer,
- * taking care of max fragment length and buffer size
+ * Send application data to be encrypted by the SSL layer, taking care of max
+ * fragment length and buffer size.
+ *
+ * According to RFC 5246 Section 6.2.1:
+ *
+ *      Zero-length fragments of Application data MAY be sent as they are
+ *      potentially useful as a traffic analysis countermeasure.
+ *
+ * Therefore, it is possible that the input message length is 0 and the
+ * corresponding return code is 0 on success.
  */
 static int ssl_write_real( mbedtls_ssl_context *ssl,
                            const unsigned char *buf, size_t len )
@@ -7166,6 +7174,12 @@ static int ssl_write_real( mbedtls_ssl_context *ssl,
 
     if( ssl->out_left != 0 )
     {
+        /*
+         * The user has previously tried to send the data and
+         * MBEDTLS_ERR_SSL_WANT_WRITE or the message was only partially
+         * written. In this case, we expect the high-level write function
+         * (e.g. mbedtls_ssl_write()) to be called with the same parameters
+         */
         if( ( ret = mbedtls_ssl_flush_output( ssl ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_flush_output", ret );
@@ -7174,6 +7188,11 @@ static int ssl_write_real( mbedtls_ssl_context *ssl,
     }
     else
     {
+        /*
+         * The user is trying to send a message the first time, so we need to
+         * copy the data into the internal buffers and setup the data structure
+         * to keep track of partial writes
+         */
         ssl->out_msglen  = len;
         ssl->out_msgtype = MBEDTLS_SSL_MSG_APPLICATION_DATA;
         memcpy( ssl->out_msg, buf, len );

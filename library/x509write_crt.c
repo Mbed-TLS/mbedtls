@@ -308,9 +308,15 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size,
     c = tmp_buf + sizeof( tmp_buf );
 
     /* Signature algorithm needed in TBS, and later for actual signature */
-    pk_alg = pk_get_type( ctx->issuer_key );
-    if( pk_alg == POLARSSL_PK_ECKEY )
+
+    /* There's no direct way of extracting a signature algorithm
+     * (represented as an element of pk_type_t) from a PK instance. */
+    if( pk_can_do( ctx->issuer_key, POLARSSL_PK_RSA ) )
+        pk_alg = POLARSSL_PK_RSA;
+    else if( pk_can_do( ctx->issuer_key, POLARSSL_PK_ECDSA ) )
         pk_alg = POLARSSL_PK_ECDSA;
+    else
+        return( POLARSSL_ERR_X509_INVALID_ALG );
 
     if( ( ret = oid_get_oid_by_sig_alg( pk_alg, ctx->md_alg,
                                         &sig_oid, &sig_oid_len ) ) != 0 )

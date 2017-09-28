@@ -195,13 +195,20 @@ int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size,
      */
     md( md_info_from_type( ctx->md_alg ), c, len, hash );
 
-    pk_alg = pk_get_type( ctx->key );
-    if( pk_alg == POLARSSL_PK_ECKEY )
-        pk_alg = POLARSSL_PK_ECDSA;
-
     if( ( ret = pk_sign( ctx->key, ctx->md_alg, hash, 0, sig, &sig_len,
-                         f_rng, p_rng ) ) != 0 ||
-        ( ret = oid_get_oid_by_sig_alg( pk_alg, ctx->md_alg,
+                         f_rng, p_rng ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    if( pk_can_do( ctx->key, POLARSSL_PK_RSA ) )
+        pk_alg = POLARSSL_PK_RSA;
+    else if( pk_can_do( ctx->key, POLARSSL_PK_ECDSA ) )
+        pk_alg = POLARSSL_PK_ECDSA;
+    else
+        return( POLARSSL_ERR_X509_INVALID_ALG );
+
+    if( ( ret = oid_get_oid_by_sig_alg( pk_alg, ctx->md_alg,
                                         &sig_oid, &sig_oid_len ) ) != 0 )
     {
         return( ret );

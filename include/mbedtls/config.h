@@ -618,6 +618,13 @@
  *      MBEDTLS_TLS_DHE_PSK_WITH_CAMELLIA_128_CBC_SHA256
  *      MBEDTLS_TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA
  *      MBEDTLS_TLS_DHE_PSK_WITH_RC4_128_SHA
+ *
+ * \warning    The possibility for the use of custom groups
+ *             in the use of DHM in TLS constitutes a security
+ *             risk. If possible, it is recommended to use
+ *             EC-based key exchanges instead. See the documentation
+ *             at the top of dhm.h for more information.
+ *
  */
 #define MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED
 
@@ -717,6 +724,13 @@
  *      MBEDTLS_TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256
  *      MBEDTLS_TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA
  *      MBEDTLS_TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA
+ *
+ * \warning    The possibility for the use of custom groups
+ *             in the use of DHM in TLS constitutes a security
+ *             risk. If possible, it is recommended to use
+ *             EC-based key exchanges instead. See the documentation
+ *             at the top of dhm.h for more information.
+ *
  */
 #define MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
 
@@ -1835,6 +1849,13 @@
  *
  * This module is used by the following key exchanges:
  *      DHE-RSA, DHE-PSK
+ *
+ * \warning    The possibility for the use of custom groups
+ *             in the use of DHM in TLS constitutes a security
+ *             risk. If possible, it is recommended to use
+ *             EC-based key exchanges instead. See the documentation
+ *             at the top of dhm.h for more information.
+ *
  */
 #define MBEDTLS_DHM_C
 

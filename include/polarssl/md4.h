@@ -20,6 +20,11 @@
  *  You should have received a copy of the GNU General Public License along
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 #ifndef POLARSSL_MD4_H
 #define POLARSSL_MD4_H
@@ -51,6 +56,11 @@ extern "C" {
 
 /**
  * \brief          MD4 context structure
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 typedef struct
 {
@@ -67,6 +77,11 @@ md4_context;
  * \brief          Initialize MD4 context
  *
  * \param ctx      MD4 context to be initialized
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 void md4_init( md4_context *ctx );
 
@@ -74,6 +89,11 @@ void md4_init( md4_context *ctx );
  * \brief          Clear MD4 context
  *
  * \param ctx      MD4 context to be cleared
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 void md4_free( md4_context *ctx );
 
@@ -90,6 +110,11 @@ void md4_starts( md4_context *ctx );
  * \param ctx      MD4 context
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 void md4_update( md4_context *ctx, const unsigned char *input, size_t ilen );
 
@@ -98,6 +123,11 @@ void md4_update( md4_context *ctx, const unsigned char *input, size_t ilen );
  *
  * \param ctx      MD4 context
  * \param output   MD4 checksum result
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 void md4_finish( md4_context *ctx, unsigned char output[16] );
 
@@ -119,6 +149,11 @@ extern "C" {
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  * \param output   MD4 checksum result
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 void md4( const unsigned char *input, size_t ilen, unsigned char output[16] );
 
@@ -129,6 +164,11 @@ void md4( const unsigned char *input, size_t ilen, unsigned char output[16] );
  * \param output   MD4 checksum result
  *
  * \return         0 if successful, or POLARSSL_ERR_MD4_FILE_IO_ERROR
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 int md4_file( const char *path, unsigned char output[16] );
 
@@ -138,6 +178,11 @@ int md4_file( const char *path, unsigned char output[16] );
  * \param ctx      HMAC context to be initialized
  * \param key      HMAC secret key
  * \param keylen   length of the HMAC key
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 void md4_hmac_starts( md4_context *ctx, const unsigned char *key,
                       size_t keylen );
@@ -148,6 +193,11 @@ void md4_hmac_starts( md4_context *ctx, const unsigned char *key,
  * \param ctx      HMAC context
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 void md4_hmac_update( md4_context *ctx, const unsigned char *input,
                       size_t ilen );
@@ -157,6 +207,11 @@ void md4_hmac_update( md4_context *ctx, const unsigned char *input,
  *
  * \param ctx      HMAC context
  * \param output   MD4 HMAC checksum result
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 void md4_hmac_finish( md4_context *ctx, unsigned char output[16] );
 
@@ -164,6 +219,11 @@ void md4_hmac_finish( md4_context *ctx, unsigned char output[16] );
  * \brief          MD4 HMAC context reset
  *
  * \param ctx      HMAC context to be reset
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 void md4_hmac_reset( md4_context *ctx );
 
@@ -175,6 +235,11 @@ void md4_hmac_reset( md4_context *ctx );
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  * \param output   HMAC-MD4 result
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 void md4_hmac( const unsigned char *key, size_t keylen,
                const unsigned char *input, size_t ilen,
@@ -184,6 +249,11 @@ void md4_hmac( const unsigned char *key, size_t keylen,
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. It is recommended
+ *                 to use a strong message digest instead.
+ *
  */
 int md4_self_test( int verbose );
 

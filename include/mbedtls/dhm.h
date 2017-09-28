@@ -167,7 +167,8 @@ void mbedtls_dhm_init( mbedtls_dhm_context *ctx );
  * \brief          Parse the ServerKeyExchange parameters
  *
  * \param ctx      DHM context
- * \param p        &(start of input buffer)
+ * \param p        &(start of input buffer), will be increased
+ *                 by the amount of data read.
  * \param end      end of buffer
  *
  * \return         0 if successful, or an MBEDTLS_ERR_DHM_XXX error code
@@ -185,6 +186,11 @@ int mbedtls_dhm_read_params( mbedtls_dhm_context *ctx,
  * \param olen     number of chars written
  * \param f_rng    RNG function
  * \param p_rng    RNG parameter
+ *
+ * \note           The destination buffer must be large enough to hold
+ *                 the modulus, the generator, and the public key, each
+ *                 wrapped with a 2-byte length field. It is the responsibility
+ *                 of the caller to ensure that enough space is available.
  *
  * \note           This function assumes that ctx->P and ctx->G
  *                 have already been properly set (for example
@@ -215,9 +221,15 @@ int mbedtls_dhm_read_public( mbedtls_dhm_context *ctx,
  * \param ctx      DHM context
  * \param x_size   private value size in bytes
  * \param output   destination buffer
- * \param olen     must be at least equal to the size of P, ctx->len
+ * \param olen     size of the destination buffer;
+ *                 must be at least equal to the size of P, ctx->len
  * \param f_rng    RNG function
  * \param p_rng    RNG parameter
+ *
+ * \note           The destination buffer will always be fully written
+ *                 so as to contain a big-endian presentation of G^X mod P.
+ *                 If it is larger than ctx->len, it will accordingly be
+ *                 padded with zero-bytes in the beginning.
  *
  * \return         0 if successful, or an MBEDTLS_ERR_DHM_XXX error code
  */
@@ -231,7 +243,8 @@ int mbedtls_dhm_make_public( mbedtls_dhm_context *ctx, int x_size,
  *
  * \param ctx      DHM context
  * \param output   destination buffer
- * \param output_size   size of the destination buffer
+ * \param output_size   size of the destination buffer, must be at
+ *                      at least the size of ctx->len
  * \param olen     on exit, holds the actual number of bytes written
  * \param f_rng    RNG function, for blinding purposes
  * \param p_rng    RNG parameter

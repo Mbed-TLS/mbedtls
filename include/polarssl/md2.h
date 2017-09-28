@@ -20,6 +20,11 @@
  *  You should have received a copy of the GNU General Public License along
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ * \warning   MD2 is considered a weak message digest and its use constitutes a
+ *            security risk. We recommend considering stronger message digests
+ *            instead.
+ *
  */
 #ifndef POLARSSL_MD2_H
 #define POLARSSL_MD2_H
@@ -44,6 +49,11 @@ extern "C" {
 
 /**
  * \brief          MD2 context structure
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 typedef struct
 {
@@ -61,6 +71,11 @@ md2_context;
  * \brief          Initialize MD2 context
  *
  * \param ctx      MD2 context to be initialized
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void md2_init( md2_context *ctx );
 
@@ -68,6 +83,11 @@ void md2_init( md2_context *ctx );
  * \brief          Clear MD2 context
  *
  * \param ctx      MD2 context to be cleared
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void md2_free( md2_context *ctx );
 
@@ -75,6 +95,11 @@ void md2_free( md2_context *ctx );
  * \brief          MD2 context setup
  *
  * \param ctx      context to be initialized
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void md2_starts( md2_context *ctx );
 
@@ -84,6 +109,11 @@ void md2_starts( md2_context *ctx );
  * \param ctx      MD2 context
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void md2_update( md2_context *ctx, const unsigned char *input, size_t ilen );
 
@@ -92,6 +122,11 @@ void md2_update( md2_context *ctx, const unsigned char *input, size_t ilen );
  *
  * \param ctx      MD2 context
  * \param output   MD2 checksum result
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void md2_finish( md2_context *ctx, unsigned char output[16] );
 
@@ -113,6 +148,11 @@ extern "C" {
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  * \param output   MD2 checksum result
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void md2( const unsigned char *input, size_t ilen, unsigned char output[16] );
 
@@ -123,6 +163,11 @@ void md2( const unsigned char *input, size_t ilen, unsigned char output[16] );
  * \param output   MD2 checksum result
  *
  * \return         0 if successful, or POLARSSL_ERR_MD2_FILE_IO_ERROR
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 int md2_file( const char *path, unsigned char output[16] );
 
@@ -132,6 +177,11 @@ int md2_file( const char *path, unsigned char output[16] );
  * \param ctx      HMAC context to be initialized
  * \param key      HMAC secret key
  * \param keylen   length of the HMAC key
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void md2_hmac_starts( md2_context *ctx, const unsigned char *key,
                       size_t keylen );
@@ -142,6 +192,11 @@ void md2_hmac_starts( md2_context *ctx, const unsigned char *key,
  * \param ctx      HMAC context
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void md2_hmac_update( md2_context *ctx, const unsigned char *input,
                       size_t ilen );
@@ -151,6 +206,11 @@ void md2_hmac_update( md2_context *ctx, const unsigned char *input,
  *
  * \param ctx      HMAC context
  * \param output   MD2 HMAC checksum result
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void md2_hmac_finish( md2_context *ctx, unsigned char output[16] );
 
@@ -158,6 +218,11 @@ void md2_hmac_finish( md2_context *ctx, unsigned char output[16] );
  * \brief          MD2 HMAC context reset
  *
  * \param ctx      HMAC context to be reset
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void md2_hmac_reset( md2_context *ctx );
 
@@ -169,6 +234,11 @@ void md2_hmac_reset( md2_context *ctx );
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  * \param output   HMAC-MD2 result
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void md2_hmac( const unsigned char *key, size_t keylen,
                const unsigned char *input, size_t ilen,
@@ -178,6 +248,11 @@ void md2_hmac( const unsigned char *key, size_t keylen,
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 int md2_self_test( int verbose );
 

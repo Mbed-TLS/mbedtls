@@ -20,6 +20,11 @@
  *  You should have received a copy of the GNU General Public License along
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ * \warning   SHA-1 is considered a weak message digest and its use constitutes
+ *            a security risk. We recommend considering stronger message
+ *            digests instead.
+ *
  */
 #ifndef POLARSSL_SHA1_H
 #define POLARSSL_SHA1_H
@@ -51,6 +56,11 @@ extern "C" {
 
 /**
  * \brief          SHA-1 context structure
+ *
+ * \warning        SHA-1 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 typedef struct
 {
@@ -67,6 +77,11 @@ sha1_context;
  * \brief          Initialize SHA-1 context
  *
  * \param ctx      SHA-1 context to be initialized
+ *
+ * \warning        SHA-1 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void sha1_init( sha1_context *ctx );
 
@@ -74,6 +89,11 @@ void sha1_init( sha1_context *ctx );
  * \brief          Clear SHA-1 context
  *
  * \param ctx      SHA-1 context to be cleared
+ *
+ * \warning        SHA-1 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void sha1_free( sha1_context *ctx );
 
@@ -81,6 +101,11 @@ void sha1_free( sha1_context *ctx );
  * \brief          SHA-1 context setup
  *
  * \param ctx      context to be initialized
+ *
+ * \warning        SHA-1 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void sha1_starts( sha1_context *ctx );
 
@@ -90,6 +115,11 @@ void sha1_starts( sha1_context *ctx );
  * \param ctx      SHA-1 context
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
+ *
+ * \warning        SHA-1 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void sha1_update( sha1_context *ctx, const unsigned char *input, size_t ilen );
 
@@ -98,6 +128,11 @@ void sha1_update( sha1_context *ctx, const unsigned char *input, size_t ilen );
  *
  * \param ctx      SHA-1 context
  * \param output   SHA-1 checksum result
+ *
+ * \warning        SHA-1 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void sha1_finish( sha1_context *ctx, unsigned char output[20] );
 
@@ -122,6 +157,11 @@ extern "C" {
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  * \param output   SHA-1 checksum result
+ *
+ * \warning        SHA-1 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void sha1( const unsigned char *input, size_t ilen, unsigned char output[20] );
 
@@ -132,6 +172,11 @@ void sha1( const unsigned char *input, size_t ilen, unsigned char output[20] );
  * \param output   SHA-1 checksum result
  *
  * \return         0 if successful, or POLARSSL_ERR_SHA1_FILE_IO_ERROR
+ *
+ * \warning        SHA-1 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 int sha1_file( const char *path, unsigned char output[20] );
 
@@ -141,6 +186,11 @@ int sha1_file( const char *path, unsigned char output[20] );
  * \param ctx      HMAC context to be initialized
  * \param key      HMAC secret key
  * \param keylen   length of the HMAC key
+ *
+ * \warning        SHA-1 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void sha1_hmac_starts( sha1_context *ctx, const unsigned char *key,
                        size_t keylen );
@@ -151,6 +201,11 @@ void sha1_hmac_starts( sha1_context *ctx, const unsigned char *key,
  * \param ctx      HMAC context
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
+ *
+ * \warning        SHA-1 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void sha1_hmac_update( sha1_context *ctx, const unsigned char *input,
                        size_t ilen );
@@ -160,6 +215,11 @@ void sha1_hmac_update( sha1_context *ctx, const unsigned char *input,
  *
  * \param ctx      HMAC context
  * \param output   SHA-1 HMAC checksum result
+ *
+ * \warning        SHA-1 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void sha1_hmac_finish( sha1_context *ctx, unsigned char output[20] );
 
@@ -167,6 +227,11 @@ void sha1_hmac_finish( sha1_context *ctx, unsigned char output[20] );
  * \brief          SHA-1 HMAC context reset
  *
  * \param ctx      HMAC context to be reset
+ *
+ * \warning        SHA-1 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void sha1_hmac_reset( sha1_context *ctx );
 
@@ -178,6 +243,11 @@ void sha1_hmac_reset( sha1_context *ctx );
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  * \param output   HMAC-SHA-1 result
+ *
+ * \warning        SHA-1 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void sha1_hmac( const unsigned char *key, size_t keylen,
                 const unsigned char *input, size_t ilen,
@@ -187,6 +257,11 @@ void sha1_hmac( const unsigned char *key, size_t keylen,
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed
+ *
+ * \warning        SHA-1 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 int sha1_self_test( int verbose );
 

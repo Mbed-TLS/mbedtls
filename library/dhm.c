@@ -430,10 +430,13 @@ int mbedtls_dhm_make_params( mbedtls_dhm_context *ctx, int x_size,
     /*
      * export P, G, GX
      */
-#define DHM_MPI_EXPORT(X,n)                     \
-    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( X, p + 2, n ) ); \
-    *p++ = (unsigned char)( n >> 8 );           \
-    *p++ = (unsigned char)( n      ); p += n;
+#define DHM_MPI_EXPORT(X,n)                                             \
+    do {                                                                \
+        MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( X, p + 2, n ) );     \
+        *p++ = (unsigned char)( n >> 8 );                               \
+        *p++ = (unsigned char)( n      );                               \
+        p += n;                                                         \
+    } while( 0 )
 
     n1 = mbedtls_mpi_size( &ctx->P  );
     n2 = mbedtls_mpi_size( &ctx->G  );
@@ -444,7 +447,7 @@ int mbedtls_dhm_make_params( mbedtls_dhm_context *ctx, int x_size,
     DHM_MPI_EXPORT( &ctx->G , n2 );
     DHM_MPI_EXPORT( &ctx->GX, n3 );
 
-    *olen  = p - output;
+    *olen = p - output;
 
     ctx->len = n1;
 
@@ -643,10 +646,11 @@ cleanup:
  */
 void mbedtls_dhm_free( mbedtls_dhm_context *ctx )
 {
-    mbedtls_mpi_free( &ctx->pX); mbedtls_mpi_free( &ctx->Vf ); mbedtls_mpi_free( &ctx->Vi );
-    mbedtls_mpi_free( &ctx->RP ); mbedtls_mpi_free( &ctx->K ); mbedtls_mpi_free( &ctx->GY );
-    mbedtls_mpi_free( &ctx->GX ); mbedtls_mpi_free( &ctx->X ); mbedtls_mpi_free( &ctx->G );
-    mbedtls_mpi_free( &ctx->P );
+    mbedtls_mpi_free( &ctx->pX ); mbedtls_mpi_free( &ctx->Vf );
+    mbedtls_mpi_free( &ctx->Vi ); mbedtls_mpi_free( &ctx->RP );
+    mbedtls_mpi_free( &ctx->K  ); mbedtls_mpi_free( &ctx->GY );
+    mbedtls_mpi_free( &ctx->GX ); mbedtls_mpi_free( &ctx->X  );
+    mbedtls_mpi_free( &ctx->G  ); mbedtls_mpi_free( &ctx->P  );
 
     mbedtls_zeroize( ctx, sizeof( mbedtls_dhm_context ) );
 }

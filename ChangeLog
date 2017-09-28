@@ -1,5 +1,12 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Bugfix
+   * Correct extraction of signature-type from PK instance in X.509 CRT and CSR
+     writing routines that prevented these functions to work with alternative
+     RSA implementations. Raised by J.B. in the Mbed TLS forum. Fixes #1011.
+
 = mbed TLS 2.1.9 branch released 2017-08-10
 
 Security

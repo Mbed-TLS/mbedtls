@@ -623,18 +623,35 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx,
      * (2) D and potentially N missing.
      *
      */
-    const int complete   = have_N &&  have_P &&  have_Q &&  have_D && have_E;
-    const int pq_missing = have_N && !have_P && !have_Q &&  have_D && have_E;
-    const int d_missing  =            have_P &&  have_Q && !have_D && have_E;
-    const int is_pub     = have_N && !have_P && !have_Q && !have_D && have_E;
 
-    const int is_priv = complete || pq_missing || d_missing;
+    const int n_missing  =              have_P &&  have_Q &&  have_D && have_E;
+    const int pq_missing =   have_N && !have_P && !have_Q &&  have_D && have_E;
+    const int d_missing  =              have_P &&  have_Q && !have_D && have_E;
+    const int is_pub     =   have_N && !have_P && !have_Q && !have_D && have_E;
+
+    /* These three alternatives are mutually exclusive */
+    const int is_priv = n_missing || pq_missing || d_missing;
 
     if( !is_priv && !is_pub )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
     /*
-     * Step 1: Deduce and verify all core parameters.
+     * Step 1: Deduce N if P, Q are provided.
+     */
+
+    if( !have_N && have_P && have_Q )
+    {
+        if( ( ret = mbedtls_mpi_mul_mpi( &ctx->N, &ctx->P,
+                                         &ctx->Q ) ) != 0 )
+        {
+            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
+        }
+
+        ctx->len = mbedtls_mpi_size( &ctx->N );
+    }
+
+    /*
+     * Step 2: Deduce and verify all remaining core parameters.
      */
 
     if( pq_missing )
@@ -660,13 +677,6 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx,
         }
 #endif /* MBEDTLS_GENPRIME */
 
-        /* Compute N if missing. */
-        if( !have_N &&
-            ( ret = mbedtls_mpi_mul_mpi( &ctx->N, &ctx->P, &ctx->Q ) ) != 0 )
-        {
-            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
-        }
-
         /* Deduce private exponent. This includes double-checking of the result,
          * so together with the primality test above all core parameters are
          * guaranteed to be sane if this call succeeds. */
@@ -680,7 +690,7 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx,
     /* In the remaining case of a public key, there's nothing to check for. */
 
     /*
-     * Step 2: Deduce all additional parameters specific
+     * Step 3: Deduce all additional parameters specific
      *         to our current RSA implementaiton.
      */
 

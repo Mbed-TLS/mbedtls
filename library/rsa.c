@@ -1028,6 +1028,9 @@ int mbedtls_rsa_check_pubkey( const mbedtls_rsa_context *ctx )
     if( !ctx->N.p || !ctx->E.p )
         return( MBEDTLS_ERR_RSA_KEY_CHECK_FAILED );
 
+    if( ctx->len != mbedtls_mpi_size( &ctx->N ) )
+        return( MBEDTLS_ERR_RSA_KEY_CHECK_FAILED );
+
     if( ( ctx->N.p[0] & 1 ) == 0 ||
         ( ctx->E.p[0] & 1 ) == 0 )
         return( MBEDTLS_ERR_RSA_KEY_CHECK_FAILED );

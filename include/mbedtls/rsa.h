@@ -94,7 +94,8 @@ extern "C" {
  * \param P        Pointer to MPI holding first prime factor of N on success
  * \param Q        Pointer to MPI holding second prime factor of N on success
  *
- * \return         - 0 if successful. In this case, P and Q constitute a
+ * \return
+ *                 - 0 if successful. In this case, P and Q constitute a
  *                   factorization of N, and it is guaranteed that D and E
  *                   are indeed modular inverses modulo P-1 and modulo Q-1.
  *                   The values of N, D and E are unchanged. It is checked
@@ -128,7 +129,8 @@ int mbedtls_rsa_deduce_moduli( mbedtls_mpi *N, mbedtls_mpi *D, mbedtls_mpi *E,
  *
  * \note           This function does not check whether P and Q are primes.
  *
- * \return         - 0 if successful. In this case, D is set to a simultaneous
+ * \return
+ *                 - 0 if successful. In this case, D is set to a simultaneous
  *                   modular inverse of E modulo both P-1 and Q-1.
  *                 - A non-zero error code otherwise. In this case, the values
  *                   of P, Q, E are undefined.
@@ -181,12 +183,13 @@ int mbedtls_rsa_deduce_crt( const mbedtls_mpi *P, const mbedtls_mpi *Q,
  * \param f_rng    PRNG to be used for randomization, or NULL
  * \param p_rng    PRNG context for f_rng, or NULL
  *
- * \return         - 0 if the following conditions are satisfied:
- *                   - N = PQ if N,P,Q != NULL
- *                   - D and E are modular inverses modulo P-1 and Q-1
- *                     if D,E,P,Q != NULL
- *                   - P prime if f_rng, P != NULL
- *                   - Q prime if f_rng, Q != NULL
+ * \return
+ *                 - 0 if the following conditions are satisfied:
+ *                    - N = PQ if N,P,Q != NULL
+ *                    - D and E are modular inverses modulo P-1 and Q-1
+ *                      if D,E,P,Q != NULL
+ *                    - P prime if f_rng, P != NULL
+ *                    - Q prime if f_rng, Q != NULL
  *                 - A non-zero error code otherwise.
  *
  * \note           The function can be used with a restricted set of arguments
@@ -213,12 +216,13 @@ int mbedtls_rsa_validate_params( const mbedtls_mpi *N, const mbedtls_mpi *P,
  * \param DQ       MPI to check for D modulo P-1
  * \param QP       MPI to check for the modular inverse of Q modulo P.
  *
- * \return         - 0 if the following conditions are satisfied:
- *                   - D = DP mod P-1 if P, D, DP != NULL
- *                   - Q = DQ mod P-1 if P, D, DQ != NULL
- *                   - QP = Q^-1 mod P if P, Q, QP != NULL
- *                 - MBEDTLS_ERR_RSA_KEY_CHECK_FAILED if check failed,
- *                   potentially including MBEDTLS_ERR_MPI_XXX if some
+ * \return
+ *                 - 0 if the following conditions are satisfied:
+ *                    - D = DP mod P-1 if P, D, DP != NULL
+ *                    - Q = DQ mod P-1 if P, D, DQ != NULL
+ *                    - QP = Q^-1 mod P if P, Q, QP != NULL
+ *                 - \c MBEDTLS_ERR_RSA_KEY_CHECK_FAILED if check failed,
+ *                   potentially including \c MBEDTLS_ERR_MPI_XXX if some
  *                   MPI calculations failed.
  *                 - MBEDTLS_ERR_RSA_BAD_INPUT_DATA if insufficient
  *                   data was provided to check DP, DQ or QP.
@@ -386,18 +390,19 @@ int mbedtls_rsa_import_raw( mbedtls_rsa_context *ctx,
  * \param f_rng    RNG function,
  * \param p_rng    RNG parameter
  *
- *                 To setup an RSA public key, precisely N and E
- *                 must have been imported.
+ * \note
+ *                 - To setup an RSA public key, precisely N and E
+ *                   must have been imported.
  *
- *                 To setup an RSA private key, enough information must be
- *                 present for the other parameters to be efficiently derivable.
+ *                 - To setup an RSA private key, enough information must be
+ *                   present for the other parameters to be efficiently derivable.
  *
- *                 The default implementation supports the following:
- *                 (a) Derive P, Q from N, D, E
- *                 (b) Derive N, D from P, Q, E.
+ *                   The default implementation supports the following:
+ *                     - Derive P, Q from N, D, E
+ *                     - Derive N, D from P, Q, E.
  *
- *                 Alternative implementations need not support these
- *                 and may return MBEDTLS_ERR_RSA_BAD_INPUT_DATA instead.
+ *                 - Alternative implementations need not support these
+ *                   and may return \c MBEDTLS_ERR_RSA_BAD_INPUT_DATA instead.
  *
  * \note           The PRNG is used for probabilistic algorithms
  *                 like the derivation of P, Q from N, D, E, as
@@ -446,15 +451,19 @@ int mbedtls_rsa_check_crt( const mbedtls_rsa_context *ctx,
  * \param D        MPI to hold the private exponent, or NULL
  * \param E        MPI to hold the public exponent, or NULL
  *
- * \return         0 if successful, non-zero error code otherwise.
- *                 In particular, if exporting the requested parameters
- *                 cannot be done because of a lack of functionality
- *                 or because of security policies, the error code
- *                 MBEDTLS_ERR_RSA_EXPORT_UNSUPPORTED is returned.
- *                 In this case, the RSA context stays intact and can
- *                 be continued to be used.
+ * \return
+ *                 - 0 if successful. In this case, the non-NULL buffers
+ *                   pointed to by N, P, Q, D, E are fully written, with
+ *                   additional unused space filled leading by 0-bytes.
+ *                 - Non-zero return code otherwise. In particular, if
+ *                   exporting the requested parameters
+ *                   cannot be done because of a lack of functionality
+ *                   or because of security policies, the error code
+ *                   \c MBEDTLS_ERR_RSA_EXPORT_UNSUPPORTED is returned.
+ *                   In this case, the RSA context stays intact and can
+ *                   be continued to be used.
  *
- * \note           Two reasons for returning MBEDTLS_ERR_RSA_EXPORT_UNSUPPORTED
+ * \note           Reasons for returning \c MBEDTLS_ERR_RSA_EXPORT_UNSUPPORTED
  *                 would be the following: Firstly, it might be that an
  *                 alternative RSA implementation is in use which stores
  *                 the key externally, and which either cannot or should not
@@ -487,19 +496,19 @@ int mbedtls_rsa_export( const mbedtls_rsa_context *ctx,
  * \note           The length fields are ignored if the corresponding
  *                 buffer pointers are NULL.
  *
- * \return         0 if successful. In this case, the non-NULL buffers
- *                 pointed to by N, P, Q, D, E are fully written, with
- *                 additional unused space filled leading by 0-bytes.
+ * \return
+ *                 - 0 if successful. In this case, the non-NULL buffers
+ *                   pointed to by N, P, Q, D, E are fully written, with
+ *                   additional unused space filled leading by 0-bytes.
+ *                 - Non-zero return code otherwise. In particular, if
+ *                   exporting the requested parameters
+ *                   cannot be done because of a lack of functionality
+ *                   or because of security policies, the error code
+ *                   \c MBEDTLS_ERR_RSA_EXPORT_UNSUPPORTED is returned.
+ *                   In this case, the RSA context stays intact and can
+ *                   be continued to be used.
  *
- * \return         0 if successful, non-zero error code otherwise.
- *                 In particular, if exporting the requested parameters
- *                 cannot be done because of a lack of functionality
- *                 or because of security policies, the error code
- *                 MBEDTLS_ERR_RSA_EXPORT_UNSUPPORTED is returned.
- *                 In this case, the RSA context stays intact and can
- *                 be continued to be used.
- *
- * \note           Two reasons for returning MBEDTLS_ERR_RSA_EXPORT_UNSUPPORTED
+ * \note           Reasons for returning \c MBEDTLS_ERR_RSA_EXPORT_UNSUPPORTED
  *                 would be the following: Firstly, it might be that an
  *                 alternative RSA implementation is in use which stores
  *                 the key externally, and which either cannot or should not

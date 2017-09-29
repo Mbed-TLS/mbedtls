@@ -844,6 +844,16 @@ static int pk_parse_key_sec1_der( mbedtls_ecp_keypair *eck,
 
 /*
  * Parse an unencrypted PKCS#8 encoded private key
+ *
+ * Notes:
+ *
+ * - This function does not own the key buffer. It is the
+ *   responsibility of the caller to take care of zeroizing
+ *   and freeing it after use.
+ *
+ * - The function is responsible for freeing the provided
+ *   PK context on failure.
+ *
  */
 static int pk_parse_key_pkcs8_unencrypted_der(
                                     mbedtls_pk_context *pk,
@@ -932,6 +942,12 @@ static int pk_parse_key_pkcs8_unencrypted_der(
 
 /*
  * Parse an encrypted PKCS#8 encoded private key
+ *
+ * To save space, the decryption happens in-place on the given key buffer.
+ * Also, while this function may modify the keybuffer, it doesn't own it,
+ * and instead it is the responsibility of the caller to zeroize and properly
+ * free it after use.
+ *
  */
 #if defined(MBEDTLS_PKCS12_C) || defined(MBEDTLS_PKCS5_C)
 static int pk_parse_key_pkcs8_encrypted_der(
@@ -969,7 +985,6 @@ static int pk_parse_key_pkcs8_encrypted_der(
      *
      *  The EncryptedData OCTET STRING is a PKCS#8 PrivateKeyInfo
      *
-     * To save space, the decryption happens in-place on the given key buffer.
      */
     if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )

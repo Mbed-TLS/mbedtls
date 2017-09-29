@@ -852,6 +852,12 @@ void mbedtls_rsa_import( int radix_N, char *input_N,
     mbedtls_ctr_drbg_context ctr_drbg;
     const char *pers = "test_suite_rsa";
 
+    const int have_N = ( strlen( input_N ) > 0 );
+    const int have_P = ( strlen( input_P ) > 0 );
+    const int have_Q = ( strlen( input_Q ) > 0 );
+    const int have_D = ( strlen( input_D ) > 0 );
+    const int have_E = ( strlen( input_E ) > 0 );
+
     mbedtls_ctr_drbg_init( &ctr_drbg );
 
     mbedtls_entropy_init( &entropy );
@@ -864,29 +870,29 @@ void mbedtls_rsa_import( int radix_N, char *input_N,
     mbedtls_mpi_init( &P ); mbedtls_mpi_init( &Q );
     mbedtls_mpi_init( &D ); mbedtls_mpi_init( &E );
 
-    if( strlen( input_N ) )
+    if( have_N )
         TEST_ASSERT( mbedtls_mpi_read_string( &N, radix_N, input_N ) == 0 );
 
-    if( strlen( input_P ) )
+    if( have_P )
         TEST_ASSERT( mbedtls_mpi_read_string( &P, radix_P, input_P ) == 0 );
 
-    if( strlen( input_Q ) )
+    if( have_Q )
         TEST_ASSERT( mbedtls_mpi_read_string( &Q, radix_Q, input_Q ) == 0 );
 
-    if( strlen( input_D ) )
+    if( have_D )
         TEST_ASSERT( mbedtls_mpi_read_string( &D, radix_D, input_D ) == 0 );
 
-    if( strlen( input_E ) )
+    if( have_E )
         TEST_ASSERT( mbedtls_mpi_read_string( &E, radix_E, input_E ) == 0 );
 
     if( !successive )
     {
         TEST_ASSERT( mbedtls_rsa_import( &ctx,
-                             strlen( input_N ) ? &N : NULL,
-                             strlen( input_P ) ? &P : NULL,
-                             strlen( input_Q ) ? &Q : NULL,
-                             strlen( input_D ) ? &D : NULL,
-                             strlen( input_E ) ? &E : NULL ) == 0 );
+                             have_N ? &N : NULL,
+                             have_P ? &P : NULL,
+                             have_Q ? &Q : NULL,
+                             have_D ? &D : NULL,
+                             have_E ? &E : NULL ) == 0 );
     }
     else
     {
@@ -894,27 +900,27 @@ void mbedtls_rsa_import( int radix_N, char *input_N,
          * This should make no functional difference. */
 
         TEST_ASSERT( mbedtls_rsa_import( &ctx,
-                               strlen( input_N ) ? &N : NULL,
+                               have_N ? &N : NULL,
                                NULL, NULL, NULL, NULL ) == 0 );
 
         TEST_ASSERT( mbedtls_rsa_import( &ctx,
                                NULL,
-                               strlen( input_P ) ? &P : NULL,
+                               have_P ? &P : NULL,
                                NULL, NULL, NULL ) == 0 );
 
         TEST_ASSERT( mbedtls_rsa_import( &ctx,
                                NULL, NULL,
-                               strlen( input_Q ) ? &Q : NULL,
+                               have_Q ? &Q : NULL,
                                NULL, NULL ) == 0 );
 
         TEST_ASSERT( mbedtls_rsa_import( &ctx,
                                NULL, NULL, NULL,
-                               strlen( input_D ) ? &D : NULL,
+                               have_D ? &D : NULL,
                                NULL ) == 0 );
 
         TEST_ASSERT( mbedtls_rsa_import( &ctx,
                                NULL, NULL, NULL, NULL,
-                               strlen( input_E ) ? &E : NULL ) == 0 );
+                               have_E ? &E : NULL ) == 0 );
     }
 
     TEST_ASSERT( mbedtls_rsa_complete( &ctx,

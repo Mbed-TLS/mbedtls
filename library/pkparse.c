@@ -956,7 +956,7 @@ static int pk_parse_key_pkcs8_encrypted_der(
         return( MBEDTLS_ERR_PK_PASSWORD_REQUIRED );
 
     /*
-     * This function parses the EncryptedPrivatKeyInfo object (PKCS#8)
+     * This function parses the EncryptedPrivateKeyInfo object (PKCS#8)
      *
      *  EncryptedPrivateKeyInfo ::= SEQUENCE {
      *    encryptionAlgorithm  EncryptionAlgorithmIdentifier,

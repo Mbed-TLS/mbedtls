@@ -140,14 +140,19 @@ int get_line( FILE *f, char *buf, size_t len )
 {
     char *ret;
 
-    ret = fgets( buf, len, f );
-    if( ret == NULL )
-        return( -1 );
+    buf[0] = '#';
 
-    if( strlen( buf ) && buf[strlen(buf) - 1] == '\n' )
-        buf[strlen(buf) - 1] = '\0';
-    if( strlen( buf ) && buf[strlen(buf) - 1] == '\r' )
-        buf[strlen(buf) - 1] = '\0';
+    while( buf[0] == '#' )
+    {
+        ret = fgets( buf, len, f );
+        if( ret == NULL )
+            return( -1 );
+
+        if( strlen( buf ) && buf[strlen(buf) - 1] == '\n' )
+            buf[strlen(buf) - 1] = '\0';
+        if( strlen( buf ) && buf[strlen(buf) - 1] == '\r' )
+            buf[strlen(buf) - 1] = '\0';
+    }
 
     return( 0 );
 }

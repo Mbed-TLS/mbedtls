@@ -136,23 +136,31 @@ DISPATCH_FUNCTION
     "TESTCASE_FILENAME"
 
 
+/** Retrieve one input line into buf, which must have room for len
+ * bytes. The trailing line break (if any) is stripped from the result.
+ * Lines beginning with the character '#' are skipped. Lines that are
+ * more than len-1 bytes long including the trailing line break are
+ * truncated; note that the following bytes remain in the input stream.
+ *
+ * \return 0 on success, -1 on error or end of file
+ */
 int get_line( FILE *f, char *buf, size_t len )
 {
     char *ret;
 
-    buf[0] = '#';
-
-    while( buf[0] == '#' )
+    do
     {
         ret = fgets( buf, len, f );
         if( ret == NULL )
             return( -1 );
-
-        if( strlen( buf ) && buf[strlen(buf) - 1] == '\n' )
-            buf[strlen(buf) - 1] = '\0';
-        if( strlen( buf ) && buf[strlen(buf) - 1] == '\r' )
-            buf[strlen(buf) - 1] = '\0';
     }
+    while( buf[0] == '#' );
+
+    ret = buf + strlen( buf );
+    if( ret-- > buf && *ret == '\n' )
+        *ret = '\0';
+    if( ret-- > buf && *ret == '\r' )
+        *ret = '\0';
 
     return( 0 );
 }

@@ -843,10 +843,16 @@ void mbedtls_rsa_import( int radix_N, char *input_N,
                          int radix_D, char *input_D,
                          int radix_E, char *input_E,
                          int successive,
+                         int is_priv,
                          int result )
 {
     mbedtls_mpi N, P, Q, D, E;
     mbedtls_rsa_context ctx;
+
+    /* Buffers used for encryption-decryption test */
+    unsigned char *buf_orig = NULL;
+    unsigned char *buf_enc  = NULL;
+    unsigned char *buf_dec  = NULL;
 
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
@@ -927,7 +933,46 @@ void mbedtls_rsa_import( int radix_N, char *input_N,
                                        mbedtls_ctr_drbg_random,
                                        &ctr_drbg ) == result );
 
+    /* On expected success, perform some public and private
+     * key operations to check if the key is working properly. */
+    if( result == 0 )
+    {
+        TEST_ASSERT( mbedtls_rsa_check_pubkey( &ctx ) == 0 );
+
+        /* Did we expect a full private key to be setup? */
+        if( is_priv )
+            TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
+
+        buf_orig = mbedtls_calloc( 1, mbedtls_rsa_get_len( &ctx ) );
+        buf_enc  = mbedtls_calloc( 1, mbedtls_rsa_get_len( &ctx ) );
+        buf_dec  = mbedtls_calloc( 1, mbedtls_rsa_get_len( &ctx ) );
+        if( buf_orig == NULL || buf_enc == NULL || buf_dec == NULL )
+            goto exit;
+
+        TEST_ASSERT( mbedtls_ctr_drbg_random( &ctr_drbg,
+                              buf_orig, mbedtls_rsa_get_len( &ctx ) ) == 0 );
+
+        /* Make sure the number we're generating is smaller than the modulus */
+        buf_orig[0] = 0x00;
+
+        TEST_ASSERT( mbedtls_rsa_public( &ctx, buf_orig, buf_enc ) == 0 );
+
+        if( is_priv )
+        {
+            TEST_ASSERT( mbedtls_rsa_private( &ctx, mbedtls_ctr_drbg_random,
+                                              &ctr_drbg, buf_enc,
+                                              buf_dec ) == 0 );
+
+            TEST_ASSERT( memcmp( buf_orig, buf_dec,
+                                 mbedtls_rsa_get_len( &ctx ) ) == 0 );
+        }
+    }
+
 exit:
+
+    mbedtls_free( buf_orig );
+    mbedtls_free( buf_enc  );
+    mbedtls_free( buf_dec  );
 
     mbedtls_rsa_free( &ctx );
 
@@ -946,6 +991,7 @@ void mbedtls_rsa_export( int radix_N, char *input_N,
                          int radix_Q, char *input_Q,
                          int radix_D, char *input_D,
                          int radix_E, char *input_E,
+                         int is_priv,
                          int successive )
 {
     /* Original MPI's with which we set up the RSA context */
@@ -959,8 +1005,6 @@ void mbedtls_rsa_export( int radix_N, char *input_N,
     const int have_Q = ( strlen( input_Q ) > 0 );
     const int have_D = ( strlen( input_D ) > 0 );
     const int have_E = ( strlen( input_E ) > 0 );
-
-    const int is_priv = have_P || have_Q || have_D;
 
     mbedtls_rsa_context ctx;
 
@@ -1132,7 +1176,8 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_CTR_DRBG_C:MBEDTLS_ENTROPY_C */
 void mbedtls_rsa_export_raw( char *input_N, char *input_P,
                              char *input_Q, char *input_D,
-                             char *input_E, int successive )
+                             char *input_E, int is_priv,
+                             int successive )
 {
     /* Original raw buffers with which we set up the RSA context */
     unsigned char bufN[1000];
@@ -1159,8 +1204,6 @@ void mbedtls_rsa_export_raw( char *input_N, char *input_P,
     const int have_Q = ( strlen( input_Q ) > 0 );
     const int have_D = ( strlen( input_D ) > 0 );
     const int have_E = ( strlen( input_E ) > 0 );
-
-    const int is_priv = have_P || have_Q || have_D;
 
     mbedtls_rsa_context ctx;
 
@@ -1265,6 +1308,7 @@ void mbedtls_rsa_import_raw( char *input_N,
                              char *input_P, char *input_Q,
                              char *input_D, char *input_E,
                              int successive,
+                             int is_priv,
                              int result )
 {
     unsigned char bufN[1000];
@@ -1272,6 +1316,11 @@ void mbedtls_rsa_import_raw( char *input_N,
     unsigned char bufQ[1000];
     unsigned char bufD[1000];
     unsigned char bufE[1000];
+
+    /* Buffers used for encryption-decryption test */
+    unsigned char *buf_orig = NULL;
+    unsigned char *buf_enc  = NULL;
+    unsigned char *buf_dec  = NULL;
 
     size_t lenN = 0;
     size_t lenP = 0;
@@ -1350,6 +1399,41 @@ void mbedtls_rsa_import_raw( char *input_N,
     TEST_ASSERT( mbedtls_rsa_complete( &ctx,
                                        mbedtls_ctr_drbg_random,
                                        &ctr_drbg ) == result );
+
+    /* On expected success, perform some public and private
+     * key operations to check if the key is working properly. */
+    if( result == 0 )
+    {
+        TEST_ASSERT( mbedtls_rsa_check_pubkey( &ctx ) == 0 );
+
+        /* Did we expect a full private key to be setup? */
+        if( is_priv )
+            TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
+
+        buf_orig = mbedtls_calloc( 1, mbedtls_rsa_get_len( &ctx ) );
+        buf_enc  = mbedtls_calloc( 1, mbedtls_rsa_get_len( &ctx ) );
+        buf_dec  = mbedtls_calloc( 1, mbedtls_rsa_get_len( &ctx ) );
+        if( buf_orig == NULL || buf_enc == NULL || buf_dec == NULL )
+            goto exit;
+
+        TEST_ASSERT( mbedtls_ctr_drbg_random( &ctr_drbg,
+                              buf_orig, mbedtls_rsa_get_len( &ctx ) ) == 0 );
+
+        /* Make sure the number we're generating is smaller than the modulus */
+        buf_orig[0] = 0x00;
+
+        TEST_ASSERT( mbedtls_rsa_public( &ctx, buf_orig, buf_enc ) == 0 );
+
+        if( is_priv )
+        {
+            TEST_ASSERT( mbedtls_rsa_private( &ctx, mbedtls_ctr_drbg_random,
+                                              &ctr_drbg, buf_enc,
+                                              buf_dec ) == 0 );
+
+            TEST_ASSERT( memcmp( buf_orig, buf_dec,
+                                 mbedtls_rsa_get_len( &ctx ) ) == 0 );
+        }
+    }
 
 exit:
 

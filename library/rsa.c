@@ -139,7 +139,7 @@ int mbedtls_rsa_deduce_moduli( mbedtls_mpi *N, mbedtls_mpi *D, mbedtls_mpi *E,
      * several calculations are done in place and temporarily change
      * the values of D and E.
      *
-     * Specifically, D is replaced the largest odd divisor of DE - 1
+     * Specifically, D is replaced by the largest odd divisor of DE - 1
      * throughout the calculations.
      */
 

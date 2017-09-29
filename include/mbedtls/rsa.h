@@ -48,6 +48,7 @@
 #define MBEDTLS_ERR_RSA_VERIFY_FAILED                     -0x4380  /**< The PKCS#1 verification failed. */
 #define MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE                  -0x4400  /**< The output buffer for decryption is not large enough. */
 #define MBEDTLS_ERR_RSA_RNG_FAILED                        -0x4480  /**< The random generator failed to generate non-zeros. */
+#define MBEDTLS_ERR_RSA_EXPORT_UNSUPPORTED                -0x4500  /**< The requested parameter export is not possible/allowed. */
 
 /*
  * RSA constants
@@ -446,6 +447,21 @@ int mbedtls_rsa_check_crt( const mbedtls_rsa_context *ctx,
  * \param E        MPI to hold the public exponent, or NULL
  *
  * \return         0 if successful, non-zero error code otherwise.
+ *                 In particular, if exporting the requested parameters
+ *                 cannot be done because of a lack of functionality
+ *                 or because of security policies, the error code
+ *                 MBEDTLS_ERR_RSA_EXPORT_UNSUPPORTED is returned.
+ *                 In this case, the RSA context stays intact and can
+ *                 be continued to be used.
+ *
+ * \note           Two reasons for returning MBEDTLS_ERR_RSA_EXPORT_UNSUPPORTED
+ *                 would be the following: Firstly, it might be that an
+ *                 alternative RSA implementation is in use which stores
+ *                 the key externally, and which either cannot or should not
+ *                 export it into RAM. Alternatively, an implementation
+ *                 (regardless of SW or HW) might not support deducing e.g.
+ *                 P, Q from N, D, E if the former are not part of the
+ *                 implementation.
  *
  */
 int mbedtls_rsa_export( const mbedtls_rsa_context *ctx,
@@ -474,6 +490,24 @@ int mbedtls_rsa_export( const mbedtls_rsa_context *ctx,
  * \return         0 if successful. In this case, the non-NULL buffers
  *                 pointed to by N, P, Q, D, E are fully written, with
  *                 additional unused space filled leading by 0-bytes.
+ *
+ * \return         0 if successful, non-zero error code otherwise.
+ *                 In particular, if exporting the requested parameters
+ *                 cannot be done because of a lack of functionality
+ *                 or because of security policies, the error code
+ *                 MBEDTLS_ERR_RSA_EXPORT_UNSUPPORTED is returned.
+ *                 In this case, the RSA context stays intact and can
+ *                 be continued to be used.
+ *
+ * \note           Two reasons for returning MBEDTLS_ERR_RSA_EXPORT_UNSUPPORTED
+ *                 would be the following: Firstly, it might be that an
+ *                 alternative RSA implementation is in use which stores
+ *                 the key externally, and which either cannot or should not
+ *                 export it into RAM. Alternatively, an implementation
+ *                 (regardless of SW or HW) might not support deducing e.g.
+ *                 P, Q from N, D, E if the former are not part of the
+ *                 implementation.
+ *
  *
  */
 int mbedtls_rsa_export_raw( const mbedtls_rsa_context *ctx,

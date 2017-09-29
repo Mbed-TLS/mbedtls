@@ -152,7 +152,7 @@ int mbedtls_rsa_deduce_moduli( mbedtls_mpi *N, mbedtls_mpi *D, mbedtls_mpi *E,
     uint16_t order;       /* Order of 2 in DE - 1 */
 
     mbedtls_mpi K;  /* Temporary used for two purposes:
-                     * - During factorization attempts, stores a andom integer
+                     * - During factorization attempts, stores a random integer
                      *   in the range of [0,..,N]
                      * - During verification, holding intermediate results.
                      */

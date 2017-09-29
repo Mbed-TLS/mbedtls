@@ -180,7 +180,7 @@ int mbedtls_rsa_deduce_crt( const mbedtls_mpi *P, const mbedtls_mpi *Q,
  * \param Q        Second prime factor of N
  * \param D        RSA private exponent
  * \param E        RSA public exponent
- * \param f_rng    PRNG to be used for randomization, or NULL
+ * \param f_rng    PRNG to be used for primality check, or NULL
  * \param p_rng    PRNG context for f_rng, or NULL
  *
  * \return
@@ -324,7 +324,6 @@ void mbedtls_rsa_init( mbedtls_rsa_context *ctx,
                        int padding,
                        int hash_id);
 
-
 /**
  * \brief          Import a set of core parameters into an RSA context
  *
@@ -374,7 +373,6 @@ int mbedtls_rsa_import( mbedtls_rsa_context *ctx,
  *
  * \return         0 if successful, non-zero error code on failure.
  */
-
 int mbedtls_rsa_import_raw( mbedtls_rsa_context *ctx,
                             unsigned char *N, size_t N_len,
                             unsigned char *P, size_t P_len,

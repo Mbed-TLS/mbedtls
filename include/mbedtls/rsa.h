@@ -237,7 +237,13 @@ int mbedtls_rsa_validate_crt( const mbedtls_mpi *P,  const mbedtls_mpi *Q,
 #if !defined(MBEDTLS_RSA_ALT)
 
 /**
- * \brief          RSA context structure
+ * \brief   RSA context structure
+ *
+ * \note    Direct manipulation of the members of this structure
+ *          is deprecated and will no longer be supported starting
+ *          from the next major release. All manipulation should instead
+ *          be done through the public interface functions.
+ *
  */
 typedef struct
 {

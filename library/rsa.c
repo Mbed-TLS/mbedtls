@@ -923,7 +923,7 @@ void mbedtls_rsa_set_padding( mbedtls_rsa_context *ctx, int padding, int hash_id
 
 size_t mbedtls_rsa_get_len( const mbedtls_rsa_context *ctx )
 {
-    return( mbedtls_mpi_size( &ctx->N ) );
+    return( ctx->len );
 }
 
 

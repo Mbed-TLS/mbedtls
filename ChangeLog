@@ -194,6 +194,8 @@ Security
      team. #569 CVE-2017-2784
 
 Bugfix
+   * Fix memory leak in mbedtls_ssl_set_hostname() when called multiple times.
+     Found by jethrogb, #836.
    * Fix output certificate verification flags set by x509_crt_verify_top() when
      traversing a chain of trusted CA. The issue would cause both flags,
      MBEDTLS_X509_BADCERT_NOT_TRUSTED and MBEDTLS_X509_BADCERT_EXPIRED, to be

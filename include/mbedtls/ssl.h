@@ -1800,7 +1800,8 @@ void mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
  *                 (client-side only)
  *
  * \param ssl      SSL context
- * \param hostname the server hostname
+ * \param hostname the server hostname. Does not need to remain valid
+ *                 after the function returns.
  *
  * \return         0 if successful or MBEDTLS_ERR_SSL_ALLOC_FAILED
  */

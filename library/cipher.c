@@ -220,6 +220,9 @@ int mbedtls_cipher_set_iv( mbedtls_cipher_context_t *ctx,
     else if( NULL == iv && iv_len != 0  )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
+    if( NULL == iv && iv_len == 0 )
+        ctx->iv_size = 0;
+
     /* avoid buffer overflow in ctx->iv */
     if( iv_len > MBEDTLS_MAX_IV_LENGTH )
         return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
@@ -234,7 +237,7 @@ int mbedtls_cipher_set_iv( mbedtls_cipher_context_t *ctx,
         if( actual_iv_size > iv_len )
             return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
     }
-    if ( actual_iv_size )
+    if ( actual_iv_size != 0 )
     {
         memcpy( ctx->iv, iv, actual_iv_size );
         ctx->iv_size = actual_iv_size;

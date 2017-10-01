@@ -3,7 +3,7 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
 Bugfix
-   * Fix namespacing in header files. REmove the `mbedtls` namespacing in
+   * Fix namespacing in header files. Remove the `mbedtls` namespacing in
      the `#include` in the header files. Resolves #857
 
 = mbed TLS 2.11.0 branch released 2018-06-18

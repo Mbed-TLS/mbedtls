@@ -706,52 +706,6 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx,
     return( 0 );
 }
 
-/*
- * Check if CRT parameters match RSA context.
- * This has to be implemented even if CRT is not used,
- * in order to be able to validate DER encoded RSA keys,
- * which always contain CRT parameters.
- */
-int mbedtls_rsa_check_crt( const mbedtls_rsa_context *ctx,
-                           mbedtls_mpi *DP, mbedtls_mpi *DQ, mbedtls_mpi *QP )
-{
-    int ret = 0;
-
-    /* Check if key is private or public */
-    const int is_priv =
-        mbedtls_mpi_cmp_int( &ctx->N, 0 ) != 0 &&
-        mbedtls_mpi_cmp_int( &ctx->P, 0 ) != 0 &&
-        mbedtls_mpi_cmp_int( &ctx->Q, 0 ) != 0 &&
-        mbedtls_mpi_cmp_int( &ctx->D, 0 ) != 0 &&
-        mbedtls_mpi_cmp_int( &ctx->E, 0 ) != 0;
-
-    if( !is_priv )
-    {
-        /* Checking optional parameters only makes sense for private keys. */
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
-    }
-
-#if !defined(MBEDTLS_RSA_NO_CRT)
-    if( ( DP != NULL && mbedtls_mpi_cmp_mpi( DP, &ctx->DP ) != 0 ) ||
-        ( DQ != NULL && mbedtls_mpi_cmp_mpi( DQ, &ctx->DQ ) != 0 ) ||
-        ( QP != NULL && mbedtls_mpi_cmp_mpi( QP, &ctx->QP ) != 0 ) )
-    {
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
-    }
-#else /* MBEDTLS_RSA_NO_CRT */
-    if( ( ret = mbedtls_rsa_validate_crt( &ctx->P, &ctx->Q, &ctx->D,
-                                          DP, DQ, QP ) ) != 0 )
-    {
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
-    }
-#endif
-
-    if( ret != 0 )
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
-
-    return( 0 );
-}
-
 int mbedtls_rsa_export_raw( const mbedtls_rsa_context *ctx,
                             unsigned char *N, size_t N_len,
                             unsigned char *P, size_t P_len,
@@ -2532,21 +2486,6 @@ void mbedtls_rsa_free( mbedtls_rsa_context *ctx )
                 "910E4168387E3C30AA1E00C339A79508" \
                 "8452DD96A9A5EA5D9DCA68DA636032AF"
 
-#define RSA_DP  "C1ACF567564274FB07A0BBAD5D26E298" \
-                "3C94D22288ACD763FD8E5600ED4A702D" \
-                "F84198A5F06C2E72236AE490C93F07F8" \
-                "3CC559CD27BC2D1CA488811730BB5725"
-
-#define RSA_DQ  "4959CBF6F8FEF750AEE6977C155579C7" \
-                "D8AAEA56749EA28623272E4F7D0592AF" \
-                "7C1F1313CAC9471B5C523BFE592F517B" \
-                "407A1BD76C164B93DA2D32A383E58357"
-
-#define RSA_QP  "9AE7FBC99546432DF71896FC239EADAE" \
-                "F38D18D2B2F0E2DD275AA977E2BF4411" \
-                "F5A3B2A5D33605AEBBCCBA7FEB9F2D2F" \
-                "A74206CEC169D74BF5A8C50D6F48EA08"
-
 #define PT_LEN  24
 #define RSA_PT  "\xAA\xBB\xCC\x03\x02\x01\x00\xFF\xFF\xFF\xFF\xFF" \
                 "\x11\x22\x33\x0A\x0B\x0C\xCC\xDD\xDD\xDD\xDD\xDD"
@@ -2618,15 +2557,6 @@ int mbedtls_rsa_self_test( int verbose )
 
         return( 1 );
     }
-
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &K, 16, RSA_DP  ) );
-    MBEDTLS_MPI_CHK( mbedtls_rsa_check_crt( &rsa, &K, NULL, NULL ) );
-
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &K, 16, RSA_DQ  ) );
-    MBEDTLS_MPI_CHK( mbedtls_rsa_check_crt( &rsa, NULL, &K, NULL ) );
-
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &K, 16, RSA_QP  ) );
-    MBEDTLS_MPI_CHK( mbedtls_rsa_check_crt( &rsa, NULL, NULL, &K ) );
 
     if( verbose != 0 )
         mbedtls_printf( "passed\n  PKCS#1 encryption : " );

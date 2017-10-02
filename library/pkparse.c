@@ -751,8 +751,7 @@ static int pk_parse_key_pkcs1_der( mbedtls_rsa_context *rsa,
     /* Check optional parameters */
     if( ( ret = mbedtls_asn1_get_mpi( &p, end, &DP ) ) != 0 ||
         ( ret = mbedtls_asn1_get_mpi( &p, end, &DQ ) ) != 0 ||
-        ( ret = mbedtls_asn1_get_mpi( &p, end, &QP ) ) != 0 ||
-        ( ret = mbedtls_rsa_check_crt( rsa, &DP, &DQ, &QP ) ) != 0 )
+        ( ret = mbedtls_asn1_get_mpi( &p, end, &QP ) ) != 0 )
         goto cleanup;
 
     if( p != end )

@@ -150,14 +150,6 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    /* Although we're not using them, verify CRT parameters */
-    if( ( return_val = mbedtls_rsa_check_crt( &rsa, &DP, &DQ, &QP ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_rsa_check_crt returned %d\n\n",
-                        return_val );
-        goto exit;
-    }
-
     /*
      * Extract the RSA encrypted value from the text file
      */

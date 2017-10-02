@@ -418,29 +418,6 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx,
                           void *p_rng );
 
 /**
- * \brief          Check if CRT-parameters match core parameters
- *
- * \param ctx      Complete RSA private key context
- * \param DP       Private exponent modulo P-1, or NULL
- * \param DQ       Private exponent modulo Q-1, or NULL
- * \param QP       Modular inverse of Q modulo P, or NULL
- *
- * \return         0 if successful, testifying that the non-NULL optional
- *                 parameters provided are in accordance with the core
- *                 RSA parameters. Non-zero error code otherwise.
- *
- * \note           This function performs in-place computations on the
- *                 parameters DP, DQ and QP. If modification cannot be
- *                 tolerated, you should make copies with mbedtls_mpi_copy
- *                 before calling this function.
- *
- */
-int mbedtls_rsa_check_crt( const mbedtls_rsa_context *ctx,
-                           mbedtls_mpi *DP,
-                           mbedtls_mpi *DQ,
-                           mbedtls_mpi *QP );
-
-/**
  * \brief          Export core parameters of an RSA key
  *
  * \param ctx      Initialized RSA context

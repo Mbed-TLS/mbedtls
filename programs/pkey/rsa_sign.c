@@ -130,14 +130,6 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    /* Although we're not using them, verify CRT parameters */
-    if( ( ret = mbedtls_rsa_check_crt( &rsa, &DP, &DQ, &QP ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_rsa_check_crt returned %d\n\n",
-                        ret );
-        goto exit;
-    }
-
     /*
      * Compute the SHA-256 hash of the input file,
      * then calculate the RSA signature of the hash.

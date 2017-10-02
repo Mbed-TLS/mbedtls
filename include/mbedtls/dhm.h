@@ -190,8 +190,13 @@ void mbedtls_dhm_init( mbedtls_dhm_context *ctx );
  * \brief          Parse the ServerKeyExchange parameters
  *
  * \param ctx      DHM context
- * \param p        &(start of input buffer), will be increased
- *                 by the amount of data read.
+ * \param p        On input, *p must be the start of the input buffer.
+ *                 On output, *p is updated to point to the end of the data
+ *                 that has been read. On success, this is the first byte
+ *                 past the end of the ServerKeyExchange parameters.
+ *                 On error, this is the point at which an error has been
+ *                 detected, which is usually not useful except to debug
+ *                 failures.
  * \param end      end of buffer
  *
  * \return         0 if successful, or an MBEDTLS_ERR_DHM_XXX error code

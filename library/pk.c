@@ -226,6 +226,10 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
         if( sig_len < mbedtls_pk_get_len( ctx ) )
             return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
 
+#if defined(FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION)
+        return 0;
+#endif
+
         ret = mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_pk_rsa( *ctx ),
                 NULL, NULL, MBEDTLS_RSA_PUBLIC,
                 md_alg, (unsigned int) hash_len, hash,
@@ -247,6 +251,10 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
     /* General case: no options */
     if( options != NULL )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+#if defined(FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION)
+    return 0;
+#endif
 
     return( mbedtls_pk_verify( ctx, md_alg, hash, hash_len, sig, sig_len ) );
 }

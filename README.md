@@ -56,6 +56,8 @@ For more details on the yotta/mbed OS edition of mbed TLS, including example pro
 
 We require GNU Make. To build the library and the sample programs, GNU Make and a C compiler are sufficient. Some of the more advanced build targets require some Unix/Linux tools.
 
+We intentionally only use a minimum of functionality in the makefiles in order to keep them as simple and independent of different toolchains as possible, to allow users to more easily move between different platforms. Users who need more features are recommended to use CMake.
+
 In order to build from the source code using GNU Make, just enter at the command line:
 
     make

@@ -1702,7 +1702,7 @@ void mbedtls_ssl_conf_psk_cb( mbedtls_ssl_config *conf,
 /**
  * \brief          Set the Diffie-Hellman public P and G values,
  *                 read as hexadecimal strings (server-side only)
- *                 (Default: MBEDTLS_DHM_RFC5114_MODP_2048_[PG])
+ *                 (Default: mbedtls_dhm_rfc7919_ffdhe2048_[pg])
  *
  * \param conf     SSL configuration
  * \param dhm_P    Diffie-Hellman-Merkle modulus
@@ -1710,7 +1710,9 @@ void mbedtls_ssl_conf_psk_cb( mbedtls_ssl_config *conf,
  *
  * \return         0 if successful
  */
-int mbedtls_ssl_conf_dh_param( mbedtls_ssl_config *conf, const char *dhm_P, const char *dhm_G );
+int mbedtls_ssl_conf_dh_param( mbedtls_ssl_config *conf,
+                               const char *dhm_P,
+                               const char *dhm_G );
 
 /**
  * \brief          Set the Diffie-Hellman public P and G values,

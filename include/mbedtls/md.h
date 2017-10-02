@@ -41,7 +41,8 @@ extern "C" {
  *
  * \warning   MD2, MD4, MD5 and SHA-1 are considered weak message digests
  *            and their use constitutes a security risk. It is recommended
- *            to use strong message digests instead.
+ *            alternative message digests should be considered instead.
+ *
  */
 typedef enum {
     MBEDTLS_MD_NONE=0,

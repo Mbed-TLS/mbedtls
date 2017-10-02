@@ -375,8 +375,8 @@ int mbedtls_rsa_import_raw( mbedtls_rsa_context *ctx,
  *                 a set of imported core parameters.
  *
  * \param ctx      Initialized RSA context to store parameters
- * \param f_rng    RNG function,
- * \param p_rng    RNG parameter
+ * \param f_rng    RNG function, or NULL
+ * \param p_rng    RNG parameter, or NULL
  *
  * \note
  *                 - To setup an RSA public key, precisely N and E
@@ -392,15 +392,26 @@ int mbedtls_rsa_import_raw( mbedtls_rsa_context *ctx,
  *                 - Alternative implementations need not support these
  *                   and may return \c MBEDTLS_ERR_RSA_BAD_INPUT_DATA instead.
  *
- * \note           The PRNG is used for probabilistic algorithms
- *                 like the derivation of P, Q from N, D, E, as
- *                 well as primality checks.
+ * \note           The PRNG is used for the probabilistic algorithm
+ *                 used in the derivation of P, Q from N, D, E. If it
+ *                 not present, a deterministic heuristic is used.
  *
- * \return         - 0 if successful. In this case, all imported core
- *                   parameters are guaranteed to be sane, the RSA context
- *                   has been fully setup and is ready for use.
+ * \return
+ *                 - 0 if successful. In this case, it is guaranteed
+ *                   the functions \c mbedtls_rsa_check_pubkey resp.
+ *                   \c mbedtls_rsa_check_privkey pass in case of a
+ *                   public resp. private key.
  *                 - \c MBEDTLS_ERR_RSA_BAD_INPUT_DATA if the attempted
  *                   derivations failed.
+ *
+ * \warning        Implementations are *not* obliged to perform exhaustive
+ *                 validation of the imported parameters!
+ *                 In particular, parameters that are not needed by the
+ *                 implementation may be silently discarded and left unchecked.
+ *                 If the user mistrusts the given key material, he should
+ *                 employ other means for verification like the helper functions
+ *                 \c mbedtls_rsa_validate_params, \c mbedtls_rsa_validate_crt.
+ *
  */
 int mbedtls_rsa_complete( mbedtls_rsa_context *ctx,
                           int (*f_rng)(void *, unsigned char *, size_t),
@@ -573,21 +584,39 @@ int mbedtls_rsa_gen_key( mbedtls_rsa_context *ctx,
                          unsigned int nbits, int exponent );
 
 /**
- * \brief          Check if a context contains an RSA public key
+ * \brief          Check if a context contains (at least) an RSA public key
  *
  * \param ctx      RSA context to be checked
  *
- * \return         0 if successful, or an \c MBEDTLS_ERR_RSA_XXX error code
+ * \return         0 if successful, or an \c MBEDTLS_ERR_RSA_XXX error code.
+ *                 On success, it is guaranteed that enough information is
+ *                 present to perform an RSA public key operation
+ *                 \c mbedtls_rsa_public.
+ *
  */
 int mbedtls_rsa_check_pubkey( const mbedtls_rsa_context *ctx );
 
 /**
- * \brief          Check if a context contains a complete
- *                 and valid RSA private key.
+ * \brief          Check if a context contains an RSA private key
+ *                 and perform basic sanity checks.
  *
  * \param ctx      RSA context to be checked
  *
- * \return         0 if successful, or an \c MBEDTLS_ERR_RSA_XXX error code
+ * \return         0 if successful, or an \c MBEDTLS_ERR_RSA_XXX error code.
+ *                 On success, it is guaranteed that enough information is
+ *                 present to perform RSA private and public key operations.
+ *
+ * \warning        This function is *not* obliged to perform an exhaustive
+ *                 sanity check what would guarantee the internal parameters
+ *                 to match and \c mbedtls_rsa_private and \c mbedtls_rsa_public
+ *                 to be mutually inverse to each other.
+ *                 The reason is that for minimal non-CRT implementations
+ *                 using only N, D, E, for example, checking the validity
+ *                 would be computationally expensive.
+ *                 Users mistrusting their key material should use other
+ *                 means for verification; see the documentation of
+ *                 \c mbedtls_rsa_complete.
+ *
  */
 int mbedtls_rsa_check_privkey( const mbedtls_rsa_context *ctx );
 

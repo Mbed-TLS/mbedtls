@@ -422,13 +422,13 @@ int mbedtls_rsa_validate_params( const mbedtls_mpi *N, const mbedtls_mpi *P,
 #endif /* MBEDTLS_GENPRIME */
 
     /*
-     * Step 2: Check that N = PQ
+     * Step 2: Check that 1 < N = PQ
      */
 
     if( P != NULL && Q != NULL && N != NULL )
     {
         MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &K, P, Q ) );
-        if( mbedtls_mpi_cmp_int( N, 1 ) <= 0 ||
+        if( mbedtls_mpi_cmp_int( N, 1 )  <= 0 ||
             mbedtls_mpi_cmp_mpi( &K, N ) != 0 )
         {
             ret = MBEDTLS_ERR_RSA_KEY_CHECK_FAILED;
@@ -437,15 +437,29 @@ int mbedtls_rsa_validate_params( const mbedtls_mpi *N, const mbedtls_mpi *P,
     }
 
     /*
-     * Step 3: Check that D, E are inverse modulo P-1 and Q-1
+     * Step 3: Check and 1 < D, E < N if present.
+     */
+
+    if( N != NULL && D != NULL && E != NULL )
+    {
+        if ( mbedtls_mpi_cmp_int( D, 1 ) <= 0 ||
+             mbedtls_mpi_cmp_int( E, 1 ) <= 0 ||
+             mbedtls_mpi_cmp_mpi( D, N ) >= 0 ||
+             mbedtls_mpi_cmp_mpi( E, N ) >= 0 )
+        {
+            ret = MBEDTLS_ERR_RSA_KEY_CHECK_FAILED;
+            goto cleanup;
+        }
+    }
+
+    /*
+     * Step 4: Check that D, E are inverse modulo P-1 and Q-1
      */
 
     if( P != NULL && Q != NULL && D != NULL && E != NULL )
     {
         if( mbedtls_mpi_cmp_int( P, 1 ) <= 0 ||
-            mbedtls_mpi_cmp_int( Q, 1 ) <= 0 ||
-            mbedtls_mpi_cmp_int( D, 1 ) <= 0 ||
-            mbedtls_mpi_cmp_int( E, 1 ) <= 0 )
+            mbedtls_mpi_cmp_int( Q, 1 ) <= 0 )
         {
             ret = MBEDTLS_ERR_RSA_KEY_CHECK_FAILED;
             goto cleanup;

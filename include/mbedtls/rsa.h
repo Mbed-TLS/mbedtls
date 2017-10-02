@@ -383,7 +383,7 @@ int mbedtls_rsa_import_raw( mbedtls_rsa_context *ctx,
  *                   must have been imported.
  *
  *                 - To setup an RSA private key, enough information must be
- *                   present for the other parameters to be efficiently derivable.
+ *                   present for the other parameters to be derivable.
  *
  *                   The default implementation supports the following:
  *                     - Derive P, Q from N, D, E
@@ -629,7 +629,8 @@ int mbedtls_rsa_check_privkey( const mbedtls_rsa_context *ctx );
  *
  * \return         0 if successful, or an \c MBEDTLS_ERR_RSA_XXX error code
  */
-int mbedtls_rsa_check_pub_priv( const mbedtls_rsa_context *pub, const mbedtls_rsa_context *prv );
+int mbedtls_rsa_check_pub_priv( const mbedtls_rsa_context *pub,
+                                const mbedtls_rsa_context *prv );
 
 /**
  * \brief          Do an RSA public key operation

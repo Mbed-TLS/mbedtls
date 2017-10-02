@@ -129,20 +129,11 @@ static void mbedtls_zeroize( void *v, size_t n ) {
  * of (a) and (b) above to attempt to factor N.
  *
  */
-int mbedtls_rsa_deduce_moduli( mbedtls_mpi *N, mbedtls_mpi *D, mbedtls_mpi *E,
+int mbedtls_rsa_deduce_moduli( mbedtls_mpi const *N,
+                     mbedtls_mpi const *D, mbedtls_mpi const *E,
                      int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
                      mbedtls_mpi *P, mbedtls_mpi *Q )
 {
-    /* Implementation note:
-     *
-     * Space-efficiency is given preference over time-efficiency here:
-     * several calculations are done in place and temporarily change
-     * the values of D and E.
-     *
-     * Specifically, D is replaced by the largest odd divisor of DE - 1
-     * throughout the calculations.
-     */
-
     int ret = 0;
 
     uint16_t attempt;  /* Number of current attempt  */
@@ -151,11 +142,9 @@ int mbedtls_rsa_deduce_moduli( mbedtls_mpi *N, mbedtls_mpi *D, mbedtls_mpi *E,
     uint16_t bitlen_half; /* Half the bitsize of the modulus N */
     uint16_t order;       /* Order of 2 in DE - 1 */
 
-    mbedtls_mpi K;  /* Temporary used for two purposes:
-                     * - During factorization attempts, stores a random integer
-                     *   in the range of [0,..,N]
-                     * - During verification, holding intermediate results.
-                     */
+    mbedtls_mpi T;  /* Holds largest odd divisor of DE - 1 */
+    mbedtls_mpi K;  /* During factorization attempts, stores a random integer
+                     * in the range of [0,..,N] */
 
     if( P == NULL || Q == NULL || P->p != NULL || Q->p != NULL )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
@@ -174,20 +163,20 @@ int mbedtls_rsa_deduce_moduli( mbedtls_mpi *N, mbedtls_mpi *D, mbedtls_mpi *E,
      */
 
     mbedtls_mpi_init( &K );
+    mbedtls_mpi_init( &T );
 
-    /* Replace D by DE - 1 */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( D, D, E ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( D, D, 1 ) );
+    /* T := DE - 1 */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &T, D,  E ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &T, &T, 1 ) );
 
-    if( ( order = mbedtls_mpi_lsb( D ) ) == 0 )
+    if( ( order = mbedtls_mpi_lsb( &T ) ) == 0 )
     {
         ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
         goto cleanup;
     }
 
-    /* After this operation, D holds the largest odd divisor
-     * of DE - 1 for the original values of D and E. */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( D, order ) );
+    /* After this operation, T holds the largest odd divisor of DE - 1. */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &T, order ) );
 
     /* This is used to generate a few numbers around N / 2
      * if no PRNG is provided. */
@@ -220,9 +209,9 @@ int mbedtls_rsa_deduce_moduli( mbedtls_mpi *N, mbedtls_mpi *D, mbedtls_mpi *E,
         if( mbedtls_mpi_cmp_int( P, 1 ) != 0 )
             continue;
 
-        /* Go through K^X + 1, K^(2X) + 1, K^(4X) + 1, ...
+        /* Go through K^T + 1, K^(2T) + 1, K^(4T) + 1, ...
          * and check whether they have nontrivial GCD with N. */
-        MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &K, &K, D, N,
+        MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &K, &K, &T, N,
                              Q /* temporarily use Q for storing Montgomery
                                 * multiplication helper values */ ) );
 
@@ -239,14 +228,7 @@ int mbedtls_rsa_deduce_moduli( mbedtls_mpi *N, mbedtls_mpi *D, mbedtls_mpi *E,
                  * Set Q := N / P.
                  */
 
-                MBEDTLS_MPI_CHK( mbedtls_mpi_div_mpi( Q, &K, N, P ) );
-
-                /* Restore D */
-
-                MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( D, order ) );
-                MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( D, D, 1 ) );
-                MBEDTLS_MPI_CHK( mbedtls_mpi_div_mpi( D, NULL, D, E ) );
-
+                MBEDTLS_MPI_CHK( mbedtls_mpi_div_mpi( Q, NULL, N, P ) );
                 goto cleanup;
             }
 
@@ -261,6 +243,7 @@ int mbedtls_rsa_deduce_moduli( mbedtls_mpi *N, mbedtls_mpi *D, mbedtls_mpi *E,
 cleanup:
 
     mbedtls_mpi_free( &K );
+    mbedtls_mpi_free( &T );
     return( ret );
 }
 

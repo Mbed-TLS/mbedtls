@@ -96,23 +96,13 @@ extern "C" {
  *
  * \return
  *                 - 0 if successful. In this case, P and Q constitute a
- *                   factorization of N, and it is guaranteed that D and E
- *                   are indeed modular inverses modulo P-1 and modulo Q-1.
- *                   The values of N, D and E are unchanged. It is checked
- *                   that P, Q are prime if a PRNG is provided.
- *                 - A non-zero error code otherwise. In this case, the values
- *                   of N, D, E are undefined.
+ *                   factorization of N.
+ *                 - A non-zero error code otherwise.
  *
- * \note           The input MPI's are deliberately not declared as constant
- *                 and may therefore be used for in-place calculations by
- *                 the implementation. In particular, their values can be
- *                 corrupted when the function fails. If the user cannot
- *                 tolerate this, he has to make copies of the MPI's prior
- *                 to calling this function. See \c mbedtls_mpi_copy for this.
  */
-int mbedtls_rsa_deduce_moduli( mbedtls_mpi *N, mbedtls_mpi *D, mbedtls_mpi *E,
-                     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
-                     mbedtls_mpi *P, mbedtls_mpi *Q );
+int mbedtls_rsa_deduce_moduli( mbedtls_mpi const *N, mbedtls_mpi const *D,
+            mbedtls_mpi const *E, int (*f_rng)(void *, unsigned char *, size_t),
+            void *p_rng, mbedtls_mpi *P, mbedtls_mpi *Q );
 
 /**
  * \brief          Compute RSA private exponent from

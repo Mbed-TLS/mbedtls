@@ -64,15 +64,6 @@
 #define MBEDTLS_RSA_SALT_LEN_ANY    -1
 
 /*
- * RSA configuration
- */
-#if defined(MBEDTLS_RSA_FORCE_VERIFICATION)              || \
-    ( ! defined(MBEDTLS_RSA_NO_CRT)  &&                     \
-      defined(MBEDTLS_RSA_FORCE_CRT_VERIFICATION ) )
-#define MBEDTLS_RSA_REQUIRE_VERIFICATION
-#endif
-
-/*
  * The above constants may be used even if the RSA module is compile out,
  * eg for alternative (PKCS#11) RSA implemenations in the PK layers.
  */
@@ -239,28 +230,16 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
  * \note           The input and output buffers must be large
  *                 enough (eg. 128 bytes if RSA-1024 is used).
  *
- * \note           Enabling and disabling of blinding:
- *                 - If f_rng is NULL and MBEDTLS_RSA_FORCE_BLINDING
- *                   is disabled, blinding is disabled.
- *                 - If f_rng is NULL and MBEDTLS_RSA_FORCE_BLINDING
- *                   is enabled, the function fails.
+ * \note           Blinding is used if and onlf if a PRNG is provided.
  *
  * \note           If blinding is used, both the base of exponentation
  *                 and the exponent are blinded, preventing both statistical
  *                 timing and power analysis attacks.
  *
- * \note           Depending on the way RSA is implemented, a failure
- *                 in the computation can lead to disclosure of the private
- *                 key if the wrong result is passed to attacker - e.g.,
- *                 implementing RSA through CRT is vulnerable to the
- *                 Bellcore glitch attack.
- *
- *                 As a remedy, the user can force double checking the
- *                 result of the private key operation through the option
- *                 MBEDTLS_RSA_FORCE_VERIFICATION. If verification is
- *                 to be enabled only when RSA-CRT is used (as controlled
- *                 by the configuration option MBEDTLS_RSA_NO_CRT), the
- *                 option MBEDTLS_RSA_FORCE_CRT_VERIFICATION can be used.
+ * \warning        It is deprecated and a security risk to not provide
+ *                 a PRNG here and thereby prevent the use of blinding.
+ *                 Future versions of the library may enforce the presence
+ *                 of a PRNG.
  *
  */
 int mbedtls_rsa_private( mbedtls_rsa_context *ctx,

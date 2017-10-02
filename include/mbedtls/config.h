@@ -971,41 +971,6 @@
 #define MBEDTLS_PKCS1_V21
 
 /**
- * \def MBEDTLS_RSA_FORCE_BLINDING
- *
- * Force the use of blinding in RSA private key operations.
- * This makes these operations fail when the caller doesn't
- * provide a PRNG.
- *
- * Comment this macro to allow RSA private key operations
- * without blinding.
- *
- * \deprecated Disabling this option is deprecated and only
- *             disabled by default for backwards compatibility.
- *             Future versions of Mbed TLS will remove this
- *             option and enforce blinding unconditionally.
- *
- * \warning   Disabling this can be a security risk!
- *            Blinding RSA private key operations is a way
- *            to prevent statistical timing attacks as in
- *            [P. Kocher ', Timing Attacks on Implementations
- *             of Diffie-Hellman, RSA, DSS, and Other Systems]
- *
- * \note      Disabling this does not mean that blinding
- *            will never be used: if a PRNG is provided,
- *            blinding will be in place. Instead, disabling this
- *            option may result in private key operations being
- *            performed in a way potentially leaking sensitive
- *            information through side-channels when no PRNG
- *            is supplied by the user.
- *
- * \note      For more on the use of blinding in RSA
- *            private key operations, see the documentation
- *            of \c mbedtls_rsa_private.
- */
-//#define MBEDTLS_RSA_FORCE_BLINDING
-
-/**
  * \def MBEDTLS_RSA_NO_CRT
  *
  * Do not use the Chinese Remainder Theorem
@@ -1015,48 +980,6 @@
  *
  */
 //#define MBEDTLS_RSA_NO_CRT
-
-/**
- * \def MBEDTLS_RSA_FORCE_CRT_VERIFICATION
- *
- * Force verification of results of RSA private key operations
- * when RSA-CRT is used.
- *
- * Comment this macro to disable RSA-CRT verification.
- *
- * \warning Disabling this can be a security risk!
- *          Omitting verification makes the RSA-CRT
- *          signing vulnerable to the Bellcore
- *          glitch attack leading to private key
- *          compromise if an attacker can cause a
- *          glitch in a certain timeframe during
- *          the signing operation. Uncomment only
- *          if you're sure that glitches are out of
- *          your attack model.
- */
-#define MBEDTLS_RSA_FORCE_CRT_VERIFICATION
-
-/**
- * \def MBEDTLS_RSA_FORCE_VERIFICATION
- *
- * Force verification of results of any RSA private key
- * operation regardless of the algorithm used.
- *
- * Uncomment this to enable unconditional RSA verification.
- *
- * \note     This is to prevent the RSA signing operation
- *           (regardless of the particular algorithm chosen)
- *           from potential future glitch attacks. We are
- *           currently not aware of any such for our default
- *           implementation, therefore disabling the option
- *           by default.
- *
- * \note     Enabling it comes at the cost of roughly an
- *           additional public key operation at the end of
- *           signing (low compared to private key operations),
- *           as well as minor memory consumption.
- */
-//#define MBEDTLS_RSA_FORCE_VERIFICATION
 
 /**
  * \def MBEDTLS_SELF_TEST

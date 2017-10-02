@@ -66,13 +66,6 @@
 #define mbedtls_free   free
 #endif
 
-#if !defined(MBEDTLS_RSA_FORCE_BLINDING) && \
-     defined(MBEDTLS_DEPRECATED_WARNING)
-#warning Not enforcing blinding checks for RSA private key operations\
-    is deprecated. Please uncomment MBEDTLS_RSA_FORCE_BLINDING\
-    in config.h to enforce blinding checks.
-#endif
-
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = (unsigned char*)v; while( n-- ) *p++ = 0;
@@ -434,16 +427,9 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
     mbedtls_mpi *D = &ctx->D;
 #endif /* MBEDTLS_RSA_NO_CRT */
 
-#if defined(MBEDTLS_RSA_REQUIRE_VERIFICATION)
     /* Temporaries holding the initial input and the double
      * checked result; should be the same in the end. */
     mbedtls_mpi I, C;
-#endif
-
-#if defined(MBEDTLS_RSA_FORCE_BLINDING)
-    if( f_rng == NULL )
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
-#endif
 
     /* Sanity-check that all relevant fields are at least set,
      * but don't perform a full keycheck. */
@@ -496,10 +482,8 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
     mbedtls_mpi_init( &TP ); mbedtls_mpi_init( &TQ );
 #endif
 
-#if defined(MBEDTLS_RSA_REQUIRE_VERIFICATION)
     mbedtls_mpi_init( &I );
     mbedtls_mpi_init( &C );
-#endif
 
     /* End of MPI initialization */
 
@@ -510,9 +494,7 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
         goto cleanup;
     }
 
-#if defined(MBEDTLS_RSA_REQUIRE_VERIFICATION)
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &I, &T ) );
-#endif
 
     if( f_rng != NULL )
     {
@@ -604,14 +586,12 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
     }
 
     /* If requested by the config, verify the result to prevent glitching attacks. */
-#if defined(MBEDTLS_RSA_REQUIRE_VERIFICATION)
     MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &C, &T, &ctx->E, &ctx->N, &ctx->RN ) );
     if( mbedtls_mpi_cmp_mpi( &C, &I ) != 0 )
     {
         ret = MBEDTLS_ERR_RSA_VERIFY_FAILED;
         goto cleanup;
     }
-#endif /* MBEDTLS_RSA_REQUIRE_VERIFICATION */
 
     olen = ctx->len;
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &T, output, olen ) );
@@ -642,10 +622,8 @@ cleanup:
     mbedtls_mpi_free( &TP ); mbedtls_mpi_free( &TQ );
 #endif
 
-#if defined(MBEDTLS_RSA_REQUIRE_VERIFICATION)
     mbedtls_mpi_free( &C );
     mbedtls_mpi_free( &I );
-#endif
 
     if( ret != 0 )
         return( MBEDTLS_ERR_RSA_PRIVATE_FAILED + ret );

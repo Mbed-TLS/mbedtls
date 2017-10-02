@@ -668,12 +668,12 @@ int main( int argc, char *argv[] )
     {
         int dhm_sizes[] = { 2048, 3072 };
         const char *dhm_P[] = {
-            MBEDTLS_DHM_RFC3526_MODP_2048_P,
-            MBEDTLS_DHM_RFC3526_MODP_3072_P,
+            mbedtls_dhm_rfc3526_modp_2048_p,
+            mbedtls_dhm_rfc3526_modp_3072_p,
         };
         const char *dhm_G[] = {
-            MBEDTLS_DHM_RFC3526_MODP_2048_G,
-            MBEDTLS_DHM_RFC3526_MODP_3072_G,
+            mbedtls_dhm_rfc3526_modp_2048_g,
+            mbedtls_dhm_rfc3526_modp_3072_g,
         };
 
         mbedtls_dhm_context dhm;

@@ -5,9 +5,6 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Features
    * Allow comments in test data files.
 
-Features
-   * Allow comments in test data files.
-
 Bugfix
    * Fix ssl_parse_record_header() to silently discard invalid DTLS records
      as recommended in RFC 6347 Section 4.1.2.7.

@@ -257,10 +257,10 @@
  * Uncomment a macro to enable alternate implementation for core algorithm
  * functions
  *
- * \warning  MD2, MD4, MD5, ARC4 and SHA-1 are considered weak and their
- *           use constitutes a security risk. If possible, it is recommended
- *           to avoid dependencies on them and to use strong message
- *           digests resp. ciphers instead.
+ * \warning   MD2, MD4, MD5, ARC4 and SHA-1 are considered weak and their use
+ *            constitutes a security risk. If possible, it is recommended to
+ *            avoid dependencies on them and alternative message digests resp.
+ *            ciphers should be considered instead.
  *
  */
 //#define POLARSSL_AES_ALT
@@ -1356,9 +1356,10 @@
  *      TLS_RSA_PSK_WITH_RC4_128_SHA
  *      TLS_PSK_WITH_RC4_128_SHA
  *
- * \warning  ARC4 is considered a weak cipher and its use constitutes
- *           a security risk. If possible, it is recommended to avoid dependencies
- *           on it and to use a strong cipher instead.
+ * \warning  ARC4 is considered a weak cipher and its use
+ *           constitutes a security risk. If possible, it is
+ *           recommended to avoid dependencies on it and
+ *           alternative ciphers should be considered instead.
  *
  */
 #define POLARSSL_ARC4_C
@@ -1736,8 +1737,8 @@
  *
  * \warning  MD2 is considered a weak message digest and its use
  *           constitutes a security risk. If possible, it is recommended
- *           to avoid dependencies on it and to use a strong message
- *           digest instead.
+ *           to avoid dependencies on it and alternative message digests
+ *           should be considered instead.
  *
  */
 //#define POLARSSL_MD2_C
@@ -1754,8 +1755,8 @@
  *
  * \warning  MD4 is considered a weak message digest and its use
  *           constitutes a security risk. If possible, it is recommended
- *           to avoid dependencies on it and to use a strong message
- *           digest instead.
+ *           to avoid dependencies on it and alternative message digests
+ *           should be considered instead.
  *
  */
 //#define POLARSSL_MD4_C
@@ -1777,8 +1778,8 @@
  *
  * \warning  MD5 is considered a weak message digest and its use
  *           constitutes a security risk. If possible, it is recommended
- *           to avoid dependencies on it and to use a strong message
- *           digest instead.
+ *           to avoid dependencies on it and alternative message digests
+ *           should be considered instead.
  *
  */
 #define POLARSSL_MD5_C
@@ -2059,8 +2060,8 @@
  *
  * \warning  SHA-1 is considered a weak message digest and its use
  *           constitutes a security risk. If possible, it is recommended
- *           to avoid dependencies on it and to use a strong message
- *           digest instead.
+ *           to avoid dependencies on it and alternative message digests
+ *           should be considered instead.
  *
  */
 #define POLARSSL_SHA1_C

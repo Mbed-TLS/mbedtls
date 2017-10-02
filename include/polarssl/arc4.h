@@ -21,10 +21,9 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
  * \warning        ARC4 is considered a weak cipher and its use
  *                 constitutes a security risk. It is recommended
- *                 to use a strong cipher instead.
+ *                 alternative ciphers should be considered instead.
  *
  */
 #ifndef POLARSSL_ARC4_H
@@ -51,7 +50,7 @@ extern "C" {
  *
  * \warning        ARC4 is considered a weak cipher and its use
  *                 constitutes a security risk. It is recommended
- *                 to use a strong cipher instead.
+ *                 alternative ciphers should be considered instead.
  *
  */
 typedef struct
@@ -69,7 +68,7 @@ arc4_context;
  *
  * \warning        ARC4 is considered a weak cipher and its use
  *                 constitutes a security risk. It is recommended
- *                 to use a strong cipher instead.
+ *                 alternative ciphers should be considered instead.
  *
  */
 void arc4_init( arc4_context *ctx );
@@ -81,7 +80,7 @@ void arc4_init( arc4_context *ctx );
  *
  * \warning        ARC4 is considered a weak cipher and its use
  *                 constitutes a security risk. It is recommended
- *                 to use a strong cipher instead.
+ *                 alternative ciphers should be considered instead.
  *
  */
 void arc4_free( arc4_context *ctx );
@@ -95,7 +94,7 @@ void arc4_free( arc4_context *ctx );
  *
  * \warning        ARC4 is considered a weak cipher and its use
  *                 constitutes a security risk. It is recommended
- *                 to use a strong cipher instead.
+ *                 alternative ciphers should be considered instead.
  *
  */
 void arc4_setup( arc4_context *ctx, const unsigned char *key,
@@ -113,7 +112,7 @@ void arc4_setup( arc4_context *ctx, const unsigned char *key,
  *
  * \warning        ARC4 is considered a weak cipher and its use
  *                 constitutes a security risk. It is recommended
- *                 to use a strong cipher instead.
+ *                 alternative ciphers should be considered instead.
  *
  */
 int arc4_crypt( arc4_context *ctx, size_t length, const unsigned char *input,
@@ -138,7 +137,7 @@ extern "C" {
  *
  * \warning        ARC4 is considered a weak cipher and its use
  *                 constitutes a security risk. It is recommended
- *                 to use a strong cipher instead.
+ *                 alternative ciphers should be considered instead.
  *
  */
 int arc4_self_test( int verbose );

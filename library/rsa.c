@@ -252,11 +252,13 @@ cleanup:
  * This is essentially a modular inversion.
  */
 
-int mbedtls_rsa_deduce_private( mbedtls_mpi *P, mbedtls_mpi *Q,
-                                mbedtls_mpi *D, mbedtls_mpi *E )
+int mbedtls_rsa_deduce_private( mbedtls_mpi const *P,
+                                mbedtls_mpi const *Q,
+                                mbedtls_mpi const *E,
+                                mbedtls_mpi *D )
 {
     int ret = 0;
-    mbedtls_mpi K;
+    mbedtls_mpi K, L;
 
     if( D == NULL || mbedtls_mpi_cmp_int( D, 0 ) != 0 )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
@@ -269,28 +271,26 @@ int mbedtls_rsa_deduce_private( mbedtls_mpi *P, mbedtls_mpi *Q,
     }
 
     mbedtls_mpi_init( &K );
+    mbedtls_mpi_init( &L );
 
-    /* Temporarily replace P and Q by P-1 and Q-1, respectively. */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( P, P, 1 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( Q, Q, 1 ) );
+    /* Temporarily put K := P-1 and L := Q-1 */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &K, P, 1 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &L, Q, 1 ) );
 
-    /* Temporarily compute the gcd(P-1, Q-1) in D. */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_gcd( D, P, Q ) );
+    /* Temporarily put D := gcd(P-1, Q-1) */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_gcd( D, &K, &L ) );
 
-    /* Compute LCM(P-1, Q-1) in K */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &K, P, Q ) );
+    /* K := LCM(P-1, Q-1) */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &K, &K, &L ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_div_mpi( &K, NULL, &K, D ) );
 
     /* Compute modular inverse of E in LCM(P-1, Q-1) */
     MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( D, E, &K ) );
 
-    /* Restore P and Q. */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( P, P, 1 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( Q, Q, 1 ) );
-
 cleanup:
 
     mbedtls_mpi_free( &K );
+    mbedtls_mpi_free( &L );
 
     return( ret );
 }
@@ -664,7 +664,7 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx,
          * so together with the primality test above all core parameters are
          * guaranteed to be sane if this call succeeds. */
         if( ( ret = mbedtls_rsa_deduce_private( &ctx->P, &ctx->Q,
-                                                &ctx->D, &ctx->E ) ) != 0 )
+                                                &ctx->E, &ctx->D ) ) != 0 )
         {
             return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
         }

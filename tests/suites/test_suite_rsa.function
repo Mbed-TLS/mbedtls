@@ -804,7 +804,7 @@ void mbedtls_rsa_deduce_private( int radix_P, char *input_P,
     }
 
     /* Try to deduce D from N, P, Q, E. */
-    TEST_ASSERT( mbedtls_rsa_deduce_private( &P, &Q, &D, &E ) == result );
+    TEST_ASSERT( mbedtls_rsa_deduce_private( &P, &Q, &E, &D ) == result );
 
     if( !corrupt )
     {

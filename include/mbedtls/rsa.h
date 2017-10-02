@@ -122,18 +122,11 @@ int mbedtls_rsa_deduce_moduli( mbedtls_mpi const *N, mbedtls_mpi const *D,
  * \return
  *                 - 0 if successful. In this case, D is set to a simultaneous
  *                   modular inverse of E modulo both P-1 and Q-1.
- *                 - A non-zero error code otherwise. In this case, the values
- *                   of P, Q, E are undefined.
+ *                 - A non-zero error code otherwise.
  *
- * \note           The input MPI's are deliberately not declared as constant
- *                 and may therefore be used for in-place calculations by
- *                 the implementation. In particular, their values can be
- *                 corrupted when the function fails. If the user cannot
- *                 tolerate this, he has to make copies of the MPI's prior
- *                 to calling this function. See \c mbedtls_mpi_copy for this.
  */
-int mbedtls_rsa_deduce_private( mbedtls_mpi *P, mbedtls_mpi *Q, mbedtls_mpi *E,
-                                mbedtls_mpi *D );
+int mbedtls_rsa_deduce_private( mbedtls_mpi const *P, mbedtls_mpi const *Q,
+                                mbedtls_mpi const *E, mbedtls_mpi *D );
 
 
 /**

@@ -20,9 +20,9 @@
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  *
- * \warning        ARC4 is considered a weak cipher and its use
- *                 constitutes a security risk. It is recommended
- *                 to use a strong cipher instead.
+ * \warning   ARC4 is considered a weak cipher and its use
+ *            constitutes a security risk. It is recommended
+ *            alternative ciphers should be considered instead.
  *
  */
 #ifndef MBEDTLS_ARC4_H
@@ -47,9 +47,9 @@ extern "C" {
 /**
  * \brief          ARC4 context structure
  *
- * \warning        ARC4 is considered a weak cipher and its use
- *                 constitutes a security risk. It is recommended
- *                 to use a strong cipher instead.
+ * \warning   ARC4 is considered a weak cipher and its use
+ *            constitutes a security risk. It is recommended
+ *            alternative ciphers should be considered instead.
  *
  */
 typedef struct
@@ -67,7 +67,7 @@ mbedtls_arc4_context;
  *
  * \warning        ARC4 is considered a weak cipher and its use
  *                 constitutes a security risk. It is recommended
- *                 to use a strong cipher instead.
+ *                 alternative ciphers should be considered instead.
  *
  */
 void mbedtls_arc4_init( mbedtls_arc4_context *ctx );
@@ -79,7 +79,7 @@ void mbedtls_arc4_init( mbedtls_arc4_context *ctx );
  *
  * \warning        ARC4 is considered a weak cipher and its use
  *                 constitutes a security risk. It is recommended
- *                 to use a strong cipher instead.
+ *                 alternative ciphers should be considered instead.
  *
  */
 void mbedtls_arc4_free( mbedtls_arc4_context *ctx );
@@ -93,7 +93,7 @@ void mbedtls_arc4_free( mbedtls_arc4_context *ctx );
  *
  * \warning        ARC4 is considered a weak cipher and its use
  *                 constitutes a security risk. It is recommended
- *                 to use a strong cipher instead.
+ *                 alternative ciphers should be considered instead.
  *
  */
 void mbedtls_arc4_setup( mbedtls_arc4_context *ctx, const unsigned char *key,
@@ -111,7 +111,7 @@ void mbedtls_arc4_setup( mbedtls_arc4_context *ctx, const unsigned char *key,
  *
  * \warning        ARC4 is considered a weak cipher and its use
  *                 constitutes a security risk. It is recommended
- *                 to use a strong cipher instead.
+ *                 alternative ciphers should be considered instead.
  *
  */
 int mbedtls_arc4_crypt( mbedtls_arc4_context *ctx, size_t length, const unsigned char *input,
@@ -136,7 +136,7 @@ extern "C" {
  *
  * \warning        ARC4 is considered a weak cipher and its use
  *                 constitutes a security risk. It is recommended
- *                 to use a strong cipher instead.
+ *                 alternative ciphers should be considered instead.
  *
  */
 int mbedtls_arc4_self_test( int verbose );

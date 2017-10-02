@@ -18,6 +18,7 @@
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
+
 /*
  *  The following sources were referenced in the design of this implementation
  *  of the RSA algorithm:
@@ -551,11 +552,11 @@ int mbedtls_rsa_import( mbedtls_rsa_context *ctx,
 }
 
 int mbedtls_rsa_import_raw( mbedtls_rsa_context *ctx,
-                            unsigned char *N, size_t N_len,
-                            unsigned char *P, size_t P_len,
-                            unsigned char *Q, size_t Q_len,
-                            unsigned char *D, size_t D_len,
-                            unsigned char *E, size_t E_len )
+                            unsigned char const *N, size_t N_len,
+                            unsigned char const *P, size_t P_len,
+                            unsigned char const *Q, size_t Q_len,
+                            unsigned char const *D, size_t D_len,
+                            unsigned char const *E, size_t E_len )
 {
     int ret;
 

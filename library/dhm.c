@@ -430,12 +430,14 @@ int mbedtls_dhm_make_params( mbedtls_dhm_context *ctx, int x_size,
     /*
      * export P, G, GX
      */
-#define DHM_MPI_EXPORT(X,n)                                             \
+#define DHM_MPI_EXPORT( X, n )                                          \
     do {                                                                \
-        MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( X, p + 2, n ) );     \
-        *p++ = (unsigned char)( n >> 8 );                               \
-        *p++ = (unsigned char)( n      );                               \
-        p += n;                                                         \
+        MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( ( X ),               \
+                                                   p + 2,               \
+                                                   ( n ) ) );           \
+        *p++ = (unsigned char)( ( n ) >> 8 );                           \
+        *p++ = (unsigned char)( ( n )      );                           \
+        p += ( n );                                                     \
     } while( 0 )
 
     n1 = mbedtls_mpi_size( &ctx->P  );

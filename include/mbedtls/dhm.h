@@ -211,9 +211,11 @@ int mbedtls_dhm_read_params( mbedtls_dhm_context *ctx,
  * \param p_rng    RNG parameter
  *
  * \note           The destination buffer must be large enough to hold
- *                 the modulus, the generator, and the public key, each
- *                 wrapped with a 2-byte length field. It is the responsibility
- *                 of the caller to ensure that enough space is available.
+ *                 the reduced binary presentation of the modulus, the generator
+ *                 and the public key, each wrapped with a 2-byte length field.
+ *                 It is the responsibility of the caller to ensure that enough
+ *                 space is available. Refer to \c mbedtls_mpi_size to computing
+ *                 the byte-size of an MPI.
  *
  * \note           This function assumes that ctx->P and ctx->G
  *                 have already been properly set (for example

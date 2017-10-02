@@ -99,6 +99,10 @@ extern "C" {
  *                   factorization of N.
  *                 - A non-zero error code otherwise.
  *
+ * \note           It is neither checked that P, Q are prime nor that
+ *                 D, E are modular inverses wrt. P-1 and Q-1. For that,
+ *                 use the helper function \c mbedtls_rsa_validate_params.
+ *
  */
 int mbedtls_rsa_deduce_moduli( mbedtls_mpi const *N, mbedtls_mpi const *D,
             mbedtls_mpi const *E, int (*f_rng)(void *, unsigned char *, size_t),
@@ -117,12 +121,12 @@ int mbedtls_rsa_deduce_moduli( mbedtls_mpi const *N, mbedtls_mpi const *D,
  * \param E        RSA public exponent
  * \param D        Pointer to MPI holding the private exponent on success.
  *
- * \note           This function does not check whether P and Q are primes.
- *
  * \return
  *                 - 0 if successful. In this case, D is set to a simultaneous
  *                   modular inverse of E modulo both P-1 and Q-1.
  *                 - A non-zero error code otherwise.
+ *
+ * \note           This function does not check whether P and Q are primes.
  *
  */
 int mbedtls_rsa_deduce_private( mbedtls_mpi const *P, mbedtls_mpi const *Q,
@@ -144,6 +148,9 @@ int mbedtls_rsa_deduce_private( mbedtls_mpi const *P, mbedtls_mpi const *Q,
  * \param QP       Output variable for the modular inverse of Q modulo P.
  *
  * \return         0 on success, non-zero error code otherwise.
+ *
+ * \note           This function does not check whether P, Q are
+ *                 prime and whether D is a valid private exponent.
  *
  */
 int mbedtls_rsa_deduce_crt( const mbedtls_mpi *P, const mbedtls_mpi *Q,

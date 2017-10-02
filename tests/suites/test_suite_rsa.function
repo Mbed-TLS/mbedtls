@@ -1329,19 +1329,18 @@ void mbedtls_rsa_import_raw( char *input_N,
     size_t lenE = 0;
 
     mbedtls_rsa_context ctx;
-
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
+
     const char *pers = "test_suite_rsa";
 
     mbedtls_ctr_drbg_init( &ctr_drbg );
-
     mbedtls_entropy_init( &entropy );
+    mbedtls_rsa_init( &ctx, 0, 0 );
+
     TEST_ASSERT( mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func,
                                         &entropy, (const unsigned char *) pers,
                                         strlen( pers ) ) == 0 );
-
-    mbedtls_rsa_init( &ctx, 0, 0 );
 
     if( strlen( input_N ) )
         lenN = unhexify( bufN, input_N );
@@ -1436,6 +1435,10 @@ void mbedtls_rsa_import_raw( char *input_N,
     }
 
 exit:
+
+    mbedtls_free( buf_orig );
+    mbedtls_free( buf_enc  );
+    mbedtls_free( buf_dec  );
 
     mbedtls_rsa_free( &ctx );
 

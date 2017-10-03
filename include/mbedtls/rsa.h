@@ -104,7 +104,7 @@ extern "C" {
  *                 use the helper function \c mbedtls_rsa_validate_params.
  *
  */
-int mbedtls_rsa_deduce_moduli( mbedtls_mpi const *N, mbedtls_mpi const *D,
+int mbedtls_rsa_deduce_primes( mbedtls_mpi const *N, mbedtls_mpi const *D,
             mbedtls_mpi const *E, int (*f_rng)(void *, unsigned char *, size_t),
             void *p_rng, mbedtls_mpi *P, mbedtls_mpi *Q );
 

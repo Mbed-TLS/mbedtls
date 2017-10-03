@@ -723,7 +723,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_CTR_DRBG_C:MBEDTLS_ENTROPY_C */
-void mbedtls_rsa_deduce_moduli( int radix_N, char *input_N,
+void mbedtls_rsa_deduce_primes( int radix_N, char *input_N,
                                 int radix_D, char *input_D,
                                 int radix_E, char *input_E,
                                 int radix_P, char *output_P,
@@ -756,7 +756,7 @@ void mbedtls_rsa_deduce_moduli( int radix_N, char *input_N,
         TEST_ASSERT( mbedtls_mpi_add_int( &D, &D, 2 ) == 0 );
 
     /* Try to deduce P, Q from N, D, E only. */
-    TEST_ASSERT( mbedtls_rsa_deduce_moduli( &N, &D, &E, mbedtls_ctr_drbg_random,
+    TEST_ASSERT( mbedtls_rsa_deduce_primes( &N, &D, &E, mbedtls_ctr_drbg_random,
                                             &ctr_drbg, &P, &Q ) == result );
 
     if( !corrupt )

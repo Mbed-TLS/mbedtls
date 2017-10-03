@@ -77,7 +77,7 @@ static void mbedtls_zeroize( void *v, size_t n ) {
  *
  * There are two classes of helper functions:
  * (1) Parameter-generating helpers. These are:
- *     - mbedtls_rsa_deduce_moduli
+ *     - mbedtls_rsa_deduce_primes
  *     - mbedtls_rsa_deduce_private_exponent
  *     - mbedtls_rsa_deduce_crt
  *      Each of these functions takes a set of core RSA parameters
@@ -130,7 +130,7 @@ static void mbedtls_zeroize( void *v, size_t n ) {
  * of (a) and (b) above to attempt to factor N.
  *
  */
-int mbedtls_rsa_deduce_moduli( mbedtls_mpi const *N,
+int mbedtls_rsa_deduce_primes( mbedtls_mpi const *N,
                      mbedtls_mpi const *D, mbedtls_mpi const *E,
                      int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
                      mbedtls_mpi *P, mbedtls_mpi *Q )
@@ -659,7 +659,7 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx,
     {
         /* This includes sanity checking of core parameters,
          * so no further checks necessary. */
-        ret = mbedtls_rsa_deduce_moduli( &ctx->N, &ctx->D, &ctx->E,
+        ret = mbedtls_rsa_deduce_primes( &ctx->N, &ctx->D, &ctx->E,
                                          f_rng, p_rng,
                                          &ctx->P, &ctx->Q );
         if( ret != 0 )

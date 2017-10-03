@@ -568,8 +568,8 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_SHA1_C
 x509_verify:"data_files/server2-badsign.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_NOT_TRUSTED:"compat":"NULL"
 
 X509 Certificate verification #46 (Valid, depth 2, EC-RSA-EC)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_SHA256_C:!USE_MBEDTLS_CRYPTOCELL
-x509_verify:"data_files/server7_int-ca.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha256.pem":"NULL":0:0:"NULL"
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_SHA256_C
+x509_verify:"data_files/server7_int-ca.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha256.pem":"NULL":0:0:"compat":"NULL"
 
 X509 Certificate verification #47 (Untrusted, depth 2, EC-RSA-EC)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_SHA1_C:MBEDTLS_SHA256_C
@@ -756,15 +756,15 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MB
 x509_verify_callback:"data_files/server1_ca.crt":"data_files/test-ca_cat21.crt":0:"depth 1 - serial 00 - subject C=NL, O=PolarSSL, CN=PolarSSL Test CA\ndepth 0 - serial 01 - subject C=NL, O=PolarSSL, CN=PolarSSL Server 1\n"
 
 X509 Certificate verification callback: intermediate ca
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_SHA256_C:MBEDTLS_SHA1_C:!USE_MBEDTLS_CRYPTOCELL
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_SHA256_C:MBEDTLS_SHA1_C
 x509_verify_callback:"data_files/server7_int-ca.crt":"data_files/test-ca_cat12.crt":0:"depth 2 - serial C1\:43\:E2\:7E\:62\:43\:CC\:E8 - subject C=NL, O=PolarSSL, CN=Polarssl Test EC CA\ndepth 1 - serial 0E - subject C=NL, O=PolarSSL, CN=PolarSSL Test Intermediate CA\ndepth 0 - serial 10 - subject C=NL, O=PolarSSL, CN=localhost\n"
 
 X509 Certificate verification callback: intermediate ca, root included
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_SHA256_C:MBEDTLS_SHA1_C:!USE_MBEDTLS_CRYPTOCELL
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_SHA256_C:MBEDTLS_SHA1_C
 x509_verify_callback:"data_files/server7_int-ca_ca2.crt":"data_files/test-ca_cat12.crt":0:"depth 2 - serial C1\:43\:E2\:7E\:62\:43\:CC\:E8 - subject C=NL, O=PolarSSL, CN=Polarssl Test EC CA\ndepth 1 - serial 0E - subject C=NL, O=PolarSSL, CN=PolarSSL Test Intermediate CA\ndepth 0 - serial 10 - subject C=NL, O=PolarSSL, CN=localhost\n"
 
 X509 Certificate verification callback: intermediate ca trusted
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_SHA256_C:!USE_MBEDTLS_CRYPTOCELL
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_SHA256_C
 x509_verify_callback:"data_files/server7_int-ca_ca2.crt":"data_files/test-int-ca.crt":0:"depth 1 - serial 0E - subject C=NL, O=PolarSSL, CN=PolarSSL Test Intermediate CA\ndepth 0 - serial 10 - subject C=NL, O=PolarSSL, CN=localhost\n"
 
 X509 Certificate verification callback: two intermediates

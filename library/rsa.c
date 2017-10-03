@@ -585,8 +585,9 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
         MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &T, &T, &ctx->N ) );
     }
 
-    /* If requested by the config, verify the result to prevent glitching attacks. */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &C, &T, &ctx->E, &ctx->N, &ctx->RN ) );
+    /* Verify the result to prevent glitching attacks. */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &C, &T, &ctx->E,
+                                          &ctx->N, &ctx->RN ) );
     if( mbedtls_mpi_cmp_mpi( &C, &I ) != 0 )
     {
         ret = MBEDTLS_ERR_RSA_VERIFY_FAILED;

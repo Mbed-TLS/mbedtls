@@ -78,7 +78,7 @@ static void mbedtls_zeroize( void *v, size_t n ) {
  * There are two classes of helper functions:
  * (1) Parameter-generating helpers. These are:
  *     - mbedtls_rsa_deduce_moduli
- *     - mbedtls_rsa_deduce_private
+ *     - mbedtls_rsa_deduce_private_exponent
  *     - mbedtls_rsa_deduce_crt
  *      Each of these functions takes a set of core RSA parameters
  *      and generates some other, or CRT related parameters.
@@ -253,10 +253,10 @@ cleanup:
  * This is essentially a modular inversion.
  */
 
-int mbedtls_rsa_deduce_private( mbedtls_mpi const *P,
-                                mbedtls_mpi const *Q,
-                                mbedtls_mpi const *E,
-                                mbedtls_mpi *D )
+int mbedtls_rsa_deduce_private_exponent( mbedtls_mpi const *P,
+                                         mbedtls_mpi const *Q,
+                                         mbedtls_mpi const *E,
+                                         mbedtls_mpi *D )
 {
     int ret = 0;
     mbedtls_mpi K, L;
@@ -681,8 +681,10 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx,
         /* Deduce private exponent. This includes double-checking of the result,
          * so together with the primality test above all core parameters are
          * guaranteed to be sane if this call succeeds. */
-        if( ( ret = mbedtls_rsa_deduce_private( &ctx->P, &ctx->Q,
-                                                &ctx->E, &ctx->D ) ) != 0 )
+        if( ( ret = mbedtls_rsa_deduce_private_exponent( &ctx->P,
+                                                         &ctx->Q,
+                                                         &ctx->E,
+                                                         &ctx->D ) ) != 0 )
         {
             return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
         }

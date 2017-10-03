@@ -325,7 +325,8 @@ int mbedtls_rsa_validate_crt( const mbedtls_mpi *P,  const mbedtls_mpi *Q,
 
         if( mbedtls_mpi_cmp_int( &L, 0 ) != 0 )
         {
-            return( MBEDTLS_ERR_RSA_KEY_CHECK_FAILED );
+            ret = MBEDTLS_ERR_RSA_KEY_CHECK_FAILED;
+            goto cleanup;
         }
     }
 
@@ -344,7 +345,8 @@ int mbedtls_rsa_validate_crt( const mbedtls_mpi *P,  const mbedtls_mpi *Q,
 
         if( mbedtls_mpi_cmp_int( &L, 0 ) != 0 )
         {
-            return( MBEDTLS_ERR_RSA_KEY_CHECK_FAILED );
+            ret = MBEDTLS_ERR_RSA_KEY_CHECK_FAILED;
+            goto cleanup;
         }
     }
 
@@ -362,7 +364,8 @@ int mbedtls_rsa_validate_crt( const mbedtls_mpi *P,  const mbedtls_mpi *Q,
         MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &K, &K, P ) );
         if( mbedtls_mpi_cmp_int( &K, 0 ) != 0 )
         {
-            return( MBEDTLS_ERR_RSA_KEY_CHECK_FAILED );
+            ret = MBEDTLS_ERR_RSA_KEY_CHECK_FAILED;
+            goto cleanup;
         }
     }
 

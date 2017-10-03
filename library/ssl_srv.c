@@ -1675,10 +1675,6 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         defined(POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED)
             case TLS_EXT_SIG_ALG:
                 SSL_DEBUG_MSG( 3, ( "found signature_algorithms extension" ) );
-    #if defined(POLARSSL_SSL_RENEGOTIATION)
-                if( ssl->renegotiation == SSL_RENEGOTIATION )
-                    break;
-    #endif
 
                 ret = ssl_parse_signature_algorithms_ext( ssl, ext + 4, ext_size );
                 if( ret != 0 )

@@ -323,6 +323,7 @@ int main( int argc, char *argv[] )
             if( opt.authority_identifier != 0 &&
                 opt.authority_identifier != 1 )
             {
+                mbedtls_printf( "Invalid argument for option %s\n", p );
                 goto usage;
             }
         }
@@ -332,6 +333,7 @@ int main( int argc, char *argv[] )
             if( opt.subject_identifier != 0 &&
                 opt.subject_identifier != 1 )
             {
+                mbedtls_printf( "Invalid argument for option %s\n", p );
                 goto usage;
             }
         }
@@ -341,6 +343,7 @@ int main( int argc, char *argv[] )
             if( opt.basic_constraints != 0 &&
                 opt.basic_constraints != 1 )
             {
+                mbedtls_printf( "Invalid argument for option %s\n", p );
                 goto usage;
             }
         }
@@ -355,32 +358,47 @@ int main( int argc, char *argv[] )
             else if( strcmp( q, "MD5" ) == 0 )
                 opt.md = MBEDTLS_MD_MD5;
             else
+            {
+                mbedtls_printf( "Invalid argument for option %s\n", p );
                 goto usage;
+            }
         }
         else if( strcmp( p, "version" ) == 0 )
         {
             opt.version = atoi( q );
             if( opt.version < 1 || opt.version > 3 )
+            {
+                mbedtls_printf( "Invalid argument for option %s\n", p );
                 goto usage;
+            }
             opt.version--;
         }
         else if( strcmp( p, "selfsign" ) == 0 )
         {
             opt.selfsign = atoi( q );
             if( opt.selfsign < 0 || opt.selfsign > 1 )
+            {
+                mbedtls_printf( "Invalid argument for option %s\n", p );
                 goto usage;
+            }
         }
         else if( strcmp( p, "is_ca" ) == 0 )
         {
             opt.is_ca = atoi( q );
             if( opt.is_ca < 0 || opt.is_ca > 1 )
+            {
+                mbedtls_printf( "Invalid argument for option %s\n", p );
                 goto usage;
+            }
         }
         else if( strcmp( p, "max_pathlen" ) == 0 )
         {
             opt.max_pathlen = atoi( q );
             if( opt.max_pathlen < -1 || opt.max_pathlen > 127 )
+            {
+                mbedtls_printf( "Invalid argument for option %s\n", p );
                 goto usage;
+            }
         }
         else if( strcmp( p, "key_usage" ) == 0 )
         {
@@ -404,7 +422,10 @@ int main( int argc, char *argv[] )
                 else if( strcmp( q, "crl_sign" ) == 0 )
                     opt.key_usage |= MBEDTLS_X509_KU_CRL_SIGN;
                 else
+                {
+                    mbedtls_printf( "Invalid argument for option %s\n", p );
                     goto usage;
+                }
 
                 q = r;
             }
@@ -431,7 +452,10 @@ int main( int argc, char *argv[] )
                 else if( strcmp( q, "object_signing_ca" ) == 0 )
                     opt.ns_cert_type |= MBEDTLS_X509_NS_CERT_TYPE_OBJECT_SIGNING_CA;
                 else
+                {
+                    mbedtls_printf( "Invalid argument for option %s\n", p );
                     goto usage;
+                }
 
                 q = r;
             }

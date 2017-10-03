@@ -25,22 +25,20 @@
  *           of non-safe primes both decreases the difficulty of the underlying
  *           discrete logarithm problem and can lead to small subgroup attacks
  *           leaking private exponent bits when invalid public keys are used
- *           and not detected. This is especially relevant if the same DHM parameters
- *           are reused for multiple key exchanges as in static DHM, while the
- *           criticality of small-subgroup attacks is lower for ephemeral DHM.
+ *           and not detected. This is especially relevant if the same DHM
+ *           parameters are reused for multiple key exchanges as in static DHM,
+ *           while the criticality of small-subgroup attacks is lower for
+ *           ephemeral DHM.
  *
  *           For performance reasons, the code does neither perform primality
  *           nor safe primality tests, nor the expensive checks for invalid
- *           subgroups.
+ *           subgroups. Moreover, even if these were performed, non-standardized
+ *           primes cannot be trusted because of the possibility of backdoors
+ *           that can't be effectively checked for.
  *
- *           The possibility for the use of custom, non-safe primes in DHM
- *           is a deficiency in the TLS protocol that has been adressed only
- *           recently through the addition of the named group extension from
- *           RFC 7919, which however is not yet implemented in Mbed TLS.
- *
- *           If possible, we recommend to use elliptic curve based key
- *           exchanges instead of DHM-based ones, because the former only
- *           accepts standardized groups.
+ *           We therefore consider DHE a security risk. If possible, it is
+ *           recommended users should consider preferring other methods of
+ *           key exchange.
  *
  */
 #ifndef MBEDTLS_DHM_H

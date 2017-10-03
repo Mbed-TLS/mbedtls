@@ -8,6 +8,9 @@ Bugfix
    * Fix usage help in ssl_server2 example. Found and fixed by Bei Lin.
    * Fix Visual Studio implicit cast compilation warnings in the net.c and
      x509.c modules and some sample applications.
+   * Parse signature algorithm extension when renegotiating. Previously,
+     renegotiated handshakes would only accept signatures using SHA-1
+     regardless of the peer's preferences, or fail if SHA-1 was disabled.
 
 = mbed TLS 1.3.21 branch released 2017-08-10
 

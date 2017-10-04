@@ -1270,7 +1270,8 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
 
     if( ssl->out_msglen > MBEDTLS_SSL_MAX_CONTENT_LEN )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Record content too large, maximum %d",
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Record content %u too large, maximum %d",
+                                    (unsigned) ssl->out_msglen,
                                     MBEDTLS_SSL_MAX_CONTENT_LEN ) );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }

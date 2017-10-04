@@ -72,23 +72,23 @@ extern "C" {
 #define MBEDTLS_SERIALIZE_FUNCTION_SHUTDOWN     0x010510 /**< shutdown (close socket) */
     /* in: int16 fd */
 #define MBEDTLS_SERIALIZE_FUNCTION_FOPEN        0x020121 /**< open file */
-    /* in: int8_t * file path
-       in: int8_t * file open mode
+    /* in: string file path
+       in: string file open mode
        out: int32 file_id
     */
 #define MBEDTLS_SERIALIZE_FUNCTION_FREAD        0x020221
     /* in: int32 file id
        in: uint32 read buffer size
-       out: int8_t * read buffer & size
+       out: string read buffer & size
     */
 #define MBEDTLS_SERIALIZE_FUNCTION_FGETS        0x020321
     /* in: int32 file id
        in: uint32 read buffer size
-       out: int8_t * read buffer & size
+       out: string read buffer & size
     */
 #define MBEDTLS_SERIALIZE_FUNCTION_FWRITE       0x020421
     /* in: int32 file id
-       in: int8_t * write buffer & size
+       in: string write buffer & size
        out: uint32 writen bytes
     */
 #define MBEDTLS_SERIALIZE_FUNCTION_FCLOSE       0x020510
@@ -107,13 +107,13 @@ extern "C" {
     /* in: int32 file id
     */
 #define MBEDTLS_SERIALIZE_FUNCTION_DOPEN        0x020911
-    /* in: int8_t * dir path
+    /* in: string dir path
        out: int32 dir Id
     */
 #define MBEDTLS_SERIALIZE_FUNCTION_DREAD        0x020A22
     /* in: int32 file id
        in: uint32 read buffer size
-       out: int8_t * read buffer
+       out: string read buffer
        out: uint32 dir entry type
     */
 #define MBEDTLS_SERIALIZE_FUNCTION_DCLOSE       0x020B10

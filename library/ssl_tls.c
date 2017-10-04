@@ -6133,6 +6133,23 @@ int mbedtls_ssl_conf_dh_param( mbedtls_ssl_config *conf, const char *dhm_P, cons
 }
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 
+int mbedtls_ssl_conf_dh_param_bin( mbedtls_ssl_config *conf,
+                                   const unsigned char *dhm_P, size_t P_len,
+                                   const unsigned char *dhm_G, size_t G_len )
+{
+    int ret;
+
+    if( ( ret = mbedtls_mpi_read_binary( &conf->dhm_P, dhm_P, P_len ) ) != 0 ||
+        ( ret = mbedtls_mpi_read_binary( &conf->dhm_G, dhm_G, G_len ) ) != 0 )
+    {
+        mbedtls_mpi_free( &conf->dhm_P );
+        mbedtls_mpi_free( &conf->dhm_G );
+        return( ret );
+    }
+
+    return( 0 );
+}
+
 int mbedtls_ssl_conf_dh_param_ctx( mbedtls_ssl_config *conf, mbedtls_dhm_context *dhm_ctx )
 {
     int ret;
@@ -7545,10 +7562,9 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
                 const unsigned char dhm_g[] =
                     MBEDTLS_DHM_RFC3526_MODP_2048_G_BIN;
 
-                if( ( ret = mbedtls_mpi_read_binary( &conf->dhm_P, dhm_p,
-                                                     sizeof( dhm_p ) ) ) != 0 ||
-                    ( ret = mbedtls_mpi_read_binary( &conf->dhm_G, dhm_g,
-                                                     sizeof( dhm_g ) ) ) != 0 )
+                if ( ( ret = mbedtls_ssl_conf_dh_param_bin( conf,
+                                               dhm_p, sizeof( dhm_p ),
+                                               dhm_g, sizeof( dhm_g ) ) ) != 0 )
                 {
                     return( ret );
                 }

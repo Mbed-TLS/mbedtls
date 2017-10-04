@@ -36,6 +36,14 @@
  *           primes cannot be trusted because of the possibility of backdoors
  *           that can't be effectively checked for.
  *
+ *           Diffie-Hellman-Merkle is therefore a security risk when not using
+ *           standardized primes generated using a trustworthy ("nothing up
+ *           my sleeve") method, such as the RFC 3526 / 7919 primes. In the TLS
+ *           protocol, DH parameters need to be negotiated, so using the default
+ *           primes systematically is not always an option. If possible, use
+ *           Elliptic Curve Diffie-Hellman (ECDH), which has better performance,
+ *           and for which the TLS protocol mandates the use of standard
+ *           parameters that were generated in a nothing-up-my-sleeve manner.
  *           We therefore consider DHE a security risk. If possible, it is
  *           recommended users should consider preferring other methods of
  *           key exchange.

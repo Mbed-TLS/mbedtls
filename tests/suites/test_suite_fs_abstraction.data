@@ -18,3 +18,10 @@ file_open_error:
 
 File error
 file_error:
+
+readdir short read buffer
+read_dir_long_file_name:
+
+Max file handles
+file_limit:
+

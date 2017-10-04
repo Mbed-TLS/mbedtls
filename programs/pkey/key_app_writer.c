@@ -317,14 +317,14 @@ int main( int argc, char *argv[] )
                 goto exit;
             }
 
-            mbedtls_mpi_write_file( "N:  ",  &N,  16, NULL );
-            mbedtls_mpi_write_file( "E:  ",  &E,  16, NULL );
-            mbedtls_mpi_write_file( "D:  ",  &D,  16, NULL );
-            mbedtls_mpi_write_file( "P:  ",  &P,  16, NULL );
-            mbedtls_mpi_write_file( "Q:  ",  &Q,  16, NULL );
-            mbedtls_mpi_write_file( "DP: ",  &DP, 16, NULL );
-            mbedtls_mpi_write_file( "DQ:  ", &DQ, 16, NULL );
-            mbedtls_mpi_write_file( "QP:  ", &QP, 16, NULL );
+            mbedtls_mpi_write_file( "N:  ",  &rsa->N,  16, MBEDTLS_FILE_INVALID );
+            mbedtls_mpi_write_file( "E:  ",  &rsa->E,  16, MBEDTLS_FILE_INVALID );
+            mbedtls_mpi_write_file( "D:  ",  &rsa->D,  16, MBEDTLS_FILE_INVALID );
+            mbedtls_mpi_write_file( "P:  ",  &rsa->P,  16, MBEDTLS_FILE_INVALID );
+            mbedtls_mpi_write_file( "Q:  ",  &rsa->Q,  16, MBEDTLS_FILE_INVALID );
+            mbedtls_mpi_write_file( "DP: ",  &rsa->DP, 16, MBEDTLS_FILE_INVALID );
+            mbedtls_mpi_write_file( "DQ:  ", &rsa->DQ, 16, MBEDTLS_FILE_INVALID );
+            mbedtls_mpi_write_file( "QP:  ", &rsa->QP, 16, MBEDTLS_FILE_INVALID );
         }
         else
 #endif
@@ -332,10 +332,10 @@ int main( int argc, char *argv[] )
         if( mbedtls_pk_get_type( &key ) == MBEDTLS_PK_ECKEY )
         {
             mbedtls_ecp_keypair *ecp = mbedtls_pk_ec( key );
-            mbedtls_mpi_write_file( "Q(X): ", &ecp->Q.X, 16, NULL );
-            mbedtls_mpi_write_file( "Q(Y): ", &ecp->Q.Y, 16, NULL );
-            mbedtls_mpi_write_file( "Q(Z): ", &ecp->Q.Z, 16, NULL );
-            mbedtls_mpi_write_file( "D   : ", &ecp->d  , 16, NULL );
+            mbedtls_mpi_write_file( "Q(X): ", &ecp->Q.X, 16, MBEDTLS_FILE_INVALID );
+            mbedtls_mpi_write_file( "Q(Y): ", &ecp->Q.Y, 16, MBEDTLS_FILE_INVALID );
+            mbedtls_mpi_write_file( "Q(Z): ", &ecp->Q.Z, 16, MBEDTLS_FILE_INVALID );
+            mbedtls_mpi_write_file( "D   : ", &ecp->d  , 16, MBEDTLS_FILE_INVALID );
         }
         else
 #endif
@@ -377,8 +377,8 @@ int main( int argc, char *argv[] )
                 mbedtls_printf( " failed\n  ! could not export RSA parameters\n\n" );
                 goto exit;
             }
-            mbedtls_mpi_write_file( "N: ", &N, 16, NULL );
-            mbedtls_mpi_write_file( "E: ", &E, 16, NULL );
+            mbedtls_mpi_write_file( "N: ", &rsa->N, 16, MBEDTLS_FILE_INVALID );
+            mbedtls_mpi_write_file( "E: ", &rsa->E, 16, MBEDTLS_FILE_INVALID );
         }
         else
 #endif
@@ -386,9 +386,9 @@ int main( int argc, char *argv[] )
         if( mbedtls_pk_get_type( &key ) == MBEDTLS_PK_ECKEY )
         {
             mbedtls_ecp_keypair *ecp = mbedtls_pk_ec( key );
-            mbedtls_mpi_write_file( "Q(X): ", &ecp->Q.X, 16, NULL );
-            mbedtls_mpi_write_file( "Q(Y): ", &ecp->Q.Y, 16, NULL );
-            mbedtls_mpi_write_file( "Q(Z): ", &ecp->Q.Z, 16, NULL );
+            mbedtls_mpi_write_file( "Q(X): ", &ecp->Q.X, 16, MBEDTLS_FILE_INVALID );
+            mbedtls_mpi_write_file( "Q(Y): ", &ecp->Q.Y, 16, MBEDTLS_FILE_INVALID );
+            mbedtls_mpi_write_file( "Q(Z): ", &ecp->Q.Z, 16, MBEDTLS_FILE_INVALID );
         }
         else
 #endif

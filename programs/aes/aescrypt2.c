@@ -85,7 +85,7 @@ int main( int argc, char *argv[] )
     unsigned int i, n;
     int mode, lastn;
     size_t keylen;
-    mbedtls_file_t fkey, fin = NULL, fout = NULL;
+    mbedtls_file_t fkey, fin = MBEDTLS_FILE_INVALID, fout = MBEDTLS_FILE_INVALID;
 
     char *p;
 

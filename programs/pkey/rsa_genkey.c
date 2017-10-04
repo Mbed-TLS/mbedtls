@@ -70,8 +70,8 @@ int main( void )
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     mbedtls_mpi N, P, Q, D, E, DP, DQ, QP;
-    mbedtls_file_t fpub  = NULL;
-    mbedtls_file_t fpriv = NULL;
+    mbedtls_file_t fpub  = MBEDTLS_FILE_INVALID;
+    mbedtls_file_t fpriv = MBEDTLS_FILE_INVALID;
     const char *pers = "rsa_genkey";
 
     mbedtls_ctr_drbg_init( &ctr_drbg );
@@ -165,10 +165,10 @@ int main( void )
 
 exit:
 
-    if( fpub  != NULL )
+    if( fpub  != MBEDTLS_FILE_INVALID )
         mbedtls_fclose( fpub );
 
-    if( fpriv != NULL )
+    if( fpriv != MBEDTLS_FILE_INVALID )
         mbedtls_fclose( fpriv );
 
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );

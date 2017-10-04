@@ -229,7 +229,7 @@ typedef struct {
 #define MBEDTLS_SERIALIZE_MAX_FILES     100
 static mbedtls_serialize_file_context_t files[MBEDTLS_SERIALIZE_MAX_FILES];
 
-int32_t alloc_file_context()
+static int32_t alloc_file_context()
 {
     int i, file_id = -1;
 
@@ -245,7 +245,7 @@ int32_t alloc_file_context()
     return( file_id );
 }
 
-int free_file_context( int32_t file_id )
+static int free_file_context( int32_t file_id )
 {
     int ret = -1;
     file_id--;
@@ -261,7 +261,7 @@ int free_file_context( int32_t file_id )
     return( ret );
 }
 
-void * get_file_from_id( int32_t file_id )
+static void * get_file_from_id( int32_t file_id )
 {
     file_id--;
     if ( file_id < MBEDTLS_SERIALIZE_MAX_FILES && files[file_id].inUse )
@@ -927,7 +927,7 @@ static int mbedtls_serialize_pull( mbedtls_serialize_context_t *ctx )
     }
 }
 
-void mbedtls_serialize_frontend( mbedtls_serialize_context_t *ctx )
+static void mbedtls_serialize_frontend( mbedtls_serialize_context_t *ctx )
 {
     while( ctx->status == MBEDTLS_SERIALIZE_STATUS_OK ||
            ctx->status == MBEDTLS_SERIALIZE_STATUS_OUT_OF_MEMORY )

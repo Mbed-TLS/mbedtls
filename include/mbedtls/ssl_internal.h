@@ -158,11 +158,17 @@
 #error Bad configuration - protected record payload too large.
 #endif
 
-#define MBEDTLS_SSL_BUFFER_LEN  ( MBEDTLS_SSL_PAYLOAD_LEN        \
-                        + 5 /* TLS record header      */         \
-                        + 8 /* Additional DTLS fields */         \
-                        )
+#if !defined(MBEDTLS_SSL_PROTO_DTLS)
+/* https://tools.ietf.org/html/rfc5246#section-6.2 */
+#define MBEDTLS_SSL_HEADER_LEN 5
+#else
+/* https://tools.ietf.org/html/rfc6347#section-4.1  */
+/* 8 additional bytes for epoch and sequence number */
+#define MBEDTLS_SSL_HEADER_LEN 13
+#endif
 
+#define MBEDTLS_SSL_BUFFER_LEN  \
+    ( ( MBEDTLS_SSL_HEADER_LEN ) + ( MBEDTLS_SSL_PAYLOAD_LEN ) )
 
 /*
  * TLS extension flags (for extensions with outgoing ServerHello content

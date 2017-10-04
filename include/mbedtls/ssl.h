@@ -1699,6 +1699,15 @@ void mbedtls_ssl_conf_psk_cb( mbedtls_ssl_config *conf,
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED    __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+
 /**
  * \brief          Set the Diffie-Hellman public P and G values,
  *                 read as hexadecimal strings (server-side only)
@@ -1708,12 +1717,15 @@ void mbedtls_ssl_conf_psk_cb( mbedtls_ssl_config *conf,
  * \param dhm_P    Diffie-Hellman-Merkle modulus
  * \param dhm_G    Diffie-Hellman-Merkle generator
  *
+ * \deprecated     Superseded by \c mbedtls_ssl_conf_dh_param_bin.
+ *
  * \return         0 if successful
  */
-int mbedtls_ssl_conf_dh_param( mbedtls_ssl_config *conf,
-                               const char *dhm_P,
-                               const char *dhm_G );
+MBEDTLS_DEPRECATED int mbedtls_ssl_conf_dh_param( mbedtls_ssl_config *conf,
+                                                  const char *dhm_P,
+                                                  const char *dhm_G );
 
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
 /**
  * \brief          Set the Diffie-Hellman public P and G values,
  *                 read from existing context (server-side only)

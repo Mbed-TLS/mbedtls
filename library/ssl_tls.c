@@ -7537,9 +7537,15 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
             if( endpoint == MBEDTLS_SSL_IS_SERVER )
             {
-                if( ( ret = mbedtls_ssl_conf_dh_param( conf,
-                               mbedtls_dhm_rfc7919_ffdhe2048_p,
-                               mbedtls_dhm_rfc7919_ffdhe2048_g ) ) != 0 )
+                const unsigned char dhm_p[] =
+                    MBEDTLS_DHM_RFC3526_MODP_2048_P_BIN;
+                const unsigned char dhm_g[] =
+                    MBEDTLS_DHM_RFC3526_MODP_2048_G_BIN;
+
+                if( ( ret = mbedtls_mpi_read_binary( &conf->dhm_P, dhm_p,
+                                                     sizeof( dhm_p ) ) ) != 0 ||
+                    ( ret = mbedtls_mpi_read_binary( &conf->dhm_G, dhm_g,
+                                                     sizeof( dhm_g ) ) ) != 0 )
                 {
                     return( ret );
                 }

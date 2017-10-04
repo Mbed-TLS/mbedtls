@@ -372,7 +372,7 @@ MBEDTLS_DEPRECATED typedef char const * deprecated_constant_t;
         "15728E5A8AACAA68FFFFFFFFFFFFFFFF" )
 
 #define MBEDTLS_DHM_RFC3526_MODP_2048_G                         \
-    MBEDTLS_DEPRECATED_STRING_CONSTANT("02" )
+    MBEDTLS_DEPRECATED_STRING_CONSTANT( "02" )
 
 #define MBEDTLS_DHM_RFC3526_MODP_3072_P                         \
     MBEDTLS_DEPRECATED_STRING_CONSTANT(                         \
@@ -394,7 +394,7 @@ MBEDTLS_DEPRECATED typedef char const * deprecated_constant_t;
         "43DB5BFCE0FD108E4B82D120A93AD2CAFFFFFFFFFFFFFFFF" )
 
 #define MBEDTLS_DHM_RFC3526_MODP_3072_G                      \
-    MBEDTLS_DEPRECATED_STRING_CONSTANT("02" )
+    MBEDTLS_DEPRECATED_STRING_CONSTANT( "02" )
 
 #define MBEDTLS_DHM_RFC3526_MODP_4096_P                      \
     MBEDTLS_DEPRECATED_STRING_CONSTANT(                      \
@@ -422,7 +422,7 @@ MBEDTLS_DEPRECATED typedef char const * deprecated_constant_t;
         "FFFFFFFFFFFFFFFF" )
 
 #define MBEDTLS_DHM_RFC3526_MODP_4096_G                      \
-    MBEDTLS_DEPRECATED_STRING_CONSTANT("02" )
+    MBEDTLS_DEPRECATED_STRING_CONSTANT( "02" )
 
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 

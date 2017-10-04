@@ -117,7 +117,7 @@ void mbedtls_mpi_read_file( int radix_X, char * input_file,
     mbedtls_mpi_init( &X );
 
     file = mbedtls_fopen( input_file, "r" );
-    TEST_ASSERT( file != NULL );
+    TEST_ASSERT( file != MBEDTLS_FILE_INVALID );
     ret = mbedtls_mpi_read_file( &X, radix_X, file );
     mbedtls_fclose(file);
     TEST_ASSERT( ret == result );
@@ -149,13 +149,13 @@ void mbedtls_mpi_write_file( int radix_X, char * input_X, int output_radix,
     TEST_ASSERT( mbedtls_mpi_read_string( &X, radix_X, input_X ) == 0 );
 
     file_out = mbedtls_fopen( output_file, "w" );
-    TEST_ASSERT( file_out != NULL );
+    TEST_ASSERT( file_out != MBEDTLS_FILE_INVALID );
     ret = mbedtls_mpi_write_file( NULL, &X, output_radix, file_out );
     mbedtls_fclose(file_out);
     TEST_ASSERT( ret == 0 );
 
     file_in = mbedtls_fopen( output_file, "r" );
-    TEST_ASSERT( file_in != NULL );
+    TEST_ASSERT( file_in != MBEDTLS_FILE_INVALID );
     ret = mbedtls_mpi_read_file( &Y, output_radix, file_in );
     mbedtls_fclose(file_in);
     TEST_ASSERT( ret == 0 );

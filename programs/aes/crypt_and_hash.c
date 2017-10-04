@@ -85,7 +85,7 @@ int main( int argc, char *argv[] )
     int exit_code = MBEDTLS_EXIT_FAILURE;
     int mode;
     size_t keylen, ilen, olen;
-    mbedtls_file_t fkey, fin = NULL, fout = NULL;
+    mbedtls_file_t fkey, fin = MBEDTLS_FILE_INVALID, fout = MBEDTLS_FILE_INVALID;
 
     char *p;
     unsigned char IV[16];

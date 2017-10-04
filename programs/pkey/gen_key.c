@@ -376,14 +376,14 @@ int main( int argc, char *argv[] )
             goto exit;
         }
 
-        mbedtls_mpi_write_file( "N:  ",  &N,  16, NULL );
-        mbedtls_mpi_write_file( "E:  ",  &E,  16, NULL );
-        mbedtls_mpi_write_file( "D:  ",  &D,  16, NULL );
-        mbedtls_mpi_write_file( "P:  ",  &P,  16, NULL );
-        mbedtls_mpi_write_file( "Q:  ",  &Q,  16, NULL );
-        mbedtls_mpi_write_file( "DP: ",  &DP, 16, NULL );
-        mbedtls_mpi_write_file( "DQ:  ", &DQ, 16, NULL );
-        mbedtls_mpi_write_file( "QP:  ", &QP, 16, NULL );
+        mbedtls_mpi_write_file( "N:  ",  &N,  16, MBEDTLS_FILE_INVALID );
+        mbedtls_mpi_write_file( "E:  ",  &E,  16, MBEDTLS_FILE_INVALID );
+        mbedtls_mpi_write_file( "D:  ",  &D,  16, MBEDTLS_FILE_INVALID );
+        mbedtls_mpi_write_file( "P:  ",  &P,  16, MBEDTLS_FILE_INVALID );
+        mbedtls_mpi_write_file( "Q:  ",  &Q,  16, MBEDTLS_FILE_INVALID );
+        mbedtls_mpi_write_file( "DP: ",  &DP, 16, MBEDTLS_FILE_INVALID );
+        mbedtls_mpi_write_file( "DQ:  ", &DQ, 16, MBEDTLS_FILE_INVALID );
+        mbedtls_mpi_write_file( "QP:  ", &QP, 16, MBEDTLS_FILE_INVALID );
     }
     else
 #endif
@@ -393,9 +393,9 @@ int main( int argc, char *argv[] )
         mbedtls_ecp_keypair *ecp = mbedtls_pk_ec( key );
         mbedtls_printf( "curve: %s\n",
                 mbedtls_ecp_curve_info_from_grp_id( ecp->grp.id )->name );
-        mbedtls_mpi_write_file( "X_Q:   ", &ecp->Q.X, 16, NULL );
-        mbedtls_mpi_write_file( "Y_Q:   ", &ecp->Q.Y, 16, NULL );
-        mbedtls_mpi_write_file( "D:     ", &ecp->d  , 16, NULL );
+        mbedtls_mpi_write_file( "X_Q:   ", &ecp->Q.X, 16, MBEDTLS_FILE_INVALID );
+        mbedtls_mpi_write_file( "Y_Q:   ", &ecp->Q.Y, 16, MBEDTLS_FILE_INVALID );
+        mbedtls_mpi_write_file( "D:     ", &ecp->d  , 16, MBEDTLS_FILE_INVALID );
     }
     else
 #endif

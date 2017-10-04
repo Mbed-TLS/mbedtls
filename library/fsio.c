@@ -103,6 +103,25 @@ int mbedtls_readdir( mbedtls_dir_t dir, char *file_name, uint32_t size,  uint32_
 
 
 /**
+ * \brief           Check equality and return a specified value on failure.
+ *                  It is a utility macro to check return status of a function
+ *                  and return on error. Useful when there is a list of
+ *                  functions to be called and each needs status check.
+ *
+ *                  Example: CHECK_STATUS( sum = add( 10, 5 ), 15, sum )
+ *                      Above if add returns 15 control will fall through.
+ *                      Else this macro will execute a return statement with sum.
+ *
+ * \param a,b       Values to check
+ * \param r         Value to return when a != b
+ */
+#define CHECK_STATUS( a, b, r ) do { \
+    if ( ( a ) != ( b ) ) \
+        return( r );\
+} while ( 0 )
+
+
+/**
  * \brief          Open file. Follows standard C fopen interface.
  *
  * \param path     File path
@@ -113,18 +132,12 @@ int mbedtls_readdir( mbedtls_dir_t dir, char *file_name, uint32_t size,  uint32_
  */
 mbedtls_file_t mbedtls_fopen( const char *path, const char *mode )
 {
-    int status;
-    mbedtls_file_t file_id = -1;
-    mbedtls_serialize_push_buffer( path, strlen( path ) + 1 );
-    mbedtls_serialize_push_buffer( mode, strlen( mode ) + 1 );
-    status = mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_FOPEN );
+    mbedtls_file_t file_id = MBEDTLS_FILE_INVALID;
+    CHECK_STATUS( mbedtls_serialize_push_buffer( path, strlen( path ) + 1 ), 0, MBEDTLS_FILE_INVALID );
+    CHECK_STATUS( mbedtls_serialize_push_buffer( mode, strlen( mode ) + 1 ), 0, MBEDTLS_FILE_INVALID );
+    CHECK_STATUS( mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_FOPEN ), 0, MBEDTLS_FILE_INVALID );
+    CHECK_STATUS( mbedtls_serialize_pop_int32( ( uint32_t * )&file_id ), 0, MBEDTLS_FILE_INVALID );
 
-    if ( status == 0 )
-    {
-        mbedtls_serialize_pop_int32( &file_id ); /* Id */
-        if ( file_id == 0 )
-            file_id = MBEDTLS_FILE_INVALID;
-    }
     return( file_id );
 }
 
@@ -141,19 +154,17 @@ mbedtls_file_t mbedtls_fopen( const char *path, const char *mode )
 size_t mbedtls_fread( void *ptr, size_t size, size_t nmemb,
                       mbedtls_file_t stream )
 {
-    int status;
-    size_t ret = -1;
+    size_t read = 0;
 
     /* Only byte size items allowed */
     if ( size != 1 )
         return( -1 );
 
-    mbedtls_serialize_push_int32( stream );
-    mbedtls_serialize_push_int32( nmemb );
-    status = mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_FREAD );
-    if ( status == 0 )
-        mbedtls_serialize_pop_buffer( ptr, nmemb, &ret );
-    return( ret );
+    CHECK_STATUS( mbedtls_serialize_push_int32( stream ), 0, 0 );
+    CHECK_STATUS( mbedtls_serialize_push_int32( nmemb ), 0, 0 );
+    CHECK_STATUS( mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_FREAD ), 0, 0 );
+    CHECK_STATUS( mbedtls_serialize_pop_buffer( ptr, nmemb, &read ), 0, 0 );
+    return( read );
 }
 
 /**
@@ -169,23 +180,17 @@ size_t mbedtls_fread( void *ptr, size_t size, size_t nmemb,
 size_t mbedtls_fwrite( const void *ptr, size_t size, size_t nmemb,
                        mbedtls_file_t stream )
 {
-    int status;
     uint32_t written = 0;
-    size_t ret = -1;
 
     /* Only byte size items allowed */
     if ( size != 1 )
         return( -1 );
 
-    mbedtls_serialize_push_int32( stream );
-    mbedtls_serialize_push_buffer( ptr, nmemb );
-    status = mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_FWRITE );
-    if ( status == 0 )
-    {
-        mbedtls_serialize_pop_int32( &written );
-        ret = written;
-    }
-    return( ret );
+    CHECK_STATUS( mbedtls_serialize_push_int32( stream ), 0, 0 );
+    CHECK_STATUS( mbedtls_serialize_push_buffer( ptr, nmemb ), 0, 0 );
+    CHECK_STATUS( mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_FWRITE ), 0, 0 );
+    CHECK_STATUS( mbedtls_serialize_pop_int32( &written ), 0, 0 );
+    return( written );
 }
 
 /**
@@ -200,16 +205,12 @@ size_t mbedtls_fwrite( const void *ptr, size_t size, size_t nmemb,
  */
 char * mbedtls_fgets( char *s, int size, mbedtls_file_t stream )
 {
-    int status;
     size_t len = 0;
 
-    mbedtls_serialize_push_int32( stream );
-    mbedtls_serialize_push_int32( size );
-    status = mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_FGETS );
-    if ( status == 0 )
-        mbedtls_serialize_pop_buffer( s, size, &len );
-    else
-        s = NULL;
+    CHECK_STATUS( mbedtls_serialize_push_int32( stream ), 0, NULL );
+    CHECK_STATUS( mbedtls_serialize_push_int32( size ), 0, NULL );
+    CHECK_STATUS( mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_FGETS ), 0, NULL );
+    CHECK_STATUS( mbedtls_serialize_pop_buffer( s, size, &len ), 0, NULL );
     return( s );
 }
 
@@ -225,8 +226,6 @@ char * mbedtls_fgets( char *s, int size, mbedtls_file_t stream )
  */
 int mbedtls_fseek( mbedtls_file_t stream, long offset, int whence )
 {
-    int status, ret = -1;
-
     switch( whence )
     {
         case MBEDTLS_SEEK_SET:
@@ -241,13 +240,11 @@ int mbedtls_fseek( mbedtls_file_t stream, long offset, int whence )
         default:
             return( -1 );
     }
-    mbedtls_serialize_push_int32( stream );
-    mbedtls_serialize_push_int32( whence );
-    mbedtls_serialize_push_int32( offset );
-    status = mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_FSEEK );
-    if ( status == 0 )
-        ret = 0;
-    return( ret );
+    CHECK_STATUS( mbedtls_serialize_push_int32( stream ), 0, -1 );
+    CHECK_STATUS( mbedtls_serialize_push_int32( whence ), 0, -1 );
+    CHECK_STATUS( mbedtls_serialize_push_int32( offset ), 0, -1 );
+    CHECK_STATUS( mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_FSEEK ), 0, -1 );
+    return( 0 );
 }
 
 /**
@@ -260,18 +257,12 @@ int mbedtls_fseek( mbedtls_file_t stream, long offset, int whence )
  */
 long mbedtls_ftell( mbedtls_file_t stream )
 {
-    int status;
-    uint32_t pos = 0;
-    long ret = -1;
+    long pos = 0;
 
-    mbedtls_serialize_push_int32( stream );
-    status = mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_FTELL );
-    if ( status == 0 )
-    {
-        mbedtls_serialize_pop_int32( &pos );
-        ret = pos;
-    }
-    return( ret );
+    CHECK_STATUS( mbedtls_serialize_push_int32( stream ), 0, -1 );
+    CHECK_STATUS( mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_FTELL ), 0, -1 );
+    CHECK_STATUS( mbedtls_serialize_pop_int32( (uint32_t *)&pos ), 0, -1 );
+    return( pos );
 }
 
 /**
@@ -283,13 +274,9 @@ long mbedtls_ftell( mbedtls_file_t stream )
  */
 int mbedtls_fclose( mbedtls_file_t stream )
 {
-    int status, ret = -1;
-
-    mbedtls_serialize_push_int32( stream );
-    status = mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_FCLOSE );
-    if ( status == 0 )
-        ret = 0;
-    return( ret );
+    CHECK_STATUS( mbedtls_serialize_push_int32( stream ), 0, -1 );
+    CHECK_STATUS( mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_FCLOSE ), 0, -1 );
+    return( 0 );
 }
 
 /**
@@ -301,13 +288,11 @@ int mbedtls_fclose( mbedtls_file_t stream )
  */
 int mbedtls_ferror( mbedtls_file_t stream )
 {
-    int status, ret = -1;
+    int status;
 
-    mbedtls_serialize_push_int32( stream );
-    status = mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_FERROR );
-    if ( status == 0 )
-        ret = 0;
-    return( ret );
+    CHECK_STATUS( mbedtls_serialize_push_int32( stream ), 0, -1 );
+    CHECK_STATUS( status = mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_FERROR ), 0, status );
+    return( 0 );
 }
 
 /**
@@ -320,17 +305,11 @@ int mbedtls_ferror( mbedtls_file_t stream )
  */
 mbedtls_dir_t mbedtls_opendir( const char * path )
 {
-    int status;
     mbedtls_dir_t dir_id;
-    mbedtls_serialize_push_buffer( path, strlen( path ) + 1 );
-    status = mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_DOPEN );
 
-    if ( status == 0 )
-    {
-        mbedtls_serialize_pop_int32( &dir_id ); /* Id */
-        if ( dir_id != 0 );
-            dir_id = MBEDTLS_DIR_INVALID;
-    }
+    CHECK_STATUS( mbedtls_serialize_push_buffer( path, strlen( path ) + 1 ), 0, MBEDTLS_DIR_INVALID );
+    CHECK_STATUS( mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_DOPEN ), 0, MBEDTLS_DIR_INVALID );
+    CHECK_STATUS( mbedtls_serialize_pop_int32( ( uint32_t * )&dir_id ), 0, MBEDTLS_DIR_INVALID );
     return( dir_id );
 }
 
@@ -347,48 +326,44 @@ mbedtls_dir_t mbedtls_opendir( const char * path )
  */
 int mbedtls_readdir( mbedtls_dir_t dir, char * dirent, uint32_t size,  uint32_t * type )
 {
-    int status;
     size_t len = 0;
 
-    mbedtls_serialize_push_int32( dir );
-    mbedtls_serialize_push_int32( size ); /* Send entry size for validation */
-    status = mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_DREAD );
-    if ( status == 0 )
-    {
-        mbedtls_serialize_pop_int32( (uint32_t *)type );
-        mbedtls_serialize_pop_buffer( dirent, size, &len );
+    CHECK_STATUS( mbedtls_serialize_push_int32( dir ), 0, -1 );
+    CHECK_STATUS( mbedtls_serialize_push_int32( size ), 0, -1 );  /* Send entry size for validation */
+    CHECK_STATUS( mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_DREAD ), 0, -1 );
+    CHECK_STATUS( mbedtls_serialize_pop_int32( (uint32_t *)type ), 0, -1 );
+    CHECK_STATUS( mbedtls_serialize_pop_buffer( dirent, size, &len ), 0, -1 );
 
-        /* Map serialize dir entry type to fsio abstraction type */
-        switch ( *type )
-        {
-            case MBEDTLS_SERIALIZE_DT_BLK:
-                *type = MBEDTLS_FSIO_DT_BLK;
-                break;
-            case MBEDTLS_SERIALIZE_DT_CHR:
-                *type = MBEDTLS_FSIO_DT_CHR;
-                break;
-            case MBEDTLS_SERIALIZE_DT_DIR:
-                *type = MBEDTLS_FSIO_DT_DIR;
-                break;
-            case MBEDTLS_SERIALIZE_DT_FIFO:
-                *type = MBEDTLS_FSIO_DT_FIFO;
-                break;
-            case MBEDTLS_SERIALIZE_DT_LNK:
-                *type = MBEDTLS_FSIO_DT_LNK;
-                break;
-            case MBEDTLS_SERIALIZE_DT_REG:
-                *type = MBEDTLS_FSIO_DT_REG;
-                break;
-            case MBEDTLS_SERIALIZE_DT_SOCK:
-                *type = MBEDTLS_FSIO_DT_SOCK;
-                break;
-            case MBEDTLS_SERIALIZE_DT_UNKNOWN:
-            default:
-                *type = MBEDTLS_FSIO_DT_UNKNOWN;
-                break;
-        }
+    /* Map serialize dir entry type to fsio abstraction type */
+    switch ( *type )
+    {
+        case MBEDTLS_SERIALIZE_DT_BLK:
+            *type = MBEDTLS_FSIO_DT_BLK;
+            break;
+        case MBEDTLS_SERIALIZE_DT_CHR:
+            *type = MBEDTLS_FSIO_DT_CHR;
+            break;
+        case MBEDTLS_SERIALIZE_DT_DIR:
+            *type = MBEDTLS_FSIO_DT_DIR;
+            break;
+        case MBEDTLS_SERIALIZE_DT_FIFO:
+            *type = MBEDTLS_FSIO_DT_FIFO;
+            break;
+        case MBEDTLS_SERIALIZE_DT_LNK:
+            *type = MBEDTLS_FSIO_DT_LNK;
+            break;
+        case MBEDTLS_SERIALIZE_DT_REG:
+            *type = MBEDTLS_FSIO_DT_REG;
+            break;
+        case MBEDTLS_SERIALIZE_DT_SOCK:
+            *type = MBEDTLS_FSIO_DT_SOCK;
+            break;
+        case MBEDTLS_SERIALIZE_DT_UNKNOWN:
+        default:
+            *type = MBEDTLS_FSIO_DT_UNKNOWN;
+            break;
     }
-    return( status );
+    return( 0 );
 }
 
 /**
@@ -400,13 +375,9 @@ int mbedtls_readdir( mbedtls_dir_t dir, char * dirent, uint32_t size,  uint32_t 
  */
 int mbedtls_closedir( mbedtls_dir_t dir )
 {
-    int status, ret = -1;
-
-    mbedtls_serialize_push_int32( dir );
-    status = mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_DCLOSE );
-    if ( status == 0 )
-        ret = 0;
-    return( ret );
+    CHECK_STATUS( mbedtls_serialize_push_int32( dir ), 0, -1 );
+    CHECK_STATUS( mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_DCLOSE ), 0, -1 );
+    return( 0 );
 }
 
 

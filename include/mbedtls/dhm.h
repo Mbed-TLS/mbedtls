@@ -299,8 +299,6 @@ int mbedtls_dhm_self_test( int verbose );
  *   hence the corresponding subgroup has order (p-1)/2 and avoids leaking a
  *   bit in the private exponent).
  *
- * The above description can be validated using the
- * the program programs/util/rfc_3526_7919_verify.
  */
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)

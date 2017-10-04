@@ -127,8 +127,9 @@ int mbedtls_dhm_read_params( mbedtls_dhm_context *ctx,
  *                 the byte-size of an MPI.
  *
  * \note           This function assumes that ctx->P and ctx->G
- *                 have already been properly set (for example
- *                 using mbedtls_mpi_read_string or mbedtls_mpi_read_binary).
+ *                 have already been properly set. For that, use
+ *                 \c mbedtls_dhm_set_group below in conjunction with
+ *                 \c mbedtls_mpi_read_binary and \c mbedtls_mpi_read_string.
  *
  * \return         0 if successful, or an MBEDTLS_ERR_DHM_XXX error code
  */
@@ -136,6 +137,22 @@ int mbedtls_dhm_make_params( mbedtls_dhm_context *ctx, int x_size,
                      unsigned char *output, size_t *olen,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng );
+
+/**
+ * \brief          Set prime modulus and generator
+ *
+ * \param ctx      DHM context
+ * \param P        MPI holding DHM prime modulus
+ * \param G        MPI holding DHM generator
+ *
+ * \note           This function can be used to set P, G
+ *                 in preparation for \c mbedtls_dhm_make_params.
+ *
+ * \return         0 if successful, or an MBEDTLS_ERR_DHM_XXX error code
+ */
+int mbedtls_dhm_set_group( mbedtls_dhm_context *ctx,
+                           const mbedtls_mpi *P,
+                           const mbedtls_mpi *G );
 
 /**
  * \brief          Import the peer's public value G^Y

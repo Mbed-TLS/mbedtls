@@ -219,6 +219,28 @@ cleanup:
 }
 
 /*
+ * Set prime modulus and generator
+ */
+int mbedtls_dhm_set_group( mbedtls_dhm_context *ctx,
+                           const mbedtls_mpi *P,
+                           const mbedtls_mpi *G )
+{
+    int ret;
+
+    if( ctx == NULL || P == NULL || G == NULL )
+        return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
+
+    if( ( ret = mbedtls_mpi_copy( &ctx->P, P ) ) != 0 ||
+        ( ret = mbedtls_mpi_copy( &ctx->G, G ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_DHM_SET_GROUP_FAILED + ret );
+    }
+
+    ctx->len = mbedtls_mpi_size( &ctx->P );
+    return( 0 );
+}
+
+/*
  * Import the peer's public value G^Y
  */
 int mbedtls_dhm_read_public( mbedtls_dhm_context *ctx,

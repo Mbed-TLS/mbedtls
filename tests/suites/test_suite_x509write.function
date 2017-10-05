@@ -3,6 +3,30 @@
 #include "polarssl/x509_csr.h"
 #include "polarssl/pem.h"
 #include "polarssl/oid.h"
+#include "polarssl/rsa.h"
+
+#if defined(POLARSSL_RSA_C)
+int rsa_decrypt_func( void *ctx, int mode, size_t *olen,
+                       const unsigned char *input, unsigned char *output,
+                       size_t output_max_len )
+{
+    return( rsa_pkcs1_decrypt( (rsa_context *) ctx, NULL, NULL, mode, olen,
+                               input, output, output_max_len ) );
+}
+int rsa_sign_func( void *ctx,
+                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+                   int mode, md_type_t md_alg, unsigned int hashlen,
+                   const unsigned char *hash, unsigned char *sig )
+{
+    return( rsa_pkcs1_sign( (rsa_context *) ctx, f_rng, p_rng, mode,
+                            md_alg, hashlen, hash, sig ) );
+}
+size_t rsa_key_len_func( void *ctx )
+{
+    return( ((const rsa_context *) ctx)->len );
+}
+#endif /* POLARSSL_RSA_C */
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -75,10 +99,12 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
                      char *subject_name, char *issuer_key_file,
                      char *issuer_pwd, char *issuer_name,
                      char *serial_str, char *not_before, char *not_after,
-                     int md_type, int key_usage, int cert_type, int ver,
-                     char *cert_check_file )
+                     int md_type, int key_usage, int cert_type, int auth_ident,
+                     int ver, char *cert_check_file, int rsa_alt )
 {
-    pk_context subject_key, issuer_key;
+    pk_context subject_key, issuer_key, issuer_key_alt;
+    pk_context *key = &issuer_key;
+
     x509write_cert crt;
     unsigned char buf[4096];
     unsigned char check_buf[5000];
@@ -93,14 +119,29 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
     mpi_init( &serial );
     pk_init( &subject_key );
     pk_init( &issuer_key );
+    pk_init( &issuer_key_alt );
+
+    x509write_crt_init( &crt );
 
     TEST_ASSERT( pk_parse_keyfile( &subject_key, subject_key_file,
                                          subject_pwd ) == 0 );
     TEST_ASSERT( pk_parse_keyfile( &issuer_key, issuer_key_file,
                                          issuer_pwd ) == 0 );
+
+    /* For RSA PK contexts, create a copy as an alternative RSA context. */
+    if( rsa_alt == 1 && pk_get_type( &issuer_key ) == POLARSSL_PK_RSA )
+    {
+        TEST_ASSERT( pk_init_ctx_rsa_alt( &issuer_key_alt,
+                                          pk_rsa( issuer_key ),
+                                          rsa_decrypt_func,
+                                          rsa_sign_func,
+                                          rsa_key_len_func ) == 0 );
+
+        key = &issuer_key_alt;
+    }
+
     TEST_ASSERT( mpi_read_string( &serial, 10, serial_str ) == 0 );
 
-    x509write_crt_init( &crt );
     if( ver != -1 )
         x509write_crt_set_version( &crt, ver );
     TEST_ASSERT( x509write_crt_set_serial( &crt, &serial ) == 0 );
@@ -110,13 +151,14 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
     TEST_ASSERT( x509write_crt_set_issuer_name( &crt, issuer_name ) == 0 );
     TEST_ASSERT( x509write_crt_set_subject_name( &crt, subject_name ) == 0 );
     x509write_crt_set_subject_key( &crt, &subject_key );
-    x509write_crt_set_issuer_key( &crt, &issuer_key );
+    x509write_crt_set_issuer_key( &crt, key );
 
     if( crt.version >= X509_CRT_VERSION_3 )
     {
         TEST_ASSERT( x509write_crt_set_basic_constraints( &crt, 0, 0 ) == 0 );
         TEST_ASSERT( x509write_crt_set_subject_key_identifier( &crt ) == 0 );
-        TEST_ASSERT( x509write_crt_set_authority_key_identifier( &crt ) == 0 );
+        if( auth_ident != 0 )
+            TEST_ASSERT( x509write_crt_set_authority_key_identifier( &crt ) == 0 );
         if( key_usage != 0 )
             TEST_ASSERT( x509write_crt_set_key_usage( &crt, key_usage ) == 0 );
         if( cert_type != 0 )
@@ -152,6 +194,7 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
 exit:
     x509write_crt_free( &crt );
     pk_free( &issuer_key );
+    pk_free( &issuer_key_alt );
     pk_free( &subject_key );
     mpi_free( &serial );
 }

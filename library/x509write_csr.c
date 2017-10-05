@@ -51,7 +51,7 @@ static void polarssl_zeroize( void *v, size_t n ) {
 
 void x509write_csr_init( x509write_csr *ctx )
 {
-    memset( ctx, 0, sizeof(x509write_csr) );
+    memset( ctx, 0, sizeof( x509write_csr ) );
 }
 
 void x509write_csr_free( x509write_csr *ctx )
@@ -59,7 +59,7 @@ void x509write_csr_free( x509write_csr *ctx )
     asn1_free_named_data_list( &ctx->subject );
     asn1_free_named_data_list( &ctx->extensions );
 
-    polarssl_zeroize( ctx, sizeof(x509write_csr) );
+    polarssl_zeroize( ctx, sizeof( x509write_csr ) );
 }
 
 void x509write_csr_set_md_alg( x509write_csr *ctx, md_type_t md_alg )

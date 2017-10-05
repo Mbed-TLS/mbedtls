@@ -331,6 +331,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
             mbedtls_snprintf( buf, buflen, "RSA - The output buffer for decryption is not large enough" );
         if( use_ret == -(MBEDTLS_ERR_RSA_RNG_FAILED) )
             mbedtls_snprintf( buf, buflen, "RSA - The random generator failed to generate non-zeros" );
+        if( use_ret == -(MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION) )
+            mbedtls_snprintf( buf, buflen, "RSA - The implementation doesn't provide the requested operation" );
 #endif /* MBEDTLS_RSA_C */
 
 #if defined(MBEDTLS_SSL_TLS_C)

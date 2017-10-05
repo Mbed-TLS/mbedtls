@@ -385,16 +385,20 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size,
     /*
      *  Version  ::=  INTEGER  {  v1(0), v2(1), v3(2)  }
      */
-    sub_len = 0;
-    ASN1_CHK_ADD( sub_len, asn1_write_int( &c, tmp_buf, ctx->version ) );
-    len += sub_len;
-    ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, sub_len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONTEXT_SPECIFIC |
-                                                    ASN1_CONSTRUCTED | 0 ) );
+
+    if( ctx->version != X509_CRT_VERSION_1 )
+    {
+        sub_len = 0;
+        ASN1_CHK_ADD( sub_len, asn1_write_int( &c, tmp_buf, ctx->version ) );
+        len += sub_len;
+        ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, sub_len ) );
+        ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONTEXT_SPECIFIC |
+                                           ASN1_CONSTRUCTED | 0 ) );
+    }
 
     ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED |
-                                                    ASN1_SEQUENCE ) );
+                                       ASN1_SEQUENCE ) );
 
     /*
      * Make signature

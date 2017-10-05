@@ -327,13 +327,19 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size,
     /*
      *  Extensions  ::=  SEQUENCE SIZE (1..MAX) OF Extension
      */
-    ASN1_CHK_ADD( len, x509_write_extensions( &c, tmp_buf, ctx->extensions ) );
-    ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED |
-                                                    ASN1_SEQUENCE ) );
-    ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONTEXT_SPECIFIC |
-                                                    ASN1_CONSTRUCTED | 3 ) );
+
+    /* Only for v3 */
+    if( ctx->version == X509_CRT_VERSION_3 )
+    {
+        ASN1_CHK_ADD( len, x509_write_extensions( &c, tmp_buf,
+                                                  ctx->extensions ) );
+        ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
+        ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED |
+                                           ASN1_SEQUENCE ) );
+        ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
+        ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONTEXT_SPECIFIC |
+                                           ASN1_CONSTRUCTED | 3 ) );
+    }
 
     /*
      *  SubjectPublicKeyInfo

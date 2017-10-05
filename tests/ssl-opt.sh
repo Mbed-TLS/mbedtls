@@ -1414,6 +1414,40 @@ run_test    "Renegotiation: server-initiated" \
             -s "=> renegotiate" \
             -s "write hello request"
 
+# Checks that no Signature Algorithm with SHA-1 gets negotiated. Negotiating SHA-1 would mean that
+# the server did not parse the Signature Algorithm extension. This test is valid only if an MD
+# algorithm stronger than SHA-1 is enabled in config.h
+run_test    "Renegotiation: Signature Algorithms parsing, client-initiated" \
+            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional" \
+            "$P_CLI debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
+            0 \
+            -c "client hello, adding renegotiation extension" \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -s "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -c "found renegotiation extension" \
+            -c "=> renegotiate" \
+            -s "=> renegotiate" \
+            -S "write hello request" \
+            -S "client hello v3, signature_algorithm ext: 2" # Is SHA-1 negotiated?
+
+# Checks that no Signature Algorithm with SHA-1 gets negotiated. Negotiating SHA-1 would mean that
+# the server did not parse the Signature Algorithm extension. This test is valid only if an MD
+# algorithm stronger than SHA-1 is enabled in config.h
+run_test    "Renegotiation: Signature Algorithms parsing, server-initiated" \
+            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional renegotiate=1" \
+            "$P_CLI debug_level=3 exchanges=2 renegotiation=1" \
+            0 \
+            -c "client hello, adding renegotiation extension" \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -s "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -c "found renegotiation extension" \
+            -c "=> renegotiate" \
+            -s "=> renegotiate" \
+            -s "write hello request" \
+            -S "client hello v3, signature_algorithm ext: 2" # Is SHA-1 negotiated?
+
 run_test    "Renegotiation: double" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional renegotiate=1" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \

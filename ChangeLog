@@ -9,6 +9,9 @@ Bugfix
    * Fix memory leak in mbedtls_ssl_set_hostname() when called multiple times.
      Found by projectgus and jethrogb, #836.
    * Fix usage help in ssl_server2 example. Found and fixed by Bei Lin.
+   * Parse signature algorithm extension when renegotiating. Previously,
+     renegotiating handshakes would only accept signatures using SHA-1,
+     or fail if the latter was disabled.
 
 = mbed TLS 2.6.0 branch released 2017-08-10
 

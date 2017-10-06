@@ -1,3 +1,4 @@
+
 # To compile on SunOS: add "-lsocket -lnsl" to LDFLAGS
 # To compile with PKCS11: add "-lpkcs11-helper" to LDFLAGS
 
@@ -447,3 +448,4 @@ check: $(APPS)
 	perl scripts/run-test-suites.pl
 
 test: check
+

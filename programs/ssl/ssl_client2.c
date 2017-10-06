@@ -86,7 +86,9 @@ int main( void )
 #define DFL_EXCHANGES           1
 #define DFL_MIN_VERSION         -1
 #define DFL_MAX_VERSION         -1
+#if defined(MBEDTLS_ARC4_C)
 #define DFL_ARC4                -1
+#endif
 #define DFL_SHA1                -1
 #define DFL_AUTH_MODE           -1
 #define DFL_MFL_CODE            MBEDTLS_SSL_MAX_FRAG_LEN_NONE
@@ -534,7 +536,9 @@ int main( int argc, char *argv[] )
     opt.exchanges           = DFL_EXCHANGES;
     opt.min_version         = DFL_MIN_VERSION;
     opt.max_version         = DFL_MAX_VERSION;
+#if defined(MBEDTLS_ARC4_C)
     opt.arc4                = DFL_ARC4;
+#endif
     opt.allow_sha1          = DFL_SHA1;
     opt.auth_mode           = DFL_AUTH_MODE;
     opt.mfl_code            = DFL_MFL_CODE;
@@ -744,6 +748,7 @@ int main( int argc, char *argv[] )
             else
                 goto usage;
         }
+#if defined(MBEDTLS_ARC4_C)
         else if( strcmp( p, "arc4" ) == 0 )
         {
             switch( atoi( q ) )
@@ -753,6 +758,7 @@ int main( int argc, char *argv[] )
                 default:    goto usage;
             }
         }
+#endif
         else if( strcmp( p, "allow_sha1" ) == 0 )
         {
             switch( atoi( q ) )
@@ -898,6 +904,7 @@ int main( int argc, char *argv[] )
                 opt.min_version = MBEDTLS_SSL_MINOR_VERSION_2;
         }
 
+#if defined(MBEDTLS_RC4_C)
         /* Enable RC4 if needed and not explicitly disabled */
         if( ciphersuite_info->cipher == MBEDTLS_CIPHER_ARC4_128 )
         {
@@ -910,6 +917,7 @@ int main( int argc, char *argv[] )
 
             opt.arc4 = MBEDTLS_SSL_ARC4_ENABLED;
         }
+#endif
     }
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)

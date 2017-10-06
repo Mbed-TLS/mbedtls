@@ -123,7 +123,9 @@ void mbedtls_md2_starts( mbedtls_md2_context *ctx );
  *                 message digests should be considered instead.
  *
  */
-void mbedtls_md2_update( mbedtls_md2_context *ctx, const unsigned char *input, size_t ilen );
+void mbedtls_md2_update( mbedtls_md2_context *ctx,
+                         const unsigned char *input,
+                         size_t ilen );
 
 /**
  * \brief          MD2 final digest

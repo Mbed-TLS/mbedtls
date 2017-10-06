@@ -45,7 +45,7 @@ extern "C" {
 #endif
 
 /**
- * \brief          ARC4 context structure
+ * \brief     ARC4 context structure
  *
  * \warning   ARC4 is considered a weak cipher and its use
  *            constitutes a security risk. It is recommended

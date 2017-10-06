@@ -54,7 +54,11 @@ int main( void )
 #include "mbedtls/sha1.h"
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
+
+#if defined(MBEDTLS_ARC4_C)
 #include "mbedtls/arc4.h"
+#endif
+
 #include "mbedtls/des.h"
 #include "mbedtls/aes.h"
 #include "mbedtls/blowfish.h"

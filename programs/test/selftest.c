@@ -33,7 +33,11 @@
 #include "mbedtls/gcm.h"
 #include "mbedtls/ccm.h"
 #include "mbedtls/cmac.h"
+
+#if defined(MBEDTLS_MD2_C)
 #include "mbedtls/md2.h"
+#endif
+
 #include "mbedtls/md4.h"
 #include "mbedtls/md5.h"
 #include "mbedtls/ripemd160.h"
@@ -449,4 +453,3 @@ int main( int argc, char *argv[] )
     /* return() is here to prevent compiler warnings */
     return( MBEDTLS_EXIT_SUCCESS );
 }
-

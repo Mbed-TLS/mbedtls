@@ -31,7 +31,11 @@
 #include "mbedtls/dhm.h"
 #include "mbedtls/gcm.h"
 #include "mbedtls/ccm.h"
+
+#if defined(MBEDTLS_MD2_C)
 #include "mbedtls/md2.h"
+#endif
+
 #include "mbedtls/md4.h"
 #include "mbedtls/md5.h"
 #include "mbedtls/ripemd160.h"

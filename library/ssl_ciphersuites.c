@@ -1721,7 +1721,7 @@ const int *mbedtls_ssl_list_ciphersuites( void )
              *p != 0 && q < supported_ciphersuites + MAX_CIPHERSUITES - 1;
              p++ )
         {
-#if defined(MBEDTLS_REMOVE_ARC4_CIPHERSUITES)
+#if defined(MBEDTLS_ARC4_C) && defined(MBEDTLS_REMOVE_ARC4_CIPHERSUITES)
             const mbedtls_ssl_ciphersuite_t *cs_info;
             if( ( cs_info = mbedtls_ssl_ciphersuite_from_id( *p ) ) != NULL &&
                 cs_info->cipher != MBEDTLS_CIPHER_ARC4_128 )

@@ -223,6 +223,7 @@ static const int ciphersuite_preference[] =
     MBEDTLS_TLS_PSK_WITH_3DES_EDE_CBC_SHA,
 
     /* RC4 suites */
+#if defined(MBEDTLS_RC4_C)
     MBEDTLS_TLS_ECDHE_ECDSA_WITH_RC4_128_SHA,
     MBEDTLS_TLS_ECDHE_RSA_WITH_RC4_128_SHA,
     MBEDTLS_TLS_ECDHE_PSK_WITH_RC4_128_SHA,
@@ -233,6 +234,7 @@ static const int ciphersuite_preference[] =
     MBEDTLS_TLS_ECDH_ECDSA_WITH_RC4_128_SHA,
     MBEDTLS_TLS_RSA_PSK_WITH_RC4_128_SHA,
     MBEDTLS_TLS_PSK_WITH_RC4_128_SHA,
+#endif
 
     /* Weak suites */
     MBEDTLS_TLS_DHE_RSA_WITH_DES_CBC_SHA,

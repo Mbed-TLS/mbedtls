@@ -285,4 +285,5 @@ else
 endif
 
 list:
-echo $(APPS)
+	echo $(APPS)
+

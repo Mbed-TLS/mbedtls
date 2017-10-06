@@ -374,7 +374,7 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
 
     ctx->len += length;
     p = input;
-    if(length != 0)
+    if( length != 0 )
     {
         if( (size_t) ctx->data_remain >= length )
         {
@@ -387,7 +387,7 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
             }
             ctx->data_remain -= length;
 
-            return (0);
+            return ( 0 );
         }
         else
         {

@@ -68,7 +68,7 @@ extern "C" {
 /*
  * \brief     Enumeration of supported ciphers
  *
- * \warning   ARC4 is considered a weak cipher and its use
+ * \warning   ARC4 and DES are considered weak ciphers and their use
  *            constitutes a security risk. It is recommended
  *            alternative ciphers should be considered instead.
  */
@@ -86,7 +86,7 @@ typedef enum {
 /*
  * \brief     Enumeration of supported (cipher,mode) pairs
  *
- * \warning   ARC4 is considered a weak cipher and its use
+ * \warning   ARC4 and DES are considered weak ciphers and their use
  *            constitutes a security risk. It is recommended
  *            alternative ciphers should be considered instead.
  *

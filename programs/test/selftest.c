@@ -38,7 +38,10 @@
 #include "mbedtls/md2.h"
 #endif
 
+#if defined(MBEDTLS_MD4_C)
 #include "mbedtls/md4.h"
+#endif
+
 #include "mbedtls/md5.h"
 #include "mbedtls/ripemd160.h"
 #include "mbedtls/sha1.h"

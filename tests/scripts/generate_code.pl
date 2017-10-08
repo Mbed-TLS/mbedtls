@@ -269,14 +269,28 @@ while($test_cases =~ /\/\* BEGIN_CASE *([\w:]*) \*\/\n(.*?)\n\/\* END_CASE \*\//
     # Find non-integer values we should map for this function
     if( $mapping_count)
     {
-        my @res = $test_data =~ /^$mapping_regex/msg;
+        my @res = $test_data =~ /^((?:depends_on:[\w:]+)?)\n?$mapping_regex/msg;
+        my $local_deps      = $function_deps;
+        my $local_pre_code  = $function_pre_code;
         foreach my $value (@res)
         {
+            # Check if we're at the beginning of a test case and
+            # need to update the local dependencies
+            if( $value =~ /^depends_on:/)
+            {
+                $local_pre_code  = $function_pre_code;
+                ( $local_deps ) = $value =~ /^depends_on:(.*)$/;
+                foreach my $req (split(/:/, $local_deps))
+                {
+                    $local_pre_code  .= "#ifdef $req\n";
+                }
+                next;
+            }
             next unless ($value !~ /^[+-]?\d*$/);
             if ( $mapping_values{$value} ) {
-                ${ $mapping_values{$value} }{$function_pre_code} = 1;
+                ${ $mapping_values{$value} }{$local_pre_code} = 1;
             } else {
-                $mapping_values{$value} = { $function_pre_code => 1 };
+                $mapping_values{$value} = { $local_pre_code => 1 };
             }
         }
     }

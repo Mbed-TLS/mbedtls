@@ -13,6 +13,8 @@ Bugfix
    * Replace printf with mbedtls_printf in aria. Found by TrinityTonic in #1908.
    * Fix potential use-after-free in mbedtls_ssl_get_max_frag_len()
      and mbedtls_ssl_get_record_expansion() after a session reset. Fixes #1941.
+   * Fix memory leak and free without initialization in pk_encrypt
+     and pk_decrypt example programs. Reported by Brace Stout. Fixes #1128.
 
 Changes
    * Copy headers preserving timestamps when doing a "make install".

@@ -155,7 +155,7 @@ while($test_cases =~ /\/\* BEGIN_CASE *([\w:]*) \*\/\n(.*?)\n\/\* END_CASE \*\//
         my @res = $test_data =~ /^$mapping_regex/msg;
         foreach my $value (@res)
         {
-            next unless ($value !~ /^\d+$/);
+            next unless ($value !~ /^[+-]?\d*$/);
             if ( $mapping_values{$value} ) {
                 ${ $mapping_values{$value} }{$function_pre_code} = 1;
             } else {

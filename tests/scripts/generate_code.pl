@@ -235,8 +235,8 @@ while($test_cases =~ /\/\* BEGIN_CASE *([\w:]*) \*\/\n(.*?)\n\/\* END_CASE \*\//
 
     foreach my $req (split(/:/, $function_deps))
     {
-        $function_pre_code .= "#ifdef $req\n";
-        $function_post_code .= "#endif /* $req */\n";
+        $function_pre_code  .= "#ifdef $req\n";
+        $function_post_code = "#endif /* $req */\n" . $function_post_code;
     }
 
     foreach my $def (@var_def_arr)
@@ -346,13 +346,16 @@ while( my ($key, $value) = each(%mapping_values) )
     }
 END
 
-    # handle depenencies, unless used at least one without depends
+    # Unless the identifier is used at least once without
+    # dependencies, add a mapping for each occurrence, guarded
+    # by the respective dependency.
     if ($value->{""}) {
         $mapping_code .= $key_mapping_code;
         next;
     }
     for my $ifdef ( keys %$value ) {
         (my $endif = $ifdef) =~ s!ifdef!endif //!g;
+        $endif = join("", reverse(split(/^/m, $endif)));
         $mapping_code .= $ifdef . $key_mapping_code . $endif;
     }
 }

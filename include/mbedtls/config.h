@@ -2231,7 +2231,7 @@
  * Enable the platform abstraction layer that allows you to re-assign
  * functions like calloc(), free(), snprintf(), printf(), fprintf(), exit().
  *
- * Enabling MBEDTLS_PLATFORM_C enables use of MBEDTLS_PLATFORM_XXX_ALT
+ * Defining MBEDTLS_PLATFORM_C enables use of MBEDTLS_PLATFORM_XXX_ALT
  * or MBEDTLS_PLATFORM_XXX_MACRO directives, allowing the functions mentioned
  * above to be specified at runtime or compile time respectively.
  *
@@ -2404,8 +2404,8 @@
 /**
  * \def MBEDTLS_THREADING_C
  *
- * Enable the threading abstraction layer, to enable use of mutexes within
- * mbed TLS.
+ * Enable the threading abstraction layer, to use mbed TLS thread-safe
+ * features.
  *
  * By default mbed TLS assumes it is used in a non-threaded environment or that
  * contexts are not shared between threads. If you do intend to use contexts
@@ -2658,6 +2658,9 @@
 //#define MBEDTLS_MUTEX_UNLOCK_MACRO      mbedtls_mutex_unlock
 
 //#define MBEDTLS_MUTEX_INITIALIZER       { NULL }
+				/**< Default static initialisation value for
+				 * each declared mbedtls_threading_mutex_t
+				 * structure used by the library. */
 
 /* SSL Cache options */
 //#define MBEDTLS_SSL_CACHE_DEFAULT_TIMEOUT       86400 /**< 1 day  */

@@ -30,7 +30,7 @@
 #include "mbedtls/threading.h"
 
 #if defined(MBEDTLS_THREADING_PTHREAD)
-static void threading_mutex_init_pthread( mbedtls_threading_mutex_t *mutex )
+void mbedtls_mutex_init( mbedtls_threading_mutex_t *mutex )
 {
     if( mutex == NULL )
         return;
@@ -38,7 +38,7 @@ static void threading_mutex_init_pthread( mbedtls_threading_mutex_t *mutex )
     mutex->is_valid = pthread_mutex_init( &mutex->mutex, NULL ) == 0;
 }
 
-static void threading_mutex_free_pthread( mbedtls_threading_mutex_t *mutex )
+void mbedtls_mutex_free( mbedtls_threading_mutex_t *mutex )
 {
     if( mutex == NULL || !mutex->is_valid )
         return;
@@ -47,7 +47,7 @@ static void threading_mutex_free_pthread( mbedtls_threading_mutex_t *mutex )
     mutex->is_valid = 0;
 }
 
-static int threading_mutex_lock_pthread( mbedtls_threading_mutex_t *mutex )
+int mbedtls_mutex_lock( mbedtls_threading_mutex_t *mutex )
 {
     if( mutex == NULL || ! mutex->is_valid )
         return( MBEDTLS_ERR_THREADING_BAD_INPUT_DATA );
@@ -58,7 +58,7 @@ static int threading_mutex_lock_pthread( mbedtls_threading_mutex_t *mutex )
     return( 0 );
 }
 
-static int threading_mutex_unlock_pthread( mbedtls_threading_mutex_t *mutex )
+int mbedtls_mutex_unlock( mbedtls_threading_mutex_t *mutex )
 {
     if( mutex == NULL || ! mutex->is_valid )
         return( MBEDTLS_ERR_THREADING_BAD_INPUT_DATA );
@@ -75,7 +75,7 @@ static int threading_mutex_unlock_pthread( mbedtls_threading_mutex_t *mutex )
 #define MBEDTLS_MUTEX_UNLOCK_MACRO     threading_mutex_unlock_pthread
 
 /*
- * With phtreads we can statically initialize mutexes
+ * With pthreads we can statically initialize mutexes
  */
 #define MBEDTLS_MUTEX_INITIALIZER      { PTHREAD_MUTEX_INITIALIZER, 1 }
 
@@ -144,8 +144,6 @@ void mbedtls_threading_free_alt( void )
 #endif /* MBEDTLS_HAVE_TIME_DATE */
 }
 
-#endif /* MBEDTLS_THREADING_ALT */
-
 mbedtls_mutex_init_t* mbedtls_mutex_init =
                             ( mbedtls_mutex_init_t* )MBEDTLS_MUTEX_INIT_MACRO;
 mbedtls_mutex_free_t* mbedtls_mutex_free =
@@ -154,6 +152,8 @@ mbedtls_mutex_lock_t* mbedtls_mutex_lock =
                             ( mbedtls_mutex_lock_t* )MBEDTLS_MUTEX_LOCK_MACRO;
 mbedtls_mutex_unlock_t* mbedtls_mutex_unlock =
                         ( mbedtls_mutex_unlock_t* )MBEDTLS_MUTEX_UNLOCK_MACRO;
+
+#endif /* MBEDTLS_THREADING_ALT */
 
 /*
  * Define global mutexes

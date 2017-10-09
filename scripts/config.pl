@@ -175,7 +175,10 @@ if ($action eq "realfull") {
     $no_exclude_re = join '|', @non_excluded;
 }
 
-open my $config_write, '>', $config_file or die "write $config_file: $!\n";
+my $config_write = undef;
+if ($action ne "get") {
+    open $config_write, '>', $config_file or die "write $config_file: $!\n";
+}
 
 my $done;
 for my $line (@config_lines) {
@@ -211,7 +214,9 @@ for my $line (@config_lines) {
         }
     }
 
-    print $config_write $line;
+    if (defined $config_write) {
+        print $config_write $line or die "write $config_file: $!\n";;
+    }
 }
 
 # Did the set command work?
@@ -223,10 +228,12 @@ if ($action eq "set"&& $force_option && !$done) {
     $line .= "\n";
     $done = 1;
 
-    print $config_write $line;
+    print $config_write $line or die "write $config_file: $!\n";
 }
 
-close $config_write;
+if (defined $config_write) {
+    close $config_write or die "close $config_file: $!\n";
+}
 
 if ($action eq "get") {
     if($done) {

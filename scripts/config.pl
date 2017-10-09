@@ -56,7 +56,7 @@ Commands
     unset <symbol>          - Comments out the #define for the given symbol if
                               present in the configuration file.
     get <symbol>            - Finds the #define for the given symbol, returning
-                              an exitcode of 0 if the symbol is found, and -1 if
+                              an exitcode of 0 if the symbol is found, and 1 if
                               not. The value of the symbol is output if one is
                               specified in the configuration file.
     full                    - Uncomments all #define's in the configuration file
@@ -220,7 +220,7 @@ for my $line (@config_lines) {
 }
 
 # Did the set command work?
-if ($action eq "set"&& $force_option && !$done) {
+if ($action eq "set" && $force_option && !$done) {
 
     # If the force option was set, append the symbol to the end of the file
     my $line = "#define $name";
@@ -236,14 +236,14 @@ if (defined $config_write) {
 }
 
 if ($action eq "get") {
-    if($done) {
+    if ($done) {
         if ($value ne '') {
-            print $value;
+            print "$value\n";
         }
         exit 0;
     } else {
         # If the symbol was not found, return an error
-        exit -1;
+        exit 1;
     }
 }
 

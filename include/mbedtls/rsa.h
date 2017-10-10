@@ -89,8 +89,6 @@ extern "C" {
  * \param N        RSA modulus N = PQ, with P, Q to be found
  * \param D        RSA private exponent
  * \param E        RSA public exponent
- * \param f_rng    PRNG to be used for randomization, or NULL
- * \param p_rng    PRNG context for f_rng, or NULL
  * \param P        Pointer to MPI holding first prime factor of N on success
  * \param Q        Pointer to MPI holding second prime factor of N on success
  *
@@ -105,8 +103,8 @@ extern "C" {
  *
  */
 int mbedtls_rsa_deduce_primes( mbedtls_mpi const *N, mbedtls_mpi const *D,
-            mbedtls_mpi const *E, int (*f_rng)(void *, unsigned char *, size_t),
-            void *p_rng, mbedtls_mpi *P, mbedtls_mpi *Q );
+                               mbedtls_mpi const *E,
+                               mbedtls_mpi *P, mbedtls_mpi *Q );
 
 /**
  * \brief          Compute RSA private exponent from

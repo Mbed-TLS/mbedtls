@@ -132,7 +132,6 @@ static void mbedtls_zeroize( void *v, size_t n ) {
  */
 int mbedtls_rsa_deduce_primes( mbedtls_mpi const *N,
                      mbedtls_mpi const *D, mbedtls_mpi const *E,
-                     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
                      mbedtls_mpi *P, mbedtls_mpi *Q )
 {
     int ret = 0;
@@ -140,12 +139,24 @@ int mbedtls_rsa_deduce_primes( mbedtls_mpi const *N,
     uint16_t attempt;  /* Number of current attempt  */
     uint16_t iter;     /* Number of squares computed in the current attempt */
 
-    uint16_t bitlen_half; /* Half the bitsize of the modulus N */
     uint16_t order;       /* Order of 2 in DE - 1 */
 
     mbedtls_mpi T;  /* Holds largest odd divisor of DE - 1 */
     mbedtls_mpi K;  /* During factorization attempts, stores a random integer
                      * in the range of [0,..,N] */
+
+    const unsigned int primes[] = { 2,
+           3,    5,    7,   11,   13,   17,   19,   23,
+          29,   31,   37,   41,   43,   47,   53,   59,
+          61,   67,   71,   73,   79,   83,   89,   97,
+         101,  103,  107,  109,  113,  127,  131,  137,
+         139,  149,  151,  157,  163,  167,  173,  179,
+         181,  191,  193,  197,  199,  211,  223,  227,
+         229,  233,  239,  241,  251,  257,  263,  269,
+         271,  277,  281,  283,  293,  307,  311,  313
+    };
+
+    const size_t num_primes = sizeof( primes ) / sizeof( *primes );
 
     if( P == NULL || Q == NULL || P->p != NULL || Q->p != NULL )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
@@ -179,31 +190,18 @@ int mbedtls_rsa_deduce_primes( mbedtls_mpi const *N,
     /* After this operation, T holds the largest odd divisor of DE - 1. */
     MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &T, order ) );
 
-    /* This is used to generate a few numbers around N / 2
-     * if no PRNG is provided. */
-    if( f_rng == NULL )
-        bitlen_half = mbedtls_mpi_bitlen( N ) / 2;
-
     /*
      * Actual work
      */
 
-    for( attempt = 0; attempt < 30; ++attempt )
+    /* Skip trying 2 if N == 1 mod 8 */
+    attempt = 0;
+    if( N->p[0] % 8 == 1 )
+        attempt = 1;
+
+    for( ; attempt < num_primes; ++attempt )
     {
-        /* Generate some number in [0,N], either randomly
-         * if a PRNG is given, or try numbers around N/2 */
-        if( f_rng != NULL )
-        {
-            MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &K,
-                                        mbedtls_mpi_size( N ),
-                                        f_rng, p_rng ) );
-        }
-        else
-        {
-            MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &K, 1 ) ) ;
-            MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( &K, bitlen_half ) ) ;
-            MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( &K, &K, attempt + 1 ) );
-        }
+        mbedtls_mpi_lset( &K, primes[attempt] );
 
         /* Check if gcd(K,N) = 1 */
         MBEDTLS_MPI_CHK( mbedtls_mpi_gcd( P, &K, N ) );

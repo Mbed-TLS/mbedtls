@@ -3790,7 +3790,10 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     /* Read the message without adding it to the checksum */
     do {
 
-        if( ( ret = mbedtls_ssl_read_record_layer( ssl ) ) != 0 )
+        do ret = mbedtls_ssl_read_record_layer( ssl );
+        while( ret == MBEDTLS_ERR_SSL_CONTINUE_PROCESSING );
+
+        if( ret != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ssl_read_record_layer" ), ret );
             return( ret );
@@ -3798,7 +3801,8 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 
         ret = mbedtls_ssl_handle_message_type( ssl );
 
-    } while( MBEDTLS_ERR_SSL_NON_FATAL == ret );
+    } while( MBEDTLS_ERR_SSL_NON_FATAL           == ret ||
+             MBEDTLS_ERR_SSL_CONTINUE_PROCESSING == ret );
 
     if( 0 != ret )
     {

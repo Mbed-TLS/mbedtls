@@ -3020,7 +3020,7 @@ static int ssl_reassemble_dtls_handshake( mbedtls_ssl_context *ssl )
     if( ssl_bitmask_check( bitmask, msg_len ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "message is not complete yet" ) );
-        return( MBEDTLS_ERR_SSL_WANT_READ );
+        return( MBEDTLS_ERR_SSL_CONTINUE_PROCESSING );
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "handshake message completed" ) );
@@ -3126,7 +3126,7 @@ int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
                                     ssl->handshake->in_msg_seq ) );
             }
 
-            return( MBEDTLS_ERR_SSL_WANT_READ );
+            return( MBEDTLS_ERR_SSL_CONTINUE_PROCESSING );
         }
         /* Wait until message completion to increment in_msg_seq */
 
@@ -3734,7 +3734,10 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl )
     {
         do {
 
-            if( ( ret = mbedtls_ssl_read_record_layer( ssl ) ) != 0 )
+            do ret = mbedtls_ssl_read_record_layer( ssl );
+            while( ret == MBEDTLS_ERR_SSL_CONTINUE_PROCESSING );
+
+            if( ret != 0 )
             {
                 MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ssl_read_record_layer" ), ret );
                 return( ret );
@@ -3742,7 +3745,8 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl )
 
             ret = mbedtls_ssl_handle_message_type( ssl );
 
-        } while( MBEDTLS_ERR_SSL_NON_FATAL == ret );
+        } while( MBEDTLS_ERR_SSL_NON_FATAL           == ret  ||
+                 MBEDTLS_ERR_SSL_CONTINUE_PROCESSING == ret );
 
         if( 0 != ret )
         {
@@ -3872,12 +3876,6 @@ int mbedtls_ssl_read_record_layer( mbedtls_ssl_context *ssl )
         return( 0 );
     }
 
-    /* Need to fetch a new record */
-
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-read_record_header:
-#endif
-
     /* Current record either fully processed or to be discarded. */
 
     if( ( ret = mbedtls_ssl_fetch_input( ssl, mbedtls_ssl_hdr_len( ssl ) ) ) != 0 )
@@ -3912,7 +3910,7 @@ read_record_header:
             }
 
             /* Get next record */
-            goto read_record_header;
+            return( MBEDTLS_ERR_SSL_CONTINUE_PROCESSING );
         }
 #endif
         return( ret );
@@ -3984,7 +3982,7 @@ read_record_header:
                 ssl->in_left = 0;
 
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "discarding invalid record (mac)" ) );
-                goto read_record_header;
+                return( MBEDTLS_ERR_SSL_CONTINUE_PROCESSING );
             }
 
             return( ret );
@@ -4089,7 +4087,7 @@ int mbedtls_ssl_handle_message_type( mbedtls_ssl_context *ssl )
         if( ssl->in_msg[0] == MBEDTLS_SSL_ALERT_LEVEL_WARNING &&
             ssl->in_msg[1] == MBEDTLS_SSL_ALERT_MSG_NO_RENEGOTIATION )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 2, ( "is a SSLv3 no_cert" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "is a SSLv3 no renegotiation alert" ) );
             /* Will be handled when trying to parse ServerHello */
             return( 0 );
         }
@@ -6868,25 +6866,16 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
     }
 
     /*
-     * TODO
-     *
-     * The logic should be streamlined here:
-     *
-     * Instead of
-     *
+     * The logic could be streamlined here. Instead of
      * - Manually checking whether ssl->in_offt is NULL
      * - Fetching a new record if yes
      * - Setting ssl->in_offt if one finds an application record
      * - Resetting keep_current_message after handling the application data
-     *
      * one should
-     *
      * - Adapt read_record to set ssl->in_offt automatically
      *   when a new application data record is processed.
      * - Always call mbedtls_ssl_read_record here.
-     *
      * This way, the logic of ssl_read would be much clearer:
-     *
      * (1) Always call record layer and see what kind of record is on
      *     and have it ready for consumption (in particular, in_offt
      *     properly set for application data records).
@@ -6896,13 +6885,11 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
      * (3) If it's something different from application data,
      *     handle it accordingly, e.g. potentially start a
      *     renegotiation.
-     *
      * This will also remove the need to manually reset
      * ssl->keep_current_message = 0 below.
-     *
      */
 
-    if( ssl->in_offt == NULL )
+    while( ssl->in_offt == NULL )
     {
         /* Start timer if not already running */
         if( ssl->f_get_timer != NULL &&
@@ -6957,7 +6944,9 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
                 /* With DTLS, drop the packet (probably from last handshake) */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
                 if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-                    return( MBEDTLS_ERR_SSL_WANT_READ );
+                {
+                    continue;
+                }
 #endif
                 return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
             }
@@ -6972,7 +6961,9 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
                 /* With DTLS, drop the packet (probably from last handshake) */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
                 if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-                    return( MBEDTLS_ERR_SSL_WANT_READ );
+                {
+                    continue;
+                }
 #endif
                 return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
             }
@@ -7044,7 +7035,25 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
                 }
             }
 
-            return( MBEDTLS_ERR_SSL_WANT_READ );
+            /* At this point, we don't know whether the renegotiation has been
+             * completed or not. The cases to consider are the following:
+             * 1) The renegotiation is complete. In this case, no new record
+             *    has been read yet.
+             * 2) The renegotiation is incomplete because the client received
+             *    an application data record while awaiting the ServerHello.
+             * 3) The renegotiation is incomplete because the client received
+             *    a non-handshake, non-application data message while awaiting
+             *    the ServerHello.
+             * In each of these case, looping will be the proper action:
+             * - For 1), the next iteration will read a new record and check
+             *   if it's application data.
+             * - For 2), the loop condition isn't satisfied as application data
+             *   is present, hence continue is the same as break
+             * - For 3), the loop condition is satisfied and read_record
+             *   will re-deliver the message that was held back by the client
+             *   when expecting the ServerHello.
+             */
+            continue;
         }
         else if( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_PENDING )
         {

@@ -653,8 +653,6 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx )
 
     if( pq_missing )
     {
-        /* This includes sanity checking of core parameters,
-         * so no further checks necessary. */
         ret = mbedtls_rsa_deduce_primes( &ctx->N, &ctx->D, &ctx->E,
                                          &ctx->P, &ctx->Q );
         if( ret != 0 )
@@ -663,10 +661,6 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx )
     }
     else if( d_missing )
     {
-
-        /* Deduce private exponent. This includes double-checking of the result,
-         * so together with the primality test above all core parameters are
-         * guaranteed to be sane if this call succeeds. */
         if( ( ret = mbedtls_rsa_deduce_private_exponent( &ctx->P,
                                                          &ctx->Q,
                                                          &ctx->E,
@@ -676,11 +670,9 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx )
         }
     }
 
-    /* In the remaining case of a public key, there's nothing to check for. */
-
     /*
      * Step 3: Deduce all additional parameters specific
-     *         to our current RSA implementaiton.
+     *         to our current RSA implementation.
      */
 
 #if !defined(MBEDTLS_RSA_NO_CRT)

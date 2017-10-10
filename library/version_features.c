@@ -93,9 +93,6 @@ static const char *features[] = {
 #if defined(MBEDTLS_DES_ALT)
     "MBEDTLS_DES_ALT",
 #endif /* MBEDTLS_DES_ALT */
-#if defined(MBEDTLS_ECDSA_ALT)
-    "MBEDTLS_ECDSA_ALT",
-#endif /* MBEDTLS_ECDSA_ALT */
 #if defined(MBEDTLS_XTEA_ALT)
     "MBEDTLS_XTEA_ALT",
 #endif /* MBEDTLS_XTEA_ALT */
@@ -165,6 +162,15 @@ static const char *features[] = {
 #if defined(MBEDTLS_AES_DECRYPT_ALT)
     "MBEDTLS_AES_DECRYPT_ALT",
 #endif /* MBEDTLS_AES_DECRYPT_ALT */
+#if defined(MBEDTLS_ECDSA_VERIFY_ALT)
+    "MBEDTLS_ECDSA_VERIFY_ALT",
+#endif /* MBEDTLS_ECDSA_VERIFY_ALT */
+#if defined(MBEDTLS_ECDSA_SIGN_ALT)
+    "MBEDTLS_ECDSA_SIGN_ALT",
+#endif /* MBEDTLS_ECDSA_SIGN_ALT */
+#if defined(MBEDTLS_ECDSA_GENKEY_ALT)
+    "MBEDTLS_ECDSA_GENKEY_ALT",
+#endif /* MBEDTLS_ECDSA_GENKEY_ALT */
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
     "MBEDTLS_ECP_INTERNAL_ALT",
 #endif /* MBEDTLS_ECP_INTERNAL_ALT */

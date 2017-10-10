@@ -366,6 +366,19 @@ static void busy_msleep( unsigned long msec )
     (void) j;
 }
 
+#define FAIL    do                                                      \
+    {                                                                   \
+        if( verbose != 0 )                                              \
+        {                                                               \
+            polarssl_printf( "failed at line %d\n", __LINE__ );         \
+            polarssl_printf( " cycles=%lu ratio=%lu millisecs=%lu secs=%lu hardfail=%d\n", \
+                             cycles, ratio, millisecs, secs, hardfail ); \
+            polarssl_printf( " elapsed(hires)=%lu\n",                   \
+                             get_timer( &hires, 0 ) );                  \
+        }                                                               \
+        return( 1 );                                                    \
+    } while( 0 )
+
 /*
  * Checkup routine
  *
@@ -374,9 +387,9 @@ static void busy_msleep( unsigned long msec )
  */
 int timing_self_test( int verbose )
 {
-    unsigned long cycles, ratio;
-    unsigned long millisecs, secs;
-    int hardfail;
+    unsigned long cycles = 0, ratio = 0;
+    unsigned long millisecs = 0, secs = 0;
+    int hardfail = 0;
     struct hr_time hires;
 
     if( verbose != 0 )
@@ -394,12 +407,7 @@ int timing_self_test( int verbose )
         millisecs = get_timer( &hires, 0 );
 
         if( millisecs < 400 * secs || millisecs > 600 * secs )
-        {
-            if( verbose != 0 )
-                polarssl_printf( "failed\n" );
-
-            return( 1 );
-        }
+            FAIL;
     }
 
     if( verbose != 0 )
@@ -421,12 +429,7 @@ int timing_self_test( int verbose )
         /* For some reason on Windows it looks like alarm has an extra delay
          * (maybe related to creating a new thread). Allow some room here. */
         if( millisecs < 800 * secs || millisecs > 1200 * secs + 300 )
-        {
-            if( verbose != 0 )
-                polarssl_printf( "failed\n" );
-
-            return( 1 );
-        }
+            FAIL;
     }
 
     if( verbose != 0 )
@@ -440,7 +443,6 @@ int timing_self_test( int verbose )
      * On a 4Ghz 32-bit machine the cycle counter wraps about once per second;
      * since the whole test is about 10ms, it shouldn't happen twice in a row.
      */
-    hardfail = 0;
 
 hard_test:
     if( hardfail > 1 )
@@ -492,12 +494,7 @@ hard_test_done:
         millisecs = get_timer( &hires, 0 );
 
         if( millisecs < 400 * secs || millisecs > 600 * secs )
-        {
-            if( verbose != 0 )
-                polarssl_printf( "failed\n" );
-
-            return( 1 );
-        }
+            FAIL;
     }
 
     if( verbose != 0 )

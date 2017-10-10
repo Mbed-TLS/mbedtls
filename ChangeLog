@@ -6,6 +6,7 @@ Features
    * Allow comments in test data files.
    * The selftest program can execute a subset of the tests based on command
      line arguments.
+   * New unit tests for timing.
 
 Bugfix
    * Fix memory leak in mbedtls_ssl_set_hostname() when called multiple times.

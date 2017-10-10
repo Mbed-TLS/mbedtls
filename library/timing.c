@@ -318,6 +318,12 @@ void set_alarm( int seconds )
     alarmed = 0;
     signal( SIGALRM, sighandler );
     alarm( seconds );
+    if( seconds == 0 )
+    {
+        /* alarm(0) cancelled any previous pending alarm, but the
+           handler won't fire, so raise the flag straight away. */
+        alarmed = 1;
+    }
 }
 
 void m_sleep( int milliseconds )

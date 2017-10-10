@@ -106,6 +106,18 @@ Parse Public RSA Key #1 (PKCS#8 wrapped)
 depends_on:MBEDTLS_MD5_C:MBEDTLS_PEM_PARSE_C
 pk_parse_public_keyfile_rsa:"data_files/format_gen.pub":0
 
+Parse Public RSA Key #1 (PKCS#8 wrapped, DER)
+depends_on:MBEDTLS_MD5_C:MBEDTLS_PEM_PARSE_C
+pk_parse_public_keyfile_rsa:"data_files/format_gen_der.pub":0
+
+Parse Public RSA Key #3 (PKCS#1 wrapped)
+depends_on:MBEDTLS_RSA_C:MBEDTLS_PEM_PARSE_C
+pk_parse_public_keyfile_rsa:"data_files/public_rsa_key.pem":0
+
+Parse Public RSA Key #4 (PKCS#1 wrapped, DER)
+depends_on:MBEDTLS_RSA_C:MBEDTLS_PEM_PARSE_C
+pk_parse_public_keyfile_rsa:"data_files/public_rsa_key.der":0
+
 Parse Public EC Key #1 (RFC 5480, DER)
 depends_on:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 pk_parse_public_keyfile_ec:"data_files/ec_pub.der":0

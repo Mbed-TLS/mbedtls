@@ -102,13 +102,14 @@
 #define MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED             -0x6A80  /**< DTLS client must retry for hello verification */
 #define MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL                  -0x6A00  /**< A buffer is too small to receive or write a message */
 #define MBEDTLS_ERR_SSL_NO_USABLE_CIPHERSUITE             -0x6980  /**< None of the common ciphersuites is usable (eg, no suitable certificate, see debug messages). */
-#define MBEDTLS_ERR_SSL_WANT_READ                         -0x6900  /**< Connection requires a read call. */
+#define MBEDTLS_ERR_SSL_WANT_READ                         -0x6900  /**< No data of requested type currently available on underlying transport. */
 #define MBEDTLS_ERR_SSL_WANT_WRITE                        -0x6880  /**< Connection requires a write call. */
 #define MBEDTLS_ERR_SSL_TIMEOUT                           -0x6800  /**< The operation timed out. */
 #define MBEDTLS_ERR_SSL_CLIENT_RECONNECT                  -0x6780  /**< The client initiated a reconnect from the same port. */
 #define MBEDTLS_ERR_SSL_UNEXPECTED_RECORD                 -0x6700  /**< Record header looks valid but is not expected. */
 #define MBEDTLS_ERR_SSL_NON_FATAL                         -0x6680  /**< The alert message received indicates a non-fatal error. */
 #define MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH               -0x6600  /**< Couldn't set the hash for verifying CertificateVerify */
+#define MBEDTLS_ERR_SSL_CONTINUE_PROCESSING               -0x6580  /**< Internal-only message signaling that further message-processing should be done */
 
 /*
  * Various constants
@@ -2397,6 +2398,19 @@ int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl, mbedtls_ssl_session
  *                 MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED (see below), or
  *                 a specific SSL error code.
  *
+ *                 If MBEDTLS_ERR_SSL_WANT_READ is returned, the handshake is
+ *                 unfinished and no further data is available from the underlying
+ *                 transport. In this case, the function needs to be called again
+ *                 at some later stage.
+ *
+ * \note           Remarks regarding event-driven DTLS:
+ *                 If the function returns MBEDTLS_ERR_SSL_WANT_READ, no datagram
+ *                 from the underlying transport layer is currently being processed,
+ *                 and it is safe to idle until the timer or the underlying transport
+ *                 signal a new event. This is not true for a successful handshake,
+ *                 in which case the currently processed underlying transport's datagram
+ *                 might or might not contain further DTLS records.
+ *
  * \note           If this function returns something other than 0 or
  *                 MBEDTLS_ERR_SSL_WANT_READ/WRITE, then the ssl context
  *                 becomes unusable, and you should either free it or call
@@ -2460,20 +2474,20 @@ int mbedtls_ssl_renegotiate( mbedtls_ssl_context *ssl );
  * \param buf      buffer that will hold the data
  * \param len      maximum number of bytes to read
  *
- * \return         the number of bytes read, or
- *                 0 for EOF, or
- *                 MBEDTLS_ERR_SSL_WANT_READ or MBEDTLS_ERR_SSL_WANT_WRITE, or
- *                 MBEDTLS_ERR_SSL_CLIENT_RECONNECT (see below), or
- *                 another negative error code.
+ * \return         One of the following:
+ *                 - 0 for EOF, or
+ *                 - the (positive) number of bytes read, or
+ *                 - a negative error code on failure.
  *
- * \note           If this function returns something other than a positive
- *                 value or MBEDTLS_ERR_SSL_WANT_READ/WRITE or
- *                 MBEDTLS_ERR_SSL_CLIENT_RECONNECT, then the ssl context
- *                 becomes unusable, and you should either free it or call
- *                 \c mbedtls_ssl_session_reset() on it before re-using it for
- *                 a new connection; the current connection must be closed.
+ *                 If MBEDTLS_ERR_SSL_WANT_READ is returned, no application data
+ *                 is available from the underlying transport. In this case,
+ *                 the function needs to be called again at some later stage.
  *
- * \note           When this function return MBEDTLS_ERR_SSL_CLIENT_RECONNECT
+ *                 If MBEDTLS_ERR_SSL_WANT_WRITE is returned, a write is pending
+ *                 but the underlying transport isn't available for writing. In this
+ *                 case, the function needs to be called again at some later stage.
+ *
+ *                 When this function return MBEDTLS_ERR_SSL_CLIENT_RECONNECT
  *                 (which can only happen server-side), it means that a client
  *                 is initiating a new connection using the same source port.
  *                 You can either treat that as a connection close and wait
@@ -2486,6 +2500,29 @@ int mbedtls_ssl_renegotiate( mbedtls_ssl_context *ssl );
  *                 again. WARNING: not validating the identity of the client
  *                 again, or not transmitting the new identity to the
  *                 application layer, would allow authentication bypass!
+ *
+ *                 If this function returns something other than a positive
+ *                 value or MBEDTLS_ERR_SSL_WANT_READ/WRITE or
+ *                 MBEDTLS_ERR_SSL_CLIENT_RECONNECT, then the ssl context
+ *                 becomes unusable, and you should either free it or call
+ *                 \c mbedtls_ssl_session_reset() on it before re-using it for
+ *                 a new connection; the current connection must be closed.
+ *
+ * \note           Remarks regarding event-driven DTLS:
+ *                 - If the function returns MBEDTLS_ERR_SSL_WANT_READ, no datagram
+ *                   from the underlying transport layer is currently being processed,
+ *                   and it is safe to idle until the timer or the underlying transport
+ *                   signal a new event.
+ *                 - If the function returns MBEDTLS_ERR_SSL_WANT_READ this does not mean
+ *                   that no data was available from the underlying transport in the first place,
+ *                   as there might have been delayed or duplicated messages, or a renegotiation
+ *                   request from the peer. Therefore, the user must be prepared to receive
+ *                   MBEDTLS_ERR_SSL_WANT_READ even when reacting to an incoming-data event
+ *                   from the underlying transport.
+ *                 - On success, the currently processed underlying transport's datagram
+ *                   might or might not contain further DTLS records, and the user should
+ *                   consult \c mbedtls_ssl_check_pending in that regard.
+ *
  */
 int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len );
 

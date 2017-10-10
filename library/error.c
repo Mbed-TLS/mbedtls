@@ -426,7 +426,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(MBEDTLS_ERR_SSL_NO_USABLE_CIPHERSUITE) )
             mbedtls_snprintf( buf, buflen, "SSL - None of the common ciphersuites is usable (eg, no suitable certificate, see debug messages)" );
         if( use_ret == -(MBEDTLS_ERR_SSL_WANT_READ) )
-            mbedtls_snprintf( buf, buflen, "SSL - Connection requires a read call" );
+            mbedtls_snprintf( buf, buflen, "SSL - No data of requested type currently available on underlying transport" );
         if( use_ret == -(MBEDTLS_ERR_SSL_WANT_WRITE) )
             mbedtls_snprintf( buf, buflen, "SSL - Connection requires a write call" );
         if( use_ret == -(MBEDTLS_ERR_SSL_TIMEOUT) )
@@ -439,6 +439,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
             mbedtls_snprintf( buf, buflen, "SSL - The alert message received indicates a non-fatal error" );
         if( use_ret == -(MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH) )
             mbedtls_snprintf( buf, buflen, "SSL - Couldn't set the hash for verifying CertificateVerify" );
+        if( use_ret == -(MBEDTLS_ERR_SSL_CONTINUE_PROCESSING) )
+            mbedtls_snprintf( buf, buflen, "SSL - Internal-only message signalling that further message-processing should be done" );
 #endif /* MBEDTLS_SSL_TLS_C */
 
 #if defined(MBEDTLS_X509_USE_C) || defined(MBEDTLS_X509_CREATE_C)

@@ -1171,16 +1171,23 @@ int main( int argc, char *argv[] )
             opt.version_suites = q;
         else if( strcmp( p, "renegotiation" ) == 0 )
         {
-            opt.renegotiation = (atoi( q )) ? MBEDTLS_SSL_RENEGOTIATION_ENABLED :
-                                              MBEDTLS_SSL_RENEGOTIATION_DISABLED;
+            opt.renegotiation = (atoi( q )) ?
+                MBEDTLS_SSL_RENEGOTIATION_ENABLED :
+                MBEDTLS_SSL_RENEGOTIATION_DISABLED;
         }
         else if( strcmp( p, "allow_legacy" ) == 0 )
         {
             switch( atoi( q ) )
             {
-                case -1: opt.allow_legacy = MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE; break;
-                case 0:  opt.allow_legacy = MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION; break;
-                case 1:  opt.allow_legacy = MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION; break;
+                case -1:
+                    opt.allow_legacy = MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE;
+                    break;
+                case 0:
+                    opt.allow_legacy = MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION;
+                    break;
+                case 1:
+                    opt.allow_legacy = MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION;
+                    break;
                 default: goto usage;
             }
         }
@@ -1337,8 +1344,12 @@ int main( int argc, char *argv[] )
         {
             switch( atoi( q ) )
             {
-                case 0: opt.extended_ms = MBEDTLS_SSL_EXTENDED_MS_DISABLED; break;
-                case 1: opt.extended_ms = MBEDTLS_SSL_EXTENDED_MS_ENABLED; break;
+                case 0:
+                    opt.extended_ms = MBEDTLS_SSL_EXTENDED_MS_DISABLED;
+                    break;
+                case 1:
+                    opt.extended_ms = MBEDTLS_SSL_EXTENDED_MS_ENABLED;
+                    break;
                 default: goto usage;
             }
         }
@@ -1428,19 +1439,20 @@ int main( int argc, char *argv[] )
     if( opt.force_ciphersuite[0] > 0 )
     {
         const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
-        ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( opt.force_ciphersuite[0] );
+        ciphersuite_info =
+            mbedtls_ssl_ciphersuite_from_id( opt.force_ciphersuite[0] );
 
         if( opt.max_version != -1 &&
             ciphersuite_info->min_minor_ver > opt.max_version )
         {
-            mbedtls_printf("forced ciphersuite not allowed with this protocol version\n");
+            mbedtls_printf( "forced ciphersuite not allowed with this protocol version\n" );
             ret = 2;
             goto usage;
         }
         if( opt.min_version != -1 &&
             ciphersuite_info->max_minor_ver < opt.min_version )
         {
-            mbedtls_printf("forced ciphersuite not allowed with this protocol version\n");
+            mbedtls_printf( "forced ciphersuite not allowed with this protocol version\n" );
             ret = 2;
             goto usage;
         }
@@ -1619,11 +1631,12 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
     mbedtls_entropy_init( &entropy );
-    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
-                               (const unsigned char *) pers,
-                               strlen( pers ) ) ) != 0 )
+    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func,
+                                       &entropy, (const unsigned char *) pers,
+                                       strlen( pers ) ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n", -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
+                        -ret );
         goto exit;
     }
 

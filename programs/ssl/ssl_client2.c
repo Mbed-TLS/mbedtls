@@ -354,7 +354,8 @@ static void my_debug( void *ctx, int level,
         if( *p == '/' || *p == '\\' )
             basename = p + 1;
 
-    mbedtls_fprintf( (FILE *) ctx, "%s:%04d: |%d| %s", basename, line, level, str );
+    mbedtls_fprintf( (FILE *) ctx, "%s:%04d: |%d| %s",
+                     basename, line, level, str );
     fflush(  (FILE *) ctx  );
 }
 
@@ -400,7 +401,8 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
 /*
  * Enabled if debug_level > 1 in code below
  */
-static int my_verify( void *data, mbedtls_x509_crt *crt, int depth, uint32_t *flags )
+static int my_verify( void *data, mbedtls_x509_crt *crt,
+                      int depth, uint32_t *flags )
 {
     char buf[1024];
     ((void) data);
@@ -685,7 +687,8 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "request_size" ) == 0 )
         {
             opt.request_size = atoi( q );
-            if( opt.request_size < 0 || opt.request_size > MBEDTLS_SSL_MAX_CONTENT_LEN )
+            if( opt.request_size < 0 ||
+                opt.request_size > MBEDTLS_SSL_MAX_CONTENT_LEN )
                 goto usage;
         }
         else if( strcmp( p, "ca_file" ) == 0 )
@@ -715,16 +718,23 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "renegotiation" ) == 0 )
         {
-            opt.renegotiation = (atoi( q )) ? MBEDTLS_SSL_RENEGOTIATION_ENABLED :
-                                              MBEDTLS_SSL_RENEGOTIATION_DISABLED;
+            opt.renegotiation = (atoi( q )) ?
+                MBEDTLS_SSL_RENEGOTIATION_ENABLED :
+                MBEDTLS_SSL_RENEGOTIATION_DISABLED;
         }
         else if( strcmp( p, "allow_legacy" ) == 0 )
         {
             switch( atoi( q ) )
             {
-                case -1: opt.allow_legacy = MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE; break;
-                case 0:  opt.allow_legacy = MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION; break;
-                case 1:  opt.allow_legacy = MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION; break;
+                case -1:
+                    opt.allow_legacy = MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE;
+                    break;
+                case 0:
+                    opt.allow_legacy = MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION;
+                    break;
+                case 1:
+                    opt.allow_legacy = MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION;
+                    break;
                 default: goto usage;
             }
         }
@@ -781,8 +791,12 @@ int main( int argc, char *argv[] )
         {
             switch( atoi( q ) )
             {
-                case 0: opt.extended_ms = MBEDTLS_SSL_EXTENDED_MS_DISABLED; break;
-                case 1: opt.extended_ms = MBEDTLS_SSL_EXTENDED_MS_ENABLED; break;
+                case 0:
+                    opt.extended_ms = MBEDTLS_SSL_EXTENDED_MS_DISABLED;
+                    break;
+                case 1:
+                    opt.extended_ms = MBEDTLS_SSL_EXTENDED_MS_ENABLED;
+                    break;
                 default: goto usage;
             }
         }
@@ -958,19 +972,20 @@ int main( int argc, char *argv[] )
     if( opt.force_ciphersuite[0] > 0 )
     {
         const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
-        ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( opt.force_ciphersuite[0] );
+        ciphersuite_info =
+            mbedtls_ssl_ciphersuite_from_id( opt.force_ciphersuite[0] );
 
         if( opt.max_version != -1 &&
             ciphersuite_info->min_minor_ver > opt.max_version )
         {
-            mbedtls_printf("forced ciphersuite not allowed with this protocol version\n");
+            mbedtls_printf( "forced ciphersuite not allowed with this protocol version\n" );
             ret = 2;
             goto usage;
         }
         if( opt.min_version != -1 &&
             ciphersuite_info->max_minor_ver < opt.min_version )
         {
-            mbedtls_printf("forced ciphersuite not allowed with this protocol version\n");
+            mbedtls_printf( "forced ciphersuite not allowed with this protocol version\n" );
             ret = 2;
             goto usage;
         }
@@ -996,7 +1011,7 @@ int main( int argc, char *argv[] )
         {
             if( opt.arc4 == MBEDTLS_SSL_ARC4_DISABLED )
             {
-                mbedtls_printf("forced RC4 ciphersuite with RC4 disabled\n");
+                mbedtls_printf( "forced RC4 ciphersuite with RC4 disabled\n" );
                 ret = 2;
                 goto usage;
             }
@@ -1016,7 +1031,7 @@ int main( int argc, char *argv[] )
 
         if( strlen( opt.psk ) % 2 != 0 )
         {
-            mbedtls_printf("pre-shared key not valid hex\n");
+            mbedtls_printf( "pre-shared key not valid hex\n" );
             goto exit;
         }
 
@@ -1033,7 +1048,7 @@ int main( int argc, char *argv[] )
                 c -= 'A' - 10;
             else
             {
-                mbedtls_printf("pre-shared key not valid hex\n");
+                mbedtls_printf( "pre-shared key not valid hex\n" );
                 goto exit;
             }
             psk[ j / 2 ] = c << 4;
@@ -1047,7 +1062,7 @@ int main( int argc, char *argv[] )
                 c -= 'A' - 10;
             else
             {
-                mbedtls_printf("pre-shared key not valid hex\n");
+                mbedtls_printf( "pre-shared key not valid hex\n" );
                 goto exit;
             }
             psk[ j / 2 ] |= c;
@@ -1138,11 +1153,12 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
     mbedtls_entropy_init( &entropy );
-    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
-                               (const unsigned char *) pers,
-                               strlen( pers ) ) ) != 0 )
+    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func,
+                                       &entropy, (const unsigned char *) pers,
+                                       strlen( pers ) ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n", -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
+                        -ret );
         goto exit;
     }
 
@@ -1180,13 +1196,13 @@ int main( int argc, char *argv[] )
 #else
     {
         ret = 1;
-        mbedtls_printf("MBEDTLS_CERTS_C not defined.");
+        mbedtls_printf( "MBEDTLS_CERTS_C not defined." );
     }
 #endif
     if( ret < 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse "
-                        "returned -0x%x\n\n", -ret );
+        mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned -0x%x\n\n",
+                        -ret );
         goto exit;
     }
 
@@ -1771,7 +1787,8 @@ send_request:
                         goto reconnect;
 
                     default:
-                        mbedtls_printf( " mbedtls_ssl_read returned -0x%x\n", -ret );
+                        mbedtls_printf( " mbedtls_ssl_read returned -0x%x\n",
+                                        -ret );
                         goto exit;
                 }
             }
@@ -1853,7 +1870,8 @@ send_request:
 
         if( ( ret = mbedtls_ssl_session_reset( &ssl ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_session_reset returned -0x%x\n\n", -ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_session_reset returned -0x%x\n\n",
+                            -ret );
             goto exit;
         }
 
@@ -1862,7 +1880,8 @@ send_request:
             if( ret != MBEDTLS_ERR_SSL_WANT_READ &&
                 ret != MBEDTLS_ERR_SSL_WANT_WRITE )
             {
-                mbedtls_printf( " failed\n  ! mbedtls_ssl_handshake returned -0x%x\n\n", -ret );
+                mbedtls_printf( " failed\n  ! mbedtls_ssl_handshake returned -0x%x\n\n",
+                                -ret );
                 goto exit;
             }
 
@@ -1921,21 +1940,25 @@ reconnect:
 
         if( ( ret = mbedtls_ssl_session_reset( &ssl ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_session_reset returned -0x%x\n\n", -ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_session_reset returned -0x%x\n\n",
+                            -ret );
             goto exit;
         }
 
         if( ( ret = mbedtls_ssl_set_session( &ssl, &saved_session ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_session returned %d\n\n", ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_session returned %d\n\n",
+                            ret );
             goto exit;
         }
 
-        if( ( ret = mbedtls_net_connect( &server_fd, opt.server_addr, opt.server_port,
-                                 opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM ?
-                                 MBEDTLS_NET_PROTO_TCP : MBEDTLS_NET_PROTO_UDP ) ) != 0 )
+        if( ( ret = mbedtls_net_connect( &server_fd,
+                        opt.server_addr, opt.server_port,
+                        opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM ?
+                        MBEDTLS_NET_PROTO_TCP : MBEDTLS_NET_PROTO_UDP ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_net_connect returned -0x%x\n\n", -ret );
+            mbedtls_printf( " failed\n  ! mbedtls_net_connect returned -0x%x\n\n",
+                            -ret );
             goto exit;
         }
 
@@ -1946,7 +1969,7 @@ reconnect:
         if( ret != 0 )
         {
             mbedtls_printf( " failed\n  ! net_set_(non)block() returned -0x%x\n\n",
-                    -ret );
+                            -ret );
             goto exit;
         }
 
@@ -1955,7 +1978,8 @@ reconnect:
             if( ret != MBEDTLS_ERR_SSL_WANT_READ &&
                 ret != MBEDTLS_ERR_SSL_WANT_WRITE )
             {
-                mbedtls_printf( " failed\n  ! mbedtls_ssl_handshake returned -0x%x\n\n", -ret );
+                mbedtls_printf( " failed\n  ! mbedtls_ssl_handshake returned -0x%x\n\n",
+                                -ret );
                 goto exit;
             }
         }

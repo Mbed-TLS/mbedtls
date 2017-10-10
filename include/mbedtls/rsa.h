@@ -405,19 +405,16 @@ int mbedtls_rsa_import_raw( mbedtls_rsa_context *ctx,
  *
  * \return
  *                 - 0 if successful. In this case, it is guaranteed
- *                   the functions \c mbedtls_rsa_check_pubkey resp.
- *                   \c mbedtls_rsa_check_privkey pass in case of a
- *                   public resp. private key.
+ *                   that the RSA context can be used for RSA operations
+ *                   without the risk of failure or crash.
  *                 - \c MBEDTLS_ERR_RSA_BAD_INPUT_DATA if the attempted
  *                   derivations failed.
  *
- * \warning        Implementations are *not* obliged to perform exhaustive
- *                 validation of the imported parameters!
- *                 In particular, parameters that are not needed by the
- *                 implementation may be silently discarded and left unchecked.
- *                 If the user mistrusts the given key material, he should
- *                 employ other means for verification like the helper functions
- *                 \c mbedtls_rsa_validate_params, \c mbedtls_rsa_validate_crt.
+ * \warning        This function need not perform consistency checks
+ *                 for the imported parameters! In particular, parameters that
+ *                 are not needed by the implementation may be silently discarded
+ *                 and left unchecked. For the purpose of checking the consistency
+ *                 of the key material, see \c mbedtls_rsa_check_privkey.
  *
  */
 int mbedtls_rsa_complete( mbedtls_rsa_context *ctx,
@@ -581,25 +578,41 @@ int mbedtls_rsa_gen_key( mbedtls_rsa_context *ctx,
 int mbedtls_rsa_check_pubkey( const mbedtls_rsa_context *ctx );
 
 /**
- * \brief          Check if a context contains an RSA private key
- *                 and perform basic sanity checks.
+ * \brief      Check if a context contains an RSA private key
+ *             and perform basic consistency checks.
  *
- * \param ctx      RSA context to be checked
+ * \param ctx  RSA context to be checked
  *
- * \return         0 if successful, or an \c MBEDTLS_ERR_RSA_XXX error code.
- *                 On success, it is guaranteed that enough information is
- *                 present to perform RSA private and public key operations.
+ * \return     0 if successful, or an \c MBEDTLS_ERR_RSA_XXX error code.
  *
- * \warning        This function is *not* obliged to perform an exhaustive
- *                 sanity check what would guarantee the internal parameters
- *                 to match and \c mbedtls_rsa_private and \c mbedtls_rsa_public
- *                 to be mutually inverse to each other.
- *                 The reason is that for minimal non-CRT implementations
- *                 using only N, D, E, for example, checking the validity
- *                 would be computationally expensive.
- *                 Users mistrusting their key material should use other
- *                 means for verification; see the documentation of
- *                 \c mbedtls_rsa_complete.
+ * \note       This function performs checks substantiating
+ *             the consistency of the key material used to setup
+ *             the RSA context. In case of implementations saving
+ *             all core RSA parameters, this might mean a consistency
+ *             check in the sense of \c mbedtls_rsa_validate_params,
+ *             while other implementations might perform an empirical
+ *             check consisting of an encryption-decryption pair.
+ *
+ * \warning    This function should catch accidental misconfigurations
+ *             like swapping of parameters, but it cannot establish full
+ *             trust in neither the quality nor the consistency of the key
+ *             material that was used to setup the given RSA context:
+ *             - Regarding consistency, note (see \c mbedtls_rsa_complete)
+ *               that imported parameters irrelevant for the implementation
+ *               might be silently dropped, in which case the present
+ *               function doesn't have access to and hence cannot check them.
+ *               If the user desires to check the consistency of the entire
+ *               content of, say, an PKCS1-encoded RSA private key, he
+ *               should use \c mbedtls_rsa_validate_params before setting
+ *               up the RSA context.
+ *               Further, if the implementation performs empirical checks,
+ *               these checks will substantiate but not guarantee consistency.
+ *             - Regarding quality, this function is not expected to perform
+ *               extended quality assessments like checking that the prime
+ *               factors are safe. Further, it is the user's responsibility to
+ *               ensure trustworthiness of the source of his RSA parameters,
+ *               a question going beyond what's effectively checkable
+ *               by the library.
  *
  */
 int mbedtls_rsa_check_privkey( const mbedtls_rsa_context *ctx );

@@ -382,8 +382,6 @@ int mbedtls_rsa_import_raw( mbedtls_rsa_context *ctx,
  *                 a set of imported core parameters.
  *
  * \param ctx      Initialized RSA context to store parameters
- * \param f_rng    RNG function, or NULL
- * \param p_rng    RNG parameter, or NULL
  *
  * \note
  *                 - To setup an RSA public key, precisely N and E
@@ -399,10 +397,6 @@ int mbedtls_rsa_import_raw( mbedtls_rsa_context *ctx,
  *                 - Alternative implementations need not support these
  *                   and may return \c MBEDTLS_ERR_RSA_BAD_INPUT_DATA instead.
  *
- * \note           The PRNG is used for the probabilistic algorithm
- *                 used in the derivation of P, Q from N, D, E. If it
- *                 not present, a deterministic heuristic is used.
- *
  * \return
  *                 - 0 if successful. In this case, it is guaranteed
  *                   that the RSA context can be used for RSA operations
@@ -417,9 +411,7 @@ int mbedtls_rsa_import_raw( mbedtls_rsa_context *ctx,
  *                 of the key material, see \c mbedtls_rsa_check_privkey.
  *
  */
-int mbedtls_rsa_complete( mbedtls_rsa_context *ctx,
-                          int (*f_rng)(void *, unsigned char *, size_t),
-                          void *p_rng );
+int mbedtls_rsa_complete( mbedtls_rsa_context *ctx );
 
 /**
  * \brief          Export core parameters of an RSA key

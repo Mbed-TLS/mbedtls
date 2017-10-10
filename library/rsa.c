@@ -601,9 +601,7 @@ cleanup:
     return( 0 );
 }
 
-int mbedtls_rsa_complete( mbedtls_rsa_context *ctx,
-                          int (*f_rng)(void *, unsigned char *, size_t),
-                          void *p_rng )
+int mbedtls_rsa_complete( mbedtls_rsa_context *ctx )
 {
     int ret = 0;
 
@@ -658,7 +656,6 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx,
         /* This includes sanity checking of core parameters,
          * so no further checks necessary. */
         ret = mbedtls_rsa_deduce_primes( &ctx->N, &ctx->D, &ctx->E,
-                                         f_rng, p_rng,
                                          &ctx->P, &ctx->Q );
         if( ret != 0 )
             return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
@@ -666,15 +663,6 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx,
     }
     else if( d_missing )
     {
-#if defined(MBEDTLS_GENPRIME)
-        /* If a PRNG is provided, check if P, Q are prime. */
-        if( f_rng != NULL  &&
-            ( ( ret = mbedtls_mpi_is_prime( &ctx->P, f_rng, p_rng ) ) != 0 ||
-              ( ret = mbedtls_mpi_is_prime( &ctx->Q, f_rng, p_rng ) ) != 0 ) )
-        {
-            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
-        }
-#endif /* MBEDTLS_GENPRIME */
 
         /* Deduce private exponent. This includes double-checking of the result,
          * so together with the primality test above all core parameters are

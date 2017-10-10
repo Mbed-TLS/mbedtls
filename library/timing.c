@@ -315,6 +315,12 @@ void mbedtls_set_alarm( int seconds )
     mbedtls_timing_alarmed = 0;
     signal( SIGALRM, sighandler );
     alarm( seconds );
+    if( seconds == 0 )
+    {
+        /* alarm(0) cancelled any previous pending alarm, but the
+           handler won't fire, so raise the flag straight away. */
+        mbedtls_timing_alarmed = 1;
+    }
 }
 
 #endif /* _WIN32 && !EFIX64 && !EFI32 */

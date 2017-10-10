@@ -215,7 +215,7 @@ for my $line (@config_lines) {
     }
 
     if (defined $config_write) {
-        print $config_write $line or die "write $config_file: $!\n";;
+        print $config_write $line or die "write $config_file: $!\n";
     }
 }
 

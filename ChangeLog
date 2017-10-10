@@ -36,8 +36,11 @@ Changes
    * Clarify ECDSA documentation and improve the sample code to avoid
      misunderstandings and potentially dangerous use of the API. Pointed out
      by Jean-Philippe Aumasson.
+
+Features
    * Add support for alternative implementation for ECDH, controlled by new
-     configuration flag MBEDTLS_ECDH_ALT in config.h.
+     configuration flags MBEDTLS_ECDH_COMPUTE_SHARED_ALT and
+     MBEDTLS_ECDH_GEN_PUBLIC_ALT in config.h.
      The following functions from the ECDH module can be replaced
      with an alternative implementation:
      mbedtls_ecdh_gen_public() and mbedtls_ecdh_compute_shared().

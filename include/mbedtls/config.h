@@ -2651,16 +2651,17 @@
 //#define MBEDTLS_PLATFORM_NV_SEED_WRITE_MACRO  mbedtls_platform_std_nv_seed_write /**< Default nv_seed_write function to use, can be undefined */
 
 /* Threading/mutex operations */
-/* To use threading operations MBEDTLS_THREADING_C must be defined */
+/* To define the threading operations with these macros, MBEDTLS_THREADING_C
+ * and MBEDTLS_THREADING_ALT must be defined. */
 //#define MBEDTLS_MUTEX_INIT_MACRO        mbedtls_mutex_init
 //#define MBEDTLS_MUTEX_FREE_MACRO        mbedtls_mutex_free
 //#define MBEDTLS_MUTEX_LOCK_MACRO        mbedtls_mutex_lock
 //#define MBEDTLS_MUTEX_UNLOCK_MACRO      mbedtls_mutex_unlock
 
 //#define MBEDTLS_MUTEX_INITIALIZER       { NULL }
-				/**< Default static initialisation value for
-				 * each declared mbedtls_threading_mutex_t
-				 * structure used by the library. */
+                                /**< Default static initialisation value for
+                                 * each declared mbedtls_threading_mutex_t
+                                 * structure used by the library. */
 
 /* SSL Cache options */
 //#define MBEDTLS_SSL_CACHE_DEFAULT_TIMEOUT       86400 /**< 1 day  */

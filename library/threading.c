@@ -69,19 +69,13 @@ int mbedtls_mutex_unlock( mbedtls_threading_mutex_t *mutex )
     return( 0 );
 }
 
-#define MBEDTLS_MUTEX_INIT_MACRO       threading_mutex_init_pthread
-#define MBEDTLS_MUTEX_FREE_MACRO       threading_mutex_free_pthread
-#define MBEDTLS_MUTEX_LOCK_MACRO       threading_mutex_lock_pthread
-#define MBEDTLS_MUTEX_UNLOCK_MACRO     threading_mutex_unlock_pthread
-
 /*
  * With pthreads we can statically initialize mutexes
  */
 #define MBEDTLS_MUTEX_INITIALIZER      { PTHREAD_MUTEX_INITIALIZER, 1 }
 
-#endif /* MBEDTLS_THREADING_PTHREAD */
 
-#if defined(MBEDTLS_THREADING_ALT)
+#elif defined(MBEDTLS_THREADING_ALT)
 
 #if !defined(MBEDTLS_MUTEX_INIT_MACRO) && \
     !defined(MBEDTLS_MUTEX_FREE_MACRO) && \
@@ -103,7 +97,7 @@ static void threading_mutex_dummy( mbedtls_threading_mutex_t *mutex )
 #define MBEDTLS_MUTEX_INIT_MACRO      threading_mutex_dummy
 #define MBEDTLS_MUTEX_FREE_MACRO      threading_mutex_dummy
 #define MBEDTLS_MUTEX_LOCK_MACRO      threading_mutex_fail
-#define MBEDTLS_UNLOCK_FREE_MACRO     threading_mutex_fail
+#define MBEDTLS_MUTEX_UNLOCK_MACRO    threading_mutex_fail
 
 #endif /* !MBEDTLS_MUTEX_INIT_MACRO && !MBEDTLS_MUTEX_FREE_MACRO &&
         * !MBEDTLS_MUTEX_LOCK_MACRO && !MBEDTLS_UNLOCK_FREE_MACRO */
@@ -145,20 +139,20 @@ void mbedtls_threading_free_alt( void )
 }
 
 mbedtls_mutex_init_t* mbedtls_mutex_init =
-                            ( mbedtls_mutex_init_t* )MBEDTLS_MUTEX_INIT_MACRO;
+                            (mbedtls_mutex_init_t*)MBEDTLS_MUTEX_INIT_MACRO;
 mbedtls_mutex_free_t* mbedtls_mutex_free =
-                            ( mbedtls_mutex_free_t* )MBEDTLS_MUTEX_FREE_MACRO;
+                            (mbedtls_mutex_free_t*)MBEDTLS_MUTEX_FREE_MACRO;
 mbedtls_mutex_lock_t* mbedtls_mutex_lock =
-                            ( mbedtls_mutex_lock_t* )MBEDTLS_MUTEX_LOCK_MACRO;
+                            (mbedtls_mutex_lock_t*)MBEDTLS_MUTEX_LOCK_MACRO;
 mbedtls_mutex_unlock_t* mbedtls_mutex_unlock =
-                        ( mbedtls_mutex_unlock_t* )MBEDTLS_MUTEX_UNLOCK_MACRO;
+                            (mbedtls_mutex_unlock_t*)MBEDTLS_MUTEX_UNLOCK_MACRO;
 
 #endif /* MBEDTLS_THREADING_ALT */
 
 /*
  * Define global mutexes
  */
-#ifdef MBEDTLS_MUTEX_INITIALIZER
+#if defined(MBEDTLS_MUTEX_INITIALIZER)
 
 #if defined(MBEDTLS_FS_IO)
 mbedtls_threading_mutex_t mbedtls_threading_readdir_mutex = MBEDTLS_MUTEX_INITIALIZER;

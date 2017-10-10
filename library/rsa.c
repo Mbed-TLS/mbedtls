@@ -2549,7 +2549,7 @@ int mbedtls_rsa_self_test( int verbose )
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &K, 16, RSA_E  ) );
     MBEDTLS_MPI_CHK( mbedtls_rsa_import( &rsa, NULL, NULL, NULL, NULL, &K ) );
 
-    MBEDTLS_MPI_CHK( mbedtls_rsa_complete( &rsa, NULL, NULL ) );
+    MBEDTLS_MPI_CHK( mbedtls_rsa_complete( &rsa ) );
 
     if( verbose != 0 )
         mbedtls_printf( "  RSA key validation: " );

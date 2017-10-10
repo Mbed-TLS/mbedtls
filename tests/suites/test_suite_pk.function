@@ -361,7 +361,7 @@ void pk_rsa_decrypt_test_vec( char *cipher_hex, int mod,
     TEST_ASSERT( mbedtls_mpi_read_string( &Q, radix_Q, input_Q ) == 0 );
     TEST_ASSERT( mbedtls_rsa_import( rsa, &N, &P, &Q, NULL, &E ) == 0 );
     TEST_ASSERT( mbedtls_rsa_get_len( rsa ) == (size_t) ( mod / 8 ) );
-    TEST_ASSERT( mbedtls_rsa_complete( rsa, NULL, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_rsa_complete( rsa ) == 0 );
 
     /* decryption test */
     memset( output, 0, sizeof( output ) );

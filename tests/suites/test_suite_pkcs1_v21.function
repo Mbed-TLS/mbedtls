@@ -87,7 +87,7 @@ void pkcs1_rsaes_oaep_decrypt( int mod, int radix_P, char *input_P,
 
     TEST_ASSERT( mbedtls_rsa_import( &ctx, &N, &P, &Q, NULL, &E ) == 0 );
     TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( ( mod + 7 ) / 8 ) );
-    TEST_ASSERT( mbedtls_rsa_complete( &ctx, NULL, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == 0 );
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
 
     unhexify( message_str, message_hex_string );
@@ -143,7 +143,7 @@ void pkcs1_rsassa_pss_sign( int mod, int radix_P, char *input_P, int radix_Q,
 
     TEST_ASSERT( mbedtls_rsa_import( &ctx, &N, &P, &Q, NULL, &E ) == 0 );
     TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( ( mod + 7 ) / 8 ) );
-    TEST_ASSERT( mbedtls_rsa_complete( &ctx, NULL, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == 0 );
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
 
     msg_len = unhexify( message_str, message_hex_string );

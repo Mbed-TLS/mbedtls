@@ -47,7 +47,7 @@ void mbedtls_rsa_pkcs1_sign( char *message_hex_string, int padding_mode, int dig
 
     TEST_ASSERT( mbedtls_rsa_import( &ctx, &N, &P, &Q, NULL, &E ) == 0 );
     TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod / 8 ) );
-    TEST_ASSERT( mbedtls_rsa_complete( &ctx, NULL, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == 0 );
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
 
     msg_len = unhexify( message_str, message_hex_string );
@@ -146,7 +146,7 @@ void rsa_pkcs1_sign_raw( char *message_hex_string, char *hash_result_string,
 
     TEST_ASSERT( mbedtls_rsa_import( &ctx, &N, &P, &Q, NULL, &E ) == 0 );
     TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod / 8 ) );
-    TEST_ASSERT( mbedtls_rsa_complete( &ctx, NULL, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == 0 );
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
 
     unhexify( message_str, message_hex_string );
@@ -363,7 +363,7 @@ void mbedtls_rsa_pkcs1_decrypt( char *message_hex_string, int padding_mode, int 
 
     TEST_ASSERT( mbedtls_rsa_import( &ctx, &N, &P, &Q, NULL, &E ) == 0 );
     TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod / 8 ) );
-    TEST_ASSERT( mbedtls_rsa_complete( &ctx, NULL, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == 0 );
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
 
     unhexify( message_str, message_hex_string );
@@ -471,7 +471,7 @@ void mbedtls_rsa_private( char *message_hex_string, int mod, int radix_P, char *
 
     TEST_ASSERT( mbedtls_rsa_import( &ctx, &N, &P, &Q, NULL, &E ) == 0 );
     TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod / 8 ) );
-    TEST_ASSERT( mbedtls_rsa_complete( &ctx, NULL, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == 0 );
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
 
     unhexify( message_str, message_hex_string );
@@ -916,9 +916,7 @@ void mbedtls_rsa_import( int radix_N, char *input_N,
                                have_E ? &E : NULL ) == 0 );
     }
 
-    TEST_ASSERT( mbedtls_rsa_complete( &ctx,
-                                       mbedtls_ctr_drbg_random,
-                                       &ctr_drbg ) == result );
+    TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == result );
 
     /* On expected success, perform some public and private
      * key operations to check if the key is working properly. */
@@ -1029,7 +1027,7 @@ void mbedtls_rsa_export( int radix_N, char *input_N,
                                      strlen( input_D ) ? &D : NULL,
                                      strlen( input_E ) ? &E : NULL ) == 0 );
 
-    TEST_ASSERT( mbedtls_rsa_complete( &ctx, NULL, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == 0 );
 
     /*
      * Export parameters and compare to original ones.
@@ -1220,7 +1218,7 @@ void mbedtls_rsa_export_raw( char *input_N, char *input_P,
                                have_D ? bufD : NULL, lenD,
                                have_E ? bufE : NULL, lenE ) == 0 );
 
-    TEST_ASSERT( mbedtls_rsa_complete( &ctx, NULL, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == 0 );
 
     /*
      * Export parameters and compare to original ones.
@@ -1382,9 +1380,7 @@ void mbedtls_rsa_import_raw( char *input_N,
                                ( lenE > 0 ) ? bufE : NULL, lenE ) == 0 );
     }
 
-    TEST_ASSERT( mbedtls_rsa_complete( &ctx,
-                                       mbedtls_ctr_drbg_random,
-                                       &ctr_drbg ) == result );
+    TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == result );
 
     /* On expected success, perform some public and private
      * key operations to check if the key is working properly. */

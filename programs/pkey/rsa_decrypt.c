@@ -142,8 +142,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    if( ( return_val = mbedtls_rsa_complete( &rsa, mbedtls_ctr_drbg_random,
-                                             &ctr_drbg ) ) != 0 )
+    if( ( return_val = mbedtls_rsa_complete( &rsa ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_rsa_complete returned %d\n\n",
                         return_val );

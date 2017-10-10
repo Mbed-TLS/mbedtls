@@ -540,7 +540,7 @@ static int pk_get_rsapubkey( unsigned char **p,
 
     *p += len;
 
-    if( ( ret = mbedtls_rsa_complete( rsa, NULL, NULL ) ) != 0 )
+    if( ( ret = mbedtls_rsa_complete( rsa ) ) != 0 )
         return( MBEDTLS_ERR_PK_INVALID_PUBKEY );
 
     if( *p != end )
@@ -745,7 +745,7 @@ static int pk_parse_key_pkcs1_der( mbedtls_rsa_context *rsa,
     p += len;
 
     /* Complete the RSA private key */
-    if( ( ret = mbedtls_rsa_complete( rsa, NULL, NULL ) ) != 0 )
+    if( ( ret = mbedtls_rsa_complete( rsa ) ) != 0 )
         goto cleanup;
 
     /* Check optional parameters */

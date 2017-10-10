@@ -115,7 +115,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    if( ( ret = mbedtls_rsa_complete( &rsa, NULL, NULL ) ) != 0 )
+    if( ( ret = mbedtls_rsa_complete( &rsa ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_rsa_complete returned %d\n\n",
                         ret );

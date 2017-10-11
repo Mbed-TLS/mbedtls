@@ -831,7 +831,8 @@ void mbedtls_rsa_import( int radix_N, char *input_N,
                          int radix_E, char *input_E,
                          int successive,
                          int is_priv,
-                         int result )
+                         int res_check,
+                         int res_complete )
 {
     mbedtls_mpi N, P, Q, D, E;
     mbedtls_rsa_context ctx;
@@ -916,17 +917,19 @@ void mbedtls_rsa_import( int radix_N, char *input_N,
                                have_E ? &E : NULL ) == 0 );
     }
 
-    TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == result );
+    TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == res_complete );
 
     /* On expected success, perform some public and private
      * key operations to check if the key is working properly. */
-    if( result == 0 )
+    if( res_complete == 0 )
     {
-        TEST_ASSERT( mbedtls_rsa_check_pubkey( &ctx ) == 0 );
-
-        /* Did we expect a full private key to be setup? */
         if( is_priv )
-            TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
+            TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == res_check );
+        else
+            TEST_ASSERT( mbedtls_rsa_check_pubkey( &ctx ) == res_check );
+
+        if( res_check != 0 )
+            goto exit;
 
         buf_orig = mbedtls_calloc( 1, mbedtls_rsa_get_len( &ctx ) );
         buf_enc  = mbedtls_calloc( 1, mbedtls_rsa_get_len( &ctx ) );
@@ -1294,7 +1297,8 @@ void mbedtls_rsa_import_raw( char *input_N,
                              char *input_D, char *input_E,
                              int successive,
                              int is_priv,
-                             int result )
+                             int res_check,
+                             int res_complete )
 {
     unsigned char bufN[1000];
     unsigned char bufP[1000];
@@ -1380,17 +1384,19 @@ void mbedtls_rsa_import_raw( char *input_N,
                                ( lenE > 0 ) ? bufE : NULL, lenE ) == 0 );
     }
 
-    TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == result );
+    TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == res_complete );
 
     /* On expected success, perform some public and private
      * key operations to check if the key is working properly. */
-    if( result == 0 )
+    if( res_complete == 0 )
     {
-        TEST_ASSERT( mbedtls_rsa_check_pubkey( &ctx ) == 0 );
-
-        /* Did we expect a full private key to be setup? */
         if( is_priv )
-            TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
+            TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == res_check );
+        else
+            TEST_ASSERT( mbedtls_rsa_check_pubkey( &ctx ) == res_check );
+
+        if( res_check != 0 )
+            goto exit;
 
         buf_orig = mbedtls_calloc( 1, mbedtls_rsa_get_len( &ctx ) );
         buf_enc  = mbedtls_calloc( 1, mbedtls_rsa_get_len( &ctx ) );

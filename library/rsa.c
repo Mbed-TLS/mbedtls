@@ -176,7 +176,7 @@ static int rsa_check_context( mbedtls_rsa_context const *ctx, int is_priv )
     if( mbedtls_mpi_cmp_int( &ctx->E, 0 ) <= 0 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
-#if !defined(MBEDTLS_NO_CRT)
+#if defined(MBEDTLS_RSA_NO_CRT)
     /* For private key operations, use D or DP & DQ
      * as (unblinded) exponents. */
     if( is_priv && mbedtls_mpi_cmp_int( &ctx->D, 0 ) <= 0 )
@@ -193,7 +193,7 @@ static int rsa_check_context( mbedtls_rsa_context const *ctx, int is_priv )
     /* Blinding shouldn't make exponents negative either,
      * so check that P, Q >= 1 if that hasn't yet been
      * done as part of 1. */
-#if defined(MBEDTLS_NO_CRT)
+#if defined(MBEDTLS_RSA_NO_CRT)
     if( is_priv &&
         ( mbedtls_mpi_cmp_int( &ctx->P, 0 ) <= 0 ||
           mbedtls_mpi_cmp_int( &ctx->Q, 0 ) <= 0 ) )
@@ -204,7 +204,7 @@ static int rsa_check_context( mbedtls_rsa_context const *ctx, int is_priv )
 
     /* It wouldn't lead to an error if it wasn't satisfied,
      * but check for PQ >= 1 nonetheless. */
-#if !defined(MBEDTLS_NO_CRT)
+#if !defined(MBEDTLS_RSA_NO_CRT)
     if( is_priv &&
         mbedtls_mpi_cmp_int( &ctx->QP, 0 ) <= 0 )
     {

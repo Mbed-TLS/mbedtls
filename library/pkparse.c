@@ -661,11 +661,8 @@ static int pk_parse_key_pkcs1_der( mbedtls_rsa_context *rsa,
     size_t len;
     unsigned char *p, *end;
 
-    mbedtls_mpi DP, DQ, QP;
-
-    mbedtls_mpi_init( &DP );
-    mbedtls_mpi_init( &DQ );
-    mbedtls_mpi_init( &QP );
+    mbedtls_mpi T;
+    mbedtls_mpi_init( &T );
 
     p = (unsigned char *) key;
     end = p + keylen;
@@ -749,9 +746,9 @@ static int pk_parse_key_pkcs1_der( mbedtls_rsa_context *rsa,
         goto cleanup;
 
     /* Check optional parameters */
-    if( ( ret = mbedtls_asn1_get_mpi( &p, end, &DP ) ) != 0 ||
-        ( ret = mbedtls_asn1_get_mpi( &p, end, &DQ ) ) != 0 ||
-        ( ret = mbedtls_asn1_get_mpi( &p, end, &QP ) ) != 0 )
+    if( ( ret = mbedtls_asn1_get_mpi( &p, end, &T ) ) != 0 ||
+        ( ret = mbedtls_asn1_get_mpi( &p, end, &T ) ) != 0 ||
+        ( ret = mbedtls_asn1_get_mpi( &p, end, &T ) ) != 0 )
         goto cleanup;
 
     if( p != end )
@@ -762,12 +759,11 @@ static int pk_parse_key_pkcs1_der( mbedtls_rsa_context *rsa,
 
 cleanup:
 
-    mbedtls_mpi_free( &DP );
-    mbedtls_mpi_free( &DQ );
-    mbedtls_mpi_free( &QP );
+    mbedtls_mpi_free( &T );
 
     if( ret != 0 )
     {
+        /* Wrap error code if it's coming from a lower level */
         if( ( ret & 0xff80 ) == 0 )
             ret = MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret;
         else

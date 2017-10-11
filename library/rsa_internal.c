@@ -169,6 +169,11 @@ int mbedtls_rsa_deduce_primes( mbedtls_mpi const *N,
             MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &K, &K, &K ) );
             MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &K, &K, N ) );
         }
+
+        if( mbedtls_mpi_cmp_int( &K, 1 ) != 0 )
+        {
+            break;
+        }
     }
 
     ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;

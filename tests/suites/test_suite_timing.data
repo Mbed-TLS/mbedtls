@@ -36,3 +36,6 @@ timing_alarm:0:
 
 Timing: alarm in 1 second
 timing_alarm:1:
+
+Timing: hardclock
+timing_hardclock:

@@ -316,3 +316,45 @@ exit:
         mbedtls_fprintf( stdout, "  Inconclusive test, try running it on a less heavily loaded machine.\n" );
  }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void timing_hardclock( )
+{
+    /* We make very few guarantees about mbedtls_timing_hardclock: its rate is
+       platform-dependent, it can wrap around. So there isn't much we can
+       test. But we do at least test that it doesn't crash, stall or return
+       completely nonsensical values. */
+
+    struct mbedtls_timing_hr_time timer;
+    unsigned long hardclock0, hardclock1, delta1;
+
+    hardclock0 = mbedtls_timing_hardclock( );
+    /* Wait 2ms to ensure a nonzero delay. Since the timer interface has 1ms
+       resolution and unspecified precision, waiting 1ms might be a very small
+       delay that's rounded up. */
+    (void) mbedtls_timing_get_timer( &timer, 1 );
+    while( mbedtls_timing_get_timer( &timer, 0 ) < 2 )
+        /*busy-wait loop*/;
+    hardclock1 = mbedtls_timing_hardclock( );
+
+    /* Although the hardclock counter can wrap around, the difference
+       (hardclock1 - hardclock0) is taken modulo the type size, so it is
+       correct as long as the counter only wrapped around at most once. We
+       further require the difference to be nonzero (after a wait of more than
+       1ms, the counter must have changed), and not to be overly large (after
+       a wait of less than 3ms, plus time lost because other processes were
+       scheduled on the CPU). If the hardclock counter runs at 4GHz, then
+       1000000000 (which is 1/4 of the counter wraparound on a 32-bit machine)
+       allows 250ms. */
+    delta1 = hardclock1 - hardclock0;
+    TEST_ASSERT( delta1 > 0 );
+    TEST_ASSERT( delta1 < 1000000000 );
+    return;
+
+exit:
+    /* No cleanup needed, but show some diagnostic iterations, because timing
+       problems can be hard to reproduce. */
+    mbedtls_fprintf( stdout, "  Finished with hardclock=%lu,%lu\n",
+                     hardclock0, hardclock1 );
+}
+/* END_CASE */

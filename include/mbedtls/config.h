@@ -1650,6 +1650,7 @@
  *          library/ecp.c
  *          library/ecdsa.c
  *          library/rsa.c
+ *          library/rsa_internal.c
  *          library/ssl_tls.c
  *
  * This module is required for RSA, DHM and ECC (ECDH, ECDSA) support.
@@ -2263,6 +2264,7 @@
  * Enable the RSA public-key cryptosystem.
  *
  * Module:  library/rsa.c
+ *          library/rsa_internal.c
  * Caller:  library/ssl_cli.c
  *          library/ssl_srv.c
  *          library/ssl_tls.c

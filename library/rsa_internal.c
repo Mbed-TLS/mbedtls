@@ -148,7 +148,7 @@ int mbedtls_rsa_deduce_primes( mbedtls_mpi const *N,
                              Q /* temporarily use Q for storing Montgomery
                                 * multiplication helper values */ ) );
 
-        for( iter = 1; iter < order; ++iter )
+        for( iter = 1; iter <= order; ++iter )
         {
             MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( &K, &K, 1 ) );
             MBEDTLS_MPI_CHK( mbedtls_mpi_gcd( P, &K, N ) );

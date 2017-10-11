@@ -150,6 +150,11 @@ int mbedtls_rsa_deduce_primes( mbedtls_mpi const *N,
 
         for( iter = 1; iter <= order; ++iter )
         {
+            /* If we reach 1 prematurely, there's no point
+             * in continuing to square K */
+            if( mbedtls_mpi_cmp_int( &K, 1 ) == 0 )
+                break;
+
             MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( &K, &K, 1 ) );
             MBEDTLS_MPI_CHK( mbedtls_mpi_gcd( P, &K, N ) );
 
@@ -170,6 +175,13 @@ int mbedtls_rsa_deduce_primes( mbedtls_mpi const *N,
             MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &K, &K, N ) );
         }
 
+        /*
+         * If we get here, then either we prematurely aborted the loop because
+         * we reached 1, or K holds primes[attempt]^(DE - 1) mod N, which must
+         * be 1 if D,E,N were consistent.
+         * Check if that's the case and abort if not, to avoid very long,
+         * yet eventually failing, computations if N,D,E were not sane.
+         */
         if( mbedtls_mpi_cmp_int( &K, 1 ) != 0 )
         {
             break;

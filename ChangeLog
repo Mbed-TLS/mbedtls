@@ -9,6 +9,9 @@ Bugfix
    * Fix memory leak in mbedtls_ssl_set_hostname() when called multiple times.
      Found by projectgus and jethrogb, #836.
    * Fix usage help in ssl_server2 example. Found and fixed by Bei Lin.
+   * Fix leap year calculation in x509_date_is_valid() to ensure that invalid
+     dates on leap years with 100 and 400 intervals are handled correctly. Found
+     by Nicholas Wilson. #694
 
 = mbed TLS 2.6.0 branch released 2017-08-10
 

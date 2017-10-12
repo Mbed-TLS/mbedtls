@@ -42,6 +42,13 @@
 extern "C" {
 #endif
 
+/*
+ * \brief     Enumeration of supported message digests
+ *
+ * \warning   MD2, MD4, MD5 and SHA-1 are considered weak message digests
+ *            and their use constitutes a security risk. It is recommended
+ *            alternative message digests should be considered instead.
+ */
 typedef enum {
     POLARSSL_MD_NONE=0,
     POLARSSL_MD_MD2,

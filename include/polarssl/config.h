@@ -256,6 +256,12 @@
  *
  * Uncomment a macro to enable alternate implementation for core algorithm
  * functions
+ *
+ * \warning   MD2, MD4, MD5, ARC4 and SHA-1 are considered weak and their use
+ *            constitutes a security risk. If possible, it is recommended to
+ *            avoid dependencies on them and alternative message digests resp.
+ *            ciphers should be considered instead.
+ *
  */
 //#define POLARSSL_AES_ALT
 //#define POLARSSL_ARC4_ALT
@@ -1349,6 +1355,12 @@
  *      TLS_RSA_WITH_RC4_128_MD5
  *      TLS_RSA_PSK_WITH_RC4_128_SHA
  *      TLS_PSK_WITH_RC4_128_SHA
+ *
+ * \warning  ARC4 is considered a weak cipher and its use
+ *           constitutes a security risk. If possible, it is
+ *           recommended to avoid dependencies on it and
+ *           alternative ciphers should be considered instead.
+ *
  */
 #define POLARSSL_ARC4_C
 
@@ -1722,6 +1734,12 @@
  * Caller:
  *
  * Uncomment to enable support for (rare) MD2-signed X.509 certs.
+ *
+ * \warning  MD2 is considered a weak message digest and its use
+ *           constitutes a security risk. If possible, it is recommended
+ *           to avoid dependencies on it and alternative message digests
+ *           should be considered instead.
+ *
  */
 //#define POLARSSL_MD2_C
 
@@ -1734,6 +1752,12 @@
  * Caller:
  *
  * Uncomment to enable support for (rare) MD4-signed X.509 certs.
+ *
+ * \warning  MD4 is considered a weak message digest and its use
+ *           constitutes a security risk. If possible, it is recommended
+ *           to avoid dependencies on it and alternative message digests
+ *           should be considered instead.
+ *
  */
 //#define POLARSSL_MD4_C
 
@@ -1747,8 +1771,16 @@
  *          library/pem.c
  *          library/ssl_tls.c
  *
- * This module is required for SSL/TLS and X.509.
- * PEM_PARSE uses MD5 for decrypting encrypted keys.
+ * This module is required for SSL/TLS up to version 1.1, and for TLS 1.2
+ * depending on the handshake parameters. Further, it is used for checking
+ * MD5-signed certificates, and for PBKDF1 when decrypting PEM-encoded
+ * encrypted keys.
+ *
+ * \warning  MD5 is considered a weak message digest and its use
+ *           constitutes a security risk. If possible, it is recommended
+ *           to avoid dependencies on it and alternative message digests
+ *           should be considered instead.
+ *
  */
 #define POLARSSL_MD5_C
 
@@ -2025,6 +2057,12 @@
  *          library/x509write_crt.c
  *
  * This module is required for SSL/TLS and SHA1-signed certificates.
+ *
+ * \warning  SHA-1 is considered a weak message digest and its use
+ *           constitutes a security risk. If possible, it is recommended
+ *           to avoid dependencies on it and alternative message digests
+ *           should be considered instead.
+ *
  */
 #define POLARSSL_SHA1_C
 

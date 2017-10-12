@@ -350,7 +350,7 @@ int mbedtls_hmac_drbg_write_seed_file( mbedtls_hmac_drbg_context *ctx, const cha
     if( ( ret = mbedtls_hmac_drbg_random( ctx, buf, sizeof( buf ) ) ) != 0 )
         goto exit;
 
-    if( mbedtls_fwrite( buf, 1, sizeof( buf ), f ) != sizeof( buf ) )
+    if( mbedtls_fwrite( buf, sizeof( buf ), f ) != sizeof( buf ) )
     {
         ret = MBEDTLS_ERR_HMAC_DRBG_FILE_IO_ERROR;
         goto exit;
@@ -385,7 +385,7 @@ int mbedtls_hmac_drbg_update_seed_file( mbedtls_hmac_drbg_context *ctx, const ch
         return( MBEDTLS_ERR_HMAC_DRBG_INPUT_TOO_BIG );
     }
 
-    if( mbedtls_fread( buf, 1, n, f ) != n )
+    if( mbedtls_fread( buf, n, f ) != n )
         ret = MBEDTLS_ERR_HMAC_DRBG_FILE_IO_ERROR;
     else
         mbedtls_hmac_drbg_update( ctx, buf, n );

@@ -31,7 +31,7 @@ void file_open( )
 
     file = mbedtls_fopen( "tmp.txt", "r" );
 
-    ret = mbedtls_fread( buf, 1, sizeof( buf ), file );
+    ret = mbedtls_fread( buf, sizeof( buf ), file );
     TEST_ASSERT( ret > 0 );
     TEST_ASSERT( strcmp( TEST_DATA, buf ) == 0 );
 exit:
@@ -48,7 +48,7 @@ void file_write( )
     FILE * ffile = NULL;
 
     file = mbedtls_fopen( "tmp.txt", "w" );
-    ret = mbedtls_fwrite( TEST_DATA, 1, TEST_DATA_SZ, file );
+    ret = mbedtls_fwrite( TEST_DATA, TEST_DATA_SZ, file );
     mbedtls_fclose( file );
     TEST_ASSERT( ret > 0 );
 
@@ -71,7 +71,7 @@ void file_size( )
     mbedtls_file_t file = MBEDTLS_FILE_INVALID;
 
     file = mbedtls_fopen( "tmp.txt", "w" );
-    ret = mbedtls_fwrite( TEST_DATA, 1, TEST_DATA_SZ, file );
+    ret = mbedtls_fwrite( TEST_DATA, TEST_DATA_SZ, file );
     mbedtls_fclose( file );
     TEST_ASSERT( ret > 0 );
 
@@ -109,7 +109,7 @@ void file_gets()
 
     for ( i = 0; i < sizeof( lines ) / sizeof( char * ); i++ )
     {
-        mbedtls_fwrite( lines[i], 1, strlen( lines[i] ), file );
+        mbedtls_fwrite( lines[i], strlen( lines[i] ), file );
     }
     mbedtls_fclose( file );
 
@@ -139,7 +139,7 @@ void file_empty_file( )
 
     file = mbedtls_fopen( "tmp.txt", "r" );
 
-    ret = mbedtls_fread( buf, 1, sizeof( buf ), file );
+    ret = mbedtls_fread( buf, sizeof( buf ), file );
     TEST_ASSERT( ret == 0 );
 exit:
     mbedtls_fclose( file );
@@ -170,7 +170,7 @@ void file_error( )
 
     file = mbedtls_fopen( "tmp.txt", "r" );
 
-    ret = mbedtls_fwrite( TEST_DATA, 1, TEST_DATA_SZ, file );
+    ret = mbedtls_fwrite( TEST_DATA, TEST_DATA_SZ, file );
     error = mbedtls_ferror( file );
     TEST_ASSERT( ret == 0 );
     TEST_ASSERT( error != 0 );

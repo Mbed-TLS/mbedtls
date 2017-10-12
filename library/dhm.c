@@ -568,7 +568,7 @@ static int load_file( const char *path, unsigned char **buf, size_t *n )
         return( MBEDTLS_ERR_DHM_ALLOC_FAILED );
     }
 
-    if( mbedtls_fread( *buf, 1, *n, f ) != *n )
+    if( mbedtls_fread( *buf, *n, f ) != *n )
     {
         mbedtls_fclose( f );
 

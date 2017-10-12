@@ -113,7 +113,7 @@ int main( int argc, char *argv[] )
     }
 
 
-    i = mbedtls_fread( buf, 1, MBEDTLS_MPI_MAX_SIZE, f );
+    i = mbedtls_fread( buf, MBEDTLS_MPI_MAX_SIZE, f );
 
     mbedtls_fclose( f );
 

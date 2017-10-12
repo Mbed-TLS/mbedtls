@@ -151,7 +151,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    if( mbedtls_fwrite( buf, 1, olen, f ) != olen )
+    if( mbedtls_fwrite( buf, olen, f ) != olen )
     {
         mbedtls_printf( "failed\n  ! mbedtls_fwrite failed\n\n" );
         mbedtls_fclose( f );

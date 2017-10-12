@@ -100,7 +100,7 @@ int main( int argc, char *argv[] )
     }
 
 
-    i = mbedtls_fread( buf, 1, sizeof(buf), f );
+    i = mbedtls_fread( buf, sizeof(buf), f );
 
     mbedtls_fclose( f );
 

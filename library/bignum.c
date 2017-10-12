@@ -661,8 +661,8 @@ int mbedtls_mpi_write_file( const char *p, const mbedtls_mpi *X, int radix, mbed
 
     if( fout != MBEDTLS_FILE_INVALID )
     {
-        if( mbedtls_fwrite( p, 1, plen, fout ) != plen ||
-            mbedtls_fwrite( s, 1, slen, fout ) != slen )
+        if( mbedtls_fwrite( p, plen, fout ) != plen ||
+            mbedtls_fwrite( s, slen, fout ) != slen )
             return( MBEDTLS_ERR_MPI_FILE_IO_ERROR );
     }
     else

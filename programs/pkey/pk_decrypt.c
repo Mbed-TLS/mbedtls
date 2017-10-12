@@ -122,7 +122,7 @@ int main( int argc, char *argv[] )
 
     i = 0;
 
-    while( mbedtls_fread( read_buf, 1, sizeof( read_buf ), f ) > 0 &&
+    while( mbedtls_fread( read_buf, sizeof( read_buf ), f ) > 0 &&
             i < (int) sizeof( buf ) )
     {
         size_t offset = 0;

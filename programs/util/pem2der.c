@@ -144,7 +144,7 @@ static int load_file( const char *path, unsigned char **buf, size_t *n )
         return( -1 );
     }
 
-    if( mbedtls_fread( *buf, 1, *n, f ) != *n )
+    if( mbedtls_fread( *buf, *n, f ) != *n )
     {
         mbedtls_fclose( f );
         free( *buf );
@@ -169,7 +169,7 @@ static int write_file( const char *path, unsigned char *buf, size_t n )
     if( ( f = mbedtls_fopen( path, "wb" ) ) == MBEDTLS_FILE_INVALID )
         return( -1 );
 
-    if( mbedtls_fwrite( buf, 1, n, f ) != n )
+    if( mbedtls_fwrite( buf, n, f ) != n )
     {
         mbedtls_fclose( f );
         return( -1 );

@@ -84,7 +84,7 @@ int main( int argc, char *argv[] )
             goto exit;
         }
 
-        mbedtls_fwrite( buf, sizeof( buf ), 1, f );
+        mbedtls_fwrite( buf, sizeof( buf ), f );
 
         mbedtls_printf( "Generating %ldkb of data in file '%s'... %04.1f" \
                 "%% done\r", (long)(sizeof(buf) * k / 1024), argv[1], (100 * (float) (i + 1)) / k );

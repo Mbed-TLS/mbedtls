@@ -46,9 +46,9 @@ extern "C" {
 #include <dirent.h>
 
 typedef FILE *  mbedtls_file_t;
-#define mbedtls_fread       fread
+#define mbedtls_fread( buf, size, stream )      fread( buf, 1, size, stream )
+#define mbedtls_fwrite( buf, size, stream )     fwrite( buf, 1, size, stream )
 #define mbedtls_fgets       fgets
-#define mbedtls_fwrite      fwrite
 #define mbedtls_fclose      fclose
 #define mbedtls_ferror      ferror
 #define mbedtls_fseek       fseek
@@ -107,41 +107,26 @@ typedef int32_t mbedtls_dir_t;
 #define MBEDTLS_FSIO_DT_UNKNOWN 7
 
 /**
- * \brief          Open file. Follows standard C fopen interface.
- *
- * \param path     File path
- * \param mode     Open mode
- *
- * \return         File handle of type mbedtls_file_t.
- *                 On failure MBEDTLD_FILE_INVALID is returned.
- */
-mbedtls_file_t mbedtls_fopen( const char *path, const char *mode );
-
-/**
  * \brief          Read file. Follows standard C fread interface.
  *
  * \param ptr      Pointer to output buffer
- * \param size     Size of read items.
- * \param nmemb    Number of read items.
+ * \param size     Size of output buffer.
  * \param stream   File handle (mbedtls_file_t).
  *
  * \return         Number of items read.
  */
-size_t mbedtls_fread( void *ptr, size_t size, size_t nmemb,
-                      mbedtls_file_t stream );
+size_t mbedtls_fread( void *ptr, size_t size, mbedtls_file_t stream );
 
 /**
  * \brief          Write file. Follows standard C fwrite interface.
  *
  * \param ptr      Pointer to input buffer
- * \param size     Size of write items.
- * \param nmemb    Number of write items.
+ * \param size     Bytes to write.
  * \param stream   File handle of type mbedtls_file_t.
  *
  * \return         Number of items written.
  */
-size_t mbedtls_fwrite( const void *ptr, size_t size, size_t nmemb,
-                       mbedtls_file_t stream );
+size_t mbedtls_fwrite( const void *ptr, size_t size, mbedtls_file_t stream );
 
 /**
  * \brief          Reads a line from file. Follows standard C fgets interface.

@@ -43,10 +43,7 @@
  *           primes systematically is not always an option. If possible, use
  *           Elliptic Curve Diffie-Hellman (ECDH), which has better performance,
  *           and for which the TLS protocol mandates the use of standard
- *           parameters that were generated in a nothing-up-my-sleeve manner.
- *           We therefore consider DHE a security risk. If possible, it is
- *           recommended users should consider preferring other methods of
- *           key exchange.
+ *           parameters.
  *
  */
 #ifndef MBEDTLS_DHM_H

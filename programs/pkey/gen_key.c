@@ -71,7 +71,7 @@ int dev_random_entropy_poll( void *data, unsigned char *output,
     while( left > 0 )
     {
         /* /dev/random can return much less than requested. If so, try again */
-        ret = mbedtls_fread( p, 1, left, file );
+        ret = mbedtls_fread( p, left, file );
         if( ret == 0 && mbedtls_ferror( file ) )
         {
             mbedtls_fclose( file );
@@ -176,7 +176,7 @@ static int write_private_key( mbedtls_pk_context *key, const char *output_file )
     if( ( f = mbedtls_fopen( output_file, "wb" ) ) == MBEDTLS_FILE_INVALID )
         return( -1 );
 
-    if( mbedtls_fwrite( c, 1, len, f ) != len )
+    if( mbedtls_fwrite( c, len, f ) != len )
     {
         mbedtls_fclose( f );
         return( -1 );

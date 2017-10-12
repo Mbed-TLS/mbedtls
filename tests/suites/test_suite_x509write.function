@@ -72,7 +72,7 @@ void x509_csr_check( char * key_file, char * cert_req_check_file, int md_type,
 
     f = mbedtls_fopen( cert_req_check_file, "r" );
     TEST_ASSERT( f != MBEDTLS_FILE_INVALID );
-    olen = mbedtls_fread( check_buf, 1, sizeof( check_buf ), f );
+    olen = mbedtls_fread( check_buf, sizeof( check_buf ), f );
     mbedtls_fclose( f );
 
     TEST_ASSERT( olen >= pem_len - 1 );
@@ -182,7 +182,7 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
 
     f = mbedtls_fopen( cert_check_file, "r" );
     TEST_ASSERT( f != MBEDTLS_FILE_INVALID );
-    olen = mbedtls_fread( check_buf, 1, sizeof(check_buf), f );
+    olen = mbedtls_fread( check_buf, sizeof( check_buf ), f );
     mbedtls_fclose( f );
     TEST_ASSERT( olen < sizeof(check_buf) );
 

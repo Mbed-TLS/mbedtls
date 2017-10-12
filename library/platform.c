@@ -241,7 +241,7 @@ int mbedtls_platform_std_nv_seed_read( unsigned char *buf, size_t buf_len )
     if( ( file = mbedtls_fopen( MBEDTLS_PLATFORM_STD_NV_SEED_FILE, "rb" ) ) == MBEDTLS_FILE_INVALID )
         return( -1 );
 
-    if( ( n = mbedtls_fread( buf, 1, buf_len, file ) ) != buf_len )
+    if( ( n = mbedtls_fread( buf, buf_len, file ) ) != buf_len )
     {
         mbedtls_fclose( file );
         mbedtls_platform_zeroize( buf, buf_len );
@@ -260,7 +260,7 @@ int mbedtls_platform_std_nv_seed_write( unsigned char *buf, size_t buf_len )
     if( ( file = mbedtls_fopen( MBEDTLS_PLATFORM_STD_NV_SEED_FILE, "w" ) ) == MBEDTLS_FILE_INVALID )
         return( -1 );
 
-    if( ( n = mbedtls_fwrite( buf, 1, buf_len, file ) ) != buf_len )
+    if( ( n = mbedtls_fwrite( buf, buf_len, file ) ) != buf_len )
     {
         mbedtls_fclose( file );
         return( -1 );

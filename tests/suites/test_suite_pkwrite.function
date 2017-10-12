@@ -30,7 +30,7 @@ void pk_write_pubkey_check( char * key_file )
 
     f = mbedtls_fopen( key_file, "r" );
     TEST_ASSERT( f != MBEDTLS_FILE_INVALID );
-    ilen = mbedtls_fread( check_buf, 1, sizeof( check_buf ), f );
+    ilen = mbedtls_fread( check_buf, sizeof( check_buf ), f );
     mbedtls_fclose( f );
 
     TEST_ASSERT( ilen == strlen( (char *) buf ) );
@@ -62,7 +62,7 @@ void pk_write_key_check( char * key_file )
 
     f = mbedtls_fopen( key_file, "r" );
     TEST_ASSERT( f != MBEDTLS_FILE_INVALID );
-    ilen = mbedtls_fread( check_buf, 1, sizeof( check_buf ), f );
+    ilen = mbedtls_fread( check_buf, sizeof( check_buf ), f );
     mbedtls_fclose( f );
 
     TEST_ASSERT( ilen == strlen( (char *) buf ) );

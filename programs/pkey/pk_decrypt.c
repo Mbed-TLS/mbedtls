@@ -125,7 +125,7 @@ int main( int argc, char *argv[] )
     i = 0;
     offset = 0;
     while( ( n = mbedtls_fread( read_buf + offset,
-                    1, sizeof( read_buf ), f ) ) > 0 &&
+                    sizeof( read_buf ), f ) ) > 0 &&
             i < (int) sizeof( buf ) )
     {
         /* Process bytes from previous and current read. offset indicates

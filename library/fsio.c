@@ -81,7 +81,18 @@ int mbedtls_readdir( mbedtls_dir_t dir, char *file_name, uint32_t size,  uint32_
         strncpy( file_name, entry->d_name, size );
         if ( file_name[size - 1] == '\0' ) /* Check if buffer was enough */
         {
-            *type = entry->d_type;
+            switch ( entry->d_type )
+            {
+                case DT_REG:
+                    *type = MBEDTLS_FSIO_DT_FILE;
+                    break;
+                case DT_DIR:
+                    *type = MBEDTLS_FSIO_DT_DIR;
+                    break;
+                default:
+                    *type = MBEDTLS_FSIO_DT_OTHER;
+                    break;
+            }
             status = 0;
         }
         else
@@ -325,30 +336,15 @@ int mbedtls_readdir( mbedtls_dir_t dir, char * dirent, uint32_t size,  uint32_t 
     /* Map serialize dir entry type to fsio abstraction type */
     switch ( *type )
     {
-        case MBEDTLS_SERIALIZE_DT_BLK:
-            *type = MBEDTLS_FSIO_DT_BLK;
-            break;
-        case MBEDTLS_SERIALIZE_DT_CHR:
-            *type = MBEDTLS_FSIO_DT_CHR;
+        case MBEDTLS_SERIALIZE_DT_FILE:
+            *type = MBEDTLS_FSIO_DT_FILE;
             break;
         case MBEDTLS_SERIALIZE_DT_DIR:
             *type = MBEDTLS_FSIO_DT_DIR;
             break;
-        case MBEDTLS_SERIALIZE_DT_FIFO:
-            *type = MBEDTLS_FSIO_DT_FIFO;
-            break;
-        case MBEDTLS_SERIALIZE_DT_LNK:
-            *type = MBEDTLS_FSIO_DT_LNK;
-            break;
-        case MBEDTLS_SERIALIZE_DT_REG:
-            *type = MBEDTLS_FSIO_DT_REG;
-            break;
-        case MBEDTLS_SERIALIZE_DT_SOCK:
-            *type = MBEDTLS_FSIO_DT_SOCK;
-            break;
-        case MBEDTLS_SERIALIZE_DT_UNKNOWN:
+        case MBEDTLS_SERIALIZE_DT_OTHER:
         default:
-            *type = MBEDTLS_FSIO_DT_UNKNOWN;
+            *type = MBEDTLS_FSIO_DT_OTHER;
             break;
     }
     return( 0 );

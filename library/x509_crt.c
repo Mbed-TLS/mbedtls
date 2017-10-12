@@ -1208,7 +1208,7 @@ cleanup:
     while( mbedtls_readdir( dir, entry_name + entry_offset,
            sizeof( entry_name ) - entry_offset, &dt ) == 0 )
     {
-        if( dt != MBEDTLS_FSIO_DT_REG )
+        if( dt != MBEDTLS_FSIO_DT_FILE )
             continue;
 
         // Ignore parse errors

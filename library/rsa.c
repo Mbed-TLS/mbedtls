@@ -137,8 +137,15 @@ cleanup:
  * that the RSA primitives will be able to execute without error.
  * It does *not* make guarantees for consistency of the parameters.
  */
-static int rsa_check_context( mbedtls_rsa_context const *ctx, int is_priv )
+static int rsa_check_context( mbedtls_rsa_context const *ctx, int is_priv,
+                              int blinding_needed )
 {
+#if !defined(MBEDTLS_RSA_NO_CRT)
+    /* blinding_needed is only used for NO_CRT to decide whether
+     * P,Q need to be present or not. */
+    ((void) blinding_needed);
+#endif
+
     if( ctx->len != mbedtls_mpi_size( &ctx->N ) )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
@@ -194,7 +201,7 @@ static int rsa_check_context( mbedtls_rsa_context const *ctx, int is_priv )
      * so check that P, Q >= 1 if that hasn't yet been
      * done as part of 1. */
 #if defined(MBEDTLS_RSA_NO_CRT)
-    if( is_priv &&
+    if( is_priv && blinding_needed &&
         ( mbedtls_mpi_cmp_int( &ctx->P, 0 ) <= 0 ||
           mbedtls_mpi_cmp_int( &ctx->Q, 0 ) <= 0 ) )
     {
@@ -303,7 +310,7 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx )
      * Step 3: Basic sanity checks
      */
 
-    return( rsa_check_context( ctx, is_priv ) );
+    return( rsa_check_context( ctx, is_priv, 1 ) );
 }
 
 int mbedtls_rsa_export_raw( const mbedtls_rsa_context *ctx,
@@ -563,7 +570,7 @@ cleanup:
  */
 int mbedtls_rsa_check_pubkey( const mbedtls_rsa_context *ctx )
 {
-    if( rsa_check_context( ctx, 0 /* public */ ) != 0 )
+    if( rsa_check_context( ctx, 0 /* public */, 0 /* no blinding */ ) != 0 )
         return( MBEDTLS_ERR_RSA_KEY_CHECK_FAILED );
 
     if( mbedtls_mpi_bitlen( &ctx->N ) < 128 ||
@@ -588,7 +595,7 @@ int mbedtls_rsa_check_pubkey( const mbedtls_rsa_context *ctx )
 int mbedtls_rsa_check_privkey( const mbedtls_rsa_context *ctx )
 {
     if( mbedtls_rsa_check_pubkey( ctx ) != 0 ||
-        rsa_check_context( ctx, 1 /* private */ ) != 0 )
+        rsa_check_context( ctx, 1 /* private */, 1 /* blinding */ ) != 0 )
     {
         return( MBEDTLS_ERR_RSA_KEY_CHECK_FAILED );
     }
@@ -642,7 +649,7 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
     size_t olen;
     mbedtls_mpi T;
 
-    if( rsa_check_context( ctx, 0 /* public */ ) )
+    if( rsa_check_context( ctx, 0 /* public */, 0 /* no blinding */ ) )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
     mbedtls_mpi_init( &T );
@@ -761,8 +768,11 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
     mbedtls_mpi *DQ = &ctx->DQ;
 #endif
 
-    if( rsa_check_context( ctx, 1 /* private */ ) != 0 )
+    if( rsa_check_context( ctx, 1             /* private key checks */,
+                                f_rng != NULL /* blinding y/n       */ ) != 0 )
+    {
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    }
 
     mbedtls_mpi_init( &T ); mbedtls_mpi_init( &T1 ); mbedtls_mpi_init( &T2 );
     mbedtls_mpi_init( &P1 ); mbedtls_mpi_init( &Q1 ); mbedtls_mpi_init( &R );

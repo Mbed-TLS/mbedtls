@@ -3968,10 +3968,10 @@ run_test    "SSLv3 with extensions, server side" \
             -S "dumping 'client hello extensions'" \
             -S "server hello, total extension length:"
 
-# Test for large packets
+# Test for large client packets
 
 requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
-run_test    "Large packet SSLv3 BlockCipher" \
+run_test    "Large client packet SSLv3 BlockCipher" \
             "$P_SRV min_version=ssl3" \
             "$P_CLI request_size=16384 force_version=ssl3 recsplit=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
@@ -3980,7 +3980,7 @@ run_test    "Large packet SSLv3 BlockCipher" \
             -s "Read from client: 16384 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
-run_test    "Large packet SSLv3 StreamCipher" \
+run_test    "Large client packet SSLv3 StreamCipher" \
             "$P_SRV min_version=ssl3 arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=ssl3 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
@@ -3988,7 +3988,7 @@ run_test    "Large packet SSLv3 StreamCipher" \
             -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
-run_test    "Large packet TLS 1.0 BlockCipher" \
+run_test    "Large client packet TLS 1.0 BlockCipher" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1 recsplit=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
@@ -3996,7 +3996,7 @@ run_test    "Large packet TLS 1.0 BlockCipher" \
             -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
-run_test    "Large packet TLS 1.0 BlockCipher, without EtM" \
+run_test    "Large client packet TLS 1.0 BlockCipher, without EtM" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1 etm=0 recsplit=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
@@ -4004,7 +4004,7 @@ run_test    "Large packet TLS 1.0 BlockCipher, without EtM" \
             -s "Read from client: 16384 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Large packet TLS 1.0 BlockCipher, truncated MAC" \
+run_test    "Large client packet TLS 1.0 BlockCipher, truncated MAC" \
             "$P_SRV trunc_hmac=1" \
             "$P_CLI request_size=16384 force_version=tls1 recsplit=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1" \
@@ -4013,21 +4013,21 @@ run_test    "Large packet TLS 1.0 BlockCipher, truncated MAC" \
             -s "Read from client: 16384 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Large packet TLS 1.0 BlockCipher, without EtM, truncated MAC" \
+run_test    "Large client packet TLS 1.0 BlockCipher, without EtM, truncated MAC" \
             "$P_SRV trunc_hmac=1" \
             "$P_CLI request_size=16384 force_version=tls1 etm=0 recsplit=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1" \
             0 \
             -s "Read from client: 16384 bytes read"
 
-run_test    "Large packet TLS 1.0 StreamCipher" \
+run_test    "Large client packet TLS 1.0 StreamCipher" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=tls1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             0 \
             -s "Read from client: 16384 bytes read"
 
-run_test    "Large packet TLS 1.0 StreamCipher, without EtM" \
+run_test    "Large client packet TLS 1.0 StreamCipher, without EtM" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=tls1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA etm=0" \
@@ -4035,7 +4035,7 @@ run_test    "Large packet TLS 1.0 StreamCipher, without EtM" \
             -s "Read from client: 16384 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Large packet TLS 1.0 StreamCipher, truncated MAC" \
+run_test    "Large client packet TLS 1.0 StreamCipher, truncated MAC" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
             "$P_CLI request_size=16384 force_version=tls1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
@@ -4043,7 +4043,7 @@ run_test    "Large packet TLS 1.0 StreamCipher, truncated MAC" \
             -s "Read from client: 16384 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Large packet TLS 1.0 StreamCipher, without EtM, truncated MAC" \
+run_test    "Large client packet TLS 1.0 StreamCipher, without EtM, truncated MAC" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
             "$P_CLI request_size=16384 force_version=tls1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1 etm=0" \
@@ -4051,7 +4051,7 @@ run_test    "Large packet TLS 1.0 StreamCipher, without EtM, truncated MAC" \
             -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
-run_test    "Large packet TLS 1.1 BlockCipher" \
+run_test    "Large client packet TLS 1.1 BlockCipher" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
@@ -4059,7 +4059,7 @@ run_test    "Large packet TLS 1.1 BlockCipher" \
             -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
-run_test    "Large packet TLS 1.1 BlockCipher, without EtM" \
+run_test    "Large client packet TLS 1.1 BlockCipher, without EtM" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1_1 etm=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
@@ -4067,7 +4067,7 @@ run_test    "Large packet TLS 1.1 BlockCipher, without EtM" \
             -s "Read from client: 16384 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Large packet TLS 1.1 BlockCipher, truncated MAC" \
+run_test    "Large client packet TLS 1.1 BlockCipher, truncated MAC" \
             "$P_SRV trunc_hmac=1" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1" \
@@ -4075,14 +4075,14 @@ run_test    "Large packet TLS 1.1 BlockCipher, truncated MAC" \
             -s "Read from client: 16384 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Large packet TLS 1.1 BlockCipher, without EtM, truncated MAC" \
+run_test    "Large client packet TLS 1.1 BlockCipher, without EtM, truncated MAC" \
             "$P_SRV trunc_hmac=1" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1 etm=0" \
             0 \
             -s "Read from client: 16384 bytes read"
 
-run_test    "Large packet TLS 1.1 StreamCipher" \
+run_test    "Large client packet TLS 1.1 StreamCipher" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
@@ -4090,7 +4090,7 @@ run_test    "Large packet TLS 1.1 StreamCipher" \
             -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
-run_test    "Large packet TLS 1.1 StreamCipher, without EtM" \
+run_test    "Large client packet TLS 1.1 StreamCipher, without EtM" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA etm=0" \
@@ -4099,7 +4099,7 @@ run_test    "Large packet TLS 1.1 StreamCipher, without EtM" \
             -s "Read from client: 16384 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Large packet TLS 1.1 StreamCipher, truncated MAC" \
+run_test    "Large client packet TLS 1.1 StreamCipher, truncated MAC" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
@@ -4107,7 +4107,7 @@ run_test    "Large packet TLS 1.1 StreamCipher, truncated MAC" \
             -s "Read from client: 16384 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Large packet TLS 1.1 StreamCipher, without EtM, truncated MAC" \
+run_test    "Large client packet TLS 1.1 StreamCipher, without EtM, truncated MAC" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1 etm=0" \
@@ -4115,7 +4115,7 @@ run_test    "Large packet TLS 1.1 StreamCipher, without EtM, truncated MAC" \
             -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
-run_test    "Large packet TLS 1.2 BlockCipher" \
+run_test    "Large client packet TLS 1.2 BlockCipher" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
@@ -4123,14 +4123,14 @@ run_test    "Large packet TLS 1.2 BlockCipher" \
             -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
-run_test    "Large packet TLS 1.2 BlockCipher, without EtM" \
+run_test    "Large client packet TLS 1.2 BlockCipher, without EtM" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1_2 etm=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
             -s "Read from client: 16384 bytes read"
 
-run_test    "Large packet TLS 1.2 BlockCipher larger MAC" \
+run_test    "Large client packet TLS 1.2 BlockCipher larger MAC" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA384" \
@@ -4139,7 +4139,7 @@ run_test    "Large packet TLS 1.2 BlockCipher larger MAC" \
             -s "Read from client: 16384 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Large packet TLS 1.2 BlockCipher, truncated MAC" \
+run_test    "Large client packet TLS 1.2 BlockCipher, truncated MAC" \
             "$P_SRV trunc_hmac=1" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1" \
@@ -4147,7 +4147,7 @@ run_test    "Large packet TLS 1.2 BlockCipher, truncated MAC" \
             -s "Read from client: 16384 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Large packet TLS 1.2 BlockCipher, without EtM, truncated MAC" \
+run_test    "Large client packet TLS 1.2 BlockCipher, without EtM, truncated MAC" \
             "$P_SRV trunc_hmac=1" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1 etm=0" \
@@ -4155,7 +4155,7 @@ run_test    "Large packet TLS 1.2 BlockCipher, without EtM, truncated MAC" \
             -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
-run_test    "Large packet TLS 1.2 StreamCipher" \
+run_test    "Large client packet TLS 1.2 StreamCipher" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
@@ -4163,7 +4163,7 @@ run_test    "Large packet TLS 1.2 StreamCipher" \
             -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
-run_test    "Large packet TLS 1.2 StreamCipher, without EtM" \
+run_test    "Large client packet TLS 1.2 StreamCipher, without EtM" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA etm=0" \
@@ -4171,7 +4171,7 @@ run_test    "Large packet TLS 1.2 StreamCipher, without EtM" \
             -s "Read from client: 16384 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Large packet TLS 1.2 StreamCipher, truncated MAC" \
+run_test    "Large client packet TLS 1.2 StreamCipher, truncated MAC" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
@@ -4179,7 +4179,7 @@ run_test    "Large packet TLS 1.2 StreamCipher, truncated MAC" \
             -s "Read from client: 16384 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Large packet TLS 1.2 StreamCipher, without EtM, truncated MAC" \
+run_test    "Large client packet TLS 1.2 StreamCipher, without EtM, truncated MAC" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1 etm=0" \
@@ -4187,7 +4187,7 @@ run_test    "Large packet TLS 1.2 StreamCipher, without EtM, truncated MAC" \
             -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
-run_test    "Large packet TLS 1.2 AEAD" \
+run_test    "Large client packet TLS 1.2 AEAD" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CCM" \
@@ -4195,13 +4195,146 @@ run_test    "Large packet TLS 1.2 AEAD" \
             -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
-run_test    "Large packet TLS 1.2 AEAD shorter tag" \
+run_test    "Large client packet TLS 1.2 AEAD shorter tag" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CCM-8" \
             0 \
             -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
+
+# Test for large server packets
+
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
+run_test    "Large server packet SSLv3 BlockCipher" \
+            "$P_SRV response_size=16384 min_version=ssl3" \
+            "$P_CLI force_version=ssl3 recsplit=0 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
+            0 \
+            -c "Read from server: 16384 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
+run_test    "Large server packet SSLv3 StreamCipher" \
+            "$P_SRV response_size=16384 min_version=ssl3 arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
+            "$P_CLI force_version=ssl3 \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
+            0 \
+            -c "Read from server: 16384 bytes read"
+
+# Checking next 2 tests logs for 1n-1 split against BEAST too
+run_test    "Large server packet TLS 1.0 BlockCipher" \
+            "$P_SRV response_size=16384" \
+            "$P_CLI force_version=tls1 recsplit=0 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
+            0 \
+            -c "Read from server: 1 bytes read"\
+            -c "16383 bytes read"\
+            -C "Read from server: 16384 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Large server packet TLS 1.0 BlockCipher truncated MAC" \
+            "$P_SRV response_size=16384" \
+            "$P_CLI force_version=tls1 recsplit=0 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA \
+             trunc_hmac=1" \
+            0 \
+            -c "Read from server: 1 bytes read"\
+            -c "16383 bytes read"\
+            -C "Read from server: 16384 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Large server packet TLS 1.0 StreamCipher truncated MAC" \
+            "$P_SRV response_size=16384 arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
+            "$P_CLI force_version=tls1 \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
+             trunc_hmac=1" \
+            0 \
+            -c "Read from server: 16384 bytes read"
+
+run_test    "Large server packet TLS 1.1 BlockCipher" \
+            "$P_SRV response_size=16384" \
+            "$P_CLI force_version=tls1_1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
+            0 \
+            -c "Read from server: 16384 bytes read"
+
+run_test    "Large server packet TLS 1.1 StreamCipher" \
+            "$P_SRV response_size=16384 arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
+            "$P_CLI force_version=tls1_1 \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
+            0 \
+            -c "Read from server: 16384 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Large server packet TLS 1.1 BlockCipher truncated MAC" \
+            "$P_SRV response_size=16384" \
+            "$P_CLI force_version=tls1_1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA \
+             trunc_hmac=1" \
+            0 \
+            -c "Read from server: 16384 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Large server packet TLS 1.1 StreamCipher truncated MAC" \
+            "$P_SRV response_size=16384 arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
+            "$P_CLI force_version=tls1_1 \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
+             trunc_hmac=1" \
+            0 \
+            -c "Read from server: 16384 bytes read"
+
+run_test    "Large server packet TLS 1.2 BlockCipher" \
+            "$P_SRV response_size=16384" \
+            "$P_CLI force_version=tls1_2 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
+            0 \
+            -c "Read from server: 16384 bytes read"
+
+run_test    "Large server packet TLS 1.2 BlockCipher larger MAC" \
+            "$P_SRV response_size=16384" \
+            "$P_CLI force_version=tls1_2 \
+             force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA384" \
+            0 \
+            -c "Read from server: 16384 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Large server packet TLS 1.2 BlockCipher truncated MAC" \
+            "$P_SRV response_size=16384" \
+            "$P_CLI force_version=tls1_2 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA \
+             trunc_hmac=1" \
+            0 \
+            -c "Read from server: 16384 bytes read"
+
+run_test    "Large server packet TLS 1.2 StreamCipher" \
+            "$P_SRV response_size=16384 arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
+            "$P_CLI force_version=tls1_2 \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
+            0 \
+            -c "Read from server: 16384 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Large server packet TLS 1.2 StreamCipher truncated MAC" \
+            "$P_SRV response_size=16384 arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
+            "$P_CLI force_version=tls1_2 \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
+             trunc_hmac=1" \
+            0 \
+            -c "Read from server: 16384 bytes read"
+
+run_test    "Large server packet TLS 1.2 AEAD" \
+            "$P_SRV response_size=16384" \
+            "$P_CLI force_version=tls1_2 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CCM" \
+            0 \
+            -c "Read from server: 16384 bytes read"
+
+run_test    "Large server packet TLS 1.2 AEAD shorter tag" \
+            "$P_SRV response_size=16384" \
+            "$P_CLI force_version=tls1_2 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CCM-8" \
+            0 \
+            -c "Read from server: 16384 bytes read"
 
 # Tests of asynchronous private key support in SSL
 

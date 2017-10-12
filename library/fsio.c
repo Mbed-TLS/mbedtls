@@ -145,25 +145,19 @@ mbedtls_file_t mbedtls_fopen( const char *path, const char *mode )
  * \brief          Read file. Follows standard C fread interface.
  *
  * \param ptr      Pointer to output buffer
- * \param size     Size of read items.
- * \param nmemb    Number of read items.
+ * \param size     Size of output buffer
  * \param stream   File handle of type mbedtls_file_t.
  *
  * \return         Number of items read.
  */
-size_t mbedtls_fread( void *ptr, size_t size, size_t nmemb,
-                      mbedtls_file_t stream )
+size_t mbedtls_fread( void *ptr, size_t size, mbedtls_file_t stream )
 {
     size_t read = 0;
 
-    /* Only byte size items allowed */
-    if ( size != 1 )
-        return( -1 );
-
     CHECK_STATUS( mbedtls_serialize_push_int32( stream ), 0, 0 );
-    CHECK_STATUS( mbedtls_serialize_push_int32( nmemb ), 0, 0 );
+    CHECK_STATUS( mbedtls_serialize_push_int32( size ), 0, 0 );
     CHECK_STATUS( mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_FREAD ), 0, 0 );
-    CHECK_STATUS( mbedtls_serialize_pop_buffer( ptr, nmemb, &read ), 0, 0 );
+    CHECK_STATUS( mbedtls_serialize_pop_buffer( ptr, size, &read ), 0, 0 );
     return( read );
 }
 
@@ -171,23 +165,17 @@ size_t mbedtls_fread( void *ptr, size_t size, size_t nmemb,
  * \brief          Write file. Follows standard C fwrite interface.
  *
  * \param ptr      Pointer to input buffer
- * \param size     Size of write items.
- * \param nmemb    Number of write items.
+ * \param size     Bytes to write
  * \param stream   File handle of type mbedtls_file_t.
  *
  * \return         Number of items written.
  */
-size_t mbedtls_fwrite( const void *ptr, size_t size, size_t nmemb,
-                       mbedtls_file_t stream )
+size_t mbedtls_fwrite( const void *ptr, size_t size, mbedtls_file_t stream )
 {
     uint32_t written = 0;
 
-    /* Only byte size items allowed */
-    if ( size != 1 )
-        return( -1 );
-
     CHECK_STATUS( mbedtls_serialize_push_int32( stream ), 0, 0 );
-    CHECK_STATUS( mbedtls_serialize_push_buffer( ptr, nmemb ), 0, 0 );
+    CHECK_STATUS( mbedtls_serialize_push_buffer( ptr, size ), 0, 0 );
     CHECK_STATUS( mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_FWRITE ), 0, 0 );
     CHECK_STATUS( mbedtls_serialize_pop_int32( &written ), 0, 0 );
     return( written );

@@ -68,13 +68,14 @@
  * The above constants may be used even if the RSA module is compile out,
  * eg for alternative (PKCS#11) RSA implemenations in the PK layers.
  */
-#if defined(MBEDTLS_RSA_C)
+
+#if !defined(MBEDTLS_RSA_ALT)
+// Regular implementation
+//
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#if !defined(MBEDTLS_RSA_ALT)
 
 /**
  * \brief   RSA context structure
@@ -124,12 +125,6 @@ typedef struct
 #endif
 }
 mbedtls_rsa_context;
-
-#else
-
-#include "rsa_alt.h"
-
-#endif /* MBEDTLS_RSA_ALT */
 
 /**
  * \brief          Initialize an RSA context
@@ -928,6 +923,18 @@ int mbedtls_rsa_copy( mbedtls_rsa_context *dst, const mbedtls_rsa_context *src )
  */
 void mbedtls_rsa_free( mbedtls_rsa_context *ctx );
 
+#ifdef __cplusplus
+}
+#endif
+
+#else  /* MBEDTLS_RSA_ALT */
+#include "rsa_alt.h"
+#endif /* MBEDTLS_RSA_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief          Checkup routine
  *
@@ -938,7 +945,5 @@ int mbedtls_rsa_self_test( int verbose );
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* MBEDTLS_RSA_C */
 
 #endif /* rsa.h */

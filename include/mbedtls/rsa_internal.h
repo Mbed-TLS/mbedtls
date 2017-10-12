@@ -58,8 +58,6 @@
 
 #include "bignum.h"
 
-#if defined(MBEDTLS_RSA_C)
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -212,8 +210,5 @@ int mbedtls_rsa_validate_params( const mbedtls_mpi *N, const mbedtls_mpi *P,
 int mbedtls_rsa_validate_crt( const mbedtls_mpi *P,  const mbedtls_mpi *Q,
                               const mbedtls_mpi *D,  const mbedtls_mpi *DP,
                               const mbedtls_mpi *DQ, const mbedtls_mpi *QP );
-
-
-#endif /* MBEDTLS_RSA_C */
 
 #endif /* rsa_internal.h */

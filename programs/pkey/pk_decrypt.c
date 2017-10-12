@@ -78,32 +78,35 @@ int main( int argc, char *argv[] )
         polarssl_printf( "usage: pk_decrypt <key_file>\n" );
 
 #if defined(_WIN32)
-        polarssl_printf( "\n" );
+        polarssl_printf( "\n  + Press Enter to exit this program.\n" );
+        fflush( stdout ); getchar();
 #endif
 
-        goto exit;
+        return( 1 );
     }
+
+    pk_init( &pk );
+    entropy_init( &entropy );
 
     polarssl_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
-    entropy_init( &entropy );
     if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        polarssl_printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
+        polarssl_printf( " failed\n  ! ctr_drbg_init returned %d\n",
+                         ret );
         goto exit;
     }
 
     polarssl_printf( "\n  . Reading private key from '%s'", argv[1] );
     fflush( stdout );
 
-    pk_init( &pk );
-
     if( ( ret = pk_parse_keyfile( &pk, argv[1], "" ) ) != 0 )
     {
-        polarssl_printf( " failed\n  ! pk_parse_keyfile returned -0x%04x\n", -ret );
+        polarssl_printf( " failed\n  ! pk_parse_keyfile returned -0x%04x\n",
+                         -ret );
         goto exit;
     }
 
@@ -118,11 +121,11 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    i = 0;
-
-    while( fscanf( f, "%02X", &c ) > 0 &&
-           i < (int) sizeof( buf ) )
-        buf[i++] = (unsigned char) c;
+    for( i = 0; fscanf( f, "%02X", &c ) > 0 &&
+                i < (int) sizeof( buf ); i++ )
+    {
+        buf[i] = (unsigned char) c;
+    }
 
     fclose( f );
 
@@ -132,26 +135,30 @@ int main( int argc, char *argv[] )
     polarssl_printf( "\n  . Decrypting the encrypted data" );
     fflush( stdout );
 
-    if( ( ret = pk_decrypt( &pk, buf, i, result, &olen, sizeof(result),
+    if( ( ret = pk_decrypt( &pk, buf, i, result, &olen, sizeof( result ),
                             ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
-        polarssl_printf( " failed\n  ! pk_decrypt returned -0x%04x\n", -ret );
+        polarssl_printf( " failed\n  ! pk_decrypt returned -0x%04x\n",
+                         -ret );
         goto exit;
     }
 
     polarssl_printf( "\n  . OK\n\n" );
 
     polarssl_printf( "The decrypted result is: '%s'\n\n", result );
-
     ret = 0;
 
 exit:
-    ctr_drbg_free( &ctr_drbg );
+    pk_free( &pk );
     entropy_free( &entropy );
+    ctr_drbg_free( &ctr_drbg );
 
 #if defined(POLARSSL_ERROR_C)
-    polarssl_strerror( ret, (char *) buf, sizeof(buf) );
-    polarssl_printf( "  !  Last error was: %s\n", buf );
+    if( ret != 0 )
+    {
+        polarssl_strerror( ret, (char *) buf, sizeof( buf ) );
+        polarssl_printf( "  !  Last error was: %s\n", buf );
+    }
 #endif
 
 #if defined(_WIN32)

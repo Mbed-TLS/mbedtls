@@ -76,32 +76,35 @@ int main( int argc, char *argv[] )
         polarssl_printf( "usage: pk_encrypt <key_file> <string of max 100 characters>\n" );
 
 #if defined(_WIN32)
-        polarssl_printf( "\n" );
+        polarssl_printf( "\n  + Press Enter to exit this program.\n" );
+        fflush( stdout ); getchar();
 #endif
 
-        goto exit;
+        return( 1 );
     }
+
+    entropy_init( &entropy );
+    pk_init( &pk );
 
     polarssl_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
-    entropy_init( &entropy );
-    if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
-                               (const unsigned char *) pers,
+    if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func,
+                               &entropy, (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        polarssl_printf( " failed\n  ! ctr_drbg_init returned -0x%04x\n", -ret );
+        polarssl_printf( " failed\n  ! ctr_drbg_seed returned -0x%04x\n",
+                        -ret );
         goto exit;
     }
 
     polarssl_printf( "\n  . Reading public key from '%s'", argv[1] );
     fflush( stdout );
 
-    pk_init( &pk );
-
     if( ( ret = pk_parse_public_keyfile( &pk, argv[1] ) ) != 0 )
     {
-        polarssl_printf( " failed\n  ! pk_parse_public_keyfile returned -0x%04x\n", -ret );
+        polarssl_printf( " failed\n  ! pk_parse_public_keyfile returned "
+                         "-0x%04x\n", -ret );
         goto exit;
     }
 
@@ -123,7 +126,8 @@ int main( int argc, char *argv[] )
                             buf, &olen, sizeof(buf),
                             ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
-        polarssl_printf( " failed\n  ! pk_encrypt returned -0x%04x\n", -ret );
+        polarssl_printf( " failed\n  ! pk_encrypt returned -0x%04x\n",
+                         -ret );
         goto exit;
     }
 
@@ -133,25 +137,33 @@ int main( int argc, char *argv[] )
     if( ( f = fopen( "result-enc.txt", "wb+" ) ) == NULL )
     {
         ret = 1;
-        polarssl_printf( " failed\n  ! Could not create %s\n\n", "result-enc.txt" );
+        polarssl_printf( " failed\n  ! Could not create %s\n\n",
+                         "result-enc.txt" );
         goto exit;
     }
 
     for( i = 0; i < olen; i++ )
+    {
         polarssl_fprintf( f, "%02X%s", buf[i],
-                 ( i + 1 ) % 16 == 0 ? "\r\n" : " " );
+                         ( i + 1 ) % 16 == 0 ? "\r\n" : " " );
+    }
 
     fclose( f );
 
     polarssl_printf( "\n  . Done (created \"%s\")\n\n", "result-enc.txt" );
 
 exit:
-    ctr_drbg_free( &ctr_drbg );
+
+    pk_free( &pk );
     entropy_free( &entropy );
+    ctr_drbg_free( &ctr_drbg );
 
 #if defined(POLARSSL_ERROR_C)
-    polarssl_strerror( ret, (char *) buf, sizeof(buf) );
-    polarssl_printf( "  !  Last error was: %s\n", buf );
+    if( ret != 0 )
+    {
+        polarssl_strerror( ret, (char *) buf, sizeof( buf ) );
+        polarssl_printf( "  !  Last error was: %s\n", buf );
+    }
 #endif
 
 #if defined(_WIN32)

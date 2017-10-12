@@ -2,6 +2,23 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
+Enhancement
+   * Only check for necessary RSA structure fields in `mbedtls_rsa_private`. In
+     particular, don't require P,Q if neither CRT nor blinding are
+     used. Reported and fix proposed independently by satur9nine and sliai
+     on GitHub.
+
+API Changes
+   * Extend RSA interface by multiple functions allowing structure-
+     independent setup and export of RSA contexts. Most notably,
+     mbedtls_rsa_import and mbedtls_rsa_complete are introduced for setting
+     up RSA contexts from partial key material and having them completed to the
+     needs of the implementation automatically. This allows to setup RSA
+     contexts from keys consisting of N,D,E only, even if P,Q are needed for the
+     purpose or CRT and/or blinding.
+
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
 Features
    * Add the functions mbedtls_platform_setup() and mbedtls_platform_teardown()
      and the context struct mbedtls_platform_context to perform

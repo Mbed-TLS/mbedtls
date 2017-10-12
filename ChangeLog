@@ -2,6 +2,15 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
+Bugfix
+   * Restrict usage of error code MBEDTLS_ERR_SSL_WANT_READ to situations
+     where data needs to be fetched from the underlying transport in order
+     to make progress. Previously, this error code was also occasionally
+     returned when unexpected messages were being discarded, ignoring that
+     further messages could potentially already be pending to be processed
+     in the internal buffers; these cases lead to deadlocks in case
+     event-driven I/O was used. Found by Hubert Mis.
+
 API changes
    * Add function mbedtls_net_poll to public API allowing to wait for a
      network context to become ready for reading or writing.

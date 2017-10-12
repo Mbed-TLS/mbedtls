@@ -125,15 +125,10 @@ extern "C" {
 #define MBEDTLS_SERIALIZE_FSEEK_CUR     1
 #define MBEDTLS_SERIALIZE_FSEEK_END     2
 
-/** dir entry type for readdir function */
-#define MBEDTLS_SERIALIZE_DT_BLK        0
-#define MBEDTLS_SERIALIZE_DT_CHR        1
-#define MBEDTLS_SERIALIZE_DT_DIR        2
-#define MBEDTLS_SERIALIZE_DT_FIFO       3
-#define MBEDTLS_SERIALIZE_DT_LNK        4
-#define MBEDTLS_SERIALIZE_DT_REG        5
-#define MBEDTLS_SERIALIZE_DT_SOCK       6
-#define MBEDTLS_SERIALIZE_DT_UNKNOWN    7
+/** Supported dir entry types for readdir function */
+#define MBEDTLS_SERIALIZE_DT_FILE       0
+#define MBEDTLS_SERIALIZE_DT_DIR        1
+#define MBEDTLS_SERIALIZE_DT_OTHER      2
 
 /** Flag for MBEDTLS_SERIALIZE_FUNCTION_SOCKET to indicate connect vs bind */
 #define MBEDTLS_SERIALIZE_SOCKET_DIRECTION_MASK  0x8000

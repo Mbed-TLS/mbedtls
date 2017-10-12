@@ -40,6 +40,13 @@ extern "C" {
 /* If MBEDTLS_FS_IO is enabled then file IO functions should be made available
  * via standard library or platform specific implementation. */
 
+/**
+ * Abstract file types emitted by mbedtls_readdir().
+ */
+#define MBEDTLS_FSIO_DT_FILE    0
+#define MBEDTLS_FSIO_DT_DIR     1
+#define MBEDTLS_FSIO_DT_OTHER   2
+
 /* Default and alternative implementation specific interfaces. */
 #if !defined(MBEDTLS_FS_IO_ALT)
 #include <stdio.h>
@@ -61,14 +68,6 @@ typedef FILE *  mbedtls_file_t;
 typedef DIR *   mbedtls_dir_t;
 #define mbedtls_opendir         opendir
 #define mbedtls_closedir        closedir
-#define MBEDTLS_FSIO_DT_BLK     DT_BLK
-#define MBEDTLS_FSIO_DT_CHR     DT_CHR
-#define MBEDTLS_FSIO_DT_DIR     DT_DIR
-#define MBEDTLS_FSIO_DT_FIFO    DT_FIFO
-#define MBEDTLS_FSIO_DT_LNK     DT_LNK
-#define MBEDTLS_FSIO_DT_REG     DT_REG
-#define MBEDTLS_FSIO_DT_SOCK    DT_SOCK
-#define MBEDTLS_FSIO_DT_UNKNOWN DT_UNKNOWN
 #define MBEDTLS_DIR_INVALID     NULL
 
 #else /* !MBEDTLS_FS_IO_ALT */
@@ -93,18 +92,6 @@ typedef int32_t mbedtls_dir_t;
 #define MBEDTLS_SEEK_SET    0
 #define MBEDTLS_SEEK_CUR    1
 #define MBEDTLS_SEEK_END    2
-
-/**
- * Definition of dir entry types required by mbedtls_readdir().
- */
-#define MBEDTLS_FSIO_DT_BLK     0
-#define MBEDTLS_FSIO_DT_CHR     1
-#define MBEDTLS_FSIO_DT_DIR     2
-#define MBEDTLS_FSIO_DT_FIFO    3
-#define MBEDTLS_FSIO_DT_LNK     4
-#define MBEDTLS_FSIO_DT_REG     5
-#define MBEDTLS_FSIO_DT_SOCK    6
-#define MBEDTLS_FSIO_DT_UNKNOWN 7
 
 /**
  * \brief          Read file. Follows standard C fread interface.

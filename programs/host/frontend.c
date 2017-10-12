@@ -719,30 +719,14 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
                             /* map entry type to serialize type */
                             switch ( entry->d_type )
                             {
-                                case DT_BLK:
-                                    type = MBEDTLS_SERIALIZE_DT_BLK;
-                                    break;
-                                case DT_CHR:
-                                    type = MBEDTLS_SERIALIZE_DT_CHR;
-                                    break;
                                 case DT_DIR:
                                     type = MBEDTLS_SERIALIZE_DT_DIR;
                                     break;
-                                case DT_FIFO:
-                                    type = MBEDTLS_SERIALIZE_DT_FIFO;
-                                    break;
-                                case DT_LNK:
-                                    type = MBEDTLS_SERIALIZE_DT_LNK;
-                                    break;
                                 case DT_REG:
-                                    type = MBEDTLS_SERIALIZE_DT_REG;
+                                    type = MBEDTLS_SERIALIZE_DT_FILE;
                                     break;
-                                case DT_SOCK:
-                                    type = MBEDTLS_SERIALIZE_DT_SOCK;
-                                    break;
-                                case DT_UNKNOWN:
                                 default:
-                                    type = MBEDTLS_SERIALIZE_DT_UNKNOWN;
+                                    type = MBEDTLS_SERIALIZE_DT_OTHER;
                                     break;
                             }
                             ALLOC_OUTPUT( 0, sizeof (int32_t) );

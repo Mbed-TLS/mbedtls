@@ -410,8 +410,13 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
 #endif
 
     /* Make sure we have private key info, prevent possible misuse */
-    if( ctx->P.p == NULL || ctx->Q.p == NULL || ctx->D.p == NULL )
+#if defined(MBEDTLS_RSA_NO_CRT)
+    if( ctx->D.p == NULL )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+#else
+    if( ctx->P.p == NULL || ctx->Q.p == NULL)
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+#endif
 
     mbedtls_mpi_init( &T ); mbedtls_mpi_init( &T1 ); mbedtls_mpi_init( &T2 );
     mbedtls_mpi_init( &P1 ); mbedtls_mpi_init( &Q1 ); mbedtls_mpi_init( &R );

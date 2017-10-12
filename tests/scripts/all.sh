@@ -326,6 +326,19 @@ OPENSSL_CMD="$OPENSSL_LEGACY" tests/compat.sh -m 'ssl3'
 msg "build: SSLv3 - ssl-opt.sh (ASan build)" # ~ 6 min
 tests/ssl-opt.sh
 
+msg "build: Default + !MBEDTLS_SSL_RENEGOTIATION (ASan build)" # ~ 6 min
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl unset MBEDTLS_SSL_RENEGOTIATION
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make
+
+msg "test: !MBEDTLS_SSL_RENEGOTIATION - main suites (inc. selftests) (ASan build)" # ~ 50s
+make test
+
+msg "test: !MBEDTLS_SSL_RENEGOTIATION - ssl-opt.sh (ASan build)" # ~ 6 min
+tests/ssl-opt.sh
+
 msg "build: cmake, full config, clang, C99" # ~ 50s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"

@@ -6,6 +6,21 @@ Bugfix
    * Fix ssl_parse_record_header() to silently discard invalid DTLS records
      as recommended in RFC 6347 Section 4.1.2.7.
 
+Security
+   * Change default choice of DHE parameters from untrustworthy RFC 5114
+     to RFC 3526 containing parameters generated in a nothing-up-my-sleeve
+     manner.
+
+New deprecations
+   * Deprecate untrustworthy DHE parameters from RFC 5114. Superseded by
+     parameters from RFC 3526 or the newly added parameters from RFC 7919.
+   * Deprecate hex string DHE constants MBEDTLS_DHM_RFC3526_MODP_2048_P etc.
+     Supserseded by binary encoded constants MBEDTLS_DHM_RFC3526_MODP_2048_P_BIN
+     etc.
+   * Deprecate mbedtls_ssl_conf_dh_param for setting default DHE parameters
+     from hex strings. Superseded by mbedtls_ssl_conf_dh_param_bin
+     accepting DHM parameters in binary form, matching the new constants.
+
 = mbed TLS 2.6.0 branch released 2017-08-10
 
 Security

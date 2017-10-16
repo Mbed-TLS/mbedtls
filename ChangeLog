@@ -10,6 +10,7 @@ Bugfix
      Found by projectgus and jethrogb, #836.
    * Fix usage help in ssl_server2 example. Found and fixed by Bei Lin.
    * Fix mbedtls_timing_alarm(0) on Unix.
+   * Fix use of uninitialized memory in mbedtls_timing_get_timer when reset=1.
 
 = mbed TLS 2.6.0 branch released 2017-08-10
 

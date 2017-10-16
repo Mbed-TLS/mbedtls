@@ -75,9 +75,18 @@ unsigned long mbedtls_timing_hardclock( void );
  * \brief          Return the elapsed time in milliseconds
  *
  * \param val      points to a timer structure
- * \param reset    if set to 1, the timer is restarted
+ * \param reset    If 0, query the elapsed time. Otherwise (re)start the timer.
  *
- * \return         Elapsed time in ms (before the reset, if there is a reset)
+ * \return         Elapsed time since the previous reset in ms. When
+ *                 restarting, this is always 0.
+ *
+ * \note           To initialize a timer, call this function with reset=1.
+ *
+ *                 Determining the elapsed time and resetting the timer is not
+ *                 atomic on all platforms, so after the sequence
+ *                 `{ get_timer(1); ...; time1 = get_timer(1); ...; time2 =
+ *                 get_timer(0) }` the value time1+time2 is only approximately
+ *                 the delay since the first reset.
  */
 unsigned long mbedtls_timing_get_timer( struct mbedtls_timing_hr_time *val, int reset );
 

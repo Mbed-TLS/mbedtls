@@ -1183,7 +1183,6 @@ cleanup:
 #else /* _WIN32 */
     int t_ret;
     int entry_offset;
-    uint32_t dt;
     char entry_name[MBEDTLS_X509_MAX_FILE_PATH_LEN];
     mbedtls_dir_t  dir = MBEDTLS_DIR_INVALID;
 
@@ -1206,9 +1205,14 @@ cleanup:
 #endif /* MBEDTLS_THREADING_C */
 
     while( mbedtls_readdir( dir, entry_name + entry_offset,
-           sizeof( entry_name ) - entry_offset, &dt ) == 0 )
+           sizeof( entry_name ) - entry_offset ) == 0 )
     {
-        if( dt != MBEDTLS_FSIO_DT_FILE )
+        mbedtls_stat_t sb;
+
+        if ( mbedtls_stat( entry_name, &sb ) != 0 )
+            return( MBEDTLS_ERR_X509_FILE_IO_ERROR);
+
+        if( sb.type != MBEDTLS_FSIO_DT_FILE )
             continue;
 
         // Ignore parse errors

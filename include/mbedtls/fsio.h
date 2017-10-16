@@ -40,12 +40,18 @@ extern "C" {
 /* If MBEDTLS_FS_IO is enabled then file IO functions should be made available
  * via standard library or platform specific implementation. */
 
+
 /**
- * Abstract file types emitted by mbedtls_readdir().
+ * Structure returned by mbedtls_stat(). At the moment only file type is
+ * required in mbed TLS. But in future more fields can be add.
  */
+typedef struct mbedtls_stat_tag
+{
+    uint16_t    type;   /** File type */
 #define MBEDTLS_FSIO_DT_FILE    0
 #define MBEDTLS_FSIO_DT_DIR     1
 #define MBEDTLS_FSIO_DT_OTHER   2
+} mbedtls_stat_t;
 
 /* Default and alternative implementation specific interfaces. */
 #if !defined(MBEDTLS_FS_IO_ALT)
@@ -196,15 +202,14 @@ mbedtls_file_t mbedtls_fopen( const char *path, const char *mode );
 /**
  * \brief           Read dir entry (file, dir etc.).
  *
- * \param dir       File handle of type mbedtls_dir_t.
+ * \param dir       Dir handle of type mbedtls_dir_t.
  * \param direntry  Out buffer for directory entry name.
  *                  Upto 255 character long name can be returned.
  * \param size      Out buffer length.
- * \param type      Entry type.
  *
  * \return          0 for success. Non zero for failure.
  */
-int mbedtls_readdir( mbedtls_dir_t dir, char *direntry, uint32_t size,  uint32_t *type );
+int mbedtls_readdir( mbedtls_dir_t dir, char *direntry, uint32_t size );
 
 /**
  * \brief          Close dir. Follows POSIX closedir interface.
@@ -214,6 +219,16 @@ int mbedtls_readdir( mbedtls_dir_t dir, char *direntry, uint32_t size,  uint32_t
  * \return
  */
 int mbedtls_closedir( mbedtls_dir_t dir );
+
+/**
+ * \brief          Get file stats.
+ *
+ * \param path     File path
+ * \param sb       Output mbedtls_stat_t struct.
+ *
+ * \return         Returns 0 on success, -1 on failure.
+ */
+int mbedtls_stat( const char * path, mbedtls_stat_t * sb );
 
 #endif /* MBEDTLS_FS_IO */
 

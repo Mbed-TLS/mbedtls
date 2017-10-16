@@ -120,6 +120,10 @@ extern "C" {
     /* in: int32 dir id
     */
 
+#define MBEDTLS_SERIALIZE_FUNCTION_STAT         0x020C11
+    /* in: string file name
+       out: int16 file type */
+
 /** whence for fseek function */
 #define MBEDTLS_SERIALIZE_FSEEK_SET     0
 #define MBEDTLS_SERIALIZE_FSEEK_CUR     1

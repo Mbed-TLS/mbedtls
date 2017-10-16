@@ -44,6 +44,7 @@
 #define mbedtls_fprintf   fprintf
 #include <unistd.h>
 #include <dirent.h>
+#include <sys/stat.h>
 #endif
 
 FILE * fdbg = NULL;
@@ -57,6 +58,7 @@ static int debug_verbose = 0;
 
 #include "mbedtls/serialize.h"
 #include "mbedtls/net_sockets.h"
+#include "mbedtls/fsio.h"
 
 /** State of the offloading frontend. */
 typedef enum {
@@ -489,6 +491,7 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
                 char * mode = NULL;
                 int32_t file_id;
 
+                ALLOC_OUTPUT( 0, sizeof (int32_t) );
                 ret = MBEDTLS_ERR_SERIALIZE_BAD_OUTPUT;
                 mode = item_buffer( inputs[0] );
                 path = item_buffer( inputs[1] );
@@ -497,11 +500,10 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
                 DBG( "allocated file id [%d]", file_id);
                 if ( file_id != -1 )
                 {
-                    FILE * file = fopen( path, mode );
+                    FILE * file = mbedtls_fopen( path, mode );
                     if ( file != NULL )
                     {
                         files[file_id - 1].file = file;
-                        ALLOC_OUTPUT( 0, sizeof (int32_t) );
                         set_item_uint32( outputs[0], file_id );
                         ret = 0;
                     }
@@ -561,6 +563,7 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
                 int32_t file_id;
                 FILE * file = NULL;
 
+                ALLOC_OUTPUT( 0, sizeof( int32_t ) );
                 ret = MBEDTLS_ERR_SERIALIZE_BAD_OUTPUT;
                 file_id = item_uint32( inputs[1] );
                 file = (FILE *)get_file_from_id( file_id );
@@ -569,7 +572,6 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
                     ret = fwrite( item_buffer( inputs[0] ), 1, inputs[0]->size, file );
                     if ( ret >= 0 )
                     {
-                        ALLOC_OUTPUT( 0, sizeof( int32_t ) );
                         set_item_uint32( outputs[0], ret );
                         ret = 0;
                     }
@@ -635,6 +637,7 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
                 FILE * file = NULL;
                 int32_t file_id;
 
+                ALLOC_OUTPUT( 0, sizeof( int32_t ) );
                 ret = MBEDTLS_ERR_SERIALIZE_BAD_OUTPUT;
                 file_id = item_uint32( inputs[0] );
                 file = (FILE *)get_file_from_id( file_id );
@@ -645,7 +648,6 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
 
                     if ( ret >= 0 )
                     {
-                        ALLOC_OUTPUT( 0, sizeof( int32_t ) );
                         set_item_uint32( outputs[0], ret );
                         ret = 0;
                     }
@@ -672,6 +674,7 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
                 char * path = NULL;
                 int32_t file_id;
 
+                ALLOC_OUTPUT( 0, sizeof (int32_t) );
                 ret = MBEDTLS_ERR_SERIALIZE_BAD_OUTPUT;
                 path = item_buffer( inputs[0] );
                 DBG( "open dir [%s]", path);
@@ -679,11 +682,10 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
                 DBG( "allocated dir id [%d]", file_id);
                 if ( file_id != -1 )
                 {
-                    DIR * dir = opendir( path );
+                    DIR * dir = mbedtls_opendir( path );
                     if ( dir != NULL )
                     {
                         files[file_id - 1].file = (void *)dir;
-                        ALLOC_OUTPUT( 0, sizeof (int32_t) );
                         set_item_uint32( outputs[0], file_id );
                         ret = 0;
                     }
@@ -714,27 +716,10 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
                         /* Check buffer size */
                         if ( file_size < size )
                         {
-                            int32_t type;
-
-                            /* map entry type to serialize type */
-                            switch ( entry->d_type )
-                            {
-                                case DT_DIR:
-                                    type = MBEDTLS_SERIALIZE_DT_DIR;
-                                    break;
-                                case DT_REG:
-                                    type = MBEDTLS_SERIALIZE_DT_FILE;
-                                    break;
-                                default:
-                                    type = MBEDTLS_SERIALIZE_DT_OTHER;
-                                    break;
-                            }
-                            ALLOC_OUTPUT( 0, sizeof (int32_t) );
-                            set_item_uint32( outputs[0], type );
-                            ALLOC_OUTPUT( 1, file_size + 1 );
-                            strncpy( item_buffer( outputs[1] ), entry->d_name,
-                                     file_size + 1 );
-                            outputs[1]->size = file_size + 1;
+                            ALLOC_OUTPUT( 0, file_size + 1 );
+                            strncpy( item_buffer( outputs[0] ), entry->d_name,
+                                    file_size + 1 );
+                            outputs[0]->size = file_size + 1;
                             ret = 0;
                         }
                     }
@@ -753,6 +738,35 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
                 {
                     closedir( dir );
                     ret = free_file_context( file_id );
+                }
+            }
+            break;
+        case MBEDTLS_SERIALIZE_FUNCTION_STAT:
+            {
+                char * path = NULL;
+                uint16_t type;
+                struct stat sb;
+
+                ALLOC_OUTPUT( 0, sizeof( uint16_t ) );
+                ret = MBEDTLS_ERR_SERIALIZE_BAD_OUTPUT;
+
+                path = item_buffer( inputs[0] );
+                if ( stat( path, &sb ) == 0 )
+                {
+                    switch ( sb.st_mode & S_IFMT )
+                    {
+                        case S_IFREG:
+                            type = MBEDTLS_FSIO_DT_FILE;
+                            break;
+                        case S_IFDIR:
+                            type = MBEDTLS_FSIO_DT_DIR;
+                            break;
+                        default:
+                            type = MBEDTLS_FSIO_DT_OTHER;
+                            break;
+                    }
+                    set_item_uint16( outputs[0], type );
+                    ret = 0;
                 }
             }
             break;

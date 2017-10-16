@@ -186,7 +186,6 @@ void read_dir_long_file_name( )
     mbedtls_dir_t dir = MBEDTLS_DIR_INVALID;
     FILE * file = NULL;
     char dir_entry[5];
-    uint32_t dtype;
 
     TEST_ASSERT( mkdir("./test_dir", S_IRWXU | S_IRWXG | S_IRWXO ) == 0 );
     file = fopen( "./test_dir/abcdefghijklmnopqrstuvwxyz.txt", "w" );
@@ -198,7 +197,7 @@ void read_dir_long_file_name( )
 
     while( 1 )
     {
-        ret = mbedtls_readdir( dir, dir_entry, sizeof( dir_entry ), &dtype);
+        ret = mbedtls_readdir( dir, dir_entry, sizeof( dir_entry ));
         if ( ( ret == 0 ) && ( ( strcmp( dir_entry, ".." ) == 0 ) || ( strcmp( dir_entry, "." ) == 0 ) ) )
             continue;
         TEST_ASSERT( ret != 0 );

@@ -34,6 +34,10 @@
 #if !defined(MBEDTLS_FS_IO_ALT)
 
 #if !defined(MBEDTLS_PLATFORM_NO_STD_FUNCTIONS)
+
+#include <sys/types.h>
+#include <sys/stat.h>
+
 /**
  * \brief          Open file and disable buffering.
  *
@@ -67,11 +71,10 @@ mbedtls_file_t mbedtls_fopen( const char *path, const char *mode )
  * \param file_name Out buffer for directory entry name.
  *                  Up to 255 character long name can be returned.
  * \param size      Out buffer length.
- * \param type      Out pointer entry type.
  *
  * \return          0 for success. -1 for failure.
  */
-int mbedtls_readdir( mbedtls_dir_t dir, char *file_name, uint32_t size,  uint32_t *type )
+int mbedtls_readdir( mbedtls_dir_t dir, char *file_name, uint32_t size )
 {
     int status = -1;
     struct dirent *entry;
@@ -81,23 +84,44 @@ int mbedtls_readdir( mbedtls_dir_t dir, char *file_name, uint32_t size,  uint32_
         strncpy( file_name, entry->d_name, size );
         if ( file_name[size - 1] == '\0' ) /* Check if buffer was enough */
         {
-            switch ( entry->d_type )
-            {
-                case DT_REG:
-                    *type = MBEDTLS_FSIO_DT_FILE;
-                    break;
-                case DT_DIR:
-                    *type = MBEDTLS_FSIO_DT_DIR;
-                    break;
-                default:
-                    *type = MBEDTLS_FSIO_DT_OTHER;
-                    break;
-            }
             status = 0;
         }
         else
         {
             file_name[0] = 0;
+        }
+    }
+
+    return( status );
+}
+
+/**
+ * \brief          Get file stats.
+ *
+ * \param path     File path string
+ * \param sb       Output mbedtls_stat_t struct.
+ *
+ * \return         Returns 0 on success, -1 on failure.
+ */
+int mbedtls_stat( const char * path, mbedtls_stat_t * msb )
+{
+    int status = -1;
+    struct stat sb;
+
+    status = stat( path, &sb );
+    if ( status == 0 )
+    {
+        switch ( sb.st_mode & S_IFMT )
+        {
+            case S_IFREG:
+                msb->type = MBEDTLS_FSIO_DT_FILE;
+                break;
+            case S_IFDIR:
+                msb->type = MBEDTLS_FSIO_DT_DIR;
+                break;
+            default:
+                msb->type = MBEDTLS_FSIO_DT_OTHER;
+                break;
         }
     }
 
@@ -319,34 +343,35 @@ mbedtls_dir_t mbedtls_opendir( const char * path )
  * \param dirent    Out buffer for directory entry name.
  *                  Upto 255 character long name can be returned.
  * \param size      Out buffer length.
- * \param type      Entry type.
  *
  * \return          0 for success. Non zero for failure.
  */
-int mbedtls_readdir( mbedtls_dir_t dir, char * dirent, uint32_t size,  uint32_t * type )
+int mbedtls_readdir( mbedtls_dir_t dir, char * dirent, uint32_t size )
 {
     size_t len = 0;
 
     CHECK_STATUS( mbedtls_serialize_push_int32( dir ), 0, -1 );
     CHECK_STATUS( mbedtls_serialize_push_int32( size ), 0, -1 );  /* Send entry size for validation */
     CHECK_STATUS( mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_DREAD ), 0, -1 );
-    CHECK_STATUS( mbedtls_serialize_pop_int32( (uint32_t *)type ), 0, -1 );
     CHECK_STATUS( mbedtls_serialize_pop_buffer( dirent, size, &len ), 0, -1 );
 
-    /* Map serialize dir entry type to fsio abstraction type */
-    switch ( *type )
-    {
-        case MBEDTLS_SERIALIZE_DT_FILE:
-            *type = MBEDTLS_FSIO_DT_FILE;
-            break;
-        case MBEDTLS_SERIALIZE_DT_DIR:
-            *type = MBEDTLS_FSIO_DT_DIR;
-            break;
-        case MBEDTLS_SERIALIZE_DT_OTHER:
-        default:
-            *type = MBEDTLS_FSIO_DT_OTHER;
-            break;
-    }
+    return( 0 );
+}
+
+/**
+ * \brief          Get file stats.
+ *
+ * \param path     File path string
+ * \param sb       Output mbedtls_stat_t struct.
+ *
+ * \return         Returns 0 on success, -1 on failure.
+ */
+int mbedtls_stat( const char * path, mbedtls_stat_t * sb )
+{
+    CHECK_STATUS( mbedtls_serialize_push_buffer( path, strlen( path ) + 1 ), 0, -1 );
+    CHECK_STATUS( mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_STAT ), 0, -1 );
+    CHECK_STATUS( mbedtls_serialize_pop_int16( &sb->type ), 0, -1 );
+
     return( 0 );
 }
 

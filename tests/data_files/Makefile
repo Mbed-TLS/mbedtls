@@ -64,7 +64,13 @@ server2-sha256.crt: server2-rsa.csr
 	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -CA test-ca-sha256.crt -CAkey $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" -set_serial 4 -days 3653 -sha256 -in server2-rsa.csr -out $@
 all_final += server2-sha256.crt
 
+rsa_pkcs1_2048_public.pem: server8.key
+	$(OPENSSL)  rsa -in server8.key -outform PEM -RSAPublicKey_out -out $@
+all_final += rsa_pkcs8_2048_public.pem
 
+rsa_pkcs1_2048_public.der: rsa_pkcs1_2048_public.pem
+	$(OPENSSL) -RSAPublicKey_in -in rsa_pkcs1_2048_public.pem -outform DER -RSAPublicKey_out -out $@
+all_final += rsa_pkcs8_2048_public.der
 
 ################################################################
 #### Meta targets

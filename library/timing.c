@@ -239,21 +239,23 @@ volatile int mbedtls_timing_alarmed = 0;
 
 unsigned long mbedtls_timing_get_timer( struct mbedtls_timing_hr_time *val, int reset )
 {
-    unsigned long delta;
-    LARGE_INTEGER offset, hfreq;
     struct _hr_time *t = (struct _hr_time *) val;
 
-    QueryPerformanceCounter(  &offset );
-    QueryPerformanceFrequency( &hfreq );
-
-    delta = (unsigned long)( ( 1000 *
-        ( offset.QuadPart - t->start.QuadPart ) ) /
-           hfreq.QuadPart );
-
     if( reset )
+    {
         QueryPerformanceCounter( &t->start );
-
-    return( delta );
+        return( 0 );
+    }
+    else
+    {
+        unsigned long delta;
+        LARGE_INTEGER now, hfreq;
+        QueryPerformanceCounter(  &now );
+        QueryPerformanceFrequency( &hfreq );
+        delta = (unsigned long)( ( now.QuadPart - t->start.QuadPart ) * 1000ul
+                                 / hfreq.QuadPart );
+        return( delta );
+    }
 }
 
 /* It's OK to use a global because alarm() is supposed to be global anyway */
@@ -280,23 +282,22 @@ void mbedtls_set_alarm( int seconds )
 
 unsigned long mbedtls_timing_get_timer( struct mbedtls_timing_hr_time *val, int reset )
 {
-    unsigned long delta;
-    struct timeval offset;
     struct _hr_time *t = (struct _hr_time *) val;
-
-    gettimeofday( &offset, NULL );
 
     if( reset )
     {
-        t->start.tv_sec  = offset.tv_sec;
-        t->start.tv_usec = offset.tv_usec;
+        gettimeofday( &t->start, NULL );
         return( 0 );
     }
-
-    delta = ( offset.tv_sec  - t->start.tv_sec  ) * 1000
-          + ( offset.tv_usec - t->start.tv_usec ) / 1000;
-
-    return( delta );
+    else
+    {
+        unsigned long delta;
+        struct timeval now;
+        gettimeofday( &now, NULL );
+        delta = ( now.tv_sec  - t->start.tv_sec  ) * 1000ul
+              + ( now.tv_usec - t->start.tv_usec ) / 1000;
+        return( delta );
+    }
 }
 
 static void sighandler( int signum )

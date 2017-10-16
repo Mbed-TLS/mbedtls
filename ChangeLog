@@ -54,6 +54,7 @@ Bugfix
    * Fix crash when calling mbedtls_ssl_cache_free() twice. Found by
      MilenkoMitrovic, #1104
    * Fix mbedtls_timing_alarm(0) on Unix.
+   * Fix use of uninitialized memory in mbedtls_timing_get_timer when reset=1.
 
 Changes
    * Extend cert_write example program by options to set the CRT version

@@ -27,5 +27,6 @@
 #define MBEDTLS_NET_C
 #define MBEDTLS_NET_FRONTEND_C
 #define MBEDTLS_SERIALIZE_FORK_FRONTEND_C
+#define MBEDTLS_FS_IO
 
 #endif /* host/config.h */

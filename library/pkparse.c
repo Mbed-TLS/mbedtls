@@ -1284,21 +1284,6 @@ int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
         mbedtls_pem_free( &pem );
         return( ret );
     }
-
-    if( ( pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ) == NULL )
-          return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
-
-    if( ( ret = mbedtls_pk_setup( ctx, pk_info ) ) != 0 )
-        return( ret );
-
-    p =  (unsigned char *) key;
-    ret = pk_get_rsapubkey( &p, p + keylen, mbedtls_pk_rsa( *ctx ) );
-    if ( ret == 0 )
-    {
-        mbedtls_pem_free( &pem );
-        return( ret );
-    }
-    mbedtls_pk_free( ctx );
 #endif /* MBEDTLS_RSA_C */
 
        /* Avoid calling mbedtls_pem_read_buffer() on non-null-terminated string */
@@ -1315,8 +1300,11 @@ int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
         /*
          * Was PEM encoded
          */
-        key = pem.buf;
-        keylen = pem.buflen;
+        p = pem.buf;
+
+        ret = mbedtls_pk_parse_subpubkey( &p,  p + pem.buflen, ctx );
+        mbedtls_pem_free( &pem );
+        return( ret );
     }
     else if( ret != MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
     {
@@ -1324,13 +1312,30 @@ int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
         return( ret );
     }
 #endif /* MBEDTLS_PEM_PARSE_C */
+
+#if defined(MBEDTLS_RSA_C)
+    if( ( pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ) == NULL )
+        return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
+
+    if( ( ret = mbedtls_pk_setup( ctx, pk_info ) ) != 0 )
+        return( ret );
+
+    p =  (unsigned char *) key;
+    ret = pk_get_rsapubkey( &p, p + keylen, mbedtls_pk_rsa( *ctx ) );
+    if ( ret == 0 )
+    {
+        mbedtls_pem_free( &pem );
+        return( ret );
+    }
+    mbedtls_pk_free( ctx );
+    if ( ret != ( MBEDTLS_ERR_PK_INVALID_PUBKEY + MBEDTLS_ERR_ASN1_UNEXPECTED_TAG ) )
+    {
+        return ( ret );
+    }
+#endif /* MBEDTLS_RSA_C */
     p = (unsigned char *) key;
 
     ret = mbedtls_pk_parse_subpubkey( &p, p + keylen, ctx );
-
-#if defined(MBEDTLS_PEM_PARSE_C)
-    mbedtls_pem_free( &pem );
-#endif
 
     return( ret );
 }

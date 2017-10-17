@@ -69,6 +69,11 @@ int verify_int( char *str, int *value )
             continue;
         }
 
+        if( i == 0 && str[i] == '+' )
+        {
+            continue;
+        }
+
         if( ( ( minus && i == 2 ) || ( !minus && i == 1 ) ) &&
             str[i - 1] == '0' && str[i] == 'x' )
         {

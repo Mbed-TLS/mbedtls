@@ -161,11 +161,12 @@ int mbedtls_rsa_deduce_crt( const mbedtls_mpi *P, const mbedtls_mpi *Q,
  * \return
  *                 - 0 if the following conditions are satisfied
  *                   if all relevant parameters are provided:
- *                    - P prime if f_rng != NULL
- *                    - Q prime if f_rng != NULL
+ *                    - P prime if f_rng != NULL (%)
+ *                    - Q prime if f_rng != NULL (%)
  *                    - 1 < N = P * Q
  *                    - 1 < D, E < N
  *                    - D and E are modular inverses modulo P-1 and Q-1
+ *                   (%) This is only done if MBEDTLS_GENPRIME is defined.
  *                 - A non-zero error code otherwise.
  *
  * \note           The function can be used with a restricted set of arguments

@@ -257,8 +257,8 @@
  * Uncomment a macro to enable alternate implementation for core algorithm
  * functions
  *
- * \warning   MD2, MD4, MD5, ARC4 and SHA-1 are considered weak and their use
- *            constitutes a security risk. If possible, it is recommended to
+ * \warning   MD2, MD4, MD5, ARC4, DES and SHA-1 are considered weak and their
+ *            use constitutes a security risk. If possible, it is recommended to
  *            avoid dependencies on them and alternative message digests resp.
  *            ciphers should be considered instead.
  *
@@ -376,6 +376,10 @@
  *      TLS_DHE_RSA_WITH_DES_CBC_SHA
  *
  * Uncomment this macro to enable weak ciphersuites
+ *
+ * \warning   DES is considered a weak cipher and its use
+ *            constitutes a security risk. It is recommended
+ *            alternative ciphers should be considered instead.
  */
 //#define POLARSSL_ENABLE_WEAK_CIPHERSUITES
 
@@ -1575,6 +1579,10 @@
  *      TLS_PSK_WITH_3DES_EDE_CBC_SHA
  *
  * PEM_PARSE uses DES/3DES for decrypting encrypted keys.
+ *
+ * \warning   DES is considered a weak cipher and its use
+ *            constitutes a security risk. It is recommended
+ *            alternative ciphers should be considered instead.
  */
 #define POLARSSL_DES_C
 

@@ -472,12 +472,23 @@ run_test() {
         eval "$CLI_CMD" >> $CLI_OUT 2>&1 &
         wait_client_done
 
+        sleep 0.05
+
         # terminate the server (and the proxy)
         kill $SRV_PID
-        wait $SRV_PID
+        sleep 0.01
+        if kill -0 $SRV_PID >/dev/null 2>&1; then
+            kill -KILL $SRV_PID
+            wait $SRV_PID
+        fi
+
         if [ -n "$PXY_CMD" ]; then
             kill $PXY_PID >/dev/null 2>&1
-            wait $PXY_PID
+            sleep 0.01
+            if kill -0 $PXY_PID >/dev/null 2>&1; then
+                kill -KILL $pXY_PID
+                wait $PXY_PID
+            fi
         fi
 
         # retry only on timeouts
@@ -638,16 +649,22 @@ fi
 get_options "$@"
 
 # sanity checks, avoid an avalanche of errors
-if [ ! -x "$P_SRV" ]; then
-    echo "Command '$P_SRV' is not an executable file"
+P_SRV_BIN=$(echo "$P_SRV" | sed -r -n "s/^([^ ]*).*$/\1/p")
+echo "Server binary: ${P_SRV_BIN}"
+P_CLI_BIN=$(echo "$P_CLI" | sed -r -n "s/^([^ ]*).*$/\1/p")
+echo "Client binary: ${P_CLI_BIN}"
+P_PXY_BIN=$(echo "$P_PXY" | sed -r -n "s/^([^ ]*).*$/\1/p")
+echo "Proxy binary: ${P_PXY_BIN}"
+if [ ! -x "$P_SRV_BIN" ]; then
+    echo "Command '$P_SRV_BIN' is not an executable file"
     exit 1
 fi
-if [ ! -x "$P_CLI" ]; then
-    echo "Command '$P_CLI' is not an executable file"
+if [ ! -x "$P_CLI_BIN" ]; then
+    echo "Command '$P_CLI_BIN' is not an executable file"
     exit 1
 fi
-if [ ! -x "$P_PXY" ]; then
-    echo "Command '$P_PXY' is not an executable file"
+if [ ! -x "$P_PXY_BIN" ]; then
+    echo "Command '$P_PXY_BIN' is not an executable file"
     exit 1
 fi
 if [ "$MEMCHECK" -gt 0 ]; then
@@ -3775,8 +3792,8 @@ run_test    "DTLS proxy: duplicate every packet" \
             0 \
             -c "replayed record" \
             -s "replayed record" \
-            -c "discarding invalid record" \
-            -s "discarding invalid record" \
+            -c "record from another epoch" \
+            -s "record from another epoch" \
             -S "resend" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
@@ -3788,8 +3805,8 @@ run_test    "DTLS proxy: duplicate every packet, server anti-replay off" \
             0 \
             -c "replayed record" \
             -S "replayed record" \
-            -c "discarding invalid record" \
-            -s "discarding invalid record" \
+            -c "record from another epoch" \
+            -s "record from another epoch" \
             -c "resend" \
             -s "resend" \
             -s "Extra-header:" \
@@ -3850,8 +3867,6 @@ run_test    "DTLS proxy: delay ChangeCipherSpec" \
             0 \
             -c "record from another epoch" \
             -s "record from another epoch" \
-            -c "discarding invalid record" \
-            -s "discarding invalid record" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 

@@ -430,8 +430,8 @@ int mbedtls_rsa_check_pubkey( const mbedtls_rsa_context *ctx );
  *               that imported parameters irrelevant for the implementation
  *               might be silently dropped, in which case the present
  *               function doesn't have access to and hence cannot check them.
- *               If the user desires to check the consistency of the entire
- *               content of, say, an PKCS1-encoded RSA private key, he
+ *               If you want to check the consistency of the entire
+ *               content of, say, an PKCS1-encoded RSA private key, you
  *               should use \c mbedtls_rsa_validate_params before setting
  *               up the RSA context.
  *               Further, if the implementation performs empirical checks,

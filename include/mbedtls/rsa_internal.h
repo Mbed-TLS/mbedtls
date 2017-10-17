@@ -72,8 +72,8 @@ extern "C" {
  *                 overwrite it.
  *
  * \param N        RSA modulus N = PQ, with P, Q to be found
- * \param D        RSA private exponent
  * \param E        RSA public exponent
+ * \param D        RSA private exponent
  * \param P        Pointer to MPI holding first prime factor of N on success
  * \param Q        Pointer to MPI holding second prime factor of N on success
  *
@@ -87,8 +87,8 @@ extern "C" {
  *                 use the helper function \c mbedtls_rsa_validate_params.
  *
  */
-int mbedtls_rsa_deduce_primes( mbedtls_mpi const *N, mbedtls_mpi const *D,
-                               mbedtls_mpi const *E,
+int mbedtls_rsa_deduce_primes( mbedtls_mpi const *N, mbedtls_mpi const *E,
+                               mbedtls_mpi const *D,
                                mbedtls_mpi *P, mbedtls_mpi *Q );
 
 /**

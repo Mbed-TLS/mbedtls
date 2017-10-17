@@ -274,7 +274,7 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx )
 
     if( pq_missing )
     {
-        ret = mbedtls_rsa_deduce_primes( &ctx->N, &ctx->D, &ctx->E,
+        ret = mbedtls_rsa_deduce_primes( &ctx->N, &ctx->E, &ctx->D,
                                          &ctx->P, &ctx->Q );
         if( ret != 0 )
             return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );

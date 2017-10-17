@@ -66,7 +66,7 @@
  *
  */
 int mbedtls_rsa_deduce_primes( mbedtls_mpi const *N,
-                     mbedtls_mpi const *D, mbedtls_mpi const *E,
+                     mbedtls_mpi const *E, mbedtls_mpi const *D,
                      mbedtls_mpi *P, mbedtls_mpi *Q )
 {
     int ret = 0;

@@ -1368,6 +1368,8 @@ int rsa_rsassa_pss_verify_ext( rsa_context *ctx,
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
     hlen = md_get_size( md_info );
+    if( siglen < hlen + 2 )
+        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
     slen = siglen - hlen - 1; /* Currently length of salt + padding */
 
     memset( zeros, 0, 8 );

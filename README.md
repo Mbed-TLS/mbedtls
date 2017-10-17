@@ -11,12 +11,13 @@ Compiler options can be set using conventional environment variables such as `CC
 Compiling
 ---------
 
-There are currently four active build systems used within mbed TLS releases:
+There are currently five active build systems used within mbed TLS releases:
 
 -   yotta
 -   GNU Make
 -   CMake
 -   Microsoft Visual Studio (Visual Studio 6 and Visual Studio 2010)
+-   Meson
 
 The main systems used for development are CMake and GNU Make. Those systems are always complete and up-to-date. The others should reflect all changes present in the CMake and Make build system, although features may not be ported there automatically.
 
@@ -25,7 +26,7 @@ Yotta, as a build system, is slightly different from the other build systems:
 -   it provides a minimalistic configuration file by default
 -   depending on the yotta target, features of mbed OS may be used in examples and tests
 
-The Make and CMake build systems create three libraries: libmbedcrypto, libmbedx509, and libmbedtls. Note that libmbedtls depends on libmbedx509 and libmbedcrypto, and libmbedx509 depends on libmbedcrypto. As a result, some linkers will expect flags to be in a specific order, for example the GNU linker wants `-lmbedtls -lmbedx509 -lmbedcrypto`. Also, when loading shared libraries using dlopen(), you'll need to load libmbedcrypto first, then libmbedx509, before you can load libmbedtls.
+The Make, CMake and Meson build systems create three libraries: libmbedcrypto, libmbedx509, and libmbedtls. Note that libmbedtls depends on libmbedx509 and libmbedcrypto, and libmbedx509 depends on libmbedcrypto. As a result, some linkers will expect flags to be in a specific order, for example the GNU linker wants `-lmbedtls -lmbedx509 -lmbedcrypto`. Also, when loading shared libraries using dlopen(), you'll need to load libmbedcrypto first, then libmbedx509, before you can load libmbedtls.
 
 ### Yotta
 
@@ -134,6 +135,16 @@ Note that, with CMake, if you want to change the compiler or its options after y
 The build files for Microsoft Visual Studio are generated for Visual Studio 2010.
 
 The solution file `mbedTLS.sln` contains all the basic projects needed to build the library and all the programs. The files in tests are not generated and compiled, as these need a perl environment as well. However, the selftest program in `programs/test/` is still available.
+
+### Meson
+
+In order to build the libraries using Meson, just enter at the command line:
+
+    meson build
+    cd build
+    ninja
+
+The mbed TLS Meson project is primarily useful for embedding as a Meson subproject. Therefore, it does not build build tests or programs.
 
 Example programs
 ----------------

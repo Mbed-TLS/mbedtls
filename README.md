@@ -16,7 +16,7 @@ There are currently four active build systems used within mbed TLS releases:
 -   yotta
 -   GNU Make
 -   CMake
--   Microsoft Visual Studio (Visual Studio 6 and Visual Studio 2010)
+-   Microsoft Visual Studio (Microsoft Visual Studio 2010 or later)
 
 The main systems used for development are CMake and GNU Make. Those systems are always complete and up-to-date. The others should reflect all changes present in the CMake and Make build system, although features may not be ported there automatically.
 

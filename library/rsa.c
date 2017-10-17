@@ -210,7 +210,7 @@ static int rsa_check_context( mbedtls_rsa_context const *ctx, int is_priv,
 #endif
 
     /* It wouldn't lead to an error if it wasn't satisfied,
-     * but check for PQ >= 1 nonetheless. */
+     * but check for QP >= 1 nonetheless. */
 #if !defined(MBEDTLS_RSA_NO_CRT)
     if( is_priv &&
         mbedtls_mpi_cmp_int( &ctx->QP, 0 ) <= 0 )

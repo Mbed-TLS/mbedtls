@@ -370,7 +370,7 @@ int mbedtls_rsa_validate_params( const mbedtls_mpi *N, const mbedtls_mpi *P,
 #endif /* MBEDTLS_GENPRIME */
 
     /*
-     * Step 2: Check that 1 < N = PQ
+     * Step 2: Check that 1 < N = P * Q
      */
 
     if( P != NULL && Q != NULL && N != NULL )

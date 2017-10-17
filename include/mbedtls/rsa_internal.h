@@ -30,7 +30,7 @@
  *
  *  End-users of Mbed TLS not intending to re-implement the RSA functionality
  *  are not expected to get into the need of making use of these functions directly,
- *  but instead should be able to make do with the implementation of the RSA module.
+ *  but instead should be able to use the functions declared in rsa.h.
  *
  *  There are two classes of helper functions:
  *  (1) Parameter-generating helpers. These are:
@@ -163,7 +163,7 @@ int mbedtls_rsa_deduce_crt( const mbedtls_mpi *P, const mbedtls_mpi *Q,
  *                   if all relevant parameters are provided:
  *                    - P prime if f_rng != NULL
  *                    - Q prime if f_rng != NULL
- *                    - 1 < N = PQ
+ *                    - 1 < N = P * Q
  *                    - 1 < D, E < N
  *                    - D and E are modular inverses modulo P-1 and Q-1
  *                 - A non-zero error code otherwise.

@@ -50,7 +50,7 @@ my @files = <$include_dir/*.h>;
 my @matches;
 foreach my $file (@files) {
     open(FILE, "$file");
-    my @grep_res = grep(/define MBEDTLS_ERR_/, <FILE>);
+    my @grep_res = grep(/^\s*#define\s+MBEDTLS_ERR_\w+\s+\-0x[0-9A-Fa-f]+/, <FILE>);
     push(@matches, @grep_res);
     close FILE;
 }

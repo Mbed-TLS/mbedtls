@@ -43,6 +43,11 @@
 
 #include <string.h>
 
+/* Implementation that should never be optimized out by the compiler */
+static void mbedtls_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 void mbedtls_ssl_cache_init( mbedtls_ssl_cache_context *cache )
 {
     memset( cache, 0, sizeof( mbedtls_ssl_cache_context ) );
@@ -321,6 +326,8 @@ void mbedtls_ssl_cache_free( mbedtls_ssl_cache_context *cache )
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_free( &cache->mutex );
 #endif
+
+    mbedtls_zeroize( cache, sizeof(mbedtls_ssl_cache_context) );
 }
 
 #endif /* MBEDTLS_SSL_CACHE_C */

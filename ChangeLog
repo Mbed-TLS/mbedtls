@@ -12,6 +12,8 @@ Bugfix
    * Parse signature algorithm extension when renegotiating. Previously,
      renegotiated handshakes would only accept signatures using SHA-1
      regardless of the peer's preferences, or fail if SHA-1 was disabled.
+   * Fix crash when calling mbedtls_ssl_cache_free() twice. Found by
+     MilenkoMitrovic, #1104
 
 = mbed TLS 2.6.0 branch released 2017-08-10
 

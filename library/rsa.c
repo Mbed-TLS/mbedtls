@@ -1325,10 +1325,11 @@ int rsa_rsassa_pss_verify_ext( rsa_context *ctx,
     size_t siglen;
     unsigned char *p;
     unsigned char buf[POLARSSL_MPI_MAX_SIZE];
+    unsigned char *hash_start;
     unsigned char result[POLARSSL_MD_MAX_SIZE];
     unsigned char zeros[8];
     unsigned int hlen;
-    size_t slen, msb;
+    size_t observed_salt_len, msb;
     const md_info_t *md_info;
     md_context_t md_ctx;
 
@@ -1370,7 +1371,7 @@ int rsa_rsassa_pss_verify_ext( rsa_context *ctx,
     hlen = md_get_size( md_info );
     if( siglen < hlen + 2 )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
-    slen = siglen - hlen - 1; /* Currently length of salt + padding */
+    hash_start = buf + siglen - hlen - 1;
 
     memset( zeros, 0, 8 );
 
@@ -1385,6 +1386,7 @@ int rsa_rsassa_pss_verify_ext( rsa_context *ctx,
         p++;
         siglen -= 1;
     }
+    else
     if( buf[0] >> ( 8 - siglen * 8 + msb ) )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
@@ -1395,25 +1397,24 @@ int rsa_rsassa_pss_verify_ext( rsa_context *ctx,
         return( ret );
     }
 
-    mgf_mask( p, siglen - hlen - 1, p + siglen - hlen - 1, hlen, &md_ctx );
+    mgf_mask( p, siglen - hlen - 1, hash_start, hlen, &md_ctx );
 
     buf[0] &= 0xFF >> ( siglen * 8 - msb );
 
-    while( p < buf + siglen && *p == 0 )
+    while( p < hash_start - 1 && *p == 0 )
         p++;
 
-    if( p == buf + siglen ||
+    if( p == hash_start ||
         *p++ != 0x01 )
     {
         md_free( &md_ctx );
         return( POLARSSL_ERR_RSA_INVALID_PADDING );
     }
 
-    /* Actual salt len */
-    slen -= p - buf;
+    observed_salt_len = hash_start - p;
 
     if( expected_salt_len != RSA_SALT_LEN_ANY &&
-        slen != (size_t) expected_salt_len )
+        observed_salt_len != (size_t) expected_salt_len )
     {
         md_free( &md_ctx );
         return( POLARSSL_ERR_RSA_INVALID_PADDING );
@@ -1424,12 +1425,12 @@ int rsa_rsassa_pss_verify_ext( rsa_context *ctx,
     md_starts( &md_ctx );
     md_update( &md_ctx, zeros, 8 );
     md_update( &md_ctx, hash, hashlen );
-    md_update( &md_ctx, p, slen );
+    md_update( &md_ctx, p, observed_salt_len );
     md_finish( &md_ctx, result );
 
     md_free( &md_ctx );
 
-    if( memcmp( p + slen, result, hlen ) == 0 )
+    if( memcmp( hash_start, result, hlen ) == 0 )
         return( 0 );
     else
         return( POLARSSL_ERR_RSA_VERIFY_FAILED );

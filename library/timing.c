@@ -450,19 +450,19 @@ int mbedtls_timing_self_test( int verbose )
         {
             mbedtls_timing_set_delay( &ctx, a, a + b );
 
-            busy_msleep( a - a / 8 );
+            busy_msleep( a - a / 4 );
             if( mbedtls_timing_get_delay( &ctx ) != 0 )
                 FAIL;
 
-            busy_msleep( a / 4 );
+            busy_msleep( a / 2 );
             if( mbedtls_timing_get_delay( &ctx ) != 1 )
                 FAIL;
 
-            busy_msleep( b - a / 8 - b / 8 );
+            busy_msleep( b - a / 4 - b / 4 );
             if( mbedtls_timing_get_delay( &ctx ) != 1 )
                 FAIL;
 
-            busy_msleep( b / 4 );
+            busy_msleep( b / 2 );
             if( mbedtls_timing_get_delay( &ctx ) != 2 )
                 FAIL;
         }

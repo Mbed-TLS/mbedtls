@@ -44,6 +44,12 @@
 #define polarssl_free       free
 #endif
 
+
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 void ssl_cache_init( ssl_cache_context *cache )
 {
     memset( cache, 0, sizeof( ssl_cache_context ) );
@@ -324,6 +330,8 @@ void ssl_cache_free( ssl_cache_context *cache )
 #if defined(POLARSSL_THREADING_C)
     polarssl_mutex_free( &cache->mutex );
 #endif
+
+    polarssl_zeroize( cache, sizeof(ssl_cache_context) );
 }
 
 #endif /* POLARSSL_SSL_CACHE_C */

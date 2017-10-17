@@ -57,6 +57,8 @@ Changes
      and the message digest. Further, allow enabling/disabling of authority
      identifier, subject identifier and basic constraints extensions.
    * Improve makefiles on Windows: don't run find, and call perl explicitly.
+   * Add explicit warnings for the use of MD2, MD4, MD5, SHA-1, DES and ARC4
+     throughout the library.
 
 = mbed TLS 1.3.21 branch released 2017-08-10
 

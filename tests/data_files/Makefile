@@ -65,11 +65,19 @@ server2-sha256.crt: server2-rsa.csr
 all_final += server2-sha256.crt
 
 rsa_pkcs1_2048_public.pem: server8.key
-	$(OPENSSL)  rsa -in server8.key -outform PEM -RSAPublicKey_out -out $@
-all_final += rsa_pkcs8_2048_public.pem
+	$(OPENSSL)  rsa -in $< -outform PEM -RSAPublicKey_out -out $@
+all_final += rsa_pkcs1_2048_public.pem
 
 rsa_pkcs1_2048_public.der: rsa_pkcs1_2048_public.pem
-	$(OPENSSL) -RSAPublicKey_in -in rsa_pkcs1_2048_public.pem -outform DER -RSAPublicKey_out -out $@
+	$(OPENSSL) rsa -RSAPublicKey_in -in $< -outform DER -RSAPublicKey_out -out $@
+all_final += rsa_pkcs1_2048_public.der
+
+rsa_pkcs8_2048_public.pem: server8.key
+	$(OPENSSL)  rsa -in $< -outform PEM -pubout -out $@
+all_final += rsa_pkcs8_2048_public.pem
+
+rsa_pkcs8_2048_public.der: rsa_pkcs8_2048_public.pem
+	$(OPENSSL) rsa -pubin -in $< -outform DER -pubout -out $@
 all_final += rsa_pkcs8_2048_public.der
 
 ################################################################

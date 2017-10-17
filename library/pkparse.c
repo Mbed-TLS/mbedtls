@@ -1256,6 +1256,7 @@ int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
 #if defined(MBEDTLS_PEM_PARSE_C)
     size_t len;
     mbedtls_pem_context pem;
+
     mbedtls_pem_init( &pem );
 #if defined(MBEDTLS_RSA_C)
     /* Avoid calling mbedtls_pem_read_buffer() on non-null-terminated string */
@@ -1278,6 +1279,7 @@ int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
 
         if ( ( ret = pk_get_rsapubkey( &p, p + pem.buflen, mbedtls_pk_rsa( *ctx ) ) ) != 0 )
             mbedtls_pk_free( ctx );
+
         mbedtls_pem_free( &pem );
         return( ret );
     }
@@ -1288,7 +1290,7 @@ int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
     }
 #endif /* MBEDTLS_RSA_C */
 
-       /* Avoid calling mbedtls_pem_read_buffer() on non-null-terminated string */
+    /* Avoid calling mbedtls_pem_read_buffer() on non-null-terminated string */
     if( keylen == 0 || key[keylen - 1] != '\0' )
         ret = MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
     else

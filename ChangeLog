@@ -6,6 +6,8 @@ Security
    * Fix buffer overflow in RSA-PSS verification when the hash is too
      large for the key size. Found by Seth Terashima, Qualcomm Product
      Security Initiative, Qualcomm Technologies Inc.
+   * Fix buffer overflow in RSA-PSS verification when the unmasked
+     data is all zeros.
 
 Bugfix
    * Fix ssl_parse_record_header() to silently discard invalid DTLS records

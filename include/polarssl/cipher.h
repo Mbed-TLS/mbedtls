@@ -84,6 +84,14 @@ typedef enum {
     POLARSSL_CIPHER_ID_ARC4,
 } cipher_id_t;
 
+/*
+ * \brief     Enumeration of supported (cipher,mode) pairs
+ *
+ * \warning   ARC4 is considered a weak cipher and its use
+ *            constitutes a security risk. It is recommended
+ *            alternative ciphers should be considered instead.
+ *
+ */
 typedef enum {
     POLARSSL_CIPHER_NONE = 0,
     POLARSSL_CIPHER_NULL,

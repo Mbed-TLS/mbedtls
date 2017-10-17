@@ -416,13 +416,11 @@ int mbedtls_rsa_check_pubkey( const mbedtls_rsa_context *ctx );
  *
  * \return     0 if successful, or an \c MBEDTLS_ERR_RSA_XXX error code.
  *
- * \note       This function performs checks substantiating
- *             the consistency of the key material used to setup
- *             the RSA context. In case of implementations saving
- *             all core RSA parameters, this might mean a consistency
- *             check in the sense of \c mbedtls_rsa_validate_params,
- *             while other implementations might perform an empirical
- *             check consisting of an encryption-decryption pair.
+ * \note       The consistency checks performed by this function not only
+ *             ensure that \c mbedtls_rsa_private can be called successfully
+ *             on the given context, but that the various parameters are
+ *             mutually consistent with high probability, in the sense that
+ *             \c mbedtls_rsa_public and \c mbedtls_rsa_private are inverses.
  *
  * \warning    This function should catch accidental misconfigurations
  *             like swapping of parameters, but it cannot establish full

@@ -46,7 +46,7 @@ close(FORMAT_FILE);
 
 $/ = $line_separator;
 
-my @files = <$include_dir/*>;
+my @files = <$include_dir/*.h>;
 my @matches;
 foreach my $file (@files) {
     open(FILE, "$file");

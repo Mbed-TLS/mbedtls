@@ -2,6 +2,11 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS x.x.x released xxxx-xx-xx
 
+Security
+   * Fix buffer overflow in RSA-PSS verification when the hash is too
+     large for the key size. Found by Seth Terashima, Qualcomm Product
+     Security Initiative, Qualcomm Technologies Inc.
+
 Features
    * Allow comments in test data files.
 

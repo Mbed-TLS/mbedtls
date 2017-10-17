@@ -1362,6 +1362,8 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
     hlen = mbedtls_md_get_size( md_info );
+    if( siglen < hlen + 2 )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     slen = siglen - hlen - 1; /* Currently length of salt + padding */
 
     memset( zeros, 0, 8 );

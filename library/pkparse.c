@@ -1250,10 +1250,12 @@ int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
 {
     int ret;
     unsigned char *p;
+#if defined(MBEDTLS_RSA_C)
+    const mbedtls_pk_info_t *pk_info;
+#endif
 #if defined(MBEDTLS_PEM_PARSE_C)
     size_t len;
     mbedtls_pem_context pem;
-    const mbedtls_pk_info_t *pk_info;
     mbedtls_pem_init( &pem );
 #if defined(MBEDTLS_RSA_C)
     /* Avoid calling mbedtls_pem_read_buffer() on non-null-terminated string */
@@ -1311,6 +1313,7 @@ int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
         mbedtls_pem_free( &pem );
         return( ret );
     }
+    mbedtls_pem_free( &pem );
 #endif /* MBEDTLS_PEM_PARSE_C */
 
 #if defined(MBEDTLS_RSA_C)
@@ -1324,7 +1327,6 @@ int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
     ret = pk_get_rsapubkey( &p, p + keylen, mbedtls_pk_rsa( *ctx ) );
     if ( ret == 0 )
     {
-        mbedtls_pem_free( &pem );
         return( ret );
     }
     mbedtls_pk_free( ctx );

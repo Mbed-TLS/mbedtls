@@ -1429,6 +1429,138 @@ run_test    "Max fragment length: DTLS client, larger message" \
             -c "found max_fragment_length extension" \
             -c "fragment larger than.*maximum"
 
+# Tests for Record Size Limit extension
+
+# With this test we assume that the extension is not negotiated by default. 
+
+run_test    "Record Size Limit: not used" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI debug_level=3" \
+            0 \
+            -c "Record Size Limit has not been negotiated" \
+            -s "Record Size Limit has not been negotiated" 
+
+# In this test the client suggests the RSL extension but the server 
+# decides not to use it. The result is that RSL is not used. 
+
+run_test    "Record Size Limit: proposed by client; not used by the server" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI debug_level=3 record_size_limit=4096" \
+            0 \
+            -c "client hello, adding record_size_limit extension" \
+            -s "record size limit: 4096" \
+            -s "found record size limit extension" \
+            -c "Record Size Limit has not been negotiated" \
+            -s "Record Size Limit has not been negotiated"
+
+# In this example we successfully negotiate the RSL extension 
+# with 4096 bytes but none of the data actually requires 
+# using it. 
+run_test    "Record Size Limit: proposed by the client and used by server" \
+            "$P_SRV debug_level=3 record_size_limit=4096" \
+            "$P_CLI debug_level=3 record_size_limit=4096" \
+            0 \
+            -s "record size limit: 4096" \
+            -c "client hello, adding record_size_limit extension" \
+            -s "found record size limit extension" \
+            -c "Record Size Limit is 4096 bytes" \
+            -s "Record Size Limit is 4096 bytes" \
+            -S "fragment larger than the negotiated record size limit" 
+
+# In this test the client suggests the RSL extension 
+# and although the server should not make use of it it does. 
+
+run_test    "Record Size Limit: proposed by client; not used by the server" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI debug_level=3 record_size_limit=4096" \
+            0 \
+            -c "client hello, adding record_size_limit extension" \
+            -s "found record size limit extension" \
+            -s "record size limit: 4096" \
+            -s "Record Size Limit has not been negotiated" \
+            -s "Record Size Limit has not been negotiated" \
+            -S "Record Size Limit is 4096" \
+            -C "Record Size Limit is 4096" 
+
+# In this example we successfully negotiate the RSL extension 
+# with 200 bytes and we need to fragment the response from the server. 
+
+ 
+run_test    "Record Size Limit: proposed by the client and used by server (fragmentation happening)" \
+            "$P_SRV debug_level=3 record_size_limit=100" \
+            "$P_CLI debug_level=3 record_size_limit=100" \
+            0 \
+            -s "record size limit: 100" \
+            -c "client hello, adding record_size_limit extension" \
+            -s "found record size limit extension" \
+            -c "Record Size Limit is 100 bytes" \
+            -s "Record Size Limit is 100 bytes" \
+            -s "fragment larger than the negotiated record size limit" \
+
+# Same as previous test but we also want to make sure that the data is 
+# correctly displayed. 
+ 
+run_test    "Record Size Limit: proposed by the client and used by server (fragmentation happening)" \
+            "$P_SRV debug_level=3 record_size_limit=100" \
+            "$P_CLI debug_level=1 record_size_limit=100 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
+            0 \
+            -s "record size limit: 100" \
+            -s "found record size limit extension" \
+            -s "Record Size Limit is 100 bytes" \
+            -s "fragment larger than the negotiated record size limit" \
+            -c "Successful connection using: TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
+            -c "Read from server:  147 bytes read" 
+
+# In this test client is not configured to send the record_size_limit extension. 
+# The server therefore must not offer anything either. 
+
+run_test    "Record Size Limit: nothing proposed by the client but configured by the server" \
+            "$P_SRV debug_level=3 record_size_limit=4096" \
+            "$P_CLI debug_level=3" \
+            0 \
+            -C "client hello, adding record_size_limit extension" \
+            -S "record size limit: 4096" \
+            -S "found record size limit extension" \
+            -c "Record Size Limit has not been negotiated" \
+            -s "Record Size Limit has not been negotiated"
+
+
+# In this test we configure the client to use an illegal RSL size. 
+# The exchange fails. 
+
+run_test    "Record Size Limit: illegal RSL size" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI debug_level=3 record_size_limit=50" \
+            1 \
+            -s "Illegal paramerer: Maximum Record Size < 64 bytes" \
+            -c "got an alert message" 
+
+
+# In this test we configure the client and the server to use a different RSL size. 
+
+run_test    "Record Size Limit: different record size limits for client and server" \
+            "$P_SRV debug_level=3 record_size_limit=512" \
+            "$P_CLI debug_level=3 record_size_limit=256" \
+            0 \
+            -s "found record size limit extension" \
+            -s "record size limit: 256" \
+            -s "Record Size Limit is 256 bytes" \
+            -c "Record Size Limit is 512 bytes" 
+
+# In this test we increase the size of request message (to 2000 bytes) so 
+# that fragmentation happens already with the request. The server indicates 
+# buffer limits with 512 bytes. This test simulates a constrained server. 
+
+run_test    "Record Size Limit: constrained server test" \
+            "$P_SRV debug_level=3 record_size_limit=512" \
+            "$P_CLI debug_level=1 record_size_limit=4096 request_size=2000 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
+            0 \
+            -c "Record Size Limit is 512 bytes" \
+            -s "Record Size Limit is 4096 bytes" \
+            -c "Successful connection using: TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
+            -c "Write to server: 2000 bytes written in 4 fragments" \
+            -s "147 bytes written in 1 fragments" 
+			
 # Tests for renegotiation
 
 run_test    "Renegotiation: none, for reference" \

@@ -90,6 +90,7 @@ int main( void )
 #define DFL_SHA1                -1
 #define DFL_AUTH_MODE           -1
 #define DFL_MFL_CODE            MBEDTLS_SSL_MAX_FRAG_LEN_NONE
+#define DFL_RSL                 MBEDTLS_SSL_RECORD_SIZE_LIMIT_NONE 
 #define DFL_TRUNC_HMAC          -1
 #define DFL_RECSPLIT            -1
 #define DFL_DHMLEN              -1
@@ -156,6 +157,13 @@ int main( void )
 #else
 #define USAGE_MAX_FRAG_LEN ""
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT )
+#define USAGE_RECORD_SIZE_LIMIT                                      \
+    "    record_size_limit=%%d     default: 0 (extension not used)\n"  
+#else
+#define USAGE_RECORD_SIZE_LIMIT ""
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
 #define USAGE_RECSPLIT \
@@ -267,6 +275,7 @@ int main( void )
     "    reconnect_hard=%%d   default: 0 (disabled)\n"      \
     USAGE_TICKETS                                           \
     USAGE_MAX_FRAG_LEN                                      \
+    USAGE_RECORD_SIZE_LIMIT                                 \
     USAGE_TRUNC_HMAC                                        \
     USAGE_ALPN                                              \
     USAGE_FALLBACK                                          \
@@ -322,6 +331,7 @@ struct options
     int allow_sha1;             /* flag for SHA-1 support                   */
     int auth_mode;              /* verify mode for connection               */
     unsigned char mfl_code;     /* code for maximum fragment length         */
+	uint16_t rsl;               /* record size limit                        */
     int trunc_hmac;             /* negotiate truncated hmac or not          */
     int recsplit;               /* enable record splitting?                 */
     int dhmlen;                 /* minimum DHM params len in bits           */
@@ -435,7 +445,7 @@ static int ssl_sig_hashes_for_test[] = {
 
 int main( int argc, char *argv[] )
 {
-    int ret = 0, len, tail_len, i, written, frags, retry_left;
+    int ret = 0, len, tail_len, i, written, read, frags, retry_left;
     mbedtls_net_context server_fd;
     unsigned char buf[MBEDTLS_SSL_MAX_CONTENT_LEN + 1];
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
@@ -810,6 +820,11 @@ int main( int argc, char *argv[] )
             else
                 goto usage;
         }
+		else if ( strcmp( p, "record_size_limit" ) == 0 )
+		{
+			opt.rsl = atoi(q);
+			if (opt.rsl> 16384) goto usage; 
+		} 
         else if( strcmp( p, "max_frag_len" ) == 0 )
         {
             if( strcmp( q, "512" ) == 0 )
@@ -1231,6 +1246,14 @@ int main( int argc, char *argv[] )
     }
 #endif
 
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT )
+	if ((ret = mbedtls_ssl_conf_record_size_limit(&conf, opt.rsl)) != 0)
+	{
+		mbedtls_printf(" failed\n  ! mbedtls_ssl_conf_record_size_limit returned %d\n\n", ret);
+		goto exit;
+	}
+#endif
+
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
     if( opt.trunc_hmac != DFL_TRUNC_HMAC )
         mbedtls_ssl_conf_truncated_hmac( &conf, opt.trunc_hmac );
@@ -1409,8 +1432,18 @@ int main( int argc, char *argv[] )
         mbedtls_printf( "    [ Record expansion is unknown (compression) ]\n" );
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    mbedtls_printf( "    [ Maximum fragment length is %u ]\n",
+    mbedtls_printf( "    [ Maximum fragment length is %u bytes ]\n",
                     (unsigned int) mbedtls_ssl_get_max_frag_len( &ssl ) );
+#endif
+
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT )
+	if ((unsigned int)mbedtls_ssl_get_record_size_limit(&ssl) == MBEDTLS_SSL_RECORD_SIZE_LIMIT_NONE) {
+		mbedtls_printf("    [ Record Size Limit has not been negotiated ]\n");
+	}
+	else {
+		mbedtls_printf("    [ Record Size Limit is %u bytes ]\n",
+			(unsigned int)mbedtls_ssl_get_record_size_limit(&ssl));
+	}
 #endif
 
 #if defined(MBEDTLS_SSL_ALPN)
@@ -1558,95 +1591,61 @@ send_request:
     /*
      * 7. Read the HTTP response
      */
-    mbedtls_printf( "  < Read from server:" );
-    fflush( stdout );
 
-    /*
-     * TLS and DTLS need different reading styles (stream vs datagram)
-     */
-    if( opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM )
-    {
-        do
-        {
-            len = sizeof( buf ) - 1;
-            memset( buf, 0, sizeof( buf ) );
-            ret = mbedtls_ssl_read( &ssl, buf, len );
-
-            if( ret == MBEDTLS_ERR_SSL_WANT_READ ||
-                ret == MBEDTLS_ERR_SSL_WANT_WRITE )
-                continue;
-
-            if( ret <= 0 )
-            {
-                switch( ret )
-                {
-                    case MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY:
-                        mbedtls_printf( " connection was closed gracefully\n" );
-                        ret = 0;
-                        goto close_notify;
-
-                    case 0:
-                    case MBEDTLS_ERR_NET_CONN_RESET:
-                        mbedtls_printf( " connection was reset by peer\n" );
-                        ret = 0;
-                        goto reconnect;
-
-                    default:
-                        mbedtls_printf( " mbedtls_ssl_read returned -0x%x\n", -ret );
-                        goto exit;
-                }
-            }
-
-            len = ret;
-            buf[len] = '\0';
-            mbedtls_printf( " %d bytes read\n\n%s", len, (char *) buf );
-
-            /* End of message should be detected according to the syntax of the
-             * application protocol (eg HTTP), just use a dummy test here. */
-            if( ret > 0 && buf[len-1] == '\n' )
-            {
-                ret = 0;
-                break;
-            }
-        }
-        while( 1 );
-    }
-    else /* Not stream, so datagram */
+	read = 0; 
+    do
     {
         len = sizeof( buf ) - 1;
         memset( buf, 0, sizeof( buf ) );
+        ret = mbedtls_ssl_read( &ssl, buf, len );
 
-        do ret = mbedtls_ssl_read( &ssl, buf, len );
-        while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
-               ret == MBEDTLS_ERR_SSL_WANT_WRITE );
+        if( ret == MBEDTLS_ERR_SSL_WANT_READ ||
+            ret == MBEDTLS_ERR_SSL_WANT_WRITE )
+            continue;
 
         if( ret <= 0 )
         {
             switch( ret )
             {
-                case MBEDTLS_ERR_SSL_TIMEOUT:
-                    mbedtls_printf( " timeout\n" );
-                    if( retry_left-- > 0 )
-                        goto send_request;
-                    goto exit;
-
                 case MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY:
                     mbedtls_printf( " connection was closed gracefully\n" );
                     ret = 0;
                     goto close_notify;
 
-                default:
+				case MBEDTLS_ERR_NET_CONN_RESET:
+                    mbedtls_printf( " connection was reset by peer\n" );
+                    ret = 0;
+                    goto reconnect;
+
+				case MBEDTLS_ERR_SSL_TIMEOUT:
+					mbedtls_printf(" timeout\n");
+					if (retry_left-- > 0)
+						goto send_request;
+					goto exit;
+
+				default:
                     mbedtls_printf( " mbedtls_ssl_read returned -0x%x\n", -ret );
                     goto exit;
             }
         }
 
         len = ret;
+		read += len; 
         buf[len] = '\0';
-        mbedtls_printf( " %d bytes read\n\n%s", len, (char *) buf );
-        ret = 0;
+		mbedtls_printf("%s", (char *)buf);
+		
+        /* End of message should be detected according to the syntax of the
+         * application protocol (eg HTTP), just use a dummy test here. */
+        if( ret > 0 && buf[len-1] == '\n' )
+        {
+            ret = 0;
+            break;
+        }
     }
+    while( 1 );
 
+	mbedtls_printf("  < Read from server:  %d bytes read\n",read);
+	fflush(stdout);
     /*
      * 7b. Simulate hard reset and reconnect from same port?
      */

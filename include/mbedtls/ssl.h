@@ -133,6 +133,9 @@
 #define MBEDTLS_SSL_MAX_FRAG_LEN_4096           4   /*!< MaxFragmentLength 2^12     */
 #define MBEDTLS_SSL_MAX_FRAG_LEN_INVALID        5   /*!< first invalid value        */
 
+/* Record Size Limit Extension */
+#define MBEDTLS_SSL_RECORD_SIZE_LIMIT_NONE           0   /*!< don't use this extension   */
+
 #define MBEDTLS_SSL_IS_CLIENT                   0
 #define MBEDTLS_SSL_IS_SERVER                   1
 
@@ -337,6 +340,8 @@
 #define MBEDTLS_TLS_EXT_EXTENDED_MASTER_SECRET  0x0017 /* 23 */
 
 #define MBEDTLS_TLS_EXT_SESSION_TICKET              35
+
+#define MBEDTLS_TLS_EXT_RECORD_SIZE_LIMIT           254 /* experimental */
 
 #define MBEDTLS_TLS_EXT_ECJPAKE_KKPP               256 /* experimental */
 
@@ -571,6 +576,10 @@ struct mbedtls_ssl_session
     unsigned char mfl_code;     /*!< MaxFragmentLength negotiated by peer */
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT) 
+	uint16_t record_size_limit_send;   /*!< maximum size of record endpoint is allowed to send */
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
+
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
     int trunc_hmac;             /*!< flag for truncated hmac activation   */
 #endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
@@ -729,6 +738,11 @@ struct mbedtls_ssl_config
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     unsigned int mfl_code : 3;      /*!< desired fragment length            */
 #endif
+
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT) 
+	uint16_t record_size_limit;   /*!< maximum size of record endpoint is willing to receive */
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
+
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     unsigned int encrypt_then_mac : 1 ; /*!< negotiate encrypt-then-mac?    */
 #endif
@@ -2078,8 +2092,23 @@ void mbedtls_ssl_conf_cert_req_ca_list( mbedtls_ssl_config *conf,
  *
  * \return         0 if successful or MBEDTLS_ERR_SSL_BAD_INPUT_DATA
  */
-int mbedtls_ssl_conf_max_frag_len( mbedtls_ssl_config *conf, unsigned char mfl_code );
+int mbedtls_ssl_conf_max_frag_len( mbedtls_ssl_config *conf, unsigned char mfl_code);
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+
+
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+/**
+* \brief          Set the maximum size of record that the endpoint is willing 
+*                 to receive.
+*                 (Default: MBEDTLS_SSL_MAX_CONTENT_LEN, usually 2^14 bytes)
+*
+* \param conf     SSL configuration
+* \param record_size_limit Limit in bytes
+*
+* \return         0 if successful or MBEDTLS_ERR_SSL_BAD_INPUT_DATA
+*/
+int mbedtls_ssl_conf_record_size_limit(mbedtls_ssl_config *conf, uint16_t record_size_limit);
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
 /**
@@ -2312,6 +2341,28 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl );
  */
 size_t mbedtls_ssl_get_max_frag_len( const mbedtls_ssl_context *ssl );
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+/**
+* \brief          Return the maximum record size limit (in bytes) we 
+*                 we allowed to send. 
+*                 This is the value negotiated with peer if any,
+*                 or the locally configured value.
+*
+* \note           With DTLS, \c mbedtls_ssl_write() will return an error if
+*                 called with a larger length value.
+*                 With TLS, \c mbedtls_ssl_write() will fragment the input if
+*                 necessary and return the number of bytes written; it is up
+*                 to the caller to call \c mbedtls_ssl_write() again in
+*                 order to send the remaining bytes if any.
+*
+* \param ssl      SSL context
+*
+* \return         Current record size limit.
+*/
+uint16_t mbedtls_ssl_get_record_size_limit(const mbedtls_ssl_context *ssl);
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
+
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**

@@ -208,7 +208,19 @@ static int x509_profile_check_key( const mbedtls_x509_crt_profile *profile,
         pk_alg == MBEDTLS_PK_ECKEY ||
         pk_alg == MBEDTLS_PK_ECKEY_DH )
     {
-        mbedtls_ecp_group_id gid = mbedtls_pk_ec( *pk )->grp.id;
+        mbedtls_ecp_group_id gid;
+        mbedtls_pk_type_t pk_type;
+
+        /* Avoid calling pk_ec() if this is not an EC key */
+        pk_type = mbedtls_pk_get_type( pk );
+        if( pk_type != MBEDTLS_PK_ECDSA &&
+            pk_type != MBEDTLS_PK_ECKEY &&
+            pk_type != MBEDTLS_PK_ECKEY_DH )
+        {
+            return( -1 );
+        }
+
+        gid = mbedtls_pk_ec( *pk )->grp.id;
 
         if( ( profile->allowed_curves & MBEDTLS_X509_ID_FLAG( gid ) ) != 0 )
             return( 0 );

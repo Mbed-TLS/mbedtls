@@ -1645,7 +1645,7 @@ int mbedtls_x509_crt_is_revoked( const mbedtls_x509_crt *crt, const mbedtls_x509
 
 /*
  * Check that the given certificate is not revoked according to the CRL.
- * Skip validation is no CRL for the given CA is present.
+ * Skip validation if no CRL for the given CA is present.
  */
 static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
                                mbedtls_x509_crl *crl_list,
@@ -1994,7 +1994,7 @@ static mbedtls_x509_crt *x509_crt_find_parent_in( mbedtls_x509_crt *child,
     if( parent == NULL )
         parent = badtime_parent;
 
-    return parent;
+    return( parent );
 }
 
 /*
@@ -2016,7 +2016,7 @@ static mbedtls_x509_crt *x509_crt_find_parent( mbedtls_x509_crt *child,
     parent = x509_crt_find_parent_in( child, trust_ca, 1, path_cnt, self_cnt );
 
     if( parent != NULL )
-        return parent;
+        return( parent );
 
     /* Look for a parent upwards the chain */
     *parent_is_trusted = 0;
@@ -2228,7 +2228,7 @@ static void x509_crt_verify_name( const mbedtls_x509_crt *crt,
     }
     else
     {
-        for( name = &crt->subject; name != NULL;  name = name->next )
+        for( name = &crt->subject; name != NULL; name = name->next )
         {
             if( MBEDTLS_OID_CMP( MBEDTLS_OID_AT_CN, &name->oid ) == 0 &&
                 x509_crt_check_cn( &name->val, cn, cn_len ) == 0 )

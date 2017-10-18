@@ -715,14 +715,70 @@ cleanup:
 }
 #endif /* MBEDTLS_FS_IO */
 
+
+/* Convert a big-endian byte array aligned to the size of mbedtls_mpi_uint
+ * into the storage form used by mbedtls_mpi. */
+static int mpi_bigendian_to_host( unsigned char * const buf, size_t size )
+{
+    mbedtls_mpi_uint * const p = (mbedtls_mpi_uint *) buf;
+    size_t const limbs = size / ciL;
+    size_t i;
+
+    unsigned char *cur_byte_left;
+    unsigned char *cur_byte_right;
+
+    mbedtls_mpi_uint *cur_limb_left;
+    mbedtls_mpi_uint *cur_limb_right;
+
+    mbedtls_mpi_uint tmp_left, tmp_right;
+
+    if( size % ciL != 0 || limbs == 0 )
+        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+
+    /*
+     * Traverse limbs and
+     * - adapt byte-order in each limb
+     * - swap the limbs themselves.
+     * For that, simultaneously traverse the limbs from left to right
+     * and from right to left, as long as the left index is not bigger
+     * than the right index (it's not a problem if limbs is odd and the
+     * indices coincide in the last iteration).
+     */
+
+    for( cur_limb_left = p, cur_limb_right = p + ( limbs - 1 );
+         cur_limb_left <= cur_limb_right;
+         cur_limb_left++, cur_limb_right-- )
+    {
+        cur_byte_left  = (unsigned char*) cur_limb_left;
+        cur_byte_right = (unsigned char*) cur_limb_right;
+
+        tmp_left  = 0;
+        tmp_right = 0;
+
+        for( i = 0; i < ciL; i++ )
+        {
+            tmp_left  |= ( (mbedtls_mpi_uint) *cur_byte_left++ )
+                         << ( ( ciL - 1 - i ) << 3 );
+            tmp_right |= ( (mbedtls_mpi_uint) *cur_byte_right++ )
+                         << ( ( ciL - 1 - i ) << 3 );
+        }
+
+        *cur_limb_right = tmp_left;
+        *cur_limb_left  = tmp_right;
+    }
+
+    return( 0 );
+}
+
 /*
  * Import X from unsigned binary data, big endian
  */
 int mbedtls_mpi_read_binary( mbedtls_mpi *X, const unsigned char *buf, size_t buflen )
 {
     int ret;
-    size_t i, j;
-    size_t const limbs = CHARS_TO_LIMBS( buflen );
+    size_t const limbs    = CHARS_TO_LIMBS( buflen );
+    size_t const overhead = ( limbs * ciL ) - buflen;
+    unsigned char *Xp;
 
     MPI_VALIDATE_RET( X != NULL );
     MPI_VALIDATE_RET( buflen == 0 || buf != NULL );
@@ -734,11 +790,12 @@ int mbedtls_mpi_read_binary( mbedtls_mpi *X, const unsigned char *buf, size_t bu
         mbedtls_mpi_init( X );
         MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, limbs ) );
     }
-
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( X, 0 ) );
 
-    for( i = buflen, j = 0; i > 0; i--, j++ )
-        X->p[j / ciL] |= ((mbedtls_mpi_uint) buf[i - 1]) << ((j % ciL) << 3);
+    Xp = (unsigned char*) X->p;
+    memcpy( Xp + overhead, buf, buflen );
+
+    MBEDTLS_MPI_CHK( mpi_bigendian_to_host( Xp, limbs * ciL ) );
 
 cleanup:
 
@@ -2008,18 +2065,28 @@ int mbedtls_mpi_fill_random( mbedtls_mpi *X, size_t size,
                      void *p_rng )
 {
     int ret;
-    unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
+    size_t const limbs CHARS_TO_LIMBS( size );
+    size_t const overhead = ( limbs * ciL ) - size;
+    unsigned char *Xp;
+
     MPI_VALIDATE_RET( X     != NULL );
     MPI_VALIDATE_RET( f_rng != NULL );
 
-    if( size > MBEDTLS_MPI_MAX_SIZE )
-        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+    /* Ensure that target MPI has exactly the necessary number of limbs */
+    if( X->n != limbs )
+    {
+        mbedtls_mpi_free( X );
+        mbedtls_mpi_init( X );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, limbs ) );
+    }
+    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( X, 0 ) );
 
-    MBEDTLS_MPI_CHK( f_rng( p_rng, buf, size ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( X, buf, size ) );
+    Xp = (unsigned char*) X->p;
+    f_rng( p_rng, Xp + overhead, size );
+
+    MBEDTLS_MPI_CHK( mpi_bigendian_to_host( Xp, limbs * ciL ) );
 
 cleanup:
-    mbedtls_platform_zeroize( buf, sizeof( buf ) );
     return( ret );
 }
 

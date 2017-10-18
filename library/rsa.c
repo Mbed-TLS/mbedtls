@@ -1370,9 +1370,6 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
     hlen = mbedtls_md_get_size( md_info );
-    if( siglen < hlen + 2 )
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
-    hash_start = buf + siglen - hlen - 1;
 
     memset( zeros, 0, 8 );
 
@@ -1390,6 +1387,10 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
     else
     if( buf[0] >> ( 8 - siglen * 8 + msb ) )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    if( siglen < hlen + 2 )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    hash_start = p + siglen - hlen - 1;
 
     mbedtls_md_init( &md_ctx );
     if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 0 ) ) != 0 )

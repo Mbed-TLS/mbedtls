@@ -1369,9 +1369,6 @@ int rsa_rsassa_pss_verify_ext( rsa_context *ctx,
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
     hlen = md_get_size( md_info );
-    if( siglen < hlen + 2 )
-        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
-    hash_start = buf + siglen - hlen - 1;
 
     memset( zeros, 0, 8 );
 
@@ -1389,6 +1386,10 @@ int rsa_rsassa_pss_verify_ext( rsa_context *ctx,
     else
     if( buf[0] >> ( 8 - siglen * 8 + msb ) )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+
+    if( siglen < hlen + 2 )
+        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+    hash_start = p + siglen - hlen - 1;
 
     md_init( &md_ctx );
     if( ( ret = md_init_ctx( &md_ctx, md_info ) ) != 0 )

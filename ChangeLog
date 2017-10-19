@@ -2,6 +2,13 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.1.x released xxxx-xx-xx
 
+Security
+   * Make mbedtls_mpi_read_binary constant-time with respect to
+     the input data. Previously, trailing zero bytes were detected
+     and omitted for the sake of saving memory, but potentially
+     leading to slight timing differences.
+     Reported by Marco Macchetti, Kudelski Group.
+
 Bugfix
    * Fix ssl_parse_record_header() to silently discard invalid DTLS records
      as recommended in RFC 6347 Section 4.1.2.7.

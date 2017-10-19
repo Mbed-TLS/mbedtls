@@ -1371,15 +1371,15 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
      */
     msb = mbedtls_mpi_bitlen( &ctx->N ) - 1;
 
+    if( buf[0] >> ( 8 - siglen * 8 + msb ) )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
     /* Compensate for boundary condition when applying mask */
     if( msb % 8 == 0 )
     {
         p++;
         siglen -= 1;
     }
-    else
-    if( buf[0] >> ( 8 - siglen * 8 + msb ) )
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
     if( siglen < hlen + 2 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );

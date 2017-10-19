@@ -2,6 +2,13 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
+Security
+   * Make mbedtls_mpi_read_binary constant-time with respect to
+     the input data. Previously, trailing zero bytes were detected
+     and omitted for the sake of saving memory, but potentially
+     leading to slight timing differences.
+     Reported by Marco Macchetti, Kudelski Group.
+
 Features
    * Allow comments in test data files.
 

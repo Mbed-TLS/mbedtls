@@ -8,6 +8,8 @@ Security
      and omitted for the sake of saving memory, but potentially
      leading to slight timing differences.
      Reported by Marco Macchetti, Kudelski Group.
+   * Wipe stack buffer temporarily holding EC private exponent
+     after keypair generation.
 
 Features
    * Allow comments in test data files.

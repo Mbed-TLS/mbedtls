@@ -261,6 +261,16 @@ make
 msg "test: compat.sh (ASan build)" # ~ 6 min
 tests/compat.sh
 
+msg "build: default config except MFL extension (ASan build)" # ~ 30s
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl unset MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make
+
+msg "test: ssl-opt.sh, MFL-related tests"
+tests/ssl-opt.sh -f "Max fragment length"
+
 msg "build: Default + SSLv3 (ASan build)" # ~ 6 min
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
@@ -485,4 +495,3 @@ rm -rf "$OUT_OF_SOURCE_DIR"
 
 msg "Done, cleaning up"
 cleanup
-

@@ -1405,8 +1405,7 @@ int rsa_rsassa_pss_verify_ext( rsa_context *ctx,
     while( p < hash_start - 1 && *p == 0 )
         p++;
 
-    if( p == hash_start ||
-        *p++ != 0x01 )
+    if( *p++ != 0x01 )
     {
         md_free( &md_ctx );
         return( POLARSSL_ERR_RSA_INVALID_PADDING );

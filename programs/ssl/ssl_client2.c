@@ -904,7 +904,7 @@ int main( int argc, char *argv[] )
                 opt.min_version = MBEDTLS_SSL_MINOR_VERSION_2;
         }
 
-#if defined(MBEDTLS_RC4_C)
+#if defined(MBEDTLS_ARC4_C)
         /* Enable RC4 if needed and not explicitly disabled */
         if( ciphersuite_info->cipher == MBEDTLS_CIPHER_ARC4_128 )
         {

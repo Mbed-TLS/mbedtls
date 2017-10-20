@@ -75,25 +75,17 @@ static int rsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
                    const unsigned char *hash, size_t hash_len,
                    const unsigned char *sig, size_t sig_len )
 {
-    int ret;
-
 #if defined(MBEDTLS_HAVE_INT64)
     if( md_alg == MBEDTLS_MD_NONE && UINT_MAX < hash_len )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 #endif /* MBEDTLS_HAVE_INT64 */
 
-    if( sig_len < ((mbedtls_rsa_context *) ctx)->len )
-        return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
-
-    if( ( ret = mbedtls_rsa_pkcs1_verify( (mbedtls_rsa_context *) ctx, NULL, NULL,
-                                  MBEDTLS_RSA_PUBLIC, md_alg,
-                                  (unsigned int) hash_len, hash, sig ) ) != 0 )
-        return( ret );
-
-    if( sig_len > ((mbedtls_rsa_context *) ctx)->len )
+    if( sig_len != ((mbedtls_rsa_context *) ctx)->len )
         return( MBEDTLS_ERR_PK_SIG_LEN_MISMATCH );
 
-    return( 0 );
+    return( mbedtls_rsa_pkcs1_verify( (mbedtls_rsa_context *) ctx, NULL, NULL,
+                                      MBEDTLS_RSA_PUBLIC, md_alg,
+                                      (unsigned int) hash_len, hash, sig ) );
 }
 
 static int rsa_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,

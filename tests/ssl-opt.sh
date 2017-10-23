@@ -457,7 +457,7 @@ run_test() {
             kill $PXY_PID >/dev/null 2>&1
             sleep 0.01
             if kill -0 $PXY_PID >/dev/null 2>&1; then
-                kill -KILL $pXY_PID
+                kill -KILL $PXY_PID
                 wait $PXY_PID
             fi
         fi
@@ -608,12 +608,9 @@ fi
 get_options "$@"
 
 # sanity checks, avoid an avalanche of errors
-P_SRV_BIN=$(echo "$P_SRV" | sed -r -n "s/^([^ ]*).*$/\1/p")
-echo "Server binary: ${P_SRV_BIN}"
-P_CLI_BIN=$(echo "$P_CLI" | sed -r -n "s/^([^ ]*).*$/\1/p")
-echo "Client binary: ${P_CLI_BIN}"
-P_PXY_BIN=$(echo "$P_PXY" | sed -r -n "s/^([^ ]*).*$/\1/p")
-echo "Proxy binary: ${P_PXY_BIN}"
+P_SRV_BIN="${P_SRV%%[  ]*}"
+P_CLI_BIN="${P_CLI%%[  ]*}"
+P_PXY_BIN="${P_PXY%%[  ]*}"
 if [ ! -x "$P_SRV_BIN" ]; then
     echo "Command '$P_SRV_BIN' is not an executable file"
     exit 1

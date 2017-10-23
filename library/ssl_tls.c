@@ -3790,11 +3790,6 @@ int mbedtls_ssl_read_record_layer( mbedtls_ssl_context *ssl )
      * (2) Alert messages:
      *     Consume whole record content, in_msglen = 0.
      *
-     *     NOTE: This needs to be fixed, since like for
-     *     handshake messages it is allowed to have
-     *     multiple alerts witin a single record.
-     *     Internal reference IOTSSL-1321.
-     *
      * (3) Change cipher spec:
      *     Consume whole record content, in_msglen = 0.
      *
@@ -3822,12 +3817,12 @@ int mbedtls_ssl_read_record_layer( mbedtls_ssl_context *ssl )
          */
 
         /* Notes:
-         * (1) in_hslen is *NOT* necessarily the size of the
+         * (1) in_hslen is not necessarily the size of the
          *     current handshake content: If DTLS handshake
          *     fragmentation is used, that's the fragment
          *     size instead. Using the total handshake message
-         *     size here is FAULTY and should be changed at
-         *     some point. Internal reference IOTSSL-1414.
+         *     size here is faulty and should be changed at
+         *     some point.
          * (2) While it doesn't seem to cause problems, one
          *     has to be very careful not to assume that in_hslen
          *     is always <= in_msglen in a sensible communication.
@@ -6398,8 +6393,6 @@ int mbedtls_ssl_check_pending( const mbedtls_ssl_context *ssl )
      * Case C: A handshake message is being processed.
      */
 
-    /* TODO This needs correction in the same way as
-     *      read_record_layer, see IOTSSL-1414 */
     if( ssl->in_hslen > 0 && ssl->in_hslen < ssl->in_msglen )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "ssl_check_pending: more handshake messages within current record" ) );

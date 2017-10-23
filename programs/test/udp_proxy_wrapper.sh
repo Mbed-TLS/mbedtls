@@ -35,8 +35,10 @@ cleanup() {
 
 trap cleanup INT TERM HUP
 
-DTLS_ENABLED=$(echo "$SERVER_PARAMS" | grep -v "::1" | grep "dtls=1")
-if [ -z "$DTLS_ENABLED" ]; then
+DTLS_ENABLED=$(echo " $SERVER_PARAMS" | grep " dtls=1")
+IPV6_IN_USE=$(echo " $SERVER_PARAMS" | grep " server_addr=::1" )
+
+if [ -z "$DTLS_ENABLED" ] || [ -n "$IPV6_IN_USE" ]; then
     echo "  * Couldn't find DTLS enabling, or IPv6 is in use - immediate fallback to server application..."
     if [ $VERBOSE -gt 0 ]; then
         echo "[ $SRV_BIN $SERVER_PARAMS ]"

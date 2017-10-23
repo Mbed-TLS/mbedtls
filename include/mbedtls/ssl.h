@@ -2244,7 +2244,7 @@ void mbedtls_ssl_conf_renegotiation_period( mbedtls_ssl_config *conf,
  * \return         0 if nothing's pending, 1 otherwise.
  *
  * \note           This function is essential when using the library
- *                 with event-driven I/O. The user should not idle
+ *                 with event-driven I/O. You should not idle
  *                 (waiting for events from the underlying transport
  *                 or from timers) before this function's check passes.
  *                 Otherwise, it's possible to run into a deadlock
@@ -2398,18 +2398,19 @@ int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl, mbedtls_ssl_session
  *                 MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED (see below), or
  *                 a specific SSL error code.
  *
- *                 If MBEDTLS_ERR_SSL_WANT_READ is returned, the handshake is
- *                 unfinished and no further data is available from the underlying
- *                 transport. In this case, the function needs to be called again
- *                 at some later stage.
+ *                 If this function returns MBEDTLS_ERR_SSL_WANT_READ, the
+ *                 handshake is unfinished and no further data is available
+ *                 from the underlying transport. In this case, you must call
+ *                 the function again at some later stage.
  *
  * \note           Remarks regarding event-driven DTLS:
  *                 If the function returns MBEDTLS_ERR_SSL_WANT_READ, no datagram
  *                 from the underlying transport layer is currently being processed,
  *                 and it is safe to idle until the timer or the underlying transport
  *                 signal a new event. This is not true for a successful handshake,
- *                 in which case the currently processed underlying transport's datagram
- *                 might or might not contain further DTLS records.
+ *                 in which case the datagram of the underlying transport that is
+ *                 currently being processed might or might not contain further
+ *                 DTLS records.
  *
  * \note           If this function returns something other than 0 or
  *                 MBEDTLS_ERR_SSL_WANT_READ/WRITE, then the ssl context
@@ -2475,7 +2476,7 @@ int mbedtls_ssl_renegotiate( mbedtls_ssl_context *ssl );
  * \param len      maximum number of bytes to read
  *
  * \return         One of the following:
- *                 - 0 for EOF, or
+ *                 - 0 if the read end of the underlying transport was closed,
  *                 - the (positive) number of bytes read, or
  *                 - a negative error code on failure.
  *
@@ -2506,22 +2507,21 @@ int mbedtls_ssl_renegotiate( mbedtls_ssl_context *ssl );
  *                 MBEDTLS_ERR_SSL_CLIENT_RECONNECT, then the ssl context
  *                 becomes unusable, and you should either free it or call
  *                 \c mbedtls_ssl_session_reset() on it before re-using it for
- *                 a new connection; the current connection must be closed.
+ *                 a new connection.
  *
  * \note           Remarks regarding event-driven DTLS:
  *                 - If the function returns MBEDTLS_ERR_SSL_WANT_READ, no datagram
  *                   from the underlying transport layer is currently being processed,
  *                   and it is safe to idle until the timer or the underlying transport
  *                   signal a new event.
- *                 - If the function returns MBEDTLS_ERR_SSL_WANT_READ this does not mean
- *                   that no data was available from the underlying transport in the first place,
- *                   as there might have been delayed or duplicated messages, or a renegotiation
- *                   request from the peer. Therefore, the user must be prepared to receive
- *                   MBEDTLS_ERR_SSL_WANT_READ even when reacting to an incoming-data event
- *                   from the underlying transport.
- *                 - On success, the currently processed underlying transport's datagram
- *                   might or might not contain further DTLS records, and the user should
- *                   consult \c mbedtls_ssl_check_pending in that regard.
+ *                 - This function may return MBEDTLS_ERR_SSL_WANT_READ even if data was
+ *                   initially available on the underlying transport, as this data may have
+ *                   been only e.g. duplicated messages or a renegotiation request.
+ *                   Therefore, you must be prepared to receive MBEDTLS_ERR_SSL_WANT_READ even
+ *                   when reacting to an incoming-data event from the underlying transport.
+ *                 - On success, the datagram of the underlying transport that is currently
+ *                   being processed may contain further DTLS records. You should call
+ *                   \c mbedtls_ssl_check_pending to check for remaining records.
  *
  */
 int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len );

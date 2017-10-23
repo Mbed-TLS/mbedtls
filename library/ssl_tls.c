@@ -6849,6 +6849,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
      * ssl->keep_current_message = 0 below.
      */
 
+    /* Loop as long as no application data record is available */
     while( ssl->in_offt == NULL )
     {
         /* Start timer if not already running */

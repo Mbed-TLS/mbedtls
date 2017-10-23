@@ -2,16 +2,14 @@
 
 set -u
 
-MBEDTLS_BASE="$(pwd)/$(dirname $0)/../../"
-TPXY_BIN="$MBEDTLS_BASE/test/udp_proxy"
+MBEDTLS_BASE="$(dirname -- "$0")/../.."
+TPXY_BIN="$MBEDTLS_BASE/programs/test/udp_proxy"
 SRV_BIN="$MBEDTLS_BASE/programs/ssl/ssl_server2"
 
 : ${VERBOSE:=0}
-VERBOSE=1
-
-PARAM_SEP="^(.*)--(.*)$"
-PROXY_PARAMS=$(echo $@ | sed -n -r "s/$PARAM_SEP/\1/p")
-SERVER_PARAMS=$(echo $@  | sed -n -r "s/$PARAM_SEP/\2/p")
+FULL_PARAMS=$*
+PROXY_PARAMS=${FULL_PARAMS%%" -- "*}
+SERVER_PARAMS=${FULL_PARAMS#*" -- "}
 
 stop_proxy() {
     test -n "${TPXY_PID:-}" &&
@@ -49,13 +47,13 @@ if [ -z "$DTLS_ENABLED" ]; then
     exit 0
 fi
 
-SERVER_PORT_ORIG=$(echo "$SERVER_PARAMS" | sed -n -r "s/^.*server_port=([0-9]+).*$/\1/p")
+SERVER_PORT_ORIG=$(echo "$SERVER_PARAMS" | sed -n "s/^.*server_port=\([0-9]*\).*$/\1/p")
 if [ -z "$SERVER_PORT_ORIG" ]; then
     echo "  * No server port specified - exit"
     exit 1
 fi
 
-SERVER_ADDR_ORIG=$(echo "$SERVER_PARAMS" | sed -n -r "s/^.*server_addr=([a-zA-Z0-9\.]+).*$/\1/p")
+SERVER_ADDR_ORIG=$(echo "$SERVER_PARAMS" | sed -n "s/^.*server_addr=\([a-zA-Z0-9\.]*\).*$/\1/p")
 if [ -z "$SERVER_ADDR_ORIG" ]; then
     echo "  * No server address specified - exit"
     exit 1
@@ -86,7 +84,7 @@ if [ $VERBOSE -gt 0 ]; then
     echo "  * Proxy ID:          $TPXY_PID"
 fi
 
-SERVER_PARAMS_NEW=$(echo $SERVER_PARAMS | sed -n -r "s/^(.*server_port=)[0-9]+(.*)$/\1$SERVER_PORT\2/p")
+SERVER_PARAMS_NEW=$(echo "$SERVER_PARAMS" | sed -n "s/^\(.*server_port=\)[0-9]*\(.*\)$/\1$SERVER_PORT\2/p")
 SRV_CMD="$SRV_BIN $SERVER_PARAMS_NEW"
 
 echo "  * Starting server ..."

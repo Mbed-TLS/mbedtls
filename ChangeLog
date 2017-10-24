@@ -286,6 +286,11 @@ New deprecations
      from hex strings. Superseded by mbedtls_ssl_conf_dh_param_bin()
      accepting DHM parameters in binary form, matching the new constants.
 
+API Changes
+   * Create a new header utils.h that contains functionality shared by multiple
+     mbed TLS modules. At this stage utils.h (and its associated utils.c) only
+     contain mbedtls_zeroize().
+
 Bugfix
    * Fix ssl_parse_record_header() to silently discard invalid DTLS records
      as recommended in RFC 6347 Section 4.1.2.7.

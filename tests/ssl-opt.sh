@@ -1314,6 +1314,7 @@ run_test    "Renegotiation: none, for reference" \
             -S "=> renegotiate" \
             -S "write hello request"
 
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: client-initiated" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
@@ -1327,6 +1328,7 @@ run_test    "Renegotiation: client-initiated" \
             -s "=> renegotiate" \
             -S "write hello request"
 
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: server-initiated" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional renegotiate=1" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=1" \
@@ -1343,6 +1345,7 @@ run_test    "Renegotiation: server-initiated" \
 # Checks that no Signature Algorithm with SHA-1 gets negotiated. Negotiating SHA-1 would mean that
 # the server did not parse the Signature Algorithm extension. This test is valid only if an MD
 # algorithm stronger than SHA-1 is enabled in config.h
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: Signature Algorithms parsing, client-initiated" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
@@ -1360,6 +1363,7 @@ run_test    "Renegotiation: Signature Algorithms parsing, client-initiated" \
 # Checks that no Signature Algorithm with SHA-1 gets negotiated. Negotiating SHA-1 would mean that
 # the server did not parse the Signature Algorithm extension. This test is valid only if an MD
 # algorithm stronger than SHA-1 is enabled in config.h
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: Signature Algorithms parsing, server-initiated" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional renegotiate=1" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=1" \
@@ -1374,6 +1378,7 @@ run_test    "Renegotiation: Signature Algorithms parsing, server-initiated" \
             -s "write hello request" \
             -S "client hello v3, signature_algorithm ext: 2" # Is SHA-1 negotiated?
 
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: double" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional renegotiate=1" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
@@ -1387,6 +1392,7 @@ run_test    "Renegotiation: double" \
             -s "=> renegotiate" \
             -s "write hello request"
 
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: client-initiated, server-rejected" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=0 auth_mode=optional" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
@@ -1402,6 +1408,7 @@ run_test    "Renegotiation: client-initiated, server-rejected" \
             -c "SSL - Unexpected message at ServerHello in renegotiation" \
             -c "failed"
 
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: server-initiated, client-rejected, default" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 auth_mode=optional" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=0" \
@@ -1417,6 +1424,7 @@ run_test    "Renegotiation: server-initiated, client-rejected, default" \
             -S "SSL - An unexpected message was received from our peer" \
             -S "failed"
 
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: server-initiated, client-rejected, not enforced" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 \
              renego_delay=-1 auth_mode=optional" \
@@ -1434,6 +1442,7 @@ run_test    "Renegotiation: server-initiated, client-rejected, not enforced" \
             -S "failed"
 
 # delay 2 for 1 alert record + 1 application data record
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: server-initiated, client-rejected, delay 2" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 \
              renego_delay=2 auth_mode=optional" \
@@ -1450,6 +1459,7 @@ run_test    "Renegotiation: server-initiated, client-rejected, delay 2" \
             -S "SSL - An unexpected message was received from our peer" \
             -S "failed"
 
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: server-initiated, client-rejected, delay 0" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 \
              renego_delay=0 auth_mode=optional" \
@@ -1465,6 +1475,7 @@ run_test    "Renegotiation: server-initiated, client-rejected, delay 0" \
             -s "write hello request" \
             -s "SSL - An unexpected message was received from our peer"
 
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: server-initiated, client-accepted, delay 0" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 \
              renego_delay=0 auth_mode=optional" \
@@ -1481,6 +1492,7 @@ run_test    "Renegotiation: server-initiated, client-accepted, delay 0" \
             -S "SSL - An unexpected message was received from our peer" \
             -S "failed"
 
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: periodic, just below period" \
             "$P_SRV debug_level=3 exchanges=9 renegotiation=1 renego_period=3 auth_mode=optional" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=1" \
@@ -1498,6 +1510,7 @@ run_test    "Renegotiation: periodic, just below period" \
             -S "failed"
 
 # one extra exchange to be able to complete renego
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: periodic, just above period" \
             "$P_SRV debug_level=3 exchanges=9 renegotiation=1 renego_period=3 auth_mode=optional" \
             "$P_CLI debug_level=3 exchanges=4 renegotiation=1" \
@@ -1514,6 +1527,7 @@ run_test    "Renegotiation: periodic, just above period" \
             -S "SSL - An unexpected message was received from our peer" \
             -S "failed"
 
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: periodic, two times period" \
             "$P_SRV debug_level=3 exchanges=9 renegotiation=1 renego_period=3 auth_mode=optional" \
             "$P_CLI debug_level=3 exchanges=7 renegotiation=1" \
@@ -1530,6 +1544,7 @@ run_test    "Renegotiation: periodic, two times period" \
             -S "SSL - An unexpected message was received from our peer" \
             -S "failed"
 
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: periodic, above period, disabled" \
             "$P_SRV debug_level=3 exchanges=9 renegotiation=0 renego_period=3 auth_mode=optional" \
             "$P_CLI debug_level=3 exchanges=4 renegotiation=1" \
@@ -1546,6 +1561,7 @@ run_test    "Renegotiation: periodic, above period, disabled" \
             -S "SSL - An unexpected message was received from our peer" \
             -S "failed"
 
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: nbio, client-initiated" \
             "$P_SRV debug_level=3 nbio=2 exchanges=2 renegotiation=1 auth_mode=optional" \
             "$P_CLI debug_level=3 nbio=2 exchanges=2 renegotiation=1 renegotiate=1" \
@@ -1559,6 +1575,7 @@ run_test    "Renegotiation: nbio, client-initiated" \
             -s "=> renegotiate" \
             -S "write hello request"
 
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: nbio, server-initiated" \
             "$P_SRV debug_level=3 nbio=2 exchanges=2 renegotiation=1 renegotiate=1 auth_mode=optional" \
             "$P_CLI debug_level=3 nbio=2 exchanges=2 renegotiation=1" \
@@ -1572,6 +1589,7 @@ run_test    "Renegotiation: nbio, server-initiated" \
             -s "=> renegotiate" \
             -s "write hello request"
 
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: openssl server, client-initiated" \
             "$O_SRV -www" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1" \
@@ -1584,6 +1602,7 @@ run_test    "Renegotiation: openssl server, client-initiated" \
             -c "HTTP/1.0 200 [Oo][Kk]"
 
 requires_gnutls
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: gnutls server strict, client-initiated" \
             "$G_SRV --priority=NORMAL:%SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1" \
@@ -1596,6 +1615,7 @@ run_test    "Renegotiation: gnutls server strict, client-initiated" \
             -c "HTTP/1.0 200 [Oo][Kk]"
 
 requires_gnutls
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: gnutls server unsafe, client-initiated default" \
             "$G_SRV --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1" \
@@ -1608,6 +1628,7 @@ run_test    "Renegotiation: gnutls server unsafe, client-initiated default" \
             -C "HTTP/1.0 200 [Oo][Kk]"
 
 requires_gnutls
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: gnutls server unsafe, client-inititated no legacy" \
             "$G_SRV --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1 \
@@ -1621,6 +1642,7 @@ run_test    "Renegotiation: gnutls server unsafe, client-inititated no legacy" \
             -C "HTTP/1.0 200 [Oo][Kk]"
 
 requires_gnutls
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: gnutls server unsafe, client-inititated legacy" \
             "$G_SRV --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1 \
@@ -1633,6 +1655,7 @@ run_test    "Renegotiation: gnutls server unsafe, client-inititated legacy" \
             -C "error" \
             -c "HTTP/1.0 200 [Oo][Kk]"
 
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: DTLS, client-initiated" \
             "$P_SRV debug_level=3 dtls=1 exchanges=2 renegotiation=1" \
             "$P_CLI debug_level=3 dtls=1 exchanges=2 renegotiation=1 renegotiate=1" \
@@ -1646,6 +1669,7 @@ run_test    "Renegotiation: DTLS, client-initiated" \
             -s "=> renegotiate" \
             -S "write hello request"
 
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: DTLS, server-initiated" \
             "$P_SRV debug_level=3 dtls=1 exchanges=2 renegotiation=1 renegotiate=1" \
             "$P_CLI debug_level=3 dtls=1 exchanges=2 renegotiation=1 \
@@ -1660,6 +1684,7 @@ run_test    "Renegotiation: DTLS, server-initiated" \
             -s "=> renegotiate" \
             -s "write hello request"
 
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: DTLS, renego_period overflow" \
             "$P_SRV debug_level=3 dtls=1 exchanges=4 renegotiation=1 renego_period=18446462598732840962 auth_mode=optional" \
             "$P_CLI debug_level=3 dtls=1 exchanges=4 renegotiation=1" \
@@ -1671,9 +1696,10 @@ run_test    "Renegotiation: DTLS, renego_period overflow" \
             -s "record counter limit reached: renegotiate" \
             -c "=> renegotiate" \
             -s "=> renegotiate" \
-            -s "write hello request" \
+            -s "write hello request"
 
 requires_gnutls
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: DTLS, gnutls server, client-initiated" \
             "$G_SRV -u --mtu 4096" \
             "$P_CLI debug_level=3 dtls=1 exchanges=1 renegotiation=1 renegotiate=1" \
@@ -3345,6 +3371,7 @@ run_test    "DTLS reassembly: more fragmentation, nbio (gnutls server)" \
             -C "error"
 
 requires_gnutls
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "DTLS reassembly: fragmentation, renego (gnutls server)" \
             "$G_SRV -u --mtu 256" \
             "$P_CLI debug_level=3 dtls=1 renegotiation=1 renegotiate=1" \
@@ -3358,6 +3385,7 @@ run_test    "DTLS reassembly: fragmentation, renego (gnutls server)" \
             -s "Extra-header:"
 
 requires_gnutls
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "DTLS reassembly: fragmentation, nbio, renego (gnutls server)" \
             "$G_SRV -u --mtu 256" \
             "$P_CLI debug_level=3 nbio=2 dtls=1 renegotiation=1 renegotiate=1" \
@@ -3602,6 +3630,7 @@ run_test    "DTLS proxy: 3d, min handshake, resumption, nbio" \
             -c "HTTP/1.0 200 OK"
 
 needs_more_time 4
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "DTLS proxy: 3d, min handshake, client-initiated renego" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none \
@@ -3616,6 +3645,7 @@ run_test    "DTLS proxy: 3d, min handshake, client-initiated renego" \
             -c "HTTP/1.0 200 OK"
 
 needs_more_time 4
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "DTLS proxy: 3d, min handshake, client-initiated renego, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none \
@@ -3630,6 +3660,7 @@ run_test    "DTLS proxy: 3d, min handshake, client-initiated renego, nbio" \
             -c "HTTP/1.0 200 OK"
 
 needs_more_time 4
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "DTLS proxy: 3d, min handshake, server-initiated renego" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none \
@@ -3645,6 +3676,7 @@ run_test    "DTLS proxy: 3d, min handshake, server-initiated renego" \
             -c "HTTP/1.0 200 OK"
 
 needs_more_time 4
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "DTLS proxy: 3d, min handshake, server-initiated renego, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none \

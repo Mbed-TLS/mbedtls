@@ -67,7 +67,7 @@ APPS =	aes/aescrypt2$(EXEXT)		aes/crypt_and_hash$(EXEXT)	\
 	random/gen_random_ctr_drbg$(EXEXT)				\
 	test/ssl_cert_test$(EXEXT)	test/benchmark$(EXEXT)		\
 	test/selftest$(EXEXT)		test/udp_proxy$(EXEXT)		\
-	test/zeroize$(EXEXT)							\
+	test/zeroize$(EXEXT)						\
 	util/pem2der$(EXEXT)		util/strerror$(EXEXT)		\
 	x509/cert_app$(EXEXT)		x509/crl_app$(EXEXT)		\
 	x509/cert_req$(EXEXT)		x509/cert_write$(EXEXT)		\

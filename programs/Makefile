@@ -286,4 +286,3 @@ endif
 
 list:
 	echo $(APPS)
-

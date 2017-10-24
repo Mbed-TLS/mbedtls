@@ -448,4 +448,3 @@ check: $(APPS)
 	perl scripts/run-test-suites.pl
 
 test: check
-

@@ -29,7 +29,7 @@ stop_server() {
 cleanup() {
     stop_server
     stop_proxy
-    return 1
+    exit 129
 }
 
 trap cleanup INT TERM HUP
@@ -96,7 +96,7 @@ echo "  * Start proxy in background ..."
 if [ $VERBOSE -gt 0 ]; then
     echo "[ $tpxy_cmd_snippet ]"
 fi
-eval "$tpxy_cmd_snippet" >/dev/null 2>&1 &
+eval exec "$tpxy_cmd_snippet" >/dev/null 2>&1 &
 tpxy_pid=$!
 
 if [ $VERBOSE -gt 0 ]; then
@@ -108,7 +108,7 @@ if [ $VERBOSE -gt 0 ]; then
     echo "[ $SRV_BIN $* ]"
 fi
 
-"$SRV_BIN" "$@" >&2 &
+exec "$SRV_BIN" "$@" >&2 &
 srv_pid=$!
 
 wait $srv_pid

@@ -421,7 +421,7 @@ export GNUTLS_SERV="$GNUTLS_SERV"
 # Make sure the tools we need are available.
 check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$GNUTLS_CLI" "$GNUTLS_SERV" \
             "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV" "doxygen" "dot" \
-            "arm-none-eabi-gcc" "i686-w64-mingw32-gcc"
+            "arm-none-eabi-gcc" "i686-w64-mingw32-gcc" "gdb"
 if [ $RUN_ARMCC -ne 0 ]; then
     check_tools "$ARMC5_CC" "$ARMC5_AR" "$ARMC6_CC" "$ARMC6_AR"
 fi

@@ -6646,7 +6646,6 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
             }
         }
 
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
         if( ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "received handshake message" ) );
@@ -6682,6 +6681,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
             }
 #endif
 
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
             if( ! ( ssl->conf->disable_renegotiation == MBEDTLS_SSL_RENEGOTIATION_DISABLED ||
                     ( ssl->secure_renegotiation == MBEDTLS_SSL_LEGACY_RENEGOTIATION &&
                       ssl->conf->allow_legacy_renegotiation ==
@@ -6704,6 +6704,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
                 }
             }
             else
+#endif /* MBEDTLS_SSL_RENEGOTIATION */
             {
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "refusing renegotiation, sending alert" ) );
 
@@ -6740,6 +6741,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
 
             return( MBEDTLS_ERR_SSL_WANT_READ );
         }
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
         else if( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_PENDING )
         {
             if( ssl->conf->renego_max_records >= 0 )

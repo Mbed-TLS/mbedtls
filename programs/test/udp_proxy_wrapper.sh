@@ -1,4 +1,6 @@
 #!/bin/sh
+# -*-sh-basic-offset: 4-*-
+# Usage: udp_proxy_wrapper.sh [PROXY_PARAM...] -- [SERVER_PARAM...]
 
 set -u
 
@@ -7,24 +9,21 @@ TPXY_BIN="$MBEDTLS_BASE/programs/test/udp_proxy"
 SRV_BIN="$MBEDTLS_BASE/programs/ssl/ssl_server2"
 
 : ${VERBOSE:=0}
-FULL_PARAMS=$*
-PROXY_PARAMS=${FULL_PARAMS%%" -- "*}
-SERVER_PARAMS=${FULL_PARAMS#*" -- "}
 
 stop_proxy() {
-    test -n "${TPXY_PID:-}" &&
-        (
-            echo "\n  * Killing proxy (pid $TPXY_PID) ..."
-            kill $TPXY_PID
-        )
+    if [ -n "${tpxy_pid:-}" ]; then
+        echo
+        echo "  * Killing proxy (pid $tpxy_pid) ..."
+        kill $tpxy_pid
+    fi
 }
 
 stop_server() {
-    test -n "${SRV_PID:-}" &&
-        (
-            echo "\n  * Killing server (pid $SRV_PID) ..."
-            kill $SRV_PID >/dev/null 2>/dev/null
-        )
+    if [ -n "${srv_pid:-}" ]; then
+        echo
+        echo "  * Killing server (pid $srv_pid) ..."
+        kill $srv_pid >/dev/null 2>/dev/null
+    fi
 }
 
 cleanup() {
@@ -35,69 +34,84 @@ cleanup() {
 
 trap cleanup INT TERM HUP
 
-DTLS_ENABLED=$(echo " $SERVER_PARAMS" | grep " dtls=1")
-IPV6_IN_USE=$(echo " $SERVER_PARAMS" | grep " server_addr=::1" )
+# Extract the proxy parameters
+tpxy_cmd_snippet='"$TPXY_BIN"'
+while [ $# -ne 0 ] && [ "$1" != "--" ]; do
+    tail="$1" quoted=""
+    while [ -n "$tail" ]; do
+        case "$tail" in
+            *\'*) quoted="${quoted}${tail%%\'*}'\\''" tail="${tail#*\'}";;
+            *) quoted="${quoted}${tail}"; tail=; false;;
+        esac
+    done
+    tpxy_cmd_snippet="$tpxy_cmd_snippet '$quoted'"
+    shift
+done
+unset tail quoted
+if [ $# -eq 0 ]; then
+    echo "  * No server arguments (must be preceded by \" -- \") - exit"
+    exit 3
+fi
+shift
 
-if [ -z "$DTLS_ENABLED" ] || [ -n "$IPV6_IN_USE" ]; then
-    echo "  * Couldn't find DTLS enabling, or IPv6 is in use - immediate fallback to server application..."
+dtls_enabled=
+ipv6_in_use=
+server_port_orig=
+server_addr_orig=
+for param; do
+    case "$param" in
+        server_port=*) server_port_orig="${param#*=}";;
+        server_addr=*:*) server_addr_orig="${param#*=}"; ipv6_in_use=1;;
+        server_addr=*) server_addr_orig="${param#*=}";;
+        dtls=[!0]*) dtls_enabled=1;;
+    esac
+done
+
+if [ -z "$dtls_enabled" ] || [ -n "$ipv6_in_use" ]; then
+    echo >&2 "$0: Couldn't find DTLS enabling, or IPv6 is in use - immediate fallback to server application..."
     if [ $VERBOSE -gt 0 ]; then
-        echo "[ $SRV_BIN $SERVER_PARAMS ]"
+        echo "[ $SRV_BIN $* ]"
     fi
-    $SRV_BIN $SERVER_PARAMS >&1 2>&1 &
-    SRV_PID=$!
-    wait $SRV_PID
-    exit 0
+    exec "$SRV_BIN" "$@"
 fi
 
-SERVER_PORT_ORIG=$(echo "$SERVER_PARAMS" | sed -n "s/^.*server_port=\([0-9]*\).*$/\1/p")
-if [ -z "$SERVER_PORT_ORIG" ]; then
-    echo "  * No server port specified - exit"
-    exit 1
+if [ -z "$server_port_orig" ]; then
+    server_port_orig=4433
+fi
+echo "  * Server port:       $server_port_orig"
+tpxy_cmd_snippet="$tpxy_cmd_snippet \"listen_port=\$server_port_orig\""
+tpxy_cmd_snippet="$tpxy_cmd_snippet \"server_port=\$server_port\""
+
+if [ -n "$server_addr_orig" ]; then
+    echo "  * Server address:    $server_addr_orig"
+    tpxy_cmd_snippet="$tpxy_cmd_snippet \"server_addr=\$server_addr_orig\""
+    tpxy_cmd_snippet="$tpxy_cmd_snippet \"listen_addr=\$server_addr_orig\""
 fi
 
-SERVER_ADDR_ORIG=$(echo "$SERVER_PARAMS" | sed -n "s/^.*server_addr=\([a-zA-Z0-9\.]*\).*$/\1/p")
-if [ -z "$SERVER_ADDR_ORIG" ]; then
-    echo "  * No server address specified - exit"
-    exit 1
-fi
-
-echo "  * Server address:    $SERVER_ADDR_ORIG"
-echo "  * Server port:       $SERVER_PORT_ORIG"
-
-SERVER_PORT=$(( $SERVER_PORT_ORIG + 1 ))
-echo "  * Intermediate port: $SERVER_PORT"
-
-TPXY_CMD=\
-"$TPXY_BIN $PROXY_PARAMS "\
-"listen_port=$SERVER_PORT_ORIG "\
-"server_port=$SERVER_PORT "\
-"server_addr=$SERVER_ADDR_ORIG "\
-"listen_addr=$SERVER_ADDR_ORIG"
+server_port=$(( server_port_orig + 1 ))
+set -- "$@" "server_port=$server_port"
+echo "  * Intermediate port: $server_port"
 
 echo "  * Start proxy in background ..."
 if [ $VERBOSE -gt 0 ]; then
-    echo "[ $TPXY_CMD ]"
+    echo "[ $tpxy_cmd_snippet ]"
 fi
-
-$TPXY_CMD >/dev/null 2>&1 &
-TPXY_PID=$!
+eval "$tpxy_cmd_snippet" >/dev/null 2>&1 &
+tpxy_pid=$!
 
 if [ $VERBOSE -gt 0 ]; then
     echo "  * Proxy ID:          $TPXY_PID"
 fi
 
-SERVER_PARAMS_NEW=$(echo "$SERVER_PARAMS" | sed -n "s/^\(.*server_port=\)[0-9]*\(.*\)$/\1$SERVER_PORT\2/p")
-SRV_CMD="$SRV_BIN $SERVER_PARAMS_NEW"
-
 echo "  * Starting server ..."
 if [ $VERBOSE -gt 0 ]; then
-    echo "[ $SRV_CMD ]"
+    echo "[ $SRV_BIN $* ]"
 fi
 
-$SRV_CMD >&2 &
-SRV_PID=$!
+"$SRV_BIN" "$@" >&2 &
+srv_pid=$!
 
-wait $SRV_PID
+wait $srv_pid
 
 stop_proxy
 return 0

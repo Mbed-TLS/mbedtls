@@ -193,9 +193,18 @@ static int x509_profile_check_key( const mbedtls_x509_crt_profile *profile,
                                    mbedtls_pk_type_t pk_alg,
                                    const mbedtls_pk_context *pk )
 {
+    const mbedtls_pk_type_t pk_type = mbedtls_pk_get_type( pk );
+
 #if defined(MBEDTLS_RSA_C)
     if( pk_alg == MBEDTLS_PK_RSA || pk_alg == MBEDTLS_PK_RSASSA_PSS )
     {
+        /* Avoid comparing size between RSA and ECC */
+        if( pk_type != MBEDTLS_PK_RSA &&
+            pk_type != MBEDTLS_PK_RSASSA_PSS )
+        {
+            return( -1 );
+        }
+
         if( mbedtls_pk_get_bitlen( pk ) >= profile->rsa_min_bitlen )
             return( 0 );
 
@@ -209,10 +218,8 @@ static int x509_profile_check_key( const mbedtls_x509_crt_profile *profile,
         pk_alg == MBEDTLS_PK_ECKEY_DH )
     {
         mbedtls_ecp_group_id gid;
-        mbedtls_pk_type_t pk_type;
 
         /* Avoid calling pk_ec() if this is not an EC key */
-        pk_type = mbedtls_pk_get_type( pk );
         if( pk_type != MBEDTLS_PK_ECDSA &&
             pk_type != MBEDTLS_PK_ECKEY &&
             pk_type != MBEDTLS_PK_ECKEY_DH )

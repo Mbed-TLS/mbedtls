@@ -12,6 +12,8 @@ Bugfix
    * Fix leap year calculation in x509_date_is_valid() to ensure that invalid
      dates on leap years with 100 and 400 intervals are handled correctly. Found
      by Nicholas Wilson. #694
+   * Fix handling of handshake messages in mbedtls_ssl_read in case
+     MBEDTLS_SSL_RENEGOTIATION is disabled. Found by erja-gp.
 
 = mbed TLS 2.1.9 branch released 2017-08-10
 

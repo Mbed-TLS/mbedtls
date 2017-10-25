@@ -19,10 +19,17 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
+#if !defined(MBEDTLS_CONFIG_FILE)
+#include "mbedtls/config.h"
+#else
+#include MBEDTLS_CONFIG_FILE
+#endif
+
 #include "mbedtls/utils.h"
 
 #include <stddef.h>
 
+#if !defined(MBEDTLS_UTILS_ZEROIZE_ALT)
 /* This implementation should never be optimized out by the compiler */
 void mbedtls_zeroize( void *buf, size_t len )
 {
@@ -31,3 +38,4 @@ void mbedtls_zeroize( void *buf, size_t len )
     while( len-- )
         *p++ = 0;
 }
+#endif /* MBEDTLS_UTILS_ZEROIZE_ALT */

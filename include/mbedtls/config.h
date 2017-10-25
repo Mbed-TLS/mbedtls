@@ -2852,6 +2852,14 @@
  */
 #define MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE
 
+/**
+ * \def MBEDTLS_UTILS_ZEROIZE_ALT
+ *
+ * Uncomment the macro to let mbed TLS use your alternate implementation of
+ * mbedtls_zeroize().
+ */
+//#define MBEDTLS_UTILS_ZEROIZE_ALT
+
 /* \} name SECTION: Customisation configuration options */
 
 /* Target and application specific configurations */

@@ -4755,7 +4755,6 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
             }
         }
 
-#if defined(POLARSSL_SSL_RENEGOTIATION)
         if( ssl->in_msgtype == SSL_MSG_HANDSHAKE )
         {
             SSL_DEBUG_MSG( 1, ( "received handshake message" ) );
@@ -4770,6 +4769,7 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
             }
 #endif
 
+#if defined(POLARSSL_SSL_RENEGOTIATION)
             if( ! ( ssl->disable_renegotiation == SSL_RENEGOTIATION_DISABLED ||
                     ( ssl->secure_renegotiation == SSL_LEGACY_RENEGOTIATION &&
                       ssl->allow_legacy_renegotiation ==
@@ -4784,6 +4784,7 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
                 }
             }
             else
+#endif /* POLARSSL_SSL_RENEGOTIATION */
             {
                 SSL_DEBUG_MSG( 3, ( "ignoring renegotiation, sending alert" ) );
 
@@ -4820,6 +4821,7 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
 
             return( POLARSSL_ERR_NET_WANT_READ );
         }
+#if defined(POLARSSL_SSL_RENEGOTIATION)
         else if( ssl->renegotiation == SSL_RENEGOTIATION_PENDING )
         {
             ssl->renego_records_seen++;

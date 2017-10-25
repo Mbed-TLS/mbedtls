@@ -473,6 +473,9 @@ int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
             tag[i] ^= ctx->buf[i];
     }
 
+    mbedtls_zeroize( ctx->ectr_remain, 16 );
+    ctx->data_remain = 0;
+
     return( 0 );
 }
 

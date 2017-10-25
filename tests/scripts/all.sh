@@ -907,15 +907,14 @@ make test
 cd "$MBEDTLS_ROOT_DIR"
 rm -rf "$OUT_OF_SOURCE_DIR"
 
-msg "test: gcc, mbedtls_zeroize()"
-cleanup
-CC=gcc DEBUG=1 make programs
-gdb -x tests/scripts/test_zeroize.gdb
-
-msg "test: clang, mbedtls_zeroize()"
-cleanup
-CC=clang DEBUG=1 make programs
-gdb -x tests/scripts/test_zeroize.gdb
+for optimization_flag in -O2 -O3 -Ofast -Os; do
+    for compiler in clang gcc; do
+        msg "test: $compiler $optimization_flag, mbedtls_zeroize()"
+        cleanup
+        CC="$compiler" DEBUG=1 CFLAGS="$optimization_flag" make programs
+        gdb -x tests/scripts/test_zeroize.gdb -nw -batch -nx
+    done
+done
 
 
 

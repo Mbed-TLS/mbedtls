@@ -28,6 +28,7 @@
 #if defined(MBEDTLS_XTEA_C)
 
 #include "mbedtls/xtea.h"
+#include "mbedtls/utils.h"
 
 #include <string.h>
 
@@ -41,11 +42,6 @@
 #endif /* MBEDTLS_SELF_TEST */
 
 #if !defined(MBEDTLS_XTEA_ALT)
-
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
 
 /*
  * 32-bit integer manipulation macros (big endian)

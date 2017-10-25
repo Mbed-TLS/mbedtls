@@ -41,6 +41,7 @@
 
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/oid.h"
+#include "mbedtls/utils.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -89,11 +90,6 @@ typedef struct {
  * Max size of verification chain: end-entity + intermediates + trusted root
  */
 #define X509_MAX_VERIFY_CHAIN_SIZE    ( MBEDTLS_X509_MAX_INTERMEDIATE_CA + 2 )
-
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
 
 /*
  * Default profile

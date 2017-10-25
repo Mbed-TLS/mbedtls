@@ -34,6 +34,7 @@
 #if defined(MBEDTLS_RIPEMD160_C)
 
 #include "mbedtls/ripemd160.h"
+#include "mbedtls/utils.h"
 
 #include <string.h>
 
@@ -70,11 +71,6 @@
     (b)[(i) + 3] = (unsigned char) ( ( (n) >> 24 ) & 0xFF );    \
 }
 #endif
-
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
 
 void mbedtls_ripemd160_init( mbedtls_ripemd160_context *ctx )
 {

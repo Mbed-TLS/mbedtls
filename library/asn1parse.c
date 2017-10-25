@@ -28,6 +28,7 @@
 #if defined(MBEDTLS_ASN1_PARSE_C)
 
 #include "mbedtls/asn1.h"
+#include "mbedtls/utils.h"
 
 #include <string.h>
 
@@ -42,11 +43,6 @@
 #define mbedtls_calloc    calloc
 #define mbedtls_free       free
 #endif
-
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = (unsigned char*)v; while( n-- ) *p++ = 0;
-}
 
 /*
  * ASN.1 DER decoding routines

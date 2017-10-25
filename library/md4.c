@@ -34,6 +34,7 @@
 #if defined(MBEDTLS_MD4_C)
 
 #include "mbedtls/md4.h"
+#include "mbedtls/utils.h"
 
 #include <string.h>
 
@@ -47,11 +48,6 @@
 #endif /* MBEDTLS_SELF_TEST */
 
 #if !defined(MBEDTLS_MD4_ALT)
-
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
 
 /*
  * 32-bit integer manipulation macros (little endian)

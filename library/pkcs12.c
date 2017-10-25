@@ -36,6 +36,7 @@
 #include "mbedtls/pkcs12.h"
 #include "mbedtls/asn1.h"
 #include "mbedtls/cipher.h"
+#include "mbedtls/utils.h"
 
 #include <string.h>
 
@@ -46,11 +47,6 @@
 #if defined(MBEDTLS_DES_C)
 #include "mbedtls/des.h"
 #endif
-
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
 
 static int pkcs12_parse_pbe_params( mbedtls_asn1_buf *params,
                                     mbedtls_asn1_buf *salt, int *iterations )

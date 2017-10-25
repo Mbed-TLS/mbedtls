@@ -38,6 +38,7 @@
 #if defined(MBEDTLS_GCM_C)
 
 #include "mbedtls/gcm.h"
+#include "mbedtls/utils.h"
 
 #include <string.h>
 
@@ -79,11 +80,6 @@
     (b)[(i) + 3] = (unsigned char) ( (n)       );       \
 }
 #endif
-
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
 
 /*
  * Initialize a context

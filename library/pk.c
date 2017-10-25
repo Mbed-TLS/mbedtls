@@ -29,6 +29,8 @@
 #include "mbedtls/pk.h"
 #include "mbedtls/pk_internal.h"
 
+#include "mbedtls/utils.h"
+
 #if defined(MBEDTLS_RSA_C)
 #include "mbedtls/rsa.h"
 #endif
@@ -41,11 +43,6 @@
 
 #include <limits.h>
 #include <stdint.h>
-
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
 
 /*
  * Initialise a mbedtls_pk_context

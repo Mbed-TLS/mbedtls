@@ -37,6 +37,7 @@
 #if defined(MBEDTLS_CCM_C)
 
 #include "mbedtls/ccm.h"
+#include "mbedtls/utils.h"
 
 #include <string.h>
 
@@ -50,11 +51,6 @@
 #endif /* MBEDTLS_SELF_TEST && MBEDTLS_AES_C */
 
 #if !defined(MBEDTLS_CCM_ALT)
-
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = (unsigned char*)v; while( n-- ) *p++ = 0;
-}
 
 #define CCM_ENCRYPT 0
 #define CCM_DECRYPT 1

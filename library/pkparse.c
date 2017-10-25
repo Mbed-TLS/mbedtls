@@ -30,6 +30,7 @@
 #include "mbedtls/pk.h"
 #include "mbedtls/asn1.h"
 #include "mbedtls/oid.h"
+#include "mbedtls/utils.h"
 
 #include <string.h>
 
@@ -58,14 +59,6 @@
 #include <stdlib.h>
 #define mbedtls_calloc    calloc
 #define mbedtls_free       free
-#endif
-
-#if defined(MBEDTLS_FS_IO) || \
-    defined(MBEDTLS_PKCS12_C) || defined(MBEDTLS_PKCS5_C)
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
 #endif
 
 #if defined(MBEDTLS_FS_IO)

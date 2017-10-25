@@ -34,6 +34,7 @@
 #if defined(MBEDTLS_HMAC_DRBG_C)
 
 #include "mbedtls/hmac_drbg.h"
+#include "mbedtls/utils.h"
 
 #include <string.h>
 
@@ -49,11 +50,6 @@
 #define mbedtls_printf printf
 #endif /* MBEDTLS_SELF_TEST */
 #endif /* MBEDTLS_PLATFORM_C */
-
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
 
 /*
  * HMAC_DRBG context initialization

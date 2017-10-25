@@ -31,6 +31,7 @@
 /* No need for the header guard as MBEDTLS_MEMORY_BUFFER_ALLOC_C
    is dependent upon MBEDTLS_PLATFORM_C */
 #include "mbedtls/platform.h"
+#include "mbedtls/utils.h"
 
 #include <string.h>
 
@@ -41,11 +42,6 @@
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
 #endif
-
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
 
 #define MAGIC1       0xFF00AA55
 #define MAGIC2       0xEE119966

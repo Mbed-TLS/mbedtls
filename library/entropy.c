@@ -35,6 +35,7 @@
 
 #include "mbedtls/entropy.h"
 #include "mbedtls/entropy_poll.h"
+#include "mbedtls/utils.h"
 
 #include <string.h>
 
@@ -58,11 +59,6 @@
 #if defined(MBEDTLS_HAVEGE_C)
 #include "mbedtls/havege.h"
 #endif
-
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
 
 #define ENTROPY_MAX_LOOP    256     /**< Maximum amount to loop before error */
 

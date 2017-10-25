@@ -171,6 +171,10 @@ void mbedtls_rsa_init( mbedtls_rsa_context *ctx,
  *                 and complete the provided information to a ready-for-use
  *                 public or private RSA key.
  *
+ * \note           See the documentation of \c mbedtls_rsa_complete for more
+ *                 information on which parameters are necessary to setup
+ *                 a private or public RSA key.
+ *
  * \note           The imported parameters are copied and need not be preserved
  *                 for the lifetime of the RSA context being set up.
  *
@@ -203,6 +207,10 @@ int mbedtls_rsa_import( mbedtls_rsa_context *ctx,
  *                 by a call to \c mbedtls_rsa_complete which will check
  *                 and complete the provided information to a ready-for-use
  *                 public or private RSA key.
+ *
+ * \note           See the documentation of \c mbedtls_rsa_complete for more
+ *                 information on which parameters are necessary to setup
+ *                 a private or public RSA key.
  *
  * \note           The imported parameters are copied and need not be preserved
  *                 for the lifetime of the RSA context being set up.

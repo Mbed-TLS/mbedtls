@@ -1884,6 +1884,7 @@ int mpi_fill_random( mpi *X, size_t size,
     MPI_CHK( mpi_read_binary( X, buf, size ) );
 
 cleanup:
+    polarssl_zeroize( buf, sizeof( buf ) );
     return( ret );
 }
 

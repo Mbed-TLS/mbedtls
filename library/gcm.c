@@ -369,9 +369,6 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
         return( MBEDTLS_ERR_GCM_BAD_INPUT );
     }
 
-    if( ctx->data_remain >= 16 )
-        return( MBEDTLS_ERR_GCM_BAD_INPUT );
-
     ctx->len += length;
     p = input;
     if( length != 0 )

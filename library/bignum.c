@@ -678,16 +678,20 @@ cleanup:
 int mpi_read_binary( mpi *X, const unsigned char *buf, size_t buflen )
 {
     int ret;
-    size_t i, j, n;
+    size_t i, j;
+    size_t const limbs = CHARS_TO_LIMBS( buflen );
 
-    for( n = 0; n < buflen; n++ )
-        if( buf[n] != 0 )
-            break;
+    /* Ensure that target MPI has exactly the necessary number of limbs */
+    if( X->n != limbs )
+    {
+        mpi_free( X );
+        mpi_init( X );
+        MPI_CHK( mpi_grow( X, limbs ) );
+    }
 
-    MPI_CHK( mpi_grow( X, CHARS_TO_LIMBS( buflen - n ) ) );
     MPI_CHK( mpi_lset( X, 0 ) );
 
-    for( i = buflen, j = 0; i > n; i--, j++ )
+    for( i = buflen, j = 0; i > 0; i--, j++ )
         X->p[j / ciL] |= ((t_uint) buf[i - 1]) << ((j % ciL) << 3);
 
 cleanup:

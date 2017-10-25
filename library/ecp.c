@@ -1854,7 +1854,6 @@ int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
     {
         /* SEC1 3.2.1: Generate d such that 1 <= n < N */
         int count = 0;
-        unsigned char rnd[POLARSSL_ECP_MAX_BYTES];
 
         /*
          * Match the procedure given in RFC 6979 (deterministic ECDSA):
@@ -1865,8 +1864,7 @@ int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
          */
         do
         {
-            MPI_CHK( f_rng( p_rng, rnd, n_size ) );
-            MPI_CHK( mpi_read_binary( d, rnd, n_size ) );
+            MPI_CHK( mpi_fill_random( d, n_size, f_rng, p_rng ) );
             MPI_CHK( mpi_shift_r( d, 8 * n_size - grp->nbits ) );
 
             /*

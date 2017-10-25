@@ -4770,10 +4770,20 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
             }
 #endif
 
-            if( ssl->disable_renegotiation == SSL_RENEGOTIATION_DISABLED ||
-                ( ssl->secure_renegotiation == SSL_LEGACY_RENEGOTIATION &&
-                  ssl->allow_legacy_renegotiation ==
-                                                SSL_LEGACY_NO_RENEGOTIATION ) )
+            if( ! ( ssl->disable_renegotiation == SSL_RENEGOTIATION_DISABLED ||
+                    ( ssl->secure_renegotiation == SSL_LEGACY_RENEGOTIATION &&
+                      ssl->allow_legacy_renegotiation ==
+                                                   SSL_LEGACY_NO_RENEGOTIATION ) ) )
+            {
+                ret = ssl_start_renegotiation( ssl );
+                if( ret != POLARSSL_ERR_SSL_WAITING_SERVER_HELLO_RENEGO &&
+                    ret != 0 )
+                {
+                    SSL_DEBUG_RET( 1, "ssl_start_renegotiation", ret );
+                    return( ret );
+                }
+            }
+            else
             {
                 SSL_DEBUG_MSG( 3, ( "ignoring renegotiation, sending alert" ) );
 
@@ -4805,16 +4815,6 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
                 {
                     SSL_DEBUG_MSG( 1, ( "should never happen" ) );
                     return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
-                }
-            }
-            else
-            {
-                ret = ssl_start_renegotiation( ssl );
-                if( ret != POLARSSL_ERR_SSL_WAITING_SERVER_HELLO_RENEGO &&
-                    ret != 0 )
-                {
-                    SSL_DEBUG_RET( 1, "ssl_start_renegotiation", ret );
-                    return( ret );
                 }
             }
 

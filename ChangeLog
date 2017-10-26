@@ -2,12 +2,8 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
-Bugfix
-   * Fix memory leak in RSA self test.
-
 Security
-   * Add option for mandatory use of blinding in RSA private key operations.
-   * Add options for verification of RSA private key operations to defend
+   * Verify results of RSA private key operations to defend
      against Bellcore glitch attack.
 
 = mbed TLS 2.x.x branch released xxxx-xx-xx

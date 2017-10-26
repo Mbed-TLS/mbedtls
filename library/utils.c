@@ -28,14 +28,33 @@
 #include "mbedtls/utils.h"
 
 #include <stddef.h>
+#include <string.h>
 
 #if !defined(MBEDTLS_UTILS_ZEROIZE_ALT)
-/* This implementation should never be optimized out by the compiler */
+/*
+ * This implementation should never be optimized out by the compiler
+ *
+ * This implementation for mbedtls_zeroize() uses a volatile function pointer.
+ * We always know that it points to memset(), but because it is volatile the
+ * compiler expects it to change at any time and will not optimize out the
+ * call that could potentially perform other operations on the input buffer
+ * instead of just setting it to 0. Nevertheless, optimizations of the
+ * following form are still possible:
+ *
+ * if( memset_func != memset )
+ *     memset_func( buf, 0, len );
+ *
+ * Note that it is extremely difficult to guarantee that mbedtls_zeroize()
+ * will not be optimized out by aggressive compilers in a portable way. For
+ * this reason, mbed TLS also provides the configuration option
+ * MBEDTLS_UTILS_ZEROIZE_ALT, which allows users to configure
+ * mbedtls_zeroize() to use a suitable implementation for their platform and
+ * needs.
+ */
+static void * (* const volatile memset_func)( void *, int, size_t ) = memset;
+
 void mbedtls_zeroize( void *buf, size_t len )
 {
-    volatile unsigned char *p = (unsigned char *)buf;
-
-    while( len-- )
-        *p++ = 0;
+    memset_func( buf, 0, len );
 }
 #endif /* MBEDTLS_UTILS_ZEROIZE_ALT */

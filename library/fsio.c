@@ -70,6 +70,7 @@ mbedtls_file_t mbedtls_fopen( const char *path, const char *mode )
  * \param dir       Dir handle of type mbedtls_dir_t.
  * \param file_name Out buffer for directory entry name.
  *                  Up to 255 character long name can be returned.
+ *                  Returned string is NULL terminated.
  * \param size      Out buffer length.
  *
  * \return          0 for success. -1 for failure.

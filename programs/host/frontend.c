@@ -527,7 +527,7 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
                 if ( file )
                 {
                     ALLOC_OUTPUT( 0, size );
-                    ret = fread( item_buffer( outputs[0] ), 1, size, file );
+                    ret = mbedtls_fread( item_buffer( outputs[0] ), size, file );
                     if ( ret >= 0 )
                     {
                         outputs[0]->size = ret;
@@ -549,7 +549,7 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
                 {
                     char * s = NULL;
                     ALLOC_OUTPUT( 0, size );
-                    s = fgets( item_buffer( outputs[0] ), size, file );
+                    s = mbedtls_fgets( item_buffer( outputs[0] ), size, file );
                     if ( s != NULL )
                     {
                         outputs[0]->size = strlen( s ) + 1;
@@ -569,7 +569,7 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
                 file = (FILE *)get_file_from_id( file_id );
                 if ( file )
                 {
-                    ret = fwrite( item_buffer( inputs[0] ), 1, inputs[0]->size, file );
+                    ret = mbedtls_fwrite( item_buffer( inputs[0] ), inputs[0]->size, file );
                     if ( ret >= 0 )
                     {
                         set_item_uint32( outputs[0], ret );
@@ -588,7 +588,7 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
                 file = (FILE *)get_file_from_id( file_id );
                 if ( file )
                 {
-                    fclose( file );
+                    mbedtls_fclose( file );
                     ret = free_file_context( file_id );
                 }
             }
@@ -628,7 +628,7 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
                     }
 
                     if ( ret == 0 )
-                        ret = fseek( file, offset, whence );
+                        ret = mbedtls_fseek( file, offset, whence );
                 }
             }
             break;
@@ -644,7 +644,7 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
 
                 if ( file )
                 {
-                    ret = ftell( file );
+                    ret = mbedtls_ftell( file );
 
                     if ( ret >= 0 )
                     {
@@ -665,7 +665,7 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
 
                 if ( file )
                 {
-                    ret = ferror( file );
+                    ret = mbedtls_ferror( file );
                 }
             }
             break;
@@ -705,23 +705,16 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
                 ret = MBEDTLS_ERR_SERIALIZE_BAD_OUTPUT;
                 size = item_uint32( inputs[0] );
                 file_id = item_uint32( inputs[1] );
+                ALLOC_OUTPUT( 0, size );
+
                 dir = (DIR *)get_file_from_id( file_id );
                 if ( dir )
                 {
-                    struct dirent * entry = readdir( dir );
-                    if ( entry )
+                    if ( mbedtls_readdir( dir, item_buffer( outputs[0] ), size ) == 0 )
                     {
-                        int file_size = strlen( entry->d_name );
-
-                        /* Check buffer size */
-                        if ( file_size < size )
-                        {
-                            ALLOC_OUTPUT( 0, file_size + 1 );
-                            strncpy( item_buffer( outputs[0] ), entry->d_name,
-                                    file_size + 1 );
-                            outputs[0]->size = file_size + 1;
-                            ret = 0;
-                        }
+                        /* Transmit only required data */
+                        outputs[0]->size = strlen( item_buffer( outputs[0] ) ) + 1;
+                        ret = 0;
                     }
                 }
             }
@@ -736,7 +729,7 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
                 dir = (DIR *)get_file_from_id( file_id );
                 if ( dir )
                 {
-                    closedir( dir );
+                    mbedtls_closedir( dir );
                     ret = free_file_context( file_id );
                 }
             }
@@ -744,28 +737,15 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
         case MBEDTLS_SERIALIZE_FUNCTION_STAT:
             {
                 char * path = NULL;
-                uint16_t type;
-                struct stat sb;
+                mbedtls_stat_t sb;
 
                 ALLOC_OUTPUT( 0, sizeof( uint16_t ) );
                 ret = MBEDTLS_ERR_SERIALIZE_BAD_OUTPUT;
 
                 path = item_buffer( inputs[0] );
-                if ( stat( path, &sb ) == 0 )
+                if ( mbedtls_stat( path, &sb ) == 0 )
                 {
-                    switch ( sb.st_mode & S_IFMT )
-                    {
-                        case S_IFREG:
-                            type = MBEDTLS_FSIO_DT_FILE;
-                            break;
-                        case S_IFDIR:
-                            type = MBEDTLS_FSIO_DT_DIR;
-                            break;
-                        default:
-                            type = MBEDTLS_FSIO_DT_OTHER;
-                            break;
-                    }
-                    set_item_uint16( outputs[0], type );
+                    set_item_uint16( outputs[0], sb.type );
                     ret = 0;
                 }
             }

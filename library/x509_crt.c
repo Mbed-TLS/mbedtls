@@ -161,7 +161,7 @@ const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_suiteb =
 
 /*
  * Check md_alg against profile
- * Return 0 if md_alg acceptable for this profile, -1 otherwise
+ * Return 0 if md_alg is acceptable for this profile, -1 otherwise
  */
 static int x509_profile_check_md_alg( const mbedtls_x509_crt_profile *profile,
                                       mbedtls_md_type_t md_alg )
@@ -174,7 +174,7 @@ static int x509_profile_check_md_alg( const mbedtls_x509_crt_profile *profile,
 
 /*
  * Check pk_alg against profile
- * Return 0 if pk_alg acceptable for this profile, -1 otherwise
+ * Return 0 if pk_alg is acceptable for this profile, -1 otherwise
  */
 static int x509_profile_check_pk_alg( const mbedtls_x509_crt_profile *profile,
                                       mbedtls_pk_type_t pk_alg )
@@ -187,24 +187,16 @@ static int x509_profile_check_pk_alg( const mbedtls_x509_crt_profile *profile,
 
 /*
  * Check key against profile
- * Return 0 if pk_alg acceptable for this profile, -1 otherwise
+ * Return 0 if pk is acceptable for this profile, -1 otherwise
  */
 static int x509_profile_check_key( const mbedtls_x509_crt_profile *profile,
-                                   mbedtls_pk_type_t pk_alg,
                                    const mbedtls_pk_context *pk )
 {
-    const mbedtls_pk_type_t pk_type = mbedtls_pk_get_type( pk );
+    const mbedtls_pk_type_t pk_alg = mbedtls_pk_get_type( pk );
 
 #if defined(MBEDTLS_RSA_C)
     if( pk_alg == MBEDTLS_PK_RSA || pk_alg == MBEDTLS_PK_RSASSA_PSS )
     {
-        /* Avoid comparing size between RSA and ECC */
-        if( pk_type != MBEDTLS_PK_RSA &&
-            pk_type != MBEDTLS_PK_RSASSA_PSS )
-        {
-            return( -1 );
-        }
-
         if( mbedtls_pk_get_bitlen( pk ) >= profile->rsa_min_bitlen )
             return( 0 );
 
@@ -217,17 +209,7 @@ static int x509_profile_check_key( const mbedtls_x509_crt_profile *profile,
         pk_alg == MBEDTLS_PK_ECKEY ||
         pk_alg == MBEDTLS_PK_ECKEY_DH )
     {
-        mbedtls_ecp_group_id gid;
-
-        /* Avoid calling pk_ec() if this is not an EC key */
-        if( pk_type != MBEDTLS_PK_ECDSA &&
-            pk_type != MBEDTLS_PK_ECKEY &&
-            pk_type != MBEDTLS_PK_ECKEY_DH )
-        {
-            return( -1 );
-        }
-
-        gid = mbedtls_pk_ec( *pk )->grp.id;
+        const mbedtls_ecp_group_id gid = mbedtls_pk_ec( *pk )->grp.id;
 
         if( ( profile->allowed_curves & MBEDTLS_X509_ID_FLAG( gid ) ) != 0 )
             return( 0 );
@@ -1716,7 +1698,7 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
             break;
         }
 
-        if( x509_profile_check_key( profile, crl_list->sig_pk, &ca->pk ) != 0 )
+        if( x509_profile_check_key( profile, &ca->pk ) != 0 )
             flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
 
         if( mbedtls_pk_verify_ext( crl_list->sig_pk, crl_list->sig_opts, &ca->pk,
@@ -2183,7 +2165,7 @@ static int x509_crt_verify_chain(
             *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
 
         /* check size of signing key */
-        if( x509_profile_check_key( profile, child->sig_pk, &parent->pk ) != 0 )
+        if( x509_profile_check_key( profile, &parent->pk ) != 0 )
             *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
 
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
@@ -2346,7 +2328,7 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
     if( x509_profile_check_pk_alg( profile, pk_type ) != 0 )
         *ee_flags |= MBEDTLS_X509_BADCERT_BAD_PK;
 
-    if( x509_profile_check_key( profile, pk_type, &crt->pk ) != 0 )
+    if( x509_profile_check_key( profile, &crt->pk ) != 0 )
         *ee_flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
 
     /* Check the chain */

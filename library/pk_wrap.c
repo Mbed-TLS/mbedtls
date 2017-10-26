@@ -60,8 +60,9 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 #endif
 
 #if defined(MBEDTLS_RSA_C)
-static int rsa_can_do( mbedtls_pk_type_t type )
+static int rsa_can_do( const void *ctx, mbedtls_pk_type_t type )
 {
+    (void) ctx;
     return( type == MBEDTLS_PK_RSA ||
             type == MBEDTLS_PK_RSASSA_PSS );
 }
@@ -193,8 +194,9 @@ const mbedtls_pk_info_t mbedtls_rsa_info = {
 /*
  * Generic EC key
  */
-static int eckey_can_do( mbedtls_pk_type_t type )
+static int eckey_can_do( const void *ctx, mbedtls_pk_type_t type )
 {
+    (void) ctx;
     return( type == MBEDTLS_PK_ECKEY ||
             type == MBEDTLS_PK_ECKEY_DH ||
             type == MBEDTLS_PK_ECDSA );
@@ -306,8 +308,9 @@ const mbedtls_pk_info_t mbedtls_eckey_info = {
 /*
  * EC key restricted to ECDH
  */
-static int eckeydh_can_do( mbedtls_pk_type_t type )
+static int eckeydh_can_do( const void *ctx, mbedtls_pk_type_t type )
 {
+    (void) ctx;
     return( type == MBEDTLS_PK_ECKEY ||
             type == MBEDTLS_PK_ECKEY_DH );
 }
@@ -329,8 +332,9 @@ const mbedtls_pk_info_t mbedtls_eckeydh_info = {
 #endif /* MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_ECDSA_C)
-static int ecdsa_can_do( mbedtls_pk_type_t type )
+static int ecdsa_can_do( const void *ctx, mbedtls_pk_type_t type )
 {
+    (void) ctx;
     return( type == MBEDTLS_PK_ECDSA );
 }
 
@@ -396,8 +400,9 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
  * Support for alternative RSA-private implementations
  */
 
-static int rsa_alt_can_do( mbedtls_pk_type_t type )
+static int rsa_alt_can_do( const void *ctx, mbedtls_pk_type_t type )
 {
+    (void) ctx;
     return( type == MBEDTLS_PK_RSA );
 }
 

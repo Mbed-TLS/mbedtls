@@ -42,14 +42,21 @@ extern "C" {
 
 
 /**
- * Structure returned by mbedtls_stat(). At the moment only file type is
- * required in mbed TLS. But in future more fields can be add.
+ * Structure returned by mbedtls_stat().
+ *
+ * \note Future versions of the library may add more fields at the end of this
+ * 	 structure.
  */
 typedef struct mbedtls_stat_tag
 {
     uint16_t    type;   /** File type */
+/** A file that can be accessed as a stream, i.e. opened with mbedtls_fopen().
+ */
 #define MBEDTLS_FSIO_DT_FILE    0
+/** A directory that can be opened with mbedtls_opendir(). */
 #define MBEDTLS_FSIO_DT_DIR     1
+/** A directory entry that is recognized neither as a stream file nor as a
+ * directory. */
 #define MBEDTLS_FSIO_DT_OTHER   2
 } mbedtls_stat_t;
 

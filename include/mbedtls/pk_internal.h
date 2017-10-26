@@ -41,10 +41,10 @@ struct mbedtls_pk_info_t
     const char *name;
 
     /** Get key size in bits */
-    size_t (*get_bitlen)( const void * );
+    size_t (*get_bitlen)( const void *ctx );
 
     /** Tell if the context implements this type (e.g. ECKEY can do ECDSA) */
-    int (*can_do)( mbedtls_pk_type_t type );
+    int (*can_do)( const void * ctx, mbedtls_pk_type_t type );
 
     /** Verify signature */
     int (*verify_func)( void *ctx, mbedtls_md_type_t md_alg,

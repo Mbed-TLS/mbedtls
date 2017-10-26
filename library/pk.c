@@ -154,7 +154,7 @@ int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type )
     if( ctx == NULL || ctx->pk_info == NULL )
         return( 0 );
 
-    return( ctx->pk_info->can_do( type ) );
+    return( ctx->pk_info->can_do( ctx->pk_ctx, type ) );
 }
 
 /*

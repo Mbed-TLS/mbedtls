@@ -1,5 +1,5 @@
 /*
- *  mbedtls utility functions
+ *  mbed TLS utility functions
  *
  *  Copyright (C) 2017, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0

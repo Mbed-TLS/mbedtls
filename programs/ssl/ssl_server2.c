@@ -1427,8 +1427,7 @@ int main( int argc, char *argv[] )
      * refers to the underlying net_context. */
     if( opt.event == 1 && opt.nbio != 1 )
     {
-        mbedtls_printf( "Warning: event-driven IO mandates nbio=1"
-                        " - overwrite\n" );
+        mbedtls_printf( "Warning: event-driven IO mandates nbio=1 - overwrite\n" );
         opt.nbio = 1;
     }
 
@@ -1733,7 +1732,7 @@ int main( int argc, char *argv[] )
         if( ( ret = mbedtls_pk_parse_keyfile( &pkey2, opt.key_file2, "" ) ) != 0 )
         {
             mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile(2) returned -0x%x\n\n",
-                    -ret );
+                            -ret );
             goto exit;
         }
     }
@@ -1751,8 +1750,7 @@ int main( int argc, char *argv[] )
         strcmp( opt.key_file2, "none" ) != 0 )
     {
 #if !defined(MBEDTLS_CERTS_C)
-        mbedtls_printf( "Not certificated or key provided, and \n"
-                "MBEDTLS_CERTS_C not defined!\n" );
+        mbedtls_printf( "Not certificated or key provided, and \nMBEDTLS_CERTS_C not defined!\n" );
         goto exit;
 #else
 #if defined(MBEDTLS_RSA_C)
@@ -1760,14 +1758,16 @@ int main( int argc, char *argv[] )
                                     (const unsigned char *) mbedtls_test_srv_crt_rsa,
                                     mbedtls_test_srv_crt_rsa_len ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned -0x%x\n\n", -ret );
+            mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned -0x%x\n\n",
+                            -ret );
             goto exit;
         }
         if( ( ret = mbedtls_pk_parse_key( &pkey,
                                   (const unsigned char *) mbedtls_test_srv_key_rsa,
                                   mbedtls_test_srv_key_rsa_len, NULL, 0 ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_key returned -0x%x\n\n", -ret );
+            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_key returned -0x%x\n\n",
+                            -ret );
             goto exit;
         }
         key_cert_init = 2;
@@ -1777,14 +1777,16 @@ int main( int argc, char *argv[] )
                                     (const unsigned char *) mbedtls_test_srv_crt_ec,
                                     mbedtls_test_srv_crt_ec_len ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  !  x509_crt_parse2 returned -0x%x\n\n", -ret );
+            mbedtls_printf( " failed\n  !  x509_crt_parse2 returned -0x%x\n\n",
+                            -ret );
             goto exit;
         }
         if( ( ret = mbedtls_pk_parse_key( &pkey2,
                                   (const unsigned char *) mbedtls_test_srv_key_ec,
                                   mbedtls_test_srv_key_ec_len, NULL, 0 ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  !  pk_parse_key2 returned -0x%x\n\n", -ret );
+            mbedtls_printf( " failed\n  !  pk_parse_key2 returned -0x%x\n\n",
+                            -ret );
             goto exit;
         }
         key_cert_init2 = 2;
@@ -2190,8 +2192,8 @@ reset:
         if( ( ret = mbedtls_ssl_set_client_transport_id( &ssl,
                         client_ip, cliip_len ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! "
-                    "mbedtls_ssl_set_client_transport_id() returned -0x%x\n\n", -ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_set_client_transport_id() returned -0x%x\n\n",
+                            -ret );
             goto exit;
         }
     }

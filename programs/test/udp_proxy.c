@@ -318,9 +318,8 @@ static int ctx_buffer_flush( ctx_buffer *buf )
 {
     int ret;
 
-    mbedtls_printf( "  %05lu flush    %s: %u bytes, %lu datagrams, "
-                    "last %ld ms\n", ellapsed_time(),
-                    buf->description, buf->len, buf->num_datagrams,
+    mbedtls_printf( "  %05lu flush    %s: %u bytes, %lu datagrams, last %ld ms\n",
+                    ellapsed_time(), buf->description, buf->len, buf->num_datagrams,
                     ellapsed_time() - buf->packet_lifetime );
 
     ret = mbedtls_net_send( buf->ctx, buf->data, buf->len );

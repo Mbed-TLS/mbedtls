@@ -16,6 +16,8 @@ Features
    * Allow comments in test data files.
    * The selftest program can execute a subset of the tests based on command
      line arguments.
+   * Improve the timing self-tests to be more robust when run on a
+     heavily-loaded machine.
 
 Bugfix
    * Fix ssl_parse_record_header() to silently discard invalid DTLS records

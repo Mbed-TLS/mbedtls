@@ -439,28 +439,22 @@ int mbedtls_timing_self_test( int verbose )
     if( verbose != 0 )
         mbedtls_printf( "  TIMING test #2 (set/get_delay        ): " );
 
-    for( a = 200; a <= 400; a += 200 )
     {
-        for( b = 200; b <= 400; b += 200 )
-        {
-            mbedtls_timing_set_delay( &ctx, a, a + b );
+        a = 800;
+        b = 400;
+        mbedtls_timing_set_delay( &ctx, a, a + b );          /* T = 0 */
 
-            busy_msleep( a - a / 4 );
-            if( mbedtls_timing_get_delay( &ctx ) != 0 )
-                FAIL;
+        busy_msleep( a - a / 4 );                      /* T = a - a/4 */
+        if( mbedtls_timing_get_delay( &ctx ) != 0 )
+            FAIL;
 
-            busy_msleep( a / 2 );
-            if( mbedtls_timing_get_delay( &ctx ) != 1 )
-                FAIL;
+        busy_msleep( a / 4 + b / 4 );                  /* T = a + b/4 */
+        if( mbedtls_timing_get_delay( &ctx ) != 1 )
+            FAIL;
 
-            busy_msleep( b - a / 4 - b / 4 );
-            if( mbedtls_timing_get_delay( &ctx ) != 1 )
-                FAIL;
-
-            busy_msleep( b / 2 );
-            if( mbedtls_timing_get_delay( &ctx ) != 2 )
-                FAIL;
-        }
+        busy_msleep( b );                          /* T = a + b + b/4 */
+        if( mbedtls_timing_get_delay( &ctx ) != 2 )
+            FAIL;
     }
 
     mbedtls_timing_set_delay( &ctx, 0, 0 );

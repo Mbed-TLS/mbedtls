@@ -731,7 +731,7 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_ECDSA_C)
         if( pk_alg == MBEDTLS_PK_ECDSA &&
-            ssl_check_key_curve( cur->key, ssl->handshake->curves ) != 0 )
+            ssl_check_key_curve( &cur->cert->pk, ssl->handshake->curves ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "certificate mismatch: elliptic curve" ) );
             continue;

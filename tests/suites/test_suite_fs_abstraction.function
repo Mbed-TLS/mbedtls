@@ -13,7 +13,7 @@
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_FS_IO:MBEDTLS_SERIALIZE_C:MBEDTLS_SERIALIZE_FORK_FRONTEND_C
+ * depends_on:MBEDTLS_FS_IO
  * END_DEPENDENCIES
  */
 
@@ -179,7 +179,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE  depends_on:MBEDTLS_FS_IO_ALT */
+/* BEGIN_CASE depends_on:MBEDTLS_SERIALIZE_C:MBEDTLS_SERIALIZE_FORK_FRONTEND_C */
 void read_dir_long_file_name( )
 {
     int ret;
@@ -210,7 +210,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_FS_IO_ALT */
+/* BEGIN_CASE depends_on:MBEDTLS_SERIALIZE_C:MBEDTLS_SERIALIZE_FORK_FRONTEND_C */
 void file_limit( )
 {
     int i, ret, count = 0;

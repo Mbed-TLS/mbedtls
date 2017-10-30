@@ -80,7 +80,7 @@ int mbedtls_readdir( mbedtls_dir_t dir, char *file_name, uint32_t size )
     int status = -1;
     struct dirent *entry;
 
-    if ( ( entry = readdir( dir ) ) != NULL )
+    if ( ( size != 0 ) && ( ( entry = readdir( dir ) ) != NULL ) )
     {
         strncpy( file_name, entry->d_name, size );
         if ( file_name[size - 1] == '\0' ) /* Check if buffer was enough */
@@ -178,13 +178,13 @@ mbedtls_file_t mbedtls_fopen( const char *path, const char *mode )
 }
 
 /**
- * \brief          Read file. Follows standard C fread interface.
+ * \brief          Read file.
  *
  * \param ptr      Pointer to output buffer
  * \param size     Size of output buffer
  * \param stream   File handle of type mbedtls_file_t.
  *
- * \return         Number of items read.
+ * \return         Number of bytes read.
  */
 size_t mbedtls_fread( void *ptr, size_t size, mbedtls_file_t stream )
 {
@@ -198,13 +198,13 @@ size_t mbedtls_fread( void *ptr, size_t size, mbedtls_file_t stream )
 }
 
 /**
- * \brief          Write file. Follows standard C fwrite interface.
+ * \brief          Write file.
  *
  * \param ptr      Pointer to input buffer
  * \param size     Bytes to write
  * \param stream   File handle of type mbedtls_file_t.
  *
- * \return         Number of items written.
+ * \return         Number of bytes written.
  */
 size_t mbedtls_fwrite( const void *ptr, size_t size, mbedtls_file_t stream )
 {
@@ -272,12 +272,12 @@ int mbedtls_fseek( mbedtls_file_t stream, long offset, int whence )
 }
 
 /**
- * \brief          Gives current position of file in bytes.
+ * \brief          Gives current position of file handle.
  *                 Follows standard C ftell interface.
  *
  * \param stream   File handle of type mbedtls_file_t.
  *
- * \return         returns current position on success, and -1 on error
+ * \return         Returns current position on success, and -1 on error
  */
 long mbedtls_ftell( mbedtls_file_t stream )
 {
@@ -342,7 +342,7 @@ mbedtls_dir_t mbedtls_opendir( const char * path )
  *
  * \param dir       Dir handle of type mbedtls_dir_t.
  * \param dirent    Out buffer for directory entry name.
- *                  Upto 255 character long name can be returned.
+ *                  Up to 255 character long name can be returned.
  * \param size      Out buffer length.
  *
  * \return          0 for success. Non zero for failure.

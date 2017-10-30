@@ -322,4 +322,4 @@ int mbedtls_serialize_pop_int32( uint32_t *value )
 }
 
 
-#endif /* MBEDTLS_NET_C */
+#endif /* MBEDTLS_SERIALIZE_C */

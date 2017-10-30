@@ -36,10 +36,11 @@
 extern "C" {
 #endif
 
-#if defined(MBEDTLS_FS_IO)
+#if defined(MBEDTLS_FS_IO) && !defined(MBEDTLS_FS_IO_ALT)
 /* If MBEDTLS_FS_IO is enabled then file IO functions should be made available
- * via standard library or platform specific implementation. */
-
+ * via standard library or platform specific implementation or
+ * user defined alternative implementation. This file provides implementations
+ * based on serialization and standard library. */
 
 /**
  * Structure returned by mbedtls_stat().
@@ -61,29 +62,9 @@ typedef struct mbedtls_stat_tag
 } mbedtls_stat_t;
 
 /* Default and alternative implementation specific interfaces. */
-#if !defined(MBEDTLS_FS_IO_ALT)
-#include <stdio.h>
-#include <dirent.h>
 
-typedef FILE *  mbedtls_file_t;
-#define mbedtls_fread( buf, size, stream )      fread( buf, 1, size, stream )
-#define mbedtls_fwrite( buf, size, stream )     fwrite( buf, 1, size, stream )
-#define mbedtls_fgets       fgets
-#define mbedtls_fclose      fclose
-#define mbedtls_ferror      ferror
-#define mbedtls_fseek       fseek
-#define mbedtls_ftell       ftell
-#define MBEDTLS_SEEK_SET    SEEK_SET
-#define MBEDTLS_SEEK_CUR    SEEK_CUR
-#define MBEDTLS_SEEK_END    SEEK_END
-#define MBEDTLS_FILE_INVALID    NULL
-
-typedef DIR *   mbedtls_dir_t;
-#define mbedtls_opendir         opendir
-#define mbedtls_closedir        closedir
-#define MBEDTLS_DIR_INVALID     NULL
-
-#else /* !MBEDTLS_FS_IO_ALT */
+/* MBEDTLS_SERIALIZE_C replaces Standard library FS implementation */
+#if defined(MBEDTLS_SERIALIZE_C)
 
 /**
  * file handle.
@@ -191,7 +172,34 @@ int mbedtls_ferror( mbedtls_file_t stream );
  */
 mbedtls_dir_t mbedtls_opendir( const char *path );
 
-#endif /* !MBEDTLS_FS_IO_ALT */
+#else /* MBEDTLS_SERIALIZE_C */
+
+#if defined(MBEDTLS_PLATFORM_NO_STD_FUNCTIONS)
+#error "No file system implementation present."
+#endif
+
+#include <stdio.h>
+#include <dirent.h>
+
+typedef FILE *  mbedtls_file_t;
+#define mbedtls_fread( buf, size, stream )      fread( buf, 1, size, stream )
+#define mbedtls_fwrite( buf, size, stream )     fwrite( buf, 1, size, stream )
+#define mbedtls_fgets       fgets
+#define mbedtls_fclose      fclose
+#define mbedtls_ferror      ferror
+#define mbedtls_fseek       fseek
+#define mbedtls_ftell       ftell
+#define MBEDTLS_SEEK_SET    SEEK_SET
+#define MBEDTLS_SEEK_CUR    SEEK_CUR
+#define MBEDTLS_SEEK_END    SEEK_END
+#define MBEDTLS_FILE_INVALID    NULL
+
+typedef DIR *   mbedtls_dir_t;
+#define mbedtls_opendir         opendir
+#define mbedtls_closedir        closedir
+#define MBEDTLS_DIR_INVALID     NULL
+
+#endif /* MBEDTLS_SERIALIZE_C */
 
 /* Common Interface prototypes */
 
@@ -237,7 +245,7 @@ int mbedtls_closedir( mbedtls_dir_t dir );
  */
 int mbedtls_stat( const char * path, mbedtls_stat_t * sb );
 
-#endif /* MBEDTLS_FS_IO */
+#endif /* MBEDTLS_FS_IO && !MBEDTLS_FS_IO_ALT*/
 
 #ifdef __cplusplus
 }

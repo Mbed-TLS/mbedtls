@@ -2907,8 +2907,7 @@
  * \def MBEDTLS_SERIALIZE_C
  *
  * Enable the serialization module. This is needed for delegating file system
- * operations to another process or machine. It helps in on-target testing.
- * (see MBEDTLS_FS_IO_ALT).
+ * operations to another process or machine.
  *
  * Module:  library/serialize.c
  * Caller:  library/net_sockets/serialize.c

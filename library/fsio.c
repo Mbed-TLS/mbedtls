@@ -25,116 +25,13 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_FS_IO)
+#if defined(MBEDTLS_FS_IO) && !defined(MBEDTLS_FS_IO_ALT)
 
 #include <string.h>
 #include <assert.h>
 #include "mbedtls/fsio.h"
 
-#if !defined(MBEDTLS_FS_IO_ALT)
-
-#if !defined(MBEDTLS_PLATFORM_NO_STD_FUNCTIONS)
-
-#include <sys/types.h>
-#include <sys/stat.h>
-
-/**
- * \brief          Open file and disable buffering.
- *
- * \param path     File path
- * \param mode     Open mode
- *
- * \return         File handle of type mbedtls_file_t.
- *                 On failure MBEDTLS_FILE_INVALID is returned.
- */
-mbedtls_file_t mbedtls_fopen( const char *path, const char *mode )
-{
-    mbedtls_file_t f = fopen( path, mode );
-
-    if( f != MBEDTLS_FILE_INVALID && ( setvbuf( f, NULL, _IONBF, 0 ) != 0 ) )
-    {
-        fclose( f );
-        f = MBEDTLS_FILE_INVALID;
-    }
-
-    return( f );
-}
-
-/**
- * \brief           Read next directory entry.
- *
- * \note            This is rework of readdir to adapt to abstraction. This does
- *                  not return struct dirent pointer. Hence no need to worry
- *                  pointer ownership and cleanup.
- *
- * \param dir       Dir handle of type mbedtls_dir_t.
- * \param file_name Out buffer for directory entry name.
- *                  Up to 255 character long name can be returned.
- *                  Returned string is NULL terminated.
- * \param size      Out buffer length.
- *
- * \return          0 for success. -1 for failure.
- */
-int mbedtls_readdir( mbedtls_dir_t dir, char *file_name, uint32_t size )
-{
-    int status = -1;
-    struct dirent *entry;
-
-    if ( ( size != 0 ) && ( ( entry = readdir( dir ) ) != NULL ) )
-    {
-        strncpy( file_name, entry->d_name, size );
-        if ( file_name[size - 1] == '\0' ) /* Check if buffer was enough */
-        {
-            status = 0;
-        }
-        else
-        {
-            file_name[0] = 0;
-        }
-    }
-
-    return( status );
-}
-
-/**
- * \brief          Get file stats.
- *
- * \param path     File path string
- * \param sb       Output mbedtls_stat_t struct.
- *
- * \return         Returns 0 on success, -1 on failure.
- */
-int mbedtls_stat( const char * path, mbedtls_stat_t * msb )
-{
-    int status = -1;
-    struct stat sb;
-
-    status = stat( path, &sb );
-    if ( status == 0 )
-    {
-        switch ( sb.st_mode & S_IFMT )
-        {
-            case S_IFREG:
-                msb->type = MBEDTLS_FSIO_DT_FILE;
-                break;
-            case S_IFDIR:
-                msb->type = MBEDTLS_FSIO_DT_DIR;
-                break;
-            default:
-                msb->type = MBEDTLS_FSIO_DT_OTHER;
-                break;
-        }
-    }
-
-    return( status );
-}
-
-#endif /* !MBEDTLS_PLATFORM_NO_STD_FUNCTIONS */
-
-#else /* !MBEDTLS_FS_IO_ALT */
-
 #if defined(MBEDTLS_SERIALIZE_C)
-
 #include "mbedtls/serialize.h"
 
 
@@ -391,6 +288,102 @@ int mbedtls_closedir( mbedtls_dir_t dir )
 }
 
 
-#endif /* MBEDTLS_SERIALIZE_C */
-#endif /* else !MBEDTLS_FS_IO_ALT */
-#endif /* MBEDTLS_FS_IO */
+#else /* MBEDTLS_SERIALIZE_C */
+
+
+#include <sys/types.h>
+#include <sys/stat.h>
+
+/**
+ * \brief          Open file and disable buffering.
+ *
+ * \param path     File path
+ * \param mode     Open mode
+ *
+ * \return         File handle of type mbedtls_file_t.
+ *                 On failure MBEDTLS_FILE_INVALID is returned.
+ */
+mbedtls_file_t mbedtls_fopen( const char *path, const char *mode )
+{
+    mbedtls_file_t f = fopen( path, mode );
+
+    if( f != MBEDTLS_FILE_INVALID && ( setvbuf( f, NULL, _IONBF, 0 ) != 0 ) )
+    {
+        fclose( f );
+        f = MBEDTLS_FILE_INVALID;
+    }
+
+    return( f );
+}
+
+/**
+ * \brief           Read next directory entry.
+ *
+ * \note            This is rework of readdir to adapt to abstraction. This does
+ *                  not return struct dirent pointer. Hence no need to worry
+ *                  pointer ownership and cleanup.
+ *
+ * \param dir       Dir handle of type mbedtls_dir_t.
+ * \param file_name Out buffer for directory entry name.
+ *                  Up to 255 character long name can be returned.
+ *                  Returned string is NULL terminated.
+ * \param size      Out buffer length.
+ *
+ * \return          0 for success. -1 for failure.
+ */
+int mbedtls_readdir( mbedtls_dir_t dir, char *file_name, uint32_t size )
+{
+    int status = -1;
+    struct dirent *entry;
+
+    if ( ( size != 0 ) && ( ( entry = readdir( dir ) ) != NULL ) )
+    {
+        strncpy( file_name, entry->d_name, size );
+        if ( file_name[size - 1] == '\0' ) /* Check if buffer was enough */
+        {
+            status = 0;
+        }
+        else
+        {
+            file_name[0] = 0;
+        }
+    }
+
+    return( status );
+}
+
+/**
+ * \brief          Get file stats.
+ *
+ * \param path     File path string
+ * \param sb       Output mbedtls_stat_t struct.
+ *
+ * \return         Returns 0 on success, -1 on failure.
+ */
+int mbedtls_stat( const char * path, mbedtls_stat_t * msb )
+{
+    int status = -1;
+    struct stat sb;
+
+    status = stat( path, &sb );
+    if ( status == 0 )
+    {
+        switch ( sb.st_mode & S_IFMT )
+        {
+            case S_IFREG:
+                msb->type = MBEDTLS_FSIO_DT_FILE;
+                break;
+            case S_IFDIR:
+                msb->type = MBEDTLS_FSIO_DT_DIR;
+                break;
+            default:
+                msb->type = MBEDTLS_FSIO_DT_OTHER;
+                break;
+        }
+    }
+
+    return( status );
+}
+
+#endif /* else MBEDTLS_SERIALIZE_C */
+#endif /* MBEDTLS_FS_IO && !MBEDTLS_FS_IO_ALT */

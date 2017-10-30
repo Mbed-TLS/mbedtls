@@ -677,6 +677,12 @@
 #error "MBEDTLS_FS_IO_ALT defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_FS_IO)
+#if ( !defined(MBEDTLS_FS_IO_ALT) ) && ( !defined(MBEDTLS_SERIALIZE_C) ) && defined(MBEDTLS_PLATFORM_NO_STD_FUNCTIONS)
+#error "MBEDTLS_FS_IO defined, but no implementation(Alternative ,serialized or stdlib functions) defined."
+#endif
+#endif /* defined(MBEDTLS_FS_IO) */
+
 #if defined(MBEDTLS_SERIALIZE_FORK_FRONTEND_C) && ( !defined(MBEDTLS_SERIALIZE_C) )
 #error "MBEDTLS_SERIALIZE_FORK_FRONTEND_C defined, but not all prerequisites"
 #endif

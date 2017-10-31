@@ -53,6 +53,7 @@ int main( void )
 #include "mbedtls/net_sockets.h"
 #include "mbedtls/error.h"
 #include "mbedtls/ssl.h"
+#include "mbedtls/timing.h"
 
 #include <string.h>
 
@@ -74,11 +75,6 @@ int main( void )
 #include <unistd.h>
 #endif /* ( _WIN32 || _WIN32_WCE ) && !EFIX64 && !EFI32 */
 
-/* For gettimeofday() */
-#if !defined(_WIN32)
-#include <sys/time.h>
-#endif
-
 #define MAX_MSG_SIZE            16384 + 2048 /* max record/datagram size */
 
 #define DFL_SERVER_ADDR         "localhost"
@@ -86,6 +82,14 @@ int main( void )
 #define DFL_LISTEN_ADDR         "localhost"
 #define DFL_LISTEN_PORT         "5556"
 #define DFL_PACK                0
+
+#if defined(MBEDTLS_TIMING_C)
+#define USAGE_PACK                                                          \
+    "    pack=%%d             default: 0     (don't pack)\n"                \
+    "                         options: t > 0 (pack for t milliseconds)\n"
+#else
+#define USAGE_PACK
+#endif
 
 #define USAGE                                                               \
     "\n usage: udp_proxy param=<>...\n"                                     \
@@ -106,11 +110,10 @@ int main( void )
     "                        drop packets larger than N bytes\n"            \
     "    bad_ad=0/1          default: 0 (don't add bad ApplicationData)\n"  \
     "    protect_hvr=0/1     default: 0 (don't protect HelloVerifyRequest)\n" \
-    "    protect_len=%%d     default: (don't protect packets of this size)\n" \
+    "    protect_len=%%d      default: (don't protect packets of this size)\n" \
     "\n"                                                                    \
     "    seed=%%d             default: (use current time)\n"                \
-    "    pack=%%d             default: 0     (don't merge)\n"               \
-    "                         options: t > 0 (merge for t milliseconds)\n"  \
+    USAGE_PACK                                                              \
     "\n"
 
 /*
@@ -133,7 +136,6 @@ static struct options
     int protect_len;            /* never drop/delay packet of the given size*/
     int pack;                   /* merge packets into single datagram for
                                  * at most \c merge milliseconds if > 0     */
-
     unsigned int seed;          /* seed for "random" events                 */
 } opt;
 
@@ -201,7 +203,12 @@ static void get_options( int argc, char *argv[] )
         }
         else if( strcmp( p, "pack" ) == 0 )
         {
+#if defined(MBEDTLS_TIMING_C)
             opt.pack = atoi( q );
+#else
+            mbedtls_printf( " option pack only defined if MBEDTLS_TIMING_C is enabled\n" );
+            exit( 1 );
+#endif
         }
         else if( strcmp( p, "mtu" ) == 0 )
         {
@@ -277,6 +284,7 @@ static const char *msg_type( unsigned char *msg, size_t len )
     }
 }
 
+#if defined(MBEDTLS_TIMING_C)
 /* Return elapsed time in milliseconds since the first call */
 static unsigned long ellapsed_time( void )
 {
@@ -369,6 +377,7 @@ static int dispatch_data( mbedtls_net_context *ctx,
                           size_t len )
 {
     ctx_buffer *buf = NULL;
+
     if( outbuf[0].ctx == ctx )
         buf = &outbuf[0];
     else if( outbuf[1].ctx == ctx )
@@ -379,6 +388,17 @@ static int dispatch_data( mbedtls_net_context *ctx,
 
     return( ctx_buffer_append( buf, data, len ) );
 }
+
+#else /* MBEDTLS_TIMING_C */
+
+static int dispatch_data( mbedtls_net_context *ctx,
+                          const unsigned char * data,
+                          size_t len )
+{
+    return( mbedtls_net_send( ctx, data, len ) );
+}
+
+#endif /* MBEDTLS_TIMING_C */
 
 typedef struct
 {
@@ -392,12 +412,22 @@ typedef struct
 /* Print packet. Outgoing packets come with a reason (forward, dupl, etc.) */
 void print_packet( const packet *p, const char *why )
 {
+#if defined(MBEDTLS_TIMING_C)
     if( why == NULL )
         mbedtls_printf( "  %05lu dispatch %s %s (%u bytes)\n",
                 ellapsed_time(), p->way, p->type, p->len );
     else
+        mbedtls_printf( "  %05lu dispatch %s %s (%u bytes): %s\n",
+                ellapsed_time(), p->way, p->type, p->len, why );
+#else
+    if( why == NULL )
+        mbedtls_printf( "        dispatch %s %s (%u bytes)\n",
+                p->way, p->type, p->len );
+    else
         mbedtls_printf( "        dispatch %s %s (%u bytes): %s\n",
                 p->way, p->type, p->len, why );
+#endif
+
     fflush( stdout );
 }
 
@@ -664,6 +694,7 @@ accept:
         nb_fds = listen_fd.fd;
     ++nb_fds;
 
+#if defined(MBEDTLS_TIMING_C)
     if( opt.pack > 0 )
     {
         outbuf[0].ctx = &server_fd;
@@ -676,6 +707,12 @@ accept:
         outbuf[1].num_datagrams = 0;
         outbuf[1].len = 0;
     }
+    else
+    {
+        outbuf[0].ctx = NULL;
+        outbuf[1].ctx = NULL;
+    }
+#endif /* MBEDTLS_TIMING_C */
 
     while( 1 )
     {
@@ -684,8 +721,10 @@ accept:
         FD_SET( client_fd.fd, &read_fds );
         FD_SET( listen_fd.fd, &read_fds );
 
+#if defined(MBEDTLS_TIMING_C)
         ctx_buffer_check( &outbuf[0] );
         ctx_buffer_check( &outbuf[1] );
+#endif
 
         if( ( ret = select( nb_fds, &read_fds, NULL, NULL, &tm ) ) < 0 )
         {

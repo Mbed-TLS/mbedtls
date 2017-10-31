@@ -231,7 +231,6 @@ int mbedtls_readdir( mbedtls_dir_t dir, char *direntry, uint32_t size );
  *
  * \param dir      Dir handle of type mbedtls_dir_t.
  *
- * \return
  */
 int mbedtls_closedir( mbedtls_dir_t dir );
 

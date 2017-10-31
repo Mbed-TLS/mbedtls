@@ -79,13 +79,13 @@ int main( int argc, char** argv )
     if( p - buf != 0 )
     {
         mbedtls_printf( "%s\n", buf );
-        mbedtls_zeroize( buf, sizeof( buf ) );
         exit_code = MBEDTLS_EXIT_SUCCESS;
     }
     else
         mbedtls_printf( "The file is empty!\n" );
 
     fclose( fp );
+    mbedtls_zeroize( buf, sizeof( buf ) );
 
     return( exit_code );
 }

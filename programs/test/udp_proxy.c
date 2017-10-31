@@ -280,22 +280,17 @@ static const char *msg_type( unsigned char *msg, size_t len )
 /* Return elapsed time in milliseconds since the first call */
 static unsigned long ellapsed_time( void )
 {
-#if defined(_WIN32)
-    return( 0 );
-#else
-    static struct timeval ref = { 0, 0 };
-    struct timeval now;
+    static int initialized = 0;
+    static struct mbedtls_timing_hr_time hires;
 
-    if( ref.tv_sec == 0 && ref.tv_usec == 0 )
+    if( initialized == 0 )
     {
-        gettimeofday( &ref, NULL );
+        (void) mbedtls_timing_get_timer( &hires, 1 );
+        initialized = 1;
         return( 0 );
     }
 
-    gettimeofday( &now, NULL );
-    return( 1000 * ( now.tv_sec  - ref.tv_sec )
-                 + ( now.tv_usec - ref.tv_usec ) / 1000 );
-#endif
+    return( mbedtls_timing_get_timer( &hires, 0 ) );
 }
 
 typedef struct

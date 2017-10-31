@@ -159,7 +159,7 @@ int mbedtls_platform_set_printf( int (*printf_func)( const char *, ... ) )
 /*
  * Make dummy function to prevent NULL pointer dereferences
  */
-static int platform_fprintf_uninit( mbedtls_file_t stream, const char *format, ... )
+static int platform_fprintf_uninit( FILE * stream, const char *format, ... )
 {
     ((void) stream);
     ((void) format);
@@ -169,10 +169,10 @@ static int platform_fprintf_uninit( mbedtls_file_t stream, const char *format, .
 #define MBEDTLS_PLATFORM_STD_FPRINTF   platform_fprintf_uninit
 #endif /* !MBEDTLS_PLATFORM_STD_FPRINTF */
 
-int (*mbedtls_fprintf)( mbedtls_file_t , const char *, ... ) =
+int (*mbedtls_fprintf)( FILE * , const char *, ... ) =
                                         MBEDTLS_PLATFORM_STD_FPRINTF;
 
-int mbedtls_platform_set_fprintf( int (*fprintf_func)( mbedtls_file_t , const char *, ... ) )
+int mbedtls_platform_set_fprintf( int (*fprintf_func)( FILE * , const char *, ... ) )
 {
     mbedtls_fprintf = fprintf_func;
     return( 0 );

@@ -846,20 +846,14 @@ static int ssl_sig_hashes_for_test[] = {
  * (Used in event-driven IO mode).
  */
 #if !defined(MBEDTLS_TIMING_C)
-void idle( mbedtls_ssl_context *ssl,
-           mbedtls_net_context *fd,
+void idle( mbedtls_net_context *fd,
            int idle_reason )
 {
 #else
-void idle( mbedtls_ssl_context *ssl,
-           mbedtls_net_context *fd,
+void idle( mbedtls_net_context *fd,
            mbedtls_timing_delay_context *timer,
            int idle_reason )
 {
-#if defined(MBEDTLS_DEBUG_C)
-    struct mbedtls_timing_hr_time tm;
-    unsigned long time_elapsed;
-#endif
 #endif
 
     int poll_type = 0;
@@ -870,44 +864,24 @@ void idle( mbedtls_ssl_context *ssl,
         poll_type = MBEDTLS_NET_POLL_READ;
 #if !defined(MBEDTLS_TIMING_C)
     else
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "WARNING: No reason for idling given" ) );
         return;
-    }
-#endif
-
-    /* One should not idle on the underlying transport
-     * if data is still pending to be processed. */
-    if( mbedtls_ssl_check_pending( ssl ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "WARNING: Data still pending, "
-                                    "but idling requested!" ) );
-    }
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "idle, waiting for event... " ) );
-
-#if defined(MBEDTLS_TIMING_C) && defined(MBEDTLS_DEBUG_C)
-    mbedtls_timing_get_timer( &tm, 1 /* restart */ );
 #endif
 
     while( 1 )
     {
+        /* Check if timer has expired */
 #if defined(MBEDTLS_TIMING_C)
-#if defined(MBEDTLS_DEBUG_C)
-        time_elapsed = mbedtls_timing_get_timer( &tm, 0 );
-#endif
-        if( mbedtls_timing_get_delay( timer ) == 2 )
+        if( timer != NULL &&
+            mbedtls_timing_get_delay( timer ) == 2 )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 3, ( "[%lu ms] timer expired - continue",
-                                        time_elapsed ) );
             break;
         }
-#endif
+#endif /* MBEDTLS_TIMING_C */
 
+        /* Check if underlying transport became available */
         if( poll_type != 0 &&
             mbedtls_net_poll( fd, poll_type, 0 ) == poll_type )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 3, ( "[%lu ms] net_context signals data - "
-                                        "continue", time_elapsed ) );
             break;
         }
     }
@@ -2231,9 +2205,9 @@ handshake:
         if( opt.event == 1 /* level triggered IO */ )
         {
 #if defined(MBEDTLS_TIMING_C)
-            idle( &ssl, &client_fd, &timer, ret );
+            idle( &client_fd, &timer, ret );
 #else
-            idle( &ssl, &client_fd, ret );
+            idle( &client_fd, ret );
 #endif
         }
     }
@@ -2346,9 +2320,9 @@ data_exchange:
                 if( opt.event == 1 /* level triggered IO */ )
                 {
 #if defined(MBEDTLS_TIMING_C)
-                    idle( &ssl, &client_fd, &timer, ret );
+                    idle( &client_fd, &timer, ret );
 #else
-                    idle( &ssl, &client_fd, ret );
+                    idle( &client_fd, ret );
 #endif
                 }
 
@@ -2453,9 +2427,9 @@ data_exchange:
             if( opt.event == 1 /* level triggered IO */ )
             {
 #if defined(MBEDTLS_TIMING_C)
-                idle( &ssl, &client_fd, &timer, ret );
+                idle( &client_fd, &timer, ret );
 #else
-                idle( &ssl, &client_fd, ret );
+                idle( &client_fd, ret );
 #endif
             }
         }
@@ -2504,9 +2478,9 @@ data_exchange:
             if( opt.event == 1 /* level triggered IO */ )
             {
 #if defined(MBEDTLS_TIMING_C)
-                idle( &ssl, &client_fd, &timer, ret );
+                idle( &client_fd, &timer, ret );
 #else
-                idle( &ssl, &client_fd, ret );
+                idle( &client_fd, ret );
 #endif
             }
         }
@@ -2548,9 +2522,9 @@ data_exchange:
                 if( opt.event == 1 /* level triggered IO */ )
                 {
 #if defined(MBEDTLS_TIMING_C)
-                    idle( &ssl, &client_fd, &timer, ret );
+                    idle( &client_fd, &timer, ret );
 #else
-                    idle( &ssl, &client_fd, ret );
+                    idle( &client_fd, ret );
 #endif
                 }
             }
@@ -2570,9 +2544,9 @@ data_exchange:
             if( opt.event == 1 /* level triggered IO */ )
             {
 #if defined(MBEDTLS_TIMING_C)
-                idle( &ssl, &client_fd, &timer, ret );
+                idle( &client_fd, &timer, ret );
 #else
-                idle( &ssl, &client_fd, ret );
+                idle( &client_fd, ret );
 #endif
             }
         }

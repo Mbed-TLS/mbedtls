@@ -385,7 +385,7 @@ int mbedtls_stat( const char * path, mbedtls_stat_t * msb )
                 break;
         }
     }
-    else if ( lstat( path, &sb ) == 0 )
+    else if ( lstat( path, &sb ) == 0 ) /* Skip broken links */
     {
         msb->type = MBEDTLS_FSIO_DT_OTHER;
         status = 0;

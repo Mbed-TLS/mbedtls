@@ -2243,15 +2243,6 @@ void mbedtls_ssl_conf_renegotiation_period( mbedtls_ssl_config *conf,
  *
  * \return         0 if nothing's pending, 1 otherwise.
  *
- * \note           This function is essential when using the library
- *                 with event-driven I/O. You should not idle
- *                 (waiting for events from the underlying transport
- *                 or from timers) before this function's check passes.
- *                 Otherwise, it's possible to run into a deadlock
- *                 (if processing the pending data involves essential
- *                 communication with the peer) or to accumulate and
- *                 potentially lose data.
- *
  * \note           This is different in purpose and behaviour from
  *                 \c mbedtls_ssl_get_bytes_avail in that it considers
  *                 any kind of unprocessed data, not only unread
@@ -2262,11 +2253,25 @@ void mbedtls_ssl_conf_renegotiation_period( mbedtls_ssl_config *conf,
  *                 further records waiting to be processed from
  *                 the current underlying transport's datagram.
  *
- * \note           If this function returns 0 (data pending), this
+ * \note           If this function returns 1 (data pending), this
  *                 does not imply that a subsequent call to
  *                 \c mbedtls_ssl_read will provide any data;
  *                 e.g., the unprocessed data might turn out
  *                 to be an alert or a handshake message.
+ *
+ * \note           This function is useful in the following situation:
+ *                 If the SSL/TLS module successfully returns from an
+ *                 operation - e.g. a handshake or an application record
+ *                 read - and you're awaiting incoming data next, you
+ *                 must not immediately idle on the underlying transport
+ *                 to have data ready, but you need to check the value
+ *                 of this function first. The reason is that the desired
+ *                 data might already be read but not yet processed.
+ *                 If, in contrast, a previous call to the SSL/TLS module
+ *                 returned MBEDTLS_ERR_SSL_WANT_READ, it is not necessary
+ *                 to call this function, as the latter error code entails
+ *                 that all internal data has been processed.
+ *
  */
 int mbedtls_ssl_check_pending( const mbedtls_ssl_context *ssl );
 

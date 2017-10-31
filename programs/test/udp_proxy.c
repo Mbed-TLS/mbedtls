@@ -131,7 +131,7 @@ static struct options
     int bad_ad;                 /* inject corrupted ApplicationData record  */
     int protect_hvr;            /* never drop or delay HelloVerifyRequest   */
     int protect_len;            /* never drop/delay packet of the given size*/
-    int merge;                  /* merge packets into single datagram for
+    int pack;                   /* merge packets into single datagram for
                                  * at most \c merge milliseconds if > 0     */
 
     unsigned int seed;          /* seed for "random" events                 */
@@ -157,7 +157,7 @@ static void get_options( int argc, char *argv[] )
     opt.server_port    = DFL_SERVER_PORT;
     opt.listen_addr    = DFL_LISTEN_ADDR;
     opt.listen_port    = DFL_LISTEN_PORT;
-    opt.merge          = DFL_PACK;
+    opt.pack           = DFL_PACK;
     /* Other members default to 0 */
 
     for( i = 1; i < argc; i++ )
@@ -201,7 +201,7 @@ static void get_options( int argc, char *argv[] )
         }
         else if( strcmp( p, "pack" ) == 0 )
         {
-            opt.merge = atoi( q );
+            opt.pack = atoi( q );
         }
         else if( strcmp( p, "mtu" ) == 0 )
         {
@@ -333,7 +333,7 @@ static int ctx_buffer_flush( ctx_buffer *buf )
 static inline int ctx_buffer_check( ctx_buffer *buf )
 {
     if( buf->len > 0 &&
-        ellapsed_time() - buf->packet_lifetime >= (size_t) opt.merge )
+        ellapsed_time() - buf->packet_lifetime >= (size_t) opt.pack )
     {
         return( ctx_buffer_flush( buf ) );
     }
@@ -669,7 +669,7 @@ accept:
         nb_fds = listen_fd.fd;
     ++nb_fds;
 
-    if( opt.merge > 0 )
+    if( opt.pack > 0 )
     {
         outbuf[0].ctx = &server_fd;
         outbuf[0].description = "S <- C";

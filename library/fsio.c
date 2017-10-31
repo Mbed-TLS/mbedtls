@@ -371,6 +371,10 @@ int mbedtls_stat( const char * path, mbedtls_stat_t * msb )
         switch ( sb.st_mode & S_IFMT )
         {
             case S_IFREG:
+            case S_IFIFO:
+            case S_IFSOCK:
+            case S_IFCHR:
+            case S_IFBLK:
                 msb->type = MBEDTLS_FSIO_DT_FILE;
                 break;
             case S_IFDIR:
@@ -380,6 +384,11 @@ int mbedtls_stat( const char * path, mbedtls_stat_t * msb )
                 msb->type = MBEDTLS_FSIO_DT_OTHER;
                 break;
         }
+    }
+    else if ( lstat( path, &sb ) == 0 )
+    {
+        msb->type = MBEDTLS_FSIO_DT_OTHER;
+        status = 0;
     }
 
     return( status );

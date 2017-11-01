@@ -52,7 +52,7 @@ void usage( void )
 int main( int argc, char** argv )
 {
     int exit_code = MBEDTLS_EXIT_FAILURE;
-    FILE * fp;
+    FILE *fp;
     char buf[BUFFER_LEN];
     char *p = buf;
     char *end = p + BUFFER_LEN;

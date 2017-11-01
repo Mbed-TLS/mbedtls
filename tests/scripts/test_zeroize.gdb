@@ -26,11 +26,6 @@ set $i = 0
 set $len = sizeof(buf)
 set $buf = buf
 
-if exit_code != 0
-    echo The program did not terminate correctly\n
-    quit 1
-end
-
 while $i < $len
     if $buf[$i++] != 0
         echo The buffer at was not zeroized\n
@@ -39,4 +34,12 @@ while $i < $len
 end
 
 echo The buffer was correctly zeroized\n
+
+continue
+
+if $_exitcode != 0
+    echo The program did not terminate correctly\n
+    quit 1
+end
+
 quit 0

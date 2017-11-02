@@ -134,7 +134,7 @@ static struct options
     int bad_ad;                 /* inject corrupted ApplicationData record  */
     int protect_hvr;            /* never drop or delay HelloVerifyRequest   */
     int protect_len;            /* never drop/delay packet of the given size*/
-    int pack;                   /* merge packets into single datagram for
+    unsigned pack;              /* merge packets into single datagram for
                                  * at most \c merge milliseconds if > 0     */
     unsigned int seed;          /* seed for "random" events                 */
 } opt;
@@ -204,7 +204,7 @@ static void get_options( int argc, char *argv[] )
         else if( strcmp( p, "pack" ) == 0 )
         {
 #if defined(MBEDTLS_TIMING_C)
-            opt.pack = atoi( q );
+            opt.pack = (unsigned) atoi( q );
 #else
             mbedtls_printf( " option pack only defined if MBEDTLS_TIMING_C is enabled\n" );
             exit( 1 );
@@ -286,7 +286,7 @@ static const char *msg_type( unsigned char *msg, size_t len )
 
 #if defined(MBEDTLS_TIMING_C)
 /* Return elapsed time in milliseconds since the first call */
-static unsigned long ellapsed_time( void )
+static unsigned ellapsed_time( void )
 {
     static int initialized = 0;
     static struct mbedtls_timing_hr_time hires;
@@ -307,8 +307,8 @@ typedef struct
 
     const char *description;
 
-    unsigned long packet_lifetime;
-    size_t num_datagrams;
+    unsigned packet_lifetime;
+    unsigned num_datagrams;
 
     unsigned char data[MAX_MSG_SIZE];
     unsigned len;
@@ -321,8 +321,9 @@ static int ctx_buffer_flush( ctx_buffer *buf )
 {
     int ret;
 
-    mbedtls_printf( "  %05lu flush    %s: %u bytes, %lu datagrams, last %ld ms\n",
-                    ellapsed_time(), buf->description, buf->len, buf->num_datagrams,
+    mbedtls_printf( "  %05u flush    %s: %u bytes, %u datagrams, last %u ms\n",
+                    ellapsed_time(), buf->description,
+                    buf->len, buf->num_datagrams,
                     ellapsed_time() - buf->packet_lifetime );
 
     ret = mbedtls_net_send( buf->ctx, buf->data, buf->len );
@@ -333,15 +334,17 @@ static int ctx_buffer_flush( ctx_buffer *buf )
     return( ret );
 }
 
-static inline int ctx_buffer_check( ctx_buffer *buf )
+static unsigned ctx_buffer_time_remaining( ctx_buffer *buf )
 {
-    if( buf->len > 0 &&
-        ellapsed_time() - buf->packet_lifetime >= (size_t) opt.pack )
-    {
-        return( ctx_buffer_flush( buf ) );
-    }
+    unsigned const cur_time = ellapsed_time();
 
-    return( 0 );
+    if( buf->num_datagrams == 0 )
+        return( (unsigned) -1 );
+
+    if( cur_time - buf->packet_lifetime >= opt.pack )
+        return( 0 );
+
+    return( opt.pack - ( cur_time - buf->packet_lifetime ) );
 }
 
 static int ctx_buffer_append( ctx_buffer *buf,
@@ -352,8 +355,8 @@ static int ctx_buffer_append( ctx_buffer *buf,
 
     if( len > sizeof( buf->data ) )
     {
-        mbedtls_printf( "  ! buffer size %lu too large (max %lu)\n",
-                        len, sizeof( buf->data ) );
+        mbedtls_printf( "  ! buffer size %u too large (max %u)\n",
+                        (unsigned) len, (unsigned) sizeof( buf->data ) );
         return( -1 );
     }
 
@@ -371,34 +374,30 @@ static int ctx_buffer_append( ctx_buffer *buf,
 
     return( len );
 }
+#endif /* MBEDTLS_TIMING_C */
 
 static int dispatch_data( mbedtls_net_context *ctx,
                           const unsigned char * data,
                           size_t len )
 {
+#if defined(MBEDTLS_TIMING_C)
     ctx_buffer *buf = NULL;
+    if( opt.pack > 0 )
+    {
+        if( outbuf[0].ctx == ctx )
+            buf = &outbuf[0];
+        else if( outbuf[1].ctx == ctx )
+            buf = &outbuf[1];
 
-    if( outbuf[0].ctx == ctx )
-        buf = &outbuf[0];
-    else if( outbuf[1].ctx == ctx )
-        buf = &outbuf[1];
+        if( buf == NULL )
+            return( -1 );
 
-    if( buf == NULL )
-        return( mbedtls_net_send( ctx, data, len ) );
+        return( ctx_buffer_append( buf, data, len ) );
+    }
+#endif /* MBEDTLS_TIMING_C */
 
-    return( ctx_buffer_append( buf, data, len ) );
-}
-
-#else /* MBEDTLS_TIMING_C */
-
-static int dispatch_data( mbedtls_net_context *ctx,
-                          const unsigned char * data,
-                          size_t len )
-{
     return( mbedtls_net_send( ctx, data, len ) );
 }
-
-#endif /* MBEDTLS_TIMING_C */
 
 typedef struct
 {
@@ -414,10 +413,10 @@ void print_packet( const packet *p, const char *why )
 {
 #if defined(MBEDTLS_TIMING_C)
     if( why == NULL )
-        mbedtls_printf( "  %05lu dispatch %s %s (%u bytes)\n",
+        mbedtls_printf( "  %05u dispatch %s %s (%u bytes)\n",
                 ellapsed_time(), p->way, p->type, p->len );
     else
-        mbedtls_printf( "  %05lu dispatch %s %s (%u bytes): %s\n",
+        mbedtls_printf( "  %05u dispatch %s %s (%u bytes): %s\n",
                 ellapsed_time(), p->way, p->type, p->len, why );
 #else
     if( why == NULL )
@@ -601,13 +600,15 @@ int main( int argc, char *argv[] )
     int ret;
 
     mbedtls_net_context listen_fd, client_fd, server_fd;
+
+#if defined( MBEDTLS_TIMING_C )
     struct timeval tm;
+#endif
+
+    struct timeval *tm_ptr = NULL;
 
     int nb_fds;
     fd_set read_fds;
-
-    tm.tv_sec  = 0;
-    tm.tv_usec = 0;
 
     mbedtls_net_init( &listen_fd );
     mbedtls_net_init( &client_fd );
@@ -707,26 +708,52 @@ accept:
         outbuf[1].num_datagrams = 0;
         outbuf[1].len = 0;
     }
-    else
-    {
-        outbuf[0].ctx = NULL;
-        outbuf[1].ctx = NULL;
-    }
 #endif /* MBEDTLS_TIMING_C */
 
     while( 1 )
     {
+#if defined(MBEDTLS_TIMING_C)
+        if( opt.pack > 0 )
+        {
+            unsigned max_wait_server, max_wait_client, max_wait;
+            max_wait_server = ctx_buffer_time_remaining( &outbuf[0] );
+            max_wait_client = ctx_buffer_time_remaining( &outbuf[1] );
+
+            max_wait = (unsigned) -1;
+
+            if( max_wait_server == 0 )
+                ctx_buffer_flush( &outbuf[0] );
+            else
+                max_wait = max_wait_server;
+
+            if( max_wait_client == 0 )
+                ctx_buffer_flush( &outbuf[1] );
+            else
+            {
+                if( max_wait_client < max_wait )
+                    max_wait = max_wait_client;
+            }
+
+            if( max_wait != (unsigned) -1 )
+            {
+                tm.tv_sec  = max_wait / 1000;
+                tm.tv_usec = ( max_wait % 1000 ) * 1000;
+
+                tm_ptr = &tm;
+            }
+            else
+            {
+                tm_ptr = NULL;
+            }
+        }
+#endif /* MBEDTLS_TIMING_C */
+
         FD_ZERO( &read_fds );
         FD_SET( server_fd.fd, &read_fds );
         FD_SET( client_fd.fd, &read_fds );
         FD_SET( listen_fd.fd, &read_fds );
 
-#if defined(MBEDTLS_TIMING_C)
-        ctx_buffer_check( &outbuf[0] );
-        ctx_buffer_check( &outbuf[1] );
-#endif
-
-        if( ( ret = select( nb_fds, &read_fds, NULL, NULL, &tm ) ) < 0 )
+        if( ( ret = select( nb_fds, &read_fds, NULL, NULL, tm_ptr ) ) < 0 )
         {
             perror( "select" );
             goto exit;

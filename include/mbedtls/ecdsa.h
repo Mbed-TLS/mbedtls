@@ -40,6 +40,37 @@
  * (assuming ECP_MAX_BYTES is less than 126 for r and s,
  * and less than 124 (total len <= 255) for the sequence)
  */
+
+/**
+ * \brief           Maximum ECDSA signature size for a given curve bit size
+ *
+ * \param bits      Curve size in bits
+ * \return          Maximum signature size in bytes
+ *
+ * \note            This macro returns a compile-time constant if its argument
+ *                  is one. It may evaluate its argument multiple times; if
+ *                  this is a problem, call the function
+ *                  mbedtls_ecdsa_max_sig_len instead.
+ */
+#define MBEDTLS_ECDSA_MAX_SIG_LEN( bits )                               \
+    ( /*T,L of SEQUENCE*/ ( ( bits ) >= 61 * 8 ? 3 : 2 ) +              \
+      /*T,L of r,s*/        2 * ( ( ( bits ) >= 127 * 8 ? 3 : 2 ) +     \
+      /*V of r,s*/                ( ( bits ) + 8 ) / 8 ) )
+
+/**
+ * \brief           Maximum ECDSA signature size for a given curve bit size
+ *
+ * \param bits      Curve size in bits
+ * \return          Maximum signature size in bytes
+ *
+ * \note            If you need a compile-time constant, call the macro
+ *                  MBEDTLS_ECDSA_MAX_SIG_LEN instead.
+ */
+static inline size_t mbedtls_ecdsa_max_sig_len( size_t bits )
+{
+    return( MBEDTLS_ECDSA_MAX_SIG_LEN( bits ) );
+}
+
 #if MBEDTLS_ECP_MAX_BYTES > 124
 #error "MBEDTLS_ECP_MAX_BYTES bigger than expected, please fix MBEDTLS_ECDSA_MAX_LEN"
 #endif
@@ -144,9 +175,9 @@ int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
  * \param f_rng     RNG function
  * \param p_rng     RNG parameter
  *
- * \note            The "sig" buffer must be at least as large as twice the
- *                  size of the curve used, plus 9 (eg. 73 bytes if a 256-bit
- *                  curve is used). MBEDTLS_ECDSA_MAX_LEN is always safe.
+ * \note            The \c sig buffer must be at least
+ *                  `MBEDTLS_ECDSA_MAX_SIG_LEN(ctx->grp.pbits)` bytes long.
+ *                  MBEDTLS_ECDSA_MAX_LEN is always safe.
  *
  * \note            If the bitlength of the message hash is larger than the
  *                  bitlength of the group order, then the hash is truncated as
@@ -184,9 +215,9 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t
  * \param slen      Length of the signature written
  * \param md_alg    MD algorithm used to hash the message
  *
- * \note            The "sig" buffer must be at least as large as twice the
- *                  size of the curve used, plus 9 (eg. 73 bytes if a 256-bit
- *                  curve is used). MBEDTLS_ECDSA_MAX_LEN is always safe.
+ * \note            The \c sig buffer must be at least
+ *                  `MBEDTLS_ECDSA_MAX_SIG_LEN(ctx->grp.pbits)` bytes long.
+ *                  MBEDTLS_ECDSA_MAX_LEN is always safe.
  *
  * \note            If the bitlength of the message hash is larger than the
  *                  bitlength of the group order, then the hash is truncated as

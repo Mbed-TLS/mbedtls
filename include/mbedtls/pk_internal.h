@@ -82,7 +82,10 @@ struct mbedtls_pk_info_t
     /** Interface with the debug module */
     void (*debug_func)( const void *ctx, mbedtls_pk_debug_item *items );
 
+    /** Signature size */
+    size_t (*signature_size_func)( const void *ctx );
 };
+
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /* Container for RSA-alt */
 typedef struct

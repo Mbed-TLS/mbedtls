@@ -195,6 +195,7 @@ const mbedtls_pk_info_t mbedtls_rsa_info = {
     rsa_alloc_wrap,
     rsa_free_wrap,
     rsa_debug,
+    NULL,
 };
 #endif /* MBEDTLS_RSA_C */
 
@@ -262,6 +263,12 @@ static int eckey_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
     return( ret );
 }
 
+static size_t ecdsa_signature_size( const void *ctx_arg )
+{
+    const mbedtls_ecp_keypair *ctx = ctx_arg;
+    return( MBEDTLS_ECDSA_MAX_SIG_LEN( ctx->grp.pbits ) );
+}
+
 #endif /* MBEDTLS_ECDSA_C */
 
 static int eckey_check_pair( const void *pub, const void *prv )
@@ -311,6 +318,11 @@ const mbedtls_pk_info_t mbedtls_eckey_info = {
     eckey_alloc_wrap,
     eckey_free_wrap,
     eckey_debug,
+#if defined(MBEDTLS_ECDSA_C)
+    ecdsa_signature_size,
+#else
+    NULL,
+#endif
 };
 
 /*
@@ -336,6 +348,7 @@ const mbedtls_pk_info_t mbedtls_eckeydh_info = {
     eckey_alloc_wrap,       /* Same underlying key structure */
     eckey_free_wrap,        /* Same underlying key structure */
     eckey_debug,            /* Same underlying key structure */
+    NULL,
 };
 #endif /* MBEDTLS_ECP_C */
 
@@ -400,6 +413,7 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
     ecdsa_alloc_wrap,
     ecdsa_free_wrap,
     eckey_debug,        /* Compatible key structures */
+    ecdsa_signature_size,
 };
 #endif /* MBEDTLS_ECDSA_C */
 
@@ -518,6 +532,7 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
 #endif
     rsa_alt_alloc_wrap,
     rsa_alt_free_wrap,
+    NULL,
     NULL,
 };
 

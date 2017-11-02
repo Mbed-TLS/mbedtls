@@ -359,11 +359,17 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
  * \param hash      Hash of the message to sign
  * \param hash_len  Hash length or 0 (see notes)
  * \param sig       Place to write the signature
- * \param sig_len   Number of bytes written
+ * \param sig_len   Number of bytes written to sig
  * \param f_rng     RNG function
  * \param p_rng     RNG parameter
  *
  * \return          0 on success, or a type-specific error code.
+ *
+ * \note            The signature buffer \c sig must be of appropriate size
+ *                  which can be calculated with \c mbedtls_pk_signature_size.
+ *                  Depending on the algorithm, the value returned in
+ *                  \c sig_len may be less or equal to the value returned by
+ *                  \c mbedtls_pk_signature_size.
  *
  * \note            For RSA keys, the default padding type is PKCS#1 v1.5.
  *                  There is no interface in the PK module to make RSASSA-PSS
@@ -379,6 +385,15 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
              const unsigned char *hash, size_t hash_len,
              unsigned char *sig, size_t *sig_len,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
+
+/**
+ * \brief           Calculate the size of a signature made with this key.
+ *
+ * \param ctx       PK context to use
+ *
+ * \return          Maximum size in bytes of a signature made with this key.
+ */
+size_t mbedtls_pk_signature_size( const mbedtls_pk_context *ctx );
 
 /**
  * \brief           Decrypt message (including padding if relevant).

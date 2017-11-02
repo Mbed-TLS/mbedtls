@@ -210,34 +210,10 @@ static int x509_write_name( unsigned char **p, unsigned char *start, mbedtls_asn
     const unsigned char *name   = cur_name->val.p;
     size_t name_len             = cur_name->val.len;
 
-    // Write PrintableString for all except MBEDTLS_OID_PKCS9_EMAIL
-    //
-    if( MBEDTLS_OID_SIZE( MBEDTLS_OID_PKCS9_EMAIL ) == oid_len &&
-        memcmp( oid, MBEDTLS_OID_PKCS9_EMAIL, oid_len ) == 0 )
-    {
-        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_ia5_string( p, start,
-                                                  (const char *) name,
-                                                  name_len ) );
-    }
-    else if (cur_name->val.tag == MBEDTLS_ASN1_UTF8_STRING)
-    {
-        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_utf8_string( p, start,
-            (const char *) name,
-            name_len ) );
-    }
-    else if (cur_name->val.tag == MBEDTLS_ASN1_IA5_STRING)
-    {
-        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_ia5_string( p, start,
-                                                  (const char *) name,
-                                                  name_len ) );
-    }
-    else
-    {
-        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_printable_string( p, start,
-                                                        (const char *) name,
-                                                        name_len ) );
-    }
-
+    // Write correct string tag and value
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_any_string( p, start, cur_name->val.tag,
+                                                                (const char *) name,
+                                                                name_len ) );
     // Write OID
     //
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_oid( p, start, oid, oid_len ) );

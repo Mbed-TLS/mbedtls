@@ -714,7 +714,7 @@ void check_padding( int pad_mode, char *input_str, int ret, int dlen_check )
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_GCM */
-void check_gcm( int cipher_id, char *hex_key, char *hex_iv )
+void check_gcm_multiple_encryption( int cipher_id, char *hex_key, char *hex_iv )
 {
     const mbedtls_cipher_info_t *cipher_info;
     mbedtls_cipher_context_t ctx;

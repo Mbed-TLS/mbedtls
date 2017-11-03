@@ -1,3 +1,4 @@
+# Test the operation of SHA-1 and SHA-2
 SHA-1 Test Vector NIST CAVS #1
 depends_on:MBEDTLS_SHA1_C
 mbedtls_sha1:"":"da39a3ee5e6b4b0d3255bfef95601890afd80709"

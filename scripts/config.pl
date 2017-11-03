@@ -56,7 +56,7 @@ Commands
     unset <symbol>          - Comments out the #define for the given symbol if
                               present in the configuration file.
     get <symbol>            - Finds the #define for the given symbol, returning
-                              an exitcode of 0 if the symbol is found, and -1 if
+                              an exitcode of 0 if the symbol is found, and 1 if
                               not. The value of the symbol is output if one is
                               specified in the configuration file.
     full                    - Uncomments all #define's in the configuration file
@@ -175,7 +175,10 @@ if ($action eq "realfull") {
     $no_exclude_re = join '|', @non_excluded;
 }
 
-open my $config_write, '>', $config_file or die "write $config_file: $!\n";
+my $config_write = undef;
+if ($action ne "get") {
+    open $config_write, '>', $config_file or die "write $config_file: $!\n";
+}
 
 my $done;
 for my $line (@config_lines) {
@@ -205,17 +208,19 @@ for my $line (@config_lines) {
             $done = 1;
         }
     } elsif (!$done && $action eq "get") {
-        if ($line =~ /^\s*#define\s*$name\s*([^\s]+)\s*\b/) {
+        if ($line =~ /^\s*#define\s*$name(?:\s+(.*?))\s*(?:$|\/\*|\/\/)/) {
             $value = $1;
             $done = 1;
         }
     }
 
-    print $config_write $line;
+    if (defined $config_write) {
+        print $config_write $line or die "write $config_file: $!\n";
+    }
 }
 
 # Did the set command work?
-if ($action eq "set"&& $force_option && !$done) {
+if ($action eq "set" && $force_option && !$done) {
 
     # If the force option was set, append the symbol to the end of the file
     my $line = "#define $name";
@@ -223,20 +228,22 @@ if ($action eq "set"&& $force_option && !$done) {
     $line .= "\n";
     $done = 1;
 
-    print $config_write $line;
+    print $config_write $line or die "write $config_file: $!\n";
 }
 
-close $config_write;
+if (defined $config_write) {
+    close $config_write or die "close $config_file: $!\n";
+}
 
 if ($action eq "get") {
-    if($done) {
+    if ($done) {
         if ($value ne '') {
-            print $value;
+            print "$value\n";
         }
         exit 0;
     } else {
         # If the symbol was not found, return an error
-        exit -1;
+        exit 1;
     }
 }
 

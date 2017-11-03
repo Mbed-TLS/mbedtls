@@ -321,6 +321,33 @@ wait_server_start() {
     fi
 }
 
+# Given the client or server debug output, parse the unix timestamp that is
+# included in the first 4 bytes of the random bytes and check that it's within
+# acceptable bounds
+check_server_hello_time() {
+    # Extract the time from the debug (lvl 3) output of the client
+    SERVER_HELLO_TIME="$(sed -n 's/.*server hello, current time: //p' < "$1")"
+    # Get the Unix timestamp for now
+    CUR_TIME=$(date +'%s')
+    THRESHOLD_IN_SECS=300
+
+    # Check if the ServerHello time was printed
+    if [ -z "$SERVER_HELLO_TIME" ]; then
+        return 1
+    fi
+
+    # Check the time in ServerHello is within acceptable bounds
+    if [ $SERVER_HELLO_TIME -lt $(( $CUR_TIME - $THRESHOLD_IN_SECS )) ]; then
+        # The time in ServerHello is at least 5 minutes before now
+        return 1
+    elif [ $SERVER_HELLO_TIME -gt $(( $CUR_TIME + $THRESHOLD_IN_SECS )) ]; then
+        # The time in ServerHello is at least 5 minutes later than now
+        return 1
+    else
+        return 0
+    fi
+}
+
 # wait for client to terminate and set CLI_EXIT
 # must be called right after starting the client
 wait_client_done() {
@@ -357,9 +384,11 @@ detect_dtls() {
 # Options:  -s pattern  pattern that must be present in server output
 #           -c pattern  pattern that must be present in client output
 #           -u pattern  lines after pattern must be unique in client output
+#           -f call shell function on client output
 #           -S pattern  pattern that must be absent in server output
 #           -C pattern  pattern that must be absent in client output
 #           -U pattern  lines after pattern must be unique in server output
+#           -F call shell function on server output
 run_test() {
     NAME="$1"
     shift 1
@@ -546,6 +575,18 @@ run_test() {
                     return
                 fi
                 ;;
+            "-F")
+                if ! $2 "$SRV_OUT"; then
+                    fail "function call to '$2' failed on Server output"
+                    return
+                fi
+                ;;
+            "-f")
+                if ! $2 "$CLI_OUT"; then
+                    fail "function call to '$2' failed on Client output"
+                    return
+                fi
+                ;;
 
             *)
                 echo "Unknown test: $1" >&2
@@ -680,6 +721,20 @@ run_test    "Default, DTLS" \
             0 \
             -s "Protocol is DTLSv1.2" \
             -s "Ciphersuite is TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384"
+
+# Test current time in ServerHello
+requires_config_enabled MBEDTLS_HAVE_TIME
+run_test    "Default, ServerHello contains gmt_unix_time" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI debug_level=3" \
+            0 \
+            -s "Protocol is TLSv1.2" \
+            -s "Ciphersuite is TLS-NEWHOPE-ECDSA-WITH-SALSA20-256-SHA" \
+            -s "client hello v3, signature_algorithm ext: 6" \
+            -S "error" \
+            -C "error" \
+            -f "check_server_hello_time" \
+            -F "check_server_hello_time"
 
 # Test for uniqueness of IVs in AEAD ciphersuites
 run_test    "Unique IV in GCM" \
@@ -1412,6 +1467,40 @@ run_test    "Renegotiation: server-initiated" \
             -c "=> renegotiate" \
             -s "=> renegotiate" \
             -s "write hello request"
+
+# Checks that no Signature Algorithm with SHA-1 gets negotiated. Negotiating SHA-1 would mean that
+# the server did not parse the Signature Algorithm extension. This test is valid only if an MD
+# algorithm stronger than SHA-1 is enabled in config.h
+run_test    "Renegotiation: Signature Algorithms parsing, client-initiated" \
+            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional" \
+            "$P_CLI debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
+            0 \
+            -c "client hello, adding renegotiation extension" \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -s "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -c "found renegotiation extension" \
+            -c "=> renegotiate" \
+            -s "=> renegotiate" \
+            -S "write hello request" \
+            -S "client hello v3, signature_algorithm ext: 2" # Is SHA-1 negotiated?
+
+# Checks that no Signature Algorithm with SHA-1 gets negotiated. Negotiating SHA-1 would mean that
+# the server did not parse the Signature Algorithm extension. This test is valid only if an MD
+# algorithm stronger than SHA-1 is enabled in config.h
+run_test    "Renegotiation: Signature Algorithms parsing, server-initiated" \
+            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional renegotiate=1" \
+            "$P_CLI debug_level=3 exchanges=2 renegotiation=1" \
+            0 \
+            -c "client hello, adding renegotiation extension" \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -s "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -c "found renegotiation extension" \
+            -c "=> renegotiate" \
+            -s "=> renegotiate" \
+            -s "write hello request" \
+            -S "client hello v3, signature_algorithm ext: 2" # Is SHA-1 negotiated?
 
 run_test    "Renegotiation: double" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional renegotiate=1" \

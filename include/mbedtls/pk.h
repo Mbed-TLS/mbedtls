@@ -3,7 +3,7 @@
  *
  * \brief Public Key cryptography abstraction layer
  *
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2006-2017, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -66,6 +66,9 @@
 #define MBEDTLS_ERR_PK_UNKNOWN_NAMED_CURVE -0x3A00  /**< Elliptic curve is unsupported (only NIST curves are supported). */
 #define MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE -0x3980  /**< Unavailable feature, e.g. RSA disabled for RSA key. */
 #define MBEDTLS_ERR_PK_SIG_LEN_MISMATCH    -0x3900  /**< The signature is valid but its length is less than expected. */
+#define MBEDTLS_ERR_PK_INVALID_SIGNATURE   -0x3880  /**< Invalid signature */
+#define MBEDTLS_ERR_PK_BUFFER_TOO_SMALL    -0x3800  /**< Output buffer too small */
+#define MBEDTLS_ERR_PK_NOT_PERMITTED       -0x3780  /**< Operation not permitted */
 
 /**@}*/
 
@@ -87,6 +90,10 @@ typedef enum {
     MBEDTLS_PK_ECDSA,           /**< ECC key pair with ECDSA context */
     MBEDTLS_PK_RSA_ALT,         /**< RSA (alternative implementation) */
     MBEDTLS_PK_RSASSA_PSS,      /**< RSA key pair; same context as MBEDTLS_PK_RSA, but used to represent keys with the algorithm identifier id-RSASSA-PSS */
+    /** Opaque key pair (cryptographic material held in an external module).
+     * This may be an RSA or ECC key or a key of an unrecognized type. Call
+     * \c mbedtls_pk_can_do() to check whether a key is of a recognized type. */
+    MBEDTLS_PK_OPAQUE,
 } mbedtls_pk_type_t;
 
 /**
@@ -215,6 +222,12 @@ void mbedtls_pk_free( mbedtls_pk_context *ctx );
  * \return          0 on success,
  *                  MBEDTLS_ERR_PK_BAD_INPUT_DATA on invalid input,
  *                  MBEDTLS_ERR_PK_ALLOC_FAILED on allocation failure.
+ *
+ * \note            Engines that implement of opaque keys may offer an
+ *                  alternative setup function that take engine-dependent
+ *                  parameters. If such a function exists, call it
+ *                  instead of mbedtls_pk_setup. The implementation-specific
+ *                  setup function should call mbedtls_pk_setup internally.
  *
  * \note            For contexts holding an RSA-alt key pair, use
  *                  \c mbedtls_pk_setup_rsa_alt() instead.
@@ -448,7 +461,13 @@ int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
  *                    is ill-formed.
  *                  * MBEDTLS_ERR_PK_TYPE_MISMATCH if the contexts cannot
  *                    represent keys of the same type.
+ *                  * MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE if it is impossible
+ *                    to determine whether the keys match. This is guaranteed
+ *                    not to happen if \c prv is a transparent key pair.
  *                  * Or a type-specific error code.
+ *
+ * \note            Opaque key types may not implement this function.
+ *                  An opaque \c pub never matches a transparent \c prv.
  */
 int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_context *prv );
 
@@ -481,6 +500,12 @@ const char * mbedtls_pk_get_name( const mbedtls_pk_context *ctx );
  * \param ctx       Context to use
  *
  * \return          Type on success, or MBEDTLS_PK_NONE
+ *
+ * \note            This function returns the type of the key pair object. The
+ *                  type encodes the representation of the object as well as
+ *                  the operations that it can be used for. To test whether
+ *                  the object represents a key of a recognized type such
+ *                  as RSA or ECDSA, call \c mbedtls_pk_can_do().
  */
 mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx );
 

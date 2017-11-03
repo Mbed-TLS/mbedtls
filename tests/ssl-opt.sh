@@ -729,9 +729,8 @@ run_test    "Default, ServerHello contains gmt_unix_time" \
             "$P_CLI debug_level=3" \
             0 \
             -s "Protocol is TLSv1.2" \
-            -s "Ciphersuite is TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384" \
+            -s "Ciphersuite is TLS-NEWHOPE-ECDSA-WITH-SALSA20-256-SHA" \
             -s "client hello v3, signature_algorithm ext: 6" \
-            -s "ECDHE curve: secp521r1" \
             -S "error" \
             -C "error" \
             -f "check_server_hello_time" \

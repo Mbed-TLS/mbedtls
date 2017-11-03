@@ -288,6 +288,12 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
             mbedtls_snprintf( buf, buflen, "PK - Unavailable feature, e.g. RSA disabled for RSA key" );
         if( use_ret == -(MBEDTLS_ERR_PK_SIG_LEN_MISMATCH) )
             mbedtls_snprintf( buf, buflen, "PK - The signature is valid but its length is less than expected" );
+        if( use_ret == -(MBEDTLS_ERR_PK_INVALID_SIGNATURE) )
+            mbedtls_snprintf( buf, buflen, "PK - Invalid signature" );
+        if( use_ret == -(MBEDTLS_ERR_PK_BUFFER_TOO_SMALL) )
+            mbedtls_snprintf( buf, buflen, "PK - Output buffer too small" );
+        if( use_ret == -(MBEDTLS_ERR_PK_NOT_PERMITTED) )
+            mbedtls_snprintf( buf, buflen, "PK - Operation not permitted" );
 #endif /* MBEDTLS_PK_C */
 
 #if defined(MBEDTLS_PKCS12_C)

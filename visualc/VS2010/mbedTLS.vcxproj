@@ -191,6 +191,7 @@
     <ClInclude Include="..\..\include\mbedtls\padlock.h" />
     <ClInclude Include="..\..\include\mbedtls\pem.h" />
     <ClInclude Include="..\..\include\mbedtls\pk.h" />
+    <ClInclude Include="..\..\include\mbedtls\pk_info.h" />
     <ClInclude Include="..\..\include\mbedtls\pk_internal.h" />
     <ClInclude Include="..\..\include\mbedtls\pkcs11.h" />
     <ClInclude Include="..\..\include\mbedtls\pkcs12.h" />

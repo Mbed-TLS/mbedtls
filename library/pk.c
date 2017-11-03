@@ -28,6 +28,7 @@
 #if defined(MBEDTLS_PK_C)
 #include "mbedtls/pk.h"
 #include "mbedtls/pk_internal.h"
+#include "mbedtls/pk_info.h"
 
 #include "mbedtls/bignum.h"
 

@@ -91,6 +91,7 @@ APPS =	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
 .PHONY: all check test clean
 
 all: $(APPS)
+all_c: $(APPS:$(EXEXT)=.c)
 
 $(DEP):
 	$(MAKE) -C ../library
@@ -444,7 +445,9 @@ else
 	del /Q /F *.c *.exe
 endif
 
-check: $(APPS)
+check: $(DYNAMIC_LIBRARIES) $(APPS)
 	perl scripts/run-test-suites.pl
 
 test: check
+
+include .depend

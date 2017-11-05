@@ -286,3 +286,5 @@ endif
 
 list:
 	echo $(APPS)
+
+include .depend

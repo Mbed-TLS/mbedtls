@@ -1207,11 +1207,6 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
     size_t nb_pad, olen, oid_size = 0;
     unsigned char *p = sig;
     const char *oid = NULL;
-    unsigned char *sig_try = NULL, *verif = NULL;
-    size_t i;
-    unsigned char diff;
-    volatile unsigned char diff_no_optimize;
-    int ret;
 
     if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V15 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
@@ -1277,42 +1272,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
     if( mode == MBEDTLS_RSA_PUBLIC )
         return( mbedtls_rsa_public(  ctx, sig, sig ) );
 
-    /*
-     * In order to prevent Lenstra's attack, make the signature in a
-     * temporary buffer and check it before returning it.
-     */
-    sig_try = mbedtls_calloc( 1, ctx->len );
-    if( sig_try == NULL )
-        return( MBEDTLS_ERR_MPI_ALLOC_FAILED );
-
-    verif   = mbedtls_calloc( 1, ctx->len );
-    if( verif == NULL )
-    {
-        mbedtls_free( sig_try );
-        return( MBEDTLS_ERR_MPI_ALLOC_FAILED );
-    }
-
-    MBEDTLS_MPI_CHK( mbedtls_rsa_private( ctx, f_rng, p_rng, sig, sig_try ) );
-    MBEDTLS_MPI_CHK( mbedtls_rsa_public( ctx, sig_try, verif ) );
-
-    /* Compare in constant time just in case */
-    for( diff = 0, i = 0; i < ctx->len; i++ )
-        diff |= verif[i] ^ sig[i];
-    diff_no_optimize = diff;
-
-    if( diff_no_optimize != 0 )
-    {
-        ret = MBEDTLS_ERR_RSA_PRIVATE_FAILED;
-        goto cleanup;
-    }
-
-    memcpy( sig, sig_try, ctx->len );
-
-cleanup:
-    mbedtls_free( sig_try );
-    mbedtls_free( verif );
-
-    return( ret );
+    return( mbedtls_rsa_private( ctx, f_rng, p_rng, sig, sig ) );
 }
 #endif /* MBEDTLS_PKCS1_V15 */
 

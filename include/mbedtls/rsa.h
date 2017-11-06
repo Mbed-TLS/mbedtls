@@ -220,7 +220,7 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
  * \brief          Do an RSA private key operation
  *
  * \param ctx      RSA context
- * \param f_rng    RNG function (Needed for blinding)
+ * \param f_rng    RNG function (used for blinding)
  * \param p_rng    RNG parameter
  * \param input    input buffer
  * \param output   output buffer
@@ -229,6 +229,18 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
  *
  * \note           The input and output buffers must be large
  *                 enough (eg. 128 bytes if RSA-1024 is used).
+ *
+ * \note           Blinding is used if and only if a PRNG is provided.
+ *
+ * \note           If blinding is used, both the base of exponentation
+ *                 and the exponent are blinded, providing protection
+ *                 against some side-channel attacks.
+ *
+ * \warning        It is deprecated and a security risk to not provide
+ *                 a PRNG here and thereby prevent the use of blinding.
+ *                 Future versions of the library may enforce the presence
+ *                 of a PRNG.
+ *
  */
 int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
                  int (*f_rng)(void *, unsigned char *, size_t),

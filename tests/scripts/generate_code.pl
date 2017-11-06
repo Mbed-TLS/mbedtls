@@ -342,7 +342,7 @@ foreach my $deps (@res)
         $case_deps{$dep} = 1;
     }
 }
-while( my ($key, $value) = each(%case_deps) )
+foreach my $key (sort keys %case_deps)
 {
     $dep_check_code .= << "END";
     if( strcmp( str, "$key" ) == 0 )
@@ -357,8 +357,9 @@ END
 }
 
 # Make mapping code
-while( my ($key, $value) = each(%mapping_values) )
+foreach my $key (sort keys %mapping_values)
 {
+    my $value = $mapping_values{$key};
     my $key_mapping_code = << "END";
     if( strcmp( str, "$key" ) == 0 )
     {

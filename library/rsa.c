@@ -408,8 +408,33 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
     mbedtls_mpi I, C;
 
     /* Make sure we have private key info, prevent possible misuse */
-    if( ctx->P.p == NULL || ctx->Q.p == NULL || ctx->D.p == NULL )
+#if defined(MBEDTLS_RSA_NO_CRT)
+    if( mbedtls_mpi_cmp_int( &ctx->N, 0 ) == 0 ||
+        mbedtls_mpi_cmp_int( &ctx->D, 0 ) == 0 ||
+        mbedtls_mpi_cmp_int( &ctx->E, 0 ) == 0 ||
+        ( f_rng != NULL && mbedtls_mpi_cmp_int( &ctx->P, 0 ) == 0 ) ||
+        ( f_rng != NULL && mbedtls_mpi_cmp_int( &ctx->Q, 0 ) == 0 ) )
+    {
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    }
+#else /* ! MBEDTLS_RSA_NO_CRT */
+    if( mbedtls_mpi_cmp_int( &ctx->N, 0 )  == 0 ||
+        mbedtls_mpi_cmp_int( &ctx->E, 0 )  == 0 ||
+        mbedtls_mpi_cmp_int( &ctx->P, 0 )  == 0 ||
+        mbedtls_mpi_cmp_int( &ctx->Q, 0 )  == 0 ||
+        mbedtls_mpi_cmp_int( &ctx->DP, 0 ) == 0 ||
+        mbedtls_mpi_cmp_int( &ctx->DQ, 0 ) == 0 ||
+        mbedtls_mpi_cmp_int( &ctx->QP, 0 ) == 0 )
+    {
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    }
+#endif /* ! MBEDTLS_RSA_NO_CRT */
+
+
+#if defined(MBEDTLS_THREADING_C)
+    if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
+        return( ret );
+#endif
 
     mbedtls_mpi_init( &I );
     mbedtls_mpi_init( &C );
@@ -427,12 +452,6 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
         mbedtls_mpi_init( &DQ_blind );
 #endif
     }
-
-
-#if defined(MBEDTLS_THREADING_C)
-    if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
-        return( ret );
-#endif
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &T, input, ctx->len ) );
     if( mbedtls_mpi_cmp_mpi( &T, &ctx->N ) >= 0 )
@@ -726,7 +745,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
     olen = ctx->len;
-    
+
     // first comparison checks for overflow
     if( ilen + 11 < ilen || olen < ilen + 11 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );

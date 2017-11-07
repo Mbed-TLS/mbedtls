@@ -100,9 +100,9 @@
  *     | Class | P/C | Tag number |
  *     +-------+-----+------------+
  */
-#define MBEDTLS_ASN1_TAG_CLASS_MASK          ( 0x03 << 6 )
-#define MBEDTLS_ASN1_TAG_PC_MASK             ( 0x01 << 5 )
-#define MBEDTLS_ASN1_TAG_VALUE_MASK          ( 0x1F << 0 )
+#define MBEDTLS_ASN1_TAG_CLASS_MASK          0xC0
+#define MBEDTLS_ASN1_TAG_PC_MASK             0x20
+#define MBEDTLS_ASN1_TAG_VALUE_MASK          0x1F
 
 /* \} name */
 /* \} addtogroup asn1_module */

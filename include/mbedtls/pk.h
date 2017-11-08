@@ -144,17 +144,75 @@ typedef struct
     void *                      pk_ctx;  /**< Underlying key pair context */
 } mbedtls_pk_context;
 
+/**
+ * \brief           Access the type name
+ *
+ * \param ctx       Context to use
+ *
+ * \return          Type name on success, or "invalid PK"
+ */
+const char * mbedtls_pk_get_name( const mbedtls_pk_context *ctx );
+
+/**
+ * \brief           Get the key type
+ *
+ * \param ctx       Context to use
+ *
+ * \return          Type on success, or MBEDTLS_PK_NONE
+ *
+ * \note            This function returns the type of the key pair object. The
+ *                  type encodes the representation of the object as well as
+ *                  the operations that it can be used for. To test whether
+ *                  the object represents a key of a recognized type such
+ *                  as RSA or ECDSA, call \c mbedtls_pk_can_do().
+ */
+mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx );
+
+/**
+ * \brief           Merge key types with the same representation
+ *
+ * \param type      Any key type
+ * \return          A canonical representative among the types with the
+ *                  same key representation. This is \c MBEDTLS_PK_RSA
+ *                  for RSA keys using the built-in software engine and
+ *                  MBEDTLS_PK_ECKEY for EC keys using the built-in
+ *                  software engine. Note that for keys of type
+ *                  \c MBEDTLS_PK_OPAQUE, the type does not specify the
+ *                  representation.
+ */
+static inline mbedtls_pk_type_t mbedtls_pk_representation_type( mbedtls_pk_type_t type )
+{
+    switch( type )
+    {
+        case MBEDTLS_PK_RSA:
+        case MBEDTLS_PK_RSASSA_PSS:
+            return( MBEDTLS_PK_RSA );
+        case MBEDTLS_PK_ECKEY:
+        case MBEDTLS_PK_ECKEY_DH:
+        case MBEDTLS_PK_ECDSA:
+            return( MBEDTLS_PK_ECKEY );
+        default:
+            return( type );
+    }
+}
+
 #if defined(MBEDTLS_RSA_C)
 /**
  * Quick access to an RSA context inside a PK context.
  *
- * \warning You must make sure the PK context actually holds an RSA context
- * before using this function! This function is only valid if
- * `pk_can_do(&pk, MBEDTLS_PK_RSA)` is true.
+ * \warning You must make sure the PK context actually holds a transparent
+ * RSA context before using this function! This function is only valid if
+ * `mbedtls_pk_get_type(&pk)` is one of \c MBEDTLS_PK_RSA or
+ * \c MBEDTLS_PK_RSASSA_PSS.
  */
 static inline mbedtls_rsa_context *mbedtls_pk_rsa( const mbedtls_pk_context pk )
 {
-    return( (mbedtls_rsa_context *) (pk).pk_ctx );
+    mbedtls_pk_type_t type =
+        mbedtls_pk_representation_type( mbedtls_pk_get_type( &pk ) );
+    if( type == MBEDTLS_PK_RSA )
+        return( (mbedtls_rsa_context *)( pk.pk_ctx ) );
+    else
+        return( NULL );
 }
 #endif /* MBEDTLS_RSA_C */
 
@@ -162,13 +220,19 @@ static inline mbedtls_rsa_context *mbedtls_pk_rsa( const mbedtls_pk_context pk )
 /**
  * Quick access to an EC context inside a PK context.
  *
- * \warning You must make sure the PK context actually holds an EC context
- * before using this function! This function is only valid if
- * `pk_can_do(&pk, MBEDTLS_PK_ECKEY)` is true.
+ * \warning You must make sure the PK context actually holds a transparent
+ * EC context before using this function! This function is only valid if
+ * `mbedtls_pk_get_type(&pk)` is one of \c MBEDTLS_PK_ECKEY,
+ * \c MBEDTLS_PK_ECKEY_DH or \c MBEDTLS_PK_ECDSA.
  */
 static inline mbedtls_ecp_keypair *mbedtls_pk_ec( const mbedtls_pk_context pk )
 {
-    return( (mbedtls_ecp_keypair *) (pk).pk_ctx );
+    mbedtls_pk_type_t type =
+        mbedtls_pk_representation_type( mbedtls_pk_get_type( &pk ) );
+    if( type == MBEDTLS_PK_ECKEY )
+        return( (mbedtls_ecp_keypair *)( pk.pk_ctx ) );
+    else
+        return( NULL );
 }
 #endif /* MBEDTLS_ECP_C */
 
@@ -484,30 +548,6 @@ int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_conte
  *                  * Or a type-specific error code.
  */
 int mbedtls_pk_debug( const mbedtls_pk_context *ctx, mbedtls_pk_debug_item *items );
-
-/**
- * \brief           Access the type name
- *
- * \param ctx       Context to use
- *
- * \return          Type name on success, or "invalid PK"
- */
-const char * mbedtls_pk_get_name( const mbedtls_pk_context *ctx );
-
-/**
- * \brief           Get the key type
- *
- * \param ctx       Context to use
- *
- * \return          Type on success, or MBEDTLS_PK_NONE
- *
- * \note            This function returns the type of the key pair object. The
- *                  type encodes the representation of the object as well as
- *                  the operations that it can be used for. To test whether
- *                  the object represents a key of a recognized type such
- *                  as RSA or ECDSA, call \c mbedtls_pk_can_do().
- */
-mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx );
 
 /**@}*/
 

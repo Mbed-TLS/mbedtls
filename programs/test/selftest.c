@@ -53,6 +53,7 @@
 #include "mbedtls/ecp.h"
 #include "mbedtls/ecjpake.h"
 #include "mbedtls/timing.h"
+#include "mbedtls/sm4.h"
 
 #include <string.h>
 
@@ -415,6 +416,14 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     mbedtls_memory_buffer_alloc_free();
     if( mbedtls_memory_buffer_alloc_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
+#endif
+
+#if defined(MBEDTLS_SM4_C)
+    if( mbedtls_sm4_self_test( v ) != 0 )
     {
         suites_failed++;
     }

@@ -3752,7 +3752,7 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl )
 
         if( 0 != ret )
         {
-            MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ssl_read_record_layer" ), ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ssl_handle_message_type" ), ret );
             return( ret );
         }
 

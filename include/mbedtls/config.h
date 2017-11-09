@@ -1963,7 +1963,7 @@
  *
  * Uncomment to enable the HAVEGE random generator.
  */
-#define MBEDTLS_HAVEGE_C
+//#define MBEDTLS_HAVEGE_C
 
 /**
  * \def MBEDTLS_HMAC_DRBG_C

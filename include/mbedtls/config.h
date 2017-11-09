@@ -1963,7 +1963,7 @@
  *
  * Uncomment to enable the HAVEGE random generator.
  */
-//#define MBEDTLS_HAVEGE_C
+#define MBEDTLS_HAVEGE_C
 
 /**
  * \def MBEDTLS_HMAC_DRBG_C
@@ -2566,6 +2566,16 @@
  * Caller:
  */
 #define MBEDTLS_XTEA_C
+
+/**
+ * \def MBEDTLS_SM4_C
+ *
+ * Enable the SM4 block cipher.
+ *
+ * Module:  library/sm4.c
+ * Caller:
+ */
+#define MBEDTLS_SM4_C
 
 /* \} name SECTION: mbed TLS modules */
 

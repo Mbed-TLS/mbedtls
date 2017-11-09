@@ -490,6 +490,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     unsigned char *key2;
     unsigned char *mac_enc;
     unsigned char *mac_dec;
+    size_t mac_key_len;
     size_t iv_copy_len;
     const mbedtls_cipher_info_t *cipher_info;
     const mbedtls_md_info_t *md_info;
@@ -681,6 +682,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
         cipher_info->mode == MBEDTLS_MODE_CCM )
     {
         transform->maclen = 0;
+        mac_key_len = 0;
 
         transform->ivlen = 12;
         transform->fixed_ivlen = 4;
@@ -701,7 +703,8 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
         }
 
         /* Get MAC length */
-        transform->maclen = mbedtls_md_get_size( md_info );
+        mac_key_len = mbedtls_md_get_size( md_info );
+        transform->maclen = mac_key_len;
 
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
         /*
@@ -772,11 +775,11 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_CLI_C)
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
-        key1 = keyblk + transform->maclen * 2;
-        key2 = keyblk + transform->maclen * 2 + transform->keylen;
+        key1 = keyblk + mac_key_len * 2;
+        key2 = keyblk + mac_key_len * 2 + transform->keylen;
 
         mac_enc = keyblk;
-        mac_dec = keyblk + transform->maclen;
+        mac_dec = keyblk + mac_key_len;
 
         /*
          * This is not used in TLS v1.1.
@@ -792,10 +795,10 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_SRV_C)
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
     {
-        key1 = keyblk + transform->maclen * 2 + transform->keylen;
-        key2 = keyblk + transform->maclen * 2;
+        key1 = keyblk + mac_key_len * 2 + transform->keylen;
+        key2 = keyblk + mac_key_len * 2;
 
-        mac_enc = keyblk + transform->maclen;
+        mac_enc = keyblk + mac_key_len;
         mac_dec = keyblk;
 
         /*
@@ -817,14 +820,14 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
     if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
     {
-        if( transform->maclen > sizeof transform->mac_enc )
+        if( mac_key_len > sizeof transform->mac_enc )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
-        memcpy( transform->mac_enc, mac_enc, transform->maclen );
-        memcpy( transform->mac_dec, mac_dec, transform->maclen );
+        memcpy( transform->mac_enc, mac_enc, mac_key_len );
+        memcpy( transform->mac_dec, mac_dec, mac_key_len );
     }
     else
 #endif /* MBEDTLS_SSL_PROTO_SSL3 */
@@ -832,8 +835,8 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_1 )
     {
-        mbedtls_md_hmac_starts( &transform->md_ctx_enc, mac_enc, transform->maclen );
-        mbedtls_md_hmac_starts( &transform->md_ctx_dec, mac_dec, transform->maclen );
+        mbedtls_md_hmac_starts( &transform->md_ctx_enc, mac_enc, mac_key_len );
+        mbedtls_md_hmac_starts( &transform->md_ctx_dec, mac_dec, mac_key_len );
     }
     else
 #endif
@@ -853,7 +856,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
                                         transform->iv_enc, transform->iv_dec,
                                         iv_copy_len,
                                         mac_enc, mac_dec,
-                                        transform->maclen ) ) != 0 )
+                                        mac_key_len ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_hw_record_init", ret );
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
@@ -866,7 +869,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     {
         ssl->conf->f_export_keys( ssl->conf->p_export_keys,
                                   session->master, keyblk,
-                                  transform->maclen, transform->keylen,
+                                  mac_key_len, transform->keylen,
                                   iv_copy_len );
     }
 #endif

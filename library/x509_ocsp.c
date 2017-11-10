@@ -1173,6 +1173,67 @@ int mbedtls_x509_ocsp_response_parse( mbedtls_x509_ocsp_response *resp,
     return( 0 );
 }
 
+static int x509_ocsp_verify_response_status( mbedtls_x509_ocsp_response *resp,
+                                             uint32_t *flags )
+{
+    switch( resp->resp_status )
+    {
+        case MBEDTLS_X509_OCSP_RESPONSE_STATUS_SUCCESSFUL:
+            return( 0 );
+        case MBEDTLS_X509_OCSP_RESPONSE_STATUS_MALFORMED_REQ:
+        case MBEDTLS_X509_OCSP_RESPONSE_STATUS_INTERNAL_ERR:
+        case MBEDTLS_X509_OCSP_RESPONSE_STATUS_TRY_LATER:
+        case MBEDTLS_X509_OCSP_RESPONSE_STATUS_SIG_REQUIRED:
+        case MBEDTLS_X509_OCSP_RESPONSE_STATUS_UNAUTHORIZED:
+            *flags |= MBEDTLS_X509_BADOCSP_RESPONSE_BAD_RESPONSE_STATUS;
+            return( MBEDTLS_ERR_X509_OCSP_RESPONSE_VERIFY_FAILED );
+        default:
+            return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
+    }
+}
+
+
+/*
+ * TODO:
+ *  - We cannot accept a tolerance value for timestamps
+ */
+int mbedtls_x509_ocsp_verify_response( mbedtls_x509_ocsp_response *resp,
+                                       mbedtls_x509_crt *req_chain,
+                                       mbedtls_x509_crt *chain,
+                                       mbedtls_x509_crt *trust_ca,
+                                       uint32_t *flags )
+{
+    int ret;
+
+    *flags = 0;
+
+    if( resp == NULL )
+        return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
+
+    /*
+     * Check if the response has a definite status. If there is a failure here
+     * it means that either we did not get a definitive response or the input
+     * data was invalid. In both cases we cannot continue verifying the
+     * response
+     */
+    if( ( ret = x509_ocsp_verify_response_status( resp, flags ) ) != 0 )
+        return( ret );
+
+    /*
+     * Check if producedAt is in the past
+     *
+     * TODO: We might want to check this against some threshold
+     */
+    if( mbedtls_x509_time_is_future( &resp->produced_at ) != 0 )
+        *flags |= MBEDTLS_X509_BADOCSP_RESPONSE_FUTURE;
+
+    /* Fail if something does not check out */
+    if( *flags != 0 )
+        return( MBEDTLS_ERR_X509_OCSP_RESPONSE_VERIFY_FAILED );
+
+    return( 0 );
+}
+
 static int x509_ocsp_response_status_info( char *buf, size_t size,
                                            uint8_t resp_status )
 {

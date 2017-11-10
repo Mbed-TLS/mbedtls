@@ -53,6 +53,15 @@
 #define MBEDTLS_X509_OCSP_CERT_STATUS_REVOKED               1
 #define MBEDTLS_X509_OCSP_CERT_STATUS_UNKNOWN               2
 
+#define MBEDTLS_X509_BADOCSP_RESPONSE_FUTURE                0x1
+#define MBEDTLS_X509_BADOCSP_RESPONSE_BAD_RESPONSE_STATUS   0x2
+#define MBEDTLS_X509_BADOCSP_RESPONSE_ISSUER_NOT_TRUSTED    0x4
+#define MBEDTLS_X509_BADOCSP_RESPONSE_NOT_TRUSTED           0x8
+#define MBEDTLS_X509_BADOCSP_RESPONSE_INCOMPLETE            0x10
+#define MBEDTLS_X509_BADOCSP_RESPONSE_EXPIRED               0x20
+#define MBEDTLS_X509_BADOCSP_RESPONSE_REVOKED_CERT          0x40
+#define MBEDTLS_X509_BADOCSP_RESPONSE_UNKNOWN_CERT          0x80
+
 #if defined(MBEDTLS_X509_OCSP_PARSE_C)
 /**
  * \addtogroup x509_module
@@ -170,6 +179,26 @@ int mbedtls_x509_ocsp_response_info( char *buf, size_t size,
 int mbedtls_x509_ocsp_response_parse( mbedtls_x509_ocsp_response *resp,
                                       const unsigned char *buf,
                                       size_t buflen );
+
+/**
+ * \brief           Verify an OCSP response
+ *
+ * \param resp      parsed OCSP response
+ * \param req_chain chain of certificates whose status is to be verified
+ * \param chain     chain of untrusted certificates. This will be searched
+ *                  to find the OCSP response signer and the parent of the
+ *                  signer when needed
+ * \param trust_ca  chain of certificates fully trusted certificates
+ * \param flags     the result of the OCSP response verification
+ *
+ * \return          0 if the OCSP response was verified successfully, otherwise
+ *                  a specific X.509 error
+ */
+int mbedtls_x509_ocsp_verify_response( mbedtls_x509_ocsp_response *resp,
+                                       mbedtls_x509_crt *req_chain,
+                                       mbedtls_x509_crt *chain,
+                                       mbedtls_x509_crt *trust_ca,
+                                       uint32_t *flags );
 
 #if defined(MBEDTLS_FS_IO)
 /**

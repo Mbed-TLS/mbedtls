@@ -89,6 +89,10 @@ int main( void )
 #include "mbedtls/memory_buffer_alloc.h"
 #endif
 
+#if defined(MBEDTLS_PKCS11_CLIENT_C)
+#include "mbedtls/pkcs11_client.h"
+#endif
+
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && defined(MBEDTLS_FS_IO)
 #define SNI_OPTION
 #endif
@@ -128,6 +132,7 @@ int main( void )
 #define DFL_CERT_REQ_CA_LIST    MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED
 #define DFL_MFL_CODE            MBEDTLS_SSL_MAX_FRAG_LEN_NONE
 #define DFL_TRUNC_HMAC          -1
+#define DFL_PKCS11              0
 #define DFL_TICKETS             MBEDTLS_SSL_SESSION_TICKETS_ENABLED
 #define DFL_TICKET_TIMEOUT      86400
 #define DFL_CACHE_MAX           -1
@@ -202,6 +207,14 @@ int main( void )
 #else
 #define USAGE_PSK ""
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
+
+#if defined(MBEDTLS_PKCS11_CLIENT_C)
+#define USAGE_PKCS11                            \
+    "    pkcs11=%%d           use PKCS#11 token for private key ops\n" \
+    "                         default: 0 (disabled)\n"
+#else
+#define USAGE_PKCS11 ""
+#endif /* MBEDTLS_PKCS11_CLIENT_C */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 #define USAGE_TICKETS                                       \
@@ -345,6 +358,7 @@ int main( void )
     USAGE_IO                                                \
     USAGE_SNI                                               \
     "\n"                                                    \
+    USAGE_PKCS11                                            \
     USAGE_PSK                                               \
     USAGE_ECJPAKE                                           \
     "\n"                                                    \
@@ -406,6 +420,7 @@ struct options
     const char *key_file;       /* the file with the server key             */
     const char *crt_file2;      /* the file with the 2nd server certificate */
     const char *key_file2;      /* the file with the 2nd server key         */
+    int pkcs11;                 /* perform private key ops in PKCS#11 token */
     const char *psk;            /* the pre-shared key                       */
     const char *psk_identity;   /* the pre-shared key identity              */
     char *psk_list;             /* list of PSK id/key pairs for callback    */
@@ -496,6 +511,144 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
         first_try = 1; /* Next call will be a new operation */
     return( ret );
 }
+
+
+
+#if defined(MBEDTLS_PKCS11_CLIENT_C)
+
+#define CK_ASSERT( expr )                                               \
+    do {                                                                \
+        CK_RV CK_ASSERT_rv = ( expr );                                  \
+        if( CK_ASSERT_rv != CKR_OK ) {                                  \
+            mbedtls_printf( "failed\n" );                               \
+            mbedtls_printf( "  !  %s -> 0x%x\n",                        \
+                            #expr, (unsigned) CK_ASSERT_rv );           \
+            goto exit;                                                  \
+        }                                                               \
+    } while( 0 )
+
+static int pkcs11_token_label_is( const CK_TOKEN_INFO *info, const char *label )
+{
+    size_t n = strlen( label );
+    if( n > sizeof( info->label ) )
+        return( 0 );
+    if( memcmp( info->label, label, n ) )
+        return( 0 );
+    for( ; n < sizeof( info->label ); n++ )
+    {
+        if( info->label[n] != ' ' )
+            return( 0 );
+    }
+    return( 1 );
+}
+
+static int pkcs11_get_slot_id( const char *label, CK_SLOT_ID *slot )
+{
+    CK_SLOT_ID *slots = NULL;
+    CK_ULONG count;
+    CK_ULONG i;
+    CK_TOKEN_INFO info;
+    int found = 0;
+    CK_ASSERT( C_GetSlotList( CK_TRUE, NULL_PTR, &count ) );
+    slots = mbedtls_calloc( sizeof( *slots ), count );
+    if( slots == NULL )
+    {
+        mbedtls_printf( "failed\n  !  out of memory in pkcs11_get_slot_id\n" );
+        goto exit;
+    }
+    CK_ASSERT( C_GetSlotList( CK_TRUE, slots, &count ) );
+    for( i = 0; i < count; i++ )
+    {
+        CK_ASSERT( C_GetTokenInfo( slots[i], &info ) );
+        if( pkcs11_token_label_is( &info, label ) )
+        {
+            *slot = slots[i];
+            found = 1;
+            break;
+        }
+    }
+    if( !found )
+        mbedtls_printf( "failed\n  !  No token found with label %s\n", label );
+exit:
+    mbedtls_free( slots );
+    return( found );
+}
+
+static CK_OBJECT_HANDLE pkcs11_init( void )
+{
+    CK_SESSION_HANDLE hSession;
+    CK_SLOT_ID slot;
+    unsigned char user_pin[4] = "0000";
+    CK_ASSERT( C_Initialize( NULL_PTR ) );
+    if( ! pkcs11_get_slot_id( "scratch", &slot ) )
+        return( CK_INVALID_HANDLE );
+    CK_ASSERT( C_OpenSession( slot,
+                              CKF_RW_SESSION | CKF_SERIAL_SESSION,
+                              NULL_PTR, NULL_PTR,
+                              &hSession ) );
+    CK_ASSERT( C_Login( hSession, CKU_USER, user_pin, sizeof( user_pin ) ) );
+    return( hSession );
+exit:
+    return( CK_INVALID_HANDLE );
+}
+
+static int pk_import_key( CK_SESSION_HANDLE hSession,
+                          mbedtls_pk_context *pk )
+{
+    int ret;
+    CK_SESSION_HANDLE hPublicKey, hPrivateKey;
+    uint32_t flags = MBEDTLS_PK_FLAG_SIGN | MBEDTLS_PK_FLAG_VERIFY;
+    if( mbedtls_pk_get_type( pk ) == MBEDTLS_PK_RSA )
+        flags |= MBEDTLS_PK_FLAG_ENCRYPT | MBEDTLS_PK_FLAG_DECRYPT;
+    ret = mbedtls_pk_import_to_pkcs11( pk, flags, hSession,
+                                       &hPublicKey, &hPrivateKey );
+    if( ret == 0 )
+    {
+        /* On input, pk contains a transparent key. Move that key to tmp
+           and set up an opaque key in pk. */
+        mbedtls_pk_context tmp = *pk;
+        mbedtls_pk_init( pk );
+        mbedtls_pk_setup_pkcs11( pk, hSession, hPublicKey, hPrivateKey );
+        mbedtls_pk_free( &tmp );
+    }
+    return( ret );
+}
+
+static int pk_load_key( CK_SESSION_HANDLE hSession,
+                        mbedtls_pk_context *pk,
+                        const unsigned char *key, size_t keylen,
+                        const unsigned char *pwd, size_t pwdlen )
+{
+    int ret;
+    ret = mbedtls_pk_parse_key( pk, key, keylen, pwd, pwdlen );
+    if ( ret != 0 || hSession == CK_INVALID_HANDLE )
+        return( ret );
+    else
+        return( pk_import_key( hSession, pk ) );
+}
+
+static int pk_load_keyfile( CK_SESSION_HANDLE hSession,
+                            mbedtls_pk_context *ctx,
+                            const char *path, const char *pwd )
+{
+    int ret;
+    ret = mbedtls_pk_parse_keyfile( ctx, path, pwd );
+    if ( ret != 0 || hSession == CK_INVALID_HANDLE )
+        return( ret );
+    else
+        return( pk_import_key( hSession, ctx ) );
+}
+
+#else /* !defined(MBEDTLS_PKCS11_CLIENT_C) */
+
+#define pk_load_key( hSession, pk, key, keylen, pwd, pwdlen )  \
+    mbedtls_pk_parse_key( pk, key, keylen, pwd, pwdlen )
+#define pk_load_keyfile( hSession, ctx, path, pwd )     \
+    mbedtls_pk_parse_keyfile( ctx, path, pwd)
+
+#endif /* defined(MBEDTLS_PKCS11_CLIENT_C) */
+
+
 
 /*
  * Return authmode from string, or -1 on error
@@ -805,6 +958,7 @@ int psk_callback( void *p_info, mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
+
 static mbedtls_net_context listen_fd, client_fd;
 
 /* Interruption handler to ensure clean exit (for valgrind testing) */
@@ -842,6 +996,9 @@ int main( int argc, char *argv[] )
     int ret = 0, len, written, frags, exchanges_left;
     int version_suites[4][2];
     unsigned char buf[IO_BUF_LEN];
+#if defined(MBEDTLS_PKCS11_CLIENT_C)
+    CK_SESSION_HANDLE hSession = CK_INVALID_HANDLE;
+#endif
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     unsigned char psk[MBEDTLS_PSK_MAX_LEN];
     size_t psk_len = 0;
@@ -977,6 +1134,7 @@ int main( int argc, char *argv[] )
     opt.key_file            = DFL_KEY_FILE;
     opt.crt_file2           = DFL_CRT_FILE2;
     opt.key_file2           = DFL_KEY_FILE2;
+    opt.pkcs11              = DFL_PKCS11;
     opt.psk                 = DFL_PSK;
     opt.psk_identity        = DFL_PSK_IDENTITY;
     opt.psk_list            = DFL_PSK_LIST;
@@ -1065,6 +1223,8 @@ int main( int argc, char *argv[] )
             opt.dhm_file = q;
         else if( strcmp( p, "psk" ) == 0 )
             opt.psk = q;
+        else if( strcmp( p, "pkcs11" ) == 0 )
+            opt.pkcs11 = atoi( q );
         else if( strcmp( p, "psk_identity" ) == 0 )
             opt.psk_identity = q;
         else if( strcmp( p, "psk_list" ) == 0 )
@@ -1536,6 +1696,17 @@ int main( int argc, char *argv[] )
 
     mbedtls_printf( " ok\n" );
 
+#if defined(MBEDTLS_PKCS11_CLIENT_C)
+    if( opt.pkcs11 )
+    {
+        mbedtls_printf( "  . Opening PKCS#11 session ..." );
+        hSession = pkcs11_init( );
+        if( hSession == CK_INVALID_HANDLE )
+            goto exit;
+        mbedtls_printf( " ok\n" );
+    }
+#endif /* MBEDTLS_PKCS11_CLIENT_C */
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     /*
      * 1.1. Load the trusted CA
@@ -1599,7 +1770,8 @@ int main( int argc, char *argv[] )
     if( strlen( opt.key_file ) && strcmp( opt.key_file, "none" ) != 0 )
     {
         key_cert_init++;
-        if( ( ret = mbedtls_pk_parse_keyfile( &pkey, opt.key_file, "" ) ) != 0 )
+        if( ( ret = pk_load_keyfile( hSession, &pkey,
+                                     opt.key_file, "" ) ) != 0 )
         {
             mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile returned -0x%x\n\n", -ret );
             goto exit;
@@ -1624,7 +1796,8 @@ int main( int argc, char *argv[] )
     if( strlen( opt.key_file2 ) && strcmp( opt.key_file2, "none" ) != 0 )
     {
         key_cert_init2++;
-        if( ( ret = mbedtls_pk_parse_keyfile( &pkey2, opt.key_file2, "" ) ) != 0 )
+        if( ( ret = pk_load_keyfile( hSession, &pkey2,
+                                     opt.key_file2, "" ) ) != 0 )
         {
             mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile(2) returned -0x%x\n\n",
                     -ret );
@@ -1657,9 +1830,9 @@ int main( int argc, char *argv[] )
             mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned -0x%x\n\n", -ret );
             goto exit;
         }
-        if( ( ret = mbedtls_pk_parse_key( &pkey,
-                                  (const unsigned char *) mbedtls_test_srv_key_rsa,
-                                  mbedtls_test_srv_key_rsa_len, NULL, 0 ) ) != 0 )
+        if( ( ret = pk_load_key( hSession, &pkey,
+                                 (const unsigned char *) mbedtls_test_srv_key_rsa,
+                                 mbedtls_test_srv_key_rsa_len, NULL, 0 ) ) != 0 )
         {
             mbedtls_printf( " failed\n  !  mbedtls_pk_parse_key returned -0x%x\n\n", -ret );
             goto exit;
@@ -1674,9 +1847,9 @@ int main( int argc, char *argv[] )
             mbedtls_printf( " failed\n  !  x509_crt_parse2 returned -0x%x\n\n", -ret );
             goto exit;
         }
-        if( ( ret = mbedtls_pk_parse_key( &pkey2,
-                                  (const unsigned char *) mbedtls_test_srv_key_ec,
-                                  mbedtls_test_srv_key_ec_len, NULL, 0 ) ) != 0 )
+        if( ( ret = pk_load_key( hSession, &pkey2,
+                                 (const unsigned char *) mbedtls_test_srv_key_ec,
+                                 mbedtls_test_srv_key_ec_len, NULL, 0 ) ) != 0 )
         {
             mbedtls_printf( " failed\n  !  pk_parse_key2 returned -0x%x\n\n", -ret );
             goto exit;
@@ -2482,6 +2655,14 @@ exit:
 #endif
 #if defined(MBEDTLS_SSL_COOKIE_C)
     mbedtls_ssl_cookie_free( &cookie_ctx );
+#endif
+
+#if defined(MBEDTLS_PKCS11_CLIENT_C)
+    if( hSession != CK_INVALID_HANDLE )
+    {
+        C_CloseSession( hSession );
+        C_Finalize( NULL_PTR );
+    }
 #endif
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)

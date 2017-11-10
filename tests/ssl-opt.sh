@@ -702,6 +702,7 @@ run_test    "Truncated HMAC: client default, server default" \
             -s "dumping 'expected mac' (20 bytes)" \
             -S "dumping 'expected mac' (10 bytes)"
 
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Truncated HMAC: client disabled, server default" \
             "$P_SRV debug_level=4" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
@@ -710,6 +711,7 @@ run_test    "Truncated HMAC: client disabled, server default" \
             -s "dumping 'expected mac' (20 bytes)" \
             -S "dumping 'expected mac' (10 bytes)"
 
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Truncated HMAC: client enabled, server default" \
             "$P_SRV debug_level=4" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
@@ -718,6 +720,7 @@ run_test    "Truncated HMAC: client enabled, server default" \
             -s "dumping 'expected mac' (20 bytes)" \
             -S "dumping 'expected mac' (10 bytes)"
 
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Truncated HMAC: client enabled, server disabled" \
             "$P_SRV debug_level=4 trunc_hmac=0" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
@@ -726,6 +729,7 @@ run_test    "Truncated HMAC: client enabled, server disabled" \
             -s "dumping 'expected mac' (20 bytes)" \
             -S "dumping 'expected mac' (10 bytes)"
 
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Truncated HMAC: client enabled, server enabled" \
             "$P_SRV debug_level=4 trunc_hmac=1" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
@@ -2937,6 +2941,7 @@ run_test    "Small packet TLS 1.0 BlockCipher without EtM" \
             0 \
             -s "Read from client: 1 bytes read"
 
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Small packet TLS 1.0 BlockCipher truncated MAC" \
             "$P_SRV" \
             "$P_CLI request_size=1 force_version=tls1 \
@@ -2945,6 +2950,7 @@ run_test    "Small packet TLS 1.0 BlockCipher truncated MAC" \
             0 \
             -s "Read from client: 1 bytes read"
 
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Small packet TLS 1.0 StreamCipher truncated MAC" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=1 force_version=tls1 \
@@ -2974,6 +2980,7 @@ run_test    "Small packet TLS 1.1 StreamCipher" \
             0 \
             -s "Read from client: 1 bytes read"
 
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Small packet TLS 1.1 BlockCipher truncated MAC" \
             "$P_SRV" \
             "$P_CLI request_size=1 force_version=tls1_1 \
@@ -2982,6 +2989,7 @@ run_test    "Small packet TLS 1.1 BlockCipher truncated MAC" \
             0 \
             -s "Read from client: 1 bytes read"
 
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Small packet TLS 1.1 StreamCipher truncated MAC" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=1 force_version=tls1_1 \
@@ -3011,6 +3019,7 @@ run_test    "Small packet TLS 1.2 BlockCipher larger MAC" \
             0 \
             -s "Read from client: 1 bytes read"
 
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Small packet TLS 1.2 BlockCipher truncated MAC" \
             "$P_SRV" \
             "$P_CLI request_size=1 force_version=tls1_2 \
@@ -3026,6 +3035,7 @@ run_test    "Small packet TLS 1.2 StreamCipher" \
             0 \
             -s "Read from client: 1 bytes read"
 
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Small packet TLS 1.2 StreamCipher truncated MAC" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=1 force_version=tls1_2 \
@@ -3083,6 +3093,7 @@ run_test    "Large packet TLS 1.0 BlockCipher" \
             0 \
             -s "Read from client: 16384 bytes read"
 
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.0 BlockCipher truncated MAC" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1 recsplit=0 \
@@ -3091,6 +3102,7 @@ run_test    "Large packet TLS 1.0 BlockCipher truncated MAC" \
             0 \
             -s "Read from client: 16384 bytes read"
 
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.0 StreamCipher truncated MAC" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=tls1 \
@@ -3113,6 +3125,7 @@ run_test    "Large packet TLS 1.1 StreamCipher" \
             0 \
             -s "Read from client: 16384 bytes read"
 
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.1 BlockCipher truncated MAC" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
@@ -3121,6 +3134,7 @@ run_test    "Large packet TLS 1.1 BlockCipher truncated MAC" \
             0 \
             -s "Read from client: 16384 bytes read"
 
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.1 StreamCipher truncated MAC" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
@@ -3143,6 +3157,7 @@ run_test    "Large packet TLS 1.2 BlockCipher larger MAC" \
             0 \
             -s "Read from client: 16384 bytes read"
 
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.2 BlockCipher truncated MAC" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
@@ -3158,6 +3173,7 @@ run_test    "Large packet TLS 1.2 StreamCipher" \
             0 \
             -s "Read from client: 16384 bytes read"
 
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.2 StreamCipher truncated MAC" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=tls1_2 \

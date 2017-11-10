@@ -2061,6 +2061,57 @@ cleanup:
     return( ret );
 }
 
+#if defined(MBEDTLS_ASN1_WRITE_C) && defined(MBEDTLS_OID_C)
+#include "mbedtls/asn1write.h"
+#include "mbedtls/oid.h"
+int mbedtls_ecp_ansi_write_group( const mbedtls_ecp_group *grp,
+                                  unsigned char *p,
+                                  size_t size )
+{
+    const char *oid;
+    unsigned char *q;
+    size_t oid_length;
+    int ret;
+    ret = mbedtls_oid_get_oid_by_ec_grp( grp->id, &oid, &oid_length );
+    if( ret != 0 )
+        return( ret );
+    // Output is a TLV with len(T)=1, len(L)=1, V=OID
+    if( size < 2 + oid_length )
+        return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+    q = p + 2 + oid_length;
+    return( mbedtls_asn1_write_oid( &q, p, oid, oid_length ) );
+}
+
+int mbedtls_ecp_ansi_write_point( const mbedtls_ecp_keypair *ec,
+                                  int format,
+                                  unsigned char *p,
+                                  size_t size )
+{
+    unsigned char *q;
+    size_t length;
+    size_t tl_size = 3; /* room for the OCTET_STRING tag and length */
+    int ret;
+    if( size < tl_size )
+        return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+    q = p + tl_size;
+    ret = mbedtls_ecp_point_write_binary( &ec->grp, &ec->Q,
+                                          format,
+                                          &length, q, size - 3 );
+    if( ret < 0 )
+        return( ret );
+    ret = mbedtls_asn1_write_len( &q, p, length );
+    if( ret < 0 )
+        return( ret );
+    ret = mbedtls_asn1_write_tag( &q, p, MBEDTLS_ASN1_OCTET_STRING );
+    if( ret < 0 )
+        return( ret );
+    length += tl_size - ( q - p );
+    if( q != p )
+        memmove( p, q, length );
+    return( length );
+}
+#endif /* defined(MBEDTLS_ASN1_WRITE_C) && defined(MBEDTLS_OID_C) */
+
 #if defined(MBEDTLS_SELF_TEST)
 
 /*

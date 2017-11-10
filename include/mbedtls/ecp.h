@@ -501,6 +501,50 @@ int mbedtls_ecp_tls_read_group( mbedtls_ecp_group *grp, const unsigned char **bu
 int mbedtls_ecp_tls_write_group( const mbedtls_ecp_group *grp, size_t *olen,
                          unsigned char *buf, size_t blen );
 
+#if defined(MBEDTLS_ASN1_WRITE_C) && defined(MBEDTLS_OID_C)
+/**
+ * \brief           Maximum size of the output of mbedtls_ecp_ansi_write_group
+ */
+#define MBEDTLS_OID_EC_GRP_MAX_SIZE 12
+
+/**
+ * \brief           Write the ANSI X9.62/RFC5480 OID ECParameters of a group
+ *
+ *                  The output is the group's OID wrapped as ASN.1.
+ *
+ * \param grp       ECP group used
+ * \param buf       Buffer to write to
+ * \param size      Buffer size
+ *
+ * \return          Number of bytes written to \c buf,
+ *                  or \c MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL
+ *                  or \c MBEDTLS_ERR_OID_NOT_FOUND
+ */
+int mbedtls_ecp_ansi_write_group( const mbedtls_ecp_group *grp,
+                                  unsigned char *p, size_t size );
+
+/**
+ * \brief           Export a point in ANSI X9.62/RFC5480 ECPoint
+ *
+ *                  The output is the point wrapped as an ASN.1 octet string
+ *                  as defined in X9.62 and RFC 5480.
+ *
+ * \param ec        ECP public key or key pair
+ * \param format    Point format, should be a MBEDTLS_ECP_PF_XXX macro
+ * \param p         Buffer to write to
+ * \param size      Buffer size
+ *
+ * \return          Number of bytes written to \c buf,
+ *                  or \c MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL
+ *                  or \c MBEDTLS_ERR_ECP_BAD_INPUT_DATA
+ *                  or \c MBEDTLS_ERR_ASN1_BUF_TOO_SMALL
+ */
+int mbedtls_ecp_ansi_write_point( const mbedtls_ecp_keypair *ec,
+                                  int format,
+                                  unsigned char *p,
+                                  size_t size );
+#endif /* defined(MBEDTLS_ASN1_WRITE_C) && defined(MBEDTLS_OID_C) */
+
 /**
  * \brief           Multiplication by an integer: R = m * P
  *                  (Not thread-safe to use same group in multiple threads)

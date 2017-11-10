@@ -277,6 +277,12 @@ x509/req_app$(EXEXT): x509/req_app.c $(DEP)
 	echo "  CC    x509/req_app.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/req_app.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
+ifndef WINDOWS
+util/syslog2stderr.so: util/syslog2stderr.c
+	echo "  CC    util/syslog2stderr.c"
+	$(CC) $(CFLAGS) -fPIC -shared -o $@ $< -ldl
+endif
+
 clean:
 ifndef WINDOWS
 	rm -f $(APPS)

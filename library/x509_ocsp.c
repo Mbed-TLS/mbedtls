@@ -1192,11 +1192,68 @@ static int x509_ocsp_verify_response_status( mbedtls_x509_ocsp_response *resp,
     }
 }
 
+static int x509_ocsp_mdcmp( mbedtls_md_type_t md_alg, unsigned char *input,
+                            size_t len, unsigned char *output )
+{
+    int ret;
+    const mbedtls_md_info_t *md_info;
+    unsigned char *buf;
+    size_t md_len;
+
+    if( ( md_info = mbedtls_md_info_from_type( md_alg ) ) == NULL )
+        return( MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE );
+
+    md_len = mbedtls_md_get_size( md_info );
+
+    if( ( buf = mbedtls_calloc( md_len, sizeof( unsigned char ) ) ) == NULL )
+        return( MBEDTLS_ERR_X509_ALLOC_FAILED );
+
+    if( ( ret = mbedtls_md( md_info, input, len, buf ) ) != 0 )
+        goto exit;
+
+    /* Check whether the hash matches the expected value */
+    ret = ( memcmp( buf, output, md_len ) != 0 ) ? 1 : 0;
+
+exit:
+    mbedtls_free( buf );
+
+    return( ret );
+}
+
 static int x509_ocsp_is_issuer( mbedtls_x509_ocsp_responder_id *responder_id,
                                 mbedtls_x509_crt *crt,
                                 mbedtls_x509_crt **issuer )
 {
-    return( 0 )
+    int ret;
+
+    switch( responder_id->type )
+    {
+        case MBEDTLS_X509_OCSP_RESPONDER_ID_TYPE_NAME:
+            /* Compare the responderID with the candidate issuer's subject */
+            if( mbedtls_x509_name_cmp( &responder_id->id.name,
+                                                        &crt->subject ) == 0 )
+            {
+                *issuer = crt;
+            }
+
+            return( 0 );
+
+        case MBEDTLS_X509_OCSP_RESPONDER_ID_TYPE_KEY_HASH:
+            /* Check hash of the certificate issuer's public key matches */
+            ret = x509_ocsp_mdcmp( MBEDTLS_MD_SHA1, crt->pk_raw.p,
+                                   crt->pk_raw.len, responder_id->id.key.p );
+            if( ret < 0 )
+                return( ret );
+            else if( ret == 0 )
+                *issuer = crt;
+            else
+                *issuer = NULL;
+
+            return( 0 );
+
+        default:
+            return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
+    }
 }
 
 /*

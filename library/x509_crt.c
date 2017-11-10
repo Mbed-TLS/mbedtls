@@ -1944,35 +1944,6 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
 #endif /* MBEDTLS_X509_CRL_PARSE_C */
 
 /*
- * Like memcmp, but case-insensitive and always returns -1 if different
- */
-static int x509_memcasecmp( const void *s1, const void *s2, size_t len )
-{
-    size_t i;
-    unsigned char diff;
-    const unsigned char *n1 = s1, *n2 = s2;
-
-    for( i = 0; i < len; i++ )
-    {
-        diff = n1[i] ^ n2[i];
-
-        if( diff == 0 )
-            continue;
-
-        if( diff == 32 &&
-            ( ( n1[i] >= 'a' && n1[i] <= 'z' ) ||
-              ( n1[i] >= 'A' && n1[i] <= 'Z' ) ) )
-        {
-            continue;
-        }
-
-        return( -1 );
-    }
-
-    return( 0 );
-}
-
-/*
  * Return 0 if name matches wildcard, -1 otherwise
  */
 static int x509_check_wildcard( const char *cn, mbedtls_x509_buf *name )
@@ -1996,80 +1967,12 @@ static int x509_check_wildcard( const char *cn, mbedtls_x509_buf *name )
         return( -1 );
 
     if( cn_len - cn_idx == name->len - 1 &&
-        x509_memcasecmp( name->p + 1, cn + cn_idx, name->len - 1 ) == 0 )
+        mbedtls_x509_memcasecmp( name->p + 1, cn + cn_idx, name->len - 1 ) == 0 )
     {
         return( 0 );
     }
 
     return( -1 );
-}
-
-/*
- * Compare two X.509 strings, case-insensitive, and allowing for some encoding
- * variations (but not all).
- *
- * Return 0 if equal, -1 otherwise.
- */
-static int x509_string_cmp( const mbedtls_x509_buf *a, const mbedtls_x509_buf *b )
-{
-    if( a->tag == b->tag &&
-        a->len == b->len &&
-        memcmp( a->p, b->p, b->len ) == 0 )
-    {
-        return( 0 );
-    }
-
-    if( ( a->tag == MBEDTLS_ASN1_UTF8_STRING || a->tag == MBEDTLS_ASN1_PRINTABLE_STRING ) &&
-        ( b->tag == MBEDTLS_ASN1_UTF8_STRING || b->tag == MBEDTLS_ASN1_PRINTABLE_STRING ) &&
-        a->len == b->len &&
-        x509_memcasecmp( a->p, b->p, b->len ) == 0 )
-    {
-        return( 0 );
-    }
-
-    return( -1 );
-}
-
-/*
- * Compare two X.509 Names (aka rdnSequence).
- *
- * See RFC 5280 section 7.1, though we don't implement the whole algorithm:
- * we sometimes return unequal when the full algorithm would return equal,
- * but never the other way. (In particular, we don't do Unicode normalisation
- * or space folding.)
- *
- * Return 0 if equal, -1 otherwise.
- */
-static int x509_name_cmp( const mbedtls_x509_name *a, const mbedtls_x509_name *b )
-{
-    /* Avoid recursion, it might not be optimised by the compiler */
-    while( a != NULL || b != NULL )
-    {
-        if( a == NULL || b == NULL )
-            return( -1 );
-
-        /* type */
-        if( a->oid.tag != b->oid.tag ||
-            a->oid.len != b->oid.len ||
-            memcmp( a->oid.p, b->oid.p, b->oid.len ) != 0 )
-        {
-            return( -1 );
-        }
-
-        /* value */
-        if( x509_string_cmp( &a->val, &b->val ) != 0 )
-            return( -1 );
-
-        /* structure of the list of sets */
-        if( a->next_merged != b->next_merged )
-            return( -1 );
-
-        a = a->next;
-        b = b->next;
-    }
-
-    /* a == NULL == b */
-    return( 0 );
 }
 
 /*
@@ -2086,7 +1989,7 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
     int need_ca_bit;
 
     /* Parent must be the issuer */
-    if( x509_name_cmp( &child->issuer, &parent->subject ) != 0 )
+    if( mbedtls_x509_name_cmp( &child->issuer, &parent->subject ) != 0 )
         return( -1 );
 
     /* Parent must have the basicConstraints CA bit set as a general rule */
@@ -2276,7 +2179,7 @@ static int x509_crt_verify_child(
     const mbedtls_md_info_t *md_info;
 
     /* Counting intermediate self signed certificates */
-    if( ( path_cnt != 0 ) && x509_name_cmp( &child->issuer, &child->subject ) == 0 )
+    if( ( path_cnt != 0 ) && mbedtls_x509_name_cmp( &child->issuer, &child->subject ) == 0 )
         self_cnt++;
 
     /* path_cnt is 0 for the first intermediate CA */
@@ -2447,7 +2350,7 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
             while( cur != NULL )
             {
                 if( cur->buf.len == cn_len &&
-                    x509_memcasecmp( cn, cur->buf.p, cn_len ) == 0 )
+                    mbedtls_x509_memcasecmp( cn, cur->buf.p, cn_len ) == 0 )
                     break;
 
                 if( cur->buf.len > 2 &&
@@ -2470,7 +2373,7 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
                 if( MBEDTLS_OID_CMP( MBEDTLS_OID_AT_CN, &name->oid ) == 0 )
                 {
                     if( name->val.len == cn_len &&
-                        x509_memcasecmp( name->val.p, cn, cn_len ) == 0 )
+                        mbedtls_x509_memcasecmp( name->val.p, cn, cn_len ) == 0 )
                         break;
 
                     if( name->val.len > 2 &&

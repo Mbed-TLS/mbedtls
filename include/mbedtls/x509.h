@@ -287,6 +287,9 @@ int mbedtls_x509_self_test( int verbose );
  * Internal module functions. You probably do not want to use these unless you
  * know you do.
  */
+int mbedtls_x509_serial_cmp( const mbedtls_x509_buf *a, const mbedtls_x509_buf *b );
+int mbedtls_x509_memcasecmp( const void *s1, const void *s2, size_t len );
+int mbedtls_x509_name_cmp( const mbedtls_x509_name *a, const mbedtls_x509_name *b );
 int mbedtls_x509_get_name( unsigned char **p, const unsigned char *end,
                    mbedtls_x509_name *cur );
 int mbedtls_x509_get_alg_null( unsigned char **p, const unsigned char *end,

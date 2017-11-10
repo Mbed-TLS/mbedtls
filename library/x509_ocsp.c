@@ -1192,6 +1192,59 @@ static int x509_ocsp_verify_response_status( mbedtls_x509_ocsp_response *resp,
     }
 }
 
+static int x509_ocsp_is_issuer( mbedtls_x509_ocsp_responder_id *responder_id,
+                                mbedtls_x509_crt *crt,
+                                mbedtls_x509_crt **issuer )
+{
+    return( 0 )
+}
+
+/*
+ * At this stage the goal is only to find the certificate matching the
+ * responderID, but not to verify that it is authorized to issue the OCSP
+ * response
+ */
+static int x509_ocsp_find_response_issuer_crt(
+                                            mbedtls_x509_ocsp_response *resp,
+                                            mbedtls_x509_crt *chain,
+                                            mbedtls_x509_crt **issuer,
+                                            uint32_t *flags )
+{
+    int ret;
+    mbedtls_x509_crt *cur;
+
+    *issuer = NULL;
+
+    /* Loop through the certs within the OCSP response */
+    for( cur = &resp->certs; cur != NULL; cur = cur->next )
+    {
+        if( ( ret = x509_ocsp_is_issuer( &resp->responder_id, cur,
+                                                            issuer ) ) != 0 )
+        {
+            return( ret );
+        }
+        else if( *issuer != NULL )
+            return( 0 );
+    }
+
+    /* Loop through the chain */
+    for( cur = chain; cur != NULL; cur = cur->next )
+    {
+        if( ( ret = x509_ocsp_is_issuer( &resp->responder_id, cur,
+                                                            issuer ) ) != 0 )
+        {
+            return( ret );
+        }
+        else if( *issuer != NULL )
+            return( 0 );
+    }
+
+    /* Could not find an issuer that matches the responderID */
+    *flags |= MBEDTLS_X509_BADOCSP_RESPONSE_ISSUER_NOT_TRUSTED;
+
+    return( 0 );
+}
+
 
 /*
  * TODO:
@@ -1204,6 +1257,7 @@ int mbedtls_x509_ocsp_verify_response( mbedtls_x509_ocsp_response *resp,
                                        uint32_t *flags )
 {
     int ret;
+    mbedtls_x509_crt *issuer;
 
     *flags = 0;
 
@@ -1226,6 +1280,19 @@ int mbedtls_x509_ocsp_verify_response( mbedtls_x509_ocsp_response *resp,
      */
     if( mbedtls_x509_time_is_future( &resp->produced_at ) != 0 )
         *flags |= MBEDTLS_X509_BADOCSP_RESPONSE_FUTURE;
+
+    /*
+     * Find the OCSP response issuer. If there is a failure here it means that
+     * the input data was invalid, in which case we return.
+     *
+     * TODO: Maybe look for the issuer in the trust_ca chain
+     * TODO: Maybe look for the issuer in the req_chain
+     */
+    if( ( ret = x509_ocsp_find_response_issuer_crt( resp, chain, &issuer,
+                                                            flags ) ) != 0 )
+    {
+        return( ret );
+    }
 
     /* Fail if something does not check out */
     if( *flags != 0 )

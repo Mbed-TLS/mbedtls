@@ -1,5 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/ecp.h"
+#include "mbedtls/pk.h"
 
 #define ECP_PF_UNKNOWN     -1
 /* END_HEADER */
@@ -409,6 +410,63 @@ void ecp_tls_write_read_group( int id )
 exit:
     mbedtls_ecp_group_free( &grp1 );
     mbedtls_ecp_group_free( &grp2 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_ASN1_WRITE_C:MBEDTLS_OID_C */
+void ecp_ansi_write_group( int id, char *hex )
+{
+    mbedtls_ecp_group grp;
+    unsigned char good[MBEDTLS_OID_EC_GRP_MAX_SIZE];
+    unsigned char tested[MBEDTLS_OID_EC_GRP_MAX_SIZE];
+    size_t good_len = unhexify( good, hex );
+    int ret = 0;
+    mbedtls_ecp_group_init( &grp );
+    TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
+
+    /* Positive test */
+    ret = mbedtls_ecp_ansi_write_group( &grp, tested, sizeof( tested ) );
+    TEST_ASSERT( ret >= 0 && good_len == (unsigned) ret );
+    TEST_ASSERT( memcmp( good, tested, good_len ) == 0 );
+
+    /* Buffer too small */
+    TEST_ASSERT( mbedtls_ecp_ansi_write_group( &grp, tested, good_len - 1 ) ==
+                 MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+
+exit:
+    mbedtls_ecp_group_free( &grp );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_ASN1_WRITE_C:MBEDTLS_OID_C:MBEDTLS_PK_PARSE_C:MBEDTLS_FS_IO */
+void ecp_ansi_write_point( char *key_file, int format, char *good_hex )
+{
+    unsigned char good_buf[1000];
+    unsigned char tested_buf[1000];
+    size_t good_len = unhexify( good_buf, good_hex );
+    mbedtls_pk_context pk;
+    int ret = 0;
+    mbedtls_pk_init( &pk );
+    TEST_ASSERT( mbedtls_pk_parse_public_keyfile( &pk, key_file ) == 0 );
+
+    /* Positive test */
+    ret = mbedtls_ecp_ansi_write_point( mbedtls_pk_ec( pk ), format,
+                                        tested_buf, sizeof( tested_buf ) );
+    TEST_ASSERT( ret >= 0 && good_len == (unsigned) ret );
+    TEST_ASSERT( memcmp( good_buf, tested_buf, good_len ) == 0 );
+
+    /* Buffer too small */
+    TEST_ASSERT( mbedtls_ecp_ansi_write_point( mbedtls_pk_ec( pk ), format,
+                                               tested_buf, good_len - 1 ) ==
+                 MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+
+exit:
+    if( ret >= 0 ) {
+        unsigned char out[999] = {0};
+        hexify( out, tested_buf, ret );
+        printf("== %s ==\n", out);
+    }
+    mbedtls_pk_free( &pk );
 }
 /* END_CASE */
 

@@ -133,6 +133,10 @@
 #include "mbedtls/rsa.h"
 #endif
 
+#if defined(MBEDTLS_SM4_C)
+#include "mbedtls/sm4.h"
+#endif
+
 #if defined(MBEDTLS_SSL_TLS_C)
 #include "mbedtls/ssl.h"
 #endif
@@ -149,9 +153,6 @@
 #include "mbedtls/xtea.h"
 #endif
 
-#if defined(MBEDTLS_SM4_C)
-#include "mbedtls/sm4.h"
-#endif
 
 void mbedtls_strerror( int ret, char *buf, size_t buflen )
 {
@@ -671,6 +672,13 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "PADLOCK - Input data should be aligned" );
 #endif /* MBEDTLS_PADLOCK_C */
 
+#if defined(MBEDTLS_SM4_C)
+    if( use_ret == -(MBEDTLS_ERR_SM4_INVALID_KEY_LENGTH) )
+        mbedtls_snprintf( buf, buflen, "SM4 - Invalid key length" );
+    if( use_ret == -(MBEDTLS_ERR_SM4_INVALID_INPUT_LENGTH) )
+        mbedtls_snprintf( buf, buflen, "SM4 - Invalid data input length" );
+#endif /* MBEDTLS_SM4_C */
+
 #if defined(MBEDTLS_THREADING_C)
     if( use_ret == -(MBEDTLS_ERR_THREADING_FEATURE_UNAVAILABLE) )
         mbedtls_snprintf( buf, buflen, "THREADING - The selected feature is not available" );
@@ -684,13 +692,6 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_XTEA_INVALID_INPUT_LENGTH) )
         mbedtls_snprintf( buf, buflen, "XTEA - The data input has an invalid length" );
 #endif /* MBEDTLS_XTEA_C */
-
-#if defined(MBEDTLS_SM4_C)
-    if( use_ret == -(MBEDTLS_ERR_SM4_INVALID_KEY_LENGTH) )
-        mbedtls_snprintf( buf, buflen, "SM4 - Invalid key length" );
-    if( use_ret == -(MBEDTLS_ERR_SM4_INVALID_INPUT_LENGTH) )
-        mbedtls_snprintf( buf, buflen, "SM4 - Invalid data input length" );
-#endif /* MBEDTLS_SM4_C */
     // END generated code
 
     if( strlen( buf ) != 0 )

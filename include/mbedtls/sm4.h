@@ -36,8 +36,8 @@
 #define MBEDTLS_SM4_ENCRYPT     1
 #define MBEDTLS_SM4_DECRYPT     0
 
-#define MBEDTLS_ERR_SM4_INVALID_KEY_LENGTH      -0x0120  /**< Invalid key length. */
-#define MBEDTLS_ERR_SM4_INVALID_INPUT_LENGTH    -0x0122  /**< Invalid data input length. */
+#define MBEDTLS_ERR_SM4_INVALID_KEY_LENGTH      -0x0058  /**< Invalid key length. */
+#define MBEDTLS_ERR_SM4_INVALID_INPUT_LENGTH    -0x005a  /**< Invalid data input length. */
 
 #ifdef __cplusplus
 extern "C" {

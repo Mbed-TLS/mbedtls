@@ -1351,6 +1351,35 @@ exit:
     return( ret );
 }
 
+static int x509_ocsp_verify_cert_status(
+                                mbedtls_x509_ocsp_single_response *single_resp,
+                                uint32_t *flags )
+{
+    switch( single_resp->cert_status )
+    {
+        case MBEDTLS_X509_OCSP_CERT_STATUS_GOOD:
+            break;
+        case MBEDTLS_X509_OCSP_CERT_STATUS_REVOKED:
+            *flags |= MBEDTLS_X509_BADOCSP_RESPONSE_REVOKED_CERT;
+
+            /* Check that the revocationTime is earlier than now */
+            if( mbedtls_x509_time_is_future(
+                                    &single_resp->revocation_time ) != 0 )
+            {
+                *flags |= MBEDTLS_X509_BADOCSP_RESPONSE_FUTURE;
+            }
+
+            break;
+        case MBEDTLS_X509_OCSP_CERT_STATUS_UNKNOWN:
+            *flags |= MBEDTLS_X509_BADOCSP_RESPONSE_UNKNOWN_CERT;
+            break;
+        default:
+            return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
+    }
+
+    return( 0 );
+}
+
 static int x509_ocsp_find_single_response( mbedtls_x509_crt *crt,
                             mbedtls_x509_ocsp_single_response *chain,
                             mbedtls_x509_ocsp_single_response **single_resp )
@@ -1446,6 +1475,10 @@ static int x509_ocsp_verify_responses( mbedtls_x509_ocsp_response *resp,
          */
         if( mbedtls_x509_time_is_future( &single_resp->this_update ) != 0 )
             *flags |= MBEDTLS_X509_BADOCSP_RESPONSE_FUTURE;
+
+        /* Check the revocation status of the certificate */
+        if( ( ret = x509_ocsp_verify_cert_status( single_resp, flags ) ) != 0 )
+            return( ret );
     }
 
     return( 0 );

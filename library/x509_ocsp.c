@@ -1448,8 +1448,15 @@ static int x509_ocsp_verify_response_issuer(
         // TODO
     }
 
+#if defined(MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE)
     /* Check that the issuer includes the value of id-kp-OCSPSigning */
-    // TODO
+    if( ( ret = mbedtls_x509_crt_check_extended_key_usage( issuer,
+                        MBEDTLS_OID_OCSP_SIGNING,
+                        MBEDTLS_OID_SIZE( MBEDTLS_OID_OCSP_SIGNING ) ) ) != 0 )
+    {
+        *flags |= MBEDTLS_X509_BADOCSP_RESPONSE_ISSUER_NOT_TRUSTED;
+        return( ret );
+    }
 
     /*
      * Try to find the parent of the requested certificate.
@@ -1486,6 +1493,7 @@ static int x509_ocsp_verify_response_issuer(
      * issuer upwards and verify that *parent is the parent of crt
      */
     // TODO
+#endif /* MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE) */
 
     return( 0 );
 }

@@ -508,14 +508,9 @@ static int x509_ocsp_get_revoked_info( unsigned char **p,
      * RevokedInfo :: SEQUENCE {
      *  revocationTime          GeneralizedTime,
      *  revocationReason        [0] EXPLICIT CRLReason OPTIONAL }
+     *
+     * Note: The SEQUENCE tag is parsed as part of the CertStatus CHOICE
      */
-    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
-                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
-    {
-        return( ret );
-    }
-
-    end = *p + len;
 
     /* Parse revocationTime */
     if( ( ret = x509_ocsp_get_generalized_time( p, end,
@@ -597,7 +592,7 @@ static int x509_ocsp_get_cert_status( unsigned char **p,
             return( ret );
     }
     else
-            return( MBEDTLS_ERR_X509_INVALID_CERT_STATUS );
+        return( MBEDTLS_ERR_X509_INVALID_CERT_STATUS );
 
     if( *p != end )
         return( MBEDTLS_ERR_X509_INVALID_FORMAT +

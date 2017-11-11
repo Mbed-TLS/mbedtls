@@ -1429,6 +1429,64 @@ static int x509_ocsp_verify_response_issuer(
                                 mbedtls_x509_crt *issuer,
                                 uint32_t *flags )
 {
+    int ret;
+    int is_parent = 0;
+    mbedtls_x509_crt *parent;
+
+    /* Check whether the issuer is the parent of the requested certificate */
+    if( ( ret = x509_ocsp_is_parent_crt( single_resp, issuer,
+                                                        &is_parent ) ) != 0 )
+    {
+        return( ret );
+    }
+    else if( is_parent != 0 )
+    {
+        /*
+         * Condition 2 has been met, try to build a chain of trust from the
+         * crt upwards
+         */
+        // TODO
+    }
+
+    /* Check that the issuer includes the value of id-kp-OCSPSigning */
+    // TODO
+
+    /*
+     * Try to find the parent of the requested certificate.
+     *
+     * TODO: Currently we try to locate the parent in the untrusted chain,
+     * and the trust_ca chain. Should we also look in the OCSP response's
+     * certs list? RFC 6960 Section 4.2.1 states that "the responder MAY
+     * include certificates in the certs field of BasicOCSPResponse that
+     * help the OCSP client verify the responder's signature". Strictly
+     * speaking we do notuse the parent to directly verify the response's,
+     * so we do not search the parent
+     */
+    if( ( ret = x509_ocsp_find_parent_crt( single_resp, chain,
+                                                            &parent ) ) != 0 )
+    {
+        return( ret );
+    }
+    else if( parent == NULL )
+    {
+        if( ( ret = x509_ocsp_find_parent_crt( single_resp, trust_ca,
+                                                            &parent ) ) != 0 )
+        {
+            return( ret );
+        }
+        else if( parent == NULL )
+        {
+            *flags |= MBEDTLS_X509_BADOCSP_RESPONSE_ISSUER_NOT_TRUSTED;
+            return( 0 );
+        }
+    }
+
+    /*
+     * Condition 3 has been met, try to build a chain of trust from the
+     * issuer upwards and verify that *parent is the parent of crt
+     */
+    // TODO
+
     return( 0 );
 }
 

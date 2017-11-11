@@ -579,6 +579,14 @@ static int pk_get_pk_alg( unsigned char **p,
 int mbedtls_pk_parse_subpubkey( unsigned char **p, const unsigned char *end,
                         mbedtls_pk_context *pk )
 {
+    return( mbedtls_pk_parse_subpubkey_with_buf( p, end, pk, NULL ) );
+}
+
+int mbedtls_pk_parse_subpubkey_with_buf( unsigned char **p,
+                                         const unsigned char *end,
+                                         mbedtls_pk_context *pk,
+                                         mbedtls_x509_buf *buf )
+{
     int ret;
     size_t len;
     mbedtls_asn1_buf alg_params;
@@ -598,6 +606,14 @@ int mbedtls_pk_parse_subpubkey( unsigned char **p, const unsigned char *end,
 
     if( ( ret = mbedtls_asn1_get_bitstring_null( p, end, &len ) ) != 0 )
         return( MBEDTLS_ERR_PK_INVALID_PUBKEY + ret );
+
+    /* Keep track of the raw bitstring bytes */
+    if( buf != NULL )
+    {
+        buf->len = len;
+        buf->p = *p;
+        buf->tag = MBEDTLS_ASN1_BIT_STRING;
+    }
 
     if( *p + len != end )
         return( MBEDTLS_ERR_PK_INVALID_PUBKEY +

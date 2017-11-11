@@ -948,7 +948,8 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt, const unsigned char *
     /*
      * SubjectPublicKeyInfo
      */
-    if( ( ret = mbedtls_pk_parse_subpubkey( &p, end, &crt->pk ) ) != 0 )
+    if( ( ret = mbedtls_pk_parse_subpubkey_with_buf( &p, end, &crt->pk,
+                                                        &crt->pk_raw ) ) != 0 )
     {
         mbedtls_x509_crt_free( crt );
         return( ret );

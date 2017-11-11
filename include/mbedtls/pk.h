@@ -44,6 +44,8 @@
 #include "ecdsa.h"
 #endif
 
+#include "asn1.h"
+
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)
 #define inline __inline
@@ -584,6 +586,22 @@ int mbedtls_pk_write_key_pem( mbedtls_pk_context *ctx, unsigned char *buf, size_
  */
 int mbedtls_pk_parse_subpubkey( unsigned char **p, const unsigned char *end,
                         mbedtls_pk_context *pk );
+
+/**
+ * \brief           Parse a SubjectPublicKeyInfo DER structure and store a
+ *                  pointer to the raw data
+ *
+ * \param p         the position in the ASN.1 data
+ * \param end       end of the buffer
+ * \param pk        the key to fill
+ * \param buf       the ASN.1 buffer pointing to the start of the raw DER
+ *
+ * \return          0 if successful, or a specific PK error code
+ */
+int mbedtls_pk_parse_subpubkey_with_buf( unsigned char **p,
+                                         const unsigned char *end,
+                                         mbedtls_pk_context *pk,
+                                         mbedtls_asn1_buf *buf );
 #endif /* MBEDTLS_PK_PARSE_C */
 
 #if defined(MBEDTLS_PK_WRITE_C)

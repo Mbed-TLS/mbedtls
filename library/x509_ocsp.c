@@ -1351,6 +1351,87 @@ exit:
     return( ret );
 }
 
+static int x509_ocsp_is_parent_crt(
+                                mbedtls_x509_ocsp_single_response *single_resp,
+                                mbedtls_x509_crt *crt,
+                                int *is_parent )
+{
+    int ret;
+
+    *is_parent = 0;
+
+    /* Check hash of parent's DN */
+    ret = x509_ocsp_mdcmp( single_resp->md_alg, crt->subject_raw.p,
+                           crt->subject_raw.len,
+                           single_resp->issuer_name_hash.p );
+    if( ret < 0 )
+        return( ret );
+    else if( ret != 0 )
+        return( 0 );
+
+    /* Check hash of parent's public key */
+    ret = x509_ocsp_mdcmp( single_resp->md_alg, crt->pk_raw.p, crt->pk_raw.len,
+                           single_resp->issuer_key_hash.p );
+    if( ret < 0 )
+        return( ret );
+    else if( ret != 0 )
+        return( 0 );
+
+    /* Found parent of the requested certificate's status */
+    *is_parent = 1;
+
+    return( 0 );
+}
+
+static int x509_ocsp_find_parent_crt(
+                                mbedtls_x509_ocsp_single_response *single_resp,
+                                mbedtls_x509_crt *chain,
+                                mbedtls_x509_crt **parent )
+{
+    int ret;
+    int is_parent = 0;
+    mbedtls_x509_crt *cur;
+
+    *parent = NULL;
+
+    for( cur = chain; cur != NULL; cur = cur->next )
+    {
+        if( ( ret = x509_ocsp_is_parent_crt( single_resp, cur,
+                                                        &is_parent ) ) != 0 )
+        {
+            return( ret );
+        }
+        else if( is_parent == 0 )
+            continue;
+
+        /* Found parent of the requested certificate's status */
+        *parent = cur;
+
+        return( 0 );
+    }
+
+    return( 0 );
+}
+
+/*
+ * According to RFC 6960 Section 4.2.2.2 the OCSP response issuer can be:
+ *  1. A locally configured signing authority (TODO: Not implemented)
+ *  2. The certificate of the CA that issued the certificate in question
+ *  3. A certificate that includes the value of id-kp-OCSPSigning in an
+ *     extended key usage extension and is issued by the CA that issued
+ *     the certificate in question
+ */
+static int x509_ocsp_verify_response_issuer(
+                                mbedtls_x509_ocsp_single_response *single_resp,
+                                mbedtls_x509_crt *crt,
+                                mbedtls_x509_crt *chain,
+                                mbedtls_x509_crt *trust_ca,
+                                mbedtls_x509_crt *issuer,
+                                uint32_t *flags )
+{
+    return( 0 );
+}
+
 static int x509_ocsp_verify_cert_status(
                                 mbedtls_x509_ocsp_single_response *single_resp,
                                 uint32_t *flags )
@@ -1479,6 +1560,24 @@ static int x509_ocsp_verify_responses( mbedtls_x509_ocsp_response *resp,
         /* Check the revocation status of the certificate */
         if( ( ret = x509_ocsp_verify_cert_status( single_resp, flags ) ) != 0 )
             return( ret );
+
+        /*
+         * Nothing to verify because we do not know who signed the response. If
+         * the issuer is not found the appropriate flags would have been set in
+         * x509_ocsp_find_issuer_crt()
+         */
+        if( issuer == NULL )
+            continue;
+
+        /*
+         * Check that the issuer is authorised to sign a response for this
+         * certificate
+         */
+        if( ( ret = x509_ocsp_verify_response_issuer( single_resp, cur, chain,
+                                            trust_ca, issuer, flags ) ) != 0 )
+        {
+            return( ret );
+        }
     }
 
     return( 0 );
@@ -1490,6 +1589,7 @@ static int x509_ocsp_verify_responses( mbedtls_x509_ocsp_response *resp,
  *  - We cannot accept a tolerance value for timestamps
  *  - We cannot configure parameters such as allowed signature algorithms, etc
  *  - Do not have an auth_mode=optional flag
+ *  - Need to check the revocation status of the OCSP response issuer
  */
 int mbedtls_x509_ocsp_verify_response( mbedtls_x509_ocsp_response *resp,
                                        mbedtls_x509_crt *req_chain,

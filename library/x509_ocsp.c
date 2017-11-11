@@ -1425,6 +1425,27 @@ static int x509_ocsp_verify_responses( mbedtls_x509_ocsp_response *resp,
             *flags |= MBEDTLS_X509_BADOCSP_RESPONSE_INCOMPLETE;
             continue;
         }
+
+        /*
+         * Check that nextUpdate is an later than now (if available).
+         *
+         * RFC 6960 Section 4.2.2.1: Responses whose nextUpdate value is
+         * earlier than the local system time SHOULD be considered unreliable
+         */
+        if( single_resp->has_next_update == 1 &&
+            mbedtls_x509_time_is_past( &single_resp->next_update ) != 0 )
+        {
+            *flags |= MBEDTLS_X509_BADOCSP_RESPONSE_EXPIRED;
+        }
+
+        /*
+         * Check that thisUpdate is earlier than now.
+         *
+         * RFC 6960 Section 4.2.2.1: Responses whose thisUpdate time is later
+         * than the local system time SHOULD be considered unreliable
+         */
+        if( mbedtls_x509_time_is_future( &single_resp->this_update ) != 0 )
+            *flags |= MBEDTLS_X509_BADOCSP_RESPONSE_FUTURE;
     }
 
     return( 0 );

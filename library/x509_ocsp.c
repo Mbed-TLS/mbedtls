@@ -1302,10 +1302,59 @@ static int x509_ocsp_find_response_issuer_crt(
     return( 0 );
 }
 
+static int x509_ocsp_verify_sig( mbedtls_x509_ocsp_response *resp,
+                                 mbedtls_x509_crt *issuer, uint32_t *flags )
+{
+    int ret;
+    unsigned char *md;
+    const mbedtls_md_info_t *md_info;
+    size_t md_size;
+
+    if( issuer == NULL )
+    {
+        *flags |= MBEDTLS_X509_BADOCSP_RESPONSE_NOT_TRUSTED;
+        return( 0 );
+    }
+
+    if( ( md_info = mbedtls_md_info_from_type( resp->sig_md ) ) == NULL )
+        return( MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE );
+
+    md_size = mbedtls_md_get_size( md_info );
+
+    /* Allocate memory to hold the hash of the ResponseData */
+    if( ( md = mbedtls_calloc( md_size, sizeof( unsigned char ) ) ) == NULL )
+        return( MBEDTLS_ERR_X509_ALLOC_FAILED );
+
+    /* Calculate hash of the DER encoded ResponseData */
+    if( ( ret = mbedtls_md( md_info, resp->response_data.p,
+                                        resp->response_data.len, md ) ) != 0 )
+    {
+        goto exit;
+    }
+
+    /* Verify the signature */
+    ret = mbedtls_pk_verify_ext( resp->sig_pk, resp->sig_opts, &issuer->pk,
+                                 resp->sig_md, md, md_size, resp->sig.p,
+                                 resp->sig.len );
+    /*
+     * Do not abort the verification process if the signature checks fail,
+     * only flag it
+     */
+    if( ret != 0 )
+        *flags |= MBEDTLS_X509_BADOCSP_RESPONSE_NOT_TRUSTED;
+
+    ret = 0;
+
+exit:
+    mbedtls_free( md );
+
+    return( ret );
+}
 
 /*
  * TODO:
  *  - We cannot accept a tolerance value for timestamps
+ *  - We cannot configure parameters such as allowed signature algorithms, etc
  */
 int mbedtls_x509_ocsp_verify_response( mbedtls_x509_ocsp_response *resp,
                                        mbedtls_x509_crt *req_chain,
@@ -1350,6 +1399,10 @@ int mbedtls_x509_ocsp_verify_response( mbedtls_x509_ocsp_response *resp,
     {
         return( ret );
     }
+
+    /* Verify the OCSP response signature */
+    if( ( ret = x509_ocsp_verify_sig( resp, issuer, flags ) ) != 0 )
+        return( ret );
 
     /* Fail if something does not check out */
     if( *flags != 0 )

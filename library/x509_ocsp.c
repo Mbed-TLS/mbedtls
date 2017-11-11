@@ -1351,10 +1351,91 @@ exit:
     return( ret );
 }
 
+static int x509_ocsp_find_single_response( mbedtls_x509_crt *crt,
+                            mbedtls_x509_ocsp_single_response *chain,
+                            mbedtls_x509_ocsp_single_response **single_resp )
+{
+    int ret;
+    mbedtls_x509_ocsp_single_response *cur;
+
+    *single_resp = NULL;
+
+    /*
+     *
+     * TODO: This code will find the first SingleResponse element whose
+     * certificate ID matches the current certificate being processed. If
+     * the verification code below fails, then we do not look if there is
+     * another SingleResponse for the same certificate that actually
+     * checks out. However, this seems a bit strange and I am not sure if
+     * it would happen in practice.
+     */
+    for( cur = chain; cur != NULL; cur = cur->next )
+    {
+        /* Compare certificate and SingleResponse serial numbers */
+        if( mbedtls_x509_serial_cmp( &crt->serial, &cur->serial ) != 0 )
+            continue;
+
+        /*
+         * Ensure the certificate's issuer matches the SingleResponse
+         * issuerNameHash in the certID
+         */
+        ret = x509_ocsp_mdcmp( cur->md_alg, crt->issuer_raw.p,
+                               crt->issuer_raw.len, cur->issuer_name_hash.p );
+        if( ret < 0 )
+            return( ret );
+        else if( ret != 0 )
+            continue;
+
+        /* All checks passed, found SingleResponse that matches certificate */
+        *single_resp = cur;
+
+        return( 0 );
+    }
+
+    return( 0 );
+}
+
+static int x509_ocsp_verify_responses( mbedtls_x509_ocsp_response *resp,
+                                       mbedtls_x509_crt *req_chain,
+                                       mbedtls_x509_crt *chain,
+                                       mbedtls_x509_crt *trust_ca,
+                                       mbedtls_x509_crt *issuer,
+                                       uint32_t *flags )
+{
+    int ret;
+    mbedtls_x509_crt *cur;
+    mbedtls_x509_ocsp_single_response *single_resp;
+
+    /*
+     * RFC 6960 Section 4.2.2.3: The response MUST include SingleResponse for
+     * each certificate in the request. The response SHOULD NOT include any
+     * additional SingleResponse elements...
+     */
+    for( cur = req_chain; cur != NULL; cur = cur->next )
+    {
+        /* Identify the SingleResponse for this certificate */
+        if( ( ret = x509_ocsp_find_single_response( cur, &resp->single_resp,
+                                            &single_resp ) ) != 0 )
+        {
+            return( ret );
+        }
+        else if( single_resp == NULL )
+        {
+            /* Flag if the SingleResponse for this certificate is not found */
+            *flags |= MBEDTLS_X509_BADOCSP_RESPONSE_INCOMPLETE;
+            continue;
+        }
+    }
+
+    return( 0 );
+}
+
 /*
  * TODO:
+ *  - We cannot accept locally configured signing authority for each CA
  *  - We cannot accept a tolerance value for timestamps
  *  - We cannot configure parameters such as allowed signature algorithms, etc
+ *  - Do not have an auth_mode=optional flag
  */
 int mbedtls_x509_ocsp_verify_response( mbedtls_x509_ocsp_response *resp,
                                        mbedtls_x509_crt *req_chain,
@@ -1403,6 +1484,13 @@ int mbedtls_x509_ocsp_verify_response( mbedtls_x509_ocsp_response *resp,
     /* Verify the OCSP response signature */
     if( ( ret = x509_ocsp_verify_sig( resp, issuer, flags ) ) != 0 )
         return( ret );
+
+    /* Verify each of the responses */
+    if( ( ret = x509_ocsp_verify_responses( resp, req_chain, chain, trust_ca,
+                                                    issuer, flags ) ) != 0 )
+    {
+        return( ret );
+    }
 
     /* Fail if something does not check out */
     if( *flags != 0 )

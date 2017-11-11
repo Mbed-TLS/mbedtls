@@ -995,6 +995,26 @@ int mbedtls_x509_name_cmp( const mbedtls_x509_name *a, const mbedtls_x509_name *
     return( 0 );
 }
 
+
+/*
+ * Compare two X.509 certificate serial numbers
+ *
+ * See RFC 5380 Section 4.1.2.2. The encoding of a serial number is an ASN.1
+ * integer. According to ISO/IEC 8825-1:2003, the encoding rules ensure that an
+ * integer value is always encoded in the smallest possible number of octets.
+ * Therefore, we do not have to worry about leading zeros.
+ *
+ * Return 0 if equal, -1 otherwise.
+ */
+int mbedtls_x509_serial_cmp( const mbedtls_x509_buf *a,
+                             const mbedtls_x509_buf *b )
+{
+    if( a->len != b->len )
+        return( -1 );
+
+    return( memcmp( a->p, b->p, a->len ) != 0 ? -1 : 0 );
+}
+
 #if defined(MBEDTLS_HAVE_TIME_DATE)
 /*
  * Set the time structure to the current time.

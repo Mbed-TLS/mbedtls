@@ -2967,6 +2967,25 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__DHE_ENABLED */
 
+#if defined(MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA_ENABLED)
+    if( MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA == ciphersuite_info->key_exchange)
+    {
+        /* Generate b-vector and seed */
+        if( ( ret = mbedtls_newhope_make_params_server( &ssl->handshake->newhope_ctx, &len,
+                                              &p, MBEDTLS_SSL_MAX_CONTENT_LEN - n ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_newhope_make_params", ret );
+            return( ret );
+        }
+
+        dig_signed = p;
+        dig_signed_len = len;
+        p += len;
+
+        n += len;
+    }
+#endif
+
     /*
      * - ECDHE key exchanges
      */
@@ -3688,6 +3707,30 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED */
+
+/* Read the public parameters from the new-hope client */
+#if defined(MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA_ENABLED)
+    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA )
+    {
+        /* Read the values (u, r) returned by the client */
+        if( ( ret = mbedtls_newhope_read_public_from_client(&ssl->handshake->newhope_ctx,
+                                                            p,
+                                                            end - p,
+                                                            ssl->handshake->premaster,
+                                                            &ssl->handshake->pmslen) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_read_public", ret );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP );
+        }
+
+        /* Copy the shared secret input to randbytes. Copy twice */
+        memcpy(ssl->handshake->randbytes, ssl->handshake->newhope_ctx.m_SharedKeyInput, 32);
+        memcpy(ssl->handshake->randbytes + 32, ssl->handshake->newhope_ctx.m_SharedKeyInput, 32);
+
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA_ENABLED */
+
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
     {

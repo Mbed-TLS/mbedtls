@@ -45,6 +45,7 @@ int main( void )
 
 #include <string.h>
 #include <stdlib.h>
+#include <mbedtls/newhope.h>
 
 #include "mbedtls/timing.h"
 
@@ -70,6 +71,9 @@ int main( void )
 #include "mbedtls/ecdsa.h"
 #include "mbedtls/ecdh.h"
 #include "mbedtls/error.h"
+#include "mbedtls/newhope.h"
+#include "mbedtls/salsa20.h"
+#include "mbedtls/chacha8.h"
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
 #include "mbedtls/memory_buffer_alloc.h"
@@ -87,7 +91,7 @@ int main( void )
  */
 #define HEAP_SIZE       (1u << 16)  // 64k
 
-#define BUFSIZE         1024
+#define BUFSIZE         2048
 #define HEADER_FORMAT   "  %-24s :  "
 #define TITLE_LEN       25
 
@@ -96,7 +100,8 @@ int main( void )
     "arc4, des3, des, camellia, blowfish,\n"                            \
     "aes_cbc, aes_gcm, aes_ccm, aes_cmac, des3_cmac,\n"                 \
     "havege, ctr_drbg, hmac_drbg\n"                                     \
-    "rsa, dhm, ecdsa, ecdh.\n"
+    "rsa, dhm, ecdsa, ecdh, newhope, salsa20, chacha8.\n"
+
 
 #if defined(MBEDTLS_ERROR_C)
 #define PRINT_ERROR                                                     \
@@ -240,7 +245,7 @@ typedef struct {
          aes_cbc, aes_gcm, aes_ccm, aes_cmac, des3_cmac,
          camellia, blowfish,
          havege, ctr_drbg, hmac_drbg,
-         rsa, dhm, ecdsa, ecdh;
+         rsa, dhm, ecdsa, ecdh, newhope, salsa20, chacha8;
 } todo_list;
 
 int main( int argc, char *argv[] )
@@ -309,6 +314,12 @@ int main( int argc, char *argv[] )
                 todo.ecdsa = 1;
             else if( strcmp( argv[i], "ecdh" ) == 0 )
                 todo.ecdh = 1;
+            else if( strcmp( argv[i], "newhope" ) == 0 )
+                todo.newhope = 1;
+            else if( strcmp( argv[i], "salsa20" ) == 0 )
+                todo.salsa20 = 1;
+            else if( strcmp( argv[i], "chacha8" ) == 0 )
+                todo.chacha8 = 1;
             else
             {
                 mbedtls_printf( "Unrecognized option: %s\n", argv[i] );
@@ -363,6 +374,28 @@ int main( int argc, char *argv[] )
         mbedtls_arc4_setup( &arc4, tmp, 32 );
         TIME_AND_TSC( "ARC4", mbedtls_arc4_crypt( &arc4, BUFSIZE, buf, buf ) );
         mbedtls_arc4_free( &arc4 );
+    }
+#endif
+
+#if defined(MBEDTLS_SALSA20_C)
+    if( todo.salsa20 )
+    {
+        mbedtls_salsa20_context salsa20;
+        mbedtls_salsa20_init( &salsa20 );
+        mbedtls_salsa20_setup( &salsa20, tmp, 32 );
+        TIME_AND_TSC( "SALSA20", mbedtls_salsa20_crypt( &salsa20, BUFSIZE, buf, buf ) );
+        mbedtls_salsa20_free( &salsa20 );
+    }
+#endif
+
+#if defined(MBEDTLS_CHACHA8_C)
+    if( todo.chacha8 )
+    {
+        mbedtls_chacha8_context chacha8;
+        mbedtls_chacha8_init( &chacha8 );
+        mbedtls_chacha8_setup( &chacha8, tmp, 32 );
+        TIME_AND_TSC( "CHACHA8", mbedtls_chacha8_crypt( &chacha8, BUFSIZE, buf, buf ) );
+        mbedtls_chacha8_free( &chacha8 );
     }
 #endif
 
@@ -862,6 +895,69 @@ int main( int argc, char *argv[] )
         mbedtls_ecdh_free( &ecdh );
         mbedtls_mpi_free( &z );
 #endif
+    }
+#endif
+
+#if defined(MBEDTLS_NEWHOPE_C)
+    if( todo.newhope )
+    {
+        mbedtls_newhope_context l_server_context, l_client_context;
+        size_t len;
+        size_t l_server_pms_buffer_size;
+        size_t l_client_pms_buffer_size;
+
+        unsigned char l_client_pms_buffer[64];
+        unsigned char l_server_pms_buffer[64];
+
+        const mbedtls_newhope_info *newhope_info;
+        size_t olen;
+
+        unsigned char * l_buf_moving = buf;
+
+        for( newhope_info = mbedtls_newhope_parameters_list();
+             newhope_info->parameter_set_id != MBEDTLS_NEWHOPE_DP_NONE;
+             newhope_info++ )
+        {
+            mbedtls_newhope_init( &l_server_context );
+            mbedtls_newhope_init( &l_client_context );
+
+            if( mbedtls_newhope_load_parameters_from_parameter_set_id( &l_server_context.parameter_set, newhope_info->parameter_set_id ) != 0 )
+            {
+                mbedtls_exit( 1 );
+            }
+
+            mbedtls_snprintf( title, sizeof( title ), "NEWHOPE");
+
+            TIME_PUBLIC( title, "public server generation",
+                         ret |= mbedtls_newhope_make_params_server( &l_server_context, &olen, &l_buf_moving, sizeof( buf));
+                       );
+
+
+            l_buf_moving = buf;
+            TIME_PUBLIC( title, "client-side calculation",
+                         ret |= mbedtls_newhope_parse_public_value_from_server( &l_client_context, &l_buf_moving, l_buf_moving + 1824 );
+                         l_buf_moving = buf;
+                         ret |= mbedtls_newhope_make_params_client( &l_client_context, &len, l_buf_moving, sizeof( buf ));
+                         ret |= mbedtls_newhope_calc_secret( &l_client_context,
+                                                           &l_client_context.m_V_vector,
+                                                           &l_client_context.m_R_vector,
+                                                           l_client_pms_buffer,
+                                                           &l_client_pms_buffer_size);
+            );
+
+
+            // And calculate the secret on the server side
+            TIME_PUBLIC( title, "server-size calculation",
+                         ret |= mbedtls_newhope_read_public_from_client( &l_server_context,
+                                                                       l_buf_moving,
+                                                                       sizeof(buf),
+                                                                       l_server_pms_buffer,
+                                                                       &l_server_pms_buffer_size);
+            );
+
+
+        }
+
     }
 #endif
 

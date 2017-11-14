@@ -41,6 +41,14 @@
 #include "mbedtls/arc4.h"
 #endif
 
+#if defined(MBEDTLS_SALSA20_C)
+#include "mbedtls/salsa20.h"
+#endif
+
+#if defined(MBEDTLS_CHACHA8_C)
+#include "mbedtls/chacha8.h"
+#endif
+
 #if defined(MBEDTLS_CAMELLIA_C)
 #include "mbedtls/camellia.h"
 #endif
@@ -197,6 +205,9 @@ static const mbedtls_cipher_base_t aes_info = {
     aes_setkey_dec_wrap,
     aes_ctx_alloc,
     aes_ctx_free
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))
+    , NULL
+#endif
 };
 
 static const mbedtls_cipher_info_t aes_128_ecb_info = {
@@ -363,7 +374,10 @@ static const mbedtls_cipher_base_t gcm_aes_info = {
     gcm_aes_setkey_wrap,
     gcm_aes_setkey_wrap,
     gcm_ctx_alloc,
-    gcm_ctx_free,
+    gcm_ctx_free
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))
+    , NULL
+#endif
 };
 
 static const mbedtls_cipher_info_t aes_128_gcm_info = {
@@ -426,7 +440,10 @@ static const mbedtls_cipher_base_t ccm_aes_info = {
     ccm_aes_setkey_wrap,
     ccm_aes_setkey_wrap,
     ccm_ctx_alloc,
-    ccm_ctx_free,
+    ccm_ctx_free
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))
+    , NULL
+#endif
 };
 
 static const mbedtls_cipher_info_t aes_128_ccm_info = {
@@ -554,6 +571,9 @@ static const mbedtls_cipher_base_t camellia_info = {
     camellia_setkey_dec_wrap,
     camellia_ctx_alloc,
     camellia_ctx_free
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))
+    , NULL
+#endif
 };
 
 static const mbedtls_cipher_info_t camellia_128_ecb_info = {
@@ -720,7 +740,10 @@ static const mbedtls_cipher_base_t gcm_camellia_info = {
     gcm_camellia_setkey_wrap,
     gcm_camellia_setkey_wrap,
     gcm_ctx_alloc,
-    gcm_ctx_free,
+    gcm_ctx_free
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))
+    , NULL
+#endif
 };
 
 static const mbedtls_cipher_info_t camellia_128_gcm_info = {
@@ -783,7 +806,10 @@ static const mbedtls_cipher_base_t ccm_camellia_info = {
     ccm_camellia_setkey_wrap,
     ccm_camellia_setkey_wrap,
     ccm_ctx_alloc,
-    ccm_ctx_free,
+    ccm_ctx_free
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))
+    , NULL
+#endif
 };
 
 static const mbedtls_cipher_info_t camellia_128_ccm_info = {
@@ -960,6 +986,9 @@ static const mbedtls_cipher_base_t des_info = {
     des_setkey_dec_wrap,
     des_ctx_alloc,
     des_ctx_free
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))
+	, NULL
+#endif
 };
 
 static const mbedtls_cipher_info_t des_ecb_info = {
@@ -1005,6 +1034,9 @@ static const mbedtls_cipher_base_t des_ede_info = {
     des3_set2key_dec_wrap,
     des3_ctx_alloc,
     des3_ctx_free
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))
+    , NULL
+#endif
 };
 
 static const mbedtls_cipher_info_t des_ede_ecb_info = {
@@ -1050,6 +1082,9 @@ static const mbedtls_cipher_base_t des_ede3_info = {
     des3_set3key_dec_wrap,
     des3_ctx_alloc,
     des3_ctx_free
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))
+    , NULL
+#endif
 };
 
 static const mbedtls_cipher_info_t des_ede3_ecb_info = {
@@ -1159,6 +1194,9 @@ static const mbedtls_cipher_base_t blowfish_info = {
     blowfish_setkey_wrap,
     blowfish_ctx_alloc,
     blowfish_ctx_free
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))
+    , NULL
+#endif
 };
 
 static const mbedtls_cipher_info_t blowfish_ecb_info = {
@@ -1269,6 +1307,9 @@ static const mbedtls_cipher_base_t arc4_base_info = {
     arc4_setkey_wrap,
     arc4_ctx_alloc,
     arc4_ctx_free
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))
+    , NULL
+#endif
 };
 
 static const mbedtls_cipher_info_t arc4_128_info = {
@@ -1282,6 +1323,179 @@ static const mbedtls_cipher_info_t arc4_128_info = {
     &arc4_base_info
 };
 #endif /* MBEDTLS_ARC4_C */
+
+#if defined(MBEDTLS_SALSA20_C)
+static int salsa20_crypt_stream_wrap( void *ctx, size_t length, const unsigned char *input,
+                                   unsigned char *output )
+{
+    return( mbedtls_salsa20_crypt( (mbedtls_salsa20_context *) ctx, length, input, output) );
+}
+
+static void salsa20_set_iv( void *ctx, unsigned char *iv )
+{
+    mbedtls_salsa20_set_iv( ctx, iv );
+}
+
+static int salsa20_setkey_wrap( void *ctx, const unsigned char *key,
+                             unsigned int key_bitlen )
+{
+    mbedtls_salsa20_setup( (mbedtls_salsa20_context *) ctx, key, key_bitlen );
+    return( 0 );
+}
+
+static void * salsa20_ctx_alloc( void )
+{
+    mbedtls_salsa20_context *ctx;
+    ctx = mbedtls_calloc( 1, sizeof( mbedtls_salsa20_context ) );
+
+    if( ctx == NULL )
+        return( NULL );
+
+    mbedtls_salsa20_init( ctx );
+
+    return( ctx );
+}
+
+static void salsa20_ctx_free( void *ctx )
+{
+    mbedtls_salsa20_free( (mbedtls_salsa20_context *) ctx );
+    mbedtls_free( ctx );
+}
+
+static const mbedtls_cipher_base_t salsa20_base_info = {
+        MBEDTLS_CIPHER_ID_SALSA20,
+        NULL,
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+        NULL,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
+        NULL,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
+        NULL,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_STREAM)
+        salsa20_crypt_stream_wrap,
+#endif
+        salsa20_setkey_wrap,
+        salsa20_setkey_wrap,
+        salsa20_ctx_alloc,
+        salsa20_ctx_free
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))
+        , salsa20_set_iv
+#endif
+};
+
+static const mbedtls_cipher_info_t salsa20_128_info = {
+        MBEDTLS_CIPHER_SALSA20_128,
+        MBEDTLS_MODE_STREAM_IV,
+        128,
+        "SALSA20-128",
+        8,
+        0,
+        1,
+        &salsa20_base_info
+};
+
+static const mbedtls_cipher_info_t salsa20_256_info = {
+        MBEDTLS_CIPHER_SALSA20_256,
+        MBEDTLS_MODE_STREAM_IV,
+        256,
+        "SALSA20-256",
+        8,
+        0,
+        1,
+        &salsa20_base_info
+};
+#endif /* MBEDTLS_SALSA20_C */
+
+#if defined(MBEDTLS_CHACHA8_C)
+
+static int chacha8_crypt_stream_wrap( void *ctx, size_t length, const unsigned char *input,
+                                      unsigned char *output )
+
+{
+    return( mbedtls_chacha8_crypt( (mbedtls_chacha8_context *) ctx, length, input, output ) );
+}
+
+static void chacha8_set_iv( void *ctx, unsigned char *iv )
+{
+    mbedtls_chacha8_set_iv( ctx, iv );
+}
+
+static int chacha8_setkey_wrap( void *ctx, const unsigned char *key,
+                                   unsigned int key_bitlen )
+{
+    mbedtls_chacha8_setup( (mbedtls_chacha8_context *) ctx, key, key_bitlen );
+    return( 0 );
+}
+
+static void * chacha8_ctx_alloc( void )
+{
+    mbedtls_chacha8_context *ctx;
+    ctx = mbedtls_calloc( 1, sizeof( mbedtls_chacha8_context ) );
+
+    if( ctx == NULL )
+        return( NULL );
+
+    mbedtls_chacha8_init( ctx );
+
+    return( ctx );
+}
+
+static void chacha8_ctx_free( void *ctx )
+{
+    mbedtls_chacha8_free( (mbedtls_chacha8_context *) ctx );
+    mbedtls_free( ctx );
+}
+
+static const mbedtls_cipher_base_t chacha8_base_info = {
+        MBEDTLS_CIPHER_ID_CHACHA8,
+        NULL,
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+        NULL,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
+        NULL,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
+        NULL,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_STREAM)
+        chacha8_crypt_stream_wrap,
+#endif
+        chacha8_setkey_wrap,
+        chacha8_setkey_wrap,
+        chacha8_ctx_alloc,
+        chacha8_ctx_free
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && (defined(MBEDTLS_SALSA20_C) || defined(MBEDTLS_CHACHA8_C))
+        , chacha8_set_iv
+#endif
+};
+
+static const mbedtls_cipher_info_t chacha8_128_info = {
+        MBEDTLS_CIPHER_CHACHA8_128,
+        MBEDTLS_MODE_STREAM_IV,
+        128,
+        "CHACHA8-128",
+        8,
+        0,
+        1,
+        &chacha8_base_info
+};
+
+
+static const mbedtls_cipher_info_t chacha8_256_info = {
+        MBEDTLS_CIPHER_CHACHA8_256,
+        MBEDTLS_MODE_STREAM_IV,
+        256,
+        "CHACHA8-256",
+        8,
+        0,
+        1,
+        &chacha8_base_info
+};
+#endif /* MBEDTLS_CHACHA8_C */
 
 #if defined(MBEDTLS_CIPHER_NULL_CIPHER)
 static int null_crypt_stream( void *ctx, size_t length,
@@ -1313,6 +1527,12 @@ static void null_ctx_free( void *ctx )
     ((void) ctx);
 }
 
+static void null_set_iv( void *ctx, unsigned char *iv )
+{
+    ((void) ctx);
+    ((void) iv);
+}
+
 static const mbedtls_cipher_base_t null_base_info = {
     MBEDTLS_CIPHER_ID_NULL,
     NULL,
@@ -1331,7 +1551,8 @@ static const mbedtls_cipher_base_t null_base_info = {
     null_setkey,
     null_setkey,
     null_ctx_alloc,
-    null_ctx_free
+    null_ctx_free,
+    null_set_iv
 };
 
 static const mbedtls_cipher_info_t null_cipher_info = {
@@ -1381,6 +1602,16 @@ const mbedtls_cipher_definition_t mbedtls_cipher_definitions[] =
 
 #if defined(MBEDTLS_ARC4_C)
     { MBEDTLS_CIPHER_ARC4_128,             &arc4_128_info },
+#endif
+
+#if defined(MBEDTLS_SALSA20_C)
+    { MBEDTLS_CIPHER_SALSA20_128,          &salsa20_128_info },
+    { MBEDTLS_CIPHER_SALSA20_256,          &salsa20_256_info },
+#endif
+
+#if defined(MBEDTLS_CHACHA8_C)
+    { MBEDTLS_CIPHER_CHACHA8_128,          &chacha8_128_info },
+    { MBEDTLS_CIPHER_CHACHA8_256,          &chacha8_256_info },
 #endif
 
 #if defined(MBEDTLS_BLOWFISH_C)

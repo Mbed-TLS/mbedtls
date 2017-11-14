@@ -2155,7 +2155,8 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
+    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
+    defined(MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA_ENABLED)
 static int ssl_parse_signature_algorithm( mbedtls_ssl_context *ssl,
                                           unsigned char **p,
                                           unsigned char *end,
@@ -2398,6 +2399,22 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
+
+#if defined(MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA_ENABLED)
+    if(ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA )
+    {
+        if(mbedtls_newhope_parse_public_value_from_server(&ssl->handshake->newhope_ctx, &p, end) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
+            return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+        }
+
+
+
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA_ENABLED */
+
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
     {
@@ -3008,6 +3025,43 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED */
+
+#if defined(MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA_ENABLED)
+    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA)
+    {
+        /*
+         * Newhope key exchange -- send client public value
+         */
+        i = 4;
+
+        /* Create and write the public value - relies on the server key-exchange message */
+        /* Generate b-vector and seed */
+        if( ( ret = mbedtls_newhope_make_params_client( &ssl->handshake->newhope_ctx, &n,
+                                                        &ssl->out_msg[i], MBEDTLS_SSL_MAX_CONTENT_LEN - i ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_newhope_make_params", ret );
+            return( ret );
+        }
+
+
+        /* Derive and export the shared secret */
+
+        if( ( ret = mbedtls_newhope_calc_secret( &ssl->handshake->newhope_ctx,
+                                                 &ssl->handshake->newhope_ctx.m_V_vector,
+                                                 &ssl->handshake->newhope_ctx.m_R_vector,
+                                                 ssl->handshake->premaster,
+                                                 &ssl->handshake->pmslen) ) != 0 )
+        {
+            return( ret );
+        }
+        // copying the derived randbytes twice
+        memcpy(ssl->handshake->randbytes, ssl->handshake->newhope_ctx.m_SharedKeyInput, 32);
+        memcpy(ssl->handshake->randbytes + 32, ssl->handshake->newhope_ctx.m_SharedKeyInput, 32);
+
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE_NEWHOPE_ECDSA_ENABLED */
+
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
     {

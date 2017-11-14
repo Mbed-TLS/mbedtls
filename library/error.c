@@ -105,6 +105,10 @@
 #include "mbedtls/net_sockets.h"
 #endif
 
+#if defined(MBEDTLS_NEWHOPE_C)
+#include "mbedtls/newhope.h"
+#endif
+
 #if defined(MBEDTLS_OID_C)
 #include "mbedtls/oid.h"
 #endif
@@ -127,6 +131,10 @@
 
 #if defined(MBEDTLS_PKCS5_C)
 #include "mbedtls/pkcs5.h"
+#endif
+
+#if defined(MBEDTLS_RLWE_C)
+#include "mbedtls/rlwe.h"
 #endif
 
 #if defined(MBEDTLS_RSA_C)
@@ -656,6 +664,17 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "NET - The context is invalid, eg because it was free()ed" );
 #endif /* MBEDTLS_NET_C */
 
+#if defined(MBEDTLS_NEWHOPE_C)
+    if( use_ret == -(MBEDTLS_ERR_NEWHOPE_BAD_INPUT_DATA) )
+        mbedtls_snprintf( buf, buflen, "NEWHOPE - Bad input parameters to function" );
+    if( use_ret == -(MBEDTLS_ERR_NEWHOPE_FEATURE_UNAVAILABLE) )
+        mbedtls_snprintf( buf, buflen, "NEWHOPE - New Hope key exchange is not available" );
+    if( use_ret == -(MBEDTLS_ERR_NEWHOPE_FAILED_TO_GENERATE_RANDOM) )
+        mbedtls_snprintf( buf, buflen, "NEWHOPE - Unable to generate sufficient random bytes" );
+    if( use_ret == -(MBEDTLS_ERR_NEWHOPE_BUFFER_TOO_SMALL) )
+        mbedtls_snprintf( buf, buflen, "NEWHOPE - The buffer is too small to write to" );
+#endif /* MBEDTLS_NEWHOPE_C */
+
 #if defined(MBEDTLS_OID_C)
     if( use_ret == -(MBEDTLS_ERR_OID_NOT_FOUND) )
         mbedtls_snprintf( buf, buflen, "OID - OID is not found" );
@@ -667,6 +686,11 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_PADLOCK_DATA_MISALIGNED) )
         mbedtls_snprintf( buf, buflen, "PADLOCK - Input data should be aligned" );
 #endif /* MBEDTLS_PADLOCK_C */
+
+#if defined(MBEDTLS_RLWE_C)
+    if( use_ret == -(MBEDTLS_ERR_RLWE_NOISE_INCORRECT) )
+        mbedtls_snprintf( buf, buflen, "RLWE - Noise parameter has bad value" );
+#endif /* MBEDTLS_RLWE_C */
 
 #if defined(MBEDTLS_THREADING_C)
     if( use_ret == -(MBEDTLS_ERR_THREADING_FEATURE_UNAVAILABLE) )

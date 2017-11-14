@@ -194,6 +194,9 @@ struct mbedtls_ssl_handshake_params
 #if defined(MBEDTLS_ECDH_C)
     mbedtls_ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
 #endif
+#if defined(MBEDTLS_NEWHOPE_C)
+    mbedtls_newhope_context newhope_ctx;              /*!<  NEWHOPE key exchange       */
+#endif
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     mbedtls_ecjpake_context ecjpake_ctx;        /*!< EC J-PAKE key exchange */
 #if defined(MBEDTLS_SSL_CLI_C)

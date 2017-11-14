@@ -1,5 +1,5 @@
-#!/bin/sh
-#
+#! /usr/bin/env sh
+
 # output_env.sh
 #
 # This file is part of mbed TLS (https://tls.mbed.org)
@@ -17,144 +17,92 @@
 #   - version of libc, clang, asan and valgrind if installed
 #   - version of gnuTLS and OpenSSL
 
-echo
-echo "* Operating system and architecture:"
-uname -a
+print_version()
+{
+    BIN="$1"
+    shift
+    ARGS="$1"
+    shift
+    FAIL_MSG="$1"
+    shift
 
-echo
-if `hash armcc > /dev/null 2>&1`; then
-    echo "* armcc:"
-    armcc --vsn | head -n 2
-else
-    echo "* armcc not found!"
-fi
-
-echo
-if `hash arm-none-eabi-gcc > /dev/null 2>&1`; then
-    echo "* gcc-arm:"
-    arm-none-eabi-gcc --version | head -n 1
-else
-    echo "* gcc-arm not found!"
-fi
-
-echo
-if `hash gcc > /dev/null 2>&1`; then
-    echo "* gcc:"
-    gcc --version | head -n 1
-else
-    echo "* gcc not found!"
-fi
-
-echo
-if `hash clang > /dev/null 2>&1`; then
-    echo "* clang:"
-    clang --version | head -n 2
-    clang -v 2>&1 | grep Selected
-else
-    echo "* clang not found!"
-fi
-
-echo
-if `hash ldd > /dev/null 2>&1`; then
-    echo "* libc:"
-    ldd --version | head -n 1
-else
-    echo "* No ldd present: can't determine libc version!"
-fi
-
-echo
-if `hash valgrind > /dev/null 2>&1`; then
-    echo "* valgrind:"
-    valgrind --version
-else
-    echo "* valgrind not found!"
-fi
-
-echo
-if `hash openssl > /dev/null 2>&1`; then
-    echo "* openssl:"
-    openssl version
-else
-    echo "* openssl not found!"
-fi
-
-if [ -n "${OPENSSL+set}" ]; then
-    echo
-    if `hash "$OPENSSL" > /dev/null 2>&1`; then
-        echo "* $OPENSSL at environment variable 'OPENSSL':"
-        $OPENSSL version
-    else
-        echo "* $OPENSSL at environment variable 'OPENSSL' not found!"
+    if ! `type "$BIN" > /dev/null 2>&1`; then
+        echo "* $FAIL_MSG"
+        return 0
     fi
-fi
+
+    BIN=`which "$BIN"`
+    VERSION_STR=`$BIN $ARGS 2>&1`
+
+    # Apply all filters
+    while [ $# -gt 0 ]; do
+        FILTER="$1"
+        shift
+        VERSION_STR=`echo "$VERSION_STR" | $FILTER`
+    done
+
+    echo "* ${BIN##*/}: $BIN: $VERSION_STR"
+}
+
+print_version "uname" "-a" ""
+echo
+
+: ${ARMC5_CC:=armcc}
+print_version "$ARMC5_CC" "--vsn" "armcc not found!" "head -n 2"
+echo
+
+: ${ARMC6_CC:=armclang}
+print_version "$ARMC6_CC" "--vsn" "armclang not found!" "head -n 2"
+echo
+
+print_version "arm-none-eabi-gcc" "--version" "gcc-arm not found!" "head -n 1"
+echo
+
+print_version "gcc" "--version" "gcc not found!" "head -n 1"
+echo
+
+print_version "clang" "--version" "clang not found" "head -n 2"
+echo
+
+print_version "ldd" "--version"                     \
+    "No ldd present: can't determine libc version!" \
+    "head -n 1"
+echo
+
+print_version "valgrind" "--version" "valgrind not found!"
+echo
+
+: ${OPENSSL:=openssl}
+print_version "$OPENSSL" "version" "openssl not found!"
+echo
 
 if [ -n "${OPENSSL_LEGACY+set}" ]; then
+    print_version "$OPENSSL_LEGACY" "version" "openssl legacy version not found!"
     echo
-    if `hash "$OPENSSL_LEGACY" > /dev/null 2>&1`; then
-        echo "* $OPENSSL_LEGACY at environment variable 'OPENSSL_LEGACY':"
-        $OPENSSL_LEGACY version
-    else
-        echo "* $OPENSSL_LEGACY at environment variable 'OPENSSL_LEGACY' not found!"
-    fi
 fi
 
+: ${GNUTLS_CLI:=gnutls-cli}
+print_version "$GNUTLS_CLI" "--version" "gnuTLS client not found!" "head -n 1"
 echo
-if `hash gnutls-cli > /dev/null 2>&1`; then
-    echo "* gnuTLS client:"
-    gnutls-cli --version | head -n 1
-else
-    echo "* gnuTLS client not found!"
-fi
 
+: ${GNUTLS_SERV:=gnutls-serv}
+print_version "$GNUTLS_SERV" "--version" "gnuTLS server not found!" "head -n 1"
 echo
-if `hash gnutls-serv > /dev/null 2>&1`; then
-    echo "* gnuTLS server:"
-    gnutls-serv --version | head -n 1
-else
-    echo "* gnuTLS server not found!"
-fi
-
-if [ -n "${GNUTLS_CLI+set}" ]; then
-    echo
-    if `hash "$GNUTLS_CLI" > /dev/null 2>&1`; then
-        echo "* $GNUTLS_CLI at environment variable 'GNUTLS_CLI':"
-        $GNUTLS_CLI --version | head -n 1
-    else
-        echo "* $GNUTLS_CLI at environment variable 'GNUTLS_CLI' not found!"
-    fi
-fi
-
-if [ -n "${GNUTLS_SERV+set}" ]; then
-    echo
-    if `hash "$GNUTLS_SERV" > /dev/null 2>&1`; then
-        echo "* $GNUTLS_SERV at environment variable 'GNUTLS_SERV':"
-        $GNUTLS_SERV --version | head -n 1
-    else
-        echo "* $GNUTLS_SERV at environment variable 'GNUTLS_SERV' not found!"
-    fi
-fi
 
 if [ -n "${GNUTLS_LEGACY_CLI+set}" ]; then
+    print_version "$GNUTLS_LEGACY_CLI" "--version" \
+        "gnuTLS client legacy version not found!"  \
+        "head -n 1"
     echo
-    if `hash "$GNUTLS_LEGACY_CLI" > /dev/null 2>&1`; then
-        echo "* $GNUTLS_LEGACY_CLI at environment variable 'GNUTLS_LEGACY_CLI':"
-        $GNUTLS_LEGACY_CLI --version | head -n 1
-    else
-        echo "* $GNUTLS_LEGACY_CLI at environment variable 'GNUTLS_LEGACY_CLI' not found!"
-    fi
 fi
 
 if [ -n "${GNUTLS_LEGACY_SERV+set}" ]; then
+    print_version "$GNUTLS_LEGACY_SERV" "--version" \
+        "gnuTLS server legacy version not found!"   \
+        "head -n 1"
     echo
-    if `hash "$GNUTLS_LEGACY_SERV" > /dev/null 2>&1`; then
-        echo "* $GNUTLS_LEGACY_SERV at environment variable 'GNUTLS_LEGACY_SERV':"
-        $GNUTLS_LEGACY_SERV --version | head -n 1
-    else
-        echo "* $GNUTLS_LEGACY_SERV at environment variable 'GNUTLS_LEGACY_SERV' not found!"
-    fi
 fi
 
-echo
 if `hash dpkg > /dev/null 2>&1`; then
     echo "* asan:"
     dpkg -s libasan2 2> /dev/null | grep -i version
@@ -163,6 +111,4 @@ if `hash dpkg > /dev/null 2>&1`; then
 else
     echo "* No dpkg present: can't determine asan version!"
 fi
-
 echo
-

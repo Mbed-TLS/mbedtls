@@ -80,6 +80,9 @@
 #define MBEDTLS_X509_CRT_PARSE_C
 #define MBEDTLS_X509_CRL_PARSE_C
 
+/* Miscellaneous options */
+#define MBEDTLS_AES_ROM_TABLES
+
 #include "check_config.h"
 
 #endif /* MBEDTLS_CONFIG_H */

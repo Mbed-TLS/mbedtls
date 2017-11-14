@@ -824,6 +824,11 @@ setup_arguments()
             else
                 M_CLIENT_ARGS="$M_CLIENT_ARGS crt_file=none key_file=none"
             fi
+
+            # Allow SHA-1. It's disabled by default for security reasons but
+            # our tests still use certificates signed with it.
+            M_SERVER_ARGS="$M_SERVER_ARGS allow_sha1=1"
+            M_CLIENT_ARGS="$M_CLIENT_ARGS allow_sha1=1"
             ;;
 
         "PSK")
@@ -836,6 +841,11 @@ setup_arguments()
             M_CLIENT_ARGS="$M_CLIENT_ARGS psk=6162636465666768696a6b6c6d6e6f70 crt_file=none key_file=none"
             O_CLIENT_ARGS="$O_CLIENT_ARGS -psk 6162636465666768696a6b6c6d6e6f70"
             G_CLIENT_ARGS="$G_CLIENT_ARGS --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70"
+
+            # Allow SHA-1. It's disabled by default for security reasons but
+            # our tests still use certificates signed with it.
+            M_SERVER_ARGS="$M_SERVER_ARGS allow_sha1=1"
+            M_CLIENT_ARGS="$M_CLIENT_ARGS allow_sha1=1"
             ;;
     esac
 }

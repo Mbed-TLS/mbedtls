@@ -39,7 +39,9 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANG)
 endif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANG)
 
 if(MSVC)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /w") # no warnings here
+    # If a warning level has been defined, suppress all warnings for test code
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W0")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX-")
 endif(MSVC)
 
 add_test_suite(aes aes.ecb)
@@ -61,6 +63,7 @@ add_test_suite(cipher cipher.des)
 add_test_suite(cipher cipher.gcm)
 add_test_suite(cipher cipher.null)
 add_test_suite(cipher cipher.padding)
+add_test_suite(cmac)
 add_test_suite(ctr_drbg)
 add_test_suite(debug)
 add_test_suite(des)
@@ -112,7 +115,7 @@ if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
         if (CMAKE_HOST_UNIX)
             set(command ln -s ${target} ${link})
         else()
-            set(command cmd.exe /c mklink /d ${link} ${target})
+            set(command cmd.exe /c mklink /j ${link} ${target})
         endif()
 
         execute_process(COMMAND ${command}

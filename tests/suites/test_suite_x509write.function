@@ -16,10 +16,11 @@ void x509_csr_check( char *key_file, char *cert_req_check_file,
 {
     mbedtls_pk_context key;
     mbedtls_x509write_csr req;
-    unsigned char buf[4000];
+    unsigned char buf[4096];
     unsigned char check_buf[4000];
     int ret;
     size_t olen = 0, pem_len = 0;
+    int der_len = -1;
     FILE *f;
     const char *subject_name = "C=NL,O=PolarSSL,CN=PolarSSL Server 1";
     rnd_pseudo_info rnd_info;
@@ -52,6 +53,17 @@ void x509_csr_check( char *key_file, char *cert_req_check_file,
     TEST_ASSERT( olen >= pem_len - 1 );
     TEST_ASSERT( memcmp( buf, check_buf, pem_len - 1 ) == 0 );
 
+    der_len = mbedtls_x509write_csr_der( &req, buf, sizeof( buf ),
+                            rnd_pseudo_rand, &rnd_info );
+    TEST_ASSERT( der_len >= 0 );
+
+    if( der_len == 0 )
+        goto exit;
+
+    ret = mbedtls_x509write_csr_der( &req, buf, (size_t)( der_len - 1 ),
+                            rnd_pseudo_rand, &rnd_info );
+    TEST_ASSERT( ret == MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+
 exit:
     mbedtls_x509write_csr_free( &req );
     mbedtls_pk_free( &key );
@@ -68,11 +80,12 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
 {
     mbedtls_pk_context subject_key, issuer_key;
     mbedtls_x509write_cert crt;
-    unsigned char buf[4000];
+    unsigned char buf[4096];
     unsigned char check_buf[5000];
     mbedtls_mpi serial;
     int ret;
     size_t olen = 0, pem_len = 0;
+    int der_len = -1;
     FILE *f;
     rnd_pseudo_info rnd_info;
 
@@ -124,6 +137,17 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
 
     TEST_ASSERT( olen >= pem_len - 1 );
     TEST_ASSERT( memcmp( buf, check_buf, pem_len - 1 ) == 0 );
+
+    der_len = mbedtls_x509write_crt_der( &crt, buf, sizeof( buf ),
+                            rnd_pseudo_rand, &rnd_info );
+    TEST_ASSERT( der_len >= 0 );
+
+    if( der_len == 0 )
+        goto exit;
+
+    ret = mbedtls_x509write_crt_der( &crt, buf, (size_t)( der_len - 1 ),
+                            rnd_pseudo_rand, &rnd_info );
+    TEST_ASSERT( ret == MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
 
 exit:
     mbedtls_x509write_crt_free( &crt );

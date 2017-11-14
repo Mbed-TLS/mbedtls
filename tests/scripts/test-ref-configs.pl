@@ -1,9 +1,15 @@
 #!/usr/bin/perl
 
-# test standard configurations:
-# - build
-# - run test suite
-# - run compat.sh
+# test-ref-configs.pl
+#
+# This file is part of mbed TLS (https://tls.mbed.org)
+#
+# Copyright (c) 2013-2016, ARM Limited, All Rights Reserved
+#
+# Purpose
+#
+# For each reference configuration file in the configs directory, build the
+# configuration, run the test suites and compat.sh
 #
 # Usage: tests/scripts/test-ref-configs.pl [config-name [...]]
 
@@ -63,7 +69,7 @@ while( my ($conf, $data) = each %configs ) {
     system( "cp configs/$conf $config_h" )
         and abort "Failed to activate $conf\n";
 
-    system( "make CFLAGS='-Os -Werror'" ) and abort "Failed to build: $conf\n";
+    system( "CFLAGS='-Os -Werror -Wall -Wextra' make" ) and abort "Failed to build: $conf\n";
     system( "make test" ) and abort "Failed test suite: $conf\n";
 
     my $compat = $data->{'compat'};

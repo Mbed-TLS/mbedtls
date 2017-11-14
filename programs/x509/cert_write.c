@@ -32,10 +32,11 @@
 #define mbedtls_printf     printf
 #endif
 
-#if !defined(MBEDTLS_X509_CRT_WRITE_C) ||                                  \
-    !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_FS_IO) ||      \
-    !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C) ||        \
-    !defined(MBEDTLS_ERROR_C) || !defined(MBEDTLS_SHA256_C)
+#if !defined(MBEDTLS_X509_CRT_WRITE_C) || \
+    !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_FS_IO) || \
+    !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C) || \
+    !defined(MBEDTLS_ERROR_C) || !defined(MBEDTLS_SHA256_C) || \
+    !defined(MBEDTLS_PEM_WRITE_C)
 int main( void )
 {
     mbedtls_printf( "MBEDTLS_X509_CRT_WRITE_C and/or MBEDTLS_X509_CRT_PARSE_C and/or "
@@ -664,4 +665,4 @@ exit:
 }
 #endif /* MBEDTLS_X509_CRT_WRITE_C && MBEDTLS_X509_CRT_PARSE_C &&
           MBEDTLS_FS_IO && MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C &&
-          MBEDTLS_ERROR_C */
+          MBEDTLS_ERROR_C && MBEDTLS_PEM_WRITE_C */

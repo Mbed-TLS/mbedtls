@@ -70,7 +70,7 @@ Options
                               used:
                                 $config_file
     -o | --force            - If the symbol isn't present in the configuration
-                              file when setting it's value, a #define is
+                              file when setting its value, a #define is
                               appended to the end of the file.
 
 EOU
@@ -205,7 +205,7 @@ for my $line (@config_lines) {
             $done = 1;
         }
     } elsif (!$done && $action eq "get") {
-        if ($line =~ /^\s*#define\s*$name\s*(.*)\s*\b/) {
+        if ($line =~ /^\s*#define\s*$name\s*([^\s]+)\s*\b/) {
             $value = $1;
             $done = 1;
         }

@@ -8,16 +8,13 @@
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define mbedtls_printf     printf
 #define mbedtls_fprintf    fprintf
-#define mbedtls_calloc    calloc
+#define mbedtls_snprintf   snprintf
+#define mbedtls_calloc     calloc
 #define mbedtls_free       free
 #define mbedtls_exit       exit
 #define mbedtls_time       time
 #define mbedtls_time_t     time_t
-#define mbedtls_fprintf    fprintf
-#define mbedtls_printf     printf
-#define mbedtls_snprintf   snprintf
 #define MBEDTLS_EXIT_SUCCESS EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
 #endif
@@ -37,6 +34,9 @@ typedef UINT32 uint32_t;
 
 #include <string.h>
 
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
+#include <unistd.h>
+#endif
 
 /*----------------------------------------------------------------------------*/
 /* Constants */
@@ -104,6 +104,48 @@ static int test_errors = 0;
 
 /*----------------------------------------------------------------------------*/
 /* Helper Functions */
+
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
+static int redirect_output( FILE** out_stream, const char* path )
+{
+    int stdout_fd = dup( fileno( *out_stream ) );
+
+    if( stdout_fd == -1 )
+    {
+        return -1;
+    }
+
+    fflush( *out_stream );
+    fclose( *out_stream );
+    *out_stream = fopen( path, "w" );
+
+    if( *out_stream == NULL )
+    {
+        return -1;
+    }
+
+    return stdout_fd;
+}
+
+static int restore_output( FILE** out_stream, int old_fd )
+{
+    fflush( *out_stream );
+    fclose( *out_stream );
+
+    *out_stream = fdopen( old_fd, "w" );
+    if( *out_stream == NULL )
+    {
+        return -1;
+    }
+
+    return 0;
+}
+
+static void close_output( FILE* out_stream )
+{
+    fclose( out_stream );
+}
+#endif /* __unix__ || __APPLE__ __MACH__ */
 
 static int unhexify( unsigned char *obuf, const char *ibuf )
 {
@@ -355,7 +397,8 @@ static void test_fail( const char *test, int line_no, const char* filename )
 {
     test_errors++;
     if( test_errors == 1 )
-        mbedtls_printf( "FAILED\n" );
-    mbedtls_printf( "  %s\n  at line %d, %s\n", test, line_no, filename );
+        mbedtls_fprintf( stdout, "FAILED\n" );
+    mbedtls_fprintf( stdout, "  %s\n  at line %d, %s\n", test, line_no,
+                        filename );
 }
 

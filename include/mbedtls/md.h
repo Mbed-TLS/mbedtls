@@ -25,6 +25,12 @@
 #ifndef MBEDTLS_MD_H
 #define MBEDTLS_MD_H
 
+#if !defined(MBEDTLS_CONFIG_FILE)
+#include "config.h"
+#else
+#include MBEDTLS_CONFIG_FILE
+#endif
+
 #include <stddef.h>
 
 #define MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE                -0x5080  /**< The selected feature is not available. */

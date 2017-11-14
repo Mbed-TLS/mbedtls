@@ -6187,7 +6187,6 @@ int mbedtls_ssl_set_hostname( mbedtls_ssl_context *ssl, const char *hostname )
 
     /* Check if new hostname is valid before
      * making any change to current one */
-
     if( hostname != NULL )
     {
         hostname_len = strlen( hostname );
@@ -6214,7 +6213,6 @@ int mbedtls_ssl_set_hostname( mbedtls_ssl_context *ssl, const char *hostname )
     else
     {
         ssl->hostname = mbedtls_calloc( 1, hostname_len + 1 );
-
         if( ssl->hostname == NULL )
             return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
 

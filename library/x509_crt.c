@@ -1142,13 +1142,13 @@ int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path )
         if( file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
             continue;
 
-        size_t iFileNameLength;
-        HRESULT hr = StringCchLength(file_data.cFileName, STRSAFE_MAX_CCH, &iFileNameLength);
-        if (hr != S_OK)
+        size_t iFileNameLength; 
+        HRESULT hr = StringCchLengthW(file_data.cFileName, STRSAFE_MAX_CCH, &iFileNameLength); 
+        if (hr != S_OK) 
             return(MBEDTLS_ERR_X509_FILE_IO_ERROR);
 
         w_ret = WideCharToMultiByte( CP_ACP, 0, file_data.cFileName,
-                                     iFileNameLength,
+                                     (int)iFileNameLength,
                                      p, (int) len - 1,
                                      NULL, NULL );
         if( w_ret == 0 )

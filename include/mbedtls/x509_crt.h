@@ -373,7 +373,7 @@ int mbedtls_x509_crt_check_key_usage( const mbedtls_x509_crt *crt,
 
 #if defined(MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE)
 /**
- * \brief          Check usage of certificate against extentedJeyUsage.
+ * \brief          Check usage of certificate against extendedKeyUsage.
  *
  * \param crt      Leaf certificate used.
  * \param usage_oid Intended usage (eg MBEDTLS_OID_SERVER_AUTH or MBEDTLS_OID_CLIENT_AUTH).
@@ -387,7 +387,7 @@ int mbedtls_x509_crt_check_key_usage( const mbedtls_x509_crt *crt,
 int mbedtls_x509_crt_check_extended_key_usage( const mbedtls_x509_crt *crt,
                                        const char *usage_oid,
                                        size_t usage_len );
-#endif /* MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE) */
+#endif /* MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE */
 
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
 /**

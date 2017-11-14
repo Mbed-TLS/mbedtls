@@ -1,10 +1,20 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.1.x released xxxx-xx-xx
+
+= mbed TLS 2.1.10 branch released 2017-xx-xx
 
 Bugfix
    * Fix ssl_parse_record_header() to silently discard invalid DTLS records
      as recommended in RFC 6347 Section 4.1.2.7.
+   * Fix memory leak in mbedtls_ssl_set_hostname() when called multiple times.
+     Found by projectgus and jethrogb, #836.
+   * Fix usage help in ssl_server2 example. Found and fixed by Bei Lin.
+   * Parse signature algorithm extension when renegotiating. Previously,
+     renegotiated handshakes would only accept signatures using SHA-1
+     regardless of the peer's preferences, or fail if SHA-1 was disabled.
+   * Fix leap year calculation in x509_date_is_valid() to ensure that invalid
+     dates on leap years with 100 and 400 intervals are handled correctly. Found
+     by Nicholas Wilson. #694
 
 = mbed TLS 2.1.9 branch released 2017-08-10
 

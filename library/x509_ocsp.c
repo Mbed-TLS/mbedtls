@@ -1493,7 +1493,7 @@ static int x509_ocsp_verify_response_issuer(
      * issuer upwards and verify that *parent is the parent of crt
      */
     // TODO
-#endif /* MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE) */
+#endif /* MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE */
 
     return( 0 );
 }

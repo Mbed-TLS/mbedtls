@@ -1423,16 +1423,22 @@ exit:
 
 static int x509_ocsp_is_parent_crt(
                                 mbedtls_x509_ocsp_single_response *single_resp,
-                                mbedtls_x509_crt *crt,
+                                mbedtls_x509_crt *child,
+                                mbedtls_x509_crt *parent,
+                                int is_trust_ca,
                                 int *is_parent )
 {
     int ret;
 
     *is_parent = 0;
 
+    /*
+     * Check parental relationship using information in the OCSP response
+     */
+
     /* Check hash of parent's DN */
-    ret = x509_ocsp_mdcmp( single_resp->md_alg, crt->subject_raw.p,
-                           crt->subject_raw.len,
+    ret = x509_ocsp_mdcmp( single_resp->md_alg, parent->subject_raw.p,
+                           parent->subject_raw.len,
                            single_resp->issuer_name_hash.p );
     if( ret < 0 )
         return( ret );
@@ -1440,12 +1446,40 @@ static int x509_ocsp_is_parent_crt(
         return( 0 );
 
     /* Check hash of parent's public key */
-    ret = x509_ocsp_mdcmp( single_resp->md_alg, crt->pk_raw.p, crt->pk_raw.len,
+    ret = x509_ocsp_mdcmp( single_resp->md_alg, parent->pk_raw.p,
+                           parent->pk_raw.len,
                            single_resp->issuer_key_hash.p );
     if( ret < 0 )
         return( ret );
     else if( ret != 0 )
         return( 0 );
+
+    /*
+     * Confirm parental relationship using the child certificate
+     */
+
+    /* Basic parenting skills (name, CA bit, key usage) */
+    if( x509_ocsp_crt_check_parent( child, parent, is_trust_ca ) != 0 )
+    {
+        return( 0 );
+    }
+
+    /* Signature */
+    if( x509_ocsp_crt_check_signature( child, parent ) != 0 )
+    {
+        return( 0 );
+    }
+
+    /*
+     * Optional time check.
+     *
+     * TODO: Not sure whether we should accept time-invalid certificates
+     */
+    if( mbedtls_x509_time_is_past( &parent->valid_to ) ||
+        mbedtls_x509_time_is_future( &parent->valid_from ) )
+    {
+        return( 0 );
+    }
 
     /* Found parent of the requested certificate's status */
     *is_parent = 1;
@@ -1455,7 +1489,9 @@ static int x509_ocsp_is_parent_crt(
 
 static int x509_ocsp_find_parent_crt(
                                 mbedtls_x509_ocsp_single_response *single_resp,
+                                mbedtls_x509_crt *child,
                                 mbedtls_x509_crt *chain,
+                                int is_trust_ca,
                                 mbedtls_x509_crt **parent )
 {
     int ret;
@@ -1466,8 +1502,8 @@ static int x509_ocsp_find_parent_crt(
 
     for( cur = chain; cur != NULL; cur = cur->next )
     {
-        if( ( ret = x509_ocsp_is_parent_crt( single_resp, cur,
-                                                        &is_parent ) ) != 0 )
+        if( ( ret = x509_ocsp_is_parent_crt( single_resp, child, cur,
+                                        is_trust_ca, &is_parent ) ) != 0 )
         {
             return( ret );
         }
@@ -1493,7 +1529,7 @@ static int x509_ocsp_find_parent_crt(
  */
 static int x509_ocsp_verify_response_issuer(
                                 mbedtls_x509_ocsp_single_response *single_resp,
-                                mbedtls_x509_crt *crt,
+                                mbedtls_x509_crt *req_crt,
                                 mbedtls_x509_crt *chain,
                                 mbedtls_x509_crt *trust_ca,
                                 mbedtls_x509_crt *issuer,
@@ -1501,10 +1537,11 @@ static int x509_ocsp_verify_response_issuer(
 {
     int ret;
     int is_parent = 0;
-    mbedtls_x509_crt *parent;
+    int is_trust_ca = 0;
+    mbedtls_x509_crt *parent = NULL;
 
     /* Check whether the issuer is the parent of the requested certificate */
-    if( ( ret = x509_ocsp_is_parent_crt( single_resp, issuer,
+    if( ( ret = x509_ocsp_is_parent_crt( single_resp, req_crt, issuer, 0,
                                                         &is_parent ) ) != 0 )
     {
         return( ret );
@@ -1512,10 +1549,10 @@ static int x509_ocsp_verify_response_issuer(
     else if( is_parent != 0 )
     {
         /*
-         * Condition 2 has been met, try to build a chain of trust from the
-         * crt upwards
+         * Condition 2 was satisfied: The issuer is the parent of the requested
+         * certificate
          */
-        // TODO
+        return( 0 );
     }
 
 #if defined(MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE)
@@ -1529,7 +1566,7 @@ static int x509_ocsp_verify_response_issuer(
     }
 
     /*
-     * Try to find the parent of the requested certificate.
+     * Check that issuer and requested certificate have the same parent.
      *
      * TODO: Currently we try to locate the parent in the untrusted chain,
      * and the trust_ca chain. Should we also look in the OCSP response's
@@ -1539,15 +1576,15 @@ static int x509_ocsp_verify_response_issuer(
      * speaking we do notuse the parent to directly verify the response's,
      * so we do not search the parent
      */
-    if( ( ret = x509_ocsp_find_parent_crt( single_resp, chain,
+    if( ( ret = x509_ocsp_find_parent_crt( single_resp, issuer, trust_ca, 1,
                                                             &parent ) ) != 0 )
     {
         return( ret );
     }
     else if( parent == NULL )
     {
-        if( ( ret = x509_ocsp_find_parent_crt( single_resp, trust_ca,
-                                                            &parent ) ) != 0 )
+        if( ( ret = x509_ocsp_find_parent_crt( single_resp, issuer, chain,
+                                                        0, &parent ) ) != 0 )
         {
             return( ret );
         }
@@ -1557,14 +1594,25 @@ static int x509_ocsp_verify_response_issuer(
             return( 0 );
         }
     }
+    else
+        is_trust_ca = 1;
 
-    /*
-     * Condition 3 has been met, try to build a chain of trust from the
-     * issuer upwards and verify that *parent is the parent of crt
-     */
-    // TODO
+    if( ( ret = x509_ocsp_is_parent_crt( single_resp, req_crt, parent,
+                                            is_trust_ca, &is_parent ) ) != 0 )
+    {
+        return( ret );
+    }
+    else if( is_parent != 0 )
+    {
+        /*
+         * Condition 3 was satisfied: The issuer and requested certificate
+         * have the same parent
+         */
+        return( 0 );
+    }
 #endif /* MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE */
 
+    *flags |= MBEDTLS_X509_BADOCSP_RESPONSE_ISSUER_NOT_TRUSTED;
     return( 0 );
 }
 

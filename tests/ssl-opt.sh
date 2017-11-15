@@ -2469,6 +2469,64 @@ run_test    "Non-blocking I/O: session-id resume" \
             -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
+# Tests for event-driven I/O: exercise a variety of handshake flows
+
+run_test    "Event-driven I/O: basic handshake" \
+            "$P_SRV event=1 tickets=0 auth_mode=none" \
+            "$P_CLI event=1 tickets=0" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O: client auth" \
+            "$P_SRV event=1 tickets=0 auth_mode=required" \
+            "$P_CLI event=1 tickets=0" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O: ticket" \
+            "$P_SRV event=1 tickets=1 auth_mode=none" \
+            "$P_CLI event=1 tickets=1" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O: ticket + client auth" \
+            "$P_SRV event=1 tickets=1 auth_mode=required" \
+            "$P_CLI event=1 tickets=1" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O: ticket + client auth + resume" \
+            "$P_SRV event=1 tickets=1 auth_mode=required" \
+            "$P_CLI event=1 tickets=1 reconnect=1" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O: ticket + resume" \
+            "$P_SRV event=1 tickets=1 auth_mode=none" \
+            "$P_CLI event=1 tickets=1 reconnect=1" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O: session-id resume" \
+            "$P_SRV event=1 tickets=0 auth_mode=none" \
+            "$P_CLI event=1 tickets=0 reconnect=1" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
 # Tests for version negotiation
 
 run_test    "Version check: all -> 1.2" \

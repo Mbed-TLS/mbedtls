@@ -1351,6 +1351,76 @@ exit:
     return( ret );
 }
 
+/*
+ * Check if 'parent' is a suitable parent (signing CA) for 'child'.
+ * Return 0 if yes, -1 if not.
+ *
+ * is_trusted_ca means parent is a locally-trusted certificate
+ */
+static int x509_ocsp_crt_check_parent( mbedtls_x509_crt *child,
+                                       mbedtls_x509_crt *parent,
+                                       int is_trust_ca )
+{
+    int need_ca_bit;
+
+    /* Parent must be the issuer */
+    if( mbedtls_x509_name_cmp( &child->issuer, &parent->subject ) != 0 )
+        return( -1 );
+
+    /* Parent must have the basicConstraints CA bit set as a general rule */
+    need_ca_bit = 1;
+
+    /* Exception: v1/v2 certificates that are locally trusted. */
+    if( is_trust_ca && parent->version < 3 )
+        need_ca_bit = 0;
+
+    if( need_ca_bit && ! parent->ca_istrue )
+        return( -1 );
+
+#if defined(MBEDTLS_X509_CHECK_KEY_USAGE)
+    if( need_ca_bit && mbedtls_x509_crt_check_key_usage( parent,
+                                        MBEDTLS_X509_KU_KEY_CERT_SIGN ) != 0 )
+    {
+        return( -1 );
+    }
+#endif
+
+    return( 0 );
+
+}
+
+static int x509_ocsp_crt_check_signature( mbedtls_x509_crt *child,
+                                          mbedtls_x509_crt *parent )
+{
+    int ret;
+    const mbedtls_md_info_t *md_info;
+    unsigned char *buf;
+    size_t md_len;
+
+    if( ( md_info = mbedtls_md_info_from_type( child->sig_md ) ) == NULL )
+        return( MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE );
+
+    md_len = mbedtls_md_get_size( md_info );
+
+    if( ( buf = mbedtls_calloc( md_len, sizeof( unsigned char ) ) ) == NULL )
+        return( MBEDTLS_ERR_X509_ALLOC_FAILED );
+
+    if( ( ret = mbedtls_md( md_info, child->tbs.p, child->tbs.len,
+                                                                buf ) ) != 0 )
+    {
+        goto exit;
+    }
+
+    ret = mbedtls_pk_verify_ext( child->sig_pk, child->sig_opts, &parent->pk,
+                                 child->sig_md, buf, md_len, child->sig.p,
+                                 child->sig.len );
+
+exit:
+    mbedtls_free( buf );
+
+    return( ret );
+}
+
 static int x509_ocsp_is_parent_crt(
                                 mbedtls_x509_ocsp_single_response *single_resp,
                                 mbedtls_x509_crt *crt,

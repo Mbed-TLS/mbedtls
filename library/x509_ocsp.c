@@ -1226,6 +1226,8 @@ static int x509_ocsp_is_issuer( mbedtls_x509_ocsp_responder_id *responder_id,
 {
     int ret;
 
+    *issuer = NULL;
+
     switch( responder_id->type )
     {
         case MBEDTLS_X509_OCSP_RESPONDER_ID_TYPE_NAME:
@@ -1246,8 +1248,6 @@ static int x509_ocsp_is_issuer( mbedtls_x509_ocsp_responder_id *responder_id,
                 return( ret );
             else if( ret == 0 )
                 *issuer = crt;
-            else
-                *issuer = NULL;
 
             return( 0 );
 

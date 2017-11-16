@@ -12,6 +12,7 @@ set(targets
     ssl_client2
     ssl_server
     ssl_fork_server
+    ssl_fork_server_DTLS
     ssl_mail_client
     mini_client
 )
@@ -44,6 +45,9 @@ target_link_libraries(ssl_server2 ${libs})
 
 add_executable(ssl_fork_server ssl_fork_server.c)
 target_link_libraries(ssl_fork_server ${libs})
+
+add_executable(ssl_fork_server_DTLS ssl_fork_server_DTLS.c)
+target_link_libraries(ssl_fork_server_DTLS ${libs})
 
 add_executable(ssl_mail_client ssl_mail_client.c)
 target_link_libraries(ssl_mail_client ${libs})

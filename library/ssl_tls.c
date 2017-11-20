@@ -714,7 +714,15 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
          * so we only need to adjust the length here.
          */
         if( session->trunc_hmac == MBEDTLS_SSL_TRUNC_HMAC_ENABLED )
+        {
             transform->maclen = MBEDTLS_SSL_TRUNCATED_HMAC_LEN;
+
+#if defined(MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT)
+            /* Fall back to old, non-compliant version of the truncated
+             * HMAC implementation which also truncates the key. */
+            mac_key_len = transform->maclen;
+#endif
+        }
 #endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
 
         /* IV length */

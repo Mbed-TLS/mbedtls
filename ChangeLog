@@ -3,6 +3,14 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.1.10 branch released 2017-xx-xx
 
+Security
+   * Fix heap corruption in implementation of truncated HMAC extension.
+     When the truncated HMAC extension is enabled and CBC is used,
+     sending a malicious application packet can be used to selectively
+     corrupt 6 bytes on the peer's heap, potentially leading to crash or
+     remote code execution. This can be triggered remotely from either
+     side in both TLS and DTLS.
+
 Bugfix
    * Fix ssl_parse_record_header() to silently discard invalid DTLS records
      as recommended in RFC 6347 Section 4.1.2.7.

@@ -1364,6 +1364,22 @@
 #define MBEDTLS_SSL_TRUNCATED_HMAC
 
 /**
+ * \def MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT
+ *
+ * Fallback to old, non-conforming implementation of the truncated
+ * HMAC extension which also truncates the HMAC key.
+ *
+ * \warning This should only be enabled temporarily when the use
+ *          of truncated HMAC is mandatory *and* the peer is an Mbed TLS
+ *          stack that doesn't use the fixed implementation yet.
+ *
+ * Uncomment to fallback to old, non-compliant truncated HMAC implementation.
+ *
+ * Requires: MBEDTLS_SSL_TRUNCATED_HMAC
+ */
+//#define MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT
+
+/**
  * \def MBEDTLS_THREADING_ALT
  *
  * Provide your own alternate threading implementation.

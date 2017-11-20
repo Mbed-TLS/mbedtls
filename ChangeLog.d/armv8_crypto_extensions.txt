@@ -1,0 +1,2 @@
+Features
+    * ARMv8 Crypto Extensions: Faster AES and GCM

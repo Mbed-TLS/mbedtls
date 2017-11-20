@@ -1,0 +1,3 @@
+- simplify: merge send_flight_completed() + flight_transmit()
+- failures with 3d + openssl/gnutls: investigate
+- basic MTU "discovery"

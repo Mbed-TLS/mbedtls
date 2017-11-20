@@ -49,6 +49,7 @@
  *      library/aria.c
  *      library/timing.c
  *      include/mbedtls/bn_mul.h
+ *		library/armv8ce_aes.c
  *
  * Required by:
  *      MBEDTLS_AESNI_C
@@ -2148,6 +2149,21 @@
  * This modules adds support for the AES-NI instructions on x86-64
  */
 #define MBEDTLS_AESNI_C
+
+/**
+ * \def MBEDTLS_ARMV8CE_AES_C
+ *
+ * Enable ARMv8 Crypto Extensions for AES and GCM
+ *
+ * Module:  library/aesni.c
+ * Caller:  library/aes.c
+ *          library/gcm.c
+ *
+ * Requires: MBEDTLS_HAVE_ASM
+ *
+ * This module utilizes ARMv8 Crypto Extensions for AES and GCM
+ */
+//#define MBEDTLS_ARMV8CE_AES_C
 
 /**
  * \def MBEDTLS_AES_C

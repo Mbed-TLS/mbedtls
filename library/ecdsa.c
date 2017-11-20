@@ -110,6 +110,10 @@ int ecdsa_sign( ecp_group *grp, mpi *r, mpi *s,
     if( grp->N.p == NULL )
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
+    /* Make sure d is in range 1..n-1 */
+    if( mpi_cmp_int( d, 1 ) < 0 || mpi_cmp_mpi( d, &grp->N ) >= 0 )
+        return( POLARSSL_ERR_ECP_INVALID_KEY );
+
     ecp_point_init( &R );
     mpi_init( &k ); mpi_init( &e ); mpi_init( &t );
 

@@ -14,6 +14,8 @@ Bugfix
    * Fix leap year calculation in x509_date_is_valid() to ensure that invalid
      dates on leap years with 100 and 400 intervals are handled correctly. Found
      by Nicholas Wilson. #694
+   * Add a check for invalid private parameters in ecdsa_sign.
+     Reported by Yolan Romailler.
 
 = mbed TLS 1.3.21 branch released 2017-08-10
 

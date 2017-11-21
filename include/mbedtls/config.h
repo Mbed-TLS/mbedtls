@@ -1186,12 +1186,17 @@
 /**
  * \def MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT
  *
- * Fallback to old, non-conforming implementation of the truncated
- * HMAC extension which also truncates the HMAC key.
+ * Fallback to old (pre-2.1.10), non-conforming implementation of the truncated
+ * HMAC extension which also truncates the HMAC key. Note that this option is
+ * only meant for a transitory upgrade period and is likely to be removed in
+ * a future version of the library.
  *
- * \warning This should only be enabled temporarily when the use
- *          of truncated HMAC is mandatory *and* the peer is an Mbed TLS
- *          stack that doesn't use the fixed implementation yet.
+ * \warning The old implementation is non-compliant and has a security weakness
+ *          (2^80 brute force attack on the HMAC key used for a single,
+ *          uninterrupted connection). This should only be enabled temporarily
+ *          when (1) the use of truncated HMAC is essential in order to save
+ *          bandwidth, and (2) the peer is an Mbed TLS stack that doesn't use
+ *          the fixed implementation yet (pre-2.1.10).
  *
  * Uncomment to fallback to old, non-compliant truncated HMAC implementation.
  *

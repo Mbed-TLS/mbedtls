@@ -1374,6 +1374,9 @@
  *          (2) the peer is an Mbed TLS stack that doesn't use the fixed
  *          implementation yet (version number <= 2.6.0).
  *
+ * \deprecated This option is deprecated and will likely be removed in a
+ *             future version of Mbed TLS.
+ *
  * Uncomment to fallback to old, non-compliant truncated HMAC implementation.
  *
  * Requires: MBEDTLS_SSL_TRUNCATED_HMAC

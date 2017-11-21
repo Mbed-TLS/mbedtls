@@ -1299,10 +1299,10 @@ int mbedtls_aes_self_test( int verbose )
     unsigned char prv[16];
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_CTR) || defined(MBEDTLS_CIPHER_MODE_CFB)
-    size_t offset;
+    size_t offset, tst_offset;
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
-    int len;
+    size_t len;
     unsigned char nonce_counter[16];
     unsigned char stream_block[16];
 #endif
@@ -1523,10 +1523,8 @@ int mbedtls_aes_self_test( int verbose )
             mbedtls_printf( "  AES-CTR-128 (%s): ",
                             ( mode == MBEDTLS_AES_DECRYPT ) ? "dec" : "enc" );
 
-        memcpy( nonce_counter, aes_test_ctr_nonce_counter[u], 16 );
         memcpy( key, aes_test_ctr_key[u], 16 );
 
-        offset = 0;
         if( ( ret = mbedtls_aes_setkey_enc( &ctx, key, 128 ) ) != 0 )
             goto exit;
 
@@ -1534,24 +1532,68 @@ int mbedtls_aes_self_test( int verbose )
 
         if( mode == MBEDTLS_AES_DECRYPT )
         {
-            memcpy( buf, aes_test_ctr_ct[u], len );
-            aes_tests = aes_test_ctr_pt[u];
+            len = aes_test_ctr_len[u];
+            tst_offset = 0;
+            while ( tst_offset < 16 )
+            {
+                memcpy( buf, aes_test_ctr_ct[u], len );
+                memcpy( nonce_counter, aes_test_ctr_nonce_counter[u], 16 );
+                offset = 0;
+
+                /* cipher all the blocks until the last one, and add the offset*/
+                ret = mbedtls_aes_crypt_ctr( &ctx, len - 16 + tst_offset, &offset, nonce_counter, stream_block,
+                                       buf, buf );
+                if( ret != 0 )
+                    goto exit;
+
+                /* cipher the last block, from offset*/
+                ret = mbedtls_aes_crypt_ctr( &ctx, 16 - tst_offset, &offset, nonce_counter, stream_block,
+                                       buf + len - 16 + tst_offset, buf  + len - 16 + tst_offset );
+                if( ret != 0 )
+                    goto exit;
+
+                if( memcmp( buf, aes_test_ctr_pt[u], len ) != 0 )
+                {
+                    if( verbose != 0 )
+                        mbedtls_printf( "failed with offset %zu\n", tst_offset );
+
+                    ret = 1;
+                    goto exit;
+                }
+                tst_offset++;
+            }
         }
         else
         {
-            memcpy( buf, aes_test_ctr_pt[u], len );
-            aes_tests = aes_test_ctr_ct[u];
-        }
+            len = aes_test_ctr_len[u];
+            tst_offset = 0;
+            while ( tst_offset < 16 )
+            {
+                memcpy( buf, aes_test_ctr_ct[u], len );
+                memcpy( nonce_counter, aes_test_ctr_nonce_counter[u], 16 );
+                offset = 0;
 
-        ret = mbedtls_aes_crypt_ctr( &ctx, len, &offset, nonce_counter,
-                                     stream_block, buf, buf );
-        if( ret != 0 )
-            goto exit;
+                /* cipher all the blocks until the last one, and add the offset*/
+                ret = mbedtls_aes_crypt_ctr( &ctx, len - 16 + tst_offset, &offset, nonce_counter, stream_block,
+                                        buf, buf );
+                if( ret != 0 )
+                    goto exit;
 
-        if( memcmp( buf, aes_tests, len ) != 0 )
-        {
-            ret = 1;
-            goto exit;
+                /* cipher the last block, from offset*/
+                ret = mbedtls_aes_crypt_ctr( &ctx, 16 - tst_offset, &offset, nonce_counter, stream_block,
+                                       buf + len - 16 + tst_offset, buf + len - 16 + tst_offset );
+                if( ret != 0 )
+                    goto exit;
+                if( memcmp( buf, aes_test_ctr_pt[u], len ) != 0 )
+                {
+                    if( verbose != 0 )
+                        mbedtls_printf( "failed with offset %zu\n", tst_offset );
+
+                    ret = 1;
+                    goto exit;
+                }
+                    tst_offset++;
+            }
         }
 
         if( verbose != 0 )

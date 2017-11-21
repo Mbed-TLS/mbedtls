@@ -378,6 +378,9 @@ Changes
    * Add explicit warnings for the use of MD2, MD4, MD5, SHA-1, DES and ARC4
      throughout the library.
 
+Changes
+   * Add tests for different nc_off in AES CTR mode, in the AES selftests
+
 = mbed TLS 2.6.0 branch released 2017-08-10
 
 Security

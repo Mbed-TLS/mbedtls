@@ -1159,7 +1159,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
 
-        SSL_DEBUG_BUF( 4, "computed mac",
+        SSL_DEBUG_BUF( 4, "expected mac",
                        ssl->out_msg + ssl->out_msglen,
                        ssl->transform_out->maclen );
 
@@ -1613,7 +1613,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 
             SSL_DEBUG_BUF( 4, "message  mac", ssl->in_iv + ssl->in_msglen,
                                               ssl->transform_in->maclen );
-            SSL_DEBUG_BUF( 4, "computed mac", mac_expect,
+            SSL_DEBUG_BUF( 4, "expected mac", mac_expect,
                                               ssl->transform_in->maclen );
 
             if( safer_memcmp( ssl->in_iv + ssl->in_msglen, mac_expect,

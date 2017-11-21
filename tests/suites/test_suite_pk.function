@@ -755,6 +755,7 @@ void pk_opaque_mock( )
         "mock",
         opaque_mock_get_bitlen,
         opaque_mock_can_do,
+        opaque_mock_signature_size_func,
         opaque_mock_verify_func,
         opaque_mock_sign_func,
         opaque_mock_decrypt_func,
@@ -763,7 +764,6 @@ void pk_opaque_mock( )
         opaque_mock_ctx_alloc_func,
         opaque_mock_ctx_free_func,
         opaque_mock_debug_func,
-        opaque_mock_signature_size_func,
     };
     mbedtls_pk_context ctx;
     unsigned char sig[OPAQUE_MOCK_SIGNATURE_SIZE] = OPAQUE_MOCK_GOOD_SIGNATURE;
@@ -872,8 +872,8 @@ void pk_opaque_minimal( )
         NULL,
         NULL,
         NULL,
-        opaque_mock_ctx_free_func,
         NULL,
+        opaque_mock_ctx_free_func,
         NULL,
     };
     mbedtls_pk_context ctx;
@@ -887,8 +887,7 @@ void pk_opaque_minimal( )
     TEST_ASSERT( mbedtls_pk_get_bitlen( &ctx ) == OPAQUE_MOCK_BITLEN );
     TEST_ASSERT( mbedtls_pk_can_do( &ctx, OPAQUE_MOCK_CAN_DO ) == 1 );
     TEST_ASSERT( mbedtls_pk_can_do( &ctx, OPAQUE_MOCK_CAN_DO ^ 1 ) == 0 );
-    TEST_ASSERT( mbedtls_pk_signature_size( &ctx ) ==
-                 ( OPAQUE_MOCK_BITLEN + 7 ) / 8 );
+    TEST_ASSERT( mbedtls_pk_signature_size( &ctx ) == 0 );
 
     TEST_ASSERT( mbedtls_pk_verify( &ctx, OPAQUE_MOCK_MD_ALG,
                                     NULL, 0, NULL, 0 ) ==
@@ -943,8 +942,8 @@ void pk_opaque_fail_allocation( )
         NULL,
         NULL,
         NULL,
-        opaque_mock_ctx_alloc_fail,
         NULL,
+        opaque_mock_ctx_alloc_fail,
         NULL,
         NULL,
     };
@@ -974,6 +973,7 @@ void pk_opaque_wrapper( )
         "RSA-opaque-wrapper",
         mbedtls_rsa_info->get_bitlen,
         mbedtls_rsa_info->can_do,
+        mbedtls_rsa_info->signature_size_func,
         mbedtls_rsa_info->verify_func,
         mbedtls_rsa_info->sign_func,
         mbedtls_rsa_info->decrypt_func,
@@ -982,7 +982,6 @@ void pk_opaque_wrapper( )
         mbedtls_rsa_info->ctx_alloc_func,
         mbedtls_rsa_info->ctx_free_func,
         mbedtls_rsa_info->debug_func,
-        NULL, // signature_size_func: the fallback implementation is fine
     };
 
     /* Generate an RSA key to use in both contexts */

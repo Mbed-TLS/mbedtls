@@ -270,6 +270,7 @@ static const mbedtls_pk_info_t mbedtls_pk_pkcs11_info = {
     "pkcs11",
     pkcs11_pk_get_bitlen,
     pkcs11_pk_can_do, //can_do
+    pkcs11_pk_signature_size,
     NULL, //pkcs11_verify,
     pkcs11_sign,
     NULL, //pkcs11_decrypt,
@@ -278,7 +279,6 @@ static const mbedtls_pk_info_t mbedtls_pk_pkcs11_info = {
     pkcs11_pk_alloc,
     pkcs11_pk_free,
     NULL, //debug_func
-    pkcs11_pk_signature_size,
 };
 
 int mbedtls_pk_setup_pkcs11( mbedtls_pk_context *ctx,

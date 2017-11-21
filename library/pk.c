@@ -364,9 +364,9 @@ size_t mbedtls_pk_signature_size( const mbedtls_pk_context *ctx )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
     if( ctx->pk_info->signature_size_func == NULL )
-        return( ( ctx->pk_info->get_bitlen( ctx->pk_ctx ) + 7 ) / 8 );
-    else
-        return( ctx->pk_info->signature_size_func( ctx->pk_ctx ) );
+        return( 0 );
+
+    return( ctx->pk_info->signature_size_func( ctx->pk_ctx ) );
 }
 
 /*

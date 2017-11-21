@@ -1491,13 +1491,10 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
         if( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS )
         {
-            ssl->renego_records_seen++;
-
-            if( ssl->conf->renego_max_records >= 0 &&
-                ssl->renego_records_seen > ssl->conf->renego_max_records )
+            if( mbedtls_ssl_check_renego_not_honored( ssl ) != 0 )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "renegotiation requested, "
-                                    "but not honored by server" ) );
+                                            "but not honored by server" ) );
                 return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
             }
 

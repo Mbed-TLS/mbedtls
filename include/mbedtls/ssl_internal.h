@@ -621,6 +621,10 @@ int mbedtls_ssl_dtls_replay_check( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_dtls_replay_update( mbedtls_ssl_context *ssl );
 #endif
 
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+int mbedtls_ssl_check_renego_not_honored( mbedtls_ssl_context *ssl );
+#endif
+
 /* constant-time buffer comparison */
 static inline int mbedtls_ssl_safer_memcmp( const void *a, const void *b, size_t n )
 {

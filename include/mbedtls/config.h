@@ -1369,9 +1369,10 @@
  * Fallback to old, non-conforming implementation of the truncated
  * HMAC extension which also truncates the HMAC key.
  *
- * \warning This should only be enabled temporarily when the use
- *          of truncated HMAC is mandatory *and* the peer is an Mbed TLS
- *          stack that doesn't use the fixed implementation yet.
+ * \warning This should only be enabled temporarily when (1) the use of
+ *          truncated HMAC is essential in order to save bandwidth, and
+ *          (2) the peer is an Mbed TLS stack that doesn't use the fixed
+ *          implementation yet (version number <= 2.6.0).
  *
  * Uncomment to fallback to old, non-compliant truncated HMAC implementation.
  *

@@ -718,7 +718,8 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT)
             /* Fall back to old, non-compliant version of the truncated
-             * HMAC implementation which also truncates the key. */
+             * HMAC implementation which also truncates the key
+             * (Mbed TLS versions from 1.3 to 2.6.0) */
             mac_key_len = transform->maclen;
 #endif
         }

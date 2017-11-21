@@ -290,6 +290,14 @@ struct mbedtls_ssl_handshake_params
                     const unsigned char *, size_t,
                     unsigned char *, size_t);
 
+    /* Handshake digest buffer */
+    unsigned char handshake_digest[MBEDTLS_SSL_VERIFY_DATA_MAX_LEN];
+    size_t handshake_digest_len;
+
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    int renegotiation_info_seen;
+#endif
+
     size_t pmslen;                      /*!<  premaster length        */
 
     unsigned char randbytes[64];        /*!<  random bytes            */
@@ -419,6 +427,8 @@ int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl );
 
 int mbedtls_ssl_send_fatal_handshake_failure( mbedtls_ssl_context *ssl );
+
+int mbedtls_ssl_handle_pending_alert( mbedtls_ssl_context *ssl );
 
 void mbedtls_ssl_reset_checksum( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl );
@@ -620,6 +630,8 @@ int mbedtls_ssl_resend( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_dtls_replay_check( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_dtls_replay_update( mbedtls_ssl_context *ssl );
 #endif
+
+#define SSL_PROC_CHK(f) do { if( ( ret = f ) < 0 ) goto cleanup; } while( 0 )
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
 int mbedtls_ssl_check_renego_not_honored( mbedtls_ssl_context *ssl );

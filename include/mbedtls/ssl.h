@@ -868,6 +868,11 @@ struct mbedtls_ssl_context
     int keep_current_message;   /*!< drop or reuse current message
                                      on next call to record layer? */
 
+    unsigned char send_alert;   /*!< Request sending an alert?
+                                     MBEDTLS_SSL_ALERT_LEVEL_FATAL or
+                                     MBEDTLS_SSL_ALERT_LEVEL_WARNING  */
+    unsigned char alert_type;   /*!< Type of alert if send_alert != 0 */
+
     /*
      * Record layer (outgoing data)
      */

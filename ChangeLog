@@ -2,6 +2,13 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
+Security
+   * Fix buffer overflow in RSA-PSS verification when the hash is too
+     large for the key size. Found by Seth Terashima, Qualcomm Product
+     Security Initiative, Qualcomm Technologies Inc.
+   * Fix buffer overflow in RSA-PSS verification when the unmasked
+     data is all zeros.
+
 Features
    * Allow comments in test data files.
 
@@ -17,6 +24,8 @@ Bugfix
    * Fix leap year calculation in x509_date_is_valid() to ensure that invalid
      dates on leap years with 100 and 400 intervals are handled correctly. Found
      by Nicholas Wilson. #694
+   * Fix some invalid RSA-PSS signatures with keys of size 8N+1 that were
+     accepted. Generating these signatures required the private key.
 
 = mbed TLS 2.6.0 branch released 2017-08-10
 

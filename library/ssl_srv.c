@@ -2832,7 +2832,6 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
 static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
 {
     int ret;
-    size_t n = 0;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
                             ssl->transform_negotiate->ciphersuite_info;
 
@@ -2897,7 +2896,6 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
         }
 
         p += len;
-        n += len;
     }
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
@@ -2913,8 +2911,6 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
     {
         *(p++) = 0x00;
         *(p++) = 0x00;
-
-        n += 2;
     }
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
@@ -2961,7 +2957,6 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
 #endif
 
         p += len;
-        n += len;
 
         MBEDTLS_SSL_DEBUG_MPI( 3, "DHM: X ", &ssl->handshake->dhm_ctx.X  );
         MBEDTLS_SSL_DEBUG_MPI( 3, "DHM: P ", &ssl->handshake->dhm_ctx.P  );
@@ -3009,9 +3004,10 @@ curve_matching_done:
             return( ret );
         }
 
-        if( ( ret = mbedtls_ecdh_make_params( &ssl->handshake->ecdh_ctx, &len,
-                                      p, MBEDTLS_SSL_MAX_CONTENT_LEN - n,
-                                      ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+        if( ( ret = mbedtls_ecdh_make_params(
+                  &ssl->handshake->ecdh_ctx, &len,
+                  p, ssl->out_buf + MBEDTLS_SSL_MAX_CONTENT_LEN - p,
+                  ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_make_params", ret );
             return( ret );
@@ -3023,7 +3019,6 @@ curve_matching_done:
 #endif
 
         p += len;
-        n += len;
 
         MBEDTLS_SSL_DEBUG_ECP( 3, "ECDH: Q ", &ssl->handshake->ecdh_ctx.Q );
     }
@@ -3206,8 +3201,6 @@ curve_matching_done:
 
             *(p++) = mbedtls_ssl_hash_from_md_alg( md_alg );
             *(p++) = mbedtls_ssl_sig_from_pk_alg( sig_alg );
-
-            n += 2;
         }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
@@ -3220,17 +3213,16 @@ curve_matching_done:
 
         *(p++) = (unsigned char)( signature_len >> 8 );
         *(p++) = (unsigned char)( signature_len      );
-        n += 2;
 
         MBEDTLS_SSL_DEBUG_BUF( 3, "my signature", p, signature_len );
 
-        n += signature_len;
+        p += signature_len;
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED */
 
     /* Done with actual work; add header and send. */
 
-    ssl->out_msglen  = 4 + n;
+    ssl->out_msglen  = p - ssl->out_msg;
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = MBEDTLS_SSL_HS_SERVER_KEY_EXCHANGE;
 

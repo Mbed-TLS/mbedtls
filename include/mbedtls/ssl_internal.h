@@ -508,6 +508,10 @@ void mbedtls_ssl_optimize_checksum( mbedtls_ssl_context *ssl,
 int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exchange_type_t key_ex );
 #endif
 
+#if defined(MBEDTLS_ASYNC_C)
+void mbedtls_ssl_set_async_cookie( mbedtls_ssl_context *ssl );
+#endif
+
 #if defined(MBEDTLS_PK_C)
 unsigned char mbedtls_ssl_sig_from_pk( mbedtls_pk_context *pk );
 unsigned char mbedtls_ssl_sig_from_pk_alg( mbedtls_pk_type_t type );

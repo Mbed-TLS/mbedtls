@@ -3223,11 +3223,7 @@ curve_matching_done:
         ssl->handshake->async_ctx = mbedtls_pk_async_alloc( pk );
         if( ssl->handshake->async_ctx != NULL )
         {
-            mbedtls_async_cookie_t cookie = {
-                (uintptr_t) &mbedtls_ssl_handshake_step,
-                (uintptr_t) &ssl,
-            };
-            mbedtls_async_set_cookie( ssl->handshake->async_ctx, cookie );
+            mbedtls_ssl_set_async_cookie( ssl );
             ret = mbedtls_pk_async_sign( pk, md_alg, hash, hashlen,
                                          p + 2 ,
                                          ( ssl->out_buf

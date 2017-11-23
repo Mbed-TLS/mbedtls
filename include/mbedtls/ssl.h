@@ -682,6 +682,10 @@ struct mbedtls_ssl_config
     const char **alpn_list;         /*!< ordered list of protocols          */
 #endif
 
+#if defined(MBEDTLS_ASYNC_C)
+    uintptr_t async_cookie_type;    /*!< cookie type value for asynchronous operations */
+#endif
+
     /*
      * Numerical settings (int then char)
      */
@@ -2233,6 +2237,24 @@ void mbedtls_ssl_conf_renegotiation_enforced( mbedtls_ssl_config *conf, int max_
 void mbedtls_ssl_conf_renegotiation_period( mbedtls_ssl_config *conf,
                                    const unsigned char period[8] );
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
+
+#if defined(MBEDTLS_ASYNC_C)
+/**
+ * \brief          Set the cookie type for asynchronous operations
+ *
+ *                 Any asynchronous operation used by an SSL context that
+ *                 uses this configuration will have a cookie with the
+ *                 following parameters:
+ *
+ *                 - type: the value specified by this function
+ *                 - instance: address of the mbedtls_ssl_context structure
+ *
+ * \param conf     SSL configuration
+ * \param cookie_type  Cookie type value
+ */
+void mbedtls_ssl_conf_async_cookie( mbedtls_ssl_config *conf,
+                                    uintptr_t cookie_type );
+#endif /* MBEDTLS_ASYNC_C */
 
 /**
  * \brief          Return the number of data bytes available to read

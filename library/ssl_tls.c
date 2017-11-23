@@ -53,6 +53,10 @@
 #include "mbedtls/oid.h"
 #endif
 
+#if defined(MBEDTLS_ASYNC_C)
+#include "mbedtls/async.h"
+#endif
+
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
@@ -7548,6 +7552,10 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
             }
 #endif
 
+#if defined(MBEDTLS_ASYNC_C)
+            conf->async_cookie_type = (uintptr_t) &mbedtls_ssl_handshake_step;
+#endif
+
     /*
      * Preset-specific defaults
      */
@@ -7649,6 +7657,26 @@ void mbedtls_ssl_config_free( mbedtls_ssl_config *conf )
 
     mbedtls_zeroize( conf, sizeof( mbedtls_ssl_config ) );
 }
+
+/*
+ * Asynchronous operation support
+ */
+#if defined(MBEDTLS_ASYNC_C)
+void mbedtls_ssl_conf_async_cookie( mbedtls_ssl_config *conf,
+                                    uintptr_t cookie_type )
+{
+    conf->async_cookie_type = cookie_type;
+}
+
+void mbedtls_ssl_set_async_cookie( mbedtls_ssl_context *ssl )
+{
+    mbedtls_async_cookie_t cookie = {
+        ssl->conf->async_cookie_type,
+        (uintptr_t) &ssl
+    };
+    mbedtls_async_set_cookie( ssl->handshake->async_ctx, cookie );
+}
+#endif /* MBEDTLS_ASYNC_C */
 
 #if defined(MBEDTLS_PK_C) && \
     ( defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECDSA_C) )

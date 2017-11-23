@@ -1533,8 +1533,8 @@ int mbedtls_aes_self_test( int verbose )
         if( mode == MBEDTLS_AES_DECRYPT )
         {
             len = aes_test_ctr_len[u];
-            size_to_cipher = 0;
-            while ( size_to_cipher < len )
+
+            for(size_to_cipher = 0; size_to_cipher < len; size_to_cipher++ )
             {
                 memcpy( buf, aes_test_ctr_ct[u], len );
                 memcpy( nonce_counter, aes_test_ctr_nonce_counter[u], 16 );
@@ -1545,6 +1545,14 @@ int mbedtls_aes_self_test( int verbose )
                                        buf, buf );
                 if( ret != 0 )
                     goto exit;
+
+                if( offset != ( size_to_cipher % 16 ) )
+                {
+                    if( verbose != 0 )
+                        mbedtls_printf( "failed: calculated offset is not as expected\n" );
+                    ret = 1;
+                    goto exit;
+                }
 
                 /* cipher the last block, from offset*/
                 ret = mbedtls_aes_crypt_ctr( &ctx, len - size_to_cipher, &offset, nonce_counter, stream_block,
@@ -1560,14 +1568,12 @@ int mbedtls_aes_self_test( int verbose )
                     ret = 1;
                     goto exit;
                 }
-                size_to_cipher++;
             }
         }
         else
         {
             len = aes_test_ctr_len[u];
-            size_to_cipher = 0;
-            while ( size_to_cipher < len )
+            for( size_to_cipher = 0; size_to_cipher < len; size_to_cipher++ )
             {
                 memcpy( buf, aes_test_ctr_ct[u], len );
                 memcpy( nonce_counter, aes_test_ctr_nonce_counter[u], 16 );
@@ -1578,6 +1584,14 @@ int mbedtls_aes_self_test( int verbose )
                                         buf, buf );
                 if( ret != 0 )
                     goto exit;
+
+                if( offset != ( size_to_cipher % 16 ) )
+                {
+                    if( verbose != 0 )
+                        mbedtls_printf( "failed: calculated offset is not as expected\n" );
+                    ret = 1;
+                    goto exit;
+                }
 
                 /* cipher the last block, from offset*/
                 ret = mbedtls_aes_crypt_ctr( &ctx, len- size_to_cipher, &offset, nonce_counter, stream_block,
@@ -1592,7 +1606,6 @@ int mbedtls_aes_self_test( int verbose )
                     ret = 1;
                     goto exit;
                 }
-                size_to_cipher++;
             }
         }
 

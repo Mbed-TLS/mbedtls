@@ -1628,6 +1628,16 @@
 #define MBEDTLS_ASN1_WRITE_C
 
 /**
+ * \def MBEDTLS_ASYNC_C
+ *
+ * Enable support for asynchronous external operations (currently, only
+ * asymmetric cryptography can be used in this way).
+ *
+ * Module:  library/async.c
+ */
+#define MBEDTLS_ASYNC_C
+
+/**
  * \def MBEDTLS_BASE64_C
  *
  * Enable the Base64 module.

@@ -45,6 +45,10 @@
 #include "mbedtls/aes.h"
 #endif
 
+#if defined(MBEDTLS_ASYNC_C)
+#include "mbedtls/async.h"
+#endif
+
 #if defined(MBEDTLS_BASE64_C)
 #include "mbedtls/base64.h"
 #endif
@@ -542,6 +546,15 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_ASN1_BUF_TOO_SMALL) )
         mbedtls_snprintf( buf, buflen, "ASN1 - Buffer too small when writing ASN.1 data structure" );
 #endif /* MBEDTLS_ASN1_PARSE_C */
+
+#if defined(MBEDTLS_ASYNC_C)
+    if( use_ret == -(MBEDTLS_ERR_ASYNC_BAD_STATE) )
+        mbedtls_snprintf( buf, buflen, "ASYNC - Action attempted on an asynchronous operation in the wrong state" );
+    if( use_ret == -(MBEDTLS_ERR_ASYNC_IN_PROGRESS) )
+        mbedtls_snprintf( buf, buflen, "ASYNC - Asynchronous operation unfinished, call mbedtls_async_resume" );
+    if( use_ret == -(MBEDTLS_ERR_ASYNC_CANCELLED) )
+        mbedtls_snprintf( buf, buflen, "ASYNC - Asynchronous operation cancelled by the caller" );
+#endif /* MBEDTLS_ASYNC_C */
 
 #if defined(MBEDTLS_BASE64_C)
     if( use_ret == -(MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL) )

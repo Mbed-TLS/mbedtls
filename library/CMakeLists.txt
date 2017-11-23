@@ -8,6 +8,7 @@ set(src_crypto
     arc4.c
     asn1parse.c
     asn1write.c
+    async.c
     base64.c
     bignum.c
     blowfish.c

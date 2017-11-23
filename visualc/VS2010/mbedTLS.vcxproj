@@ -151,6 +151,7 @@
     <ClInclude Include="..\..\include\mbedtls\arc4.h" />
     <ClInclude Include="..\..\include\mbedtls\asn1.h" />
     <ClInclude Include="..\..\include\mbedtls\asn1write.h" />
+    <ClInclude Include="..\..\include\mbedtls\async.h" />
     <ClInclude Include="..\..\include\mbedtls\base64.h" />
     <ClInclude Include="..\..\include\mbedtls\bignum.h" />
     <ClInclude Include="..\..\include\mbedtls\blowfish.h" />
@@ -225,6 +226,7 @@
     <ClCompile Include="..\..\library\arc4.c" />
     <ClCompile Include="..\..\library\asn1parse.c" />
     <ClCompile Include="..\..\library\asn1write.c" />
+    <ClCompile Include="..\..\library\async.c" />
     <ClCompile Include="..\..\library\base64.c" />
     <ClCompile Include="..\..\library\bignum.c" />
     <ClCompile Include="..\..\library\blowfish.c" />

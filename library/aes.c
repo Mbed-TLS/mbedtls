@@ -1540,7 +1540,7 @@ int mbedtls_aes_self_test( int verbose )
                 memcpy( nonce_counter, aes_test_ctr_nonce_counter[u], 16 );
                 offset = 0;
 
-                /* cipher all the blocks until the last one, and add the offset*/
+                /* cipher the first bytes with length size_to_cipher */
                 ret = mbedtls_aes_crypt_ctr( &ctx,  size_to_cipher, &offset, nonce_counter, stream_block,
                                        buf, buf );
                 if( ret != 0 )
@@ -1554,7 +1554,7 @@ int mbedtls_aes_self_test( int verbose )
                     goto exit;
                 }
 
-                /* cipher the last block, from offset*/
+                /* resume the cipher, from offset */
                 ret = mbedtls_aes_crypt_ctr( &ctx, len - size_to_cipher, &offset, nonce_counter, stream_block,
                                        buf + size_to_cipher, buf  + size_to_cipher );
                 if( ret != 0 )
@@ -1579,7 +1579,7 @@ int mbedtls_aes_self_test( int verbose )
                 memcpy( nonce_counter, aes_test_ctr_nonce_counter[u], 16 );
                 offset = 0;
 
-                /* cipher all the blocks until the last one, and add the offset*/
+                /*  cipher the first bytes with length size_to_cipher */
                 ret = mbedtls_aes_crypt_ctr( &ctx, size_to_cipher, &offset, nonce_counter, stream_block,
                                         buf, buf );
                 if( ret != 0 )
@@ -1593,7 +1593,7 @@ int mbedtls_aes_self_test( int verbose )
                     goto exit;
                 }
 
-                /* cipher the last block, from offset*/
+                /* resume the cipher, from offset */
                 ret = mbedtls_aes_crypt_ctr( &ctx, len- size_to_cipher, &offset, nonce_counter, stream_block,
                                        buf + size_to_cipher, buf + size_to_cipher );
                 if( ret != 0 )

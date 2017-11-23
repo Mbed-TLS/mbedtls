@@ -1326,10 +1326,11 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
     size_t siglen;
     unsigned char *p;
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
+    unsigned char *hash_start;
     unsigned char result[MBEDTLS_MD_MAX_SIZE];
     unsigned char zeros[8];
     unsigned int hlen;
-    size_t slen, msb;
+    size_t observed_salt_len, msb;
     const mbedtls_md_info_t *md_info;
     mbedtls_md_context_t md_ctx;
 
@@ -1369,7 +1370,6 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
     hlen = mbedtls_md_get_size( md_info );
-    slen = siglen - hlen - 1; /* Currently length of salt + padding */
 
     memset( zeros, 0, 8 );
 
@@ -1377,15 +1377,19 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
     //
     msb = mbedtls_mpi_bitlen( &ctx->N ) - 1;
 
-    // Compensate for boundary condition when applying mask
-    //
+    if( buf[0] >> ( 8 - siglen * 8 + msb ) )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    /* Compensate for boundary condition when applying mask */
     if( msb % 8 == 0 )
     {
         p++;
         siglen -= 1;
     }
-    if( buf[0] >> ( 8 - siglen * 8 + msb ) )
+
+    if( siglen < hlen + 2 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    hash_start = p + siglen - hlen - 1;
 
     mbedtls_md_init( &md_ctx );
     if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 0 ) ) != 0 )
@@ -1394,25 +1398,23 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
         return( ret );
     }
 
-    mgf_mask( p, siglen - hlen - 1, p + siglen - hlen - 1, hlen, &md_ctx );
+    mgf_mask( p, siglen - hlen - 1, hash_start, hlen, &md_ctx );
 
     buf[0] &= 0xFF >> ( siglen * 8 - msb );
 
-    while( p < buf + siglen && *p == 0 )
+    while( p < hash_start - 1 && *p == 0 )
         p++;
 
-    if( p == buf + siglen ||
-        *p++ != 0x01 )
+    if( *p++ != 0x01 )
     {
         mbedtls_md_free( &md_ctx );
         return( MBEDTLS_ERR_RSA_INVALID_PADDING );
     }
 
-    /* Actual salt len */
-    slen -= p - buf;
+    observed_salt_len = hash_start - p;
 
     if( expected_salt_len != MBEDTLS_RSA_SALT_LEN_ANY &&
-        slen != (size_t) expected_salt_len )
+        observed_salt_len != (size_t) expected_salt_len )
     {
         mbedtls_md_free( &md_ctx );
         return( MBEDTLS_ERR_RSA_INVALID_PADDING );
@@ -1423,12 +1425,12 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
     mbedtls_md_starts( &md_ctx );
     mbedtls_md_update( &md_ctx, zeros, 8 );
     mbedtls_md_update( &md_ctx, hash, hashlen );
-    mbedtls_md_update( &md_ctx, p, slen );
+    mbedtls_md_update( &md_ctx, p, observed_salt_len );
     mbedtls_md_finish( &md_ctx, result );
 
     mbedtls_md_free( &md_ctx );
 
-    if( memcmp( p + slen, result, hlen ) == 0 )
+    if( memcmp( hash_start, result, hlen ) == 0 )
         return( 0 );
     else
         return( MBEDTLS_ERR_RSA_VERIFY_FAILED );

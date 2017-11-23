@@ -8,6 +8,8 @@ Security
      Security Initiative, Qualcomm Technologies Inc.
    * Fix buffer overflow in RSA-PSS verification when the unmasked
      data is all zeros.
+   * Fix unsafe bounds check in ssl_parse_client_psk_identity() when adding
+     64kB to the address of the SSL buffer wraps around.
 
 Features
    * Allow comments in test data files.

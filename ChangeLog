@@ -10,6 +10,14 @@ Security
      data is all zeros.
    * Fix unsafe bounds check in ssl_parse_client_psk_identity() when adding
      64kB to the address of the SSL buffer wraps around.
+   * Fix a potential heap buffer overflow in mbedtls_ssl_write. When the (by
+     default enabled) maximum fragment length extension is disabled in the
+     config and the application data buffer passed to mbedtls_ssl_write
+     is larger than the internal message buffer (16384 bytes by default), the
+     latter overflows. The exploitability of this issue depends on whether the
+     application layer can be forced into sending such large packets. The issue
+     was independently reported by Tim Nordell via e-mail and by Florin Petriuc
+     and sjorsdewit on GitHub. Fix proposed by Florin Petriuc in #1022. Fixes #707.
 
 Features
    * Allow comments in test data files.

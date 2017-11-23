@@ -1,6 +1,5 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-
 = mbed TLS 2.1.10 branch released 2017-xx-xx
 
 Security
@@ -9,6 +8,8 @@ Security
      Security Initiative, Qualcomm Technologies Inc.
    * Fix buffer overflow in RSA-PSS verification when the unmasked
      data is all zeros.
+   * Fix unsafe bounds check in ssl_parse_client_psk_identity() when adding
+     64kB to the address of the SSL buffer wraps around.
 
 Bugfix
    * Fix some invalid RSA-PSS signatures with keys of size 8N+1 that were

@@ -1634,6 +1634,7 @@
  * asymmetric cryptography can be used in this way).
  *
  * Module:  library/async.c
+ * Caller:  pk.c
  */
 #define MBEDTLS_ASYNC_C
 

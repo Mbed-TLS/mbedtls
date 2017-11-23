@@ -31,6 +31,7 @@
 #endif
 
 #include "pk.h"
+#include "async.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -217,6 +218,67 @@ struct mbedtls_pk_info_t
      *
      * Opaque implementations may omit this method. */
     void (*debug_func)( const void *ctx, mbedtls_pk_debug_item *items );
+
+    /** Allocate an asynchronous context
+     *
+     * mbedtls_pk_async_alloc() calls this function.
+     *
+     * This method is mandatory if the key pair class supports asynchronous
+     * operation. If it is omitted, then mbedtls_pk_async_alloc allocates
+     * an asynchronous context that is only capable of synchronous operation,
+     * and the \c mbedtls_pk_async_xxx functions will operate synchronously.
+     *
+     * \param ctx           \c pk_ctx field from the key pair object
+     * \return              An asynchronous context suitable for performing
+     *                      operations on the given key pair, or NULL if
+     *                      there is not enough available memory or if the
+     *                      object does not support asynchronous operation.
+     */
+    mbedtls_async_context_t * (*async_alloc_func)( const void *ctx );
+
+    /** Start an asynchronous operation.
+     *
+     * This method is optional. If it is present, the \c mbedtls_pk_async_xxx
+     * functions call this method. If it is omitted, these functions
+     * operate synchronously.
+     *
+     * \param ctx           \c pk_ctx field from the key pair object
+     * \param async_ctx     Asynchronous operation context, guaranteed to
+     *                      be in the initial state.
+     * \param op            Operation to perform (\c MBEDTLS_ASYNC_OP_PK_XXX)
+     * \param md_alg        Hash algorithm. Used for signature and verification
+     *                      only. See the description of mbedtls_pk_sign() and
+     *                      mbedtls_pk_verify() for details.
+     * \param input_buffer  Pointer to the buffer containing the data to sign,
+     *                      verify, encrypt or decrypt. This buffer is not
+     *                      guaranteed to remain valid after this function
+     *                      returns, so make a copy if necessary.
+     * \param input_length  Size of the input buffer in bytes.
+     * \param output_buffer Pointer where the signature, encryted data or
+     *                      decrypted data is to be written. This buffer is
+     *                      guaranteed to remain valid until the operation
+     *                      is completed or cancelled.
+     * \param output_size   Size of the output buffer in bytes.
+     * \param f_rng         Random number generator function. May be null.
+     * \param p_rng         Context to pass to \c f_rng.
+     * \return              - 0 if the operation is completed successfully.
+     *                      - \c MBEDTLS_ERR_ASYNC_IN_PROGRESS if the operation
+     *                        was set up successfully, but is not completed yet.
+     *                      - \c MBEDTLS_ERR_PK_XXX status code for errors
+     *                        related to the cryptographic operation.
+     *                      - Other \c MBEDTLS_ERR_XXX codes from lower-level
+     *                        modules are permitted, but not recommended.
+     */
+    int (*async_start_func)( void *ctx,
+                             mbedtls_async_context_t *async_ctx,
+                             mbedtls_async_op_t op,
+                             mbedtls_md_type_t md_alg,
+                             const unsigned char *input_buffer,
+                             size_t input_length,
+                             unsigned char *output_buffer,
+                             size_t output_size,
+                             int (*f_rng)(void *, unsigned char *, size_t),
+                             void *p_rng );
 
 };
 

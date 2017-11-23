@@ -194,6 +194,8 @@ const mbedtls_pk_info_t mbedtls_rsa_info = {
     rsa_alloc_wrap,
     rsa_free_wrap,
     rsa_debug,
+    NULL, // no async_alloc_func
+    NULL, // no async_start_func
 };
 #endif /* MBEDTLS_RSA_C */
 
@@ -317,6 +319,8 @@ const mbedtls_pk_info_t mbedtls_eckey_info = {
     eckey_alloc_wrap,
     eckey_free_wrap,
     eckey_debug,
+    NULL, // no async_alloc_func
+    NULL, // no async_start_func
 };
 
 /*
@@ -343,6 +347,8 @@ const mbedtls_pk_info_t mbedtls_eckeydh_info = {
     eckey_alloc_wrap,       /* Same underlying key structure */
     eckey_free_wrap,        /* Same underlying key structure */
     eckey_debug,            /* Same underlying key structure */
+    NULL, // no async_alloc_func
+    NULL, // no async_start_func
 };
 #endif /* MBEDTLS_ECP_C */
 
@@ -408,6 +414,8 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
     ecdsa_alloc_wrap,
     ecdsa_free_wrap,
     eckey_debug,        /* Compatible key structures */
+    NULL, // no async_alloc_func
+    NULL, // no async_start_func
 };
 #endif /* MBEDTLS_ECDSA_C */
 
@@ -535,6 +543,8 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
     rsa_alt_alloc_wrap,
     rsa_alt_free_wrap,
     NULL,
+    NULL, // no async_alloc_func
+    NULL, // no async_start_func
 };
 
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */

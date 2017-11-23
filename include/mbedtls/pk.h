@@ -552,6 +552,65 @@ int mbedtls_pk_debug( const mbedtls_pk_context *ctx, mbedtls_pk_debug_item *item
 /**@}*/
 
 
+#if defined(MBEDTLS_ASYNC_C)
+/** \name Asynchronous operations */
+/**@{*/
+
+#include "async.h"
+
+/**
+ * \brief           Create a context for asynchronous operations.
+ *
+ * \param ctx       PK context over which the operations will be performed
+ * \return          Asynchronous context if successful,
+ *                  or NULL on failure.
+ *
+ * \note            The success of this function does not indicate that the
+ *                  PK context is capable of true asynchronous operation.
+ *                  If the PK context is not capable of asynchronous operation,
+ *                  this function returns an asynchronous context that will
+ *                  perform all supported operations synchronously.
+ */
+mbedtls_async_context_t *mbedtls_pk_async_alloc( mbedtls_pk_context *ctx );
+
+/**
+ * \brief           Make signature asynchronously.
+ *
+ * \param ctx       PK context to use - must hold a private key
+ * \param md_alg    Hash algorithm used (see notes for mbedtls_pk_sign())
+ * \param hash      Hash of the message to sign
+ * \param hash_len  Hash length or 0 (see notes for mbedtls_pk_sign())
+ * \param sig       Place to write the signature. This buffer must remain
+ *                  valid until the operation is completed.
+ * \param sig_size  Size of the output buffer
+ * \param async_ctx Context to save the state of the asynchronous operation
+ * \param f_rng     RNG function
+ * \param p_rng     RNG parameter
+ *
+ * \return          0 on success (completed operation),
+ *                  \c MBEDTLS_ERR_PK_IN_PROGRESS if the operation remains
+ *                  in progress,
+ *                  or another \c MBEDTLS_ERR_PK_XXX or type-secific error
+ *                  code for fatal errors.
+ *
+ * \note            The buffer at address \c sig of size \c sig_size must
+ *                  remain valid if this function returns
+ *                  \c MBEDTLS_ERR_PK_IN_PROGRESS and throughout subsequent
+ *                  calls to mbedtls_pk_resume() until the operation is
+ *                  completed or cancelled.
+ */
+int mbedtls_pk_async_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
+                           const unsigned char *hash, size_t hash_len,
+                           unsigned char *sig, size_t sig_size,
+                           mbedtls_async_context_t *async_ctx,
+                           int (*f_rng)(void *, unsigned char *, size_t),
+                           void *p_rng );
+
+/**@}*/
+#endif /* MBEDTLS_ASYNC_C */
+
+
+
 #if defined(MBEDTLS_PK_PARSE_C)
 /** \ingroup pk_module */
 /**

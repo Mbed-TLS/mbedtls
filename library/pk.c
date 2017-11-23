@@ -408,4 +408,72 @@ mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx )
     return( ctx->pk_info->type );
 }
 
+
+
+#if defined(MBEDTLS_ASYNC_C)
+
+mbedtls_async_context_t *mbedtls_pk_async_alloc( mbedtls_pk_context *ctx )
+{
+    if( ctx == NULL || ctx->pk_info == NULL )
+        return( NULL );
+
+    if( ctx->pk_info->async_alloc_func == NULL )
+        return( mbedtls_async_alloc( &mbedtls_async_synchronous_info ) );
+
+    return( ctx->pk_info->async_alloc_func( ctx->pk_ctx ) );
+}
+
+static int mbedtls_pk_async_sign_internal(
+    mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
+    const unsigned char *hash, size_t hash_len,
+    unsigned char *sig, size_t *sig_len, size_t sig_size,
+    mbedtls_async_context_t *async_ctx,
+    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    if( ctx == NULL || ctx->pk_info == NULL )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    if( ctx->pk_info->async_start_func == NULL || async_ctx == NULL )
+    {
+        if( ctx->pk_info->signature_size_func == NULL )
+            return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
+        if( sig_size < ctx->pk_info->signature_size_func( ctx->pk_ctx ) )
+            return( MBEDTLS_ERR_PK_SIG_LEN_MISMATCH );
+        return( mbedtls_pk_sign( ctx, md_alg, hash, hash_len,
+                                 sig, sig_len, f_rng, p_rng ) );
+    }
+
+    if( pk_hashlen_helper( md_alg, &hash_len ) != 0 )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    return( ctx->pk_info->async_start_func( ctx->pk_ctx, async_ctx,
+                                            MBEDTLS_ASYNC_OP_PK_SIGN,
+                                            md_alg, hash, hash_len,
+                                            sig, sig_size,
+                                            f_rng, p_rng ) );
+}
+
+int mbedtls_pk_async_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
+                           const unsigned char *hash, size_t hash_len,
+                           unsigned char *sig, size_t sig_size,
+                           mbedtls_async_context_t *async_ctx,
+                           int (*f_rng)(void *, unsigned char *, size_t),
+                           void *p_rng )
+{
+    size_t sig_len;
+    int ret = mbedtls_async_set_started( async_ctx,
+                                         MBEDTLS_ASYNC_OP_PK_SIGN );
+    if( ret != 0 )
+        return( ret );
+    ret = mbedtls_pk_async_sign_internal( ctx, md_alg, hash, hash_len,
+                                          sig, &sig_len, sig_size,
+                                          async_ctx, f_rng, p_rng );
+    if( ret != MBEDTLS_ERR_ASYNC_IN_PROGRESS )
+        (void) mbedtls_async_set_completed( async_ctx, ret, sig_len );
+    return( ret );
+}
+
+#endif /* MBEDTLS_ASYNC_C */
+
+
 #endif /* MBEDTLS_PK_C */

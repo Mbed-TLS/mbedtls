@@ -413,6 +413,16 @@ scripts/config.pl unset MBEDTLS_NET_C # getaddrinfo() undeclared, etc.
 scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY # uses syscall() on GNU/Linux
 CC=gcc CFLAGS='-Werror -Wall -Wextra -O0 -std=c99 -pedantic' make lib
 
+msg "build: default config except MFL extension (ASan build)" # ~ 30s
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl unset MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make
+
+msg "test: ssl-opt.sh, MFL-related tests"
+tests/ssl-opt.sh -f "Max fragment length"
+
 msg "build: default config with  MBEDTLS_TEST_NULL_ENTROPY (ASan build)"
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
@@ -628,4 +638,3 @@ rm -rf "$OUT_OF_SOURCE_DIR"
 
 msg "Done, cleaning up"
 cleanup
-

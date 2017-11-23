@@ -1634,9 +1634,21 @@
  * asymmetric cryptography can be used in this way).
  *
  * Module:  library/async.c
- * Caller:  pk.c
+ * Caller:  library/async_queue.c
+ *          pk.c
  */
 #define MBEDTLS_ASYNC_C
+
+/**
+ * \def MBEDTLS_ASYNC_QUEUE_C
+ *
+ * Enable support for queues of asynchronous operations.
+ *
+ * Module:  library/async_queue.c
+ *
+ * Requires: MBEDTLS_ASYNC_C
+ */
+#define MBEDTLS_ASYNC_QUEUE_C
 
 /**
  * \def MBEDTLS_BASE64_C

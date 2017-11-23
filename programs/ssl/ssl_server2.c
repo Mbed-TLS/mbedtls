@@ -71,6 +71,8 @@ int main( void )
 
 #if !defined(_WIN32)
 #include <signal.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 #endif
 
 #if defined(MBEDTLS_SSL_CACHE_C)
@@ -87,6 +89,11 @@ int main( void )
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
 #include "mbedtls/memory_buffer_alloc.h"
+#endif
+
+#if defined(MBEDTLS_ASYNC_QUEUE_C)
+#include "mbedtls/async.h"
+#include "mbedtls/async_queue.h"
 #endif
 
 #if defined(MBEDTLS_PKCS11_CLIENT_C)
@@ -132,6 +139,7 @@ int main( void )
 #define DFL_CERT_REQ_CA_LIST    MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED
 #define DFL_MFL_CODE            MBEDTLS_SSL_MAX_FRAG_LEN_NONE
 #define DFL_TRUNC_HMAC          -1
+#define DFL_ASYNC_QUEUE         0
 #define DFL_PKCS11              0
 #define DFL_TICKETS             MBEDTLS_SSL_SESSION_TICKETS_ENABLED
 #define DFL_TICKET_TIMEOUT      86400
@@ -207,6 +215,14 @@ int main( void )
 #else
 #define USAGE_PSK ""
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
+
+#if defined(MBEDTLS_ASYNC_QUEUE_C)
+#define USAGE_ASYNC                                                    \
+    "    async_queue=%%d      test private key ops in queue\n" \
+    "                         default: 0 (disabled)\n"
+#else
+#define USAGE_ASYNC ""
+#endif /* MBEDTLS_ASYNC_QUEUE_C */
 
 #if defined(MBEDTLS_PKCS11_CLIENT_C)
 #define USAGE_PKCS11                            \
@@ -358,6 +374,7 @@ int main( void )
     USAGE_IO                                                \
     USAGE_SNI                                               \
     "\n"                                                    \
+    USAGE_ASYNC                                             \
     USAGE_PKCS11                                            \
     USAGE_PSK                                               \
     USAGE_ECJPAKE                                           \
@@ -420,6 +437,7 @@ struct options
     const char *key_file;       /* the file with the server key             */
     const char *crt_file2;      /* the file with the 2nd server certificate */
     const char *key_file2;      /* the file with the 2nd server key         */
+    int async_queue;            /* test private key ops in async queue      */
     int pkcs11;                 /* perform private key ops in PKCS#11 token */
     const char *psk;            /* the pre-shared key                       */
     const char *psk_identity;   /* the pre-shared key identity              */
@@ -958,6 +976,28 @@ int psk_callback( void *p_info, mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
+#if defined(MBEDTLS_ASYNC_QUEUE_C)
+int step_pk_queue( mbedtls_async_queue_t *queue )
+{
+    mbedtls_async_context_t *underlying_async;
+    mbedtls_async_context_t *queued_async;
+    size_t output_length;
+    int status;
+    if( queue->head == NULL )
+        return( 0 );
+    underlying_async = mbedtls_pk_start_queued( queue->head );
+    if( underlying_async == NULL )
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+    do status = mbedtls_async_resume( underlying_async );
+    while( status == MBEDTLS_ERR_ASYNC_IN_PROGRESS );
+    output_length = mbedtls_async_get_output_length( underlying_async );
+    queued_async = mbedtls_async_queue_element_get_data( queue->head );
+    mbedtls_async_set_completed( queued_async, status, output_length );
+    mbedtls_async_release( underlying_async );
+    mbedtls_async_queue_remove( queue->head );
+    return( 0 );
+}
+#endif
 
 static mbedtls_net_context listen_fd, client_fd;
 
@@ -1032,6 +1072,10 @@ int main( int argc, char *argv[] )
     mbedtls_x509_crt srvcert2;
     mbedtls_pk_context pkey2;
     int key_cert_init = 0, key_cert_init2 = 0;
+#if defined(MBEDTLS_ASYNC_QUEUE_C)
+    mbedtls_async_queue_t async_pk_queue;
+    mbedtls_pk_context true_pkey1, true_pkey2;
+#endif
 #endif
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)
     mbedtls_dhm_context dhm;
@@ -1059,6 +1103,11 @@ int main( int argc, char *argv[] )
     int i;
     char *p, *q;
     const int *list;
+
+    {
+        struct rlimit rlim = { 16384, 16384 };
+        setrlimit( RLIMIT_STACK, &rlim );
+    }
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     mbedtls_memory_buffer_alloc_init( alloc_buf, sizeof(alloc_buf) );
@@ -1134,6 +1183,7 @@ int main( int argc, char *argv[] )
     opt.key_file            = DFL_KEY_FILE;
     opt.crt_file2           = DFL_CRT_FILE2;
     opt.key_file2           = DFL_KEY_FILE2;
+    opt.async_queue         = DFL_ASYNC_QUEUE;
     opt.pkcs11              = DFL_PKCS11;
     opt.psk                 = DFL_PSK;
     opt.psk_identity        = DFL_PSK_IDENTITY;
@@ -1207,6 +1257,8 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "read_timeout" ) == 0 )
             opt.read_timeout = atoi( q );
+        else if( strcmp( p, "async_queue" ) == 0 )
+            opt.async_queue = atoi( q );
         else if( strcmp( p, "ca_file" ) == 0 )
             opt.ca_file = q;
         else if( strcmp( p, "ca_path" ) == 0 )
@@ -1939,6 +1991,39 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_conf_cert_profile( &conf, &crt_profile_for_test );
         mbedtls_ssl_conf_sig_hashes( &conf, ssl_sig_hashes_for_test );
     }
+
+#if defined(MBEDTLS_ASYNC_QUEUE_C)
+    if( opt.async_queue )
+    {
+        /* TODO: non-ephemeral (EC)DH isn't going to work through
+           these indirect pk objects. So in this mode we should
+           disable the corresponding ciphersuites. And if ssl-opt.sh
+           or compat.sh uses this argument then it should skip the
+           tests that will use this ciphersuite ("keyAgreement" in
+           ssl-opt.sh) */
+        true_pkey1 = pkey;
+        mbedtls_pk_init( &pkey );
+        mbedtls_async_queue_init( &async_pk_queue );
+        ret = mbedtls_pk_setup_queued( &pkey, &true_pkey1, &async_pk_queue );
+        if( ret != 0 )
+        {
+            mbedtls_printf( "  ! mbedtls_pk_setup_queued returned %d\n\n", ret );
+            goto exit;
+        }
+        if( key_cert_init2 )
+        {
+            true_pkey2 = pkey2;
+            mbedtls_pk_init( &pkey2 );
+            ret = mbedtls_pk_setup_queued( &pkey2, &true_pkey2, &async_pk_queue );
+            if( ret != 0 )
+            {
+                mbedtls_printf( "  ! mbedtls_pk_setup_queued returned %d\n\n", ret );
+                goto exit;
+            }
+        }
+    }
+#endif /* MBEDTLS_ASYNC_QUEUE_C */
+
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     if( opt.auth_mode != DFL_AUTH_MODE )
@@ -2286,9 +2371,26 @@ handshake:
     mbedtls_printf( "  . Performing the SSL/TLS handshake..." );
     fflush( stdout );
 
-    do ret = mbedtls_ssl_handshake( &ssl );
+    do
+    {
+        ret = mbedtls_ssl_handshake( &ssl );
+#if defined(MBEDTLS_ASYNC_QUEUE_C)
+        if( opt.async_queue && ret == MBEDTLS_ERR_ASYNC_IN_PROGRESS )
+        {
+            ret = step_pk_queue( &async_pk_queue );
+            if( ret == 0 )
+                ret = MBEDTLS_ERR_ASYNC_IN_PROGRESS;
+            if( ret != MBEDTLS_ERR_ASYNC_IN_PROGRESS )
+            {
+                mbedtls_printf( " failed\n  ! step_pk_queue returned -0x%x\n\n", -ret );
+                goto exit;
+            }
+        }
+#endif /* MBEDTLS_ASYNC_QUEUE_C */
+    }
     while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
-           ret == MBEDTLS_ERR_SSL_WANT_WRITE );
+           ret == MBEDTLS_ERR_SSL_WANT_WRITE ||
+           ret == MBEDTLS_ERR_ASYNC_IN_PROGRESS );
 
     if( ret == MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED )
     {
@@ -2395,6 +2497,14 @@ data_exchange:
             if( ret == MBEDTLS_ERR_SSL_WANT_READ ||
                 ret == MBEDTLS_ERR_SSL_WANT_WRITE )
                 continue;
+#if defined(MBEDTLS_ASYNC_QUEUE_C)
+            if( opt.async_queue && ret == MBEDTLS_ERR_ASYNC_IN_PROGRESS )
+            {
+                ret = step_pk_queue( &async_pk_queue );
+                if( ret == 0 || ret == MBEDTLS_ERR_ASYNC_IN_PROGRESS )
+                    continue;
+            }
+#endif /* MBEDTLS_ASYNC_QUEUE_C */
 
             if( ret <= 0 )
             {
@@ -2482,7 +2592,18 @@ data_exchange:
         len = sizeof( buf ) - 1;
         memset( buf, 0, sizeof( buf ) );
 
-        do ret = mbedtls_ssl_read( &ssl, buf, len );
+        do
+        {
+            ret = mbedtls_ssl_read( &ssl, buf, len );
+#if defined(MBEDTLS_ASYNC_QUEUE_C)
+            if( opt.async_queue && ret == MBEDTLS_ERR_ASYNC_IN_PROGRESS )
+            {
+                ret = step_pk_queue( &async_pk_queue );
+                if( ret == 0 || ret == MBEDTLS_ERR_ASYNC_IN_PROGRESS )
+                    continue;
+            }
+#endif /* MBEDTLS_ASYNC_QUEUE_C */
+        }
         while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
                ret == MBEDTLS_ERR_SSL_WANT_WRITE );
 
@@ -2564,7 +2685,18 @@ data_exchange:
     }
     else /* Not stream, so datagram */
     {
-        do ret = mbedtls_ssl_write( &ssl, buf, len );
+        do
+        {
+            ret = mbedtls_ssl_write( &ssl, buf, len );
+#if defined(MBEDTLS_ASYNC_QUEUE_C)
+            if( opt.async_queue && ret == MBEDTLS_ERR_ASYNC_IN_PROGRESS )
+            {
+                ret = step_pk_queue( &async_pk_queue );
+                if( ret == 0 || ret == MBEDTLS_ERR_ASYNC_IN_PROGRESS )
+                    continue;
+            }
+#endif /* MBEDTLS_ASYNC_QUEUE_C */
+        }
         while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
                ret == MBEDTLS_ERR_SSL_WANT_WRITE );
 
@@ -2631,6 +2763,11 @@ exit:
     mbedtls_pk_free( &pkey );
     mbedtls_x509_crt_free( &srvcert2 );
     mbedtls_pk_free( &pkey2 );
+#if defined(MBEDTLS_ASYNC_QUEUE_C)
+    mbedtls_pk_free( &true_pkey1 );
+    mbedtls_pk_free( &true_pkey2 );
+    mbedtls_async_queue_free( &async_pk_queue );
+#endif
 #endif
 #if defined(SNI_OPTION)
     sni_free( sni_info );

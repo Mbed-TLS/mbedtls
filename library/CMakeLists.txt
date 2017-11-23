@@ -9,6 +9,7 @@ set(src_crypto
     asn1parse.c
     asn1write.c
     async.c
+    async_queue.c
     base64.c
     bignum.c
     blowfish.c

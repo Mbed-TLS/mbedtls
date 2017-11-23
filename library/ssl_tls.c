@@ -5475,6 +5475,11 @@ static void ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     handshake->sni_authmode = MBEDTLS_SSL_VERIFY_UNSET;
 #endif
+
+#if defined(MBEDTLS_ASYNC_C)
+    handshake->async_ctx = NULL;
+    handshake->out_async_start = NULL;
+#endif /* MBEDTLS_ASYNC_C */
 }
 
 static void ssl_transform_init( mbedtls_ssl_transform *transform )
@@ -7308,6 +7313,10 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_handshake_params *handshake )
     mbedtls_free( handshake->verify_cookie );
     mbedtls_free( handshake->hs_msg );
     ssl_flight_free( handshake->flight );
+#endif
+
+#if defined(MBEDTLS_ASYNC_C)
+    mbedtls_async_release( handshake->async_ctx );
 #endif
 
     mbedtls_zeroize( handshake, sizeof( mbedtls_ssl_handshake_params ) );

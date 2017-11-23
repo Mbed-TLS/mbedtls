@@ -2809,15 +2809,16 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
 {
     int ret;
+    mbedtls_pk_context *private = mbedtls_ssl_own_key( ssl );
 
-    if( ! mbedtls_pk_can_do( mbedtls_ssl_own_key( ssl ), MBEDTLS_PK_ECKEY ) )
+    if( ! mbedtls_pk_can_do( private, MBEDTLS_PK_ECKEY ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "server key not ECDH capable" ) );
         return( MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH );
     }
 
     if( ( ret = mbedtls_ecdh_get_params( &ssl->handshake->ecdh_ctx,
-                                 mbedtls_pk_ec( *mbedtls_ssl_own_key( ssl ) ),
+                                 mbedtls_pk_ec( *private ),
                                  MBEDTLS_ECDH_OURS ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ecdh_get_params" ), ret );
@@ -2845,6 +2846,18 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME_PFS__ENABLED */
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write server key exchange" ) );
+
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
+    if( ssl->handshake->async_ctx != NULL &&
+        ( mbedtls_async_operation_type( ssl->handshake->async_ctx ) ==
+          MBEDTLS_ASYNC_OP_PK_SIGN ) )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "resuming signature operation" ) );
+        p = ssl->handshake->out_async_start;
+        ret = mbedtls_async_resume( ssl->handshake->async_ctx );
+        goto sign_resumed;
+    }
+#endif /* MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED */
 
     /*
      *
@@ -3033,6 +3046,7 @@ curve_matching_done:
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
     if( mbedtls_ssl_ciphersuite_uses_server_signature( ciphersuite_info ) )
     {
+        mbedtls_pk_context *pk;
         size_t signature_len = 0;
         unsigned int hashlen = 0;
         unsigned char hash[64];
@@ -3174,7 +3188,8 @@ curve_matching_done:
         /*
          * 3.3: Compute and add the signature
          */
-        if( mbedtls_ssl_own_key( ssl ) == NULL )
+        pk = mbedtls_ssl_own_key( ssl );
+        if( pk == NULL )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no private key" ) );
             return( MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED );
@@ -3204,8 +3219,43 @@ curve_matching_done:
         }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-        if( ( ret = mbedtls_pk_sign( mbedtls_ssl_own_key( ssl ), md_alg, hash, hashlen,
-                        p + 2 , &signature_len, ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+#if defined(MBEDTLS_ASYNC_C)
+        ssl->handshake->async_ctx = mbedtls_pk_async_alloc( pk );
+        if( ssl->handshake->async_ctx != NULL )
+        {
+            mbedtls_async_cookie_t cookie = {
+                (uintptr_t) &mbedtls_ssl_handshake_step,
+                (uintptr_t) &ssl,
+            };
+            mbedtls_async_set_cookie( ssl->handshake->async_ctx, cookie );
+            ret = mbedtls_pk_async_sign( pk, md_alg, hash, hashlen,
+                                         p + 2 ,
+                                         ( ssl->out_buf
+                                           + MBEDTLS_SSL_MAX_CONTENT_LEN
+                                           - ( p + 2 ) ),
+                                         ssl->handshake->async_ctx,
+                                         ssl->conf->f_rng, ssl->conf->p_rng );
+        sign_resumed:
+            if( ret == MBEDTLS_ERR_ASYNC_IN_PROGRESS )
+            {
+                ssl->handshake->out_async_start = p;
+                MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write server key exchange (pending)" ) );
+                return( MBEDTLS_ERR_ASYNC_IN_PROGRESS );
+            }
+            signature_len =
+                mbedtls_async_get_output_length( ssl->handshake->async_ctx );
+            MBEDTLS_SSL_DEBUG_MSG( 4, ( "mbedtls_pk_async_sign completed (len=%zu)", signature_len ) );
+            mbedtls_async_release( ssl->handshake->async_ctx );
+            ssl->handshake->async_ctx = NULL;
+        }
+        else
+#endif /* !MBEDTLS_ASYNC_C */
+        {
+            ret = mbedtls_pk_sign( pk, md_alg, hash, hashlen,
+                                   p + 2, &signature_len,
+                                   ssl->conf->f_rng, ssl->conf->p_rng );
+        }
+        if ( ret != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_sign", ret );
             return( ret );

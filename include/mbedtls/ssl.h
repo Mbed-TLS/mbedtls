@@ -2351,10 +2351,12 @@ int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl, mbedtls_ssl_session
  *
  * \return         0 if successful, or
  *                 MBEDTLS_ERR_SSL_WANT_READ or MBEDTLS_ERR_SSL_WANT_WRITE, or
+ *                 MBEDTLS_ERR_ASYNC_IN_PROGRESS, or
  *                 MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED (see below), or
  *                 a specific SSL error code.
  *
  * \note           If this function returns something other than 0 or
+ *                 MBEDTLS_ERR_ASYNC_IN_PROGRESS or
  *                 MBEDTLS_ERR_SSL_WANT_READ/WRITE, then the ssl context
  *                 becomes unusable, and you should either free it or call
  *                 \c mbedtls_ssl_session_reset() on it before re-using it for
@@ -2375,6 +2377,7 @@ int mbedtls_ssl_handshake( mbedtls_ssl_context *ssl );
  *                 call this function if state is MBEDTLS_SSL_HANDSHAKE_OVER.
  *
  * \note           If this function returns something other than 0 or
+ *                 MBEDTLS_ERR_ASYNC_IN_PROGRESS or
  *                 MBEDTLS_ERR_SSL_WANT_READ/WRITE, then the ssl context
  *                 becomes unusable, and you should either free it or call
  *                 \c mbedtls_ssl_session_reset() on it before re-using it for
@@ -2383,6 +2386,7 @@ int mbedtls_ssl_handshake( mbedtls_ssl_context *ssl );
  * \param ssl      SSL context
  *
  * \return         0 if successful, or
+ *                 MBEDTLS_ERR_ASYNC_IN_PROGRESS, or
  *                 MBEDTLS_ERR_SSL_WANT_READ or MBEDTLS_ERR_SSL_WANT_WRITE, or
  *                 a specific SSL error code.
  */
@@ -2419,12 +2423,14 @@ int mbedtls_ssl_renegotiate( mbedtls_ssl_context *ssl );
  *
  * \return         the number of bytes read, or
  *                 0 for EOF, or
+ *                 MBEDTLS_ERR_ASYNC_IN_PROGRESS, or
  *                 MBEDTLS_ERR_SSL_WANT_READ or MBEDTLS_ERR_SSL_WANT_WRITE, or
  *                 MBEDTLS_ERR_SSL_CLIENT_RECONNECT (see below), or
  *                 another negative error code.
  *
  * \note           If this function returns something other than a positive
  *                 value or MBEDTLS_ERR_SSL_WANT_READ/WRITE or
+ *                 MBEDTLS_ERR_ASYNC_IN_PROGRESS or
  *                 MBEDTLS_ERR_SSL_CLIENT_RECONNECT, then the ssl context
  *                 becomes unusable, and you should either free it or call
  *                 \c mbedtls_ssl_session_reset() on it before re-using it for
@@ -2460,11 +2466,13 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
  * \param len      how many bytes must be written
  *
  * \return         the number of bytes actually written (may be less than len),
+ *                 or MBEDTLS_ERR_ASYNC_IN_PROGRESS,
  *                 or MBEDTLS_ERR_SSL_WANT_WRITE or MBEDTLS_ERR_SSL_WANT_READ,
  *                 or another negative error code.
  *
  * \note           If this function returns something other than a positive
- *                 value or MBEDTLS_ERR_SSL_WANT_READ/WRITE, the ssl context
+ *                 value MBEDTLS_ERR_ASYNC_IN_PROGRESS or
+ *                 MBEDTLS_ERR_SSL_WANT_READ/WRITE, the ssl context
  *                 becomes unusable, and you should either free it or call
  *                 \c mbedtls_ssl_session_reset() on it before re-using it for
  *                 a new connection; the current connection must be closed.

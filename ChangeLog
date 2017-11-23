@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.1.x released xxxx-xx-xx
+
+Security
+   * Fix unsafe bounds check in ssl_parse_client_psk_identity() when adding
+     64kB to the address of the SSL buffer wraps around.
+
 = mbed TLS 2.1.8 released 2017-06-21
 
 Security

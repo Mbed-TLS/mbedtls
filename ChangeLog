@@ -36,6 +36,9 @@ Bugfix
      by Nicholas Wilson. #694
    * Fix some invalid RSA-PSS signatures with keys of size 8N+1 that were
      accepted. Generating these signatures required the private key.
+   * Fix out-of-memory problem when parsing 4096-bit PKCS8-encrypted RSA keys.
+     Found independently by Florian in the mbed TLS forum and by Mishamax.
+     #878, #1019.
 
 = mbed TLS 2.6.0 branch released 2017-08-10
 

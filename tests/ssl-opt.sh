@@ -321,6 +321,33 @@ wait_server_start() {
     fi
 }
 
+# Given the client or server debug output, parse the unix timestamp that is
+# included in the first 4 bytes of the random bytes and check that it's within
+# acceptable bounds
+check_server_hello_time() {
+    # Extract the time from the debug (lvl 3) output of the client
+    SERVER_HELLO_TIME="$(sed -n 's/.*server hello, current time: //p' < "$1")"
+    # Get the Unix timestamp for now
+    CUR_TIME=$(date +'%s')
+    THRESHOLD_IN_SECS=300
+
+    # Check if the ServerHello time was printed
+    if [ -z "$SERVER_HELLO_TIME" ]; then
+        return 1
+    fi
+
+    # Check the time in ServerHello is within acceptable bounds
+    if [ $SERVER_HELLO_TIME -lt $(( $CUR_TIME - $THRESHOLD_IN_SECS )) ]; then
+        # The time in ServerHello is at least 5 minutes before now
+        return 1
+    elif [ $SERVER_HELLO_TIME -gt $(( $CUR_TIME + $THRESHOLD_IN_SECS )) ]; then
+        # The time in ServerHello is at least 5 minutes later than now
+        return 1
+    else
+        return 0
+    fi
+}
+
 # wait for client to terminate and set CLI_EXIT
 # must be called right after starting the client
 wait_client_done() {
@@ -357,9 +384,11 @@ detect_dtls() {
 # Options:  -s pattern  pattern that must be present in server output
 #           -c pattern  pattern that must be present in client output
 #           -u pattern  lines after pattern must be unique in client output
+#           -f call shell function on client output
 #           -S pattern  pattern that must be absent in server output
 #           -C pattern  pattern that must be absent in client output
 #           -U pattern  lines after pattern must be unique in server output
+#           -F call shell function on server output
 run_test() {
     NAME="$1"
     shift 1
@@ -546,6 +575,18 @@ run_test() {
                     return
                 fi
                 ;;
+            "-F")
+                if ! $2 "$SRV_OUT"; then
+                    fail "function call to '$2' failed on Server output"
+                    return
+                fi
+                ;;
+            "-f")
+                if ! $2 "$CLI_OUT"; then
+                    fail "function call to '$2' failed on Client output"
+                    return
+                fi
+                ;;
 
             *)
                 echo "Unknown test: $1" >&2
@@ -681,6 +722,21 @@ run_test    "Default, DTLS" \
             0 \
             -s "Protocol is DTLSv1.2" \
             -s "Ciphersuite is TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384"
+
+# Test current time in ServerHello
+requires_config_enabled MBEDTLS_HAVE_TIME
+run_test    "Default, ServerHello contains gmt_unix_time" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI debug_level=3" \
+            0 \
+            -s "Protocol is TLSv1.2" \
+            -s "Ciphersuite is TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384" \
+            -s "client hello v3, signature_algorithm ext: 6" \
+            -s "ECDHE curve: secp521r1" \
+            -S "error" \
+            -C "error" \
+            -f "check_server_hello_time" \
+            -F "check_server_hello_time"
 
 # Test for uniqueness of IVs in AEAD ciphersuites
 run_test    "Unique IV in GCM" \
@@ -1292,7 +1348,23 @@ run_test    "Session resume using cache: openssl server" \
 
 # Tests for Max Fragment Length extension
 
-run_test    "Max fragment length: not used, reference" \
+MAX_CONTENT_LEN_EXPECT='16384'
+MAX_CONTENT_LEN_CONFIG=$( ../scripts/config.pl get MBEDTLS_SSL_MAX_CONTENT_LEN)
+
+if [ -n "$MAX_CONTENT_LEN_CONFIG" ] && [ "$MAX_CONTENT_LEN_CONFIG" -ne "$MAX_CONTENT_LEN_EXPECT" ]; then
+    printf "The ${CONFIG_H} file contains a value for the configuration of\n"
+    printf "MBEDTLS_SSL_MAX_CONTENT_LEN that is different from the script’s\n"
+    printf "test value of ${MAX_CONTENT_LEN_EXPECT}. \n"
+    printf "\n"
+    printf "The tests assume this value and if it changes, the tests in this\n"
+    printf "script should also be adjusted.\n"
+    printf "\n"
+
+    exit 1
+fi
+
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+run_test    "Max fragment length: enabled, default" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3" \
             0 \
@@ -1303,6 +1375,55 @@ run_test    "Max fragment length: not used, reference" \
             -S "server hello, max_fragment_length extension" \
             -C "found max_fragment_length extension"
 
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+run_test    "Max fragment length: enabled, default, larger message" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI debug_level=3 request_size=16385" \
+            0 \
+            -c "Maximum fragment length is 16384" \
+            -s "Maximum fragment length is 16384" \
+            -C "client hello, adding max_fragment_length extension" \
+            -S "found max fragment length extension" \
+            -S "server hello, max_fragment_length extension" \
+            -C "found max_fragment_length extension" \
+            -c "16385 bytes written in 2 fragments" \
+            -s "16384 bytes read" \
+            -s "1 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+run_test    "Max fragment length, DTLS: enabled, default, larger message" \
+            "$P_SRV debug_level=3 dtls=1" \
+            "$P_CLI debug_level=3 dtls=1 request_size=16385" \
+            1 \
+            -c "Maximum fragment length is 16384" \
+            -s "Maximum fragment length is 16384" \
+            -C "client hello, adding max_fragment_length extension" \
+            -S "found max fragment length extension" \
+            -S "server hello, max_fragment_length extension" \
+            -C "found max_fragment_length extension" \
+            -c "fragment larger than.*maximum "
+
+requires_config_disabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+run_test    "Max fragment length: disabled, larger message" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI debug_level=3 request_size=16385" \
+            0 \
+            -C "Maximum fragment length is 16384" \
+            -S "Maximum fragment length is 16384" \
+            -c "16385 bytes written in 2 fragments" \
+            -s "16384 bytes read" \
+            -s "1 bytes read"
+
+requires_config_disabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+run_test    "Max fragment length DTLS: disabled, larger message" \
+            "$P_SRV debug_level=3 dtls=1" \
+            "$P_CLI debug_level=3 dtls=1 request_size=16385" \
+            1 \
+            -C "Maximum fragment length is 16384" \
+            -S "Maximum fragment length is 16384" \
+            -c "fragment larger than.*maximum "
+
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 run_test    "Max fragment length: used by client" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3 max_frag_len=4096" \
@@ -1314,6 +1435,7 @@ run_test    "Max fragment length: used by client" \
             -s "server hello, max_fragment_length extension" \
             -c "found max_fragment_length extension"
 
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 run_test    "Max fragment length: used by server" \
             "$P_SRV debug_level=3 max_frag_len=4096" \
             "$P_CLI debug_level=3" \
@@ -1325,6 +1447,7 @@ run_test    "Max fragment length: used by server" \
             -S "server hello, max_fragment_length extension" \
             -C "found max_fragment_length extension"
 
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 requires_gnutls
 run_test    "Max fragment length: gnutls server" \
             "$G_SRV" \
@@ -1334,6 +1457,7 @@ run_test    "Max fragment length: gnutls server" \
             -c "client hello, adding max_fragment_length extension" \
             -c "found max_fragment_length extension"
 
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 run_test    "Max fragment length: client, message just fits" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3 max_frag_len=2048 request_size=2048" \
@@ -1347,6 +1471,7 @@ run_test    "Max fragment length: client, message just fits" \
             -c "2048 bytes written in 1 fragments" \
             -s "2048 bytes read"
 
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 run_test    "Max fragment length: client, larger message" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3 max_frag_len=2048 request_size=2345" \
@@ -1361,6 +1486,7 @@ run_test    "Max fragment length: client, larger message" \
             -s "2048 bytes read" \
             -s "297 bytes read"
 
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 run_test    "Max fragment length: DTLS client, larger message" \
             "$P_SRV debug_level=3 dtls=1" \
             "$P_CLI debug_level=3 dtls=1 max_frag_len=2048 request_size=2345" \
@@ -1413,6 +1539,40 @@ run_test    "Renegotiation: server-initiated" \
             -c "=> renegotiate" \
             -s "=> renegotiate" \
             -s "write hello request"
+
+# Checks that no Signature Algorithm with SHA-1 gets negotiated. Negotiating SHA-1 would mean that
+# the server did not parse the Signature Algorithm extension. This test is valid only if an MD
+# algorithm stronger than SHA-1 is enabled in config.h
+run_test    "Renegotiation: Signature Algorithms parsing, client-initiated" \
+            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional" \
+            "$P_CLI debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
+            0 \
+            -c "client hello, adding renegotiation extension" \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -s "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -c "found renegotiation extension" \
+            -c "=> renegotiate" \
+            -s "=> renegotiate" \
+            -S "write hello request" \
+            -S "client hello v3, signature_algorithm ext: 2" # Is SHA-1 negotiated?
+
+# Checks that no Signature Algorithm with SHA-1 gets negotiated. Negotiating SHA-1 would mean that
+# the server did not parse the Signature Algorithm extension. This test is valid only if an MD
+# algorithm stronger than SHA-1 is enabled in config.h
+run_test    "Renegotiation: Signature Algorithms parsing, server-initiated" \
+            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional renegotiate=1" \
+            "$P_CLI debug_level=3 exchanges=2 renegotiation=1" \
+            0 \
+            -c "client hello, adding renegotiation extension" \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -s "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -c "found renegotiation extension" \
+            -c "=> renegotiate" \
+            -s "=> renegotiate" \
+            -s "write hello request" \
+            -S "client hello v3, signature_algorithm ext: 2" # Is SHA-1 negotiated?
 
 run_test    "Renegotiation: double" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional renegotiate=1" \
@@ -2102,6 +2262,82 @@ run_test    "Authentication: client no cert, ssl3" \
             -S "! mbedtls_ssl_handshake returned" \
             -C "! mbedtls_ssl_handshake returned" \
             -S "X509 - Certificate verification failed"
+
+# The "max_int chain" tests assume that MAX_INTERMEDIATE_CA is set to its
+# default value (8)
+
+MAX_IM_CA='8'
+MAX_IM_CA_CONFIG=$( ../scripts/config.pl get MBEDTLS_X509_MAX_INTERMEDIATE_CA)
+
+if [ -n "$MAX_IM_CA_CONFIG" ] && [ "$MAX_IM_CA_CONFIG" -ne "$MAX_IM_CA" ]; then
+    printf "The ${CONFIG_H} file contains a value for the configuration of\n"
+    printf "MBEDTLS_X509_MAX_INTERMEDIATE_CA that is different from the script’s\n"
+    printf "test value of ${MAX_IM_CA}. \n"
+    printf "\n"
+    printf "The tests assume this value and if it changes, the tests in this\n"
+    printf "script should also be adjusted.\n"
+    printf "\n"
+
+    exit 1
+fi
+
+run_test    "Authentication: server max_int chain, client default" \
+            "$P_SRV crt_file=data_files/dir-maxpath/c09.pem \
+                    key_file=data_files/dir-maxpath/09.key" \
+            "$P_CLI server_name=CA09 ca_file=data_files/dir-maxpath/00.crt" \
+            0 \
+            -C "X509 - A fatal error occured"
+
+run_test    "Authentication: server max_int+1 chain, client default" \
+            "$P_SRV crt_file=data_files/dir-maxpath/c10.pem \
+                    key_file=data_files/dir-maxpath/10.key" \
+            "$P_CLI server_name=CA10 ca_file=data_files/dir-maxpath/00.crt" \
+            1 \
+            -c "X509 - A fatal error occured"
+
+run_test    "Authentication: server max_int+1 chain, client optional" \
+            "$P_SRV crt_file=data_files/dir-maxpath/c10.pem \
+                    key_file=data_files/dir-maxpath/10.key" \
+            "$P_CLI server_name=CA10 ca_file=data_files/dir-maxpath/00.crt \
+                    auth_mode=optional" \
+            1 \
+            -c "X509 - A fatal error occured"
+
+run_test    "Authentication: server max_int+1 chain, client none" \
+            "$P_SRV crt_file=data_files/dir-maxpath/c10.pem \
+                    key_file=data_files/dir-maxpath/10.key" \
+            "$P_CLI server_name=CA10 ca_file=data_files/dir-maxpath/00.crt \
+                    auth_mode=none" \
+            0 \
+            -C "X509 - A fatal error occured"
+
+run_test    "Authentication: client max_int+1 chain, server default" \
+            "$P_SRV ca_file=data_files/dir-maxpath/00.crt" \
+            "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
+                    key_file=data_files/dir-maxpath/10.key" \
+            0 \
+            -S "X509 - A fatal error occured"
+
+run_test    "Authentication: client max_int+1 chain, server optional" \
+            "$P_SRV ca_file=data_files/dir-maxpath/00.crt auth_mode=optional" \
+            "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
+                    key_file=data_files/dir-maxpath/10.key" \
+            1 \
+            -s "X509 - A fatal error occured"
+
+run_test    "Authentication: client max_int+1 chain, server required" \
+            "$P_SRV ca_file=data_files/dir-maxpath/00.crt auth_mode=required" \
+            "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
+                    key_file=data_files/dir-maxpath/10.key" \
+            1 \
+            -s "X509 - A fatal error occured"
+
+run_test    "Authentication: client max_int chain, server required" \
+            "$P_SRV ca_file=data_files/dir-maxpath/00.crt auth_mode=required" \
+            "$P_CLI crt_file=data_files/dir-maxpath/c09.pem \
+                    key_file=data_files/dir-maxpath/09.key" \
+            0 \
+            -S "X509 - A fatal error occured"
 
 # Tests for CA list in CertificateRequest messages
 
@@ -3251,6 +3487,7 @@ run_test    "Large packet SSLv3 BlockCipher" \
             "$P_CLI request_size=16384 force_version=ssl3 recsplit=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
@@ -3259,6 +3496,7 @@ run_test    "Large packet SSLv3 StreamCipher" \
             "$P_CLI request_size=16384 force_version=ssl3 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.0 BlockCipher" \
@@ -3266,6 +3504,7 @@ run_test    "Large packet TLS 1.0 BlockCipher" \
             "$P_CLI request_size=16384 force_version=tls1 recsplit=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.0 BlockCipher truncated MAC" \
@@ -3274,6 +3513,7 @@ run_test    "Large packet TLS 1.0 BlockCipher truncated MAC" \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA \
              trunc_hmac=1" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.0 StreamCipher truncated MAC" \
@@ -3282,6 +3522,7 @@ run_test    "Large packet TLS 1.0 StreamCipher truncated MAC" \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
              trunc_hmac=1" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.1 BlockCipher" \
@@ -3289,6 +3530,7 @@ run_test    "Large packet TLS 1.1 BlockCipher" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.1 StreamCipher" \
@@ -3296,6 +3538,7 @@ run_test    "Large packet TLS 1.1 StreamCipher" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.1 BlockCipher truncated MAC" \
@@ -3304,6 +3547,7 @@ run_test    "Large packet TLS 1.1 BlockCipher truncated MAC" \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA \
              trunc_hmac=1" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.1 StreamCipher truncated MAC" \
@@ -3312,6 +3556,7 @@ run_test    "Large packet TLS 1.1 StreamCipher truncated MAC" \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
              trunc_hmac=1" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.2 BlockCipher" \
@@ -3319,6 +3564,7 @@ run_test    "Large packet TLS 1.2 BlockCipher" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.2 BlockCipher larger MAC" \
@@ -3326,6 +3572,7 @@ run_test    "Large packet TLS 1.2 BlockCipher larger MAC" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA384" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.2 BlockCipher truncated MAC" \
@@ -3334,6 +3581,7 @@ run_test    "Large packet TLS 1.2 BlockCipher truncated MAC" \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA \
              trunc_hmac=1" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.2 StreamCipher" \
@@ -3341,6 +3589,7 @@ run_test    "Large packet TLS 1.2 StreamCipher" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.2 StreamCipher truncated MAC" \
@@ -3349,6 +3598,7 @@ run_test    "Large packet TLS 1.2 StreamCipher truncated MAC" \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
              trunc_hmac=1" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.2 AEAD" \
@@ -3356,6 +3606,7 @@ run_test    "Large packet TLS 1.2 AEAD" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CCM" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.2 AEAD shorter tag" \
@@ -3363,6 +3614,7 @@ run_test    "Large packet TLS 1.2 AEAD shorter tag" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CCM-8" \
             0 \
+            -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
 # Tests for DTLS HelloVerifyRequest

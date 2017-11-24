@@ -930,12 +930,12 @@ static int pk_parse_key_pkcs8_unencrypted_der(
 #if defined(POLARSSL_PKCS12_C) || defined(POLARSSL_PKCS5_C)
 static int pk_parse_key_pkcs8_encrypted_der(
                                     pk_context *pk,
-                                    const unsigned char *key, size_t keylen,
+                                    unsigned char *key, size_t keylen,
                                     const unsigned char *pwd, size_t pwdlen )
 {
     int ret, decrypted = 0;
     size_t len;
-    unsigned char buf[2048];
+    unsigned char *buf;
     unsigned char *p, *end;
     asn1_buf pbe_alg_oid, pbe_params;
 #if defined(POLARSSL_PKCS12_C)
@@ -943,9 +943,7 @@ static int pk_parse_key_pkcs8_encrypted_der(
     md_type_t md_alg;
 #endif
 
-    memset( buf, 0, sizeof( buf ) );
-
-    p = (unsigned char *) key;
+    p = key;
     end = p + keylen;
 
     if( pwdlen == 0 )
@@ -979,8 +977,7 @@ static int pk_parse_key_pkcs8_encrypted_der(
     if( ( ret = asn1_get_tag( &p, end, &len, ASN1_OCTET_STRING ) ) != 0 )
         return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT + ret );
 
-    if( len > sizeof( buf ) )
-        return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
+    buf = p;
 
     /*
      * Decrypt EncryptedData with appropriate PDE
@@ -1070,10 +1067,8 @@ int pk_parse_key( pk_context *pk,
                            key, pwd, pwdlen, &len );
     if( ret == 0 )
     {
-        if( ( pk_info = pk_info_from_type( POLARSSL_PK_RSA ) ) == NULL )
-            return( POLARSSL_ERR_PK_UNKNOWN_PK_ALG );
-
-        if( ( ret = pk_init_ctx( pk, pk_info                    ) ) != 0 ||
+        pk_info = pk_info_from_type( POLARSSL_PK_RSA );
+        if( ( ret = pk_init_ctx( pk, pk_info ) ) != 0 ||
             ( ret = pk_parse_key_pkcs1_der( pk_rsa( *pk ),
                                             pem.buf, pem.buflen ) ) != 0 )
         {
@@ -1098,10 +1093,8 @@ int pk_parse_key( pk_context *pk,
                            key, pwd, pwdlen, &len );
     if( ret == 0 )
     {
-        if( ( pk_info = pk_info_from_type( POLARSSL_PK_ECKEY ) ) == NULL )
-            return( POLARSSL_ERR_PK_UNKNOWN_PK_ALG );
-
-        if( ( ret = pk_init_ctx( pk, pk_info                   ) ) != 0 ||
+        pk_info = pk_info_from_type( POLARSSL_PK_ECKEY );
+        if( ( ret = pk_init_ctx( pk, pk_info ) ) != 0 ||
             ( ret = pk_parse_key_sec1_der( pk_ec( *pk ),
                                            pem.buf, pem.buflen ) ) != 0 )
         {
@@ -1170,11 +1163,23 @@ int pk_parse_key( pk_context *pk,
     * error
     */
 #if defined(POLARSSL_PKCS12_C) || defined(POLARSSL_PKCS5_C)
-    if( ( ret = pk_parse_key_pkcs8_encrypted_der( pk, key, keylen,
-                                                  pwd, pwdlen ) ) == 0 )
     {
-        return( 0 );
+        unsigned char *key_copy;
+
+        if( ( key_copy = polarssl_malloc( keylen ) ) == NULL )
+            return( POLARSSL_ERR_PK_MALLOC_FAILED );
+
+        memcpy( key_copy, key, keylen );
+
+        ret = pk_parse_key_pkcs8_encrypted_der( pk, key_copy, keylen,
+                                                pwd, pwdlen );
+
+        polarssl_zeroize( key_copy, keylen );
+        polarssl_free( key_copy );
     }
+
+    if( ret == 0 )
+        return( 0 );
 
     pk_free( pk );
 
@@ -1190,29 +1195,29 @@ int pk_parse_key( pk_context *pk,
     pk_free( pk );
 
 #if defined(POLARSSL_RSA_C)
-    if( ( pk_info = pk_info_from_type( POLARSSL_PK_RSA ) ) == NULL )
-        return( POLARSSL_ERR_PK_UNKNOWN_PK_ALG );
-
-    if( ( ret = pk_init_ctx( pk, pk_info                           ) ) != 0 ||
-        ( ret = pk_parse_key_pkcs1_der( pk_rsa( *pk ), key, keylen ) ) == 0 )
+    pk_info = pk_info_from_type( POLARSSL_PK_RSA );
+    if( ( ret = pk_init_ctx( pk, pk_info ) ) != 0 ||
+        ( ret = pk_parse_key_pkcs1_der( pk_rsa( *pk ), key, keylen ) ) != 0 )
+    {
+        pk_free( pk );
+    }
+    else
     {
         return( 0 );
     }
-
-    pk_free( pk );
 #endif /* POLARSSL_RSA_C */
 
 #if defined(POLARSSL_ECP_C)
-    if( ( pk_info = pk_info_from_type( POLARSSL_PK_ECKEY ) ) == NULL )
-        return( POLARSSL_ERR_PK_UNKNOWN_PK_ALG );
-
-    if( ( ret = pk_init_ctx( pk, pk_info                         ) ) != 0 ||
-        ( ret = pk_parse_key_sec1_der( pk_ec( *pk ), key, keylen ) ) == 0 )
+    pk_info = pk_info_from_type( POLARSSL_PK_ECKEY );
+    if( ( ret = pk_init_ctx( pk, pk_info ) ) != 0 ||
+        ( ret = pk_parse_key_sec1_der( pk_ec( *pk ), key, keylen ) ) != 0 )
+    {
+        pk_free( pk );
+    }
+    else
     {
         return( 0 );
     }
-
-    pk_free( pk );
 #endif /* POLARSSL_ECP_C */
 
     return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT );

@@ -196,12 +196,10 @@ int entropy_update_manual( entropy_context *ctx,
  */
 static int entropy_gather_internal( entropy_context *ctx )
 {
-    int ret, i;
+    int ret = POLARSSL_ERR_ENTROPY_NO_SOURCES_DEFINED;
+    int i;
     unsigned char buf[ENTROPY_MAX_GATHER];
     size_t olen;
-
-    if( ctx->source_count == 0 )
-        return( POLARSSL_ERR_ENTROPY_NO_SOURCES_DEFINED );
 
     /*
      * Run through our entropy sources

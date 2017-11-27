@@ -65,6 +65,8 @@
 #endif /* MBEDTLS_SELF_TEST */
 #endif /* MBEDTLS_PLATFORM_C */
 
+#if !defined(MBEDTLS_CMAC_ALT)
+
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = (unsigned char*)v; while( n-- ) *p++ = 0;
@@ -129,6 +131,8 @@ static int cmac_multiply_by_u( unsigned char *output,
 
     return( 0 );
 }
+
+
 
 /*
  * Generate subkeys
@@ -467,6 +471,7 @@ exit:
     return( ret );
 }
 #endif /* MBEDTLS_AES_C */
+
 
 #if defined(MBEDTLS_SELF_TEST)
 /*
@@ -1070,5 +1075,7 @@ int mbedtls_cmac_self_test( int verbose )
 }
 
 #endif /* MBEDTLS_SELF_TEST */
+
+#endif /* MBEDTLS_CMAC_ALT */
 
 #endif /* MBEDTLS_CMAC_C */

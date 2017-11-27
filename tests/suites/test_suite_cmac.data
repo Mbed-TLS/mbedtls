@@ -1,7 +1,9 @@
 CMAC self test
+depends_on:!USE_MBEDTLS_CRYPTOCELL
 mbedtls_cmac_self_test:
 
 CMAC null arguments
+depends_on:!USE_MBEDTLS_CRYPTOCELL
 mbedtls_cmac_null_args:
 
 CMAC init #1 AES-128: OK

@@ -72,6 +72,7 @@ static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = (unsigned char*)v; while( n-- ) *p++ = 0;
 }
 
+#if defined(MBEDTLS_SELF_TEST)
 /*
  * Multiplication by u in the Galois field of GF(2^n)
  *
@@ -166,6 +167,7 @@ exit:
 
     return( ret );
 }
+#endif //defined(MBEDTLS_SELF_TEST)
 
 static void cmac_xor_block( unsigned char *output, const unsigned char *input1,
                             const unsigned char *input2,
@@ -917,6 +919,8 @@ static int test_aes128_cmac_prf( int verbose )
 }
 #endif /* MBEDTLS_AES_C */
 
+#endif /* MBEDTLS_CMAC_ALT */
+
 int mbedtls_cmac_self_test( int verbose )
 {
     int ret;
@@ -1072,7 +1076,5 @@ int mbedtls_cmac_self_test( int verbose )
 }
 
 #endif /* MBEDTLS_SELF_TEST */
-
-#endif /* MBEDTLS_CMAC_ALT */
 
 #endif /* MBEDTLS_CMAC_C */

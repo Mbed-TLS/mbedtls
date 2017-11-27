@@ -1,0 +1,6 @@
+This file includes the information why some tests are skipped
+--------------------------------------------------------------
+CMAC self test
+depends_on:!USE_MBEDTLS_CRYPTOCELL
+mbedtls_cmac_self_test:
+reason: it uses some static defined functions that are not exposed in the header file. 

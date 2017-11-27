@@ -3639,7 +3639,7 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
            break;
 
        case MBEDTLS_SSL_SERVER_FINISHED:
-           ret = mbedtls_ssl_parse_finished( ssl );
+           ret = mbedtls_ssl_process_finished( ssl );
            break;
 
        case MBEDTLS_SSL_FLUSH_BUFFERS:

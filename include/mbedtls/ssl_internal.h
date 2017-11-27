@@ -290,7 +290,10 @@ struct mbedtls_ssl_handshake_params
                     const unsigned char *, size_t,
                     unsigned char *, size_t);
 
-    /* Handshake digest buffer */
+    /* Finished message
+     * Buffer to hold the digest of the entire handshake
+     * up to the Finished message.
+     */
     unsigned char handshake_digest[MBEDTLS_SSL_VERIFY_DATA_MAX_LEN];
     size_t handshake_digest_len;
 
@@ -523,7 +526,7 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_write_change_cipher_spec( mbedtls_ssl_context *ssl );
 
-int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_process_finished( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl );
 
 void mbedtls_ssl_optimize_checksum( mbedtls_ssl_context *ssl,

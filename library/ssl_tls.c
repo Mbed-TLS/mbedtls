@@ -5400,21 +5400,112 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-#define SSL_MAX_HASH_LEN 36
-#else
-#define SSL_MAX_HASH_LEN 12
-#endif
+/*
+ *
+ * STATE HANDLING: ParseFinished
+ *
+ */
 
-int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
+/*
+ * Forward declarations
+ */
+
+/* Main entry point: orchestrates the other functions */
+int mbedtls_ssl_process_finished( mbedtls_ssl_context *ssl );
+
+static int ssl_process_finished_preprocess ( mbedtls_ssl_context *ssl );
+static int ssl_process_finished_fetch      ( mbedtls_ssl_context *ssl );
+static int ssl_process_finished_postprocess( mbedtls_ssl_context *ssl );
+static int ssl_process_finished_parse( mbedtls_ssl_context *ssl,
+                                       const unsigned char* buf,
+                                       size_t buflen );
+
+/*
+ * Implementation
+ */
+
+int mbedtls_ssl_handle_pending_alert( mbedtls_ssl_context *ssl )
 {
     int ret;
-    unsigned int hash_len;
-    unsigned char buf[SSL_MAX_HASH_LEN];
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse finished" ) );
+    /* Send alert if requested */
+    if( ssl->send_alert != 0 )
+    {
+        ret = mbedtls_ssl_send_alert_message( ssl,
+                                              ssl->send_alert,
+                                              ssl->alert_type );
+        if( ret != 0 )
+            return( ret );
+    }
 
-    ssl->handshake->calc_finished( ssl, buf, ssl->conf->endpoint ^ 1 );
+    ssl->send_alert = 0;
+    ssl->alert_type = 0;
+    return( 0 );
+}
+
+int mbedtls_ssl_process_finished( mbedtls_ssl_context *ssl )
+{
+    int ret = 0;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process finished" ) );
+
+    /* Preprocessing step: Compute handshake digest */
+    SSL_PROC_CHK( ssl_process_finished_preprocess( ssl ) );
+
+    /* Fetching step: No ambiguity in the expected record/handshake here. */
+    SSL_PROC_CHK( ssl_process_finished_fetch( ssl ) );
+
+    /* Parsing step */
+    SSL_PROC_CHK( ssl_process_finished_parse( ssl,
+                        ssl->in_msg   + mbedtls_ssl_hs_hdr_len( ssl ),
+                        ssl->in_hslen - mbedtls_ssl_hs_hdr_len( ssl ) ) );
+
+    /* Postprocessing step:
+     * - Update state machine,
+     * - Update retransmission state machine,
+     * - Remember digest
+     */
+    SSL_PROC_CHK( ssl_process_finished_postprocess( ssl ) );
+
+cleanup:
+
+    /* In the MPS one would close the read-port here to
+     * ensure there's no overlap of reading and writing. */
+
+    /* Ignore error code for now */
+    mbedtls_ssl_handle_pending_alert( ssl );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process finished" ) );
+    return( ret );
+}
+
+static int ssl_process_finished_preprocess( mbedtls_ssl_context *ssl )
+{
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process finished - preprocess" ) );
+
+    /* There is currently no ciphersuite using another length with TLS 1.2 */
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
+        ssl->handshake->handshake_digest_len = 36;
+    else
+#endif
+        ssl->handshake->handshake_digest_len = 12;
+
+    ssl->handshake->calc_finished( ssl, ssl->handshake->handshake_digest,
+                                   ssl->conf->endpoint ^ 1 );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process finished - preprocess" ) );
+    return( 0 );
+}
+
+/* NOTE
+ * These minimal versions of `fetch/coordinate` functions
+ * should be subsumed to reduce code-size.
+ */
+static int ssl_process_finished_fetch( mbedtls_ssl_context *ssl )
+{
+    int ret;
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process finished - coordinate" ) );
 
     if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
     {
@@ -5422,65 +5513,95 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
         return( ret );
     }
 
-    if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE )
+    if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE ||
+        ssl->in_msg[0]  != MBEDTLS_SSL_HS_FINISHED )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE );
+
+        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
+        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE;
+
         return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
     }
 
-    /* There is currently no ciphersuite using another length with TLS 1.2 */
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
-        hash_len = 36;
-    else
-#endif
-        hash_len = 12;
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process finished - coordinate" ) );
+    return( 0 );
+}
 
-    if( ssl->in_msg[0] != MBEDTLS_SSL_HS_FINISHED ||
-        ssl->in_hslen  != mbedtls_ssl_hs_hdr_len( ssl ) + hash_len )
+static int ssl_process_finished_parse( mbedtls_ssl_context *ssl,
+                                       const unsigned char* buf,
+                                       size_t buflen )
+{
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse finished" ) );
+
+    /* NOTE
+     * Here structural and semantic validation are done in the same function;
+     * think about whether this should potentially be split.
+     */
+
+    /* Structural validation */
+    if( buflen != ssl->handshake->handshake_digest_len )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
+
+        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
+        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
+
         return( MBEDTLS_ERR_SSL_BAD_HS_FINISHED );
     }
 
-    if( mbedtls_ssl_safer_memcmp( ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl ),
-                      buf, hash_len ) != 0 )
+    /* Semantic validation */
+    if( mbedtls_ssl_safer_memcmp( buf,
+                                  ssl->handshake->handshake_digest,
+                                  ssl->handshake->handshake_digest_len ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
+
+        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
+        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
+
         return( MBEDTLS_ERR_SSL_BAD_HS_FINISHED );
     }
 
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse finished" ) );
+    return( 0 );
+}
+
+static int ssl_process_finished_postprocess( mbedtls_ssl_context* ssl )
+{
+    /* Remember digest for secure renegotiation */
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
-    ssl->verify_data_len = hash_len;
-    memcpy( ssl->peer_verify_data, buf, hash_len );
+    ssl->verify_data_len = ssl->handshake->handshake_digest_len;
+    memcpy( ssl->peer_verify_data,
+            ssl->handshake->handshake_digest,
+            ssl->handshake->handshake_digest_len );
 #endif
 
-    if( ssl->handshake->resume != 0 )
-    {
+    /* Update logic state machine */
 #if defined(MBEDTLS_SSL_CLI_C)
-        if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+    {
+        if( ssl->handshake->resume != 0 )
             ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
-#endif
-#if defined(MBEDTLS_SSL_SRV_C)
-        if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
-            ssl->state = MBEDTLS_SSL_HANDSHAKE_WRAPUP;
-#endif
+        else
+            ssl->state = MBEDTLS_SSL_FLUSH_BUFFERS;
     }
-    else
-        ssl->state++;
+#endif /* MBEDTLS_SSL_CLI_C */
+#if defined(MBEDTLS_SSL_SRV_C)
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
+    {
+        if( ssl->handshake->resume != 0 )
+            ssl->state = MBEDTLS_SSL_HANDSHAKE_WRAPUP;
+        else
+            ssl->state = MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC;
+    }
+#endif /* MBEDTLS_SSL_SRV_C */
 
+    /* Update retransmission state machine */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
         mbedtls_ssl_recv_flight_completed( ssl );
 #endif
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse finished" ) );
 
     return( 0 );
 }

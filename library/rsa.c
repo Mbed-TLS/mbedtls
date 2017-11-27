@@ -437,8 +437,8 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
     if( mbedtls_mpi_cmp_int( &ctx->N, 0 ) == 0 ||
         mbedtls_mpi_cmp_int( &ctx->D, 0 ) == 0 ||
         mbedtls_mpi_cmp_int( &ctx->E, 0 ) == 0 ||
-        mbedtls_mpi_cmp_int( &ctx->P, 0 ) == 0 ||
-        mbedtls_mpi_cmp_int( &ctx->Q, 0 ) == 0 )
+        ( f_rng != NULL && mbedtls_mpi_cmp_int( &ctx->P, 0 ) == 0 ) ||
+        ( f_rng != NULL && mbedtls_mpi_cmp_int( &ctx->Q, 0 ) == 0 ) )
     {
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     }

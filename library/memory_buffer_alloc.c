@@ -522,7 +522,9 @@ void mbedtls_memory_buffer_alloc_status()
                       heap.alloc_count, heap.free_count );
 
     if( heap.first->next == NULL )
+    {
         mbedtls_fprintf( stderr, "All memory de-allocated in stack buffer\n" );
+    }
     else
     {
         mbedtls_fprintf( stderr, "Memory currently allocated:\n" );

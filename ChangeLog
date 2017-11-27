@@ -1,5 +1,10 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.7.4 branch released xxxx-xx-xx
+
+Bugfix
+   * Fix braces in mbedtls_memory_buffer_alloc_status(). Found by sbranden, #552.
+
 = mbed TLS 2.7.3 branch released 2018-04-30
 
 Security

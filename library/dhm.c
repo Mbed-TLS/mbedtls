@@ -542,7 +542,10 @@ static int load_file( const char *path, unsigned char **buf, size_t *n )
     if( fread( *buf, 1, *n, f ) != *n )
     {
         fclose( f );
+
+        mbedtls_zeroize( *buf, *n + 1 );
         mbedtls_free( *buf );
+
         return( MBEDTLS_ERR_DHM_FILE_IO_ERROR );
     }
 

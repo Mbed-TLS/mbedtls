@@ -63,6 +63,10 @@ static void mbedtls_mpi_zeroize( mbedtls_mpi_uint *v, size_t n ) {
     volatile mbedtls_mpi_uint *p = v; while( n-- ) *p++ = 0;
 }
 
+static void mbedtls_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 #define ciL    (sizeof(mbedtls_mpi_uint))         /* chars in limb  */
 #define biL    (ciL << 3)               /* bits  in limb  */
 #define biH    (ciL << 2)               /* half limb size */
@@ -1882,6 +1886,8 @@ int mbedtls_mpi_fill_random( mbedtls_mpi *X, size_t size,
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( X, buf, size ) );
 
 cleanup:
+    mbedtls_zeroize( buf, sizeof( buf ) );
+
     return( ret );
 }
 

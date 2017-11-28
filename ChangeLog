@@ -19,6 +19,8 @@ Security
      was independently reported by Tim Nordell via e-mail and by Florin Petriuc
      and sjorsdewit on GitHub. Fix proposed by Florin Petriuc in #1022. Fixes #707.
    * Tighten should-be-constant-time memcmp against compiler optimizations.
+   * Ensure that buffers are cleared after use if they contain sensitive data.
+     Changes were introduced in multiple places in the library.
 
 Features
    * Allow comments in test data files.

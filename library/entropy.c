@@ -195,6 +195,8 @@ static int entropy_update( mbedtls_entropy_context *ctx, unsigned char source_id
     mbedtls_sha256_update( &ctx->accumulator, p, use_len );
 #endif
 
+    mbedtls_zeroize( tmp, sizeof( tmp ) );
+
     return( 0 );
 }
 
@@ -242,7 +244,7 @@ static int entropy_gather_internal( mbedtls_entropy_context *ctx )
         if( ( ret = ctx->source[i].f_source( ctx->source[i].p_source,
                         buf, MBEDTLS_ENTROPY_MAX_GATHER, &olen ) ) != 0 )
         {
-            return( ret );
+            goto cleanup;
         }
 
         /*
@@ -256,9 +258,12 @@ static int entropy_gather_internal( mbedtls_entropy_context *ctx )
     }
 
     if( have_one_strong == 0 )
-        return( MBEDTLS_ERR_ENTROPY_NO_STRONG_SOURCE );
+        ret = MBEDTLS_ERR_ENTROPY_NO_STRONG_SOURCE;
 
-    return( 0 );
+cleanup:
+    mbedtls_zeroize( buf, sizeof( buf ) );
+
+    return( ret );
 }
 
 /*
@@ -370,6 +375,8 @@ int mbedtls_entropy_func( void *data, unsigned char *output, size_t len )
     ret = 0;
 
 exit:
+    mbedtls_zeroize( buf, sizeof( buf ) );
+
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_unlock( &ctx->mutex ) != 0 )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
@@ -382,7 +389,7 @@ exit:
 int mbedtls_entropy_update_nv_seed( mbedtls_entropy_context *ctx )
 {
     int ret = MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR;
-    unsigned char buf[ MBEDTLS_ENTROPY_MAX_SEED_SIZE ];
+    unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE];
 
     /* Read new seed  and write it to NV */
     if( ( ret = mbedtls_entropy_func( ctx, buf, MBEDTLS_ENTROPY_BLOCK_SIZE ) ) != 0 )
@@ -393,9 +400,9 @@ int mbedtls_entropy_update_nv_seed( mbedtls_entropy_context *ctx )
 
     /* Manually update the remaining stream with a separator value to diverge */
     memset( buf, 0, MBEDTLS_ENTROPY_BLOCK_SIZE );
-    mbedtls_entropy_update_manual( ctx, buf, MBEDTLS_ENTROPY_BLOCK_SIZE );
+    ret = mbedtls_entropy_update_manual( ctx, buf, MBEDTLS_ENTROPY_BLOCK_SIZE );
 
-    return( 0 );
+    return( ret );
 }
 #endif /* MBEDTLS_ENTROPY_NV_SEED */
 
@@ -421,12 +428,15 @@ int mbedtls_entropy_write_seed_file( mbedtls_entropy_context *ctx, const char *p
     ret = 0;
 
 exit:
+    mbedtls_zeroize( buf, sizeof( buf ) );
+
     fclose( f );
     return( ret );
 }
 
 int mbedtls_entropy_update_seed_file( mbedtls_entropy_context *ctx, const char *path )
 {
+    int ret = 0;
     FILE *f;
     size_t n;
     unsigned char buf[ MBEDTLS_ENTROPY_MAX_SEED_SIZE ];
@@ -442,14 +452,16 @@ int mbedtls_entropy_update_seed_file( mbedtls_entropy_context *ctx, const char *
         n = MBEDTLS_ENTROPY_MAX_SEED_SIZE;
 
     if( fread( buf, 1, n, f ) != n )
-    {
-        fclose( f );
-        return( MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR );
-    }
+        ret = MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR;
+    else
+        ret = mbedtls_entropy_update_manual( ctx, buf, n );
 
     fclose( f );
 
-    mbedtls_entropy_update_manual( ctx, buf, n );
+    mbedtls_zeroize( buf, sizeof( buf ) );
+
+    if( ret != 0 )
+        return( ret );
 
     return( mbedtls_entropy_write_seed_file( ctx, path ) );
 }

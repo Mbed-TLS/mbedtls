@@ -228,12 +228,13 @@ int mbedtls_platform_std_nv_seed_read( unsigned char *buf, size_t buf_len )
     size_t n;
 
     if( ( file = fopen( MBEDTLS_PLATFORM_STD_NV_SEED_FILE, "rb" ) ) == NULL )
-        return -1;
+        return( -1 );
 
     if( ( n = fread( buf, 1, buf_len, file ) ) != buf_len )
     {
         fclose( file );
-        return -1;
+        mbedtls_zeroize( buf, buf_len );
+        return( -1 );
     }
 
     fclose( file );

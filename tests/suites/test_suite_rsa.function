@@ -658,7 +658,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_CTR_DRBG_C:MBEDTLS_ENTROPY_C */
+/* BEGIN_CASE depends_on:MBEDTLS_CTR_DRBG_C:MBEDTLS_ENTROPY_C:ENTROPY_HAVE_STRONG */
 void mbedtls_rsa_gen_key( int nrbits, int exponent, int result)
 {
     mbedtls_rsa_context ctx;
@@ -667,12 +667,11 @@ void mbedtls_rsa_gen_key( int nrbits, int exponent, int result)
     const char *pers = "test_suite_rsa";
 
     mbedtls_ctr_drbg_init( &ctr_drbg );
-
     mbedtls_entropy_init( &entropy );
+    mbedtls_rsa_init ( &ctx, 0, 0 );
+
     TEST_ASSERT( mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
                                 (const unsigned char *) pers, strlen( pers ) ) == 0 );
-
-    mbedtls_rsa_init( &ctx, 0, 0 );
 
     TEST_ASSERT( mbedtls_rsa_gen_key( &ctx, mbedtls_ctr_drbg_random, &ctr_drbg, nrbits, exponent ) == result );
     if( result == 0 )

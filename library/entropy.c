@@ -60,6 +60,9 @@ void mbedtls_entropy_init( mbedtls_entropy_context *ctx )
 {
     memset( ctx, 0, sizeof(mbedtls_entropy_context) );
 
+     /* Reminder: Update ENTROPY_HAVE_STRONG in the test files
+      * when adding more strong entropy sources here. */
+
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_init( &ctx->mutex );
 #endif

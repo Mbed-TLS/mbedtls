@@ -13,6 +13,7 @@ Bugfix
      Found by redplait #590
    * Add MBEDTLS_MPI_CHK to check for error value of mbedtls_mpi_fill_random.
      Reported and fix suggested by guidovranken in #740
+   * Fix bugs in RSA test suite under MBEDTLS_NO_PLATFORM_ENTROPY. #1023 #1024
 
 Features
    * Add the functions mbedtls_platform_setup() and mbedtls_platform_teardown()

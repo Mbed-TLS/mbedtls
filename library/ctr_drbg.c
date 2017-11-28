@@ -402,20 +402,20 @@ int ctr_drbg_write_seed_file( ctr_drbg_context *ctx, const char *path )
         goto exit;
 
     if( fwrite( buf, 1, CTR_DRBG_MAX_INPUT, f ) != CTR_DRBG_MAX_INPUT )
-    {
         ret = POLARSSL_ERR_CTR_DRBG_FILE_IO_ERROR;
-        goto exit;
-    }
-
-    ret = 0;
+    else
+        ret = 0;
 
 exit:
+    polarssl_zeroize( buf, sizeof( buf ) );
+
     fclose( f );
     return( ret );
 }
 
 int ctr_drbg_update_seed_file( ctr_drbg_context *ctx, const char *path )
 {
+    int ret = 0;
     FILE *f;
     size_t n;
     unsigned char buf[ CTR_DRBG_MAX_INPUT ];
@@ -434,14 +434,16 @@ int ctr_drbg_update_seed_file( ctr_drbg_context *ctx, const char *path )
     }
 
     if( fread( buf, 1, n, f ) != n )
-    {
-        fclose( f );
-        return( POLARSSL_ERR_CTR_DRBG_FILE_IO_ERROR );
-    }
+        ret = POLARSSL_ERR_CTR_DRBG_FILE_IO_ERROR;
+    else
+        ctr_drbg_update( ctx, buf, n );
 
     fclose( f );
 
-    ctr_drbg_update( ctx, buf, n );
+    polarssl_zeroize( buf, sizeof( buf ) );
+
+    if( ret != 0 )
+        return( ret );
 
     return( ctr_drbg_write_seed_file( ctx, path ) );
 }

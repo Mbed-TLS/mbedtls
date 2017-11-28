@@ -370,6 +370,7 @@ void sha512( const unsigned char *input, size_t ilen,
  */
 int sha512_file( const char *path, unsigned char output[64], int is384 )
 {
+    int ret = 0;
     FILE *f;
     size_t n;
     sha512_context ctx;
@@ -384,17 +385,16 @@ int sha512_file( const char *path, unsigned char output[64], int is384 )
     while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
         sha512_update( &ctx, buf, n );
 
-    sha512_finish( &ctx, output );
-    sha512_free( &ctx );
-
     if( ferror( f ) != 0 )
-    {
-        fclose( f );
-        return( POLARSSL_ERR_SHA512_FILE_IO_ERROR );
-    }
+        ret = POLARSSL_ERR_SHA512_FILE_IO_ERROR;
+    else
+        sha512_finish( &ctx, output );
 
+    sha512_free( &ctx );
+    polarssl_zeroize( buf, sizeof( buf ) );
     fclose( f );
-    return( 0 );
+
+    return( ret );
 }
 #endif /* POLARSSL_FS_IO */
 

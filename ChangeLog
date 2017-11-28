@@ -11,6 +11,8 @@ Security
    * Fix unsafe bounds check in ssl_parse_client_psk_identity() when adding
      64kB to the address of the SSL buffer wraps around.
    * Tighten should-be-constant-time memcmp against compiler optimizations.
+   * Ensure that buffers are cleared after use if they contain sensitive data.
+     Changes were introduced in multiple places in the library.
 
 Bugfix
    * Fix memory leak in ssl_set_hostname() when called multiple times.

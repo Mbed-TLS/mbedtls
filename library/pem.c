@@ -333,6 +333,7 @@ int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
 
     if( ( ret = base64_decode( buf, &len, s1, s2 - s1 ) ) != 0 )
     {
+        polarssl_zeroize( buf, len );
         polarssl_free( buf );
         return( POLARSSL_ERR_PEM_INVALID_DATA + ret );
     }
@@ -343,6 +344,7 @@ int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
     ( defined(POLARSSL_DES_C) || defined(POLARSSL_AES_C) )
         if( pwd == NULL )
         {
+            polarssl_zeroize( buf, len );
             polarssl_free( buf );
             return( POLARSSL_ERR_PEM_PASSWORD_REQUIRED );
         }
@@ -371,10 +373,12 @@ int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
          */
         if( len <= 2 || buf[0] != 0x30 || buf[1] > 0x83 )
         {
+            polarssl_zeroize( buf, len );
             polarssl_free( buf );
             return( POLARSSL_ERR_PEM_PASSWORD_MISMATCH );
         }
 #else
+        polarssl_zeroize( buf, len );
         polarssl_free( buf );
         return( POLARSSL_ERR_PEM_FEATURE_UNAVAILABLE );
 #endif /* POLARSSL_MD5_C && POLARSSL_CIPHER_MODE_CBC &&

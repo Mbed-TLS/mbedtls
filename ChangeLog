@@ -38,6 +38,8 @@ Bugfix
      failed, the error may not be noticed by the function
      mbedtls_pem_read_buffer() causing it to return invalid values. Found by
      Guido Vranken. #756
+   * Include configuration file in md.h, to fix compilation warnings.
+     Reported by aaronmdjones in #1001
 
 = mbed TLS 2.6.0 branch released 2017-08-10
 

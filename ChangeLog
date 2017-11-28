@@ -30,6 +30,8 @@ Bugfix
    * Fix out-of-memory problem when parsing 4096-bit PKCS8-encrypted RSA keys.
      Found independently by Florian in the mbed TLS forum and by Mishamax.
      #878, #1019.
+   * Fix variable used before assignment compilation warnings with IAR
+     toolchain. Found by gkerrien38.
 
 = mbed TLS 2.6.0 branch released 2017-08-10
 

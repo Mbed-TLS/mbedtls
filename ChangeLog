@@ -15,6 +15,7 @@ Security
      detect it sometimes. Reported by Hugo Leisink. #810
    * Tighten parsing of RSA PKCS#1 v1.5 signatures, to avoid a
      potential Bleichenbacher/BERserk-style attack.
+   * Tighten should-be-constant-time memcmp against compiler optimizations.
 
 Bugfix
    * Remove size zero arrays from ECJPAKE test suite. Size zero arrays are not

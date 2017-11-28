@@ -126,7 +126,7 @@ do {                                                                    \
         CODE;                                                           \
     }                                                                   \
                                                                         \
-    mbedtls_printf( "%9lu KB/s,  %9lu cycles/byte\n",                   \
+    mbedtls_printf( "%9lu kB/s,  %9lu cycles/byte\n",                   \
                      ii * BUFSIZE / 1024,                               \
                      ( mbedtls_timing_hardclock() - tsc ) / ( jj * BUFSIZE ) );         \
 } while( 0 )

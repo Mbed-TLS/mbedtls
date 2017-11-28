@@ -25,6 +25,13 @@ Security
      being leaked to memory after release.
    * Fix dhm_check_range() failing to detect trivial subgroups and potentially
      leaking 1 bit of the private key. Reported by prashantkspatil.
+   * Make mbedtls_mpi_read_binary constant-time with respect to
+     the input data. Previously, trailing zero bytes were detected
+     and omitted for the sake of saving memory, but potentially
+     leading to slight timing differences.
+     Reported by Marco Macchetti, Kudelski Group.
+   * Wipe stack buffer temporarily holding EC private exponent
+     after keypair generation.
 
 Features
    * Allow comments in test data files.

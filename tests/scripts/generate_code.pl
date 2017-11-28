@@ -333,7 +333,7 @@ END
 # and make check code
 my $dep_check_code;
 
-my @res = $test_data =~ /^depends_on:([\w:]+)/msg;
+my @res = $test_data =~ /^depends_on:([!:\w]+)/msg;
 my %case_deps;
 foreach my $deps (@res)
 {
@@ -344,7 +344,23 @@ foreach my $deps (@res)
 }
 while( my ($key, $value) = each(%case_deps) )
 {
-    $dep_check_code .= << "END";
+    if( substr($key, 0, 1) eq "!" )
+    {
+        my $key = substr($key, 1);
+        $dep_check_code .= << "END";
+    if( strcmp( str, "!$key" ) == 0 )
+    {
+#if !defined($key)
+        return( DEPENDENCY_SUPPORTED );
+#else
+        return( DEPENDENCY_NOT_SUPPORTED );
+#endif
+    }
+END
+    }
+    else
+    {
+        $dep_check_code .= << "END";
     if( strcmp( str, "$key" ) == 0 )
     {
 #if defined($key)
@@ -354,6 +370,7 @@ while( my ($key, $value) = each(%case_deps) )
 #endif
     }
 END
+    }
 }
 
 # Make mapping code

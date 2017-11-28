@@ -53,6 +53,27 @@ Bugfix
    * Fix out-of-memory problem when parsing 4096-bit PKCS8-encrypted RSA keys.
      Found independently by Florian in the mbed TLS forum and by Mishamax.
      #878, #1019.
+   * Fix variable used before assignment compilation warnings with IAR
+     toolchain. Found by gkerrien38.
+   * Fix unchecked return codes from AES, DES and 3DES functions in
+     pem_aes_decrypt(), pem_des_decrypt() and pem_des3_decrypt() respectively.
+     If a call to one of the functions of the cryptographic primitive modules
+     failed, the error may not be noticed by the function
+     mbedtls_pem_read_buffer() causing it to return invalid values. Found by
+     Guido Vranken. #756
+   * Include configuration file in md.h, to fix compilation warnings.
+     Reported by aaronmdjones in #1001
+   * Correct extraction of signature-type from PK instance in X.509 CRT and CSR
+     writing routines that prevented these functions to work with alternative
+     RSA implementations. Raised by J.B. in the Mbed TLS forum. Fixes #1011.
+   * Don't print X.509 version tag for v1 CRT's, and omit extensions for
+     non-v3 CRT's.
+   * Fix bugs in RSA test suite under MBEDTLS_NO_PLATFORM_ENTROPY. #1023 #1024
+
+Changes
+   * Extend cert_write example program by options to set the CRT version
+     and the message digest. Further, allow enabling/disabling of authority
+     identifier, subject identifier and basic constraints extensions.
 
 = mbed TLS 2.6.0 branch released 2017-08-10
 

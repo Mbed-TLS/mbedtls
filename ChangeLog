@@ -42,6 +42,7 @@ Bugfix
      encoded X509 CSRs. The overflow would enable maliciously constructed CSRs
      to bypass the version verification check. Found by Peng Li/Yueh-Hsun Lin,
      KNOX Security, Samsung Research America
+   * Fix bugs in RSA test suite under MBEDTLS_NO_PLATFORM_ENTROPY. #1023 #1024
 
 Changes
    * Avoid shadowing of time and index functions through mbed TLS function

@@ -15,6 +15,8 @@ Security
      Changes were introduced in multiple places in the library.
    * Set PEM buffer to zero before freeing it, to avoid decoded private keys
      being leaked to memory after release.
+   * Fix dhm_check_range() failing to detect trivial subgroups and potentially
+     leaking 1 bit of the private key. Reported by prashantkspatil.
 
 Bugfix
    * Fix memory leak in ssl_set_hostname() when called multiple times.

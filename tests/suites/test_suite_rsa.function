@@ -658,7 +658,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_CTR_DRBG_C:POLARSSL_ENTROPY_C */
+/* BEGIN_CASE depends_on:POLARSSL_CTR_DRBG_C:POLARSSL_ENTROPY_C:ENTROPY_HAVE_DEFAULT */
 void rsa_gen_key( int nrbits, int exponent, int result)
 {
     rsa_context ctx;
@@ -667,11 +667,11 @@ void rsa_gen_key( int nrbits, int exponent, int result)
     const char *pers = "test_suite_rsa";
 
     entropy_init( &entropy );
+    rsa_init( &ctx, 0, 0 );
+
     TEST_ASSERT( ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
                                 (const unsigned char *) pers,
                                 strlen( pers ) ) == 0 );
-
-    rsa_init( &ctx, 0, 0 );
 
     TEST_ASSERT( rsa_gen_key( &ctx, ctr_drbg_random, &ctr_drbg, nrbits,
                  exponent ) == result );

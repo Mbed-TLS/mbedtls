@@ -52,7 +52,7 @@ static void polarssl_zeroize( void *v, size_t n ) {
 
 void x509write_crt_init( x509write_cert *ctx )
 {
-    memset( ctx, 0, sizeof(x509write_cert) );
+    memset( ctx, 0, sizeof( x509write_cert ) );
 
     mpi_init( &ctx->serial );
     ctx->version = X509_CRT_VERSION_3;
@@ -66,7 +66,7 @@ void x509write_crt_free( x509write_cert *ctx )
     asn1_free_named_data_list( &ctx->issuer );
     asn1_free_named_data_list( &ctx->extensions );
 
-    polarssl_zeroize( ctx, sizeof(x509write_cert) );
+    polarssl_zeroize( ctx, sizeof( x509write_cert ) );
 }
 
 void x509write_crt_set_version( x509write_cert *ctx, int version )
@@ -141,10 +141,10 @@ int x509write_crt_set_basic_constraints( x509write_cert *ctx,
 {
     int ret;
     unsigned char buf[9];
-    unsigned char *c = buf + sizeof(buf);
+    unsigned char *c = buf + sizeof( buf );
     size_t len = 0;
 
-    memset( buf, 0, sizeof(buf) );
+    memset( buf, 0, sizeof( buf ) );
 
     if( is_ca && max_pathlen > 127 )
         return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
@@ -164,7 +164,7 @@ int x509write_crt_set_basic_constraints( x509write_cert *ctx,
 
     return x509write_crt_set_extension( ctx, OID_BASIC_CONSTRAINTS,
                                         OID_SIZE( OID_BASIC_CONSTRAINTS ),
-                                        0, buf + sizeof(buf) - len, len );
+                                        0, buf + sizeof( buf ) - len, len );
 }
 
 #if defined(POLARSSL_SHA1_C)
@@ -172,14 +172,14 @@ int x509write_crt_set_subject_key_identifier( x509write_cert *ctx )
 {
     int ret;
     unsigned char buf[POLARSSL_MPI_MAX_SIZE * 2 + 20]; /* tag, length + 2xMPI */
-    unsigned char *c = buf + sizeof(buf);
+    unsigned char *c = buf + sizeof( buf );
     size_t len = 0;
 
-    memset( buf, 0, sizeof(buf) );
+    memset( buf, 0, sizeof( buf ) );
     ASN1_CHK_ADD( len, pk_write_pubkey( &c, buf, ctx->subject_key ) );
 
-    sha1( buf + sizeof(buf) - len, len, buf + sizeof(buf) - 20 );
-    c = buf + sizeof(buf) - 20;
+    sha1( buf + sizeof( buf ) - len, len, buf + sizeof( buf ) - 20 );
+    c = buf + sizeof( buf ) - 20;
     len = 20;
 
     ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
@@ -187,21 +187,21 @@ int x509write_crt_set_subject_key_identifier( x509write_cert *ctx )
 
     return x509write_crt_set_extension( ctx, OID_SUBJECT_KEY_IDENTIFIER,
                                         OID_SIZE( OID_SUBJECT_KEY_IDENTIFIER ),
-                                        0, buf + sizeof(buf) - len, len );
+                                        0, buf + sizeof( buf ) - len, len );
 }
 
 int x509write_crt_set_authority_key_identifier( x509write_cert *ctx )
 {
     int ret;
     unsigned char buf[POLARSSL_MPI_MAX_SIZE * 2 + 20]; /* tag, length + 2xMPI */
-    unsigned char *c = buf + sizeof(buf);
+    unsigned char *c = buf + sizeof( buf );
     size_t len = 0;
 
-    memset( buf, 0, sizeof(buf) );
+    memset( buf, 0, sizeof( buf ) );
     ASN1_CHK_ADD( len, pk_write_pubkey( &c, buf, ctx->issuer_key ) );
 
-    sha1( buf + sizeof(buf) - len, len, buf + sizeof(buf) - 20 );
-    c = buf + sizeof(buf) - 20;
+    sha1( buf + sizeof( buf ) - len, len, buf + sizeof( buf ) - 20 );
+    c = buf + sizeof( buf ) - 20;
     len = 20;
 
     ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
@@ -213,7 +213,7 @@ int x509write_crt_set_authority_key_identifier( x509write_cert *ctx )
 
     return x509write_crt_set_extension( ctx, OID_AUTHORITY_KEY_IDENTIFIER,
                                    OID_SIZE( OID_AUTHORITY_KEY_IDENTIFIER ),
-                                   0, buf + sizeof(buf) - len, len );
+                                   0, buf + sizeof( buf ) - len, len );
 }
 #endif /* POLARSSL_SHA1_C */
 
@@ -308,9 +308,15 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size,
     c = tmp_buf + sizeof( tmp_buf );
 
     /* Signature algorithm needed in TBS, and later for actual signature */
-    pk_alg = pk_get_type( ctx->issuer_key );
-    if( pk_alg == POLARSSL_PK_ECKEY )
+
+    /* There's no direct way of extracting a signature algorithm
+     * (represented as an element of pk_type_t) from a PK instance. */
+    if( pk_can_do( ctx->issuer_key, POLARSSL_PK_RSA ) )
+        pk_alg = POLARSSL_PK_RSA;
+    else if( pk_can_do( ctx->issuer_key, POLARSSL_PK_ECDSA ) )
         pk_alg = POLARSSL_PK_ECDSA;
+    else
+        return( POLARSSL_ERR_X509_INVALID_ALG );
 
     if( ( ret = oid_get_oid_by_sig_alg( pk_alg, ctx->md_alg,
                                         &sig_oid, &sig_oid_len ) ) != 0 )
@@ -321,13 +327,19 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size,
     /*
      *  Extensions  ::=  SEQUENCE SIZE (1..MAX) OF Extension
      */
-    ASN1_CHK_ADD( len, x509_write_extensions( &c, tmp_buf, ctx->extensions ) );
-    ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED |
-                                                    ASN1_SEQUENCE ) );
-    ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONTEXT_SPECIFIC |
-                                                    ASN1_CONSTRUCTED | 3 ) );
+
+    /* Only for v3 */
+    if( ctx->version == X509_CRT_VERSION_3 )
+    {
+        ASN1_CHK_ADD( len, x509_write_extensions( &c, tmp_buf,
+                                                  ctx->extensions ) );
+        ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
+        ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED |
+                                           ASN1_SEQUENCE ) );
+        ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
+        ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONTEXT_SPECIFIC |
+                                           ASN1_CONSTRUCTED | 3 ) );
+    }
 
     /*
      *  SubjectPublicKeyInfo
@@ -379,16 +391,20 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size,
     /*
      *  Version  ::=  INTEGER  {  v1(0), v2(1), v3(2)  }
      */
-    sub_len = 0;
-    ASN1_CHK_ADD( sub_len, asn1_write_int( &c, tmp_buf, ctx->version ) );
-    len += sub_len;
-    ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, sub_len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONTEXT_SPECIFIC |
-                                                    ASN1_CONSTRUCTED | 0 ) );
+
+    if( ctx->version != X509_CRT_VERSION_1 )
+    {
+        sub_len = 0;
+        ASN1_CHK_ADD( sub_len, asn1_write_int( &c, tmp_buf, ctx->version ) );
+        len += sub_len;
+        ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, sub_len ) );
+        ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONTEXT_SPECIFIC |
+                                           ASN1_CONSTRUCTED | 0 ) );
+    }
 
     ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED |
-                                                    ASN1_SEQUENCE ) );
+                                       ASN1_SEQUENCE ) );
 
     /*
      * Make signature

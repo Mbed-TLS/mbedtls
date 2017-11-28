@@ -27,6 +27,12 @@ Bugfix
    * Fix out-of-memory problem when parsing 4096-bit PKCS8-encrypted RSA keys.
      Found independently by Florian in the mbed TLS forum and by Mishamax.
      #878, #1019.
+   * Fix unchecked return codes from AES, DES and 3DES functions in
+     pem_aes_decrypt(), pem_des_decrypt() and pem_des3_decrypt() respectively.
+     If a call to one of the functions of the cryptographic primitive modules
+     failed, the error may not be noticed by the function
+     mbedtls_pem_read_buffer() causing it to return invalid values. Found by
+     Guido Vranken. #756
 
 = mbed TLS 2.1.9 branch released 2017-08-10
 

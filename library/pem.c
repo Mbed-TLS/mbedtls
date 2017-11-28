@@ -134,45 +134,55 @@ static void pem_pbkdf1( unsigned char *key, size_t keylen,
 /*
  * Decrypt with DES-CBC, using PBKDF1 for key derivation
  */
-static void pem_des_decrypt( unsigned char des_iv[8],
-                               unsigned char *buf, size_t buflen,
-                               const unsigned char *pwd, size_t pwdlen )
+static int pem_des_decrypt( unsigned char des_iv[8],
+                            unsigned char *buf, size_t buflen,
+                            const unsigned char *pwd, size_t pwdlen )
 {
     mbedtls_des_context des_ctx;
     unsigned char des_key[8];
+    int ret;
 
     mbedtls_des_init( &des_ctx );
 
     pem_pbkdf1( des_key, 8, des_iv, pwd, pwdlen );
 
-    mbedtls_des_setkey_dec( &des_ctx, des_key );
-    mbedtls_des_crypt_cbc( &des_ctx, MBEDTLS_DES_DECRYPT, buflen,
+    if( ( ret = mbedtls_des_setkey_dec( &des_ctx, des_key ) ) != 0 )
+        goto exit;
+    ret = mbedtls_des_crypt_cbc( &des_ctx, MBEDTLS_DES_DECRYPT, buflen,
                      des_iv, buf, buf );
 
+exit:
     mbedtls_des_free( &des_ctx );
     mbedtls_zeroize( des_key, 8 );
+
+    return( ret );
 }
 
 /*
  * Decrypt with 3DES-CBC, using PBKDF1 for key derivation
  */
-static void pem_des3_decrypt( unsigned char des3_iv[8],
-                               unsigned char *buf, size_t buflen,
-                               const unsigned char *pwd, size_t pwdlen )
+static int pem_des3_decrypt( unsigned char des3_iv[8],
+                             unsigned char *buf, size_t buflen,
+                             const unsigned char *pwd, size_t pwdlen )
 {
     mbedtls_des3_context des3_ctx;
     unsigned char des3_key[24];
+    int ret;
 
     mbedtls_des3_init( &des3_ctx );
 
     pem_pbkdf1( des3_key, 24, des3_iv, pwd, pwdlen );
 
-    mbedtls_des3_set3key_dec( &des3_ctx, des3_key );
-    mbedtls_des3_crypt_cbc( &des3_ctx, MBEDTLS_DES_DECRYPT, buflen,
+    if( ( ret = mbedtls_des3_set3key_dec( &des3_ctx, des3_key ) ) != 0 )
+        goto exit;
+    ret = mbedtls_des3_crypt_cbc( &des3_ctx, MBEDTLS_DES_DECRYPT, buflen,
                      des3_iv, buf, buf );
 
+exit:
     mbedtls_des3_free( &des3_ctx );
     mbedtls_zeroize( des3_key, 24 );
+
+    return( ret );
 }
 #endif /* MBEDTLS_DES_C */
 
@@ -180,23 +190,28 @@ static void pem_des3_decrypt( unsigned char des3_iv[8],
 /*
  * Decrypt with AES-XXX-CBC, using PBKDF1 for key derivation
  */
-static void pem_aes_decrypt( unsigned char aes_iv[16], unsigned int keylen,
-                               unsigned char *buf, size_t buflen,
-                               const unsigned char *pwd, size_t pwdlen )
+static int pem_aes_decrypt( unsigned char aes_iv[16], unsigned int keylen,
+                            unsigned char *buf, size_t buflen,
+                            const unsigned char *pwd, size_t pwdlen )
 {
     mbedtls_aes_context aes_ctx;
     unsigned char aes_key[32];
+    int ret;
 
     mbedtls_aes_init( &aes_ctx );
 
     pem_pbkdf1( aes_key, keylen, aes_iv, pwd, pwdlen );
 
-    mbedtls_aes_setkey_dec( &aes_ctx, aes_key, keylen * 8 );
-    mbedtls_aes_crypt_cbc( &aes_ctx, MBEDTLS_AES_DECRYPT, buflen,
+    if( ( ret = mbedtls_aes_setkey_dec( &aes_ctx, aes_key, keylen * 8 ) ) != 0 )
+        goto exit;
+    ret = mbedtls_aes_crypt_cbc( &aes_ctx, MBEDTLS_AES_DECRYPT, buflen,
                      aes_iv, buf, buf );
 
+exit:
     mbedtls_aes_free( &aes_ctx );
     mbedtls_zeroize( aes_key, keylen );
+
+    return( ret );
 }
 #endif /* MBEDTLS_AES_C */
 
@@ -345,21 +360,29 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
             return( MBEDTLS_ERR_PEM_PASSWORD_REQUIRED );
         }
 
+        ret = 0;
+
 #if defined(MBEDTLS_DES_C)
         if( enc_alg == MBEDTLS_CIPHER_DES_EDE3_CBC )
-            pem_des3_decrypt( pem_iv, buf, len, pwd, pwdlen );
+            ret = pem_des3_decrypt( pem_iv, buf, len, pwd, pwdlen );
         else if( enc_alg == MBEDTLS_CIPHER_DES_CBC )
-            pem_des_decrypt( pem_iv, buf, len, pwd, pwdlen );
+            ret = pem_des_decrypt( pem_iv, buf, len, pwd, pwdlen );
 #endif /* MBEDTLS_DES_C */
 
 #if defined(MBEDTLS_AES_C)
         if( enc_alg == MBEDTLS_CIPHER_AES_128_CBC )
-            pem_aes_decrypt( pem_iv, 16, buf, len, pwd, pwdlen );
+            ret = pem_aes_decrypt( pem_iv, 16, buf, len, pwd, pwdlen );
         else if( enc_alg == MBEDTLS_CIPHER_AES_192_CBC )
-            pem_aes_decrypt( pem_iv, 24, buf, len, pwd, pwdlen );
+            ret = pem_aes_decrypt( pem_iv, 24, buf, len, pwd, pwdlen );
         else if( enc_alg == MBEDTLS_CIPHER_AES_256_CBC )
-            pem_aes_decrypt( pem_iv, 32, buf, len, pwd, pwdlen );
+            ret = pem_aes_decrypt( pem_iv, 32, buf, len, pwd, pwdlen );
 #endif /* MBEDTLS_AES_C */
+
+        if( ret != 0 )
+        {
+            mbedtls_free( buf );
+            return( ret );
+        }
 
         /*
          * The result will be ASN.1 starting with a SEQUENCE tag, with 1 to 3

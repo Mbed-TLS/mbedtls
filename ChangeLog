@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.1.10 branch released 2017-xx-xx
+= mbed TLS 2.1.10 branch released xxxx-xx-xx
 
 Security
    * Fix a potential heap buffer overflow in mbedtls_ssl_write. When the (by
@@ -33,6 +33,8 @@ Bugfix
      failed, the error may not be noticed by the function
      mbedtls_pem_read_buffer() causing it to return invalid values. Found by
      Guido Vranken. #756
+   * Include configuration file in md.h, to fix compilation warnings.
+     Reported by aaronmdjones in #1001
 
 = mbed TLS 2.1.9 branch released 2017-08-10
 

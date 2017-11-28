@@ -1,0 +1,42 @@
+/* BEGIN_HEADER */
+#include "mbedtls/x509.h"
+#include "mbedtls/x509_ocsp.h"
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_X509_OCSP_PARSE_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void x509parse_ocsp_response( char *resp_data, char *result_str, int result )
+{
+    mbedtls_x509_ocsp_response resp;
+    unsigned char resp_der[2000];
+    char resp_info[2000];
+    int data_len, ret;
+
+    mbedtls_x509_ocsp_response_init( &resp );
+    memset( resp_der, 0, sizeof( resp_der ) );
+    memset( resp_info, 0, sizeof( resp_info ) );
+
+    data_len = unhexify( resp_der, resp_data );
+
+    TEST_ASSERT( mbedtls_x509_ocsp_parse_response( &resp, resp_der,
+                                                   data_len ) == result );
+    if( result == 0 )
+    {
+        ret = mbedtls_x509_ocsp_response_info( resp_info, sizeof( resp_info ),
+                                               "", &resp );
+        TEST_ASSERT( ret >= 0 );
+        ret = strcmp( result_str, resp_info );
+        if( ret != 0 )
+            mbedtls_printf( "Expected:\n%s\n===========\nReceived:\n%s\n",
+                            result_str, resp_info );
+        TEST_ASSERT( ret == 0 );
+    }
+
+exit:
+    mbedtls_x509_ocsp_response_free( &resp );
+}
+/* END_CASE */

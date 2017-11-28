@@ -471,7 +471,7 @@ int mbedtls_net_poll( mbedtls_net_context *ctx, uint32_t rw, uint32_t timeout )
     tv.tv_usec = ( timeout % 1000 ) * 1000;
 
     ret = select( fd + 1, &read_fds, &write_fds, NULL,
-                  timeout == (uint32_t) -1u ? NULL : &tv );
+                  timeout == (uint32_t) -1 ? NULL : &tv );
 
     if( ret < 0 )
         return( MBEDTLS_ERR_NET_POLL_FAILED );

@@ -642,11 +642,17 @@
 #error "MBEDTLS_X509_CSR_PARSE_C defined, but not all prerequisites"
 #endif
 
+/*
+ * RFC 6960 Section 4.3 states that "clients that request OCSP services SHALL
+ * be capable of processing responses signed using RSA with SHA-256".
+ * Therefore, we require MBEDTLS_RSA_C and MBEDTLS_SHA256_C when OCSP is
+ * enabled.
+ */
 #if defined(MBEDTLS_X509_OCSP_PARSE_C) && ( !defined(MBEDTLS_X509_USE_C) || \
     !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_MD_C) || \
     !defined(MBEDTLS_OID_C) || !defined(MBEDTLS_ASN1_PARSE_C) || \
     !defined(MBEDTLS_PK_C) || !defined(MBEDTLS_RSA_C) || \
-    !defined(MBEDTLS_SHA1_C) || !defined(MBEDTLS_SHA256_C) )
+    !defined(MBEDTLS_SHA256_C) )
 #error "MBEDTLS_X509_OCSP_PARSE_C defined, but not all prerequisites"
 #endif
 

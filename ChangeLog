@@ -18,6 +18,7 @@ Security
      application layer can be forced into sending such large packets. The issue
      was independently reported by Tim Nordell via e-mail and by Florin Petriuc
      and sjorsdewit on GitHub. Fix proposed by Florin Petriuc in #1022. Fixes #707.
+   * Tighten should-be-constant-time memcmp against compiler optimizations.
 
 Features
    * Allow comments in test data files.

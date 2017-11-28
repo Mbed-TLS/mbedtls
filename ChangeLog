@@ -21,6 +21,8 @@ Security
    * Tighten should-be-constant-time memcmp against compiler optimizations.
    * Ensure that buffers are cleared after use if they contain sensitive data.
      Changes were introduced in multiple places in the library.
+   * Set PEM buffer to zero before freeing it, to avoid decoded private keys
+     being leaked to memory after release.
 
 Bugfix
    * Fix some invalid RSA-PSS signatures with keys of size 8N+1 that were

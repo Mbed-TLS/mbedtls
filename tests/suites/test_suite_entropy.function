@@ -40,7 +40,7 @@ static int entropy_dummy_source( void *data, unsigned char *output,
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:POLARSSL_FS_IO */
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO:ENTROPY_HAVE_DEFAULT */
 void entropy_seed_file( char *path, int ret )
 {
     entropy_context ctx;
@@ -78,7 +78,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:ENTROPY_HAVE_DEFAULT */
 void entropy_func_len( int len, int ret )
 {
     entropy_context ctx;
@@ -137,7 +137,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:ENTROPY_HAVE_DEFAULT */
 void entropy_threshold( int threshold, int chunk_size, int result )
 {
     entropy_context ctx;
@@ -167,7 +167,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_SELF_TEST */
+/* BEGIN_CASEdepends_on:ENTROPY_HAVE_DEFAULT:POLARSSL_SELF_TEST */
 void entropy_selftest( )
 {
     TEST_ASSERT( entropy_self_test( 0 ) == 0 );

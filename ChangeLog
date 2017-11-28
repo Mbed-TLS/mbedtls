@@ -30,6 +30,7 @@ Bugfix
      RSA implementations. Raised by J.B. in the Mbed TLS forum. Fixes #1011.
    * Don't print X.509 version tag for v1 CRT's, and omit extensions for
      non-v3 CRT's.
+   * Fix bugs in RSA test suite under MBEDTLS_NO_PLATFORM_ENTROPY. #1023 #1024
 
 Changes
    * Extend cert_write example program by options to set the CRT version

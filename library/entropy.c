@@ -61,6 +61,9 @@ void entropy_init( entropy_context *ctx )
 {
     memset( ctx, 0, sizeof(entropy_context) );
 
+    /* Reminder: Update ENTROPY_HAVE_DEFAULT in the test files
+      * when adding more strong entropy sources here. */
+
 #if defined(POLARSSL_THREADING_C)
     polarssl_mutex_init( &ctx->mutex );
 #endif

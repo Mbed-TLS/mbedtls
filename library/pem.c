@@ -393,6 +393,8 @@ int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
 
 void pem_free( pem_context *ctx )
 {
+    if ( ctx->buf != NULL )
+        polarssl_zeroize( ctx->buf, ctx->buflen );
     polarssl_free( ctx->buf );
     polarssl_free( ctx->info );
 

@@ -135,45 +135,53 @@ static void pem_pbkdf1( unsigned char *key, size_t keylen,
 /*
  * Decrypt with DES-CBC, using PBKDF1 for key derivation
  */
-static void pem_des_decrypt( unsigned char des_iv[8],
-                               unsigned char *buf, size_t buflen,
-                               const unsigned char *pwd, size_t pwdlen )
+static int pem_des_decrypt( unsigned char des_iv[8],
+                            unsigned char *buf, size_t buflen,
+                            const unsigned char *pwd, size_t pwdlen )
 {
     des_context des_ctx;
     unsigned char des_key[8];
+    int ret;
 
     des_init( &des_ctx );
 
     pem_pbkdf1( des_key, 8, des_iv, pwd, pwdlen );
 
-    des_setkey_dec( &des_ctx, des_key );
-    des_crypt_cbc( &des_ctx, DES_DECRYPT, buflen,
-                     des_iv, buf, buf );
+    if( ( ret = des_setkey_dec( &des_ctx, des_key ) ) != 0 )
+        goto exit;
+    ret = des_crypt_cbc( &des_ctx, DES_DECRYPT, buflen, des_iv, buf, buf );
 
+exit:
     des_free( &des_ctx );
     polarssl_zeroize( des_key, 8 );
+
+    return( ret );
 }
 
 /*
  * Decrypt with 3DES-CBC, using PBKDF1 for key derivation
  */
-static void pem_des3_decrypt( unsigned char des3_iv[8],
-                               unsigned char *buf, size_t buflen,
-                               const unsigned char *pwd, size_t pwdlen )
+static int pem_des3_decrypt( unsigned char des3_iv[8],
+                             unsigned char *buf, size_t buflen,
+                             const unsigned char *pwd, size_t pwdlen )
 {
     des3_context des3_ctx;
     unsigned char des3_key[24];
+    int ret;
 
     des3_init( &des3_ctx );
 
     pem_pbkdf1( des3_key, 24, des3_iv, pwd, pwdlen );
 
-    des3_set3key_dec( &des3_ctx, des3_key );
-    des3_crypt_cbc( &des3_ctx, DES_DECRYPT, buflen,
-                     des3_iv, buf, buf );
+    if( ( ret = des3_set3key_dec( &des3_ctx, des3_key ) ) != 0 )
+        goto exit;
+    ret = des3_crypt_cbc( &des3_ctx, DES_DECRYPT, buflen, des3_iv, buf, buf );
 
+exit:
     des3_free( &des3_ctx );
     polarssl_zeroize( des3_key, 24 );
+
+    return( ret );
 }
 #endif /* POLARSSL_DES_C */
 
@@ -181,23 +189,27 @@ static void pem_des3_decrypt( unsigned char des3_iv[8],
 /*
  * Decrypt with AES-XXX-CBC, using PBKDF1 for key derivation
  */
-static void pem_aes_decrypt( unsigned char aes_iv[16], unsigned int keylen,
-                               unsigned char *buf, size_t buflen,
-                               const unsigned char *pwd, size_t pwdlen )
+static int pem_aes_decrypt( unsigned char aes_iv[16], unsigned int keylen,
+                            unsigned char *buf, size_t buflen,
+                            const unsigned char *pwd, size_t pwdlen )
 {
     aes_context aes_ctx;
     unsigned char aes_key[32];
+    int ret;
 
     aes_init( &aes_ctx );
 
     pem_pbkdf1( aes_key, keylen, aes_iv, pwd, pwdlen );
 
-    aes_setkey_dec( &aes_ctx, aes_key, keylen * 8 );
-    aes_crypt_cbc( &aes_ctx, AES_DECRYPT, buflen,
-                     aes_iv, buf, buf );
+    if( ( ret = aes_setkey_dec( &aes_ctx, aes_key, keylen * 8 ) ) != 0 )
+        goto exit;
+    ret = aes_crypt_cbc( &aes_ctx, AES_DECRYPT, buflen, aes_iv, buf, buf );
 
+exit:
     aes_free( &aes_ctx );
     polarssl_zeroize( aes_key, keylen );
+
+    return( ret );
 }
 #endif /* POLARSSL_AES_C */
 
@@ -347,21 +359,29 @@ int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
             return( POLARSSL_ERR_PEM_PASSWORD_REQUIRED );
         }
 
+        ret = 0;
+
 #if defined(POLARSSL_DES_C)
         if( enc_alg == POLARSSL_CIPHER_DES_EDE3_CBC )
-            pem_des3_decrypt( pem_iv, buf, len, pwd, pwdlen );
+            ret = pem_des3_decrypt( pem_iv, buf, len, pwd, pwdlen );
         else if( enc_alg == POLARSSL_CIPHER_DES_CBC )
-            pem_des_decrypt( pem_iv, buf, len, pwd, pwdlen );
+            ret = pem_des_decrypt( pem_iv, buf, len, pwd, pwdlen );
 #endif /* POLARSSL_DES_C */
 
 #if defined(POLARSSL_AES_C)
         if( enc_alg == POLARSSL_CIPHER_AES_128_CBC )
-            pem_aes_decrypt( pem_iv, 16, buf, len, pwd, pwdlen );
+            ret = pem_aes_decrypt( pem_iv, 16, buf, len, pwd, pwdlen );
         else if( enc_alg == POLARSSL_CIPHER_AES_192_CBC )
-            pem_aes_decrypt( pem_iv, 24, buf, len, pwd, pwdlen );
+            ret = pem_aes_decrypt( pem_iv, 24, buf, len, pwd, pwdlen );
         else if( enc_alg == POLARSSL_CIPHER_AES_256_CBC )
-            pem_aes_decrypt( pem_iv, 32, buf, len, pwd, pwdlen );
+            ret = pem_aes_decrypt( pem_iv, 32, buf, len, pwd, pwdlen );
 #endif /* POLARSSL_AES_C */
+
+        if( ret != 0 )
+        {
+            polarssl_free( buf );
+            return( ret );
+        }
 
         /*
          * The result will be ASN.1 starting with a SEQUENCE tag, with 1 to 3

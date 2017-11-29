@@ -33,6 +33,8 @@ Bugfix
    * Fix bugs in RSA test suite under MBEDTLS_NO_PLATFORM_ENTROPY. #1023 #1024
    * Fix net_would_block to avoid modification by errno through fcntl call.
      Found by nkolban. Fixes #845.
+   * Fix handling of handshake messages in ssl_read in case
+     POLARSSL_SSL_DISABLE_RENEGOTIATION is set. Found by erja-gp.
 
 Changes
    * Extend cert_write example program by options to set the CRT version

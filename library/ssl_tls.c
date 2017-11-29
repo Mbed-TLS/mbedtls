@@ -721,13 +721,6 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
              * HMAC implementation which also truncates the key
              * (Mbed TLS versions from 1.3 to 2.6.0) */
             mac_key_len = transform->maclen;
-
-#if defined(MBEDTLS_DEPRECATED_WARNING)
-#warning MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT is deprecated and should only be \
-    enabled temporarily when (1) the use of truncated HMAC is essential in order \
-    to save bandwidth, and (2) the peer is an Mbed TLS stack that doesn not use the \
-    fixed implementation yet (version number <= 2.6.0).
-#endif
 #endif
         }
 #endif /* MBEDTLS_SSL_TRUNCATED_HMAC */

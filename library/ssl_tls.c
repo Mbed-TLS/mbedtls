@@ -4762,7 +4762,6 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
             }
         }
 
-#if defined(POLARSSL_SSL_RENEGOTIATION)
         if( ssl->in_msgtype == SSL_MSG_HANDSHAKE )
         {
             SSL_DEBUG_MSG( 1, ( "received handshake message" ) );
@@ -4777,10 +4776,22 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
             }
 #endif
 
-            if( ssl->disable_renegotiation == SSL_RENEGOTIATION_DISABLED ||
-                ( ssl->secure_renegotiation == SSL_LEGACY_RENEGOTIATION &&
-                  ssl->allow_legacy_renegotiation ==
-                                                SSL_LEGACY_NO_RENEGOTIATION ) )
+#if defined(POLARSSL_SSL_RENEGOTIATION)
+            if( ! ( ssl->disable_renegotiation == SSL_RENEGOTIATION_DISABLED ||
+                    ( ssl->secure_renegotiation == SSL_LEGACY_RENEGOTIATION &&
+                      ssl->allow_legacy_renegotiation ==
+                                                   SSL_LEGACY_NO_RENEGOTIATION ) ) )
+            {
+                ret = ssl_start_renegotiation( ssl );
+                if( ret != POLARSSL_ERR_SSL_WAITING_SERVER_HELLO_RENEGO &&
+                    ret != 0 )
+                {
+                    SSL_DEBUG_RET( 1, "ssl_start_renegotiation", ret );
+                    return( ret );
+                }
+            }
+            else
+#endif /* POLARSSL_SSL_RENEGOTIATION */
             {
                 SSL_DEBUG_MSG( 3, ( "ignoring renegotiation, sending alert" ) );
 
@@ -4814,19 +4825,10 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
                     return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
                 }
             }
-            else
-            {
-                ret = ssl_start_renegotiation( ssl );
-                if( ret != POLARSSL_ERR_SSL_WAITING_SERVER_HELLO_RENEGO &&
-                    ret != 0 )
-                {
-                    SSL_DEBUG_RET( 1, "ssl_start_renegotiation", ret );
-                    return( ret );
-                }
-            }
 
             return( POLARSSL_ERR_NET_WANT_READ );
         }
+#if defined(POLARSSL_SSL_RENEGOTIATION)
         else if( ssl->renegotiation == SSL_RENEGOTIATION_PENDING )
         {
             ssl->renego_records_seen++;

@@ -35,7 +35,11 @@
 #define MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR                -0x003A  /**< Read/write error in file. */
 
 #define MBEDTLS_CTR_DRBG_BLOCKSIZE          16      /**< Block size used by the cipher                  */
+
+#if !defined(MBEDTLS_CTR_DRBG_KEYSIZE)
 #define MBEDTLS_CTR_DRBG_KEYSIZE            32      /**< Key size used by the cipher                    */
+#endif
+
 #define MBEDTLS_CTR_DRBG_KEYBITS            ( MBEDTLS_CTR_DRBG_KEYSIZE * 8 )
 #define MBEDTLS_CTR_DRBG_SEEDLEN            ( MBEDTLS_CTR_DRBG_KEYSIZE + MBEDTLS_CTR_DRBG_BLOCKSIZE )
                                             /**< The seed length (counter + AES key)            */
@@ -94,8 +98,11 @@ typedef struct
                                       (re)seed          */
     int reseed_interval;        /*!<  reseed interval   */
 
-    mbedtls_aes_context aes_ctx;        /*!<  AES context       */
-
+#if defined(MBEDTLS_CTR_DRBG_ABI_COMPAT)
+    mbedtls_aes_context aes_ctx;  /*!<  AES context       */
+#else
+    unsigned char aes_key[MBEDTLS_CTR_DRBG_KEYSIZE]; /*! secret AES KEY */
+#endif
     /*
      * Callbacks (Entropy)
      */

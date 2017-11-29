@@ -79,11 +79,14 @@ int mbedtls_ctr_drbg_seed_entropy_len(
                    size_t entropy_len )
 {
     int ret;
+
+#if defined(MBEDTLS_CTR_DRBG_ABI_COMPAT)
     unsigned char key[MBEDTLS_CTR_DRBG_KEYSIZE];
 
     memset( key, 0, MBEDTLS_CTR_DRBG_KEYSIZE );
 
     mbedtls_aes_init( &ctx->aes_ctx );
+#endif
 
     ctx->f_entropy = f_entropy;
     ctx->p_entropy = p_entropy;
@@ -94,7 +97,11 @@ int mbedtls_ctr_drbg_seed_entropy_len(
     /*
      * Initialize with an empty key
      */
+#if defined(MBEDTLS_CTR_DRBG_ABI_COMPAT)
     mbedtls_aes_setkey_enc( &ctx->aes_ctx, key, MBEDTLS_CTR_DRBG_KEYBITS );
+#else
+    memset( ctx->aes_key, 0, MBEDTLS_CTR_DRBG_KEYSIZE );
+#endif
 
     if( ( ret = mbedtls_ctr_drbg_reseed( ctx, custom, len ) ) != 0 )
         return( ret );
@@ -120,7 +127,9 @@ void mbedtls_ctr_drbg_free( mbedtls_ctr_drbg_context *ctx )
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_free( &ctx->mutex );
 #endif
+#if defined(MBEDTLS_CTR_DRBG_ABI_COMPAT)
     mbedtls_aes_free( &ctx->aes_ctx );
+#endif
     mbedtls_zeroize( ctx, sizeof( mbedtls_ctr_drbg_context ) );
 }
 
@@ -236,6 +245,13 @@ static int ctr_drbg_update_internal( mbedtls_ctr_drbg_context *ctx,
     unsigned char *p = tmp;
     int i, j;
 
+#if !defined(MBEDTLS_CTR_DRBG_ABI_COMPAT)
+    mbedtls_aes_context aes_ctx;
+
+    mbedtls_aes_init( &aes_ctx );
+    mbedtls_aes_setkey_enc( &aes_ctx, ctx->aes_key, MBEDTLS_CTR_DRBG_KEYBITS );
+#endif
+
     memset( tmp, 0, MBEDTLS_CTR_DRBG_SEEDLEN );
 
     for( j = 0; j < MBEDTLS_CTR_DRBG_SEEDLEN; j += MBEDTLS_CTR_DRBG_BLOCKSIZE )
@@ -250,7 +266,11 @@ static int ctr_drbg_update_internal( mbedtls_ctr_drbg_context *ctx,
         /*
          * Crypt counter block
          */
+#if defined(MBEDTLS_CTR_DRBG_ABI_COMPAT)
         mbedtls_aes_crypt_ecb( &ctx->aes_ctx, MBEDTLS_AES_ENCRYPT, ctx->counter, p );
+#else
+        mbedtls_aes_crypt_ecb( &aes_ctx, MBEDTLS_AES_ENCRYPT, ctx->counter, p );
+#endif
 
         p += MBEDTLS_CTR_DRBG_BLOCKSIZE;
     }
@@ -261,7 +281,12 @@ static int ctr_drbg_update_internal( mbedtls_ctr_drbg_context *ctx,
     /*
      * Update key and counter
      */
+#if defined(MBEDTLS_CTR_DRBG_ABI_COMPAT)
     mbedtls_aes_setkey_enc( &ctx->aes_ctx, tmp, MBEDTLS_CTR_DRBG_KEYBITS );
+#else
+    memcpy( ctx->aes_key, tmp, MBEDTLS_CTR_DRBG_KEYSIZE );
+#endif
+
     memcpy( ctx->counter, tmp + MBEDTLS_CTR_DRBG_KEYSIZE, MBEDTLS_CTR_DRBG_BLOCKSIZE );
 
     return( 0 );
@@ -342,6 +367,13 @@ int mbedtls_ctr_drbg_random_with_add( void *p_rng,
     int i;
     size_t use_len;
 
+#if !defined(MBEDTLS_CTR_DRBG_ABI_COMPAT)
+    int j;
+    mbedtls_aes_context aes_ctx;
+
+    mbedtls_aes_init( &aes_ctx );
+#endif
+
     if( output_len > MBEDTLS_CTR_DRBG_MAX_REQUEST )
         return( MBEDTLS_ERR_CTR_DRBG_REQUEST_TOO_BIG );
 
@@ -365,8 +397,13 @@ int mbedtls_ctr_drbg_random_with_add( void *p_rng,
         ctr_drbg_update_internal( ctx, add_input );
     }
 
+#if !defined(MBEDTLS_CTR_DRBG_ABI_COMPAT)
+    mbedtls_aes_setkey_enc( &aes_ctx, ctx->aes_key, MBEDTLS_CTR_DRBG_KEYBITS );
+#endif
+
     while( output_len > 0 )
     {
+
         /*
          * Increase counter
          */
@@ -377,7 +414,11 @@ int mbedtls_ctr_drbg_random_with_add( void *p_rng,
         /*
          * Crypt counter block
          */
+#if defined(MBEDTLS_CTR_DRBG_ABI_COMPAT)
         mbedtls_aes_crypt_ecb( &ctx->aes_ctx, MBEDTLS_AES_ENCRYPT, ctx->counter, tmp );
+#else
+        mbedtls_aes_crypt_ecb( &aes_ctx, MBEDTLS_AES_ENCRYPT, ctx->counter, tmp );
+#endif
 
         use_len = ( output_len > MBEDTLS_CTR_DRBG_BLOCKSIZE ) ? MBEDTLS_CTR_DRBG_BLOCKSIZE :
                                                        output_len;
@@ -389,7 +430,30 @@ int mbedtls_ctr_drbg_random_with_add( void *p_rng,
         output_len -= use_len;
     }
 
+#if defined(MBEDTLS_CTR_DRBG_ABI_COMPAT)
     ctr_drbg_update_internal( ctx, add_input );
+#else
+    // avoid double initialization of key for each call
+
+    for( j = 0; j < MBEDTLS_CTR_DRBG_SEEDLEN; j += MBEDTLS_CTR_DRBG_BLOCKSIZE )
+    {
+        // counter mode
+        for( i = MBEDTLS_CTR_DRBG_BLOCKSIZE; i > 0; i-- )
+            if( ++ctx->counter[i - 1] != 0 )
+                break;
+        mbedtls_aes_crypt_ecb( &aes_ctx, MBEDTLS_AES_ENCRYPT, ctx->counter, tmp );
+
+        for (i = 0; i < MBEDTLS_CTR_DRBG_BLOCKSIZE; i++)
+            add_input[j + i] ^= tmp[i];
+    }
+
+    /*
+     * Update key and counter
+     */
+    memcpy( ctx->aes_key, add_input, MBEDTLS_CTR_DRBG_KEYSIZE );
+    memcpy( ctx->counter, add_input + MBEDTLS_CTR_DRBG_KEYSIZE, MBEDTLS_CTR_DRBG_BLOCKSIZE );
+
+#endif
 
     ctx->reseed_counter++;
 

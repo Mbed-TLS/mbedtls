@@ -1785,6 +1785,14 @@
 #define MBEDTLS_CTR_DRBG_C
 
 /**
+ * \def MBEDTLS_CTR_DRBG_ABI_COMPAT
+ *
+ * Enables compatible ABI for DRBG. 
+ * Disabling this shrinks the size of mbedtls_ctr_drbg_context by ~248 bytes.
+ */
+#define MBEDTLS_CTR_DRBG_ABI_COMPAT
+
+/**
  * \def MBEDTLS_DEBUG_C
  *
  * Enable the debug functions.

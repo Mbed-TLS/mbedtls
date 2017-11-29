@@ -11,6 +11,8 @@ Security
      side.
 
 Bugfix
+   * Fix typo in ssl.h leading to a too small value of SSL_MAC_ADD
+     in case CBC is disabled but ARC4 is enabled.
    * Fix memory leak in ssl_set_hostname() when called multiple times.
      Found by projectgus and jethrogb, #836.
    * Fix usage help in ssl_server2 example. Found and fixed by Bei Lin.

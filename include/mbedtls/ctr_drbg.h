@@ -101,7 +101,7 @@ typedef struct
 #if defined(MBEDTLS_CTR_DRBG_ABI_COMPAT)
     mbedtls_aes_context aes_ctx;  /*!<  AES context       */
 #else
-    unsigned char aes_key[MBEDTLS_CTR_DRBG_KEYSIZE]; /*! secret AES KEY */
+    unsigned char aes_key[MBEDTLS_CTR_DRBG_KEYSIZE]; /*!< secret AES key */
 #endif
     /*
      * Callbacks (Entropy)

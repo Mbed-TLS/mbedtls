@@ -445,7 +445,7 @@ int mbedtls_ctr_drbg_random_with_add( void *p_rng,
                 break;
         mbedtls_aes_crypt_ecb( &aes_ctx, MBEDTLS_AES_ENCRYPT, ctx->counter, tmp );
 
-        for (i = 0; i < MBEDTLS_CTR_DRBG_BLOCKSIZE; i++)
+        for( i = 0; i < MBEDTLS_CTR_DRBG_BLOCKSIZE; i++ )
             add_input[j + i] ^= tmp[i];
     }
 

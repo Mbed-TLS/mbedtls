@@ -10,11 +10,13 @@ Security
      corrupt 6 bytes on the peer's heap, potentially leading to crash or
      remote code execution. This can be triggered remotely from either
      side in both TLS and DTLS.
+   * Fix implementation of truncated HMAC extension leading to
+     compatibility problems with non Mbed TLS peers and allowing
+     an offline 2^80 brute force attack on the HMAC key of a single,
+     uninterrupted (excluding session resumption) connection.
+     Found by Andreas Walz.
 
 Bugfix
-   * Fix wrong implementation of truncated HMAC extension leading to
-     compatibility problems with peers not running Mbed TLS. Found by
-     Andreas Walz.
    * Fix ssl_parse_record_header() to silently discard invalid DTLS records
      as recommended in RFC 6347 Section 4.1.2.7.
    * Fix memory leak in mbedtls_ssl_set_hostname() when called multiple times.

@@ -65,14 +65,8 @@
 #endif /* MBEDTLS_SELF_TEST */
 #endif /* MBEDTLS_PLATFORM_C */
 
-#if !defined(MBEDTLS_CMAC_ALT)
 
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = (unsigned char*)v; while( n-- ) *p++ = 0;
-}
-
-#if defined(MBEDTLS_SELF_TEST)
+#if !defined(MBEDTLS_CMAC_ALT) || defined(MBEDTLS_SELF_TEST)
 /*
  * Multiplication by u in the Galois field of GF(2^n)
  *
@@ -167,7 +161,16 @@ exit:
 
     return( ret );
 }
-#endif //defined(MBEDTLS_SELF_TEST)
+#endif //!defined(MBEDTLS_CMAC_ALT) || defined(MBEDTLS_SELF_TEST)
+
+
+#if !defined(MBEDTLS_CMAC_ALT)
+
+/* Implementation that should never be optimized out by the compiler */
+static void mbedtls_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = (unsigned char*)v; while( n-- ) *p++ = 0;
+}
+
 
 static void cmac_xor_block( unsigned char *output, const unsigned char *input1,
                             const unsigned char *input2,

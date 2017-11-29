@@ -289,6 +289,9 @@ static int ctr_drbg_update_internal( mbedtls_ctr_drbg_context *ctx,
 
     memcpy( ctx->counter, tmp + MBEDTLS_CTR_DRBG_KEYSIZE, MBEDTLS_CTR_DRBG_BLOCKSIZE );
 
+#if !defined(MBEDTLS_CTR_DRBG_ABI_COMPAT)
+    mbedtls_aes_free( &aes_ctx );
+#endif
     return( 0 );
 }
 
@@ -434,7 +437,6 @@ int mbedtls_ctr_drbg_random_with_add( void *p_rng,
     ctr_drbg_update_internal( ctx, add_input );
 #else
     // avoid double initialization of key for each call
-
     for( j = 0; j < MBEDTLS_CTR_DRBG_SEEDLEN; j += MBEDTLS_CTR_DRBG_BLOCKSIZE )
     {
         // counter mode
@@ -453,6 +455,7 @@ int mbedtls_ctr_drbg_random_with_add( void *p_rng,
     memcpy( ctx->aes_key, add_input, MBEDTLS_CTR_DRBG_KEYSIZE );
     memcpy( ctx->counter, add_input + MBEDTLS_CTR_DRBG_KEYSIZE, MBEDTLS_CTR_DRBG_BLOCKSIZE );
 
+    mbedtls_aes_free( &aes_ctx );
 #endif
 
     ctx->reseed_counter++;

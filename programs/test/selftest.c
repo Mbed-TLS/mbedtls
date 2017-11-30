@@ -44,6 +44,7 @@
 #include "mbedtls/des.h"
 #include "mbedtls/aes.h"
 #include "mbedtls/camellia.h"
+#include "mbedtls/aria.h"
 #include "mbedtls/base64.h"
 #include "mbedtls/bignum.h"
 #include "mbedtls/rsa.h"
@@ -328,6 +329,14 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_CAMELLIA_C)
     if( mbedtls_camellia_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
+#endif
+
+#if defined(MBEDTLS_ARIA_C)
+    if( mbedtls_aria_self_test( v ) != 0 )
     {
         suites_failed++;
     }

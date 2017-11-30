@@ -29,7 +29,7 @@ if( @ARGV ) {
 
 my $error_format_file = $data_dir.'/error.fmt';
 
-my @low_level_modules = ( "AES", "ASN1", "BLOWFISH", "CAMELLIA", "BIGNUM",
+my @low_level_modules = ( "AES", "ASN1", "BLOWFISH", "CAMELLIA", "ARIA", "BIGNUM",
                           "BASE64", "XTEA", "PBKDF2", "OID",
                           "PADLOCK", "DES", "NET", "CTR_DRBG", "ENTROPY",
                           "HMAC_DRBG", "MD2", "MD4", "MD5", "RIPEMD160",

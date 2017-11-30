@@ -651,22 +651,14 @@ static const uint8_t aria_test1_ecb_ct[3][16] =         // ciphertext
 // Mode tests from "Test Vectors for ARIA"  Version 1.0
 // http://210.104.33.10/ARIA/doc/ARIA-testvector-e.pdf
 
-#if (defined(MBEDTLS_CIPHER_MODE_CBC) || \
-    defined(MBEDTLS_CIPHER_MODE_CFB) || \
+#if (defined(MBEDTLS_CIPHER_MODE_CBC) || defined(MBEDTLS_CIPHER_MODE_CFB) || \
     defined(MBEDTLS_CIPHER_MODE_CTR))
-
 static const uint8_t aria_test2_key[32] =
 {
     0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,     // 128 bit
     0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff,
     0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,     // 192 bit
     0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff      // 256 bit
-};
-
-static const uint8_t aria_test2_iv[16] =
-{
-    0x0f, 0x1e, 0x2d, 0x3c, 0x4b, 0x5a, 0x69, 0x78,     // same for all
-    0x87, 0x96, 0xa5, 0xb4, 0xc3, 0xd2, 0xe1, 0xf0
 };
 
 static const uint8_t aria_test2_pt[48] =
@@ -678,10 +670,15 @@ static const uint8_t aria_test2_pt[48] =
     0x22, 0x22, 0x22, 0x22, 0xaa, 0xaa, 0xaa, 0xaa,
     0x22, 0x22, 0x22, 0x22, 0xbb, 0xbb, 0xbb, 0xbb,
 };
+#endif
 
-#endif /* defined(MBEDTLS_CIPHER_MODE_CBC) || \
-        defined(MBEDTLS_CIPHER_MODE_CFB) || \
-        defined(MBEDTLS_CIPHER_MODE_CTR) */
+#if (defined(MBEDTLS_CIPHER_MODE_CBC) || defined(MBEDTLS_CIPHER_MODE_CFB))
+static const uint8_t aria_test2_iv[16] =
+{
+    0x0f, 0x1e, 0x2d, 0x3c, 0x4b, 0x5a, 0x69, 0x78,     // same for CBC, CFB
+    0x87, 0x96, 0xa5, 0xb4, 0xc3, 0xd2, 0xe1, 0xf0      // CTR has zero IV
+};
+#endif
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 static const uint8_t aria_test2_cbc_ct[3][48] =         // CBC ciphertxt
@@ -774,10 +771,15 @@ int mbedtls_aria_self_test( int verbose )
     int i;
     uint8_t blk[16];
     mbedtls_aria_context ctx;
+
+#if (defined(MBEDTLS_CIPHER_MODE_CFB) || \
+     defined(MBEDTLS_CIPHER_MODE_CTR))
+	size_t j;
+#endif
+
 #if (defined(MBEDTLS_CIPHER_MODE_CBC) || \
      defined(MBEDTLS_CIPHER_MODE_CFB) || \
      defined(MBEDTLS_CIPHER_MODE_CTR))
-    size_t j;
     uint8_t buf[48], iv[16];
 #endif
 

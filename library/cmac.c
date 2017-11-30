@@ -161,7 +161,7 @@ exit:
 
     return( ret );
 }
-#endif //!defined(MBEDTLS_CMAC_ALT) || defined(MBEDTLS_SELF_TEST)
+#endif /* !defined(MBEDTLS_CMAC_ALT) || defined(MBEDTLS_SELF_TEST) */
 
 
 #if !defined(MBEDTLS_CMAC_ALT)

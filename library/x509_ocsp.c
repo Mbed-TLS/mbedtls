@@ -342,7 +342,7 @@ static int x509_ocsp_get_responder_id( unsigned char **p,
                 MBEDTLS_ERR_ASN1_UNEXPECTED_TAG );
 
     if( *p != end )
-        return( MBEDTLS_ERR_X509_INVALID_VERSION +
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT +
                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
 
     return( 0 );
@@ -717,11 +717,7 @@ static int x509_ocsp_get_responses( unsigned char **p,
     size_t len;
     mbedtls_x509_ocsp_single_response *cur = single_resp;
 
-    /*
-     * responses               SEQUENCE OF SingleResponse
-     *
-     * Note: the standard allows an OCSPResponse that has no responses
-     */
+    /* responses               SEQUENCE OF SingleResponse */
     if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
                     MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
     {
@@ -729,6 +725,18 @@ static int x509_ocsp_get_responses( unsigned char **p,
     }
 
     end = *p + len;
+
+    /*
+     * Strictly speaking the SEQUENCE OF tag can contain 0 or more
+     * SingleResponse objects, but RFC 6960 Section 4.1.1 states that the
+     * requestList contains one or more single certificate status requests and
+     * Section 4.2.2.3 states that the response MUST include a SingleResponse
+     * for each certificate in the request. Therefore, an empty responses field
+     * is failure
+     */
+    if( *p == end )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT +
+                MBEDTLS_ERR_ASN1_OUT_OF_DATA );
 
     while( *p < end )
     {
@@ -740,7 +748,7 @@ static int x509_ocsp_get_responses( unsigned char **p,
              * mbedtls_x509_ocsp_single_response
              */
             if( cur->next != NULL )
-                return( MBEDTLS_ERR_X509_INVALID_FORMAT );
+                return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
 
             cur->next = mbedtls_calloc( 1,
                                 sizeof( mbedtls_x509_ocsp_single_response ) );
@@ -1124,9 +1132,8 @@ int mbedtls_x509_ocsp_parse_response( mbedtls_x509_ocsp_response *resp,
     /*
      * Check if responseBytes should be present in the response
      *
-     * The responseBytes will only be present when the responseStatus is
-     * success, in all other cases the responseBytes is not set. Refer to:
-     * RFC 6960 Sections 4.4.1, 2.2 and 2.3
+     * TODO: It is unclear whether the responseBytes will be included when the
+     * response status is a failure. Test missing...
      */
     if( resp->resp_status != MBEDTLS_X509_OCSP_RESPONSE_STATUS_SUCCESSFUL )
     {

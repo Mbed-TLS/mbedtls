@@ -65,6 +65,10 @@
 #include "mbedtls/camellia.h"
 #endif
 
+#if defined(MBEDTLS_ARIA_C)
+#include "mbedtls/aria.h"
+#endif
+
 #if defined(MBEDTLS_CCM_C)
 #include "mbedtls/ccm.h"
 #endif
@@ -641,6 +645,13 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_CAMELLIA_HW_ACCEL_FAILED) )
         mbedtls_snprintf( buf, buflen, "CAMELLIA - Camellia hardware accelerator failed" );
 #endif /* MBEDTLS_CAMELLIA_C */
+
+#if defined(MBEDTLS_ARIA_C)
+    if( use_ret == -(MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH) )
+        mbedtls_snprintf( buf, buflen, "ARIA - Invalid key length" );
+    if( use_ret == -(MBEDTLS_ERR_ARIA_INVALID_INPUT_LENGTH) )
+        mbedtls_snprintf( buf, buflen, "ARIA - Invalid data input length" );
+#endif /* MBEDTLS_ARIA_C */
 
 #if defined(MBEDTLS_CCM_C)
     if( use_ret == -(MBEDTLS_ERR_CCM_BAD_INPUT) )

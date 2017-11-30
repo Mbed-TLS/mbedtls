@@ -525,6 +525,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_CAMELLIA_C)
     "MBEDTLS_CAMELLIA_C",
 #endif /* MBEDTLS_CAMELLIA_C */
+#if defined(MBEDTLS_ARIA_C)
+    "MBEDTLS_ARIA_C",
+#endif /* MBEDTLS_ARIA_C */
 #if defined(MBEDTLS_CCM_C)
     "MBEDTLS_CCM_C",
 #endif /* MBEDTLS_CCM_C */

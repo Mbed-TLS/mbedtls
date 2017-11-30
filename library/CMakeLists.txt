@@ -6,6 +6,7 @@ set(src_crypto
     aes.c
     aesni.c
     arc4.c
+    aria.c
     asn1parse.c
     asn1write.c
     base64.c

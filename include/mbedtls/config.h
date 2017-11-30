@@ -1798,6 +1798,15 @@
 #define MBEDTLS_CAMELLIA_C
 
 /**
+ * \def MBEDTLS_ARIA_C
+ *
+ * Enable the ARIA block cipher.
+ *
+ * Module:  library/aria.c
+ */
+#define MBEDTLS_ARIA_C
+
+/**
  * \def MBEDTLS_CCM_C
  *
  * Enable the Counter with CBC-MAC (CCM) mode for 128-bit block cipher.

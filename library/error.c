@@ -45,6 +45,10 @@
 #include "mbedtls/aes.h"
 #endif
 
+#if defined(MBEDTLS_ARIA_C)
+#include "mbedtls/aria.h"
+#endif
+
 #if defined(MBEDTLS_BASE64_C)
 #include "mbedtls/base64.h"
 #endif
@@ -59,10 +63,6 @@
 
 #if defined(MBEDTLS_CAMELLIA_C)
 #include "mbedtls/camellia.h"
-#endif
-
-#if defined(MBEDTLS_ARIA_C)
-#include "mbedtls/aria.h"
 #endif
 
 #if defined(MBEDTLS_CCM_C)
@@ -524,6 +524,13 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "AES - Invalid data input length" );
 #endif /* MBEDTLS_AES_C */
 
+#if defined(MBEDTLS_ARIA_C)
+    if( use_ret == -(MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH) )
+        mbedtls_snprintf( buf, buflen, "ARIA - Invalid key length" );
+    if( use_ret == -(MBEDTLS_ERR_ARIA_INVALID_INPUT_LENGTH) )
+        mbedtls_snprintf( buf, buflen, "ARIA - Invalid data input length" );
+#endif /* MBEDTLS_ARIA_C */
+
 #if defined(MBEDTLS_ASN1_PARSE_C)
     if( use_ret == -(MBEDTLS_ERR_ASN1_OUT_OF_DATA) )
         mbedtls_snprintf( buf, buflen, "ASN1 - Out of data when parsing an ASN1 data structure" );
@@ -580,13 +587,6 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_CAMELLIA_INVALID_INPUT_LENGTH) )
         mbedtls_snprintf( buf, buflen, "CAMELLIA - Invalid data input length" );
 #endif /* MBEDTLS_CAMELLIA_C */
-
-#if defined(MBEDTLS_ARIA_C)
-    if( use_ret == -(MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH) )
-        mbedtls_snprintf( buf, buflen, "ARIA - Invalid key length" );
-    if( use_ret == -(MBEDTLS_ERR_ARIA_INVALID_INPUT_LENGTH) )
-        mbedtls_snprintf( buf, buflen, "ARIA - Invalid data input length" );
-#endif /* MBEDTLS_ARIA_C */
 
 #if defined(MBEDTLS_CCM_C)
     if( use_ret == -(MBEDTLS_ERR_CCM_BAD_INPUT) )

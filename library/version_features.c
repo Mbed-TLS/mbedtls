@@ -90,6 +90,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_ARC4_ALT)
     "MBEDTLS_ARC4_ALT",
 #endif /* MBEDTLS_ARC4_ALT */
+#if defined(MBEDTLS_ARIA_ALT)
+    "MBEDTLS_ARIA_ALT",
+#endif /* MBEDTLS_ARIA_ALT */
 #if defined(MBEDTLS_BLOWFISH_ALT)
     "MBEDTLS_BLOWFISH_ALT",
 #endif /* MBEDTLS_BLOWFISH_ALT */

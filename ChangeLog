@@ -32,6 +32,12 @@ Security
      Reported by Marco Macchetti, Kudelski Group.
    * Wipe stack buffer temporarily holding EC private exponent
      after keypair generation.
+   * Fix heap corruption in implementation of truncated HMAC extension.
+     When the truncated HMAC extension is enabled and CBC is used,
+     sending a malicious application packet can be used to selectively
+     corrupt 6 bytes on the peer's heap, potentially leading to crash or
+     remote code execution. This can be triggered remotely from either
+     side in both TLS and DTLS.
 
 Bugfix
    * Fix some invalid RSA-PSS signatures with keys of size 8N+1 that were

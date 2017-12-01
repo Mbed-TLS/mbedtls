@@ -663,7 +663,7 @@ static int ssl_parse_alpn_ext( mbedtls_ssl_context *ssl,
  * Return 0 if the given key uses one of the acceptable curves, -1 otherwise
  */
 #if defined(MBEDTLS_ECDSA_C)
-static int ssl_check_key_curve( mbedtls_pk_context *pk,
+static int ssl_check_key_curve( const mbedtls_pk_context *pk,
                                 const mbedtls_ecp_curve_info **curves )
 {
     const mbedtls_ecp_curve_info **crv = curves;

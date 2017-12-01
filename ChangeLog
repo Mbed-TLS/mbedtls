@@ -3,6 +3,12 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS 1.3.22 branch released 2017-xx-xx
 
 Security
+   * Fix heap corruption in implementation of truncated HMAC extension.
+     When the truncated HMAC extension is enabled and CBC is used,
+     sending a malicious application packet can be used to selectively
+     corrupt 6 bytes on the peer's heap, potentially leading to crash or
+     remote code execution. This can be triggered remotely from either
+     side.
    * Fix buffer overflow in RSA-PSS verification when the hash is too
      large for the key size. Found by Seth Terashima, Qualcomm Product
      Security Initiative, Qualcomm Technologies Inc.
@@ -26,6 +32,8 @@ Security
      after keypair generation.
 
 Bugfix
+   * Fix typo in ssl.h leading to a too small value of SSL_MAC_ADD
+     in case CBC is disabled but ARC4 is enabled.
    * Fix memory leak in ssl_set_hostname() when called multiple times.
      Found by projectgus and jethrogb, #836.
    * Fix usage help in ssl_server2 example. Found and fixed by Bei Lin.

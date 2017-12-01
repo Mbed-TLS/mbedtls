@@ -125,7 +125,7 @@
     ta  =   ARIA_FLIP2( ta ) ^ tc ^ rc;                     \
     tb  =   ARIA_FLIP2( rc ) ^ ARIA_FLIP1( rd );            \
     tc  ^=  ARIA_FLIP2( ra );                               \
-    rb  ^=  ta^ tb;                                         \
+    rb  ^=  ta ^ tb;                                        \
     tb  =   ARIA_FLIP1( tb ) ^ ta;                          \
     ra  ^=  ARIA_FLIP2( tb );                               \
     ta  =   ARIA_FLIP1( ta );                               \
@@ -478,7 +478,19 @@ int mbedtls_aria_crypt_ecb( mbedtls_aria_context *ctx,
     return 0;
 }
 
+void mbedtls_aria_init( mbedtls_aria_context *ctx )
+{
+    memset( ctx, 0, sizeof( mbedtls_aria_context ) );
+}
 
+void mbedtls_aria_free( mbedtls_aria_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    // compiler can't remove this since this is not a static function
+    memset( ctx, 0, sizeof( mbedtls_aria_context ) );
+}
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 /*
@@ -772,9 +784,8 @@ int mbedtls_aria_self_test( int verbose )
     uint8_t blk[16];
     mbedtls_aria_context ctx;
 
-#if (defined(MBEDTLS_CIPHER_MODE_CFB) || \
-     defined(MBEDTLS_CIPHER_MODE_CTR))
-	size_t j;
+#if (defined(MBEDTLS_CIPHER_MODE_CFB) || defined(MBEDTLS_CIPHER_MODE_CTR))
+    size_t j;
 #endif
 
 #if (defined(MBEDTLS_CIPHER_MODE_CBC) || \

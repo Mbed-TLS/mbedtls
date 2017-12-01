@@ -67,6 +67,7 @@ Bugfix
      digits. Found and fixed by Guido Vranken.
    * Fix unlisted DES configuration dependency in some pkparse test cases. Found
      by inestlerode. #555
+   * Fix incorrect unit in benchmark output. #850
 
 Features
    * Exposed parts of the Elliptic Curve Point internal interface, to provide

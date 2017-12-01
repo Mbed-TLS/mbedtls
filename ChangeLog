@@ -41,6 +41,7 @@ Bugfix
    * Fix a potential integer overflow in the version verification for DER
      encoded X509 certificates. The overflow would enable maliciously
      constructed certificates to bypass the certificate verification check.
+   * Fix word size check in in pk.c to not depend on MBEDTLS_HAVE_INT64.
 
 Changes
    * Added config.h option MBEDTLS_NO_UDBL_DIVISION, to prevent the use of

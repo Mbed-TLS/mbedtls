@@ -35,6 +35,8 @@ Bugfix
      Found by nkolban. Fixes #845.
    * Fix handling of handshake messages in ssl_read in case
      POLARSSL_SSL_DISABLE_RENEGOTIATION is set. Found by erja-gp.
+   * Add a check for invalid private parameters in ecdsa_sign.
+     Reported by Yolan Romailler.
 
 Changes
    * Extend cert_write example program by options to set the CRT version

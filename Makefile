@@ -61,6 +61,7 @@ endif
 
 check: tests
 	$(MAKE) -C tests check
+test: check
 
 ifndef WINDOWS
 test-ref-configs:

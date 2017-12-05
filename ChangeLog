@@ -1,5 +1,12 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Changes
+   * Allow overriding the time on Windows via the platform-time abstraction.
+     Fixed by Nick Wilson.
+   * Use gmtime_r/gmtime_s for thread-safety. Fixed by Nick Wilson.
+
 = mbed TLS 2.11.0 branch released 2018-06-18
 
 Features

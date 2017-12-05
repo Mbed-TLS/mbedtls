@@ -29,6 +29,10 @@
  *  http://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf
  */
 
+/* Ensure gmtime_r is available even with -std=c99; must be included before
+ * config.h, which pulls in glibc's features.h. Harmless on other platforms. */
+#define _XOPEN_SOURCE 500
+
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else

@@ -6,6 +6,7 @@ Changes
    * Allow overriding the time on Windows via the platform-time abstraction.
      Fixed by Nick Wilson.
    * Use gmtime_r/gmtime_s for thread-safety. Fixed by Nick Wilson.
+   * Fix build using -std=c99. Fixed by Nick Wilson.
 
 = mbed TLS 2.11.0 branch released 2018-06-18
 

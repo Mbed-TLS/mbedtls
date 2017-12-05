@@ -60,6 +60,8 @@ clean:
 check: tests
 	$(MAKE) -C tests check
 
+test: check
+
 test-ref-configs:
 	tests/scripts/test-ref-configs.pl
 

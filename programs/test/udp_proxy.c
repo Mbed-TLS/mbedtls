@@ -311,7 +311,7 @@ typedef struct
     unsigned num_datagrams;
 
     unsigned char data[MAX_MSG_SIZE];
-    unsigned len;
+    size_t len;
 
 } ctx_buffer;
 
@@ -323,7 +323,7 @@ static int ctx_buffer_flush( ctx_buffer *buf )
 
     mbedtls_printf( "  %05u flush    %s: %u bytes, %u datagrams, last %u ms\n",
                     ellapsed_time(), buf->description,
-                    buf->len, buf->num_datagrams,
+                    (unsigned) buf->len, buf->num_datagrams,
                     ellapsed_time() - buf->packet_lifetime );
 
     ret = mbedtls_net_send( buf->ctx, buf->data, buf->len );
@@ -353,6 +353,9 @@ static int ctx_buffer_append( ctx_buffer *buf,
 {
     int ret;
 
+    if( len > (size_t) INT_MAX )
+        return( -1 );
+
     if( len > sizeof( buf->data ) )
     {
         mbedtls_printf( "  ! buffer size %u too large (max %u)\n",
@@ -372,7 +375,7 @@ static int ctx_buffer_append( ctx_buffer *buf,
     if( ++buf->num_datagrams == 1 )
         buf->packet_lifetime = ellapsed_time();
 
-    return( len );
+    return( (int) len );
 }
 #endif /* MBEDTLS_TIMING_C */
 

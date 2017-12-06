@@ -294,7 +294,9 @@ int mbedtls_x509_crl_parse_der( mbedtls_x509_crl *chain,
     /*
      * Copy raw DER-encoded CRL
      */
-    if( buflen != 0 && ( ( p = mbedtls_calloc( 1, buflen ) ) == NULL ) )
+    if( buflen == 0 )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT );
+    else if( ( p = mbedtls_calloc( 1, buflen ) ) == NULL )
         return( MBEDTLS_ERR_X509_ALLOC_FAILED );
 
     memcpy( p, buf, buflen );

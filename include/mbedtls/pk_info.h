@@ -72,6 +72,13 @@ extern "C" {
  * \note If you are using the PK interface to perform operations on
  * keys, call the functions in pk.h. The interface in this file should only
  * be used by implementers of opaque key engines.
+ *
+ * \warning: Do not declare this structure directly! It may be extended in
+ * future* versions of Mbed TLS. Call the macro
+ * MBEDTLS_PK_OPAQUE_INFO_1() or MBEDTLS_PK_OPAQUE_INFO_ASYNC_1() instead.
+ * These macros are guaranteed to take parameters with the same type
+ * and semantics as previous versions and fill any new field of the
+ * structure with sensible values.
  */
 struct mbedtls_pk_info_t
 {
@@ -281,6 +288,73 @@ struct mbedtls_pk_info_t
                              void *p_rng );
 
 };
+
+#define MBEDTLS_PK_OPAQUE_INFO_ASYNC_1(         \
+    name                                        \
+    , get_bitlen                                \
+    , can_do                                    \
+    , signature_size_func                       \
+    , verify_func                               \
+    , sign_func                                 \
+    , decrypt_func                              \
+    , encrypt_func                              \
+    , check_pair_func                           \
+    , ctx_alloc_func                            \
+    , ctx_free_func                             \
+    , debug_func                                \
+    , async_alloc_func                          \
+    , async_start_func                          \
+    )                                           \
+    {                                           \
+        MBEDTLS_PK_OPAQUE                       \
+        , name                                  \
+        , get_bitlen                            \
+        , can_do                                \
+        , signature_size_func                   \
+        , verify_func                           \
+        , sign_func                             \
+        , decrypt_func                          \
+        , encrypt_func                          \
+        , check_pair_func                       \
+        , ctx_alloc_func                        \
+        , ctx_free_func                         \
+        , debug_func                            \
+        , async_alloc_func                      \
+        , async_start_func                      \
+    }
+
+#define MBEDTLS_PK_OPAQUE_INFO_1(               \
+    name                                        \
+    , get_bitlen                                \
+    , can_do                                    \
+    , signature_size_func                       \
+    , verify_func                               \
+    , sign_func                                 \
+    , decrypt_func                              \
+    , encrypt_func                              \
+    , check_pair_func                           \
+    , ctx_alloc_func                            \
+    , ctx_free_func                             \
+    , debug_func                                \
+    )                                           \
+    {                                           \
+        MBEDTLS_PK_OPAQUE                       \
+        , name                                  \
+        , get_bitlen                            \
+        , can_do                                \
+        , signature_size_func                   \
+        , verify_func                           \
+        , sign_func                             \
+        , decrypt_func                          \
+        , encrypt_func                          \
+        , check_pair_func                       \
+        , ctx_alloc_func                        \
+        , ctx_free_func                         \
+        , debug_func                            \
+        , NULL                                  \
+        , NULL                                  \
+    }
+
 
 #ifdef __cplusplus
 }

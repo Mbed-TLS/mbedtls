@@ -302,23 +302,23 @@ int pk_queued_async_start( void *ctx_arg,
     return( MBEDTLS_ERR_ASYNC_IN_PROGRESS );
 }
 
-static const mbedtls_pk_info_t mbedtls_pk_queued_info = {
-    MBEDTLS_PK_OPAQUE,
-    "queued_operations",
-    pk_queued_get_bitlen,
-    pk_queued_can_do,
-    pk_queued_signature_size,
-    pk_queued_verify,
-    NULL, // sign is asynchronous only
-    pk_queued_decrypt,
-    pk_queued_encrypt,
-    NULL, // check_pair is not implemented
-    pk_queued_alloc,
-    pk_queued_free,
-    NULL, // debug is not implemented
-    pk_queued_async_alloc,
-    pk_queued_async_start,
-};
+static const mbedtls_pk_info_t mbedtls_pk_queued_info =
+    MBEDTLS_PK_OPAQUE_INFO_ASYNC_1(
+        "queued_operations"
+        , pk_queued_get_bitlen
+        , pk_queued_can_do
+        , pk_queued_signature_size
+        , pk_queued_verify
+        , NULL // sign is asynchronous only
+        , pk_queued_decrypt
+        , pk_queued_encrypt
+        , NULL // check_pair is not implemented
+        , pk_queued_alloc
+        , pk_queued_free
+        , NULL // debug is not implemented
+        , pk_queued_async_alloc
+        , pk_queued_async_start
+        );
 
 int mbedtls_pk_setup_queued( mbedtls_pk_context *pk,
                              mbedtls_pk_context *underlying_pk,

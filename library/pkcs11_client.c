@@ -265,23 +265,20 @@ exit:
     return( pkcs11_err_to_mbedtls_pk_err( rv ) );
 }
 
-static const mbedtls_pk_info_t mbedtls_pk_pkcs11_info = {
-    MBEDTLS_PK_OPAQUE,
-    "pkcs11",
-    pkcs11_pk_get_bitlen,
-    pkcs11_pk_can_do, //can_do
-    pkcs11_pk_signature_size,
-    NULL, //pkcs11_verify,
-    pkcs11_sign,
-    NULL, //pkcs11_decrypt,
-    NULL, //pkcs11_encrypt,
-    NULL, //check_pair_func
-    pkcs11_pk_alloc,
-    pkcs11_pk_free,
-    NULL, //debug_func
-    NULL, //async_alloc_func
-    NULL, //async_sign_func
-};
+static const mbedtls_pk_info_t mbedtls_pk_pkcs11_info =
+    MBEDTLS_PK_OPAQUE_INFO_1( "pkcs11"
+                              , pkcs11_pk_get_bitlen
+                              , pkcs11_pk_can_do //can_do
+                              , pkcs11_pk_signature_size
+                              , NULL //pkcs11_verify
+                              , pkcs11_sign
+                              , NULL //pkcs11_decrypt
+                              , NULL //pkcs11_encrypt
+                              , NULL //check_pair_func
+                              , pkcs11_pk_alloc
+                              , pkcs11_pk_free
+                              , NULL //debug_func
+        );
 
 int mbedtls_pk_setup_pkcs11( mbedtls_pk_context *ctx,
                              CK_SESSION_HANDLE hSession,

@@ -750,23 +750,20 @@ exit:
 void pk_opaque_mock( )
 {
     mbedtls_pk_info_t info =
-    {
-        MBEDTLS_PK_OPAQUE,
-        "mock",
-        opaque_mock_get_bitlen,
-        opaque_mock_can_do,
-        opaque_mock_signature_size_func,
-        opaque_mock_verify_func,
-        opaque_mock_sign_func,
-        opaque_mock_decrypt_func,
-        opaque_mock_encrypt_func,
-        opaque_mock_check_pair_func,
-        opaque_mock_ctx_alloc_func,
-        opaque_mock_ctx_free_func,
-        opaque_mock_debug_func,
-        NULL, // no async_start_func
-        NULL, // no async_alloc_func
-    };
+        MBEDTLS_PK_OPAQUE_INFO_1(
+            "mock"
+            , opaque_mock_get_bitlen
+            , opaque_mock_can_do
+            , opaque_mock_signature_size_func
+            , opaque_mock_verify_func
+            , opaque_mock_sign_func
+            , opaque_mock_decrypt_func
+            , opaque_mock_encrypt_func
+            , opaque_mock_check_pair_func
+            , opaque_mock_ctx_alloc_func
+            , opaque_mock_ctx_free_func
+            , opaque_mock_debug_func
+            );
     mbedtls_pk_context ctx;
     unsigned char sig[OPAQUE_MOCK_SIGNATURE_SIZE] = OPAQUE_MOCK_GOOD_SIGNATURE;
     unsigned char input[sizeof( opaque_mock_reference_input )];
@@ -863,23 +860,20 @@ exit:
 void pk_opaque_minimal( )
 {
     mbedtls_pk_info_t info =
-    {
-        MBEDTLS_PK_OPAQUE,
-        "mock",
-        opaque_mock_get_bitlen,
-        opaque_mock_can_do,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        opaque_mock_ctx_free_func,
-        NULL,
-        NULL,
-        NULL,
-    };
+        MBEDTLS_PK_OPAQUE_INFO_1(
+            "mock"
+            , opaque_mock_get_bitlen
+            , opaque_mock_can_do
+            , NULL
+            , NULL
+            , NULL
+            , NULL
+            , NULL
+            , NULL
+            , NULL
+            , opaque_mock_ctx_free_func
+            , NULL
+            );
     mbedtls_pk_context ctx;
 
     mbedtls_pk_init( &ctx );
@@ -936,23 +930,20 @@ exit:
 void pk_opaque_fail_allocation( )
 {
     mbedtls_pk_info_t info =
-    {
-        MBEDTLS_PK_OPAQUE,
-        "mock",
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        opaque_mock_ctx_alloc_fail,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-    };
+        MBEDTLS_PK_OPAQUE_INFO_1(
+            "mock"
+            , opaque_mock_get_bitlen
+            , opaque_mock_can_do
+            , NULL
+            , NULL
+            , NULL
+            , NULL
+            , NULL
+            , NULL
+            , opaque_mock_ctx_alloc_fail
+            , NULL
+            , NULL
+            );
     mbedtls_pk_context ctx;
     mbedtls_pk_init( &ctx );
     TEST_ASSERT( mbedtls_pk_setup( &ctx, &info ) ==
@@ -974,23 +965,20 @@ void pk_opaque_wrapper( )
     const mbedtls_pk_info_t *mbedtls_rsa_info =
         mbedtls_pk_info_from_type( MBEDTLS_PK_RSA );
     mbedtls_pk_info_t pk_rsa_opaque_info =
-    {
-        MBEDTLS_PK_OPAQUE,
-        "RSA-opaque-wrapper",
-        mbedtls_rsa_info->get_bitlen,
-        mbedtls_rsa_info->can_do,
-        mbedtls_rsa_info->signature_size_func,
-        mbedtls_rsa_info->verify_func,
-        mbedtls_rsa_info->sign_func,
-        mbedtls_rsa_info->decrypt_func,
-        mbedtls_rsa_info->encrypt_func,
-        NULL, // we don't test check_pair here
-        mbedtls_rsa_info->ctx_alloc_func,
-        mbedtls_rsa_info->ctx_free_func,
-        mbedtls_rsa_info->debug_func,
-        NULL, // no async_start_func
-        NULL, // no async_alloc_func
-    };
+        MBEDTLS_PK_OPAQUE_INFO_1(
+            "RSA-opaque-wrapper"
+            , mbedtls_rsa_info->get_bitlen
+            , mbedtls_rsa_info->can_do
+            , mbedtls_rsa_info->signature_size_func
+            , mbedtls_rsa_info->verify_func
+            , mbedtls_rsa_info->sign_func
+            , mbedtls_rsa_info->decrypt_func
+            , mbedtls_rsa_info->encrypt_func
+            , NULL // we don't test check_pair here
+            , mbedtls_rsa_info->ctx_alloc_func
+            , mbedtls_rsa_info->ctx_free_func
+            , mbedtls_rsa_info->debug_func
+            );
 
     /* Generate an RSA key to use in both contexts */
     pk_rsa_prepare( &raw );

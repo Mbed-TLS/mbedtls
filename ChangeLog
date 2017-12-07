@@ -14,7 +14,8 @@ Security
      compatibility problems with non Mbed TLS peers and allowing
      an offline 2^80 brute force attack on the HMAC key of a single,
      uninterrupted (excluding session resumption) connection.
-     Found by Andreas Walz.
+     Found by Andreas Walz (ivESK, Offenburg University of Applied
+     Sciences).
 
 Bugfix
    * Fix ssl_parse_record_header() to silently discard invalid DTLS records

@@ -23,7 +23,15 @@
 #ifndef MBEDTLS_DHM_H
 #define MBEDTLS_DHM_H
 
+#if !defined(MBEDTLS_CONFIG_FILE)
+#include "config.h"
+#else
+#include MBEDTLS_CONFIG_FILE
+#endif
 #include "bignum.h"
+#if !defined(MBEDTLS_DHM_ALT)
+
+
 
 /*
  * DHM Error codes
@@ -290,6 +298,9 @@ int mbedtls_dhm_parse_dhm( mbedtls_dhm_context *dhm, const unsigned char *dhmin,
 int mbedtls_dhm_parse_dhmfile( mbedtls_dhm_context *dhm, const char *path );
 #endif /* MBEDTLS_FS_IO */
 #endif /* MBEDTLS_ASN1_PARSE_C */
+#else
+#include "dhm_alt.h"
+#endif /* MBEDTLS_DHM_ALT */
 
 /**
  * \brief          Checkup routine

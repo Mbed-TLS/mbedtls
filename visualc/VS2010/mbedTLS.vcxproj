@@ -151,6 +151,8 @@
     <ClInclude Include="..\..\include\mbedtls\arc4.h" />
     <ClInclude Include="..\..\include\mbedtls\asn1.h" />
     <ClInclude Include="..\..\include\mbedtls\asn1write.h" />
+    <ClInclude Include="..\..\include\mbedtls\async.h" />
+    <ClInclude Include="..\..\include\mbedtls\async_queue.h" />
     <ClInclude Include="..\..\include\mbedtls\base64.h" />
     <ClInclude Include="..\..\include\mbedtls\bignum.h" />
     <ClInclude Include="..\..\include\mbedtls\blowfish.h" />
@@ -191,8 +193,10 @@
     <ClInclude Include="..\..\include\mbedtls\padlock.h" />
     <ClInclude Include="..\..\include\mbedtls\pem.h" />
     <ClInclude Include="..\..\include\mbedtls\pk.h" />
+    <ClInclude Include="..\..\include\mbedtls\pk_info.h" />
     <ClInclude Include="..\..\include\mbedtls\pk_internal.h" />
     <ClInclude Include="..\..\include\mbedtls\pkcs11.h" />
+    <ClInclude Include="..\..\include\mbedtls\pkcs11_client.h" />
     <ClInclude Include="..\..\include\mbedtls\pkcs12.h" />
     <ClInclude Include="..\..\include\mbedtls\pkcs5.h" />
     <ClInclude Include="..\..\include\mbedtls\platform.h" />
@@ -223,6 +227,8 @@
     <ClCompile Include="..\..\library\arc4.c" />
     <ClCompile Include="..\..\library\asn1parse.c" />
     <ClCompile Include="..\..\library\asn1write.c" />
+    <ClCompile Include="..\..\library\async.c" />
+    <ClCompile Include="..\..\library\async_queue.c" />
     <ClCompile Include="..\..\library\base64.c" />
     <ClCompile Include="..\..\library\bignum.c" />
     <ClCompile Include="..\..\library\blowfish.c" />
@@ -260,6 +266,7 @@
     <ClCompile Include="..\..\library\pk.c" />
     <ClCompile Include="..\..\library\pk_wrap.c" />
     <ClCompile Include="..\..\library\pkcs11.c" />
+    <ClCompile Include="..\..\library\pkcs11_client.c" />
     <ClCompile Include="..\..\library\pkcs12.c" />
     <ClCompile Include="..\..\library\pkcs5.c" />
     <ClCompile Include="..\..\library\pkparse.c" />

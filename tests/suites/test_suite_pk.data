@@ -153,3 +153,16 @@ mbedtls_pk_check_pair:"data_files/ec_256_pub.pem":"data_files/server1.key":MBEDT
 RSA hash_len overflow (size_t vs unsigned int)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_HAVE_INT64
 pk_rsa_overflow:
+
+PK opaque mock
+pk_opaque_mock:
+
+PK opaque with failed allocation
+pk_opaque_fail_allocation:
+
+PK opaque minimal
+pk_opaque_minimal:
+
+PK opaque wrapper (RSA)
+depends_on:MBEDTLS_RSA_C
+pk_opaque_wrapper:

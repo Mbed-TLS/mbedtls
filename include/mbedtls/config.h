@@ -1635,6 +1635,29 @@
 #define MBEDTLS_ASN1_WRITE_C
 
 /**
+ * \def MBEDTLS_ASYNC_C
+ *
+ * Enable support for asynchronous external operations (currently, only
+ * asymmetric cryptography can be used in this way).
+ *
+ * Module:  library/async.c
+ * Caller:  library/async_queue.c
+ *          pk.c
+ */
+#define MBEDTLS_ASYNC_C
+
+/**
+ * \def MBEDTLS_ASYNC_QUEUE_C
+ *
+ * Enable support for queues of asynchronous operations.
+ *
+ * Module:  library/async_queue.c
+ *
+ * Requires: MBEDTLS_ASYNC_C
+ */
+#define MBEDTLS_ASYNC_QUEUE_C
+
+/**
  * \def MBEDTLS_BASE64_C
  *
  * Enable the Base64 module.
@@ -2202,17 +2225,31 @@
 #define MBEDTLS_PKCS5_C
 
 /**
+ * \def MBEDTLS_PKCS11_CLIENT_C
+ *
+ * Enable support for keys stored in an external token, using the
+ * cryptoki (PKCS#11) interface.
+ *
+ * Module:  library/pkcs11_client.c
+ *
+ * This module requires a PKCS#11 library.
+ *
+ */
+#define MBEDTLS_PKCS11_CLIENT_C
+
+/**
  * \def MBEDTLS_PKCS11_C
  *
- * Enable wrapper for PKCS#11 smartcard support.
+ * Enable wrapper for PKCS#11 token support with libpkcs11-helper.
  *
  * Module:  library/pkcs11.c
  * Caller:  library/pk.c
  *
  * Requires: MBEDTLS_PK_C
  *
- * This module enables SSL/TLS PKCS #11 smartcard support.
- * Requires the presence of the PKCS#11 helper library (libpkcs11-helper)
+ * This module enables PKCS #11 token support, e.g. to use a private
+ * key stored in a smartcard for an SSL/TLS connection.
+ * Requires the presence of the PKCS#11 helper library (libpkcs11-helper).
  */
 //#define MBEDTLS_PKCS11_C
 

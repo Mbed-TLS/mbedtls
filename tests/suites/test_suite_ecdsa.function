@@ -142,7 +142,7 @@ void ecdsa_write_read_random( int id )
     rnd_pseudo_info rnd_info;
     unsigned char hash[32];
     unsigned char sig[200];
-    size_t sig_len, i;
+    size_t sig_len, max_sig_len, i;
 
     mbedtls_ecdsa_init( &ctx );
     memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
@@ -162,8 +162,10 @@ void ecdsa_write_read_random( int id )
     TEST_ASSERT( mbedtls_ecdsa_read_signature( &ctx, hash, sizeof( hash ),
                  sig, sig_len ) == 0 );
 
-    /* check we didn't write past the announced length */
-    for( i = sig_len; i < sizeof( sig ); i++ )
+    /* check we didn't write past the maximum length */
+    max_sig_len = MBEDTLS_ECDSA_MAX_SIG_LEN( ctx.grp.pbits );
+    TEST_ASSERT( sig_len <= max_sig_len );
+    for( i = max_sig_len; i < sizeof( sig ); i++ )
         TEST_ASSERT( sig[i] == 0x2a );
 
     /* try verification with invalid length */

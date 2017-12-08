@@ -28,6 +28,7 @@
 #if defined(MBEDTLS_PK_C)
 #include "mbedtls/pk.h"
 #include "mbedtls/pk_internal.h"
+#include "mbedtls/pk_info.h"
 
 #if defined(MBEDTLS_RSA_C)
 #include "mbedtls/rsa.h"
@@ -93,6 +94,7 @@ const mbedtls_pk_info_t * mbedtls_pk_info_from_type( mbedtls_pk_type_t pk_type )
             return( &mbedtls_ecdsa_info );
 #endif
         /* MBEDTLS_PK_RSA_ALT omitted on purpose */
+        /* MBEDTLS_PK_OPAQUE omitted on purpose: they can't be built by parsing */
         default:
             return( NULL );
     }
@@ -106,8 +108,11 @@ int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info )
     if( ctx == NULL || info == NULL || ctx->pk_info != NULL )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
-    if( ( ctx->pk_ctx = info->ctx_alloc_func() ) == NULL )
-        return( MBEDTLS_ERR_PK_ALLOC_FAILED );
+    if( info->ctx_alloc_func != NULL )
+    {
+        if( ( ctx->pk_ctx = info->ctx_alloc_func( ) ) == NULL )
+            return( MBEDTLS_ERR_PK_ALLOC_FAILED );
+    }
 
     ctx->pk_info = info;
 
@@ -154,7 +159,7 @@ int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type )
     if( ctx == NULL || ctx->pk_info == NULL )
         return( 0 );
 
-    return( ctx->pk_info->can_do( type ) );
+    return( ctx->pk_info->can_do( ctx->pk_ctx, type ) );
 }
 
 /*
@@ -311,10 +316,17 @@ int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
 int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_context *prv )
 {
     if( pub == NULL || pub->pk_info == NULL ||
-        prv == NULL || prv->pk_info == NULL ||
-        prv->pk_info->check_pair_func == NULL )
+        prv == NULL || prv->pk_info == NULL )
     {
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+    }
+
+    if( pub->pk_info == prv->pk_info && pub->pk_ctx == prv->pk_ctx )
+        return( 0 );
+
+    if( prv->pk_info->check_pair_func == NULL )
+    {
+        return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
     }
 
     if( prv->pk_info->type == MBEDTLS_PK_RSA_ALT )
@@ -322,13 +334,13 @@ int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_conte
         if( pub->pk_info->type != MBEDTLS_PK_RSA )
             return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
     }
-    else
+    else if( prv->pk_info->type != MBEDTLS_PK_OPAQUE )
     {
         if( pub->pk_info != prv->pk_info )
             return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
     }
 
-    return( prv->pk_info->check_pair_func( pub->pk_ctx, prv->pk_ctx ) );
+    return( prv->pk_info->check_pair_func( pub, prv->pk_ctx ) );
 }
 
 /*
@@ -340,6 +352,20 @@ size_t mbedtls_pk_get_bitlen( const mbedtls_pk_context *ctx )
         return( 0 );
 
     return( ctx->pk_info->get_bitlen( ctx->pk_ctx ) );
+}
+
+/*
+ * Maximum signature size
+ */
+size_t mbedtls_pk_signature_size( const mbedtls_pk_context *ctx )
+{
+    if( ctx == NULL || ctx->pk_info == NULL )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    if( ctx->pk_info->signature_size_func == NULL )
+        return( 0 );
+
+    return( ctx->pk_info->signature_size_func( ctx->pk_ctx ) );
 }
 
 /*
@@ -369,7 +395,9 @@ const char *mbedtls_pk_get_name( const mbedtls_pk_context *ctx )
 }
 
 /*
- * Access the PK type
+ * Access the PK type.
+ * For an opaque key pair object, this does not give any information on the
+ * underlying cryptographic material.
  */
 mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx )
 {
@@ -378,5 +406,73 @@ mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx )
 
     return( ctx->pk_info->type );
 }
+
+
+
+#if defined(MBEDTLS_ASYNC_C)
+
+mbedtls_async_context_t *mbedtls_pk_async_alloc( mbedtls_pk_context *ctx )
+{
+    if( ctx == NULL || ctx->pk_info == NULL )
+        return( NULL );
+
+    if( ctx->pk_info->async_alloc_func == NULL )
+        return( mbedtls_async_alloc( &mbedtls_async_synchronous_info ) );
+
+    return( ctx->pk_info->async_alloc_func( ctx->pk_ctx ) );
+}
+
+static int mbedtls_pk_async_sign_internal(
+    mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
+    const unsigned char *hash, size_t hash_len,
+    unsigned char *sig, size_t *sig_len, size_t sig_size,
+    mbedtls_async_context_t *async_ctx,
+    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    if( ctx == NULL || ctx->pk_info == NULL )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    if( ctx->pk_info->async_start_func == NULL || async_ctx == NULL )
+    {
+        if( ctx->pk_info->signature_size_func == NULL )
+            return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
+        if( sig_size < ctx->pk_info->signature_size_func( ctx->pk_ctx ) )
+            return( MBEDTLS_ERR_PK_SIG_LEN_MISMATCH );
+        return( mbedtls_pk_sign( ctx, md_alg, hash, hash_len,
+                                 sig, sig_len, f_rng, p_rng ) );
+    }
+
+    if( pk_hashlen_helper( md_alg, &hash_len ) != 0 )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    return( ctx->pk_info->async_start_func( ctx->pk_ctx, async_ctx,
+                                            MBEDTLS_ASYNC_OP_PK_SIGN,
+                                            md_alg, hash, hash_len,
+                                            sig, sig_size,
+                                            f_rng, p_rng ) );
+}
+
+int mbedtls_pk_async_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
+                           const unsigned char *hash, size_t hash_len,
+                           unsigned char *sig, size_t sig_size,
+                           mbedtls_async_context_t *async_ctx,
+                           int (*f_rng)(void *, unsigned char *, size_t),
+                           void *p_rng )
+{
+    size_t sig_len;
+    int ret = mbedtls_async_set_started( async_ctx,
+                                         MBEDTLS_ASYNC_OP_PK_SIGN );
+    if( ret != 0 )
+        return( ret );
+    ret = mbedtls_pk_async_sign_internal( ctx, md_alg, hash, hash_len,
+                                          sig, &sig_len, sig_size,
+                                          async_ctx, f_rng, p_rng );
+    if( ret != MBEDTLS_ERR_ASYNC_IN_PROGRESS )
+        (void) mbedtls_async_set_completed( async_ctx, ret, sig_len );
+    return( ret );
+}
+
+#endif /* MBEDTLS_ASYNC_C */
+
 
 #endif /* MBEDTLS_PK_C */

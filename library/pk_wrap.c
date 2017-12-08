@@ -26,6 +26,7 @@
 #endif
 
 #if defined(MBEDTLS_PK_C)
+#include "mbedtls/pk_info.h"
 #include "mbedtls/pk_internal.h"
 
 /* Even if RSA not activated, for the sake of RSA-alt */
@@ -60,8 +61,9 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 #endif
 
 #if defined(MBEDTLS_RSA_C)
-static int rsa_can_do( mbedtls_pk_type_t type )
+static int rsa_can_do( const void *ctx, mbedtls_pk_type_t type )
 {
+    (void) ctx;
     return( type == MBEDTLS_PK_RSA ||
             type == MBEDTLS_PK_RSASSA_PSS );
 }
@@ -112,6 +114,12 @@ static int rsa_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
                 md_alg, (unsigned int) hash_len, hash, sig ) );
 }
 
+static size_t rsa_signature_size( const void *ctx_arg )
+{
+    const mbedtls_rsa_context *ctx = ctx_arg;
+    return( ctx->len );
+}
+
 static int rsa_decrypt_wrap( void *ctx,
                     const unsigned char *input, size_t ilen,
                     unsigned char *output, size_t *olen, size_t osize,
@@ -138,10 +146,9 @@ static int rsa_encrypt_wrap( void *ctx,
                 f_rng, p_rng, MBEDTLS_RSA_PUBLIC, ilen, input, output ) );
 }
 
-static int rsa_check_pair_wrap( const void *pub, const void *prv )
+static int rsa_check_pair_wrap( const mbedtls_pk_context *pub, const void *prv )
 {
-    return( mbedtls_rsa_check_pub_priv( (const mbedtls_rsa_context *) pub,
-                                (const mbedtls_rsa_context *) prv ) );
+    return( mbedtls_rsa_check_pub_priv( pub->pk_ctx, prv ) );
 }
 
 static void *rsa_alloc_wrap( void )
@@ -178,6 +185,7 @@ const mbedtls_pk_info_t mbedtls_rsa_info = {
     "RSA",
     rsa_get_bitlen,
     rsa_can_do,
+    rsa_signature_size,
     rsa_verify_wrap,
     rsa_sign_wrap,
     rsa_decrypt_wrap,
@@ -186,6 +194,8 @@ const mbedtls_pk_info_t mbedtls_rsa_info = {
     rsa_alloc_wrap,
     rsa_free_wrap,
     rsa_debug,
+    NULL, // no async_alloc_func
+    NULL, // no async_start_func
 };
 #endif /* MBEDTLS_RSA_C */
 
@@ -193,8 +203,9 @@ const mbedtls_pk_info_t mbedtls_rsa_info = {
 /*
  * Generic EC key
  */
-static int eckey_can_do( mbedtls_pk_type_t type )
+static int eckey_can_do( const void *ctx, mbedtls_pk_type_t type )
 {
+    (void) ctx;
     return( type == MBEDTLS_PK_ECKEY ||
             type == MBEDTLS_PK_ECKEY_DH ||
             type == MBEDTLS_PK_ECDSA );
@@ -252,12 +263,17 @@ static int eckey_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
     return( ret );
 }
 
+static size_t ecdsa_signature_size( const void *ctx_arg )
+{
+    const mbedtls_ecp_keypair *ctx = ctx_arg;
+    return( MBEDTLS_ECDSA_MAX_SIG_LEN( ctx->grp.pbits ) );
+}
+
 #endif /* MBEDTLS_ECDSA_C */
 
-static int eckey_check_pair( const void *pub, const void *prv )
+static int eckey_check_pair( const mbedtls_pk_context *pub, const void *prv )
 {
-    return( mbedtls_ecp_check_pub_priv( (const mbedtls_ecp_keypair *) pub,
-                                (const mbedtls_ecp_keypair *) prv ) );
+    return( mbedtls_ecp_check_pub_priv( pub->pk_ctx, prv ) );
 }
 
 static void *eckey_alloc_wrap( void )
@@ -289,9 +305,11 @@ const mbedtls_pk_info_t mbedtls_eckey_info = {
     eckey_get_bitlen,
     eckey_can_do,
 #if defined(MBEDTLS_ECDSA_C)
+    ecdsa_signature_size,
     eckey_verify_wrap,
     eckey_sign_wrap,
 #else
+    NULL,
     NULL,
     NULL,
 #endif
@@ -301,13 +319,16 @@ const mbedtls_pk_info_t mbedtls_eckey_info = {
     eckey_alloc_wrap,
     eckey_free_wrap,
     eckey_debug,
+    NULL, // no async_alloc_func
+    NULL, // no async_start_func
 };
 
 /*
  * EC key restricted to ECDH
  */
-static int eckeydh_can_do( mbedtls_pk_type_t type )
+static int eckeydh_can_do( const void *ctx, mbedtls_pk_type_t type )
 {
+    (void) ctx;
     return( type == MBEDTLS_PK_ECKEY ||
             type == MBEDTLS_PK_ECKEY_DH );
 }
@@ -321,16 +342,20 @@ const mbedtls_pk_info_t mbedtls_eckeydh_info = {
     NULL,
     NULL,
     NULL,
+    NULL,
     eckey_check_pair,
     eckey_alloc_wrap,       /* Same underlying key structure */
     eckey_free_wrap,        /* Same underlying key structure */
     eckey_debug,            /* Same underlying key structure */
+    NULL, // no async_alloc_func
+    NULL, // no async_start_func
 };
 #endif /* MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_ECDSA_C)
-static int ecdsa_can_do( mbedtls_pk_type_t type )
+static int ecdsa_can_do( const void *ctx, mbedtls_pk_type_t type )
 {
+    (void) ctx;
     return( type == MBEDTLS_PK_ECDSA );
 }
 
@@ -380,6 +405,7 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
     "ECDSA",
     eckey_get_bitlen,     /* Compatible key structures */
     ecdsa_can_do,
+    ecdsa_signature_size,
     ecdsa_verify_wrap,
     ecdsa_sign_wrap,
     NULL,
@@ -388,6 +414,8 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
     ecdsa_alloc_wrap,
     ecdsa_free_wrap,
     eckey_debug,        /* Compatible key structures */
+    NULL, // no async_alloc_func
+    NULL, // no async_start_func
 };
 #endif /* MBEDTLS_ECDSA_C */
 
@@ -396,8 +424,9 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
  * Support for alternative RSA-private implementations
  */
 
-static int rsa_alt_can_do( mbedtls_pk_type_t type )
+static int rsa_alt_can_do( const void *ctx, mbedtls_pk_type_t type )
 {
+    (void) ctx;
     return( type == MBEDTLS_PK_RSA );
 }
 
@@ -426,6 +455,13 @@ static int rsa_alt_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
                 md_alg, (unsigned int) hash_len, hash, sig ) );
 }
 
+static size_t rsa_alt_signature_size( const void *ctx )
+{
+    const mbedtls_rsa_alt_context *rsa_alt = (const mbedtls_rsa_alt_context *) ctx;
+
+    return( rsa_alt->key_len_func( rsa_alt->key ) );
+}
+
 static int rsa_alt_decrypt_wrap( void *ctx,
                     const unsigned char *input, size_t ilen,
                     unsigned char *output, size_t *olen, size_t osize,
@@ -444,14 +480,14 @@ static int rsa_alt_decrypt_wrap( void *ctx,
 }
 
 #if defined(MBEDTLS_RSA_C)
-static int rsa_alt_check_pair( const void *pub, const void *prv )
+static int rsa_alt_check_pair( const mbedtls_pk_context *pub, const void *prv )
 {
     unsigned char sig[MBEDTLS_MPI_MAX_SIZE];
     unsigned char hash[32];
     size_t sig_len = 0;
     int ret;
 
-    if( rsa_alt_get_bitlen( prv ) != rsa_get_bitlen( pub ) )
+    if( rsa_alt_get_bitlen( prv ) != rsa_get_bitlen( pub->pk_ctx ) )
         return( MBEDTLS_ERR_RSA_KEY_CHECK_FAILED );
 
     memset( hash, 0x2a, sizeof( hash ) );
@@ -463,7 +499,7 @@ static int rsa_alt_check_pair( const void *pub, const void *prv )
         return( ret );
     }
 
-    if( rsa_verify_wrap( (void *) pub, MBEDTLS_MD_NONE,
+    if( rsa_verify_wrap( pub->pk_ctx, MBEDTLS_MD_NONE,
                          hash, sizeof( hash ), sig, sig_len ) != 0 )
     {
         return( MBEDTLS_ERR_RSA_KEY_CHECK_FAILED );
@@ -494,6 +530,7 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
     "RSA-alt",
     rsa_alt_get_bitlen,
     rsa_alt_can_do,
+    rsa_alt_signature_size,
     NULL,
     rsa_alt_sign_wrap,
     rsa_alt_decrypt_wrap,
@@ -506,6 +543,8 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
     rsa_alt_alloc_wrap,
     rsa_alt_free_wrap,
     NULL,
+    NULL, // no async_alloc_func
+    NULL, // no async_start_func
 };
 
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */

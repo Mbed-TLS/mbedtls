@@ -45,6 +45,10 @@
 #include "ecjpake.h"
 #endif
 
+#if defined(MBEDTLS_ASYNC_C)
+#include "async.h"
+#endif
+
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)
 #define inline __inline
@@ -218,6 +222,12 @@ struct mbedtls_ssl_handshake_params
     mbedtls_x509_crl *sni_ca_crl;       /*!< trusted CAs CRLs from SNI      */
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+#if defined(MBEDTLS_ASYNC_C)
+    mbedtls_async_context_t *async_ctx; /*!< Asynchronous crypto operation (may be null) */
+    unsigned char *out_async_start;       /*!< Cursor in the output buffer at the start of the data to be written by the asynchronous operation */
+#endif /* MBEDTLS_ASYNC_C */
+
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     unsigned int out_msg_seq;           /*!<  Outgoing handshake sequence number */
     unsigned int in_msg_seq;            /*!<  Incoming handshake sequence number */
@@ -496,6 +506,10 @@ void mbedtls_ssl_optimize_checksum( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exchange_type_t key_ex );
+#endif
+
+#if defined(MBEDTLS_ASYNC_C)
+void mbedtls_ssl_set_async_cookie( mbedtls_ssl_context *ssl );
 #endif
 
 #if defined(MBEDTLS_PK_C)

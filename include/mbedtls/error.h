@@ -66,6 +66,7 @@
  * PBKDF2    1  0x007C-0x007C
  * HMAC_DRBG 4  0x0003-0x0009
  * CCM       2                  0x000D-0x000F
+ * ASYNC     4                  0x0011-0x0017
  *
  * High-level module nr (3 bits - 0x0...-0x7...)
  * Name      ID  Nr of Errors
@@ -74,7 +75,7 @@
  * X509      2   20
  * PKCS5     2   4 (Started from top)
  * DHM       3   9
- * PK        3   14 (Started from top)
+ * PK        3   17 (Started from top)
  * RSA       4   9
  * ECP       4   8 (Started from top)
  * MD        5   4

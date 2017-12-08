@@ -111,12 +111,7 @@ my @test_cases_lines = split/^/,  <TEST_CASES>;
 my $test_cases;
 my $index = 2;
 for my $line (@test_cases_lines) {
-    if ($line =~ /^\/\* BEGIN_SUITE_HELPERS .*\*\//)
-    {
-        $line = $line."#line $index \"$test_case_file\"\n";
-    }
-
-    if ($line =~ /^\/\* BEGIN_CASE .*\*\//)
+    if ($line =~ /^\/\* BEGIN_.*\*\//)
     {
         $line = $line."#line $index \"$test_case_file\"\n";
     }

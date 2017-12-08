@@ -8,6 +8,8 @@ set(src_crypto
     arc4.c
     asn1parse.c
     asn1write.c
+    async.c
+    async_queue.c
     base64.c
     bignum.c
     blowfish.c
@@ -41,6 +43,7 @@ set(src_crypto
     pem.c
     pk.c
     pk_wrap.c
+    pkcs11_client.c
     pkcs12.c
     pkcs5.c
     pkparse.c

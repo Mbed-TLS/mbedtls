@@ -49,7 +49,7 @@
  * Low-level module errors (0x0002-0x007E, 0x0003-0x007F)
  *
  * Module    Nr  Codes assigned
- * MPI        7  0x0002-0x0010
+ * BIGNUM     8  0x0002-0x0010
  * GCM        2  0x0012-0x0014
  * BLOWFISH   2  0x0016-0x0018
  * THREADING  3  0x001A-0x001E
@@ -57,10 +57,10 @@
  * CAMELLIA   2  0x0024-0x0026
  * XTEA       1  0x0028-0x0028
  * BASE64     2  0x002A-0x002C
- * OID        1  0x002E-0x002E   0x000B-0x000B
+ * OID        2  0x002E-0x002E   0x000B-0x000B
  * PADLOCK    1  0x0030-0x0030
  * DES        1  0x0032-0x0032
- * CTR_DBRG   4  0x0034-0x003A
+ * CTR_DRBG   4  0x0034-0x003A
  * ENTROPY    3  0x003C-0x0040
  * NET       11  0x0042-0x0056
  * ENTROPY    1  0x0058-0x0058
@@ -73,14 +73,14 @@
  * SHA512     1  0x007A-0x007A
  * PBKDF2     1  0x007C-0x007C
  * RIPEMD160  1  0x007E-0x007E
- * HMAC_DRBG  4  0x0003-0x0009
+ * HMAC_DRBG  4                  0x0003-0x0009
  * CCM        2                  0x000D-0x000F
  *
  * High-level module nr (3 bits - 0x0...-0x7...)
  * Name      ID  Nr of Errors
  * PEM        1  9
  * PKCS12     1  4 (Started from top)
- * X509       2  18
+ * X509       2  19 (plus 0x3000)
  * PK         2  14 (Started from top, plus 0x2000)
  * DHM        3  9
  * PKCS5      3  4 (Started from top)

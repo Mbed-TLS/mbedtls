@@ -252,9 +252,9 @@ export GNUTLS_SERV="$GNUTLS_SERV"
 
 # Make sure the tools we need are available.
 check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$GNUTLS_CLI" "$GNUTLS_SERV" \
-    "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV" "doxygen" "dot" \
-    "arm-none-eabi-gcc" "$ARMC5_CC" "$ARMC5_AR" "$ARMC6_CC" "$ARMC6_AR" \
-    "i686-w64-mingw32-gcc"
+            "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV" "doxygen" "dot" \
+            "arm-none-eabi-gcc" "$ARMC5_CC" "$ARMC5_AR" "$ARMC6_CC" "$ARMC6_AR" \
+            "i686-w64-mingw32-gcc"
 
 #
 # Test Suites to be executed
@@ -461,42 +461,42 @@ msg "test: MBEDTLS_TEST_NULL_ENTROPY - main suites (inc. selftests) (ASan build)
 make test
 
 if uname -a | grep -F Linux >/dev/null; then
-msg "build/test: make shared" # ~ 40s
-cleanup
-make SHARED=1 all check
+    msg "build/test: make shared" # ~ 40s
+    cleanup
+    make SHARED=1 all check
 fi
 
 if uname -a | grep -F x86_64 >/dev/null; then
-msg "build: i386, make, gcc" # ~ 30s
-cleanup
-CC=gcc CFLAGS='-Werror -Wall -Wextra -m32' make
+    msg "build: i386, make, gcc" # ~ 30s
+    cleanup
+    CC=gcc CFLAGS='-Werror -Wall -Wextra -m32' make
 
-msg "build: gcc, force 32-bit compilation"
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl unset MBEDTLS_HAVE_ASM
-scripts/config.pl unset MBEDTLS_AESNI_C
-scripts/config.pl unset MBEDTLS_PADLOCK_C
-CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT32' make
+    msg "build: gcc, force 32-bit compilation"
+    cleanup
+    cp "$CONFIG_H" "$CONFIG_BAK"
+    scripts/config.pl unset MBEDTLS_HAVE_ASM
+    scripts/config.pl unset MBEDTLS_AESNI_C
+    scripts/config.pl unset MBEDTLS_PADLOCK_C
+    CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT32' make
 
-msg "build: gcc, force 64-bit compilation"
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl unset MBEDTLS_HAVE_ASM
-scripts/config.pl unset MBEDTLS_AESNI_C
-scripts/config.pl unset MBEDTLS_PADLOCK_C
-CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT64' make
+    msg "build: gcc, force 64-bit compilation"
+    cleanup
+    cp "$CONFIG_H" "$CONFIG_BAK"
+    scripts/config.pl unset MBEDTLS_HAVE_ASM
+    scripts/config.pl unset MBEDTLS_AESNI_C
+    scripts/config.pl unset MBEDTLS_PADLOCK_C
+    CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT64' make
 
-msg "test: gcc, force 64-bit compilation"
-make test
+    msg "test: gcc, force 64-bit compilation"
+    make test
 
-msg "build: gcc, force 64-bit compilation"
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl unset MBEDTLS_HAVE_ASM
-scripts/config.pl unset MBEDTLS_AESNI_C
-scripts/config.pl unset MBEDTLS_PADLOCK_C
-CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT64' make
+    msg "build: gcc, force 64-bit compilation"
+    cleanup
+    cp "$CONFIG_H" "$CONFIG_BAK"
+    scripts/config.pl unset MBEDTLS_HAVE_ASM
+    scripts/config.pl unset MBEDTLS_AESNI_C
+    scripts/config.pl unset MBEDTLS_PADLOCK_C
+    CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT64' make
 fi # x86_64
 
 msg "build: arm-none-eabi-gcc, make" # ~ 10s
@@ -599,49 +599,49 @@ WINDOWS_BUILD=1 make clean
 # MemSan currently only available on Linux 64 bits
 if uname -a | grep 'Linux.*x86_64' >/dev/null; then
 
-msg "build: MSan (clang)" # ~ 1 min 20s
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl unset MBEDTLS_AESNI_C # memsan doesn't grok asm
-CC=clang cmake -D CMAKE_BUILD_TYPE:String=MemSan .
-make
+    msg "build: MSan (clang)" # ~ 1 min 20s
+    cleanup
+    cp "$CONFIG_H" "$CONFIG_BAK"
+    scripts/config.pl unset MBEDTLS_AESNI_C # memsan doesn't grok asm
+    CC=clang cmake -D CMAKE_BUILD_TYPE:String=MemSan .
+    make
 
-msg "test: main suites (MSan)" # ~ 10s
-make test
+    msg "test: main suites (MSan)" # ~ 10s
+    make test
 
-msg "test: ssl-opt.sh (MSan)" # ~ 1 min
-tests/ssl-opt.sh
+    msg "test: ssl-opt.sh (MSan)" # ~ 1 min
+    tests/ssl-opt.sh
 
-# Optional part(s)
+    # Optional part(s)
 
-if [ "$MEMORY" -gt 0 ]; then
-    msg "test: compat.sh (MSan)" # ~ 6 min 20s
-    tests/compat.sh
-fi
+    if [ "$MEMORY" -gt 0 ]; then
+        msg "test: compat.sh (MSan)" # ~ 6 min 20s
+        tests/compat.sh
+    fi
 
 else # no MemSan
 
-msg "build: Release (clang)"
-cleanup
-CC=clang cmake -D CMAKE_BUILD_TYPE:String=Release .
-make
+    msg "build: Release (clang)"
+    cleanup
+    CC=clang cmake -D CMAKE_BUILD_TYPE:String=Release .
+    make
 
-msg "test: main suites valgrind (Release)"
-make memcheck
+    msg "test: main suites valgrind (Release)"
+    make memcheck
 
-# Optional part(s)
-# Currently broken, programs don't seem to receive signals
-# under valgrind on OS X
+    # Optional part(s)
+    # Currently broken, programs don't seem to receive signals
+    # under valgrind on OS X
 
-if [ "$MEMORY" -gt 0 ]; then
-    msg "test: ssl-opt.sh --memcheck (Release)"
-    tests/ssl-opt.sh --memcheck
-fi
+    if [ "$MEMORY" -gt 0 ]; then
+        msg "test: ssl-opt.sh --memcheck (Release)"
+        tests/ssl-opt.sh --memcheck
+    fi
 
-if [ "$MEMORY" -gt 1 ]; then
-    msg "test: compat.sh --memcheck (Release)"
-    tests/compat.sh --memcheck
-fi
+    if [ "$MEMORY" -gt 1 ]; then
+        msg "test: compat.sh --memcheck (Release)"
+        tests/compat.sh --memcheck
+    fi
 
 fi # MemSan
 

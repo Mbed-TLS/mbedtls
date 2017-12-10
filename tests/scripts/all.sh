@@ -45,19 +45,25 @@ RELEASE=0
 
 usage()
 {
-    printf "Usage: $0\n"
-    printf "  -h|--help\t\tPrint this help.\n"
-    printf "  -m|--memory\t\tAdditional optional memory tests.\n"
-    printf "  -f|--force\t\tForce the tests to overwrite any modified files.\n"
-    printf "  -s|--seed\t\tInteger seed value to use for this test run.\n"
-    printf "  -r|--release-test\t\tRun this script in release mode. This fixes the seed value to 1.\n"
-    printf "     --out-of-source-dir=<path>\t\tDirectory used for CMake out-of-source build tests."
-    printf "     --openssl=<OpenSSL_path>\t\tPath to OpenSSL executable to use for most tests.\n"
-    printf "     --openssl-legacy=<OpenSSL_path>\t\tPath to OpenSSL executable to use for legacy tests e.g. SSLv3.\n"
-    printf "     --gnutls-cli=<GnuTLS_cli_path>\t\tPath to GnuTLS client executable to use for most tests.\n"
-    printf "     --gnutls-serv=<GnuTLS_serv_path>\t\tPath to GnuTLS server executable to use for most tests.\n"
-    printf "     --gnutls-legacy-cli=<GnuTLS_cli_path>\t\tPath to GnuTLS client executable to use for legacy tests.\n"
-    printf "     --gnutls-legacy-serv=<GnuTLS_serv_path>\t\tPath to GnuTLS server executable to use for legacy tests.\n"
+    cat <<EOF
+Usage: $0 [OPTION]...
+  -h|--help             Print this help.
+
+General options:
+  -f|--force            Force the tests to overwrite any modified files.
+  -m|--memory           Additional optional memory tests.
+     --out-of-source-dir=<path>  Directory used for CMake out-of-source build tests.
+  -r|--release-test     Run this script in release mode. This fixes the seed value to 1.
+  -s|--seed             Integer seed value to use for this test run.
+
+Tool path options:
+     --gnutls-cli=<GnuTLS_cli_path>             GnuTLS client executable to use for most tests.
+     --gnutls-serv=<GnuTLS_serv_path>           GnuTLS server executable to use for most tests.
+     --gnutls-legacy-cli=<GnuTLS_cli_path>      GnuTLS client executable to use for legacy tests.
+     --gnutls-legacy-serv=<GnuTLS_serv_path>    GnuTLS server executable to use for legacy tests.
+     --openssl=<OpenSSL_path>                   OpenSSL executable to use for most tests.
+     --openssl-legacy=<OpenSSL_path>            OpenSSL executable to use for legacy tests e.g. SSLv3.
+EOF
 }
 
 # remove built files as well as the cmake cache/config
@@ -103,38 +109,12 @@ check_tools()
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        --memory|-m*)
-            MEMORY=${1#-m}
-            ;;
         --force|-f)
             FORCE=1
-            ;;
-        --seed|-s)
-            shift
-            SEED="$1"
-            ;;
-        --release-test|-r)
-            RELEASE=1
-            ;;
-        --out-of-source-dir)
-            shift
-            OUT_OF_SOURCE_DIR="$1"
-            ;;
-        --openssl)
-            shift
-            OPENSSL="$1"
-            ;;
-        --openssl-legacy)
-            shift
-            OPENSSL_LEGACY="$1"
             ;;
         --gnutls-cli)
             shift
             GNUTLS_CLI="$1"
-            ;;
-        --gnutls-serv)
-            shift
-            GNUTLS_SERV="$1"
             ;;
         --gnutls-legacy-cli)
             shift
@@ -144,9 +124,40 @@ while [ $# -gt 0 ]; do
             shift
             GNUTLS_LEGACY_SERV="$1"
             ;;
-        --help|-h|*)
+        --gnutls-serv)
+            shift
+            GNUTLS_SERV="$1"
+            ;;
+        --help|-h)
             usage
-            exit 1
+            exit
+            ;;
+        --memory|-m)
+            MEMORY=1
+            ;;
+        --openssl)
+            shift
+            OPENSSL="$1"
+            ;;
+        --openssl-legacy)
+            shift
+            OPENSSL_LEGACY="$1"
+            ;;
+        --out-of-source-dir)
+            shift
+            OUT_OF_SOURCE_DIR="$1"
+            ;;
+        --release-test|-r)
+            RELEASE=1
+            ;;
+        --seed|-s)
+            shift
+            SEED="$1"
+            ;;
+        *)
+            echo >&2 "Unknown option: $1"
+            echo >&2 "Run $0 --help for usage."
+            exit 120
             ;;
     esac
     shift

@@ -32,6 +32,7 @@ CONFIG_BAK="$CONFIG_H.bak"
 
 MEMORY=0
 FORCE=0
+KEEP_GOING=0
 RELEASE=0
 
 # Default commands, can be overriden by the environment
@@ -51,6 +52,7 @@ Usage: $0 [OPTION]...
 
 General options:
   -f|--force            Force the tests to overwrite any modified files.
+  -k|--keep-going       Run all tests and report errors at the end.
   -m|--memory           Additional optional memory tests.
      --out-of-source-dir=<path>  Directory used for CMake out-of-source build tests.
   -r|--release-test     Run this script in release mode. This fixes the seed value to 1.
@@ -69,7 +71,7 @@ EOF
 # remove built files as well as the cmake cache/config
 cleanup()
 {
-    make clean
+    command make clean
 
     find . -name yotta -prune -o -iname '*cmake*' -not -name CMakeLists.txt -exec rm -rf {} \+
     rm -f include/Makefile include/mbedtls/Makefile programs/*/Makefile
@@ -81,7 +83,21 @@ cleanup()
     fi
 }
 
-trap cleanup INT TERM HUP
+# Executed on exit. May be redefined depending on command line options.
+final_report () {
+    :
+}
+
+fatal_signal () {
+    cleanup
+    final_report $1
+    trap - $1
+    kill -$1 $$
+}
+
+trap 'fatal_signal HUP' HUP
+trap 'fatal_signal INT' INT
+trap 'fatal_signal TERM' TERM
 
 msg()
 {
@@ -90,6 +106,7 @@ msg()
     echo "* $1 "
     printf "* "; date
     echo "******************************************************************"
+    current_section=$1
 }
 
 err_msg()
@@ -131,6 +148,9 @@ while [ $# -gt 0 ]; do
         --help|-h)
             usage
             exit
+            ;;
+        --keep-going|-k)
+            KEEP_GOING=1
             ;;
         --memory|-m)
             MEMORY=1
@@ -184,13 +204,77 @@ else
     fi
 
     if ! git diff-files --quiet include/mbedtls/config.h; then
-        echo $?
         err_msg "Warning - the configuration file 'include/mbedtls/config.h' has been edited. "
         echo "You can either delete or preserve your work, or force the test by rerunning the"
         echo "script as: $0 --force"
         exit 1
     fi
 fi
+
+build_status=0
+if [ $KEEP_GOING -eq 1 ]; then
+    failure_summary=
+    failure_count=0
+    start_red=
+    end_color=
+    if [ -t 1 ]; then
+        case "$TERM" in
+            *color*|cygwin|linux|rxvt*|screen|[Eex]term*)
+                start_red=$(printf '\033[31m')
+                end_color=$(printf '\033[0m')
+                ;;
+        esac
+    fi
+    record_status () {
+        if "$@"; then
+            last_status=0
+        else
+            last_status=$?
+            text="$current_section: $* -> $last_status"
+            failure_summary="$failure_summary
+$text"
+            failure_count=$((failure_count + 1))
+            echo "${start_red}^^^^$text^^^^${end_color}"
+        fi
+    }
+    make () {
+        case "$*" in
+            *test|*check)
+                if [ $build_status -eq 0 ]; then
+                    record_status command make "$@"
+                else
+                    echo "(skipped because the build failed)"
+                fi
+                ;;
+            *)
+                record_status command make "$@"
+                build_status=$last_status
+                ;;
+        esac
+    }
+    final_report () {
+        if [ $failure_count -gt 0 ]; then
+            echo
+            echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+            echo "${start_red}FAILED: $failure_count${end_color}$failure_summary"
+            echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+        elif [ -z "${1-}" ]; then
+            echo "SUCCESS :)"
+        fi
+        if [ -n "${1-}" ]; then
+            echo "Killed by SIG$1."
+        fi
+    }
+else
+    record_status () {
+        "$@"
+    }
+fi
+if_build_succeeded () {
+    if [ $build_status -eq 0 ]; then
+        record_status "$@"
+    fi
+}
 
 if [ $RELEASE -eq 1 ]; then
     # Fix the seed value to 1 to ensure that the tests are deterministic.
@@ -249,7 +333,7 @@ tests/scripts/check-names.sh
 # Yotta not supported in 2.1 branch
 #msg "build: create and build yotta module" # ~ 30s
 #cleanup
-#tests/scripts/yotta-build.sh
+#record_status tests/scripts/yotta-build.sh
 
 msg "build: cmake, gcc, ASan" # ~ 1 min 50s
 cleanup
@@ -261,16 +345,16 @@ make test
 programs/test/selftest
 
 msg "test: ssl-opt.sh (ASan build)" # ~ 1 min
-tests/ssl-opt.sh
+if_build_succeeded tests/ssl-opt.sh
 
 msg "test/build: ref-configs (ASan build)" # ~ 6 min 20s
-tests/scripts/test-ref-configs.pl
+if_build_succeeded tests/scripts/test-ref-configs.pl
 
 msg "build: with ASan (rebuild after ref-configs)" # ~ 1 min
 make
 
 msg "test: compat.sh (ASan build)" # ~ 6 min
-tests/compat.sh
+if_build_succeeded tests/compat.sh
 
 msg "build: default config except MFL extension (ASan build)" # ~ 30s
 cleanup
@@ -294,11 +378,11 @@ make test
 programs/test/selftest
 
 msg "build: SSLv3 - compat.sh (ASan build)" # ~ 6 min
-tests/compat.sh -m 'tls1 tls1_1 tls1_2 dtls1 dtls1_2'
-OPENSSL_CMD="$OPENSSL_LEGACY" tests/compat.sh -m 'ssl3'
+if_build_succeeded tests/compat.sh -m 'tls1 tls1_1 tls1_2 dtls1 dtls1_2'
+if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" tests/compat.sh -m 'ssl3'
 
 msg "build: SSLv3 - ssl-opt.sh (ASan build)" # ~ 6 min
-tests/ssl-opt.sh
+if_build_succeeded tests/ssl-opt.sh
 
 msg "build: Default + !MBEDTLS_SSL_RENEGOTIATION (ASan build)" # ~ 6 min
 cleanup
@@ -311,7 +395,7 @@ msg "test: !MBEDTLS_SSL_RENEGOTIATION - main suites (inc. selftests) (ASan build
 make test
 
 msg "test: !MBEDTLS_SSL_RENEGOTIATION - ssl-opt.sh (ASan build)" # ~ 6 min
-tests/ssl-opt.sh
+if_build_succeeded tests/ssl-opt.sh
 
 msg "build: cmake, full config, clang" # ~ 50s
 cleanup
@@ -325,24 +409,24 @@ msg "test: main suites (full config)" # ~ 5s
 make test
 
 msg "test: ssl-opt.sh default (full config)" # ~ 1s
-tests/ssl-opt.sh -f Default
+if_build_succeeded tests/ssl-opt.sh -f Default
 
 msg "test: compat.sh RC4, DES & NULL (full config)" # ~ 2 min
-OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR'
+if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR'
 
 msg "test/build: curves.pl (gcc)" # ~ 4 min
 cleanup
 cmake -D CMAKE_BUILD_TYPE:String=Debug .
-tests/scripts/curves.pl
+if_build_succeeded tests/scripts/curves.pl
 
 msg "test/build: key-exchanges (gcc)" # ~ 1 min
 cleanup
 cmake -D CMAKE_BUILD_TYPE:String=Check .
-tests/scripts/key-exchanges.pl
+if_build_succeeded tests/scripts/key-exchanges.pl
 
 msg "build: Unix make, -Os (gcc)" # ~ 30s
 cleanup
-CC=gcc CFLAGS='-Werror -Os' make
+make CC=gcc CFLAGS='-Werror -Os'
 
 # this is meant to cath missing #define mbedtls_printf etc
 # disable fsio to catch some more missing #include <stdio.h>
@@ -358,7 +442,7 @@ scripts/config.pl unset MBEDTLS_PLATFORM_SNPRINTF_ALT
 scripts/config.pl unset MBEDTLS_PLATFORM_EXIT_ALT
 scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
 scripts/config.pl unset MBEDTLS_FS_IO
-CC=gcc CFLAGS='-Werror -O0' make
+make CC=gcc CFLAGS='-Werror -O0'
 
 # catch compile bugs in _uninit functions
 msg "build: full config with NO_STD_FUNCTION, make, gcc" # ~ 30s
@@ -366,21 +450,21 @@ cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl set MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
-CC=gcc CFLAGS='-Werror -O0' make
+make CC=gcc CFLAGS='-Werror -O0'
 
 msg "build: full config except ssl_srv.c, make, gcc" # ~ 30s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl unset MBEDTLS_SSL_SRV_C
-CC=gcc CFLAGS='-Werror -O0' make
+make CC=gcc CFLAGS='-Werror -O0'
 
 msg "build: full config except ssl_cli.c, make, gcc" # ~ 30s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl unset MBEDTLS_SSL_CLI_C
-CC=gcc CFLAGS='-Werror -O0' make
+make CC=gcc CFLAGS='-Werror -O0'
 
 msg "build: full config except net.c, make, gcc -std=c99 -pedantic" # ~ 30s
 cleanup
@@ -388,7 +472,7 @@ cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl unset MBEDTLS_NET_C # getaddrinfo() undeclared, etc.
 scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY # uses syscall() on GNU/Linux
-CC=gcc CFLAGS='-Werror -O0 -std=c99 -pedantic' make lib
+make CC=gcc CFLAGS='-Werror -O0 -std=c99 -pedantic' lib
 
 if uname -a | grep -F Linux >/dev/null; then
     msg "build/test: make shared" # ~ 40s
@@ -399,7 +483,7 @@ fi
 if uname -a | grep -F x86_64 >/dev/null; then
     msg "build: i386, make, gcc" # ~ 30s
     cleanup
-    CC=gcc CFLAGS='-Werror -m32' make
+    make CC=gcc CFLAGS='-Werror -m32'
 fi # x86_64
 
 msg "build: arm-none-eabi-gcc, make" # ~ 10s
@@ -416,7 +500,7 @@ scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
 scripts/config.pl unset MBEDTLS_THREADING_C
 scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
 scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
-CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS=-Werror make lib
+make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS=-Werror lib
 
 msg "build: armcc, make"
 cleanup
@@ -435,24 +519,24 @@ scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
 scripts/config.pl unset MBEDTLS_THREADING_C
 scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
 scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
-CC=armcc AR=armar WARNING_CFLAGS= make lib
+make CC=armcc AR=armar WARNING_CFLAGS= lib
 
 msg "build: allow SHA1 in certificates by default"
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl set MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
-CFLAGS='-Werror -Wall -Wextra' make
+make CFLAGS='-Werror -Wall -Wextra'
 msg "test: allow SHA1 in certificates by default"
 make test
-tests/ssl-opt.sh -f SHA-1
+if_build_succeeded tests/ssl-opt.sh -f SHA-1
 
 if which i686-w64-mingw32-gcc >/dev/null; then
     msg "build: cross-mingw64, make" # ~ 30s
     cleanup
-    CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS=-Werror WINDOWS_BUILD=1 make
-    WINDOWS_BUILD=1 make clean
-    CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS=-Werror WINDOWS_BUILD=1 SHARED=1 make
-    WINDOWS_BUILD=1 make clean
+    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS=-Werror WINDOWS_BUILD=1
+    make WINDOWS_BUILD=1 clean
+    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS=-Werror WINDOWS_BUILD=1 SHARED=1
+    make WINDOWS_BUILD=1 clean
 fi
 
 # MemSan currently only available on Linux 64 bits
@@ -469,13 +553,13 @@ if uname -a | grep 'Linux.*x86_64' >/dev/null; then
     make test
 
     msg "test: ssl-opt.sh (MSan)" # ~ 1 min
-    tests/ssl-opt.sh
+    if_build_succeeded tests/ssl-opt.sh
 
     # Optional part(s)
 
     if [ "$MEMORY" -gt 0 ]; then
         msg "test: compat.sh (MSan)" # ~ 6 min 20s
-        tests/compat.sh
+        if_build_succeeded tests/compat.sh
     fi
 
 else # no MemSan
@@ -494,12 +578,12 @@ else # no MemSan
 
     if [ "$MEMORY" -gt 0 ]; then
         msg "test: ssl-opt.sh --memcheck (Release)"
-        tests/ssl-opt.sh --memcheck
+        if_build_succeeded tests/ssl-opt.sh --memcheck
     fi
 
     if [ "$MEMORY" -gt 1 ]; then
         msg "test: compat.sh --memcheck (Release)"
-        tests/compat.sh --memcheck
+        if_build_succeeded tests/compat.sh --memcheck
     fi
 
 fi # MemSan
@@ -519,3 +603,5 @@ rm -rf "$OUT_OF_SOURCE_DIR"
 
 msg "Done, cleaning up"
 cleanup
+
+final_report

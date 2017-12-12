@@ -221,12 +221,9 @@
  * Maxium fragment length in bytes,
  * determines the size of each of the two internal I/O buffers.
  *
- * Note: the RFC defines the default size of SSL / TLS messages. If you
- * change the value here, other clients / servers may not be able to
- * communicate with you anymore. Only change this value if you control
- * both sides of the connection and have it reduced at both sides, or
- * if you're using the Max Fragment Length extension and you know all your
- * peers are using it too!
+ * If you set this to less than 16384, mbedTLS will initially size the
+ * buffers to the value given, and if it finds something larger is
+ * necessary, it will reallocate the buffer.  This involves a memcpy.
  */
 #if !defined(MBEDTLS_SSL_MAX_CONTENT_LEN)
 #define MBEDTLS_SSL_MAX_CONTENT_LEN         16384   /**< Size of the input / output buffer */

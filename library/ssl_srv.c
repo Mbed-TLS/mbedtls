@@ -1257,6 +1257,10 @@ read_record_header:
         return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
 
+    ret = mbedtls_ssl_confirm_content_len( ssl, &ssl->out, MBEDTLS_SSL_BUFFER_MIN);
+    if( ret )
+        return( ret );
+
     /* For DTLS if this is the initial handshake, remember the client sequence
      * number to use it in our next message (RFC 6347 4.2.1) */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -2379,6 +2383,10 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     size_t olen, ext_len = 0, n;
     unsigned char *buf, *p;
 
+    ret = mbedtls_ssl_confirm_content_len( ssl, &ssl->out, MBEDTLS_SSL_BUFFER_MIN + 1024 );
+    if( ret )
+        return( ret );
+
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write server hello" ) );
 
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
@@ -3208,8 +3216,16 @@ curve_matching_done:
             n += 2;
         }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+	len = p - ssl->out.buf;
+        ret = mbedtls_ssl_confirm_content_len( ssl, &ssl->out,
+                                               ( p + 4 - ssl->out.buf ) +
+                                               mbedtls_pk_get_len(
+						     mbedtls_ssl_own_key( ssl ) ) );
+        if( ret )
+            return( ret );
+	p = ssl->out.buf + len;
 
-        if( ( ret = mbedtls_pk_sign( mbedtls_ssl_own_key( ssl ), md_alg, hash, hashlen,
+	if( ( ret = mbedtls_pk_sign( mbedtls_ssl_own_key( ssl ), md_alg, hash, hashlen,
                         p + 2 , &signature_len, ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_sign", ret );
@@ -3948,6 +3964,23 @@ static int ssl_write_new_session_ticket( mbedtls_ssl_context *ssl )
     uint32_t lifetime;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write new session ticket" ) );
+
+    if( ssl && ssl->session_negotiate && ssl->session_negotiate->peer_cert ) {
+        /*
+	 * We need enough space to cover:
+	 *
+	 *  - the peer cert itself
+	 *  - at least 4 bytes for key_name, 12 for IV, 2 for len, 16 for tag
+	 *  - 10 for the header
+	 *  - the gap between the buffer and message start
+	 *  - the session struct
+	 */
+        ret = mbedtls_ssl_confirm_content_len( ssl, &ssl->out,
+            ssl->session_negotiate->peer_cert->raw.len + 4 + 12 + 2 + 16 + 10 +
+	        (ssl->out.msg - ssl->out.buf) + sizeof( mbedtls_ssl_session ) );
+        if( ret )
+            return( ret );
+    }
 
     ssl->out.msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
     ssl->out.msg[0]  = MBEDTLS_SSL_HS_NEW_SESSION_TICKET;

@@ -599,7 +599,9 @@ void mbedtls_ssl_dtls_replay_update( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_alloc_record_buf( mbedtls_ssl_context *ssl,
                                   mbedtls_ssl_record *rec,
                                   size_t max_content_len );
-
+int mbedtls_ssl_confirm_content_len( mbedtls_ssl_context *ssl,
+                                     mbedtls_ssl_record *rec,
+                                     size_t content_len );
 /* constant-time buffer comparison */
 static inline int mbedtls_ssl_safer_memcmp( const void *a, const void *b, size_t n )
 {

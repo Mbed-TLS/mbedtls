@@ -73,6 +73,10 @@ static void ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
 
     hostname_len = strlen( ssl->hostname );
 
+    if( mbedtls_ssl_confirm_content_len( ssl, &ssl->out, buf - ssl->out.buf  +
+                                           hostname_len + 9 ) )
+        return;
+
     if( end < p || (size_t)( end - p ) < hostname_len + 9 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
@@ -442,7 +446,7 @@ static void ssl_write_max_fragment_length_ext( mbedtls_ssl_context *ssl,
                                                size_t *olen )
 {
     unsigned char *p = buf;
-    const unsigned char *end = ssl->out.msg + MBEDTLS_SSL_MAX_CONTENT_LEN;
+    const unsigned char *end = ssl->out.msg + ssl->out.max_content_len;
 
     *olen = 0;
 
@@ -720,7 +724,7 @@ static int ssl_generate_random( mbedtls_ssl_context *ssl )
 static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
 {
     int ret;
-    size_t i, n, olen, ext_len = 0;
+    size_t i, n, olen, ext_len = 0, pofs;
     unsigned char *buf;
     unsigned char *p, *q;
     unsigned char offer_compress;
@@ -749,6 +753,10 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
                             "consider using mbedtls_ssl_config_defaults()" ) );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
+
+    ret = mbedtls_ssl_confirm_content_len( ssl, &ssl->out, MBEDTLS_SSL_BUFFER_MIN + 1024 );
+    if( ret )
+        return( ret );
 
     /*
      *     0  .   0   handshake type
@@ -967,6 +975,8 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
         *p++ = MBEDTLS_SSL_COMPRESS_NULL;
     }
 
+    pofs = p - ssl->out.buf;
+
     // First write extensions, then the total length
     //
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
@@ -989,9 +999,10 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+    /* 6 bytes per */
     ssl_write_supported_elliptic_curves_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
-
+    /* 6 bytes per */
     ssl_write_supported_point_formats_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
 #endif
@@ -1025,14 +1036,19 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     ssl_write_alpn_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
 #endif
-
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    ret = mbedtls_ssl_confirm_content_len( ssl, &ssl->out, pofs + 2 + ext_len +
+    		ssl->session_negotiate->ticket_len + 4 + 3 );
+    if( ret )
+        return ret;
+    p = ssl->out.buf + pofs;
     ssl_write_session_ticket_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
 #endif
 
-    /* olen unused if all extensions are disabled */
+    /* unused if all extensions are disabled */
     ((void) olen);
+    ((void) pofs);
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, total extension length: %d",
                    ext_len ) );
@@ -1044,7 +1060,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
         p += ext_len;
     }
 
-    ssl->out.msglen  = p - buf;
+    ssl->out.msglen  = p - ssl->out.msg;
     ssl->out.msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
     ssl->out.msg[0]  = MBEDTLS_SSL_HS_CLIENT_HELLO;
 
@@ -1456,8 +1472,6 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse server hello" ) );
 
-    buf = ssl->in.msg;
-
     if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
     {
         /* No alert on a read error. */
@@ -1492,6 +1506,8 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
                                         MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE );
         return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
     }
+
+    buf = ssl->in.msg;
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
@@ -1532,7 +1548,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
      * 38+n . 39+n  extensions length (optional)
      * 40+n .  ..   extensions
      */
-    buf += mbedtls_ssl_hs_hdr_len( ssl );
+    buf = ssl->in.msg + mbedtls_ssl_hs_hdr_len( ssl );
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, version", buf + 0, 2 );
     mbedtls_ssl_read_version( &ssl->major_ver, &ssl->minor_ver,

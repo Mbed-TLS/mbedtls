@@ -297,7 +297,9 @@ int x509_crl_parse_der( x509_crl *chain,
      */
     if( buflen == 0 )
         return( POLARSSL_ERR_X509_INVALID_FORMAT );
-    else if( ( p = polarssl_malloc( buflen ) ) == NULL )
+
+    p = polarssl_malloc( buflen );
+    if( p == NULL )
         return( POLARSSL_ERR_X509_MALLOC_FAILED );
 
     memcpy( p, buf, buflen );

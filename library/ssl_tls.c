@@ -2063,17 +2063,16 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
  */
 static int ssl_compress_buf( mbedtls_ssl_context *ssl )
 {
-    int ret;
-    unsigned char *msg_post = ssl->out.msg;
-    size_t len_pre = ssl->out.msglen;
-    unsigned char *msg_pre = ssl->compress_buf;
+    unsigned int pending;
+    size_t avail_out;
+    int ret, bits;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> compress buf" ) );
 
-    if( len_pre == 0 )
+    if( ssl->out.msglen == 0 )
         return( 0 );
 
-    memcpy( msg_pre, ssl->out.msg, len_pre );
+    memcpy( ssl->compress_buf, ssl->out.msg, ssl->out.msglen );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "before compression: msglen = %d, ",
                    ssl->out.msglen ) );
@@ -2081,21 +2080,41 @@ static int ssl_compress_buf( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_BUF( 4, "before compression: output payload",
                    ssl->out.msg, ssl->out.msglen );
 
-    ssl->transform_out->ctx_deflate.next_in = msg_pre;
-    ssl->transform_out->ctx_deflate.avail_in = len_pre;
-    ssl->transform_out->ctx_deflate.next_out = msg_post;
-    ssl->transform_out->ctx_deflate.avail_out = ssl->out.max_content_len + MBEDTLS_SSL_BUFFER_OVERHEAD -
-                                                  (ssl->out.msg - ssl->out.buf);
+    ssl->transform_out->ctx_deflate.next_in = ssl->compress_buf;
+    ssl->transform_out->ctx_deflate.avail_in = ssl->out.msglen;
+    ssl->out.msglen = 0;
 
-    ret = deflate( &ssl->transform_out->ctx_deflate, Z_SYNC_FLUSH );
-    if( ret != Z_OK )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "failed to perform compression (%d)", ret ) );
-        return( MBEDTLS_ERR_SSL_COMPRESSION_FAILED );
-    }
+    /*
+     * "compression" isn't guaranteed to result in something smaller...
+     * it's possible we have to increase the out buf size to write all
+     * the deflated data for the payload
+     */
+    do {
+        ssl->transform_out->ctx_deflate.next_out = ssl->out.msg + ssl->out.msglen;
+        ssl->transform_out->ctx_deflate.avail_out = ssl->out.max_content_len + MBEDTLS_SSL_BUFFER_OVERHEAD -
+                                                  (ssl->out.msg - ssl->out.buf) - ssl->out.msglen;
+	avail_out = ssl->transform_out->ctx_deflate.avail_out;
 
-    ssl->out.msglen = ssl->out.max_content_len + MBEDTLS_SSL_BUFFER_OVERHEAD -
-                      ssl->transform_out->ctx_deflate.avail_out;
+        ret = deflate( &ssl->transform_out->ctx_deflate, Z_SYNC_FLUSH );
+        if( ret != Z_OK && ret != Z_BUF_ERROR )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "failed to perform compression (%d)", ret ) );
+            return( MBEDTLS_ERR_SSL_COMPRESSION_FAILED );
+        }
+
+	ssl->out.msglen += avail_out - ssl->transform_out->ctx_deflate.avail_out;
+
+	/* check if we still have more compresssed to write */
+	deflatePending(&ssl->transform_out->ctx_deflate, &pending, &bits);
+        if( ssl->transform_out->ctx_deflate.avail_in ||
+            ( !ssl->transform_out->ctx_deflate.avail_out && ( pending || bits ) ) ) {
+		/* we have to increase the out buf and continue */
+	    ret = mbedtls_ssl_confirm_content_len( ssl, &ssl->out, ssl->out.max_content_len + 1024);
+            if( ret )
+	         return( ret );
+	    continue;
+        }
+    } while( 0 );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "after compression: msglen = %d, ",
                    ssl->out.msglen ) );
@@ -2111,16 +2130,14 @@ static int ssl_compress_buf( mbedtls_ssl_context *ssl )
 static int ssl_decompress_buf( mbedtls_ssl_context *ssl )
 {
     int ret;
-    unsigned char *msg_post = ssl->in.msg;
-    size_t len_pre = ssl->in.msglen;
-    unsigned char *msg_pre = ssl->compress_buf;
+    size_t avail_out;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> decompress buf" ) );
 
-    if( len_pre == 0 )
+    if( ssl->in.msglen == 0 )
         return( 0 );
 
-    memcpy( msg_pre, ssl->in.msg, len_pre );
+    memcpy( ssl->compress_buf, ssl->in.msg, ssl->in.msglen );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "before decompression: msglen = %d, ",
                    ssl->in.msglen ) );
@@ -2128,22 +2145,39 @@ static int ssl_decompress_buf( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_BUF( 4, "before decompression: input payload",
                    ssl->in.msg, ssl->in.msglen );
 
-    ssl->transform_in->ctx_inflate.next_in = msg_pre;
-    ssl->transform_in->ctx_inflate.avail_in = len_pre;
-    ssl->transform_in->ctx_inflate.next_out = msg_post;
-    ssl->transform_in->ctx_inflate.avail_out = ssl->in.max_content_len +
-                                                MBEDTLS_SSL_BUFFER_OVERHEAD -
-						 (ssl->in.msg - ssl->in.buf);
+    ssl->transform_in->ctx_inflate.next_in = ssl->compress_buf;
+    ssl->transform_in->ctx_inflate.avail_in = ssl->in.msglen;
+    ssl->in.msglen = 0;
 
-    ret = inflate( &ssl->transform_in->ctx_inflate, Z_SYNC_FLUSH );
-    if( ret != Z_OK )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "failed to perform decompression (%d)", ret ) );
-        return( MBEDTLS_ERR_SSL_COMPRESSION_FAILED );
-    }
+    do {
+        ssl->transform_in->ctx_inflate.next_out = ssl->in.msg + ssl->in.msglen;
+        ssl->transform_in->ctx_inflate.avail_out = ssl->in.max_content_len +
+                                                   MBEDTLS_SSL_BUFFER_OVERHEAD -
+                                                   (ssl->in.msg - ssl->in.buf) - ssl->in.msglen;
+	avail_out = ssl->transform_in->ctx_inflate.avail_out;
 
-    ssl->in.msglen = MBEDTLS_SSL_MAX_CONTENT_LEN -
-                     ssl->transform_in->ctx_inflate.avail_out;
+        ret = inflate( &ssl->transform_in->ctx_inflate, Z_SYNC_FLUSH );
+        if( ret != Z_OK && ret != Z_BUF_ERROR )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "failed to perform decompression (%d)", ret ) );
+            return( MBEDTLS_ERR_SSL_COMPRESSION_FAILED );
+        }
+
+	if( avail_out == ssl->transform_in->ctx_inflate.avail_out )
+		/* we explicitly completed the inflate action */
+		break;
+
+        ssl->in.msglen += avail_out - ssl->transform_in->ctx_inflate.avail_out;
+	/* check if we still have more decompressed to write */
+        if( ssl->transform_in->ctx_deflate.avail_in ||
+            !ssl->transform_in->ctx_deflate.avail_out ) {
+		/* we have to increase the out buf and continue */
+	    ret = mbedtls_ssl_confirm_content_len( ssl, &ssl->in, ssl->in.max_content_len + 1024);
+            if( ret )
+	         return( ret );
+        }
+	/* we go around anyway, so inflate() can confirm nothing left and exit */
+    } while( 1 );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "after decompression: msglen = %d, ",
                    ssl->in.msglen ) );

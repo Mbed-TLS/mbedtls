@@ -332,8 +332,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(MBEDTLS_ERR_RSA_RNG_FAILED) )
             mbedtls_snprintf( buf, buflen, "RSA - The random generator failed to generate non-zeros" );
         if( use_ret == -(MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION) )
-            mbedtls_snprintf( buf, buflen, "RSA - The implementation doesn't offer the requested operation, "\
-                                            "e.g. because of security violations or lack of functionality" );
+            mbedtls_snprintf( buf, buflen, "RSA - The implementation doesn't offer the requested operation, e.g. because of security violations or lack of functionality" );
 #endif /* MBEDTLS_RSA_C */
 
 #if defined(MBEDTLS_SSL_TLS_C)

@@ -286,40 +286,32 @@ has_mem_err() {
     fi
 }
 
-# wait for server to start: two versions depending on lsof availability
-wait_server_start() {
-    if which lsof >/dev/null 2>&1; then
-        START_TIME=$( date +%s )
-        DONE=0
-
-        # make a tight loop, server usually takes less than 1 sec to start
+# Wait for process $2 to be listening on port $1
+if type lsof >/dev/null 2>/dev/null; then
+    wait_server_start() {
+        START_TIME=$(date +%s)
         if [ "$DTLS" -eq 1 ]; then
-            while [ $DONE -eq 0 ]; do
-                if lsof -nbi UDP:"$SRV_PORT" 2>/dev/null | grep UDP >/dev/null
-                then
-                    DONE=1
-                elif [ $(( $( date +%s ) - $START_TIME )) -gt $DOG_DELAY ]; then
-                    echo "SERVERSTART TIMEOUT"
-                    echo "SERVERSTART TIMEOUT" >> $SRV_OUT
-                    DONE=1
-                fi
-            done
+            proto=UDP
         else
-            while [ $DONE -eq 0 ]; do
-                if lsof -nbi TCP:"$SRV_PORT" 2>/dev/null | grep LISTEN >/dev/null
-                then
-                    DONE=1
-                elif [ $(( $( date +%s ) - $START_TIME )) -gt $DOG_DELAY ]; then
-                    echo "SERVERSTART TIMEOUT"
-                    echo "SERVERSTART TIMEOUT" >> $SRV_OUT
-                    DONE=1
-                fi
-            done
+            proto=TCP
         fi
-    else
+        # Make a tight loop, server normally takes less than 1s to start.
+        while ! lsof -a -n -b -i "$proto:$1" -p "$2" >/dev/null 2>/dev/null; do
+              if [ $(( $(date +%s) - $START_TIME )) -gt $DOG_DELAY ]; then
+                  echo "SERVERSTART TIMEOUT"
+                  echo "SERVERSTART TIMEOUT" >> $SRV_OUT
+                  break
+              fi
+              # Linux and *BSD support decimal arguments to sleep. On other
+              # OSes this may be a tight loop.
+              sleep 0.1 2>/dev/null || true
+        done
+    }
+else
+    wait_server_start() {
         sleep "$START_DELAY"
-    fi
-}
+    }
+fi
 
 # Given the client or server debug output, parse the unix timestamp that is
 # included in the first 4 bytes of the random bytes and check that it's within
@@ -466,7 +458,7 @@ run_test() {
         echo "$SRV_CMD" > $SRV_OUT
         provide_input | $SRV_CMD >> $SRV_OUT 2>&1 &
         SRV_PID=$!
-        wait_server_start
+        wait_server_start "$SRV_PORT" "$SRV_PID"
 
         echo "$CLI_CMD" > $CLI_OUT
         eval "$CLI_CMD" >> $CLI_OUT 2>&1 &

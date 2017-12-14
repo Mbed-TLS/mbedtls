@@ -77,9 +77,7 @@ unsigned long mbedtls_timing_hardclock( void );
  * \param val      points to a timer structure
  * \param reset    if set to 1, the timer is restarted
  */
-
 unsigned long long mbedtls_timing_get_timer_us( struct mbedtls_timing_hr_time *val, int reset );
-
 
 /**
  * \brief          Return the elapsed time in milliseconds
@@ -98,7 +96,6 @@ unsigned long long mbedtls_timing_get_timer_us( struct mbedtls_timing_hr_time *v
  *                 get_timer(0) }` the value time1+time2 is only approximately
  *                 the delay since the first reset.
  */
-
 unsigned long mbedtls_timing_get_timer( struct mbedtls_timing_hr_time *val, int reset );
 
 /**

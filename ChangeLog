@@ -87,6 +87,9 @@ Changes
      and the message digest. Further, allow enabling/disabling of authority
      identifier, subject identifier and basic constraints extensions.
 
+Features
+   * Allow comments in test data files.
+
 = mbed TLS 2.1.9 branch released 2017-08-10
 
 Security

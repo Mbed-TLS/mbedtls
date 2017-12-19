@@ -37,6 +37,7 @@ MEMORY=0
 FORCE=0
 KEEP_GOING=0
 RELEASE=0
+RUN_ARMCC=1
 YOTTA=1
 
 # Default commands, can be overriden by the environment
@@ -65,6 +66,8 @@ General options:
   -f|--force            Force the tests to overwrite any modified files.
   -k|--keep-going       Run all tests and report errors at the end.
   -m|--memory           Additional optional memory tests.
+     --armcc            Run ARM Compiler builds (on by default).
+     --no-armcc         Skip ARM Compiler builds.
      --no-yotta         Skip yotta module build.
      --out-of-source-dir=<path>  Directory used for CMake out-of-source build tests.
   -r|--release-test     Run this script in release mode. This fixes the seed value to 1.
@@ -124,15 +127,17 @@ msg()
     current_section=$1
 }
 
-armc6_build_test()
-{
-    FLAGS="$1"
+if [ $RUN_ARMCC -ne 0 ]; then
+    armc6_build_test()
+    {
+        FLAGS="$1"
 
-    msg "build: ARM Compiler 6 ($FLAGS), make"
-    ARM_TOOL_VARIANT="ult" CC="$ARMC6_CC" AR="$ARMC6_AR" CFLAGS="$FLAGS" \
-        WARNING_CFLAGS='-xc -std=c99' make lib
-    make clean
-}
+        msg "build: ARM Compiler 6 ($FLAGS), make"
+        ARM_TOOL_VARIANT="ult" CC="$ARMC6_CC" AR="$ARMC6_AR" CFLAGS="$FLAGS" \
+                        WARNING_CFLAGS='-xc -std=c99' make lib
+        make clean
+    }
+fi
 
 err_msg()
 {
@@ -151,6 +156,9 @@ check_tools()
 
 while [ $# -gt 0 ]; do
     case "$1" in
+        --armcc)
+            RUN_ARMCC=1
+            ;;
         --armc5-bin-dir)
             shift
             ARMC5_BIN_DIR="$1"
@@ -187,6 +195,9 @@ while [ $# -gt 0 ]; do
             ;;
         --memory|-m)
             MEMORY=1
+            ;;
+        --no-armcc)
+            RUN_ARMCC=0
             ;;
         --no-yotta)
             YOTTA=0
@@ -352,8 +363,10 @@ export GNUTLS_SERV="$GNUTLS_SERV"
 # Make sure the tools we need are available.
 check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$GNUTLS_CLI" "$GNUTLS_SERV" \
             "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV" "doxygen" "dot" \
-            "arm-none-eabi-gcc" "$ARMC5_CC" "$ARMC5_AR" "$ARMC6_CC" "$ARMC6_AR" \
-            "i686-w64-mingw32-gcc"
+            "arm-none-eabi-gcc" "i686-w64-mingw32-gcc"
+if [ $RUN_ARMCC -ne 0 ]; then
+    check_tools "$ARMC5_CC" "$ARMC5_AR" "$ARMC6_CC" "$ARMC6_AR"
+fi
 
 #
 # Test Suites to be executed
@@ -389,9 +402,9 @@ msg "test: doxygen warnings" # ~ 3s
 cleanup
 tests/scripts/doxygen.sh
 
-if [ $YOTTA -ne 0 ]; then
-    # Note - use of yotta is deprecated, and yotta also requires armcc to be
-    # on the path, and uses whatever version of armcc it finds there.
+if [ $RUN_ARMCC -ne 0 ] && [ $YOTTA -ne 0 ]; then
+    # Note - use of yotta is deprecated, and yotta also requires armcc to be on the
+    # path, and uses whatever version of armcc it finds there.
     msg "build: create and build yotta module" # ~ 30s
     cleanup
     record_status tests/scripts/yotta-build.sh
@@ -655,23 +668,25 @@ scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
 scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
 scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT # depends on MBEDTLS_HAVE_TIME
 
-make CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--strict --c99' lib
-make clean
+if [ $RUN_ARMCC -ne 0 ]; then
+    make CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--strict --c99' lib
+    make clean
 
-# ARM Compiler 6 - Target ARMv7-A
-armc6_build_test "--target=arm-arm-none-eabi -march=armv7-a"
+    # ARM Compiler 6 - Target ARMv7-A
+    armc6_build_test "--target=arm-arm-none-eabi -march=armv7-a"
 
-# ARM Compiler 6 - Target ARMv7-M
-armc6_build_test "--target=arm-arm-none-eabi -march=armv7-m"
+    # ARM Compiler 6 - Target ARMv7-M
+    armc6_build_test "--target=arm-arm-none-eabi -march=armv7-m"
 
-# ARM Compiler 6 - Target ARMv8-A - AArch32
-armc6_build_test "--target=arm-arm-none-eabi -march=armv8.2-a"
+    # ARM Compiler 6 - Target ARMv8-A - AArch32
+    armc6_build_test "--target=arm-arm-none-eabi -march=armv8.2-a"
 
-# ARM Compiler 6 - Target ARMv8-M
-armc6_build_test "--target=arm-arm-none-eabi -march=armv8-m.main"
+    # ARM Compiler 6 - Target ARMv8-M
+    armc6_build_test "--target=arm-arm-none-eabi -march=armv8-m.main"
 
-# ARM Compiler 6 - Target ARMv8-A - AArch64
-armc6_build_test "--target=aarch64-arm-none-eabi -march=armv8.2-a"
+    # ARM Compiler 6 - Target ARMv8-A - AArch64
+    armc6_build_test "--target=aarch64-arm-none-eabi -march=armv8.2-a"
+fi
 
 msg "build: allow SHA1 in certificates by default"
 cleanup

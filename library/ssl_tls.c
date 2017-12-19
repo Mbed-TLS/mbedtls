@@ -1050,9 +1050,12 @@ int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex )
 /*
  * SSLv3.0 MAC functions
  */
-static void ssl_mac( md_context_t *md_ctx, unsigned char *secret,
-                     unsigned char *buf, size_t len,
-                     unsigned char *ctr, int type )
+#define SSL_MAC_MAX_BYTES   20  /* MD-5 or SHA-1 */
+static void ssl_mac( md_context_t *md_ctx,
+                     const unsigned char *secret,
+                     const unsigned char *buf, size_t len,
+                     const unsigned char *ctr, int type,
+                     unsigned char out[SSL_MAC_MAX_BYTES] )
 {
     unsigned char header[11];
     unsigned char padding[48];
@@ -1077,14 +1080,14 @@ static void ssl_mac( md_context_t *md_ctx, unsigned char *secret,
     md_update( md_ctx, padding, padlen  );
     md_update( md_ctx, header,  11      );
     md_update( md_ctx, buf,     len     );
-    md_finish( md_ctx, buf +    len     );
+    md_finish( md_ctx, out              );
 
     memset( padding, 0x5C, padlen );
     md_starts( md_ctx );
     md_update( md_ctx, secret,    md_size );
     md_update( md_ctx, padding,   padlen  );
-    md_update( md_ctx, buf + len, md_size );
-    md_finish( md_ctx, buf + len          );
+    md_update( md_ctx, out,       md_size );
+    md_finish( md_ctx, out                );
 }
 #endif /* POLARSSL_SSL_PROTO_SSL3 */
 
@@ -1130,10 +1133,15 @@ static int ssl_encrypt_buf( ssl_context *ssl )
 #if defined(POLARSSL_SSL_PROTO_SSL3)
         if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
         {
+            unsigned char mac[SSL_MAC_MAX_BYTES];
+
             ssl_mac( &ssl->transform_out->md_ctx_enc,
                       ssl->transform_out->mac_enc,
                       ssl->out_msg, ssl->out_msglen,
-                      ssl->out_ctr, ssl->out_msgtype );
+                      ssl->out_ctr, ssl->out_msgtype,
+                      mac );
+
+            memcpy( ssl->out_msg + ssl->out_msglen, mac, ssl->transform_out->maclen );
         }
         else
 #endif
@@ -1790,7 +1798,8 @@ static int ssl_decrypt_buf( ssl_context *ssl )
             ssl_mac( &ssl->transform_in->md_ctx_dec,
                       ssl->transform_in->mac_dec,
                       ssl->in_msg, ssl->in_msglen,
-                      ssl->in_ctr, ssl->in_msgtype );
+                      ssl->in_ctr, ssl->in_msgtype,
+                      mac_expect );
         }
         else
 #endif /* POLARSSL_SSL_PROTO_SSL3 */

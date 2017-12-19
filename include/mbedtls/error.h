@@ -75,7 +75,7 @@
  * PKCS5     2   4 (Started from top)
  * DHM       3   9
  * PK        3   14 (Started from top)
- * RSA       4   9
+ * RSA       4   10
  * ECP       4   8 (Started from top)
  * MD        5   4
  * CIPHER    6   6

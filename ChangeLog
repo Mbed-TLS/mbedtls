@@ -60,6 +60,10 @@ Changes
      and the message digest. Further, allow enabling/disabling of authority
      identifier, subject identifier and basic constraints extensions.
 
+New deprecations
+   * Deprecate usage of RSA primitives with non-matching key-type
+     (e.g., signing with a public key).
+
 = mbed TLS 2.6.0 branch released 2017-08-10
 
 Security

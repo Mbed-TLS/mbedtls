@@ -83,6 +83,8 @@ Bugfix
      Reported by Yolan Romailler.
    * Fix word size check in in pk.c to not depend on MBEDTLS_HAVE_INT64.
    * Fix incorrect unit in benchmark output. #850
+   * Add size-checks for record and handshake message content, securing
+     fragile yet non-exploitable code-paths.
 
 Changes
    * Extend cert_write example program by options to set the CRT version

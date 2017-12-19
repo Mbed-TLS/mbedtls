@@ -55,11 +55,14 @@ clean:
 	$(MAKE) -C library clean
 	$(MAKE) -C programs clean
 	$(MAKE) -C tests clean
-	find . \( -name \*.gcno -o -name \*.gcda -o -name *.info \) -exec rm {} +
+ifndef WINDOWS
+	find . \( -name \*.gcno -o -name \*.gcda -o -name \*.info \) -exec rm {} +
+endif
 
 check: tests
 	$(MAKE) -C tests check
 
+ifndef WINDOWS
 test-ref-configs:
 	tests/scripts/test-ref-configs.pl
 
@@ -90,3 +93,4 @@ apidoc_clean:
 	then				    	\
 		rm -rf apidoc ;			\
 	fi
+endif

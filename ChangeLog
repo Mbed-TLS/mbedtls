@@ -31,6 +31,9 @@ Security
    * Wipe stack buffer temporarily holding EC private exponent
      after keypair generation.
 
+Features
+   * Allow comments in test data files.
+
 Bugfix
    * Fix typo in ssl.h leading to a too small value of SSL_MAC_ADD
      in case CBC is disabled but ARC4 is enabled.
@@ -78,9 +81,7 @@ Changes
    * Extend cert_write example program by options to set the CRT version
      and the message digest. Further, allow enabling/disabling of authority
      identifier, subject identifier and basic constraints extensions.
-
-Features
-   * Allow comments in test data files.
+   * Improve makefiles on Windows: don't run find, and call perl explicitly.
 
 = mbed TLS 1.3.21 branch released 2017-08-10
 

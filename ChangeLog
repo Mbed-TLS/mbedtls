@@ -38,6 +38,8 @@ Bugfix
    * Add a check for invalid private parameters in ecdsa_sign.
      Reported by Yolan Romailler.
    * Fix word size check in in pk.c to not depend on MBEDTLS_HAVE_INT64.
+   * Fix crash when calling mbedtls_ssl_cache_free() twice. Found by
+     MilenkoMitrovic, #1104
 
 Changes
    * Extend cert_write example program by options to set the CRT version

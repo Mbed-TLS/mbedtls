@@ -1259,6 +1259,14 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_BUF( 4, "before encrypt: output payload",
                       ssl->out_msg, ssl->out_msglen );
 
+    if( ssl->out_msglen > MBEDTLS_SSL_MAX_CONTENT_LEN )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Record content %u too large, maximum %d",
+                                    (unsigned) ssl->out_msglen,
+                                    MBEDTLS_SSL_MAX_CONTENT_LEN ) );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+
     /*
      * Add MAC before if needed
      */
@@ -2722,6 +2730,15 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl )
         if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
         {
             /* Make room for the additional DTLS fields */
+            if( MBEDTLS_SSL_MAX_CONTENT_LEN - ssl->out_msglen < 8 )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "DTLS handshake message too large: "
+                              "size %u, maximum %u",
+                               (unsigned) ( ssl->in_hslen - 4 ),
+                               (unsigned) ( MBEDTLS_SSL_MAX_CONTENT_LEN - 12 ) ) );
+                return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+            }
+
             memmove( ssl->out_msg + 12, ssl->out_msg + 4, len - 4 );
             ssl->out_msglen += 8;
             len += 8;

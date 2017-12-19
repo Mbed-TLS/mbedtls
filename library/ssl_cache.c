@@ -324,6 +324,8 @@ void ssl_cache_free( ssl_cache_context *cache )
 #if defined(POLARSSL_THREADING_C)
     polarssl_mutex_free( &cache->mutex );
 #endif
+
+    cache->chain = NULL;
 }
 
 #endif /* POLARSSL_SSL_CACHE_C */

@@ -1194,11 +1194,12 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
 /*
  * SSLv3.0 MAC functions
  */
+#define SSL_MAC_MAX_BYTES   20  /* MD-5 or SHA-1 */
 static void ssl_mac( mbedtls_md_context_t *md_ctx,
                      const unsigned char *secret,
                      const unsigned char *buf, size_t len,
                      const unsigned char *ctr, int type,
-                     unsigned char out[20] )
+                     unsigned char out[SSL_MAC_MAX_BYTES] )
 {
     unsigned char header[11];
     unsigned char padding[48];
@@ -1275,7 +1276,7 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
         if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
         {
-            unsigned char mac[20]; /* SHA-1 at most */
+            unsigned char mac[SSL_MAC_MAX_BYTES];
 
             ssl_mac( &ssl->transform_out->md_ctx_enc,
                       ssl->transform_out->mac_enc,

@@ -1050,11 +1050,12 @@ int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex )
 /*
  * SSLv3.0 MAC functions
  */
+#define SSL_MAC_MAX_BYTES   20  /* MD-5 or SHA-1 */
 static void ssl_mac( md_context_t *md_ctx,
                      const unsigned char *secret,
                      const unsigned char *buf, size_t len,
                      const unsigned char *ctr, int type,
-                     unsigned char out[20] )
+                     unsigned char out[SSL_MAC_MAX_BYTES] )
 {
     unsigned char header[11];
     unsigned char padding[48];
@@ -1132,7 +1133,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
 #if defined(POLARSSL_SSL_PROTO_SSL3)
         if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
         {
-            unsigned char mac[20]; /* SHA-1 at most */
+            unsigned char mac[SSL_MAC_MAX_BYTES];
 
             ssl_mac( &ssl->transform_out->md_ctx_enc,
                       ssl->transform_out->mac_enc,

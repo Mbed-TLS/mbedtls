@@ -41,6 +41,7 @@ print_usage() {
     printf "  -m|--memcheck\tCheck memory leaks and errors.\n"
     printf "  -f|--filter\tOnly matching tests are executed (default: '$FILTER')\n"
     printf "  -e|--exclude\tMatching tests are excluded (default: '$EXCLUDE')\n"
+    printf "     --seed\tInteger seed value to use for this test run (default: random)\n"
 }
 
 get_options() {
@@ -54,6 +55,9 @@ get_options() {
                 ;;
             -m|--memcheck)
                 MEMCHECK=1
+                ;;
+            --seed)
+                shift; SEED="$1"
                 ;;
             -h|--help)
                 print_usage
@@ -564,7 +568,7 @@ unset PORT_BASE
 # +SRV_PORT will be replaced by either $SRV_PORT or $PXY_PORT later
 P_SRV="$P_SRV server_addr=127.0.0.1 server_port=$SRV_PORT"
 P_CLI="$P_CLI server_addr=127.0.0.1 server_port=+SRV_PORT"
-P_PXY="$P_PXY server_addr=127.0.0.1 server_port=$SRV_PORT listen_addr=127.0.0.1 listen_port=$PXY_PORT"
+P_PXY="$P_PXY server_addr=127.0.0.1 server_port=$SRV_PORT listen_addr=127.0.0.1 listen_port=$PXY_PORT ${SEED:+"seed=$SEED"}"
 O_SRV="$O_SRV -accept $SRV_PORT -dhparam data_files/dhparams.pem"
 O_CLI="$O_CLI -connect localhost:+SRV_PORT"
 G_SRV="$G_SRV -p $SRV_PORT"

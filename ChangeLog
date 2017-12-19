@@ -85,6 +85,8 @@ Bugfix
    * Fix incorrect unit in benchmark output. #850
    * Add size-checks for record and handshake message content, securing
      fragile yet non-exploitable code-paths.
+   * Fix crash when calling mbedtls_ssl_cache_free() twice. Found by
+     MilenkoMitrovic, #1104
 
 Changes
    * Extend cert_write example program by options to set the CRT version

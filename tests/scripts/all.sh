@@ -34,6 +34,7 @@ MEMORY=0
 FORCE=0
 KEEP_GOING=0
 RELEASE=0
+RUN_ARMCC=1
 
 # Default commands, can be overriden by the environment
 : ${OPENSSL:="openssl"}
@@ -54,6 +55,8 @@ General options:
   -f|--force            Force the tests to overwrite any modified files.
   -k|--keep-going       Run all tests and report errors at the end.
   -m|--memory           Additional optional memory tests.
+     --armcc            Run ARM Compiler builds (on by default).
+     --no-armcc         Skip ARM Compiler builds.
      --out-of-source-dir=<path>  Directory used for CMake out-of-source build tests.
   -r|--release-test     Run this script in release mode. This fixes the seed value to 1.
   -s|--seed             Integer seed value to use for this test run.
@@ -126,6 +129,9 @@ check_tools()
 
 while [ $# -gt 0 ]; do
     case "$1" in
+        --armcc)
+            RUN_ARMCC=1
+            ;;
         --force|-f)
             FORCE=1
             ;;
@@ -154,6 +160,9 @@ while [ $# -gt 0 ]; do
             ;;
         --memory|-m)
             MEMORY=1
+            ;;
+        --no-armcc)
+            RUN_ARMCC=0
             ;;
         --openssl)
             shift
@@ -304,7 +313,10 @@ export GNUTLS_SERV="$GNUTLS_SERV"
 # Make sure the tools we need are available.
 check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$GNUTLS_CLI" "$GNUTLS_SERV" \
             "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV" "doxygen" "dot" \
-            "arm-none-eabi-gcc" "armcc"
+            "arm-none-eabi-gcc"
+if [ $RUN_ARMCC -ne 0 ]; then
+    check_tools "armcc"
+fi
 
 #
 # Test Suites to be executed
@@ -502,24 +514,26 @@ scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
 scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
 make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS=-Werror lib
 
-msg "build: armcc, make"
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl full
-scripts/config.pl unset MBEDTLS_NET_C
-scripts/config.pl unset MBEDTLS_TIMING_C
-scripts/config.pl unset MBEDTLS_FS_IO
-scripts/config.pl unset MBEDTLS_HAVE_TIME
-scripts/config.pl unset MBEDTLS_HAVE_TIME_DATE
-scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
-# following things are not in the default config
-scripts/config.pl unset MBEDTLS_DEPRECATED_WARNING
-scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
-scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
-scripts/config.pl unset MBEDTLS_THREADING_C
-scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
-scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
-make CC=armcc AR=armar WARNING_CFLAGS= lib
+if [ $RUN_ARMCC -ne 0 ]; then
+    msg "build: armcc, make"
+    cleanup
+    cp "$CONFIG_H" "$CONFIG_BAK"
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_NET_C
+    scripts/config.pl unset MBEDTLS_TIMING_C
+    scripts/config.pl unset MBEDTLS_FS_IO
+    scripts/config.pl unset MBEDTLS_HAVE_TIME
+    scripts/config.pl unset MBEDTLS_HAVE_TIME_DATE
+    scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
+    # following things are not in the default config
+    scripts/config.pl unset MBEDTLS_DEPRECATED_WARNING
+    scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
+    scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
+    scripts/config.pl unset MBEDTLS_THREADING_C
+    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
+    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
+    make CC=armcc AR=armar WARNING_CFLAGS= lib
+fi
 
 msg "build: allow SHA1 in certificates by default"
 cleanup

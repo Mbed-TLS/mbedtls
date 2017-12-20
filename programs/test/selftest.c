@@ -263,8 +263,10 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SELF_TEST)
     const selftest_t *test;
 #endif /* MBEDTLS_SELF_TEST */
-    char **argp = argc >= 1 ? argv + 1 : argv;
-    int v, suites_tested = 0, suites_failed = 0;
+    char **argp;
+    int v = 1; /* v=1 for verbose mode */
+    int exclude_mode = 0;
+    int suites_tested = 0, suites_failed = 0;
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) && defined(MBEDTLS_SELF_TEST)
     unsigned char buf[1000000];
 #endif
@@ -291,17 +293,24 @@ int main( int argc, char *argv[] )
         mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 
-    if( argc >= 2 && ( strcmp( argv[1], "--quiet" ) == 0  ||
-        strcmp( argv[1], "-q" ) == 0 ) )
+    for( argp = argv + ( argc >= 1 ? 1 : argc ); *argp != NULL; ++argp )
     {
-        v = 0;
-        ++argp;
+        if( strcmp( *argp, "--quiet" ) == 0 ||
+            strcmp( *argp, "-q" ) == 0 )
+        {
+            v = 0;
+        }
+        else if( strcmp( *argp, "--exclude" ) == 0 ||
+                 strcmp( *argp, "-x" ) == 0 )
+        {
+            exclude_mode = 1;
+        }
+        else
+            break;
     }
-    else
-    {
-        v = 1;
+
+    if( v != 0 )
         mbedtls_printf( "\n" );
-    }
 
 #if defined(MBEDTLS_SELF_TEST)
 
@@ -309,7 +318,7 @@ int main( int argc, char *argv[] )
     mbedtls_memory_buffer_alloc_init( buf, sizeof(buf) );
 #endif
 
-    if( *argp != NULL )
+    if( *argp != NULL && exclude_mode == 0 )
     {
         /* Run the specified tests */
         for( ; *argp != NULL; argp++ )
@@ -335,9 +344,24 @@ int main( int argc, char *argv[] )
     }
     else
     {
-        /* Run all the tests */
+        /* Run all the tests except excluded ones */
         for( test = selftests; test->name != NULL; test++ )
         {
+            if( exclude_mode )
+            {
+                char **excluded;
+                for( excluded = argp; *excluded != NULL; ++excluded )
+                {
+                    if( !strcmp( *excluded, test->name ) )
+                        break;
+                }
+                if( *excluded )
+                {
+                    if( v )
+                        mbedtls_printf( "  Skip: %s\n", test->name );
+                    continue;
+                }
+            }
             if( test->function( v )  != 0 )
             {
                 suites_failed++;
@@ -347,6 +371,7 @@ int main( int argc, char *argv[] )
     }
 
 #else
+    (void) exclude_mode;
     mbedtls_printf( " MBEDTLS_SELF_TEST not defined.\n" );
 #endif
 

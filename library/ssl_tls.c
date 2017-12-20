@@ -7437,10 +7437,16 @@ void mbedtls_ssl_config_free( mbedtls_ssl_config *conf )
     if( conf->psk != NULL )
     {
         mbedtls_zeroize( conf->psk, conf->psk_len );
-        mbedtls_zeroize( conf->psk_identity, conf->psk_identity_len );
         mbedtls_free( conf->psk );
-        mbedtls_free( conf->psk_identity );
+        conf->psk = NULL;
         conf->psk_len = 0;
+    }
+
+    if( conf->psk_identity != NULL )
+    {
+        mbedtls_zeroize( conf->psk_identity, conf->psk_identity_len );
+        mbedtls_free( conf->psk_identity );
+        conf->psk_identity = NULL;
         conf->psk_identity_len = 0;
     }
 #endif

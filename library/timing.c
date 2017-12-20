@@ -417,8 +417,8 @@ int mbedtls_timing_self_test( int verbose )
     if( verbose != 0 )
         mbedtls_printf( "  TIMING test #1 (set_alarm / get_timer): " );
 
-    for( secs = 1; secs <= 3; secs++ )
     {
+        secs = 1;
         (void) mbedtls_timing_get_timer( &hires, 1 );
 
         mbedtls_set_alarm( (int) secs );

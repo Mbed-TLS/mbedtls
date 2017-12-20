@@ -398,8 +398,8 @@ int timing_self_test( int verbose )
     if( verbose != 0 )
         polarssl_printf( "  TIMING test #1 (m_sleep   / get_timer): " );
 
-    for( secs = 1; secs <= 3; secs++ )
     {
+        secs = 1;
         (void) get_timer( &hires, 1 );
 
         m_sleep( (int)( 500 * secs ) );
@@ -416,8 +416,8 @@ int timing_self_test( int verbose )
     if( verbose != 0 )
         polarssl_printf( "  TIMING test #2 (set_alarm / get_timer): " );
 
-    for( secs = 1; secs <= 3; secs++ )
     {
+        secs = 1;
         (void) get_timer( &hires, 1 );
 
         set_alarm( (int) secs );

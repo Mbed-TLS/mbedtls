@@ -14,6 +14,7 @@ Security
 
 Features
    * Allow comments in test data files.
+   * ARMv8 Crypto Extensions: Faster AES and GCM
 
 Bugfix
    * Fix ssl_parse_record_header() to silently discard invalid DTLS records

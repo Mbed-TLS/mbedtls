@@ -35,6 +35,7 @@
 #       - this could be enabled if the respective tests were adapted
 #   MBEDTLS_ZLIB_SUPPORT
 #   MBEDTLS_PKCS11_C
+#   MBEDTLS_ARMV8CE_AES_C
 #   and any symbol beginning _ALT
 #
 
@@ -91,6 +92,7 @@ MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3
 MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
 MBEDTLS_ZLIB_SUPPORT
 MBEDTLS_PKCS11_C
+MBEDTLS_ARMV8CE_AES_C
 _ALT\s*$
 );
 

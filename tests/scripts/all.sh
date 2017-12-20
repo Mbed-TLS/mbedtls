@@ -200,8 +200,8 @@ export GNUTLS_SERV="$GNUTLS_SERV"
 
 # Make sure the tools we need are available.
 check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$GNUTLS_CLI" "$GNUTLS_SERV" \
-    "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV" "doxygen" "dot" \
-    "arm-none-eabi-gcc" "armcc"
+            "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV" "doxygen" "dot" \
+            "arm-none-eabi-gcc" "armcc"
 
 #
 # Test Suites to be executed
@@ -349,15 +349,15 @@ scripts/config.pl unset POLARSSL_PBKDF2_C # deprecated
 CC=gcc CFLAGS='-Werror -O0' make
 
 if uname -a | grep -F Linux >/dev/null; then
-msg "build/test: make shared" # ~ 40s
-cleanup
-make SHARED=1 all check
+    msg "build/test: make shared" # ~ 40s
+    cleanup
+    make SHARED=1 all check
 fi
 
 if uname -a | grep -F x86_64 >/dev/null; then
-msg "build: i386, make, gcc" # ~ 30s
-cleanup
-CC=gcc CFLAGS='-Werror -m32' make
+    msg "build: i386, make, gcc" # ~ 30s
+    cleanup
+    CC=gcc CFLAGS='-Werror -m32' make
 fi # x86_64
 
 msg "build: arm-none-eabi-gcc, make" # ~ 10s
@@ -399,61 +399,61 @@ scripts/config.pl unset POLARSSL_MEMORY_BUFFER_ALLOC_C # calls exit
 CC=armcc AR=armar WARNING_CFLAGS= make lib
 
 if which i686-w64-mingw32-gcc >/dev/null; then
-msg "build: cross-mingw64, make" # ~ 30s
-cleanup
-CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS=-Werror WINDOWS_BUILD=1 make
-WINDOWS_BUILD=1 make clean
-CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS=-Werror WINDOWS_BUILD=1 SHARED=1 make
-WINDOWS_BUILD=1 make clean
+    msg "build: cross-mingw64, make" # ~ 30s
+    cleanup
+    CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS=-Werror WINDOWS_BUILD=1 make
+    WINDOWS_BUILD=1 make clean
+    CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS=-Werror WINDOWS_BUILD=1 SHARED=1 make
+    WINDOWS_BUILD=1 make clean
 fi
 
 # MemSan currently only available on Linux 64 bits
 if uname -a | grep 'Linux.*x86_64' >/dev/null; then
 
-msg "build: MSan (clang)" # ~ 1 min 20s
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl unset POLARSSL_AESNI_C # memsan doesn't grok asm
-scripts/config.pl set POLARSSL_NO_PLATFORM_ENTROPY # memsan vs getrandom()
-CC=clang cmake -D CMAKE_BUILD_TYPE:String=MemSan .
-make
+    msg "build: MSan (clang)" # ~ 1 min 20s
+    cleanup
+    cp "$CONFIG_H" "$CONFIG_BAK"
+    scripts/config.pl unset POLARSSL_AESNI_C # memsan doesn't grok asm
+    scripts/config.pl set POLARSSL_NO_PLATFORM_ENTROPY # memsan vs getrandom()
+    CC=clang cmake -D CMAKE_BUILD_TYPE:String=MemSan .
+    make
 
-msg "test: main suites (MSan)" # ~ 10s
-make test
+    msg "test: main suites (MSan)" # ~ 10s
+    make test
 
-msg "test: ssl-opt.sh (MSan)" # ~ 1 min
-tests/ssl-opt.sh
+    msg "test: ssl-opt.sh (MSan)" # ~ 1 min
+    tests/ssl-opt.sh
 
-# Optional part(s)
+    # Optional part(s)
 
-if [ "$MEMORY" -gt 0 ]; then
-    msg "test: compat.sh (MSan)" # ~ 6 min 20s
-    tests/compat.sh
-fi
+    if [ "$MEMORY" -gt 0 ]; then
+        msg "test: compat.sh (MSan)" # ~ 6 min 20s
+        tests/compat.sh
+    fi
 
 else # no MemSan
 
-msg "build: Release (clang)"
-cleanup
-CC=clang cmake -D CMAKE_BUILD_TYPE:String=Release .
-make
+    msg "build: Release (clang)"
+    cleanup
+    CC=clang cmake -D CMAKE_BUILD_TYPE:String=Release .
+    make
 
-msg "test: main suites valgrind (Release)"
-make test
+    msg "test: main suites valgrind (Release)"
+    make test
 
-# Optional part(s)
-# Currently broken, programs don't seem to receive signals
-# under valgrind on OS X
+    # Optional part(s)
+    # Currently broken, programs don't seem to receive signals
+    # under valgrind on OS X
 
-if [ "$MEMORY" -gt 0 ]; then
-    msg "test: ssl-opt.sh --memcheck (Release)"
-    tests/ssl-opt.sh --memcheck
-fi
+    if [ "$MEMORY" -gt 0 ]; then
+        msg "test: ssl-opt.sh --memcheck (Release)"
+        tests/ssl-opt.sh --memcheck
+    fi
 
-if [ "$MEMORY" -gt 1 ]; then
-    msg "test: compat.sh --memcheck (Release)"
-    tests/compat.sh --memcheck
-fi
+    if [ "$MEMORY" -gt 1 ]; then
+        msg "test: compat.sh --memcheck (Release)"
+        tests/compat.sh --memcheck
+    fi
 
 fi # MemSan
 

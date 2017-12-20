@@ -61,6 +61,8 @@ Changes
    * Extend cert_write example program by options to set the CRT version
      and the message digest. Further, allow enabling/disabling of authority
      identifier, subject identifier and basic constraints extensions.
+   * Introducing flag MBEDTLS_CTR_DRBG_ABI_COMPAT. Disabling this shrinks
+     the size of mbedtls_ctr_drbg_context by ~248 bytes.
 
 New deprecations
    * Deprecate usage of RSA primitives with non-matching key-type

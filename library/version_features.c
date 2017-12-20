@@ -504,6 +504,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_CTR_DRBG_C)
     "MBEDTLS_CTR_DRBG_C",
 #endif /* MBEDTLS_CTR_DRBG_C */
+#if defined(MBEDTLS_CTR_DRBG_ABI_COMPAT)
+    "MBEDTLS_CTR_DRBG_ABI_COMPAT",
+#endif /* MBEDTLS_CTR_DRBG_ABI_COMPAT */
 #if defined(MBEDTLS_DEBUG_C)
     "MBEDTLS_DEBUG_C",
 #endif /* MBEDTLS_DEBUG_C */

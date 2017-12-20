@@ -224,7 +224,7 @@ int main( int argc, char *argv[] )
     if( pointer != NULL )
     {
         mbedtls_printf( "all-bits-zero is not a NULL pointer\n" );
-        return( 1 );
+        return( EXIT_FAILURE );
     }
 
     /*
@@ -233,7 +233,7 @@ int main( int argc, char *argv[] )
     if( run_test_snprintf() != 0 )
     {
         mbedtls_printf( "the snprintf implementation is broken\n" );
-        return( 0 );
+        return( EXIT_FAILURE );
     }
 
     if( argc == 2 && strcmp( argv[1], "-quiet" ) == 0 )

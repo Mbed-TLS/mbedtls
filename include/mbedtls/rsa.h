@@ -98,16 +98,12 @@ typedef struct
     mbedtls_mpi P;                      /*!<  1st prime factor  */
     mbedtls_mpi Q;                      /*!<  2nd prime factor  */
 
-    /* DP,DQ,QP are not used in NO_CRT but temporarily kept for ABI
-     * compatibility. Will be removed on next ABI changing release. */
     mbedtls_mpi DP;                     /*!<  D % (P - 1)       */
     mbedtls_mpi DQ;                     /*!<  D % (Q - 1)       */
     mbedtls_mpi QP;                     /*!<  1 / (Q % P)       */
 
     mbedtls_mpi RN;                     /*!<  cached R^2 mod N  */
 
-    /* RP, RQ are not used in NO_CRT but temporarily kept for ABI
-     * compatibility. Will be removed on next ABI changing release. */
     mbedtls_mpi RP;                     /*!<  cached R^2 mod P  */
     mbedtls_mpi RQ;                     /*!<  cached R^2 mod Q  */
 

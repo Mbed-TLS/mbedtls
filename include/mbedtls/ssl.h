@@ -563,6 +563,9 @@ typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
+
+#define MBEDTLS_DTLS_SRTP_MAX_KEY_MATERIAL_LENGTH    60
+#define MBEDTLS_DTLS_SRTP_MAX_MKI_LENGTH             255
 /*
  * List of SRTP profiles for DTLS-SRTP
  */
@@ -574,7 +577,17 @@ typedef enum
     MBEDTLS_SRTP_NULL_HMAC_SHA1_80,
     MBEDTLS_SRTP_NULL_HMAC_SHA1_32,
 }
-mbedtls_dtls_srtp_protection_profiles;
+mbedtls_ssl_srtp_profile;
+
+typedef struct mbedtls_dtls_srtp_info_t
+{
+    mbedtls_ssl_srtp_profile chosen_dtls_srtp_profile; /*!< negotiated SRTP profile */
+    unsigned char dtls_srtp_keys[MBEDTLS_DTLS_SRTP_MAX_KEY_MATERIAL_LENGTH]; /*!< master keys and master salt for SRTP generated during handshake */
+    size_t dtls_srtp_keys_len; /*!< length in bytes of master keys and master salt for SRTP generated during handshake */
+    unsigned char mki_value[MBEDTLS_DTLS_SRTP_MAX_MKI_LENGTH]; /* opaque srtp_mki<0..255> */
+    size_t                 mki_len;
+}mbedtls_dtls_srtp_info;
+
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 
 /*
@@ -726,11 +739,8 @@ struct mbedtls_ssl_config
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
-    /*
-     * use_srtp extension
-     */
-    mbedtls_dtls_srtp_protection_profiles *dtls_srtp_profiles_list; /*!< ordered list of supported srtp profile */
-    size_t dtls_srtp_profiles_list_len; /*!< number of supported profiles */
+    mbedtls_ssl_srtp_profile *dtls_srtp_profile_list; /*!< ordered list of supported srtp profile */
+    size_t dtls_srtp_profile_list_len; /*!< number of supported profiles */
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 
     /*
@@ -808,8 +818,11 @@ struct mbedtls_ssl_config
     unsigned int cert_req_ca_list : 1;  /*!< enable sending CA list in
                                           Certificate Request messages?     */
 #endif
+#if defined(MBEDTLS_SSL_DTLS_SRTP)
+    unsigned int dtls_srtp_mki_support : 1 /* support having mki_value
+                                              in the use_srtp extension     */
+#endif
 };
-
 
 struct mbedtls_ssl_context
 {
@@ -942,9 +955,7 @@ struct mbedtls_ssl_context
     /*
      * use_srtp extension
      */
-    mbedtls_dtls_srtp_protection_profiles chosen_dtls_srtp_profile; /*!< negotiated SRTP profile */
-    unsigned char *dtls_srtp_keys; /*!< master keys and master salt for SRTP generated during handshake */
-    size_t dtls_srtp_keys_len; /*!< length in bytes of master keys and master salt for SRTP generated during handshake */
+    mbedtls_dtls_srtp_info dtls_srtp_info;
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 
     /*
@@ -2050,8 +2061,7 @@ const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl );
  *
  * \return         0 on success, or MBEDTLS_ERR_SSL_BAD_INPUT_DATA.
  */
-int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf, const mbedtls_dtls_srtp_protection_profiles *profiles, size_t profiles_number);
-
+int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf, const mbedtls_ssl_srtp_profile *profiles, size_t profiles_number);
 /**
  * \brief          Get the negotiated DTLS-SRTP Protection Profile.
  *                 This function should be called after the handshake is
@@ -2061,7 +2071,7 @@ int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf, co
  *
  * \return         Protection Profile enum member, MBEDTLS_SRTP_UNSET_PROFILE if no protocol was negotiated.
  */
-mbedtls_dtls_srtp_protection_profiles mbedtls_ssl_get_dtls_srtp_protection_profile( const mbedtls_ssl_context *ssl);
+mbedtls_ssl_srtp_profile mbedtls_ssl_get_dtls_srtp_protection_profile( const mbedtls_ssl_context *ssl);
 
 /**
  * \brief                  Get the generated DTLS-SRTP key material.

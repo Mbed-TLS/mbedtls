@@ -4,20 +4,77 @@
 #
 # This file is part of mbed TLS (https://tls.mbed.org)
 #
-# Copyright (c) 2014-2016, ARM Limited, All Rights Reserved
-#
+# Copyright (c) 2014-2017, ARM Limited, All Rights Reserved
+
+
+
+################################################################
+#### Documentation
+################################################################
+
 # Purpose
+# -------
 #
 # To run all tests possible or available on the platform.
 #
+# Notes for users
+# ---------------
+#
 # Warning: the test is destructive. It includes various build modes and
 # configurations, and can and will arbitrarily change the current CMake
-# configuration. After this script has been run, the CMake cache will be lost
-# and CMake will no longer be initialised.
+# configuration. The following files must be committed into git:
+#    * include/mbedtls/config.h
+#    * Makefile, library/Makefile, programs/Makefile, tests/Makefile
+# After running this script, the CMake cache will be lost and CMake
+# will no longer be initialised.
 #
-# The script assumes the presence of gcc and clang (recent enough for using
-# ASan with gcc and MemSan with clang, or valgrind) are available, as well as
-# cmake and a "good" find.
+# The script assumes the presence of a number of tools:
+#   * Basic Unix tools (Windows users note: a Unix-style find must be before
+#     the Windows find in the PATH)
+#   * Perl
+#   * GNU Make
+#   * CMake
+#   * GCC and Clang (recent enough for using ASan with gcc and MemSan with clang, or valgrind)
+#   * arm-gcc and mingw-gcc
+#   * ArmCC 5 and ArmCC 6, unless invoked with --no-armcc
+#   * OpenSSL and GnuTLS command line tools, recent enough for the
+#     interoperability tests. If they don't support SSLv3 then a legacy
+#     version of these tools must be present as well (search for LEGACY
+#     below).
+# See the invocation of check_tools below for details.
+#
+# This script must be invoked from the toplevel directory of a git
+# working copy of Mbed TLS.
+#
+# Note that the output is not saved. You may want to run
+#   script -c tests/scripts/all.sh
+# or
+#   tests/scripts/all.sh >all.log 2>&1
+#
+# Notes for maintainers
+# ---------------------
+#
+# The tests are roughly in order from fastest to slowest. This doesn't
+# have to be exact, but in general you should add slower tests towards
+# the end and fast checks near the beginning.
+#
+# Sanity checks have the following form:
+#   1. msg "short description of what is about to be done"
+#   2. run sanity check (failure stops the script)
+#
+# Build or build-and-test steps have the following form:
+#   1. msg "short description of what is about to be done"
+#   2. cleanup
+#   3. preparation (config.pl, cmake, ...) (failure stops the script)
+#   4. make
+#   5. Run tests if relevant. All tests must be prefixed with
+#      if_build_successful for the sake of --keep-going.
+
+
+
+################################################################
+#### Initialization and command line parsing
+################################################################
 
 # Abort on errors (and uninitialised variables)
 set -eu
@@ -318,6 +375,12 @@ if [ $RUN_ARMCC -ne 0 ]; then
     check_tools "armcc"
 fi
 
+
+
+################################################################
+#### Basic checks
+################################################################
+
 #
 # Test Suites to be executed
 #
@@ -341,6 +404,12 @@ tests/scripts/check-doxy-blocks.pl
 msg "test/build: declared and exported names" # < 3s
 cleanup
 tests/scripts/check-names.sh
+
+
+
+################################################################
+#### Build and test many configurations and targets
+################################################################
 
 # Yotta not supported in 2.1 branch
 #msg "build: create and build yotta module" # ~ 30s
@@ -614,6 +683,12 @@ msg "test: cmake 'out-of-source' build"
 make test
 cd "$MBEDTLS_ROOT_DIR"
 rm -rf "$OUT_OF_SOURCE_DIR"
+
+
+
+################################################################
+#### Termination
+################################################################
 
 msg "Done, cleaning up"
 cleanup

@@ -171,27 +171,26 @@ has_mem_err() {
     fi
 }
 
-# wait for server to start: two versions depending on lsof availability
-wait_server_start() {
-    if which lsof >/dev/null 2>&1; then
-        START_TIME=$( date +%s )
-        DONE=0
-
-        # make a tight loop, server usually takes less than 1 sec to start
-        while [ $DONE -eq 0 ]; do
-            if lsof -nbi TCP:"$PORT" 2>/dev/null | grep LISTEN >/dev/null
-            then
-                DONE=1
-            elif [ $(( $( date +%s ) - $START_TIME )) -gt $DOG_DELAY ]; then
-                echo "SERVERSTART TIMEOUT"
-                echo "SERVERSTART TIMEOUT" >> $SRV_OUT
-                DONE=1
-            fi
+# Wait for process $2 to be listening on port $1
+if type lsof >/dev/null 2>/dev/null; then
+    wait_server_start() {
+        START_TIME=$(date +%s)
+        while ! lsof -a -n -b -i "TCP:$1" -p "$2" >/dev/null 2>/dev/null; do
+              if [ $(( $(date +%s) - $START_TIME )) -gt $DOG_DELAY ]; then
+                  echo "SERVERSTART TIMEOUT"
+                  echo "SERVERSTART TIMEOUT" >> $SRV_OUT
+                  break
+              fi
+              # Linux and *BSD support decimal arguments to sleep. On other
+              # OSes this may be a tight loop.
+              sleep 0.1 2>/dev/null || true
         done
-    else
+    }
+else
+    wait_server_start() {
         sleep "$START_DELAY"
-    fi
-}
+    }
+fi
 
 # wait for client to terminate and set CLI_EXIT
 # must be called right after starting the client
@@ -254,7 +253,7 @@ run_test() {
     echo "$SRV_CMD" > $SRV_OUT
     $SRV_CMD >> $SRV_OUT 2>&1 &
     SRV_PID=$!
-    wait_server_start
+    wait_server_start "$PORT" "$SRV_PID"
 
     echo "$CLI_CMD" > $CLI_OUT
     eval "$CLI_CMD" >> $CLI_OUT 2>&1 &

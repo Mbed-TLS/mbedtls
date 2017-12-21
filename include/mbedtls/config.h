@@ -81,7 +81,7 @@
  * example, if double-width division is implemented in software, disabling
  * it can reduce code size in some embedded targets.
  */
-#define MBEDTLS_NO_UDBL_DIVISION
+//#define MBEDTLS_NO_UDBL_DIVISION
 
 /**
  * \def MBEDTLS_HAVE_SSE2
@@ -141,7 +141,7 @@
  *
  * Enable this layer to allow use of alternative memory allocators.
  */
-#define MBEDTLS_PLATFORM_MEMORY
+//#define MBEDTLS_PLATFORM_MEMORY
 
 /**
  * \def MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
@@ -185,11 +185,11 @@
  * Uncomment a macro to enable alternate implementation of specific base
  * platform function
  */
-#define MBEDTLS_PLATFORM_EXIT_ALT
-#define MBEDTLS_PLATFORM_TIME_ALT
-#define MBEDTLS_PLATFORM_FPRINTF_ALT
-#define MBEDTLS_PLATFORM_PRINTF_ALT
-#define MBEDTLS_PLATFORM_SNPRINTF_ALT
+//#define MBEDTLS_PLATFORM_EXIT_ALT
+//#define MBEDTLS_PLATFORM_TIME_ALT
+//#define MBEDTLS_PLATFORM_FPRINTF_ALT
+//#define MBEDTLS_PLATFORM_PRINTF_ALT
+//#define MBEDTLS_PLATFORM_SNPRINTF_ALT
 //#define MBEDTLS_PLATFORM_NV_SEED_ALT
 //#define MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT
 
@@ -206,7 +206,7 @@
  *
  * Uncomment to get warnings on using deprecated functions.
  */
-#define MBEDTLS_DEPRECATED_WARNING
+//#define MBEDTLS_DEPRECATED_WARNING
 
 /**
  * \def MBEDTLS_DEPRECATED_REMOVED
@@ -290,8 +290,8 @@
  * when it is NOT defined - The test will be activated.
  *
  */
-//#define MBEDTLS_RSA_USE_NON_STANDARD_MOD_SIZE
-//#define MBEDTLS_PKCS1_V1_5_USE_HW_RANDOM_BUFF
+#define MBEDTLS_RSA_USE_NON_STANDARD_MOD_SIZE
+#define MBEDTLS_PKCS1_V1_5_USE_HW_RANDOM_BUFF
 //#define MBEDTLS_RSA_PKCS1_V1_5_USE_VERIFY
 //#define MBEDTLS_RSA_PKCS1_V1_5_SKIP_ENC_W_PRV_KEY
 //#define MBEDTLS_RSA_PKCS1_V1_5_SKIP_DEC_W_PUB_KEY
@@ -441,7 +441,7 @@
  *
  * Uncomment this macro to store the AES tables in ROM.
  */
-#define MBEDTLS_AES_ROM_TABLES
+//#define MBEDTLS_AES_ROM_TABLES
 
 /**
  * \def MBEDTLS_CAMELLIA_SMALL_MEMORY
@@ -450,7 +450,7 @@
  *
  * Uncomment this macro to use less memory for Camellia.
  */
-#define MBEDTLS_CAMELLIA_SMALL_MEMORY
+//#define MBEDTLS_CAMELLIA_SMALL_MEMORY
 
 /**
  * \def MBEDTLS_CIPHER_MODE_CBC
@@ -504,7 +504,7 @@
  *
  * Uncomment this macro to enable the NULL cipher and ciphersuites
  */
-#define MBEDTLS_CIPHER_NULL_CIPHER
+//#define MBEDTLS_CIPHER_NULL_CIPHER
 
 /**
  * \def MBEDTLS_CIPHER_PADDING_PKCS7
@@ -535,7 +535,7 @@
  *
  * Uncomment this macro to enable weak ciphersuites
  */
-#define MBEDTLS_ENABLE_WEAK_CIPHERSUITES
+//#define MBEDTLS_ENABLE_WEAK_CIPHERSUITES
 
 /**
  * \def MBEDTLS_REMOVE_ARC4_CIPHERSUITES
@@ -548,7 +548,7 @@
  *
  * Uncomment this macro to remove RC4 ciphersuites by default.
  */
-//#define MBEDTLS_REMOVE_ARC4_CIPHERSUITES
+#define MBEDTLS_REMOVE_ARC4_CIPHERSUITES
 
 /**
  * \def MBEDTLS_ECP_DP_SECP192R1_ENABLED
@@ -855,7 +855,7 @@
  * enabled as well):
  *      MBEDTLS_TLS_ECJPAKE_WITH_AES_128_CCM_8
  */
-#define MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
+//#define MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
 
 /**
  * \def MBEDTLS_PK_PARSE_EC_EXTENDED
@@ -940,7 +940,7 @@
  * This option is only useful if both MBEDTLS_SHA256_C and
  * MBEDTLS_SHA512_C are defined. Otherwise the available hash module is used.
  */
-#define MBEDTLS_ENTROPY_FORCE_SHA256
+//#define MBEDTLS_ENTROPY_FORCE_SHA256
 
 /**
  * \def MBEDTLS_ENTROPY_NV_SEED
@@ -968,7 +968,7 @@
  * \note The entropy collector will write to the seed file before entropy is
  *       given to an external source, to update it.
  */
-#define MBEDTLS_ENTROPY_NV_SEED
+//#define MBEDTLS_ENTROPY_NV_SEED
 
 /**
  * \def MBEDTLS_MEMORY_DEBUG
@@ -981,7 +981,7 @@
  *
  * Uncomment this macro to let the buffer allocator print out error messages.
  */
-#define MBEDTLS_MEMORY_DEBUG
+//#define MBEDTLS_MEMORY_DEBUG
 
 /**
  * \def MBEDTLS_MEMORY_BACKTRACE
@@ -993,7 +993,7 @@
  *
  * Uncomment this macro to include backtrace information
  */
-#define MBEDTLS_MEMORY_BACKTRACE
+//#define MBEDTLS_MEMORY_BACKTRACE
 
 /**
  * \def MBEDTLS_PK_RSA_ALT_SUPPORT
@@ -1034,7 +1034,7 @@
  * Uncomment this macro to disable the use of CRT in RSA.
  *
  */
-#define MBEDTLS_RSA_NO_CRT
+//#define MBEDTLS_RSA_NO_CRT
 
 /**
  * \def MBEDTLS_SELF_TEST
@@ -1057,7 +1057,7 @@
  *
  * Uncomment to enable the smaller implementation of SHA256.
  */
-#define MBEDTLS_SHA256_SMALLER
+//#define MBEDTLS_SHA256_SMALLER
 
 /**
  * \def MBEDTLS_SSL_ALL_ALERT_MESSAGES
@@ -1087,7 +1087,7 @@
  * a timing side-channel.
  *
  */
-#define MBEDTLS_SSL_DEBUG_ALL
+//#define MBEDTLS_SSL_DEBUG_ALL
 
 /** \def MBEDTLS_SSL_ENCRYPT_THEN_MAC
  *
@@ -1194,7 +1194,7 @@
  *
  * Uncomment this macro to enable support for SSLv2 Client Hello messages.
  */
-#define MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
+//#define MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
 
 /**
  * \def MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE
@@ -1204,7 +1204,7 @@
  *
  * Uncomment this macro to respect client's ciphersuite order
  */
-#define MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE
+//#define MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE
 
 /**
  * \def MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
@@ -1225,7 +1225,7 @@
  *
  * Comment this macro to disable support for SSL 3.0
  */
-#define MBEDTLS_SSL_PROTO_SSL3
+//#define MBEDTLS_SSL_PROTO_SSL3
 
 /**
  * \def MBEDTLS_SSL_PROTO_TLS1
@@ -1411,7 +1411,7 @@
  *
  * Uncomment this to enable pthread mutexes.
  */
-#define MBEDTLS_THREADING_PTHREAD
+//#define MBEDTLS_THREADING_PTHREAD
 
 /**
  * \def MBEDTLS_VERSION_FEATURES
@@ -1796,7 +1796,7 @@
  * Requires: MBEDTLS_AES_C or MBEDTLS_DES_C
  *
  */
-#define MBEDTLS_CMAC_C
+//#define MBEDTLS_CMAC_C
 
 /**
  * \def MBEDTLS_CTR_DRBG_C
@@ -1914,7 +1914,7 @@
  *
  * Requires: MBEDTLS_ECP_C, MBEDTLS_MD_C
  */
-#define MBEDTLS_ECJPAKE_C
+//#define MBEDTLS_ECJPAKE_C
 
 /**
  * \def MBEDTLS_ECP_C
@@ -1991,7 +1991,7 @@
  *
  * Uncomment to enable the HAVEGE random generator.
  */
-#define MBEDTLS_HAVEGE_C
+//#define MBEDTLS_HAVEGE_C
 
 /**
  * \def MBEDTLS_HMAC_DRBG_C
@@ -2029,7 +2029,7 @@
  *
  * Uncomment to enable support for (rare) MD2-signed X.509 certs.
  */
-#define MBEDTLS_MD2_C
+//#define MBEDTLS_MD2_C
 
 /**
  * \def MBEDTLS_MD4_C
@@ -2041,7 +2041,7 @@
  *
  * Uncomment to enable support for (rare) MD4-signed X.509 certs.
  */
-#define MBEDTLS_MD4_C
+//#define MBEDTLS_MD4_C
 
 /**
  * \def MBEDTLS_MD5_C
@@ -2072,7 +2072,7 @@
  *
  * Enable this module to enable the buffer memory allocator.
  */
-#define MBEDTLS_MEMORY_BUFFER_ALLOC_C
+//#define MBEDTLS_MEMORY_BUFFER_ALLOC_C
 
 /**
  * \def MBEDTLS_NET_C
@@ -2449,7 +2449,7 @@
  *
  * Enable this layer to allow use of mutexes within mbed TLS
  */
-#define MBEDTLS_THREADING_C
+//#define MBEDTLS_THREADING_C
 
 /**
  * \def MBEDTLS_TIMING_C

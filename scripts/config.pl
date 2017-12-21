@@ -45,7 +45,7 @@ my $config_file = "include/mbedtls/config.h";
 my $usage = <<EOU;
 $0 [-f <file> | --file <file>] [-o | --force]
                    [set <symbol> <value> | unset <symbol> | get <symbol> |
-                        full | realfull]
+                        full | realfull | baremetal]
 
 Commands
     set <symbol> [<value>]  - Uncomments or adds a #define for the <symbol> to
@@ -63,7 +63,7 @@ Commands
                               excluding some reserved symbols, until the
                               'Module configuration options' section
     realfull                - Uncomments all #define's with no exclusions
-    baremetal               - Set configuration suitable for baremetal build.
+    baremetal               - Sets full configuration suitable for baremetal build.
 
 Options
     -f | --file <filename>  - The file or file path for the configuration file

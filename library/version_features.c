@@ -126,6 +126,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_ECP_MUL_ALT)
     "MBEDTLS_ECP_MUL_ALT",
 #endif /* MBEDTLS_ECP_MUL_ALT */
+#if defined(MBEDTLS_ECP_GEN_KEYPAIR_BASE_ALT)
+    "MBEDTLS_ECP_GEN_KEYPAIR_BASE_ALT",
+#endif /* MBEDTLS_ECP_GEN_KEYPAIR_BASE_ALT */
 #if defined(MBEDTLS_ECP_ALT)
     "MBEDTLS_ECP_ALT",
 #endif /* MBEDTLS_ECP_ALT */

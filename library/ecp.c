@@ -1984,7 +1984,7 @@ int mbedtls_ecp_check_privkey( const mbedtls_ecp_group *grp, const mbedtls_mpi *
 
     return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 }
-#if ! defined ( MBEDTLS_ECC_ALT )
+#if ( ! defined ( MBEDTLS_ECP_GEN_KEYPAIR_BASE_ALT ) && ! defined ( MBEDTLS_ECP_MUL_ALT ) )
 /*
  * Generate a keypair with configurable base point
  */
@@ -2067,7 +2067,7 @@ cleanup:
     return( mbedtls_ecp_mul( grp, Q, d, G, f_rng, p_rng ) );
 }
 
-#endif /*! defined ( MBEDTLS_ECC_ALT )*/
+#endif /*( ! defined ( MBEDTLS_ECP_GEN_KEYPAIR_BASE_ALT ) && ! defined ( MBEDTLS_ECP_MUL_ALT ) ) */
 
 /*
  * Generate key pair, wrapper for conventional base point

@@ -290,6 +290,7 @@
  * API.
  */
 //#define MBEDTLS_ECP_MUL_ALT
+//#define MBEDTLS_ECP_GEN_KEYPAIR_BASE_ALT
 
 /*
  * When replacing the elliptic curve module, pleace consider, that it is

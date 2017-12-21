@@ -104,6 +104,7 @@ add_test_suite(version)
 add_test_suite(xtea)
 add_test_suite(x509parse)
 add_test_suite(x509write)
+add_test_suite(aria)
 
 # Make data_files available in an out-of-source build
 if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})

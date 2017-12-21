@@ -123,6 +123,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_SHA512_ALT)
     "MBEDTLS_SHA512_ALT",
 #endif /* MBEDTLS_SHA512_ALT */
+#if defined(MBEDTLS_ARIA_ALT)
+    "MBEDTLS_ARIA_ALT",
+#endif /* MBEDTLS_ARIA_ALT */
 #if defined(MBEDTLS_ECP_ALT)
     "MBEDTLS_ECP_ALT",
 #endif /* MBEDTLS_ECP_ALT */
@@ -489,6 +492,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_CAMELLIA_C)
     "MBEDTLS_CAMELLIA_C",
 #endif /* MBEDTLS_CAMELLIA_C */
+#if defined(MBEDTLS_ARIA_C)
+    "MBEDTLS_ARIA_C",
+#endif /* MBEDTLS_ARIA_C */
 #if defined(MBEDTLS_CCM_C)
     "MBEDTLS_CCM_C",
 #endif /* MBEDTLS_CCM_C */

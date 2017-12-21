@@ -275,6 +275,8 @@
 //#define MBEDTLS_SHA1_ALT
 //#define MBEDTLS_SHA256_ALT
 //#define MBEDTLS_SHA512_ALT
+//#define MBEDTLS_ARIA_ALT
+
 /*
  * When replacing the elliptic curve module, pleace consider, that it is
  * implemented with two .c files:
@@ -1725,6 +1727,15 @@
  *      MBEDTLS_TLS_PSK_WITH_CAMELLIA_128_CBC_SHA256
  */
 #define MBEDTLS_CAMELLIA_C
+
+/**
+ * \def MBEDTLS_ARIA_C
+ *
+ * Enable the ARIA block cipher.
+ *
+ * Module:  library/aria.c
+ */
+#define MBEDTLS_ARIA_C
 
 /**
  * \def MBEDTLS_CCM_C

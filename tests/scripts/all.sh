@@ -65,10 +65,11 @@ General options:
   -f|--force            Force the tests to overwrite any modified files.
   -k|--keep-going       Run all tests and report errors at the end.
   -m|--memory           Additional optional memory tests.
-     --no-yotta         Skip yotta build.
+     --no-yotta         Skip yotta module build.
      --out-of-source-dir=<path>  Directory used for CMake out-of-source build tests.
   -r|--release-test     Run this script in release mode. This fixes the seed value to 1.
   -s|--seed             Integer seed value to use for this test run.
+     --yotta            Build yotta module (on by default).
 
 Tool path options:
      --armc5-bin-dir=<ARMC5_bin_dir_path>       ARM Compiler 5 bin directory.
@@ -209,6 +210,9 @@ while [ $# -gt 0 ]; do
             shift
             SEED="$1"
             ;;
+        --yotta)
+            YOTTA=1
+            ;;
         *)
             echo >&2 "Unknown option: $1"
             echo >&2 "Run $0 --help for usage."
@@ -226,7 +230,7 @@ if [ $FORCE -eq 1 ]; then
     cleanup
 else
 
-    if [ $YOTTA -eq 1 ] && [ -d yotta/module ]; then
+    if [ $YOTTA -ne 0 ] && [ -d yotta/module ]; then
         err_msg "Warning - there is an existing yotta module in the directory 'yotta/module'"
         echo "You can either delete your work and retry, or force the test to overwrite the"
         echo "test by rerunning the script as: $0 --force"

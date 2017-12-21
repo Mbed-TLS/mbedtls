@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Changes
+   * Add hardware acceleration support for cmac, with the configuration definition
+     of `MBEDTLS_CMAC_ALT`. Submitted by stevew817
+
 = mbed TLS 2.4.2 branch released 2017-03-08
 
 Security

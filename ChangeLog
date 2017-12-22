@@ -15,6 +15,23 @@ Security
 Features
    * Allow comments in test data files.
 
+API Changes
+   * Extend RSA interface by multiple functions allowing structure-
+     independent setup and export of RSA contexts. Most notably,
+     mbedtls_rsa_import and mbedtls_rsa_complete are introduced for setting
+     up RSA contexts from partial key material and having them completed to the
+     needs of the implementation automatically. This allows to setup private RSA
+     contexts from keys consisting of N,D,E only, even if P,Q are needed for the
+     purpose or CRT and/or blinding.
+   * The configuration option MBEDTLS_RSA_ALT can be used to define alternative
+     implementations of the RSA interface declared in rsa.h.
+
+New deprecations
+   * Deprecate usage of RSA primitives with non-matching key-type
+     (e.g., signing with a public key).
+   * Direct manipulation of structure fields of RSA contexts is deprecated.
+     Users are advised to use the extended RSA API instead.
+
 Bugfix
    * Fix ssl_parse_record_header() to silently discard invalid DTLS records
      as recommended in RFC 6347 Section 4.1.2.7.
@@ -57,23 +74,6 @@ Bugfix
    * Fix crash when calling mbedtls_ssl_cache_free() twice. Found by
      MilenkoMitrovic, #1104
 
-New deprecations
-   * Direct manipulation of structure fields of RSA contexts is deprecated.
-     Users are advised to use the extended RSA API instead.
-   * Deprecate usage of RSA primitives with non-matching key-type
-     (e.g., signing with a public key).
-
-API Changes
-   * Extend RSA interface by multiple functions allowing structure-
-     independent setup and export of RSA contexts. Most notably,
-     mbedtls_rsa_import and mbedtls_rsa_complete are introduced for setting
-     up RSA contexts from partial key material and having them completed to the
-     needs of the implementation automatically. This allows to setup private RSA
-     contexts from keys consisting of N,D,E only, even if P,Q are needed for the
-     purpose or CRT and/or blinding.
-   * The configuration option MBEDTLS_RSA_ALT can be used to define alternative
-     implementations of the RSA interface declared in rsa.h.
-
 Changes
    * Extend cert_write example program by options to set the CRT version
      and the message digest. Further, allow enabling/disabling of authority
@@ -95,7 +95,6 @@ Security
    * Reliably wipe sensitive data after use in the AES example applications
      programs/aes/aescrypt2 and programs/aes/crypt_and_hash.
      Found by Laurent Simon.
->>>>>>> development
 
 Features
    * Add the functions mbedtls_platform_setup() and mbedtls_platform_teardown()

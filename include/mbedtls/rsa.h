@@ -274,11 +274,11 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx );
  *                   exporting the requested parameters
  *                   cannot be done because of a lack of functionality
  *                   or because of security policies, the error code
- *                   \c MBEDTLS_ERR_RSA_EXPORT_UNSUPPORTED is returned.
+ *                   \c MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION is returned.
  *                   In this case, the RSA context stays intact and can
  *                   be continued to be used.
  *
- * \note           Reasons for returning \c MBEDTLS_ERR_RSA_EXPORT_UNSUPPORTED
+ * \note           Reasons for returning \c MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION
  *                 would be the following: Firstly, it might be that an
  *                 alternative RSA implementation is in use which stores
  *                 the key externally, and which either cannot or should not
@@ -319,11 +319,11 @@ int mbedtls_rsa_export( const mbedtls_rsa_context *ctx,
  *                   exporting the requested parameters
  *                   cannot be done because of a lack of functionality
  *                   or because of security policies, the error code
- *                   \c MBEDTLS_ERR_RSA_EXPORT_UNSUPPORTED is returned.
+ *                   \c MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION is returned.
  *                   In this case, the RSA context stays intact and can
  *                   be continued to be used.
  *
- * \note           Reasons for returning \c MBEDTLS_ERR_RSA_EXPORT_UNSUPPORTED
+ * \note           Reasons for returning \c MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION
  *                 would be the following: Firstly, it might be that an
  *                 alternative RSA implementation is in use which stores
  *                 the key externally, and which either cannot or should not
@@ -525,7 +525,7 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
  *                 mode being set to MBEDTLS_RSA_PRIVATE and may instead
  *                 return MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
  *
- * \return         0 if successful, or an MBEDTLS_ERR_RSA_XXX error code
+ * \return         0 if successful, or an \c MBEDTLS_ERR_RSA_XXX error code
  *
  * \note           The output buffer must be as large as the size
  *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
@@ -557,7 +557,7 @@ int mbedtls_rsa_pkcs1_encrypt( mbedtls_rsa_context *ctx,
  *                 mode being set to MBEDTLS_RSA_PRIVATE and may instead
  *                 return MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
  *
- * \return         0 if successful, or an MBEDTLS_ERR_RSA_XXX error code
+ * \return         0 if successful, or an \c MBEDTLS_ERR_RSA_XXX error code
  *
  * \note           The output buffer must be as large as the size
  *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
@@ -592,7 +592,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
  *                 mode being set to MBEDTLS_RSA_PRIVATE and may instead
  *                 return MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
  *
- * \return         0 if successful, or an MBEDTLS_ERR_RSA_XXX error code
+ * \return         0 if successful, or an \c MBEDTLS_ERR_RSA_XXX error code
  *
  * \note           The output buffer must be as large as the size
  *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
@@ -629,7 +629,7 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
  *                 mode being set to MBEDTLS_RSA_PUBLIC and may instead
  *                 return MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
  *
- * \return         0 if successful, or an MBEDTLS_ERR_RSA_XXX error code
+ * \return         0 if successful, or an \c MBEDTLS_ERR_RSA_XXX error code
  *
  * \note           The output buffer length \c output_max_len should be
  *                 as large as the size \c ctx->len of \c ctx->N (eg. 128 bytes
@@ -670,7 +670,7 @@ int mbedtls_rsa_pkcs1_decrypt( mbedtls_rsa_context *ctx,
  *                 mode being set to MBEDTLS_RSA_PUBLIC and may instead
  *                 return MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
  *
- * \return         0 if successful, or an MBEDTLS_ERR_RSA_XXX error code
+ * \return         0 if successful, or an \c MBEDTLS_ERR_RSA_XXX error code
  *
  * \note           The output buffer length \c output_max_len should be
  *                 as large as the size \c ctx->len of \c ctx->N (eg. 128 bytes
@@ -713,7 +713,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
  *                 mode being set to MBEDTLS_RSA_PUBLIC and may instead
  *                 return MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
  *
- * \return         0 if successful, or an MBEDTLS_ERR_RSA_XXX error code
+ * \return         0 if successful, or an \c MBEDTLS_ERR_RSA_XXX error code
  *
  * \note           The output buffer length \c output_max_len should be
  *                 as large as the size \c ctx->len of \c ctx->N (eg. 128 bytes

@@ -36,6 +36,7 @@ CONFIG_BAK="$CONFIG_H.bak"
 MEMORY=0
 FORCE=0
 RELEASE=0
+YOTTA=1
 
 # Default commands, can be overriden by the environment
 : ${OPENSSL:="openssl"}
@@ -61,6 +62,7 @@ usage()
     printf "  -f|--force\t\tForce the tests to overwrite any modified files.\n"
     printf "  -s|--seed\t\tInteger seed value to use for this test run.\n"
     printf "  -r|--release-test\t\tRun this script in release mode. This fixes the seed value to 1.\n"
+    printf "     --no-yotta\t\tSkip yotta build\n"
     printf "     --out-of-source-dir=<path>\t\tDirectory used for CMake out-of-source build tests."
     printf "     --openssl=<OpenSSL_path>\t\tPath to OpenSSL executable to use for most tests.\n"
     printf "     --openssl-legacy=<OpenSSL_path>\t\tPath to OpenSSL executable to use for legacy tests e.g. SSLv3.\n"
@@ -138,6 +140,9 @@ while [ $# -gt 0 ]; do
         --release-test|-r)
             RELEASE=1
             ;;
+          --no-yotta)
+            YOTTA=0
+            ;;
         --out-of-source-dir)
             shift
             OUT_OF_SOURCE_DIR="$1"
@@ -183,12 +188,14 @@ while [ $# -gt 0 ]; do
 done
 
 if [ $FORCE -eq 1 ]; then
-    rm -rf yotta/module "$OUT_OF_SOURCE_DIR"
+    if [ $YOTTA -eq 1 ]; then
+        rm -rf yotta/module "$OUT_OF_SOURCE_DIR"
+    fi
     git checkout-index -f -q $CONFIG_H
     cleanup
 else
 
-    if [ -d yotta/module ]; then
+    if [ $YOTTA -eq 1 ] && [ -d yotta/module ]; then
         err_msg "Warning - there is an existing yotta module in the directory 'yotta/module'"
         echo "You can either delete your work and retry, or force the test to overwrite the"
         echo "test by rerunning the script as: $0 --force"
@@ -283,11 +290,13 @@ msg "test: doxygen warnings" # ~ 3s
 cleanup
 tests/scripts/doxygen.sh
 
-# Note - use of yotta is deprecated, and yotta also requires armcc to be on the
-# path, and uses whatever version of armcc it finds there.
-msg "build: create and build yotta module" # ~ 30s
-cleanup
-tests/scripts/yotta-build.sh
+if [ $YOTTA -ne 0 ]; then
+    # Note - use of yotta is deprecated, and yotta also requires armcc to be
+    # on the path, and uses whatever version of armcc it finds there.
+    msg "build: create and build yotta module" # ~ 30s
+    cleanup
+    tests/scripts/yotta-build.sh
+fi
 
 msg "build: cmake, gcc, ASan" # ~ 1 min 50s
 cleanup
@@ -324,6 +333,19 @@ tests/compat.sh -m 'tls1 tls1_1 tls1_2 dtls1 dtls1_2'
 OPENSSL_CMD="$OPENSSL_LEGACY" tests/compat.sh -m 'ssl3'
 
 msg "build: SSLv3 - ssl-opt.sh (ASan build)" # ~ 6 min
+tests/ssl-opt.sh
+
+msg "build: Default + !MBEDTLS_SSL_RENEGOTIATION (ASan build)" # ~ 6 min
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl unset MBEDTLS_SSL_RENEGOTIATION
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make
+
+msg "test: !MBEDTLS_SSL_RENEGOTIATION - main suites (inc. selftests) (ASan build)" # ~ 50s
+make test
+
+msg "test: !MBEDTLS_SSL_RENEGOTIATION - ssl-opt.sh (ASan build)" # ~ 6 min
 tests/ssl-opt.sh
 
 msg "build: cmake, full config, clang, C99" # ~ 50s
@@ -412,6 +434,16 @@ scripts/config.pl full
 scripts/config.pl unset MBEDTLS_NET_C # getaddrinfo() undeclared, etc.
 scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY # uses syscall() on GNU/Linux
 CC=gcc CFLAGS='-Werror -Wall -Wextra -O0 -std=c99 -pedantic' make lib
+
+msg "build: default config except MFL extension (ASan build)" # ~ 30s
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl unset MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make
+
+msg "test: ssl-opt.sh, MFL-related tests"
+tests/ssl-opt.sh -f "Max fragment length"
 
 msg "build: default config with  MBEDTLS_TEST_NULL_ENTROPY (ASan build)"
 cleanup
@@ -637,4 +669,3 @@ rm -rf "$OUT_OF_SOURCE_DIR"
 
 msg "Done, cleaning up"
 cleanup
-

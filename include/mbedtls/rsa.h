@@ -48,7 +48,7 @@
 #define MBEDTLS_ERR_RSA_VERIFY_FAILED                     -0x4380  /**< The PKCS#1 verification failed. */
 #define MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE                  -0x4400  /**< The output buffer for decryption is not large enough. */
 #define MBEDTLS_ERR_RSA_RNG_FAILED                        -0x4480  /**< The random generator failed to generate non-zeros. */
-#define MBEDTLS_ERR_RSA_EXPORT_UNSUPPORTED                -0x4500  /**< The requested parameter export is not possible/allowed. */
+#define MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION             -0x4500  /**< The implementation doesn't offer the requested operation, e.g. because of security violations or lack of functionality */
 
 /*
  * RSA constants
@@ -516,7 +516,16 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
  * \param input    buffer holding the data to be encrypted
  * \param output   buffer that will hold the ciphertext
  *
- * \return         0 if successful, or an \c MBEDTLS_ERR_RSA_XXX error code
+ * \deprecated     It is deprecated and discouraged to call this function
+ *                 in mode MBEDTLS_RSA_PRIVATE. Future versions of the libary
+ *                 are likely to remove the mode argument and have it implicitly
+ *                 set to MBEDTLS_RSA_PUBLIC.
+ *
+ * \note           Alternative implementations of RSA need not support
+ *                 mode being set to MBEDTLS_RSA_PRIVATE and may instead
+ *                 return MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
+ *
+ * \return         0 if successful, or an MBEDTLS_ERR_RSA_XXX error code
  *
  * \note           The output buffer must be as large as the size
  *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
@@ -539,7 +548,16 @@ int mbedtls_rsa_pkcs1_encrypt( mbedtls_rsa_context *ctx,
  * \param input    buffer holding the data to be encrypted
  * \param output   buffer that will hold the ciphertext
  *
- * \return         0 if successful, or an \c MBEDTLS_ERR_RSA_XXX error code
+ * \deprecated     It is deprecated and discouraged to call this function
+ *                 in mode MBEDTLS_RSA_PRIVATE. Future versions of the libary
+ *                 are likely to remove the mode argument and have it implicitly
+ *                 set to MBEDTLS_RSA_PUBLIC.
+ *
+ * \note           Alternative implementations of RSA need not support
+ *                 mode being set to MBEDTLS_RSA_PRIVATE and may instead
+ *                 return MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
+ *
+ * \return         0 if successful, or an MBEDTLS_ERR_RSA_XXX error code
  *
  * \note           The output buffer must be as large as the size
  *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
@@ -565,7 +583,16 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
  * \param input    buffer holding the data to be encrypted
  * \param output   buffer that will hold the ciphertext
  *
- * \return         0 if successful, or an \c MBEDTLS_ERR_RSA_XXX error code
+ * \deprecated     It is deprecated and discouraged to call this function
+ *                 in mode MBEDTLS_RSA_PRIVATE. Future versions of the libary
+ *                 are likely to remove the mode argument and have it implicitly
+ *                 set to MBEDTLS_RSA_PUBLIC.
+ *
+ * \note           Alternative implementations of RSA need not support
+ *                 mode being set to MBEDTLS_RSA_PRIVATE and may instead
+ *                 return MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
+ *
+ * \return         0 if successful, or an MBEDTLS_ERR_RSA_XXX error code
  *
  * \note           The output buffer must be as large as the size
  *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
@@ -593,7 +620,16 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
  * \param output   buffer that will hold the plaintext
  * \param output_max_len    maximum length of the output buffer
  *
- * \return         0 if successful, or an \c MBEDTLS_ERR_RSA_XXX error code
+ * \deprecated     It is deprecated and discouraged to call this function
+ *                 in mode MBEDTLS_RSA_PUBLIC. Future versions of the libary
+ *                 are likely to remove the mode argument and have it implicitly
+ *                 set to MBEDTLS_RSA_PRIVATE.
+ *
+ * \note           Alternative implementations of RSA need not support
+ *                 mode being set to MBEDTLS_RSA_PUBLIC and may instead
+ *                 return MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
+ *
+ * \return         0 if successful, or an MBEDTLS_ERR_RSA_XXX error code
  *
  * \note           The output buffer length \c output_max_len should be
  *                 as large as the size \c ctx->len of \c ctx->N (eg. 128 bytes
@@ -625,7 +661,16 @@ int mbedtls_rsa_pkcs1_decrypt( mbedtls_rsa_context *ctx,
  * \param output   buffer that will hold the plaintext
  * \param output_max_len    maximum length of the output buffer
  *
- * \return         0 if successful, or an \c MBEDTLS_ERR_RSA_XXX error code
+ * \deprecated     It is deprecated and discouraged to call this function
+ *                 in mode MBEDTLS_RSA_PUBLIC. Future versions of the libary
+ *                 are likely to remove the mode argument and have it implicitly
+ *                 set to MBEDTLS_RSA_PRIVATE.
+ *
+ * \note           Alternative implementations of RSA need not support
+ *                 mode being set to MBEDTLS_RSA_PUBLIC and may instead
+ *                 return MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
+ *
+ * \return         0 if successful, or an MBEDTLS_ERR_RSA_XXX error code
  *
  * \note           The output buffer length \c output_max_len should be
  *                 as large as the size \c ctx->len of \c ctx->N (eg. 128 bytes
@@ -659,7 +704,16 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
  * \param output   buffer that will hold the plaintext
  * \param output_max_len    maximum length of the output buffer
  *
- * \return         0 if successful, or an \c MBEDTLS_ERR_RSA_XXX error code
+ * \deprecated     It is deprecated and discouraged to call this function
+ *                 in mode MBEDTLS_RSA_PUBLIC. Future versions of the libary
+ *                 are likely to remove the mode argument and have it implicitly
+ *                 set to MBEDTLS_RSA_PRIVATE.
+ *
+ * \note           Alternative implementations of RSA need not support
+ *                 mode being set to MBEDTLS_RSA_PUBLIC and may instead
+ *                 return MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
+ *
+ * \return         0 if successful, or an MBEDTLS_ERR_RSA_XXX error code
  *
  * \note           The output buffer length \c output_max_len should be
  *                 as large as the size \c ctx->len of \c ctx->N (eg. 128 bytes
@@ -670,6 +724,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
  *
  * \note           The input buffer must be as large as the size
  *                 of \c ctx->N (eg. 128 bytes if RSA-1024 is used).
+ *
  */
 int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
                             int (*f_rng)(void *, unsigned char *, size_t),
@@ -697,6 +752,15 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
  * \param hash     buffer holding the message digest
  * \param sig      buffer that will hold the ciphertext
  *
+ * \deprecated     It is deprecated and discouraged to call this function
+ *                 in mode MBEDTLS_RSA_PUBLIC. Future versions of the libary
+ *                 are likely to remove the mode argument and have it implicitly
+ *                 set to MBEDTLS_RSA_PRIVATE.
+ *
+ * \note           Alternative implementations of RSA need not support
+ *                 mode being set to MBEDTLS_RSA_PUBLIC and may instead
+ *                 return MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
+ *
  * \return         0 if the signing operation was successful,
  *                 or an \c MBEDTLS_ERR_RSA_XXX error code
  *
@@ -704,7 +768,7 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
  *                 of \c ctx->N (eg. 128 bytes if RSA-1024 is used).
  *
  * \note           In case of PKCS#1 v2.1 encoding, see comments on
- * \note           \c mbedtls_rsa_rsassa_pss_sign() for details on
+ *                 \c mbedtls_rsa_rsassa_pss_sign() for details on
  *                 \c md_alg and \c hash_id.
  */
 int mbedtls_rsa_pkcs1_sign( mbedtls_rsa_context *ctx,
@@ -728,6 +792,15 @@ int mbedtls_rsa_pkcs1_sign( mbedtls_rsa_context *ctx,
  * \param hashlen  message digest length (for \c MBEDTLS_MD_NONE only)
  * \param hash     buffer holding the message digest
  * \param sig      buffer that will hold the ciphertext
+ *
+ * \deprecated     It is deprecated and discouraged to call this function
+ *                 in mode MBEDTLS_RSA_PUBLIC. Future versions of the libary
+ *                 are likely to remove the mode argument and have it implicitly
+ *                 set to MBEDTLS_RSA_PRIVATE.
+ *
+ * \note           Alternative implementations of RSA need not support
+ *                 mode being set to MBEDTLS_RSA_PUBLIC and may instead
+ *                 return MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
  *
  * \return         0 if the signing operation was successful,
  *                 or an \c MBEDTLS_ERR_RSA_XXX error code
@@ -757,6 +830,15 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
  * \param hashlen  message digest length (for \c MBEDTLS_MD_NONE only)
  * \param hash     buffer holding the message digest
  * \param sig      buffer that will hold the ciphertext
+ *
+ * \deprecated     It is deprecated and discouraged to call this function
+ *                 in mode MBEDTLS_RSA_PUBLIC. Future versions of the libary
+ *                 are likely to remove the mode argument and have it implicitly
+ *                 set to MBEDTLS_RSA_PRIVATE.
+ *
+ * \note           Alternative implementations of RSA need not support
+ *                 mode being set to MBEDTLS_RSA_PUBLIC and may instead
+ *                 return MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
  *
  * \return         0 if the signing operation was successful,
  *                 or an \c MBEDTLS_ERR_RSA_XXX error code
@@ -792,6 +874,15 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
  * \param hash     buffer holding the message digest
  * \param sig      buffer holding the ciphertext
  *
+ * \deprecated     It is deprecated and discouraged to call this function
+ *                 in mode MBEDTLS_RSA_PRIVATE. Future versions of the libary
+ *                 are likely to remove the mode argument and have it implicitly
+ *                 set to MBEDTLS_RSA_PUBLIC.
+ *
+ * \note           Alternative implementations of RSA need not support
+ *                 mode being set to MBEDTLS_RSA_PRIVATE and may instead
+ *                 return MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
+ *
  * \return         0 if the verify operation was successful,
  *                 or an \c MBEDTLS_ERR_RSA_XXX error code
  *
@@ -823,6 +914,15 @@ int mbedtls_rsa_pkcs1_verify( mbedtls_rsa_context *ctx,
  * \param hash     buffer holding the message digest
  * \param sig      buffer holding the ciphertext
  *
+ * \deprecated     It is deprecated and discouraged to call this function
+ *                 in mode MBEDTLS_RSA_PRIVATE. Future versions of the libary
+ *                 are likely to remove the mode argument and have it implicitly
+ *                 set to MBEDTLS_RSA_PUBLIC.
+ *
+ * \note           Alternative implementations of RSA need not support
+ *                 mode being set to MBEDTLS_RSA_PRIVATE and may instead
+ *                 return MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
+ *
  * \return         0 if the verify operation was successful,
  *                 or an \c MBEDTLS_ERR_RSA_XXX error code
  *
@@ -850,6 +950,15 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
  * \param hashlen  message digest length (for \c MBEDTLS_MD_NONE only)
  * \param hash     buffer holding the message digest
  * \param sig      buffer holding the ciphertext
+ *
+ * \deprecated     It is deprecated and discouraged to call this function
+ *                 in mode MBEDTLS_RSA_PRIVATE. Future versions of the libary
+ *                 are likely to remove the mode argument and have it implicitly
+ *                 set to MBEDTLS_RSA_PUBLIC.
+ *
+ * \note           Alternative implementations of RSA need not support
+ *                 mode being set to MBEDTLS_RSA_PRIVATE and may instead
+ *                 return MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
  *
  * \return         0 if the verify operation was successful,
  *                 or an \c MBEDTLS_ERR_RSA_XXX error code

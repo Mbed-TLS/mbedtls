@@ -331,8 +331,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
             mbedtls_snprintf( buf, buflen, "RSA - The output buffer for decryption is not large enough" );
         if( use_ret == -(MBEDTLS_ERR_RSA_RNG_FAILED) )
             mbedtls_snprintf( buf, buflen, "RSA - The random generator failed to generate non-zeros" );
-        if( use_ret == -(MBEDTLS_ERR_RSA_EXPORT_UNSUPPORTED) )
-            mbedtls_snprintf( buf, buflen, "RSA - The requested parameter export is not possible/allowed" );
+        if( use_ret == -(MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION) )
+            mbedtls_snprintf( buf, buflen, "RSA - The implementation doesn't offer the requested operation, e.g. because of security violations or lack of functionality" );
 #endif /* MBEDTLS_RSA_C */
 
 #if defined(MBEDTLS_SSL_TLS_C)
@@ -482,6 +482,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
             mbedtls_snprintf( buf, buflen, "X509 - Read/write of file failed" );
         if( use_ret == -(MBEDTLS_ERR_X509_BUFFER_TOO_SMALL) )
             mbedtls_snprintf( buf, buflen, "X509 - Destination buffer is too small" );
+        if( use_ret == -(MBEDTLS_ERR_X509_FATAL_ERROR) )
+            mbedtls_snprintf( buf, buflen, "X509 - A fatal error occured, eg the chain is too long or the vrfy callback failed" );
 #endif /* MBEDTLS_X509_USE_C || MBEDTLS_X509_CREATE_C */
         // END generated code
 

@@ -2,11 +2,66 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
-Enhancement
-   * Only check for necessary RSA structure fields in `mbedtls_rsa_private`. In
-     particular, don't require P,Q if neither CRT nor blinding are
-     used. Reported and fix proposed independently by satur9nine and sliai
-     on GitHub.
+Security
+   * Fix a potential heap buffer overflow in mbedtls_ssl_write. When the (by
+     default enabled) maximum fragment length extension is disabled in the
+     config and the application data buffer passed to mbedtls_ssl_write
+     is larger than the internal message buffer (16384 bytes by default), the
+     latter overflows. The exploitability of this issue depends on whether the
+     application layer can be forced into sending such large packets. The issue
+     was independently reported by Tim Nordell via e-mail and by Florin Petriuc
+     and sjorsdewit on GitHub. Fix proposed by Florin Petriuc in #1022. Fixes #707.
+
+Features
+   * Allow comments in test data files.
+
+Bugfix
+   * Fix ssl_parse_record_header() to silently discard invalid DTLS records
+     as recommended in RFC 6347 Section 4.1.2.7.
+   * Fix memory leak in mbedtls_ssl_set_hostname() when called multiple times.
+     Found by projectgus and jethrogb, #836.
+   * Fix usage help in ssl_server2 example. Found and fixed by Bei Lin.
+   * Parse signature algorithm extension when renegotiating. Previously,
+     renegotiated handshakes would only accept signatures using SHA-1
+     regardless of the peer's preferences, or fail if SHA-1 was disabled.
+   * Fix leap year calculation in x509_date_is_valid() to ensure that invalid
+     dates on leap years with 100 and 400 intervals are handled correctly. Found
+     by Nicholas Wilson. #694
+   * Fix out-of-memory problem when parsing 4096-bit PKCS8-encrypted RSA keys.
+     Found independently by Florian in the mbed TLS forum and by Mishamax.
+     #878, #1019.
+   * Fix variable used before assignment compilation warnings with IAR
+     toolchain. Found by gkerrien38.
+   * Fix unchecked return codes from AES, DES and 3DES functions in
+     pem_aes_decrypt(), pem_des_decrypt() and pem_des3_decrypt() respectively.
+     If a call to one of the functions of the cryptographic primitive modules
+     failed, the error may not be noticed by the function
+     mbedtls_pem_read_buffer() causing it to return invalid values. Found by
+     Guido Vranken. #756
+   * Include configuration file in md.h, to fix compilation warnings.
+     Reported by aaronmdjones in #1001
+   * Correct extraction of signature-type from PK instance in X.509 CRT and CSR
+     writing routines that prevented these functions to work with alternative
+     RSA implementations. Raised by J.B. in the Mbed TLS forum. Fixes #1011.
+   * Don't print X.509 version tag for v1 CRT's, and omit extensions for
+     non-v3 CRT's.
+   * Fix bugs in RSA test suite under MBEDTLS_NO_PLATFORM_ENTROPY. #1023 #1024
+   * Fix net_would_block to avoid modification by errno through fcntl call.
+     Found by nkolban. Fixes #845.
+   * Fix handling of handshake messages in mbedtls_ssl_read in case
+     MBEDTLS_SSL_RENEGOTIATION is disabled. Found by erja-gp.
+   * Add a check for invalid private parameters in mbedtls_ecdsa_sign.
+     Reported by Yolan Romailler.
+   * Fix word size check in in pk.c to not depend on MBEDTLS_HAVE_INT64.
+   * Fix incorrect unit in benchmark output. #850
+   * Fix crash when calling mbedtls_ssl_cache_free() twice. Found by
+     MilenkoMitrovic, #1104
+
+New deprecations
+   * Direct manipulation of structure fields of RSA contexts is deprecated.
+     Users are advised to use the extended RSA API instead.
+   * Deprecate usage of RSA primitives with non-matching key-type
+     (e.g., signing with a public key).
 
 API Changes
    * Extend RSA interface by multiple functions allowing structure-
@@ -19,60 +74,91 @@ API Changes
    * The configuration option MBEDTLS_RSA_ALT can be used to define alternative
      implementations of the RSA interface declared in rsa.h.
 
-New deprecations
-   * Direct manipulation of structure fields of RSA contexts is deprecated.
-     Users are advised to use the extended RSA API instead.
+Changes
+   * Extend cert_write example program by options to set the CRT version
+     and the message digest. Further, allow enabling/disabling of authority
+     identifier, subject identifier and basic constraints extensions.
+   * Only check for necessary RSA structure fields in `mbedtls_rsa_private`. In
+     particular, don't require P,Q if neither CRT nor blinding are
+     used. Reported and fix proposed independently by satur9nine and sliai
+     on GitHub.
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.6.0 branch released 2017-08-10
+
+Security
+   * Fix authentication bypass in SSL/TLS: when authmode is set to optional,
+     mbedtls_ssl_get_verify_result() would incorrectly return 0 when the peer's
+     X.509 certificate chain had more than MBEDTLS_X509_MAX_INTERMEDIATE_CA
+     (default: 8) intermediates, even when it was not trusted. This could be
+     triggered remotely from either side. (With authmode set to 'required'
+     (the default), the handshake was correctly aborted).
+   * Reliably wipe sensitive data after use in the AES example applications
+     programs/aes/aescrypt2 and programs/aes/crypt_and_hash.
+     Found by Laurent Simon.
+>>>>>>> development
 
 Features
    * Add the functions mbedtls_platform_setup() and mbedtls_platform_teardown()
      and the context struct mbedtls_platform_context to perform
      platform-specific setup and teardown operations. The macro
      MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT allows the functions to be overridden
-     by the user in a platform_alt.h file. This new APIs are required in some
-     embedded environments that have hardware acceleration support.
+     by the user in a platform_alt.h file. These new functions are required in
+     some embedded environments to provide a means of initialising underlying
+     cryptographic acceleration hardware.
 
 API Changes
    * Reverted API/ABI breaking changes introduced in mbed TLS 2.5.1, to make the
      API consistent with mbed TLS 2.5.0. Specifically removed the inline
      qualifier from the functions mbedtls_aes_decrypt, mbedtls_aes_encrypt,
-     mbedtls_ssl_ciphersuite_uses_ec and mbedtls_ssl_ciphersuite_uses_psk. #978
-     Found by James Cowgill.
+     mbedtls_ssl_ciphersuite_uses_ec and mbedtls_ssl_ciphersuite_uses_psk. Found
+     by James Cowgill. #978
+   * Certificate verification functions now set flags to -1 in case the full
+     chain was not verified due to an internal error (including in the verify
+     callback) or chain length limitations.
+   * With authmode set to optional, the TLS handshake is now aborted if the
+     verification of the peer's certificate failed due to an overlong chain or
+     a fatal error in the verify callback.
 
 Bugfix
-   * Add a check if iv_len is zero, and return an error if it is zero. reported
-     by roberto. #716
-   * Replace preproccessor condition from #if defined(MBEDTLS_THREADING_PTHREAD)
+   * Add a check if iv_len is zero in GCM, and return an error if it is zero.
+     Reported by roberto. #716
+   * Replace preprocessor condition from #if defined(MBEDTLS_THREADING_PTHREAD)
      to #if defined(MBEDTLS_THREADING_C) as the library cannot assume they will
-     always be implemented by pthread support. Fix for #696
-   * Fix resource leak on windows platform, in mbedtls_x509_crt_parse_path.
-     In case of failure, when an error occures, goto cleanup.
-     Found by redplait #590
+     always be implemented by pthread support. #696
+   * Fix a resource leak on Windows platforms in mbedtls_x509_crt_parse_path(),
+     in the case of an error. Found by redplait. #590
    * Add MBEDTLS_MPI_CHK to check for error value of mbedtls_mpi_fill_random.
-     Reported and fix suggested by guidovranken in #740
+     Reported and fix suggested by guidovranken. #740
    * Fix conditional preprocessor directives in bignum.h to enable 64-bit
      compilation when using ARM Compiler 6.
    * Fix a potential integer overflow in the version verification for DER
-     encoded X509 CRLs. The overflow would enable maliciously constructed CRLs
+     encoded X.509 CRLs. The overflow could enable maliciously constructed CRLs
      to bypass the version verification check. Found by Peng Li/Yueh-Hsun Lin,
      KNOX Security, Samsung Research America
    * Fix potential integer overflow in the version verification for DER
-     encoded X509 CSRs. The overflow would enable maliciously constructed CSRs
+     encoded X.509 CSRs. The overflow could enable maliciously constructed CSRs
      to bypass the version verification check. Found by Peng Li/Yueh-Hsun Lin,
      KNOX Security, Samsung Research America
    * Fix a potential integer overflow in the version verification for DER
-     encoded X509 certificates. The overflow would enable maliciously
+     encoded X.509 certificates. The overflow could enable maliciously
      constructed certificates to bypass the certificate verification check.
+   * Fix a call to the libc function time() to call the platform abstraction
+     function mbedtls_time() instead. Found by wairua. #666
+   * Avoid shadowing of time and index functions through mbed TLS function
+     arguments. Found by inestlerode. #557.
 
 Changes
    * Added config.h option MBEDTLS_NO_UDBL_DIVISION, to prevent the use of
-     64-bit division. #708
+     64-bit division. This is useful on embedded platforms where 64-bit division
+     created a dependency on external libraries. #708
    * Removed mutexes from ECP hardware accelerator code. Now all hardware
      accelerator code in the library leaves concurrency handling to the
      platform. Reported by Steven Cooreman. #863
    * Define the macro MBEDTLS_AES_ROM_TABLES in the configuration file
      config-no-entropy.h to reduce the RAM footprint.
+   * Added a test script that can be hooked into git that verifies commits
+     before they are pushed.
+   * Improve documentation of PKCS1 decryption functions.
 
 = mbed TLS 2.5.1 released 2017-06-21
 

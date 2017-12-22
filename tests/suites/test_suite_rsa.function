@@ -9,6 +9,7 @@
 #include "mbedtls/sha512.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -121,6 +122,7 @@ void rsa_pkcs1_sign_raw( char *message_hex_string, char *hash_result_string,
                          char *input_N, int radix_E, char *input_E,
                          char *result_hex_str )
 {
+    int res;
     unsigned char message_str[1000];
     unsigned char hash_result[1000];
     unsigned char output[1000];
@@ -167,13 +169,22 @@ void rsa_pkcs1_sign_raw( char *message_hex_string, char *hash_result_string,
         memset( output, 0x00, 1000 );
         memset( output_str, 0x00, 1000 );
 
-        TEST_ASSERT( mbedtls_rsa_rsaes_pkcs1_v15_encrypt( &ctx,
+        res = mbedtls_rsa_rsaes_pkcs1_v15_encrypt( &ctx,
                     &rnd_pseudo_rand, &rnd_info, MBEDTLS_RSA_PRIVATE,
-                    hash_len, hash_result, output ) == 0 );
+                    hash_len, hash_result, output );
 
-        hexify( output_str, output, ctx.len );
+#if !defined(MBEDTLS_RSA_ALT)
+        TEST_ASSERT( res == 0 );
+#else
+        TEST_ASSERT( ( res == 0 ) ||
+                     ( res == MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION ) );
+#endif
 
-        TEST_ASSERT( strcasecmp( (char *) output_str, result_hex_str ) == 0 );
+        if( res == 0 )
+        {
+            hexify( output_str, output, ctx.len );
+            TEST_ASSERT( strcasecmp( (char *) output_str, result_hex_str ) == 0 );
+        }
     }
 
 exit:
@@ -190,6 +201,7 @@ void rsa_pkcs1_verify_raw( char *message_hex_string, char *hash_result_string,
                            char *input_N, int radix_E, char *input_E,
                            char *result_hex_str, int correct )
 {
+    int res;
     unsigned char message_str[1000];
     unsigned char hash_result[1000];
     unsigned char result_str[1000];
@@ -227,15 +239,25 @@ void rsa_pkcs1_verify_raw( char *message_hex_string, char *hash_result_string,
     {
         int ok;
 
-        TEST_ASSERT( mbedtls_rsa_rsaes_pkcs1_v15_decrypt( &ctx,
+        res = mbedtls_rsa_rsaes_pkcs1_v15_decrypt( &ctx,
                     NULL, NULL, MBEDTLS_RSA_PUBLIC,
-                    &olen, result_str, output, sizeof( output ) ) == 0 );
+                    &olen, result_str, output, sizeof( output ) );
 
-        ok = olen == hash_len && memcmp( output, hash_result, olen ) == 0;
-        if( correct == 0 )
-            TEST_ASSERT( ok == 1 );
-        else
-            TEST_ASSERT( ok == 0 );
+#if !defined(MBEDTLS_RSA_ALT)
+        TEST_ASSERT( res == 0 );
+#else
+        TEST_ASSERT( ( res == 0 ) ||
+                     ( res == MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION ) );
+#endif
+
+        if( res == 0 )
+        {
+            ok = olen == hash_len && memcmp( output, hash_result, olen ) == 0;
+            if( correct == 0 )
+                TEST_ASSERT( ok == 1 );
+            else
+                TEST_ASSERT( ok == 0 );
+        }
     }
 
 exit:
@@ -275,7 +297,9 @@ void mbedtls_rsa_pkcs1_encrypt( char *message_hex_string, int padding_mode, int 
 
     msg_len = unhexify( message_str, message_hex_string );
 
-    TEST_ASSERT( mbedtls_rsa_pkcs1_encrypt( &ctx, &rnd_pseudo_rand, &rnd_info, MBEDTLS_RSA_PUBLIC, msg_len, message_str, output ) == result );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_encrypt( &ctx, &rnd_pseudo_rand, &rnd_info,
+                                            MBEDTLS_RSA_PUBLIC, msg_len,
+                                            message_str, output ) == result );
     if( result == 0 )
     {
         hexify( output_str, output, ctx.len );
@@ -318,7 +342,9 @@ void rsa_pkcs1_encrypt_bad_rng( char *message_hex_string, int padding_mode,
 
     msg_len = unhexify( message_str, message_hex_string );
 
-    TEST_ASSERT( mbedtls_rsa_pkcs1_encrypt( &ctx, &rnd_zero_rand, NULL, MBEDTLS_RSA_PUBLIC, msg_len, message_str, output ) == result );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_encrypt( &ctx, &rnd_zero_rand, NULL,
+                                            MBEDTLS_RSA_PUBLIC, msg_len,
+                                            message_str, output ) == result );
     if( result == 0 )
     {
         hexify( output_str, output, ctx.len );
@@ -691,7 +717,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_CTR_DRBG_C:MBEDTLS_ENTROPY_C */
+/* BEGIN_CASE depends_on:MBEDTLS_CTR_DRBG_C:MBEDTLS_ENTROPY_C:ENTROPY_HAVE_STRONG */
 void mbedtls_rsa_gen_key( int nrbits, int exponent, int result)
 {
     mbedtls_rsa_context ctx;
@@ -700,16 +726,13 @@ void mbedtls_rsa_gen_key( int nrbits, int exponent, int result)
     const char *pers = "test_suite_rsa";
 
     mbedtls_ctr_drbg_init( &ctr_drbg );
-
     mbedtls_entropy_init( &entropy );
-    TEST_ASSERT( mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func,
-                                        &entropy, (const unsigned char *) pers,
-                                        strlen( pers ) ) == 0 );
+    mbedtls_rsa_init ( &ctx, 0, 0 );
 
-    mbedtls_rsa_init( &ctx, 0, 0 );
+    TEST_ASSERT( mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
+                                (const unsigned char *) pers, strlen( pers ) ) == 0 );
 
-    TEST_ASSERT( mbedtls_rsa_gen_key( &ctx, mbedtls_ctr_drbg_random,
-                                      &ctr_drbg, nrbits, exponent ) == result );
+    TEST_ASSERT( mbedtls_rsa_gen_key( &ctx, mbedtls_ctr_drbg_random, &ctr_drbg, nrbits, exponent ) == result );
     if( result == 0 )
     {
         TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );

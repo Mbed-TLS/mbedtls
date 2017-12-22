@@ -1,22 +1,81 @@
 #!/usr/bin/perl
-
-# Tune the configuration file
+#
+# This file is part of mbed TLS (https://tls.mbed.org)
+#
+# Copyright (c) 2014-2016, ARM Limited, All Rights Reserved
+#
+# Purpose
+#
+# Comments and uncomments #define lines in the given header file and optionally
+# sets their value or can get the value. This is to provide scripting control of
+# what preprocessor symbols, and therefore what build time configuration flags
+# are set in the 'config.h' file.
+#
+# Usage: config.pl [-f <file> | --file <file>] [-o | --force]
+#                   [set <symbol> <value> | unset <symbol> | get <symbol> |
+#                       full | realfull]
+#
+# Full usage description provided below.
+#
+# Things that shouldn't be enabled with "full".
+#
+#   POLARSSL_TEST_NULL_ENTROPY
+#   POLARSSL_DEPRECATED_REMOVED
+#   POLARSSL_HAVE_SSE2
+#   POLARSSL_PLATFORM_NO_STD_FUNCTIONS
+#   POLARSSL_ECP_DP_M221_ENABLED
+#   POLARSSL_ECP_DP_M383_ENABLED
+#   POLARSSL_ECP_DP_M511_ENABLED
+#   POLARSSL_NO_DEFAULT_ENTROPY_SOURCES
+#   POLARSSL_NO_PLATFORM_ENTROPY
+#   POLARSSL_REMOVE_ARC4_CIPHERSUITES
+#   POLARSSL_SSL_HW_RECORD_ACCEL
+#   POLARSSL_X509_ALLOW_EXTENSIONS_NON_V3
+#   POLARSSL_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
+#       - this could be enabled if the respective tests were adapted
+#   POLARSSL_ZLIB_SUPPORT
+#   POLARSSL_PKCS11_C
+#   and any symbol beginning _ALT
+#
 
 use warnings;
 use strict;
 
+my $config_file = "include/polarssl/config.h";
 my $usage = <<EOU;
-$0 [-f <file>] unset <name>
-$0 [-f <file>] set <name> [<value>]
-EOU
-# for our eyes only:
-# $0 [-f <file>] full
+$0 [-f <file> | --file <file>] [-o | --force]
+                   [set <symbol> <value> | unset <symbol> | get <symbol> |
+                        full | realfull | baremetal]
 
-# Things that shouldn't be enabled with "full".
-# Notes:
-# - POLARSSL_X509_ALLOW_EXTENSIONS_NON_V3 and
-#   POLARSSL_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION could be enabled if the
-#   respective tests were adapted
+Commands
+    set <symbol> [<value>]  - Uncomments or adds a #define for the <symbol> to
+                              the configuration file, and optionally making it
+                              of <value>.
+                              If the symbol isn't present in the file an error
+                              is returned.
+    unset <symbol>          - Comments out the #define for the given symbol if
+                              present in the configuration file.
+    get <symbol>            - Finds the #define for the given symbol, returning
+                              an exitcode of 0 if the symbol is found, and 1 if
+                              not. The value of the symbol is output if one is
+                              specified in the configuration file.
+    full                    - Uncomments all #define's in the configuration file
+                              excluding some reserved symbols, until the
+                              'Module configuration options' section
+    realfull                - Uncomments all #define's with no exclusions
+    baremetal               - Sets full configuration suitable for baremetal build.
+
+Options
+    -f | --file <filename>  - The file or file path for the configuration file
+                              to edit. When omitted, the following default is
+                              used:
+                                $config_file
+    -o | --force            - If the symbol isn't present in the configuration
+                              file when setting its value, a #define is
+                              appended to the end of the file.
+
+EOU
+
 my @excluded = qw(
 POLARSSL_ERROR_STRERROR_BC
 POLARSSL_MEMORY_C
@@ -39,86 +98,199 @@ POLARSSL_PKCS11_C
 _ALT\s*$
 );
 
+# Things that should be disabled in "baremetal"
+my @excluded_baremetal = qw(
+POLARSSL_NET_C
+POLARSSL_TIMING_C
+POLARSSL_FS_IO
+POLARSSL_ENTROPY_NV_SEED
+POLARSSL_HAVE_TIME
+POLARSSL_HAVE_TIME_DATE
+POLARSSL_DEPRECATED_WARNING
+POLARSSL_HAVEGE_C
+POLARSSL_THREADING_C
+POLARSSL_THREADING_PTHREAD
+POLARSSL_MEMORY_BACKTRACE
+POLARSSL_MEMORY_BUFFER_ALLOC_C
+POLARSSL_PLATFORM_TIME_ALT
+POLARSSL_PLATFORM_FPRINTF_ALT
+);
+
 # Things that should be enabled in "full" even if they match @excluded
 my @non_excluded = qw(
 PLATFORM_[A-Z0-9]+_ALT
 );
 
-my $config_file = "include/polarssl/config.h";
+# Things that should be enabled in "baremetal"
+my @non_excluded_baremetal = qw(
+POLARSSL_NO_PLATFORM_ENTROPY
+);
 
-# get -f option
-if (@ARGV >= 2 && $ARGV[0] eq "-f") {
-    shift; # -f
-    $config_file = shift;
+# Process the command line arguments
 
-    -f $config_file or die "No such file: $config_file\n";
-} else {
-    if (! -f $config_file)  {
-        chdir '..' or die;
-        -d $config_file
-            or die "Without -f, must be run from root or scripts\n"
+my $force_option = 0;
+
+my ($arg, $name, $value, $action);
+
+while ($arg = shift) {
+
+    # Check if the argument is an option
+    if ($arg eq "-f" || $arg eq "--file") {
+        $config_file = shift;
+
+        -f $config_file or die "No such file: $config_file\n";
+
+    }
+    elsif ($arg eq "-o" || $arg eq "--force") {
+        $force_option = 1;
+
+    }
+    else
+    {
+        # ...else assume it's a command
+        $action = $arg;
+
+        if ($action eq "full" || $action eq "realfull" || $action eq "baremetal" ) {
+            # No additional parameters
+            die $usage if @ARGV;
+
+        }
+        elsif ($action eq "unset" || $action eq "get") {
+            die $usage unless @ARGV;
+            $name = shift;
+
+        }
+        elsif ($action eq "set") {
+            die $usage unless @ARGV;
+            $name = shift;
+            $value = shift if @ARGV;
+
+        }
+        else {
+            die "Command '$action' not recognised.\n\n".$usage;
+        }
     }
 }
 
-# get action
-die $usage unless @ARGV;
-my $action = shift;
+# If no command was specified, exit...
+if ( not defined($action) ){ die $usage; }
 
-my ($name, $value);
-if ($action eq "full") {
-    # nothing to do
-} elsif ($action eq "unset") {
-    die $usage unless @ARGV;
-    $name = shift;
-} elsif ($action eq "set") {
-    die $usage unless @ARGV;
-    $name = shift;
-    $value = shift if @ARGV;
-} else {
-    die $usage;
+# Check the config file is present
+if (! -f $config_file)  {
+
+    chdir '..' or die;
+
+    # Confirm this is the project root directory and try again
+    if ( !(-d 'scripts' && -d 'include' && -d 'library' && -f $config_file) ) {
+        die "If no file specified, must be run from the project root or scripts directory.\n";
+    }
 }
-die $usage if @ARGV;
+
+
+# Now read the file and process the contents
 
 open my $config_read, '<', $config_file or die "read $config_file: $!\n";
 my @config_lines = <$config_read>;
 close $config_read;
 
-my $exclude_re = join '|', @excluded;
-my $no_exclude_re = join '|', @non_excluded;
+# Add required baremetal symbols to the list that is included.
+if ( $action eq "baremetal" ) {
+    @non_excluded = ( @non_excluded, @non_excluded_baremetal );
+}
 
-open my $config_write, '>', $config_file or die "write $config_file: $!\n";
+my ($exclude_re, $no_exclude_re, $exclude_baremetal_re);
+if ($action eq "realfull") {
+    $exclude_re = qr/^$/;
+    $no_exclude_re = qr/./;
+} else {
+    $exclude_re = join '|', @excluded;
+    $no_exclude_re = join '|', @non_excluded;
+}
+if ( $action eq "baremetal" ) {
+    $exclude_baremetal_re = join '|', @excluded_baremetal;
+}
+
+my $config_write = undef;
+if ($action ne "get") {
+    open $config_write, '>', $config_file or die "write $config_file: $!\n";
+}
 
 my $done;
 for my $line (@config_lines) {
-    if ($action eq "full") {
+    if ($action eq "full" || $action eq "realfull" || $action eq "baremetal" ) {
         if ($line =~ /name SECTION: Module configuration options/) {
             $done = 1;
         }
 
         if (!$done && $line =~ m!^//\s?#define! &&
-                ( $line !~ /$exclude_re/ || $line =~ /$no_exclude_re/ ) ) {
-            $line =~ s!^//!!;
+                ( $line !~ /$exclude_re/ || $line =~ /$no_exclude_re/ ) &&
+                ( $action ne "baremetal" || ( $line !~ /$exclude_baremetal_re/ ) ) ) {
+            $line =~ s!^//\s?!!;
+        }
+        if (!$done && $line =~ m!^\s?#define! &&
+                ! ( ( $line !~ /$exclude_re/ || $line =~ /$no_exclude_re/ ) &&
+                    ( $action ne "baremetal" || ( $line !~ /$exclude_baremetal_re/ ) ) ) ) {
+            $line =~ s!^!//!;
         }
     } elsif ($action eq "unset") {
-        if (!$done && $line =~ /^\s*#define\s*$name/) {
+        if (!$done && $line =~ /^\s*#define\s*$name\b/) {
             $line = '//' . $line;
             $done = 1;
         }
     } elsif (!$done && $action eq "set") {
-        if ($line =~ m!^(?://)?\s*#define\s*$name!) {
+        if ($line =~ m!^(?://)?\s*#define\s*$name\b!) {
             $line = "#define $name";
             $line .= " $value" if defined $value && $value ne "";
             $line .= "\n";
             $done = 1;
         }
+    } elsif (!$done && $action eq "get") {
+        if ($line =~ /^\s*#define\s*$name(?:\s+(.*?))\s*(?:$|\/\*|\/\/)/) {
+            $value = $1;
+            $done = 1;
+        }
     }
 
-    print $config_write $line;
+    if (defined $config_write) {
+        print $config_write $line or die "write $config_file: $!\n";
+    }
 }
 
-close $config_write;
+# Did the set command work?
+if ($action eq "set" && $force_option && !$done) {
 
-warn "configuration section not found" if ($action eq "full" && !$done);
-warn "$name not found" if ($action ne "full" && !$done);
+    # If the force option was set, append the symbol to the end of the file
+    my $line = "#define $name";
+    $line .= " $value" if defined $value && $value ne "";
+    $line .= "\n";
+    $done = 1;
+
+    print $config_write $line or die "write $config_file: $!\n";
+}
+
+if (defined $config_write) {
+    close $config_write or die "close $config_file: $!\n";
+}
+
+if ($action eq "get") {
+    if ($done) {
+        if ($value ne '') {
+            print "$value\n";
+        }
+        exit 0;
+    } else {
+        # If the symbol was not found, return an error
+        exit 1;
+    }
+}
+
+if ($action eq "full" && !$done) {
+    die "Configuration section was not found in $config_file\n";
+
+}
+
+if ($action ne "full" && $action ne "unset" && !$done) {
+    die "A #define for the symbol $name was not found in $config_file\n";
+}
 
 __END__

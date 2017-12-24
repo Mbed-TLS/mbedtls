@@ -266,15 +266,36 @@
 //#define MBEDTLS_ARC4_ALT
 //#define MBEDTLS_BLOWFISH_ALT
 //#define MBEDTLS_CAMELLIA_ALT
+//#define MBEDTLS_CCM_ALT
 //#define MBEDTLS_DES_ALT
 //#define MBEDTLS_XTEA_ALT
 //#define MBEDTLS_MD2_ALT
 //#define MBEDTLS_MD4_ALT
 //#define MBEDTLS_MD5_ALT
 //#define MBEDTLS_RIPEMD160_ALT
+//#define MBEDTLS_RSA_ALT
 //#define MBEDTLS_SHA1_ALT
 //#define MBEDTLS_SHA256_ALT
 //#define MBEDTLS_SHA512_ALT
+
+/**
+ * \def MBEDTLS_RSA_USE_NON_STANDARD_MOD_SIZE
+ *
+ * MBEDTLS_RSA_USE_NON_STANDARD_MOD_SIZE: Uncomment a macro to ignore the run of
+ * a specific test in the test suite. When there is a need to create a dependency
+ * between a specific test (tests/suites/test_suite_MODULE_NAME.data) and its
+ * activation, add one of the below appropriate defines to the dependency line of the
+ * specific test ('depends_on:').
+ * when it is defined - The test will be ignored.
+ * when it is NOT defined - The test will be activated.
+ *
+ */
+//#define MBEDTLS_RSA_USE_NON_STANDARD_MOD_SIZE
+//#define MBEDTLS_PKCS1_V1_5_USE_HW_RANDOM_BUFF
+//#define MBEDTLS_RSA_PKCS1_V1_5_USE_VERIFY
+//#define MBEDTLS_RSA_PKCS1_V1_5_SKIP_ENC_W_PRV_KEY
+//#define MBEDTLS_RSA_PKCS1_V1_5_SKIP_DEC_W_PUB_KEY
+
 /*
  * When replacing the elliptic curve module, pleace consider, that it is
  * implemented with two .c files:

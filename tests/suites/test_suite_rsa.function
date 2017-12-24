@@ -170,6 +170,8 @@ void rsa_pkcs1_sign_raw( char *message_hex_string, char *hash_result_string,
 
     TEST_ASSERT( strcasecmp( (char *) output_str, result_hex_str ) == 0 );
 
+    /* Cryptocell does not support encrypt with private key */
+#if !(defined (MBEDTLS_RSA_PKCS1_V1_5_SKIP_ENC_W_PRV_KEY) && defined (MBEDTLS_RSA_ALT))
     /* For PKCS#1 v1.5, there is an alternative way to generate signatures */
     if( padding_mode == MBEDTLS_RSA_PKCS_V15 )
     {
@@ -193,7 +195,7 @@ void rsa_pkcs1_sign_raw( char *message_hex_string, char *hash_result_string,
             TEST_ASSERT( strcasecmp( (char *) output_str, result_hex_str ) == 0 );
         }
     }
-
+#endif
 exit:
     mbedtls_mpi_free( &P1 ); mbedtls_mpi_free( &Q1 ); mbedtls_mpi_free( &H ); mbedtls_mpi_free( &G );
     mbedtls_rsa_free( &ctx );
@@ -212,7 +214,10 @@ void rsa_pkcs1_verify_raw( char *message_hex_string, char *hash_result_string,
     unsigned char result_str[1000];
     unsigned char output[1000];
     mbedtls_rsa_context ctx;
-    size_t hash_len, olen;
+    size_t hash_len;
+#if !(defined (MBEDTLS_RSA_PKCS1_V1_5_SKIP_DEC_W_PUB_KEY) && defined (MBEDTLS_RSA_ALT))
+    size_t olen;
+#endif
 
     mbedtls_rsa_init( &ctx, padding_mode, 0 );
     memset( message_str, 0x00, 1000 );
@@ -232,6 +237,8 @@ void rsa_pkcs1_verify_raw( char *message_hex_string, char *hash_result_string,
 
     TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, NULL, NULL, MBEDTLS_RSA_PUBLIC, MBEDTLS_MD_NONE, hash_len, hash_result, result_str ) == correct );
 
+    /* Cryptocell does not support decrypt with public key */
+#if !(defined (MBEDTLS_RSA_PKCS1_V1_5_SKIP_DEC_W_PUB_KEY) && defined (MBEDTLS_RSA_ALT))
     /* For PKCS#1 v1.5, there is an alternative way to verify signatures */
     if( padding_mode == MBEDTLS_RSA_PKCS_V15 )
     {
@@ -257,6 +264,7 @@ void rsa_pkcs1_verify_raw( char *message_hex_string, char *hash_result_string,
                 TEST_ASSERT( ok == 0 );
         }
     }
+#endif
 
 exit:
     mbedtls_rsa_free( &ctx );

@@ -77,6 +77,7 @@ extern "C" {
 /**
  * \brief          RSA context structure
  */
+#if !defined (MBEDTLS_RSA_ALT)
 typedef struct
 {
     int ver;                    /*!<  always 0          */
@@ -110,6 +111,9 @@ typedef struct
 #endif
 }
 mbedtls_rsa_context;
+#else  /* !defined (MBEDTLS_RSA_ALT) */
+#include "rsa_alt.h"
+#endif /* !defined (MBEDTLS_RSA_ALT) */
 
 /**
  * \brief          Initialize an RSA context

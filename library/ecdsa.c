@@ -176,7 +176,7 @@ int mbedtls_ecdsa_sign_det( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi 
     if ( grp == NULL  || d == NULL || buf == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-    if (blen == 0)
+    if ( blen == 0 )
         return ( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
     
     if( ( md_info = mbedtls_md_info_from_type( md_alg ) ) == NULL )
@@ -382,7 +382,7 @@ int mbedtls_ecdsa_read_signature( mbedtls_ecdsa_context *ctx,
     if ( ctx == NULL || sig == NULL ) /* hash is validated in verify API*/
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-    if (slen == 0 )
+    if ( slen == 0 )
         return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
     
     mbedtls_mpi_init( &r );

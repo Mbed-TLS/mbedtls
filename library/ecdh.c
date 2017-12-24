@@ -88,7 +88,7 @@ cleanup:
 void mbedtls_ecdh_init( mbedtls_ecdh_context *ctx )
 {
     if ( ctx != NULL ) {
-        memset(ctx, 0, sizeof(mbedtls_ecdh_context));
+        memset( ctx, 0, sizeof( mbedtls_ecdh_context ) );
     }
 }
 

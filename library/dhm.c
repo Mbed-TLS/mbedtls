@@ -580,7 +580,8 @@ int mbedtls_dhm_parse_dhmfile( mbedtls_dhm_context *dhm, const char *path )
 }
 #endif /* MBEDTLS_FS_IO */
 #endif /* MBEDTLS_ASN1_PARSE_C */
-#endif/*MBEDTLS_DHM_ALT*/
+#endif /* MBEDTLS_DHM_ALT */
+
 #if defined(MBEDTLS_SELF_TEST)
 
 static const char mbedtls_test_dhm_params[] =

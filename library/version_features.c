@@ -123,6 +123,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_SHA512_ALT)
     "MBEDTLS_SHA512_ALT",
 #endif /* MBEDTLS_SHA512_ALT */
+#if defined(MBEDTLS_DHM_ALT)
+    "MBEDTLS_DHM_ALT",
+#endif /* MBEDTLS_DHM_ALT */
 #if defined(MBEDTLS_ECP_ALT)
     "MBEDTLS_ECP_ALT",
 #endif /* MBEDTLS_ECP_ALT */

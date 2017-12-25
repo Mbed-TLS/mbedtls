@@ -132,8 +132,6 @@ static int cmac_multiply_by_u( unsigned char *output,
     return( 0 );
 }
 
-
-
 /*
  * Generate subkeys
  *
@@ -471,7 +469,6 @@ exit:
     return( ret );
 }
 #endif /* MBEDTLS_AES_C */
-
 
 #if defined(MBEDTLS_SELF_TEST)
 /*

@@ -82,9 +82,10 @@ In case you find that you need to do something else as well, please let us know 
 
 ### CMake
 
-In order to build the source using CMake, just enter at the command line:
+In order to build the source using CMake in a separate directory (recommended), just enter at the command line:
 
-    cmake .
+    mkdir /path/to/build_dir && cd /path/to/build_dir
+    cmake /path/to/mbedtls_source
     make
 
 In order to run the tests, enter:
@@ -93,7 +94,7 @@ In order to run the tests, enter:
 
 The test suites need Perl to be built. If you don't have Perl installed, you'll want to disable the test suites with:
 
-    cmake -DENABLE_TESTING=Off .
+    cmake -DENABLE_TESTING=Off /path/to/mbedtls_source
 
 If you disabled the test suites, but kept the programs enabled, you can still run a much smaller set of tests with:
 
@@ -101,7 +102,7 @@ If you disabled the test suites, but kept the programs enabled, you can still ru
 
 To configure CMake for building shared libraries, use:
 
-    cmake -DUSE_SHARED_MBEDTLS_LIBRARY=On .
+    cmake -DUSE_SHARED_MBEDTLS_LIBRARY=On /path/to/mbedtls_source
 
 There are many different build modes available within the CMake buildsystem. Most of them are available for gcc and clang, though some are compiler-specific:
 
@@ -116,16 +117,40 @@ There are many different build modes available within the CMake buildsystem. Mos
 
 Switching build modes in CMake is simple. For debug mode, enter at the command line:
 
-    cmake -D CMAKE_BUILD_TYPE=Debug .
+    cmake -D CMAKE_BUILD_TYPE=Debug /path/to/mbedtls_source
 
 To list other available CMake options, use:
 
     cmake -LH
 
-Note that, with CMake, if you want to change the compiler or its options after you already ran CMake, you need to clear its cache first, e.g. (using GNU find):
+Note that, with CMake, you can't adjust the compiler of compiler after the
+initial invocation of cmake. This means that `CC=your_cc make` and `make
+CC=your_cc` will *not* work (similarly with `CFLAGS` and other variables).
+These variables need to be adjusted when invoking cmake for the first time,
+for example:
+
+    CC=your_cc cmake /path/to/mbedtls_source
+
+If you already invoked cmake and want to change those settings, you need to
+remove the build directory and create it again.
+
+Note that it is possible to build in-place; this will however overwrite the
+provided Makefiles (see `scripts/tmp_ignore_makefiles.sh` if you want to
+prevent `git status` from showing them as modified). In order to do so, from
+the Mbed TLS source directory, use:
+
+    cmake .
+    make
+
+If you want to change `CC` or `CFLAGS` afterwards, you will need to remove the
+CMake cache. This can be done with the following command using GNU find:
 
     find . -iname '*cmake*' -not -name CMakeLists.txt -exec rm -rf {} +
-    CC=gcc CFLAGS='-fstack-protector-strong -Wa,--noexecstack' cmake .
+
+You can not make the desired change:
+
+    CC=your_cc cmake .
+    make
 
 ### Microsoft Visual Studio
 

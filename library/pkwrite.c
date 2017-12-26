@@ -62,7 +62,7 @@
  *  }
  */
 static int pk_write_rsa_pubkey( unsigned char **p, unsigned char *start,
-                                  mbedtls_rsa_context *rsa )
+                                  const mbedtls_rsa_context *rsa )
 {
     int ret;
     size_t len = 0;
@@ -83,7 +83,7 @@ static int pk_write_rsa_pubkey( unsigned char **p, unsigned char *start,
  * EC public key is an EC point
  */
 static int pk_write_ec_pubkey( unsigned char **p, unsigned char *start,
-                                 mbedtls_ecp_keypair *ec )
+                                 const mbedtls_ecp_keypair *ec )
 {
     int ret;
     size_t len = 0;
@@ -111,7 +111,7 @@ static int pk_write_ec_pubkey( unsigned char **p, unsigned char *start,
  * }
  */
 static int pk_write_ec_param( unsigned char **p, unsigned char *start,
-                                mbedtls_ecp_keypair *ec )
+                                const mbedtls_ecp_keypair *ec )
 {
     int ret;
     size_t len = 0;
@@ -148,7 +148,7 @@ int mbedtls_pk_write_pubkey( unsigned char **p, unsigned char *start,
     return( (int) len );
 }
 
-int mbedtls_pk_write_pubkey_der( mbedtls_pk_context *key, unsigned char *buf, size_t size )
+int mbedtls_pk_write_pubkey_der( const mbedtls_pk_context *key, unsigned char *buf, size_t size )
 {
     int ret;
     unsigned char *c;
@@ -196,7 +196,7 @@ int mbedtls_pk_write_pubkey_der( mbedtls_pk_context *key, unsigned char *buf, si
     return( (int) len );
 }
 
-int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_t size )
+int mbedtls_pk_write_key_der( const mbedtls_pk_context *key, unsigned char *buf, size_t size )
 {
     int ret;
     unsigned char *c = buf + size;
@@ -375,7 +375,7 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
 #define PRV_DER_MAX_BYTES   RSA_PRV_DER_MAX_BYTES > ECP_PRV_DER_MAX_BYTES ? \
                             RSA_PRV_DER_MAX_BYTES : ECP_PRV_DER_MAX_BYTES
 
-int mbedtls_pk_write_pubkey_pem( mbedtls_pk_context *key, unsigned char *buf, size_t size )
+int mbedtls_pk_write_pubkey_pem( const mbedtls_pk_context *key, unsigned char *buf, size_t size )
 {
     int ret;
     unsigned char output_buf[PUB_DER_MAX_BYTES];
@@ -397,7 +397,7 @@ int mbedtls_pk_write_pubkey_pem( mbedtls_pk_context *key, unsigned char *buf, si
     return( 0 );
 }
 
-int mbedtls_pk_write_key_pem( mbedtls_pk_context *key, unsigned char *buf, size_t size )
+int mbedtls_pk_write_key_pem( const mbedtls_pk_context *key, unsigned char *buf, size_t size )
 {
     int ret;
     unsigned char output_buf[PRV_DER_MAX_BYTES];

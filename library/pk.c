@@ -290,7 +290,7 @@ int mbedtls_pk_decrypt( mbedtls_pk_context *ctx,
 /*
  * Encrypt message
  */
-int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
+int mbedtls_pk_encrypt( const mbedtls_pk_context *ctx,
                 const unsigned char *input, size_t ilen,
                 unsigned char *output, size_t *olen, size_t osize,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )

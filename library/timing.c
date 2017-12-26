@@ -234,21 +234,23 @@ volatile int alarmed = 0;
 
 unsigned long get_timer( struct hr_time *val, int reset )
 {
-    unsigned long delta;
-    LARGE_INTEGER offset, hfreq;
     struct _hr_time *t = (struct _hr_time *) val;
 
-    QueryPerformanceCounter(  &offset );
-    QueryPerformanceFrequency( &hfreq );
-
-    delta = (unsigned long)( ( 1000 *
-        ( offset.QuadPart - t->start.QuadPart ) ) /
-           hfreq.QuadPart );
-
     if( reset )
+    {
         QueryPerformanceCounter( &t->start );
-
-    return( delta );
+        return( 0 );
+    }
+    else
+    {
+        unsigned long delta;
+        LARGE_INTEGER now, hfreq;
+        QueryPerformanceCounter(  &now );
+        QueryPerformanceFrequency( &hfreq );
+        delta = (unsigned long)( ( now.QuadPart - t->start.QuadPart ) * 1000ul
+                                 / hfreq.QuadPart );
+        return( delta );
+    }
 }
 
 /* It's OK to use a global because alarm() is supposed to be global anyway */
@@ -280,23 +282,22 @@ void m_sleep( int milliseconds )
 
 unsigned long get_timer( struct hr_time *val, int reset )
 {
-    unsigned long delta;
-    struct timeval offset;
     struct _hr_time *t = (struct _hr_time *) val;
-
-    gettimeofday( &offset, NULL );
 
     if( reset )
     {
-        t->start.tv_sec  = offset.tv_sec;
-        t->start.tv_usec = offset.tv_usec;
+        gettimeofday( &t->start, NULL );
         return( 0 );
     }
-
-    delta = ( offset.tv_sec  - t->start.tv_sec  ) * 1000
-          + ( offset.tv_usec - t->start.tv_usec ) / 1000;
-
-    return( delta );
+    else
+    {
+        unsigned long delta;
+        struct timeval now;
+        gettimeofday( &now, NULL );
+        delta = ( now.tv_sec  - t->start.tv_sec  ) * 1000ul
+              + ( now.tv_usec - t->start.tv_usec ) / 1000;
+        return( delta );
+    }
 }
 
 #if defined(INTEGRITY)
@@ -318,6 +319,12 @@ void set_alarm( int seconds )
     alarmed = 0;
     signal( SIGALRM, sighandler );
     alarm( seconds );
+    if( seconds == 0 )
+    {
+        /* alarm(0) cancelled any previous pending alarm, but the
+           handler won't fire, so raise the flag straight away. */
+        alarmed = 1;
+    }
 }
 
 void m_sleep( int milliseconds )
@@ -359,6 +366,19 @@ static void busy_msleep( unsigned long msec )
     (void) j;
 }
 
+#define FAIL    do                                                      \
+    {                                                                   \
+        if( verbose != 0 )                                              \
+        {                                                               \
+            polarssl_printf( "failed at line %d\n", __LINE__ );         \
+            polarssl_printf( " cycles=%lu ratio=%lu millisecs=%lu secs=%lu hardfail=%d\n", \
+                             cycles, ratio, millisecs, secs, hardfail ); \
+            polarssl_printf( " elapsed(hires)=%lu\n",                   \
+                             get_timer( &hires, 0 ) );                  \
+        }                                                               \
+        return( 1 );                                                    \
+    } while( 0 )
+
 /*
  * Checkup routine
  *
@@ -367,9 +387,9 @@ static void busy_msleep( unsigned long msec )
  */
 int timing_self_test( int verbose )
 {
-    unsigned long cycles, ratio;
-    unsigned long millisecs, secs;
-    int hardfail;
+    unsigned long cycles = 0, ratio = 0;
+    unsigned long millisecs = 0, secs = 0;
+    int hardfail = 0;
     struct hr_time hires;
 
     if( verbose != 0 )
@@ -378,8 +398,8 @@ int timing_self_test( int verbose )
     if( verbose != 0 )
         polarssl_printf( "  TIMING test #1 (m_sleep   / get_timer): " );
 
-    for( secs = 1; secs <= 3; secs++ )
     {
+        secs = 1;
         (void) get_timer( &hires, 1 );
 
         m_sleep( (int)( 500 * secs ) );
@@ -387,12 +407,7 @@ int timing_self_test( int verbose )
         millisecs = get_timer( &hires, 0 );
 
         if( millisecs < 400 * secs || millisecs > 600 * secs )
-        {
-            if( verbose != 0 )
-                polarssl_printf( "failed\n" );
-
-            return( 1 );
-        }
+            FAIL;
     }
 
     if( verbose != 0 )
@@ -401,8 +416,8 @@ int timing_self_test( int verbose )
     if( verbose != 0 )
         polarssl_printf( "  TIMING test #2 (set_alarm / get_timer): " );
 
-    for( secs = 1; secs <= 3; secs++ )
     {
+        secs = 1;
         (void) get_timer( &hires, 1 );
 
         set_alarm( (int) secs );
@@ -414,12 +429,7 @@ int timing_self_test( int verbose )
         /* For some reason on Windows it looks like alarm has an extra delay
          * (maybe related to creating a new thread). Allow some room here. */
         if( millisecs < 800 * secs || millisecs > 1200 * secs + 300 )
-        {
-            if( verbose != 0 )
-                polarssl_printf( "failed\n" );
-
-            return( 1 );
-        }
+            FAIL;
     }
 
     if( verbose != 0 )
@@ -433,7 +443,6 @@ int timing_self_test( int verbose )
      * On a 4Ghz 32-bit machine the cycle counter wraps about once per second;
      * since the whole test is about 10ms, it shouldn't happen twice in a row.
      */
-    hardfail = 0;
 
 hard_test:
     if( hardfail > 1 )
@@ -485,12 +494,7 @@ hard_test_done:
         millisecs = get_timer( &hires, 0 );
 
         if( millisecs < 400 * secs || millisecs > 600 * secs )
-        {
-            if( verbose != 0 )
-                polarssl_printf( "failed\n" );
-
-            return( 1 );
-        }
+            FAIL;
     }
 
     if( verbose != 0 )

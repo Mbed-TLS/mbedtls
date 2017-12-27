@@ -584,8 +584,7 @@ scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
 scripts/config.pl unset MBEDTLS_FS_IO
 # Note, _DEFAULT_SOURCE needs to be defined for platforms using glibc version >2.19,
 # to re-enable platform integration features otherwise disabled in C99 builds
-make CC=gcc CFLAGS='-Werror -O1 -std=c99 -pedantic -D_DEFAULT_SOURCE' lib programs
-make CC=gcc CFLAGS='-Werror -O1' test
+make CC=gcc CFLAGS='-Werror -O1 -std=c99 -pedantic -D_DEFAULT_SOURCE'
 
 # catch compile bugs in _uninit functions
 msg "build: full config with NO_STD_FUNCTION, make, gcc" # ~ 30s
@@ -610,8 +609,10 @@ scripts/config.pl full
 scripts/config.pl unset MBEDTLS_SSL_CLI_C
 make CC=gcc CFLAGS='-Werror -O1'
 
-# Note, C99 compliance can also be tested with the sockets support disabled,
+# Note, C99 compliance can only be tested with the sockets support disabled,
 # as that requires a POSIX platform (which isn't the same as C99).
+# We could use -D_DEFAULT_SOURCE here too, but without it we can make sure our
+# use of platform-dependant things is limited to the options disabled here.
 msg "build: full config except net_sockets.c, make, gcc -std=c99 -pedantic" # ~ 30s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
@@ -787,15 +788,11 @@ make test
 
 msg "build: Windows cross build - mingw64, make (Link Library)" # ~ 30s
 cleanup
-make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -O1' WINDOWS_BUILD=1 lib programs
-
-# note Make tests only builds the tests, but doesn't run them
-make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -O1' WINDOWS_BUILD=1 tests
+make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -O1' WINDOWS_BUILD=1
 make WINDOWS_BUILD=1 clean
 
 msg "build: Windows cross build - mingw64, make (DLL)" # ~ 30s
-make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -O1' WINDOWS_BUILD=1 SHARED=1 lib programs
-make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -O1' WINDOWS_BUILD=1 SHARED=1 tests
+make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -O1' WINDOWS_BUILD=1 SHARED=1
 make WINDOWS_BUILD=1 clean
 
 # MemSan currently only available on Linux 64 bits

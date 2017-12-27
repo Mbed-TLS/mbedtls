@@ -2127,7 +2127,7 @@ run_test    "Authentication: client no cert, openssl server optional" \
             -C "! mbedtls_ssl_handshake returned"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
-run_test    "Authentication: client no cert, ssl3" \
+run_test    "Authentication: client no cert, SSLv3" \
             "$P_SRV debug_level=3 auth_mode=optional force_version=ssl3" \
             "$P_CLI debug_level=3 crt_file=none key_file=none min_version=ssl3" \
             0 \
@@ -3013,7 +3013,7 @@ run_test    "PSK callback: wrong key" \
 # Tests for ciphersuites per version
 
 requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
-run_test    "Per-version suites: SSL3" \
+run_test    "Per-version suites: SSLv3" \
             "$P_SRV min_version=ssl3 version_suites=TLS-RSA-WITH-3DES-EDE-CBC-SHA,TLS-RSA-WITH-AES-256-CBC-SHA,TLS-RSA-WITH-AES-128-CBC-SHA,TLS-RSA-WITH-AES-128-GCM-SHA256" \
             "$P_CLI force_version=ssl3" \
             0 \

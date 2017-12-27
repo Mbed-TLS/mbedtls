@@ -501,23 +501,6 @@ make
 msg "test: compat.sh (ASan build)" # ~ 6 min
 if_build_succeeded tests/compat.sh
 
-msg "build: Default + SSLv3 (ASan build)" # ~ 6 min
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl set MBEDTLS_SSL_PROTO_SSL3
-CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-make
-
-msg "test: SSLv3 - main suites (inc. selftests) (ASan build)" # ~ 50s
-make test
-
-msg "build: SSLv3 - compat.sh (ASan build)" # ~ 6 min
-if_build_succeeded tests/compat.sh -m 'tls1 tls1_1 tls1_2 dtls1 dtls1_2'
-if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" tests/compat.sh -m 'ssl3'
-
-msg "build: SSLv3 - ssl-opt.sh (ASan build)" # ~ 6 min
-if_build_succeeded tests/ssl-opt.sh
-
 msg "build: Default + !MBEDTLS_SSL_RENEGOTIATION (ASan build)" # ~ 6 min
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
@@ -558,11 +541,13 @@ make
 msg "test: main suites (full config)" # ~ 5s
 make test
 
-msg "test: ssl-opt.sh default (full config)" # ~ 1s
-if_build_succeeded tests/ssl-opt.sh -f Default
+# test things not in the default config, and Default handshake for parameters choice
+msg "test: ssl-opt.sh (full config)" # ~ 1s
+if_build_succeeded tests/ssl-opt.sh -f 'Default\|SSLv3\|RC4'
 
-msg "test: compat.sh RC4, DES & NULL (full config)" # ~ 2 min
+msg "test: compat.sh SSLv3, RC4, DES & NULL (full config)" # ~ 2 min
 if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR'
+if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" tests/compat.sh -m 'ssl3' -e ''
 
 msg "test/build: curves.pl (gcc)" # ~ 4 min
 cleanup

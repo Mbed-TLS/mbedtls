@@ -507,9 +507,6 @@ scripts/config.pl unset MBEDTLS_SSL_RENEGOTIATION
 CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
 make
 
-msg "test: !MBEDTLS_SSL_RENEGOTIATION - main suites (inc. selftests) (ASan build)" # ~ 50s
-make test
-
 msg "test: !MBEDTLS_SSL_RENEGOTIATION - ssl-opt.sh (ASan build)" # ~ 6 min
 if_build_succeeded tests/ssl-opt.sh
 

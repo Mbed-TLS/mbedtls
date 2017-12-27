@@ -420,6 +420,8 @@ struct mbedtls_ssl_handshake_params
                     const unsigned char *, size_t,
                     unsigned char *, size_t);
 
+    mbedtls_ssl_ciphersuite_t const *ciphersuite_info;
+
     size_t pmslen;                      /*!<  premaster length        */
 
     unsigned char randbytes[64];        /*!<  random bytes            */
@@ -463,12 +465,11 @@ struct mbedtls_ssl_transform
     /*
      * Session specific crypto layer
      */
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
-                                        /*!<  Chosen cipersuite_info  */
     size_t minlen;                      /*!<  min. ciphertext length  */
     size_t ivlen;                       /*!<  IV length               */
     size_t fixed_ivlen;                 /*!<  Fixed part of IV (AEAD) */
-    size_t maclen;                      /*!<  MAC length              */
+    size_t maclen;                      /*!<  MAC(CBC) len            */
+    size_t taglen;                      /*!<  TAG(AEAD) len           */
 
     unsigned char iv_enc[16];           /*!<  IV (encryption)         */
     unsigned char iv_dec[16];           /*!<  IV (decryption)         */

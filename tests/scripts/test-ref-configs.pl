@@ -69,7 +69,7 @@ while( my ($conf, $data) = each %configs ) {
     system( "cp configs/$conf $config_h" )
         and abort "Failed to activate $conf\n";
 
-    system( "CFLAGS='-Os -Werror -Wall -Wextra' make" ) and abort "Failed to build: $conf\n";
+    system( "CFLAGS='-O1 -Werror' make" ) and abort "Failed to build: $conf\n";
     system( "make test" ) and abort "Failed test suite: $conf\n";
 
     my $compat = $data->{'compat'};

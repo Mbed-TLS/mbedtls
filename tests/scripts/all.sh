@@ -721,35 +721,13 @@ make test
 msg "build: arm-none-eabi-gcc, make" # ~ 10s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl full
-scripts/config.pl unset MBEDTLS_NET_C
-scripts/config.pl unset MBEDTLS_TIMING_C
-scripts/config.pl unset MBEDTLS_FS_IO
-scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
-scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
-# following things are not in the default config
-scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
-scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
-scripts/config.pl unset MBEDTLS_THREADING_C
-scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
-scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
+scripts/config.pl baremetal
 make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -O1' lib
 
 msg "build: arm-none-eabi-gcc -DMBEDTLS_NO_UDBL_DIVISION, make" # ~ 10s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl full
-scripts/config.pl unset MBEDTLS_NET_C
-scripts/config.pl unset MBEDTLS_TIMING_C
-scripts/config.pl unset MBEDTLS_FS_IO
-scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
-scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
-# following things are not in the default config
-scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
-scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
-scripts/config.pl unset MBEDTLS_THREADING_C
-scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
-scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
+scripts/config.pl baremetal
 scripts/config.pl set MBEDTLS_NO_UDBL_DIVISION
 make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -O1' lib
 echo "Checking that software 64-bit division is not required"
@@ -758,22 +736,7 @@ echo "Checking that software 64-bit division is not required"
 msg "build: ARM Compiler 5, make"
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl full
-scripts/config.pl unset MBEDTLS_NET_C
-scripts/config.pl unset MBEDTLS_TIMING_C
-scripts/config.pl unset MBEDTLS_FS_IO
-scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
-scripts/config.pl unset MBEDTLS_HAVE_TIME
-scripts/config.pl unset MBEDTLS_HAVE_TIME_DATE
-scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
-# following things are not in the default config
-scripts/config.pl unset MBEDTLS_DEPRECATED_WARNING
-scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
-scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
-scripts/config.pl unset MBEDTLS_THREADING_C
-scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
-scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
-scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT # depends on MBEDTLS_HAVE_TIME
+scripts/config.pl baremetal
 
 if [ $RUN_ARMCC -ne 0 ]; then
     make CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--strict --c99' lib

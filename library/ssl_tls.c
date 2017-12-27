@@ -618,6 +618,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     unsigned char *mac_dec;
     size_t mac_key_len;
     size_t iv_copy_len;
+    unsigned keylen;
     const mbedtls_cipher_info_t *cipher_info;
     const mbedtls_md_info_t *md_info;
 
@@ -804,7 +805,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
      * Determine the appropriate key, IV and MAC length.
      */
 
-    transform->keylen = cipher_info->key_bitlen / 8;
+    keylen = cipher_info->key_bitlen / 8;
 
     if( cipher_info->mode == MBEDTLS_MODE_GCM ||
         cipher_info->mode == MBEDTLS_MODE_CCM ||
@@ -916,9 +917,11 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
         }
     }
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "keylen: %d, minlen: %d, ivlen: %d, maclen: %d",
-                   transform->keylen, transform->minlen, transform->ivlen,
-                   transform->maclen ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "keylen: %u, minlen: %u, ivlen: %u, maclen: %u",
+                                (unsigned) keylen,
+                                (unsigned) transform->minlen,
+                                (unsigned) transform->ivlen,
+                                (unsigned) transform->maclen ) );
 
     /*
      * Finally setup the cipher contexts, IVs and MAC secrets.
@@ -927,7 +930,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
         key1 = keyblk + mac_key_len * 2;
-        key2 = keyblk + mac_key_len * 2 + transform->keylen;
+        key2 = keyblk + mac_key_len * 2 + keylen;
 
         mac_enc = keyblk;
         mac_dec = keyblk + mac_key_len;
@@ -937,8 +940,8 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
          */
         iv_copy_len = ( transform->fixed_ivlen ) ?
                             transform->fixed_ivlen : transform->ivlen;
-        memcpy( transform->iv_enc, key2 + transform->keylen,  iv_copy_len );
-        memcpy( transform->iv_dec, key2 + transform->keylen + iv_copy_len,
+        memcpy( transform->iv_enc, key2 + keylen,  iv_copy_len );
+        memcpy( transform->iv_dec, key2 + keylen + iv_copy_len,
                 iv_copy_len );
     }
     else
@@ -946,7 +949,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_SRV_C)
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
     {
-        key1 = keyblk + mac_key_len * 2 + transform->keylen;
+        key1 = keyblk + mac_key_len * 2 + keylen;
         key2 = keyblk + mac_key_len * 2;
 
         mac_enc = keyblk + mac_key_len;
@@ -957,8 +960,8 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
          */
         iv_copy_len = ( transform->fixed_ivlen ) ?
                             transform->fixed_ivlen : transform->ivlen;
-        memcpy( transform->iv_dec, key1 + transform->keylen,  iv_copy_len );
-        memcpy( transform->iv_enc, key1 + transform->keylen + iv_copy_len,
+        memcpy( transform->iv_dec, key1 + keylen,  iv_copy_len );
+        memcpy( transform->iv_enc, key1 + keylen + iv_copy_len,
                 iv_copy_len );
     }
     else
@@ -1008,7 +1011,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "going for mbedtls_ssl_hw_record_init()" ) );
 
-        if( ( ret = mbedtls_ssl_hw_record_init( ssl, key1, key2, transform->keylen,
+        if( ( ret = mbedtls_ssl_hw_record_init( ssl, key1, key2, keylen,
                                         transform->iv_enc, transform->iv_dec,
                                         iv_copy_len,
                                         mac_enc, mac_dec,
@@ -1025,7 +1028,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     {
         ssl->conf->f_export_keys( ssl->conf->p_export_keys,
                                   session->master, keyblk,
-                                  mac_key_len, transform->keylen,
+                                  mac_key_len, keylen,
                                   iv_copy_len );
     }
 #endif

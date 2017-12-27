@@ -432,7 +432,6 @@ struct mbedtls_ssl_transform
      */
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
                                         /*!<  Chosen cipersuite_info  */
-    unsigned int keylen;                /*!<  symmetric key length (bytes)  */
     size_t minlen;                      /*!<  min. ciphertext length  */
     size_t ivlen;                       /*!<  IV length               */
     size_t fixed_ivlen;                 /*!<  Fixed part of IV (AEAD) */

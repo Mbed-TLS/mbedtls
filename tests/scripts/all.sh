@@ -532,8 +532,7 @@ cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
-CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check -D ENABLE_TESTING=On .
-make
+make CC='clang' CFLAGS='-Werror -O2'
 
 msg "test: main suites (full config)" # ~ 5s
 make test
@@ -584,8 +583,8 @@ scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
 scripts/config.pl unset MBEDTLS_FS_IO
 # Note, _DEFAULT_SOURCE needs to be defined for platforms using glibc version >2.19,
 # to re-enable platform integration features otherwise disabled in C99 builds
-make CC=gcc CFLAGS='-Werror -Wall -Wextra -std=c99 -pedantic -O0 -D_DEFAULT_SOURCE' lib programs
-make CC=gcc CFLAGS='-Werror -Wall -Wextra -O0' test
+make CC=gcc CFLAGS='-Werror -O1 -std=c99 -pedantic -D_DEFAULT_SOURCE' lib programs
+make CC=gcc CFLAGS='-Werror -O1' test
 
 # catch compile bugs in _uninit functions
 msg "build: full config with NO_STD_FUNCTION, make, gcc" # ~ 30s
@@ -593,21 +592,21 @@ cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl set MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
-make CC=gcc CFLAGS='-Werror -O0'
+make CC=gcc CFLAGS='-Werror -O1'
 
 msg "build: full config except ssl_srv.c, make, gcc" # ~ 30s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl unset MBEDTLS_SSL_SRV_C
-make CC=gcc CFLAGS='-Werror -O0'
+make CC=gcc CFLAGS='-Werror -O1'
 
 msg "build: full config except ssl_cli.c, make, gcc" # ~ 30s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl unset MBEDTLS_SSL_CLI_C
-make CC=gcc CFLAGS='-Werror -O0'
+make CC=gcc CFLAGS='-Werror -O1'
 
 # Note, C99 compliance can also be tested with the sockets support disabled,
 # as that requires a POSIX platform (which isn't the same as C99).
@@ -617,7 +616,7 @@ cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl unset MBEDTLS_NET_C # getaddrinfo() undeclared, etc.
 scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY # uses syscall() on GNU/Linux
-make CC=gcc CFLAGS='-Werror -O0 -std=c99 -pedantic' lib
+make CC=gcc CFLAGS='-Werror -O1 -std=c99 -pedantic' lib
 
 msg "build: default config except MFL extension (ASan build)" # ~ 30s
 cleanup
@@ -639,14 +638,14 @@ fi
 if uname -a | grep -F x86_64 >/dev/null; then
     msg "build: i386, make, gcc" # ~ 30s
     cleanup
-    make CC=gcc CFLAGS='-Werror -m32'
+    make CC=gcc CFLAGS='-Werror -O1 -m32'
 
     msg "test: i386, make, gcc"
     make test
 
     msg "build: 64-bit ILP32, make, gcc" # ~ 30s
     cleanup
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -mx32'
+    make CC=gcc CFLAGS='-Werror -O1 -mx32'
 
     msg "test: 64-bit ILP32, make, gcc"
     make test
@@ -666,7 +665,7 @@ scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
 scripts/config.pl unset MBEDTLS_THREADING_C
 scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
 scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
-make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS=-Werror lib
+make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -O1' lib
 
 msg "build: ARM Compiler 5, make"
 cleanup
@@ -712,22 +711,22 @@ msg "build: allow SHA1 in certificates by default"
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl set MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
-make CFLAGS='-Werror -Wall -Wextra'
+make CFLAGS='-Werror -O1'
 msg "test: allow SHA1 in certificates by default"
 make test
 if_build_succeeded tests/ssl-opt.sh -f SHA-1
 
 msg "build: Windows cross build - mingw64, make (Link Library)" # ~ 30s
 cleanup
-make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 lib programs
+make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -O1' WINDOWS_BUILD=1 lib programs
 
 # note Make tests only builds the tests, but doesn't run them
-make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror' WINDOWS_BUILD=1 tests
+make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -O1' WINDOWS_BUILD=1 tests
 make WINDOWS_BUILD=1 clean
 
 msg "build: Windows cross build - mingw64, make (DLL)" # ~ 30s
-make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 lib programs
-make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 tests
+make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -O1' WINDOWS_BUILD=1 SHARED=1 lib programs
+make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -O1' WINDOWS_BUILD=1 SHARED=1 tests
 make WINDOWS_BUILD=1 clean
 
 # MemSan currently only available on Linux 64 bits

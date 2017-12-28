@@ -31,8 +31,6 @@
 #include "bignum.h"
 #if !defined(MBEDTLS_DHM_ALT)
 
-
-
 /*
  * DHM Error codes
  */

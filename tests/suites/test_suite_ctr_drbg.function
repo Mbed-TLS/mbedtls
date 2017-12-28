@@ -2,7 +2,7 @@
 #include "mbedtls/ctr_drbg.h"
 
 int test_offset_idx;
-int test_mbedtls_entropy_func( void *data, unsigned char *buf, size_t len )
+int mbedtls_test_entropy_func( void *data, unsigned char *buf, size_t len )
 {
     const unsigned char *p = (unsigned char *) data;
     memcpy( buf, p + test_offset_idx, len );

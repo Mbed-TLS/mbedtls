@@ -26,9 +26,6 @@
 
 #include "mbedtls/cipher.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #define MBEDTLS_AES_BLOCK_SIZE          16
 #define MBEDTLS_DES3_BLOCK_SIZE         8
@@ -37,6 +34,15 @@ extern "C" {
 #define MBEDTLS_CIPHER_BLKSIZE_MAX      16  /* longest used by CMAC is AES */
 #else
 #define MBEDTLS_CIPHER_BLKSIZE_MAX      8   /* longest used by CMAC is 3DES */
+#endif
+
+
+#if !defined(MBEDTLS_CMAC_ALT)
+// Regular implementation
+//
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 /**
@@ -153,6 +159,10 @@ int mbedtls_aes_cmac_prf_128( const unsigned char *key, size_t key_len,
                               const unsigned char *input, size_t in_len,
                               unsigned char output[16] );
 #endif /* MBEDTLS_AES_C */
+
+#else  /* MBEDTLS_CMAC_ALT */
+#include "cmac_alt.h"
+#endif /* MBEDTLS_CMAC_ALT */
 
 #if defined(MBEDTLS_SELF_TEST) && ( defined(MBEDTLS_AES_C) || defined(MBEDTLS_DES_C) )
 /**

@@ -74,7 +74,9 @@ You'll still be able to run a much smaller set of tests with:
 
 In order to build for a Windows platform, you should use `WINDOWS_BUILD=1` if the target is Windows but the build environment is Unix-like (for instance when cross-compiling, or compiling from an MSYS shell), and `WINDOWS=1` if the build environment is a Windows shell (for instance using mingw32-make) (in that case some targets will not be available).
 
-Setting the variable `SHARED` in your environment will build shared libraries in addition to the static libraries. Setting `DEBUG` gives you a debug build. You can override `CFLAGS` and `LDFLAGS` by setting them in your environment or on the make command line; if you do so, essential parts such as `-I` will still be preserved. Warning options may be overridden separately using `WARNING_CFLAGS`.
+Setting the variable `SHARED` in your environment will build shared libraries in addition to the static libraries. Setting `DEBUG` gives you a debug build. You can override `CFLAGS` and `LDFLAGS` by setting them in your environment or on the make command line; compiler warning options may be overridden separately using `WARNING_CFLAGS`. Some directory-specific options (for example, `-I` directives) are still preserved.
+
+Please note that setting `CFLAGS` overrides its default value of `-O2` and setting `WARNING_CFLAGS` overrides its default value (starting with `-Wall -W`), so it you just want to add some warning options to the default ones, you can do so by setting `CFLAGS=-O2 -Werror` for example. Setting `WARNING_CFLAGS` is useful when you want to get rid of its default content (for example because your compiler doesn't accept `-Wall` as an option). Directory-specific options cannot be overriden from the command line.
 
 Depending on your platform, you might run into some issues. Please check the Makefiles in `library/`, `programs/` and `tests/` for options to manually add or remove for specific platforms. You can also check [the mbed TLS Knowledge Base](https://tls.mbed.org/kb) for articles on your platform or issue.
 
@@ -151,6 +153,10 @@ You can not make the desired change:
 
     CC=your_cc cmake .
     make
+
+Regarding variables, also note that if you set CFLAGS when invoking cmake,
+your value of CFLAGS doesn't override the content provided by cmake (depending
+on the build mode as seen above), it's merely prepended to it.
 
 ### Microsoft Visual Studio
 

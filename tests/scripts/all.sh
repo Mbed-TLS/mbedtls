@@ -565,8 +565,8 @@ scripts/config.pl unset MBEDTLS_SSL_RENEGOTIATION
 CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
 make
 
-msg "test: !MBEDTLS_SSL_RENEGOTIATION - ssl-opt.sh (ASan build)" # ~ 6 min
-if_build_succeeded tests/ssl-opt.sh
+msg "test: !MBEDTLS_SSL_RENEGOTIATION - ssl-opt.sh (ASan build)" # < 5s
+if_build_succeeded tests/ssl-opt.sh -f '[Rr]enego'
 
 
 msg "build: allow SHA1 in certificates by default"

@@ -342,23 +342,27 @@ fail() {
     echo "FAIL"
     echo "  ! $1"
 
-    mv $SRV_OUT o-srv-${TESTS}.log
-    mv $CLI_OUT o-cli-${TESTS}.log
+    SRV_FILE="o-$$-${TESTS}-srv.log"
+    CLI_FILE="o-$$-${TESTS}-cli.log"
+    PXY_FILE="o-$$-${TESTS}-pxy.log"
+
+    mv "$SRV_OUT" "$SRV_FILE"
+    mv "$CLI_OUT" "$CLI_FILE"
     if [ -n "$PXY_CMD" ]; then
-        mv $PXY_OUT o-pxy-${TESTS}.log
+        mv "$PXY_OUT" "$PXY_FILE"
     fi
-    echo "  ! outputs saved to o-XXX-${TESTS}.log"
+    echo "  ! outputs saved to $SRV_FILE $CLI_FILE"
 
     if [ "X${USER:-}" = Xbuildbot -o "X${LOGNAME:-}" = Xbuildbot -o "${LOG_FAILURE_ON_STDOUT:-0}" != 0 ]; then
         echo "  ! server output:"
-        cat o-srv-${TESTS}.log
+        cat "$SRV_FILE"
         echo "  ! ========================================================"
         echo "  ! client output:"
-        cat o-cli-${TESTS}.log
+        cat "$CLI_FILE"
         if [ -n "$PXY_CMD" ]; then
             echo "  ! ========================================================"
             echo "  ! proxy output:"
-            cat o-pxy-${TESTS}.log
+            cat "$PXY_FILE"
         fi
         echo ""
     fi

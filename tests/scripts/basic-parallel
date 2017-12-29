@@ -1,0 +1,207 @@
+#!/usr/bin/python3
+
+# This file is part of mbed TLS (https://tls.mbed.org)
+# Copyright (c) 2018, ARM Limited, All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+"""
+Run basic tests (with full configuration) in a parallel way.
+
+Purpose: quickly test most things on a given platform.
+
+Usage:
+    - set up build options (either run cmake or set variables for GNU make)
+    - run this script
+
+Example with cmake:
+   cmake -D CMAKE_BUILD_TYPE="Asan" .
+   tests/scripts/basic-parallel
+Note: out-of-tree usage is not supported yet.
+
+Example with GNU make:
+    CFLAGS='-Werror -Os' tests/scripts/basic-parallel
+"""
+
+import sys
+import os
+
+from subprocess import Popen, run
+from datetime import datetime
+from time import sleep
+from tempfile import TemporaryFile
+from contextlib import contextmanager
+
+
+@contextmanager
+def saved_file(filename):
+    """Save and restore a file around commands that may modify it."""
+    with open(filename) as f:
+        saved_content = f.read()
+
+    try:
+        yield
+    finally:
+        with open(filename, 'w+') as f:
+            f.write(saved_content)
+
+
+def die():
+    """Abort in case a test failed."""
+    sys.exit('\nFAILURE\n')
+
+
+def serial(*args):
+    """
+    Run a command synchronously.
+
+    *args must be suitable to pass to subprocess.Popen()
+    The command's output is captured, and printed upon completion of the
+    command only in case of failure. Either way, status is reported.
+    The entire script is aborted on failure.
+    """
+    cmd = ' '.join(args)
+    print(cmd, '...', end=' ', flush=True)
+    start = datetime.now()
+
+    out = TemporaryFile(mode='w+')
+    ret = run(args, stdout=out, stderr=out,
+              universal_newlines=True, bufsize=0)
+
+    if ret.returncode != 0:
+        print('failed with status', ret.returncode)
+        out.seek(0)
+        print(out.read())
+        die()
+
+    out.close()
+    print('ok ({}s)'.format((datetime.now() - start).seconds))
+
+
+class Parallel:
+    """
+    Run commands asynchronously and collect their results.
+
+    Usage:
+    Parallel('cmd1', 'arg11', 'arg12')
+    Parallel('cmd2', 'arg21', 'arg22')
+    # ...
+    Parallel.wait_all()
+    """
+    _running = []
+    _failed = False
+
+    def __init__(self, *args):
+        """
+        Run a command asynchronously.
+
+        *args must be suitable to pass to subprocess.Popen()
+        The command's output is captured, and printed upon completion of the
+        command only in case of failure. Either way, status is reported.
+        """
+        self.out = TemporaryFile(mode='w+')
+        self.p = Popen(args, stdout=self.out, stderr=self.out,
+                       universal_newlines=True, bufsize=0)
+        self.cmd = ' '.join(args)
+        self.start = datetime.now()
+
+        type(self)._running.append(self)
+
+        print('started:', self.cmd)
+
+    def _is_done(self):
+        """Return True if the command has completed."""
+        return self.p.poll() is not None
+
+    def _reap(self):
+        """Clean up after command's completion."""
+        type(self)._running.remove(self)
+
+        print('completed: {}s {}'.format(
+              (datetime.now() - self.start).seconds, self.cmd))
+
+        if self.p.returncode != 0:
+            print('! failed with status', self.p.returncode)
+            type(self)._failed = True
+            self.out.seek(0)
+            print(self.out.read())
+
+        self.out.close()
+
+    @classmethod
+    def wait_all(cls):
+        """Block until all commands have completed and abort if any failed."""
+        while cls._running:
+            for p in cls._running:
+                if p._is_done():
+                    p._reap()
+            sleep(1)
+
+        if cls._failed:
+            die()
+
+
+with saved_file('include/mbedtls/config.h'):
+    # full config except:
+    # - memory backtrace makes everything too slow
+    # - NV seed causes occasional failures from getrandom() on Linux
+    serial('scripts/config.pl', 'full')
+    serial('scripts/config.pl', 'unset', 'MBEDTLS_MEMORY_BACKTRACE')
+    serial('scripts/config.pl', 'unset', 'MBEDTLS_ENTROPY_NV_SEED')
+    serial('make', 'clean')
+
+    # build everything and run test suites
+    serial('make', '-j', 'all')
+    serial('make', 'test')
+
+    # ssl-opt.sh broken in pieces chosen by trial and error
+    # the -f and -e directives should make it clear that all tests are covered
+    os.environ['SEED'] = '1'
+    Parallel('tests/ssl-opt.sh', '-f', '^DTLS proxy: 3d.*server')
+    Parallel('tests/ssl-opt.sh', '-f', '^DTLS proxy',
+                                 '-e', '^DTLS proxy: 3d.*server')
+    Parallel('tests/ssl-opt.sh', '-f', '^DTLS', '-e', '^DTLS proxy')
+    Parallel('tests/ssl-opt.sh', '-f', '^[A-D]', '-e', '^DTLS')
+    Parallel('tests/ssl-opt.sh', '-f', '^[A-K]', '-e', '^[A-D]')
+    Parallel('tests/ssl-opt.sh', '-f', '^[A-L]', '-e', '^[A-K]')
+    Parallel('tests/ssl-opt.sh', '-f', '^[A-R]', '-e', '^[A-L]')
+    Parallel('tests/ssl-opt.sh', '-f', '^Small')
+    Parallel('tests/ssl-opt.sh', '-f', '^S', '-e', '^Small')
+    Parallel('tests/ssl-opt.sh', '-e', '^[A-S]')
+
+    # compat.sh default tests, with default OpenSSL and GnuTLS
+    Parallel('tests/compat.sh', '-m', 'tls1', '-V', 'NO')
+    Parallel('tests/compat.sh', '-m', 'tls1', '-V', 'YES')
+    Parallel('tests/compat.sh', '-m', 'tls1_1', '-V', 'NO')
+    Parallel('tests/compat.sh', '-m', 'tls1_1', '-V', 'YES')
+    Parallel('tests/compat.sh', '-m', 'tls1_2', '-V', 'NO',
+                                                '-p', 'OpenSSL GnuTLS')
+    Parallel('tests/compat.sh', '-m', 'tls1_2', '-V', 'NO',
+                                                '-p', 'mbedTLS')
+    Parallel('tests/compat.sh', '-m', 'tls1_2', '-V', 'YES',
+                                                '-p', 'OpenSSL GnuTLS')
+    Parallel('tests/compat.sh', '-m', 'tls1_2', '-V', 'YES',
+                                                '-p', 'mbedTLS')
+
+    # compat.sh legacy tests, with legacy OpenSSL and GnuTLS
+    # for TLS 1.0+, only run tests excluded from the above default run
+    os.environ['OPENSSL_CMD'] = os.environ['OPENSSL_LEGACY']
+    os.environ['GNUTLS_CLI'] = os.environ['GNUTLS_LEGACY_CLI']
+    os.environ['GNUTLS_SERV'] = os.environ['GNUTLS_LEGACY_SERV']
+    Parallel('tests/compat.sh', '-m', 'ssl3', '-e', '^$')
+    Parallel('tests/compat.sh', '-m', 'tls1',
+             '-f', 'NULL\|DES\|RC4\|ARCFOUR', '-e', '3DES\|DES-CBC3')
+    Parallel('tests/compat.sh', '-m', 'tls1_1',
+             '-f', 'NULL\|DES\|RC4\|ARCFOUR', '-e', '3DES\|DES-CBC3')
+    Parallel('tests/compat.sh', '-m', 'tls1_2', '-V', 'NO',
+             '-f', 'NULL\|DES\|RC4\|ARCFOUR', '-e', '3DES\|DES-CBC3')
+    Parallel('tests/compat.sh', '-m', 'tls1_2', '-V', 'YES',
+             '-f', 'NULL\|DES\|RC4\|ARCFOUR', '-e', '3DES\|DES-CBC3')
+
+    # compat.sh "mordern" tests, with recent OpenSSL
+    os.environ['OPENSSL_CMD'] = os.environ['OPENSSL_NEXT']
+    Parallel('tests/compat.sh', '-f', 'ARIA\|CHACHA', '-e', '^$', '-V', 'NO')
+    Parallel('tests/compat.sh', '-f', 'ARIA\|CHACHA', '-e', '^$', '-V', 'YES')
+
+    Parallel.wait_all()
+
+print('\nSUCCESS\n')

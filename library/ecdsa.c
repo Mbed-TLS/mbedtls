@@ -64,7 +64,7 @@ static int derive_mpi( const mbedtls_ecp_group *grp, mbedtls_mpi *x,
 cleanup:
     return( ret );
 }
-#if !defined (MBEDTLS_ECC_ALT)
+#if !defined (MBEDTLS_ECDSA_ALT)
 /*
  * Compute ECDSA signature of a hashed message (SEC1 4.1.3)
  * Obviously, compared to SEC1 4.1.3, we skip step 4 (hash message)
@@ -157,7 +157,7 @@ cleanup:
 
     return( ret );
 }
-#endif /*!defined (MBEDTLS_ECC_ALT)*/
+#endif /*!defined (MBEDTLS_ECDSA_ALT)*/
 
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
 /*
@@ -170,20 +170,12 @@ int mbedtls_ecdsa_sign_det( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi 
     int ret;
     mbedtls_hmac_drbg_context rng_ctx;
     unsigned char data[2 * MBEDTLS_ECP_MAX_BYTES];
-    size_t grp_len;
+    size_t grp_len = ( grp->nbits + 7 ) / 8;
     const mbedtls_md_info_t *md_info;
     mbedtls_mpi h;
 
-    if ( grp == NULL  || d == NULL || buf == NULL )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-
-    if ( blen == 0 )
-        return ( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
-    
     if( ( md_info = mbedtls_md_info_from_type( md_alg ) ) == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-
-    grp_len = ( grp->nbits + 7 ) / 8;
 
     mbedtls_mpi_init( &h );
     mbedtls_hmac_drbg_init( &rng_ctx );
@@ -205,8 +197,7 @@ cleanup:
 }
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
-
-#if !defined (MBEDTLS_ECC_ALT)
+#if !defined (MBEDTLS_ECDSA_ALT)
 /*
  * Verify ECDSA signature of hashed message (SEC1 4.1.4)
  * Obviously, compared to SEC1 4.1.3, we skip step 2 (hash message)
@@ -293,7 +284,7 @@ cleanup:
     return( ret );
 }
 
-#endif /*!defined (MBEDTLS_ECC_ALT)*/
+#endif /*!defined (MBEDTLS_ECDSA_ALT)*/
 /*
  * Convert a signature (given by context) to ASN.1
  */
@@ -329,9 +320,6 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t
 {
     int ret;
     mbedtls_mpi r, s;
-
-    if ( ctx == NULL || sig == NULL || slen == NULL )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     mbedtls_mpi_init( &r );
     mbedtls_mpi_init( &s );
@@ -383,12 +371,6 @@ int mbedtls_ecdsa_read_signature( mbedtls_ecdsa_context *ctx,
     size_t len;
     mbedtls_mpi r, s;
 
-    if ( ctx == NULL || sig == NULL ) /* hash is validated in verify API*/
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-
-    if ( slen == 0 )
-        return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
-    
     mbedtls_mpi_init( &r );
     mbedtls_mpi_init( &s );
 
@@ -433,9 +415,6 @@ cleanup:
 int mbedtls_ecdsa_genkey( mbedtls_ecdsa_context *ctx, mbedtls_ecp_group_id gid,
                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
-    if ( ctx == NULL )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-
     return( mbedtls_ecp_group_load( &ctx->grp, gid ) ||
             mbedtls_ecp_gen_keypair( &ctx->grp, &ctx->d, &ctx->Q, f_rng, p_rng ) );
 }
@@ -446,9 +425,6 @@ int mbedtls_ecdsa_genkey( mbedtls_ecdsa_context *ctx, mbedtls_ecp_group_id gid,
 int mbedtls_ecdsa_from_keypair( mbedtls_ecdsa_context *ctx, const mbedtls_ecp_keypair *key )
 {
     int ret;
-
-    if ( ctx == NULL || key == NULL )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     if( ( ret = mbedtls_ecp_group_copy( &ctx->grp, &key->grp ) ) != 0 ||
         ( ret = mbedtls_mpi_copy( &ctx->d, &key->d ) ) != 0 ||

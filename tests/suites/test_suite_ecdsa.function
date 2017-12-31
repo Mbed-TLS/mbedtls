@@ -1,6 +1,5 @@
 /* BEGIN_HEADER */
 #include "mbedtls/ecdsa.h"
-#define DIGEST_SIZE 64
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -15,7 +14,7 @@ void ecdsa_prim_random( int id )
     mbedtls_ecp_point Q;
     mbedtls_mpi d, r, s;
     rnd_pseudo_info rnd_info;
-    unsigned char buf[DIGEST_SIZE];
+    unsigned char buf[66];
 
     mbedtls_ecp_group_init( &grp );
     mbedtls_ecp_point_init( &Q );

@@ -70,11 +70,14 @@ Bugfix
      MilenkoMitrovic, #1104
    * Fix mbedtls_timing_alarm(0) on Unix.
    * Fix use of uninitialized memory in mbedtls_timing_get_timer when reset=1.
+   * Fix possible memory leaks in mbedtls_gcm_self_test().
+   * Added missing return code checks in mbedtls_aes_self_test().
 
 Changes
    * Extend cert_write example program by options to set the CRT version
      and the message digest. Further, allow enabling/disabling of authority
      identifier, subject identifier and basic constraints extensions.
+   * Only run AES-192 self-test if AES-192 is available. Fixes #963.
 
 = mbed TLS 2.6.0 branch released 2017-08-10
 

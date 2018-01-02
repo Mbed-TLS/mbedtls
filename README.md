@@ -127,7 +127,7 @@ To list other available CMake options, use:
 
     cmake -LH
 
-Note that, with CMake, you can't adjust the compiler of compiler after the
+Note that, with CMake, you can't adjust the compiler or its flags after the
 initial invocation of cmake. This means that `CC=your_cc make` and `make
 CC=your_cc` will *not* work (similarly with `CFLAGS` and other variables).
 These variables need to be adjusted when invoking cmake for the first time,
@@ -151,7 +151,7 @@ CMake cache. This can be done with the following command using GNU find:
 
     find . -iname '*cmake*' -not -name CMakeLists.txt -exec rm -rf {} +
 
-You can not make the desired change:
+You can now make the desired change:
 
     CC=your_cc cmake .
     make

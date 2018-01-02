@@ -20,6 +20,8 @@ Features
      when run on a heavily-loaded machine.
    * Add alternative implementation support for CCM and CMAC (MBEDTLS_CCM_ALT,
      MBEDTLS_CMAC_ALT). Submitted by Steve Cooreman, Silicon Labs.
+   * Add support for alternative implementations of GCM, selected by the
+     configuration flag MBEDTLS_GCM_ALT in config.h
 
 New deprecations
    * Deprecate usage of RSA primitives with non-matching key-type

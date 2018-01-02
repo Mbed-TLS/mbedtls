@@ -105,6 +105,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_DES_ALT)
     "MBEDTLS_DES_ALT",
 #endif /* MBEDTLS_DES_ALT */
+#if defined(MBEDTLS_GCM_ALT)
+    "MBEDTLS_GCM_ALT",
+#endif /* MBEDTLS_GCM_ALT */
 #if defined(MBEDTLS_XTEA_ALT)
     "MBEDTLS_XTEA_ALT",
 #endif /* MBEDTLS_XTEA_ALT */

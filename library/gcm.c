@@ -54,6 +54,8 @@
 #endif /* MBEDTLS_PLATFORM_C */
 #endif /* MBEDTLS_SELF_TEST && MBEDTLS_AES_C */
 
+#if !defined(MBEDTLS_GCM_ALT)
+
 /*
  * 32-bit integer manipulation macros (big endian)
  */
@@ -507,6 +509,8 @@ void mbedtls_gcm_free( mbedtls_gcm_context *ctx )
     mbedtls_cipher_free( &ctx->cipher_ctx );
     mbedtls_zeroize( ctx, sizeof( mbedtls_gcm_context ) );
 }
+
+#endif /* !MBEDTLS_GCM_ALT */
 
 #if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
 /*

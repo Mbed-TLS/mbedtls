@@ -520,6 +520,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "AES - Invalid key length" );
     if( use_ret == -(MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH) )
         mbedtls_snprintf( buf, buflen, "AES - Invalid data input length" );
+    if( use_ret == -(MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE) )
+        mbedtls_snprintf( buf, buflen, "AES - Feature not available, e.g. unsupported AES key size" );
 #endif /* MBEDTLS_AES_C */
 
 #if defined(MBEDTLS_ASN1_PARSE_C)

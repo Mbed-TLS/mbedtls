@@ -114,7 +114,7 @@ int mbedtls_rsa_deduce_primes( mbedtls_mpi const *N,
     MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &T, D,  E ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &T, &T, 1 ) );
 
-    if( ( order = mbedtls_mpi_lsb( &T ) ) == 0 )
+    if( ( order = (uint16_t) mbedtls_mpi_lsb( &T ) ) == 0 )
     {
         ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
         goto cleanup;

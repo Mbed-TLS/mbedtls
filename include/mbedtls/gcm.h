@@ -33,6 +33,8 @@
 #define MBEDTLS_ERR_GCM_AUTH_FAILED                       -0x0012  /**< Authenticated decryption failed. */
 #define MBEDTLS_ERR_GCM_BAD_INPUT                         -0x0014  /**< Bad input parameters to function. */
 
+#if !defined(MBEDTLS_GCM_ALT)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -206,6 +208,18 @@ int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
  */
 void mbedtls_gcm_free( mbedtls_gcm_context *ctx );
 
+#ifdef __cplusplus
+}
+#endif
+
+#else  /* !MBEDTLS_GCM_ALT */
+#include "gcm_alt.h"
+#endif /* !MBEDTLS_GCM_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief          Checkup routine
  *
@@ -216,5 +230,6 @@ int mbedtls_gcm_self_test( int verbose );
 #ifdef __cplusplus
 }
 #endif
+
 
 #endif /* gcm.h */

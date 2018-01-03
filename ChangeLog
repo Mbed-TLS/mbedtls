@@ -14,6 +14,18 @@ Security
 
 Features
    * Allow comments in test data files.
+   * The selftest program can execute a subset of the tests based on command
+     line arguments.
+   * New unit tests for timing. Improve the self-test to be more robust
+     when run on a heavily-loaded machine.
+   * Add alternative implementation support for CCM and CMAC (MBEDTLS_CCM_ALT,
+     MBEDTLS_CMAC_ALT). Submitted by Steve Cooreman, Silicon Labs.
+   * Add support for alternative implementations of GCM, selected by the
+     configuration flag MBEDTLS_GCM_ALT.
+
+New deprecations
+   * Deprecate usage of RSA primitives with non-matching key-type
+     (e.g., signing with a public key).
 
 API Changes
    * Extend RSA interface by multiple functions allowing structure-
@@ -73,6 +85,10 @@ Bugfix
    * Fix incorrect unit in benchmark output. #850
    * Fix crash when calling mbedtls_ssl_cache_free() twice. Found by
      MilenkoMitrovic, #1104
+   * Fix mbedtls_timing_alarm(0) on Unix.
+   * Fix use of uninitialized memory in mbedtls_timing_get_timer when reset=1.
+   * Fix possible memory leaks in mbedtls_gcm_self_test().
+   * Added missing return code checks in mbedtls_aes_self_test().
 
 Changes
    * Extend cert_write example program by options to set the CRT version
@@ -82,6 +98,7 @@ Changes
      particular, don't require P,Q if neither CRT nor blinding are
      used. Reported and fix proposed independently by satur9nine and sliai
      on GitHub.
+   * Only run AES-192 self-test if AES-192 is available. Fixes #963.
 
 = mbed TLS 2.6.0 branch released 2017-08-10
 

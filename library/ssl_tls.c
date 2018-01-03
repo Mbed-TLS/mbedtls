@@ -1171,10 +1171,11 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
+#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
     if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
     {
-        if( mac_key_len > sizeof transform->mac_enc )
+        if( mac_key_len > sizeof( transform->mac_enc ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
@@ -1203,6 +1204,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
+#endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
     if( mbedtls_ssl_hw_record_init != NULL )
@@ -1221,6 +1223,9 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
         }
     }
+#else
+    ((void) mac_dec);
+    ((void) mac_enc);
 #endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
 
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
@@ -7424,8 +7429,10 @@ static void ssl_transform_init( mbedtls_ssl_transform *transform )
     mbedtls_cipher_init( &transform->cipher_ctx_enc );
     mbedtls_cipher_init( &transform->cipher_ctx_dec );
 
+#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
     mbedtls_md_init( &transform->md_ctx_enc );
     mbedtls_md_init( &transform->md_ctx_dec );
+#endif
 }
 
 void mbedtls_ssl_session_init( mbedtls_ssl_session *session )
@@ -9647,8 +9654,10 @@ void mbedtls_ssl_transform_free( mbedtls_ssl_transform *transform )
     mbedtls_cipher_free( &transform->cipher_ctx_enc );
     mbedtls_cipher_free( &transform->cipher_ctx_dec );
 
+#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
     mbedtls_md_free( &transform->md_ctx_enc );
     mbedtls_md_free( &transform->md_ctx_dec );
+#endif
 
     mbedtls_platform_zeroize( transform, sizeof( mbedtls_ssl_transform ) );
 }

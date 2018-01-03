@@ -1408,15 +1408,9 @@ static void ssl_mac( mbedtls_md_context_t *md_ctx,
 }
 #endif /* MBEDTLS_SSL_PROTO_SSL3 */
 
-#if defined(MBEDTLS_ARC4_C) || defined(MBEDTLS_CIPHER_NULL_CIPHER) ||     \
-    ( defined(MBEDTLS_CIPHER_MODE_CBC) &&                                  \
-      ( defined(MBEDTLS_AES_C) || defined(MBEDTLS_CAMELLIA_C) || defined(MBEDTLS_ARIA_C)) )
-#define SSL_SOME_MODES_USE_MAC
-#endif
-
 /* The function below is only used in the Lucky 13 counter-measure in
  * ssl_decrypt_buf(). These are the defines that guard the call site. */
-#if defined(SSL_SOME_MODES_USE_MAC) && \
+#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC) && \
     ( defined(MBEDTLS_SSL_PROTO_TLS1) || \
       defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
       defined(MBEDTLS_SSL_PROTO_TLS1_2) )
@@ -1459,7 +1453,7 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
     /*
      * Add MAC before if needed
      */
-#if defined(SSL_SOME_MODES_USE_MAC)
+#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
     if( mode == MBEDTLS_MODE_STREAM ||
         ( mode == MBEDTLS_MODE_CBC
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
@@ -1512,7 +1506,7 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
         ssl->out_msglen += ssl->transform_out->maclen;
         auth_done++;
     }
-#endif /* AEAD not the only option */
+#endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
 
     /*
      * Encrypt
@@ -1788,7 +1782,7 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
 {
     mbedtls_cipher_mode_t mode;
     int auth_done = 0;
-#if defined(SSL_SOME_MODES_USE_MAC)
+#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
     size_t padlen = 0, correct = 1;
 #endif
 
@@ -2168,7 +2162,7 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
      * Authenticate if not done yet.
      * Compute the MAC regardless of the padding result (RFC4346, CBCTIME).
      */
-#if defined(SSL_SOME_MODES_USE_MAC)
+#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
     if( auth_done == 0 )
     {
         unsigned char mac_expect[MBEDTLS_SSL_MAC_ADD];
@@ -2316,7 +2310,7 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
      */
     if( correct == 0 )
         return( MBEDTLS_ERR_SSL_INVALID_MAC );
-#endif /* SSL_SOME_MODES_USE_MAC */
+#endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
 
     /* Make extra sure authentication was performed, exactly once */
     if( auth_done != 1 )

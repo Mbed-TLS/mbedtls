@@ -137,7 +137,15 @@
 #define MBEDTLS_SSL_COMPRESSION_ADD             0
 #endif
 
-#if defined(MBEDTLS_ARC4_C) || defined(MBEDTLS_CIPHER_MODE_CBC)
+#if defined(MBEDTLS_ARC4_C) || defined(MBEDTLS_CIPHER_NULL_CIPHER) ||   \
+    ( defined(MBEDTLS_CIPHER_MODE_CBC) &&                               \
+      ( defined(MBEDTLS_AES_C)      ||                                  \
+        defined(MBEDTLS_CAMELLIA_C) ||                                  \
+        defined(MBEDTLS_ARIA_C) ) )
+#define MBEDTLS_SSL_SOME_MODES_USE_MAC
+#endif
+
+#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
 /* Ciphersuites using HMAC */
 #if defined(MBEDTLS_SHA512_C)
 #define MBEDTLS_SSL_MAC_ADD                 48  /* SHA-384 used for HMAC */
@@ -146,7 +154,7 @@
 #else
 #define MBEDTLS_SSL_MAC_ADD                 20  /* SHA-1   used for HMAC */
 #endif
-#else
+#else /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
 /* AEAD ciphersuites: GCM and CCM use a 128 bits tag */
 #define MBEDTLS_SSL_MAC_ADD                 16
 #endif

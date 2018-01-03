@@ -1,6 +1,231 @@
 /* BEGIN_HEADER */
 #include <mbedtls/ssl.h>
 #include <mbedtls/ssl_internal.h>
+
+/*
+ * Helper function setting up inverse record transformations
+ * using given cipher, hash, EtM mode, authentication tag length,
+ * and version.
+ */
+
+#define CHK( x )                                \
+    do                                          \
+    {                                           \
+        if( !( x ) )                            \
+            return( 1 );                        \
+    } while( 0 )
+
+
+static int build_transforms( mbedtls_ssl_transform *t_in,
+                             mbedtls_ssl_transform *t_out,
+                             int cipher_type, int hash_id,
+                             int etm, int tag_mode, int ver )
+{
+    mbedtls_cipher_info_t const *cipher_info;
+
+    size_t keylen, maclen, ivlen;
+    unsigned char *key0, *key1;
+    unsigned char iv_enc[16], iv_dec[16];
+
+    maclen = 0;
+
+    /* Pick cipher */
+    cipher_info = mbedtls_cipher_info_from_type( cipher_type );
+    CHK( cipher_info != NULL );
+    CHK( cipher_info->iv_size <= 16 );
+    CHK( cipher_info->key_bitlen % 8 == 0 );
+
+    /* Pick keys */
+    keylen = cipher_info->key_bitlen / 8;
+    CHK( ( key0 = malloc( keylen ) ) != NULL );
+    CHK( ( key1 = malloc( keylen ) ) != NULL );
+    memset( key0, 0x1, keylen );
+    memset( key1, 0x2, keylen );
+
+    /* Setup cipher contexts */
+    CHK( mbedtls_cipher_setup( &t_in->cipher_ctx_enc,  cipher_info ) == 0 );
+    CHK( mbedtls_cipher_setup( &t_in->cipher_ctx_dec,  cipher_info ) == 0 );
+    CHK( mbedtls_cipher_setup( &t_out->cipher_ctx_enc, cipher_info ) == 0 );
+    CHK( mbedtls_cipher_setup( &t_out->cipher_ctx_dec, cipher_info ) == 0 );
+
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+    if( cipher_info->mode == MBEDTLS_MODE_CBC )
+    {
+        CHK( mbedtls_cipher_set_padding_mode( &t_in->cipher_ctx_enc,
+                                              MBEDTLS_PADDING_NONE ) == 0 );
+        CHK( mbedtls_cipher_set_padding_mode( &t_in->cipher_ctx_dec,
+                                              MBEDTLS_PADDING_NONE ) == 0 );
+        CHK( mbedtls_cipher_set_padding_mode( &t_out->cipher_ctx_enc,
+                                              MBEDTLS_PADDING_NONE ) == 0 );
+        CHK( mbedtls_cipher_set_padding_mode( &t_out->cipher_ctx_dec,
+                                              MBEDTLS_PADDING_NONE ) == 0 );
+    }
+#endif /* MBEDTLS_CIPHER_MODE_CBC */
+
+    CHK( mbedtls_cipher_setkey( &t_in->cipher_ctx_enc, key0,
+                                keylen << 3, MBEDTLS_ENCRYPT ) == 0 );
+    CHK( mbedtls_cipher_setkey( &t_in->cipher_ctx_dec, key1,
+                                keylen << 3, MBEDTLS_DECRYPT ) == 0 );
+    CHK( mbedtls_cipher_setkey( &t_out->cipher_ctx_enc, key1,
+                                keylen << 3, MBEDTLS_ENCRYPT ) == 0 );
+    CHK( mbedtls_cipher_setkey( &t_out->cipher_ctx_dec, key0,
+                                keylen << 3, MBEDTLS_DECRYPT ) == 0 );
+    free( key0 );
+    free( key1 );
+
+    /* Setup MAC contexts */
+#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+    if( cipher_info->mode == MBEDTLS_MODE_CBC ||
+        cipher_info->mode == MBEDTLS_MODE_STREAM )
+    {
+        mbedtls_md_info_t const *md_info;
+        unsigned char *md0, *md1;
+
+        /* Pick hash */
+        md_info = mbedtls_md_info_from_type( hash_id );
+        CHK( md_info != NULL );
+
+        /* Pick hash keys */
+        maclen = mbedtls_md_get_size( md_info );
+        CHK( ( md0 = malloc( maclen ) ) != NULL );
+        CHK( ( md1 = malloc( maclen ) ) != NULL );
+        memset( md0, 0x5, maclen );
+        memset( md1, 0x6, maclen );
+
+        CHK( mbedtls_md_setup( &t_out->md_ctx_enc, md_info, 1 ) == 0 );
+        CHK( mbedtls_md_setup( &t_out->md_ctx_dec, md_info, 1 ) == 0 );
+        CHK( mbedtls_md_setup( &t_in->md_ctx_enc,  md_info, 1 ) == 0 );
+        CHK( mbedtls_md_setup( &t_in->md_ctx_dec,  md_info, 1 ) == 0 );
+
+        if( ver > MBEDTLS_SSL_MINOR_VERSION_0 )
+        {
+            CHK( mbedtls_md_hmac_starts( &t_in->md_ctx_enc,
+                                         md0, maclen ) == 0 );
+            CHK( mbedtls_md_hmac_starts( &t_in->md_ctx_dec,
+                                         md1, maclen ) == 0 );
+            CHK( mbedtls_md_hmac_starts( &t_out->md_ctx_enc,
+                                         md1, maclen ) == 0 );
+            CHK( mbedtls_md_hmac_starts( &t_out->md_ctx_dec,
+                                         md0, maclen ) == 0 );
+        }
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+        else
+        {
+            memcpy( &t_in->mac_enc, md0, maclen );
+            memcpy( &t_in->mac_dec, md1, maclen );
+            memcpy( &t_out->mac_enc, md1, maclen );
+            memcpy( &t_out->mac_dec, md0, maclen );
+        }
+#endif
+
+        free( md0 );
+        free( md1 );
+    }
+#else
+    ((void) hash_id);
+#endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
+
+
+    /* Pick IV's (regardless of whether they
+     * are being used by the transform). */
+    ivlen = cipher_info->iv_size;
+    memset( iv_enc, 0x3, sizeof( iv_enc ) );
+    memset( iv_dec, 0x4, sizeof( iv_dec ) );
+
+    /*
+     * Setup transforms
+     */
+
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+    t_out->encrypt_then_mac = etm;
+    t_in->encrypt_then_mac = etm;
+#else
+    ((void) etm);
+#endif
+
+    t_out->minor_ver = ver;
+    t_in->minor_ver = ver;
+    t_out->ivlen = ivlen;
+    t_in->ivlen = ivlen;
+
+    switch( cipher_info->mode )
+    {
+        case MBEDTLS_MODE_GCM:
+        case MBEDTLS_MODE_CCM:
+            t_out->fixed_ivlen = 4;
+            t_in->fixed_ivlen = 4;
+            t_out->maclen = 0;
+            t_in->maclen = 0;
+            switch( tag_mode )
+            {
+                case 0: /* Full tag */
+                    t_out->taglen = 16;
+                    t_in->taglen = 16;
+                    break;
+                case 1: /* Partial tag */
+                    t_out->taglen = 8;
+                    t_in->taglen = 8;
+                    break;
+                default:
+                    return( 1 );
+            }
+            break;
+
+        case MBEDTLS_MODE_CHACHAPOLY:
+            t_out->fixed_ivlen = 12;
+            t_in->fixed_ivlen = 12;
+            t_out->maclen = 0;
+            t_in->maclen = 0;
+            switch( tag_mode )
+            {
+                case 0: /* Full tag */
+                    t_out->taglen = 16;
+                    t_in->taglen = 16;
+                    break;
+                case 1: /* Partial tag */
+                    t_out->taglen = 8;
+                    t_in->taglen = 8;
+                    break;
+                default:
+                    return( 1 );
+            }
+            break;
+
+        case MBEDTLS_MODE_STREAM:
+        case MBEDTLS_MODE_CBC:
+            t_out->fixed_ivlen = 0; /* redundant, must be 0 */
+            t_in->fixed_ivlen = 0;  /* redundant, must be 0 */
+            t_out->taglen = 0;
+            t_in->taglen = 0;
+            switch( tag_mode )
+            {
+                case 0: /* Full tag */
+                    t_out->maclen = maclen;
+                    t_in->maclen = maclen;
+                    break;
+                case 1: /* Partial tag */
+                    t_out->maclen = 10;
+                    t_in->maclen = 10;
+                    break;
+                default:
+                    return( 1 );
+            }
+            break;
+        default:
+            return( 1 );
+            break;
+    }
+
+    /* Setup IV's */
+
+    memcpy( &t_in->iv_dec, iv_dec, sizeof( iv_dec ) );
+    memcpy( &t_in->iv_enc, iv_enc, sizeof( iv_enc ) );
+    memcpy( &t_out->iv_dec, iv_enc, sizeof( iv_enc ) );
+    memcpy( &t_out->iv_enc, iv_dec, sizeof( iv_dec ) );
+
+    return( 0 );
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -50,5 +275,109 @@ void ssl_set_hostname_twice( char *hostname0, char *hostname1 )
     TEST_ASSERT( mbedtls_ssl_set_hostname( &ssl, hostname1 ) == 0 );
 
     mbedtls_ssl_free( &ssl );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ssl_crypt_record( int cipher_type, int hash_id,
+                       int etm, int tag_mode, int ver )
+{
+    /*
+     * Test several record encryptions and decryptions
+     * with plenty of space before and after the data
+     * within the record buffer.
+     */
+
+    int ret;
+    int num_records = 16;
+    mbedtls_ssl_context ssl; /* ONLY for debugging */
+
+    mbedtls_ssl_transform t0, t1;
+    unsigned char *buf;
+    size_t const buflen = 512;
+    mbedtls_record rec, rec_backup;
+
+    mbedtls_ssl_init( &ssl );
+    mbedtls_ssl_transform_init( &t0 );
+    mbedtls_ssl_transform_init( &t1 );
+    TEST_ASSERT( build_transforms( &t0, &t1, cipher_type, hash_id,
+                                   etm, tag_mode, ver ) == 0 );
+
+    TEST_ASSERT( ( buf = malloc( buflen ) ) != NULL );
+
+    while( num_records-- > 0 )
+    {
+        mbedtls_ssl_transform *t_dec, *t_enc;
+        /* Take turns in who's sending and who's receiving. */
+        if( num_records % 3 == 0 )
+        {
+            t_dec = &t0;
+            t_enc = &t1;
+        }
+        else
+        {
+            t_dec = &t1;
+            t_enc = &t0;
+        }
+
+        /*
+         * The record header affects the transformation in two ways:
+         * 1) It determines the AEAD additional data
+         * 2) The record counter sometimes determines the IV.
+         *
+         * Apart from that, the fields don't have influence.
+         * In particular, it is currently not the responsibility
+         * of ssl_encrypt/decrypt_buf to check if the transform
+         * version matches the record version, or that the
+         * type is sensible.
+         */
+
+        memset( rec.ctr, num_records, sizeof( rec.ctr ) );
+        rec.type    = 42;
+        rec.ver[0]  = num_records;
+        rec.ver[1]  = num_records;
+
+        rec.buf     = buf;
+        rec.buf_len = buflen;
+        rec.data_offset = 16;
+        /* Make sure to vary the length to exercise different
+         * paddings. */
+        rec.data_len = 1 + num_records;
+
+        memset( rec.buf + rec.data_offset, 42, rec.data_len );
+
+        /* Make a copy for later comparison */
+        rec_backup = rec;
+
+        /* Encrypt record */
+        ret = mbedtls_ssl_encrypt_buf( &ssl, t_enc, &rec,
+                                       rnd_std_rand, NULL );
+        TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+        if( ret != 0 )
+        {
+            continue;
+        }
+
+        /* Decrypt record with t_dec */
+        TEST_ASSERT( mbedtls_ssl_decrypt_buf( &ssl, t_dec, &rec ) == 0 );
+
+        /* Compare results */
+        TEST_ASSERT( rec.type == rec_backup.type );
+        TEST_ASSERT( memcmp( rec.ctr, rec_backup.ctr, 8 ) == 0 );
+        TEST_ASSERT( rec.ver[0] == rec_backup.ver[0] );
+        TEST_ASSERT( rec.ver[1] == rec_backup.ver[1] );
+        TEST_ASSERT( rec.data_len == rec_backup.data_len );
+        TEST_ASSERT( rec.data_offset == rec_backup.data_offset );
+        TEST_ASSERT( memcmp( rec.buf + rec.data_offset,
+                             rec_backup.buf + rec_backup.data_offset,
+                             rec.data_len ) == 0 );
+    }
+
+    /* Cleanup */
+    mbedtls_ssl_free( &ssl );
+    mbedtls_ssl_transform_free( &t0 );
+    mbedtls_ssl_transform_free( &t1 );
+
+    free( buf );
 }
 /* END_CASE */

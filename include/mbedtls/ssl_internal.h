@@ -913,4 +913,14 @@ int mbedtls_ssl_get_key_exchange_md_tls1_2( mbedtls_ssl_context *ssl,
 }
 #endif
 
+void mbedtls_ssl_transform_init( mbedtls_ssl_transform *transform );
+int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
+                             mbedtls_ssl_transform *transform,
+                             mbedtls_record *rec,
+                             int (*f_rng)(void *, unsigned char *, size_t),
+                             void *p_rng );
+int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
+                             mbedtls_ssl_transform *transform,
+                             mbedtls_record *rec );
+
 #endif /* ssl_internal.h */

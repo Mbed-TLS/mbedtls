@@ -211,7 +211,14 @@ int mbedtls_rsa_check_privkey( const mbedtls_rsa_context *ctx )
     if( ( ret = mbedtls_rsa_check_pubkey( ctx ) ) != 0 )
         return( ret );
 
-    if( !ctx->P.p || !ctx->Q.p || !ctx->D.p )
+    if( !ctx->D.p )
+        return( MBEDTLS_ERR_RSA_KEY_CHECK_FAILED );
+
+#if defined(MBEDTLS_RSA_NO_CRT)
+    ((void) PQ); ((void) DE); ((void) P1); ((void) Q1); ((void) H); ((void) I); ((void) G); 
+    ((void) G2); ((void) L1); ((void) L2);  ((void) DP); ((void) DQ); ((void) QP);
+#else
+    if( !ctx->P.p || !ctx->Q.p )
         return( MBEDTLS_ERR_RSA_KEY_CHECK_FAILED );
 
     mbedtls_mpi_init( &PQ ); mbedtls_mpi_init( &DE ); mbedtls_mpi_init( &P1 ); mbedtls_mpi_init( &Q1 );
@@ -258,6 +265,7 @@ cleanup:
 
     if( ret != 0 )
         return( MBEDTLS_ERR_RSA_KEY_CHECK_FAILED + ret );
+#endif
 
     return( 0 );
 }
@@ -409,9 +417,14 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
     mbedtls_mpi *DQ = &ctx->DQ;
 #endif
 
-    /* Make sure we have private key info, prevent possible misuse */
-    if( ctx->P.p == NULL || ctx->Q.p == NULL || ctx->D.p == NULL )
+    /* Make sure we have private key info */
+    if( ctx->D.p == NULL )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+#if !defined(MBEDTLS_RSA_NO_CRT)
+    if( ctx->P.p == NULL || ctx->Q.p == NULL )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+#endif
 
     mbedtls_mpi_init( &T ); mbedtls_mpi_init( &T1 ); mbedtls_mpi_init( &T2 );
     mbedtls_mpi_init( &P1 ); mbedtls_mpi_init( &Q1 ); mbedtls_mpi_init( &R );

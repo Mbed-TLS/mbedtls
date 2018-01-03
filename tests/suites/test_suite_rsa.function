@@ -55,6 +55,14 @@ void mbedtls_rsa_pkcs1_sign( char *message_hex_string, int padding_mode, int dig
     TEST_ASSERT( mbedtls_mpi_mod_mpi( &ctx.DQ, &ctx.D, &Q1 ) == 0 );
     TEST_ASSERT( mbedtls_mpi_inv_mod( &ctx.QP, &ctx.Q, &ctx.P ) == 0 );
 
+#if defined(MBEDTLS_RSA_NO_CRT)
+    mbedtls_mpi_free( &ctx.P );
+    mbedtls_mpi_free( &ctx.Q );
+    mbedtls_mpi_free( &ctx.DP );
+    mbedtls_mpi_free( &ctx.DQ );
+    mbedtls_mpi_free( &ctx.QP );
+#endif
+
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
 
     msg_len = unhexify( message_str, message_hex_string );
@@ -156,6 +164,14 @@ void rsa_pkcs1_sign_raw( char *message_hex_string, char *hash_result_string,
     TEST_ASSERT( mbedtls_mpi_mod_mpi( &ctx.DP, &ctx.D, &P1 ) == 0 );
     TEST_ASSERT( mbedtls_mpi_mod_mpi( &ctx.DQ, &ctx.D, &Q1 ) == 0 );
     TEST_ASSERT( mbedtls_mpi_inv_mod( &ctx.QP, &ctx.Q, &ctx.P ) == 0 );
+
+#if defined(MBEDTLS_RSA_NO_CRT)
+    mbedtls_mpi_free( &ctx.P );
+    mbedtls_mpi_free( &ctx.Q );
+    mbedtls_mpi_free( &ctx.DP );
+    mbedtls_mpi_free( &ctx.DQ );
+    mbedtls_mpi_free( &ctx.QP );
+#endif
 
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
 
@@ -382,6 +398,14 @@ void mbedtls_rsa_pkcs1_decrypt( char *message_hex_string, int padding_mode, int 
     TEST_ASSERT( mbedtls_mpi_mod_mpi( &ctx.DQ, &ctx.D, &Q1 ) == 0 );
     TEST_ASSERT( mbedtls_mpi_inv_mod( &ctx.QP, &ctx.Q, &ctx.P ) == 0 );
 
+#if defined(MBEDTLS_RSA_NO_CRT)
+    mbedtls_mpi_free( &ctx.P );
+    mbedtls_mpi_free( &ctx.Q );
+    mbedtls_mpi_free( &ctx.DP );
+    mbedtls_mpi_free( &ctx.DQ );
+    mbedtls_mpi_free( &ctx.QP );
+#endif
+
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
 
     unhexify( message_str, message_hex_string );
@@ -489,6 +513,14 @@ void mbedtls_rsa_private( char *message_hex_string, int mod, int radix_P, char *
     TEST_ASSERT( mbedtls_mpi_mod_mpi( &ctx.DP, &ctx.D, &P1 ) == 0 );
     TEST_ASSERT( mbedtls_mpi_mod_mpi( &ctx.DQ, &ctx.D, &Q1 ) == 0 );
     TEST_ASSERT( mbedtls_mpi_inv_mod( &ctx.QP, &ctx.Q, &ctx.P ) == 0 );
+
+#if defined(MBEDTLS_RSA_NO_CRT)
+    mbedtls_mpi_free( &ctx.P );
+    mbedtls_mpi_free( &ctx.Q );
+    mbedtls_mpi_free( &ctx.DP );
+    mbedtls_mpi_free( &ctx.DQ );
+    mbedtls_mpi_free( &ctx.QP );
+#endif
 
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
 

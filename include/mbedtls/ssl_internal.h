@@ -433,8 +433,94 @@ struct mbedtls_ssl_handshake_params
 typedef struct mbedtls_ssl_hs_buffer mbedtls_ssl_hs_buffer;
 
 /*
- * This structure contains a full set of runtime transform parameters
- * either in negotiation or active.
+ * Representation of decryption/encryption transformations on records
+ *
+ * There are the following general types of record transformations:
+ * - Stream transformations (TLS versions <= 1.2 only)
+ *   Transformation adding a MAC and applying a stream-cipher
+ *   to the authenticated message.
+ * - CBC block cipher transformations ([D]TLS versions <= 1.2 only)
+ *   In addition to the distinction of the order of encryption and
+ *   authentication, there's a fundamental difference between the
+ *   handling in SSL3 & TLS 1.0 and TLS 1.1 and TLS 1.2: For SSL3
+ *   and TLS 1.0, the final IV after processing a record is used
+ *   as the IV for the next record. No explicit IV is contained
+ *   in an encrypted record. The IV for the first record is extracted
+ *   at key extraction time. In contrast, for TLS 1.1 and 1.2, no
+ *   IV is generated at key extraction time, but every encrypted
+ *   record is explicitly prefixed by the IV with which it was encrypted.
+ * - AEAD transformations ([D]TLS versions >= 1.2 only)
+ *   These come in two fundamentally different versions, the first one
+ *   used in TLS 1.2, excluding ChaChaPoly ciphersuites, and the second
+ *   one used for ChaChaPoly ciphersuites in TLS 1.2 as well as for TLS 1.3.
+ *   In the first transformation, the IV to be used for a record is obtained
+ *   as the concatenation of an explicit, static 4-byte IV and the 8-byte
+ *   record sequence number, and explicitly prepending this sequence number
+ *   to the encrypted record. In contrast, in the second transformation
+ *   the IV is obtained by XOR'ing a static IV obtained at key extraction
+ *   time with the 8-byte record sequence number, without prepending the
+ *   latter to the encrypted record.
+ *
+ * In addition to type and version, the following parameters are relevant:
+ * - The symmetric cipher algorithm to be used.
+ * - The (static) encryption/decryption keys for the cipher.
+ * - For stream/CBC, the type of message digest to be used.
+ * - For stream/CBC, (static) encryption/decryption keys for the digest.
+ * - For AEAD transformations, the size (potentially 0) of an explicit
+ *   initialization vector placed in encrypted records.
+ * - For some transformations (currently AEAD and CBC in SSL3 and TLS 1.0)
+ *   an implicit IV. It may be static (e.g. AEAD) or dynamic (e.g. CBC)
+ *   and (if present) is combined with the explicit IV in a transformation-
+ *   dependent way (e.g. appending in TLS 1.2 and XOR'ing in TLS 1.3).
+ * - For stream/CBC, a flag determining the order of encryption and MAC.
+ * - The details of the transformation depend on the SSL/TLS version.
+ * - The length of the authentication tag.
+ *
+ * The struct below refines this abstract view as follows:
+ * - The cipher underlying the transformation is managed in
+ *   cipher contexts cipher_ctx_{enc/dec}, which must have the
+ *   same cipher type. The mode of these cipher contexts determines
+ *   the type of the transformation in the sense above: e.g., if
+ *   the type is MBEDTLS_CIPHER_AES_256_CBC resp. MBEDTLS_CIPHER_AES_192_GCM
+ *   then the transformation has type CBC resp. AEAD.
+ * - The cipher keys are never stored explicitly but
+ *   are maintained within cipher_ctx_{enc/dec}.
+ * - For stream/CBC transformations, the message digest contexts
+ *   used for the MAC's are stored in md_ctx_{enc/dec}. These contexts
+ *   are unused for AEAD transformations.
+ * - For stream/CBC transformations and versions > SSL3, the
+ *   MAC keys are not stored explicitly but maintained within
+ *   md_ctx_{enc/dec}.
+ * - For stream/CBC transformations and version SSL3, the MAC
+ *   keys are stored explicitly in mac_enc, mac_dec and have
+ *   a fixed size of 20 bytes. These fields are unused for
+ *   AEAD transformations or transformations >= TLS 1.0.
+ * - For transformations using an implicit IV maintained within
+ *   the transformation context, its contents are stored within
+ *   iv_{enc/dec}.
+ * - The value of ivlen indicates the length of the IV.
+ *   This is redundant in case of stream/CBC transformations
+ *   which always use 0 resp. the cipher's block length as the
+ *   IV length, but is needed for AEAD ciphers and may be
+ *   different from the underlying cipher's block length
+ *   in this case.
+ * - The field fixed_ivlen is nonzero for AEAD transformations only
+ *   and indicates the length of the static part of the IV which is
+ *   constant throughout the communication, and which is stored in
+ *   the first fixed_ivlen bytes of the iv_{enc/dec} arrays.
+ *   Note: For CBC in SSL3 and TLS 1.0, the fields iv_{enc/dec}
+ *   still store IV's for continued use across multiple transformations,
+ *   so it is not true that fixed_ivlen == 0 means that iv_{enc/dec} are
+ *   not being used!
+ * - minor_ver denotes the SSL/TLS version
+ * - For stream/CBC transformations, maclen denotes the length of the
+ *   authentication tag, while taglen is unused and 0.
+ * - For AEAD transformations, taglen denotes the length of the
+ *   authentication tag, while maclen is unused and 0.
+ * - For CBC transformations, encrypt_then_mac determines the
+ *   order of encryption and authentication. This field is unused
+ *   in other transformations.
+ *
  */
 struct mbedtls_ssl_transform
 {

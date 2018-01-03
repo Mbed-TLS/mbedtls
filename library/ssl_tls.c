@@ -997,6 +997,9 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 
     keylen = cipher_info->key_bitlen / 8;
 
+#if defined(MBEDTLS_GCM_C) ||                           \
+    defined(MBEDTLS_CCM_C) ||                           \
+    defined(MBEDTLS_CHACHAPOLY_C)
     if( cipher_info->mode == MBEDTLS_MODE_GCM ||
         cipher_info->mode == MBEDTLS_MODE_CCM ||
         cipher_info->mode == MBEDTLS_MODE_CHACHAPOLY )
@@ -1023,6 +1026,10 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
         transform->minlen = explicit_ivlen + transform->taglen;
     }
     else
+#endif /* MBEDTLS_GCM_C || MBEDTLS_CCM_C || MBEDTLS_CHACHAPOLY_C */
+#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+    if( cipher_info->mode == MBEDTLS_MODE_STREAM ||
+        cipher_info->mode == MBEDTLS_MODE_CBC )
     {
         /* Initialize HMAC contexts */
         if( ( ret = mbedtls_md_setup( &transform->md_ctx_enc, md_info, 1 ) ) != 0 ||
@@ -1102,6 +1109,12 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
                 return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
             }
         }
+    }
+    else
+#endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "keylen: %u, minlen: %u, ivlen: %u, maclen: %u",

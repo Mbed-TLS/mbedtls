@@ -536,6 +536,8 @@ struct mbedtls_ssl_transform
     unsigned char iv_enc[16];           /*!<  IV (encryption)         */
     unsigned char iv_dec[16];           /*!<  IV (decryption)         */
 
+#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
     /* Needed only for SSL v3.0 secret */
     unsigned char mac_enc[20];          /*!<  SSL v3.0 secret (enc)   */
@@ -545,13 +547,14 @@ struct mbedtls_ssl_transform
     mbedtls_md_context_t md_ctx_enc;            /*!<  MAC (encryption)        */
     mbedtls_md_context_t md_ctx_dec;            /*!<  MAC (decryption)        */
 
-    mbedtls_cipher_context_t cipher_ctx_enc;    /*!<  encryption context      */
-    mbedtls_cipher_context_t cipher_ctx_dec;    /*!<  decryption context      */
-
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     int encrypt_then_mac;       /*!< flag for EtM activation                */
 #endif
 
+#endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
+
+    mbedtls_cipher_context_t cipher_ctx_enc;    /*!<  encryption context      */
+    mbedtls_cipher_context_t cipher_ctx_dec;    /*!<  decryption context      */
     int minor_ver;
 
     /*

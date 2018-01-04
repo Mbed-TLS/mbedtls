@@ -771,7 +771,7 @@ msg "build: default config, MBEDTLS_RSA_NO_CRT, make, gcc"
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl set MBEDTLS_RSA_NO_CRT
-CC=gcc CFLAGS='-Werror -Wall -Werror -O0' make
+make CC=gcc CFLAGS='-Werror -Wall -Werror -O0'
 
 msg "test: MBEDTLS_RSA_NO_CRT - main suites (inc. selftests) (ASan build)"
 make test

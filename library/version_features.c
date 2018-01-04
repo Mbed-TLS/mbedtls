@@ -105,15 +105,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_DES_ALT)
     "MBEDTLS_DES_ALT",
 #endif /* MBEDTLS_DES_ALT */
-#if defined(MBEDTLS_RSA_ALT)
-    "MBEDTLS_RSA_ALT",
-#endif /* MBEDTLS_RSA_ALT */
 #if defined(MBEDTLS_GCM_ALT)
     "MBEDTLS_GCM_ALT",
 #endif /* MBEDTLS_GCM_ALT */
-#if defined(MBEDTLS_XTEA_ALT)
-    "MBEDTLS_XTEA_ALT",
-#endif /* MBEDTLS_XTEA_ALT */
 #if defined(MBEDTLS_MD2_ALT)
     "MBEDTLS_MD2_ALT",
 #endif /* MBEDTLS_MD2_ALT */
@@ -126,6 +120,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_RIPEMD160_ALT)
     "MBEDTLS_RIPEMD160_ALT",
 #endif /* MBEDTLS_RIPEMD160_ALT */
+#if defined(MBEDTLS_RSA_ALT)
+    "MBEDTLS_RSA_ALT",
+#endif /* MBEDTLS_RSA_ALT */
 #if defined(MBEDTLS_SHA1_ALT)
     "MBEDTLS_SHA1_ALT",
 #endif /* MBEDTLS_SHA1_ALT */
@@ -135,6 +132,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_SHA512_ALT)
     "MBEDTLS_SHA512_ALT",
 #endif /* MBEDTLS_SHA512_ALT */
+#if defined(MBEDTLS_XTEA_ALT)
+    "MBEDTLS_XTEA_ALT",
+#endif /* MBEDTLS_XTEA_ALT */
 #if defined(MBEDTLS_ECP_ALT)
     "MBEDTLS_ECP_ALT",
 #endif /* MBEDTLS_ECP_ALT */

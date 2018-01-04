@@ -692,7 +692,10 @@ cleanup:
  */
 int mbedtls_ecp_group_load( mbedtls_ecp_group *grp, mbedtls_ecp_group_id id )
 {
-    mbedtls_ecp_group_free( grp );
+    if ( grp == NULL )
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+
+    mbedtls_ecp_group_free(grp);
 
     grp->id = id;
 

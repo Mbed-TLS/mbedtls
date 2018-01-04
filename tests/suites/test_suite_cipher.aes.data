@@ -347,7 +347,7 @@ depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:16:16:
 
 AES Encrypt and decrypt 0 bytes
-depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
+depends_on:!MBEDTLS_AES_ALT:MBEDTLS_AES_C:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CFB128:"AES-128-CFB128":128:0:-1
 
 AES Encrypt and decrypt 1 byte
@@ -407,23 +407,23 @@ depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CFB128:"AES-128-CFB128":128:49:-1
 
 AES Encrypt and decrypt 0 bytes in multiple parts
-depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
+depends_on:!MBEDTLS_AES_ALT:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:0:0:
 
 AES Encrypt and decrypt 1 bytes in multiple parts 1
-depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
+depends_on:!MBEDTLS_AES_ALT:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:1:0:
 
 AES Encrypt and decrypt 1 bytes in multiple parts 2
-depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
+depends_on:!MBEDTLS_AES_ALT:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:0:1:
 
 AES Encrypt and decrypt 16 bytes in multiple parts 1
-depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
+depends_on:!MBEDTLS_AES_ALT:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:16:0:
 
 AES Encrypt and decrypt 16 bytes in multiple parts 2
-depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
+depends_on:!MBEDTLS_AES_ALT:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:0:16:
 
 AES Encrypt and decrypt 16 bytes in multiple parts 3
@@ -451,7 +451,7 @@ depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:16:16:
 
 AES Encrypt and decrypt 0 bytes
-depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
+depends_on:!MBEDTLS_AES_ALT:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CTR:"AES-128-CTR":128:0:-1
 
 AES Encrypt and decrypt 1 byte
@@ -511,35 +511,35 @@ depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CTR:"AES-128-CTR":128:49:-1
 
 AES Encrypt and decrypt 0 bytes in multiple parts
-depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
+depends_on:!MBEDTLS_AES_ALT:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:0:0:
 
 AES Encrypt and decrypt 1 bytes in multiple parts 1
-depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
+depends_on:!MBEDTLS_AES_ALT:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:1:0:
 
 AES Encrypt and decrypt 1 bytes in multiple parts 2
-depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
+depends_on:!MBEDTLS_AES_ALT:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:0:1:
 
 AES Encrypt and decrypt 16 bytes in multiple parts 1
-depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
+depends_on:!MBEDTLS_AES_ALT:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:16:0:
 
 AES Encrypt and decrypt 16 bytes in multiple parts 2
-depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
+depends_on:!MBEDTLS_AES_ALT:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:0:16:
 
 AES Encrypt and decrypt 16 bytes in multiple parts 3
-depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
+depends_on:!MBEDTLS_AES_ALT:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:1:15:
 
 AES Encrypt and decrypt 16 bytes in multiple parts 4
-depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
+depends_on:!MBEDTLS_AES_ALT:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:15:1:
 
 AES Encrypt and decrypt 22 bytes in multiple parts 1
-depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
+depends_on:!MBEDTLS_AES_ALT:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:15:7:
 
 AES Encrypt and decrypt 22 bytes in multiple parts 1
@@ -547,7 +547,7 @@ depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:16:6:
 
 AES Encrypt and decrypt 22 bytes in multiple parts 1
-depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
+depends_on:!MBEDTLS_AES_ALT:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:17:6:
 
 AES Encrypt and decrypt 32 bytes in multiple parts 1

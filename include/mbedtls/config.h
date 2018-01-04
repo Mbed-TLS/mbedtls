@@ -278,6 +278,23 @@
 //#define MBEDTLS_SHA1_ALT
 //#define MBEDTLS_SHA256_ALT
 //#define MBEDTLS_SHA512_ALT
+
+/**
+ * \def MBEDTLS_ECP_MUL_ALT
+ *
+ * MBEDTLS_ECP_MUL_ALT:Uncomment a macro to let mbed TLS use your
+ * alternate API implementation of ECP.
+ * Keep in mind that the function prototypes should remain the same.
+ *
+ * Example: In case you uncomment MBEDTLS_ECP_MUL_ALT, 'mbedtls_ecp_mul' will
+ * perform its alternate implementation.
+ *
+ * Uncomment a macro to enable alternate implementation of the corresponding
+ * API.
+ */
+//#define MBEDTLS_ECP_MUL_ALT
+//#define MBEDTLS_ECP_GEN_KEYPAIR_BASE_ALT
+
 /*
  * When replacing the elliptic curve module, pleace consider, that it is
  * implemented with two .c files:

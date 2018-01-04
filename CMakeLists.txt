@@ -146,8 +146,10 @@ if(ENABLE_TESTING)
 
         ADD_CUSTOM_TARGET(lcov
             COMMAND rm -rf Coverage
-            COMMAND lcov --capture --initial --directory library/CMakeFiles/mbedtls.dir -o files.info
-            COMMAND lcov --capture --directory library/CMakeFiles/mbedtls.dir -o tests.info
+            COMMAND make
+            COMMAND lcov --capture --initial --directory library/CMakeFiles/mbedcrypto.dir --directory library/CMakeFiles/mbedtls.dir --directory library/CMakeFiles/mbedx509.dir -o files.info
+            COMMAND make check
+            COMMAND lcov --capture --directory library/CMakeFiles/mbedcrypto.dir --directory library/CMakeFiles/mbedtls.dir --directory library/CMakeFiles/mbedx509.dir -o tests.info
             COMMAND lcov --add-tracefile files.info --add-tracefile tests.info -o all.info
             COMMAND lcov --remove all.info -o final.info '*.h'
             COMMAND gendesc tests/Descriptions.txt -o descriptions

@@ -128,3 +128,8 @@ if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
     endif()
 endif()
 
+# Add the target check for unit test
+add_custom_target(check
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run-test-suites.pl
+)
+

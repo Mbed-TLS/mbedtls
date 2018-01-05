@@ -707,7 +707,7 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_CRT( 3, "candidate certificate chain, certificate",
                           cur->cert );
 
-        if( ! mbedtls_pk_can_do( cur->key, pk_alg ) )
+        if( ! mbedtls_pk_can_do( &cur->cert->pk, pk_alg ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "certificate mismatch: key type" ) );
             continue;

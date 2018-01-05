@@ -146,8 +146,11 @@ static int rsa_check_context( mbedtls_rsa_context const *ctx, int is_priv,
     ((void) blinding_needed);
 #endif
 
-    if( ctx->len != mbedtls_mpi_size( &ctx->N ) )
+    if( ctx->len != mbedtls_mpi_size( &ctx->N ) ||
+        ctx->len > MBEDTLS_MPI_MAX_SIZE )
+    {
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    }
 
     /*
      * 1. Modular exponentiation needs positive, odd moduli.
@@ -573,8 +576,7 @@ int mbedtls_rsa_check_pubkey( const mbedtls_rsa_context *ctx )
     if( rsa_check_context( ctx, 0 /* public */, 0 /* no blinding */ ) != 0 )
         return( MBEDTLS_ERR_RSA_KEY_CHECK_FAILED );
 
-    if( mbedtls_mpi_bitlen( &ctx->N ) < 128 ||
-        mbedtls_mpi_bitlen( &ctx->N ) > MBEDTLS_MPI_MAX_BITS )
+    if( mbedtls_mpi_bitlen( &ctx->N ) < 128 )
     {
         return( MBEDTLS_ERR_RSA_KEY_CHECK_FAILED );
     }

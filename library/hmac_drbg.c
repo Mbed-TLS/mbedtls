@@ -1,6 +1,9 @@
-/*
- *  HMAC_DRBG implementation (NIST SP 800-90)
+/**
+ * \file hmac_drbg.c
  *
+ * \brief HMAC_DRBG implementation (NIST SP 800-90)
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

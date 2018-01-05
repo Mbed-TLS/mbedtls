@@ -1,6 +1,9 @@
-/*
- *  SSL server demonstration program using fork() for handling multiple clients
+/**
+ * \file ssl_fork_server.c
  *
+ * \brief SSL server demonstration program using fork() for handling multiple clients
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

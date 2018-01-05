@@ -1,6 +1,9 @@
-/*
- *  PKCS#12 Personal Information Exchange Syntax
+/**
+ * \file pkcs12.c
  *
+ * \brief PKCS#12 Personal Information Exchange Syntax
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

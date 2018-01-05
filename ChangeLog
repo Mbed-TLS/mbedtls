@@ -78,6 +78,7 @@ Changes
      and the message digest. Further, allow enabling/disabling of authority
      identifier, subject identifier and basic constraints extensions.
    * Only run AES-192 self-test if AES-192 is available. Fixes #963.
+   * Remove copyright and license information from Doxygen documentation.
 
 = mbed TLS 2.6.0 branch released 2017-08-10
 

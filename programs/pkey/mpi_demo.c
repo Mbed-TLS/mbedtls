@@ -1,6 +1,9 @@
-/*
- *  Simple MPI demonstration program
+/**
+ * \file mpi_demo.c
  *
+ * \brief Simple MPI demonstration program
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

@@ -1,10 +1,11 @@
 /**
- * \file mbedtls_md.c
+ * \file md.c
  *
  * \brief Generic message digest wrapper for mbed TLS
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
- *
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

@@ -1,6 +1,9 @@
-/*
- *  The RSA public-key cryptosystem
+/**
+ * \file rsa.c
  *
+ * \brief The RSA public-key cryptosystem
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

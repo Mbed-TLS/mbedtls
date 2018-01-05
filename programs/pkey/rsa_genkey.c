@@ -1,6 +1,9 @@
-/*
- *  Example RSA key generation program
+/**
+ * \file rsa_genkey.c
  *
+ * \brief Example RSA key generation program
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

@@ -1,6 +1,9 @@
-/*
- *  X.509 Certificate Signing Request (CSR) parsing
+/**
+ * \file x509_csr.c
  *
+ * \brief X.509 Certificate Signing Request (CSR) parsing
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

@@ -1,6 +1,9 @@
-/*
- *  Simple DTLS client demonstration program
+/**
+ * \file dtls_client.c
  *
+ * \brief Simple DTLS client demonstration program
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

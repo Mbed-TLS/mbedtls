@@ -1,6 +1,9 @@
-/*
- *  FIPS-180-2 compliant SHA-384/512 implementation
+/**
+ * \file sha512.c
  *
+ * \brief FIPS-180-2 compliant SHA-384/512 implementation
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

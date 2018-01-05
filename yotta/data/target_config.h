@@ -1,6 +1,9 @@
-/*
- *  Temporary target-specific config.h for entropy collection
+/**
+ * \file target_config.h
  *
+ * \brief Temporary target-specific config.h for entropy collection
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

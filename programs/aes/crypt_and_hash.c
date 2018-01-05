@@ -1,7 +1,10 @@
-/*
+/**
+ * \file crypt_and_hash.c
+ *
  *  \brief  Generic file encryption program using generic wrappers for configured
  *          security.
- *
+ */
+/*
  *  Copyright (C) 2006-2016, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

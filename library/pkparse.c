@@ -1,6 +1,9 @@
-/*
- *  Public Key layer for parsing key files and structures
+/**
+ * \file pkparse.c
  *
+ * \brief Public Key layer for parsing key files and structures
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

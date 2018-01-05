@@ -1,6 +1,9 @@
-/*
- *  Certificate request reading application
+/**
+ * \file req_app.c
  *
+ * \brief Certificate request reading application
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

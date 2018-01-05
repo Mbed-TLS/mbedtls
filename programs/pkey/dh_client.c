@@ -1,6 +1,9 @@
-/*
- *  Diffie-Hellman-Merkle key exchange (client side)
+/**
+ * \file dh_client.c
  *
+ * \brief Diffie-Hellman-Merkle key exchange (client side)
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

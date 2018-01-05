@@ -1,6 +1,9 @@
-/*
- *  Elliptic curves over GF(p): generic functions
+/**
+ * \file ecp.c
  *
+ * \brief Elliptic curves over GF(p): generic functions
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

@@ -2,7 +2,8 @@
  * \file cmac.c
  *
  * \brief NIST SP800-38B compliant CMAC implementation for AES and 3DES
- *
+ */
+/*
  *  Copyright (C) 2006-2016, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

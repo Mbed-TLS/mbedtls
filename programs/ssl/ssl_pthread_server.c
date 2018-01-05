@@ -1,7 +1,10 @@
-/*
- *  SSL server demonstration program using pthread for handling multiple
- *  clients.
+/**
+ * \file ssl_pthread_server.c
  *
+ * \brief SSL server demonstration program using pthread for handling multiple
+ *        clients.
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

@@ -1,6 +1,9 @@
-/*
- *  TLS server tickets callbacks implementation
+/**
+ * \file ssl_ticket.c
  *
+ * \brief TLS server tickets callbacks implementation
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

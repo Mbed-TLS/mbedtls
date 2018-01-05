@@ -1,6 +1,9 @@
-/*
- *  Public Key layer for writing key files and structures
+/**
+ * \file pkwrite.c
  *
+ * \brief Public Key layer for writing key files and structures
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

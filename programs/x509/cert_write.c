@@ -1,6 +1,9 @@
-/*
- *  Certificate generation and signing
+/**
+ * \file cert_write.c
  *
+ * \brief Certificate generation and signing
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

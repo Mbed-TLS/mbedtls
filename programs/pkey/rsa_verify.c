@@ -1,6 +1,9 @@
-/*
- *  RSA/SHA-256 signature verification program
+/**
+ * \file rsa_verify.c
  *
+ * \brief RSA/SHA-256 signature verification program
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

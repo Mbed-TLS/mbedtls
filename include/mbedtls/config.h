@@ -6,7 +6,8 @@
  *  This set of compile-time options may be used to enable
  *  or disable features selectively, and reduce the global
  *  memory footprint.
- *
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

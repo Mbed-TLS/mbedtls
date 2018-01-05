@@ -1,6 +1,9 @@
-/*
- *  Elliptic curve Diffie-Hellman
+/**
+ * \file ecdh.c
  *
+ * \brief Elliptic curve Diffie-Hellman
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

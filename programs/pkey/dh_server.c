@@ -1,6 +1,9 @@
-/*
- *  Diffie-Hellman-Merkle key exchange (server side)
+/**
+ * \file dh_server.c
  *
+ * \brief Diffie-Hellman-Merkle key exchange (server side)
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

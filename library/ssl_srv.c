@@ -2843,6 +2843,17 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write server key exchange" ) );
 
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED) && \
+    defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+    if( ssl->handshake->out_async_start != NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "resuming signature operation" ) );
+        p = ssl->handshake->out_async_start;
+        goto async_resume;
+    }
+#endif /* defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED) &&
+          defined(MBEDTLS_SSL_ASYNC_PRIVATE_C) */
+
     /*
      *
      * Part 1: Extract static ECDH parameters and abort
@@ -3169,12 +3180,6 @@ curve_matching_done:
         /*
          * 3.3: Compute and add the signature
          */
-        if( mbedtls_ssl_own_key( ssl ) == NULL )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no private key" ) );
-            return( MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED );
-        }
-
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
         if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
         {
@@ -3199,6 +3204,55 @@ curve_matching_done:
         }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+        if( ssl->conf->f_async_sign_start != NULL )
+        {
+            size_t sig_max_len = ( ssl->out_buf + MBEDTLS_SSL_MAX_CONTENT_LEN
+                                   - ( p + 2 ) );
+            ret = ssl->conf->f_async_sign_start(
+                ssl->conf->p_async_connection_ctx,
+                &ssl->handshake->p_async_operation_ctx,
+                mbedtls_ssl_own_cert( ssl ),
+                md_alg, hash, hashlen );
+            switch( ret )
+            {
+            case MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH:
+                /* act as if f_async_sign was null */
+                break;
+            case 0:
+            async_resume:
+                ret = ssl->conf->f_async_resume(
+                    ssl->conf->p_async_connection_ctx,
+                    ssl->handshake->p_async_operation_ctx,
+                    p + 2, &signature_len, sig_max_len );
+                if( ret != MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS )
+                {
+                    ssl->handshake->p_async_operation_ctx = NULL;
+                    if( ret != 0 )
+                    {
+                        MBEDTLS_SSL_DEBUG_RET( 1, "f_async_resume", ret );
+                        return( ret );
+                    }
+                    goto have_signature;
+                }
+                /* FALLTHROUGH */
+            case MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS:
+                ssl->handshake->out_async_start = p;
+                MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write server key exchange (pending)" ) );
+                return( MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS );
+            default:
+                MBEDTLS_SSL_DEBUG_RET( 1, "f_async_sign", ret );
+                return( ret );
+            }
+        }
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
+
+        if( mbedtls_ssl_own_key( ssl ) == NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no private key" ) );
+            return( MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED );
+        }
+
         if( ( ret = mbedtls_pk_sign( mbedtls_ssl_own_key( ssl ), md_alg, hash, hashlen,
                         p + 2 , &signature_len, ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
         {
@@ -3206,6 +3260,7 @@ curve_matching_done:
             return( ret );
         }
 
+    have_signature:
         *(p++) = (unsigned char)( signature_len >> 8 );
         *(p++) = (unsigned char)( signature_len      );
 

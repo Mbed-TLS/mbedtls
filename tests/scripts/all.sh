@@ -605,7 +605,7 @@ cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl unset MBEDTLS_SSL_CLI_C
-make CC=gcc CFLAGS='-Werror -Wall -Werror -O0'
+make CC=gcc CFLAGS='-Werror -Wall -Wextra -O0'
 
 # Note, C99 compliance can also be tested with the sockets support disabled,
 # as that requires a POSIX platform (which isn't the same as C99).
@@ -767,11 +767,12 @@ msg "test: allow SHA1 in certificates by default"
 make test
 if_build_succeeded tests/ssl-opt.sh -f SHA-1
 
-msg "build: default config, MBEDTLS_RSA_NO_CRT, make, gcc"
+msg "build: Default + MBEDTLS_RSA_NO_CRT (ASan build)" # ~ 6 min
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl set MBEDTLS_RSA_NO_CRT
-make CC=gcc CFLAGS='-Werror -Wall -Werror -O0'
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make
 
 msg "test: MBEDTLS_RSA_NO_CRT - main suites (inc. selftests) (ASan build)"
 make test

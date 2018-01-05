@@ -109,6 +109,7 @@
 #define MBEDTLS_ERR_SSL_UNEXPECTED_RECORD                 -0x6700  /**< Record header looks valid but is not expected. */
 #define MBEDTLS_ERR_SSL_NON_FATAL                         -0x6680  /**< The alert message received indicates a non-fatal error. */
 #define MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH               -0x6600  /**< Couldn't set the hash for verifying CertificateVerify */
+#define MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS                 -0x6580  /**< Asynchronous operation is not completed yet */
 
 /*
  * Various constants
@@ -525,6 +526,160 @@ typedef void mbedtls_ssl_set_timer_t( void * ctx,
  */
 typedef int mbedtls_ssl_get_timer_t( void * ctx );
 
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+/**
+ * \brief           Callback type: start external signature operation
+ *
+ *                  Callback to start a signature operation using an
+ *                  external processor. The parameter \c cert contains
+ *                  the public key; it is up to the callback function to
+ *                  look up the associated private key or a handle to the
+ *                  private key.
+ *
+ *                  This function must start the signature operation.
+ *                  It is expected to be non-blocking, i.e. typically
+ *                  this function sends or enqueues a request and does
+ *                  not wait for the operation to complete.
+ *
+ *                  The parameters \c connection_ctx and \c cert are
+ *                  guaranteed to remain valid as long as the SSL
+ *                  configuration remains valid. On the other hand, this
+ *                  function must save the contents of \c hash, as the
+ *                  \c hash buffer is no longer valid when this function
+ *                  returns.
+ *
+ * \param connection_ctx  Pointer to the connection context set in the
+ *                        SSL configuration
+ * \param p_operation_ctx On output, pointer to the operation context.
+ *                        This pointer will be passed later to the resume
+ *                        or detach function. The value is only used if
+ *                        an operation is started, i.e. if this callback
+ *                        returns 0 or \c MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS.
+ * \param cert            Certificate containing the public key
+ * \param md_alg          Hash algorithm
+ * \param hash            Buffer containing the hash. This buffer is
+ *                        no longer valid when the function returns.
+ * \param hash_len        Size of the \c hash buffer in bytes
+ *
+ * \return          - 0 if the SSL stack should call the resume callback
+ *                    immediately. The resume function may provide the
+ *                    or may itself return
+ *                    \c MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS.
+ *                  - \c MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS if the SSL stack
+ *                    should return immediately without calling the resume
+ *                    callback.
+ *                  - \c MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH if the external
+ *                    processor does not support this key. The SSL stack will
+ *                    use the associated private key object instead.
+ *                  - Any other error is propagated up the call chain.
+ */
+typedef int mbedtls_ssl_async_sign_t( void *connection_ctx,
+                                      void **p_operation_ctx,
+                                      mbedtls_x509_crt *cert,
+                                      mbedtls_md_type_t md_alg,
+                                      const unsigned char *hash,
+                                      size_t hash_len );
+
+/**
+ * \brief           Callback type: start external decryption operation
+ *
+ *                  Callback to start a decryption operation using an
+ *                  external processor. The parameter \c cert contains
+ *                  the public key; it is up to the callback function to
+ *                  look up the associated private key or a handle to the
+ *                  private key.
+ *
+ *                  This function must start the decryption operation.
+ *                  It is expected to be non-blocking, i.e. typically
+ *                  this function sends or enqueues a request and does
+ *                  not wait for the operation to complete.
+ *
+ *                  The parameters \c connection_ctx and \c cert are
+ *                  guaranteed to remain valid as long as the SSL
+ *                  configuration remains valid. On the other hand, this
+ *                  function must save the contents of \c hash, as the
+ *                  \c hash buffer is no longer valid when this function
+ *                  returns.
+ *
+ * \param connection_ctx  Pointer to the connection context set in the
+ *                        SSL configuration
+ * \param p_operation_ctx On output, pointer to the operation context.
+ *                        This pointer will be passed later to the resume
+ *                        or detach function. The value is only used if
+ *                        an operation is started, i.e. if this callback
+ *                        returns 0 or \c MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS.
+ * \param cert            Certificate containing the public key
+ * \param input           Buffer containing the input ciphertext. This buffer
+ *                        is no longer valid when the function returns.
+ * \param input_len       Size of the \c input buffer in bytes
+ *
+ * \return          - 0 if the SSL stack should call the resume callback
+ *                    immediately. The resume function may provide the
+ *                    or may itself return
+ *                    \c MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS.
+ *                  - \c MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS if the SSL stack
+ *                    should return immediately without calling the resume
+ *                    callback.
+ *                  - \c MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH if the external
+ *                    processor does not support this key. The SSL stack will
+ *                    use the associated private key object instead.
+ *                  - Any other error is propagated up the call chain.
+ */
+typedef int mbedtls_ssl_async_decrypt_t( void *connection_ctx,
+                                         void **p_operation_ctx,
+                                         mbedtls_x509_crt *cert,
+                                         const unsigned char *input,
+                                         size_t input_len );
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+/**
+ * \brief           Callback type: resume external operation
+ *
+ *                  Callback to resume an external operation
+ *                  started by the \c mbedtls_ssl_async_sign_t callback.
+ *
+ * \param connection_ctx  Pointer to the connection context set in the
+ *                        SSL configuration
+ * \param operation_ctx   Pointer to the operation context created by
+ *                        the start function. If this callback returns
+ *                        any value other than
+ *                        \c MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS, it should
+ *                        free all resources associated with this context.
+ * \param output          Buffer containing the output on success
+ * \param output_len      On success, number of bytes written to \c output
+ * \param output_size     Size of the \c output buffer in bytes
+ *
+ * \return          - 0 if output of the operation is available in the
+ *                    \c output buffer.
+ *                  - \c MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS if the operation
+ *                    is still in progress. Subsequent requests for progress
+ *                    on the SSL connection will call the resume callback
+ *                    again.
+ *                  - Any other error means that the operation is aborted.
+ *                    The SSL handshake is aborted.
+ */
+typedef int mbedtls_ssl_async_resume_t( void *connection_ctx,
+                                        void *operation_ctx,
+                                        unsigned char *output,
+                                        size_t *output_len,
+                                        size_t output_size );
+
+/**
+ * \brief           Callback type: cancel external operation
+ *
+ *                  Callback to cancel an external operation
+ *                  started by the \c mbedtls_ssl_async_sign_t callback.
+ *
+ * \param connection_ctx  Pointer to the connection context set in the
+ *                        SSL configuration
+ * \param operation_ctx   Pointer to the operation context created by
+ *                        the start function. The callback should free
+ *                        all resources associated with this context.
+ */
+typedef void mbedtls_ssl_async_cancel_t( void *connection_ctx,
+                                         void *operation_ctx );
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
 
 /* Defined below */
 typedef struct mbedtls_ssl_session mbedtls_ssl_session;
@@ -657,6 +812,16 @@ struct mbedtls_ssl_config
     mbedtls_x509_crt *ca_chain;     /*!< trusted CAs                        */
     mbedtls_x509_crl *ca_crl;       /*!< trusted CAs CRLs                   */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    mbedtls_ssl_async_sign_t *f_async_sign_start; /*!< start asynchronous signature operation */
+    mbedtls_ssl_async_decrypt_t *f_async_decrypt_start; /*!< start asynchronous decryption operation */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+    mbedtls_ssl_async_resume_t *f_async_resume; /*!< resume asynchronous operation */
+    mbedtls_ssl_async_cancel_t *f_async_cancel; /*!< cancel asynchronous operation */
+    void *p_async_connection_ctx; /*!< connection context for asynchronous operation callbacks  */
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
     const int *sig_hashes;          /*!< allowed signature hashes           */
@@ -1290,6 +1455,40 @@ void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
         mbedtls_ssl_export_keys_t *f_export_keys,
         void *p_export_keys );
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
+
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+/**
+ * \brief           Configure asynchronous private key operation callbacks.
+ *
+ * \param conf              SSL configuration context
+ * \param f_async_sign      Callback to start a signature operation. See
+ *                          the description of \c mbedtls_ssl_async_sign_t
+ *                          for more information. This may be NULL if the
+ *                          external processor does no support any signature
+ *                          operation; in this case the private key object
+ *                          associated with the certificate will be used.
+ * \param f_async_decrypt   Callback to start a decryption operation. See
+ *                          the description of \c mbedtls_ssl_async_decrypt_t
+ *                          for more information. This may be NULL if the
+ *                          external processor does no support any decryption
+ *                          operation; in this case the private key object
+ *                          associated with the certificate will be used.
+ * \param f_async_resume    Callback to resume an asynchronous operation. See
+ *                          the description of \c mbedtls_ssl_async_resume_t
+ *                          for more information.
+ * \param f_async_cancel    Callback to cancel an asynchronous operation. See
+ *                          the description of \c mbedtls_ssl_async_cancel_t
+ *                          for more information.
+ * \param connection_ctx    Pointer to the connection context which will be
+ *                          passed to the callbacks
+ */
+void mbedtls_ssl_conf_async_private_cb( mbedtls_ssl_config *conf,
+                                        mbedtls_ssl_async_sign_t *f_async_sign,
+                                        mbedtls_ssl_async_decrypt_t *f_async_decrypt,
+                                        mbedtls_ssl_async_resume_t *f_async_resume,
+                                        mbedtls_ssl_async_cancel_t *f_async_cancel,
+                                        void *connection_ctx );
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
 
 /**
  * \brief          Callback type: generate a cookie

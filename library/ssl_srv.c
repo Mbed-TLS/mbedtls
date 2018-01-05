@@ -3032,7 +3032,7 @@ curve_matching_done:
     {
         size_t signature_len = 0;
         unsigned int hashlen = 0;
-        unsigned char hash[64];
+        unsigned char hash[MBEDTLS_MD_MAX_SIZE];
 
         /*
          * 3.1: Choose hash algorithm:

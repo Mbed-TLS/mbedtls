@@ -2,7 +2,8 @@
  * \file ccm.h
  *
  * \brief Counter with CBC-MAC (CCM) for 128-bit block ciphers
- *
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

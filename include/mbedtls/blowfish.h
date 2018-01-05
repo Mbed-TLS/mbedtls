@@ -2,7 +2,8 @@
  * \file blowfish.h
  *
  * \brief Blowfish block cipher
- *
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

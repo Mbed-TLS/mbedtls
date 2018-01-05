@@ -2,7 +2,8 @@
  * \file md4.h
  *
  * \brief MD4 message digest algorithm (hash function)
- *
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

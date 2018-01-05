@@ -381,3 +381,149 @@ void ssl_crypt_record( int cipher_type, int hash_id,
     free( buf );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void ssl_crypt_record_small( int cipher_type, int hash_id,
+                             int etm, int tag_mode, int ver )
+{
+    /*
+     * Test pairs of encryption and decryption with an increasing
+     * amount of space in the record buffer - in more detail:
+     * 1) Try to encrypt with 0, 1, 2, ... bytes available
+     *    in front of the plaintext, and expect the encryption
+     *    to succeed starting from some offset. Always keep
+     *    enough space in the end of the buffer.
+     * 2) Try to encrypt with 0, 1, 2, ... bytes available
+     *    at the end of the plaintext, and expect the encryption
+     *    to succeed starting from some offset. Always keep
+     *    enough space at the beginning of the buffer.
+     * 3) Try to encrypt with 0, 1, 2, ... bytes available
+     *    both at the front and end of the plaintext,
+     *    and expect the encryption to succeed starting from
+     *    some offset.
+     *
+     * If encryption succeeds, check that decryption succeeds
+     * and yields the original record.
+     */
+
+    mbedtls_ssl_context ssl; /* ONLY for debugging */
+
+    mbedtls_ssl_transform t0, t1;
+    unsigned char *buf;
+    size_t const buflen = 150;
+    mbedtls_record rec, rec_backup;
+
+    int ret;
+    int mode;               /* Mode 1, 2 or 3 as explained above     */
+    size_t offset;          /* Available space at beginning/end/both */
+    size_t threshold = 64;  /* Maximum offset to test against        */
+
+    size_t default_pre_padding  = 64; /* Pre-padding to use in mode 2  */
+    size_t default_post_padding = 64; /* Post-padding to use in mode 1 */
+
+    int seen_success; /* Indicates if in the current mode we've
+                       * already seen a successful test. */
+
+    mbedtls_ssl_init( &ssl );
+    mbedtls_ssl_transform_init( &t0 );
+    mbedtls_ssl_transform_init( &t1 );
+    TEST_ASSERT( build_transforms( &t0, &t1, cipher_type, hash_id,
+                                   etm, tag_mode, ver ) == 0 );
+
+    TEST_ASSERT( ( buf = malloc( buflen ) ) != NULL );
+
+    for( mode=1; mode <= 3; mode++ )
+    {
+        seen_success = 0;
+        for( offset=0; offset <= threshold; offset++ )
+        {
+            mbedtls_ssl_transform *t_dec, *t_enc;
+            /* Take turns in who's sending and who's receiving. */
+            if( offset % 3 == 0 )
+            {
+                t_dec = &t0;
+                t_enc = &t1;
+            }
+            else
+            {
+                t_dec = &t1;
+                t_enc = &t0;
+            }
+
+            memset( rec.ctr, offset, sizeof( rec.ctr ) );
+            rec.type    = 42;
+            rec.ver[0]  = offset;
+            rec.ver[1]  = offset;
+            rec.buf     = buf;
+            rec.buf_len = buflen;
+
+            switch( mode )
+            {
+                case 1: /* Space in the beginning */
+                    rec.data_offset = offset;
+                    rec.data_len = buflen - offset - default_post_padding;
+                    break;
+
+                case 2: /* Space in the end */
+                    rec.data_offset = default_pre_padding;
+                    rec.data_len = buflen - default_pre_padding - offset;
+                    break;
+
+                case 3: /* Space in the beginning and end */
+                    rec.data_offset = offset;
+                    rec.data_len = buflen - 2 * offset;
+                    break;
+
+                default:
+                    TEST_ASSERT( 0 );
+                    break;
+            }
+
+            memset( rec.buf + rec.data_offset, 42, rec.data_len );
+
+            /* Make a copy for later comparison */
+            rec_backup = rec;
+
+            /* Encrypt record */
+            ret = mbedtls_ssl_encrypt_buf( &ssl, t_enc, &rec, rnd_std_rand, NULL );
+
+            if( ( mode == 1 || mode == 2 ) && seen_success )
+            {
+                TEST_ASSERT( ret == 0 );
+            }
+            else
+            {
+                TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+                if( ret == 0 )
+                    seen_success = 1;
+            }
+
+            if( ret != 0 )
+                continue;
+
+            /* Decrypt record with t_dec */
+            TEST_ASSERT( mbedtls_ssl_decrypt_buf( &ssl, t_dec, &rec ) == 0 );
+
+            /* Compare results */
+            TEST_ASSERT( rec.type == rec_backup.type );
+            TEST_ASSERT( memcmp( rec.ctr, rec_backup.ctr, 8 ) == 0 );
+            TEST_ASSERT( rec.ver[0] == rec_backup.ver[0] );
+            TEST_ASSERT( rec.ver[1] == rec_backup.ver[1] );
+            TEST_ASSERT( rec.data_len == rec_backup.data_len );
+            TEST_ASSERT( rec.data_offset == rec_backup.data_offset );
+            TEST_ASSERT( memcmp( rec.buf + rec.data_offset,
+                                 rec_backup.buf + rec_backup.data_offset,
+                                 rec.data_len ) == 0 );
+        }
+
+        TEST_ASSERT( seen_success == 1 );
+    }
+
+    /* Cleanup */
+    mbedtls_ssl_free( &ssl );
+    mbedtls_ssl_transform_free( &t0 );
+    mbedtls_ssl_transform_free( &t1 );
+
+    free( buf );
+}
+/* END_CASE */

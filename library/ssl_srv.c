@@ -3135,8 +3135,7 @@ curve_matching_done:
 
             mbedtls_md_init( &ctx );
 
-            /* Info from md_alg will be used instead */
-            hashlen = 0;
+            hashlen = mbedtls_md_get_size( md_info );
 
             /*
              * digitally-signed struct {
@@ -3165,18 +3164,11 @@ curve_matching_done:
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
-        MBEDTLS_SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen != 0 ? hashlen :
-            (unsigned int) ( mbedtls_md_get_size( mbedtls_md_info_from_type( md_alg ) ) ) );
+        MBEDTLS_SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen );
 
         /*
          * 3.3: Compute and add the signature
          */
-        if( mbedtls_ssl_own_key( ssl ) == NULL )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no private key" ) );
-            return( MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED );
-        }
-
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
         if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
         {

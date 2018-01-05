@@ -110,7 +110,7 @@ int main( void )
 #define DFL_KEY_FILE2           ""
 #define DFL_ASYNC_PRIVATE_DELAY1 ( -1 )
 #define DFL_ASYNC_PRIVATE_DELAY2 ( -1 )
-#define DFL_ASYNC_PRIVATE_ERROR  ( -1 )
+#define DFL_ASYNC_PRIVATE_ERROR  ( 0 )
 #define DFL_PSK                 ""
 #define DFL_PSK_IDENTITY        "Client_identity"
 #define DFL_ECJPAKE_PW          NULL

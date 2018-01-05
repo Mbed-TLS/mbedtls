@@ -3636,6 +3636,127 @@ run_test    "Large packet TLS 1.2 AEAD shorter tag" \
             -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
+# Tests of asynchronous private key support in SSL
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+run_test    "SSL async private: delay=0" \
+            "$P_SRV async_private_delay1=0 async_private_delay2=0" \
+            "$P_CLI" \
+            0 \
+            -s "Async sign callback: using key slot " \
+            -s "Async resume (slot [0-9]): done, status=0"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+run_test    "SSL async private: delay=1" \
+            "$P_SRV async_private_delay1=1 async_private_delay2=1" \
+            "$P_CLI" \
+            0 \
+            -s "Async sign callback: using key slot " \
+            -s "Async resume (slot [0-9]): call 0 more times." \
+            -s "Async resume (slot [0-9]): done, status=0"
+
+# key1: ECDSA, key2: RSA; use key1 from slot 0
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+run_test    "SSL async private: slot 0 used with key1" \
+            "$P_SRV key_file=data_files/server5.key crt_file=data_files/server5.crt \
+             key_file2=data_files/server2.key crt_file2=data_files/server2.crt \
+             async_private_delay1=1" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
+            0 \
+            -s "Async sign callback: using key slot 0," \
+            -s "Async resume (slot 0): call 0 more times." \
+            -s "Async resume (slot 0): done, status=0"
+
+# key1: ECDSA, key2: RSA; use key2 from slot 0
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+run_test    "SSL async private: slot 0 used with key2" \
+            "$P_SRV key_file=data_files/server5.key crt_file=data_files/server5.crt \
+             key_file2=data_files/server2.key crt_file2=data_files/server2.crt \
+             async_private_delay2=1" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA256" \
+            0 \
+            -s "Async sign callback: using key slot 0," \
+            -s "Async resume (slot 0): call 0 more times." \
+            -s "Async resume (slot 0): done, status=0"
+
+# key1: ECDSA, key2: RSA; use key2 from slot 1
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+run_test    "SSL async private: slot 1 used" \
+            "$P_SRV key_file=data_files/server5.key crt_file=data_files/server5.crt \
+             key_file2=data_files/server2.key crt_file2=data_files/server2.crt \
+             async_private_delay1=1 async_private_delay2=1" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA256" \
+            0 \
+            -s "Async sign callback: using key slot 1," \
+            -s "Async resume (slot 1): call 0 more times." \
+            -s "Async resume (slot 1): done, status=0"
+
+# key1: ECDSA, key2: RSA; use key2 directly
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+run_test    "SSL async private: fall back to transparent key" \
+            "$P_SRV key_file=data_files/server5.key crt_file=data_files/server5.crt \
+             key_file2=data_files/server2.key crt_file2=data_files/server2.crt \
+             async_private_delay1=1" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA256" \
+            0 \
+            -s "Async sign callback: no key matches this certificate."
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+run_test    "SSL async private: error in start" \
+            "$P_SRV async_private_delay1=1 async_private_delay2=1 async_private_error=1" \
+            "$P_CLI" \
+            1 \
+            -s "Async sign callback: injected error" \
+            -S "Async resume" \
+            -s "! mbedtls_ssl_handshake returned"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+run_test    "SSL async private: cancel after start" \
+            "$P_SRV async_private_delay1=1 async_private_delay2=1 async_private_error=2" \
+            "$P_CLI" \
+            1 \
+            -s "Async sign callback: using key slot " \
+            -S "Async resume" \
+            -s "Async cancel"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+run_test    "SSL async private: error in resume" \
+            "$P_SRV async_private_delay1=1 async_private_delay2=1 async_private_error=3" \
+            "$P_CLI" \
+            1 \
+            -s "Async sign callback: using key slot " \
+            -s "Async resume callback: injected error" \
+            -s "! mbedtls_ssl_handshake returned"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+run_test    "SSL async private: error in pk" \
+            "$P_SRV async_private_delay1=1 async_private_delay2=1 async_private_error=4" \
+            "$P_CLI" \
+            1 \
+            -s "Async sign callback: using key slot " \
+            -s "Async resume callback: done but injected error" \
+            -s "! mbedtls_ssl_handshake returned"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "SSL async private: renegotiation: client-initiated" \
+            "$P_SRV async_private_delay1=1 async_private_delay2=1
+             exchanges=2 renegotiation=1" \
+            "$P_CLI exchanges=2 renegotiation=1 renegotiate=1" \
+            0 \
+            -s "Async sign callback: using key slot " \
+            -s "Async resume (slot [0-9]): done, status=0"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "SSL async private: renegotiation: server-initiated" \
+            "$P_SRV async_private_delay1=1 async_private_delay2=1
+             exchanges=2 renegotiation=1 renegotiate=1" \
+            "$P_CLI exchanges=2 renegotiation=1" \
+            0 \
+            -s "Async sign callback: using key slot " \
+            -s "Async resume (slot [0-9]): done, status=0"
+
 # Tests for DTLS HelloVerifyRequest
 
 run_test    "DTLS cookie: enabled" \

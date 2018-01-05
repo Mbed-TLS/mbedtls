@@ -543,8 +543,11 @@ static int pk_get_rsapubkey( unsigned char **p,
 
     *p += len;
 
-    if( ( ret = mbedtls_rsa_complete( rsa ) ) != 0 )
+    if( mbedtls_rsa_complete( rsa ) != 0 ||
+        mbedtls_rsa_check_pubkey( rsa ) != 0 )
+    {
         return( MBEDTLS_ERR_PK_INVALID_PUBKEY );
+    }
 
     if( *p != end )
         return( MBEDTLS_ERR_PK_INVALID_PUBKEY +

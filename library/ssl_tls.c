@@ -5153,7 +5153,7 @@ static void ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl )
     /*
      * Free our handshake params
      */
-    mbedtls_ssl_handshake_free( ssl->handshake );
+    mbedtls_ssl_handshake_free( ssl->conf, ssl->handshake );
     mbedtls_free( ssl->handshake );
     ssl->handshake = NULL;
 
@@ -5508,7 +5508,7 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
     if( ssl->session_negotiate )
         mbedtls_ssl_session_free( ssl->session_negotiate );
     if( ssl->handshake )
-        mbedtls_ssl_handshake_free( ssl->handshake );
+        mbedtls_ssl_handshake_free( ssl->conf, ssl->handshake );
 
     /*
      * Either the pointers are now NULL or cleared properly and can be freed.
@@ -7263,10 +7263,12 @@ static void ssl_key_cert_free( mbedtls_ssl_key_cert *key_cert )
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-void mbedtls_ssl_handshake_free( mbedtls_ssl_handshake_params *handshake )
+void mbedtls_ssl_handshake_free( const mbedtls_ssl_config *conf,
+                                 mbedtls_ssl_handshake_params *handshake )
 {
     if( handshake == NULL )
         return;
+    (void) conf; /*unused in some compile-time configurations*/
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
@@ -7397,7 +7399,7 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
 
     if( ssl->handshake )
     {
-        mbedtls_ssl_handshake_free( ssl->handshake );
+        mbedtls_ssl_handshake_free( ssl->conf, ssl->handshake );
         mbedtls_ssl_transform_free( ssl->transform_negotiate );
         mbedtls_ssl_session_free( ssl->session_negotiate );
 

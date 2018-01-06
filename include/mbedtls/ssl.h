@@ -551,28 +551,29 @@ typedef int mbedtls_ssl_get_timer_t( void * ctx );
  *
  * \param connection_ctx  Pointer to the connection context set in the
  *                        SSL configuration
- * \param p_operation_ctx On output, pointer to the operation context.
- *                        This pointer will be passed later to the resume
- *                        or detach function. The value is only used if
- *                        an operation is started, i.e. if this callback
- *                        returns 0 or \c MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS.
+ * \param p_operation_ctx On success, pointer to the operation context.
+ *                        This must be a non-null pointer. Success means
+ *                        that an operation was started, and the return
+ *                        status is 0 or \c MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS.
+ *                        This pointer will be passed to later calls to the
+ *                        resume or cancel function. If the callback fails,
+ *                        the value is ignored.
  * \param cert            Certificate containing the public key
  * \param md_alg          Hash algorithm
  * \param hash            Buffer containing the hash. This buffer is
  *                        no longer valid when the function returns.
  * \param hash_len        Size of the \c hash buffer in bytes
  *
- * \return          - 0 if the SSL stack should call the resume callback
- *                    immediately. The resume function may provide the
- *                    or may itself return
- *                    \c MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS.
- *                  - \c MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS if the SSL stack
- *                    should return immediately without calling the resume
- *                    callback.
+ * \return          - 0 if the operation was started successfully and the SSL
+ *                    stack should call the resume callback immediately.
+ *                  - \c MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS if the operation
+ *                    was started successfully and the SSL stack should return
+ *                    immediately without calling the resume callback yet.
  *                  - \c MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH if the external
  *                    processor does not support this key. The SSL stack will
- *                    use the associated private key object instead.
- *                  - Any other error is propagated up the call chain.
+ *                    use the private key object instead.
+ *                  - Any other error indicates a fatal failure and is
+ *                    propagated up the call chain.
  */
 typedef int mbedtls_ssl_async_sign_t( void *connection_ctx,
                                       void **p_operation_ctx,
@@ -604,27 +605,28 @@ typedef int mbedtls_ssl_async_sign_t( void *connection_ctx,
  *
  * \param connection_ctx  Pointer to the connection context set in the
  *                        SSL configuration
- * \param p_operation_ctx On output, pointer to the operation context.
- *                        This pointer will be passed later to the resume
- *                        or detach function. The value is only used if
- *                        an operation is started, i.e. if this callback
- *                        returns 0 or \c MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS.
+ * \param p_operation_ctx On success, pointer to the operation context.
+ *                        This must be a non-null pointer. Success means
+ *                        that an operation was started, and the return
+ *                        status is 0 or \c MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS.
+ *                        This pointer will be passed to later calls to the
+ *                        resume or cancel function. If the callback fails,
+ *                        the value is ignored.
  * \param cert            Certificate containing the public key
  * \param input           Buffer containing the input ciphertext. This buffer
  *                        is no longer valid when the function returns.
  * \param input_len       Size of the \c input buffer in bytes
  *
- * \return          - 0 if the SSL stack should call the resume callback
- *                    immediately. The resume function may provide the
- *                    or may itself return
- *                    \c MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS.
- *                  - \c MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS if the SSL stack
- *                    should return immediately without calling the resume
- *                    callback.
+ * \return          - 0 if the operation was started successfully and the SSL
+ *                    stack should call the resume callback immediately.
+ *                  - \c MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS if the operation
+ *                    was started successfully and the SSL stack should return
+ *                    immediately without calling the resume callback yet.
  *                  - \c MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH if the external
  *                    processor does not support this key. The SSL stack will
- *                    use the associated private key object instead.
- *                  - Any other error is propagated up the call chain.
+ *                    use the private key object instead.
+ *                  - Any other error indicates a fatal failure and is
+ *                    propagated up the call chain.
  */
 typedef int mbedtls_ssl_async_decrypt_t( void *connection_ctx,
                                          void **p_operation_ctx,

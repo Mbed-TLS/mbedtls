@@ -2846,10 +2846,9 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED) && \
     defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
-    if( ssl->handshake->out_async_start != NULL )
+    if( ssl->handshake->p_async_operation_ctx != NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "resuming signature operation" ) );
-        p = ssl->handshake->out_async_start;
         goto async_resume;
     }
 #endif /* defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED) &&
@@ -3215,7 +3214,6 @@ curve_matching_done:
                 }
                 /* FALLTHROUGH */
             case MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS:
-                ssl->handshake->out_async_start = ssl->out_msg + ssl->out_msglen;
                 MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write server key exchange (pending)" ) );
                 return( MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS );
             default:

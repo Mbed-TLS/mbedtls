@@ -220,7 +220,6 @@ struct mbedtls_ssl_handshake_params
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
     void *p_async_operation_ctx;        /*!< asynchronous operation context */
-    unsigned char *out_async_start;     /*!< pointer where the asynchronous operation must write in the output buffer */
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

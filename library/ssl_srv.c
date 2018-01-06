@@ -2836,8 +2836,7 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME_PFS__ENABLED)
     size_t len;
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
-    unsigned char *dig_signed = p;
-    size_t dig_signed_len = 0;
+    unsigned char *dig_signed = NULL;
 #endif /* MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED */
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME_PFS__ENABLED */
 
@@ -2961,7 +2960,6 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)        
         dig_signed = p;
-        dig_signed_len = len;
 #endif
 
         p += len;
@@ -3022,8 +3020,7 @@ curve_matching_done:
         }
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
-        dig_signed     = p;
-        dig_signed_len = len;
+        dig_signed = p;
 #endif
 
         p += len;
@@ -3041,6 +3038,7 @@ curve_matching_done:
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
     if( mbedtls_ssl_ciphersuite_uses_server_signature( ciphersuite_info ) )
     {
+        size_t dig_signed_len = p - dig_signed;
         size_t signature_len = 0;
         unsigned int hashlen = 0;
         unsigned char hash[MBEDTLS_MD_MAX_SIZE];

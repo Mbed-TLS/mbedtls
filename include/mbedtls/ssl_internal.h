@@ -218,6 +218,10 @@ struct mbedtls_ssl_handshake_params
     mbedtls_x509_crl *sni_ca_crl;       /*!< trusted CAs CRLs from SNI      */
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+    void *p_async_operation_ctx;        /*!< asynchronous operation context */
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
+
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     unsigned int out_msg_seq;           /*!<  Outgoing handshake sequence number */
     unsigned int in_msg_seq;            /*!<  Incoming handshake sequence number */
@@ -385,9 +389,11 @@ void mbedtls_ssl_transform_free( mbedtls_ssl_transform *transform );
  * \brief           Free referenced items in an SSL handshake context and clear
  *                  memory
  *
+ * \param conf      SSL configuration
  * \param handshake SSL handshake context
  */
-void mbedtls_ssl_handshake_free( mbedtls_ssl_handshake_params *handshake );
+void mbedtls_ssl_handshake_free( const mbedtls_ssl_config *conf,
+                                 mbedtls_ssl_handshake_params *handshake );
 
 int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl );

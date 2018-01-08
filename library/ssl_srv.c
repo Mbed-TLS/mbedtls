@@ -707,7 +707,7 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_CRT( 3, "candidate certificate chain, certificate",
                           cur->cert );
 
-        if( ! mbedtls_pk_can_do( cur->key, pk_alg ) )
+        if( ! mbedtls_pk_can_do( &cur->cert->pk, pk_alg ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "certificate mismatch: key type" ) );
             continue;
@@ -731,7 +731,7 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_ECDSA_C)
         if( pk_alg == MBEDTLS_PK_ECDSA &&
-            ssl_check_key_curve( cur->key, ssl->handshake->curves ) != 0 )
+            ssl_check_key_curve( &cur->cert->pk, ssl->handshake->curves ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "certificate mismatch: elliptic curve" ) );
             continue;
@@ -2826,54 +2826,49 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||
           MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
 
-static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED) && \
+    defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+static int ssl_resume_server_key_exchange( mbedtls_ssl_context *ssl,
+                                            size_t *signature_len )
 {
-    int ret;
-    size_t n = 0;
+    size_t sig_max_len = ( ssl->out_buf + MBEDTLS_SSL_MAX_CONTENT_LEN
+                           - ( ssl->out_msg + ssl->out_msglen + 2 ) );
+    int ret = ssl->conf->f_async_resume( ssl->conf->p_async_connection_ctx,
+                                         ssl->handshake->p_async_operation_ctx,
+                                         ssl->out_msg + ssl->out_msglen + 2,
+                                         signature_len, sig_max_len );
+    if( ret != MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS )
+    {
+        ssl->handshake->p_async_operation_ctx = NULL;
+    }
+    MBEDTLS_SSL_DEBUG_RET( 2, "ssl_resume_server_key_exchange", ret );
+    return( ret );
+}
+#endif /* defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED) &&
+          defined(MBEDTLS_SSL_ASYNC_PRIVATE_C) */
+
+/* Prepare the ServerKeyExchange message, up to and including
+   calculating the signature if any, but excluding formatting the
+   signature and sending the message. */
+static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
+                                            size_t *signature_len )
+{
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
                             ssl->transform_negotiate->ciphersuite_info;
-
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME_PFS__ENABLED)
-    unsigned char *p = ssl->out_msg + 4;
-    size_t len;
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
-    unsigned char *dig_signed = p;
-    size_t dig_signed_len = 0;
+    unsigned char *dig_signed = NULL;
 #endif /* MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED */
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME_PFS__ENABLED */
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write server key exchange" ) );
+    (void) ciphersuite_info; /* unused in some configurations */
+    (void) signature_len; /* unused in some configurations */
+
+    ssl->out_msglen = 4; /* header (type:1, length:3) to be written later */
 
     /*
      *
-     * Part 1: Extract static ECDH parameters and abort
-     *         if ServerKeyExchange not needed.
-     *
-     */
-
-    /* For suites involving ECDH, extract DH parameters
-     * from certificate at this point. */
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__ECDH_ENABLED)
-    if( mbedtls_ssl_ciphersuite_uses_ecdh( ciphersuite_info ) )
-    {
-        ssl_get_ecdh_params_from_cert( ssl );
-    }
-#endif /* MBEDTLS_KEY_EXCHANGE__SOME__ECDH_ENABLED */
-
-    /* Key exchanges not involving ephemeral keys don't use
-     * ServerKeyExchange, so end here. */
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME_NON_PFS__ENABLED)
-    if( mbedtls_ssl_ciphersuite_no_pfs( ciphersuite_info ) )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write server key exchange" ) );
-        ssl->state++;
-        return( 0 );
-    }
-#endif /* MBEDTLS_KEY_EXCHANGE__NON_PFS__ENABLED */
-
-    /*
-     *
-     * Part 2: Provide key exchange parameters for chosen ciphersuite.
+     * Part 1: Provide key exchange parameters for chosen ciphersuite.
      *
      */
 
@@ -2883,18 +2878,21 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
     {
-        const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN;
+        int ret;
+        size_t len;
 
-        ret = mbedtls_ecjpake_write_round_two( &ssl->handshake->ecjpake_ctx,
-                p, end - p, &len, ssl->conf->f_rng, ssl->conf->p_rng );
+        ret = mbedtls_ecjpake_write_round_two(
+            &ssl->handshake->ecjpake_ctx,
+            ssl->out_msg + ssl->out_msglen,
+            MBEDTLS_SSL_MAX_CONTENT_LEN - ssl->out_msglen, &len,
+            ssl->conf->f_rng, ssl->conf->p_rng );
         if( ret != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecjpake_write_round_two", ret );
             return( ret );
         }
 
-        p += len;
-        n += len;
+        ssl->out_msglen += len;
     }
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
@@ -2908,10 +2906,8 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK ||
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK )
     {
-        *(p++) = 0x00;
-        *(p++) = 0x00;
-
-        n += 2;
+        ssl->out_msg[ssl->out_msglen++] = 0x00;
+        ssl->out_msg[ssl->out_msglen++] = 0x00;
     }
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
@@ -2922,6 +2918,9 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__DHE_ENABLED)
     if( mbedtls_ssl_ciphersuite_uses_dhe( ciphersuite_info ) )
     {
+        int ret;
+        size_t len;
+
         if( ssl->conf->dhm_P.p == NULL || ssl->conf->dhm_G.p == NULL )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "no DH parameters set" ) );
@@ -2944,21 +2943,21 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
             return( ret );
         }
 
-        if( ( ret = mbedtls_dhm_make_params( &ssl->handshake->dhm_ctx,
-                        (int) mbedtls_mpi_size( &ssl->handshake->dhm_ctx.P ),
-                        p, &len, ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+        if( ( ret = mbedtls_dhm_make_params(
+                  &ssl->handshake->dhm_ctx,
+                  (int) mbedtls_mpi_size( &ssl->handshake->dhm_ctx.P ),
+                  ssl->out_msg + ssl->out_msglen, &len,
+                  ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_dhm_make_params", ret );
             return( ret );
         }
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)        
-        dig_signed = p;
-        dig_signed_len = len;
+        dig_signed = ssl->out_msg + ssl->out_msglen;
 #endif
 
-        p += len;
-        n += len;
+        ssl->out_msglen += len;
 
         MBEDTLS_SSL_DEBUG_MPI( 3, "DHM: X ", &ssl->handshake->dhm_ctx.X  );
         MBEDTLS_SSL_DEBUG_MPI( 3, "DHM: P ", &ssl->handshake->dhm_ctx.P  );
@@ -2983,6 +2982,8 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
          */
         const mbedtls_ecp_curve_info **curve = NULL;
         const mbedtls_ecp_group_id *gid;
+        int ret;
+        size_t len;
 
         /* Match our preference list against the offered curves */
         for( gid = ssl->conf->curve_list; *gid != MBEDTLS_ECP_DP_NONE; gid++ )
@@ -3006,21 +3007,21 @@ curve_matching_done:
             return( ret );
         }
 
-        if( ( ret = mbedtls_ecdh_make_params( &ssl->handshake->ecdh_ctx, &len,
-                                      p, MBEDTLS_SSL_MAX_CONTENT_LEN - n,
-                                      ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+        if( ( ret = mbedtls_ecdh_make_params(
+                  &ssl->handshake->ecdh_ctx, &len,
+                  ssl->out_msg + ssl->out_msglen,
+                  MBEDTLS_SSL_MAX_CONTENT_LEN - ssl->out_msglen,
+                  ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_make_params", ret );
             return( ret );
         }
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
-        dig_signed     = p;
-        dig_signed_len = len;
+        dig_signed = ssl->out_msg + ssl->out_msglen;
 #endif
 
-        p += len;
-        n += len;
+        ssl->out_msglen += len;
 
         MBEDTLS_SSL_DEBUG_ECP( 3, "ECDH: Q ", &ssl->handshake->ecdh_ctx.Q );
     }
@@ -3028,19 +3029,20 @@ curve_matching_done:
 
     /*
      *
-     * Part 3: For key exchanges involving the server signing the
+     * Part 2: For key exchanges involving the server signing the
      *         exchange parameters, compute and add the signature here.
      *
      */
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
     if( mbedtls_ssl_ciphersuite_uses_server_signature( ciphersuite_info ) )
     {
-        size_t signature_len = 0;
+        size_t dig_signed_len = ssl->out_msg + ssl->out_msglen - dig_signed;
         unsigned int hashlen = 0;
-        unsigned char hash[64];
+        unsigned char hash[MBEDTLS_MD_MAX_SIZE];
+        int ret;
 
         /*
-         * 3.1: Choose hash algorithm:
+         * 2.1: Choose hash algorithm:
          * A: For TLS 1.2, obey signature-hash-algorithm extension 
          *    to choose appropriate hash.
          * B: For SSL3, TLS1.0, TLS1.1 and ECDHE_ECDSA, use SHA1
@@ -3087,7 +3089,7 @@ curve_matching_done:
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "pick hash algorithm %d for signing", md_alg ) );
 
         /*
-         * 3.2: Compute the hash to be signed
+         * 2.2: Compute the hash to be signed
          */
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
@@ -3140,8 +3142,7 @@ curve_matching_done:
 
             mbedtls_md_init( &ctx );
 
-            /* Info from md_alg will be used instead */
-            hashlen = 0;
+            hashlen = mbedtls_md_get_size( md_info );
 
             /*
              * digitally-signed struct {
@@ -3170,18 +3171,11 @@ curve_matching_done:
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
-        MBEDTLS_SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen != 0 ? hashlen :
-            (unsigned int) ( mbedtls_md_get_size( mbedtls_md_info_from_type( md_alg ) ) ) );
+        MBEDTLS_SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen );
 
         /*
-         * 3.3: Compute and add the signature
+         * 2.3: Compute and add the signature
          */
-        if( mbedtls_ssl_own_key( ssl ) == NULL )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no private key" ) );
-            return( MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED );
-        }
-
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
         if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
         {
@@ -3201,33 +3195,141 @@ curve_matching_done:
              *
              */
 
-            *(p++) = mbedtls_ssl_hash_from_md_alg( md_alg );
-            *(p++) = mbedtls_ssl_sig_from_pk_alg( sig_alg );
-
-            n += 2;
+            ssl->out_msg[ssl->out_msglen++] =
+                mbedtls_ssl_hash_from_md_alg( md_alg );
+            ssl->out_msg[ssl->out_msglen++] =
+                mbedtls_ssl_sig_from_pk_alg( sig_alg );
         }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-        if( ( ret = mbedtls_pk_sign( mbedtls_ssl_own_key( ssl ), md_alg, hash, hashlen,
-                        p + 2 , &signature_len, ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+        if( ssl->conf->f_async_sign_start != NULL )
+        {
+            ret = ssl->conf->f_async_sign_start(
+                ssl->conf->p_async_connection_ctx,
+                &ssl->handshake->p_async_operation_ctx,
+                mbedtls_ssl_own_cert( ssl ),
+                md_alg, hash, hashlen );
+            switch( ret )
+            {
+            case MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH:
+                /* act as if f_async_sign was null */
+                break;
+            case 0:
+                return( ssl_resume_server_key_exchange( ssl, signature_len ) );
+            case MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS:
+                return( MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS );
+            default:
+                MBEDTLS_SSL_DEBUG_RET( 1, "f_async_sign", ret );
+                return( ret );
+            }
+        }
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
+
+        if( mbedtls_ssl_own_key( ssl ) == NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no private key" ) );
+            return( MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED );
+        }
+
+        if( ( ret = mbedtls_pk_sign( mbedtls_ssl_own_key( ssl ),
+                                     md_alg, hash, hashlen,
+                                     ssl->out_msg + ssl->out_msglen + 2,
+                                     signature_len,
+                                     ssl->conf->f_rng,
+                                     ssl->conf->p_rng ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_sign", ret );
             return( ret );
         }
-
-        *(p++) = (unsigned char)( signature_len >> 8 );
-        *(p++) = (unsigned char)( signature_len      );
-        n += 2;
-
-        MBEDTLS_SSL_DEBUG_BUF( 3, "my signature", p, signature_len );
-
-        n += signature_len;
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED */
 
-    /* Done with actual work; add header and send. */
+    return( 0 );
+}
 
-    ssl->out_msglen  = 4 + n;
+/* Prepare the ServerKeyExchange message and send it. For ciphersuites
+   that do not include a ServerKeyExchange message, do nothing. Either
+   way, if successful, move on to the next step in the SSL state
+   machine */
+static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
+{
+    int ret;
+    size_t signature_len = 0;
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME_NON_PFS__ENABLED)
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
+                            ssl->transform_negotiate->ciphersuite_info;
+#endif /* MBEDTLS_KEY_EXCHANGE__NON_PFS__ENABLED */
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write server key exchange" ) );
+
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME_NON_PFS__ENABLED)
+    /* Extract static ECDH parameters and abort if ServerKeyExchange
+     * is not needed. */
+    if( mbedtls_ssl_ciphersuite_no_pfs( ciphersuite_info ) )
+    {
+        /* For suites involving ECDH, extract DH parameters
+         * from certificate at this point. */
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__ECDH_ENABLED)
+        if( mbedtls_ssl_ciphersuite_uses_ecdh( ciphersuite_info ) )
+        {
+            ssl_get_ecdh_params_from_cert( ssl );
+        }
+#endif /* MBEDTLS_KEY_EXCHANGE__SOME__ECDH_ENABLED */
+
+        /* Key exchanges not involving ephemeral keys don't use
+         * ServerKeyExchange, so end here. */
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write server key exchange" ) );
+        ssl->state++;
+        return( 0 );
+    }
+#endif /* MBEDTLS_KEY_EXCHANGE__NON_PFS__ENABLED */
+
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED) && \
+    defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+    /* If we have already prepared the message and there is an ongoing
+       signature operation, resume signing. */
+    if( ssl->handshake->p_async_operation_ctx != NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "resuming signature operation" ) );
+        ret = ssl_resume_server_key_exchange( ssl, &signature_len );
+    }
+    else
+#endif /* defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED) &&
+          defined(MBEDTLS_SSL_ASYNC_PRIVATE_C) */
+    {
+        /* ServerKeyExchange is needed. Prepare the message. */
+        ret = ssl_prepare_server_key_exchange( ssl, &signature_len );
+    }
+
+    if( ret != 0 )
+    {
+        if( ret == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS )
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write server key exchange (pending)" ) );
+        else
+            ssl->out_msglen = 0;
+        return( ret );
+    }
+
+    /* If there is a signature, write its length.
+       ssl_prepare_server_key_exchange already wrote the signature
+       itself at its proper place in the output buffer. */
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
+    if( signature_len != 0 )
+    {
+        ssl->out_msg[ssl->out_msglen++] = (unsigned char)( signature_len >> 8 );
+        ssl->out_msg[ssl->out_msglen++] = (unsigned char)( signature_len      );
+
+        MBEDTLS_SSL_DEBUG_BUF( 3, "my signature",
+                               ssl->out_msg + ssl->out_msglen,
+                               signature_len );
+
+        /* Skip over the already-written signature */
+        ssl->out_msglen += signature_len;
+    }
+#endif /* MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED */
+
+    /* Add header and send. */
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = MBEDTLS_SSL_HS_SERVER_KEY_EXCHANGE;
 
@@ -3240,7 +3342,6 @@ curve_matching_done:
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write server key exchange" ) );
-
     return( 0 );
 }
 

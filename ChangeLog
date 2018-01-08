@@ -22,6 +22,10 @@ Features
      MBEDTLS_CMAC_ALT). Submitted by Steve Cooreman, Silicon Labs.
    * Add support for alternative implementations of GCM, selected by the
      configuration flag MBEDTLS_GCM_ALT.
+   * In TLS, support offloading private key operations to an external
+     cryptoprocessor. Private key operations can be asynchronous to allow
+     non-blocking operation of the TLS stack.
+     Currently restricted to signature only, server-side only.
 
 New deprecations
    * Deprecate usage of RSA primitives with non-matching key-type

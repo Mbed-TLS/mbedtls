@@ -203,7 +203,8 @@ int main( void )
     "    async_private_delay1=%%d  Asynchronous delay for key_file or preloaded key\n" \
     "    async_private_delay2=%%d  Asynchronous delay for key_file2\n" \
     "                              default: -1 (not asynchronous)\n" \
-    "    async_private_error=%%d   Async callback error injection (default=0=none, 1=start, 2=cancel, 3=resume, 4=pk)"
+    "    async_private_error=%%d   Async callback error injection (default=0=none,\n" \
+    "                              1=start, 2=cancel, 3=resume, 4=pk, negative=first time only)"
 #else
 #define USAGE_SSL_ASYNC ""
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
@@ -1238,7 +1239,8 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "async_private_error" ) == 0 )
         {
             int n = atoi( q );
-            if( n < 0 || n > SSL_ASYNC_INJECT_ERROR_MAX )
+            if( n < -SSL_ASYNC_INJECT_ERROR_MAX ||
+                n > SSL_ASYNC_INJECT_ERROR_MAX )
             {
                 ret = 2;
                 goto usage;
@@ -2152,7 +2154,9 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
     if( opt.async_private_delay1 >= 0 || opt.async_private_delay2 >= 0 )
     {
-        ssl_async_keys.inject_error = opt.async_private_error;
+        ssl_async_keys.inject_error = ( opt.async_private_error < 0 ?
+                                        - opt.async_private_error :
+                                        opt.async_private_error );
         ssl_async_keys.f_rng = mbedtls_ctr_drbg_random;
         ssl_async_keys.p_rng = &ctr_drbg;
         mbedtls_ssl_conf_async_private_cb( &conf,
@@ -2338,10 +2342,10 @@ handshake:
         ret = mbedtls_ssl_handshake( &ssl );
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
         if( ret == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS &&
-            opt.async_private_error == SSL_ASYNC_INJECT_ERROR_CANCEL )
+            ssl_async_keys.inject_error == SSL_ASYNC_INJECT_ERROR_CANCEL )
         {
             mbedtls_printf( " cancelling on injected error\n" );
-            goto reset;
+            break;
         }
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
     }
@@ -2371,6 +2375,11 @@ handshake:
         }
 #endif
 
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+        if( opt.async_private_error < 0 )
+            /* Injected error only the first time round, to test reset */
+            ssl_async_keys.inject_error = SSL_ASYNC_INJECT_ERROR_NONE;
+#endif
         goto reset;
     }
     else /* ret == 0 */

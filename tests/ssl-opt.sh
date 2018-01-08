@@ -3738,6 +3738,56 @@ run_test    "SSL async private: error in pk" \
             -s "! mbedtls_ssl_handshake returned"
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+run_test    "SSL async private: cancel after start then operate correctly" \
+            "$P_SRV async_private_delay1=1 async_private_delay2=1 async_private_error=-2" \
+            "$P_CLI; [ \$? -eq 1 ] && $P_CLI" \
+            0 \
+            -s "Async cancel" \
+            -s "! mbedtls_ssl_handshake returned" \
+            -s "Async resume" \
+            -s "Successful connection"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+run_test    "SSL async private: error in resume then operate correctly" \
+            "$P_SRV async_private_delay1=1 async_private_delay2=1 async_private_error=-3" \
+            "$P_CLI; [ \$? -eq 1 ] && $P_CLI" \
+            0 \
+            -s "! mbedtls_ssl_handshake returned" \
+            -s "Async resume" \
+            -s "Successful connection"
+
+# key1: ECDSA, key2: RSA; use key1 through async, then key2 directly
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+run_test    "SSL async private: cancel after start then fall back to transparent key" \
+            "$P_SRV key_file=data_files/server5.key crt_file=data_files/server5.crt \
+             key_file2=data_files/server2.key crt_file2=data_files/server2.crt \
+             async_private_delay1=1 async_private_error=-2" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256;
+             [ \$? -eq 1 ] &&
+             $P_CLI force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA256" \
+            0 \
+            -S "Async resume" \
+            -s "Async cancel" \
+            -s "! mbedtls_ssl_handshake returned" \
+            -s "Async sign callback: no key matches this certificate." \
+            -s "Successful connection"
+
+# key1: ECDSA, key2: RSA; use key1 through async, then key2 directly
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+run_test    "SSL async private: error in resume then fall back to transparent key" \
+            "$P_SRV key_file=data_files/server5.key crt_file=data_files/server5.crt \
+             key_file2=data_files/server2.key crt_file2=data_files/server2.crt \
+             async_private_delay1=1 async_private_error=-3" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256;
+             [ \$? -eq 1 ] &&
+             $P_CLI force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA256" \
+            0 \
+            -s "Async resume" \
+            -s "! mbedtls_ssl_handshake returned" \
+            -s "Async sign callback: no key matches this certificate." \
+            -s "Successful connection"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "SSL async private: renegotiation: client-initiated" \
             "$P_SRV async_private_delay1=1 async_private_delay2=1

@@ -28,6 +28,12 @@ Features
      The following functions from the ECDSA module can be replaced
      with alternative implementation:
      mbedtls_ecdsa_sign(), mbedtls_ecdsa_verify() and mbedtls_ecdsa_genkey().
+   * Add support for alternative implementation for ECDH, controlled by new
+     configuration flags MBEDTLS_ECDH_COMPUTE_SHARED_ALT and
+     MBEDTLS_ECDH_GEN_PUBLIC_ALT in config.h.
+     The following functions from the ECDH module can be replaced
+     with an alternative implementation:
+     mbedtls_ecdh_gen_public() and mbedtls_ecdh_compute_shared().
 
 New deprecations
    * Deprecate usage of RSA primitives with non-matching key-type

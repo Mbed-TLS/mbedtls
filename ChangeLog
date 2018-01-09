@@ -38,6 +38,9 @@ Security
      corrupt 6 bytes on the peer's heap, potentially leading to crash or
      remote code execution. This can be triggered remotely from either
      side in both TLS and DTLS.
+   * Fix a potential heap buffer overread in ALPN extension parsing
+     (server-side). Could result in application crash, but only if an ALPN
+     name larger than 16 bytes had been configured on the server.
 
 Features
    * Allow comments in test data files.

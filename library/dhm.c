@@ -91,6 +91,9 @@ static int dhm_read_bignum( mpi *X,
  *
  * Parameter should be: 2 <= public_param <= P - 2
  *
+ * This means that we need to return an error if
+ *              public_param < 2 or public_param > P-2
+ *
  * For more information on the attack, see:
  *  http://www.cl.cam.ac.uk/~rja14/Papers/psandqs.pdf
  *  http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2005-2643
@@ -98,17 +101,17 @@ static int dhm_read_bignum( mpi *X,
 static int dhm_check_range( const mpi *param, const mpi *P )
 {
     mpi L, U;
-    int ret = POLARSSL_ERR_DHM_BAD_INPUT_DATA;
+    int ret = 0;
 
     mpi_init( &L ); mpi_init( &U );
 
     MPI_CHK( mpi_lset( &L, 2 ) );
     MPI_CHK( mpi_sub_int( &U, P, 2 ) );
 
-    if( mpi_cmp_mpi( param, &L ) >= 0 &&
-        mpi_cmp_mpi( param, &U ) <= 0 )
+    if( mpi_cmp_mpi( param, &L ) < 0 ||
+        mpi_cmp_mpi( param, &U ) > 0 )
     {
-        ret = 0;
+        ret = POLARSSL_ERR_DHM_BAD_INPUT_DATA;
     }
 
 cleanup:
@@ -532,7 +535,10 @@ static int load_file( const char *path, unsigned char **buf, size_t *n )
     if( fread( *buf, 1, *n, f ) != *n )
     {
         fclose( f );
+
+        polarssl_zeroize( *buf, *n + 1 );
         polarssl_free( *buf );
+
         return( POLARSSL_ERR_DHM_FILE_IO_ERROR );
     }
 

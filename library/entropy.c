@@ -169,6 +169,8 @@ static int entropy_update( entropy_context *ctx, unsigned char source_id,
     sha256_update( &ctx->accumulator, p, use_len );
 #endif
 
+    polarssl_zeroize( tmp, sizeof( tmp ) );
+
     return( 0 );
 }
 
@@ -197,12 +199,10 @@ int entropy_update_manual( entropy_context *ctx,
  */
 static int entropy_gather_internal( entropy_context *ctx )
 {
-    int ret, i;
+    int ret = POLARSSL_ERR_ENTROPY_NO_SOURCES_DEFINED;
+    int i;
     unsigned char buf[ENTROPY_MAX_GATHER];
     size_t olen;
-
-    if( ctx->source_count == 0 )
-        return( POLARSSL_ERR_ENTROPY_NO_SOURCES_DEFINED );
 
     /*
      * Run through our entropy sources
@@ -213,7 +213,7 @@ static int entropy_gather_internal( entropy_context *ctx )
         if( ( ret = ctx->source[i].f_source( ctx->source[i].p_source,
                         buf, ENTROPY_MAX_GATHER, &olen ) ) != 0 )
         {
-            return( ret );
+            goto cleanup;
         }
 
         /*
@@ -226,7 +226,10 @@ static int entropy_gather_internal( entropy_context *ctx )
         }
     }
 
-    return( 0 );
+cleanup:
+    polarssl_zeroize( buf, sizeof( buf ) );
+
+    return( ret );
 }
 
 /*
@@ -327,6 +330,8 @@ int entropy_func( void *data, unsigned char *output, size_t len )
     ret = 0;
 
 exit:
+    polarssl_zeroize( buf, sizeof( buf ) );
+
 #if defined(POLARSSL_THREADING_C)
     if( polarssl_mutex_unlock( &ctx->mutex ) != 0 )
         return( POLARSSL_ERR_THREADING_MUTEX_ERROR );
@@ -357,12 +362,15 @@ int entropy_write_seed_file( entropy_context *ctx, const char *path )
     ret = 0;
 
 exit:
+    polarssl_zeroize( buf, sizeof( buf ) );
+
     fclose( f );
     return( ret );
 }
 
 int entropy_update_seed_file( entropy_context *ctx, const char *path )
 {
+    int ret = 0;
     FILE *f;
     size_t n;
     unsigned char buf[ ENTROPY_MAX_SEED_SIZE ];
@@ -378,14 +386,16 @@ int entropy_update_seed_file( entropy_context *ctx, const char *path )
         n = ENTROPY_MAX_SEED_SIZE;
 
     if( fread( buf, 1, n, f ) != n )
-    {
-        fclose( f );
-        return( POLARSSL_ERR_ENTROPY_FILE_IO_ERROR );
-    }
+        ret = POLARSSL_ERR_ENTROPY_FILE_IO_ERROR;
+    else
+        ret = entropy_update_manual( ctx, buf, n );
 
     fclose( f );
 
-    entropy_update_manual( ctx, buf, n );
+    polarssl_zeroize( buf, sizeof( buf ) );
+
+    if( ret != 0 )
+        return( ret );
 
     return( entropy_write_seed_file( ctx, path ) );
 }

@@ -217,6 +217,7 @@ void md2( const unsigned char *input, size_t ilen, unsigned char output[16] )
  */
 int md2_file( const char *path, unsigned char output[16] )
 {
+    int ret = 0;
     FILE *f;
     size_t n;
     md2_context ctx;
@@ -231,17 +232,16 @@ int md2_file( const char *path, unsigned char output[16] )
     while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
         md2_update( &ctx, buf, n );
 
-    md2_finish( &ctx, output );
-    md2_free( &ctx );
-
     if( ferror( f ) != 0 )
-    {
-        fclose( f );
-        return( POLARSSL_ERR_MD2_FILE_IO_ERROR );
-    }
+        ret = POLARSSL_ERR_MD2_FILE_IO_ERROR;
+    else
+        md2_finish( &ctx, output );
 
+    md2_free( &ctx );
+    polarssl_zeroize( buf, sizeof( buf ) );
     fclose( f );
-    return( 0 );
+
+    return( ret );
 }
 #endif /* POLARSSL_FS_IO */
 

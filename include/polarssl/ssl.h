@@ -303,7 +303,7 @@
 #define SSL_COMPRESSION_ADD             0
 #endif
 
-#if defined(POLARSSL_RC4_C) || defined(POLARSSL_CIPHER_MODE_CBC)
+#if defined(POLARSSL_ARC4_C) || defined(POLARSSL_CIPHER_MODE_CBC)
 /* Ciphersuites using HMAC */
 #if defined(POLARSSL_SHA512_C)
 #define SSL_MAC_ADD                 48  /* SHA-384 used for HMAC */
@@ -2061,9 +2061,9 @@ int ssl_check_cert_usage( const x509_crt *cert,
 static inline int safer_memcmp( const void *a, const void *b, size_t n )
 {
     size_t i;
-    const unsigned char *A = (const unsigned char *) a;
-    const unsigned char *B = (const unsigned char *) b;
-    unsigned char diff = 0;
+    volatile const unsigned char *A = (volatile const unsigned char *) a;
+    volatile const unsigned char *B = (volatile const unsigned char *) b;
+    volatile unsigned char diff = 0;
 
     for( i = 0; i < n; i++ )
         diff |= A[i] ^ B[i];

@@ -1050,9 +1050,12 @@ int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex )
 /*
  * SSLv3.0 MAC functions
  */
-static void ssl_mac( md_context_t *md_ctx, unsigned char *secret,
-                     unsigned char *buf, size_t len,
-                     unsigned char *ctr, int type )
+#define SSL_MAC_MAX_BYTES   20  /* MD-5 or SHA-1 */
+static void ssl_mac( md_context_t *md_ctx,
+                     const unsigned char *secret,
+                     const unsigned char *buf, size_t len,
+                     const unsigned char *ctr, int type,
+                     unsigned char out[SSL_MAC_MAX_BYTES] )
 {
     unsigned char header[11];
     unsigned char padding[48];
@@ -1077,14 +1080,14 @@ static void ssl_mac( md_context_t *md_ctx, unsigned char *secret,
     md_update( md_ctx, padding, padlen  );
     md_update( md_ctx, header,  11      );
     md_update( md_ctx, buf,     len     );
-    md_finish( md_ctx, buf +    len     );
+    md_finish( md_ctx, out              );
 
     memset( padding, 0x5C, padlen );
     md_starts( md_ctx );
     md_update( md_ctx, secret,    md_size );
     md_update( md_ctx, padding,   padlen  );
-    md_update( md_ctx, buf + len, md_size );
-    md_finish( md_ctx, buf + len          );
+    md_update( md_ctx, out,       md_size );
+    md_finish( md_ctx, out                );
 }
 #endif /* POLARSSL_SSL_PROTO_SSL3 */
 
@@ -1130,10 +1133,15 @@ static int ssl_encrypt_buf( ssl_context *ssl )
 #if defined(POLARSSL_SSL_PROTO_SSL3)
         if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
         {
+            unsigned char mac[SSL_MAC_MAX_BYTES];
+
             ssl_mac( &ssl->transform_out->md_ctx_enc,
                       ssl->transform_out->mac_enc,
                       ssl->out_msg, ssl->out_msglen,
-                      ssl->out_ctr, ssl->out_msgtype );
+                      ssl->out_ctr, ssl->out_msgtype,
+                      mac );
+
+            memcpy( ssl->out_msg + ssl->out_msglen, mac, ssl->transform_out->maclen );
         }
         else
 #endif
@@ -1141,12 +1149,16 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         defined(POLARSSL_SSL_PROTO_TLS1_2)
         if( ssl->minor_ver >= SSL_MINOR_VERSION_1 )
         {
+            unsigned char mac[SSL_MAC_ADD];
+
             md_hmac_update( &ssl->transform_out->md_ctx_enc, ssl->out_ctr, 13 );
             md_hmac_update( &ssl->transform_out->md_ctx_enc,
                              ssl->out_msg, ssl->out_msglen );
-            md_hmac_finish( &ssl->transform_out->md_ctx_enc,
-                             ssl->out_msg + ssl->out_msglen );
+            md_hmac_finish( &ssl->transform_out->md_ctx_enc, mac );
             md_hmac_reset( &ssl->transform_out->md_ctx_enc );
+
+            memcpy( ssl->out_msg + ssl->out_msglen, mac,
+                    ssl->transform_out->maclen );
         }
         else
 #endif
@@ -1155,7 +1167,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
 
-        SSL_DEBUG_BUF( 4, "computed mac",
+        SSL_DEBUG_BUF( 4, "expected mac",
                        ssl->out_msg + ssl->out_msglen,
                        ssl->transform_out->maclen );
 
@@ -1419,8 +1431,6 @@ static int ssl_encrypt_buf( ssl_context *ssl )
     return( 0 );
 }
 
-#define POLARSSL_SSL_MAX_MAC_SIZE   48
-
 static int ssl_decrypt_buf( ssl_context *ssl )
 {
     size_t i;
@@ -1588,7 +1598,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 #if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
         if( ssl->session_in->encrypt_then_mac == SSL_ETM_ENABLED )
         {
-            unsigned char computed_mac[POLARSSL_SSL_MAX_MAC_SIZE];
+            unsigned char mac_expect[SSL_MAC_ADD];
             unsigned char pseudo_hdr[13];
 
             SSL_DEBUG_MSG( 3, ( "using encrypt then mac" ) );
@@ -1606,15 +1616,15 @@ static int ssl_decrypt_buf( ssl_context *ssl )
             md_hmac_update( &ssl->transform_in->md_ctx_dec, pseudo_hdr, 13 );
             md_hmac_update( &ssl->transform_in->md_ctx_dec,
                              ssl->in_iv, ssl->in_msglen );
-            md_hmac_finish( &ssl->transform_in->md_ctx_dec, computed_mac );
+            md_hmac_finish( &ssl->transform_in->md_ctx_dec, mac_expect );
             md_hmac_reset( &ssl->transform_in->md_ctx_dec );
 
             SSL_DEBUG_BUF( 4, "message  mac", ssl->in_iv + ssl->in_msglen,
                                               ssl->transform_in->maclen );
-            SSL_DEBUG_BUF( 4, "computed mac", computed_mac,
+            SSL_DEBUG_BUF( 4, "expected mac", mac_expect,
                                               ssl->transform_in->maclen );
 
-            if( safer_memcmp( ssl->in_iv + ssl->in_msglen, computed_mac,
+            if( safer_memcmp( ssl->in_iv + ssl->in_msglen, mac_expect,
                               ssl->transform_in->maclen ) != 0 )
             {
                 SSL_DEBUG_MSG( 1, ( "message mac does not match" ) );
@@ -1775,14 +1785,12 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 #if defined(POLARSSL_SOME_MODES_USE_MAC)
     if( auth_done == 0 )
     {
-        unsigned char tmp[POLARSSL_SSL_MAX_MAC_SIZE];
+        unsigned char mac_expect[SSL_MAC_ADD];
 
         ssl->in_msglen -= ssl->transform_in->maclen;
 
         ssl->in_hdr[3] = (unsigned char)( ssl->in_msglen >> 8 );
         ssl->in_hdr[4] = (unsigned char)( ssl->in_msglen      );
-
-        memcpy( tmp, ssl->in_msg + ssl->in_msglen, ssl->transform_in->maclen );
 
 #if defined(POLARSSL_SSL_PROTO_SSL3)
         if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
@@ -1790,7 +1798,8 @@ static int ssl_decrypt_buf( ssl_context *ssl )
             ssl_mac( &ssl->transform_in->md_ctx_dec,
                       ssl->transform_in->mac_dec,
                       ssl->in_msg, ssl->in_msglen,
-                      ssl->in_ctr, ssl->in_msgtype );
+                      ssl->in_ctr, ssl->in_msgtype,
+                      mac_expect );
         }
         else
 #endif /* POLARSSL_SSL_PROTO_SSL3 */
@@ -1820,8 +1829,8 @@ static int ssl_decrypt_buf( ssl_context *ssl )
             md_hmac_update( &ssl->transform_in->md_ctx_dec, ssl->in_ctr, 13 );
             md_hmac_update( &ssl->transform_in->md_ctx_dec, ssl->in_msg,
                              ssl->in_msglen );
-            md_hmac_finish( &ssl->transform_in->md_ctx_dec,
-                             ssl->in_msg + ssl->in_msglen );
+            md_hmac_finish( &ssl->transform_in->md_ctx_dec, mac_expect );
+
             /* Call md_process at least once due to cache attacks */
             for( j = 0; j < extra_run + 1; j++ )
                 md_process( &ssl->transform_in->md_ctx_dec, ssl->in_msg );
@@ -1836,11 +1845,11 @@ static int ssl_decrypt_buf( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
 
-        SSL_DEBUG_BUF( 4, "message  mac", tmp, ssl->transform_in->maclen );
-        SSL_DEBUG_BUF( 4, "computed mac", ssl->in_msg + ssl->in_msglen,
+        SSL_DEBUG_BUF( 4, "expected mac", mac_expect, ssl->transform_in->maclen );
+        SSL_DEBUG_BUF( 4, "message  mac", ssl->in_msg + ssl->in_msglen,
                        ssl->transform_in->maclen );
 
-        if( safer_memcmp( tmp, ssl->in_msg + ssl->in_msglen,
+        if( safer_memcmp( ssl->in_msg + ssl->in_msglen, mac_expect,
                          ssl->transform_in->maclen ) != 0 )
         {
 #if defined(POLARSSL_SSL_DEBUG_ALL)
@@ -4140,12 +4149,19 @@ int ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
     }
 
-    if( ssl->psk != NULL || ssl->psk_identity != NULL )
+    if( ssl->psk != NULL )
     {
+        polarssl_zeroize( ssl->psk, ssl->psk_len );
+
         polarssl_free( ssl->psk );
-        polarssl_free( ssl->psk_identity );
         ssl->psk = NULL;
+        ssl->psk_len = 0;
+    }
+    if( ssl->psk_identity != NULL )
+    {
+        polarssl_free( ssl->psk_identity );
         ssl->psk_identity = NULL;
+        ssl->psk_identity_len = 0;
     }
 
     if( ( ssl->psk = polarssl_malloc( psk_len ) ) == NULL ||

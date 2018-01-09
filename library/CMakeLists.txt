@@ -117,7 +117,7 @@ endif()
 
 if(USE_SHARED_MBEDTLS_LIBRARY)
 	add_library(mbedtls SHARED ${src})
-	set_target_properties(mbedtls PROPERTIES VERSION 1.3.21 SOVERSION 9)
+	set_target_properties(mbedtls PROPERTIES VERSION 1.3.22 SOVERSION 9)
 
 	target_link_libraries(mbedtls ${libs})
 

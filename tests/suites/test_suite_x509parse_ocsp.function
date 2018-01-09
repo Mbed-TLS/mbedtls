@@ -12,7 +12,7 @@
 void x509parse_ocsp_response( char *resp_data, char *result_str, int result )
 {
     mbedtls_x509_ocsp_response resp;
-    unsigned char resp_der[2000];
+    unsigned char resp_der[3000];
     char resp_info[2000];
     int data_len, ret;
 

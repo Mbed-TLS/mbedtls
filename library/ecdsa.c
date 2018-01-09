@@ -65,6 +65,7 @@ cleanup:
     return( ret );
 }
 
+#if !defined(MBEDTLS_ECDSA_SIGN_ALT)
 /*
  * Compute ECDSA signature of a hashed message (SEC1 4.1.3)
  * Obviously, compared to SEC1 4.1.3, we skip step 4 (hash message)
@@ -157,6 +158,7 @@ cleanup:
 
     return( ret );
 }
+#endif /* MBEDTLS_ECDSA_SIGN_ALT */
 
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
 /*
@@ -196,6 +198,7 @@ cleanup:
 }
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
+#if !defined(MBEDTLS_ECDSA_VERIFY_ALT)
 /*
  * Verify ECDSA signature of hashed message (SEC1 4.1.4)
  * Obviously, compared to SEC1 4.1.3, we skip step 2 (hash message)
@@ -281,6 +284,7 @@ cleanup:
 
     return( ret );
 }
+#endif /* MBEDTLS_ECDSA_VERIFY_ALT */
 
 /*
  * Convert a signature (given by context) to ASN.1
@@ -406,6 +410,7 @@ cleanup:
     return( ret );
 }
 
+#if !defined(MBEDTLS_ECDSA_GENKEY_ALT)
 /*
  * Generate key pair
  */
@@ -415,6 +420,7 @@ int mbedtls_ecdsa_genkey( mbedtls_ecdsa_context *ctx, mbedtls_ecp_group_id gid,
     return( mbedtls_ecp_group_load( &ctx->grp, gid ) ||
             mbedtls_ecp_gen_keypair( &ctx->grp, &ctx->d, &ctx->Q, f_rng, p_rng ) );
 }
+#endif /* MBEDTLS_ECDSA_GENKEY_ALT */
 
 /*
  * Set context from an mbedtls_ecp_keypair

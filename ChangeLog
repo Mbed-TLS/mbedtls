@@ -22,6 +22,12 @@ Features
      MBEDTLS_CMAC_ALT). Submitted by Steve Cooreman, Silicon Labs.
    * Add support for alternative implementations of GCM, selected by the
      configuration flag MBEDTLS_GCM_ALT.
+   * Add support for alternative implementations for ECDSA, controlled by new
+     configuration flags MBEDTLS_ECDSA_SIGN_ALT, MBEDTLS_ECDSA_VERIFY_ALT and
+     MBEDTLS_ECDSDA_GENKEY_AT in config.h.
+     The following functions from the ECDSA module can be replaced
+     with alternative implementation:
+     mbedtls_ecdsa_sign(), mbedtls_ecdsa_verify() and mbedtls_ecdsa_genkey().
 
 New deprecations
    * Deprecate usage of RSA primitives with non-matching key-type

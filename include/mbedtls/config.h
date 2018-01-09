@@ -267,6 +267,7 @@
 //#define MBEDTLS_BLOWFISH_ALT
 //#define MBEDTLS_CAMELLIA_ALT
 //#define MBEDTLS_DES_ALT
+//#define MBEDTLS_DHM_ALT
 //#define MBEDTLS_XTEA_ALT
 //#define MBEDTLS_MD2_ALT
 //#define MBEDTLS_MD4_ALT
@@ -275,7 +276,7 @@
 //#define MBEDTLS_SHA1_ALT
 //#define MBEDTLS_SHA256_ALT
 //#define MBEDTLS_SHA512_ALT
-//#define MBEDTLS_DHM_ALT
+
 
 /*
  * When replacing the elliptic curve module, pleace consider, that it is

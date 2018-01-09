@@ -30,6 +30,9 @@ Security
      Reported by Marco Macchetti, Kudelski Group.
    * Wipe stack buffer temporarily holding EC private exponent
      after keypair generation.
+   * Fix a potential heap buffer overread in ALPN extension parsing
+     (server-side). Could result in application crash, but only if an ALPN
+     name larger than 16 bytes had been configured on the server.
 
 Features
    * Allow comments in test data files.

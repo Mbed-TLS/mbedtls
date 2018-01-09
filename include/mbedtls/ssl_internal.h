@@ -24,6 +24,7 @@
 #define MBEDTLS_SSL_INTERNAL_H
 
 #include "ssl.h"
+#include "cipher.h"
 
 #if defined(MBEDTLS_MD5_C)
 #include "md5.h"
@@ -134,12 +135,32 @@
 #define MBEDTLS_SSL_PADDING_ADD              0
 #endif
 
-#define MBEDTLS_SSL_BUFFER_LEN  ( MBEDTLS_SSL_MAX_CONTENT_LEN               \
-                        + MBEDTLS_SSL_COMPRESSION_ADD               \
-                        + 29 /* counter + header + IV */    \
-                        + MBEDTLS_SSL_MAC_ADD                       \
-                        + MBEDTLS_SSL_PADDING_ADD                   \
+#define MBEDTLS_SSL_PAYLOAD_LEN ( MBEDTLS_SSL_MAX_CONTENT_LEN    \
+                        + MBEDTLS_SSL_COMPRESSION_ADD            \
+                        + MBEDTLS_MAX_IV_LENGTH                  \
+                        + MBEDTLS_SSL_MAC_ADD                    \
+                        + MBEDTLS_SSL_PADDING_ADD                \
                         )
+
+/*
+ * Check that we obey the standard's message size bounds
+ */
+
+#if MBEDTLS_SSL_MAX_CONTENT_LEN > 16384
+#error Bad configuration - record content too large.
+#endif
+
+#if MBEDTLS_SSL_PAYLOAD_LEN > 16384 + 2048
+#error Bad configuration - protected record payload too large.
+#endif
+
+/* Note: Even though the TLS record header is only 5 bytes
+   long, we're internally using 8 bytes to store the
+   implicit sequence number. */
+#define MBEDTLS_SSL_HEADER_LEN 13
+
+#define MBEDTLS_SSL_BUFFER_LEN  \
+    ( ( MBEDTLS_SSL_HEADER_LEN ) + ( MBEDTLS_SSL_PAYLOAD_LEN ) )
 
 /*
  * TLS extension flags (for extensions with outgoing ServerHello content
@@ -584,9 +605,9 @@ void mbedtls_ssl_dtls_replay_update( mbedtls_ssl_context *ssl );
 static inline int mbedtls_ssl_safer_memcmp( const void *a, const void *b, size_t n )
 {
     size_t i;
-    const unsigned char *A = (const unsigned char *) a;
-    const unsigned char *B = (const unsigned char *) b;
-    unsigned char diff = 0;
+    volatile const unsigned char *A = (volatile const unsigned char *) a;
+    volatile const unsigned char *B = (volatile const unsigned char *) b;
+    volatile unsigned char diff = 0;
 
     for( i = 0; i < n; i++ )
         diff |= A[i] ^ B[i];

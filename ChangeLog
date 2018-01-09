@@ -1,8 +1,15 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.1.10 branch released xxxx-xx-xx
+= mbed TLS 2.1.10 branch released 2017-xx-xx
 
 Security
+   * Fix buffer overflow in RSA-PSS verification when the hash is too
+     large for the key size. Found by Seth Terashima, Qualcomm Product
+     Security Initiative, Qualcomm Technologies Inc.
+   * Fix buffer overflow in RSA-PSS verification when the unmasked
+     data is all zeros.
+   * Fix unsafe bounds check in ssl_parse_client_psk_identity() when adding
+     64kB to the address of the SSL buffer wraps around.
    * Fix a potential heap buffer overflow in mbedtls_ssl_write. When the (by
      default enabled) maximum fragment length extension is disabled in the
      config and the application data buffer passed to mbedtls_ssl_write
@@ -11,6 +18,26 @@ Security
      application layer can be forced into sending such large packets. The issue
      was independently reported by Tim Nordell via e-mail and by Florin Petriuc
      and sjorsdewit on GitHub. Fix proposed by Florin Petriuc in #1022. Fixes #707.
+   * Tighten should-be-constant-time memcmp against compiler optimizations.
+   * Ensure that buffers are cleared after use if they contain sensitive data.
+     Changes were introduced in multiple places in the library.
+   * Set PEM buffer to zero before freeing it, to avoid decoded private keys
+     being leaked to memory after release.
+   * Fix dhm_check_range() failing to detect trivial subgroups and potentially
+     leaking 1 bit of the private key. Reported by prashantkspatil.
+   * Make mbedtls_mpi_read_binary constant-time with respect to
+     the input data. Previously, trailing zero bytes were detected
+     and omitted for the sake of saving memory, but potentially
+     leading to slight timing differences.
+     Reported by Marco Macchetti, Kudelski Group.
+   * Wipe stack buffer temporarily holding EC private exponent
+     after keypair generation.
+   * Fix heap corruption in implementation of truncated HMAC extension.
+     When the truncated HMAC extension is enabled and CBC is used,
+     sending a malicious application packet can be used to selectively
+     corrupt 6 bytes on the peer's heap, potentially leading to crash or
+     remote code execution. This can be triggered remotely from either
+     side in both TLS and DTLS.
 
 Features
    * Allow comments in test data files.
@@ -20,6 +47,8 @@ Features
      heavily-loaded machine.
 
 Bugfix
+   * Fix some invalid RSA-PSS signatures with keys of size 8N+1 that were
+     accepted. Generating these signatures required the private key.
    * Fix ssl_parse_record_header() to silently discard invalid DTLS records
      as recommended in RFC 6347 Section 4.1.2.7.
    * Fix memory leak in mbedtls_ssl_set_hostname() when called multiple times.
@@ -55,6 +84,8 @@ Bugfix
    * Add a check for invalid private parameters in ecdsa_sign.
      Reported by Yolan Romailler.
    * Fix word size check in in pk.c to not depend on MBEDTLS_HAVE_INT64.
+   * Add size-checks for record and handshake message content, securing
+     fragile yet non-exploitable code-paths.
    * Fix crash when calling mbedtls_ssl_cache_free() twice. Found by
      MilenkoMitrovic, #1104
    * Fix mbedtls_timing_alarm(0) on Unix.

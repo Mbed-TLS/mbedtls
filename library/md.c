@@ -312,12 +312,11 @@ int mbedtls_md_file( const mbedtls_md_info_t *md_info, const char *path, unsigne
         md_info->update_func( ctx.md_ctx, buf, n );
 
     if( ferror( f ) != 0 )
-    {
         ret = MBEDTLS_ERR_MD_FILE_IO_ERROR;
-        goto cleanup;
-    }
+    else
+        md_info->finish_func( ctx.md_ctx, output );
 
-    md_info->finish_func( ctx.md_ctx, output );
+    mbedtls_zeroize( buf, sizeof( buf ) );
 
 cleanup:
     fclose( f );

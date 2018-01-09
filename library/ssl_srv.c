@@ -603,32 +603,40 @@ static int ssl_parse_alpn_ext( mbedtls_ssl_context *ssl,
     }
 
     /*
-     * Use our order of preference
+     * Validate peer's list (lengths)
      */
     start = buf + 2;
     end = buf + len;
+    for( theirs = start; theirs != end; theirs += cur_len )
+    {
+        cur_len = *theirs++;
+
+        /* Current identifier must fit in list */
+        if( cur_len > (size_t)( end - theirs ) )
+        {
+            mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                            MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
+        }
+
+        /* Empty strings MUST NOT be included */
+        if( cur_len == 0 )
+        {
+            mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                            MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
+        }
+    }
+
+    /*
+     * Use our order of preference
+     */
     for( ours = ssl->conf->alpn_list; *ours != NULL; ours++ )
     {
         ours_len = strlen( *ours );
         for( theirs = start; theirs != end; theirs += cur_len )
         {
-            /* If the list is well formed, we should get equality first */
-            if( theirs > end )
-            {
-                mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                                MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
-                return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
-            }
-
             cur_len = *theirs++;
-
-            /* Empty strings MUST NOT be included */
-            if( cur_len == 0 )
-            {
-                mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                                MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
-                return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
-            }
 
             if( cur_len == ours_len &&
                 memcmp( theirs, *ours, cur_len ) == 0 )

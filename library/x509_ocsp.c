@@ -369,7 +369,8 @@ static int x509_ocsp_get_generalized_time( unsigned char **p,
     tag = **p;
 
     if( tag != MBEDTLS_ASN1_GENERALIZED_TIME )
-        return( MBEDTLS_ERR_X509_INVALID_FORMAT );
+        return( MBEDTLS_ERR_X509_INVALID_DATE +
+                MBEDTLS_ERR_ASN1_UNEXPECTED_TAG );
 
     if( ( ret = mbedtls_x509_get_time( p, end, t ) ) != 0 )
         return( ret );

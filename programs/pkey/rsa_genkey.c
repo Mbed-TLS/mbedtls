@@ -74,6 +74,7 @@ int main( void )
     fflush( stdout );
 
     entropy_init( &entropy );
+    rsa_init( &rsa, RSA_PKCS_V15, 0 );
     if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
@@ -85,7 +86,6 @@ int main( void )
     polarssl_printf( " ok\n  . Generating the RSA key [ %d-bit ]...", KEY_SIZE );
     fflush( stdout );
 
-    rsa_init( &rsa, RSA_PKCS_V15, 0 );
 
     if( ( ret = rsa_gen_key( &rsa, ctr_drbg_random, &ctr_drbg, KEY_SIZE,
                              EXPONENT ) ) != 0 )

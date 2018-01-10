@@ -215,6 +215,7 @@
     <ClInclude Include="..\..\include\mbedtls\x509_crl.h" />
     <ClInclude Include="..\..\include\mbedtls\x509_crt.h" />
     <ClInclude Include="..\..\include\mbedtls\x509_csr.h" />
+    <ClInclude Include="..\..\include\mbedtls\x509_ocsp.h" />
     <ClInclude Include="..\..\include\mbedtls\xtea.h" />
   </ItemGroup>
   <ItemGroup>
@@ -286,6 +287,7 @@
     <ClCompile Include="..\..\library\x509_crl.c" />
     <ClCompile Include="..\..\library\x509_crt.c" />
     <ClCompile Include="..\..\library\x509_csr.c" />
+    <ClCompile Include="..\..\library\x509_ocsp.c" />
     <ClCompile Include="..\..\library\x509write_crt.c" />
     <ClCompile Include="..\..\library\x509write_csr.c" />
     <ClCompile Include="..\..\library\xtea.c" />

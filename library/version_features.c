@@ -645,6 +645,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_X509_CSR_PARSE_C)
     "MBEDTLS_X509_CSR_PARSE_C",
 #endif /* MBEDTLS_X509_CSR_PARSE_C */
+#if defined(MBEDTLS_X509_OCSP_PARSE_C)
+    "MBEDTLS_X509_OCSP_PARSE_C",
+#endif /* MBEDTLS_X509_OCSP_PARSE_C */
 #if defined(MBEDTLS_X509_CREATE_C)
     "MBEDTLS_X509_CREATE_C",
 #endif /* MBEDTLS_X509_CREATE_C */

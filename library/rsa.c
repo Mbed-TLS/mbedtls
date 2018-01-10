@@ -104,7 +104,7 @@ int mbedtls_rsa_import_raw( mbedtls_rsa_context *ctx,
                             unsigned char const *D, size_t D_len,
                             unsigned char const *E, size_t E_len )
 {
-    int ret;
+    int ret = 0;
 
     if( N != NULL )
     {

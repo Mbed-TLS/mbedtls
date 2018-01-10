@@ -379,7 +379,14 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
                  i < ( 16 - ctx->data_remain + length ); 
                  i++ )
             {
+                if( ctx->mode == MBEDTLS_GCM_DECRYPT )
+                  	ctx->buf[i] ^= p[pre_len];
+                
                 out_p[pre_len] = ctx->ectr_remain[i] ^ p[pre_len];
+                
+                if( ctx->mode == MBEDTLS_GCM_ENCRYPT )
+                	ctx->buf[i] ^= out_p[pre_len];
+
                 pre_len++;
             }
             ctx->data_remain -= length;
@@ -390,9 +397,19 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
         {
             for( i = ( 16 - ctx->data_remain ); i < 16; i++ )
             {
+            	if( ctx->mode == MBEDTLS_GCM_DECRYPT ){
+                	ctx->buf[i] ^= p[pre_len];
+                }
+                
                 out_p[pre_len] = ctx->ectr_remain[i] ^ p[pre_len];
+                if( ctx->mode == MBEDTLS_GCM_ENCRYPT ){
+                	ctx->buf[i] ^= out_p[pre_len];
+                }
                 pre_len++;
             }
+            if( ctx->data_remain != 0 ){
+            	gcm_mult( ctx, ctx->buf, ctx->buf );
+          	}
         }
         ctx->data_remain = 0;
     }
@@ -426,13 +443,15 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
             if( ctx->mode == MBEDTLS_GCM_ENCRYPT )
                 ctx->buf[i] ^= out_p[i+pre_len];
         }
-
-        gcm_mult( ctx, ctx->buf, ctx->buf );
+        ctx->data_remain = 16 - use_len;
+		if( ctx->data_remain == 0 ){
+	        gcm_mult( ctx, ctx->buf, ctx->buf );
+	    }
 
         length -= use_len;
         p += use_len;
         out_p += use_len;
-        ctx->data_remain = 16 - use_len;
+
     }
 
     if( ctx->data_remain == 0 )
@@ -449,6 +468,11 @@ int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
     size_t i;
     uint64_t orig_len = ctx->len * 8;
     uint64_t orig_add_len = ctx->add_len * 8;
+
+	if( ctx->data_remain != 0 )
+	{
+	    gcm_mult( ctx, ctx->buf, ctx->buf );
+	}
 
     if( tag_len > 16 || tag_len < 4 )
         return( MBEDTLS_ERR_GCM_BAD_INPUT );

@@ -793,8 +793,9 @@ int mbedtls_cipher_check_tag( mbedtls_cipher_context_t *ctx,
         }
 
         /* Check the tag in "constant-time" */
-        for( diff = 0, i = 0; i < tag_len; i++ )
+        for( diff = 0, i = 0; i < tag_len; i++ ) {
             diff |= tag[i] ^ check_tag[i];
+        }
 
         if( diff != 0 )
             return( MBEDTLS_ERR_CIPHER_AUTH_FAILED );

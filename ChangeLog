@@ -97,6 +97,10 @@ Bugfix
    * Fix use of uninitialized memory in mbedtls_timing_get_timer when reset=1.
    * Fix possible memory leaks in mbedtls_gcm_self_test().
    * Added missing return code checks in mbedtls_aes_self_test().
+   * Fix issues in RSA key generation program programs/x509/rsa_genkey and the
+     RSA test suite where the failure of CTR DRBG initialization lead to
+     freeing an RSA context and several MPI's without proper initialization
+     beforehand.
 
 Changes
    * Extend cert_write example program by options to set the CRT version

@@ -171,11 +171,21 @@ sub gen_vsx_solution {
     content_to_file( $out, $vsx_sln_file );
 }
 
+sub del_vsx_files {
+    unlink glob "'$vsx_dir/*.$vsx_ext'";
+    unlink $vsx_main_file;
+    unlink $vsx_sln_file;
+}
+
 sub main {
     if( ! check_dirs() ) {
         chdir '..' or die;
         check_dirs or die "Must but run from mbedTLS root or scripts dir\n";
     }
+
+    # Remove old files to ensure that, for example, project files from deleted
+    # apps are not kept
+    del_vsx_files();
 
     my @app_list = get_app_list();
     my @headers = <$header_dir/*.h>;

@@ -3422,7 +3422,9 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
                                     size_t pms_offset )
 {
     int ret;
-    size_t len = mbedtls_pk_get_len( mbedtls_ssl_own_key( ssl ) );
+    mbedtls_pk_context *private_key = mbedtls_ssl_own_key( ssl );
+    mbedtls_pk_context *public_key = &mbedtls_ssl_own_cert( ssl )->pk;
+    size_t len = mbedtls_pk_get_len( public_key );
     unsigned char *pms = ssl->handshake->premaster + pms_offset;
     unsigned char ver[2];
     unsigned char fake_pms[48], peer_pms[48];
@@ -3430,14 +3432,8 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
     size_t i, peer_pmslen;
     unsigned int diff;
 
-    if( ! mbedtls_pk_can_do( mbedtls_ssl_own_key( ssl ), MBEDTLS_PK_RSA ) )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no RSA private key" ) );
-        return( MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED );
-    }
-
     /*
-     * Decrypt the premaster using own private RSA key
+     * Prepare to decrypt the premaster using own private RSA key
      */
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
@@ -3466,18 +3462,31 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
      * Protection against Bleichenbacher's attack: invalid PKCS#1 v1.5 padding
      * must not cause the connection to end immediately; instead, send a
      * bad_record_mac later in the handshake.
-     * Also, avoid data-dependant branches here to protect against
-     * timing-based variants.
+     * To protect against timing-based variants, always generate the fake
+     * premaster secret, so as to avoid data-dependant branches.
      */
     ret = ssl->conf->f_rng( ssl->conf->p_rng, fake_pms, sizeof( fake_pms ) );
     if( ret != 0 )
         return( ret );
 
-    ret = mbedtls_pk_decrypt( mbedtls_ssl_own_key( ssl ), p, len,
+    /*
+     * Decrypt the premaster secret
+     */
+    if( ! mbedtls_pk_can_do( private_key, MBEDTLS_PK_RSA ) )
+    {
+        /*  */
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no RSA private key" ) );
+        return( MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED );
+    }
+
+    ret = mbedtls_pk_decrypt( private_key, p, len,
                       peer_pms, &peer_pmslen,
                       sizeof( peer_pms ),
                       ssl->conf->f_rng, ssl->conf->p_rng );
 
+    /* Avoid data-dependent branches while checking for invalid
+     * padding, to protect against timing-based Bleichenbacher-type
+     * attacks. */
     diff  = (unsigned int) ret;
     diff |= peer_pmslen ^ 48;
     diff |= peer_pms[0] ^ ver[0];
@@ -3508,6 +3517,8 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
 #pragma warning( pop )
 #endif
 
+    /* Set pms to either the true or the fake PMS, without
+     * data-dependent branches. */
     for( i = 0; i < ssl->handshake->pmslen; i++ )
         pms[i] = ( mask & fake_pms[i] ) | ( (~mask) & peer_pms[i] );
 

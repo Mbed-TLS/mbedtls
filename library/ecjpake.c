@@ -1,6 +1,9 @@
-/*
- *  Elliptic curve J-PAKE
+/**
+ * \file ecjpake.c
  *
+ * \brief Elliptic curve J-PAKE
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

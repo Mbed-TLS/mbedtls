@@ -1,6 +1,9 @@
-/*
- *  FIPS-180-1 compliant SHA-1 implementation
+/**
+ * \file sha1.c
  *
+ * \brief FIPS-180-1 compliant SHA-1 implementation
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

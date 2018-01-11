@@ -1,6 +1,9 @@
-/*
- *  FIPS-46-3 compliant Triple-DES implementation
+/**
+ * \file des.c
  *
+ * \brief FIPS-46-3 compliant Triple-DES implementation
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

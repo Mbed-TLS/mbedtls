@@ -1,6 +1,9 @@
-/*
- *  SSL client with options
+/**
+ * \file ssl_server2.c
  *
+ * \brief SSL client with options
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

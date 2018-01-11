@@ -1,6 +1,9 @@
-/*
- *  RFC 1115/1319 compliant MD2 implementation
+/**
+ * \file md2.c
  *
+ * \brief RFC 1115/1319 compliant MD2 implementation
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

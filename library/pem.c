@@ -1,6 +1,9 @@
-/*
- *  Privacy Enhanced Mail (PEM) decoding
+/**
+ * \file pem.c
  *
+ * \brief Privacy Enhanced Mail (PEM) decoding
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

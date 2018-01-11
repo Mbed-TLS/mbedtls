@@ -1,6 +1,9 @@
-/*
- *  RSA simple decryption program
+/**
+ * \file rsa_decrypt.c
  *
+ * \brief RSA simple decryption program
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

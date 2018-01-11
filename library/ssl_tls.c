@@ -1,6 +1,9 @@
-/*
- *  SSLv3/TLSv1 shared functions
+/**
+ * \file ssl_tls.c
  *
+ * \brief SSLv3/TLSv1 shared functions
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

@@ -1,6 +1,9 @@
-/*
- *  Buffer-based memory allocator
+/**
+ * \file memory_buffer_alloc.c
  *
+ * \brief Buffer-based memory allocator
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

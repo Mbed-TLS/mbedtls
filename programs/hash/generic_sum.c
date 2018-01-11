@@ -1,6 +1,9 @@
-/*
- *  generic message digest layer demonstration program
+/**
+ * \file generic_sum.c
  *
+ * \brief generic message digest layer demonstration program
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

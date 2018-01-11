@@ -1,6 +1,9 @@
-/*
- *  Platform-specific and custom entropy polling functions
+/**
+ * \file entropy_poll.c
  *
+ * \brief Platform-specific and custom entropy polling functions
+ */
+/*
  *  Copyright (C) 2006-2016, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

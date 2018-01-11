@@ -1,6 +1,9 @@
-/*
- *  X.509 Certidicate Revocation List (CRL) parsing
+/**
+ * \file x509_crl.c
  *
+ * \brief X.509 Certidicate Revocation List (CRL) parsing
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

@@ -1,6 +1,9 @@
-/*
- *  SSL server demonstration program
+/**
+ * \file ssl_server.c
  *
+ * \brief SSL server demonstration program
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

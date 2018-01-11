@@ -1,6 +1,9 @@
-/*
- *  X.509 base functions for creating certificates / CSRs
+/**
+ * \file x509_create.c
  *
+ * \brief X.509 base functions for creating certificates / CSRs
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

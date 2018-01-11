@@ -2,7 +2,8 @@
  * \file sha1.h
  *
  * \brief SHA-1 cryptographic hash function
- *
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

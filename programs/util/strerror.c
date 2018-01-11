@@ -1,6 +1,9 @@
-/*
- *  Translate error code to error string
+/**
+ * \file strerror.c
  *
+ * \brief Translate error code to error string
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

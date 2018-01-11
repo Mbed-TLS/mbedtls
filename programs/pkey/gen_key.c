@@ -1,6 +1,9 @@
-/*
- *  Key generation application
+/**
+ * \file gen_key.c
  *
+ * \brief Key generation application
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

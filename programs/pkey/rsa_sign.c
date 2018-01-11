@@ -1,6 +1,9 @@
-/*
- *  RSA/SHA-256 signature creation program
+/**
+ * \file rsa_sign.c
  *
+ * \brief RSA/SHA-256 signature creation program
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

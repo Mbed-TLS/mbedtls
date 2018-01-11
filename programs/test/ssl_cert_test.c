@@ -1,6 +1,9 @@
-/*
- *  SSL certificate functionality tests
+/**
+ * \file ssl_cert_test.c
  *
+ * \brief SSL certificate functionality tests
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

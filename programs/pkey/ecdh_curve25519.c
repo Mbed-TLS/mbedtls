@@ -1,6 +1,9 @@
-/*
- *  Example ECDHE with Curve25519 program
+/**
+ * \file ecdh_curve25519.c
  *
+ * \brief Example ECDHE with Curve25519 program
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

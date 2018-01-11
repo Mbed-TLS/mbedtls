@@ -1,6 +1,9 @@
 /**
+ * \file gen_random_ctr_drbg.c
+ **
  *  \brief Use and generate random data into a file via the CTR_DBRG based on AES
- *
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

@@ -1,6 +1,9 @@
 /**
- *  \brief HAVEGE: HArdware Volatile Entropy Gathering and Expansion
+ * \file havege.c
  *
+ * \brief HAVEGE: HArdware Volatile Entropy Gathering and Expansion
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

@@ -1,6 +1,9 @@
-/*
- *  Windows CE console application entry point
+/**
+ * \file wince_main.c
  *
+ * \brief Windows CE console application entry point
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

@@ -1,6 +1,9 @@
-/*
- *  RSA simple data encryption program
+/**
+ * \file rsa_encrypt.c
  *
+ * \brief RSA simple data encryption program
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

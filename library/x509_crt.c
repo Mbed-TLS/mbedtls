@@ -1,6 +1,9 @@
-/*
- *  X.509 certificate parsing and verification
+/**
+ * \file x509_crt.c
  *
+ * \brief X.509 certificate parsing and verification
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

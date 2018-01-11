@@ -2,7 +2,8 @@
  * \file ripemd160.h
  *
  * \brief RIPE MD-160 message digest
- *
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

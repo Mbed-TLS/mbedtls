@@ -1,6 +1,9 @@
-/*
- *  An 32-bit implementation of the XTEA algorithm
+/**
+ * \file xtea.c
  *
+ * \brief An 32-bit implementation of the XTEA algorithm
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

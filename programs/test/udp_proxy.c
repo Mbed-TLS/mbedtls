@@ -1,6 +1,9 @@
-/*
- *  UDP proxy: emulate an unreliable UDP connexion for DTLS testing
+/**
+ * \file udp_proxy.c
  *
+ * \brief UDP proxy: emulate an unreliable UDP connexion for DTLS testing
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

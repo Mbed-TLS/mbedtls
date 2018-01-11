@@ -1,6 +1,9 @@
-/*
- *  AES-256 file encryption program
+/**
+ * \file aescrypt2.c
  *
+ * \brief AES-256 file encryption program
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

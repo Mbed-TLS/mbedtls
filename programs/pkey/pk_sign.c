@@ -1,6 +1,9 @@
-/*
- *  Public key-based signature creation program
+/**
+ * \file pk_sign.c
  *
+ * \brief Public key-based signature creation program
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

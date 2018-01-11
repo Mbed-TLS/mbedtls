@@ -2,7 +2,8 @@
  * \file sha512.h
  *
  * \brief SHA-384 and SHA-512 cryptographic hash function
- *
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

@@ -1,6 +1,9 @@
-/*
- *  Multi-precision integer library
+/**
+ * \file bignum.c
  *
+ * \brief Multi-precision integer library
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

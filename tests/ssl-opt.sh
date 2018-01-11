@@ -197,7 +197,7 @@ client_needs_more_time() {
     CLI_DELAY_FACTOR=$1
 }
 
-# wait for the given seconds after the client finished in the next test
+# wait for the given extra seconds after the client finished in the next test
 server_needs_more_time() {
     SRV_DELAY_SECONDS=$1
 }
@@ -359,7 +359,7 @@ wait_client_done() {
 
     echo "EXIT: $CLI_EXIT" >> $CLI_OUT
 
-    sleep $SRV_DELAY_SECONDS
+    sleep $(( $SRV_DELAY_BASE + $SRV_DELAY_SECONDS ))
     SRV_DELAY_SECONDS=0
 }
 
@@ -656,14 +656,32 @@ fi
 # used by watchdog
 MAIN_PID="$$"
 
-# be more patient with valgrind
+# We use somewhat arbitrary delays for tests:
+# - how long do we wait for the server to start (when lsof not available)?
+# - how long do we wait for the client to finish?
+#   (not to check performance, just to avoid waiting indefinitely)
+# - how long do we wait after client exit for completion of server tasks?
+#   (in particular, for it to finish writing & flushing its log file)
+# Things are slower with valgrind, so give extra time here.
+#
+# Note: there is a trade-off between the running time of this script and the
+# risk of spurious errors because we didn't wait long enough. In a better
+# world, we would be able to do without those delays (except the watchdog).
 if [ "$MEMCHECK" -gt 0 ]; then
-    START_DELAY=3
-    DOG_DELAY=30
+    START_DELAY=6
+    DOG_DELAY=60
+    SRV_DELAY_BASE=2
 else
-    START_DELAY=1
-    DOG_DELAY=10
+    START_DELAY=2
+    DOG_DELAY=15
+    # allow impatient devs to override this one (really impacts running time)
+    : ${SRV_DELAY_BASE:=1}
 fi
+
+# some particular tests need more time:
+# - for the client, we multiply the usual delay by a factor
+# - for the severs, we add a number of secondes to the usual delay
+# see client_need_more_time() and server_needs_more_time()
 CLI_DELAY_FACTOR=1
 SRV_DELAY_SECONDS=0
 

@@ -3416,21 +3416,17 @@ static int ssl_parse_client_dh_public( mbedtls_ssl_context *ssl, unsigned char *
 
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) ||                           \
     defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
-static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
-                                    const unsigned char *p,
-                                    const unsigned char *end,
-                                    size_t pms_offset )
+static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
+                                      const unsigned char *p,
+                                      const unsigned char *end,
+                                      unsigned char *peer_pms,
+                                      size_t *peer_pmslen,
+                                      size_t peer_pmssize )
 {
     int ret;
     mbedtls_pk_context *private_key = mbedtls_ssl_own_key( ssl );
     mbedtls_pk_context *public_key = &mbedtls_ssl_own_cert( ssl )->pk;
     size_t len = mbedtls_pk_get_len( public_key );
-    unsigned char *pms = ssl->handshake->premaster + pms_offset;
-    unsigned char ver[2];
-    unsigned char fake_pms[48], peer_pms[48];
-    unsigned char mask;
-    size_t i, peer_pmslen;
-    unsigned int diff;
 
     /*
      * Prepare to decrypt the premaster using own private RSA key
@@ -3454,21 +3450,6 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
     }
 
-    mbedtls_ssl_write_version( ssl->handshake->max_major_ver,
-                       ssl->handshake->max_minor_ver,
-                       ssl->conf->transport, ver );
-
-    /*
-     * Protection against Bleichenbacher's attack: invalid PKCS#1 v1.5 padding
-     * must not cause the connection to end immediately; instead, send a
-     * bad_record_mac later in the handshake.
-     * To protect against timing-based variants, always generate the fake
-     * premaster secret, so as to avoid data-dependant branches.
-     */
-    ret = ssl->conf->f_rng( ssl->conf->p_rng, fake_pms, sizeof( fake_pms ) );
-    if( ret != 0 )
-        return( ret );
-
     /*
      * Decrypt the premaster secret
      */
@@ -3480,9 +3461,48 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
     }
 
     ret = mbedtls_pk_decrypt( private_key, p, len,
-                      peer_pms, &peer_pmslen,
-                      sizeof( peer_pms ),
-                      ssl->conf->f_rng, ssl->conf->p_rng );
+                              peer_pms, peer_pmslen, peer_pmssize,
+                              ssl->conf->f_rng, ssl->conf->p_rng );
+    return( ret );
+}
+
+static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
+                                    const unsigned char *p,
+                                    const unsigned char *end,
+                                    size_t pms_offset )
+{
+    int ret;
+    unsigned char *pms = ssl->handshake->premaster + pms_offset;
+    unsigned char ver[2];
+    unsigned char fake_pms[48], peer_pms[48];
+    unsigned char mask;
+    size_t i, peer_pmslen;
+    unsigned int diff;
+
+    ret = ssl_decrypt_encrypted_pms( ssl, p, end,
+                                     peer_pms,
+                                     &peer_pmslen,
+                                     sizeof( peer_pms ) );
+
+    /*
+     * Protection against Bleichenbacher's attack: invalid PKCS#1 v1.5 padding
+     * must not cause the connection to end immediately; instead, send a
+     * bad_record_mac later in the handshake.
+     * To protect against timing-based variants of the attack, we must
+     * not have any branch that depends on whether the decryption was
+     * successful. In particular, always generate the fake premaster secret,
+     * regardless of whether it will ultimately influence the output or not.
+     */
+    ret = ssl->conf->f_rng( ssl->conf->p_rng, fake_pms, sizeof( fake_pms ) );
+    if( ret != 0 )
+    {
+        /* It's ok to abort on an RNG failure, since this does not  */
+        return( ret );
+    }
+
+    mbedtls_ssl_write_version( ssl->handshake->max_major_ver,
+                               ssl->handshake->max_minor_ver,
+                               ssl->conf->transport, ver );
 
     /* Avoid data-dependent branches while checking for invalid
      * padding, to protect against timing-based Bleichenbacher-type

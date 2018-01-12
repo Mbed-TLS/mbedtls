@@ -3790,7 +3790,7 @@ run_test    "SSL async private: error in resume then fall back to transparent ke
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "SSL async private: renegotiation: client-initiated" \
-            "$P_SRV async_private_delay1=1 async_private_delay2=1
+            "$P_SRV async_private_delay1=1 async_private_delay2=1 \
              exchanges=2 renegotiation=1" \
             "$P_CLI exchanges=2 renegotiation=1 renegotiate=1" \
             0 \
@@ -3800,7 +3800,7 @@ run_test    "SSL async private: renegotiation: client-initiated" \
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "SSL async private: renegotiation: server-initiated" \
-            "$P_SRV async_private_delay1=1 async_private_delay2=1
+            "$P_SRV async_private_delay1=1 async_private_delay2=1 \
              exchanges=2 renegotiation=1 renegotiate=1" \
             "$P_CLI exchanges=2 renegotiation=1" \
             0 \

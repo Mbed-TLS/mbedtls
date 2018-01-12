@@ -3416,6 +3416,25 @@ static int ssl_parse_client_dh_public( mbedtls_ssl_context *ssl, unsigned char *
 
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) ||                           \
     defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
+
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+static int ssl_resume_decrypt_pms( mbedtls_ssl_context *ssl,
+                                   unsigned char *peer_pms,
+                                   size_t *peer_pmslen,
+                                   size_t peer_pmssize )
+{
+    int ret = ssl->conf->f_async_resume( ssl->conf->p_async_connection_ctx,
+                                         ssl->handshake->p_async_operation_ctx,
+                                         peer_pms, peer_pmslen, peer_pmssize );
+    if( ret != MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS )
+    {
+        ssl->handshake->p_async_operation_ctx = NULL;
+    }
+    MBEDTLS_SSL_DEBUG_RET( 2, "ssl_decrypt_encrypted_pms", ret );
+    return( ret );
+}
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
+
 static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
                                       const unsigned char *p,
                                       const unsigned char *end,
@@ -3427,6 +3446,17 @@ static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
     mbedtls_pk_context *private_key = mbedtls_ssl_own_key( ssl );
     mbedtls_pk_context *public_key = &mbedtls_ssl_own_cert( ssl )->pk;
     size_t len = mbedtls_pk_get_len( public_key );
+
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+    /* If we have already started decoding the message and there is an ongoing
+       decryption operation, resume signing. */
+    if( ssl->handshake->p_async_operation_ctx != NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "resuming decryption operation" ) );
+        return( ssl_resume_decrypt_pms( ssl,
+                                        peer_pms, peer_pmslen, peer_pmssize ) );
+    }
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
 
     /*
      * Prepare to decrypt the premaster using own private RSA key
@@ -3453,6 +3483,33 @@ static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
     /*
      * Decrypt the premaster secret
      */
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+    if( ssl->conf->f_async_decrypt_start != NULL )
+    {
+        ret = ssl->conf->f_async_decrypt_start(
+            ssl->conf->p_async_connection_ctx,
+            &ssl->handshake->p_async_operation_ctx,
+            mbedtls_ssl_own_cert( ssl ),
+            p, len );
+        switch( ret )
+        {
+        case MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH:
+            /* act as if f_async_decrypt_start was null */
+            break;
+        case 0:
+            return( ssl_resume_decrypt_pms( ssl,
+                                            peer_pms,
+                                            peer_pmslen,
+                                            peer_pmssize ) );
+        case MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS:
+            return( MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS );
+        default:
+            MBEDTLS_SSL_DEBUG_RET( 1, "f_async_sign", ret );
+            return( ret );
+        }
+    }
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
+
     if( ! mbedtls_pk_can_do( private_key, MBEDTLS_PK_RSA ) )
     {
         /*  */
@@ -3483,6 +3540,11 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
                                      peer_pms,
                                      &peer_pmslen,
                                      sizeof( peer_pms ) );
+
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+    if ( ret == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS )
+        return( ret );
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
 
     /*
      * Protection against Bleichenbacher's attack: invalid PKCS#1 v1.5 padding
@@ -3620,6 +3682,20 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse client key exchange" ) );
 
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C) && \
+    ( defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) || \
+      defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED) )
+    if( ( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ||
+          ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA ) &&
+        ( ssl->handshake->p_async_operation_ctx != NULL ) )
+    {
+        /* We've already read a record and there is an asynchronous
+         * operation in progress to decrypt it. So skip reading the
+           record. */
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "will resume decryption of previously-read record" ) );
+    }
+    else
+#endif
     if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
@@ -3732,6 +3808,19 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
     {
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+        if ( ssl->handshake->p_async_operation_ctx != NULL )
+        {
+            /* There is an asynchronous operation in progress to
+             * decrypt the encrypted premaster secret, so skip
+             * directly to resuming this operation. */
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "PSK identity already parsed" ) );
+            /* Update p to skip the PSK identity. ssl_parse_encrypted_pms
+             * won't actually use it, but maintain p anyway for robustness. */
+            p += ssl->conf->psk_identity_len + 2;
+        }
+        else
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
         if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_client_psk_identity" ), ret );

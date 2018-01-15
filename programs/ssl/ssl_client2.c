@@ -395,7 +395,10 @@ int main( int argc, char *argv[] )
     {
         p = argv[i];
         if( ( q = strchr( p, '=' ) ) == NULL )
+        {
+            polarssl_printf( "Missing value for option %s\n", p );
             goto usage;
+        }
         *q++ = '\0';
 
         if( strcmp( p, "server_name" ) == 0 )
@@ -406,19 +409,31 @@ int main( int argc, char *argv[] )
         {
             opt.server_port = atoi( q );
             if( opt.server_port < 1 || opt.server_port > 65535 )
+            {
+                polarssl_printf( "Invalid value for option %s (must be 1..65535)\n",
+                                p );
                 goto usage;
+            }
         }
         else if( strcmp( p, "debug_level" ) == 0 )
         {
             opt.debug_level = atoi( q );
             if( opt.debug_level < 0 || opt.debug_level > 65535 )
+            {
+                polarssl_printf( "Invalid value for option %s (must be 0..65535)\n",
+                                p );
                 goto usage;
+            }
         }
         else if( strcmp( p, "nbio" ) == 0 )
         {
             opt.nbio = atoi( q );
             if( opt.nbio < 0 || opt.nbio > 2 )
+            {
+                polarssl_printf( "Invalid value for option %s (must be 0..2)\n",
+                                 p );
                 goto usage;
+            }
         }
         else if( strcmp( p, "request_page" ) == 0 )
             opt.request_page = q;
@@ -426,7 +441,11 @@ int main( int argc, char *argv[] )
         {
             opt.request_size = atoi( q );
             if( opt.request_size < 0 || opt.request_size > SSL_MAX_CONTENT_LEN )
+            {
+                polarssl_printf( "Invalid value for option %s (must be 0..%d)\n",
+                                 p, SSL_MAX_CONTENT_LEN );
                 goto usage;
+            }
         }
         else if ( strcmp( p, "fake_entropy" ) == 0 )
             opt.fake_entropy = q;
@@ -449,6 +468,7 @@ int main( int argc, char *argv[] )
             if( opt.force_ciphersuite[0] == 0 )
             {
                 ret = 2;
+                polarssl_printf( "Invalid ciphersuite\n" );
                 goto usage;
             }
             opt.force_ciphersuite[1] = 0;
@@ -465,38 +485,61 @@ int main( int argc, char *argv[] )
                 case -1: opt.allow_legacy = SSL_LEGACY_BREAK_HANDSHAKE; break;
                 case 0:  opt.allow_legacy = SSL_LEGACY_NO_RENEGOTIATION; break;
                 case 1:  opt.allow_legacy = SSL_LEGACY_ALLOW_RENEGOTIATION; break;
-                default: goto usage;
+                default:
+                    polarssl_printf( "Invalid value for option %s (must be -1, 0 or 1)\n",
+                                p );
+                    goto usage;
             }
         }
         else if( strcmp( p, "renegotiate" ) == 0 )
         {
             opt.renegotiate = atoi( q );
             if( opt.renegotiate < 0 || opt.renegotiate > 1 )
+            {
+                polarssl_printf( "Invalid value for option %s (must be 0 or 1)\n",
+                                p );
                 goto usage;
+            }
         }
         else if( strcmp( p, "exchanges" ) == 0 )
         {
             opt.exchanges = atoi( q );
             if( opt.exchanges < 1 )
+            {
+                polarssl_printf( "Invalid value for option %s (must be >=1)\n",
+                                p );
                 goto usage;
+            }
         }
         else if( strcmp( p, "reconnect" ) == 0 )
         {
             opt.reconnect = atoi( q );
             if( opt.reconnect < 0 || opt.reconnect > 2 )
+            {
+                polarssl_printf( "Invalid value for option %s (must be 0..2)\n",
+                                p );
                 goto usage;
+            }
         }
         else if( strcmp( p, "reco_delay" ) == 0 )
         {
             opt.reco_delay = atoi( q );
             if( opt.reco_delay < 0 )
+            {
+                polarssl_printf( "Invalid value for option %s (must be >=0)\n",
+                                p );
                 goto usage;
+            }
         }
         else if( strcmp( p, "tickets" ) == 0 )
         {
             opt.tickets = atoi( q );
             if( opt.tickets < 0 || opt.tickets > 2 )
+            {
+                polarssl_printf( "Invalid value for option %s (must be 0..2)\n",
+                                p );
                 goto usage;
+            }
         }
         else if( strcmp( p, "alpn" ) == 0 )
         {
@@ -508,7 +551,10 @@ int main( int argc, char *argv[] )
             {
                 case 0: opt.fallback = SSL_IS_NOT_FALLBACK; break;
                 case 1: opt.fallback = SSL_IS_FALLBACK; break;
-                default: goto usage;
+                default:
+                    polarssl_printf( "Invalid value for option %s (must be 0 or 1)\n",
+                                    p );
+                    goto usage;
             }
         }
         else if( strcmp( p, "extended_ms" ) == 0 )
@@ -517,7 +563,10 @@ int main( int argc, char *argv[] )
             {
                 case 0: opt.extended_ms = SSL_EXTENDED_MS_DISABLED; break;
                 case 1: opt.extended_ms = SSL_EXTENDED_MS_ENABLED; break;
-                default: goto usage;
+                default:
+                    polarssl_printf( "Invalid value for option %s (must be 0 or 1)\n",
+                                    p );
+                    goto usage;
             }
         }
         else if( strcmp( p, "curves" ) == 0 )
@@ -528,7 +577,10 @@ int main( int argc, char *argv[] )
             {
                 case 0: opt.etm = SSL_ETM_DISABLED; break;
                 case 1: opt.etm = SSL_ETM_ENABLED; break;
-                default: goto usage;
+                default:
+                    polarssl_printf( "Invalid value for option %s (must be 0 or 1)\n",
+                                    p );
+                    goto usage;
             }
         }
         else if( strcmp( p, "min_version" ) == 0 )
@@ -549,7 +601,10 @@ int main( int argc, char *argv[] )
             {
                 case 0:     opt.arc4 = SSL_ARC4_DISABLED;   break;
                 case 1:     opt.arc4 = SSL_ARC4_ENABLED;    break;
-                default:    goto usage;
+                default:
+                    polarssl_printf( "Invalid value for option %s (must be 0 or 1)\n",
+                                    p );
+                    goto usage;
             }
         }
         else if( strcmp( p, "force_version" ) == 0 )
@@ -563,7 +618,11 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "auth_mode" ) == 0 )
         {
             if( ( opt.auth_mode = polarssl_ssl_test_get_auth_mode( q ) ) < 0 )
+            {
+                polarssl_printf( "Invalid value for option %s (must be none|optional|required)\n",
+                                 p );
                 goto usage;
+            }
         }
         else if( strcmp( p, "max_frag_len" ) == 0 )
         {
@@ -576,7 +635,11 @@ int main( int argc, char *argv[] )
             else if( strcmp( q, "4096" ) == 0 )
                 opt.mfl_code = SSL_MAX_FRAG_LEN_4096;
             else
+            {
+                polarssl_printf( "Invalid value for option %s (must be 512, 1024, 2048 or 4096)\n",
+                                p );
                 goto usage;
+            }
         }
         else if( strcmp( p, "trunc_hmac" ) == 0 )
         {
@@ -584,17 +647,27 @@ int main( int argc, char *argv[] )
             {
                 case 0: opt.trunc_hmac = SSL_TRUNC_HMAC_DISABLED; break;
                 case 1: opt.trunc_hmac = SSL_TRUNC_HMAC_ENABLED; break;
-                default: goto usage;
+                default:
+                    polarssl_printf( "Invalid value for option %s (must be 0 or 1)\n",
+                                p );
+                    goto usage;
             }
         }
         else if( strcmp( p, "recsplit" ) == 0 )
         {
             opt.recsplit = atoi( q );
             if( opt.recsplit < 0 || opt.recsplit > 1 )
+            {
+                polarssl_printf( "Invalid value for option %s (must be 0 or 1)\n",
+                                p );
                 goto usage;
+            }
         }
         else
+        {
+            polarssl_printf( "Unknown option: %s\n", p );
             goto usage;
+        }
     }
 
 #if defined(POLARSSL_DEBUG_C)

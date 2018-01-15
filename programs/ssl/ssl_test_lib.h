@@ -84,6 +84,24 @@
 
 void polarssl_ssl_test_debug( void *ctx, int level, const char *str );
 
+/* Initialize ctr_drbg, either from fake_entropy (if this is a
+ * non-empty string) or from the default entropy sources (otherwise).
+ *
+ * The fake entropy mode is designed to make tests reproducible,
+ * mostly for debugging purposes. It offers no security whatsoever.
+ * Note that to achieve reproducible tests, you must also either
+ * undefined POLARSSL_HAVE_TIME or arrange to set a constant fake time
+ * (e.g. with faketime). */
+int polarssl_ssl_test_rng_init( const char *fake_entropy,
+                                const char *pers,
+                                entropy_context *entropy,
+                                ctr_drbg_context *ctr_drbg );
+/* Reinitialize ctr_drbg from fake_entropy, if this is a non-empty string.
+ * Do nothing otherwise. */
+void polarssl_ssl_test_rng_reset_if_fake( const char *fake_entropy,
+                                          const char *pers,
+                                          ctr_drbg_context *ctr_drbg );
+
 /*
  * Test recv/send functions that make sure each try returns
  * WANT_READ/WANT_WRITE at least once before sucesseding

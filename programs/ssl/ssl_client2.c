@@ -27,6 +27,7 @@
 #define DFL_REQUEST_SIZE        -1
 #define DFL_DEBUG_LEVEL         0
 #define DFL_NBIO                0
+#define DFL_FAKE_ENTROPY        ""
 #define DFL_CA_FILE             ""
 #define DFL_CA_PATH             ""
 #define DFL_CRT_FILE            ""
@@ -178,6 +179,8 @@
     "    debug_level=%%d      default: 0 (disabled)\n"      \
     "    nbio=%%d             default: 0 (blocking I/O)\n"  \
     "                        options: 1 (non-blocking), 2 (added delays)\n" \
+    "    fake_entropy=%%s     reproducible test mode (also requires no/constant time)\n" \
+    "                        default: empty (use normal entropy sources)\n" \
     "\n"                                                    \
     "    auth_mode=%%s        default: \"required\"\n"      \
     "                        options: none, optional, required\n" \
@@ -232,6 +235,7 @@ struct options
     int nbio;                   /* should I/O be blocking?                  */
     const char *request_page;   /* page on server to request                */
     int request_size;           /* pad request with header to requested size */
+    const char *fake_entropy;   /* string to use instead of entropy */
     const char *ca_file;        /* the file with the CA certificate(s)      */
     const char *ca_path;        /* the path with the CA certificate(s) reside */
     const char *crt_file;       /* the file with the client certificate     */
@@ -359,6 +363,7 @@ int main( int argc, char *argv[] )
     opt.nbio                = DFL_NBIO;
     opt.request_page        = DFL_REQUEST_PAGE;
     opt.request_size        = DFL_REQUEST_SIZE;
+    opt.fake_entropy        = DFL_FAKE_ENTROPY;
     opt.ca_file             = DFL_CA_FILE;
     opt.ca_path             = DFL_CA_PATH;
     opt.crt_file            = DFL_CRT_FILE;
@@ -423,6 +428,8 @@ int main( int argc, char *argv[] )
             if( opt.request_size < 0 || opt.request_size > SSL_MAX_CONTENT_LEN )
                 goto usage;
         }
+        else if ( strcmp( p, "fake_entropy" ) == 0 )
+            opt.fake_entropy = q;
         else if( strcmp( p, "ca_file" ) == 0 )
             opt.ca_file = q;
         else if( strcmp( p, "ca_path" ) == 0 )
@@ -667,21 +674,12 @@ int main( int argc, char *argv[] )
 #endif /* POLARSSL_SSL_ALPN */
 
     /*
-     * 0. Initialize the RNG and the session data
+     * 1.0. Initialize the RNG
      */
-    polarssl_printf( "\n  . Seeding the random number generator..." );
-    fflush( stdout );
-
-    entropy_init( &entropy );
-    if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
-                               (const unsigned char *) pers,
-                               strlen( pers ) ) ) != 0 )
-    {
-        polarssl_printf( " failed\n  ! ctr_drbg_init returned -0x%x\n", -ret );
+    ret = polarssl_ssl_test_rng_init( opt.fake_entropy, pers,
+                                      &entropy, &ctr_drbg );
+    if( ret != 0 )
         goto exit;
-    }
-
-    polarssl_printf( " ok\n" );
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
     /*
@@ -1243,7 +1241,8 @@ exit:
     ssl_session_free( &saved_session );
     ssl_free( &ssl );
     ctr_drbg_free( &ctr_drbg );
-    entropy_free( &entropy );
+    if( opt.fake_entropy == NULL || *opt.fake_entropy == 0 )
+        entropy_free( &entropy );
 
 #if defined(_WIN32)
     polarssl_printf( "  + Press Enter to exit this program.\n" );

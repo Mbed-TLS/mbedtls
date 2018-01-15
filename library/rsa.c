@@ -1628,17 +1628,17 @@ static int rsa_rsassa_pkcs1_v15_encode( mbedtls_md_type_t md_alg,
      *                 TAG-OCTET + LEN [ HASH ] ]
      */
     *p++ = MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED;
-    *p++ = 0x08 + oid_size + hashlen;
+    *p++ = (unsigned char)( 0x08 + oid_size + hashlen );
     *p++ = MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED;
-    *p++ = 0x04 + oid_size;
+    *p++ = (unsigned char)( 0x04 + oid_size );
     *p++ = MBEDTLS_ASN1_OID;
-    *p++ = oid_size;
+    *p++ = (unsigned char) oid_size;
     memcpy( p, oid, oid_size );
     p += oid_size;
     *p++ = MBEDTLS_ASN1_NULL;
     *p++ = 0x00;
     *p++ = MBEDTLS_ASN1_OCTET_STRING;
-    *p++ = hashlen;
+    *p++ = (unsigned char) hashlen;
     memcpy( p, hash, hashlen );
     p += hashlen;
 

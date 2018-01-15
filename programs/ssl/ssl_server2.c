@@ -1976,13 +1976,15 @@ int main( int argc, char *argv[] )
     if( opt.cache_max != -1 )
         mbedtls_ssl_cache_set_max_entries( &cache, opt.cache_max );
 
+#if defined(MBEDTLS_HAVE_TIME)
     if( opt.cache_timeout != -1 )
         mbedtls_ssl_cache_set_timeout( &cache, opt.cache_timeout );
+#endif /* MBEDTLS_HAVE_TIME */
 
     mbedtls_ssl_conf_session_cache( &conf, &cache,
                                    mbedtls_ssl_cache_get,
                                    mbedtls_ssl_cache_set );
-#endif
+#endif /* MBEDTLS_SSL_CACHE_C */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     if( opt.tickets == MBEDTLS_SSL_SESSION_TICKETS_ENABLED )

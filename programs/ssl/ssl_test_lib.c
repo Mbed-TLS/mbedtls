@@ -183,11 +183,11 @@ int mbedtls_ssl_test_unhexify( unsigned char *output, const char *input, size_t 
     return( 0 );
 }
 
-int mbedtls_ssl_test_force_ciphersuite( int force_ciphersuite,
-                                        int transport,
-                                        int min_version,
-                                        int max_version,
-                                        int *arc4 )
+int mbedtls_ssl_test_forced_ciphersuite( int force_ciphersuite,
+                                         int transport,
+                                         int min_version,
+                                         int max_version,
+                                         int *arc4 )
 {
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
     ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( force_ciphersuite );
@@ -233,6 +233,39 @@ int mbedtls_ssl_test_force_ciphersuite( int force_ciphersuite,
         *arc4 = MBEDTLS_SSL_ARC4_ENABLED;
     }
     return( 0 );
+}
+
+int mbedtls_ssl_test_parse_version( const char *p, const char *q )
+{
+    if( strcmp( q, "ssl3" ) == 0 )
+        return( MBEDTLS_SSL_MINOR_VERSION_0 );
+    else if( strcmp( q, "tls1" ) == 0 )
+        return( MBEDTLS_SSL_MINOR_VERSION_1 );
+    else if( strcmp( q, "tls1_1" ) == 0 || strcmp( q, "dtls1" ) == 0 )
+        return( MBEDTLS_SSL_MINOR_VERSION_2 );
+    else if( strcmp( q, "tls1_2" ) == 0 || strcmp( q, "dtls1_2" ) == 0 )
+        return( MBEDTLS_SSL_MINOR_VERSION_3 );
+    else
+    {
+        mbedtls_printf( "Invalid value for option %s (must be ssl3|d?tls1|tls1_1|d?tls1_2)\n",
+                        p );
+        return( MBEDTLS_SSL_TEST_BAD_VERSION );
+    }
+}
+
+/*
+ * Return authmode from string, or -1 on error
+ */
+int mbedtls_ssl_test_get_auth_mode( const char *s )
+{
+    if( strcmp( s, "none" ) == 0 )
+        return( MBEDTLS_SSL_VERIFY_NONE );
+    if( strcmp( s, "optional" ) == 0 )
+        return( MBEDTLS_SSL_VERIFY_OPTIONAL );
+    if( strcmp( s, "required" ) == 0 )
+        return( MBEDTLS_SSL_VERIFY_REQUIRED );
+
+    return( -1 );
 }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)

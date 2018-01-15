@@ -34,6 +34,12 @@ MEMCHECK=0
 FILTER='.*'
 EXCLUDE='^$'
 
+PRESERVE_LOGS=0
+
+# Pick a "unique" server port in the range 10000-19999. It may be
+# overridden by a command line option.
+PORT=$(($$ % 10000 + 10000))
+
 print_usage() {
     echo "Usage: $0 [options]"
     printf "  -h|--help\tPrint this help.\n"
@@ -371,6 +377,11 @@ run_test() {
 
     # if we're here, everything is ok
     echo "PASS"
+
+    if [ "$PRESERVE_LOGS" -gt 0 ]; then
+        mv $SRV_OUT o-srv-${TESTS}.log
+        mv $CLI_OUT o-cli-${TESTS}.log
+    fi
     rm -f $SRV_OUT $CLI_OUT
 }
 
@@ -417,10 +428,6 @@ else
     START_DELAY=1
     DOG_DELAY=10
 fi
-
-# Pick a "unique" port in the range 10000-19999.
-PORT="0000$$"
-PORT="1$( printf $PORT | tail -c 4 )"
 
 # fix commands to use this port
 P_SRV="$P_SRV server_port=$PORT"

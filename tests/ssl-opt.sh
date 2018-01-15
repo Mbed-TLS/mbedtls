@@ -35,6 +35,14 @@ MEMCHECK=0
 FILTER='.*'
 EXCLUDE='^$'
 
+PRESERVE_LOGS=0
+
+# Pick a "unique" server port in the range 10000-19999, and a proxy
+# port which is this plus 10000. Each port number may be independently
+# overridden by a command line option.
+SRV_PORT=$(($$ % 10000 + 10000))
+PXY_PORT=$((SRV_PORT + 10000))
+
 print_usage() {
     echo "Usage: $0 [options]"
     printf "  -h|--help\tPrint this help.\n"
@@ -495,6 +503,11 @@ run_test() {
 
     # if we're here, everything is ok
     echo "PASS"
+    if [ "$PRESERVE_LOGS" -gt 0 ]; then
+        mv $SRV_OUT o-srv-${TESTS}.log
+        mv $CLI_OUT o-cli-${TESTS}.log
+    fi
+
     rm -f $SRV_OUT $CLI_OUT $PXY_OUT
 }
 
@@ -548,13 +561,6 @@ else
     DOG_DELAY=10
 fi
 CLI_DELAY_FACTOR=1
-
-# Pick a "unique" server port in the range 10000-19999, and a proxy port
-PORT_BASE="0000$$"
-PORT_BASE="$( printf $PORT_BASE | tail -c 4 )"
-SRV_PORT="1$PORT_BASE"
-PXY_PORT="2$PORT_BASE"
-unset PORT_BASE
 
 # fix commands to use this port, force IPv4 while at it
 # +SRV_PORT will be replaced by either $SRV_PORT or $PXY_PORT later

@@ -1,7 +1,7 @@
 /*
- *  SSL client with options
+ *  SSL server with options
  *
- *  Copyright (C) 2006-2013, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2006-2018, ARM Limited, All Rights Reserved
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  *
@@ -20,21 +20,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
-#else
-#include POLARSSL_CONFIG_FILE
-#endif
-
-#if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
-#else
-#include <stdio.h>
-#define polarssl_free       free
-#define polarssl_malloc     malloc
-#define polarssl_fprintf    fprintf
-#define polarssl_printf     printf
-#endif
+#include "ssl_test_lib.h"
 
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION) && defined(POLARSSL_FS_IO)
 #define POLARSSL_SNI
@@ -42,23 +28,6 @@
 
 #if defined(_WIN32)
 #include <windows.h>
-#endif
-
-#if defined(POLARSSL_ENTROPY_C) && \
-    defined(POLARSSL_SSL_TLS_C) && defined(POLARSSL_SSL_SRV_C) && \
-    defined(POLARSSL_NET_C) && defined(POLARSSL_CTR_DRBG_C)
-#include "polarssl/net.h"
-#include "polarssl/ssl.h"
-#include "polarssl/entropy.h"
-#include "polarssl/ctr_drbg.h"
-#include "polarssl/certs.h"
-#include "polarssl/x509.h"
-#include "polarssl/error.h"
-#include "polarssl/debug.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #endif
 
 #if !defined(_WIN32)
@@ -73,8 +42,6 @@
 #include "polarssl/memory_buffer_alloc.h"
 #endif
 
-#define DFL_SERVER_ADDR         NULL
-#define DFL_SERVER_PORT         4433
 #define DFL_DEBUG_LEVEL         0
 #define DFL_NBIO                0
 #define DFL_CA_FILE             ""
@@ -83,8 +50,7 @@
 #define DFL_KEY_FILE            ""
 #define DFL_CRT_FILE2           ""
 #define DFL_KEY_FILE2           ""
-#define DFL_PSK                 ""
-#define DFL_PSK_IDENTITY        "Client_identity"
+#define DFL_ECJPAKE_PW          NULL
 #define DFL_PSK_LIST            NULL
 #define DFL_FORCE_CIPHER        0
 #define DFL_VERSION_SUITES      NULL
@@ -164,7 +130,7 @@
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
 #define USAGE_PSK                                                   \
     "    psk=%%s              default: \"\" (in hex, without 0x)\n" \
-    "    psk_identity=%%s     default: \"Client_identity\"\n"
+    "    psk_identity=%%s     default: \"" DFL_PSK_IDENTITY "\"\n"
 #else
 #define USAGE_PSK ""
 #endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */
@@ -255,7 +221,7 @@
     "\n usage: ssl_server2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
     "    server_addr=%%s      default: (all interfaces)\n"  \
-    "    server_port=%%d      default: 4433\n"              \
+    "    server_port=%%d      default: " STRINGIFY(DFL_SERVER_PORT) "\n" \
     "    debug_level=%%d      default: 0 (disabled)\n"      \
     "    nbio=%%d             default: 0 (blocking I/O)\n"  \
     "                        options: 1 (non-blocking), 2 (added delays)\n" \
@@ -291,9 +257,8 @@
     "    force_ciphersuite=<name>    default: all enabled\n"            \
     " acceptable ciphersuite names:\n"
 
-#if !defined(POLARSSL_ENTROPY_C) || \
-    !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_SRV_C) || \
-    !defined(POLARSSL_NET_C) || !defined(POLARSSL_CTR_DRBG_C)
+#if !defined(POLARSSL_PROGRAMS_SSL__PREREQUISITES) || \
+    !defined(POLARSSL_SSL_SRV_C)
 #include <stdio.h>
 int main( void )
 {
@@ -303,9 +268,6 @@ int main( void )
     return( 0 );
 }
 #else
-
-#define ALPN_LIST_SIZE  10
-#define CURVE_LIST_SIZE 20
 
 /*
  * global options
@@ -350,52 +312,6 @@ struct options
     int extended_ms;            /* allow negotiation of extended MS?        */
     int etm;                    /* allow negotiation of encrypt-then-MAC?   */
 } opt;
-
-static void my_debug( void *ctx, int level, const char *str )
-{
-    ((void) level);
-
-    polarssl_fprintf( (FILE *) ctx, "%s", str );
-    fflush(  (FILE *) ctx  );
-}
-
-/*
- * Test recv/send functions that make sure each try returns
- * WANT_READ/WANT_WRITE at least once before sucesseding
- */
-static int my_recv( void *ctx, unsigned char *buf, size_t len )
-{
-    static int first_try = 1;
-    int ret;
-
-    if( first_try )
-    {
-        first_try = 0;
-        return( POLARSSL_ERR_NET_WANT_READ );
-    }
-
-    ret = net_recv( ctx, buf, len );
-    if( ret != POLARSSL_ERR_NET_WANT_READ )
-        first_try = 1; /* Next call will be a new operation */
-    return( ret );
-}
-
-static int my_send( void *ctx, const unsigned char *buf, size_t len )
-{
-    static int first_try = 1;
-    int ret;
-
-    if( first_try )
-    {
-        first_try = 0;
-        return( POLARSSL_ERR_NET_WANT_WRITE );
-    }
-
-    ret = net_send( ctx, buf, len );
-    if( ret != POLARSSL_ERR_NET_WANT_WRITE )
-        first_try = 1; /* Next call will be a new operation */
-    return( ret );
-}
 
 /*
  * Used by sni_parse and psk_parse to handle coma-separated lists
@@ -522,44 +438,6 @@ int sni_callback( void *p_info, ssl_context *ssl,
 
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
 
-#define HEX2NUM( c )                    \
-        if( c >= '0' && c <= '9' )      \
-            c -= '0';                   \
-        else if( c >= 'a' && c <= 'f' ) \
-            c -= 'a' - 10;              \
-        else if( c >= 'A' && c <= 'F' ) \
-            c -= 'A' - 10;              \
-        else                            \
-            return( -1 );
-
-/*
- * Convert a hex string to bytes.
- * Return 0 on success, -1 on error.
- */
-int unhexify( unsigned char *output, const char *input, size_t *olen )
-{
-    unsigned char c;
-    size_t j;
-
-    *olen = strlen( input );
-    if( *olen % 2 != 0 || *olen / 2 > POLARSSL_PSK_MAX_LEN )
-        return( -1 );
-    *olen /= 2;
-
-    for( j = 0; j < *olen * 2; j += 2 )
-    {
-        c = input[j];
-        HEX2NUM( c );
-        output[ j / 2 ] = c << 4;
-
-        c = input[j + 1];
-        HEX2NUM( c );
-        output[ j / 2 ] |= c;
-    }
-
-    return( 0 );
-}
-
 typedef struct _psk_entry psk_entry;
 
 struct _psk_entry
@@ -612,7 +490,7 @@ psk_entry *psk_parse( char *psk_string )
         GET_ITEM( new->name );
         GET_ITEM( key_hex );
 
-        if( unhexify( new->key, key_hex, &new->key_len ) != 0 )
+        if( polarssl_ssl_test_unhexify( new->key, key_hex, &new->key_len ) != 0 )
             goto error;
 
         new->next = cur;
@@ -705,7 +583,6 @@ int main( int argc, char *argv[] )
 #endif
 #if defined(POLARSSL_SSL_SET_CURVES)
     ecp_group_id curve_list[CURVE_LIST_SIZE];
-    const ecp_curve_info *curve_cur;
 #endif
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
     unsigned char alloc_buf[100000];
@@ -1059,27 +936,11 @@ int main( int argc, char *argv[] )
 
     if( opt.force_ciphersuite[0] > 0 )
     {
-        const ssl_ciphersuite_t *ciphersuite_info;
-        ciphersuite_info = ssl_ciphersuite_from_id( opt.force_ciphersuite[0] );
-
-        if( opt.max_version != -1 &&
-            ciphersuite_info->min_minor_ver > opt.max_version )
-        {
-            polarssl_printf("forced ciphersuite not allowed with this protocol version\n");
-            ret = 2;
+        ret = polarssl_ssl_test_forced_ciphersuite( opt.force_ciphersuite[0],
+                                                    opt.min_version,
+                                                    opt.max_version );
+        if( ret != 0 )
             goto usage;
-        }
-        if( opt.min_version != -1 &&
-            ciphersuite_info->max_minor_ver < opt.min_version )
-        {
-            polarssl_printf("forced ciphersuite not allowed with this protocol version\n");
-            ret = 2;
-            goto usage;
-        }
-        if( opt.max_version > ciphersuite_info->max_minor_ver )
-            opt.max_version = ciphersuite_info->max_minor_ver;
-        if( opt.min_version < ciphersuite_info->min_minor_ver )
-            opt.min_version = ciphersuite_info->min_minor_ver;
     }
 
     if( opt.version_suites != NULL )
@@ -1127,10 +988,13 @@ int main( int argc, char *argv[] )
     /*
      * Unhexify the pre-shared key and parse the list if any given
      */
-    if( unhexify( psk, opt.psk, &psk_len ) != 0 )
+    if( *opt.psk )
     {
-        polarssl_printf( "pre-shared key not valid hex\n" );
-        goto exit;
+        if( polarssl_ssl_test_unhexify( psk, opt.psk, &psk_len ) != 0 )
+        {
+            polarssl_printf("pre-shared key not valid hex\n");
+            goto exit;
+        }
     }
 
     if( opt.psk_list != NULL )
@@ -1144,79 +1008,15 @@ int main( int argc, char *argv[] )
 #endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
 #if defined(POLARSSL_SSL_SET_CURVES)
-    if( opt.curves != NULL )
-    {
-        p = (char *) opt.curves;
-        i = 0;
-
-        if( strcmp( p, "none" ) == 0 )
-        {
-            curve_list[0] = POLARSSL_ECP_DP_NONE;
-        }
-        else if( strcmp( p, "default" ) != 0 )
-        {
-            /* Leave room for a final NULL in curve list */
-            while( i < CURVE_LIST_SIZE - 1 && *p != '\0' )
-            {
-                q = p;
-
-                /* Terminate the current string */
-                while( *p != ',' && *p != '\0' )
-                    p++;
-                if( *p == ',' )
-                    *p++ = '\0';
-
-                if( ( curve_cur = ecp_curve_info_from_name( q ) ) != NULL )
-                {
-                    curve_list[i++] = curve_cur->grp_id;
-                }
-                else
-                {
-                    polarssl_printf( "unknown curve %s\n", q );
-                    polarssl_printf( "supported curves: " );
-                    for( curve_cur = ecp_curve_list();
-                         curve_cur->grp_id != POLARSSL_ECP_DP_NONE;
-                         curve_cur++ )
-                    {
-                        polarssl_printf( "%s ", curve_cur->name );
-                    }
-                    polarssl_printf( "\n" );
-                    goto exit;
-                }
-            }
-
-            polarssl_printf( "Number of curves: %d\n", i );
-
-            if( i == CURVE_LIST_SIZE - 1 && *p != '\0' )
-            {
-                polarssl_printf( "curves list too long, maximum %d",
-                                 CURVE_LIST_SIZE - 1 );
-                goto exit;
-            }
-
-            curve_list[i] = POLARSSL_ECP_DP_NONE;
-        }
-    }
+    ret = polarssl_ssl_test_parse_curves( (char *) opt.curves, curve_list );
+    if( ret != 0 )
+        goto exit;
 #endif /* POLARSSL_SSL_SET_CURVES */
 
 #if defined(POLARSSL_SSL_ALPN)
-    if( opt.alpn_string != NULL )
-    {
-        p = (char *) opt.alpn_string;
-        i = 0;
-
-        /* Leave room for a final NULL in alpn_list */
-        while( i < ALPN_LIST_SIZE - 1 && *p != '\0' )
-        {
-            alpn_list[i++] = p;
-
-            /* Terminate the current string and move on to next one */
-            while( *p != ',' && *p != '\0' )
-                p++;
-            if( *p == ',' )
-                *p++ = '\0';
-        }
-    }
+    ret = polarssl_ssl_test_parse_alpn( (char *) opt.alpn_string, alpn_list );
+    if( ret != 0 )
+        goto exit;
 #endif /* POLARSSL_SSL_ALPN */
 
     /*
@@ -1487,7 +1287,7 @@ int main( int argc, char *argv[] )
 #endif
 
     ssl_set_rng( &ssl, ctr_drbg_random, &ctr_drbg );
-    ssl_set_dbg( &ssl, my_debug, stdout );
+    ssl_set_dbg( &ssl, polarssl_ssl_test_debug, stdout );
 
 #if defined(POLARSSL_SSL_CACHE_C)
     if( opt.cache_max != -1 )
@@ -1674,7 +1474,9 @@ reset:
     }
 
     if( opt.nbio == 2 )
-        ssl_set_bio( &ssl, my_recv, &client_fd, my_send, &client_fd );
+        ssl_set_bio( &ssl,
+                     polarssl_ssl_test_recv, &client_fd,
+                     polarssl_ssl_test_send, &client_fd );
     else
         ssl_set_bio( &ssl, net_recv, &client_fd, net_send, &client_fd );
 
@@ -1978,6 +1780,4 @@ exit:
 
     return( ret );
 }
-#endif /* POLARSSL_BIGNUM_C && POLARSSL_ENTROPY_C && POLARSSL_SSL_TLS_C &&
-          POLARSSL_SSL_SRV_C && POLARSSL_NET_C && POLARSSL_RSA_C &&
-          POLARSSL_CTR_DRBG_C */
+#endif /* POLARSSL_PROGRAMS_SSL__PREREQUISITES && POLARSSL_SSL_SRV_C */

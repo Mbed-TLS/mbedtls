@@ -1324,12 +1324,14 @@ int main( int argc, char *argv[] )
     if( opt.cache_max != -1 )
         ssl_cache_set_max_entries( &cache, opt.cache_max );
 
+#if defined(MBEDTLS_HAVE_TIME)
     if( opt.cache_timeout != -1 )
         ssl_cache_set_timeout( &cache, opt.cache_timeout );
+#endif /* POLARSSL_HAVE_TIME */
 
     ssl_set_session_cache( &ssl, ssl_cache_get, &cache,
                                  ssl_cache_set, &cache );
-#endif
+#endif /* POLARSSL_SSL_CACHE_C */
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
     if( ( ret = ssl_set_session_tickets( &ssl, opt.tickets ) ) != 0 )

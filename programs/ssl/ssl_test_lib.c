@@ -38,6 +38,75 @@ void mbedtls_ssl_test_debug( void *ctx, int level,
     fflush(  (FILE *) ctx  );
 }
 
+/* Fake entropy source which is a constant string. Use this for
+ * reproducible tests. Note that to achieve reproducible tests, you
+ * must also either undefine MBEDTLS_HAVE_TIME or arrange to set a
+ * constant fake time (e.g. with faketime). */
+static int mbedtls_ssl_test_fake_entropy_func( void *data,
+                                               unsigned char *output,
+                                               size_t output_len )
+{
+    const char *input = data;
+    size_t input_len = strlen( input );
+    size_t n;
+    for( n = 0; n + input_len < output_len; n += input_len )
+        memcpy( output + n, input, input_len );
+    memcpy( output + n, input, output_len - n );
+    return( 0 );
+}
+
+int mbedtls_ssl_test_rng_init( const char *fake_entropy,
+                               const char *pers,
+                               mbedtls_entropy_context *entropy,
+                               mbedtls_ctr_drbg_context *ctr_drbg )
+{
+    int ret;
+
+    mbedtls_printf( "\n  . Seeding the random number generator..." );
+    fflush( stdout );
+
+    if( fake_entropy == NULL || *fake_entropy == 0 )
+    {
+        mbedtls_entropy_init( entropy );
+        ret = mbedtls_ctr_drbg_seed( ctr_drbg,
+                                     mbedtls_entropy_func, entropy,
+                                     (const unsigned char *) pers,
+                                     strlen( pers ) );
+    }
+    else
+    {
+        ret = mbedtls_ctr_drbg_seed( ctr_drbg,
+                                     mbedtls_ssl_test_fake_entropy_func,
+                                     (void *) fake_entropy,
+                                     (const unsigned char *) pers,
+                                     strlen( pers ) );
+        mbedtls_printf( " (fake, each connection will use a constant seed)" );
+    }
+
+    if( ret != 0 )
+        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n", -ret );
+    else
+        mbedtls_printf( " ok\n" );
+    return( ret );
+}
+
+void mbedtls_ssl_test_rng_reset_if_fake( const char *fake_entropy,
+                                         const char *pers,
+                                         mbedtls_ctr_drbg_context *ctr_drbg )
+{
+    if( fake_entropy == NULL || *fake_entropy == 0 )
+        return;
+
+    mbedtls_ctr_drbg_free( ctr_drbg );
+    mbedtls_ctr_drbg_init( ctr_drbg );
+    mbedtls_ctr_drbg_seed( ctr_drbg,
+                           mbedtls_ssl_test_fake_entropy_func,
+                           (void *) fake_entropy,
+                           (const unsigned char *) pers,
+                           strlen( pers ) );
+    mbedtls_printf( "  . Resetting the random number generator to the constant seed... ok\n" );
+}
+
 /*
  * Test recv/send functions that make sure each try returns
  * WANT_READ/WANT_WRITE at least once before sucesseding

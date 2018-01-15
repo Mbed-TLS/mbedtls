@@ -68,6 +68,7 @@ int main( void )
 #define DFL_NBIO                0
 #define DFL_EVENT               0
 #define DFL_READ_TIMEOUT        0
+#define DFL_FAKE_ENTROPY        ""
 #define DFL_CA_FILE             ""
 #define DFL_CA_PATH             ""
 #define DFL_CRT_FILE            ""
@@ -314,6 +315,8 @@ int main( void )
     "    event=%%d            default: 0 (loop)\n"                            \
     "                        options: 1 (level-triggered, implies nbio=1),\n" \
     "    read_timeout=%%d     default: 0 ms (no timeout)\n"    \
+    "    fake_entropy=%%s     reproducible test mode (also requires no/constant time)\n" \
+    "                        default: empty (use normal entropy sources)\n" \
     "\n"                                                    \
     USAGE_DTLS                                              \
     USAGE_COOKIES                                           \
@@ -380,6 +383,7 @@ struct options
     int nbio;                   /* should I/O be blocking?                  */
     int event;                  /* loop or event-driven IO? level or edge triggered? */
     uint32_t read_timeout;      /* timeout on mbedtls_ssl_read() in milliseconds    */
+    const char *fake_entropy;   /* string to use instead of entropy */
     const char *ca_file;        /* the file with the CA certificate(s)      */
     const char *ca_path;        /* the path with the CA certificate(s) reside */
     const char *crt_file;       /* the file with the server certificate     */
@@ -1138,6 +1142,7 @@ int main( int argc, char *argv[] )
     opt.event               = DFL_EVENT;
     opt.nbio                = DFL_NBIO;
     opt.read_timeout        = DFL_READ_TIMEOUT;
+    opt.fake_entropy        = DFL_FAKE_ENTROPY;
     opt.ca_file             = DFL_CA_FILE;
     opt.ca_path             = DFL_CA_PATH;
     opt.crt_file            = DFL_CRT_FILE;
@@ -1226,6 +1231,8 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "read_timeout" ) == 0 )
             opt.read_timeout = atoi( q );
+        else if ( strcmp( p, "fake_entropy" ) == 0 )
+            opt.fake_entropy = q;
         else if( strcmp( p, "ca_file" ) == 0 )
             opt.ca_file = q;
         else if( strcmp( p, "ca_path" ) == 0 )
@@ -1636,22 +1643,12 @@ int main( int argc, char *argv[] )
 #endif /* MBEDTLS_SSL_ALPN */
 
     /*
-     * 0. Initialize the RNG and the session data
+     * 1.0. Initialize the RNG
      */
-    mbedtls_printf( "\n  . Seeding the random number generator..." );
-    fflush( stdout );
-
-    mbedtls_entropy_init( &entropy );
-    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func,
-                                       &entropy, (const unsigned char *) pers,
-                                       strlen( pers ) ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
-                        -ret );
+    ret = mbedtls_ssl_test_rng_init( opt.fake_entropy, pers,
+                                     &entropy, &ctr_drbg );
+    if( ret != 0 )
         goto exit;
-    }
-
-    mbedtls_printf( " ok\n" );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     /*
@@ -2319,6 +2316,9 @@ reset:
      * 4. Handshake
      */
 handshake:
+    /* In reproducible test mode, start each connection in the same RNG state. */
+    mbedtls_ssl_test_rng_reset_if_fake( opt.fake_entropy, pers, &ctr_drbg );
+
     mbedtls_printf( "  . Performing the SSL/TLS handshake..." );
     fflush( stdout );
 
@@ -2791,7 +2791,8 @@ exit:
     mbedtls_ssl_free( &ssl );
     mbedtls_ssl_config_free( &conf );
     mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
+    if( opt.fake_entropy == NULL || *opt.fake_entropy == 0 )
+        mbedtls_entropy_free( &entropy );
 
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_free( &cache );

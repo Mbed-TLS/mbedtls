@@ -43,6 +43,7 @@ int main( void )
 #define DFL_EVENT               0
 #define DFL_READ_TIMEOUT        0
 #define DFL_MAX_RESEND          0
+#define DFL_FAKE_ENTROPY        ""
 #define DFL_CA_FILE             ""
 #define DFL_CA_PATH             ""
 #define DFL_CRT_FILE            ""
@@ -220,6 +221,8 @@ int main( void )
     "                        options: 1 (level-triggered, implies nbio=1),\n" \
     "    read_timeout=%%d     default: 0 ms (no timeout)\n"        \
     "    max_resend=%%d       default: 0 (no resend on timeout)\n" \
+    "    fake_entropy=%%s     reproducible test mode (also requires no/constant time)\n" \
+    "                        default: empty (use normal entropy sources)\n" \
     "\n"                                                    \
     USAGE_DTLS                                              \
     "\n"                                                    \
@@ -272,6 +275,7 @@ struct options
     int max_resend;             /* DTLS times to resend on read timeout     */
     const char *request_page;   /* page on server to request                */
     int request_size;           /* pad request with header to requested size */
+    const char *fake_entropy;   /* string to use instead of entropy */
     const char *ca_file;        /* the file with the CA certificate(s)      */
     const char *ca_path;        /* the path with the CA certificate(s) reside */
     const char *crt_file;       /* the file with the client certificate     */
@@ -472,6 +476,7 @@ int main( int argc, char *argv[] )
     opt.max_resend          = DFL_MAX_RESEND;
     opt.request_page        = DFL_REQUEST_PAGE;
     opt.request_size        = DFL_REQUEST_SIZE;
+    opt.fake_entropy        = DFL_FAKE_ENTROPY;
     opt.ca_file             = DFL_CA_FILE;
     opt.ca_path             = DFL_CA_PATH;
     opt.crt_file            = DFL_CRT_FILE;
@@ -564,6 +569,8 @@ int main( int argc, char *argv[] )
                 opt.request_size > MAX_REQUEST_SIZE )
                 goto usage;
         }
+        else if ( strcmp( p, "fake_entropy" ) == 0 )
+            opt.fake_entropy = q;
         else if( strcmp( p, "ca_file" ) == 0 )
             opt.ca_file = q;
         else if( strcmp( p, "ca_path" ) == 0 )
@@ -879,22 +886,12 @@ int main( int argc, char *argv[] )
 #endif /* MBEDTLS_SSL_ALPN */
 
     /*
-     * 0. Initialize the RNG and the session data
+     * 1.0. Initialize the RNG
      */
-    mbedtls_printf( "\n  . Seeding the random number generator..." );
-    fflush( stdout );
-
-    mbedtls_entropy_init( &entropy );
-    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func,
-                                       &entropy, (const unsigned char *) pers,
-                                       strlen( pers ) ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
-                        -ret );
+    ret = mbedtls_ssl_test_rng_init( opt.fake_entropy, pers,
+                                     &entropy, &ctr_drbg );
+    if( ret != 0 )
         goto exit;
-    }
-
-    mbedtls_printf( " ok\n" );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     /*
@@ -1751,7 +1748,8 @@ exit:
     mbedtls_ssl_free( &ssl );
     mbedtls_ssl_config_free( &conf );
     mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
+    if( opt.fake_entropy == NULL || *opt.fake_entropy == 0 )
+        mbedtls_entropy_free( &entropy );
 
 #if defined(_WIN32)
     mbedtls_printf( "  + Press Enter to exit this program.\n" );

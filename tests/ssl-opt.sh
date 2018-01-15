@@ -664,23 +664,28 @@ MAIN_PID="$$"
 #   (in particular, for it to finish writing & flushing its log file)
 # Things are slower with valgrind, so give extra time here.
 #
-# Note: there is a trade-off between the running time of this script and the
-# risk of spurious errors because we didn't wait long enough. In a better
-# world, we would be able to do without those delays (except the watchdog).
+# Note: DOG_DELAY has no impact on the running time of the script unless the
+# client is broken enough that it hangs forever. For the other two parameters,
+# there is a trade-off between the running time of this script and the risk of
+# spurious errors because we didn't wait long enough. In a better
+# world, we would be able to do without those two (we already do for the first
+# one when lsof is installed). In the meantime, impatient developers should
+# make sure 'lsof' is installed in order to get rid of START_DELAY, and may
+# override SRV_DELAY_BASE via the environment (setting to 0 should work on a
+# lightly loaded machine, or 0.1).
 if [ "$MEMCHECK" -gt 0 ]; then
     START_DELAY=6
-    DOG_DELAY=60
-    SRV_DELAY_BASE=2
+    DOG_DELAY=120
+    : ${SRV_DELAY_BASE:=2}
 else
     START_DELAY=2
-    DOG_DELAY=15
-    # allow impatient devs to override this one (really impacts running time)
+    DOG_DELAY=30
     : ${SRV_DELAY_BASE:=1}
 fi
 
 # some particular tests need more time:
 # - for the client, we multiply the usual delay by a factor
-# - for the severs, we add a number of secondes to the usual delay
+# - for the severs, we add a number of seconds to the usual delay
 # see client_need_more_time() and server_needs_more_time()
 CLI_DELAY_FACTOR=1
 SRV_DELAY_SECONDS=0

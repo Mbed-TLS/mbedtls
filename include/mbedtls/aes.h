@@ -36,8 +36,12 @@
 #define MBEDTLS_AES_ENCRYPT     1
 #define MBEDTLS_AES_DECRYPT     0
 
+/* Error codes in range 0x0020-0x0022 */
 #define MBEDTLS_ERR_AES_INVALID_KEY_LENGTH                -0x0020  /**< Invalid key length. */
 #define MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH              -0x0022  /**< Invalid data input length. */
+
+/* Error codes in range 0x0023-0x0023 */
+#define MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE               -0x0023  /**< Feature not available, e.g. unsupported AES key size. */
 
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)

@@ -39,6 +39,8 @@ extern "C" {
 #define MBEDTLS_CIPHER_BLKSIZE_MAX      8   /* longest used by CMAC is 3DES */
 #endif
 
+#if !defined(MBEDTLS_CMAC_ALT)
+
 /**
  * CMAC context structure - Contains internal state information only
  */
@@ -153,6 +155,18 @@ int mbedtls_aes_cmac_prf_128( const unsigned char *key, size_t key_len,
                               const unsigned char *input, size_t in_len,
                               unsigned char output[16] );
 #endif /* MBEDTLS_AES_C */
+
+#ifdef __cplusplus
+}
+#endif
+
+#else  /* !MBEDTLS_CMAC_ALT */
+#include "cmac_alt.h"
+#endif /* !MBEDTLS_CMAC_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #if defined(MBEDTLS_SELF_TEST) && ( defined(MBEDTLS_AES_C) || defined(MBEDTLS_DES_C) )
 /**

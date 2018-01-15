@@ -56,24 +56,24 @@ To build and run this example you must have:
     {{start}}
 
 
-      SHA-1                    :       3644 Kb/s,         32 cycles/byte
-      SHA-256                  :       1957 Kb/s,         59 cycles/byte
-      SHA-512                  :        587 Kb/s,        200 cycles/byte
-      AES-CBC-128              :       1359 Kb/s,         86 cycles/byte
-      AES-CBC-192              :       1183 Kb/s,         99 cycles/byte
-      AES-CBC-256              :       1048 Kb/s,        111 cycles/byte
-      AES-GCM-128              :        421 Kb/s,        279 cycles/byte
-      AES-GCM-192              :        403 Kb/s,        292 cycles/byte
-      AES-GCM-256              :        385 Kb/s,        305 cycles/byte
-      AES-CCM-128              :        542 Kb/s,        216 cycles/byte
-      AES-CCM-192              :        484 Kb/s,        242 cycles/byte
-      AES-CCM-256              :        437 Kb/s,        268 cycles/byte
-      CTR_DRBG (NOPR)          :       1002 Kb/s,        117 cycles/byte
-      CTR_DRBG (PR)            :        705 Kb/s,        166 cycles/byte
-      HMAC_DRBG SHA-1 (NOPR)   :        228 Kb/s,        517 cycles/byte
-      HMAC_DRBG SHA-1 (PR)     :        210 Kb/s,        561 cycles/byte
-      HMAC_DRBG SHA-256 (NOPR) :        212 Kb/s,        557 cycles/byte
-      HMAC_DRBG SHA-256 (PR)   :        185 Kb/s,        637 cycles/byte
+      SHA-1                    :       3644 KiB/s,         32 cycles/byte
+      SHA-256                  :       1957 KiB/s,         59 cycles/byte
+      SHA-512                  :        587 KiB/s,        200 cycles/byte
+      AES-CBC-128              :       1359 KiB/s,         86 cycles/byte
+      AES-CBC-192              :       1183 KiB/s,         99 cycles/byte
+      AES-CBC-256              :       1048 KiB/s,        111 cycles/byte
+      AES-GCM-128              :        421 KiB/s,        279 cycles/byte
+      AES-GCM-192              :        403 KiB/s,        292 cycles/byte
+      AES-GCM-256              :        385 KiB/s,        305 cycles/byte
+      AES-CCM-128              :        542 KiB/s,        216 cycles/byte
+      AES-CCM-192              :        484 KiB/s,        242 cycles/byte
+      AES-CCM-256              :        437 KiB/s,        268 cycles/byte
+      CTR_DRBG (NOPR)          :       1002 KiB/s,        117 cycles/byte
+      CTR_DRBG (PR)            :        705 KiB/s,        166 cycles/byte
+      HMAC_DRBG SHA-1 (NOPR)   :        228 KiB/s,        517 cycles/byte
+      HMAC_DRBG SHA-1 (PR)     :        210 KiB/s,        561 cycles/byte
+      HMAC_DRBG SHA-256 (NOPR) :        212 KiB/s,        557 cycles/byte
+      HMAC_DRBG SHA-256 (PR)   :        185 KiB/s,        637 cycles/byte
       RSA-2048                 :      41 ms/ public
       RSA-2048                 :    1349 ms/private
       RSA-4096                 :     134 ms/ public

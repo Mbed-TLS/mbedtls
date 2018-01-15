@@ -34,10 +34,10 @@ entropy_threshold:16:2:8
 Entropy threshold #2
 entropy_threshold:32:1:32
 
-Entropy thershold #3
+Entropy threshold #3
 entropy_threshold:16:0:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
 
-Entropy thershold #4
+Entropy threshold #4
 entropy_threshold:1024:1:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
 
 Check NV seed standard IO

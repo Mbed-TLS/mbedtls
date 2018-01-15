@@ -1670,3 +1670,18 @@ X509 Get time (UTC invalid character in sec)
 depends_on:MBEDTLS_X509_USE_C
 x509_get_time:MBEDTLS_ASN1_UTC_TIME:"0011302359n0Z":MBEDTLS_ERR_X509_INVALID_DATE:0:0:0:0:0:0
 
+X509 Get time (Generalized Time, year multiple of 100 but not 400 is not a leap year)
+depends_on:MBEDTLS_X509_USE_C
+x509_get_time:MBEDTLS_ASN1_GENERALIZED_TIME:"19000229000000Z":MBEDTLS_ERR_X509_INVALID_DATE:0:0:0:0:0:0
+
+X509 Get time (Generalized Time, year multiple of 4 but not 100 is a leap year)
+depends_on:MBEDTLS_X509_USE_C
+x509_get_time:MBEDTLS_ASN1_GENERALIZED_TIME:"19920229000000Z":0:1992:2:29:0:0:0
+
+X509 Get time (Generalized Time, year multiple of 400 is a leap year)
+depends_on:MBEDTLS_X509_USE_C
+x509_get_time:MBEDTLS_ASN1_GENERALIZED_TIME:"20000229000000Z":0:2000:2:29:0:0:0
+
+X509 Get time (Generalized Time invalid leap year not multiple of 4, 100 or 400)
+depends_on:MBEDTLS_X509_USE_C
+x509_get_time:MBEDTLS_ASN1_GENERALIZED_TIME:"19910229000000Z":MBEDTLS_ERR_X509_INVALID_DATE:0:0:0:0:0:0

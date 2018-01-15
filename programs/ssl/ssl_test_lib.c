@@ -210,6 +210,39 @@ int polarssl_ssl_test_forced_ciphersuite( int force_ciphersuite,
     return( 0 );
 }
 
+int polarssl_ssl_test_parse_version( const char *p, const char *q )
+{
+    if( strcmp( q, "ssl3" ) == 0 )
+        return( SSL_MINOR_VERSION_0 );
+    else if( strcmp( q, "tls1" ) == 0 )
+        return( SSL_MINOR_VERSION_1 );
+    else if( strcmp( q, "tls1_1" ) == 0 || strcmp( q, "dtls1" ) == 0 )
+        return( SSL_MINOR_VERSION_2 );
+    else if( strcmp( q, "tls1_2" ) == 0 || strcmp( q, "dtls1_2" ) == 0 )
+        return( SSL_MINOR_VERSION_3 );
+    else
+    {
+        polarssl_printf( "Invalid value for option %s (must be ssl3|d?tls1|tls1_1|d?tls1_2)\n",
+                        p );
+        return( POLARSSL_SSL_TEST_BAD_VERSION );
+    }
+}
+
+/*
+ * Return authmode from string, or -1 on error
+ */
+int polarssl_ssl_test_get_auth_mode( const char *s )
+{
+    if( strcmp( s, "none" ) == 0 )
+        return( SSL_VERIFY_NONE );
+    if( strcmp( s, "optional" ) == 0 )
+        return( SSL_VERIFY_OPTIONAL );
+    if( strcmp( s, "required" ) == 0 )
+        return( SSL_VERIFY_REQUIRED );
+
+    return( -1 );
+}
+
 #if defined(POLARSSL_SSL_SET_CURVES)
 int polarssl_ssl_test_parse_curves( char *p,
                                     ecp_group_id *curve_list )

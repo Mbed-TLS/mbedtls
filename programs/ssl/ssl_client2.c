@@ -533,28 +533,14 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "min_version" ) == 0 )
         {
-            if( strcmp( q, "ssl3" ) == 0 )
-                opt.min_version = SSL_MINOR_VERSION_0;
-            else if( strcmp( q, "tls1" ) == 0 )
-                opt.min_version = SSL_MINOR_VERSION_1;
-            else if( strcmp( q, "tls1_1" ) == 0 )
-                opt.min_version = SSL_MINOR_VERSION_2;
-            else if( strcmp( q, "tls1_2" ) == 0 )
-                opt.min_version = SSL_MINOR_VERSION_3;
-            else
+            opt.min_version = polarssl_ssl_test_parse_version( p, q );
+            if( opt.min_version == POLARSSL_SSL_TEST_BAD_VERSION )
                 goto usage;
         }
         else if( strcmp( p, "max_version" ) == 0 )
         {
-            if( strcmp( q, "ssl3" ) == 0 )
-                opt.max_version = SSL_MINOR_VERSION_0;
-            else if( strcmp( q, "tls1" ) == 0 )
-                opt.max_version = SSL_MINOR_VERSION_1;
-            else if( strcmp( q, "tls1_1" ) == 0 )
-                opt.max_version = SSL_MINOR_VERSION_2;
-            else if( strcmp( q, "tls1_2" ) == 0 )
-                opt.max_version = SSL_MINOR_VERSION_3;
-            else
+            opt.max_version = polarssl_ssl_test_parse_version( p, q );
+            if( opt.max_version == POLARSSL_SSL_TEST_BAD_VERSION )
                 goto usage;
         }
         else if( strcmp( p, "arc4" ) == 0 )
@@ -568,38 +554,15 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "force_version" ) == 0 )
         {
-            if( strcmp( q, "ssl3" ) == 0 )
-            {
-                opt.min_version = SSL_MINOR_VERSION_0;
-                opt.max_version = SSL_MINOR_VERSION_0;
-            }
-            else if( strcmp( q, "tls1" ) == 0 )
-            {
-                opt.min_version = SSL_MINOR_VERSION_1;
-                opt.max_version = SSL_MINOR_VERSION_1;
-            }
-            else if( strcmp( q, "tls1_1" ) == 0 )
-            {
-                opt.min_version = SSL_MINOR_VERSION_2;
-                opt.max_version = SSL_MINOR_VERSION_2;
-            }
-            else if( strcmp( q, "tls1_2" ) == 0 )
-            {
-                opt.min_version = SSL_MINOR_VERSION_3;
-                opt.max_version = SSL_MINOR_VERSION_3;
-            }
-            else
+            int version = polarssl_ssl_test_parse_version( p, q );
+            if( version == POLARSSL_SSL_TEST_BAD_VERSION )
                 goto usage;
+            opt.min_version = version;
+            opt.max_version = version;
         }
         else if( strcmp( p, "auth_mode" ) == 0 )
         {
-            if( strcmp( q, "none" ) == 0 )
-                opt.auth_mode = SSL_VERIFY_NONE;
-            else if( strcmp( q, "optional" ) == 0 )
-                opt.auth_mode = SSL_VERIFY_OPTIONAL;
-            else if( strcmp( q, "required" ) == 0 )
-                opt.auth_mode = SSL_VERIFY_REQUIRED;
-            else
+            if( ( opt.auth_mode = polarssl_ssl_test_get_auth_mode( q ) ) < 0 )
                 goto usage;
         }
         else if( strcmp( p, "max_frag_len" ) == 0 )
@@ -644,7 +607,10 @@ int main( int argc, char *argv[] )
                                                     opt.min_version,
                                                     opt.max_version );
         if( ret != 0 )
+        {
+            /* Explanation message already printed above */
             goto usage;
+        }
     }
 
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)

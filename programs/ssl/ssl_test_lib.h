@@ -113,6 +113,15 @@ int polarssl_ssl_test_forced_ciphersuite( int force_ciphersuite,
                                           int min_version,
                                           int max_version );
 
+#define POLARSSL_SSL_TEST_BAD_VERSION ( -1 )
+/* Return TLS minor version from string, or -1 on error. */
+int polarssl_ssl_test_parse_version( const char *p, const char *q );
+
+/*
+ * Return authmode from string, or -1 on error
+ */
+int polarssl_ssl_test_get_auth_mode( const char *s );
+
 /*
  * Convert a hex string to bytes.
  * Return 0 on success, -1 on error.

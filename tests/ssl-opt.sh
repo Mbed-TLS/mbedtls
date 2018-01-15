@@ -340,6 +340,23 @@ check_server_hello_time() {
     fi
 }
 
+# terminate server after giving it some time to wrap up and write logs
+terminate_server() {
+    # Shortcut the delay in case we know logs are ready.
+    # This only works for Mbed TLS, and not for all tests (sometimes with DTLS
+    # the server still doesn't know the client has disconnected at the end).
+    # However the shortcut test is designed to only have false negatives and
+    # no false positives, and we fall back to sleeping on negatives.
+    if tail -n-1 $SRV_OUT | grep -F 'Waiting for a remote connection' >/dev/null; then :;
+    else
+        sleep $(( $SRV_DELAY_BASE + $SRV_DELAY_SECONDS ))
+        SRV_DELAY_SECONDS=0
+    fi
+
+    kill $SRV_PID
+    wait $SRV_PID
+}
+
 # wait for client to terminate and set CLI_EXIT
 # must be called right after starting the client
 wait_client_done() {
@@ -358,9 +375,6 @@ wait_client_done() {
     wait $DOG_PID
 
     echo "EXIT: $CLI_EXIT" >> $CLI_OUT
-
-    sleep $(( $SRV_DELAY_BASE + $SRV_DELAY_SECONDS ))
-    SRV_DELAY_SECONDS=0
 }
 
 # check if the given command uses dtls and sets global variable DTLS
@@ -465,8 +479,7 @@ run_test() {
         wait_client_done
 
         # terminate the server (and the proxy)
-        kill $SRV_PID
-        wait $SRV_PID
+        terminate_server
         if [ -n "$PXY_CMD" ]; then
             kill $PXY_PID >/dev/null 2>&1
             wait $PXY_PID

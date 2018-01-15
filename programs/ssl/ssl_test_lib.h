@@ -99,11 +99,21 @@ void mbedtls_ssl_test_rng_reset_if_fake( const char *fake_entropy,
 int mbedtls_ssl_test_recv( void *ctx, unsigned char *buf, size_t len );
 int mbedtls_ssl_test_send( void *ctx, const unsigned char *buf, size_t len );
 
-int mbedtls_ssl_test_force_ciphersuite( int force_ciphersuite,
-                                        int transport,
-                                        int min_version,
-                                        int max_version,
-                                        int *arc4 );
+/* Check compatibility of forced ciphersuite, and enable ARC4 if needed. */
+int mbedtls_ssl_test_forced_ciphersuite( int force_ciphersuite,
+                                         int transport,
+                                         int min_version,
+                                         int max_version,
+                                         int *arc4 );
+
+#define MBEDTLS_SSL_TEST_BAD_VERSION ( -1 )
+/* Return TLS minor version from string, or -1 on error. */
+int mbedtls_ssl_test_parse_version( const char *p, const char *q );
+
+/*
+ * Return authmode from string, or -1 on error
+ */
+int mbedtls_ssl_test_get_auth_mode( const char *s );
 
 /*
  * Convert a hex string to bytes.

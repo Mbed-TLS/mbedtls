@@ -693,32 +693,14 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "min_version" ) == 0 )
         {
-            if( strcmp( q, "ssl3" ) == 0 )
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_0;
-            else if( strcmp( q, "tls1" ) == 0 )
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_1;
-            else if( strcmp( q, "tls1_1" ) == 0 ||
-                     strcmp( q, "dtls1" ) == 0 )
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_2;
-            else if( strcmp( q, "tls1_2" ) == 0 ||
-                     strcmp( q, "dtls1_2" ) == 0 )
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_3;
-            else
+            opt.min_version = mbedtls_ssl_test_parse_version( p, q );
+            if( opt.min_version == MBEDTLS_SSL_TEST_BAD_VERSION )
                 goto usage;
         }
         else if( strcmp( p, "max_version" ) == 0 )
         {
-            if( strcmp( q, "ssl3" ) == 0 )
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_0;
-            else if( strcmp( q, "tls1" ) == 0 )
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_1;
-            else if( strcmp( q, "tls1_1" ) == 0 ||
-                     strcmp( q, "dtls1" ) == 0 )
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_2;
-            else if( strcmp( q, "tls1_2" ) == 0 ||
-                     strcmp( q, "dtls1_2" ) == 0 )
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_3;
-            else
+            opt.max_version = mbedtls_ssl_test_parse_version( p, q );
+            if( opt.max_version == MBEDTLS_SSL_TEST_BAD_VERSION )
                 goto usage;
         }
         else if( strcmp( p, "arc4" ) == 0 )
@@ -778,13 +760,7 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "auth_mode" ) == 0 )
         {
-            if( strcmp( q, "none" ) == 0 )
-                opt.auth_mode = MBEDTLS_SSL_VERIFY_NONE;
-            else if( strcmp( q, "optional" ) == 0 )
-                opt.auth_mode = MBEDTLS_SSL_VERIFY_OPTIONAL;
-            else if( strcmp( q, "required" ) == 0 )
-                opt.auth_mode = MBEDTLS_SSL_VERIFY_REQUIRED;
-            else
+            if( ( opt.auth_mode = mbedtls_ssl_test_get_auth_mode( q ) ) < 0 )
                 goto usage;
         }
         else if( strcmp( p, "max_frag_len" ) == 0 )
@@ -850,13 +826,16 @@ int main( int argc, char *argv[] )
 
     if( opt.force_ciphersuite[0] > 0 )
     {
-        ret = mbedtls_ssl_test_force_ciphersuite( opt.force_ciphersuite[0],
-                                                  opt.transport,
-                                                  opt.min_version,
-                                                  opt.max_version,
-                                                  &opt.arc4 );
+        ret = mbedtls_ssl_test_forced_ciphersuite( opt.force_ciphersuite[0],
+                                                   opt.transport,
+                                                   opt.min_version,
+                                                   opt.max_version,
+                                                   &opt.arc4 );
         if( ret != 0 )
+        {
+            /* Explanation message already printed above */
             goto usage;
+        }
     }
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)

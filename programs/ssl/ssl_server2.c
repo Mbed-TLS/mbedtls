@@ -433,21 +433,6 @@ struct options
 } opt;
 
 /*
- * Return authmode from string, or -1 on error
- */
-static int get_auth_mode( const char *s )
-{
-    if( strcmp( s, "none" ) == 0 )
-        return( MBEDTLS_SSL_VERIFY_NONE );
-    if( strcmp( s, "optional" ) == 0 )
-        return( MBEDTLS_SSL_VERIFY_OPTIONAL );
-    if( strcmp( s, "required" ) == 0 )
-        return( MBEDTLS_SSL_VERIFY_REQUIRED );
-
-    return( -1 );
-}
-
-/*
  * Used by sni_parse and psk_parse to handle coma-separated lists
  */
 #define GET_ITEM( dst )         \
@@ -562,7 +547,7 @@ sni_entry *sni_parse( char *sni_string )
 
         if( strcmp( auth_str, "-" ) != 0 )
         {
-            if( ( new->authmode = get_auth_mode( auth_str ) ) < 0 )
+            if( ( new->authmode = mbedtls_ssl_test_get_auth_mode( auth_str ) ) < 0 )
                 goto error;
         }
         else
@@ -1340,32 +1325,14 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "min_version" ) == 0 )
         {
-            if( strcmp( q, "ssl3" ) == 0 )
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_0;
-            else if( strcmp( q, "tls1" ) == 0 )
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_1;
-            else if( strcmp( q, "tls1_1" ) == 0 ||
-                     strcmp( q, "dtls1" ) == 0 )
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_2;
-            else if( strcmp( q, "tls1_2" ) == 0 ||
-                     strcmp( q, "dtls1_2" ) == 0 )
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_3;
-            else
+            opt.min_version = mbedtls_ssl_test_parse_version( p, q );
+            if( opt.min_version == MBEDTLS_SSL_TEST_BAD_VERSION )
                 goto usage;
         }
         else if( strcmp( p, "max_version" ) == 0 )
         {
-            if( strcmp( q, "ssl3" ) == 0 )
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_0;
-            else if( strcmp( q, "tls1" ) == 0 )
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_1;
-            else if( strcmp( q, "tls1_1" ) == 0 ||
-                     strcmp( q, "dtls1" ) == 0 )
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_2;
-            else if( strcmp( q, "tls1_2" ) == 0 ||
-                     strcmp( q, "dtls1_2" ) == 0 )
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_3;
-            else
+            opt.max_version = mbedtls_ssl_test_parse_version( p, q );
+            if( opt.max_version == MBEDTLS_SSL_TEST_BAD_VERSION )
                 goto usage;
         }
         else if( strcmp( p, "arc4" ) == 0 )
@@ -1388,44 +1355,17 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "force_version" ) == 0 )
         {
-            if( strcmp( q, "ssl3" ) == 0 )
-            {
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_0;
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_0;
-            }
-            else if( strcmp( q, "tls1" ) == 0 )
-            {
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_1;
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_1;
-            }
-            else if( strcmp( q, "tls1_1" ) == 0 )
-            {
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_2;
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_2;
-            }
-            else if( strcmp( q, "tls1_2" ) == 0 )
-            {
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_3;
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_3;
-            }
-            else if( strcmp( q, "dtls1" ) == 0 )
-            {
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_2;
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_2;
-                opt.transport = MBEDTLS_SSL_TRANSPORT_DATAGRAM;
-            }
-            else if( strcmp( q, "dtls1_2" ) == 0 )
-            {
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_3;
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_3;
-                opt.transport = MBEDTLS_SSL_TRANSPORT_DATAGRAM;
-            }
-            else
+            int version = mbedtls_ssl_test_parse_version( p, q );
+            if( version == MBEDTLS_SSL_TEST_BAD_VERSION )
                 goto usage;
+            opt.min_version = version;
+            opt.max_version = version;
+            if( p[0] == 'd' )
+                opt.transport = MBEDTLS_SSL_TRANSPORT_DATAGRAM;
         }
         else if( strcmp( p, "auth_mode" ) == 0 )
         {
-            if( ( opt.auth_mode = get_auth_mode( q ) ) < 0 )
+            if( ( opt.auth_mode = mbedtls_ssl_test_get_auth_mode( q ) ) < 0 )
                 goto usage;
         }
         else if( strcmp( p, "cert_req_ca_list" ) == 0 )
@@ -1557,11 +1497,11 @@ int main( int argc, char *argv[] )
 
     if( opt.force_ciphersuite[0] > 0 )
     {
-        ret = mbedtls_ssl_test_force_ciphersuite( opt.force_ciphersuite[0],
-                                                  opt.transport,
-                                                  opt.min_version,
-                                                  opt.max_version,
-                                                  &opt.arc4 );
+        ret = mbedtls_ssl_test_forced_ciphersuite( opt.force_ciphersuite[0],
+                                                   opt.transport,
+                                                   opt.min_version,
+                                                   opt.max_version,
+                                                   &opt.arc4 );
         if( ret != 0 )
             goto usage;
     }

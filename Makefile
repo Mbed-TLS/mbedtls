@@ -21,10 +21,10 @@ tests:	lib
 install:
 	mkdir -p $(DESTDIR)/include/polarssl
 	cp -r include/polarssl $(DESTDIR)/include
-	
+
 	mkdir -p $(DESTDIR)/lib
 	cp -RP library/libpolarssl.* library/libmbedtls.* $(DESTDIR)/lib
-	
+
 	mkdir -p $(DESTDIR)/bin
 	for p in programs/*/* ; do              \
 	    if [ -x $$p ] && [ ! -d $$p ] ;     \
@@ -40,7 +40,7 @@ uninstall:
 	rm -rf $(DESTDIR)/include/polarssl
 	rm -f $(DESTDIR)/lib/libpolarssl.*
 	rm -f $(DESTDIR)/lib/libmbedtls.*
-	
+
 	for p in programs/*/* ; do              \
 	    if [ -x $$p ] && [ ! -d $$p ] ;     \
 	    then                                \
@@ -94,3 +94,12 @@ apidoc_clean:
 		rm -rf apidoc ;			\
 	fi
 endif
+
+## Editor navigation files
+C_SOURCE_FILES = $(wildcard include/*/*.h library/*.[hc] programs/*/*.[hc] tests/suites/*.function)
+tags: $(C_SOURCE_FILES)
+	ctags -o TAGS $(C_SOURCE_FILES)
+TAGS: $(C_SOURCE_FILES)
+	etags -o TAGS $(C_SOURCE_FILES)
+GPATH GRTAGS GSYMS GTAGS: $(C_SOURCE_FILES)
+	 ls $(C_SOURCE_FILES) | gtags -f - --gtagsconf .globalrc

@@ -26,3 +26,11 @@ massif-*
 
 # CMake generates *.dir/ folders for in-tree builds (used by MSVC projects), ignore all of those:
 *.dir/
+
+# Editor navigation files:
+/GPATH
+/GRTAGS
+/GSYMS
+/GTAGS
+/TAGS
+/tags

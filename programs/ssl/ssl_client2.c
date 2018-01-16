@@ -1796,7 +1796,7 @@ exit:
     mbedtls_ssl_free( &ssl );
     mbedtls_ssl_config_free( &conf );
     mbedtls_ctr_drbg_free( &ctr_drbg );
-    if( opt.fake_entropy == NULL || *opt.fake_entropy == 0 )
+    if( ! mbedtls_ssl_test_rng_use_fake_entropy( opt.fake_entropy ) )
         mbedtls_entropy_free( &entropy );
 
 #if defined(_WIN32)

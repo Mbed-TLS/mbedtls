@@ -159,13 +159,15 @@ int mbedtls_ssl_test_send( void *ctx, const unsigned char *buf, size_t len )
  * Convert a hex string to bytes.
  * Return 0 on success, -1 on error.
  */
-int mbedtls_ssl_test_unhexify( unsigned char *output, const char *input, size_t *olen )
+int mbedtls_ssl_test_unhexify( const char *input,
+                               unsigned char *output, size_t osize,
+                               size_t *olen )
 {
     unsigned char c;
     size_t j;
 
     *olen = strlen( input );
-    if( *olen % 2 != 0 || *olen / 2 > MBEDTLS_PSK_MAX_LEN )
+    if( *olen % 2 != 0 || *olen / 2 > osize )
         return( -1 );
     *olen /= 2;
 

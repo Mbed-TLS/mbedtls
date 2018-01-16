@@ -690,13 +690,12 @@ int main( int argc, char *argv[] )
     /*
      * Unhexify the pre-shared key if any is given
      */
-    if( *opt.psk )
+    if( polarssl_ssl_test_unhexify( opt.psk,
+                                    psk, POLARSSL_PSK_MAX_LEN,
+                                    &psk_len ) != 0 )
     {
-        if( polarssl_ssl_test_unhexify( psk, opt.psk, &psk_len ) != 0 )
-        {
-            polarssl_printf( "pre-shared key not valid hex\n" );
-            goto exit;
-        }
+        polarssl_printf( "pre-shared key not valid hex\n" );
+        goto exit;
     }
 #endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */
 

@@ -494,7 +494,9 @@ psk_entry *psk_parse( char *psk_string )
         GET_ITEM( new->name );
         GET_ITEM( key_hex );
 
-        if( polarssl_ssl_test_unhexify( new->key, key_hex, &new->key_len ) != 0 )
+        if( polarssl_ssl_test_unhexify( key_hex,
+                                        new->key, POLARSSL_PSK_MAX_LEN,
+                                        &new->key_len ) != 0 )
             goto error;
 
         new->next = cur;
@@ -1027,13 +1029,12 @@ int main( int argc, char *argv[] )
     /*
      * Unhexify the pre-shared key and parse the list if any given
      */
-    if( *opt.psk )
+    if( polarssl_ssl_test_unhexify( opt.psk,
+                                    psk, POLARSSL_PSK_MAX_LEN,
+                                    &psk_len ) != 0 )
     {
-        if( polarssl_ssl_test_unhexify( psk, opt.psk, &psk_len ) != 0 )
-        {
-            polarssl_printf( "pre-shared key not valid hex\n" );
-            goto exit;
-        }
+        polarssl_printf( "pre-shared key not valid hex\n" );
+        goto exit;
     }
 
     if( opt.psk_list != NULL )

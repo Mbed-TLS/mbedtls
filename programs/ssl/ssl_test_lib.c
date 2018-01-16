@@ -77,7 +77,7 @@ int polarssl_ssl_test_rng_init( const char *fake_entropy,
     }
 
     if( ret != 0 )
-        polarssl_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n", -ret );
+        polarssl_printf( " failed\n  ! ctr_drbg_seed returned -0x%x\n", -ret );
     else
         polarssl_printf( " ok\n" );
     return( ret );
@@ -151,13 +151,15 @@ int polarssl_ssl_test_send( void *ctx, const unsigned char *buf, size_t len )
  * Convert a hex string to bytes.
  * Return 0 on success, -1 on error.
  */
-int polarssl_ssl_test_unhexify( unsigned char *output, const char *input, size_t *olen )
+int polarssl_ssl_test_unhexify( const char *input,
+                                unsigned char *output, size_t osize,
+                                size_t *olen )
 {
     unsigned char c;
     size_t j;
 
     *olen = strlen( input );
-    if( *olen % 2 != 0 || *olen / 2 > POLARSSL_PSK_MAX_LEN )
+    if( *olen % 2 != 0 || *olen / 2 > osize )
         return( -1 );
     *olen /= 2;
 

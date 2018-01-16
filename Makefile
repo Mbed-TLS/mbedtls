@@ -23,12 +23,12 @@ ifndef WINDOWS
 install: no_test
 	mkdir -p $(DESTDIR)/include/mbedtls
 	cp -r include/mbedtls $(DESTDIR)/include
-	
+
 	mkdir -p $(DESTDIR)/lib
 	cp -RP library/libmbedtls.*    $(DESTDIR)/lib
 	cp -RP library/libmbedx509.*   $(DESTDIR)/lib
 	cp -RP library/libmbedcrypto.* $(DESTDIR)/lib
-	
+
 	mkdir -p $(DESTDIR)/bin
 	for p in programs/*/* ; do              \
 	    if [ -x $$p ] && [ ! -d $$p ] ;     \
@@ -43,7 +43,7 @@ uninstall:
 	rm -f $(DESTDIR)/lib/libmbedtls.*
 	rm -f $(DESTDIR)/lib/libmbedx509.*
 	rm -f $(DESTDIR)/lib/libmbedcrypto.*
-	
+
 	for p in programs/*/* ; do              \
 	    if [ -x $$p ] && [ ! -d $$p ] ;     \
 	    then                                \
@@ -95,3 +95,12 @@ apidoc:
 apidoc_clean:
 	rm -rf apidoc
 endif
+
+## Editor navigation files
+C_SOURCE_FILES = $(wildcard include/*/*.h library/*.[hc] programs/*/*.[hc] tests/suites/*.function)
+tags: $(C_SOURCE_FILES)
+	ctags -o TAGS $(C_SOURCE_FILES)
+TAGS: $(C_SOURCE_FILES)
+	etags -o TAGS $(C_SOURCE_FILES)
+GPATH GRTAGS GSYMS GTAGS: $(C_SOURCE_FILES)
+	ls $(C_SOURCE_FILES) | gtags -f - --gtagsconf .globalrc

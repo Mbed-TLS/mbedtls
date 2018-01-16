@@ -42,8 +42,7 @@
 #endif
 
 #if defined(POLARSSL_ENTROPY_C) && \
-    defined(POLARSSL_FS_IO) &&                  \
-    defined(POLARSSL_SSL_TLS_C) &&              \
+    defined(POLARSSL_SSL_TLS_C) && \
     defined(POLARSSL_NET_C) && \
     defined(POLARSSL_CTR_DRBG_C)
 #define POLARSSL_PROGRAMS_SSL__PREREQUISITES

@@ -708,7 +708,7 @@ int main( int argc, char *argv[] )
                 goto usage;
             opt.min_version = version;
             opt.max_version = version;
-            if( p[0] == 'd' )
+            if( q[0] == 'd' )
                 opt.transport = MBEDTLS_SSL_TRANSPORT_DATAGRAM;
         }
         else if( strcmp( p, "auth_mode" ) == 0 )

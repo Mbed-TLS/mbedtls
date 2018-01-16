@@ -195,13 +195,13 @@ int mbedtls_ssl_test_forced_ciphersuite( int force_ciphersuite,
     if( max_version != -1 &&
         ciphersuite_info->min_minor_ver > max_version )
     {
-        mbedtls_printf("forced ciphersuite not allowed with this protocol version\n");
+        mbedtls_printf( "forced ciphersuite not allowed with this protocol version\n" );
         return( 2 );
     }
     if( min_version != -1 &&
         ciphersuite_info->max_minor_ver < min_version )
     {
-        mbedtls_printf("forced ciphersuite not allowed with this protocol version\n");
+        mbedtls_printf( "forced ciphersuite not allowed with this protocol version\n" );
         return( 2 );
     }
 
@@ -226,7 +226,7 @@ int mbedtls_ssl_test_forced_ciphersuite( int force_ciphersuite,
     {
         if( *arc4 == MBEDTLS_SSL_ARC4_DISABLED )
         {
-            mbedtls_printf("forced RC4 ciphersuite with RC4 disabled\n");
+            mbedtls_printf( "forced RC4 ciphersuite with RC4 disabled\n" );
         return( 2 );
         }
 
@@ -342,7 +342,7 @@ int mbedtls_ssl_test_parse_curves( char *p,
             }
         }
 
-        mbedtls_printf("Number of curves: %d\n", i );
+        mbedtls_printf( "Number of curves: %d\n", i );
 
         if( i == CURVE_LIST_SIZE - 1 && *p != '\0' )
         {

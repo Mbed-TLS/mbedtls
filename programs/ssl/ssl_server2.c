@@ -25,9 +25,9 @@
     !defined(MBEDTLS_SSL_SRV_C)
 int main( void )
 {
-    mbedtls_printf("MBEDTLS_ENTROPY_C and/or "
+    mbedtls_printf( "MBEDTLS_ENTROPY_C and/or "
            "MBEDTLS_SSL_TLS_C and/or MBEDTLS_SSL_SRV_C and/or "
-           "MBEDTLS_NET_C and/or MBEDTLS_CTR_DRBG_C and/or not defined.\n");
+           "MBEDTLS_NET_C and/or MBEDTLS_CTR_DRBG_C and/or not defined.\n" );
     return( 0 );
 }
 #else
@@ -778,14 +778,14 @@ int main( int argc, char *argv[] )
         list = mbedtls_ssl_list_ciphersuites();
         while( *list )
         {
-            mbedtls_printf(" %-42s", mbedtls_ssl_get_ciphersuite_name( *list ) );
+            mbedtls_printf( " %-42s", mbedtls_ssl_get_ciphersuite_name( *list ) );
             list++;
             if( !*list )
                 break;
-            mbedtls_printf(" %s\n", mbedtls_ssl_get_ciphersuite_name( *list ) );
+            mbedtls_printf( " %s\n", mbedtls_ssl_get_ciphersuite_name( *list ) );
             list++;
         }
-        mbedtls_printf("\n");
+        mbedtls_printf( "\n" );
         goto exit;
     }
 
@@ -869,7 +869,7 @@ int main( int argc, char *argv[] )
             opt.debug_level = atoi( q );
             if( opt.debug_level < 0 || opt.debug_level > 65535 )
             {
-                mbedtls_printf( "Invalid value for option %s (must be 0..655535)\n",
+                mbedtls_printf( "Invalid value for option %s (must be 0..65535)\n",
                                 p );
                 goto usage;
             }
@@ -1322,7 +1322,7 @@ int main( int argc, char *argv[] )
 #else
     {
         ret = 1;
-        mbedtls_printf("MBEDTLS_CERTS_C not defined.");
+        mbedtls_printf( "MBEDTLS_CERTS_C not defined." );
     }
 #endif
     if( ret < 0 )
@@ -1785,7 +1785,7 @@ reset:
     {
         char error_buf[100];
         mbedtls_strerror( ret, error_buf, 100 );
-        mbedtls_printf("Last error was: %d - %s\n\n", ret, error_buf );
+        mbedtls_printf( "Last error was: %d - %s\n\n", ret, error_buf );
     }
 #endif
 
@@ -2178,7 +2178,7 @@ exit:
     {
         char error_buf[100];
         mbedtls_strerror( ret, error_buf, 100 );
-        mbedtls_printf("Last error was: -0x%X - %s\n\n", -ret, error_buf );
+        mbedtls_printf( "Last error was: -0x%X - %s\n\n", -ret, error_buf );
     }
 #endif
 

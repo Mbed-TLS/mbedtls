@@ -35,7 +35,7 @@ void mbedtls_ssl_test_debug( void *ctx, int level,
             basename = p + 1;
 
     mbedtls_fprintf( (FILE *) ctx, "%s:%04d: |%d| %s", basename, line, level, str );
-    fflush(  (FILE *) ctx  );
+    fflush( (FILE *) ctx );
 }
 
 /* Fake entropy source which is a constant string. Use this for
@@ -195,13 +195,13 @@ int mbedtls_ssl_test_forced_ciphersuite( int force_ciphersuite,
     if( max_version != -1 &&
         ciphersuite_info->min_minor_ver > max_version )
     {
-        mbedtls_printf("forced ciphersuite not allowed with this protocol version\n");
+        mbedtls_printf( "forced ciphersuite not allowed with this protocol version\n" );
         return( 2 );
     }
     if( min_version != -1 &&
         ciphersuite_info->max_minor_ver < min_version )
     {
-        mbedtls_printf("forced ciphersuite not allowed with this protocol version\n");
+        mbedtls_printf( "forced ciphersuite not allowed with this protocol version\n" );
         return( 2 );
     }
 
@@ -342,7 +342,7 @@ int mbedtls_ssl_test_parse_curves( char *p,
             }
         }
 
-        mbedtls_printf("Number of curves: %d\n", i );
+        mbedtls_printf( "Number of curves: %d\n", i );
 
         if( i == CURVE_LIST_SIZE - 1 && *p != '\0' )
         {

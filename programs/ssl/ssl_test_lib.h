@@ -80,7 +80,7 @@ void mbedtls_ssl_test_debug( void *ctx, int level,
  * The fake entropy mode is designed to make tests reproducible,
  * mostly for debugging purposes. It offers no security whatsoever.
  * Note that to achieve reproducible tests, you must also either
- * undefined MBEDTLS_HAVE_TIME or arrange to set a constant fake time
+ * undefine MBEDTLS_HAVE_TIME or arrange to set a constant fake time
  * (e.g. with faketime). */
 int mbedtls_ssl_test_rng_init( const char *fake_entropy,
                                const char *pers,
@@ -119,8 +119,8 @@ int mbedtls_ssl_test_get_auth_mode( const char *s );
  * Convert a hex string to bytes.
  * Return 0 on success, -1 on error.
  */
-int mbedtls_ssl_test_unhexify( unsigned char *output,
-                               const char *input,
+int mbedtls_ssl_test_unhexify( const char *input,
+                               unsigned char *output, size_t osize,
                                size_t *olen );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)

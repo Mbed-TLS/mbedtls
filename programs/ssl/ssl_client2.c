@@ -912,13 +912,12 @@ int main( int argc, char *argv[] )
     /*
      * Unhexify the pre-shared key if any is given
      */
-    if( *opt.psk )
+    if( mbedtls_ssl_test_unhexify( opt.psk,
+                                   psk, MBEDTLS_PSK_MAX_LEN,
+                                   &psk_len ) != 0 )
     {
-        if( mbedtls_ssl_test_unhexify( psk, opt.psk, &psk_len ) != 0 )
-        {
-            mbedtls_printf( "pre-shared key not valid hex\n" );
-            goto exit;
-        }
+        mbedtls_printf( "pre-shared key not valid hex\n" );
+        goto exit;
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
 

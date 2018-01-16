@@ -1788,7 +1788,7 @@ exit:
 
     ssl_free( &ssl );
     ctr_drbg_free( &ctr_drbg );
-    if( opt.fake_entropy == NULL || *opt.fake_entropy == 0 )
+    if( ! polarssl_ssl_test_rng_use_fake_entropy( opt.fake_entropy ) )
         entropy_free( &entropy );
 
 #if defined(POLARSSL_SSL_CACHE_C)

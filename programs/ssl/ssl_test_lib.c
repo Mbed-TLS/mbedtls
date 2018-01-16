@@ -48,6 +48,11 @@ static int polarssl_ssl_test_fake_entropy_func( void *data,
     return( 0 );
 }
 
+int polarssl_ssl_test_rng_use_fake_entropy( const char *fake_entropy )
+{
+    return( fake_entropy != NULL && *fake_entropy != 0 );
+}
+
 int polarssl_ssl_test_rng_init( const char *fake_entropy,
                                 const char *pers,
                                 entropy_context *entropy,
@@ -58,15 +63,7 @@ int polarssl_ssl_test_rng_init( const char *fake_entropy,
     polarssl_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
-    if( fake_entropy == NULL || *fake_entropy == 0 )
-    {
-        entropy_init( entropy );
-        ret = ctr_drbg_init( ctr_drbg,
-                             entropy_func, entropy,
-                             (const unsigned char *) pers,
-                             strlen( pers ) );
-    }
-    else
+    if( polarssl_ssl_test_rng_use_fake_entropy( fake_entropy ) )
     {
         ret = ctr_drbg_init( ctr_drbg,
                              polarssl_ssl_test_fake_entropy_func,
@@ -74,6 +71,14 @@ int polarssl_ssl_test_rng_init( const char *fake_entropy,
                              (const unsigned char *) pers,
                              strlen( pers ) );
         polarssl_printf( " (fake, each connection will use a constant seed)" );
+    }
+    else
+    {
+        entropy_init( entropy );
+        ret = ctr_drbg_init( ctr_drbg,
+                             entropy_func, entropy,
+                             (const unsigned char *) pers,
+                             strlen( pers ) );
     }
 
     if( ret != 0 )
@@ -87,7 +92,7 @@ void polarssl_ssl_test_rng_reset_if_fake( const char *fake_entropy,
                                           const char *pers,
                                           ctr_drbg_context *ctr_drbg )
 {
-    if( fake_entropy == NULL || *fake_entropy == 0 )
+    if( ! polarssl_ssl_test_rng_use_fake_entropy( fake_entropy ) )
         return;
 
     ctr_drbg_free( ctr_drbg );

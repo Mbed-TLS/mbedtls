@@ -55,6 +55,11 @@ static int mbedtls_ssl_test_fake_entropy_func( void *data,
     return( 0 );
 }
 
+int mbedtls_ssl_test_rng_use_fake_entropy( const char *fake_entropy )
+{
+    return( fake_entropy != NULL && *fake_entropy != 0 );
+}
+
 int mbedtls_ssl_test_rng_init( const char *fake_entropy,
                                const char *pers,
                                mbedtls_entropy_context *entropy,
@@ -65,15 +70,7 @@ int mbedtls_ssl_test_rng_init( const char *fake_entropy,
     mbedtls_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
-    if( fake_entropy == NULL || *fake_entropy == 0 )
-    {
-        mbedtls_entropy_init( entropy );
-        ret = mbedtls_ctr_drbg_seed( ctr_drbg,
-                                     mbedtls_entropy_func, entropy,
-                                     (const unsigned char *) pers,
-                                     strlen( pers ) );
-    }
-    else
+    if( mbedtls_ssl_test_rng_use_fake_entropy( fake_entropy ) )
     {
         ret = mbedtls_ctr_drbg_seed( ctr_drbg,
                                      mbedtls_ssl_test_fake_entropy_func,
@@ -81,6 +78,14 @@ int mbedtls_ssl_test_rng_init( const char *fake_entropy,
                                      (const unsigned char *) pers,
                                      strlen( pers ) );
         mbedtls_printf( " (fake, each connection will use a constant seed)" );
+    }
+    else
+    {
+        mbedtls_entropy_init( entropy );
+        ret = mbedtls_ctr_drbg_seed( ctr_drbg,
+                                     mbedtls_entropy_func, entropy,
+                                     (const unsigned char *) pers,
+                                     strlen( pers ) );
     }
 
     if( ret != 0 )
@@ -94,7 +99,7 @@ void mbedtls_ssl_test_rng_reset_if_fake( const char *fake_entropy,
                                          const char *pers,
                                          mbedtls_ctr_drbg_context *ctr_drbg )
 {
-    if( fake_entropy == NULL || *fake_entropy == 0 )
+    if( ! mbedtls_ssl_test_rng_use_fake_entropy( fake_entropy ) )
         return;
 
     mbedtls_ctr_drbg_free( ctr_drbg );

@@ -74,14 +74,17 @@ void mbedtls_ssl_test_debug( void *ctx, int level,
                              const char *file, int line,
                              const char *str );
 
-/* Initialize ctr_drbg, either from fake_entropy (if this is a
- * non-empty string) or from the default entropy sources (otherwise).
+/* Test if fake entropy is provided.
  *
  * The fake entropy mode is designed to make tests reproducible,
  * mostly for debugging purposes. It offers no security whatsoever.
  * Note that to achieve reproducible tests, you must also either
  * undefine MBEDTLS_HAVE_TIME or arrange to set a constant fake time
  * (e.g. with faketime). */
+int mbedtls_ssl_test_rng_use_fake_entropy( const char *fake_entropy );
+
+/* Initialize ctr_drbg, either from fake_entropy (if this is a
+ * non-empty string) or from the default entropy sources (otherwise). */
 int mbedtls_ssl_test_rng_init( const char *fake_entropy,
                                const char *pers,
                                mbedtls_entropy_context *entropy,

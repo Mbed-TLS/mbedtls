@@ -185,13 +185,13 @@ int polarssl_ssl_test_forced_ciphersuite( int force_ciphersuite,
     if( max_version != -1 &&
         ciphersuite_info->min_minor_ver > max_version )
     {
-        polarssl_printf("forced ciphersuite not allowed with this protocol version\n");
+        polarssl_printf( "forced ciphersuite not allowed with this protocol version\n" );
         return( 2 );
     }
     if( min_version != -1 &&
         ciphersuite_info->max_minor_ver < min_version )
     {
-        polarssl_printf("forced ciphersuite not allowed with this protocol version\n");
+        polarssl_printf( "forced ciphersuite not allowed with this protocol version\n" );
         return( 2 );
     }
 
@@ -290,7 +290,7 @@ int polarssl_ssl_test_parse_curves( char *p,
             }
         }
 
-        polarssl_printf("Number of curves: %d\n", i );
+        polarssl_printf( "Number of curves: %d\n", i );
 
         if( i == CURVE_LIST_SIZE - 1 && *p != '\0' )
         {

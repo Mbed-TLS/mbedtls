@@ -216,9 +216,9 @@
     !defined(POLARSSL_SSL_CLI_C)
 int main( void )
 {
-    polarssl_printf("POLARSSL_ENTROPY_C and/or "
+    polarssl_printf( "POLARSSL_ENTROPY_C and/or "
            "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_CLI_C and/or "
-           "POLARSSL_NET_C and/or POLARSSL_CTR_DRBG_C not defined.\n");
+           "POLARSSL_NET_C and/or POLARSSL_CTR_DRBG_C not defined.\n" );
     return( 0 );
 }
 #else
@@ -345,14 +345,14 @@ int main( int argc, char *argv[] )
         list = ssl_list_ciphersuites();
         while( *list )
         {
-            polarssl_printf(" %-42s", ssl_get_ciphersuite_name( *list ) );
+            polarssl_printf( " %-42s", ssl_get_ciphersuite_name( *list ) );
             list++;
             if( !*list )
                 break;
-            polarssl_printf(" %s\n", ssl_get_ciphersuite_name( *list ) );
+            polarssl_printf( " %s\n", ssl_get_ciphersuite_name( *list ) );
             list++;
         }
-        polarssl_printf("\n");
+        polarssl_printf( "\n" );
         goto exit;
     }
 
@@ -421,7 +421,7 @@ int main( int argc, char *argv[] )
             if( opt.debug_level < 0 || opt.debug_level > 65535 )
             {
                 polarssl_printf( "Invalid value for option %s (must be 0..65535)\n",
-                                p );
+                                 p );
                 goto usage;
             }
         }
@@ -694,7 +694,7 @@ int main( int argc, char *argv[] )
     {
         if( polarssl_ssl_test_unhexify( psk, opt.psk, &psk_len ) != 0 )
         {
-            polarssl_printf("pre-shared key not valid hex\n");
+            polarssl_printf( "pre-shared key not valid hex\n" );
             goto exit;
         }
     }
@@ -746,7 +746,7 @@ int main( int argc, char *argv[] )
 #else
     {
         ret = 1;
-        polarssl_printf("POLARSSL_CERTS_C not defined.");
+        polarssl_printf( "POLARSSL_CERTS_C not defined." );
     }
 #endif
     if( ret < 0 )
@@ -779,7 +779,7 @@ int main( int argc, char *argv[] )
 #else
     {
         ret = 1;
-        polarssl_printf("POLARSSL_CERTS_C not defined.");
+        polarssl_printf( "POLARSSL_CERTS_C not defined." );
     }
 #endif
     if( ret != 0 )
@@ -802,7 +802,7 @@ int main( int argc, char *argv[] )
 #else
     {
         ret = 1;
-        polarssl_printf("POLARSSL_CERTS_C not defined.");
+        polarssl_printf( "POLARSSL_CERTS_C not defined." );
     }
 #endif
     if( ret != 0 )
@@ -1024,7 +1024,7 @@ int main( int argc, char *argv[] )
 
     if( opt.reconnect != 0 )
     {
-        polarssl_printf("  . Saving session for reuse..." );
+        polarssl_printf( "  . Saving session for reuse..." );
         fflush( stdout );
 
         if( ( ret = ssl_get_session( &ssl, &saved_session ) ) != 0 )
@@ -1265,7 +1265,7 @@ exit:
     {
         char error_buf[100];
         polarssl_strerror( ret, error_buf, 100 );
-        polarssl_printf("Last error was: -0x%X - %s\n\n", -ret, error_buf );
+        polarssl_printf( "Last error was: -0x%X - %s\n\n", -ret, error_buf );
     }
 #endif
 

@@ -69,8 +69,10 @@ void entropy_init( entropy_context *ctx )
 #endif
 
 #if defined(POLARSSL_ENTROPY_SHA512_ACCUMULATOR)
+    sha512_init( &ctx->accumulator );
     sha512_starts( &ctx->accumulator, 0 );
 #else
+    sha256_init( &ctx->accumulator );
     sha256_starts( &ctx->accumulator, 0 );
 #endif
 #if defined(POLARSSL_HAVEGE_C)
@@ -100,6 +102,13 @@ void entropy_free( entropy_context *ctx )
 #if defined(POLARSSL_THREADING_C)
     polarssl_mutex_free( &ctx->mutex );
 #endif
+
+#if defined(POLARSSL_ENTROPY_SHA512_ACCUMULATOR)
+    sha512_free( &ctx->accumulator );
+#else
+    sha256_free( &ctx->accumulator );
+#endif
+
     polarssl_zeroize( ctx, sizeof( entropy_context ) );
 }
 

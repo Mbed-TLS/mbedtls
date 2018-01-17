@@ -111,6 +111,8 @@ Changes
      used. Reported and fix proposed independently by satur9nine and sliai
      on GitHub.
    * Only run AES-192 self-test if AES-192 is available. Fixes #963.
+   * Tighten the RSA PKCS#1 v1.5 signature verification code and remove the
+     undeclared dependency of the RSA module on the ASN.1 module.
 
 = mbed TLS 2.6.0 branch released 2017-08-10
 

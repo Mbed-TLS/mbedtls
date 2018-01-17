@@ -1073,7 +1073,7 @@ static int x509_ocsp_get_response_bytes( mbedtls_x509_ocsp_response *resp,
  *        tags) parsed matches the number of bytes consumed by its helper
  *        functions
  */
-int mbedtls_x509_ocsp_parse_response( mbedtls_x509_ocsp_response *resp,
+int mbedtls_x509_ocsp_response_parse( mbedtls_x509_ocsp_response *resp,
                                       const unsigned char *buf, size_t buflen )
 {
     int ret;
@@ -1567,7 +1567,7 @@ int mbedtls_x509_ocsp_response_info( char *buf, size_t size,
     return( 0 );
 }
 
-int mbedtls_x509_ocsp_parse_response_file( mbedtls_x509_ocsp_response *resp,
+int mbedtls_x509_ocsp_response_parse_file( mbedtls_x509_ocsp_response *resp,
                                            const char *path )
 {
     int ret;
@@ -1577,7 +1577,7 @@ int mbedtls_x509_ocsp_parse_response_file( mbedtls_x509_ocsp_response *resp,
     if( ( ret = mbedtls_pk_load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
-    ret = mbedtls_x509_ocsp_parse_response( resp, buf, n );
+    ret = mbedtls_x509_ocsp_response_parse( resp, buf, n );
 
     mbedtls_zeroize( buf, n );
     mbedtls_free( buf );

@@ -167,7 +167,7 @@ int mbedtls_x509_ocsp_response_info( char *buf, size_t size,
  * \return         0 if the ocsp response was parsed successfully, otherwise a
  *                 specific X.509 error
  */
-int mbedtls_x509_ocsp_parse_response( mbedtls_x509_ocsp_response *resp,
+int mbedtls_x509_ocsp_response_parse( mbedtls_x509_ocsp_response *resp,
                                       const unsigned char *buf,
                                       size_t buflen );
 
@@ -182,7 +182,7 @@ int mbedtls_x509_ocsp_parse_response( mbedtls_x509_ocsp_response *resp,
  * \return         0 if the ocsp response was parsed successfully, otherwise a
  *                 specific X509 error
  */
-int mbedtls_x509_ocsp_parse_response_file( mbedtls_x509_ocsp_response *resp,
+int mbedtls_x509_ocsp_response_parse_file( mbedtls_x509_ocsp_response *resp,
                                            const char *path );
 #endif /* MBEDTLS_FS_IO */
 

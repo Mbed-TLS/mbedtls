@@ -197,7 +197,7 @@ client_needs_more_time() {
     CLI_DELAY_FACTOR=$1
 }
 
-# wait for the given seconds after the client finished in the next test
+# wait for the given extra seconds after the client finished in the next test
 server_needs_more_time() {
     SRV_DELAY_SECONDS=$1
 }
@@ -308,6 +308,7 @@ if type lsof >/dev/null 2>/dev/null; then
         done
     }
 else
+    echo "Warning: lsof not available, wait_server_start = sleep 1"
     wait_server_start() {
         sleep "$START_DELAY"
     }
@@ -340,6 +341,23 @@ check_server_hello_time() {
     fi
 }
 
+# terminate server after giving it some time to wrap up and write logs
+terminate_server() {
+    # Shortcut the delay in case we know logs are ready.
+    # This only works for Mbed TLS, and not for all tests (sometimes with DTLS
+    # the server still doesn't know the client has disconnected at the end).
+    # However the shortcut test is designed to only have false negatives and
+    # no false positives, and we fall back to sleeping on negatives.
+    if tail -n-1 $SRV_OUT | grep -F 'Waiting for a remote connection' >/dev/null; then :;
+    else
+        sleep $(( $SRV_DELAY_BASE + $SRV_DELAY_SECONDS ))
+        SRV_DELAY_SECONDS=0
+    fi
+
+    kill $SRV_PID
+    wait $SRV_PID
+}
+
 # wait for client to terminate and set CLI_EXIT
 # must be called right after starting the client
 wait_client_done() {
@@ -358,9 +376,6 @@ wait_client_done() {
     wait $DOG_PID
 
     echo "EXIT: $CLI_EXIT" >> $CLI_OUT
-
-    sleep $SRV_DELAY_SECONDS
-    SRV_DELAY_SECONDS=0
 }
 
 # check if the given command uses dtls and sets global variable DTLS
@@ -465,8 +480,7 @@ run_test() {
         wait_client_done
 
         # terminate the server (and the proxy)
-        kill $SRV_PID
-        wait $SRV_PID
+        terminate_server
         if [ -n "$PXY_CMD" ]; then
             kill $PXY_PID >/dev/null 2>&1
             wait $PXY_PID
@@ -656,14 +670,37 @@ fi
 # used by watchdog
 MAIN_PID="$$"
 
-# be more patient with valgrind
+# We use somewhat arbitrary delays for tests:
+# - how long do we wait for the server to start (when lsof not available)?
+# - how long do we wait for the client to finish?
+#   (not to check performance, just to avoid waiting indefinitely)
+# - how long do we wait after client exit for completion of server tasks?
+#   (in particular, for it to finish writing & flushing its log file)
+# Things are slower with valgrind, so give extra time here.
+#
+# Note: DOG_DELAY has no impact on the running time of the script unless the
+# client is broken enough that it hangs forever. For the other two parameters,
+# there is a trade-off between the running time of this script and the risk of
+# spurious errors because we didn't wait long enough. In a better
+# world, we would be able to do without those two (we already do for the first
+# one when lsof is installed). In the meantime, impatient developers should
+# make sure 'lsof' is installed in order to get rid of START_DELAY, and may
+# override SRV_DELAY_BASE via the environment (setting to 0 should work on a
+# lightly loaded machine, or 0.1).
 if [ "$MEMCHECK" -gt 0 ]; then
-    START_DELAY=3
-    DOG_DELAY=30
+    START_DELAY=6
+    DOG_DELAY=120
+    : ${SRV_DELAY_BASE:=2}
 else
-    START_DELAY=1
-    DOG_DELAY=10
+    START_DELAY=2
+    DOG_DELAY=30
+    : ${SRV_DELAY_BASE:=1}
 fi
+
+# some particular tests need more time:
+# - for the client, we multiply the usual delay by a factor
+# - for the severs, we add a number of seconds to the usual delay
+# see client_need_more_time() and server_needs_more_time()
 CLI_DELAY_FACTOR=1
 SRV_DELAY_SECONDS=0
 

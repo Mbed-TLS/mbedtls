@@ -350,7 +350,8 @@ int mbedtls_entropy_func( void *data, unsigned char *output, size_t len )
     /*
      * Reset accumulator and counters and recycle existing entropy
      */
-    memset( &ctx->accumulator, 0, sizeof( mbedtls_sha512_context ) );
+    mbedtls_sha512_free( &ctx->accumulator );
+    mbedtls_sha512_init( &ctx->accumulator );
     mbedtls_sha512_starts( &ctx->accumulator, 0 );
     mbedtls_sha512_update( &ctx->accumulator, buf, MBEDTLS_ENTROPY_BLOCK_SIZE );
 
@@ -364,7 +365,8 @@ int mbedtls_entropy_func( void *data, unsigned char *output, size_t len )
     /*
      * Reset accumulator and counters and recycle existing entropy
      */
-    memset( &ctx->accumulator, 0, sizeof( mbedtls_sha256_context ) );
+    mbedtls_sha256_free( &ctx->accumulator );
+    mbedtls_sha256_init( &ctx->accumulator );
     mbedtls_sha256_starts( &ctx->accumulator, 0 );
     mbedtls_sha256_update( &ctx->accumulator, buf, MBEDTLS_ENTROPY_BLOCK_SIZE );
 

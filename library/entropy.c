@@ -304,7 +304,8 @@ int entropy_func( void *data, unsigned char *output, size_t len )
     /*
      * Reset accumulator and counters and recycle existing entropy
      */
-    memset( &ctx->accumulator, 0, sizeof( sha512_context ) );
+    sha512_free( &ctx->accumulator );
+    sha512_init( &ctx->accumulator );
     sha512_starts( &ctx->accumulator, 0 );
     sha512_update( &ctx->accumulator, buf, ENTROPY_BLOCK_SIZE );
 
@@ -318,7 +319,8 @@ int entropy_func( void *data, unsigned char *output, size_t len )
     /*
      * Reset accumulator and counters and recycle existing entropy
      */
-    memset( &ctx->accumulator, 0, sizeof( sha256_context ) );
+    sha256_free( &ctx->accumulator );
+    sha256_init( &ctx->accumulator );
     sha256_starts( &ctx->accumulator, 0 );
     sha256_update( &ctx->accumulator, buf, ENTROPY_BLOCK_SIZE );
 

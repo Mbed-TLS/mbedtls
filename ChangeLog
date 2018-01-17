@@ -104,6 +104,9 @@ Bugfix
    * Fix error message in programs/pkey/gen_key.c. Found and fixed by Chris Xue.
    * Fix programs/pkey/dh_server.c so that it actually works with dh_client.c.
      Found and fixed by Martijn de Milliano.
+   * Fix bug in cipher decryption with MBEDTLS_PADDING_ONE_AND_ZEROS that
+     sometimes accepted invalid padding. (Not used in TLS.) Found and fixed
+     by Micha Kraus.
 
 Changes
    * Extend cert_write example program by options to set the CRT version

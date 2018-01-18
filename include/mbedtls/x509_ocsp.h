@@ -202,7 +202,7 @@ int mbedtls_x509_ocsp_response_parse( mbedtls_x509_ocsp_response *resp,
  * \return          0 if the OCSP response was verified successfully, otherwise
  *                  a specific X.509 error
  */
-int mbedtls_x509_ocsp_verify_response( mbedtls_x509_ocsp_response *resp,
+int mbedtls_x509_ocsp_response_verify( mbedtls_x509_ocsp_response *resp,
                                        mbedtls_x509_crt *req_chain,
                                        mbedtls_x509_crt *chain,
                                        mbedtls_x509_crt *trust_ca,

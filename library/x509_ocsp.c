@@ -1775,7 +1775,7 @@ static int x509_ocsp_verify_responses( mbedtls_x509_ocsp_response *resp,
  *  - Do not have an auth_mode=optional flag
  *  - Need to check the revocation status of the OCSP response issuer
  */
-int mbedtls_x509_ocsp_verify_response( mbedtls_x509_ocsp_response *resp,
+int mbedtls_x509_ocsp_response_verify( mbedtls_x509_ocsp_response *resp,
                                        mbedtls_x509_crt *req_chain,
                                        mbedtls_x509_crt *chain,
                                        mbedtls_x509_crt *trust_ca,

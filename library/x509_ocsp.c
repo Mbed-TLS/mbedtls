@@ -1173,13 +1173,13 @@ int mbedtls_x509_ocsp_response_parse( mbedtls_x509_ocsp_response *resp,
     return( 0 );
 }
 
-static int x509_ocsp_info_response_status( char **buf, size_t *size,
+static int x509_ocsp_response_status_info( char *buf, size_t size,
                                            uint8_t resp_status )
 {
     int ret;
     const char *desc;
-    size_t n = *size;
-    char *p = *buf;
+    size_t n = size;
+    char *p = buf;
 
     switch( resp_status )
     {
@@ -1208,19 +1208,16 @@ static int x509_ocsp_info_response_status( char **buf, size_t *size,
     ret = mbedtls_snprintf( p, n, "%s", desc );
     MBEDTLS_X509_SAFE_SNPRINTF;
 
-    *size = n;
-    *buf = p;
-
-    return( 0 );
+    return( (int)( size - n ) );
 }
 
-static int x509_ocsp_info_response_type( char **buf, size_t *size,
+static int x509_ocsp_response_type_info( char *buf, size_t size,
                                          const mbedtls_x509_buf *resp_type )
 {
     int ret;
     const char *desc;
-    size_t n = *size;
-    char *p = *buf;
+    size_t n = size;
+    char *p = buf;
 
     if( mbedtls_oid_get_ocsp_response_type( resp_type, &desc ) != 0 )
         desc = "???";
@@ -1228,19 +1225,16 @@ static int x509_ocsp_info_response_type( char **buf, size_t *size,
     ret = mbedtls_snprintf( p, n, "%s", desc );
     MBEDTLS_X509_SAFE_SNPRINTF;
 
-    *size = n;
-    *buf = p;
-
-    return( 0 );
+    return( (int)( size - n ) );
 }
 
-static int x509_ocsp_info_responder_id( char **buf, size_t *size,
+static int x509_ocsp_responder_id_info( char *buf, size_t size,
                         const mbedtls_x509_ocsp_responder_id *responder_id )
 {
     int ret;
-    size_t n = *size;
+    size_t n = size;
     size_t i;
-    char *p = *buf;
+    char *p = buf;
 
     switch( responder_id->type )
     {
@@ -1265,20 +1259,17 @@ static int x509_ocsp_info_responder_id( char **buf, size_t *size,
             MBEDTLS_X509_SAFE_SNPRINTF;
     }
 
-    *size = n;
-    *buf = p;
-
-    return( 0 );
+    return( (int)( size - n ) );
 }
 
 #define BC      "18"
-static int x509_ocsp_info_responses( char **buf, size_t *size,
+static int x509_ocsp_responses_info( char *buf, size_t size,
                         const char *prefix,
                         const mbedtls_x509_ocsp_single_response *responses )
 {
     int ret;
-    size_t n = *size;
-    char *p = *buf;
+    size_t n = size;
+    char *p = buf;
     const mbedtls_x509_ocsp_single_response *cur = responses;
     const char *desc;
 
@@ -1288,7 +1279,7 @@ static int x509_ocsp_info_responses( char **buf, size_t *size,
         ret = mbedtls_snprintf( p, n, "\n%s%sThere are no responses",
                                 prefix, prefix );
         MBEDTLS_X509_SAFE_SNPRINTF;
-        return( 0 );
+        return( (int)( size - n ) );
     }
 
     for( ; cur != NULL; cur = cur->next )
@@ -1405,10 +1396,7 @@ static int x509_ocsp_info_responses( char **buf, size_t *size,
         }
     }
 
-    *size = n;
-    *buf = p;
-
-    return( 0 );
+    return( (int)( size - n ) );
 }
 
 #define X509_OCSP_SAFE_SNPRINTF                             \
@@ -1422,12 +1410,12 @@ static int x509_ocsp_info_responses( char **buf, size_t *size,
         n -= (size_t) ret;                                  \
         p += (size_t) ret;                                  \
     } while( 0 )
-static int x509_ocsp_info_certs( char **buf, size_t *size, const char *prefix,
+static int x509_ocsp_certs_info( char *buf, size_t size, const char *prefix,
                                  const mbedtls_x509_crt *certs )
 {
     int ret;
-    size_t n = *size;
-    char *p = *buf;
+    size_t n = size;
+    char *p = buf;
     size_t prefix_len = strlen( prefix );
     char *double_prefix;
     const mbedtls_x509_crt *cur;
@@ -1438,7 +1426,12 @@ static int x509_ocsp_info_certs( char **buf, size_t *size, const char *prefix,
                                 prefix, prefix );
         MBEDTLS_X509_SAFE_SNPRINTF;
 
-        return( 0 );
+        return( (int)( size - n ) );
+    }
+    else if( prefix_len == 0 )
+    {
+        prefix = " ";
+        prefix_len = strlen( prefix );
     }
     else if( prefix_len > SIZE_MAX / 2 )
         return( MBEDTLS_ERR_X509_ALLOC_FAILED );
@@ -1460,8 +1453,6 @@ static int x509_ocsp_info_certs( char **buf, size_t *size, const char *prefix,
         X509_OCSP_SAFE_SNPRINTF;
     }
 
-    *size = n;
-    *buf = p;
     ret = 0;
 
 exit:
@@ -1497,11 +1488,8 @@ int mbedtls_x509_ocsp_response_info( char *buf, size_t size,
     /* Print responseStatus */
     ret = mbedtls_snprintf( p, n, "%s%-" BC "s: ", prefix, "response status" );
     MBEDTLS_X509_SAFE_SNPRINTF;
-    if( ( ret = x509_ocsp_info_response_status( &p, &n,
-                                                resp->resp_status ) ) != 0 )
-    {
-        return( ret );
-    }
+    ret = x509_ocsp_response_status_info( p, n, resp->resp_status );
+    MBEDTLS_X509_SAFE_SNPRINTF;
 
     /*
      * The remaining data from the OCSPResponse is optional. We can find
@@ -1509,16 +1497,13 @@ int mbedtls_x509_ocsp_response_info( char *buf, size_t size,
      * set
      */
     if( resp->resp_type.p == NULL )
-        return( 0 );
+        return( (int)( size - n ) );
 
     /* Print responseType */
     ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: ", prefix, "response type" );
     MBEDTLS_X509_SAFE_SNPRINTF;
-    if( ( ret = x509_ocsp_info_response_type( &p, &n,
-                                              &resp->resp_type ) ) != 0 )
-    {
-        return( ret );
-    }
+    ret = x509_ocsp_response_type_info( p, n, &resp->resp_type );
+    MBEDTLS_X509_SAFE_SNPRINTF;
 
     /* Print version */
     ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: %d", prefix,
@@ -1528,11 +1513,8 @@ int mbedtls_x509_ocsp_response_info( char *buf, size_t size,
     /* Print responderID */
     ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: ", prefix, "responder ID" );
     MBEDTLS_X509_SAFE_SNPRINTF;
-    if( ( ret = x509_ocsp_info_responder_id( &p, &n,
-                                             &resp->responder_id ) ) != 0 )
-    {
-        return( ret );
-    }
+    ret = x509_ocsp_responder_id_info( p, n, &resp->responder_id );
+    MBEDTLS_X509_SAFE_SNPRINTF;
 
     /* Print producedAt date */
     ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: "
@@ -1552,19 +1534,16 @@ int mbedtls_x509_ocsp_response_info( char *buf, size_t size,
     /* Print list of responses */
     ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s:", prefix, "responses" );
     MBEDTLS_X509_SAFE_SNPRINTF;
-    if( ( ret = x509_ocsp_info_responses( &p, &n, prefix,
-                                          &resp->single_resp ) ) != 0 )
-    {
-        return( ret );
-    }
+    ret = x509_ocsp_responses_info( p, n, prefix, &resp->single_resp );
+    MBEDTLS_X509_SAFE_SNPRINTF;
 
     /* Print list of certificates */
     ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s:", prefix, "certs" );
     MBEDTLS_X509_SAFE_SNPRINTF;
-    if( ( ret = x509_ocsp_info_certs( &p, &n, prefix, &resp->certs ) ) != 0 )
-        return( ret );
+    ret = x509_ocsp_certs_info( p, n, prefix, &resp->certs );
+    MBEDTLS_X509_SAFE_SNPRINTF;
 
-    return( 0 );
+    return( (int)( size - n ) );
 }
 
 int mbedtls_x509_ocsp_response_parse_file( mbedtls_x509_ocsp_response *resp,

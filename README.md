@@ -138,7 +138,7 @@ The solution file `mbedTLS.sln` contains all the basic projects needed to build 
 Example programs
 ----------------
 
-We've included example programs for a lot of different features and uses in `programs/`. Most programs only focus on a single feature or usage scenario, so keep that in mind when copying parts of the code.
+We've included example programs for a lot of different features and uses in [`programs/`](programs/README.md). Most programs only focus on a single feature or usage scenario, so keep that in mind when copying parts of the code.
 
 Tests
 -----

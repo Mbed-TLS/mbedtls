@@ -109,7 +109,21 @@
 #define MBEDTLS_X509_BADCRL_BAD_MD           0x020000  /**< The CRL is signed with an unacceptable hash. */
 #define MBEDTLS_X509_BADCRL_BAD_PK           0x040000  /**< The CRL is signed with an unacceptable PK alg (eg RSA vs ECDSA). */
 #define MBEDTLS_X509_BADCRL_BAD_KEY          0x080000  /**< The CRL is signed with an unacceptable key (eg bad curve, RSA too short). */
+/* \} name */
 
+/**
+ * \name X.509 OCSP Verify codes
+ * \{
+ */
+/* Reminder: update x509_ocsp_response_verify_strings[] in library/x509_ocsp.c */
+#define MBEDTLS_X509_BADOCSP_RESPONSE_FUTURE                  0x01  /**< The response validity starts in the future. */
+#define MBEDTLS_X509_BADOCSP_RESPONSE_BAD_RESPONSE_STATUS     0x02  /**< The response status is an exception value (i.e it is not 'success'). */
+#define MBEDTLS_X509_BADOCSP_RESPONSE_ISSUER_NOT_TRUSTED      0x04  /**< The response issuer certificate was not found or failed the acceptance requirements. */
+#define MBEDTLS_X509_BADOCSP_RESPONSE_NOT_TRUSTED             0x08  /**< The response is not correctly signed by an authorized responder. */
+#define MBEDTLS_X509_BADOCSP_RESPONSE_INCOMPLETE              0x10  /**< The response does not contain the status of all queried certificates. */
+#define MBEDTLS_X509_BADOCSP_RESPONSE_EXPIRED                 0x20  /**< The response validity has expired. */
+#define MBEDTLS_X509_BADOCSP_RESPONSE_REVOKED_CERT            0x40  /**< The revocation status of at least one queried certificate is 'revoked'. */
+#define MBEDTLS_X509_BADOCSP_RESPONSE_UNKNOWN_CERT            0x80  /**< The revocation status of at least one queried certificate is 'unknown'. */
 /* \} name */
 /* \} addtogroup x509_module */
 

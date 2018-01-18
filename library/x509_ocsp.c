@@ -2210,6 +2210,26 @@ int mbedtls_x509_ocsp_response_info( char *buf, size_t size,
     return( (int)( size - n ) );
 }
 
+static const mbedtls_x509_verify_string x509_ocsp_response_verify_strings[] = {
+    { MBEDTLS_X509_BADOCSP_RESPONSE_FUTURE,                 "The response validity starts in the future" },
+    { MBEDTLS_X509_BADOCSP_RESPONSE_BAD_RESPONSE_STATUS,    "The response status is an exception value (i.e it is not 'success')" },
+    { MBEDTLS_X509_BADOCSP_RESPONSE_ISSUER_NOT_TRUSTED,     "The response issuer certificate was not found or failed the acceptance requirements" },
+    { MBEDTLS_X509_BADOCSP_RESPONSE_NOT_TRUSTED,            "The response is not correctly signed by an authorized responder" },
+    { MBEDTLS_X509_BADOCSP_RESPONSE_INCOMPLETE,             "The response does not contain the status of all queried certificates" },
+    { MBEDTLS_X509_BADOCSP_RESPONSE_EXPIRED,                "The response validity has expired" },
+    { MBEDTLS_X509_BADOCSP_RESPONSE_REVOKED_CERT,           "The revocation status of at least one queried certificate is 'revoked'" },
+    { MBEDTLS_X509_BADOCSP_RESPONSE_UNKNOWN_CERT,           "The revocation status of at least one queried certificate is 'unknown'" },
+    { 0, NULL },
+};
+
+int mbedtls_x509_ocsp_response_verify_info( char *buf, size_t size,
+                                            const char *prefix,
+                                            uint32_t flags )
+{
+    return( mbedtls_x509_verify_info( buf, size, prefix, flags,
+                                      x509_ocsp_response_verify_strings ) );
+}
+
 int mbedtls_x509_ocsp_response_parse_file( mbedtls_x509_ocsp_response *resp,
                                            const char *path )
 {

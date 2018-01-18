@@ -884,6 +884,39 @@ int mbedtls_x509_sig_alg_gets( char *buf, size_t size, const mbedtls_x509_buf *s
 }
 
 /*
+ * Helper for constructing a human-readable string from verification flags
+ * created with mbedtls_x509_*_verify() e.g mbedtls_x509_cert_verify_info()
+ */
+int mbedtls_x509_verify_info( char *buf, size_t size, const char *prefix,
+                              uint32_t flags,
+                              const mbedtls_x509_verify_string *strings )
+{
+    int ret;
+    const mbedtls_x509_verify_string *cur;
+    char *p = buf;
+    size_t n = size;
+
+    for( cur = strings; cur->string != NULL ; cur++ )
+    {
+        if( ( flags & cur->code ) == 0 )
+            continue;
+
+        ret = mbedtls_snprintf( p, n, "%s%s\n", prefix, cur->string );
+        MBEDTLS_X509_SAFE_SNPRINTF;
+        flags ^= cur->code;
+    }
+
+    if( flags != 0 )
+    {
+        ret = mbedtls_snprintf( p, n, "%sUnknown reason "
+                                       "(this should not happen)\n", prefix );
+        MBEDTLS_X509_SAFE_SNPRINTF;
+    }
+
+    return( (int) ( size - n ) );
+}
+
+/*
  * Helper for writing "RSA key size", "EC key size", etc
  */
 int mbedtls_x509_key_size_helper( char *buf, size_t buf_size, const char *name )

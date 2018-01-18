@@ -298,6 +298,14 @@ int mbedtls_x509_time_is_future( const mbedtls_x509_time *from );
 int mbedtls_x509_self_test( int verbose );
 
 /*
+ * Internal module structs.
+ */
+typedef struct x509_verify_string {
+    int code;
+    const char *string;
+} mbedtls_x509_verify_string;
+
+/*
  * Internal module functions. You probably do not want to use these unless you
  * know you do.
  */
@@ -340,6 +348,9 @@ int mbedtls_x509_write_names( unsigned char **p, unsigned char *start,
 int mbedtls_x509_write_sig( unsigned char **p, unsigned char *start,
                     const char *oid, size_t oid_len,
                     unsigned char *sig, size_t size );
+int mbedtls_x509_verify_info( char *buf, size_t size, const char *prefix,
+                              uint32_t flags,
+                              const mbedtls_x509_verify_string *strings );
 
 #define MBEDTLS_X509_SAFE_SNPRINTF                          \
     do {                                                    \

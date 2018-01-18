@@ -158,6 +158,23 @@ int mbedtls_x509_ocsp_response_info( char *buf, size_t size,
                                      const mbedtls_x509_ocsp_response *resp );
 
 /**
+ * \brief          Returns an informational string about the
+ *                 verification status of an OCSP response.
+ *
+ * \param buf      Buffer to write to
+ * \param size     Maximum size of buffer
+ * \param prefix   A line prefix
+ * \param flags    Verification flags created by
+ *                 mbedtls_x509_ocsp_response_verify()
+ *
+ * \return         The length of the string written (not including the
+ *                 terminated nul byte), or a negative error code.
+ */
+int mbedtls_x509_ocsp_response_verify_info( char *buf, size_t size,
+                                            const char *prefix,
+                                            uint32_t flags );
+
+/**
  * \brief          Parse a single OCSP response
  *
  * \param resp     points to the struct that will contain the parsed values

@@ -128,7 +128,7 @@ static void pk_rsa_match( mbedtls_rsa_context *raw,
                                         hash, sizeof hash, sig, sig_len - 1 ) == MBEDTLS_ERR_RSA_VERIFY_FAILED );
         sig[sig_len-1] ^= 1;
         TEST_ASSERT( mbedtls_pk_verify( tested_ctx, MBEDTLS_MD_NONE,
-                                        hash, sizeof hash, sig, sig_len ) == MBEDTLS_ERR_RSA_INVALID_PADDING );
+                                        hash, sizeof hash, sig, sig_len ) == MBEDTLS_ERR_RSA_VERIFY_FAILED );
     }
 
     /* Test encryption */

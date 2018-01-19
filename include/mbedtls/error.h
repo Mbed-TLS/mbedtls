@@ -52,7 +52,7 @@
  * GCM       2  0x0012-0x0014
  * BLOWFISH  2  0x0016-0x0018
  * THREADING 3  0x001A-0x001E
- * AES       2  0x0020-0x0022
+ * AES       2  0x0020-0x0022   0x0023-0x0023
  * CAMELLIA  2  0x0024-0x0026
  * XTEA      1  0x0028-0x0028
  * BASE64    2  0x002A-0x002C
@@ -71,11 +71,11 @@
  * Name      ID  Nr of Errors
  * PEM       1   9
  * PKCS#12   1   4 (Started from top)
- * X509      2   19
+ * X509      2   20
  * PKCS5     2   4 (Started from top)
  * DHM       3   9
  * PK        3   14 (Started from top)
- * RSA       4   9
+ * RSA       4   10
  * ECP       4   8 (Started from top)
  * MD        5   4
  * CIPHER    6   6

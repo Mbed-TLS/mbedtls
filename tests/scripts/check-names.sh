@@ -12,7 +12,7 @@
 set -eu
 
 if grep --version|head -n1|grep GNU >/dev/null; then :; else
-    echo "This script requires GNU grep."
+    echo "This script requires GNU grep.">&2
     exit 1
 fi
 

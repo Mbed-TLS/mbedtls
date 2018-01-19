@@ -56,6 +56,34 @@
 #define MBEDTLS_HAVE_ASM
 
 /**
+ * \def MBEDTLS_NO_UDBL_DIVISION
+ *
+ * The platform lacks support for double-width integer division (64-bit
+ * division on a 32-bit platform, 128-bit division on a 64-bit platform).
+ *
+ * Used in:
+ *      include/mbedtls/bignum.h
+ *      library/bignum.c
+ *
+ * The bignum code uses double-width division to speed up some operations.
+ * Double-width division is often implemented in software that needs to
+ * be linked with the program. The presence of a double-width integer
+ * type is usually detected automatically through preprocessor macros,
+ * but the automatic detection cannot know whether the code needs to
+ * and can be linked with an implementation of division for that type.
+ * By default division is assumed to be usable if the type is present.
+ * Uncomment this option to prevent the use of double-width division.
+ *
+ * Note that division for the native integer type is always required.
+ * Furthermore, a 64-bit type is always required even on a 32-bit
+ * platform, but it need not support multiplication or division. In some
+ * cases it is also desirable to disable some double-width operations. For
+ * example, if double-width division is implemented in software, disabling
+ * it can reduce code size in some embedded targets.
+ */
+//#define MBEDTLS_NO_UDBL_DIVISION
+
+/**
  * \def MBEDTLS_HAVE_SSE2
  *
  * CPU supports SSE2 instruction set.
@@ -163,6 +191,7 @@
 //#define MBEDTLS_PLATFORM_PRINTF_ALT
 //#define MBEDTLS_PLATFORM_SNPRINTF_ALT
 //#define MBEDTLS_PLATFORM_NV_SEED_ALT
+//#define MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT
 
 /**
  * \def MBEDTLS_DEPRECATED_WARNING
@@ -237,15 +266,19 @@
 //#define MBEDTLS_ARC4_ALT
 //#define MBEDTLS_BLOWFISH_ALT
 //#define MBEDTLS_CAMELLIA_ALT
+//#define MBEDTLS_CCM_ALT
+//#define MBEDTLS_CMAC_ALT
 //#define MBEDTLS_DES_ALT
-//#define MBEDTLS_XTEA_ALT
+//#define MBEDTLS_GCM_ALT
 //#define MBEDTLS_MD2_ALT
 //#define MBEDTLS_MD4_ALT
 //#define MBEDTLS_MD5_ALT
 //#define MBEDTLS_RIPEMD160_ALT
+//#define MBEDTLS_RSA_ALT
 //#define MBEDTLS_SHA1_ALT
 //#define MBEDTLS_SHA256_ALT
 //#define MBEDTLS_SHA512_ALT
+//#define MBEDTLS_XTEA_ALT
 /*
  * When replacing the elliptic curve module, pleace consider, that it is
  * implemented with two .c files:
@@ -273,9 +306,15 @@
  * of mbedtls_sha1_context, so your implementation of mbedtls_sha1_process must be compatible
  * with this definition.
  *
- * Note: if you use the AES_xxx_ALT macros, then is is recommended to also set
- * MBEDTLS_AES_ROM_TABLES in order to help the linker garbage-collect the AES
- * tables.
+ * \note Because of a signature change, the core AES encryption and decryption routines are
+ *       currently named mbedtls_aes_internal_encrypt and mbedtls_aes_internal_decrypt,
+ *       respectively. When setting up alternative implementations, these functions should
+ *       be overriden, but the wrapper functions mbedtls_aes_decrypt and mbedtls_aes_encrypt
+ *       must stay untouched.
+ *
+ * \note If you use the AES_xxx_ALT macros, then is is recommended to also set
+ *       MBEDTLS_AES_ROM_TABLES in order to help the linker garbage-collect the AES
+ *       tables.
  *
  * Uncomment a macro to enable alternate implementation of the corresponding
  * function.
@@ -294,6 +333,11 @@
 //#define MBEDTLS_AES_SETKEY_DEC_ALT
 //#define MBEDTLS_AES_ENCRYPT_ALT
 //#define MBEDTLS_AES_DECRYPT_ALT
+//#define MBEDTLS_ECDH_GEN_PUBLIC_ALT
+//#define MBEDTLS_ECDH_COMPUTE_SHARED_ALT
+//#define MBEDTLS_ECDSA_VERIFY_ALT
+//#define MBEDTLS_ECDSA_SIGN_ALT
+//#define MBEDTLS_ECDSA_GENKEY_ALT
 
 /**
  * \def MBEDTLS_ECP_INTERNAL_ALT
@@ -1120,6 +1164,13 @@
  * misuse/misunderstand.
  *
  * Comment this to disable support for renegotiation.
+ *
+ * \note   Even if this option is disabled, both client and server are aware
+ *         of the Renegotiation Indication Extension (RFC 5746) used to
+ *         prevent the SSL renegotiation attack (see RFC 5746 Sect. 1).
+ *         (See \c mbedtls_ssl_conf_legacy_renegotiation for the
+ *          configuration of this extension).
+ *
  */
 #define MBEDTLS_SSL_RENEGOTIATION
 
@@ -1614,6 +1665,7 @@
  *          library/ecp.c
  *          library/ecdsa.c
  *          library/rsa.c
+ *          library/rsa_internal.c
  *          library/ssl_tls.c
  *
  * This module is required for RSA, DHM and ECC (ECDH, ECDSA) support.
@@ -2227,6 +2279,7 @@
  * Enable the RSA public-key cryptosystem.
  *
  * Module:  library/rsa.c
+ *          library/rsa_internal.c
  * Caller:  library/ssl_cli.c
  *          library/ssl_srv.c
  *          library/ssl_tls.c

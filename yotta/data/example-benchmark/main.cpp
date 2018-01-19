@@ -229,7 +229,7 @@ do {                                                                    \
         CODE;                                                           \
     }                                                                   \
                                                                         \
-    mbedtls_printf( "%9lu Kb/s,  %9lu cycles/byte\r\n",                  \
+    mbedtls_printf( "%9lu KiB/s,  %9lu cycles/byte\r\n",                  \
                      i * BUFSIZE / 1024,                                \
                      ( mbedtls_timing_hardclock() - tsc ) / ( j * BUFSIZE ) );         \
 } while( 0 )

@@ -157,8 +157,9 @@ static int pem_des_decrypt( unsigned char des_iv[8],
     if( ( ret = pem_pbkdf1( des_key, 8, des_iv, pwd, pwdlen ) ) != 0 )
         goto exit;
 
-    mbedtls_des_setkey_dec( &des_ctx, des_key );
-    mbedtls_des_crypt_cbc( &des_ctx, MBEDTLS_DES_DECRYPT, buflen,
+    if( ( ret = mbedtls_des_setkey_dec( &des_ctx, des_key ) ) != 0 )
+        goto exit;
+    ret = mbedtls_des_crypt_cbc( &des_ctx, MBEDTLS_DES_DECRYPT, buflen,
                      des_iv, buf, buf );
 
 exit:
@@ -184,8 +185,9 @@ static int pem_des3_decrypt( unsigned char des3_iv[8],
     if( ( ret = pem_pbkdf1( des3_key, 24, des3_iv, pwd, pwdlen ) ) != 0 )
         goto exit;
 
-    mbedtls_des3_set3key_dec( &des3_ctx, des3_key );
-    mbedtls_des3_crypt_cbc( &des3_ctx, MBEDTLS_DES_DECRYPT, buflen,
+    if( ( ret = mbedtls_des3_set3key_dec( &des3_ctx, des3_key ) ) != 0 )
+        goto exit;
+    ret = mbedtls_des3_crypt_cbc( &des3_ctx, MBEDTLS_DES_DECRYPT, buflen,
                      des3_iv, buf, buf );
 
 exit:
@@ -213,8 +215,9 @@ static int pem_aes_decrypt( unsigned char aes_iv[16], unsigned int keylen,
     if( ( ret = pem_pbkdf1( aes_key, keylen, aes_iv, pwd, pwdlen ) ) != 0 )
         goto exit;
 
-    mbedtls_aes_setkey_dec( &aes_ctx, aes_key, keylen * 8 );
-    mbedtls_aes_crypt_cbc( &aes_ctx, MBEDTLS_AES_DECRYPT, buflen,
+    if( ( ret = mbedtls_aes_setkey_dec( &aes_ctx, aes_key, keylen * 8 ) ) != 0 )
+        goto exit;
+    ret = mbedtls_aes_crypt_cbc( &aes_ctx, MBEDTLS_AES_DECRYPT, buflen,
                      aes_iv, buf, buf );
 
 exit:

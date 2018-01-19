@@ -1694,11 +1694,8 @@ read_record_header:
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
             case MBEDTLS_TLS_EXT_SIG_ALG:
-                    MBEDTLS_SSL_DEBUG_MSG( 3, ( "found signature_algorithms extension" ) );
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-                if( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS )
-                    break;
-#endif
+                MBEDTLS_SSL_DEBUG_MSG( 3, ( "found signature_algorithms extension" ) );
+
                 ret = ssl_parse_signature_algorithms_ext( ssl, ext + 4, ext_size );
                 if( ret != 0 )
                     return( ret );

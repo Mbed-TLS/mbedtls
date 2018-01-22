@@ -27,7 +27,7 @@
         }                                                               \
     } while( 0 )
 
-#define RSA_KEY_SIZE_BITS 512
+#define RSA_KEY_SIZE_BITS 1024
 #define RSA_KEY_SIZE_BYTES ( ( RSA_KEY_SIZE_BITS + 7 ) / 8 )
 #define ECP_GROUP_ID MBEDTLS_ECP_DP_SECP256R1
 #define ECP_GROUP_NAME( id ) #id

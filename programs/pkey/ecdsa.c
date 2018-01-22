@@ -163,9 +163,9 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "  . Computing message hash..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_sha256_ext( message, sizeof( message ), hash, 0 ) ) != 0 )
+    if( ( ret = mbedtls_sha256_ret( message, sizeof( message ), hash, 0 ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_sha256_ext returned %d\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_sha256_ret returned %d\n", ret );
         goto exit;
     }
 

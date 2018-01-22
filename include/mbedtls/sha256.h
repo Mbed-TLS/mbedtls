@@ -88,7 +88,7 @@ void mbedtls_sha256_clone( mbedtls_sha256_context *dst,
  *
  * \return         0 if successful
  */
-int mbedtls_sha256_starts_ext( mbedtls_sha256_context *ctx, int is224 );
+int mbedtls_sha256_starts_ret( mbedtls_sha256_context *ctx, int is224 );
 
 /**
  * \brief          SHA-256 process buffer
@@ -99,7 +99,7 @@ int mbedtls_sha256_starts_ext( mbedtls_sha256_context *ctx, int is224 );
  *
  * \return         0 if successful
  */
-int mbedtls_sha256_update_ext( mbedtls_sha256_context *ctx,
+int mbedtls_sha256_update_ret( mbedtls_sha256_context *ctx,
                                const unsigned char *input,
                                size_t ilen );
 
@@ -111,7 +111,7 @@ int mbedtls_sha256_update_ext( mbedtls_sha256_context *ctx,
  *
  * \return         0 if successful
  */
-int mbedtls_sha256_finish_ext( mbedtls_sha256_context *ctx,
+int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
                                unsigned char output[32] );
 
 /**
@@ -134,7 +134,7 @@ int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
 /**
  * \brief          SHA-256 context setup
  *
- * \deprecated     Superseded by mbedtls_sha256_starts_ext() in 2.5.0
+ * \deprecated     Superseded by mbedtls_sha256_starts_ret() in 2.5.0
  *
  * \param ctx      context to be initialized
  * \param is224    0 = use SHA256, 1 = use SHA224
@@ -143,13 +143,13 @@ MBEDTLS_DEPRECATED static inline void mbedtls_sha256_starts(
                                                 mbedtls_sha256_context *ctx,
                                                 int is224 )
 {
-    mbedtls_sha256_starts_ext( ctx, is224 );
+    mbedtls_sha256_starts_ret( ctx, is224 );
 }
 
 /**
  * \brief          SHA-256 process buffer
  *
- * \deprecated     Superseded by mbedtls_sha256_update_ext() in 2.5.0
+ * \deprecated     Superseded by mbedtls_sha256_update_ret() in 2.5.0
  *
  * \param ctx      SHA-256 context
  * \param input    buffer holding the data
@@ -160,13 +160,13 @@ MBEDTLS_DEPRECATED static inline void mbedtls_sha256_update(
                                                 const unsigned char *input,
                                                 size_t ilen )
 {
-    mbedtls_sha256_update_ext( ctx, input, ilen );
+    mbedtls_sha256_update_ret( ctx, input, ilen );
 }
 
 /**
  * \brief          SHA-256 final digest
  *
- * \deprecated     Superseded by mbedtls_sha256_finish_ext() in 2.5.0
+ * \deprecated     Superseded by mbedtls_sha256_finish_ret() in 2.5.0
  *
  * \param ctx      SHA-256 context
  * \param output   SHA-224/256 checksum result
@@ -175,7 +175,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_sha256_finish(
                                                 mbedtls_sha256_context *ctx,
                                                 unsigned char output[32] )
 {
-    mbedtls_sha256_finish_ext( ctx, output );
+    mbedtls_sha256_finish_ret( ctx, output );
 }
 
 /**
@@ -218,7 +218,7 @@ extern "C" {
  *
  * \return         0 if successful
  */
-int mbedtls_sha256_ext( const unsigned char *input,
+int mbedtls_sha256_ret( const unsigned char *input,
                         size_t ilen,
                         unsigned char output[32],
                         int is224 );
@@ -232,7 +232,7 @@ int mbedtls_sha256_ext( const unsigned char *input,
 /**
  * \brief          Output = SHA-256( input buffer )
  *
- * \deprecated     Superseded by mbedtls_sha256_ext() in 2.5.0
+ * \deprecated     Superseded by mbedtls_sha256_ret() in 2.5.0
  *
  * \param input    buffer holding the data
  * \param ilen     length of the input data
@@ -245,7 +245,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_sha256(
                                                     unsigned char output[32],
                                                     int is224 )
 {
-    mbedtls_sha256_ext( input, ilen, output, is224 );
+    mbedtls_sha256_ret( input, ilen, output, is224 );
 }
 
 #undef MBEDTLS_DEPRECATED

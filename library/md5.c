@@ -97,7 +97,7 @@ void mbedtls_md5_clone( mbedtls_md5_context *dst,
 /*
  * MD5 context setup
  */
-int mbedtls_md5_starts_ext( mbedtls_md5_context *ctx )
+int mbedtls_md5_starts_ret( mbedtls_md5_context *ctx )
 {
     ctx->total[0] = 0;
     ctx->total[1] = 0;
@@ -241,7 +241,7 @@ int mbedtls_internal_md5_process( mbedtls_md5_context *ctx,
 /*
  * MD5 process buffer
  */
-int mbedtls_md5_update_ext( mbedtls_md5_context *ctx,
+int mbedtls_md5_update_ret( mbedtls_md5_context *ctx,
                             const unsigned char *input,
                             size_t ilen )
 {
@@ -300,7 +300,7 @@ static const unsigned char md5_padding[64] =
 /*
  * MD5 final digest
  */
-int mbedtls_md5_finish_ext( mbedtls_md5_context *ctx,
+int mbedtls_md5_finish_ret( mbedtls_md5_context *ctx,
                             unsigned char output[16] )
 {
     int ret;
@@ -318,10 +318,10 @@ int mbedtls_md5_finish_ext( mbedtls_md5_context *ctx,
     last = ctx->total[0] & 0x3F;
     padn = ( last < 56 ) ? ( 56 - last ) : ( 120 - last );
 
-    if( ( ret = mbedtls_md5_update_ext( ctx, md5_padding, padn ) ) != 0 )
+    if( ( ret = mbedtls_md5_update_ret( ctx, md5_padding, padn ) ) != 0 )
             return( ret );
 
-    if( ( ret = mbedtls_md5_update_ext( ctx, msglen, 8 ) ) != 0 )
+    if( ( ret = mbedtls_md5_update_ret( ctx, msglen, 8 ) ) != 0 )
             return( ret );
 
     PUT_UINT32_LE( ctx->state[0], output,  0 );
@@ -337,7 +337,7 @@ int mbedtls_md5_finish_ext( mbedtls_md5_context *ctx,
 /*
  * output = MD5( input buffer )
  */
-int mbedtls_md5_ext( const unsigned char *input,
+int mbedtls_md5_ret( const unsigned char *input,
                      size_t ilen,
                      unsigned char output[16] )
 {
@@ -346,13 +346,13 @@ int mbedtls_md5_ext( const unsigned char *input,
 
     mbedtls_md5_init( &ctx );
 
-    if( ( ret = mbedtls_md5_starts_ext( &ctx ) ) != 0 )
+    if( ( ret = mbedtls_md5_starts_ret( &ctx ) ) != 0 )
         goto exit;
 
-    if( ( ret = mbedtls_md5_update_ext( &ctx, input, ilen ) ) != 0 )
+    if( ( ret = mbedtls_md5_update_ret( &ctx, input, ilen ) ) != 0 )
         goto exit;
 
-    if( ( ret = mbedtls_md5_finish_ext( &ctx, output ) ) != 0 )
+    if( ( ret = mbedtls_md5_finish_ret( &ctx, output ) ) != 0 )
         goto exit;
 
 exit:
@@ -413,7 +413,7 @@ int mbedtls_md5_self_test( int verbose )
         if( verbose != 0 )
             mbedtls_printf( "  MD5 test #%d: ", i + 1 );
 
-        ret = mbedtls_md5_ext( md5_test_buf[i], md5_test_buflen[i], md5sum );
+        ret = mbedtls_md5_ret( md5_test_buf[i], md5_test_buflen[i], md5sum );
         if( ret != 0 )
             goto fail;
 

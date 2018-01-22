@@ -54,7 +54,7 @@ int main( void )
 
     mbedtls_printf( "\n  MD5('%s') = ", str );
 
-    if( ( ret = mbedtls_md5_ext( (unsigned char *) str, 13, digest ) ) != 0 )
+    if( ( ret = mbedtls_md5_ret( (unsigned char *) str, 13, digest ) ) != 0 )
         return( MBEDTLS_EXIT_FAILURE );
 
     for( i = 0; i < 16; i++ )

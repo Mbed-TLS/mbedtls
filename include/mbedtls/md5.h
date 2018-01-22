@@ -81,7 +81,7 @@ void mbedtls_md5_clone( mbedtls_md5_context *dst,
  *
  * \return         0 if successful
  */
-int mbedtls_md5_starts_ext( mbedtls_md5_context *ctx );
+int mbedtls_md5_starts_ret( mbedtls_md5_context *ctx );
 
 /**
  * \brief          MD5 process buffer
@@ -92,7 +92,7 @@ int mbedtls_md5_starts_ext( mbedtls_md5_context *ctx );
  *
  * \return         0 if successful
  */
-int mbedtls_md5_update_ext( mbedtls_md5_context *ctx,
+int mbedtls_md5_update_ret( mbedtls_md5_context *ctx,
                             const unsigned char *input,
                             size_t ilen );
 
@@ -104,7 +104,7 @@ int mbedtls_md5_update_ext( mbedtls_md5_context *ctx,
  *
  * \return         0 if successful
  */
-int mbedtls_md5_finish_ext( mbedtls_md5_context *ctx,
+int mbedtls_md5_finish_ret( mbedtls_md5_context *ctx,
                             unsigned char output[16] );
 
 /**
@@ -127,20 +127,20 @@ int mbedtls_internal_md5_process( mbedtls_md5_context *ctx,
 /**
  * \brief          MD5 context setup
  *
- * \deprecated     Superseded by mbedtls_md5_starts_ext() in 2.5.0
+ * \deprecated     Superseded by mbedtls_md5_starts_ret() in 2.5.0
  *
  * \param ctx      context to be initialized
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_md5_starts(
                                                     mbedtls_md5_context *ctx )
 {
-    mbedtls_md5_starts_ext( ctx );
+    mbedtls_md5_starts_ret( ctx );
 }
 
 /**
  * \brief          MD5 process buffer
  *
- * \deprecated     Superseded by mbedtls_md5_update_ext() in 2.5.0
+ * \deprecated     Superseded by mbedtls_md5_update_ret() in 2.5.0
  *
  * \param ctx      MD5 context
  * \param input    buffer holding the data
@@ -151,13 +151,13 @@ MBEDTLS_DEPRECATED static inline void mbedtls_md5_update(
                                                     const unsigned char *input,
                                                     size_t ilen )
 {
-    mbedtls_md5_update_ext( ctx, input, ilen );
+    mbedtls_md5_update_ret( ctx, input, ilen );
 }
 
 /**
  * \brief          MD5 final digest
  *
- * \deprecated     Superseded by mbedtls_md5_finish_ext() in 2.5.0
+ * \deprecated     Superseded by mbedtls_md5_finish_ret() in 2.5.0
  *
  * \param ctx      MD5 context
  * \param output   MD5 checksum result
@@ -166,7 +166,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_md5_finish(
                                                     mbedtls_md5_context *ctx,
                                                     unsigned char output[16] )
 {
-    mbedtls_md5_finish_ext( ctx, output );
+    mbedtls_md5_finish_ret( ctx, output );
 }
 
 /**
@@ -208,7 +208,7 @@ extern "C" {
  *
  * \return         0 if successful
  */
-int mbedtls_md5_ext( const unsigned char *input,
+int mbedtls_md5_ret( const unsigned char *input,
                      size_t ilen,
                      unsigned char output[16] );
 
@@ -221,7 +221,7 @@ int mbedtls_md5_ext( const unsigned char *input,
 /**
  * \brief          Output = MD5( input buffer )
  *
- * \deprecated     Superseded by mbedtls_md5_ext() in 2.5.0
+ * \deprecated     Superseded by mbedtls_md5_ret() in 2.5.0
  *
  * \param input    buffer holding the data
  * \param ilen     length of the input data
@@ -231,7 +231,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_md5( const unsigned char *input,
                                                    size_t ilen,
                                                    unsigned char output[16] )
 {
-    mbedtls_md5_ext( input, ilen, output );
+    mbedtls_md5_ret( input, ilen, output );
 }
 
 #undef MBEDTLS_DEPRECATED

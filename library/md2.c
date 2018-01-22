@@ -105,7 +105,7 @@ void mbedtls_md2_clone( mbedtls_md2_context *dst,
 /*
  * MD2 context setup
  */
-int mbedtls_md2_starts_ext( mbedtls_md2_context *ctx )
+int mbedtls_md2_starts_ret( mbedtls_md2_context *ctx )
 {
     memset( ctx->cksum, 0, 16 );
     memset( ctx->state, 0, 46 );
@@ -156,7 +156,7 @@ int mbedtls_internal_md2_process( mbedtls_md2_context *ctx )
 /*
  * MD2 process buffer
  */
-int mbedtls_md2_update_ext( mbedtls_md2_context *ctx,
+int mbedtls_md2_update_ret( mbedtls_md2_context *ctx,
                             const unsigned char *input,
                             size_t ilen )
 {
@@ -190,7 +190,7 @@ int mbedtls_md2_update_ext( mbedtls_md2_context *ctx,
 /*
  * MD2 final digest
  */
-int mbedtls_md2_finish_ext( mbedtls_md2_context *ctx,
+int mbedtls_md2_finish_ret( mbedtls_md2_context *ctx,
                             unsigned char output[16] )
 {
     int ret;
@@ -219,7 +219,7 @@ int mbedtls_md2_finish_ext( mbedtls_md2_context *ctx,
 /*
  * output = MD2( input buffer )
  */
-int mbedtls_md2_ext( const unsigned char *input,
+int mbedtls_md2_ret( const unsigned char *input,
                      size_t ilen,
                      unsigned char output[16] )
 {
@@ -228,13 +228,13 @@ int mbedtls_md2_ext( const unsigned char *input,
 
     mbedtls_md2_init( &ctx );
 
-    if( ( ret = mbedtls_md2_starts_ext( &ctx ) ) != 0 )
+    if( ( ret = mbedtls_md2_starts_ret( &ctx ) ) != 0 )
         goto exit;
 
-    if( ( ret = mbedtls_md2_update_ext( &ctx, input, ilen ) ) != 0 )
+    if( ( ret = mbedtls_md2_update_ret( &ctx, input, ilen ) ) != 0 )
         goto exit;
 
-    if( ( ret = mbedtls_md2_finish_ext( &ctx, output ) ) != 0 )
+    if( ( ret = mbedtls_md2_finish_ret( &ctx, output ) ) != 0 )
         goto exit;
 
 exit:
@@ -296,7 +296,7 @@ int mbedtls_md2_self_test( int verbose )
         if( verbose != 0 )
             mbedtls_printf( "  MD2 test #%d: ", i + 1 );
 
-        ret = mbedtls_md2_ext( md2_test_str[i], md2_test_strlen[i], md2sum );
+        ret = mbedtls_md2_ret( md2_test_str[i], md2_test_strlen[i], md2sum );
         if( ret != 0 )
             goto fail;
 

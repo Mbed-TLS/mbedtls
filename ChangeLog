@@ -35,12 +35,6 @@ Features
      with an alternative implementation:
      mbedtls_ecdh_gen_public() and mbedtls_ecdh_compute_shared().
 
-New deprecations
-   * Deprecate usage of RSA primitives with non-matching key-type
-     (e.g., signing with a public key).
-   * Direct manipulation of structure fields of RSA contexts is deprecated.
-     Users are advised to use the extended RSA API instead.
-
 API Changes
    * Extend RSA interface by multiple functions allowing structure-
      independent setup and export of RSA contexts. Most notably,
@@ -51,6 +45,12 @@ API Changes
      purpose or CRT and/or blinding.
    * The configuration option MBEDTLS_RSA_ALT can be used to define alternative
      implementations of the RSA interface declared in rsa.h.
+
+New deprecations
+   * Deprecate usage of RSA primitives with non-matching key-type
+     (e.g., signing with a public key).
+   * Direct manipulation of structure fields of RSA contexts is deprecated.
+     Users are advised to use the extended RSA API instead.
 
 Bugfix
    * Fix ssl_parse_record_header() to silently discard invalid DTLS records
@@ -101,6 +101,7 @@ Bugfix
      RSA test suite where the failure of CTR DRBG initialization lead to
      freeing an RSA context and several MPI's without proper initialization
      beforehand.
+   * Fix error message in programs/pkey/gen_key.c. Found and fixed by Chris Xue.
 
 Changes
    * Extend cert_write example program by options to set the CRT version

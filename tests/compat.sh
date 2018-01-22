@@ -781,7 +781,7 @@ if type lsof >/dev/null 2>/dev/null; then
     }
 else
     wait_server_start() {
-        sleep 1
+        sleep 2
     }
 fi
 

@@ -569,7 +569,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH) )
         mbedtls_snprintf( buf, buflen, "AES - Invalid data input length" );
     if( use_ret == -(MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE) )
-        mbedtls_snprintf( buf, buflen, "AES - Feature not available, e.g. unsupported AES key size" );
+        mbedtls_snprintf( buf, buflen, "AES - Feature not available. For example, an unsupported AES key size" );
     if( use_ret == -(MBEDTLS_ERR_AES_HW_ACCEL_FAILED) )
         mbedtls_snprintf( buf, buflen, "AES - AES hardware accelerator failed" );
 #endif /* MBEDTLS_AES_C */

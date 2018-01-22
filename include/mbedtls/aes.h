@@ -76,21 +76,21 @@ mbedtls_aes_context;
 /**
  * \brief          This function initializes the specified AES context. To operate the AES machine, this must be the first API called.
  *
- * \param ctx      The AES context to be initialized.
+ * \param ctx      The AES context to initialize.
  */
 void mbedtls_aes_init( mbedtls_aes_context *ctx );
 
 /**
  * \brief          This function releases and clears the specified AES context.
  *
- * \param ctx      The AES context to be cleared.
+ * \param ctx      The AES context to clear.
  */
 void mbedtls_aes_free( mbedtls_aes_context *ctx );
 
 /**
  * \brief          This function initializes the context set in the \p ctx parameter and sets the encryption key schedule for the AES operation.
  *
- * \param ctx      The AES context to be initialized.
+ * \param ctx      The AES context to initialize.
  * \param key      The encryption key.
  * \param keybits  The size of data passed in bits. Valid options are:<ul><li>128bits</li><li>192bits</li><li>256bits</li></il>
  *
@@ -102,7 +102,7 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
 /**
  * \brief          This function initializes the context set in the \p ctx parameter and sets the decryption key schedule for the AES operation.
  *
- * \param ctx      The AES context to be initialized.
+ * \param ctx      The AES context to initializebbbbbbbbbb.
  * \param key      The decryption key.
  * \param keybits  The size of data passed. Valid options are:<ul><li>128bits</li><li>192bits</li><li>256bits</li></il>
  *

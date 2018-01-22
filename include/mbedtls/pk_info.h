@@ -106,6 +106,14 @@ struct mbedtls_pk_info_t
      * usage restrictions into account. */
     int (*can_do)( const void * ctx, mbedtls_pk_type_t type );
 
+    /** Signature size
+     *
+     * mbedtls_pk_signature_size() returns this value.
+     *
+     * Opaque implementations may omit this method if they do not support
+     * signature. */
+    size_t (*signature_size_func)( const void *ctx );
+
     /** Verify signature
      *
      * mbedtls_pk_verify() calls this function.
@@ -210,14 +218,6 @@ struct mbedtls_pk_info_t
      * Opaque implementations may omit this method. */
     void (*debug_func)( const void *ctx, mbedtls_pk_debug_item *items );
 
-    /** Signature size
-     *
-     * mbedtls_pk_signature_size() returns this value.
-     *
-     * Opaque implementations may omit this method. In this case, the value
-     * returned by \c get_bitlen (rounded up to a whole number of bytes)
-     * is used instead. */
-    size_t (*signature_size_func)( const void *ctx );
 };
 
 #ifdef __cplusplus

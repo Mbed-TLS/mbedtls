@@ -119,6 +119,12 @@ static int rsa_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
                 md_alg, (unsigned int) hash_len, hash, sig ) );
 }
 
+static size_t rsa_signature_size( const void *ctx_arg )
+{
+    const mbedtls_rsa_context *ctx = ctx_arg;
+    return( ctx->len );
+}
+
 static int rsa_decrypt_wrap( void *ctx,
                     const unsigned char *input, size_t ilen,
                     unsigned char *output, size_t *olen, size_t osize,
@@ -187,6 +193,7 @@ const mbedtls_pk_info_t mbedtls_rsa_info = {
     "RSA",
     rsa_get_bitlen,
     rsa_can_do,
+    rsa_signature_size,
     rsa_verify_wrap,
     rsa_sign_wrap,
     rsa_decrypt_wrap,
@@ -195,7 +202,6 @@ const mbedtls_pk_info_t mbedtls_rsa_info = {
     rsa_alloc_wrap,
     rsa_free_wrap,
     rsa_debug,
-    NULL,
 };
 #endif /* MBEDTLS_RSA_C */
 
@@ -305,9 +311,11 @@ const mbedtls_pk_info_t mbedtls_eckey_info = {
     eckey_get_bitlen,
     eckey_can_do,
 #if defined(MBEDTLS_ECDSA_C)
+    ecdsa_signature_size,
     eckey_verify_wrap,
     eckey_sign_wrap,
 #else
+    NULL,
     NULL,
     NULL,
 #endif
@@ -317,11 +325,6 @@ const mbedtls_pk_info_t mbedtls_eckey_info = {
     eckey_alloc_wrap,
     eckey_free_wrap,
     eckey_debug,
-#if defined(MBEDTLS_ECDSA_C)
-    ecdsa_signature_size,
-#else
-    NULL,
-#endif
 };
 
 /*
@@ -343,11 +346,11 @@ const mbedtls_pk_info_t mbedtls_eckeydh_info = {
     NULL,
     NULL,
     NULL,
+    NULL,
     eckey_check_pair,
     eckey_alloc_wrap,       /* Same underlying key structure */
     eckey_free_wrap,        /* Same underlying key structure */
     eckey_debug,            /* Same underlying key structure */
-    NULL,
 };
 #endif /* MBEDTLS_ECP_C */
 
@@ -404,6 +407,7 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
     "ECDSA",
     eckey_get_bitlen,     /* Compatible key structures */
     ecdsa_can_do,
+    ecdsa_signature_size,
     ecdsa_verify_wrap,
     ecdsa_sign_wrap,
     NULL,
@@ -412,7 +416,6 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
     ecdsa_alloc_wrap,
     ecdsa_free_wrap,
     eckey_debug,        /* Compatible key structures */
-    ecdsa_signature_size,
 };
 #endif /* MBEDTLS_ECDSA_C */
 
@@ -450,6 +453,13 @@ static int rsa_alt_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
 
     return( rsa_alt->sign_func( rsa_alt->key, f_rng, p_rng, MBEDTLS_RSA_PRIVATE,
                 md_alg, (unsigned int) hash_len, hash, sig ) );
+}
+
+static size_t rsa_alt_signature_size( const void *ctx )
+{
+    const mbedtls_rsa_alt_context *rsa_alt = (const mbedtls_rsa_alt_context *) ctx;
+
+    return( rsa_alt->key_len_func( rsa_alt->key ) );
 }
 
 static int rsa_alt_decrypt_wrap( void *ctx,
@@ -520,6 +530,7 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
     "RSA-alt",
     rsa_alt_get_bitlen,
     rsa_alt_can_do,
+    rsa_alt_signature_size,
     NULL,
     rsa_alt_sign_wrap,
     rsa_alt_decrypt_wrap,
@@ -531,7 +542,6 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
 #endif
     rsa_alt_alloc_wrap,
     rsa_alt_free_wrap,
-    NULL,
     NULL,
 };
 

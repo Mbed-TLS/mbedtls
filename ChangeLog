@@ -42,6 +42,8 @@ Bugfix
      Vranken.
    * Fix a numerical underflow leading to stack overflow in mpi_read_file()
      that was triggered uppon reading an empty line. Found by Guido Vranken.
+   * Fix programs/pkey/dh_server.c so that it actually works with dh_client.c.
+     Found and fixed by Martijn de Milliano.
 
 Changes
    * Send fatal alerts in more cases. The previous behaviour was to skip

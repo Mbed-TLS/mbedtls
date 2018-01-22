@@ -220,7 +220,7 @@ int mbedtls_md2_ext( const unsigned char *input,
 /**
  * \brief          Output = MD2( input buffer )
  *
- * \deprecated     Superseded by mbedtls_md2() in 2.5.0
+ * \deprecated     Superseded by mbedtls_md2_ext() in 2.5.0
  *
  * \param input    buffer holding the data
  * \param ilen     length of the input data

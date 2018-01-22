@@ -62,6 +62,17 @@ Features
      with an alternative implementation:
      mbedtls_ecdh_gen_public() and mbedtls_ecdh_compute_shared().
 
+API Changes
+   * Extend RSA interface by multiple functions allowing structure-
+     independent setup and export of RSA contexts. Most notably,
+     mbedtls_rsa_import and mbedtls_rsa_complete are introduced for setting
+     up RSA contexts from partial key material and having them completed to the
+     needs of the implementation automatically. This allows to setup private RSA
+     contexts from keys consisting of N,D,E only, even if P,Q are needed for the
+     purpose or CRT and/or blinding.
+   * The configuration option MBEDTLS_RSA_ALT can be used to define alternative
+     implementations of the RSA interface declared in rsa.h.
+
 New deprecations
    * Deprecate usage of RSA primitives with non-matching key-type
      (e.g., signing with a public key).
@@ -121,6 +132,9 @@ Bugfix
      RSA test suite where the failure of CTR DRBG initialization lead to
      freeing an RSA context and several MPI's without proper initialization
      beforehand.
+   * Fix error message in programs/pkey/gen_key.c. Found and fixed by Chris Xue.
+   * Fix programs/pkey/dh_server.c so that it actually works with dh_client.c.
+     Found and fixed by Martijn de Milliano.
 
 Changes
    * Extend cert_write example program by options to set the CRT version
@@ -133,17 +147,7 @@ Changes
    * Only run AES-192 self-test if AES-192 is available. Fixes #963.
    * Tighten the RSA PKCS#1 v1.5 signature verification code and remove the
      undeclared dependency of the RSA module on the ASN.1 module.
-
-API Changes
-   * Extend RSA interface by multiple functions allowing structure-
-     independent setup and export of RSA contexts. Most notably,
-     mbedtls_rsa_import and mbedtls_rsa_complete are introduced for setting
-     up RSA contexts from partial key material and having them completed to the
-     needs of the implementation automatically. This allows to setup private RSA
-     contexts from keys consisting of N,D,E only, even if P,Q are needed for the
-     purpose or CRT and/or blinding.
-   * The configuration option MBEDTLS_RSA_ALT can be used to define alternative
-     implementations of the RSA interface declared in rsa.h.
+   * Add mechanism to provide alternative implementation of the DHM module.
 
 = mbed TLS 2.6.0 branch released 2017-08-10
 

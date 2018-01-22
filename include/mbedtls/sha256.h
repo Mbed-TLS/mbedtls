@@ -134,7 +134,7 @@ int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
 /**
  * \brief          SHA-256 context setup
  *
- * \deprecated     Superseded by mbedtls_sha256_starts_ret() in 2.5.0
+ * \deprecated     Superseded by mbedtls_sha256_starts_ret() in 2.7.0
  *
  * \param ctx      context to be initialized
  * \param is224    0 = use SHA256, 1 = use SHA224
@@ -149,7 +149,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_sha256_starts(
 /**
  * \brief          SHA-256 process buffer
  *
- * \deprecated     Superseded by mbedtls_sha256_update_ret() in 2.5.0
+ * \deprecated     Superseded by mbedtls_sha256_update_ret() in 2.7.0
  *
  * \param ctx      SHA-256 context
  * \param input    buffer holding the data
@@ -166,7 +166,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_sha256_update(
 /**
  * \brief          SHA-256 final digest
  *
- * \deprecated     Superseded by mbedtls_sha256_finish_ret() in 2.5.0
+ * \deprecated     Superseded by mbedtls_sha256_finish_ret() in 2.7.0
  *
  * \param ctx      SHA-256 context
  * \param output   SHA-224/256 checksum result
@@ -181,7 +181,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_sha256_finish(
 /**
  * \brief          SHA-256 process data block (internal use only)
  *
- * \deprecated     Superseded by mbedtls_internal_sha256_process() in 2.5.0
+ * \deprecated     Superseded by mbedtls_internal_sha256_process() in 2.7.0
  *
  * \param ctx      SHA-256 context
  * \param data     buffer holding one block of data
@@ -232,7 +232,7 @@ int mbedtls_sha256_ret( const unsigned char *input,
 /**
  * \brief          Output = SHA-256( input buffer )
  *
- * \deprecated     Superseded by mbedtls_sha256_ret() in 2.5.0
+ * \deprecated     Superseded by mbedtls_sha256_ret() in 2.7.0
  *
  * \param input    buffer holding the data
  * \param ilen     length of the input data

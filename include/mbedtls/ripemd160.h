@@ -132,7 +132,7 @@ int mbedtls_internal_ripemd160_process( mbedtls_ripemd160_context *ctx,
 /**
  * \brief          RIPEMD-160 context setup
  *
- * \deprecated     Superseded by mbedtls_ripemd160_starts_ret() in 2.5.0
+ * \deprecated     Superseded by mbedtls_ripemd160_starts_ret() in 2.7.0
  *
  * \param ctx      context to be initialized
  */
@@ -145,7 +145,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_ripemd160_starts(
 /**
  * \brief          RIPEMD-160 process buffer
  *
- * \deprecated     Superseded by mbedtls_ripemd160_update_ret() in 2.5.0
+ * \deprecated     Superseded by mbedtls_ripemd160_update_ret() in 2.7.0
  *
  * \param ctx      RIPEMD-160 context
  * \param input    buffer holding the data
@@ -162,7 +162,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_ripemd160_update(
 /**
  * \brief          RIPEMD-160 final digest
  *
- * \deprecated     Superseded by mbedtls_ripemd160_finish_ret() in 2.5.0
+ * \deprecated     Superseded by mbedtls_ripemd160_finish_ret() in 2.7.0
  *
  * \param ctx      RIPEMD-160 context
  * \param output   RIPEMD-160 checksum result
@@ -177,7 +177,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_ripemd160_finish(
 /**
  * \brief          RIPEMD-160 process data block (internal use only)
  *
- * \deprecated     Superseded by mbedtls_internal_ripemd160_process() in 2.5.0
+ * \deprecated     Superseded by mbedtls_internal_ripemd160_process() in 2.7.0
  *
  * \param ctx      RIPEMD-160 context
  * \param data     buffer holding one block of data
@@ -226,7 +226,7 @@ int mbedtls_ripemd160_ret( const unsigned char *input,
 /**
  * \brief          Output = RIPEMD-160( input buffer )
  *
- * \deprecated     Superseded by mbedtls_ripemd160_ret() in 2.5.0
+ * \deprecated     Superseded by mbedtls_ripemd160_ret() in 2.7.0
  *
  * \param input    buffer holding the data
  * \param ilen     length of the input data

@@ -61,6 +61,7 @@ Changes
    * Extend cert_write example program by options to set the CRT version
      and the message digest. Further, allow enabling/disabling of authority
      identifier, subject identifier and basic constraints extensions.
+   * Add mechanism to provide alternative implementation of the DHM module.
 
 New deprecations
    * Deprecate usage of RSA primitives with non-matching key-type

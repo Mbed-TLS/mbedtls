@@ -102,7 +102,7 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
 /**
  * \brief          This function initializes the context set in the \p ctx parameter and sets the decryption key schedule for the AES operation.
  *
- * \param ctx      The AES context to initializebbbbbbbbbb.
+ * \param ctx      The AES context to initialize.
  * \param key      The decryption key.
  * \param keybits  The size of data passed. Valid options are:<ul><li>128bits</li><li>192bits</li><li>256bits</li></il>
  *

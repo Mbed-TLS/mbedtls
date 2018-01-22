@@ -57,6 +57,7 @@
 #define mbedtls_free       free
 #endif
 
+#if !defined(MBEDTLS_DHM_ALT)
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
@@ -577,6 +578,7 @@ int mbedtls_dhm_parse_dhmfile( mbedtls_dhm_context *dhm, const char *path )
 }
 #endif /* MBEDTLS_FS_IO */
 #endif /* MBEDTLS_ASN1_PARSE_C */
+#endif /* MBEDTLS_DHM_ALT */
 
 #if defined(MBEDTLS_SELF_TEST)
 

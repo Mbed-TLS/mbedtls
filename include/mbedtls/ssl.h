@@ -198,6 +198,9 @@
 #define MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED       1
 #define MBEDTLS_SSL_CERT_REQ_CA_LIST_DISABLED      0
 
+#define MBEDTLS_SSL_DTLS_SRTP_MKI_UNSUPPORTED    0
+#define MBEDTLS_SSL_DTLS_SRTP_MKI_SUPPORTED      1
+
 /*
  * Default range for DTLS retransmission timer value, in milliseconds.
  * RFC 6347 4.2.4.1 says from 1 second to 60 seconds.
@@ -819,8 +822,8 @@ struct mbedtls_ssl_config
                                           Certificate Request messages?     */
 #endif
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
-    unsigned int dtls_srtp_mki_support : 1 /* support having mki_value
-                                              in the use_srtp extension     */
+    unsigned int dtls_srtp_mki_support : 1; /* support having mki_value
+                                               in the use_srtp extension     */
 #endif
 };
 
@@ -2052,6 +2055,16 @@ const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl );
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
 /**
+ * \brief          Add support for mki value in use_srtp extension
+ *                 (Default: MBEDTLS_SSL_DTLS_SRTP_MKI_UNSUPPORTED)
+ *
+ * \param conf     SSL configuration
+ * \param truncate Enable or disable (MBEDTLS_SSL_DTLS_SRTP_MKI_UNSUPPORTED or
+ *                                    MBEDTLS_SSL_DTLS_SRTP_MKI_SUPPORTED)
+ */
+void mbedtls_ssl_conf_srtp_mki_value_supported( mbedtls_ssl_config *conf, int support_mki_value );
+
+/**
  * \brief                   Set the supported DTLS-SRTP protection profiles.
  *
  * \param conf              SSL configuration
@@ -2062,6 +2075,17 @@ const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl );
  * \return         0 on success, or MBEDTLS_ERR_SSL_BAD_INPUT_DATA.
  */
 int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf, const mbedtls_ssl_srtp_profile *profiles, size_t profiles_number);
+
+/**
+ * \brief                   Set the mki_value for the current dtls session.
+ *
+ * \param ssl              SSL context
+ * \param mki_value        MKI value to set
+ * \param mki_len          MKI length
+ *
+ * \return         0 on success, MBEDTLS_ERR_SSL_BAD_INPUT_DATA or MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE
+ */
+int mbedtls_ssl_dtls_srtp_set_mki_value( mbedtls_ssl_context *ssl, unsigned char* mki_value, size_t mki_len );
 /**
  * \brief          Get the negotiated DTLS-SRTP Protection Profile.
  *                 This function should be called after the handshake is
@@ -2071,7 +2095,7 @@ int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf, co
  *
  * \return         Protection Profile enum member, MBEDTLS_SRTP_UNSET_PROFILE if no protocol was negotiated.
  */
-mbedtls_ssl_srtp_profile mbedtls_ssl_get_dtls_srtp_protection_profile( const mbedtls_ssl_context *ssl);
+mbedtls_ssl_srtp_profile mbedtls_ssl_get_dtls_srtp_protection_profile( const mbedtls_ssl_context *ssl );
 
 /**
  * \brief                  Get the generated DTLS-SRTP key material.

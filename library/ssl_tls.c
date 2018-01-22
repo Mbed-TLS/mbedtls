@@ -6375,6 +6375,24 @@ const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_ALPN */
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
+void mbedtls_ssl_conf_srtp_mki_value_supported( mbedtls_ssl_config *conf, int support_mki_value )
+{
+    conf->dtls_srtp_mki_support = support_mki_value;
+}
+
+int mbedtls_ssl_dtls_srtp_set_mki_value( mbedtls_ssl_context *ssl, unsigned char* mki_value, size_t mki_len )
+{
+    if ( mki_len > MBEDTLS_DTLS_SRTP_MAX_MKI_LENGTH )
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+
+    if( ssl->conf->dtls_srtp_mki_support == MBEDTLS_SSL_DTLS_SRTP_MKI_UNSUPPORTED )
+        return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
+
+    memcpy( ssl->dtls_srtp_info.mki_value, mki_value, mki_len );
+    ssl->dtls_srtp_info.mki_len = mki_len;
+    return 0;
+}
+
 int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf, const mbedtls_ssl_srtp_profile *profiles, size_t profiles_number)
 {
     size_t i;

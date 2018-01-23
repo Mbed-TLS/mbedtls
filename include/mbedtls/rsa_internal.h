@@ -2,7 +2,8 @@
  * \file rsa_internal.h
  *
  * \brief Context-independent RSA helper functions
- *
+ */
+/*
  *  Copyright (C) 2006-2017, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

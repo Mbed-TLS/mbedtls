@@ -1,8 +1,9 @@
 /**
- * \file ssl_ticket.h
+ * \file ssl_internal.h
  *
  * \brief Internal functions shared by the SSL modules
- *
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

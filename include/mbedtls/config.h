@@ -2212,17 +2212,31 @@
 #define MBEDTLS_PKCS5_C
 
 /**
+ * \def MBEDTLS_PKCS11_CLIENT_C
+ *
+ * Enable support for keys stored in an external token, using the
+ * cryptoki (PKCS#11) interface.
+ *
+ * Module:  library/pkcs11_client.c
+ *
+ * This module requires a PKCS#11 library.
+ *
+ */
+#define MBEDTLS_PKCS11_CLIENT_C
+
+/**
  * \def MBEDTLS_PKCS11_C
  *
- * Enable wrapper for PKCS#11 smartcard support.
+ * Enable wrapper for PKCS#11 token support with libpkcs11-helper.
  *
  * Module:  library/pkcs11.c
  * Caller:  library/pk.c
  *
  * Requires: MBEDTLS_PK_C
  *
- * This module enables SSL/TLS PKCS #11 smartcard support.
- * Requires the presence of the PKCS#11 helper library (libpkcs11-helper)
+ * This module enables PKCS #11 token support, e.g. to use a private
+ * key stored in a smartcard for an SSL/TLS connection.
+ * Requires the presence of the PKCS#11 helper library (libpkcs11-helper).
  */
 //#define MBEDTLS_PKCS11_C
 

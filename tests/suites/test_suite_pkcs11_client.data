@@ -1,0 +1,7 @@
+PKCS#11 RSA import and sign
+depends_on:MBEDTLS_PK_C:MBEDTLS_ECDSA_C
+pk_import_sign:"data_files/server1.key"
+
+PKCS#11 RSA generate and sign
+depends_on:MBEDTLS_PK_C:MBEDTLS_RSA_C
+pk_generate_sign:MBEDTLS_PK_RSA

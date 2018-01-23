@@ -41,6 +41,7 @@ set(src_crypto
     pem.c
     pk.c
     pk_wrap.c
+    pkcs11_client.c
     pkcs12.c
     pkcs5.c
     pkparse.c

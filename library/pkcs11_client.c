@@ -271,7 +271,7 @@ int mbedtls_pk_setup_pkcs11( mbedtls_pk_context *ctx,
             attributes[0].type = CKA_MODULUS_BITS;
             attributes[0].pValue = &modulus_bits;
             attributes[0].ulValueLen = sizeof( modulus_bits );
-            rv = C_GetAttributeValue( hSession, hPrivateKey, attributes, 1 );
+            rv = C_GetAttributeValue( hSession, hPublicKey, attributes, 1 );
             if( rv != CKR_OK )
                 return( pkcs11_err_to_mbedtls_pk_err( rv ) );
             if( modulus_bits > (uint16_t)( -1 ) )

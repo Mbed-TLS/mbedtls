@@ -199,7 +199,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_ripemd160_process(
 #endif
 
 #else  /* MBEDTLS_RIPEMD160_ALT */
-#include "ripemd160.h"
+#include "ripemd160_alt.h"
 #endif /* MBEDTLS_RIPEMD160_ALT */
 
 #ifdef __cplusplus

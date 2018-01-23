@@ -46,6 +46,8 @@
 #endif /* MBEDTLS_PLATFORM_C */
 #endif /* MBEDTLS_SELF_TEST */
 
+#if !defined(MBEDTLS_RIPEMD160_ALT)
+
 /*
  * 32-bit integer manipulation macros (little endian)
  */
@@ -392,6 +394,8 @@ int mbedtls_ripemd160_finish_ret( mbedtls_ripemd160_context *ctx,
 
     return( 0 );
 }
+
+#endif /* ! MBEDTLS_RIPEMD160_ALT */
 
 /*
  * output = RIPEMD-160( input buffer )

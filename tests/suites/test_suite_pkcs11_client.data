@@ -1,0 +1,7 @@
+PKCS#11 ECDSA import and sign
+depends_on:MBEDTLS_PK_C:MBEDTLS_ECDSA_C
+pk_import_sign:"data_files/server3.key"
+
+PKCS#11 ECDSA generate and sign
+depends_on:MBEDTLS_PK_C:MBEDTLS_ECDSA_C
+pk_generate_sign:MBEDTLS_PK_ECDSA

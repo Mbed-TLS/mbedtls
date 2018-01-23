@@ -194,6 +194,7 @@
     <ClInclude Include="..\..\include\mbedtls\pk_info.h" />
     <ClInclude Include="..\..\include\mbedtls\pk_internal.h" />
     <ClInclude Include="..\..\include\mbedtls\pkcs11.h" />
+    <ClInclude Include="..\..\include\mbedtls\pkcs11_client.h" />
     <ClInclude Include="..\..\include\mbedtls\pkcs12.h" />
     <ClInclude Include="..\..\include\mbedtls\pkcs5.h" />
     <ClInclude Include="..\..\include\mbedtls\platform.h" />
@@ -262,6 +263,7 @@
     <ClCompile Include="..\..\library\pk.c" />
     <ClCompile Include="..\..\library\pk_wrap.c" />
     <ClCompile Include="..\..\library\pkcs11.c" />
+    <ClCompile Include="..\..\library\pkcs11_client.c" />
     <ClCompile Include="..\..\library\pkcs12.c" />
     <ClCompile Include="..\..\library\pkcs5.c" />
     <ClCompile Include="..\..\library\pkparse.c" />

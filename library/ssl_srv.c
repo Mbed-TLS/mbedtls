@@ -1963,7 +1963,7 @@ static void ssl_write_encrypt_then_mac_ext( ssl_context *ssl,
     const ssl_ciphersuite_t *suite = NULL;
     const cipher_info_t *cipher = NULL;
 
-    if( ssl->session_negotiate->encrypt_then_mac == SSL_EXTENDED_MS_DISABLED ||
+    if( ssl->session_negotiate->encrypt_then_mac == SSL_ETM_DISABLED ||
         ssl->minor_ver == SSL_MINOR_VERSION_0 )
     {
         *olen = 0;

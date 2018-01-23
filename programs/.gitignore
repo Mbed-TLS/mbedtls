@@ -49,6 +49,7 @@ test/ssl_cert_test
 test/udp_proxy
 util/pem2der
 util/strerror
+util/syslog2stderr.so
 x509/cert_app
 x509/cert_req
 x509/crl_app

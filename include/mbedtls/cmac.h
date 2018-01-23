@@ -3,7 +3,8 @@
  *
  * \brief Cipher-based Message Authentication Code (CMAC) Mode for
  *        Authentication
- *
+ */
+/*
  *  Copyright (C) 2015-2016, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

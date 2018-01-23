@@ -1,6 +1,9 @@
-/*
- *  Minimal configuration for TLS 1.2 with PSK and AES-CCM ciphersuites
+/**
+ * \file config-ccm-psk-tls1_2.h
  *
+ * \brief Minimal configuration for TLS 1.2 with PSK and AES-CCM ciphersuites
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

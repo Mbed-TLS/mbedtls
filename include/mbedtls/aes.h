@@ -36,15 +36,15 @@
 #include <stdint.h>
 
 /* padlock.c and aesni.c rely on these values! */
-#define MBEDTLS_AES_ENCRYPT     1 /**< AES encryption mode. */
-#define MBEDTLS_AES_DECRYPT     0 /**< AES decryption mode. */
+#define MBEDTLS_AES_ENCRYPT     1 /**< AES encryption. */
+#define MBEDTLS_AES_DECRYPT     0 /**< AES decryption. */
 
 /* Error codes in range 0x0020-0x0022 */
 #define MBEDTLS_ERR_AES_INVALID_KEY_LENGTH                -0x0020  /**< Invalid key length. */
 #define MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH              -0x0022  /**< Invalid data input length. */
 
 /* Error codes in range 0x0023-0x0023 */
-#define MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE               -0x0023  /**< Feature not available. For example, unsupported AES key size. */
+#define MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE               -0x0023  /**< Feature not available. For example,unsupported AES key size. */
 
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)
@@ -61,9 +61,11 @@ extern "C" {
 
 /**
  * The AES context-type definition. The AES context is passed to the APIs called.
- * \note           This buffer can hold 32 extra Bytes, which can be used for one of the following purposes:
- *                 <ul><li>Alignment if VIA padlock is used.</li>
- *                 <li>Simplifying key expansion in the 256-bit case by generating an extra round key.</li></ul>
+ *
+ * \note           This buffer can hold 32 extra Bytes, which can be used for one of the following 
+ *                 purposes:<ul><li>Alignment if VIA padlock is used.</li>
+ *                 <li>Simplifying key expansion in the 256-bit case by generating an 
+ *                 extra round key.</li></ul>
  */
 typedef struct
 {
@@ -74,7 +76,9 @@ typedef struct
 mbedtls_aes_context;
 
 /**
- * \brief          This function initializes the specified AES context. To operate the AES machine, this must be the first API called.
+ * \brief    This function initializes the specified AES context. 
+ * 
+ *           It  must be the first API called before using the context.
  *
  * \param ctx      The AES context to initialize.
  */
@@ -88,40 +92,47 @@ void mbedtls_aes_init( mbedtls_aes_context *ctx );
 void mbedtls_aes_free( mbedtls_aes_context *ctx );
 
 /**
- * \brief          This function initializes the context set in the \p ctx parameter and sets the encryption key schedule for the AES operation.
+ * \brief          This function sets the encryption key.
+
  *
  * \param ctx      The AES context to initialize.
  * \param key      The encryption key.
- * \param keybits  The size of data passed in bits. Valid options are:<ul><li>128bits</li><li>192bits</li><li>256bits</li></il>
+ * \param keybits  The size of data passed in bits. Valid options are:
+ *                 <ul><li>128bits</li><li>192bits</li><li>256bits</li></ul>
  *
-* \return         Zero if successful or #MBEDTLS_ERR_AES_INVALID_KEY_LENGTH on failure.
+* \return         Zero on success or #MBEDTLS_ERR_AES_INVALID_KEY_LENGTH on failure.
  */
 int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
                     unsigned int keybits );
 
 /**
- * \brief          This function initializes the context set in the \p ctx parameter and sets the decryption key schedule for the AES operation.
+ * \brief          This function initializes sets the decryption key.
  *
  * \param ctx      The AES context to initialize.
  * \param key      The decryption key.
- * \param keybits  The size of data passed. Valid options are:<ul><li>128bits</li><li>192bits</li><li>256bits</li></il>
+ * \param keybits  The size of data passed. Valid options are:
+ *                 <ul><li>128bits</li><li>192bits</li><li>256bits</li></ul>
  *
- * \return         Zero if successful or #MBEDTLS_ERR_AES_INVALID_KEY_LENGTH on failure.
+ * \return         Zero on success, or #MBEDTLS_ERR_AES_INVALID_KEY_LENGTH on failure.
  */
 int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
                     unsigned int keybits );
 
 /**
- * \brief          This function performs the operation defined in the \p mode parameter (encrypt or decrypt), on the input data buffer defined in the \p input parameter.
- * mbedtls_aes_init(), and either mbedtls_aes_setkey_enc() or mbedtls_aes_setkey_dec() must be called before 
- * the first call to this API with the same context.
+ * \brief          This function performs the operation defined in the \p mode parameter 
+ *                 (encrypt or decrypt), on the input data buffer defined in the \p input 
+ *                 parameter. 
  *
- * \param ctx      The AES context to encrypt or decrypt.
- * \param mode     The AES mode: #MBEDTLS_AES_ENCRYPT or #MBEDTLS_AES_DECRYPT.
+ *                 mbedtls_aes_init(), and either mbedtls_aes_setkey_enc() or  
+ *                 mbedtls_aes_setkey_dec() must be called before the first call to this 
+ *                 API with the same context.
+ *
+ * \param ctx      The AES context to use for encryption or decryption.
+ * \param mode     The AES operation: #MBEDTLS_AES_ENCRYPT or #MBEDTLS_AES_DECRYPT.
  * \param input    The 16Byte buffer holding the input data.
  * \param output   The 16Byte buffer holding the output data.
  
- * \return         Zero if successful.
+ * \return         Zero on success.
  */
 int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
                     int mode,
@@ -130,10 +141,14 @@ int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 /**
- * \brief This function performs the operation defined in the \p mode parameter (encrypt/decrypt), on the input data buffer defined in the \p input parameter. 
- * It can be called as many times as needed, until all the input data is processed.
- * mbedtls_aes_init(), and either mbedtls_aes_setkey_enc() or mbedtls_aes_setkey_dec() must be called before 
- * the first call to this API with the same context.
+ * \brief   This function performs the operation defined in the \p mode parameter 
+ *          (encrypt/decrypt), on the input data buffer defined in the \p input 
+ *          parameter. 
+ *
+ *          It can be called as many times as needed, until all the input 
+ *          data is processed. mbedtls_aes_init(), and either mbedtls_aes_setkey_enc() 
+ *          or mbedtls_aes_setkey_dec() must be called before the first call to this 
+ *          API with the same context.
  *
  * \note Upon exit, the content of the IV is updated so that you can
  *       call the same function again on the next
@@ -143,14 +158,15 @@ int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
  *       either save it manually or use the cipher module instead.
  *
  *
- * \param ctx      The AES context to encrypt/decrypt.
- * \param mode     The AES mode: #MBEDTLS_AES_ENCRYPT or #MBEDTLS_AES_DECRYPT.
- * \param length   The length of the input data in Bytes. The buffer encryption/decryption length must be a multiple of the block size (16 Bytes).
+ * \param ctx      The AES context to use for encryption or decryption.
+ * \param mode     The AES operation: #MBEDTLS_AES_ENCRYPT or #MBEDTLS_AES_DECRYPT.
+ * \param length   The length of the input data in Bytes. The buffer encryption or decryption 
+ *                 length must be a multiple of the block size (16 Bytes).
  * \param iv       Initialization vector (updated after use).
  * \param input    The buffer holding the input data.
  * \param output   The buffer holding the output data.
  *
- * \return         Zero if successful or #MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH on failure.
+ * \return         Zero on success, or #MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH on failure.
  */
 int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
                     int mode,
@@ -162,11 +178,14 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
 
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
 /**
- * \brief This function performs the operation defined in the \p mode parameter (encrypt or decrypt), on the input data buffer defined in the \p input parameter.
+ * \brief This function performs the operation defined in the \p mode parameter 
+ *        (encrypt or decrypt), on the input data buffer defined in the \p input
+ *        parameter.
  *
- * Due to the nature of CFB, you must use the same key schedule for
- * both encryption and decryption operations. Therefore, you must use the context initialized with
- * mbedtls_aes_setkey_enc() for both #MBEDTLS_AES_ENCRYPT and #MBEDTLS_AES_DECRYPT.
+ *        Due to the nature of CFB, you must use the same key schedule for
+ *        both encryption and decryption operations. Therefore, you must use the 
+ *        context initialized with mbedtls_aes_setkey_enc() for both 
+ *        #MBEDTLS_AES_ENCRYPT and #MBEDTLS_AES_DECRYPT.
  *
  * \note Upon exit, the content of the IV is updated so that you can
  *       call the same function again on the next
@@ -177,15 +196,15 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
  *       module instead.
  *
  *
- * \param ctx      The AES context to encrypt/decrypt.
- * \param mode     The AES mode: #MBEDTLS_AES_ENCRYPT or #MBEDTLS_AES_DECRYPT
+ * \param ctx      The AES context to use for encryption or decryption.
+ * \param mode     The AES operation: #MBEDTLS_AES_ENCRYPT or #MBEDTLS_AES_DECRYPT
  * \param length   The length of the input data.
  * \param iv_off   The offset in IV (updated after use).
  * \param iv       The initialization vector (updated after use).
  * \param input    The buffer holding the input data.
  * \param output   The buffer holding the output data.
  *
- * \return         Zero if successful.
+ * \return         Zero on success.
  */
 int mbedtls_aes_crypt_cfb128( mbedtls_aes_context *ctx,
                        int mode,
@@ -196,11 +215,14 @@ int mbedtls_aes_crypt_cfb128( mbedtls_aes_context *ctx,
                        unsigned char *output );
 
 /**
- * \brief This function performs the operation defined in the \p mode parameter (encrypt/decrypt), on the input data buffer defined in the \p input parameter.
+ * \brief This function performs the operation defined in the \p mode parameter 
+ *        (encrypt/decrypt), on the input data buffer defined in the \p input 
+ *        parameter.
  *
- * Due to the nature of CFB, you must use the same key schedule for
- * both encryption and decryption operations. Therefore, you must use the context initialized with
- * mbedtls_aes_setkey_enc() for both #MBEDTLS_AES_ENCRYPT and #MBEDTLS_AES_DECRYPT.
+ *        Due to the nature of CFB, you must use the same key schedule for
+ *        both encryption and decryption operations. Therefore, you must  
+ *        use the context initialized with mbedtls_aes_setkey_enc() for 
+ *        both #MBEDTLS_AES_ENCRYPT and #MBEDTLS_AES_DECRYPT.
  *
  * \note Upon exit, the content of the IV is updated so that you can
  *       call the same function again on the next
@@ -211,14 +233,15 @@ int mbedtls_aes_crypt_cfb128( mbedtls_aes_context *ctx,
  *       module instead.
  *
  *
- * \param ctx      The AES context to encrypt/decrypt.
- * \param mode     The AES mode: #MBEDTLS_AES_ENCRYPT or #MBEDTLS_AES_DECRYPT
+ * \param ctx      The AES context to use for encryption or decryption.
+ * \param mode     The AES operation: #MBEDTLS_AES_ENCRYPT or 
+ *                 #MBEDTLS_AES_DECRYPT
  * \param length   The length of the input data.
  * \param iv       The initialization vector (updated after use).
  * \param input    The buffer holding the input data.
  * \param output   The buffer holding the output data.
  *
- * \return         Zero if successful.
+ * \return         Zero on success.
  */
 int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
                     int mode,
@@ -230,15 +253,18 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
 
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
 /**
- * \brief This function performs the operation defined in the \p mode parameter (encrypt/decrypt), on the input data buffer defined in the \p input parameter.
+ * \brief This function performs the operation defined in the \p mode  
+ *        parameter (encrypt/decrypt), on the input data buffer  
+ *        defined in the \p input parameter.
  *
- * Due to the nature of CTR, you must use the same key schedule for
- * both encryption and decryption operations. Therefore, you must use the context initialized with
- * mbedtls_aes_setkey_enc() for both #MBEDTLS_AES_ENCRYPT and #MBEDTLS_AES_DECRYPT.
+ *        Due to the nature of CTR, you must use the same key schedule 
+ *        for both encryption and decryption operations. Therefore, you  
+ *        must use the context initialized with mbedtls_aes_setkey_enc() 
+ *        for both #MBEDTLS_AES_ENCRYPT and #MBEDTLS_AES_DECRYPT.
  *
  * \warning You must keep the maximum use of your counter in mind.
  *
- * \param ctx      		The AES context to encrypt or decrypt.
+ * \param ctx      		The AES context to use for encryption or decryption.
  * \param length   		The length of the input data.
  * \param nc_off   		The offset in the current \p stream_block, for resuming
  *                 		within current cipher stream. The offset pointer to
@@ -249,7 +275,7 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
  * \param input    		The buffer holding the input data.
  * \param output   		The buffer holding the output data.
  *
- * \return         Zero if successful.
+ * \return         Zero on success.
  */
 int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
                        size_t length,
@@ -264,11 +290,11 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
  * \brief Internal AES block encryption function. This is 
  *        only exposed to allow overriding it using #MBEDTLS_AES_ENCRYPT_ALT.
  *
- * \param ctx       The AES context to encrypt.
+ * \param ctx       The AES context to use for encryption.
  * \param input     The plaintext block.
  * \param output    The output (ciphertext) block.
  *
- * \return          Zero if successful.
+ * \return          Zero on success.
  */
 int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
                                   const unsigned char input[16],
@@ -278,11 +304,11 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
  * \brief Internal AES block decryption function. This is
  *        only exposed to allow overriding it using see #MBEDTLS_AES_DECRYPT_ALT.
  *
- * \param ctx       The AES context to decrypt.
+ * \param ctx       The AES context to use for decryption.
  * \param input     The ciphertext block
  * \param output    The output (plaintext) block
  *
- * \return          Zero if successful.
+ * \return          Zero on success.
  */
 int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
                                   const unsigned char input[16],
@@ -300,7 +326,7 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
  *
  * \deprecated      Superseded by mbedtls_aes_encrypt_ext() in 2.5.0.
  *
- * \param ctx       The AES context to encrypt.
+ * \param ctx       The AES context to use for encryption.
  * \param input     Plaintext block.
  * \param output    Output (ciphertext) block.
  */
@@ -314,7 +340,7 @@ MBEDTLS_DEPRECATED void mbedtls_aes_encrypt( mbedtls_aes_context *ctx,
  *
  * \deprecated      Superseded by mbedtls_aes_decrypt_ext() in 2.5.0.
  *
- * \param ctx       The AES context to decrypt.
+ * \param ctx       The AES context to use for decryption.
  * \param input     Ciphertext block.
  * \param output    Output (plaintext) block.
  */
@@ -340,7 +366,7 @@ extern "C" {
 /**
  * \brief          Checkup routine.
  *
- * \return         Zero if successful, or 1 if the test failed.
+ * \return         Zero on success, or one on failure.
  */
 int mbedtls_aes_self_test( int verbose );
 

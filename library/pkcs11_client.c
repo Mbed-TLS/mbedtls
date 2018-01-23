@@ -209,7 +209,7 @@ static int pkcs11_sign( void *ctx_arg,
         }
         /* The signature buffer is guaranteed to have enough room for
            the encoded signature by the pk_sign interface. */
-        if( ecdsa_signature_to_asn1( &r, &s, sig, sig_len, sig_size ) != 0 )
+        if( mbedtls_ecdsa_signature_to_asn1( &r, &s, sig, sig_len, sig_size ) != 0 )
         {
             rv = CKR_GENERAL_ERROR;
             goto ecdsa_exit;
@@ -231,12 +231,88 @@ exit:
     return( pkcs11_err_to_mbedtls_pk_err( rv ) );
 }
 
+static int pkcs11_verify( void *ctx_arg,
+                        mbedtls_md_type_t md_alg,
+                        const unsigned char *hash, size_t hash_len,
+                        const unsigned char *sig, size_t sig_len)
+{
+    mbedtls_pk_pkcs11_context_t *ctx = ctx_arg;
+    CK_RV rv;
+    CK_MECHANISM mechanism = {0, NULL_PTR, 0};
+    unsigned char *decoded_sig = NULL_PTR;
+    size_t decoded_sig_len;
+
+    /* This function takes size_t arguments but the underlying layer
+       takes unsigned long. Either type may be smaller than the other.
+       Legitimate values won't overflow either type but we still need
+       to check for overflow for robustness. */
+    if( hash_len > (CK_ULONG)( -1 ) )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    switch( ctx->key_type )
+    {
+#if defined(MBEDTLS_RSA_C)
+    case MBEDTLS_PK_RSA:
+        switch( md_alg )
+        {
+        case MBEDTLS_MD_MD5:
+            mechanism.mechanism = CKM_MD5_RSA_PKCS;
+            break;
+        case MBEDTLS_MD_SHA1:
+            mechanism.mechanism = CKM_SHA1_RSA_PKCS;
+            break;
+        case MBEDTLS_MD_SHA256:
+            mechanism.mechanism = CKM_SHA256_RSA_PKCS;
+            break;
+        case MBEDTLS_MD_SHA384:
+            mechanism.mechanism = CKM_SHA384_RSA_PKCS;
+            break;
+        case MBEDTLS_MD_SHA512:
+            mechanism.mechanism = CKM_SHA512_RSA_PKCS;
+            break;
+        default:
+            return( MBEDTLS_ERR_PK_INVALID_ALG );
+        }
+        break;
+#endif /* MBEDTLS_RSA_C */
+#if defined(MBEDTLS_ECDSA_C)
+    case MBEDTLS_PK_ECKEY:
+        mechanism.mechanism = CKM_ECDSA;
+        break;
+#endif /* MBEDTLS_ECDSA_C */
+    default:
+        return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
+    }
+    if( mechanism.mechanism == CKM_ECDSA )
+    {
+        uint16_t byte_len = ( ( ctx->bit_length + 7 ) / 8 );
+        decoded_sig = malloc( 2 * byte_len );
+        if( mbedtls_ecdsa_signature_to_raw( sig, sig_len, byte_len,
+                                    decoded_sig, &decoded_sig_len ) != 0 )
+        {
+            rv = CKR_GENERAL_ERROR;
+            goto exit;
+        }
+    }
+    rv = C_VerifyInit( ctx->hSession, &mechanism, ctx->hPublicKey );
+    if( rv != CKR_OK )
+        goto exit;
+    rv = C_Verify( ctx->hSession, (CK_BYTE_PTR) hash, hash_len,
+           decoded_sig, decoded_sig_len );
+    if( rv != CKR_OK )
+        goto exit;
+
+exit:
+    free(decoded_sig);
+    return( pkcs11_err_to_mbedtls_pk_err( rv ) );
+}
+
 static const mbedtls_pk_info_t mbedtls_pk_pkcs11_info =
     MBEDTLS_PK_OPAQUE_INFO_1( "pkcs11"
                               , pkcs11_pk_get_bitlen
                               , pkcs11_pk_can_do //can_do
                               , pkcs11_pk_signature_size
-                              , NULL //pkcs11_verify
+                              , pkcs11_verify
                               , pkcs11_sign
                               , NULL //pkcs11_decrypt
                               , NULL //pkcs11_encrypt

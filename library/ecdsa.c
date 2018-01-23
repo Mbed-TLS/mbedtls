@@ -287,9 +287,70 @@ cleanup:
 #endif /* MBEDTLS_ECDSA_VERIFY_ALT */
 
 /*
+ * Convert a signature to a raw concatenation of {r, s}
+ */
+int mbedtls_ecdsa_signature_to_raw( const unsigned char *sig,
+                            size_t ssize, uint16_t byte_len,
+                            unsigned char *buf, size_t* slen )
+{
+    int ret;
+    unsigned char *p = (unsigned char *) sig;
+    const unsigned char *end = sig + ssize;
+    size_t len;
+    mbedtls_mpi r, s;
+
+    if( 2 * byte_len > ssize )
+    {
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+
+    mbedtls_mpi_init( &r );
+    mbedtls_mpi_init( &s );
+
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+            MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+    {
+        ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+        goto cleanup;
+    }
+
+    if( p + len != end )
+    {
+        ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
+        goto cleanup;
+    }
+
+    if( ( ret = mbedtls_asn1_get_mpi( &p, end, &r ) ) != 0 ||
+            ( ret = mbedtls_asn1_get_mpi( &p, end, &s ) ) != 0 )
+    {
+        ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+        goto cleanup;
+    }
+    p = (unsigned char *) buf;
+    if( ( ret = mbedtls_mpi_write_binary(&r, p, byte_len) ) )
+    {
+        ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+        goto cleanup;
+    }
+    p += byte_len;
+    if( ( ret = mbedtls_mpi_write_binary(&s, p, byte_len) ) )
+    {
+        ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+        goto cleanup;
+    }
+    *slen = 2*byte_len;
+    cleanup:
+        mbedtls_mpi_free( &r );
+        mbedtls_mpi_free( &s );
+
+        return( ret );
+}
+
+/*
  * Convert a signature (given by context) to ASN.1
  */
-int ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
+int mbedtls_ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
                              unsigned char *sig, size_t *slen, size_t ssize )
 {
     int ret;
@@ -339,7 +400,7 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t
                          hash, hlen, f_rng, p_rng ) );
 #endif
 
-    MBEDTLS_MPI_CHK( ecdsa_signature_to_asn1( &r, &s, sig, slen, ssize ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecdsa_signature_to_asn1( &r, &s, sig, slen, ssize ) );
 
 cleanup:
     mbedtls_mpi_free( &r );

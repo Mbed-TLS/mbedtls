@@ -5,3 +5,11 @@ pk_import_sign:"data_files/server3.key"
 PKCS#11 ECDSA generate and sign
 depends_on:MBEDTLS_PK_C:MBEDTLS_ECDSA_C
 pk_generate_sign:MBEDTLS_PK_ECDSA
+
+PKCS#11 ECDSA generate, sign and verify with Cryptoki
+depends_on:MBEDTLS_PK_C:MBEDTLS_ECDSA_C
+pk_signX_verifyX:MBEDTLS_PK_ECDSA
+
+PKCS#11 ECDSA import, sign with MbedTLS and verify with Cryptoki
+depends_on:MBEDTLS_PK_C:MBEDTLS_ECDSA_C
+pk_import_signI_verifyX:"data_files/server3.key"

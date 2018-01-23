@@ -236,6 +236,27 @@ int mbedtls_ecdsa_write_signature_det( mbedtls_ecdsa_context *ctx,
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
 /**
+ * \brief           Convert a signature from ASN.1 to a raw concatenation
+ *                  of {r,s}
+ *
+ * \param sig       Signature to be converted
+ * \param ssize     Size of the passed buffer
+ * \param byte_len  Length of a single number of the signature
+ * \param buf       Buffer pointer
+ * \param slen      Size of the written signature
+ *
+ * \note            The size of the buffer \c ssize should be at least
+ *                  2*byte_len bytes long, otherwise this function will
+ *                  return an error.
+ *
+ * \return          0 if successful, or a MBEDTLS_ERR_ECP_BAD_INPUT_DATA or
+ *                  MBEDTLS_ERR_ASN1_LENGTH_MISMATCH error code
+ *
+ */
+int mbedtls_ecdsa_signature_to_raw( const unsigned char *sig,
+                            size_t ssize, uint16_t byte_len,
+                            unsigned char *buf, size_t* slen );
+/**
  * \brief           Convert a signature from numbers to ASN.1
  *
  * \param r         First number of the signature
@@ -253,9 +274,9 @@ int mbedtls_ecdsa_write_signature_det( mbedtls_ecdsa_context *ctx,
  *                  or a MBEDTLS_ERR_MPI_XXX or MBEDTLS_ERR_ASN1_XXX error code
  *
  */
-int ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
-                             unsigned char *sig, size_t *slen,
-                             size_t ssize );
+int mbedtls_ecdsa_signature_to_asn1( const mbedtls_mpi *r,
+                             const mbedtls_mpi *s, unsigned char *sig,
+                             size_t *slen, size_t ssize );
 
 /**
  * \brief           Read and verify an ECDSA signature

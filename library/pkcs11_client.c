@@ -375,7 +375,7 @@ int mbedtls_pk_setup_pkcs11( mbedtls_pk_context *ctx,
             attributes[0].type = CKA_EC_PARAMS;
             attributes[0].pValue = ecParams;
             attributes[0].ulValueLen = sizeof( ecParams );
-            rv = C_GetAttributeValue( hSession, hPrivateKey, attributes, 1 );
+            rv = C_GetAttributeValue( hSession, hPublicKey, attributes, 1 );
             if( rv != CKR_OK )
                 return( pkcs11_err_to_mbedtls_pk_err( rv ) );
             params_asn1.tag = ecParams[0];

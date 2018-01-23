@@ -240,12 +240,13 @@ int mbedtls_ecdsa_write_signature_det( mbedtls_ecdsa_context *ctx,
  *                  of {r,s}
  *
  * \param sig       Signature to be converted
- * \param ssize     Size of the passed buffer
+ * \param ssize     Size of the signature
  * \param byte_len  Length of a single number of the signature
- * \param buf       Buffer pointer
- * \param slen      Size of the written signature
+ * \param buf       Buffer pointer for the converted signature
+ * \param bufsize   Size of the passed buffer
+ * \param buflen    Size of the signature written to the buffer
  *
- * \note            The size of the buffer \c ssize should be at least
+ * \note            The size of the buffer \c bufsize should be at least
  *                  2*byte_len bytes long, otherwise this function will
  *                  return an error.
  *
@@ -255,7 +256,8 @@ int mbedtls_ecdsa_write_signature_det( mbedtls_ecdsa_context *ctx,
  */
 int mbedtls_ecdsa_signature_to_raw( const unsigned char *sig,
                             size_t ssize, uint16_t byte_len,
-                            unsigned char *buf, size_t* slen );
+                            unsigned char *buf, size_t bufsize,
+                            size_t* buflen );
 /**
  * \brief           Convert a signature from numbers to ASN.1
  *

@@ -325,9 +325,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_PK_C:MBEDTLS_SHA256_C */
-void pk_signX_verifyX( int key_type )
+void pk_import_sign_verify( char *file )
 {
-    /* Sign with cryptoki, convert to mbedTLS format and save, 
+   /* Sign with cryptoki, convert to mbedTLS format and save, 
        verify by cryptoki with a conversion to a raw, concatenated
        format by the engine. */
     mbedtls_pk_context pkcs11_ctx;
@@ -336,106 +336,34 @@ void pk_signX_verifyX( int key_type )
     CK_OBJECT_HANDLE hPublicKey = CK_INVALID_HANDLE;
     CK_OBJECT_HANDLE hPrivateKey = CK_INVALID_HANDLE;
     unsigned char hash_value[32] = "Fake hash, it doesn't matter....";
-    unsigned char sig_buffer[RSA_KEY_SIZE_BYTES];
+    unsigned char sig_buffer[4096];
     size_t sig_length = sizeof( sig_buffer );
 
     mbedtls_pk_init( &pkcs11_ctx );
     mbedtls_pk_init( &transparent_ctx );
 
-    /* Initialize cryptoki and generate a key in the token */
+    /* Read a transparent key */
+    TEST_ASSERT( mbedtls_pk_parse_keyfile( &transparent_ctx, file, NULL ) == 0 );
+
+    /* Initialize cryptoki and import the key into the token */
     hSession = pkcs11_init( );
     TEST_ASSERT( hSession != CK_INVALID_HANDLE );
 
-    CK_ASSERT( pkcs11_generate_key( key_type,
-                                    hSession,
-                                    &hPublicKey, &hPrivateKey ) );
+    TEST_ASSERT( mbedtls_pk_import_to_pkcs11( &transparent_ctx,
+                                              MBEDTLS_PK_FLAG_SIGN |
+                                              MBEDTLS_PK_FLAG_VERIFY,
+                                              hSession,
+                                              &hPublicKey,
+                                              &hPrivateKey ) == 0 );
     TEST_ASSERT( hPublicKey != CK_INVALID_HANDLE );
     TEST_ASSERT( hPrivateKey != CK_INVALID_HANDLE );
-
-    /* Prepare the mbed TLS contexts */
-    TEST_ASSERT( mbedtls_pk_setup( &transparent_ctx,
-                                   mbedtls_pk_info_from_type( key_type ) ) == 0 );
     TEST_ASSERT( mbedtls_pk_setup_pkcs11( &pkcs11_ctx,
                                           hSession,
                                           hPublicKey,
                                           hPrivateKey ) == 0 );
 
-    /* Retrieve the public key from the token */
-    switch( key_type )
-    {
-#if defined(MBEDTLS_RSA_C)
-    case MBEDTLS_PK_RSA:
-        {
-            unsigned char n_buffer[RSA_KEY_SIZE_BYTES];
-            unsigned char e_buffer[RSA_KEY_SIZE_BYTES];
-            CK_ATTRIBUTE public_attributes[] = {
-                {CKA_MODULUS, n_buffer, sizeof( n_buffer )},
-                {CKA_PUBLIC_EXPONENT, e_buffer, sizeof( e_buffer )},
-            };
-            CK_ULONG *n_length = &public_attributes[0].ulValueLen;
-            CK_ULONG *e_length = &public_attributes[1].ulValueLen;
-            mbedtls_rsa_context *rsa_ctx = mbedtls_pk_rsa( transparent_ctx );
-
-            CK_ASSERT( C_GetAttributeValue( hSession, hPublicKey,
-                                            public_attributes, ARRAY_LENGTH( public_attributes ) ) );
-            TEST_ASSERT( mbedtls_mpi_read_binary( &rsa_ctx->N,
-                                                  n_buffer, *n_length ) == 0 );
-            TEST_ASSERT( mbedtls_mpi_read_binary( &rsa_ctx->E,
-                                                  e_buffer, *e_length ) == 0 );
-            rsa_ctx->len = mbedtls_mpi_size( &rsa_ctx->N );
-        }
-        break;
-#endif /* MBEDTLS_RSA_C */
-
-#if defined(MBEDTLS_ECDSA_C)
-    case MBEDTLS_PK_ECDSA:
-        {
-            unsigned char ecParams[16];
-            unsigned char ecPoint[128];
-            CK_ATTRIBUTE public_attributes[] = {
-                {CKA_EC_PARAMS, ecParams, sizeof( ecParams )},
-                {CKA_EC_POINT, ecPoint, sizeof( ecPoint )},
-            };
-            mbedtls_ecp_keypair *ecp_ctx = mbedtls_pk_ec( transparent_ctx );
-
-            CK_ASSERT( C_GetAttributeValue( hSession, hPublicKey,
-                                            public_attributes, ARRAY_LENGTH( public_attributes ) ) );
-            // TODO: lift out a function or two from pkparse.c
-            // * pk_get_ecparams followed by pk_use_ecparams for ecParams?
-            // * Some code from pk_group_from_specified to read an octet string for ecPoint?
-            {
-                mbedtls_asn1_buf params_asn1;
-                CK_ULONG ecParams_length = public_attributes[0].ulValueLen;
-                mbedtls_ecp_group_id grp_id;
-                params_asn1.tag = ecParams[0];
-                params_asn1.len = ecParams[1];
-                params_asn1.p = ecParams + 2;
-                TEST_ASSERT( ecParams_length == 2 + params_asn1.len );
-                TEST_ASSERT( mbedtls_oid_get_ec_grp( &params_asn1, &grp_id ) == 0 );
-                TEST_ASSERT( mbedtls_ecp_group_load( &ecp_ctx->grp, grp_id ) == 0 );
-            }
-            {
-                unsigned char *p = ecPoint;
-                size_t len;
-                CK_ULONG ecPoint_length = public_attributes[1].ulValueLen;
-                TEST_ASSERT( mbedtls_asn1_get_tag( &p,
-                                                   ecPoint + ecPoint_length,
-                                                   &len,
-                                                   MBEDTLS_ASN1_OCTET_STRING ) == 0 );
-                TEST_ASSERT( mbedtls_ecp_point_read_binary( &ecp_ctx->grp,
-                                                            &ecp_ctx->Q,
-                                                            p, len ) == 0 );
-            }
-        }
-        break;
-#endif /* MBEDTLS_ECDSA_C */
-
-    default:
-        TEST_ASSERT( !"Unsupported key type in test data" );
-        break;
-    }
-
-    /* Sign with the token and verify in software */
+    /* Sign with the token and verify with cryptoki */
+    TEST_ASSERT( sizeof( sig_buffer ) >= mbedtls_pk_signature_size( &pkcs11_ctx ) );
     TEST_ASSERT( mbedtls_pk_sign( &pkcs11_ctx, MBEDTLS_MD_SHA256,
                                   hash_value, 32,
                                   sig_buffer, &sig_length,
@@ -457,7 +385,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_PK_C:MBEDTLS_SHA256_C */
-void pk_import_signI_verifyX( char *file )
+void pk_import_verify_signed( char *file )
 {
     /* Sign with mbedTLS, verify by cryptoki with a conversion 
        to a raw, concatenated format by the engine. */
@@ -502,6 +430,68 @@ void pk_import_signI_verifyX( char *file )
     TEST_ASSERT( mbedtls_pk_verify( &pkcs11_ctx, MBEDTLS_MD_SHA256,
                                     hash_value, 32,
                                     sig_buffer, sig_length ) == 0 );
+
+exit:
+    if( hPublicKey != CK_INVALID_HANDLE )
+        C_DestroyObject( hSession, hPublicKey );
+    if( hPrivateKey != CK_INVALID_HANDLE )
+        C_DestroyObject( hSession, hPrivateKey );
+    C_CloseSession( hSession );
+    C_Finalize( NULL_PTR );
+    mbedtls_pk_free( &pkcs11_ctx );
+    mbedtls_pk_free( &transparent_ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_ECDSA_C */
+void pk_ecdsa_hardcoded_verify( int type, int id, char *key_str,
+                     char *hash_str, char * sig_str, int ret )
+{
+    mbedtls_pk_context transparent_ctx;
+    mbedtls_ecp_keypair *eckey;
+    unsigned char hash[100], sig[500], key[500];
+    size_t hash_len, sig_len, key_len;
+
+    mbedtls_pk_context pkcs11_ctx;
+    CK_SESSION_HANDLE hSession = CK_INVALID_HANDLE;
+    CK_OBJECT_HANDLE hPublicKey = CK_INVALID_HANDLE;
+    CK_OBJECT_HANDLE hPrivateKey = CK_INVALID_HANDLE;
+
+    mbedtls_pk_init( &transparent_ctx );
+
+    memset( hash, 0, sizeof( hash ) );  hash_len = unhexify(hash, hash_str);
+    memset( sig, 0, sizeof( sig ) );    sig_len = unhexify(sig, sig_str);
+    memset( key, 0, sizeof( key ) );    key_len = unhexify(key, key_str);
+
+    TEST_ASSERT( mbedtls_pk_setup( &transparent_ctx, mbedtls_pk_info_from_type( type ) ) == 0 );
+
+    TEST_ASSERT( mbedtls_pk_can_do( &transparent_ctx, MBEDTLS_PK_ECDSA ) );
+    eckey = mbedtls_pk_ec( transparent_ctx );
+
+    TEST_ASSERT( mbedtls_ecp_group_load( &eckey->grp, id ) == 0 );
+    TEST_ASSERT( mbedtls_ecp_point_read_binary( &eckey->grp, &eckey->Q,
+                                        key, key_len ) == 0 );
+
+    // PKCS11 part
+    mbedtls_pk_init( &pkcs11_ctx );
+
+    /* Initialize cryptoki and import the key into the token */
+    hSession = pkcs11_init( );
+    TEST_ASSERT( hSession != CK_INVALID_HANDLE );
+    TEST_ASSERT( mbedtls_pk_import_to_pkcs11( &transparent_ctx,
+                                              MBEDTLS_PK_FLAG_SIGN |
+                                              MBEDTLS_PK_FLAG_VERIFY,
+                                              hSession,
+                                              &hPublicKey,
+                                              &hPrivateKey ) == 0 );
+    TEST_ASSERT( hPublicKey != CK_INVALID_HANDLE );
+    TEST_ASSERT( hPrivateKey != CK_INVALID_HANDLE );
+    TEST_ASSERT( mbedtls_pk_setup_pkcs11( &pkcs11_ctx,
+                                          hSession,
+                                          hPublicKey,
+                                          hPrivateKey ) == 0 );
+    TEST_ASSERT( mbedtls_pk_verify( &pkcs11_ctx, MBEDTLS_MD_NONE,
+                            hash, hash_len, sig, sig_len ) == ret );
 
 exit:
     if( hPublicKey != CK_INVALID_HANDLE )

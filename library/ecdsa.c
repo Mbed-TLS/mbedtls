@@ -289,9 +289,13 @@ cleanup:
 /*
  * Convert a signature to a raw concatenation of {r, s}
  */
+/*int mbedtls_ecdsa_signature_to_raw( const unsigned char *sig,
+                            size_t ssize, uint16_t byte_len,
+                            unsigned char *buf, size_t* slen )*/
 int mbedtls_ecdsa_signature_to_raw( const unsigned char *sig,
                             size_t ssize, uint16_t byte_len,
-                            unsigned char *buf, size_t* slen )
+                            unsigned char *buf, size_t bufsize,
+                            size_t* buflen )
 {
     int ret;
     unsigned char *p = (unsigned char *) sig;
@@ -299,7 +303,7 @@ int mbedtls_ecdsa_signature_to_raw( const unsigned char *sig,
     size_t len;
     mbedtls_mpi r, s;
 
-    if( 2 * byte_len > ssize )
+    if( 2 * byte_len > bufsize )
     {
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
@@ -339,7 +343,7 @@ int mbedtls_ecdsa_signature_to_raw( const unsigned char *sig,
         ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
         goto cleanup;
     }
-    *slen = 2*byte_len;
+    *buflen = 2*byte_len;
     cleanup:
         mbedtls_mpi_free( &r );
         mbedtls_mpi_free( &s );

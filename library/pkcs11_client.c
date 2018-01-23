@@ -239,7 +239,7 @@ static int pkcs11_verify( void *ctx_arg,
     mbedtls_pk_pkcs11_context_t *ctx = ctx_arg;
     CK_RV rv;
     CK_MECHANISM mechanism = {0, NULL_PTR, 0};
-    unsigned char *decoded_sig = NULL_PTR;
+    unsigned char *decoded_sig = NULL;
     size_t decoded_sig_len;
 
     /* This function takes size_t arguments but the underlying layer
@@ -286,9 +286,14 @@ static int pkcs11_verify( void *ctx_arg,
     if( mechanism.mechanism == CKM_ECDSA )
     {
         uint16_t byte_len = ( ( ctx->bit_length + 7 ) / 8 );
-        decoded_sig = malloc( 2 * byte_len );
+        decoded_sig = mbedtls_calloc( 1, 2 * byte_len );
+        if( decoded_sig == NULL )
+        {
+            return( MBEDTLS_ERR_PK_ALLOC_FAILED );
+        }
         if( mbedtls_ecdsa_signature_to_raw( sig, sig_len, byte_len,
-                                    decoded_sig, &decoded_sig_len ) != 0 )
+                                    decoded_sig, 2 * byte_len,
+                                    &decoded_sig_len ) != 0 )
         {
             rv = CKR_GENERAL_ERROR;
             goto exit;
@@ -303,7 +308,7 @@ static int pkcs11_verify( void *ctx_arg,
         goto exit;
 
 exit:
-    free(decoded_sig);
+    mbedtls_free(decoded_sig);
     return( pkcs11_err_to_mbedtls_pk_err( rv ) );
 }
 

@@ -63,7 +63,8 @@ extern "C" {
  * The AES context-type definition. The AES context is passed to the APIs called.
  *
  * \note           This buffer can hold 32 extra Bytes, which can be used for one of the following 
- *                 purposes:<ul><li>Alignment if VIA padlock is used.</li>
+ *                 purposes:
+ *                 <ul><li>Alignment if VIA padlock is used.</li>
  *                 <li>Simplifying key expansion in the 256-bit case by generating an 
  *                 extra round key.</li></ul>
  */
@@ -97,7 +98,9 @@ void mbedtls_aes_free( mbedtls_aes_context *ctx );
  * \param ctx      The AES context to initialize.
  * \param key      The encryption key.
  * \param keybits  The size of data passed in bits. Valid options are:
- *                 <ul><li>128bits</li><li>192bits</li><li>256bits</li></ul>
+ *                 <ul><li>128bits</li>
+ *                 <li>192bits</li>
+ *                 <li>256bits</li></ul>
  *
 * \return         0 on success or #MBEDTLS_ERR_AES_INVALID_KEY_LENGTH on failure.
  */
@@ -110,7 +113,9 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
  * \param ctx      The AES context to initialize.
  * \param key      The decryption key.
  * \param keybits  The size of data passed. Valid options are:
- *                 <ul><li>128bits</li><li>192bits</li><li>256bits</li></ul>
+ *                 <ul><li>128bits</li>
+ *                 <li>192bits</li>
+ *                 <li>256bits</li></ul>
  *
  * \return         0 on success, or #MBEDTLS_ERR_AES_INVALID_KEY_LENGTH on failure.
  */

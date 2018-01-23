@@ -31,6 +31,8 @@
 
 #include <stddef.h>
 
+#define MBEDTLS_ERR_MD2_HW_ACCEL_FAILED                   -0x002B  /**< MD2 hardware accelerator failed */
+
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)
 #define inline __inline

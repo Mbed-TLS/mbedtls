@@ -32,6 +32,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define MBEDTLS_ERR_MD5_HW_ACCEL_FAILED                   -0x002F  /**< MD5 hardware accelerator failed */
+
 #if !defined(MBEDTLS_MD5_ALT)
 // Regular implementation
 //

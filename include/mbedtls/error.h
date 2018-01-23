@@ -64,8 +64,15 @@
  * NET      11  0x0042-0x0052   0x0043-0x0045
  * ASN1      7  0x0060-0x006C
  * PBKDF2    1  0x007C-0x007C
- * HMAC_DRBG 4  0x0003-0x0009
+ * HMAC_DRBG 4                  0x0003-0x0009
  * CCM       2                  0x000D-0x000F
+ * MD2       1                  0x002B-0x002B
+ * MD4       1                  0x002D-0x002D
+ * MD5       1                  0x002F-0x002F
+ * RIPEMD160 1                  0x0031-0x0031
+ * SHA1      1                  0x0035-0x0035
+ * SHA256    1                  0x0037-0x0037
+ * SHA512    1                  0x0039-0x0039
  *
  * High-level module nr (3 bits - 0x0...-0x7...)
  * Name      ID  Nr of Errors

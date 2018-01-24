@@ -1,8 +1,8 @@
- /**
+/**
  * \file cipher.h
  *
  * \brief The generic cipher wrapper.
-*/
+ */
 
 /* \author Adriaan de Jong <dejong@fox-it.com> */
 
@@ -275,7 +275,7 @@ typedef struct {
  * \brief This function retrieves the list of ciphers supported by the generic 
  * cipher module.
  *
- * \return         A statically-allocated array of ciphers. The last entry
+ * \return      A statically-allocated array of ciphers. The last entry
  *              is zero.
  */
 const int *mbedtls_cipher_list( void );
@@ -308,9 +308,9 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_type( const mbedtls_cipher
  *                      key size and mode.
  *
  * \param cipher_id     The ID of the cipher to search for. For example, 
- *                        MBEDTLS_CIPHER_ID_AES.
+ *                      #MBEDTLS_CIPHER_ID_AES.
  * \param key_bitlen    The length of the key in bits.
- * \param mode          The cipher mode. For example, MBEDTLS_MODE_CBC.
+ * \param mode          The cipher mode. For example, #MBEDTLS_MODE_CBC.
  *
  * \return              The cipher information structure associated with the
  *                      given \p cipher_id, or NULL if not found.
@@ -335,7 +335,7 @@ void mbedtls_cipher_free( mbedtls_cipher_context_t *ctx );
 /**
  * \brief               This function initializes and fills the cipher-context 
  *                      structure with the appropriate values. It also clears 
- *                        the structure.
+ *                      the structure.
  *
  * \param ctx           The context to initialize. May not be NULL.
  * \param cipher_info   The cipher to use.
@@ -385,13 +385,13 @@ static inline mbedtls_cipher_mode_t mbedtls_cipher_get_cipher_mode( const mbedtl
 }
 
 /**
- * \brief       This function returns the size of the IV or NONCE 
- *                of the cipher, in Bytes.
+ * \brief       This function returns the size of the IV or nonce 
+ *              of the cipher, in Bytes.
  *
  * \param ctx   The context of the cipher. Must be initialized.
  *
- * \return      <ul><li>If IV has not been set: the recommended IV size. 
- *                        Zero for ciphers not using IV/NONCE.</li>
+ * \return      <ul><li>If no IV has been set: the recommended IV size. 
+ *              0 for ciphers not using IV or nonce.</li>
  *              <li>If IV has already been set: the actual size.</li></ul>
  */
 static inline int mbedtls_cipher_get_iv_size( const mbedtls_cipher_context_t *ctx )
@@ -443,7 +443,7 @@ static inline const char *mbedtls_cipher_get_name( const mbedtls_cipher_context_
  *
  * \param ctx           The context of the cipher. Must be initialized.
  *
- * \return              The key length of the cypher in bits, or
+ * \return              The key length of the cipher in bits, or
  *                      #MBEDTLS_KEY_LENGTH_NONE if ctx \p has not been
  *                      initialized.
  */
@@ -480,7 +480,7 @@ static inline mbedtls_operation_t mbedtls_cipher_get_operation( const mbedtls_ci
  *                      or mbedtls_cipher_info_from_string().
  * \param key           The key to use.
  * \param key_bitlen    The key length to use, in bits.
- * \param operation     The operation that the key is used for: 
+ * \param operation     The operation that the key will be used for: 
  *                      #MBEDTLS_ENCRYPT or #MBEDTLS_DECRYPT.
  *
  * \returns             0 on success, #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA if
@@ -519,7 +519,7 @@ int mbedtls_cipher_set_padding_mode( mbedtls_cipher_context_t *ctx, mbedtls_ciph
  *
  * \returns         0 on success, or #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
  *
- * \note            Some ciphers do not use IVs nor NONCE. For these
+ * \note            Some ciphers do not use IVs nor nonce. For these
  *                  ciphers, this function has no effect.
  */
 int mbedtls_cipher_set_iv( mbedtls_cipher_context_t *ctx,
@@ -587,7 +587,7 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
 /**
  * \brief               The generic cipher finalization function. If data still
  *                      needs to be flushed from an incomplete block, the data
- *                      contained in it is padded with the size of
+ *                      contained in it is padded to the size of
  *                      the last block, and written to the \p output buffer.
  *
  * \param ctx           The generic cipher context.
@@ -652,7 +652,7 @@ int mbedtls_cipher_check_tag( mbedtls_cipher_context_t *ctx,
  * \param olen          The length of the output data, to be updated with the
  *                      actual number of Bytes written.
  *
- * \note                Some ciphers do not use IVs nor NONCE. For these
+ * \note                Some ciphers do not use IVs nor nonce. For these
  *                      ciphers, use \p iv = NULL and \p iv_len = 0.
  *
  * \returns             0 on success, or

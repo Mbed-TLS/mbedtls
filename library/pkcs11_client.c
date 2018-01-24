@@ -138,6 +138,39 @@ static size_t pkcs11_pk_signature_size( const void *ctx_arg )
     }
 }
 
+static int pkcs11_sign_core( mbedtls_pk_pkcs11_context_t *ctx,
+                             CK_MECHANISM_TYPE mechanism_type,
+                             const unsigned char *payload, size_t payload_len,
+                             unsigned char *sig, size_t *sig_len,
+                             size_t sig_size )
+{
+    CK_ULONG ck_sig_len = sig_size;
+    CK_MECHANISM mechanism = {mechanism_type, NULL_PTR, 0};
+    CK_RV rv;
+    rv = C_SignInit( ctx->hSession, &mechanism, ctx->hPrivateKey );
+    if( rv != CKR_OK )
+        goto exit;
+    rv = C_Sign( ctx->hSession, (CK_BYTE_PTR) payload, payload_len,
+                 sig, &ck_sig_len );
+    if( rv != CKR_OK )
+        goto exit;
+    *sig_len = ck_sig_len;
+exit:
+    return( pkcs11_err_to_mbedtls_pk_err( rv ) );
+}
+
+#if defined(MBEDTLS_RSA_C)
+static int pkcs11_sign_rsa( mbedtls_pk_pkcs11_context_t *ctx,
+                            const unsigned char *digest_info,
+                            size_t digest_info_len,
+                            unsigned char *sig, size_t *sig_len )
+{
+    return( pkcs11_sign_core( ctx, CKM_RSA_PKCS,
+                              digest_info, digest_info_len,
+                              sig, sig_len, ( ctx->bit_length + 7 ) / 8 ) );
+}
+#endif /* MBEDTLS_RSA_C */
+
 static int pkcs11_sign( void *ctx_arg,
                         mbedtls_md_type_t md_alg,
                         const unsigned char *hash, size_t hash_len,
@@ -146,9 +179,9 @@ static int pkcs11_sign( void *ctx_arg,
                         void *p_rng )
 {
     mbedtls_pk_pkcs11_context_t *ctx = ctx_arg;
-    CK_RV rv;
-    CK_MECHANISM mechanism = {0, NULL_PTR, 0};
-    CK_ULONG ck_sig_len;
+    int ret;
+
+    *sig_len = 0;
 
     /* This function takes size_t arguments but the underlying layer
        takes unsigned long. Either type may be smaller than the other.
@@ -163,30 +196,27 @@ static int pkcs11_sign( void *ctx_arg,
     {
 #if defined(MBEDTLS_RSA_C)
     case MBEDTLS_PK_RSA:
-        ck_sig_len = ( ctx->bit_length + 7 ) / 8;
-        // FIXME: these mechanisms perform hashing as well as signing.
-        // But here we get the hash as input. So we need to invoke
-        // CKM_RSA_PKCS. But CKM_RSA_PKCS doesn't perform the hash
-        // encoding, only a part of the padding.
-        switch( md_alg )
+        /* There is no mechanism in PKCS#11 that computes a PKCS#1 v1.5
+         * signature from a hash value and a hash type, only mechanisms
+         * that include the hash calculation and a mechanism that expects
+         * a DigestInfo (encoded hash that isn't padded). So we use the
+         * mechanism that expects a DigestInfo, and calculate the DigestInfo
+         * ourselves if needed. */
+        if( md_alg == MBEDTLS_MD_NONE )
         {
-        case MBEDTLS_MD_MD5:
-            mechanism.mechanism = CKM_MD5_RSA_PKCS;
-            break;
-        case MBEDTLS_MD_SHA1:
-            mechanism.mechanism = CKM_SHA1_RSA_PKCS;
-            break;
-        case MBEDTLS_MD_SHA256:
-            mechanism.mechanism = CKM_SHA256_RSA_PKCS;
-            break;
-        case MBEDTLS_MD_SHA384:
-            mechanism.mechanism = CKM_SHA384_RSA_PKCS;
-            break;
-        case MBEDTLS_MD_SHA512:
-            mechanism.mechanism = CKM_SHA512_RSA_PKCS;
-            break;
-        default:
-            return( MBEDTLS_ERR_PK_INVALID_ALG );
+            ret = pkcs11_sign_rsa( ctx, hash, hash_len, sig, sig_len );
+        }
+        else
+        {
+            unsigned char digest_info[MBEDTLS_RSA_PKCS1_DIGESTINFO_MAX_SIZE];
+            unsigned char *p = digest_info + sizeof( digest_info );
+            size_t digest_info_len;
+            if( mbedtls_rsa_emsa_pkcs1_v15_encode_digestinfo(
+                    &p, digest_info,
+                    md_alg, hash, hash_len ) != 0 )
+                return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+            digest_info_len = digest_info + sizeof( digest_info ) - p;
+            ret = pkcs11_sign_rsa( ctx, p, digest_info_len, sig, sig_len );
         }
         break;
 #endif /* MBEDTLS_RSA_C */
@@ -194,37 +224,96 @@ static int pkcs11_sign( void *ctx_arg,
         return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
     }
 
-    rv = C_SignInit( ctx->hSession, &mechanism, ctx->hPrivateKey );
-    if( rv != CKR_OK )
-        goto exit;
-    rv = C_Sign( ctx->hSession, (CK_BYTE_PTR) hash, hash_len,
-                 sig, &ck_sig_len );
-    if( rv != CKR_OK )
-        goto exit;
+    if( ret != 0 )
+        memset( sig, 0, *sig_len );
+    return( ret );
+}
 
-        *sig_len = ck_sig_len;
+static int pkcs11_verify_core( mbedtls_pk_pkcs11_context_t *ctx,
+                               CK_MECHANISM_TYPE mechanism_type,
+                               const unsigned char *payload, size_t payload_len,
+                               const unsigned char *sig, size_t sig_len )
+{
+    CK_MECHANISM mechanism = {mechanism_type, NULL_PTR, 0};
+    CK_RV rv;
+
+    rv = C_VerifyInit( ctx->hSession, &mechanism, ctx->hPublicKey );
+    if( rv != CKR_OK )
+        goto exit;
+    rv = C_Verify( ctx->hSession, (CK_BYTE_PTR) payload, payload_len,
+                   (CK_BYTE_PTR) sig, sig_len );
+    if( rv != CKR_OK )
+        goto exit;
 
 exit:
-    if( rv != CKR_OK )
-        memset( sig, 0, ck_sig_len );
     return( pkcs11_err_to_mbedtls_pk_err( rv ) );
 }
 
-static const mbedtls_pk_info_t mbedtls_pk_pkcs11_info = {
-    MBEDTLS_PK_OPAQUE,
-    "pkcs11",
-    pkcs11_pk_get_bitlen,
-    pkcs11_pk_can_do, //can_do
-    NULL, //pkcs11_verify,
-    pkcs11_sign,
-    NULL, //pkcs11_decrypt,
-    NULL, //pkcs11_encrypt,
-    NULL, //check_pair_func
-    pkcs11_pk_alloc,
-    pkcs11_pk_free,
-    NULL, //debug_func
-    pkcs11_pk_signature_size,
-};
+static int pkcs11_verify( void *ctx_arg,
+                          mbedtls_md_type_t md_alg,
+                          const unsigned char *hash, size_t hash_len,
+                          const unsigned char *sig, size_t sig_len)
+{
+    mbedtls_pk_pkcs11_context_t *ctx = ctx_arg;
+
+    /* This function takes size_t arguments but the underlying layer
+       takes unsigned long. Either type may be smaller than the other.
+       Legitimate values won't overflow either type but we still need
+       to check for overflow for robustness. */
+    if( hash_len > (CK_ULONG)( -1 ) )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    switch( ctx->key_type )
+    {
+#if defined(MBEDTLS_RSA_C)
+    case MBEDTLS_PK_RSA:
+        /* There is no mechanism in PKCS#11 that computes a PKCS#1 v1.5
+         * signature from a hash value and a hash type, only mechanisms
+         * that include the hash calculation and a mechanism that expects
+         * a DigestInfo (encoded hash that isn't padded). So we use the
+         * mechanism that expects a DigestInfo, and calculate the DigestInfo
+         * ourselves if needed. */
+        if( md_alg == MBEDTLS_MD_NONE )
+        {
+            return( pkcs11_verify_core( ctx, CKM_RSA_PKCS,
+                                        hash, hash_len,
+                                        sig, sig_len ) );
+        }
+        else
+        {
+            unsigned char digest_info[MBEDTLS_RSA_PKCS1_DIGESTINFO_MAX_SIZE];
+            unsigned char *p = digest_info + sizeof( digest_info );
+            size_t digest_info_len;
+            if( mbedtls_rsa_emsa_pkcs1_v15_encode_digestinfo(
+                    &p, digest_info,
+                    md_alg, hash, hash_len ) != 0 )
+                return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+            digest_info_len = digest_info + sizeof( digest_info ) - p;
+            return( pkcs11_verify_core( ctx, CKM_RSA_PKCS,
+                                        p, digest_info_len,
+                                        sig, sig_len ) );
+        }
+        break;
+#endif /* MBEDTLS_RSA_C */
+    default:
+        return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
+    }
+}
+
+static const mbedtls_pk_info_t mbedtls_pk_pkcs11_info =
+    MBEDTLS_PK_OPAQUE_INFO_1( "pkcs11"
+                              , pkcs11_pk_get_bitlen
+                              , pkcs11_pk_can_do //can_do
+                              , pkcs11_pk_signature_size
+                              , pkcs11_verify
+                              , pkcs11_sign
+                              , NULL //pkcs11_decrypt
+                              , NULL //pkcs11_encrypt
+                              , NULL //check_pair_func
+                              , pkcs11_pk_alloc
+                              , pkcs11_pk_free
+                              , NULL //debug_func
+        );
 
 int mbedtls_pk_setup_pkcs11( mbedtls_pk_context *ctx,
                              CK_SESSION_HANDLE hSession,

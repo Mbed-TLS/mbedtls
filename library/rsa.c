@@ -1526,11 +1526,11 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
 /* Encode a hash into a DigestInfo structure as specified by PKCS#1
  * (RFC 8017, EMSA-PKCS1-v1_5-ENCODE step 2).
  * Write to the left of p and set *p to the leftmost byte written. */
-static int rsa_emsa_pkcs1_v15_encode_digestinfo( unsigned char **p,
-                                                 unsigned char *start,
-                                                 mbedtls_md_type_t md_alg,
-                                                 const unsigned char *hash,
-                                                 size_t hashlen )
+int mbedtls_rsa_emsa_pkcs1_v15_encode_digestinfo( unsigned char **p,
+                                                  unsigned char *start,
+                                                  mbedtls_md_type_t md_alg,
+                                                  const unsigned char *hash,
+                                                  size_t hashlen )
 {
     const mbedtls_md_info_t *md_info;
     const char *oid;
@@ -1661,8 +1661,8 @@ static int rsa_rsassa_pkcs1_v15_encode( mbedtls_md_type_t md_alg,
     if( md_alg != MBEDTLS_MD_NONE )
         hashlen = 0;
 
-    ret = rsa_emsa_pkcs1_v15_encode_digestinfo( &p, dst,
-                                                md_alg, hash, hashlen );
+    ret = mbedtls_rsa_emsa_pkcs1_v15_encode_digestinfo( &p, dst,
+                                                        md_alg, hash, hashlen );
     if( ret != 0 )
         return( ret );
 

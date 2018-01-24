@@ -737,6 +737,36 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
                             size_t output_max_len );
 
 /**
+ * \brief          Encode a hash into a DigestInfo structure as specified
+ *                 by PKCS#1(RFC 8017, EMSA-PKCS1-v1_5-ENCODE step 2).
+ *                 Note: function works backwards in data buffer.
+ *
+ * \param p        Reference to the current position pointer
+ * \param start    Start of the buffer (for bounds checking)
+ * \param md_alg   Digest algorithm
+ * \param hash     Hash value
+ * \param hashlen  Length of the hash, or 0 to calculate it from \c md_alg
+ *
+ * \note           This function writes from right to left: the start of the
+ *                 written data is the value of \c *p on exit, and the end of
+ *                 the written data is the value of \c *p on entry.
+ *
+ * \note           If \c md_alg is \c MBEDTLS_MD_NONE, this function just
+ *                 copies \c hashlen bytes to the left of \c *p.
+ */
+int mbedtls_rsa_emsa_pkcs1_v15_encode_digestinfo( unsigned char **p,
+                                                  unsigned char *start,
+                                                  mbedtls_md_type_t md_alg,
+                                                  const unsigned char *hash,
+                                                  size_t hashlen );
+
+/** Maximum size of the output of
+ * mbedtls_rsa_emsa_pkcs1_v15_encode_digestinfo()  */
+#define MBEDTLS_RSA_PKCS1_DIGESTINFO_MAX_SIZE   \
+    ( MBEDTLS_MD_MAX_SIZE +                     \
+      MBEDTLS_MD_OID_MAX_SIZE +                 \
+      10 /*additional encoding bytes*/ )
+/**
  * \brief          Generic wrapper to perform a PKCS#1 signature using the
  *                 mode from the context. Do a private RSA operation to sign
  *                 a message digest

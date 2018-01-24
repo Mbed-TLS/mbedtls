@@ -184,6 +184,10 @@ Check one and zeros padding #7 (overlong)
 depends_on:MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
 check_padding:MBEDTLS_PADDING_ONE_AND_ZEROS:"0000000000":MBEDTLS_ERR_CIPHER_INVALID_PADDING:4
 
+Check one and zeros padding #8 (last byte 0x80 | x)
+depends_on:MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
+check_padding:MBEDTLS_PADDING_ONE_AND_ZEROS:"0000000082":MBEDTLS_ERR_CIPHER_INVALID_PADDING:4
+
 Check zeros and len padding #1 (correct)
 depends_on:MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
 check_padding:MBEDTLS_PADDING_ZEROS_AND_LEN:"DABBAD0001":0:4

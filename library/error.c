@@ -210,7 +210,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE) )
             mbedtls_snprintf( buf, buflen, "CIPHER - The selected feature is not available" );
         if( use_ret == -(MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA) )
-            mbedtls_snprintf( buf, buflen, "CIPHER - Bad input parameters to function" );
+            mbedtls_snprintf( buf, buflen, "CIPHER - Bad input parameters" );
         if( use_ret == -(MBEDTLS_ERR_CIPHER_ALLOC_FAILED) )
             mbedtls_snprintf( buf, buflen, "CIPHER - Failed to allocate memory" );
         if( use_ret == -(MBEDTLS_ERR_CIPHER_INVALID_PADDING) )
@@ -220,7 +220,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(MBEDTLS_ERR_CIPHER_AUTH_FAILED) )
             mbedtls_snprintf( buf, buflen, "CIPHER - Authentication failed (for AEAD modes)" );
         if( use_ret == -(MBEDTLS_ERR_CIPHER_INVALID_CONTEXT) )
-            mbedtls_snprintf( buf, buflen, "CIPHER - The context is invalid, eg because it was free()ed" );
+            mbedtls_snprintf( buf, buflen, "CIPHER - The context is invalid. For example, because it was freed" );
         if( use_ret == -(MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED) )
             mbedtls_snprintf( buf, buflen, "CIPHER - Cipher hardware accelerator failed" );
 #endif /* MBEDTLS_CIPHER_C */

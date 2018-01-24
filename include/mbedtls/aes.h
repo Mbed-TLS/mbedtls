@@ -1,3 +1,11 @@
+/**
+ * \file aes.h
+ *
+ * \brief AES is a family of block ciphers that processes data in multiples 
+ *		  of block sizes (16 Bytes).
+ * 
+ */
+ 
 /*  Copyright (C) 2006-2018, Arm Limited (or its affiliates), All Rights Reserved.
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -14,14 +22,6 @@
  *  limitations under the License.
  *
  *  This file is part of Mbed TLS (https://tls.mbed.org)
- */
- 
-/**
- * \file aes.h
- *
- * \brief AES is a family of block ciphers that processes data in multiples 
- *		  of block sizes (16 Bytes).
- * 
  */
  
 #ifndef MBEDTLS_AES_H

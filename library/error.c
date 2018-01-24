@@ -642,7 +642,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
 
 #if defined(MBEDTLS_CCM_C)
     if( use_ret == -(MBEDTLS_ERR_CCM_BAD_INPUT) )
-        mbedtls_snprintf( buf, buflen, "CCM - Bad input parameters to function" );
+        mbedtls_snprintf( buf, buflen, "CCM - Bad input parameters to the function" );
     if( use_ret == -(MBEDTLS_ERR_CCM_AUTH_FAILED) )
         mbedtls_snprintf( buf, buflen, "CCM - Authenticated decryption failed" );
     if( use_ret == -(MBEDTLS_ERR_CCM_HW_ACCEL_FAILED) )

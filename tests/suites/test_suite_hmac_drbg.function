@@ -7,7 +7,7 @@ typedef struct
     size_t len;
 } entropy_ctx;
 
-int mbedtls_test_entropy_func( void *data, unsigned char *buf, size_t len )
+static int mbedtls_test_entropy_func( void *data, unsigned char *buf, size_t len )
 {
     entropy_ctx *ctx = (entropy_ctx *) data;
 

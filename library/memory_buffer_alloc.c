@@ -244,7 +244,9 @@ static void *buffer_alloc_malloc( size_t len )
     if( heap.buf == NULL || heap.first == NULL )
         return( NULL );
 
-    if( len > (size_t)-POLARSSL_MEMORY_ALIGN_MULTIPLE )
+    if( len == 0 )
+        return( NULL );
+    else if( len > (size_t)-POLARSSL_MEMORY_ALIGN_MULTIPLE )
         return( NULL );
 
     if( len % POLARSSL_MEMORY_ALIGN_MULTIPLE )

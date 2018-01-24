@@ -544,17 +544,22 @@ void memory_buffer_alloc_cur_get( size_t *cur_used, size_t *cur_blocks )
 static void *buffer_alloc_malloc_mutexed( size_t len )
 {
     void *buf;
-    polarssl_mutex_lock( &heap.mutex );
+    if( polarssl_mutex_lock( &heap.mutex ) != 0 )
+        return( NULL );
     buf = buffer_alloc_malloc( len );
-    polarssl_mutex_unlock( &heap.mutex );
+    if( polarssl_mutex_unlock( &heap.mutex ) != 0 )
+        return( NULL );
     return( buf );
 }
 
 static void buffer_alloc_free_mutexed( void *ptr )
 {
-    polarssl_mutex_lock( &heap.mutex );
+    /* We have no good option here, but corrupting the heap seems
+     * worse than loosing memory. */
+    if( polarssl_mutex_lock( &heap.mutex ) != 0 )
+        return;
     buffer_alloc_free( ptr );
-    polarssl_mutex_unlock( &heap.mutex );
+    (void) polarssl_mutex_unlock( &heap.mutex );
 }
 #endif /* POLARSSL_THREADING_C */
 

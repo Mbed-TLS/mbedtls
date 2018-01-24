@@ -75,7 +75,7 @@ void mbedtls_ccm_init( mbedtls_ccm_context *ctx );
  * \param key       The encryption key.
  * \param keybits   The key size in bits. This must be acceptable by the cipher.
  *
- * \return          0 on success, or a cipher-specific error code.
+ * \return          \c 0 on success, or a cipher-specific error code.
  */
 int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
                         mbedtls_cipher_id_t cipher,
@@ -113,7 +113,7 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx );
  *                  \p tag = \p output + \p length, and make sure that the 
  *                  output buffer is at least \p length + \p tag_len wide.
  *
- * \return          0 on success.
+ * \return          \c 0 on success.
  */
 int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
                          const unsigned char *iv, size_t iv_len,
@@ -161,7 +161,7 @@ extern "C" {
 /**
  * \brief          The CCM checkup routine.
  *
- * \return         0 on success, or 1 on failure.
+ * \return         \c 0 on success, or \c 1 on failure.
  */
 int mbedtls_ccm_self_test( int verbose );
 #endif /* MBEDTLS_SELF_TEST && MBEDTLS_AES_C */

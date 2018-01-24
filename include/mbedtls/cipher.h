@@ -1,4 +1,11 @@
- /*
+
+ /**
+ * \file cipher.h
+ *
+ * \brief The generic cipher wrapper.
+*/
+
+/*
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
  *  Copyright (C) 2006-2018, Arm Limited (or its affiliates), All Rights Reserved
@@ -18,12 +25,6 @@
  *
  *  This file is part of Mbed TLS (https://tls.mbed.org)
  */
-
- /**
- * \file cipher.h
- *
- * \brief The generic cipher wrapper.
-*/
 
 #ifndef MBEDTLS_CIPHER_H
 #define MBEDTLS_CIPHER_H

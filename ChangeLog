@@ -81,6 +81,9 @@ Bugfix
    * Fix issue in RSA key generation program programs/x509/rsa_genkey
      where the failure of CTR DRBG initialization lead to freeing an
      RSA context without proper initialization beforehand.
+   * Fix bug in cipher decryption with POLARSSL_PADDING_ONE_AND_ZEROS that
+     sometimes accepted invalid padding. (Not used in TLS.) Found and fixed
+     by Micha Kraus.
 
 Changes
    * Extend cert_write example program by options to set the CRT version

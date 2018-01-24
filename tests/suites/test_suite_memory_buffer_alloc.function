@@ -14,3 +14,32 @@ void memory_buffer_alloc_self_test( )
     TEST_ASSERT( memory_buffer_alloc_self_test( 0 ) == 0 );
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:POLARSSL_MEMORY_DEBUG */
+void memory_buffer_small_buffer( )
+{
+    unsigned char buf[1];
+
+    memory_buffer_alloc_init( buf, sizeof( buf ) );
+    TEST_ASSERT( memory_buffer_alloc_verify() != 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:POLARSSL_MEMORY_DEBUG */
+void memory_buffer_underalloc( )
+{
+    unsigned char buf[100];
+    size_t i;
+
+    memory_buffer_alloc_init( buf, sizeof( buf ) );
+    for( i = 1; i < POLARSSL_MEMORY_ALIGN_MULTIPLE; i++ )
+    {
+        TEST_ASSERT( polarssl_malloc(
+                     (size_t)-( POLARSSL_MEMORY_ALIGN_MULTIPLE - i ) ) == NULL );
+        TEST_ASSERT( memory_buffer_alloc_verify() == 0 );
+    }
+
+exit:
+    memory_buffer_alloc_free();
+}
+/* END_CASE */

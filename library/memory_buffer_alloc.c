@@ -183,9 +183,9 @@ static int verify_header( memory_header *hdr )
 
 static int verify_chain()
 {
-    memory_header *prv = heap.first, *cur = heap.first->next;
+    memory_header *prv = heap.first, *cur;
 
-    if( verify_header( heap.first ) != 0 )
+    if( prv == NULL || verify_header( prv ) != 0 )
     {
 #if defined(POLARSSL_MEMORY_DEBUG)
         polarssl_fprintf( stderr, "FATAL: verification of first header "
@@ -202,6 +202,8 @@ static int verify_chain()
 #endif
         return( 1 );
     }
+
+    cur = heap.first->next;
 
     while( cur != NULL )
     {
@@ -240,6 +242,11 @@ static void *buffer_alloc_malloc( size_t len )
 #endif
 
     if( heap.buf == NULL || heap.first == NULL )
+        return( NULL );
+
+    if( len == 0 )
+        return( NULL );
+    else if( len > (size_t)-POLARSSL_MEMORY_ALIGN_MULTIPLE )
         return( NULL );
 
     if( len % POLARSSL_MEMORY_ALIGN_MULTIPLE )
@@ -374,7 +381,7 @@ static void buffer_alloc_free( void *ptr )
     if( ptr == NULL || heap.buf == NULL || heap.first == NULL )
         return;
 
-    if( p < heap.buf || p > heap.buf + heap.len )
+    if( p < heap.buf || p >= heap.buf + heap.len )
     {
 #if defined(POLARSSL_MEMORY_DEBUG)
         polarssl_fprintf( stderr, "FATAL: polarssl_free() outside of managed "
@@ -405,6 +412,12 @@ static void buffer_alloc_free( void *ptr )
     heap.total_used -= hdr->size;
 #endif
 
+#if defined(POLARSSL_MEMORY_BACKTRACE)
+    free( hdr->trace );
+    hdr->trace = NULL;
+    hdr->trace_count = 0;
+#endif
+
     // Regroup with block before
     //
     if( hdr->prev != NULL && hdr->prev->alloc == 0 )
@@ -420,9 +433,6 @@ static void buffer_alloc_free( void *ptr )
         if( hdr->next != NULL )
             hdr->next->prev = hdr;
 
-#if defined(POLARSSL_MEMORY_BACKTRACE)
-        free( old->trace );
-#endif
         memset( old, 0, sizeof(memory_header) );
     }
 
@@ -462,9 +472,6 @@ static void buffer_alloc_free( void *ptr )
         if( hdr->next != NULL )
             hdr->next->prev = hdr;
 
-#if defined(POLARSSL_MEMORY_BACKTRACE)
-        free( old->trace );
-#endif
         memset( old, 0, sizeof(memory_header) );
     }
 
@@ -478,11 +485,6 @@ static void buffer_alloc_free( void *ptr )
             heap.first_free->prev_free = hdr;
         heap.first_free = hdr;
     }
-
-#if defined(POLARSSL_MEMORY_BACKTRACE)
-    hdr->trace = NULL;
-    hdr->trace_count = 0;
-#endif
 
     if( ( heap.verify & MEMORY_VERIFY_FREE ) && verify_chain() != 0 )
         polarssl_exit( 1 );
@@ -542,24 +544,28 @@ void memory_buffer_alloc_cur_get( size_t *cur_used, size_t *cur_blocks )
 static void *buffer_alloc_malloc_mutexed( size_t len )
 {
     void *buf;
-    polarssl_mutex_lock( &heap.mutex );
+    if( polarssl_mutex_lock( &heap.mutex ) != 0 )
+        return( NULL );
     buf = buffer_alloc_malloc( len );
-    polarssl_mutex_unlock( &heap.mutex );
+    if( polarssl_mutex_unlock( &heap.mutex ) != 0 )
+        return( NULL );
     return( buf );
 }
 
 static void buffer_alloc_free_mutexed( void *ptr )
 {
-    polarssl_mutex_lock( &heap.mutex );
+    /* We have no good option here, but corrupting the heap seems
+     * worse than loosing memory. */
+    if( polarssl_mutex_lock( &heap.mutex ) != 0 )
+        return;
     buffer_alloc_free( ptr );
-    polarssl_mutex_unlock( &heap.mutex );
+    (void) polarssl_mutex_unlock( &heap.mutex );
 }
 #endif /* POLARSSL_THREADING_C */
 
 int memory_buffer_alloc_init( unsigned char *buf, size_t len )
 {
-    memset( &heap, 0, sizeof(buffer_alloc_ctx) );
-    memset( buf, 0, len );
+    memset( &heap, 0, sizeof( buffer_alloc_ctx ) );
 
 #if defined(POLARSSL_THREADING_C)
     polarssl_mutex_init( &heap.mutex );
@@ -569,20 +575,24 @@ int memory_buffer_alloc_init( unsigned char *buf, size_t len )
     platform_set_malloc_free( buffer_alloc_malloc, buffer_alloc_free );
 #endif
 
-    if( (size_t) buf % POLARSSL_MEMORY_ALIGN_MULTIPLE )
+    if( len < sizeof( memory_header ) + POLARSSL_MEMORY_ALIGN_MULTIPLE )
+        return( -1 );
+    else if( (size_t) buf % POLARSSL_MEMORY_ALIGN_MULTIPLE )
     {
         /* Adjust len first since buf is used in the computation */
         len -= POLARSSL_MEMORY_ALIGN_MULTIPLE
-             - (size_t) buf % POLARSSL_MEMORY_ALIGN_MULTIPLE;
+             - (size_t)buf % POLARSSL_MEMORY_ALIGN_MULTIPLE;
         buf += POLARSSL_MEMORY_ALIGN_MULTIPLE
-             - (size_t) buf % POLARSSL_MEMORY_ALIGN_MULTIPLE;
+             - (size_t)buf % POLARSSL_MEMORY_ALIGN_MULTIPLE;
     }
+
+    memset( buf, 0, len );
 
     heap.buf = buf;
     heap.len = len;
 
-    heap.first = (memory_header *) buf;
-    heap.first->size = len - sizeof(memory_header);
+    heap.first = (memory_header *)buf;
+    heap.first->size = len - sizeof( memory_header );
     heap.first->magic1 = MAGIC1;
     heap.first->magic2 = MAGIC2;
     heap.first_free = heap.first;

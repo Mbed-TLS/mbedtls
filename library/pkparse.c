@@ -1169,6 +1169,9 @@ int pk_parse_key( pk_context *pk,
     {
         unsigned char *key_copy;
 
+        if( keylen == 0 )
+            return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT );
+
         if( ( key_copy = polarssl_malloc( keylen ) ) == NULL )
             return( POLARSSL_ERR_PK_MALLOC_FAILED );
 

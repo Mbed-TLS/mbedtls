@@ -102,7 +102,6 @@ int main( int argc, char *argv[] )
     mbedtls_ecdsa_context ctx_sign, ctx_verify;
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
-    mbedtls_sha256_context sha256_ctx;
     unsigned char message[100];
     unsigned char hash[32];
     unsigned char sig[MBEDTLS_ECDSA_MAX_LEN];
@@ -113,7 +112,6 @@ int main( int argc, char *argv[] )
     mbedtls_ecdsa_init( &ctx_sign );
     mbedtls_ecdsa_init( &ctx_verify );
     mbedtls_ctr_drbg_init( &ctr_drbg );
-    mbedtls_sha256_init( &sha256_ctx );
 
     memset( sig, 0, sizeof( sig ) );
     memset( message, 0x25, sizeof( message ) );
@@ -165,9 +163,11 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "  . Computing message hash..." );
     fflush( stdout );
 
-    mbedtls_sha256_starts( &sha256_ctx, 0 );
-    mbedtls_sha256_update( &sha256_ctx, message, sizeof( message ) );
-    mbedtls_sha256_finish( &sha256_ctx, hash );
+    if( ( ret = mbedtls_sha256_ret( message, sizeof( message ), hash, 0 ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_sha256_ret returned %d\n", ret );
+        goto exit;
+    }
 
     mbedtls_printf( " ok\n" );
 
@@ -242,7 +242,6 @@ exit:
     mbedtls_ecdsa_free( &ctx_sign );
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
-    mbedtls_sha256_free( &sha256_ctx );
 
     return( ret );
 }

@@ -8,6 +8,7 @@
 /* BEGIN_CASE depends_on:MBEDTLS_MD2_C */
 void md2_text( char *text_src_string, char *hex_hash_string )
 {
+    int ret;
     unsigned char src_str[100];
     unsigned char hash_str[33];
     unsigned char output[16];
@@ -18,7 +19,8 @@ void md2_text( char *text_src_string, char *hex_hash_string )
 
     strncpy( (char *) src_str, text_src_string, sizeof(src_str) - 1 );
 
-    mbedtls_md2( src_str, strlen( (char *) src_str ), output );
+    ret = mbedtls_md2_ret( src_str, strlen( (char *) src_str ), output );
+    TEST_ASSERT( ret == 0 ) ;
     hexify( hash_str, output, sizeof  output );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
@@ -28,6 +30,7 @@ void md2_text( char *text_src_string, char *hex_hash_string )
 /* BEGIN_CASE depends_on:MBEDTLS_MD4_C */
 void md4_text( char *text_src_string, char *hex_hash_string )
 {
+    int ret;
     unsigned char src_str[100];
     unsigned char hash_str[33];
     unsigned char output[16];
@@ -38,7 +41,8 @@ void md4_text( char *text_src_string, char *hex_hash_string )
 
     strncpy( (char *) src_str, text_src_string, sizeof(src_str) - 1 );
 
-    mbedtls_md4( src_str, strlen( (char *) src_str ), output );
+    ret = mbedtls_md4_ret( src_str, strlen( (char *) src_str ), output );
+    TEST_ASSERT( ret == 0 );
     hexify( hash_str, output, sizeof  output );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
@@ -48,6 +52,7 @@ void md4_text( char *text_src_string, char *hex_hash_string )
 /* BEGIN_CASE depends_on:MBEDTLS_MD5_C */
 void md5_text( char *text_src_string, char *hex_hash_string )
 {
+    int ret;
     unsigned char src_str[100];
     unsigned char hash_str[33];
     unsigned char output[16];
@@ -58,7 +63,8 @@ void md5_text( char *text_src_string, char *hex_hash_string )
 
     strncpy( (char *) src_str, text_src_string, sizeof(src_str) - 1 );
 
-    mbedtls_md5( src_str, strlen( (char *) src_str ), output );
+    ret = mbedtls_md5_ret( src_str, strlen( (char *) src_str ), output );
+    TEST_ASSERT( ret == 0 );
     hexify( hash_str, output, sizeof  output );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
@@ -68,6 +74,7 @@ void md5_text( char *text_src_string, char *hex_hash_string )
 /* BEGIN_CASE depends_on:MBEDTLS_RIPEMD160_C */
 void ripemd160_text( char *text_src_string, char *hex_hash_string )
 {
+    int ret;
     unsigned char src_str[100];
     unsigned char hash_str[41];
     unsigned char output[20];
@@ -78,7 +85,8 @@ void ripemd160_text( char *text_src_string, char *hex_hash_string )
 
     strncpy( (char *) src_str, text_src_string, sizeof(src_str) - 1 );
 
-    mbedtls_ripemd160( src_str, strlen( (char *) src_str ), output );
+    ret = mbedtls_ripemd160_ret( src_str, strlen( (char *) src_str ), output );
+    TEST_ASSERT( ret == 0 );
     hexify( hash_str, output, sizeof output );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );

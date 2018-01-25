@@ -24,6 +24,7 @@ void mbedtls_rsa_pkcs1_sign( data_t * message_str, int padding_mode,
                              char * input_N, int radix_E, char * input_E,
                              data_t * result_hex_str, int result )
 {
+    int res;
     unsigned char hash_result[1000];
     unsigned char output[1000];
     mbedtls_rsa_context ctx;
@@ -45,7 +46,14 @@ void mbedtls_rsa_pkcs1_sign( data_t * message_str, int padding_mode,
 
     TEST_ASSERT( mbedtls_rsa_import( &ctx, &N, &P, &Q, NULL, &E ) == 0 );
     TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod / 8 ) );
-    TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == 0 );
+
+    res = mbedtls_rsa_complete( &ctx );
+#if defined(MBEDTLS_RSA_ALT)
+    if( res == MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION )
+        goto exit;
+#endif
+    TEST_ASSERT( res == 0 );
+
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
 
 
@@ -109,6 +117,7 @@ void rsa_pkcs1_sign_raw( data_t * hash_result,
                          int radix_N, char * input_N, int radix_E,
                          char * input_E, data_t * result_hex_str )
 {
+    int res;
     unsigned char output[1000];
     mbedtls_rsa_context ctx;
     mbedtls_mpi N, P, Q, E;
@@ -128,7 +137,14 @@ void rsa_pkcs1_sign_raw( data_t * hash_result,
 
     TEST_ASSERT( mbedtls_rsa_import( &ctx, &N, &P, &Q, NULL, &E ) == 0 );
     TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod / 8 ) );
-    TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == 0 );
+
+    res = mbedtls_rsa_complete( &ctx );
+#if defined(MBEDTLS_RSA_ALT)
+    if( res == MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION )
+        goto exit;
+#endif
+    TEST_ASSERT( res == 0 );
+
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
 
 
@@ -144,7 +160,6 @@ void rsa_pkcs1_sign_raw( data_t * hash_result,
     /* For PKCS#1 v1.5, there is an alternative way to generate signatures */
     if( padding_mode == MBEDTLS_RSA_PKCS_V15 )
     {
-        int res;
         memset( output, 0x00, 1000 );
 
         res = mbedtls_rsa_rsaes_pkcs1_v15_encrypt( &ctx,
@@ -321,6 +336,7 @@ void mbedtls_rsa_pkcs1_decrypt( data_t * message_str, int padding_mode,
                                 int max_output, data_t * result_hex_str,
                                 int result )
 {
+    int res;
     unsigned char output[1000];
     mbedtls_rsa_context ctx;
     size_t output_len;
@@ -343,7 +359,14 @@ void mbedtls_rsa_pkcs1_decrypt( data_t * message_str, int padding_mode,
 
     TEST_ASSERT( mbedtls_rsa_import( &ctx, &N, &P, &Q, NULL, &E ) == 0 );
     TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod / 8 ) );
-    TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == 0 );
+
+    res = mbedtls_rsa_complete( &ctx );
+#if defined(MBEDTLS_RSA_ALT)
+    if( res == MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION )
+        goto exit;
+#endif
+    TEST_ASSERT( res == 0 );
+
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
 
     output_len = 0;
@@ -421,6 +444,7 @@ void mbedtls_rsa_private( data_t * message_str, int mod, int radix_P,
                           char * input_E, data_t * result_hex_str,
                           int result )
 {
+    int res;
     unsigned char output[1000];
     mbedtls_rsa_context ctx, ctx2; /* Also test mbedtls_rsa_copy() while at it */
     mbedtls_mpi N, P, Q, E;
@@ -441,7 +465,13 @@ void mbedtls_rsa_private( data_t * message_str, int mod, int radix_P,
 
     TEST_ASSERT( mbedtls_rsa_import( &ctx, &N, &P, &Q, NULL, &E ) == 0 );
     TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod / 8 ) );
-    TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == 0 );
+
+    res = mbedtls_rsa_complete( &ctx );
+#if defined(MBEDTLS_RSA_ALT)
+    if( res == MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION )
+        goto exit;
+#endif
+    TEST_ASSERT( res == 0 );
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
 
 
@@ -796,6 +826,7 @@ void mbedtls_rsa_import( int radix_N, char *input_N,
                          int res_check,
                          int res_complete )
 {
+    int res;
     mbedtls_mpi N, P, Q, D, E;
     mbedtls_rsa_context ctx;
 
@@ -878,7 +909,12 @@ void mbedtls_rsa_import( int radix_N, char *input_N,
                                have_E ? &E : NULL ) == 0 );
     }
 
-    TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == res_complete );
+    res = mbedtls_rsa_complete( &ctx );
+#if defined(MBEDTLS_RSA_ALT)
+    if( res == MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION )
+        goto exit;
+#endif
+    TEST_ASSERT( res == res_complete );
 
     /* On expected success, perform some public and private
      * key operations to check if the key is working properly. */
@@ -943,6 +979,8 @@ void mbedtls_rsa_export( int radix_N, char *input_N,
                          int is_priv,
                          int successive )
 {
+    int res;
+
     /* Original MPI's with which we set up the RSA context */
     mbedtls_mpi N, P, Q, D, E;
 
@@ -991,7 +1029,12 @@ void mbedtls_rsa_export( int radix_N, char *input_N,
                                      strlen( input_D ) ? &D : NULL,
                                      strlen( input_E ) ? &E : NULL ) == 0 );
 
-    TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == 0 );
+    res = mbedtls_rsa_complete( &ctx );
+#if defined(MBEDTLS_RSA_ALT)
+    if( res == MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION )
+        goto exit;
+#endif
+    TEST_ASSERT( res == 0 );
 
     /*
      * Export parameters and compare to original ones.
@@ -1128,6 +1171,8 @@ void mbedtls_rsa_export_raw( data_t *input_N, data_t *input_P,
                              data_t *input_E, int is_priv,
                              int successive )
 {
+    int res;
+
     /* Exported buffers */
     unsigned char bufNe[1000];
     unsigned char bufPe[1000];
@@ -1147,7 +1192,12 @@ void mbedtls_rsa_export_raw( data_t *input_N, data_t *input_P,
                                input_D->len ? input_D->x : NULL, input_D->len,
                                input_E->len ? input_E->x : NULL, input_E->len ) == 0 );
 
-    TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == 0 );
+    res = mbedtls_rsa_complete( &ctx );
+#if defined(MBEDTLS_RSA_ALT)
+    if( res == MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION )
+        goto exit;
+#endif
+    TEST_ASSERT( res == 0 );
 
     /*
      * Export parameters and compare to original ones.
@@ -1226,6 +1276,8 @@ void mbedtls_rsa_import_raw( data_t *input_N,
                              int res_check,
                              int res_complete )
 {
+    int res;
+
     /* Buffers used for encryption-decryption test */
     unsigned char *buf_orig = NULL;
     unsigned char *buf_enc  = NULL;
@@ -1283,7 +1335,12 @@ void mbedtls_rsa_import_raw( data_t *input_N,
                                ( input_E->len > 0 ) ? input_E->x : NULL, input_E->len ) == 0 );
     }
 
-    TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == res_complete );
+    res = mbedtls_rsa_complete( &ctx );
+#if defined(MBEDTLS_RSA_ALT)
+    if( res == MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION )
+        goto exit;
+#endif
+    TEST_ASSERT( res == res_complete );
 
     /* On expected success, perform some public and private
      * key operations to check if the key is working properly. */

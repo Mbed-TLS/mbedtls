@@ -257,6 +257,14 @@ int mbedtls_rsa_import_raw( mbedtls_rsa_context *ctx,
  *                 the RSA context can be used for RSA operations without
  *                 the risk of failure or crash.
  *
+ *                 Alternative implementations need not support all of the
+ *                 above private key derivations; further, they might put
+ *                 constraints on acceptable sizes and values of the imported
+ *                 parameters. In case a failure originating from these
+ *                 implementation-specific restrictions, alternative
+ *                 implementations should return the error code
+ *                 \c MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
+ *
  * \warning        This function need not perform consistency checks
  *                 for the imported parameters. In particular, parameters that
  *                 are not needed by the implementation might be silently
@@ -266,8 +274,10 @@ int mbedtls_rsa_import_raw( mbedtls_rsa_context *ctx,
  * \param ctx      The initialized RSA context holding imported parameters.
  *
  * \return         \c 0 on success.
- * \return         #MBEDTLS_ERR_RSA_BAD_INPUT_DATA if the attempted derivations
- *                 failed.
+ * \return         \c MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION if the imported
+ *                 parameters are not suitable for the implementation to set
+ *                 up the public / private RSA context.
+ * \return         Another non-zero error code otherwise.
  *
  */
 int mbedtls_rsa_complete( mbedtls_rsa_context *ctx );

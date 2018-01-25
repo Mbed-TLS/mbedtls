@@ -250,10 +250,10 @@ typedef struct {
     int (*get_padding)( unsigned char *input, size_t ilen, size_t *data_len );
 #endif
 
-    /** Buffer for data that has not been encrypted. */
+    /** Buffer for input that has not been processed yet. */
     unsigned char unprocessed_data[MBEDTLS_MAX_BLOCK_LENGTH];
 
-    /** Number of Bytes to process. */
+    /** Number of Bytes that have not been processed yet. */
     size_t unprocessed_len;
 
     /** Current IV or NONCE_COUNTER for CTR-mode. */

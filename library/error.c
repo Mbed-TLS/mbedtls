@@ -658,11 +658,11 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED) )
         mbedtls_snprintf( buf, buflen, "CTR_DRBG - The entropy source failed" );
     if( use_ret == -(MBEDTLS_ERR_CTR_DRBG_REQUEST_TOO_BIG) )
-        mbedtls_snprintf( buf, buflen, "CTR_DRBG - Too many random requested in single call" );
+        mbedtls_snprintf( buf, buflen, "CTR_DRBG - The requested random buffer length is too big" );
     if( use_ret == -(MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG) )
-        mbedtls_snprintf( buf, buflen, "CTR_DRBG - Input too large (Entropy + additional)" );
+        mbedtls_snprintf( buf, buflen, "CTR_DRBG - The input (entropy + additional data) is too large" );
     if( use_ret == -(MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR) )
-        mbedtls_snprintf( buf, buflen, "CTR_DRBG - Read/write error in file" );
+        mbedtls_snprintf( buf, buflen, "CTR_DRBG - Read or write error in file" );
 #endif /* MBEDTLS_CTR_DRBG_C */
 
 #if defined(MBEDTLS_DES_C)

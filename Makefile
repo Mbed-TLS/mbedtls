@@ -103,7 +103,7 @@ lcov:
 
 apidoc:
 	mkdir -p apidoc
-	doxygen doxygen/mbedtls.doxyfile
+	cd doxygen && doxygen mbedtls.doxyfile
 
 apidoc_clean:
 	rm -rf apidoc

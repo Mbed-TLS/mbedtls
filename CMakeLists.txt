@@ -126,8 +126,8 @@ if(ENABLE_PROGRAMS)
 endif()
 
 ADD_CUSTOM_TARGET(apidoc
-    COMMAND doxygen doxygen/mbedtls.doxyfile
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    COMMAND doxygen mbedtls.doxyfile
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/doxygen)
 
 if(ENABLE_TESTING)
     enable_testing()

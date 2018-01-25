@@ -413,13 +413,12 @@ void pk_import_verify_signed( char *file )
                                               MBEDTLS_PK_FLAG_VERIFY,
                                               hSession,
                                               &hPublicKey,
-                                              &hPrivateKey ) == 0 );
+                                              NULL ) == 0 );
     TEST_ASSERT( hPublicKey != CK_INVALID_HANDLE );
-    TEST_ASSERT( hPrivateKey != CK_INVALID_HANDLE );
     TEST_ASSERT( mbedtls_pk_setup_pkcs11( &pkcs11_ctx,
                                           hSession,
                                           hPublicKey,
-                                          hPrivateKey ) == 0 );
+                                          CK_INVALID_HANDLE ) == 0 );
 
     /* Sign with the token and verify with cryptoki */
     TEST_ASSERT( sizeof( sig_buffer ) >= mbedtls_pk_signature_size( &pkcs11_ctx ) );
@@ -483,13 +482,12 @@ void pk_ecdsa_hardcoded_verify( int type, int id, char *key_str,
                                               MBEDTLS_PK_FLAG_VERIFY,
                                               hSession,
                                               &hPublicKey,
-                                              &hPrivateKey ) == 0 );
+                                              NULL ) == 0 );
     TEST_ASSERT( hPublicKey != CK_INVALID_HANDLE );
-    TEST_ASSERT( hPrivateKey != CK_INVALID_HANDLE );
     TEST_ASSERT( mbedtls_pk_setup_pkcs11( &pkcs11_ctx,
                                           hSession,
                                           hPublicKey,
-                                          hPrivateKey ) == 0 );
+                                          CK_INVALID_HANDLE ) == 0 );
     TEST_ASSERT( mbedtls_pk_verify( &pkcs11_ctx, MBEDTLS_MD_NONE,
                             hash, hash_len, sig, sig_len ) == ret );
 

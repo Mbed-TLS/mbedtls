@@ -2,10 +2,10 @@
  * \file ccm.h
  *
  * \brief CCM combines Counter mode encryption with CBC-MAC authentication 
- * for 128-bit block ciphers.
+ *        for 128-bit block ciphers.
  *  
  * Input to CCM includes the following elements:
- * <ul><li>Payload - text data that is both authenticated and encrypted.</li>
+ * <ul><li>Payload - data that is both authenticated and encrypted.</li>
  * <li>Associated data (Adata) - data that is authenticated but not 
  * encrypted, For example, a header.</li>
  * <li>Nonce - A unique value that is assigned to the payload and the 
@@ -49,8 +49,8 @@ extern "C" {
 #endif
 
 /**
- * \brief   The CCM context-type definition. The CCM context is passed 
- *	    to the APIs called.
+ * \brief    The CCM context-type definition. The CCM context is passed 
+ *           to the APIs called.
  */
 typedef struct {
     mbedtls_cipher_context_t cipher_ctx;    /*!< The cipher context used. */
@@ -91,7 +91,7 @@ int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
 void mbedtls_ccm_free( mbedtls_ccm_context *ctx );
 
 /**
- * \brief           This function encrypts a CCM buffer.
+ * \brief           This function encrypts a buffer using CCM.
  *
  * \param ctx       The CCM context to use for encryption.
  * \param length    The length of the input data in Bytes.

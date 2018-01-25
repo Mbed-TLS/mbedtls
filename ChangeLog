@@ -47,12 +47,25 @@ API Changes
      purpose or CRT and/or blinding.
    * The configuration option MBEDTLS_RSA_ALT can be used to define alternative
      implementations of the RSA interface declared in rsa.h.
+   * The following functions in the message digest modules (MD2, MD4, MD5,
+     SHA1, SHA256, SHA512) have been deprecated and replaced as shown below.
+     The new functions change the return type from void to int to allow
+     returning error codes when using MBEDTLS_<MODULE>_ALT.
+     mbedtls_<MODULE>_starts() -> mbedtls_<MODULE>_starts_ret()
+     mbedtls_<MODULE>_update() -> mbedtls_<MODULE>_update_ret()
+     mbedtls_<MODULE>_finish() -> mbedtls_<MODULE>_finish_ret()
+     mbedtls_<MODULE>_process() -> mbedtls_internal_<MODULE>_process()
 
 New deprecations
    * Deprecate usage of RSA primitives with non-matching key-type
      (e.g., signing with a public key).
    * Direct manipulation of structure fields of RSA contexts is deprecated.
      Users are advised to use the extended RSA API instead.
+   * Deprecate usage of message digest functions that return void
+     (mbedtls_<MODULE>_starts, mbedtls_<MODULE>_update,
+     mbedtls_<MODULE>_finish and mbedtls_<MODULE>_process where <MODULE> is
+     any of MD2, MD4, MD5, SHA1, SHA256, SHA512) in favor of functions
+     that can return an error code.
 
 Bugfix
    * Fix ssl_parse_record_header() to silently discard invalid DTLS records
@@ -109,6 +122,13 @@ Bugfix
    * Fix bug in cipher decryption with MBEDTLS_PADDING_ONE_AND_ZEROS that
      sometimes accepted invalid padding. (Not used in TLS.) Found and fixed
      by Micha Kraus.
+   * Fix the entropy.c module to not call mbedtls_sha256_starts() or
+     mbedtls_sha512_starts() in the mbedtls_entropy_init() function.
+   * Fix the entropy.c module to ensure that mbedtls_sha256_init() or
+     mbedtls_sha512_init() is called before operating on the relevant context
+     structure. Do not assume that zeroizing a context is a correct way to
+     reset it. Found independently by ccli8 on Github.
+   * In mbedtls_entropy_free(), properly free the message digest context.
 
 Changes
    * Extend cert_write example program by options to set the CRT version
@@ -122,6 +142,10 @@ Changes
    * Tighten the RSA PKCS#1 v1.5 signature verification code and remove the
      undeclared dependency of the RSA module on the ASN.1 module.
    * Add mechanism to provide alternative implementation of the DHM module.
+   * Update all internal usage of deprecated message digest functions to the
+     new ones with return codes. In particular, this modifies the
+     mbedtls_md_info_t structure. Propagate errors from these functions
+     everywhere except some locations in the ssl_tls.c module.
 
 = mbed TLS 2.6.0 branch released 2017-08-10
 

@@ -3093,40 +3093,12 @@ curve_matching_done:
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
         if( md_alg == MBEDTLS_MD_NONE )
         {
-            mbedtls_md5_context mbedtls_md5;
-            mbedtls_sha1_context mbedtls_sha1;
-
-            mbedtls_md5_init(  &mbedtls_md5  );
-            mbedtls_sha1_init( &mbedtls_sha1 );
-
-            /*
-             * digitally-signed struct {
-             *     opaque md5_hash[16];
-             *     opaque sha_hash[20];
-             * };
-             *
-             * md5_hash
-             *     MD5(ClientHello.random + ServerHello.random
-             *                            + ServerParams);
-             * sha_hash
-             *     SHA(ClientHello.random + ServerHello.random
-             *                            + ServerParams);
-             */
-
-            mbedtls_md5_starts( &mbedtls_md5 );
-            mbedtls_md5_update( &mbedtls_md5, ssl->handshake->randbytes,  64 );
-            mbedtls_md5_update( &mbedtls_md5, dig_signed, dig_signed_len );
-            mbedtls_md5_finish( &mbedtls_md5, hash );
-
-            mbedtls_sha1_starts( &mbedtls_sha1 );
-            mbedtls_sha1_update( &mbedtls_sha1, ssl->handshake->randbytes,  64 );
-            mbedtls_sha1_update( &mbedtls_sha1, dig_signed, dig_signed_len );
-            mbedtls_sha1_finish( &mbedtls_sha1, hash + 16 );
-
             hashlen = 36;
-
-            mbedtls_md5_free(  &mbedtls_md5  );
-            mbedtls_sha1_free( &mbedtls_sha1 );
+            ret = mbedtls_ssl_get_key_exchange_md_ssl_tls( ssl, hash,
+                                                           dig_signed,
+                                                           dig_signed_len );
+            if( ret != 0 )
+                return( ret );
         }
         else
 #endif /* MBEDTLS_SSL_PROTO_SSL3 || MBEDTLS_SSL_PROTO_TLS1 || \
@@ -3135,32 +3107,14 @@ curve_matching_done:
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
         if( md_alg != MBEDTLS_MD_NONE )
         {
-            mbedtls_md_context_t ctx;
-            const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( md_alg );
-
-            mbedtls_md_init( &ctx );
-
             /* Info from md_alg will be used instead */
             hashlen = 0;
-
-            /*
-             * digitally-signed struct {
-             *     opaque client_random[32];
-             *     opaque server_random[32];
-             *     ServerDHParams params;
-             * };
-             */
-            if( ( ret = mbedtls_md_setup( &ctx, md_info, 0 ) ) != 0 )
-            {
-                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_md_setup", ret );
+            ret = mbedtls_ssl_get_key_exchange_md_tls1_2( ssl, hash,
+                                                          dig_signed,
+                                                          dig_signed_len,
+                                                          md_alg );
+            if( ret != 0 )
                 return( ret );
-            }
-
-            mbedtls_md_starts( &ctx );
-            mbedtls_md_update( &ctx, ssl->handshake->randbytes, 64 );
-            mbedtls_md_update( &ctx, dig_signed, dig_signed_len );
-            mbedtls_md_finish( &ctx, hash );
-            mbedtls_md_free( &ctx );
         }
         else
 #endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \

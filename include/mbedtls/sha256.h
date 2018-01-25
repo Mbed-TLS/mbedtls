@@ -33,6 +33,13 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED                -0x0037  /**< SHA-256 hardware accelerator failed */
+
+#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
+    !defined(inline) && !defined(__cplusplus)
+#define inline __inline
+#endif
+
 #if !defined(MBEDTLS_SHA256_ALT)
 // Regular implementation
 //
@@ -81,29 +88,116 @@ void mbedtls_sha256_clone( mbedtls_sha256_context *dst,
  *
  * \param ctx      context to be initialized
  * \param is224    0 = use SHA256, 1 = use SHA224
+ *
+ * \return         0 if successful
  */
-void mbedtls_sha256_starts( mbedtls_sha256_context *ctx, int is224 );
+int mbedtls_sha256_starts_ret( mbedtls_sha256_context *ctx, int is224 );
 
 /**
  * \brief          SHA-256 process buffer
  *
  * \param ctx      SHA-256 context
- * \param input    buffer holding the  data
+ * \param input    buffer holding the data
  * \param ilen     length of the input data
+ *
+ * \return         0 if successful
  */
-void mbedtls_sha256_update( mbedtls_sha256_context *ctx, const unsigned char *input,
-                    size_t ilen );
+int mbedtls_sha256_update_ret( mbedtls_sha256_context *ctx,
+                               const unsigned char *input,
+                               size_t ilen );
 
 /**
  * \brief          SHA-256 final digest
  *
  * \param ctx      SHA-256 context
  * \param output   SHA-224/256 checksum result
+ *
+ * \return         0 if successful
  */
-void mbedtls_sha256_finish( mbedtls_sha256_context *ctx, unsigned char output[32] );
+int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
+                               unsigned char output[32] );
 
-/* Internal use */
-void mbedtls_sha256_process( mbedtls_sha256_context *ctx, const unsigned char data[64] );
+/**
+ * \brief          SHA-256 process data block (internal use only)
+ *
+ * \param ctx      SHA-256 context
+ * \param data     buffer holding one block of data
+ *
+ * \return         0 if successful
+ */
+int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
+                                     const unsigned char data[64] );
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+/**
+ * \brief          SHA-256 context setup
+ *
+ * \deprecated     Superseded by mbedtls_sha256_starts_ret() in 2.7.0
+ *
+ * \param ctx      context to be initialized
+ * \param is224    0 = use SHA256, 1 = use SHA224
+ */
+MBEDTLS_DEPRECATED static inline void mbedtls_sha256_starts(
+                                                mbedtls_sha256_context *ctx,
+                                                int is224 )
+{
+    mbedtls_sha256_starts_ret( ctx, is224 );
+}
+
+/**
+ * \brief          SHA-256 process buffer
+ *
+ * \deprecated     Superseded by mbedtls_sha256_update_ret() in 2.7.0
+ *
+ * \param ctx      SHA-256 context
+ * \param input    buffer holding the data
+ * \param ilen     length of the input data
+ */
+MBEDTLS_DEPRECATED static inline void mbedtls_sha256_update(
+                                                mbedtls_sha256_context *ctx,
+                                                const unsigned char *input,
+                                                size_t ilen )
+{
+    mbedtls_sha256_update_ret( ctx, input, ilen );
+}
+
+/**
+ * \brief          SHA-256 final digest
+ *
+ * \deprecated     Superseded by mbedtls_sha256_finish_ret() in 2.7.0
+ *
+ * \param ctx      SHA-256 context
+ * \param output   SHA-224/256 checksum result
+ */
+MBEDTLS_DEPRECATED static inline void mbedtls_sha256_finish(
+                                                mbedtls_sha256_context *ctx,
+                                                unsigned char output[32] )
+{
+    mbedtls_sha256_finish_ret( ctx, output );
+}
+
+/**
+ * \brief          SHA-256 process data block (internal use only)
+ *
+ * \deprecated     Superseded by mbedtls_internal_sha256_process() in 2.7.0
+ *
+ * \param ctx      SHA-256 context
+ * \param data     buffer holding one block of data
+ */
+MBEDTLS_DEPRECATED static inline void mbedtls_sha256_process(
+                                                mbedtls_sha256_context *ctx,
+                                                const unsigned char data[64] )
+{
+    mbedtls_internal_sha256_process( ctx, data );
+}
+
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 #ifdef __cplusplus
 }
@@ -120,13 +214,45 @@ extern "C" {
 /**
  * \brief          Output = SHA-256( input buffer )
  *
- * \param input    buffer holding the  data
+ * \param input    buffer holding the data
+ * \param ilen     length of the input data
+ * \param output   SHA-224/256 checksum result
+ * \param is224    0 = use SHA256, 1 = use SHA224
+ *
+ * \return         0 if successful
+ */
+int mbedtls_sha256_ret( const unsigned char *input,
+                        size_t ilen,
+                        unsigned char output[32],
+                        int is224 );
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+/**
+ * \brief          Output = SHA-256( input buffer )
+ *
+ * \deprecated     Superseded by mbedtls_sha256_ret() in 2.7.0
+ *
+ * \param input    buffer holding the data
  * \param ilen     length of the input data
  * \param output   SHA-224/256 checksum result
  * \param is224    0 = use SHA256, 1 = use SHA224
  */
-void mbedtls_sha256( const unsigned char *input, size_t ilen,
-           unsigned char output[32], int is224 );
+MBEDTLS_DEPRECATED static inline void mbedtls_sha256(
+                                                    const unsigned char *input,
+                                                    size_t ilen,
+                                                    unsigned char output[32],
+                                                    int is224 )
+{
+    mbedtls_sha256_ret( input, ilen, output, is224 );
+}
+
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 /**
  * \brief          Checkup routine

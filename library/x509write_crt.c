@@ -177,8 +177,11 @@ int mbedtls_x509write_crt_set_subject_key_identifier( mbedtls_x509write_cert *ct
     memset( buf, 0, sizeof(buf) );
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_pk_write_pubkey( &c, buf, ctx->subject_key ) );
 
-    mbedtls_sha1( buf + sizeof(buf) - len, len, buf + sizeof(buf) - 20 );
-    c = buf + sizeof(buf) - 20;
+    ret = mbedtls_sha1_ret( buf + sizeof( buf ) - len, len,
+                            buf + sizeof( buf ) - 20 );
+    if( ret != 0 )
+        return( ret );
+    c = buf + sizeof( buf ) - 20;
     len = 20;
 
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, buf, len ) );
@@ -199,7 +202,10 @@ int mbedtls_x509write_crt_set_authority_key_identifier( mbedtls_x509write_cert *
     memset( buf, 0, sizeof(buf) );
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_pk_write_pubkey( &c, buf, ctx->issuer_key ) );
 
-    mbedtls_sha1( buf + sizeof( buf ) - len, len, buf + sizeof( buf ) - 20 );
+    ret = mbedtls_sha1_ret( buf + sizeof( buf ) - len, len,
+                            buf + sizeof( buf ) - 20 );
+    if( ret != 0 )
+        return( ret );
     c = buf + sizeof( buf ) - 20;
     len = 20;
 
@@ -414,7 +420,11 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx, unsigned char *buf, 
     /*
      * Make signature
      */
-    mbedtls_md( mbedtls_md_info_from_type( ctx->md_alg ), c, len, hash );
+    if( ( ret = mbedtls_md( mbedtls_md_info_from_type( ctx->md_alg ), c,
+                            len, hash ) ) != 0 )
+    {
+        return( ret );
+    }
 
     if( ( ret = mbedtls_pk_sign( ctx->issuer_key, ctx->md_alg, hash, 0, sig, &sig_len,
                          f_rng, p_rng ) ) != 0 )

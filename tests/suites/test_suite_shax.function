@@ -18,7 +18,7 @@ void mbedtls_sha1( char *hex_src_string, char *hex_hash_string )
 
     src_len = unhexify( src_str, hex_src_string );
 
-    mbedtls_sha1( src_str, src_len, output );
+    TEST_ASSERT( mbedtls_sha1_ret( src_str, src_len, output ) == 0 );
     hexify( hash_str, output, 20 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
@@ -39,7 +39,7 @@ void sha224(char *hex_src_string, char *hex_hash_string )
 
     src_len = unhexify( src_str, hex_src_string );
 
-    mbedtls_sha256( src_str, src_len, output, 1 );
+    TEST_ASSERT( mbedtls_sha256_ret( src_str, src_len, output, 1 ) == 0 );
     hexify( hash_str, output, 28 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
@@ -60,7 +60,7 @@ void mbedtls_sha256(char *hex_src_string, char *hex_hash_string )
 
     src_len = unhexify( src_str, hex_src_string );
 
-    mbedtls_sha256( src_str, src_len, output, 0 );
+    TEST_ASSERT( mbedtls_sha256_ret( src_str, src_len, output, 0 ) == 0 );
     hexify( hash_str, output, 32 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
@@ -81,7 +81,7 @@ void sha384(char *hex_src_string, char *hex_hash_string )
 
     src_len = unhexify( src_str, hex_src_string );
 
-    mbedtls_sha512( src_str, src_len, output, 1 );
+    TEST_ASSERT( mbedtls_sha512_ret( src_str, src_len, output, 1 ) == 0 );
     hexify( hash_str, output, 48 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
@@ -102,7 +102,7 @@ void mbedtls_sha512(char *hex_src_string, char *hex_hash_string )
 
     src_len = unhexify( src_str, hex_src_string );
 
-    mbedtls_sha512( src_str, src_len, output, 0);
+    TEST_ASSERT( mbedtls_sha512_ret( src_str, src_len, output, 0 ) == 0 );
     hexify( hash_str, output, 64 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );

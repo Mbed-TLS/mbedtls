@@ -204,8 +204,8 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
                 unsigned char *output );
 
 /**
- * \brief           This function finishes the GCM operation, and writes
- *                  the result to the output buffer.
+ * \brief           This function finishes the GCM operation and generates 
+ *                  the authentication tag.
  *
  *                  It wraps up the GCM stream, and generates the 
  *                  tag. The tag can have a maximum length of 16 Bytes.

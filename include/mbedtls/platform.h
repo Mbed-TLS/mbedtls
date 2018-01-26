@@ -205,7 +205,7 @@ extern int (*mbedtls_snprintf)( char * s, size_t n, const char * format, ... );
  *
  * \param snprintf_func   The \c snprintf function implementation.
  *
- * \return              0 on success.
+ * \return    \c 0 on success.
  */
 int mbedtls_platform_set_snprintf( int (*snprintf_func)( char * s, size_t n,
                                                  const char * format, ... ) );
@@ -229,7 +229,7 @@ extern void (*mbedtls_exit)( int status );
  *
  * \param exit_func   The \c exit function implementation.
  *
- * \return              0 on success.
+ * \return  \c 0 on success.
  */
 int mbedtls_platform_set_exit( void (*exit_func)( int status ) );
 #else
@@ -272,12 +272,13 @@ extern int (*mbedtls_nv_seed_read)( unsigned char *buf, size_t buf_len );
 extern int (*mbedtls_nv_seed_write)( unsigned char *buf, size_t buf_len );
 
 /**
- * \brief   This function sets your own seed file writing or reading functions.
+ * \brief   This function allows configuring custom seed file writing and 
+ *          reading functions.
  *
  * \param   nv_seed_read_func   The seed reading function implementation.
  * \param   nv_seed_write_func  The seed writing function implementation.
  *
- * \return  0 on success.
+ * \return  \c 0 on success.
  */
 int mbedtls_platform_set_nv_seed(
             int (*nv_seed_read_func)( unsigned char *buf, size_t buf_len ),

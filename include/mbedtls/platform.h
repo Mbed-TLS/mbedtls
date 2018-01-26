@@ -52,34 +52,36 @@ extern "C" {
 #include <time.h>
 #if !defined(MBEDTLS_PLATFORM_STD_SNPRINTF)
 #if defined(_WIN32)
-#define MBEDTLS_PLATFORM_STD_SNPRINTF   mbedtls_platform_win32_snprintf /**< Default snprintf to use.  */
+#define MBEDTLS_PLATFORM_STD_SNPRINTF   mbedtls_platform_win32_snprintf 
+/**< The default \c snprintf function to use.  */
 #else
-#define MBEDTLS_PLATFORM_STD_SNPRINTF   snprintf /**< Default snprintf to use.  */
+#define MBEDTLS_PLATFORM_STD_SNPRINTF   snprintf 
+/**< The default \c snprintf function to use.  */
 #endif
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_PRINTF)
-#define MBEDTLS_PLATFORM_STD_PRINTF   printf /**< Default printf to use.  */
+#define MBEDTLS_PLATFORM_STD_PRINTF   printf /**< The default \c printf function to use. */
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_FPRINTF)
-#define MBEDTLS_PLATFORM_STD_FPRINTF fprintf /**< Default fprintf to use. */
+#define MBEDTLS_PLATFORM_STD_FPRINTF fprintf /**< The default \c fprintf function to use. */
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_CALLOC)
-#define MBEDTLS_PLATFORM_STD_CALLOC   calloc /**< Default allocator to use. */
+#define MBEDTLS_PLATFORM_STD_CALLOC   calloc /**< The default \c calloc function to use. */
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_FREE)
-#define MBEDTLS_PLATFORM_STD_FREE       free /**< Default free to use. */
+#define MBEDTLS_PLATFORM_STD_FREE       free /**< The default \c free function to use. */
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_EXIT)
-#define MBEDTLS_PLATFORM_STD_EXIT      exit /**< Default exit to use. */
+#define MBEDTLS_PLATFORM_STD_EXIT      exit /**< The default \c exit function to use. */
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_TIME)
-#define MBEDTLS_PLATFORM_STD_TIME       time    /**< Default time to use. */
+#define MBEDTLS_PLATFORM_STD_TIME       time    /**< The default \c time function to use. */
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_EXIT_SUCCESS)
-#define MBEDTLS_PLATFORM_STD_EXIT_SUCCESS  EXIT_SUCCESS /**< Default exit value to use. */
+#define MBEDTLS_PLATFORM_STD_EXIT_SUCCESS  EXIT_SUCCESS /**< The default exit value to use. */
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_EXIT_FAILURE)
-#define MBEDTLS_PLATFORM_STD_EXIT_FAILURE  EXIT_FAILURE /**< Default exit value to use. */
+#define MBEDTLS_PLATFORM_STD_EXIT_FAILURE  EXIT_FAILURE /**< The default exit value to use. */
 #endif
 #if defined(MBEDTLS_FS_IO)
 #if !defined(MBEDTLS_PLATFORM_STD_NV_SEED_READ)
@@ -164,7 +166,7 @@ int mbedtls_platform_set_fprintf( int (*fprintf_func)( FILE *stream, const char 
 extern int (*mbedtls_printf)( const char *format, ... );
 
 /**
- * \brief    This function allows configuring a custom \c fprintf function 
+ * \brief    This function allows configuring a custom \c printf function 
  *           pointer.
  *
  * \param printf_func   The \c printf function implementation.
@@ -223,7 +225,7 @@ extern void (*mbedtls_exit)( int status );
 
 /**
  * \brief   This function allows configuring a custom \c exit function 
- *           pointer.
+ *          pointer.
  *
  * \param exit_func   The \c exit function implementation.
  *

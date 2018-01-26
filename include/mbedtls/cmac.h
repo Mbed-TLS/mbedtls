@@ -36,15 +36,15 @@ extern "C" {
 #define MBEDTLS_DES3_BLOCK_SIZE         8
 
 #if defined(MBEDTLS_AES_C)
-#define MBEDTLS_CIPHER_BLKSIZE_MAX      16  /* The longest block used by CMAC is AES. */
+#define MBEDTLS_CIPHER_BLKSIZE_MAX      16  /* The longest block used by CMAC is that of AES. */
 #else
-#define MBEDTLS_CIPHER_BLKSIZE_MAX      8   /* The longest block used by CMAC is 3DES. */
+#define MBEDTLS_CIPHER_BLKSIZE_MAX      8   /* The longest block used by CMAC is that of 3DES. */
 #endif
 
 #if !defined(MBEDTLS_CMAC_ALT)
 
 /**
- * The CMAC context structure. Contains internal-state information only.
+ * The CMAC context structure.
  */
 struct mbedtls_cmac_context_t
 {
@@ -64,7 +64,7 @@ struct mbedtls_cmac_context_t
  *                      the input data.
  *                      Must be called with an initialized cipher context.
  *
- * \param ctx           The context of the cipher, initialized as one of the 
+ * \param ctx           The cipher context, initialized as one of the 
  *                      following types:<ul>
  *                      <li>MBEDTLS_CIPHER_AES_128_ECB</li>
  *                      <li>MBEDTLS_CIPHER_AES_192_ECB</li>
@@ -72,7 +72,7 @@ struct mbedtls_cmac_context_t
  *                      <li>MBEDTLS_CIPHER_DES_EDE3_ECB</li></ul>
  * \param key           The CMAC key.
  * \param keybits       The length of the CMAC key in bits.
- *                      Must be supported  by the cipher.
+ *                      Must be supported by the cipher.
  *
  * \return              \c 0 on success, or a cipher-specific error code.
  */
@@ -80,8 +80,8 @@ int mbedtls_cipher_cmac_starts( mbedtls_cipher_context_t *ctx,
                                 const unsigned char *key, size_t keybits );
 
 /**
- * \brief               This function performs a CMAC operation on  
- *                      the input buffer.
+ * \brief               This function feeds an input buffer into an ongoing CMAC  
+ *                      computation.
  *
  *                      It is called between mbedtls_cipher_cmac_starts() or
  *                      mbedtls_cipher_cmac_reset(), and mbedtls_cipher_cmac_finish().
@@ -115,8 +115,9 @@ int mbedtls_cipher_cmac_finish( mbedtls_cipher_context_t *ctx,
                                 unsigned char *output );
 
 /**
- * \brief               This function authenticates a new message with the 
- *                      same key as the previous CMAC operation. 
+ * \brief               This function prepares the authentication of another  
+ *                      message with the same key as the previous CMAC 
+ *                      operation.
  *
  *                      It is called after mbedtls_cipher_cmac_finish() 
  *                      and before mbedtls_cipher_cmac_update().
@@ -139,7 +140,7 @@ int mbedtls_cipher_cmac_reset( mbedtls_cipher_context_t *ctx );
  *                      output = generic CMAC(cmac key, input buffer).
  *
  *
- * \param cipher_info   The message digest information.
+ * \param cipher_info   The cipher information.
  * \param key           The CMAC key.
  * \param keylen        The length of the CMAC key in bits.
  * \param input         The buffer holding the input data.
@@ -156,16 +157,15 @@ int mbedtls_cipher_cmac( const mbedtls_cipher_info_t *cipher_info,
 
 #if defined(MBEDTLS_AES_C)
 /**
- * \brief           This function generates pseudorandom output.
+ * \brief           This function implements the AES-CMAC-PRF-128 pseudorandom 
+ *                  function, as defined in 
+ *                  <em>RFC-4615: The Advanced Encryption Standard-Cipher-based 
+ *                  Message Authentication Code-Pseudo-Random Function-128 
+ *                  (AES-CMAC-PRF-128) Algorithm for the Internet Key 
+ *                  Exchange Protocol (IKE).</em>
  *
- *                  It implements the AES-CMAC-PRF-128 algorithm,  
- *                  as defined in <em>RFC-4615: The Advanced Encryption  
- *                  Standard-Cipher-based Message Authentication 
- *                  Code-Pseudo-Random Function-128 (AES-CMAC-PRF-128) 
- *                  Algorithm for the Internet Key Exchange Protocol (IKE).</em>
- *
- * \param key       The PRF key.
- * \param key_len   The PRF key length in Bytes.
+ * \param key       The key to use.
+ * \param key_len   The key length in Bytes.
  * \param input     The buffer holding the input data.
  * \param in_len    The length of the input data in Bytes.
  * \param output    The buffer holding the generated 16 Bytes of 

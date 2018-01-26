@@ -117,6 +117,9 @@ Changes
    * Tighten the RSA PKCS#1 v1.5 signature verification code and remove the
      undeclared dependency of the RSA module on the ASN.1 module.
    * Add mechanism to provide alternative implementation of the DHM module.
+   * Add MBEDTLS_ERR_XXX_HW_ACCEL_FAILED error codes for all cryptography
+     modules where the software implementation can be replaced by a hardware
+     implementation.
 
 = mbed TLS 2.6.0 branch released 2017-08-10
 

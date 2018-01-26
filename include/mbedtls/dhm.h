@@ -44,6 +44,7 @@
 #define MBEDTLS_ERR_DHM_INVALID_FORMAT                    -0x3380  /**< The ASN.1 data is not formatted correctly. */
 #define MBEDTLS_ERR_DHM_ALLOC_FAILED                      -0x3400  /**< Allocation of memory failed. */
 #define MBEDTLS_ERR_DHM_FILE_IO_ERROR                     -0x3480  /**< Read/write of file failed. */
+#define MBEDTLS_ERR_DHM_HW_ACCEL_FAILED                   -0x3500  /**< DHM hardware accelerator failed. */
 
 /**
  * RFC 3526 defines a number of standardized Diffie-Hellman groups

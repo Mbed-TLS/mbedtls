@@ -87,9 +87,9 @@ typedef struct {
  * \brief           This function returns the list of digests supported by the 
  *                  generic digest module.
  *
- * \return          A statically allocated array of digests. returned list is an 
+ * \return          A statically allocated array of digests. Returned list is an 
  *                  integer belonging to the message-digest enumeration 
- *					#mbedtls_md_type_t. The last entry is 0.
+ *                  #mbedtls_md_type_t. The last entry is 0.
  */
 const int *mbedtls_md_list( void );
 
@@ -200,7 +200,8 @@ int mbedtls_md_clone( mbedtls_md_context_t *dst,
                       const mbedtls_md_context_t *src );
 
 /**
- * \brief           This function returns the size of the message-digest output.
+ * \brief           This function extracts the message-digest size from the 
+ *                  message-digest information structure.
  *
  * \param md_info   The information structure of the message-digest algorithm 
  *                  to use.
@@ -210,7 +211,8 @@ int mbedtls_md_clone( mbedtls_md_context_t *dst,
 unsigned char mbedtls_md_get_size( const mbedtls_md_info_t *md_info );
 
 /**
- * \brief           This function returns the type of the message-digest output.
+ * \brief           This function extracts the message-digest type from the 
+ *                  message-digest information structure.
  *
  * \param md_info   The information structure of the message-digest algorithm 
  *                  to use.
@@ -296,7 +298,7 @@ int mbedtls_md( const mbedtls_md_info_t *md_info, const unsigned char *input, si
 #if defined(MBEDTLS_FS_IO)
 /**
  * \brief          This function calculates the message-digest checksum
- *                 result on the provided file.
+ *                 result of the contents of the provided file.
  *
  *                 The result is calculated as 
  *                 Output = message_digest(file contents).

@@ -123,7 +123,8 @@ int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
                                unsigned char output[32] );
 
 /**
- * \brief          The SHA-256 process data block. For internal use only.
+ * \brief          This function processes a single data block within
+ *                 the ongoing SHA-256 computation.
  *
  * \param ctx      The SHA-256 context.
  * \param data     The buffer holding one block of data.
@@ -207,7 +208,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_sha256_process(
 }
 
 #undef MBEDTLS_DEPRECATED
-#endif /* !MBEDTLS_DEPRECATED_REMOVED */									 
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */                                     
 #ifdef __cplusplus
 }
 #endif
@@ -279,7 +280,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_sha256(
 
 #undef MBEDTLS_DEPRECATED
 #endif /* !MBEDTLS_DEPRECATED_REMOVED */
-						
+                        
 /**
  * \brief          The SHA-224 and SHA-256 checkup routine.
  *

@@ -68,7 +68,7 @@
 #define MBEDTLS_RSA_SIGN        1 /**< Identifier for RSA signature operations. */
 #define MBEDTLS_RSA_CRYPT       2 /**< Identifier for RSA encryption and decryption operations. */
 
-#define MBEDTLS_RSA_SALT_LEN_ANY    -1 
+#define MBEDTLS_RSA_SALT_LEN_ANY    -1
 
 /*
  * The above constants may be used even if the RSA module is compile out,
@@ -93,7 +93,7 @@ extern "C" {
 typedef struct
 {
     int ver;                    /*!<  Always 0.*/
-    size_t len;                 /*!<  The size of \p N in characters. */
+    size_t len;                 /*!<  The size of \p N in Bytes. */
 
     mbedtls_mpi N;                      /*!<  The public modulus. */
     mbedtls_mpi E;                      /*!<  The public exponent. */
@@ -116,12 +116,13 @@ typedef struct
 
     int padding;                /*!< Selects padding mode: 
 	                                 #MBEDTLS_RSA_PKCS_V15 for 1.5 padding and
-                                     #MBEDTLS_RSA_PKCS_v21 for OAEP or PSS. */
-    int hash_id;                /*!< Hash identifier of mbedtls_md_type_t, as
-                                     specified in the md.h header file for 
-                                     the EME-OAEP and EMSA-PSS encoding. */
+                                     #MBEDTLS_RSA_PKCS_V21 for OAEP or PSS. */
+    int hash_id;                /*!< Hash identifier of mbedtls_md_type_t type, 
+                                     as specified in md.h for use in the MGF 
+									 mask generating function used in the 
+									 EME-OAEP and EMSA-PSS encodings. */
 #if defined(MBEDTLS_THREADING_C)
-    mbedtls_threading_mutex_t mutex;    /*!<  Thread-safety mutex.*/
+    mbedtls_threading_mutex_t mutex;    /*!<  Thread-safety mutex. */
 #endif
 }
 mbedtls_rsa_context;
@@ -129,13 +130,14 @@ mbedtls_rsa_context;
 /**
  * \brief          This function initializes an RSA context.
  *
- * \note           Set padding to #MBEDTLS_RSA_PKCS_v21 for the RSAES-OAEP
- *                 encryption scheme, and the RSASSA-PSS signature scheme.
+ * \note           Set padding to #MBEDTLS_RSA_PKCS_V21 for the RSAES-OAEP
+ *                 encryption scheme and the RSASSA-PSS signature scheme.
  *
  * \param ctx      The RSA context to initialize.
  * \param padding  Selects padding mode: #MBEDTLS_RSA_PKCS_V15 or 
- *                 #MBEDTLS_RSA_PKCS_v21.
- * \param hash_id  The #MBEDTLS_RSA_PKCS_v21 hash identifier.
+ *                 #MBEDTLS_RSA_PKCS_V21.
+ * \param hash_id  The hash identifier of #mbedtls_md_type_t tyope, if
+ *                 \p padding is #MBEDTLS_RSA_PKCS_V21.
  *
  * \note           The \p hash_id parameter is ignored when using 
  *                 #MBEDTLS_RSA_PKCS_V15 padding.
@@ -149,7 +151,7 @@ mbedtls_rsa_context;
  * \note           The hash selected in \p hash_id is always used for OEAP 
  *                 encryption. For PSS signatures, it is always used for
  *                 making signatures, but can be overriden for verifying them. 
- *                 It is always overriden, if set to #MBEDTLS_MD_NONE.
+ *                 If set to #MBEDTLS_MD_NONE, it is always overriden.
  */
 void mbedtls_rsa_init( mbedtls_rsa_context *ctx,
                        int padding,
@@ -170,11 +172,11 @@ void mbedtls_rsa_init( mbedtls_rsa_context *ctx,
  *                 imports, if the parameters are not simultaneously present.
  *
  *                 Any sequence of calls to this function should be followed
- *                 by a call to #mbedtls_rsa_complete, which checks and
+ *                 by a call to mbedtls_rsa_complete(), which checks and
  *                 completes the provided information to a ready-for-use
  *                 public or private RSA key.
  *
- * \note           See #mbedtls_rsa_complete for more information on which 
+ * \note           See mbedtls_rsa_complete() for more information on which 
  *                 parameters are necessary to set up a private or public
  *                 RSA key.
  *
@@ -195,24 +197,24 @@ int mbedtls_rsa_import( mbedtls_rsa_context *ctx,
  * \param ctx      The initialized RSA context to store the parameters in.
  * \param N        The RSA modulus, or NULL.
  * \param N_len    The Byte length of \p N, ignored if \p N == NULL.
- * \param P        The irst prime factor of \p N, or NULL.
- * \param P_len    The Byte length of \p P, ignored if \p P == \c NULL.
+ * \param P        The first prime factor of \p N, or NULL.
+ * \param P_len    The Byte length of \p P, ignored if \p P == NULL.
  * \param Q        The second prime factor of \p N, or NULL.
- * \param Q_len    The Byte length of \p Q, ignored if \p Q == \c NULL.
+ * \param Q_len    The Byte length of \p Q, ignored if \p Q == NULL.
  * \param D        The private exponent, or NULL.
- * \param D_len    The Byte length of \p D, ignored if \p D == \c NULL.
+ * \param D_len    The Byte length of \p D, ignored if \p D == NULL.
  * \param E        The public exponent, or NULL.
- * \param E_len    The Byte length of \p E, ignored if \p E == \c NULL.
+ * \param E_len    The Byte length of \p E, ignored if \p E == NULL.
  *
  * \note           This function can be called multiple times for successive
  *                 imports, if the parameters are not simultaneously present.
  *
  *                 Any sequence of calls to this function should be followed
- *                 by a call to #mbedtls_rsa_complete, which checks and
+ *                 by a call to mbedtls_rsa_complete(), which checks and
  *                 completes the provided information to a ready-for-use
  *                 public or private RSA key.
  *
- * \note           See #mbedtls_rsa_complete for more information on which 
+ * \note           See mbedtls_rsa_complete() for more information on which 
  *                 parameters are necessary to set up a private or public
  *                 RSA key.
  *
@@ -247,16 +249,16 @@ int mbedtls_rsa_import_raw( mbedtls_rsa_context *ctx,
  *                 the RSA context can be used for RSA operations without 
  *                 the risk of failure or crash.
  *
- * \param ctx      the initialized RSA context holding imported parameters.
+ * \param ctx      The initialized RSA context holding imported parameters.
  *
  * \return         \c 0 on success, or #MBEDTLS_ERR_RSA_BAD_INPUT_DATA if the 
  *                 attempted derivations failed.
  *
  * \warning        This function need not perform consistency checks
  *                 for the imported parameters. In particular, parameters that
- *                 are not needed by the implementation might be silently 
- *                 discarded and left unchecked. To check the consistency 
- *                 of the key material, see #mbedtls_rsa_check_privkey.
+ *                 are not needed by the implementation might be silently
+ *                 discarded and left unchecked. To check the consistency
+ *                 of the key material, see mbedtls_rsa_check_privkey().
  *
  */
 int mbedtls_rsa_complete( mbedtls_rsa_context *ctx );
@@ -274,12 +276,13 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx );
  *                 <li>An alternative RSA implementation is in use, which
  *                 stores the key externally, and either cannot or should 
  *                 not export it into RAM.</li>
- *                 <li>A SW or HW implementation might not support deducing. 
- *                 For example, \p P, \p Q from \p N, \p D, and \p E if the 
- *                 former are not part of the implementation.</li></ul>
+ *                 <li>A SW or HW implementation might not support a certain
+ *                 deduction. For example, \p P, \p Q from \p N, \p D, 
+ *                 and \p E if the former are not part of the 
+ *                 implementation.</li></ul>
  *
  *                 If the function fails due to an unsupported operation,
- *                 the RSA context stays intact and can continue to be used.
+ *                 the RSA context stays intact and remains usable.
  *
  * \param ctx      The initialized RSA context.
  * \param N        The MPI to hold the RSA modulus, or NULL.
@@ -313,11 +316,12 @@ int mbedtls_rsa_export( const mbedtls_rsa_context *ctx,
  *                 <li>An alternative RSA implementation is in use, which
  *                 stores the key externally, and either cannot or should 
  *                 not export it into RAM.</li>
- *                 <li>A SW or HW implementation might not support deducing. 
- *                 For example, \p P, \p Q from \p N, \p D, and \p E if the 
- *                 former are not part of the implementation.</li></ul>
+ *                 <li>A SW or HW implementation might not support a certain
+ *                 deduction. For example, \p P, \p Q from \p N, \p D, 
+ *                 and \p E if the former are not part of the 
+ *                 implementation.</li></ul>
  *                 If the function fails due to an unsupported operation,
- *                 the RSA context stays intact and can continue to be used.
+ *                 the RSA context stays intact and remains usable.
  * 
  * \param ctx      The initialized RSA context.
  * \param N        The Byte array to store the RSA modulus, or NULL.
@@ -361,7 +365,7 @@ int mbedtls_rsa_export_raw( const mbedtls_rsa_context *ctx,
  *
  * \note           Alternative RSA implementations not using CRT-parameters
  *                 internally can implement this function based on
- *                 #mbedtls_rsa_deduce_opt.
+ *                 mbedtls_rsa_deduce_opt().
  *
  */
 int mbedtls_rsa_export_crt( const mbedtls_rsa_context *ctx,
@@ -373,8 +377,8 @@ int mbedtls_rsa_export_crt( const mbedtls_rsa_context *ctx,
  *
  * \param ctx      The RSA context to be set.
  * \param padding  Selects padding mode: #MBEDTLS_RSA_PKCS_V15 or 
- *                 #MBEDTLS_RSA_PKCS_v21.
- * \param hash_id  The #MBEDTLS_RSA_PKCS_v21 hash identifier.
+ *                 #MBEDTLS_RSA_PKCS_V21.
+ * \param hash_id  The #MBEDTLS_RSA_PKCS_V21 hash identifier.
  */
 void mbedtls_rsa_set_padding( mbedtls_rsa_context *ctx, int padding,
                               int hash_id);
@@ -414,8 +418,8 @@ int mbedtls_rsa_gen_key( mbedtls_rsa_context *ctx,
  *                 public key.
  *
  *                 If the function runs successfully, it is guaranteed that 
- *                 enough information ispresent to perform an RSA public key 
- *                 operation \c mbedtls_rsa_public.
+ *                 enough information is present to perform an RSA public key 
+ *                 operation using \c mbedtls_rsa_public.
  *
  * \param ctx      The RSA context to check.
  *
@@ -447,7 +451,7 @@ int mbedtls_rsa_check_pubkey( const mbedtls_rsa_context *ctx );
  *             <ul><li>Consistency: Imported parameters that are irrelevant 
  *             for the implementation might be silently dropped. If dropped,  
  *             the current function does not have access to them,
- *             and therefore cannot check them. See #mbedtls_rsa_complete.
+ *             and therefore cannot check them. See mbedtls_rsa_complete().
  *             If you want to check the consistency of the entire
  *             content of an PKCS1-encoded RSA private key, for example, you
  *             should use mbedtls_rsa_validate_params() before setting
@@ -560,8 +564,8 @@ int mbedtls_rsa_pkcs1_encrypt( mbedtls_rsa_context *ctx,
                        unsigned char *output );
 
 /**
- * \brief          This function performs a PKCS#1 v1.5 encryption 
- *                 (RSAES-PKCS1-v1_5-ENCRYPT) operation.
+ * \brief          This function performs a PKCS#1 v1.5 encryption operation
+ *                 (RSAES-PKCS1-v1_5-ENCRYPT).
  *
  * \param ctx      The RSA context.
  * \param f_rng    The RNG function. Needed for padding and 
@@ -596,7 +600,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
 
 /**
  * \brief            This function performs a PKCS#1 v2.1 OAEP encryption 
- *                   (RSAES-OAEP-ENCRYPT) operation.
+ *                   operation (RSAES-OAEP-ENCRYPT).
  *
  * \param ctx        The RSA context.
  * \param f_rng      The RNG function. Needed for padding and PKCS#1 v2.1 
@@ -681,7 +685,7 @@ int mbedtls_rsa_pkcs1_decrypt( mbedtls_rsa_context *ctx,
 
 /**
  * \brief          This function performs a PKCS#1 v1.5 decryption 
- *                 (RSAES-PKCS1-v1_5-DECRYPT) operation.
+ *                 operation (RSAES-PKCS1-v1_5-DECRYPT).
  *
  * \param ctx      The RSA context.
  * \param f_rng    The RNG function. Only needed for #MBEDTLS_RSA_PRIVATE.
@@ -724,7 +728,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
 
 /**
  * \brief          This function performs a PKCS#1 v2.1 OAEP decryption 
- *                 (RSAES-OAEP-DECRYPT) operation.
+ *                 operation (RSAES-OAEP-DECRYPT).
  *
  * \param ctx        The RSA context.
  * \param f_rng      The RNG function. Only needed for #MBEDTLS_RSA_PRIVATE.
@@ -818,7 +822,7 @@ int mbedtls_rsa_pkcs1_sign( mbedtls_rsa_context *ctx,
 
 /**
  * \brief          This function performs a PKCS#1 v1.5 signature 
- *                 (RSASSA-PKCS1-v1_5-SIGN) operation.
+ *                 operation (RSASSA-PKCS1-v1_5-SIGN).
  *
  * \param ctx      The RSA context.
  * \param f_rng    The RNG function. Only needed for #MBEDTLS_RSA_PRIVATE.
@@ -857,7 +861,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
 
 /**
  * \brief          This function performs a PKCS#1 v2.1 PSS signature 
- *                 (RSASSA-PSS-SIGN) operation.
+ *                 operation (RSASSA-PSS-SIGN).
  *
  * \param ctx      The RSA context.
  * \param f_rng    The RNG function. Needed for PKCS#1 v2.1 encoding and for
@@ -950,7 +954,7 @@ int mbedtls_rsa_pkcs1_verify( mbedtls_rsa_context *ctx,
 
 /**
  * \brief          This function performs a PKCS#1 v1.5 verification 
- *                 (RSASSA-PKCS1-v1_5-VERIFY) operation.
+ *                 operation (RSASSA-PKCS1-v1_5-VERIFY).
  *
  * \param ctx      The points to an RSA public key.
  * \param f_rng    The RNG function. Only needed for #MBEDTLS_RSA_PRIVATE.
@@ -989,7 +993,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
 
 /**
  * \brief          This function performs a PKCS#1 v2.1 PSS verification 
- *                 (RSASSA-PSS-VERIFY) operation.
+ *                 operation (RSASSA-PSS-VERIFY).
  *
  *                 The hash function for the MGF mask generating function 
  *                 is that specified in the RSA context.
@@ -1039,7 +1043,7 @@ int mbedtls_rsa_rsassa_pss_verify( mbedtls_rsa_context *ctx,
 
 /**
  * \brief          This function performs a PKCS#1 v2.1 PSS verification 
- *                 (RSASSA-PSS-VERIFY) operation.
+ *                 operation (RSASSA-PSS-VERIFY).
  *
  *                 The hash function for the MGF mask generating function 
  *                 is that specified in \p mgf1_hash_id.

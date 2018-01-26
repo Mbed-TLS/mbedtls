@@ -3711,9 +3711,9 @@ int ssl_init( ssl_context *ssl )
 
 #if defined(POLARSSL_DHM_C)
     if( ( ret = mpi_read_string( &ssl->dhm_P, 16,
-                                 POLARSSL_DHM_RFC5114_MODP_2048_P) ) != 0 ||
+                                 POLARSSL_DHM_RFC3526_MODP_2048_P) ) != 0 ||
         ( ret = mpi_read_string( &ssl->dhm_G, 16,
-                                 POLARSSL_DHM_RFC5114_MODP_2048_G) ) != 0 )
+                                 POLARSSL_DHM_RFC3526_MODP_2048_G) ) != 0 )
     {
         SSL_DEBUG_RET( 1, "mpi_read_string", ret );
         return( ret );

@@ -30,6 +30,9 @@ Security
      Reported by Marco Macchetti, Kudelski Group.
    * Wipe stack buffer temporarily holding EC private exponent
      after keypair generation.
+   * Change default choice of DHE parameters from untrustworthy RFC 5114
+     to RFC 3526 containing parameters generated in a nothing-up-my-sleeve
+     manner.
 
 Features
    * Allow comments in test data files.

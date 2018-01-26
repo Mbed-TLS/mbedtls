@@ -1598,8 +1598,8 @@ int main( int argc, char *argv[] )
         ret = ssl_set_dh_param_ctx( &ssl, &dhm );
     else
 #endif
-        ret = ssl_set_dh_param( &ssl, POLARSSL_DHM_RFC5114_MODP_2048_P,
-                                      POLARSSL_DHM_RFC5114_MODP_2048_G );
+        ret = ssl_set_dh_param( &ssl, POLARSSL_DHM_RFC3526_MODP_2048_P,
+                                      POLARSSL_DHM_RFC3526_MODP_2048_G );
 
     if( ret != 0 )
     {

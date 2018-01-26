@@ -192,8 +192,8 @@ MBEDTLS_DEPRECATED static inline void mbedtls_sha256_finish(
 }
 
 /**
- * \brief          This function processes data block using SHA-256. For 
- *                 internal use only.
+ * \brief          This function processes a single data block within
+ *                 the ongoing SHA-256 computation.
  *
  * \deprecated     Superseded by mbedtls_internal_sha256_process() in 2.7.0.
  *

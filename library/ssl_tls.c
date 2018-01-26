@@ -6161,12 +6161,32 @@ void mbedtls_ssl_conf_psk_cb( mbedtls_ssl_config *conf,
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 int mbedtls_ssl_conf_dh_param( mbedtls_ssl_config *conf, const char *dhm_P, const char *dhm_G )
 {
     int ret;
 
     if( ( ret = mbedtls_mpi_read_string( &conf->dhm_P, 16, dhm_P ) ) != 0 ||
         ( ret = mbedtls_mpi_read_string( &conf->dhm_G, 16, dhm_G ) ) != 0 )
+    {
+        mbedtls_mpi_free( &conf->dhm_P );
+        mbedtls_mpi_free( &conf->dhm_G );
+        return( ret );
+    }
+
+    return( 0 );
+}
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
+
+int mbedtls_ssl_conf_dh_param_bin( mbedtls_ssl_config *conf,
+                                   const unsigned char *dhm_P, size_t P_len,
+                                   const unsigned char *dhm_G, size_t G_len )
+{
+    int ret;
+
+    if( ( ret = mbedtls_mpi_read_binary( &conf->dhm_P, dhm_P, P_len ) ) != 0 ||
+        ( ret = mbedtls_mpi_read_binary( &conf->dhm_G, dhm_G, G_len ) ) != 0 )
     {
         mbedtls_mpi_free( &conf->dhm_P );
         mbedtls_mpi_free( &conf->dhm_G );
@@ -7602,9 +7622,14 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
             if( endpoint == MBEDTLS_SSL_IS_SERVER )
             {
-                if( ( ret = mbedtls_ssl_conf_dh_param( conf,
-                                MBEDTLS_DHM_RFC5114_MODP_2048_P,
-                                MBEDTLS_DHM_RFC5114_MODP_2048_G ) ) != 0 )
+                const unsigned char dhm_p[] =
+                    MBEDTLS_DHM_RFC3526_MODP_2048_P_BIN;
+                const unsigned char dhm_g[] =
+                    MBEDTLS_DHM_RFC3526_MODP_2048_G_BIN;
+
+                if ( ( ret = mbedtls_ssl_conf_dh_param_bin( conf,
+                                               dhm_p, sizeof( dhm_p ),
+                                               dhm_g, sizeof( dhm_g ) ) ) != 0 )
                 {
                     return( ret );
                 }

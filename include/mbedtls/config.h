@@ -630,6 +630,13 @@
  *      MBEDTLS_TLS_DHE_PSK_WITH_CAMELLIA_128_CBC_SHA256
  *      MBEDTLS_TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA
  *      MBEDTLS_TLS_DHE_PSK_WITH_RC4_128_SHA
+ *
+ * \warning    Using DHE constitutes a security risk as it
+ *             is not possible to validate custom DH parameters.
+ *             If possible, it is recommended users should consider
+ *             preferring other methods of key exchange.
+ *             See dhm.h for more details.
+ *
  */
 #define MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED
 
@@ -729,6 +736,13 @@
  *      MBEDTLS_TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256
  *      MBEDTLS_TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA
  *      MBEDTLS_TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA
+ *
+ * \warning    Using DHE constitutes a security risk as it
+ *             is not possible to validate custom DH parameters.
+ *             If possible, it is recommended users should consider
+ *             preferring other methods of key exchange.
+ *             See dhm.h for more details.
+ *
  */
 #define MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
 
@@ -1855,6 +1869,13 @@
  *
  * This module is used by the following key exchanges:
  *      DHE-RSA, DHE-PSK
+ *
+ * \warning    Using DHE constitutes a security risk as it
+ *             is not possible to validate custom DH parameters.
+ *             If possible, it is recommended users should consider
+ *             preferring other methods of key exchange.
+ *             See dhm.h for more details.
+ *
  */
 #define MBEDTLS_DHM_C
 

@@ -234,6 +234,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
             mbedtls_snprintf( buf, buflen, "DHM - Allocation of memory failed" );
         if( use_ret == -(MBEDTLS_ERR_DHM_FILE_IO_ERROR) )
             mbedtls_snprintf( buf, buflen, "DHM - Read/write of file failed" );
+        if( use_ret == -(MBEDTLS_ERR_DHM_SET_GROUP_FAILED) )
+            mbedtls_snprintf( buf, buflen, "DHM - Setting the modulus and generator failed" );
 #endif /* MBEDTLS_DHM_C */
 
 #if defined(MBEDTLS_ECP_C)

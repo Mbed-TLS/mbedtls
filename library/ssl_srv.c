@@ -2945,10 +2945,11 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
          *     opaque dh_Ys<1..2^16-1>;
          * } ServerDHParams;
          */
-        if( ( ret = mbedtls_mpi_copy( &ssl->handshake->dhm_ctx.P, &ssl->conf->dhm_P ) ) != 0 ||
-            ( ret = mbedtls_mpi_copy( &ssl->handshake->dhm_ctx.G, &ssl->conf->dhm_G ) ) != 0 )
+        if( ( ret = mbedtls_dhm_set_group( &ssl->handshake->dhm_ctx,
+                                           &ssl->conf->dhm_P,
+                                           &ssl->conf->dhm_G ) ) != 0 )
         {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_mpi_copy", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_dhm_set_group", ret );
             return( ret );
         }
 

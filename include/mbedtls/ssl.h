@@ -1700,18 +1700,50 @@ void mbedtls_ssl_conf_psk_cb( mbedtls_ssl_config *conf,
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED    __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+
 /**
  * \brief          Set the Diffie-Hellman public P and G values,
  *                 read as hexadecimal strings (server-side only)
- *                 (Default: MBEDTLS_DHM_RFC5114_MODP_2048_[PG])
+ *                 (Default values: MBEDTLS_DHM_RFC3526_MODP_2048_[PG])
  *
  * \param conf     SSL configuration
  * \param dhm_P    Diffie-Hellman-Merkle modulus
  * \param dhm_G    Diffie-Hellman-Merkle generator
  *
+ * \deprecated     Superseded by \c mbedtls_ssl_conf_dh_param_bin.
+ *
  * \return         0 if successful
  */
-int mbedtls_ssl_conf_dh_param( mbedtls_ssl_config *conf, const char *dhm_P, const char *dhm_G );
+MBEDTLS_DEPRECATED int mbedtls_ssl_conf_dh_param( mbedtls_ssl_config *conf,
+                                                  const char *dhm_P,
+                                                  const char *dhm_G );
+
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
+
+/**
+ * \brief          Set the Diffie-Hellman public P and G values
+ *                 from big-endian binary presentations.
+ *                 (Default values: MBEDTLS_DHM_RFC3526_MODP_2048_[PG]_BIN)
+ *
+ * \param conf     SSL configuration
+ * \param dhm_P    Diffie-Hellman-Merkle modulus in big-endian binary form
+ * \param P_len    Length of DHM modulus
+ * \param dhm_G    Diffie-Hellman-Merkle generator in big-endian binary form
+ * \param G_len    Length of DHM generator
+ *
+ * \return         0 if successful
+ */
+int mbedtls_ssl_conf_dh_param_bin( mbedtls_ssl_config *conf,
+                                   const unsigned char *dhm_P, size_t P_len,
+                                   const unsigned char *dhm_G,  size_t G_len );
 
 /**
  * \brief          Set the Diffie-Hellman public P and G values,

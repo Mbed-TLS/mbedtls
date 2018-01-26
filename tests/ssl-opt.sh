@@ -3082,7 +3082,7 @@ run_test    "DHM parameters: reference" \
                     debug_level=3" \
             0 \
             -c "value of 'DHM: P ' (2048 bits)" \
-            -c "value of 'DHM: G ' (2048 bits)"
+            -c "value of 'DHM: G ' (2 bits)"
 
 run_test    "DHM parameters: other parameters" \
             "$P_SRV dhm_file=data_files/dhparams.pem" \

@@ -191,10 +191,15 @@ int mbedtls_dhm_make_params( mbedtls_dhm_context *ctx, int x_size,
     /*
      * export P, G, GX
      */
-#define DHM_MPI_EXPORT(X,n)                     \
-    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( X, p + 2, n ) ); \
-    *p++ = (unsigned char)( n >> 8 );           \
-    *p++ = (unsigned char)( n      ); p += n;
+#define DHM_MPI_EXPORT( X, n )                                          \
+    do {                                                                \
+        MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( ( X ),               \
+                                                   p + 2,               \
+                                                   ( n ) ) );           \
+        *p++ = (unsigned char)( ( n ) >> 8 );                           \
+        *p++ = (unsigned char)( ( n )      );                           \
+        p += ( n );                                                     \
+    } while( 0 )
 
     n1 = mbedtls_mpi_size( &ctx->P  );
     n2 = mbedtls_mpi_size( &ctx->G  );
@@ -205,7 +210,7 @@ int mbedtls_dhm_make_params( mbedtls_dhm_context *ctx, int x_size,
     DHM_MPI_EXPORT( &ctx->G , n2 );
     DHM_MPI_EXPORT( &ctx->GX, n3 );
 
-    *olen  = p - output;
+    *olen = p - output;
 
     ctx->len = n1;
 
@@ -214,6 +219,28 @@ cleanup:
     if( ret != 0 )
         return( MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED + ret );
 
+    return( 0 );
+}
+
+/*
+ * Set prime modulus and generator
+ */
+int mbedtls_dhm_set_group( mbedtls_dhm_context *ctx,
+                           const mbedtls_mpi *P,
+                           const mbedtls_mpi *G )
+{
+    int ret;
+
+    if( ctx == NULL || P == NULL || G == NULL )
+        return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
+
+    if( ( ret = mbedtls_mpi_copy( &ctx->P, P ) ) != 0 ||
+        ( ret = mbedtls_mpi_copy( &ctx->G, G ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_DHM_SET_GROUP_FAILED + ret );
+    }
+
+    ctx->len = mbedtls_mpi_size( &ctx->P );
     return( 0 );
 }
 
@@ -404,10 +431,11 @@ cleanup:
  */
 void mbedtls_dhm_free( mbedtls_dhm_context *ctx )
 {
-    mbedtls_mpi_free( &ctx->pX); mbedtls_mpi_free( &ctx->Vf ); mbedtls_mpi_free( &ctx->Vi );
-    mbedtls_mpi_free( &ctx->RP ); mbedtls_mpi_free( &ctx->K ); mbedtls_mpi_free( &ctx->GY );
-    mbedtls_mpi_free( &ctx->GX ); mbedtls_mpi_free( &ctx->X ); mbedtls_mpi_free( &ctx->G );
-    mbedtls_mpi_free( &ctx->P );
+    mbedtls_mpi_free( &ctx->pX ); mbedtls_mpi_free( &ctx->Vf );
+    mbedtls_mpi_free( &ctx->Vi ); mbedtls_mpi_free( &ctx->RP );
+    mbedtls_mpi_free( &ctx->K  ); mbedtls_mpi_free( &ctx->GY );
+    mbedtls_mpi_free( &ctx->GX ); mbedtls_mpi_free( &ctx->X  );
+    mbedtls_mpi_free( &ctx->G  ); mbedtls_mpi_free( &ctx->P  );
 
     mbedtls_zeroize( ctx, sizeof( mbedtls_dhm_context ) );
 }

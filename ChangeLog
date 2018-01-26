@@ -41,6 +41,9 @@ Security
    * Fix a potential heap buffer overread in ALPN extension parsing
      (server-side). Could result in application crash, but only if an ALPN
      name larger than 16 bytes had been configured on the server.
+   * Change default choice of DHE parameters from untrustworthy RFC 5114
+     to RFC 3526 containing parameters generated in a nothing-up-my-sleeve
+     manner.
 
 Features
    * Allow comments in test data files.
@@ -96,6 +99,14 @@ New deprecations
      mbedtls_<MODULE>_finish and mbedtls_<MODULE>_process where <MODULE> is
      any of MD2, MD4, MD5, SHA1, SHA256, SHA512) in favor of functions
      that can return an error code.
+   * Deprecate untrustworthy DHE parameters from RFC 5114. Superseded by
+     parameters from RFC 3526 or the newly added parameters from RFC 7919.
+   * Deprecate hex string DHE constants MBEDTLS_DHM_RFC3526_MODP_2048_P etc.
+     Supserseded by binary encoded constants MBEDTLS_DHM_RFC3526_MODP_2048_P_BIN
+     etc.
+   * Deprecate mbedtls_ssl_conf_dh_param for setting default DHE parameters
+     from hex strings. Superseded by mbedtls_ssl_conf_dh_param_bin
+     accepting DHM parameters in binary form, matching the new constants.
 
 Bugfix
    * Fix ssl_parse_record_header() to silently discard invalid DTLS records

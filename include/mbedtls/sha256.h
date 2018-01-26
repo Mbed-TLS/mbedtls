@@ -85,7 +85,7 @@ void mbedtls_sha256_clone( mbedtls_sha256_context *dst,
                            const mbedtls_sha256_context *src );
 
 /**
- * \brief          This function sets up a SHA-256 context.
+ * \brief          This function starts a SHA-256 checksum calculation.
  *
  * \param ctx      The context to initialize.
  * \param is224    Determines which function to use.
@@ -97,8 +97,8 @@ void mbedtls_sha256_clone( mbedtls_sha256_context *dst,
 int mbedtls_sha256_starts_ret( mbedtls_sha256_context *ctx, int is224 );
 
 /**
- * \brief          This function encrypts or decrypts using the
- *                 given SHA-256 context.
+ * \brief          This function feeds an input buffer into an ongoing 
+ *                 SHA-256 checksum calculation.
  *
  * \param ctx      SHA-256 context
  * \param input    buffer holding the data

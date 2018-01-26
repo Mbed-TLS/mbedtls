@@ -123,7 +123,8 @@ int mbedtls_sha512_finish_ret( mbedtls_sha512_context *ctx,
                                unsigned char output[64] );
 
 /**
- * \brief          The SHA-512 process data block. For internal use only.
+ * \brief          This function processes a single data block within
+ *                 the ongoing SHA-512 computation.
  *
  * \param ctx      SHA-512 context
  * \param data     buffer holding one block of data
@@ -190,7 +191,8 @@ MBEDTLS_DEPRECATED static inline void mbedtls_sha512_finish(
 }
 
 /**
- * \brief          The SHA-512 process data block. For internal use only.
+ * \brief          This function processes a single data block within
+ *                 the ongoing SHA-512 computation.
  *
  * \deprecated     Superseded by mbedtls_internal_sha512_process() in 2.7.0
  *
@@ -206,7 +208,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_sha512_process(
 
 #undef MBEDTLS_DEPRECATED
 #endif /* !MBEDTLS_DEPRECATED_REMOVED */
-									 
+                                     
 #ifdef __cplusplus
 }
 #endif
@@ -241,7 +243,7 @@ extern "C" {
 int mbedtls_sha512_ret( const unsigned char *input, 
                         size_t ilen,
                         unsigned char output[64], 
-						int is384 );
+                        int is384 );
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 #if defined(MBEDTLS_DEPRECATED_WARNING)

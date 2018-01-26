@@ -61,14 +61,14 @@ typedef struct {
     unsigned char y[16];                  /*!< The Y working value. */
     unsigned char buf[16];                /*!< The buf working value. */
     int mode;                             /*!< The operation to perform: 
-	                                           #MBEDTLS_GCM_ENCRYPT or 
-											   #MBEDTLS_GCM_DECRYPT. */
+                                               #MBEDTLS_GCM_ENCRYPT or 
+                                               #MBEDTLS_GCM_DECRYPT. */
 }
 mbedtls_gcm_context;
 
 /**
  * \brief           This function initializes the specified GCM context, 
- *                  to make references valid, and prepare the context 
+ *                  to make references valid, and prepares the context 
  *                  for mbedtls_gcm_setkey() or mbedtls_gcm_free().
  *
  * \param ctx       The GCM context to initialize.
@@ -76,15 +76,14 @@ mbedtls_gcm_context;
 void mbedtls_gcm_init( mbedtls_gcm_context *ctx );
 
 /**
- * \brief           This function initializes the GCM context set in the 
- *                  \p ctx parameter and sets the encryption key.
+ * \brief           This function initializes the specified GCM context.
  *
  * \param ctx       The GCM context to initialize.
  * \param cipher    The 128-bit block cipher to use.
  * \param key       The encryption key.
  * \param keybits   The key size in bits. Must be 128bits, 192bits or 256bits.
  *
- * \return          \c 0 on success, or a cipher specific error code
+ * \return          \c 0 on success, or a cipher specific error code.
  */
 int mbedtls_gcm_setkey( mbedtls_gcm_context *ctx,
                         mbedtls_cipher_id_t cipher,
@@ -160,8 +159,8 @@ int mbedtls_gcm_auth_decrypt( mbedtls_gcm_context *ctx,
                       unsigned char *output );
 
 /**
- * \brief           This function sets the GCM key, and prepares to authenticate 
- *                  the input data.
+ * \brief           This function starts a GCM encryption or decryption 
+ *                  operation.
  *
  * \param ctx       The GCM context.
  * \param mode      The operation to perform: #MBEDTLS_GCM_ENCRYPT or 
@@ -181,8 +180,8 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
                 size_t add_len );
 
 /**
- * \brief           This function encrypts or decrypts using the
- *                  given generic GCM context. 
+ * \brief           This function feeds an input buffer into an ongoing GCM
+ *                  encryption or decryption operation.
  *
  *    `             The function expects input to be a multiple of 16
  *                  Bytes. Only the last call before calling 

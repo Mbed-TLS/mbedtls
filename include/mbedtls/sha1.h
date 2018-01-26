@@ -55,7 +55,7 @@ mbedtls_sha1_context;
 /**
  * \brief          This function initializes a SHA-1 context.
  *
- * \param ctx      the SHA-1 context to initialize.
+ * \param ctx      The SHA-1 context to initialize.
  */
 void mbedtls_sha1_init( mbedtls_sha1_context *ctx );
 
@@ -70,7 +70,7 @@ void mbedtls_sha1_free( mbedtls_sha1_context *ctx );
  * \brief          This function clones the state of a SHA-1 context.
  *
  * \param dst      The destination context.
- * \param src      The context clone.
+ * \param src      The context to clone.
  */
 void mbedtls_sha1_clone( mbedtls_sha1_context *dst,
                          const mbedtls_sha1_context *src );
@@ -117,8 +117,7 @@ extern "C" {
 #endif
 
 /**
- * \brief          This function calculates SHA-1 
- *                 on the input buffer.
+ * \brief          This function calculates the SHA-1 checksum of a buffer.
  *
  *                 The function allocates the context, performs the 
  *                 calculation, and frees the context.

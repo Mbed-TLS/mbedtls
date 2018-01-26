@@ -146,6 +146,7 @@ Changes
      new ones with return codes. In particular, this modifies the
      mbedtls_md_info_t structure. Propagate errors from these functions
      everywhere except some locations in the ssl_tls.c module.
+   * Improve CTR_DRBG error handling by propagating underlying AES errors.
 
 = mbed TLS 2.6.0 branch released 2017-08-10
 

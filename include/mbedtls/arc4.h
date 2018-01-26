@@ -32,6 +32,8 @@
 
 #include <stddef.h>
 
+#define MBEDTLS_ERR_ARC4_HW_ACCEL_FAILED                  -0x0019  /**< ARC4 hardware accelerator failed. */
+
 #if !defined(MBEDTLS_ARC4_ALT)
 // Regular implementation
 //

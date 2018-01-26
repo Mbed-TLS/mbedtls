@@ -147,6 +147,9 @@ Changes
      mbedtls_md_info_t structure. Propagate errors from these functions
      everywhere except some locations in the ssl_tls.c module.
    * Improve CTR_DRBG error handling by propagating underlying AES errors.
+   * Add MBEDTLS_ERR_XXX_HW_ACCEL_FAILED error codes for all cryptography
+     modules where the software implementation can be replaced by a hardware
+     implementation.
 
 = mbed TLS 2.6.0 branch released 2017-08-10
 

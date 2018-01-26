@@ -29,13 +29,14 @@ if( @ARGV ) {
 
 my $error_format_file = $data_dir.'/error.fmt';
 
-my @low_level_modules = ( "AES", "ASN1", "BLOWFISH", "CAMELLIA", "BIGNUM",
-                          "BASE64", "XTEA", "PBKDF2", "OID",
-                          "PADLOCK", "DES", "NET", "CTR_DRBG", "ENTROPY",
-                          "HMAC_DRBG", "MD2", "MD4", "MD5", "RIPEMD160",
-                          "SHA1", "SHA256", "SHA512", "GCM", "THREADING", "CCM" );
-my @high_level_modules = ( "PEM", "X509", "DHM", "RSA", "ECP", "MD", "CIPHER", "SSL",
-                           "PK", "PKCS12", "PKCS5" );
+my @low_level_modules = qw( AES ARC4 ASN1 BASE64 BIGNUM BLOWFISH
+                            CAMELLIA CCM CMAC CTR_DRBG DES
+                            ENTROPY GCM HMAC_DRBG MD2 MD4 MD5
+                            NET OID PADLOCK PBKDF2 RIPEMD160
+                            SHA1 SHA256 SHA512 THREADING XTEA );
+my @high_level_modules = qw( CIPHER DHM ECP MD
+                             PEM PK PKCS12 PKCS5
+                             RSA SSL X509 );
 
 my $line_separator = $/;
 undef $/;

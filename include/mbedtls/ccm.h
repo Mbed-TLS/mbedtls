@@ -28,6 +28,7 @@
 
 #define MBEDTLS_ERR_CCM_BAD_INPUT      -0x000D /**< Bad input parameters to function. */
 #define MBEDTLS_ERR_CCM_AUTH_FAILED    -0x000F /**< Authenticated decryption failed. */
+#define MBEDTLS_ERR_CCM_HW_ACCEL_FAILED                   -0x0011  /**< CCM hardware accelerator failed. */
 
 #if !defined(MBEDTLS_CCM_ALT)
 // Regular implementation

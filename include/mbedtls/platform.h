@@ -201,7 +201,7 @@ extern int (*mbedtls_snprintf)( char * s, size_t n, const char * format, ... );
 
 /**
  * \brief   This function allows configuring a custom \c snprintf function 
- *           pointer.
+ *          pointer.
  *
  * \param snprintf_func   The \c snprintf function implementation.
  *

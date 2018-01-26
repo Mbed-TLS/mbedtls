@@ -227,7 +227,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
 
 #if defined(MBEDTLS_DHM_C)
         if( use_ret == -(MBEDTLS_ERR_DHM_BAD_INPUT_DATA) )
-            mbedtls_snprintf( buf, buflen, "DHM - Bad input parameters to function" );
+            mbedtls_snprintf( buf, buflen, "DHM - Bad input parameters" );
         if( use_ret == -(MBEDTLS_ERR_DHM_READ_PARAMS_FAILED) )
             mbedtls_snprintf( buf, buflen, "DHM - Reading of the DHM parameters failed" );
         if( use_ret == -(MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED) )
@@ -243,7 +243,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(MBEDTLS_ERR_DHM_ALLOC_FAILED) )
             mbedtls_snprintf( buf, buflen, "DHM - Allocation of memory failed" );
         if( use_ret == -(MBEDTLS_ERR_DHM_FILE_IO_ERROR) )
-            mbedtls_snprintf( buf, buflen, "DHM - Read/write of file failed" );
+            mbedtls_snprintf( buf, buflen, "DHM - Read or write of file failed" );
         if( use_ret == -(MBEDTLS_ERR_DHM_HW_ACCEL_FAILED) )
             mbedtls_snprintf( buf, buflen, "DHM - DHM hardware accelerator failed" );
 #endif /* MBEDTLS_DHM_C */

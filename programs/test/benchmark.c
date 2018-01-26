@@ -131,15 +131,6 @@ do {                                                                    \
                      ( mbedtls_timing_hardclock() - tsc ) / ( jj * BUFSIZE ) );         \
 } while( 0 )
 
-#if defined(MBEDTLS_ERROR_C)
-#define PRINT_ERROR                                                     \
-        mbedtls_strerror( ret, ( char * )tmp, sizeof( tmp ) );          \
-        mbedtls_printf( "FAILED: %s\n", tmp );
-#else
-#define PRINT_ERROR                                                     \
-        mbedtls_printf( "FAILED: -0x%04x\n", -ret );
-#endif
-
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) && defined(MBEDTLS_MEMORY_DEBUG)
 
 #define MEMORY_MEASURE_INIT                                             \

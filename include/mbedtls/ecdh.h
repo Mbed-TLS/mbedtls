@@ -93,9 +93,9 @@ int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp
 /**
  * \brief           This function computes the shared secret.
  *
- *                  This function performs the first of two core computations 
- *                  implemented during the ECDH key exchange. The second core 
- *                  computation is performed by mbedtls_ecdh_compute_shared().
+ *                  This function performs the second of two core computations 
+ *                  implemented during the ECDH key exchange. The first core 
+ *                  computation is performed by mbedtls_ecdh_gen_public().
  *
  * \param grp       The ECP group.
  * \param z         The destination MPI (shared secret).

@@ -56,8 +56,8 @@ typedef enum
 typedef struct
 {
     mbedtls_ecp_group grp;   /*!< The elliptic curve used. */
-    mbedtls_mpi d;           /*!< The secret value of our private key. */
-    mbedtls_ecp_point Q;     /*!< The public value of our public key. */
+    mbedtls_mpi d;           /*!< The private key. */
+    mbedtls_ecp_point Q;     /*!< The public key. */
     mbedtls_ecp_point Qp;    /*!< The value of the public key of the peer. */
     mbedtls_mpi z;           /*!< The shared secret. */
     int point_format;        /*!< The format of point export in TLS messages. */
@@ -68,9 +68,12 @@ typedef struct
 mbedtls_ecdh_context;
 
 /**
- * \brief           This function generates a public key.
+ * \brief           This function generates an ECDH keypair on an elliptic 
+ *                  curve.
  *
- *                  This raw function only performs the core computation.
+ *                  This function performs the first of two core computations 
+ *                  implemented during the ECDH key exchange. The second core 
+ *                  computation is performed by mbedtls_ecdh_compute_shared().
  *
  * \param grp       The ECP group.
  * \param d         The destination MPI (private key).
@@ -90,7 +93,9 @@ int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp
 /**
  * \brief           This function computes the shared secret.
  *
- *                  This raw function only performs the core computation.
+ *                  This function performs the first of two core computations 
+ *                  implemented during the ECDH key exchange. The second core 
+ *                  computation is performed by mbedtls_ecdh_compute_shared().
  *
  * \param grp       The ECP group.
  * \param z         The destination MPI (shared secret).
@@ -114,9 +119,9 @@ int mbedtls_ecdh_compute_shared( mbedtls_ecp_group *grp, mbedtls_mpi *z,
                          void *p_rng );
 
 /**
- * \brief           This function initializes a context.
+ * \brief           This function initializes an ECDH context.
  *
- * \param ctx       The context to initialize.
+ * \param ctx       The ECDH context to initialize.
  */
 void mbedtls_ecdh_init( mbedtls_ecdh_context *ctx );
 
@@ -131,7 +136,8 @@ void mbedtls_ecdh_free( mbedtls_ecdh_context *ctx );
  * \brief           This function generates a public key and a TLS 
  *                  ServerKeyExchange payload.
  *
- *                  This is the first function used by a TLS server for ECDHE.
+ *                  This is the first function used by a TLS server for ECDHE
+ *                  ciphersuites.
  *
  * \param ctx       The ECDH context.
  * \param olen      The number of characters written.
@@ -155,10 +161,11 @@ int mbedtls_ecdh_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
                       void *p_rng );
 
 /**
- * \brief           This function parses and procresses a TLS ServerKeyExhange 
+ * \brief           This function parses and processes a TLS ServerKeyExhange 
  *                  payload.
  *
- *                  This is the first function used by a TLS client for ECDHE.
+ *                  This is the first function used by a TLS client for ECDHE
+ *                  ciphersuites.
  *
  * \param ctx       The ECDH context.
  * \param buf       The pointer to the start of the input buffer.
@@ -176,14 +183,14 @@ int mbedtls_ecdh_read_params( mbedtls_ecdh_context *ctx,
  * \brief           This function sets up an ECDH context from an EC key.
  *
  *                  It is used by clients and servers in place of the
- *                  ServerKeyEchange for static ECDH: importing ECDH parameters
- *                  from the EC key information of a certificate.
+ *                  ServerKeyEchange for static ECDH, and imports ECDH 
+ *                  parameters from the EC key information of a certificate.
  *
  * \param ctx       The ECDH context to set up.
  * \param key       The EC key to use.
- * \param side      Defines source of key:
- *                  <ul><li>1: our key.</li>
-                    <li>0: the key of the peer.</li></ul>
+ * \param side      Defines the source of the key:
+ *                  <ul><li>1: Our key.</li>
+                    <li>0: The key of the peer.</li></ul>
  *
  * \return          \c 0 on success, or an \c MBEDTLS_ERR_ECP_XXX error code 
  *                  on failure.
@@ -197,7 +204,8 @@ int mbedtls_ecdh_get_params( mbedtls_ecdh_context *ctx, const mbedtls_ecp_keypai
  * \brief           This function generates a public key and a TLS 
  *                  ClientKeyExchange payload.
  *
- *                  This is the second function used by a TLS client for ECDH(E).
+ *                  This is the second function used by a TLS client for ECDH(E)
+ *                  ciphersuites.
  *
  * \param ctx       The ECDH context.
  * \param olen      The number of Bytes written.
@@ -220,7 +228,8 @@ int mbedtls_ecdh_make_public( mbedtls_ecdh_context *ctx, size_t *olen,
  * \brief       This function parses and processes a TLS ClientKeyExchange 
  *              payload.
  *
- *              This is the second function used by a TLS server for ECDH(E).
+ *              This is the second function used by a TLS server for ECDH(E)
+ *              ciphersuites.
  *
  * \param ctx   The ECDH context.
  * \param buf   The start of the input buffer.

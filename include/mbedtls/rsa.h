@@ -6,7 +6,7 @@
  * For more information, see <em>Public-Key Cryptography Standards (PKCS)
  * #1 v1.5: RSA Encryption</em> and <em>Public-Key Cryptography Standards 
  * (PKCS) #1 v2.1: RSA Cryptography Specifications</em>. 
- * 
+ *
  */
 /*
  *  Copyright (C) 2006-2018, Arm Limited (or its affiliates), All Rights Reserved
@@ -115,12 +115,12 @@ typedef struct
     mbedtls_mpi Vf;                     /*!<  The cached un-blinding value. */
 
     int padding;                /*!< Selects padding mode: 
-	                                 #MBEDTLS_RSA_PKCS_V15 for 1.5 padding and
+                                     #MBEDTLS_RSA_PKCS_V15 for 1.5 padding and
                                      #MBEDTLS_RSA_PKCS_V21 for OAEP or PSS. */
     int hash_id;                /*!< Hash identifier of mbedtls_md_type_t type, 
                                      as specified in md.h for use in the MGF 
-									 mask generating function used in the 
-									 EME-OAEP and EMSA-PSS encodings. */
+                                     mask generating function used in the 
+                                     EME-OAEP and EMSA-PSS encodings. */
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_threading_mutex_t mutex;    /*!<  Thread-safety mutex. */
 #endif
@@ -136,7 +136,7 @@ mbedtls_rsa_context;
  * \param ctx      The RSA context to initialize.
  * \param padding  Selects padding mode: #MBEDTLS_RSA_PKCS_V15 or 
  *                 #MBEDTLS_RSA_PKCS_V21.
- * \param hash_id  The hash identifier of #mbedtls_md_type_t tyope, if
+ * \param hash_id  The hash identifier of #mbedtls_md_type_t type, if
  *                 \p padding is #MBEDTLS_RSA_PKCS_V21.
  *
  * \note           The \p hash_id parameter is ignored when using 
@@ -146,7 +146,7 @@ mbedtls_rsa_context;
  *                 operations, since there might be security concerns in
  *                 mixing padding modes. For public key operations it is
  *                 a default value, which can be overriden by calling specific
- *                 rsa_rsaes_xxx or rsa_rsassa_xxx functions.
+ *                 \c rsa_rsaes_xxx or \c rsa_rsassa_xxx functions.
  *
  * \note           The hash selected in \p hash_id is always used for OEAP 
  *                 encryption. For PSS signatures, it is always used for
@@ -419,7 +419,7 @@ int mbedtls_rsa_gen_key( mbedtls_rsa_context *ctx,
  *
  *                 If the function runs successfully, it is guaranteed that 
  *                 enough information is present to perform an RSA public key 
- *                 operation using \c mbedtls_rsa_public.
+ *                 operation using mbedtls_rsa_public().
  *
  * \param ctx      The RSA context to check.
  *
@@ -442,7 +442,7 @@ int mbedtls_rsa_check_pubkey( const mbedtls_rsa_context *ctx );
  *             ensure that mbedtls_rsa_private() can be called successfully
  *             on the given context, but that the various parameters are
  *             mutually consistent with high probability, in the sense that
- *             \c mbedtls_rsa_public and mbedtls_rsa_private() are inverses.
+ *             mbedtls_rsa_public() and mbedtls_rsa_private() are inverses.
  *
  * \warning    This function should catch accidental misconfigurations
  *             like swapping of parameters, but it cannot establish full
@@ -542,7 +542,7 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
  * \param output   The buffer used to hold the ciphertext.
  *
  * \deprecated     It is deprecated and discouraged to call this function
- *                 in #MBEDTLS_RSA_PRIVATE mode. Future versions of the libary
+ *                 in #MBEDTLS_RSA_PRIVATE mode. Future versions of the library
  *                 are likely to remove the \p mode argument and have it 
  *                 implicitly set to #MBEDTLS_RSA_PUBLIC.
  *
@@ -577,7 +577,7 @@ int mbedtls_rsa_pkcs1_encrypt( mbedtls_rsa_context *ctx,
  * \param output   The buffer used to hold the ciphertext.
  *
  * \deprecated     It is deprecated and discouraged to call this function
- *                 in #MBEDTLS_RSA_PRIVATE mode. Future versions of the libary
+ *                 in #MBEDTLS_RSA_PRIVATE mode. Future versions of the library
  *                 are likely to remove the \p mode argument and have it
  *                 implicitly set to #MBEDTLS_RSA_PUBLIC.
  *
@@ -614,7 +614,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
  * \param output     The buffer used to hold the ciphertext.
  *
  * \deprecated     It is deprecated and discouraged to call this function
- *                 in #MBEDTLS_RSA_PRIVATE mode. Future versions of the libary
+ *                 in #MBEDTLS_RSA_PRIVATE mode. Future versions of the library
  *                 are likely to remove the \p mode argument and have it
  *                 implicitly set to #MBEDTLS_RSA_PUBLIC.
  *
@@ -654,7 +654,7 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
  * \param output_max_len    The maximum length of the output buffer.
  *
  * \deprecated     It is deprecated and discouraged to call this function
- *                 in #MBEDTLS_RSA_PUBLIC mode. Future versions of the libary
+ *                 in #MBEDTLS_RSA_PUBLIC mode. Future versions of the library
  *                 are likely to remove the \p mode argument and have it
  *                 implicitly set to #MBEDTLS_RSA_PRIVATE.
  *
@@ -697,7 +697,7 @@ int mbedtls_rsa_pkcs1_decrypt( mbedtls_rsa_context *ctx,
  * \param output_max_len    The maximum length of the output buffer.
  *
  * \deprecated     It is deprecated and discouraged to call this function
- *                 in #MBEDTLS_RSA_PUBLIC mode. Future versions of the libary
+ *                 in #MBEDTLS_RSA_PUBLIC mode. Future versions of the library
  *                 are likely to remove the \p mode argument and have it
  *                 implicitly set to #MBEDTLS_RSA_PRIVATE.
  *
@@ -742,7 +742,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
  * \param output_max_len    The maximum length of the output buffer.
  *
  * \deprecated     It is deprecated and discouraged to call this function
- *                 in #MBEDTLS_RSA_PUBLIC mode. Future versions of the libary
+ *                 in #MBEDTLS_RSA_PUBLIC mode. Future versions of the library
  *                 are likely to remove the \p mode argument and have it
  *                 implicitly set to #MBEDTLS_RSA_PRIVATE.
  *
@@ -793,7 +793,7 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
  * \param sig      The buffer to hold the ciphertext.
  *
  * \deprecated     It is deprecated and discouraged to call this function
- *                 in #MBEDTLS_RSA_PUBLIC mode. Future versions of the libary
+ *                 in #MBEDTLS_RSA_PUBLIC mode. Future versions of the library
  *                 are likely to remove the \p mode argument and have it
  *                 implicitly set to #MBEDTLS_RSA_PRIVATE.
  *
@@ -835,7 +835,7 @@ int mbedtls_rsa_pkcs1_sign( mbedtls_rsa_context *ctx,
  * \param sig      The buffer to hold the ciphertext.
  *
  * \deprecated     It is deprecated and discouraged to call this function
- *                 in #MBEDTLS_RSA_PUBLIC mode. Future versions of the libary
+ *                 in #MBEDTLS_RSA_PUBLIC mode. Future versions of the library
  *                 are likely to remove the \p mode argument and have it
  *                 implicitly set to #MBEDTLS_RSA_PRIVATE.
  *
@@ -875,7 +875,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
  * \param sig      The buffer to hold the ciphertext.
  *
  * \deprecated     It is deprecated and discouraged to call this function
- *                 in #MBEDTLS_RSA_PUBLIC mode. Future versions of the libary
+ *                 in #MBEDTLS_RSA_PUBLIC mode. Future versions of the library
  *                 are likely to remove the \p mode argument and have it
  *                 implicitly set to #MBEDTLS_RSA_PRIVATE.
  *
@@ -924,7 +924,7 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
  * \param sig      The buffer holding the ciphertext.
  *
  * \deprecated     It is deprecated and discouraged to call this function
- *                 in #MBEDTLS_RSA_PRIVATE mode. Future versions of the libary
+ *                 in #MBEDTLS_RSA_PRIVATE mode. Future versions of the library
  *                 are likely to remove the \p mode argument and have it
  *                 set to #MBEDTLS_RSA_PUBLIC.
  *
@@ -967,7 +967,7 @@ int mbedtls_rsa_pkcs1_verify( mbedtls_rsa_context *ctx,
  * \param sig      The buffer holding the ciphertext.
  *
  * \deprecated     It is deprecated and discouraged to call this function
- *                 in #MBEDTLS_RSA_PRIVATE mode. Future versions of the libary
+ *                 in #MBEDTLS_RSA_PRIVATE mode. Future versions of the library
  *                 are likely to remove the \p mode argument and have it
  *                 set to #MBEDTLS_RSA_PUBLIC.
  *
@@ -1009,7 +1009,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
  * \param sig      The buffer holding the ciphertext.
  *
  * \deprecated     It is deprecated and discouraged to call this function
- *                 in #MBEDTLS_RSA_PRIVATE mode. Future versions of the libary
+ *                 in #MBEDTLS_RSA_PRIVATE mode. Future versions of the library
  *                 are likely to remove the \p mode argument and have it
  *                 implicitly set to #MBEDTLS_RSA_PUBLIC.
  *

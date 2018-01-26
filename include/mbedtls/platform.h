@@ -116,11 +116,11 @@ extern void * (*mbedtls_calloc)( size_t n, size_t size );
 extern void (*mbedtls_free)( void *ptr );
 
 /**
- * \brief   This function sets your own memory implementation function 
- *          pointers.
+ * \brief   This function allows configuring custom memory-implementation 
+ *          function pointers.
  *
- * \param calloc_func   The calloc function implementation.
- * \param free_func     The free function implementation.
+ * \param calloc_func   The \c calloc function implementation.
+ * \param free_func     The \c free function implementation.
  *
  * \return              \c 0 on success.
  */
@@ -141,9 +141,9 @@ int mbedtls_platform_set_calloc_free( void * (*calloc_func)( size_t, size_t ),
 extern int (*mbedtls_fprintf)( FILE *stream, const char *format, ... );
 
 /**
- * \brief   This function sets your own fprintf function pointer.
+ * \brief   This function allows configuring a custom \p fprintf function pointer.
  *
- * \param fprintf_func   The fprintf function implementation.
+ * \param fprintf_func   The \c fprintf function implementation.
  *
  * \return               \c 0 on success.
  */
@@ -164,9 +164,10 @@ int mbedtls_platform_set_fprintf( int (*fprintf_func)( FILE *stream, const char 
 extern int (*mbedtls_printf)( const char *format, ... );
 
 /**
- * \brief    This function sets your own printf function pointer.
+ * \brief    This function allows configuring a custom \c fprintf function 
+ *           pointer.
  *
- * \param printf_func   The printf function implementation.
+ * \param printf_func   The \c printf function implementation.
  *
  * \return              \c 0 on success.
  */
@@ -197,11 +198,12 @@ int mbedtls_platform_win32_snprintf( char *s, size_t n, const char *fmt, ... );
 extern int (*mbedtls_snprintf)( char * s, size_t n, const char * format, ... );
 
 /**
- * \brief   This function sets your own snprintf function pointer.
+ * \brief   This function allows configuring a custom \c snprintf function 
+ *           pointer.
  *
- * \param snprintf_func   The snprintf function implementation.
+ * \param snprintf_func   The \c snprintf function implementation.
  *
- * \return              0.
+ * \return              0 on success.
  */
 int mbedtls_platform_set_snprintf( int (*snprintf_func)( char * s, size_t n,
                                                  const char * format, ... ) );
@@ -220,11 +222,12 @@ int mbedtls_platform_set_snprintf( int (*snprintf_func)( char * s, size_t n,
 extern void (*mbedtls_exit)( int status );
 
 /**
- * \brief   This function sets your own exit function pointer
+ * \brief   This function allows configuring a custom \c exit function 
+ *           pointer.
  *
- * \param exit_func   The exit function implementation.
+ * \param exit_func   The \c exit function implementation.
  *
- * \return              0.
+ * \return              0 on success.
  */
 int mbedtls_platform_set_exit( void (*exit_func)( int status ) );
 #else
@@ -272,7 +275,7 @@ extern int (*mbedtls_nv_seed_write)( unsigned char *buf, size_t buf_len );
  * \param   nv_seed_read_func   The seed reading function implementation.
  * \param   nv_seed_write_func  The seed writing function implementation.
  *
- * \return              0
+ * \return  0 on success.
  */
 int mbedtls_platform_set_nv_seed(
             int (*nv_seed_read_func)( unsigned char *buf, size_t buf_len ),

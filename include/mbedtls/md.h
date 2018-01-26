@@ -70,7 +70,7 @@ typedef enum {
 typedef struct mbedtls_md_info_t mbedtls_md_info_t;
 
 /**
- * The generic message digest context.
+ * The generic message-digest context.
  */
 typedef struct {
     /** Information about the associated message digest. */
@@ -93,23 +93,23 @@ typedef struct {
 const int *mbedtls_md_list( void );
 
 /**
- * \brief           This function returns the message digest information 
+ * \brief           This function returns the message-digest information 
  *                  associated with the given digest name.
  *
  * \param md_name   The name of the digest to search for.
  *
- * \return          The message digest information associated with \p md_name, 
+ * \return          The message-digest information associated with \p md_name, 
  *                  or NULL if not found.
  */
 const mbedtls_md_info_t *mbedtls_md_info_from_string( const char *md_name );
 
 /**
- * \brief           This function returns the message digest information 
+ * \brief           This function returns the message-digest information 
  *                  associated with the given digest type.
  *
  * \param md_type   The type of digest to search for.
  *
- * \return          The message digest information associated with \p md_type, 
+ * \return          The message-digest information associated with \p md_type, 
  *                  or NULL if not found.
  */
 const mbedtls_md_info_t *mbedtls_md_info_from_type( mbedtls_md_type_t md_type );
@@ -193,40 +193,40 @@ int mbedtls_md_clone( mbedtls_md_context_t *dst,
                       const mbedtls_md_context_t *src );
 
 /**
- * \brief           This function returns the size of the message digest output.
+ * \brief           This function returns the size of the message-digest output.
  *
- * \param md_info   The message digest information.
+ * \param md_info   The message-digest information.
  *
- * \return          The size of the message digest output in Bytes.
+ * \return          The size of the message-digest output in Bytes.
  */
 unsigned char mbedtls_md_get_size( const mbedtls_md_info_t *md_info );
 
 /**
- * \brief           This function returns the type of the message digest output.
+ * \brief           This function returns the type of the message-digest output.
  *
- * \param md_info   The message digest information.
+ * \param md_info   The message-digest information.
  *
- * \return          The type of the message digest output.
+ * \return          The type of the message-digest output.
  */
 mbedtls_md_type_t mbedtls_md_get_type( const mbedtls_md_info_t *md_info );
 
 /**
- * \brief           This function returns the name of the message digest output.
+ * \brief           This function returns the name of the message-digest output.
  *
- * \param md_info   The message digest information.
+ * \param md_info   The message-digest information.
  *
- * \return          The name of the message digest output.
+ * \return          The name of the message-digest output.
  */
 const char *mbedtls_md_get_name( const mbedtls_md_info_t *md_info );
 
 /**
- * \brief           This function prepares the message digest context for  
+ * \brief           This function prepares the message-digest context for  
  *                  a new message. 
  *
  *                  it is generally called after mbedtls_md_setup() or 
  *                  mbedtls_md_finish(). It is followed by mbedtls_md_update().
  *
- * \param ctx       The generic message digest context.
+ * \param ctx       The generic message-digest context.
  *
  * \returns         \c 0 on success, #MBEDTLS_ERR_MD_BAD_INPUT_DATA if 
  *                  parameter verification fails.
@@ -241,7 +241,7 @@ int mbedtls_md_starts( mbedtls_md_context_t *ctx );
  *                  mbedtls_md_finish().
  *                  May be called repeatedly.
  *
- * \param ctx       The generic message digest context.
+ * \param ctx       The generic message-digest context.
  * \param input     The buffer holding the input data.
  * \param ilen      The length of the input data.
  *
@@ -257,8 +257,8 @@ int mbedtls_md_update( mbedtls_md_context_t *ctx, const unsigned char *input, si
  *                  It is called after mbedtls_md_update(). It is usually 
  *                  followed by mbedtls_md_free() or mbedtls_md_starts().
  *
- * \param ctx       The generic message digest context.
- * \param output    The buffer for the generic message digest checksum result.
+ * \param ctx       The generic message-digest context.
+ * \param output    The buffer for the generic message-digest checksum result.
  *
  * \returns         \c 0 on success, or #MBEDTLS_ERR_MD_BAD_INPUT_DATA if 
  *                  parameter verification fails.
@@ -272,10 +272,10 @@ int mbedtls_md_finish( mbedtls_md_context_t *ctx, unsigned char *output );
  *                 The result is calcuated as 
  *                 Output = message_digest( input buffer ).
  *
- * \param md_info  The message digest information.
+ * \param md_info  The message-digest information.
  * \param input    The buffer holding the data.
  * \param ilen     The length of the input data.
- * \param output   The generic message digest checksum result.
+ * \param output   The generic message-digest checksum result.
  *
  * \returns        \c 0 on success, or #MBEDTLS_ERR_MD_BAD_INPUT_DATA if 
  *                 parameter verification fails.
@@ -291,9 +291,9 @@ int mbedtls_md( const mbedtls_md_info_t *md_info, const unsigned char *input, si
  *                 The result is calcuated as 
  *                 Output = message_digest( file contents ).
  *
- * \param md_info  The message digest information.
+ * \param md_info  The message-digest information.
  * \param path     The input file name.
- * \param output   The generic message digest checksum result.
+ * \param output   The generic message-digest checksum result.
  *
  * \return         \c 0 on success,
  *                 #MBEDTLS_ERR_MD_FILE_IO_ERROR if file input failed, or
@@ -378,7 +378,7 @@ int mbedtls_md_hmac_reset( mbedtls_md_context_t *ctx );
  *                 The HMAC result is calculated as 
  *                 output = generic HMAC(hmac key, input buffer).
  *
- * \param md_info  The message digest information.
+ * \param md_info  The message-digest information.
  * \param key      The HMAC secret key.
  * \param keylen   The length of the HMAC secret key in Bytes.
  * \param input    The buffer holding the input data.

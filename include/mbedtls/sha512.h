@@ -85,7 +85,7 @@ void mbedtls_sha512_clone( mbedtls_sha512_context *dst,
                            const mbedtls_sha512_context *src );
 
 /**
- * \brief          This function sets up a SHA-512 context.
+ * \brief          This function starts a SHA-512 checksum calculation.
  *
  * \param ctx      The context to initialize.
  * \param is384    Determines which function to use.
@@ -97,8 +97,8 @@ void mbedtls_sha512_clone( mbedtls_sha512_context *dst,
 int mbedtls_sha512_starts_ret( mbedtls_sha512_context *ctx, int is384 );
 
 /**
- * \brief          This function encrypts or decrypts using the
- *                 given SHA-512 context.
+ * \brief          This function feeds an input buffer into an ongoing 
+ *                 SHA-512 checksum calculation.
  *
  * \param ctx      The SHA-512 context.
  * \param input    The buffer holding the input data.

@@ -51,6 +51,12 @@
  *  RFC 3526 4.    3072-bit MODP Group
  *  RFC 3526 5.    4096-bit MODP Group
  *  RFC 5114 2.2.  2048-bit MODP Group with 224-bit Prime Order Subgroup
+ *
+ * \warning The primes from RFC 5114 do not come together with information
+ *          on how they were generated and are therefore not considered
+ *          trustworthy. It is recommended to avoid them and to use the
+ *          nothing-up-my-sleeve primes from RFC 3526 instead.
+ *
  */
 #define MBEDTLS_DHM_RFC3526_MODP_2048_P               \
     "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" \

@@ -7325,8 +7325,8 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
             if( endpoint == MBEDTLS_SSL_IS_SERVER )
             {
                 if( ( ret = mbedtls_ssl_conf_dh_param( conf,
-                                MBEDTLS_DHM_RFC5114_MODP_2048_P,
-                                MBEDTLS_DHM_RFC5114_MODP_2048_G ) ) != 0 )
+                                MBEDTLS_DHM_RFC3526_MODP_2048_P,
+                                MBEDTLS_DHM_RFC3526_MODP_2048_G ) ) != 0 )
                 {
                     return( ret );
                 }

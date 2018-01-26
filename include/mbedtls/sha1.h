@@ -76,15 +76,15 @@ void mbedtls_sha1_clone( mbedtls_sha1_context *dst,
                          const mbedtls_sha1_context *src );
 
 /**
- * \brief          This function sets up a SHA-1 context.
+ * \brief          This function starts a SHA-1 checksum calculation.
  *
  * \param ctx      The context to initialize.
  */
 void mbedtls_sha1_starts( mbedtls_sha1_context *ctx );
 
 /**
- * \brief          This function encrypts or decrypts using the
- *                 given SHA-1 context.
+ * \brief          This function feeds an input buffer into an ongoing SHA-1
+ *                 checksum calculation.
  *
  * \param ctx      The SHA-1 context.
  * \param input    The buffer holding the input data.

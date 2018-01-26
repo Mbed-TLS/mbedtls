@@ -1,4 +1,4 @@
-/**
+ /**
  * \file md.h
  *
  * \brief The generic message-digest wrapper.
@@ -87,8 +87,9 @@ typedef struct {
  * \brief           This function returns the list of digests supported by the 
  *                  generic digest module.
  *
- * \return          A statically allocated array of digests. The last entry
- *                  is 0.
+ * \return          A statically allocated array of digests. returned list is an 
+ *                  integer belonging to the message-digest enumeration 
+ *					#mbedtls_md_type_t. The last entry is 0.
  */
 const int *mbedtls_md_list( void );
 
@@ -115,10 +116,12 @@ const mbedtls_md_info_t *mbedtls_md_info_from_string( const char *md_name );
 const mbedtls_md_info_t *mbedtls_md_info_from_type( mbedtls_md_type_t md_type );
 
 /**
- * \brief           This function initializes an MD context as NONE.
- *
- *                  This function should always be called first. Prepares the 
- *                  context for mbedtls_md_setup() or mbedtls_md_free().
+ * \brief           This function initializes a message-digest context without 
+ *                  binding it to a particular message-digest algorithm. 
+ *                  
+ *                  This function should always be called first. It prepares the 
+ *                  context for mbedtls_md_setup() for binding it to a 
+ *                  message-digest algorithm.
  */
 void mbedtls_md_init( mbedtls_md_context_t *ctx );
 
@@ -138,8 +141,8 @@ void mbedtls_md_free( mbedtls_md_context_t *ctx );
 #define MBEDTLS_DEPRECATED
 #endif
 /**
- * \brief           This function selects the MD to use, and allocates internal 
- *                  structures.
+ * \brief           This function selects the message digest algorithm to use, 
+ *                  and allocates internal structures.
  *
  *                  It should be called after mbedtls_md_init() or mbedtls_md_free().
  *                  Makes it necessary to call mbedtls_md_free() later.
@@ -147,7 +150,8 @@ void mbedtls_md_free( mbedtls_md_context_t *ctx );
  * \deprecated      Superseded by mbedtls_md_setup() in 2.0.0
  *
  * \param ctx       The context to set up.
- * \param md_info   The message digest to use.
+ * \param md_info   The information structure of the message-digest algorithm 
+ *                  to use.
  *
  * \returns         \c 0 on success,
  *                  #MBEDTLS_ERR_MD_BAD_INPUT_DATA on parameter failure,
@@ -158,14 +162,16 @@ int mbedtls_md_init_ctx( mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 
 /**
- * \brief           This function selects the MD to use, and allocates internal 
- *                  structures.
+ * \brief           This function selects the message digest algorithm to use, 
+ *                  and allocates internal structures.
+ *
  *                  It should be called after mbedtls_md_init() or 
  *                  mbedtls_md_free(). Makes it necessary to call 
  *                  mbedtls_md_free() later.
  *
  * \param ctx       The context to set up.
- * \param md_info   The message digest to use.
+ * \param md_info   The information structure of the message-digest algorithm 
+ *                  to use.
  * \param hmac      <ul><li>0: HMAC is not used. Saves some memory.</li>
  *                  <li>non-zero: HMAC is used with this context.</li></ul>
  *
@@ -176,12 +182,13 @@ int mbedtls_md_init_ctx( mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_
 int mbedtls_md_setup( mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_info, int hmac );
 
 /**
- * \brief           This function clones the state of an MD context.
+ * \brief           This function clones the state of an message-digest 
+ *                  context.
  *
  * \note            The two contexts must have the same type,
  *                  for example, both are SHA-256.
  *
- * \warning         Only clones the MD state, not the HMAC state.
+ * \warning         Only clones the message-digest state, not the HMAC state.
  *
  * \param dst       The destination context.
  * \param src       The context to be cloned.
@@ -195,7 +202,8 @@ int mbedtls_md_clone( mbedtls_md_context_t *dst,
 /**
  * \brief           This function returns the size of the message-digest output.
  *
- * \param md_info   The message-digest information.
+ * \param md_info   The information structure of the message-digest algorithm 
+ *                  to use.
  *
  * \return          The size of the message-digest output in Bytes.
  */
@@ -204,7 +212,8 @@ unsigned char mbedtls_md_get_size( const mbedtls_md_info_t *md_info );
 /**
  * \brief           This function returns the type of the message-digest output.
  *
- * \param md_info   The message-digest information.
+ * \param md_info   The information structure of the message-digest algorithm 
+ *                  to use.
  *
  * \return          The type of the message-digest output.
  */
@@ -213,7 +222,8 @@ mbedtls_md_type_t mbedtls_md_get_type( const mbedtls_md_info_t *md_info );
 /**
  * \brief           This function returns the name of the message-digest output.
  *
- * \param md_info   The message-digest information.
+ * \param md_info   The information structure of the message-digest algorithm 
+ *                  to use.
  *
  * \return          The name of the message-digest output.
  */
@@ -223,7 +233,7 @@ const char *mbedtls_md_get_name( const mbedtls_md_info_t *md_info );
  * \brief           This function prepares the message-digest context for  
  *                  a new message. 
  *
- *                  it is generally called after mbedtls_md_setup() or 
+ *                  It is generally called after mbedtls_md_setup() or 
  *                  mbedtls_md_finish(). It is followed by mbedtls_md_update().
  *
  * \param ctx       The generic message-digest context.
@@ -234,8 +244,8 @@ const char *mbedtls_md_get_name( const mbedtls_md_info_t *md_info );
 int mbedtls_md_starts( mbedtls_md_context_t *ctx );
 
 /**
- * \brief           This function performs a digest operation on 
- *                  the input message.
+ * \brief           This function feeds an input buffer into an ongoing 
+ *                  message-digest computation.
  *
  *                  It is called between mbedtls_md_starts() and 
  *                  mbedtls_md_finish().
@@ -266,13 +276,13 @@ int mbedtls_md_update( mbedtls_md_context_t *ctx, const unsigned char *input, si
 int mbedtls_md_finish( mbedtls_md_context_t *ctx, unsigned char *output );
 
 /**
- * \brief          This function calculates the digest operation
- *                 on the input message.
+ * \brief          This function calculates the message-digest of a buffer,
+ *                 with respect to a configurable message-digest algorithm.
+ *                 The result is calculated as 
+ *                 Output = message_digest(input buffer).
  *
- *                 The result is calcuated as 
- *                 Output = message_digest( input buffer ).
- *
- * \param md_info  The message-digest information.
+ * \param md_info  The information structure of the message-digest algorithm 
+ *                 to use.
  * \param input    The buffer holding the data.
  * \param ilen     The length of the input data.
  * \param output   The generic message-digest checksum result.
@@ -285,13 +295,14 @@ int mbedtls_md( const mbedtls_md_info_t *md_info, const unsigned char *input, si
 
 #if defined(MBEDTLS_FS_IO)
 /**
- * \brief          This function calculates the message digest 
- *                 on the provided file.
+ * \brief          This function calculates the message-digest checksum
+ *                 result on the provided file.
  *
- *                 The result is calcuated as 
- *                 Output = message_digest( file contents ).
+ *                 The result is calculated as 
+ *                 Output = message_digest(file contents).
  *
- * \param md_info  The message-digest information.
+ * \param md_info  The information structure of the message-digest algorithm 
+ *                 to use.
  * \param path     The input file name.
  * \param output   The generic message-digest checksum result.
  *
@@ -321,8 +332,8 @@ int mbedtls_md_hmac_starts( mbedtls_md_context_t *ctx, const unsigned char *key,
                     size_t keylen );
 
 /**
- * \brief           This function performs an HMAC operation on 
- *                  the input message.
+ * \brief           This function feeds an input buffer into an ongoing HMAC 
+ *                  computation.
  *                    
  *                  It is called between mbedtls_md_hmac_starts() or 
  *                  mbedtls_md_hmac_reset(), and mbedtls_md_hmac_finish().
@@ -378,7 +389,8 @@ int mbedtls_md_hmac_reset( mbedtls_md_context_t *ctx );
  *                 The HMAC result is calculated as 
  *                 output = generic HMAC(hmac key, input buffer).
  *
- * \param md_info  The message-digest information.
+ * \param md_info  The information structure of the message-digest algorithm 
+ *                 to use.
  * \param key      The HMAC secret key.
  * \param keylen   The length of the HMAC secret key in Bytes.
  * \param input    The buffer holding the input data.

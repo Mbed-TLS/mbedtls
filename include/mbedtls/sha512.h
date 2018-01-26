@@ -139,12 +139,14 @@ int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
 #define MBEDTLS_DEPRECATED
 #endif
 /**
- * \brief          SHA-512 context setup
+ * \brief          The SHA-512 context setup.
  *
  * \deprecated     Superseded by mbedtls_sha512_starts_ret() in 2.7.0
  *
- * \param ctx      context to be initialized
- * \param is384    0 = use SHA512, 1 = use SHA384
+ * \param ctx      The context to initialize.
+ * \param is384    Determines which function to use.
+ *                 <ul><li>0: use SHA-512.</li>
+ *                 <li>1: use SHA-384.</li></ul>
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_sha512_starts(
                                                 mbedtls_sha512_context *ctx,
@@ -154,13 +156,13 @@ MBEDTLS_DEPRECATED static inline void mbedtls_sha512_starts(
 }
 
 /**
- * \brief          SHA-512 process buffer
+ * \brief          The SHA-512 process buffer.
  *
  * \deprecated     Superseded by mbedtls_sha512_update_ret() in 2.7.0
  *
- * \param ctx      SHA-512 context
- * \param input    buffer holding the data
- * \param ilen     length of the input data
+ * \param ctx      The SHA-512 context.
+ * \param input    The buffer holding the data.
+ * \param ilen     The length of the input data.
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_sha512_update(
                                                 mbedtls_sha512_context *ctx,
@@ -171,12 +173,12 @@ MBEDTLS_DEPRECATED static inline void mbedtls_sha512_update(
 }
 
 /**
- * \brief          SHA-512 final digest
+ * \brief          The SHA-512 final digest.
  *
  * \deprecated     Superseded by mbedtls_sha512_finish_ret() in 2.7.0
  *
- * \param ctx      SHA-512 context
- * \param output   SHA-384/512 checksum result
+ * \param ctx      The SHA-512 context.
+ * \param output   The SHA-384 or SHA-512 checksum result.
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_sha512_finish(
                                                 mbedtls_sha512_context *ctx,
@@ -186,12 +188,12 @@ MBEDTLS_DEPRECATED static inline void mbedtls_sha512_finish(
 }
 
 /**
- * \brief          SHA-512 process data block (internal use only)
+ * \brief          The SHA-512 process data block. For internal use only.
  *
  * \deprecated     Superseded by mbedtls_internal_sha512_process() in 2.7.0
  *
- * \param ctx      SHA-512 context
- * \param data     buffer holding one block of data
+ * \param ctx      The SHA-512 context.
+ * \param data     The buffer holding one block of data.
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_sha512_process(
                                             mbedtls_sha512_context *ctx,
@@ -250,10 +252,12 @@ int mbedtls_sha512_ret( const unsigned char *input,
  *
  * \deprecated     Superseded by mbedtls_sha512_ret() in 2.7.0
  *
- * \param input    buffer holding the data
- * \param ilen     length of the input data
- * \param output   SHA-384/512 checksum result
- * \param is384    0 = use SHA512, 1 = use SHA384
+ * \param input    The buffer holding the data.
+ * \param ilen     The length of the input data.
+ * \param output   The SHA-384 or SHA-512 checksum result.
+ * \param is384    Determines which function to use.
+ *                 <ul><li>0: use SHA-512.</li>
+ *                 <li>1: use SHA-384.</li></ul>
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_sha512(
                                                     const unsigned char *input,

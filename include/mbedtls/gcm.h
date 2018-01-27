@@ -73,7 +73,7 @@ mbedtls_gcm_context;
  *
  *                  The function does not bind the GCM context to a particular
  *                  cipher, nor set the key. For this purpose, use
- *                  mbedtls_gcm_setkey()
+ *                  mbedtls_gcm_setkey().
  *
  * \param ctx       The GCM context to initialize.
  */

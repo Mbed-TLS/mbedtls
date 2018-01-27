@@ -65,9 +65,9 @@
  
  
  /** 
- * The hexadecimal value of the 2048-bit MODP Group, as defined in 
- * <em>RFC-3526: More Modular Exponential (MODP) Diffie-Hellman groups
- * for Internet Key Exchange (IKE)</em>.
+ * The hexadecimal string representation of the prime defining the 2048-bit  
+ * group, as defined in <em>RFC-3526: More Modular Exponential (MODP) 
+ * Diffie-Hellman groups for Internet Key Exchange (IKE)</em>.
  */
 #define MBEDTLS_DHM_RFC3526_MODP_2048_P               \
     "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" \
@@ -82,14 +82,14 @@
     "DE2BCBF6955817183995497CEA956AE515D2261898FA0510" \
     "15728E5A8AACAA68FFFFFFFFFFFFFFFF"
 /** 
- * The generator of the 2048-bit MODP Group, as defined in <em>RFC-3526: 
+ * The chosen generator of the 2048-bit Group, as defined in <em>RFC-3526: 
  * More Modular Exponential (MODP) Diffie-Hellman groups for Internet Key
  * Exchange (IKE)</em>.
  */
 #define MBEDTLS_DHM_RFC3526_MODP_2048_G          "02"
 
 /** 
- * The hexadecimal value if the 3072-bit MODP Group, as defined in 
+ * The hexadecimal value of the 3072-bit group, as defined in 
  * <em>RFC-3526: More Modular Exponential (MODP) Diffie-Hellman groups
  * for Internet Key Exchange (IKE)</em>.
  */
@@ -199,7 +199,7 @@ extern "C" {
  */
 typedef struct
 {
-    size_t len;         /*!<  The size (P) in chars. */
+    size_t len;         /*!<  The size of \p in Bytes. */
     mbedtls_mpi P;      /*!<  The prime modulus. */
     mbedtls_mpi G;      /*!<  The generator. */
     mbedtls_mpi X;      /*!<  The secret value. */
@@ -245,9 +245,9 @@ int mbedtls_dhm_read_params( mbedtls_dhm_context *ctx,
  * \param f_rng    The RNG function.
  * \param p_rng    The RNG parameter.
  *
- * \note           This function assumes that the value and geneator of 
+ * \note           This function assumes that the value and generator of 
  *                 \p ctx have already been properly set. For example,
- *                 using #mbedtls_mpi_read_string or #mbedtls_mpi_read_binary.
+ *                 using mbedtls_mpi_read_string() or mbedtls_mpi_read_binary().
  *
  * \return         \c 0 on success, or an \c MBEDTLS_ERR_DHM_XXX error code 
  *                 on failure.
@@ -302,7 +302,7 @@ int mbedtls_dhm_make_public( mbedtls_dhm_context *ctx, int x_size,
  * \param p_rng         The RNG parameter.
  *
  * \return         \c 0 on success, or an \c MBEDTLS_ERR_DHM_XXX error code
-*                   on failure.
+ *                 on failure.
  *
  * \note           If non-NULL, \p f_rng is used to blind the input as
  *                 a countermeasure against timing attacks. Blinding is used 

@@ -64,9 +64,9 @@
  */
  
  
- /** 
- * The hexadecimal string representation of the prime defining the 2048-bit  
- * group, as defined in <em>RFC-3526: More Modular Exponential (MODP) 
+/** 
+ * The hexadecimal presentation of the prime underlying the 2048-bit MODP 
+ * Group, as defined in <em>RFC-3526: More Modular Exponential (MODP) 
  * Diffie-Hellman groups for Internet Key Exchange (IKE)</em>.
  */
 #define MBEDTLS_DHM_RFC3526_MODP_2048_P               \
@@ -82,16 +82,16 @@
     "DE2BCBF6955817183995497CEA956AE515D2261898FA0510" \
     "15728E5A8AACAA68FFFFFFFFFFFFFFFF"
 /** 
- * The chosen generator of the 2048-bit Group, as defined in <em>RFC-3526: 
- * More Modular Exponential (MODP) Diffie-Hellman groups for Internet Key
- * Exchange (IKE)</em>.
+ * The hexadecimal presentation of the chosen generator of the 2048-bit MODP 
+ * Group, as defined in <em>RFC-3526: More Modular Exponential (MODP) 
+ * Diffie-Hellman groups for Internet Key Exchange (IKE)</em>.
  */
 #define MBEDTLS_DHM_RFC3526_MODP_2048_G          "02"
 
 /** 
- * The hexadecimal value of the 3072-bit group, as defined in 
- * <em>RFC-3526: More Modular Exponential (MODP) Diffie-Hellman groups
- * for Internet Key Exchange (IKE)</em>.
+ * The hexadecimal presentation of the prime underlying the 4096-bit MODP 
+ * Group, as defined in <em>RFC-3072: More Modular Exponential (MODP) 
+ * Diffie-Hellman groups for Internet Key Exchange (IKE)</em>.
  */
 #define MBEDTLS_DHM_RFC3526_MODP_3072_P               \
     "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" \
@@ -112,16 +112,16 @@
     "43DB5BFCE0FD108E4B82D120A93AD2CAFFFFFFFFFFFFFFFF"
 
 /** 
- * The generator of the 3072-bit MODP Group, as defined in 
- * <em>RFC-3526: More Modular Exponential (MODP) Diffie-Hellman
- * groups for Internet Key Exchange (IKE)</em>.
+ * The hexadecimal presentation of the chosen generator of the 3072-bit MODP 
+ * Group, as defined in <em>RFC-3526: More Modular Exponential (MODP) 
+ * Diffie-Hellman groups for Internet Key Exchange (IKE)</em>.
  */
 #define MBEDTLS_DHM_RFC3526_MODP_3072_G          "02"
 
 /** 
- * The hexadecimal value of the 4096-bit MODP Group, as defined 
- * in <em>RFC-3526: More Modular Exponential (MODP) Diffie-Hellman 
- * groups for Internet Key Exchange (IKE)</em>.
+ * The hexadecimal presentation of the prime underlying the 4096-bit MODP 
+ * Group, as defined in <em>RFC-3526: More Modular Exponential (MODP) 
+ * Diffie-Hellman groups for Internet Key Exchange (IKE)</em>.
  */
 #define MBEDTLS_DHM_RFC3526_MODP_4096_P                \
     "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" \
@@ -146,18 +146,19 @@
     "1F612970CEE2D7AFB81BDD762170481CD0069127D5B05AA9" \
     "93B4EA988D8FDDC186FFB7DC90A6C08F4DF435C934063199" \
     "FFFFFFFFFFFFFFFF"
-
+	
 /** 
- * The generator of the 4096-bit MODP Group, as defined in 
- * <em>RFC-3526: More Modular Exponential (MODP) Diffie-Hellman 
- * groups for Internet Key Exchange (IKE)</em>.
+ * The hexadecimal presentation of the chosen generator of the 4096-bit MODP 
+ * Group, as defined in <em>RFC-3526: More Modular Exponential (MODP) 
+ * Diffie-Hellman groups for Internet Key Exchange (IKE)</em>.
  */
 #define MBEDTLS_DHM_RFC3526_MODP_4096_G          "02"
 
 /** 
- * The hexadecimal value of the 2048-bit MODP Group with 224-bit Prime Order 
- * Subgroup, as defined in <em>RFC-5114: Additional Diffie-Hellman Groups for 
- * Use with IETF Standards</em>.
+ * The hexadecimal presentation of the prime underlying the 
+ * 2048-bit MODP Group with 224-bit Prime Order Subgroup, as defined 
+ * in <em>RFC-5114: Additional Diffie-Hellman Groups for Use with 
+ * IETF Standards</em>.
  */
 #define MBEDTLS_DHM_RFC5114_MODP_2048_P               \
     "AD107E1E9123A9D0D660FAA79559C51FA20D64E5683B9FD1" \
@@ -173,9 +174,9 @@
     "CF9DE5384E71B81C0AC4DFFE0C10E64F"
 
 /** 
- * The generator of the 2048-bit MODP Group with 224-bit Prime Order Subgroup,
- * as defined in <em>RFC-5114: Additional Diffie-Hellman Groups for Use with 
- * IETF Standards</em>.
+ * The hexadecimal presentation of the chosen generator of the 2048-bit MODP 
+ * Group with 224-bit Prime Order Subgroup, as defined in <em>RFC-5114: 
+ * Additional Diffie-Hellman Groups for Use with IETF Standards</em>.
  */
 #define MBEDTLS_DHM_RFC5114_MODP_2048_G              \
     "AC4032EF4F2D9AE39DF30B5C8FFDAC506CDEBE7B89998CAF"\

@@ -224,6 +224,9 @@
     <ClInclude Include="..\..\include\mbedtls\x509_crt.h" />
     <ClInclude Include="..\..\include\mbedtls\x509_csr.h" />
     <ClInclude Include="..\..\include\mbedtls\xtea.h" />
+    <ClInclude Include="..\..\include\psa\crypto.h" />
+    <ClInclude Include="..\..\include\psa\crypto_platform.h" />
+    <ClInclude Include="..\..\include\psa\crypto_extra.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\library\aes.c" />
@@ -281,6 +284,7 @@
     <ClCompile Include="..\..\library\platform_util.c" />
     <ClCompile Include="..\..\library\poly1305.c" />
     <ClCompile Include="..\..\library\ripemd160.c" />
+    <ClCompile Include="..\..\library\psa_crypto.c" />
     <ClCompile Include="..\..\library\rsa.c" />
     <ClCompile Include="..\..\library\rsa_internal.c" />
     <ClCompile Include="..\..\library\sha1.c" />

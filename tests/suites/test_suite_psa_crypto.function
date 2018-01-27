@@ -1,0 +1,24 @@
+/* BEGIN_HEADER */
+#include "psa/crypto.h"
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_PSA_CRYPTO_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void init_deinit()
+{
+    psa_status_t ret;
+    int i;
+    for( i = 0; i <= 1; i++ )
+    {
+        ret = psa_crypto_init( );
+        TEST_ASSERT( ret == PSA_SUCCESS );
+        ret = psa_crypto_init( );
+        TEST_ASSERT( ret == PSA_SUCCESS );
+        mbedtls_psa_crypto_free( );
+    }
+}
+/* END_CASE */

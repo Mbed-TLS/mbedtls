@@ -486,6 +486,12 @@
 #error "MBEDTLS_PLATFORM_NV_SEED_WRITE_MACRO and MBEDTLS_PLATFORM_STD_NV_SEED_WRITE cannot be defined simultaneously"
 #endif
 
+#if defined(MBEDTLS_PSA_CRYPTO_C) &&            \
+    !( defined(MBEDTLS_CTR_DRBG_C) &&           \
+       defined(MBEDTLS_ENTROPY_C) )
+#error "MBEDTLS_PSA_CRYPTO_C defined, but not all prerequisites"
+#endif
+
 #if defined(MBEDTLS_RSA_C) && ( !defined(MBEDTLS_BIGNUM_C) ||         \
     !defined(MBEDTLS_OID_C) )
 #error "MBEDTLS_RSA_C defined, but not all prerequisites"

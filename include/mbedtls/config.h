@@ -2013,7 +2013,7 @@
  * Requires: MBEDTLS_AES_C or MBEDTLS_DES_C
  *
  */
-//#define MBEDTLS_CMAC_C
+#define MBEDTLS_CMAC_C
 
 /**
  * \def MBEDTLS_CTR_DRBG_C
@@ -2554,6 +2554,18 @@
  * Caller:  library/chachapoly.c
  */
 #define MBEDTLS_POLY1305_C
+
+/**
+* \def MBEDTLS_PSA_CRYPTO_C
+ *
+ * Enable the Platform Security Architecture cryptography API.
+ *
+ * Module:  library/psa_crypto.c
+ *
+ * Requires: MBEDTLS_CTR_DRBG_C, MBEDTLS_ENTROPY_C
+ *
+ */
+#define MBEDTLS_PSA_CRYPTO_C
 
 /**
  * \def MBEDTLS_RIPEMD160_C

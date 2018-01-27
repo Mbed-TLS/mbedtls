@@ -8,8 +8,8 @@
  * Layer Security (TLS)</em>.
  *                  
  */
-/* 
- *  Copyright (C) 2006-2018, Arm Limited (or its afiliates), All Rights Reserved
+/*
+ *  Copyright (C) 2006-2018, Arm Limited (or its affiliates), All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -157,8 +157,10 @@ int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
  * \brief           This function computes the ECDSA signature and writes it 
  *                  to a buffer, serialized as defined in <em>RFC-4492: 
  *                  Elliptic Curve Cryptography (ECC) Cipher Suites for 
- *                  Transport Layer Security (TLS)</em>. It is not thread-safe 
- *                  to use the same context in multiple threads.
+ *                  Transport Layer Security (TLS)</em>. 
+ *
+ * \warning         It is not thread-safe to use the same context in 
+ *                  multiple threads.
  *
  * \note            The deterministic version is used if
  *                  #MBEDTLS_ECDSA_DETERMINISTIC is defined. For more 
@@ -167,7 +169,7 @@ int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
  *                  Curve Digital Signature Algorithm (ECDSA)</em>.
  *
  * \param ctx       The ECDSA context.
- * \param md_alg    The algorithm that was used to hash the message.
+ * \param md_alg    The message digest that was used to hash the message.
  * \param hash      The message hash.
  * \param hlen      The length of the hash.
  * \param sig       The buffer that holds the signature.
@@ -177,8 +179,8 @@ int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
  *
  * \note            The \p sig buffer must be at least twice as large as the
  *                  size of the curve used, plus 9. For example, 73 Bytes if 
- *                  a 256-bit curve is used. #MBEDTLS_ECDSA_MAX_LEN is always 
- *                  safe.
+ *                  a 256-bit curve is used. A buffer length of 
+ *                  #MBEDTLS_ECDSA_MAX_LEN is always safe.
  *
  * \note            If the bitlength of the message hash is larger than the
  *                  bitlength of the group order, then the hash is truncated as
@@ -214,7 +216,10 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t
  *          Deterministic Usage of the Digital Signature Algorithm (DSA) and 
  *          Elliptic Curve Digital Signature Algorithm (ECDSA)</em> is used
  *          if #MBEDTLS_ECDSA_DETERMINISTIC is defined.
- *          It is not thread-safe to use same context in multiple threads.
+ *
+ * \warning         It is not thread-safe to use the same context in 
+ *                  multiple threads.
+
  *
  * \deprecated      Superseded by mbedtls_ecdsa_write_signature() in 2.0.0
  *
@@ -227,9 +232,10 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t
  *
  * \note            The \p sig buffer must be at least twice as large as the
  *                  size of the curve used, plus 9. For example, 73 Bytes if a 
- *                  256-bit curve is used. #MBEDTLS_ECDSA_MAX_LEN is always safe.
+ *                  256-bit curve is used. A buffer length of 
+ *                  #MBEDTLS_ECDSA_MAX_LEN is always safe.
  *
- * \note            If the bitlength of the message hash is larger than the 
+ * \note            If the bitlength of the message hash is larger than the
  *                  bitlength of the group order, then the hash is truncated as
  *                  defined in <em>Standards for Efficient Cryptography Group 
  *                  (SECG): SEC1 Elliptic Curve Cryptography</em>, section 
@@ -281,12 +287,12 @@ int mbedtls_ecdsa_read_signature( mbedtls_ecdsa_context *ctx,
  * \brief          This function generates an ECDSA keypair on the given curve.
  *
  * \param ctx      The ECDSA context to store the keypair in.
- * \param gid      The EC group to use. One of the various
+ * \param gid      The elliptic curve to use. One of the various
  *                 \c MBEDTLS_ECP_DP_XXX macros depending on configuration.
  * \param f_rng    The RNG function.
  * \param p_rng    The RNG parameter.
  *
- * \return         \c 0 on success, or an \c MBEDTLS_ERR_ECP_XXX code on 
+ * \return         \c 0 on success, or an \c MBEDTLS_ERR_ECP_XXX code on
  *                 failure.
  * 
  * \see            ecp.h
@@ -300,7 +306,7 @@ int mbedtls_ecdsa_genkey( mbedtls_ecdsa_context *ctx, mbedtls_ecp_group_id gid,
  * \param ctx       The ECDSA context to set.
  * \param key       The EC key to use.
  *
- * \return          \c 0 on success, or an \c MBEDTLS_ERR_ECP_XXX code on 
+ * \return          \c 0 on success, or an \c MBEDTLS_ERR_ECP_XXX code on
  *                  failure.
  *
  * \see             ecp.h
@@ -308,16 +314,16 @@ int mbedtls_ecdsa_genkey( mbedtls_ecdsa_context *ctx, mbedtls_ecp_group_id gid,
 int mbedtls_ecdsa_from_keypair( mbedtls_ecdsa_context *ctx, const mbedtls_ecp_keypair *key );
 
 /**
- * \brief           This function initializes a context.
+ * \brief           This function initializes an ECDSA context.
  *
- * \param ctx       The context to initialize.
+ * \param ctx       The ECDSA context to initialize.
  */
 void mbedtls_ecdsa_init( mbedtls_ecdsa_context *ctx );
 
 /**
- * \brief           This function frees a context.
+ * \brief           This function frees an ECDSA context.
  *
- * \param ctx       The context to free.
+ * \param ctx       The ECDSA context to free.
  */
 void mbedtls_ecdsa_free( mbedtls_ecdsa_context *ctx );
 

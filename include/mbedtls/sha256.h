@@ -49,6 +49,9 @@ extern "C" {
 
 /**
  * \brief          The SHA-256 context structure.
+ *                 The structure is used both for SHA-256 and for SHA-224
+ *                 checksum calculations. The choice between these two is 
+ *                 made in the call to mbedtls_md_starts_ret().
  */
 typedef struct
 {
@@ -85,7 +88,8 @@ void mbedtls_sha256_clone( mbedtls_sha256_context *dst,
                            const mbedtls_sha256_context *src );
 
 /**
- * \brief          This function starts a SHA-256 checksum calculation.
+ * \brief          This function starts a SHA-224 or SHA-256 checksum 
+ *                 calculation.
  *
  * \param ctx      The context to initialize.
  * \param is224    Determines which function to use.
@@ -251,8 +255,8 @@ int mbedtls_sha256_ret( const unsigned char *input,
 #endif
 
 /**
- * \brief          This function calculates SHA-256 
- *                 on the input buffer.
+ * \brief          This function calculates the SHA-224 or SHA-256 checksum 
+ *                 of a buffer.
  *
  *                 The function allocates the context, performs the 
  *                 calculation, and frees the context.
@@ -280,7 +284,7 @@ MBEDTLS_DEPRECATED static inline void mbedtls_sha256(
 
 #undef MBEDTLS_DEPRECATED
 #endif /* !MBEDTLS_DEPRECATED_REMOVED */
-                        
+
 /**
  * \brief          The SHA-224 and SHA-256 checkup routine.
  *

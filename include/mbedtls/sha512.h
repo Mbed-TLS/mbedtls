@@ -112,7 +112,7 @@ int mbedtls_sha512_starts_ret( mbedtls_sha512_context *ctx, int is384 );
  *
  * \return         \c 0 on success.
  */
-int mbedtls_sha512_update_ret ( mbedtls_sha512_context *ctx, 
+int mbedtls_sha512_update_ret( mbedtls_sha512_context *ctx, 
                     const unsigned char *input,
                     size_t ilen );
 
@@ -125,7 +125,7 @@ int mbedtls_sha512_update_ret ( mbedtls_sha512_context *ctx,
  *
  * \return         \c 0 on success.
  */
-int mbedtls_sha512_finish_ret( mbedtls_sha512_context *ctx, 
+int mbedtls_sha512_finish_ret( mbedtls_sha512_context *ctx,
                                unsigned char output[64] );
 
 /**
@@ -247,9 +247,9 @@ extern "C" {
  *
  * \return         \c 0 on success.
  */
-int mbedtls_sha512_ret( const unsigned char *input, 
+int mbedtls_sha512_ret( const unsigned char *input,
                         size_t ilen,
-                        unsigned char output[64], 
+                        unsigned char output[64],
                         int is384 );
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)

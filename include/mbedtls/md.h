@@ -100,7 +100,7 @@ const int *mbedtls_md_list( void );
  *
  * \param md_name   The name of the digest to search for.
  *
- * \return          The message-digest information associated with \p md_name, 
+ * \return          The message-digest information associated with \p md_name,
  *                  or NULL if not found.
  */
 const mbedtls_md_info_t *mbedtls_md_info_from_string( const char *md_name );
@@ -111,7 +111,7 @@ const mbedtls_md_info_t *mbedtls_md_info_from_string( const char *md_name );
  *
  * \param md_type   The type of digest to search for.
  *
- * \return          The message-digest information associated with \p md_type, 
+ * \return          The message-digest information associated with \p md_type,
  *                  or NULL if not found.
  */
 const mbedtls_md_info_t *mbedtls_md_info_from_type( mbedtls_md_type_t md_type );

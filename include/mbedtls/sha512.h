@@ -132,8 +132,8 @@ int mbedtls_sha512_finish_ret( mbedtls_sha512_context *ctx,
  * \brief          This function processes a single data block within
  *                 the ongoing SHA-512 computation.
  *
- * \param ctx      SHA-512 context
- * \param data     buffer holding one block of data
+ * \param ctx      The SHA-512 context.
+ * \param data     The buffer holding one block of data.
  *
  * \return         \c 0 on success.
  */

@@ -67,9 +67,13 @@ typedef struct {
 mbedtls_gcm_context;
 
 /**
- * \brief           This function initializes the specified GCM context, 
+ * \brief           This function initializes the specified GCM context,
  *                  to make references valid, and prepares the context 
  *                  for mbedtls_gcm_setkey() or mbedtls_gcm_free().
+ *
+ *                  The function does not bind the GCM context to a particular
+ *                  cipher, nor set the key. For this purpose, use
+ *                  mbedtls_gcm_setkey()
  *
  * \param ctx       The GCM context to initialize.
  */
@@ -77,6 +81,10 @@ void mbedtls_gcm_init( mbedtls_gcm_context *ctx );
 
 /**
  * \brief           This function initializes the specified GCM context.
+ *
+ *                  This function sets up the GCM context for encryption
+ *                  and decryption, by binding it to a block cipher type
+ *                  and setting the keys to use.
  *
  * \param ctx       The GCM context to initialize.
  * \param cipher    The 128-bit block cipher to use.
@@ -98,7 +106,7 @@ int mbedtls_gcm_setkey( mbedtls_gcm_context *ctx,
  *       If the buffers overlap, the output buffer must trail at least 8 Bytes
  *       behind the input buffer.
  *
- * \param ctx       The GCM context to encrypt or decrypt.
+ * \param ctx       The GCM context to use for encryption or decryption.
  * \param mode      The operation to perform: #MBEDTLS_GCM_ENCRYPT or 
  *                  #MBEDTLS_GCM_DECRYPT.
  * \param length    The length of the input data.

@@ -49,9 +49,10 @@ extern "C" {
 
 /**
  * \brief          The SHA-256 context structure.
+ *
  *                 The structure is used both for SHA-256 and for SHA-224
  *                 checksum calculations. The choice between these two is 
- *                 made in the call to mbedtls_md_starts_ret().
+ *                 made in the call to mbedtls_sha256_starts_ret().
  */
 typedef struct
 {

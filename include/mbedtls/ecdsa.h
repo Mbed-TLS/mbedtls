@@ -1,12 +1,13 @@
 /**
  * \file ecdsa.h
  *
- * \brief Elliptic curve DSA.
+ * \brief The Elliptic Curve Digital Signature Algorithm (ECDSA).
  *
- * The Elliptic Curve Digital Signature Algorithm (ECSDA) is defined in 
- * <em>RFC-4492: Elliptic Curve Cryptography (ECC) Cipher Suites for Transport 
- * Layer Security (TLS)</em>.
- *                  
+ * ECDSA is defined in <em>Standards for Efficient Cryptography Group (SECG):
+ * SEC1 Elliptic Curve Cryptography</em>.
+ * The use of ECDSA for TLS is defined in <em>RFC-4492: Elliptic Curve
+ * Cryptography (ECC) Cipher Suites for Transport Layer Security (TLS)</em>.
+ *
  */
 /*
  *  Copyright (C) 2006-2018, Arm Limited (or its affiliates), All Rights Reserved
@@ -211,11 +212,6 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t
  * \brief   This function computes an ECDSA signature and writes it to a buffer,
  *          serialized as defined in <em>RFC-4492: Elliptic Curve Cryptography 
  *          (ECC) Cipher Suites for Transport Layer Security (TLS)</em>.
- *
- *          The deterministic version, defined in <em>RFC-6979: 
- *          Deterministic Usage of the Digital Signature Algorithm (DSA) and 
- *          Elliptic Curve Digital Signature Algorithm (ECDSA)</em> is used
- *          if #MBEDTLS_ECDSA_DETERMINISTIC is defined.
  *
  * \warning         It is not thread-safe to use the same context in 
  *                  multiple threads.

@@ -234,8 +234,7 @@ mbedtls_md_type_t mbedtls_md_get_type( const mbedtls_md_info_t *md_info );
 const char *mbedtls_md_get_name( const mbedtls_md_info_t *md_info );
 
 /**
- * \brief           This function calculates the  media-digest checksum 
- *                  result.
+ * \brief           This function starts a message-digest computation.
  *
  *                  It is generally called after mbedtls_md_setup() or 
  *                  mbedtls_md_finish(). It is followed by mbedtls_md_update().

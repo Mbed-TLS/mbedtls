@@ -96,7 +96,7 @@
 #define MBEDTLS_CTR_DRBG_PR_OFF             0
 /**< Prediction resistance is disabled. */
 #define MBEDTLS_CTR_DRBG_PR_ON              1
-/**< Prediction-resistance is enabled. */
+/**< Prediction resistance is enabled. */
 
 #ifdef __cplusplus
 extern "C" {
@@ -110,9 +110,9 @@ typedef struct
     unsigned char counter[16];  /*!< The counter (V). */
     int reseed_counter;         /*!< The reseed counter. */
     int prediction_resistance;  /*!< This determines whether prediction 
-	                                 resistance is enabled. */
+                                     resistance is enabled. */
     size_t entropy_len;         /*!< The amount of entropy grabbed on each 
-                                     seed or reseed operation.*/
+                                     seed or reseed operation. */
     int reseed_interval;        /*!< The reseed interval. */
 
     mbedtls_aes_context aes_ctx;        /*!< The AES context. */
@@ -132,7 +132,7 @@ typedef struct
 mbedtls_ctr_drbg_context;
 
 /**
- * \brief               This function initializes the CTR_DRBG context,  
+ * \brief               This function initializes the CTR_DRBG context,
  *                      and prepares it for mbedtls_ctr_drbg_seed()
  *                      or mbedtls_ctr_drbg_free().
  *
@@ -141,16 +141,16 @@ mbedtls_ctr_drbg_context;
 void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx );
 
 /**
- * \brief               This function seeds and sets up the CTR_DRBG 
+ * \brief               This function seeds and sets up the CTR_DRBG	
  *                      entropy source for future reseeds.
  *
  * \note Personalization data can be provided in addition to the more generic
  *       entropy source, to make this instantiation as unique as possible.
  *
  * \param ctx           The CTR_DRBG context to seed.
- * \param f_entropy     The entropy callback, taking as arguments the context,
- *                      \p p_entropy, the buffer to fill, and the length of
-                        the buffer.
+ * \param f_entropy     The entropy callback, taking as arguments the 
+ *                      \p p_entropy context, the buffer to fill, and the 
+                        length of the buffer.
  * \param p_entropy     The entropy context.
  * \param custom        Personalization data, that is device-specific 
                         identifiers. Can be NULL.

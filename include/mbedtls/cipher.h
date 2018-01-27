@@ -80,7 +80,7 @@ typedef enum {
     MBEDTLS_CIPHER_ID_ARC4,
 } mbedtls_cipher_id_t;
 
-/** Supported cipher Types. */
+/** Supported cipher types. */
 typedef enum {
     MBEDTLS_CIPHER_NONE = 0,
     MBEDTLS_CIPHER_NULL,
@@ -538,7 +538,7 @@ int mbedtls_cipher_reset( mbedtls_cipher_context_t *ctx );
 #if defined(MBEDTLS_GCM_C)
 /**
  * \brief               This function adds additional data for AEAD ciphers. 
- *                      Only supported with GCM. Must be called 
+ *                      Only supported with GCM. Must be called
  *                      exactly once, after mbedtls_cipher_reset().
  *
  * \param ctx           The generic cipher context.
@@ -552,7 +552,7 @@ int mbedtls_cipher_update_ad( mbedtls_cipher_context_t *ctx,
 #endif /* MBEDTLS_GCM_C */
 
 /**
- * \brief               The generic cipher update function. It encrypts or 
+ * \brief               The generic cipher update function. It encrypts or
  *                      decrypts using the given cipher context. Writes as 
  *                      many block-sized blocks of data as possible to output. 
  *                      Any data that cannot be written immediately is either 
@@ -722,7 +722,7 @@ int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
  *                      or a cipher-specific error code on failure for any other reason.
  *
  * \note                If the data is not authentic, then the output buffer
- *                      is zeroed out to prevent the unauthentic plaintext being 
+ *                      is zeroed out to prevent the unauthentic plaintext being
  *                      used, making this interface safer.
  */
 int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,

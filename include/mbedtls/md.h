@@ -87,9 +87,10 @@ typedef struct {
  * \brief           This function returns the list of digests supported by the 
  *                  generic digest module.
  *
- * \return          A statically allocated array of digests. Returned list is an 
- *                  integer belonging to the message-digest enumeration 
- *                  #mbedtls_md_type_t. The last entry is 0.
+ * \return          A statically allocated array of digests. Each element  
+ *                  in the returned list is an integer belonging to the 
+ *                  message-digest enumeration #mbedtls_md_type_t. 
+ *                  The last entry is 0.
  */
 const int *mbedtls_md_list( void );
 
@@ -217,7 +218,7 @@ unsigned char mbedtls_md_get_size( const mbedtls_md_info_t *md_info );
  * \param md_info   The information structure of the message-digest algorithm 
  *                  to use.
  *
- * \return          The type of the message-digest output.
+ * \return          The type of the message digest.
  */
 mbedtls_md_type_t mbedtls_md_get_type( const mbedtls_md_info_t *md_info );
 
@@ -227,13 +228,13 @@ mbedtls_md_type_t mbedtls_md_get_type( const mbedtls_md_info_t *md_info );
  * \param md_info   The information structure of the message-digest algorithm 
  *                  to use.
  *
- * \return          The name of the message-digest output.
+ * \return          The name of the message digest.
  */
 const char *mbedtls_md_get_name( const mbedtls_md_info_t *md_info );
 
 /**
- * \brief           This function prepares the message-digest context for  
- *                  a new message. 
+ * \brief           This function Extracts the message-digest name from the  
+ *                  message-digest information structure. 
  *
  *                  It is generally called after mbedtls_md_setup() or 
  *                  mbedtls_md_finish(). It is followed by mbedtls_md_update().

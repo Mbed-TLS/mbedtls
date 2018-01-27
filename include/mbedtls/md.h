@@ -223,7 +223,8 @@ unsigned char mbedtls_md_get_size( const mbedtls_md_info_t *md_info );
 mbedtls_md_type_t mbedtls_md_get_type( const mbedtls_md_info_t *md_info );
 
 /**
- * \brief           This function returns the name of the message-digest output.
+ * \brief           This function extracts the message-digest name from the  
+ *                  message-digest information structure.
  *
  * \param md_info   The information structure of the message-digest algorithm 
  *                  to use.
@@ -233,8 +234,8 @@ mbedtls_md_type_t mbedtls_md_get_type( const mbedtls_md_info_t *md_info );
 const char *mbedtls_md_get_name( const mbedtls_md_info_t *md_info );
 
 /**
- * \brief           This function Extracts the message-digest name from the  
- *                  message-digest information structure. 
+ * \brief           This function calculates the  media-digest checksum 
+ *                  result.
  *
  *                  It is generally called after mbedtls_md_setup() or 
  *                  mbedtls_md_finish(). It is followed by mbedtls_md_update().

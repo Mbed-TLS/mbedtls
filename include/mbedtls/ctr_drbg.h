@@ -6,7 +6,7 @@
  *           Random Bit Generators</em>.
  *
  */
-/*  
+/*
  *  Copyright (C) 2006-2018, Arm Limited (or its affiliates), All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -40,13 +40,13 @@
 #define MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR                -0x003A  /**< Read or write error in file. */
 
 #define MBEDTLS_CTR_DRBG_BLOCKSIZE          16
-											/**< The block size used by the cipher. */
+                                            /**< The block size used by the cipher. */
 #define MBEDTLS_CTR_DRBG_KEYSIZE            32      
-											/**< The key size used by the cipher. */
+                                            /**< The key size used by the cipher. */
 #define MBEDTLS_CTR_DRBG_KEYBITS            ( MBEDTLS_CTR_DRBG_KEYSIZE * 8 ) 
                                             /**< The key size for the DRBG operation, in bits. */
 #define MBEDTLS_CTR_DRBG_SEEDLEN            ( MBEDTLS_CTR_DRBG_KEYSIZE + MBEDTLS_CTR_DRBG_BLOCKSIZE )
-                                            /**< The seed length, calculates as (counter + AES key). */
+                                            /**< The seed length, calculated as (counter + AES key). */
 
 /**
  * \name SECTION: Module settings
@@ -109,7 +109,8 @@ typedef struct
 {
     unsigned char counter[16];  /*!< The counter (V). */
     int reseed_counter;         /*!< The reseed counter. */
-    int prediction_resistance;  /*!< The enable prediction resistance. */
+    int prediction_resistance;  /*!< This determines whether prediction 
+	                                 resistance is enabled. */
     size_t entropy_len;         /*!< The amount of entropy grabbed on each 
                                      seed or reseed operation.*/
     int reseed_interval;        /*!< The reseed interval. */
@@ -120,7 +121,7 @@ typedef struct
      * Callbacks (Entropy)
      */
     int (*f_entropy)(void *, unsigned char *, size_t);
-								/*!< The entropy callback function. */
+                                /*!< The entropy callback function. */
 
     void *p_entropy;            /*!< The context for the entropy function. */
 
@@ -131,7 +132,7 @@ typedef struct
 mbedtls_ctr_drbg_context;
 
 /**
- * \brief               This function initialized the CTR_DRBG context,  
+ * \brief               This function initializes the CTR_DRBG context,  
  *                      and prepares it for mbedtls_ctr_drbg_seed()
  *                      or mbedtls_ctr_drbg_free().
  *
@@ -147,8 +148,9 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx );
  *       entropy source, to make this instantiation as unique as possible.
  *
  * \param ctx           The CTR_DRBG context to seed.
- * \param f_entropy     The entropy callback: \p p_entropy, the buffer to fill, 
- *                      and the length of the buffer.
+ * \param f_entropy     The entropy callback, taking as arguments the context,
+ *                      \p p_entropy, the buffer to fill, and the length of
+                        the buffer.
  * \param p_entropy     The entropy context.
  * \param custom        Personalization data, that is device-specific 
                         identifiers. Can be NULL.
@@ -174,9 +176,10 @@ void mbedtls_ctr_drbg_free( mbedtls_ctr_drbg_context *ctx );
  * \brief               This function turns prediction resistance on or off. 
  *                      The default value is off.
  *
- * \note                If enabled, entropy is used for \p ctx -> \p 
- *                      entropy_len before each call. Only use this if you 
- *                      have a sufficient amount of good entropy.
+ * \note                If enabled, entropy is gathered at the beginning of 
+ *                      every call to mbedtls_ctr_drbg_random_with_add(). 
+ *                      Only use this if you have a sufficient amount of 
+ *                      good entropy.
  *
  * \param ctx           The CTR_DRBG context.
  * \param resistance    #MBEDTLS_CTR_DRBG_PR_ON or #MBEDTLS_CTR_DRBG_PR_OFF.
@@ -189,14 +192,14 @@ void mbedtls_ctr_drbg_set_prediction_resistance( mbedtls_ctr_drbg_context *ctx,
  *                      seed or reseed. The default value is 
  *                      #MBEDTLS_CTR_DRBG_ENTROPY_LEN.
  *
- * \param ctx           CTR_DRBG context.
- * \param len           Amount of entropy to grab.
+ * \param ctx           The CTR_DRBG context.
+ * \param len           The amount of entropy to grab.
  */
 void mbedtls_ctr_drbg_set_entropy_len( mbedtls_ctr_drbg_context *ctx,
                                size_t len );
 
 /**
- * \brief               This function sets the reseed interval. 
+ * \brief               This function sets the reseed interval.
  *                      The default value is #MBEDTLS_CTR_DRBG_RESEED_INTERVAL.
  *
  * \param ctx           The CTR_DRBG context.
@@ -284,7 +287,7 @@ int mbedtls_ctr_drbg_random( void *p_rng,
 int mbedtls_ctr_drbg_write_seed_file( mbedtls_ctr_drbg_context *ctx, const char *path );
 
 /**
- * \brief               This function reads and updates a seed file. The seed 
+ * \brief               This function reads and updates a seed file. The seed
  *                      is added to this instance.
  *
  * \param ctx           The CTR_DRBG context.

@@ -39,8 +39,11 @@
 #endif
 
 #include "mbedtls/ctr_drbg.h"
+#include "mbedtls/ecp.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/pk.h"
+#include "mbedtls/pk_internal.h"
+#include "mbedtls/rsa.h"
 
 
 /* Implementation that should never be optimized out by the compiler */
@@ -64,9 +67,12 @@ typedef struct {
             uint8_t *data;
             size_t bytes;
         } raw;
-#if defined(MBEDTLS_PK_C)
-        mbedtls_pk_context pk;
-#endif /* MBEDTLS_PK_C */
+#if defined(MBEDTLS_RSA_C)
+        mbedtls_rsa_context *rsa;
+#endif /* MBEDTLS_RSA_C */
+#if defined(MBEDTLS_ECP_C)
+        mbedtls_ecp_keypair *ecp;
+#endif /* MBEDTLS_ECP_C */
     } data;
 } key_slot_t;
 
@@ -147,19 +153,43 @@ psa_status_t psa_import_key(psa_key_slot_t key,
         slot->data.raw.bytes = data_length;
     }
     else
-#if defined(MBEDTLS_PK_C) && defined(MBEDTLS_PK_PARSE_C)
+#if defined(MBEDTLS_PK_PARSE_C)
     if( type == PSA_KEY_TYPE_RSA || PSA_KEY_TYPE_IS_ECC( type ) )
     {
         int ret;
-        mbedtls_pk_init( &slot->data.pk );
-        ret = mbedtls_pk_parse_key( &slot->data.pk,
-                                    data, data_length,
+        mbedtls_pk_context pk;
+        mbedtls_pk_init( &pk );
+        ret = mbedtls_pk_parse_key( &pk, data, data_length,
                                     NULL, 0 );
         if( ret != 0 )
             return( mbedtls_to_psa_error( ret ) );
+        switch( mbedtls_pk_get_type( &pk ) )
+        {
+#if defined(MBEDTLS_RSA_C)
+            case MBEDTLS_PK_RSA:
+                if( type == PSA_KEY_TYPE_RSA )
+                    slot->data.rsa = pk.pk_ctx;
+                else
+                    return( PSA_ERROR_INVALID_ARGUMENT );
+                break;
+#endif /* MBEDTLS_RSA_C */
+#if defined(MBEDTLS_ECP_C)
+            case MBEDTLS_PK_ECKEY:
+                if( PSA_KEY_TYPE_IS_ECC( type ) )
+                {
+                    // TODO: check curve
+                    slot->data.ecp = pk.pk_ctx;
+                }
+                else
+                    return( PSA_ERROR_INVALID_ARGUMENT );
+                break;
+#endif /* MBEDTLS_ECP_C */
+            default:
+                return( PSA_ERROR_INVALID_ARGUMENT );
+        }
     }
     else
-#endif /* defined(MBEDTLS_PK_C) && defined(MBEDTLS_PK_PARSE_C) */
+#endif /* defined(MBEDTLS_PK_PARSE_C) */
     {
         return( PSA_ERROR_NOT_SUPPORTED );
     }
@@ -183,14 +213,20 @@ psa_status_t psa_destroy_key(psa_key_slot_t key)
         mbedtls_free( slot->data.raw.data );
     }
     else
-#if defined(MBEDTLS_PK_C) && defined(MBEDTLS_PK_PARSE_C)
-    if( slot->type == PSA_KEY_TYPE_RSA ||
-        PSA_KEY_TYPE_IS_ECC( slot->type ) )
+#if defined(MBEDTLS_RSA_C)
+    if( slot->type == PSA_KEY_TYPE_RSA )
     {
-        mbedtls_pk_free( &slot->data.pk );
+        mbedtls_rsa_free( slot->data.rsa );
     }
     else
-#endif /* defined(MBEDTLS_PK_C) && defined(MBEDTLS_PK_PARSE_C) */
+#endif /* defined(MBEDTLS_RSA_C) */
+#if defined(MBEDTLS_ECP_C)
+    if( PSA_KEY_TYPE_IS_ECC( slot->type ) )
+    {
+        mbedtls_ecp_keypair_free( slot->data.ecp );
+    }
+    else
+#endif /* defined(MBEDTLS_ECP_C) */
     {
         /* Shouldn't happen: the key type is not any type that we
          * put it. */
@@ -223,15 +259,22 @@ psa_status_t psa_get_key_information(psa_key_slot_t key,
             *bits = slot->data.raw.bytes * 8;
     }
     else
-#if defined(MBEDTLS_PK_C) && defined(MBEDTLS_PK_PARSE_C)
-    if( slot->type == PSA_KEY_TYPE_RSA ||
-        PSA_KEY_TYPE_IS_ECC( slot->type ) )
+#if defined(MBEDTLS_RSA_C)
+    if( slot->type == PSA_KEY_TYPE_RSA )
     {
         if( bits != NULL )
-            *bits = mbedtls_pk_get_bitlen( &slot->data.pk );
+            *bits = mbedtls_rsa_get_bitlen( slot->data.rsa );
     }
     else
-#endif /* defined(MBEDTLS_PK_C) && defined(MBEDTLS_PK_PARSE_C) */
+#endif /* defined(MBEDTLS_RSA_C) */
+#if defined(MBEDTLS_ECP_C)
+    if( PSA_KEY_TYPE_IS_ECC( slot->type ) )
+    {
+        if( bits != NULL )
+            *bits = slot->data.ecp->grp.pbits;
+    }
+    else
+#endif /* defined(MBEDTLS_ECP_C) */
     {
         /* Shouldn't happen: the key type is not any type that we
          * put it. */
@@ -263,20 +306,31 @@ psa_status_t psa_export_key(psa_key_slot_t key,
         return( PSA_SUCCESS );
     }
     else
-#if defined(MBEDTLS_PK_C) && defined(MBEDTLS_PK_PARSE_C)
+#if defined(MBEDTLS_PK_WRITE_C)
     if( slot->type == PSA_KEY_TYPE_RSA ||
         PSA_KEY_TYPE_IS_ECC( slot->type ) )
     {
+        mbedtls_pk_context pk;
         int ret;
-        ret = mbedtls_pk_write_key_der( &slot->data.pk,
-                                        data, data_size );
+        mbedtls_pk_init( &pk );
+        if( slot->type == PSA_KEY_TYPE_RSA )
+        {
+            pk.pk_info = &mbedtls_rsa_info;
+            pk.pk_ctx = slot->data.rsa;
+        }
+        else
+        {
+            pk.pk_info = &mbedtls_eckey_info;
+            pk.pk_ctx = slot->data.ecp;
+        }
+        ret = mbedtls_pk_write_key_der( &pk, data, data_size );
         if( ret < 0 )
             return( mbedtls_to_psa_error( ret ) );
         *data_length = ret;
         return( PSA_SUCCESS );
     }
     else
-#endif /* defined(MBEDTLS_PK_C) && defined(MBEDTLS_PK_PARSE_C) */
+#endif /* definedMBEDTLS_PK_WRITE_C) */
     {
         return( PSA_ERROR_NOT_SUPPORTED );
     }

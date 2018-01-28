@@ -141,7 +141,7 @@ mbedtls_ctr_drbg_context;
 void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx );
 
 /**
- * \brief               This function seeds and sets up the CTR_DRBG	
+ * \brief               This function seeds and sets up the CTR_DRBG
  *                      entropy source for future reseeds.
  *
  * \note Personalization data can be provided in addition to the more generic

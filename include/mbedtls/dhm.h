@@ -200,7 +200,7 @@ extern "C" {
  */
 typedef struct
 {
-    size_t len;         /*!<  The size of \p in Bytes. */
+    size_t len;         /*!<  The size of \p P in Bytes. */
     mbedtls_mpi P;      /*!<  The prime modulus. */
     mbedtls_mpi G;      /*!<  The generator. */
     mbedtls_mpi X;      /*!<  The secret value. */

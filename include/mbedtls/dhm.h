@@ -3,13 +3,13 @@
  *
  * \brief Diffie-Hellman-Merkle key exchange.
  *
- * <em>RFC-3526: More Modular Exponential (MODP) Diffie-Hellman groups for 
- * Internet Key Exchange (IKE)</em> defines a number of standardized 
- * Diffie-Hellman groups for IKE. 
+ * <em>RFC-3526: More Modular Exponential (MODP) Diffie-Hellman groups for
+ * Internet Key Exchange (IKE)</em> defines a number of standardized
+ * Diffie-Hellman groups for IKE.
  *
- * <em>RFC-5114: Additional Diffie-Hellman Groups for Use with IETF 
- * Standards</em> defines a number of standardized Diffie-Hellman 
- * groups that can be used. 
+ * <em>RFC-5114: Additional Diffie-Hellman Groups for Use with IETF
+ * Standards</em> defines a number of standardized Diffie-Hellman
+ * groups that can be used.
  */
 /*
  *  Copyright (C) 2006-2018, Arm Limited (or its affiliates), All Rights Reserved
@@ -64,9 +64,9 @@
  */
  
  
-/** 
- * The hexadecimal presentation of the prime underlying the 2048-bit MODP 
- * Group, as defined in <em>RFC-3526: More Modular Exponential (MODP) 
+/**
+ * The hexadecimal presentation of the prime underlying the 2048-bit MODP
+ * Group, as defined in <em>RFC-3526: More Modular Exponential (MODP)
  * Diffie-Hellman groups for Internet Key Exchange (IKE)</em>.
  */
 #define MBEDTLS_DHM_RFC3526_MODP_2048_P               \
@@ -81,16 +81,16 @@
     "E39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9" \
     "DE2BCBF6955817183995497CEA956AE515D2261898FA0510" \
     "15728E5A8AACAA68FFFFFFFFFFFFFFFF"
-/** 
- * The hexadecimal presentation of the chosen generator of the 2048-bit MODP 
- * Group, as defined in <em>RFC-3526: More Modular Exponential (MODP) 
+/**
+ * The hexadecimal presentation of the chosen generator of the 2048-bit MODP
+ * Group, as defined in <em>RFC-3526: More Modular Exponential (MODP)
  * Diffie-Hellman groups for Internet Key Exchange (IKE)</em>.
  */
 #define MBEDTLS_DHM_RFC3526_MODP_2048_G          "02"
 
-/** 
- * The hexadecimal presentation of the prime underlying the 4096-bit MODP 
- * Group, as defined in <em>RFC-3072: More Modular Exponential (MODP) 
+/**
+ * The hexadecimal presentation of the prime underlying the 3072-bit MODP
+ * Group, as defined in <em>RFC-3072: More Modular Exponential (MODP)
  * Diffie-Hellman groups for Internet Key Exchange (IKE)</em>.
  */
 #define MBEDTLS_DHM_RFC3526_MODP_3072_P               \
@@ -111,16 +111,16 @@
     "BBE117577A615D6C770988C0BAD946E208E24FA074E5AB31" \
     "43DB5BFCE0FD108E4B82D120A93AD2CAFFFFFFFFFFFFFFFF"
 
-/** 
- * The hexadecimal presentation of the chosen generator of the 3072-bit MODP 
- * Group, as defined in <em>RFC-3526: More Modular Exponential (MODP) 
+/**
+ * The hexadecimal presentation of the chosen generator of the 3072-bit MODP
+ * Group, as defined in <em>RFC-3526: More Modular Exponential (MODP)
  * Diffie-Hellman groups for Internet Key Exchange (IKE)</em>.
  */
 #define MBEDTLS_DHM_RFC3526_MODP_3072_G          "02"
 
-/** 
- * The hexadecimal presentation of the prime underlying the 4096-bit MODP 
- * Group, as defined in <em>RFC-3526: More Modular Exponential (MODP) 
+/**
+ * The hexadecimal presentation of the prime underlying the 4096-bit MODP
+ * Group, as defined in <em>RFC-3526: More Modular Exponential (MODP)
  * Diffie-Hellman groups for Internet Key Exchange (IKE)</em>.
  */
 #define MBEDTLS_DHM_RFC3526_MODP_4096_P                \
@@ -147,17 +147,17 @@
     "93B4EA988D8FDDC186FFB7DC90A6C08F4DF435C934063199" \
     "FFFFFFFFFFFFFFFF"
 	
-/** 
- * The hexadecimal presentation of the chosen generator of the 4096-bit MODP 
- * Group, as defined in <em>RFC-3526: More Modular Exponential (MODP) 
+/**
+ * The hexadecimal presentation of the chosen generator of the 4096-bit MODP
+ * Group, as defined in <em>RFC-3526: More Modular Exponential (MODP)
  * Diffie-Hellman groups for Internet Key Exchange (IKE)</em>.
  */
 #define MBEDTLS_DHM_RFC3526_MODP_4096_G          "02"
 
-/** 
- * The hexadecimal presentation of the prime underlying the 
- * 2048-bit MODP Group with 224-bit Prime Order Subgroup, as defined 
- * in <em>RFC-5114: Additional Diffie-Hellman Groups for Use with 
+/**
+ * The hexadecimal presentation of the prime underlying the
+ * 2048-bit MODP Group with 224-bit Prime Order Subgroup, as defined
+ * in <em>RFC-5114: Additional Diffie-Hellman Groups for Use with
  * IETF Standards</em>.
  */
 #define MBEDTLS_DHM_RFC5114_MODP_2048_P               \
@@ -173,9 +173,9 @@
     "C9B53DCF4BA80A29E3FB73C16B8E75B97EF363E2FFA31F71" \
     "CF9DE5384E71B81C0AC4DFFE0C10E64F"
 
-/** 
- * The hexadecimal presentation of the chosen generator of the 2048-bit MODP 
- * Group with 224-bit Prime Order Subgroup, as defined in <em>RFC-5114: 
+/**
+ * The hexadecimal presentation of the chosen generator of the 2048-bit MODP
+ * Group with 224-bit Prime Order Subgroup, as defined in <em>RFC-5114:
  * Additional Diffie-Hellman Groups for Use with IETF Standards</em>.
  */
 #define MBEDTLS_DHM_RFC5114_MODP_2048_G              \
@@ -228,7 +228,7 @@ void mbedtls_dhm_init( mbedtls_dhm_context *ctx );
  * \param p        The start of the input buffer.
  * \param end      The end of the input buffer.
  *
- * \return         \c 0 on success, or an \c MBEDTLS_ERR_DHM_XXX error code 
+ * \return         \c 0 on success, or an \c MBEDTLS_ERR_DHM_XXX error code
  *                 on failure.
  */
 int mbedtls_dhm_read_params( mbedtls_dhm_context *ctx,
@@ -236,7 +236,7 @@ int mbedtls_dhm_read_params( mbedtls_dhm_context *ctx,
                      const unsigned char *end );
 
 /**
- * \brief          This function sets up and writes the ServerKeyExchange 
+ * \brief          This function sets up and writes the ServerKeyExchange
  *                 parameters.
  *
  * \param ctx      The DHM context.
@@ -246,11 +246,11 @@ int mbedtls_dhm_read_params( mbedtls_dhm_context *ctx,
  * \param f_rng    The RNG function.
  * \param p_rng    The RNG parameter.
  *
- * \note           This function assumes that the value and generator of 
+ * \note           This function assumes that the value and generator of
  *                 \p ctx have already been properly set. For example,
  *                 using mbedtls_mpi_read_string() or mbedtls_mpi_read_binary().
  *
- * \return         \c 0 on success, or an \c MBEDTLS_ERR_DHM_XXX error code 
+ * \return         \c 0 on success, or an \c MBEDTLS_ERR_DHM_XXX error code
  *                 on failure.
  */
 int mbedtls_dhm_make_params( mbedtls_dhm_context *ctx, int x_size,
@@ -265,14 +265,14 @@ int mbedtls_dhm_make_params( mbedtls_dhm_context *ctx, int x_size,
  * \param input    The input buffer.
  * \param ilen     The size of the input buffer.
  *
- * \return         \c 0 on success, or an \c MBEDTLS_ERR_DHM_XXX error code 
+ * \return         \c 0 on success, or an \c MBEDTLS_ERR_DHM_XXX error code
  *                 on failure.
  */
 int mbedtls_dhm_read_public( mbedtls_dhm_context *ctx,
                      const unsigned char *input, size_t ilen );
 
 /**
- * \brief          This function creates its own private value \c X and 
+ * \brief          This function creates its own private value \c X and
  *                 exports \c G^X.
  *
  * \param ctx      The DHM context.
@@ -283,7 +283,7 @@ int mbedtls_dhm_read_public( mbedtls_dhm_context *ctx,
  * \param f_rng    The RNG function.
  * \param p_rng    The RNG parameter.
  *
- * \return         \c 0 on success, or an \c MBEDTLS_ERR_DHM_XXX error code 
+ * \return         \c 0 on success, or an \c MBEDTLS_ERR_DHM_XXX error code
  *                 on failure.
  */
 int mbedtls_dhm_make_public( mbedtls_dhm_context *ctx, int x_size,
@@ -292,7 +292,7 @@ int mbedtls_dhm_make_public( mbedtls_dhm_context *ctx, int x_size,
                      void *p_rng );
 
 /**
- * \brief               This function derives and exports the shared secret 
+ * \brief               This function derives and exports the shared secret
  *                      \c (G^Y)^X mod \c P.
  *
  * \param ctx           The DHM context.
@@ -306,9 +306,9 @@ int mbedtls_dhm_make_public( mbedtls_dhm_context *ctx, int x_size,
  *                 on failure.
  *
  * \note           If non-NULL, \p f_rng is used to blind the input as
- *                 a countermeasure against timing attacks. Blinding is used 
- *                 only if the secret value \p X is re-used and omitted 
- *                 otherwise. Therefore, we recommend always passing a 
+ *                 a countermeasure against timing attacks. Blinding is used
+ *                 only if the secret value \p X is re-used and omitted
+ *                 otherwise. Therefore, we recommend always passing a
  *                 non-NULL \p f_rng argument.
  */
 int mbedtls_dhm_calc_secret( mbedtls_dhm_context *ctx,
@@ -333,7 +333,7 @@ void mbedtls_dhm_free( mbedtls_dhm_context *ctx );
  * \param dhminlen    The size of the buffer, including the terminating null
  *                    Byte for PEM data.
  *
- * \return            \c 0 on success, or a specific DHM or PEM error code 
+ * \return            \c 0 on success, or a specific DHM or PEM error code
  *                    on failure.
  */
 int mbedtls_dhm_parse_dhm( mbedtls_dhm_context *dhm, const unsigned char *dhmin,

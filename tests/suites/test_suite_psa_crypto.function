@@ -10,15 +10,125 @@
 /* BEGIN_CASE */
 void init_deinit()
 {
-    psa_status_t ret;
+    psa_status_t status;
     int i;
     for( i = 0; i <= 1; i++ )
     {
-        ret = psa_crypto_init( );
-        TEST_ASSERT( ret == PSA_SUCCESS );
-        ret = psa_crypto_init( );
-        TEST_ASSERT( ret == PSA_SUCCESS );
+        status = psa_crypto_init( );
+        TEST_ASSERT( status == PSA_SUCCESS );
+        status = psa_crypto_init( );
+        TEST_ASSERT( status == PSA_SUCCESS );
         mbedtls_psa_crypto_free( );
     }
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void import( char *hex, int type, int expected_status )
+{
+    int slot = 1;
+    psa_status_t status;
+    unsigned char *data = NULL;
+    size_t data_size;
+
+    data_size = strlen( hex ) / 2;
+    data = mbedtls_calloc( 1, data_size );
+    TEST_ASSERT( data != NULL );
+    data_size = unhexify( data, hex );
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    status = psa_import_key( slot, type, data, data_size );
+    TEST_ASSERT( status == (psa_status_t) expected_status );
+    if( status == PSA_SUCCESS )
+        TEST_ASSERT( psa_destroy_key( slot ) == PSA_SUCCESS );
+
+exit:
+    mbedtls_free( data );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void import_export( char *hex, int type_arg,
+                    int expected_bits,
+                    int export_size_delta,
+                    int expected_export_status,
+                    int canonical_input )
+{
+    int slot = 1;
+    int slot2 = slot + 1;
+    psa_key_type_t type = type_arg;
+    psa_status_t status;
+    unsigned char *data = NULL;
+    unsigned char *exported = NULL;
+    unsigned char *reexported = NULL;
+    size_t data_size;
+    size_t export_size;
+    size_t exported_length;
+    size_t reexported_length;
+    psa_key_type_t got_type;
+    size_t got_bits;
+
+    data_size = strlen( hex ) / 2;
+    data = mbedtls_calloc( 1, data_size );
+    TEST_ASSERT( data != NULL );
+    data_size = unhexify( data, hex );
+    export_size = (ssize_t) data_size + export_size_delta;
+    exported = mbedtls_calloc( 1, export_size );
+    TEST_ASSERT( exported != NULL );
+    if( ! canonical_input )
+    {
+        reexported = mbedtls_calloc( 1, export_size );
+        TEST_ASSERT( reexported != NULL );
+    }
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    /* Import the key */
+    TEST_ASSERT( psa_import_key( slot, type,
+                                 data, data_size ) == PSA_SUCCESS );
+
+    /* Test the key information */
+    TEST_ASSERT( psa_get_key_information( slot,
+                                          &got_type, &got_bits ) ==
+                 PSA_SUCCESS );
+    TEST_ASSERT( got_type == type );
+    TEST_ASSERT( got_bits == (size_t) expected_bits );
+
+    /* Export the key */
+    status = psa_export_key( slot,
+                             exported, export_size,
+                             &exported_length );
+    TEST_ASSERT( status == (psa_status_t) expected_export_status );
+    if( status != PSA_SUCCESS )
+        goto destroy;
+
+    if( canonical_input )
+    {
+        TEST_ASSERT( exported_length == data_size );
+        TEST_ASSERT( memcmp( exported, data, data_size ) == 0 );
+    }
+    else
+    {
+        TEST_ASSERT( psa_import_key( slot2, type,
+                                     exported, export_size ) ==
+                     PSA_SUCCESS );
+        TEST_ASSERT( psa_export_key( slot2,
+                                     reexported, export_size,
+                                     &reexported_length ) ==
+                     PSA_SUCCESS );
+        TEST_ASSERT( reexported_length == exported_length );
+        TEST_ASSERT( memcmp( reexported, exported,
+                             exported_length ) == 0 );
+    }
+
+destroy:
+    /* Destroy the key */
+    TEST_ASSERT( psa_destroy_key( slot ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_get_key_information(
+                     slot, NULL, NULL ) == PSA_ERROR_EMPTY_SLOT );
+
+exit:
+    mbedtls_free( data );
+    mbedtls_psa_crypto_free( );
 }
 /* END_CASE */

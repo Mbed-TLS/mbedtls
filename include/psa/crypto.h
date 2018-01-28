@@ -8,10 +8,26 @@
 
 #include "crypto_platform.h"
 
+#include <stddef.h>
+
 #ifdef __DOXYGEN_ONLY__
 /** \defgroup platform Implementation-specific definitions
  * @{
  */
+
+/** \brief Key slot number.
+ *
+ * This type represents key slots. It must be an unsigned integral
+ * type.* The choice of type is implementation-dependent.
+ * 0 is not a valid key slot number. The meaning of other values is
+ * implementation dependent.
+ *
+ * At any given point in time, each key slot either contains a
+ * cryptographic object, or is empty. Key slots are persistent:
+ * once set, the cryptographic object remains in the key slot until
+ * explicitly destroyed.
+ */
+typedef _unsigned_integral_type_ psa_key_slot_t;
 
 /**@}*/
 #endif
@@ -86,6 +102,103 @@ typedef enum {
  *         * \c PSA_ERROR_INSUFFICIENT_ENTROPY
  */
 psa_status_t psa_crypto_init(void);
+
+/**@}*/
+
+/** \defgroup crypto_types Key and algorithm types
+ * @{
+ */
+
+typedef uint32_t psa_key_type_t;
+
+#define PSA_KEY_TYPE_NONE                       0x00000000
+#define PSA_KEY_TYPE_RAW_DATA                   0x00000001
+#define PSA_KEY_TYPE_RSA                        0x40000001
+#define PSA_KEY_TYPE_ECC_BASE                   0x40010000
+
+#define PSA_KEY_TYPE_VENDOR_FLAG                0x80000000
+#define PSA_KEY_TYPE_ASYMMETRIC_FLAG            0x40000000
+#define PSA_KEY_TYPE_ECC_TEST_MASK              0x7fff0000
+#define PSA_KEY_TYPE_ECC_TEST_VALUE             0x40010000
+
+#define PSA_KEY_TYPE_IS_VENDOR(type) \
+    (((type) & PSA_KEY_TYPE_VENDOR_FLAG) != 0)
+#define PSA_KEY_TYPE_IS_ASYMMETRIC(type) \
+    (((type) & PSA_KEY_TYPE_ASYMMETRIC_FLAG) != 0)
+#define PSA_KEY_TYPE_IS_ECC(type) \
+    (((type) & PSA_KEY_TYPE_ECC_TEST_MASK) == PSA_KEY_TYPE_ECC_TEST_VALUE)
+
+typedef uint32_t psa_algorithm_type_t;
+
+/**@}*/
+
+/** \defgroup key_management Key management
+ * @{
+ */
+
+/**
+ * \brief Import a key in binary format.
+ *
+ * This function supports any output from psa_export_key().
+ *
+ * \return * \c PSA_SUCCESS: success.
+ *         * \c PSA_ERROR_NOT_SUPPORTED
+ *         * \c PSA_ERROR_INVALID_ARGUMENT
+ *         * \c PSA_ERROR_INSUFFICIENT_MEMORY
+ *         * \c PSA_ERROR_COMMUNICATION_FAILURE
+ *         * \c PSA_ERROR_HARDWARE_FAILURE
+ *         * \c PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_import_key(psa_key_slot_t key,
+                            psa_key_type_t type,
+                            const uint8_t *data,
+                            size_t data_length);
+
+/**
+ * \brief Destroy a key.
+ *
+ * \return * \c PSA_SUCCESS: success.
+ *         * \c PSA_ERROR_EMPTY_SLOT
+ *         * \c PSA_ERROR_COMMUNICATION_FAILURE
+ *         * \c PSA_ERROR_HARDWARE_FAILURE
+ *         * \c PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_destroy_key(psa_key_slot_t key);
+
+/**
+ * \brief Get basic metadata about a key.
+ *
+ * \return * \c PSA_SUCCESS: success.
+ *         * \c PSA_ERROR_EMPTY_SLOT
+ *         * \c PSA_ERROR_COMMUNICATION_FAILURE
+ *         * \c PSA_ERROR_HARDWARE_FAILURE
+ *         * \c PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_get_key_information(psa_key_slot_t key,
+                                     psa_key_type_t *type,
+                                     size_t *bits);
+
+/**
+ * \brief Export a key in binary format.
+ *
+ * The output of this function can be passed to psa_import_key() to
+ * create an equivalent object.
+ *
+ * If a key is created with psa_import_key() and then exported with
+ * this function, it is not guaranteed that the resulting data is
+ * identical: the implementation may choose a different representation
+ * of the same key.
+ *
+ * \return * \c PSA_SUCCESS: success.
+ *         * \c PSA_ERROR_EMPTY_SLOT
+ *         * \c PSA_ERROR_COMMUNICATION_FAILURE
+ *         * \c PSA_ERROR_HARDWARE_FAILURE
+ *         * \c PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_export_key(psa_key_slot_t key,
+                            uint8_t *data,
+                            size_t data_size,
+                            size_t *data_length);
 
 /**@}*/
 

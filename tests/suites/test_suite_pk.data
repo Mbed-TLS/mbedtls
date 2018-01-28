@@ -1,6 +1,15 @@
-PK utils: RSA
+PK utils: RSA, 512 bits
 depends_on:MBEDTLS_RSA_C:MBEDTLS_GENPRIME
 pk_utils:MBEDTLS_PK_RSA:512:64:"RSA"
+
+## RSA key generation only supports even bit sizes
+#PK utils: RSA, 511 bits
+#depends_on:MBEDTLS_RSA_C:MBEDTLS_GENPRIME
+#pk_utils:MBEDTLS_PK_RSA:511:64:"RSA"
+#
+PK utils: RSA, 510 bits
+depends_on:MBEDTLS_RSA_C:MBEDTLS_GENPRIME
+pk_utils:MBEDTLS_PK_RSA:510:64:"RSA"
 
 PK utils: ECKEY
 depends_on:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP192R1_ENABLED

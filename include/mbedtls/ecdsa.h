@@ -64,7 +64,7 @@ extern "C" {
 #endif
 
 /**
- * \brief           This function computes the ECDSA signature of a 
+ * \brief           This function computes the ECDSA signature of a
  *                  previously-hashed message.
  *
  * \note            The deterministic version is usually preferred.
@@ -79,12 +79,12 @@ extern "C" {
  * \param p_rng     The RNG parameter.
  *
  * \note            If the bitlength of the message hash is larger than the
- *                  bitlength of the group order, then the hash is truncated 
- *                  as defined in <em>Standards for Efficient Cryptography Group 
- *                  (SECG): SEC1 Elliptic Curve Cryptography</em>, section 
+ *                  bitlength of the group order, then the hash is truncated
+ *                  as defined in <em>Standards for Efficient Cryptography Group
+ *                  (SECG): SEC1 Elliptic Curve Cryptography</em>, section
  *                  4.1.3, step 5.
  *
- * \return          \c 0 on success, or an \c MBEDTLS_ERR_ECP_XXX 
+ * \return          \c 0 on success, or an \c MBEDTLS_ERR_ECP_XXX
  *                  or \c MBEDTLS_MPI_XXX error code on failure.
  *
  * \see             ecp.h
@@ -95,10 +95,10 @@ int mbedtls_ecdsa_sign( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
 
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
 /**
- * \brief           This function computes the ECDSA signature of a 
- *                  previously-hashed message, deterministic version. 
- *                  For more information, see <em>RFC-6979: Deterministic 
- *                  Usage of the Digital Signature Algorithm (DSA) and Elliptic 
+ * \brief           This function computes the ECDSA signature of a
+ *                  previously-hashed message, deterministic version.
+ *                  For more information, see <em>RFC-6979: Deterministic
+ *                  Usage of the Digital Signature Algorithm (DSA) and Elliptic
  *                  Curve Digital Signature Algorithm (ECDSA)</em>.
  *
  * \param grp       The ECP group.
@@ -111,12 +111,12 @@ int mbedtls_ecdsa_sign( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
  *
  * \note            If the bitlength of the message hash is larger than the
  *                  bitlength of the group order, then the hash is truncated as
- *                  defined in <em>Standards for Efficient Cryptography Group 
- *                  (SECG): SEC1 Elliptic Curve Cryptography</em>, section 
+ *                  defined in <em>Standards for Efficient Cryptography Group
+ *                  (SECG): SEC1 Elliptic Curve Cryptography</em>, section
  *                  4.1.3, step 5.
  *
  * \return          \c 0 on success,
- *                  or an \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_MPI_XXX 
+ *                  or an \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_MPI_XXX
  *                  error code on failure.
  *
  * \see             ecp.h
@@ -127,7 +127,7 @@ int mbedtls_ecdsa_sign_det( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi 
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
 /**
- * \brief           This function verifies the ECDSA signature of a 
+ * \brief           This function verifies the ECDSA signature of a
  *                  previously-hashed message.
  *
  * \param grp       The ECP group.
@@ -139,13 +139,13 @@ int mbedtls_ecdsa_sign_det( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi 
  *
  * \note            If the bitlength of the message hash is larger than the
  *                  bitlength of the group order, then the hash is truncated as
- *                  defined in <em>Standards for Efficient Cryptography Group 
- *                  (SECG): SEC1 Elliptic Curve Cryptography</em>, section 
+ *                  defined in <em>Standards for Efficient Cryptography Group
+ *                  (SECG): SEC1 Elliptic Curve Cryptography</em>, section
  *                  4.1.4, step 3.
  *
- * \return          \c 0 on success, 
+ * \return          \c 0 on success,
  *                  #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if signature is invalid,
- *                  or an \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_MPI_XXX 
+ *                  or an \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_MPI_XXX
  *                  error code on failure for any other reason.
  *
  * \see             ecp.h
@@ -155,18 +155,18 @@ int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
                   const mbedtls_ecp_point *Q, const mbedtls_mpi *r, const mbedtls_mpi *s);
 
 /**
- * \brief           This function computes the ECDSA signature and writes it 
- *                  to a buffer, serialized as defined in <em>RFC-4492: 
- *                  Elliptic Curve Cryptography (ECC) Cipher Suites for 
- *                  Transport Layer Security (TLS)</em>. 
+ * \brief           This function computes the ECDSA signature and writes it
+ *                  to a buffer, serialized as defined in <em>RFC-4492:
+ *                  Elliptic Curve Cryptography (ECC) Cipher Suites for
+ *                  Transport Layer Security (TLS)</em>.
  *
- * \warning         It is not thread-safe to use the same context in 
+ * \warning         It is not thread-safe to use the same context in
  *                  multiple threads.
  *
  * \note            The deterministic version is used if
- *                  #MBEDTLS_ECDSA_DETERMINISTIC is defined. For more 
- *                  information, see <em>RFC-6979: Deterministic Usage 
- *                  of the Digital Signature Algorithm (DSA) and Elliptic 
+ *                  #MBEDTLS_ECDSA_DETERMINISTIC is defined. For more
+ *                  information, see <em>RFC-6979: Deterministic Usage
+ *                  of the Digital Signature Algorithm (DSA) and Elliptic
  *                  Curve Digital Signature Algorithm (ECDSA)</em>.
  *
  * \param ctx       The ECDSA context.
@@ -179,14 +179,14 @@ int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
  * \param p_rng     The RNG parameter.
  *
  * \note            The \p sig buffer must be at least twice as large as the
- *                  size of the curve used, plus 9. For example, 73 Bytes if 
- *                  a 256-bit curve is used. A buffer length of 
+ *                  size of the curve used, plus 9. For example, 73 Bytes if
+ *                  a 256-bit curve is used. A buffer length of
  *                  #MBEDTLS_ECDSA_MAX_LEN is always safe.
  *
  * \note            If the bitlength of the message hash is larger than the
  *                  bitlength of the group order, then the hash is truncated as
- *                  defined in <em>Standards for Efficient Cryptography Group 
- *                  (SECG): SEC1 Elliptic Curve Cryptography</em>, section 
+ *                  defined in <em>Standards for Efficient Cryptography Group
+ *                  (SECG): SEC1 Elliptic Curve Cryptography</em>, section
  *                  4.1.3, step 5.
  *
  * \return          \c 0 on success,
@@ -210,10 +210,14 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t
 #endif
 /**
  * \brief   This function computes an ECDSA signature and writes it to a buffer,
- *          serialized as defined in <em>RFC-4492: Elliptic Curve Cryptography 
+ *          serialized as defined in <em>RFC-4492: Elliptic Curve Cryptography
  *          (ECC) Cipher Suites for Transport Layer Security (TLS)</em>.
  *
- * \warning         It is not thread-safe to use the same context in 
+ *          The deterministic version is defined in <em>RFC-6979: 
+ *          Deterministic Usage of the Digital Signature Algorithm (DSA) and 
+ *          Elliptic Curve Digital Signature Algorithm (ECDSA)</em>.
+ *          
+ * \warning         It is not thread-safe to use the same context in
  *                  multiple threads.
 
  *
@@ -227,14 +231,14 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t
  * \param md_alg    The MD algorithm used to hash the message.
  *
  * \note            The \p sig buffer must be at least twice as large as the
- *                  size of the curve used, plus 9. For example, 73 Bytes if a 
- *                  256-bit curve is used. A buffer length of 
+ *                  size of the curve used, plus 9. For example, 73 Bytes if a
+ *                  256-bit curve is used. A buffer length of
  *                  #MBEDTLS_ECDSA_MAX_LEN is always safe.
  *
  * \note            If the bitlength of the message hash is larger than the
  *                  bitlength of the group order, then the hash is truncated as
- *                  defined in <em>Standards for Efficient Cryptography Group 
- *                  (SECG): SEC1 Elliptic Curve Cryptography</em>, section 
+ *                  defined in <em>Standards for Efficient Cryptography Group
+ *                  (SECG): SEC1 Elliptic Curve Cryptography</em>, section
  *                  4.1.3, step 5.
  *
  * \return          \c 0 on success,
@@ -262,15 +266,15 @@ int mbedtls_ecdsa_write_signature_det( mbedtls_ecdsa_context *ctx,
  *
  * \note            If the bitlength of the message hash is larger than the
  *                  bitlength of the group order, then the hash is truncated as
- *                  defined in <em>Standards for Efficient Cryptography Group  
- *                  (SECG): SEC1 Elliptic Curve Cryptography</em>, section 
+ *                  defined in <em>Standards for Efficient Cryptography Group
+ *                  (SECG): SEC1 Elliptic Curve Cryptography</em>, section
  *                  4.1.4, step 3.
  *
  * \return          \c 0 on success,
  *                  #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if signature is invalid,
  *                  #MBEDTLS_ERR_ECP_SIG_LEN_MISMATCH if the signature is
  *                  valid but its actual length is less than \p siglen,
- *                  or an \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_ERR_MPI_XXX 
+ *                  or an \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_ERR_MPI_XXX
  *                  error code on failure for any other reason.
  *
  * \see             ecp.h
@@ -290,7 +294,7 @@ int mbedtls_ecdsa_read_signature( mbedtls_ecdsa_context *ctx,
  *
  * \return         \c 0 on success, or an \c MBEDTLS_ERR_ECP_XXX code on
  *                 failure.
- * 
+ *
  * \see            ecp.h
  */
 int mbedtls_ecdsa_genkey( mbedtls_ecdsa_context *ctx, mbedtls_ecp_group_id gid,

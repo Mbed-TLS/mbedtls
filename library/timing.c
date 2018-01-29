@@ -268,6 +268,14 @@ void set_alarm( int seconds )
 {
     DWORD ThreadId;
 
+    if( seconds == 0 )
+    {
+        /* No need to create a thread for this simple case.
+         * Also, this shorcut is more reliable at least on MinGW32 */
+        alarmed = 1;
+        return;
+    }
+
     alarmed = 0;
     alarmMs = seconds * 1000;
     CloseHandle( CreateThread( NULL, 0, TimerProc, NULL, 0, &ThreadId ) );

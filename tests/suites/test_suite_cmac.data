@@ -22,15 +22,15 @@ mbedtls_cmac_setkey:MBEDTLS_CIPHER_DES_EDE3_ECB:192:0
 
 CMAC init #5 AES-224: bad key size
 depends_on:MBEDTLS_AES_C
-mbedtls_cmac_setkey:MBEDTLS_CIPHER_ID_AES:224:MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
+mbedtls_cmac_setkey:MBEDTLS_CIPHER_AES_128_ECB:224:MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
 
 CMAC init #6 AES-0: bad key size
 depends_on:MBEDTLS_AES_C
-mbedtls_cmac_setkey:MBEDTLS_CIPHER_ID_AES:0:MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
+mbedtls_cmac_setkey:MBEDTLS_CIPHER_AES_128_ECB:0:MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
 
 CMAC init #7 Camellia: wrong cipher
 depends_on:MBEDTLS_CAMELLIA_C
-mbedtls_cmac_setkey:MBEDTLS_CIPHER_ID_CAMELLIA:128:MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
+mbedtls_cmac_setkey:MBEDTLS_CIPHER_CAMELLIA_128_ECB:128:MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
 
 CMAC Single Blocks #1 - Empty block, no updates
 mbedtls_cmac_multiple_blocks:MBEDTLS_CIPHER_AES_128_ECB:"2b7e151628aed2a6abf7158809cf4f3c":128:16:"":-1:"":-1:"":-1:"":-1:"bb1d6929e95937287fa37d129b756746"

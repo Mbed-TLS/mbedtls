@@ -712,3 +712,75 @@ void check_padding( int pad_mode, char *input_str, int ret, int dlen_check )
         TEST_ASSERT( dlen == (size_t) dlen_check );
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_GCM */
+void check_gcm_multiple_encryption( int cipher_id, char *hex_key, char *hex_iv )
+{
+    const mbedtls_cipher_info_t *cipher_info;
+    mbedtls_cipher_context_t ctx;
+    unsigned char key[128];
+    unsigned char iv[96];
+    unsigned char buffer0[1024];
+    unsigned char buffer1[1040];
+    unsigned char *current, *end;
+    size_t key_len, iv_len, buffer1_len, buffer0_len, len;    
+    
+    mbedtls_cipher_init( &ctx );
+    
+    cipher_info = mbedtls_cipher_info_from_type( cipher_id );
+    TEST_ASSERT( NULL != cipher_info );
+    
+    memset( key, 0x00, sizeof( key ) );
+    memset( iv, 0x00, sizeof( iv ) );
+    memset( buffer1, 0x10, sizeof( buffer1 ) );
+    memset( buffer0, 0x10, sizeof( buffer0 ) );
+    
+    key_len = unhexify( key, hex_key );
+    iv_len = unhexify( iv, hex_iv );
+
+    
+    /* Set encryption key for the context */
+    TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx, cipher_info ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key, key_len * 8, MBEDTLS_ENCRYPT ) );
+    
+    /* Prepare context for full encryption */
+    TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx, iv, iv_len ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx, NULL, 0 ) );
+    
+    TEST_ASSERT( 0 == mbedtls_cipher_update( &ctx, buffer0, 1024, buffer0, &buffer0_len ) );
+    
+
+    /* Reprepare context for full encryption */
+    TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx, iv, 12 ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx, NULL, 0 ) );
+        
+    /* now loop over short lengths until input is encrypted */
+    current = buffer1;
+    end = buffer1 + 1024;
+    buffer1_len = 0;
+    while ( current < end ) { 
+        /* choose a short length */
+        len = rand() & 0x01f;
+        /* make sure that len doesn't cause us to overreach the buffer */
+        if ( current + len > end )
+	        len = end - current;
+
+        TEST_ASSERT( 0 == mbedtls_cipher_update( &ctx, current, len, current, &len ) );
+
+        /* advance pointer into input and output2 to reflect encryption */
+        current += len;
+        buffer1_len += len;
+      
+        /* if buffer1 is all encrypted, break out of loop */
+        if ( current == end )
+	        break;
+    }
+    
+    TEST_ASSERT( buffer0_len == buffer1_len );
+    TEST_ASSERT( 0 == memcmp( buffer0, buffer1, buffer1_len ) );
+    
+exit:
+    mbedtls_cipher_free( &ctx );
+}
+/* END_CASE */
+

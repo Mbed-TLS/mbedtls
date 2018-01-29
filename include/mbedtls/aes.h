@@ -8,7 +8,7 @@
  *          The AES algorithm is a symmetric block cipher that can
  *          encrypt and decrypt information. For more information, see
  *          <em>FIPS Publication 197: Advanced Encryption Standard</em> and
- *          <em>•	ISO/IEC 18033-2:2006: Information technology -- Security
+ *          <em>ISO/IEC 18033-2:2006: Information technology -- Security
  *          techniques -- Encryption algorithms -- Part 2: Asymmetric
  *          ciphers</em>.
  */
@@ -68,18 +68,19 @@ extern "C" {
 
 /**
  * \brief The AES context-type definition.
- *
- * \note           This buffer can hold 32 extra Bytes, which can be used for
- *                 one of the following purposes:
- *                 <ul><li>Alignment if VIA padlock is used.</li>
- *                 <li>Simplifying key expansion in the 256-bit case by
- *                 generating an extra round key.</li></ul>
  */
 typedef struct
 {
     int nr;                     /*!< The number of rounds. */
     uint32_t *rk;               /*!< AES round keys. */
-    uint32_t buf[68];           /*!< Unaligned data buffer. */
+    uint32_t buf[68];           /*!< Unaligned data buffer. This buffer can
+	                                 hold 32 extra Bytes, which can be used for
+									 one of the following purposes:
+                                     <ul><li>Alignment if VIA padlock is 
+									         used.</li>
+									 <li>Simplifying key expansion in the 256-bit
+									     case by generating an extra round key.
+										 </li></ul> */
 }
 mbedtls_aes_context;
 

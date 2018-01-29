@@ -258,9 +258,9 @@
  * functions
  *
  * \warning   MD2, MD4, MD5, ARC4, DES and SHA-1 are considered weak and their
- *            use constitutes a security risk. If possible, it is recommended to
- *            avoid dependencies on them and alternative message digests resp.
- *            ciphers should be considered instead.
+ *            use constitutes a security risk. If possible, we recommend
+ *            avoiding dependencies on them, and considering stronger message
+ *            digests and ciphers instead.
  *
  */
 //#define POLARSSL_AES_ALT
@@ -377,9 +377,8 @@
  *
  * Uncomment this macro to enable weak ciphersuites
  *
- * \warning   DES is considered a weak cipher and its use
- *            constitutes a security risk. It is recommended
- *            alternative ciphers should be considered instead.
+ * \warning   DES is considered a weak cipher and its use constitutes a
+ *            security risk. We recommend considering stronger ciphers instead.
  */
 //#define POLARSSL_ENABLE_WEAK_CIPHERSUITES
 
@@ -1360,10 +1359,9 @@
  *      TLS_RSA_PSK_WITH_RC4_128_SHA
  *      TLS_PSK_WITH_RC4_128_SHA
  *
- * \warning  ARC4 is considered a weak cipher and its use
- *           constitutes a security risk. If possible, it is
- *           recommended to avoid dependencies on it and
- *           alternative ciphers should be considered instead.
+ * \warning  ARC4 is considered a weak cipher and its use constitutes a
+ *           security risk. If possible, we recommend avoiding dependencies on
+ *           it, and considering stronger ciphers instead.
  *
  */
 #define POLARSSL_ARC4_C
@@ -1580,9 +1578,8 @@
  *
  * PEM_PARSE uses DES/3DES for decrypting encrypted keys.
  *
- * \warning   DES is considered a weak cipher and its use
- *            constitutes a security risk. It is recommended
- *            alternative ciphers should be considered instead.
+ * \warning   DES is considered a weak cipher and its use constitutes a
+ *            security risk. We recommend considering stronger ciphers instead.
  */
 #define POLARSSL_DES_C
 
@@ -1743,10 +1740,9 @@
  *
  * Uncomment to enable support for (rare) MD2-signed X.509 certs.
  *
- * \warning  MD2 is considered a weak message digest and its use
- *           constitutes a security risk. If possible, it is recommended
- *           to avoid dependencies on it and alternative message digests
- *           should be considered instead.
+ * \warning  MD2 is considered a weak message digest and its use constitutes a
+ *           security risk. If possible, we recommend avoiding dependencies on
+ *           it, and considering stronger message digests instead.
  *
  */
 //#define POLARSSL_MD2_C
@@ -1761,10 +1757,9 @@
  *
  * Uncomment to enable support for (rare) MD4-signed X.509 certs.
  *
- * \warning  MD4 is considered a weak message digest and its use
- *           constitutes a security risk. If possible, it is recommended
- *           to avoid dependencies on it and alternative message digests
- *           should be considered instead.
+ * \warning  MD4 is considered a weak message digest and its use constitutes a
+ *           security risk. If possible, we recommend avoiding dependencies on
+ *           it, and considering stronger message digests instead.
  *
  */
 //#define POLARSSL_MD4_C
@@ -1784,10 +1779,9 @@
  * checking MD5-signed certificates, and for PBKDF1 when decrypting PEM-encoded
  * encrypted keys.
  *
- * \warning  MD5 is considered a weak message digest and its use
- *           constitutes a security risk. If possible, it is recommended
- *           to avoid dependencies on it and alternative message digests
- *           should be considered instead.
+ * \warning  MD5 is considered a weak message digest and its use constitutes a
+ *           security risk. If possible, we recommend avoiding dependencies on
+ *           it, and considering stronger message digests instead.
  *
  */
 #define POLARSSL_MD5_C
@@ -2066,10 +2060,9 @@
  *
  * This module is required for SSL/TLS and SHA1-signed certificates.
  *
- * \warning  SHA-1 is considered a weak message digest and its use
- *           constitutes a security risk. If possible, it is recommended
- *           to avoid dependencies on it and alternative message digests
- *           should be considered instead.
+ * \warning  SHA-1 is considered a weak message digest and its use constitutes
+ *           a security risk. If possible, we recommend avoiding dependencies
+ *           on it, and considering stronger message digests instead.
  *
  */
 #define POLARSSL_SHA1_C

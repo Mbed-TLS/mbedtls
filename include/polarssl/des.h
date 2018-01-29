@@ -21,9 +21,8 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * \warning   DES is considered a weak cipher and its use
- *            constitutes a security risk. It is recommended
- *            alternative ciphers should be considered instead.
+ * \warning   DES is considered a weak cipher and its use constitutes a
+ *            security risk. We recommend considering stronger ciphers instead.
  *
  */
 #ifndef POLARSSL_DES_H
@@ -62,9 +61,9 @@ extern "C" {
 /**
  * \brief          DES context structure
  *
- * \warning        DES is considered a weak cipher and its use
- *                 constitutes a security risk. It is recommended
- *                 alternative ciphers should be considered instead.
+ * \warning        DES is considered a weak cipher and its use constitutes a
+ *                 security risk. We recommend considering stronger ciphers
+ *                 instead.
  */
 typedef struct
 {
@@ -88,9 +87,9 @@ des3_context;
  *
  * \param ctx      DES context to be initialized
  *
- * \warning        DES is considered a weak cipher and its use
- *                 constitutes a security risk. It is recommended
- *                 alternative ciphers should be considered instead.
+ * \warning        DES is considered a weak cipher and its use constitutes a
+ *                 security risk. We recommend considering stronger ciphers
+ *                 instead.
  */
 void des_init( des_context *ctx );
 
@@ -99,9 +98,9 @@ void des_init( des_context *ctx );
  *
  * \param ctx      DES context to be cleared
  *
- * \warning        DES is considered a weak cipher and its use
- *                 constitutes a security risk. It is recommended
- *                 alternative ciphers should be considered instead.
+ * \warning        DES is considered a weak cipher and its use constitutes a
+ *                 security risk. We recommend considering stronger ciphers
+ *                 instead.
  */
 void des_free( des_context *ctx );
 
@@ -127,9 +126,9 @@ void des3_free( des3_context *ctx );
  *
  * \param key      8-byte secret key
  *
- * \warning        DES is considered a weak cipher and its use
- *                 constitutes a security risk. It is recommended
- *                 alternative ciphers should be considered instead.
+ * \warning        DES is considered a weak cipher and its use constitutes a
+ *                 security risk. We recommend considering stronger ciphers
+ *                 instead.
  */
 void des_key_set_parity( unsigned char key[DES_KEY_SIZE] );
 
@@ -143,9 +142,9 @@ void des_key_set_parity( unsigned char key[DES_KEY_SIZE] );
  *
  * \return         0 is parity was ok, 1 if parity was not correct.
  *
- * \warning        DES is considered a weak cipher and its use
- *                 constitutes a security risk. It is recommended
- *                 alternative ciphers should be considered instead.
+ * \warning        DES is considered a weak cipher and its use constitutes a
+ *                 security risk. We recommend considering stronger ciphers
+ *                 instead.
  */
 int des_key_check_key_parity( const unsigned char key[DES_KEY_SIZE] );
 
@@ -156,9 +155,9 @@ int des_key_check_key_parity( const unsigned char key[DES_KEY_SIZE] );
  *
  * \return         0 if no weak key was found, 1 if a weak key was identified.
  *
- * \warning        DES is considered a weak cipher and its use
- *                 constitutes a security risk. It is recommended
- *                 alternative ciphers should be considered instead.
+ * \warning        DES is considered a weak cipher and its use constitutes a
+ *                 security risk. We recommend considering stronger ciphers
+ *                 instead.
  */
 int des_key_check_weak( const unsigned char key[DES_KEY_SIZE] );
 
@@ -170,9 +169,9 @@ int des_key_check_weak( const unsigned char key[DES_KEY_SIZE] );
  *
  * \return         0
  *
- * \warning        DES is considered a weak cipher and its use
- *                 constitutes a security risk. It is recommended
- *                 alternative ciphers should be considered instead.
+ * \warning        DES is considered a weak cipher and its use constitutes a
+ *                 security risk. We recommend considering stronger ciphers
+ *                 instead.
  */
 int des_setkey_enc( des_context *ctx, const unsigned char key[DES_KEY_SIZE] );
 
@@ -184,9 +183,9 @@ int des_setkey_enc( des_context *ctx, const unsigned char key[DES_KEY_SIZE] );
  *
  * \return         0
  *
- * \warning        DES is considered a weak cipher and its use
- *                 constitutes a security risk. It is recommended
- *                 alternative ciphers should be considered instead.
+ * \warning        DES is considered a weak cipher and its use constitutes a
+ *                 security risk. We recommend considering stronger ciphers
+ *                 instead.
  */
 int des_setkey_dec( des_context *ctx, const unsigned char key[DES_KEY_SIZE] );
 
@@ -243,9 +242,9 @@ int des3_set3key_dec( des3_context *ctx,
  *
  * \return         0 if successful
  *
- * \warning        DES is considered a weak cipher and its use
- *                 constitutes a security risk. It is recommended
- *                 alternative ciphers should be considered instead.
+ * \warning        DES is considered a weak cipher and its use constitutes a
+ *                 security risk. We recommend considering stronger ciphers
+ *                 instead.
  */
 int des_crypt_ecb( des_context *ctx,
                     const unsigned char input[8],
@@ -270,9 +269,9 @@ int des_crypt_ecb( des_context *ctx,
  * \param input    buffer holding the input data
  * \param output   buffer holding the output data
  *
- * \warning        DES is considered a weak cipher and its use
- *                 constitutes a security risk. It is recommended
- *                 alternative ciphers should be considered instead.
+ * \warning        DES is considered a weak cipher and its use constitutes a
+ *                 security risk. We recommend considering stronger ciphers
+ *                 instead.
  */
 int des_crypt_cbc( des_context *ctx,
                     int mode,

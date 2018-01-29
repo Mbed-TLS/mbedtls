@@ -108,7 +108,7 @@ Bugfix
    * Fix incorrect unit in benchmark output. #850
    * Fix crash when calling mbedtls_ssl_cache_free() twice. Found by
      MilenkoMitrovic, #1104
-   * Fix mbedtls_timing_alarm(0) on Unix.
+   * Fix mbedtls_timing_alarm(0) on Unix and MinGW.
    * Fix use of uninitialized memory in mbedtls_timing_get_timer when reset=1.
    * Fix possible memory leaks in mbedtls_gcm_self_test().
    * Added missing return code checks in mbedtls_aes_self_test().

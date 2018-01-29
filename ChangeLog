@@ -6,6 +6,11 @@ Features
    * Allow comments in test data files.
 
 Bugfix
+   * Properly initialize and free SHA-256 / SHA-512 context in entropy module
+     instead of performing zeroization only. This could lead to failure for
+     alternative implementations of SHA-256 / SHA-512 for which zeroization
+     of contexts is not a proper way of initialization.
+     Found and fix suggested by ccli8.
    * Fix memory leak in ssl_set_hostname() when called multiple times.
      Found by projectgus and jethrogb, #836.
    * Fix usage help in ssl_server2 example. Found and fixed by Bei Lin.

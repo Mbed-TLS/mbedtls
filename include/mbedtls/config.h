@@ -226,9 +226,9 @@
  * module.
  *
  * \warning   MD2, MD4, MD5, ARC4, DES and SHA-1 are considered weak and their
- *            use constitutes a security risk. If possible, it is recommended to
- *            avoid dependencies on them and alternative message digests resp.
- *            ciphers should be considered instead.
+ *            use constitutes a security risk. If possible, we recommend
+ *            avoiding dependencies on them, and considering stronger message
+ *            digests and ciphers instead.
  *
  */
 //#define MBEDTLS_AES_ALT
@@ -268,10 +268,10 @@
  * Uncomment a macro to enable alternate implementation of the corresponding
  * function.
  *
- * \warning   MD2, MD4, MD5, DES and SHA-1 are considered weak and their
- *            use constitutes a security risk. If possible, it is recommended
- *            to avoid dependencies on them and alternative message digests
- *            resp. ciphers should be considered instead.
+ * \warning   MD2, MD4, MD5, DES and SHA-1 are considered weak and their use
+ *            constitutes a security risk. If possible, we recommend avoiding
+ *            dependencies on them, and considering stronger message digests
+ *            and ciphers instead.
  *
  */
 //#define MBEDTLS_MD2_PROCESS_ALT
@@ -403,9 +403,8 @@
  *
  * Uncomment this macro to enable weak ciphersuites
  *
- * \warning   DES is considered a weak cipher and its use
- *            constitutes a security risk. It is recommended
- *            alternative ciphers should be considered instead.
+ * \warning   DES is considered a weak cipher and its use constitutes a
+ *            security risk. We recommend considering stronger ciphers instead.
  */
 //#define MBEDTLS_ENABLE_WEAK_CIPHERSUITES
 
@@ -1433,10 +1432,9 @@
  *      MBEDTLS_TLS_RSA_PSK_WITH_RC4_128_SHA
  *      MBEDTLS_TLS_PSK_WITH_RC4_128_SHA
  *
- * \warning        ARC4 is considered a weak cipher and its use
- *                 constitutes a security risk. If possible, it is
- *                 recommended to avoid dependencies on it and that
- *                 alternative ciphers should be considered instead.
+ * \warning   ARC4 is considered a weak cipher and its use constitutes a
+ *            security risk. If possible, we recommend avoidng dependencies on
+ *            it, and considering stronger ciphers instead.
  *
  */
 #define MBEDTLS_ARC4_C
@@ -1651,9 +1649,8 @@
  *
  * PEM_PARSE uses DES/3DES for decrypting encrypted keys.
  *
- * \warning   DES is considered a weak cipher and its use
- *            constitutes a security risk. It is recommended
- *            alternative ciphers should be considered instead.
+ * \warning   DES is considered a weak cipher and its use constitutes a
+ *            security risk. We recommend considering stronger ciphers instead.
  */
 #define MBEDTLS_DES_C
 
@@ -1814,10 +1811,9 @@
  *
  * Uncomment to enable support for (rare) MD2-signed X.509 certs.
  *
- * \warning MD2 is considered a weak message digest and its use
- *          constitutes a security risk. If possible, it recommended
- *          to avoid dependencies on it and alternative message digests
- *          should be considered instead.
+ * \warning   MD2 is considered a weak message digest and its use constitutes a
+ *            security risk. If possible, we recommend avoiding dependencies on
+ *            it, and considering stronger message digests instead.
  *
  */
 //#define MBEDTLS_MD2_C
@@ -1832,10 +1828,9 @@
  *
  * Uncomment to enable support for (rare) MD4-signed X.509 certs.
  *
- * \warning MD4 is considered a weak message digest and its use
- *          constitutes a security risk. If possible, it recommended
- *          to avoid dependencies on it and alternative message digests
- *          should be considered instead.
+ * \warning   MD4 is considered a weak message digest and its use constitutes a
+ *            security risk. If possible, we recommend avoiding dependencies on
+ *            it, and considering stronger message digests instead.
  *
  */
 //#define MBEDTLS_MD4_C
@@ -1855,10 +1850,9 @@
  * checking MD5-signed certificates, and for PBKDF1 when decrypting PEM-encoded
  * encrypted keys.
  *
- * \warning MD5 is considered a weak message digest and its use
- *          constitutes a security risk. If possible, it recommended
- *          to avoid dependencies on it and alternative message digests
- *          should be considered instead.
+ * \warning   MD5 is considered a weak message digest and its use constitutes a
+ *            security risk. If possible, we recommend avoiding dependencies on
+ *            it, and considering stronger message digests instead.
  *
  */
 #define MBEDTLS_MD5_C
@@ -2114,10 +2108,9 @@
  * This module is required for SSL/TLS up to version 1.1, for TLS 1.2
  * depending on the handshake parameters, and for SHA1-signed certificates.
  *
- * \warning SHA-1 is considered a weak message digest and its use
- *          constitutes a security risk. If possible, it recommended
- *          to avoid dependencies on it and alternative message digests
- *          should be considered instead.
+ * \warning   SHA-1 is considered a weak message digest and its use constitutes
+ *            a security risk. If possible, we recommend avoiding dependencies
+ *            on it, and considering stronger message digests instead.
  *
  */
 #define MBEDTLS_SHA1_C
@@ -2486,10 +2479,9 @@
  * recommended because of it is possible to generate SHA-1 collisions, however
  * this may be safe for legacy infrastructure where additional controls apply.
  *
- * \warning SHA-1 is considered a weak message digest and its use
- *          constitutes a security risk. If possible, it recommended
- *          to avoid dependencies on it and alternative message digests
- *          should be considered instead.
+ * \warning   SHA-1 is considered a weak message digest and its use constitutes
+ *            a security risk. If possible, we recommend avoiding dependencies
+ *            on it, and considering stronger message digests instead.
  *
  */
 // #define MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
@@ -2504,10 +2496,9 @@
  * to preserve compatibility with existing peers, but the general
  * warning applies nonetheless:
  *
- * \warning SHA-1 is considered a weak message digest and its use
- *          constitutes a security risk. If possible, it recommended
- *          to avoid dependencies on it and alternative message digests
- *          should be considered instead.
+ * \warning   SHA-1 is considered a weak message digest and its use constitutes
+ *            a security risk. If possible, we recommend avoiding dependencies
+ *            on it, and considering stronger message digests instead.
  *
  */
 #define MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE

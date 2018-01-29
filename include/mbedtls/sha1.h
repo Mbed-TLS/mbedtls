@@ -20,9 +20,9 @@
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  *
- * \warning        SHA-1 is considered a weak message digest and its use
- *                 constitutes a security risk. It is recommended alternative
- *                 message digests should be considered instead.
+ * \warning   SHA-1 is considered a weak message digest and its use constitutes
+ *            a security risk. We recommend considering stronger message
+ *            digests instead.
  *
  */
 #ifndef MBEDTLS_SHA1_H
@@ -49,8 +49,8 @@ extern "C" {
  * \brief          SHA-1 context structure
  *
  * \warning        SHA-1 is considered a weak message digest and its use
- *                 constitutes a security risk. It is recommended alternative
- *                 message digests should be considered instead.
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
  *
  */
 typedef struct
@@ -67,8 +67,8 @@ mbedtls_sha1_context;
  * \param ctx      SHA-1 context to be initialized
  *
  * \warning        SHA-1 is considered a weak message digest and its use
- *                 constitutes a security risk. It is recommended alternative
- *                 message digests should be considered instead.
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
  *
  */
 void mbedtls_sha1_init( mbedtls_sha1_context *ctx );
@@ -79,8 +79,8 @@ void mbedtls_sha1_init( mbedtls_sha1_context *ctx );
  * \param ctx      SHA-1 context to be cleared
  *
  * \warning        SHA-1 is considered a weak message digest and its use
- *                 constitutes a security risk. It is recommended alternative
- *                 message digests should be considered instead.
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
  *
  */
 void mbedtls_sha1_free( mbedtls_sha1_context *ctx );
@@ -92,8 +92,8 @@ void mbedtls_sha1_free( mbedtls_sha1_context *ctx );
  * \param src      The context to be cloned
  *
  * \warning        SHA-1 is considered a weak message digest and its use
- *                 constitutes a security risk. It is recommended alternative
- *                 message digests should be considered instead.
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
  *
  */
 void mbedtls_sha1_clone( mbedtls_sha1_context *dst,
@@ -105,8 +105,8 @@ void mbedtls_sha1_clone( mbedtls_sha1_context *dst,
  * \param ctx      context to be initialized
  *
  * \warning        SHA-1 is considered a weak message digest and its use
- *                 constitutes a security risk. It is recommended alternative
- *                 message digests should be considered instead.
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
  *
  */
 void mbedtls_sha1_starts( mbedtls_sha1_context *ctx );
@@ -119,8 +119,8 @@ void mbedtls_sha1_starts( mbedtls_sha1_context *ctx );
  * \param ilen     length of the input data
  *
  * \warning        SHA-1 is considered a weak message digest and its use
- *                 constitutes a security risk. It is recommended alternative
- *                 message digests should be considered instead.
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
  *
  */
 void mbedtls_sha1_update( mbedtls_sha1_context *ctx, const unsigned char *input, size_t ilen );
@@ -132,8 +132,8 @@ void mbedtls_sha1_update( mbedtls_sha1_context *ctx, const unsigned char *input,
  * \param output   SHA-1 checksum result
  *
  * \warning        SHA-1 is considered a weak message digest and its use
- *                 constitutes a security risk. It is recommended alternative
- *                 message digests should be considered instead.
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
  *
  */
 void mbedtls_sha1_finish( mbedtls_sha1_context *ctx, unsigned char output[20] );
@@ -161,8 +161,8 @@ extern "C" {
  * \param output   SHA-1 checksum result
  *
  * \warning        SHA-1 is considered a weak message digest and its use
- *                 constitutes a security risk. It is recommended alternative
- *                 message digests should be considered instead.
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
  *
  */
 void mbedtls_sha1( const unsigned char *input, size_t ilen, unsigned char output[20] );
@@ -173,8 +173,8 @@ void mbedtls_sha1( const unsigned char *input, size_t ilen, unsigned char output
  * \return         0 if successful, or 1 if the test failed
  *
  * \warning        SHA-1 is considered a weak message digest and its use
- *                 constitutes a security risk. It is recommended alternative
- *                 message digests should be considered instead.
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
  *
  */
 int mbedtls_sha1_self_test( int verbose );

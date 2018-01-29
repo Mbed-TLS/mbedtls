@@ -60,12 +60,12 @@ struct mbedtls_cmac_context_t
 };
 
 /**
- * \brief               This function sets the CMAC key, and prepares to authenticate 
+ * \brief               This function sets the CMAC key, and prepares to authenticate
  *                      the input data.
  *                      Must be called with an initialized cipher context.
  *
- * \param ctx           The cipher context, initialized as one of the 
- *                      following types:<ul>
+ * \param ctx           The cipher context used for the CMAC operation, initialized
+ *                      as one of the following types:<ul>
  *                      <li>MBEDTLS_CIPHER_AES_128_ECB</li>
  *                      <li>MBEDTLS_CIPHER_AES_192_ECB</li>
  *                      <li>MBEDTLS_CIPHER_AES_256_ECB</li>
@@ -80,18 +80,18 @@ int mbedtls_cipher_cmac_starts( mbedtls_cipher_context_t *ctx,
                                 const unsigned char *key, size_t keybits );
 
 /**
- * \brief               This function feeds an input buffer into an ongoing CMAC  
+ * \brief               This function feeds an input buffer into an ongoing CMAC
  *                      computation.
  *
  *                      It is called between mbedtls_cipher_cmac_starts() or
  *                      mbedtls_cipher_cmac_reset(), and mbedtls_cipher_cmac_finish().
  *                      Can be called repeatedly.
  *
- * \param ctx           The CMAC context.
+ * \param ctx           The cipher context used for the CMAC operation.
  * \param input         The buffer holding the input data.
  * \param ilen          The length of the input data.
  *
- * \returns             \c 0 on success, or #MBEDTLS_ERR_MD_BAD_INPUT_DATA 
+ * \returns             \c 0 on success, or #MBEDTLS_ERR_MD_BAD_INPUT_DATA
  *                      if parameter verification fails.
  */
 int mbedtls_cipher_cmac_update( mbedtls_cipher_context_t *ctx,
@@ -105,38 +105,38 @@ int mbedtls_cipher_cmac_update( mbedtls_cipher_context_t *ctx,
  *                      It can be followed by mbedtls_cipher_cmac_reset() and
  *                      mbedtls_cipher_cmac_update(), or mbedtls_cipher_free().
  *
- * \param ctx           The CMAC context.
- * \param output        The output buffer for the generic CMAC checksum result.
+ * \param ctx           The cipher context used for the CMAC operation.
+ * \param output        The output buffer for the CMAC checksum result.
  *
- * \returns             \c 0 on success, or #MBEDTLS_ERR_MD_BAD_INPUT_DATA 
+ * \returns             \c 0 on success, or #MBEDTLS_ERR_MD_BAD_INPUT_DATA
  *                      if parameter verification fails.
  */
 int mbedtls_cipher_cmac_finish( mbedtls_cipher_context_t *ctx,
                                 unsigned char *output );
 
 /**
- * \brief               This function prepares the authentication of another  
- *                      message with the same key as the previous CMAC 
+ * \brief               This function prepares the authentication of another
+ *                      message with the same key as the previous CMAC
  *                      operation.
  *
- *                      It is called after mbedtls_cipher_cmac_finish() 
+ *                      It is called after mbedtls_cipher_cmac_finish()
  *                      and before mbedtls_cipher_cmac_update().
  *
- * \param ctx           The CMAC context to reset.
+ * \param ctx           The cipher context used for the CMAC operation.
  *
- * \returns             \c 0 on success, or #MBEDTLS_ERR_MD_BAD_INPUT_DATA 
+ * \returns             \c 0 on success, or #MBEDTLS_ERR_MD_BAD_INPUT_DATA
  *                      if parameter verification fails.
  */
 int mbedtls_cipher_cmac_reset( mbedtls_cipher_context_t *ctx );
 
 /**
- * \brief               This function calculates the full generic CMAC 
+ * \brief               This function calculates the full generic CMAC
  *                      on the input buffer with the provided key.
  *
- *                      The function allocates the context, performs the 
+ *                      The function allocates the context, performs the
  *                      calculation, and frees the context.
  *
- *                      The CMAC result is calculated as 
+ *                      The CMAC result is calculated as
  *                      output = generic CMAC(cmac key, input buffer).
  *
  *
@@ -147,7 +147,7 @@ int mbedtls_cipher_cmac_reset( mbedtls_cipher_context_t *ctx );
  * \param ilen          The length of the input data.
  * \param output        The buffer for the generic CMAC result.
  *
- * \returns             \c 0 on success, or #MBEDTLS_ERR_MD_BAD_INPUT_DATA 
+ * \returns             \c 0 on success, or #MBEDTLS_ERR_MD_BAD_INPUT_DATA
  *                      if parameter verification fails.
  */
 int mbedtls_cipher_cmac( const mbedtls_cipher_info_t *cipher_info,
@@ -157,18 +157,18 @@ int mbedtls_cipher_cmac( const mbedtls_cipher_info_t *cipher_info,
 
 #if defined(MBEDTLS_AES_C)
 /**
- * \brief           This function implements the AES-CMAC-PRF-128 pseudorandom 
- *                  function, as defined in 
- *                  <em>RFC-4615: The Advanced Encryption Standard-Cipher-based 
- *                  Message Authentication Code-Pseudo-Random Function-128 
- *                  (AES-CMAC-PRF-128) Algorithm for the Internet Key 
+ * \brief           This function implements the AES-CMAC-PRF-128 pseudorandom
+ *                  function, as defined in
+ *                  <em>RFC-4615: The Advanced Encryption Standard-Cipher-based
+ *                  Message Authentication Code-Pseudo-Random Function-128
+ *                  (AES-CMAC-PRF-128) Algorithm for the Internet Key
  *                  Exchange Protocol (IKE).</em>
  *
  * \param key       The key to use.
  * \param key_len   The key length in Bytes.
  * \param input     The buffer holding the input data.
  * \param in_len    The length of the input data in Bytes.
- * \param output    The buffer holding the generated 16 Bytes of 
+ * \param output    The buffer holding the generated 16 Bytes of
  *                  pseudorandom output.
  *
  * \return          \c 0 on success.

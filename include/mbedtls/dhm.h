@@ -62,7 +62,7 @@
  * - RFC-5114 section 2.2: 2048-bit MODP Group with 224-bit Prime Order Subgroup
  * .
  */
- 
+
  
 /**
  * The hexadecimal presentation of the prime underlying the 2048-bit MODP
@@ -146,7 +146,7 @@
     "1F612970CEE2D7AFB81BDD762170481CD0069127D5B05AA9" \
     "93B4EA988D8FDDC186FFB7DC90A6C08F4DF435C934063199" \
     "FFFFFFFFFFFFFFFF"
-	
+
 /**
  * The hexadecimal presentation of the chosen generator of the 4096-bit MODP
  * Group, as defined in <em>RFC-3526: More Modular Exponential (MODP)
@@ -203,11 +203,11 @@ typedef struct
     size_t len;         /*!<  The size of \p P in Bytes. */
     mbedtls_mpi P;      /*!<  The prime modulus. */
     mbedtls_mpi G;      /*!<  The generator. */
-    mbedtls_mpi X;      /*!<  The secret value. */
+    mbedtls_mpi X;      /*!<  Our secret value. */
     mbedtls_mpi GX;     /*!<  Our public key = \c G^X mod \c P. */
     mbedtls_mpi GY;     /*!<  The public key of the peer = \c G^Y mod \c P. */
-    mbedtls_mpi K;      /*!<  The shared secret = \c GY^X mod \c P. */
-    mbedtls_mpi RP;     /*!<  The cached = \c R^2 mod \c P. */
+    mbedtls_mpi K;      /*!<  The shared secret = \c G^(XY) mod \c P. */
+    mbedtls_mpi RP;     /*!<  The cached value = \c R^2 mod \c P. */
     mbedtls_mpi Vi;     /*!<  The blinding value. */
     mbedtls_mpi Vf;     /*!<  The unblinding value. */
     mbedtls_mpi pX;     /*!<  The previous \c X. */
@@ -246,9 +246,9 @@ int mbedtls_dhm_read_params( mbedtls_dhm_context *ctx,
  * \param f_rng    The RNG function.
  * \param p_rng    The RNG parameter.
  *
- * \note           This function assumes that the value and generator of
- *                 \p ctx have already been properly set. For example,
- *                 using mbedtls_mpi_read_string() or mbedtls_mpi_read_binary().
+ * \note           This function assumes that the \c ctx->P and \c ctx->G have
+ *                 already been properly set, for example, using
+ *                 mbedtls_mpi_read_string() or mbedtls_mpi_read_binary().
  *
  * \return         \c 0 on success, or an \c MBEDTLS_ERR_DHM_XXX error code
  *                 on failure.
@@ -278,7 +278,7 @@ int mbedtls_dhm_read_public( mbedtls_dhm_context *ctx,
  * \param ctx      The DHM context.
  * \param x_size   The private value size in Bytes.
  * \param output   The destination buffer.
- * \param olen     The length of the destination buffer. Must be at least 
+ * \param olen     The length of the destination buffer. Must be at least
                    equal to ctx->len (the size of \c P).
  * \param f_rng    The RNG function.
  * \param p_rng    The RNG parameter.
@@ -307,7 +307,7 @@ int mbedtls_dhm_make_public( mbedtls_dhm_context *ctx, int x_size,
  *
  * \note           If non-NULL, \p f_rng is used to blind the input as
  *                 a countermeasure against timing attacks. Blinding is used
- *                 only if the secret value \p X is re-used and omitted
+ *                 only if our secret value \p X is re-used and omitted
  *                 otherwise. Therefore, we recommend always passing a
  *                 non-NULL \p f_rng argument.
  */

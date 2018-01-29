@@ -1,9 +1,16 @@
 /**
  * \file aes.h
  *
- * \brief   AES is a family of block ciphers that processes data in multiples
- *          of block sizes (16 Bytes).
+ * \brief   The Advanced Encryption Standard (AES) specifies a FIPS-approved
+ *          cryptographic algorithm that can be used to protect electronic
+ *          data.
  *
+ *          The AES algorithm is a symmetric block cipher that can
+ *          encrypt and decrypt information. For more information, see
+ *          <em>FIPS Publication 197: Advanced Encryption Standard</em> and
+ *          <em>•	ISO/IEC 18033-2:2006: Information technology -- Security
+ *          techniques -- Encryption algorithms -- Part 2: Asymmetric
+ *          ciphers</em>.
  */
 /*  Copyright (C) 2006-2018, Arm Limited (or its affiliates), All Rights Reserved.
  *  SPDX-License-Identifier: Apache-2.0
@@ -62,8 +69,6 @@ extern "C" {
 /**
  * \brief The AES context-type definition.
  *
- * The AES context is passed to the APIs called.
- *
  * \note           This buffer can hold 32 extra Bytes, which can be used for
  *                 one of the following purposes:
  *                 <ul><li>Alignment if VIA padlock is used.</li>
@@ -98,7 +103,7 @@ void mbedtls_aes_free( mbedtls_aes_context *ctx );
 /**
  * \brief          This function sets the encryption key.
  *
- * \param ctx      The AES context to initialize.
+ * \param ctx      The AES context to which the key should be bound.
  * \param key      The encryption key.
  * \param keybits  The size of data passed in bits. Valid options are:
  *                 <ul><li>128bits</li>

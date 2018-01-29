@@ -662,23 +662,29 @@ if uname -a | grep -F x86_64 >/dev/null; then
 
     msg "test: 64-bit ILP32, make, gcc"
     make test
-
-    msg "build: gcc, force 32-bit compilation"
-    cleanup
-    cp "$CONFIG_H" "$CONFIG_BAK"
-    scripts/config.pl unset MBEDTLS_HAVE_ASM
-    scripts/config.pl unset MBEDTLS_AESNI_C
-    scripts/config.pl unset MBEDTLS_PADLOCK_C
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT32'
-
-    msg "build: gcc, force 64-bit compilation"
-    cleanup
-    cp "$CONFIG_H" "$CONFIG_BAK"
-    scripts/config.pl unset MBEDTLS_HAVE_ASM
-    scripts/config.pl unset MBEDTLS_AESNI_C
-    scripts/config.pl unset MBEDTLS_PADLOCK_C
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT64'
 fi # x86_64
+
+msg "build: gcc, force 32-bit bignum limbs"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl unset MBEDTLS_HAVE_ASM
+scripts/config.pl unset MBEDTLS_AESNI_C
+scripts/config.pl unset MBEDTLS_PADLOCK_C
+make CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT32'
+
+msg "test: gcc, force 32-bit bignum limbs"
+make test
+
+msg "build: gcc, force 64-bit bignum limbs"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl unset MBEDTLS_HAVE_ASM
+scripts/config.pl unset MBEDTLS_AESNI_C
+scripts/config.pl unset MBEDTLS_PADLOCK_C
+make CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT64'
+
+msg "test: gcc, force 64-bit bignum limbs"
+make test
 
 msg "build: arm-none-eabi-gcc, make" # ~ 10s
 cleanup

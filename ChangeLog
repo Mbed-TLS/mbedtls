@@ -33,6 +33,9 @@ Security
    * Change default choice of DHE parameters from untrustworthy RFC 5114
      to RFC 3526 containing parameters generated in a nothing-up-my-sleeve
      manner.
+   * Fix a potential heap buffer overread in ALPN extension parsing
+     (server-side). Could result in application crash, but only if an ALPN
+     name larger than 16 bytes had been configured on the server.
 
 Features
    * Allow comments in test data files.

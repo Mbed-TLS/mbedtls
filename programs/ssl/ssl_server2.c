@@ -1620,8 +1620,13 @@ reset:
 #if !defined(_WIN32)
     if( received_sigterm )
     {
-        polarssl_printf( " interrupted by SIGTERM\n" );
-        ret = 0;
+        polarssl_printf( " interrupted by SIGTERM (not in net_accept())\n" );
+        if( ret == POLARSSL_ERR_NET_RECV_FAILED ||
+            ret == POLARSSL_ERR_NET_SEND_FAILED )
+        {
+            ret = 0;
+        }
+
         goto exit;
     }
 #endif
@@ -1653,8 +1658,10 @@ reset:
 #if !defined(_WIN32)
         if( received_sigterm )
         {
-            polarssl_printf( " interrupted by signal\n" );
-            ret = 0;
+            polarssl_printf( " interrupted by SIGTERM (in net_accept())\n" );
+            if( ret == POLARSSL_ERR_NET_ACCEPT_FAILED )
+                ret = 0;
+
             goto exit;
         }
 #endif

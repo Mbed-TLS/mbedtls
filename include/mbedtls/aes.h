@@ -86,7 +86,7 @@ mbedtls_aes_context;
 /**
  * \brief          This function initializes the specified AES context.
  *
- *                 It  must be the first API called before using
+ *                 It must be the first API called before using
  *                 the context.
  *
  * \param ctx      The AES context to initialize.

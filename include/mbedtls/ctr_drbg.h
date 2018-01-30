@@ -39,14 +39,10 @@
 #define MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG                -0x0038  /**< The input (entropy + additional data) is too large. */
 #define MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR                -0x003A  /**< Read or write error in file. */
 
-#define MBEDTLS_CTR_DRBG_BLOCKSIZE          16
-                                            /**< The block size used by the cipher. */
-#define MBEDTLS_CTR_DRBG_KEYSIZE            32
-                                            /**< The key size used by the cipher. */
-#define MBEDTLS_CTR_DRBG_KEYBITS            ( MBEDTLS_CTR_DRBG_KEYSIZE * 8 )
-                                            /**< The key size for the DRBG operation, in bits. */
-#define MBEDTLS_CTR_DRBG_SEEDLEN            ( MBEDTLS_CTR_DRBG_KEYSIZE + MBEDTLS_CTR_DRBG_BLOCKSIZE )
-                                            /**< The seed length, calculated as (counter + AES key). */
+#define MBEDTLS_CTR_DRBG_BLOCKSIZE          16 /**< The block size used by the cipher. */
+#define MBEDTLS_CTR_DRBG_KEYSIZE            32 /**< The key size used by the cipher. */
+#define MBEDTLS_CTR_DRBG_KEYBITS            ( MBEDTLS_CTR_DRBG_KEYSIZE * 8 ) /**< The key size for the DRBG operation, in bits. */
+#define MBEDTLS_CTR_DRBG_SEEDLEN            ( MBEDTLS_CTR_DRBG_KEYSIZE + MBEDTLS_CTR_DRBG_BLOCKSIZE ) /**< The seed length, calculated as (counter + AES key). */
 
 /**
  * \name SECTION: Module settings
@@ -110,7 +106,9 @@ typedef struct
     unsigned char counter[16];  /*!< The counter (V). */
     int reseed_counter;         /*!< The reseed counter. */
     int prediction_resistance;  /*!< This determines whether prediction
-                                     resistance is enabled. */
+                                     resistance is enabled, that is
+                                     to systematically reseed before
+                                     each random generation. */
     size_t entropy_len;         /*!< The amount of entropy grabbed on each
                                      seed or reseed operation. */
     int reseed_interval;        /*!< The reseed interval. */
@@ -178,8 +176,8 @@ void mbedtls_ctr_drbg_free( mbedtls_ctr_drbg_context *ctx );
  *
  * \note                If enabled, entropy is gathered at the beginning of
  *                      every call to mbedtls_ctr_drbg_random_with_add().
- *                      Only use this if you have a sufficient amount of
- *                      good entropy.
+ *                      Only use this if your entropy source has sufficient 
+ *                      throughput.
  *
  * \param ctx           The CTR_DRBG context.
  * \param resistance    #MBEDTLS_CTR_DRBG_PR_ON or #MBEDTLS_CTR_DRBG_PR_OFF.
@@ -213,7 +211,7 @@ void mbedtls_ctr_drbg_set_reseed_interval( mbedtls_ctr_drbg_context *ctx,
  *                      extracts data from the entropy source.
  *
  * \param ctx           The CTR_DRBG context.
- * \param additional    Additional data to add to state. Can be NULL.
+ * \param additional    Additional data to add to the state. Can be NULL.
  * \param len           The length of the additional data.
  *
  * \return   \c 0 on success, or
@@ -237,12 +235,13 @@ void mbedtls_ctr_drbg_update( mbedtls_ctr_drbg_context *ctx,
                       const unsigned char *additional, size_t add_len );
 
 /**
- * \brief   This function generates the CTR_DRBG random output buffer with
- *          additional update input.
+ * \brief   This function updates a CTR_DRBG instance with additional
+ *          data and uses it to generate random data.
  *
- * \note     Automatically reseeds if #reseed_counter is reached.
+ * \note    The function automatically reseeds if reseed counter is exceeded.
  *
- * \param p_rng         The CTR_DRBG context.
+ * \param p_rng         The CTR_DRBG context. This must be a pointer to a
+ *                      #mbedtls_ctr_drbg_context structure.
  * \param output        The buffer to fill.
  * \param output_len    The length of the buffer.
  * \param additional    Additional data to update. Can be NULL.
@@ -257,11 +256,12 @@ int mbedtls_ctr_drbg_random_with_add( void *p_rng,
                               const unsigned char *additional, size_t add_len );
 
 /**
- * \brief   This function generates the CTR_DRBG random output buffer.
+ * \brief   This function uses CTR_DRBG to generate random data.
  *
- * \note    Automatically reseeds if #reseed_counter is reached.
+ * \note    The function automatically reseeds if reseed counter is exceeded.
  *
- * \param p_rng         The CTR_DRBG context.
+ * \param p_rng         The CTR_DRBG context. This must be a pointer to a
+ *                      #mbedtls_ctr_drbg_context structure.
  * \param output        The buffer to fill.
  * \param output_len    The length of the buffer.
  *
@@ -317,4 +317,4 @@ int mbedtls_ctr_drbg_seed_entropy_len( mbedtls_ctr_drbg_context *,
 }
 #endif
 
-#endif /* ctr_drbg.h */
+#endif /* ctr_drbg.h */\

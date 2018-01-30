@@ -70,6 +70,8 @@ Changes
    * Extend cert_write example program by options to set the CRT version
      and the message digest. Further, allow enabling/disabling of authority
      identifier, subject identifier and basic constraints extensions.
+   * Add explicit warnings for the use of MD2, MD4, MD5, SHA-1, DES and ARC4
+     throughout the library.
 
 = mbed TLS 2.1.9 branch released 2017-08-10
 

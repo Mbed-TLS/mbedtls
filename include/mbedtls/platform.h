@@ -52,11 +52,9 @@ extern "C" {
 #include <time.h>
 #if !defined(MBEDTLS_PLATFORM_STD_SNPRINTF)
 #if defined(_WIN32)
-#define MBEDTLS_PLATFORM_STD_SNPRINTF   mbedtls_platform_win32_snprintf 
-/**< The default \c snprintf function to use.  */
+#define MBEDTLS_PLATFORM_STD_SNPRINTF   mbedtls_platform_win32_snprintf /**< The default \c snprintf function to use.  */
 #else
-#define MBEDTLS_PLATFORM_STD_SNPRINTF   snprintf 
-/**< The default \c snprintf function to use.  */
+#define MBEDTLS_PLATFORM_STD_SNPRINTF   snprintf /**< The default \c snprintf function to use.  */
 #endif
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_PRINTF)
@@ -118,13 +116,12 @@ extern void * (*mbedtls_calloc)( size_t n, size_t size );
 extern void (*mbedtls_free)( void *ptr );
 
 /**
- * \brief   This function allows configuring custom memory-implementation 
- *          function pointers.
+ * \brief   This function allows configuring custom memory-management functions.
  *
  * \param calloc_func   The \c calloc function implementation.
  * \param free_func     The \c free function implementation.
  *
- * \return              \c 0 on success.
+ * \return              \c 0.
  */
 int mbedtls_platform_set_calloc_free( void * (*calloc_func)( size_t, size_t ),
                               void (*free_func)( void * ) );
@@ -147,7 +144,7 @@ extern int (*mbedtls_fprintf)( FILE *stream, const char *format, ... );
  *
  * \param fprintf_func   The \c fprintf function implementation.
  *
- * \return               \c 0 on success.
+ * \return               \c 0.
  */
 int mbedtls_platform_set_fprintf( int (*fprintf_func)( FILE *stream, const char *,
                                                ... ) );

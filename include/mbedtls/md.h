@@ -132,7 +132,7 @@ void mbedtls_md_init( mbedtls_md_context_t *ctx );
  *                  \p ctx itself.
  *
  *                  If you have called mbedtls_md_setup() on \p ctx, you must
- *                  call mbedtls_free_setup() when you are no longer using the
+ *                  call mbedtls_md_free() when you are no longer using the
  *                  context. 
  *                  Calling this function if you have previously
  *                  called mbedtls_md_init() and nothing else is optional.
@@ -296,7 +296,7 @@ int mbedtls_md_finish( mbedtls_md_context_t *ctx, unsigned char *output );
 /**
  * \brief          This function calculates the message-digest of a buffer,
  *                 with respect to a configurable message-digest algorithm
- *                 in a single cell.
+ *                 in a single call.
  *
  *                 The result is calculated as
  *                 Output = message_digest(input buffer).

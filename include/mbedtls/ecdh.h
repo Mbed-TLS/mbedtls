@@ -3,13 +3,13 @@
  *
  * \brief The Elliptic Curve Diffie-Hellman (ECDH) protocol APIs.
  *
- * ECDH is an anonymous key agreement protocol that allows two parties, 
- * each having an elliptic-curve public–private key pair, to establish 
- * a shared secret over an insecure channel. This shared secret may be 
- * directly used as a key, or used to derive another key. The key, or 
- * the derived key, can then be used to encrypt subsequent communications 
- * using a symmetric-key cipher. It is a variant of the Diffie–Hellman 
- * protocol using elliptic-curve cryptography.
+ * ECDH is an anonymous key agreement protocol allowing two parties, 
+ * to establish a shared secret over an insecure channel. Each party must have
+ * an elliptic-curve public–private key pair.
+ *
+ * For more information, see <em>NIST SP 800-56A Rev. 2: Recommendation
+ * for Pair-Wise Key Establishment Schemes Using Discrete Logarithm
+ * Cryptography</em>.
  */
 /*  
  *  Copyright (C) 2006-2018, Arm Limited (or its affiliates), All Rights Reserved

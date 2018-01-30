@@ -107,9 +107,9 @@ void mbedtls_aes_free( mbedtls_aes_context *ctx );
  * \param ctx      The AES context to which the key should be bound.
  * \param key      The encryption key.
  * \param keybits  The size of data passed in bits. Valid options are:
- *                 <ul><li>128bits</li>
- *                 <li>192bits</li>
- *                 <li>256bits</li></ul>
+ *                 <ul><li>128 bits</li>
+ *                 <li>192 bits</li>
+ *                 <li>256 bits</li></ul>
  *
  * \return         \c 0 on success or #MBEDTLS_ERR_AES_INVALID_KEY_LENGTH
  *                 on failure.
@@ -123,9 +123,9 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
  * \param ctx      The AES context to which the key should be bound.
  * \param key      The decryption key.
  * \param keybits  The size of data passed. Valid options are:
- *                 <ul><li>128bits</li>
- *                 <li>192bits</li>
- *                 <li>256bits</li></ul>
+ *                 <ul><li>128 bits</li>
+ *                 <li>192 bits</li>
+ *                 <li>256 bits</li></ul>
  *
  * \return         \c 0 on success, or #MBEDTLS_ERR_AES_INVALID_KEY_LENGTH on failure.
  */

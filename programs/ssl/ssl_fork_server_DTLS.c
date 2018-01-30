@@ -58,11 +58,6 @@ const char mbedtls_test_srv_crt_local[] =
 "-----END CERTIFICATE-----"
 };
 
-
-#define PAL_TEST_PSK_IDENTITY "Client_identity"
-#define PAL_TEST_PSK {0x12,0x34,0x45,0x67,0x89,0x10}
-
-
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
@@ -111,6 +106,7 @@ int main( void )
 #include "mbedtls/x509.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/net_sockets.h"
+#include "mbedtls/ssl_cookie.h"
 #include "mbedtls/timing.h"
 
 #include <string.h>
@@ -125,7 +121,11 @@ int main( void )
     "<h2>mbed TLS Test Server</h2>\r\n" \
     "<p>Successful connection using: %s</p>\r\n"
 
-#define DEBUG_LEVEL 0
+#define DEBUG_LEVEL 5
+
+
+#define PAL_TEST_PSK_IDENTITY "Client_identity"
+#define PAL_TEST_PSK {0x12,0x34,0x45,0x67,0x89,0x10}
 
 static void my_debug( void *ctx, int level,
                       const char *file, int line,
@@ -140,17 +140,19 @@ static void my_debug( void *ctx, int level,
 int main( void )
 {
     int ret, len, cnt = 0, pid;
-
     mbedtls_net_context listen_fd, client_fd;
     unsigned char buf[1024];
     const char *pers = "ssl_fork_server";
-
+    unsigned char client_ip[16] = { 0 };
+    size_t cliip_len;
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
     mbedtls_x509_crt srvcert;
     mbedtls_pk_context pkey;
+    mbedtls_ssl_cookie_ctx cookie_ctx;
+    mbedtls_timing_delay_context timer;
 
     mbedtls_net_init( &listen_fd );
     mbedtls_net_init( &client_fd );
@@ -160,6 +162,11 @@ int main( void )
     mbedtls_pk_init( &pkey );
     mbedtls_x509_crt_init( &srvcert );
     mbedtls_ctr_drbg_init( &ctr_drbg );
+    mbedtls_ssl_cookie_init( &cookie_ctx );
+
+#if defined(MBEDTLS_DEBUG_C)
+    mbedtls_debug_set_threshold( DEBUG_LEVEL );
+#endif
 
     signal( SIGCHLD, SIG_IGN );
 
@@ -227,12 +234,25 @@ int main( void )
 
     if( ( ret = mbedtls_ssl_config_defaults( &conf,
                     MBEDTLS_SSL_IS_SERVER,
-                    MBEDTLS_SSL_TRANSPORT_STREAM,
+                    MBEDTLS_SSL_TRANSPORT_DATAGRAM,
                     MBEDTLS_SSL_PRESET_DEFAULT ) ) != 0 )
     {
         mbedtls_printf( " failed!  mbedtls_ssl_config_defaults returned %d\n\n", ret );
         goto exit;
     }
+
+
+        printf( " mbedtls_ssl_cookie_setup\n\n");
+        if( ( ret = mbedtls_ssl_cookie_setup( &cookie_ctx,
+                                    mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
+        {
+            printf( " failed\n  ! mbedtls_ssl_cookie_setup returned %d\n\n", ret );
+            goto exit;
+        }
+        
+        printf( " mbedtls_ssl_conf_dtls_cookies\n\n");
+        mbedtls_ssl_conf_dtls_cookies( &conf, mbedtls_ssl_cookie_write, mbedtls_ssl_cookie_check,
+                                &cookie_ctx );
 
     mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
     mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
@@ -241,12 +261,14 @@ int main( void )
     mbedtls_ssl_conf_renegotiation( &conf, 1 );
 #endif
 
+
     mbedtls_ssl_conf_ca_chain( &conf, srvcert.next, NULL );
     if( ( ret = mbedtls_ssl_conf_own_cert( &conf, &srvcert, &pkey ) ) != 0 )
     {
         mbedtls_printf( " failed!  mbedtls_ssl_conf_own_cert returned %d\n\n", ret );
         goto exit;
     }
+
 
     ret = mbedtls_ssl_conf_psk( &conf, psk, sizeof(psk),
                            (const unsigned char *) identity,
@@ -257,10 +279,10 @@ int main( void )
     /*
      * 2. Setup the listening TCP socket
      */
-    mbedtls_printf( "  . Bind on https://localhost:5544/ ..." );
+    mbedtls_printf( "  . Bind on https://localhost:4422/ ..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_net_bind( &listen_fd, NULL, "5544", MBEDTLS_NET_PROTO_TCP ) ) != 0 )
+    if( ( ret = mbedtls_net_bind( &listen_fd, NULL, "4422", MBEDTLS_NET_PROTO_UDP ) ) != 0 )
     {
         mbedtls_printf( " failed!  mbedtls_net_bind returned %d\n\n", ret );
         goto exit;
@@ -280,7 +302,7 @@ int main( void )
         fflush( stdout );
 
         if( ( ret = mbedtls_net_accept( &listen_fd, &client_fd,
-                                        NULL, 0, NULL ) ) != 0 )
+                                        client_ip, sizeof( client_ip ), &cliip_len) ) != 0 )
         {
             mbedtls_printf( " failed!  mbedtls_net_accept returned %d\n\n", ret );
             goto exit;
@@ -300,6 +322,10 @@ int main( void )
             mbedtls_printf(" failed!  fork returned %d\n\n", pid );
             goto exit;
         }
+
+        
+        mbedtls_ssl_set_timer_cb( &ssl, &timer, mbedtls_timing_set_delay,
+                                            mbedtls_timing_get_delay );
 
         if( pid != 0 )
         {
@@ -344,6 +370,15 @@ int main( void )
             goto exit;
         }
 
+        /* For HelloVerifyRequest cookies */
+        if( ( ret = mbedtls_ssl_set_client_transport_id( &ssl,
+                        client_ip, cliip_len ) ) != 0 )
+        {
+            printf( " failed\n  ! "
+                    "mbedtls_ssl_set_client_transport_id() returned -0x%x\n\n", -ret );
+            goto exit;
+        }
+
         mbedtls_ssl_set_bio( &ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv, NULL );
 
         mbedtls_printf( "pid %d: SSL setup ok\n", pid );
@@ -356,6 +391,19 @@ int main( void )
 
         while( ( ret = mbedtls_ssl_handshake( &ssl ) ) != 0 )
         {
+            if ( ret == MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED )
+            {
+                //ret = 0;
+                mbedtls_ssl_session_reset( &ssl );
+                if( ( ret = mbedtls_ssl_set_client_transport_id( &ssl,
+                        client_ip, cliip_len ) ) != 0 )
+                {
+                    mbedtls_printf( " failed\n  ! "
+                                    "mbedtls_ssl_set_client_transport_id() returned -0x%x\n\n", -ret );
+                    goto exit;
+                }
+                continue;
+            }
             if( ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE )
             {
                 mbedtls_printf(
@@ -456,6 +504,7 @@ exit:
     mbedtls_pk_free( &pkey );
     mbedtls_ssl_free( &ssl );
     mbedtls_ssl_config_free( &conf );
+    mbedtls_ssl_cookie_free( &cookie_ctx );
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
 

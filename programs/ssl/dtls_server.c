@@ -19,6 +19,45 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
+ const char mbedtls_test_srv_key_local[] =
+{
+"-----BEGIN EC PRIVATE KEY-----\r\n"
+"MHcCAQEEIB8EceOiaOYcRqhFNlLQz6AlCme5zBMWNhQDxYbwd6WWoAoGCCqGSM49\r\n"
+"AwEHoUQDQgAEzfuze9LTuEJwGtwFm5zi37LAHuTll2czxtL0uGd6Mh7g8Quzdt4i\r\n"
+"IkQGEmRBdSQK1/Izopoh0W3jZCGzCxekmA==\r\n"
+"-----END EC PRIVATE KEY-----"
+};
+
+const char mbedtls_test_cas_pem_local[] = 
+{
+"-----BEGIN CERTIFICATE-----\r\n"
+"MIIBmDCCATygAwIBAgIBATAMBggqhkjOPQQDAgUAMCkxDDAKBgNVBAMTA1BBTDEM\r\n"
+"MAoGA1UEChMDYXJtMQswCQYDVQQGEwJJTDAeFw0xMzAxMDEwMDAwMDBaFw0yMDEy\r\n"
+"MzEyMzU5NTlaMCkxDDAKBgNVBAMTA1BBTDEMMAoGA1UEChMDYXJtMQswCQYDVQQG\r\n"
+"EwJJTDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABKQmJimYQ2zCLL4KkON4RKkV\r\n"
+"CwIm9hTaNlsPHRWxVnbsf1lrnWnZ2BYi8ZBjodO31zIxjce+j8ggWp36A3l6y36j\r\n"
+"UzBRMA8GA1UdEwQIMAYBAf8CAQAwHQYDVR0OBBYEFP5TTPqaxy8Mcr+qR8UWkmd/\r\n"
+"DgLvMB8GA1UdIwQYMBaAFP5TTPqaxy8Mcr+qR8UWkmd/DgLvMAwGCCqGSM49BAMC\r\n"
+"BQADSAAwRQIhAJfOxTyUtdQ77JLtK5Y/3K4W0gJqpo31sVthlfxNFw6rAiBAeycR\r\n"
+"g4f+YqJnfKiO1fPcYvk1kQtDgMkSMC5mZL/yyw==\r\n"
+"-----END CERTIFICATE-----"
+};
+
+const char mbedtls_test_srv_crt_local[] = 
+{
+"-----BEGIN CERTIFICATE-----\r\n"
+"MIIBmTCCAT2gAwIBAgIBATAMBggqhkjOPQQDAgUAMCkxDDAKBgNVBAMTA1BBTDEM\r\n"
+"MAoGA1UEChMDYXJtMQswCQYDVQQGEwJJTDAeFw0xMzAxMDEwMDAwMDBaFw0yMDEy\r\n"
+"MzEyMzU5NTlaMDAxEzARBgNVBAMTClBBTF9zZXJ2ZXIxDDAKBgNVBAoTA2FybTEL\r\n"
+"MAkGA1UEBhMCSUwwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAATN+7N70tO4QnAa\r\n"
+"3AWbnOLfssAe5OWXZzPG0vS4Z3oyHuDxC7N23iIiRAYSZEF1JArX8jOimiHRbeNk\r\n"
+"IbMLF6SYo00wSzAJBgNVHRMEAjAAMB0GA1UdDgQWBBRnxPYtY+O2Hq2pq/H3eXDS\r\n"
+"hr3neTAfBgNVHSMEGDAWgBT+U0z6mscvDHK/qkfFFpJnfw4C7zAMBggqhkjOPQQD\r\n"
+"AgUAA0gAMEUCIH4S0uXk+q7hJ56vsOxZ2Ngc7koE5D5og4dj4R640eTOAiEAx7gD\r\n"
+"2z83Qi4lFHFDjfxf2e71AFsTjZDKSAJZ/dmJTyg=\r\n"
+"-----END CERTIFICATE-----"
+};
+
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
@@ -138,24 +177,24 @@ int main( void )
      * Instead, you may want to use mbedtls_x509_crt_parse_file() to read the
      * server and CA certificates, as well as mbedtls_pk_parse_keyfile().
      */
-    ret = mbedtls_x509_crt_parse( &srvcert, (const unsigned char *) mbedtls_test_srv_crt,
-                          mbedtls_test_srv_crt_len );
+    ret = mbedtls_x509_crt_parse( &srvcert, (const unsigned char *) mbedtls_test_srv_crt_local,
+                          sizeof(mbedtls_test_srv_crt_local) );
     if( ret != 0 )
     {
         printf( " failed\n  !  mbedtls_x509_crt_parse returned %d\n\n", ret );
         goto exit;
     }
 
-    ret = mbedtls_x509_crt_parse( &srvcert, (const unsigned char *) mbedtls_test_cas_pem,
-                          mbedtls_test_cas_pem_len );
+    ret = mbedtls_x509_crt_parse( &srvcert, (const unsigned char *) mbedtls_test_cas_pem_local,
+                          sizeof(mbedtls_test_cas_pem_local) );
     if( ret != 0 )
     {
         printf( " failed\n  !  mbedtls_x509_crt_parse returned %d\n\n", ret );
         goto exit;
     }
 
-    ret =  mbedtls_pk_parse_key( &pkey, (const unsigned char *) mbedtls_test_srv_key,
-                         mbedtls_test_srv_key_len, NULL, 0 );
+    ret =  mbedtls_pk_parse_key( &pkey, (const unsigned char *) mbedtls_test_srv_key_local,
+                         sizeof(mbedtls_test_srv_key_local), NULL, 0 );
     if( ret != 0 )
     {
         printf( " failed\n  !  mbedtls_pk_parse_key returned %d\n\n", ret );
@@ -167,10 +206,10 @@ int main( void )
     /*
      * 2. Setup the "listening" UDP socket
      */
-    printf( "  . Bind on udp/*/4433 ..." );
+    printf( "  . Bind on udp/*/4422 ..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_net_bind( &listen_fd, NULL, "4433", MBEDTLS_NET_PROTO_UDP ) ) != 0 )
+    if( ( ret = mbedtls_net_bind( &listen_fd, NULL, "4422", MBEDTLS_NET_PROTO_UDP ) ) != 0 )
     {
         printf( " failed\n  ! mbedtls_net_bind returned %d\n\n", ret );
         goto exit;

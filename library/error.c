@@ -210,7 +210,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE) )
             mbedtls_snprintf( buf, buflen, "CIPHER - The selected feature is not available" );
         if( use_ret == -(MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA) )
-            mbedtls_snprintf( buf, buflen, "CIPHER - Bad input parameters to function" );
+            mbedtls_snprintf( buf, buflen, "CIPHER - Bad input parameters" );
         if( use_ret == -(MBEDTLS_ERR_CIPHER_ALLOC_FAILED) )
             mbedtls_snprintf( buf, buflen, "CIPHER - Failed to allocate memory" );
         if( use_ret == -(MBEDTLS_ERR_CIPHER_INVALID_PADDING) )
@@ -220,14 +220,14 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(MBEDTLS_ERR_CIPHER_AUTH_FAILED) )
             mbedtls_snprintf( buf, buflen, "CIPHER - Authentication failed (for AEAD modes)" );
         if( use_ret == -(MBEDTLS_ERR_CIPHER_INVALID_CONTEXT) )
-            mbedtls_snprintf( buf, buflen, "CIPHER - The context is invalid, eg because it was free()ed" );
+            mbedtls_snprintf( buf, buflen, "CIPHER - The context is invalid. For example, because it was freed" );
         if( use_ret == -(MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED) )
             mbedtls_snprintf( buf, buflen, "CIPHER - Cipher hardware accelerator failed" );
 #endif /* MBEDTLS_CIPHER_C */
 
 #if defined(MBEDTLS_DHM_C)
         if( use_ret == -(MBEDTLS_ERR_DHM_BAD_INPUT_DATA) )
-            mbedtls_snprintf( buf, buflen, "DHM - Bad input parameters to function" );
+            mbedtls_snprintf( buf, buflen, "DHM - Bad input parameters" );
         if( use_ret == -(MBEDTLS_ERR_DHM_READ_PARAMS_FAILED) )
             mbedtls_snprintf( buf, buflen, "DHM - Reading of the DHM parameters failed" );
         if( use_ret == -(MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED) )
@@ -243,7 +243,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(MBEDTLS_ERR_DHM_ALLOC_FAILED) )
             mbedtls_snprintf( buf, buflen, "DHM - Allocation of memory failed" );
         if( use_ret == -(MBEDTLS_ERR_DHM_FILE_IO_ERROR) )
-            mbedtls_snprintf( buf, buflen, "DHM - Read/write of file failed" );
+            mbedtls_snprintf( buf, buflen, "DHM - Read or write of file failed" );
         if( use_ret == -(MBEDTLS_ERR_DHM_HW_ACCEL_FAILED) )
             mbedtls_snprintf( buf, buflen, "DHM - DHM hardware accelerator failed" );
         if( use_ret == -(MBEDTLS_ERR_DHM_SET_GROUP_FAILED) )
@@ -368,7 +368,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(MBEDTLS_ERR_RSA_KEY_GEN_FAILED) )
             mbedtls_snprintf( buf, buflen, "RSA - Something failed during generation of a key" );
         if( use_ret == -(MBEDTLS_ERR_RSA_KEY_CHECK_FAILED) )
-            mbedtls_snprintf( buf, buflen, "RSA - Key failed to pass the library's validity check" );
+            mbedtls_snprintf( buf, buflen, "RSA - Key failed to pass the validity check of the library" );
         if( use_ret == -(MBEDTLS_ERR_RSA_PUBLIC_FAILED) )
             mbedtls_snprintf( buf, buflen, "RSA - The public key operation failed" );
         if( use_ret == -(MBEDTLS_ERR_RSA_PRIVATE_FAILED) )
@@ -380,7 +380,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(MBEDTLS_ERR_RSA_RNG_FAILED) )
             mbedtls_snprintf( buf, buflen, "RSA - The random generator failed to generate non-zeros" );
         if( use_ret == -(MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION) )
-            mbedtls_snprintf( buf, buflen, "RSA - The implementation doesn't offer the requested operation, e.g. because of security violations or lack of functionality" );
+            mbedtls_snprintf( buf, buflen, "RSA - The implementation does not offer the requested operation, for example, because of security violations or lack of functionality" );
         if( use_ret == -(MBEDTLS_ERR_RSA_HW_ACCEL_FAILED) )
             mbedtls_snprintf( buf, buflen, "RSA - RSA hardware accelerator failed" );
 #endif /* MBEDTLS_RSA_C */
@@ -571,7 +571,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH) )
         mbedtls_snprintf( buf, buflen, "AES - Invalid data input length" );
     if( use_ret == -(MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE) )
-        mbedtls_snprintf( buf, buflen, "AES - Feature not available, e.g. unsupported AES key size" );
+        mbedtls_snprintf( buf, buflen, "AES - Feature not available. For example, an unsupported AES key size" );
     if( use_ret == -(MBEDTLS_ERR_AES_HW_ACCEL_FAILED) )
         mbedtls_snprintf( buf, buflen, "AES - AES hardware accelerator failed" );
 #endif /* MBEDTLS_AES_C */
@@ -644,7 +644,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
 
 #if defined(MBEDTLS_CCM_C)
     if( use_ret == -(MBEDTLS_ERR_CCM_BAD_INPUT) )
-        mbedtls_snprintf( buf, buflen, "CCM - Bad input parameters to function" );
+        mbedtls_snprintf( buf, buflen, "CCM - Bad input parameters to the function" );
     if( use_ret == -(MBEDTLS_ERR_CCM_AUTH_FAILED) )
         mbedtls_snprintf( buf, buflen, "CCM - Authenticated decryption failed" );
     if( use_ret == -(MBEDTLS_ERR_CCM_HW_ACCEL_FAILED) )
@@ -660,11 +660,11 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED) )
         mbedtls_snprintf( buf, buflen, "CTR_DRBG - The entropy source failed" );
     if( use_ret == -(MBEDTLS_ERR_CTR_DRBG_REQUEST_TOO_BIG) )
-        mbedtls_snprintf( buf, buflen, "CTR_DRBG - Too many random requested in single call" );
+        mbedtls_snprintf( buf, buflen, "CTR_DRBG - The requested random buffer length is too big" );
     if( use_ret == -(MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG) )
-        mbedtls_snprintf( buf, buflen, "CTR_DRBG - Input too large (Entropy + additional)" );
+        mbedtls_snprintf( buf, buflen, "CTR_DRBG - The input (entropy + additional data) is too large" );
     if( use_ret == -(MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR) )
-        mbedtls_snprintf( buf, buflen, "CTR_DRBG - Read/write error in file" );
+        mbedtls_snprintf( buf, buflen, "CTR_DRBG - Read or write error in file" );
 #endif /* MBEDTLS_CTR_DRBG_C */
 
 #if defined(MBEDTLS_DES_C)

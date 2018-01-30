@@ -2,6 +2,10 @@
  * \file md4.h
  *
  * \brief MD4 message digest algorithm (hash function)
+ *
+ * \warning MD4 is considered a weak message digest and its use constitutes a
+ *          security risk. We recommend considering stronger message digests
+ *          instead.
  */
 /*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
@@ -20,6 +24,7 @@
  *  limitations under the License.
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
+ *
  */
 #ifndef MBEDTLS_MD4_H
 #define MBEDTLS_MD4_H
@@ -50,6 +55,11 @@ extern "C" {
 
 /**
  * \brief          MD4 context structure
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 typedef struct
 {
@@ -63,6 +73,11 @@ mbedtls_md4_context;
  * \brief          Initialize MD4 context
  *
  * \param ctx      MD4 context to be initialized
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void mbedtls_md4_init( mbedtls_md4_context *ctx );
 
@@ -70,6 +85,11 @@ void mbedtls_md4_init( mbedtls_md4_context *ctx );
  * \brief          Clear MD4 context
  *
  * \param ctx      MD4 context to be cleared
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void mbedtls_md4_free( mbedtls_md4_context *ctx );
 
@@ -78,6 +98,11 @@ void mbedtls_md4_free( mbedtls_md4_context *ctx );
  *
  * \param dst      The destination context
  * \param src      The context to be cloned
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void mbedtls_md4_clone( mbedtls_md4_context *dst,
                         const mbedtls_md4_context *src );
@@ -88,6 +113,10 @@ void mbedtls_md4_clone( mbedtls_md4_context *dst,
  * \param ctx      context to be initialized
  *
  * \return         0 if successful
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
  */
 int mbedtls_md4_starts_ret( mbedtls_md4_context *ctx );
 
@@ -99,6 +128,11 @@ int mbedtls_md4_starts_ret( mbedtls_md4_context *ctx );
  * \param ilen     length of the input data
  *
  * \return         0 if successful
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 int mbedtls_md4_update_ret( mbedtls_md4_context *ctx,
                             const unsigned char *input,
@@ -111,6 +145,11 @@ int mbedtls_md4_update_ret( mbedtls_md4_context *ctx,
  * \param output   MD4 checksum result
  *
  * \return         0 if successful
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 int mbedtls_md4_finish_ret( mbedtls_md4_context *ctx,
                             unsigned char output[16] );
@@ -122,6 +161,11 @@ int mbedtls_md4_finish_ret( mbedtls_md4_context *ctx,
  * \param data     buffer holding one block of data
  *
  * \return         0 if successful
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 int mbedtls_internal_md4_process( mbedtls_md4_context *ctx,
                                   const unsigned char data[64] );
@@ -138,6 +182,11 @@ int mbedtls_internal_md4_process( mbedtls_md4_context *ctx,
  * \deprecated     Superseded by mbedtls_md4_starts_ret() in 2.7.0
  *
  * \param ctx      context to be initialized
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_md4_starts(
                                                     mbedtls_md4_context *ctx )
@@ -153,6 +202,11 @@ MBEDTLS_DEPRECATED static inline void mbedtls_md4_starts(
  * \param ctx      MD4 context
  * \param input    buffer holding the data
  * \param ilen     length of the input data
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_md4_update(
                                                     mbedtls_md4_context *ctx,
@@ -169,6 +223,11 @@ MBEDTLS_DEPRECATED static inline void mbedtls_md4_update(
  *
  * \param ctx      MD4 context
  * \param output   MD4 checksum result
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_md4_finish(
                                                     mbedtls_md4_context *ctx,
@@ -184,6 +243,11 @@ MBEDTLS_DEPRECATED static inline void mbedtls_md4_finish(
  *
  * \param ctx      MD4 context
  * \param data     buffer holding one block of data
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_md4_process(
                                                 mbedtls_md4_context *ctx,
@@ -215,6 +279,11 @@ extern "C" {
  * \param output   MD4 checksum result
  *
  * \return         0 if successful
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 int mbedtls_md4_ret( const unsigned char *input,
                      size_t ilen,
@@ -234,6 +303,11 @@ int mbedtls_md4_ret( const unsigned char *input,
  * \param input    buffer holding the data
  * \param ilen     length of the input data
  * \param output   MD4 checksum result
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_md4( const unsigned char *input,
                                                    size_t ilen,
@@ -249,6 +323,11 @@ MBEDTLS_DEPRECATED static inline void mbedtls_md4( const unsigned char *input,
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed
+ *
+ * \warning        MD4 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 int mbedtls_md4_self_test( int verbose );
 

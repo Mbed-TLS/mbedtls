@@ -2,6 +2,10 @@
  * \file md2.h
  *
  * \brief MD2 message digest algorithm (hash function)
+ *
+ * \warning MD2 is considered a weak message digest and its use constitutes a
+ *          security risk. We recommend considering stronger message digests
+ *          instead.
  */
 /*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
@@ -20,6 +24,7 @@
  *  limitations under the License.
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
+ *
  */
 #ifndef MBEDTLS_MD2_H
 #define MBEDTLS_MD2_H
@@ -49,6 +54,11 @@ extern "C" {
 
 /**
  * \brief          MD2 context structure
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 typedef struct
 {
@@ -63,6 +73,11 @@ mbedtls_md2_context;
  * \brief          Initialize MD2 context
  *
  * \param ctx      MD2 context to be initialized
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void mbedtls_md2_init( mbedtls_md2_context *ctx );
 
@@ -70,6 +85,11 @@ void mbedtls_md2_init( mbedtls_md2_context *ctx );
  * \brief          Clear MD2 context
  *
  * \param ctx      MD2 context to be cleared
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void mbedtls_md2_free( mbedtls_md2_context *ctx );
 
@@ -78,6 +98,11 @@ void mbedtls_md2_free( mbedtls_md2_context *ctx );
  *
  * \param dst      The destination context
  * \param src      The context to be cloned
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 void mbedtls_md2_clone( mbedtls_md2_context *dst,
                         const mbedtls_md2_context *src );
@@ -88,6 +113,11 @@ void mbedtls_md2_clone( mbedtls_md2_context *dst,
  * \param ctx      context to be initialized
  *
  * \return         0 if successful
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 int mbedtls_md2_starts_ret( mbedtls_md2_context *ctx );
 
@@ -99,6 +129,11 @@ int mbedtls_md2_starts_ret( mbedtls_md2_context *ctx );
  * \param ilen     length of the input data
  *
  * \return         0 if successful
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 int mbedtls_md2_update_ret( mbedtls_md2_context *ctx,
                             const unsigned char *input,
@@ -111,6 +146,11 @@ int mbedtls_md2_update_ret( mbedtls_md2_context *ctx,
  * \param output   MD2 checksum result
  *
  * \return         0 if successful
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 int mbedtls_md2_finish_ret( mbedtls_md2_context *ctx,
                             unsigned char output[16] );
@@ -121,6 +161,11 @@ int mbedtls_md2_finish_ret( mbedtls_md2_context *ctx,
  * \param ctx      MD2 context
  *
  * \return         0 if successful
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 int mbedtls_internal_md2_process( mbedtls_md2_context *ctx );
 
@@ -136,6 +181,11 @@ int mbedtls_internal_md2_process( mbedtls_md2_context *ctx );
  * \deprecated     Superseded by mbedtls_md2_starts_ret() in 2.7.0
  *
  * \param ctx      context to be initialized
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_md2_starts(
                                                     mbedtls_md2_context *ctx )
@@ -151,6 +201,11 @@ MBEDTLS_DEPRECATED static inline void mbedtls_md2_starts(
  * \param ctx      MD2 context
  * \param input    buffer holding the data
  * \param ilen     length of the input data
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_md2_update(
                                                 mbedtls_md2_context *ctx,
@@ -167,6 +222,11 @@ MBEDTLS_DEPRECATED static inline void mbedtls_md2_update(
  *
  * \param ctx      MD2 context
  * \param output   MD2 checksum result
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_md2_finish(
                                                     mbedtls_md2_context *ctx,
@@ -181,6 +241,11 @@ MBEDTLS_DEPRECATED static inline void mbedtls_md2_finish(
  * \deprecated     Superseded by mbedtls_internal_md2_process() in 2.7.0
  *
  * \param ctx      MD2 context
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_md2_process(
                                                     mbedtls_md2_context *ctx )
@@ -209,6 +274,11 @@ extern "C" {
  * \param input    buffer holding the data
  * \param ilen     length of the input data
  * \param output   MD2 checksum result
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 int mbedtls_md2_ret( const unsigned char *input,
                      size_t ilen,
@@ -228,6 +298,11 @@ int mbedtls_md2_ret( const unsigned char *input,
  * \param input    buffer holding the data
  * \param ilen     length of the input data
  * \param output   MD2 checksum result
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 MBEDTLS_DEPRECATED static inline void mbedtls_md2( const unsigned char *input,
                                                    size_t ilen,
@@ -243,6 +318,11 @@ MBEDTLS_DEPRECATED static inline void mbedtls_md2( const unsigned char *input,
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
  */
 int mbedtls_md2_self_test( int verbose );
 

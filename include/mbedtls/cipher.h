@@ -68,7 +68,13 @@
 extern "C" {
 #endif
 
-/** Supported cipher IDs. */
+/**
+ * \brief     An enumeration of supported ciphers.
+ *
+ * \warning   ARC4 and DES are considered weak ciphers and their use
+ *            constitutes a security risk. We recommend considering stronger
+ *            ciphers instead.
+ */
 typedef enum {
     MBEDTLS_CIPHER_ID_NONE = 0,
     MBEDTLS_CIPHER_ID_NULL,
@@ -80,7 +86,13 @@ typedef enum {
     MBEDTLS_CIPHER_ID_ARC4,
 } mbedtls_cipher_id_t;
 
-/** Supported cipher types. */
+/**
+ * \brief     An enumeration of supported (cipher, mode) pairs.
+ *
+ * \warning   ARC4 and DES are considered weak ciphers and their use
+ *            constitutes a security risk. We recommend considering stronger
+ *            ciphers instead.
+ */
 typedef enum {
     MBEDTLS_CIPHER_NONE = 0,
     MBEDTLS_CIPHER_NULL,

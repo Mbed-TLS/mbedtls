@@ -195,6 +195,8 @@ Changes
    * Add MBEDTLS_ERR_XXX_HW_ACCEL_FAILED error codes for all cryptography
      modules where the software implementation can be replaced by a hardware
      implementation.
+   * Add explicit warnings for the use of MD2, MD4, MD5, SHA-1, DES and ARC4
+     throughout the library.
 
 = mbed TLS 2.6.0 branch released 2017-08-10
 

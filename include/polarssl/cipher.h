@@ -66,6 +66,13 @@
 extern "C" {
 #endif
 
+/**
+ * \brief     Enumeration of supported ciphers
+ *
+ * \warning   ARC4 and DES are considered weak ciphers and their use
+ *            constitutes a security risk. We recommend considering stronger
+ *            ciphers instead.
+ */
 typedef enum {
     POLARSSL_CIPHER_ID_NONE = 0,
     POLARSSL_CIPHER_ID_NULL,
@@ -77,6 +84,14 @@ typedef enum {
     POLARSSL_CIPHER_ID_ARC4,
 } cipher_id_t;
 
+/**
+ * \brief     Enumeration of supported (cipher,mode) pairs
+ *
+ * \warning   ARC4 and DES are considered weak ciphers and their use
+ *            constitutes a security risk. We recommend considering stronger
+ *            ciphers instead.
+ *
+ */
 typedef enum {
     POLARSSL_CIPHER_NONE = 0,
     POLARSSL_CIPHER_NULL,

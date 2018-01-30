@@ -55,7 +55,7 @@ typedef struct {
     mbedtls_cipher_context_t cipher_ctx;  /*!< The cipher context used. */
     uint64_t HL[16];                      /*!< Precalculated HTable low. */
     uint64_t HH[16];                      /*!< Precalculated HTable high. */
-    uint64_t len;                         /*!< The total length of the data. */
+    uint64_t len;                         /*!< The total length of the encrypted data. */
     uint64_t add_len;                     /*!< The total length of the additional data. */
     unsigned char base_ectr[16];          /*!< The first ECTR for tag. */
     unsigned char y[16];                  /*!< The Y working value. */
@@ -80,11 +80,8 @@ mbedtls_gcm_context;
 void mbedtls_gcm_init( mbedtls_gcm_context *ctx );
 
 /**
- * \brief           This function initializes the specified GCM context.
- *
- *                  This function sets up the GCM context for encryption
- *                  and decryption, by binding it to a block cipher type
- *                  and setting the keys to use.
+ * \brief           This function associates a GCM context with a
+ *                  cipher algorithm and a key.
  *
  * \param ctx       The GCM context to initialize.
  * \param cipher    The 128-bit block cipher to use.
@@ -109,10 +106,10 @@ int mbedtls_gcm_setkey( mbedtls_gcm_context *ctx,
  * \param ctx       The GCM context to use for encryption or decryption.
  * \param mode      The operation to perform: #MBEDTLS_GCM_ENCRYPT or 
  *                  #MBEDTLS_GCM_DECRYPT.
- * \param length    The length of the input data.
+ * \param length    The length of the input data. This must be a multiple of 16 except in the last call before mbedtls_gcm_finish().
  * \param iv        The initialization vector.
  * \param iv_len    The length of the IV.
- * \param add       The additional data field.
+ * \param add       The buffer holding the additional data.
  * \param add_len   The length of the additional data.
  * \param input     The buffer holding the input data.
  * \param output    The buffer for holding the output data.
@@ -142,10 +139,10 @@ int mbedtls_gcm_crypt_and_tag( mbedtls_gcm_context *ctx,
  *       behind the input buffer.
  *
  * \param ctx       The GCM context.
- * \param length    The length of the input data.
+ * \param length    The length of the input data. This must be a multiple of 16 except in the last call before mbedtls_gcm_finish().
  * \param iv        The initialization vector.
  * \param iv_len    The length of the IV.
- * \param add       The additional data field.
+ * \param add       The buffer holding the additional data.
  * \param add_len   The length of the additional data.
  * \param tag       The buffer holding the tag.
  * \param tag_len   The length of the tag.
@@ -175,7 +172,7 @@ int mbedtls_gcm_auth_decrypt( mbedtls_gcm_context *ctx,
  *                  #MBEDTLS_GCM_DECRYPT.
  * \param iv        The initialization vector.
  * \param iv_len    The length of the IV.
- * \param add       The additional data field, or NULL if \p add_len is 0.
+ * \param add       The buffer holding the additional data, or NULL if \p add_len is 0.
  * \param add_len   The length of the additional data. If 0, \p  add is NULL.
  *
  * \return         \c 0 on success.
@@ -200,7 +197,7 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
  *       behind the input buffer.
  *
  * \param ctx       The GCM context.
- * \param length    The length of the input data.
+ * \param length    The length of the input data. This must be a multiple of 16 except in the last call before mbedtls_gcm_finish().
  * \param input     The buffer holding the input data.
  * \param output    The buffer for holding the output data.
  *
@@ -229,9 +226,10 @@ int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
                 size_t tag_len );
 
 /**
- * \brief           This function frees a GCM context and the underlying cipher sub-context.
+ * \brief           This function clears a GCM context and the underlying 
+ *                  cipher sub-context.
  *
- * \param ctx       The GCM context to free.
+ * \param ctx       The GCM context to clear.
  */
 void mbedtls_gcm_free( mbedtls_gcm_context *ctx );
 

@@ -58,6 +58,11 @@ const char mbedtls_test_srv_crt_local[] =
 "-----END CERTIFICATE-----"
 };
 
+
+#define PAL_TEST_PSK_IDENTITY "Client_identity"
+#define PAL_TEST_PSK {0x12,0x34,0x45,0x67,0x89,0x10}
+
+
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
@@ -135,6 +140,7 @@ static void my_debug( void *ctx, int level,
 int main( void )
 {
     int ret, len, cnt = 0, pid;
+
     mbedtls_net_context listen_fd, client_fd;
     unsigned char buf[1024];
     const char *pers = "ssl_fork_server";
@@ -156,6 +162,9 @@ int main( void )
     mbedtls_ctr_drbg_init( &ctr_drbg );
 
     signal( SIGCHLD, SIG_IGN );
+
+    const char* identity = PAL_TEST_PSK_IDENTITY;
+    const char psk[]= PAL_TEST_PSK;
 
     /*
      * 0. Initial seeding of the RNG
@@ -238,6 +247,10 @@ int main( void )
         mbedtls_printf( " failed!  mbedtls_ssl_conf_own_cert returned %d\n\n", ret );
         goto exit;
     }
+
+    ret = mbedtls_ssl_conf_psk( &conf, psk, sizeof(psk),
+                           (const unsigned char *) identity,
+                           strlen( identity ) );
 
     mbedtls_printf( " ok\n" );
 

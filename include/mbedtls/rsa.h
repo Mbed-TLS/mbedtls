@@ -497,7 +497,7 @@ int mbedtls_rsa_check_pub_priv( const mbedtls_rsa_context *pub,
  *                 input is smaller than \p N.
  *
  * \note           The input and output buffers must be large
- *                 enough. For example, 128Bytes if RSA-1024 is used.
+ *                 enough. For example, 128 Bytes if RSA-1024 is used.
  */
 int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
                 const unsigned char *input,
@@ -516,7 +516,7 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
  *                 on failure.
  *
  * \note           The input and output buffers must be large
- *                 enough. For example, 128Bytes if RSA-1024 is used.
+ *                 enough. For example, 128 Bytes if RSA-1024 is used.
  */
 int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
                  int (*f_rng)(void *, unsigned char *, size_t),
@@ -554,7 +554,7 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
  *                 on failure.
  *
  * \note           The input and output buffers must be as large as the size
- *                 of \p ctx->N. For example, 128Bytes if RSA-1024 is used.
+ *                 of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
  */
 int mbedtls_rsa_pkcs1_encrypt( mbedtls_rsa_context *ctx,
                        int (*f_rng)(void *, unsigned char *, size_t),
@@ -589,7 +589,7 @@ int mbedtls_rsa_pkcs1_encrypt( mbedtls_rsa_context *ctx,
  *                 on failure.
  *
  * \note           The output buffer must be as large as the size
- *                 of \p ctx->N. For example, 128Bytes if RSA-1024 is used.
+ *                 of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
  */
 int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
                                  int (*f_rng)(void *, unsigned char *, size_t),
@@ -626,7 +626,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
  *                 on failure.
  *
  * \note           The output buffer must be as large as the size
- *                 of ctx->N. For example, 128Bytes if RSA-1024 is used.
+ *                 of ctx->N. For example, 128 Bytes if RSA-1024 is used.
  */
 int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
                             int (*f_rng)(void *, unsigned char *, size_t),
@@ -667,13 +667,13 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
  *
  * \note           The output buffer length \c output_max_len should be
  *                 as large as the size \p ctx->len of \p ctx->N (for example,
- *                 128Bytes if RSA-1024 is used) to be able to hold an
+ *                 128 Bytes if RSA-1024 is used) to be able to hold an
  *                 arbitrary decrypted message. If it is not large enough to
  *                 hold the decryption of the particular ciphertext provided,
  *                 the function returns \c MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE.
  *
  * \note           The input buffer must be as large as the size
- *                 of \p ctx->N. For example, 128Bytes if RSA-1024 is used.
+ *                 of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
  */
 int mbedtls_rsa_pkcs1_decrypt( mbedtls_rsa_context *ctx,
                        int (*f_rng)(void *, unsigned char *, size_t),
@@ -710,13 +710,13 @@ int mbedtls_rsa_pkcs1_decrypt( mbedtls_rsa_context *ctx,
  *
  * \note           The output buffer length \c output_max_len should be
  *                 as large as the size \p ctx->len of \p ctx->N, for example,
- *                 128Bytes if RSA-1024 is used, to be able to hold an
+ *                 128 Bytes if RSA-1024 is used, to be able to hold an
  *                 arbitrary decrypted message. If it is not large enough to
  *                 hold the decryption of the particular ciphertext provided,
  *                 the function returns #MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE.
  *
  * \note           The input buffer must be as large as the size
- *                 of \p ctx->N. For example, 128Bytes if RSA-1024 is used.
+ *                 of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
  */
 int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
                                  int (*f_rng)(void *, unsigned char *, size_t),
@@ -755,14 +755,14 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
  *
  * \note           The output buffer length \c output_max_len should be
  *                 as large as the size \p ctx->len of \p ctx->N, for
- *                 example, 128Bytes if RSA-1024 is used, to be able to
+ *                 example, 128 Bytes if RSA-1024 is used, to be able to
  *                 hold an arbitrary decrypted message. If it is not
  *                 large enough to hold the decryption of the particular
  *                 ciphertext provided, the function returns
  *                 #MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE.
  *
  * \note           The input buffer must be as large as the size
- *                 of \p ctx->N. For example, 128Bytes if RSA-1024 is used.
+ *                 of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
  */
 int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
                             int (*f_rng)(void *, unsigned char *, size_t),
@@ -805,7 +805,7 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
  *                 or an \c MBEDTLS_ERR_RSA_XXX error code on failure.
  *
  * \note           The \p sig buffer must be as large as the size
- *                 of \p ctx->N. For example, 128Bytes if RSA-1024 is used.
+ *                 of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
  *
  * \note           For PKCS#1 v2.1 encoding, see comments on
  *                 mbedtls_rsa_rsassa_pss_sign() for details on
@@ -848,7 +848,7 @@ int mbedtls_rsa_pkcs1_sign( mbedtls_rsa_context *ctx,
  *                 on failure.
  *
  * \note           The \p sig buffer must be as large as the size
- *                 of \p ctx->N. For example, 128Bytes if RSA-1024 is used.
+ *                 of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
  */
 int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
                                int (*f_rng)(void *, unsigned char *, size_t),
@@ -888,7 +888,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
  *                 on failure.
  *
  * \note           The \p sig buffer must be as large as the size
- *                 of \p ctx->N. For example, 128Bytes if RSA-1024 is used.
+ *                 of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
  *
  * \note           The \p hash_id in the RSA context is the one used for the
  *                 encoding. \p md_alg in the function call is the type of hash
@@ -937,7 +937,7 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
  *                 on failure.
  *
  * \note           The \p sig buffer must be as large as the size
- *                 of \p ctx->N. For example, 128Bytes if RSA-1024 is used.
+ *                 of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
  *
  * \note           For PKCS#1 v2.1 encoding, see comments on
  *                 mbedtls_rsa_rsassa_pss_verify() about \p md_alg and
@@ -980,7 +980,7 @@ int mbedtls_rsa_pkcs1_verify( mbedtls_rsa_context *ctx,
  *                 on failure.
  *
  * \note           The \p sig buffer must be as large as the size
- *                 of \p ctx->N. For example, 128Bytes if RSA-1024 is used.
+ *                 of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
  */
 int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
                                  int (*f_rng)(void *, unsigned char *, size_t),
@@ -1022,7 +1022,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
  *                 on failure.
  *
  * \note           The \p sig buffer must be as large as the size
- *                 of \p ctx->N. For example, 128Bytes if RSA-1024 is used.
+ *                 of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
  *
  * \note           The \p hash_id in the RSA context is the one used for the
  *                 verification. \p md_alg in the function call is the type of
@@ -1066,7 +1066,7 @@ int mbedtls_rsa_rsassa_pss_verify( mbedtls_rsa_context *ctx,
  *                 on failure.
  *
  * \note           The \p sig buffer must be as large as the size
- *                 of \p ctx->N. For example, 128Bytes if RSA-1024 is used.
+ *                 of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
  *
  * \note           The \p hash_id in the RSA context is ignored.
  */

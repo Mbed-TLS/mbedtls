@@ -129,7 +129,8 @@ int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
 
 /**
  * \brief          This function processes a single data block within
- *                 the ongoing SHA-256 computation.
+ *                 the ongoing SHA-256 computation. This function is for
+ *                 internal use only.
  *
  * \param ctx      The SHA-256 context.
  * \param data     The buffer holding one block of data.
@@ -198,7 +199,8 @@ MBEDTLS_DEPRECATED static inline void mbedtls_sha256_finish(
 
 /**
  * \brief          This function processes a single data block within
- *                 the ongoing SHA-256 computation.
+ *                 the ongoing SHA-256 computation. This function is for
+ *                 internal use only.
  *
  * \deprecated     Superseded by mbedtls_internal_sha256_process() in 2.7.0.
  *

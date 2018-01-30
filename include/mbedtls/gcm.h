@@ -86,7 +86,10 @@ void mbedtls_gcm_init( mbedtls_gcm_context *ctx );
  * \param ctx       The GCM context to initialize.
  * \param cipher    The 128-bit block cipher to use.
  * \param key       The encryption key.
- * \param keybits   The key size in bits. Must be 128bits, 192bits or 256bits.
+ * \param keybits   The key size in bits. Valid options are:
+ *                  <ul><li>128 bits</li>
+ *                  <li>192 bits</li>
+ *                  <li>256 bits</li></ul>
  *
  * \return          \c 0 on success, or a cipher specific error code.
  */

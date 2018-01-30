@@ -118,7 +118,8 @@ int mbedtls_sha512_update_ret( mbedtls_sha512_context *ctx,
 
 /**
  * \brief          This function finishes the SHA-512 operation, and writes
- *                 the result to the output buffer.
+ *                 the result to the output buffer. This function is for
+ *                 internal use only.
  *
  * \param ctx      The SHA-512 context.
  * \param output   The SHA-384 or SHA-512 checksum result.
@@ -199,7 +200,8 @@ MBEDTLS_DEPRECATED static inline void mbedtls_sha512_finish(
 
 /**
  * \brief          This function processes a single data block within
- *                 the ongoing SHA-512 computation.
+ *                 the ongoing SHA-512 computation. This function is for
+ *                 internal use only.
  *
  * \deprecated     Superseded by mbedtls_internal_sha512_process() in 2.7.0
  *

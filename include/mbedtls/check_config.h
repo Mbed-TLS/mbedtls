@@ -66,7 +66,7 @@
 #error "MBEDTLS_HAVE_TIME_DATE without MBEDTLS_HAVE_TIME does not make sense"
 #endif
 
-#if defined(MBEDTLS_AESNI_C) && !defined(MBEDTLS_HAVE_ASM)
+#if defined(MBEDTLS_AESNI_C) && !defined(MBEDTLS_HAVE_ASM) && !(defined(_MSC_VER) && defined(_M_X64))
 #error "MBEDTLS_AESNI_C defined, but not all prerequisites"
 #endif
 

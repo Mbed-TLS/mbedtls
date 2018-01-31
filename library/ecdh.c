@@ -91,7 +91,9 @@ cleanup:
  */
 void mbedtls_ecdh_init( mbedtls_ecdh_context *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_ecdh_context ) );
+    if ( ctx != NULL ) {
+        memset( ctx, 0, sizeof( mbedtls_ecdh_context ) );
+    }
 }
 
 /*
@@ -161,6 +163,9 @@ int mbedtls_ecdh_read_params( mbedtls_ecdh_context *ctx,
 {
     int ret;
 
+    if ( ctx == NULL || buf == NULL || *buf == NULL || end == NULL )
+        return ( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+    
     if( ( ret = mbedtls_ecp_tls_read_group( &ctx->grp, buf, end - *buf ) ) != 0 )
         return( ret );
 
@@ -178,6 +183,9 @@ int mbedtls_ecdh_get_params( mbedtls_ecdh_context *ctx, const mbedtls_ecp_keypai
                      mbedtls_ecdh_side side )
 {
     int ret;
+
+    if ( ctx == NULL || key == NULL )
+        return ( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     if( ( ret = mbedtls_ecp_group_copy( &ctx->grp, &key->grp ) ) != 0 )
         return( ret );
@@ -249,7 +257,7 @@ int mbedtls_ecdh_calc_secret( mbedtls_ecdh_context *ctx, size_t *olen,
 {
     int ret;
 
-    if( ctx == NULL )
+    if( ctx == NULL  || olen == NULL || buf == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     if( ( ret = mbedtls_ecdh_compute_shared( &ctx->grp, &ctx->z, &ctx->Qp, &ctx->d,

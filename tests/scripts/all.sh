@@ -533,6 +533,19 @@ if uname -a | grep -F x86_64 >/dev/null; then
     msg "build: i386, make, gcc" # ~ 30s
     cleanup
     make CC=gcc CFLAGS='-Werror -m32'
+
+    msg "test: i386, make, gcc"
+    make test
+
+    msg "build: 64-bit ILP32, make, gcc" # ~ 30s
+    cleanup
+    # Explicitly unset OPENSSL, so that make doesn't build test/o_p_test
+    # which doesn't work on ILP32 because OpenSSL is not available.
+    # (OPENSSL may be in the environemnt to indicate the path to openssl.)
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -mx32' OPENSSL=
+
+    msg "test: 64-bit ILP32, make, gcc"
+    make test
 fi # x86_64
 
 msg "build: arm-none-eabi-gcc, make" # ~ 10s
